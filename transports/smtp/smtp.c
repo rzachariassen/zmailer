@@ -4825,7 +4825,7 @@ struct cnamecache_struct {
 
 static int cnamecache_head;
 static int cnamecache_free;
-static struct cnamecache_struct  *cnamecache; /* BSS NULL value */
+static struct cnamecache_struct  *cnamecache, *cp; /* BSS NULL value */
 
 static void cnamecache_init __((FILE *verboselog));
 static void cnamecache_init(verboselog)
@@ -4834,11 +4834,12 @@ static void cnamecache_init(verboselog)
   int i;
   cnamecache = malloc(sizeof(struct cnamecache_struct) * CNAMECACHESIZE);
   if (!cnamecache) return; /* Urgh... */
-  memset(cnamecache, 0, sizeof(cnamecache));
-
 
   for (i = 0; i < CNAMECACHESIZE; ++i) {
-    cnamecache[i].next = i+1;
+    cp = & cnamecache[i];
+    cp->next = i+1;
+    cp->hash = cp->ttl   = 0;
+    cp->name = cp->cname = NULL;
   }
   cnamecache[CNAMECACHESIZE-1].next = -1;
   cnamecache_free = 0;
@@ -4889,8 +4890,8 @@ static int cname_lookup(SS, host, cnamep)
       if (cp) cp->next = ci->next;
       ci->next = cnamecache_free;
       cnamecache_free = idx;
-      if (ci->name)  { free((void*)(ci->name));  ci->name  = NULL; }
-      if (ci->cname) { free((void*)(ci->cname)); ci->cname = NULL; }
+      if (ci->name)  free((void*)(ci->name));   ci->name  = NULL;
+      if (ci->cname) free((void*)(ci->cname));  ci->cname = NULL;
       ci = cp; /* Keep PREV pointer.. */
       continue;
     }
@@ -4971,14 +4972,14 @@ static const char *add_cname_cache(SS, host, cname, ttl)
       if (cp) cp->next = ci->next;
       ci->next = cnamecache_free;
       cnamecache_free = idx;
-      if (ci->name)  { free((void*)(ci->name));  ci->name  = NULL; }
-      if (ci->cname) { free((void*)(ci->cname)); ci->cname = NULL; }
+      if (ci->name)  free((void*)(ci->name));   ci->name  = NULL;
+      if (ci->cname) free((void*)(ci->cname));  ci->cname = NULL;
       ci = cp; /* Keep PREV pointer.. */
       continue;
     }
 
     if (ci->hash == hhash && ci->name && CISTREQ(ci->name, host)) {
-      if (ci->cname) { free((void*)(ci->cname)); ci->cname = NULL; }
+      if (ci->cname) free((void*)(ci->cname));  ci->cname = NULL;
       if (cname)  ci->cname = strdup(cname);
       /* if (SS->verboselog)fprintf(SS->verboselog," ... inserted into idx=%d\n",idx); */
       return ci->cname;
@@ -4993,9 +4994,9 @@ static const char *add_cname_cache(SS, host, cname, ttl)
   ci->next = cnamecache_head;
   cnamecache_head = idx;
 
-  if (ci->name)  { free((void*)(ci->name));  ci->name  = NULL; }
-  if (ci->cname) { free((void*)(ci->cname)); ci->cname = NULL; }
-  if (cname)  ci->cname = strdup(cname);
+  if (ci->name)  { free((void*)(ci->name));  }
+  if (ci->cname) { free((void*)(ci->cname)); }
+  if (cname)  ci->cname = strdup(cname); else ci->cname = NULL;
   ci->name = strdup(host);
   ci->hash = hhash;
   ci->ttl  = ttl;
