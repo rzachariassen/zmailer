@@ -20,7 +20,7 @@
 
 
 static int subdaemon_handler_rtr_init  __((void**));
-static int subdaemon_handler_rtr_input __((void*, struct peerdata *));
+static int subdaemon_handler_rtr_input __((void *, struct peerdata*));
 static int subdaemon_handler_rtr_preselect  __((void*, fd_set *, fd_set *, int *));
 static int subdaemon_handler_rtr_postselect __((void*, fd_set *, fd_set *));
 
@@ -44,8 +44,8 @@ subdaemon_handler_rtr_init (statep)
 
 static int
 subdaemon_handler_rtr_input (state, peerdata)
-     struct peerdata *peerdata;
      void *state;
+     struct peerdata *peerdata;
 {
 	int i;
 

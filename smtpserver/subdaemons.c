@@ -101,17 +101,32 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	int n, rc;
 	struct peerdata *peers, *peer;
 	void *statep = NULL;
-	int ppid, myparent = getppid();
-	int top_peer = 0, topfd, newfd;
+	int ppid;
+	int top_peer = 0, top_peer2, topfd, newfd;
 
 	fd_set rdset, wrset;
 	struct timeval tv;
+
+
+	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
 
 	/* Close all (possible) FDs above magic value of ZERO */
 	for (n = 0; n < subdaemon_nofiles; ++n)
 	  if (n != rendezvous_socket)
 	    close(n);
 
+#if 0
+	{
+	  extern int logstyle;
+	  extern char *logfile;
+	  extern void openlogfp __((SmtpState * SS, int insecure));
+
+	  logstyle = 0;
+	  if (logfp) fclose(logfp); logfp = NULL;
+	  logfile = "smtpserver-subdaemons.log";
+	  openlogfp(NULL, 1);
+	}
+#endif
 	peers = calloc(subdaemon_nofiles, sizeof(*peers));
 	if (!peers) return -1; /* ENOMEM ?? */
 
@@ -126,15 +141,14 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	for (;;) {
 
 	  ppid = getppid();
-	  if ( (ppid != myparent) &&
-	       (rendezvous_socket < 0) &&
+	  if ( (ppid <= 1) && (rendezvous_socket < 0) &&
 	       (top_peer <= 0)) break; /* parent is gone, clients are gone
 					  -> kill self! */
 
 	  _Z_FD_ZERO(rdset);
 	  _Z_FD_ZERO(wrset);
 
-	  tv.tv_sec  = 10;
+	  tv.tv_sec  = 10; /* 10 second tick.. */
 	  tv.tv_usec =  0;
 
 	  topfd = 0;
@@ -143,8 +157,10 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    topfd = rendezvous_socket;
 	  }
 
+	  top_peer2 = 0;
 	  for (n = 0; n < top_peer; ++n) {
 	    if (peers[n].fd >= 0) {
+	      top_peer2 = n+1;
 	      if (topfd < peers[n].fd)
 		topfd = peers[n].fd;
 	      if (peers[n].inlen == 0)
@@ -153,33 +169,47 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		_Z_FD_SET(peers[n].fd, wrset);
 	    }
 	  }
+	  top_peer = top_peer2; /* New topmost peer index */
 
 	  rc = (subdaemon_handler->preselect)( statep, & rdset, & wrset, &topfd );
 
-
 	  rc = select( topfd+1, &rdset, &wrset, NULL, &tv );
+	  time(&now);
+
+	  if (rc == 0) {
+	    /* Select timeout.. */
+	    rc = (subdaemon_handler->postselect)( statep, & rdset, & wrset );
+	    continue;
+	  }
 
 	  if (rc > 0) { /* Things have been read or written.. */
 
-
 	    rc = (subdaemon_handler->postselect)( statep, & rdset, & wrset );
+
 
 	    /* The rendezvous socket ?? */
 
 	    if (rendezvous_socket >= 0 &&
 		_Z_FD_ISSET(rendezvous_socket, rdset)) {
 	      /* We have (possibly) something to receive.. */
+	      newfd = -1;
 	      rc = fdpass_receivefd(rendezvous_socket, &newfd);
+
+	      /* type(NULL,0,NULL,"fdpass_received(%d) -> rc=%d newfd = %d",
+		 rendezvous_socket, rc, newfd); */
+
 	      if (rc == 0) {
 		close(rendezvous_socket);
 		rendezvous_socket = -1;
-	      } else {
+
+	      } else if ((rc > 0)  && (newfd >= 0)) { /* Successfully received something */
+
 		/* Ok, we have 'newfd', now we need a new peer slot.. */
 		for (n = 0; n < subdaemon_nofiles; ++n) {
 		  peer = & peers[n];
 		  if (peer->fd < 0) {
 		    /* FREE SLOT! */
-		    if (n > top_peer)  top_peer = n;
+		    if (top_peer <= n)  top_peer = n + 1;
 		    memset( peer, 0, sizeof(*peer) );
 		    peer->fd = newfd;
 		    fd_nonblockingmode(newfd);
@@ -188,7 +218,10 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 		    strcpy(peer->outbuf, "#hungry\n");
 		    peer->outlen = 8;
+		    peer->outptr = 0;
 		    newfd = -1;
+
+		    break; /* Out of the for-loop! */
 		  }
 		}
 		if (newfd >= 0) {
@@ -213,6 +246,11 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 			       peer->outlen - peer->outptr);
 		    if ((rc < 0) && (errno == EINTR))
 		      continue; /* try again */
+		    if ((rc < 0) && (errno == EPIPE)) {
+		      /* SIGPIPE from writing to the socket..  */
+		      break;  /* Lets ignore it, and reading from
+				 the same socket will be EOF - I hope.. */
+		    }
 		    break;
 		  }
 		  if (rc > 0) {
@@ -243,7 +281,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		  if (rc > 0) {
 		    peer->inlen += rc;
 		    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
-		      rc = (subdaemon_handler->input)( peer, statep );
+		      rc = (subdaemon_handler->input)( statep, peer );
 		      if (rc > 0) {
 			/* XOFF .. busy right now, come back again.. */
 		      } else if (rc == 0) {

@@ -10,7 +10,8 @@ VERIFY: router/daemonsub:
 	around due to e.g. router crashing, which puts the thing at the tail
 	of the queue --> some messages go thru, but some keep crashing the
 	system...)
-  
+
+DOCUMENT: - ratelimiting in smtpserver!
 
 
 sleepycat db integration:

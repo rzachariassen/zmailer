@@ -123,6 +123,7 @@ int fdpass_sendfd(passfd, sendfd)
 {
 	struct msghdr msg;
 	struct iovec iov[1];
+	int rc;
 
 #ifdef CMSG_SPACE /* HAVE_MSGHDR_MSG_CONTROL */
 	union {
@@ -152,7 +153,10 @@ int fdpass_sendfd(passfd, sendfd)
 	msg.msg_iov     = iov;
 	msg.msg_iovlen  = 1;
 
-	return (sendmsg(passfd, &msg, 0));
+	errno = 0;
+	rc = sendmsg(passfd, &msg, 0);
+	if (rc == 1) return 0;
+	return -1;
 }
 
 

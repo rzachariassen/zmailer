@@ -1,9 +1,27 @@
 2004-04-08  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/policytest.c, smtpserver/policytest.h,
+	  smtpserver/readpolicy.c:
+	    - Rearranged MAIL FROM processing code, allowing rate-limit
+	      to be used, as well as reworking things in IP address space
+	      (where its variables need to be set..)
+	    - Enabled compiling policy rulesets with 'ratelimitmsgs nnn'
+	      settings.
+
+	* smtpserver/smtpserver.c:
+	    Moved subdaemons_init() a bit latter than previously..
+
+	* smtpserver/subdaemon-trk.c, smtpserver/subdaemons.c:
+	    Testing and debugging until it begun to work, and die
+	    after all tracking clients have disconnected, and not
+	    die at weird moments, and ...
+
 	* include/libz.h, lib/fdpassing.c:
-	    Modify the call interface to always support only
-	    bidirectional pipe kind of thing.  One fd for the client
-	    side, one for the server side.  Not two.
+	    - Modify the call interface to always support only
+	      bidirectional pipe kind of thing.  One fd for the client
+	      side, one for the server side.  Not two.
+	    - The fdpass_sendfd() returns now 0 for successfull send
+	      (that is, sendmsg syscall), and -1 for other situations.
 
 	* include/policy.h, smtpserver/policytest.c,
 	  smtpserver/policytest.h, smtpserver/policydata.c,

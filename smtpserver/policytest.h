@@ -45,6 +45,11 @@ struct policystate {		/* Part of SmtpState structure */
     /* The lattest result message (line) */
     char *message;
     char *rblmsg;
+
+    /* various found control parameters */
+    char *ratelimitmsgsvalue; /* find early, use late.. */
+    char *ratelimitmsgsmessage;
+
     long maxinsize;
     long maxoutsize;
     long maxsameiplimit;

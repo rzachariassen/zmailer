@@ -63,6 +63,12 @@
 #define _POLICYTEST_INTERNAL_
 #include "policytest.h"
 
+#define PICK_PA_MSG(attrib)	\
+	if (state->message) free(state->message);	\
+	state->message = state->messages[(attrib)];	\
+	state->messages[(attrib)] = NULL
+
+
 int use_spf;
 int spf_received;
 int spf_threshold;
@@ -924,6 +930,7 @@ int sourceaddr;
 			 1 << P_A_TrustRecipients   |
 			 1 << P_A_TrustWhosOn       |
 			 1 << P_A_Filtering         |
+			 1 << P_A_RateLimitMsgs     |
 			 1 << P_A_MaxSameIpSource    );
     if (!myaddress)
       state->request |= ( 1 << P_A_TestDnsRBL       |
@@ -935,6 +942,13 @@ int sourceaddr;
 
     if (checkaddr(rel, state, pbuf) != 0)
       return 0; /* Nothing found */
+
+
+    if (state->values[P_A_RateLimitMsgs]) {
+      if (state->ratelimitmsgsvalue)	free (state->ratelimitmsgsvalue);
+      state->ratelimitmsgsvalue = strdup(state->values[P_A_RateLimitMsgs]);
+      PICK_PA_MSG(P_A_RateLimitMsgs);
+    }
 
     if (myaddress && lcldom) {
 
@@ -993,12 +1007,6 @@ int sourceaddr;
     if (state->message != NULL)
       free(state->message);
     state->message = NULL;
-
-#define PICK_PA_MSG(attrib)	\
-	if (state->message) free(state->message);	\
-	state->message = state->messages[(attrib)];	\
-	state->messages[(attrib)] = NULL
-
 
     if (valueeq(state->values[P_A_REJECTNET], "+")) {
       if (debug)
@@ -1230,7 +1238,7 @@ Usockaddr *raddr;
 
       strcpy(state->ratelabelbuf, "6:");
       p = pbuf+2;
-      s = state->ratelabelbuf;
+      s = state->ratelabelbuf+2;
       for (i = 0; i < 16; ++i) {
 	sprintf(s, "%02x", *p);
 	s += 2; ++p;
@@ -1244,7 +1252,7 @@ Usockaddr *raddr;
 
 	strcpy(state->ratelabelbuf, "4:");
 	p = pbuf+2;
-	s = state->ratelabelbuf;
+	s = state->ratelabelbuf+2;
 	for (i = 0; i < 4; ++i) {
 	  sprintf(s, "%02x", *p);
 	  s += 2; ++p;
@@ -1293,10 +1301,11 @@ static int call_rate_counter(rel, state, incr, what, countp)
      PolicyTest what;
 {
     int rc;
+    int retval;
     char pbuf[2000]; /* Not THAT much space needed.. */
 
-    if (rel == NULL)
-      return 0;
+    if (debug)
+      type(NULL,0,NULL,"call_rate_counter(incr=%d what=%d)",incr,what);
 
 
     /* How to see, that we will have interest in these rate entries
@@ -1314,13 +1323,25 @@ static int call_rate_counter(rel, state, incr, what, countp)
 	    ( (what == POLICY_SOURCEADDR) ? "CONNECT" :
 	      ( (what == POLICY_MAILFROM) ? "MAIL" : "xxx" )));
 
+    if (debug)
+      type(NULL,0,NULL,"call_rate_counter: sending: '%s'",pbuf);
+
     rc = call_subdaemon_trk(&state->rate_state, pbuf, pbuf, sizeof(pbuf));
+
+    if (debug)
+      type(NULL,0,NULL,"call_rate_counter: got rc=%d, buf='%s'",rc, pbuf);
+
+    if (rc < 0) return rc; 
+
 
     /* RATE all MAIL FROM lines, apply limits
      * INCR all accepted DATA/BDATs.
      */
 
-    /* FIXME: actual received data processing! */
+    if (!countp) return 0; /* Don't actually care! */
+
+    if (sscanf(pbuf, "%*s %d", countp) == 1)
+      return 0;
 
     return -1;
 }
@@ -1686,99 +1707,98 @@ const int len;
     if (state->full_trust || state->authuser)
       return 0;
 
-    if (len == 0) /* MAIL FROM:<> -- error message ? */
-      return 0;   /* We accept it, sigh.. */
 
-    /* state->request initialization !! */
-    state->request = ( 1 << P_A_REJECTSOURCE |
-		       1 << P_A_FREEZESOURCE   );
+    if (len > 0) { /* Non-box address.. */
 
-    /* XX: How about  <@foo:user@domain> ??? */
-    /* XX: With IGNORING RFC-821-source-route "@foo:" we
-           don't have problems here */
+      /* state->request initialization !! */
+      state->request = ( 1 << P_A_REJECTSOURCE |
+			 1 << P_A_FREEZESOURCE   );
 
-    /* Check source user */
-    if (check_user(rel, state, str, len) == 0) {
-      if (valueeq(state->values[P_A_FREEZESOURCE], "+")) {
-	if (debug)
-	  type(NULL,0,NULL," mailfrom: 'freezesource +'");
-	state->sender_freeze = 1;
-	PICK_PA_MSG(P_A_FREEZESOURCE);
-	return 1;
+      /* XX: How about  <@foo:user@domain> ??? */
+      /* XX: With IGNORING RFC-821-source-route "@foo:" we
+	 don't have problems here */
+
+      /* Check source user */
+      if (check_user(rel, state, str, len) == 0) {
+	if (valueeq(state->values[P_A_FREEZESOURCE], "+")) {
+	  if (debug)
+	    type(NULL,0,NULL," mailfrom: 'freezesource +'");
+	  state->sender_freeze = 1;
+	  PICK_PA_MSG(P_A_FREEZESOURCE);
+	  return 1;
+	}
+	if (state->values[P_A_FREEZESOURCE])
+	  requestmask |= 1 << P_A_FREEZESOURCE;
+	
+	if (valueeq(state->values[P_A_REJECTSOURCE], "+")) {
+	  if (debug)
+	    type(NULL,0,NULL," mailfrom: 'rejectsource +'");
+	  state->sender_reject = 1;
+	  PICK_PA_MSG(P_A_REJECTSOURCE);
+	  return -1;
+	}
+	if (state->values[P_A_REJECTSOURCE])
+	  requestmask |= 1 << P_A_REJECTSOURCE;
       }
-      if (state->values[P_A_FREEZESOURCE])
-	requestmask |= 1 << P_A_FREEZESOURCE;
 
-      if (valueeq(state->values[P_A_REJECTSOURCE], "+")) {
-	if (debug)
-	  type(NULL,0,NULL," mailfrom: 'rejectsource +'");
-	state->sender_reject = 1;
-	PICK_PA_MSG(P_A_REJECTSOURCE);
-	return -1;
-      }
-      if (state->values[P_A_REJECTSOURCE])
-	requestmask |= 1 << P_A_REJECTSOURCE;
-    }
-
-    state->request = ( 1 << P_A_REJECTSOURCE  |
-		       1 << P_A_FREEZESOURCE  |
+      state->request = ( 1 << P_A_REJECTSOURCE  |
+			 1 << P_A_FREEZESOURCE  |
 #if 0
-		       1 << P_A_RELAYCUSTOMER |
+			 1 << P_A_RELAYCUSTOMER |
 #endif
-		       1 << P_A_SENDERNoRelay |
-		       1 << P_A_RateLimitMsgs |
-		       1 << P_A_SENDERokWithDNS ) & (~ requestmask);
+			 1 << P_A_SENDERNoRelay |
+			 1 << P_A_SENDERokWithDNS ) & (~ requestmask);
 
-    at = find_nonqchr(str, '@', len);
-    if (at != NULL) {
-      /* @[1.2.3.4] ?? */
-      if (check_domain(rel, state, at+1, len - (1 + at - str)) != 0)
+      at = find_nonqchr(str, '@', len);
+      if (at != NULL) {
+	/* @[1.2.3.4] ?? */
+	if (check_domain(rel, state, at+1, len - (1 + at - str)) != 0)
+	  return -1;
+      } else {
+	/* Doh ??  Not  <user@domain> ??? */
 	return -1;
-    } else {
-      /* Doh ??  Not  <user@domain> ??? */
-      return -1;
-    }
+      }
 
-    if (valueeq(state->values[P_A_SENDERNoRelay], "+")) {
+    } else { /* The case of: "MAIL FROM:<>" */
+
+      state->request = ( 1 << P_A_REJECTSOURCE  |
+			 1 << P_A_FREEZESOURCE  |
+#if 0
+			 1 << P_A_RELAYCUSTOMER |
+#endif
+			 1 << P_A_SENDERNoRelay |
+			 1 << P_A_SENDERokWithDNS ) & (~ requestmask);
+
+      if (check_domain(rel, state, ".", 1) != 0)
+	  return -1;
+      at = str;
+    }
+    
+
+    if ((len > 0) && valueeq(state->values[P_A_SENDERNoRelay], "+")) {
       if (debug)
 	type(NULL,0,NULL," mailfrom: 'sendernorelay +'");
       state->sender_norelay = 1;
       PICK_PA_MSG(P_A_SENDERNoRelay);
     }
 
-    if (state->values[P_A_SENDERokWithDNS] && (at[1] != '[')) {
-      /* Accept if found in DNS, and not an address literal! */
-      int rc = sender_dns_verify(state->values[P_A_SENDERokWithDNS][0],
-				 at+1, len - (1 + at - str));
-      if (debug)
-	type(NULL,0,NULL," ... returns: %d", rc);
-      PICK_PA_MSG(P_A_SENDERokWithDNS);
-      return rc;
-    }
+    if (debug)
+      type(NULL,0,NULL,"mailfrom; always_accept=%d ratelimitmsgsvalue='%s'",
+	   state->always_accept,
+	   (state->ratelimitmsgsvalue ? state->ratelimitmsgsvalue : "<nil>"));
 
-    if (valueeq(state->values[P_A_REJECTSOURCE], "+")) {
-	if (debug)
-	  type(NULL,0,NULL," mailfrom: 'rejectsource +'");
-	state->sender_reject = 1;
-	PICK_PA_MSG(P_A_REJECTSOURCE);
-	return -1;
-    }
-    if (valueeq(state->values[P_A_FREEZESOURCE], "+")) {
-	if (debug)
-	  type(NULL,0,NULL," mailfrom: 'freezesource +'");
-	state->sender_freeze = 1;
-	PICK_PA_MSG(P_A_FREEZESOURCE);
-	return -1;
-    }
-
-    if (state->always_accept && state->values[P_A_RateLimitMsgs]) {
+    if (state->always_accept && state->ratelimitmsgsvalue) {
       /* If we are in 'alwaysaccept' mode, which is true for IP-acl:s,
 	 then we check to see rate-limits */
 
       int count;
       int limitval;
 
-      if (sscanf(state->values[P_A_RateLimitMsgs], "%d", &limitval) == 1) {
+      if (debug)
+	type(NULL,0,NULL,"Checking 'RateLimitMsgs %s' attribute",
+	     state->ratelimitmsgsvalue);
+
+      if (sscanf(state->ratelimitmsgsvalue, "%d", &limitval) == 1) {
 	/* Valid numeric value had.. */
 
 	int rc = call_rate_counter(rel, state, 0, POLICY_MAILFROM, &count);
@@ -1790,16 +1810,45 @@ const int len;
 	  /* Got some rate limit data back,  now USE IT ! */
 	  if (limitval < 0 && count > -limitval) {
 	    PICK_PA_MSG(P_A_RateLimitMsgs);
-	    return -1;  /* Hard, e.g. 500-series */
+	    rc = -1;  /* Hard, e.g. 500-series */
 	  } else if (limitval > 0 && count > limitval) {
 	    PICK_PA_MSG(P_A_RateLimitMsgs);
-	    return -100; /* Soft, e.g. 400-series */
+	    rc = -100; /* Soft, e.g. 400-series */
 	  }
+	  if (! state->message)
+	    state->message = strdup("You are sending too much mail per time interval.  Try again latter.");
+	  return rc;
 	}
       }
     }
 
-    if (state->always_accept && at[1] != '[') {
+    if (valueeq(state->values[P_A_REJECTSOURCE], "+")) {
+	if (debug)
+	  type(NULL,0,NULL," mailfrom: 'rejectsource +'");
+	state->sender_reject = 1;
+	PICK_PA_MSG(P_A_REJECTSOURCE);
+	return -1;
+    }
+
+    if (valueeq(state->values[P_A_FREEZESOURCE], "+")) {
+	if (debug)
+	  type(NULL,0,NULL," mailfrom: 'freezesource +'");
+	state->sender_freeze = 1;
+	PICK_PA_MSG(P_A_FREEZESOURCE);
+	return -1;
+    }
+
+    if ((len > 0) && state->values[P_A_SENDERokWithDNS] && (at[1] != '[')) {
+      /* Accept if found in DNS, and not an address literal! */
+      int rc = sender_dns_verify(state->values[P_A_SENDERokWithDNS][0],
+				 at+1, len - (1 + at - str));
+      if (debug)
+	type(NULL,0,NULL," ... returns: %d", rc);
+      PICK_PA_MSG(P_A_SENDERokWithDNS);
+      return rc;
+    }
+
+    if ((len > 0) && state->always_accept && at[1] != '[') {
       /* Always accept, and not an address literal! */
       int rc = sender_dns_verify('-', at+1, len - (1 + at - str));
       if (debug)

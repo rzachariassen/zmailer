@@ -19,7 +19,7 @@
 #include "smtpserver.h"
 
 static int subdaemon_handler_ctf_init  __((void**));
-static int subdaemon_handler_ctf_input __((void*, struct peerdata *));
+static int subdaemon_handler_ctf_input __((void *, struct peerdata *));
 static int subdaemon_handler_ctf_preselect  __((void*, fd_set *, fd_set *, int *));
 static int subdaemon_handler_ctf_postselect __((void*, fd_set *, fd_set *));
 
@@ -153,8 +153,8 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 
 static int
 subdaemon_handler_ctf_input (statep, peerdata)
-     struct peerdata *peerdata;
      void *statep;
+     struct peerdata *peerdata;
 {
 	int i, val, neg, rc;
 	int seenhungry = 0;

@@ -184,6 +184,7 @@ struct _tokenpair {
   { "spf",		P_A_CheckSPF		},
   { "filtering",	P_A_Filtering		},
   { "maxsameipsource",	P_A_MaxSameIpSource	},
+  { "ratelimitmsgs",	P_A_RateLimitMsgs	},
   { NULL, 0 },
 };
 

@@ -27,15 +27,17 @@
 
 #define SLOTINTERVAL 512  /* There are 8 slots, slow sliding
 			     bucket accounter.. */
+#if 0
 /* Temporary testing stuff: */
 #undef  SLOTINTERVAL
 #define SLOTINTERVAL 10
+#endif
 
 extern int ratetracker_rdz_fd;
 extern int ratetracker_server_pid;
 
 static int subdaemon_handler_trk_init  __((void**));
-static int subdaemon_handler_trk_input __((void *, struct peerdata *));
+static int subdaemon_handler_trk_input __((void *, struct peerdata*));
 static int subdaemon_handler_trk_preselect  __((void*, fd_set *, fd_set *, int *));
 static int subdaemon_handler_trk_postselect __((void*, fd_set *, fd_set *));
 
@@ -277,18 +279,24 @@ static void subdaemon_trk_checksigusr1(state)
 {
 	struct ipv4_regs *r;
 	struct ipv4_regs_head *rhead;
-	int i, j;
+	int i, j, tr[8];
 	unsigned int ip4key;
 	FILE *fp;
 
 	if (!got_sigusr1) return;  /* Nothing to do, bail out */
-
+	got_sigusr1 = 0;
 
 	/* We are running as 'trusted' user, which is somebody
 	   else, than root. */
 	fp = fopen("/var/tmp/smtpserver-ratetracker.dump", "w");
 
 	if (!fp) return;
+
+	for (i = 0, j = state->slotindex; i < 8; ++i) {
+	  tr[i] = j;
+	  --j; if (j < 0) j = 7;
+	}
+
 
 	rhead = state->ipv4_regs_head;
 
@@ -306,7 +314,7 @@ static void subdaemon_trk_checksigusr1(state)
 		      (ip4key >> 24) & 255,  (ip4key >> 16) & 255,
 		      (ip4key >>  8) & 255,   ip4key & 255 );
 	      for (j = 0; j < 8; ++j) {
-		fprintf(fp, "%-4d  ", r[i].countset[j]);
+		fprintf(fp, "%-4d  ", r[i].countset[tr[j]]);
 	      }
 	      fprintf(fp, "\n");
 	    }
@@ -339,15 +347,13 @@ subdaemon_handler_trk_init (statep)
 
 static int
 subdaemon_handler_trk_input (statep, peerdata)
-     struct peerdata *peerdata;
      void *statep;
+     struct peerdata *peerdata;
 {
 	struct trk_state *state = statep;
-	char actionlabel[8], iplabel[20], typelabel[10];
+	char actionlabel[8], iplabel[20], typelabel[10], *s1, *s2, *s3;
 	int i, incr;
 	long ipv4addr;
-
-	time(&now);
 
 	subdaemon_trk_checksigusr1(state);
 
@@ -373,13 +379,20 @@ subdaemon_handler_trk_input (statep, peerdata)
 
 	actionlabel[0] = iplabel[0] = typelabel[0] = 0;
 
-	i = sscanf(peerdata->inpbuf, "%7s %19s %9s",
-		   actionlabel, iplabel, typelabel);
-	if (i != 3) goto bad_input;
+	s1 = strtok(peerdata->inpbuf, " \n");
+	s2 = strtok(NULL, " \n");
+	s3 = strtok(NULL, " \n");
+
+	if (s1) strncpy(actionlabel, s1, sizeof(actionlabel));
+	if (s2) strncpy(iplabel,     s2, sizeof(iplabel));
+	if (s3) strncpy(typelabel,   s3, sizeof(typelabel));
 
 	actionlabel[sizeof(actionlabel)-1] = 0;
 	typelabel[sizeof(typelabel)-1] = 0;
 	iplabel[sizeof(iplabel)-1] = 0;
+
+	/* type(NULL,0,NULL,"Got: '%s' '%s' '%s'", 
+	   actionlabel, iplabel, typelabel); */
 
 	incr = 0;
 	if (strcmp(actionlabel,"INCR") == 0)
@@ -390,7 +403,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	if (iplabel[0] == '4' && iplabel[1] == ':') {
 
 	  ipv4addr = strtol( iplabel+2, NULL, 16);
-	  /* FIXME: - htonl() ???  */
+	  /* FIXME ? - htonl() ???  */
 
 	  i = count_ipv4( state, ipv4addr, incr );
 
@@ -425,10 +438,15 @@ subdaemon_handler_trk_preselect (state, rdset, wrset, topfd)
 }
 
 static int
-subdaemon_handler_trk_postselect (state, rdset, wrset)
-     void *state;
+subdaemon_handler_trk_postselect (statep, rdset, wrset)
+     void *statep;
      fd_set *rdset, *wrset;
 {
+	struct trk_state *state = statep;
+
+	if (now >= state->next_slotchange)
+	  new_ipv4_timeslot( state );
+
 	subdaemon_trk_checksigusr1(state);
 
 	return 0;
@@ -436,9 +454,44 @@ subdaemon_handler_trk_postselect (state, rdset, wrset)
 
 
 /* ------------------------------------------------------------------ */
+
+int
+fdgets (buf, buflen, fd)
+     char *buf;
+     int buflen, fd;
+{
+	int i, rc;
+	char c;
+
+	for (i = 0; i < buflen-1;) {
+	  for (;;) {
+	    rc = read(fd, &c, 1);
+	    if (rc >= 0) break;
+	    if (errno == EINTR) continue;
+	    break;
+	  }
+	  if (rc == 0) { /* EOF seen! */
+	    break;
+	  }
+	  buf[i++] = c;
+	  buf[i]   = 0;
+	  if (c == '\n') break;
+	}
+	buf[i] = 0;
+	if (i == 0) return -1;
+	return i;
+}
+
+
+/* ------------------------------------------------------------------ */
+
+
 struct trk_client_state {
 	int fd_io;
+	FILE *outfp;
 };
+
+/* The 'cmd' buffer in this call shall not have a '\n' in it! */
 
 int
 call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
@@ -451,35 +504,100 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 	int rc;
 	char buf[2000];
 
+	if (ratetracker_rdz_fd < 0)  return -99; /* No can do.. */
+
 	if (! state) {
 	  state = *statep = calloc(1, sizeof(struct trk_client_state));
 	  if (!state) return -1; /* alloc failure! */
+	  state->fd_io = -1;
+	}
 
+ retry_io_tests:
+
+	if ((state->outfp && ferror(state->outfp)) ) {
+	  if (state->outfp) fclose(state->outfp);
+	  state->outfp = NULL;
+	  close(state->fd_io); /* closed already twice.. most likely */
 	  state->fd_io = -1;
 	}
 
 	if (state->fd_io < 0) {
-	  int tochild[2];
+	  int toserver[2];
 
 	  /* Abusing the thing, to be exact, but... */
-	  rc = socketpair(PF_UNIX, SOCK_STREAM, 0, tochild);
-	  if (rc != 0) return -1; /* create fail */
+	  rc = socketpair(PF_UNIX, SOCK_STREAM, 0, toserver);
+	  if (rc != 0) return -2; /* create fail */
 
+	  state->fd_io = toserver[1];
+	  rc = fdpass_sendfd(ratetracker_rdz_fd, toserver[0]);
 
-	  state->fd_io = tochild[1];
-	  if (fdpass_sendfd(ratetracker_rdz_fd, tochild[0])) {
+	  /* type(NULL,0,NULL,"fdpass_sendfd(%d,%d) rc=%d, errno=%s",
+	     ratetracker_rdz_fd, toserver[0], rc, strerror(errno)); */
+
+	  if (rc != 0) {
 	    /* did error somehow */
-	    return -1;
+	    close(toserver[0]);
+	    close(toserver[1]);
+	    return -3;
 	  }
+	  close(toserver[0]); /* Sent or not, close the remote end
+				 from our side. */
+
+	  /* type(NULL,0,NULL,"call_subdaemon_trk; 9"); */
 
 	  fd_blockingmode(state->fd_io);
 
-	  /* FIXME: Read the '#hungry\n' message ! */
-	  /* readbuf(); */
+	  state->outfp = fdopen(state->fd_io, "w");
 
+	  /* type(NULL,0,NULL,"call_subdaemon_trk; 10"); */
+	  errno = 0;
+
+	  *buf = 0;
+	  if (fdgets( buf, sizeof(buf)-1, state->fd_io ) < 0) {
+	    /* something failed! */
+	    /* type(NULL,0,NULL,"call_subdaemon_trk; 10-B");*/
+	  }
+
+	  /* type(NULL,0,NULL,"call_subdaemon_trk; 11; errno=%s",
+	     strerror(errno)); */
+
+	  if ( strcmp(buf, "#hungry\n") != 0 )
+	    return -4; /* Miserable failure.. */
+
+	  /* type(NULL,0,NULL,"call_subdaemon_trk; 12"); */
+
+	  goto retry_io_tests; /* FEOF/FERROR checks.. */
 	}
 
-	/* FIXME: actual calls! */
+	/* type(NULL,0,NULL,"call_subdaemon_trk; 13"); */
 
-	
+	if (!state->outfp) return -51;
+
+	/* type(NULL,0,NULL,"call_subdaemon_trk; 14"); */
+
+	fprintf(state->outfp, "%s\n", cmd);
+	fflush(state->outfp);
+
+	/* type(NULL,0,NULL,"call_subdaemon_trk; 15"); */
+
+	if (state->outfp && ferror(state->outfp))
+	  return -5; /* Uh ok.. */
+
+	/* type(NULL,0,NULL,"call_subdaemon_trk; 16"); */
+
+	*buf = 0;
+	fdgets( buf, sizeof(buf)-1, state->fd_io );
+
+	if (state->outfp && ferror(state->outfp))
+	  return -6; /* Uh ok.. */
+
+	/* type(NULL,0,NULL,"call_subdaemon_trk; 17"); */
+
+
+	strncpy( retbuf, buf, retbuflen );
+	retbuf[retbuflen-1] = 0;
+
+	/* type(NULL,0,NULL,"call_subdaemon_trk; -last-"); */
+
+	return 0;
 }
