@@ -911,10 +911,9 @@ int err = (db->cursor)(db, NULL, &curs, 0);],
         LIBNDBM=""
     AC_MSG_RESULT([Note: It looks like your NDBM is actually BSD DB compability wrapper at])
     AC_MSG_RESULT([      libdb -library. If so, your NDBM databases are actually BSD DB_HASH ones..])
-    fi
-    if test "$t_found_at" != nowhere; then
-      dblocation="$dblocation;$t_found_at"
-    fi
+  fi
+  if test "$t_found_at" != nowhere; then
+    dblocation="$dblocation;$t_found_at"
   fi
 fi
 
