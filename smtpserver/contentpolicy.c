@@ -83,6 +83,7 @@ static int init_content_policy()
 
   if (contentpolicypid < 0) {
     /* ERROR! :-( */
+    MIBMtaEntry->ss.ContentPolicyForkFailures ++;
     return 0;
   }
 

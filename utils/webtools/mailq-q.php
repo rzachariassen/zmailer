@@ -14,7 +14,7 @@
 
 <P>
  Explanations for the queue printout are at ZMailer's
- <A HREF="http://www.zmailer.org/man/mailq.1.html">mailq(1)</A> man-page.
+ <A HREF="http://www.zmailer.org/man/mailq.1.html#mailq_-Q_output_codes">mailq(1)</A> man-page.
 <P>
 
 <?php
@@ -38,7 +38,7 @@ if ($QAmode) {
   echo ("<H2>Unabridged queue listing</H2>");
   echo ("<UL>");
   echo ("<LI><FONT COLOR=BLUE>BLUE</FONT> lines have QA over 3d0h, potential for expiring!");
-  echo ("<LI><FONT COLOR=RED>RED</FONT> lines have too high value for HA=");
+  echo ("<LI><FONT COLOR=RED>RED</FONT> lines have too high value for HA=  which is likely system error!");
   echo ("</UL>");
 }
 

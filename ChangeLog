@@ -1,3 +1,21 @@
+2003-06-09  Matti Aarnio  <mea@zmailer.org>
+
+	* man/Makefile.in, man/mailq-m-generate.pl, scheduler/mailq.inc,
+	  man/man-to-html.sh, man/mailq.1.in:
+	    Generating "mailq-m(5)" man-page from within mailq.inc
+	    stored XMLish comments.
+
+	* include/shmmib.h, router/daemonsub.c, router/rfc822.c,
+	  smtpserver/smtpserver.c, smtpsserver/smtpdata.c:
+	    - Count router process faults explicitely
+	    - Let smtpserver to count attempted incoming recipients
+	      (similarly with ss.ReceivedMessages counter)
+	    - Let smtpserver to count instances, when arriving
+	      connection has been summarily closed due to too high
+	      a load.  (Limit criterias are PARAM parametrizable.)
+	    - Track router actual job processing instances failing
+	      somehow, and count those separately. 
+
 2003-06-05  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mailq.inc:

@@ -87,5 +87,12 @@ groff  -c -t -man -Tascii "$1" | \
         s{<I>([-.0-9a-zA-Z_]+)</I>\((\d\w*)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
 	# Ordinary PERL PODs
         s{<I>([-.0-9a-zA-Z_]+::[-.0-9a-zA-Z_]+)</I>\((\d\w*)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
-	print;'
+	print;' | \
+    perl -ne '
+	if (m{^<B>(.*)</B>$}o) {
+	    my $n = $1; $n =~ s/ /_/g;
+	    printf "<A NAME=\"%s\"></A>",$n;
+	}
+	print;
+	'
 echo "</PRE></BODY></HTML>"

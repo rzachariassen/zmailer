@@ -18,6 +18,8 @@ single events.
 <P>
 Gauges are marked with "-G" suffix, all others are counters.
 <P>
+Some day there will be a man-page: <A HREF="http://zmailer.org/man/mailq-m.5.html">mailq-M(5)</A>
+<P>
 ZMailer has several subsystems:
 <UL>
 <LI> SYS: non-subsystem data

@@ -1092,7 +1092,11 @@ char **argv;
 	MIBMtaEntry->sys.SmtpServerMasterStartTime   = time(NULL);
 	MIBMtaEntry->sys.SmtpServerMasterStarts     += 1;
 
-	MIBMtaEntry->ss.IncomingSMTPSERVERprocesses = 1; /* myself at first */
+	MIBMtaEntry->ss.IncomingSMTPSERVERprocesses    = 1; /* myself at first */
+	MIBMtaEntry->ss.IncomingParallelSMTPconnects   = 0;
+	MIBMtaEntry->ss.IncomingParallelSMTPSconnects  = 0;
+	MIBMtaEntry->ss.IncomingParallelSUBMITconnects = 0;
+	/* MIBMtaEntry->ss.IncomingParallelLMTPconnects   = 0; */
 
 #if 1
 	pid = getpid();
@@ -1228,17 +1232,20 @@ char **argv;
 	     limit */
 	  if (sameipcount > 4 * MaxSameIpSource) {
 	    close(msgfd);
+	    MIBMtaEntry->ss.MaxSameIpSourceCloses ++;
 	    continue;
 	  }
 	    
 	  if (childcnt > 100+MaxParallelConnections) {
 	    close(msgfd);
+	    MIBMtaEntry->ss.MaxParallelConnections ++;
 	    continue;
 	  }
 
 	  SIGNAL_HOLD(SIGCHLD);
 	  if ((childpid = fork()) < 0) {	/* can't fork! */
 	    close(msgfd);
+	    MIBMtaEntry->ss.ForkFailures ++;
 	    fprintf(stderr,
 		    "%s: fork(): %s\n",
 		    progname, strerror(errno));
@@ -1250,7 +1257,7 @@ char **argv;
 
 	    reaper(0);
 	    SIGNAL_RELEASE(SIGCHLD);
-	    close(msgfd);
+	    close(msgfd); /* Child has it, close at parent */
 	  } else {			/* Child */
 	    SIGNAL_RELEASE(SIGCHLD);
 
@@ -1365,17 +1372,10 @@ char **argv;
 	    /* if (logfp) type(NULL,0,NULL,"Input fd=%d",getpid(),msgfd); */
 
 	    if (childcnt > MaxParallelConnections) {
-	      int len;
-	      char msg[200];
-	      sprintf(msg, "450-Too many simultaneous connections to this server (%d max %d)\r\n", childcnt, MaxParallelConnections);
-	      len = strlen(msg);
-	      if (write(msgfd, msg, len) != len) {
-		sleep(2);
-		exit(1);	/* Tough.. */
-	      }
-	      strcpy(msg, "450 Come again later\r\n");
-	      len = strlen(msg);
-	      write(msgfd, msg, len);
+	      type(&SS, -450, NULL, "Too many simultaneous connections to this server (%d max %d)", childcnt, MaxParallelConnections);
+	      type(&SS,  450, NULL, "Come again later");
+	      typeflush(&SS);
+	      MIBMtaEntry->ss.MaxParallelConnections ++;
 	      close(0); close(1); close(2);
 #if 1
 	      sleep(2);	/* Not so fast!  We need to do this to
@@ -1387,17 +1387,10 @@ char **argv;
 	      exit(0);	/* Now exit.. */
 	    }
 	    if (sameipcount > MaxSameIpSource && sameipcount > 1) {
-	      int len;
-	      char msg[200];
-	      sprintf(msg, "450-Too many simultaneous connections from same IP address (%d max %d)\r\n", sameipcount, MaxSameIpSource);
-	      len = strlen(msg);
-	      if (write(msgfd, msg, len) != len) {
-		sleep(2);
-		exit(1);	/* Tough.. */
-	      }
-	      strcpy(msg, "450 Come again later\r\n");
-	      len = strlen(msg);
-	      write(msgfd, msg, len);
+	      type(&SS, -450, NULL, "Too many simultaneous connections from same IP address (%d max %d)\r\n", sameipcount, MaxSameIpSource);
+	      type(&SS,  450, NULL, "Come again later");
+	      typeflush(&SS);
+	      MIBMtaEntry->ss.MaxSameIpSourceCloses ++;
 	      close(0); close(1); close(2);
 #if 1
 	      sleep(2);	/* Not so fast!  We need to do this to
@@ -1607,15 +1600,15 @@ const char *msg;
     zsyslog((LOG_ERR,
 	     "%s%04d - aborted (%ld bytes) from %s/%d: %s",
 	     logtag, (int)(now-logtagepoch), tell, SS->rhostname, SS->rport, msg));
-    if (logfp != NULL) {
-	fprintf(logfp, "%s%04d - aborted (%ld bytes): %s\n", logtag, (int)(now-logtagepoch), tell, msg);
-	fflush(logfp);
-    }
     if (logfp != NULL && SS->tarpit > tarpit_initial ) {
         char *ts = rfc822date(&now);
 
         fprintf(logfp, "%s#\ttar_pit with delay %04d ends at %s", logtag, SS->tarpit_cval, ts );
         fflush(logfp);
+    }
+    if (logfp != NULL) {
+	fprintf(logfp, "%s%04d-\taborted (%ld bytes): %s\n", logtag, (int)(now-logtagepoch), tell, msg);
+	fflush(logfp);
     }
 
 }

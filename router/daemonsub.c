@@ -286,8 +286,8 @@ static int  start_child (i)
 	}
 	/* Parent */
 
-	MIBMtaEntry->rt.RouterProcessesRt     += 1;
-	MIBMtaEntry->rt.RouterProcessForksRt  += 1;
+	MIBMtaEntry->rt.RouterProcesses     += 1;
+	MIBMtaEntry->rt.RouterProcessForks  += 1;
 
 	pipes_close_parent(tofd,frmfd);
 
@@ -353,7 +353,7 @@ int signum;
 #if defined(HAVE_SYS_RESOURCE_H)
 	      routerchilds[i].r = r;
 #endif
-	      MIBMtaEntry->rt.RouterProcessesRt -= 1;
+	      MIBMtaEntry->rt.RouterProcesses -= 1;
 	    }
 	}
 
@@ -387,12 +387,19 @@ static int reader_getc(rc)
     if (logfn) {
       loginit(SIGHUP); /* Reinit/rotate the log every at line .. */
       fprintf(stdout, "[%d] ROUTER CHILD PROCESS TERMINATED; wait() status = ", rc->childpid);
-      if (WIFSIGNALED(rc->statloc))
+      if (WIFSIGNALED(rc->statloc)) {
 	fprintf(stdout, "SIGNAL %d", WSIGNALSTATUS(rc->statloc));
-      else if (WIFEXITED(rc->statloc))
+	MIBMtaEntry->rt.RouterProcessFaults ++;
+      } else if (WIFEXITED(rc->statloc)) {
 	fprintf(stdout, "EXIT %d", WEXITSTATUS(rc->statloc));
-      else
+	if (WEXITSTATUS(rc->statloc)) /* non-zero */
+	  MIBMtaEntry->rt.RouterProcessFaults ++;
+      } else {
+	/* Uh ?? SIGNALED, and EXITED are handled above, what is this ? */
 	fprintf(stdout, "0x%04X ??", WEXITSTATUS(rc->statloc));
+	if (WEXITSTATUS(rc->statloc)) /* non-zero */
+	  MIBMtaEntry->rt.RouterProcessFaults ++;
+      }
 
 #if (defined(HAVE_WAIT3) || defined(HAVE_WAIT4))  && \
     defined(HAVE_SYS_RESOURCE_H)
@@ -968,12 +975,12 @@ dq_insert(DQ, ino, file, dir)
 	   rfc822.c::sequencer()  ! 
 	*/
 
-	MIBMtaEntry->rt.ReceivedMessagesRt += 1;
-	MIBMtaEntry->rt.StoredMessagesRt   += 1;
+	MIBMtaEntry->rt.ReceivedMessages += 1;
+	MIBMtaEntry->rt.StoredMessages   += 1;
 
 	i = (stbuf.st_size + stbuf.st_blksize -1)/1024;
-	MIBMtaEntry->rt.ReceivedVolumeRt += i;
-	MIBMtaEntry->rt.StoredVolumeRt   += i;
+	MIBMtaEntry->rt.ReceivedVolume += i;
+	MIBMtaEntry->rt.StoredVolume   += i;
 
 	return 0;
 }
@@ -1467,11 +1474,12 @@ run_daemon(argc, argv)
 
 
 	/* Zero the gauges at our startup.. */
-	MIBMtaEntry->rt.StoredMessagesRt	= 0; /* in input queue */
-	MIBMtaEntry->rt.StoredRecipientsRt	= 0; /* can count at all ? */
-	MIBMtaEntry->rt.StoredVolumeRt	= 0; /* in input queue */
-	MIBMtaEntry->rt.RouterProcessesRt     = 1; /* myself = 1 */
-	MIBMtaEntry->rt.RouterProcessForksRt  = 0;
+	MIBMtaEntry->rt.StoredMessages		= 0; /* in input queue */
+	MIBMtaEntry->rt.StoredRecipients  	= 0; /* can count at all ? */
+	MIBMtaEntry->rt.StoredVolume		= 0; /* in input queue */
+	MIBMtaEntry->rt.RouterProcesses       = 1; /* myself = 1 */
+	MIBMtaEntry->rt.RouterProcessForks    = 0;
+	MIBMtaEntry->rt.RouterProcessFaults   = 0;
 
 	if (nrouters > MAXROUTERCHILDS)
 	  nrouters = MAXROUTERCHILDS;

@@ -56,6 +56,7 @@ static int run(rfp, wfp, path, argv, envp)
     pid = fork();
     switch (pid) {
     case -1: /* Various failures */
+        MIBMtaEntry->ss.ForkFailures ++;
         close( pdo[0] );
         close( pdo[1] );
         close( pdi[0] );

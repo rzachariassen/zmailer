@@ -129,7 +129,12 @@ struct MIB_MtaEntrySs {
   uint		IncomingSMTP_OPT_NOTIFY;
   uint		IncomingSMTP_OPT_ORCPT;
 
-  uint	space[22]; /* Add to tail without need to change MAGIC */
+  uint		MaxSameIpSourceCloses;
+  uint		MaxParallelConnections;
+  uint		ForkFailures;
+  uint		ContentPolicyForkFailures;
+
+  uint	space[18]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -137,25 +142,27 @@ struct MIB_MtaEntrySs {
 struct MIB_MtaEntryRt {
   /* ROUTER subsystem counters */
 
-  uint		RouterProcessesRt;	/* gauge */
-  uint		RouterProcessForksRt;	/* counter, cleared at start */
+  uint		RouterProcesses;	/* gauge */
+  uint		RouterProcessForks;	/* counter, cleared at start */
 
-  uint		ReceivedMessagesRt;	/* counter, router	*/
-  uint		ReceivedRecipientsRt;	/* counter, router - not! */
-  uint		TransmittedMessagesRt;	/* counter, router	*/
-  uint		TransmittedRecipientsRt;/* counter, router	*/
+  uint		ReceivedMessages;	/* counter, router	*/
+  uint		ReceivedRecipients;	/* counter, router - not! */
+  uint		TransmittedMessages;	/* counter, router	*/
+  uint		TransmittedRecipients;	/* counter, router	*/
 
-  uint		ReceivedVolumeRt;	/* counter,	in kB	*/
-  uint		TransmittedVolumeRt;	/* counter,	in kB	*/
-  uint		TransmittedVolume2Rt;	/* counter,	in kB	*/
+  uint		ReceivedVolume;		/* counter,	in kB	*/
+  uint		TransmittedVolume;	/* counter,	in kB	*/
+  uint		TransmittedVolume2;	/* counter,	in kB	*/
 
   /* Subsystem queue size  */
-  uint		StoredMessagesRt;	/* gauge, router	*/
-  uint		StoredRecipientsRt;	/* gauge, router - not!	*/
+  uint		StoredMessages;		/* gauge, router	*/
+  uint		StoredRecipients;	/* gauge, router - not!	*/
 
-  uint		StoredVolumeRt;		/* gauge,	in kB	*/
+  uint		StoredVolume;		/* gauge,	in kB	*/
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+
+  uint		RouterProcessFaults;	/* counter, cleared at start */
+  uint	space[31]; /* Add to tail without need to change MAGIC */
 
 };
 

@@ -12,6 +12,7 @@ MANDIR=		${DESTDIR}@mandir@
 TOPDIR=		..
 S=		$(srcdir)
 INSTALL=	@INSTALL@
+PERL=		@PERL@
 
 # SGML/JADE catalog
 OJCAT     = /usr/share/sgml/openjade-1.3/catalog
@@ -28,7 +29,7 @@ MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mb
 MAN3=	zmailer.3 authuser.3
 MAN5=	aliases.5 zdbases.conf.5
 MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8 mailbox.8 makedb.8 newdb.8 reroute.8 manual-rerouter.8
-MANe=	ZMailer-mailq.3pm
+MANe=	ZMailer-mailq.3pm  mailq-m.5
 
 FRC:
 	@echo "make install MANDIR=/your/choice"
@@ -94,6 +95,7 @@ install:
 	$(INSTALL) -m 644 hold.8		${MANDIR}/man8
 	$(INSTALL) -m 644 mailbox.8		${MANDIR}/man8
 	$(INSTALL) -m 644 mailq.1		${MANDIR}/man1
+	$(INSTALL) -m 644 mailq-m.5		${MANDIR}/man5
 	$(INSTALL) -m 644 mailrm.1		${MANDIR}/man1
 	$(INSTALL) -m 644 manual-expirer.8	${MANDIR}/man8
 	$(INSTALL) -m 644 manual-rerouter.8	${MANDIR}/man8
@@ -117,5 +119,8 @@ install:
 
 
 
-ZMailer-mailq.3pm:
+ZMailer-mailq.3pm: $(srcdir)/../utils/perl/mailq/mailq.pm
 	pod2man $(srcdir)/../utils/perl/mailq/mailq.pm > ZMailer-mailq.3pm
+
+mailq-m.5: $(srcdir)/mailq-m-generate.pl $(srcdir)/$(TOPDIR)/scheduler/mailq.inc
+	$(PERL) $(srcdir)/mailq-m-generate.pl $(srcdir)/$(TOPDIR)/scheduler/mailq.inc > mailq-m.5

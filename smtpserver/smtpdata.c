@@ -85,6 +85,7 @@ const char *buf, *cp;
 
 
     MIBMtaEntry->ss.ReceivedMessagesSs  += 1;
+    MIBMtaEntry->ss.ReceivedRecipientsSs += SS->ok_rcpt_count;
     MIBMtaEntry->ss.IncomingSMTP_DATA   += 1;
 
     while (!strict_protocol && (*cp == ' ' || *cp == '\t')) ++cp;
@@ -382,6 +383,7 @@ const char *buf, *cp;
 
     
     MIBMtaEntry->ss.ReceivedMessagesSs  += 1;
+    MIBMtaEntry->ss.ReceivedRecipientsSs += SS->ok_rcpt_count;
     MIBMtaEntry->ss.IncomingSMTP_BDAT   += 1;
 
     if (SS->state == RecipientOrData) {

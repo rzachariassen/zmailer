@@ -100,6 +100,9 @@ Attached to an MTA instance wide shared memory segment, and
 dumpts its content (various counters and gauges).
 .PP
 .I "This works only local in the system, unlike MAILQ-v2 queries!"
+.PP
+Listed variables are described at:
+.IR mailq-m (5).
 .RE
 .IP \-p\ \fIport\fR
 .RS
@@ -128,6 +131,9 @@ summary statistics lines.
 .IP \-QQQQ
 .RS
 Shows same dump as "mailq -M" produces, but can do it over the network.
+.PP
+Listed variables are described at:
+.IR mailq-m (5).
 .RE
 .IP \-s
 .RS
@@ -302,6 +308,7 @@ The \fBMAILQ-V2\fR protocol is described at the
 .IR scheduler (8)
 manual page.
 .PP
+.IR mailq-m (5),
 .IR zmailer (1),
 .IR router (8),
 .IR scheduler (8),
