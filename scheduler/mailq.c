@@ -709,7 +709,7 @@ static int _getline(buf, bufsize, bufspace, fp)
   }
 
   if (debug && *buf)
-    fprintf(stderr, "%s\n",*buf);
+    fprintf(stderr, "- %s\n",*buf);
 
   return 0; /* Got something */
 }
