@@ -105,47 +105,47 @@ struct db_kind {
 #endif
 
 #ifdef	HAVE_RESOLVER
-{ "hostsfile",	{ "/etc/hosts", NULL, 0, 10, 0, NULL, search_hosts, NULL,
+{ "hostsfile",	{ "/etc/hosts", NULL, 0, 0, 0, NULL, search_hosts, NULL,
 		  NULL, NULL, print_hosts, NULL, NULL, NULL, Nul, NULL } },
 #endif	/* HAVE_RESOLVER */
 #ifdef	HAVE_RESOLVER
 #ifndef RESOLV_CONF
 # define RESOLV_CONF "/etc/resolv.conf"
 #endif
-{ "bind",	{ RESOLV_CONF, NULL, 0, 10, 0, NULL, search_res, NULL, NULL,
+{ "bind",	{ RESOLV_CONF, NULL, 0, 0, 0, NULL, search_res, NULL, NULL,
 		    NULL, NULL, NULL, NULL, NULL, Nul, NULL }},
 #endif	/* HAVE_RESOLV */
 { "selfmatch",	{ NULL, NULL, 0, 0, 0, NULL, search_selfmatch, NULL, NULL,NULL,
 		  print_selfmatch, count_selfmatch, NULL, NULL, Nul, NULL } },
 #ifdef	HAVE_NDBM_H
-{ "ndbm",	{ NULL, NULL, 0, 10, 0, NULL, search_ndbm, close_ndbm,
+{ "ndbm",	{ NULL, NULL, 0, 0, 0, NULL, search_ndbm, close_ndbm,
 		  add_ndbm, remove_ndbm, print_ndbm, count_ndbm, owner_ndbm,
 		  modp_ndbm, Nul, NULL } },
 #endif	/* HAVE_NDBM */
 #ifdef	HAVE_GDBM_H
-{ "gdbm",	{ NULL, NULL, 0, 10, 0, NULL, search_gdbm, close_gdbm,
+{ "gdbm",	{ NULL, NULL, 0, 0, 0, NULL, search_gdbm, close_gdbm,
 		  add_gdbm, remove_gdbm, print_gdbm, count_gdbm, owner_gdbm,
 		  modp_gdbm, Nul, NULL } },
 #endif	/* HAVE_GDBM */
 #ifdef	HAVE_DBM
-{ "dbm",	{ NULL, NULL, 0, 10, 0, NULL, search_dbm, close_dbm,
+{ "dbm",	{ NULL, NULL, 0, 0, 0, NULL, search_dbm, close_dbm,
 		  add_dbm, remove_dbm, print_dbm, count_dbm, owner_dbm,
 		  NULL, Nul, NULL } },
 #endif	/* HAVE_DBM */
 #ifdef	HAVE_DB_H
-{ "btree",	{ NULL, NULL, 0, 10, 0, NULL, search_btree, close_btree,
+{ "btree",	{ NULL, NULL, 0, 0, 0, NULL, search_btree, close_btree,
 		  add_btree, remove_btree, print_btree, count_btree,
 		  owner_btree, modp_btree, Nul, NULL } },
-{ "bhash",	{ NULL, NULL, 0, 10, 0, NULL, search_bhash, close_bhash,
+{ "bhash",	{ NULL, NULL, 0, 0, 0, NULL, search_bhash, close_bhash,
 		  add_bhash, remove_bhash, print_bhash, count_bhash,
 		  owner_bhash, modp_bhash, Nul, NULL } },
 #endif	/* HAVE_DB_H */
 #ifdef	HAVE_YP
-{ "yp",		{ NULL, NULL, 0, 10, 0, NULL, search_yp, NULL, NULL,
+{ "yp",		{ NULL, NULL, 0, 0, 0, NULL, search_yp, NULL, NULL,
 		  NULL, print_yp, NULL, owner_yp, NULL, Nul, NULL } },
 #endif	/* HAVE_YP */
 #ifdef HAVE_LDAP
-{ "ldap",	{ NULL, NULL, 0, 10, 0, NULL, search_ldap, close_ldap,
+{ "ldap",	{ NULL, NULL, 0, 0, 0, NULL, search_ldap, close_ldap,
 		  NULL, NULL, NULL, NULL, NULL, modp_ldap, Nul, NULL } },
 #endif
 { NULL, { NULL, NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -789,7 +789,14 @@ db(dbname, key)
 				fprintf(stderr,
 					"... comparing %s and %s in cache\n",
 					CACHE(i,key), key);
-			if (CISTREQ(CACHE(i,key), key)) {
+
+			/* Match mixed case IF the mapping is to lower or
+			   to upper, if not, match as is! */
+			if (((dbip->flags & (DB_MAPTOUPPER|DB_MAPTOLOWER)) &&
+			     CISTREQ(CACHE(i,key), key)) ||
+			    (!(dbip->flags & (DB_MAPTOUPPER|DB_MAPTOLOWER)) &&
+			     strcmp(CACHE(i,key), key) == 0)) {
+
 				/* cache maintenance */
 				tce = *(dbip->cache+i);
 				if (j > 0 && D_db)
@@ -870,7 +877,7 @@ db(dbname, key)
 				l = NULL;
 				break;
 			}
-			i = atoi(l->string);	/* file offset */
+			i = atol(l->string);	/* file offset */
 			/* if (stickymem == MEM_MALLOC)
 			   s_free_tree(l); */
 			l = readchunk(dbip->subtype, (long)i);
@@ -935,12 +942,20 @@ db(dbname, key)
 				fprintf(stderr, "\n");
 		}
 		stickymem = oval;
+#if 0
 		ll = s_copy_tree(l);	/* scratch version returned to shell */
+#else
+		ll = l;
+#endif
 	} else if (dbip->cache_size > 0) {
 		stickymem = oval;
-		ll = s_copy_tree(l);	/* scratch version returned to shell */
 		free(realkey);
+#if 0
+		ll = s_copy_tree(l);	/* scratch version returned to shell */
 		/* s_free_tree(l); */
+#else
+		ll = l;
+#endif
 	} else
 		ll = l;
 
@@ -973,16 +988,15 @@ cacheflush(dbip)
 	struct db_info *dbip;
 {
 	int i;
-	conscell *ll;
 
 	if (dbip == NULL || dbip->cache_size == 0 || dbip->cache == NULL)
 		return;
 
 	/* flush cache */
 	for (i = 0; i < dbip->cache_size && CACHE(i,key) != NULL; ++i) {
-		ll = CACHE(i,value);
-		/* if (ll != NULL)
-		   s_free_tree(ll); */
+		/* conscell *ll = CACHE(i,value);
+		   if (ll != NULL)
+		     s_free_tree(ll); */
 		if (CACHE(i,key) != NULL) /* always true */
 		  free((char *)CACHE(i,key));
 	}

@@ -263,7 +263,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 #endif
 	  sprintf(buf,
 		  "Cannot open control file \"%%s\" from \"%s\" for \"%%s/%%s\" as uid %d! (%%m)",
-		  cwd, geteuid());
+		  cwd, (int)geteuid());
 	  errno = e;
 	  if (host == NULL)
 	    host = "-";

@@ -1016,7 +1016,7 @@ mkTrace(e)
 	/* id */
 	{
 	  char fnam[20], taspid[30];
-	  sprintf(fnam, "%d", e->e_statbuf.st_ino);
+	  sprintf(fnam, "%ld", (long)e->e_statbuf.st_ino);
 	  taspoolid(taspid, sizeof(taspid), e->e_statbuf.st_mtime, fnam);
 
 	  na = (struct addr *)tmalloc(sizeof (struct addr));

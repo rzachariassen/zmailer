@@ -17,8 +17,8 @@
 #
 # Enables of some commands:
 #PARAM	DEBUGcmd
-PARAM	EXPNcmd
-PARAM	VRFYcmd
+#PARAM	EXPNcmd
+#PARAM	VRFYcmd
 #PARAM	enable-router	# This is a security decission for you.
 #			# This is needed for EXPN/VRFY and interactive
 #			# processing of MAIL FROM and RCPT TO addresses.
