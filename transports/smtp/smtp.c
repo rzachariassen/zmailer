@@ -2153,7 +2153,7 @@ smtpconn(SS, host, noMX)
 
 #if defined(AF_INET6) && defined(INET6)
 	    if (use_ipv6) {
-	      struct addrinfo *ai2 = NULL, *a;
+	      struct addrinfo *ai2 = NULL;
 	      int i2;
 
 	      memset(&req, 0, sizeof(req));

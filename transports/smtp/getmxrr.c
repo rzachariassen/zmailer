@@ -27,7 +27,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	int saw_cname = 0;
 	int ttl;
 	int had_eai_again = 0;
-	struct addrinfo req, *ai, *ai2, **aip;
+	struct addrinfo req, *ai, **aip;
 	querybuf qbuf, answer;
 	msgdata buf[8192], realname[8192];
 	char mxtype[MAXFORWARDERS];
@@ -470,7 +470,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    /* Want, but not have AAAA, ask for it. */
 
 	    int n2;
-	    ai2 = NULL;
+	    struct addrinfo *ai2 = NULL;
 
 	    memset(&req, 0, sizeof(req));
 	    req.ai_socktype = SOCK_STREAM;
@@ -711,7 +711,7 @@ int main(argc, argv)
      int argc;
      char *argv[];
 {
-	int c, rc;
+	int rc;
 	SmtpState SS;
 	char *host, *s;
 
@@ -786,7 +786,7 @@ int main(argc, argv)
 
 	if (SS.mxcount == 0 || SS.mxh[0].host == NULL) {
 
-	  struct addrinfo req, *ai, **aip;
+	  struct addrinfo req, *ai;
 	  int r;
 
 	  memset(&req, 0, sizeof(req));
@@ -810,7 +810,7 @@ int main(argc, argv)
 	    fprintf(SS.verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
 #if defined(AF_INET6) && defined(INET6)
 	  if (use_ipv6) {
-	    struct addrinfo *ai2 = NULL, *a;
+	    struct addrinfo *ai2 = NULL, **aip;
 	    int i2;
 
 	    memset(&req, 0, sizeof(req));
