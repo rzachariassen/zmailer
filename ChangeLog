@@ -1,3 +1,12 @@
+2004-09-06  Matti Aarnio  <mea@zmailer.org>
+
+	* scheduler/mq2.c, scheduler/mailq.inc:
+	    Added (into the scheduler's "MAILQ -QQQQ" processing)
+	    a way to call external arbitrary command, whose output
+	    is collected into the command output.  This allows
+	    "easy" addition of custom system monitoring data
+	    into the output.  Something will get added into "contrib".
+
 2004-09-05  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:

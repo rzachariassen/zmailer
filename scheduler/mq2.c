@@ -609,6 +609,68 @@ static int mq2cmd_etrn(mq,s)
   return 0;
 }
 
+static void
+scheduler_mailq_extra(fp)
+     Sfio_t *fp;
+{
+  int pid;
+  int pipe_fd[2];
+  const char *scheduler_M_extra_cmd = getzenv("SCHEDULER_M_EXTRA");
+
+  if (!scheduler_M_extra_cmd) return; /* Nothing to do.. */
+
+  if (pipe(pipe_fd) != 0)
+    return; /* Sigh.. We don't worry about e.g. EINTR here. */
+
+  pid = fork();
+
+  if (pid > 0) {
+    /* Parent! */
+
+    /* We are ourselves going to die rather quickly... */
+# ifdef SIGCLD
+    SIGNAL_HANDLE(SIGCLD,SIG_IGN);		/* Auto-reap the kids.. */
+# else
+    SIGNAL_HANDLE(SIGCHLD,SIG_IGN);
+# endif
+
+    close(pipe_fd[1]); /* Parent does not write */
+
+    for (;;) {
+      char c;
+      int rc = read(pipe_fd[0], &c, 1);
+      if (rc == 0) break; /* EOF */
+      if (rc == 1) {
+	sfputc(fp, c);
+	continue;
+      }
+      if (rc < 0 && errno == EINTR)
+	continue;
+      break; /* ANYTHING AT ALL: break out! */
+    }
+    close(pipe_fd[0]);
+
+    return;
+  }
+  if (pid == 0) {
+    int i;
+    /* Child! */
+    close(pipe_fd[0]); /* Child does not read.. */
+
+    if (pipe_fd[1] != 1)
+      dup2(pipe_fd[1],1); /* STDOUT */
+    if (pipe_fd[1] != 2)
+      dup2(pipe_fd[1],2); /* STDERR */
+
+    close(0);
+    i = open("/dev/null",O_RDONLY,0);
+    if (i > 0) dup2(i, 0);
+
+    execl(scheduler_M_extra_cmd, scheduler_M_extra_cmd, NULL);
+    _exit(255);
+ }
+}
+
 
 /* INTERNAL */
 static void mq2_show_snmp(mq)
@@ -633,6 +695,8 @@ static void mq2_show_snmp(mq)
 
   r = (Z_SHM_MIB_is_attached() > 0); /* Attached and WRITABLE ? */
 
+
+#define SCHEDULER_MAILQ_EXTRA scheduler_mailq_extra(fp);
 
 #include "mailq.inc" /* Shared stuff with  mailq.c  program */
 

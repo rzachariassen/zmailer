@@ -54,6 +54,10 @@ as a fixed point fractional number.
 }
 #endif
 
+#ifdef SCHEDULER_MAILQ_EXTRA
+SCHEDULER_MAILQ_EXTRA
+#endif
+
   sfprintf(fp,"\n");
 
 
