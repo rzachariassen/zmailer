@@ -1804,13 +1804,13 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	for (i = 0; i < cfp->nlines; ++i, ++lp) {
 	  cp = cfp->contents + *lp + 1;
 	  wakeuptime = 0;
-	  if (!rereading && (*cp == _CFTAG_LOCK)) {
+	  if (*cp == _CFTAG_LOCK) {
 	    /*
 	     * This can happen when we restart the scheduler, and
 	     * some previous transporter is still running.
 	     * (and DEFINITELY during resync! when we simply ignore locks)
 	     */
-	    if (!lockverify(cfp, cp, 1)) {
+	    if (!lockverify(cfp, cp, !rereading)) {
 #if 0
 	      long ino = 0;
 	      /*
