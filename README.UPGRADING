@@ -49,9 +49,9 @@
 		splitting (at IFS chars) of (positional) function call
 		parameters.   Few things which used to be string literals
 		are now changed to lists:  Check your  router.cf !
-			Was:	protocols='router smtp'
+			Was:	protocols='routes smtp'
 				private='something'
-			Now:	protocols=(router smtp)
+			Now:	protocols=(routes smtp)
 				private=(something)
 		COMPARE YOUR  router.cf  AGAINST THE  $MAILSHARE/cf/SMTP.cf !
 		(or whatever your prototype file was)
