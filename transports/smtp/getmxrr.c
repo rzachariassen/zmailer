@@ -784,6 +784,7 @@ int main(argc, argv)
 
 
 	printf("getmxrr() rc=%d %s\n", rc, s);
+	printf("     mxcount=%d\n", SS.mxcount);
 
 	return 0;
 }
