@@ -2216,6 +2216,9 @@ int insecure;
 
 	if (i <= 0)	/* EOF ??? */
 	  break;
+
+	MIBMtaEntry->m.mtaIncomingCommands ++;
+
 				   
 	time( & now );
 
@@ -2262,6 +2265,7 @@ int insecure;
 			((buf[rc] & 0x80) ? "8-bit char on SMTP input" :
 			 "Control chars on SMTP input")));
 	    typeflush(SS);
+	    MIBMtaEntry->m.mtaIncomingCommands_unknown ++;
 	    continue;
 	}
 	if (!strict_protocol && c != '\n' && i > 3) {
@@ -2277,6 +2281,7 @@ int insecure;
 		type(SS, 500, m552, "Line not terminated with CRLF..");
 	    else
 		type(SS, 500, m552, "Line too long (%d chars)", i);
+	    MIBMtaEntry->m.mtaIncomingCommands_unknown ++;
 	    continue;
 	}
 	if (verbose && !daemon_flg)
@@ -2302,6 +2307,7 @@ int insecure;
 
 	unknown_command:
 
+	    MIBMtaEntry->m.mtaIncomingCommands_unknown ++;
 	    ++SS->unknown_cmd_count;
 
 	    if (SS->unknown_cmd_count >= unknown_cmd_limit) {
