@@ -728,7 +728,7 @@ main(argc, argv)
 
 
 #ifdef HAVE_OPENSSL
-	  if (SS.verboselog)
+	  if (SS.verboselog && tls_conf_file)
 	    fprintf(SS.verboselog, "# tls_conf_file='%s'\n", tls_conf_file);
 
 	  if (tls_conf_file && !tls_available) {
