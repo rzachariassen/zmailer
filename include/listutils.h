@@ -215,9 +215,9 @@ EXTINLINE conscell * conststring(const char *cs, const int slen)
 			       : (car(X) = (Y), (X)))
 #else
 #define nconc(X,Y)	\
-	({conscell *_X = (X), *_Y = (Y);		\
-	  (car(_X) != NULL ? cdr(s_last(car(_X))) = _Y : \
-	   (car(_X) = _Y, _X)); })
+	({conscell *_tmpX = (X), *_tmpY = (Y);		\
+	  (car(_tmpX) != NULL ? cdr(s_last(car(_tmpX))) = _tmpY : \
+	   (car(_tmpX) = _tmpY, _tmpX)); })
 #endif
 
 /* ncons(s-expr) -> new (s-expr) */
@@ -231,8 +231,8 @@ EXTINLINE conscell * conststring(const char *cs, const int slen)
 
 /* s_push(s-expr, list) -> old (s-expr ,@list) */
 #define s_push(X,Y)	\
-	({conscell *_X = (X); conscell *_Y = (Y);	  \
-	  cdr(_X) = car(_Y); car(_Y) = _X; _Y;})
+	({conscell *_tmpX = (X); conscell *_tmpY = (Y);	  \
+	  cdr(_tmpX) = car(_tmpY); car(_tmpY) = _tmpX; _tmpY;})
 
 #define newstring(X,SLEN)	\
 	({conscell *_tmp = newcell(); _tmp->string = (X); \
