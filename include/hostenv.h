@@ -13,21 +13,21 @@
 #include <string.h>
 #endif
 
+#ifdef HAVE_ALLOCA_H
+#  include <alloca.h>
+#  define HAVE_ALLOCA 1
+#else
 #ifdef __GNUC__
 # define alloca __builtin_alloca
 # define HAVE_ALLOCA 1
 #else
-# if HAVE_ALLOCA_H
-#  include <alloca.h>
-#  define HAVE_ALLOCA 1
-# else
-#  ifdef _AIX
- #pragma alloca
-#   define HAVE_ALLOCA 1
-#  else
-	/* no alloca() .. */
-#  endif
-# endif
+#ifdef _AIX
+#pragma alloca
+# define HAVE_ALLOCA 1
+#else
+ /* no alloca() .. */
+#endif
+#endif
 #endif
 
 #ifdef HAVE_ALLOCA

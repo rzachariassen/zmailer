@@ -82,6 +82,13 @@ typedef struct {
 
   ZSleepyEnvSet	*ZSE;
 
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
+  /* This didn't exist at DB1. */
+
+  DBC		*cursor; /* Just temporary storage
+			    for fatal error recovery.. */
+#endif
+
 } ZSleepyPrivate;
 
 
@@ -90,7 +97,7 @@ extern ZSleepyEnvSet *ZSleepyEnvSetRoot;
 
 extern ZSleepyPrivate *zsleepyprivateinit __((const char *filename, const char *cfgname, DBTYPE dbtype));
 extern void zsleepyprivatefree __((ZSleepyPrivate *prv));
-extern int zsleepyprivateopen __((ZSleepyPrivate *prv, int roflag, int mode));
+extern int zsleepyprivateopen __((ZSleepyPrivate *prv, int roflag, int mode, char **comment));
 
 
 #endif /* no sleepycat in any form */

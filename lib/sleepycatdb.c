@@ -237,10 +237,11 @@ void zsleepyprivatefree(prv)
 }
 
 
-int zsleepyprivateopen(prv, roflag, mode)
+int zsleepyprivateopen(prv, roflag, mode, comment)
      ZSleepyPrivate *prv;
      int roflag;
      int mode;
+     char **comment;
 {
 	int err = 0;
 	DB *db = NULL;
@@ -252,6 +253,8 @@ int zsleepyprivateopen(prv, roflag, mode)
 #if   defined(HAVE_DB3) || defined(HAVE_DB4)
 
 	if (prv->ZSE && prv->ZSE->envhome && !prv->ZSE->env) {
+	    if (comment) *comment = " environment of";
+
 	    err = db_env_create(&prv->ZSE->env, 0);
 	    if (err) return err; /* Uhh.. */
 
@@ -269,11 +272,14 @@ int zsleepyprivateopen(prv, roflag, mode)
 	    if (err) return err; /* Uhh.. */
 	}
 
+	if (comment) *comment = " db_create()";
 	err = db_create(&db, prv->ZSE ? prv->ZSE->env : NULL, 0);
-	if (err == 0 && db != NULL)
+	if (err == 0 && db != NULL) {
 	    err = db->open( db, prv->filename, NULL, prv->dbtype,
 			    ((roflag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
 			    mode );
+	    if (comment) *comment = " batabase";
+	}
 	if (err != 0 && db != NULL) {
 	  db->close(db, 0);
 	}
@@ -283,12 +289,14 @@ int zsleepyprivateopen(prv, roflag, mode)
 	err = db_open( prv->filename, prv->dbtype,
 		       ((roflag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
 		       0644, NULL, NULL, &db );
+	if (comment) *comment = " batabase";
 
 #else
 
 	db = dbopen( prv->filename, roflag, 0, prv->dbtype, NULL );
 	if (!db)
 	    err = errno;
+	if (comment) *comment = " batabase";
 
 #endif
 #endif
