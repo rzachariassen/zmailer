@@ -197,6 +197,9 @@ transports/smtp:
   - Control somehow if lack of configuration and/or PolicyDB is
     a system security offence, or not..
 
+  - syslog diversion for the debug log file -- instead of writing
+    into a file, syslog() it all -- mail.debug ??  Or configurable ?
+
   - Supply PARAM entries for *all* (well, very nearly) command-line
     startup options where it makes sense... (NOW DOES!)
   - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills

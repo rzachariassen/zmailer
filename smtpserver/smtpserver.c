@@ -265,6 +265,7 @@ extern void type220headers __((SmtpState *SS, const int identflg, const char *xl
 
 
 extern void openlogfp __((SmtpState * SS, int insecure));
+extern char taspid_encodechars[];
 
 void openlogfp(SS, insecure)
 SmtpState *SS;
@@ -272,13 +273,18 @@ int insecure;
 {
     /* opening the logfile should be done before we reset the uid */
     time_t now = time(NULL);
-
+    struct tm *tt;
+    tt = gmtime(&now);
     pid = getpid();
-    sprintf(logtag, "%05d%c%c%c%c", pid,
-	    'A'+(((int)now / (26*26*26)) % 26),
-	    'A'+(((int)now / (26*26   )) % 26),
-	    'A'+(((int)now / (26      )) % 26),
-	    'A'+(((int)now             ) % 26));
+
+    /* %M%D%h%m%s_pid_ */
+
+    sprintf(logtag, "%c%c%c%c%05d",
+	    taspid_encodechars[ tt->tm_mday-1 ],
+	    taspid_encodechars[ tt->tm_hour   ],
+	    taspid_encodechars[ tt->tm_min    ],
+	    taspid_encodechars[ tt->tm_sec    ],
+	    pid);
 
     if (logfp != NULL)
 	fclose(logfp);

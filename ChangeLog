@@ -1,3 +1,11 @@
+2000-02-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c, lib/taspoolid.c:
+	    Changed (again) the logtag prefix for smtpserver's -l parameter
+	    defined logfile.  Considering enabling it to be also diverted
+	    via syslog() to where-ever that goes.  (But server process can
+	    have only one syslog() session active with one facility..)
+
 2000-02-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
