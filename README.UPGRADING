@@ -12,6 +12,11 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.53-pre1
+		Router scripts have changed a bit to better accomodate
+		logging in environment where it isn't necessary to
+		redirect logging related "echo"es.
+
 	ZMailer-2.99.52-patch2(cvs)
 		New TA specs file format item -- _CF_MIMESTRUCT ('M'),
 		which is a multi-line entity just like _CF_HEADERS ('m')

@@ -162,6 +162,10 @@ update(fd, diagnostic)
 	if ((vp = findvertex(inum, offset, &index)) == NULL)
 	  return;
 
+	++vp->attempts; /* Did attempt this vertex! */
+	if (vp->thread)
+	  vp->thread->attempts += 1; /* and on this thread too! */
+
 	if (vp->notary != NULL)
 	  free(vp->notary);
 	vp->notary = NULL;

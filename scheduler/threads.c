@@ -921,8 +921,6 @@ thread_start(thr, queueonly_too)
 	    thread_vertex_shuffle(thr);
 	  }
 
-	  thr->attempts += 1;
-
 	  /* Its idle process, feed it! */
 
 	  proc->state   = CFSTATE_LARVA;
@@ -1009,10 +1007,6 @@ thread_start(thr, queueonly_too)
 	rc = start_child(thr->thvertices,
 			 thr->thvertices->orig[L_CHANNEL],
 			 thr->thvertices->orig[L_HOST]);
-
-	if (rc) { /* non-zero when child has started */
-	  thr->attempts += 1;
-	}
 
 	if (thr->proc && verbose)
 	  sfprintf(sfstderr,"%% thread_start(thr=%s/%d/%s) (proc=%p dt=%d thr=%p jobs=%d)\n",
@@ -1264,13 +1258,18 @@ reschedule(vp, factor, index)
 	} else
 	  vp->wakeup += factor * ce->interval;
 
+	/* I THINK there could be an assert that if this happens,
+	   something is WRONG.. */
 	if (vp->attempts == 0)
 	  vp->wakeup = now;
 
 	/* XX: change this to a mod expression */
 	if (vp->wakeup < now)
 	  vp->wakeup = ((((now - vp->wakeup) / ce->interval)+1)
-			* ce->interval);
+			* ce->interval) + 10 + 2*thr->jobs;
+
+	/* Makes sure that next future event is at +10+2*jobcount seconds
+	   in the future..  A kludge approach, but still.. */
 
 	if (vp->ce_expiry > 0
 	    && vp->ce_expiry <= vp->wakeup

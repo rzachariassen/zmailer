@@ -1,5 +1,9 @@
 2000-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/threads.c, scheduler/update.c:
+	    Trying to understand why 'deferred' diagnostics causes
+	    practically immediate reissuance of a task..
+
 	* router/functions.c:
 	    Router function "$(dequote ...)" was previously castrated
 	    a bit too much.  This isn't like sendmail-8's dequote class,
