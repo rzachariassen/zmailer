@@ -410,7 +410,7 @@ FIXME:(write!)		(See notes about post-install below)
 	style .domain names in this file, to indicate everything under some
 	subdomain.
 
-	With the sample config files for mea's Zmailer-2.98, and latter
+	With the sample config files for mea's Zmailer-2.98, and later
 	this "localnames" is actually a mapping of those various names to
 	the desired forms of the canonic name, thus an example:
 

@@ -107,7 +107,7 @@
 		(This is due to possible movement from DB 1.x to 2.x and
 		 possibly even to 3.x with different binary db formats.)
 
-		A bit latter other (oldish) SNAFU was understood in the
+		A bit later other (oldish) SNAFU was understood in the
 		database library linkages.  Namely that most "new" DB
 		libraries do tend to contain an overlay library for "old"
 		database functions so that those old ones won't be loaded
