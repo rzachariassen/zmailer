@@ -739,7 +739,7 @@ db(dbname, key)
 	  keylen = strlen(key);
 	  if (keylen >= sizeof(kbuf)) keylen = sizeof(kbuf)-1;
 	  memcpy(kbuf, key, keylen); /* was: strncpy */
-	  kbuf[sizeof(kbuf)-1] = 0;
+	  kbuf[keylen] = 0;
 	  strlower(kbuf);
 	  key = kbuf;
 	  khash = crc32n(key, keylen);
@@ -747,7 +747,7 @@ db(dbname, key)
 	  keylen = strlen(key);
 	  if (keylen >= sizeof(kbuf)) keylen = sizeof(kbuf)-1;
 	  memcpy(kbuf, key, keylen); /* was: strncpy */
-	  kbuf[sizeof(kbuf)-1] = 0;
+	  kbuf[keylen] = 0;
 	  strupper(kbuf);
 	  key = kbuf;
 	  khash = crc32n(key, keylen);

@@ -514,7 +514,7 @@ hdr_print(h, fp)
 	}
 
 	/* Always at least one space! */
-	if (h->h_lines == NULL  &&  !hadspc) {
+	if (!hadspc) {
 		putc(' ', fp);
 		++col;
 		++foldcol;

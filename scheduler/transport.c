@@ -488,7 +488,8 @@ ta_hungry(proc)
 	case CFSTATE_IDLE: /* "4" */
 	  /* The process has arrived into IDLE pool! */
 
-	  if (proc->overfed != 0) abort();
+	  if (proc->overfed > 0) abort();
+	  /* We have seen at least once that this value went NEGATIVE! */
 
 	  if (verbose)
 	    sfprintf(sfstdout, " ... IDLE THE PROCESS %p (of=%d).\n",
@@ -497,6 +498,7 @@ ta_hungry(proc)
 	  /* Unlink me from the active chain */
 	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
 	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
+	  proc->pnext = proc->pprev = NULL;
 
 	  if (proc->pthread) {
 

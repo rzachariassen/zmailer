@@ -91,11 +91,14 @@ update(fd, diagnostic)
 	struct procinfo *proc = &cpids[fd];
 
 	if (*diagnostic == 0) {
+#if 0
 	  /* Lone newline.. old-style indications from the transporter */
 	  ta_hungry(proc);
 	  return;
+#else
+	diagnostic = "#";
+#endif
 	}
-
 	if (*diagnostic == '#') {
 	  /* Now (*diagnostic == '#') */
 

@@ -291,27 +291,49 @@ internet (address, hname) {
 
 	local a
 
-#	# Alexis Yushin <alexis@NL.net> mentioned that he does following:
-#	$(sender) && {
-#		local tmp
-#		tmp="$(masquerades "$address")" && address="$tmp"
-#	}
-
 	address="$(canonicalize "$address")"	# Canonicalize does local
 						# hostname hiding...
 
-	$(sender) && {
+	if $(sender) ; then
+		########## SENDER #########
 		tsift "$address" in
 		(.*)<@(.+)>(.*)
-			a="$(deliver "\2")" && a="$(userdb "\1:mailname")" &&
-			  address="$a<@\2>\3"
+			if a="$(userdb "\1@\2\3:mailname")" ; then
+				address="$(canonicalize "$a")"
+			elif a="$(userdb "@\2:mailname")" ; then
+				address="\1<$a>\3"
+			elif a="$(deliver "\2")" && a="$(userdb "\1:mailname")"
+			then
+			    address="$a<@\2>\3"
+			fi
+			break
 			;;
 		(.*)
-			a="$(userdb "$address:mailname")" &&
-			  address="$a<@\2>\3"
+			a="$(userdb "\1:mailname")" &&
+				address="$(canonicalize "$a")"
 			;;
 		tfist
-	}
+	elif $(recipient) ; then
+		########## RECIPIENT ##########
+		## ----- eh ? really ? ----- ##
+		tsift "$address" in
+		(.*)<@(.+)>(.*)
+			if a="$(userdb "\1@\2\3:mailname")" ; then
+				address="$(canonicalize "$a")"
+			elif a="$(userdb "@\2:mailname")" ; then
+				address="\1<$a>\3"
+			elif a="$(deliver "\2")" && a="$(userdb "\1:mailname")"
+			then
+			    address="$a<@\2>\3"
+			fi
+			break
+			;;
+		(.*)
+			a="$(userdb "\1:mailname")" &&
+				address="$(canonicalize "$a")"
+			;;
+		tfist
+	fi
 
 	tsift "$address" in
 	(.*)<@(.+)>(.*)
@@ -331,3 +353,5 @@ internet (address, hname) {
 
 	return "$address"
 }	# end of internet
+
+R=$POSTOFFICE/router

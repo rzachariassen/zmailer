@@ -1,14 +1,29 @@
 2000-03-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/rfc822hdrs.c:
+	    Sometimes missed sending out at leat one space after the
+	    header name tag.
+
+	* scheduler/transport.c, scheduler/update.c, scheduler/mq2auth.c,
+	  transports/smtp/smtptls.c:
+	    Various bad diagnostics seen (from smtp) which in turn crashed
+	    scheduler :-/  Oops..   Some new comments into  mq2auth.c about
+	    possible future directions.
+
+	* proto/cf/crossbar.cf, proto/db/userdb:
+	    Some more work on this, now allowing rather peculiar
+	    ZMailerish keying at least for ":mailname" keys..
+
 	* router/db.c:
 	    Reworked cache code to be faster (I hope) by means of having
 	    a crc32 hash value against which the matching is done.
 	    The goal is to support in order of 10k entries in the cache
-	    without too large impact on performance.  ( hash collisions
-	    are resolved by means of doing actual key  strcmp() )
+	    without too large of an impact on performance.
+	    ( The hash collisions are resolved by means of doing actual
+	      key  strcmp() )
 	    The cache at each DB relation interface is still an LRU with
 	    linear (urgh..) search time.  (A splay-tree was also considered,
-	    but not decided to use.)
+	    but decided not to use.)
 
 2000-03-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
 

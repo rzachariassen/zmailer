@@ -1,7 +1,7 @@
 /*
  *	ZMailer 2.99.53+ Scheduler "mailq2" routines
  *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1999
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1999-2000
  *
  */
 
@@ -23,6 +23,7 @@
  *  - username (search key)
  *  - cleartext password (for AUTH hash to work)
  *  - controlling attributes
+ *  - IP ACL per tcp-wrapper (how?)
  *
  *
  *  Field separator classical double-colon (':'), meaning that
