@@ -439,6 +439,7 @@ Choose one of the following methods to rebuild the database:
 # $MAILBIN/zmailer newaliases
 # /usr/lib/sendmail -bi
 # /usr/bin/newaliases
+# $MAILBIN/zmailer newdb
 \medskip\hrule\medskip\end{alltt}
 
 If there are errors, correct them in the ``{\tt aliases}'' file,
@@ -500,7 +501,7 @@ really is accepted.
 
 Compile this into runtime binary database with command:
 \begin{alltt}\medskip\hrule\medskip
-  zmailer new-localnames
+  zmailer newdb
 \medskip\hrule\medskip\end{alltt}
 (fall-back method is sequential rescan of the text file)
 
@@ -511,7 +512,7 @@ For an example see figure \vref{fig:inst:routes}.
 
 You can compile the file into binary database with command:
 \begin{alltt}\medskip\hrule\medskip
-  zmailer new-routes
+  zmailer newdb
 \medskip\hrule\medskip\end{alltt}
 
 \begin{figure*}
@@ -563,9 +564,10 @@ Choose one of the following methods to rebuild the database:
 \begin{alltt}\medskip\hrule\medskip
 # $MAILBIN/newfqdnaliases
 \medskip\hrule\medskip\end{alltt}
-or
+or either of:
 \begin{alltt}\medskip\hrule\medskip
 # $MAILBIN/zmailer newfqdnaliases
+# $MAILBIN/zmailer newdb
 \medskip\hrule\medskip\end{alltt}
 
 If there are errors, correct them in the ``{\tt fqdnaliases}'' file,

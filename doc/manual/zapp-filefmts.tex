@@ -109,27 +109,54 @@ requests using this mail id for the local sender
 ESMTP DSN RET={\em word}, either ``FULL'' ``HDRS''
 
 \item[{\tt rcvdfrom} `domain' (opt. comment)] \mbox{}\\
-sets the host the message was received from(*)
+An optional envelope entry, which sets ``Received:'' header's
+``from'' field value.
+
+This should {\em only} be used on messages that are originated
+thru ``trusted'' mechanisms, and especially {\em not} be used
+when the message is originated by some John Doe in the system.
+(E.g. this is reserved for {\em smtpserver} and friends, not
+ for arbitary users.)
 
 \item[{\tt to} `address-list'] \mbox{} \\
-a destination address list
+Normal recipient address list; usually used in form of listing
+one address in angle braces:
+\begin{alltt}
+  to <user@somewhere>
+\end{alltt}
 
 \item[{\tt todsn} `phrase'] \mbox{} \\
 ESMTP DSN recipient parameters.
-Note: this must be before the recipient ``To'' line for which
+Note: this must be before the recipient ``to'' line for which
 this gives the extra parameters.
 
 \item[{\tt user} `local-part'] \mbox{} \\
-sets the user the message was received from(*)
+Optional envelope entry telling who the message originating user
+was.   The system is extremely suspicuous on this entry, and will
+check it against system account database, unless the spool file
+owner uid is known to belong to trusted users.
 
-\item[{\tt verbose} zzz] \mbox{} \\
-zzz
+\item[{\tt verbose} filename] \mbox{} \\
+This optional envelope entry tells the router, what filename
+the sending client expects the subsystems to use as a feedback
+channel for reports concerning the file.
+
+This ``filename'' is located into  \$POSTOFFICE/public/ directory,
+and has been preopened by the same uid as has created the message
+spool file.
 
 \item[{\tt via} `word'] \mbox{} \\
-for RFC822 Received: header to be generated
+An optional envelope entry that will define ``Received:'' header's
+optional ``via'' tag telling what physical transport mechanism was
+used.
+
+Usually this entry is {\em not} used.
 
 \item[{\tt with} `word'] \mbox{} \\
-for RFC822 Received: header to be generated
+An optional envelope entry that will define ``Received:'' header's
+optional ``with'' tag telling what protocol was used.
+
+Unline RFC-822 tells, ZMailer supports only one ``with'' instance.
 
 \end{description}
 
