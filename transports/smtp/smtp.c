@@ -4000,7 +4000,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 {
 	register char *s;
 	volatile char *cp;
-	int response, infd, rc;
+	int response, infd, outfd, rc;
 	volatile int r = 0, i;
 	char *se;
 	char *status = NULL;
@@ -4022,7 +4022,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  alarm(0);
 	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	}
-	infd = FILENO(SS->smtpfp);
+	outfd = infd = FILENO(SS->smtpfp);
 
 	if (pipelining) {
 	  if (SS->pipespace <= SS->pipeindex) {
@@ -4065,9 +4065,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      memcpy(buf+len-2,"\r\n",2);
 
 	      if (SS->verboselog)
-		fwrite(buf, len, 1, SS->verboselog);
+		fwrite(buf, 1, len, SS->verboselog);
 
-	      r = fwrite(buf, len, 1,SS->smtpfp);
+	      r = fwrite(buf, 1, len, SS->smtpfp);
 	      err = (r != len);
 
 	      if (SS->smtp_outcount > SS->smtp_bufsize) {
@@ -4082,9 +4082,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      memcpy(buf+len-2,"\r\n",2);
 
 	      if (SS->verboselog)
-		fwrite(buf, len, 1, SS->verboselog);
+		fwrite(buf, 1, len, SS->verboselog);
 
-	      r = fwrite(buf, len, 1, SS->smtpfp);
+	      r = fwrite(buf, 1, len, SS->smtpfp);
 	      fflush(SS->smtpfp);
 	      err = (r != len);
 	    }
