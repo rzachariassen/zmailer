@@ -1387,12 +1387,15 @@ rd_doit(filename, dirs)
 	    chdir(pathbuf);
 	    strncpy(dirhash, p, sizeof(dirhash)-1);
 	    dirhash[sizeof(dirhash)-1] = 0;
+	  } else {
+	    strncpy(dirhash, dirs, sizeof(dirhash)-1);
+	    dirhash[sizeof(dirhash)-1] = 0;
+	  }
 
-	    *pathbuf = 0;
-	    if (dirhash[0]) {
-	      strcpy(pathbuf,dirhash);
-	      strcat(pathbuf,"/");
-	    }
+	  *pathbuf = 0;
+	  if (dirhash[0]) {
+	    strcpy(pathbuf,dirhash);
+	    strcat(pathbuf,"/");
 	  }
 	}
 #endif
