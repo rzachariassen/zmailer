@@ -37,5 +37,5 @@ $MAILBIN/zmailer logsync
 sleep 1800
 
 # Compress the newly separated log files
-gzip *.0
+@GZIP@ *.0
 
