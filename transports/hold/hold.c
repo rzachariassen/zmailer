@@ -327,9 +327,10 @@ process(dp)
 
 	for (rp = dp->recipients; rp != NULL; rp = rp->next)
 	  if (rp->status == EX_OK) {
-	    fprintf(mfp, "to <%s>\n", rp->addr->user);
-	    if (rp->notify || rp->orcpt) {
-
+	    if ( rp->notify || rp->orcpt  ||
+		 rp->inrcpt || rp->infrom ||
+		 rp->deliverby                 ) {
+	      
 	      fputs("todsn",mfp);
 	      if (rp->orcpt != NULL)
 		fprintf(mfp," ORCPT=%s",rp->orcpt);
@@ -355,6 +356,7 @@ process(dp)
 
 	      putc('\n',mfp);
 	    }
+	    fprintf(mfp, "to <%s>\n", rp->addr->user);
 	  }
 	fprintf(mfp,"env-end\n");
 
