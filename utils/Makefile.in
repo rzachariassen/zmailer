@@ -32,6 +32,7 @@ BINS=	autoanswer.pl policy-builder.sh rotate-logs.sh		\
 all:	listexpand md5sum
 	cd makedb ; $(MAKE) $(MFLAGS)
 	cd vacation ; $(MAKE) $(MFLAGS)
+	cd perl ; $(MAKE) $(MFLAGS)
 
 install:
 	@for BIN in $(BINS); do					\
@@ -46,6 +47,7 @@ install:
 	@$(INSTALL) -m 755 listexpand $(MAILBIN)/ta
 	@cd makedb ; $(MAKE) $(MFLAGS) install
 	@cd vacation ; $(MAKE) $(MFLAGS) install
+	@cd perl ; $(MAKE) $(MFLAGS) install
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -68,6 +70,7 @@ clean:	FRC
 	cd vacation ; $(MAKE) $(MFLAGS) clean
 	cd makedb ; $(MAKE) $(MFLAGS) clean
 	cd mxverify ; $(MAKE) $(MFLAGS) clean
+	cd perl ; $(MAKE) $(MFLAGS) clean
 
 distclean: clean
 	rm -f Makefile autoanswer.pl policy-builder.sh zmailer.init.sh
@@ -75,5 +78,6 @@ distclean: clean
 	cd vacation ; $(MAKE) $(MFLAGS) distclean
 	cd makedb ; $(MAKE) $(MFLAGS) distclean
 	cd mxverify ; $(MAKE) $(MFLAGS) distclean
+	cd perl ; $(MAKE) $(MFLAGS) distclean
 
 depend:

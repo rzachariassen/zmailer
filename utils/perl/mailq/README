@@ -1,0 +1,33 @@
+ZMailer/mailq version 1.00
+==========================
+
+This is ZMailer MTA's scheduler's management protocol utility layer
+that can be used to build tools to manage its queue.
+
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module calls for following PERL extention modules:
+
+  Exporter;
+  IO::Handle;
+  IO::Socket;
+  Digest::MD5;
+
+
+COPYRIGHT AND LICENCE
+
+Put the correct copyright and licence information here.
+
+Copyright (C) 2003 Matti Aarnio
+
+This is part of ZMailer MTA package

@@ -1,0 +1,5 @@
+Revision history for Perl extension ZMailer::mailq.
+
+1.00  Fri May  2 18:12:45 2003
+	Old embedded utility version translated into
+	Perl module framework

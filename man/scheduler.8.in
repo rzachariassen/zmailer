@@ -1270,16 +1270,20 @@ is highly recommended!
 .RE
 .PP
 .IP SYSLOGFLG
+.RS
 Existence of ``c'' or ``C'' character in value string enables
 syslogging of some events as seen by the scheduler.
+.RE
 .PP
 .IP ZCONFIG
+.RS
 Gives location of
 .I zmailer.conf
- file (and filename).
+file (and filename).
 Actually this one variable does
 .B not
 override compiled-in location of this configuration file.
+.RE
 .SH TCP\-WRAPPER AND MAILQ
 .B "Do note that this applies only when the mailq is using old"
 .B "version 1 mode!"
