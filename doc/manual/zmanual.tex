@@ -1,38 +1,228 @@
 %\documentstyle[linuxdoc-sgml-a4,isolatin,qwertz,titlepage]{article}
-\documentstyle[linuxdoc-sgml-a4,isolatin,qwertz,titlepage]{article}
-\input{epsf.tex}
-\title{ZMailer Manual}
-\author{}
-\date{v1.99.1, 13 March 1998}
+%\documentstyle[linuxdoc-sgml-a4,isolatin,qwertz,titlepage]{article}
+\documentclass[twoside]{article}
+\usepackage{html,htmllist,makeidx,enumerate}
+\usepackage{graphicx,color,epsfig}
+
+\input{zlat2html.tex}
+\input{manhtml.tex}
+
+\makeindex
+\makeglossary
+\sloppy
+
+%
+\setlength{\textwidth}{5.5in}
+%\addtolength{\oddsidemargin}{-1in}
+%\addtolength{\evensidemargin}{-1in}
+\setlength{\changebarwidth}{1pt}
+
+
+%
+% read own internals for sections/contents before any
+% from the segments.
+%
+%\internal[sections]{}
+%\internal[contents]{}
+
+\internal[figure]{T}
+\internal[figure]{I}
+\internal[figure]{A}
+\internal[figure]{R}
+\internal[figure]{AP}
+
+\internal[table]{T}
+\internal[table]{I}
+\internal[table]{A}
+\internal[table]{R}
+\internal[table]{AP}
+
+\internal[sections]{T}
+\internal[sections]{I}
+\internal[sections]{A}
+\internal[sections]{R}
+\internal[sections]{AP}
+
+\internal[contents]{T}
+\internal[contents]{I}
+\internal[contents]{A}
+\internal[contents]{R}
+\internal[contents]{AP}
+
+\internal[internals]{T}
+\internal[internals]{I}
+\internal[internals]{A}
+\internal[internals]{R}
+\internal[internals]{AP}
+
+%\internal[index]{T}
+%\internal[index]{I}
+%\internal[index]{A}
+%\internal[index]{R}
+%\internal[index]{AP}
 
 
 \begin{document}
-\maketitle
-\tableofcontents
 
-\include{ztutorial}
-\include{zinstall}
-\include{zadministration}
-\include{zreference}
+\title{ZMailer Manual}
+\author{Matti Aarnio, et.al.}
+\date{v1.99.2, 16 March 1998}
+
+\maketitle
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+\tableofcontents
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+\listoffigures
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
 %
-% Included here are SUBSECTION level files
+%  MAIN MANUAL
 %
-\include{zref-smtpserver}
-\include{zref-sendmail}
-\include{zref-rmail}
-\include{zref-zmailer3}
-\include{zref-router}
-\include{zref-scheduler}
-\include{zref-transport-agents}
-\include{zref-utilities}
+
+%begin{latexonly}
+\cleardoublepage
+\pagenumbering{arabic}\setcounter{page}{1}
+%end{latexonly}
+
+\relax   %% this is important, else the next segment doesn't get processed
+
+
+%\include{ztutorial}
+\segment{ztutorial}{section}{Tutorial}
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+%\include{zinstall}
+\segment{zinstall}{section}{Build and Install}
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+%\include{zadministration}
+\segment{zadministration}{section}{Administration}
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+%\include{zreference}
+\segment{zreference}{section}{Reference}
+
 %
 % End of Reference \subsection level files
 %
 % \appendix 
-\include{zapp-scripts}
-\include{zapp-listmgrs}
-\include{zapp-tragents}
-\include{zapp-filefmts}
-\include{zapp-ssl-lang}
+%\include{zapp-scripts}
+\segment{zapp-scripts}{subsection}{Sample Router Configuration Scripts}
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+%\include{zapp-listmgrs}
+\segment{zapp-listmgrs}{subsection}{Using ZMailer with Mailinglist Managers}
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+%\include{zapp-tragents}
+\segment{zapp-tragents}{subsection}{Adding new transport agents}
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+%\include{zapp-filefmts}
+\segment{zapp-filefmts}{subsection}{Internal File Data Formats}
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+%\include{zapp-ssl-lang}
+\segment{zapp-ssl-lang}{subsection}{S/SL Language}
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+%
+%  INDEX
+%
+\internal[index]{T}
+\internal[index]{I}
+\internal[index]{A}
+\internal[index]{R}
+\internal[index]{AP}
+%
+% Index info stored in:  manual.ind ,  which was created using:
+%
+%       makeindex -s l2hidx.ist manual.idx
+%       
+%begin{latexonly}
+\printindex
+%end{latexonly}
+
+
+%
+%  Alphabetization and navigation within the index
+%  ...these special index entries must come *after* the  \printindex
+%  else half of the hyperlinks will point to the preceding page.
+%
+\begin{htmlonly}
+\newcommand{\indexAlpha}[5]{\index{#1@\htmlref{_}{#2}%
+ \htmlref{\HTML{SUB}{\LARGE #3}}{AZ}\htmlref{_}{#4}\label{#5}| }}
+%
+\indexAlpha{\$}{Z}{\$}{dot}{doll}%
+\indexAlpha{.}{doll}{~.~}{A}{dot}%
+\indexAlpha{A}{dot}{A}{B}{A}%
+\indexAlpha{B}{A}{B}{C}{B}%
+\indexAlpha{C}{B}{C}{D}{C}%
+\indexAlpha{D}{C}{D}{E}{D}%
+\indexAlpha{E}{D}{E}{F}{E}%
+\indexAlpha{F}{E}{F}{G}{F}%
+\indexAlpha{G}{F}{G}{H}{G}%
+\indexAlpha{H}{G}{H}{I}{H}%
+%\indexAlpha{I}{H}{I}{J}{I}%
+\indexAlpha{I}{H}{I}{L}{I}%
+\indexAlpha{J}{I}{J, K}{L}{K}%
+%\indexAlpha{J}{I}{J}{K}{J}%
+%\indexAlpha{K}{J}{K}{L}{K}%
+\indexAlpha{L}{K}{L}{M}{L}%
+\indexAlpha{M}{L}{M}{N}{M}%
+\indexAlpha{N}{M}{N}{O}{N}%
+\indexAlpha{O}{N}{O}{P}{O}%
+%\indexAlpha{P}{O}{P}{Q}{P}%
+\indexAlpha{P}{O}{P}{R}{P}%
+\indexAlpha{Q}{P}{Q, R}{S}{R}%
+%\indexAlpha{Q}{P}{Q}{R}{Q}%
+%\indexAlpha{R}{Q}{R}{S}{R}%
+\indexAlpha{S}{R}{S}{T}{S}%
+\indexAlpha{T}{S}{T}{U}{T}%
+\indexAlpha{U}{T}{U}{V}{U}%
+\indexAlpha{V}{U}{V}{W}{V}%
+\indexAlpha{W}{V}{W}{X}{W}%
+%\indexAlpha{X}{W}{X}{Y}{X}%
+\indexAlpha{X}{W}{X}{Z}{X}%
+\indexAlpha{Y}{X}{Y, Z}{doll}{Z}%
+%\indexAlpha{Y}{X}{Y}{Z}{Y}%
+%\indexAlpha{Z}{Y}{Z}{doll}{Z}%
+%
+%
+%% This is an alphabetical navigation panel.
+\index{@\label{AZ}\textbf{\LARGE
+\htmlref{\$}{doll} \htmlref{.}{dot} \htmlref{ A }{A} 
+ \htmlref{B}{B} \htmlref{C}{C} \htmlref{D}{D} \htmlref{E}{E} \htmlref{F}{F}
+ \htmlref{G}{G} \htmlref{H}{H} \htmlref{I}{I} \htmlref{J}{K} \htmlref{K}{K}
+ \htmlref{L}{L} \htmlref{M}{M} \htmlref{N}{N} \htmlref{O}{O} \htmlref{P}{P}
+ \htmlref{Q}{R} \htmlref{R}{R} \htmlref{S}{S} \htmlref{T}{T} \htmlref{U}{U}
+ \htmlref{V}{V} \htmlref{W}{W} \htmlref{X}{X} \htmlref{Y}{Z} \htmlref{Z}{Z}\\
+\htmlrule[all]| }}
+
+\end{htmlonly}
 
 \end{document}

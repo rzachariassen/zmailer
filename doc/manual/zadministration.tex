@@ -1,4 +1,19 @@
+\begin{htmlonly}
+\include{zlat2html}
+\include{manhtml}
 \section{Administration}
+\end{htmlonly}
+
+This reference section tries to tell all the details of how each
+subsystem parameter affects things, though perhaps without wide
+explanations in every place. The usage examples and elaborations
+are left (mostly) for the Administration part.
+
+%begin{latexonly}
+%
+% ... some includes, like \segment{}{}{}s ?
+%
+%end{latexonly}
 
 \subsection{DNS and ZMailer}
 
@@ -11,23 +26,19 @@ You can get improved DNS performance by installing local {\tt named},
 which does cache replies, including {\bf negative} replies.
 
 For the file {\tt /etc/resolv.conf}:
-\begin{tscreen}
 \begin{verbatim}
-domain  your.domain
-nameserver 127.0.0.1
-nameserver  (some other server)
+  domain  your.domain
+  nameserver 127.0.0.1
+  nameserver  (some other server)
 \end{verbatim}
-\end{tscreen}
 
 
 For the local nameserver daemon ({\em named\/}) you should have
 at least following type of configuration:
-\begin{tscreen}
 \begin{verbatim}
-forwarders 10.12.34.56  10.45.67.89
-options forward-only
+  forwarders 10.12.34.56  10.45.67.89
+  options forward-only
 \end{verbatim}
-\end{tscreen}
 
 which means that all the queries are attempted to be resolved
 by the servers at IP addresses {\em 10.12.34.56\/} and
@@ -35,10 +46,7 @@ by the servers at IP addresses {\em 10.12.34.56\/} and
 servers will cache DNS responses.
 
 
-
-
 \subsection{Security Issues}
-
 
 
 Having local-parts that allow delivery to arbitary files, or which can trigger
@@ -115,7 +123,6 @@ variable in the system configuration ({\em router.cf\/}) file.
 
 
 
-
 \subsection{The Queue}
 
 There are multiple queues in ZMailer. Messages exist in
@@ -134,8 +141,6 @@ and sometimes is also copied into the
 \begin{itemize}
 \item Postmaster analysis area ({\tt \$POSTOFFICE/postman/})
 \end{itemize}
-
-
 
 
 
@@ -295,27 +300,20 @@ This text has been copied from other sections and will change...
 
 
 
-
 \subsubsection{Logging}
-
-
 
 
 \subsubsection{Checking the Log Files}
 
 Start ZMailer:
-\begin{tscreen}
 \begin{verbatim}
-$MAILBIN/zmailer
+  $MAILBIN/zmailer
 \end{verbatim}
-\end{tscreen}
 
 
 Keep an eye on the log files ({\tt \$LOGDIR/\{router,scheduler\}}),
 the {\tt \$POSTOFFICE/postman} directory for malformed message files,
 and {\tt \$POSTOFFICE/deferred} in case of resource problems.
-
-
 
 
 \subsubsection{Trimdown of Logging}
@@ -338,12 +336,10 @@ ZMailer programs log using the LOG\_MAIL facility code for normal
 messages.  You can deal with this specifically in your {\tt syslog}
 configuration file on systems with a 4.3bsd-based syslog.  The
 following reflects the recommended configuration on SunOS 4.0:
-\begin{tscreen}
 \begin{verbatim}
 mail.crit               /var/log/syslog
 mail.debug              /var/log/mail
 \end{verbatim}
-\end{tscreen}
 
 For pre-4.3bsd-based syslogs, you may want the syslog log file
 to be just for important messages (e.g. LOG\_NOTICE and higher
@@ -360,14 +356,10 @@ in any case to make sure the text is appropriate for your site.
 
 
 
-
-
-
 \subsubsection{Scheduler Statistics log}
 
 The  statistics log reports condenced performance oriented
 information in following format:
-\begin{tscreen}
 \begin{verbatim}
 timestamp fileid      dt1  dt2 state $channel/$host
 812876190 90401-2       0    5    ok usenet/-
@@ -376,7 +368,6 @@ timestamp fileid      dt1  dt2 state $channel/$host
 812876244 90401-1       0    5    ok smtp/funet.fi
 812876559 90401-1       0   21    ok smtp/utu.fi
 \end{verbatim}
-\end{tscreen}
 
 where the fields are:
 \begin{description}
@@ -385,36 +376,21 @@ where the fields are:
 The original spoolfile {\tt ctime} (creation time)  stamp
 in decimal.
 
-
-
 \item[fileid] \mbox{}
-
 Spoolfile name after the router has processed it.
 
-
-
 \item[dt1] \mbox{}
-
 The time difference from spoolfile ctime to 
 scheduler control file creation by the router.
 
-
-
 \item[dt2] \mbox{}
-
 The time difference from scheduler file {\tt ctime} to
 the delivery that is logged on.
 
-
-
 \item[state] \mbox{}
-
 What happened?  Values: {\tt ok}, {\tt error}, {\tt expiry}
 
-
-
 \item[\$channel-\$host] \mbox{}
-
 Where/how it was processed.
 
 \end{description}
@@ -502,7 +478,9 @@ of those possibly issued at the command line.
 
 Example (shortened) configuration is:
 
-\begin{tscreen}
+%begin{latexonly}
+\begin{small}
+%end{latexonly}
 \begin{verbatim}
 #PARAM maxsize              10000000    # Same as -M -option
 #PARAM max-error-recipients        3    # More than this is propably SPAM!
@@ -533,7 +511,10 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 \[*\]               999 ve
 *                   999 veR
 \end{verbatim}
-\end{tscreen}
+%begin{latexonly}
+\end{small}
+%end{latexonly}
+
 
 
 
@@ -684,15 +665,13 @@ as a way to control misbehaving client software or mailers.
 The {\tt policy-builder.sh} script bundles together a set of other
 things before policy filter is ready for use:
 
-\begin{tscreen}
 \begin{verbatim}
-                DB/smtp-policy.src                      The boilerplate
-                DB/localnames           ('= _full_rights')
-                DB/smtp-policy.relay    ('= _full_rights')
-                DB/smtp-policy.mx       ('relaytargets +')
-                DB/smtp-policy.spam     ('= _bulk_mail')
+        DB/smtp-policy.src                      The boilerplate
+        DB/localnames           ('= _full_rights')
+        DB/smtp-policy.relay    ('= _full_rights')
+        DB/smtp-policy.mx       ('relaytargets +')
+        DB/smtp-policy.spam     ('= _bulk_mail')
 \end{verbatim}
-\end{tscreen}
 
 
 At the moment, {\tt smtp-policy.spam} source is retrieved with LYNX from
@@ -818,24 +797,21 @@ list, the so-far unbound parameter variables are bound to `' (the
 empty string) as local variables. For example, this is the identity
 address rewriting function:
      
-\begin{tscreen}
 \begin{verbatim}
-          null (address) {
+       null (address) {
           return $address         # surprise!
-          }
+       }
 \end{verbatim}
-\end{tscreen}
+
 \item  Multiple-value returns are allowed.  The {\tt return} statement can be
 used to return a non-`' value from a function.  The following are all
 legal {\tt return} statements:
      
-\begin{tscreen}
 \begin{verbatim}
           return
           return $address
           return $channel ${next_host} ${next_address}
 \end{verbatim}
-\end{tscreen}
 
 \item  Variables are dynamically scoped, local variables are the 
 ones in a function's parameter list and those declared with the 
@@ -848,13 +824,9 @@ quotes are not stripped, double quotes cause the enclosed character
 sequence to be collected into a quoted-string RFC822 token.  For 
 example, the statement:
 
-\begin{tscreen}
 \begin{verbatim}
-     
           foo `bar "`baz`"`
 \end{verbatim}
-\end{tscreen}
-
      
 is evaluated as {\tt (apply 'foo (apply 'bar (baz)))}.
 \item  The forms {\tt \$\{variable:=value\}}, 
@@ -1009,9 +981,9 @@ a properly qualified domain name, so the configuration file may generate
 it using whichever method it chooses.
 If the hostname indeed is a fully qualified domain name, then:
 
-\begin{tscreen}
+\begin{verbatim}
 hostname "hostname"
-\end{tscreen}
+\end{verbatim}
 
 
 will enable generation of trace headers.
@@ -1022,23 +994,19 @@ convention of the Bourne shell language.
 
 To test the configuration or routing data, proceed as follows:
 
-\begin{tscreen}
 \begin{verbatim}
 MAILBIN/router -i               (select interactive mode)
 trace on                        (turn tracing on)
 router user@broken.address      (the address that gave you trouble)
 router another@address          (and so on)
 \end{verbatim}
-\end{tscreen}
 
 
 Old salts can use {\tt /usr/lib/sendmail -bt} instead of {\tt router -i}. Once satisfied that routing works,
 
-\begin{tscreen}
 \begin{verbatim}
 zmailer router
 \end{verbatim}
-\end{tscreen}
 
 
 will restart the {\em router\/}.
@@ -1047,11 +1015,9 @@ You can also run the {\em router\/} directly on a message.  Copy your message
 to someplace other than the postoffice ({\tt /tmp} is usually good), in a
 numeric file name.  If the file name is {\tt 123}, you run
 
-\begin{tscreen}
 \begin{verbatim}
 MAILBIN/router 123
 \end{verbatim}
-\end{tscreen}
 
 
 this will create the file {\tt .123} containing the control information
@@ -1121,11 +1087,9 @@ calling the special function {\tt relation} with various options, as indicated
 by the usage string printed by the {\tt relation} function when called the wrong
 way:
 
-\begin{tscreen}
 \begin{verbatim}
      Usage: relation -t dbtype [-f file -e# -s# -blnu -d driver] name
 \end{verbatim}
-\end{tscreen}
 
 
 The `{\tt t}' option specifies one of several predefined database types, each
@@ -1262,7 +1226,6 @@ different relations to use the same database.
 
 Some sample relation definitions follow:
 
-\begin{tscreen}
 \begin{verbatim}
      if [ -f /etc/named.boot ]; then
          relation -nt bind/cname -s 100 canon  # T_CNAME canonicalize hostname
@@ -1276,13 +1239,11 @@ Some sample relation definitions follow:
          relation -t unordered -f /dev/null pathalias
      fi
 \end{verbatim}
-\end{tscreen}
 
 
 The above fragment defines a set of relations that can be accessed in the
 same way, using the same names, independent of their actual definition.
 
-\begin{tscreen}
 \begin{verbatim}
      # We maintain an aliases database in the following format. Note: the
      # 'aliases' db name is magic to the internal alias expansion routines.
@@ -1292,7 +1253,6 @@ same way, using the same names, independent of their actual definition.
          relation -t ordered -f $MAILBIN/db/aliases.idx aliases
      fi
 \end{verbatim}
-\end{tscreen}
 
 
 As the comment says, the relation name {\tt aliases} has special significance
@@ -1314,13 +1274,11 @@ scheme avoids such problems without loss of efficiency.
 Finally, some miscellaneous definitions that illustrate various
 possibilities:
 
-\begin{tscreen}
 \begin{verbatim}
      relation -t unordered -f /usr/lib/news/active -b newsgroup
      relation -t unordered -f /usr/lib/uucp/L.sys -b ldotsys
      relation -t ordered -f $MAILBIN/db/hosts.transport -d pathalias transport
 \end{verbatim}
-\end{tscreen}
 
 
 Here, the first two illustrate convenient coincidences of format, and the
@@ -1346,24 +1304,19 @@ practical at your site, other methods are available.  The most widespread
 kind of route database is produced by the {\tt pathalias} program.  It
 generates key-value pairs of the forms:
 
-\begin{tscreen}
 \begin{verbatim}
      uunet                ai.toronto.edu!uunet!%s
      .css.gov             ai.toronto.edu!uunet!seismo!%s
 \end{verbatim}
-\end{tscreen}
 
 
 which when queried about {\tt uunet} and {\tt beno.css.gov} correspond to 
 the routes:
 
-\begin{tscreen}
 \begin{verbatim}
      ai.toronto.edu!uunet
      ai.toronto.edu!uunet!seismo!beno.css.gov
 \end{verbatim}
-\end{tscreen}
-
 
 Notice that there are two basic forms of routes listed: routes to UUCP node
 names and routes to subdomain gateways.  Depending on the type of route
@@ -1371,7 +1324,6 @@ query, the value returned from a pathalias database lookup needs to be
 treated differently.  For now, this may be accomplished by a configuration
 file relation definition and interface function as shown:
 
-\begin{tscreen}
 \begin{verbatim}
      relation -t ndbm -f $MAILBIN/uuDB -d pathalias padb
      
@@ -1392,8 +1344,6 @@ file relation definition and interface function as shown:
              return $path
      }
 \end{verbatim}
-\end{tscreen}
-
 
 This is actually a simplistic algorithm, but it does illustrate the method.
 The lookup algorithm used when the `{\tt -d}' flag is specified in the
@@ -1538,18 +1488,14 @@ manner, but because some of the characters in the prefix are RFC822
 specials, the entire local-part must be quoted.  Thus, whereas {\em sendmail\/}
 allowed:
 
-\begin{tscreen}
 \begin{verbatim}
      people: :include:/usr/lib/mail/lists/people
 \end{verbatim}
-\end{tscreen}
 
 the proper syntax with ZMailer is:
-\begin{tscreen}
 \begin{verbatim}
      people: ":include:/usr/lib/mail/lists/people"
 \end{verbatim}
-\end{tscreen}
 
 
 Like {\em sendmail\/}, if a local-part is not found in the aliases database, the
@@ -1565,14 +1511,12 @@ by the local-part.
 
 General format:
 
-\begin{tscreen}
 \begin{verbatim}
         local-address-token:    "replacement address" ,
                                 "extension line w/ another addr"
         ^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
           "The Key"                "The Data"
 \end{verbatim}
-\end{tscreen}
 
 Protection of the aliases database must be at least 0644.
 Protection of the {\tt \$MAILVAR/db/} directory must be at least 03755.
@@ -1585,26 +1529,20 @@ The following processing is done for (replacement) local-parts
 
 
 If the local-part starts with ``{\verbar}" assume it is a command specification:
-\begin{tscreen}
 \begin{verbatim}
                 prog-pipe: "|/path/to/program -args"
 \end{verbatim}
-\end{tscreen}
 
 If the local-part starts with ``/" assume it is a file pathname:
-\begin{tscreen}
 \begin{verbatim}
                 file-path: "/path/to/file"
 \end{verbatim}
-\end{tscreen}
 
 If the local-part starts with {\tt :include:} the rest should be a file
 pathname of a list of mail addresses.  They are substituted:
-\begin{tscreen}
 \begin{verbatim}
                 included-list: ":include:/path/to/address/file"
 \end{verbatim}
-\end{tscreen}
 
 After this point, all matches are case-insensitive by means of translating
 the value to be looked up to lower-case, and then conducting a case-sensitive
@@ -1670,18 +1608,15 @@ parameters set in the clause will be applied to the scheduler's
 processing of that address. If the clause specifies a command,  
 the clause pattern matching sequence is terminated. This is a clause:
 
-\begin{tscreen}
 \begin{verbatim}
-            local/*   interval=10s
-                      expiry=3h
-                      # want 20 channel slots in case of blockage on one
-                      maxchannel=20
-                      # want 20 thread-ring slots
-                      maxring=20
-                      command="mailbox -8"
+    local/*   interval=10s
+              expiry=3h
+              # want 20 channel slots in case of blockage on one
+              maxchannel=20
+              # want 20 thread-ring slots
+              maxring=20
+              command="mailbox -8"
 \end{verbatim}
-\end{tscreen}
-
 
 A clause consists of:
 
@@ -1850,26 +1785,24 @@ means of {\tt smtpserver(8)} command ETRN thru an  SMTP  connection.
 
 For example, this is a complete configuration file:
 
-\begin{tscreen}
 \begin{verbatim}
-            # Default values
-            */*       interval=1m expiry=3d retries="1 1 2 3 5 8 13 21 34"
-                      maxring=0 maxta=0 skew=5 user=root group=daemon
-            # Boilerplate parameters for local delivery and service channels
-            local/*   interval=10s expiry=3h maxchannel=2 command=mailbox
-            error     interval=5m maxchannel=10 command=errormail
-            hold/*    interval=5m maxchannel=1 command=hold
+    # Default values
+    */*       interval=1m expiry=3d retries="1 1 2 3 5 8 13 21 34"
+              maxring=0 maxta=0 skew=5 user=root group=daemon
+    # Boilerplate parameters for local delivery and service channels
+    local/*   interval=10s expiry=3h maxchannel=2 command=mailbox
+    error     interval=5m maxchannel=10 command=errormail
+    hold/*    interval=5m maxchannel=1 command=hold
 
-            # Miscellaneous channels supported by router configuration
-            smtp/*.toronto.edu
-            smtp/*.utoronto.ca maxchannel=10 maxring=2
-                      command="smtp -srl $LOGDIR/smtp"
-            smtp      maxchannel=10 maxring=5
-                      command="smtp -esrl $LOGDIR/smtp"
+    # Miscellaneous channels supported by router configuration
+    smtp/*.toronto.edu
+    smtp/*.utoronto.ca maxchannel=10 maxring=2
+              command="smtp -srl $LOGDIR/smtp"
+    smtp      maxchannel=10 maxring=5
+              command="smtp -esrl $LOGDIR/smtp"
 
-            uucp/*    maxchannel=5 command="sm -c $channel uucp"
+    uucp/*    maxchannel=5 command="sm -c $channel uucp"
 \end{verbatim}
-\end{tscreen}
 
 
 The  first  clause  (*/*)  sets up default values for all
@@ -1939,9 +1872,6 @@ Usage
 {\tt sm [ -8HQV ] [ -f configfile ] -c channel -h host mailer}
 
 
-
-
-
 {\bf Configuration}
 
 The configuration file {\tt MAILSHARE/sm.conf } associates the 
@@ -1954,26 +1884,22 @@ of  the entries of the configuration file.  Lines starting
 with whitespace or a `{\tt \#}' are ignored, and all  
 others are assumed to follow this format:
 
-\begin{tscreen}
 \begin{verbatim}
        mailer    flags  program                   argument list
 \end{verbatim}
-\end{tscreen}
 
 
 For example:
 
-\begin{tscreen}
 \begin{verbatim}
-       local     mS     sm/localm                 localm -r $g $u
-       prog      -      /bin/sh                   sh -c $u
-       tty       rs     /usr/local/to             to $u
-       uucp      U      /usr/bin/uux              uux - -r -a$g -gC $h!rmail ($u)
-       usenet    m      sm/usenet                 usenet $u
-       ean       mn     /local/lib/ean/gwsmean    gwsmean -d $u
-       test      n      sm/test                   test $u
+   local     mS     sm/localm                 localm -r $g $u
+   prog      -      /bin/sh                   sh -c $u
+   tty       rs     /usr/local/to             to $u
+   uucp      U      /usr/bin/uux              uux - -r -a$g -gC $h!rmail ($u)
+   usenet    m      sm/usenet                 usenet $u
+   ean       mn     /local/lib/ean/gwsmean    gwsmean -d $u
+   test      n      sm/test                   test $u
 \end{verbatim}
-\end{tscreen}
 
 
 The mailer field extends from the beginning of the line to
@@ -2038,45 +1964,28 @@ is  not  set, the delivery program will be run with
 the real uid of the sm process. This may be useful if sm is setuid.
 
 
-
 \item[ {\tt m}] \mbox{}
-
 informs sm that each instance of the delivery program  
 can deliver to many destinations. This affects {\bf \$u} expansion 
 in the argument list, see below.
 
-
-
 \item[ {\tt P}] \mbox{}
-
 prepends a Return-Path: header to the message.
 
-
-
 \item[ {\tt U}] \mbox{}
-
 will prepend a From-space line, with a ``remote from
 myuucpname'' at the end, to the message. This is what is expected by remote 
 {\tt rmail(1)} programs for incoming UUCP mail.
 
-
-
 \item[ {\tt R}] \mbox{}
-
 use CRLF sequence as end-of-line sequence. Without
 it, will use LF-only end-of-line sequence.
 
-
-
 \item[ {\tt X}] \mbox{}
-
 does SMTP-like ``hidden-dot'' algorithm  of doubling
 all dots that are at the start of the line.
 
-
-
 \item[ {\tt 7}] \mbox{}
-
 will strip (set to 0) the 8th bit of every character in the 
 message.
 
@@ -2092,21 +2001,15 @@ contain one of the following sequences:
 
 \begin{description}
 \item[ {\tt \$g}] \mbox{}
-
 which is replaced by the sender address.
 
-
-
 \item[ {\tt \$h}] \mbox{}
-
 which is replaced by the destination host.
 
-
-
 \item[ {\tt \$u}] \mbox{}
-
 which is replaced by the recipient address.  If the
 {\tt -m} mailer flag is set and there are several recipients for this 
 message, the argument containing  the {\tt \$u} will be replicated 
 as necessary for each recipient.
+
 \end{description}
