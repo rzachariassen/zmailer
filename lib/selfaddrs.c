@@ -176,7 +176,7 @@ struct sockaddr ***sockaddrp;
 #else /* not HAVE_GETIFADDRS */
 
 #if defined(SIOCGLIFCONF) && defined(AF_INET6) && defined(INET6)
-#warning "experimental INET6 related SIOCGLIFCONF code activated!"
+	/*#warning "experimental INET6 related SIOCGLIFCONF code activated!"*/
 	{
 	  struct lifconf lifc;
 	  struct ifconf ifc;
