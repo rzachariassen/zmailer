@@ -644,6 +644,7 @@ const char *pbuf;
 		       1 << P_A_FREEZENET         |
 		       1 << P_A_RELAYCUSTNET      |
 		       1 << P_A_TestDnsRBL        |
+		       1 << P_A_RcptDnsRBL        |
 		       1 << P_A_InboundSizeLimit  |
 		       1 << P_A_OutboundSizeLimit |
 		       1 << P_A_FullTrustNet	  |
@@ -736,6 +737,16 @@ const char *pbuf;
 	printf("000-  rc=%d\n", rc);
       return rc;
     }
+    if (state->values[P_A_RcptDnsRBL] == '+' &&
+	pbuf[1] == P_K_IPv4) {
+      int rc;
+      if (debug)
+	printf("000- policytestaddr: 'rcpt-dns-rbl +' (IPv4) found;\n");
+      rc = rbl_dns_test(ipv4addr, &state->rblmsg);
+      if (debug)
+	printf("000-  rc=%d\n", rc);
+      return rc;
+    }
 
     return 0;
 }
@@ -755,7 +766,7 @@ Usockaddr *raddr;
 
 
     if (what != POLICY_SOURCEADDR)
-	abort();		/* Urgle..! Code mismatch! */
+      abort();		/* Urgle..! Code mismatch! */
 
     if (rel == NULL)
       return 0;
@@ -768,35 +779,36 @@ Usockaddr *raddr;
       return 0; /* Interactive testing... */
 
     if (raddr->v4.sin_family == AF_INET) {
-	si4 = & (raddr->v4);
-	pbuf[0] = 7;
-	pbuf[1] = P_K_IPv4;
-	memcpy(&pbuf[2], (char *) &si4->sin_addr.s_addr, 4);
-	pbuf[6] = 32;		/* 32 bits */
+      si4 = & (raddr->v4);
+      pbuf[0] = 7;
+      pbuf[1] = P_K_IPv4;
+      memcpy(&pbuf[2], (char *) &si4->sin_addr.s_addr, 4);
+      pbuf[6] = 32;		/* 32 bits */
     } else
 #if defined(AF_INET6) && defined(INET6)
     if (raddr->v6.sin6_family == AF_INET6) {
-	si6 = & (raddr->v6);
-	if (memcmp((void *)&si6->sin6_addr, &zv4mapprefix, 12) == 0) {
-	  /* This is IPv4 address mapped into IPv6 */
-	  pbuf[0] = 7;
-	  pbuf[1] = P_K_IPv4;
-	  memcpy(pbuf+2, ((char *) &si6->sin6_addr) + 12, 4);
-	  pbuf[6] = 32;			/*  32 bits */
-	} else {
-	  pbuf[0] = 19;
-	  pbuf[1] = P_K_IPv6;
-	  memcpy(pbuf+2, ((char *) &si6->sin6_addr), 16);
-	  pbuf[18] = 128;		/* 128 bits */
-	}
+      si6 = & (raddr->v6);
+      if (memcmp((void *)&si6->sin6_addr, &zv4mapprefix, 12) == 0) {
+	/* This is IPv4 address mapped into IPv6 */
+	pbuf[0] = 7;
+	pbuf[1] = P_K_IPv4;
+	memcpy(pbuf+2, ((char *) &si6->sin6_addr) + 12, 4);
+	pbuf[6] = 32;			/*  32 bits */
+      } else {
+	pbuf[0] = 19;
+	pbuf[1] = P_K_IPv6;
+	memcpy(pbuf+2, ((char *) &si6->sin6_addr), 16);
+	pbuf[18] = 128;		/* 128 bits */
+      }
     } else
 #endif
     {
-      printf("Unknown address format; sa_family = %d\n", raddr->v4.sin_family);
+      printf("Unknown address format; sa_family = %d\n",
+	     raddr->v4.sin_family);
       return -2;
     }
 
-    return _addrtest_(rel,state,pbuf);
+    return _addrtest_(rel, state, pbuf);
 }
 
 
@@ -1223,7 +1235,8 @@ const int len;
     state->request = ( 1 << P_A_RELAYTARGET     |
 		       1 << P_A_ACCEPTbutFREEZE |
 		       1 << P_A_ACCEPTifMX      |
-		       1 << P_A_ACCEPTifDNS     );
+		       1 << P_A_ACCEPTifDNS     |
+		       1 << P_A_TestRcptDnsRBL  );
 
     at = find_at(str, len);
     if (at != NULL) {
@@ -1276,6 +1289,19 @@ const int len;
       if (debug)
 	printf("000- ... returns: %d\n", rc);
       return rc;
+    }
+
+    if (state->values[P_A_TestRcptDnsRBL] == '+' &&
+	state->rblmsg != NULL) {
+      /* Now this is cute... the source address had RBL entry,
+	 and the recipient domain had a request to honour the
+	 RBL data. */
+      if (state->message != NULL) free(state->message);
+      state->message = strdup(state->rblmsg);
+      if (debug)
+	printf("000- ... TestRcptDnsRBL has a message: '%s'\n",
+	       state->rblmsg);
+      return -1;
     }
 
     if (state->values[P_A_ACCEPTifMX] != 0 || state->sender_norelay != 0) {

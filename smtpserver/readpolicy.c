@@ -169,6 +169,8 @@ struct _tokenpair {
   { "maxoutsize",	P_A_OutboundSizeLimit	},
   { "fulltrustnet",	P_A_FullTrustNet	},
   { "trustrecipients",	P_A_TrustRecipients	},
+  { "rcpt-dns-rbl",	P_A_RcptDnsRBL		},
+  { "test-rcpt-dns-rbl", P_A_TestRcptDnsRBL	},
 #ifdef HAVE_WHOSON_H
   { "trust-whoson",	P_A_TrustWhosOn		},
 #endif

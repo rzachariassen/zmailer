@@ -33,6 +33,7 @@ struct policystate {		/* Part of SmtpState structure */
     /* The lattest result message (line) */
     char *message;
     char *msgstr;
+    char *rblmsg;
     long maxinsize;
     long maxoutsize;
     int  islocaldomain;

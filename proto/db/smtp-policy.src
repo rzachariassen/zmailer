@@ -35,7 +35,16 @@
 #|	'acceptifdns'	{ '+', '-' }
 #|	'sendernorelay' { '+', '-' }
 #|	'test-dns-rbl'	{ '+', '-' }
+#|  ------------- document update for following items needed!
+#|	'rply-dns-rbl'	{ '+', '-' }
+#|	'test-rply-dns-rbl' { '+', '-' }
 #|	'message'	"quoted constant string message"
+#|	'localdomain'	{ '+', '-' }
+#|	'maxinsize'	nnn
+#|	'maxoutsize'	nnn
+#|	'fulltrustnet'	{ '+', '-' }
+#|	'trustrecipients' { '+', '-' }
+#|	'trust-whoson'	{ '+', '-' }
 #|
 #| Semantics:
 #|
