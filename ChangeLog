@@ -1,5 +1,9 @@
 1998-06-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* utils/rotate-logs.sh.in, configure.in, utils/Makefile.in:
+	    Made "rotate-logs" utility to be 1) autoconfig, and
+	    2) installed every time a "make install" is done.
+
 	* smtpserver/smtpserver.c:
 	    Some clients seem to send "QUIT\r", and then close the
 	    socket.  This caused indigestion and error logging.

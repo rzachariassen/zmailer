@@ -8326,6 +8326,7 @@ trap 'rm -fr `echo "Makefile
 	utils/zmailer.init.sh		utils/autoanswer.pl		\
 	utils/vacation/Makefile		man/vacation.1			\
 	utils/vacation/vacation.sh	utils/makedb/Makefile		\
+	utils/rotate-logs.sh						\
 	proto/Makefile			proto/zmailer.sh		\
 	proto/newaliases		proto/newfqdnaliases		\
 	proto/newdb			proto/scheduler.conf		\
@@ -8487,6 +8488,7 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
 	utils/zmailer.init.sh		utils/autoanswer.pl		\
 	utils/vacation/Makefile		man/vacation.1			\
 	utils/vacation/vacation.sh	utils/makedb/Makefile		\
+	utils/rotate-logs.sh						\
 	proto/Makefile			proto/zmailer.sh		\
 	proto/newaliases		proto/newfqdnaliases		\
 	proto/newdb			proto/scheduler.conf		\

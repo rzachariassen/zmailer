@@ -7,10 +7,8 @@
 #  can be used weekly to monthly...
 #
 
-# ZCONFIG=@ZMAILERCFGFILE@
-# . $ZCONFIG
-
-. /etc/zmailer.conf
+ZCONFIG=@ZMAILERCFGFILE@
+. $ZCONFIG
 
 cd $LOGDIR
 

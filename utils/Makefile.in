@@ -7,7 +7,7 @@ MAILBIN=	$(prefix)@MAILBIN@
 srcdir=         @srcdir@
 VPATH=          @srcdir@
 
-BINS=	autoanswer.pl policy-builder.sh make-incore.sh \
+BINS=	autoanswer.pl policy-builder.sh rotate-logs.sh		\
 	$(srcdir)/make-incore.sh $(srcdir)/bitbucket
 
 all:
@@ -15,10 +15,12 @@ all:
 	cd vacation ; $(MAKE) $(MFLAGS)
 
 install:
-	for BIN in $(BINS); do \
-		if [ ! -f $$BIN ] ; then \
-			$(INSTALL) -m 755 $$BIN  $(MAILBIN) ; \
-		fi ; \
+	for BIN in $(BINS); do					\
+		if [ ! -f $$BIN ] ; then			\
+			$(INSTALL) -m 755 $$BIN  $(MAILBIN) ;	\
+		else						\
+			echo "*** No overwrite of $$BIN, already exists!" ; \
+		fi ;						\
 	done
 	$(INSTALL) -m 755 $(srcdir)/bitbucket $(MAILBIN)/ta
 	cd makedb ; $(MAKE) $(MFLAGS) install
@@ -34,6 +36,7 @@ clean:	FRC
 
 distclean: clean
 	rm -f Makefile autoanswer.pl policy-builder.sh zmailer.init.sh
+	rm -f rotate-logs.sh
 	cd vacation ; $(MAKE) $(MFLAGS) distclean
 	cd makedb ; $(MAKE) $(MFLAGS) distclean
 
