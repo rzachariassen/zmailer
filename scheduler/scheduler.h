@@ -197,6 +197,8 @@ struct mailq {
 	int		auth;		/* what can do */
 	int		fd;		/* FD for I/O (nonblocking-IO) */
 
+	char		*challenge;
+
 	int		inbufspace;	/* Raw input buffer stuff */
 	int		inbufsize;
 	int		inbufcount;

@@ -97,6 +97,9 @@
 	# sysnice=-2
 	# syspriority=-2
 
+	# MAILQv2 authentication database file reference:
+	PARAMauthfile = "@MAILSHARE@/scheduler.auth"
+
 
 # Deferred delivery is handled by this transport agent.  Deferrals are low
 # priority, but they tend to bunch up.  The 1 channel slot means there will

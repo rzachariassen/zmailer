@@ -1,5 +1,14 @@
 1999-11-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/readconfig.c, scheduler/threads.c, scheduler/conf.c,
+	  scheduler/mailq.c, scheduler/mq2.c, scheduler/mq2auth.c,
+	  scheduler/prototypes.h:
+	    'mailq -Q' and 'mailq -QQ' work when scheduler runs with '-M2'
+	    now :)  Authentication wants
+		PARAMauthfile = "/path/to/scheduler.auth"
+	    into the boilerplate defining section of the scheduler.conf,
+	    and that file -- well, see the example. WORK IN PROGRESS!
+
 	* scheduler/mq2.c, scheduler/mq2auth.c:
 	    More of the theme...
 

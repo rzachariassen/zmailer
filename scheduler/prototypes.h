@@ -52,6 +52,8 @@ extern const char *replhost;
 extern const char *replchannel;
 extern int  nobody;
 extern int  sweepinterval;
+extern char *mq2authfile;
+
 
 /* msgerror.c */
 extern void msgerror __((struct vertex *vp, long offset, const char *message));

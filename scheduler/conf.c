@@ -37,4 +37,3 @@ int	forkrate_limit = 10;
 
 /* Set if you don't want to return full content with error report! */
 int	never_full_content = 0;
-

@@ -97,6 +97,9 @@ static void mq2_discard(mq)
     free(mq->inpline);
   if (mq->outbuf)
     free(mq->outbuf);
+  if (mq->challenge)
+    free(mq->challenge);
+
   free(mq);
 }
 
@@ -346,10 +349,13 @@ void mq2_register(fd)
   
   gettimeofday(&tv,NULL);
 
-  sprintf(buf,"MAILQ-V2-CHALLENGE: %ld.%ld.%d\n",
+  sprintf(buf,"MAILQ-V2-CHALLENGE: %ld.%ld.%d",
 	  (long)tv.tv_sec, (long)tv.tv_usec, ++cnt);
 
+  mq->challenge = strdup(buf);
+
   mq2_puts(mq, buf);
+  mq2_puts(mq, "\n");
   mq2_wflush(mq);
 
   mq->auth = 0;
@@ -406,6 +412,36 @@ void mq2_areinsets(rdmaskp, wrmaskp)
 }
 
 /* INTERNAL */
+static int mq2cmd_show(mq,s)
+     struct mailq *mq;
+     char *s;
+{
+  char *t = s;
+  int condensed = 0;
+
+  while (*t && (*t != ' ') && (*t != '\t')) ++t;
+  if (*t) *t++ = '\000';
+  while (*t == ' ' || *t == '\t') ++t;
+
+  /* 's' points to the first arg, 't' points to string after
+     separating white-space has been skipped. */
+
+  if (strcmp(s,"QUEUE") != 0)
+    return -1; /* XX: OTHER SHOW CMDS ?? */
+
+  if (strcmp(t,"CONDENSED") == 0)
+    condensed = 1;
+  else if (strcmp(t,"THREADS") != 0)
+    return -1;
+
+  mq2_puts(mq, "+OK until LF.LF\n");
+  mq2_thread_report(mq, !condensed);
+  mq2_puts(mq, ".\n");
+  return 0;
+}
+
+
+/* INTERNAL */
 static void mq2interpret(mq,s)
      struct mailq *mq;
      char *s;
@@ -422,6 +458,11 @@ static void mq2interpret(mq,s)
   if (mq->auth == 0 && strcmp(s,"AUTH") == 0) {
     mq2auth(mq,t);
     return;
+  }
+
+  if (mq->auth && strcmp(s,"SHOW") == 0) {
+    if (mq2cmd_show(mq,t) == 0)
+      return;
   }
 
   mq2_puts(mq, "-MAILQ2 implementation lacking; VERB='");

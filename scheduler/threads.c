@@ -1677,6 +1677,177 @@ int fullmode;
 		(u_long)MIBMtaEntry->mtaStoredRecipients);
 }
 
+void mq2_thread_report(mq,fullmode)
+     struct mailq *mq;
+     int fullmode;
+{
+	struct threadgroup *thg;
+	int thg_once = 1;
+	int jobsum = 0, jobtotal = 0;
+	int threadsum = 0;
+	char timebuf[20];
+	char linebuf[8000], *s;
+
+	int width;
+	int cnt, procs;
+	struct procinfo *p;
+	struct thread *thr;
+
+	mytime(&now);
+
+#if 0
+	if (thrg_root == NULL) {
+	  *timebuf = 0;
+	  saytime((long)(now - sched_starttime), timebuf, 1);
+	  fprintf(fp,"No threads/processes.  Uptime: %s\n",timebuf);
+	  return;
+	}
+#endif
+
+	for (thg = thrg_root;
+	     thg && (thg_once || thg != thrg_root);
+	     thg = thg->next) {
+	  int thr_once = 1;
+
+	  thg_once = 0;
+	  sprintf(linebuf,"%s/%s/%d\n",
+		  thg->cep->channel, thg->cep->host, thg->withhost);
+	  mq2_puts(mq,linebuf);
+
+	  cnt   = 0;
+	  procs = 0;
+	  jobsum = 0;
+	  thr_once = 1;
+	  if (fullmode) {
+
+	    /* for (thr = thg->thread;
+	       thr && (thr_once || thr != thg->thread);
+	       thr = thr->nextthg) */
+
+	    /* We scan there in start order from the  thread_head
+	       chain! */
+
+	    for (thr = thg->thread; thr != NULL ; thr = thr->nextthg) {
+
+	      if (thr->thgrp != thg) /* Not of this group ? */
+		continue; /* Next! */
+
+#if 0
+	      width = sprintf(linebuf,"    %s/%s/%d",
+			      /* thr->vertices->orig[L_CHANNEL]->name, */ thr->channel,
+			      /* thr->vertices->orig[L_HOST]->name, */ thr->host,
+			      thr->thgrp->withhost);
+	      if (width == EOF) break; /* error.. */
+#else
+	      mq2_puts(mq, "    ");
+	      mq2_puts(mq, thr->channel);
+	      mq2_putc(mq, '/');
+	      mq2_puts(mq, thr->host);
+	      mq2_putc(mq, '/');
+	      mq2_putc(mq, '0'+thr->thgrp->withhost);
+	      width = strlen(thr->channel) + strlen(thr->host) + 7;
+#endif
+	      width += 7;
+	      if (width < 16-1)
+		mq2_putc(mq,'\t');
+	      if (width < 24-1)
+		mq2_putc(mq,'\t');
+	      if (width < 32-1)
+		mq2_putc(mq,'\t');
+	      if (width < 40-1)
+		mq2_putc(mq,'\t');
+	      else
+		mq2_putc(mq,' ');
+	      thr_once = 0;
+	      jobsum += thr->jobs;
+
+	      sprintf(linebuf,"R=%-2d A=%-2d", thr->jobs, thr->attempts);
+	      mq2_puts(mq, linebuf);
+
+	      ++cnt;
+	      if (thr->proc != NULL &&
+		  thr->proc->thread == thr) {
+		++procs;
+
+		sprintf(linebuf, " P=%-5d HA=%ds", (int)thr->proc->pid,
+			(int)(now - thr->proc->hungertime));
+		mq2_puts(mq, linebuf);
+
+		if (thr->proc->feedtime == 0)
+		  mq2_puts(mq," FA=never");
+		else {
+		  sprintf(linebuf," FA=%ds",(int)(now - thr->proc->feedtime));
+		  mq2_puts(mq, linebuf);
+		}
+		sprintf(linebuf," OF=%-2d", thr->proc->overfed);
+		mq2_puts(mq, linebuf);
+	      } else if (thr->wakeup > now) {
+		sprintf(linebuf," W=%ds",(int)(thr->wakeup - now));
+		mq2_puts(mq, linebuf);
+	      }
+	      *timebuf = 0;
+	      saytime((long)oldest_age_on_thread(thr), timebuf, 1);
+	      mq2_puts(mq, " QA=");
+	      mq2_puts(mq, timebuf);
+
+	      if (thr->vertices && thr->vertices->ce_pending)
+		if (thr->vertices->ce_pending != SIZE_L)
+		  mq2_puts(mq, 	(thr->vertices->ce_pending == L_CHANNEL ?
+				 " channelwait" : " threadwait"));
+	      mq2_putc(mq, '\n');
+	    }
+	  }
+
+	  sprintf(linebuf,"\tThreads: %4d",thg->threads);
+	  mq2_puts(mq, linebuf);
+
+	  if (thg->threads != cnt) {
+	    sprintf(linebuf,"/%d",cnt);
+	    mq2_puts(mq, linebuf);
+	  }
+
+	  sprintf(linebuf," Msgs: %5d Procs: %3d", jobsum, thg->transporters);
+	  mq2_puts(mq, linebuf);
+
+	  /* 	  if (thg->transporters != procs)
+		  fprintf(fp,"/%d",procs);		*/
+
+	  cnt = 0;
+	  for (p = thg->idleproc; p != 0; p = p->next) ++cnt;
+	  sprintf(linebuf," Idle: %3d",thg->idlecnt);
+	  if (thg->idlecnt != cnt)
+	    sprintf(linebuf + strlen(linebuf),"/%d",cnt);
+
+	  sprintf(linebuf+strlen(linebuf)," Plim: %3d Flim: %3d ",
+		  thg->ce.maxkidThreads,thg->ce.overfeed);
+
+	  jobtotal  += jobsum;
+	  threadsum += thg->threads;
+
+	  mq2_puts(mq, linebuf);
+	  mq2_putc(mq, '\n');
+	}
+
+	*timebuf = 0;
+	saytime((long)(now - sched_starttime), timebuf, 1);
+	sprintf(linebuf,"Kids: %d  Idle: %2d  Msgs: %3d  Thrds: %3d  Rcpnts: %4d  Uptime: %s\n",
+		numkids, idleprocs, global_wrkcnt, threadsum, jobtotal, timebuf);
+	mq2_puts(mq, linebuf);
+
+	sprintf(linebuf, "Msgs in %lu out %lu stored %lu ",
+		(u_long)MIBMtaEntry->mtaReceivedMessagesSc,
+		(u_long)MIBMtaEntry->mtaTransmittedMessagesSc,
+		(u_long)MIBMtaEntry->mtaStoredMessages);
+	mq2_puts(mq, linebuf);
+
+	sprintf(linebuf, "Rcpnts in %lu out %lu stored %lu\n",
+		(u_long)MIBMtaEntry->mtaReceivedRecipientsSc,
+		(u_long)MIBMtaEntry->mtaTransmittedRecipientsSc,
+		(u_long)MIBMtaEntry->mtaStoredRecipients);
+	mq2_puts(mq, linebuf);
+}
+
+
 int thread_count_recipients()
 {
 	struct threadgroup *thg;

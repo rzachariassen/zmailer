@@ -25,27 +25,30 @@ static void celink __((struct config_entry *, struct config_entry **, struct con
 static int readtoken __((FILE *fp, char *buf, int buflen, int *linenump));
 static u_int parse_intvl __((char *string));
 
-static int rc_command  __((char *key, char *arg, struct config_entry *ce));
-static int rc_expform  __((char *key, char *arg, struct config_entry *ce));
-static int rc_expiry   __((char *key, char *arg, struct config_entry *ce));
-static int rc_group    __((char *key, char *arg, struct config_entry *ce));
-static int rc_interval __((char *key, char *arg, struct config_entry *ce));
-static int rc_maxchannel __((char *key, char *arg, struct config_entry *ce));
-static int rc_maxring  __((char *key, char *arg, struct config_entry *ce));
-static int rc_maxta    __((char *key, char *arg, struct config_entry *ce));
-static int rc_idlemax  __((char *key, char *arg, struct config_entry *ce));
-static int rc_retries  __((char *key, char *arg, struct config_entry *ce));
-static int rc_user     __((char *key, char *arg, struct config_entry *ce));
-static int rc_skew     __((char *key, char *arg, struct config_entry *ce));
-static int rc_bychannel __((char *key, char *arg, struct config_entry *ce));
-static int rc_ageorder __((char *key, char *arg, struct config_entry *ce));
-static int rc_queueonly __((char *key, char *arg, struct config_entry *ce));
-static int rc_deliveryform __((char *key, char *arg, struct config_entry *ce));
-static int rc_overfeed __((char *key, char *arg, struct config_entry *ce));
-static int rc_priority __((char *key, char *arg, struct config_entry *ce));
-static int rc_nice     __((char *key, char *arg, struct config_entry *ce));
-static int rc_syspriority __((char *key, char *arg, struct config_entry *ce));
-static int rc_sysnice     __((char *key, char *arg, struct config_entry *ce));
+#define RCKEYARGS __((char *key, char *arg, struct config_entry *ce))
+
+static int rc_command		RCKEYARGS;
+static int rc_expform		RCKEYARGS;
+static int rc_expiry		RCKEYARGS;
+static int rc_group		RCKEYARGS;
+static int rc_interval		RCKEYARGS;
+static int rc_maxchannel	RCKEYARGS;
+static int rc_maxring		RCKEYARGS;
+static int rc_maxta		RCKEYARGS;
+static int rc_idlemax		RCKEYARGS;
+static int rc_retries		RCKEYARGS;
+static int rc_user		RCKEYARGS;
+static int rc_skew		RCKEYARGS;
+static int rc_bychannel		RCKEYARGS;
+static int rc_ageorder		RCKEYARGS;
+static int rc_queueonly		RCKEYARGS;
+static int rc_deliveryform	RCKEYARGS;
+static int rc_overfeed		RCKEYARGS;
+static int rc_priority		RCKEYARGS;
+static int rc_nice		RCKEYARGS;
+static int rc_syspriority	RCKEYARGS;
+static int rc_sysnice		RCKEYARGS;
+static int rc_paramauthfile	RCKEYARGS;
 
 extern int errno;
 
@@ -54,6 +57,10 @@ extern struct passwd *getpwnam();
 
 struct config_entry *default_entry = NULL;
 struct config_entry *rrcf_head     = NULL;
+
+/* where the  MAILQv2  authentication dataset file is ? */
+char * mq2authfile = NULL;
+
 
 static struct rckeyword {
 	const char	*name;
@@ -84,6 +91,7 @@ static struct rckeyword {
 {	"nice",			rc_nice		},	/* number */
 {	"syspriority",		rc_syspriority	},	/* number */
 {	"sysnice",		rc_sysnice	},	/* number */
+{	"paramauthfile",	rc_paramauthfile },	/* string */
 {	NULL,			0		}
 };
 
@@ -310,9 +318,10 @@ readconfig(file)
 		  *cp = '\0';
 	      }
 	    }
-#if 1
-	    ce->mark = 0;
-#endif
+
+	    if (ce)
+	      ce->mark = 0;
+
 	    for (rckp = &rckeys[0]; rckp->name != NULL ; ++rckp)
 	      if (cistrcmp(rckp->name, line) == 0) {
 		errflag += (*rckp->parsef)(line, a, ce);
@@ -806,5 +815,15 @@ static int rc_queueonly(key, arg, ce)
 	struct config_entry *ce;
 {
 	ce->flags |= CFG_QUEUEONLY;
+	return 0;
+}
+
+static int rc_paramauthfile(key, arg, ce)
+	char *key, *arg;
+	struct config_entry *ce;
+{
+	if (mq2authfile)
+	  free(mq2authfile);
+	mq2authfile = strsave(arg);
 	return 0;
 }

@@ -1,0 +1,16 @@
+#
+# APOP-like authentication control file for the ZMailer scheduler.
+#
+# Fields are double-colon (':') separated, and are:
+#   - Username
+#   - PLAINTEXT PASSWORD (which must not have double-colon in it!)
+#   - Enabled attributes (keywords - should be, some day..)
+#
+# Default-account for 'mailq' is 'nobody' with password 'nobody'.
+# Third field is at the moment a WORK IN PROGRESS!
+#
+# SECURITY NOTE:
+#   OWNER:      root
+#   PROTECTION: 0600
+#
+nobody:nobody:0x0001

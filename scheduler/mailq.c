@@ -1009,7 +1009,7 @@ void query2(fpi, fpo)
 	MD5Final(digbuf, &CTX);
 	
 	fprintf(fpo, "AUTH %s ", v2username);
-	for (i = 0; i < 16; ++i) fprintf(fpo,"%02X",digbuf[i]);
+	for (i = 0; i < 16; ++i) fprintf(fpo,"%02x",digbuf[i]);
 	fprintf(fpo, "\n");
 	if (fflush(fpo) || ferror(fpo)) {
 	    perror("login to scheduler command interface failed");
@@ -1028,7 +1028,7 @@ void query2(fpi, fpo)
 	if (schedq) {
 
 	  if (schedq > 1)
-	    strcpy(buf,"SHOW QUEUE CONDENCED\n");
+	    strcpy(buf,"SHOW QUEUE CONDENSED\n");
 	  else
 	    strcpy(buf,"SHOW QUEUE THREADS\n");
 
@@ -1039,10 +1039,25 @@ void query2(fpi, fpo)
 	    return;
 	  }
 
-	  while (!feof(fpi) && !ferror(fpi)) {
-	    int c = getc(fpi);
-	    if (c == EOF) break;
-	    putc(c,stdout);
+	  bufsize = 0;
+	  if (GETLINE(buf, bufsize, bufspace, fpi))
+	    return;
+
+	  if (*buf != '+') {
+
+	    printf("Scheduler response: '%s'\n",buf);
+
+	  } else {
+
+	    for (;;) {
+	      bufsize = 0;
+	      if (GETLINE(buf, bufsize, bufspace, fpi))
+		break;
+	      if (buf[0] == '.' && buf[1] == 0)
+		break;
+	      printf("%s\n",buf);
+	    }
+
 	  }
 	} else {
 	  printf("Sorry, scheduler with protocol version 2 can't give results without -Q option\n");
