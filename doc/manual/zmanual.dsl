@@ -32,6 +32,8 @@
   ;; Allow automatic hyphenation?
   #t)
 
+(define %graphic-default-extension% "eps")
+
 (define %two-side% 
   ;; Is two-sided output being produced?
   #t)

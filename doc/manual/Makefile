@@ -91,6 +91,9 @@ zmanual.ps: zmanual.dvi $(FIGEPS)
 zmanual.dvi: $(PARTS) $(FIGEPS) zmanual.sgml
 	sh -x db2dvi -d `/bin/pwd`/zmanual.dsl zmanual.sgml
 
+zmanual.pdf: $(PARTS) $(FIGEPS) zmanual.sgml
+	sh -x db2pdf -d `/bin/pwd`/zmanual.dsl zmanual.sgml
+
 distclean clean:
 	# Leave "zmanual.ps" in place, if it exists
 	rm -f *~ *.html *.eps *.gif *.bak *.dvi *.toc *.lof
@@ -130,8 +133,8 @@ zmanual-logo.eps: zmanual-logo.fig
 %.eps: %.fig
 	fig2dev -Lps -c -p x -z A3 -m 0.5000 -x 0 -y 0 -n $@ $< $@
 
-%.pdf: %.ps
-	gs510 -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $^ -c quit
+#%.pdf: %.ps
+#	gs510 -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $^ -c quit
 
 
 $(FIG_PS): $(FIGS)
