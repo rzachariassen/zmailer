@@ -619,8 +619,6 @@ struct vertex *vtx;
 	if (vtx->nextitem != NULL)
 	  vtx->nextitem->previtem = vtx->previtem;
 
-	thr->jobs -= 1;
-
 	if (thr->vertices   == vtx)
 	  thr->vertices   = vtx->nextitem;
 	if (thr->lastvertex == vtx)
@@ -654,8 +652,11 @@ web_disentangle(vp, ok)
 	  vp->proc = NULL;
 	}
 
-	if (vp->thread != NULL)
+	if (vp->thread != NULL) {
+	  vp->thread->jobs -= 1;
 	  unthread(vp);
+	}
+	
 
 	/* The thread can now be EMPTY! */
 
@@ -1370,8 +1371,6 @@ reschedule(vp, factor, index)
 	    if (ap->ce_expiry > vp->ce_expiry) {
 	      /* Link the VP in front of AP */
 	      _thread_linkfront(thr,ap,vp);
-	      thr->jobs += 1;
-
 	      break;
 	    }
 	  } else {
@@ -1380,7 +1379,6 @@ reschedule(vp, factor, index)
 
 	      /* Link the VP in front of AP */
 	      _thread_linkfront(thr,ap,vp);
-	      thr->jobs += 1;
 
 	      break;
 	    }
@@ -1393,7 +1391,6 @@ reschedule(vp, factor, index)
 	if (ap == NULL) {
 	  /* append to list */
 	  _thread_linktail(thr,vp);
-	  thr->jobs += 1;
 	}
 
 	/* Now set thread wakeup value same as first vertex wakeup */

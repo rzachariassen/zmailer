@@ -1126,9 +1126,10 @@ static int syncweb(dq)
 }
 
 
-static int sync_cfps __((struct ctlfile *, struct ctlfile *));
-static int sync_cfps(oldcfp, newcfp)
+static int sync_cfps __((struct ctlfile *, struct ctlfile *,struct procinfo*));
+static int sync_cfps(oldcfp, newcfp, proc)
      struct ctlfile *oldcfp, *newcfp;
+     struct procinfo *proc;
 {
 	struct vertex *ovp,  *nvp;
 	struct vertex *novp, *nnvp;
@@ -1279,7 +1280,7 @@ void resync_file(proc, file)
 	  sp_delete(spl, spt_mesh[L_CTLFILE]);
 	spl = NULL;
 
-	sfprintf(sfstdout, "Resyncing file \"%s\" (ino=%d) (of=%d ho='%s')",
+	sfprintf(sfstdout, "Resyncing file \"%s\" (ino=%d) (of=%d ho='%s')\n",
 		 file, (int) ino, proc->overfed,
 		 (proc->ho ? proc->ho->name : "<NULL>"));
 	/* sfprintf(sfstdout, " .. in processing db\n"); */
@@ -1303,7 +1304,7 @@ void resync_file(proc, file)
 	if (newcfp != NULL) {
 	  /* ????  What ever, it succeeds, or it fails, all will be well */
 
-	  sync_cfps(oldcfp, newcfp);
+	  sync_cfps(oldcfp, newcfp, proc);
 	  newcfp->id = 0; /* Don't scramble spt_mesh[] below */
 
 	  spl = sp_lookup((u_long)ino, spt_mesh[L_CTLFILE]);
