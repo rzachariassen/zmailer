@@ -266,6 +266,9 @@ lilian(yyyy, mm, dd)
 {
 	int ly, nnn, lil;
 
+	if (mm < 1) mm = 1; /* For BAD input this may be zero.. */
+	if (dd < 1) dd = 1; /* For BAD input this may be zero.. */
+
 	/* Determine day in year (nnn) */
 	ly = yyyy%4 == 0 ? 1 : 0;
 	if (yyyy%100 == 0) ly = 0;
