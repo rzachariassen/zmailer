@@ -11,7 +11,7 @@ MD5SUM=		@MD5SUM@
 PMAILSHARE=	scheduler.conf sm.conf smtpserver.conf scheduler.auth \
 		smtp-tls.conf
 PMAILBIN=	mailrm.sh newaliases newfqdnaliases newdb zmailer.sh
-#		#post-install.sh <<- installed unconditionally
+		newdbprocessor post-install.sh
 
 all:
 	@echo Usage: '"make [ dirs | config | mailbin | mailshare | db | cf | forms | install | install-bin ]"'
@@ -97,7 +97,7 @@ dirs:	$(PZCONFIG)
 		chmod g+s  $(prefix)$$POSTOFFICE ;		\
 	fi;							\
 	echo " " ;						\
-	echo "Running  post-install.sh  creates $$POSTOFFICE subdirs!"; \
+	echo "Running  post-install  creates $$POSTOFFICE subdirs!"; \
 	echo " " ;						\
 	if [ ! -d $(prefix)$$LOGDIR ]; then			\
 		echo $(MKDIR) $(prefix)$$LOGDIR &&		\
@@ -129,19 +129,9 @@ mailbin: $(PZCONFIG) $(PMAILBIN) $(MD5SUM)
 	for file in $(PMAILBIN) ;				\
 	do							\
 		name=`expr $$file : '\([^.]*\)'` ;		\
-		if test -f $(prefix)$$MAILBIN/$$name -a		\
-			! -f $(prefix)$$MAILBIN/bak/$$name ; then \
-			echo "mv -f $(prefix)$$MAILBIN/$$name $(prefix)$$MAILBIN/bak/$$name" && \
-			mv -f $(prefix)$$MAILBIN/$$name $(prefix)$$MAILBIN/bak/$$name ; \
-		fi ; \
-		if cmp -s $(prefix)$$MAILBIN/$$name $$file ; then \
-			continue ;				\
-		else						\
-		  echo $(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
-		  $(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
-		fi ;						\
+		echo $(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
+		$(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
 	done ;							\
-	$(INSTALL) -m 755 post-install.sh $(prefix)$$MAILBIN/post-install.sh )
 
 mailshare:	$(PZCONFIG) $(PMAILSHARE) $(MD5SUM)
 	-@(. $(PZCONFIG) ; pwd=`pwd` ;				\

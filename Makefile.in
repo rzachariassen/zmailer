@@ -94,7 +94,7 @@ install-bin:	# all
 		cp $(ZCONF) $(prefix)$$ZCONFIG; chmod 644 $(prefix)$$ZCONFIG; \
 	fi
 	@echo ">>>> "
-	@echo ">>>> Please do run $(MAILBIN)/post-install.sh"
+	@echo ">>>> Please do run $(MAILBIN)/post-install"
 	@echo ">>>> "
 
 dirs:
