@@ -105,6 +105,8 @@ extern int dq_insert __((void*, long, const char*, int));
 extern int in_dirscanqueue __((void *, long));
 extern const char *cfpdirname __((int));
 
+extern struct MIB_MtaEntry *MIBMtaEntry;
+
 /* threads.c */
 extern struct thread *thread_head, *thread_tail;
 extern struct threadgroup *create_threadgroup __((struct config_entry *cep, struct web *wc, struct web *wh, int withhost, void (*ce_fillin)__((struct threadgroup *, struct config_entry *)) ));

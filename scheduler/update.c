@@ -300,7 +300,9 @@ unctlfile(cfp, no_unlink)
 	  if (spl != NULL)
 	    sp_delete(spl, spt_mesh[L_CTLFILE]);
 	}
+
 	--global_wrkcnt;
+	--MIBMtaEntry->mtaStoredMessages;
 
 	free_cfp_memory(cfp);
 }
@@ -745,6 +747,7 @@ static int u_ok(vp, index, inum, offset, notary, message)
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 1);
+	++MIBMtaEntry->mtaTransmittedRecipients;
 	return 1;
 }
 
@@ -774,6 +777,7 @@ static int u_ok2(vp, index, inum, offset, notary, message)
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 1);
+	++MIBMtaEntry->mtaTransmittedRecipients;
 	return 1;
 }
 
@@ -802,6 +806,7 @@ static int u_ok3(vp, index, inum, offset, notary, message)
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 1);
+	++MIBMtaEntry->mtaTransmittedRecipients;
 	return 1;
 }
 

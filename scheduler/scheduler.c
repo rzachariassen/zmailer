@@ -149,6 +149,10 @@ static RETSIGTYPE sig_readcf __((int sig));
 
 extern char *strerror __((int err));
 
+static struct MIB_MtaEntry MIBMtaEntryLocal = {0,}
+struct MIB_MtaEntry *MIBMtaEntry = &MibMtaEntryLocal;
+
+
 static int    timeserver_pid = 0;
 extern time_t mytime          __((time_t *));
 static void   init_timeserver __((void));
@@ -1279,7 +1283,9 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	}
 	if (cfp->head == NULL) {
 	  ++global_wrkcnt;
-	  unctlfile(cfp, 0); /* Delete the file too */
+	  ++MIBMtaEntry->mtaStoredMessages;
+	  unctlfile(cfp, 0); /* Delete the file.
+				(decrements those counters too!) */
 	  return NULL;
 	}
 	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
@@ -1292,6 +1298,7 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	}
 
 	sp_install(cfp->id, (void *)cfp, 0, spt_mesh[L_CTLFILE]);
+	++MIBMtaEntry->mtaStoredMessages;
 	++global_wrkcnt;
 	return cfp;
 }

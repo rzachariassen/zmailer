@@ -13,6 +13,7 @@
 #include "hostenv.h"
 #include "malloc.h"
 #include "splay.h"
+#include "shmmib.h"
 
 struct config_entry {
 	struct config_entry *next;
