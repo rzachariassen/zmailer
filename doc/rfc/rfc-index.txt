@@ -5,7 +5,7 @@
                              RFC INDEX
                            -------------
 
-(CREATED ON: 03/04/2003.)
+(CREATED ON: 04/02/2003.)
 
 This file contains citations for all RFCs in numeric order.
 
@@ -7339,7 +7339,7 @@ See the RFC Editor Web page http://www.rfc-editor.org
 
 2060 Internet Message Access Protocol - Version 4rev1. M. Crispin.
      December 1996. (Format: TXT=166513 bytes) (Obsoletes RFC1730)
-     (Status: PROPOSED STANDARD)
+     (Obsoleted by RFC3501) (Status: PROPOSED STANDARD)
 
 2061 IMAP4 Compatibility with IMAP2bis. M. Crispin. December 1996.
      (Format: TXT=5867 bytes) (Obsoletes RFC1730) (Status: INFORMATIONAL)
@@ -9206,7 +9206,8 @@ See the RFC Editor Web page http://www.rfc-editor.org
 
 2553 Basic Socket Interface Extensions for IPv6. R. Gilligan, S.
      Thomson, J. Bound, W. Stevens. March 1999. (Format: TXT=89215 bytes)
-     (Obsoletes RFC2133) (Updated by RFC3152) (Status: INFORMATIONAL)
+     (Obsoletes RFC2133) (Obsoleted by RFC3493) (Updated by RFC3152)
+     (Status: INFORMATIONAL)
 
 2554 SMTP Service Extension for Authentication. J. Myers. March 1999.
      (Format: TXT=20534 bytes) (Status: PROPOSED STANDARD)
@@ -10562,7 +10563,7 @@ See the RFC Editor Web page http://www.rfc-editor.org
 2910 Internet Printing Protocol/1.1: Encoding and Transport. R.
      Herriot, Ed., S. Butler, P. Moore, R. Turner, J. Wenn. September
      2000. (Format: TXT=100599 bytes) (Obsoletes RFC2565) (Updated by
-     RFC3380, RFC3381, RFC3382) (Status: PROPOSED STANDARD)
+     RFC3380, RFC3381, RFC3382, RFC3510) (Status: PROPOSED STANDARD)
 
 2911 Internet Printing Protocol/1.1: Model and Semantics. T. Hastings,
      Ed., R. Herriot, R. deBry, S. Isaacson, P. Powell. September 2000.
@@ -12111,6 +12112,14 @@ See the RFC Editor Web page http://www.rfc-editor.org
      (3GPP) Standards. M. Wasserman, Ed.. September 2002. (Format:
      TXT=48168 bytes) (Status: INFORMATIONAL)
 
+3317 Differentiated Services Quality of Service Policy Information
+     Base. K. Chan, R. Sahita, S. Hahn, K. McCloghrie. March 2003.
+     (Format: TXT=188553 bytes) (Status: INFORMATIONAL)
+
+3318 Framework Policy Information Base. R. Sahita, Ed., S. Hahn, K.
+     Chan, K. McCloghrie. March 2003. (Format: TXT=144530 bytes) (Status:
+     INFORMATIONAL)
+
 3320 Signaling Compression (SigComp). R. Price, C. Bormann, J.
      Christoffersson, H. Hannu, Z. Liu, J. Rosenberg. January 2003.
      (Format: TXT=137035 bytes) (Status: PROPOSED STANDARD)
@@ -12470,6 +12479,10 @@ See the RFC Editor Web page http://www.rfc-editor.org
      December 2002. (Format: TXT=61461 bytes) (Obsoletes RFC2570) (Status:
      INFORMATIONAL)
 
+3412 Configuring Networks and Devices with Simple Network Management
+     Protocol (SNMP). M. MacFaden, D. Partain, J. Saperia, W. Tackabury.
+     April 2003. (Format: TXT=196529 bytes) (Status: INFORMATIONAL)
+
 3411 An Architecture for Describing Simple Network Management Protocol
      (SNMP) Management Frameworks. D. Harrington, R. Presuhn, B. Wijnen.
      December 2002. (Format: TXT=140096 bytes) (Obsoletes RFC2571) (Also
@@ -12737,6 +12750,23 @@ See the RFC Editor Web page http://www.rfc-editor.org
      Extensions. L. Berger, Ed.. January 2003. (Format: TXT=91808 bytes)
      (Status: PROPOSED STANDARD)
 
+3474 Documentation of IANA assignments for Generalized MultiProtocol
+     Label Switching (GMPLS) Resource Reservation Protocol - Traffic
+     Engineering (RSVP-TE) Usage and Extensions for Automatically Switched
+     Optical Network (ASON). Z. Lin, D. Pendarakis. March 2003. (Format:
+     TXT=52551 bytes) (Status: INFORMATIONAL)
+
+3475 Documentation of IANA assignments for Constraint-Based LSP setup
+     using LDP (CR-LDP) Extensions for Automatic Switched Optical Network
+     (ASON). O. Aboul-Magd. March 2003. (Format: TXT=29995 bytes) (Status:
+     INFORMATIONAL)
+
+3476 Documentation of IANA Assignments for Label Distribution Protocol
+     (LDP), Resource ReSerVation Protocol (RSVP), and Resource ReSerVation
+     Protocol-Traffic Engineering (RSVP-TE) Extensions for Optical UNI
+     Signaling. B. Rajagopalan. March 2003. (Format: TXT=22009 bytes)
+     (Status: INFORMATIONAL)
+
 3477 Signalling Unnumbered Links in Resource ReSerVation Protocol -
      Traffic Engineering (RSVP-TE). K. Kompella, Y. Rekhter. January 2003.
      (Format: TXT=19899 bytes) (Status: PROPOSED STANDARD)
@@ -12762,6 +12792,11 @@ See the RFC Editor Web page http://www.rfc-editor.org
      (GSTN): An Overview. M. Foster, T. McGarry, J. Yu. February 2003.
      (Format: TXT=78552 bytes) (Status: INFORMATIONAL)
 
+3483 Framework for Policy Usage Feedback for Common Open Policy
+     Service with Policy Provisioning (COPS-PR). D. Rawlins, A. Kulkarni,
+     M. Bokaemper, K. Chan. March 2003. (Format: TXT=19869 bytes) (Status:
+     INFORMATIONAL)
+
 3484 Default Address Selection for Internet Protocol version 6 (IPv6).
      R. Draves. February 2003. (Format: TXT=55076 bytes) (Status: PROPOSED
      STANDARD)
@@ -12782,6 +12817,27 @@ See the RFC Editor Web page http://www.rfc-editor.org
      Wu, T. Eckert. February 2003. (Format: TXT=37152 bytes) (Status:
      INFORMATIONAL)
 
+3489 STUN - Simple Traversal of User Datagram Protocol (UDP) Through
+     Network Address Translators (NATs). J. Rosenberg, J. Weinberger, C.
+     Huitema, R. Mahy. March 2003. (Format: TXT=117562 bytes) (Status:
+     PROPOSED STANDARD)
+
+3490 Internationalizing Domain Names in Applications (IDNA). P.
+     Faltstrom, P. Hoffman, A. Costello. March 2003. (Format: TXT=51943
+     bytes) (Status: PROPOSED STANDARD)
+
+3491 Nameprep: A Stringprep Profile for Internationalized Domain Names
+     (IDN). P. Hoffman, M. Blanchet. March 2003. (Format: TXT=10316 bytes)
+     (Status: PROPOSED STANDARD)
+
+3492 Punycode: A Bootstring encoding of Unicode for Internationalized
+     Domain Names in Applications (IDNA). A. Costello. March 2003.
+     (Format: TXT=67439 bytes) (Status: PROPOSED STANDARD)
+
+3493 Basic Socket Interface Extensions for IPv6. R. Gilligan, S.
+     Thomson, J. Bound, J. McCann, W. Stevens. March 2003. (Format:
+     TXT=82570 bytes) (Obsoletes RFC2553) (Status: INFORMATIONAL)
+
 3494 Lightweight Directory Access Protocol version 2 (LDAPv2) to
      Historic Status. K. Zeilenga. March 2003. (Format: TXT=9225 bytes)
      (Obsoletes RFC1484, RFC1485, RFC1487, RFC1777, RFC1778, RFC1779,
@@ -12790,3 +12846,52 @@ See the RFC Editor Web page http://www.rfc-editor.org
 3495 Dynamic Host Configuration Protocol (DHCP) Option for CableLabs
      Client Configuration. B. Beser, P. Duffy, Ed.. March 2003. (Format:
      TXT=26817 bytes) (Status: PROPOSED STANDARD)
+
+3496 Protocol Extension for Support of Asynchronous Transfer Mode
+     (ATM) Service Class-aware Multiprotocol Label Switching (MPLS)
+     Traffic Engineering. A. G. Malis, T. Hsiao. March 2003. (Format:
+     TXT=11431 bytes) (Status: INFORMATIONAL)
+
+3497 RTP Payload Format for Society of Motion Picture and Television
+     Engineers (SMPTE) 292M Video. L. Gharai, C. Perkins, G. Goncher, A.
+     Mankin. March 2003. (Format: TXT=26094 bytes) (Status: PROPOSED
+     STANDARD)
+
+3498 Definitions of Managed Objects for Synchronous Optical Network
+     (SONET) Linear Automatic Protection Switching (APS) Architectures. J.
+     Kuhfeld, J. Johnson, M. Thatcher. March 2003. (Format: TXT=78701
+     bytes) (Status: PROPOSED STANDARD)
+
+3501 INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1. M. Crispin.
+     March 2003. (Format: TXT=227640 bytes) (Obsoletes RFC2060) (Status:
+     PROPOSED STANDARD)
+
+3502 Internet Message Access Protocol (IMAP) - MULTIAPPEND Extension.
+     M. Crispin. March 2003. (Format: TXT=13379 bytes) (Status: PROPOSED
+     STANDARD)
+
+3503 Message Disposition Notification (MDN) profile for Internet
+     Message Access Protocol (IMAP). A. Melnikov. March 2003. (Format:
+     TXT=16937 bytes) (Status: PROPOSED STANDARD)
+
+3504 Internet Open Trading Protocol (IOTP) Version 1, Errata. D.
+     Eastlake. March 2003. (Format: TXT=8655 bytes) (Status:
+     INFORMATIONAL)
+
+3505 Electronic Commerce Modeling Language (ECML): Version 2
+     Requirements. D. Eastlake. March 2003. (Format: TXT=13915 bytes)
+     (Status: INFORMATIONAL)
+
+3506 Requirements and Design for Voucher Trading System (VTS). K.
+     Fujimura, D. Eastlake. March 2003. (Format: TXT=30945 bytes) (Status:
+     INFORMATIONAL)
+
+3508 H.323 Uniform Resource Locator (URL) Scheme Registration. O.
+     Levin. April 2003. (Format: TXT=10983 bytes) (Status: INFORMATIONAL)
+
+3510 Internet Printing Protocol/1.1: IPP URL Scheme. R. Herriot, I.
+     McDonald. April 2003. (Format: TXT=22009 bytes) (Updates RFC2910)
+     (Status: PROPOSED STANDARD)
+
+3514 The Security Flag in the IPv4 Header. S. Bellovin. 1 April 2003.
+     (Format: TXT=11211 bytes) (Status: INFORMATIONAL)
