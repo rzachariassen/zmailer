@@ -35,12 +35,12 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(LIBC_INCL)
 LIBOBJS=  @LIBOBJS@
 #
 OBJS	= mail.o mail_alloc.o mail_host.o fullname.o getopt.o myhostname.o \
-	getzenv.o whathost.o getdtblsiz.o __fopen.o setreuid.o
+	getzenv.o whathost.o getdtblsiz.o __fopen.o setreuid.o setregid.o
 LIBMAILERobjs = mail.o mail_alloc.o getzenv.o mail_host.o myhostname.o	\
 	fullname.o whathost.o strerror.o
 SOURCE	= mail.c mail_alloc.c mail_host.c fullname.c getopt.c myhostname.c \
 	getzenv.c setvbuf.c strchr.c strrchr.c strsignal.c strerror.c \
-	whathost.c getdtblsiz.c setreuid.c __fopen.c setreuid.c
+	whathost.c getdtblsiz.c setreuid.c __fopen.c setreuid.c setregid.c
 
 $(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a $(TOPDIR)/libs/libzmailer.a
 

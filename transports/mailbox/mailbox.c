@@ -1808,7 +1808,7 @@ program(dp, rp, user, timestring)
 	if ((s = getzenv("PATH")) == NULL)
 	  env[i++] = "PATH=/usr/bin:/bin:/usr/ucb";
 	else {
-	  sprintf(cp, "PATH=%s", s);
+	  sprintf(cp, "PATH=%.999s", s);
 	  env[i++] = cp;
 	  cp += strlen(cp) + 1;
 	}
@@ -1839,17 +1839,17 @@ program(dp, rp, user, timestring)
 	  return;
 	} else {
 	  gid = pw->pw_gid;
-	  sprintf(cp, "HOME=%s", pw->pw_dir);
+	  sprintf(cp, "HOME=%.500s", pw->pw_dir);
 	  env[i++] = cp;
 	  cp += strlen(cp) + 1;
-	  sprintf(cp, "USER=%s", pw->pw_name);
+	  sprintf(cp, "USER=%.100s", pw->pw_name);
 	  env[i++] = cp;
 	  cp += strlen(cp) + 1;
 	}
 	if (strcmp(rp->addr->link->channel,"error")==0)
 	  sprintf(cp, "SENDER=<>");
 	else
-	  sprintf(cp, "SENDER=%s", rp->addr->link->user);
+	  sprintf(cp, "SENDER=%.999s", rp->addr->link->user);
 	env[i++] = cp;
 	cp += strlen(cp) + 1;
 	sprintf(cp, "UID=%d", (int)uid);
@@ -1857,26 +1857,26 @@ program(dp, rp, user, timestring)
 	if ((s = getzenv("ZCONFIG")) == NULL)
 	  s = ZMAILER_ENV_FILE;
 	cp += strlen(cp) + 1;
-	sprintf(cp, "ZCONFIG=%s", s);
+	sprintf(cp, "ZCONFIG=%.200s", s);
 	env[i++] = cp;
 	if ((s = getzenv("MAILBIN")) == NULL)
 		s = MAILBIN;
 	cp += strlen(cp) + 1;
-	sprintf(cp, "MAILBIN=%s", s);
+	sprintf(cp, "MAILBIN=%.200s", s);
 	env[i++] = cp;
 	if ((s = getzenv("MAILSHARE")) == NULL)
 		s = MAILSHARE;
 	cp += strlen(cp) + 1;
-	sprintf(cp, "MAILSHARE=%s", s);
+	sprintf(cp, "MAILSHARE=%.200s", s);
 	env[i++] = cp;
 	cp += strlen(cp) + 1;
 	if (rp->orcpt) {
-	  sprintf(cp, "ORCPT=%s", rp->orcpt);
+	  sprintf(cp, "ORCPT=%.999s", rp->orcpt);
 	  env[i++] = cp;
 	  cp += strlen(cp) + 1;
 	}
 	if (dp->envid) {
-	  sprintf(cp, "ENVID=%s", dp->envid);
+	  sprintf(cp, "ENVID=%.999s", dp->envid);
 	  env[i++] = cp;
 	  cp += strlen(cp) + 1;
 	}
@@ -1914,8 +1914,8 @@ program(dp, rp, user, timestring)
 	pid = fork();
 	if (pid == 0) { /* child */
 	  environ = (char**)env;
-	  setgid(gid);
-	  setuid(uid);
+	  setregid(gid,gid);
+	  setreuid(uid,uid);
 	  close(in[0]);
 	  close(out[1]);
 	  /* its stdout and stderr is the pipe, its stdin is our fdmail */

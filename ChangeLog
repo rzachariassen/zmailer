@@ -1,5 +1,16 @@
 1998-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* configure.in, libc/setregid.c, libc/Makefile.in,
+	  transports/mailbox/mailbox.c:
+	    Within mailbox.c there is one instance of fork(), and
+	    following it are some setgid()/setuid() statements.
+	    Setting real-uid/real-gid is not sufficient for systems
+	    with NFS-mounted home directories...
+
+	    Changed those calls to be  setregid() and setreuid(),
+	    which should work far better, but I have no idea about
+	    its portability to for example  SunOS 4.1.*  series.
+	
 	* proto/Makefile.in, proto/cf/SMTP.cf.in, configure.in:
 	    Default router.cf is altered to have protocols 'routes',
 	    and 'smtp'.  Per default the system install will not
