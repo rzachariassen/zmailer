@@ -28,14 +28,14 @@ doagenda()
 	do {
 	  didsomething = 0;
 	  if (verbose)
-	    printf("curitem %lx curitem->wakeup %lu now %d\n", (long)ncuritem,
-		   ncuritem != NULL ? ncuritem->wakeup : 0, (int)now);
+	    sfprintf(sfstdout,"curitem %p curitem->wakeup %lu now %d\n",
+		     ncuritem, ncuritem ? ncuritem->wakeup : 0, (int)now);
 
 	  /* thread_head -chain should be in time order, thus the while-loop
 	     should be traversed only once, because  thread_start kicks
 	     right away (or reschedules) */
 
-	  while (ncuritem != NULL /* && ncuritem->wakeup <= now */ ) {
+	  while (ncuritem  && ncuritem->wakeup <= now  ) {
 	    /* Object pointed by  ncuritem  may disappear due to
 	       expiration at thread_start() .. */
 	    nncuritem = ncuritem->nexttr;
