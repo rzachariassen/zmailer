@@ -1,3 +1,10 @@
+2002-02-15  Matti Aarnio  <mea@zmailer.org>
+
+	* libc/mail.c, libc/sfmail.c, router/rfc822.c:
+	    Oops,  MSG_NOSIGNAL seems to be Linux specific
+	    thing, at least Solaris 2.6 doesn't support it
+	    for  sendto()  system call.
+	
 2002-02-11  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/transport.c:

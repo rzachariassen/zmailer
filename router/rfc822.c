@@ -2487,7 +2487,12 @@ sequencer(e, file)
 
 	  sprintf(buf, "NEW %s%.300s", subdirhash, file);
 	  sendto(notifysocket, buf, strlen(buf),
-		 MSG_DONTWAIT|MSG_NOSIGNAL,
+#ifdef MSG_NOSIGNAL
+		 MSG_NOSIGNAL|
+#else
+		 /* FIXME: URGH! WILL WE HAVE SIGPIPE PROBLEMS ??? */
+#endif
+		 MSG_DONTWAIT ,
 		 (struct sockaddr *)&sad, sizeof(sad));
 
 	  close(notifysocket);
