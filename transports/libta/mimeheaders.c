@@ -718,6 +718,9 @@ parse_content_type(ct_line)
 	struct ct_data *ct = (struct ct_data*)malloc(sizeof(struct ct_data));
 	int unknowncount = 0;
 
+static const char *debugptrs[20];
+
+
 	if (!ct) return NULL; /* Failed to parse it! */
 
 	ct->basetype = NULL;
@@ -730,17 +733,25 @@ parse_content_type(ct_line)
 	s = ct_line;
 	s += 13;	/* "Content-Type:" */
 
+	debugptrs[0] = s;
+
 	p = skip_822linearcomments(s);
+	debugptrs[1] = p;
 	s = skip_mimetoken(p);
+	debugptrs[2] = s;
 
 	ct->basetype = foldmalloccopy(p, s);
+	debugptrs[3] = ct->basetype;
 
 	p = skip_822linearcomments(s);
+	debugptrs[4] = p;
 
 	if (*p == '/') {	/* Subtype defined */
 	  ++p;
 	  p = skip_822linearcomments(p);
+	  debugptrs[5] = p;
 	  s = skip_mimetoken(p);
+	  debugptrs[6] = p;
 
 	  ct->subtype = foldmalloccopy(p, s);
 	}
@@ -751,11 +762,10 @@ parse_content_type(ct_line)
 	  char *paramname;
 	  char *parval;
 
-static const char *debugptrs[20];
-
+	  debugptrs[7] = s;
 
 	  s = skip_822linearcomments(s);
-	  debugptrs[0] = s;
+	  debugptrs[8] = s;
 
 	  if (!*s) break;
 	  if (*s == ';') ++s;
@@ -764,16 +774,16 @@ static const char *debugptrs[20];
 	       Now shall we scan towards the end, and HOPE for the best,
 	       or what shall we do ? */
 	  }
-	  debugptrs[1] = s;
+	  debugptrs[9] = s;
 	  p = skip_822linearcomments(s);
-	  debugptrs[2] = p;
+	  debugptrs[10] = p;
 	  if (!p || !*p) break;
 	  s = skip_mimetoken(p);
-	  debugptrs[3] = s;
+	  debugptrs[11] = s;
 	  if (p == s && *s == 0) break; /* Nothing anymore */
 
 	  paramname = foldmalloccopy(p, s);
-	  debugptrs[4] = paramname;
+	  debugptrs[12] = paramname;
 
 	  /* Picked up a param name, now scan the value */
 
@@ -782,24 +792,24 @@ static const char *debugptrs[20];
 	     That is, it had whitespaces around the "=" sign. */
 
 	  s = skip_822linearcomments(s);
-	  debugptrs[5] = s;
+	  debugptrs[13] = s;
 
 	  if (*s == '=') {	    /* What if no `=' ?? */
 	    ++s;
 	  }
-	  debugptrs[6] = s;
+	  debugptrs[14] = s;
 	  p = skip_822linearcomments(s);
-	  debugptrs[7] = p;
+	  debugptrs[15] = p;
 
 	  if (*p == '"') {
 	    s = skip_822quotedstring(p);
 	  } else {
 	    s = skip_mimetoken(p);
 	  }
-	  debugptrs[8] = s;
+	  debugptrs[16] = s;
 
 	  parval = foldmalloccopy(p, s);
-	  debugptrs[9] = parval;
+	  debugptrs[17] = parval;
 
 	  if (CISTREQ("charset",paramname)) {
 	    /* Parameter:  charset="..." */
