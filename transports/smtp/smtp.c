@@ -248,6 +248,7 @@ outbuf_fillup:
 
 	    smtp_flush(SS); /* Flush in every case */
 	    i = smtpwrite(SS, 0, "NOOP", 0, NULL);
+	    SS->rcptstates = 0; /* ignore replies */
 	    if (i != EX_OK && SS->smtpfp != NULL) {
 	      /* No success ?  QUIT + close! (if haven't closed yet..) */
 	      if (!getout)
@@ -1424,7 +1425,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    if (has_readable(SS->smtpfd)) {
 	      SS->cmdstate = SMTPSTATE_RCPTTO; /* Well, sort of .. */
 	      /* Drain the input, and then close the channel */
-	      (void) smtpwrite(SS, 0, NULL, 0, NULL);
+	      smtp_sync(SS, EX_OK, 0);
 	      smtpclose(SS, 1);
 	      if (logfp)
 		fprintf(logfp, "%s#\t(closed SMTP channel - MAIL FROM:<> got two responses! [or EOF])\n", logtag());
@@ -1447,28 +1448,15 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	     quick retry!  DON'T diagnose those now! */
 
 	  if (r != EX_TEMPFAIL && !SS->smtpfp) {
-	    if (startrp->ezmlm) {
+	    for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	      /* NOTARY: address / action / status / diagnostic */
-	      if (startrp->lockoffset) {
-		notaryreport(startrp->addr->user, FAILED,
+	      if (rp->lockoffset) {
+		notaryreport(rp->addr->user, FAILED,
 			     "5.5.0 (Undetermined protocol error)",NULL);
-		diagnostic(SS->verboselog, startrp, r, 0, "%s", SS->remotemsg);
+		diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
 		if (logfp) {
 		  fprintf(logfp, "%s#\t", logtag());
-		  diagnostic(logfp, startrp, r, 0, "%s", SS->remotemsg);
-		}
-	      }
-	    } else {
-	      for (rp = startrp; rp && rp != endrp; rp = rp->next) {
-		/* NOTARY: address / action / status / diagnostic */
-		if (rp->lockoffset) {
-		  notaryreport(rp->addr->user, FAILED,
-			       "5.5.0 (Undetermined protocol error)",NULL);
-		  diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
-		  if (logfp) {
-		    fprintf(logfp, "%s#\t", logtag());
-		    diagnostic(logfp, rp, r, 0, "%s", SS->remotemsg);
-		  }
+		  diagnostic(logfp, rp, r, 0, "%s", SS->remotemsg);
 		}
 	      }
 	    }
@@ -1678,6 +1666,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	if (SS->chunking) {
 
+	  timeout = timeout_tcpw;
+
 	  chunkblk = NULL;
 	  chunkblkptr = & chunkblk;
 
@@ -1698,7 +1688,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	  if (SS->smtpfp && early_bdat_sync) {
 	    /* Now is time to do synchronization .. */
-	    r = smtp_sync(SS, EX_OK, 0); /* Up & until "DATA".. */
+	    r = smtp_sync(SS, EX_OK, 0); /* Up & until "BDAT".. */
 	  }
 
 	  if (r != EX_OK) {
@@ -1740,6 +1730,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	  timeout = timeout_data;
 	  r = smtpwrite(SS, 1, "DATA", 0 /* SYNC! */, NULL);
+	  timeout = timeout_tcpw;
 
 	  if (r != EX_OK) {
 	    if (SS->smtpfp &&
@@ -2080,9 +2071,9 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	       then we say, we "relayed" the message */
 	    if (rp->notifyflgs & _DSN_NOTIFY_SUCCESS)
 	      reldel = "relayed";
+	    rp->status = r;
 	    notaryreport(rp->addr->user, reldel, NULL, NULL);
-	    if (rp->status == EX_OK) rp->status = r;
-	    diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+	    diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
 	    if (logfp) {
 	      fprintf(logfp, "%s#\t", logtag());
 	      diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
@@ -2115,7 +2106,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	}
 
 	/* If all fine, all is fine...  No need to RSET afterwards. */
-	if (r == EX_OK) SS->do_rset = 0;
+	SS->do_rset = 0;
 
 
 	/* More recipients to send ? */
@@ -4425,7 +4416,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	struct rcpt *syncrp;
 {
 	char buf[8192];
-	int r, r2 = EX_OK;
+	int r = EX_OK, r2 = EX_OK;
 	volatile int err = 0;
 
 	gotalarm = 0; /* smtp_sfwrite() may set it.. */
@@ -4479,6 +4470,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      err = 1;
 	  }
 
+	  r = EX_OK;
+
 	  if (err) {
 	    if (gotalarm) {
 	      strcpy(SS->remotemsg, "Timeout on cmd write");
@@ -4499,9 +4492,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - timeout on smtpwrite())\n", logtag());
-	    /* Alarm OFF */
-	    return EX_TEMPFAIL;
 #endif
+	    /* Alarm OFF */
+	    r = EX_TEMPFAIL;
 	  } else if (r != len) {
 	    sprintf(SS->remotemsg, "smtp; 500 (SMTP cmd write failure: Only wrote %d of %d bytes!)", r, len);
 	    time(&endtime);
@@ -4513,9 +4506,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - second timeout on smtpwrite() )\n", logtag());
-	    /* Alarm OFF */
-	    return EX_TEMPFAIL;
 #endif
+	    /* Alarm OFF */
+	    r = EX_TEMPFAIL;
 	  }
 	  if (logfp)
 	    fprintf(logfp, "%sw\t%s\n", logtag(), strbuf);
@@ -4545,10 +4538,12 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	     not in reality interested of the return value... */
 
 	  /* Read possible responses into response buffer.. */
-	  return pipeblockread(SS);
+	  r2 = pipeblockread(SS);
+	  if (r != EX_OK) return r;
+	  return r2;
 	}
 
-	return smtp_sync(SS, EX_OK, pipelining);
+	return smtp_sync(SS, r, pipelining);
 }
 
 
