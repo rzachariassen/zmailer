@@ -358,7 +358,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	fcntl(d->ctlfd, F_SETFD, 1); /* Close-on-exec */
 
 #if defined(HAVE_MMAP)
-	if (!ta_use_mmap) {
+	if (ta_use_mmap == 0) { /* uninitialized */
 	  const char *s = getzenv("TA_USE_MMAP");
 	  if (s && *s == '1')
 	    ta_use_mmap = 1;
@@ -795,7 +795,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	fcntl(d->msgfd, F_SETFD, 1); /* Close-on-exec */
 
 #if defined(HAVE_MMAP)
-	if (ta_use_mmap) {
+	if (ta_use_mmap > 0) {
 	  d->let_buffer = (char *)mmap(NULL, stbuf.st_size, PROT_READ,
 				       MAP_FILE|MAP_SHARED|MAP_VARIABLE,
 				       d->msgfd, 0);
