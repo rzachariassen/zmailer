@@ -297,6 +297,9 @@ typedef struct {
 #define RCPTSTATE_500 0x04 /* At least one PERM failure */
 #define FROMSTATE_400 0x08 /* MAIL FROM --> 4XX code */
 #define FROMSTATE_500 0x10 /* MAIL FROM --> 5XX code */
+#define DATASTATE_OK  0x20 /* DATA/BDAT --> 2/3XX code */
+#define DATASTATE_400 0x40 /* DATA/BDAT --> 4XX code */
+#define DATASTATE_500 0x80 /* DATA/BDAT --> 5XX code */
   int state;
   int alarmcnt;
   int column;
@@ -3363,10 +3366,14 @@ smtp_sync(SS, r, nonblocking)
 
 	s = SS->pipebuf;
 	eol = s;
-	for (idx = 0; idx < SS->pipereplies; ++idx) {
-	  /* Pre-fill some_ok, and data_fail variables */
-	  if (SS->pipercpts[idx] != NULL)
-	}
+	/* Pre-fill  some_ok,  and  datafail  variables */
+	if (SS->rcptstates & RCPTSTATE_OK) /* ONE (or more) of them was OK */
+	  some_ok = 1;
+	if (SS->rcptstates & DATASTATE_400)
+	  datafail = EX_TEMPFAIL;
+	if (SS->rcptstates & DATASTATE_500)
+	  datafail = EX_UNAVAILABLE;
+
 	for (idx = SS->pipereplies; idx < SS->pipeindex; ++idx) {
 	  SS->pipereplies = idx;
       rescan_line_0: /* processed some continuation line */
@@ -3401,7 +3408,7 @@ smtp_sync(SS, r, nonblocking)
 	    if (len < 0) {
 	      /* Some error ?? How come ?
 		 We have select() confirmed input! */
-	      if (err == EINTR)
+	      if (err == EINTR || err == EAGAIN)
 		goto reread_line;
 	      /* XX: what to do with the error ? */
 	      if (logfp)
@@ -3516,19 +3523,36 @@ smtp_sync(SS, r, nonblocking)
 		else if (code >= 400)
 		  SS->rcptstates |= FROMSTATE_400;
 	      } else {
-		if (code >= 500)
+		if (code >= 500) {
 		  datafail = EX_UNAVAILABLE;
-		else if (code >= 400)
+		  SS->rcptstates |= DATASTATE_500;
+		} else if (code >= 400) {
 		  datafail = EX_TEMPFAIL;
+		  SS->rcptstates |= DATASTATE_400;
+		}
 	      }
 	    }
 	  } else {
 	    /* Ok results */
 	    if (SS->pipercpts[idx] != NULL) {
-	      SS->rcptstates |= RCPTSTATE_OK;
-	      SS->pipercpts[idx]->status = EX_OK;
-	      some_ok = 1;
+	      if (SS->rcptstates & (FROMSTATE_400|FROMSTATE_500)) {
+		/* MAIL FROM gave error, we won't believe OK on
+		   recipients either. */
+		SS->rcptstates |= RCPTSTATE_400;
+		/* Actually we SHOULD NOT arrive here, but we never know,
+		   what kind of smtp-servers are out there... */
+	      } else {
+		/* MAIL FROM was apparently ok. */
+		SS->rcptstates |= RCPTSTATE_OK;
+		SS->pipercpts[idx]->status = EX_OK;
+		some_ok = 1;
 if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeindex=%d]\n",code,idx,SS->pipeindex-1);
+	      }
+	    } else {
+	      if (idx > 0)
+		SS->rcptstates |= DATASTATE_OK;
+	      /* Should we do same as we do above ?  Don't believe in OK
+		 in case MAIL FROM failed ? */
 	    }
 	  }
 	  if (SS->pipecmds[idx] != NULL)
@@ -3546,7 +3570,7 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	  SS->pipecmds[idx] = NULL;
 	}
 
-	if (some_ok) rc = EX_OK;
+	if (some_ok)  rc = EX_OK;
 	if (datafail) rc = datafail;
 
 	return rc;
