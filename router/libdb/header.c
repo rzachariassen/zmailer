@@ -48,8 +48,10 @@ struct headerinfo optional_hdrs[] = {
 #if 0
 { "return-path",	AMailboxList,	nilUserType,	normal		},
 #endif
+#if 0
 { "date",		DateTime,	nilUserType,	normal		},
 { "resent-date",	DateTime,	nilUserType,	Resent		},
+#endif
 { "encrypted",		Encrypted,	nilUserType,	normal		},
 { "errors-to",		AddressList,	Sender,		normal		},
 { "obsoletes",		MessageIDList,	nilUserType,	normal		},

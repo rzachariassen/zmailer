@@ -45,6 +45,7 @@ static int rc_skew		RCKEYARGS;
 static int rc_bychannel		RCKEYARGS;
 static int rc_ageorder		RCKEYARGS;
 static int rc_queueonly		RCKEYARGS;
+static int rc_wakeuprestartonly	RCKEYARGS;
 static int rc_deliveryform	RCKEYARGS;
 static int rc_overfeed		RCKEYARGS;
 static int rc_priority		RCKEYARGS;
@@ -89,6 +90,7 @@ static struct rckeyword {
 {	"bychannel",		rc_bychannel	},	/* boolean */
 {	"ageorder",		rc_ageorder	},	/* boolean */
 {	"queueonly",		rc_queueonly	},	/* boolean */
+{	"wakeuprestartonly",	rc_wakeuprestartonly },	/* boolean */
 {	"overfeed",		rc_overfeed	},	/* number */
 {	"priority",		rc_priority	},	/* number */
 {	"nice",			rc_nice		},	/* number */
@@ -184,6 +186,9 @@ vtxprint(vp)
 	  if (ce->flags & CFG_BYCHANNEL) sfprintf(sfstdout," BYCHANNEL");
 	  if (ce->flags & CFG_WITHHOST)  sfprintf(sfstdout," WITHHOST");
 	  if (ce->flags & CFG_AGEORDER)  sfprintf(sfstdout," AGEORDER");
+	  if (ce->flags & CFG_QUEUEONLY) sfprintf(sfstdout," QUEUEONLY");
+	  if (ce->flags & CFG_WAKEUPRESTARTONLY)sfprintf(sfstdout,
+							 " WAKEUPRESTARTONLY");
 	}
 	sfprintf(sfstdout,"\n");
 	sfprintf(sfstdout,"\tmaxkids %d\n",	ce->maxkids);
@@ -704,7 +709,7 @@ static int rc_maxchannel(key, arg, ce)
 {
 	ce->maxkidChannel = atoi(arg);
 	if (ce->maxkidChannel <= 0)
-	  ce->maxkidChannel = 1000;
+	  ce->maxkidChannel = 10000;
 	return 0;
 }
 
@@ -714,7 +719,7 @@ static int rc_maxring(key, arg, ce)
 {
 	ce->maxkidThreads = atoi(arg);
 	if (ce->maxkidThreads <= 0)
-	  ce->maxkidThreads = 1000;
+	  ce->maxkidThreads = 10000;
 	return 0;
 }
 
@@ -724,7 +729,7 @@ static int rc_maxta(key, arg, ce)
 {
 	ce->maxkids = atoi(arg);
 	if (ce->maxkids <= 0)
-	  ce->maxkids = 1000;
+	  ce->maxkids = 10000;
 	if (ce->maxkids > global_maxkids)
 	  ce->maxkids = global_maxkids;
 	return 0;
@@ -843,6 +848,14 @@ static int rc_queueonly(key, arg, ce)
 	struct config_entry *ce;
 {
 	ce->flags |= CFG_QUEUEONLY;
+	return 0;
+}
+
+static int rc_wakeuprestartonly(key, arg, ce)
+	char *key, *arg;
+	struct config_entry *ce;
+{
+	ce->flags |= CFG_WAKEUPRESTARTONLY;
 	return 0;
 }
 

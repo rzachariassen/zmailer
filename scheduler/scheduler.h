@@ -36,10 +36,13 @@ struct config_entry {
 	int	gid;		/* what gid to run the transport agent under */
 	char	*command;	/* the command to run			     */
 	int	flags;		/* miscellaneous flags			     */
-#define CFG_BYCHANNEL 0x0001
-#define CFG_WITHHOST  0x0002
-#define CFG_AGEORDER  0x0004	/* In order of the ctlfile->ctime -fields    */
-#define CFG_QUEUEONLY 0x0008
+
+#define CFG_BYCHANNEL		0x0001
+#define CFG_WITHHOST		0x0002
+#define CFG_AGEORDER		0x0004	/* by ctlfile->ctime -value    */
+#define CFG_QUEUEONLY		0x0008
+#define CFG_WAKEUPRESTARTONLY	0x0010
+
 #if 0
 	int	bychannel;	/* indicates $channel occurs in command      */
 	int	withhost;	/* indicated $host occurs in command	     */
@@ -138,6 +141,7 @@ struct thread {
 	struct procinfo	*proc;		/* NULL or ptr to xport proc	    */
 	int		thrkids;	/* Number of procs at this thread   */
 	int		jobs;		/* How many items in this thread    */
+	int		unfed;		/* How many not yet fed to TAs	    */
 	struct vertex   *nextfeed;	/* vertex within that thread	    */
 					/* feed_child() forwards nextfeed   */
 };

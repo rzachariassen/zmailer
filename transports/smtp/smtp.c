@@ -1602,7 +1602,7 @@ smtpopen(SS, host, noMX)
 #ifdef HAVE_OPENSSL
 
 	    if (logfp)
-	      fprintf(logfp, "%s#\tEHLO rc=%d demand_TLS_mode=%d tls_available=%d EHLOcapabilities&STARTTLS = %d\n", logtag(), i, demand_TLS_mode, tls_available, SS->ehlo_capabilities & ESMTP_STARTTLS);
+	      fprintf(logfp, "%s#\tEHLO rc=%d demand_TLS_mode=%d tls_available=%d%s\n", logtag(), i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"");
 
 	    if ((i == EX_OK) && demand_TLS_mode && tls_available &&
 		!(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
@@ -1643,6 +1643,34 @@ smtpopen(SS, host, noMX)
 		  /* Well, TLS startup failed, then just reopen same
 		     server, and don't redo  STARTTLS. */
 		}
+		if (SS->verboselog) {
+		  if (i == EX_OK) {
+		    extern const char *tls_cipher_name;
+		    extern char       *tls_protocol;
+		    extern int tls_cipher_usebits, tls_cipher_algbits;
+		    extern char tls_peer_cert_name [];
+		    extern char tls_peer_cert_issuer_name [];
+		    fprintf(SS->verboselog,
+			    " TLS mode running successfully!\n");
+		    if (tls_cipher_name)
+		      fprintf(SS->verboselog,
+			      " TLS cipher: %s\n", tls_cipher_name);
+		    if (tls_protocol)
+		      fprintf(SS->verboselog,
+			      " TLS protocol: %s\n", tls_protocol);
+		    fprintf(SS->verboselog,
+			    " TLS cipher bits: %d in use: %d\n",
+			    tls_cipher_algbits, tls_cipher_usebits);
+		    fprintf(SS->verboselog,
+			    " TLS peer cert name:        %s\n",
+			    tls_peer_cert_name);
+		    fprintf(SS->verboselog,
+			    " TLS peer cert issuer name: %s\n",
+			    tls_peer_cert_issuer_name);
+		  } else
+		    fprintf(SS->verboselog, " Failed the TLS startup!\n");
+		}
+
 		/* Now re-negotiate the modes, possibly after
 		   reopening the connection.  */
 
@@ -1650,7 +1678,7 @@ smtpopen(SS, host, noMX)
 		SS->ehlo_sizeval = 0;
 		SS->rcpt_limit = 100; /* Max number of recipients per msg */
 
-		if (i != 0) {
+		if (i != EX_OK) {
 		  SS->esmtp_on_banner = SS->main_esmtp_on_banner;
 		  i = makereconn(SS);
 		} else
@@ -2117,13 +2145,11 @@ makeconn(SS, ai, ismx)
 	char	hostbuf[MAXHOSTNAMELEN+1];
 	int	ttl;
 
-	if (! isreconnect) {
-	  if (ai->ai_canonname)
-	    strncpy(hostbuf, ai->ai_canonname, sizeof(hostbuf));
-	  else
-	    *hostbuf = 0;
-	  hostbuf[sizeof(hostbuf)-1] = 0;
-	}
+	if (ai->ai_canonname)
+	  strncpy(hostbuf, ai->ai_canonname, sizeof(hostbuf));
+	else
+	  *hostbuf = 0;
+	hostbuf[sizeof(hostbuf)-1] = 0;
 
 	if (checkwks && SS->verboselog)
 	  fprintf(SS->verboselog,"  makeconn(): checkwks of host %.200s\n",
@@ -2746,6 +2772,10 @@ SmtpState *SS;
 {
 	if (SS->smtpfp != NULL)
 	  sfclose(SS->smtpfp);
+
+#ifdef HAVE_OPENSSL
+	SS->sslmode = 0;
+#endif /* - HAVE_OPENSSL */
 
 	SS->smtpfp = NULL;
 	if (SS->smtphost != NULL)

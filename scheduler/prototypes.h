@@ -120,7 +120,7 @@ extern void  delete_threadgroup __((struct threadgroup *thgp));
 extern void  thread_linkin __((struct vertex *cp, struct config_entry *cep, int cfgid, void (*ce_fillin)__((struct threadgroup *, struct config_entry *)) ));
 extern struct web *web_findcreate __((int flag, const char *s));
 extern void        unweb __((int flag, struct web *wp));
-extern int   thread_start __((struct thread *thr, int queue_only_too));
+extern int   thread_start __((struct thread *thr, int queueonly_too));
 extern int   idle_cleanup __((void));
 extern int   pick_next_vertex __((struct procinfo * proc));
 extern int   pick_next_thread __((struct procinfo * proc));

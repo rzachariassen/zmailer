@@ -43,7 +43,7 @@ doagenda()
 	    if (ncuritem->proc == NULL && ncuritem->wakeup <= now)
 	      /* Try to start it! */
 	      while (thread_start(ncuritem, 0))
-		didsomething += 1;
+		++ didsomething;
 
 	    ncuritem = nncuritem;
 	  }

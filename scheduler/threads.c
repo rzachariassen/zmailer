@@ -48,6 +48,7 @@ static long threadid = 0;
 
 static void  thread_vertex_shuffle __((struct thread *thr));
 static struct threadgroup *create_threadgroup __((struct config_entry *cep, struct web *wc, struct web *wh, int withhost, void (*ce_fillin)__((struct threadgroup *, struct config_entry *)) ));
+static int   thread_start_ __((struct thread *thr));
 
 
 static struct threadgroup *
@@ -434,6 +435,7 @@ delete_thread(thr, ok)
 	free(thr);
 }
 
+#if 0 /* Dead code.. */
 static void _thread_linkfront __((struct thread *, struct vertex *, struct vertex *));
 static void _thread_linkfront(thr,ap,vp)
 struct thread *thr;
@@ -449,7 +451,7 @@ struct vertex *ap, *vp;
 	  thr->thvertices = vp;
 	vp->thread = thr;
 }
-
+#endif
 
 /* the  _thread_linktail()  links a vertex into thread */
 static void _thread_linktail __((struct thread *, struct vertex *));
@@ -546,11 +548,19 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 		       wc->name,wh->name,thr->jobs+1);
 
 	    _thread_linktail(thr,vp);
-	    vp->thgrp = thg;
-	    thr->jobs += 1;
+	    vp->thgrp   = thg;
+	    thr->jobs  += 1;
+
+	    if (thr->proc && (thr->nextfeed == NULL)) {
+	      /* It is running, but no nextfeed is set (anymore),
+		 tack this vertex into the tail */
+
+	      thr->nextfeed = vp;
+	      thr->unfed   += 1;
+	    }
 
 	    /* Hookay..  Try to start it too... */
-	    thread_start(thr, 0);
+	    thread_start_(thr);
 
 	    return;
 	  }
@@ -567,7 +577,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 		     thr,wc->name,wh->name);
 
 	  /* Try to start it too */
-	  thread_start(thr, 0);
+	  thread_start_(thr);
 
 	  return;
 	}
@@ -577,12 +587,8 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	thr = create_thread(thg,vp,cep);
 	vp->thgrp = thg;
 
-	if (verbose)
-	  sfprintf(sfstdout,"thread_linkin() to thg=%p[%s/%d/%s]; created a new thread group, and thread [%s/%s]\n",
-		 thg,cep->channel,thg->withhost,cep->host,
-		 wc->name,wh->name);
 	/* Try to start it too */
-	thread_start(thr, 0);
+	thread_start_(thr);
 }
 
 struct web *
@@ -778,8 +784,23 @@ struct thread *thr;
 	thr->thvertices   = ur_arr[  0];
 	thr->nextfeed     = ur_arr[  0];
 	thr->lastthvertex = ur_arr[n-1];
+	thr->unfed = n;
 }
 
+static int
+thread_start_(thr)
+     struct thread *thr;
+{
+	struct config_entry *ce = &(thr->thgrp->ce);
+
+	if (thr->proc != NULL) {
+	  /* There is *somebody* active!  Shall we start, or not ? */
+	  if (ce->flags & CFG_WAKEUPRESTARTONLY)
+	    return 0;
+	}
+
+	return thread_start(thr, 0);
+}
 
 
 /*
@@ -792,9 +813,9 @@ struct thread *thr;
  */
 
 int
-thread_start(thr, queue_only_too)
+thread_start(thr, queueonly_too)
      struct thread *thr;
-     int queue_only_too;
+     int queueonly_too;
 {
 	int rc;
 	struct vertex      *vp  = thr->thvertices;
@@ -804,9 +825,9 @@ thread_start(thr, queue_only_too)
 	struct web         *ch  = vp->orig[L_CHANNEL];
 
 
-	if (!queue_only_too && (thg->cep->flags & CFG_QUEUEONLY)) return 0;
-
 	if (syncstart || (freeze && !slow_shutdown)) return 0;
+	if (!queueonly_too && (ce->flags & CFG_QUEUEONLY)) return 0;
+
 	if (procselect) {
 	  thr->pending = "procsel-mismatch";
 	  if (*procselect != '*' &&
@@ -825,7 +846,7 @@ thread_start(thr, queue_only_too)
 
 	if ((thr->thrkids >= ce->maxkidThread) ||
 	    /* FIXME: real unfed count ? */
-	    (thr->thrkids >= thr->jobs)) {
+	    (thr->proc && (thr->thrkids >= thr->unfed))) {
 	  if (verbose) {
 	    struct procinfo * proc = thr->proc;
 	    sfprintf(sfstderr," -- already running; thrkids=%d jobs=%d procs={ %p",
@@ -1554,6 +1575,8 @@ void thread_report(fp,mqmode)
 		  proc = proc->pnext;
 		}
 		sfprintf(fp, "}");
+
+		sfprintf(fp, " UF=%d", thr->unfed);
 	      }
 
 	    } else if (thr->wakeup > now) {

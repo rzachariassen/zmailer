@@ -520,6 +520,26 @@ main(argc, argv)
 
 	global_maxkids = resources_query_nofiles()-10;
 
+	/* Probe how many FDs each TA needs! */
+
+	{
+	  int to[2], from[2];
+	  pipes_create(to,from);
+
+	  close(to[0]); close(to[1]);
+
+	  if (to[0] != from[1]) {
+
+	    /* Two pipes! */
+	    close(from[0]); close(from[1]);
+
+	    global_maxkids >>= 1; /* Half the MAXKIDS count */
+
+	  } /* else
+	       Socketpair or equivalent bidirectional one!
+	       Only one FD per child is used!               */
+	}
+
 	postoffice = rendezvous = logfn = statusfn = config = NULL;
 	daemonflg = 1;
 	dlyverbose = 0;

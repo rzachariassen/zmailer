@@ -25,8 +25,8 @@ int	tls_scache_timeout = 3600;	/* One hour */
 int	tls_use_scache     = 0;
 
 #define CCERT_BUFSIZ 256
-static char peer_CN[CCERT_BUFSIZ];
-static char issuer_CN[CCERT_BUFSIZ];
+char tls_peer_cert_name        [CCERT_BUFSIZ];
+char tls_peer_cert_issuer_name [CCERT_BUFSIZ];
 
 static unsigned char peername_md5[MD5_DIGEST_LENGTH];
 
@@ -77,8 +77,10 @@ msg_info(va_alist)
 
 	if (logfp)
 	  fprintf(logfp, "%s#\t", logtag());
-	else
-	  fp = stderr;
+	else {
+	  fp = stderr; /* No LOGFP, to STDERR with DBGdiag prefix.. */
+	  fprintf(fp, "# ");
+	}
 
 #ifdef	HAVE_VPRINTF
 	vfprintf(fp, fmt, ap);
@@ -151,7 +153,7 @@ int     tls_read(SS, fd, buf, count)
 		    i++;
 		}
 		mybuf[i] = '\0';
-		msg_info(SS, "# Read %d chars: %s", ret, mybuf);
+		msg_info(SS, "Read %d chars: %s", ret, mybuf);
 	    }
 	}
 	return (ret);
@@ -179,7 +181,7 @@ int     tls_write(SS, fd, buf, count)
 	    i++;
 	  }
 	  mybuf[i] = '\0';
-	  msg_info(SS, "# Write %d chars: %s", count, mybuf);
+	  msg_info(SS, "Write %d chars: %s", count, mybuf);
 	}
       }
       return (SSL_write(SS->ssl, buf, count));
@@ -202,10 +204,10 @@ static void tls_print_errors(void)
     es = CRYPTO_thread_id();
     while ((l = ERR_get_error_line_data(&file, &line, &data, &flags)) != 0) {
 	if (flags & ERR_TXT_STRING)
-	    msg_info(NULL, "# %lu:%s:%s:%d:%s:", es, ERR_error_string(l, buf),
+	    msg_info(NULL, "%lu:%s:%s:%d:%s:", es, ERR_error_string(l, buf),
 		     file, line, data);
 	else
-	    msg_info(NULL, "# %lu:%s:%s:%d:", es, ERR_error_string(l, buf),
+	    msg_info(NULL, "%lu:%s:%s:%d:", es, ERR_error_string(l, buf),
 		     file, line);
     }
 }
@@ -223,7 +225,7 @@ static int set_cert_stuff(SSL_CTX * ctx, char *cert_file, char *key_file)
     if (cert_file != NULL) {
 	if (SSL_CTX_use_certificate_file(ctx, cert_file,
 					 SSL_FILETYPE_PEM) <= 0) {
-	    msg_info(NULL, "# unable to get certificate from '%s'", cert_file);
+	    msg_info(NULL, "unable to get certificate from '%s'", cert_file);
 	    tls_print_errors();
 	    return (0);
 	}
@@ -231,14 +233,14 @@ static int set_cert_stuff(SSL_CTX * ctx, char *cert_file, char *key_file)
 	    key_file = cert_file;
 	if (SSL_CTX_use_PrivateKey_file(ctx, key_file,
 					SSL_FILETYPE_PEM) <= 0) {
-	    msg_info(NULL, "# unable to get private key from '%s'", key_file);
+	    msg_info(NULL, "unable to get private key from '%s'", key_file);
 	    tls_print_errors();
 	    return (0);
 	}
 	/* Now we know that a key and cert have been set against
          * the SSL context */
 	if (!SSL_CTX_check_private_key(ctx)) {
-	    msg_info(NULL, "# Private key does not match the certificate public key");
+	    msg_info(NULL, "Private key does not match the certificate public key");
 	    return (0);
 	}
     }
@@ -272,9 +274,9 @@ static int verify_callback(int ok, X509_STORE_CTX * ctx)
 
     X509_NAME_oneline(X509_get_subject_name(err_cert), buf, 256);
     if (tls_loglevel >= 1)
-	msg_info(NULL, "# Peer cert verify depth=%d %s", depth, buf);
+	msg_info(NULL, "Peer cert verify depth=%d %s", depth, buf);
     if (!ok) {
-	msg_info(NULL, "# verify error:num=%d:%s", err,
+	msg_info(NULL, "verify error:num=%d:%s", err,
 		 X509_verify_cert_error_string(err));
 	if (verify_depth >= depth) {
 	    ok = 1;
@@ -287,19 +289,19 @@ static int verify_callback(int ok, X509_STORE_CTX * ctx)
     switch (ctx->error) {
     case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
 	X509_NAME_oneline(X509_get_issuer_name(ctx->current_cert), buf, 256);
-	msg_info(NULL, "# issuer= %s", buf);
+	msg_info(NULL, "issuer= %s", buf);
 	break;
     case X509_V_ERR_CERT_NOT_YET_VALID:
     case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
-	msg_info(NULL, "# cert not yet valid");
+	msg_info(NULL, "cert not yet valid");
 	break;
     case X509_V_ERR_CERT_HAS_EXPIRED:
     case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
-	msg_info(NULL, "# cert has expired");
+	msg_info(NULL, "cert has expired");
 	break;
     }
     if (tls_loglevel >= 1)
-	msg_info(NULL, "# verify return:%d", ok);
+	msg_info(NULL, "verify return:%d", ok);
     return (ok);
 }
 
@@ -321,20 +323,20 @@ static void apps_ssl_info_callback(SSL * s, int where, int ret)
 
     if (where & SSL_CB_LOOP) {
 	if (tls_loglevel >= 2)
-	    msg_info(NULL, "# %s:%s", str, SSL_state_string_long(s));
+	    msg_info(NULL, "%s:%s", str, SSL_state_string_long(s));
     } else if (where & SSL_CB_ALERT) {
 	str = (where & SSL_CB_READ) ? "read" : "write";
 	if (tls_loglevel >= 2 ||
 	    ((ret & 0xff) != SSL3_AD_CLOSE_NOTIFY))
-	msg_info(NULL, "# SSL3 alert %s:%s:%s", str,
+	msg_info(NULL, "SSL3 alert %s:%s:%s", str,
 		 SSL_alert_type_string_long(ret),
 		 SSL_alert_desc_string_long(ret));
     } else if (where & SSL_CB_EXIT) {
 	if (ret == 0)
-	    msg_info(NULL, "# %s:failed in %s",
+	    msg_info(NULL, "%s:failed in %s",
 		     str, SSL_state_string_long(s));
 	else if (ret < 0) {
-	    msg_info(NULL, "# %s:error in %s",
+	    msg_info(NULL, "%s:error in %s",
 		     str, SSL_state_string_long(s));
 	}
     }
@@ -400,13 +402,13 @@ static int tls_dump(const char *s, int len)
 	 * if this is the last call then update the ddt_dump thing so that
          * we will move the selection point in the debug window
          */
-	msg_info(NULL, "# %s", buf);
+	msg_info(NULL, "%s", buf);
 	ret += strlen(buf);
     }
 #ifdef TRUNCATE
     if (trunc > 0) {
 	sprintf(buf, "%04x - <SPACES/NULS>\n", len + trunc);
-	msg_info(NULL, "# %s", buf);
+	msg_info(NULL, "%s", buf);
 	ret += strlen(buf);
     }
 #endif
@@ -424,12 +426,12 @@ static long bio_dump_cb(BIO * bio, int cmd, const char *argp, int argi,
 	return (ret);
 
     if (cmd == (BIO_CB_READ | BIO_CB_RETURN)) {
-	msg_info(NULL, "# read from %08X [%08lX] (%d bytes => %ld (0x%X))",
+	msg_info(NULL, "read from %08X [%08lX] (%d bytes => %ld (0x%X))",
 		 bio, argp, argi, ret, ret);
 	tls_dump(argp, (int) ret);
 	return (ret);
     } else if (cmd == (BIO_CB_WRITE | BIO_CB_RETURN)) {
-	msg_info(NULL, "# write to %08X [%08lX] (%d bytes => %ld (0x%X))",
+	msg_info(NULL, "write to %08X [%08lX] (%d bytes => %ld (0x%X))",
 		 bio, argp, argi, ret, ret);
 	tls_dump(argp, (int) ret);
     }
@@ -455,14 +457,14 @@ static SSL_SESSION *load_clnt_session(unsigned char *SessionID, int length,
 
     idstring = (char *)malloc(2 * uselength + 1);
     if (!idstring) {
-	msg_info(NULL, "# could not allocate memory for IDstring");
+	msg_info(NULL, "could not allocate memory for IDstring");
 	return (NULL);
     }
 
     for(n=0 ; n < uselength ; n++)
 	sprintf(idstring+2*n, "%02X", SessionID[n]);
     if (tls_loglevel >= 3)
-	msg_info(NULL, "# Trying to reload Session from disc: %s", idstring);
+	msg_info(NULL, "Trying to reload Session from disc: %s", idstring);
 
     // FIXME: xxx
     buf = (char *)malloc(100 + 2 * uselength + 1);
@@ -494,7 +496,7 @@ static SSL_SESSION *load_clnt_session(unsigned char *SessionID, int length,
     free(idstring);
 
     if (session && (tls_loglevel >= 3))
-        msg_info(NULL, "# Successfully reloaded session from disc");
+        msg_info(NULL, "Successfully reloaded session from disc");
 
     return (session);
 }
@@ -514,14 +516,14 @@ static void remove_clnt_session(unsigned char *SessionID, int length)
 
     idstring = (char *)malloc(2 * uselength + 1);
     if (!idstring) {
-	msg_info(NULL, "# could not allocate memory for IDstring");
+	msg_info(NULL, "could not allocate memory for IDstring");
 	return;
     }
 
     for(n=0 ; n < uselength ; n++)
 	sprintf(idstring + 2 * n, "%02X", SessionID[n]);
     if (tls_loglevel >= 3)
-	msg_info(NULL, "# Trying to remove session from disc: %s", idstring);
+	msg_info(NULL, "Trying to remove session from disc: %s", idstring);
 
     /*
      * The constant "100" is taken from mail_queue.c and also used there.
@@ -576,7 +578,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
 
     idstring = (char *)malloc(2 * id_maxlength + 1);
     if (!idstring) {
-	msg_info(NULL, "# could not allocate memory for IDstring");
+	msg_info(NULL, "could not allocate memory for IDstring");
     }
 
     for(n=0 ; n < uselength ; n++)
@@ -585,7 +587,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
     buf = malloc(100 + 2 * id_maxlength + 1);
     mail_queue_path(buf, MAIL_TLS_CLNT_CACHE, idstring);
     if (tls_loglevel >= 3)
-	msg_info(NULL, "# Trying to save session for hostID to disc: %s", idstring);
+	msg_info(NULL, "Trying to save session for hostID to disc: %s", idstring);
 
     if (session->session_id_length > id_maxlength)
 	uselength = id_maxlength;	/* Limit length of ID */
@@ -595,7 +597,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
     for(n=0 ; n < uselength ; n++)
         sprintf(idstring + 2 * n, "%02X", session->session_id[n]);
     if (tls_loglevel >= 3)
-	msg_info(NULL, "# Session ID is %s", idstring);
+	msg_info(NULL, "Session ID is %s", idstring);
 
     temp = malloc(100 + 2 * id_maxlength + 1);
     mail_queue_path(temp, MAIL_TLS_CLNT_CACHE, idstring);
@@ -612,7 +614,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
      */
     if ((fd = open(temp, O_WRONLY | O_CREAT | O_EXCL, 0600)) >= 0) {
       if ((fp = fdopen(fd, "w")) == 0) {
-	msg_info(NULL, "# %s: could not fdopen %s: %s", myname, temp,
+	msg_info(NULL, "%s: could not fdopen %s: %s", myname, temp,
 		 strerror(errno));
 	return;
       }
@@ -624,7 +626,7 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
       else if (rename(temp, buf) != 0)
 	unlink(temp);
       else if (tls_loglevel >= 3)
-	msg_info(NULL, "# Successfully saved session to disc");
+	msg_info(NULL, "Successfully saved session to disc");
     }
 
     free(temp);
@@ -659,7 +661,7 @@ int     tls_init_clientengine(SS, cfgpath)
 
   fp = fopen(cfgpath,"r");
   if (!fp) {
-    msg_info(SS, "# Can't read TLS config file: '%s'",cfgpath);
+    msg_info(SS, "Can't read TLS config file: '%s'",cfgpath);
     return -1;
   }
   while (!feof(fp) && !ferror(fp)) {
@@ -711,7 +713,7 @@ int     tls_init_clientengine(SS, cfgpath)
   fclose(fp);
 
   if (tls_loglevel >= 2)
-    msg_info(SS, "# starting TLS engine");
+    msg_info(SS, "starting TLS engine");
 
   /*
    * Initialize the OpenSSL library by the book!
@@ -795,7 +797,7 @@ int     tls_init_clientengine(SS, cfgpath)
   if (CAfile || CApath)
     if ((!SSL_CTX_load_verify_locations(SS->ctx, CAfile, CApath)) ||
 	(!SSL_CTX_set_default_verify_paths(SS->ctx))) {
-      msg_info(SS, "# TLS engine: cannot load CA data");
+      msg_info(SS, "TLS engine: cannot load CA data");
       tls_print_errors();
       return (-1);
     }
@@ -811,7 +813,7 @@ int     tls_init_clientengine(SS, cfgpath)
   if (c_cert_file || c_key_file)
     if (!set_cert_stuff(SS->ctx, c_cert_file, c_key_file)) {
 #if 0
-      msg_info(SS, "# TLS engine: cannot load cert/key data");
+      msg_info(SS, "TLS engine: cannot load cert/key data");
       tls_print_errors();
       return (-1);
 #endif
@@ -853,13 +855,18 @@ int     tls_start_clienttls(SS,peername)
     int     verify_result;
     unsigned char *old_session_id;
 
+    /* FIXME: For some reason NON-BLOCKING socket causes client
+       to fail to init! OTOH..  we are single-threaded anyway! */
+    fd_blockingmode(sffileno(SS->smtpfp));
+    alarm(60); /* Allow 60 seconds for the handshake to complete! */
+
     if (!tls_available) {		/* should never happen */
-	msg_info(SS, "# tls_engine not running");
+	msg_info(SS, "tls_engine not running");
+	alarm(0);
 	return (-1);
     }
-    SS->sslmode = 1;
     if (tls_loglevel >= 1)
-	msg_info(SS, "# setting up TLS connection");
+	msg_info(SS, "setting up TLS connection");
 
     /*
      * If necessary, setup a new SSL structure for a connection. We keep
@@ -869,8 +876,9 @@ int     tls_start_clienttls(SS,peername)
     if (SS->ssl != NULL)
 	SSL_clear(SS->ssl);
     else if ((SS->ssl = (SSL *) SSL_new(SS->ctx)) == NULL) {
-	msg_info(SS, "# Could not allocate 'con' with SSL_new()");
+	msg_info(SS, "Could not allocate 'con' with SSL_new()");
 	tls_print_errors();
+	alarm(0);
 	return (-1);
     }
     old_session_id = NULL;	/* make sure no old info is kept */
@@ -879,8 +887,9 @@ int     tls_start_clienttls(SS,peername)
      * Now, connect the filedescripter set earlier to the SSL connection
      */
     if (!SSL_set_fd(SS->ssl, sffileno(SS->smtpfp))) {
-	msg_info(SS, "# SSL_set_fd failed");
+	msg_info(SS, "SSL_set_fd failed");
 	tls_print_errors();
+	alarm(0);
 	return (-1);
     }
 
@@ -904,14 +913,14 @@ int     tls_start_clienttls(SS,peername)
 	   
 	}
     }
-
+#if 0
     /*
      * Initialize the SSL connection to connect state. This should not be
      * necessary anymore since 0.9.3, but the call is still in the library
      * and maintaining compatibility never hurts.
      */
     SSL_set_connect_state(SS->ssl);
-
+#endif
     /*
      * If the debug level selected is high enough, all of the data is
      * dumped: 3 will dump the SSL negotiation, 4 will dump everything.
@@ -939,17 +948,18 @@ int     tls_start_clienttls(SS,peername)
      * because RFC2246 requires it. 
      */
     if ((sts = SSL_connect(SS->ssl)) <= 0) {
-	msg_info(SS, "# SSL_connect error %d", sts);
+	msg_info(SS, "SSL_connect error %d", sts);
 	tls_print_errors();
 	session = SSL_get_session(SS->ssl);
 	if (session) {
 	    remove_clnt_session(session->session_id,
 			        session->session_id_length);
 	    SSL_CTX_remove_session(SS->ctx, session);
-	    msg_info(SS, "# SSL session removed");
+	    msg_info(SS, "SSL session removed");
 	}
 	SSL_free(SS->ssl);
 	SS->ssl = NULL;
+	alarm(0);
 	return (-1);
     }
 
@@ -964,7 +974,7 @@ int     tls_start_clienttls(SS,peername)
 	    if (memcmp(session->session_id, old_session_id,
 		       session->session_id_length) == 0) {
 		if (tls_loglevel >= 3)
-		    msg_info(SS, "# Reusing old session");
+		    msg_info(SS, "Reusing old session");
 		save_session = 0;
 		SSL_set_verify_result(SS->ssl, verify_result);
 	    }
@@ -992,12 +1002,13 @@ int     tls_start_clienttls(SS,peername)
      */
     peer = SSL_get_peer_certificate(SS->ssl);
     if (peer != NULL) {
-	X509_NAME_get_text_by_NID(X509_get_subject_name(peer),
-				  NID_commonName, peer_CN, CCERT_BUFSIZ);
-	X509_NAME_get_text_by_NID(X509_get_issuer_name(peer),
-				  NID_commonName, issuer_CN, CCERT_BUFSIZ);
+	X509_NAME_oneline(X509_get_subject_name(peer), tls_peer_cert_name,
+			  CCERT_BUFSIZ);
+	X509_NAME_oneline(X509_get_issuer_name(peer),
+			  tls_peer_cert_issuer_name, CCERT_BUFSIZ);
 	if (tls_loglevel >= 3)
-	    msg_info(SS, "# subject_CN=%s, issuer_CN=%s", peer_CN, issuer_CN);
+	    msg_info(SS, "subject=%s, issuer=%s",
+		     tls_peer_cert_name, tls_peer_cert_issuer_name);
 	X509_free(peer);
     }
 
@@ -1009,11 +1020,18 @@ int     tls_start_clienttls(SS,peername)
     tls_cipher_name = SSL_CIPHER_get_name(cipher);
     tls_cipher_usebits = SSL_CIPHER_get_bits(cipher, &tls_cipher_algbits);
 
-    msg_info(SS, "# TLS connection established: %s with cipher %s (%d/%d bits)",
+    msg_info(SS, "TLS connection established: %s with cipher %s (%d/%d bits)",
 	     tls_protocol, tls_cipher_name,
 	     tls_cipher_usebits, tls_cipher_algbits);
 
     SSL_set_read_ahead(SS->ssl, 1); /* Improves performance */
+
+    /* Mark the mode! */
+    SS->sslmode = 1;
+
+    alarm(0);
+
+    fd_nonblockingmode(sffileno(SS->smtpfp));
 
     return (0);
 }
@@ -1042,7 +1060,7 @@ int     tls_stop_clienttls(SS, failure)
 	if (session) {
 	    if (failure) {
 	      remove_clnt_session(peername_md5, MD5_DIGEST_LENGTH);
-	      msg_info(SS, "# SSL session removed");
+	      msg_info(SS, "SSL session removed");
 	    }
 	    SSL_CTX_remove_session(SS->ctx, session);
 	    SSL_free(SS->ssl);

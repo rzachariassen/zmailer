@@ -404,8 +404,8 @@ typedef struct {
   int  stdinsize; /* Available */
   int  stdincurs; /* Consumed  */
 
-  int   sslmode;		/* Set, when SSL/TLS in running */
 #ifdef HAVE_OPENSSL
+  int   sslmode;		/* Set, when SSL/TLS in running */
   SSL * ssl;
   SSL_CTX * ctx;
 

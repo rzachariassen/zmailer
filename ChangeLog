@@ -1,3 +1,40 @@
+2000-01-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/libdb/header.c:
+	    Remove the "Date" headers from specially recognized set.
+	    Will end PARSING of the headers completely - it is an UA
+	    problem, after all.
+
+	* scheduler/scheduler.c:
+	    Properly analyze how many FDs each bidirectional TA
+	    connection needs.  One or two.  Calculate the maximum
+	    number of TA childs we can run.
+
+	* scheduler/threads.c, scheduler/readconfig.c,
+	  scheduler/scheduler.h, scheduler/transport.c:
+	    Modified the process state algorithms a bit.
+	    - Process will stay in STUFFING until it gets #hungry in
+	      that state without that the thread has any 'nextfeed'
+	      available.
+	    - Only when there are no more things to feed in STUFFING state,
+	      process moves to FINISHING state. ("retryat" processing being
+	      sole exception.)
+	    - A new vertex to a thread while there are active processes,
+	      but 'nextfeed == NULL' will be placed into 'nextfeed'.
+	    - A new clause parameter ``WakeupRestartOnly'' works by
+	      allowing a newly created thread to be processed immediately,
+	      but if existing thread is in ``Retry Delay'' state, this new
+	      message will not auto-start the thread right away.
+	
+	* proto/scheduler.conf.in:
+	    Explained a lot (more) about the scheduler usage of
+	    various selector clause parameters in the initial
+	    comment lines.
+
+	* transports/smtp/smtp.c, transports/smtp/smtptls.c,
+	  transports/smtp/smtp.h, doc/guide/openssl:
+	    Debugged the client-mode STARTTLS, it *works*!
+
 1999-12-31  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

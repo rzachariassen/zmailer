@@ -1,5 +1,22 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- ctlopen() problem and/or router ?
+  <V> local/*/0
+  <V>     local/"\"s.roffel\" s.roffel.m.rosendaal"@soneramail.nl/0 R=1  A
+  <V> Err msg:   Y/557048-22798: Non-numeric recipient privilege code: "N ORCPT=rfc822;"\
+  <V> "s.roffel\"+20s.roffel.m.rosendaal"@soneramail.nl" (retry in 1m8s, expires in 1d13h, tries=34)
+  Spool TA file had:
+  *V* r       local "\"s.roffel\" s.roffel.m.rosendaal"@soneramail.nl "s.roffel\" s.roffel.m.rosendaal 60001
+  *V* N ORCPT=rfc822;"\"s.roffel\"+20s.roffel.m.rosendaal"@soneramail.nl
+  So it is ctlopen() around 2.99.52-pre2 ..
+  Hmm..  No, router bug indicated - ending quote is missing!
+  Indeed *wrapping* quotes are missing, and the first quote is not '\"'
+
+- router+scheduler+TA status MIB areas in an SHM segment
+  (Solaris et.al. which don't allow ARGV overwrite..
+   DNS lookups, connecting, protocol exchanges, ...)
+  + tool(s) to read that segment
+
 - smtp TA (all TAs ??) leak memory in MIME header processing,
   and (what is worse) they seem to refer thru pointers located
   within FREED memory blocks..

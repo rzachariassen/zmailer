@@ -256,6 +256,7 @@ feed_child(proc)
 	    sprintf(cmdbuf, "%s/%s\t%s\n", d, vtx->cfp->mid, proc->ho->name);
 	  }
 	} else {
+
 	  if (proc->thg->withhost) { /* cmd-line was with host */
 	    cmdlen = 1 + strlen(vtx->cfp->mid);
 	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
@@ -297,11 +298,11 @@ feed_child(proc)
 	}
 
 	vtx->ce_pending  = 0; /* and clear the pending..       */
-
 	vtx->attempts   += 1;
 	
 	/* It was fed (to buffer), clear this flag.. */
-	proc->overfed += 1;
+	proc->overfed        += 1;
+	proc->pthread->unfed -= 1;
 
 	if (verbose)
 	  sfprintf(sfstdout,"len=%d buf=%s", cmdlen, cmdbuf);
@@ -373,35 +374,51 @@ ta_hungry(proc)
 
 	  if (proc->overfed > 0) return;
 
-	  while ((proc->state == CFSTATE_STUFFING) &&
-		 proc->pthread && proc->pthread->nextfeed) {
+	  if (proc->pthread && proc->pthread->nextfeed) {
 
-	    /* As long as:
-	       - we have next vertex to feed
-	       - there is no command buffer backlog
-	       - state stays in STUFFING
-	    */
+	    while ((proc->state == CFSTATE_STUFFING) &&
+		   proc->pthread && proc->pthread->nextfeed) {
 
-	    i = feed_child(proc);
-	    if (i < 0)
-	      goto feed_error_handler; /* Outch! */
+	      /* As long as:
+		 - we have next vertex to feed
+		 - there is no command buffer backlog
+		 - state stays in STUFFING
+	      */
 
-	    if (proc->tofd >= 0 && proc->cmdlen != 0)
-	      return; /* Incomplete feed -- stop feeding here */
+	      i = feed_child(proc);
+	      if (i < 0)
+		goto feed_error_handler; /* Outch! */
 
-	    if (proc->overfed > proc->thg->ce.overfeed)
-	      return; /* Or over limit ...       */
+	      if (proc->tofd >= 0 && proc->cmdlen != 0)
+		break; /* Incomplete feed -- stop feeding here */
 
+	      if (proc->overfed > proc->thg->ce.overfeed)
+		break; /* Or over limit ...       */
+
+	    }
+	    /* As long as we have things to feed (or have fed anything!),
+	       we stay in the STUFFING state.  This was if we latter get
+	       new workitems,  thread_linkin() can simply put them into
+	       the 'nextfeed' pointer, and we feed them right away. */
+	    return;
 	  }
+
+	  /* Didn't have anything to feed :-( */
 
 	  proc->state = CFSTATE_FINISHING;
 	  /* FALL THRU! */
 
 	case CFSTATE_FINISHING: /* "3" */
 
+	  /* "retryat" may have kicked us into this state also.. */
+
 	  if (proc->overfed > 0) return;
 
+	  /* Well, this thread was done, so long!
+	     This TA may have other things to poke at! */
+
 	  thr0 = proc->pthread;
+
 	  if (proc->pthread) {
 	    if (proc->pthread->proc == proc)
 	      proc->pthread->proc = proc->pnext;

@@ -6,16 +6,19 @@
 # Every channel/host combination in recipient addresses will be sifted through
 # the clauses matched in this file, picking up parameters until a clause that
 # specifies a command.  Everything is free-form with three requirements:
-# Clauses (i.e. the channel/host pattern) start at the beginning of a line.
-# Clause contents (i.e. the parameters) don't.
-# Components are separated by whitespace.
+# - Clauses (i.e. the channel/host pattern) start at the beginning of a line.
+# - Clause contents (i.e. the parameters) start after some whitespace
+# - Clause content keywords are matched case INSENSITIVE
+# - Components are separated by whitespace.
 # 
 # Within command=" ... " strings, following "variables" are known:
 #  $host	message's host
 #  $channel	message's channel
 #  ${LOGDIR}	ZENV variable LOGDIR (all ZENV variables supported)
 #
-# NB! For command paths, the "current directory" is MAILBIN/ta
+# NB! For command paths, the $PATH is:  $MAILBIN/ta
+# (Unless an absolute path is given for a command)
+# for *running* things, the CWD is: $POSTOFFICE/transport/
 #
 
 #
@@ -23,11 +26,18 @@
 # which control when a given channel+host pair (thread) is NOT taken
 # into processing:
 #
-#  maxta:  (Set in "*/*" clause)
+#  MaxTA:  (Set in "*/*" clause)
 #       GLOBAL parameter limiting the number of transport-agent processes
 #       that the scheduler can have running at the same time.
 #
-#  maxchannel:
+#	With this you can limit the number of TA processes running at the
+#	same time lower than maximum allowed by your OS setup.
+#
+#	The scheduler detects the max number of FDs allowed for a process,
+#	and analyzing how many FDs each TA interface will need -- plus
+#	reserving 10 FDs for the itself, result is ``probed maxkids''.
+#
+#  MaxChannel: (default: ``probed maxkids'')
 #       Selector clause specific value limiting how many transport-agent
 #       processes can be running on which the ``channel'' part is the same.
 #       You may specify dis-similar values for these as well.  For example
@@ -40,25 +50,77 @@
 #       that of ``maxta'', then ``maxta'' value will limit the amount of work
 #       done in extreme load situations.
 #
-#  maxring:
+#  MaxRing:  ( default: ``probed maxkids'' )
 #       This limits the number of parallel transport agents within each
 #       selector definition.    This defined the size of the POOL of
-#       transport agent processes available to processing the selector
-#       clause matching the selector.
+#       transport agent processes available for processing the threads
+#       matching the selector clause.
 #
-#  maxthr:
+#  MaxTHR:   ( max processes per thread; default: 1 )
 #       This limits the number of parallel transport agents within each
-#       *thread*; that is, using higher value than default ``1'' will allow
+#       thread; that is, using higher value than default ``1'' will allow
 #       running more than one TA for the jobs at the thread.
+#
+#	Do note that running more than one TA in parallel may also require
+#	lowering OVERFEED value.  (E.g. having a queue of 30 messages will
+#	not benefit from more TAs, unless they all get something to process.
+#	Having OVERFEED per default at 150 will essentially feed whole queue
+#	to one TA, others are not getting any.)
+#
+#  OverFeed:
+#	This tells how many job specifiers to feed to the TA when
+#	the TA process state is ``STUFFING''  Because the scheduler
+#	is a bit sluggish to spin around to spot active TAs, it does
+#	make sense to feed more than one task to a TA, and then wait
+#	for the results.
+#
+
+#
+# There are also a few flags directing various things
+#
+#  QueueOnly:
+#	Existence directs threads created under this clause *NEVER* to
+#	auto-start with any timeout mechanism.  Usage of ETRN methods
+#	is required for the thread to start!
+#
+#  WakeupRestartOnly:
+#	Existence directs threads created under this clause to start
+#	at the arrival of the first message to the thread, but in case
+#	the thread exists, and is in ``WAKEUP DELAY'' state, new arrival
+#	does not start the thread.
+#
+#  AgeOrder:
+#	This directs the queue *always* to run in strict arrival time
+#	order.  It might not make sense in all situations, though..
+#	Originally the system ran always by permuting the thread order
+#	before running TAs so that if some message causes the thread to
+#	hang, others will get processed past it.
+#
+#  ByHost:
+#	The command-line of the clause has ``$host'' expansion in it, OR
+#	the channel-part of the clause selector has wild-cards in it, (or
+#	the user decided to have ``byhost'' directive just for the fun of it.)
+#	Switching TAs in between threads might not be advised..
+#	(well, use of  ``$host''  isn't advisable in general..)
+#	(also, having wild-cards at the channel-part is not advised..)
+#
+#  ByChannel:
+#	The command-line of the clause has  ``$channel'' expansion in it, (or
+#	the user decided to have ``byhost'' directive just for the fun of it.)
+#	This flag is not really used anywhere.
 #
 
 #
 # -------- Some external parameters - name starts from column 0, and -----
 # -------- always begins with "PARAM" ------------------------------------
 
+#
 # MAILQv2 authentication database file reference:
 # If you define this (like the default is), and the file exists,
 # scheduler mailq interface goes to v2 mode.
+# (Nonexistence of this file  A) leaves system running, B) uses MAILQv1
+#  interface along with its security problems.)
+#
 
 PARAMauthfile = "@MAILSHARE@/scheduler.auth"
 
@@ -67,13 +129,15 @@ PARAMauthfile = "@MAILSHARE@/scheduler.auth"
 #PARAMmailqsock = "TCP:174"
 
 #
+# ------------------------------------------------------------------------
+#
+
+#
 # Default parameter boilerplate, following values are in use in
 # all operational channel/host clauses, unless overridden in them..
 #
 */*	interval=1m
-	idlemax=4m # Max idle for SMTP connections is 5 minutes, don't exceed that!
-	#          # (Unless smtp channel becomes a bit smarter on handling it..)
-	#
+	idlemax=4m # Max lifetime of idled TA before it is killed
 	# expire messages after 3 days without full delivery
 	expiry=3d
 	# when the scheduler gets to the end of the retry sequence,
