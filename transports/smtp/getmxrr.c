@@ -467,6 +467,24 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET) -> r=%d (%s), ai=%p\n",
 		      mx[i].host, n, gai_strerror(n), ai);
+	    if (n) {
+	      zsyslog((LOG_INFO,"getmxrr('%s') mx[%d]='%s' getaddrinfo(INET) rc=%d",
+		       host, i, mx[i].host, n));
+	    }
+
+	    switch (n) {
+	    case 0:
+	      break;
+	    case EAI_AGAIN:
+	      had_eai_again = 1;
+	      break;
+	    case EAI_NONAME:
+	    case EAI_FAIL:
+	    case EAI_NODATA:
+	    case EAI_SERVICE:
+	    default:
+	      break;
+	    }
 	  }
 
 #if defined(AF_INET6) && defined(INET6)
@@ -495,6 +513,25 @@ getmxrr(SS, host, mx, maxmx, depth)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET6) -> r=%d (%s), ai=%p\n",
 		      mx[i].host, n2, gai_strerror(n2), ai2);
 
+	    if (n) {
+	      zsyslog((LOG_INFO,"getmxrr('%s') mx[%d]='%s' getaddrinfo(INET6) rc=%d",
+		       host, i, mx[i].host, n));
+	    }
+
+	    switch (n2) {
+	    case 0:
+	      break;
+	    case EAI_AGAIN:
+	      had_eai_again = 1;
+	      break;
+	    case EAI_NONAME:
+	    case EAI_FAIL:
+	    case EAI_NODATA:
+	    case EAI_SERVICE:
+	    default:
+	      break;
+	    }
+
 	    if (n != 0 && n2 == 0) {
 	      /* IPv6 address, no IPv4 (or error..) */
 	      n = n2;
@@ -519,7 +556,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	      sprintf(SS->remotemsg, "smtp; 500 (DNS: getaddrinfo<%.200s> got EAI_AGAIN)", buf);
 	      endtime = now;
 	      notary_setxdelay((int)(endtime-starttime));
-	      notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
+	      notaryreport(NULL,FAILED,"4.4.4 (DNS lookup report)",SS->remotemsg);
 
 	      had_eai_again = 1;
 	    }
@@ -619,14 +656,15 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  }
 	  ++n;			/* found one! */
 	}
+	if (n == 0 && had_eai_again)
+	  return EX_TEMPFAIL;
+
 	if (n == 0) {/* MX's exist, but their WKS's show no TCP smtp service */
 	  sprintf(SS->remotemsg,
 		  "smtp; 500 (DNS: MX host does not support SMTP: %.200s)", host);
 	  time(&endtime);
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
-	  if (had_eai_again)
-	    return EX_TEMPFAIL;
 	  return EX_UNAVAILABLE;
 	}
 	nmx = n;
