@@ -512,9 +512,9 @@ char **argv;
 		logstyle = 1;
 	    break;
 	case 'T':
-	  /* FIXME: FIXME! Enter in interactive mode claimed foreign
-	     source IPv4/IPv6 address, and then proceed to handle
-	     policy analysis as in normal operational case. */
+	  /* Enter in interactive mode claimed foreign source IPv4/IPv6
+	     address, and then proceed to handle policy analysis as in
+	     normal operational case. */
 
 	    memset(&testaddr, 0, sizeof(testaddr));
 	    testaddr_set = 1;
@@ -1638,6 +1638,7 @@ int insecure;
 	}
     } else {
 	strcpy(SS->whoson_data,"NOT-CHECKED");
+	SS->whoson_result = -1;
     }
     policystatus     = policyinit(&policydb, &SS->policystate,
 				  SS->whoson_result);

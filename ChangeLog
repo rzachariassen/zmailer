@@ -1,3 +1,11 @@
+2000-05-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c:
+	    When --with-whoson  is used at configuration, and
+	    smtpserver is run without '-w' option, policy test
+	    is falling on default of "yes this is always ok relay
+	    source" behaviour -- which in general is wrong :-(
+
 2000-05-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* lib/selfaddrs.c:
