@@ -155,7 +155,12 @@ void mq2auth(mq,str)
     sprintf(authbuf+i+i, "%02x", digest[i]);
 
   if (strcmp(authbuf,p) != 0) {
-    mq2_puts(mq,"-BAD USER OR PASSWORD\n");
+    mq2_puts(mq,"-BAD USER OR PASSWORD");
+#if 0 /* used to debug MD5 code... */
+    mq2_puts(mq,"; real auth:");
+    mq2_puts(mq,authbuf);
+#endif
+    mq2_puts(mq,"\n");
     return;
   }
 

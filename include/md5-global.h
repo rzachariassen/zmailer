@@ -32,7 +32,7 @@ A Cray has short, int and long all at 64 bits so we need to apply this
   macro to reduce UINT4 values to 32 bits at appropriate places. If UINT4
   really does have 32 bits then this is a no-op.
  */
-#if defined(cray) || defined(TRUNCATE_UINT4)
+#if -1L != 0xffffffffL
 #define TO32(x)	((x) & 0xffffffff)
 #else
 #define TO32(x)	(x)

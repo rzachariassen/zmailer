@@ -1,5 +1,10 @@
 1999-11-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* include/md5-global.h:
+	    Found the reason why our MD5 instance did produce wrong
+	    results at my Alpha... It is very important to truncate
+	    intermediate calculations to 32-bits during the processing!
+
 	* lib/selfaddrs.c, libident/identuser.c, scheduler/mailq.c,
 	  scheduler/pipes.c, scheduler/transport.c, smtpserver/smtpserver.c,
 	  transports/mailbox/mailbox.c, transports/smtp/mprobe.c:
@@ -9,7 +14,7 @@
 	* man/scheduler.8, man/mailq.1, scheduler/mailq.c,
 	  scheduler/threads.c:
 	    Updated man-pages a bit (quite a bit!), implemented 'mailq -QQQ'
-	    in MAILQv2 mode.
+	    in MAILQv2 mode. (E.g. 'SHOW SNMP')
 
 1999-11-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
