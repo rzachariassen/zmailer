@@ -2036,10 +2036,10 @@ smtpconn(SS, host, noMX)
 	    rc = getaddrinfo(buf+5, "smtp", &req, &ai);
 #else
 	    rc = _getaddrinfo_(buf+5, "smtp", &req, &ai, SS->verboselog);
+#endif
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,
 		      "getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",buf+5,rc,ai);
-#endif
 	  } else
 #endif
 	    {
@@ -2049,10 +2049,10 @@ smtpconn(SS, host, noMX)
 	      rc = getaddrinfo(buf, "smtp", &req, &ai);
 #else
 	      rc = _getaddrinfo_(buf, "smtp", &req, &ai, SS->verboselog);
+#endif
 	      if (SS->verboselog)
 		fprintf(SS->verboselog,
 			"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",buf,rc,ai);
-#endif
 	    }
 	  {
 	    char nbuf[100];
@@ -2689,9 +2689,9 @@ abort();
 	    r2 = getaddrinfo(localidentity, "smtp", &req, &ai);
 #else
 	    r2 = _getaddrinfo_(localidentity, "smtp", &req, &ai, SS->verboselog);
+#endif
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",localidentity,r2,ai);
-#endif
 	    if (r2 == 0 && ai != NULL) /* We try ONLY the first address. */ {
 	      if (ai->ai_family == AF_INET) {
 		memcpy((void*)&sad.sin_addr,
