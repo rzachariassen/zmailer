@@ -987,11 +987,11 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	 * hand, the file is not really readable.
 	 */
 
-	if (tls_CAfile && strlen(tls_CAfile) == 0)
+	if (!tls_CAfile || *tls_CAfile == 0)
 	  CAfile = NULL;
 	else
 	  CAfile = tls_CAfile;
-	if (tls_CApath && strlen(tls_CApath) == 0)
+	if (!tls_CApath || *tls_CApath == 0)
 	  CApath = NULL;
 	else
 	  CApath = tls_CApath;
@@ -1026,20 +1026,21 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	 * changed in the cipher setup.
 	 */
 
-	if (tls_cert_file && strlen(tls_cert_file) == 0)
+	if (!tls_cert_file || *tls_cert_file == 0)
 	  s_cert_file = NULL;
 	else
 	  s_cert_file = tls_cert_file;
-	if (tls_key_file && strlen(tls_key_file) == 0)
+	if (!tls_key_file  || *tls_key_file == 0)
 	  s_key_file = NULL;
 	else
 	  s_key_file = tls_key_file;
 
-	if (strlen(tls_dcert_file) == 0)
+	if (!tls_dcert_file || *tls_dcert_file == 0)
 	  s_dcert_file = NULL;
 	else
 	  s_dcert_file = tls_dcert_file;
-	if (strlen(tls_dkey_file) == 0)
+
+	if (!tls_dkey_file || *tls_dkey_file == 0)
 	  s_dkey_file = NULL;
 	else
 	  s_dkey_file = tls_dkey_file;
