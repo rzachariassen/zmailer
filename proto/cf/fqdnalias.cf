@@ -522,10 +522,10 @@ fqdn_neighbour (domain, address, A) {
 		nattr=$(newattribute $A privilege $priv) &&
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
-		       listaddresses	-c "$a fqdn alias expansion" 	\
+		       listexpand	-c "$a fqdn alias expansion" 	\
 					-e root			 	\
-		    maprrouter	$nattr "fqdnalias" "$address"		\
-				"$plustail" "$athost")
+					$nattr "fqdnalias" "$address"	\
+					"$plustail" "$athost")
 		then
 		  postzapDSNnotify a
 		  returns $a
