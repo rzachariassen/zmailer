@@ -344,7 +344,7 @@ struct ctlfile *cfp;
 }
 
 
-struct dirqueue dirqb;
+struct dirqueue dirqb = { 0, };
 struct dirqueue *dirq = &dirqb;
 
 const char **ArgvSave;
