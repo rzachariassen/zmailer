@@ -495,8 +495,12 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		break;
 	      } else if (rc == 0) {
 		/* XON .. give me more jobs */
+#if 1
+		continue; /* go and pick next task talker, if any */
+#else
 		subdaemon_pick_next_job( peers, top_peer,
 					 subdaemon_handler, statep );
+#endif
 	      } else {
 		/* Xnone .. ??
 		   Can't handle ?? */
