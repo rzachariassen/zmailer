@@ -45,11 +45,12 @@ mailq/Makefile:
 FRC:
 
 clean:	FRC
-	if [ -d mailq -a -r mailq/Makefile ] ; then \
-		cd mailq && $(MAKE) $(MFLAGS) clean && rm -f Makefile.old ; \
-	fi
 	if [ "$(srcdir)" != "." ] ; then \
 		rm -rf mailq ; \
+	else  \
+	    if [ -d mailq -a -r mailq/Makefile ] ; then \
+		cd mailq && $(MAKE) $(MFLAGS) clean && rm -f Makefile.old ; \
+	    fi		\
 	fi
 
 distclean: clean
