@@ -1,3 +1,20 @@
+2003-02-14  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    Centralized RSET sending into one place in
+	    MAIL/RCPT/DATA loop. Using state variable  do_rset
+	    in the SmtpState context to indicate POSSIBLE need
+	    for doing it.  Definite non-need is when DATA/BDAT
+	    has completed successfully, and also right before
+	    the first MAIL.
+
+	* router/libsh/bsdhash.c, router/libdb/bsdbtree.c:
+	    Correct clearing of DBM private data storage pointer.
+
+	* scheduler/mailq.c:
+	    Fix "mailq -s" access failure printing to use correct
+	    directory string pointer.
+
 2003-02-06  Matti Aarnio  <mea@zmailer.org>
 
 	* compat/sendmail/sendmail.c, libsh/builtins.c, libsh/execute.c,

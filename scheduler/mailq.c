@@ -645,7 +645,7 @@ const char *dirpath;
 	dirp = opendir(dirpath);
 	if (dirp == NULL) {
 	  fprintf(stderr, "%s: opendir(%s): %s\n",
-		  progname, dpath, strerror(errno));
+		  progname, dirpath, strerror(errno));
 	  return -1;
 	}
 	for (dp = readdir(dirp); dp != NULL; dp = readdir(dirp)) {
