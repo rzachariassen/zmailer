@@ -185,8 +185,8 @@ SmtpState *SS;
 int rpid;
 {
     if (rpid > 0) {
-	fclose(tofp);
-	fclose(fromfp);
+	fclose(tofp);   tofp   = NULL;
+	fclose(fromfp); fromfp = NULL;
 	kill(rpid, SIGKILL);
     }
 }

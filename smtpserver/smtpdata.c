@@ -78,10 +78,12 @@ const char *buf, *cp;
 {
     int filsiz;
     long tell = 0;
-    time_t mtime;
-    long ino;
     int i;
     char msg[2048];
+
+    struct stat stbuf;
+    char *fname;
+    char taspid[30];
 
     while (!strict_protocol && (*cp == ' ' || *cp == '\t')) ++cp;
     if (strict_protocol && *cp != 0) {
@@ -162,7 +164,11 @@ const char *buf, *cp;
     filsiz = mvdata(SS, msg);
 
     fflush(SS->mfp);
-    tell = ftell(SS->mfp);
+    fname = mail_fname(SS->mfp);
+    fstat(FILENO(SS->mfp), &stbuf);
+
+    taspoolid(taspid, stbuf.st_mtime, stbuf.st_ino);
+    tell = stbuf.st_size,
 
     report(SS, "Got '.'; tell=%ld", tell);
 
@@ -213,10 +219,11 @@ const char *buf, *cp;
 	   the resulting file into router spool area;
 	   pending a few things we do at first.. */
 
-	/* Lets see what the content-policy will tell now ? */
-	char *fname = mail_fname(SS->mfp);
 	const char *statcode = NULL, *ss, *ss0;
 	int code = 0;
+
+
+	/* Lets see what the content-policy will tell now ? */
 
 	if (debug) typeflush(SS);
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
@@ -233,33 +240,30 @@ const char *buf, *cp;
 	  if (!code)      code = 552;
 
 	  if (!ss) {
-	    type(SS,code,statcode,"Content-Policy-Analysis rejected this message");
+	    type(SS,code,statcode,"Content-Policy-Analysis rejected this message; %s", taspid);
 	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	      type(SS,code,statcode,"Content-Policy-Analysis rejected this message");
+	      type(SS,code,statcode,"Content-Policy-Analysis rejected this message; %s", taspid);
 	  } else {
-	    type(SS, code, statcode, "%s", ss);
+	    type(SS, code, statcode, "%s; %s", ss, taspid);
 	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	      type(SS, code, statcode, "%s", ss);
+	      type(SS, code, statcode, "%s; %s", ss, taspid);
 	  }
 
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	} else if (SS->policyresult > 0) {
 	  char polbuf[20];
-	  struct stat stbuf;
 	  char *ss = policymsg(policydb, &SS->policystate);
 
-	  fflush(SS->mfp);
-	  fstat(FILENO(SS->mfp), &stbuf);
 	  runasrootuser();
 	  sprintf(polbuf,"policy-%d",SS->policyresult);
 	  if (mail_close_alternate(SS->mfp, FREEZERDIR, polbuf) != 0) {
 	    type(NULL,0,NULL,
 		 "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
 		 polbuf, errno, strerror(errno));
-	    type(SS, 452, m430, "Message file disposition failed");
+	    type(SS, 452, m430, "Message file disposition failed; %s", taspid);
 	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	      type(SS, 452, m430, "Message file disposition failed");
+	      type(SS, 452, m430, "Message file disposition failed; %s", taspid);
 	    typeflush(SS);
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
@@ -269,22 +273,21 @@ const char *buf, *cp;
 	    sleep(freezecnt);
 
 	    if (!ss) {
-	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area", SS->policyresult);
+	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area", SS->policyresult);
+		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
 	    } else {
 	      if (!statcode)  statcode = m260;
 	      if (!code)      code = 250;
-	      type(SS, code, statcode, "%s", ss);
+	      type(SS, code, statcode, "%s; %s", ss, taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, code, statcode, "%s", ss);
+		type(SS, code, statcode, "%s; %s", ss, taspid);
 	    }
 
 	    typeflush(SS);
 	    SS->mfp = NULL;
-	    zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze[%d]",
-		     (int) stbuf.st_ino, (int) stbuf.st_size,
-		     SS->rhostname, SS->rport, SS->policyresult));
+	    zsyslog((LOG_INFO, "accepted  %s (%ldc) from %s/%d into freeze[%d]",
+		     taspid, tell, SS->rhostname, SS->rport, SS->policyresult));
 	  }
 	  runastrusteduser();
 	} else {
@@ -292,7 +295,7 @@ const char *buf, *cp;
 	  /*  Ok, we didn't have smtp-policy defined freezer action,
 	      lets see if we do it some other way.. */
 
-	  if (_mail_close_(SS->mfp, &ino, &mtime) == EOF) {
+	  if (mail_close(SS->mfp) == EOF) {
 	    type(SS, 452, m430, (char *) NULL);
 	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	      type(SS, 452, m430, (char *) NULL);
@@ -301,21 +304,18 @@ const char *buf, *cp;
 	    reporterr(SS, tell, "message file close failed");
 	  } else {
 	    /* Ok, build response with proper "spoolid" */
-	    char fnam[20], taspid[30];
-	    sprintf(fnam, "%ld", ino);
-	    taspoolid(taspid, mtime, ino);
 
 	    SS->mfp = NULL;
 	    if (!ss || *ss == 0) {
-	      type(SS, 250, "2.6.0", "%s message accepted", taspid);
+	      type(SS, 250, "2.6.0", "Message accepted; %s", taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, 250, "2.6.0", "%s message accepted", taspid);
+		type(SS, 250, "2.6.0", "Message accepted; %s", taspid);
 	    } else {
 	      if (!statcode)  statcode = m260;
 	      if (!code)      code = 250;
-	      type(SS, code, statcode, "%s", ss);
+	      type(SS, code, statcode, "%s; %s", ss, taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, code, statcode, "%s", ss);
+		type(SS, code, statcode, "%s; %s", ss, taspid);
 	    }
 	    typeflush(SS);
 
@@ -346,6 +346,10 @@ const char *buf, *cp;
     long bdata_chunksize;
     int bdata_last, i;
 
+    struct stat stbuf;
+    char *fname;
+    char taspid[30];
+
     if (SS->state == RecipientOrData) {
 	SS->state = BData;
 	SS->bdata_blocknum = 0;
@@ -372,9 +376,22 @@ const char *buf, *cp;
     filsiz = mvbdata(SS, msg, bdata_chunksize);
 
     tell = 0;
+
     if (SS->mfp) {
+
       fflush(SS->mfp);
-      tell = ftell(SS->mfp);
+      fname = mail_fname(SS->mfp);
+      fstat(FILENO(SS->mfp), &stbuf);
+
+      taspoolid(taspid, stbuf.st_mtime, stbuf.st_ino);
+      tell = stbuf.st_size;
+
+    } else {
+
+      tell = 0;
+      fname = "<NIL>";
+      strcpy(taspid, "<NIL>");
+
     }
 
     report(SS, "BDAT %ld%s; tell=%ld", bdata_chunksize,
@@ -484,17 +501,16 @@ const char *buf, *cp;
 	else
 	  type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
     } else if (bdata_last) {
-	time_t mtime;
-	long inum;
 
 	/* Things have been good thus far, now we store
 	   the resulting file into router spool area;
 	   pending a few things we do at first.. */
 
-	/* Lets see what the content-policy will tell now ? */
-	char *fname = mail_fname(SS->mfp);
 	const char *statcode = NULL, *ss, *ss0;
 	int code = 0;
+
+
+	/* Lets see what the content-policy will tell now ? */
 
 	if (debug) typeflush(SS);
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
@@ -512,18 +528,17 @@ const char *buf, *cp;
 
 	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i){
 	    type(SS,-552,m571,"Content-Policy analysis rejected this message");
-	    type(SS, 552,m571,"Content-Policy msg: %s", ss ? ss : "rejected");
+	    type(SS, 552,m571,"Content-Policy msg: %s; %s",
+		 ss ? ss : "rejected", taspid);
 	  } else {
 	    type(SS,-552,m571,"Content-Policy analysis rejected this message");
-	    type(SS,552, m571,"Content-Policy msg: %s", ss ? ss : "rejected");
+	    type(SS, 552,m571,"Content-Policy msg: %s; %s",
+		 ss ? ss : "rejected", taspid);
 	  }
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	} else if (SS->policyresult > 0) {
-	  struct stat stbuf;
 	  char *ss = policymsg(policydb, &SS->policystate);
-	  fflush(SS->mfp);
-	  fstat(FILENO(SS->mfp), &stbuf);
 	  runasrootuser();
 	  if (mail_close_alternate(SS->mfp, FREEZERDIR, "policy") != 0) {
 	    type(NULL,0,NULL,
@@ -533,24 +548,37 @@ const char *buf, *cp;
 	      fflush(logfp);
 	    if (lmtp_mode && bdata_last) {
 	      for(i = 0; i < SS->ok_rcpt_count; ++i)
-		type(SS, 452, m430, "Message file disposition failed");
+		type(SS, 452, m430, "Message file disposition failed; %s",
+		     taspid);
 	    } else
-	      type(SS, 452, m430, "Message file disposition failed");
+	      type(SS, 452, m430, "Message file disposition failed; %s",
+		   taspid);
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
 	  } else {
-	    if (lmtp_mode && bdata_last) {
-	      for(i = 0; i < SS->ok_rcpt_count; ++i)
-		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
-	    } else
-	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
+	    static int freezecnt = 1;
+	    freezecnt <<= 1;
+	    sleep(freezecnt);
+
+	    if (!ss) {
+	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
+	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
+	    } else {
+	      if (!statcode)  statcode = m260;
+	      if (!code)      code = 250;
+	      type(SS, code, statcode, "%s; %s", ss, taspid);
+	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+		type(SS, code, statcode, "%s; %s", ss, taspid);
+	    }
+
+	    typeflush(SS);
 	    SS->mfp = NULL;
-	    zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze",
-		     (int) stbuf.st_ino, (int) stbuf.st_size,
-		     SS->rhostname, SS->rport));
+	    zsyslog((LOG_INFO, "accepted  %s (%ldc) from %s/%d into freeze[%d]",
+		     taspid, tell, SS->rhostname, SS->rport, SS->policyresult));
 	  }
 	  runastrusteduser();
-	} else if (_mail_close_(SS->mfp, &inum, &mtime) == EOF) {
+	} else if (mail_close(SS->mfp) == EOF) {
 	  if (lmtp_mode && bdata_last) {
 	    for(i = 0; i < SS->ok_rcpt_count; ++i)
 	      type(SS, 452, m400, (char *) NULL);
@@ -560,8 +588,6 @@ const char *buf, *cp;
 	  reporterr(SS, tell, "message file close failed");
 	} else {
 	  /* Ok, build response with proper "spoolid" */
-	  char taspid[30];
-	  taspoolid(taspid, mtime, inum);
 
 	  SS->mfp = NULL;
 

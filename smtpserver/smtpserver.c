@@ -2667,7 +2667,10 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
       fprintf(logfp, "%s%04d%c\t%s\n", logtag, (int)(now - logtagepoch), (SS ? 'w' : '#'), buf);
       fflush(logfp);
     }
+
+    if (debug > 1) fprintf(stdout, "%s\n", buf);
     if (!SS) return; /* Only to local log.. */
+
     memcpy(s, "\r\n", 2);
     Z_write(SS, buf, buflen+2); /* XX: check return value */
 }
