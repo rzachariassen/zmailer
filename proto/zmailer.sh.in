@@ -270,12 +270,19 @@ do
                     ;;
             esac
             ;;
+
         resubmit)
-            (cd $POSTOFFICE/deferred && mv -i [0-9]* ../router) 2> /dev/null
+            (cd $POSTOFFICE/deferred &&				\
+		find . -type f -print |				\
+		perl -ne 'chomp; $new = $_; $new =~ s#^.*/##;	\
+			  rename($_, "../router/" . $new) or	\
+	printf STDERR "rename %s -> ../router/%s failed; $!\n, $_, $new;' )
             ;;
+
         bootclean)
             rm -f $POSTOFFICE/.pid.* 2> /dev/null
             ;;
+
         cleanup)
             (cd $POSTOFFICE ;
              find public -type f -mtime +2 -print | xargs rm -f
