@@ -12,6 +12,7 @@
 
 
 #include "hostenv.h"
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,7 +61,7 @@ char argv[];
       if (*s == '%') {
 	/* '%HH' -> a char */
 	int c1 = *++s;
-	int c2;
+	int c2 = 0;
 	if ('0' <= c1 && c1 <= '9')
 	  c1 = c1 - '0';
 	else if ('A' <= c1 && c1 <= 'F')
@@ -135,9 +136,6 @@ char argv[];
 #include <sys/stat.h>
 #include <setjmp.h>
 
-#include "mail.h"
-#include "zsyslog.h"
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -155,13 +153,7 @@ char argv[];
 # include "netdb6.h"
 #endif
 
-#include "zmalloc.h"
-#include "libz.h"
 #include "libc.h"
-
-#include "ta.h"  /* Well, not exactly a TA, but.. */
-
-
 
 #ifdef _AIX /* Defines NFDBITS, et.al. */
 #include <sys/types.h>
@@ -312,7 +304,7 @@ typedef char msgdata;
 #endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
 
 struct mxdata {
-	msgdata		*host;
+	const msgdata	*host;
 	int		 pref;
 	time_t		 expiry;
 };
@@ -448,7 +440,7 @@ getmxrr(host, mx, maxmx, depth)
 	}
 
 	if (nmx == 0 && realname[0] != '\0' &&
-	    cistrcmp(host,(char*)realname) != 0) {
+	    strcasecmp(host,(char*)realname) != 0) {
 	  /* do it recursively for the real name */
 	  n = getmxrr((char *)realname, mx, maxmx, depth+1);
 	  return n;
@@ -718,7 +710,7 @@ int readsmtp(sock)
      int sock;
 {
 	char linebuf[8192];
-	int c = 0, i;
+	int c = 0;
 	int end_seen = 0;
 	int no_more  = 0;
 

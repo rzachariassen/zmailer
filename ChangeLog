@@ -1,3 +1,14 @@
+2000-01-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/mxverify/Makefile.in, utils/mxverify/mxverify-cgi.c,
+	  utils/mxverify/mxverify-cgi.html, utils/Makefile.in,
+	  utils/mxverify-cgi.c, utils/mxverify-cgi.html
+	    Moved the thing to subdirectory.
+	    Now it can be compiled without compiling the *entire*
+	    other ZMailer -- just:
+		./configure --prefix=/usr
+		cd utils/mxverify ; make
+
 2000-01-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* utils/listexpand.c:

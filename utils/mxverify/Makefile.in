@@ -1,0 +1,47 @@
+SHELL=		/bin/sh
+TOPDIR=		../..
+PZCONFIG=	$(TOPDIR)/zmailer.Config
+INSTALL=	@INSTALL@
+MAILBIN=	$(prefix)@MAILBIN@
+
+srcdir=         @srcdir@
+VPATH=          @srcdir@
+
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
+CPPDEP=		@CPPDEP@
+DEFS=		@DEFS@
+MD5SUM=		@MD5SUM@
+#
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)  -I.
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
+#
+LIB=		-L$(TOPDIR)/libs -lzc @LIBRESOLV@ @LIBSOCKET@
+LIBDEB=		$(TOPDIR)/libs/libtag
+
+BINS=	
+
+all:	mxverify-cgi
+
+install:
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+mxverify-cgi: mxverify-cgi.o
+	cd $(TOPDIR)/libc; make
+	$(CC) $(CFLAGS) -o $@.x $@.o $(LIB)
+	mv $@.x $@
+
+FRC:
+
+clean:	FRC
+	rm -f ./+* *~ *.o mxverify-cgi
+
+distclean: clean
+	rm -f Makefile
+
+depend:
