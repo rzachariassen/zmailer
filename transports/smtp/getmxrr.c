@@ -344,6 +344,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    --nscount;
 	}
 
+#if 0 /* Bloody Linux vs. FreeBSD implementation differences... */
+
 	/* If nscount isn't zero here, then (cp >= eom) is true ... */
 
 	/* Ok, can continue to pick the ADDITIONAL SECTION data */
@@ -374,7 +376,6 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  }
 
 	  /* Ok, we have Type IN data in the ADDITIONAL SECTION */
-
 
 	  /* A and AAAA are known here! */
 
@@ -424,6 +425,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 		ai->ai_protocol = IPPROTO_TCP;
 		ai->ai_addr     = (struct sockaddr *)usa;
 		ai->ai_addrlen  = sizeof(*usa);
+
+		/* At FreeBSD the 'ai_canonname' points to SEPARATE
+		   malloc() block, at Linux GLIBC it points inside
+		   this same... */
 		ai->ai_canonname = /* canon */ NULL;
 
 		ai->ai_next     = mx[i].ai;
@@ -455,12 +460,14 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  --arcount;
 	} /* Additional data collected! */
 
+
 	if (SS->verboselog)
 	  for (i = 0; i < nmx; ++i) {
 	    if (mx[i].ai == NULL)
 	      fprintf(SS->verboselog, " MX lookup lacked ADDITIONAL SECTION Address for entry: MX %d %s\n",
 		      mx[i].pref, mx[i].host);
 	  }
+#endif /* Linux vs. FreeBSD implementation difference... */
 
 	/* Collect addresses for all those who don't have them from
 	   the ADDITIONAL SECTION data */
@@ -720,6 +727,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  }
 	  ++n;			/* found one! */
 	}
+
+	nmx = n;
+	SS->mxcount = nmx;
+
 	if (n == 0 && had_eai_again)
 	  return EX_TEMPFAIL;
 
@@ -732,8 +743,6 @@ getmxrr(SS, host, mx, maxmx, depth)
 #endif
 	  return EX_UNAVAILABLE;
 	}
-	nmx = n;
-	SS->mxcount = nmx;
 
 	/* sort the records per preferrence value */
 	for (i = 0; i < nmx; i++) {
