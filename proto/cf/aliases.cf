@@ -470,10 +470,11 @@ newattribute (oldattribute) {
 	eval $a=\$$oldattribute
 	while [ "$#" != 0 ];
 	do
-		value=$(get $a "$1")
-		if [ x"$value" != x"$2" ]; then
-			null=$(setf $(get $a "$1") "$2")
-		fi
+		lreplace $a "$1" "$2"
+		# value=$(get $a "$1")
+		# if [ x"$value" != x"$2" ]; then
+		# 	null=$(setf $(get $a "$1") "$2")
+		# fi
 		shift ; shift
 	done
 	echo "$a"
@@ -494,28 +495,19 @@ maprrouter (attribute, localpart, origaddr) {
 	while read address
 	do
 		case "$address" in
-		'')	case $#al in
-			0)	al=(((error expansion "$localpart"))) ;;
-			*)	shh=(((error expansion "$localpart")))
-				shh=$(setf $(cdr $(last $al)) $shh)
-				;;
-			esac
+		'')	shh=(((error expansion "$localpart")))
+			lappend al $ssh
 			continue
 			;;
 		esac
 
 		defer=''
 		case $#al in
-		0)	al=$(rrouter "$address" "$origaddr" $attribute "" "")
-			[ "$defer" ] &&
-			    shh=(((hold "$defer" "$address" $attribute)))
-			defer=''
-			;;
 		*)	shh=$(rrouter "$address" "$origaddr" $attribute "" "")
 			[ "$defer" ] &&
 			    shh=(((hold "$defer" "$address" $attribute)))
 			defer=''
-			shh=$(setf $(cdr $(last $al)) $shh)
+			lappend al $ssh
 			;;
 		esac
 	done
