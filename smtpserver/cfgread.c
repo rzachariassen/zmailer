@@ -127,6 +127,8 @@ static void cfparam(str)
       enable_router = 1;
     } else if (cistrcmp(name, "smtp-auth") == 0) {
       auth_ok = 1;
+    } else if (cistrcmp(name, "auth-login-also-without-tls") == 0) {
+      auth_login_without_tls = 1;
     }
 
     /* Store various things into 'rvcdfrom' header per selectors */

@@ -301,11 +301,13 @@ const char *buf, *cp;
 	if (rcptlimitcnt > 100)
 	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
 
-	if (auth_ok)
-	  type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/
-						 Sun Solstice/M$ Exchange ? */
-	if (auth_ok)
-	  type(SS, -250, NULL, "AUTH LOGIN"); /* RFC 2554, M$ Exchange ? */
+	if (auth_login_without_tls || SS->sslmode) {
+	  if (auth_ok)
+	    type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/
+						   Sun Solstice/ ? */
+	  if (auth_ok)
+	    type(SS, -250, NULL, "AUTH LOGIN"); /* RFC 2554, M$ Exchange ? */
+	}
 #ifdef HAVE_OPENSSL
 	/* NOTE: This seems to require TLS and STARTTLS facilities,
 	   better known as SSL..  TLS: RFC 2246, STARTTLS: RFC 2487 */
@@ -741,13 +743,11 @@ int insecure;
 	  rfc822commentprint(SS->mfp, cbuf);
 	}
 	if (log_rcvd_tls_ccert) {
-	  X509	*peer = SSL_get_peer_certificate(SS->ssl);
-	  if (!peer) {
+	  if (!SS->tls_ccert_subject) {
 	    fprintf(SS->mfp, " TLS-CCERT: <none>");
 	  } else {
-	    /* Wow, have something, now store the client cert reference.. */
-	    char cbuf[2000];
-	  XXXXXXXXXXXX:;
+	    fprintf(SS->mfp, " TLS-CCERT: ");
+	    rfc822commentprint(SS->mfp, SS->tls_ccert_subject);
 	  }
 	}
       } else {
@@ -755,6 +755,7 @@ int insecure;
 	  fprintf(SS->mfp, " TLS-CIPHER: <none>");
 	if (log_rcvd_tls_ccert)
 	  fprintf(SS->mfp, " TLS-CCERT: <none>");
+      }
 #endif
       fprintf(SS->mfp, ")\n");
     }

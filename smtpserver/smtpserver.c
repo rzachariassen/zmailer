@@ -215,6 +215,7 @@ int log_rcvd_ident  = 0;
 int log_rcvd_authuser = 0;
 int log_rcvd_tls_mode = 0;
 int log_rcvd_tls_ccert = 0;
+int auth_login_without_tls = 0;
 
 #ifdef HAVE_OPENSSL
 SSL_CTX *ssl_ctx = NULL;

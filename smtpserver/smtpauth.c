@@ -104,6 +104,12 @@ void smtp_auth(SS,buf,cp)
       type(SS, 501, m552, "where is LOGIN in that?");
       return;
     }
+
+    if (!auth_login_without_tls && !SS->sslmode) {
+      type(SS, 503, m571, "Plaintext password authentication must be run under SSL/TLS");
+      return;
+    }
+
     cp += 5;
     if (*cp == ' ') ++cp;
     if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;

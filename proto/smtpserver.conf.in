@@ -31,6 +31,11 @@ PARAM	VRFYcmd
 #			# with the default code against system  /etc/passwd
 #			# (or whatever source  getpwnam() uses for it..)
 #
+#PARAM AUTH-LOGIN-also-without-TLS
+#			# Enable, if the "AUTH LOGIN" is to be allowed to
+#			# be used without running under SSL/TLS security
+#			# envelope.
+#
 # Disablers of some facility adverticements
 #PARAM  NoEHLO
 #PARAM	NoPIPELINING
