@@ -677,9 +677,10 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->cmdline[l] = '\0';
 
 	if (verbose)
-	  sfprintf(sfstderr, "stashprocess(%d, %d, %d, %s, %s, '%s')\n",
-		  pid, fromfd, tofd, chwp ? chwp->name : "nil",
-		  howp ? howp->name : "nil", proc->cmdline);
+	  sfprintf(sfstderr,
+		   "stashprocess(%d, %d, %d, %s, %s, '%s' proc=%p)\n",
+		   pid, fromfd, tofd, chwp ? chwp->name : "nil",
+		   howp ? howp->name : "nil", proc->cmdline, proc);
 }
 
 /*
