@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <pwd.h>
 #include <grp.h>
+#include <unistd.h>
 #include "scheduler.h"
 #include "prototypes.h"
 #include "mail.h"
@@ -818,6 +819,8 @@ static int rc_queueonly(key, arg, ce)
 	return 0;
 }
 
+extern int mailqmode;
+
 static int rc_paramauthfile(key, arg, ce)
 	char *key, *arg;
 	struct config_entry *ce;
@@ -825,5 +828,9 @@ static int rc_paramauthfile(key, arg, ce)
 	if (mq2authfile)
 	  free(mq2authfile);
 	mq2authfile = strsave(arg);
+
+	if (mq2authfile && access(mq2authfile,R_OK)==0)
+	  mailqmode = 2;
+
 	return 0;
 }

@@ -7,7 +7,7 @@ PZCONFIG=	$(TOPDIR)/zmailer.Config
 INSTALL=	@INSTALL@
 MKDIR=		@MKDIR@
 
-PMAILSHARE=	scheduler.conf sm.conf smtpserver.conf smtpserver.auth
+PMAILSHARE=	scheduler.conf sm.conf smtpserver.conf scheduler.auth
 PMAILBIN=	mailrm.sh newaliases newfqdnaliases newdb zmailer.sh \
 		post-install.sh
 

@@ -211,5 +211,10 @@ struct mailq {
 	int		outbufspace;	/* Output buffer */
 	int		outbufsize;
 	int		outbufcount;
+	int		outcol;
 	char		*outbuf;
 };
+
+#define MQ2MODE_SNMP	0001
+#define MQ2MODE_QQ	0002
+#define MQ2MODE_FULL	0004

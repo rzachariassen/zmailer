@@ -1,5 +1,15 @@
 1999-11-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/mq2.c, scheduler/scheduler.c, scheduler/prototypes.h,
+	  scheduler/threads.c, scheduler/readconfig.c, proto/scheduler.conf.in:
+	    Modified somewhat commands, and how they are selected.
+	    Now  "scheduler.auth"  file defines which operations are
+	    allowed (a bit-mask).
+	
+	* proto/Makefile.in:
+	    Wrong file referenced; must be  scheduler.auth  !
+	    ( not smtpserver.auth! )
+
 	* lib/selfaddrs.c:
 	    When  HAVE_SA_LEN  is defined, we used wrong definition
 	    for  sa_len  field within the union.

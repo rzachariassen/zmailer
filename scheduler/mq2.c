@@ -14,6 +14,7 @@
 #include <errno.h>
 
 #include "ta.h"
+#include "libz.h"
 
 
 #ifdef _AIX /* The select.h  defines NFDBITS, etc.. */
@@ -75,7 +76,7 @@ static void mq2interpret __((struct mailq *, char *));
 
 static struct mailq *mq2root  = NULL;
 static int           mq2count = 0;
-static int	     mq2max   = 20; /* How many can live simultaneously */
+static int	     mq2max   = 10; /* How many can live simultaneously */
 
 /* INTERNAL */
 static void mq2_discard(mq)
@@ -121,7 +122,15 @@ int mq2_putc(mq,c)
   if (mq->outbuf == NULL)
     return -2; /* Out of memory :-/ */
 
+  /* SMTP rule: duplicate the dot at the beginning of the line */
+  if (c == '.' && mq->outcol == 0)
+    mq->outbuf[mq->outbufsize ++] = c;
+
   mq->outbuf[mq->outbufsize ++] = c;
+  if (c == '\n')
+    mq->outcol = 0;
+  else
+    mq->outcol++;
 
   return 0; /* Implementation ok */
 }
@@ -133,6 +142,22 @@ int mq2_puts(mq,s)
 {
   int rc;
   if (!mq) return -2; /* D'uh...  FD is not among MQs.. */
+
+  for (;s && *s; ++s)
+    if ((rc = mq2_putc(mq,*s)) < 0)
+      return rc;
+
+  return 0; /* Ok. */
+}
+
+int mq2_puts_(mq,s)
+     struct mailq *mq;
+     char *s;
+{
+  int rc;
+  if (!mq) return -2; /* D'uh...  FD is not among MQs.. */
+
+  mq->outcol++;
 
   for (;s && *s; ++s)
     if ((rc = mq2_putc(mq,*s)) < 0)
@@ -238,7 +263,7 @@ static char *mq2_gets(mq)
       mq->inplinesize = 0;
       ret = mq->inpline;
       break;
-    } else {
+    } else if (c != '\r') {
       mq2_iputc(mq,c);
     }
   }
@@ -264,6 +289,11 @@ static void mq2_read(mq)
 {
   int i, spc;
   char *s;
+
+  if (mq->fd < 0) {
+    mq2_discard(mq);
+    /* Zap! */
+  }
 
   if (!mq->inbuf) {
     mq->inbufspace = 500;
@@ -369,6 +399,9 @@ int mq2add_to_mask(rdmaskp, wrmaskp, maxfd)
   struct mailq *mq = mq2root;
 
   for ( ; mq ; mq = mq->nextmailq ) {
+    if (mq->fd < 0)
+      continue;
+
     if (mq->fd > maxfd)
       maxfd = mq->fd;
 
@@ -395,7 +428,7 @@ void mq2_areinsets(rdmaskp, wrmaskp)
     mq = mq2root;
     while ( mq ) {
       struct mailq *mq2 = mq->nextmailq;
-      if (_Z_FD_ISSET(mq->fd, *wrmaskp)) {
+      if (mq->fd >= 0 && _Z_FD_ISSET(mq->fd, *wrmaskp)) {
 	mq2_wflush(mq);
       }
       mq = mq2;
@@ -404,7 +437,7 @@ void mq2_areinsets(rdmaskp, wrmaskp)
     mq = mq2root;
     while ( mq ) {
       struct mailq *mq2 = mq->nextmailq;
-      if (_Z_FD_ISSET(mq->fd, *rdmaskp)) {
+      if (mq->fd < 0 || _Z_FD_ISSET(mq->fd, *rdmaskp)) {
 	mq2_read(mq);
       }
       mq = mq2;
@@ -417,7 +450,7 @@ static int mq2cmd_show(mq,s)
      char *s;
 {
   char *t = s;
-  int condensed = 0;
+  long mode;
 
   while (*t && (*t != ' ') && (*t != '\t')) ++t;
   if (*t) *t++ = '\000';
@@ -426,17 +459,29 @@ static int mq2cmd_show(mq,s)
   /* 's' points to the first arg, 't' points to string after
      separating white-space has been skipped. */
 
+  if (strcmp(s,"SNMP") == 0 && mq->auth & MQ2MODE_SNMP) {
+    mq2_puts(mq, "+OK until LF.LF\n");
+    mq2_thread_report(mq, MQ2MODE_SNMP);
+    mq2_puts_(mq, ".\n");
+    return 0;
+  }
+
   if (strcmp(s,"QUEUE") != 0)
     return -1; /* XX: OTHER SHOW CMDS ?? */
 
+  mode = -1;
+
   if (strcmp(t,"CONDENSED") == 0)
-    condensed = 1;
-  else if (strcmp(t,"THREADS") != 0)
+    mode = MQ2MODE_QQ;
+  else if (strcmp(t,"THREADS") == 0)
+    mode = MQ2MODE_FULL;
+
+  if (! (mode & mq->auth)) /* If not allowed operation, exit! */
     return -1;
 
   mq2_puts(mq, "+OK until LF.LF\n");
-  mq2_thread_report(mq, !condensed);
-  mq2_puts(mq, ".\n");
+  mq2_thread_report(mq, mode);
+  mq2_puts_(mq, ".\n");
   return 0;
 }
 
@@ -455,17 +500,29 @@ static void mq2interpret(mq,s)
   /* 's' points to the initial verb, 't' points to string after
      separating white-space has been skipped. */
 
+  if (cistrcmp(s,"QUIT")==0 || cistrcmp(s,"EXIT") == 0) {
+    mq2_puts(mq, "+Bye bye\n");
+    mq2_wflush(mq);
+    close(mq->fd);
+    mq->fd = -1;
+  }
+
   if (mq->auth == 0 && strcmp(s,"AUTH") == 0) {
     mq2auth(mq,t);
     return;
   }
 
-  if (mq->auth && strcmp(s,"SHOW") == 0) {
+  if (!mq->auth) {
+    mq2_puts(mq,"-BAD; USER MUST AUTHENTICATE\n");
+    return;
+  }
+
+  if (strcmp(s,"SHOW") == 0) {
     if (mq2cmd_show(mq,t) == 0)
       return;
   }
 
-  mq2_puts(mq, "-MAILQ2 implementation lacking; VERB='");
+  mq2_puts(mq, "-MAILQ2 No such command; VERB='");
   mq2_puts(mq, s);
   mq2_puts(mq, "' REST='");
   mq2_puts(mq, t);

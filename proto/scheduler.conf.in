@@ -98,6 +98,8 @@
 	# syspriority=-2
 
 	# MAILQv2 authentication database file reference:
+	# If you define this (like the default is), and the file exists,
+	# scheduler mailq interface goes to v2 mode.
 	PARAMauthfile = "@MAILSHARE@/scheduler.auth"
 
 
