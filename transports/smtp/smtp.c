@@ -4027,7 +4027,7 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	if (rc != EX_OK && logfp)
 	    fprintf(logfp,"%s#\t smtp_sync() did yield code %d\n", logtag(), rc);
 	if (SS->verboselog)
-	  fprintf(SS->verboselog," smtp_sync() did yield code %d\n", rc);
+	  fprintf(SS->verboselog," smtp_sync() did yield code %d (rcptstates = 0x%x)\n", rc, SS->rcptstates);
 
 	return rc;
 }

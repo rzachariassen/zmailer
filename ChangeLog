@@ -1,5 +1,8 @@
 1999-11-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/cf/server.cf:
+	    Rectify report codes for EXPN and VRFY.
+
 	* smtpserver/smtpserver.c:
 	    Don't do ident query when in interactive mode.
 
