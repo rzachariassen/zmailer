@@ -519,6 +519,7 @@ otherprog:
 
 		vfd = -1;
 		if (verbose) {
+		  int old_umask;
 		  if (postoffice == NULL) {
 		    postoffice = getzenv("POSTOFFICE");
 		    if (postoffice == NULL)
@@ -528,25 +529,33 @@ otherprog:
 				     +strlen(PUBLICDIR)+20);
 		  sprintf(verbfile, "%s/%s/v_XXXXXX",
 			  postoffice, PUBLICDIR);
+		  old_umask = umask(0077);
+#ifdef HAVE_MKSTEMP
+		  vfd = mkstemp(verbfile);
+		  if (*verbfile == '\0' || vfd < 0)
+#else
 		  mktemp(verbfile);
 		  if (*verbfile == '\0' ||
-		      (vfd = open(verbfile, O_CREAT|O_RDWR, 0600)) < 0) {
-		    fprintf(stderr,
-			    "%s: cannot create verbose log file in %s/%s\n",
-			    zmailer, postoffice, PUBLICDIR);
-		    verbfile = NULL;
-		  } else {
-		    /*
-		     * We need to make it a relative pathname
-		     * in case the router/scheduler's idea of
-		     * root directory is different than ours.
-		     */
-		    cp = strrchr(verbfile, '/');
-		    while (--cp > verbfile)
-		      if (*cp == '/')
-			break;
-		    fprintf(mfp, "verbose \"../%s\"\n", cp+1);
-		  }
+		      (vfd = open(verbfile, O_CREAT|O_RDWR, 0600)) < 0)
+#endif
+		    {
+		      fprintf(stderr,
+			      "%s: cannot create verbose log file in %s/%s\n",
+			      zmailer, postoffice, PUBLICDIR);
+		      verbfile = NULL;
+		    } else {
+		      /*
+		       * We need to make it a relative pathname
+		       * in case the router/scheduler's idea of
+		       * root directory is different than ours.
+		       */
+		      cp = strrchr(verbfile, '/');
+		      while (--cp > verbfile)
+			if (*cp == '/')
+			  break;
+		      fprintf(mfp, "verbose \"../%s\"\n", cp+1);
+		    }
+		  umask(old_umask);
 		}
 		if (external)
 		  fprintf(mfp, "external\n");

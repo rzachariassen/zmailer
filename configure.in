@@ -916,7 +916,7 @@ fi
 
 AC_FUNC_SVR4_MAILLOCK
 
-AC_CHECK_FUNCS(mkdir mktime rename rmdir strcpy strdup strstr \
+AC_CHECK_FUNCS(mkdir mktime mkstemp rename rmdir strcpy strdup strstr \
 		strchr strrchr setvbuf strerror strsignal setreuid \
 		setregid sigprocmask sigpending sigsuspend)
 # If the system does not have the following (library) calls,

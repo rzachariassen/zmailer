@@ -4839,7 +4839,7 @@ EOF
   fi
 fi
 
-for ac_func in mkdir mktime rename rmdir strcpy strdup strstr \
+for ac_func in mkdir mktime mkstemp rename rmdir strcpy strdup strstr \
 		strchr strrchr setvbuf strerror strsignal setreuid \
 		setregid sigprocmask sigpending sigsuspend
 do
