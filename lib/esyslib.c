@@ -240,7 +240,6 @@ erename(from, to)
 	const char *from, *to;
 {
 
-	int i;
 #ifdef	HAVE_RENAME
 	while (rename(from, to) < 0) {
 	  int serrno = errno;

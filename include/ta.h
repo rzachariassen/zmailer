@@ -6,12 +6,15 @@
  *	A plenty of changes, copyright Matti Aarnio 1990-1995
  */
 
+#ifndef _Z_TA_H_
+#define _Z_TA_H_
+
 #ifdef HAVE_CONFIG_H
 #include "hostenv.h"
 #endif
 
-struct address {
-	struct address	*link;		/* next sender / sender for this rcpt */
+struct taddress {
+	struct taddress	*link;		/* next sender / sender for this rcpt */
 	const char	*channel;
 	const char	*host;
 	const char	*user;
@@ -38,7 +41,7 @@ struct address {
 
 struct rcpt {
 	struct rcpt	*next;
-	struct address	*addr;		/* addr.link is the sender address */
+	struct taddress	*addr;		/* addr.link is the sender address */
 	const char	*orcpt;		/*  DSN  ORCPT=  string */
 	const char	*inrcpt;	/* "DSN" INRCPT= string */
 	const char	*notify;	/*  DSN  NOTIFY= flags  */
@@ -76,7 +79,7 @@ struct ctldesc {
 	const char	*contents;	/* message file data */
 	long		contentsize;	/* message file size */
 	long		*offset;	/* array of indices into contents */
-	struct address	*senders;	/* list of sender addresses */
+	struct taddress	*senders;	/* list of sender addresses */
 	struct rcpt	*recipients;	/* list of selected recipients */
 	int		rcpnts_total;	/* number of recipients, total */
 	int		rcpnts_remaining;/* .. how many yet to deliver */
@@ -119,7 +122,7 @@ struct mimestate {
 /* ctlopen.c: */
 extern void            ctlfree __((struct ctldesc *dp, void *anyp));
 extern void           *ctlrealloc __((struct ctldesc *dp, void *anyp, size_t size));
-extern struct ctldesc *ctlopen __((const char *file, const char *channel, const char *host, int *exitflag, int (*selectaddr)(const char *, const char *, void *), void *saparam, int (*matchrouter)(const char *, struct address *, void *), void *mrparam));
+extern struct ctldesc *ctlopen __((const char *file, const char *channel, const char *host, int *exitflag, int (*selectaddr)(const char *, const char *, void *), void *saparam, int (*matchrouter)(const char *, struct taddress *, void *), void *mrparam));
 extern void            ctlclose __((struct ctldesc *dp));
 extern int	       ctlsticky __((const char *spec_host, const char *addr_host, void *cbparam));
 
@@ -236,3 +239,5 @@ extern int getmyuucename __((char *, int));
 extern int  fd_nonblockingmode __((int fd));
 extern int  fd_blockingmode __((int fd));
 extern void fd_restoremode __((int fd, int mode));
+
+#endif

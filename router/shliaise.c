@@ -178,6 +178,8 @@ hdr_rewrite(name, h)
 	const char *cp, *eocp;
 	char *s, buf[4096], *eobuf; 	/* XX */
 
+	eobuf = buf + sizeof(buf)-1;
+
 	if (D_hdr_rewrite) {
 		printf("---------------------------\n");
 		printf("Sending this through %s:\n", name);
@@ -210,7 +212,8 @@ hdr_rewrite(name, h)
 			for (cp = addrtokens->t_pname, s=buf; cp < eocp; ++cp) {
 				if (*cp == '\\' && cp < eocp - 1 && *(cp+1) == '"')
 					continue;
-				*s++ = *cp;
+				if (s < eobuf)
+				  *s++ = *cp;
 			}
 			*s = 0;
 			addrtokens->t_pname = strsave(buf);

@@ -607,8 +607,8 @@ static int
 decmp(a, b)
      const void *a, *b;
 {
-	register const struct de *aa = (struct de *)a;
-	register const struct de *bb = (struct de *)b;
+	register const struct de *aa = (const struct de *)a;
+	register const struct de *bb = (const struct de *)b;
 
 	return bb->mtime - aa->mtime;
 }

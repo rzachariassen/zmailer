@@ -687,22 +687,31 @@ printAddress(fp, pp, onlylength)
 				if (pp->p_type == reSync && t->t_next != NULL
 				    && (t->t_next->t_type == t->t_type
 					|| *(t->t_next->t_pname) == '<')) {
-					if (onlylength) ++onlylength;
-					else putc(' ', fp);
+				  if (onlylength)
+				    ++onlylength;
+				  else
+				    putc(' ', fp);
 				}
 				break;
 			case aSpecial:
-				if (t != pp->p_tokens && *(t->t_pname) == '<')
-					if (onlylength) ++onlylength;
-					else putc(' ', fp);
-				if (onlylength) ++onlylength;
-				else putc((*t->t_pname), fp);
+				if (t != pp->p_tokens && *(t->t_pname) == '<'){
+				  if (onlylength)
+				    ++onlylength;
+				  else
+				    putc(' ', fp);
+				}
+				if (onlylength)
+				  ++onlylength;
+				else
+				  putc((*t->t_pname), fp);
 				break;
 			}
 		}
 		if (pp->p_type == aComment || pp->p_type == anError) {
-			if (onlylength) ++onlylength;
-			else putc(')', fp);
+			if (onlylength)
+			  ++onlylength;
+			else
+			  putc(')', fp);
 		} else if (lastp == pp)
 			inAddress = 0;
 		if (!inAddress && pp->p_next != NULL

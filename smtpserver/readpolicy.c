@@ -1,6 +1,6 @@
 /*
- *  policy.h  -- ZMailer's smtpserver's runtime address acceptance
- *               policy database mechanisms.
+ *  readpolicy.c  -- ZMailer's smtpserver's runtime address acceptance
+ *                   policy database mechanisms.
  *
  *  By Matti Aarnio <mea@nic.funet.fi> after the model of
  *  Gabor Kiss's <kissg@sztaki.hu> first edition, which
@@ -10,7 +10,7 @@
  *
  */
 
-#include "hostenv.h"
+#include "mailer.h"
 
 #include <sys/param.h>
 #include <sys/types.h>
@@ -18,6 +18,9 @@
 #include <stdio.h>
 
 #include "policy.h"
+
+#include "libz.h"
+#include "libc.h"
 
 static int parse_gen_policy();
 static int parse_ip_policy();
@@ -70,9 +73,9 @@ char *str, *wstr;
 	if (!s)
 	    return -1;
 	*s = 0;
-	if (cistrncmp(str, "IPv6.", 5) == 0)
+	if (CISTREQN(str, "IPv6.", 5))
 	    str += 5;
-	if (cistrncmp(str, "IPv6:", 5) == 0)
+	if (CISTREQN(str, "IPv6:", 5))
 	    str += 5;
 	return parse_ip_policy(pbuf, str, wstr);
     }

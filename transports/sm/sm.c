@@ -23,6 +23,8 @@
 #include <unistd.h>
 #endif
 #include <errno.h>
+#include "libz.h"
+
 
 #ifdef  HAVE_WAITPID
 # include <sys/wait.h>

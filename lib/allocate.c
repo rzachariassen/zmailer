@@ -382,8 +382,11 @@ setlevel(memtype, up)
 	const memtypes memtype;
 	const univptr_t up;
 {
-	register struct block *bp, **bpp;
+	register struct block *bp;
 	register const char *s = (const char *) up;
+#ifdef TMALLOC_DEBUGGING
+	register struct block**bpp;
+#endif
 
 	if (!(stackmem & (1<<memtype)) || blockfull[memtype] != NULL) {
 	  printf("Memory type %d is not usable as a stack!\n",

@@ -180,12 +180,12 @@ int ident_flag = 0;
 #endif				/* IDENT_TIMEOUT */
 
 #if defined(AF_INET6) && defined(INET6)
-static const struct in6_addr zin6addrany =
+static const struct in6_addr zin6addrany = 
 {
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-const struct in6_addr zv4mapprefix =
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+const struct in6_addr zv4mapprefix = 
 {
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 0, 0}};
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 0, 0}};
 #endif
 
 static void setrfc1413ident __((SmtpState * SS));

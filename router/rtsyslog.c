@@ -7,7 +7,7 @@
  *
  */
 
-#include "hostenv.h"
+#include "mailer.h"
 #include <stdio.h>
 #include <sysexits.h>
 #ifdef HAVE_STDARG_H
@@ -21,6 +21,7 @@
 #include "zsyslog.h"
 #include "mail.h"
 #include "ta.h"
+#include "libz.h"
 
 void
 rtsyslog(msgmtime,msgfile,from,smtprelay,size,nrcpts,msgid)
@@ -55,7 +56,7 @@ int size, nrcpts;
      ctladdr=`getpwuid(rp->addr->misc)`
      mailer='rp->addr->channel' */
 
-  sprintf(linebuf, "%s: from=<%.200s>, rrelay=%.200s size=%d, nrcpts=%d, msgid=%.200s",
+  sprintf(linebuf, "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s",
 	  spoolid, from, smtprelay, size, nrcpts, msgid);
 
   zsyslog((LOG_INFO, "%s", linebuf));

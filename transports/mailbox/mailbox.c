@@ -1375,7 +1375,7 @@ const char *timestring;
 {
 	int fdmail;
 	struct stat s2;
-	FILE *fp;
+	FILE *fp = NULL;
 	const char *mboxlocks = getzenv("MBOXLOCKS");
 	const char *filelocks = NULL;
 	const char *locks     = NULL;
@@ -2462,7 +2462,6 @@ appendlet(dp, rp, fp, file, ismime)
 	const char *file;
 {
 	struct writestate WS;
-	const char *s; /* message body start */
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	register int i;

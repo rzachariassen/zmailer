@@ -372,7 +372,7 @@ extern int res_mkquery(), res_send(), dn_skipname(), dn_expand();
 extern int getmxrr __((SmtpState *, const char*, struct mxdata*, int, int));
 # endif /* RFC974 */
 #endif	/* BIND */
-extern int matchroutermxes __((const char*, struct address*, void*));
+extern int matchroutermxes __((const char*, struct taddress*, void*));
 extern RETSIGTYPE sig_pipe __((int));
 extern RETSIGTYPE sig_alarm __((int));
 extern int getmyhostname();
@@ -4615,7 +4615,7 @@ rightmx(spec_host, addr_host, cbparam)
 int
 matchroutermxes(spec_host, ap, mrparam)
 	const char *spec_host;
-	struct address *ap;
+	struct taddress *ap;
 	void *mrparam;
 {
 	SmtpState *SS = mrparam;

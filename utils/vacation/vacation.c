@@ -582,9 +582,14 @@ junkmail()
 		const char	*name;
 		int		len;
 	} ignore[] = {
-		"-request", 8,		"postmaster", 10,	"uucp", 4,
-		"mailer-daemon", 13,	"mailer", 6,		"-relay", 6,
-		NULL, 0
+		{ "-request", 8 },
+		{ "postmaster", 10 },
+		{ "uucp", 4 },
+		{ "mailer-daemon", 13 },
+		{ "mailer", 6 },
+		{ "-relay", 6 },
+		{ NULL, 0 }
+		
 	};
 	register struct ignore *cur;
 	register int len;

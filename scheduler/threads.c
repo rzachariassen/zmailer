@@ -260,7 +260,6 @@ static void pick_next_thread(thg, thr0, proc)
      struct procinfo *proc;
 {
 	struct thread *thr;
-	int once = 1;
 
 	for (thr = thg->thread; thr != NULL; thr = thr->nextthg) {
 
@@ -298,7 +297,6 @@ int ok;
 	   group.  Decrement thread-group count		    */
 
 	struct threadgroup *thg = thr->thgrp;
-	int last = 0;
 
 	if (verbose)
 	  printf("delete_thread(0x%p:%s/%s) (thg=0x%p)\n",
@@ -1149,12 +1147,13 @@ time_t retrytime;
 	  goto timechain_handling;
 	}
 
-	if (thr->retryindex >= vtx->thgrp->ce.nretries)
+	if (thr->retryindex >= vtx->thgrp->ce.nretries) {
 	  if (vtx->thgrp->ce.nretries > 1)
 	    thr->retryindex = ranny(vtx->thgrp->ce.nretries-1);
 	  else
 	    thr->retryindex = 0;
-	
+	}
+
 	/*
 	 * clamp retry time to a predictable interval so we
 	 * eventually bunch up deliveries.
@@ -1299,11 +1298,12 @@ reschedule(vp, factor, index)
 	}
 #endif
 	if (factor == -1 && vp->attempts) {
-	  if (thr->retryindex >= ce->nretries)
+	  if (thr->retryindex >= ce->nretries) {
 	    if (ce->nretries > 1)
 	      thr->retryindex = ranny(ce->nretries-1);
 	    else
 	      thr->retryindex = 0;
+	  }
 
 	  /*
 	   * clamp retry time to a predictable interval so we

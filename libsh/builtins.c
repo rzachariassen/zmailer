@@ -377,7 +377,7 @@ static conscell *
 sh_lreplace(avl, il)
 	conscell *avl, *il;
 {
-	conscell *plist, *key, *d, *tmp, *data, **dp;
+	conscell *key, *d, *tmp, *data, **dp;
 	memtypes omem = stickymem;
 	int fieldidx;
 	char *fieldname;

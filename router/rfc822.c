@@ -22,7 +22,6 @@
 #include "zsyslog.h"
 
 #include "prototypes.h"
-#include "libz.h"
 #include "libsh.h"
 
 #ifndef _IOFBF

@@ -216,7 +216,7 @@ glut(cwd, pwd, bp, recur, swp)
 		i;
 	struct stat stbuf;
 	struct dirent *dp;
-	DIR *dirp;
+	DIR *dirp = NULL;
 	
 	if (interrupted)
 		return 0;
@@ -271,8 +271,8 @@ again:
 			havepattern = 1;
 			break;
 		}
-	if ((*cwd == '\0' && (dirp = opendir(".")) == (DIR *)0)
-	    || (*cwd != '\0' && (dirp = opendir((char *)cwd)) == (DIR *)0)) {
+	if ((*cwd == '\0' && (dirp = opendir(".")) == NULL) ||
+	    (*cwd != '\0' && (dirp = opendir((char *)cwd)) == NULL)) {
 		perror((char *)cwd);
 		return 0;
 	}

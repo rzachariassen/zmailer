@@ -75,10 +75,6 @@ struct conshell *envarlist = NULL;
 extern int stickymem;	/* for strsave() */
 int	D_alloc = 0;
 
-#if defined(HAVE_SOCKET) && defined(HAVE_PROTOCOLS_RWHOD_H)
-static int readrwho __((void));
-#endif
-
 static void sig_alrm __((int));
 static void sig_alrm(sig)
 int sig;
@@ -103,9 +99,6 @@ main(argc, argv)
 	int silent = 0;
 	char *host = NULL;	/* .. and what is my host ? */
 	int matchhost = 0;
-#if	defined(HAVE_SOCKET)
-	struct biffer *nbp;
-#endif
 	struct ctldesc *dp;
 
 	RETSIGTYPE (*oldsig) __((int));

@@ -188,11 +188,12 @@ struct gaih_addrtuple **pat;
     continue;
 
 build:
-    if (req->ai_flags & AI_CANONNAME)
+    if (req->ai_flags & AI_CANONNAME) {
       if (prevcname && !strcmp(prevcname, c))
 	(*pat)->cname = prevcname;
       else
 	prevcname = (*pat)->cname = strdup(c);
+    }
 
     pat = &((*pat)->next);
 

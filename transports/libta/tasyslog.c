@@ -7,7 +7,7 @@
  *
  */
 
-#include "hostenv.h"
+#include "mailer.h"
 #include <stdio.h>
 #include <sysexits.h>
 #ifdef HAVE_STDARG_H
@@ -21,6 +21,7 @@
 #include "zsyslog.h"
 #include "mail.h"
 #include "ta.h"
+#include "libz.h"
 
 void
 tasyslog(rp,xdelay,wtthost,wttip,statstr,msg)

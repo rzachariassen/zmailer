@@ -86,68 +86,71 @@ struct db_kind {
 		  count_core,
 		  owner_core,
 		  NULL,
-		  Nul } },
+		  Nul,
+		  NULL } },
 { "header",	{ NULL, NULL, 0, 0, 0, NULL, search_header, close_header,
 		  add_header, remove_header, print_header, count_header,
-		  owner_header, NULL, Nul } },
+		  owner_header, NULL, Nul, NULL } },
 { "unordered",	{ NULL, NULL, 0, 10, 0, NULL, search_seq, close_seq,
 		  add_seq, NULL, print_seq, count_seq, owner_seq, modp_seq,
-		  Nul } },
+		  Nul, NULL } },
 #ifndef	HAVE_MMAP
 { "ordered",	{ NULL, NULL, 0, 10, 0, NULL, search_bin, close_seq,
 		  NULL, NULL, print_seq, count_seq, owner_seq, modp_seq,
-		  Nul } },
+		  Nul, NULL } },
 #else /* HAVE_MMAP */ /* When using MMAP(), no cache is needed for ordered.. */
 { "ordered",	{ NULL, NULL, 0, 0, 0, NULL, search_bin, close_seq,
 		  NULL, NULL, print_seq, count_seq, owner_seq, modp_seq,
-		  Nul } },
+		  Nul, NULL } },
 #endif
 
 #ifdef	HAVE_RESOLVER
 { "hostsfile",	{ "/etc/hosts", NULL, 0, 10, 0, NULL, search_hosts, NULL,
-		  NULL, NULL, print_hosts, NULL, NULL, NULL, Nul } },
+		  NULL, NULL, print_hosts, NULL, NULL, NULL, Nul, NULL } },
 #endif	/* HAVE_RESOLVER */
 #ifdef	HAVE_RESOLVER
 #ifndef RESOLV_CONF
 # define RESOLV_CONF "/etc/resolv.conf"
 #endif
-{ "bind",	{ RESOLV_CONF, NULL, 0, 10, 0, NULL,
-		  search_res, NULL, NULL, NULL, NULL, NULL, NULL, NULL, Nul }},
+{ "bind",	{ RESOLV_CONF, NULL, 0, 10, 0, NULL, search_res, NULL, NULL,
+		    NULL, NULL, NULL, NULL, NULL, Nul, NULL }},
 #endif	/* HAVE_RESOLV */
-{ "selfmatch",	{ NULL, NULL, 0, 0, 0, NULL, search_selfmatch, NULL, NULL,
-		  NULL, print_selfmatch, count_selfmatch, NULL, NULL, Nul } },
+{ "selfmatch",	{ NULL, NULL, 0, 0, 0, NULL, search_selfmatch, NULL, NULL,NULL,
+		  print_selfmatch, count_selfmatch, NULL, NULL, Nul, NULL } },
 #ifdef	HAVE_NDBM_H
 { "ndbm",	{ NULL, NULL, 0, 10, 0, NULL, search_ndbm, close_ndbm,
 		  add_ndbm, remove_ndbm, print_ndbm, count_ndbm, owner_ndbm,
-		  modp_ndbm, Nul } },
+		  modp_ndbm, Nul, NULL } },
 #endif	/* HAVE_NDBM */
 #ifdef	HAVE_GDBM_H
 { "gdbm",	{ NULL, NULL, 0, 10, 0, NULL, search_gdbm, close_gdbm,
 		  add_gdbm, remove_gdbm, print_gdbm, count_gdbm, owner_gdbm,
-		  modp_gdbm, Nul } },
+		  modp_gdbm, Nul, NULL } },
 #endif	/* HAVE_GDBM */
 #ifdef	HAVE_DBM
 { "dbm",	{ NULL, NULL, 0, 10, 0, NULL, search_dbm, close_dbm,
 		  add_dbm, remove_dbm, print_dbm, count_dbm, owner_dbm,
-		  NULL, Nul } },
+		  NULL, Nul, NULL } },
 #endif	/* HAVE_DBM */
 #ifdef	HAVE_DB_H
 { "btree",	{ NULL, NULL, 0, 10, 0, NULL, search_btree, close_btree,
 		  add_btree, remove_btree, print_btree, count_btree,
-		  owner_btree, modp_btree, Nul } },
+		  owner_btree, modp_btree, Nul, NULL } },
 { "bhash",	{ NULL, NULL, 0, 10, 0, NULL, search_bhash, close_bhash,
 		  add_bhash, remove_bhash, print_bhash, count_bhash,
-		  owner_bhash, modp_bhash, Nul } },
+		  owner_bhash, modp_bhash, Nul, NULL } },
 #endif	/* HAVE_DB_H */
 #ifdef	HAVE_YP
-{ "yp",		{ NULL, NULL, 0, 10, 0, NULL, search_yp, NULL,
-		  NULL, NULL, print_yp, NULL, owner_yp, NULL, Nul } },
+{ "yp",		{ NULL, NULL, 0, 10, 0, NULL, search_yp, NULL, NULL,
+		  NULL, print_yp, NULL, owner_yp, NULL, Nul, NULL } },
 #endif	/* HAVE_YP */
 #ifdef HAVE_LDAP
 { "ldap",	{ NULL, NULL, 0, 10, 0, NULL, search_ldap, close_ldap,
-		  NULL, NULL, NULL, NULL, NULL, modp_ldap, Nul } },
+		  NULL, NULL, NULL, NULL, NULL, modp_ldap, Nul, NULL } },
 #endif
-{ 0 }	/* proto_config is initialized from this entry */
+{ NULL, { NULL, NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	    /* proto_config is initialized from this entry */
+	    NULL, NULL, Nul, NULL }}
 };
 
 
@@ -501,7 +504,7 @@ run_db(argc, argv)
 	const char *argv[];
 {
 	int errflag;
-	struct db_info *dbip;
+	struct db_info *dbip = NULL;
 	search_info si;
 	struct spblk *spl;
 
