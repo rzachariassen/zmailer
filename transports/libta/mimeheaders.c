@@ -611,13 +611,13 @@ static const char * skip_822linearcomments(p)
 	   3.1.4: Structured Field Bodies
 	   defined LINEAR-WHITESPACES and COMMENTS */
 
-	const char *s = p;
+	const char *s = p, c;
 
 	while (*s) {
 
 	  /* To be exact we should scan over only SPC, TAB, CR and LF
 	     chars, but lets skip all controls just in case.. */
-	  while (0 <= *s && *s <= ' ') ++s; /* ASCII assumption! */
+	  while (c = *s && (0 <= c && c <= ' ')) ++s; /* ASCII assumption! */
 
 	  if (*s == '(') {
 	    s = skip_comment(s);

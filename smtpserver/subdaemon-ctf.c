@@ -675,6 +675,9 @@ contentfilter_proc(ctfstatep, fname)
 {
 	int rc;
 	struct ctf_state *ctfstate =  * ctfstatep;
+	time_t then;
+
+	time( &then );
 
 
 	if (! ctfstate || !ctfstate->outfp) {
@@ -760,6 +763,11 @@ contentfilter_proc(ctfstatep, fname)
 	  ctfstate->pbuf = strdup(ctfstate->buf);
 
 	}
+
+	time( &now );
+	if ((now - then) > 30)
+	  type(NULL,0,NULL, "C-FILTER DELAY %d SECONDS!",
+	       (int)(now - then));
 
 	return NULL; /* very bad! */
 }

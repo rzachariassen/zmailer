@@ -583,9 +583,9 @@ router(SS, function, holdlast, arg, len)
 	int rc;
 	struct rtr_state *state;
 	unsigned char *p;
-	time_t start_time;
+	time_t then;
 
-	time( &start_time );
+	time( &then );
 
 	if (arg == NULL) {
 	  type(SS, 501, NULL, NULL);
@@ -644,9 +644,9 @@ router(SS, function, holdlast, arg, len)
 	  rc = fdgets( & state->buf, 0, & state->buflen, & state->fdb, state->fd_io, 60 );
 
 	  time( &now );
-	  if ((now - start_time) > 30)
-	    type(NULL,0,NULL, "I-ROUTER DELAY %d secs!",
-		 (int)(now - start_time));
+	  if ((now - then) > 30)
+	    type(NULL,0,NULL, "I-ROUTER DELAY %d SECONDS!",
+		 (int)(now - then));
 
 	  if (state->buf && (rc > 0))
 	    if (state->buf[rc-1] == '\n')

@@ -113,6 +113,7 @@ fi
   echo "# ----------"
   echo "# localnames:"
   cat localnames | \
+  sed -e 's/#.*$//' | \
   awk '/^#/{next;} NF >= 1 {printf "%s = _localnames\n",$1;}'
 
   # smtp-policy.relay
@@ -124,6 +125,7 @@ fi
     echo "# -------------------------"
     echo "# smtp-policy.relay.manual:"
     cat smtp-policy.relay.manual | \
+    sed -e 's/#.*$//' | \
     awk '/^#/{next;}
 	NF >= 1 {printf "%s = _full_rights\n",$0;next;}'
   fi
@@ -131,6 +133,7 @@ fi
     echo "# ------------------"
     echo "# smtp-policy.relay:"
     cat smtp-policy.relay | \
+    sed -e 's/#.*$//' | \
     awk '/^#/{next;}
 	NF >= 1 {printf "%s = _full_rights\n",$0;next;}'
   fi
@@ -141,6 +144,7 @@ fi
     echo "# ----------------------"
     echo "# smtp-policy.mx.manual:"
     cat smtp-policy.mx.manual | \
+    sed -e 's/#.*$//' | \
     awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$0;}'
   fi
   # smtp-policy.mx
@@ -149,6 +153,7 @@ fi
     echo "# ---------------"
     echo "# smtp-policy.mx:"
     cat smtp-policy.mx | \
+    sed -e 's/#.*$//' | \
     awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$0;}'
   fi
 
@@ -164,7 +169,9 @@ fi
       fi
       if [ -f smtp-policy.spam.manual ] ; then
 	cat smtp-policy.spam.manual
-      fi ) | tr "[A-Z]" "[a-z]" | sed 's/^@//g' | sort | uniq | \
+      fi ) | tr "[A-Z]" "[a-z]" | \
+    sed -e 's/#.*$//' | \
+    sed 's/^@//g' | sort | uniq | \
     awk '/^\[/{ # an address block to reject
 	    printf "%s  rejectnet +\n",$0;
 	    next;

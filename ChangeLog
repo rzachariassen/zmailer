@@ -1,3 +1,23 @@
+2004-10-23  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/libta/mimeheaders.c:
+	    Sometimes malformed messages undergoing format conversion
+	    did cause smtp to drop core.  Turned out to be a mistaken
+	    inclusion of the ASCII NUL into scan comparison range of
+	    a string scanning.
+
+	* smtpserver/subdaemon-rtr.c, smtpserver/subdaemon-ctf.c:
+	    Made slight text changes to help on scanning the log
+	    for appearance of internal "<subsys> DELAY %d SECONDS"
+	    notes.
+
+	* utils/policy-builder.sh.in:
+	    Added a small sed-spell to remove input text line ends
+	    since first '#' character in a line.  This allows now
+	    adding comments on input line after initial data with
+	    that '#' character:
+	        example.com   # Added on 2004-Oct-23
+
 2004-10-20  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/errormail/errormail.c, transports/expirer/expirer.c,
