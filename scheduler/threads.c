@@ -815,6 +815,7 @@ thread_start(thr, queueonly_too)
 
 	queryipccheck();
 
+	if (!vp) return 0; /* dummy thread in way to kill.. */
 	if (syncstart || (freeze && !slow_shutdown)) return 0;
 	if (!queueonly_too && (ce->flags & CFG_QUEUEONLY)) return 0;
 
