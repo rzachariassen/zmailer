@@ -142,7 +142,7 @@ appendlet(SS, dp, convertmode, CT)
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	  /* Classical way to read in things */
 
-	  mfp = sfnew(NULL, NULL, sizeof(iobuf), dp->msgfd, SF_READ|SF_WHOLE);
+	  mfp = sfnew(NULL, iobuf, sizeof(iobuf), dp->msgfd, SF_READ);
 	  bufferfull = 0;
 #else /* HAVE_MMAP */
 	  const char *s = dp->let_buffer + dp->msgbodyoffset;

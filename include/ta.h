@@ -29,7 +29,6 @@ struct taddress {
 	const char	*host;
 	const char	*user;
 	const char	*misc;		/* expected to be uid privilege */
-	const char	**routermxes;	/* [mea] hostpointers from router */
 };
 
 #define _DSN_NOTIFY_SUCCESS	0x001
@@ -158,7 +157,7 @@ struct mimestate {
 /* ctlopen.c: */
 extern void            ctlfree __((struct ctldesc *dp, void *anyp));
 extern void           *ctlrealloc __((struct ctldesc *dp, void *anyp, size_t size));
-extern struct ctldesc *ctlopen __((const char *file, const char *channel, const char *host, int *exitflag, int (*selectaddr)(const char *, const char *, void *), void *saparam, int (*matchrouter)(const char *, struct taddress *, void *), void *mrparam));
+extern struct ctldesc *ctlopen __((const char *file, const char *channel, const char *host, int *exitflag, int (*selectaddr)(const char *, const char *, void *), void *saparam));
 extern void            ctlclose __((struct ctldesc *dp));
 extern int	       ctlsticky __((const char *spec_host, const char *addr_host, void *cbparam));
 

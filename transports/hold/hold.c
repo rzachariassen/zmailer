@@ -287,7 +287,7 @@ main(argc, argv)
 	    host = s;
 	  }
 
-	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL, NULL, NULL);
+	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL);
 	  if (dp != NULL) {
 	    process(dp);
 	    ctlclose(dp);

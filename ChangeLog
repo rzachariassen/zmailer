@@ -1,3 +1,22 @@
+2003-06-20  Matti Aarnio  <mea@zmailer.org>
+
+	* include/ta.h, transports/libta/ctlopen.c, transports/libta/Makefile.in,
+	  transports/sm/sm.c, transports/smtp/smtp.c, transports/mailbox/mailbox.c,
+	  transports/hold/hold.c, transports/errormail/errormail.c,
+	  transports/expirer/expirer.c, transports/reroute/reroute.c:
+	    Removed  rp->routermxes  field, data format parsing, and
+	    support calls for it from system.  It never materialized
+	    fully, and is weaker method, than original (not materialized
+	    either) X-or recipient addresses..
+
+	* transports/mailbox/mailbox.c, transports/sm/sm.c,
+	  transports/smtp/appendlet.c:
+	    Still tracking memory leaks.  Apparently the SFIO library
+	    doesn't free up memory in all cases.  Namely  sfnew()
+	    call has a bit of problems, especially when  sfdisc() sets
+	    processing discipline, and likely reallocs buffer..
+	    Now altering code to use heap based static buffers.
+	
 2003-06-19  Matti Aarnio  <mea@zmailer.org>
 
 	* router/rfc822.c, router/functions.c:
@@ -3507,7 +3526,7 @@
 	    garbage collection.  This supplies the function
 	    for   --with-ipv6-replacement-libc   cfg option.
 	    (Necessary at all systems with GNU LIBC versions
-	     up to 2.2.)
+	     up to 2.2. -- up to 2.3.2, very least)
 
 2000-08-19  Matti Aarnio  <mea@zmailer.org>
 

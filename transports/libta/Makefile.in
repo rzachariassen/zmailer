@@ -20,12 +20,12 @@ INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(INCL_TA)
 #
 OBJS=	markoff.o warning.o lockaddr.o myuucpname.o wantout.o \
-	stringlib.o diagnostic.o emptyline.o ctlopen.o routermxes.o \
+	stringlib.o diagnostic.o emptyline.o ctlopen.o \
 	 swriteheaders.o fwriteheaders.o mimeheaders.o \
 	buildbndry.o dnsgetrr.o mime2headers.o nonblocking.o \
 	tasyslog.o tatimestr.o
 SOURCE=	markoff.c warning.c lockaddr.c myuucpname.c wantout.c \
-	stringlib.c diagnostic.c emptyline.c ctlopen.c routermxes.c \
+	stringlib.c diagnostic.c emptyline.c ctlopen.c \
 	swriteheaders.c fwriteheaders.c mimeheaders.c \
 	buildbndry.c dnsgetrr.c mime2headers.c nonblocking.c \
 	tasyslog.c tatimestr.c

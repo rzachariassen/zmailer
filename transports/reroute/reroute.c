@@ -245,7 +245,7 @@ main(argc, argv)
 	  notary_setxdelay(0); /* Our initial speed estimate is
 				  overtly optimistic.. */
 
-	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL, NULL, NULL);
+	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL);
 	  if (verboselog) {
 	    fclose(verboselog);
 	    verboselog = NULL;

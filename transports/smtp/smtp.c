@@ -874,10 +874,10 @@ main(argc, argv)
 #ifdef	BIND
 
 	  if (checkmx)
-	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, rightmx, &SS, matchroutermxes, &SS);
+	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, rightmx, &SS);
 	  else
 #endif /* BIND */
-	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, NULL, NULL, matchroutermxes, &SS);
+	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, NULL, NULL);
 
 	  if (dp == NULL) {
 	    fprintf(stdout,"#resync %.200s\n", filename);
@@ -4814,7 +4814,6 @@ report(va_alist)
  * been asked to check MX RR's for all hosts for applicability. Therefore we
  * check whether the addr_host has an MX RR pointing at the host that we have
  * an SMTP connection open with.  Return 1 if it is so.
- * [mea] This also understands routermxes data.
  */
 
 int
@@ -4875,30 +4874,6 @@ mxsetsave(SS, host)
 
 #endif	/* BIND */
 
-/*
- * [mea] matchroutermxes()
- * like rightmx above, only a lot more light-weight...
- */
-int
-matchroutermxes(spec_host, ap, mrparam)
-	const char *spec_host;
-	struct taddress *ap;
-	void *mrparam;
-{
-	SmtpState *SS = mrparam;
-	const char **mxes = ap->routermxes;
-
-	if (CISTREQ(spec_host, ap->host))
-	  return 1;
-	if (SS->remotehost[0] == 0)
-	  return 0;
-
-	while (*mxes) {
-	  if (CISTREQ(spec_host,*mxes)) return 1; /* Found it */
-	  ++mxes;
-	}
-	return 0;
-}
 
 
 void

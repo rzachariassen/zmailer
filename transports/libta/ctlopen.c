@@ -49,7 +49,6 @@
 
 #include <errno.h>
 
-extern char *routermxes __((char *, struct taddress *));
 extern int errno;
 
 #ifndef strrchr
@@ -139,9 +138,6 @@ ctlclose(dp)
 	for (rp = dp->recipients; rp != NULL; rp = nextrp) {
 	  nextrp = rp->next;
 	  ap = rp->addr;
-	  if (ap->routermxes) {
-	    free((char *)ap->routermxes);
-	  }
 	  if (rp->top_received) free((void*)(rp->top_received));
 	
 	  free((char *)rp);
@@ -203,18 +199,9 @@ ctladdr(cp)
 
 	/* HOST: */
 	ap->host = cp;
-	ap->routermxes = NULL;
-#if 0
-	if (*cp == '(')
-	  cp = routermxes(cp,ap);  /* It is a bit complex.. */
-	else {
-#endif
-	  /* While not space: */
-	  cp = skip821address(cp);
-	  if (*cp) *cp++ = '\0';
-#if 0
-	}
-#endif
+	/* While not space: */
+	cp = skip821address(cp);
+	if (*cp) *cp++ = '\0';
 
 	/* While space: */
 	while (*cp == ' ' || *cp == '\t') ++cp;
@@ -234,20 +221,16 @@ ctladdr(cp)
 struct ctldesc *
 ctlopen(const char *file, const char *channel, const char *host,
 	int *exitflagp, int (*selectaddr)(const char *, const char *, void *),
-	void *saparam,  int (*matchrouter)(const char *, struct taddress *, void *),
-	void *mrparam)
+	void *saparam)
 
 #else
 
 struct ctldesc *
-ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrparam)
+ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	const char *file, *channel, *host;
 	int *exitflagp;
 	int (*selectaddr)  __((const char *, const char *, void *));
 	void *saparam;
-	int (*matchrouter) __((const char *, struct taddress *, void *));
-	void *mrparam;
-
 #endif
 {
 	register char *s, *contents;
@@ -456,29 +439,20 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	      delayslot = s;
 	      s += _CFTAG_RCPTDELAYSIZE;
 	    }
-	    if ((ap = ctladdr(s)) == NULL) {
+	    ap = ctladdr(s);
+	    if (ap == NULL) {
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
 	      break;
 	    }
 
-	    /* [mea] understand  'host' of type:
-	       "((mxer)(mxer mxer))"   */
-	    if ((channel != NULL
-		 && strcmp(channel, ap->channel) != 0)
-#if 0
-		|| (ap->routermxes != NULL && matchrouter != NULL
-		    && !(*matchrouter)(host, ap, mrparam))
-#endif
-		|| (ap->routermxes == NULL && selectaddr != NULL
+	    if ((channel != NULL  &&  strcmp(channel, ap->channel) != 0)
+		|| (selectaddr != NULL
 		    && !(*selectaddr)(host, (const char *)ap->host, saparam))
-		|| (ap->routermxes == NULL && selectaddr == NULL
+		|| (selectaddr == NULL
 		    && host != NULL && cistrcmp(host,ap->host) !=0)
 		|| !lockaddr(d.ctlfd, d.ctlmap, d.offset[i]+1,
 			     _CFTAG_NORMAL, _CFTAG_LOCK, file, host, mypid)) {
-	      if (ap->routermxes)
-		free((char *)ap->routermxes);
-	      ap->routermxes = NULL;
 	      free((char *)ap);
 	      break;
 	    }

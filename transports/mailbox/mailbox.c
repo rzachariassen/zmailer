@@ -384,13 +384,7 @@ static int zsfsetfd(fp, fd)
 static void zsfclose(fp)
      Sfio_t *fp;
 {
-  /* This is *NOT* the SFIO's sfclose() -- in case of an error,
-     we junk the buffers ourselves! */
-
-  if (sferror(fp)) {
-    close(fp->file);
-    fp->file = -1;
-  }
+  sfpurge(fp);
   sfclose(fp);
 }
 
@@ -679,7 +673,7 @@ main(argc, argv)
 	  notary_setxdelay(0); /* Our initial speed estimate is
 				  overtly optimistic.. */
 
-	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL, NULL, NULL);
+	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL);
 	  if (dp == NULL) {
 	    printf("#resync %s\n",filename);
 	    fflush(stdout);
@@ -1930,20 +1924,20 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	int lastch = 0xFFF;
 	int topipe = (*(file) == TO_PIPE);
 	int failed = 0;
+	char sfio_buf[1024*16];
 
 	struct writestate WS;
 	char **hdrs;
 
 	fstat(fdmail, &st);
 
-	fp = sfnew(NULL, NULL, 64*1024, fdmail, SF_READ|SF_WRITE|SF_APPENDWR);
+	fp = sfnew(NULL, sfio_buf, sizeof(sfio_buf), fdmail, SF_READ|SF_WRITE|SF_APPENDWR);
 	if (fp == NULL) {
 	  notaryreport(NULL,NULL,NULL,NULL);
 	  DIAGNOSTIC3(rp, file, EX_TEMPFAIL, "cannot fdopen(%d,\"%s\")",
 		      fdmail,fdopmode);
 	  return NULL;
 	}
-
 
 	memset( &WS, 0, sizeof(WS) );
 
@@ -3061,6 +3055,7 @@ appendlet(dp, rp, WS, file, ismime)
 	register int bufferfull;
 	Sfio_t *mfp;
 	int mfd = dp->msgfd;
+	char sfio_buf[16*1024];
 #else
 	char *s;
 #endif
@@ -3098,7 +3093,7 @@ appendlet(dp, rp, WS, file, ismime)
 	  }
 
 	  lseek(mfd, (off_t)dp->msgbodyoffset, SEEK_SET);
-	  mfp = sfnew(NULL, NULL, 16*1024, mfd, SF_READ|SF_WHOLE);
+	  mfp = sfnew(NULL, sfio_buf, sizeof(sfio_buf), mfd, SF_READ);
 
 #define MFPCLOSE zsfsetfd(mfp,-1); zsfclose(mfp);
 
@@ -3726,7 +3721,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 	      sfprintf(mfp, "%s", buf);
 	    }
 	  } /* ... while() ends.. */
-	  zsfclose(efp);
+	  sfclose(efp);
 	} else {
 	  for (cpp = dfltform; *cpp != NULL; ++cpp)
 	    if (*cpp[0] == 0) {

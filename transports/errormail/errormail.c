@@ -191,7 +191,7 @@ main(argc, argv)
 	  if (host != NULL)
 	    *host++ = 0;
 
-	  dp = ctlopen(msgfilename, channel, host, &getout, ctlsticky, NULL, NULL, NULL);
+	  dp = ctlopen(msgfilename, channel, host, &getout, ctlsticky, NULL);
 	  if (dp != NULL) {
 	    process(dp);
 	    ctlclose(dp);

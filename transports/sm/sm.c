@@ -381,7 +381,7 @@ main(argc, argv)
 	  }
 
 	  ctlsticky(NULL, NULL, NULL); /* reset */
-	  dp = ctlopen(file, channel, host, &getout, ctlsticky, NULL, NULL, NULL);
+	  dp = ctlopen(file, channel, host, &getout, ctlsticky, NULL);
 	  if (dp == NULL) {
 	    printf("#resync %s\n",file);
 	    fflush(stdout);
@@ -1091,7 +1091,8 @@ appendlet(dp, mp, fp, verboselog, convertmode)
 	     We are better to feed writemimeline() with LINES
 	     instead of blocks of data.. */
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  Sfio_t *mfp = sfnew(NULL, NULL, 64*1024, mfd, SF_READ|SF_WHOLE);
+	  char sfio_buf[32*1024];
+	  Sfio_t *mfp = sfnew(NULL, sfio_buf, sizeof(sfio_buf), mfd, SF_READ);
 	  sfseek(mfp, dp->msgbodyoffset, SEEK_SET);
 
 #define MFPCLOSE zsfsetfd(mfp, -1); sfclose(mfp);
