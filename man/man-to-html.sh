@@ -18,7 +18,7 @@ export LINES
 echo "<HTML><HEAD><TITLE>"
 basename "$1"
 echo "</TITLE></HEAD><BODY BGCOLOR=white><PRE>"
-groff  -c -t -man -Tascii "$1" | \
+groff  -t -man -Tascii "$1" | \
     perl -e '
         #select STDIN; $| = 1;
         select STDERR; $| = 1;

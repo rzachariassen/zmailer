@@ -1,3 +1,12 @@
+2003-08-28  Matti Aarnio  <mea@zmailer.org>
+
+	* man/man-to-html.sh:
+	    Apparently we can be without 'groff -c' option, and still not
+	    get colour output to produced HTML..   Oh yes, that was when
+	    using '-Thtml' output driver.  Present HTML generation uses
+	    '-Tascii' and magic state processor to convert produced (with 
+	    occasional escapes) text file into fixed with courier font HTML.
+
 2003-08-26  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/smtpserver.conf, smtpserver/smtpcmds.c:
