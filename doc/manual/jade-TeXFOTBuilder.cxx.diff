@@ -1,0 +1,436 @@
+--- jade/TeXFOTBuilder.cxx.orig	Sun Nov 29 03:37:13 1998
++++ /net/mea/usr/src/redhat/BUILD/jade-1.2.1/jade/jade/TeXFOTBuilder.cxx	Sat Feb 19 18:16:21 2000
+@@ -505,9 +505,9 @@
+    
+    protected:
+     virtual void outProlog( OutputByteStream &stream ) const
+-     { stream << NodeInfoProlog << "\\insert" << name() << "%\n{" << Characteristics << '}'; }
++     { stream << NodeInfoProlog << "\\insert" << name() << "{" << Characteristics << "}%\n"; }
+     virtual void outEpilog( OutputByteStream &stream ) const
+-     { stream << '}' << NodeInfoEpilog; }
++     { stream << "}" << NodeInfoEpilog; }
+   };
+ 
+   struct CompoundFotElement : public FotElement {
+@@ -539,9 +539,9 @@
+    protected:
+     virtual void outProlog( OutputByteStream &stream ) const {
+       #ifdef TEXDEBUG
+-       stream <<  "\nELEMENT\n" << "\nPRO\n" << NodeInfoProlog << "\nEND_PRO\n" << "\\" << name() << "%\n{" << Characteristics << '}';
++       stream <<  "\nELEMENT\n" << "\nPRO\n" << NodeInfoProlog << "\nEND_PRO\n" << "\\" << name() << "{" << Characteristics << "}%\n";
+       #else
+-       stream <<  NodeInfoProlog << "\\" << name() << "%\n{" << Characteristics << '}';
++       stream <<  NodeInfoProlog << "\\" << name() << "{" << Characteristics << "}%\n";
+       #endif
+        PreContent.commit( stream );
+      }
+@@ -1233,8 +1233,8 @@
+ 
+ void TeXFOTBuilder::TablePart::outContent( OutputByteStream &stream ) const {
+ 
+-  stream << "\\TeXTable%\n{" << LengthInPoints( parentTable().tableWidth ) 
+-         << "}{" << Columns.size() << '}';
++  stream << "\\TeXTable{" << LengthInPoints( parentTable().tableWidth ) 
++         << "}{" << Columns.size() << "}";
+ 
+   stream << '{';
+   for( size_t i = 0; i < Columns.size(); i++ ) {
+@@ -1248,14 +1248,14 @@
+       switch( Columns[i].displayAlignment ) {
+         case symbolInside:  
+         case symbolStart:
+-          stream << "L{" << LengthInPoints( Columns[i].computedWidth ) << '}';
++          stream << "L{" << LengthInPoints( Columns[i].computedWidth ) << "}%\n";
+           break;
+         case symbolOutside: 
+         case symbolEnd:
+-          stream << "R{" << LengthInPoints( Columns[i].computedWidth ) << '}';
++          stream << "R{" << LengthInPoints( Columns[i].computedWidth ) << "}%\n";
+           break;
+         case symbolCenter: default:
+-          stream << "C{" << LengthInPoints( Columns[i].computedWidth ) << '}';
++          stream << "C{" << LengthInPoints( Columns[i].computedWidth ) << "}%\n";
+       }
+     } else {
+       switch( Columns[i].displayAlignment ) {
+@@ -1390,7 +1390,7 @@
+ void TeXFOTBuilder::Cell::outProlog( OutputByteStream &stream ) const {
+ 
+   if( nColumnsSpanned > 1 ) {
+-    stream << "\\multicolumn%\n{" << nColumnsSpanned << "}{";
++    stream << "\\multicolumn{" << nColumnsSpanned << "}{";
+     if( beforeColumnBorder.borderPresent )
+       stream << '|';
+     switch( effectiveAlignment ) {
+@@ -1433,11 +1433,11 @@
+ 
+   if( tablePart.Columns[TeXTableColumnIdx].defaultTeXLeftBorder
+        != beforeColumnBorder.borderPresent ) 
+-    str << "\\def\\TeXTableCellBeforeColumnBorder{"  << beforeColumnBorder.borderPresent << '}';
++    str << "\\def\\TeXTableCellBeforeColumnBorder{"  << beforeColumnBorder.borderPresent << "}%\n";
+ 
+   if( tablePart.Columns[TeXTableColumnIdx+nColumnsSpanned-1].defaultTeXRightBorder
+        != afterColumnBorder.borderPresent ) 
+-    str << "\\def\\TeXTableCellAfterColumnBorder{"  << afterColumnBorder.borderPresent << '}';
++    str << "\\def\\TeXTableCellAfterColumnBorder{"  << afterColumnBorder.borderPresent << "}%\n";
+ 
+   String<char> s;
+   str.extractString( s );
+@@ -1461,7 +1461,7 @@
+       case symbolStart:
+       default:            str << 'l'; break;
+     }
+-    str << '}';
++    str << "}%\n";
+     String<char> s;
+     str.extractString( s );
+     Characteristics += s;
+@@ -1718,12 +1718,12 @@
+   #endif
+   NextFormat.FotCurDisplaySize = Format::INITIAL_PAGE_SIZE();
+   FormatStack.push_back( NextFormat );
+-  os() << "\\FOT{2}";
++  os() << "\\FOT{2}%\n";
+ }
+ 
+ TeXFOTBuilder::~TeXFOTBuilder()
+ {
+-  os() << "\\endFOT{}";
++  os() << "\\endFOT{}%\n";
+ }
+ 
+ //////////////////////////////////////////////////////////////////////
+@@ -1752,6 +1752,7 @@
+       case '\\':
+       case '^':
+       case '_':
++      case '-':
+       case '~':
+ 	os() << "\\char" << int(*s) << "{}";
+ 	break;
+@@ -2313,7 +2314,7 @@
+     os() << "Header";
+   else
+     os() << "Footer";
+-  os() << "%\n{";
++  os() << "{";
+ }
+ 
+ void TeXFOTBuilder::endSimplePageSequenceHeaderFooter(unsigned)
+@@ -3427,9 +3428,9 @@
+ //
+ void TeXFOTBuilder::insertAtomic(const char *name)
+ {
+-  os() << "\\insert" << name << "%\n{";
++  os() << "\\insert" << name << "{";
+   dumpInherited();
+-  os() << '}';
++  os() << "}%\n";
+ }
+ 
+ void TeXFOTBuilder::insertAtomic( TeXFOTBuilder::FotElement &fotElement )
+@@ -3446,13 +3447,13 @@
+     String<char> s;
+     stringout_.extractString( s );
+     StrOutputByteStream out;
+-    out << "\\" << name << "%\n{" << s << '}';
++    out << "\\" << name << "{" << s << "}%\n";
+     out.extractString( s );
+     *output += s;
+   } else {
+-    os() << "\\" << name << "%\n{";
++    os() << "\\" << name << "{";
+     dumpInherited();
+-    os() << '}';
++    os() << "}%\n";
+   }
+ }
+ 
+@@ -3472,11 +3473,11 @@
+     String<char> s;
+     stringout_.extractString( s );
+     StrOutputByteStream out;
+-    out << "%\n{" << s ;
++    out << "{" << s ;
+     out.extractString( s );
+     *output += s;
+   } else {
+-    os() << "%\n{";
++    os() << "{";
+     dumpInherited();
+   }
+ }
+@@ -3522,11 +3523,11 @@
+     String<char> s;
+     stringout_.extractString( s );
+     StrOutputByteStream out;
+-    out << "\\" << name << "%\n{" << s << "}{";
++    out << "\\" << name << "{" << s << "}{";
+     out.extractString( s );
+     *output += s;
+   } else {
+-    os() << "\\" << name << "%\n{";
++    os() << "\\" << name << "{";
+     dumpInherited();
+     os() << "}{";
+   }
+@@ -3545,7 +3546,7 @@
+     *output += s;
+   }
+   else
+-    os() << "}";
++    os() << "}%\n";
+ }
+ 
+ //
+@@ -3561,7 +3562,7 @@
+     *output += s;
+   }
+   else
+-    os() << "\\end" << name << "{}";
++    os() << "\\end" << name << "{}%\n";
+ }
+ 
+ //
+@@ -3570,9 +3571,9 @@
+ //
+ void TeXFOTBuilder::setlength(const char *name,Length size)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{"
++  stringout_ << "\\def\\" << name << "{"
+ 	      << float(size/1000.0)
+-	      << "\\p@}";
++	      << "\\p@}%\n";
+ }
+ 
+ //
+@@ -3580,9 +3581,9 @@
+ //
+ void TeXFOTBuilder::set(const char *name,const StringC &value)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{"
++  stringout_ << "\\def\\" << name << "{"
+ 	      << value
+-	      << '}';
++	      << "}%\n";
+ }
+ 
+ //
+@@ -3590,9 +3591,9 @@
+ //
+ void TeXFOTBuilder::set(const char *name,const GroveString &value)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{"
++  stringout_ << "\\def\\" << name << "{"
+ 	      << value
+-	      << '}';
++	      << "}%\n";
+ }
+ 
+ //
+@@ -3920,7 +3921,7 @@
+     break;
+   }
+ 
+-  stringout_ << "\\def\\" << name << "%\n{" << symbolName << '}';
++  stringout_ << "\\def\\" << name << "{" << symbolName << "}%\n";
+ }
+ 
+ //
+@@ -3928,12 +3929,12 @@
+ //
+ void TeXFOTBuilder::set(const char *name,const LengthSpec &spec)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{"
++  stringout_ << "\\def\\" << name << "{"
+ 	      << float(spec.length/1000.0)
+-	      << "\\p@}";
+-  stringout_ << "\\def\\" << name << "Factor%\n{"
++	      << "\\p@}%\n";
++  stringout_ << "\\def\\" << name << "Factor{"
+ 	      << spec.displaySizeFactor
+-	      << '}';
++	      << "}%\n";
+ }
+ 
+ //
+@@ -3941,7 +3942,7 @@
+ //
+ void TeXFOTBuilder::set(const char *name,double n)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{" << n << '}';
++  stringout_ << "\\def\\" << name << "{" << n << "}%\n";
+ }
+ 
+ //
+@@ -3949,9 +3950,9 @@
+ //
+ void TeXFOTBuilder::set(const char *name, const DeviceRGBColor &color)
+ {
+-  stringout_ << "\\def\\" << name << "Red%\n{" << int(color.red) << '}';
+-  stringout_ << "\\def\\" << name << "Green%\n{" << int(color.green) << '}';
+-  stringout_ << "\\def\\" << name << "Blue%\n{" << int(color.blue) << '}';
++  stringout_ << "\\def\\" << name << "Red{" << int(color.red) << "}%\n";
++  stringout_ << "\\def\\" << name << "Green{" << int(color.green) << "}%\n";
++  stringout_ << "\\def\\" << name << "Blue{" << int(color.blue) << "}%\n";
+ }
+ 
+ //
+@@ -3959,9 +3960,9 @@
+ //
+ void TeXFOTBuilder::set(const char *name,bool flag)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{"
++  stringout_ << "\\def\\" << name << "{"
+ 	      << (flag ? 1 : 0)
+-	      << '}';
++	      << "}%\n";
+ }
+ 
+ //
+@@ -3969,7 +3970,7 @@
+ //
+ void TeXFOTBuilder::set(const char *name,long n)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{" << n << '}';
++  stringout_ << "\\def\\" << name << "{" << n << "}%\n";
+ }
+ 
+ //
+@@ -3977,7 +3978,7 @@
+ //
+ void TeXFOTBuilder::set(const char *name,long unsigned int n)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{" << n << '}';
++  stringout_ << "\\def\\" << name << "{" << n << "}%\n";
+ }
+ 
+ //
+@@ -3985,7 +3986,7 @@
+ //
+ void TeXFOTBuilder::set(const char *name,PublicId id)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{" << id << '}';
++  stringout_ << "\\def\\" << name << "{" << id << "}%\n";
+ }
+ 
+ //
+@@ -3995,7 +3996,7 @@
+ {
+   char letter1 = (code & 0xff00) >> 8;
+   char letter2 = (code & 0xff);
+-  stringout_ << "\\def\\" << name << "%\n{" << letter1 << letter2 << '}';
++  stringout_ << "\\def\\" << name << "{" << letter1 << letter2 << "}%\n";
+ }
+ 
+ //
+@@ -4006,44 +4007,44 @@
+ {
+   if (space.nominal.length != 0 || space.min.length != 0
+       || space.max.length != 0) {
+-    stringout_ << "\\def\\" << name << "Nom%\n{"
+-		<< (space.nominal.length/1000.0) << "\\p@}";
++    stringout_ << "\\def\\" << name << "Nom{"
++		<< (space.nominal.length/1000.0) << "\\p@}%\n";
+     if (space.nominal.displaySizeFactor != 0)
+-      stringout_ << "\\def\\" << name << "NomFactor%\n{"
+-		  << space.nominal.displaySizeFactor << '}';
++      stringout_ << "\\def\\" << name << "NomFactor{"
++		  << space.nominal.displaySizeFactor << "}%\n";
+     if (space.min.length != 0)
+-      stringout_ << "\\def\\" << name << "Min%\n{"
+-		  << (space.min.length/1000.0) << "\\p@}";
++      stringout_ << "\\def\\" << name << "Min{"
++		  << (space.min.length/1000.0) << "\\p@}%\n";
+     if (space.min.displaySizeFactor != 0)
+-      stringout_ << "\\def\\" << name << "MinFactor%\n{"
+-		  << space.min.displaySizeFactor << '}';
++      stringout_ << "\\def\\" << name << "MinFactor{"
++		  << space.min.displaySizeFactor << "}%\n";
+     if (space.max.length != 0)
+-      stringout_ << "\\def\\" << name << "Max%\n{"
+-		  << (space.max.length/1000.0) << "\\p@}";
++      stringout_ << "\\def\\" << name << "Max{"
++		  << (space.max.length/1000.0) << "\\p@}%\n";
+     if (space.max.displaySizeFactor != 0)
+-      stringout_ << "\\def\\" << name << "MaxFactor%\n{"
+-		  << space.max.displaySizeFactor << '}';
++      stringout_ << "\\def\\" << name << "MaxFactor{"
++		  << space.max.displaySizeFactor << "}%\n";
+     if (space.priority != 0)
+-      stringout_ << "\\def\\" << name << "Priority%\n{"
+-		  << space.priority << '}';
++      stringout_ << "\\def\\" << name << "Priority{"
++		  << space.priority << "}%\n";
+     if (space.conditional)
+-      stringout_ << "\\def\\" << name << "Conditional%\n{"
+-		  << (space.conditional ? 1 : 0) << '}';
++      stringout_ << "\\def\\" << name << "Conditional{"
++		  << (space.conditional ? 1 : 0) << "}%\n";
+     if (space.force)
+-      stringout_ << "\\def\\" << name << "Force%\n{"
+-		  << (space.force ? 1 : 0) << '}';
++      stringout_ << "\\def\\" << name << "Force{"
++		  << (space.force ? 1 : 0) << "}%\n";
+   }
+ }
+ 
+ void TeXFOTBuilder::set(const char *name,const GlyphId &glyphId)
+ {
+-  stringout_ << "\\def\\" << name << "%\n{";
++  stringout_ << "\\def\\" << name << "{";
+   if (glyphId.publicId) {
+     stringout_ << glyphId.publicId;
+     if (glyphId.suffix)
+       stringout_ << "::" << glyphId.suffix;
+   }
+-  stringout_ << '}';
++  stringout_ << "}%\n";
+ }
+ 
+ void TeXFOTBuilder::set(const char *name,const OptLengthSpec &spec)
+@@ -4058,23 +4059,23 @@
+ {
+   if (space.nominal.length != 0 || space.min.length != 0
+       || space.max.length != 0) {
+-    stringout_ << "\\def\\" << name << "Nom%\n{"
+-		<< (space.nominal.length/1000.0) << "\\p@}";
++    stringout_ << "\\def\\" << name << "Nom{"
++		<< (space.nominal.length/1000.0) << "\\p@}%\n";
+     if (space.nominal.displaySizeFactor != 0)
+-      stringout_ << "\\def\\" << name << "NomFactor%\n{"
+-		  << space.nominal.displaySizeFactor << '}';
++      stringout_ << "\\def\\" << name << "NomFactor{"
++		  << space.nominal.displaySizeFactor << "}%\n";
+     if (space.min.length != 0)
+-      stringout_ << "\\def\\" << name << "Min%\n{"
+-		  << (space.min.length/1000.0) << "\\p@}";
++      stringout_ << "\\def\\" << name << "Min{"
++		  << (space.min.length/1000.0) << "\\p@}%\n";
+     if (space.min.displaySizeFactor != 0)
+-      stringout_ << "\\def\\" << name << "MinFactor%\n{"
+-		  << space.min.displaySizeFactor << '}';
++      stringout_ << "\\def\\" << name << "MinFactor{"
++		  << space.min.displaySizeFactor << "}%\n";
+     if (space.max.length != 0)
+-      stringout_ << "\\def\\" << name << "Max%\n{"
+-		  << (space.max.length/1000.0) << "\\p@}";
++      stringout_ << "\\def\\" << name << "Max{"
++		  << (space.max.length/1000.0) << "\\p@}%\n";
+     if (space.max.displaySizeFactor != 0)
+-      stringout_ << "\\def\\" << name << "MaxFactor%\n{"
+-		  << space.max.displaySizeFactor << '}';
++      stringout_ << "\\def\\" << name << "MaxFactor{"
++		  << space.max.displaySizeFactor << "}%\n";
+   }
+ }
+ 
+@@ -4384,7 +4385,7 @@
+ {
+   GroveString name;
+   if (preserveSdata_ && n == 1 && nd->getEntityName(name) == accessOK)
+-    os() << "\\Entity{" << name << '}';
++    os() << "\\Entity{" << name << "}%\n";
+   else
+     TeXFOTBuilder::characters(s, n);
+ }

@@ -1,0 +1,7 @@
+- convert baseline LaTeX to DOCBOOK SGML
+- Write explanation about syslog format
+- Tell 'mailq' behaviour, "mailq(1)" does not describe all parts
+  of the reports
+- Sync these texts with various man-pages now in existence,
+  perhaps generate man-pages from common SGML source ?
+- Auto-generated index sucks at PDF/DVI forms, HTML works ok :-/

@@ -1,0 +1,88 @@
+From mea@mea.tmt.tele.fi Fri Jun 12 21:53:53 1998
+Received: by mea.tmt.tele.fi id <92168-369>; Fri, 12 Jun 1998 21:53:49 +0300
+Received: from nic.funet.fi ([128.214.248.6]:59664 "EHLO nic.funet.fi" ident: "NO-IDENT-SERVICE[2]") by mea.tmt.tele.fi with ESMTP id <92224-12207>; Wed, 10 Jun 1998 23:32:38 +0300
+Received: by nic.funet.fi id <19527-684>; Wed, 10 Jun 1998 23:32:14 +0300
+Received: by nic.funet.fi id <20325-686>; Wed, 10 Jun 1998 23:30:48 +0300
+Subject: Re: ETRN configuration
+From:	mea@nic.funet.fi
+To:	vadillo@apu.rcp.net.pe (Enrique Vadillo)
+Date:	Wed, 10 Jun 1998 23:30:48 +0300 (EET DST)
+In-Reply-To: <m0yjq0b-00010JC@apu.rcp.net.pe> from "Enrique Vadillo" at Jun 10, 98 02:54:05 pm
+MIME-Version: 1.0
+Content-Type:	text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <19980610203054Z20325-686+221@nic.funet.fi>
+Sender: mea@mea.tmt.tele.fi
+Return-Path: <mea@mea.tmt.tele.fi>
+X-Orcpt: rfc822;mea
+Content-Length:  2415
+Status: RO
+
+> > 	If you want such "queueonly" behaviour, then you need to add
+> > 	route entry:
+> > 		client.com	smtp-etrn!
+> > 	compile the new database, and you are all set.
+> > 
+> > 	Independent of "channel" part, the ETRN parameter is looked up
+> > 	thru active target "host" parts, and a thread start is scheduled
+> > 	for ANY thread with matching "host" field content.
+> > 	(Thus it is possible to ETRN trigger delivery to some local/*
+> > 	 user, too...)
+> 
+> In my case, if my client's dialup connection always uses (let's say..) IP 
+> address 10.10.10.10, where do i tell ZMailer that *only* that IP address is 
+> authorized to retrieve queued mail for domain 'client.com' by issuing the 
+> ETRN command?
+
+	Have you looked at what the system tells when you do ETRN with
+	any parameter ?
+
+etrn foobar
+250-2.0.0 A TURNME request is initiated - lets hope the system
+250-2.0.0 has resources to honour it.   We call the remote, if
+250 2.0.0 we have anything to send there.
+
+	That is, if the desired destination address could be
+	delivered via normal SMTP, then the ETRN queue start
+	will also succeed in delivering to the remote.
+
+
+	Using ETRN will, naturally, demand use of fixed addresses
+	for the destination hosts, however you can't safely use
+	host A records in the DNS, unless you have globally routable
+	addresses in use.
+
+	Consider using "private network 10":  My local network
+	uses network 10 for a few things, and if your DNS entry
+	for  client.com  is:
+
+	client.com.  IN MX 1 mail.client.com.
+		     IN MX 2 etrn.isp.com.
+	mail.client.com IN A 10.10.10.10
+
+	Ok, guess what will happen when my local system tries to
+	deliver to "client.com" ?  It will at first try to connect
+	to  mail.client.com, which -- shock and horror -- does exist
+	in my private scoped network, but is different from the
+	one really meant...
+
+	(An ugly way to do this is to use same A record for domains
+	 mail.client.com, and etrn.isp.com, and then within the host
+	 etrn.isp.com to have /etc/hosts listing real address for
+	 the mail.client.com -- but very rapidly that runs out of
+	 manageability...)
+
+> It's the only point i am missing yet..
+> 
+> Thanks Matti!	BTW www.zmailer.org does not exist yet.. oops!
+
+	Still the host hosting that zone is out :-(
+	Propably I have to place it into my workstation as soon
+	as I can get the original zone datas...
+
+> Enrique Vadillo-
+> -- 
+> RCP - Internet Peru
+
+/Matti Aarnio <mea@nic.funet.fi>
+

@@ -1,0 +1,53 @@
+#! /bin/sh
+
+: ${STYLESHEET:=/usr/lib/sgml/stylesheets/cygnus-both.dsl}
+
+TMPFN=`echo $1 | sed 's/\.sgml//'`
+
+if [ "$1" = '-html-index' ]; then
+  HTMLINDEX="-V html-index"
+  shift
+fi
+
+if [ $# -gt 2 ]
+then
+  echo "Usage: `basename $0` [filename.sgml]" >&2
+  exit 1
+fi
+
+if [ $# -eq 1 ]
+then
+  if [ ! -r $1 ]
+  then
+    echo Cannot read \"$1\".  Exiting. >&2
+    exit 1
+  fi
+  if echo $1 | egrep -i '\.sgml$|\.sgm$' >/dev/null 2>&1
+  then
+    output="`echo $1 | sed 's,\.sgml$,.pdf,;s,\.sgm$,.pdf,'`"
+  fi
+fi
+
+OFILE="-o ${TMPFN}.tex"
+if [ -n "$HTMLINDEX" ] ; then
+    OFILE=""
+fi
+
+jade -t tex -d "${STYLESHEET}#pdf" $OFILE $HTMLFILE $1
+
+pdfjadetex $TMPFN
+
+if egrep '^LaTeX Warning: There were undefined references.$' ${TMPFN}.log >/dev/null 2>&1
+then
+  pdfjadetex $TMPFN
+  pdfjadetex $TMPFN
+fi
+
+
+#if [ -f ${TMPFN}.cfg ]
+#then
+#  mv ${TMPFN}.cfg jade.cfg
+#fi
+
+exit 0
+

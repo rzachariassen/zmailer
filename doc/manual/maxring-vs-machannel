@@ -1,0 +1,77 @@
+From mea@nic.funet.fi Fri Jun  5 18:32:48 1998
+Received: from nic.funet.fi ([128.214.248.6]:39178 "EHLO nic.funet.fi" ident: "NO-IDENT-SERVICE[2]") by mea.tmt.tele.fi with ESMTP id <92222-20004>; Fri, 5 Jun 1998 18:32:46 +0300
+Received: by nic.funet.fi id <10754-27883>; Fri, 5 Jun 1998 18:32:14 +0300
+Subject: Re: maxring vs. maxchannel
+From:	mea@nic.funet.fi
+To:	crosser@online.ru
+Date:	Fri, 5 Jun 1998 18:32:14 +0300 (EET DST)
+Cc:	zmailer@nic.funet.fi
+In-Reply-To: <ML-3.3.897043381.9124.crosser@ariel.sovam.com> from "Eugene Crosser" at Jun 5, 98 02:43:01 pm
+MIME-Version: 1.0
+Content-Type:	text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <19980605153221Z10754-27883+272@nic.funet.fi>
+Return-Path: <mea@nic.funet.fi>
+X-Orcpt: rfc822;mea@mea.tmt.tele.fi
+Content-Length:  1894
+Status: RO
+
+> Matti,
+> 
+> please could you say a few words about maxring?  In the docs, it is not
+> clear under what circumstances threads are grouped into one ring; and
+> I noticed that here Zmailer never starts more than maxring smtp agents.
+> Maybe writing some words on this topic in the doc would be a good idea...
+> 
+> Eugene
+
+The basic form of selector is  channel/host -- add some wild-carding.
+If you have ONLY ONE possible selector matching your destination addresses,
+for given CHANNEL, then lower of maxchannel/maxring will give the limit
+on number of transport agents possible on that selector.
+
+On the other hand if you have:
+
+*/*	# the default setting case
+	maxta=150
+smtp/*online.ru	# SH-GLOB  wild-card rules!
+	maxchannel=100
+	maxring=30
+smtp/*.ru
+	maxchannel=100
+	maxring=20
+smtp/*
+	maxchannel=100
+	maxring=80
+local/*
+	maxchannel=30
+etrn/*
+	maxchannel=60
+
+
+Now with this set the sum of maxring cases for "smtp/" is 130,
+which is more than maxchannel, so in case you have so many
+threads that all of the maxring limits would peak, you will
+be limited by  "channel-level" acting "maxchannel".
+
+Now get even more active stuffs, and you local/* and etrn/*
+selectors are busy too.
+
+Sum of all maxchannel values is 190, which exceeds maxta value 150.
+Thus the "maxta" will limit your startable transport agents.
+
+There is no easy and obvious way to create a fairness mechanism so
+that when maxchannel chops down on maxring, the resource rarity would
+become evenly divided. (Would it even be desirable at all?)
+Similar choke-point is, when maxta limits things on global scale.
+
+On the other hand, it is possible to give selector specific exceptions
+(higher/lower) on machannel/maxta limits (new values, that is), and thus
+be able to favour/neglect that selector to a degree in case of system
+resource limitation.
+
+
+(hmm.. and now to add this into the manual..)
+
+/Matti Aarnio <mea@nic.funet.fi>
+
