@@ -178,9 +178,9 @@ typedef struct {
     /* space, how much stuff in, where the output cursor is */
 #endif /* - HAVE_OPENSSL */
     char *tls_cipher_info;
-    char *tls_ccert_subject;
-    char *tls_ccert_issuer;
-    char *tls_ccert_fingerprint;
+    char *tls_peer_subject;
+    char *tls_peer_issuer;
+    char *tls_peer_fingerprint;
 
     int  s_bufread;
     int  s_readout;
@@ -247,10 +247,10 @@ extern int etrn_ok;
 extern int starttls_ok;
 extern int msa_mode;
 extern char *tls_cert_file, *tls_key_file, *tls_CAfile, *tls_CApath;
-extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd;
-extern int tls_ask_cert, tls_req_cert;
+extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd, tls_use_scache;
+extern int tls_ask_cert, tls_req_cert, tls_scache_timeout;
 extern int log_rcvd_whoson, log_rcvd_ident, log_rcvd_authuser;
-extern int log_rcvd_tls_mode, log_rcvd_tls_ccert;
+extern int log_rcvd_tls_mode, log_rcvd_tls_peer;
 extern int auth_login_without_tls;
 extern char *smtpauth_via_pipe;
 extern int strict_protocol;

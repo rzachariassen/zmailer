@@ -117,6 +117,9 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 #PARAM	tls-CAfile	@MAILVAR@/db/smtpserver-CAcert.pem
 #PARAM	tls-cert-file	@MAILVAR@/db/smtpserver-cert.pem
 #PARAM	tls-key-file	@MAILVAR@/db/smtpserver-key.pem
+#  # If system default SSL-session-cache is to be used ?
+#PARAM  tls-use-scache
+#PARAM  tls-scache-timeout 3600 # (cache timeout in seconds)
 #  # Then some futher thoughs that may materialize some time..
 #PARAM tls-loglevel	0
 #PARAM tls-ccert-vd	0
@@ -131,7 +134,7 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 #PARAM rcvd-whoson	# Likewise for "whoson"
 #PARAM rcvd-auth-user	# Authenticated Username
 #PARAM rcvd-tls-mode	# Cipher, or not
-#PARAM rcvd-tls-ccert	# Client Certificate reference
+#PARAM rcvd-tls-peer	# Client Certificate reference
 
 #
 #

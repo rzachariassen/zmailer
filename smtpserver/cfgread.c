@@ -200,8 +200,8 @@ static void cfparam(str)
       log_rcvd_authuser = 1;
     } else if (cistrcmp(name, "rcvd-tls-mode") == 0) {
       log_rcvd_tls_mode = 1;
-    } else if (cistrcmp(name, "rcvd-tls-ccert") == 0) {
-      log_rcvd_tls_ccert = 1;
+    } else if (cistrcmp(name, "rcvd-tls-peer") == 0) {
+      log_rcvd_tls_peer = 1;
     }
 
     /* Some Enhanced-SMTP facility disablers: (default: on ) */
@@ -265,6 +265,12 @@ static void cfparam(str)
 
     } else if (cistrcmp(name, "tls-require-cert") == 0 && param1) {
       sscanf(param1,"%d", & tls_req_cert);
+
+    } else if (cistrcmp(name, "tls-use-scache") == 0) {
+      tls_use_scache = 1;
+
+    } else if (cistrcmp(name, "tls-scache-timeout") == 0 && param1) {
+      sscanf(param1,"%d", & tls_scache_timeout);
     }
     else {
       /* XX: report error for unrecognized PARAM keyword ?? */

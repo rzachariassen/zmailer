@@ -797,18 +797,18 @@ int insecure;
 	  else
 	    fprintf(SS->mfp, "<none>");
 	}
-	if (log_rcvd_tls_ccert) {
-	  fprintf(SS->mfp, " TLS-CCERT: ");
-	  if (SS->tls_ccert_subject)
-	    rfc822commentprint(SS->mfp, SS->tls_ccert_subject);
+	if (log_rcvd_tls_peer) {
+	  fprintf(SS->mfp, " TLS-PEER: ");
+	  if (SS->tls_peer_subject)
+	    rfc822commentprint(SS->mfp, SS->tls_peer_subject);
 	  else
 	    fprintf(SS->mfp, "<none>");
 	}
       } else {
 	if (log_rcvd_tls_mode)
 	  fprintf(SS->mfp, " TLS-CIPHER: <none>");
-	if (log_rcvd_tls_ccert)
-	  fprintf(SS->mfp, " TLS-CCERT: <none>");
+	if (log_rcvd_tls_peer)
+	  fprintf(SS->mfp, " TLS-PEER: <none>");
       }
       fprintf(SS->mfp, ")\n");
 
@@ -841,14 +841,14 @@ int insecure;
 	else
 	  fprintf(SS->mfp, "<none>");
 
-	fprintf(SS->mfp, " TLS-CCERT: ");
-	if (SS->tls_ccert_subject)
-	  rfc822commentprint(SS->mfp, SS->tls_ccert_subject);
+	fprintf(SS->mfp, " TLS-PEER: ");
+	if (SS->tls_peer_subject)
+	  rfc822commentprint(SS->mfp, SS->tls_peer_subject);
 	else
 	  fprintf(SS->mfp, "<none>");
       } else {
 	fprintf(SS->mfp, " TLS-CIPHER: <none>");
-	fprintf(SS->mfp, " TLS-CCERT: <none>");
+	fprintf(SS->mfp, " TLS-PEER: <none>");
       }
       fprintf(SS->mfp, ")\n");
 

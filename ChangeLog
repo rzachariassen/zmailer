@@ -1,3 +1,24 @@
+1999-12-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/smtp-tls.conf, transports/smtp/smtp.c,
+	  transports/smtp/smtp.h, transports/smtp/smtptls.c:
+	    - Completed initial write-thru of TLS client mode for the SMTP TA
+	      however *no* testing has been done yet!
+	    - Both client and server got (from Postfix) session cache, but
+	      that code is *untested*
+	
+	* smtpserver/smtptls.c, proto/smtpserver.conf.in,
+	  smtpserver/cfgread.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c, smtpserver/smtpcmds.c:
+	    - Updates to smtpserver for evolved original code from Postfix.
+	    - Both client and server got (from Postfix) session cache, but
+	      that code is *untested*
+
+	* proto/Makefile.in:
+	    With "make dirs" creates $POSTOFFICE/TLSsrvrcache/ and
+	    $POSTOFFICE/TLSclntcache/ directories with protection of 700 ..
+	    (For the SSL session cache storage.)
+	
 1999-12-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* utils/policy-builder.sh.in:

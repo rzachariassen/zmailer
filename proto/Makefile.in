@@ -100,6 +100,16 @@ dirs:	$(PZCONFIG)
 		$(MKDIR) $(prefix)$$POSTOFFICE/deferred ; \
 		chmod 750 $(prefix)$$POSTOFFICE/deferred ; \
 	fi; \
+	if [ ! -d $(prefix)$$POSTOFFICE/TLSsrvrcache ]; then \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE/TLSsrvrcache && \
+		$(MKDIR) $(prefix)$$POSTOFFICE/TLSsrvrcache ; \
+		chmod 700 $(prefix)$$POSTOFFICE/TLSsrvrcache ; \
+	fi; \
+	if [ ! -d $(prefix)$$POSTOFFICE/TLSclntcache ]; then \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE/TLSclntcache && \
+		$(MKDIR) $(prefix)$$POSTOFFICE/TLSclntcache ; \
+		chmod 700 $(prefix)$$POSTOFFICE/TLSclntcache ; \
+	fi; \
 	if [ ! -d $(prefix)$$POSTOFFICE/freezer ]; then \
 		echo $(MKDIR) $(prefix)$$POSTOFFICE/freezer && \
 		$(MKDIR) $(prefix)$$POSTOFFICE/freezer ; \

@@ -82,6 +82,11 @@
 
 #include "dnsgetrr.h"
 
+#ifdef HAVE_OPENSSL
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif /* - HAVE_OPENSSL */
+
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
 #define	BIND		/* Want BIND (named) nameserver support enabled */
 #endif	/* TRY_AGAIN */
@@ -238,6 +243,9 @@ extern int prefer_ip6;
 #define ESMTP_PIPELINING 0x0008 /* RFC 1854/2197 */
 #define ESMTP_ENHSTATUS  0x0010 /* RFC 2034	 */
 #define ESMTP_CHUNKING   0x0020 /* RFC 1830	 */
+#ifdef HAVE_OPENSSL
+#define ESMTP_STARTTLS   0x0040 /* RFC 2487	 */
+#endif /* - HAVE_OPENSSL */
 
 
 # ifdef RFC974
@@ -255,6 +263,11 @@ struct mxdata {
 	struct addrinfo *ai;
 };
 # endif /* RFC974 */
+
+struct smtpdisc {
+  Sfdisc_t D;		/* Sfio Discipline structure		*/
+  void *SS;		/* Ptr to SS context			*/
+};
 
 typedef struct {
   int  ehlo_capabilities;	/* Capabilities of the remote system */
@@ -279,7 +292,7 @@ typedef struct {
 				   one session.. */
 
   Sfio_t *smtpfp;		/* Sfio_t* to the remote host           */
-  Sfdisc_t smtpdisc;		/* Sfio Discipline structure		*/
+  struct smtpdisc smtpdisc;	/* SMTP outstream discipline data	*/
 
   char *smtphost;		/* strdup()ed name of the remote host */
   char *myhostname;		/* strdup()ed name of my outbound interface */
@@ -290,7 +303,7 @@ typedef struct {
   int msize;
 
   int pipelining;		/* Are we pipelining ? */
-  int pipebufsize;		/* Responce collection buffering */
+  int pipebufsize;		/* Response collection buffering */
   int pipebufspace;
   char *pipebuf;
   int pipeindex;		/* commands associated w/ those responses */
@@ -335,6 +348,21 @@ typedef struct {
   char stdinbuf[8192];
   int  stdinsize; /* Available */
   int  stdincurs; /* Consumed  */
+
+  int   sslmode;		/* Set, when SSL/TLS in running */
+#ifdef HAVE_OPENSSL
+  SSL * ssl;
+  SSL_CTX * ctx;
+
+  char *sslwrbuf;
+  int   sslwrspace, sslwrin, sslwrout;
+  /* space, how much stuff in, where the output cursor is */
+#endif /* - HAVE_OPENSSL */
+  char *tls_cipher_info;
+  char *tls_ccert_subject;
+  char *tls_ccert_issuer;
+  char *tls_ccert_fingerprint;
+
 } SmtpState;
 
 extern const char *FAILED;
@@ -398,6 +426,7 @@ extern int  bdat_flush __((SmtpState *SS, int lastflg));
 extern void smtpclose __((SmtpState *SS));
 extern void pipeblockread __((SmtpState *SS));
 extern ssize_t smtp_sfwrite __((Sfio_t *, const void *, size_t, Sfdisc_t *));
+extern int smtp_nbread      __((SmtpState *, void *, int, int));
 
 #if defined(HAVE_STDARG_H) && defined(__STDC__)
 extern void report __((SmtpState *SS, char *fmt, ...));

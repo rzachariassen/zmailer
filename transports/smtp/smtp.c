@@ -49,6 +49,11 @@ int D_alloc = 0;		/* Memory usage debug */
 int no_pipelining = 0;		/* In case the system just doesn't cope with it */
 int prefer_ip6 = 1;
 
+#ifdef HAVE_OPENSSL
+int demand_TLS_mode = 0;	/* Demand TLS */
+int tls_available = 0;		/* local client code running ok */
+#endif /* - HAVE_OPENSSL */
+
 const char *FAILED = "failed";
 time_t now;
 
@@ -143,16 +148,18 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
  *  after 3 minutes delay of sitting here..
  *
  */
-char *
-ssfgets(buf, bufsiz, inpfp, SS)
+
+static char * ssfgets __((char *, int, int, SmtpState *));
+static char *
+ssfgets(buf, bufsiz, infd, SS)
 char *buf;
 int bufsiz;
-Sfio_t *inpfp;
+int infd;
 SmtpState *SS;
 {
 	struct timeval tv;
 	fd_set rdset;
-	int rc, i, infd, oldflags;
+	int rc, i;
 	time_t tmout;
 	char *s;
 
@@ -160,7 +167,6 @@ SmtpState *SS;
 
 	
 	tmout = now + 3*60;
-	infd = sffileno(inpfp);
 
 
 	s = buf;
@@ -187,8 +193,6 @@ outbuf_fillup:
 	SS->stdincurs = 0;
 	SS->stdinsize = 0;
 
-
-	oldflags = fd_nonblockingmode(infd);
 
 	while (!getout) {
 
@@ -223,14 +227,15 @@ outbuf_fillup:
 	    /* Got something to read on 'infd' (or EOF)
 	       .. and we are non-blocking! */
 	    int rdspace = sizeof(SS->stdinbuf) - SS->stdinsize;
+	    fd_nonblockingmode(infd);
 	    rc = read(infd, SS->stdinbuf + SS->stdinsize, rdspace);
+	    fd_blockingmode(infd);
 
 	    if (rc == 0) /* EOF! */
 	      break;
 
 	    if (rc > 0) { /* We have data! */
 	      SS->stdinsize += rc;
-	      fd_blockingmode(infd);
 	      goto outbuf_fillup;
 	    }
 #if 0
@@ -239,8 +244,6 @@ outbuf_fillup:
 #endif
 	  }
 	}
-
-	fd_blockingmode(infd);
 
 	if (s == buf)
 	  return NULL; /* NOTHING received, gotten EOF! */
@@ -292,10 +295,6 @@ main(argc, argv)
 	cmdline = &argv[0][0];
 	eocmdline = cmdline;
 
-#if 0
-& oldsig; /* volatile-like trick.. */ & channel; & host; & smtpstatus; & need_host; & idle; &noMX; & dp; & checkmx; & smtphost; & punthost;
-#endif
-
 	memset(&SS,0,sizeof(SS));
 	SS.main_esmtp_on_banner = -1;
 	SS.servport      = -1;
@@ -320,12 +319,7 @@ main(argc, argv)
 	SIGNAL_HANDLESAVE(SIGHUP, SIG_IGN, oldsig);
 	if (oldsig != SIG_IGN)
 	  SIGNAL_HANDLE(SIGHUP, wantout);
-
-#if 0
-	SIGNAL_HANDLE(SIGPIPE, sig_pipe);
-#else
 	SIGNAL_IGNORE(SIGPIPE);
-#endif
 	SIGNAL_HANDLE(SIGALRM, sig_alarm);
 	timeout = TIMEOUT;
 
@@ -339,7 +333,7 @@ main(argc, argv)
 	SS.remotemsg[0] = '\0';
 	SS.remotehost[0] = '\0';
 	while (1) {
-	  c = getopt(argc, argv, "c:deh:l:p:rsvxDEF:L:HPT:VWZ:678");
+	  c = getopt(argc, argv, "c:deh:l:p:rsvxDEF:L:HPS:T:VWZ:678");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -428,6 +422,12 @@ main(argc, argv)
 	  case '6':
 	    prefer_ip6 = !prefer_ip6;
 	    break;
+	  case 'S':
+#ifdef HAVE_OPENSSL
+	    /* -S /path/to/SmtpSSL.conf */
+	    tls_available = (tls_init_clientengine(&SS, optarg) == 0);
+#endif /* - HAVE_OPENSSL */
+	    break;
 	  default:
 	    ++errflg;
 	    break;
@@ -510,7 +510,7 @@ main(argc, argv)
 	  }
 
 	  /* if (fgets(filename, sizeof(filename), stdin) == NULL) break; */
-	  if (ssfgets(filename, sizeof(filename), stdin, &SS) == NULL)
+	  if (ssfgets(filename, sizeof(filename), FILENO(stdin), &SS) == NULL)
 	    break;
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
@@ -1405,6 +1405,10 @@ const char *buf;
 	  SS->ehlo_capabilities |= ESMTP_CHUNKING;
 	} else if (strcmp(buf,"PIPELINING")==0) {
 	  SS->ehlo_capabilities |= ESMTP_PIPELINING;
+#ifdef HAVE_OPENSSL
+	} else if (strcmp(buf,"STARTTLS")==0) {
+	  SS->ehlo_capabilities |= ESMTP_STARTTLS;
+#endif /* - HAVE_OPENSSL */
 	} else if (strncmp(buf,"SIZE ",5)==0 ||
 		   strcmp(buf,"SIZE") == 0) {
 	  SS->ehlo_capabilities |= ESMTP_SIZEOPT;
@@ -1473,6 +1477,81 @@ smtpopen(SS, host, noMX)
 	    else
 	      sprintf(SMTPbuf, "EHLO %.200s", myhostname);
 	    i = smtp_ehlo(SS, SMTPbuf);
+
+#ifdef HAVE_OPENSSL
+
+	    if ((i == EX_OK) && demand_TLS_mode && tls_available &&
+		!(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
+
+	      /* Whoops! No TLS at the server, while we are configured
+		 to demand it! */
+
+	      i = EX_UNAVAILABLE;
+	      notaryreport(NULL,NULL,"5.7.3 (Mandated TLS security mode not available)",
+			   "local; 500 (Remote system doesn't support mandated TLS mode)");
+	      strcpy(SS->remotemsg,"500 (Remote system doesn't support mandated TLS mode)");
+
+	      continue;
+	    }
+
+	    if ((i == EX_OK) && tls_available &&
+		(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
+
+	      i = smtpwrite(SS, 0, "STARTTLS", 0, NULL);
+	      if (i == EX_OK) {
+		/* Wow, "STARTTLS" command started successfully! */
+		i = tls_start_clienttls(SS, host);
+		if (i != 0) {
+		  /* TLS startup failed :-( */
+		  smtpclose(SS);
+
+		  /* Only if we are configured to *demand* the TLS mode,
+		     then this situation is an error! */
+
+		  if (demand_TLS_mode) {
+		    i = EX_UNAVAILABLE;
+		    notaryreport(NULL,NULL,"5.7.3 (Mandated TLS security mode not available)",
+				 "local; 500 (Remote system doesn't support mandated TLS mode)");
+		    strcpy(SS->remotemsg,"500 (Remote system doesn't support mandated TLS mode)");
+		    
+		    continue;
+		  }
+		  /* Well, TLS startup failed, then just reopen same
+		     server, and don't redo  STARTTLS. */
+		}
+		/* Now re-negotiate the modes, possibly after
+		   reopening the connection.  */
+
+		SS->ehlo_capabilities = 0;
+		SS->ehlo_sizeval = 0;
+		SS->rcpt_limit = 100; /* Max number of recipients per msg */
+
+		if (i != 0) {
+		  SS->esmtp_on_banner = SS->main_esmtp_on_banner;
+		  i = makereconn(SS);
+		} else
+		  i = EX_OK; /* Even if 'EX_OK' is zero.. */
+
+		if (i != EX_OK)
+		  continue;
+
+	      } else {
+		smtpclose(SS); /* D'uh.. restart! */
+
+		SS->esmtp_on_banner = SS->main_esmtp_on_banner;
+		SS->ehlo_capabilities = 0;
+		SS->ehlo_sizeval = 0;
+		SS->rcpt_limit = 100; /* Max number of recipients per msg */
+
+		i = makereconn(SS);
+		if (i != EX_OK)
+		  continue;
+	      }
+	      /* The system *did* successfully respond to EHLO previously,
+		 why would it not do so now ??? */
+	      i = smtp_ehlo(SS, SMTPbuf);
+	    }
+#endif /* - HAVE_OPENSSL */
 	    if (i == EX_TEMPFAIL) {
 	      /* There are systems, which hang up on us, when we
 		 greet them with an "EHLO".. Do here a normal "HELO".. */
@@ -2036,9 +2115,13 @@ makeconn(SS, ai, ismx)
 	      SS->smtpfp = sfnew(NULL, NULL, SS->smtp_bufsize,
 				 mfd, SF_WRITE|SF_WHOLE);
 
-	      /* FIXME: Use here  sfdisc()  to add smart backends! */
-
-	      SS->smtpdisc.writef = smtp_sfwrite;
+	      memset(&SS->smtpdisc, 0, sizeof(SS->smtpdisc));
+	      SS->smtpdisc.D.readf   = NULL;
+	      SS->smtpdisc.D.writef  = smtp_sfwrite;
+	      SS->smtpdisc.D.seekf   = NULL;
+	      SS->smtpdisc.D.exceptf = NULL;
+	      SS->smtpdisc.SS        = SS;
+	      sfdisc(SS->smtpfp, &SS->smtpdisc.D);
 
 	      if (SS->smtpfp == NULL) {
 		int err;
@@ -2302,7 +2385,7 @@ if (SS->verboselog)
 	alarm(0); /* Stop any alarm, just in case ... */
 	gotalarm = 0;
 
-	flg = fd_nonblockingmode(sk);
+	fd_nonblockingmode(sk);
 
 	errnosave = errno = 0;
 
@@ -2346,7 +2429,8 @@ if (SS->verboselog)
 
 	if (!errnosave)
 	  errnosave = errno;
-	fcntl(sk, F_SETFL, flg);
+
+	fd_blockingmode(sk);
 
 #ifdef SO_ERROR
 	flg = 0;
@@ -2854,10 +2938,10 @@ smtp_sync(SS, r, nonblocking)
 	/* Pre-fill  some_ok,  and  datafail  variables */
 	if (SS->rcptstates & RCPTSTATE_OK) /* ONE (or more) of them was OK */
 	  some_ok = 1;
-	if (SS->rcptstates & DATASTATE_400)
-	  datafail = EX_TEMPFAIL;
 	if (SS->rcptstates & DATASTATE_500)
 	  datafail = EX_UNAVAILABLE;
+	if (SS->rcptstates & DATASTATE_400)
+	  datafail = EX_TEMPFAIL;
 
 	if (SS->pipereplies == 0) {
 	  continuation_line = 0;
@@ -2897,22 +2981,10 @@ smtp_sync(SS, r, nonblocking)
 	    }
 	    
 	  reread_line:
-	    if (nonblocking) {
-	      int oldflags = fd_nonblockingmode(infd);
-
-	      err = 0;
-	      len = read(infd,buf,sizeof(buf));
-	      if (len < 0)
-		err = errno;
-
-	      fcntl(infd, F_SETFL, oldflags);
-
-	    } else {
-	      err = 0;
-	      len = read(infd,buf,sizeof(buf));
-	      if (len < 0)
-		err = errno;
-	    }
+	    err = 0;
+	    len = smtp_nbread(SS, buf, sizeof(buf), nonblocking);
+	    if (len < 0)
+	      err = errno;
 	    
 	    if (len < 0) {
 	      /* Some error ?? How come ?
@@ -3155,15 +3227,14 @@ pipeblockread(SS)
 SmtpState *SS;
 {
 	int infd = sffileno(SS->smtpfp);
-	int r;
 	char buf[512];
 
 	/* BLOCKALARM; */
 	if (SS->block_written && has_readable(infd)) {
 	  /* Read and buffer all so far accumulated responses.. */
-	  fd_nonblockingmode(infd);
 	  for (;;) {
-	    r = read(infd, buf, sizeof buf);
+	    /* Do non-blocking */
+	    int r = smtp_nbread(SS, buf, sizeof buf, 1);
 	    if (r <= 0) break; /* Nothing to read ? EOF ?! */
 	    if (SS->pipebuf == NULL) {
 	      SS->pipebufspace = 240;
@@ -3183,7 +3254,6 @@ SmtpState *SS;
 				      and can thus mark this draining
 				      unneeded for a while. */
 	  }
-	  fd_blockingmode(infd);
 	  /* Continue the processing... */
 	}
 	if (SS->pipebufsize != 0)
@@ -3383,9 +3453,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  gotalarm = 0;
 	  r = select(infd+1, &rdset, NULL, NULL, &tv);
 	  if (r == 1) {
-	    int flg = fd_nonblockingmode(infd);
-	    r = read(infd, (char*)cp, sizeof(buf) - (cp - buf));
-	    fcntl(infd, F_SETFL, flg);
+	    r = smtp_nbread(SS, (char*)cp, sizeof(buf) - (cp - buf), 1);
 	  } else {
 	    if (r == 0)
 	      gotalarm = 1;
@@ -4169,14 +4237,3 @@ void getdaemon()
 	if (!pw) daemon_uid = 0; /* Let it be root, if nothing else */
 	else     daemon_uid = pw->pw_uid;
 }
-
-ssize_t smtp_sfwrite(sfp, p, len, discp)
-     Sfio_t *sfp;
-     const void * p;
-     size_t len;
-     Sfdisc_t *discp;
-{
-  /* FIXME: Must be changed for SSL/TLS streams! */
-  return write(sffileno(sfp), p, len);
-}
-

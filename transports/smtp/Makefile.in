@@ -15,11 +15,11 @@ TOPDIR=		../..
 MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
-SMTP_LIB=	@LIBRESOLV@ @LIBSOCKET@
-SMTP_INCL=	@GENINCL@ @INCLRESOLV@
+SMTP_LIB=	@LIBRESOLV@ @OPENSSLLIB@  @LIBSOCKET@
+SMTP_INCL=	@GENINCL@   @OPENSSLINCL@ @INCLRESOLV@
 #
-SOURCE=		smtp.c appendlet.c
-OBJS=		smtp.o appendlet.o
+SOURCE=		smtp.c appendlet.c smtptls.c
+OBJS=		smtp.o appendlet.o smtptls.o
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTP_INCL)
 LIBMALLOC=	@LIBMALLOC@
@@ -45,7 +45,8 @@ mprobe:	mprobe.o version.o $(LIBDEB)
 version.c:	$(OBJS) $(TOPDIR)/Makefile
 	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
 
-smtp.o: $(srcdir)/smtp.c $(srcdir)/smtp.h
+smtp.o:      $(srcdir)/smtp.c $(srcdir)/smtp.h
+smtptls.o:   $(srcdir)/smtptls.c $(srcdir)/smtp.h
 appendlet.o: $(srcdir)/appendlet.c $(srcdir)/smtp.h
 
 install:	$(PROGRAM) mprobe
