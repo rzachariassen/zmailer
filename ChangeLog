@@ -1,3 +1,11 @@
+2003-04-07  Matti Aarnio  <mea@zmailer.org>
+
+	* lib/sleepycatdb.c:
+	    Eugene Crosser noted, that this file fails to compile,
+	    when no SleepyCat DB is available in the compilation
+	    environemnt.  Oops!  Adding couple conditionals to
+	    appease the compiler...
+
 2003-04-06  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/sleepycatdb.c:
