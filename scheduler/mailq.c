@@ -941,11 +941,14 @@ if (debug)
 	    /* Pick each vertex reference */
 
 	    ++cp;		/* skip the first '>' */
-	    while (*cp != '\0' && isascii(*cp) && isdigit(*cp)) {
+	    while (*cp && isascii(*cp) && isdigit(*cp)) {
+	      int c;
 	      ocp = cp;
-	      while (isascii(*cp) && isdigit(*cp))
+	      while (*cp && isascii(*cp) && isdigit(*cp))
 		++cp;
-	      *cp++ = '\0';
+	      c = *cp;
+	      *cp = '\0';
+	      if (c) ++cp;
 
 if (debug)
   fprintf(stderr," - '%s'\n",ocp);
