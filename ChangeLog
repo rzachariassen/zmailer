@@ -1,5 +1,13 @@
 1998-06-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in, ChangeLog:
+	    Version 2.99.50-s5 -- are we now safe ??
+
+	* transports/mailbox/mailbox.c:
+	    Added a bit earlier test for "user" /dev/null so that
+	    that target can be "delivered" to without privilege
+	    check.
+	
 	* router/rfc822.c:
 	    More gymnastics on getting the possibly missing "From: "
 	    header generated in all possible situations.

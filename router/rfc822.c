@@ -1615,42 +1615,14 @@ sequencer(e, file)
 			    }
 			  }
 			} else {
-#if 0
-			  nh = copySender(e);
-			  if (nh == NULL) {
-			    /* No "From:", but do have "from " envelope,
-			       and no "channel " envelope. */
 
-			    int hlen = 0;
-			    const char *line = (oh->h_lines ? oh->h_lines->t_pname : NULL);
-			    char *ss;
-			    if (!line) {
-			      if (oh->h_contents.a &&
-				  oh->h_contents.a->a_tokens &&
-				  oh->h_contents.a->a_tokens->p_tokens) {
-				line = oh->h_contents.a->a_tokens->p_tokens->t_pname;
-			      }
-			    }
-			    hlen = strlen(line);
-#if 1
-			    nh = mkSender(e, line, 0);
-#else
-			    ss = (char*)tmalloc(10+hlen);
-			    sprintf(ss,"From: <%s>", line);
+			  /* We make a copy of eFrom envelope header
+			     to be our new  From:  header */
 
-			    nh = makeHeader(spt_headers, ss, 4);
-			    nh->h_lines = makeToken(ss+5,strlen(ss+5));
-			    nh->h_lines->t_type = Line;
-			    nh->h_contents = hdr_scanparse(e, nh, 0, 0);
-			    nh->h_stamp = hdr_type(nh);
-#endif
-			  }
-#else
 			  nh = makeHeader(spt_headers, "From", 4);
 			  nh->h_lines    = oh->h_lines;
 			  nh->h_contents = oh->h_contents;
 			  nh->h_stamp    = hdr_type(nh);
-#endif
 			  
 			  FindHeader("to",e->e_resent);
 			  if (h == NULL) {
