@@ -433,7 +433,7 @@ int insecure;
 	++cp;
 	while (*cp == ' ' || *cp == '\t') ++cp;
 	s = rfc821_path2(cp, 0);
-	if (s == cp) {
+	if (s == cp && *s != '>') {
 	  /* Failure.. ? */
 	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
 	  return;
