@@ -59,12 +59,10 @@ world looks like. The {\em mailq (1)\/} program serves this purpose.
 
 Invoking {\em scheduler\/} without any parameter will start it as a daemon.
 
-\begin{tscreen}
 \begin{verbatim}
 scheduler [-divFHQSVW] [-f configfile] [-E newentsmax] [-Llogfile] [-lstatisticslog]
 [-Ntranspmaxfno] [-P postoffice] [-R maxforkfreq] [-q rendezvous]
 \end{verbatim}
-\end{tscreen}
 
 
 {\bf Parameters}
@@ -176,7 +174,6 @@ address. When a clause pattern matches an address, the parameters set in
 the clause will be applied to the {\em scheduler\/}'s processing of 
 that address. If the clause specifies a command, the clause pattern 
 matching sequence is terminated. This is a clause:
-\begin{tscreen}
 \begin{verbatim}
 local/* interval=10s
         expiry=3h
@@ -186,7 +183,6 @@ local/* interval=10s
         maxring=20
         command="mailbox -8"
 \end{verbatim}
-\end{tscreen}
 
 
 A clause consists of:
@@ -282,41 +278,29 @@ spot and continue towards the end. This allows various retry strategies to be
 specified easily:
 \begin{itemize}
 \item brute force (or "jackhammer"):
-\begin{tscreen}
 \begin{verbatim}
 retries=0
 \end{verbatim}
-\end{tscreen}
 \item constant primary interval:
-\begin{tscreen}
 \begin{verbatim}
 retries=1
 \end{verbatim}
-\end{tscreen}
 \item instant backoff:
-\begin{tscreen}
 \begin{verbatim}
 retries="1 50 50 50 50 50 50 50 50 50 50 50 50"
 \end{verbatim}
-\end{tscreen}
 \item slow increasing (fibonacci) sequence:
-\begin{tscreen}
 \begin{verbatim}
 retries="1 1 2 3 5 8 13 21 34"
 \end{verbatim}
-\end{tscreen}
 \item s-curve sequence:
-\begin{tscreen}
 \begin{verbatim}
 retries="1 1 2 3 5 10 20 25 28 29 30"
 \end{verbatim}
-\end{tscreen}
 \item exponential sequence:
-\begin{tscreen}
 \begin{verbatim}
 retries="1 2 4 8 16 32 64 128 256"
 \end{verbatim}
-\end{tscreen}
 \item etc.
 \end{itemize}
 
@@ -426,7 +410,6 @@ at the arrival of a message, instead it must be started by means of
 
 
 For example, this is a complete configuration file:
-\begin{tscreen}
 \begin{verbatim}
 # Default values
 */*     interval=1m expiry=3d retries="1 1 2 3 5 8 13 21 34"
@@ -443,7 +426,6 @@ smtp/*  maxchannel=10 maxring=5
         command="smtp -esrl /var/log/smtp"
 uucp/*  maxchannel=5 command="sm -c $channel uucp"
 \end{verbatim}
-\end{tscreen}
 
 The first clause ({\tt */*}) sets up default values for all
 addresses. There is no command specification, so clause matching
@@ -528,12 +510,10 @@ the  following  format  and immediately closes the connec-
 tion:
 
 The TCP stream syntax is:
-\begin{tscreen}
 \begin{verbatim}
 version id\n
 data in id-dependent format<close>
 \end{verbatim}
-\end{tscreen}
 
 
 The first line (all bytes up to an ASCII LF character,
@@ -549,7 +529,6 @@ Format identifiers should be registered with the author.
 The only one currently defined is {\tt zmailer 1.0}. For that
 data format, the syntax of the data following the first LF
 is:
-\begin{tscreen}
 \begin{verbatim}
 Vertices:\n
 (<key>:\t><msg-file>\t><n-addrs>; <off1>(,<offN>)*\t>[#<text>]\n)*
@@ -558,7 +537,6 @@ Vertices:\n
 Hosts:\n
 (<word>:\t>(><key>)+\n)+)?
 \end{verbatim}
-\end{tscreen}
 
 Where:
 \begin{description}
@@ -606,7 +584,6 @@ printable non-space characters
 
 For example, here is sample output from connecting to  the
 MAILQ port:
-\begin{tscreen}
 \begin{verbatim}
 version zmailer 1.0
 Vertices:
@@ -620,7 +597,6 @@ scg.toronto.edu:>311424
 mv04.ecf.toronto.edu:>311680
 relay1.cs.net:>312192
 \end{verbatim}
-\end{tscreen}
 
 
 This is sufficient information to be able to reconstruct
@@ -628,9 +604,6 @@ the transport queues as seen by the scheduler process, and
 to find more information than what is shown here by 
 actually  looking  up  the  message     control  and  data  files
 referred to.
-
-
-
 
 \subsubsection{Security Issues}
 

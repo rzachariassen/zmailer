@@ -1,5 +1,6 @@
 %% \subsection{Router}
 
+
 The {\em router\/} daemon makes all decisions affecting 
 the processing of messages in ZMailer.
 
@@ -28,13 +29,11 @@ script, as in {\tt zmailer router}. This will start the
 {\em router\/} as a daemon and  kill the previous 
 incarnation of the {\em router\/}. 
 
-\begin{tscreen}
 \begin{verbatim}
 router [ -diksSV ] [ -f configfile ] [ -n #routers ] [ -o 
 zmshoptions ] [ -t traceflag ] [ -L logfile ] [ -P postof-
 fice ] 
 \end{verbatim}
-\end{tscreen}
  
 
 {\bf Parameters}
@@ -106,27 +105,21 @@ Print version message and run interactively.
  
 
 To restart a {\em router\/} daemon: 
-\begin{tscreen}
 \begin{verbatim}
          router -dk
 \end{verbatim}
-\end{tscreen}
 
 
 To test an address, start up an interactive session: 
-\begin{tscreen}
 \begin{verbatim}
          router -i
 \end{verbatim}
-\end{tscreen}
 
 
 or if the ZMailer {\em sendmail(8)\/} is installed: 
-\begin{tscreen}
 \begin{verbatim}
          sendmail -bt
 \end{verbatim}
-\end{tscreen}
 
 
 Then just use the pre-defined functions.
@@ -174,11 +167,9 @@ prior to the execution of a command and its I/O setup.
 
 {\bf Usage}
 
-\begin{tscreen}
 \begin{verbatim}
 zmsh [ -CILOPRSYaefhinstuvx ] [ -c command ] [ script ...] 
 \end{verbatim}
-\end{tscreen}
 
 
 {\bf Parameters}
@@ -908,7 +899,7 @@ other purpose.
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt db \{ add{\verbar}flush{\verbar}owner{\verbar}print{\verbar}remove{\verbar}toc \} [database [key [value]]]}
+{\tt db \{ $add\|flush\|owner\|print\|remove\|toc$ \} [database [key [value]]]}
 
 
 
@@ -968,7 +959,6 @@ entries and maximum size, flags, and associated files. See the
 
 \item[{\bf Notes:}] \mbox{}
 
-\begin{tscreen}
 \begin{verbatim}
         DBType        add    flush   owner   print   remove
         ------        -------------------------------------
@@ -984,7 +974,6 @@ entries and maximum size, flags, and associated files. See the
         yp            no     no      yes     yes     no
         btree         yes    yes     yes     yes     yes
 \end{verbatim}
-\end{tscreen}
 
 
 \end{description}
@@ -2015,7 +2004,7 @@ none
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt recase [-u {\verbar} -l {\verbar} -p] string}
+{\tt recase [-u $\|$ -l $\|$ -p] string}
 
 \item[{\bf Return Values:}] \mbox{}
 
@@ -2108,13 +2097,11 @@ is a recipient address in a message header''.
 
 Options are listed below. {\tt name} is the name of the relation
 that is wanted to be created. Examples:
-\begin{tscreen}
 \begin{verbatim}
 relation -t bind,mx mxhost
 relation -t ordered -f $MAILVAR/db/routes routes
 relation -t ordered -b -f /usr/lib/news/active.sorted newsgroups
 \end{verbatim}
-\end{tscreen}
 
 
 
@@ -2821,7 +2808,7 @@ indicate what to do to toggle the event flag.
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt stability [on {\verbar} off]}
+{\tt stability [on $\|$ off]}
 
 \item[{\bf Return Values:}] \mbox{}
 

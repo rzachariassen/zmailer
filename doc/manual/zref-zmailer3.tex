@@ -1,7 +1,6 @@
 %% \subsection{zmailer(3)}
 
 {\bf Usage}
-\begin{tscreen}
 \begin{verbatim}
 #include <stdio.h>
 #include <zmailer.h>
@@ -22,7 +21,6 @@ int mail_free(char *);
 
 char *mail_host();
 \end{verbatim}
-\end{tscreen}
 
 
 At linkage time use {\tt -lzmailer}.
@@ -107,7 +105,6 @@ information separate from message (RFC-822) headers, and body.
 At first the message starts with a set of envelope headers 
 (*-prefix denotes optional):
 
-\begin{tscreen}
 \begin{verbatim}
  *external \n
  *rcvdfrom %s@%s (%s) \n
@@ -115,39 +112,31 @@ At first the message starts with a set of envelope headers
  *with %s \n
  *identinfo %s \n
 \end{verbatim}
-\end{tscreen}
 
 Either: {\tt from \%lt;\%s{\(>\)} \(\backslash\)n} Or: {\tt channel error \(\backslash\)n}
-\begin{tscreen}
 \begin{verbatim}
  *envid %s \n
  *notaryret %s \n
 \end{verbatim}
-\end{tscreen}
 
 
 Then for each recipient pairs of:
-\begin{tscreen}
 \begin{verbatim}
  *todsn [NOTIFY=...] [ORCPT=...] \n
  to <%s> \n
 \end{verbatim}
-\end{tscreen}
 
 
 Just before the data starts, a magic entry:
-\begin{tscreen}
 \begin{verbatim}
  env-end \n
 \end{verbatim}
-\end{tscreen}
 
 
 Then starts the message RFC-822 headers, and below it, the body.
 
 {\bf Example}
 
-\begin{tscreen}
 \begin{verbatim}
  ... set up signal handlers ...
  FILE *mfp = mail_open(MSG_RFC822,0);
@@ -161,7 +150,6 @@ Then starts the message RFC-822 headers, and below it, the body.
  else if (mail_close(mfp) == EOF)
       ... error handling if something went wrong ...
 \end{verbatim}
-\end{tscreen}
 
 
 {\bf Environment variables}

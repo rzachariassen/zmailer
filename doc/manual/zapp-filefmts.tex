@@ -1,4 +1,4 @@
-%% \section{Internal File Data Formats}
+%% \subsection{Internal File Data Formats}
 
 \subsection{Message File Format}
 
@@ -44,7 +44,6 @@ information separate from message (RFC-822) headers, and body.
 At first the message starts with a set of envelope headers 
 (*-prefix denotes optional):
 
-\begin{tscreen}
 \begin{verbatim}
  *external \n
  *rcvdfrom %s@%s (%s) \n
@@ -52,40 +51,30 @@ At first the message starts with a set of envelope headers
  *with %s \n
  *identinfo %s \n
 \end{verbatim}
-\end{tscreen}
 
 Either:
-\begin{tscreen}
 \begin{verbatim}
    from <%s> \n
 \end{verbatim}
-\end{tscreen}
 
 Or:
-\begin{tscreen}
 \begin{verbatim}
    channel error \n
  *envid %s \n
  *notaryret %s \n
 \end{verbatim}
-\end{tscreen}
 
 
 Then for each recipient pairs of:
-\begin{tscreen}
 \begin{verbatim}
  *todsn [NOTIFY=...] [ORCPT=...] \n
  to <%s> \n
 \end{verbatim}
-\end{tscreen}
-
 
 Just before the data starts, a magic entry:
-\begin{tscreen}
 \begin{verbatim}
  env-end \n
 \end{verbatim}
-\end{tscreen}
 
 
 Then starts the message RFC-822 headers, and below it, the body.
@@ -181,20 +170,17 @@ the fields that require it.
 
 With this knowledge, we can now appreciate the minimal message file:
 
-\begin{tscreen}
 \begin{verbatim}
      --------------------
      to bond
      
      --------------------
 \end{verbatim}
-\end{tscreen}
 
 
 This will cause an empty message to be sent to {\tt bond}.  A slightly more
 sophisticated version is:
 
-\begin{tscreen}
 \begin{verbatim}
      --------------------
      from m
@@ -208,13 +194,11 @@ sophisticated version is:
      You are working for the Government, remember?
      --------------------
 \end{verbatim}
-\end{tscreen}
 
 
 Notice that there is no delimiter between the message envelope and the
 message header.  A more sophisticated example in the same vein:
 
-\begin{tscreen}
 \begin{verbatim}
      --------------------
      from ps/d-ops
@@ -230,7 +214,6 @@ message header.  A more sophisticated example in the same vein:
      We have another madman on the loose.  Contact "Q" for usual routine.
      --------------------
 \end{verbatim}
-\end{tscreen}
 
 
 If the {\tt Classification} header is paid attention to in ZMailer, this
@@ -242,7 +225,6 @@ superfluous, since the same information is contained in the message header.
 Using the following envelope headers would be exactly equivalent to using
 the ones shown above (assuming the local host is {\tt sis.mod.uk}):
 
-\begin{tscreen}
 \begin{verbatim}
      --------------------
      From Moneypenny <ps/d-ops@sis.mod.uk>
@@ -250,7 +232,6 @@ the ones shown above (assuming the local host is {\tt sis.mod.uk}):
      ...
      --------------------
 \end{verbatim}
-\end{tscreen}
 
 
 ZMailer will extract the appropriate address information from whatever the
@@ -314,7 +295,6 @@ flag), followed by the field value.
 Here is a simple control file produced by a test message, just before it
 was removed by the Scheduler:
 
-\begin{tscreen}
 \begin{verbatim}
      --------------------
      i 24700
@@ -343,13 +323,11 @@ was removed by the Scheduler:
      
      --------------------
 \end{verbatim}
-\end{tscreen}
 
 
 The id character values are defined in the {\tt mail.h} system header file,
 which currently contains:
 
-\begin{tscreen}
 \begin{verbatim}
      
 #define _CF_MESSAGEID   'i'     /* inode number of file containing message */
@@ -370,7 +348,6 @@ which currently contains:
 #define _CF_TURNME      'T'     /* trigger scheduler to attempt delivery now */
 #define _CF_RCVFROM     'F'     /* Where-from we are coming ? */               
 \end{verbatim}
-\end{tscreen}
 
 
 There is one field per line, except for {\tt \_CF\_MSGHEADERS} which  has
@@ -386,11 +363,9 @@ Agents when copying the message body, and by the Scheduler when
 unlinking the file after all the destination addresses have been
 processed.  For example:
 
-\begin{tscreen}
 \begin{verbatim}
           i 21456
 \end{verbatim}
-\end{tscreen}
 
 
 {\tt o}     
@@ -398,12 +373,9 @@ Specifies the byte offset of the message body in the message file.  It
 is used by Transport Agents in order to copy the message body quickly,
 without parsing the message file.  For example:
 
-\begin{tscreen}
 \begin{verbatim}
-     
           o 466
 \end{verbatim}
-\end{tscreen}
 
 
 {\tt b}     
@@ -413,11 +385,9 @@ Alternate message file for new body.
 Gives an address to which delivery errors should be sent.  The address
 must be an RFC822 mailbox.  For example:
 
-\begin{tscreen}
 \begin{verbatim}
           e "Operations Directorate" <d-ops@sis.mod.uk>
 \end{verbatim}
-\end{tscreen}
 
 
 {\tt l}     
@@ -425,11 +395,9 @@ The field value is an uninterpreted string which should prefix all log
 messages and accounting records associated with this message.  This
 value is typically the message id string.  For example:
 
-\begin{tscreen}
 \begin{verbatim}
           l <88Jan6.103158gmt.24694@sis.mod.uk>
 \end{verbatim}
-\end{tscreen}
 
 
 {\tt s}     
@@ -441,12 +409,10 @@ the field will correspond to different return address formats as
 produced by the {\tt crossbar} algorithm in the {\em router\/}.
 For example:
 
-\begin{tscreen}
 \begin{verbatim}
           s smtp sis.mod.uk @lab.sis.mod.uk:q@deadly-sun.lab.sis.mod.uk
           s uucp sisops lab.sis.mod.uk!deadly-sun.lab.sis.mod.uk!q
 \end{verbatim}
-\end{tscreen}
 
 
 {\tt r}     
@@ -459,12 +425,10 @@ interpreted by the Transport Agent, changes in what the {\em router\/} writes
 must be coordinated with the code of the Transport Agents that might
 interpret this field.  For example:
 
-\begin{tscreen}
 \begin{verbatim}
           r local - bond 0
           r uucp uunet sisops!bond -2
 \end{verbatim}
-\end{tscreen}
 
 
 {\tt R}
@@ -491,14 +455,12 @@ terminates this field.  In the following example, the last line of
 text is followed by an empty line, after which another field may
 start:
 
-\begin{tscreen}
 \begin{verbatim}
           m
           From: M
           To: Bond
           Subject: do get a receipt, 007!
 \end{verbatim}
-\end{tscreen}
 
 
 {\tt d}     
@@ -511,11 +473,9 @@ discover these errors and report them to the Scheduler.  The Scheduler
 will collect them and report them to the error return address (if any)
 after all the destinations have been processed.
 For example:
-\begin{tscreen}
 \begin{verbatim}
           d 878 No such local user: 'bond'.
 \end{verbatim}
-\end{tscreen}
      
 
 {\tt x}
@@ -542,7 +502,6 @@ that indicate current or previous activity.  The fields where this is
 relevant are the destination (recipient) address and diagnostic fields.
 The tag values are defined in the `mail.h' file mentioned previously, as
 follows:
-\begin{tscreen}
 \begin{verbatim}
      #define _CFTAG_NORMAL ' ' /* what the router sets it to be */
      #define _CFTAG_LOCK   '~' /* that line is being processed, lock it */
@@ -550,7 +509,6 @@ follows:
      #define _CFTAG_NOTOK  '-' /* something went wrong */
      #define _CFTAG_DEFER  _CFTAG_NORMAL /* try again later */
 \end{verbatim}
-\end{tscreen}
 
 The extract above is self-explanatory.
 
@@ -583,7 +541,6 @@ finished, the TA notifies the scheduler that it is ready for
 a new job.
 
 A short sample session looks like this:
-\begin{tscreen}
 \begin{verbatim}
 (start the transport agent)
 #hungry --> (TA to scheduler)
@@ -592,14 +549,11 @@ diagnostics --> (TA to scheduler)
 #hungry <-- (scheduler to TA)
 ...
 \end{verbatim}
-\end{tscreen}
 
 Normal diagnostic output is of the form:
-\begin{tscreen}
 \begin{verbatim}
 id/offset\tnotarydata\tstatus message
 \end{verbatim}
-\end{tscreen}
 
 where
 \begin{description}
@@ -640,11 +594,7 @@ The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
 
 
 
-
-
-
 \subsection{Database File Formats}
-
 
 
 
@@ -652,7 +602,6 @@ The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
 
 
 
-\begin{tscreen}
 \begin{verbatim}
 postmaster: root
 postoffice: root
@@ -678,8 +627,6 @@ junk-trap: /dev/null
 #test-gw: "|/..."
 #test.gw: "|/..."
 \end{verbatim}
-\end{tscreen}
-
 
 Doing expansion lists in {\em sendmail\/} style is not suggested, although
 we certainly can do it.  There is a better mechanism in the ZMailer
@@ -690,7 +637,6 @@ This directory must have protection of 2775 or stricter, and the listfile
 must have protection of 664 or stricter for *-request/owner-*/*-owner
 auto-aliases to work. -- but to {\em sendmail\/} style lists:
 
-\begin{tscreen}
 \begin{verbatim}
 listname: "/usr/lib/sendmail -fowner-listname listname-dist"
 owner-listname: root # Well, what would you suggest for a sample ?
@@ -698,5 +644,3 @@ listname-owner: owner-listname
 listname-request: root
 listname-dist: ":include:/dev/null"
 \end{verbatim}
-\end{tscreen}
-

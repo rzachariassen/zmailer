@@ -1,12 +1,4 @@
-\begin{htmlonly}
-\documentclass{article}
-\usepackage{html,htmllist,makeidx,longtable}
-\include{manhtml.tex}
-\include{zlat2html.tex}
-\section{Tutorial}
-\include{ztutorial.ptr}    % Input counters and section
-\end{htmlonly}
-\startdocument
+%% \section{Tutorial}
 
 \subsection{Introduction to Email}
 
@@ -88,21 +80,18 @@ while MHS includes MTS and UA functionality (UAs, MSs and AUs).
 
 
 A graphical example of the messaging model is shown in figure 
-\ref{msgmodl}, page \pageref{msgmodl}. It 
-shows the relationships between different elements of the model.
+\ref{msgmodl}.
+%begin{latexonly}
+(Page \pageref{msgmodl}.)
+%end{latexonly}
+It shows the relationships between different elements of the model.
 
-\begin{figure}[tbp]
-  \htmlimage{}
-  \htmlborder{1}
-  \centering\includegraphics{./msgmodl.eps}
+\begin{figure}
+  \htmlimage{noantialias,transparent}
+  \htmlborder{2}
+  \centering\includegraphics[width=\textwidth]{msgmodl.eps}
   \caption{\label{msgmodl}A graphical example of the messaging model.}
 \end{figure}
-
-
-
-
-
-
 
 
 As can be seen, a user may use more than one UA, and a UA can be connected 
@@ -117,6 +106,7 @@ than one bodypart (for example some MIME messages) the different body
 parts are all part of the outermost bodypart.
 
 Normally a message looks roughly like this:
+
 \begin{verbatim}
   Headers
         From:   The Manager
@@ -132,6 +122,7 @@ Normally a message looks roughly like this:
 \end{verbatim}
 
 In a more complex case the structure of a message might be something like this:
+
 \begin{verbatim}
   Headers
   Body
@@ -169,16 +160,17 @@ This is a sure recipe for trouble.
 
 
 Graphically, the way a message should be dealt with is shown 
-in figure \ref{msgrout}, page \pageref{msgrout}.
-
-\begin{figure}[tbp]
-  \htmlimage{}
-  \htmlborder{1}
-  \centering\includegraphics{./msgrout.eps}
-\caption{\label{msgrout}How a message should be handled. }
+in figure
+%begin{latexonly}
+ \ref{msgrout}, page \pageref{msgrout}.
+%end{latexonly}
+\begin{figure}
+  \htmlimage{noantialias,transparent}
+  \htmlborder{2}
+  \centering
+  \includegraphics[width=\textwidth]{msgrout.eps}
+  \caption{ \label{msgrout} How a message should be handled.}
 \end{figure}
-
-
 
 The user creates the message with the help of a UA. How the interaction 
 is arranged is a local matter. Once the message has been prepared, 
@@ -202,8 +194,8 @@ piece of software, it is also the reason for many problems, as it has
 blurred the line between MTA and UA. Sendmail is clearly an MTA, but 
 it also performs many of the UA level functions, like handling of 
 {\tt .forward} files. This behaviour has become the de-facto standard 
-way for UNIX MTAs to behave, making it necessary for any MTA, including ZMailer, 
-to behave the same way.
+way for UNIX MTAs to behave, making it necessary for any MTA, including
+ZMailer, to behave the same way.
 
 
 
@@ -211,7 +203,7 @@ to behave the same way.
 
 
 
-As MTAs only deal with envelopes, all routing and delivery decisions have to be 
+As MTAs only deal with envelopes, all routing and delivery decisions have to be
 based on information available on the envelope. It follows from this that 
 the envelope and headers may contain conflicting information. This is normal, 
 and is not a cause for worry.
@@ -345,7 +337,7 @@ We look closer into these issues at latter parts of this document,
 but now it is sufficient to tell, that the principal tool for active
 monitoring of the system health is command:
 \begin{verbatim}
-mailq -ss
+  mailq -ss
 \end{verbatim}
 
 which does tell, if router, or scheduler are up and about, or not,
@@ -354,7 +346,7 @@ and also does tell about the sizes of the different sub-spools.
 The general management interface for starting and stopping different
 subsystems is command
 \begin{verbatim}
-zmailer
+  zmailer
 \end{verbatim}
 
 which the system installs into {\tt \$MAILBIN/} directory, and which command usually needs a symlink to itself from some more common location for
@@ -369,11 +361,11 @@ Basically the administration is as follows:
 \begin{itemize}
 \item At system startup (to start all subsystems):
 \begin{verbatim}
-zmailer
+  zmailer
 \end{verbatim}
 \item At system shutdown (to kill all subsystems):
 \begin{verbatim}
-zmailer kill
+  zmailer kill
 \end{verbatim}
 \end{itemize}
 
@@ -381,19 +373,19 @@ There is also a way to make sure the system will not let the ZMailer
 to start at the system startup, because you have some massive work
 going on, and the system is not in condition to accept email for a while: 
 \begin{verbatim}
-zmailer freeze
+  zmailer freeze
 \end{verbatim}
 
 and the antidote for the ``freeze'' is, naturally:
 \begin{verbatim}
-zmailer thaw
+  zmailer thaw
 \end{verbatim}
 
 Normal operations can not be started at ``frozen'' system without ``thawing'' it at first.
 
 The user-visible component of the ZMailer is (for de-facto interface)
 \begin{verbatim}
-/usr/lib/sendmail
+  /usr/lib/sendmail
 \end{verbatim}
 
 (a.k.a.) {\tt /usr/sbin/sendmail}
@@ -443,7 +435,8 @@ expressions. This production rule approach is similar to what Sendmail
 does, but uses a more familiar mechanism and environment.
 
 The final, and most recently developed, mailer worth mentioning here is
-{\bf Smail3.0}. It is intended as a program capable of replacing Sendmail in many
+{\bf Smail3.0}.
+It is intended as a program capable of replacing Sendmail in many
 situations. To a large extent it succeeds as this, and there are some nice
 ideas involved as well. Its two major drawbacks are that it is not as easy
 to adapt to local needs as Sendmail is (compiled instead of interpreted

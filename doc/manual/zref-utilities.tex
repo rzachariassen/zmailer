@@ -1,5 +1,6 @@
 %% \subsection{Utilities}
 
+
 There is considerable collection of various utilities in the
 ZMailer package. Not all of them even become installed into
 your system in all situations.
@@ -24,11 +25,9 @@ have one) in your home directory containing the message you want to send
 people who send you mail, and a {\tt .forward} file in your home 
 directory containing a line of the form:
 
-\begin{tscreen}
 \begin{verbatim}
 "\name", "|/opt/mail/bin/vacation name"
 \end{verbatim}
-\end{tscreen}
 
 
 where name is your login name. Make sure these files and your home 
@@ -89,14 +88,12 @@ disables the list of senders kept in the
 
 {\bf Example}
 
-\begin{tscreen}
 \begin{verbatim}
 Subject: I am on vacation
 
 I am on vacation until July 22. If you have something urgent, please 
 contact Joe Jones (joe@blah.utoronto.ca). --john
 \end{verbatim}
-\end{tscreen}
 
 
 No message is sent if the ``user'' specified in the vacation  
@@ -139,11 +136,9 @@ the length is {\tt strlen(string)+1}, not {\tt strlen(string)} !
 
 WARNING: Policy data parsing does use unchecked buffers!
 
-\begin{tscreen}
 \begin{verbatim}
 Usage: makedb [-a|-p] dbtype database.name [infilename|-]
 \end{verbatim}
-\end{tscreen}
 
 
 Dbtypes are: {\tt ndbm gdbm btree bhash}
@@ -188,11 +183,9 @@ The way the ZMailer uses DBM entries is by using strings with
 their terminating {\tt NULL} as keys, and as data.. Thus the 
 length is {\tt strlen(string)+1}, not {\tt strlen(string)} !
 
-\begin{tscreen}
 \begin{verbatim}
 Usage: dblook [-dump] dbtype database.name [key]
 \end{verbatim}
-\end{tscreen}
 
 
 Dbtypes are: {\tt ndbm gdbm btree bhash}
@@ -228,7 +221,6 @@ into the actual db file names.
 
 
 
-\begin{tscreen}
 \begin{verbatim}
 #! /bin/sh
 #
@@ -320,7 +312,6 @@ esac
 
 exit 0
 \end{verbatim}
-\end{tscreen}
 
 
 
@@ -333,11 +324,9 @@ exit 0
 The {\em autoanswer\/} program is intended to be placed into
 system global aliases database as following entry:
 
-\begin{tscreen}
 \begin{verbatim}
 autoanswer:  "| /path/to/MAILBIN/autoanswer"
 \end{verbatim}
-\end{tscreen}
 
 
 It yields a reply message for all, except the error messages, nor
@@ -349,7 +338,6 @@ message body along with some commentary texts.
 The program is, in reality, a perl script which can easily be tuned
 to local needs.
 
-\begin{tscreen}
 \begin{verbatim}
 #!@PERL@
 
@@ -456,10 +444,6 @@ sub LOG {
         close LOGf;
 }
 \end{verbatim}
-\end{tscreen}
-
-
-
 
 
 \subsubsection{newdb}
@@ -474,11 +458,9 @@ parameter {\tt -m} to work correctly.
 
 {\bf Usage}
 
-\begin{tscreen}
 \begin{verbatim}
 newdb /db/path/name [input-file-name]
 \end{verbatim}
-\end{tscreen}
 
 
 This script uses system {\tt ZCONFIG} file to find out the desired
@@ -487,12 +469,9 @@ variable.
 
 Suffix selection rules are:
 
-\begin{tscreen}
 \begin{verbatim}
 dbm     .pag and .dir
 ndbm    .pag and .dir
 gdbm    .gdbm
 btree   .db   
 \end{verbatim}
-\end{tscreen}
-

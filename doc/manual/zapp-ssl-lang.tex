@@ -1,4 +1,4 @@
-%% \section{S/SL Language}
+%% \subsection{S/SL Language}
 
 The information in this appendix is based on 
 ``Specification of S/SL: Syntax/Semantic Language'' by 
@@ -80,7 +80,7 @@ Since  not all of the special characters used in S/SL are
 available on all machines,  the  following  alternatives  to
 special characters are allowed.
 \begin{itemize}
-\item {\tt !} for {\tt {\verbar}}
+\item {\tt !} for {\tt $\|$}
 \item {\tt DO} for {\tt \{}
 \item {\tt OD} for {\tt \}}
 \item {\tt IF} for {\tt [}
@@ -116,7 +116,6 @@ An S/SL program consists of a set of definitions followed
 by a set of rules.
 
 A program is:
-\begin{tscreen}
 \begin{verbatim}
         [inputDefinition]               [outputDefinition]
         [inputOutputDefinition]
@@ -124,44 +123,31 @@ A program is:
         RULES                           {rule}             
         END
 \end{verbatim}
-\end{tscreen}
-
-
-
 
 
 \subsubsection{Input and Output Definitions}
 
 An {\tt inputDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
         INPUT   ":"                      {tokenDefinition} ";"
 \end{verbatim}
-\end{tscreen}
-
 
 An {\tt outputDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
         OUTPUT  ":"                      {tokenDefinition} ";"
 \end{verbatim}
-\end{tscreen}
 
 
 An {\tt inputOutputDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
          INPUT OUTPUT ":"        {tokenDefinition} ";"
 \end{verbatim}
-\end{tscreen}
 
 
 A {\tt tokenDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
          id [string] ["=" tokenValue]
 \end{verbatim}
-\end{tscreen}
 
 
 The {\tt inputDefinition} section defines the input  tokens  to
@@ -198,20 +184,14 @@ respect to both input tokens and output tokens.
 \subsubsection{Error Signals}
 
 An {\tt errorDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
          ERROR  ":"                       {errorSignalDefinition} ";"
 \end{verbatim}
-\end{tscreen}
-
 
 An {\tt errorSignalDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
          id ["=" errorValue]
 \end{verbatim}
-\end{tscreen}
-
 
 Each {\tt errorSignalDefinition} defines an error signal  which
 can be signalled by the S/SL program.  An integer error code
@@ -246,19 +226,15 @@ A {\tt typeOrMechanismDefinition} is one of:
 \paragraph{Types.}
 
 A {\tt typeDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
          TYPE id ":"                      {valueDefinition} ";"
 \end{verbatim}
-\end{tscreen}
 
 
 A {\tt valueDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
          id ["=" value]
 \end{verbatim}
-\end{tscreen}
 
 
 Each {\tt typeDefinition} defines a type of values for  use  as
@@ -276,16 +252,12 @@ value  identifier  plus  one.   The default value associated
 with the first {\tt valueDefinition} in a type is zero.
 
 
-
-
 \paragraph{Mechanisms.}
 
 A {\tt mechanismDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
          MECHANISM    id    ":"         {operationDefinition} ";"
 \end{verbatim}
-\end{tscreen}
 
 Each {\tt mechanismDefinition}  defines  the  set        of semantic
 operations associated with a semantic mechanism.  The 
@@ -534,7 +506,6 @@ undefined (the implementation aborts).
 \subsubsection{The Syntax of S/SL}
 
 A program is:
-\begin{tscreen}
 \begin{verbatim}
      [inputDefinition]     [outputDefinition]
      [inputOutputDefinition]
@@ -542,56 +513,40 @@ A program is:
      RULES                 {rule}                  
      END
 \end{verbatim}
-\end{tscreen}
 
 
 An {\tt inputDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
      INPUT ":"                   {tokenDefinition} ";"
 \end{verbatim}
-\end{tscreen}
 
 
 An {\tt outputDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
      OUTPUT ":"                  {tokenDefinition} ";"
 \end{verbatim}
-\end{tscreen}
 
 
 An {\tt inputOutputDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
      INPUT OUTPUT ":"            {tokenDefinition} ";"
 \end{verbatim}
-\end{tscreen}
 
 
 A {\tt tokenDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
      id [string] ["=" tokenValue]
 \end{verbatim}
-\end{tscreen}
-
 
 An {\tt errorDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
      ERROR      ":"       {errorSignalDefinition} ";"
 \end{verbatim}
-\end{tscreen}
-
 
 An {\tt errorSignalDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
      id ["=" errorValue]
 \end{verbatim}
-\end{tscreen}
-
 
 A {\tt typeOrMechanismDefinition} is one of:
 \begin{enumerate}
@@ -601,27 +556,20 @@ A {\tt typeOrMechanismDefinition} is one of:
 
 
 A {\tt typeDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
      TYPE id ":"                  {valueDefinition} ";"
 \end{verbatim}
-\end{tscreen}
-
 
 A {\tt valueDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
      id ["=" value]
 \end{verbatim}
-\end{tscreen}
 
 
 A {\tt mechanismDefinition} is:
-\begin{tscreen}
 \begin{verbatim}
      MECHANISM    id    ":" {operationDefinition} ";"
 \end{verbatim}
-\end{tscreen}
 
 
 A rule is one of:

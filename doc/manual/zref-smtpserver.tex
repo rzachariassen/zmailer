@@ -1,31 +1,26 @@
-\begin{htmlonly}
-\documentclass{article}
-\usepackage{html,makeidx}
-\input{zref-smtpserver.ptr}
-\include{zlat2html}
-\include{manhtml}
-\subsection{SMTP-server}
-\end{htmlonly}
-\startdocument
+%% \subsection{SMTP-server}
 
-The ZMailer distribution contains an {\em SMTP\/} server program for the BSD socket
-implementation of TCP/IP.  It is an asynchronous implementation, in that
-address semantics are not checked in real time, nor are other (optional in
-the {\em SMTP\/} standard) functions that require {\em router\/} functionality. The server
-will run an RFC-821 syntax scanner for addresses and if things are ok, it 
-says ``Yes yes, sure!'' to everything, and passes the information to
-the {\em router\/} for verification.  The program may also be used in non-daemon
-mode to unpack BSMTP format messages on the standard input stream.  For
-compatibility with the {\em sendmail\/} variation on the {\em SMTP\/} protocol, it accepts
-the {\bf VERB} and {\bf ONEX} commands as No-Ops. The {\bf VRFY}, 
-{\bf EXPN}, {\bf HELP}, and
-{\bf TURN} commands are presently unimplemented, as is the case for the
-interactive {\bf SEND}, {\bf SAML}, and {\bf SOML} commands.
+The ZMailer distribution contains an {\em SMTP\/} server program
+for the BSD socket implementation of TCP/IP.
+It is an asynchronous implementation, in that address semantics are
+not checked in real time, nor are other (optional in the {\em SMTP\/}
+standard) functions that require {\em router\/} functionality.
+The server will run an RFC-821 syntax scanner for addresses and if
+things are ok, it says ``Yes yes, sure!'' to everything, and passes
+the information to the {\em router\/} for verification.
+The program may also be used in non-daemon mode to unpack BSMTP format
+messages on the standard input stream.
+For compatibility with the {\em sendmail\/} variation on the {\em SMTP\/}
+protocol, it accepts the {\bf VERB} and {\bf ONEX} commands as No-Ops.
+The {\bf VRFY}, {\bf EXPN}, {\bf HELP}, and {\bf TURN} commands are
+presently unimplemented, as is the case for the interactive {\bf SEND},
+{\bf SAML}, and {\bf SOML} commands.
 
-This program implements the server side of the {\em SMTP\/} protocol as described in 
-RFC821, and knows about the common extensions to the protocol expected by
-{\em sendmail\/} and BSMTP clients. By default the program will kill the previous 
-smtp-server daemon, if any, then detach and listen for {\em SMTP\/} connections. 
+This program implements the server side of the {\em SMTP\/} protocol
+as described in RFC821, and knows about the common extensions to
+the protocol expected by {\em sendmail\/} and BSMTP clients.
+By default the program will kill the previous smtp-server daemon,
+if any, then detach and listen for {\em SMTP\/} connections.
 Incoming messages will be submitted for processing using the 
 {\tt zmailer(3)} interface to ZMailer. Nontrivial address checking is 
 done asynchronously, although this behaviour can be changed by a command 
@@ -195,48 +190,43 @@ database location. See the comments in the sample {\tt proto/db/smtp-policy.src}
 
 Here is a possible configuration file:
 
-\begin{tscreen}
 \begin{verbatim}
-#PARAM maxsize          10000000  # Same as -M -option
-#PARAM max-error-recipients   10  # More than this is propably SPAM! 
-#PARAM TcpRcvBufferSize    32000  # Should not need to set!
+  #PARAM maxsize          10000000  # Same as -M -option
+  #PARAM max-error-recipients   10  # More than this is propably SPAM! 
+  #PARAM TcpRcvBufferSize    32000  # Should not need to set!
 
-# Our company contact info:
-PARAM help ---------------------------------------------------
-PARAM help  This mail-server is at Yoyodyne Propulsion Inc. 
-PARAM help  Our telephone number is: +1-234-567-8900, and 
-PARAM help  telefax number is: +1-234-567-8999
-PARAM help  Our business-hours are Mon-Fri: 0800-1700 (Timezone: -0700) 
-PARAM help
-PARAM help  Questions regarding our email service should be sent via 
-PARAM help  email to address  <postmaster@OURDOMAIN>
-PARAM help  Reports about abuse are to be sent to: <abuse@OURDOMAIN> 
-PARAM help ----------------------------------------------------
-#
-PARAM  accept-percent-kludge # "localpart" can contain '%' and '!' 
-#PARAM reject-percent-kludge # "localpart" can't contain  --"-
-#
-# The policy database:
-#     (NOTE: See 'makedb' for its default suffixes!)
-#
-PARAM  policydb btree /opt/mail/db/smtp-policy
-#
-# HELO pattern  style flags
-#
-*.mgmt.utoronto.ca      ftve
-*.mgmt.toronto.edu      ftve
-badguy.org              !Sorry, try later.
-localhost               ve
-*                       -
+  # Our company contact info:
+  PARAM help ---------------------------------------------------
+  PARAM help  This mail-server is at Yoyodyne Propulsion Inc. 
+  PARAM help  Our telephone number is: +1-234-567-8900, and 
+  PARAM help  telefax number is: +1-234-567-8999
+  PARAM help  Our business-hours are Mon-Fri: 0800-1700 (Timezone: -0700) 
+  PARAM help
+  PARAM help  Questions regarding our email service should be sent via 
+  PARAM help  email to address  <postmaster@OURDOMAIN>
+  PARAM help  Reports about abuse are to be sent to: <abuse@OURDOMAIN> 
+  PARAM help ----------------------------------------------------
+  #
+  PARAM  accept-percent-kludge # "localpart" can contain '%' and '!' 
+  #PARAM reject-percent-kludge # "localpart" can't contain  --"-
+  #
+  # The policy database:
+  #     (NOTE: See 'makedb' for its default suffixes!)
+  #
+  PARAM  policydb btree /opt/mail/db/smtp-policy
+  #
+  # HELO pattern  style flags
+  #
+  *.mgmt.utoronto.ca      ftve
+  *.mgmt.toronto.edu      ftve
+  badguy.org              !Sorry, try later.
+  localhost               ve
+  *                       -
 \end{verbatim}
-\end{tscreen}
-
-
 
 
 
 \subsubsection{Policy Filtering Language}
-
 
 
 Policy based filter database boilerplate for smtp-server.
@@ -270,26 +260,21 @@ addresses are translated into plain IPv4.)
 {\tt policytest()} to make decisions.  Attribute names, and understood 
 value tokens are:
 
-\begin{tscreen}
 \begin{verbatim}
-        '='             '_any_token_with_starting_underscore' (aliasing)
+    '='             '_any_token_with_starting_underscore' (aliasing)
 
-        'rejectnet'       { '+', '-' }
-        'freezenet'       { '+', '-' }
-        'rejectsource'    { '+', '-' }
-        'freezesource'    { '+', '-' }
-        'relaycustomer'   { '+', '-' }
-        'relaycustnet'    { '+', '-' }
-        'relaytarget'     { '+', '-' }
-        'freeze'          { '+', '-' }
-        'senderokwithdns' { '+', '-' }
-        'acceptifmx'      { '+', '-' }
-        'acceptifdns'     { '+', '-' }
+    'rejectnet'       { '+', '-' }
+    'freezenet'       { '+', '-' }
+    'rejectsource'    { '+', '-' }
+    'freezesource'    { '+', '-' }
+    'relaycustomer'   { '+', '-' }
+    'relaycustnet'    { '+', '-' }
+    'relaytarget'     { '+', '-' }
+    'freeze'          { '+', '-' }
+    'senderokwithdns' { '+', '-' }
+    'acceptifmx'      { '+', '-' }
+    'acceptifdns'     { '+', '-' }
 \end{verbatim}
-\end{tscreen}
-
-
-
 
 
 \paragraph{Semantics}
@@ -323,7 +308,6 @@ chains of {\tt smtpserver/policytest.c} routines:
 
 Connection establishment:  (IP address tested)
 
-\begin{tscreen}
 \begin{verbatim}
   if (IP address of SMTP client has 'REJECTNET +' attribute) then
   any further conversation refused
@@ -336,12 +320,10 @@ Connection establishment:  (IP address tested)
    [state->always_accept = 1; return ACCEPT;]
   default: return ACCEPT
 \end{verbatim}
-\end{tscreen}
 
 
 {\bf HELO/EHLO} parameter string:
 
-\begin{tscreen}
 \begin{verbatim}
   if (state->always_reject == 1) return REJECT;
   if (state->always_freeze == 1) return FREEZE;
@@ -354,12 +336,10 @@ Connection establishment:  (IP address tested)
    [state->always_freeze = 1; return FREEZE;]
   default: return ACCEPT
 \end{verbatim}
-\end{tscreen}
 
 
 {\bf MAIL FROM} address:
 
-\begin{tscreen}
 \begin{verbatim}
   set state->rcpt_nocheck  = 0;
   set state->sender_reject = 0;
@@ -396,12 +376,10 @@ Connection establishment:  (IP address tested)
   else
     return ACCEPT
 \end{verbatim}
-\end{tscreen}
 
 
 {\bf RCPT TO} address:
 
-\begin{tscreen}
 \begin{verbatim}
   if (state->always_reject == 1) return REJECT;
   if (state->sender_reject == 1) return REJECT;
@@ -438,28 +416,25 @@ Connection establishment:  (IP address tested)
   Else
     return ACCEPT
 \end{verbatim}
-\end{tscreen}
 
 
 Default handling boilerplate. We are not relaying between off-site hosts, 
 except when:
 
-\begin{tscreen}
 \begin{verbatim}
-# -- 1st alternate: No MX target usage, no DNS existence verify
-.                       relaycustomer - relaytarget -
-[0.0.0.0]/0             relaycustomer - relaytarget -
-# -- 2nd alternate: No MX target usage, DNS existence verify
-.                       relaycustomer - relaytarget - senderokwithdns +
-[0.0.0.0]/0             relaycustomer - relaytarget - senderokwithdns +
-# -- 3rd alternate: MX relay trust, DNS existence verify
-.                       relaycustomer - acceptifmx + senderokwithdns +
-[0.0.0.0]/0             relaycustomer - acceptifmx + senderokwithdns +
-# -- 4th alternate: Sender & recipient DNS existence verify
-.                       senderokwithdns + acceptifdns +
-[0.0.0.0]/0             senderokwithdns + acceptifdns +
+  # -- 1st alternate: No MX target usage, no DNS existence verify
+  .                       relaycustomer - relaytarget -
+  [0.0.0.0]/0             relaycustomer - relaytarget -
+  # -- 2nd alternate: No MX target usage, DNS existence verify
+  .                       relaycustomer - relaytarget - senderokwithdns +
+  [0.0.0.0]/0             relaycustomer - relaytarget - senderokwithdns +
+  # -- 3rd alternate: MX relay trust, DNS existence verify
+  .                       relaycustomer - acceptifmx + senderokwithdns +
+  [0.0.0.0]/0             relaycustomer - acceptifmx + senderokwithdns +
+  # -- 4th alternate: Sender & recipient DNS existence verify
+  .                       senderokwithdns + acceptifdns +
+  [0.0.0.0]/0             senderokwithdns + acceptifdns +
 \end{verbatim}
-\end{tscreen}
 
 
 These rules mean that locally accepted hostnames MUST be listed in
@@ -469,100 +444,79 @@ Generally we refuse {\em SMTP\/} connections from host in private address space
 and refuse mails to or from {\tt user@[nn.nn.nn.nn]} if nn.nn.nn.nn is a
 private IP address...
 
-\begin{tscreen}
 \begin{verbatim}
-_private_address    rejectnet + rejectsource + relaycustomer - relaytarget -
-[172.16.0.0]/12         = _private_address
-[192.168.0.0]/16        = _private_address
-[10.0.0.0]/8            = _private_address
+  _private_address    rejectnet + rejectsource + relaycustomer - relaytarget -
+  [172.16.0.0]/12         = _private_address
+  [192.168.0.0]/16        = _private_address
+  [10.0.0.0]/8            = _private_address
 \end{verbatim}
-\end{tscreen}
 
 
 ...but hosts in the address range 192.168.16.0-192.168.17.255 may be
 our {\em SMTP\/} clients.
 
-\begin{tscreen}
 \begin{verbatim}
-[192.168.16.0]/23       rejectnet - = _private_address
+  [192.168.16.0]/23       rejectnet - = _private_address
 \end{verbatim}
-\end{tscreen}
 
 
 Hosts of our organization can do anything...
 
-\begin{tscreen}
 \begin{verbatim}
-_our_network            = _full_rights
-_full_rights    rejectnet - relaycustnet + relaycustomer + relaytarget +
+  _our_network            = _full_rights
+  _full_rights    rejectnet - relaycustnet + relaycustomer + relaytarget +
 
-sztaki.hu               = _full_rights
-.sztaki.hu              = _full_rights
-192.84.225.0/24 = _our_network
-192.84.226.0/23 = _our_network
-192.84.228.0/23 = _our_network
+  sztaki.hu               = _full_rights
+  .sztaki.hu              = _full_rights
+  192.84.225.0/24 = _our_network
+  192.84.226.0/23 = _our_network
+  192.84.228.0/23 = _our_network
 \end{verbatim}
-\end{tscreen}
 
 
 ...except that no use to relaying for dial-up hosts
 
-\begin{tscreen}
 \begin{verbatim}
-.dial.sztaki.hu         relaytarget - = _full_rights
+  .dial.sztaki.hu         relaytarget - = _full_rights
 \end{verbatim}
-\end{tscreen}
 
 
 ...and we have a misconfigured {\em SMTP\/} client somewhere
 
-\begin{tscreen}
 \begin{verbatim}
-[192.84.225.1]/32               rejectnet + = _our_network
+  [192.84.225.1]/32               rejectnet + = _our_network
 \end{verbatim}
-\end{tscreen}
-
 
 We are MX for some UUCP nodes;  The actual list of domains should
 be retrieved from some listing, and inserted here, or generated from
 a file into compatible format, and appended into the database.
 
-\begin{tscreen}
 \begin{verbatim}
-.uucp.iif.hu            relaytarget +
+  .uucp.iif.hu            relaytarget +
 \end{verbatim}
-\end{tscreen}
 
 
 Thanks, no bulk mails! Drop them when used as sources, also reject
 when asked to send for them.
 
-\begin{tscreen}
 \begin{verbatim}
-_bulk_mail              rejectsource + relaytarget -
+  _bulk_mail              rejectsource + relaytarget -
 \end{verbatim}
-\end{tscreen}
-
 
 The actual list of domains, and perhaps user addresses should
 be retrieved from some active Anti-SPAM database
 
-\begin{tscreen}
 \begin{verbatim}
-nobody.com              = _bulk_mail
-.nobody.com             = _bulk_mail
-nodomain.com            = _bulk_mail
-.nodomain.com           = _bulk_mail
+  nobody.com              = _bulk_mail
+  .nobody.com             = _bulk_mail
+  nodomain.com            = _bulk_mail
+  .nodomain.com           = _bulk_mail
 \end{verbatim}
-\end{tscreen}
-
 
 Some source users we reject always: (frequent spammers...)
 (see comment above about Anti-SPAM databases)
 
-\begin{tscreen}
 \begin{verbatim}
-friend@                 = _bulk_mail
-friends@                = _bulk_mail
+  friend@                 = _bulk_mail
+  friends@                = _bulk_mail
 \end{verbatim}
-\end{tscreen}

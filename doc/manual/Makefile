@@ -2,76 +2,80 @@
 # GNU-Makefile for ZMailer manual
 #
 
-PARTS=	Makefile		\
-	zadministration.tex        zref-router.tex		\
-	zapp-filefmts.tex          zref-scheduler.tex		\
-	zapp-listmgrs.tex          zref-sendmail.tex		\
-	zapp-scripts.tex           zref-smtpserver.tex		\
-	zapp-ssl-lang.tex          zref-transport-agents.tex	\
-	zapp-tragents.tex          zref-utilities.tex		\
-	zinstall.tex               zref-zmailer3.tex		\
-	zmanual.tex                zreference.tex		\
-	zref-rmail.tex             ztutorial.tex
+PARTS=	zadministration.tex     zref-router.tex			\
+	zapp-filefmts.tex       zref-scheduler.tex		\
+	zapp-listmgrs.tex       zref-sendmail.tex		\
+	zapp-scripts.tex        zref-smtpserver.tex		\
+	zapp-ssl-lang.tex       zref-transport-agents.tex	\
+	zapp-tragents.tex       zref-utilities.tex		\
+	zinstall.tex            zref-zmailer3.tex		\
+	zreference.tex		zref-rmail.tex			\
+	ztutorial.tex		zappendixes.tex			\
+	zmanual-head.tex	zmanual-tail.tex
 
 FIGS   :=	msgmodl.fig msgrout.fig
 
 FIGEPS :=	$(FIGS:%.fig=%.eps)
 FIG_PS :=	$(FIGS:%.fig=%.ps)
-FIGGIF :=	$(FIGS:%.fig=%.gif)
 
 LINUXDOCBIN=/usr/bin
-#LINUXDOCLIB=/usr/lib/sgml-tools
+LINUXDOCLIB=/usr/lib/sgml-tools
 #LINUXDOCLIB=/usr/lib/linuxdoc-sgml
+#LATEX2HTMLLIB=/usr/lib/latex2html/texinputs:/usr/lib/latex2html/docs
 LATEX2HTMLLIB=/usr/lib/latex2html/texinputs
 # set and export TEXINPUTS
-TEXINPUTS=$$TEXINPUTS:$(LINUXDOCLIB):$(LATEX2HTMLLIB)
+TEXINPUTS=$(LATEX2HTMLLIB):$(LINUXDOCLIB):$$TEXINPUTS:
 TEXENV=  TEXINPUTS=$(TEXINPUTS);export TEXINPUTS;
 
 # L2H = latex2html  -no_math -html_version 3.2,math -scalable_fonts 
 L2H = $(TEXENV) latex2html  -no_math -html_version 3.2,math 
 
-
 L2HTOPTITLE  =	"ZMailer"
-L2HTOP       =	../manual
+L2HTOP       =	zmanual
 L2HCONTENTS  =	node20
 L2HINDEXNODE =  node21
 L2HCHGNODE   =	node22
 L2HREFNODE   =	node23
 L2HGLOSSNODE =	node24
-L2HCOMMON =	-external_file manual -dir $(L2HTOP) -info 0 -short_index \
+
+L2HCOMMON =	-external_file zmanual -no_subdir -toc_depth 8 \
 		-contents $(L2HCONTENTS).html -index $(L2HINDEXNODE).html \
 		-biblio $(L2HREFNODE) -no_auto_link -no_footnode	\
-		-split 6 -link 6 -up_url $(L2HTOP).html			\
-		-up_title $(L2HTOPTITLE) -show_section_numbers
+		-split 0 -link 8 -up_url $(L2HTOP).html			\
+		-up_title $(L2HTOPTITLE) -show_section_numbers		\
+		-short_index
+#		-info 0
 
-L2HLTOP	     =	-short_index -split 4 -link 5 -t $(L2HTOPTITLE) \
-		-dir $(L2HTOP) -external_file manual.aux zmanual.tex
-L2HLSEC1     =	$(L2HCOMMON) -prefix T	\
-		ztutorial.tex
-L2HLSEC2     =	$(L2HCOMMON) -prefix I	\
-		-split 0 -unsegment	\
-		zinstall.tex
-L2HLSEC3     =	$(L2HCOMMON) -prefix A	\
-		zadministration.tex
-L2HLSEC4     =	$(L2HCOMMON) -prefix R	\
-		zreference.tex
+L2HLTOP	     =	$(L2HCOMMON)
+L2HLSEC1     =	$(L2HCOMMON)
+L2HLSEC2     =	$(L2HCOMMON)
+L2HLSEC3     =	$(L2HCOMMON)
+L2HLSEC4     =	$(L2HCOMMON)
+L2HLSEC5     =	$(L2HCOMMON)
 
 
 all:
 	@echo "make tag choices: clean dist html dvi ps"
 
-dvi: manual.dvi
-ps:  manual.ps
-html: manual.html
+dvi: zmanual.dvi
+ps:  zmanual.ps
+#html: zmanual.html
 dist: manual_parts.tar.gz
 
 gifs: $(FIGGIF)
 
 clean:
-	rm -f *~ *.html *.ps *.eps *.gif *.bak *.dvi manual.*
-	rm -f *.css *.aux *.ptr *.old
-	rm -rf l2h[1-9][0-9]* *sections.pl *internals.pl *index.pl *contents.pl
+	rm -f zmanual.*
+	rm -f *~ *.html *.ps *.eps *.gif *.bak *.dvi *.toc *.lof
+	rm -f *.css *.aux *.ptr *.old *.ilg *.gls *.cb *.glo *.log
+	rm -rf l2h[1-9][0-9]* *sections.pl *internals.pl *index.pl
+	rm -f *contents.pl *.ind *.idx *images.pl *table.pl
 	rm -f [A-Z]*images.* *labels.pl *figure.pl IMG_PAR*
+	rm -f TEXENV
+	rm -f ADM.tex  ASC.tex  INS.tex  RRT.tex  RSM.tex  RZL.tex
+	rm -f AFM.tex  ASS.tex  REF.tex  RSC.tex  RTA.tex  TUT.tex
+	rm -f ALM.tex  ATA.tex  RRM.tex  RSE.tex  RUT.tex
+
 
 .SUFFIXES: .gif .fig .eps .ps
 
@@ -90,7 +94,6 @@ clean:
 
 $(FIG_PS): $(FIGS)
 $(FIGEPS): $(FIGS)
-$(FIGGIF): $(FIG_PS)
 
 manual_parts.tar.gz: manual_parts.tar
 
@@ -98,29 +101,71 @@ manual_parts.tar: Makefile $(PARTS) $(FIGS)
 	tar -cf manual_parts.tar Makefile $(PARTS) $(FIGS)
 	gzip -c manual_parts.tar > manual_parts.tar.gz
 
-manual.ps: manual.dvi $(FIGEPS)
-	dvips -ta4 -omanual.ps manual.dvi
+zmanual.ps: zmanual.dvi $(FIGEPS)
+	dvips -ta4 -ozmanual.ps zmanual.dvi
 
-manual.dvi: $(PARTS) $(FIGEPS)
+zmanual.dvi: $(PARTS) $(FIGEPS) zmanual.tex
 	$(TEXENV)					\
-	rm -f manual.tex ; cp zmanual.tex manual.tex ;	\
-	latex manual &&					\
-	makeindex -s l2hidx.ist manual.idx &&		\
-	makeindex -s l2hglo.ist -o manual.gls manual.glo && \
-	latex manual && latex manual
+	latex zmanual &&				\
+	makeindex -s l2hidx.ist zmanual.idx &&		\
+	makeindex -s l2hglo.ist -o zmanual.gls zmanual.glo && \
+	latex zmanual && latex zmanual
 
-manual.aux: manual.dvi
+zmanual.tex: zmanual-head.tex zmanual-tail.tex L2H.sh Makefile
+	echo "$(TEXENV)" > TEXENV
+	./L2H.sh zmanual-head.tex zmanual-tail.tex zmanual.tex
 
-all-html: manual.aux $(PARTS) $(FIGGIF)
-	$(L2H) $(L2HCOMMON) -split 0 -unsegmented manual.tex
+zmanual.aux: zmanual.dvi
 
-manual.html: manual.aux $(PARTS) $(FIGGIF)
-	for x in "" T A R AP; do \
-		for y in contents index images internals labels sections; \
-			do echo "1;" > $$(x)$$(y).pl ; done; done
-	$(L2H) $(L2HLTOP)
-	$(L2H) $(L2HLSEC1)
-	$(L2H) $(L2HLSEC2)
-	$(L2H) $(L2HLSEC3)
-	$(L2H) $(L2HLSEC4)
-	$(L2H) $(L2HLTOP)
+all-html: zmanual.aux $(PARTS) $(FIGEPS)
+	$(L2H) $(L2HCOMMON) -split 0 -unsegmented zmanual.tex
+
+html: zmanual.aux $(PARTS) $(FIGEPS) Makefile
+	#for y in figure contents index images internals labels \
+	#		sections table; \
+	#    	do echo "1;" > $$y.pl ; done
+	echo "$(TEXENV)" > TEXENV
+	# $(L2H) $(L2HLTOP)  zmanual.tex
+	./L2H.sh  ztutorial.tex		TUT	section	"Tutorial"
+	./L2H.sh  zinstall.tex		INS	section	"Build and Install"
+	./L2H.sh  zadministration.tex	ADM	section	"Administation"
+	./L2H.sh  zreference.tex	REF	section	"Reference"
+	./L2H.sh  zref-smtpserver.tex	RSM  subsection "SMTP-server"
+	./L2H.sh  zref-sendmail.tex	RSE  subsection "sendmail"
+	./L2H.sh  zref-rmail.tex 	RRM  subsection "rmail"
+	./L2H.sh  zref-zmailer3.tex	RZL  subsection "zmailer(3)"
+	./L2H.sh  zref-router.tex	RRT  subsection "Router"
+	./L2H.sh  zref-scheduler.tex	RSC  subsection "Scheduler"
+	./L2H.sh  zref-transport-agents.tex RTA subsection "Transport Agents"
+	./L2H.sh  zref-utilities.tex	RUT  subsection "Utilities"
+	./L2H.sh  zapp-scripts.tex	ASC	section	"Sample Router Configuration Scripts"
+	./L2H.sh  zapp-listmgrs.tex	ALM	section	"Using Zmailer with Mailinglist Managers"
+	./L2H.sh  zapp-tragents.tex	ATA	section "Adding new Transport Agents"
+	./L2H.sh  zapp-filefmts.tex	AFM	section "Internal File Data Formats"
+	./L2H.sh  zapp-ssl-lang.tex	ASS	section "The S/SL language"
+	#
+	# Ok, now repeat those same commands...
+	#
+	# ...
+	$(L2H) $(L2HLTOP)  zmanual.tex
+
+
+
+zman:	$(FIGEPS)
+	$(L2H) $(L2HLTOP)  zmanual.tex
+
+ztut:	$(FIGEPS)
+	echo "$(TEXENV)" > TEXENV
+	./L2H.sh  ztutorial.tex		TUT	section	"Tutorial"
+
+zinst:	$(FIGEPS)
+	echo "$(TEXENV)" > TEXENV
+	./L2H.sh  zinstall.tex		INS	section	"Build and Install"
+
+zrsm:	$(FIGEPS)
+	echo "$(TEXENV)" > TEXENV
+	./L2H.sh  zref-smtpserver.tex	RSM  subsection "SMTP-server"
+
+zref:	$(FIGEPS)
+	echo "$(TEXENV)" > TEXENV
+	./L2H.sh  zreference.tex	REF	section	"Reference"

@@ -1,12 +1,4 @@
-\begin{htmlonly}
-\documentclass{article}
-\usepackage{html,makeidx}
-\include{zlat2html}
-\include{manhtml}
-\section{Administration}
-\input{zadministration.ptr}
-\end{htmlonly}
-\startdocument
+%% \section{Administration}
 
 This reference section tries to tell all the details of how each
 subsystem parameter affects things, though perhaps without wide
@@ -999,7 +991,7 @@ convention of the Bourne shell language.
 To test the configuration or routing data, proceed as follows:
 
 \begin{verbatim}
-MAILBIN/router -i               (select interactive mode)
+$MAILBIN/router -i              (select interactive mode)
 trace on                        (turn tracing on)
 router user@broken.address      (the address that gave you trouble)
 router another@address          (and so on)
@@ -1020,7 +1012,7 @@ to someplace other than the postoffice ({\tt /tmp} is usually good), in a
 numeric file name.  If the file name is {\tt 123}, you run
 
 \begin{verbatim}
-MAILBIN/router 123
+$MAILBIN/router 123
 \end{verbatim}
 
 
@@ -1452,8 +1444,11 @@ expansion causing serious memory bloat.  {\em ZMailer-2.98-mea\/} did introduce
 a working solution via the builtin  {\tt \$(listexpand ..)} function.
 
 The rest of these notes apply to older config files using old style pipe
-of {\tt \$(listaddresses  < file {\verbar} maprrouter ...)}  where the  
-maprrouter caused the actual memory bloat...
+of:
+\begin{verbatim}
+ $(listaddresses  < file | maprrouter ...)
+\end{verbatim}
+where the maprrouter caused the actual memory bloat...
 
 Internal list expansion (through the  {\tt \$MAILVAR/lists/LISTNAME} 
 mechanism) is a sure way to expand {\em router\/} process memory usage.
@@ -1507,7 +1502,7 @@ Like {\em sendmail\/}, if a local-part is not found in the aliases database, the
 any address expansion.  The {\tt .forward} file format is also an RFC822 
 address list, similar to what {\em sendmail\/} expects.
 
-As special cases, a local-part starting with a pipe character (`{\tt {\verbar}}') is
+As special cases, a local-part starting with a pipe character (`{\tt $\|$}') is
 treated as mail destined for a program (the rest of the local-part is any
 valid argument to a {\tt sh -c} command), and a local-part starting with a
 slash character (`{\tt /}') is treated as mail destined for the file named 
@@ -1516,10 +1511,10 @@ by the local-part.
 General format:
 
 \begin{verbatim}
-        local-address-token:    "replacement address" ,
-                                "extension line w/ another addr"
-        ^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-          "The Key"                "The Data"
+    local-address-token:    "replacement address" ,
+                            "extension line w/ another addr"
+    ^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+       "The Key"                "The Data"
 \end{verbatim}
 
 Protection of the aliases database must be at least 0644.
@@ -1532,20 +1527,20 @@ The following processing is done for (replacement) local-parts
 
 
 
-If the local-part starts with ``{\verbar}" assume it is a command specification:
+If the local-part starts with ``{\tt $\|$}" assume it is a command specification:
 \begin{verbatim}
-                prog-pipe: "|/path/to/program -args"
+    prog-pipe: "|/path/to/program -args"
 \end{verbatim}
 
 If the local-part starts with ``/" assume it is a file pathname:
 \begin{verbatim}
-                file-path: "/path/to/file"
+    file-path: "/path/to/file"
 \end{verbatim}
 
 If the local-part starts with {\tt :include:} the rest should be a file
 pathname of a list of mail addresses.  They are substituted:
 \begin{verbatim}
-                included-list: ":include:/path/to/address/file"
+    included-list: ":include:/path/to/address/file"
 \end{verbatim}
 
 After this point, all matches are case-insensitive by means of translating
@@ -1555,11 +1550,7 @@ lookup. {\bf All keys in aliases et.al. must be in lower case}.
 as such, there is no way to avoid this requirement.)
 
 
-
-
 \paragraph{aliases.cf Logic}
-
-
 
 \begin{itemize}
 \item If an aliases database exists and local-part is found in it, the list of
@@ -1586,13 +1577,7 @@ mailbox delivery for local users.
 \end{itemize}
 
 
-
-
-
 \subsection{Scheduler Configuration}
-
-
-
 
 
 The major action of the Scheduler is to periodically start up Transport

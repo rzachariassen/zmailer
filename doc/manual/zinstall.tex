@@ -1,8 +1,4 @@
-\begin{htmlonly}
-\include{zlat2html}
-\include{manhtml}
-\section{Build and Install}
-\end{htmlonly}
+%% \section{Build and Install}
 
 This section describes how to build and install ZMailer.
 
@@ -20,64 +16,67 @@ assumption that verybody has their version of things...  On the other hand,
 those systems have reasonably modern resolvers, so no need to worry about it
 -- I hope.) 
 
-{\bf Note:} If you are on an Ultrix system, replace the {\tt mkdep} and {\tt mklibdep}
-scripts in the {\tt bin} directory with the versions provided in {\tt bin/Ultrix}.
+{\bf Note:} If you are on an Ultrix system, replace the {\tt mkdep} and
+{\tt mklibdep} scripts in the {\tt bin} directory with the versions
+provided in {\tt bin/Ultrix}.
 
 
-\subsection{Autoconfiguration}
+\subsection{Autoconfiguration}\index{build!autoconfiguration}
 
 This system uses several preferably separate partitions for
-different things:
+different things:\index{build!disk partitions}
 \begin{itemize}
-\item Software binaries, and databases: \$MAILVAR/, \$MAILSHARE/, \$MAILBIN/
-\item The mailbox spool: MAILBOX ({\tt /var/mail})
-\item The postoffice spool: POSTOFFICE ({\tt /var/spool/postoffice})
-\item The log directory: LOGDIR ({\tt /var/log/mail})
+\item Software binaries, and databases: {\tt \$MAILVAR/, \$MAILSHARE/, \$MAILBIN/}
+\item The mailbox spool: {\tt \$MAILBOX} ({\tt /var/mail})
+\item The postoffice spool: {\tt \$POSTOFFICE} ({\tt /var/spool/postoffice})
+\item The log directory: {\tt \$LOGDIR} ({\tt /var/log/mail})
 \end{itemize}
 
 The GNU-autoconfig mechanism is used, however, you still may need to
 touch on some files after that system has run through:
 You MUST define {\tt --prefix=} so that ZMailer components end up
-in reasonable places.  The MAILBIN (and MAILSHARE, and MAILVAR)
-variable values are derived from the {\tt --prefix=}, which can cause
-surprises if you do {\tt make install} with GNU autoconfig defaults.
+in reasonable places.  The {\tt \$MAILBIN} (and {\tt \$MAILSHARE},
+and {\tt \$MAILVAR}) variable values are derived from
+the {\tt --prefix=}, which can cause surprises if you do
+{\tt make install} with GNU autoconfig defaults.
 
 Also, if the {\tt /etc/zmailer.conf} file exists, it is read
 to initialize several different environment paths (including
-MAILBIN, et.al.!)
+{\tt \$MAILBIN}, et.al.!)
+
 \begin{verbatim}
-# ./configure --prefix=/opt/mail                              \
-              --with-postoffice=/var/spool/postoffice         \
-              --with-mailbox=/var/mail                        \
-              --with-logdir=/var/log/mail                     \
-              --with-zmailer-conf=/etc/zmailer.conf
+  # ./configure --prefix=/opt/mail                              \
+                --with-postoffice=/var/spool/postoffice         \
+                --with-mailbox=/var/mail                        \
+                --with-logdir=/var/log/mail                     \
+                --with-zmailer-conf=/etc/zmailer.conf
 \end{verbatim}
 
 Or an example from my development machine:
 \begin{verbatim}
-$ ./configure --prefix=/opt/mail
-creating cache ./config.cache
-***
-*** You can set  ZCONFIG  environment variable to define
-*** the location of the (default) /etc/zmailer.conf -file
-*** (You can use also   --with-zconfig=  -parameter)
-***
-*** Consider also setting following parameters:
-***   --mandir=DIR     -- for man-pages
-***   --libdir=DIR     -- for libzmailer(3)
-***   --includedir=DIR -- for libzmailer(3)
-*** (They can be outside the --prefix=DIR -tree)
-***
-*** You can set CC, and CFLAGS  environment variables to
-*** choose the C-compiler, and its options, especially at
-*** systems where there are multiple choices to use...
-***
+  $ ./configure --prefix=/opt/mail
+  creating cache ./config.cache
+  ***
+  *** You can set  ZCONFIG  environment variable to define
+  *** the location of the (default) /etc/zmailer.conf -file
+  *** (You can use also   --with-zconfig=  -parameter)
+  ***
+  *** Consider also setting following parameters:
+  ***   --mandir=DIR     -- for man-pages
+  ***   --libdir=DIR     -- for libzmailer(3)
+  ***   --includedir=DIR -- for libzmailer(3)
+  *** (They can be outside the --prefix=DIR -tree)
+  ***
+  *** You can set CC, and CFLAGS  environment variables to
+  *** choose the C-compiler, and its options, especially at
+  *** systems where there are multiple choices to use...
+  ***
 \end{verbatim}
 
 See if {\tt SiteConfig} makes sense now, if not, you can tune
 most of the values with various {\tt --with-*=} keywords:
 \begin{verbatim}
-./configure --help
+  ./configure --help
 \end{verbatim}
 
 and those that you can't tune, you can edit at the {\tt SiteConfig.in}
@@ -86,33 +85,34 @@ necessary.)
 
 Additional examples:
 \begin{itemize}
-\item DEC OSF/1 at nic.funet.fi with DECs best compiler...
+\item DEC OSF/1 at nic.funet.fi with DECs best compiler\ldots
+
 \begin{verbatim}
-CFLAGS="-O -g3 -std1" CC="cc -migrate" ./configure   \
-        --prefix=/l/mail  --with-bundled-libresolv   \
-        --with-system-malloc
+  CFLAGS="-O -g3 -std1" CC="cc -migrate" ./configure   \
+          --prefix=/l/mail  --with-bundled-libresolv   \
+          --with-system-malloc
 \end{verbatim}
 
-\item Sun Solaris 2.5  at mailhost.utu.fi, SunSoft CC 
+\item Sun Solaris 2.5  at mailhost.utu.fi, SunSoft CC
+
 \begin{verbatim}
-CC="cc -O" ./configure --prefix=/opt/mail       \
-        --with-bundled-libresolv
+  CC="cc -O" ./configure --prefix=/opt/mail       \
+                         --with-bundled-libresolv
 \end{verbatim}
 
 \item Sun Solaris 2.5  at mailhost.utu.fi, gcc-2.7.2
+
 \begin{verbatim}
-./configure --prefix=/opt/mail --with-bundled-libresolv \
-        --with-gcc
+  ./configure --prefix=/opt/mail --with-bundled-libresolv  \ 
+              --with-gcc
 \end{verbatim}
 
-\item Linux-2.0.x/libc-5.4.2 at mea.cc.utu.fi, gcc-2.7.2 
-\begin{verbatim}
-./configure --prefix=/l/mail
-\end{verbatim}
+\item Linux-2.0.x/libc-5.4.2 at mea.cc.utu.fi, gcc-2.7.2
 
+\begin{verbatim}
+  ./configure --prefix=/l/mail
+\end{verbatim}
 \end{itemize}
-
-
 
 \subsection{Compilation}
 
@@ -138,16 +138,12 @@ affect its own execution environment, it may be that non sh/ksh/zsh
 users detect weird phenomena, and failures. Beware!)
 
 
-
-
 \subsection{Installing and Upgrading}
 
 This section describes how to install or upgrade ZMailer.
 
 
-
-
-\subsubsection{Preparation}
+\subsubsection{Install Preparation}\index{build!install/upgrade preparation}
 
 If you are currently running a zmailer, kill off all mailer processes
 using
@@ -189,13 +185,11 @@ Anyway the point is to get the sendmail to send its queue
 via SMTP to the ZMailer.
 
 
-
-
-\subsubsection{Installation}
+\subsubsection{Installation}\index{build!installation}
 
 Once you are safe, run either:
 \begin{verbatim}
-# make install
+  # make install
 \end{verbatim}
 
 (this installs all binaries and the default database files, which
@@ -203,7 +197,7 @@ still need editing! See below.)
 or if you just want to have the new BINARIES without touching
 at your configurations:
 \begin{verbatim}
-# make install-bin
+  # make install-bin
 \end{verbatim}
 
 All programs are stored into  {\tt \$MAILBIN/}, and {\tt \$MAILBIN/ta/}, and
@@ -221,11 +215,8 @@ exist.  The {\tt \$MAILSHARE/forms/*} files are always replaced, but the
 old files will be saved in a ``bak'' directory.
 
 
-
-
 \paragraph{The Router Configuration File (\$MAILSHARE/router.cf).}
-
-
+\index{build!config!router configuration; {\tt router.cf}}
 
 You must now pick a toplevel router configuration file.  The
 default is provided in {\tt proto/cf/SMTP+UUCP.cf} (by now copied to
@@ -235,31 +226,28 @@ the {\tt cf/SMTP+UUCP.cf} file.
 Some real-life samples of {\tt router.cf} are at the {\tt proto/} directory.
 
 
-
-
 \paragraph{Installing the Manual Pages.}
-
-
+\index{build!man-page install}
 
 Go into the {\tt man} directory, and install the manual pages by hand:
 \begin{verbatim}
-cd man ; make install
+  cd man ; make install
 \end{verbatim}
 
 or in case the default guessing didn't get it right:
 \begin{verbatim}
-cd man ; make install MANDIR=/our/manpages
+  cd man ; make install MANDIR=/our/manpages
 \end{verbatim}
 
-
-
-\subsection{Configuring}
+\subsection{System Configuring}
+\index{build!config}
 
 This section describes the configuration in short. More detailed information 
 can be found in section {\em xxxxx....\/}.
 
 
 \subsubsection{/etc/mail.conf}
+\index{build!config!{\tt /etc/mail.conf}}
 
 If you are using the default configuration setup, the {\tt router.cf} file
 expects to find a {\tt /etc/mail.conf} file containing three variable
@@ -290,6 +278,8 @@ you can alter it. Into {\tt \$MAILSHARE/mail.conf} -- for example.
 
 
 \subsubsection{/etc/group}
+\index{build!{\tt /etc/group} entries}
+\index{build!security note: {\tt /etc/group} entries}
 
 The default configuration also expects to find names of trusted users
 listed at  {\tt /etc/group} entry {\tt zmailer}.  Users (unames) listed there
@@ -308,13 +298,13 @@ arbitary files.)
 
 
 \subsubsection{Verifying That the Router Starts}
+\index{build!router start verify}
 
 At this point, you should be able to start the router process in
 interactive mode.  Run:
 \begin{verbatim}
   $MAILBIN/router -i
 \end{verbatim}
-
 or
 \begin{verbatim}
   /usr/lib/sendmail -bt
@@ -338,6 +328,8 @@ before setting up the data files, so get out of this by hitting EOF, or type {\t
 
 
 \subsubsection{The Database and Forms Files}
+\index{build!config!databases}
+\index{build!config!forms files}
 
 Now you should merge, replace, or check the default database and
 forms files with your previous setup.
@@ -357,10 +349,10 @@ or {\tt sendmail -bi} if the ZMailer sendmail replacement is installed.
 
 Choose one of the following methods to rebuild the database:
 \begin{verbatim}
-# $MAILBIN/newaliases
-# $MAILBIN/zmailer newaliases
-# /usr/lib/sendmail -bi
-# ln -s /usr/lib/sendmail /usr/ucb/newaliases ; /usr/ucb/newaliases
+  # $MAILBIN/newaliases
+  # $MAILBIN/zmailer newaliases
+  # /usr/lib/sendmail -bi
+  # ln -s /usr/lib/sendmail /usr/ucb/newaliases ; /usr/ucb/newaliases
 \end{verbatim}
 
 If there are errors, correct them in the {\tt \$MAILVAR/db/aliases} file
@@ -386,13 +378,13 @@ With the sample config files for mea's Zmailer-2.98, and latter
 this {\tt localnames} is actually a mapping of those various names to
 the desired forms of the canonic name, thus an example:
 \begin{verbatim}
-astro.utu.fi            astro.utu.fi
-oj287                   astro.utu.fi
-oj287.astro.utu.fi      oj287.astro.utu.fi
-oj287.utu.fi            astro.utu.fi
-sirius                  sirius.utu.fi
-sirius.astro.utu.fi     sirius.utu.fi
-sirius.utu.fi           sirius.utu.fi
+  astro.utu.fi            astro.utu.fi
+  oj287                   astro.utu.fi
+  oj287.astro.utu.fi      oj287.astro.utu.fi
+  oj287.utu.fi            astro.utu.fi
+  sirius                  sirius.utu.fi
+  sirius.astro.utu.fi     sirius.utu.fi
+  sirius.utu.fi           sirius.utu.fi
 \end{verbatim}
 
 REMEMBER: ALL NAMES THAT THE HOST MAY EVER HAVE ARE BEST LISTED
@@ -618,9 +610,6 @@ in any case to make sure the text is appropriate for your site.
 \end{itemize}
 
 
-
-
-
 \subsection{Installation on Clients}
 
 This section describes the installation on clients.
@@ -638,9 +627,6 @@ to discover this by itself.
 {\tt bin} so people can query the mail server. (Remember to update {\tt /etc/services})
 \item {\tt \$POSTOFFICE} - this directory from the server should be mounted and writable.
 \end{itemize}
-
-
-
 
 
 \subsubsection{Mounting MAILBOXes and/or POSTOFFICE Hierarchies via NFS}
@@ -673,8 +659,6 @@ Often if the mail folder directory is shared, also (depending upon the system):
 /var/mail
 /var/spool/mail
 \end{verbatim}
-
-
 
 
 

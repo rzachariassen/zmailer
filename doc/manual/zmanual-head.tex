@@ -1,0 +1,38 @@
+%\documentstyle[linuxdoc-sgml-a4,isolatin,qwertz,titlepage]{article}
+%\documentstyle[linuxdoc-sgml-a4,isolatin,qwertz,titlepage]{article}
+\documentclass[twoside,a4paper]{article}
+\usepackage{html,htmllist,makeidx,enumerate}
+\usepackage{graphicx,color}
+
+%\input{zlat2html.tex}
+%\input{manhtml.tex}
+
+% \setlength{\textwidth}{5.5in}
+% \addtolength{\oddsidemargin}{-1in}
+% \addtolength{\evensidemargin}{-1in}
+
+
+\makeindex
+
+%
+% read own internals for sections/contents before any
+% from the segments.
+%
+
+\begin{document}
+\startdocument
+
+\title{ZMailer Manual}
+\author{Matti Aarnio, et.al.}
+\date{v1.99.4, 25 March 1998}
+
+\maketitle
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+
+% ------------------
+% Below generate \internal[xx]{} statements,
+% and catenate  zmanual-tail.tex
+%

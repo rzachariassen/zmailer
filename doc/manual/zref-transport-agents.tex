@@ -1,4 +1,5 @@
-%% \subsection{Delivery agents}
+%% \subsection{Delivery agnets}
+
 
 The delivery agent programs normally form the final stage of message delivery.
 
@@ -20,7 +21,7 @@ Recipient addresses are processed  as follows:
 \begin{itemize}
 \item Strip doublequotes around the address, if any. 
 \item Strip prefixing backslashes, if any.  
-\item If the address starts with a `{\tt {\verbar}}', the rest of the recipient address 
+\item If the address starts with a `{\tt $\|$}', the rest of the recipient address 
 string is interpreted as  a shell command to be run. 
 \item If the address starts with a `{\tt /}', the recipient address is a  filename
 to append the message to. 
@@ -82,11 +83,9 @@ that have a {\tt .rbiff} file in their home directory. (Unless an
 
 {\bf Usage}
 
-\begin{tscreen}
 \begin{verbatim}
 mailbox [-8][-M][-c channel][-h localpart][-l logfile][-VabrH] 
 \end{verbatim}
-\end{tscreen}
 
 
 {\bf Parameters}
@@ -149,11 +148,9 @@ pathnames of message control files from  standard input
 (terminated with two linefeeds), and produces diagnostic output on the
 standard output. Normal diagnostic output is of the form:
 
-\begin{tscreen}
 \begin{verbatim}
 id/offset<TAB>notify-data<TAB>status message
 \end{verbatim}
-\end{tscreen}
 
 
 where id is the inode number of the message file, offset is a
@@ -319,14 +316,12 @@ passed to the shell script.
 
 For example:
 
-\begin{tscreen}
 \begin{verbatim}
 NS:nic.ddn.mil/cname
 TIMEOUT:649901432
 IO:error
 SCRIPT:homedir/joe
 \end{verbatim}
-\end{tscreen}
 
 
 The condition class name is case-insensitive but is 
@@ -340,11 +335,9 @@ and a ``via suspension'' header.
 
 {\bf Usage}
 
-\begin{tscreen}
 \begin{verbatim}
 hold [ -c channel ] [ -V ]
 \end{verbatim}
-\end{tscreen}
 
 
 {\bf Parameters}
@@ -361,11 +354,9 @@ with two linefeeds), and produces diagnostic output
 on the standard output. Normal diagnostic output is of
 the form:
 
-\begin{tscreen}
 \begin{verbatim}
 id/offset/status message
 \end{verbatim}
-\end{tscreen}
 
 
 where id is the inode number of the message file, offset
@@ -407,13 +398,10 @@ served by any available mail exchanger for that host.
 
 {\bf Usage}
 
-\begin{tscreen}
 \begin{verbatim}
 smtp [ -78deEHrPsVxW ] [ -c channel ] [ -h heloname ] [ -l logfile ] 
 [ -p remote-port ] [ -T timeout ] [ -F forcedest] [ -L localidentity ] host
 \end{verbatim}
-\end{tscreen}
-
 
 {\bf Parameters}
 
@@ -580,11 +568,9 @@ names of message control files from standard input
 on the standard output. Normal diagnostic output is of
 the form:
 
-\begin{tscreen}
 \begin{verbatim}
 id/offset<TAB>notify-data<TAB>status message
 \end{verbatim}
-\end{tscreen}
 
 
 where id is the inode number of the message file, offset
@@ -648,12 +634,9 @@ temporary failure and the delivery will be retried.
 
 {\bf Usage}
 
-\begin{tscreen}
 \begin{verbatim}
 sm [ -8HQV ] [ -f configfile ] -c channel -h host mailer
 \end{verbatim}
-\end{tscreen}
-
 
 {\bf Parameters}
 
@@ -717,16 +700,12 @@ of the entries of the configuration file. Lines starting
 with whitespace or a '\#' are ignored, and all others are
 assumed to follow this format:
 
-\begin{tscreen}
 \begin{verbatim}
 mailer flags program argument list
 \end{verbatim}
-\end{tscreen}
-
 
 For example:
 
-\begin{tscreen}
 \begin{verbatim}
 local mS sm/localm localm -r $g $u
 prog - /bin/sh sh -c $u
@@ -736,7 +715,6 @@ usenet m sm/usenet usenet $u
 ean mn /local/lib/ean/gwsmean gwsmean -d $u
 test n sm/test test $u
 \end{verbatim}
-\end{tscreen}
 
 
 The mailer field extends from the beginning of the line to
@@ -875,11 +853,9 @@ with two linefeeds), and produces diagnostic output
 on the standard output. Normal diagnostic output is of
 the form:
 
-\begin{tscreen}
 \begin{verbatim}
 id/offset<TAB>notify-data<TAB>status message
 \end{verbatim}
-\end{tscreen}
 
 
 where id is the inode number of the message file, offset
