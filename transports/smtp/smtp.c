@@ -3253,7 +3253,7 @@ int sig;
 	SIGNAL_HANDLE(sig, sig_alarm);
 	SIGNAL_RELEASE(sig);
 	if (!noalarmjmp) {
-#ifdef __alpha__
+#ifdef __alpha
 	  zsyslog((LOG_ERR,"sigalrm(PC=%lx SP=%lx)",
 		   alarmjmp[2], alarmjmp[34]));
 #endif
