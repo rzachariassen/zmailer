@@ -16,7 +16,7 @@
 #include "router.h"
 
 static void initialize __((const char *configfile, int argc, const char *argv[]));
-static void logit __((const char *file, const char *id, const char *from, const char *to));
+static void logit __((const char *id, const char *from, const char *to));
 static void Imode_smtpserver __((void));
 
 
@@ -39,6 +39,7 @@ int	do_hdr_warning;
 int	workermode;
 int	nrouters = 1;
 int	isInteractive;
+int	no_logmessage;
 
 #define IMODE_NONE 0
 #define IMODE_SMTPSERVER 1
@@ -89,7 +90,7 @@ main(argc, argv)
 
 
 	while (1) {
-		c = zgetopt(argc, (char*const*)argv, "m:n:diI:kf:o:t:L:P:r:sSVwWZ:");
+		c = zgetopt(argc, (char*const*)argv, "m:n:diI:kf:o:t:lL:P:r:sSVwWZ:");
 		if (c == EOF)
 			break;
 	  
@@ -156,6 +157,9 @@ main(argc, argv)
 		case 'L':	/* override default log file */
 			logfn = zoptarg;
 			break;
+		case 'l':
+			no_logmessage = 1;
+			break;
 		case 'P':	/* override default postoffice */
 			postoffice = zoptarg;
 			break;
@@ -186,7 +190,7 @@ main(argc, argv)
 
 	if (errflg || (interactiveflg && daemonflg)) {
 		fprintf(stderr,
-			"Usage: %s [ -dikV -n #routers -t traceflag -f configfile -L logfile -P postoffice -Z zenvfile]\n",
+			"Usage: %s [ -dikVl -n #routers -t traceflag -f configfile -L logfile -P postoffice -Z zenvfile]\n",
 			progname);
 		exit(128+errflg);
 	}
@@ -609,8 +613,7 @@ logmessage(e)
 					/* print what we've got so far */
 					if (to != buf) {
 						*to = '\0';
-						logit(e->e_file,
-						      e->e_spoolid,
+						logit(e->e_spoolid,
 						      from, buf);
 						to = buf;
 					}
@@ -630,7 +633,7 @@ logmessage(e)
 	}
 	if (to != buf) {
 		*to = '\0';
-		logit(e->e_file, e->e_spoolid, from, buf);
+		logit(e->e_spoolid, from, buf);
 	}
 }
 
@@ -642,25 +645,25 @@ logmessage(e)
  */
 
 static void
-logit(file, id, from, to)
-	const char *file, *id, *from, *to;
+logit(id, from, to)
+	const char *id, *from, *to;
 {
 	int flen, baselen;
 
 	if (id == NULL)
-		id = file;
-	baselen = strlen(file) + strlen(id) + 4;
+		id = "<>";
+	baselen = strlen(id) + 4;
 	flen = strlen(from);
 	if (flen > 0)
-	  printf("%.30s: file: %s %s => %s\n", id, file, from, to);
+	  printf("%.30s: fromto: %s => %s\n", id, from, to);
 	else
-	  printf("%.30s: file: %s %s\n",       id, file, to);
+	  printf("%.30s: fromto: <> => %s\n",       id, to);
 	if (!nosyslog) {
 	  if (flen > 0)
-	    zsyslog((LOG_INFO, "%.30s: file: %.150s %.200s => %.200s",
-		     id, file, from, to));
+	    zsyslog((LOG_INFO, "%.30s: fromto: %.200s => %.200s",
+		     id, from, to));
 	  else
-	    zsyslog((LOG_INFO, "%.30s: file: %.150s %.200s", id, file, to));
+	    zsyslog((LOG_INFO, "%.30s: fromto: <> => %.200s", id, to));
 	}
 }
 
@@ -765,7 +768,7 @@ Imode_smtpserver __((void))
 	  av[0] = "server";
 	  av[1] = key;
 	  av[2] = data;
-	  av[4] = NULL;
+	  av[3] = NULL;
 
 	  s_apply(3, &av[0]); /* "server" key argument */
 
@@ -776,4 +779,3 @@ Imode_smtpserver __((void))
 	}
 	stickymem = oval;
 }
-

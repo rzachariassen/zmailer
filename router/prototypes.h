@@ -157,6 +157,7 @@ extern int   deferit;
 extern int   router_id;
 extern int   savefile;
 extern int   do_hdr_warning;
+extern int   no_logmessage;
 extern int   I_mode;
 extern int   isInteractive;
 extern int   nrouters;

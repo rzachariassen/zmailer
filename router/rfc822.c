@@ -1825,7 +1825,7 @@ sequencer(e, file)
 	 * Log the message after we find the envelope From address,
 	 * otherwise log entries might have empty sender fields.
 	 */
-	if (e->e_messageid)
+	if (e->e_messageid && !no_logmessage)
 		logmessage(e);
 
 	if (header_error) {
