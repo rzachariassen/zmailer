@@ -396,7 +396,7 @@ exit 0
 </SECT1>
 
 <SECT1 ID=zref.util.autoanswer>
-<TITLE>autoanswer</TITLE>
+<TITLE><COMMAND>autoanswer</></TITLE>
 
 <PARA>
 The <COMMAND>autoanswer</> program is intended to be placed into

@@ -342,7 +342,7 @@ client software or mailers.
 </PARA>
 
 <SECT2 ID=zref-smtpserver-config-param-entries>
-<TITLE>Smtpserver configuration; PARAM -entries</TITLE>
+<TITLE><COMMAND>Smtpserver</> configuration; PARAM -entries</TITLE>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>PARAM maxsize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>

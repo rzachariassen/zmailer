@@ -1,5 +1,5 @@
 <CHAPTER ID="ZADM-ROUTER"><?dbhtml filename="zadm-router.html">
-<TITLE>Router Configuration</TITLE>
+<TITLE><COMMAND>Router</> Configuration</TITLE>
 
 <PARA>
 The names (determined at compile-time) and interface specifications for the
@@ -238,8 +238,8 @@ of  messages.
 The <FUNCTION>router()</> script function is called with an address
 as argument, and returns a quad of (channel, host, user, attribs) as
 three separate values,  corresponding to <EMPHASIS>the channel</>
-the message should be sent out on (or, the router function can also
-be called to check on who sent a message), <EMPHASIS>the host</> or
+the message should be sent out on (or, the <FUNCTION>router</> function
+can also be called to check on who sent a message), <EMPHASIS>the host</> or
 node name for that channel (semantics depend per what channel is in effect),
 and <EMPHASIS>the address</> the receiving agent should transmit to.
 <EMPHASIS>The fourth parameter</> is ``attribute'' storage
@@ -327,7 +327,7 @@ emulates {\tt /bin/echo}
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>exit</TERM><LISTITEM><PARA>
-aborts the {\em router} with the specified status code
+aborts the <COMMAND>router</> with the specified status code
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>hostname</TERM><LISTITEM><PARA>

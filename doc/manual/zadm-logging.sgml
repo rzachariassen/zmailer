@@ -89,7 +89,7 @@ for your site.
 ........................................................ -->
 
 <SECT1 ID=zadm-logging-scheduler-perflog>
-<TITLE>Scheduler Statistics Log</>
+<TITLE><COMMAND>Scheduler</> Statistics Log</>
 
 <PARA>
 The  statistics log reports condenced performance oriented
@@ -154,7 +154,7 @@ Different subsystems do different logs, they are described below.
 </PARA>
 
 <SECT2 ID=zadm-logging-syslog-from-smtpserver>
-<TITLE>Smtpserver's Syslog Format</TITLE>
+<TITLE><COMMAND>Smtpserver</>'s Syslog Format</TITLE>
 
 <PARA>
 The <EMPHASIS>smtpserver</> may log in multiple formats:
@@ -180,7 +180,7 @@ in the system, and should be long-term unique, even.  (Per system.)
 </SECT2>
 
 <SECT2 ID=zadm-logging-syslog-from-router>
-<TITLE>Router's Syslog Format</TITLE>
+<TITLE><COMMAND>Router</>'s Syslog Format</TITLE>
 
 <PARA>
 The <EMPHASIS>router</> does <FUNCTION>syslog</>() in following format:

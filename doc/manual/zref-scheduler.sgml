@@ -791,7 +791,7 @@ nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0
 </SECT1>
 
 <SECT1 ID=zref-sch-mailq-cmd>
-<TITLE>mailq</TITLE>
+<TITLE><COMMAND>mailq</></TITLE>
 
 <PARA>FIXME! FIXME!</PARA>
 

@@ -76,8 +76,14 @@ them into your system (before compiling and installing ZMailer, that is):
   </LISTITEM>
   <LISTITEM>
     <PARA>
-      Private replacement libary for  getpwnam(), and/or
-      for  zgetpwnam()
+      Private replacement libary for  <FUNCTION>getpwnam</>(), and/or
+      for  <FUNCTION>zgetpwnam</>()
+    </PARA>
+  </LISTITEM>
+  <LISTITEM>
+    <PARA>
+      Whoson service to tie in with e.g. POP and IMAP servers for
+      authenticating SMTP relaying.
     </PARA>
   </LISTITEM>
 </ITEMIZEDLIST>
@@ -91,6 +97,24 @@ them into your system (before compiling and installing ZMailer, that is):
 <!-- ############################################################### -->
 
 <SECT1 ID="build.autoconfiguration"><TITLE>Autoconfiguration</TITLE>
+
+<PARA>
+The <FILENAME>zmailer.conf</> file carries various so called
+``ZMailer Environment'' configuration variables.
+</PARA>
+<PARA>
+In following we refer to those often in style of:
+<SCREEN>
+  $MAILVAR   $MAILSHARE   ...
+</SCREEN>
+Which essentially means expanding in Bourne-shell like manner given
+<EMPHASIS>ZENV-variable</> from this file.
+</PARA>
+<PARA>
+The location of this file is defined at system configuration, originally
+it was at: <FILENAME>$MAILSHARE/zmailer.conf</>, but these days more often
+at the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>.
+</PARA>
 
 <PARA>
 <!-- <INDEXTERM><primary>build</><secondary>disk partitions</></> -->
@@ -130,7 +154,7 @@ cause surprises if you do <COMMAND>make install</> with
 
 <PARA>
 When choosing your prefix, do try to keep is fairly short, as
-there are a few scripts which catenate string-components of:%
+there are a few scripts which catenate string-components of:
 <SCREEN>
   "#! "+prefix+"/bin/router -f"
 </SCREEN>
@@ -139,8 +163,8 @@ which gives at most 15 characters for your prefix!
 </PARA>
 
 <PARA>
-Also, if the <FILENAME>/etc/zmailer.conf</> file
-exists<FOOTNOTE><PARA>Default location is <FILENAME>/etc/zmailer.conf</>,
+Also, if the <FILENAME>$<VARNAME>MAILSHARE</>/zmailer.conf</> file
+exists<FOOTNOTE><PARA>Default location is <FILENAME>$MAILSHARE/zmailer.conf</>,
 and it can be changed with <OPTION>&dd;with-zconfig=</> option.
 </PARA></FOOTNOTE>,
 it is read to initialize several different environment paths (including
@@ -151,8 +175,7 @@ it is read to initialize several different environment paths (including
   &dd;prefix=/opt/mail                      \
   &dd;with-postoffice=/var/spool/postoffice \
   &dd;with-mailbox=/var/mail                \
-  &dd;with-logdir=/var/log/mail             \
-  &dd;with-zconfig=/etc/zmailer.conf</USERINPUT></SCREEN></PARA>
+  &dd;with-logdir=/var/log/mail</USERINPUT></SCREEN></PARA>
 
 <PARA>
 Or an example from my development machine:
@@ -161,7 +184,7 @@ Or an example from my development machine:
   creating cache ./config.cache
   ***
   *** You can set  ZCONFIG  environment variable to define
-  *** the location of the (default) /etc/zmailer.conf -file
+  *** the location of the (default) /opt/mail/zmailer.conf -file
   *** (You can use also   &dd;with-zconfig=  -parameter)
   ***
   *** Consider also setting following parameters:
@@ -226,8 +249,8 @@ Additional examples:
 
 <LISTITEM><PARA>Sun Solaris 8  at marsu.funet.fi, gcc-2.95.2 (egcs-1.1.2)
 <SCREEN>
-  <PROMPT>$ </><USERINPUT>'CC='gcc' CFLAGS='-g -O'  ./configure  \</>
-       <USERINPUT>&dd;prefix=/opt/mail &dd;with-ipv6     \</> 
+  <PROMPT>$ </><USERINPUT>'CC='gcc' CFLAGS='-g -O'  ./configure    \</>
+       <USERINPUT>&dd;prefix=/opt/mail &dd;with-ipv6        \</> 
        <USERINPUT>&dd;with-zconfig=/opt/mail/zmailer.conf</>
 </SCREEN></PARA></LISTITEM>
 
@@ -348,10 +371,10 @@ points to ZMailer's ``<COMMAND>sendmail</>.''
 Once you are safe, run:
 <SCREEN>
   <PROMPT># </><USERINPUT>make install</>
-  <PROMPT># </><USERINPUT>$MAILBIN/post-install -MD5</>
+  <PROMPT># </><USERINPUT>$<VARNAME>MAILBIN</>/post-install -MD5</>
 </SCREEN>
-<EMPHASIS>(Substitute <USERINPUT>$MAILBIN</> with the path where your
-binaries go)</EMPHASIS>
+<EMPHASIS>(Substitute <USERINPUT>$<VARNAME>MAILBIN</></> with the path
+ where your binaries go)</EMPHASIS>
 </PARA>
 
 <PARA>
@@ -444,9 +467,34 @@ Which essentially means expanding in Bourne-shell like manner given
 </PARA>
 <PARA>
 The location of this file is defined at system configuration, originally
-it was at: <FILENAME>/etc/zmailer.conf</>, but these days more often
-at the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>.
+it was at: <FILENAME>$<VARNAME>MAILSHARE</>/zmailer.conf</>, but these days
+more often at the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>.
 </PARA>
+
+<PARA>
+<!-- <INDEXTERM><primary>build</><secondary>disk partitions</></> -->
+
+This system uses several preferably separate partitions for
+different things:
+
+<ITEMIZEDLIST>
+<LISTITEM><PARA>Software binaries, and databases:
+  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</> (node local db's),
+  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/</> (site shared),
+  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</> (read-only, site shared)
+</PARA></LISTITEM>
+<LISTITEM><PARA>The mailbox spool:
+  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBOX</>/</>
+  (<FILENAME CLASS="DIRECTORY">/var/mail</>)</></>
+<LISTITEM><PARA>The postoffice spool:
+  <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
+  (<FILENAME CLASS="DIRECTORY">/var/spool/postoffice/</>)</></>
+<LISTITEM><PARA>The log directory:
+  <FILENAME CLASS="DIRECTORY">$<VARNAME>LOGDIR</>/</>
+  (<FILENAME>/var/log/mail</>)</></>
+</ITEMIZEDLIST>
+</PARA>
+
 </SECT2>
 
 <SECT2><TITLE><FILENAME>/etc/group</></>
@@ -458,7 +506,7 @@ The default configuration also expects to find names of trusted users
 listed at  <FILENAME>/etc/group</>  entry <LITERAL>zmailer</>.
 Users (unames) listed there will be able to claim any addresses at
 the message headers, etc.
-(See <FILENAME>$MAILSHARE/cf/trusted.cf</> for its usage there.)
+(See <FILENAME>$<MAILVAR>MAILSHARE</>/cf/trusted.cf</> for its usage there.)
 </PARA>
 
 <PARA>
@@ -470,7 +518,7 @@ The usual <EMPHASIS>minimal</> set is: <LITERAL>root,daemon,uucp</>.
 
 <WARNING><PARA>
 <EMPHASIS>SECURITY ITEM</>: Those users at <LITERAL>zmailer</> group
-<EMPHASIS>must not</> contain <LITERAL>nobody</>!
+<EMPHASIS ROLE="BOLD">must not</> contain <LITERAL>nobody</>!
 </PARA><PARA>
 The <LITERAL>nobody</> is used to prevent externally given inputs from being
 able to execute arbitrary programs at the system, or from writing to
@@ -496,9 +544,9 @@ See more about this at Scheduler's PARAM enties: <XREF LINKEND="scheduler.param.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>The Router subsystem</TITLE>
+<SECT1><TITLE>The <COMMAND>Router</> subsystem</TITLE>
 
-<SECT2><TITLE>The Router Configuration File (<FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>).</>
+<SECT2><TITLE>The <COMMAND>Router</> Configuration File (<FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>).</>
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</><TERTIARY>router configuration; <FILENAME>router.cf</></></>
      <INDEXTERM><PRIMARY><FILENAME>router.cf</>; router configuration</><SECONDARY>config</></> -->
 
@@ -571,12 +619,12 @@ as local.  See below about <FILENAME>localnames</> database.
 
 </SECT2>
 
-<SECT2><TITLE>Verifying That the Router Starts</TITLE>
+<SECT2><TITLE>Verifying That the <COMMAND>Router</> Starts</TITLE>
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY>router start verify</></>
      <INDEXTERM><PRIMARY>installation</><SECONDARY>router start verify</></> -->
 
 <PARA>
-At this point, you should be able to start the router process in
+At this point, you should be able to start the <COMMAND>router</> process in
 interactive mode.  Run:
 <SCREEN>
   <PROMPT># </><USERINPUT>$MAILBIN/router -i</>
@@ -593,7 +641,8 @@ You should see something like:
   ZMailer router (2.99.50 #4: Sun May 10 15:24:09 EEST 1998)
   you@hostname:/some/path/to/src/zmailer/router
   Copyright 1992 Rayan S. Zachariassen
-  Copyright 1992-1998 Matti Aarnio
+  Copyright 1992-2001 Matti Aarnio
+  Configured with command: 'CC='gcc -Wall' CFLAGS='-g -O' ../configure ...'
   
   z#
 </SCREEN>
@@ -608,7 +657,7 @@ so get out of this by hitting EOF, or type <USERINPUT>exit</>.
 
 </SECT2>
 
-<SECT2 ID="zins-router-db-files"><TITLE>The Router Database Files</>
+<SECT2 ID="zins-router-db-files"><TITLE>The <COMMAND>Router</> Database Files</>
 <INDEXTERM ID="build.config.router-databases.1">
 <PRIMARY>build</><secondary>config</><tertiary>router-databases</></>
 <INDEXTERM ID="build.config.router-databases.2">
@@ -631,7 +680,7 @@ configuration file to tell the association of database to lookup relations,
 and also the source files.
 </PARA>
 
-<SECT3><TITLE><FILENAME>$MAILBIN/zmailer</> script</>
+<SECT3><TITLE><FILENAME>$<VARNAME>MAILBIN</>/zmailer</> script</>
 
 <PARA>
 You may want to add a symbolic link from some directory in your path
@@ -646,7 +695,7 @@ init-script as well.
 </PARA>
 </SECT3>
 
-<SECT3><TITLE><FILENAME>$MAILVAR/db/dbases.conf</> file</>
+<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</> file</>
 
 <PARA>
 As mentioned above, this file configures (when exists) database lookup
@@ -667,11 +716,11 @@ under which lookup names, and what format they are, etc..
 <PARA>
 This is used by  ``<COMMAND>zmailer newdb</>''  command to generate
 all databases described here, and to produce relevant  <FILENAME>.zmsh</>
-scripts for the router to use things.
-The  ``<COMMAND>zmailer newdb</>'' invocation does not mandate router
-restart in case the database definitions have not changed; reverse is true:
-If definitions are added/modified/removed,
-the router <EMPHASIS ROLE=BOLD>must</> be restarted!
+scripts for the <COMMAND>router</> to use things.
+The  ``<COMMAND>zmailer newdb</>'' invocation does not mandate
+<COMMAND>router</> restart in case the database definitions have
+not changed; reverse is true: If definitions are added/modified/removed,
+the <COMMAND>router</> <EMPHASIS>must</> be restarted!
 </PARA>
 
 <PARA>
@@ -713,8 +762,8 @@ aliases     $DBTYPE majordomo:0:644 -la /opt/Majordomo/md-aliases -lm
 fqdnaliases $DBTYPE root:0:644 -la $MAILVAR/db/fqdnaliases -lm
 userdb      $DBTYPE root:0:644 -la $MAILVAR/db/userdb      -lm
 
-routesdb    $DBTYPE -          -l  $MAILVAR/db/routes      -lm -d pathalias
-thishost    $DBTYPE -          -l  $MAILVAR/db/localnames  -lm -d pathalias
+routesdb    $DBTYPE -    -l  $MAILVAR/db/routes      -lm -d pathalias
+thishost    $DBTYPE -    -l  $MAILVAR/db/localnames  -lm -d pathalias
 
 </SCREEN>
 </FIGURE>
@@ -722,7 +771,7 @@ thishost    $DBTYPE -          -l  $MAILVAR/db/localnames  -lm -d pathalias
 
 </SECT3>
 
-<SECT3><TITLE><FILENAME>$MAILVAR/db/aliases</> file</>
+<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/aliases</> file</>
 
 <PARA>
 The provided skeleton aliases file on purpose contains syntax errors,
@@ -758,10 +807,106 @@ See also IETF's
 for other suggested aliases you may need. 
 </PARA>
 
+<SECT4><TITLE>Alias expansion</TITLE>
+
+<PARA>
+Read the notes on alias expansion in the file <FILENAME>doc/guides/aliases</>
+and on mailing list maintenance in <XREF LINKEND="mailing-list-maintenance">, 
+<EMPHASIS>Mailing Lists and <FILENAME>~/.forward</>.</EMPHASIS>
+</PARA>
+
+</SECT4>
+</SECT3>
+
+<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/fqdnaliases</> file</>
+
+<PARA>
+The <FILENAME>fqdnaliases</> database is for mapping fully-qualified
+user addresses to others &mdash; for example your machine has a set of
+domain-names for it to consider local, but you want to have
+separate people to be postmasters for each of them as shown at
+<XREF LINKEND="fig.inst.fqdnaliases">.
+</PARA>
+
+<FIGURE ID="fig.inst.fqdnaliases" PGWIDE="1" FLOAT="1">
+<TITLE>Sample of ``<FILENAME>fqdnaliases</>'' file</TITLE>
+<SCREEN>
+  postmaster@domain1: person1
+  postmaster@domain2: person2
+  postmaster@domain3: person3, person4
+</SCREEN>
+</FIGURE>
+
+<PARA>
+It is also possible to shunt all recipient addresses for given domain to
+some arbitrary addresses as shown at <XREF LINKEND="fig.inst.fqdnaliases-2">.
+</PARA>
+
+<FIGURE ID="fig.inst.fqdnaliases-2" PGWIDE="1" FLOAT="1">
+<TITLE>Second sample of ``<FILENAME>fqdnaliases</>'' file</TITLE>
+<SCREEN>
+  @domain4:  person4
+  @domain5:  "%1"@domain6
+</SCREEN>
+</FIGURE>
+
+<PARA>
+This facility is always in stand-by &mdash; just add the file, and
+you have it at the next router startup.
+</PARA>
+
+<PARA>
+The ``<USERINPUT>"%1"</>'' local part is special (and experimental, as of
+15-Feb-2001) substitution pattern where <EMPHASIS>local part (user)</>
+can be replaced into the looked up data.
+</PARA>
+
+<PARA>
+It is considered that the implementation method must be changed into such
+where those quotes are not needed.
+</PARA>
+
+<PARA>
+You may even handle just a few users for each of those domains, and then
+have the ``<FILENAME>routes</>'' entry (see above at
+<XREF LINKEND="fig.inst.routes">) to declare something
+suitable:
+<SCREEN>
+  .domain1  error!nosuchuser
+  .domain1  error!nosuchuser!%0
+</SCREEN>
+which combined with the ``<FILENAME>fqdnalias</>'' method will let
+``<FILENAME>postmaster@domain1</>'' to exist, and report error on all others.
+</PARA>
+
+<PARA>
+Choose one of the following methods to rebuild the database:
+<SCREEN>
+  <PROMPT># </><USERINPUT>$<VARNAME>MAILBIN</>/newfqdnaliases</>
+</SCREEN>
+or either of:
+<SCREEN>
+  <PROMPT># </><USERINPUT>$<VARNAME>MAILBIN</>/zmailer newfqdnaliases</>
+  <PROMPT># </><USERINPUT>$<VARNAME>MAILBIN</>/zmailer newdb</>
+</SCREEN>
+</PARA>
+
+<PARA>
+If there are errors, correct them in the ``<FILENAME>fqdnaliases</>'' file,
+and repeat the command until the alias database has been initialized.
+The final message looks similar to that of the ordinary aliases case.
+</PARA>
+
+<PARA>
+If you have multiple fqdnaliases databases defined at the
+<FILENAME>dbases.conf</>, you must use the ``<COMMAND>zmailer newdb</>''.
+(See FIXME!FIXME! XREF)
+</PARA>
+
 </SECT3>
 
 <SECT3 ID="configure-localnames-file">
-<TITLE><FILENAME>$MAILVAR/db/localnames</> file</>
+<TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/localnames</> file</>
 
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY><FILENAME>$<VARNAME>MAILVAR</>/db/localnames</></></> -->
 
@@ -803,7 +948,7 @@ sirius.utu.fi        sirius.utu.fi
 </FIGURE>
 
 <PARA>
-In certain cases the router is able to deduce some of the names,
+In certain cases the <COMMAND>router</> is able to deduce some of the names,
 <EMPHASIS>however smtpserver anti-relay policy compiler will not be able
  to do so, and needs this data!</EMPHASIS>
 </PARA>
@@ -855,73 +1000,6 @@ You can compile the file into binary database with command:
 </FIGURE>
 </SECT3>
 
-<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/fqdnaliases</> file</>
-
-<PARA>
-The <FILENAME>fqdnaliases</> database is for mapping fully-qualified
-user addresses to others &mdash; for example you machine has a set of
-domain-names for it to consider local, but you want to have
-separate people to be postmasters for each of them as shown at
-<XREF LINKEND="fig.inst.fqdnaliases">.
-</PARA>
-
-<FIGURE ID="fig.inst.fqdnaliases" PGWIDE="1" FLOAT="1">
-<TITLE>Sample of ``<FILENAME>fqdnaliases</>'' file</TITLE>
-<SCREEN>
-  postmaster@domain1: person1
-  postmaster@domain2: person2
-  postmaster@domain3: person3, person4
-</SCREEN>
-</FIGURE>
-
-<PARA>
-It is also possible to shunt all recipient addresses for given domain to
-some arbitrary addresses as shown at <XREF LINKEND="fig.inst.fqdnaliases-2">.
-</PARA>
-
-<FIGURE ID="fig.inst.fqdnaliases-2" PGWIDE="1" FLOAT="1">
-<TITLE>Second sample of ``<FILENAME>fqdnaliases</>'' file</TITLE>
-<SCREEN>
-  @domain4:  person4
-</SCREEN>
-</FIGURE>
-
-<PARA>
-This facility is always in stand-by &mdash; just add the file, and
-you have it at the next router startup.
-</PARA>
-
-<PARA>
-You may even handle just a few users for each of those domains, and then
-have the ``<FILENAME>routes</>'' entry (see above at
-<XREF LINKEND="fig.inst.routes">) to declare something
-suitable:
-<SCREEN>
-  .domain1  error!nosuchuser
-</SCREEN>
-which combined with the ``<FILENAME>fqdnalias</>'' method will let
-``<FILENAME>postmaster@domain1</>'' to exist, and report error on all others.
-</PARA>
-
-<PARA>
-Choose one of the following methods to rebuild the database:
-<SCREEN>
-  <PROMPT># </><USERINPUT>$<VARNAME>MAILBIN</>/newfqdnaliases</>
-</SCREEN>
-or either of:
-<SCREEN>
-  <PROMPT># </><USERINPUT>$<VARNAME>MAILBIN</>/zmailer newfqdnaliases</>
-  <PROMPT># </><USERINPUT>$<VARNAME>MAILBIN</>/zmailer newdb</>
-</SCREEN>
-</PARA>
-
-<PARA>
-If there are errors, correct them in the ``<FILENAME>fqdnaliases</>'' file,
-and repeat the command until the alias database has been initialized.
-The final message looks similar to that of the ordinary aliases case.
-</PARA>
-
-</SECT3>
 
 <SECT3><TITLE>UUCP Node Names</>
 
@@ -938,15 +1016,16 @@ UUCP node name in the file <FILENAME>/etc/name.uucp</>
 
 <PARA>
 At this point, you should be able to start the router again in
-interactive mode, and ask it to route addresses.  Try:
+interactive mode, and ask it to route addresses.  Try either of:
 <SCREEN>
   <PROMPT># </><USERINPUT>/usr/lib/sendmail -bt</>
+  <PROMPT># </><USERINPUT>$MAILBIN/router -i</>
 </SCREEN>
 at the prompt:
 <SCREEN>
   <PROMPT>z# </><USERINPUT>router you</>
 </SCREEN>
-should print out:
+(where ``you'' is your login-id, naturally) should print out:
 <SCREEN>
   (((local you you default_attributes)))
 </SCREEN>
@@ -968,7 +1047,7 @@ you can give command ``<COMMAND>rtrace</>'' before trying to use
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>The Smtpserver subsystem</TITLE>
+<SECT1><TITLE>The <COMMAND>Smtpserver</> subsystem</TITLE>
 
 <PARA>
 The <COMMAND>smtpserver</> implements RFC-821 server along with lots
@@ -1031,6 +1110,7 @@ method -- as long as input databases are readable by the test runner:
 
 <SCREEN>
   <PROMPT>$ </><USERINPUT>$MAILBIN/smtpserver -i -d 1 -T '[1.2.3.4]'</>
+  <PROMPT>$ </><USERINPUT>$MAILBIN/smtpserver -i -d 1 -T '[ipv6.11::33]'</>
 </SCREEN>
 
 <PARA>
@@ -1077,9 +1157,9 @@ do leave out ``-d 1'' part of the start arguments.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>The Scheduler subsystem</TITLE>
+<SECT1><TITLE>The <COMMAND>Scheduler</> subsystem</TITLE>
 
-<SECT2><TITLE>Checking the Scheduler</TITLE>
+<SECT2><TITLE>Checking the <COMMAND>Scheduler</></TITLE>
 
 <PARA>
 The location of the <FILENAME>scheduler.conf</> on running system is
@@ -1179,8 +1259,43 @@ as local delivery agent </PARA></LISTITEM>
 <PARA>
 For more information, see <XREF LINKEND="zref-ta-sm-config">.
 </PARA>
+</SECT2>
+
+<SECT2><TITLE>Customizing ZMailer Messages</TITLE>
+
+<PARA>
+Edit several of the canned error messages and programs (scripts)
+to reflect your local configuration:
+<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/forms/</> files and
+<FILENAME>$<VARNAME>MAILBIN</>/ta/usenet</> (injected message).
+</PARA>
+
+<PARA>
+Normally the boilerplate messages looks something like these:
+<SCREEN>
+HDR From:    The Post Office &lt;postmaster&gt;
+HDR Sender:  mailer-daemon
+SUB Subject: Errors: No such user(s)
+ADR Bcc:     &lt;postmaster&gt;
+
+This is a collection of reports about email delivery
+process concerning a message you originated:
+</SCREEN>
+In these, ``ADR'' lines define header lines which are to be analyzed
+for <EMPHASIS>recipient</> addresses, while ``HDR'' lines can carry
+anything which doesn't get output as <EMPHASIS>envelope</> address.
+The ``ADR'' line contained addresses <EMPHASIS ROLE="BOLD">must</> be in
+brackets, and there can be only one address per such header.  If there
+are more, only the first one is picked.
+</PARA>
+
+<PARA>
+<EMPHASIS>FIXME: FIXME: XREF to Scheduler</>
+</PARA>
 
 </SECT2>
+
+
 </SECT1>
 
 
@@ -1219,7 +1334,7 @@ if you have it to begin with.
 <PARA>
 Start ZMailer:
 <SCREEN>
- $MAILBIN/zmailer
+  <PROMPT># </><USERINPUT>$MAILBIN/zmailer</>
 </SCREEN>
 </PARA>
 
@@ -1278,56 +1393,8 @@ you need to customize it for your environment.  More of that below.
 </PARA>
 
 <PARA>
-You may want to hardwire the location of the zmailer script.
+You may want to hardwire the location of the <COMMAND>zmailer</> script.
 </PARA>
-</SECT1>
-
-<!-- ############################################################### -->
-
-<SECT1><TITLE>Customizing ZMailer Messages</TITLE>
-
-<PARA>
-Edit several of the canned error messages and programs (scripts)
-to reflect your local configuration:
-<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/forms/</> files and
-<FILENAME>$<VARNAME>MAILBIN</>/ta/usenet</> (injected message).
-</PARA>
-
-<PARA>
-Normally the boilerplate messages looks something like these:
-<SCREEN>
-HDR From:    The Post Office &lt;postmaster&gt;
-HDR Sender:  mailer-daemon
-SUB Subject: Errors: No such user(s)
-ADR Bcc:     &lt;postmaster&gt;
-
-This is a collection of reports about email delivery
-process concerning a message you originated:
-</SCREEN>
-In these, ``ADR'' lines define header lines which are to be analyzed
-for <EMPHASIS>recipient</> addresses, while ``HDR'' lines can carry
-anything which doesn't get output as <EMPHASIS>envelope</> address.
-The ``ADR'' line contained addresses <EMPHASIS ROLE="BOLD">must</> be in
-brackets, and there can be only one address per such header.  If there
-are more, only the first one is picked.
-</PARA>
-
-<PARA>
-<EMPHASIS>FIXME: FIXME: XREF to Scheduler</>
-</PARA>
-
-</SECT1>
-
-<!-- ############################################################### -->
-
-<SECT1><TITLE>Alias expansion</TITLE>
-
-<PARA>
-Read the notes on alias expansion in the file <FILENAME>doc/guides/aliases</>
-and on mailing list maintenance in <XREF LINKEND="mailing-list-maintenance">, 
-<EMPHASIS>Mailing Lists and <FILENAME>~/.forward</>.</EMPHASIS>
-</PARA>
-
 </SECT1>
 
 
@@ -1341,18 +1408,31 @@ logging: there are four kinds of logging to deal with:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>Router logs:</PARA>
 <PARA>
-FIXME! FIXME!
 Usually kept in <FILENAME>$<VARNAME>LOGDIR</>/router</>.
-his is the stdout and stderr output of the router daemon.
+This is the stdout and stderr output of the router daemon.
 If you wish to turn it off,
 see <FILENAME>$<VARNAME>MAILSHARE</>/cf/standard.cf</> for routine
 dribble()},
 and especially its invocations!
+Alternatively use ``<OPTION>-L /dev/null</>'' to divert everything
+to the ``dev null.''
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>Scheduler logs:</PARA>
 <PARA>
-Usually kept in <FILENAME>$<VARNAME>LOGDIR</>/scheduler</>.  Same as router.
+Usually kept in <FILENAME>$<VARNAME>LOGDIR</>/scheduler</>.
+Same as router.
+The <COMMAND>scheduler</> prints there <EMPHASIS>only</> when
+it feels bad about something.<FOOTNOTE><PARA>
+At least this is the theory, practice may be different, though.
+</PARA></FOOTNOTE>
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>Syslog Control ZENV variable:</PARA>
+<PARA>
+<EMPHASIS>ZENV variable</> $<VARNAME>SYSLOGFLG</> contains a set of
+single-character flags: ``S'', ``C'', ``R'', and/or ``T''.
+FIXME! FIXME! Explain Smtpserver/sCheduler/Router/Transport agents!
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>General Mail Logs:</PARA>
@@ -1405,9 +1485,9 @@ This section describes the installation at clients.
 
 <VARIABLELIST TERMLENGTH="99">
 <TITLE>The following files/programs are needed on clients:</TITLE>
-<VARLISTENTRY><TERM><FILENAME>/etc/zmailer.conf</></>
+<VARLISTENTRY><TERM><FILENAME>$<VARNAME>MAILVAR</>/zmailer.conf</></>
 <LISTITEM><PARA>
-The <VARNAME>$MAILSERVER</> variable may be set to the mail server host's name.
+The $<VARNAME>MAILSERVER</> variable may be set to the mail server host's name.
 This is not required as <COMMAND>mailq</> will usually be able to discover this
 by itself.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1424,7 +1504,7 @@ so people can query the mail server.
 (Remember to update <FILENAME>/etc/services</>)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</></></>
+<VARLISTENTRY><TERM><FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</></>
 <LISTITEM><PARA>
 This directory from the server should be mounted and writable.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1434,8 +1514,8 @@ This directory from the server should be mounted and writable.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Mounting <FILENAME>$MAILBOX</>es and/or
-<FILENAME>$POSTOFFICE/</> Hierarchies via NFS</>
+<SECT1><TITLE>Mounting <FILENAME>$<VARNAME>MAILBOX</></>es and/or
+<FILENAME>$<VARNAME>POSTOFFICE</>/</> Hierarchies via NFS</>
 
 <PARA>
 This is mostly for client machines,
@@ -1513,7 +1593,8 @@ The  configure  script has three kinds of parameters for it:
 <VARLISTENTRY><TERM><VARNAME>ZCONFIG</>="/file/path"</TERM>
 <LISTITEM><PARA>
 Using this is alternate for using ``<OPTION>&dd;with-zconfig=../</>'' option.
-Not needed if the default of <FILENAME>/etc/zmailer.conf</> is used.
+Not needed if the <OPTION>&dd;prefix=</> derived
+<FILENAME>$<VARNAME>MAILSHARE</>/zmailer.conf</> is used.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1571,8 +1652,11 @@ Recycled ZENV variables (from $<VARNAME>ZCONFIG</> file):
 <VARLISTENTRY>
 <TERM><OPTION>&dd;prefix=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
-The only really mandatory option, gives actually
-defaults for <FILENAME>$<VARNAME>MAILSHARE</>/$<VARNAME>MAILVAR</>/$<VARNAME>MAILBIN</></FILENAME>:.
+The only really mandatory option, gives actually defaults for
+<EMPHASIS>ZENV variables</>:
+ <FILENAME>$<VARNAME>MAILSHARE</></>,
+ <FILENAME>$<VARNAME>MAILVAR</></>,
+ <FILENAME>$<VARNAME>MAILBIN</></>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1592,7 +1676,7 @@ Everything else is runtime relocatable by means of using
 </PARA>
 
 <PARA>
-Default: <FILENAME>/etc/zmailer.conf</>
+Default: <FILENAME>$<VARNAME>MAILSHARE</>/zmailer.conf</>
 </PARA>
 
 <PARA>
@@ -1694,7 +1778,7 @@ easier than pre-configuring them.
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-system-malloc</OPTION></TERM>
 <LISTITEM><PARA>
-Use system malloc() library, don't compile own:
+Use system <FUNCTION>malloc</>() library, don't compile own:
 Alternate for using: <OPTION>&dd;with-libmalloc=system</>
 This is default.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1708,7 +1792,7 @@ Where ``LIBNAME'' is one of:
 <VARLISTENTRY>
 <TERM><OPTION>system</OPTION></TERM>
 <LISTITEM><PARA>
-System malloc() as is.
+System <FUNCTION>malloc</>() as is.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1774,13 +1858,14 @@ its API headers and libraries are present.
 <TERM><OPTION>&dd;without-fsync</OPTION></TERM>
 <LISTITEM><PARA>
 At systems where the local filesystem is log-based/journaling,
-doing   fsync()  is wastefull.  This disables fsync() in
-cases where it is not needed.    (In others it may boost
-your system performance by about 20% &mdash; with dangers..
-On the other hand, recently a system disk(?) fault which
-hang mailer at spool directory access did cause severe
-damage all over, and propably use of this option would
-not have made any difference..  fsck was mighty unhappy..)
+doing   <FUNCTION>fsync</>()  is wastefull.  This disables
+<FUNCTION>fsync</>() in cases where it is not needed.
+(In others it may boost your system performance by about 20% &mdash;
+ with dangers..
+On the other hand, once a system disk(?) fault which hang mailer at
+spool directory access did cause severe damage all over, and propably
+use of this option would not have made any difference..
+ <COMMAND>fsck</> was mighty unhappy..)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1797,7 +1882,7 @@ even newer resolver in it.  At such time, don't use this!
 <LISTITEM><PARA>
 Use IPv6 at things where it is supported.  This is often
 highly experimental, although many subsystems in ZMailer
-are built with   getnameinfo()  et.al. interfaces, which
+are built with  <FUNCTION>getnameinfo</>()  et.al. interfaces, which
 works both on IPv4 and IPv6.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1811,22 +1896,26 @@ things, this generates those.
 <VARLISTENTRY>
 <TERM><OPTION>&dd;without-maillock</OPTION></TERM>
 <LISTITEM><PARA>
-Don't use maillock(3) even if system has it.
-(Solaris maillock is ok, some early Linux versions weren't..)
+Don't use <FUNCTION>maillock</>(3) even if system has it.
+(Solaris <FUNCTION>maillock</>(3) is ok, some early Linux
+ versions weren't..)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>&dd;without-rfc822-tabs</OPTION></TERM>
 <LISTITEM><PARA>
 Some systems dislike getting RFC-822 headers with form of:
+
 <SCREEN>
    "Headername: &lt;TAB&gt; value"
 </SCREEN>
+
 With this option, no TABs are used and instead "ordinary"
 space character is used.
-</PARA><PARA>
-In real life, this feature is superceded by the router to
-<EMPHASIS>always</> <EMPHASIS>TABifying</> all headers, and
+</PARA>
+<PARA>
+In real life, this feature is superceded by the <COMMAND>router</>
+to <EMPHASIS>always</> <EMPHASIS>TABifying</> all headers, and
 the transport-agent header write-out to <EMPHASIS>untabifying</>
 them, if ZENV variable <VARNAME>RFC822TABS=</> has value ``0''.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1888,15 +1977,15 @@ Use ``<FILENAME CLASS="DIRECTORY">private/</>'' subdirectory in a part of
 <TERM><OPTION>&dd;with-getpwnam-library="-L... -l..."</OPTION></TERM>
 <LISTITEM><PARA>
 Certain sites have expressed wishes to use their own libraries
-to replace the standard getpwnam() (and possibly getpwuid())
-routines.
-These are used in router, scheduler, mailbox, hold, and vacation
-programs.
+to replace the standard <FUNCTION>getpwnam</>() (and possibly
+<FUNCTION>getpwuid</>()) routines.
+These are used in <COMMAND>router</>, <COMMAND>scheduler</>,
+<COMMAND>mailbox</>, <COMMAND>hold</>, and <COMMAND>vacation</> programs.
 </PARA>
 
 <PARA>
-These programs use getpwnam() libary call to look up various customer
-usernames to whatever the system needs them for.
+These programs use <FUNCTION>getpwnam</>() libary call to look up various
+customer usernames to whatever the system needs them for.
 </PARA><PARA>
 For ZMailer needs the library must support userids:
 <ITEMIZEDLIST>

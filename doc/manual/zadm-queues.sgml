@@ -87,7 +87,7 @@ directory.
 </SECT1>
 
 <SECT1 ID=zadm-queue-router-behaviour>
-<TITLE>Router Behaviour on Queues</>
+<TITLE><COMMAND>Router</> Behaviour on Queues</>
 
 <PARA>
 <SCREEN>
@@ -151,9 +151,10 @@ Once the processing has completed successfully, the original
 input file is moved into the directory
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>,
 and the <COMMAND>router</> produced
-<COMMAND>scheduler work-specification file</>
-is moved to the <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transports/</> directory with the <EMPHASIS ROLE="BOLD">same name</>
-that the original file has.
+<COMMAND>scheduler</> work-specification file is moved to
+the <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transports/</>
+directory with the <EMPHASIS ROLE="BOLD">same name</> that the original
+file has.
 </PARA>
 
 <PARA>
@@ -183,7 +184,7 @@ See Postmaster Analysis Area on section
 </SECT1>
 
 <SECT1 ID=zadm-queue-scheduler-and-transport-agents>
-<TITLE>Scheduler, and Transport Agents</>
+<TITLE><COMMAND>Scheduler</>, and Transport Agents</>
 
 <PARA>
 The scheduler work specification files are in the directory
