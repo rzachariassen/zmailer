@@ -20,10 +20,11 @@ FIG_PS :=	$(FIGS:%.fig=%.ps)
 FIGGIF :=	$(FIGS:%.fig=%.gif)
 
 LINUXDOCBIN=/usr/bin
-#LINUXDOCLIB=/usr/lib/sgml-tools
-LINUXDOCLIB=/usr/lib/linuxdoc-sgml
+LINUXDOCLIB=/usr/lib/sgml-tools
+#LINUXDOCLIB=/usr/lib/linuxdoc-sgml
+LATEX2HTMLLIB=/usr/lib/latex2html/texinputs
 # set and export TEXINPUTS
-TEXINPUTS=$$TEXINPUTS:$(LINUXDOCLIB)
+TEXINPUTS=$$TEXINPUTS:$(LINUXDOCLIB):$(LATEX2HTMLLIB)
 
 
 
@@ -75,4 +76,7 @@ manual.ps: manual.dvi $(FIGEPS)
 manual.dvi: $(PARTS) $(FIGEPS)
 	TEXINPUTS=$(TEXINPUTS);export TEXINPUTS;	\
 	rm -f manual.tex ; cp zmanual.tex manual.tex ;	\
-	latex manual && latex manual && latex manual
+	latex manual &&					\
+	makeindex -s l2hidx.ist manual.idx &&		\
+	makeindex -s l2hglo.ist -o manual.gls manual.glo && \
+	latex manual && latex manual
