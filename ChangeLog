@@ -1,3 +1,12 @@
+2000-06-22  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* transports/smtp/smtp.c, smtpserver/mxverify.c:
+	    Further commentary from  bind-workers  told me that unless
+	    the AA-bit (authoritative answer) is set, the received ADDATA
+	    isn't possibly good enough to trust - some of A/AAAAs may have
+	    expired.  Thus we shall use that reply section for A/AAAA only
+	    if AA-bit is set.
+
 2000-06-21  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* smtpserver/mxverify.c, transports/smtp/smtp.c:
