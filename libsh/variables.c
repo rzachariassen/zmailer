@@ -102,6 +102,8 @@ char *ifs;		/* input file separator characters */
  * Find the value of a named variable by looking through the scoped p-lists.
  */
 
+#include <fcntl.h>
+
 conscell *
 v_find(name)
 	const char * name;
@@ -115,7 +117,13 @@ v_find(name)
 	if (!vfindtest) {
 	  char *s = getenv("VFINDLOGFILE");
 	  if (s)  {
-	    vfindlog = fopen(s, "a");
+	    int fd = open(s, O_WRONLY|O_APPEND|O_CREAT, 0644);
+	    if (fd >= 0) {
+	      if (dup2(fd, 99) >  0) {
+		vfindlog = fdopen(99, "a");
+	      }
+	      close(fd);
+	    }
 	  }
 	  vfindtest = 1;
 	}
