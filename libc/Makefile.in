@@ -21,6 +21,7 @@ LIBC_INCL=	@INCLRESOLV@
 INCLUDEDIR=	@includedir@
 LIBRARYDIR=	@libdir@
 INSTALL=	@INSTALL@
+MKDIR=		mkdir -p
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(LIBC_INCL)
@@ -72,7 +73,7 @@ lint:
 	lint $(DEFS) $(INCL) $(LIBC_INCL) $(SOURCE)
 
 install:  $(TOPDIR)/libs/libzmailer.a
-	-if [ ! -d $(LIBRARYDIR) ] ; then mkdir $(LIBRARYDIR); fi
+	-if [ ! -d $(LIBRARYDIR) ] ; then $(MKDIR) $(LIBRARYDIR); fi
 	-$(INSTALL) -m 644 $(TOPDIR)/libs/libzmailer.a $(LIBRARYDIR)/libzmailer.a
 	-$(RANLIB) $(LIBRARYDIR)/libzmailer.a
 	-$(INSTALL) -m 644 $(TOPDIR)/include/mail.h $(INCLUDEDIR)/zmailer.h

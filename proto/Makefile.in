@@ -5,6 +5,7 @@ SHELL=		/bin/sh
 TOPDIR=		..
 PZCONFIG=	$(TOPDIR)/zmailer.Config
 INSTALL=	@INSTALL@
+MKDIR=		mkdir -p
 
 PMAILBIN=	mailrm.sh newaliases newfqdnaliases newdb zmailer.sh
 PMAILSHARE=	scheduler.conf sm.conf smtpserver.conf
@@ -26,93 +27,96 @@ $(PZCONFIG):
 dirs:	$(PZCONFIG)
 	-@. $(PZCONFIG) ; \
 	umask 022 ; \
+	if [ -n "$(prefix)" ] ; then \
+		$(MKDIR) -m 755 $(prefix) ; \
+	fi ; \
 	if [ ! -d $(prefix)$$MAILSHARE ]; then \
-		echo mkdir $(prefix)$$MAILSHARE && \
-			mkdir $(prefix)$$MAILSHARE ; \
+		echo $(MKDIR) $(prefix)$$MAILSHARE && \
+			$(MKDIR) $(prefix)$$MAILSHARE ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILVAR ]; then \
-		echo mkdir $(prefix)$$MAILVAR && \
-			mkdir $(prefix)$$MAILVAR ; \
+		echo $(MKDIR) $(prefix)$$MAILVAR && \
+			$(MKDIR) $(prefix)$$MAILVAR ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILVAR/db ]; then \
-		echo mkdir $(prefix)$$MAILVAR/db && \
-			mkdir $(prefix)$$MAILVAR/db ; \
+		echo $(MKDIR) $(prefix)$$MAILVAR/db && \
+			$(MKDIR) $(prefix)$$MAILVAR/db ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILVAR/lists ]; then \
-		echo mkdir $(prefix)$$MAILVAR/lists && \
-			mkdir $(prefix)$$MAILVAR/lists ; \
+		echo $(MKDIR) $(prefix)$$MAILVAR/lists && \
+			$(MKDIR) $(prefix)$$MAILVAR/lists ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILVAR/fqlists ]; then \
-		echo mkdir $(prefix)$$MAILVAR/dqlists && \
-			mkdir $(prefix)$$MAILVAR/fqlists ; \
+		echo $(MKDIR) $(prefix)$$MAILVAR/dqlists && \
+			$(MKDIR) $(prefix)$$MAILVAR/fqlists ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILSHARE/forms ]; then \
-		echo mkdir $(prefix)$$MAILSHARE/forms && \
-			mkdir $(prefix)$$MAILSHARE/forms ; \
+		echo $(MKDIR) $(prefix)$$MAILSHARE/forms && \
+			$(MKDIR) $(prefix)$$MAILSHARE/forms ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILSHARE/bak ]; then \
-		echo mkdir $(prefix)$$MAILSHARE/bak && \
-			mkdir $(prefix)$$MAILSHARE/bak ; \
+		echo $(MKDIR) $(prefix)$$MAILSHARE/bak && \
+			$(MKDIR) $(prefix)$$MAILSHARE/bak ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILBIN ]; then \
-		echo mkdir $(prefix)$$MAILBIN && \
-			mkdir $(prefix)$$MAILBIN ; \
+		echo $(MKDIR) $(prefix)$$MAILBIN && \
+			$(MKDIR) $(prefix)$$MAILBIN ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILBIN/ta ]; then \
-		echo mkdir $(prefix)$$MAILBIN/ta && \
-			mkdir $(prefix)$$MAILBIN/ta ; \
+		echo $(MKDIR) $(prefix)$$MAILBIN/ta && \
+			$(MKDIR) $(prefix)$$MAILBIN/ta ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILBIN/bak ]; then \
-		echo mkdir $(prefix)$$MAILBIN/bak && \
-			mkdir $(prefix)$$MAILBIN/bak ; \
+		echo $(MKDIR) $(prefix)$$MAILBIN/bak && \
+			$(MKDIR) $(prefix)$$MAILBIN/bak ; \
 	fi ; \
 	if [ ! -d $(prefix)$$POSTOFFICE ]; then \
-		echo mkdir $(prefix)$$POSTOFFICE && \
-			mkdir $(prefix)$$POSTOFFICE ; \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE && \
+			$(MKDIR) $(prefix)$$POSTOFFICE ; \
 		chmod 2755 $(prefix)$$POSTOFFICE ; \
 	fi; \
 	if [ ! -d $(prefix)$$POSTOFFICE/deferred ]; then \
-		echo mkdir $(prefix)$$POSTOFFICE/deferred && \
-		mkdir $(prefix)$$POSTOFFICE/deferred ; \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE/deferred && \
+		$(MKDIR) $(prefix)$$POSTOFFICE/deferred ; \
 		chmod 750 $(prefix)$$POSTOFFICE/deferred ; \
 	fi; \
 	if [ ! -d $(prefix)$$POSTOFFICE/freezer ]; then \
-		echo mkdir $(prefix)$$POSTOFFICE/freezer && \
-		mkdir $(prefix)$$POSTOFFICE/freezer ; \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE/freezer && \
+		$(MKDIR) $(prefix)$$POSTOFFICE/freezer ; \
 		chmod 750 $(prefix)$$POSTOFFICE/freezer ; \
 	fi; \
 	if [ ! -d $(prefix)$$POSTOFFICE/postman ]; then \
-		echo mkdir $(prefix)$$POSTOFFICE/postman && \
-		mkdir $(prefix)$$POSTOFFICE/postman ; \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE/postman && \
+		$(MKDIR) $(prefix)$$POSTOFFICE/postman ; \
 		chmod 750 $(prefix)$$POSTOFFICE/postman ; \
 	fi; \
 	if [ ! -d $(prefix)$$POSTOFFICE/public ]; then \
-		echo mkdir $(prefix)$$POSTOFFICE/public && \
-		mkdir $(prefix)$$POSTOFFICE/public ; \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE/public && \
+		$(MKDIR) $(prefix)$$POSTOFFICE/public ; \
 		chmod 1777 $(prefix)$$POSTOFFICE/public ; \
 	fi; \
 	if [ ! -d $(prefix)$$POSTOFFICE/queue ]; then \
-		echo mkdir $(prefix)$$POSTOFFICE/queue && \
-		mkdir $(prefix)$$POSTOFFICE/queue ; \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE/queue && \
+		$(MKDIR) $(prefix)$$POSTOFFICE/queue ; \
 		chmod 750 $(prefix)$$POSTOFFICE/queue ; \
-		echo mkdir "$(prefix)$$POSTOFFICE/queue/{A,B,..,Z}" ; \
+		echo $(MKDIR) "$(prefix)$$POSTOFFICE/queue/{A,B,..,Z}" ; \
 		for hh in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z; do \
-			mkdir $(prefix)$$POSTOFFICE/queue/$$hh ;	\
+			$(MKDIR) $(prefix)$$POSTOFFICE/queue/$$hh ;	\
 			chmod 755 $(prefix)$$POSTOFFICE/queue/$$hh ;	\
 		done ; \
 	fi; \
 	if [ ! -d $(prefix)$$POSTOFFICE/router ]; then \
-		echo mkdir $(prefix)$$POSTOFFICE/router && \
-		mkdir $(prefix)$$POSTOFFICE/router ; \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE/router && \
+		$(MKDIR) $(prefix)$$POSTOFFICE/router ; \
 		chmod 1777 $(prefix)$$POSTOFFICE/router ; \
 	fi; \
 	if [ ! -d $(prefix)$$POSTOFFICE/transport ]; then \
-		echo mkdir $(prefix)$$POSTOFFICE/transport && \
-		mkdir $(prefix)$$POSTOFFICE/transport ; \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE/transport && \
+		$(MKDIR) $(prefix)$$POSTOFFICE/transport ; \
 		chmod 755 $(prefix)$$POSTOFFICE/transport ; \
-		echo mkdir "$(prefix)$$POSTOFFICE/transport/{A,B,..,Z}" ; \
+		echo $(MKDIR) "$(prefix)$$POSTOFFICE/transport/{A,B,..,Z}" ; \
 		for hh in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z; do \
-			mkdir $(prefix)$$POSTOFFICE/transport/$$hh ;	 \
+			$(MKDIR) $(prefix)$$POSTOFFICE/transport/$$hh ;	 \
 			chmod 755 $(prefix)$$POSTOFFICE/transport/$$hh ; \
 		done ; \
 	fi
@@ -120,8 +124,8 @@ dirs:	$(PZCONFIG)
 clientdirs:	$(PZCONFIG)
 	-@. $(PZCONFIG) ; \
 	if [ ! -d $(prefix)$$MAILBIN ]; then \
-		echo mkdir $(prefix)$$MAILBIN && \
-			mkdir $(prefix)$$MAILBIN ; \
+		echo $(MKDIR) $(prefix)$$MAILBIN && \
+			$(MKDIR) $(prefix)$$MAILBIN ; \
 	fi
 
 
@@ -170,7 +174,7 @@ forms:	$(srcdir)/forms/???*
 	@. $(PZCONFIG) ; \
 	FORMSDIR=$(prefix)$$MAILSHARE/forms ; \
 	if [ ! -d $$FORMSDIR/bak ]; then \
-		mkdir $$FORMSDIR/bak ; \
+		$(MKDIR) $$FORMSDIR/bak ; \
 	fi ; \
 	for file in $? ; \
 	do \
@@ -224,8 +228,8 @@ db:	FRC
 cf:	FRC
 	-@. $(PZCONFIG) ; \
 	if [ ! -d $(prefix)$$MAILSHARE/cf ]; then \
-		mkdir $(prefix)$$MAILSHARE/cf ; \
-		mkdir $(prefix)$$MAILSHARE/cf/fc ; \
+		$(MKDIR) $(prefix)$$MAILSHARE/cf ; \
+		$(MKDIR) $(prefix)$$MAILSHARE/cf/fc ; \
 		cp -p $(srcdir)/cf/*.cf $(prefix)$$MAILSHARE/cf ; \
 		: cp $(srcdir)/cf/SMTP.cf $(prefix)$$MAILSHARE/router.cf ; \
 		/bin/rm -f `find $(prefix)$$MAILSHARE/. -name "*.fc" -print` \
