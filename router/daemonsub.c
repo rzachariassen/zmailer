@@ -870,6 +870,7 @@ static void child_server(tofd,frmfd)
 struct dirstatname {
 	struct stat st;
 	long ino;
+	int  sizekb;
 	char *dir; /* Points to stable strings.. */
 	char name[1]; /* Allocate enough size */
 };
@@ -970,11 +971,13 @@ dq_insert(DQ, ino, file, dir)
 	*/
 
 	MIBMtaEntry->rt.ReceivedMessages += 1;
-	MIBMtaEntry->rt.StoredMessages   += 1;
+	MIBMtaEntry->rt.StoredMessages    = dq->wrkcount;
 
 	i = (stbuf.st_size + stbuf.st_blksize -1)/1024;
 	MIBMtaEntry->rt.ReceivedVolume += i;
 	MIBMtaEntry->rt.StoredVolume   += i;
+
+	dsn->sizekb = i;
 
 	return 0;
 }
@@ -1108,7 +1111,11 @@ int syncweb(rc)
 	int wrkidx = dq->wrkcount -1;
 
 	/* Any work to do ? */
-	if (dq->wrksum == 0) return 0;
+	if (dq->wrksum == 0) {
+	  MIBMtaEntry->rt.StoredMessages   = 0;
+	  MIBMtaEntry->rt.StoredVolume     = 0;
+	  return 0;
+	}
 
 	time(&now);
 
@@ -1663,12 +1670,27 @@ run_daemon(argc, argv)
 
 	    time(&now);
 	    if (now > nextdirscan) {
+	      long sizekbsum = 0;
+	      long msgcountsum = 0;
+
 	      nextdirscan = now + 10;
 
 	      for (i = 0; i < ROUTERDIR_CNT; ++i) {
-		if (routerdirs2[i])
+		if (routerdirs2[i]) {
 		  dirqueuescan(routerdirs2[i], dirq[i], 1);
+		  msgcountsum += dirq[i]->wrkcount;
+		  for (ii = 0; ii < dirq[i]->wrkcount; ++i) {
+		    sizekbsum += dirq[i]->stats[ii]->sizekb;
+		  }
+		}
 	      }
+
+	      /* Resync the queue size and count every now and then...
+		 so that even if the sequencer() leaks them, they get
+		 back into sanity quick enough.. */
+	      MIBMtaEntry->rt.StoredMessages   = msgcountsum;
+	      MIBMtaEntry->rt.StoredVolume     = sizekbsum;
+
 #ifdef SIGCLD /* re-instantiate the child processor */
 	      sig_chld(SIGCLD);
 #else

@@ -1,5 +1,10 @@
 2004-11-28  Matti Aarnio  <mea@zmailer.org>
 
+	* router/daemonsub.c, router/rfc822.c:
+	    Improve router queue tracking so that it won't leak messages
+	    in queue counts (or no that much) - and will reset itself
+	    quick enough to be unnoticable.
+
 	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
 	  smtpserver/subdaemons.c, smtpserver/subdamon-rtr.c,
 	  smtpserver/subdaemon-ctf.c:

@@ -98,6 +98,8 @@ run_rfc822(argc, argv)
 	int status = PERR_OK, errflg;
 	memtypes oval;
 	GCVARS2;
+	struct stat stbuf;
+	long infilesize_kb = 0;
 
 	errflg = 0;
 #if 0
@@ -145,15 +147,25 @@ run_rfc822(argc, argv)
 	    fflush(stderr);
 	    /* abort(); */
 	  }
+	  fstat(FILENO(e->e_fp), &stbuf);
 	  status = PERR_OK;
 	  setvbuf(e->e_fp, buf, _IOFBF, sizeof buf);
 	  e->e_file = file;
 	  status = makeLetter(e);
+
+	  if (stbuf.st_blksize == 0) stbuf.st_blksize = 1024;
+	  infilesize_kb = (stbuf.st_size + stbuf.st_blksize -1) / 1024;
+
 	}
 
 	if (status == PERR_OK)
 	  /* passing the file is redundant but nice for backtraces */
 	  status = sequencer(e, file);
+
+	if (MIBMtaEntry->rt.StoredMessages > 0)
+	  MIBMtaEntry->rt.StoredMessages        -= 1;
+	if (MIBMtaEntry->rt.StoredVolume > 0)
+	  MIBMtaEntry->rt.StoredVolume          -= infilesize_kb;
 
 	switch (status) {
 	case PERR_OK:		/* 0 */
@@ -2545,6 +2557,7 @@ sequencer(e, file)
 	  free(qpath);
 	  free(path);
 #endif
+
 	  return PERR_CTRLFILE;
 	}
 
@@ -2589,10 +2602,6 @@ sequencer(e, file)
 
 	MIBMtaEntry->rt.TransmittedVolume     += infilesize_kb;
 	MIBMtaEntry->rt.TransmittedVolume2    += taskfilesize_kb;
-
-	MIBMtaEntry->rt.StoredMessages        -= 1;
-	MIBMtaEntry->rt.StoredVolume          -= infilesize_kb;
-
 
 #ifdef AF_UNIX
 	do {
