@@ -47,6 +47,8 @@
 #include <sys/mman.h>
 #endif
 
+#include <errno.h>
+
 extern char *routermxes __((char *, struct taddress *));
 extern int errno;
 

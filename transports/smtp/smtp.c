@@ -2610,7 +2610,7 @@ smtpconn(SS, host, noMX)
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. All MXes rejected [we are the best?], no address: '%.200s')", host);
 #if 1
-		  zsyslog((LOG_ERR, "%s", SS->remotemsg));
+		  zsyslog((LOG_NOTICE, "%s", SS->remotemsg));
 		  if (r != EX_TEMPFAIL)
 		    r = EX_NOHOST;
 #endif
@@ -2618,7 +2618,7 @@ smtpconn(SS, host, noMX)
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s' (%s))",
 			  host, gai_err == EAI_NONAME ? "NONAME" : "NODATA");
-		  zsyslog((LOG_ERR, "%s r=%d", SS->remotemsg, r));
+		  zsyslog((LOG_NOTICE, "%s r=%d", SS->remotemsg, r));
 #if 0
 		  if (r != EX_TEMPFAIL)
 		    r = EX_NOHOST; /* Can do instant reject */
@@ -2630,7 +2630,7 @@ smtpconn(SS, host, noMX)
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s', errno=%s, gai_errno='%s')",
 			  host, strerror(errno), gai_strerror(gai_err));
 #if 1
-		  zsyslog((LOG_ERR, "%s", SS->remotemsg));
+		  zsyslog((LOG_NOTICE, "%s", SS->remotemsg));
 		  r = EX_TEMPFAIL; /* This gives delayed rejection (after a timeout) */
 #endif
 		}
@@ -3017,6 +3017,8 @@ vcsetup(SS, sa, fdp, hostname)
 	}
 
 	smtp_flush(SS); /* Flush in every case */
+
+	SS->writeclosed = 0;
 
 	sk = socket(af, SOCK_STREAM, 0);
 	if (sk < 0) {

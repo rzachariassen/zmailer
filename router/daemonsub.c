@@ -723,8 +723,9 @@ static int parent_feed_child(fname,dir)
     s = strchr(fname,'-');
     if (s && isdigit(*fname)) {
       long thatpid = atoi(s+1);
-      if (thatpid > 1 &&
-	  kill(thatpid,0)==0) {
+      if ((thatpid > 1) &&
+	  (thatpid != MYPID) &&
+	  (kill(thatpid,0)==0)) {
 	/* Process of that PID does exist, and possibly even something
 	   we can kick.. (we should be *root* here anyway!) */
 	for (i = 0; i < MAXROUTERCHILDS; ++i) {
@@ -1319,7 +1320,7 @@ rd_doit(filename, dirs)
 #endif
 	  /* Probe it!
 	     Does the process exist ? */
-	  if (thatpid && kill(thatpid,0)==0 && thatpid != router_id) {
+	  if (thatpid && (kill(thatpid,0)==0) && (thatpid != router_id)) {
 	    /*
 	     * an already locked message file,
 	     * belonging to another process
@@ -1339,7 +1340,7 @@ rd_doit(filename, dirs)
 	  }
 	}
 	if (strncmp(filename,"core",4) != 0 &&
-	    (p == NULL || thatpid != router_id)) {
+	    ((p == NULL) || (thatpid != router_id))) {
 	  /* Not a core file, and ...
 	     not already in format of 'inode-pid' */
 	  /* If the pid did exist, we do not touch on that file,

@@ -47,6 +47,7 @@ extern int wait();
 #define	HZ	60
 #endif	/* HZ */
 
+#include <errno.h>
 extern int errno;
 
 #define CSARGS2 __((conscell *, conscell *))

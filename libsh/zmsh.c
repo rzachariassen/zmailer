@@ -174,7 +174,7 @@ zshinit(argc, argv)
 	loadit = errflag = 0;
 	zoptind = 1;	/* Not to be influenced by previous zgetopt()'s. */
 	while (1) {
-		c = zgetopt(argc, (char**)argv, "CGILMOPRSYc:l:isaefhkntuvx");
+		c = zgetopt(argc, (char**)argv, "CGIJLMOPRSYc:l:isaefhkntuvx");
 		if (c == EOF)
 		  break;
 		switch (c) {
@@ -195,6 +195,7 @@ zshinit(argc, argv)
 			D_conscell = 1;
 		case 'R':	/* runtime I/O */
 		case 'I':	/* interpreter (runtime interpretation) */
+		case 'J':	/* interpreter (runtime interpretation) */
 		case 'Y':	/* just open the runiofp stream */
 			setopt(c, 1);
 			if (runiofp == stdout) {

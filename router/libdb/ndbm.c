@@ -14,6 +14,7 @@
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+#include <errno.h>
 #include <ndbm.h>
 #include <sys/file.h>
 #include "search.h"

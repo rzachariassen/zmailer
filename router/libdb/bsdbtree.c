@@ -23,6 +23,8 @@
 #include "libc.h"
 #include "libsh.h"
 
+#include <errno.h>
+
 extern int errno;
 extern int deferit;
 

@@ -14,6 +14,7 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "mailer.h"
 #include "zmsignal.h"
@@ -187,7 +188,7 @@ execute(c, caller, oretcode, name)
 	}
 	if (c->argv && LIST(c->argv) && STRING(car(c->argv))) {
 		/* there are string arguments */
-		if (isset('I')) {
+		if (isset('I')||isset('J')) {
 			grindef("Command = ", c->argv);
 			fprintf(runiofp, "Run:");
 		}

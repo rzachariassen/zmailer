@@ -277,7 +277,9 @@ routeuser (quad, plustail, domain) {
 	[ -n "$FORCEPUNT" ] &&
 		returns $(rrouter "$user@$FORCEPUNT" "$host" $attr "" "")
 
-	ssift $(dequote -- $user) in
+	a="$(dequote -- "$user")"
+
+	ssift "$a" in
 	\\(.*)	user="\1" # Back-quoted username -- most likely
 		#didexpand=local
 		;;

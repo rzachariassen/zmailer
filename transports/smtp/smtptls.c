@@ -1140,9 +1140,9 @@ int     tls_init_clientengine(SS, cfgpath)
 
 
 	/*
-	 * Access the external sources for random seed. We will only query them
-	 * once, this should be sufficient and we will stir our entropy by
-	 * using the prng-exchange file anyway.
+	 * Access the external sources for random seed. We will only query
+	 * them once, this should be sufficient and we will stir our entropy
+	 * by using the prng-exchange file anyway.
 	 * For reliability, we don't consider failure to access the additional
 	 * source fatal, as we can run happily without it (considering that we
 	 * still have the exchange-file). We also don't care how much entropy
@@ -1951,9 +1951,16 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 		  /* Error on write stream, write is thus from now on
 		     FORBIDDEN!  We do a write direction shutdown on
 		     the socket, and only listen for replies from now on... */
+#ifdef HAVE_OPENSSL
+		  if (SS->TLS.sslmode) {
+		    /* SSL mode on, kill it completely... */
+		    close(sffileno(SS->smtpfp));
+		  } else
+#endif /* - HAVE_OPENSSL */
 		  shutdown(sffileno(SS->smtpfp), 1);
 		  /* Absolutely NO SFIO SYNC AT THIS POINT! */
 		  zsfsetfd(SS->smtpfp, -1);
+		  SS->writeclosed = 1;
 		  if (SS->verboselog)
 		    fprintf(SS->verboselog,
 			    "   ...  TIMEOUT! Shut-down of write direction!\n");

@@ -22,6 +22,7 @@
 # include <fcntl.h>
 #endif
 #include <sys/file.h>
+#include <errno.h>
 #include "zsyslog.h"
 
 #include "zmalloc.h"

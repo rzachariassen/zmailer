@@ -1199,6 +1199,7 @@ tscanstring(s)
 
 	/* fprintf(stderr,"tscanstring('%s') ", s); */
 	t = HDR_SCANNER(s);
+
 	if (t != NULL && t->t_next == NULL && t->t_type == String) {
 	  /* we need to de-quote the quoted-string */
 	  char *bp;
@@ -1209,9 +1210,11 @@ tscanstring(s)
 	  *bp++ = '"';
 #endif
 	  for (cp = t->t_pname; (cp - t->t_pname) < len ; ++cp) {
+#if 0 /* NOTE: No \-dequotation processing ! */
 	    if ((*cp == '\\') && ((cp - t->t_pname) < len-1))
 	      *bp++ = *++cp;
 	    else
+#endif
 	      *bp++ = *cp;
 	  }
 #ifdef NO_DEQUOTE_AT_SIFTS
@@ -2146,7 +2149,9 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				break;
 			globchars['|'] = 1;
 			iname = NULL; name = NULL;
-			switch (squish(command->buffer,(char**)&name,&iname,-1)) {
+			/* NOTE: Earlier we did GLOB processing on result!
+			   Now we absolutely forbid it.. */
+			switch (squish(command->buffer,(char**)&name,&iname,-1)){
 			case -1:
 				if (STRING(command->buffer)
 				    && strcmp(command->buffer->string,
@@ -2343,6 +2348,18 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			       free((void*)sift[nsift].str);
 #endif
 			sift[nsift].str = NULL;
+#ifdef  DEBUG
+			if (D_compare) {
+			  fprintf(stderr,
+				  "%*ssSiftBody '", 4*funclevel, " ");
+			  if (command->buffer != NULL)
+			    s_grind(command->buffer, stderr);
+			  else
+			    fprintf(stderr, "(nil)");
+			  fprintf(stderr,"'\n");
+	}
+#endif  /* DEBUG */
+
 			if (command->buffer != NULL) {
 				if (cdr(command->buffer))
 					d = s_catstring(command->buffer);

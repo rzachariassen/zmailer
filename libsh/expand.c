@@ -496,9 +496,11 @@ squish(d, bufp, ibufp, doglob)
 	       */
 	      mask = ISQUOTED(l) ? QUOTEBYTE : 0;
 	      for (cp = l->string; slen > 0; --slen,++cp) {
+#if 0
 		if (*cp == '\\' && *(cp+1) != '\0')
 		  *ip++ = BYTE(*++cp) | QUOTEBYTE;
 		else
+#endif
 		  *ip++ = BYTE(*cp)   | mask;
 	      }
 	    } else if (ISQUOTED(l)) {
@@ -562,11 +564,12 @@ csglob(d, doglob)
 		slen = strlen(buf);
 		tmp = newstring(dupnstr(buf,slen),slen);
 		free(buf);
-		return tmp;
+		break;
+	default:
+		abort();
 	}
-	abort();
-	/* NOTREACHED */
-	return 0;
+
+	return tmp;
 }
 
 extern conscell *
@@ -613,10 +616,13 @@ expand(d, variant)
 	int slen, slen0;
 	GCVARS6;
 
-/* Ok, following is MAGIC - sVariablePush when the
-   data is $(elements ..) produced list */
 
-if (variant == 2 && ISELEMENT(d)) return d;
+	/* Ok, following is MAGIC - sVariablePush when the
+	   data is $(elements ..) produced list */
+
+	if (variant == 2 && ISELEMENT(d)) return d;
+
+
 
 	tmp = head = next = orig = globbed = NULL;
 	GCPRO6(tmp, head, next, orig, globbed, d);
@@ -641,7 +647,7 @@ if (variant == 2 && ISELEMENT(d)) return d;
 		} else if (ISELEMENT(d)) {
 			if (head != d) {
 				cdr(head) = NULL;
-				head = *pav = csglob(head,1);
+				head = *pav = csglob(head,0);
 				while (cdr(head) != NULL) head = cdr(head);
 				pav = &cdr(head);
 			}
@@ -679,7 +685,7 @@ if (variant == 2 && ISELEMENT(d)) return d;
 		      cdr(d) = NULL;
 		      /* wrap the stuff at head into its own argv */
 		      /* printf("wrapped '%s'\n", d->string); */
-		      tmp = *pav = csglob(head,1);
+		      tmp = *pav = csglob(head,0);
 		      while (cdr(tmp)) tmp = cdr(tmp);
 		      if (tmp == d) {
 			/* Crap ! That stuff didn't expand */
@@ -693,7 +699,7 @@ if (variant == 2 && ISELEMENT(d)) return d;
 			 IS 'head' -- or can be set as it! */
 		      head = newstring(dupnstr(cp0,cp-cp0),cp-cp0);
 		      cdr(head) = NULL;
-		      tmp = *pav = csglob(head,1);
+		      tmp = *pav = csglob(head,0);
 		      while (cdr(tmp)) tmp = cdr(tmp);
 		      pav = & cdr(tmp);
 		    }
@@ -726,7 +732,7 @@ if (variant == 2 && ISELEMENT(d)) return d;
 	if (head != NULL) {
 		/* printf("trailing '%s'\n", head->string); */
 		/* glob is guaranteed to not return NULL */
-		head = *pav = csglob(head,1);
+		head = *pav = csglob(head,0);
 		while (cdr(head) != NULL) head = cdr(head);
 		pav = &cdr(head);
 	}

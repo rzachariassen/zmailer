@@ -11,7 +11,7 @@
 #ifndef FILE /* Some systems don't have this as a MACRO.. */
 # define FILE FILE
 #endif
-#include <sfio.h>
+/* #include <sfio.h> */
 
 #if HAVE_STRING_H || STDC_HEADERS
 # include <string.h>

@@ -393,6 +393,7 @@ typedef struct { /* SmtpState */
 
   int   smtpfd;			/* FD from the remote host		*/
   Sfio_t *smtpfp;		/* Sfio_t* to the remote host           */
+  int   writeclosed;		/* The SMTP socket is closed for write  */
   struct smtpdisc smtpdisc;	/* SMTP outstream discipline data	*/
   int   lasterrno;		/* Last errno value			*/
 

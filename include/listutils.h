@@ -62,6 +62,8 @@ typedef struct _conscell {
 #define	string		u.u_string
 #define	cstring		u.cu_string
 
+/* #undef __GNUC__ */
+
 #if defined(__GNUC__) && !defined(PROFILING) && defined(__OPTIMIZE__)
 
 #ifndef EXTINLINE
