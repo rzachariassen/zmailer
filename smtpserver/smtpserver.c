@@ -1213,6 +1213,9 @@ int insecure;
 
     runastrusteduser();
 
+    if (!netconnected_flg)
+      strict_protocol = 0;
+
     rc = setjmp(jmpalarm);
     if (rc != 0) {
 	/* Oooo...  We are returning here via  longjmp(),
