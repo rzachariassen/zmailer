@@ -1,11 +1,16 @@
 1999-05-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.h, smtpserver/policytest.c,
-	  smtpserver/policytest.h:
-	    - Implemented "simple" '%'-hack test
+	  smtpserver/policytest.h, proto/cf/canon.cf:
+	    - Implemented "simple" '%'-hack test (also '!'-hack)
 	    - Implemented 'message "text string"' attribute handling
-	    (both need testing!)
-
+	    - Canon code ignores '\!' pair in address, however that
+	      actually breaks UUCP bang-path processing slightly:
+		broken\!case!is!like@this
+		working!case\!is!like@this
+	      (It is about finding the left-most non-quoted bang which is
+	       'somewhat' difficult..)
+	
 	* libsh/tregexp.c, libsh/interpret.c:
 	    A bit less copying around, and way smaller initial malloc
 	    to avoid need for big memory blocks, which don't seem to be

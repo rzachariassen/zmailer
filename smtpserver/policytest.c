@@ -1342,6 +1342,10 @@ const int len;
 	const char *phack = find_nonqchr(str, '%', llen);
 	if (phack != NULL && percent_accept < 0)
 	  return -1; /* Reject the percent kludge */
+	/* How about '!' ??? */
+	phack = find_nonqchr(str, '!', llen);
+	if (phack != NULL && percent_accept < 0)
+	  return -1; /* Reject the percent kludge */
 	return  0;
     }
     if (valueeq(state->values[P_A_RELAYTARGET], "+")) {

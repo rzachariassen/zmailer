@@ -2517,8 +2517,9 @@ run_condquote(argc, argv)
 	  ++s; /* Starting quote */
 	  while (*s && *s != '"') {
 	    /* While within quoted string */
-	    if (*s == '\\')
+	    if (*s == '\\') {
 	      ++s;
+	    }
 	    if (*s != 0)
 	      ++s;
 	  }
@@ -2531,6 +2532,8 @@ run_condquote(argc, argv)
 	  if (c == '\\') {
 	    ++s;
 	    c = *s;
+	    if (c == '!') /* fooo\!baar */
+	      mustquote = 1;
 	  } else if (c == ' ' || c == '\t')
 	    mustquote = 1; /* Unquoted spaces! */
 	  if (c != 0)
@@ -2541,7 +2544,7 @@ run_condquote(argc, argv)
 	len = strlen(s);
 
 	/* Quoted, and without a need for quotes */
-	if (candequote) {
+	if (!mustquote && candequote) {
 	  /* XXX: THIS SHOULD REALLY USE SOME SYNTAX SCANNER -- LIKE THAT ONE
 	          FOR SMTP: RFC821SCN()    */
 	  fwrite(argv[1] + 1, 1, len -2, stdout); /* Dequoted! */
