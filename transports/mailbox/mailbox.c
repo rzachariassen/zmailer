@@ -2102,11 +2102,12 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	    while (*cp != 0) {
 	      while (*cp == ' ') ++cp;
 	      if (*cp == '\'') {
-		argv[i++] = ++cp;
+		argv[i] = ++cp;
 		while (*cp != 0 && *cp != '\'') ++cp;
 		if (*cp == '\'') *cp++ = 0;
 	      } else if (*cp != 0)
-		argv[i++] = cp;
+		argv[i] = cp;
+	      ++i;
 	      while (*cp != 0 && *cp != ' ') ++cp;
 	      if (*cp == ' ') *cp++ = 0;
 	    }

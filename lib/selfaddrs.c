@@ -39,7 +39,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
 #ifndef EAI_AGAIN
 # include "netdb6.h" /* IPv6 API stuff */
 #endif

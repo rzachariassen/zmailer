@@ -48,6 +48,11 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	recipients in given thread.  (alike 'manual-expiry', except
 	a bit smarter..)
 
+	Having two or more users at the same target domain, the
+	scheduler can produce error telling ORCPT of first user,
+	but giving final-recipient of the second one.  Hmm..
+	(Seen to happen with 2.99.50-s10)
+
 	A new management channel protocol.
 
 	- Delivery messages plain-text part needs easier human

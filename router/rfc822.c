@@ -2314,7 +2314,7 @@ prctladdr(info, fp, cfflag, comment)
 	    }
 	    if (cdr(l))
 	      putc(' ', fp);
-	  } else
+	  } else if (strcmp(channel,"error")!=0)
 	    fprintf(stderr, "Malformed %s\n", comment);
 	}
 	if ((cfflag == _CF_SENDER) && channel && strcmp(channel,"error") == 0)
