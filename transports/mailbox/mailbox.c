@@ -1741,15 +1741,14 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	setrootuid(rp);
 	time(&endtime);
 
-	if (fp != NULL) {
-	  sfclose(fp);		/* this closes fdmail */
+	close(fdmail);
+	if (fp != NULL) { /* Dummy marker! */
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(rp->addr->user,"delivery",
 		       "2.2.0 (Delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
 	} else {
-	  close(fdmail);
 #if	defined(HAVE_SOCKET)
 	  if (fp) {
 	    if (nbp != NULL) /* putmail() has produced a DIAGNOSTIC */
@@ -1832,9 +1831,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	int topipe = (*(file) == TO_PIPE);
 	int failed = 0;
 
-	/* This data MUST exist at the caller too!
-	   Sure it isn't kosher, but it works!     */
-	static struct writestate WS;
+	struct writestate WS;
 
 	fstat(fdmail, &st);
 
@@ -2134,7 +2131,10 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	}
 
 
-	return fp;
+	sfsetfd(fp, -1);
+	sfclose(fp);
+
+	return fp; /* Dummy marker! */
 }
 
 int

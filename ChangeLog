@@ -1,5 +1,9 @@
 1999-12-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/scheduler.c:
+	    At RESYNC processing do lock verification SILENTLY,
+	    and do break the lock...
+
 	* transports/mailbox/mailbox.c:
 	    When SFIO was introduced here, write to pipes wasn't
 	    anymore working quite as it should -- namely EPIPE
