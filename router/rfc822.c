@@ -2079,7 +2079,7 @@ sequencer(e, file)
 	} else
 		vfp = NULL;
 
-	fprintf(ofp, "%c%c%0x08lx\n",
+	fprintf(ofp, "%c%c0x%08lx\n",
 		_CF_FORMAT, _CFTAG_NORMAL, _CF_FORMAT_KNOWN_SET);
 
 	fprintf(ofp, "%c%c%s\n",
