@@ -133,10 +133,6 @@ transports/smtp:
 	(Prepared to do it, however only on SMTP it is fatal -- I think..)
 
 - scheduler:
-	Don't count already processed addresses into SNMP counters
-	(return previous state) -- and create a persistent SNMP counter
-	storage..
-
 	How does arrival of a new job into active thread work in case
 	the current activity has already reached the end of the thread ?
 	When will the new job be fed to the transport agent ?

@@ -1,5 +1,9 @@
 2000-03-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/scheduler.c:
+	    Reverted earlier change which counted already processed
+	    recipients into MTA-MIB variables.
+
 	* doc/Makefile.in, man/Makefile.in, libresolv/Makefile.in,
 	  scheduler/Makefile.in:
 	    Fixed "make depend" to work.

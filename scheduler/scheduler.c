@@ -1886,15 +1886,19 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  if (cp[-1] == _CF_RECIPIENT) {
 	    ++cfp->rcpnts_total;
 	    if (*cp == _CFTAG_NOTOK) {
+#if 0
 	      ++cfp->rcpnts_failed;
 	      ++MIBMtaEntry->mtaReceivedRecipientsSc,
 	      ++MIBMtaEntry->mtaTransmittedRecipientsSc;
+#endif
 	      prevrcpt = -1;
 	    } else if (*cp != _CFTAG_OK) {
 	      ++cfp->rcpnts_work;
 	    } else { /* _CFTAG_OK */
+#if 0
 	      ++MIBMtaEntry->mtaReceivedRecipientsSc,
 	      ++MIBMtaEntry->mtaTransmittedRecipientsSc;
+#endif
 	    }
 	  }
 	  if (*cp == _CFTAG_NORMAL ||
