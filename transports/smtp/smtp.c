@@ -3883,12 +3883,14 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	}
 	if (rc == EX_OK) {
 	  /* Study the DATA STATES! */
-	  if (SS->rcptstates & DATASTATE_OK)
-	    rc = EX_OK; /* Some ok! */
+	  if (SS->rcptstates & DATASTATE_500)
+	    rc = EX_UNAVAILABLE; /* All hard failures */
 	  else if (SS->rcptstates & DATASTATE_400)
 	    rc = EX_TEMPFAIL; /* Some TEMPFAIL */
-	  else if (SS->rcptstates & DATASTATE_500)
-	    rc = EX_UNAVAILABLE; /* All hard failures */
+#if 0
+	  else if (SS->rcptstates & DATASTATE_OK)
+	    rc = EX_OK; /* Some ok! */
+#endif
 	}
 
 	if (rc != EX_OK && logfp)

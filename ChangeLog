@@ -1,5 +1,15 @@
 2001-05-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* proto/cf/p-routes.cf:
+	    Wrong function called to pick the flag data..
+
+	* transports/smtp/smtp.c:
+	    Fixup into pipelined error diagnostics accumulation methodology.
+
+	* proto/newdbprocessor.in:
+	    PERL 5.6.0+ specific syntax altered back to earlier syntax,
+	    which even the lattest perl does support.
+
 	* configure.in:  --with-zconfig-noload   option to disable
 	    preloading of possibly existing ZCONFIG file contents
 	    into configuration variables.

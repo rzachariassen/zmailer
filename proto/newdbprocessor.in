@@ -84,7 +84,7 @@ $ENV{'MAILSHARE'} = $ZENV{'MAILSHARE'};
 $DBTYPE = $ZENV{'DBTYPE'};
 
 
-open(INFN, "< $infn") || die "Can't open file '$infn' for reading";
+open(INFN, "< ".$infn) || die "Can't open file '$infn' for reading";
 
 #
 # Collect all relation names, and lines with them for latter processing
@@ -241,7 +241,7 @@ foreach $rel (keys %rels) {
 		    ## 'pushd(@ofn, "db add relname keyname \"value\"")'
 		    ##
 
-		    if (open(RDBFILE, "<", $rdbfile)) {
+		    if (open(RDBFILE, "< ". $rdbfile)) {
 			while (<RDBFILE>) {
 			    chomp;
 			    next if (m/^[ \t]*\#/o);  # Comment line

@@ -14,7 +14,7 @@ routes_neighbour (domain, address, A) {
 	# ERROR MESSAGES -- for case where the dot (.) leads to error!
 	# and we want to reply with DIFFERENT address, thus:  '.:ERROR' key.
 
-	$(iserrmessage) &&
+	$(iserrormsg) &&
 		tmp=$(routesdb "$domain" -: '.:ERROR') &&
 			tmp=$(routes_spec "$tmp" "$address" $A) &&
 				return $tmp
