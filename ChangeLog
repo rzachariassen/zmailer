@@ -1,3 +1,11 @@
+2004-11-28  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/subdaemons.c, smtpserver/subdamon-rtr.c,
+	  smtpserver/subdaemon-ctf.c:
+	    Cleaned error situation processing rollback,
+	    and child death reaping.
+
 2004-11-18  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpauth.c:

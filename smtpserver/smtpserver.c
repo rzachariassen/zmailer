@@ -298,7 +298,6 @@ extern int pipeauthchild_pid; /* zpwmatch-pipe.c */
 extern int pipeauthchild_status;
 
 static RETSIGTYPE reaper   __((int sig));
-static RETSIGTYPE sigchld  __((int sig));
 static RETSIGTYPE timedout __((int sig));
 static RETSIGTYPE sigterminator __((int sig));
 static void smtpserver __((SmtpState *, int insecure));
@@ -1043,11 +1042,7 @@ int main(argc, argv, envp)
 	  type(NULL,0,NULL,"connection from %s:%d pid %d ident: %s",
 	       SS.rhostname, SS.rport, pid, SS.ident_username);
 
-#if 0
-	  SIGNAL_HANDLE(SIGCHLD, SIG_DFL);
-#else
 	  SIGNAL_HANDLE(SIGCHLD, sigchld);
-#endif
 	  SIGNAL_HANDLE(SIGALRM, timedout);
 	  SIGNAL_HANDLE(SIGHUP, SIG_IGN);
 	  SIGNAL_HANDLE(SIGTERM, SIG_DFL);
@@ -1301,11 +1296,7 @@ int main(argc, argv, envp)
 	  }
 #endif
 
-#if 0
-	  SIGNAL_HANDLE(SIGCHLD, SIG_DFL);
-#else
 	  SIGNAL_HANDLE(SIGCHLD, sigchld);
-#endif
 	  SIGNAL_HANDLE(SIGALRM, timedout);
 	  SIGNAL_HANDLE(SIGHUP, SIG_IGN);
 	  SIGNAL_HANDLE(SIGTERM, sigterminator);
@@ -1766,7 +1757,7 @@ sigterminator(sig)
 	mustexit = 1;
 }
 
-static RETSIGTYPE
+RETSIGTYPE
 sigchld(sig)
      int sig;
 {

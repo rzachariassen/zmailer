@@ -582,6 +582,8 @@ extern void runasrootuser __((void));
 extern int runastrusteduser __((void));
 extern char **environ;
 extern int kill __((pid_t, int));
+extern RETSIGTYPE sigchld  __((int sig));
+extern int sawsigchld;
 
 extern const char *rfc822atom __((const char *str));
 extern const char *xtext_string __((const char *str));
@@ -727,6 +729,7 @@ struct subdaemon_handler {
 	int (*postselect)__((void *state, fd_set *rdset, fd_set *wrset));
 	int (*shutdown)  __((void *state));
         int (*killpeer)  __((void *state, struct peerdata *));
+	int (*reaper)    __((void *state));
 	Vuint *reply_delay_G;	/* MIB variable pointer */
 	Vuint *reply_queue_G;   /* MIB variable pointer */
 };

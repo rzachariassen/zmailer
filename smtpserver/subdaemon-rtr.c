@@ -17,6 +17,7 @@
  * of ancilliary data (the fd.)
  */
 
+extern int mustexit;
 
 #include "smtpserver.h"
 
@@ -35,7 +36,10 @@ struct subdaemon_handler subdaemon_handler_router = {
 	subdaemon_handler_rtr_preselect,
 	subdaemon_handler_rtr_postselect,
 	subdaemon_handler_rtr_shutdown,
-	subdaemon_handler_rtr_killpeer
+	subdaemon_handler_rtr_killpeer,
+	NULL,
+	NULL,
+	NULL
 };
 
 #define MAXRTRS 20
@@ -80,7 +84,6 @@ subdaemon_killr(RTR)
 	}
 }
 
-
 /* ============================================================ */
 
 /*
@@ -107,13 +110,27 @@ static int subdaemon_callr (RTR)
 	/* We want to write to blocking socket/pipe, while
 	   reading from non-blocking one.. */
 
-	if (pipe(to) < 0 || pipe(from) < 0)
+	to[0] = to[1] = from[0] = from[1] = -1;
+	if (pipe(to) < 0 || pipe(from) < 0) {
+	  /* Roll-back by closing possibly successfully
+	     created pipes.. */
+	  if (to[0] >= 0) close(to[0]);
+	  if (to[1] >= 0) close(to[1]);
+	  if (from[0] >= 0) close(from[0]);
+	  if (from[1] >= 0) close(from[1]);
 	  return -1;
+	}
 
 	if (routerprog == NULL) {
 	  cp = (char *)getzenv("MAILBIN");
 	  if (cp == NULL) {
 	    zsyslog((LOG_ERR, "MAILBIN unspecified in zmailer.conf"));
+	    /* Roll-back by closing possibly successfully
+	       created pipes.. */
+	    if (to[0] >= 0) close(to[0]);
+	    if (to[1] >= 0) close(to[1]);
+	    if (from[0] >= 0) close(from[0]);
+	    if (from[1] >= 0) close(from[1]);
 	    return -1;
 	  }
 	  routerprog = emalloc(strlen(cp) + sizeof "router" + 2);
@@ -147,21 +164,34 @@ static int subdaemon_callr (RTR)
 	  write(1, BADEXEC, sizeof(BADEXEC)-1);
 	  _exit(1);
 
-	} else if (rpid < 0)
+	} else if (rpid < 0) {
+	  /* Roll-back by closing possibly successfully
+	     created pipes.. */
+	  if (to[0] >= 0) close(to[0]);
+	  if (to[1] >= 0) close(to[1]);
+	  if (from[0] >= 0) close(from[0]);
+	  if (from[1] >= 0) close(from[1]);
 	  return -1;
+	}
+
+	/* We have successfully started a subserver instance */
 
 	RTR->routerpid = rpid;
 
-	close(to[0]);
-	close(from[1]);
+	close(to[0]);   to[0] = -1;
+	close(from[1]); from[1] = -1;
 
 	RTR->tofp   = fdopen(to[1], "w");
 	fd_blockingmode(to[1]);
-	if (! RTR->tofp ) return -1; /* BAD BAD! */
+	if (! RTR->tofp ) {
+	  if (to[1] >= 0) close(to[1]);
+	  if (from[0] >= 0) close(from[0]);
+	  return -1; /* BAD BAD! */
+	}
 
 	RTR->fromfd = from[0];
 	fd_blockingmode(RTR->fromfd);
-	
+
 	for (;;) {
 	  rc = fdgets( & RTR->buf, 0, & RTR->bufsize,
 		       & RTR->fdb, RTR->fromfd, 10);
@@ -172,6 +202,7 @@ static int subdaemon_callr (RTR)
 
 	  if ( rc <= 0 ) {
 	    /* EOF.. */
+	    /* Error.. discard last vestiges of the sockets.. */
 	    subdaemon_killr(RTR);
 	    return -1;
 	  }
@@ -180,6 +211,7 @@ static int subdaemon_callr (RTR)
 	    continue;
 	  }
 	  if (strncmp( RTR->buf, BADEXEC, sizeof(BADEXEC) - 3) == 0) {
+	    /* Error.. discard last vestiges of the sockets.. */
 	    subdaemon_killr(RTR);
 	    return -1;
 	  }
@@ -569,6 +601,9 @@ smtprouter_init ( statep )
  * prints at us, one line at a time.
  */
 
+static int interface_fail_count;
+static int interface_fail_limit = 20;
+
 
 /*
  * Now we can do VRFY et al using the router we have connected to.
@@ -592,7 +627,10 @@ router(SS, function, holdlast, arg, len)
 	  return NULL;
 	}
 	if (!enable_router) {
-	  type(SS, 400, "4.4.0","Interactive routing subsystem is not enabled");
+	  type(SS, 400, "4.4.0","I am sick: Interactive routing subsystem is not enabled");
+	  ++interface_fail_count;
+	  if (interface_fail_count > interface_fail_limit)
+	    ++mustexit;
 	  return NULL;
 	}
 
@@ -604,8 +642,11 @@ router(SS, function, holdlast, arg, len)
 	    if (!daemon_flg)
 	      return strdup("200 No interactive router run;");
 
-	    type(SS, 440, "4.4.0", "Failed to init interactive router subsystem");
+	    type(SS, 440, "4.4.0", "I am sick: Failed to init interactive router subsystem");
 	    smtprouter_kill( state );
+	    ++interface_fail_count;
+	    if (interface_fail_count > interface_fail_limit)
+	      ++mustexit;
 	    return NULL;
 	  }
 	}
@@ -615,7 +656,10 @@ router(SS, function, holdlast, arg, len)
 	if (! state->sawhungry ) {
 	  /* Wrong initial state at this point in call! */
 	  smtprouter_kill( state );
-	  type(SS, 440, "4.4.0", "Interactive router subsystem lost internal sync ??");
+	  type(SS, 440, "4.4.0", "I am sick: Interactive router subsystem lost internal sync ??");
+	  ++interface_fail_count;
+	  if (interface_fail_count > interface_fail_limit)
+	    ++mustexit;
 	  return NULL;
 	}
 
@@ -661,6 +705,9 @@ router(SS, function, holdlast, arg, len)
 	    smtprouter_kill( state );
 	    type(SS, 450, "4.5.0", "Interactive router %s!",
 		 (rc < 0) ? "timed out" : "EOFed" );
+	    ++interface_fail_count;
+	    if (interface_fail_count > interface_fail_limit)
+	      ++mustexit;
 	    return NULL;
 	  }
 

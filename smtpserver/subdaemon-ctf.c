@@ -170,10 +170,18 @@ static int subdaemon_ctf_proc (CTF, idx)
 {
 	int rpid = 0, to[2], from[2], rc;
 
-	if (pipe(to) < 0 || pipe(from) < 0)
-	  return -1;
-
 	if (contentfilter == NULL) {
+	  return -1;
+	}
+
+	to[0] = to[1] = from[0] = from[1] = -1;
+	if (pipe(to) < 0 || pipe(from) < 0) {
+	  /* Roll-back by closing possibly successfully
+	     created pipes.. */
+	  if (to[0] >= 0) close(to[0]);
+	  if (to[1] >= 0) close(to[1]);
+	  if (from[0] >= 0) close(from[0]);
+	  if (from[1] >= 0) close(from[1]);
 	  return -1;
 	}
 
@@ -203,8 +211,15 @@ static int subdaemon_ctf_proc (CTF, idx)
 	  write(1, BADEXEC, sizeof(BADEXEC)-1);
 	  _exit(1);
 
-	} else if (rpid < 0)
+	} else if (rpid < 0) {
+	  /* Roll-back by closing possibly successfully
+	     created pipes.. */
+	  if (to[0] >= 0) close(to[0]);
+	  if (to[1] >= 0) close(to[1]);
+	  if (from[0] >= 0) close(from[0]);
+	  if (from[1] >= 0) close(from[1]);
 	  return -1;
+	}
 
 	CTF->contentfilterpid[idx] = rpid;
 
@@ -213,7 +228,11 @@ static int subdaemon_ctf_proc (CTF, idx)
 
 	CTF->tofp[idx]   = fdopen(to[1], "w");
 	fd_blockingmode(to[1]);
-	if (! CTF->tofp[idx] ) return -1; /* BAD BAD! */
+	if (! CTF->tofp[idx] ) {
+	  close(to[1]);
+	  close(from[0]);
+	  return -1; /* BAD BAD! */
+	}
 
 	CTF->fromfd[idx] = from[0];
 	fd_blockingmode(CTF->fromfd[idx]);
@@ -226,10 +245,14 @@ static int subdaemon_ctf_proc (CTF, idx)
 	      /* EOF! */
 	      subdaemon_killctf(CTF, idx);
 	    }
+	    close(to[1]);
+	    close(from[0]);
 	    return -1;
 	  }
 	  if (strncmp( CTF->buf[idx], BADEXEC, sizeof(BADEXEC) - 3) == 0) {
 	    subdaemon_killctf(CTF, idx);
+	    close(to[1]);
+	    close(from[0]);
 	    return -1;
 	  }
 

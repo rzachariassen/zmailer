@@ -246,6 +246,41 @@ int subdaemons_init __((void))
 }
 
 
+static RETSIGTYPE
+default_reaper(sig)
+     int sig;
+{
+    int status;
+    pid_t lpid;
+
+    SIGNAL_HOLD(SIGCHLD);
+
+    sawsigchld = 0;
+
+    for (;;) {
+#ifdef	HAVE_WAITPID
+	lpid = waitpid(-1, &status, WNOHANG);
+#else
+#ifdef	HAVE_WAIT4
+	lpid = wait4(0, &status, WNOHANG, (struct rusage *) NULL);
+#else
+#ifdef	HAVE_WAIT3
+	lpid = wait3(&status, WNOHANG, (struct rusage *) NULL);
+#else				/* ... plain simple waiting wait() ... */
+	/* This can freeze at wait() ?  Who could test ?  A system
+	   without wait3()/waitpid(), but with BSD networking ??? */
+	lpid = wait(&status);
+#endif				/* WNOHANG */
+#endif
+#endif
+	if (lpid <= 1) break; /* For whatever reason */
+    }
+
+    SIGNAL_HANDLE(SIGCHLD, sigchld);
+    SIGNAL_RELEASE(SIGCHLD);
+}
+
+
 void job_linkin( head, peer )
      struct peerhead *head;
      struct peerdata *peer;
@@ -316,6 +351,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	int top_peer = 0, top_peer2, topfd, newfd;
 	/* int last_peer_index = 0; */
 
+	SIGNAL_HANDLE(SIGCHLD, sigchld);
+
 	fd_set rdset, wrset;
 	struct timeval tv;
 
@@ -364,6 +401,13 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	for (;;) {
 
 	  /* ppid = getppid(); -- not used anymore */
+
+	  if (sawsigchld) {
+	    if (subdaemon_handler->reaper)
+	      subdaemon_handler->reaper( &statep );
+	    else
+	      default_reaper(SIGCHLD);
+	  }
 
 	  if ( (rendezvous_socket < 0) &&
 	       (top_peer <= 0)) break; /* parent is gone, clients are gone
