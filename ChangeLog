@@ -1,8 +1,9 @@
 2004-04-30  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/subdaemon-trk.c:
-	    When outputing the "Z-REPORT DUMP", start it with date,
-	    and end it with data line count..
+	    When outputing the "Z-REPORT DUMP", start it with datetime,
+	    and end it with data line count..  Similar with SIGUSR1
+	    processing.
 
 	* smtpserver/subdaemons.c:
 	    Deep within fdgets() a read(2) call did yield EBADFD,

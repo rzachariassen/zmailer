@@ -332,6 +332,7 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
 /* ---------------------------------------------------------------------- */
 
 struct v4_dataprint {
+	const char *lineprefix;
 	FILE *fp;
 	int *tr;
 	int cnt;
@@ -355,7 +356,7 @@ dump_v4_rcptline(p, spl)
 		(ip4key >> 24) & 255,  (ip4key >> 16) & 255,
 		(ip4key >>  8) & 255,   ip4key & 255 );
 
-	fprintf(fp, "200- %-16s", buf);
+	fprintf(fp, "%s%-16s", dp->lineprefix, buf);
 
 	for (j = 0; j < SLOTCOUNT; ++j) {
 	  fprintf(fp, "%3d ", rp->countset[tr[j]]);
@@ -373,11 +374,11 @@ dump_v4_rcptline(p, spl)
 		rp->excesses, rp->excesses2, rp->excesses3);
 
 	if (rp->last_excess)
-	  fprintf(fp, " Age: %6.3fh", (double)(now-rp->last_excess)/3600.0);
+	  fprintf(fp, " EAge: %6.3fh", (double)(now-rp->last_excess)/3600.0);
 	else
-	  fprintf(fp, " Age:       0 ");
+	  fprintf(fp, " EAge:       0 ");
 
-	fprintf(fp, " Rcpts: %d %d %d",
+	fprintf(fp, " Rcpts: %3d %3d %3d",
 		rp->recipients, rp->recipients2, rp->recipients3);
 
 	fprintf(fp, "\n");
@@ -401,8 +402,6 @@ static RETSIGTYPE subdaemon_trk_sigusr1(sig)
 static void subdaemon_trk_checksigusr1(state)
      struct trk_state *state;
 {
-	struct ipv4_regs *r;
-	struct ipv4_regs_head *rhead;
 	int i, j, tr[SLOTCOUNT];
 	FILE *fp = NULL;
 	const char  *fn = "/var/tmp/smtpserver-ratetracker.dump";
@@ -414,7 +413,7 @@ static void subdaemon_trk_checksigusr1(state)
 	time(&now);
 
 	/* We are running as 'trusted' user, which is somebody
-	   else, than root. */
+	   else, than root. Still be paranoid about file openings... */
 
 	unlink(fn);
 	i = open(fn, O_EXCL|O_CREAT|O_WRONLY,0666);
@@ -431,17 +430,14 @@ static void subdaemon_trk_checksigusr1(state)
 
 	dp4.fp = fp;
 	dp4.tr = tr;
+	dp4.cnt = 0;
+	dp4.lineprefix = " ";
 
-	rhead = state->ipv4_regs_head;
+	fprintf(fp, "DUMP BEGINS; %s\n", rfc822date(&now));
 
-	for ( ; rhead ; rhead = rhead->next ) {
-	    r = rhead->ipv4;
-	    for (i = 0; i < rhead->count; ++i) {
-		if (r[i].spl) {
-		    dump_v4_rcptline(&dp4, r[i].spl);
-		}
-	    } /* All entries in this block */
-	} /* All blocks.. */
+	sp_scan( dump_v4_rcptline, & dp4, NULL, state->spt4 );
+
+	fprintf(fp, "DUMP ENDS; cnt=%d\n", dp4.cnt);
 
 
 	fclose(fp);
@@ -498,19 +494,10 @@ dump_trk(state, peerdata)
 	dp4.fp = fp;
 	dp4.tr = tr;
 	dp4.cnt = 0;
+	dp4.lineprefix = "200- ";
 
-#if 1
 	sp_scan( dump_v4_rcptline, & dp4, NULL, state->spt4 );
-#else
-	for ( ; rhead ; rhead = rhead->next ) {
-	  r = rhead->ipv4;
-	  for (i = 0; i < rhead->count; ++i) {
-	    if (r[i].spl) {
-		    dump_v4_rcptline(&dp4, r[i].spl);
-	    }
-	  } /* All entries in this block */
-	} /* All blocks.. */
-#endif
+
 	fprintf(fp, "200 DUMP ENDS; cnt=%d\n", dp4.cnt);
 	fflush(fp);
 	fclose(fp);
