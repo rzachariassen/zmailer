@@ -7,7 +7,7 @@
  *  This EXPECTS things from the listfile:
  *	recipient@address <TAB> (other data in comments) <NEWLINE>
  *
- *  By  Matti Aarnio <mea@nic.funet.fi>  1995,1998
+ *  By  Matti Aarnio <mea@nic.funet.fi>  1995,1998,2000
  */
 
 #include <stdio.h>
@@ -18,6 +18,8 @@
 #include "mail.h"
 #include "ta.h"
 #include "libz.h"
+
+int bundlesize = 200;
 
 char *progname = "listexpand";
 int D_alloc = 0;
@@ -52,7 +54,7 @@ extern char *strchr();
 
 void usage()
 {
-  fprintf(stderr,"%s:  owner@address /path/to/file/containing/addresses [privuid]\n",
+  fprintf(stderr,"%s: [-{bundlesize}]  owner@address /path/to/file/containing/addresses [privuid]\n",
 	  progname);
   exit(EX_USAGE);
 }
@@ -106,6 +108,12 @@ main(argc,argv)
 	struct rcpts *rcpts = malloc(sizeof(*rcpts)*8);
 	int rcpts_space = 8;
 	int rcpts_count = 0;
+
+	if (argc > 3 && argv[1][0]=='-') {
+	  bundlesize = atoi(argv[1]);
+	  if (bundlesize < 200)
+	    bundlesize = 200;
+	}
 
 	if (argc < 3 || argc > 4)
 	  usage();
@@ -195,7 +203,7 @@ for (i = 0; i < rcpts_count; ++i)
 
 	  /* Up to 200 recipient addresses */
 	  for (i = 0;
-	       rcpts_space < rcpts_count && i < 200;
+	       rcpts_space < rcpts_count && i < bundlesize;
 	       ++i) {
 	    s = rcpts[rcpts_space].address;
 	    ++rcpts_space;
