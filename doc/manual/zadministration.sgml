@@ -115,7 +115,7 @@ Program to do delivery to external systems via SMTP protocol
 
 <VARLISTENTRY><TERM><COMMAND>hold</COMMAND></TERM>
 <LISTITEM><PARA>
-Handler of ``<LITERAL>hold</>''-channel deliveries.
+Handler of <QUOTE><LITERAL>hold</></>-channel deliveries.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>sm</COMMAND></TERM>
@@ -127,7 +127,7 @@ that interface layer to an extent which is meaningfull in ZMailer sense.
 
 <VARLISTENTRY><TERM><COMMAND>errormail</COMMAND></TERM>
 <LISTITEM><PARA>
-Handler of ``<LITERAL>error</>''-channel deliveries.
+Handler of <QUOTE><LITERAL>error</></>-channel deliveries.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><COMMAND>expirer</COMMAND></TERM>

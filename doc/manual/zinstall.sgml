@@ -14,7 +14,7 @@ This section describes how to build and install ZMailer.
 
 <TIP><PARA>Consider joining the ZMailer user-community email list.
 It is the place to meet the Gurus, in case you have problems.
-See the ``<FILENAME>Overview</>'' file in the source distribution
+See the <QUOTE><FILENAME>Overview</></> file in the source distribution
 for more information.</PARA></TIP>
 
 </PARTINTRO>
@@ -49,8 +49,8 @@ yield replies for repeated questions.</EMPHASIS>
 </PARA>
 
 <PARA>
-You may also choose to use ``<APPLICATION>whoson</>'' services provided by
-a utility package at ``<FILENAME CLASS="DIRECTORY">contrib/</>'' sub-directory.
+You may also choose to use <QUOTE><APPLICATION>whoson</></> services provided by
+a utility package at <QUOTE><FILENAME CLASS=DIRECTORY>contrib/</></> sub-directory.
 If you do, then do install that before configuring and installing the ZMailer.
 (More on section <XREF LINKEND="installing-whoson-service">.)
 </PARA>
@@ -100,7 +100,7 @@ them into your system (before compiling and installing ZMailer, that is):
 
 <PARA>
 The <FILENAME>zmailer.conf</> file carries various so called
-``ZMailer Environment'' configuration variables.
+<QUOTE>ZMailer Environment</> configuration variables.
 </PARA>
 <PARA>
 In following we refer to those often in style of:
@@ -113,29 +113,29 @@ Which essentially means expanding in Bourne-shell like manner given
 <PARA>
 The location of this file is defined at system configuration, originally
 it was at: <FILENAME>$MAILSHARE/zmailer.conf</>, but these days more often
-at the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>.
+at the <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/</>.
 </PARA>
 
 <PARA>
-<INDEXTERM ID=idx.build.disk.partitions><primary>build</><SECONDARY>disk partitions</></>
+<INDEXTERM ID=idx.build.disk.partitions><PRIMARY>build</><SECONDARY>disk partitions</></>
 
 This system uses several preferably separate partitions for
 different things:
 
 <ITEMIZEDLIST>
 <LISTITEM><PARA>Software binaries, and databases:
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</> (node local db's),
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/</> (site shared),
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</> (read-only, site shared)
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/</> (node local db's),
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILSHARE</>/</> (site shared),
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/</> (read-only, site shared)
 </PARA></LISTITEM>
 <LISTITEM><PARA>The mailbox spool:
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBOX</>/</>
-  (<FILENAME CLASS="DIRECTORY">/var/mail</>)</></>
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBOX</>/</>
+  (<FILENAME CLASS=DIRECTORY>/var/mail</>)</></>
 <LISTITEM><PARA>The postoffice spool:
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
-  (<FILENAME CLASS="DIRECTORY">/var/spool/postoffice/</>)</></>
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>
+  (<FILENAME CLASS=DIRECTORY>/var/spool/postoffice/</>)</></>
 <LISTITEM><PARA>The log directory:
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>LOGDIR</>/</>
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>LOGDIR</>/</>
   (<FILENAME>/var/log/mail</>)</></>
 </ITEMIZEDLIST>
 </PARA>
@@ -177,9 +177,9 @@ could be at separate partitions.  No they can't!
 The <APPLICATION>GNU autoconf</> mechanism is used, however, you
 still may need to touch on some files after that system has run through:
 You MUST define <OPTION>&dd;prefix=</> so that ZMailer components end up
-in reasonable places.  The <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</>
-(and <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/</>, and
- <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>)
+in reasonable places.  The <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/</>
+(and <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILSHARE</>/</>, and
+ <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/</>)
 variable values are derived from the <OPTION>&dd;prefix=</>, which can
 cause surprises if you do <COMMAND>make install</> with
 <APPLICATION>GNU autoconf</> defaults.
@@ -201,7 +201,7 @@ exists<FOOTNOTE><PARA>Default location is <FILENAME>$MAILSHARE/zmailer.conf</>,
 and it can be changed with <OPTION>&dd;with-zconfig=</> option.
 </PARA></FOOTNOTE>,
 it is read to initialize several different environment paths (including
-<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</>, et.al.!)
+<FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/</>, et.al.!)
 
 <SCREEN>
 <PROMPT>#</> <USERINPUT>./configure                             \
@@ -236,7 +236,7 @@ Or an example from my development machine:
 <PARA>
 You can also go into a sub-directory, and configure and
 compile there: (But it may need <APPLICATION>GNU make</>
-as system ``<COMMAND>make</>''!)
+as system <QUOTE><COMMAND>make</></>!)
 <SCREEN>
   <PROMPT>$ </><USERINPUT>mkdir myhost ; cd myhost</>
   <PROMPT>$ </><USERINPUT>../configure &hellip;</>
@@ -256,7 +256,7 @@ at chapter <XREF LINKEND="zins.configure-options-list">.
 
 <PARA>
 Those options that you can't tune, you can edit at
-the ``<FILENAME>SiteConfig.in</>'' file.
+the <QUOTE><FILENAME>SiteConfig.in</></> file.
 (Redo the configure with new parameters, if that looks
  to be necessary approach.)
 </PARA>
@@ -320,7 +320,7 @@ touched at this point.
 </PARA>
 
 <PARA>
-(If your system ``<COMMAND>make</>'' lets your shell ``<VARNAME>SHELL</>''
+(If your system <QUOTE><COMMAND>make</></> lets your shell <QUOTE><VARNAME>SHELL</></>
  environment affect its own execution environment, it may be that
  non-<COMMAND>sh</>/<COMMAND>ksh</>/<COMMAND>zsh</> users detect
  weird phenomena, and failures. Beware!)
@@ -347,23 +347,23 @@ using
   <PROMPT>$ </><USERINPUT>zmailer kill</>
 </SCREEN>
 and save the state of your system.  This includes any active contents
-of the <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>, as well
+of the <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>, as well
 as database files and anything else in the installation areas you want
 to be sure to keep.
 This is just paranoia, the installation should not overwrite precious
 files, and will save old versions of distribution files in
-``<FILENAME CLASS="DIRECTORY">bak/</>'' sub-directories.
+<QUOTE><FILENAME CLASS=DIRECTORY>bak/</></> sub-directories.
 </PARA>
 
 <PARA>
 The interface in between the commonly used sendmail, and ZMailer
-is a ``compatibility program'', which is to replace the
+is a <QUOTE>compatibility program</>, which is to replace the
 <FILENAME>/usr/lib/sendmail</FILENAME>
 (a.k.a. <FILENAME>/usr/sbin/sendmail</> on some systems).
 The system attempts to automate the replacement, but it <EMPHASIS>may</>
 present a cry for help if your system does not have functioning symlinks.
-Also if ``<COMMAND>test -h $<VARNAME>SENDMAILPATH</></>'' does fault in mysterious ways,
-the reason may be that your system does not have symlinks.
+Also if <QUOTE><COMMAND>test -h $<VARNAME>SENDMAILPATH</></></> does fault
+in mysterious ways, the reason may be that your system does not have symlinks.
 </PARA>
 
 <PARA>
@@ -379,7 +379,8 @@ for example) binary back to <FILENAME>/usr/lib/sendmail</>.
 (You may also need to do some magics with system start-up scripts
 in case you are running SysV-style init. BSD <FILENAME>/etc/rc.local</>
 does need its own gymnastics too.
-Sample SysV-init script is at file: ``<FILENAME>proto/zmailer.init.sh</>'')
+Sample SysV-init script is at file:
+ <QUOTE><FILENAME>proto/zmailer.init.sh</></>)
 </PARA>
 
 <PARA>
@@ -391,7 +392,7 @@ Anyway the point is to get the sendmail to send its queue
 via SMTP to the ZMailer.
 An equally valid option is to drain the sendmail's queue by running
 sendmail in queue drain mode only, although <FILENAME>/usr/lib/sendmail</>
-points to ZMailer's ``<COMMAND>sendmail</>.''
+points to ZMailer's <QUOTE><COMMAND>sendmail</>.</>
 </PARA>
 
 </SECT2>
@@ -412,7 +413,7 @@ Once you are safe, run:
 
 <PARA>
 This installs all binaries and the default configuration and database files,
-as well as creates <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
+as well as creates <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>
 directories.   The configurations will still need editing! See below.
 </PARA>
 
@@ -420,22 +421,24 @@ directories.   The configurations will still need editing! See below.
 The <COMMAND>post-install</> handles important activity in tracking the
 base versions of configuration files by storing MD5 check-sums of original
 files with <FILENAME>.md5</> suffix tagged to them into their original
-location (<FILENAME CLASS="DIRECTORY">proto/</> sub-directories).
+location (<FILENAME CLASS=DIRECTORY>proto/</> sub-directories).
 This way when sysadmin changes something, the new run of
 <COMMAND>post-install</> will detect the changes and not write over such
 file.
 </PARA>
 
 <PARA>
-There exists also a way to do the installation into a ``parallel universe''
-by means of install-time ``prefix'' environment variable:
+There exists also a way to do the installation into
+a <QUOTE>parallel universe</> by means of install-time
+<QUOTE>prefix</> environment variable:
 <SCREEN>
   <PROMPT># </><USERINPUT>make install prefix=/var/tmp/build</>
 </SCREEN>
-which of course expects to have ``<FILENAME>/var/tmp/build/</>'' directory
-in existence, and possibly some others under it, but you will soon see, what
-it needs.  (But <COMMAND>post-install</> does not support that, and so
-it needs to be used at the last stage of packaged ZMailer's installation)
+which of course expects to have <QUOTE><FILENAME>/var/tmp/build/</></>
+directory in existence, and possibly some others under it, but you will
+soon see, what it needs.
+(But <COMMAND>post-install</> does not support that, and so it needs to
+ be used at the last stage of packaged ZMailer's installation)
 </PARA>
 
 </SECT2>
@@ -446,12 +449,12 @@ it needs to be used at the last stage of packaged ZMailer's installation)
 
 <PARA>
 Because for a long time the installation location of ZMailer's man-pages
-has not had an obvious destination location, normal ``make install''
+has not had an obvious destination location, normal <QUOTE>make install</>
 run at the top-level does <EMPHASIS>not</> install them!
 </PARA>
 
 <PARA>
-Go into the <FILENAME CLASS="DIRECTORY">man/</> directory,
+Go into the <FILENAME CLASS=DIRECTORY>man/</> directory,
 and install the manual pages by hand:
 <SCREEN>
   <PROMPT># </><USERINPUT>cd man</>
@@ -488,7 +491,7 @@ can be found in Administration and Reference parts.
 <SECT2 ID=zins-rtf-zmailer.conf><TITLE><FILENAME>zmailer.conf</></>
 <PARA>
 The <FILENAME>zmailer.conf</> file carries various so called
-``ZMailer Environment'' configuration variables.
+<QUOTE>ZMailer Environment</> configuration variables.
 </PARA>
 <PARA>
 In following we refer to those often in style of:
@@ -501,7 +504,7 @@ Which essentially means expanding in Bourne-shell like manner given
 <PARA>
 The location of this file is defined at system configuration, originally
 it was at: <FILENAME>$<VARNAME>MAILSHARE</>/zmailer.conf</>, but these days
-more often at the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>.
+more often at the <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/</>.
 </PARA>
 
 <PARA>
@@ -512,18 +515,18 @@ different things:
 
 <ITEMIZEDLIST>
 <LISTITEM><PARA>Software binaries, and databases:
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</> (node local db's),
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/</> (site shared),
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</> (read-only, site shared)
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/</> (node local db's),
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILSHARE</>/</> (site shared),
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/</> (read-only, site shared)
 </PARA></LISTITEM>
 <LISTITEM><PARA>The mailbox spool:
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBOX</>/</>
-  (<FILENAME CLASS="DIRECTORY">/var/mail</>)</></>
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBOX</>/</>
+  (<FILENAME CLASS=DIRECTORY>/var/mail</>)</></>
 <LISTITEM><PARA>The postoffice spool:
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
-  (<FILENAME CLASS="DIRECTORY">/var/spool/postoffice/</>)</></>
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>
+  (<FILENAME CLASS=DIRECTORY>/var/spool/postoffice/</>)</></>
 <LISTITEM><PARA>The log directory:
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>LOGDIR</>/</>
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>LOGDIR</>/</>
   (<FILENAME>/var/log/mail</>)</></>
 </ITEMIZEDLIST>
 </PARA>
@@ -544,7 +547,7 @@ the message headers, etc.
 
 <PARA>
 The usual <EMPHASIS>minimal</> set is: <LITERAL>root,daemon,uucp</>.
-(Note: At some machines ``daemon'' is called ``daemons'';
+(Note: At some machines <QUOTE>daemon</> is called <QUOTE>daemons</>;
 <EMPHASIS>It must be on that group for the smtpserver to be able to work
  properly!</>)
 </PARA>
@@ -569,7 +572,8 @@ mailq   174/tcp  # Mailer transport queue
 </SCREEN>
 Indeed this isn't <EMPHASIS>quite</> mandatory, as the <COMMAND>scheduler</>
 subsystem can be configured to use different IPC socket.
-See more about this at Scheduler's PARAM entries: <XREF LINKEND="zref-scheduler-param-entries">.
+See more about this at Scheduler's PARAM entries:
+ <XREF LINKEND="zref-scheduler-param-entries">.
 </PARA>
 
 </SECT2>
@@ -644,7 +648,7 @@ By editing that entry you can alter it.
 
 <CAUTION>
 <PARA>
-Note that ``hostname='' entry above <EMPHASIS>is not alone sufficient</>
+Note that <QUOTE>hostname=</> entry above <EMPHASIS>is not alone sufficient</>
 for getting the system to know all of the domains it should consider
 as local.  See below about <FILENAME>localnames</> database.
 </PARA>
@@ -685,7 +689,7 @@ You should see something like:
 
 <PARA>
 If there are errors in the configuration file, you will be told here.
-The ``z#'' is the interactive prompt for root.
+The <QUOTE>z#</> is the interactive prompt for root.
 It is unlikely you can do anything useful before setting up the data files,
 so get out of this by hitting EOF, or type <USERINPUT>exit</>.
 </PARA>
@@ -720,7 +724,7 @@ and also the source files.
 <PARA>
 You may want to add a symbolic link from some directory in your path
 to <FILENAME>$<VARNAME>MAILBIN</>/zmailer</>, if you don't already have this.
-I put this link in <FILENAME CLASS="DIRECTORY">/usr/local/sbin</>.
+I put this link in <FILENAME CLASS=DIRECTORY>/usr/local/sbin</>.
 </PARA>
 
 <PARA>
@@ -748,17 +752,17 @@ under which look-up names, and what format they are, etc&hellip;
 </PARA>
 
 <PARA>
-This is used by  ``<COMMAND>zmailer newdb</>''  command to generate
+This is used by  <QUOTE><COMMAND>zmailer newdb</></>  command to generate
 all databases described here, and to produce relevant  <FILENAME>.zmsh</>
 scripts for the <COMMAND>router</> to use things.
-The  ``<COMMAND>zmailer newdb</>'' invocation does not mandate
+The  <QUOTE><COMMAND>zmailer newdb</></> invocation does not mandate
 <COMMAND>router</> restart in case the database definitions have
 not changed; reverse is true: If definitions are added/modified/removed,
 the <COMMAND>router</> <EMPHASIS>must</> be restarted!
 </PARA>
 
 <PARA>
-<EMPHASIS>When you use ``<COMMAND>zmailer newdb</>'' command, you recompile
+<EMPHASIS>When you use <QUOTE><COMMAND>zmailer newdb</></> command, you recompile
 all databases defined in the controlling configuration file
 <FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> -- or if you don't
 have that file, then all databases listed below, as creation/update of those
@@ -770,8 +774,8 @@ For more complete example, see the default boilerplate version of this file.
 </PARA>
 
 
-<FIGURE ID="fig.inst.dbases.conf" PGWIDE="1" FLOAT="1">
-<TITLE>Sample of ``<FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</>'' file</TITLE>
+<FIGURE ID="fig.inst.dbases.conf" PGWIDE=1 FLOAT=1>
+<TITLE>Sample of <QUOTE><FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</></> file</TITLE>
 <SCREEN>
 
 #|Fields:
@@ -825,7 +829,7 @@ Choose one of the following methods to rebuild the database:
 </PARA>
 
 <PARA>
-If there are errors, correct them in the ``<FILENAME>aliases</>'' file,
+If there are errors, correct them in the <QUOTE><FILENAME>aliases</></> file,
 and repeat the command until the alias database has been initialized.
 The final message should look something like:
 <SCREEN>
@@ -837,7 +841,7 @@ exact numbers vary, of course&hellip;
 <PARA>
 See also IETF's 
 <ULINK URL="http://www.ietf.org/rfc/rfc2142.txt"><CITETITLE>RFC 2142:
-``Mailbox Names for Common Services, Roles and Functions''</CITETITLE></ULINK>
+<QUOTE>Mailbox Names for Common Services, Roles and Functions</></CITETITLE></ULINK>
 (file <FILENAME>doc/rfc/rfc2142.txt</>)
 for other suggested aliases you may need. 
 </PARA>
@@ -863,8 +867,8 @@ separate people to be postmasters for each of them as shown at
 <XREF LINKEND="fig.inst.fqdnaliases">.
 </PARA>
 
-<FIGURE ID="fig.inst.fqdnaliases" PGWIDE="1" FLOAT="1">
-<TITLE>Sample of ``<FILENAME>fqdnaliases</>'' file</TITLE>
+<FIGURE ID="fig.inst.fqdnaliases" PGWIDE=1 FLOAT=1>
+<TITLE>Sample of <QUOTE><FILENAME>fqdnaliases</></> file</TITLE>
 <SCREEN>
   postmaster@domain1: person1
   postmaster@domain2: person2
@@ -877,8 +881,8 @@ It is also possible to shunt all recipient addresses for given domain to
 some arbitrary addresses as shown at <XREF LINKEND="fig.inst.fqdnaliases-2">.
 </PARA>
 
-<FIGURE ID="fig.inst.fqdnaliases-2" PGWIDE="1" FLOAT="1">
-<TITLE>Second sample of ``<FILENAME>fqdnaliases</>'' file</TITLE>
+<FIGURE ID="fig.inst.fqdnaliases-2" PGWIDE=1 FLOAT=1>
+<TITLE>Second sample of <QUOTE><FILENAME>fqdnaliases</></> file</TITLE>
 <SCREEN>
   @domain4:  person4
   @domain5:  %1@domain6
@@ -891,7 +895,7 @@ you have it at the next router start-up.
 </PARA>
 
 <PARA>
-The ``<USERINPUT>%1</>'' local part is special (and experimental, as of
+The <QUOTE><USERINPUT>%1</></> local part is special (and experimental, as of
 21-Feb-2001) substitution pattern where <EMPHASIS>local part (user)</>
 can be replaced into the looked up data.
 More details at <XREF LINKEND=zmshref.dblookup> (dblookup),
@@ -900,15 +904,16 @@ and at <XREF LINKEND=zmshref.relation> (<FUNCTION>relation</> declaration).
 
 <PARA>
 You may even handle just a few users for each of those domains, and then
-have the ``<FILENAME>routes</>'' entry (see below at
+have the <QUOTE><FILENAME>routes</></> entry (see below at
 <XREF LINKEND="fig.inst.routes">) to declare something
 suitable:
 <SCREEN>
   .domain1  error!nosuchuser
   .domain1  error!nosuchuser!%0
 </SCREEN>
-which combined with the ``<FILENAME>fqdnalias</>'' method will let
-``<FILENAME>postmaster@domain1</>'' to exist, and report error on all others.
+which combined with the <QUOTE><FILENAME>fqdnalias</></> method will let
+<QUOTE><FILENAME>postmaster@domain1</></> to exist, and report error on
+all others.
 </PARA>
 
 <PARA>
@@ -924,14 +929,14 @@ or either of:
 </PARA>
 
 <PARA>
-If there are errors, correct them in the ``<FILENAME>fqdnaliases</>'' file,
-and repeat the command until the alias database has been initialized.
+If there are errors, correct them in the <QUOTE><FILENAME>fqdnaliases</></>
+file, and repeat the command until the alias database has been initialized.
 The final message looks similar to that of the ordinary aliases case.
 </PARA>
 
 <PARA>
 If you have multiple fqdnaliases databases defined at the
-<FILENAME>dbases.conf</>, you must use the ``<COMMAND>zmailer newdb</>''.
+<FILENAME>dbases.conf</>, you must use the <QUOTE><COMMAND>zmailer newdb</></>.
 (See <XREF LINKEND=zref-zmailer-newdb>.)
 </PARA>
 
@@ -949,7 +954,7 @@ Due to my own belief in Murphy, I usually add partially qualified
 domain names and nicknames in addition to canonized names.
 If you want to do local delivery for mail clients, put their names
 in here too.
-You may use pathalias style ``<EMPHASIS ROLE="BOLD">.domain</>'' names
+You may use pathalias style <QUOTE><EMPHASIS ROLE=BOLD>.domain</></> names
 in this file, to indicate everything under some subdomain.
 </PARA>
 
@@ -960,14 +965,14 @@ names to the desired forms of the canonical name, thus an example as seen
 in figure <XREF LINKEND="fig.inst.localnames">.
 </PARA>
 
-<FIGURE ID="fig.inst.localnames" PGWIDE="1" FLOAT="1">
-<TITLE>Sample of ``<FILENAME>localnames</>'' file</TITLE>
+<FIGURE ID="fig.inst.localnames" PGWIDE=1 FLOAT=1>
+<TITLE>Sample of <QUOTE><FILENAME>localnames</></> file</TITLE>
 <SCREEN>
 #
 # Left:  input name
 # Right: what is wanted to be shown out
 #
-# List here <EMPHASIS ROLE="BOLD">all</> names for the system
+# List here <EMPHASIS ROLE=BOLD>all</> names for the system
 #
 astro.utu.fi         astro.utu.fi
 oj287                astro.utu.fi
@@ -986,7 +991,7 @@ In certain cases the <COMMAND>router</> is able to deduce some of the names,
 </PARA>
 
 <PARA>
-<EMPHASIS ROLE="BOLD">THUS: All names that the host may ever have are
+<EMPHASIS ROLE=BOLD>THUS: All names that the host may ever have are
  best listed in here!</EMPHASIS>
 It reminds you of them, and makes sure a message destined into the host
 really is accepted.
@@ -1016,11 +1021,11 @@ You can compile the file into binary database with command:
 </SCREEN>
 </PARA>
 
-<FIGURE ID="fig.inst.routes" PGWIDE="1" FLOAT="1">
-<TITLE>Sample of ``<FILENAME>routes</>'' file</TITLE>
+<FIGURE ID="fig.inst.routes" PGWIDE=1 FLOAT=1>
+<TITLE>Sample of <QUOTE><FILENAME>routes</></> file</TITLE>
 <SCREEN>
   #
-  # ``routes'' mapping file
+  # <QUOTE>routes</> mapping file
   #
   .toronto.ca      error!err.wrongname
   .toronto.cdn     error!err.wrongname
@@ -1057,7 +1062,7 @@ at the prompt:
 <SCREEN>
   <PROMPT>z# </><USERINPUT>router you</>
 </SCREEN>
-(where ``you'' is your login-id, naturally) should print out:
+(where <QUOTE>you</> is your login-id, naturally) should print out:
 <SCREEN>
   (((local you you default_attributes)))
 </SCREEN>
@@ -1069,9 +1074,9 @@ Modify the configuration file if your setup requires it.
 </PARA>
 
 <PARA>
-To give more feeling of what goes on during the ``<COMMAND>route</>''-command,
-you can give command ``<COMMAND>rtrace</>'' before trying to use
-``<COMMAND>route</>.''
+To give more feeling of what goes on during the <QUOTE><COMMAND>route</></>-command,
+you can give command <QUOTE><COMMAND>rtrace</></> before trying to use
+<QUOTE><COMMAND>route</>.</>
 </PARA>
 </SECT2>
 </SECT1>
@@ -1091,19 +1096,21 @@ of latter extensions.
 Configurable subsystems are:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>
-Generic server parametrization with ``<FILENAME>smtpserver.conf</>'' file.
+Generic server parametrization with <QUOTE><FILENAME>smtpserver.conf</></>
+file.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
-Relaying policy control via ``<FILENAME>smtp-policy</>'' database.
+Relaying policy control via <QUOTE><FILENAME>smtp-policy</></> database.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
-Optional message content analysis via ``contentfilter'' mechanism.
+Optional message content analysis via <QUOTE>contentfilter</> mechanism.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
 Optional PAM authentication framework for SMTP AUTH extension.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
-Optional externally driven program to autenticate users; command line contains username, and STDIN gets the user supplied password. 
+Optional externally driven program to autenticate users; command line contains
+username, and STDIN gets the user supplied password. 
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
 </PARA>
@@ -1113,7 +1120,7 @@ See the Administration <XREF LINKEND=ZADM-SMTPSERVER> for further details.
 </PARA>
 
 <SECT2 ID=zins.smtps-smtpserver.conf-file>
-<TITLE>The ``<FILENAME>smtpserver.conf</>'', and smtp-policy databases</>
+<TITLE>The <QUOTE><FILENAME>smtpserver.conf</></>, and smtp-policy databases</>
 <INDEXTERM ID=idx.build-smtpserver.conf-file><PRIMARY>smtpserver</><SECONDARY><FILENAME>smtpserver.conf</>-file</></>
 <INDEXTERM ID=idx.build-smtpserver.conf-file2><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>install</></>
 
@@ -1141,7 +1148,7 @@ their totally broken SMTP sending system.
 </PARA>
 
 <PARA>
-Both of these things are handled by ``EHLO-style options'' described
+Both of these things are handled by <QUOTE>EHLO-style options</> described
 at chapter <XREF LINKEND="zadm-smtpserver-conf-ehlostyle">.
 </PARA>
 
@@ -1195,7 +1202,7 @@ the results:
 
 <PARA>
 If you want to do testing without excessive amount of debug information,
-do leave out ``-d 1'' part of the start arguments.
+do leave out <QUOTE>-d 1</> part of the start arguments.
 </PARA>
 
 </SECT2>
@@ -1216,7 +1223,7 @@ The location of the <FILENAME>scheduler.conf</> on running system is
 
 <PARA>
 For normal operations of the system the current sample
-of ``<FILENAME>scheduler.conf</>''
+of <QUOTE><FILENAME>scheduler.conf</></>
 <INDEXTERM ID=idx.zins-scheduler.conf-file><PRIMARY><FILENAME>scheduler.conf</></></>
 file is quite sufficient, but in case you want to do something
 unusual, like using <APPLICATION>procmail</> for local delivery,
@@ -1224,8 +1231,8 @@ do read on.
 </PARA>
 
 <PARA>
-The default ``<FILENAME>scheduler.conf</>'' contains also linkage to
-``<FILENAME>scheduler.auth</>''
+The default <QUOTE><FILENAME>scheduler.conf</></> contains also linkage to
+<QUOTE><FILENAME>scheduler.auth</></>
 (see <XREF LINKEND=zref-scheduler-scheduler.auth>), which is access-control
 for interacting with the scheduler from external programs, like
 <COMMAND>mailq</>.
@@ -1233,12 +1240,12 @@ for interacting with the scheduler from external programs, like
 
 <PARA>
 In <XREF LINKEND="fig.inst.scheduler1"> there are some salient points
-about tuning the ``<FILENAME>local</>'' channel behaviour.
+about tuning the <QUOTE><FILENAME>local</></> channel behaviour.
 </PARA>
 
-<FIGURE ID="fig.inst.scheduler1" FLOAT="1" PGWIDE="1">
-<TITLE>Sample of ``<FILENAME>scheduler.conf</>'' passage
-for ``<FILENAME>local/*</>'' selector</TITLE>
+<FIGURE ID="fig.inst.scheduler1" FLOAT=1 PGWIDE=1>
+<TITLE>Sample of <QUOTE><FILENAME>scheduler.conf</></> passage
+for <QUOTE><FILENAME>local/*</></> selector</TITLE>
 <SCREEN>
 local/*
     interval=5m
@@ -1258,8 +1265,8 @@ local/*
 </FIGURE>
 
 <PARA>
-There are three variants of the ``<FILENAME>command=</>'' entry:
-<VARIABLELIST TERMLENGTH="99">
+There are three variants of the <QUOTE><FILENAME>command=</></> entry:
+<VARIABLELIST TERMLENGTH=99>
 <VARLISTENTRY>
 <TERM><FILENAME>command="mailbox -8"</></TERM>
 <LISTITEM><PARA>
@@ -1310,7 +1317,7 @@ For more information about this, see Administration
 
 <PARA>
 For some uses the <COMMAND>scheduler</> runs <COMMAND>sm</>(8)
-program &mdash; called ``sendmail-like mailer''.
+program &mdash; called <QUOTE>sendmail-like mailer</>.
 </PARA>
 
 <PARA>
@@ -1342,7 +1349,7 @@ For more information, see <XREF LINKEND="zref-ta-sm-config">.
 <PARA>
 Edit several of the canned error messages and programs (scripts)
 to reflect your local configuration:
-<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/forms/</> files and
+<FILENAME CLASS=DIRECTORY>$<VARNAME>MAILSHARE</>/forms/</> files and
 <FILENAME>$<VARNAME>MAILBIN</>/ta/usenet</> (injected message).
 </PARA>
 
@@ -1357,10 +1364,10 @@ ADR Bcc:     &lt;postmaster&gt;
 This is a collection of reports about email delivery
 process concerning a message you originated:
 </SCREEN>
-In these, ``ADR'' lines define header lines which are to be analyzed
-for <EMPHASIS>recipient</> addresses, while ``HDR'' lines can carry
+In these, <QUOTE>ADR</> lines define header lines which are to be analyzed
+for <EMPHASIS>recipient</> addresses, while <QUOTE>HDR</> lines can carry
 anything which doesn't get output as <EMPHASIS>envelope</> address.
-The ``ADR'' line contained addresses <EMPHASIS ROLE="BOLD">must</> be in
+The <QUOTE>ADR</> line contained addresses <EMPHASIS ROLE=BOLD>must</> be in
 brackets, and there can be only one address per such header.  If there
 are more, only the first one is picked.
 </PARA>
@@ -1422,9 +1429,9 @@ Start ZMailer:
 <PARA>
 Keep an eye on the log files (<FILENAME>$<VARNAME>LOGDIR</>/router</>,
 <FILENAME>$<VARNAME>LOGDIR</>/scheduler</>), the
-<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/postman/</> directory
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/postman/</> directory
 for malformed message files, and
-<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/deferred/</> in case
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/deferred/</> in case
 of resource problems.
 </PARA>
 
@@ -1438,19 +1445,19 @@ of resource problems.
 <PARA>
 See <XREF LINKEND="fig.inst.crontab"> for three crontab entires for
 the root to run.  Those are:
-<ORDEREDLIST NUMERATION="ARABIC">
+<ORDEREDLIST NUMERATION=ARABIC>
 <LISTITEM><PARA>
-This will ``<COMMAND>resubmit</>'' messages that have been deferred
+This will <QUOTE><COMMAND>resubmit</></> messages that have been deferred
 with no useful processing possible at time of deferral.
 Adjust the re-submission interval to suit your environment.
-<EMPHASIS>Having files in ``deferred'' state is a sign of troubles!
+<EMPHASIS>Having files in <QUOTE>deferred</> state is a sign of troubles!
 Always investigate!</>
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-This ``<COMMAND>cleanup</>'' is to regularly clean out
-the ``<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/public/</>'', and
-``<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/postman/</>''
+This <QUOTE><COMMAND>cleanup</></> is to regularly clean out
+the <QUOTE><FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/public/</></>,
+and <QUOTE><FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/postman/</></>
 directories.
 </PARA></LISTITEM>
 
@@ -1466,7 +1473,7 @@ You may want to hard-wire the location of the <COMMAND>zmailer</> script.
 </PARA>
 
 
-<FIGURE ID="fig.inst.crontab" PGWIDE="1" FLOAT="1">
+<FIGURE ID="fig.inst.crontab" PGWIDE=1 FLOAT=1>
 <TITLE>ZMailer related crontab entries for root user</>
 <SCREEN>
   # Two ZMailer related root's CRONTAB entries:
@@ -1498,8 +1505,8 @@ If you wish to turn it off,
 see <FILENAME>$<VARNAME>MAILSHARE</>/cf/standard.cf</> for routine
 dribble()},
 and especially its invocations!
-Alternatively use ``<OPTION>-L /dev/null</>'' to divert everything
-to the ``dev null.''
+Alternatively use <QUOTE><OPTION>-L /dev/null</></> to divert everything
+to the <QUOTE>dev null.</>
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>Scheduler logs:</PARA>
@@ -1515,7 +1522,7 @@ At least this is the theory, practice may be different, though.
 <LISTITEM><PARA>Syslog Control ZENV variable:</PARA>
 <PARA>
 <EMPHASIS>ZENV variable</> $<VARNAME>SYSLOGFLG</> contains a set of
-single-character flags: ``S'', ``C'', ``R'', and/or ``T''.
+single-character flags: <QUOTE>S</>, <QUOTE>C</>, <QUOTE>R</>, and/or <QUOTE>T</>.
 FIXME! FIXME! Explain Smtpserver/sCheduler/Router/Transport agents!
 </PARA></LISTITEM>
 
@@ -1545,8 +1552,8 @@ By default, the postmaster will <EMPHASIS>not</> receive a copy
 of all bounced mail; this can be turned on selectively by simply
 editing the various canned forms used to create the error messages.
 These forms are located in the <VARNAME>FORMSDIR</>
-(<FILENAME CLASS="DIRECTORY">proto/forms</> in the distribution,
-or <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/forms</> when installed).
+(<FILENAME CLASS=DIRECTORY>proto/forms</> in the distribution,
+or <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILSHARE</>/forms</> when installed).
 You should review these in any case to make sure the text is
 appropriate for your site.
 </PARA></LISTITEM>
@@ -1568,7 +1575,7 @@ This section describes the installation at clients.
 <SECT1 ID=zins.client.req.files>
 <TITLE>Required Files</TITLE>
 
-<VARIABLELIST TERMLENGTH="99">
+<VARIABLELIST TERMLENGTH=99>
 <TITLE>The following files/programs are needed on clients:</TITLE>
 <VARLISTENTRY><TERM><FILENAME>$<VARNAME>MAILSHARE</>/zmailer.conf</></>
 <LISTITEM><PARA>
@@ -1584,12 +1591,12 @@ to submit mail
 
 <VARLISTENTRY><TERM><COMMAND>mailq</></>
 <LISTITEM><PARA>
-should be installed in the site's local <FILENAME CLASS="DIRECTORY">bin</>
+should be installed in the site's local <FILENAME CLASS=DIRECTORY>bin</>
 so people can query the mail server.
 (Remember to update <FILENAME>/etc/services</>)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</></>
+<VARLISTENTRY><TERM><FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</></>
 <LISTITEM><PARA>
 This directory from the server should be mounted and writable.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1610,8 +1617,8 @@ but the NFS may plaque you also at servers.
 
 <PARA>
 If you for some obscure reason are mounting
-<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBOX</></>es
-and/or <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</></>
+<FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBOX</></>es
+and/or <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</></>
 hierarchies via NFS, do it with options to disable various attribute caches:
 <SCREEN>
               actimeo=0
@@ -1627,8 +1634,8 @@ but some people can't be persuaded&hellip;
 <PARA>
 Lots of things are done where file attributes play important
 role, and they are extremely important to be in sync!
-(Sure, the ``<OPTION>noac</>' slows down the system, but avoids errors
-caused by bad attribute caches.)
+(Sure, the <QUOTE><OPTION>noac</></> slows down the system,
+but avoids errors caused by bad attribute caches.)
 </PARA>
 
 <PARA>
@@ -1677,11 +1684,11 @@ The  configure  script has three kinds of parameters for it:
 <SECT1 ID=zins.config.envars>
 <TITLE>Used environment variables</TITLE>
 
-<VARIABLELIST TERMLENGTH="99">
+<VARIABLELIST TERMLENGTH=99>
 <TITLE>User environment variables</TITLE>
 <VARLISTENTRY><TERM><VARNAME>ZCONFIG</>="/file/path"</TERM>
 <LISTITEM><PARA>
-Using this is alternate for using ``<OPTION>&dd;with-zconfig=../</>'' option.
+Using this is alternate for using <QUOTE><OPTION>&dd;with-zconfig=../</></> option.
 Not needed if the <OPTION>&dd;prefix=</> derived
 <FILENAME>$<VARNAME>MAILSHARE</>/zmailer.conf</> is used.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1690,7 +1697,7 @@ Not needed if the <OPTION>&dd;prefix=</> derived
 <TERM><VARNAME>CC</>="command"</>
 <TERM><VARNAME>CFLAGS</>="options"</>
 <LISTITEM><PARA>
-Obvious ones, compiler, and possible "-g -O" flags&hellip;
+Obvious ones, compiler, and possible <QUOTE>-g -O</> flags&hellip;
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1702,8 +1709,8 @@ Not normally needed &mdash; builds dependencies
 <VARLISTENTRY>
 <TERM><VARNAME>INEWSBIN</>=/file/path</>
 <LISTITEM><PARA>
-If you want to pre-define where your ``<EMPHASIS ROLE=STRONG>inews</>'' program
-is &mdash; for possible use of ``<EMPHASIS ROLE=STRONG>usenet</>'' channel.
+If you want to pre-define where your <QUOTE><EMPHASIS ROLE=STRONG>inews</></> program
+is &mdash; for possible use of <QUOTE><EMPHASIS ROLE=STRONG>usenet</></> channel.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
@@ -1737,7 +1744,7 @@ Recycled ZENV variables (from $<VARNAME>ZCONFIG</> file):
 <SECT1 ID=zins.configure.options>
 <TITLE>Options for various facilities</TITLE>
 
-<VARIABLELIST TERMLENGTH="99">
+<VARIABLELIST TERMLENGTH=99>
 <TITLE>Options for various facilities</TITLE>
 <VARLISTENTRY>
 <TERM><OPTION>&dd;prefix=/DIR/PATH</OPTION></TERM>
@@ -1752,7 +1759,7 @@ The only really mandatory option, gives actually defaults for
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-gcc</OPTION></TERM>
 <LISTITEM><PARA>
-Compile with GCC even when you have "cc" around.
+Compile with GCC even when you have <QUOTE>cc</> around.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1762,7 +1769,7 @@ Where the run-time  <FILENAME>zmailer.conf</>   file is located
 at (and with what name).  This is <EMPHASIS>the only</>
 hard-coded info within libraries and thus programs using them.
 Everything else is run-time relocatable by means of using
-"variables" listed in this file.
+<QUOTE>variables</> listed in this file.
 </PARA>
 
 <PARA>
@@ -1776,7 +1783,7 @@ present in pre-existing file.
 
 <PARA>
 When environment variable <ENVAR>ZCONFIG</> is set and exported to the
-<COMMAND>./configure</> script, use of ``<OPTION>&dd;with-zconfig=no</>''
+<COMMAND>./configure</> script, use of <QUOTE><OPTION>&dd;with-zconfig=no</></>
 will set the location of the file, but prevents pre-load of various values
 from it to the auto-configuration environment.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1804,7 +1811,7 @@ Defaults are looked up thru list of directories:
  /usr/spool/mail
 </SCREEN>
 First found directory will be the default &mdash; or then
-system yields  <FILENAME CLASS="DIRECTORY">/usr/spool/mail</>.
+system yields  <FILENAME CLASS=DIRECTORY>/usr/spool/mail</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 
@@ -1812,12 +1819,12 @@ system yields  <FILENAME CLASS="DIRECTORY">/usr/spool/mail</>.
 <TERM><OPTION>&dd;with-postoffice=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Overrides system-dependent location of
-the ``<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</></>'' directory
+the <QUOTE><FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</></></> directory
 under which system stores queued email.
 Will try directories
-<FILENAME CLASS="DIRECTORY">/{usr,var}/spool/postoffice/</> to
+<FILENAME CLASS=DIRECTORY>/{usr,var}/spool/postoffice/</> to
 see, if previously installed directory tree exists.
-Default will be  <FILENAME CLASS="DIRECTORY">/var/spool/postoffice/</>
+Default will be  <FILENAME CLASS=DIRECTORY>/var/spool/postoffice/</>
 in case there is no previously created postoffice directory.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1839,13 +1846,13 @@ but <FILENAME>MAILBIN</> = "$PREFIX/bin".
 <TERM><OPTION>&dd;with-logdir=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Explicit value to replace $<VARNAME>LOGDIR</> ZENV value and/or to
-override default value of:  <FILENAME CLASS="DIRECTORY">/var/log/mail/</>
+override default value of:  <FILENAME CLASS=DIRECTORY>/var/log/mail/</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-nntpserver=HOST</OPTION></TERM>
 <LISTITEM><PARA>
-If you want to use ``<EMPHASIS ROLE=STRONG>usenet</>'' channel, you need to name
+If you want to use <QUOTE><EMPHASIS ROLE=STRONG>usenet</></> channel, you need to name
 NNTP server into which you feed news with NNTP.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1887,9 +1894,9 @@ This is default.
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-libmalloc=LIBNAME</OPTION></TERM>
 <LISTITEM><PARA>
-Where ``LIBNAME'' is one of:
+Where <QUOTE>LIBNAME</> is one of:
 </PARA>
-<VARIABLELIST TERMLENGTH="99">
+<VARIABLELIST TERMLENGTH=99>
 <VARLISTENTRY>
 <TERM><OPTION>system</OPTION></TERM>
 <LISTITEM><PARA>
@@ -1927,13 +1934,13 @@ If needed to define linking-time options to find the YP-library.
 <TERM><OPTION>&dd;with-ldap-prefix=DIRPREFIX</OPTION></TERM>
 <LISTITEM><PARA>
 If UMich/NetScape <APPLICATION>LDAP</> are available thru
-<FILENAME CLASS="DIRECTORY">DIRPREFIX/include/</>
-and <FILENAME CLASS="DIRECTORY">DIRPREFIX/lib/</>
+<FILENAME CLASS=DIRECTORY>DIRPREFIX/include/</>
+and <FILENAME CLASS=DIRECTORY>DIRPREFIX/lib/</>
 locations, this is a short-hand to find the interface &mdash; with files
 in the system primary include and lib locations,
-``<FILENAME CLASS="DIRECTORY">/usr</>'' is a special value which
+<QUOTE><FILENAME CLASS=DIRECTORY>/usr</></> is a special value which
 will be ignored.  There is no default value for
-<FILENAME CLASS="DIRECTORY">DIRPREFIX</>.
+<FILENAME CLASS=DIRECTORY>DIRPREFIX</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -2011,14 +2018,14 @@ Some systems dislike getting RFC-822 headers with form of:
    "Headername: &lt;TAB&gt; value"
 </SCREEN>
 
-With this option, no TABs are used and instead "ordinary"
+With this option, no TABs are used and instead <QUOTE>ordinary</>
 space character is used.
 </PARA>
 <PARA>
 In real life, this feature is superseded by the <COMMAND>router</>
 to <EMPHASIS>always</> <EMPHASIS>TABifying</> all headers, and
 the transport-agent header write-out to <EMPHASIS>untabifying</>
-them, if ZENV variable <VARNAME>RFC822TABS=</> has value ``0''.
+them, if ZENV variable <VARNAME>RFC822TABS=</> has value <QUOTE>0</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -2038,7 +2045,7 @@ hooks,
 <TERM><OPTION>&dd;with-ta-mmap</OPTION></TERM>
 <LISTITEM><PARA>
 On some systems with good <FUNCTION>mmap</>(2) with
-``<CONSTANT>MAP_FILE|MAP_SHARED</>,'' and well behaving
+<QUOTE><CONSTANT>MAP_FILE|MAP_SHARED</>,</> and well behaving
 <FUNCTION>munmap</>()  it does make sense to replace
 <FUNCTION>read</>()/<FUNCTION>write</>() thru a file-descriptor to
 the file with <FUNCTION>mmap</>() &mdash; however that requires
@@ -2063,14 +2070,14 @@ Set 'CHECK_MB_SIZE' #define for mailbox.c compilation, and expect
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-privateauth"</OPTION></TERM>
 <LISTITEM><PARA>
-Use ``<FILENAME CLASS="DIRECTORY">private/</>'' sub-directory in a part of
+Use <QUOTE><FILENAME CLASS=DIRECTORY>private/</></> sub-directory in a part of
 <COMMAND>smtpserver</> program compilation.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-privatembox"</OPTION></TERM>
 <LISTITEM><PARA>
-Use ``<FILENAME CLASS="DIRECTORY">private/</>'' sub-directory in a part of
+Use <QUOTE><FILENAME CLASS=DIRECTORY>private/</></> sub-directory in a part of
 <COMMAND>mailbox</> program compilation.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -2100,14 +2107,14 @@ and whatever others your local system magic needs.
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-generic-include="-I/..."</OPTION></TERM>
 <LISTITEM><PARA>
-This parameter allows ubiquitous ``<OPTION>-I/...</>'' options to be used
+This parameter allows ubiquitous <QUOTE><OPTION>-I/...</></> options to be used
 in all program compilations throughout the package.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-generic-library="-L/..."</OPTION></TERM>
 <LISTITEM><PARA>
-This parameter allows ubiquitous ``<OPTION>-L/...</>'' options to be used
+This parameter allows ubiquitous <QUOTE><OPTION>-L/...</></> options to be used
 in all program linkages throughout the package.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -2129,9 +2136,9 @@ Search for, and use OpenSSL, if it can be found.
 <!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
 <TERM><OPTION>&dd;with-whoson="/dir/prefix"</OPTION></TERM>
 <LISTITEM><PARA>
-This does explicit integration with ``<APPLICATION>whoson</>'' server; see
-the ``<FILENAME>whoson-*.tar.gz</>'' file in
-the ``<FILENAME CLASS="DIRECTORY">contrib/</>'' sub-directory.
+This does explicit integration with <QUOTE><APPLICATION>whoson</></> server; see
+the <QUOTE><FILENAME>whoson-*.tar.gz</></> file in
+the <QUOTE><FILENAME CLASS=DIRECTORY>contrib/</></> sub-directory.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 

@@ -44,12 +44,12 @@ Recipient addresses are processed  as follows:
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
- If the address starts with a ``|'', the rest of the recipient address 
+ If the address starts with a <QUOTE>|</>, the rest of the recipient address 
  string is interpreted as  a shell command to be run. 
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
- If the address starts with a ``/'', the recipient address is a 
+ If the address starts with a <QUOTE>/</>, the recipient address is a 
  filename to append the message to. 
 </PARA></LISTITEM>
 
@@ -79,7 +79,7 @@ Some sanity checks are done on deliveries to files and mailboxes:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>
  The file being delivered to must have one link only, and must be either 
- ``<FILENAME>/dev/null</>'' or a regular file.
+ <QUOTE><FILENAME>/dev/null</></> or a regular file.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
@@ -107,7 +107,7 @@ contain <ENVAR>$PATH</>, <ENVAR>$SHELL</>, <ENVAR>$HOME</>,
 The <ENVAR>$HOME</> and <ENVAR>$USER</> values are the recipient user's
 home directory and login id respectively.
 The <ENVAR>$SENDER</> value is the sender address for the message
-(as it would appear in a ``<COMPUTEROUTPUT>From </>''-line), and the UID
+(as it would appear in a <QUOTE><COMPUTEROUTPUT>From </></>-line), and the UID
 value is the owner id of the process.
 The <LITERAL>SIGINT</> and <LITERAL>SIGHUP</> signals are ignored, but
 <LITERAL>SIGTERM</> is treated normally.
@@ -118,7 +118,7 @@ The actual data delivered to a file, mailbox, or process are identical.
 It consists of the concationation of a UUCP style separator line,
 the message header specified in the message control file, and the message
 body from the original message file.
-The separator line starts with ``<COMPUTEROUTPUT>From </>'' and is followed
+The separator line starts with <QUOTE><COMPUTEROUTPUT>From </></> and is followed
 by the sender address and a timestamp.
 </PARA>
 
@@ -130,8 +130,8 @@ The program may be compiled to look in the <APPLICATION>rwho</> files
 on the system for recipient names logged onto neighbouring hosts, in which
 case the <APPLICATION>comsat</> on the remote host will be poked.
 Even if this compile-time option is enabled, this will only be done for
-users that have a ``<FILENAME>.rbiff</>'' file in their home directory.
-(Unless an ``<OPTION>-DRBIFF_ALWAYS</>'' compile option is used.)
+users that have a <QUOTE><FILENAME>.rbiff</></> file in their home directory.
+(Unless an <QUOTE><OPTION>-DRBIFF_ALWAYS</></> compile option is used.)
 </PARA>
 
 <VARIABLELIST>
@@ -157,9 +157,9 @@ The default is "local".
 
 <VARLISTENTRY><TERM><OPTION>-h "localpart"</OPTION></TERM><LISTITEM><PARA>
 specifies which of the possible multiple recipients is to be picked this time.
-Default is ``none'', which selects all local channel recipients, however when
-the routing is done with scripts storing some tokens (other than ``-'') 
-into the ``host''-part, it is possible to process ``host-wise'', i.e. so that
+Default is <QUOTE>none</>, which selects all local channel recipients, however when
+the routing is done with scripts storing some tokens (other than <QUOTE>-</>) 
+into the <QUOTE>host</>-part, it is possible to process <QUOTE>host-wise</>, i.e. so that
 each user has his or her own lock-state, and not just everybody hang on
 the same lock(s)...
 </PARA></LISTITEM></VARLISTENTRY>
@@ -198,7 +198,7 @@ Quoted-Printable encoded characters.
 <VARLISTENTRY><TERM><OPTION>-M</OPTION></TERM><LISTITEM><PARA>
 enables the creation of MMDF-style mail-folder in the  incoming
 mail folder.
-The default is ``classic'' UNIX-style folder.
+The default is <QUOTE>classic</> UNIX-style folder.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
@@ -243,7 +243,7 @@ regular files. (Files with explicit paths defined.)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>.</></TERM><LISTITEM><PARA>
-For mailboxes only: Does ``dotlock'' (userid.lock), or
+For mailboxes only: Does <QUOTE>dotlock</> (userid.lock), or
 (on Sun Solaris) the <FUNCTION>maillock()</> mechanism.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -323,8 +323,8 @@ the subprograms it runs in the pipes:
  Likewise the textual username.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><ENVAR>SENDER</></><LISTITEM><PARA>
- is the incoming ``MAIL FROM:&lt;..&gt;'' address without brackets. For
- an incoming error message, value ``&lt;&gt;'' is used.
+ is the incoming <QUOTE>MAIL FROM:&lt;..&gt;</> address without brackets. For
+ an incoming error message, value <QUOTE>&lt;&gt;</> is used.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><ENVAR>ORCPT</></><LISTITEM><PARA>
  when present, is the XTEXT encoded ORCPT value received at the
@@ -438,7 +438,7 @@ Whitespace is not permitted.
 
 <PARA>
 The envelope of the resubmitted message is created from the sender and
-(no longer deferred) recipient addresses, and a ``via suspension'' header.
+(no longer deferred) recipient addresses, and a <QUOTE>via suspension</> header.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>Description:</><LISTITEM><PARA>
@@ -569,8 +569,8 @@ on the command line.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-e</OPTION></TERM><LISTITEM><PARA>
-use the ``EHLO''-greeting only if the remote server
-initial banner reports ``ESMTP'' on it.
+use the <QUOTE>EHLO</>-greeting only if the remote server
+initial banner reports <QUOTE>ESMTP</> on it.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-h host</OPTION></TERM><LISTITEM><PARA>
@@ -633,7 +633,7 @@ specifies the timeout, in seconds, when waiting for a response to
 an SMTP command.
 The timeout applies to all SMTP command-response exchanges except for
 the acknowledgement after terminating the DATA portion of a message
-transaction (after sending the ``.'' CRLF sequence).
+transaction (after sending the <QUOTE>.</> CRLF sequence).
 The default timeout is 10 minutes, the minimum acceptable value is 5 seconds.
 The timeout on the DATA acknowledgement is large, at least 10 minutes.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -678,13 +678,13 @@ The exit status is a code from
 <VARLISTENTRY><TERM>Extended SMTP:</TERM><LISTITEM><PARA>
 When a user sends out 8-bit mail with the proper headers, this module
 can send it out to conforming servers either in 8-bit transparent manner,
-or down-converting ``Content-Transfer-Encoding: 8BIT'' to
-``Content-Transfer-Encoding: 7BIT'' or
-to ``Content-Transfer-Encoding: QUOTED-PRINTABLE'' depending on what is
+or down-converting <QUOTE>Content-Transfer-Encoding: 8BIT</> to
+<QUOTE>Content-Transfer-Encoding: 7BIT</> or
+to <QUOTE>Content-Transfer-Encoding: QUOTED-PRINTABLE</> depending on what is
 the mail contents.
-This works only with ``Content-Type: TEXT/PLAIN'' thus no fancy
+This works only with <QUOTE>Content-Type: TEXT/PLAIN</> thus no fancy
 MULTIPART/ALTERNATE et.al. schemes..
-When ``Content-Transfer-Encoding:''-header is not present in the headers,
+When <QUOTE>Content-Transfer-Encoding:</>-header is not present in the headers,
  and recipient has not declared 8-bit SMTP capability, mail contents
  are treated with old 7-bit stripping method.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -843,11 +843,11 @@ Configuration:
 The configuration file <FILENAME>$<VARNAME>MAILSHARE</>/sm.conf</>
 associates the mailer keyword from the command line with a specification
 of a delivery program.
-This is very similar to the way the definition of a ``mailer'' in
+This is very similar to the way the definition of a <QUOTE>mailer</> in
 <COMMAND>sendmail</>(8).
 It requires flags, a program name, and a command line specification.
 These are in fact the fields of the entries of the configuration file.
-Lines starting with whitespace or a ``<EMPHASIS ROLE="STRONG">#</>''
+Lines starting with whitespace or a <QUOTE><EMPHASIS ROLE="STRONG">#</></>
 are ignored, and all others are assumed to follow format shown in figure
 <XREF LINKEND="fig.ref.sample-sm-conf">.
 </PARA>
@@ -898,7 +898,7 @@ One or more whitespace is used as the field separator for all the fields.
 
 <PARA>
 The flags field contains a concatenation of one-letter flags.
-If no flags are desired, a ``<EMPHASIS ROLE="STRONG">-</>''
+If no flags are desired, a <QUOTE><EMPHASIS ROLE="STRONG">-</></>
 character should be used to indicate presence of the field.
 All normal <APPLICATION>sendmail</> (<EMPHASIS>of 5.x era..</>)
 flags are recognized, but the ones that do not make sense in
@@ -907,34 +907,34 @@ The flags that change the behaviour of <COMMAND>sm</> are:
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>b</OPTION></TERM><LISTITEM><PARA>
-will activate BSMTP-type wrapping with a ``hidden-dot''
-algorithm; e.g. quite ordinary SMTP stream, but in ``batch mode''.
+will activate BSMTP-type wrapping with a <QUOTE>hidden-dot</>
+algorithm; e.g. quite ordinary SMTP stream, but in <QUOTE>batch mode</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>B</OPTION></TERM><LISTITEM><PARA>
-The  first ``<OPTION>B</>''  turns on similar BSMTP wrapping
-as ``<OPTION>b</>'', but adds
-SIZE and, if the <COMMAND>sm</> is  started  with option ``<OPTION>-8</>'',
-also 8BITMIME options.  The second ``<OPTION>B</>'' adds there also DSN
+The  first <QUOTE><OPTION>B</></>  turns on similar BSMTP wrapping
+as <QUOTE><OPTION>b</></>, but adds
+SIZE and, if the <COMMAND>sm</> is  started  with option <QUOTE><OPTION>-8</></>,
+also 8BITMIME options.  The second <QUOTE><OPTION>B</></> adds there also DSN
 (Delivery Status  Notification) parameters.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>E</OPTION></TERM><LISTITEM><PARA>
-will prepend ``<OPTION>&gt;</>'' to any message body line starting
-with ``<EMPHASIS ROLE="STRONG">From </>''. (Read: ``From-space'')
+will prepend <QUOTE><OPTION>&gt;</></> to any message body line starting
+with <QUOTE><EMPHASIS ROLE="STRONG">From </></>. (Read: <QUOTE>From-space</>)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>f</OPTION></TERM><LISTITEM><PARA>
-adds ``<OPTION>-f sender</>'' arguments to the delivery program.
+adds <QUOTE><OPTION>-f sender</></> arguments to the delivery program.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>n</OPTION></TERM><LISTITEM><PARA>
-will not prepend a ``<EMPHASIS ROLE="STRONG">From </>''-line
+will not prepend a <QUOTE><EMPHASIS ROLE="STRONG">From </></>-line
 (normal mailbox separator line) to the message.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>r</OPTION></TERM><LISTITEM><PARA>
-adds ``<OPTION>-r sender</>'' arguments to the delivery program.
+adds <QUOTE><OPTION>-r sender</></> arguments to the delivery program.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>S</OPTION></TERM><LISTITEM><PARA>
@@ -952,12 +952,12 @@ This affects <OPTION>$u</>  expansion  in the argument list, see below.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>P</OPTION></TERM><LISTITEM><PARA>
-prepends a ``Return-Path:'' header to the message.
+prepends a <QUOTE>Return-Path:</> header to the message.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>U</OPTION></TERM><LISTITEM><PARA>
-will prepend a ``<EMPHASIS ROLE="STRONG">From </>''-line, with
-a ``remote from myuucpname'' at the end, to the message.
+will prepend a <QUOTE><EMPHASIS ROLE="STRONG">From </></>-line, with
+a <QUOTE>remote from myuucpname</> at the end, to the message.
 This is what is expected by remote  <COMMAND>rmail</>(1)
 programs for incoming UUCP mail.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -968,7 +968,7 @@ it, will use LF-only end-of-line sequence.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>X</OPTION></TERM><LISTITEM><PARA>
-does SMTP-like ``hidden-dot'' algorithm  of doubling
+does SMTP-like <QUOTE>hidden-dot</> algorithm  of doubling
 all dots that are at the start of the line.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1000,9 +1000,9 @@ which is replaced by the destination host.
 
 <VARLISTENTRY><TERM><OPTION>$u</OPTION></TERM><LISTITEM><PARA>
 which is replaced by the recipient address.
-If the ``<OPTION>m</>'' mailer flag is set and there are several
-recipients for this message, the argument containing the ``<OPTION>$u</>''
-will be replicated as necessary for each recipient.
+If the <QUOTE><OPTION>m</></> mailer flag is set and there are several
+recipients for this message, the argument containing
+the <QUOTE><OPTION>$u</></> will be replicated as necessary for each recipient.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>

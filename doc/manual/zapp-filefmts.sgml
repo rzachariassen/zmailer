@@ -59,8 +59,8 @@ must contain destination information for the message.
 <PARA>
 The message envelope and the message header have very similar syntax.
 The only difference is that while the message header must adhere to RFC822,
-the message envelope header fields are terminated by whitespace (`` '')
-instead of a colon (``:'').
+the message envelope header fields are terminated by whitespace (<QUOTE> </>)
+instead of a colon (<QUOTE>:</>).
 The semantics of the two message file sections is quite different, and
 will be covered later.
 </PARA>
@@ -109,7 +109,7 @@ not used. Compatibility with the <APPLICATION>sendmail</> feature
 <VARLISTENTRY><TERM><OPTION>channel </><EMPHASIS>word</></TERM>
 <LISTITEM><PARA>
 sets the channel corresponding to the message origin(*),
-usually as ``<LITERAL>channel error</>''
+usually as <QUOTE><LITERAL>channel error</></>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>comment </><EMPHASIS>string</></TERM>
@@ -148,48 +148,48 @@ ESMTP DSN ENVID value
 A flag-word indicating the external origin of a message
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>from </><EMPHASIS>``address''</></TERM>
+<VARLISTENTRY><TERM><OPTION>from </><EMPHASIS><QUOTE>address</></></TERM>
 <LISTITEM><PARA>
 a source address(*)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>fullname </><EMPHASIS>``phrase''</></TERM>
+<VARLISTENTRY><TERM><OPTION>fullname </><EMPHASIS><QUOTE>phrase</></></TERM>
 <LISTITEM><PARA>
 sets the full name of the local sender
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>identinfo </><EMPHASIS>``string''</></TERM>
+<VARLISTENTRY><TERM><OPTION>identinfo </><EMPHASIS><QUOTE>string</></></TERM>
 <LISTITEM><PARA>
 The SMTP server's ident lookup result, this does not guarantee anything
 about the sender though.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>loginname </><EMPHASIS>``word''</></TERM>
+<VARLISTENTRY><TERM><OPTION>loginname </><EMPHASIS><QUOTE>word</></></TERM>
 <LISTITEM><PARA>
 requests using this mail id for the local sender
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>notaryret </><EMPHASIS>``word''</></TERM>
+<VARLISTENTRY><TERM><OPTION>notaryret </><EMPHASIS><QUOTE>word</></></TERM>
 <LISTITEM><PARA>
-ESMTP DSN RET=<EMPHASIS>word</>, either ``<LITERAL>FULL</>'',
-or ``<LITERAL>HDRS</>''
+ESMTP DSN RET=<EMPHASIS>word</>, either <QUOTE><LITERAL>FULL</></>,
+or <QUOTE><LITERAL>HDRS</></>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>rcvdfrom </><EMPHASIS>``domain'' (opt comment)</></TERM>
+<VARLISTENTRY><TERM><OPTION>rcvdfrom </><EMPHASIS><QUOTE>domain</> (opt comment)</></TERM>
 <LISTITEM><PARA>
-An optional envelope entry, which sets ``<LITERAL>Received:</>'' header's
-``<LITERAL>from</>'' field value.
+An optional envelope entry, which sets <QUOTE><LITERAL>Received:</></> header's
+<QUOTE><LITERAL>from</></> field value.
 </PARA>
 
 <PARA>
 This should <EMPHASIS>only</> be used on messages that are originated
-thru ``trusted'' mechanisms, and especially <EMPHASIS ROLE="BOLD">not</>
+thru <QUOTE>trusted</> mechanisms, and especially <EMPHASIS ROLE="BOLD">not</>
 be used when the message is originated by some John Doe in the system.
 (E.g. this is reserved for <COMMAND>smtpserver</> and friends, not
  for arbitrary users.)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>to </><EMPHASIS>``address-list''</></TERM>
+<VARLISTENTRY><TERM><OPTION>to </><EMPHASIS><QUOTE>address-list</></></TERM>
 <LISTITEM><PARA>
 Normal recipient address list; usually used in form of listing
 one address in angle braces:
@@ -198,14 +198,14 @@ one address in angle braces:
 </SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>todsn </><EMPHASIS>``phrase''</></TERM>
+<VARLISTENTRY><TERM><OPTION>todsn </><EMPHASIS><QUOTE>phrase</></></TERM>
 <LISTITEM><PARA>
 ESMTP DSN recipient parameters.
-Note: this must be before the recipient ``<OPTION>to</>'' line for which
+Note: this must be before the recipient <QUOTE><OPTION>to</></> line for which
 this gives the extra parameters.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>user </><EMPHASIS>``local-part''</></TERM>
+<VARLISTENTRY><TERM><OPTION>user </><EMPHASIS><QUOTE>local-part</></></TERM>
 <LISTITEM><PARA>
 Optional envelope entry telling who the message originating user
 was.   The system is extremely suspicuous on this entry, and will
@@ -213,7 +213,7 @@ check it against system account database, unless the spool file
 owner uid is known to belong to trusted users.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>verbose </><EMPHASIS>``filename''</></TERM>
+<VARLISTENTRY><TERM><OPTION>verbose </><EMPHASIS><QUOTE>filename</></></TERM>
 <LISTITEM><PARA>
 This optional envelope entry tells the router, what filename
 the sending client expects the subsystems to use as a feedback
@@ -221,16 +221,16 @@ channel for reports concerning the file.
 </PARA>
 
 <PARA>
-This ``<EMPHASIS>filename</>'' is located into
+This <QUOTE><EMPHASIS>filename</></> is located into
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/public/</>
 directory, and has been preopened by the same uid as has created
 the message spool file.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>via </><EMPHASIS>``word''</></TERM>
+<VARLISTENTRY><TERM><OPTION>via </><EMPHASIS><QUOTE>word</></></TERM>
 <LISTITEM><PARA>
-An optional envelope entry that will define ``<LITERAL>Received:</>''
-header's optional ``<LITERAL>via</>'' tag telling what physical transport
+An optional envelope entry that will define <QUOTE><LITERAL>Received:</></>
+header's optional <QUOTE><LITERAL>via</></> tag telling what physical transport
 mechanism was used.
 </PARA><PARA>
 Usually this entry is <EMPHASIS>not</> used.
@@ -238,12 +238,12 @@ Usually this entry is <EMPHASIS>not</> used.
  <COMMAND>listexpand</> utility.)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>with </><EMPHASIS>``word''</></TERM>
+<VARLISTENTRY><TERM><OPTION>with </><EMPHASIS><QUOTE>word</></></TERM>
 <LISTITEM><PARA>
-An optional envelope entry that will define ``<LITERAL>Received:</>''
-header's optional ``<LITERAL>with</>'' tag telling what protocol was used.
+An optional envelope entry that will define <QUOTE><LITERAL>Received:</></>
+header's optional <QUOTE><LITERAL>with</></> tag telling what protocol was used.
 </PARA><PARA>
-Unlike RFC-822 tells, ZMailer supports only one ``<LITERAL>with</>'' instance.
+Unlike RFC-822 tells, ZMailer supports only one <QUOTE><LITERAL>with</></> instance.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
@@ -525,7 +525,7 @@ For example:
 
 
 <INFORMALFIGURE PGWIDE=0 FLOAT=0 ID=fig.zappffmt.zmsched1>
-<!--  <TITLE ID=figtit.zappffmt.zmsched1>The ``<LITERAL>i</>'' reference meaning</TITLE> -->
+<!--  <TITLE ID=figtit.zappffmt.zmsched1>The <QUOTE><LITERAL>i</></> reference meaning</TITLE> -->
   <MEDIAOBJECT>
     <IMAGEOBJECT>
       <IMAGEDATA FILEREF="zmsched1.&GEXT;" FORMAT="&GEXT;">
@@ -742,8 +742,8 @@ This tag byte can contain several values that indicate current or previous
 activity.
 The fields where this is relevant are the destination (recipient) address
 and diagnostic fields.
-The tag values are defined in the ``mail.h' file mentioned previously, as
-follows:
+The tag values are defined in the <QUOTE>mail.h</> file mentioned previously,
+as follows:
 <SCREEN>
   #define _CFTAG_NORMAL ' ' /* what the router sets it to be */
   #define _CFTAG_LOCK   '~' /* that line is being processed, lock it */
@@ -887,7 +887,7 @@ userdb          NONE - - - -
 
 <PARA>For relation: <LITERAL>aliases</></PARA>
 
-<PARA>Syntax of this file is simple: blank lines, and comments with ``#''
+<PARA>Syntax of this file is simple: blank lines, and comments with <QUOTE>#</>
 character at column 1 are ignored, the key is non-white-space string of
 characters terminating on double-colon + whitespace
 (actually '"quoted string":' is also valid key!), rest of the line
@@ -959,7 +959,7 @@ Matches given address, including possible incoming
 <VARLISTENTRY><TERM><LITERAL>@domain:</></TERM><LISTITEM><PARA>
 This matches all addresses with given domain.
 </PARA><PARA>
-The result data may contain ``<LITERAL>%1</>'' which is filled
+The result data may contain <QUOTE><LITERAL>%1</></> which is filled
 with <LITERAL>user</>
 part of the input address, example:
 <SCREEN>
@@ -985,7 +985,7 @@ in multiple addresses going out, or programs be driven, or&hellip;
 
 <PARA>
 Sampling here the default boilerplate
-``<FILENAME>$<VARNAME>MAILVAR</>/db/routes</>'' file:
+<QUOTE><FILENAME>$<VARNAME>MAILVAR</>/db/routes</></> file:
 
 <SCREEN>
 # Routing Configuration File
@@ -1292,7 +1292,7 @@ the envelope source address
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>rrelay=</></><LISTITEM><PARA>
-the message ``rcvdfrom'' envelope header reports.
+the message <QUOTE>rcvdfrom</> envelope header reports.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>size=</></><LISTITEM><PARA>
@@ -1304,7 +1304,7 @@ Number of recipients for this message
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>msgid=</></><LISTITEM><PARA>
-The ``Message-ID:'' header content
+The <QUOTE>Message-ID:</> header content
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>delay=</></><LISTITEM><PARA>
@@ -1335,7 +1335,8 @@ The transport agents log in following format:
 Here the fields are:
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>taspid</></><LISTITEM><PARA>
-The ta-spool-id &mdash; A spool-id that is valid throughout message lifetime
+The ta-spool-id &mdash; A spool-id that is valid throughout
+message lifetime
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>to=</></><LISTITEM><PARA>
@@ -1347,17 +1348,17 @@ Delay from message arrival to the system to this logging moment
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>xdelay=</></><LISTITEM><PARA>
-Delay during this processing attempt &mdash; tells how much time <EMPHASIS>this</>
-time was spent to process the message.
+Delay during this processing attempt &mdash; tells how much
+time <EMPHASIS>this</> time was spent to process the message.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>mailer=</></><LISTITEM><PARA>
-Tells what ``channel'' was used.
+Tells what <QUOTE>channel</> was used.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>relay=</></><LISTITEM><PARA>
-Reports on which host the message is relayed thru (``wtthost''), and for
-SMTP, also (in parenthesis) what was the relay's IP address.
+Reports on which host the message is relayed thru (<QUOTE>wtthost</>),
+and for SMTP, also (in parenthesis) what was the relay's IP address.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>stat=</></><LISTITEM><PARA>

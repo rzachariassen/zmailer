@@ -3,7 +3,7 @@
 
 <PARA>
 The information in this appendix is based on 
-``<EMPHASIS>Specification of S/SL: Syntax/Semantic Language</EMPHASIS>'' by 
+<QUOTE><EMPHASIS>Specification of S/SL: Syntax/Semantic Language</EMPHASIS></> by 
 J.R. Cordy and R.C. Holt, December 1979 (Revised March 1980).
 Copyright (C) 1979, 1980 by the  University of  Toronto.
 </PARA>
@@ -39,7 +39,7 @@ implementation is hidden from the S/SL program.
 <PARA>
 S/SL has one input stream and one output stream, each of which is strictly
 sequential.
-These streams are organized into ``tokens'' each of which is
+These streams are organized into <QUOTE>tokens</> each of which is
 read and written as a unit.
 An auxiliary output stream for error diagnostics is also provided.
 </PARA>
@@ -52,7 +52,7 @@ An auxiliary output stream for error diagnostics is also provided.
 An  S/SL identifier may consist of any string of up to 50
 letters, digits and underscores (_) beginning with a letter.
 Upper  and  lower  case  letters are considered identical in
-S/SL, hence ``aa'', ``aA'', ``Aa'' and ``AA'' all represent
+S/SL, hence <QUOTE>aa</>, <QUOTE>aA</>, <QUOTE>Aa</> and <QUOTE>AA</> all represent
 the same identifier.
 <CONSTANT>INPUT</>, <CONSTANT>OUTPUT</>,  <CONSTANT>ERROR</>,
 <CONSTANT>TYPE</>, <CONSTANT>MECHANISM</>, <CONSTANT>RULES</>,
@@ -83,7 +83,7 @@ Identifiers, keywords and integers must not contain embedded blanks.
 <SECT1><TITLE>S/SL: Comments</TITLE>
 
 <PARA>
-A comment consists of the character ``%'' (which is not in a string)
+A comment consists of the character <QUOTE>%</> (which is not in a string)
 and the characters to the right of it on a source line.
 </PARA>
 </SECT1>
@@ -131,7 +131,7 @@ aries.
 The following sections define the syntax of S/SL.
 Throughout the following, <EMPHASIS>{item}</> means zero or more  of the
 item,  and <EMPHASIS>[item]</> means the item is optional.
-The abbreviation  ``<EMPHASIS>id</>'' is used for identifier.
+The abbreviation  <QUOTE><EMPHASIS>id</></> is used for identifier.
 </PARA>
 </SECT2>
 
@@ -501,7 +501,7 @@ The next input token is to be accepted from the input stream.
 If it is not the one specified, a syntax error is flagged.
 The <EMPHASIS>inputToken</> may be an <EMPHASIS>inputTokenId</>,
 an <EMPHASIS>inputOutputTokenId</>, an <EMPHASIS>inputTokenString</>,
-an <EMPHASIS>inputOutputTokenString</>, or a question mark (``?'').
+an <EMPHASIS>inputOutputTokenString</>, or a question mark (<QUOTE>?</>).
 The question  mark is a special token which matches any input token.
 </PARA></LISTITEM>
 
@@ -601,36 +601,36 @@ A label can not be repeated nor appear on more than one alternative.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
- Form 10 is a valued return action.         The specified value
-is returned as the result of the choice rule  in  which  the
-action appears.  The value must be of the result type of the
-choice rule.  A choice rule may return only by  executing  a
-valued return action.  A choice rule must not return 
-implicitly by reaching the end of the rule.  It must not contain a
-non-valued return (form 8).
+Form 10 is a valued return action.
+The specified value is returned as the result of the choice rule
+in which the action appears.
+The value must be of the result type of the choice rule.
+A choice rule may return only by executing a valued return action.
+A choice rule must not return implicitly by reaching the end of the rule.
+It must not contain a non-valued return (form 8).
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
- Form 11 is the invocation of an update semantic 
-operation.  Similarly, form 12 is the invocation of a 
-parameterized  update  operation.  The parameter value, which must be
-of the operation's parameter type, is supplied to the  
-invocation of the operation.
+Form 11 is the invocation of an update semantic operation.
+Similarly, form 12 is the invocation of a parameterized update operation.
+The parameter value, which must be of the operation's parameter type,
+is supplied to the invocation of the operation.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
- Form 13 is  a  semantic  choice.  The specified choice
-semantic operation is invoked and the returned value used to
-make  a  choice  similar  to an input token choice (form 6
-above).  Execution continues with the first  action  of  the
-alternative whose label matches the returned value.  If none
-of the alternative labels matches the value,  the  otherwise
-alternative  is  taken.   Following  execution  of  the last
-action in the chosen alternative, execution  continues  
-following       the  choice.  Similarly, form 14 is a parameterized
-semantic choice.  The parameter value, which must be of  the
-operation's parameter type, is provided to the invocation of
-the choice operation.
+Form 13 is a semantic choice.
+The specified choice semantic operation is invoked and
+the returned value used to make a choice similar to an input token choice
+(form 6 above).
+Execution continues with the first action of the alternative
+whose label matches the returned value.
+If none of the alternative labels matches the value,
+the <QUOTE>otherwise</> alternative is taken.
+Following execution of the last action in the chosen alternative,
+execution continues following the choice.
+Similarly, form 14 is a parameterized semantic choice.
+The parameter value, which must be of the operation's parameter type,
+is provided to the invocation of the choice operation.
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
 

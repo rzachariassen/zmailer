@@ -268,7 +268,7 @@ This sets a flag which is honoured by subsystem start functions:
 freeze 
 <PROMPT># </><USERINPUT>/opt/mail/bin/zmailer router</>
 router Sorry, ZMailer is frozen, won't start anything until thawed !
-* CHECK THAT FREEZE CONDITION ISN'T DUE TO E.G. MAINTENANCE *
+* CHECK THAT THE FREEZE CONDITION ISN'T DUE TO E.G. MAINTENANCE *
 </SCREEN>
 </PARA>
 </SECT2>
@@ -313,31 +313,37 @@ This is elementary wrapper script building binary databases with
 <COMMAND>makedb</> utility into a temporary file, and replacing
 the old files with the new ones in proper order for the 
 <COMMAND>router</>'s automatic source change detecting relation 
-parameter {\tt -m} to work correctly.
+parameter <OPTION>-m</> to work correctly.
 </PARA>
 
-<SCREEN>
-{\bf Usage}
+<CMDSYNOPSIS>
+  <COMMAND>newdb</>
+    <GROUP>
+      <ARG><OPTION>-u</></ARG>
+      <ARG><OPTION>-l</></ARG>
+    </GROUP>
+    <ARG><OPTION>-a</></ARG>
+    <ARG><OPTION>-s</></ARG>
+    <ARG><OPTION>-t</> <REPLACEABLE>dbtype</></ARG>
+    <ARG CHOICE=PLAIN><REPLACEABLE>/db/path/basename</></ARG>
+    <ARG><REPLACEABLE>input-file-name</></ARG>
+</CMDSYNOPSIS>
 
-\begin{verbatim}
-newdb [-u|-l][-a][-s][-t dbtype] /db/path/basename [input-file-name]
-\end{verbatim}
+<PARA>
+This script uses system <VARNAME>ZCONFIG</> file to find out the desired
+database type, and derives the actual database file names from the variable.
+</PARA>
 
-This script uses system {\tt ZCONFIG} file to find out the desired
-database type, and derives the actual database file names from the 
-variable.
-
+<PARA>
 Suffix selection rules are:
-
-\begin{verbatim}
+<SCREEN>
 dbm     .pag and .dir
 ndbm    .pag and .dir
 gdbm    .gdbm
 btree   .db
 bhash   .dbh
-\end{verbatim}
 </SCREEN>
-
+</PARA>
 </SECT1>
 
 <!-- ============================================================ -->
@@ -820,51 +826,62 @@ It will move the <FILENAME>~/.forward</> file to <FILENAME>~/.vacforward</>,
 and the automatic replies will stop.
 </PARA>
 
-<SYNOPSIS>
-  vacation start
-  vacation stop
-  vacation -I
-  vacation [ -tN ] [ -mMsgfile ] [ -d ] [user]
-</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>vacation</> <ARG CHOICE=PLAIN>'start'</>
+  <COMMAND>vacation</> <ARG CHOICE=PLAIN>'stop'</>
+  <COMMAND>vacation</> <ARG CHOICE=PLAIN><OPTION>-I</></>
+  <COMMAND>vacation</>
+    <ARG><OPTION>-tN</></ARG>
+    <ARG><OPTION>-m<REPLACEABLE>Msgfile</></></ARG>
+    <ARG><OPTION>-d</></ARG>
+    <ARG><REPLACEABLE>user</></ARG>
+</CMDSYNOPSIS>
 
 </LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM>
 
-<!-- VARIABLELIST -->
-<SCREEN>
-\item[{\tt -I}, {\tt -i}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM><OPTION>-I</>, <OPTION>-i</></TERM>
+<LISTITEM><PARA>
+initialize the <FILENAME>.vacation.pag</>, and <FILENAME>.vacation.dir</>
+files (or whatever the system supported database is),  and start
+<EMPHASIS>vacation</>.
 
-initialize the {\tt .vacation.pag} 
-and {\tt .vacation.dir} files and start vacation.
+</PARA><PARA>
+If the <OPTION>-I</> (or <OPTION>-i</>) flag is not specified,
+<EMPHASIS>vacation</> tries to reply to the sender.
 
-If the {\tt -I} (or {\tt -i}) flag is not specified, vacation 
-tries to reply to the sender.
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>-tN</></TERM>
+<LISTITEM><PARA>
+Change the interval between repeat replies to the same sender.
+The default is one week.
+A trailing <LITERAL>s</>, <LITERAL>m</>, <LITERAL>h</>, <LITERAL>d</>,
+or <LITERAL>w</> scales N to seconds, minutes, hours, days, or weeks
+respectively.
 
-\item[{\tt -tN}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>-m<REPLACEABLE>MsgFile</></></TERM>
+<LISTITEM><PARA>
+specifies the file in which the message to be sent is kept. 
 
-Change the interval between repeat replies to the same 
-sender. The default is one week. A trailing {\tt s}, {\tt m}, 
-{\tt h}, {\tt d}, or {\tt w} scales N to seconds, minutes, 
-hours, days, or weeks respectively.
+The default is <FILENAME>$<VARNAME>HOME</>/.vacation.msg</>.
 
-\item[{\tt -mMsgfile}] \mbox{}
-
-specifies the file in which the message to be 
-sent is kept. 
-The default is {\tt \$HOME/.vacation.msg}.
-
-\item[{\tt -r}] \mbox{}
-
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>-r</></TERM>
+<LISTITEM><PARA>
 interval defines interval in days when not to answer 
 again to the same sender. (Default is 1 day.)
 
-\item[{\tt -d}] \mbox{}
-
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>-d</></TERM>
+<LISTITEM><PARA>
 disables the list of senders kept in the 
-{\tt .vacation.pag} and {\tt .vacation.dir} files.
+<FILENAME>.vacation.pag</> and <FILENAME>.vacation.dir</> files.
+(Or whatever database format is being used.)
 
-\end{description}
-</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 </LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Example:</TERM><LISTITEM>
@@ -891,7 +908,7 @@ These are dbm database files.
 The vacation message is in <FILENAME>~/.vacation.msg</> and the automatic
 reply is activated by the <FILENAME>~/.forward</> (and saved in
 <FILENAME>~/.vacforward</>)
-The default vacation message is stored in <FILENAME>/opt/mail/vacation.msg</>
+The default vacation message is stored in <FILENAME>$MAILSHARE/vacation.msg</>
 </PARA>
 
 <PARA>
@@ -912,7 +929,6 @@ The <QUOTE>From </> line is used only as a last resort.
 </PARA>
 </LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
+
 </SECT1>
-
-
 </CHAPTER>

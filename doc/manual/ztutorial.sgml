@@ -254,7 +254,7 @@ Although Sendmail is in many ways a very clever piece of software,
 it is also the reason for many problems, as it has blurred the line
 between MTA and UA. Sendmail is clearly an MTA, but it also performs
 many of the UA level functions, like handling of
-``<FILENAME>.forward</FILENAME>''
+<QUOTE><FILENAME>.forward</FILENAME></>
 files.  This behaviour has become the de-facto standard  way for UNIX
 MTAs to behave, making it necessary for any MTA, including ZMailer,
 to behave the same way.
@@ -308,9 +308,9 @@ to remedy the situation.
 <PARA>
 Error messages must be sent to the envelope sender address,
 as this is a MTA function.
-If a header like ``<LITERAL>Errors-to:</>'' is being used, it implies 
+If a header like <QUOTE><LITERAL>Errors-to:</></> is being used, it implies 
 that envelope sender should be sent to the one in the 
-``<LITERAL>Errors-to:</>''
+<QUOTE><LITERAL>Errors-to:</></>
 header.
 </PARA>
 
@@ -530,15 +530,15 @@ going on, and the system is not in condition to accept email for a while:
 <SCREEN>
 <PROMPT># </><USERINPUT>zmailer freeze</>
 </SCREEN>
-and the antidote for the ``freeze'' is, naturally:
+and the antidote for the <QUOTE>freeze</> is, naturally:
 <SCREEN>
 <PROMPT># </><USERINPUT>zmailer thaw</>
 </SCREEN>
 </PARA>
 
 <PARA>
-Normal operations can not be started at ``frozen'' system without
-``thawing'' it at first.
+Normal operations can not be started at <QUOTE>frozen</> system without
+<QUOTE>thawing</> it at first.
 </PARA>
 
 <PARA>
@@ -547,7 +547,7 @@ The user-visible component of the ZMailer is (for de-facto interface)
 <PROMPT>$ </><USERINPUT><FILENAME>/usr/lib/sendmail</></>
 </SCREEN>
 (a.k.a. <FILENAME>/usr/sbin/sendmail</>)
-which is ``simple'' message submission program that mimics sendmail
+which is <QUOTE>simple</> message submission program that mimics sendmail
 commands behaviour, but of course many details of sendmail are
 not really implemented at all, mostly because they do not have
 equivalents in the ZMailer system.
@@ -620,8 +620,8 @@ similar to <APPLICATION>PMDF</> on VMS systems. It is
 entirely concerned with the message envelope, and leaves all message header
 munging to auxiliary programs if appropriate. In fairness one should note
 this mailer was developed in an environment where most message headers were
-scorned, thus making this a reasonable approach (``optimize the normal
-case''). The Eighth Edition Upas had no database capability at all, but it
+scorned, thus making this a reasonable approach (<QUOTE>optimize the normal
+case</>). The Eighth Edition Upas had no database capability at all, but it
 did exhibit one useful characteristic: the routing decisions are made by
 passing the recipient envelope address through a set of regular
 expressions. This production rule approach is similar to what Sendmail
@@ -766,7 +766,7 @@ MTA comparison experiment report at
 <VARIABLELIST>
 <VARLISTENTRY><TERM>DNS Concurrency</TERM>
 <LISTITEM><PARA>
-The ``DNS Concurrency'' exists in a few forms:
+The <QUOTE>DNS Concurrency</> exists in a few forms:
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Good</TERM><LISTITEM><PARA>
 Concurrent
@@ -786,7 +786,7 @@ the A RR queries are made only when connection for some server
 is desired.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>AD-Data</TERM><LISTITEM><PARA>
-DNS reply ``ADDITIONAL SECTION'' data is used so that in
+DNS reply <QUOTE>ADDITIONAL SECTION</> data is used so that in
 most cases the MTA does not need to ask for more data (A-records)
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -794,7 +794,7 @@ most cases the MTA does not need to ask for more data (A-records)
 
 <VARLISTENTRY><TERM>SMTP Concurrency</TERM>
 <LISTITEM><PARA>
-The ``SMTP Concurrency'' exists in a few forms:
+The <QUOTE>SMTP Concurrency</> exists in a few forms:
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Good</TERM><LISTITEM><PARA>
 Several parallel transmissions are happening
