@@ -134,7 +134,7 @@ Freeze -- don't actually run anything, just do queue scanning.
 <VARLISTENTRY><TERM><OPTION>-H -HH</OPTION></TERM><LISTITEM><PARA>
 Use multi-level hashing at the spool directories.
 This will efficiently reduce the lengths of the scans at the directories
-to find some arbitary file in them.
+to find some arbitrary file in them.
 One ``<OPTION>H</>'' means <EMPHASIS>single level hashing</>,
 two ``<OPTION>HH</>'' mean <EMPHASIS>dual level hashing</>.
 <EMPHASIS>Hash</> is directory which name is single upper case alphabet (A-Z).

@@ -64,20 +64,22 @@ Bourne shell syntax and semantics.  The present differences are:
 
 <ITEMIZEDLIST>
 <LISTITEM><PARA>
-No <EMPHASIS ROLE="STRONG">repeat</> statement.
+No <FUNCTION>repeat</> statement.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
 Functions are allowed, parameter lists are allowed. If not enough
 arguments are present in a function call to exhaust the parameter
-list, the so-far unbound parameter variables are bound to ``'' (the
-empty string) as local variables. For example, this is the identity
+list, the so-far unbound parameter variables are bound to <LITERAL>''</>
+(the empty string) as local variables. For example, this is the identity
 address rewriting function:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   null (address) {
     return $address  # surprise!
   }
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
@@ -85,11 +87,13 @@ Multiple-value returns are allowed.
 The <FUNCTION>return</> statement can be used to return a non-``''
 (non-empty string) value from a function.
 The following are all legal <FUNCTION>return</> statements:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   return
   return $address
   return $channel ${next_host} ${next_address}
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
@@ -114,22 +118,35 @@ sequence to be collected into a quoted-string RFC822 token.
 
 <PARA>
 For example, the statement:
-<SCREEN>
- foo `bar "`baz`"`
-</SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
+  foo `bar "`baz`"`
+]]>
+</PROGRAMLISTING>
 is evaluated as
-<SCREEN>
- (apply 'foo (apply 'bar (baz)))
-</SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
+  (apply 'foo (apply 'bar (baz)))
+]]>
+</PROGRAMLISTING>
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+<EMPHASIS ROLE=BOLD>FIXME! FIXME!</>
+IFS, quoted strings, and evaluation results -- and how things differ
+from usual shell languages, and how they are alike with PERL!
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
 Conditional substitution forms are supported:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   ${variable:=value}
   ${variable:-value}
   ${variable:+value}
-</SCREEN>
+]]>
+</PROGRAMLISTING>
+<EMPHASIS ROLE=BOLD>But appear to be borken ??</>
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
@@ -143,26 +160,27 @@ the same case statement will be tried for successful pattern matching
 (and the corresponding case label body executed).
 The only exceptions (apart from encountering a return statement) are:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>again</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FUNCTION>again</></><LISTITEM><PARA>
 a function which retries the current case label for a match
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>break</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FUNCTION>break</></><LISTITEM><PARA>
 continues execution after the current case statement
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-A regular expressions using variant of ``case'', with two
+A regular expressions using variant of ``<FUNCTION>case</>'', with two
 flavours:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>ssift</TERM><LISTITEM><PARA>
-A ``String Sift'' where the input string is handled as is.
+
+<VARLISTENTRY><TERM><FUNCTION>ssift</></><LISTITEM><PARA>
+A ``String Shift'' where the input string is handled as is.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>tsift</TERM><LISTITEM><PARA>
-A ``Token Sift'' where the input string is spliced according to
+<VARLISTENTRY><TERM><FUNCTION>tsift</></><LISTITEM><PARA>
+A ``Token Shift'' where the input string is spliced according to
 RFC-822 tokenization rules.
 Especially RFC-822 special characters cause tokens to split.
 </PARA>
@@ -170,7 +188,7 @@ Especially RFC-822 special characters cause tokens to split.
 <PARA>
 With ``<FUNCTION>tsift</>'' the ``<LITERAL>.</>'' (dot) becomes match
 any single ``token'', that is, input string ``foo.bar'' has three
-tokens: ``foo'', ``.'' (dot), and ``bar''.
+tokens: ``foo'' (atom), ``.'' (dot, special), and ``bar'' (atom).
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
@@ -178,7 +196,8 @@ tokens: ``foo'', ``.'' (dot), and ``bar''.
 <PARA>
 Overall usage of these ``<FUNCTION>sifts</>'' is very much like that of
 ``<FUNCTION>case</>'', including the need for matching termination tokens:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   ssift "$invar" in
   pattern
         statements
@@ -189,7 +208,8 @@ Overall usage of these ``<FUNCTION>sifts</>'' is very much like that of
         statements
         ;;
   tfist
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
@@ -198,9 +218,11 @@ Various standard Bourne shell functions do not exist built in.
 
 <LISTITEM><PARA>
 The general form of function calls in the system is:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   $(funcname arguments)
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 It returns a scalar or list object, and the result can be stored
 into variables at will.
 </PARA></LISTITEM>
@@ -285,16 +307,16 @@ into three classes, as follows:
 Functions that are critical to the proper functioning of the configuration
 file interpreter:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>return</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FUNCTION>return</></><LISTITEM><PARA>
 returns its argument(s) as the value of a function call
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>again</TERM><LISTITEM><PARA>
-repeats the current case, and *sift label
+<VARLISTENTRY><TERM><FUNCTION>again</></><LISTITEM><PARA>
+repeats the current <FUNCTION>case</>, and <FUNCTION>*sift</> label
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>break</TERM><LISTITEM><PARA>
-exits case, and *sift statements
+<VARLISTENTRY><TERM><FUNCTION>break</></><LISTITEM><PARA>
+exits <FUNCTION>case</>, and <FUNCTION>*sift</> statements
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
@@ -305,12 +327,12 @@ Functions that are necessary to complete the capabilities of the
 interpreter:
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>relation</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FUNCTION>relation</></><LISTITEM><PARA>
 defines a database to the database lookup mechanism
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>sh</TERM><LISTITEM><PARA>
-an internal function which runs its arguments as {\tt /bin/sh} would
+<VARLISTENTRY><TERM><FUNCTION>sh</></><LISTITEM><PARA>
+an internal function which runs its arguments as <COMMAND>/bin/sh</> would
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA></LISTITEM>
@@ -318,33 +340,33 @@ an internal function which runs its arguments as {\tt /bin/sh} would
 <LISTITEM><PARA>
 Non-critical but recommended functions:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>getzenv</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FUNCTION>getzenv</></><LISTITEM><PARA>
 retrieves global ZMailer configuration values
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>echo</TERM><LISTITEM><PARA>
-emulates {\tt /bin/echo}
+<VARLISTENTRY><TERM><FUNCTION>echo</></><LISTITEM><PARA>
+emulates <COMMAND>/bin/echo</>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>exit</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FUNCTION>exit</></><LISTITEM><PARA>
 aborts the <COMMAND>router</> with the specified status code
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>hostname</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FUNCTION>hostname</></><LISTITEM><PARA>
 internal function to get and set the system name
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>trace</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FUNCTION>trace</></><LISTITEM><PARA>
 turns on selected debugging output
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>untrace</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FUNCTION>untrace</></><LISTITEM><PARA>
 turns off selected debugging output
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>[</TERM>
-<TERM>test</TERM>
+<TERM><FUNCTION>[</></>
+<TERM><FUNCTION>test</></TERM>
 <LISTITEM><PARA>
 emulates a subset of ``<COMMAND>/bin/test</>''
 (a.k.a. ``<COMMAND>/bin/[</>'') functionality.
@@ -393,9 +415,11 @@ using whichever method it chooses.
 
 <PARA>
 If the hostname indeed is a fully qualified domain name, then:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   hostname "hostname"
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 will enable generation of trace headers.
 </PARA>
 
@@ -408,22 +432,26 @@ convention of the Bourne shell language.
 <PARA>
 <EMPHASIS>However careless usage of ``<USERINPUT>$var</>'' is
 <EMPHASIS ROLE="BOLD">dangerous</>, as you may trip on following:</EMPHASIS>
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   SS="1 -o bar"
   if [ $SS = 0 ]; then
     ...
   fi
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 <EMPHASIS>
 In this kind of places you must tread carefully, and use double-quotes
 to save your neck:
 </EMPHASIS>
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   SS="1 -o bar"
   if [ "$SS" = 0 ]; then
     ...
   fi
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA>
 
 <PARA>
@@ -434,10 +462,10 @@ shown in figure <XREF LINKEND="fig.adm.testing">.
 <FIGURE ID="fig.adm.testing" PGWIDE="1" FLOAT="1">
 <TITLE>Example of running tests on <COMMAND>router</></TITLE>
 <SCREEN>
-sh$ $MAILBIN/router -i         (select interactive mode)
-z$ rtrace                      (turn tracing on)
-z$ router user@broken.address  (the address that gave you trouble)
-z$ router another@address      (and so on)
+<PROMPT>sh$ </><USERINPUT>$MAILBIN/router -i</>         (select interactive mode)
+<PROMPT>z$ </><USERINPUT>rtrace</>                      (turn tracing on)
+<PROMPT>z$ </><USERINPUT>router user@broken.address</>  (the address that gave you trouble)
+<PROMPT>z$ </><USERINPUT>router another@address</>      (and so on)
 </SCREEN>
 </FIGURE>
 
@@ -445,9 +473,11 @@ z$ router another@address      (and so on)
 Old salts can use ``<USERINPUT>/usr/lib/sendmail -bt</>'' instead
 of ``<USERINPUT>router -i</>''.
 Once satisfied that routing works, command:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   zmailer router
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 will restart the <COMMAND>router</>.
 </PARA>
 
@@ -457,9 +487,11 @@ Copy your message to someplace other than the postoffice
 (<FILENAME CLASS="DIRECTORY">/tmp/</> is usually good), to a numeric
 file name.
 If the file name is ``<FILENAME>123</>'', you run
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   $MAILBIN/router 123
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 this will create the file ``<FILENAME>.123</>'' containing the control
 information produced by the <COMMAND>router</>.
 </PARA>
@@ -548,91 +580,119 @@ See figure <XREF LINKEND="fig.relation.params">.
 </PARA>
 
 <FIGURE ID="fig.relation.params" PGWIDE="0" FLOAT="1">
-<TITLE>``Usage:'' report from <FUNCTION>relation</></TITLE>
-<SCREEN>
-Usage: relation -t dbtype[,subtype] [-f file -e# -s# -bilmnpu -d driver] name
-  dbtypes: incore,header,unordered,ordered,hostsfile,bind,selfmatch, \
-          ndbm,gdbm,btree,bhash
-</SCREEN>
+<TITLE>``Usage:'' of <FUNCTION>relation</> function</TITLE>
+<INFORMALEXAMPLE>
+<CMDSYNOPSIS>
+<COMMAND>relation</>
+ <ARG>-t <REPLACEABLE>dbtype</><ARG>,<REPLACEABLE>subtype</></></>
+ <ARG>-f <REPLACEABLE>file</></>
+ <ARG>-e<REPLACEABLE>#</></>
+ <ARG>-s<REPLACEABLE>#</></>
+ <ARG>-bilmnpu</>
+ <ARG>-d <REPLACEABLE>driver</></>
+ <ARG CHOICE=PLAIN><REPLACEABLE>name</></>
+</CMDSYNOPSIS>
+<PARA>
+Where dbtypes include:
+<SIMPLELIST TYPE=INLINE>
+ <MEMBER>incore</>
+ <MEMBER>header</>
+ <MEMBER>unordered</>
+ <MEMBER>ordered</>
+ <MEMBER>hostsfile</>
+ <MEMBER>bind</>
+ <MEMBER>selfmatch</>
+ <MEMBER>ndbm</>
+ <MEMBER>gdbm</>
+ <MEMBER>btree</>
+ <MEMBER>bhash</>
+</SIMPLELIST>
+</PARA>
+</INFORMALEXAMPLE>
 </FIGURE>
 
 <PARA>
-The ``<OPTION>t</>'' option specifies one of several predefined
+The ``<OPTION>-t</>'' option specifies one of several predefined
 database types, each with their specific lookup routine.
 It determines a template for the set of attributes associated with
 a particular relation.
 The predefined database types are:
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>bash</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>bash</></><LISTITEM><PARA>
 the database is in BSD DB HASH format.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>bind</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>bind</></><LISTITEM><PARA>
 the database is the BIND nameserver, accessed through the standard resolver routines.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>btree</TERM><LISTITEM><PARA>
-the database is in BSD DB BTREE format.
+<VARLISTENTRY><TERM><OPTION>btree</></><LISTITEM><PARA>
+the database is in BSD/SleepyCat DB BTREE format.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>dbm</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>bhash</></><LISTITEM><PARA>
+the database is in BSD/SleepyCat DB HASH format.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>dbm</></><LISTITEM><PARA>
 the database is in DBM format.
-Note that the original dbm had no <FUNCTION>dbm_close()</> function,
+Note that the original dbm had no <FUNCTION>dbm_close</>() function,
 thus there was no way to dissociate active database from a process.
 A bit newer variant of dbm has the close function, and multiple
 dbm's can be used.  (You propably won't encounter this beast at all..)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>gdbm</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>gdbm</></><LISTITEM><PARA>
 the database is in GNU GDBM format.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>headers</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>headers</></><LISTITEM><PARA>
 router internal database of various headers, and how they are
 to be treated.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>hostsfile</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>hostsfile</></><LISTITEM><PARA>
 <FILENAME>/etc/hosts</> lookup using <FUNCTION>gethostbyname()</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>incore</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>incore</></><LISTITEM><PARA>
 the database is a high-speed bundle of data kept entirely in the router
 process core memory.
 This is for a short-term data storage, like handling duplicate detection.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>ldap</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>ldap</></><LISTITEM><PARA>
 Mechanism for X.500 Directory access lookup with the "Light-weight
 Directory Access Protocol."
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>ndbm</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>ndbm</></><LISTITEM><PARA>
 the database is in NDBM (new DBM) format.
+(At which the length of key + length of data must not exceed 1024 bytes!)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>ordered</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>ordered</></><LISTITEM><PARA>
 the database is a text file with key-datum pairs on each line,
 keys are looked up using a linewise binary search in the sorted file.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>selfmatch</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>selfmatch</></><LISTITEM><PARA>
 a special type that does translate the numerical address of format
-<COMPUTEROUTPUT>12.34.56.78</> (from within address-literal bracets)
+<LITERAL>12.34.56.78</> (from within address-literal bracets)
 into binary form, and checks that it is (or is not) actually our own
 local IP addresses.
 This is used in address literal testing of addresses of type:
-<COMPUTEROUTPUT>localpart@[12.34.56.78]</>.
+<LITERAL>localpart@[12.34.56.78]</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>unordered</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>unordered</></><LISTITEM><PARA>
 the database is a text file with key-datum pairs on each line,
 keys are looked up using a sequential search.
 First to match is used.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>yp</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>yp</></><LISTITEM><PARA>
 Sun SunOS 4.x YP (these days "NIS") interface library.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -642,7 +702,7 @@ Sun SunOS 4.x YP (these days "NIS") interface library.
 A subtype is specified by appending it to the database type name separated
 by a slash, or a comma.
 For example, specifying <OPTION>bind/mx</> as the argument to
-the ``<OPTION>t</>'' option will store ``<OPTION>mx</>'' for reference
+the ``<OPTION>-t</>'' option will store ``<OPTION>mx</>'' for reference
 by the access routines whenever a query to that relation is processed.
 The subtypes must therefore be recognized by either the database-specific
 access routines (for translation into some other form), or by the database
@@ -655,12 +715,12 @@ the datum corresponding to a particular key may be null.
 This situation arises if the database is a simple list, with
 one key per line and nothing else. 
 In this situation, the use of an appropriate post-processor option 
-(e.g. ``<OPTION>b</>'') is recommended to be able to detect whether or not 
+(e.g. ``<OPTION>-b</>'') is recommended to be able to detect whether or not 
 the lookup succeeded.
 </PARA>
 
 <PARA>
-The ``<OPTION>f</>'' option specifies the name of the database.
+The ``<OPTION>-f</>'' option specifies the name of the database.
 This is typically a path that either names the actual (and single)
 database file, or gives the root path for a number of files comprising
 the database (e.g. ``<FILENAME>foo</>'' may refer to the NDBM files
@@ -671,19 +731,19 @@ do not allow specifying  different file, this cannot be overridden).
 </PARA>
 
 <PARA>
-The ``<OPTION>s</>'' option specifies the size of the cache.
+The ``<OPTION>-s</>'' option specifies the size of the cache.
 If this value is non-zero (by default it is 10), then an LRU cache
 of this size is maintained for previous queries to this relation,
 including both positive and negative results.
 </PARA>
 
 <PARA>
-The ``<OPTION>e</>'' option specifies the cache data expiration time
+The ``<OPTION>-e</>'' option specifies the cache data expiration time
 in seconds.
 </PARA>
 
 <PARA>
-The ``<OPTION>b</>'' option asks that a postprocessor is applied to
+The ``<OPTION>-b</>'' option asks that a postprocessor is applied to
 the database lookup result, so the empty string is returned from
 the relation query if the database search failed, and the key itself
 it returned if the search succeeded.
@@ -692,7 +752,7 @@ The option letter is short for Boolean.
 </PARA>
 
 <PARA>
-The ``<OPTION>n</>'' option asks that a postprocessor is applied to
+The ``<OPTION>-n</>'' option asks that a postprocessor is applied to
 the database lookup result, so the key string is returned from
 the relation query if the database search failed, and the retrieved
 datum string is returned if the search succeeded.
@@ -700,26 +760,27 @@ The option letter is short for Non-Null.
 </PARA>
 
 <PARA>
-The ``<OPTION>l</>'' option asks that all keys are converted to
+The ``<OPTION>-l</>'' option asks that all keys are converted to
 <EMPHASIS>lowercase</> before lookup in the database.
-This is mutually exclusive with the ``<OPTION>u</>'' option.
+This is mutually exclusive with the ``<OPTION>-u</>'' option.
 </PARA>
 
 <PARA>
-The ``<OPTION>u</>'' option asks that all keys are converted to
+The ``<OPTION>-u</>'' option asks that all keys are converted to
 <EMPHASIS>uppercase</> before lookup in the database.
-This is mutually exclusive with the ``<OPTION>l</>'' option.
+This is mutually exclusive with the ``<OPTION>-l</>'' option.
 </PARA>
 
 <PARA>
-The ``<OPTION>d</>'' option specifies a search routine.
+The ``<OPTION>-d</>'' option specifies a search routine.
 Currently the only legal argument to this option is ``<OPTION>pathalias</>'',
 specifying a driver that searches for the key using domain name lookup rules.
 </PARA>
 
 <FIGURE ID="fig.adm-dbfrag1" PGWIDE="0" FLOAT="1">
 <TITLE>Some examples of <FUNCTION>relation</> definitions</TITLE>
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
  if [ -f /etc/resolv.conf ]; then
    relation -nt bind/cname -s 100 canon # T_CNAME canonicalize hostname
    relation -nt bind/uname uname        # T_UNAME UUCP name
@@ -731,12 +792,14 @@ specifying a driver that searches for the key using domain name lookup rules.
    relation -bt hostsfile neighbour
    relation -t unordered -f /dev/null pathalias
  fi
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </FIGURE>
 
 <FIGURE ID="fig.adm-dbfrag2" PGWIDE="0" FLOAT="1">
 <TITLE>More examples of alternate forms of database reference</TITLE>
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
  #
  # We maintain an aliases database, and may access it via NDBM,
  # or via indirect indexing:
@@ -746,17 +809,20 @@ specifying a driver that searches for the key using domain name lookup rules.
  else
      relation -it ordered -f $MAILBIN/db/aliases.idx aliases
  fi
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </FIGURE>
 
 <FIGURE ID="fig.adm-dbfrag3" PGWIDE="0" FLOAT="1">
 <TITLE>More miscellaneous <FUNCTION>relation</> definitions
 to illustriate various possibilities</TITLE>
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
  relation -t unordered -f /usr/lib/news/active -b newsgroup
  relation -t unordered -f /usr/lib/uucp/L.sys -b ldotsys
  relation -t ordered -f $MAILBIN/db/hosts.transport -d pathalias transport
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </FIGURE>
 
 <PARA>
@@ -775,7 +841,7 @@ same way, using the same names, independent of their actual definition.
 </PARA>
 
 <PARA>
-{\bf\Large CHECK! (-i option!)}
+<EMPHASIS ROLE=BOLD>CHECK! (<OPTION>-i</> option!)</>
 As the comment says, the relation name <EMPHASIS>aliases</> has
 special significance to the <COMMAND>router</>.
 Although the relation is not special in any other way (i.e. it can
@@ -827,16 +893,20 @@ the <APPLICATION>pathalias</> program.
 
 <PARA>
 <APPLICATION>pathalias</> generates key-value pairs of the form:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   uunet    ai.toronto.edu!uunet!%s
   .css.gov ai.toronto.edu!uunet!seismo!%s
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 which when queried about ``uunet'' and ``beno.css.gov''
 correspond to the routes:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   ai.toronto.edu!uunet
   ai.toronto.edu!uunet!seismo!beno.css.gov
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA>
 
 <PARA>
@@ -852,7 +922,8 @@ and interface function as shown in figure
 <FIGURE ID="fig.adm-pathalias-driver" PGWIDE="0" FLOAT="1">
 <TITLE>An example of lookup driver for <COMMAND>pathalias</>
 generated database</TITLE>
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
 relation -t ndbm -f $MAILBIN/uuDB -d pathalias padb
 
 # pathalias database lookup function
@@ -873,7 +944,8 @@ padblookup (name) {
     tfist
     return "$path"
 }
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </FIGURE>
 
 <PARA>
@@ -1046,49 +1118,54 @@ It does this based on a text file containing the alias definitions.
 This text file, which corresponds to the <APPLICATION>sendmail</> aliases
 file, consists of individual alias definitions, possibly separated by blank
 lines or commentary.
-Comments are introduced by a sharp sign (octothorp: `\#') at any point where
-a token might start (for example the beginning of a line, but not in the
-middle of an address), and extend to the end of the line.  Each alias
-definition has the exact syntax of an RFC822 message header, containing an
-address-list, except for comments.  The header field name is the local-part
-being aliased to the address-list that is the header value.
+Comments are introduced by a sharp sign (octothorp: ``<LITERAL>#</>'') at
+any point where a token might start (for example the beginning of a line,
+but not in the middle of an address), and extend to the end of the line. 
+Each alias definition has the exact syntax of an RFC822 message header,
+containing an address-list, except for comments.  The header field name
+is the local-part being aliased to the address-list that is the header value.
 </PARA>
 
 <PARA>
 The fact that an alias definition follows the syntax for an RFC822 message
-header, introduces an incompatibility with {\em sendmail}.
-The string ``{\tt :include:}'' at the start of a local-part
+header, introduces an incompatibility with <APPLICATION>sendmail</>.
+The string ``<LITERAL>:include:</>'' at the start of a local-part
 (a legacy of RFC733) has special semantics.
-{\em Sendmail} would strip this prefix, and regard the rest of the local-part
-as a path to a file containing a list of addresses to be included in the alias
-expansion.
-Indeed, the <COMMAND>router</> behaves in the same manner, but because some of
-the characters in the prefix are RFC822 specials, the entire local-part
+<APPLICATION>Sendmail</> would strip this prefix, and regard the rest of
+the local-part as a path to a file containing a list of addresses to be
+included in the alias expansion.
+Indeed, the <COMMAND>router</> behaves in the same manner, but because some
+of the characters in the prefix are RFC822 specials, the entire local-part
 must be quoted.
-Thus, whereas <COMMAND>sendmail</>(8) allowed:
-<SCREEN>
+Thus, whereas <APPLICATION>sendmail</>(8) allowed:
+<PROGRAMLISTING>
+<![CDATA[
   people: :include:/usr/lib/mail/lists/people
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 the proper syntax with ZMailer is:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   people: ":include:/usr/lib/mail/lists/people"
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA>
 
 <PARA>
-Like {\em sendmail}, if a local-part is not found in the aliases database,
-the {\em router} also checks ``{\tt \~{}local-part/.forward}''
-(if such exists) for any address expansion.
-The {\tt .forward} file format is also an RFC822 address list, similar
-to what {\em sendmail} expects.
+Like <APPLICATION>sendmail</>, if a local-part is not found in
+the aliases database, the <COMMAND>router</> also checks
+``<FILENAME>~local-part/.forward</>'' (if such exists) for any
+address expansion.
+The <FILENAME>.forward</> file format is also an RFC822 address list,
+similar to what <APPLICATION>sendmail</> expects.
 </PARA>
 
 <PARA>
-As special cases, a local-part starting with a pipe character (`\verb/|/')
-is treated as mail destined for a program (the rest of the local-part is any
-valid argument to a ``{\tt sh -c}'' command), and a local-part starting with
-a slash character (`{\tt /}') is treated as mail destined for the file named
-by the local-part.
+As special cases, a local-part starting with a pipe character
+(``<LITERAL>|</>'') is treated as mail destined for a program
+(the rest of the local-part is any valid argument to a ``<LITERAL>sh -c</>''
+command), and a local-part starting with a slash character (``<LITERAL>/</>')
+is treated as mail destined for the <EMPHASIS>file</> named by the local-part.
 </PARA>
 
 <FIGURE PGWIDE=0 FLOAT=0 ID=fig.zadm-router-aliases-figure>
@@ -1117,45 +1194,53 @@ by the local-part.
 
 <PARA>
 Protection of the aliases database must be at least 0644.
-Protection of the {\tt \$MAILVAR/db/} directory must be at least 03755.
+Protection of the <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILVAR</>/db/</>
+directory must be at least 03755, or stricter.
 </PARA>
 
 <PARA>
 The following processing is done for (replacement) local-parts
-(local mail addresses):  Note that @'s are not allowed in any local-part.
+(local mail addresses):  Note that <LITERAL>@</>'s are not allowed
+in any local-part.
 </PARA>
 
 <PARA>
-If the local-part starts with ``|'' assume it is a command
+If the local-part starts with ``<LITERAL>|</>'' assume it is a command
 specification:
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
   prog-pipe: "|/path/to/program -args"
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA>
 
 <PARA>
-If the local-part starts with ``/'' assume it is a file pathname:
-<SCREEN>
+If the local-part starts with ``<LITERAL>/</>'' assume it is a file pathname:
+<PROGRAMLISTING>
+<![CDATA[
   file-path: "/path/to/file"
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA>
 
 <PARA>
-If the local-part starts with ``{\tt :include:}'' the rest should be a file
-pathname of a list of mail addresses.  They are substituted:
-<SCREEN>
+If the local-part starts with ``<LITERAL>:include:</>'' the rest should be
+a file pathname of a list of mail addresses.  They are substituted:
+<PROGRAMLISTING>
+<![CDATA[
 included-list: ":include:/path/to/address/file"
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA>
 
 <PARA>
 After this point, all matches are case-insensitive by means of translating
 the value to be looked up to lower-case, and then conducting a case-sensitive
-lookup. {\em All keys in aliases et.al. must be in lower case &mdash; you
-can achieve this with bundled ``{\tt newaliases}'' script, which calls
-``{\tt makedb}'' with ``-l'' option to lowercasify keys.}.
-(The hash functions inside  {\tt ndbm/gdbm/db/dbm}  are case sensitive, and 
-as such, there is no way to avoid this requirement.)
+lookup. <EMPHASIS>All keys in aliases et.al. must be in lower case &mdash; you
+can achieve this with bundled ``<COMMAND>newaliases</>'' script, which calls
+``<COMMAND>makedb</>'' with ``<OPTION>-l</>'' option to lowercasify keys.</>
+(The hash functions inside  <EMPHASIS ROLE=STRONG>ndbm/gdbm/db/dbm</>  are
+case sensitive, and as such, there is no way to avoid this requirement.)
 </PARA>
 
 </SECT3>
@@ -1171,16 +1256,18 @@ as such, there is no way to avoid this requirement.)
 <PARA>
 With old configuration scripts there used to be problems with list
 expansion causing serious memory bloat (of $O(n^{2})$ kind of memory
-consumption\ldots)
+consumption&hellip;)
 {\em ZMailer-2.98} did introduce a working solution via the builtin
 {\tt\$(listexpand ..)} function.
 </PARA>
 
 <PARA>
 The rest of these notes apply to older config files using old style pipe of:
-<SCREEN>
- $(listaddresses &lt; file | maprrouter ...)
-</SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
+  $(listaddresses &lt; file | maprrouter ...)
+]]>
+</PROGRAMLISTING>
 where the maprrouter caused the actual memory bloat...
 </PARA>
 

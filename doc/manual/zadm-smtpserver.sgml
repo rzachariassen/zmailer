@@ -29,26 +29,32 @@ The runtime command-line options are as follows:
 
 <PARA>
 <CMDSYNOPSIS>
-<COMMAND>smtpserver</>
-<ARG>-46aignvBV</>
-<ARG>-p <REPLACEABLE>port</></>
-<ARG>-l <REPLACEABLE>logfile</></>
-<ARG><OPTION>-s <CONSTANT>'strict'</></></>
-<ARG>-s <REPLACEABLE>[ftveR]</></>
-<ARG>-L <REPLACEABLE>maxloadaver</></>
-<ARG>-M <REPLACEABLE>SMTPmaxsize</></>
-<ARG>-P <REPLACEABLE>postoffice</></>
-<ARG>-R <REPLACEABLE>router</></>
-<ARG>-C <REPLACEABLE>cfgfile</></>
-<ARG>-T <REPLACEABLE>IPv4/IPv6-address-literal</></>
+ <COMMAND>smtpserver</>
+ <ARG>-46aignvBV</>
+ <ARG>-p <REPLACEABLE>port</></>
+ <ARG>-l <REPLACEABLE>logfile</></>
+ <ARG><OPTION>-s <CONSTANT>'strict'</></></>
+ <ARG>-s <REPLACEABLE>[ftveR]</></>
+  <SBR>
+ <ARG>-L <REPLACEABLE>maxloadaver</></>
+ <ARG>-M <REPLACEABLE>SMTPmaxsize</></>
+ <ARG>-P <REPLACEABLE>postoffice</></>
+ <ARG>-R <REPLACEABLE>router</></>
+  <SBR>
+ <ARG>-C <REPLACEABLE>cfgfile</></>
+ <ARG>-T <REPLACEABLE>IPv4/IPv6-address-literal</></>
 </CMDSYNOPSIS>
 </PARA>
 
 <PARA>
 The most commonly used command line options are:
-<SYNOPSIS>
- smtpserver [-aBivn] [-s ehlo-styles] [-l logfile] [-C cfgpath]
-</SYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>smtpserver</>
+ <ARG>-aBivn</>
+ <ARG>-s <REPLACEABLE>ehlo-styles</></>
+ <ARG>-l <REPLACEABLE>logfile</></>
+ <ARG>-C <REPLACEABLE>cfgpath</></>
+</CMDSYNOPSIS>
 </PARA>
 
 <PARA>
@@ -57,69 +63,53 @@ listening on TCP port 25 (SMTP).
 </PARA>
 
 <PARA>
-The options are:
+Most important of the options are:
 <VARIABLELIST>
-<VARLISTENTRY>
-<TERM>-a</TERM>
-<LISTITEM><PARA>
+
+<VARLISTENTRY><TERM><OPTION>-a</></><LISTITEM><PARA>
 Query IDENT information about the incoming connection.
 This information (if available at all) may, or may not tell who is forming
 a connection.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-B</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-B</></><LISTITEM><PARA>
 The session is Batch-SMTP a.k.a. BSMTP type of session. Use of "-i" option is needed, when feeding the input batch file.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-i</TERM>
-<LISTITEM><PARA>
-This is interactive session.  I/O is done thru stdin/stdout.
+<VARLISTENTRY><TERM><OPTION>-i</></><LISTITEM><PARA>
+This is interactive session.  I/O is done thru
+ <EMPHASIS ROLE=STRONG>stdin/stdout</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-v</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-v</></><LISTITEM><PARA>
 Verbose trace written to stdout for use in conjunktion with "-i", and "-B".
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-n</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-n</></><LISTITEM><PARA>
 This tells that the <COMMAND>smtpserver</> is running under
 <COMMAND>inetd</>(8), and that the stdin/stdout file handles
 are actually network sockets on which we can do peer identity
 lookups, for example.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-s ehlo-style</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-s <REPLACEABLE>ehlo-style</></></><LISTITEM><PARA>
 Default value for various checks done at SMTP protocol MAIL FROM, RCPT TO,
 VRFY, and EXPN commands. These are overridden with the value from
 EHLO-patterns, if they are available (more below)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-s 'strict'</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-s 'strict'</></><LISTITEM><PARA>
 Special value directing the system to be extremely picky about the incoming
 SMTP protocol &mdash; mainly for protocol compliance testing, usually way too
 picky for average (sloppy) applications out there...
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-l logfilepath</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-l <REPLACEABLE>logfilepath</></></><LISTITEM><PARA>
 Filename for the <COMMAND>smtpserver</> input protocol log.
 This logs about everything, except actual message data...
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-l 'SYSLOG'</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-l 'SYSLOG'</></><LISTITEM><PARA>
 This tells <COMMAND>smtpserver</> that it shall send all incoming smtp
 protocol transactions via <FUNCTION>syslog</> facility to elsewere.
 Used syslog parameters are: FACILITY=mail, LEVEL=debug.
@@ -129,25 +119,21 @@ Double-use of file referring variant uses the last defined file, but this
 doesn't affect files at all.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-C configfilepath</TERM>
+<VARLISTENTRY><TERM><OPTION>-C <REPLACEABLE>configfilepath</></></>
 <LISTITEM><PARA>
 Full path for the <COMMAND>smtpserver</> configuration in case
 the default location can not be used for some reason.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-M SMTPmaxsize</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-M <REPLACEABLE>SMTPmaxsize</></></><LISTITEM><PARA>
 <EMPHASIS>SMTPmaxsize</> defines the absolute maximum size we accept
 for incoming email. (Default: infinite) (This is a local policy issue.)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>-T IPv4-or-IPv6-address-literal</TERM>
-<LISTITEM><PARA>
-<COMMAND>address literal</> is used in interactive test mode to check
-how 
+<VARLISTENTRY><TERM><OPTION>-T <REPLACEABLE>[IPv4-or-IPv6-address-literal]</></></><LISTITEM><PARA>
+An <EMPHASIS>address literal</> is used in interactive test mode to check
+how the rules work with given inputs when the source address of the connection
+is what is given in headers.
 </PARA></LISTITEM></VARLISTENTRY>
 
 </VARIABLELIST>
@@ -155,6 +141,7 @@ how
 
 <SECT1 ID=zadm-smtpserver-conf>
 <TITLE><FILENAME>smtpserver.conf</></>
+<INDEXTERM ID=zadm-smtps-smtpserver.conf-file><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>PARAM entries, admin</></>
 
 <PARA>
 If the system has file <FILENAME>$<VARNAME>MAILSHARE</>/smtpserver.conf</>
@@ -182,7 +169,7 @@ PARAM help  Our telephone number is: +1-234-567-8900, and
 PARAM help -------------------------------------------------------------
 
 # The policy database:  (NOTE: See  'makedb'  for its default suffixes!)
-PARAM  policydb   btree  /opt/mail/db/smtp-policy
+PARAM  policydb  $DBTYPE  $MAILVAR/db/smtp-policy
 
 #
 # HELO/EHLO-pattern     style-flags
@@ -195,7 +182,7 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 # The syntax below is due to these patterns being SH-GLOB patterns,
 # where brackets are special characters.
 
-[*]                 999 ve
+\[*\]               999 ve
 
 # Per default demant strict syntactic adherence, including fully
 # qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient
@@ -212,7 +199,7 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 The PARAM keywords and values are:
 <VARIABLELIST>
 <VARLISTENTRY>
-<TERM>maxsize nn</TERM>
+<TERM><OPTION>maxsize</> <REPLACEABLE>nn</></TERM>
 <LISTITEM><PARA>
 Maximum size in the number of bytes of the entire spool message
 containing both the transport envelope, and the actual message.
@@ -221,7 +208,7 @@ addresses, the message may entirely become undeliverable..
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>max-error-recipients nn</TERM>
+<TERM><OPTION>max-error-recipients</> <REPLACEABLE>nn</></TERM>
 <LISTITEM><PARA>
 In case the message envelope is an error envelope (MAIL FROM:&lt;&gt;),
 the don't accept more than this many separate recipient addresses
@@ -231,7 +218,7 @@ number of recipient addresses...)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>MaxSameIpSource nn</TERM>
+<TERM><OPTION>MaxSameIpSource</> <REPLACEABLE>nn</></TERM>
 <LISTITEM><PARA>
 (Effective only on daemon-mode server &mdash; not on "-i", nor "-n" modes.)
 Sometimes some systems set up multiple parallel connections to same
@@ -242,7 +229,7 @@ open in parallel.  The default value for this limit is 10.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>ListenQueueSize nn</TERM>
+<TERM><OPTION>ListenQueueSize</> <REPLACEABLE>nn</></TERM>
 <LISTITEM><PARA>
 This relates to newer systems where the <FUNCTION>listen</>(2)
 system call can define higher limits, than the traditional/original 5.
@@ -266,7 +253,7 @@ likely to provide complete immunity against the accidental
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>help 'string'</TERM>
+<TERM><OPTION>help</> <REPLACEABLE>'string'</></TERM>
 <LISTITEM><PARA>
 This one adds yet another string (no quotes are used) into those
 that are presented to the client when it asks for "HELP" in the
@@ -274,7 +261,7 @@ SMTP session.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>PolicyDB dbtype dbpath</TERM>
+<TERM><OPTION>PolicyDB</> <REPLACEABLE>dbtype dbpath</></TERM>
 <LISTITEM><PARA>
 This defines the database type, and file path prefix to the binary
 database containing policy processing information.  More of this
@@ -293,9 +280,7 @@ and for deeper details, see <XREF LINKEND=zref-smtpserver-policy-filtering>.
 
 <SECT2 ID="zadm-smtpserver-conf-ehlostyle">
 <TITLE><FILENAME>smtpserver.conf</>; ``EHLO-style options''</TITLE>
-<SCREEN>
-\index{smtpserver!{\tt smtpserver.conf}; ``EHLO-style options''}
-</SCREEN>
+<INDEXTERM ID=zadm-smtps-smtpserver.conf-ehlostyle><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>EHLO-style options, admin</></>
 
 <PARA>
 All lines that are not comments, nor start with uppercase keyword
@@ -320,25 +305,34 @@ as a way to control misbehaving client software or mailers.
 <PARA>
 The meanings of the style flag characters are as follow:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>f</TERM><LISTITEM><PARA>
-Check ``<EMPHASIS>MAIL FROM</>'' addresses through online processing in router
+
+<VARLISTENTRY><TERM><OPTION>f</></><LISTITEM><PARA>
+Check ``<EMPHASIS ROLE=STRONG>MAIL FROM</>'' addresses through online
+processing at the attached <COMMAND>router</> process
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>t</TERM><LISTITEM><PARA>
-Check {\tt RCPT TO} addresses through online processing in router
+
+<VARLISTENTRY><TERM><OPTION>t</></><LISTITEM><PARA>
+Check <EMPHASIS ROLE=STRONG>RCPT TO</> addresses through online processing
+at the attached <COMMAND>router</> process
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>v</TERM><LISTITEM><PARA>
-Allow execution of {\tt VRFY} command online at attached router
+
+<VARLISTENTRY><TERM><OPTION>v</></><LISTITEM><PARA>
+Allow execution of <EMPHASIS ROLE=STRONG>VRFY</> command online at the attached
+<COMMAND>router</> process
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>e</TERM><LISTITEM><PARA>
-Allow execution {\tt EXPN} command online at attached router
+
+<VARLISTENTRY><TERM><OPTION>e</></><LISTITEM><PARA>
+Allow execution <EMPHASIS ROLE=STRONG>EXPN</> command online at the attached
+<COMMAND>router</> process
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>R</TERM><LISTITEM><PARA>
+
+<VARLISTENTRY><TERM><OPTION>R</></><LISTITEM><PARA>
 Require addresses to be in fully qualified (domained) form:
-``<EMPHASIS>local@remote</>'' (strict 821)
+``<EMPHASIS ROLE=STRONG>local@remote</>'' (strict 821)
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>S</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>S</></><LISTITEM><PARA>
 Allow Sloppy input for systems incapable to respect RFC 821
-properly; WinCE1.0 does: ``<EMPHASIS>MAIL FROM:user@domain</>'' :-(
+properly; WinCE1.0 does: ``<EMPHASIS ROLE=STRONG>MAIL FROM:user@domain</>'' :-(
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
@@ -349,40 +343,63 @@ properly; WinCE1.0 does: ``<EMPHASIS>MAIL FROM:user@domain</>'' :-(
 
 <SECT1 ID="zadm-smtpserver-policy-filtering">
 <TITLE>Policy Based Filtering</TITLE>
-<SCREEN>
-\index{smtp!policy filtering, overview}
-</SCREEN>
+<INDEXTERM ID=zadm-smtps-policy-filtering1><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>input policy filters</></>
+<INDEXTERM ID=zadm-smtps-policy-filtering2><PRIMARY>SMTP input</><SECONDARY>policy filtering, admin</></>
 
 <PARA>
 The policy database that <COMMAND>smtpserver</> uses is built with
 <COMMAND>policy-builder.sh</> script, which bundles together a set
 of policy source files:
-<SCREEN>
-  DB/smtp-policy.src          The boilerplate
-  DB/localnames               ('= _localnames')
-  DB/smtp-policy.relay        ('= _full_rights')
-  DB/smtp-policy.mx           ('relaytargets +')
-  DB/smtp-policy.spam         ('= _bulk_mail')
-  DB/smtp-policy.spam.manual  ('= _bulk_mail')
-</SCREEN>
+<INFORMALTABLE FRAME=NONE PGWIDE=0>
+<TGROUP COLS=2 ALIGN=LEFT COLSEP=0 ROWSEP=0>
+<THEAD>
+<ROW ROWSEP=1>
+ <ENTRY>File</>
+ <ENTRY>What</>
+</ROW>
+</THEAD>
+<TBODY>
+<ROW>
+ <ENTRY><FILENAME>DB/smtp-policy.src</></>
+ <ENTRY><EMPHASIS>The boilerplate</></>
+</ROW>
+<ROW>
+ <ENTRY><FILENAME>DB/localnames</></>
+ <ENTRY>(``= _localnames'')</>
+</ROW>
+<ROW>
+ <ENTRY><FILENAME>DB/smtp-policy.relay.manual</></>
+ <ENTRY>(``= _full_rights'')</>
+</ROW>
+<ROW>
+ <ENTRY><FILENAME>DB/smtp-policy.relay</></>
+ <ENTRY>(``= _full_rights'')</>
+</ROW>
+<ROW>
+ <ENTRY><FILENAME>DB/smtp-policy.mx.manual</></>
+ <ENTRY>(``= _relaytarget'')</>
+</ROW>
+<ROW>
+ <ENTRY><FILENAME>DB/smtp-policy.mx</></>
+ <ENTRY>(``= _relaytarget'')</>
+</ROW>
+<ROW>
+ <ENTRY><FILENAME>DB/smtp-policy.spam.manual</></>
+ <ENTRY>(``= _bulk_mail'')</>
+</ROW>
+<ROW>
+ <ENTRY><FILENAME>DB/smtp-policy.spam</></>
+ <ENTRY>(``= _bulk_mail'')</>
+</ROW>
+</TBODY>
+</TGROUP>
+</INFORMALTABLE>
 </PARA>
 
 <PARA>
-FIXME: {\tt smtp-policy.spam} source
-</PARA>
-<PARA>
-FIXME: {\tt smtp-policy.spam.manual} source
-</PARA>
-
-<PARA>
-{\em If you want, you can modify your {\tt smtp-policy.src} boilerplate
-file as well as your installed {\tt policy-builder.sh} script.}
-{\bf In fact you SHOULD modify both to match your environment!}
-</PARA>
-
-<PARA>
-Doing {\tt make install} will overwrite {\tt policy-builder.sh},
-but not {\tt smtp-policy.src}.
+ <EMPHASIS>If you want, you can modify your <FILENAME>smtp-policy.src</>
+ boilerplate file as well as your installed <COMMAND>policy-builder.sh</>
+ script.</>
 </PARA>
 
 <PARA>
@@ -391,20 +408,23 @@ combine knowledge of valid users around us:
 </PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>localnames</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FILENAME>smtp-policy.src</></><LISTITEM><PARA>
+The controlling boilerplate, <EMPHASIS>which you should modify!</>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><FILENAME>localnames</></><LISTITEM><PARA>
 Who we are &mdash; ok domains for receiving.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>smtp-policy.relay</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><FILENAME>smtp-policy.relay</></><LISTITEM><PARA>
 Who can use us as outbound relay.
 </PARA>
 
 <PARA>
-Use  {\em\verb/[/ip.number\verb/]//maskwidth}  here for
-listing those senders (networks) we absolutely trust.
-You may also use domains, or domain suffixes so that the IP-reversed
-hostnames are accepted (but that is a it risky thing due to ease of
-fakeing the reversed domain names):
+Use  <CONSTANT>[/ip.number]/maskwidth</>  here for listing those senders
+(networks) we want to trust.  You may also use domains, or domain suffixes
+so that the IP-reversed hostnames are accepted (but that is a it risky thing
+due to ease of fakeing the reversed domain names):
 
 <SCREEN>
   [11.22.33.00]/24
@@ -422,13 +442,16 @@ The flag is not modified afterwards during the session.
 <PARA>
 Usage of domain names here is discouraged as there is no way to tell
 that domain ``foo.bar'' here has different meaning than same domain
-elsewere &mdash; at ``{\tt smtp-policy.mx}'', for example.
+elsewere &mdash; at ``<FILENAME>smtp-policy.mx</>'', for example.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>smtp-policy.mx</TERM><LISTITEM><PARA>
+<VARLISTENTRY>
+ <TERM><FILENAME>smtp-policy.mx.manual</></>
+ <TERM><FILENAME>smtp-policy.mx</></>
+<LISTITEM><PARA>
 Who really are our MX clients.
 Use this when you really know them, and don't want just to trust
-that if recipient has MX to you, it would be ok\ldots
+that if recipient has MX to you, it would be ok&hellip;
 </PARA>
 
 <PARA>
@@ -436,38 +459,36 @@ You can substitute this knowledge with a fuzzy feeling by using
 ``acceptifmx -'' attribute at the generic boilerplate.
 List here domain names. 
 <SCREEN>
- mx-target.dom
- .mx-target.dom
+  mx-target.dom
+  .mx-target.dom
 </SCREEN>
 </PARA>
 
 <PARA>
 You CAN also list here all POSTMASTER addresses you accept email routed to: 
 <SCREEN>
- postmaster@local.domain
- postmaster@client.domain
+  postmaster@local.domain
+  postmaster@client.domain
 </SCREEN>
 these are magic addresses that email is accepted to, even when everything
 else is blocked. 
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>smtp-policy.spam</TERM>
-<TERM>smtp-policy.spam.manual</TERM>
+ <TERM><FILENAME>smtp-policy.spam.manual</></>
+ <TERM><FILENAME>smtp-policy.spam</></>
 <LISTITEM><PARA>
 Those users, and domains that are absolutely no-no for senders,
 or recipients no matter what earlier analysis has shown.
 (Except for those senders that we absolutely trust..)
 <SCREEN>
- user@domain
- user@
- domain
+  user@domain
+  user@
+  domain
 </SCREEN>
 </PARA>
 
-<PARA>
-The ``{\tt policy-builder.sh}'' builds this file from external sources. 
-</PARA></LISTITEM></VARLISTENTRY>
+</LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
 <PARA>
@@ -481,7 +502,7 @@ details concerning this.
 <TITLE>The <FILENAME>smtp-policy.src</> file default settings fragment</TITLE>
 <SCREEN>
 ...
-#|-----------
+#| ===========================
 #|
 #| Default handling boilerplates:
 #|
@@ -490,7 +511,7 @@ details concerning this.
 #| You MUST uncomment one of these default-defining pairs, or the blocking
 #| of relay hijack will not work at all !
 #|
-#| -- 1st alternate: No MX target usage, no DNS existence verify
+#| == 1st alternate: No MX target usage, no DNS existence verify
 #|    Will accept for reception only those domains explicitely listed
 #|    in ``smtp-policy.mx'' and  ``localnames''  files.  Will not do
 #|    verifications on validity/invalidity of source domains:&lt;foo@bar&gt;
@@ -498,24 +519,27 @@ details concerning this.
 # .             relaycustomer - relaytarget -
 # [0.0.0.0]/0   relaycustomer - relaytarget -
 #
-#| -- 2nd alternate: No MX target usage, DNS existence verify
-#|    Like the 1st alternate, except will verify the sender (MAIL FROM:&lt;..&gt;)
-#|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
+#| == 2nd alternate: No MX target usage, DNS existence verify
+#|    Like the 1st alternate, except will verify the sender
+#|    (MAIL FROM:&lt;..&gt;) address for existence of the DNS MX and/or
+#|    A/AAAA data -- e.g. validity.
+#|    If RBL parameters are set below, will use them.
 #
-# .             relaycustomer - relaytarget - senderokwithdns +
-# [0.0.0.0]/0   relaycustomer - relaytarget - senderokwithdns +
+# .             relaycustomer - relaytarget - senderokwithdns + = _rbl1
+# [0.0.0.0]/0   relaycustomer - relaytarget - senderokwithdns + = _rbl0
 #
-#| -- 3rd alternate: MX relay trust, DNS existence verify
+#| == 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
 #|    reason have given open permissions for people to use their server
 #|    as MX backup for their clients, but don't know all domains valid
 #|    to go thru...  Substitutes accurate data to user's whimsical DNS
 #|    maintenance activities.  Vulnerable to inbound MX resource abuse.
+#|    If RBL parameters are set below, will use them.
 
-.               relaycustomer - acceptifmx - senderokwithdns +
-[0.0.0.0]/0     relaycustomer - acceptifmx - senderokwithdns +
+.               relaycustomer - acceptifmx - senderokwithdns + = _rbl1
+[0.0.0.0]/0     relaycustomer - acceptifmx - senderokwithdns + = _rbl0
 
-#| -- 4th alternate: Sender & recipient DNS existence verify
+#| == 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
 #|    the source and destination domains are DNS resolvable, but does not
 #|    block relaying
@@ -524,13 +548,56 @@ details concerning this.
 # [0.0.0.0]/0   senderokwithdns - acceptifdns -
 #
 #|
-#|  You may also add  ``test-dns-rbl +''  attribute pair to [0.0.0.0]/0 of your
-#|  choice to use Paul Vixie's  http://maps.vix.com/  MAPS RBL system.
+#|  You may also add  ``test-dns-rbl +''  attribute pair to [0.0.0.0]/0
+#|  of your choice to use Paul Vixie's  http://maps.vix.com/  MAPS RBL
+#|  system.
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
 #| the database with ``relaytarget +'' attribute.
 #|
-#|-----------
+#| ===========================
+#|
+#| RBL type test rules:
+
+#| First RBL variant: NONE OF THE RBL TESTS
+_rbl0 # Nothing at early phase
+_rbl1 # Nothing at late phase
+
+#| Second RBL variant: Early block with RBL+DUL+RSS
+#_rbl0 test-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_rbl1 # Nothing at late phase
+
+#| Third RBL variant: Late block with RBL+DUL+RSS
+#_rbl0 rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_rbl1 test-rcpt-dns-rbl +
+
+#|  (The "+" at the DNS zone defines is treated as shorthand to
+#|   "rbl.maps.vix.com")
+#|
+#|  The Third RBL variant means that all target domains can all by themselves
+#|  choose if they use RBL to do source filtering.  The ``= _RBL1'' test
+#|  *must* be added to all domain instances where the check is wanted.
+#|  (Including the last-resort domain default of ".")
+#|  (Or inverting: If some recipient domain is *not* wanting RBL-type tests,
+#|   that domain shall have  ``test-rcpt-dns-rbl -'' attribute pair given for
+#|   it at the input datasets -- consider  smtp-policy.mx  file!)
+#|
+#| These rules mean that locally accepted hostnames MUST be listed in
+#| the database with  'relaytarget +' attribute.  ("acceptifmx *" allows
+#| reception if the local system is amonst the MXes.)
+#|
+#| ===========================
+#|
+#| If your system has ``whoson'' server (see contrib/whoson-*.tgz),
+#| you can activate it by adding  'trust-whoson +' attribute pair to
+#| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
+#|
+#| ===========================
+#|
+#| For outbound relaying control for fixed IP address networks, see
+#| comments in file:  smtp-policy.relay
+#|
+#| ===========================
 ...
 </SCREEN>
 </FIGURE>

@@ -94,46 +94,94 @@ for your site.
 <PARA>
 The  statistics log reports condenced performance oriented
 information in following format:
-<SCREEN>
-timestamp fileid  dt1 dt2 state $channel/$host
-812876190 90401-2   0   5    ok usenet/-
-812876228 90401-1   0   7    ok usenet/-
-812876244 90401-1   0   1    ok local/gopher-admin
-812876244 90401-1   0   5    ok smtp/funet.fi
-812876559 90401-1   0  21    ok smtp/utu.fi
-</SCREEN>
+<INFORMALTABLE ROWSEP=0 COLSEP=0>
+<TGROUP COLS=6>
+<COLSPEC ALIGN=LEFT>
+<COLSPEC ALIGN=LEFT>
+<COLSPEC ALIGN=CENTER>
+<COLSPEC ALIGN=CENTER>
+<COLSPEC ALIGN=LEFT>
+<COLSPEC ALIGN=LEFT>
+<THEAD>
+<ROW ROWSEP=1>
+ <ENTRY ALIGN=LEFT>timestamp</>
+ <ENTRY ALIGN=LEFT>fileid</>
+ <ENTRY ALIGN=CENTER>dt1</>
+ <ENTRY ALIGN=CENTER>dt2</>
+ <ENTRY ALIGN=LEFT>state</>
+ <ENTRY ALIGN=LEFT>$channel/$host</>
+</ROW>
+</THEAD>
+<TBODY>
+<ROW>
+ <ENTRY>812876190</>
+ <ENTRY>90401-2</>
+ <ENTRY>0</>
+ <ENTRY>5</>
+ <ENTRY>ok</>
+ <ENTRY>usenet/-</>
+</ROW>
+<ROW>
+ <ENTRY>812876228</>
+ <ENTRY>90401-1</>
+ <ENTRY>0</>
+ <ENTRY>7</>
+ <ENTRY>ok</>
+ <ENTRY>usenet/-</>
+</ROW>
+<ROW>
+ <ENTRY>812876244</>
+ <ENTRY>90401-1</>
+ <ENTRY>0</>
+ <ENTRY>1</>
+ <ENTRY>ok</>
+ <ENTRY>local/gopher-admin</>
+</ROW>
+<ROW>
+ <ENTRY>812876244</>
+ <ENTRY>90401-1</>
+ <ENTRY>0</>
+ <ENTRY>5</>
+ <ENTRY>ok</>
+ <ENTRY>smtp/funet.fi</>
+</ROW>
+<ROW>
+ <ENTRY>812876559</>
+ <ENTRY>90401-1</>
+ <ENTRY>0</>
+ <ENTRY>21</>
+ <ENTRY>ok</>
+ <ENTRY>smtp/utu.fi</>
+</ROW>
+</TBODY>
+</TGROUP>
+</INFORMALTABLE>
 where the fields are:
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>timestamp
-</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>timestamp</></><LISTITEM><PARA>
 The original spoolfile <EMPHASIS>ctime</> (creation time) stamp in decimal.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>fileid
-</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>fileid</></><LISTITEM><PARA>
 Spoolfile name after the router has processed it.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>dt1
-</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>dt1</></><LISTITEM><PARA>
 The time difference from spoolfile ctime to 
 scheduler control file creation by the router.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>dt2
-</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>dt2</></><LISTITEM><PARA>
 The time difference from scheduler file <EMPHASIS>ctime</> to
 the delivery that is logged on.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>state
-</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>state</></><LISTITEM><PARA>
 What happened?  Values: ok, ok2, ok3, error, error2, expiry
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>$channel/$host
-</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>$channel/$host</></><LISTITEM><PARA>
 Where/how it was processed.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -193,39 +241,27 @@ The <EMPHASIS>router</> does <FUNCTION>syslog</>() in following format:
 <PARA>
 Where:
 <VARIABLELIST>
-<VARLISTENTRY>
-<TERM>taspid</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>taspid</></><LISTITEM><PARA>
 The TA-SPOOL-ID &mdash; A spool-id that is valid throughout message lifetime
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>from=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>from=</></><LISTITEM><PARA>
 the envelope source address
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>rrelay=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>rrelay=</></><LISTITEM><PARA>
 the message ``rcvdfrom'' envelope header reports.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>size=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>size=</></><LISTITEM><PARA>
 Total message size in bytes (envelope+headers+body)
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>nrcpts=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>nrcpts=</></><LISTITEM><PARA>
 Number of recipients for this message
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>msgid=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>msgid=</></><LISTITEM><PARA>
 The ``Message-ID:'' header content
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -247,55 +283,39 @@ The transport agents log in following format:
 <PARA>
 Here the fields are:
 <VARIABLELIST>
-<VARLISTENTRY>
-<TERM>taspid</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>taspid</></><LISTITEM><PARA>
 The ta-spool-id &mdash; A spool-id that is valid throughout message lifetime
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>to=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>to=</></><LISTITEM><PARA>
 Destination address in whatever form the transport agent uses.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>delay=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>delay=</></><LISTITEM><PARA>
 Delay from message arrival to the system to this logging moment
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>xdelay=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>xdelay=</></><LISTITEM><PARA>
 Delay during this processing attempt &mdash; tells how much time <EMPHASIS>this</>
 time was spent to process the message.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>mailer=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>mailer=</></><LISTITEM><PARA>
 Tells what ``channel'' was used.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>relay=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>relay=</></><LISTITEM><PARA>
 Reports on which host the message is relayed thru (``wtthost''), and for
 SMTP, also (in parenthesis) what was the relay's IP address.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>stat=</TERM>
-<LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>stat=</></><LISTITEM><PARA>
 What status was achieved: ok*, delayed, failed, ...
-{\bf\Large CHECK!}
+<EMPHASIS ROLE=BOLD>CHECK!</>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY>
-<TERM>msg</TERM>
-<LISTITEM><PARA>
-Arbitary text line from whatever system is out there.
+<VARLISTENTRY><TERM>msg</><LISTITEM><PARA>
+Arbitrary text line from whatever system is out there.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>

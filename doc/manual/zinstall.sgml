@@ -23,7 +23,7 @@ for more information.</PARA></TIP>
 <!-- ############################################################### -->
 
 
-<CHAPTER><?dbhtml filename="zins-buildinstall.html">
+<CHAPTER ID=ch.zins.build-and-install><?dbhtml filename="zins-buildinstall.html">
 <TITLE>Build and Install</TITLE>
 <SECT1 ID="build.environment"><TITLE>Environment Issues</>
 
@@ -117,7 +117,7 @@ at the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>.
 </PARA>
 
 <PARA>
-<!-- <INDEXTERM><primary>build</><secondary>disk partitions</></> -->
+<INDEXTERM ID=idx.build.disk.partitions><primary>build</><SECONDARY>disk partitions</></>
 
 This system uses several preferably separate partitions for
 different things:
@@ -131,7 +131,7 @@ different things:
 <LISTITEM><PARA>The mailbox spool:
   <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBOX</>/</>
   (<FILENAME CLASS="DIRECTORY">/var/mail</>)</></>
-<LISTITEM><PARA>The post-office spool:
+<LISTITEM><PARA>The postoffice spool:
   <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
   (<FILENAME CLASS="DIRECTORY">/var/spool/postoffice/</>)</></>
 <LISTITEM><PARA>The log directory:
@@ -139,6 +139,39 @@ different things:
   (<FILENAME>/var/log/mail</>)</></>
 </ITEMIZEDLIST>
 </PARA>
+
+
+<IMPORTANT>
+<PARA>
+<EMPHASIS>
+A filesystem without following two properties is not suitable for ZMailer's
+</EMPHASIS>
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>:
+<ITEMIZEDLIST>
+<LISTITEM><PARA><EMPHASIS>
+Files must succeed to be <FUNCTION>link</>(2):ed in between directories
+within the filesystem without copying them.
+</EMPHASIS></PARA></LISTITEM>
+<LISTITEM><PARA><EMPHASIS>
+The file i-node numbers must not change with <FUNCTION>rename</>(2) or
+<FUNCTION>link</>(2) calls applied to them.
+</EMPHASIS></PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
+
+<PARA>
+The <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</> directory must be
+a single partition within which files can be <FUNCTION>link</>(2)ed from one
+directory to another, as well as moved around with <FUNCTION>rename</>(2).
+</PARA>
+
+<PARA>
+People have asked several times if e.g.
+ <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/public/</>, and
+ <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>
+could be at separate partitions.  No they can't!
+</PARA>
+</IMPORTANT>
 
 <PARA>
 The <APPLICATION>GNU autoconf</> mechanism is used, however, you
@@ -265,7 +298,7 @@ Additional examples:
 <!-- ############################################################### -->
 
 
-<SECT1><TITLE>Compilation</>
+<SECT1 ID=zins.compilation><TITLE>Compilation</>
 
 <PARA>
 At the top-level, run
@@ -297,15 +330,15 @@ touched at this point.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Installing and Upgrading</TITLE>
+<SECT1 ID=zins.install-and-upgrade><TITLE>Installing and Upgrading</TITLE>
 
 <PARA>
 This section describes how to install or upgrade ZMailer.
 </PARA>
 
-<SECT2><TITLE>Install Preparation</TITLE>
-<!-- <INDEXTERM><PRIMARY>build</><secondary>upgrade preparation</></>
-     <INDEXTERM><PRIMARY>installation</><secondary>preparations</></> -->
+<SECT2 ID=zins-install-preparation><TITLE>Install Preparation</TITLE>
+<INDEXTERM ID=idx.build.upgrade.preparation><PRIMARY>build</><SECONDARY>upgrade preparation</></>
+<INDEXTERM ID=idx.install.preparations><PRIMARY>installation</><SECONDARY>preparations</></>
 
 <PARA>
 If you are currently running a zmailer, kill off all mailer processes
@@ -363,9 +396,9 @@ points to ZMailer's ``<COMMAND>sendmail</>.''
 
 </SECT2>
 
-<SECT2><TITLE>Installation</>
-<!-- <INDEXTERM><PRIMARY>build</><secondary>installation</></>
-     <INDEXTERM><PRIMARY>installation</><secondary>entire ZMailer</></> -->
+<SECT2 ID=zins.install><TITLE>Installation</>
+<INDEXTERM ID=idx.build.installation><PRIMARY>build</><SECONDARY>installation</></>
+<INDEXTERM ID=idx.install.entire-zmailer><PRIMARY>installation</><SECONDARY>entire ZMailer</></>
 
 <PARA>
 Once you are safe, run:
@@ -407,9 +440,9 @@ it needs to be used at the last stage of packaged ZMailer's installation)
 
 </SECT2>
 
-<SECT2><TITLE>Installing the Manual Pages.</TITLE>
-<!-- <INDEXTERM><PRIMARY>build</><secondary>man-page install</></>
-     <INDEXTERM><PRIMARY>installation</><secondary>man-pages</></> -->
+<SECT2 ID=zins.install-man-pages><TITLE>Installing the Manual Pages.</TITLE>
+<INDEXTERM ID=idx.build.man-page-install><PRIMARY>build</><SECONDARY>man-page install</></>
+<INDEXTERM ID=idx.install.man-pages><PRIMARY>installation</><SECONDARY>man-pages</></>
 
 <PARA>
 Because for a long time the installation location of ZMailer's man-pages
@@ -439,20 +472,20 @@ or in case the default guessing didn't get it right:
 </SECT1>
 </CHAPTER>
 
-<CHAPTER><?dbhtml filename="zins-sysconfig.html">
+<CHAPTER ID=ch.zins.system-configuring><?dbhtml filename="zins-sysconfig.html">
 <TITLE>System Configuring</>
-<!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</></>
-     <INDEXTERM><PRIMARY>configuration</><SECONDARY>basic ZMailer installation</></> -->
+<INDEXTERM ID=idx.build.config><PRIMARY>build</><SECONDARY>config</></>
+<INDEXTERM ID=idx.config.basic-zm-install><PRIMARY>configuration</><SECONDARY>basic ZMailer installation</></>
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Run-time files</TITLE>
+<SECT1 ID=zins.run-time-files><TITLE>Run-time files</TITLE>
 <PARA>
 This section describes the configuration in short. More detailed information 
 can be found in section FIXME! FIXME! xxxxx....
 </PARA>
 
-<SECT2><TITLE><FILENAME>zmailer.conf</></>
+<SECT2 ID=zins-rtf-zmailer.conf><TITLE><FILENAME>zmailer.conf</></>
 <PARA>
 The <FILENAME>zmailer.conf</> file carries various so called
 ``ZMailer Environment'' configuration variables.
@@ -472,7 +505,7 @@ more often at the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>.
 </PARA>
 
 <PARA>
-<!-- <INDEXTERM><primary>build</><secondary>disk partitions</></> -->
+<INDEXTERM ID=idx.build.disk-partitions.2><primary>build</><SECONDARY>disk partitions</></>
 
 This system uses several preferably separate partitions for
 different things:
@@ -497,16 +530,16 @@ different things:
 
 </SECT2>
 
-<SECT2><TITLE><FILENAME>/etc/group</></>
-<!-- <INDEXTERM><PRIMARY>build</><SECONDARY><FILENAME>/etc/group</> entries</></>
-     <INDEXTERM><PRIMARY>build</><SECONDARY>security note: <FILENAME>/etc/group</> entries</></> -->
+<SECT2 ID=zins-rtf.etc.group><TITLE><FILENAME>/etc/group</></>
+<INDEXTERM ID=idx.build.etc.group.entries><PRIMARY>build</><SECONDARY><FILENAME>/etc/group</> entries</></>
+<INDEXTERM ID=idx.build.security.note.etc.group><PRIMARY>build</><SECONDARY>security note: <FILENAME>/etc/group</> entries</></>
 
 <PARA>
 The default configuration also expects to find names of trusted users
 listed at  <FILENAME>/etc/group</>  entry <LITERAL>zmailer</>.
 Users (unames) listed there will be able to claim any addresses at
 the message headers, etc.
-(See <FILENAME>$<MAILVAR>MAILSHARE</>/cf/trusted.cf</> for its usage there.)
+(See <FILENAME>$<VARNAME>MAILSHARE</>/cf/trusted.cf</> for its usage there.)
 </PARA>
 
 <PARA>
@@ -526,7 +559,7 @@ arbitrary files.</PARA></WARNING>
 
 </SECT2>
 
-<SECT2><TITLE><FILENAME>/etc/services</></>
+<SECT2 ID=zins-rtf.etc.services><TITLE><FILENAME>/etc/services</></>
 
 <PARA>
 Add the following line to <FILENAME>/etc/services</> in the section for
@@ -544,11 +577,11 @@ See more about this at Scheduler's PARAM entries: <XREF LINKEND="scheduler.param
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>The <COMMAND>Router</> subsystem</TITLE>
+<SECT1 ID=zins.the.router.subsystem><TITLE>The <COMMAND>Router</> subsystem</TITLE>
 
-<SECT2><TITLE>The <COMMAND>Router</> Configuration File (<FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>).</>
-<!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</><TERTIARY>router configuration; <FILENAME>router.cf</></></>
-     <INDEXTERM><PRIMARY><FILENAME>router.cf</>; router configuration</><SECONDARY>config</></> -->
+<SECT2 ID=zins.the.router.cfgfile><TITLE>The <COMMAND>Router</> Configuration File (<FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>).</>
+<INDEXTERM ID=idx.build.config.routercfg><PRIMARY>build</><SECONDARY>config</><TERTIARY>router configuration; <FILENAME>router.cf</></></>
+<INDEXTERM ID=idx.router.cf.routercfg.config><PRIMARY><FILENAME>router.cf</>; router configuration</><SECONDARY>config</></>
 
 <PARA>
 You must now pick a top-level router configuration file.
@@ -569,9 +602,9 @@ the <FILENAME>proto/</> directory in the source tree.
 </SECT2>
 
 
-<SECT2><TITLE><FILENAME>$<VARNAME>MAILVAR</>/mail.conf</></>
-<!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</><TERTIARY><FILENAME>$<VARNAME>MAILVAR</>/mail.conf</></></>
-     <INDEXTERM><PRIMARY><FILENAME>$<VARNAME>MAILVAR</>/mail.conf</>-file</></> -->
+<SECT2 ID=zins.router.mail.conf><TITLE><FILENAME>$<VARNAME>MAILVAR</>/mail.conf</></>
+<INDEXTERM ID=idx.build.config.mail.conf><PRIMARY>build</><SECONDARY>config</><TERTIARY><FILENAME>$<VARNAME>MAILVAR</>/mail.conf</></></>
+<INDEXTERM ID=idx.build.mail.conf-file><PRIMARY><FILENAME>$<VARNAME>MAILVAR</>/mail.conf</>-file</></>
 
 <PARA>
 If you are using the default configuration setup, the <FILENAME>router.cf</>
@@ -619,9 +652,9 @@ as local.  See below about <FILENAME>localnames</> database.
 
 </SECT2>
 
-<SECT2><TITLE>Verifying That the <COMMAND>Router</> Starts</TITLE>
-<!-- <INDEXTERM><PRIMARY>build</><SECONDARY>router start verify</></>
-     <INDEXTERM><PRIMARY>installation</><SECONDARY>router start verify</></> -->
+<SECT2 ID=zins.verify.router.start><TITLE>Verifying That the <COMMAND>Router</> Starts</TITLE>
+<INDEXTERM ID=idx.build.router.start.verify><PRIMARY>build</><SECONDARY>router start verify</></>
+<INDEXTERM ID=idx.install.router.start.verify><PRIMARY>installation</><SECONDARY>router start verify</></>
 
 <PARA>
 At this point, you should be able to start the <COMMAND>router</> process in
@@ -658,14 +691,14 @@ so get out of this by hitting EOF, or type <USERINPUT>exit</>.
 </SECT2>
 
 <SECT2 ID="zins-router-db-files"><TITLE>The <COMMAND>Router</> Database Files</>
-<INDEXTERM ID="build.config.router-databases.1">
-<PRIMARY>build</><secondary>config</><tertiary>router-databases</></>
-<INDEXTERM ID="build.config.router-databases.2">
-<PRIMARY>build</><secondary>config</><tertiary>forms files</></>
-<INDEXTERM ID="build.config.router-databases.3">
-<PRIMARY>configuration</><secondary>forms files</></>
-<INDEXTERM ID="build.config.router-databases.4">
-<PRIMARY>configuration</><secondary>databases</></>
+<INDEXTERM ID=idx.build.config.router-databases.1>
+<PRIMARY>build</><SECONDARY>config</><TERTIARY>router-databases</></>
+<INDEXTERM ID=idx.build.config.router-databases.2>
+<PRIMARY>build</><SECONDARY>config</><TERTIARY>forms files</></>
+<INDEXTERM ID=idx.build.config.router-databases.3>
+<PRIMARY>configuration</><SECONDARY>forms files</></>
+<INDEXTERM ID=idx.build.config.router-databases.4>
+<PRIMARY>configuration</><SECONDARY>databases</></>
 
 <PARA>
 Now you should merge, replace, and very least check the default database
@@ -680,7 +713,7 @@ configuration file to tell the association of database to look-up relations,
 and also the source files.
 </PARA>
 
-<SECT3><TITLE><FILENAME>$<VARNAME>MAILBIN</>/zmailer</> script</>
+<SECT3 ID=zins.zmailer.script><TITLE><FILENAME>$<VARNAME>MAILBIN</>/zmailer</> script</>
 
 <PARA>
 You may want to add a symbolic link from some directory in your path
@@ -695,7 +728,7 @@ init-script as well.
 </PARA>
 </SECT3>
 
-<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</> file</>
+<SECT3 ID=zins.db.dbases.conf.file><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</> file</>
 
 <PARA>
 As mentioned above, this file configures (when exists) database look-up
@@ -759,11 +792,11 @@ For more complete example, see the default boilerplate version of this file.
 aliases     $DBTYPE 0:0:644    -la $MAILVAR/db/aliases     -lm
 aliases     $DBTYPE majordomo:0:644 -la /opt/Majordomo/md-aliases -lm
 
-fqdnaliases $DBTYPE root:0:644 -la $MAILVAR/db/fqdnaliases -lm
+fqdnaliases $DBTYPE root:0:644 -la $MAILVAR/db/fqdnaliases -lm%
 userdb      $DBTYPE root:0:644 -la $MAILVAR/db/userdb      -lm
 
-routesdb    $DBTYPE -    -l  $MAILVAR/db/routes      -lm -d pathalias
-thishost    $DBTYPE -    -l  $MAILVAR/db/localnames  -lm -d pathalias
+routesdb    $DBTYPE -    -l  $MAILVAR/db/routes      -lm% -d pathalias
+thishost    $DBTYPE -    -l  $MAILVAR/db/localnames  -lm  -d pathalias
 
 </SCREEN>
 </FIGURE>
@@ -771,7 +804,7 @@ thishost    $DBTYPE -    -l  $MAILVAR/db/localnames  -lm -d pathalias
 
 </SECT3>
 
-<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/aliases</> file</>
+<SECT3 ID=zins.db.aliases.file><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/aliases</> file</>
 
 <PARA>
 The provided skeleton aliases file on purpose contains syntax errors,
@@ -807,7 +840,7 @@ See also IETF's
 for other suggested aliases you may need. 
 </PARA>
 
-<SECT4><TITLE>Alias expansion</TITLE>
+<SECT4 ID=zins.router.alias-expansion><TITLE>Alias expansion</TITLE>
 
 <PARA>
 Read the notes on alias expansion in the file <FILENAME>doc/guides/aliases</>
@@ -818,7 +851,7 @@ and on mailing list maintenance in <XREF LINKEND="mailing-list-maintenance">,
 </SECT4>
 </SECT3>
 
-<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/fqdnaliases</> file</>
+<SECT3 ID=zins.db.fqdnaliases><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/fqdnaliases</> file</>
 
 <PARA>
 The <FILENAME>fqdnaliases</> database is for mapping fully-qualified
@@ -846,7 +879,7 @@ some arbitrary addresses as shown at <XREF LINKEND="fig.inst.fqdnaliases-2">.
 <TITLE>Second sample of ``<FILENAME>fqdnaliases</>'' file</TITLE>
 <SCREEN>
   @domain4:  person4
-  @domain5:  "%1"@domain6
+  @domain5:  %1@domain6
 </SCREEN>
 </FIGURE>
 
@@ -856,14 +889,11 @@ you have it at the next router start-up.
 </PARA>
 
 <PARA>
-The ``<USERINPUT>"%1"</>'' local part is special (and experimental, as of
-15-Feb-2001) substitution pattern where <EMPHASIS>local part (user)</>
+The ``<USERINPUT>%1</>'' local part is special (and experimental, as of
+21-Feb-2001) substitution pattern where <EMPHASIS>local part (user)</>
 can be replaced into the looked up data.
-</PARA>
-
-<PARA>
-It is considered that the implementation method must be changed into such
-where those quotes are not needed.
+More details at <XREF LINKEND=zmshref.dblookup>,
+and at <XREF LINKEND=zmshref.relation>
 </PARA>
 
 <PARA>
@@ -900,7 +930,7 @@ The final message looks similar to that of the ordinary aliases case.
 <PARA>
 If you have multiple fqdnaliases databases defined at the
 <FILENAME>dbases.conf</>, you must use the ``<COMMAND>zmailer newdb</>''.
-(See FIXME!FIXME! XREF)
+(See <XREF LINKEND=zref-zmailer-newdb>.)
 </PARA>
 
 </SECT3>
@@ -908,7 +938,7 @@ If you have multiple fqdnaliases databases defined at the
 <SECT3 ID="configure-localnames-file">
 <TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/localnames</> file</>
 
-<!-- <INDEXTERM><PRIMARY>build</><SECONDARY><FILENAME>$<VARNAME>MAILVAR</>/db/localnames</></></> -->
+<INDEXTERM ID=idx.build.db.localnames><PRIMARY>build</><SECONDARY><FILENAME>$<VARNAME>MAILVAR</>/db/localnames</></></>
 
 <PARA>
 Add the host-names you want ZMailer to do local delivery for, to the
@@ -970,7 +1000,7 @@ Compile this into run-time binary database with command:
 
 </SECT3>
 
-<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/routes</> file</>
+<SECT3 ID=zins.db.routes.file><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/routes</> file</>
 
 <PARA>
 Add any UUCP neighbours or other special cases to this file.
@@ -1001,7 +1031,7 @@ You can compile the file into binary database with command:
 </SECT3>
 
 
-<SECT3><TITLE>UUCP Node Names</>
+<SECT3 ID=zins.router.uucp.node.names><TITLE>UUCP Node Names</>
 
 <PARA>
 If your hostname and UUCP node name are not identical, put your
@@ -1012,7 +1042,7 @@ UUCP node name in the file <FILENAME>/etc/name.uucp</>
 </SECT3>
 </SECT2>
 
-<SECT2><TITLE>Checking the Routing</>
+<SECT2 ID=zins.checking.the.routing><TITLE>Checking the Routing</>
 
 <PARA>
 At this point, you should be able to start the router again in
@@ -1047,7 +1077,8 @@ you can give command ``<COMMAND>rtrace</>'' before trying to use
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>The <COMMAND>Smtpserver</> subsystem</TITLE>
+<SECT1 ID=zins.the.smtpserver.subsystem>
+<TITLE>The <COMMAND>Smtpserver</> subsystem</TITLE>
 
 <PARA>
 The <COMMAND>smtpserver</> implements RFC-821 server along with lots
@@ -1069,8 +1100,10 @@ Optional PAM authentication framework for SMTP AUTH extension.
 </ITEMIZEDLIST>
 </PARA>
 
-<SECT2><TITLE>The ``<FILENAME>smtpserver.conf</>'', and smtp-policy databases</>
-<!-- <INDEXTERM><PRIMARY>smtpserver</><SECONDARY><FILENAME>smtpserver.conf</>-file</></> -->
+<SECT2 ID=zins.smtps-smtpserver.conf-file>
+<TITLE>The ``<FILENAME>smtpserver.conf</>'', and smtp-policy databases</>
+<INDEXTERM ID=idx.build-smtpserver.conf-file><PRIMARY>smtpserver</><SECONDARY><FILENAME>smtpserver.conf</>-file</></>
+<INDEXTERM ID=idx.build-smtpserver.conf-file2><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>install</></>
 
 <PARA>
 These take care of such a things as preventing relay-hijack type
@@ -1102,7 +1135,8 @@ at chapter <XREF LINKEND="zadm-smtpserver-conf-ehlostyle">.
 
 </SECT2>
 
-<SECT2><TITLE>Testing smtpserver operationality</TITLE>
+<SECT2 ID=zins.testing.smtpserver1>
+<TITLE>Testing smtpserver operationality</TITLE>
 <PARA>
 The <COMMAND>smtpserver</> can be tested fully with fairly simple
 method -- as long as input databases are readable by the test runner:
@@ -1157,9 +1191,11 @@ do leave out ``-d 1'' part of the start arguments.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>The <COMMAND>Scheduler</> subsystem</TITLE>
+<SECT1 ID=zins.scheduler.subsystem>
+<TITLE>The <COMMAND>Scheduler</> subsystem</TITLE>
 
-<SECT2><TITLE>Checking the <COMMAND>Scheduler</></TITLE>
+<SECT2 ID=zins.checking.scheduler.1>
+<TITLE>Checking the <COMMAND>Scheduler</></TITLE>
 
 <PARA>
 The location of the <FILENAME>scheduler.conf</> on running system is
@@ -1169,7 +1205,7 @@ The location of the <FILENAME>scheduler.conf</> on running system is
 <PARA>
 For normal operations of the system the current sample
 of ``<FILENAME>scheduler.conf</>''
-<!-- <INDEXTERM><PRIMARY><FILENAME>scheduler.conf</></></> -->
+<INDEXTERM ID=idx.zins-scheduler.conf-file><PRIMARY><FILENAME>scheduler.conf</></></>
 file is quite sufficient, but in case you want to do something
 unusual, like using <APPLICATION>procmail</> for local delivery,
 do read on.
@@ -1230,8 +1266,8 @@ see <XREF LINKEND="zref.schedulerconfig">.
 </PARA>
 </SECT2>
 
-<SECT2 ID="sm.conf"><TITLE>Checking <FILENAME>sm.conf</> file</>
-<!-- <INDEXTERM><PRIMARY><FILENAME>sm.conf</>-file</></> -->
+<SECT2 ID="zins.sm.conf"><TITLE>Checking <FILENAME>sm.conf</> file</>
+<INDEXTERM ID=idx.zins-sm.conf-file><PRIMARY><FILENAME>sm.conf</>-file</></>
 
 <PARA>
 For some uses the scheduler runs <COMMAND>sm</>(8) program &mdash; called
@@ -1261,7 +1297,8 @@ For more information, see <XREF LINKEND="zref-ta-sm-config">.
 </PARA>
 </SECT2>
 
-<SECT2><TITLE>Customizing ZMailer Messages</TITLE>
+<SECT2 ID=zins.sched.custom.diag.messages>
+<TITLE>Customizing ZMailer Messages</TITLE>
 
 <PARA>
 Edit several of the canned error messages and programs (scripts)
@@ -1301,7 +1338,8 @@ are more, only the first one is picked.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Boot-up Scripts</TITLE>
+<SECT1 ID=zins.bootup-scripts>
+<TITLE>Boot-up Scripts</TITLE>
 
 <PARA>
 Add something like the following lines to boot-up scripts
@@ -1329,7 +1367,8 @@ if you have it to begin with.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Checking the Log Files</>
+<SECT1 ID=zins.checking.log.files>
+<TITLE>Checking the Log Files</>
 
 <PARA>
 Start ZMailer:
@@ -1351,24 +1390,12 @@ of resource problems.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Crontab</TITLE>
-
-
-<FIGURE ID="fig.inst.crontab" PGWIDE="1" FLOAT="1">
-<TITLE>ZMailer related crontab entries for root user</>
-<SCREEN>
-  # Two ZMailer related root's CRONTAB entries:
-  28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
-  7  4      * * * . /etc/zmailer.conf ; $MAILBIN/zmailer cleanup
-FIXME!FIXME!
-  # This third one will not per default be installed into your system
-  0  0      * * * . /etc/zmailer.conf ; $MAILBIN/rotate-logs.sh
-</SCREEN>
-</FIGURE>
+<SECT1 ID=zins.crontab>
+<TITLE>Crontab</TITLE>
 
 <PARA>
-See figure <XREF LINKEND="fig.inst.crontab"> for two crontab entires for
-the root to run.  There are three entries:
+See <XREF LINKEND="fig.inst.crontab"> for three crontab entires for
+the root to run.  Those are:
 <ORDEREDLIST NUMERATION="ARABIC">
 <LISTITEM><PARA>
 This will ``<COMMAND>resubmit</>'' messages that have been deferred
@@ -1395,12 +1422,27 @@ you need to customize it for your environment.  More of that below.
 <PARA>
 You may want to hard-wire the location of the <COMMAND>zmailer</> script.
 </PARA>
+
+
+<FIGURE ID="fig.inst.crontab" PGWIDE="1" FLOAT="1">
+<TITLE>ZMailer related crontab entries for root user</>
+<SCREEN>
+  # Two ZMailer related root's CRONTAB entries:
+  28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
+  7  4      * * * . /etc/zmailer.conf ; $MAILBIN/zmailer cleanup
+FIXME!FIXME!
+  # This third one will not per default be installed into your system
+  0  0      * * * . /etc/zmailer.conf ; $MAILBIN/rotate-logs.sh
+</SCREEN>
+</FIGURE>
+
 </SECT1>
 
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Trim-down of Logging</TITLE>
+<SECT1 ID=zins.trim-down.of.logging>
+<TITLE>Trim-down of Logging</TITLE>
 
 <PARA>
 Once satisfied that things appear to work, you may want to trim down
@@ -1472,7 +1514,7 @@ appropriate for your site.
 </SECT1>
 </CHAPTER>
 
-<CHAPTER><?dbhtml filename="zins-clientinst.html">
+<CHAPTER ID=ch.zins-clientinstall><?dbhtml filename="zins-clientinst.html">
 <TITLE>Installation to Clients</>
 
 <PARA>
@@ -1481,7 +1523,8 @@ This section describes the installation at clients.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Required Files</TITLE>
+<SECT1 ID=zins.client.req.files>
+<TITLE>Required Files</TITLE>
 
 <VARIABLELIST TERMLENGTH="99">
 <TITLE>The following files/programs are needed on clients:</TITLE>
@@ -1514,7 +1557,8 @@ This directory from the server should be mounted and writable.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Mounting <FILENAME>$<VARNAME>MAILBOX</></>es and/or
+<SECT1 ID=zins.client.mount.via.nfs>
+<TITLE>Mounting <FILENAME>$<VARNAME>MAILBOX</></>es and/or
 <FILENAME>$<VARNAME>POSTOFFICE</>/</> Hierarchies via NFS</>
 
 <PARA>
@@ -1564,11 +1608,13 @@ one of following (depending upon the system):
 </SECT1>
 </CHAPTER>
 
+<!-- ############################################################### -->
+
 <CHAPTER ID="ZINS.CONFIGURE-OPTIONS-LIST">
 <?dbhtml filename="zins-configure-options.html">
 <TITLE><FILENAME>./configure</> options</>
-<!-- <INDEXTERM><PRIMARY>build</><SECONDARY>configure</><TERTIARY>options</></>
-     <INDEXTERM><PRIMARY>configure</><SECONDARY>options</></>  -->
+<INDEXTERM ID=idx.zins.build.configure.options><PRIMARY>build</><SECONDARY>configure</><TERTIARY>options</></>
+<INDEXTERM ID=idx.zins.configure.options><PRIMARY>configure</><SECONDARY>options</></>
 
 <PARA>
 configure  options of ZMailer package, per version 2.99.50.
@@ -1586,7 +1632,8 @@ The  configure  script has three kinds of parameters for it:
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Used environment variables</TITLE>
+<SECT1 ID=zins.config.envars>
+<TITLE>Used environment variables</TITLE>
 
 <VARIABLELIST TERMLENGTH="99">
 <TITLE>User environment variables</TITLE>
@@ -1645,7 +1692,8 @@ Recycled ZENV variables (from $<VARNAME>ZCONFIG</> file):
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Options for various facilities</TITLE>
+<SECT1 ID=zins.configure.options>
+<TITLE>Options for various facilities</TITLE>
 
 <VARIABLELIST TERMLENGTH="99">
 <TITLE>Options for various facilities</TITLE>
@@ -2037,7 +2085,7 @@ the ``<FILENAME CLASS="DIRECTORY">contrib/</>'' sub-directory.
 </SECT1>
 </CHAPTER>
 
-<CHAPTER><?dbhtml filename="zins-verification.html">
+<CHAPTER ID=ch.zins.verification><?dbhtml filename="zins-verification.html">
 <TITLE>Verifying the System</TITLE>
 
 <PARA>

@@ -82,17 +82,17 @@ Escape character is '^]'.
 <LISTITEM>
 <PARA>
 <CMDSYNOPSIS>
-<COMMAND>smtpserver</>
-<ARG>-46aginvBV</>
-<ARG>-p <REPLACEABLE>port</></>
-<ARG>-l <REPLACEABLE>logfile</></>
-<ARG>-s <OPTION><CONSTANT>'strict'</></></>
-<ARG>-s <REPLACEABLE>[ftveRS]</></ARG>
-<ARG>-L <REPLACEABLE>maxloadaver</></ARG>
-<ARG>-M <REPLACEABLE>SMTPmaxsize</></ARG>
-<ARG>-P <REPLACEABLE>postoffice</></ARG>
-<ARG>-R <REPLACEABLE>router</></ARG>
-<ARG>-C <REPLACEABLE>cfgfile</></ARG>
+ <COMMAND>smtpserver</>
+ <ARG>-46aginvBV</>
+ <ARG>-p <REPLACEABLE>port</></>
+ <ARG>-l <REPLACEABLE>logfile</></>
+ <ARG>-s <OPTION><CONSTANT>'strict'</></></>
+ <ARG>-s <REPLACEABLE>[ftveRS]</></ARG>
+ <ARG>-L <REPLACEABLE>maxloadaver</></ARG>
+ <ARG>-M <REPLACEABLE>SMTPmaxsize</></ARG>
+ <ARG>-P <REPLACEABLE>postoffice</></ARG>
+ <ARG>-R <REPLACEABLE>router</></ARG>
+ <ARG>-C <REPLACEABLE>cfgfile</></ARG>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -607,7 +607,7 @@ elsewere -- at ``{\tt smtp-policy.mx}'', for example.
 
 Who really are our MX clients.
 Use this when you really know them, and don't want just to trust
-that if recipient has MX to you, it would be ok\ldots
+that if recipient has MX to you, it would be ok&hellip;
 
 You can substitute this knowledge with a fuzzy feeling by using
 ``acceptifmx -'' attribute at the generic boilerplate.
@@ -672,7 +672,7 @@ There are any number of attribute-value pairs associated with the key.
 There can be only one key of any kind currently active, unless ``{\em makedb}''
 is called with ``-A'' option (Append mode) in which case latter appearances
 of some keys will yield catenation of of latter data into previous datasets.
-(This may or may not be a good idea\ldots)
+(This may or may not be a good idea&hellip;)
 
 The key can be any of following forms:
 \begin{description}

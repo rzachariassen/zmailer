@@ -12,14 +12,14 @@ allow the privileges expected by common sense.
 
 <PARA>
 The responsibility for implementing this kind of security is split between
-the <EMPHASIS>router</> and the <EMPHASIS>transport agent</> that delivers
+the <COMMAND>router</> and the <EMPHASIS>transport agent</> that delivers
 a message to an address.
 Since it is the Transport Agent that must enforce the security, it needs
 some information to guide it.  Specifically, for each address it delivers
 to, some information about the ``<EMPHASIS>trustworthiness</>'' of that
 address is necessary so that the transport agent can determine which
 privileges it can assume when delivering for that destination.
-This information is determined by the <EMPHASIS>router</>, and passed
+This information is determined by the <COMMAND>router</>, and passed
 to the transport agent in the message control file.
 The specific measure of trustworthiness chosen by ZMailer, is simply
 a numeric user id (uid) value <EMPHASIS>representing the source of
@@ -61,9 +61,9 @@ not be secure. In that case all security is lost.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
 There is a window of vulnerability between when the permissions are
-checked, and the delivery is actually made. This is the best argument
-I have heard so far for embedding the local delivery program
-(currently a separate transport agent) in the <EMPHASIS>router</>.
+checked, and the delivery is actually made.
+This is the best argument for embedding the entire local-aliasing
+into the local-delivery agent program.
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
 </PARA>
@@ -71,27 +71,38 @@ I have heard so far for embedding the local delivery program
 
 <PARA>
 There is also another kind of security that must be addressed.
-That is the mechanism by which the <EMPHASIS>router</> is told
+That is the mechanism by which the <COMMAND>router</> is told
 about the origin of a message.
 This is something that must be possible for the message receiving
 programs (<COMMAND>/bin/rmail</> and the <EMPHASIS>SMTP server</>
 are examples of these) to specify to ZMailer.
-The <EMPHASIS>router</> knows of a list of trusted accounts on the system.
+The <COMMAND>router</> knows of a list of trusted accounts on the system.
 If a message file is owned by one of these user id's, any sender specification
 within the message file will be believed by ZMailer.
 If the message file is not owned by such a trusted account, the
-<EMPHASIS>router</> will cross-check the message file owner with any
+<COMMAND>router</> will cross-check the message file owner with any
 stated <QUOTE><LINK LINKEND="rfc822.from">From:</></> or
 <QUOTE><LINK LINKEND="rfc822.sender">Sender:</></> address 
 in the message header, or any origin specified in the envelope.
 If a discrepancy is discovered, appropriate action will be taken.
-This means that there is no way to forge the origin of a message
-without access to a trusted account.
+This means that there is no way to forge the internal origin of
+a message without access to a trusted account.
 </PARA>
 
 <PARA>
 Trusted accounts are those listed in the ZMailer group or the ``trusted'' 
 variable in the system configuration (<FILENAME>router.cf</>) file.
+</PARA>
+
+<PARA>
+Of course when one uses SMTP protocol to inject email, it is extremely
+easy to ``fake'' any source and destination envelope and visible addresses.
+</PARA>
+
+<PARA>
+The intention of the security mechanisms is not to prevent address faking,
+but to control the privileges which are used to execute pipes, and
+accessing files (read, and write).
 </PARA>
 
 </CHAPTER>

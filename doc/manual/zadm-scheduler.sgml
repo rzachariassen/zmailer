@@ -132,27 +132,27 @@ as a second, minute, hour, or day value.  For example: 1h5m20s.
 The known variables and keywords, and their typical values
 and semantics are:
 <VARIABLELIST>
-<VARLISTENTRY><TERM>interval (1m)</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>interval</> (1m)</TERM><LISTITEM><PARA>
 specifies the primary retry interval, which determines how frequently a 
 transport agent should be scheduled for an address. The value is a delta
 time specification. This value, and the retries value mentioned below, 
 are combined to determine the interval between each retry attempt.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>idlemax</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>idlemax</></><LISTITEM><PARA>
 When a transport agent runs out of jobs, they are moved
 to ``idle pool'', and if a transport agent spends more than idlemax
 time in there, it is terminated.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>expiry (3d)</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>expiry</> (3d)</TERM><LISTITEM><PARA>
 specifies  the  maximum age of an address in the scheduler 
 queue before  a repeatedly  deferred  address  is
 bounced with an expiration error.  The actual report is
 produced when all addresses have been processed.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>retries (1 1 2 3 5 8 13 21 34)</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>retries</> (1 1 2 3 5 8 13 21 34)</TERM><LISTITEM><PARA>
 specifies the retry interval policy  of the scheduler 
 for an address. The value must be a sequence of positive integers, these 
 being multiples of the primary interval  before  a  retry is scheduled. 
@@ -164,43 +164,43 @@ This allows various retry strategies to be specified easily:
 <VARLISTENTRY><TERM>
 brute force (or ``jackhammer'')
 </TERM><LISTITEM><PARA>
-retries=0
+<USERINPUT>retries=0</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>
 constant primary interval
 </TERM><LISTITEM><PARA>
-retries=1
+<USERINPUT>retries=1</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>
 instant backoff
 </TERM><LISTITEM><PARA>
-retries="1 50 50 50 50 50 50 50 50 50 50 50 50"
+<USERINPUT>retries="1 50 50 50 50 50 50 50 50 50 50 50 50"</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>
 slow increasing (fibonacci) sequence
 </TERM><LISTITEM><PARA>
-retries="1 1 2 3 5 8 13 21 34"
+<USERINPUT>retries="1 1 2 3 5 8 13 21 34"</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>
 s-curve sequence
 </TERM><LISTITEM><PARA>
-etries="1 1 2 3 5 10 20 25 28 29 30"
+<USERINPUT>etries="1 1 2 3 5 10 20 25 28 29 30"</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>
 exponential sequence
 </TERM><LISTITEM><PARA>
-retries="1 2 4 8 16 32 64 128 256"
+<USERINPUT>retries="1 2 4 8 16 32 64 128 256"</>
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>maxta (0)</TERM><LISTITEM><PARA>
-FIXME: REVISE RESOURCE CHECK NOTES!
+<VARLISTENTRY><TERM><OPTION>maxta</> (0)</TERM><LISTITEM><PARA>
+<EMPHASIS>FIXME: REVISE RESOURCE CHECK NOTES!</>
 if retrying an address would cause the number of simultaneously active
 transport agents to exceed the specified value, the retry is postponed.
 The check is repeated frequently so the address may be retried as soon
@@ -214,7 +214,7 @@ On a system with a maximum of 256 open files, this would most likely
 succeed at 120.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>maxchannel (0)</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>maxchannel</> (0)</TERM><LISTITEM><PARA>
 if retrying an address would cause the number of 
 simultaneously  active  transport agents processing mail for
 the same channel to exceed  the  specified  value,  the
@@ -224,7 +224,7 @@ the  scheduled  retry  interval.   If the value is 0, a
 value of 1000 is used instead.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>maxring (0)</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>maxring</> (0)</TERM><LISTITEM><PARA>
 Recipients are groupped into ``threads'',  and  similar
 threads  are groupped into ``thread-rings'', where the same
 transport agent can be switched over from one recipient
@@ -232,7 +232,7 @@ to another.  This defines how many transport agents can
 be running at any time at the ring.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>skew (5)</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>skew</> (5)</TERM><LISTITEM><PARA>
 is the maximum number of retries before the retry  time
 is aligned to a standard boundary (seconds since epoch,
 modulo primary interval).  The lower this number (1  is
@@ -242,42 +242,43 @@ transport agent invokation will be able to process
 destination addresses that arrived randomly at the  scheduler.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>user (root)</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>user</> (root)</TERM><LISTITEM><PARA>
 is  the  user  id  of  a transport agent processing the
 address.  The value is either numeric  (a  uid)  or  an
 account name.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>group (daemon)</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>group</> (daemon)</TERM><LISTITEM><PARA>
 is  the  group  id  of a transport agent processing the
 address.  The value is either  numeric  (a  gid)  or a
 group name.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>command (smtp -srl ${LOGDIR}/smtp ${host}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>command</> (smtp -srl ${LOGDIR}/smtp ${host}</TERM><LISTITEM><PARA>
 is the command line used to start a transport agent to process the address.
 The program pathname is specified relative to the
 <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/ta/</> directory.
 The string ``${channel}'' is replaced by the current matched channel,
 and ``${host}'' is replaced by the current matched host, from
-the destination address, and ``${LOGDIR}'' substitutes ZENV variable
-LOGDIR value there.
+the destination address, and ``${<VARNAME>LOGDIR</>}'' substitutes ZENV
+variable <VARNAME>LOGDIR</> value there.
 </PARA><PARA>
-It is strongly recommended that the ``${host}'' is not to be used on
-a command definition, as it limits the recyclability of the idled transporter.
+It is strongly recommended that the ``<LITERAL>${host}</>'' is not to be
+used on command definition, as it limits the recyclability of the idled
+transporter.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>bychannel</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>bychannel</></TERM><LISTITEM><PARA>
 is a keyword (with no associated value which tells the <COMMAND>scheduler</>
 that the transport agent specified in the command will only process
 destination addresses that match the first destination channel it encounters.
 </PARA><PARA>
-This is automatically set when the string ``${channel}'' occurs in
-the command, but may also be specified manually.
+This is automatically set when the string ``<LITERAL>${channel}</>''
+occurs in the command, but may also be specified manually.
 This is rarely used.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>queueonly</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>queueonly</></TERM><LISTITEM><PARA>
 a clause with queueonly flag does not auto-start at the arrival of a message,
 instead it must be started by means of <COMMAND>smtpserver</>(8) command
 ETRN thru an SMTP connection.

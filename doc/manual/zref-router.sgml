@@ -1207,7 +1207,7 @@ entries and maximum size, flags, and associated files. See the
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-<TABLE FRAME=ALL ID=tbl-zref-router-db-type-specific-notes>
+<INFORMALTABLE FRAME=ALL ID=tbl-zref-router-db-type-specific-notes>
 <TITLE>DB type specific notes:</TITLE>
 <TGROUP COLS=6 ALIGN=LEFT COLSEP=1 ROWSEP=1>
 <COLSPEC COLNAME=C1-DBTYPE-NAME>
@@ -1334,7 +1334,7 @@ entries and maximum size, flags, and associated files. See the
 </ROW>
 </TBODY>
 </TGROUP>
-</TABLE>
+</INFORMALTABLE>
 
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1382,6 +1382,10 @@ none
 
 The access function to the database facilities in the 
 <COMMAND>router</>.
+
+</PARA><PARA>
+
+<EMPHASIS>FIXME! Notes about %[0-9] substitution rules, and their controls.</>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>

@@ -689,7 +689,7 @@ MTA comparison experiment report at
 
 <FIGURE PGWIDE=1 FLOAT=1>
 <TITLE>MTA feature comparisons</TITLE>
-<TABLE FRAME=ALL ID=tbl.ztut-mta-feature-comparisons>
+<INFORMALTABLE FRAME=ALL ID=tbl.ztut-mta-feature-comparisons>
 <TGROUP COLS=4 ALIGN=LEFT COLSEP=1 ROWSEP=1>
 <COLSPEC COLNAME=C1-MTANAME>
 <COLSPEC COLNAME=C2-DNS-CONC>
@@ -750,7 +750,8 @@ MTA comparison experiment report at
 </ROW>
 </TBODY>
 </TGROUP>
-</TABLE>
+</INFORMALTABLE>
+</FIGURE>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>DNS Concurrency</TERM>

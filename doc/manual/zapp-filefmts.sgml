@@ -150,7 +150,7 @@ This should <EMPHASIS>only</> be used on messages that are originated
 thru ``trusted'' mechanisms, and especially <EMPHASIS ROLE="BOLD">not</>
 be used when the message is originated by some John Doe in the system.
 (E.g. this is reserved for <EMPHASIS>smtpserver</> and friends, not
- for arbitary users.)
+ for arbitrary users.)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>to <EMPHASIS>``address-list''</></TERM>

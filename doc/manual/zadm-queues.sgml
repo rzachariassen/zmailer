@@ -1,13 +1,55 @@
 <CHAPTER ID="ZADM-THE-QUEUE"><?dbhtml filename="zadm-queues.html">
 <TITLE>The Queue</TITLE>
 
+<PARA>
+Normal processing within ZMailer goes via directories described at
+<XREF LINKEND=fig.zadm.zmdirs>.
+A message <EMPHASIS>may</> get sidelined or copied to other directories
+for several possible reasons.
+</PARA>
 
-<SCREEN>
-\fbox{\bf **Picture of queues**}
-\medskip\hrule\medskip
-\caption{ZMailer's queue structure}
-\label{fig:adm:queues1}
-</SCREEN>
+<IMPORTANT>
+<PARA>
+<EMPHASIS>
+A filesystem without following two properties is not suitable for ZMailer's
+</EMPHASIS>
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>:
+<ITEMIZEDLIST>
+<LISTITEM><PARA><EMPHASIS>
+Files must succeed to be <FUNCTION>link</>(2):ed in between directories
+within the filesystem without copying them.
+</EMPHASIS></PARA></LISTITEM>
+<LISTITEM><PARA><EMPHASIS>
+The file i-node numbers must not change with <FUNCTION>rename</>(2) or
+<FUNCTION>link</>(2) calls applied to them.
+</EMPHASIS></PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
+
+<PARA>
+The <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</> directory must be
+a single partition within which files can be <FUNCTION>link</>(2)ed from one
+directory to another, as well as moved around with <FUNCTION>rename</>(2).
+</PARA>
+
+<PARA>
+People have asked several times if e.g.
+ <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/public/</>, and
+ <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>
+could be at separate partitions.  No they can't!
+</PARA>
+</IMPORTANT>
+
+<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadm.zmdirs>
+  <TITLE ID=figtit.zadm.zmdirs>
+    Directories that ZMailer uses for message processing.
+  </TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmdirs.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
+</FIGURE>
 
 <PARA>
 There are multiple queues in ZMailer. Messages exist in
@@ -75,11 +117,11 @@ which give lower priorities on which messages to process when.
 <PARA>
 Sometimes, especially <COMMAND>smtpserver</> built files may be moved
 into alternate directories.
-The smtpserver <QUOTE>ETRN</> command has two implementations, original one
-is by moving the built special file to the directory
-  <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>
+The <COMMAND>smtpserver</> <QUOTE>ETRN</> command has two implementations,
+original one is by moving the built special file to the directory
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>
 without going through the <COMMAND>router</>.
-The smtpserver may also move newly arrived files into the
+The <COMMAND>smtpserver</> may also move newly arrived files into the
   <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/freezer/</>
 directory.
 </PARA>
@@ -265,8 +307,9 @@ Usually forementioned underscoreless filenames
 </PARA>
 
 <PARA>
-If the  smtpserver  receives a message with content that the policy filtering
-system decides to be dubious, it can move the message into
+If the <COMMAND>smtpserver</> receives a message with content that
+the <EMPHASIS>policy filtering</> system decides to be dubious,
+it can move the message into
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/freezer/</> directory
 with a bit explanatory name of type:
 <SCREEN>
@@ -275,9 +318,10 @@ with a bit explanatory name of type:
 </PARA>
 
 <PARA>
-The files in the freezer-area are in the input format to the router, and
-as of this wiring, there are no tools to automatically process them for
-obvious spams, and just those that were falsely triggered.
+The files in the freezer-area are in the input format to
+the <COMMAND>router</>, and as of this wiring, there are no tools
+to automatically process them for obvious spams, and just those
+that were falsely triggered.
 </PARA>
 </SECT1>
 </CHAPTER>
