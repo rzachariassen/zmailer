@@ -1,3 +1,18 @@
+2003-06-24  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, scheduler/mailq.inc, scheduler/mailq.c,
+	  scheduler/mq2.c:
+	    Auto-config test to find  getloadavg()  function (BSD, Solaris 8,
+	    Linux, ... a de-facto API for this data, in libc !)  and to print
+	    1 and 5 minute load-averages into the scheduler's "mailq -M"
+	    report.
+
+	* transports/libta/diagnostic.c, transports/smtp/getmxrr.c:
+	    Moving variable declarations around a bit, and not doing
+	    initializations for NULLs/zeroes, thus letting things
+	    to be placed into BSS instead of initialized read/write
+	    data segment.
+
 2003-06-22  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/mimeheaders.c:

@@ -22,6 +22,9 @@
 # include <sys/select.h>
 #endif
 
+#ifdef HAVE_SYS_LOADAVG_H
+#include <sys/loadavg.h>
+#endif
 
 #if	defined(BSD4_3) || defined(sun)
 #include <sys/file.h>
@@ -669,7 +672,7 @@ static int mq2cmd_kill(mq,s)
      struct mailq *mq;
      char *s;
 {
-  char *t = s, *u;
+  char *t = s;
 
   if (!(mq->auth & MQ2MODE_KILL)) {
     mq2_puts(mq, "-No KILL allowed for you.\n");

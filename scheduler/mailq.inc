@@ -33,6 +33,27 @@ Do note that it may well be from before last system boot,
 as this is backed on mmap(2)ed file.
 </DESC></VAR>*/
 
+#ifdef HAVE_GETLOADAVG
+{
+  double loadavg[3];
+  int rc = getloadavg(loadavg, 3);
+  if (rc > 0)
+    sfprintf(fp,"SYS.Load-Avg-1-min-G                %6.2lf\n",
+	     loadavg[0]);
+/*<VAR><NAME>SYS.Load_Avg-1-min-G</NAME><DESC>
+At systems with  getloadavg(3) API, shows 1 minute load-average
+as a fixed point fractional number.
+</DESC></VAR>*/
+  if (rc > 1)
+    sfprintf(fp,"SYS.Load-Avg-5-min-G                %6.2lf\n",
+	     loadavg[1]);
+/*<VAR><NAME>SYS.Load_Avg-5-min-G</NAME><DESC>
+At systems with  getloadavg(3) API, shows 5 minute load-average
+as a fixed point fractional number.
+</DESC></VAR>*/
+}
+#endif
+
   sfprintf(fp,"\n");
 
 

@@ -55,10 +55,10 @@ int ta_logs_diagnostics = 1;
   EX_TEMPFAIL - always.. and hope the TA caller understands to exit..
   
 */
-int zmalloc_failure = 0;
+int zmalloc_failure; /* For 0/NULL values: let BSS handle it */
 
-char *notarybuf = NULL;
-time_t retryat_time = 0; /* Used at SMTP to avoid trying same host too soon.. */
+static char *notarybuf;
+time_t retryat_time; /* Used at SMTP to avoid trying same host too soon.. */
 
 const char *
 notaryacct(rc,okstr)
@@ -88,9 +88,9 @@ const char *okstr;
 	}
 }
 
-static char *wtthost = NULL; /* NOTARY wtthost: 'While-Talking-To -host' */
-static char *wttip   = NULL;
-static char *wtttaid = NULL;
+static char *wtthost; /* NOTARY wtthost: 'While-Talking-To -host' */
+static char *wttip;
+static char *wtttaid;
        int   wtttaidpid = -1;
 CONVERTMODE wttcvtmode = _CONVERT_UNKNOWN;
 
@@ -132,20 +132,19 @@ const char *ip;
 	  wttip = NULL;
 }
 
-static int xdelay = 0;
+static int xdelay;
 void notary_setxdelay(xdly)
 int xdly;
 {
 	xdelay = xdly;
 }
 
-static char *A1 = NULL, *A2 = NULL, *A3 = NULL, *A4 = NULL;
-
 void
 notaryreport(arg1,arg2,arg3,arg4)
      const char *arg1, *arg2, *arg3, *arg4;
 {
 	int len;
+	static char *A1, *A2, *A3, *A4;
 
 	if (arg1) {
 	  if (A1) free(A1);

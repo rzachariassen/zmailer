@@ -38,6 +38,10 @@ unsigned short \fIremote\fP;
 .br
 int \fItimeout\fP;
 .SH DESCRIPTION
+.I Actually should talk about 'identification',
+.I there is no definite authentication
+.I in here..
+.PP
 The
 .B authuser
 library provides a simple interface for

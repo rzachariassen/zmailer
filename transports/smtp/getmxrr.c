@@ -13,7 +13,7 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize, realnamettlp)
 	const char *host;
 	struct mxdata mx[];
 	int maxmx, depth;
-	char realname[1024];
+	char *realname;
 	const int realnamesize;
 	time_t *realnamettlp;
 {

@@ -59,8 +59,8 @@ It may be some program (like procmail), or it may be another address.
 Some examples for user "user":
 .PP
 .RS
-\fC "\\user", "|/path/to/vacation"
-\fC "\\user", another@address
+\fC "user", "|/path/to/vacation"
+\fC "user", another@address
 .RE
 .PP
 BSD-Sendmail lets those addresses be written without quotes,

@@ -1516,6 +1516,29 @@ AC_CHECK_FUNCS(getifaddrs freeifaddrs)
 AC_CHECK_HEADERS(locale.h)
 AC_CHECK_FUNCS(setlocale)
 
+AC_CHECK_HEADERS(sys/loadavg.h) dnl Solaris 8, BSD uses <stdlib.h>
+AC_CHECK_FUNCS(getloadavg) dnl BSDs and Solaris 8, at least..
+
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+[[#ifdef HAVE_SYS_LOADAVG_H
+#include <sys/loadavg.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+int tester()
+{
+    double loads[3];
+    return getloadavg(loads, 3);
+}
+]])],[
+	AC_DEFINE(HAVE_GETLOADAVG,1,[BSD-style load-avg pickup])
+	AC_MSG_RESULT([Have BSD-style  getloadavg(double [3], int)  function])
+    ],[
+	AC_MSG_RESULT([No  getloadavg(double[3],int)  type of function ?])
+    ])
+
+
 #
 # Test to see, if we have BSD4.4  sa_len -field in the "struct sockaddr*"
 #

@@ -58,6 +58,9 @@
 # endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
 
+#ifdef HAVE_SYS_LOADAVG_H
+#include <sys/loadavg.h>
+#endif
 
 #include <netdb.h>
 #ifndef EAI_AGAIN

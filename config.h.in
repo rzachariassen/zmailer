@@ -186,6 +186,9 @@
 /* Define to 1 if you have the `getifaddrs' function. */
 #undef HAVE_GETIFADDRS
 
+/* BSD-style load-avg pickup */
+#undef HAVE_GETLOADAVG
+
 /* Define to 1 if you have the `getmntent' function. */
 #undef HAVE_GETMNTENT
 
@@ -513,6 +516,9 @@
 
 /* Define to 1 if you have the <sys/ipc.h> header file. */
 #undef HAVE_SYS_IPC_H
+
+/* Define to 1 if you have the <sys/loadavg.h> header file. */
+#undef HAVE_SYS_LOADAVG_H
 
 /* Define to 1 if you have the <sys/mount.h> header file. */
 #undef HAVE_SYS_MOUNT_H
