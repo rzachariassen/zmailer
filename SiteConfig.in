@@ -49,9 +49,9 @@ LOGDIR=		@LOGDIR@
 # prefix per autoconfig:
 prefix=		@prefix@
 
-# MANDIR is the top of the manual directory hierarchy where manual pages
-# for the ZMailer programs are installed.  Usually /usr/man or /local/man.
-MANDIR=		@MANDIR@
+## MANDIR is the top of the manual directory hierarchy where manual pages
+## for the ZMailer programs are installed.  Usually /usr/man or /local/man.
+#MANDIR=	@mandir@
 
 # LIBRARYDIR is the place for storing  libzmailer.a, which can be used to
 # create programs which use Zmailer's  zmailer(3) (aka: mail(3)) -library.

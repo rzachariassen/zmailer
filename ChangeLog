@@ -1,3 +1,20 @@
+2003-04-15  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c:
+	    "RSET" processing didn't -- various MAIL FROM related
+	    state variables were reset before the optional "RSET"
+	    protocol exchange was done, and thus in some cases
+	    PIPELINEd processing did lead to undesirable behaviour.
+	    This bug was introduced on  2003-02-14   in order to fix
+	    scattered around RSET code paths so that there will always
+	    be an RSET, when there is need for it.  Urgh.
+	    
+	    It appeared when a message was tried to send in the
+	    connection right after something needing that RSET;
+	    thanks to reports about "there seem to be multiple
+	    messages to these troublesome destinations" for finally
+	    finding this.
+
 2003-04-14  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
