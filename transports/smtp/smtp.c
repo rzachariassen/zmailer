@@ -1789,7 +1789,10 @@ deliver(SS, dp, startrp, endrp)
 	     packet retransmission, and nagle-merge... */
 
 	  report(SS, "DATA-flush (wait)");
-	  if (SS->smtpfp && !sferror(SS->smtpfp)) sfsync(SS->smtpfp);
+	  if (SS->smtpfp) sfsync(SS->smtpfp);
+	  /* To prevent the system internal auto-nagle from
+	     combining two successive writes, sleep a bit here! */
+	  sleep(1);
 
 	  report(SS, "DATA-dot wait");
 	  r = smtpwrite(SS, 1, ".", lmtp_mode, NULL);
