@@ -1,6 +1,9 @@
 /*
  *	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *
+ *	Fixes done by Matti Aarnio <mea@nic.funet.fi>, and at least
+ *	Zack at <zack@bitmover.com>.
  */
 
 #include "hostenv.h"
@@ -132,10 +135,11 @@ hdr_status(cp, lbuf, n, octo)
  * the typical example. Comments may be recursive.
  */
 
-extern u_long _hdr_compound __((const char *, long, int, int, TokenType,
-				token822 *, token822 **, token822 **));
+static u_long _hdr_compound __((const char *cp, long n, int cstart, int cend,
+				TokenType type, token822 *tp,
+				token822 **tlist, token822 **tlistp));
 
-u_long
+static u_long
 _hdr_compound(cp, n, cstart, cend, type, tp, tlist, tlistp)
 	register const char *cp;
 	long	n;
@@ -201,7 +205,8 @@ nextline:
 
 /* Unfold (see RFC822) the contents of a compound token */
 
-const char *
+static const char * _unfold __((int, const char *, const char **, token822*));
+static const char *
 _unfold(len, start, cpp, t)
 	int len; /* Total length to unfold */
 	const char *start;
@@ -320,17 +325,15 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 			len = _hdr_compound(cp, n, *cp, cend,
 					    type, &t, &tlist, tlistp);
 			if (ot != NULL && tlistp != NULL && ot != *tlistp) {
-#if 0
+
 			  /* a compound token crossed line boundary */
-			  (*cpp) = ((*tlistp)->t_pname +
-				    TOKENLEN(*tlistp) - n);
-#endif
 			  /* copy from ++cp for len chars */
 			  t.t_pname = _unfold(len, ++cp, cpp, ot);
 			  t.t_len   = strlen(t.t_pname);
 			  /* compensate for calculations below */
 			  (*cpp)  -= t.t_len;
 			  t.t_len += n;
+
 			} else {
 				if (t.t_pname != NULL)
 					/* magic sign, no ending char */
