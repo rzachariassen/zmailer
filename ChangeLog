@@ -1,3 +1,10 @@
+2004-09-07  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/mxverify.c:
+	    Source DNS verification went into woods a bit...
+	    If the intention is to accept the MAIL FROM, if
+	    it has just any DNS data, do so.
+
 2004-09-06  Matti Aarnio  <mea@zmailer.org>
 
 	* include/mailer.h, include/libz.h, lib/rfc822scan.c,

@@ -248,8 +248,8 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	}
 
 	if (debug)
-	  printf("000-  nscount=%d (== 0 ?)  arcount=%d cp<eom ? (%d)\n",
-		 nscount, arcount, cp < eom);
+	  printf("000-  nscount=%d (== 0 ?)  arcount=%d  eom-cp=%d\n",
+		 nscount, arcount, eom-cp);
 
 	/* Ok, can continue to pick the ADDITIONAL SECTION data */
 
@@ -500,6 +500,9 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 
 	if (had_mx_record && mxmode)
 	    return 2; /* We have SOME date, but no match on ourselves! */
+
+	if (!mxmode)
+	  return 1; /* Accept anything! */
 
 	return 0; /* No match, but had MXes.. */
 
