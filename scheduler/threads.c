@@ -778,7 +778,7 @@ struct thread *thr;
 	}
 
       re_pick:
-	if (thg->idleproc != NULL) {
+	if (thg->idleproc) {
 	  struct procinfo *proc, **ipp;
 
 	  /* Idle processor(s) exists, try to optimize by finding
@@ -1334,7 +1334,7 @@ idle_cleanup()
 
 	  if (idleprocs == 0) return 0; /* If no idle ones, no cleanup.. */
 
-	  if (thg->idleproc != NULL) {
+	  if (thg->idleproc) {
 	    int idlecnt = 0;
 	    int newidlecnt = 0;
 	    struct procinfo *p, **pp;
@@ -1352,7 +1352,7 @@ idle_cleanup()
 		   Rest of the cleanup happens via mux() service. */
 		if (verbose)
 		  sfprintf(sfstdout,"idle_cleanup() killing TA on tofd=%d pid=%d\n",
-			 p->tofd, (int)p->pid);
+			   p->tofd, (int)p->pid);
 		write(p->tofd,"\n",1);
 		pipes_shutdown_child(p->tofd);
 		p->tofd       = -1;

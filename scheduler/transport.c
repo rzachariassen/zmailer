@@ -366,6 +366,11 @@ ta_hungry(proc)
 
 	  /* ASSERT(proc->overfed == 0) ???? */
 
+	  if (proc->overfed < 0) {
+	    proc->overfed = 0;
+	    return;
+	  }
+
 	  if (verbose) sfprintf(sfstdout," ... IDLE THE PROCESS %p (of=%d).\n",
 				proc, proc->overfed);
 	  proc->pthread = NULL;
