@@ -1301,6 +1301,7 @@ void resync_file(proc, file)
 
 	newcfp = schedule(fd, file, ino, 1);
 
+#if 0
 	if (newcfp != NULL) {
 	  /* ????  What ever, it succeeds, or it fails, all will be well */
 
@@ -1322,13 +1323,15 @@ void resync_file(proc, file)
 	  } else
 	    sfprintf(sfstdout," .. resynced!\n");
 
-	} else {
+	} else
+#endif
+	  {
 
-	  sfprintf(sfstdout," .. NOT resynced!\n");
-	  /* Sigh.. Throw everything away :-( */
-	  oldcfp->id = ino;
-	  cfp_free(oldcfp, NULL);
-	}
+	    sfprintf(sfstdout," .. NOT resynced!\n");
+	    /* Sigh.. Throw everything away :-( */
+	    oldcfp->id = ino;
+	    cfp_free(oldcfp, NULL);
+	  }
 }
 
 
