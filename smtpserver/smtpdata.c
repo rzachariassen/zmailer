@@ -79,7 +79,8 @@ const char *buf, *cp;
     int filsiz;
     long tell = 0;
     time_t mtime;
-    int ino, i;
+    long ino;
+    int i;
     char msg[2048];
 
     while (!strict_protocol && (*cp == ' ' || *cp == '\t')) ++cp;

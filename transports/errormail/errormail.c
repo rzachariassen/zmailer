@@ -1,6 +1,8 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *	Copyright 1992-2001 Matti Aarnio -- this & that smaller, and
+ *	larger changes...
  */
 
 #include "hostenv.h"
@@ -280,6 +282,10 @@ process(dp)
 
 	sfprintf(mfp, "todsn NOTIFY=NEVER ORCPT=RFC822;");
 	encodeXtext(mfp, rp->addr->link->user, strlen(rp->addr->link->user));
+
+	if (STREQ(rp->addr->link->channel,"error"))
+	  rp->addr->link->user = "";
+
 	sfprintf(mfp, "\nto <%s>\n",rp->addr->link->user);
 
 	/* copy error message file itself */
@@ -441,11 +447,17 @@ process(dp)
 	if (sferror(mfp)) {
 	  sfmail_abort(mfp);
 	  n = EX_IOERR;
-	} else if (sfmail_close(mfp) == EOF)
+	} else if (_sfmail_close_(mfp, &ino, &mtime) == EOF)
 	  n = EX_IOERR;
 	else
 	  n = EX_OK;
-	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
-	  diagnostic(rp, n, 0, (char *)NULL);
+	{
+	  /* Ok, build response with proper "spoolid" */
+	  char taspid[30];
+	  taspoolid(taspid, mtime, inum);
+
+	  for (rp = dp->recipients; rp != NULL; rp = rp->next) {
+	    diagnostic(rp, n, 0, taspid);
+	  }
 	}
 }

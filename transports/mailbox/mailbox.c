@@ -1945,9 +1945,17 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	  hdrs = has_header(rp,"X-Orcpt:");
 	  if (hdrs) delete_header(rp,hdrs);
 	} while (hdrs);
+	do { /* RFC 2298 section  2.3 */
+	  hdrs = has_header(rp,"Original-Recipient:");
+	  if (hdrs) delete_header(rp,hdrs);
+	} while (hdrs);
 
 	do {
 	  hdrs = has_header(rp,"X-Envid:");
+	  if (hdrs) delete_header(rp,hdrs);
+	} while (hdrs);
+	do {
+	  hdrs = has_header(rp,"Envelope-Id:");
 	  if (hdrs) delete_header(rp,hdrs);
 	} while (hdrs);
 
@@ -1970,9 +1978,18 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	  sfprintf(fp, "X-Orcpt: ");
 	  decodeXtext(fp, rp->orcpt);
 	  sfprintf(fp, "\n");
+
+	  /* RFC 2298: section 2.3 */
+	  sfprintf(fp, "Original-Recipient: ");
+	  decodeXtext(fp, rp->orcpt);
+	  sfprintf(fp, "\n");
 	}
 	if (!failed && dp->envid) {
 	  sfprintf(fp, "X-Envid: ");
+	  decodeXtext(fp, dp->envid);
+	  sfprintf(fp, "\n");
+
+	  sfprintf(fp, "Envelope-Id: ");
 	  decodeXtext(fp, dp->envid);
 	  sfprintf(fp, "\n");
 	}
