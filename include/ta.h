@@ -3,7 +3,7 @@
  *	This will be free software, but only when it is finished.
  */
 /*
- *	A plenty of changes, copyright Matti Aarnio 1990-1999
+ *	A plenty of changes, copyright Matti Aarnio 1990-2001
  */
 
 #ifndef _Z_TA_H_
@@ -60,6 +60,7 @@ struct rcpt {
 	const char	*inrcpt;	/* "DSN" INRCPT= string */
 	const char	*infrom;	/* "DSN" INFROM= string */
 	const char	*notify;	/*  DSN  NOTIFY= flags  */
+	const char	*ezmlm;		/* "DSN" EZMLM=  string */
 	int		notifyflgs;
 	time_t		deliverby;	/*  RFC 2852  DELIVERBY */
 	int		deliverbyflgs;

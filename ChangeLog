@@ -1,3 +1,20 @@
+2001-02-26  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* utils/listexpand.c, transports/smtp/smtp.c, include/ta.h,
+	  transports/libta/ctlopen.c:
+	    Implemented "EZMLM-alike" listexpander which does
+	    the envelope MAIL FROM address content rewrite at
+	    tne outgoing SMTP session.  This is done with 'DSN'
+	    dataentry  EZMLM=  which is presumed to have valid
+	    stuff to be appended to the localpart of the address
+	    envelope:  '+recipient=40address.dom', for example.
+
+	    When compared with more classical approach, this does
+	    message routing in system-friendly way, and only changes
+	    the output stage slightly.  (At classical case the message
+	    is expanded for each recipient, say 3000 copies of 60 kB
+	    each..  This mechanism is way faster.)
+
 2001-02-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* smtpserver/smtpcmds.c:
@@ -73,7 +90,7 @@
 
 	* router/functions.c:
 	    At  $(listaddresses ..) and $(listexpand ..)  functions,
-	    support "%1@.." type substitutions with '-l' option.
+	    support '"%1"@..' type substitutions with '-l' option.
 	    I am now considering this *wrong* approach, and am doing
 	    more sendmailish approach to %N substitutions.
 

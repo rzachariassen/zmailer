@@ -1181,13 +1181,43 @@ deliver(SS, dp, startrp, endrp)
 	  size = -1;
 	SS->msize = size;
 
+	strcpy(SMTPbuf, "MAIL From:<");
 	if (STREQ(startrp->addr->link->channel,"error"))
-	  sprintf(SMTPbuf, "MAIL From:<>");
-	else
-	  sprintf(SMTPbuf, "MAIL From:<%.1000s>", startrp->addr->link->user);
-	if (SS->ehlo_capabilities & ESMTP_8BITMIME)
-	  strcat(SMTPbuf, " BODY=8BITMIME");
+	  strcpy(SMTPbuf+11, ">");
+	else if (startrp->ezmlm) {
+	  char *p = SMTPbuf+11;
+	  const char *u;
+	  int quote = 0;
+	  u = startrp->addr->link->user;
+	  for ( ; *u; ++u) {
+	    char c = *u;
+	    if (c == '\\') {
+	      *p++ = c; ++u;
+	      if (*u == 0) break;
+	      *p++ = *u;
+	      continue;
+	    }
+	    if (c == quote) /* 'c' is non-zero here */
+	      quote = 0;
+	    else if (c == '"')
+	      quote = '"';
+	    else if (!quote && (c == '@'))
+	      break;
+	    *p++ = c;
+	  }
+	  if (*u == '@') {
+	    strcpy(p, startrp->ezmlm);
+	    p += strlen(p);
+	  }
+	  strcpy(p, u);
+	} else
+	  sprintf(SMTPbuf+11, "%.1000s>", startrp->addr->link->user);
+
 	s = SMTPbuf + strlen(SMTPbuf);
+	if (SS->ehlo_capabilities & ESMTP_8BITMIME) {
+	  strcpy(s, " BODY=8BITMIME");
+	  s += strlen(s);
+	}
 
 	/* Size estimate is calculated in the  ctlopen()  by
 	   adding msg-body size to the largest known header size,
@@ -1271,6 +1301,17 @@ deliver(SS, dp, startrp, endrp)
 	for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 
 	  if (++rcpt_cnt >= SS->rcpt_limit) {
+	    /* Limit Count full */
+	    more_rp = rp->next;
+	    rp->next = NULL;
+	  }
+	  if (rp->ezmlm) {
+	    /* THIS recipient is EZMLM one */
+	    more_rp = rp->next;
+	    rp->next = NULL;
+	  }
+	  if (!rp->ezmlm && rp->next && rp->next->ezmlm) {
+	    /* THIS recipient isn't EZMLM one, but NEXT one is! */
 	    more_rp = rp->next;
 	    rp->next = NULL;
 	  }
@@ -1780,7 +1821,7 @@ deliver(SS, dp, startrp, endrp)
 
 
 	/* More recipients to send ? */
-	if (r == EX_OK && more_rp != NULL && !getout)
+	if (r == EX_OK && more_rp && !getout)
 	  goto more_recipients;
 
 	SS->cmdstate = SMTPSTATE_DATADOTRSET;

@@ -4,7 +4,7 @@
  *  Routine to scan over a string representing a VALID RFC-821 address
  *  with embedded white-space in it
  *
- *  Copyright Matti Aarnio 1996
+ *  Copyright Matti Aarnio 1996, 2001
  *
  */
 
@@ -19,6 +19,7 @@ char *skip821address(s)
       ++s;
       if (*s == 0)
 	break;
+      continue,
     }
     if (c == quote) /* 'c' is non-zero here */
       quote = 0;

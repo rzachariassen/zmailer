@@ -133,8 +133,6 @@ main(argc,argv)
 	  --argc;
 	}
 
-	if (bundlesize > 1) ezmlmalike = 0;
-
 	if (argc < 3 || argc > 4)
 	  usage();
 	if ((addrfile = fopen(argv[2],"r")) == NULL)
@@ -252,15 +250,12 @@ for (i = 0; i < rcpts_count; ++i)
 	    mfp = mail_open(MSG_RFC822);
 	  if (!mfp) exit(EX_CANTCREAT); /* ??? */
 
-	  if (!debug)
-	    fprintf(mfp,"via listexpand\n");
+	  fprintf(mfp,"via listexpand\n");
 
 	  if (argv[1][0] == 0 || argv[1][0] == ' ')
 	    fprintf(mfp,"channel error\n");
 	  else {
-	    fprintf(mfp,"from %s",argv[1]);
-	    if (!ezmlmalike)
-	      fprintf(mfp,"\n");
+	    fprintf(mfp,"from %s\n",argv[1]);
 	  }
 
 	  /* Up to BUNDLESIZE recipient addresses */
@@ -270,21 +265,6 @@ for (i = 0; i < rcpts_count; ++i)
 	    s = rcpts[rcpts_space].address;
 	    ++rcpts_space;
 	    RFC821_822QUOTE(newcp,s);
-
-	    if (ezmlmalike) {
-	      putc('+', mfp);
-	      for (p = s; *p; ++p) {
-		u_char c = *p;
-	      if (('0' <= c && c <= '9') ||
-		  ('A' <= c && c <= 'Z') ||
-		  ('a' <= c && c <= 'z') ||
-		  ('.' == c) || ('-' == c) || (c == '_')) {
-		putc(c, mfp);
-	      } else
-		fprintf(mfp, "=%02X", c);
-	      }
-	      fprintf(mfp, "\n");
-	    }
 
 	    /* FIRST 'todsn', THEN 'to' -header! */
 	    fprintf(mfp, "todsn ORCPT=rfc822;");
@@ -299,6 +279,21 @@ for (i = 0; i < rcpts_count; ++i)
 	    /* if (notify)
 	       fprintf(mfp," NOTIFY=%s", notify);
 	       */
+	    if (ezmlmalike) {
+	      int prevc = 0;
+	      fprintf(mfp, " EZMLM=+");
+	      for (p = s; *p; ++p) {
+		u_char c = *p;
+		if (('0' <= c && c <= '9') ||
+		    ('A' <= c && c <= 'Z') ||
+		    ('a' <= c && c <= 'z') ||
+		    ('.' == c && c != prevc) || ('-' == c) || (c == '_')) {
+		  putc(c, mfp);
+		} else
+		  fprintf(mfp, "=%02X", c);
+		prevc = c;
+	      }
+	    }
 	    putc('\n',mfp);
 	    fprintf(mfp,"to %s\n",s);
 	  } /* End of recipient address printing */

@@ -2,7 +2,7 @@
  *  vacation -- originally BSD vacation by Eric Allman,
  *
  *  Adapted to ZMailer by Rayan Zachariassen, and further
- *  modified by Matti Aarnio over years 1988(?) thru 1998.
+ *  modified by Matti Aarnio over years 1988(?) thru 2000.
  */
 
 #include "mailer.h"

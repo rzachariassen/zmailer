@@ -492,8 +492,9 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	    rp->lockoffset = rp->id + 1;
 	    rp->next = d.recipients;
 	    rp->desc = &d;
-	    rp->orcpt = NULL;
+	    rp->orcpt  = NULL;
 	    rp->inrcpt = NULL;
+	    rp->ezmlm  = NULL;
 	    rp->notify = NULL;
 	    rp->notifyflgs = _DSN_NOTIFY_FAILURE; /* Default behaviour */
 	    d.recipients = rp;
@@ -589,6 +590,13 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		if (CISTREQN("INFROM=",s,7)) {
 		  s += 7;
 		  /* FIXME: pull INFROM into some sensible use.. */
+		  while (*s && *s != ' ' && *s != '\t') ++s;
+		  if (*s) *s++ = 0;
+		  continue;
+		}
+		if (CISTREQN("EZMLM=",s,6)) {
+		  s += 6;
+		  prevrp->ezmlm = s;
 		  while (*s && *s != ' ' && *s != '\t') ++s;
 		  if (*s) *s++ = 0;
 		  continue;
