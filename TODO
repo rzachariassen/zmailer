@@ -3,6 +3,8 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 smtpserver:
 	Implement policy analysis of %-hack addresses..
 	(And !-paths too ?)
+	TEST THEM! Also test 'message' attribute which should give
+	text message to attribute immediately following it..
 
 router:
 	Input header:

@@ -34,11 +34,12 @@ struct policystate {		/* Part of SmtpState structure */
     int request;
     int origrequest;
     /* Attribute values are stored here. */
-    char * values[P_A_LastAttr+1];
+    char * values  [P_A_LastAttr+1];
+    /* The message just before this attribute */
+    char * messages[P_A_LastAttr+1];
 
     /* The lattest result message (line) */
     char *message;
-    char *msgstr;
     char *rblmsg;
     long maxinsize;
     long maxoutsize;

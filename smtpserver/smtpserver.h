@@ -394,6 +394,7 @@ extern void smtp_starttls __((SmtpState * SS, const char *buf, const char *cp));
 extern void Z_init    __(( void ));
 extern void Z_cleanup __(( SmtpState * ));
 #endif /* - HAVE_OPENSSL */
+extern int  Z_pending __(( SmtpState * ));
 extern int  Z_write   __(( SmtpState *, const void *, int ));
 extern int  Z_read    __(( SmtpState *, void *, int ));
 

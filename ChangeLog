@@ -1,5 +1,11 @@
 1999-05-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/smtpserver.h, smtpserver/policytest.c,
+	  smtpserver/policytest.h:
+	    - Implemented "simple" '%'-hack test
+	    - Implemented 'message "text string"' attribute handling
+	    (both need testing!)
+
 	* libsh/tregexp.c, libsh/interpret.c:
 	    A bit less copying around, and way smaller initial malloc
 	    to avoid need for big memory blocks, which don't seem to be
