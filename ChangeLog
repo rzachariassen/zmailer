@@ -1,5 +1,9 @@
 1999-11-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* include/md5.h, libc/md5c.c:
+	    More call-interface renaming (macro) into more
+	    appropriate place..
+
 	* proto/cf/server.cf:
 	    Rectify report codes for EXPN and VRFY.
 

@@ -41,6 +41,21 @@ typedef struct _MD5_CTX {
 # endif
 #endif
 
+
+/*
+** The following macro re-definitions added to work around a problem on
+** Solaris where the original MD5 routines are already in /lib/libnsl.a.
+** This causes dynamic linking of the module to fail.
+**
+** Thanks to Ken Pizzini (ken@spry.com) for finally nailing this one!
+*/
+
+#if defined(__sun) && defined(__SVR4)
+#define MD5Init		MD5Init_perl
+#define MD5Update	MD5Update_perl
+#define MD5Final	MD5Final_perl
+#endif
+
 void   MD5Init   __((MD5_CTX *));
 void   MD5Update __((MD5_CTX *, const unsigned char *, const unsigned int));
 void   MD5Final  __((unsigned char [16], MD5_CTX *));

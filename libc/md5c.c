@@ -23,20 +23,6 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
 
-/*
-** The following macro re-definitions added to work around a problem on
-** Solaris where the original MD5 routines are already in /lib/libnsl.a.
-** This causes dynamic linking of the module to fail.
-**
-** Thanks to Ken Pizzini (ken@spry.com) for finally nailing this one!
-*/
-
-#if defined(__sun) && defined(__SVR4)
-#define MD5Init		MD5Init_perl
-#define MD5Update	MD5Update_perl
-#define MD5Final	MD5Final_perl
-#endif
-
 #ifndef __STDC__
 # define const
 #endif
