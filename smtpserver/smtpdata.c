@@ -161,6 +161,7 @@ const char *buf, *cp;
     *msg = 0;
     filsiz = mvdata(SS, msg);
 
+    fflush(SS->mfp);
     tell = ftell(SS->mfp);
 
     report(SS, "Got '.'; tell=%ld", tell);
@@ -370,12 +371,14 @@ const char *buf, *cp;
     *msg = 0;
     filsiz = mvbdata(SS, msg, bdata_chunksize);
 
-    if (SS->mfp)
-	tell = ftell(SS->mfp);
-    else
-	tell = 0;
+    tell = 0;
+    if (SS->mfp) {
+      fflush(SS->mfp);
+      tell = ftell(SS->mfp);
+    }
 
-    report(SS, "BDAT; last=%d tell=%ld", bdata_last, tell);
+    report(SS, "BDAT %ld%s; tell=%ld", bdata_chunksize,
+	   bdata_last ? " LAST":"", tell);
 
     if (SS->state != BData) {
 	switch (SS->state) {

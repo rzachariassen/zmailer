@@ -1,3 +1,10 @@
+2001-07-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* smtpserver/smtpdata.c:
+	    Have omitted couple  fflush()  calls in DATA and BDAT
+	    to commit accumulated buffered data into file so that
+	    external  contentfilter()  program can analyze it.
+
 2001-07-29  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* utils/autoanswer.pl.in:
