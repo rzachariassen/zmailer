@@ -45,25 +45,34 @@
 				fulltrustnet +
 				trustrecipient +
 				maxinsize 30000000
-				filterint +/-
+				filtering +/-
+				ratelimitmsgs 300
 
-			The first pair will accept any source address,
+			The 1st pair will accept any source address,
 			and any recipient addresses that are fed to
 			the server.
 
-			The second will verify the source IP-address,
+			The 2nd will verify the source IP-address,
 			but after that it will accept any recipient
 			addresses.
 
-			The third pair sets EHLO-reported "SIZE nn"
+			The 3rd pair sets EHLO-reported "SIZE nn"
 			parameter to be limited to 30 million bytes.
 			(Or to global definition, if that is in range
 			 of 1 thru 'nn'.)
 
-			The fourth pair sets explicite content-filtering
+			The 4th pair sets explicite content-filtering
 			activation/disabling ('+'/'-') for IP address
 			masks given in these files.  See the comments
 			in the   smtp-policy.src   about this!
+
+			The 5th pair sets limit on how many messages
+			are accepted in an  1.0-1.15  hour period.
+			Excess messages (MAIL FROMs actually) are
+			treated with cold shoulder ("450" code).
+			If the numeric parameter value is NEGATIVE,
+			then the rejection is instant and permanent
+			with "550" code.
 
 
 			You may also enter domains which are looked

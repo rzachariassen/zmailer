@@ -1,5 +1,19 @@
 2004-04-08  Matti Aarnio  <mea@zmailer.org>
 
+	* doc/guides/smtp-policy:
+	    Document somewhat about the "ratelimitmsgs 300" attribute
+	    pair.
+
+	* include/shmmib.h, scheduler/mailq.inc:
+	    Store, and print PIDs of these subdaemons.
+
+	* smtpserver/subdaemon-trk.c:
+	    Security-first; unlink() target dump file name,
+	    then open it exclusively.
+
+	* smtpserver/policytest.c:
+	    Store into log file the result that the ratetracker gave.
+
 	* smtpserver/policytest.c, smtpserver/policytest.h,
 	  smtpserver/readpolicy.c:
 	    - Rearranged MAIL FROM processing code, allowing rate-limit

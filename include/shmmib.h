@@ -147,7 +147,11 @@ struct MIB_MtaEntrySs {
 
   double dummy3; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  uint		SubsysRateTrackerPID;
+  uint		SubsysRouterMasterPID;
+  uint		SubsysContentfilterMasterPID;
+
+  uint	space[29]; /* Add to tail without need to change MAGIC */
 
 };
 

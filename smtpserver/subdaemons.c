@@ -55,6 +55,7 @@ int subdaemons_init __((void))
 	    sleep(10);
 	    exit(0);
 	  }
+	  MIBMtaEntry->ss.SubsysRateTrackerPID = ratetracker_server_pid;
 	  fdpass_close_parent(to);
 	}
 
@@ -71,6 +72,7 @@ int subdaemons_init __((void))
 	    sleep(10);
 	    exit(0);
 	  }
+	  MIBMtaEntry->ss.SubsysRouterMasterPID = router_server_pid;
 	  fdpass_close_parent(to);
 	}
 
@@ -87,6 +89,7 @@ int subdaemons_init __((void))
 	    sleep(10);
 	    exit(0);
 	  }
+	  MIBMtaEntry->ss.SubsysContentfilterMasterPID = contentfilter_server_pid;
 	  fdpass_close_parent(to);
 	}
 

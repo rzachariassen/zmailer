@@ -65,7 +65,11 @@ Various top-level things, e.g. process group leader PIDs et.al.
 #define PIDTEST(varname, var2)  \
   i = (M.varname != 0 &&				\
        (kill(M.varname, 0) < 0 && errno == ESRCH));	\
-  if (i && r) M.varname = M.var2 = i = 0;
+
+#define PIDTEST1(varname)  \
+  i = (M.varname != 0 &&				\
+       (kill(M.varname, 0) < 0 && errno == ESRCH));	\
+  if (i && r) M.varname = i = 0;
 
   PIDTEST(sys.RouterMasterPID, sys.RouterMasterStartTime)
   sfprintf(fp,"SYS.RouterMasterPID             %10u",
@@ -172,6 +176,34 @@ When the SMTP-server's master instance was started the lattest time.
 /*<VAR><NAME>SYS.SmtpServerMasterStarts</NAME><DESC>
 How many times the SMTP-server's master instance has been started
 during the existence of this SHM segment.
+</DESC></VAR>*/
+
+
+  PIDTEST1(ss.SubsysRateTrackerPID)
+  sfprintf(fp,"SS.SubsysRateTrackerPID         %10u",
+	   (u_int) M.ss.SubsysRateTrackerPID);
+  if (i) sfprintf(fp," NOT PRESENT!");
+  sfprintf(fp,"\n");
+/*<VAR><NAME>SS.SubsysRateTrackerPID</NAME><DESC>
+Process-id of smtpserver's realtime incoming message rate tracker.
+</DESC></VAR>*/
+
+  PIDTEST1(ss.SubsysRouterMasterPID)
+  sfprintf(fp,"SS.SubsysRouterMasterPID        %10u",
+	   (u_int) M.ss.SubsysRouterMasterPID);
+  if (i) sfprintf(fp," NOT PRESENT!");
+  sfprintf(fp,"\n");
+/*<VAR><NAME>SS.SubsysRouterMasterPID</NAME><DESC>
+Process-id of smtpserver's interactive router processes group leader.
+</DESC></VAR>*/
+
+  PIDTEST1(ss.SubsysContentfilterMasterPID)
+  sfprintf(fp,"SS.SubsysContentfilterMasterPID %10u",
+	   (u_int) M.ss.SubsysContentfilterMasterPID);
+  if (i) sfprintf(fp," NOT PRESENT!");
+  sfprintf(fp,"\n");
+/*<VAR><NAME>SS.SubsysContentfilterMasterPID</NAME><DESC>
+Process-id of smtpserver's contentfilter subserver process group leader.
 </DESC></VAR>*/
 
 

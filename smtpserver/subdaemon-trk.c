@@ -281,14 +281,19 @@ static void subdaemon_trk_checksigusr1(state)
 	struct ipv4_regs_head *rhead;
 	int i, j, tr[8];
 	unsigned int ip4key;
-	FILE *fp;
+	FILE *fp = NULL;
+	const char  *fn = "/var/tmp/smtpserver-ratetracker.dump";
 
 	if (!got_sigusr1) return;  /* Nothing to do, bail out */
 	got_sigusr1 = 0;
 
 	/* We are running as 'trusted' user, which is somebody
 	   else, than root. */
-	fp = fopen("/var/tmp/smtpserver-ratetracker.dump", "w");
+
+	unlink(fn);
+	i = open(fn, O_EXCL|O_CREAT|O_WRONLY,0666);
+	if (i >= 0)
+	  fp = fdopen(i, "w");
 
 	if (!fp) return;
 

@@ -1803,6 +1803,8 @@ const int len;
 
 	int rc = call_rate_counter(rel, state, 0, POLICY_MAILFROM, &count);
 
+	type(NULL,0,NULL,"call_rate_counter() rc=%d, count=%d", rc, count);
+
 	/* Non-zero value means that counter was not reachable, or
 	   that there was no data. */
 
@@ -1815,7 +1817,7 @@ const int len;
 	    PICK_PA_MSG(P_A_RateLimitMsgs);
 	    rc = -100; /* Soft, e.g. 400-series */
 	  }
-	  if (! state->message)
+	  if ((rc != 0)  && (! state->message))
 	    state->message = strdup("You are sending too much mail per time interval.  Try again latter.");
 	  return rc;
 	}
