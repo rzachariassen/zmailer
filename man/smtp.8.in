@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "2 Mar 2000"
+.TH SMTP 8 "20 Jun 2000"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
@@ -104,6 +104,16 @@ identity when connecting to the destination.  Think of server with
 multiple IP numbers due to virtual hosting, for example.  At such
 systems there may be situation when virtual identity needs to be
 used for reaching the destination system.
+
+Understood formats for local identity are:
+.sp
+.nf
+- "iface:eth0" -- (eth0 device in the system)
+- "[ipv6.1111:2222:3333:...]" -- Literal IPv6 address for IPv6 system
+- "[1.2.3.4]" -- Literal IPv4 address for non-IPv6 system
+- "some.host.name" -- DNS/hosts data registered name
+.fi
+.sp
 .IP \-l\ \fIlogfile\fR
 specifies a log file where the complete SMTP command transaction will be
 copied.  Each line in the log will be prefixed with the process id of

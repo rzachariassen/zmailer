@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.15
-%%CreationDate: Mon Jun 19 17:03:09 2000
+%%CreationDate: Tue Jun 20 02:47:33 2000
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
@@ -273,178 +273,187 @@ E .3 -.15(ve f)-.25 H(orced 8-bit headers con).15 E -.15(ve)-.4 G
 (er with multiple IP numbers due to virtual hosting, for e)-.15 F 2.884
 (xample. At)-.15 F .482(such systems there may be situation when virtua\
 l identity needs to be used for reaching the desti-)144 583.2 R
-(nation system.)144 595.2 Q<ad6c>108 612 Q F3(lo)2.5 E(g\214le)-.1 E F0
-.792(speci\214es a log \214le where the complete SMTP command transacti\
-on will be copied.)144 624 R .792(Each line in)5.792 F .355
-(the log will be pre\214x)144 636 R .356(ed with the process id of the \
-transport agent process, so the same log \214le can)-.15 F
-(be used by all SMTP clients.)144 648 Q 24.53(\255r asks)108 664.8 R
-1.416
-(to set up SMTP connections using a source TCP port number under 1024.)
-3.916 F 1.415(This is in the)6.416 F .905(range of port numbers only a)
-144 676.8 R -.25(va)-.2 G .905(ilable to a pri).25 F(vile)-.25 E .906
-(ged process on some UNIX systems, which has)-.15 F(led to some misguid\
-ed attempts at mail security based on this mechanism.)144 688.8 Q 23.97
-(\255s asks)108 705.6 R .634(to report the progress of the SMTP con)
-3.135 F -.15(ve)-.4 G .634
-(rsation and data transfer on the command line in a).15 F -.1(wa)144
-717.6 S 2.5(yt).1 G(hat will be visible to)-2.5 E F3(ps)2.5 E F0(\(1\).)
-.27 E 2.5(2M)282.67 768 S(ar 2000)-2.5 E(1)205.67 E EP
+(nation system.)144 595.2 Q(Understood formats for local identity are:)
+144 619.2 Q 2.5(-")144 643.2 S(if)-2.5 E(ace:eth0" -- \(eth0 de)-.1 E
+(vice in the system\))-.25 E 2.5(-")144 655.2 S
+([ipv6.1111:2222:3333:...]" -- Literal IPv6 address for IPv6 system)-2.5
+E 2.5(-")144 667.2 S
+([1.2.3.4]" -- Literal IPv4 address for non-IPv6 system)-2.5 E 2.5(-")
+144 679.2 S(some.host.name" -- DNS/hosts data re)-2.5 E(gistered name)
+-.15 E(20 Jun 2000)281.555 768 Q(1)204.555 E EP
 %%Page: 2 2
 %%BeginPageSetup
 BP
 %%EndPageSetup
-/F0 10/Times-Roman@0 SF 389.94(SMTP\(8\) SMTP\(8\))72 48 R 22.86
-(\255x turns)108 84 R(of)3.472 E 3.472(fM)-.25 G 3.472(Xl)-3.472 G .972
-(ookups on deli)-3.472 F -.15(ve)-.25 G .972(ry connections.).15 F .972
-(This may be used ignore public MX kno)5.972 F(wledge)-.25 E .448
-(and do e)144 96 R .448(xactly what the router says in cases where deli)
--.15 F -.15(ve)-.25 G .447(ring to an e).15 F .447
-(xplicit IP address is inappro-)-.15 F(priate.)144 108 Q 22.3
-(\255P disable)108 124.8 R(SMTP-PIPELINING usage \(ESMTP k)2.5 E -.15
-(ey)-.1 G -.1(wo).15 G(rd: PIPELINING\)).1 E<ad53>108 141.6 Q/F1 10
-/Times-Italic@0 SF(/path/to/smtp-tls.conf)2.5 E F0 -.35(Tr)144 153.6 S
-(ansport-Layer).35 E 2.267(-Security \(a.k.a. Secure-Sock)-.2 F 2.267
+/F0 10/Times-Roman@0 SF 389.94(SMTP\(8\) SMTP\(8\))72 48 R<ad6c>108 84 Q
+/F1 10/Times-Italic@0 SF(lo)2.5 E(g\214le)-.1 E F0 .792(speci\214es a l\
+og \214le where the complete SMTP command transaction will be copied.)
+144 96 R .792(Each line in)5.792 F .355(the log will be pre\214x)144 108
+R .356(ed with the process id of the transport agent process, so the sa\
+me log \214le can)-.15 F(be used by all SMTP clients.)144 120 Q 24.53
+(\255r asks)108 136.8 R 1.416
+(to set up SMTP connections using a source TCP port number under 1024.)
+3.916 F 1.415(This is in the)6.416 F .905(range of port numbers only a)
+144 148.8 R -.25(va)-.2 G .905(ilable to a pri).25 F(vile)-.25 E .906
+(ged process on some UNIX systems, which has)-.15 F(led to some misguid\
+ed attempts at mail security based on this mechanism.)144 160.8 Q 23.97
+(\255s asks)108 177.6 R .634(to report the progress of the SMTP con)
+3.135 F -.15(ve)-.4 G .634
+(rsation and data transfer on the command line in a).15 F -.1(wa)144
+189.6 S 2.5(yt).1 G(hat will be visible to)-2.5 E F1(ps)2.5 E F0(\(1\).)
+.27 E 22.86(\255x turns)108 206.4 R(of)3.472 E 3.472(fM)-.25 G 3.472(Xl)
+-3.472 G .972(ookups on deli)-3.472 F -.15(ve)-.25 G .972
+(ry connections.).15 F .972(This may be used ignore public MX kno)5.972
+F(wledge)-.25 E .448(and do e)144 218.4 R .448
+(xactly what the router says in cases where deli)-.15 F -.15(ve)-.25 G
+.447(ring to an e).15 F .447(xplicit IP address is inappro-)-.15 F
+(priate.)144 230.4 Q 22.3(\255P disable)108 247.2 R
+(SMTP-PIPELINING usage \(ESMTP k)2.5 E -.15(ey)-.1 G -.1(wo).15 G
+(rd: PIPELINING\)).1 E<ad53>108 264 Q F1(/path/to/smtp-tls.conf)2.5 E F0
+-.35(Tr)144 276 S(ansport-Layer).35 E 2.267
+(-Security \(a.k.a. Secure-Sock)-.2 F 2.267
 (et-Layer\) feature con\214guration \214le.)-.1 F 2.268(When this is)
 7.268 F .309(supplied, and system is compiled to possibly use it, and t\
-he remote system reports EHLO capabil-)144 165.6 R .15(ity of)144 177.6
-R/F2 10/Times-Bold@0 SF(ST)2.65 E(AR)-.9 E(TTLS)-.4 E F0 2.65(,t)C .151
+he remote system reports EHLO capabil-)144 288 R .15(ity of)144 300 R/F2
+10/Times-Bold@0 SF(ST)2.65 E(AR)-.9 E(TTLS)-.4 E F0 2.65(,t)C .151
 (his client attempts to turn on the encryption on the sock)-2.65 F 2.651
 (et. There)-.1 F -.15(ex)2.651 G .151(ists also a).15 F .202
-(posssibility of)144 189.6 R F1(demanding)2.702 E F0 .201
+(posssibility of)144 312 R F1(demanding)2.702 E F0 .201
 (TLS mode of the connection - if so has been demand, b)2.701 F .201
 (ut it is not a)-.2 F -.25(va)-.2 G(il-).25 E(able, email is not sent o)
-144 201.6 Q -.15(ve)-.15 G 2.5(rt).15 G(he connection.)-2.5 E(-T)108
-218.4 Q F1(timeouts)2.5 E F0(speci\214es the timeouts when w)144 230.4 Q
+144 324 Q -.15(ve)-.15 G 2.5(rt).15 G(he connection.)-2.5 E(-T)108 340.8
+Q F1(timeouts)2.5 E F0(speci\214es the timeouts when w)144 352.8 Q
 (aiting for v)-.1 E(arious things.)-.25 E(Possible submodes are:)5 E
-(conn=)144 247.2 Q F1(3m)A F0 -.35(Ti)180 259.2 S(meout to w).35 E
+(conn=)144 369.6 Q F1(3m)A F0 -.35(Ti)180 381.6 S(meout to w).35 E
 (ait for the TCP connection establishment.)-.1 E(The def)5 E
-(ault is 3 minutes.)-.1 E(tcpw=)144 276 Q F1(3m)A F0 -.35(Ti)180 288 S
-1.326(meout to w).35 F 1.326(ait at lo)-.1 F(wle)-.25 E -.15(ve)-.25 G
+(ault is 3 minutes.)-.1 E(tcpw=)144 398.4 Q F1(3m)A F0 -.35(Ti)180 410.4
+S 1.326(meout to w).35 F 1.326(ait at lo)-.1 F(wle)-.25 E -.15(ve)-.25 G
 3.826(lT).15 G 1.326(CP sock)-3.826 F 1.327
 (et write\(\) routines for the sock)-.1 F 1.327(et to accept some)-.1 F
-(more input.)180 300 Q(The def)5 E(ault is 5 minutes.)-.1 E(cmd=)144
-316.8 Q F1(5m)A F0(\(or plain v)2.5 E(alue\))-.25 E -.8(Wa)180 328.8 S
+(more input.)180 422.4 Q(The def)5 E(ault is 5 minutes.)-.1 E(cmd=)144
+439.2 Q F1(5m)A F0(\(or plain v)2.5 E(alue\))-.25 E -.8(Wa)180 451.2 S
 (iting for command replies \(e.g. MAIL FR).8 E(OM, et.al.\))-.4 E
-(The def)5 E(ault is 5 minutes.)-.1 E(data=)144 345.6 Q F1(2m)A F0
-(From "D)180 357.6 Q -1.21 -1.11(AT A)-.4 H 2.5("v)1.11 G
+(The def)5 E(ault is 5 minutes.)-.1 E(data=)144 468 Q F1(2m)A F0
+(From "D)180 480 Q -1.21 -1.11(AT A)-.4 H 2.5("v)1.11 G
 (erb issuance until "354" responce.)-2.65 E(The def)5 E
-(ault is 2 minutes.)-.1 E(dot=)144 374.4 Q F1(10m)A F0 .077(From "D)180
-386.4 R -1.21 -1.11(AT A)-.4 H 2.577("p)1.11 G .076
+(ault is 2 minutes.)-.1 E(dot=)144 496.8 Q F1(10m)A F0 .077(From "D)180
+508.8 R -1.21 -1.11(AT A)-.4 H 2.577("p)1.11 G .076
 (hase ending "." issuance until "250 OK" report reception \(this is)
 -2.577 F F2(after)2.576 E F0(the)2.576 E .334
-(TCP write pipeline has completed\).)180 398.4 R .334(The def)5.334 F
+(TCP write pipeline has completed\).)180 520.8 R .334(The def)5.334 F
 .334(ault is 20 minutes. \(RFC 1123 gi)-.1 F -.15(ve)-.25 G 2.835(s1).15
-G 2.835(0m)-2.835 G(in-)-2.835 E(utes.\))180 410.4 Q 20.64(\255V prints)
-108 427.2 R 2.5(av)2.5 G(ersion message and e)-2.65 E(xits.)-.15 E 18.42
-(\255W turns)108 444 R .391
+G 2.835(0m)-2.835 G(in-)-2.835 E(utes.\))180 532.8 Q 20.64(\255V prints)
+108 549.6 R 2.5(av)2.5 G(ersion message and e)-2.65 E(xits.)-.15 E 18.42
+(\255W turns)108 566.4 R .391
 (on the DNS WKS checking, and if the remote system does not ha)2.892 F
-.691 -.15(ve S)-.2 H .391(MTP in its WKS-bits,).15 F(email deli)144 456
-Q -.15(ve)-.25 G(ry to such address is aborted with an error message.)
-.15 E/F3 9/Times-Bold@0 SF(INTERF)72 472.8 Q -.495(AC)-.81 G(E).495 E F0
-1.524(This program reads in processable \214le names relati)108 484.8 R
-1.825 -.15(ve t)-.25 H 4.025(ot).15 G 1.525(he current w)-4.025 F 1.525
-(orking directory of the scheduler)-.1 F(\(namely:)108 496.8 Q F1
+.691 -.15(ve S)-.2 H .391(MTP in its WKS-bits,).15 F(email deli)144
+578.4 Q -.15(ve)-.25 G
+(ry to such address is aborted with an error message.).15 E/F3 9
+/Times-Bold@0 SF(INTERF)72 595.2 Q -.495(AC)-.81 G(E).495 E F0 1.524
+(This program reads in processable \214le names relati)108 607.2 R 1.825
+-.15(ve t)-.25 H 4.025(ot).15 G 1.525(he current w)-4.025 F 1.525
+(orking directory of the scheduler)-.1 F(\(namely:)108 619.2 Q F1
 ($POSTIOFFICE/tr)2.933 E(ansport/)-.15 E F0 2.933(\). Optionally)B .433
 (on the same line the scheduler may tell which host is to)2.933 F
-(be look)108 508.8 Q(ed for from the recipients of the message.)-.1 E F1
--.37(re)144 525.6 S(lative-spool-path).37 E F0 2.5([<)2.5 G -.93(TA)-2.5
-G(B>).93 E F1(hostname)2.5 E F0(])2.5 E
+(be look)108 631.2 Q(ed for from the recipients of the message.)-.1 E F1
+-.37(re)144 648 S(lative-spool-path).37 E F0 2.5([<)2.5 G -.93(TA)-2.5 G
+(B>).93 E F1(hostname)2.5 E F0(])2.5 E
 (This program produces diagnostic output on the standard output.)108
-542.4 Q(Normal diagnostic output is of the form:)5 E F1(id)144 559.2 Q
+664.8 Q(Normal diagnostic output is of the form:)5 E F1(id)144 681.6 Q
 F0(/)A F1(of)A(fset)-.18 E F0(<T)A(AB>)-.93 E F1(notify-data)A F0(<T)A
-(AB>)-.93 E F1(status messa)A -.1(ge)-.1 G F0(where)108 576 Q F1(id)
+(AB>)-.93 E F1(status messa)A -.1(ge)-.1 G F0(where)108 698.4 Q F1(id)
 3.665 E F0 1.165(is the inode number of the message \214le,)3.665 F F1
 (of)3.665 E(fset)-.18 E F0 1.166(is a byte of)3.666 F 1.166
 (fset within its control \214le where the)-.25 F .915
-(address being reported on is k)108 588 R(ept,)-.1 E F1(status)3.415 E
+(address being reported on is k)108 710.4 R(ept,)-.1 E F1(status)3.415 E
 F0 .915(is one of)3.415 F F2(ok)3.415 E F0(,)A F2(err)3.415 E(or)-.18 E
 F0 3.415(,o)C(r)-3.415 E F2(deferr)3.415 E(ed)-.18 E F0 3.415(,a)C .915
 (nd the)-3.415 F F1(messa)3.415 E -.1(ge)-.1 G F0 .915(is descripti)
-3.515 F -.15(ve)-.25 G(te)108 600 Q .85(xt associated with the report.)
--.15 F .85(The te)5.85 F .85(xt is terminated by a linefeed.)-.15 F(An)
-5.85 E 3.35(yo)-.15 G .85(ther format \(as might be pro-)-3.35 F(duced \
-by subprocesses\) is passed to standard output for logging in the)108
-612 Q F2(scheduler)2.5 E F0(log.)2.5 E(The e)108 628.8 Q
-(xit status is a code from)-.15 E F2(<sysexits.h>)2.5 E F0(.)A F3
-(EXTENDED SMTP)72 645.6 Q F0 1.339(When user sends out 8-bit mail with \
-proper headers, this module can send it out to conforming serv)108 657.6
-R(ers)-.15 E 2.887(either in 8-bit transparent manner)108 669.6 R 5.387
-(,o)-.4 G 5.387(rd)-5.387 G -.25(ow)-5.387 G(n-con).25 E -.15(ve)-.4 G
-(rting).15 E F1(Content-T)5.387 E -.15(ra)-.55 G(nsfer).15 E 2.887
-(-Encoding: 8BIT)-.2 F F0(to)5.387 E F1(Content-)5.387 E -1.55 -.55
-(Tr a)108 681.6 T(nsfer).55 E .506(-Encoding: 7BIT)-.2 F F0(or)3.006 E
-F1(Content-T)3.006 E -.15(ra)-.55 G(nsfer).15 E .506(-Encoding: Q)-.2 F
-(UO)-.1 E(TED-PRINT)-.4 E(ABLE)-.5 E F0 .505(depending on what is the)
-3.006 F(mail contents.)108 693.6 Q F2(This w)108 705.6 Q(orks only with)
--.1 E F1(Content-T)2.5 E(ype: te)-.74 E(xt/plain)-.2 E F2
-(thus no fancy multipart/alter)2.5 E(nate et.al. schemes..)-.15 E F0
-(When)108 717.6 Q F1(Content-T)3.962 E -.15(ra)-.55 G(nsfer).15 E
-(-Encoding:)-.2 E F0 1.462(\255header is not present in the headers, an\
-d recipient has not declared)3.962 F(8-bit SMTP capability)108 729.6 Q
-2.5(,m)-.65 G(ail contents are treated with old 7-bit stripping method.)
--2.5 E 2.5(2M)282.67 768 S(ar 2000)-2.5 E(2)205.67 E EP
+3.515 F -.15(ve)-.25 G(te)108 722.4 Q 2.027
+(xt associated with the report.)-.15 F 2.027(The te)7.027 F 2.027
+(xt is terminated by a linefeed.)-.15 F(An)7.027 E 4.527(yo)-.15 G 2.027
+(ther format \(as might be)-4.527 F(20 Jun 2000)281.555 768 Q(2)204.555
+E EP
 %%Page: 3 3
 %%BeginPageSetup
 BP
 %%EndPageSetup
-/F0 10/Times-Roman@0 SF 389.94(SMTP\(8\) SMTP\(8\))72 48 R/F1 9
-/Times-Bold@0 SF(SECURE SOCKET LA)72 84 Q(YER SUPPOR)-.9 E(T)-.36 E F0
-.98(If you are using a v)108 96 R .98
+/F0 10/Times-Roman@0 SF 389.94(SMTP\(8\) SMTP\(8\))72 48 R(produced by \
+subprocesses\) is passed to standard output for logging in the)108 84 Q
+/F1 10/Times-Bold@0 SF(scheduler)2.5 E F0(log.)2.5 E(The e)108 100.8 Q
+(xit status is a code from)-.15 E F1(<sysexits.h>)2.5 E F0(.)A/F2 9
+/Times-Bold@0 SF(EXTENDED SMTP)72 117.6 Q F0 1.339(When user sends out \
+8-bit mail with proper headers, this module can send it out to conformi\
+ng serv)108 129.6 R(ers)-.15 E 2.887(either in 8-bit transparent manner)
+108 141.6 R 5.387(,o)-.4 G 5.387(rd)-5.387 G -.25(ow)-5.387 G(n-con).25
+E -.15(ve)-.4 G(rting).15 E/F3 10/Times-Italic@0 SF(Content-T)5.387 E
+-.15(ra)-.55 G(nsfer).15 E 2.887(-Encoding: 8BIT)-.2 F F0(to)5.387 E F3
+(Content-)5.387 E -1.55 -.55(Tr a)108 153.6 T(nsfer).55 E .506
+(-Encoding: 7BIT)-.2 F F0(or)3.006 E F3(Content-T)3.006 E -.15(ra)-.55 G
+(nsfer).15 E .506(-Encoding: Q)-.2 F(UO)-.1 E(TED-PRINT)-.4 E(ABLE)-.5 E
+F0 .505(depending on what is the)3.006 F(mail contents.)108 165.6 Q F1
+(This w)108 177.6 Q(orks only with)-.1 E F3(Content-T)2.5 E(ype: te)-.74
+E(xt/plain)-.2 E F1(thus no fancy multipart/alter)2.5 E
+(nate et.al. schemes..)-.15 E F0(When)108 189.6 Q F3(Content-T)3.962 E
+-.15(ra)-.55 G(nsfer).15 E(-Encoding:)-.2 E F0 1.462(\255header is not \
+present in the headers, and recipient has not declared)3.962 F
+(8-bit SMTP capability)108 201.6 Q 2.5(,m)-.65 G
+(ail contents are treated with old 7-bit stripping method.)-2.5 E F2
+(SECURE SOCKET LA)72 218.4 Q(YER SUPPOR)-.9 E(T)-.36 E F0 .98
+(If you are using a v)108 230.4 R .98
 (ersion which has been made to use OpenSSL 0.9.4, or latter v)-.15 F .98
 (ersion, you are able to)-.15 F(encrypt the SMTP protocol session in ca\
-se the remote end supports RFC 2487 de\214ned)108 108 Q/F2 10
-/Times-Italic@0 SF(ST)2.5 E(ARTTLS)-.5 E F0 -.1(fa)2.5 G(cility).1 E(.)
--.65 E(Possible e)108 124.8 Q(xample of the smtp\255tls.conf)-.15 E
-(\214le is gi)5 E -.15(ve)-.25 G 2.5(nb).15 G(elo)-2.5 E(w:)-.25 E(#|)
-108 141.6 Q(#| This is e)108 153.6 Q
+se the remote end supports RFC 2487 de\214ned)108 242.4 Q F3(ST)2.5 E
+(ARTTLS)-.5 E F0 -.1(fa)2.5 G(cility).1 E(.)-.65 E(Possible e)108 259.2
+Q(xample of the smtp\255tls.conf)-.15 E(\214le is gi)5 E -.15(ve)-.25 G
+2.5(nb).15 G(elo)-2.5 E(w:)-.25 E(#|)108 276 Q(#| This is e)108 288 Q
 (xample con\214guration \214le for TLS support at the SMTP T)-.15 E(A)
--.93 E(#| programs, e.g. SMTP Client.)108 165.6 Q(#|)108 177.6 Q 5
-(tls-cert-\214le @MAIL)108 201.6 R -1.35(VA)-1 G(R@/db/smtpserv)1.35 E
-(er)-.15 E(-cert.pem)-.2 E(tls-k)108 213.6 Q -.15(ey)-.1 G 7.5
-(-\214le @MAIL).15 F -1.35(VA)-1 G(R@/db/smtpserv)1.35 E(er)-.15 E(-k)
--.2 E -.15(ey)-.1 G(.pem)-.5 E 12.5(tls-CA\214le @MAIL)108 225.6 R -1.35
-(VA)-1 G(R@/db/smtpserv)1.35 E(er)-.15 E(-CAcert.pem)-.2 E
-(#tls-CApath /path/to/CAdir/)108 237.6 Q(#tls-logle)108 249.6 Q -.15(ve)
--.25 G 5(l0#).15 G -1.11(Va)-2.5 G(lue from 0 thru 4)1.11 E(#|)108 273.6
-Q(#| If the TLS mode is MAND)108 285.6 Q -1.11(AT)-.4 G
+-.93 E(#| programs, e.g. SMTP Client.)108 300 Q(#|)108 312 Q 5
+(tls-cert-\214le @MAIL)108 336 R -1.35(VA)-1 G(R@/db/smtpserv)1.35 E(er)
+-.15 E(-cert.pem)-.2 E(tls-k)108 348 Q -.15(ey)-.1 G 7.5(-\214le @MAIL)
+.15 F -1.35(VA)-1 G(R@/db/smtpserv)1.35 E(er)-.15 E(-k)-.2 E -.15(ey)-.1
+G(.pem)-.5 E 12.5(tls-CA\214le @MAIL)108 360 R -1.35(VA)-1 G
+(R@/db/smtpserv)1.35 E(er)-.15 E(-CAcert.pem)-.2 E
+(#tls-CApath /path/to/CAdir/)108 372 Q(#tls-logle)108 384 Q -.15(ve)-.25
+G 5(l0#).15 G -1.11(Va)-2.5 G(lue from 0 thru 4)1.11 E(#|)108 408 Q
+(#| If the TLS mode is MAND)108 420 Q -1.11(AT)-.4 G
 (ED for a session, cop)1.11 E 2.5(yt)-.1 G(his \214le to)-2.5 E
-(#| e.g. "smtp-tls-mandatory)108 297.6 Q(.conf", uncomment follo)-.65 E
-(wing line, and)-.25 E(#| point those channels to use that ne)108 309.6
-Q 2.5<778c>-.25 G(le.)-2.5 E(#|)108 321.6 Q(#demand-tls-mode)108 333.6 Q
-F1(FILES)72 350.4 Q F2(/etc/zmailer)108 362.4 Q(.conf)-1.11 E
-(/var/spool/postof)108 374.4 Q(\214ce \(POST)-.18 E(OFFICE\))-.18 E F1
-(SEE ALSO)72 391.2 Q F0(scheduler\(8\))108 403.2 Q F1(SEE ALSO)72 420 Q
-F0(router\(8\))108 432 Q(RFC 821)108 448.8 Q
-(The basic SMTP speci\214cation)146.1 E(RFC 822)108 460.8 Q
-(Mail header format)146.1 E(RFC 974)108 472.8 Q(MX routing)146.1 E
-(RFC 1123)108 484.8 Q -1.11(Va)141.1 G
-(rious 821 parameter clari\214cations)1.11 E(Se)108 508.8 Q -.15(ve)-.25
+(#| e.g. "smtp-tls-mandatory)108 432 Q(.conf", uncomment follo)-.65 E
+(wing line, and)-.25 E(#| point those channels to use that ne)108 444 Q
+2.5<778c>-.25 G(le.)-2.5 E(#|)108 456 Q(#demand-tls-mode)108 468 Q F2
+(FILES)72 484.8 Q F3(/etc/zmailer)108 496.8 Q(.conf)-1.11 E
+(/var/spool/postof)108 508.8 Q(\214ce \(POST)-.18 E(OFFICE\))-.18 E F2
+(SEE ALSO)72 525.6 Q F0(scheduler\(8\))108 537.6 Q F2(SEE ALSO)72 554.4
+Q F0(router\(8\))108 566.4 Q(RFC 821)108 583.2 Q
+(The basic SMTP speci\214cation)146.1 E(RFC 822)108 595.2 Q
+(Mail header format)146.1 E(RFC 974)108 607.2 Q(MX routing)146.1 E
+(RFC 1123)108 619.2 Q -1.11(Va)141.1 G
+(rious 821 parameter clari\214cations)1.11 E(Se)108 643.2 Q -.15(ve)-.25
 G(ral e).15 E(xtended SMTP f)-.15 E(acilities are implemented:)-.1 E
-(RFC 1341/1521/2045)108 532.8 Q(MIME speci\214cation \(body)95.54 E 2.5
-(,f)-.65 G(ormats\))-2.5 E(RFC 1342/1522/2047)108 544.8 Q
-(MIME speci\214cation \(headers\))95.54 E(RFC 1425/1651/1869)108 556.8 Q
-(ESMTP EHLO frame)95.54 E -.1(wo)-.25 G(rk).1 E(RFC 1426/1652)108 568.8
-Q(ESMTP 8BITMIME)118.32 E(RFC 1427/1653/1870)108 580.8 Q(ESMTP SIZE)
-95.54 E(RFC 1428)108 592.8 Q(Basic MIME con)141.1 E -.15(ve)-.4 G
-(rsion rules).15 E(RFC 1830)108 604.8 Q(ESMTP CHUNKING)141.1 E
-(RFC 1854/2197)108 616.8 Q(ESMTP PIPELINING)118.32 E(RFC 1891)108 628.8
-Q(ESMTP DSN)141.1 E(RFC 1893/2034)108 640.8 Q(ESMTP ENHANCEDST)118.32 E
--1.11(AT)-.93 G(USCODES)1.11 E(RFC 1985)108 652.8 Q(ESMTP ETRN)141.1 E
-(RFC 2487)108 664.8 Q(ESMTP ST)141.1 E(AR)-.93 E(TTLS)-.6 E
-(RFC 2554+M$ Exchange)108 676.8 Q(ESMTP A)79.64 E(UTH LOGIN)-.55 E
-(RFC 2554+NetScape)108 688.8 Q(ESMTP A)97.14 E(UTH=LOGIN)-.55 E F1 -.45
-(AU)72 705.6 S(THOR).45 E F0(This program authored and cop)108 717.6 Q
-(yright by:)-.1 E(Rayan Zachariassen <rayan@cs.toronto.edu>)108 729.6 Q
-2.5(2M)282.67 768 S(ar 2000)-2.5 E(3)205.67 E EP
+(RFC 1341/1521/2045)108 667.2 Q(MIME speci\214cation \(body)95.54 E 2.5
+(,f)-.65 G(ormats\))-2.5 E(RFC 1342/1522/2047)108 679.2 Q
+(MIME speci\214cation \(headers\))95.54 E(RFC 1425/1651/1869)108 691.2 Q
+(ESMTP EHLO frame)95.54 E -.1(wo)-.25 G(rk).1 E(RFC 1426/1652)108 703.2
+Q(ESMTP 8BITMIME)118.32 E(RFC 1427/1653/1870)108 715.2 Q(ESMTP SIZE)
+95.54 E(RFC 1428)108 727.2 Q(Basic MIME con)141.1 E -.15(ve)-.4 G
+(rsion rules).15 E(20 Jun 2000)281.555 768 Q(3)204.555 E EP
 %%Page: 4 4
 %%BeginPageSetup
 BP
 %%EndPageSetup
-/F0 10/Times-Roman@0 SF 389.94(SMTP\(8\) SMTP\(8\))72 48 R(MIME do)108
-84 Q(wncon)-.25 E -.15(ve)-.4 G(rting feature \(RFC1428\) by:).15 E
-(Matti Aarnio <mea@utu.\214>)108 96 Q 2.5(2M)282.67 768 S(ar 2000)-2.5 E
-(4)205.67 E EP
+/F0 10/Times-Roman@0 SF 389.94(SMTP\(8\) SMTP\(8\))72 48 R(RFC 1830)108
+84 Q(ESMTP CHUNKING)141.1 E(RFC 1854/2197)108 96 Q(ESMTP PIPELINING)
+118.32 E(RFC 1891)108 108 Q(ESMTP DSN)141.1 E(RFC 1893/2034)108 120 Q
+(ESMTP ENHANCEDST)118.32 E -1.11(AT)-.93 G(USCODES)1.11 E(RFC 1985)108
+132 Q(ESMTP ETRN)141.1 E(RFC 2487)108 144 Q(ESMTP ST)141.1 E(AR)-.93 E
+(TTLS)-.6 E(RFC 2554+M$ Exchange)108 156 Q(ESMTP A)79.64 E(UTH LOGIN)
+-.55 E(RFC 2554+NetScape)108 168 Q(ESMTP A)97.14 E(UTH=LOGIN)-.55 E/F1 9
+/Times-Bold@0 SF -.45(AU)72 184.8 S(THOR).45 E F0
+(This program authored and cop)108 196.8 Q(yright by:)-.1 E
+(Rayan Zachariassen <rayan@cs.toronto.edu>)108 208.8 Q(MIME do)108 220.8
+Q(wncon)-.25 E -.15(ve)-.4 G(rting feature \(RFC1428\) by:).15 E
+(Matti Aarnio <mea@utu.\214>)108 232.8 Q(20 Jun 2000)281.555 768 Q(4)
+204.555 E EP
 %%Trailer
 end
 %%EOF

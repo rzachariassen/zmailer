@@ -26,16 +26,9 @@ Known/suspected bugs/Missing Features on current ZMailer sources
   BUG: Scheduler running with  "maxthr>1"  seem to loose sync about
   tasks already fed to the processing.
 
-- smtp TA (all TAs ??) leak memory in MIME header processing.
-  (or something else ?)
-
 - smtp TA to ETRN type destinations (usually not reachable) work
   poorly ever since non-blocking connection was taken into use.
     (cured at 2.99.52 ??)
-
-- Configuration files, esp.   cf/aliases.cf   has controversy in it.
-  Many people think it is broken (I tend to agree) - 940614/mea
-
 
 libc: "make install" is "crazy"
 proto:	"make install" -- nothing goes in ???
@@ -141,6 +134,7 @@ transports/smtp:
 	ZMailer configuration, binding needs to be done by interface
 	"name" as well as by literal addresses.
 	(This is for the '-L' option.)
+		Done (?) 20000620
 
    FEATURE:
 	We violate RFC 1123 part 5.2.2 which says that at MAIL FROM
@@ -169,6 +163,7 @@ transports/smtp:
 	- Do not decode Q-P or Base-64 if the resulting material exceeds
 	  RFC-821/RFC-822 line length limits (or whatever limits have
 	  been set).
+	- Track the memory leakage on long-lifetime TA agents
 
 	(router + TA library + TA programs):
 	Router to scan message MIME structure, and to store that
@@ -222,6 +217,7 @@ transports/smtp:
 
 - smtpserver
 
+  - Bind to named interface (pick its address with SIOCG(L)IFADDR)
   - Control somehow if lack of configuration and/or PolicyDB is
     a system security offence, or not..
 

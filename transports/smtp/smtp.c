@@ -2622,61 +2622,117 @@ abort();
 	  /* Uh... Somebody wants us to do special hoops...
 	     ... to bind some of our alternate IP addresses,
 	     for example.. */
+	  if (0)
+	    ;
 #if defined(AF_INET6) && defined(INET6)
-	  if (cistrncmp(localidentity,"[ipv6 ",6) == 0 ||
-	      cistrncmp(localidentity,"[ipv6:",6) == 0 ||
-	      cistrncmp(localidentity,"[ipv6.",6) == 0) {
+#ifdef SIOCGLIFADDR
+	  else if (af == AF_INET6 &&
+	      cistrncmp(localidentity,"iface:",6) == 0) {
+	    /* Named interface */
+	    int sk2 = socket(PF_INET6, SOCK_DGRAM, 0);
+	    struct lifreq lifr;
+	    memset(&lifr, 0, sizeof(lifr));
+	    strncpy(lifr.lifr_name, localidentity+6, IFNAMSIZ);
+	    lifr.lifr_name[IFNAMSIZ-1] = 0;
+	    lifr.lifr_addr.sa_family = AF_INET6;
+	    if (ioctl(sk2, SIOCGLIFADDR, &lifr) == 0) {
+	      /* Got the IP address of the interface */
+	      memcpy(&sad6, &lifr.lifr_addr, sizeof(sad6));
+	    }
+	    close(sk2);
+
+	  }
+#endif /* SIOCGLIFADDR */
+	  else if (cistrncmp(localidentity,"[ipv6 ",6) == 0 ||
+		   cistrncmp(localidentity,"[ipv6:",6) == 0 ||
+		   cistrncmp(localidentity,"[ipv6.",6) == 0) {
 	    char *s = strchr(localidentity,']');
 	    if (s) *s = 0;
 	    if (inet_pton(AF_INET6, localidentity+6, &sad6.sin6_addr) < 1) {
 	      /* False IPv6 number literal */
 	      /* ... then we don't set the IP address... */
 	    }
-	  } else
-#endif
-	    if (*localidentity == '[') {
-	      char *s = strchr(localidentity,']');
-	      if (s) *s = 0;
-	      if (inet_pton(AF_INET, localidentity+1, &sad.sin_addr) < 1) {
-		/* False IP(v4) number literal */
-		/* ... then we don't set the IP address... */
-	      }
-	    } else {
-	      struct addrinfo req, *ai = NULL;
-	      int r2;
+	  }
+#endif /* AF_INET6 && INET6 */
+#ifdef SIOCGIFADDR
+	  else if (af == AF_INET &&
+		   cistrncmp(localidentity,"iface:",6) == 0) {
+	    /* Named IPv4 interface */
+	    int sk2 = socket(PF_INET, SOCK_DGRAM, 0);
+	    struct ifreq ifr;
+	    memset(&ifr, 0, sizeof(ifr));
+	    strncpy(ifr.ifr_name, localidentity+6, IFNAMSIZ);
+	    ifr.ifr_name[IFNAMSIZ-1] = 0;
+	    ifr.ifr_addr.sa_family = AF_INET;
+	    if (ioctl(sk2, SIOCGIFADDR, &ifr) == 0) {
+	      /* Got the IP address of the interface */
+	      memcpy(&sad, &ifr.ifr_addr, sizeof(sad));
+	    }
+	    close(sk2);
 
-	      memset(&req, 0, sizeof(req));
-	      req.ai_socktype = SOCK_STREAM;
-	      req.ai_protocol = IPPROTO_TCP;
-	      req.ai_flags    = AI_CANONNAME;
-	      req.ai_family   = sa->sa_family; /* Same family, as our
-						  destination address is */
-#if !GETADDRINFODEBUG
-	      r2 = getaddrinfo(localidentity, "smtp", &req, &ai);
-#else
-	      r2 = _getaddrinfo_(localidentity, "smtp", &req, &ai, SS->verboselog);
-if (SS->verboselog)
-  fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",localidentity,r2,ai);
-#endif
-	      if (r2 == 0 && ai != NULL) /* We try ONLY the first address. */ {
-		if (ai->ai_family == AF_INET) {
-		  memcpy((void*)&sad.sin_addr,
-			 (void*)&((struct sockaddr_in*)ai->ai_addr)->sin_addr,
-			 4);
-		}
-#if defined(AF_INET6) && defined(INET6)
-		else {
-		  memcpy((void*)&sad6.sin6_addr,
-			 (void*)&((struct sockaddr_in6*)ai->ai_addr)->sin6_addr,
-			 16);
-		}
-#endif
-	      }
-	      if (ai != NULL)
-		freeaddrinfo(ai);
-	      /* If it didn't resolv, */
+	  }
+#else /* SIOCGIFADDR */
+#ifdef SIOCGLIFADDR
+	  else if (af == AF_INET &&
+		   cistrncmp(localidentity, "iface:",6) == 0) {
+	    /* Named IPv4 interface */
+	    int sk2 = socket(PF_INET, SOCK_DGRAM, 0);
+	    struct lifreq lifr;
+	    memset(&lifr, 0, sizeof(lifr));
+	    strncpy(lifr.lifr_name, localidentity+6, IFNAMSIZ);
+	    lifr.lifr_name[IFNAMSIZ-1] = 0;
+	    lifr.lifr_addr.sa_family = AF_INET;
+	    if (ioctl(sk2, SIOCGLIFADDR, &lifr) == 0) {
+	      /* Got the IP address of the interface */
+	      memcpy(&sad, &lifr.lifr_addr, sizeof(sad));
+	    }
+	    close(sk2);
+	  }
+#endif /* SIOCGLIFADDR */
+#endif /* SIOCGIFADDR */
+	  else if (*localidentity == '[') {
+	    char *s = strchr(localidentity,']');
+	    if (s) *s = 0;
+	    if (inet_pton(AF_INET, localidentity+1, &sad.sin_addr) < 1) {
+	      /* False IP(v4) number literal */
 	      /* ... then we don't set the IP address... */
 	    }
+	  } else {
+	    struct addrinfo req, *ai = NULL;
+	    int r2;
+
+	    memset(&req, 0, sizeof(req));
+	    req.ai_socktype = SOCK_STREAM;
+	    req.ai_protocol = IPPROTO_TCP;
+	    req.ai_flags    = AI_CANONNAME;
+	    req.ai_family   = sa->sa_family; /* Same family, as our
+						destination address is */
+#if !GETADDRINFODEBUG
+	    r2 = getaddrinfo(localidentity, "smtp", &req, &ai);
+#else
+	    r2 = _getaddrinfo_(localidentity, "smtp", &req, &ai, SS->verboselog);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",localidentity,r2,ai);
+#endif
+	    if (r2 == 0 && ai != NULL) /* We try ONLY the first address. */ {
+	      if (ai->ai_family == AF_INET) {
+		memcpy((void*)&sad.sin_addr,
+		       (void*)&((struct sockaddr_in*)ai->ai_addr)->sin_addr,
+		       4);
+	      }
+#if defined(AF_INET6) && defined(INET6)
+	      else {
+		memcpy((void*)&sad6.sin6_addr,
+		       (void*)&((struct sockaddr_in6*)ai->ai_addr)->sin6_addr,
+		       16);
+	      }
+#endif
+	    }
+	    if (ai != NULL)
+	      freeaddrinfo(ai);
+	    /* If it didn't resolv, */
+	    /* ... then we don't set the IP address... */
+	  }
 	}
 
 	if (wantreserved && getuid() == 0) {

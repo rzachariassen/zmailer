@@ -795,14 +795,15 @@ char **argv;
 	    close(s);
 	  }
 	}
-	if (use_ipv6) {
+	if (force_ipv4) {
+	  s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+	  use_ipv6 = 0;
+	} else if (use_ipv6) {
 	  s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
-#if 0
 	  if (s < 0) {	/* Fallback to the IPv4 mode .. */
 	    s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
 	    use_ipv6 = 0;
 	  }
-#endif
 	} else
 	  s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
 #else
