@@ -156,6 +156,7 @@ if test "$use_genlib" = 1; then
   LIBS="$LIBS $GENLIB"
 fi
 
+
 AC_SUBST(ZMAILERCFGFILE)
 use_zcfg=0
 AC_ARG_WITH(zconfig, 

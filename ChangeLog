@@ -1,3 +1,9 @@
+2000-02-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    Moved   --with-zconfig=  code around a bit, apparently it was
+	    quite ineffective, and has been that way for quite a while :-/
+
 2000-02-17  Eugene Crosser  <crosser@online.ru>
 
 	* smtpserver/smtpdata.c, configure.in, acconfig.h:
