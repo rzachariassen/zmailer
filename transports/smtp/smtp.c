@@ -2714,10 +2714,10 @@ if (SS->verboselog)
 
 	      r = makeconn(SS, SS->mxh[i].ai, i);
 	      SS->firstmx = i+1;
+	      SS->mxh[i].ai = NULL; /* Save this chain into
+				       internal SS context! */
 	      if (r == EX_OK) {
 		retval = EX_OK;
-		SS->mxh[i].ai = NULL; /* Save this chain into
-					 internal SS context! */
 		break;
 	      } else if (r == EX_TEMPFAIL)
 		retval = EX_TEMPFAIL;
