@@ -1,9 +1,19 @@
+1999-08-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.52-pre1
+
+	* sfio/*
+	    Looking for ways to use this thing...
+
 1999-08-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* contrib/pipeauth-0.55.tar.gz, contrib/rauth-0.56.tar.gz,
-	  proto/smtpserver.conf.in, proto/zmailer.sh.in, smtpserver/cfgread.c,
-	  smtpserver/fdstatfs.c, smtpserver/smtpcmds.c, smtpserver/smtpserver.h,
-	  smtpserver/zpwmath.c, utils/policybuilder.sh.in:
+	  proto/smtpserver.conf.in, proto/zmailer.sh.in,
+	  smtpserver/cfgread.c, smtpserver/fdstatfs.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpserver.h,
+	  smtpserver/zpwmath.c, utils/policybuilder.sh.in,
+	  doc/guides/smtp-msa-mode:
 	    Heaps of changes from an ISP guy
 	    Artur Urbanowicz <artur.urbanowicz@man.lublin.pl>
 	

@@ -57,7 +57,7 @@ transports/smtp:
 	To implement it we must rewamp the entire FILE* abstraction
 	based network socket (write) buffering at the smtp program,
 	PLUS at libta/mimeheaders.c ( writeheaders() ) as well...
-	Not so nice.
+	Not so nice.  (AT&T Research Sfio *may* help here..)
 
 	VERIFY: BDAT (and DATA) status processing in case the remote
 	yields disk-full temporary error.
@@ -157,7 +157,7 @@ transports/smtp:
 
 - smtpserver
   - Supply PARAM entries for *all* (well, very nearly) command-line
-    startup options.
+    startup options where it makes sense...
   - SSL/TLS code needs to be updated to support non-blocking operations,
     which appeared at 0.9.4 release of the OpenSSL.
   - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills

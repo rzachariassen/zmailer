@@ -1102,7 +1102,7 @@ process(SS, dp, smtpstatus, host, noMX)
 	  }
 
 	} else {
-	  /* processing fails entirely is PROCABORT is received */
+	  /* processing fails entirely if PROCABORT is received */
 	  smtpstatus = EX_UNAVAILABLE;
 	  smtpclose(SS);
 	  if (logfp)

@@ -72,7 +72,7 @@ INCLUDEDIR=	@includedir@
 # address verification options they can be specified here.  The default
 # value is "-asve".   This is also used, when invoking  ``sendmail'' with
 # "-bs" option.
-#SMTPOPTIONS= "-a -sve -l ${LOGDIR}/smtpserver"
+#SMTPOPTIONS= "-l ${LOGDIR}/smtpserver"
 SMTPOPTIONS=	@SMTPOPTIONS@
 
 # ALLOWSOURCEROUTE (when present) stops the system from ignoring

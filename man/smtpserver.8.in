@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "19 Jul 1999"
+.TH SMTPSERVER 8 "30 Aug 1999"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -230,6 +230,23 @@ default is not suitable.
 This sets  setsockopt(SO_SNDBUF)  value, in case the system
 default is not suitable.
 
+.IP PARAM\ RcptLimitCount\ 10000
+This sets the maximum number of accepted recipients per one
+message transaction.  Default (and minimum!) value is 100,
+which is mandated by the RFC 821.
+
+.IP PARAM\ use-tcp-wrapper
+Even if the system has tcp-wrapper (see below), it won't be used
+to limit access, unless this PARAM entry is set.
+
+.IP PARAM\ BindPort\ \ \ 25
+.IP PARAM\ BindAddress\ [0.0.0.0]
+.IP PARAM\ BindAddress\ [IPv6.0::0]
+Per default the server mode SMTP-server binds to port 25 and any
+locally accepted address, but occasionally people seem to want to
+have separate server instances with different configurations, and
+for those cases are these parameters.
+
 .IP PARAM\ DEBUGcmd
 .IP PARAM\ EXPNcmd
 .IP PARAM\ VRFYcmd
@@ -285,6 +302,14 @@ for it, as in general they work quite fine.
 Of these, 8BITMIME can not in reality be disabled, only its adverticement
 can be turned off.
 
+.IP PARAM\ MSA-mode
+.I Message Submission Agent Mode
+(RFC 2476).
+
+Require successfull user authentication before message submission during
+SMTP session from outside of "fulltrustnet" and "relaycustnet"
+(see smtp-policy.src).
+
 .IP PARAM\ no\-multiline\-replies
 Turn off ZMailer's default multiline replies; many systems (especially
 from M$ breed) don't do RFC 821 Appendix E properly...
@@ -319,6 +344,13 @@ file.
 #PARAM RcptLimitCount    10000 # Max number of recipients for one
 #                              # MAIL FROM session. Minimum: 100
 #
+#PARAM use-tcp-wrapper         # Use tcp-wrapper in addition to
+#                              # actual input policy controls.
+#
+#PARAM BindPort          25    # Binding port
+#PARAM BindAddress  [0.0.0.0]  # Binding address - for multihomers..
+#PARAM BindAddress [IPv6.0::0] # and here is for IPv6 - NO SPACES!
+#
 # Enables of some commands:
 #PARAM  DEBUGcmd
 PARAM   EXPNcmd
@@ -336,10 +368,16 @@ PARAM   VRFYcmd
 #               # enable if you want to allow SMTP to autenticate
 #               # with the default code against system /etc/passwd
 #               # (or whatever source  getpwnam() uses for it..)
+#
 #PARAM AUTH-LOGIN-also-without-TLS
 #               # Enable, if the "AUTH LOGIN" is to be allowed to
 #               # be used without running under SSL/TLS security
 #               # envelope.
+#
+#PARAM MSA-mode # Message Submission Agent Mode. Require successfull
+#               # user authentication before message submission during
+#               # SMTP session from outside of "fulltrustnet" and
+#               # "relaycustnet" (see smtp-policy.src).
 #
 # Disablers of some facility adverticements
 #PARAM  NoEHLO
