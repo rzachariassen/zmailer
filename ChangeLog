@@ -1,3 +1,20 @@
+1999-06-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* ChangeLog, configure.in, acconfig.h, router/libdb/bsdbtree.c,
+	  router/libdb/bsdhash.c, smtpserver/policytest.c,
+	  utils/makedb/makedb.c, utils/makedb/dblook.c, README.UPGRADING,
+	  utils/vacation/vacation.c:
+	    Autoconfigure BSD DB 2.* usage into ZMailer.
+	    The resulting databases are BINARY INCOMPATIBLE, and thus
+	    must be recompiled when upgrading!
+
+	* ChangeLog, configure.in, router/Makefile.in, smtpserver/Makefile.in,
+	  router/libdb/Makefile.in, utils/makedb/Makefile.in,
+	  utils/vacation/Makefile.in:
+	    Two overriders:
+	      --with-generic-include="-I/path1 -I/path2 .."
+	      --with-generic-library="-L/path1 -L/path2 .."
+
 1999-06-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/policytest.c:

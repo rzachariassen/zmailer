@@ -17,7 +17,7 @@ MAILSHARE=	$(prefix)@MAILSHARE@
 MANDIR=		$(prefix)@MANDIR@
 INSTALL=	@INSTALL@
 TOPDIR=		../..
-LIBS=		-L$(TOPDIR)/libs -lzc @GETPWLIB@ @LIBRESOLV@ @LIBSOCKET@
+LIBS=		@GENLIB@ -L$(TOPDIR)/libs -lzc @GETPWLIB@ @LIBRESOLV@ @LIBSOCKET@
 LN_S=		"@LN_S@"
 MKDIR=		@MKDIR@
 
@@ -25,7 +25,7 @@ VMSGDEF=	@MAILSHARE@/vacation.msg
 DEFS=		@DEFS@ -DVMSGDEF='"$(VMSGDEF)"'
 VACATIONPATH=	$(prefix)@VACATIONPATH@
 
-INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) @GENINCL@
 DBMLIB=		@LIBDBMS@
 CONVTIME= convtime.o
 MANEXT=1

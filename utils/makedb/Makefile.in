@@ -15,11 +15,11 @@ DEFS=		@DEFS@
 INSTALL=	@INSTALL@
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) @GENINCL@ $(INCL)
 TOPDIR=		../..
-INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) @GENINCL@
 
 PROGS=		makedb dblook
 SOURCE=		makedb.c dblook.c
-LIBS=		-L$(TOPDIR)/libs -lzm -lzc @LIBDBMS@
+LIBS=		@GENLIB@ -L$(TOPDIR)/libs -lzm -lzc @LIBDBMS@
 
 all: $(PROGS)
 

@@ -12,6 +12,13 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.50-s19
+		Support for SleepyCat's BSD DB 2.* database library.
+		While the db's are still called 'btree' and 'bhash',
+		the binary file formats of those files ARE NOT COMPATIBLE
+		WITH BSD DB 1.85 PRODUCED ONES!  The databases must be
+		recompiled if that format is used!
+
 
 	ZMailer-2.99.50-s17
 		The SMTPSERVER no longer per default runs interactive
@@ -25,6 +32,12 @@
 		Policy database has evolved quite a bit, very least you
 		should recompile possible pre-existing policy dataset
 		using new 'makedb' binary before re-enabling your smtpserver.
+
+	ZMailer-2.99.50-s11
+		Support for SleepyCat's BSD DB 2.* database library thru
+		its function call compability layer of <db_185.h>.  Said
+		interface produces/uses binary databases that are
+		*incompatible* with those produced by genuine BSD DB 1.85.
 
 	ZMailer-2.99.50
 		The router script language no longer has 'setf' function.
