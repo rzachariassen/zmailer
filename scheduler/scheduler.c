@@ -2479,8 +2479,9 @@ static void vtxdo(vp, cehdr, path)
 	  }
 	}
 	if (n == 0) {
-	  sfprintf(sfstderr, "%s: no pattern matched %s/%s address\n",
-		   progname, vp->orig[L_CHANNEL]->name,vp->orig[L_HOST]->name);
+	  sfprintf(sfstderr, "%s: no pattern matched %s/%s address %s%s\n",
+		   progname, vp->orig[L_CHANNEL]->name,vp->orig[L_HOST]->name,
+		   path ? "file=":"", path);
 	  /* XX: memory leak here? */
 	  return;
 	}
