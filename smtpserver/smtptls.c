@@ -111,38 +111,6 @@ smtp_starttls(SS, buf, cp)
       }
       exit(2);
     }
-
-    SS->sslwrbuf = emalloc(8192);
-    SS->sslwrspace = 8192;
-    SS->sslwrin = SS->sslwrout = 0;
-}
-
-static int
-Z_SSL_flush(SS)
-     SmtpState * SS;
-{
-    int in = SS->sslwrin;
-    int ou = SS->sslwrout;
-    int rc, e;
-
-    SS->sslwrin = SS->sslwrout = 0;
-
-    if (ou >= in)
-      return 0;
-
-    /* this is blocking write */
-    rc = SSL_write(SS->ssl, SS->sslwrbuf + ou, in - ou);
-    e  = SSL_get_error(SS->ssl, rc);
-    switch (e) {
-    case SSL_ERROR_WANT_READ:
-    case SSL_ERROR_WANT_WRITE:
-      errno = EAGAIN;
-      rc = -1;
-      break;
-    default:
-      break;
-    }
-    return rc;
 }
 
 
@@ -158,16 +126,19 @@ Z_read(SS, ptr, len)
       int e  = SSL_get_error(SS->ssl, rc);
       switch (e) {
       case SSL_ERROR_WANT_READ:
-      case SSL_ERROR_WANT_WRITE:
 	errno = EAGAIN;
 	rc = -1;
+	break;
+      case SSL_ERROR_WANT_WRITE:
+	errno = EAGAIN;
+	rc = -2;
 	break;
       default:
 	break;
       }
       return rc;
-    }
-    return read(SS->inputfd, (char*)ptr, len);
+    } else
+      return read(SS->inputfd, (char*)ptr, len);
 }
 
 int
@@ -180,49 +151,35 @@ Z_pending(SS)
 }
 
 
+
 int
-Z_write(SS, ptr, len)
+Z_SSL_flush(SS)
      SmtpState * SS;
-     const void *ptr;
-     int len;
 {
-    int i, rc = 0;
-    char *buf = (char *)ptr;
+    int in = SS->sslwrin;
+    int ou = SS->sslwrout;
+    int rc, e;
 
-    if (!SS->sslmode)
-      return fwrite(ptr, len, 1, SS->outfp);
+    if (ou >= in)
+      return 0;
 
-    while (len > 0) {
-      i = SS->sslwrspace - SS->sslwrin; /* space */
-      if (i == 0) {
-	/* The buffer is full! Flush it */
-	i = Z_SSL_flush(SS);
-	if (i < 0) return rc;
-	rc += i;
-	i = SS->sslwrspace;
-      }
-      /* Copy only as much as can fit into current space */
-      if (i > len) i = len;
-      memcpy(SS->sslwrbuf + SS->sslwrin, buf, i);
-      SS->sslwrin += i;
-      buf += i;
-      len -= i;
-      rc += i;
+    rc = SSL_write(SS->ssl, SS->sslwrbuf + ou, in - ou);
+    e  = SSL_get_error(SS->ssl, rc);
+    switch (e) {
+    case SSL_ERROR_WANT_READ:
+      errno = EAGAIN;
+      rc = -2;
+      break;
+    case SSL_ERROR_WANT_WRITE:
+      errno = EAGAIN;
+      rc = -1;
+      break;
+    default:
+      break;
     }
 
-    /* how much written out ? */
     return rc;
 }
-
-void typeflush(SS)
-SmtpState *SS;
-{
-    if (SS->sslmode)
-      Z_SSL_flush(SS);
-    else
-      fflush(SS->outfp);
-}
-
 
 
 
@@ -981,7 +938,7 @@ tls_start_servertls(SS)
      * (this is for clean UNIX environment, for example windows "sockets"
      *  need somewhat different approach with customized BIO_METHODs.)
      */
-    if (!SSL_set_fd(SS->ssl, fileno(SS->outfp))) {
+    if (!SSL_set_fd(SS->ssl, SS->outputfd)) {
 	type(SS,0,NULL,"SSL_set_fd failed");
 	return (-1);
     }
@@ -1020,18 +977,107 @@ tls_start_servertls(SS)
      * everything that might be there. A session has to be removed anyway,
      * because RFC2246 requires it.
      */
-    if ((sts = SSL_accept(SS->ssl)) <= 0) {
-	type(NULL,0,NULL,"SSL_accept error %d", sts);
-	session = SSL_get_session(SS->ssl);
-	if (session) {
+    for (;;) {
+	int sslerr, rc, i;
+	BIO *wbio, *rbio;
+	fd_set rdset, wrset;
+	struct timeval tv;
+	int wantreadwrite = 0;
+
+    ssl_accept_retry:;
+
+	wbio = SSL_get_wbio(SS->ssl);
+	rbio = SSL_get_rbio(SS->ssl);
+
+	sts = SSL_accept(SS->ssl);
+	sslerr = SSL_get_error(SS->ssl, sts);
+
+	switch (sslerr) {
+
+	case SSL_ERROR_WANT_READ:
+	    wantreadwrite = -1;
+	    sslerr = EAGAIN;
+	    break;
+	case SSL_ERROR_WANT_WRITE:
+	    wantreadwrite =  1;
+	    sslerr = EAGAIN;
+	    break;
+
+	case SSL_ERROR_WANT_X509_LOOKUP:
+	    goto ssl_accept_retry;
+	    break;
+
+	case SSL_ERROR_NONE:
+	    goto ssl_accept_done;
+	    break;
+
+	default:
+	    wantreadwrite =  0;
+	    break;
+	}
+
+	if (BIO_should_read(rbio))
+	    wantreadwrite = -1;
+	else if (BIO_should_write(wbio))
+	    wantreadwrite =  1;
+
+	if (! wantreadwrite) {
+	  /* Not proper retry by read or write! */
+
+	ssl_accept_error_bailout:;
+
+	  type(NULL,0,NULL,"SSL_accept error %d/%d", sts, sslerr);
+
+	  tls_print_errors();
+	  session = SSL_get_session(SS->ssl);
+	  if (session) {
+#if 0
+	    remove_clnt_session(session->session_id,
+			        session->session_id_length);
+#endif
 	    SSL_CTX_remove_session(ssl_ctx, session);
 	    type(NULL,0,NULL,"SSL session removed");
+	  }
+	  SSL_free(SS->ssl);
+	  SS->ssl = NULL;
+	  return (-1);
 	}
-	if (SS->ssl)
-	    SSL_free(SS->ssl);
-	SS->ssl = NULL;
-	return (-1);
+
+	i = SSL_get_fd(SS->ssl);
+	_Z_FD_ZERO(wrset);
+	_Z_FD_ZERO(rdset);
+
+	if (wantreadwrite < 0)
+	  _Z_FD_SET(i, rdset); /* READ WANTED */
+	else if (wantreadwrite > 0)
+	  _Z_FD_SET(i, wrset); /* WRITE WANTED */
+
+	tv.tv_sec = 300;
+	tv.tv_usec = 0;
+
+	rc = select(i+1, &rdset, &wrset, NULL, &tv);
+	sslerr = errno;
+
+	if (rc == 0) {
+	  /* TIMEOUT! */
+	  sslerr = ETIMEDOUT;
+	  goto ssl_accept_error_bailout;
+	}
+
+	if (rc < 0) {
+	  if (sslerr == EINTR || sslerr == EAGAIN)
+	    continue;
+
+	  /* Bug time ?! */
+	  goto ssl_accept_error_bailout;
+	}
+	/* Default is then success for either read, or write.. */
     }
+
+ ssl_accept_done:;
+
+
+
     /* Only loglevel==4 dumps everything */
     if (tls_loglevel < 4)
 	do_dump = 0;

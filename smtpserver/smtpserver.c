@@ -1424,6 +1424,8 @@ int sig;
        We are commiting a suicide, but we need
        data that exists only in that context... */
     gotalarm = 1;
+    mustexit = 1;
+
     siglongjmp(jmpalarm, 1);
     _exit(253);			/* We did return ?!?! Boo!! */
 }
@@ -1483,15 +1485,109 @@ const char *msg;
     }
 }
 
-#ifndef HAVE_OPENSSL
+
 int
 Z_write(SS, ptr, len)
      SmtpState * SS;
      const void *ptr;
      int len;
 {
-    return fwrite(ptr, len, 1, SS->outfp);
+    int i, rc = 0;
+    char *buf = (char *)ptr;
+
+    while (len > 0) {
+      i = SS->sslwrspace - SS->sslwrin; /* space */
+      if (i == 0) {
+	/* The buffer is full! Flush it */
+	typeflush(SS);
+	if (gotalarm) break;
+	i = SS->sslwrspace;
+      }
+      /* Copy only as much as can fit into current space */
+      if (i > len) i = len;
+      memcpy(SS->sslwrbuf + SS->sslwrin, buf, i);
+      SS->sslwrin += i;
+      buf += i;
+      len -= i;
+      rc += i;
+    }
+
+    /* how much written out ? */
+    return rc;
 }
+
+void typeflush(SS)
+SmtpState *SS;
+{
+    int len = SS->sslwrin - SS->sslwrout;
+    int rc;
+    time_t expiry_epoch;
+
+    time(&expiry_epoch);
+    expiry_epoch += SMTP_REPLY_ALARM_IVAL;
+
+    while (len > 0) {
+
+#ifdef HAVE_OPENSSL
+      if (SS->sslmode)
+	rc = Z_SSL_flush(SS);
+      else
+#endif /* - HAVE_OPENSSL */
+	rc = write(SS->outputfd, SS->sslwrbuf + SS->sslwrout, len);
+      if (rc > 0) {
+	len          -= rc;
+	SS->sslwrout += rc;
+	continue;
+      }
+      if (rc < 0 && (errno == EAGAIN || errno == EINTR)) {
+	/* Wait for write-space, or timeout! */
+
+	fd_set wrset;
+	fd_set rdset;
+	struct timeval tv;
+	time_t now;
+	int fd = SS->outputfd;
+
+	_Z_FD_ZERO(rdset);
+	_Z_FD_ZERO(wrset);
+	time(&now);
+
+	if (expiry_epoch <= now)
+	  tv.tv_sec = 1;
+	else
+	  tv.tv_sec = expiry_epoch - now;
+	tv.tv_usec = 0;
+
+	if (rc == -1)
+	  _Z_FD_SET(fd, wrset);
+	else
+	  _Z_FD_SET(SS->inputfd, rdset);  /* SSL Want Read! */
+
+	if (SS->inputfd > fd)
+	  fd = SS->inputfd;
+
+	rc = select(fd+1, &rdset, &wrset, NULL, &tv);
+	if (rc == 0) {
+	  /* TIMEOUT! */
+	  gotalarm = 1;
+	  SS->s_status = EOF;
+	  break;
+	}
+	/* rc < 0 --> redo.. */
+	/* rc > 0 --> have write-space! */
+      } else
+	break;
+    } /* ... while() */
+
+
+    /* Even with errors -- we have  'gotalarm' and s_status set
+       so that the connection should abort on spot... */
+
+    SS->sslwrout = SS->sslwrin = 0; /* Buffer done */
+}
+
+
+#ifndef HAVE_OPENSSL
 
 int
 Z_read(SS, ptr, len)
@@ -1507,13 +1603,6 @@ Z_pending(SS)
      SmtpState * SS;
 {
     return 0;
-}
-
-void
-typeflush(SS)
-     SmtpState *SS;
-{
-    fflush(SS->outfp);
 }
 
 #endif /* --HAVE_OPENSSL */
@@ -1535,24 +1624,64 @@ int s_getc(SS)
 	return SS->s_status;
 
     if (SS->s_readout >= SS->s_bufread) {
+
+        time_t expiry_epoch = time(NULL) + SS->read_alarm_ival;
+
     redo:
+
         /* We are about to read... */
-	alarm(SS->read_alarm_ival);
+
+	if (rc < 0 && SS->inputfd >= 0) {
+	
+	  fd_set rdset;
+	  fd_set wrset;
+	  struct timeval tv;
+	  time_t now;
+	  int fd = SS->inputfd;
+
+	  _Z_FD_ZERO(rdset);
+	  _Z_FD_ZERO(wrset);
+	  time(&now);
+
+	  if (expiry_epoch <= now)
+	    tv.tv_sec = 1;
+	  else
+	    tv.tv_sec = expiry_epoch - now;
+	  tv.tv_usec = 0;
+
+	  if (rc == -2) /* SSL Want Write ! */
+	    _Z_FD_SET(SS->outputfd, wrset);
+	  else
+	    _Z_FD_SET(SS->inputfd, rdset);
+
+	  if (SS->outputfd > fd)
+	    fd = SS->outputfd;
+
+	  rc = select(fd+1, &rdset, &wrset, NULL, &tv);
+
+	  if (rc == 0) {
+	    /* TIMEOUT! */
+	    gotalarm = 1;
+	    SS->s_status = EOF;
+	    return EOF;
+	  }
+	  /* rc < 0 ??? */
+	  /* rc > 0 --> we have something to read! */
+	}
+
 	rc = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
 	SS->s_readerrno = 0;
 	if (rc < 0) {
 	  SS->s_readerrno = errno;
-	  if (errno == EINTR || errno == EAGAIN)
-	    if (!gotalarm)
-	      goto redo;
+	  if (errno == EINTR || errno == EAGAIN) {
+	    goto redo;
+	  }
 	  /* The read returned.. */
-	  alarm(0);
 	  /* Other results are serious errors -- maybe */
 	  SS->s_status = EOF;
 	  return EOF;
 	}
 	/* We did read successfully! */
-	alarm(0);
 	if (rc == 0) {
 	    SS->s_status = EOF;
 	    return EOF;
@@ -1572,15 +1701,11 @@ SmtpState *SS;
 
     if (SS->s_readout >= SS->s_bufread) {
         /* So if it did dry up, try non-blocking read */
-#if defined(O_NONBLOCK) || defined(FNDELAY)
-	int flags = fd_nonblockingmode(SS->inputfd);
 	SS->s_readout = 0;
 	
 	SS->s_bufread = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
-	fd_restoremode(SS->inputfd, flags);
 	if (SS->s_bufread > 0)
 	    return SS->s_bufread;
-#endif
 	return 0;
     }
     return (SS->s_bufread - SS->s_readout);
@@ -1621,8 +1746,6 @@ int buflen, *rcp;
 	    co = c;
 	}
 	buf[++i] = '\0';
-	alarm(0);		/* Cancel the alarm */
-	SS->read_alarm_ival = 0;
 
 	if (c == EOF && i == 0) {
 	    /* XX: ???  Uh, Hung up on us ? */
@@ -1655,19 +1778,14 @@ void s_setup(SS, infd, outfd)
 SmtpState *SS;
 int infd;
 {
-
-    FILE *outfp = fdopen(outfd,"w");
-
-    setvbuf(outfp, NULL, _IOFBF, 8192);
-
-    SS->inputfd = infd;
-    SS->outfp = outfp;
+    SS->inputfd  = infd;
+    SS->outputfd = outfd;
     SS->s_status = 0;
     SS->s_bufread = -1;
     SS->s_readout = 0;
 
-    fd_blockingmode(infd);
-    fd_blockingmode(outfd); /* Just in case these are separate FDs.. */
+    fd_nonblockingmode(infd);
+    fd_nonblockingmode(outfd);
 }
 
 
@@ -1704,6 +1822,9 @@ int insecure;
 
     if (!netconnected_flg)
       strict_protocol = 0;
+
+    fd_nonblockingmode(SS->inputfd);  /* redundant ? */
+    fd_nonblockingmode(SS->outputfd); /* redundant ? */
 
     rc = sigsetjmp(jmpalarm,1);
     if (rc != 0) {
@@ -1781,11 +1902,13 @@ int insecure;
 	/* No dice... */
 	exit(2);
       }
-      SS->sslwrbuf = emalloc(8192);
-      SS->sslwrspace = 8192;
-      SS->sslwrin = SS->sslwrout = 0;
     }
 #endif /* - HAVE_OPENSSL */
+
+    /* Actually all modes use this write-out buffer */
+    SS->sslwrbuf = emalloc(8192);
+    SS->sslwrspace = 8192;
+    SS->sslwrin = SS->sslwrout = 0;
 
 
 #ifdef HAVE_WHOSON_H

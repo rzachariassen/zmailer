@@ -1,12 +1,13 @@
 /*
  *  Globals of the ZMailer  smtp-server
  *
- *  Matti Aarnio <mea@nic.funet.fi> 1997-2000
+ *  Matti Aarnio <mea@nic.funet.fi> 1997-2001
  */
 
 
 #define SMTP_COMMAND_ALARM_IVAL 1200	/* 20 minutes.. */
 #define SMTP_DATA_TIME_PER_LINE  600	/* 10 minutes of life.. */
+#define SMTP_REPLY_ALARM_IVAL    300	/*  5 minutes to write to socket.. */
 
 /*
  * The smtpserver connects to the router to ask it various questions, like,
@@ -214,7 +215,7 @@ struct command {
 extern struct command command_list[];
 
 typedef struct {
-    FILE *outfp;		/* stdout */
+    int  outputfd;		/* stdout */
     int  inputfd;		/* stdin  */
     FILE *mfp;			/* Storage-bound mail-file fp */
     long sizeoptval;		/* "MAIL FROM:<xxx> SIZE=nnn" -value    */
@@ -243,11 +244,11 @@ typedef struct {
 #define DELIVERBY_T  4
 
     int   sslmode;		/* Set, when SSL/TLS in running */
-#ifdef HAVE_OPENSSL
-    SSL * ssl;
     char *sslwrbuf;
     int   sslwrspace, sslwrin, sslwrout;
     /* space, how much stuff in, where the output cursor is */
+#ifdef HAVE_OPENSSL
+    SSL * ssl;
 #endif /* - HAVE_OPENSSL */
     char *tls_cipher_info;
     char *tls_peer_subject;
@@ -501,6 +502,7 @@ extern int tls_start_servertls __((SmtpState *SS));
 extern void smtp_starttls __((SmtpState * SS, const char *buf, const char *cp));
 extern void Z_init    __(( void ));
 extern void Z_cleanup __(( SmtpState * ));
+extern int  Z_SSL_flush __(( SmtpState * ));
 #endif /* - HAVE_OPENSSL */
 extern int  Z_pending __(( SmtpState * ));
 extern int  Z_write   __(( SmtpState *, const void *, int ));

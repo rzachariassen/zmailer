@@ -159,8 +159,6 @@ const char *buf, *cp;
     /* We set alarm()s inside the mvdata() */
     *msg = 0;
     filsiz = mvdata(SS, msg);
-    alarm(0);			/* cancel the alarm() */
-    SS->read_alarm_ival = 0;
 
     tell = ftell(SS->mfp);
 
@@ -370,8 +368,6 @@ const char *buf, *cp;
     /* We set alarm()s inside the mvbdata() */
     *msg = 0;
     filsiz = mvbdata(SS, msg, bdata_chunksize);
-    alarm(0);			/* cancel the alarm() */
-    SS->read_alarm_ival = 0;
 
     if (SS->mfp)
 	tell = ftell(SS->mfp);
@@ -791,7 +787,6 @@ char *msg;
     cnt = 0;
 
     SS->read_alarm_ival = SMTP_DATA_TIME_PER_LINE;
-    alarm(SS->read_alarm_ival);
 #else
     char linebuf[4000], *s, *eol;
     int col;
@@ -1295,6 +1290,8 @@ register long incount;
     cnt = 0;
 
     /* XX: header processing REMOVED from BDAT processing */
+
+    SS->read_alarm_ival = SMTP_DATA_TIME_PER_LINE;
 
     /* ================ Normal email BODY input.. ================ */
     for (; incount > 0; --incount) {
