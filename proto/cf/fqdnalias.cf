@@ -314,7 +314,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
 		       listexpand -c "$a fqdn alias expansion" 		\
-				-e root		 			\
+				-e root -N -	 			\
 				$nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		then

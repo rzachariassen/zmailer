@@ -84,7 +84,7 @@ fi
 
 defROUTEROPTIONS='-dWkn 4'
 defSMTPOPTIONS='-sve -l ${LOGDIR}/smtpserver'
-defSCHEDULEROPTIONS='-l ${LOGDIR}/scheduler.perflog -S -H'
+defSCHEDULEROPTIONS='-S -H'
 defNNTPSERVER='nntp'
 ac_default_zmconfig="${ZCONFIG-$prefix/zmailer.conf}"
 
@@ -154,18 +154,26 @@ OrigCPPFLAGS="$CPPFLAGS"
 
 AC_SUBST(PERLINSTALLDIRS)
 PERLINSTALLDIRS=""
+use_perlinstalldirs=0
 AC_ARG_WITH(perl-installdirs, [  --with-perl-installdirs=\"INSTALLDIRS=vendor\"
-                             Perl module installation thingie.]
-        use_perlinstalldirs=1, use_perlinstalldirs=0)
+                             Perl module installation thingie.],
+        use_perlinstalldirs=1)
 if test "$use_perlinstalldirs" = 1; then
-  PERLINSTALLDIRS="$withval"
+  PERLINSTALLDIRS="$with_perl_installdirs"
 fi
+
+# AC_SUBST(PERLINSTALLPREFIX)
+# PERLINSTALLPREFIX="/usr" # When nothing else is known...
+# if test -x "$PERL" ; then
+#
+# fi
 
 
 AC_SUBST(GENINCL)
+use_genincl=0
 AC_ARG_WITH(generic-include, [  --with-generic-include=\"-I/...\"
                             Include option for local overriders],
-        use_genincl=1, use_genincl=0)
+        use_genincl=1)
 if test "$use_genincl" = 1; then
   GENINCL="$withval"
   CPPFLAGS="$CPPFLAGS $withval"
@@ -688,8 +696,12 @@ if test "$ac_cv_header_ndbm_h" = yes ; then
     LIBS="$LIBS $LIBNDBM"
     AC_TRY_LINK([#include <ndbm.h>], [DBM *db;int i = dbm_error(db);], t_have_dbm_error=yes)
     LIBS="$t_oldLibs"
+    AC_MSG_RESULT([Located NDBM's  dbm_open()  routine at $t_found_at])
+  else
+    AC_MSG_RESULT([Didn't locate NDBM dbm_open() routine.   Maybe something better exists...])
+    AC_MSG_RESULT([(This is for support of the original NDBM library in old systems, not])
+    AC_MSG_RESULT([about API compability in e.g. GDBM and SleepyCat.)])
   fi
-  AC_MSG_RESULT([Located NDBM's  dbm_open()  routine at $t_found_at])
   if test "$t_found_at" != nowhere; then
     dblocation="$dblocation;$t_found_at"
   fi

@@ -2,6 +2,10 @@ Known/suspected bugs/Missing Features on current ZMailer sources
 
 "zmailer newfqdnroute" runs wrong thing... (no thing, actually..)
 
+contrib/zmailcheck  -script   vs.  mailq output ?
+	Fix the first, or both.
+
+
 smtp-ta: TLS mode demands a bit too much of remote server's certificates..
 	 How to relax it more ?
 

@@ -1,3 +1,28 @@
+2003-09-25  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in:
+	    - Default builtin value for SCHEDULEROPTIONS is
+	      now changed to  "-S -H".
+	    - Fixed a missing comma from  --with-perl-installdirs
+	      option parameter processing.
+	    - Added some AC_MSG_RESULT()s about NDBM library
+	      pickup processing.
+
+	* proto/cf/fqdnaliases.cf:
+	    One instance of  $(listexpand .. ) call needed
+	    "-N -" parameter as not to do DSN expansions.
+
+	* proto/forms/delivery
+	    - Added "ADR Bcc: <nobody>" to drain  errors-on-error
+	      reports.
+	    - Made small URL change
+
+	* utils/perl/Makefile.in:
+	    Removed (from 'install' target) explicite PREFIX=
+	    value setup. Possible PREFIX= value can be set
+	    thru configure time  --with-perl-installdirs="..."
+	    parameter.
+
 2003-09-09  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, utils/perl/Makefile.in:

@@ -869,7 +869,6 @@ Optional Packages:
   --without-libintl-prefix     don't search for libintl in includedir and libdir
   --with-perl-installdirs=\"INSTALLDIRS=vendor\"
                              Perl module installation thingie.
-        use_perlinstalldirs=1
   --with-generic-include=\"-I/...\"
                             Include option for local overriders
   --with-generic-library=\"-L/...\"
@@ -3785,7 +3784,7 @@ fi
 
 defROUTEROPTIONS='-dWkn 4'
 defSMTPOPTIONS='-sve -l ${LOGDIR}/smtpserver'
-defSCHEDULEROPTIONS='-l ${LOGDIR}/scheduler.perflog -S -H'
+defSCHEDULEROPTIONS='-S -H'
 defNNTPSERVER='nntp'
 ac_default_zmconfig="${ZCONFIG-$prefix/zmailer.conf}"
 
@@ -8413,25 +8412,31 @@ OrigCPPFLAGS="$CPPFLAGS"
 
 
 PERLINSTALLDIRS=""
+use_perlinstalldirs=0
 
 # Check whether --with-perl-installdirs or --without-perl-installdirs was given.
 if test "${with_perl_installdirs+set}" = set; then
   withval="$with_perl_installdirs"
-  use_perlinstalldirs=0
+  use_perlinstalldirs=1
 fi;
 if test "$use_perlinstalldirs" = 1; then
-  PERLINSTALLDIRS="$withval"
+  PERLINSTALLDIRS="$with_perl_installdirs"
 fi
 
+# AC_SUBST(PERLINSTALLPREFIX)
+# PERLINSTALLPREFIX="/usr" # When nothing else is known...
+# if test -x "$PERL" ; then
+#
+# fi
 
 
+
+use_genincl=0
 
 # Check whether --with-generic-include or --without-generic-include was given.
 if test "${with_generic_include+set}" = set; then
   withval="$with_generic_include"
   use_genincl=1
-else
-  use_genincl=0
 fi;
 if test "$use_genincl" = 1; then
   GENINCL="$withval"
@@ -11623,9 +11628,16 @@ sed 's/^/| /' conftest.$ac_ext >&5
 fi
 rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
     LIBS="$t_oldLibs"
-  fi
-  echo "$as_me:$LINENO: result: Located NDBM's  dbm_open()  routine at $t_found_at" >&5
+    echo "$as_me:$LINENO: result: Located NDBM's  dbm_open()  routine at $t_found_at" >&5
 echo "${ECHO_T}Located NDBM's  dbm_open()  routine at $t_found_at" >&6
+  else
+    echo "$as_me:$LINENO: result: Didn't locate NDBM dbm_open() routine.   Maybe something better exists..." >&5
+echo "${ECHO_T}Didn't locate NDBM dbm_open() routine.   Maybe something better exists..." >&6
+    echo "$as_me:$LINENO: result: (This is for support of the original NDBM library in old systems, not" >&5
+echo "${ECHO_T}(This is for support of the original NDBM library in old systems, not" >&6
+    echo "$as_me:$LINENO: result: about API compability in e.g. GDBM and SleepyCat.)" >&5
+echo "${ECHO_T}about API compability in e.g. GDBM and SleepyCat.)" >&6
+  fi
   if test "$t_found_at" != nowhere; then
     dblocation="$dblocation;$t_found_at"
   fi
