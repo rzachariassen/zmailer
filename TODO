@@ -63,30 +63,6 @@ router:
 	of   "From: foo%bar <fii@faa.fuu>"  formats causes the scanner
 	to react mistakenly with 'Illegal-Object:'.
 
-router:
-	Works now as a work-gang under leadership of one process
-        whose task is to scan the directories for work..
-	It is still not quite as flexible as one might want, but
-	better than the old system, and now router logs are done
-	in a smarter way, which is easy to rotate without any
-	need for signals to anywhere..
-
-	(older entry way below had:)
-	Have separate queueing processor feeding actual routers
-	to take care of the problem related to message priorities.
-	Could implement:  high/normal/bulk/junk priorities which
-	contains ways to be able to process messages from different
-	work categories without causing starvation of some class
-	queue; E.g. at least one router per class, but if some
-	class is (momentrarily) empty, its router can work other
-	class jobs.
-		-> 2.99.52 has queueing / log collecting process
-		   (all that for easy log rotation), but priorization
-		   is not there yet
-
-	-> 10-May-2000: things have been turned upside down in manner
-	   of the scheduler's queue paradigm.
-
 
 transports/smtp:
    BUGLET:
@@ -100,6 +76,8 @@ transports/smtp:
 	and the final DATA is then rejected with 500 series code, DON'T
 	abort with permanent error -- plus retry..
 		Fixed ? (20000314)
+	Not.  Apparently some combinations still conspire to produce
+	rejections in cases which should retry.
 
    DRUMS/SMTPUPD:
 	If MX set after the backup-prune is empty (and initially was non-
