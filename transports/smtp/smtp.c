@@ -605,7 +605,7 @@ main(argc, argv)
 	char *argv[];
 {
 	char file[MAXPATHLEN+128];
-	char *channel = NULL, *host = NULL;
+	volatile char *channel = NULL, *host = NULL;
 	int i, fd, errflg, c;
 	int smtpstatus;
 	int need_host = 0;
