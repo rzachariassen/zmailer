@@ -15,6 +15,11 @@
  * argument is a keyword for what we want done.  These are the definitions:
  */
 
+#ifndef __STDC__
+# define const
+# define volatile
+#endif
+
 #define	ROUTER_SERVER	"server"	/* name of portal function */
 
 #define	RKEY_INIT	"init"		/* initialize state of server	*/
