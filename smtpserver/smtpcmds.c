@@ -1027,7 +1027,10 @@ int insecure;
 	fputs("\n", SS->mfp);
     }
 
-    availspace = fd_statfs(FILENO(SS->mfp));
+    availspace = used_fd_statfs(FILENO(SS->mfp));
+    if (availspace >= 0)
+      MIBMtaEntry->sys.SpoolUsedSpace = availspace;
+    availspace = free_fd_statfs(FILENO(SS->mfp));
     if (availspace < 0)
 	availspace = LONG_MAX / 1024;	/* Over 2G ? */
     if (availspace >= 0)

@@ -9,7 +9,7 @@
  *
  */
 
-#define ZM_MIB_MAGIC 0x33120005
+#define ZM_MIB_MAGIC 0x33120006
 
 struct timeserver {
 	int	pid;
@@ -41,7 +41,11 @@ struct MIB_MtaEntrySys {
      Router and scheduler ?  Smtpserver ?  All three ? */
 
   uint		SpoolFreeSpace;		/* gauge,	in MB	*/
+  uint		SpoolUsedSpace;		/* gauge,	in MB	*/
   uint		LogFreeSpace;		/* gauge,	in MB  ?? */
+  uint		LogUsedSpace;		/* gauge,	in MB  ?? */
+
+  uint		dummy99[32];
 };
 
 struct MIB_MtaEntrySs {
@@ -54,6 +58,10 @@ struct MIB_MtaEntrySs {
   uint		IncomingParallelSUBMITconnects;
 
   uint		IncomingSMTPSERVERforks;
+  uint		MaxSameIpSourceCloses;
+  uint		MaxParallelConnections;
+  uint		ForkFailures;
+  uint		ContentPolicyForkFailures;
 
   uint		IncomingSMTPconnects;	/* Incoming SMTP sessions */
   uint		IncomingSMTPSconnects;	/* Incoming SMTPS sessions */
@@ -98,6 +106,18 @@ struct MIB_MtaEntrySs {
   uint		IncomingSMTP_RCPT_ok;
   uint		IncomingSMTP_RCPT_bad;
 
+  uint		IncomingSMTP_OPT_ENVID;
+  uint		IncomingSMTP_OPT_SIZE;
+  uint		IncomingSMTP_OPT_AUTH;
+  uint		IncomingSMTP_OPT_DELIVERBY;
+  uint		IncomingSMTP_OPT_BODY_8BITMIME;
+  uint		IncomingSMTP_OPT_BODY_BINARYMIME;
+  uint		IncomingSMTP_OPT_BODY_7BIT;
+  uint		IncomingSMTP_OPT_RET;
+
+  uint		IncomingSMTP_OPT_NOTIFY;
+  uint		IncomingSMTP_OPT_ORCPT;
+
   uint		IncomingSMTP_DATA;
   uint		IncomingSMTP_DATA_ok;
   uint		IncomingSMTP_DATA_bad;
@@ -117,24 +137,7 @@ struct MIB_MtaEntrySs {
 
   double dummy3; /* Alignment, etc.. */
 
-  uint		IncomingSMTP_OPT_ENVID;
-  uint		IncomingSMTP_OPT_SIZE;
-  uint		IncomingSMTP_OPT_AUTH;
-  uint		IncomingSMTP_OPT_DELIVERBY;
-  uint		IncomingSMTP_OPT_BODY_8BITMIME;
-  uint		IncomingSMTP_OPT_BODY_BINARYMIME;
-  uint		IncomingSMTP_OPT_BODY_7BIT;
-  uint		IncomingSMTP_OPT_RET;
-
-  uint		IncomingSMTP_OPT_NOTIFY;
-  uint		IncomingSMTP_OPT_ORCPT;
-
-  uint		MaxSameIpSourceCloses;
-  uint		MaxParallelConnections;
-  uint		ForkFailures;
-  uint		ContentPolicyForkFailures;
-
-  uint	space[18]; /* Add to tail without need to change MAGIC */
+  uint	space[32]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -144,6 +147,7 @@ struct MIB_MtaEntryRt {
 
   uint		RouterProcesses;	/* gauge */
   uint		RouterProcessForks;	/* counter, cleared at start */
+  uint		RouterProcessFaults;	/* counter, cleared at start */
 
   uint		ReceivedMessages;	/* counter, router	*/
   uint		ReceivedRecipients;	/* counter, router - not! */
@@ -156,13 +160,10 @@ struct MIB_MtaEntryRt {
 
   /* Subsystem queue size  */
   uint		StoredMessages;		/* gauge, router	*/
-  uint		StoredRecipients;	/* gauge, router - not!	*/
-
   uint		StoredVolume;		/* gauge,	in kB	*/
 
 
-  uint		RouterProcessFaults;	/* counter, cleared at start */
-  uint	space[31]; /* Add to tail without need to change MAGIC */
+  uint	space[32]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -258,6 +259,23 @@ struct MIB_MtaEntryTaS {
   uint		SmtpLHLO;		/* counter */
   uint		SmtpLHLOok;		/* counter */
   uint		SmtpLHLOfail;		/* counter */
+
+  uint		EHLOcapability8BITMIME;
+  uint		EHLOcapabilityAUTH;
+  uint		EHLOcapabilityCHUNKING;
+  uint		EHLOcapabilityDELIVERBY;
+  uint		EHLOcapabilityDSN;
+  uint		EHLOcapabilityENHANCEDSTATUSCODES;
+  uint		EHLOcapabilityPIPELINING;
+  uint		EHLOcapabilitySIZE;
+  uint		EHLOcapabilitySTARTTLS;
+
+  uint		SmtpOPT_ENVID;
+  uint		SmtpOPT_SIZE;
+  uint		SmtpOPT_RET;
+  uint		SmtpOPT_NOTIFY;
+  uint		SmtpOPT_ORCPT;
+
   uint		SmtpMAIL;		/* counter, all tried */
   uint		SmtpMAILok;		/* counter, successfull */
   uint		SmtpRCPT;		/* counter, all tried */
@@ -284,23 +302,7 @@ struct MIB_MtaEntryTaS {
 
   double dummy99; /* Alignment, etc.. */
 
-  uint		EHLOcapability8BITMIME;
-  uint		EHLOcapabilityAUTH;
-  uint		EHLOcapabilityCHUNKING;
-  uint		EHLOcapabilityDELIVERBY;
-  uint		EHLOcapabilityDSN;
-  uint		EHLOcapabilityENHANCEDSTATUSCODES;
-  uint		EHLOcapabilityPIPELINING;
-  uint		EHLOcapabilitySIZE;
-  uint		EHLOcapabilitySTARTTLS;
-
-  uint		SmtpOPT_ENVID;
-  uint		SmtpOPT_SIZE;
-  uint		SmtpOPT_RET;
-  uint		SmtpOPT_NOTIFY;
-  uint		SmtpOPT_ORCPT;
-
-  uint	space[18]; /* Add to tail without need to change MAGIC */
+  uint	space[32]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -406,46 +408,6 @@ struct MIB_MtaEntryTaRert {
   uint	space[32]; /* Add to tail without need to change MAGIC */
 };
 
-
-
-#if 0
-struct MIB_mtaGroupEntry {
-  uint		GroupIndex;			/* int */
-  uint		GroupReceivedMessages;		/* counter */
-  uint		GroupRejectedMessages;		/* counter */
-  uint		GroupStoredMessages;		/* gauge   */
-  uint		GroupTransmittedMessages;	/* counter */
-  uint		GroupReceivedVolume;		/* counter */
-  uint		GroupStoredVolume;		/* gauge   */
-  uint		GroupTransmittedVolume;		/* counter */
-  uint		GroupReceivedRecipients;	/* counter */
-  uint		GroupStoredRecipients;		/* gauge   */
-  uint		GroupTransmittedReceipients;	/* counter */
-  uint		GroupOldestMessageStored;	/* time_t */
-  uint		GroupInboundAssociations;	/* gauge   */
-  uint		GroupOutboundAssociations;	/* gauge   */
-  uint		GroupAccumulatedInboundAssociations;  /* counter */
-  uint		GroupAccumulatedOutboundAssociations; /* counter */
-  uint		GroupLastInboundActivity;	/* time_t */
-  uint		GroupLastOutboundActivity;	/* time_t */
-  uint		GroupLastOutboundAssociationAttempt; /* time_t */
-  uint		GroupRejectedInboundAssociations; /* counter */
-  uint		GroupFailedOutboundAssociations;  /* counter */
-  char		GroupInboundRejectionReason[80]; /* display-string ?? */
-  char		GroupOutboundConnectFailureReason[80];
-  uint		GroupScheduledRetry;		/* time_t */
-  uint		GroupMailProtocol;		/* ??? */
-  char		GroupName[80];			/* display-string ? */
-  uint		GroupSuccessfulConvertedMessages; /* counter */
-  uint		GroupFailedConvertedMessages;	/* counter */
-  char		GroupDescription[80];		/* ??? */
-  char		GroupURL[80];			/* ??? */
-  uint		GroupCreationTime;		/* time_t */
-  uint		GroupHierarchy;			/* int */
-  char		GroupOldestMessageId[80];
-  uint		GroupLoopsDetected;		/* counter */
-};
-#endif
 
 
 struct MIB_MtaEntry {

@@ -431,7 +431,6 @@ extern struct smtpconf *readcffile __((const char *fname));
 extern struct smtpconf *findcf __((const char *host));
 
 extern int loadavg_current __((void));
-extern long fd_statfs __((int));
 
 extern const char *rfc821_domain __((const char *s, int strict));
 extern const char *rfc821_path __((const char *s, int strict));

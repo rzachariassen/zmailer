@@ -226,5 +226,6 @@ extern struct MIB_MtaEntry *MIBMtaEntry; /* public MIB block pointer, either
 extern long Z_SHM_FileSysFreeSpace __((void)); /* in KILOBYTES */
 
 /* fdstatfs.c */
-extern long fd_statfs __((int)); /* Used in this routine.. */
+extern long used_fd_statfs __((int fd));
+extern long free_fd_statfs __((int fd));
 

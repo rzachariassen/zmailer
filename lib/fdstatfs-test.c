@@ -1,6 +1,7 @@
 #include <stdio.h>
 
-extern long fd_statfs();
+extern long free_fd_statfs();
+extern long used_fd_statfs();
 
 int main(argc, argv)
 int argc;
@@ -18,9 +19,11 @@ char *argv[];
     if (!fp)
 	goto usage;
 
-    st = fd_statfs(fileno(fp));
+    st = free_fd_statfs(fileno(fp));
+    printf("result: free %ld\n", st);
 
-    printf("result: %ld\n", st);
+    st = used_fd_statfs(fileno(fp));
+    printf("result: used %ld\n", st);
 
     return 0;
 }

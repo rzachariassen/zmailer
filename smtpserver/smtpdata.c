@@ -183,7 +183,10 @@ const char *buf, *cp;
 
     report(SS, "Got '.'; tell=%ld", tell);
 
-    availspace = fd_statfs(FILENO(SS->mfp));
+    availspace = used_fd_statfs(FILENO(SS->mfp));
+    if (availspace >= 0)
+      MIBMtaEntry->sys.SpoolUsedSpace = availspace;
+    availspace = free_fd_statfs(FILENO(SS->mfp));
     if (availspace < 0)
 	availspace = LONG_MAX / 1024;	/* Over 2G ? */
     if (availspace >= 0)
@@ -497,10 +500,12 @@ const char *buf, *cp;
 	SS->sender_ok = 0;
     }
 
-    availspace = fd_statfs(FILENO(SS->mfp));
+    availspace = used_fd_statfs(FILENO(SS->mfp));
+    if (availspace >= 0)
+      MIBMtaEntry->sys.SpoolUsedSpace = availspace;
+    availspace = free_fd_statfs(FILENO(SS->mfp));
     if (availspace < 0)
 	availspace = LONG_MAX / 1024;	/* Over 2G ? */
-
     if (availspace >= 0)
       MIBMtaEntry->sys.SpoolFreeSpace = availspace;
     availspace -= minimum_availspace;

@@ -158,21 +158,21 @@ during the existence of this SHM segment.
 	   M.sys.SpoolFreeSpace);
 /*<VAR><NAME>SYS.SpoolFreeSpace-kB-G</NAME><DESC>
 Amount of free POSTOFFICE filesystem space in the system in kilobytes.
-
-Depending upon the implementation, this may max out at 2 GB
-(divided by 1024, e.g. yields a bit over 2 million), but
-actual spool space alarms are to be done when this space
-gets way below that 2 gigs...
+</DESC></VAR>*/
+  sfprintf(fp,"SYS.SpoolUsedSpace-kB-G          %9d\n",
+	   M.sys.SpoolUsedSpace);
+/*<VAR><NAME>SYS.SpoolUsedSpace-kB-G</NAME><DESC>
+Amount of used POSTOFFICE filesystem space in the system in kilobytes.
 </DESC></VAR>*/
   sfprintf(fp,"SYS.LogFreeSpace-kB-G            %9d\n",
 	   M.sys.LogFreeSpace);
 /*<VAR><NAME>SYS.LogFreeSpace-kB-G</NAME><DESC>
 Amount of free LOGDIR filesystem space in the system in kilobytes.
-
-Depending upon the implementation, this may max out at 2 GB
-(divided by 1024, e.g. yields a bit over 2 million), but
-actual spool space alarms are to be done when this space
-gets way below that 2 gigs...
+</DESC></VAR>*/
+  sfprintf(fp,"SYS.LogUsedSpace-kB-G            %9d\n",
+	   M.sys.LogUsedSpace);
+/*<VAR><NAME>SYS.LogUsedSpace-kB-G</NAME><DESC>
+Amount of used LOGDIR filesystem space in the system in kilobytes.
 </DESC></VAR>*/
 
 
@@ -655,15 +655,6 @@ These are transport-specification entries with rewritten headers, etc.
 /*<VAR><NAME>RT.StoredMessages-G</NAME><DESC>
 Number of messages presently in the routing queue, including those
 not quite yet sent onwards.
-</DESC></VAR>*/
-  sfprintf(fp,"RT.StoredRecipients-G            %9d\n",
-	   M.rt.StoredRecipients);
-/*<VAR><NAME>RT.StoredRecipients-G</NAME><DESC>
-Actually a non-managed counter.
-
-To know the number of recipients in the first place, the message
-must be scanned thru, which is a task for actual processing, which
-is when message gets kicked onwards from the routing queue...
 </DESC></VAR>*/
   sfprintf(fp,"RT.StoredVolume-kB-G             %9d\n",
 	   M.rt.StoredVolume);

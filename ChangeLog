@@ -1,5 +1,20 @@
 2003-06-09  Matti Aarnio  <mea@zmailer.org>
 
+	* include/libz.h, include/shmmib.h, lib/fdstatfs-test.c,
+	  lib/fdstatfs.c, lib/zshmmibattach.c, router/daemonsub.c,
+	  scheduler/mailq.inc, scheduler/scheduler.c, smtpserver/smtpcmds.c,
+	  smtpserver/smtpdata.c, smtpserver/smtpserver.h:
+	    - When wanting to add used spool space gauges into
+	      SHM segment header, realized that it does not have
+	      32 spare uint variables..  Oops..  Had to change
+	      block layout -> new MAGIC, full rearrancement of all
+	      so far accumulated small counters, etc..
+	    - renamed  fd_statfs()  into  free_fd_statfs(), and
+	      added a cousin for it:  used_fd_statfs().  Both return
+	      space in kilobytes (e.g. can describe up to 2 TB...)
+	    - Removed  RT.StoredRecipients  gauge, which the router
+	      can't maintain anyway.
+
 	* lib/fdstatfs.c, lib/zshmmibattach.c, scheduler/scheduler.c,
 	  smtpserver/smtpserver.h, smtpserver/smtpcmds.c,
 	  smtpserver/smtpdata.c, smtpserver/smtpserver.c:

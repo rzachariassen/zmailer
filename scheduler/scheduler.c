@@ -241,8 +241,11 @@ void timed_log_reinit()
 	lstat(logfn,&stbuf) == 0 &&
 	S_ISREG(stbuf.st_mode)) {
 
-      long fsspace = fd_statfs(sffileno(sfstdout));
+      long fsspace;
+      fsspace = free_fd_statfs(sffileno(sfstdout));
       MIBMtaEntry->sys.LogFreeSpace = fsspace;
+      fsspace = used_fd_statfs(sffileno(sfstdout));
+      MIBMtaEntry->sys.LogUsedSpace = fsspace;
     }
   }
 }

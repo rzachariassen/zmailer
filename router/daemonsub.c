@@ -1475,7 +1475,6 @@ run_daemon(argc, argv)
 
 	/* Zero the gauges at our startup.. */
 	MIBMtaEntry->rt.StoredMessages		= 0; /* in input queue */
-	MIBMtaEntry->rt.StoredRecipients  	= 0; /* can count at all ? */
 	MIBMtaEntry->rt.StoredVolume		= 0; /* in input queue */
 	MIBMtaEntry->rt.RouterProcesses       = 1; /* myself = 1 */
 	MIBMtaEntry->rt.RouterProcessForks    = 0;
