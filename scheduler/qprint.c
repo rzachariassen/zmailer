@@ -126,8 +126,12 @@ static int qpctlfile(spl)
 	/* assert cfp != NULL */
 	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
 	  vp->qid = ++qid;
-	  fprintf(qpfp, "%d:\t%s\t%d;",
-		  vp->qid, cfp->mid, vp->ngroup);
+	  if (cfp->dirind >= 0)
+	    fprintf(qpfp, "%d:\t%s/%s\t%d;",
+		    vp->qid, cfpdirname(cfp->dirind), cfp->mid, vp->ngroup);
+	  else
+	    fprintf(qpfp, "%d:\t%s\t%d;",
+		    vp->qid, cfp->mid, vp->ngroup);
 	  qpch = ' ';
 	  for (i = 0; i < vp->ngroup; ++i) {
 	    fprintf(qpfp, "%c%ld",
