@@ -243,7 +243,7 @@ static int count_ipv4( state, ipv4addr, lastlimitm, lastlimitr, lastlimitmd, las
 	}
 	if (!reg) return 0;    /*  alloc failed!  */
 
-	/* reg->mails += incr; -- this is independent of slotcounts! */
+	/* reg->mails += 1;  -- this is independent of slotcounts! */
 
 	if (lastlimitm > 0)
 	  reg->lastlimitmsgs = lastlimitm;
@@ -413,10 +413,11 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
 	if (incr > 0) {
 	  /* -- this is independent of slotcounts! */
 	  ++ reg->mails;
-	  /* reg->countsetmsgs [ state->hourslotindex ] += 1; */
 	}
 	reg->recipients += incr;
+
 	/* .. but rcpts are slot-counted here! */
+	reg->countsetmsgs [ state->hourslotindex ] +=    1;
 	reg->countsetrcpts[ state->hourslotindex ] += incr;
 
 	reg->last_recipients = now;
@@ -815,8 +816,9 @@ subdaemon_handler_trk_input (statep, peerdata)
 
 
 	  if (STREQ(actionlabel,"MSGS")) {
-	    int sum1 = 0, sum2 = 0;
-	    count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, count1, count2, &sum1, &sum2 );
+	    int sum1 = 0, sum2 = 0; /* We query here! so this is really
+				       counting zero to the values.. */
+	    count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, 0, 0, &sum1, &sum2 );
 	    sprintf(peerdata->outbuf, "200 %d %d\n", sum1, sum2);
 
 	  } else if (STREQ(actionlabel,"RATES")) {
@@ -834,8 +836,11 @@ subdaemon_handler_trk_input (statep, peerdata)
 
 	  } else if (STREQ(actionlabel,"RCPT")) {
 	    int sum1 = 0, sum2 = 0;
-	    if (count1 > 0)
-	      count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, count1, count2, &sum1, &sum2 );
+
+	    /* Set last limitvalues.. */
+	    count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, 0, 0, &sum1, &sum2 );
+
+	    /* Do actual accounting */
 	    i = count_rcpts_ipv4( state, ipv4addr, count2 );
 	    sprintf(peerdata->outbuf, "200 %d %d\n", i, sum2);
 
@@ -1278,8 +1283,8 @@ int call_rate_counter(state, incr, what, countp, countp2)
     case POLICY_MAILFROM:
 	cmd    = "MSGS";
 	whatp  = "MAIL";
-	count  = 1;
-	count2 = incr;
+	count  = 0; /* DO NOT INCREMENT!  We QUERY HERE! */
+	count2 = 0;
 
 	/* How to see, that we will have interest in these rate entries
 	   in the future ?  E.g. there is no point in spending time
@@ -1297,7 +1302,7 @@ int call_rate_counter(state, incr, what, countp, countp2)
     case POLICY_DATAOK:
 	cmd    = "RCPT";
 	whatp  = "DATA";
-	count  = 1;
+	count  = 1;        /* We register used counts */
 	count2 = incr ? incr : 1;
 	if (incr  &&  !state->did_query_rate)
 	  return 0; /* INCRed counters at DATA/BDAT, but hadn't
