@@ -112,8 +112,9 @@ jmp_buf jmpalarm;		/* Return-frame for breaking smtpserver
 				   when timeout hits.. */
 
 
-char *helplines[HELPMAX + 2] =
-{NULL,};
+char *helplines[HELPMAX + 2] = {NULL,};
+char *hdr220lines[HDR220MAX + 2] = {NULL, };
+
 
 const char *m200 = "2.0.0";
 const char *m400 = "4.0.0";
@@ -198,6 +199,9 @@ static void smtpserver __((SmtpState *, int insecure));
 
 
 const char *msg_toohighload = "421 Sorry, the system is too loaded for email reception at the moment\r\n";	/* XX: ??? */
+
+extern void type220headers __((SmtpState *SS, const int identflg, const char *xlatelang, const char *curtime));
+
 
 extern void openlogfp __((SmtpState * SS, int insecure));
 
@@ -1330,12 +1334,24 @@ int insecure;
 	type(SS, 553, NULL, "Ask HELP for our contact information.");
     } else
 #ifdef USE_TRANSLATION
+	if (hdr220lines[0] == NULL) {
+	  hdr220lines[0] = "%H ZMailer Server %V ESMTP%I (%X) ready at %T";
+	}
+	type220headers(SS, ident_flag, X_settrrc ? "nulltrans" : lang, cp);
+#if 0
 	type(SS, 220, NULL, "%s ZMailer Server %s ESMTP%s (%s) ready at %s",
 	     SS->myhostname, VersionNumb, ident_flag ? "+IDENT" : "",
 	     X_settrrc ? "nulltrans" : lang, cp);
+#endif
 #else				/* USE_TRANSLATION */
+	if (hdr220lines[0] == NULL) {
+	  hdr220lines[0] = "%H ZMailer Server %V ESMTP%I ready at %T";
+	}
+	type220headers(SS, ident_flag, "", cp);
+#if 0
 	type(SS, 220, NULL, "%s ZMailer Server %s ESMTP%s ready at %s",
 	     SS->myhostname, VersionNumb, ident_flag ? "+IDENT" : "", cp);
+#endif
 #endif				/* USE_TRANSLATION */
     typeflush(SS);
 
@@ -1757,13 +1773,14 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 
     fprintf(SS->outfp, "%03d%c", code, c);
     if (status && status[0] != 0)
-	fprintf(SS->outfp, "%s ", status);
+      fprintf(SS->outfp, "%s ", status);
 
     if (logfp != NULL) {
-	fprintf(logfp, "%dw\t%03d%c", pid, code, c);
-	if (status && status[0] != 0)
-	    fprintf(logfp, "%s ", status);
+      fprintf(logfp, "%dw\t%03d%c", pid, code, c);
+      if (status && status[0] != 0)
+	fprintf(logfp, "%s ", status);
     }
+
     switch (code) {
     case 211:			/* System status */
 	text = "%s";
@@ -1873,6 +1890,83 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 	fflush(logfp);
     }
 #endif
+}
+
+
+void
+type220headers(SS, identflg, xlatelang, curtime)
+     SmtpState *SS;
+     const int identflg;
+     const char *xlatelang;
+     const char *curtime;
+{
+    char *s, **hh = hdr220lines;
+
+    for (; *hh ; ++hh) {
+      char c = (hh[1] == NULL) ? ' ' : '-';
+      
+      fprintf(SS->outfp, "%03d%c", 220, c);
+      if (logfp != NULL)
+	fprintf(logfp, "%dw\t%03d%c", pid, 220, c);
+
+      /* The format meta-tags:
+       *
+       *  %% -- '%' character
+       *  %H -- SS->myhostname
+       *  %I -- '+IDENT' if 'identflg' is set
+       *  %V -- VersionNumb
+       *  %T -- curtime string
+       *  %X -- xlatelang parameter
+       */
+
+      s = *hh;
+      while (*s) {
+	if (*s == '%') {
+	  ++s;
+	  switch (*s) {
+	  case '%':
+	    putc('%',SS->outfp);
+	    if (logfp) putc('%',logfp);
+	    break;
+	  case 'H':
+	    fputs(SS->myhostname,SS->outfp);
+	    if (logfp) fputs(SS->myhostname,logfp);
+	    break;
+	  case 'I':
+	    if (identflg) {
+	      fputs("+IDENT",SS->outfp);
+	      if (logfp) fputs("+IDENT",logfp);
+	    }
+	    break;
+	  case 'V':
+	    fputs(VersionNumb,SS->outfp);
+	    if (logfp) fputs(VersionNumb,logfp);
+	    break;
+	  case 'T':
+	    fputs(curtime,SS->outfp);
+	    if (logfp) fputs(curtime,logfp);
+	    break;
+	  case 'X':
+	    if (!xlatelang) xlatelang = "";
+	    fputs(xlatelang,SS->outfp);
+	    if (logfp) fputs(xlatelang,logfp);
+	    break;
+	  default:
+	    /* Duh ?? */
+	    break;
+	  }
+	} else {
+	  putc(*s, SS->outfp);
+	  if (logfp) putc(*s, logfp);
+	}
+	if (*s) ++s;
+      }
+      putc('\r',SS->outfp);
+      putc('\n',SS->outfp);
+      if (logfp) putc('\n',logfp);
+    }
+    fflush(SS->outfp);
+    if (logfp) fflush(logfp);
 }
 
 

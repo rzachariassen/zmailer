@@ -15,6 +15,17 @@ PARAM	debugcmd
 PARAM	expncmd
 PARAM	vrfycmd
 #
+# HDR220 metatags:
+#  %% -- '%' character
+#  %H -- SS->myhostname
+#  %I -- '+IDENT' if 'identflg' is set
+#  %V -- VersionNumb
+#  %T -- curtime string
+#  %X -- xlatelang parameter
+#
+PARAM hdr220 %H ZMailer ESMTP-server %V running at Yoyodyne Propulsion Inc
+PARAM hdr220 %H (NO USE)(NO UBE) our local time is now %T
+#
 PARAM help -------------------------------------------------------------
 PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
 PARAM help  Our telephone number is: +1-234-567-8900, and
