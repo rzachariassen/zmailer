@@ -173,8 +173,8 @@ other_socktype:
 #endif
 
 #ifdef HAVE_SA_LEN
-	  if (sa->.sa.sa_len > sizeof ifr->ifr_addr)
-	    i += sizeof ifr->ifr_name + sa->sa_len;
+	  if (sa->sa.sa_len > sizeof ifr->ifr_addr)
+	    i += sizeof ifr->ifr_name + sa->sa.sa_len;
 	  else
 #endif
 	    i += sizeof *ifr;
