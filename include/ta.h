@@ -3,7 +3,7 @@
  *	This will be free software, but only when it is finished.
  */
 /*
- *	A plenty of changes, copyright Matti Aarnio 1990-2001
+ *	A plenty of changes, copyright Matti Aarnio 1990-2003
  */
 
 #ifndef _Z_TA_H_

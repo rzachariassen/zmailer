@@ -80,7 +80,7 @@ static int mime_received_convert __((struct rcpt *rp, char *convertstr));
 
 static int strqcpy __((char **buf, int startpos, int *buflenp, const char *str));
 
-static int
+static int  /* FIXME: ??? LEAKS ?? */
 strqcpy(bufp, startpos, buflenp, str)
 	char **bufp;
 	const char *str;
@@ -99,7 +99,7 @@ strqcpy(bufp, startpos, buflenp, str)
 	  if (pos >= buflen) {
 	    *buflenp += 32;
 	    buflen = *buflenp -2;
-	    buf = realloc(buf, *buflenp + 5);
+	    buf = realloc(buf, buflen + 5);
 	  }
 
 	  if (!(('0' <= c && c <= '9') ||
@@ -125,7 +125,7 @@ strqcpy(bufp, startpos, buflenp, str)
 	if (pos+5 >= buflen) {
 	  *buflenp = pos + 32;
 	  buflen = *buflenp -2;
-	  buf = realloc(buf, *buflenp);
+	  buf = realloc(buf, buflen + 5);
 	}
 
 	buf[pos] = '"';
@@ -137,7 +137,7 @@ strqcpy(bufp, startpos, buflenp, str)
 	  if (pos >= buflen) {
 	    *buflenp = pos + 32;
 	    buflen = *buflenp - 4;
-	    buf = realloc(buf, *buflenp);
+	    buf = realloc(buf, buflen + 5);
 	  }
 
 	  if (c == '"' || c == '\\') {
@@ -153,7 +153,7 @@ strqcpy(bufp, startpos, buflenp, str)
 	if (pos+3 >= buflen) {
 	  *buflenp += pos+3;
 	  buflen = *buflenp;
-	  buf = realloc(buf, *buflenp);
+	  buf = realloc(buf, buflen +2);
 	}
 
 	buf[pos] = '"';
@@ -192,6 +192,7 @@ int cvtspace_copy(rp)
 
 	/* Allocate, and copy ! */
 
+	/* XX: FIXME: ?? LEAKS ? */
 	newcvt = (char **)malloc(sizeof(char *)*(hdrcnt+1));
 	if (newcvt != NULL) {
 
@@ -200,6 +201,7 @@ int cvtspace_copy(rp)
 
 	  while (*probe) { /* Copy over */
 	    int len = strlen(*probe)+1;
+	    /* XX: FIXME: ?? LEAKS ? */
 	    *ss = (char *)malloc(len);
 	    if (! *ss) return 0;
 	    memcpy(*ss,*probe,len);
@@ -1564,8 +1566,9 @@ qp_to_8bit(rp)
 	char **CTE, **CT;
 	struct ct_data *ct;
 
-	if (!cvtspace_copy(rp))
-	  return 0;	/* Failed to copy ! */
+	if (*(rp->newmsgheadercvt) == NULL)
+	  if (!cvtspace_copy(rp))
+	    return 0;	/* Failed to copy ! */
 
 	inhdr = *(rp->newmsgheadercvt);
 

@@ -1,5 +1,9 @@
 2003-06-19  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/mailbox/mailbox.c, transports/libta/mimeheaders.c,
+	  transports/libta/ctlopen.c:
+	    Been hunting memory leaks...  Have found a bunch more..
+
 	* transports/smtp/smtptls.c:
 	    When there was no logging file of any kind, this used to
 	    send TLS related diagnostics to the scheduler's log, which

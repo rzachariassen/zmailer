@@ -204,13 +204,17 @@ ctladdr(cp)
 	/* HOST: */
 	ap->host = cp;
 	ap->routermxes = NULL;
+#if 0
 	if (*cp == '(')
 	  cp = routermxes(cp,ap);  /* It is a bit complex.. */
 	else {
+#endif
 	  /* While not space: */
 	  cp = skip821address(cp);
 	  if (*cp) *cp++ = '\0';
+#if 0
 	}
+#endif
 
 	/* While space: */
 	while (*cp == ' ' || *cp == '\t') ++cp;
@@ -277,7 +281,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  if (p) *++p = 0;
 	  /*  "A/B/"  */
 	} else
-	    dirprefix[0] = 0;
+	  dirprefix[0] = 0;
 
 
 	d.msgfd = -1; /* The zero is not always good for your health .. */
@@ -347,32 +351,21 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	if (read(d.ctlfd, contents, d.contentsize) != d.contentsize) {
 	  warning("Wrong size read from control file \"%s\"! (%m)",
 		  file);
-	  free((void*)d.contents);
-	  d.contents = NULL;
-	  free((void*)d.offset);
-	  d.offset = NULL;
-	  close(d.ctlfd);
+	  ctlclose(&d);
 	  return NULL;
 	}
 	n = markoff(contents, d.contentsize, d.offset, file);
 	if (n < 4) {
+	  int was_turnme = (contents[0] == _CF_TURNME);
 	  /*
 	   * If it is less than the minimum possible number of control
 	   * lines, then there is something wrong...
 	   */
-	  free((void*)d.contents);
-	  d.contents = NULL;
-	  free((void*)d.offset);
-	  d.offset = NULL;
-	  close(d.ctlfd);
-#if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
-	  if (d.ctlmap != NULL)
-	    munmap((void*)d.ctlmap, d.contentsize);
-#endif	  
+	  ctlclose(&d);
+
 	  /* Is it perhaps just the ETRN request file ?
 	     and manual expirer gave it to us ?  Never mind then.. */
-	  if (contents[0] == _CF_TURNME)
-	    return NULL;
+	  if (was_turnme) return NULL;
 
 	  warning("Truncated or illegal control file \"%s\"!", file);
 	  /* exit(EX_PROTOCOL); */
@@ -405,6 +398,10 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 				     (headers_spc+1));
 	msgheaderscvt = (char***)malloc(sizeof(char***) *
 					(headers_spc+1));
+
+	d.msgheaders    = msgheaders;		/* Original headers	*/
+	d.msgheaderscvt = msgheaderscvt;	/* Modified set		*/
+
 
 	/* run through the file and set up the information we need */
 	for (i = 0; i < n; ++i) {
@@ -469,7 +466,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	       "((mxer)(mxer mxer))"   */
 	    if ((channel != NULL
 		 && strcmp(channel, ap->channel) != 0)
-#if 1
+#if 0
 		|| (ap->routermxes != NULL && matchrouter != NULL
 		    && !(*matchrouter)(host, ap, mrparam))
 #endif
@@ -492,6 +489,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		       _CFTAG_LOCK, _CFTAG_DEFER, file, host, mypid);
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
+	      free((char *)ap);
 	      break;
 	    }
 	    memset(rp, 0, sizeof(*rp));
@@ -638,10 +636,6 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		 if some particular header happens to be a folded one.. */
 
 	      while (*s) {
-		if (headerlines == 0) {
-		  msgheader = (char **)malloc(sizeof(char**) * 8);
-		  headerspace = 7;
-		}
 		if (headerlines >= headerspace) {
 		  headerspace += 8;
 		  msgheader = (char**)realloc((void*) msgheader,
@@ -708,9 +702,6 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	msgheaders   [headers_cnt] = NULL;
 	msgheaderscvt[headers_cnt] = NULL;
 
-	d.msgheaders    = msgheaders;		/* Original headers	*/
-	d.msgheaderscvt = msgheaderscvt;	/* Modified set		*/
-
 	if (d.recipients == NULL) {
 	  ctlclose(&d);
 	  return NULL;
@@ -752,7 +743,6 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  free(mfpath);
 #endif
 	  ctlclose(&d);
-	  close(d.msgfd);
 	  return NULL;
 	}
 
@@ -771,14 +761,13 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  free(mfpath);
 #endif
 	  ctlclose(&d);
-	  close(d.msgfd);
 	  return NULL;
 	}
 	d.let_end    = d.let_buffer + stbuf.st_size;
 #endif
 
 #ifndef USE_ALLOCA
-	  free(mfpath);
+	free(mfpath);
 #endif
 
 	/* The message file mtime -- arrival of the message to the system */
@@ -795,7 +784,6 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	d.taspoolid = strdup(spoolid);
 	if (!d.taspoolid) {
 	  ctlclose(&d);
-	  close(d.msgfd);
 	  return NULL;
 	}
 

@@ -860,15 +860,6 @@ process(dp)
 	    convert_qp = is_mime_qptext && mime8bit;
 	    deliver(dp, rp, userbuf, ts);
 	  }
-#ifdef  HAVE_SOCKET
-#ifdef	HAVE_PROTOCOLS_RWHOD_H /* RBIFF */
-	  /*
-	   * "contents" will be freed before rbiff done:
-	   * must copy username somewhere.
-	   */
-	  rp->addr->user = strdup(userbuf);
-#endif /* RBIFF */
-#endif /* BIFF */
 	}
 	if (userbuf != NULL)
 	  free(userbuf);
