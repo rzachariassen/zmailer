@@ -948,6 +948,8 @@ if test "x$LIBRESOLV" = "x"; then
   t_oldLibs="$LIBS"
   LIBS="$LIBS $LIBSOCKET"
   ac_cv_var__res_options=no
+  # This following is for IRIX6.4, and I sincerely hope it
+  # will not fail on other systems...
   AC_TRY_LINK([
 #include <netinet/in.h>
 #include <arpa/nameser.h>
@@ -1115,18 +1117,41 @@ LIBS="$t_oldLibs"
 #
 AC_SUBST(LIBLOADAVER)dnl
 AC_CHECK_HEADER(kvm.h)
-if test "$ac_cv_header_kvm_h" = yes; then
-  AC_DEFINE(SVR4_kvm)
-  LIBLOADAVER="-lkvm"
-  AC_MSG_RESULT([Presuming the need of -lkvm for load-average library])
-fi
+#if test "$ac_cv_header_kvm_h" = yes; then
+#  AC_DEFINE(SVR4_kvm)
+#  LIBLOADAVER="-lkvm"
+#  AC_MSG_RESULT([Presuming the need of -lkvm for load-average library])
+#fi
 AC_CHECK_HEADER(elf.h, [
 elf_LIBS="$LIBS"
-LIBS="$LIBS -lelf"
-AC_TRY_LINK([#include <nlist.h>],[nlist((char*)0,(char*)0);],
-	    [AC_DEFINE(SVR4_elf)
-	     LIBLOADAVER="$LIBLOADAVER -lelf"
-	     AC_MSG_RESULT([Presuming the need of '$LIBLOADAVER' for load-average library])])
+have_nlist=0
+AC_TRY_LINK([
+#ifdef HAVE_NLIST_H
+#include <nlist.h>
+#endif
+],
+	    [nlist((char*)0,(char*)0);],
+	    have_nlist=1);
+if test "$have_nlist" = 1 ; then
+	AC_DEFINE(SVR4_elf)
+	AC_MSG_RESULT([Have  nlist()  without  -lelf])
+else
+    LIBS="$LIBS -lelf"
+    AC_TRY_LINK([
+#ifdef HAVE_NLIST_H
+#include <nlist.h>
+#endif
+],
+		[nlist((char*)0,(char*)0);],
+		have_nlist=1);
+    if test "$have_nlist" = 1 ; then
+	AC_DEFINE(SVR4_elf)
+	LIBLOADAVER="$LIBLOADAVER -lelf"
+	AC_MSG_RESULT([Seems to need  -lelf  to link nlist()])
+    else
+	AC_MSG_RESULT([Don't know how to extract system load-average -- but don't really need it])
+    fi
+fi
 LIBS="$elf_LIBS"
 ])
 
