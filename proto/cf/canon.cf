@@ -171,10 +171,11 @@ canonicalize (address) {
 #
 # RFC822 addr-spec (localpart@domain) and variations
 #
-	(.*)::(.*)
-		address="\2@\1"			# turn into localpart@domain
-		continue
-		;;
+	#(.*)::(.*)
+	#	address="\2@\1"			# turn into localpart@domain
+	#	continue
+	#	;;
+
 	(.*)@([^@]*.uucp)			# addr-spec host.uucp
 		address="\1<@\2>"		# comment out if you want
 		break				# canonical uucp names
@@ -269,7 +270,8 @@ xx_canonicalize (address) {
 #	In%(.*)		echo "<in%>\1" ; return ;; # in%".." cludge
 
 	# disambiguate strange route syntax
-	(.*)::(.*)	address="\2@\1" ; continue ;;	# decnet
+	#(.+)::(.*)	address="\2@\1" ; continue ;;	# decnet
+
 	# mail to uucpneighbour!...@notuucpneighbour gets sent to uucpneighbour
 	#([^!])!(.*)@([^@:!]+)
 	#		if [ $(ldotsys "\1") ]; then

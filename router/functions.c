@@ -1871,9 +1871,10 @@ run_filepriv(argc, argv)
 		return 1;
 	}
 	file = argv[1];
-	if (argc == 3 && isascii(argv[2][0]) && isdigit(argv[2][0]))
+	if (argc == 3 && isascii(argv[2][0]) && isdigit(argv[2][0])) {
+		fmode = S_IFREG|0400;
 		id = atoi(argv[2]);
-	else {
+	} else {
 		fd = open(file, O_RDONLY, 0);
 		if (fd < 0) {
 			/* if we can't open it, don't trust it */

@@ -24,9 +24,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 	tmp=$(fqdn_neighbour "$origaddr" "$address" $A) &&
 		return $tmp
 
-	# Verify address  "NODE::USER"@decnetgw.host
-
-	address="$(condquote "$address")"
+	#address="$(condquote "$address")"
 
 	#
 	# We have troublesome addresses coming here...
@@ -225,6 +223,9 @@ rrouter (address, origaddr, A, plustail, domain) {
 		tmp=(local "$origaddr" "$address" $A)
 		return $(routeuser $tmp "$plustail" "")
 		;;
+	(.+)::(.+) # node1::(rest) -- DECNET Phase-IV
+		return (decnet "\1" "\2" $A)
+		;;
 	# Ok, from now on if we don't have a domain set, we use $mydomain
 	.*	if [ -z "$domain" ] ; then
 			domain="@$mydomain"
@@ -238,38 +239,6 @@ rrouter (address, origaddr, A, plustail, domain) {
 	return $(routeuser $tmp "$plustail" "$domain")
 
 # ------- end new "localpart" processing
-# ------- rest of the function is never run...
-
-
-	tsift "$address" in
-	(.+\.[^+]+)(\+.+)  # Dotfull name with a plus!
-		plustail="\2"
-		address="\1"
-		# Fall forward for the dotfull processing
-		;;
-	.+\..+	# A dotfull name
-		tmp="$(fullnamemap "$address")" && \
-			return $(rrouter "$tmp" "$origaddr" $A "$plustail" "$domain")
-		if [ $(newsgroup "$address") ]; then
-			return (((usenet - "$address" $A)))
-		fi
-		# Okay... Not in our special fullname/newsgroup-files,
-		#         lets see if it is in the traditional one ?
-		if [ $(aliases "$address") ]; then
-			# It can be found from the normal aliases,
-			# run the alias processing!
-			tmp=(local "$origaddr" "$address" $A)
-			return $(routeuser $tmp "$plustail" "$domain")
-		fi
-		return (((error norealname "$address" $A)))
-		return (((error nonewsgroup "$address" $A)))
-		;;
-
-	.*	# Now all the rest of the cases..
-		tmp=(local "$origaddr" "$address$plustail" $A)
-		return $(routeuser $tmp "$plustail" "$domain")
-		;;
-	tfist
 }	# end of rrouter
 
 routes_spec (domain, address, A) {

@@ -1,3 +1,33 @@
+2001-02-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* router/functions.c:
+	    At  $(filepriv ...)  function, when the call supplies
+	    file userid, do presume valid REGULAR file.  This is true
+	    for several databases which produce privilege controlling
+	    results.
+
+	* proto/cf/canon.cf, proto/cf/rrouter.cf:
+	    More issues at DECNET-IV type address analysis.
+	    Now we support a bit of beging DECNET-IV gateway, although
+	    we propably need to rewrite headers major way to be able to
+	    route to and from DECNET-IV domains.
+
+	* smtpserver/Makefile.in:
+	    Do refer to wantconn.o file in the OBJS macro, it needs to
+	    be compiled in case it is wanted to be used...
+
+2001-02-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* man/mailbox.8, transports/mailbox/mailbox.c:
+	    Add two more environment variables to pre-existing
+	    ones at the mailbox driven subprocesses:
+	    - MSGSPOOLID=<ZMailer-internal-spoolfile-id>
+	    - MESSAGEID=<somebody-supplied-string>
+	    These were created when I had a need, of course..
+	    Pipe driven application should be able to syslog(3)
+	    meaningfully what was the message disposition.
+	    (Majordomo in my case ;) )
+
 2001-01-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* configure.in, acconfig.h:

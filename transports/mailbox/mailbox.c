@@ -2290,6 +2290,18 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
 	}
+	
+	env[envi++] = cp;
+	strcpy(cp, "MSGSPOOLID="); cp += 11;
+	taspoolid(cp, rp->desc->msgmtime, rp->desc->msginonumber);
+	cp += strlen(cp) + 1;
+
+	if (rp->desc->msgfile) {
+	  /* Put also the message-id of the message into variables. */
+	  env[envi++] = cp;
+	  sprintf(cp, "MESSAGEID=%.199s", rp->desc->msgfile);
+	  cp += strlen(cp) + 1;
+	}
 
 	if (verboselog)
 	  fprintf(verboselog,"To run a pipe with uid=%d gid=%d cmd='%s'\n",

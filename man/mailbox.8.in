@@ -348,6 +348,13 @@ the message injection into this system.
 See RFC 1891 for details.
 .IP ZCONFIG
 is the location of the ZMailer ZENV file.
+.IP MSGSPOOLID
+Is the message spool-id in the ZMailer; subprograms may use this
+info in co-operation with ZMailer to e.g. \fIsyslog\fR(3) what
+they have done to the arrived message.
+.IP MESSAGEID
+Is the RFC 822 "Message-ID:" header data as possibly copied into
+the control file; another item to support \fIsyslog\fR(3) at programs.
 .IP MAILBIN
 is the value from ZENV.
 .IP MAILSHARE
