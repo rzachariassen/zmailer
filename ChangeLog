@@ -1,3 +1,17 @@
+1998-02-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/makedb/dblook.c, utils/makedb/makedb.c:
+	    printf format string fixes
+
+	* transports/smtp/smtp.c, transports/libta/diagnostics.c:
+	    Carry IP address in WTT data to the DSN reports.
+	    Thus will tell exactly which IP addresses tried to
+	    connect to each other.
+
+	* smtpserver/smtpcmds.c:
+	    Last of Gabor Kissig's router-driven policy facility
+	    patches have been incorporated into the server.
+	
 1998-02-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/resources.c:
