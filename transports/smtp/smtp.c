@@ -1048,6 +1048,16 @@ process(SS, dp, smtpstatus, host, noMX)
 	      } while ((smtpstatus == EX_TEMPFAIL) &&
 		       (SS->firstmx < SS->mxcount));
 
+	      /* Report (and unlock) all those recipients which aren't
+		 otherwise diagnosed.. */
+
+	      for (;rphead && rphead != rp->next; rphead = rphead->next) {
+		if (rphead->lockoffset != 0) {
+		  notaryreport(NULL, FAILED, NULL, NULL);
+		  diagnostic(rphead, smtpstatus, 0, "%s", SS->remotemsg);
+		}
+	      }
+
 	      rphead = rp->next;
 	    } else {
 	      time(&endtime);
@@ -2411,7 +2421,7 @@ smtpconn(SS, host, noMX)
 	  const char *hcp;
 
 	  if (SS->verboselog)
-	    fprintf(SS->verboselog,"SMTP: Connecting to host: %.200s (IP literal)\n");
+	    fprintf(SS->verboselog,"SMTP: Connecting to host: %.200s (IP literal)\n",host);
 
 	  for (cp = buf, hcp = host+1 ;
 	       *hcp != 0 && *hcp != ']' && cp < (buf+BUFSIZ-1) ;
