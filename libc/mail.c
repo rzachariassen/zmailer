@@ -805,9 +805,9 @@ mail_close_alternate(fp,where,suffix)
 		++msgbase;
 
 	/* Assert postoffice != NULL */
-	nmessage = mail_realloc(nmessage,
-				strlen(postoffice)+1+strlen(where)+1+
-				20+strlen(suffix)+1+strlen(type));
+
+	nmessage = mail_alloc(strlen(postoffice)+1+strlen(where)+1+
+			      20+strlen(suffix)+1+strlen(type));
 
 	sprintf(nmessage, "%s/%s/%ld%s%s",
 		postoffice, where, (long)stbuf.st_ino, suffix, type);
