@@ -240,10 +240,10 @@ run_relation(argc, argv)
 	set_cache_size = 0;
 	zoptind = 1;
 	dbtest = 0;
-	proto_config
-		= db_kinds[sizeof db_kinds/(sizeof (struct db_kind))-1].config;
+	proto_config=db_kinds[sizeof(db_kinds)/(sizeof(db_kinds[0]))-1].config;
+
 	while (1) {
-		c = zgetopt(argc, (char*const*)argv, ":%CbilmnNpud:f:s:L:t:Te:");
+		c = zgetopt(argc,(char*const*)argv,":%CbilmnNpud:f:s:L:t:Te:");
 		if (c == EOF)
 			break;
 		switch (c) {
@@ -251,11 +251,11 @@ run_relation(argc, argv)
 			proto_config.postproc = Boolean;
 			break;
 		case 'd':	/* driver routine */
-			if (strcmp(zoptarg, "pathalias.nodot") == 0)
+			if (STREQ(zoptarg, "pathalias.nodot"))
 				proto_config.driver = find_nodot_domain;
-			else if (strcmp(zoptarg, "pathalias") == 0)
+			else if (STREQ(zoptarg, "pathalias"))
 				proto_config.driver = find_domain;
-			else if (strcmp(zoptarg, "longestmatch") == 0)
+			else if (STREQ(zoptarg, "longestmatch"))
 				proto_config.driver = find_longest_match;
 			else
 				++errflg;
@@ -290,8 +290,8 @@ run_relation(argc, argv)
 			break;
 		case 't':	/* database type */
 			dbtyp = zoptarg;
-			if ((cp = strchr(zoptarg, ',')) != NULL
-			    || (cp = strchr(zoptarg, '/')) != NULL) {
+			if ((cp = strchr(zoptarg, ',')) ||
+			    (cp = strchr(zoptarg, '/'))    ) {
 				*cp++ = '\0';
 				oval = stickymem;
 				stickymem = MEM_PERM;
@@ -313,7 +313,7 @@ run_relation(argc, argv)
 			proto_config.flags |= DB_PERCENTSUBST;
 			break;
 		case ':':
-			/* proto_config.flags |= DB_DEFAULTKEY; */
+			proto_config.flags |= DB_DEFAULTKEY;
 			break;
 		case 'F':	/* find routine */
 		case 'S':	/* search routine */
@@ -323,21 +323,16 @@ run_relation(argc, argv)
 		}
 	}
 	if (errflg || zoptind != argc - 1 || dbtyp == NULL) {
-		fprintf(stderr,
-		"Usage: %s -t dbtype[,subtype] [-f file -e# -s# -bilmnNpu -d driver] name\n",
-			argv[0]);
-		fprintf(stderr,
-		       "       %s -T -t dbtype dummyname\n", argv[0]);
-		fprintf(stderr,
-			"      dbtypes: ");
+		int first = 1;
+		fprintf(stderr, "Usage: %s -t dbtype[,subtype] [-f file -e# -s# -bilmnNpu -d driver] name\n", argv[0]);
+		fprintf(stderr, "       %s -T -t dbtype dummyname\n", argv[0]);
+		fprintf(stderr, "       dbtypes: ");
 		for (dbkp = &db_kinds[0];
-		     dbkp < &db_kinds[(sizeof db_kinds)/sizeof (struct db_kind)];
+		     dbkp < &db_kinds[sizeof(db_kinds)/sizeof(db_kinds[0])];
 		     ++dbkp) {
-		  if (dbkp->name != NULL) {
-		    if (dbkp == &db_kinds[0])
-		      fprintf(stderr,  "%s", dbkp->name);
-		    else
-		      fprintf(stderr, ",%s", dbkp->name);
+		  if (dbkp->name) {
+		    if (!first) fprintf(stderr, ","); first = 0;
+		    fprintf(stderr,  "%s", dbkp->name);
 		  }
 		}
 		fprintf(stderr,"\n");
@@ -350,13 +345,13 @@ run_relation(argc, argv)
 		return 2;
 	}
 	for (dbkp = &db_kinds[0];
-	     dbkp < &db_kinds[(sizeof db_kinds)/sizeof (struct db_kind)];
+	     dbkp < &db_kinds[sizeof(db_kinds)/sizeof(db_kinds[0])];
 	     ++dbkp) {
-		if (dbkp->name == NULL || strcmp(dbkp->name, dbtyp) == 0)
+		if (!dbkp->name  ||  STREQ(dbkp->name, dbtyp))
 			break;
 	}
 	/* the -1 in the following compensates for the terminating null entry */
-	if (dbkp >= &db_kinds[((sizeof db_kinds)/sizeof (struct db_kind))-1]) {
+	if (dbkp >= &db_kinds[(sizeof(db_kinds)/sizeof(db_kinds[0]))-1]) {
 	  if (!dbtest)
 	    fprintf(stderr,
 		    "relation: I don't know about the %s database type!\n",
@@ -383,7 +378,7 @@ run_relation(argc, argv)
 		return 6;
 	}
 	if (proto_config.postproc == Indirect &&
-	    dbkp->config.owner != owner_seq) {
+	    dbkp->config.owner    != owner_seq) {
 		fprintf(stderr,
 			"%s: Indirect (-i) postprocessor can be used only with {un,}ordered databases!\n%s  Tried to use with: -t %s\n",
 			argv[0], argv[0], dbtyp);
@@ -391,8 +386,8 @@ run_relation(argc, argv)
 	}
 
 
-	if (dbkp->config.lookup == search_core
-	    || dbkp->config.lookup == search_header) {
+	if (dbkp->config.lookup == search_core ||
+	    dbkp->config.lookup == search_header) {
 		/* The database name is used as a key by the incore routines */
 		oval = stickymem;
 		stickymem = MEM_PERM;
@@ -401,9 +396,9 @@ run_relation(argc, argv)
 		/* and the subtype is used to stash the splay tree */
 		proto_config.subtype = (char*) sp_init();
 	} else {
-		if (proto_config.file == NULL)
-			proto_config.file = dbkp->config.file;
-		if (proto_config.subtype == NULL)
+		if (! proto_config.file)
+			proto_config.file    = dbkp->config.file;
+		if (! proto_config.subtype)
 			proto_config.subtype = dbkp->config.subtype;
 	}
 	if (proto_config.flags == 0)
@@ -499,8 +494,8 @@ iclistdbs(spl)
 
 	dbip = (struct db_info *)spl->data;
 	cp = NULL;
-	for (dbkp = &db_kinds[0];
-	     dbkp < &db_kinds[(sizeof db_kinds)/sizeof (struct db_kind)];
+	for (dbkp = &db_kinds[0] ;
+	     dbkp < &db_kinds[sizeof(db_kinds)/sizeof(db_kinds[0])] ;
 	     ++dbkp) {
 		if (dbkp->config.lookup == dbip->lookup) {
 			cp = dbkp->name;
@@ -509,8 +504,10 @@ iclistdbs(spl)
 	}
 	printf(" %s", cp);
 	i = strlen(cp);
-	if (dbip->lookup != search_core && dbip->lookup != search_header
-	    && dbip->postproc != Indirect && dbip->subtype != NULL) {
+	if (dbip->lookup   != search_core   &&
+	    dbip->lookup   != search_header &&
+	    dbip->postproc != Indirect      &&
+	    dbip->subtype  != NULL) {
 		printf(",%s", dbip->subtype);
 		i += 1 + strlen(dbip->subtype);
 	}
@@ -518,32 +515,49 @@ iclistdbs(spl)
 
 	printf("%*s", i, " ");
 	
-	for (i = 0, cachep = dbip->cfirst;
-	     cachep; cachep = cachep->next) ++i;
+	for (i = 0, cachep = dbip->cfirst ;
+	     cachep ; cachep = cachep->next) ++i;
 
 	printf("%4d/%-4d ", i, dbip->cache_size);
-	printf("%4d   ", (int)dbip->ttl);
+	printf("%4d ", (int)dbip->ttl);
 
 	i = 0;
 	if (dbip->flags & DB_MAPTOLOWER)
 		putchar('l'), ++i;
 	if (dbip->flags & DB_MAPTOUPPER)
-		putchar('U'), ++i;
+		putchar('u'), ++i;
+	if (dbip->flags & DB_MODCHECK)
+		putchar('m'), ++i;
+	if (dbip->flags & DB_NEG_CACHE)
+		putchar('N'), ++i;
+	if (dbip->flags & DB_PERCENTSUBST)
+		putchar('%'), ++i;
+	if (dbip->flags & DB_DEFAULTKEY)
+		putchar(':'), ++i;
 	switch (dbip->postproc) {
-	case NonNull: putchar('n'), ++i; break;
-	case Boolean: putchar('B'), ++i; break;
+	case NonNull:   putchar('n'), ++i; break;
+	case Boolean:   putchar('b'), ++i; break;
 	case Pathalias: putchar('p'), ++i; break;
-	case Indirect: putchar('@'), ++i; break;
+	case Indirect:  putchar('i'), ++i; break;
 	default: break;
 	}
+	if (dbip->driver == find_nodot_domain) {
+	  printf("{pa}");  i += 4;
+	} else if (dbip->driver == find_domain) {
+	  printf("{pa.}"); i += 5;
+	} else if (dbip->driver == find_longest_match) {
+	  printf("{lm}");  i += 4;
+	}
+	
 	if (i == 0)
 		putchar('-'), ++i;
-	i = (i > 2) ? 1 : 3 - i;
+	i = (i > 4) ? 1 : 5 - i;
 
 	printf("%*s", i, " ");
 	
-	if (dbip->lookup != search_core && dbip->lookup != search_header
-	    && dbip->file != NULL) {
+	if (dbip->lookup != search_core   &&
+	    dbip->lookup != search_header &&
+	    dbip->file   != NULL) {
 		printf("%s", dbip->file);
 		if (dbip->postproc == Indirect)
 			printf(" -> %s", dbip->subtype);
@@ -566,7 +580,7 @@ run_db(argc, argv)
 	if (argc == 2 && (argv[1][0] == 'i' || argv[1][0] == 't')) {
 		/* print an index/toc of the databases */
 
-		printf("#DBname   Type{lookup,sub} cache{inuse/max} ttl Flgs File/param\n");
+		printf("#DBname Type{lookup,sub} cache{inuse/max} ttl Flgs File/param\n");
 
 		sp_scan(iclistdbs, (struct spblk *)NULL, spt_databases);
 		return 0;
@@ -615,10 +629,10 @@ run_db(argc, argv)
 		}
 	}
 
-	si.file = dbip->file;
-	si.key  = argv[3];
+	si.file    = dbip->file;
+	si.key     = argv[3];
 	si.subtype = dbip->subtype;
-	si.ttl  = dbip->ttl;
+	si.ttl     = dbip->ttl;
 
 	switch (argv[1][0]) {
 	case 'a':	/* add db key value */
@@ -787,11 +801,11 @@ db(dbname, argc, argv20)
 	   Rest will be alike sendmail $@ "options"
 	*/
 	while (argv20[zoptind] && zoptind < argc) {
-	  if (strcmp("--",argv20[zoptind])==0) {
+	  if (STREQ("--",argv20[zoptind])) {
 	    ++zoptind;
 	    break;
 	  }
-	  if (strcmp("-:",argv20[zoptind])==0) {
+	  if (STREQ("-:",argv20[zoptind])) {
 	    ++zoptind;
 	    si.defaultkey = argv20[zoptind];
 	    ++zoptind;
@@ -801,16 +815,15 @@ db(dbname, argc, argv20)
 	  break;
 	}
 
-	if ((dbip->flags & DB_MODCHECK)
-	    && dbip->modcheckp != NULL && (*dbip->modcheckp)(&si)) {
-		if (dbip->close != NULL) {
-			cacheflush(dbip);
-			(*dbip->close)(&si,"db modcheck");
-			if (dbip->postproc == Indirect) {
-				si.file = dbip->subtype;
-				(*dbip->close)(&si,"db modcheck indirect");
-				si.file = dbip->file;
-			}
+	if ((dbip->flags & DB_MODCHECK) &&
+	    dbip->modcheckp  &&  (*dbip->modcheckp)(&si) &&
+	    dbip->close) {
+		cacheflush(dbip);
+		(*dbip->close)(&si,"db modcheck");
+		if (dbip->postproc == Indirect) {
+			si.file = dbip->subtype;
+			(*dbip->close)(&si,"db modcheck indirect");
+			si.file = dbip->file;
 		}
 	}
 	/* look for the desired result in the cache first */
@@ -850,7 +863,7 @@ db(dbname, argc, argv20)
 			   match also strings in case sensitive manner. */
 
 			if (cache->keyhash == khash &&
-			    strcmp(cache->key, key) == 0) { /* CACHE HIT! */
+			    STREQ(cache->key, key)) { /* CACHE HIT! */
 
 				/* Move this entry to the head
 				   of the LRU list */
@@ -882,10 +895,8 @@ db(dbname, argc, argv20)
 	  fflush(stderr);
 	}
 
-	if ((dbip->driver == NULL &&
-	     (l = (*dbip->lookup)(&si)) != NULL) ||
-	    (dbip->driver != NULL &&
-	     (l = (*dbip->driver)(dbip->lookup, &si)))) {
+	if ((!dbip->driver  && (l = (*dbip->lookup)(&si))) ||
+	    ( dbip->driver  && (l = (*dbip->driver)(dbip->lookup, &si)))) {
 
 		switch (dbip->postproc) {
 		case Boolean:
@@ -943,7 +954,7 @@ db(dbname, argc, argv20)
 	}
 	if (!deferit && dbip->cache_size > 0) {
 		/* insert new cache entry at head of cache */
-		if (dbip->cfree == NULL) {
+		if (! dbip->cfree ) {
 
 			/* No free slots */
 
@@ -998,7 +1009,7 @@ db(dbname, argc, argv20)
 	UNGCPRO3;
  post_subst:
 
-	if (ll && dbip->flags & DB_PERCENTSUBST) {
+	if (ll && (dbip->flags & DB_PERCENTSUBST)) {
 	  char *buf, *b;
 	  const char *p, *s;
 	  int i;
@@ -1120,7 +1131,7 @@ cacheflush(dbip)
 {
 	struct cache *cache, *cnext;
 
-	if (dbip == NULL || dbip->cache_size == 0 || dbip->cache == NULL)
+	if (!dbip || (dbip->cache_size == 0) || (! dbip->cache) )
 		return;
 
 	/* flush cache */
@@ -1182,7 +1193,7 @@ dbtype(dbname)
 		return NULL;
 	}
 	for (dbkp = &db_kinds[0];
-	     dbkp < &db_kinds[(sizeof db_kinds)/sizeof (struct db_kind)];
+	     dbkp < &db_kinds[sizeof(db_kinds)/sizeof(db_kinds[0])];
 	     ++dbkp) {
 		if (dbkp->config.lookup == dbip->lookup)
 			return dbkp->name;

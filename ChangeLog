@@ -24,6 +24,8 @@
 	    key in case the normal iteration fails.
 	    Cases where the "zmailer newdb" should generate the lookup
 	    wrapper function with user parameter passing.
+	    Also support 'incore' database by compiling from source file
+	    to "db add" statements in the ``relationname.zmsh'' script.
 
 	* router/rfc822.c, router/functions.c, router/prototypes.h:
 	    Streamlined the recognition of the message being coming

@@ -97,7 +97,7 @@ fqdn_neighbour (domain, address, A) {
 	case "$(get $A type)" in
 	sender)
 		if $(didexpand userdbmailname) && 
-		   a="$(userdb "$lcaddress:mailname" "$user")" ; then
+		   a="$(userdb "$lcaddress:mailname" -- "$user")" ; then
 
 		  db add expansions "$key.userdbmailname" 1
 		  nattr=$(newattribute $A privilege $priv)
@@ -132,7 +132,7 @@ fqdn_neighbour (domain, address, A) {
 
 	# key="$lcaddress"
 	if $(didexpand fqdnaliases) &&
-	   a="$(fqdnaliases "$lcaddress" "$user")" ; then
+	   a="$(fqdnaliases "$lcaddress" -- "$user")" ; then
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
@@ -145,7 +145,7 @@ fqdn_neighbour (domain, address, A) {
 	fi
 
 	if $(didexpand fqdnaliasesldap) &&
-	   a="$(fqdnaliasesldap "$lcaddress" "$user")" ; then
+	   a="$(fqdnaliasesldap "$lcaddress" -- "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
@@ -181,7 +181,7 @@ fqdn_neighbour (domain, address, A) {
 
 	    fi
 	    if $(didexpand fqdnaliasesldap) &&
-	       a="$(fqdnaliasesldap "$key" "$user")" ; then
+	       a="$(fqdnaliasesldap "$key" -- "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
@@ -271,7 +271,7 @@ fqdn_neighbour (domain, address, A) {
 	#
 	key="$athost"
 	if $(didexpand fqdnaliases) &&
-	   a="$(fqdnaliases "$key" "$user")" ; then
+	   a="$(fqdnaliases "$key" -- "$user")" ; then
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv) &&
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
@@ -283,7 +283,7 @@ fqdn_neighbour (domain, address, A) {
 		return $a
 	fi
 	if $(didexpand fqdnaliasesldap) &&
-	   a="$(fqdnaliasesldap "$key" "$user")" ; then
+	   a="$(fqdnaliasesldap "$key" -- "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv) &&
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!

@@ -156,13 +156,28 @@ nrl_domainname ()
   return domain;
 }
 
+/* This is NASTY, GLIBC has changed the type after instroducing
+   this function, Sol (2.)8 has 'int', of upcoming POSIX standard
+   revision I don't know.. */
 
-#ifndef HAVE_GETNAMEINFO
+#ifndef GETNAMEINFOFLAGTYPE
+# if defined(__GLIBC__) && defined(__GLIBC_MINOR__)
+#  if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 2
+	/* I am not sure that it was already 2.2(.0) that had
+	   this change, but 2.2.2 has it... */
+#   define GETNAMEINFOFLAGTYPE unsigned int
+#  else
+#   define GETNAMEINFOFLAGTYPE int
+#  endif
+# else
+#  define GETNAMEINFOFLAGTYPE int
+# endif
+#endif
+
 int
 getnameinfo __((const struct sockaddr *sa, size_t addrlen, char *host,
 		size_t hostlen, char *serv, size_t servlen,
-		unsigned int flags));
-#endif
+		GETNAMEINFOFLAGTYPE flags));
 
 int
 getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
@@ -172,7 +187,7 @@ getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
      size_t hostlen;
      char *serv;
      size_t servlen;
-     unsigned int flags;
+     GETNAMEINFOFLAGTYPE flags;
 {
   int serrno = errno;
   int ok = 0;

@@ -58,8 +58,10 @@ zgetopt(argc, argv, optstring)
 		scan = NULL;
 	
 	if (scan == NULL || *scan == '\0') {
+
 		if (zoptind >= argc || argv[zoptind][0] != '-' || argv[zoptind][1] == '\0')
 			return EOF;
+
 		if (argv[zoptind][1] == '-' && argv[zoptind][2] == '\0') {
 			zoptind++;
 			return EOF;
@@ -71,6 +73,7 @@ zgetopt(argc, argv, optstring)
 
 	c = *scan++;
 	zoptopt = c & 0377;
+
 	for (place = optstring; place != NULL && *place != '\0'; ++place) {
 		if (*place == c)
 			break;
@@ -78,7 +81,7 @@ zgetopt(argc, argv, optstring)
 			++place;
 	}
 
-	if (place == NULL || *place == '\0' || c == ':' || c == '?') {
+	if (place == NULL || *place == '\0' || c == '?') {
 		BADOPT(": unknown option -", c);
 	}
 

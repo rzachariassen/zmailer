@@ -2,7 +2,6 @@
 
 #  NEWDB processor in all wraps..
 #
-# FIXME: rpriv subfield processing!
 
 # -----------------------------------------------------------------------
 #    newdbprocessor()  -- converts DB configuration to ZMSH scripts
@@ -14,7 +13,7 @@
 #|              dbpriv control data (or "-")
 #|                  newdb_compile_options (-a for aliases!)
 #|                     dbfile (or "-")
-#|                         dbflags (or "-") ...
+#|                         dbflags (or "-") ... (until end of line)
 #|
 #| The  dbtype  can be "magic" '$DBTYPE', or any other valid database
 #| type for the Router.  Somewhat magic treatment (newdb runs) are
@@ -115,10 +114,6 @@ foreach $rel (keys %rels) {
     $rnum=1;
     @tnf=(); # trunc the "file"
 
-    push(@ofn,  "# ZMSH init script for relation: ${rel}",
-		"",
-		"# ---boilerplate head" );
-
     $oo='';
     # --- construct each relation, and binding at lookup, generate the db
     foreach $inp (@inps) {
@@ -162,7 +157,7 @@ foreach $rel (keys %rels) {
 		} elsif ($DBTYPE eq 'btree') {
 			@dbfiles = ($fn.".db");
 		# } else {
-			# LDAP/BIND/ORDERED/UNORDERED ...
+			# LDAP/BIND/ORDERED/UNORDERED/INCORE ...
 		}
 	} elsif ($rtype eq 'NONE') {
 		$rdbexttst = '';
@@ -222,11 +217,50 @@ foreach $rel (keys %rels) {
 		$rdbext    = '';
 		$rdbtype   = $rtype;
 		@dbfiles = ($fn);
-	} elsif ($rtype =~ '^bind') {
+	} elsif ($rtype =~ '^bind[,/]') { # Has subtypes
 		$rdbexttst = '';
 		$rdbext    = '';
 		$rdbtype   = $rtype;
 		@dbfiles = ($fn);
+	} elsif ($rtype =~ '^yp[,/]') { # Has subtypes
+		$rdbexttst = '';
+		$rdbext    = '';
+		$rdbtype   = $rtype;
+		@dbfiles = ($fn);
+	} elsif ($rtype eq 'incore') {
+		$rdbexttst = '';
+		$rdbext    = '';
+		$rdbtype   = $rtype;
+		@dbfiles = ($fn);
+
+		if ($rdbfile ne '-') {
+
+		    ##
+		    ## Convert input file ($fn) into incore format, store
+		    ## the data into the @ofn array (after 'relation') with
+		    ## 'pushd(@ofn, "db add relname keyname \"value\"")'
+		    ##
+
+		    if (open(RDBFILE, "<", $rdbfile)) {
+			while (<RDBFILE>) {
+			    chomp;
+			    next if (m/^[ \t]*\#/o);  # Comment line
+			    next if (m/^[ \t]*\$/o);  # Blank line
+
+			    local($key,$data) = split(' ', $_, 2);
+
+			    $key  =~ s{\\}{\\\\}go; # Double backslashes
+			    $key  =~ s{"}{\\"}go;   # Backslash quotes
+			    $data =~ s{\\}{\\\\}go;
+			    $data =~ s{"}{\\"}go;
+
+			    pushd(@ofn, 'db add '.$rel.' "'.$data.'"');
+			}
+			close(RDBFILE);
+		    }
+
+		}
+
 	} else {
 		$rdbexttst = '.dat';
 		$rdbext    = '.dat';
@@ -238,52 +272,57 @@ foreach $rel (keys %rels) {
 	    $optset = '';
 	}
 
+	if ($rtype ne 'NONE') {
 
-	if ($rpriv eq '-') {
-	    # ---- No privilege things collected -----
-	    push(@tfn,
+
+	    if ($rdbfile eq '-') {
+		unshift(@ofn, "	relation $rdbflags -t $rtype $rn");
+	    } else {
+		unshift(@ofn, "	relation $rdbflags -t $rtype -f $rdbfile$rdbext $rn");
+	    }
+
+	    if ($rpriv eq '-') {
+		# ---- No privilege things collected -----
+		push(@tfn,
 "	if a=\"\$($rn \$key ".$optset.")\"; then
 	    return \"\$a\"
 	fi");
 
-	} else {
-	    # ---- privilege things to collect ----
-	    # rpriv is a colon separated duplet/triplet:
-	    # ... FIXME! Implement!
+	    } else {
+		# ---- privilege things to collect ----
+		# rpriv is a colon separated duplet/triplet:
 
-	    local(@priv) = split(/:/,$rpriv);
-	    local($fmask) = '644';
+		local(@priv) = split(/:/,$rpriv);
+		local($fmask) = '644';
 
-	    if (defined $priv[1] && @dbfiles) {
-		local($pw0,$pw1,$pw2,$pw3) = getpwnam($priv[0]);
-		local($gr0,$gr1,$gr2,$gr3) = getgrnam($priv[1]);
-		$priv[0] = $pw2 if (defined $pw2);
-		$priv[1] = $gr2 if (defined $gr2);
+		if (defined $priv[1] && @dbfiles) {
+		    local($pw0,$pw1,$pw2,$pw3) = getpwnam($priv[0]);
+		    local($gr0,$gr1,$gr2,$gr3) = getgrnam($priv[1]);
+		    $priv[0] = $pw2 if (defined $pw2);
+		    $priv[1] = $gr2 if (defined $gr2);
 
-		chown $priv[0],$priv[1], @dbfiles;
-	    }
-	    if (defined $priv[2] && @dbfiles) {
-		$fmask = $priv[2];
-		chmod oct($priv[2]), @dbfiles;
-	    }
+		    chown $priv[0],$priv[1], @dbfiles;
+		}
+		if (defined $priv[2] && @dbfiles) {
+		    $fmask = $priv[2];
+		    chmod oct($priv[2]), @dbfiles;
+		}
 
-	    push(@tfn,
+		push(@tfn,
 "	if a=\"\$($rn \$key ".$optset.")\"; then
 	    priv=\"\$(filepriv -M $fmask $rdbfile$rdbexttst \\
 			    \$(db owner $rn))\" &&
 	    return \"\$a\"
 	fi");
-	}
-
-	if ($rtype ne 'NONE') {
-	    if ($rdbfile eq '-') {
-		push(@ofn, "	relation $rdbflags -t $rtype $rn");
-	    } else {
-		push(@ofn, "	relation $rdbflags -t $rtype -f $rdbfile$rdbext $rn");
 	    }
 	}
     } # --- foreach $inp (@inps) ....
 
+
+    # --- put out head..
+    unshift(@ofn,  "# ZMSH init script for relation: ${rel}",
+		    "",
+		    "# ---boilerplate head" );
 
     # --- put out tails, and complete..
     push(@ofn, "# boilerplate tail---

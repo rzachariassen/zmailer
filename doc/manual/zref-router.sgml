@@ -1151,35 +1151,29 @@ the <COMMAND>router</> program and has no other purpose.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+
 <CMDSYNOPSIS>
  <COMMAND>db</>
   <ARG CHOICE=REQ>add</>
   <ARG CHOICE=REQ><REPLACEABLE>database</></>
   <ARG CHOICE=REQ><REPLACEABLE>key</></>
   <ARG CHOICE=REQ><REPLACEABLE>value</></>
-</CMDSYNOPSIS>
-<CMDSYNOPSIS>
  <COMMAND>db</>
   <ARG CHOICE=REQ>flush</>
   <ARG CHOICE=REQ><REPLACEABLE>database</></>
-</CMDSYNOPSIS>
-<CMDSYNOPSIS>
  <COMMAND>db</>
   <ARG CHOICE=REQ>owner</>
   <ARG CHOICE=REQ><REPLACEABLE>database</></>
-</CMDSYNOPSIS>
-<CMDSYNOPSIS>
  <COMMAND>db</>
   <ARG CHOICE=REQ>print</>
   <ARG CHOICE=REQ><REPLACEABLE>database</></>
-</CMDSYNOPSIS>
-<CMDSYNOPSIS>
  <COMMAND>db</>
   <ARG CHOICE=REQ>remove</>
   <ARG CHOICE=REQ><REPLACEABLE>database</></>
   <ARG CHOICE=REQ><REPLACEABLE>key</></>
-</CMDSYNOPSIS>
-<CMDSYNOPSIS>
+ <COMMAND>db</>
+  <ARG CHOICE=REQ>count</>
+  <ARG CHOICE=REQ><REPLACEABLE>database</></>
  <COMMAND>db</>
   <ARG CHOICE=REQ>toc</>
 </CMDSYNOPSIS>
@@ -1213,21 +1207,24 @@ Add a <PARAMETER>key,value</> entry to the database, if possible.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>f[lush]</OPTION></TERM><LISTITEM><PARA>
 
-Remove all entries from the database, 
-if possible.
+For ``incore'' database this means deletion of the content, but
+for others this is IO buffer flush (in case of modifications.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>o[wner]</OPTION></TERM><LISTITEM><PARA>
 
-Print the account name of the owner 
-of the database, if possible. This is usually determined by the 
-files associated with the database.
+Print the account name of the owner of the database, if possible.
+This is usually determined by the files associated with the database.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>p[rint]</OPTION></TERM><LISTITEM><PARA>
 
-Print all entries of the database, 
-if possible. 
+Print all entries of the database, if possible. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>c[ount]</OPTION></TERM><LISTITEM><PARA>
+
+Iterate thru the database and count entries in there.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>r[emove]</OPTION></TERM><LISTITEM><PARA>
@@ -1237,11 +1234,17 @@ Remove a <PARAMETER>key</> entry from the database, if possible.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>t[oc]</OPTION></TERM><LISTITEM><PARA>
 
-Print a table of defined relations 
-and their associated information. This table has five columns, 
-in order: the name of the relation, its type and subtype, cache 
-entries and maximum size, flags, and associated files. See the 
-<FUNCTION>relation</> function for more information.
+Print a table of defined relations and their associated information.
+This table has five columns, in order:
+<ITEMIZEDLIST>
+ <LISTITEM><PARA>the name of the relation</></>
+ <LISTITEM><PARA>its type and subtype</></>
+ <LISTITEM><PARA>cache entries and maximum cache size</></>
+ <LISTITEM><PARA>flags</></>
+ <LISTITEM><PARA>and associated files</></>
+</ITEMIZEDLIST>
+See the <FUNCTION>relation</> function for more information.
+(<XREF LINKEND=zmshref.relation>)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1251,13 +1254,14 @@ entries and maximum size, flags, and associated files. See the
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 <INFORMALTABLE FRAME=ALL ID=tbl-zref-router-db-type-specific-notes>
-<TGROUP COLS=6 ALIGN=LEFT COLSEP=1 ROWSEP=1>
+<TGROUP COLS=7 ALIGN=LEFT COLSEP=1 ROWSEP=1>
 <COLSPEC COLNAME=C1-DBTYPE-NAME>
 <COLSPEC COLNAME=C2-DBFUNC-ADD>
 <COLSPEC COLNAME=C3-DBFUNC-FLUSH>
 <COLSPEC COLNAME=C4-DBFUNC-OWNER>
 <COLSPEC COLNAME=C5-DBFUNC-PRINT>
 <COLSPEC COLNAME=C6-DBFUNC-REMOVE>
+<COLSPEC COLNAME=C6-DBFUNC-COUNT>
 <THEAD>
 <ROW>
   <ENTRY>DB type</ENTRY>
@@ -1266,12 +1270,14 @@ entries and maximum size, flags, and associated files. See the
   <ENTRY>owner</ENTRY>
   <ENTRY>print</ENTRY>
   <ENTRY>remove</ENTRY>
+  <ENTRY>count</ENTRY>
 </ROW>
 </THEAD>
 <!-- <TFOOT> ... </TFOOT> -->
 <TBODY>
 <ROW>
   <ENTRY>incore</ENTRY>
+  <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
@@ -1285,6 +1291,7 @@ entries and maximum size, flags, and associated files. See the
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
 </ROW>
 <ROW>
   <ENTRY>ordered</ENTRY>
@@ -1293,9 +1300,11 @@ entries and maximum size, flags, and associated files. See the
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>no</ENTRY>
+  <ENTRY>yes</ENTRY>
 </ROW>
 <ROW>
   <ENTRY>unordered</ENTRY>
+  <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
@@ -1309,9 +1318,11 @@ entries and maximum size, flags, and associated files. See the
   <ENTRY>no</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
 </ROW>
 <ROW>
   <ENTRY>bind</ENTRY>
+  <ENTRY>no</ENTRY>
   <ENTRY>no</ENTRY>
   <ENTRY>no</ENTRY>
   <ENTRY>no</ENTRY>
@@ -1325,9 +1336,11 @@ entries and maximum size, flags, and associated files. See the
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
 </ROW>
 <ROW>
   <ENTRY>gdbm</ENTRY>
+  <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
@@ -1341,6 +1354,7 @@ entries and maximum size, flags, and associated files. See the
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
 </ROW>
 <ROW>
   <ENTRY>yp (NIS)</ENTRY>
@@ -1349,9 +1363,11 @@ entries and maximum size, flags, and associated files. See the
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
+  <ENTRY>no</ENTRY>
 </ROW>
 <ROW>
   <ENTRY>bhash</ENTRY>
+  <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
@@ -1365,6 +1381,7 @@ entries and maximum size, flags, and associated files. See the
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
   <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
 </ROW>
 <ROW>
   <ENTRY>ldap</ENTRY>
@@ -1373,6 +1390,16 @@ entries and maximum size, flags, and associated files. See the
   <ENTRY>yes</ENTRY>
   <ENTRY>no</ENTRY>
   <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>selfmatch</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>yes</ENTRY>
 </ROW>
 </TBODY>
 </TGROUP>
@@ -1408,7 +1435,8 @@ Lookup result
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><LITERAL>NULL</></TERM><LISTITEM><PARA>
 
-Error.  
+Lookup failed, <LITERAL>$deferred</> may be set if the reason is
+considered <EMPHASIS>temporary</> and thus solvable latter.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1417,7 +1445,7 @@ Error.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-none
+<EMPHASIS>FIXME! Notes about '-:' and '--' OPTIONS.</>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
@@ -1426,10 +1454,10 @@ The access function to the database facilities in the
 <COMMAND>router</>.
 
 </PARA><PARA>
-<EMPHASIS>FIXME! Notes about %[0-9] substitution rules, and their controls.</>
-</PARA><PARA>
-<EMPHASIS>FIXME! Notes about '-:' and '--' OPTIONS.</>
-
+<EMPHASIS>FIXME! Notes about %[0-9] substitution rules, and their controls.
+(That is: <FUNCTION>relation</>'s <OPTION>-%</> option!
+ <XREF LINKEND=zmshref.relation>)
+</>
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
@@ -1442,9 +1470,11 @@ The access function to the database facilities in the
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-echo [-n] [string-expressions]
-</SYNOPSIS>
+<CMDSYNOPSIS>
+<COMMAND>echo</COMMAND>
+ <ARG><OPTION>-n</></ARG>
+ <ARG><REPLACEABLE>string-expressions</></ARG>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1502,7 +1532,13 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none
+This does a side-effect on input list which is need in ``for'' loops:
+<SCREEN>
+for loopvar in $(elements $listvar)
+do
+  ...
+done
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1539,7 +1575,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Print internal variable tree.
+A debug tool to print internal variable tree.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1629,14 +1665,7 @@ exit
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-<VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
-
-
-
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
-
+does not return, does <FUNCTION>exit(2)</> for the shell/router..
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -1646,7 +1675,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes: </TERM><LISTITEM><PARA>
 
-Exit from the shell with exit code.
+Exit from the shell/router with exit code.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1833,13 +1862,21 @@ hold attached address property lists, during alias expansion.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt get property-list key}
+<CMDSYNOPSIS>
+ <COMMAND>get</COMMAND>
+   <ARG CHOICE=PLAIN>property-list</ARG>
+   <ARG CHOICE=PLAIN>keyname</ARG>
+</CMDSYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>get</COMMAND>
+   <ARG CHOICE=PLAIN>property-list-varname</ARG>
+   <ARG CHOICE=PLAIN>keyname</ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-{\tt property-list}
+property-list
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -1849,7 +1886,12 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Returns a property list corresponding to key string.
+Returns a property-list corresponding to key string:
+<SCREEN>
+  listvar=(key1 value1 keyname value key3 value3)
+  result1=$(get  listvar keyname)
+  result2=$(get $listvar keyname)
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2805,22 +2847,106 @@ is a recipient address in a message header''.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+Generic:
 <CMDSYNOPSIS>
   <COMMAND>relation</COMMAND>
-  <ARG CHOICE=PLAIN>-t <REPLACEABLE>dbtype</><ARG>,<REPLACEABLE>subtype</></ARG></ARG>
+  <ARG><OPTION>-i</></ARG>
+  <ARG><OPTION>-T</></ARG>
+  <ARG CHOICE=PLAIN><OPTION>-t <REPLACEABLE>dbtype</></><ARG><OPTION>/<REPLACEABLE>subtype</></></ARG></ARG>
+  <ARG><OPTION>-f <REPLACEABLE>file</REPLACEABLE></></ARG>
+  <ARG><OPTION>-e <REPLACEABLE>#</></></ARG>
+  <ARG><OPTION>-s <REPLACEABLE>#</></></ARG>
+  <ARG><OPTION>-:%blmnu</></ARG>
+  <ARG><OPTION>-d <REPLACEABLE>driver</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
+</CMDSYNOPSIS>
+The separator character between ``dbtype'' and ``subtype'' can be either
+a comma (``,'') or a slash (``/''), as user wishes.
+In case the subtype is a filepath (or otherwise begins with a slash),
+the user propably wants to use comma to reduce confusion.
+</PARA><PARA>
+More specific versions:
+<CMDSYNOPSIS>
+
+  <COMMAND>relation</COMMAND>
+  <ARG CHOICE=PLAIN><OPTION>-t yp,<REPLACEABLE>yp-mapname</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION>-f <REPLACEABLE>yp-domain</></></ARG>
+  <ARG><OPTION>-e <REPLACEABLE>#</></></ARG>
+  <ARG><OPTION>-s <REPLACEABLE>#</></></ARG>
+  <ARG><OPTION>-:%blmnu</></ARG>
+  <ARG><OPTION>-d <REPLACEABLE>driver</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
+
+  <COMMAND>relation</COMMAND>
+  <ARG CHOICE=PLAIN><OPTION>-t bind/<REPLACEABLE>query-type</></></ARG>
   <ARG>-f <REPLACEABLE>file</REPLACEABLE></ARG>
   <ARG>-e <REPLACEABLE>#</></ARG>
   <ARG>-s <REPLACEABLE>#</></ARG>
-  <ARG>-bilmnu</ARG>
+  <ARG>-:%blmnu</ARG>
   <ARG>-d <REPLACEABLE>driver</></ARG>
-  <ARG CHOICE=PLAIN>name</ARG>
-</CMDSYNOPSIS>
-<CMDSYNOPSIS>
+  <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
+
   <COMMAND>relation</COMMAND>
-  <ARG CHOICE=PLAIN>-T -t <REPLACEABLE>dbtype</><ARG>,<REPLACEABLE>subtype</></ARG></ARG>
-  <ARG CHOICE=PLAIN>dummy_name</ARG>
+  <ARG CHOICE=PLAIN><OPTION>-i</></ARG>
+  <ARG CHOICE=PLAIN><OPTION>-t ordered,<REPLACEABLE>filepath2</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION>-f <REPLACEABLE>filepath1</REPLACEABLE></></ARG>
+  <ARG CHOICE=OPT><OPTION>-e <REPLACEABLE>#</></></ARG>
+  <ARG CHOICE=OPT><OPTION>-s <REPLACEABLE>#</></></ARG>
+  <ARG CHOICE=OPT><OPTION>-:%blmnu</></ARG>
+  <ARG CHOICE=OPT><OPTION>-d <REPLACEABLE>driver</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
+
+  <COMMAND>relation</COMMAND>
+  <ARG CHOICE=PLAIN><OPTION>-i</></ARG>
+  <ARG CHOICE=PLAIN><OPTION>-t unordered,<REPLACEABLE>filepath2</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION>-f <REPLACEABLE>filepath1</REPLACEABLE></></ARG>
+  <ARG CHOICE=OPT><OPTION>-e <REPLACEABLE>#</></></ARG>
+  <ARG CHOICE=OPT><OPTION>-s <REPLACEABLE>#</></></ARG>
+  <ARG CHOICE=OPT><OPTION>-:%blmnu</></ARG>
+  <ARG CHOICE=OPT><OPTION>-d <REPLACEABLE>driver</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
+
+  <COMMAND>relation</COMMAND>
+  <ARG CHOICE=PLAIN><OPTION>-t ordered</></ARG>
+  <ARG CHOICE=PLAIN><OPTION>-f <REPLACEABLE>filepath</REPLACEABLE></></ARG>
+  <ARG CHOICE=OPT><OPTION>-e <REPLACEABLE>#</></></ARG>
+  <ARG CHOICE=OPT><OPTION>-s <REPLACEABLE>#</></></ARG>
+  <ARG CHOICE=OPT><OPTION>-:%blmnu</></ARG>
+  <ARG CHOICE=OPT><OPTION>-d <REPLACEABLE>driver</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
+
+  <COMMAND>relation</COMMAND>
+  <ARG CHOICE=PLAIN><OPTION>-t unordered</></ARG>
+  <ARG CHOICE=PLAIN><OPTION>-f <REPLACEABLE>filepath</REPLACEABLE></></ARG>
+  <ARG CHOICE=OPT><OPTION>-e <REPLACEABLE>#</></></ARG>
+  <ARG CHOICE=OPT><OPTION>-s <REPLACEABLE>#</></></ARG>
+  <ARG CHOICE=OPT><OPTION>-:%blmnu</></ARG>
+  <ARG CHOICE=OPT><OPTION>-d <REPLACEABLE>driver</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
+
+  <COMMAND>relation</COMMAND>
+  <ARG CHOICE=PLAIN><OPTION>-t <REPLACEABLE>dbtype</></></ARG>
+  <ARG><OPTION>-f <REPLACEABLE>file</REPLACEABLE></></ARG>
+  <ARG><OPTION>-e <REPLACEABLE>#</></></ARG>
+  <ARG><OPTION>-s <REPLACEABLE>#</></></ARG>
+  <ARG><OPTION>-:%blmnu</></ARG>
+  <ARG><OPTION>-d <REPLACEABLE>driver</></></ARG>
+  <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
+
+</CMDSYNOPSIS>
+Note:  ``<COMMAND>zmailer newdb</>'' does not support ``<OPTION>-i</>''
+option use! (FIXME! FIXME! 2001-Mar-8)
+</PARA><PARA>
+Special support for testing of presense of support for given
+<REPLACEABLE>dbtype</>:
+<CMDSYNOPSIS>
+
+  <COMMAND>relation</COMMAND>
+  <ARG CHOICE=PLAIN><OPTION>-T -t <REPLACEABLE>dbtype</></></ARG>
+  <ARG CHOICE=PLAIN><REPLACEABLE>dummy_name</></ARG>
 </CMDSYNOPSIS>
 </PARA>
+
 
 <PARA>
 Options are listed below. <OPTION>name</> is the name of the relation
@@ -2863,14 +2989,125 @@ Special flag enabling script to test for given db-type:
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-t <REPLACEABLE>dbtype</>[,<REPLACEABLE>subtype</>]</OPTION></TERM><LISTITEM><PARA>
+Below is a table to option interdependencies as they
+apply with different database types.
+</PARA>
 
-One of the known types 
-of databases, currently: 
+<FIGURE PGWIDE=1 FLOAT=1>
+<TITLE><FUNCTION>relation</>'s option interdependencies</TITLE>
+<INFORMALTABLE FRAME=ALL ID=tbl.zmshref.relation>
+<TGROUP COLS=3 ALIGN=LEFT COLSEP=0 ROWSEP=0>
+<!-- <COLSPEC COLNAME=C1-MTANAME>
+     <COLSPEC COLNAME=C2-DNS-CONC>
+     <COLSPEC COLNAME=C3-SMTP-CONC>
+     <COLSPEC COLNAME=C4-SMTP-PGB> -->
+<THEAD>
+<ROW>
+  <ENTRY>Db-Type</ENTRY>
+  <ENTRY>Subtype meaning</ENTRY>
+  <ENTRY><OPTION>-f</> option value</ENTRY>
+</ROW>
+</THEAD>
+<!-- <TFOOT>
+    </TFOOT> -->
+<TBODY>
+<ROW>
+  <ENTRY>incore</ENTRY>
+  <ENTRY>ignored</ENTRY>
+  <ENTRY>ignored</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>header</ENTRY>
+  <ENTRY>ignored</ENTRY>
+  <ENTRY>ignored</ENTRY>
+</ROW>
+
+<ROW>
+  <ENTRY>selfmatch</ENTRY>
+  <ENTRY>ignored</ENTRY>
+  <ENTRY>ignored</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>hostsfile</ENTRY>
+  <ENTRY>ignored</ENTRY>
+  <ENTRY>ignored (?)</ENTRY>
+</ROW>
+
+<ROW>
+  <ENTRY>ordered</ENTRY>
+  <ENTRY>ignored (without <OPTION>-i</> option)</ENTRY>
+  <ENTRY>path-to-file</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>unordered</ENTRY>
+  <ENTRY>ignored (without <OPTION>-i</> option)</ENTRY>
+  <ENTRY>path-to-file</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>ordered</ENTRY>
+  <ENTRY>path-to-file-2 (with <OPTION>-i</> option)</ENTRY>
+  <ENTRY>path-to-file-1</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>unordered</ENTRY>
+  <ENTRY>path-to-file-2 (with <OPTION>-i</> option)</ENTRY>
+  <ENTRY>path-to-file-1</ENTRY>
+</ROW>
+
+<ROW>
+  <ENTRY>bind</ENTRY>
+  <ENTRY>DNS-query-subtype</ENTRY>
+  <ENTRY>ignored</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>yp</ENTRY>
+  <ENTRY>YP-mapname</ENTRY>
+  <ENTRY>YP-domain</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>ldap</ENTRY>
+  <ENTRY>ignored??</ENTRY>
+  <ENTRY>path-to-cfg-file</ENTRY>
+</ROW>
+
+<ROW>
+  <ENTRY>dbm</ENTRY>
+  <ENTRY>ignored</ENTRY>
+  <ENTRY>basepath-to-db-file</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>ndbm</ENTRY>
+  <ENTRY>ignored</ENTRY>
+  <ENTRY>basepath-to-db-file</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>gdbm</ENTRY>
+  <ENTRY>ignored</ENTRY>
+  <ENTRY>basepath-to-db-file</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>btree</ENTRY>
+  <ENTRY>ignored</ENTRY>
+  <ENTRY>basepath-to-db-file</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>bhash</ENTRY>
+  <ENTRY>ignored</ENTRY>
+  <ENTRY>basepath-to-db-file</ENTRY>
+</ROW>
+</TBODY>
+</TGROUP>
+</INFORMALTABLE>
+</FIGURE>
+
+<PARA>
+One of the known types of databases, currently: 
+
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>incore</></TERM><LISTITEM><PARA>
 
-A database maintained in virtual memeory (using 
-splay trees). This type should not be used for any database that must 
+A database maintained in virtual memory (using splay trees).
+This type should not be used for any database that must 
 periodically be flushed, since all occupied memory can be freed.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -2882,66 +3119,175 @@ semantics information. It is unlikely to be used for anything else.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>ordered</></TERM><LISTITEM><PARA>
 
-A file with key-value pairs on every line, 
-separated by whitespace, sorted by key. 
+The <OPTION>-f</>-option defines the path of the file.
+
+</PARA><PARA>
+
+A file with key-value pairs on every line, separated by whitespace,
+sorted by key. (See <COMMAND>sort</>(1).)
+
+<SCREEN>
+key_at_line_start   data at the same line
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>unordered</></TERM><LISTITEM><PARA>
 
-A file with key-value pairs on every line, 
-separated by whitespace. 
+The <OPTION>-f</>-option defines the path of the file.
+
+</PARA><PARA>
+
+A file with key-value pairs on every line, separated by whitespace. 
+
+<SCREEN>
+key_at_line_start   data at the same line
+</SCREEN>
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>ordered,<REPLACEABLE>path-to-file-2</></></><LISTITEM><PARA>
+
+The <OPTION>-f</>-option defines the path of the file-1.
+
+</PARA><PARA>
+
+The version for antique ``<OPTION>-i</>'' mode.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>unordered,<REPLACEABLE>path-to-file-2</></></><LISTITEM><PARA>
+
+The <OPTION>-f</>-option defines the path of the file-1.
+
+</PARA><PARA>
+
+The version for antique ``<OPTION>-i</>'' mode.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>hostsfile</></TERM><LISTITEM><PARA>
+
+The <OPTION>-f</>-option defines the path of the file.
+(In theory...)
+
+</PARA><PARA>
 
 A rather theorethical database looking into <EMPHASIS>hosts(5)</>
 database file (often <FILENAME>/etc/hosts</>).
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM><OPTION>bind</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>bind/query-subtype</></TERM><LISTITEM><PARA>
+
+The <OPTION>-f</>-option defines the path of the resolver configuration file.
+(Not implemented!)
+
+</PARA><PARA>
 
 The BIND implementation of a Domain Name System 
 resolver. The subtype for this type is the name of a Resource Record 
-type in the {\tt IN} class.
+type in the <LITERAL>IN</> class.
+
+</PARA><PARA>
+Supported subtypes are:
+<SIMPLELIST TYPE=INLINE>
+ <MEMBER>A</>
+ <MEMBER>AAAA</>
+ <MEMBER>ANY</>
+ <MEMBER>CNAME</>
+ <MEMBER>MX</>
+ <MEMBER>MXLOCAL</>
+ <MEMBER>MXWKS</>
+ <MEMBER>PTR</>
+ <MEMBER>TXT</>
+ <MEMBER>UINFO</>
+ <MEMBER>WKS</>
+</SIMPLELIST>
+</PARA><PARA>
+
+FIXME! FILL DETAILS! (About the return values)
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>ndbm</></TERM><LISTITEM><PARA>
 
-The new DBM library. The BSD4.4 has a thing called 
-{\tt db}, which is a different thing, but it can be used in place 
-of {\tt ndbm} via its interface library. (The {\tt BSD4.4-db} 
-does have only one database file, not two, like {\tt ndbm} does.)
+The <OPTION>-f</>-option defines the base path of the files, and the NDBM
+appends ``.pag'' and ``.dir'' to each file.
 
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM><OPTION>gdbm</></TERM><LISTITEM><PARA>
+</PARA><PARA>
 
-The GNU implementation of the new DBM library. 
-{\bf Note:} GDBM uses one file, which is named exactly as you 
-parametrize it. This is unlike NDBM, which appends .dir and .pag to 
-the supplied name!
+The newer DBM as created at (I think) BSD 4.2.
+This is two-file database with API utilizing nonglobal API, that is,
+multiple databases can be open simultaneously.
+This appends .dir and .pag to the supplied name!
+
+</PARA><PARA>
+
+Limitation: The length of <EMPHASIS>key</> plus the length of <EMPHASIS>data</>
+must not exceed 1024 bytes.
+With certain kinds of alias databases this may be too low limit!
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>dbm</></TERM><LISTITEM><PARA>
 
-The old DBM library. There can be only one DBM 
-open at the time, and this system keeps them all open all the time. 
-Avoid if you can.
+The <OPTION>-f</>-option defines the base path of the files, and the DBM
+appends ``.pag'' and ``.dir'' to each file.
+
+</PARA><PARA>
+
+The old ATT DBM library with even worse limitations than <OPTION>ndbm</> has.
+Avoid if you can.  (ZMailer can manage with this also, each lookup is done
+by opening the DB, and closing immediately after wards.)
+
+</PARA><PARA>
+
+Some versions of ATT DBM <EMPHASIS>did not</> contain externally callable
+<FUNCTION>close</>() function!  ZMailer propably won't work at such a system
+anyway...
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM><OPTION>yp</></TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>gdbm</></TERM><LISTITEM><PARA>
 
-The Network Information Service from Sun Microsystems 
-Inc. (Later renamed to be NIS, the still newer NIS+ is not supported).
+The <OPTION>-f</>-option defines the path of the database file,
+the GDBM does not append anything to the name.
+
+</PARA><PARA>
+
+The GNU implementation of the new DBM library. 
+Note: GDBM uses one file, which is named exactly as you parametrize it.
+This is unlike NDBM, which appends .dir and .pag to the supplied name!
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>yp,<REPLACEABLE>mapname</></></><LISTITEM><PARA>
+The Network Information Service from Sun Microsystems Inc.
+(Later renamed to be NIS, the still newer NIS+ is not supported).
+
+</PARA><PARA>
+
+The <OPTION><REPLACEABLE>mapname</></> ``subtype'' passes knowledge
+about which YP-map the query is to be done from.
+
+</PARA><PARA>
+
+The <OPTION>-f</>-option is used to pass the <EMPHASIS>YP-domain</>
+information to the interface.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>btree</></TERM><LISTITEM><PARA>
 
 SleepyCat DB 1.x, 2.x or 3.x B-Tree database
 
+</PARA><PARA>
+
+The <OPTION>-f</>-option defines the path of the database file,
+the SleepyCat DB does not append anything to the name.
+(This is true with versions 1.x and 2.x, version 3.x is not yet supported.)
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>bhash</></TERM><LISTITEM><PARA>
 
 SleepyCat DB 1.x, 2.x or 3.x HASH database
+
+</PARA><PARA>
+
+The <OPTION>-f</>-option defines the path of the database file,
+the SleepyCat DB does not append anything to the name.
+(This is true with versions 1.x and 2.x, version 3.x is not yet supported.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>selfmatch</></TERM><LISTITEM><PARA>
@@ -2949,6 +3295,11 @@ SleepyCat DB 1.x, 2.x or 3.x HASH database
 Given address literal <EMPHASIS>without</> wrapping square brackets,
 this ``database'' decodes the address, and checks if presented IP
 address is one used by the system at the moment.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>ldap</></TERM><LISTITEM><PARA>
+
+FIXME! WRITEME!
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2959,10 +3310,6 @@ address is one used by the system at the moment.
 A file associated with the database, typically the file containing the data,
 or the basename of DBM files or something similarly relevant to the database
 access routine. 
-
-</PARA><PARA>
-Note that for <OPTION>incore</> and <OPTION>header</> relations
-the <OPTION>-f</> is <EMPHASIS ROLE=BOLD>not</> used!
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-e <REPLACEABLE>#</></></TERM><LISTITEM><PARA>
@@ -2992,21 +3339,31 @@ the concatenation of the data on the lines following that offset which
 start with whitespace.
 </PARA><PARA>
 
-This was used for the aliases file back in early 1990.
+This was used for the aliases file back in early 1990, and is usable
+only with <OPTION>ordered</>, and <OPTION>unordered</> database types.
+</PARA><PARA>
+
+(FIXME! IMPLEMENT?  To think of it, this makes eminently sense also
+ for <OPTION>dbm</>, and <OPTION>ndbm</> which have data size limitations.
+ But then, SleepyCat DB is recommended for internal databases anyway.)
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-l</></TERM><LISTITEM><PARA>
 
-Map all keys to lowercase before searching.
+Map all keys to ASCII lowercase before searching.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-m</></TERM><LISTITEM><PARA>
 
 Check for file content modification before every access.
 Reopen the file when a change is detected.
+</PARA><PARA>
+
 This option is used when the <COMMAND>router</> should discover
 changes to a database underfoot so it need not be restarted to
 use new data.
+</PARA><PARA>
+
 This is recommended on relations which use unordered, or ordered
 datasets (aliases, routes, ...), and especially if the system is
 configured to use <FUNCTION>mmap(2)</> facility.
@@ -3023,7 +3380,7 @@ Otherwise return the value retrieved, if any.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-u</></TERM><LISTITEM><PARA>
 
-Map all keys to uppercase before searching. 
+Map all keys to ASCII uppercase before searching. 
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-d <REPLACEABLE>[pathalias|pathalias.nodot|longestmatch]</></></TERM><LISTITEM><PARA>
@@ -3033,6 +3390,25 @@ special knowledge.
 The argument to this option must be a known driver.
 </PARA><PARA>
 FIXME! WRITEME! WRITE MORE!
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>-%</></TERM><LISTITEM><PARA>
+We shall do positional parameter substitutions (``%0'' thru ``%9'')
+on database lookup result data. [XREF??]
+
+</PARA><PARA>
+The <COMMAND>zmailer newdb</> configuration file
+<FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> uses presense of
+``%'' to signal this aspect of relation wrapper generation.
+ [XREF??]
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>-:</></TERM><LISTITEM><PARA>
+Actually this is <EMPHASIS>ignored</> if present, the
+<COMMAND>zmailer newdb</> configuration file
+<FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> uses presense of
+``:'' to signal certain aspects of relation wrapper generation.
+ [XREF??]
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>

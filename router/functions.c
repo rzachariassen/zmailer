@@ -211,14 +211,14 @@ run_trace(argc, argv)
 	debug = (strncmp(*argv, "un", 2) != 0);
 	while (--argc > 0) {
 		++argv;
-		if (strcmp(*argv, "off") == 0 || strcmp(*argv, "all") == 0) {
+		if (STREQ(*argv, "off")  ||  STREQ(*argv, "all")) {
 			for (dbi = &buggers[0]; dbi->name != NULL; ++dbi)
 			    if (dbi->indicator)
 				*(dbi->indicator) = (**argv == (debug?'a':'o'));
 			continue;
 		} else {
 			for (dbi = &buggers[0]; dbi->name != NULL; ++dbi) {
-				if (strcmp(*argv, dbi->name) == 0) {
+				if (STREQ(*argv, dbi->name)) {
 					if (dbi->indicator == NULL)
 					  debug = !debug; /* except */
 					else
@@ -607,7 +607,7 @@ run_praliases(argc, argv)
 		size = ftell(stdout);
 		if (size - prevsize > maxsize)
 			maxsize = size - prevsize;
-		if (*cp == *(h->h_pname) && strcmp(cp, h->h_pname) == 0) {
+		if (*cp == *(h->h_pname) && STREQ(cp, h->h_pname)) {
 			fprintf(stderr, "%s: multiple definitions of '%s'.\n",
 					argv[0], h->h_pname);
 			cp = ":";
@@ -732,7 +732,7 @@ static int zap_DSN_notify(argc, argv)
 	for (lc = l; lc && cdr(lc); pl = &cddr(lc),lc = *pl) {
 	  if (!STRING(lc))
 	    return 0; /* ?? */
-	  if (strcmp("DSN",lc->string)==0) {
+	  if (STREQ("DSN",lc->string)) {
 	    lc = cdr(lc);
 	    if (!lc || !STRING(lc))
 	      return 0;
@@ -901,7 +901,7 @@ static int post_zap_DSN_notify(argc, argv)
 	for (lc = l; lc && cdr(lc); pl = &cddr(lc),lc = *pl) {
 	  if (!STRING(lc))
 	    return 0; /* ?? */
-	  if (strcmp("DSN",lc->string)==0) {
+	  if (STREQ("DSN",lc->string)) {
 	    lc = cdr(lc);
 	    if (!lc || !STRING(lc))
 	      return 0;
@@ -1056,8 +1056,7 @@ run_listexpand(avl, il)
 	  switch( il->string[1] ) {
 	    case 'c':
 	      comment = (char*)cdr(il)->string;
-	      if (strchr(comment,'\n') != NULL ||
-		  strchr(comment,'\r') != NULL)
+	      if (strchr(comment,'\n') || strchr(comment,'\r'))
 		errflag = 1;
 	      break;
 	    case 'p':
@@ -1065,25 +1064,21 @@ run_listexpand(avl, il)
 	      break;
 	    case 'e':
 	      erroraddress = (char*)cdr(il)->string;
-	      if (strchr(erroraddress,'\n') != NULL ||
-		  strchr(erroraddress,'\r') != NULL)
+	      if (strchr(erroraddress,'\n') || strchr(erroraddress,'\r'))
 		errflag = 1;
 	      break;
 	    case 'E':
 	      if (errors_to != olderrors)
 		free(errors_to);
 	      errors_to = strdup((char*)cdr(il)->string);
-	      if (strchr(errors_to,'\n') != NULL ||
-		  strchr(errors_to,'\r') != NULL)
+	      if (strchr(errors_to,'\n') || strchr(errors_to,'\r'))
 		errflag = 1;
 	      break;
 	    case 'N':
 	      notary = (char *)cdr(il)->string;
-	      if (strchr(notary,'\n') != NULL ||
-		  strchr(notary,'\r') != NULL)
+	      if (strchr(notary,'\n') || strchr(notary,'\r'))
 		errflag = 1;
-	      if (strcmp(notary,"-")==0)
-		no_dsn = 1;
+	      if (STREQ(notary,"-")) no_dsn = 1;
 	      break;
 	    default:
 	      errflag = 1;
@@ -1866,7 +1861,7 @@ run_822date(argc, argv)
 	time_t dnow;
 
 	time(&dnow);
-	if (argc == 2 && strcmp(argv[1], "-s") == 0)
+	if (argc == 2 && STREQ(argv[1], "-s"))
 		printf("%ld\n", dnow);
 	else
 		printf("%s", rfc822date(&dnow));
@@ -2127,7 +2122,7 @@ run_basename(argc, argv)
 	else
 		++cp;
 	if (argc > 2 && (len = strlen(cp) - strlen(argv[2])) > 0) {
-		if (strcmp(cp + len, argv[2]) == 0) {
+		if (STREQ(cp + len, argv[2])) {
 			while (len-- > 0)
 				putchar(*cp++);
 			putchar('\n');
@@ -2151,21 +2146,21 @@ run_syslog(argc, argv)
 	while ((c = zgetopt(argc, (char*const*)argv, "p:")) != EOF) {
 		switch (c) {
 		case 'p':	/* priority */
-			if(!strcmp(zoptarg, "debug")) {
+			if(STREQ(zoptarg, "debug")) {
 				prio = LOG_DEBUG;
-			} else if(!strcmp(zoptarg, "info")) {
+			} else if(STREQ(zoptarg, "info")) {
 				prio = LOG_INFO;
-			} else if(!strcmp(zoptarg, "notice")) {
+			} else if(STREQ(zoptarg, "notice")) {
 				prio = LOG_NOTICE;
-			} else if(!strcmp(zoptarg, "warning")) {
+			} else if(STREQ(zoptarg, "warning")) {
 				prio = LOG_WARNING;
-			} else if(!strcmp(zoptarg, "err")) {
+			} else if(STREQ(zoptarg, "err")) {
 				prio = LOG_ERR;
-			} else if(!strcmp(zoptarg, "crit")) {
+			} else if(STREQ(zoptarg, "crit")) {
 				prio = LOG_CRIT;
-			} else if(!strcmp(zoptarg, "alert")) {
+			} else if(STREQ(zoptarg, "alert")) {
 				prio = LOG_ALERT;
-			} else if(!strcmp(zoptarg, "emerg")) {
+			} else if(STREQ(zoptarg, "emerg")) {
 				prio = LOG_EMERG;
 			} else {
 				++errflg;
@@ -2301,7 +2296,7 @@ run_squirrel(argc, argv)
 		} else
 			flag = 1;
 		for (j = 0; j < (sizeof fyitable / sizeof fyitable[0]); ++j) {
-			if (cistrcmp(argv[i], fyitable[j].fyiname) == 0) {
+			if (CISTREQ(argv[i], fyitable[j].fyiname)) {
 				fyitable[j].fyisave = flag;
 				j = -1;
 				break;

@@ -671,7 +671,7 @@ nullhost(cs)
 {
 	const char *s = cs->cstring;
 
-	return (s == NULL || *s == '\0' || strcmp(s, "-") == 0);
+	return ( !s || *s == '\0' || STREQ(s, "-") );
 	/* actually we should also check for localhostness, but lets not
 	   get carried away... */
 }
@@ -2500,9 +2500,8 @@ prctladdr(info, fp, cfflag, comment)
 		&& LIST(x)) {	    /* ... and it is a list */
 	      /* Find the 'privilege' item */
 	      for (x = car(x); x != NULL; x = cddr(x)) {
-		if (STRING(x)
-		    && strcmp((char *)x->string,
-			      "privilege") == 0) {
+		if (STRING(x) &&
+		    STREQ((char *)x->string, "privilege")) {
 		  x = cdr(x);
 		  break;
 		}
@@ -2556,10 +2555,10 @@ prctladdr(info, fp, cfflag, comment)
 	    }
 	    if (cdr(l))
 	      putc(' ', fp);
-	  } else if (channel && strcmp(channel,"error")!=0)
+	  } else if (channel && !STREQ(channel,"error"))
 	    fprintf(stderr, "Malformed %s\n", comment);
 	}
-	if ((cfflag == _CF_SENDER) && channel && strcmp(channel,"error") == 0)
+	if ((cfflag == _CF_SENDER) && channel && STREQ(channel,"error"))
 		user = ""; /* error channel source address -> no user! */
 
 	if (!privilege) {
@@ -2635,7 +2634,7 @@ find_errto(info)
 	for (x = cadr(info); x != NULL; x = cddr(x)) {
 	  if (!STRING(x))
 	    return NULL; /* error in data */
-	  if (strcmp((char *)x->string,"ERR") == 0) {
+	  if (STREQ((char *)x->string,"ERR")) {
 	    x = cdr(x);
 	    break;
 	  }

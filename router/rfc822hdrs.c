@@ -273,8 +273,8 @@ copySender(e)
 		cp = h->h_descriptor->hdr_name + e->e_resent;
 		for (cpp = prio_list; *cpp != NULL; ++cpp) {
 			/* printf("comparing '%s' and '%s'\n", *cpp, cp); */
-			if (**cpp == *cp && strcmp(*cpp, cp) == 0
-			    && (cpp - prio_list) < minval) {
+			if (**cpp == *cp  &&  STREQ(*cpp, cp) &&
+			    (cpp - prio_list) < minval) {
 				best = h;
 				minval = cpp - prio_list;
 			}

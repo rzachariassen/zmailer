@@ -5,7 +5,7 @@
 #       Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
 #       This will be free software, but only when it is finished.
 #
-#       Some hacking by Matti Aarnio, Copyright 1990-2000
+#       Some hacking by Matti Aarnio, Copyright 1990-2001
 #       Modified for Debian by Christoph Lameter 1997
 #
 
@@ -15,7 +15,7 @@
 
 checkfreeze () {
     if [ -f $POSTOFFICE/.freeze ]; then
-	echo "Sorry, Zmailer is frozen, won't start anything until thawed !"
+	echo "Sorry, ZMailer is frozen, won't start anything until thawed !"
 	echo "* CHECK THAT FREEZE CONDITION ISN'T DUE TO E.G. MAINTENANCE *"
 	exit 2
     fi
@@ -76,7 +76,7 @@ esac
 # set up the default arguments
 if [ "$1" = "start" -o "$1" = "reload" -o $# = 0 ]; then
         set -$- router scheduler smtpserver
-        echoo "Starting Zmailer mail server: "
+        echoo "Starting ZMailer mail server: "
 fi
 
 umask 022
@@ -237,11 +237,11 @@ do
             case $op in
                 kill|stop|kills|killr)
                     KILL="-TERM"
-                    echoo "Stopping Zmailer services: "
+                    echoo "Stopping ZMailer services: "
                     ;;
                 nuke)
                     KILL="-KILL"
-                    echoo "Aborting Zmailer services: "
+                    echoo "Aborting ZMailer services: "
                     ;;
             esac
             ;;

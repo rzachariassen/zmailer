@@ -59,6 +59,7 @@ At first the message starts with a set of envelope headers
  *external \n
  *rcvdfrom %s (%s) \n
  *bodytype %s \n
+ *errormsg \n
  *with %s \n
  *identinfo %s \n
 <EMPHASIS>Either:</>
@@ -103,6 +104,17 @@ separator between the envelope and the RFC822 headers
 <VARLISTENTRY><TERM>env-eof</TERM>
 <LISTITEM><PARA>
 alias to env-end
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>errormsg</TERM>
+<LISTITEM><PARA>
+Special internal flag telling that the message in question
+has been produced by <COMMAND>scheduler</> or <COMMAND>errormail</>,
+and is considered an error message.
+</PARA><PARA>
+This distinction can be used at routing to determine use of different
+default route lookup key for recipients in this case.
+See file <FILENAME>p-routes.cf</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>envid <EMPHASIS>xtext</></TERM>
@@ -349,6 +361,8 @@ This will be illustrated by the sample control file shown in the following
 subsection.
 </PARA>
 
+
+<!-- ============================================================= -->
 
 <SECT2 ID=zapp-filefmts-message-control-file-format>
 <TITLE>Format</TITLE>
@@ -636,9 +650,116 @@ header field.
 
 
 
+<!-- ============================================================= -->
+
+<SECT2 ID=zapp-filefmts-database-fmts-dbases.conf>
+<TITLE>The <FILENAME>dbases.conf</> file</TITLE>
+
+<PARA>
+Sample of <FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</> file:
+<SCREEN>
+#|
+#|  This configuration file is used to translate a semi-vague idea
+#|  about what database sources (in what forms) are mapped together
+#|  under which lookup names, and what format they are, etc..
+#|
+#|  This is used by  'zmailer newdb'  command to generate all databases
+#|  described here, and to produce relevant  .zmsh  scripts for the
+#|  router to use things.  The  'zmailer newdb' invocation does not mandate
+#|  router restart in case the database definitions have not changed
+#|  (reverse is true:  If definitions are added/modified/removed, the router
+#|                     MUST be restarted)
+#|
+
+#|Fields:
+#|     relation-name
+#|         dbtype(,subtype)
+#|              dbpriv control data (or "-")
+#|                  newdb_compile_options (-a for aliases!)
+#|                     dbfile (or "-")
+#|                         dbflags (or "-") ... (until end of line)
+#|
+#| The  dbtype  can be "magic" '$DBTYPE', or any other valid database
+#| type for the Router.  Somewhat magic treatment (newdb runs) are
+#| done when the dbtype is any of: *DBTYPE/dbm/gdbm/ndbm/btree
+#|
+#| The "dbfile" need not be located underneath of $MAILVAR, as long as
+#| it is in system local filesystem (for performance reasons.)  E.g.
+#| one can place one of e.g. aliases files to some persons directory.
+#|
+#| At  dbflags  (until end of the line), characters ':' and '%' have special
+#| meaning as their existence generates lookup routines which pass user's
+#| optional parameters.  See documentation about 'dblookup'.
+#|
+
+#|Example:
+#|
+#|Security sensitive ones ("dbpriv" must be defined!)
+#| aliases         $DBTYPE  0:0:644    -la $MAILVAR/db/aliases        -lm
+#| aliases         $DBTYPE  root:0:644 -la $MAILVAR/db/aliases-2      -lm
+#| fqdnaliases     $DBTYPE  root:0:644 -la $MAILVAR/db/fqdnaliases    -lm
+#| userdb          $DBTYPE  root:0:644 -la $MAILVAR/db/userdb         -lm
+#|
+#|Security insensitive ones ("dbpriv" need not be defined!)
+#| fqdnaliasesldap ldap   -  -   $MAILVAR/db/fqdnalias.ldap -lm -e 2000 -s 9000
+#| fullnamemap     $DBTYPE  -    -l  $MAILVAR/db/fullnames    -lm
+#| mboxmap         $DBTYPE  -    -l  $MAILSHARE/db/mboxmap    -lm
+#| expired         $DBTYPE  -    -l  $MAILVAR/db/expiredaccts -lm
+#| iproutesdb      $DBTYPE  -    -l  $MAILVAR/db/iproutes     -lmd longestmatch
+#| routesdb        $DBTYPE  -    -l  $MAILVAR/db/routes       -lm%:d pathalias
+#| thishost        $DBTYPE  -    -l  $MAILVAR/db/localnames   -lm%d  pathalias
+#| thishost        unordered -   -   $MAILVAR/db/localnames   -ld    pathalias
+#| thishost        bind,mxlocal - -  -                        -ld    pathalias
+#| otherservers    unordered -   -   $MAILVAR/db/otherservers -lmd   pathalias
+#| newsgroup       $DBTYPE  -    -l  $MAILVAR/db/active       -lm
+
+
+aliases		$DBTYPE	0:0:644    -la $MAILVAR/db/aliases	-lm
+fqdnaliases	$DBTYPE	root:0:644 -la $MAILVAR/db/fqdnaliases	-lm%
+userdb		$DBTYPE	root:0:644 -la $MAILVAR/db/userdb	-lm
+
+routesdb	$DBTYPE	-   -l  $MAILVAR/db/routes	-lm%:d pathalias
+thishost	$DBTYPE -   -l  $MAILVAR/db/localnames	-lm%d  pathalias
+
+#| =================================================================
+#|    Set of boilerplate tail-keepers, these lookups fail ALWAYS.
+#| These are given because if user ever removes any of the relations
+#| mentioned above, the generated "RELATIONNAME.zmsh" script won't
+#| just magically disappear!
+#| =================================================================
+
+aliases		NONE - - - -
+expired		NONE - - - -
+fqdnaliasesldap	NONE - - - -
+fqdnaliases	NONE - - - -
+fullnamemap	NONE - - - -
+iproutesdb	NONE - - - -
+newsgroup	NONE - - - -
+otherservers	NONE - - - -
+routesdb	NONE - - - -
+thishost	NONE - - - -
+userdb		NONE - - - -
+
+#| NOTE:  mboxmap  MUST NOT exist at all if its secondary-effects
+#|        are to be avoided!
+</SCREEN>
+</PARA>
+
+</SECT2>
+
+<!-- ============================================================= -->
+
 <SECT2 ID=zapp-filefmts-database-fmts-aliases>
 <TITLE>Aliases File</TITLE>
 
+<PARA>For relation: <LITERAL>aliases</></PARA>
+
+<PARA>Syntax of this file is simple: blank lines, and comments with ``#''
+character at column 1 are ignored, the key is non-white-space string of
+characters terminating on double-colon + whitespace
+(actually '"quoted string":' is also valid key!), rest of the line
+(and possible continuation lines) are data.
+</PARA>
 
 <SCREEN>
   postmaster: root
@@ -686,20 +807,184 @@ auto-aliases to work. &mdash; but to <APPLICATION>sendmail</> style lists:
 </PARA>
 </SECT2>
 
+<!-- ============================================================= -->
+
 <SECT2 ID=zapp-filefmts-database-fmts-fqdnaliases>
 <TITLE>FQDNAliases File</TITLE>
-<PARA>Filler text</PARA>
+<PARA>This is syntactically alike the <FILENAME>aliases</> database
+(the double-colon + whitespace terminate the key), rest of the line
+(and possible continuation lines) are data, however it can have some
+interesting keys:
+<VARIABLELIST>
+
+<VARLISTENTRY><TERM><LITERAL>local@domain:</></TERM><LISTITEM><PARA>
+Matches given address, including possible incoming
+<LITERAL>local+tag@domain</> versions.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><LITERAL>@domain:</></TERM><LISTITEM><PARA>
+This matches all addresses with given domain, and can thus be
+used to map e.g. <LITERAL>user@domain1</> to <LITERAL>user@domain2</>.
+</PARA><PARA>
+The data may contain ``<LITERAL>%1</>'' which is filled with <LITERAL>user</>
+part of the input address, example:
+<SCREEN>
+@domain:  %1@domain2
+</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+
+</VARIABLELIST>
+
+The main difference with <APPLICATION>sendmail</>'s virtuser method is
+that this is generic <EMPHASIS>alias</> type mapper, e.g. it can result
+in multiple addresses going out, or programs be driven, or&hellip;
+</PARA>
 </SECT2>
+
+<!-- ============================================================= -->
 
 <SECT2 ID=zapp-filefmts-database-fmts-routes>
 <TITLE>Routes File</TITLE>
-<PARA>Filler text</PARA>
+
+<PARA>For relation: <LITERAL>routesdb</></PARA>
+
+<PARA>
+Sampling here the default boilerplate
+``<FILENAME>$<VARNAME>MAILVAR</>/db/routes</>'' file:
+
+<SCREEN>
+# Routing Configuration File
+#
+# Entries in this file are checked first by router.cf.
+# They have the form:
+#    name  channel!next_destination
+# A leading . on the name indicates that all subdomains match as well
+#
+# We have TWO different fallback lookup tags:
+#    .:ERROR  for cases where ERROR MESSAGES we generated are being routed
+#    .        for general case
+#
+# This dictomy is due to need to route everything by explicite tables,
+# EXCEPT in case of errors when '.' maps to 'error!something'
+# ("We know to whom we route, others get error report back.")
+#
+# To generate runtime BINARY database of this source, issue command:
+#   $MAILBIN/newdb $MAILSHARE/db/routes
+# or in this directory with usual configuration:
+#   ../bin/newdb routes
+#
+
+#
+#  Sample route statements (and channels):
+#
+#   .foo  error!cannedmsgfilename
+#   #       Canned error message from $MAILSHARE/forms/cannedmsgfilename
+#
+#   .bar  smtpx!
+#   #       Send all traffic destined to any subdomain under this
+#   #       suffix via "smtpx" channel to that domain
+#
+#   .bar  smtp-etrn!
+#   .bar  smtp-tls!
+#   .bar  smtp-log!
+#   .bar  smtp77!
+#   .bar  smtp77x!
+#   .bar  smtp8!
+#   .bar  smtp8x!
+#   #       Ditto
+#
+#   .bar  smtpgw-xyz!
+#   #       Drives genericish gateway function kit
+#
+#   junkdom      bitbucket!
+#   myself       local!
+#   news.domain  usenet!
+#   uunode.dom   uucp!uunode
+#
+#   # Usual ISP smart-host setup
+#   .       smtpx!ISP.smtp.gw
+#
+#   # Not so usual - fallback to error, except for error messages
+#   .:ERROR smtp!
+#   .       error!notourcustomer
+#
+</SCREEN>
+</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-localnames>
+<TITLE>Localnames</TITLE>
+<PARA>For relation: <LITERAL>thishost</></PARA>
+
+<PARA>FIXME! WRITEME!</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-otherservers>
+<TITLE>Otherservers</TITLE>
+<PARA>For relation: <LITERAL>otherservers</></PARA>
+
+<PARA>FIXME! WRITEME!</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-iproutes>
+<TITLE>Iproutes</TITLE>
+<PARA>For relation: <LITERAL>iproutesdb</></PARA>
+
+<PARA>FIXME! WRITEME!</PARA>
+</SECT2>
+
+
+<SECT2 ID=zapp-filefmts-database-fmts-fullnames>
+<TITLE>Fullnames</TITLE>
+<PARA>For relation: <LITERAL>fullnamemap</></PARA>
+
+<PARA>This used to be a <LITERAL>firstname.lastname</> keyed
+mapping database yielding login-ids, but these days this is
+superceded by ability to have dots in alias keys.
+</PARA><PARA>
+Example:
+<SCREEN>
+  firstname.lastname   loginid
+</SCREEN>
+</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-userdb>
+<TITLE>Userdb</TITLE>
+<PARA>For relation: <LITERAL>userdb</></PARA>
+<PARA>FIXME! WRITEME!</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-expiredaccts>
+<TITLE>Expiredaccts</TITLE>
+<PARA>For relation: <LITERAL>expired</></PARA>
+<PARA>FIXME! WRITEME!</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-newsgroup>
+<TITLE>Active (newsgroups)</TITLE>
+<PARA>For relation: <LITERAL>newsgroup</></PARA>
+<PARA>FIXME! WRITEME!</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-aliases.ldap>
+<TITLE>Aliases.ldap</TITLE>
+<PARA>For relation: <LITERAL>aliases</></PARA>
+<PARA>FIXME! WRITEME!</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-fqdnaliases.ldap>
+<TITLE>Fqdnaliases.ldap</TITLE>
+<PARA>For relation: <LITERAL>fqdnaliasesldap</></PARA>
+<PARA>FIXME! WRITEME!</PARA>
 </SECT2>
 
 <SECT2 ID=zapp-filefmts-database-fmts-mailbox>
 <TITLE>Mailbox File</TITLE>
-<PARA>Filler text</PARA>
+<PARA>Err... Uh.. What can be said ?  The standard UNIX mailbox ?</PARA>
+<PARA>FIXME! Or was this supposed to be the MBOXMAP thing ?</PARA>
 </SECT2>
+
 
 </SECT1>
 
@@ -711,14 +996,14 @@ auto-aliases to work. &mdash; but to <APPLICATION>sendmail</> style lists:
 <PARA>
 The  statistics log reports condenced performance oriented
 information in following format:
-<INFORMALTABLE ROWSEP=0 COLSEP=0>
-<TGROUP COLS=6>
-<COLSPEC ALIGN=LEFT>
-<COLSPEC ALIGN=LEFT>
-<COLSPEC ALIGN=CENTER>
-<COLSPEC ALIGN=CENTER>
-<COLSPEC ALIGN=LEFT>
-<COLSPEC ALIGN=LEFT>
+<INFORMALTABLE FRAME=NONE PGWIDE=0>
+<TGROUP COLS=6 ALIGN=LEFT COLSEP=0 ROWSEP=0>
+<COLSPEC ALIGN=LEFT   COLWIDTH=2>
+<COLSPEC ALIGN=LEFT   COLWIDTH=2>
+<COLSPEC ALIGN=CENTER COLWIDTH=1>
+<COLSPEC ALIGN=CENTER COLWIDTH=1>
+<COLSPEC ALIGN=LEFT   COLWIDTH=2>
+<COLSPEC ALIGN=LEFT   COLWIDTH=6>
 <THEAD>
 <ROW ROWSEP=1>
  <ENTRY ALIGN=LEFT>timestamp</>
@@ -773,7 +1058,10 @@ information in following format:
 </TBODY>
 </TGROUP>
 </INFORMALTABLE>
-where the fields are:
+</PARA>
+
+<PARA>
+Where the fields are:
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>timestamp</></><LISTITEM><PARA>

@@ -209,8 +209,7 @@ static struct sptree *
 open_header(sip)
 	search_info *sip;
 {
-	if (sip->subtype == NULL)
-	  return NULL;
+	if (! sip->subtype) return NULL;
 	return (struct sptree *)sip->subtype;
 }
 

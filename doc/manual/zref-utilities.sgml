@@ -6,156 +6,766 @@ There is considerable collection of various utilities in the ZMailer sources.
 Not all of them even become installed into your system in all situations.
 </PARA>
 
+<!-- ============================================================ -->
+
 
 <SECT1 ID="zref.util.zmailer">
 <TITLE><COMMAND>zmailer</> command script</TITLE>
 
 <PARA>
-FIXME! FIXME! TO BE WRITTEN!
-subsections for each function ??
+The <COMMAND>zmailer</> command script is a wrapper for driving various
+sub-utilities, and in some cases, honouring flags like ``freeze-state'',
+which administrator may set to keep system down over reboots while some
+maintenance acitivity is under way.
 </PARA>
-
-<SECT2 ID="zref-zmailer-start">
-<TITLE><COMMAND>zmailer start</></>
 
 <PARA>
-FIXME! WRITEME!
+Plain ``<COMMAND>zmailer</>'' command is synonymous
+to ``<COMMAND>zmailer start</>''.
 </PARA>
-</SECT2>
 
-
-<SECT2 ID="zref-zmailer-stop">
-<TITLE><COMMAND>zmailer stop</>, <COMMAND>zmailer kill</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-
-<SECT2 ID="zref-zmailer-router">
-<TITLE><COMMAND>zmailer router</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-
-<SECT2 ID="zref-zmailer-scheduler">
-<TITLE><COMMAND>zmailer scheduler</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-<SECT2 ID="zref-zmailer-smtpserver">
-<TITLE><COMMAND>zmailer smtp(server)</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-<SECT2 ID="zref-zmailer-newdb">
-<TITLE><COMMAND>zmailer newdb</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-<SECT2 ID="zref-zmailer-newaliases">
-<TITLE><COMMAND>zmailer newal(iases)</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-<SECT2 ID="zref-zmailer-newfqdnaliases">
-<TITLE><COMMAND>zmailer newf(qdnaliases)</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-<SECT2 ID="zref-zmailer-new-route">
-<TITLE><COMMAND>zmailer new-route(s)</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-<SECT2 ID="zref-zmailer-new-localnames">
-<TITLE><COMMAND>zmailer new-local(names)</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-<SECT2 ID="zref-zmailer-logsync">
-<TITLE><COMMAND>zmailer logsync</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-
-<SECT2 ID="zref-zmailer-logrotate">
-<TITLE><COMMAND>zmailer logrotate</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
-
-<SECT2 ID="zref-zmailer-resubmit">
-<TITLE><COMMAND>zmailer resubmit</></>
-
-<PARA>
-FIXME! WRITEME!
-</PARA>
-</SECT2>
+<!-- ============================================================ -->
 
 <SECT2 ID="zref-zmailer-bootclean">
 <TITLE><COMMAND>zmailer bootclean</></>
 
 <PARA>
-FIXME! WRITEME!
+This removes all internal process reference PID files
+from <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</> directory.
+</PARA><PARA>
+<EMPHASIS>Highly recommended for your system startup scripts before
+starting servers</EMPHASIS>
 </PARA>
 </SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-start">
+<TITLE><COMMAND>zmailer start</></>
+
+<PARA>
+Without further parameters this starts the entire ZMailer system by
+starting subservers:
+<COMMAND>smtpserver</>, <COMMAND>router</>, and <COMMAND>scheduler</>.
+</PARA>
+
+<PARA>
+Giving parameter (one or more of subsystem names above) (re)starts
+just that (or those) subsystem(s).
+</PARA>
+
+<PARA>
+If the system is in ``frozen'' state, start fails.
+See ``<COMMAND>zmailer freeze</>'' below.
+</PARA>
+
+</SECT2>
+
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-stop">
+<TITLE><COMMAND>zmailer stop</>, <COMMAND>zmailer kill</></>
+
+<PARA>
+Without further parameters, this terminates the main daemons of the ZMailer
+(<COMMAND>smtpserver</>, <COMMAND>router</>, and <COMMAND>scheduler</>)
+by sending <CONSTANT>SIGTERM</> to them.
+</PARA>
+
+<PARA>
+Giving parameter (one or more of subsystem names above) stops
+just that (or those) subsystem(s).
+</PARA>
+
+</SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-nuke">
+<TITLE><COMMAND>zmailer nuke</></>
+
+<PARA>
+Without further parameters, this kills the main daemons of the ZMailer.
+(<COMMAND>smtpserver</>, <COMMAND>router</>, and <COMMAND>scheduler</>)
+by sending <CONSTANT>SIGKILL</> to them.
+</PARA>
+
+<PARA>
+Giving parameter (one or more of subsystem names above) stops
+just that (or those) subsystem(s).
+</PARA>
+
+</SECT2>
+
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-router">
+<TITLE><COMMAND>zmailer router</></>
+
+<PARA>
+Synonym to ``<COMMAND>zmailer start router</>'', (re)starts
+the <COMMAND>router</> process(es).
+</PARA>
+</SECT2>
+
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-scheduler">
+<TITLE><COMMAND>zmailer scheduler</></>
+
+<PARA>
+Synonym to ``<COMMAND>zmailer start router</>'', (re)starts
+the <COMMAND>scheduler</> process.
+</PARA>
+</SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-smtpserver">
+<TITLE><COMMAND>zmailer smtp(server)</></>
+
+<PARA>
+Synonym to ``<COMMAND>zmailer start router</>'', (re)starts
+the <COMMAND>smtpserver</> process.
+</PARA>
+</SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-newdb">
+<TITLE><COMMAND>zmailer newdb</></>
+
+<PARA>
+A complicated subsystem on its own merits used to re-generate
+<COMMAND>router</> configuration data for various database lookups.
+</PARA>
+
+<PARA>
+This runs utility called ``<COMMAND>newdbprocessor</>'' with its
+only argument of ``<FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</>''.
+</PARA>
+</SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-newaliases">
+<TITLE><COMMAND>zmailer newal(iases)</></>
+
+<PARA>
+Re-generates ``<FILENAME>aliases</>'' database, wrapper of
+``<COMMAND>newaliases</>'', and superceded by <COMMAND>zmailer newdb</>.
+</PARA>
+</SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-newfqdnaliases">
+<TITLE><COMMAND>zmailer newf(qdnaliases)</></>
+
+<PARA>
+Re-generates ``<FILENAME>fqdnaliases</>'' database, wrapper of
+``<COMMAND>newfqdnaliases</>'', and superceded by <COMMAND>zmailer newdb</>.
+</PARA>
+</SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-new-route">
+<TITLE><COMMAND>zmailer new-route(s)</></>
+
+<PARA>
+Compiles ``<FILENAME>routes</>'' database, and superceded
+by <COMMAND>zmailer newdb</>.
+</PARA>
+</SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-new-localnames">
+<TITLE><COMMAND>zmailer new-local(names)</></>
+
+<PARA>
+Compiles ``<FILENAME>localnames</>'' database, and superceded
+by <COMMAND>zmailer newdb</>.
+</PARA>
+</SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-logsync">
+<TITLE><COMMAND>zmailer logsync</></>
+
+<PARA>
+A special command sending signals to subsystems needing them for
+reopening their possibly long-living logfile opens.
+</PARA><PARA>
+To be used <EMPHASIS>after</> other methods have rotated the logfiles
+to new names, but before anything further is done to them.
+</PARA>
+
+<PARA>
+These days only the <COMMAND>scheduler</> needs it, and if you have
+a choice, use this only after the ``scheduler'' logfile is rotated.
+</PARA>
+</SECT2>
+
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-logrotate">
+<TITLE><COMMAND>zmailer logrotate</></>
+
+<PARA>
+Runs ZMailer sub-utility ``rotate-logs.sh''.
+</PARA>
+</SECT2>
+
+<!-- ============================================================ -->
+
+<SECT2 ID="zref-zmailer-resubmit">
+<TITLE><COMMAND>zmailer resubmit</></>
+
+<PARA>
+Moves files from <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/deferred/</>
+to main <COMMAND>router</> input directory
+(<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/router/</>.)
+</PARA>
+</SECT2>
+
+<!-- ============================================================ -->
 
 <SECT2 ID="zref-zmailer-cleanup">
 <TITLE><COMMAND>zmailer cleanup</></>
 
 <PARA>
-FIXME! WRITEME!
+Run this from your root crontab!
+</PARA>
+
+<PARA>
+This cleans from <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/public/</>
+files that are older than 2 days (48 hours), and from 
+<FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/postman/</> files with
+names starting with a digit and aged over 7 days.
 </PARA>
 </SECT2>
+
+<!-- ============================================================ -->
 
 <SECT2 ID="zref-zmailer-freeze">
 <TITLE><COMMAND>zmailer freeze</></>
 
 <PARA>
-FIXME! WRITEME!
+This sets a flag which is honoured by subsystem start functions:
+<SCREEN>
+<PROMPT># </><USERINPUT>/opt/mail/bin/zmailer freeze</>
+freeze 
+<PROMPT># </><USERINPUT>/opt/mail/bin/zmailer router</>
+router Sorry, ZMailer is frozen, won't start anything until thawed !
+* CHECK THAT FREEZE CONDITION ISN'T DUE TO E.G. MAINTENANCE *
+</SCREEN>
 </PARA>
 </SECT2>
+
+<!-- ============================================================ -->
+
 <SECT2 ID="zref-zmailer-thaw">
 <TITLE><COMMAND>zmailer thaw</>, <COMMAND>zmailer unfr(eeze)</></>
 
 <PARA>
-FIXME! WRITEME!
+Thaws the previously frozen ZMailer system so that <COMMAND>zmailer start</>
+will be able to start subsystems.
 </PARA>
 </SECT2>
+</SECT1>
 
+<!-- ============================================================ -->
+
+<SECT1 ID="zref.util.newdbprocessor">
+<TITLE>The <COMMAND>newdbprocessor</> script</TITLE>
+
+<PARA>
+FIXME! WRITEME!
+(See <XREF LINKEND=zapp-filefmts-database-fmts-dbases.conf> for
+the configuration file)
+<SCREEN>
+- Input file syntax
+- Supported database types, and what is done to them
+- Additional notes ?
+</SCREEN>
+</PARA>
 
 </SECT1>
+
+<!-- ============================================================ -->
+
+<SECT1 ID="zref.util.newdb">
+<TITLE>The <COMMAND>newdb</> script</TITLE>
+
+<PARA>
+This is elementary wrapper script building binary databases with
+<COMMAND>makedb</> utility into a temporary file, and replacing
+the old files with the new ones in proper order for the 
+<COMMAND>router</>'s automatic source change detecting relation 
+parameter {\tt -m} to work correctly.
+</PARA>
+
+<SCREEN>
+{\bf Usage}
+
+\begin{verbatim}
+newdb [-u|-l][-a][-s][-t dbtype] /db/path/basename [input-file-name]
+\end{verbatim}
+
+This script uses system {\tt ZCONFIG} file to find out the desired
+database type, and derives the actual database file names from the 
+variable.
+
+Suffix selection rules are:
+
+\begin{verbatim}
+dbm     .pag and .dir
+ndbm    .pag and .dir
+gdbm    .gdbm
+btree   .db
+bhash   .dbh
+\end{verbatim}
+</SCREEN>
+
+</SECT1>
+
+<!-- ============================================================ -->
+
+<SECT1 ID="zref.util.makedb">
+<TITLE>The <COMMAND>makedb</> utility</TITLE>
+
+<PARA>
+This utility is used by the ZMailer system to compile source
+files to various binary databases.
+</PARA>
+
+
+<PARA>
+The way the ZMailer uses DBM entries is by using C-strings with 
+their terminating <CONSTANT>NUL</> included at keys, and at data..
+Thus the length is <FUNCTION>strlen(string)+1</>,
+not <FUNCTION>strlen(string)</> !
+</PARA>
+
+<SCREEN>
+WARNING: Policy data parsing does use unchecked buffers!
+
+\begin{verbatim}
+Usage: makedb [-apsvluA] dbtype database.name [infilename|-]
+\end{verbatim}
+
+-a: aliasinput
+-p: policyinput
+-A: append-mode
+-l: pre-lowercasify the key
+-u: pre-uppercasify the key
+-s: be silent
+-v: be verbose
+
+Dbtypes are: {\tt ndbm gdbm btree bhash}
+
+If no {\tt infilename} is defined, {\tt database.name} is assumed.
+
+\begin{description}
+\item[{\tt NDBM}] \mbox{}
+
+appends {\tt .pag}, and {\tt .dir}
+into the actual db file names.
+
+\item[{\tt GDBM}] \mbox{}
+
+{\bf does not} append {\tt .gdbm}
+into the actual db file name.
+
+\item[{\tt BTREE}] \mbox{}
+
+{\bf does not} append {\tt .db}
+into the actual db file name.
+
+\item[{\tt BHASH}] \mbox{}
+
+appends {\tt .pag}, and {\tt .dir}
+into the actual db file names.
+
+\end{description}
+
+
+The {\tt -a} option is for parsing input that comes in 
+{\tt aliases} format: {\tt key: data,in,single,long,line}
+</SCREEN>
+
+</SECT1>
+
+<!-- ============================================================ -->
+
+<SECT1 ID="zref.util.dblook">
+<TITLE>The <COMMAND>dblook</> utility</TITLE>
+
+<SCREEN>
+The way the ZMailer uses DBM entries is by using strings with 
+their terminating {\tt NULL} as keys, and as data.. Thus the 
+length is {\tt strlen(string)+1}, not {\tt strlen(string)} !
+
+\begin{verbatim}
+Usage: dblook [-dump] dbtype database.name [key]
+\end{verbatim}
+
+
+Dbtypes are: {\tt ndbm gdbm btree bhash}
+
+\begin{description}
+\item[{\tt NDBM}] \mbox{}
+
+appends {\tt .pag}, and {\tt .dir} 
+into the actual db file names.
+
+\item[{\tt GDBM}] \mbox{}
+
+{\bf does not} append {\tt .gdbm} 
+into the actual db file name.
+
+\item[{\tt BTREE}] \mbox{}
+
+{\bf does not} append {\tt .db} 
+into the actual db file name.
+
+\item[{\tt BHASH}] \mbox{}
+
+appends {\tt .pag}, and {\tt .dir} 
+into the actual db file names.
+
+\end{description}
+
+%\end{multicols}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+</SCREEN>
+</SECT1>
+
+<!-- ============================================================ -->
+
+<SECT1 ID=zref.util.policy-builder.sh>
+<TITLE>The <COMMAND>policy-builder.sh</> script</TITLE>
+
+<SCREEN>
+#! /bin/sh
+#
+# Sample smtp-policy-db builder script.
+#
+# This merges following files from $MAILVAR/db/ directory:
+#       smtp-policy.src
+#       localnames               ('= _localnames')
+#       smtp-policy.relay.manual ('= _full_rights')
+#       smtp-policy.relay        ('= _full_rights')
+#       smtp-policy.mx.manual    ('= _relaytarget')
+#       smtp-policy.mx           ('= _relaytarget')
+#       smtp-policy.spam         ('= _bulk_mail')
+#       smtp-policy.spam.manual  ('= _bulk_mail')
+#
+# These all together are used to produce files:  smtp-policy.$DBEXT
+# The produced database retains the first instance of any given key.
+#
+
+#FLAG=
+#while getopts n c; do
+#  case $c in
+#    n)       FLAG=$c;;
+#    ?)       exit 2;;
+#  esac
+#done
+#shift `expr $OPTIND - 1`
+
+ZCONFIG=@ZMAILERCFGFILE@
+. $ZCONFIG
+
+DBDIR="$MAILVAR/db/"
+USAGE="Usage: $0 [-n] [-d dbdir]"
+
+while [ "$1" != "" ]; do
+    case "$1" in
+        -n)
+            FLAG=n
+            ;;
+        -d)
+            shift
+            DBDIR=$1
+            if [ ! -d $DBDIR ]; then
+                echo $USAGE
+                exit 1
+            fi
+            ;;
+        ?)
+            echo $USAGE
+            exit 0
+            ;;
+        *)
+            echo $USAGE
+            exit 2
+            ;;
+    esac
+    shift
+done
+
+
+umask 022
+
+cd $DBDIR
+
+if [ ! -f smtp-policy.src ] ; then
+        echo "No $DBDIR/smtp-policy.src input file"
+        exit 64 # EX_USAGE
+fi
+
+# -- Former '-f' flag data (non)retrieval section removed
+
+# Fork off a subshell to do it all...
+(
+  # The basic boilerplate
+  cat smtp-policy.src
+
+  # Localnames
+  echo "# ----------"
+  echo "# localnames:"
+  cat localnames | \
+  awk '/^#/{next;} NF >= 1 {printf "%s = _localnames\n",$1;}'
+
+  # smtp-policy.relay
+  # (Lists NETWORKS (NO DOMAINS!) that are allowed to use us as relay)
+  # (well, actually it could also list e.g.: ".our.domain" if it would
+  #  be fine to allow relaying from anybody whose IP address reverses to
+  #  domain suffix ".our.domain")
+  if [ -f smtp-policy.relay.manual ] ; then
+    echo "# -------------------------"
+    echo "# smtp-policy.relay.manual:"
+    cat smtp-policy.relay.manual | \
+    awk '/^#/{next;}
+        {printf "%s = _full_rights\n",$0;next;}'
+  fi
+  if [ -f smtp-policy.relay ] ; then
+    echo "# ------------------"
+    echo "# smtp-policy.relay:"
+    cat smtp-policy.relay | \
+    awk '/^#/{next;}
+        {printf "%s = _full_rights\n",$0;next;}'
+  fi
+
+  # smtp-policy.mx.manual
+  # (Lists domains that are allowed to use us as inbound MX relay for them)
+  if [ -f smtp-policy.mx.manual ] ; then
+    echo "# ----------------------"
+    echo "# smtp-policy.mx.manual:"
+    cat smtp-policy.mx.manual | \
+    awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$0;}'
+  fi
+  # smtp-policy.mx
+  # (Lists domains that are allowed to use us as inbound MX relay for them)
+  if [ -f smtp-policy.mx ] ; then
+    echo "# ---------------"
+    echo "# smtp-policy.mx:"
+    cat smtp-policy.mx | \
+    awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$0;}'
+  fi
+
+  # smtp-policy.spam
+  # (Lists users, and domains that are known spam sources)
+  # (We use file from "http://www.webeasy.com:8080/spam/spam_download_table"
+  #  which is intended for QMAIL, and thus needs to be edited..)
+  if [ -f smtp-policy.spam -o -f smtp-policy.spam.manual ] ; then
+    echo "# ---------------------------"
+    echo "# smtp-policy.spam{,.manual}:"
+    ( if [ -f smtp-policy.spam ] ; then
+        cat smtp-policy.spam
+      fi
+      if [ -f smtp-policy.spam.manual ] ; then
+        cat smtp-policy.spam.manual
+      fi ) | tr "[A-Z]" "[a-z]" | sed 's/^@//g' | sort | uniq | \
+    awk '/^\[/{ # an address block to reject
+            printf "%s  rejectnet +\n",$0;
+            next;
+        }
+        NF > 0 { # All other cases are usernames with their domains
+            printf "%s  = _bulk_mail\n",$0;
+        }'
+  fi
+
+# --------- end of subshell
+) > smtp-policy.dat
+
+umask 022 # Make sure the resulting db file(s) are readable by all
+
+# Build the actual binary policy database (-p), and if the input
+# has same key repeating, append latter data instances to the first
+# one (-A):
+
+$MAILBIN/makedb -A -p $DBTYPE smtp-policy-new smtp-policy.dat || exit $?
+
+case $DBTYPE in
+dbm)
+        mv smtp-policy-new.dir  smtp-policy.dir
+        mv smtp-policy-new.pag  smtp-policy.pag
+        ;;
+ndbm)
+        mv smtp-policy-new.dir  smtp-policy.dir
+        mv smtp-policy-new.pag  smtp-policy.pag
+        ;;
+gdbm)
+        mv smtp-policy-new.gdbm smtp-policy.gdbm
+        ;;
+btree)
+        mv smtp-policy-new.db   smtp-policy.db
+        ;;
+esac
+
+exit 0
+</SCREEN>
+</SECT1>
+
+<!-- ============================================================ -->
+
+<SECT1 ID=zref.util.autoanswer>
+<TITLE><COMMAND>autoanswer</></TITLE>
+
+<PARA>
+The <COMMAND>autoanswer</> program is intended to be placed into
+system global aliases database as following entry:
+<SCREEN>
+  autoanswer:  "| /path/to/MAILBIN/autoanswer"
+</SCREEN>
+</PARA>
+
+<PARA>
+It yields a reply message for all, except the error messages, nor
+to those with <COMPUTEROUTPUT>X-autoanswer-loop:</> header in them.
+</PARA>
+
+<PARA>
+The reply sends back the original incoming message headers in the
+message body along with some commentary texts.
+</PARA>
+
+<PARA>
+The program is, in reality, a perl script which can easily be tuned
+to local needs.
+</PARA>
+
+<SCREEN>
+#!@PERL@
+
+##########################################################################
+#
+# Autoanswer.pl 1.0 for ZMailer 2.99.48+
+# (C) 1997 Telecom Finland
+#          Valtteri Karu &lt;valtteri.karu@tele.fi&gt;
+# 
+# This program sends autoreply and the original headers to the originator 
+# of the message. Version 2.99.48+ of the Zmailer is required for detecting
+# possible false addresses.
+#
+# USAGE:
+#
+# Create an alias for the address to use:
+# autoreply: "|/path/to/autoanswer.pl"
+#
+##########################################################################
+
+$nosend = 0;
+$double = 0;
+$address = $ENV{'SENDER'};
+
+if( ! -r "$ENV{'ZCONFIG'}") {
+    LOG("zmailer.conf missing");
+    exit 2;
+}
+
+open(ZMAILER,"&lt; $ENV{'ZCONFIG'}" );
+while(&lt;ZMAILER&gt;) {
+    chomp;
+    split(/=/);
+    $ZMAILER{$_[0]}=$_[1];
+}
+
+close ZMAILER;
+
+$logfile = $ZMAILER{'LOGDIR'} . "/autoanswer";
+
+while (&lt;STDIN&gt;) {
+
+    $text = $_;
+
+    if (($text eq "\n") && ( $double = 1)) {
+        last;
+    }
+
+    if (($text eq "\n") && ( $double = 0)) {
+        $double = 1;
+        next;
+    }
+    
+    if ($text =~ "X-autoanswer-loop: ") {
+        $nosend = 1;
+        LOG("Looping message, sender=$address");
+    }
+
+    $double = 0;
+
+    push(@header,$text);
+}
+
+if (($address eq '&lt;&gt;') || ($nosend = 0)) {
+    LOG("SENDER invalid");
+    exit 1;
+}
+
+$outfile = $ZMAILER{'POSTOFFICE'} . "/public/autoanswer.$$";
+#$outfile = "/tmp/aa.$$";
+$now = time;
+$txttime = localtime(time);
+
+open(OUT,">$outfile");
+select(OUT);
+print "channel error\n";
+print "to $address\n";
+print "env-end\n"; 
+print "From: Autoreply service &lt;postmaster&gt;\n";
+print "To: $address\n";
+print "Subject: Autoreply\n";
+print "X-autoanswer-loop: Megaloop \n\n";
+print "      This is autoreply answer message by your request.\n\n";
+print "      Original message was received at UNIX time $now;\n";
+print "      which means '$txttime' in cleartext.\n\n";
+print "      Headers were:\n\n";
+print "--------------------------------------------------------------------\n";
+print @header;
+print "--------------------------------------------------------------------\n";
+print "\n      Have a nice day.\n";
+select(STDOUT);
+close OUT;
+$inode=(stat($outfile))[1];
+$newfile=$ZMAILER{'POSTOFFICE'} . "/router/$inode";
+rename($outfile, $newfile);
+LOG("Sent to $address");
+exit 0;
+
+sub LOG {
+
+        open(LOGf, ">>$logfile");
+        $ttime = localtime(time);
+        printf (LOGf "$ttime autoanswer: @_\n");
+        close LOGf;
+}
+</SCREEN>
+</SECT1>
+
+<!-- ============================================================ -->
 
 <SECT1 ID="zref.util.vacation">
 <TITLE><COMMAND>vacation</></TITLE>
@@ -294,423 +904,5 @@ The ``From '' line is used only as a last resort.
 </VARIABLELIST>
 </SECT1>
 
-<SECT1 ID="zref.util.makedb">
-<TITLE><COMMAND>makedb</></TITLE>
-
-<PARA>
-The way the ZMailer uses DBM entries is by using strings with 
-their terminating <CONSTANT>NULL</> as keys, and as data..
-Thus the length is {\tt strlen(string)+1}, not {\tt strlen(string)} !
-</PARA>
-
-<SCREEN>
-WARNING: Policy data parsing does use unchecked buffers!
-
-\begin{verbatim}
-Usage: makedb [-a|-p] dbtype database.name [infilename|-]
-\end{verbatim}
-
-
-Dbtypes are: {\tt ndbm gdbm btree bhash}
-
-If no {\tt infilename} is defined, {\tt database.name} is assumed.
-
-\begin{description}
-\item[{\tt NDBM}] \mbox{}
-
-appends {\tt .pag}, and {\tt .dir}
-into the actual db file names.
-
-\item[{\tt GDBM}] \mbox{}
-
-{\bf does not} append {\tt .gdbm}
-into the actual db file name.
-
-\item[{\tt BTREE}] \mbox{}
-
-{\bf does not} append {\tt .db}
-into the actual db file name.
-
-\item[{\tt BHASH}] \mbox{}
-
-appends {\tt .pag}, and {\tt .dir}
-into the actual db file names.
-
-\end{description}
-
-
-The {\tt -a} option is for parsing input that comes in 
-{\tt aliases} format: {\tt key: data,in,single,long,line}
-</SCREEN>
-
-</SECT1>
-
-<SECT1 ID="zref.util.dblook">
-<TITLE><COMMAND>dblook</></TITLE>
-
-<SCREEN>
-The way the ZMailer uses DBM entries is by using strings with 
-their terminating {\tt NULL} as keys, and as data.. Thus the 
-length is {\tt strlen(string)+1}, not {\tt strlen(string)} !
-
-\begin{verbatim}
-Usage: dblook [-dump] dbtype database.name [key]
-\end{verbatim}
-
-
-Dbtypes are: {\tt ndbm gdbm btree bhash}
-
-\begin{description}
-\item[{\tt NDBM}] \mbox{}
-
-appends {\tt .pag}, and {\tt .dir} 
-into the actual db file names.
-
-\item[{\tt GDBM}] \mbox{}
-
-{\bf does not} append {\tt .gdbm} 
-into the actual db file name.
-
-\item[{\tt BTREE}] \mbox{}
-
-{\bf does not} append {\tt .db} 
-into the actual db file name.
-
-\item[{\tt BHASH}] \mbox{}
-
-appends {\tt .pag}, and {\tt .dir} 
-into the actual db file names.
-
-\end{description}
-
-%\end{multicols}
-
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\clearpage
-\subsection{{\tt policy-builder.sh}}
-
-\begin{alltt}
-#! /bin/sh
-#
-# Sample smtp-policy-db builder script.
-#
-# This merges following files from $MAILVAR/db/ directory:
-#       smtp-policy.src
-#       localnames              ('= _localnames')
-#       smtp-policy.relay       ('= _full_rights')
-#       smtp-policy.mx          ('relaytargets +')
-#       smtp-policy.spam        ('= _bulk_mail')
-#       smtp-policy.spam.manual ('= _bulk_mail')
-#
-# These all together are used to produce files:  smtp-policy.$DBEXT
-# The produced database retains the first instance of any given key.
-#
-
-#FLAG=
-#while getopts n c; do
-#  case $c in
-#    n)       FLAG=$c;;
-#    ?)       exit 2;;
-#  esac
-#done
-#shift `expr $OPTIND - 1`
-
-if [ "x$1" = "x-n" ]; then
-    FLAG=n
-    shift
-fi
-if [ "x$1" = "x?" ]; then
-    exit 2
-fi
-
-
-ZCONFIG=@ZMAILERCFGFILE@
-. $ZCONFIG
-
-umask 022
-
-cd $MAILVAR/db
-
-if [ ! -f smtp-policy.src ] ; then
-        echo "No $MAILVAR/db/smtp-policy.src input file"
-        exit 64 # EX_USAGE
-fi
-
-if [ f$FLAG != fn ]; then
-    if [ -x $MAILBIN/smtp-policy-retrieve.pl ] ; then
-        $MAILBIN/smtp-policy-retrieve.pl
-    else
-        if [ -x $MAILBIN/spamlist.py ] ; then
-            $MAILBIN/spamlist.py > smtp-policy.spam.new && \verb/\/
-                mv  smtp-policy.spam.new smtp-policy.spam
-        else
-            #
-            # Following IS NOT SAFE, if either produces errors, those
-            # go (usually) to the result file, and in the end the result
-            # OVERWRITES the "running"  smtp-policy.spam  file.
-            #
-            > smtp-policy.spam.new
-            lynx -source http://www.webeasy.com:8080/spam/spam_download_table \verb/\/
-                >> smtp-policy.spam.new
-            lynx -source http://www.sprocket.com/Security/SpamDomains | \verb/\/
-                awk '\{print $1\}' >> smtp-policy.spam.new
-            cat smtp-policy.spam.new | sed 's/^@//g' | tr "[A-Z]" "[a-z]" | \verb/\/
-                    sort | uniq > smtp-policy.spam.new2
-            if [ `grep -c cyberpromo smtp-policy.spam.new` -gt "0" ]; then
-                mv smtp-policy.spam smtp-policy.spam.old
-                mv smtp-policy.spam.new2 smtp-policy.spam
-                rm -f smtp-policy.spam.new
-            else
-                echo "Hmm....something went wrong while updating the spam policy."
-                echo "Please try again."
-                exit 1
-            fi
-        fi
-    fi
-fi
-
-# Fork off a subshell to do it all...
-(
-  # The basic boilerplate
-  cat smtp-policy.src
-
-  # Localnames
-  cat localnames | \verb/\/
-  awk '/^#/\{next;\} NF >= 1 \{printf "%s = _localnames\verb/\/n",$1;\}'
-
-  # smtp-policy.relay
-  # (Lists domains and networks that are allowed to use us as relay)
-  if [ -f smtp-policy.relay ] ; then
-    cat smtp-policy.relay | \verb/\/
-    awk '/^#/\{next;\}
-        \{printf "%s = _full_rights %s %s %s %s %s %s %s %s\verb/\/n",
-                    $1,$2,$3,$4,$5,$6,$7,$8,$9;next;\}'
-  fi
-
-  # smtp-policy.mx
-  # (Lists domains that are allowed to use us as inbound MX relay for them)
-  if [ -f smtp-policy.mx ] ; then
-    cat smtp-policy.mx | \verb/\/
-    awk '/^#/\{next;\} NF >= 1 \{printf "%s relaytarget +\verb/\/n",$1;\}'
-  fi
-
-  # smtp-policy.spam
-  # (Lists users, and domains that are known spam sources)
-  # (We use file from "http://www.webeasy.com:8080/spam/spam_download_table"
-  #  which is intended for QMAIL, and thus needs to be edited..)
-  if [ -f smtp-policy.spam -o -f smtp-policy.spam.manual ] ; then
-    ( if [ -f smtp-policy.spam ] ; then
-        cat smtp-policy.spam
-      fi
-      if [ -f smtp-policy.spam.manual ] ; then
-        cat smtp-policy.spam.manual
-      fi ) | tr "[A-Z]" "[a-z]" | sed 's/^@//g' | sort | uniq | \verb/\/
-    awk '/^\verb/\/[/\{ # an address block to reject
-            printf "%s rejectnet +\verb/\/n", $1;
-            next;
-        \}
-        \{ # All other cases are usernames with their domains
-          printf "%s = _bulk_mail\verb/\/n", $1;
-        \}'
-  fi
-
-# --------- end of subshell
-) > smtp-policy.dat
-
-umask 022 # Make sure the resulting db file(s) are readable by all
-
-$MAILBIN/makedb -p $DBTYPE smtp-policy-new smtp-policy.dat || exit $?
-
-case $DBTYPE in
-dbm)
-        mv smtp-policy-new.dir  smtp-policy.dir
-        mv smtp-policy-new.pag  smtp-policy.pag
-        ;;
-ndbm)
-        mv smtp-policy-new.dir  smtp-policy.dir
-        mv smtp-policy-new.pag  smtp-policy.pag
-        ;;
-gdbm)
-        mv smtp-policy-new.gdbm smtp-policy.gdbm
-        ;;
-btree)
-        mv smtp-policy-new.db   smtp-policy.db
-        ;;
-esac
-
-exit 0
-\end{alltt}
-</SCREEN>
-
-</SECT1>
-
-<SECT1 ID=zref.util.autoanswer>
-<TITLE><COMMAND>autoanswer</></TITLE>
-
-<PARA>
-The <COMMAND>autoanswer</> program is intended to be placed into
-system global aliases database as following entry:
-<SCREEN>
-  autoanswer:  "| /path/to/MAILBIN/autoanswer"
-</SCREEN>
-</PARA>
-
-<PARA>
-It yields a reply message for all, except the error messages, nor
-to those with <COMPUTEROUTPUT>X-autoanswer-loop:</> header in them.
-</PARA>
-
-<PARA>
-The reply sends back the original incoming message headers in the
-message body along with some commentary texts.
-</PARA>
-
-<PARA>
-The program is, in reality, a perl script which can easily be tuned
-to local needs.
-</PARA>
-
-<SCREEN>
-#!@PERL@
-
-##########################################################################
-#
-# Autoanswer.pl 1.0 for ZMailer 2.99.48+
-# (C) 1997 Telecom Finland
-#          Valtteri Karu &lt;valtteri.karu@tele.fi&gt;
-# 
-# This program sends autoreply and the original headers to the originator 
-# of the message. Version 2.99.48+ of the Zmailer is required for detecting
-# possible false addresses.
-#
-# USAGE:
-#
-# Create an alias for the address to use:
-# autoreply: "|/path/to/autoanswer.pl"
-#
-##########################################################################
-
-$nosend = 0;
-$double = 0;
-$address = $ENV{'SENDER'};
-
-if( ! -r "$ENV{'ZCONFIG'}") {
-    LOG("zmailer.conf missing");
-    exit 2;
-}
-
-open(ZMAILER,"&lt; $ENV{'ZCONFIG'}" );
-while(&lt;ZMAILER&gt;) {
-    chomp;
-    split(/=/);
-    $ZMAILER{$_[0]}=$_[1];
-}
-
-close ZMAILER;
-
-$logfile = $ZMAILER{'LOGDIR'} . "/autoanswer";
-
-while (&lt;STDIN&gt;) {
-
-    $text = $_;
-
-    if (($text eq "\n") && ( $double = 1)) {
-        last;
-    }
-
-    if (($text eq "\n") && ( $double = 0)) {
-        $double = 1;
-        next;
-    }
-    
-    if ($text =~ "X-autoanswer-loop: ") {
-        $nosend = 1;
-        LOG("Looping message, sender=$address");
-    }
-
-    $double = 0;
-
-    push(@header,$text);
-}
-
-if (($address eq '&lt;&gt;') || ($nosend = 0)) {
-    LOG("SENDER invalid");
-    exit 1;
-}
-
-$outfile = $ZMAILER{'POSTOFFICE'} . "/public/autoanswer.$$";
-#$outfile = "/tmp/aa.$$";
-$now = time;
-$txttime = localtime(time);
-
-open(OUT,">$outfile");
-select(OUT);
-print "channel error\n";
-print "to $address\n";
-print "env-end\n"; 
-print "From: Autoreply service &lt;postmaster&gt;\n";
-print "To: $address\n";
-print "Subject: Autoreply\n";
-print "X-autoanswer-loop: Megaloop \n\n";
-print "      This is autoreply answer message by your request.\n\n";
-print "      Original message was received at UNIX time $now;\n";
-print "      which means '$txttime' in cleartext.\n\n";
-print "      Headers were:\n\n";
-print "--------------------------------------------------------------------\n";
-print @header;
-print "--------------------------------------------------------------------\n";
-print "\n      Have a nice day.\n";
-select(STDOUT);
-close OUT;
-$inode=(stat($outfile))[1];
-$newfile=$ZMAILER{'POSTOFFICE'} . "/router/$inode";
-rename($outfile, $newfile);
-LOG("Sent to $address");
-exit 0;
-
-sub LOG {
-
-        open(LOGf, ">>$logfile");
-        $ttime = localtime(time);
-        printf (LOGf "$ttime autoanswer: @_\n");
-        close LOGf;
-}
-</SCREEN>
-</SECT1>
-
-<SECT1 ID="zref.util.newdb">
-<TITLE><COMMAND>newdb</></TITLE>
-
-<PARA>
-This is elementary wrapper script building binary databases with
-<COMMAND>makedb</> utility into a temporary file, and replacing
-the old files with the new ones in proper order for the 
-<COMMAND>router</>'s automatic source change detecting relation 
-parameter {\tt -m} to work correctly.
-</PARA>
-
-<SCREEN>
-{\bf Usage}
-
-\begin{verbatim}
-newdb /db/path/name [-u|-l] [input-file-name]
-\end{verbatim}
-
-This script uses system {\tt ZCONFIG} file to find out the desired
-database type, and derives the actual database file names from the 
-variable.
-
-Suffix selection rules are:
-
-\begin{verbatim}
-dbm     .pag and .dir
-ndbm    .pag and .dir
-gdbm    .gdbm
-btree   .db   
-\end{verbatim}
-</SCREEN>
-
-</SECT1>
 
 </CHAPTER>

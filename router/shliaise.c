@@ -399,7 +399,7 @@ char *newattribute_2(onam,nam,val)
 	    UNGCPRO4;
 	    return NULL; /* ?? */
 	  }
-	  if (strcmp(nam,lc->string)==0) {
+	  if (STREQ(nam,lc->string)) {
 	    if (!cdr(lc)) {
 	      UNGCPRO4;
 	      return NULL;

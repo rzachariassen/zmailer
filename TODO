@@ -14,6 +14,9 @@ Wanted done for 3.0:
   - A work-over of the documentation
 
 
+proto/newdbprocessor.in:
+	Support  '-i -t ordered,$MAILVAR/db/realdata.dat -f ... '
+
 post-install:  Needs a way to define $(prefix) !
 
 mailq: man-page update to match all options
