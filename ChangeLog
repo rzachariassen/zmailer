@@ -1,5 +1,8 @@
 2005-03-24  Matti Aarnio  <mea@zmailer.org>
 
+	* utils/vacation/vacation.c:
+	    Match SleepyCat DB 4.1 API
+
 	* scheduler/prototypes.h, scheduler/mailq.c:
 	    GCC-4.0.0 fixes.
 

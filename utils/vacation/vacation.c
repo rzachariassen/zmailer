@@ -302,7 +302,11 @@ main(argc, argv)
 #define DB_UPGRADE 0
 #endif
 	  if (ret == 0)
-	    ret = db->open(db, VDB ".db", NULL, DB_BTREE,
+	    ret = db->open(db,
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR >= 1)
+			    NULL, /* TXN id was added at SleepyDB 4.1 */
+#endif
+			   VDB ".db", NULL, DB_BTREE,
 			   DB_CREATE|DB_UPGRADE, S_IRUSR|S_IWUSR);
 	  if (ret) {
 #ifdef HAVE_DB_CLOSE2
