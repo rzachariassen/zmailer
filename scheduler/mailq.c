@@ -632,20 +632,43 @@ isalive(pidfil, pidp, fpp)
 #define	VERSION_ID		"zmailer 1.0"
 #define	VERSION_ID2		"zmailer 2.0"
 
-static int GETLINE(buf, bufsize, fp)
-     char *buf;
-     int bufsize;
+static int _getline(buf, bufsize, bufspace, fp)
+     char **buf;
+     int *bufsize;
+     int *bufspace;
      FILE *fp;
 {
-  if (fgets(buf, bufsize, fp) == NULL) {
+  int c;
+  while ((c = fgetc(fp)) != EOF) {
+    if (c == '\n')
+      break;
+
+    if (!*buf) {
+      *bufsize = 0;
+      *bufspace = 110;
+      *buf = malloc(*bufspace+3);
+    }
+    if (*bufsize >= *bufspace) {
+      *bufspace *= 2;
+      *buf = realloc(*buf, *bufspace+3);
+    }
+    (*buf)[*bufsize] = c;
+    *bufsize += 1;
+  }
+  (*buf)[*bufsize] = 0;
+
+  if (c == EOF && *bufsize != 0) {
     fprintf(stderr, "%s: no input from scheduler\n", progname);
     buf[0] = '\0';
     return -1;
   }
-  buf = strchr(buf, '\n');
-  if (buf) *buf = 0;
+
   return 0; /* Got something */
 }
+
+
+#define GETLINE(buf, bufsize, bufspace, fp) _getline(&buf, &bufsize, &bufspace, fp)
+
 
 const char *names[SIZE_L+2];
 
@@ -667,17 +690,15 @@ parse(fp)
 	register int	i;
 	u_long	list, key;
 	struct spblk *spl;
-	int bufsize = 8192*32; /* Sometimes the input has LONG lines.. */
-	char  *buf, *ocp;
+	int bufsize, bufspace;
+	char  *buf = NULL, *ocp;
 
 	names[L_CTLFILE] = "Vertices:";
 	names[L_HOST]    = "Hosts:";
 	names[L_CHANNEL] = "Channels:";
 	names[L_END]     = "End:";
 
-	buf = emalloc(bufsize);
-
-	if (GETLINE(buf,bufsize,fp))
+	if (GETLINE(buf,bufsize,bufspace,fp))
 	  return 0;
 
 	if (EQNSTR(buf, MAGIC_PREAMBLE) &&
@@ -708,7 +729,7 @@ parse(fp)
 	  /* NOT REACHED */
 	}
 
-	if (GETLINE(buf,bufsize,fp))
+	if (GETLINE(buf,bufsize,bufspace,fp))
 	  return 0;
 	if (!EQNSTR(buf, names[L_CTLFILE]))
 	  return 0;
@@ -971,14 +992,15 @@ void query2(fpi, fpo)
 	FILE *fpi, *fpo;
 {
 	int  len, i;
-	int bufsize = 512;
-	char *challenge = emalloc(bufsize);
-	char *buf = emalloc(8192*32);
+	int bufsize = 0;
+	int bufspace = 0;
+	char *challenge = NULL;
+	char *buf = NULL;
 	MD5_CTX CTX;
 	unsigned char digbuf[16];
 
 	/* XX: Authenticate the query - get challenge */
-	if (GETLINE(challenge, bufsize, fpi))
+	if (GETLINE(challenge, bufsize, bufspace, fpi))
 	  return;
 
 	MD5Init(&CTX);
@@ -986,9 +1008,7 @@ void query2(fpi, fpo)
 	MD5Update(&CTX, v2password, strlen(v2password));
 	MD5Final(digbuf, &CTX);
 	
-	bufsize = 8192*32;
-	
-	fprintf(fpo, "APOP %s ", v2username);
+	fprintf(fpo, "AUTH %s ", v2username);
 	for (i = 0; i < 16; ++i) fprintf(fpo,"%02X",digbuf[i]);
 	fprintf(fpo, "\n");
 	if (fflush(fpo) || ferror(fpo)) {
@@ -996,7 +1016,7 @@ void query2(fpi, fpo)
 	    return;
 	}
 
-	if (GETLINE(buf, bufsize, fpi))
+	if (GETLINE(buf, bufsize, bufspace, fpi))
 	    return;
 
 	if (*buf != '+') {
@@ -1008,9 +1028,9 @@ void query2(fpi, fpo)
 	if (schedq) {
 
 	  if (schedq > 1)
-	    strcpy(buf,"SHOW-QUEUE CONDENCED\n");
+	    strcpy(buf,"SHOW QUEUE CONDENCED\n");
 	  else
-	    strcpy(buf,"SHOW-QUEUE THREADS\n");
+	    strcpy(buf,"SHOW QUEUE THREADS\n");
 
 	  len = strlen(buf);
 

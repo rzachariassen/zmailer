@@ -1,5 +1,8 @@
 1999-11-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/mq2.c, scheduler/mq2auth.c:
+	    More of the theme...
+
 	* configure.in, utils/Makefile.in, utils/md5sum.c:
 	    Initial attempt at writing (from scratch)a MD5SUM
 	    program, but for some reason the result is *not* the

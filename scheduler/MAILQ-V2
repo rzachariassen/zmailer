@@ -8,7 +8,7 @@ Scheduler writes following to the interface socket:
 
 Then client writes there:
 
-	"APOP username HEXAUTHENTICATOR\n"
+	"AUTH username HEXAUTHENTICATOR\n"
 
 and scheduler replies:
 
@@ -20,9 +20,14 @@ where "+" at line beginning is success (and anything else is failure).
 That done, initial login phase has completed, and actual command interface
 can commence.
 
+The HEXAUTENTICATOR is calculated by catenating the challenge line
+(without its ending '\n'), and user password, and doing MD5 over them.
+Then the resulting message digest is printed out bytewise with "%02x",
+that is, lowercase hex characters.
+
 
 	---------- ToBeWritten: commands ... -------------
 	(and multiline replies, and state things, and ...)
 
-SHOW-QUEUE CONDENCED
-SHOW-QUEUE THREADS
+SHOW QUEUE CONDENCED
+SHOW QUEUE THREADS

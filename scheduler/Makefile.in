@@ -31,10 +31,10 @@ LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/tra
 #
 OBJS=	scheduler.o readconfig.o conf.o agenda.o transport.o pipes.o \
 	update.o qprint.o msgerror.o resources.o threads.o wantconn.o \
-	mq2.o
+	mq2.o mq2auth.o
 SOURCE=	scheduler.c readconfig.c conf.c agenda.c transport.c pipes.c \
 	update.c qprint.c msgerror.c resources.c threads.c wantconn.c \
-	mq2.c
+	mq2.c mq2auth.c
 
 all:	$(LIBDEB) $(PROGRAM) mailq
 
