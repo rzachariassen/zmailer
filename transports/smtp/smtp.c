@@ -1193,7 +1193,7 @@ deliver(SS, dp, startrp, endrp)
 	  
 	  /* NOTARY: address / action / status / diagnostic */
 	  notaryreport(rp->addr->user, NULL, NULL, NULL);
-	  /* RCPT TO:<...> -- pipelineable */
+	  /* RCPT To:<...> -- pipelineable */
  	  r = smtpwrite(SS, 1, SMTPbuf, pipelining, rp);
 	  if (r != EX_OK) {
 	    if (!SS->smtpfp || sffileno(SS->smtpfp) < 0) r = EX_TEMPFAIL; /* ALWAYS! */
@@ -2893,8 +2893,8 @@ rmsgappend(va_alist)
 
 /*
  *  SMTP PIPELINING (RFC 1854/2197) support uses model of:
- *       1st RCPT is for "MAIL FROM:<>".. -line
- *       2..n-1: are actual RCPT TO:<> -lines
+ *       1st RCPT is for "MAIL From:<>".. -line
+ *       2..n-1: are actual RCPT To:<> -lines
  *	 n:th is the "DATA"-line.
  */
 
@@ -3122,7 +3122,7 @@ char **statusp;
 		status = "5.1.1 (No acceptable recipients given)";
 		rc = EX_NOUSER;
 		break;
-	case 555: /* Unknown MAIL FROM:<>/RCPT TO:<> parameter */
+	case 555: /* Unknown MAIL From:<>/RCPT To:<> parameter */
 		status = "5.5.4 (invalid parameters)";
 		rc = EX_USAGE;
 		break;
@@ -3173,6 +3173,7 @@ smtp_sync(SS, r, nonblocking)
 	char *p;
 	static int continuation_line = 0;
 	static int first_line = 1;
+	char *status = NULL;
 
 	SS->smtp_outcount = 0;
 	SS->block_written = 0;
@@ -3330,7 +3331,7 @@ smtp_sync(SS, r, nonblocking)
 	  if (first_line) {
 	    if (SS->pipecmds[idx]) {
 	      if (strncmp(SS->pipecmds[idx],
-			  "RSET",4) != 0) /* If RSET, append to previous! */
+			  "MAIL",4) == 0) /* If MAIL, flush buffer! */
 		SS->remotemsg[0] = 0;
 	      rmsgappend(SS,"\r<<- %s", SS->pipecmds[idx]);
 	    } else {
@@ -3356,19 +3357,18 @@ smtp_sync(SS, r, nonblocking)
 	  if ((SS->smtpfp == NULL || sffileno(SS->smtpfp) < 0) && code >= 500)
 	    code -= 100; /* SOFTEN IT! */
 
+	  rc = code_to_status(code, &status);
 	  if (code >= 400) {
 	    /* Errors */
-	    char *status = NULL;
 
-	    /* MAIL FROM:<*>: ... */
+	    /* MAIL From:<*>: ... */
 	    /* DATA: 354/ 451/554/ 500/501/503/421 */
-	    /* RCPT TO:<*>: 250/251/ 550/551/552/553/450/451/452/455/ 500/501/503/421 */
-	    rc = code_to_status(code, &status);
+	    /* RCPT To:<*>: 250/251/ 550/551/552/553/450/451/452/455/ 500/501/503/421 */
 	    if (SS->pipercpts[idx] != NULL) {
 	      if (code >= 500) {
 		if (SS->rcptstates & FROMSTATE_400) {
-		  /* If "MAIL FROM:<..>" tells non 200 report, and
-		     causes "RCPT TO:<..>" commands to yield "500",
+		  /* If "MAIL From:<..>" tells non 200 report, and
+		     causes "RCPT To:<..>" commands to yield "500",
 		     we IGNORE the "500" status. */
 		  rc = EX_TEMPFAIL;
 		  /* } else if (SS->rcptstates & FROMSTATE_500) {
@@ -3403,7 +3403,7 @@ smtp_sync(SS, r, nonblocking)
 	      /* No reports for  MAIL FROM:<> nor for DATA/BDAT phases */
 	      if (idx == 0 && SS->pipecmds[idx] != NULL &&
 		  strncmp(SS->pipecmds[idx],"MAIL", 4) == 0) {
-		/* We are working on MAIL FROM:<...> command here */
+		/* We are working on MAIL From:<...> command here */
 		if (code >= 500)
 		  SS->rcptstates |= FROMSTATE_500;
 		else if (code >= 400)
@@ -3678,8 +3678,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
 	  if (strbuf) {
-	    if (strncmp(strbuf,"RSET",4) != 0)
-	      /* If RSET, append to previous! */
+	    if (strncmp(strbuf,"MAIL",4) == 0)
+	      /* If MAIL, flush buffer! */
 	      *SS->remotemsg = 0;
 	    rmsgappend(SS,"\r<<- %s", strbuf);
 	  } else {

@@ -274,8 +274,8 @@ void unvertex(vp, justfree, ok)
 		   "unvertex(vtx=%p (thr=%p, ng=%d) ,%d,%d)\n",
 		   vp, vp->thread, vp->ngroup, justfree, ok);
 
-	if (vp->thread && vp->thread->proc) {
-	  /* Somebody here, move it elsewere! */
+	if (vp->thread) {
+	  /* Somebody possibly here, move it elsewere! */
 	  /* This MAY happen -- expire() hits when some
 	     thread is coming into processing...            */
 	  if (vp->thread->nextfeed == vp)
@@ -312,6 +312,9 @@ void unvertex(vp, justfree, ok)
 	if (vp->message != NULL) free(vp->message);
 	if (vp->notary  != NULL) free(vp->notary);
 	/* if (vp->sender != NULL) free(vp->sender); */ /* XX: cache !! ?? */
+
+memset(vp, 0x55, sizeof(*vp));
+
 	free((char *)vp);
 
 	return;

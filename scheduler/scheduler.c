@@ -341,6 +341,9 @@ struct ctlfile *cfp;
 	if (cfp->erroraddr)	free(cfp->erroraddr);
 	if (cfp->logident)	free(cfp->logident);
 	if (cfp->envid)		free(cfp->envid);
+
+memset(cfp, 0x55, sizeof(*cfp));
+
 	free((char *)cfp);
 }
 

@@ -136,6 +136,9 @@ if (verbose) sfprintf(sfstdout,"delete_threadgroup(%s/%d/%s)\n",
 	  /* We were the only one! */
 	  thrg_root = NULL;
 	}
+
+memset(thgp, 0x55, sizeof(*thgp));
+
 	free(thgp);
 }
 
@@ -436,6 +439,8 @@ delete_thread(thr, ok)
 		   thr->proc, thr->proc ? (int)thr->proc->pid : 0,
 		   thr->proc ? thr->proc->overfed : 0);
 
+memset(thr, 0x55, sizeof(*thr));
+
 	free(thr);
 }
 
@@ -656,6 +661,9 @@ if (verbose)
 	  sp_delete(spl, spt_mesh[flag]);
 	symbol_free_db((u_char *)wp->name, spt_mesh[flag]->symbols);
 	free(wp->name);
+
+memset(wp, 0x55, sizeof(*wp));
+
 	free((char *)wp);
 }
 

@@ -1,3 +1,17 @@
+2000-04-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Changed the commentary log accumulation method, now
+	    it will clear only at "MAIL FROM..." and from then
+	    on collect all until next "MAIL FROM...".
+	    Should make easier to understand some odd error reports.
+
+	* scheduler/scheduler.c, scheduler/threads.c, scheduler/update.c:
+	    Added some debugging related  memset()s just before freeing
+	    some pointer containing memory blocks.
+	    Also modified unvertex() slightly to forward nextfeed in
+	    case current vertex is (at all) in any sort of processing.
+
 2000-04-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/update.c:
