@@ -228,10 +228,6 @@
 /* NIS (or "YP" for old salts) does exist */
 #undef HAVE_YP
 
-/* Want (not) to use TABs in RFC-822 headers to separate header name, and
-   its value from each other:  "From:" <TAB> <value> */
-#undef RFC822TABS
-
 /* The  sprintf()  returns a char*, or int ? */
 #undef SPRINTF_CHAR
 

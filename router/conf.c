@@ -43,13 +43,6 @@ int	real_stability = 0;
 /* maximum number of Received headers, for primitive loop detection */
 int	maxReceived = 50;
 
-/* we want those nice tabs between the header field name and value */
-#ifdef RFC822TABS
-int	wanttabs = RFC822TABS;
-#else
-int	wanttabs = 1;
-#endif
-
 /* depending on what you postmaster wants from   $(filepriv ...) to see:
    022 for usual        644 or more strict,
    002 for more relaxed 664 view of things

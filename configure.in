@@ -1298,13 +1298,14 @@ else
   fi
 fi
 
+AC_SUBST(RFC822TABS)
 AC_ARG_WITH(rfc822-tabs,   [  --without-rfc822-tabs    Turn off the TABs from the rewritten headers ],
 	[if test "$withval" = no; then
 	   use_rfc822_tabs=0
 	 else
 	   use_rfc822_tabs=1
 	 fi], [use_rfc822_tabs=1])
-AC_DEFINE_UNQUOTED(RFC822TABS,$use_rfc822_tabs)
+RFC822TABS="$use_rfc822_tabs"
 AC_MSG_RESULT([RFC-822 TABs setting: $use_rfc822_tabs])
 
 AC_SUBST(LIBWRAP)

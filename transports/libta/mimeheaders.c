@@ -783,15 +783,15 @@ downgrade_headers(rp, convertmode, verboselog)
 	  /* We downgrade by changing it to Q-P as per RFC 1428/Appendix A */
 	  static const char *warning_lines[] = {
 "X-Warning: Original message contained 8-bit characters, however during",
-"           the SMTP transport session the receiving system did not announce",
-"           capability of receiving 8-bit SMTP (RFC 1651-1653), and as this",
-"           message does not have MIME headers (RFC 2045-2049) to enable",
-"           encoding change, we had very little choice.",
+"\t   the SMTP transport session the receiving system did not announce",
+"\t   capability of receiving 8-bit SMTP (RFC 1651-1653), and as this",
+"\t   message does not have MIME headers (RFC 2045-2049) to enable",
+"\t   encoding change, we had very little choice.",
 "X-Warning: We ASSUME it is less harmful to add the MIME headers, and",
-"           convert the text to Quoted-Printable, than not to do so,",
-"           and to strip the message to 7-bits.. (RFC 1428 Appendix A)",
+"\t   convert the text to Quoted-Printable, than not to do so,",
+"\t   and to strip the message to 7-bits.. (RFC 1428 Appendix A)",
 "X-Warning: We don't know what character set the user used, thus we had to",
-"           write these MIME-headers with our local system default value.",
+"\t   write these MIME-headers with our local system default value.",
 "MIME-Version: 1.0",
 "Content-Transfer-Encoding: QUOTED-PRINTABLE",
 NULL };

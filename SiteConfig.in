@@ -187,6 +187,13 @@ DBEXTtest=@DBEXTtest@
 # message was not of MIME, and still had 8-bit chars...
 DEFCHARSET=ISO-8859-1
 
+# We want those nice tabs between the header field name and value
+# The task of generating TABs or SPACEs is at TA *writeheaders().
+# Value '0' here yields expansion of possibly existing header resident
+# line-start TABs.  There is no mechanism to turn line-start SPACEs
+# to TABs with any other value stored here.
+RFC822TABS=@RFC822TABS@
+
 # If the following limitations are exceeded then zmailcheck
 # will sent an alert.
 # Limit on the Router Queue

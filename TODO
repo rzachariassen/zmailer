@@ -1,10 +1,5 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
-- mailbox TA: write to pipe should not complain of incomplete writes
-  if subprogram exit code is zero.
-
-- smtp TA: makereconn() fails with ai->ai_addr == NULL
-
 - smtp TA (all TAs ??) leak memory in MIME header processing,
   and (what is worse) they seem to refer thru pointers located
   within FREED memory blocks..
@@ -12,7 +7,9 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 - smtp TA to ETRN type destinations (usually not reachable) work
   poorly ever since non-blocking connection was taken into use.
 
-- "./configure --without-rfc822-tabs"  doesn't really :-/
+- "./configure --without-rfc822-tabs"  does turn line-start TABs
+  to spaces, however there is no mechanism to turn line-start
+  SPACEs to TABs. (Place to do it is likely router/rfc822hdrs.c)
 
 - Configuration files, esp.   cf/aliases.cf   has controversy in it.
   Many people think it is broken (I tend to agree) - 940614/mea

@@ -678,6 +678,7 @@ static int rc_syspriority(key, arg, ce)
 	  return 1;
 	}
 #ifdef HAVE_SETPRIORITY
+	/* PRIO_PROCESS depends likely of  HAVE_SYS_RESOURCE_H */
 	setpriority(PRIO_PROCESS, 0, i);
 #endif
 	return 0;
