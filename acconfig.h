@@ -31,6 +31,8 @@
    routines don't support AF_INET6 ... */
 #undef INET6
 
+#undef HAVE__GETADDRINFO_
+
 /* socklen_t type can be found by including <sys/socket.h> */
 #undef HAVE_SOCKLEN_T
 

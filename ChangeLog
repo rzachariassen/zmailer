@@ -1,3 +1,33 @@
+2001-04-03  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* proto/forms/delivery:
+	    Changed the URL reference to a "decode key" at
+		http://www.zmailer.org/delivery-report-decoding.html
+
+	* acconfig.h, configure.in:
+	    When supporting local  _getaddrinfo_() function,
+	    have a HAVE_ variable for it too!
+
+	* include/mail.h.in, router/rfc822.c:
+	    Rearranged the _CF_*** defines into the order at which
+	    the router uses them -- while editing documentation,
+	    and needing coherent view at the things.
+
+	* scheduler/threads.c:
+	    When running parallel TAs at same thread, remember to
+	    traverse pointer chain when showing process list..
+	    (verbose debugging to stderr..)
+
+	* libc/getaddrinfo.c:
+	    Present at the debug vlog file the g->gaih() return code
+	    in octal (it is a bitset, after all)
+
+	* smtpserver/mxverify.c, transports/smtp/getmxrr.c:
+	    Use the  HAVE__GETADDRINFO_  flag for local debug version..
+	    Also done changes for retrieving AF_INET and AF_INET6
+	    addresses separately, as there seems to be some problems
+	    when trying to use  ai_family == 0  ("any goes") form.
+
 2001-03-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* include/mailer.h, router/rfc822.c, router/libdb/header.c,

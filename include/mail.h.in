@@ -38,25 +38,7 @@
 #define	MSG_X400		".x400"
 
 /* The following characters may appear in the first column of a control file */
-#define _CF_MESSAGEID	'i'	/* inode number of file containing message */
-#define _CF_BODYOFFSET	'o'	/* byte offset into message file of body */
-#define _CF_BODYFILE	'b'	/* alternate message file for new body */
-#define _CF_SENDER	's'	/* sender triple (channel, host, user) */
-#define _CF_RECIPIENT	'r'	/* recipient n-tuple, n >= 3 */
-#define _CF_DSNRETMODE  'R'	/* DSN message body return control */
-#define _CF_XORECIPIENT	'X'	/* one of XOR set of recipient n-tuples */
-#define _CF_RCPTNOTARY	'N'	/* DSN parameters for previous recipient */
-#define _CF_DSNENVID	'n'	/* DSN 'MAIL FROM<> ENVID=XXXX' data */
-#define _CF_ERRORADDR	'e'	/* return address for error messages */
-#define _CF_DIAGNOSTIC	'd'	/* diagnostic message for ctlfile offset */
-#define _CF_MSGHEADERS	'm'	/* message header for preceeding recipients */
-#define _CF_MIMESTRUCT	'M'	/* compacted MIME structure data for message */
-#define _CF_LOGIDENT	'l'	/* identification string for log entries */
-#define _CF_OBSOLETES	'x'	/* message id of message obsoleted by this */
-#define _CF_VERBOSE	'v'	/* log file name for verbose log (mail -v) */
-#define	_CF_TURNME	'T'	/* trigger scheduler to attempt delivery now */
-#define _CF_RCVFROM	'F'	/* Where-from we are coming ? */
-
+/* These are in order (roughly) what the router writes out. */
 #define _CF_FORMAT	'@'	/* What format variant are we ?? */
 
 #define _CF_FORMAT_TA_PID	0x00000001 /* At 'r' or 'X' lines */
@@ -64,6 +46,24 @@
 #define _CF_FORMAT_MIMESTRUCT   0x00000004 /* The 'M' block       */
 #define _CF_FORMAT_KNOWN_SET (_CF_FORMAT_DELAY1|_CF_FORMAT_TA_PID | \
 			      _CF_FORMAT_MIMESTRUCT)
+
+#define _CF_VERBOSE	'v'	/* log file name for verbose log (mail -v) */
+#define _CF_MESSAGEID	'i'	/* inode number of file containing message */
+#define _CF_BODYOFFSET	'o'	/* byte offset into message file of body */
+#define _CF_LOGIDENT	'l'	/* identification string for log entries */
+#define _CF_BODYFILE	'b'	/* alternate message file for new body */
+#define _CF_ERRORADDR	'e'	/* return address for error messages */
+#define _CF_OBSOLETES	'x'	/* message id of message obsoleted by this */
+#define	_CF_TURNME	'T'	/* trigger scheduler to attempt delivery now */
+#define _CF_SENDER	's'	/* sender triple (channel, host, user) */
+#define _CF_RECIPIENT	'r'	/* recipient n-tuple, n >= 3 */
+#define _CF_DSNRETMODE  'R'	/* DSN message body return control */
+#define _CF_XORECIPIENT	'X'	/* one of XOR set of recipient n-tuples */
+#define _CF_RCPTNOTARY	'N'	/* DSN parameters for previous recipient */
+#define _CF_DSNENVID	'n'	/* DSN 'MAIL FROM<> ENVID=XXXX' data */
+#define _CF_MSGHEADERS	'm'	/* message header for preceeding recipients */
+#define _CF_MIMESTRUCT	'M'	/* compacted MIME structure data for message */
+#define _CF_DIAGNOSTIC	'd'	/* diagnostic message for ctlfile offset */
 
 /* The following characters may appear in the second column after most _CF_* */
 #define	_CFTAG_NORMAL	' '	/* what the router sets it to be */

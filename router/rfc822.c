@@ -2131,6 +2131,9 @@ sequencer(e, file)
 		fchmod(FILENO(ofp), 0460);
 	}
 
+	fprintf(ofp, "%c%c0x%08lx\n",
+		_CF_FORMAT, _CFTAG_NORMAL, (long)_CF_FORMAT_KNOWN_SET);
+
 	FindEnvelope(eVerbose);
 	if (h  &&  h->h_contents.a  &&  h->h_contents.a->a_tokens) {
 		if (h->h_contents.a->a_tokens->p_tokens    &&
@@ -2158,9 +2161,6 @@ sequencer(e, file)
 		setreuid(0, 0);
 	} else
 		vfp = NULL;
-
-	fprintf(ofp, "%c%c0x%08lx\n",
-		_CF_FORMAT, _CFTAG_NORMAL, (long)_CF_FORMAT_KNOWN_SET);
 
 	fprintf(ofp, "%c%c%s\n",
 		_CF_MESSAGEID, _CFTAG_NORMAL, file);

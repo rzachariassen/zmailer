@@ -853,6 +853,7 @@ thread_start(thr, queueonly_too)
 	    proc = proc->pnext;
 	    while (proc) {
 	      sfprintf(sfstderr, " %p", proc);
+	      proc = proc->pnext;
 	    }
 	    sfprintf(sfstderr, " }\n");
 	  }

@@ -407,21 +407,18 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  req.ai_socktype = SOCK_STREAM;
 	  req.ai_protocol = IPPROTO_TCP;
 	  req.ai_flags    = AI_CANONNAME;
+	  /*  ai_family  set above. */
 	  ai = NULL;
 	  /* This resolves CNAME, it should not happen in case
 	     of MX server, though..    */
-#define GETADDRINFODEBUG 0
-#if !GETADDRINFODEBUG
-	  i = getaddrinfo(mx[n], "0", &req, &ai);
-#else
+#ifdef HAVE__GETADDRINFO_
 	  i = _getaddrinfo_(mx[n], "0", &req, &ai,
 			    debug ? stdout : NULL);
+#else
+	  i = getaddrinfo(mx[n], "0", &req, &ai);
+#endif
 	  if (debug)
 	    printf("000-  getaddrinfo('%s','0') -> r=%d, ai=%p\n",mx[n],i,ai);
-#endif
-
-	  if (debug)
-	    printf("000-  getaddrinfo('%s') yields %d\n", mx[n], i);
 	    
 	  if (i != 0)
 	    continue;		/* Well well.. spurious! */
@@ -490,20 +487,66 @@ perhaps_address_record:
 	  req.ai_socktype = SOCK_STREAM;
 	  req.ai_protocol = IPPROTO_TCP;
 	  req.ai_flags    = AI_CANONNAME;
-	  req.ai_family   = 0; /* Both OK (IPv4/IPv6) */
+	  req.ai_family   = PF_INET;
 	  ai = NULL;
+
 
 	  /* This resolves CNAME, it should not happen in case
 	     of MX server, though..    */
-#if !GETADDRINFODEBUG
-	  i = getaddrinfo((const char*)host, "0", &req, &ai);
-#else
+#ifdef HAVE__GETADDRINFO_
+	  if (debug)
+	    printf("000-  perhaps A?\n");
 	  i = _getaddrinfo_((const char*)host, "0", &req, &ai, debug ? stdout : NULL);
+#else
+	  i = getaddrinfo((const char*)host, "0", &req, &ai);
 #endif
 	  if (debug)
-	    printf("000-   perhaps A? getaddrinfo('%s','0') -> r=%d, ai=%p\n",host,i,ai);
-	  if (i != 0) /* Found nothing! */
+	    printf("000-   getaddrinfo('%s','0') (PF_INET) -> r=%d (%s), ai=%p\n",host,i,gai_strerror(i),ai);
+
+#if defined(AF_INET6) && defined(INET6)
+	  if (use_ipv6) {
+
+	    /* Want, but not have AAAA, ask for it. */
+
+	    int n2;
+	    struct addrinfo *ai2 = NULL;
+
+	    memset(&req, 0, sizeof(req));
+	    req.ai_socktype = SOCK_STREAM;
+	    req.ai_protocol = IPPROTO_TCP;
+	    req.ai_flags    = AI_CANONNAME;
+	    req.ai_family   = PF_INET6;
+
+	  /* This resolves CNAME, it should not happen in case
+	     of MX server, though..    */
+#ifdef HAVE__GETADDRINFO_
+	    n2 = _getaddrinfo_((const char *)host, "0", &req, &ai2,
+			       debug ? stdout : NULL);
+#else
+	    n2 = getaddrinfo((const char *)host, "0", &req, &ai2);
+#endif
+	    if (debug)
+	      printf("000-   getaddrinfo('%s','0') (PF_INET6) -> r=%d (%s), ai=%p\n",host,n2,gai_strerror(n2),ai2);
+
+
+	    if (i != 0 && n2 == 0) {
+	      /* IPv6 address, no IPv4 (or error..) */
+	      i = n2;
+	      ai = ai2; ai2 = NULL;
+	    }
+	    if (ai2 && ai) {
+	      /* BOTH ?!  Catenate them! */
+	      struct addrinfo **aip;
+	      aip = &ai->ai_next;
+	      while (*aip) aip = &((*aip)->ai_next);
+	      *aip = ai2;
+	    }
+	  }
+#endif
+
+	  if (i)
 	    return i;
+
 
 	  i = matchmyaddresses(ai);
 #if 1

@@ -880,7 +880,7 @@ _getaddrinfo_ (name, service, hints, pai, vlog)
 	pg = g;
 	i = g->gaih (name, pservice, hints, end, vlog);
 	if (vlog)
-	  fprintf(vlog," g->gaih[%s]('%s',...) rc=%d\n",g->famname,name,i);
+	  fprintf(vlog," g->gaih[%s]('%s',...) rc=0%o\n",g->famname,name,i);
 
 	if (i != 0) {
 	  /* EAI_NODATA is a more specific result as it says that

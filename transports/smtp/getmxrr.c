@@ -999,15 +999,15 @@ int main(argc, argv)
 	  errno = 0;
 	  /* Either forbidden MX usage, or does not have MX entries! */
 
-#ifdef HAVE_GETADDRINFO
-	  r = getaddrinfo(host, "smtp", &req, &ai);
+#ifdef HAVE__GETADDRINFO_
+	  r = _getaddrinfo_(host, "0", &req, &ai, SS.verboselog);
 #else
-	  r = _getaddrinfo_(host, "smtp", &req, &ai, SS.verboselog);
+	  r = getaddrinfo(host, "0", &req, &ai);
 #endif
 
 	  if (SS.verboselog)
 	    fprintf(SS.verboselog,
-		    "getaddrinfo('%s','smtp') -> r=%d (%s), ai=%p\n",
+		    "getaddrinfo('%s','0' (INET)) -> r=%d (%s), ai=%p\n",
 		    host, r, gai_strerror(r), ai);
 #if defined(AF_INET6) && defined(INET6)
 	  if (use_ipv6) {
@@ -1022,14 +1022,14 @@ int main(argc, argv)
 
 	    /* This resolves CNAME, it should not happen in case
 	       of MX server, though..    */
-#ifdef HAVE_GETADDRINFO
-	    i2 = getaddrinfo(host, "0", &req, &ai2);
-#else
+#ifdef HAVE__GETADDRINFO_
 	    i2 = _getaddrinfo_(host, "0", &req, &ai2, SS.verboselog);
+#else
+	    i2 = getaddrinfo(host, "0", &req, &ai2);
 #endif
 	    if (SS.verboselog)
 	      fprintf(SS.verboselog,
-		      "  getaddrinfo('%s','smtp') -> r=%d (%s), ai=%p\n",
+		      "getaddrinfo('%s','0' (INET6)) -> r=%d (%s), ai=%p\n",
 		      host,i2, gai_strerror(i2), ai2);
 
 	    if (r != 0 && i2 == 0) {
