@@ -284,6 +284,24 @@ mail_open(type)
 	return fp;
 }
 
+
+/*
+ * Return currently open spool file name
+ */
+
+char *
+mail_fname(fp)
+	FILE *fp;
+{
+	int fd = FILENO(fp);
+
+	if (fd < 0 || fd >= mail_nfiles)
+	  return NULL;
+
+	return mail_file[fd];
+}
+
+
 /*
  * Abort the message file composition on the indicated stream.
  */
