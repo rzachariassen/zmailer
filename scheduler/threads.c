@@ -27,6 +27,7 @@
 
 #define MAX_HUNGER_AGE 600 /* Sign of an error ... */
 
+extern char *proc_state_names[];
 
 struct thread      *thread_head = NULL;
 struct thread      *thread_tail = NULL;
@@ -1031,9 +1032,9 @@ pick_next_vertex(proc)
 	if (thr) vtx = thr->nextfeed;
 
 	if (verbose)
-	  sfprintf(sfstdout,"pick_next_vertex(proc=%p) proc->tofd=%d, thr=%p, pvtx=%p, jobs=%d OF=%d S=%d\n",
+	  sfprintf(sfstdout,"pick_next_vertex(proc=%p) proc->tofd=%d, thr=%p, pvtx=%p, jobs=%d OF=%d S=%s\n",
 		   proc, proc->tofd, thr, vtx, thr ? thr->jobs : 0,
-		   proc->overfed, (int)proc->state);
+		   proc->overfed, proc_state_names[proc->state]);
 
 	if (proc->pid < 0 || proc->tofd < 0) {	/* "He is dead, Jim!"	*/
 	  if (verbose) sfprintf(sfstdout," ... NONE, 'He is dead, Jim!'\n");
@@ -1562,13 +1563,13 @@ void thread_report(fp,mqmode)
 		  proc = thr->proc;
 		  sfprintf(fp, " S={");
 		  while (proc) {
-		    sfprintf(fp, "%d", (int)(proc->state));
+		    sfprintf(fp, "%s", proc_state_names[proc->state]);
 		    if (proc->pnext) sfprintf(fp, ",");
 		    proc = proc->pnext;
 		  }
 		  sfprintf(fp, "}");
 		} else
-		  sfprintf(fp," S=%d", (int)thr->proc->state);
+		  sfprintf(fp," S=%s", proc_state_names[proc->state]);
 	      }
 
 	    } else if (thr->wakeup > now) {

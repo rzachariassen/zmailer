@@ -316,7 +316,7 @@ feed_child(proc)
 
 
 char *proc_state_names[] = {
-  "ERROR", "LARVA", "STUFFING", "FINISHING", "IDLE"
+  "ERR", "LRVA", "STFF", "FINI", "IDLE"
 };
 
 void
