@@ -1,3 +1,13 @@
+1999-08-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* man/smtpserver.8:
+	    A bug in the document..  TCP-wrapper service is
+	    "smtp-receiver", not "smtp-receive" ...
+
+	* transports/libta/mimeheaders.c:
+	    Previous work had some weird problems, reworked, and
+	    now it seems to work.
+
 1999-08-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/libta/mimeheaders.c:

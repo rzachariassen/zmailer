@@ -432,14 +432,14 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 .sp
 .SH TCP-WRAPPER AND SMTPSERVER
 If the ZMailer system is configured with tcp-wrapper code, then service-id
-"smtp-receive" is looked for all those addresses that are allowed to feed
+"smtp-receiver" is looked for all those addresses that are allowed to feed
 smtp email in.
 .P
 Usually this mode of operation is not used, and "hosts.allow"
 file contains entry:
 .P
 .nf
-  smtp-receive : ALL@ALL
+  smtp-receiver : ALL@ALL
 .fi
 .P
 Alternatively, all the functions which tcp-wrapper could supply are

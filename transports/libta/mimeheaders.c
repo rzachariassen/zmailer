@@ -882,6 +882,7 @@ mime_received_convert(rp, convertstr)
 	int convertlen = strlen(convertstr);
 	char *semic = NULL;
 	char **schdr = NULL;
+	int semicindex = -1;
 
 	char **inhdr = *(rp->newmsgheadercvt);
 	char **hdro = NULL;
@@ -897,7 +898,11 @@ mime_received_convert(rp, convertstr)
 
 	do {
 	  char *sc = strrchr(*inhdr, ';');
-	  if (sc) { semic = sc; schdr = inhdr; }
+	  if (sc) {
+	    semic = sc;
+	    schdr = inhdr;
+	    semicindex = sc - *inhdr;
+	  }
 	  hdro = inhdr;
 	  ++inhdr;
 	} while (*inhdr && (**inhdr == ' ' || **inhdr == '\t'));
@@ -909,7 +914,8 @@ mime_received_convert(rp, convertstr)
 
 	if (!semic) {
 	  schdr = hdro;
-	  semic = strlen(*schdr) + *schdr;
+	  semicindex = strlen(*schdr);
+	  semic = *schdr + semicindex;
 	}
 
 	{
