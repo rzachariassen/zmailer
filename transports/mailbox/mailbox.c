@@ -1099,7 +1099,7 @@ deliver(dp, rp, usernam, timestring)
 	     name and create a FAST "write" to  /dev/null..  */
 	  if (strcmp(usernam,"/dev/null") == 0) {
 	    notaryreport(rp->addr->user,"delivered",
-			 "2.2.0 (delivery successfull)",
+			 "2.2.0 (delivered successfully)",
 			 "x-local; 250 (Delivered successfully)");
 	    DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
 	    return;
@@ -1323,7 +1323,7 @@ deliver(dp, rp, usernam, timestring)
 	   name and create a FAST "write" to  /dev/null..  */
 	if (strcmp(file,"/dev/null") == 0) {
 	  notaryreport(rp->addr->user,"delivered",
-		       "2.2.0 (delivery successfull)",
+		       "2.2.0 (delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
 	  return;
@@ -3517,8 +3517,8 @@ return_receipt (dp, retrecptaddr, uidstr)
 	    sfprintf(mfp, "\n");
 	  }
 	  sfprintf(mfp, "Final-Recipient: X-LOCAL;%s\n", rp->addr->user);
-	  sfprintf(mfp, "Action: delivery\n");
-	  sfprintf(mfp, "Status: 2.2.0\n");
+	  sfprintf(mfp, "Action: delivered\n");
+	  sfprintf(mfp, "Status: 2.2.0 (delivered successfully)\n");
 	  sfprintf(mfp, "Diagnostic-Code: smtp; 250 ('%s' delivered)\n", rp->addr->user );
 	  sfprintf(mfp, "\n");
 	}

@@ -373,6 +373,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 	      if (actionset[ACTSET_DELIVERED]) {
 		sfprintf(errfp,"%sDELIVERED-OK(%d)",s,
 			 actionset[ACTSET_DELIVERED]);
+		s = ",";
 	      }
 	      s = (*s == ',') ? "]" : "";
 	      sfprintf(errfp,"%s\n", s);
@@ -545,30 +546,32 @@ reporterrs(cfpi, delayreports)
 	  /* If ever need to add more integer offsets, add them
 	     here with a colon prefix... */
 	  notary = NULL;
-	  action = cp2 = NULL;
-	  thisaction = ACTSET_NONE;
+	  action = NULL;
+	  /* If this is nothing, this is about FAILURE */
+	  thisaction = ACTSET_FAILED;
 	  if (*cp == '\t') {
 	    notary = ++cp;
 	    while (*cp && *cp != '\t') ++cp;
 	    notary = strnsave(notary, cp-notary); /* Make a copy of it */
 	    ++cp;
 	    action = strchr(notary,'\001');
+
 	    if (action) {
 	      ++action;
 	      cp2 = strchr(action,'\001');
-	      if (cp2) *cp2 = 0;
-	      if (strcmp(action,"delayed")==0) {
+
+	      sfprintf(sfstderr,"action='%.9s'\n", action);
+
+	      if (memcmp       (action,"delayed",  7)==0) {
 		thisaction = ACTSET_DELAYED;
-	      } else if (strcmp(action,"delivered")==0) {
+	      } else if (memcmp(action,"delivered",9)==0) {
 		thisaction = ACTSET_DELIVERED;
-	      } else if (strcmp(action,"relayed")==0) {
+	      } else if (memcmp(action,"relayed",  7)==0) {
 		thisaction = ACTSET_RELAYED;
-	      } else if (strcmp(action,"failed")==0) {
+	      } else if (memcmp(action,"failed",   6)==0) {
 		thisaction = ACTSET_FAILED;
-	      }
-	      if (cp2) *cp2 = '\001';
-	      if (thisaction != ACTSET_NONE)
-		actionsets[thisaction] += 1;
+	      } else
+		thisaction = ACTSET_NONE;
 	    }
 	  }
 
@@ -593,10 +596,10 @@ reporterrs(cfpi, delayreports)
 	    notaries[notarycnt].orcpt      = NULL;
 	    notaries[notarycnt].notify     = NULL;
 	    notaries[notarycnt].message    = NULL;
-	    notaries[notarycnt].notifyflgs = 0;
+	    /* If NOTIFY= is not defined, default is: NOTIFY=FAILURE */
+	    notaries[notarycnt].notifyflgs = NOT_FAILURE;
 	    notaries[notarycnt].rcpntp     = rcpntpointer;
 	    notaries[notarycnt].tstamp     = tstamp;
-	    notaries[notarycnt].thisaction = thisaction;
 	    if (drptidx > 0) {
 	      char *d = cfp->contents + drptidx;
 	      while (*d) {
@@ -611,6 +614,7 @@ reporterrs(cfpi, delayreports)
 		if (CISTREQN(d,"NOTIFY=",7)) {
 		  char *p;
 		  notaries[notarycnt].notify = d+7;
+		  notaries[notarycnt].notifyflgs = 0;
 		  d += 7;
 		  p = d;
 		  while (*d != 0 && (*d != ' ' && *d != '\t')) ++d;
@@ -644,8 +648,33 @@ reporterrs(cfpi, delayreports)
 	    while (isascii(*cp) && isspace(*cp))
 	      ++cp;
 	    notaries[notarycnt].message = cp;
+
+	    switch (thisaction) {
+	    case ACTSET_DELIVERED:
+	    case ACTSET_RELAYED:
+	      if (notaries[notarycnt].notifyflgs & NOT_SUCCESS)
+		actionsets[thisaction] += 1;
+	      else thisaction = ACTSET_NONE;
+	      break;
+	    case ACTSET_DELAYED:
+	      if (notaries[notarycnt].notifyflgs & NOT_DELAY)
+		actionsets[thisaction] += 1;
+	      else thisaction = ACTSET_NONE;
+	      break;
+	    case ACTSET_FAILED:
+	      if (notaries[notarycnt].notifyflgs & NOT_FAILURE)
+		actionsets[thisaction] += 1;
+	      else thisaction = ACTSET_NONE;
+	      break;
+	    default:
+	      thisaction = ACTSET_NONE;
+	      break;
+	    }
+	    notaries[notarycnt].thisaction = thisaction;
+
 	    ++notarycnt;
 	    notaries[notarycnt].not = NULL;
+
 	  } else {
 	    /* No notaries ?!  What ?  Store the CP pointer anyway.. */
 	    /* End of failure list processing */
@@ -659,6 +688,24 @@ reporterrs(cfpi, delayreports)
 	  /* Oops!  No recipients on which to report anything ?! */
 	  close(cfp->fd);
 	  cfp->mid = NULL; /* we don't want to loose the original one! */
+	  free_cfp_memory(cfp);
+	  return;
+	}
+
+	if (!(actionsets[ACTSET_FAILED]   |
+	      actionsets[ACTSET_RELAYED]  |
+	      actionsets[ACTSET_DELAYED]  |
+	      actionsets[ACTSET_DELIVERED] )) {
+
+	  /* No reports what so ever ? */
+
+	  /* Release 'notaries' datasets */
+	  for (i = 0; i < notarycnt; ++i) {
+	    if (notaries[i].not != NULL)
+	      free(notaries[i].not);
+	  }
+	  free((void*)notaries);
+	  close(cfp->fd);
 	  free_cfp_memory(cfp);
 	  return;
 	}
@@ -694,12 +741,14 @@ reporterrs(cfpi, delayreports)
 	writeheader(errfp, eaddr, &no_error_report, deliveryform, boundarystr,
 		    actionsets);
 
+	n = 0;
 	for (i = 0; i < notarycnt; ++i) {
 	  /* Scan to the start of the message text */
 	  const char *ccp, *s;
 	  if ((notaries[i].notifyflgs & NOT_NEVER) && (no_error_report >= 0))
 	    continue;
 	  /* Report is not outright rejected, or this is double fault */
+	  ++n;
 	  switch (notaries[i].thisaction) {
 	  case ACTSET_DELAYED:
 	    sfprintf(errfp,"DELAYED (still in queue):\n");
@@ -714,6 +763,9 @@ reporterrs(cfpi, delayreports)
 	    sfprintf(errfp,"DELIVERED (successfully):\n");
 	    break;
 	  case ACTSET_NONE:
+	    sfprintf(errfp,"BUG (unknown ACTSET value: %d):\n",
+		     notaries[i].thisaction);
+	    --n;
 	    break;
 	  }
 	  sfprintf(errfp, "  <%s>: ", notaries[i].rcpntp);
@@ -732,7 +784,6 @@ reporterrs(cfpi, delayreports)
 	  } else
 	    sfprintf(errfp, "%s\n", ccp);
 	}
-
 
 	sfprintf(errfp,"\n\
 Following is a copy of MESSAGE/DELIVERY-STATUS format section below.\n\

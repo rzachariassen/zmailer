@@ -71,7 +71,7 @@ transports/smtp:
    BUG:	PIPELINING:  If all RCPTs are rejected with 400 series code,
 	and the final DATA is then rejected with 500 series code, DON'T
 	abort with permanent error -- plus retry..
-		Fixed ? (20000313)
+		Fixed ? (20000314)
 
    DRUMS/SMTPUPD:
 	If MX set after the backup-prune is empty (and initially was non-
@@ -79,7 +79,7 @@ transports/smtp:
 	to try to use A-record -- parametrized somehow..
 	E.g. go to use of A in this case only if WKS checking is enabled.
 		Conditionalized on non-usage of -W option
-		Works ? (20000313)
+		Works ? (20000314)
 
    BUG?
 	Bad interaction with scheduler in some instances.  If e.g.
@@ -88,7 +88,7 @@ transports/smtp:
 	processing back the same way as 'connection timed out' does.
 	(But no response within timeout from remote server should be
 	 treated the same way as 'conn timeout' -- I think ?)
-		Fixed ? (20000313)
+		Fixed ? (20000314)
 
    BUG:	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
 	(syncing for BDAT, for example.)
@@ -170,6 +170,7 @@ transports/smtp:
 
 	When there are NO reports to be given out, produce no report
 	message either -- we do seem still do it :-/    (20000313)
+		Fixed ? (20000314)
 
 	Tool/mechanism for requeueing a message from the transport
 	back to the router -- all message recipients that have not
@@ -181,9 +182,6 @@ transports/smtp:
 
 	- Delivery messages plain-text part needs easier human
 	  understandable format on the messages.
-
-	- Does the NOTIFY=SUCCESS work ok ?
-		[2.99.49b2 - now it should ("ok3" status code)]
 
 	Have two waiting threads (one message each):
 	- start both of them with ETRN

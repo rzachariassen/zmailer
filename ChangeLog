@@ -1,5 +1,12 @@
 2000-03-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/msgerror.c:
+	    Reworked report suppression; if all RCPTs have NOTIFY=NEVER,
+	    no report shall be made.   Some cleanup of report generation.
+
+	* transports/mailbox/mailbox.c:
+	    Small cleanup of RFC 1894 action status reports.
+
 	* transports/smtp/smtp.c:
 	    - Do (at least try) shunt new scheduler TA driver state-
 	      machine only when connection fails, not when a message
