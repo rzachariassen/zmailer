@@ -539,7 +539,6 @@ char **argv;
 	bindaddrs = NULL;
 	SS.mfp = NULL;
 	SS.style = "ve";
-	SS.state = Hello;
 	SS.with_protocol = WITH_SMTP;
 
 	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
@@ -664,12 +663,11 @@ char **argv;
 	    routerprog = strdup(optarg);
 	    break;
 	  case 's':		/* checking style */
-	    if (strcmp(optarg,"strict")==0) {
+	    if (strcmp(optarg,"strict")==0)
 	      strict_protocol = 1;
-	    } else if (strcmp(optarg,"sloppy")==0) {
+	    else if (strcmp(optarg,"sloppy")==0)
 	      strict_protocol = -1;
-	      SS.state = MailOrHello;
-	    } else
+	    else
 	      style = strdup(optarg);
 	    break;
 	  case 'S':		/* Log-suffix style */
@@ -2131,6 +2129,7 @@ int insecure;
       policystatus = 0; /* For internal - non-net-connected - mode
 			   lack of PolicyDB is no problem at all.. */
       SS->reject_net = 0;
+      maxsameip = 0;
     } else {
       if (debug) typeflush(SS);
       SS->policyresult = policytestaddr(policydb, &SS->policystate,
@@ -2206,7 +2205,11 @@ int insecure;
 #endif				/* USE_TRANSLATION */
     typeflush(SS);
 
-    SS->state = Hello;
+    if (strict_protocol >= 0)
+      SS->state = Hello;
+    else
+      SS->state = MailOrHello;
+
     if ((!insecure
 	 || (SS->ihostaddr[0] != '\0'
 	     && strcmp(SS->ihostaddr, "[127.0.0.1]") == 0))
