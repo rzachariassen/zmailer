@@ -152,6 +152,8 @@ AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(double)
 
+OrigCPPFLAGS="$CPPFLAGS"
+
 AC_SUBST(GENINCL)
 AC_ARG_WITH(generic-include, [  --with-generic-include=\"-I/...\"
                             Include option for local overriders],
@@ -2198,6 +2200,9 @@ for x in sfio sfio/src sfio/src/lib sfio/src/lib/sfio sfio/include sfio/lib
 do
   if test ! -d $x ; then mkdir $x; fi
 done
+
+CPPFLAGS="$OrigCPPFLAGS"
+
 
 AC_OUTPUT(Makefile
         router/Makefile                 router/libdb/Makefile           \
