@@ -145,7 +145,7 @@ flush_child(proc)
 	    proc->tofd = -1;
 	    if (proc->pvertex) {
 	      proc->pvertex->proc = NULL;
-	      proc->pthread       = NULL;
+	      proc->pvertex       = NULL;
 	    }
 	    if (proc->pthread) {
 	      proc->pthread->proc = NULL;
@@ -746,12 +746,14 @@ if (verbose)
 	  /* Bookkeeping about dead transporters */
 	  proc->thg->transporters -= 1;
 	  --numkids;
-	  if (proc->pvertex != NULL)
+	  if (proc->pvertex) {
 	    proc->pvertex->proc = NULL;
-	  proc->pvertex = NULL;
-	  if (proc->pthread)
+	    proc->pvertex       = NULL;
+	  }
+	  if (proc->pthread) {
 	    proc->pthread->proc = NULL;
-	  proc->pthread = NULL;
+	    proc->pthread       = NULL;
+	  }
 	  proc->thg    = NULL;
 	} else {
 	  /* Maybe we were in idle chain! */
@@ -778,12 +780,14 @@ if (verbose)
 		delete_threadgroup(proc->thg);
 	    } else {
 	      /* It is not in idle chain, it has died somehow else.. */
-	      if (proc->pvertex != NULL)
+	      if (proc->pvertex) {
 		proc->pvertex->proc = NULL;
-	      proc->pvertex = NULL;
-	      if (proc->pthread != NULL)
+		proc->pvertex = NULL;
+	      }
+	      if (proc->pthread) {
 		proc->pthread->proc = NULL;
-	      proc->pthread = NULL;
+		proc->pthread = NULL;
+	      }
 	      proc->thg->transporters -= 1;
 	      --numkids;
 	    }

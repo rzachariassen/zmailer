@@ -940,7 +940,7 @@ pick_next_vertex(proc)
 	  return 0;
 	}
 
-	if (proc->pvertex)
+	if (proc->pvertex) /* Pick next item */
 	  proc->pvertex = proc->pvertex->nextitem;
 
 	if (proc->pvertex)
