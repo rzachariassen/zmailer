@@ -119,6 +119,16 @@ fi
 fqdnroutes_neighbour (key, user, plustail, athost, domain, A) {
 	local tmp
 
+#
+# The percent-substitutions are supported at these datatabases.
+#   %0   =  used lookup key
+#   %1   =  user (sans possible "+tail")
+#   %2   =  possible "+tail"
+#   %3   =  athost ("@domain")
+#   %4   =  domain ("domain")  (possible dummy..)
+#   %5   =  address  -  the full original address
+#
+
 	# Gets 'address' from callers variables
 
 	# We have Alternate default-lookup for cases of locally generated
@@ -376,7 +386,7 @@ fqdn_neighbour (domain, address, A) {
 	      returns (((bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)))
 	    fi
 
-	    a=$(fqdnroutes_neighbour "$key" "$user" "$pl2" "$athost" $domain $A) && returns $a
+	    a=$(fqdnroutes_neighbour "$key" "$u2" "$pl2" "$athost" $domain $A) && returns $a
 
 	    ;;
 	tfiss
@@ -520,7 +530,7 @@ fqdn_neighbour (domain, address, A) {
 	  returns (((bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)))
 	fi
 
-	a=$(fqdnroutes_neighbour "$key" "$user" "$pl2" "$athost" $domain $A) && returns $a
+	a=$(fqdnroutes_neighbour "$key" "$user" "" "$athost" $domain $A) && returns $a
 
 	return 1
 }

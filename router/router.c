@@ -21,6 +21,7 @@
 #include <sys/file.h>
 #include "mail.h"
 #include "zsyslog.h"
+#include "zmsignal.h"
 #include "interpret.h"
 #include "splay.h"
 
@@ -198,6 +199,7 @@ main(argc, argv)
 			progname);
 		exit(128+errflg);
 	}
+
 	time(&now);
 	mailshare = getzenv("MAILSHARE");
 	if (mailshare == NULL)
@@ -251,6 +253,10 @@ main(argc, argv)
 	}
 
 	stickymem = MEM_PERM;
+
+	/* We (and our children) run with SIGPIPE ignored.. */
+	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
+
 
 	initialize(config, argc - c, &argv[c]);
 

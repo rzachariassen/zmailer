@@ -125,6 +125,24 @@ static int zsfsetfd(fp, fd)
   return fd;
 }
 
+static void
+decodeXtext(mfp,xtext)
+	FILE *mfp;
+	const char *xtext;
+{
+	for (;*xtext;++xtext) {
+	  if (*xtext == '+') {
+	    int c = '?';
+	    sscanf(xtext+1,"%02X",&c);
+	    fputc(c, mfp);
+	    if (*xtext) ++xtext;
+	    if (*xtext) ++xtext;
+	  } else
+	    fputc(*xtext, mfp);
+	}
+}
+
+
 extern int check_7bit_cleanness __((struct ctldesc *dp));
 
 extern int writemimeline __(( struct maildesc *mp, FILE *fp, const char *buf, int len, int convertmode));
@@ -389,6 +407,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	time_t now;
 	char *timestring;
 	CONVERTMODE convertmode = _CONVERT_NONE;
+	char *lineendseq = "\n";
 
 	now = time((time_t *)0);
 	timestring = ctime(&now);
@@ -622,8 +641,8 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    if (startrp->desc->dsnretmode != NULL)
 	      fprintf(tafp, " RET=%s", startrp->desc->dsnretmode);
 	  }
-	  if (mp->flags & MO_CRLF) putc('\r',tafp);
-	  putc('\n',tafp);
+	  if (mp->flags & MO_CRLF) lineendseq = "\r\n";
+	  fputs(lineendseq, tafp);
 	  for (rp = startrp; rp != endrp; rp = rp->next) {
 	    fprintf(tafp,"RCPT TO:<%s>",rp->addr->user);
 	    /* if (mp->flags & MO_BESMTP) { } */
@@ -657,13 +676,11 @@ deliver(dp, mp, startrp, endrp, verboselog)
 		if (rp->deliverbyflgs & _DELIVERBY_T) fputc('T',tafp);
 	      }
 	    }
-	    if (mp->flags & MO_CRLF) putc('\r',tafp);
-	    putc('\n',tafp);
+	    fputs(lineendseq, tafp);
 	  }
 
 	  fprintf(tafp,"DATA");
-	  if (mp->flags & MO_CRLF) putc('\r',tafp);
-	  putc('\n',tafp);
+	  fputs(lineendseq, tafp);
 	}
 
 	/* Now continue with inside stuff -- well, normal UUCP stuff */
@@ -756,10 +773,12 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	if (mp->flags & MO_XENVELOPES) {
 	  const char *uu;
 	  char **hdrs;
+
 	  do {
 	    hdrs = has_header(startrp,"X-Envelope-To:");
 	    if (hdrs) delete_header(startrp, hdrs);
 	  } while (hdrs);
+
 	  for (rp = startrp; rp != endrp; rp = rp->next) {
 	    uu = rp->addr->user;
 	    if (strcmp(rp->addr->link->channel,"error")==0)
@@ -767,32 +786,60 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    append_header(rp,"X-Envelope-To: <%.999s> (uid %s)",
 			  uu, rp->addr->misc);
 	  }
+
+	  do {
+	    hdrs = has_header(rp,"X-Envid:");
+	    if (hdrs) delete_header(rp,hdrs);
+	  } while (hdrs);
+
+	  do {
+	    hdrs = has_header(rp,"Envelope-Id:");
+	    if (hdrs) delete_header(rp,hdrs);
+	  } while (hdrs);
+
 	}
+
 /* PERT-NB X-Orcpt if O option */
-	if (mp->flags & MO_XORCPT) {
-	  const char *uu;
+	if (mp->flags & (MO_XORCPT|MO_XENVELOPES)) {
 	  char **hdrs;
 	  do {
 	    hdrs = has_header(startrp,"X-Orcpt:");
 	    if (hdrs) delete_header(startrp, hdrs);
 	  } while (hdrs);
-	  for (rp = startrp; rp != endrp; rp = rp->next) {
-	    if (rp->orcpt) {    
-	      uu = rp->orcpt;
-	      append_header(rp,"X-Orcpt: %s",rp->orcpt);
-	    }
-	  }
 	}
 /* PERT-NB END */
 
 
-	if (mp->flags & MO_CRLF) {
-	  fwriteheaders(startrp, tafp, "\r\n", convertmode, maxwidth, NULL);
-	  fprintf(tafp, "\r\n");
-	} else {
-	  fwriteheaders(startrp, tafp, "\n",   convertmode, maxwidth, NULL);
-	  fprintf(tafp, "\n");
+	/* Write headers: */
+
+	fwriteheaders(startrp, tafp, lineendseq, convertmode, maxwidth, NULL);
+
+	/*
+	 * NOTE: Following header writers make sense only for SINGLE
+	 *       RECIPIENT DELIVERIES!
+	 *
+	 */
+
+	if (mp->flags & MO_XENVELOPES) {
+	  if (dp->envid) {
+	    fprintf(tafp, "Envelope-Id: ");
+	    decodeXtext(tafp, dp->envid);
+	    fputs(lineendseq, tafp);
+	  }
 	}
+	if (mp->flags & (MO_XORCPT|MO_XENVELOPES)) {
+	  if (rp->orcpt) {
+	    /* RFC 2298: section 2.3 */
+	    fprintf(tafp, "Original-Recipient: ");
+	    decodeXtext(tafp, rp->orcpt);
+	    fputs(lineendseq, tafp);
+	  }
+	}
+
+	/* Header-Body separator: */
+
+	fputs(lineendseq, tafp);
+
 
 	if (verboselog) {
 	  fwriteheaders(startrp, verboselog, "\n", convertmode, maxwidth, NULL);
@@ -820,10 +867,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	}
 
 	if (mp->flags & MO_BSMTP) {
-	  if (mp->flags & MO_CRLF)
-	    fprintf(tafp,".\r\n");
-	  else
-	    fprintf(tafp,".\n");
+	  fputs(lineendseq, tafp);
 	}
 	
 	fclose(tafp);

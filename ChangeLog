@@ -1,3 +1,21 @@
+2002-09-02  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/fqdnalias.cf:
+	    When doing  fqdnroute  processing on a "plus-full"
+	    address, pass proper parameters to the database lookup.
+
+	* include/zmsignal.h, router/daemonsub.c, router/db.c,
+	  router/router.c, router/rfc822.c:
+	    Observed certain kind of difficulties at abruptly
+	    closed database accesses -- SleepyCat DB 3.x CDS
+	    goes into bad lock state, unless properly cleaned
+	    after with atexit().
+
+	* transports/sm/sm.c:
+	    Do similar X-***: header processings as the 'mailbox'
+	    does for ORCPT, EnvelopeID, and Envelope-To.
+	    Streamline a bit separatorsequence processing.
+
 2002-09-01  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/rfc822scan.c, router/functions.c, router/rfc822.c:

@@ -2669,9 +2669,7 @@ sequencer(e, file)
 
 	  sprintf(buf, "NEW %s%.300s", subdirhash, file);
 
-#ifndef MSG_NOSIGNAL
-	  SIGNAL_HANDLESAVE(SIGPIPE, SIG_IGN, oldsig);
-#endif
+	  /* We are running with SIGPIPE ignored.. */
 
 	  sendto(notifysocket, buf, strlen(buf),
 #ifdef MSG_NOSIGNAL
@@ -2681,11 +2679,6 @@ sequencer(e, file)
 		 (struct sockaddr *)&sad, sizeof(sad));
 
 	  close(notifysocket);
-
-#ifndef MSG_NOSIGNAL
-	  SIGNAL_HANDLE(SIGPIPE, oldsig);
-#endif
-
 	} while (0);
 #endif /* AF_UNIX */
 

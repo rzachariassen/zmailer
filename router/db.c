@@ -583,6 +583,37 @@ iclistdbs(spl)
 	return 0;
 }
 
+static int  dbs_atexit_set;
+
+static int
+dbs_atexit_close(spl)
+	struct spblk *spl;
+{
+	struct db_info *dbip;
+
+	dbip = (struct db_info *)spl->data;
+
+	if (dbip->close) {
+	  search_info si;
+	  memset(&si, 0, sizeof(si));
+	  si.file      =  dbip->file;
+	  si.cfgfile   =  dbip->cfgfile;
+	  si.subtype   =  dbip->subtype;
+	  si.ttl       =  dbip->ttl;
+	  si.dbprivate = &dbip->dbprivate;
+
+	  (*dbip->close)(&si, "atexit-close");
+	}
+
+	return 0;
+}
+
+static void dbs_atexit()
+{
+  sp_scan(dbs_atexit_close, (struct spblk *)NULL, spt_databases);
+}
+
+
 int
 run_db(argc, argv)
 	int argc;
@@ -592,6 +623,11 @@ run_db(argc, argv)
 	struct db_info *dbip = NULL;
 	search_info si;
 	struct spblk *spl;
+
+	if (!dbs_atexit_set) {
+	  atexit(dbs_atexit);
+	  dbs_atexit_set = 1;
+	}
 
 	if (argc == 2 && (argv[1][0] == 'i' || argv[1][0] == 't')) {
 		/* print an index/toc of the databases */

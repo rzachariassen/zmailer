@@ -55,28 +55,8 @@ extern struct MIB_MtaEntry *MIBMtaEntry;
 #include <sys/resource.h>
 #endif
 
-#ifdef  HAVE_WAITPID
-# include <sys/wait.h>
-#else
-# ifdef HAVE_WAIT3
-#  include <sys/wait.h> /* Has BSD wait3() */
-# else
-#  ifdef HAVE_SYS_WAIT_H /* POSIX.1 compatible */
-#   include <sys/wait.h>
-#  else /* Not POSIX.1 compatible, lets fake it.. */
-extern int wait();
-#  endif
-# endif
-#endif
-
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(s) (((s) >> 8) & 0377)
-#endif
-#ifndef WSIGNALSTATUS
-# define WSIGNALSTATUS(s) ((s) & 0177)
-#endif
-
 #include "zmsignal.h"
+
 #include "zsyslog.h"
 #include "mail.h"
 #include "interpret.h"
