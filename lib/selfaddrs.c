@@ -71,8 +71,6 @@ union sockaddr_uni {
 #include "zmalloc.h"
 #include "libz.h"
 
-extern char  *getzenv     __((const char *));
-
 /*
 **  LOADIFADDRESSES -- load interface-specific addresses
 */
@@ -447,6 +445,10 @@ done_this_ipv6:
 	  close(s);
 	  free(interfacebuf);
 	}
+#else
+
+#warning "NO SELF-ADDRESS EXTRACTION CODE AVAILABLE !?"
+
 #endif /* defined(SIOCGIFCONF) */
 #endif /* SIOCGLIFCONF / SIOCGIFCONF */
 
@@ -576,7 +578,7 @@ void
 stashmyaddresses(host)
 const char *host;
 {
-	char *s1, *s2, *zenv;
+	const char *s1, *s2, *zenv;
 	union sockaddr_uni **sa;
 	int sacnt;
 
@@ -615,9 +617,9 @@ const char *host;
 	s1 = zenv;
 	while (s1 && *s1) {
 	  s2 = strchr(s1,',');
-	  if (s2) *s2 = 0;
+	  if (s2) *(char *)s2 = 0; /* Urgh... mumble mumble... */
 	  stashmyaddress(s1);
-	  if (s2) *s2 = ',';
+	  if (s2) *(char *)s2 = ',';
 	  if (s2)
 	    s1 = s2+1;
 	  else
