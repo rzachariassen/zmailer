@@ -68,7 +68,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # include "hostenv.h"  /* ZMailer autoconfig environment */
 
-#include <assert.h>
 #include <errno.h>
 #include <netdb.h>
 #if !defined(EAI_AGAIN) || !defined(AI_NUMERICHOST)

@@ -1,3 +1,27 @@
+/*
+ * Generalized adaptation to ZMailer libc fill-in use by
+ * Matti Aarnio <mea@nic.funet.fi> 2000
+ *
+ * The original version taken from  glibc-2.1.92 on 1-Aug-2000
+ *
+ * This is SERIOUSLY LOBOTIMIZED to be usable in environments WITHOUT
+ * threaded versions of getservbyname(), and friends, plus ridding
+ * __alloca()  calls as they are VERY GCC specific, which isn't a good
+ * thing for ZMailer.  (Also DE-ANSIfied to K&R style..)
+ *
+ * Original reason for having   getaddrinfo()  API in ZMailer was
+ * to support IPv6 universe -- and that is still the reason, but
+ * this adaptation module is for those systems which don't have this
+ * IPv6 API, and DON'T support IPv6 at kernel level either!
+ * Now that Linuxes have caught up at libc level, we no longer have
+ * a reason to support kernel things which don't exist at libc level.
+ * (Running ZMailer on Linux with libc5 is not supported in sense of
+ * supporting IPv6 at the kernel..)
+ * 
+ * All that mumbling means simply that here we support ONLY IPv4.
+ *
+ */
+
 /* The Inner Net License, Version 2.00
 
   The author(s) grant permission for redistribution and use in source and
@@ -42,7 +66,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* This software is Copyright 1996 by Craig Metz, All Rights Reserved.  */
 
-#include <alloca.h>
+# include "hostenv.h"  /* ZMailer autoconfig environment */
+
+#include <errno.h>
+#include <netdb.h>
+#if !defined(EAI_AGAIN) || !defined(AI_NUMERICHOST)
+# include "netdb6.h"
+#endif
+#include <arpa/nameser.h> /* Sol 2.6 barfs without this.. */
+#include <resolv.h>
+
 #include <errno.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -63,351 +96,174 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif /* min */
 
 
+static char * nrl_domainname __((void));
 static char *
-internal_function
-nrl_domainname (void)
+nrl_domainname ()
 {
   static char *domain;
   static int not_first;
+  char hostnamebuf[MAXHOSTNAMELEN];
 
-  if (! not_first)
-    {
-      __libc_lock_define_initialized (static, lock);
-      __libc_lock_lock (lock);
+  if (! not_first) {
+    char *c;
+    struct hostent *h;
 
-      if (! not_first)
-	{
-	  char *c;
-	  struct hostent *h, th;
-	  size_t tmpbuflen = 1024;
-	  char *tmpbuf = alloca (tmpbuflen);
-	  int herror;
+    not_first = 1;
 
-	  not_first = 1;
+    h = gethostbyname ("localhost");
 
-	  while (__gethostbyname_r ("localhost", &th, tmpbuf, tmpbuflen, &h,
-				    &herror))
-	    {
-	      if (herror == NETDB_INTERNAL && errno == ERANGE)
-		{
-		  tmpbuflen *= 2;
-		  tmpbuf = alloca (tmpbuflen);
-		}
-	      else
-		break;
-	    }
+    if (h && (c = strchr (h->h_name, '.')))
+      domain = strdup (++c);
+    else {
+      /* The name contains no domain information.  Use the name
+	 now to get more information.  */
+      gethostname (hostnamebuf, MAXHOSTNAMELEN);
+	
+      c = strchr (hostnamebuf, '.');
+      if (c)
+	domain = strdup (++c);
+      else {
+	h = gethostbyname(hostnamebuf);
+
+	if (h && (c = strchr(h->h_name, '.')))
+	  domain = strdup (++c);
+	else {
+	  struct in_addr in_addr;
+
+	  in_addr.s_addr = htonl (0x7f000001);
+
+	      
+	  h = gethostbyaddr((const char *) &in_addr,
+			    sizeof (struct in_addr),
+			    AF_INET);
 
 	  if (h && (c = strchr (h->h_name, '.')))
-	    domain = __strdup (++c);
-	  else
-	    {
-	      /* The name contains no domain information.  Use the name
-		 now to get more information.  */
-	      while (__gethostname (tmpbuf, tmpbuflen))
-		{
-		  tmpbuflen *= 2;
-		  tmpbuf = alloca (tmpbuflen);
-		}
-
-	      if ((c = strchr (tmpbuf, '.')))
-		domain = __strdup (++c);
-	      else
-		{
-		  /* We need to preserve the hostname.  */
-		  const char *hstname = strdupa (tmpbuf);
-
-		  while (__gethostbyname_r (hstname, &th, tmpbuf, tmpbuflen,
-					    &h, &herror))
-		    {
-		      if (herror == NETDB_INTERNAL && errno == ERANGE)
-			{
-			  tmpbuflen *= 2;
-			  tmpbuf = alloca (tmpbuflen);
-			}
-		      else
-			break;
-		    }
-
-		  if (h && (c = strchr(h->h_name, '.')))
-		    domain = __strdup (++c);
-		  else
-		    {
-		      struct in_addr in_addr;
-
-		      in_addr.s_addr = htonl (0x7f000001);
-
-		      while (__gethostbyaddr_r ((const char *) &in_addr,
-						sizeof (struct in_addr),
-						AF_INET, &th, tmpbuf,
-						tmpbuflen, &h, &herror))
-			{
-			  if (herror == NETDB_INTERNAL && errno == ERANGE)
-			    {
-			      tmpbuflen *= 2;
-			      tmpbuf = alloca (tmpbuflen);
-			    }
-			  else
-			    break;
-			}
-
-		      if (h && (c = strchr (h->h_name, '.')))
-			domain = __strdup (++c);
-		    }
-		}
-	    }
+	    domain = strdup (++c);
 	}
-
-      __libc_lock_unlock (lock);
+      }
     }
+  }
 
   return domain;
-};
+}
 
 
 int
-getnameinfo (const struct sockaddr *sa, socklen_t addrlen, char *host,
-	     socklen_t hostlen, char *serv, socklen_t servlen, int flags)
+getnameinfo __((const struct sockaddr *sa, socklen_t addrlen, char *host,
+		socklen_t hostlen, char *serv, socklen_t servlen, int flags));
+
+int
+getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
+     const struct sockaddr *sa;
+     socklen_t addrlen;
+     char *host;
+     socklen_t hostlen;
+     char *serv;
+     socklen_t servlen;
+     int flags;
 {
   int serrno = errno;
-  int tmpbuflen = 1024;
-  int herrno;
-  char *tmpbuf = alloca (tmpbuflen);
-  struct hostent th;
   int ok = 0;
 
   if (sa == NULL || addrlen < sizeof (sa_family_t))
     return -1;
 
-  switch (sa->sa_family)
-    {
-    case AF_LOCAL:
-      if (addrlen < (socklen_t) (((struct sockaddr_un *) NULL)->sun_path))
-	return -1;
-      break;
+  switch (sa->sa_family) {
+  case AF_LOCAL:
+    if (addrlen < (socklen_t) (((struct sockaddr_un *) NULL)->sun_path))
+      return -1;
+    break;
+  case AF_INET:
+    if (addrlen < sizeof (struct sockaddr_in))
+      return -1;
+    break;
+  default:
+    return -1;
+  }
+
+  if (host != NULL && hostlen > 0)
+    switch (sa->sa_family) {
     case AF_INET:
-      if (addrlen < sizeof (struct sockaddr_in))
-	return -1;
+      if (!(flags & NI_NUMERICHOST)) {
+	struct hostent *h;
+
+	h = gethostbyaddr((void *) &(((struct sockaddr_in *)sa)->sin_addr),
+			  sizeof(struct in_addr), AF_INET);
+	if (h) {
+	  if (flags & NI_NOFQDN) {
+	    char *c;
+	    if ((c = nrl_domainname ()) && (c = strstr(h->h_name, c))
+		&& (c != h->h_name) && (*(--c) == '.'))     {
+	      strncpy (host, h->h_name,
+		       min(hostlen, (size_t) (c - h->h_name)));
+	      host[min(hostlen - 1, (size_t) (c - h->h_name))] 	= '\0';
+	      ok = 1;
+	    } else {
+	      strncpy (host, h->h_name, hostlen);
+	      ok = 1;
+	    }
+	  } else {
+	    strncpy (host, h->h_name, hostlen);
+	    ok = 1;
+	  }
+	}
+      }
+
+      if (!ok) {
+	if (flags & NI_NAMEREQD) {
+	  return -1;
+	} else {
+	  const char *c;
+	  c = inet_ntop (AF_INET,
+			 (void *) &(((struct sockaddr_in *) sa)->sin_addr),
+			 host, hostlen);
+	  if (!c) {
+	    return -1;
+	  }
+	}
+	ok = 1;
+      }
       break;
-    case AF_INET6:
-      if (addrlen < sizeof (struct sockaddr_in6))
+
+    case AF_LOCAL:
+      if (!(flags & NI_NUMERICHOST)) {
+	struct utsname utsname;
+
+	if (!uname (&utsname)) {
+	  strncpy (host, utsname.nodename, hostlen);
+	  break;
+	}
+      }
+
+      if (flags & NI_NAMEREQD) {
 	return -1;
+      }
+
+      strncpy (host, "localhost", hostlen);
       break;
+
     default:
       return -1;
     }
 
-  if (host != NULL && hostlen > 0)
-    switch (sa->sa_family)
-      {
-      case AF_INET:
-      case AF_INET6:
-	if (!(flags & NI_NUMERICHOST))
-	  {
-	    struct hostent *h = NULL;
-	    if (h == NULL)
-	      {
-		if (sa->sa_family == AF_INET6)
-		  {
-		    while (__gethostbyaddr_r ((void *) &(((struct sockaddr_in6 *) sa)->sin6_addr),
-					      sizeof(struct in6_addr),
-					      AF_INET6, &th, tmpbuf, tmpbuflen,
-					      &h, &herrno))
-		      {
-			if (herrno == NETDB_INTERNAL)
-			  {
-			    if (errno == ERANGE)
-			      {
-				tmpbuflen *= 2;
-				tmpbuf = alloca (tmpbuflen);
-			      }
-			    else
-			      {
-				__set_h_errno (herrno);
-				__set_errno (serrno);
-				return -1;
-			      }
-			  }
-			else
-			  {
-			    break;
-			  }
-		      }
-		  }
-		else
-		  {
-		    while (__gethostbyaddr_r ((void *) &(((struct sockaddr_in *)sa)->sin_addr),
-					      sizeof(struct in_addr), AF_INET,
-					      &th, tmpbuf, tmpbuflen,
-					      &h, &herrno))
-		      {
-			if (errno == ERANGE)
-			  {
-			    tmpbuflen *= 2;
-			    tmpbuf = alloca (tmpbuflen);
-			  }
-			else
-			  {
-			    break;
-			  }
-		      }
-		  }
-	      }
-
-	    if (h)
-	      {
-		if (flags & NI_NOFQDN)
-		  {
-		    char *c;
-		    if ((c = nrl_domainname ()) && (c = strstr(h->h_name, c))
-			&& (c != h->h_name) && (*(--c) == '.'))
-		      {
-			strncpy (host, h->h_name,
-				 min(hostlen, (size_t) (c - h->h_name)));
-			host[min(hostlen - 1, (size_t) (c - h->h_name))]
-			  = '\0';
-			ok = 1;
-		      }
-		    else
-		      {
-			strncpy (host, h->h_name, hostlen);
-			ok = 1;
-		      }
-		  }
-		strncpy (host, h->h_name, hostlen);
-		ok = 1;
-	      }
-	  }
-
-	if (!ok)
-	  {
-	    if (flags & NI_NAMEREQD)
-	      {
-		__set_errno (serrno);
-		return -1;
-	      }
-	    else
-	      {
-		const char *c;
-		if (sa->sa_family == AF_INET6)
-		  {
-		    struct sockaddr_in6 *sin6p = (struct sockaddr_in6 *) sa;
-		    uint32_t scopeid;
-
-		    c = inet_ntop (AF_INET6,
-				   (void *) &sin6p->sin6_addr, host, hostlen);
-		    if (addrlen > sizeof (struct sockaddr_in6)
-			&& (scopeid = sin6p->sin6_scope_id))
-		      {
-			/* Buffer is >= IFNAMSIZ+1.  */
-			char scopebuf[IFNAMSIZ + 1];
-			int ni_numericscope = 0;
-
-			if (IN6_IS_ADDR_LINKLOCAL (&sin6p->sin6_addr)
-			    || IN6_IS_ADDR_MC_LINKLOCAL (&sin6p->sin6_addr))
-			  {
-			    if (if_indextoname (scopeid, scopebuf) == NULL)
-			      ++ni_numericscope;
-			  }
-			else
-			  ++ni_numericscope;
-
-			if (ni_numericscope)
-			  {
-			    char *scopeptr = &scopebuf[1];
-			    size_t real_hostlen;
-			    size_t scopelen;
-
-			    scopebuf[0] = SCOPE_DELIMITER;
-			    scopelen = 1 + snprintf (scopeptr,
-						     (scopebuf
-						      + sizeof scopebuf
-						      - scopeptr),
-						     "%u", scopeid);
-
-			    real_hostlen = __strnlen (host, hostlen);
-			    if (real_hostlen + scopelen + 1 > hostlen)
-			      return -1;
-			    memcpy (host + real_hostlen, scopebuf, scopelen);
-			  }
-		      }
-		  }
-		else
-		  c = inet_ntop (AF_INET,
-				 (void *) &(((struct sockaddr_in *) sa)->sin_addr),
-				 host, hostlen);
-		if (c == NULL)
-		  {
-		    __set_errno (serrno);
-		    return -1;
-		  }
-	      }
-	    ok = 1;
-	  }
-	break;
-
-      case AF_LOCAL:
-	if (!(flags & NI_NUMERICHOST))
-	  {
-	    struct utsname utsname;
-
-	    if (!uname (&utsname))
-	      {
-		strncpy (host, utsname.nodename, hostlen);
-		break;
-	      };
-	  };
-
-	if (flags & NI_NAMEREQD)
-	   {
-	    __set_errno (serrno);
-	    return -1;
-	  }
-
-	strncpy (host, "localhost", hostlen);
-	break;
-
-      default:
-        return -1;
-    }
-
   if (serv && (servlen > 0))
-    switch (sa->sa_family)
-      {
+    switch (sa->sa_family) {
       case AF_INET:
-      case AF_INET6:
-	if (!(flags & NI_NUMERICSERV))
-	  {
-	    struct servent *s, ts;
-	    while (__getservbyport_r (((struct sockaddr_in *) sa)->sin_port,
-				      ((flags & NI_DGRAM) ? "udp" : "tcp"),
-				      &ts, tmpbuf, tmpbuflen, &s))
-	      {
-		if (herrno == NETDB_INTERNAL)
-		  {
-		    if (errno == ERANGE)
-		      {
-			tmpbuflen *= 2;
-			tmpbuf = __alloca (tmpbuflen);
-		      }
-		    else
-		      {
-			__set_errno (serrno);
-			return -1;
-		      }
-		  }
-		else
-		  {
-		    break;
-		  }
-	      }
-	    if (s)
-	      {
-		strncpy (serv, s->s_name, servlen);
-		break;
-	      }
+	if (!(flags & NI_NUMERICSERV)) {
+	  struct servent *s;
+	  s = getservbyport(((struct sockaddr_in *) sa)->sin_port,
+			    ((flags & NI_DGRAM) ? "udp" : "tcp"));
+	  if (s) {
+	    strncpy (serv, s->s_name, servlen);
+	    break;
 	  }
-	__snprintf (serv, servlen, "%d",
-		    ntohs (((struct sockaddr_in *) sa)->sin_port));
+	}
+	{
+	  char decbuf[30];
+	  sprintf(decbuf, "%d", ntohs (((struct sockaddr_in *) sa)->sin_port));
+	  strncpy(serv, decbuf, servlen);
+	  serv[servlen-1] = 0;
+	}
 	break;
 
       case AF_LOCAL:
