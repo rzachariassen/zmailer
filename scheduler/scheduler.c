@@ -78,7 +78,7 @@ struct conshell *envarlist = NULL;
 				  need open -- or any of its children.. */
 int	transportmaxnofiles = TRANSPORTMAXNOFILES; /* Default value */
 const char * progname;
-const char * postoffice;
+extern const char * postoffice;
 const char * rendezvous;
 const char * pidfile = PID_SCHEDULER;
 const char * mailshare;
