@@ -108,9 +108,12 @@ dequote (str, len)
 	const char *sp, *ep;
 	char *s, *s0;
 
+	memtypes stickytmp = stickymem;
+	stickymem = MEM_SHCMD;
+
 /* fprintf(stderr,"dequote(\"%s\",%d) => ",str,len); */
 
-	s0 = emalloc(len+1); /* All subsequent runs will be smaller,
+	s0 = tmalloc(len+1); /* All subsequent runs will be smaller,
 				AND they fit running in-place! */
 
 	do {
@@ -149,6 +152,8 @@ dequote (str, len)
 	} while (ep > s0 && *s0 == *ep && (*s0 == '"' || *s0 == '\''));
 
 /* fprintf(stderr,"\"%s\"\n",s0); */
+
+	stickymem = stickytmp;
 
 	return (s0);
 }
