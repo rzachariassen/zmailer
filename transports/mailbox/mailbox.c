@@ -1126,7 +1126,7 @@ deliver(dp, rp, usernam, timestring)
 		notaryreport(rp->addr->user,"failed",
 			     "5.3.0 (Error getting user identity)",
 			     "x-local; 550 (Error getting user identity)");
-		DIAGNOSTIC(rp, usernam, EX_TEMPFAIL,
+		DIAGNOSTIC3(rp, usernam, EX_TEMPFAIL,
 			   "getpwnam for user \"%s\" failed; errno=%d",
 			   usernam, errno);
 
