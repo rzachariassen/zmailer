@@ -24,6 +24,8 @@ extern long pjwhash32n __((const void *, int));
 extern long crc32n     __((const void *, int));
 
 
+#define CRCorNOT 1 /* 0: pjwhash32n(), !0: crc32n() */
+
 struct syment {
 	struct syment *next;
 	int        namelen;
@@ -100,7 +102,7 @@ symbol_lookup_db_mem(s, slen, spt)
 	const int slen;
 	struct sptree *spt;
 {
-  return symbol_lookup_db_mem_(s, slen, spt, 0);
+  return symbol_lookup_db_mem_(s, slen, spt, CRCorNOT);
 }
 
 
@@ -164,7 +166,7 @@ symbol_db_mem(s, slen, spt)
 	int slen;
 	struct sptree *spt;
 {
-  return symbol_db_mem_(s, slen, spt, 0);
+  return symbol_db_mem_(s, slen, spt, CRCorNOT);
 }
 
 /*
@@ -256,7 +258,7 @@ void symbol_free_db_mem(s, slen, spt)
 	int slen;
 	struct sptree *spt;
 {
-	symbol_free_db_mem_(s, slen, spt, 0);
+	symbol_free_db_mem_(s, slen, spt, CRCorNOT);
 }
 
 void

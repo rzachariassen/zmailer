@@ -1,12 +1,15 @@
 1999-09-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* lib/symbol.c:
+	    Use CRC-31 polynome hash function internally.
+
 	* transports/mailbox/mailbox.c, transports/mailbox/mboxpath.c,
 	  man/mailbox.8, man/mboxpath.1:
 	    Added -X[X] option to behave alike -P[P] option, but to use
 	    CRC32() function.
 
 	* lib/symbol.c, lib/crc32.c, lib/hashtest.c:
-	    Separated CRC-31 (?) polynomy calculator into separate module
+	    Separated CRC-31 (?) polynome calculator into separate module
 	    outside the  symbol.c;  Entrypoints: 'long crc32(char *s);' and
 	    'long crc32n(char *s, int len);'.
 
