@@ -1666,15 +1666,15 @@ void thread_report(fp,mqmode)
 	  else
 	    sfprintf(fp, "%s\n",timebuf);
 
-	  sfprintf(fp, "Msgs in %lu out %lu stored %lu ",
+	  sfprintf(fp, "Msgs in %lu out %lu stored %ld ",
 		   (u_long)MIBMtaEntry->mtaReceivedMessagesSc,
 		   (u_long)MIBMtaEntry->mtaTransmittedMessagesSc,
-		   (u_long)MIBMtaEntry->mtaStoredMessages);
+		   (long)MIBMtaEntry->mtaStoredMessages);
 
-	  sfprintf(fp, "Rcpnts in %lu out %lu stored %lu",
+	  sfprintf(fp, "Rcpnts in %lu out %lu stored %ld",
 		   (u_long)MIBMtaEntry->mtaReceivedRecipientsSc,
 		   (u_long)MIBMtaEntry->mtaTransmittedRecipientsSc,
-		   (u_long)MIBMtaEntry->mtaStoredRecipients);
+		   (long)MIBMtaEntry->mtaStoredRecipients);
 
 	  if (rcptsum != MIBMtaEntry->mtaStoredRecipients)
 	    sfprintf(fp, " (%d)", rcptsum);

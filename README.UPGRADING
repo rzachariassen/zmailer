@@ -12,6 +12,19 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.55:
+		The way how DEFAULT value for  zmailer.conf  location
+		is formed has been changed.  Formerly that, and  mail.conf
+		file used to default at  /etc/  directory.
+		Now  zmailer.conf will derive its location from
+			--prefix=
+		It really should be derived from $MAILSHARE, but the story
+		is long, and the script is complicated...  Do use
+		./configure  --with-zconfig=PATH  to set it explicitely.
+
+		The  mail.conf  is expected (by default versions of
+		router.cf) to be  $MAILVAR/mail.conf
+
 	ZMailer-2.99.55-pre1cvs (22-Jan-2001)
 		Detail change at how variable expansion happens inside
 		the router scripts with aim to allow less opportunities

@@ -1,3 +1,17 @@
+2001-03-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* README.UPGRADING:
+	    Added a note about the ALTERED default locations
+	    of  zmailer.conf  and  mail.conf  files.
+
+	* man/smtpserver.8, proto/smtpserver.conf.in:
+	    Fix up the tcp-wrapper related documentation, and the default
+	    stuff in the  smtpserver.conf  template.
+
+	* scheduler/threads.c:
+	    Print the gauges of message counts in the queue with SIGNED
+	    values, thus making underflows (negatives) more obvious.
+
 2001-03-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/mailq.c:

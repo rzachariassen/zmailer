@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8 "13 Oct 2000"
+.TH SMTPSERVER 8 "2 Mar 2001"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -505,6 +505,10 @@ PARAM  enable-router
 #               # command line and a password from standard input.
 #               # Exit status 0 means successful authentication.
 #
+#PARAM  use-tcp-wrapper
+#               # If TCP-WRAPPER is configured in, uncommenting this
+#               # will activate its use to look service name:  smtp-receiver
+#
 # Disablers of some facility adverticements
 #PARAM  NoEHLO
 #PARAM  NoPIPELINING
@@ -655,7 +659,8 @@ reported by the contentfilter program, and if no properly formatted line
 appears, default is to send the message into the freezer ("-1");
 .SH TCP\-WRAPPER AND SMTPSERVER
 If the ZMailer system is configured with \fItcp-wrapper\fR code,
-then service-id "\fCsmtp-receive\fR" is looked for all those addresses
+and ``PARAM use\-tcp\-wrapper'' is active in configuration,
+then service-id "\fCsmtp-receiver\fR" is looked for all those addresses
 that are allowed to feed SMTP email in.
 .P
 Usually this mode of operation is not used, and files
@@ -668,7 +673,7 @@ contain following kind of entries:
 \fC
    \fI/ETC/hosts.allow\fC
    mailq : ALL@1.2.3.0
-   smtp\-receive: ALL@ALL
+   smtp\-receiver: ALL@ALL
 
    \fI/ETC/hosts.deny\fC
    ALL : ALL@ALL\fR
