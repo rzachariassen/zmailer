@@ -3253,9 +3253,9 @@ int sig;
 	SIGNAL_HANDLE(sig, sig_alarm);
 	SIGNAL_RELEASE(sig);
 	if (!noalarmjmp) {
-#ifdef JB_PC
+#ifdef __alpha__
 	  zsyslog((LOG_ERR,"sigalrm(PC=%lx SP=%lx)",
-		   alarmjmp[JB_PC], alarmjmp[JB_SP]));
+		   alarmjmp[2], alarmjmp[34]));
 #endif
 	  longjmp(alarmjmp, 1);
 	}
