@@ -130,7 +130,7 @@ struct thread {
 
 struct web {
 	char		*name;		/* name of the L_? thingy	    */
-	int		linkcnt;
+	int		linkcnt;	/* How many usage instances	    */
 	int		kids;	/* how many transport agents running for me */
 	struct vertex	*link;		/* points at group of addresses     */
 	struct vertex	*lastlink;	/* for efficiency at link_in()	    */
@@ -160,12 +160,23 @@ struct procinfo {
 	time_t	hungertime;	/* .. when last state change		*/
 	int	overfed;	/* Now many jobs fed to it over the normal 1?*/
 	time_t	feedtime;	/* .. when fed				*/
+
 	struct web *ch;		/* Web of CHANNELs			*/
 	struct web *ho;		/* Web of HOSTs				*/
-	struct thread *pthread;	/* The thread we are processing		*/
-	struct vertex *pvertex;	/* vertex within that thread		*/
-	struct procinfo *pnext;	/* next one in IDLE queue		*/
+				/* Set at channel creation, removed at
+				   reclaim(), modified at thread_start()
+				   when using IDLE queue.		*/
+
+
 	struct threadgroup *thg; /* The thread-ring we are in		*/
+
+	struct thread *pthread;	/* The thread we are processing		*/
+				/* ta_hungry() forwards pthread		*/
+	struct vertex *pvertex;	/* vertex within that thread		*/
+				/* feed_child() forwards pvertex	*/
+
+	struct procinfo *pnext;	/* next one in IDLE queue - else NULL	*/
+
 	char	*carryover;	/* Long responces..			*/
 	int	cmdlen;		/* buffer content size			*/
 	int	cmdspc;		/* buffer size				*/

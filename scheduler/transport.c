@@ -661,18 +661,21 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->overfed = 1;
 	proc->state   = CFSTATE_LARVA;
 
-	proc->pid    = pid;
-	proc->ch     = chwp;
-	proc->ho     = howp;
+	proc->pid     = pid;
+
+	proc->ch      = chwp;
+	chwp->kids   += 1;
+
+	proc->ho      = howp;
+	howp->kids   += 1;
+
 	proc->pvertex = vhead;
 	proc->pthread = vhead->thread;
-	proc->thg    = vhead->thread->thgrp;
+	proc->thg     = vhead->thread->thgrp;
 	proc->thg->transporters += 1;
 	++numkids;
-	if (chwp != NULL) chwp->kids += 1;
-	if (howp != NULL) howp->kids += 1;
-	proc->tofd   = tofd;
-	vhead->proc  = proc;
+	proc->tofd    = tofd;
+	vhead->proc   = proc;
 	proc->pthread->proc = proc;
 
 	mytime(&proc->hungertime); /* Actually it is not yet 'hungry' as
@@ -743,8 +746,8 @@ static void reclaim(fromfd, tofd)
 
 if (verbose)
   sfprintf(sfstderr,"reclaim(%d,%d) pid=%d, reaped=%d, chan=%s, host=%s\n",
-	  fromfd,tofd,(int)proc->pid,proc->reaped,
-	  proc->ch->name,proc->ho->name);
+	   fromfd, tofd, (int)proc->pid, proc->reaped,
+	   proc->ch->name, proc->ho->name);
 
 	proc->pid = 0;
 	proc->reaped = 0;
@@ -754,19 +757,15 @@ if (verbose)
 	  free(proc->carryover);
 	  proc->carryover = NULL;
 	}
-	if (proc->ch != NULL) {
+	if (proc->ch) {
 	  proc->ch->kids -= 1;
-	  if (proc->ch->kids == 0 && proc->ch->link == NULL) {
-	    unweb(L_CHANNEL, proc->ch);
-	    proc->ch = NULL;
-	  }
+	  unweb(L_CHANNEL, proc->ch);
+	  proc->ch = NULL;
 	}
-	if (proc->ho != NULL) {
+	if (proc->ho) {
 	  proc->ho->kids -= 1;
-	  if (proc->ho->kids == 0 && proc->ho->link == NULL) {
-	    unweb(L_HOST, proc->ho);
-	    proc->ho = NULL;
-	  }
+	  unweb(L_HOST, proc->ho);
+	  proc->ho = NULL;
 	}
 	if (tofd >= 0)
 	  pipes_shutdown_child(tofd);
@@ -776,12 +775,10 @@ if (verbose)
 	   (that were not reported on).		*/
 
 	/* ... but only if we were not in IDLE chain! */
-	if (proc->pthread != NULL) {
+	if (proc->pthread) {
 	  /* Reschedule them all .. */
 	  thread_reschedule(proc->pthread,0,-1);
-	  /* Bookkeeping about dead transporters */
-	  proc->thg->transporters -= 1;
-	  --numkids;
+	  /* Reschedule may destroy this vertex (and thread) */
 	  if (proc->pvertex) {
 	    proc->pvertex->proc = NULL;
 	    proc->pvertex       = NULL;
@@ -790,49 +787,49 @@ if (verbose)
 	    proc->pthread->proc = NULL;
 	    proc->pthread       = NULL;
 	  }
-	  proc->thg    = NULL;
+	  /* If e.g. RESCHEDULE has not destroyed this thread-group.. */
+	  if (proc->thg) {
+	    proc->thg->transporters -= 1;
+	    /* It may go down to zero and be deleted.. */
+	    delete_threadgroup(proc->thg);
+	    proc->thg    = NULL;
+	  }
 	} else {
 	  /* Maybe we were in idle chain! */
-	  if (proc->thg != NULL /* And not killed by  idle_cleanup() */) {
-	    struct procinfo *p, **pp;
-	    p  =  proc->thg->idleproc;
-	    pp = &proc->thg->idleproc;
+	  struct procinfo *p, **pp;
+	  p  =  proc->thg->idleproc;
+	  pp = &proc->thg->idleproc;
 
-	    while (p && p != proc) {
-		/* Move to the next possible idle process */
-		pp = &p->pnext;
-		p = p->pnext;
-	    }
-	    if (p == proc) {
-	      /* Remove this entry from the chains */
-	      *pp = p->pnext;
-	      p = p->pnext;
-	      proc->thg->idlecnt      -= 1;
-	      --idleprocs;
-	      proc->thg->transporters -= 1;
-	      --numkids;
-	      /* It may go down to zero.. */
-	      if (proc->thg->transporters == 0 && proc->thg->threads == 0)
-		delete_threadgroup(proc->thg);
-	    } else {
-	      /* It is not in idle chain, it has died somehow else.. */
-	      if (proc->pvertex) {
-		proc->pvertex->proc = NULL;
-		proc->pvertex = NULL;
-	      }
-	      if (proc->pthread) {
-		proc->pthread->proc = NULL;
-		proc->pthread = NULL;
-	      }
-	      proc->thg->transporters -= 1;
-	      --numkids;
-	    }
-	  } else {
-	    /* We are killed by the idle_cleanup() !   */
-	    /* proc->thg == NULL, proc->pthread == NULL */
-	    /* idle_cleanup() did all decrementing..   */
+	  while (p && p != proc) {
+	    /* Move to the next possible idle process */
+	    pp = &p->pnext;
+	    p  =  p->pnext;
 	  }
+	  if (p == proc) {
+	    /* Remove this entry from the chains */
+	    *pp = p->pnext;
+	    p   = p->pnext;
+	    proc->thg->idlecnt -= 1;
+	    --idleprocs;
+	  } else {
+	    /* It is not in idle chain, it has died somehow else.. */
+	    if (proc->pvertex) {
+	      proc->pvertex->proc = NULL;
+	      proc->pvertex = NULL;
+	    }
+	    if (proc->pthread) {
+	      proc->pthread->proc = NULL;
+	      proc->pthread = NULL;
+	    }
+	  }
+
+	  /* If e.g. RESCHEDULE has not destroyed this thread-group.. */
+	  proc->thg->transporters -= 1;
+	  /* It may go down to zero and be deleted... */
+	  delete_threadgroup(proc->thg);
 	}
+	--numkids;
+	proc->thg    = NULL;
 }
 
 static void waitandclose(fd)

@@ -97,6 +97,10 @@ struct threadgroup *thgp;
 	   We shall not have any threads under us, nor
 	   idle processes!				  */
 
+	/* However we may be called with either of these values
+	   still non-zero... */
+	if (thgp->transporters || thgp->threads) return;
+
 if (verbose) sfprintf(sfstdout,"delete_threadgroup(%s/%d/%s)\n",
 		      thgp->wchan->name,thgp->withhost,thgp->whost->name);
 
@@ -105,17 +109,16 @@ if (verbose) sfprintf(sfstdout,"delete_threadgroup(%s/%d/%s)\n",
 	if (thrg_root == NULL) abort(); /* No thread-group root! */
 
 
-	/* Are we last to keep these web links ? */
+	/* We are possibly the last to keep these web links */
 
 	thgp->wchan->linkcnt -= 1;
-	if (thgp->wchan->linkcnt <= 0)
-	  unweb(L_CHANNEL,thgp->wchan);
+	unweb(L_CHANNEL,thgp->wchan);
 
 	thgp->whost->linkcnt -= 1;
-	if (thgp->whost->linkcnt <= 0)
-	  unweb(L_HOST,thgp->whost);
+	unweb(L_HOST,thgp->whost);
 
 	/* Unlink this thread-group from the ring */
+
 	tgp                    = thgp->nextthg;
 	thgp->prevthg->nextthg = thgp->nextthg;
 	tgp->prevthg           = thgp->prevthg;
@@ -321,16 +324,17 @@ pick_next_thread(proc)
 	    struct web     * ho = vp->orig[L_HOST];
 	    struct web     * ch = vp->orig[L_CHANNEL];
 
+if (ch == BADPTR || ho == BADPTR) abort();
+
 	    thr->proc     = proc;
 	    proc->pthread = thr;
 	    proc->pvertex = vp;
-	    proc->ch      = ch;
 
 	    if (proc->ho != NULL && proc->ho != ho) {
 	      /* Get rid of the old host web */
 	      proc->ho->kids -= 1;
-	      if (proc->ho->kids == 0 && proc->ho->link == NULL)
-		unweb(L_HOST,proc->ho);
+	      unweb(L_HOST,proc->ho);
+	      proc->ho = NULL;
 	    }
 
 	    /* Move the kid to this host web */
@@ -339,6 +343,9 @@ pick_next_thread(proc)
 	      proc->ho = ho;
 	      proc->ho->kids += 1;
 	    }
+
+	    /* In theory the CHANNEL could be different, in practice -- NOT! */
+	    proc->ch      = ch;
 
 	    /* Move the pickup pointer forward.. */
 	    thg->thread = thg->thread->nextthg;
@@ -382,6 +389,10 @@ delete_thread(thr, ok)
 	  /* If this thread has a process, we detach it! */
 	  thr->proc->pthread = NULL;
 	  thr->proc->pvertex = NULL;
+	  /* These are handled by  transport.c:reclaim():
+	     thr->proc->ho = NULL;
+	     thr->proc->ch = NULL;
+	  */
 	}
 
 	/* If threads count goes zero.. */
@@ -593,11 +604,15 @@ int flag;
 	struct spblk *spl = NULL;
 	spkey_t spk;
 
-	wp->link = wp->lastlink = NULL;
-	if (wp->kids != 0)
-	  return;		/* too early to actually remove it */
+if (verbose)
+  sfprintf(sfstderr,"unweb(flag=%d wp=%p); linkcnt=%d kids=%d\n",
+	   flag,wp,wp->kids,wp->linkcnt);
+
 	if (wp->linkcnt > 0)	/* Yet objects holding it */
 	  return;
+	if (wp->kids > 0)	/* too early to actually remove it */
+	  return;
+
 	spk = symbol_lookup_db((u_char *)wp->name, spt_mesh[flag]->symbols);
 	if ((spkey_t)0 == spk)	/* Not in the symbol table */
 	  return;
@@ -832,15 +847,15 @@ struct thread *thr;
 
 	  proc->pthread  = thr;
 	  proc->pvertex  = thr->vertices;
+
 	  /* Thread-groups are made such that here at thread_start() we
 	     can always switch over in between threads */
-	  proc->ch = ch;
 
 	  if (proc->ho != NULL && proc->ho != ho) {
 	    /* Get rid of the old host web */
 	    proc->ho->kids -= 1;
-	    if (proc->ho->kids == 0 && proc->ho->link == NULL)
-	      unweb(L_HOST,proc->ho);
+	    unweb(L_HOST,proc->ho);
+	    proc->ho = NULL;
 	  }
 
 	  /* Move the kid to this host web */
@@ -849,6 +864,9 @@ struct thread *thr;
 	    proc->ho = ho;
 	    proc->ho->kids += 1;
 	  }
+
+	  /* In theory the CHANNEL could be different -- in practice NOT! */
+	  proc->ch = ch;
 
 	  /* Clean vertices 'proc'-pointers,  randomize the
 	     order of thread vertices  (or sort by spool file
@@ -1340,39 +1358,25 @@ idle_cleanup()
 
 		pipes_shutdown_child(p->tofd);
 		p->tofd = -1;
-#if 0
-		p->thg        = NULL;
-		p->thread     = NULL;
 
-		--numkids;
 		++freecount;
 
-		/* The thread-group can be deleted before reclaim() runs! */
-		thg->transporters -= 1;
-#endif
+		/* Reclaim will (in due time) detect dead child, and
+		   decrement child counters. */
+
 		zsyslog((LOG_ERR, "ZMailer scheduler kludge shutdown of TA channel (info for debug only); %s/%s/%d HA=%ds",
 			 thr->channel, thr->host, thr->thgrp->withhost,
 			 now - p->hungertime));
 	      }
 	    }
-	    if (thg->thread == NULL && thg->idleproc == NULL) {
-	      /* No threads, no idle processes! Delete it! */
-	      delete_threadgroup(thg);
-	    }
 	  }
 
-	  if (idleprocs == 0) return 0; /* If no idle ones, no cleanup.. */
-
 	  if (thg->idleproc) {
-	    int idlecnt = 0;
-	    int newidlecnt = 0;
-	    struct procinfo *p, **pp;
+	    struct procinfo *p;
 	    
 	    p  =  thg->idleproc;
-	    pp = &thg->idleproc;
 
 	    while (p != NULL) {
-	      ++idlecnt;
 	      if ((thg->cep->idlemax + p->hungertime < now) &&
 		  (p->cmdlen == 0) && (p->tofd >= 0)) {
 		/* It is old enough -- ancient, one might say.. */
@@ -1385,32 +1389,15 @@ idle_cleanup()
 		write(p->tofd,"\n",1);
 		pipes_shutdown_child(p->tofd);
 		p->tofd       = -1;
-
-		thg->idlecnt -= 1;
-		--idleprocs;
 		++freecount;
-		/* The thread-group can be deleted before reclaim() runs! */
-		thg->transporters -= 1;
-#if 1
-		--numkids;
-		p->thg        = NULL;
-		p->pthread    = NULL;
-#endif
-
-		/* Remove this entry from the chain, and move to a next one */
-		p = *pp = p->pnext;
-	      } else {
-		++newidlecnt;
-		/* Move to the next possible idle process */
-		pp = &p->pnext;
-		p = p->pnext;
 	      }
-	    }
-	    if (thg->thread == NULL && thg->idleproc == NULL) {
-	      /* No threads, no idle processes! Delete it! */
-	      delete_threadgroup(thg);
+
+	      /* Move to the next possible idle process */
+	      p = p->pnext;
 	    }
 	  }
+	  /* If there are no threads, nor transporters, delete the thg */
+	  delete_threadgroup(thg);
 	}
 	return freecount;
 }

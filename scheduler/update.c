@@ -286,18 +286,14 @@ void unvertex(vp, justfree, ok)
 	  if (i == L_CTLFILE)
 	    continue;
 
-	  removeme = 0;
 	  if (vp->orig[i]->link == vp)
-	    if ((vp->orig[i]->link = vp->next[i]) == NULL)
-	      removeme = 1;
+	    vp->orig[i]->link = vp->next[i];
+
 	  if (vp->orig[i]->lastlink == vp)
-	    if ((vp->orig[i]->lastlink = vp->prev[i]) == NULL)
-	      removeme = 1;
-	  if (removeme) {
-	    vp->orig[i]->linkcnt -= 1;
-	    unweb(i, vp->orig[i]);
-	    vp->orig[i] = NULL;
-	  }
+	    vp->orig[i]->lastlink = vp->prev[i];
+
+	  vp->orig[i]->linkcnt -= 1;
+	  unweb(i, vp->orig[i]);
 	}
 
 	if (vp->cfp->head == vp) {

@@ -54,6 +54,7 @@ extern int  nobody;
 extern int  sweepinterval;
 extern char *mq2authfile;
 extern char *mailqsock;
+extern void *BADPTR;
 
 
 /* msgerror.c */

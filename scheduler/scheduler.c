@@ -130,7 +130,7 @@ static int vtxprep_skip_lock = 0;
 static time_t next_dirscan     = 0;
 static time_t next_idlecleanup = 0;
 static struct sptree *dirscan_mesh = NULL;
-static int newents_limit = 200;
+static int newents_limit = 400;
 extern int never_full_content; /* on conf.c */
 
 #include "memtypes.h"
