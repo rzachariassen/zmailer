@@ -1,3 +1,14 @@
+1998-02-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/zmailer.sh.in, utils/rotate-log.sh:
+
+1998-02-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/functions.c:
+	    Logical expression error within run_dequote() caused
+	    faulty processing of string "'" in such manner, which
+	    caused process to blow up...
+
 1998-02-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* include/libc.h:

@@ -541,6 +541,10 @@ Installation procedure:
 	  in any case to make sure the text is appropriate for your site.
 
 
+	Sources have a utility script which may form basis of your ZMailer
+	log rotation script:  utils/rotate-logs.sh
+
+
 Installation on clients:
 
 The following files/programs are needed on clients:
@@ -586,4 +590,4 @@ Often if the mail-folder directory is shared, also (depending upon the system):
 	/var/spool/mail
 
 
-(Rayan Zachariasen 1988-1990, Matti Aarnio 1993-1997)
+(Rayan Zachariasen 1988-1990, Matti Aarnio 1993-1998)

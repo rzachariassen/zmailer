@@ -828,7 +828,7 @@ AC_CHECK_FUNCS(mkdir mktime rename rmdir strcpy strdup strstr \
 # If the system does not have the following (library) calls,
 # we use emulations (replacements):
 AC_REPLACE_FUNCS(mkdir mktime rename rmdir strcpy strdup strstr \
-		 strchr strrchr setvbuf strerror strsignal)
+		 strchr strrchr setvbuf strerror strsignal strtoul)
 
 AC_DECL_SYS_SIGLIST
 

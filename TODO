@@ -11,18 +11,14 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	reports when the command is retried, and the tag selector
 	is unable to start the real processor.
 
+	resync mechanism needs to be rewritten; now it throws away
+	all info about the file, while it should only scan thru all
+	data, and sync in-core status with the file.
+
 - scheduler:
 	does not always treat host-parts case-insensitively,
 	namely keeps "caipfs.rutgers.edu" and "caipfs.Rutgers.EDU"
 	as separate entities
-
-- router / lib/splay.c:
-  At some systems I see serious memory leakage on router, and the
-  question is naturally: WHERE ?  Some SPLAYs may be the cause;
-  the  spt_symbol  had 190 Million splays done on it when the router
-  had grown to 130 MB at nic.funet.fi ...  Debug continues. [20Oct1997]
-  It seems to be in rfc822/crossbar leaking one conscell per recipient
-  address.. [10Nov1997]
 
 - smtpserver
   - accept email to postmaster(s), never mind what else policy testers
