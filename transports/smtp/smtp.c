@@ -1005,6 +1005,8 @@ process(SS, dp, smtpstatus, host, noMX)
 			    because the socket is not on, we start
 			    from the begin of the MX list */
 
+	*SS->remotemsg = 0;
+
 	for (rp = rphead = dp->recipients; rp != NULL; rp = rp->next) {
 	  if (rp->next == NULL
 	      || rp->addr->link   != rp->next->addr->link
@@ -1054,7 +1056,7 @@ process(SS, dp, smtpstatus, host, noMX)
 	      for (;rphead && rphead != rp->next; rphead = rphead->next) {
 		if (rphead->lockoffset != 0) {
 		  notaryreport(NULL, FAILED, NULL, NULL);
-		  diagnostic(rphead, smtpstatus, 0, "%s", SS->remotemsg);
+		  diagnostic(rphead, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
 		}
 	      }
 
