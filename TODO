@@ -1,5 +1,9 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+libc: "make install" is "crazy"
+proto:	"make install" -- nothing goes in ???
+		--> MAILSHARE/proto/ !!
+
 smtpserver:
 	Implement policy analysis of %-hack addresses..
 	(And !-paths too ?)

@@ -215,6 +215,8 @@ char *argv[];
       }
       (curs->c_close)(curs);
     } else {
+      memset(&key,    0, sizeof(key));
+      memset(&result, 0, sizeof(result));
       key.data = argv[3];
       key.size = strlen(argv[3]) +1;
 
@@ -260,6 +262,8 @@ char *argv[];
       }
       (curs->c_close)(curs);
     } else {
+      memset(&key,    0, sizeof(key));
+      memset(&result, 0, sizeof(result));
       key.data = argv[3];
       key.size = strlen(argv[3]) +1;
 

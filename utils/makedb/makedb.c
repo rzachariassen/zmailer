@@ -151,10 +151,16 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 #ifdef HAVE_DB_H
 	if (typ == 3 || typ == 4) {
 		DBT Bkey, Bdat;
+
+		memset(&Bkey,0,sizeof(Bkey));
+		memset(&Bdat,0,sizeof(Bdat));
+
 		Bkey.data = (void*)t;
 		Bkey.size = tlen;
+
 		Bdat.data = (void*)s;
 		Bdat.size = slen;
+
 #ifdef HAVE_DB_OPEN2
 		rc = (dbfile->put) (dbfile, NULL, &Bkey, &Bdat,
 				    overwritemode ? 0: DB_NOOVERWRITE);
@@ -200,6 +206,10 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 #ifdef HAVE_DB_H
 	  if (typ == 3 || typ == 4) {
 	    DBT Bkey, Bdat;
+
+	    memset(&Bkey,0,sizeof(Bkey));
+	    memset(&Bdat,0,sizeof(Bdat));
+
 	    Bkey.data = (void*)t;
 	    Bkey.size = tlen;
 #ifdef HAVE_DB_OPEN2

@@ -130,8 +130,12 @@ reopen:
 	if (db == NULL)
 	  return NULL; /* Huh! */
 
+	memset(&key, 0, sizeof(key));
+	memset(&val, 0, sizeof(val));
+
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
+
 #ifdef HAVE_DB_OPEN2
 	rc = (db->get)(db, NULL, &key, &val, 0);
 #else
@@ -166,8 +170,12 @@ add_btree(sip, value)
 	if (db == NULL)
 		return EOF;
 
+	memset(&key, 0, sizeof(key));
+	memset(&val, 0, sizeof(val));
+
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
+
 	val.data = (void*)value;
 	val.size = strlen(value)+1;
 #ifdef HAVE_DB_OPEN2
@@ -200,6 +208,8 @@ remove_btree(sip)
 	db = open_btree(sip, O_RDWR, "remove_btree");
 	if (db == NULL)
 		return EOF;
+
+	memset(&key, 0, sizeof(key));
 
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
@@ -242,6 +252,10 @@ print_btree(sip, outfp)
 #else
 	rc = (db->cursor)(db, NULL, &curs);
 #endif
+
+	memset(&val, 0, sizeof(val));
+	memset(&key, 0, sizeof(key));
+
 	if (rc == 0 && curs)
 	  rc = (curs->c_get)(curs, &key, &val, DB_FIRST);
 	for ( ; rc == 0 ; ) {
@@ -251,6 +265,10 @@ print_btree(sip, outfp)
 			fprintf(outfp, "%s\n", key.data);
 		else
 			fprintf(outfp, "%s\t%s\n", key.data, val.data);
+
+		memset(&val, 0, sizeof(val));
+		memset(&key, 0, sizeof(key));
+
 		rc = (curs->c_get)(curs, &key, &val, DB_NEXT);
 	}
 	(curs->c_close)(curs);
@@ -260,6 +278,9 @@ print_btree(sip, outfp)
 	if (db == NULL)
 		return;
 
+	memset(&val, 0, sizeof(val));
+	memset(&key, 0, sizeof(key));
+
 	rc = (db->seq)(db, &key, &val, R_FIRST);
 	for ( ; rc == 0 ; ) {
 		if (val.data == NULL)
@@ -268,6 +289,10 @@ print_btree(sip, outfp)
 			fprintf(outfp, "%s\n", key.data);
 		else
 			fprintf(outfp, "%s\t%s\n", key.data, val.data);
+
+		memset(&val, 0, sizeof(val));
+		memset(&key, 0, sizeof(key));
+
 		rc = (db->seq)(db, &key, &val, R_NEXT);
 	}
 #endif
@@ -298,12 +323,20 @@ count_btree(sip, outfp)
 #else
 	  rc = (db->cursor)(db, NULL, &curs);
 #endif
+
+	  memset(&val, 0, sizeof(val));
+	  memset(&key, 0, sizeof(key));
+
 	  if (rc == 0 && curs)
 	    rc = (curs->c_get)(curs, &key, &val, DB_FIRST);
 	  while (rc == 0) {
 	    if (val.data == NULL) /* ???? When this would happen ? */
 	      continue;
 	    ++cnt;
+
+	    memset(&val, 0, sizeof(val));
+	    memset(&key, 0, sizeof(key));
+
 	    rc = (curs->c_get)(curs, &key, &val, DB_NEXT);
 	  }
 	}

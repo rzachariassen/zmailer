@@ -2184,7 +2184,8 @@ sequencer(e, file)
 			ofperrors |= ferror(ofp);
 			if (ofperrors) break; /* Sigh.. */
 
-			if (!iserrmessage()  &&  nsp->errto != NULL) {
+			if (!iserrmessage() && nsp->errto &&
+			    nsp->errto->string) {
 				/* print envelope sender address */
 				putc(_CF_ERRORADDR, ofp);
 				putc(_CFTAG_NORMAL, ofp);

@@ -451,10 +451,12 @@ matchmyaddress(sa)
 	for (i = 0; i < nmyaddrs; ++i) {
 	  /* if this is myself, skip to next MX host */
 	  if (sa->sa_family == myaddrs[i]->sa_family) {
-	    if (sa->sa_family == AF_INET && memcmp(sa, myaddrs[i], 4) == 0)
+	    if (sa->sa_family == AF_INET &&
+		memcmp(sa, myaddrs[i], sizeof(struct sockaddr_in)) == 0)
 	      return 1;
 #if defined(AF_INET6) && defined(INET6)
-	    if (sa->sa_family == AF_INET6 && memcmp(sa, myaddrs[i], 16) == 0)
+	    if (sa->sa_family == AF_INET6 &&
+		memcmp(sa, myaddrs[i], sizeof(struct sockaddr_in6)) == 0)
 	      return 1;
 #endif
 	  }

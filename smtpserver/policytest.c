@@ -264,6 +264,9 @@ int *rlenp;			/* result length ptr ! */
     case _dbt_btree:
 
 
+	memset(&Bkey, 0, sizeof(Bkey));
+	memset(&Bresult, 0, sizeof(Bresult));
+
 	Bkey.data = (void *) qptr;
 	Bkey.size = qlen;
 
@@ -285,6 +288,9 @@ int *rlenp;			/* result length ptr ! */
 		  without this... */
 
     case _dbt_bhash:
+
+	memset(&Bkey, 0, sizeof(Bkey));
+	memset(&Bresult, 0, sizeof(Bresult));
 
 	Bkey.data = (void *) qptr;
 	Bkey.size = qlen;

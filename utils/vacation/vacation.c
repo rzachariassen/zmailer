@@ -658,6 +658,9 @@ recent()
 
 	if (!dblog) return 0;
 
+	memset(&key, 0, sizeof(key));
+	memset(&data, 0, sizeof(data));
+
 	/* get interval time */
 	key.dptr = VIT;
 	key.dsize = sizeof(VIT);
@@ -680,6 +683,9 @@ recent()
 		next = (60*60*24*7); /* One week */
 	else
 		memcpy(&next, data.dptr, sizeof(next));
+
+	memset(&key, 0, sizeof(key));
+	memset(&data, 0, sizeof(data));
 
 	/* get record for this address */
 	key.dptr = from;
@@ -719,10 +725,15 @@ setinterval(interval)
 
 	if (!dblog) return;
 
+	memset(&key, 0, sizeof(key));
+	memset(&data, 0, sizeof(data));
+
 	key.dptr = VIT;
 	key.dsize = sizeof(VIT);
+
 	data.dptr = (void*)&interval;
 	data.dsize = sizeof(interval);
+
 #ifdef HAVE_NDBM_H
 	dbm_store(db, key, data, DBM_REPLACE);
 #else
@@ -750,11 +761,16 @@ setreply()
 
 	if (!dblog) return;
 
+	memset(&key, 0, sizeof(key));
+	memset(&data, 0, sizeof(data));
+
 	key.dptr = from;
 	key.dsize = strlen(from);
+
 	time(&now);
 	data.dptr = (void*)&now;
 	data.dsize = sizeof(now);
+
 #ifdef HAVE_NDBM_H
 	dbm_store(db, key, data, DBM_REPLACE);
 #else

@@ -1,5 +1,29 @@
 1999-06-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* lib/selfmatch.c:
+	    Revoke the change I did while tinkering with
+	    autodetecting <foo@[1.2.3.4]> address being
+	    our local one..
+
+	* utils/vacation/Makefile.in:
+	    "test -e ..." is perhaps POSIX thing, but not at
+	    Solaris /bin/sh :-/
+
+	* router/rfc822.c:
+	    A case of NULL pointer referral in form which I hadn't
+	    encountered before...  (fqalias.ldap induced case)
+
+	* Makefile.in:
+	    'make dist' should dump also symlinks! Boo!
+
+	* ChangeLog, configure.in, acconfig.h, router/libdb/bsdbtree.c,
+	  router/libdb/bsdhash.c, smtpserver/policytest.c,
+	  utils/makedb/makedb.c, utils/makedb/dblook.c, README.UPGRADING,
+	  utils/vacation/vacation.c:
+	    BSD DB 2.* interface had subtle difference; KEY and DATA
+	    "DBT"s must be  memset(&key,0,sizeof(key))  to avoid nasty
+	    surprises...  Wow, that API is -- versatile ...
+	
 	* router/libdb/bsdhash.c:
 	    Fix of old BSD DB 1.85 type behaviour.
 

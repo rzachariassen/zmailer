@@ -127,6 +127,9 @@ reopen:
 	if (db == NULL)
 	  return NULL; /* Huh! */
 
+	memset(&val, 0, sizeof(val));
+	memset(&key, 0, sizeof(key));
+
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
 #ifdef HAVE_DB_OPEN2
@@ -162,8 +165,13 @@ add_bhash(sip, value)
 	db = open_bhash(sip, O_RDWR, "add_bhash");
 	if (db == NULL)
 		return EOF;
+
+	memset(&val, 0, sizeof(val));
+	memset(&key, 0, sizeof(key));
+
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
+
 	val.data = (void*)value;
 	val.size = strlen(value)+1;
 #ifdef HAVE_DB_OPEN2
@@ -196,6 +204,9 @@ remove_bhash(sip)
 	db = open_bhash(sip, O_RDWR, "remove_bhash");
 	if (db == NULL)
 		return EOF;
+
+	memset(&key, 0, sizeof(key));
+
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
 #ifdef HAVE_DB_OPEN2
@@ -237,6 +248,9 @@ print_bhash(sip, outfp)
 #else
 	rc = (db->cursor)(db, NULL, &curs);
 #endif
+	memset(&val, 0, sizeof(val));
+	memset(&key, 0, sizeof(key));
+
 	if (rc == 0 && curs)
 	  rc = (curs->c_get)(curs, &key, &val, DB_FIRST);
 	for ( ; rc == 0 ; ) {
@@ -246,6 +260,10 @@ print_bhash(sip, outfp)
 			fprintf(outfp, "%s\n", key.data);
 		else
 			fprintf(outfp, "%s\t%s\n", key.data, val.data);
+
+		memset(&val, 0, sizeof(val));
+		memset(&key, 0, sizeof(key));
+
 		rc = (curs->c_get)(curs, &key, &val, DB_NEXT);
 	}
 	(curs->c_close)(curs);
@@ -255,6 +273,9 @@ print_bhash(sip, outfp)
 	if (db == NULL)
 		return;
 
+	memset(&val, 0, sizeof(val));
+	memset(&key, 0, sizeof(key));
+
 	rc = (db->seq)(db, &key, &val, R_FIRST);
 	for ( ; rc == 0 ; ) {
 		if (val.data == NULL)
@@ -263,6 +284,10 @@ print_bhash(sip, outfp)
 			fprintf(outfp, "%s\n", key.data);
 		else
 			fprintf(outfp, "%s\t%s\n", key.data, val.data);
+
+		memset(&val, 0, sizeof(val));
+		memset(&key, 0, sizeof(key));
+
 		rc = (db->seq)(db, &key, &val, R_NEXT);
 	}
 #endif
@@ -294,12 +319,20 @@ count_bhash(sip, outfp)
 #else
 	  rc = (db->cursor)(db, NULL, &curs);
 #endif
+
+	  memset(&val, 0, sizeof(val));
+	  memset(&key, 0, sizeof(key));
+
 	  if (rc == 0 && curs)
 	    rc = (curs->c_get)(curs, &key, &val, DB_FIRST);
 	  while (rc == 0) {
 	    if (val.data == NULL) /* ???? When this would happen ? */
 	      continue;
 	    ++cnt;
+
+	    memset(&val, 0, sizeof(val));
+	    memset(&key, 0, sizeof(key));
+
 	    rc = (curs->c_get)(curs, &key, &val, DB_NEXT);
 	  }
 	}
@@ -307,11 +340,19 @@ count_bhash(sip, outfp)
 #else
 	db = open_bhash(sip, O_RDONLY, "count_bhash");
 	if (db != NULL) {
+
+	  memset(&val, 0, sizeof(val));
+	  memset(&key, 0, sizeof(key));
+
 	  rc = (db->seq)(db, &key, &val, R_FIRST);
 	  while (rc == 0) {
 	    if (val.data == NULL) /* ???? When this would happen ? */
 	      continue;
 	    ++cnt;
+
+	    memset(&val, 0, sizeof(val));
+	    memset(&key, 0, sizeof(key));
+
 	    rc = (db->seq)(db, &key, &val, R_NEXT);
 	  }
 	}
