@@ -584,6 +584,11 @@ FIXME:			(See notes about post-install below)
 
 	- scheduler logs, usually kept in $LOGDIR/scheduler.  Same as router.
 
+	- Consider replacing your standard-issue syslogd with a new one;
+	  check   syslog-ng (at www.freshmeat.net, for example); Linuxy
+	  habit of *not* fsync(2)ing syslog file after each arrived message
+	  does have serious merits in itself...
+
 	- general mail logs, usually kept in syslog files, depending on how
 	  you have configured the syslog utility (/etc/syslog.conf).  All
 	  ZMailer programs log using the LOG_MAIL facility code for normal

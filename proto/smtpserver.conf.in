@@ -17,9 +17,6 @@
 #PARAM RcptLimitCount          10000	# Max number of recipients for one
 #					# MAIL FROM session. Minimum: 100
 #
-#PARAM use-tcp-wrapper			# Use tcp-wrapper in addition to
-#					# actual input policy controls.
-#
 #PARAM BindPort	                  25	# Binding port
 #PARAM BindAddress         [0.0.0.0]	# Binding address - for multihomers..
 #PARAM BindAddress       [IPv6.0::0]	# and here is for IPv6 - NO SPACES!

@@ -110,6 +110,7 @@ int netconnected_flg = 0;
 int pid, routerpid = -1;
 int router_status = 0;
 FILE *logfp = NULL;
+int   logfp_to_syslog = 0;
 int D_alloc = 0;
 int smtp_syslog = 0;
 #ifdef USE_TRANSLATION
@@ -464,6 +465,12 @@ char **argv;
 	    break;
 	case 'l':		/* log file(prefix) */
 	    logfile = optarg;
+
+	    if (strcmp(logfile,"SYSLOG")==0) {
+	      logfp_to_syslog = 1;
+	      logfile = NULL;
+	    }
+
 	    break;
 	case 'S':		/* Log-suffix style */
 	    logstyle = 0;
@@ -540,7 +547,7 @@ char **argv;
 		"Usage: %s [-46aBignVvw]\
  [-C cfgfile] [-s xx] [-L maxLoadAvg]\
  [-M SMTPmaxsize] [-R rtrprog] [-p port#]\
- [-P postoffice] [-l logfile] [-S 'local'|'remote']\
+ [-P postoffice] [-l SYSLOG] [-l logfile] [-S 'local'|'remote']\
  [-I pidfile]\n"
 #else /* __STDC__ */
 		"Usage: %s [-4"
@@ -874,6 +881,7 @@ char **argv;
 	  char *cp;
 	  time(&now);
 	  cp = rfc822date(&now);
+	  zsyslog((LOG_INFO, "server started."));
 	  fprintf(logfp, "00000#\tstarted server pid %d at %s", pid, cp);
 	  /*fprintf(logfp,"00000#\tfileno(logfp) = %d\n",fileno(logfp)); */
 	  fclose(logfp);
@@ -923,6 +931,7 @@ char **argv;
 	    fprintf(stderr, "%s: accept(): %s; %s",
 		    progname, strerror(err), rfc822date(&now));
 	    openlogfp(&SS, daemon_flg);
+	    zsyslog((LOG_INFO, "accept() error=%d (%s)", err, strerror(err)));
 	    if (logfp) {
 	      fprintf(logfp, "000000#\taccept(): %s; %s",
 		      strerror(err), (char *) rfc822date(&now));
@@ -1105,6 +1114,7 @@ char **argv;
 	/* Stand-alone server, kill the pidfile at the exit! */
 	killpidfile(pidfile);
 	openlogfp(&SS, daemon_flg);
+	zsyslog((LOG_INFO, "killed server."));
 	if (logfp != NULL) {
 	  char *cp;
 	  time(&now);
@@ -1264,10 +1274,10 @@ long tell;
 const char *msg;
 {
     zsyslog((LOG_ERR,
-	     "aborted (%ld bytes) from %s/%d: %s",
-	     tell, SS->rhostname, SS->rport, msg));
+	     "%s - aborted (%ld bytes) from %s/%d: %s",
+	     logtag, tell, SS->rhostname, SS->rport, msg));
     if (logfp != NULL) {
-	fprintf(logfp, "%s-\taborted (%ld bytes): %s\n", logtag, tell, msg);
+	fprintf(logfp, "%s - aborted (%ld bytes): %s\n", logtag, tell, msg);
 	fflush(logfp);
     }
 }
@@ -1649,7 +1659,7 @@ int insecure;
 	SS->state = MailOrHello;
 
     cfinfo = NULL;
-    if (logfp != NULL) {
+    {
 	char *s = policymsg(policydb, &SS->policystate);
 	if (insecure)
 	  type(NULL,0,NULL,"remote from %s:%d", SS->ihostaddr, SS->rport);
@@ -1658,7 +1668,8 @@ int insecure;
 	if (SS->policyresult != 0 || s != NULL)
 	  type(NULL,0,NULL,"-- policyresult=%d initial policy msg: %s",
 	       SS->policyresult, (s ? s : "<NONE!>"));
-	fflush(logfp);
+	if (logfp)
+	  fflush(logfp);
     }
     while (1) {
 
@@ -1674,7 +1685,7 @@ int insecure;
 	  break;
 
 	if (s_hasinput(SS))
-	  if (logfp)
+	  if (logfp || logfp_to_syslog)
 	    type(NULL,0,NULL,
 		 "-- pipeline input exists %d bytes", s_hasinput(SS));
 
@@ -1695,7 +1706,10 @@ int insecure;
 	}
 				   
 
-	if (logfp != NULL) {
+	if (logfp_to_syslog)
+	  zsyslog((LOG_DEBUG, "%s r %s", logtag, buf));
+
+	if (logfp) {
 	    fprintf(logfp, "%sr\t%s\n", logtag, buf);
 	    fflush(logfp);
 	}
@@ -2196,6 +2210,10 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     if (buflen+4 > sizeof(buf)) {
       /* XXX: Buffer overflow ??!! Signal about it, and crash! */
     }
+
+    if (logfp_to_syslog)
+      zsyslog((LOG_DEBUG,"%s %c %s", logtag, (SS ? 'w' : '#'), buf));
+
     if (logfp != NULL) {
 	fprintf(logfp, "%s%c\t%s\n", logtag, (SS ? 'w' : '#'), buf);
 	fflush(logfp);
@@ -2219,6 +2237,8 @@ type220headers(SS, identflg, xlatelang, curtime)
      const char *curtime;
 {
     char *s, **hh = hdr220lines;
+    char linebuf[8000];
+    char *l, *le;
 
     /* Below use of  fprintf()  for SS->outfp  channel is for
        ensuring that  setvbuf( _IOFBF ) is honoured always.
@@ -2228,9 +2248,11 @@ type220headers(SS, identflg, xlatelang, curtime)
     for (; *hh ; ++hh) {
       char c = (hh[1] == NULL) ? ' ' : '-';
       
-      fprintf(SS->outfp, "%03d%c", 220, c);
-      if (logfp != NULL)
-	fprintf(logfp, "%sw\t%03d%c", logtag, 220, c);
+      le = linebuf + sizeof(linebuf) -1;
+      l  = linebuf;
+
+      sprintf(l, "%03d%c", 220, c);
+      l += strlen(l);
 
       /* The format meta-tags:
        *
@@ -2243,49 +2265,64 @@ type220headers(SS, identflg, xlatelang, curtime)
        */
 
       s = *hh;
-      while (*s) {
+      while (*s && l < le) {
 	if (*s == '%') {
+	  int freespc = le-l;
+	  int len;
+
 	  ++s;
 	  switch (*s) {
 	  case '%':
-	    fprintf(SS->outfp,"%%");
-	    if (logfp) putc('%',logfp);
+	    *l++ = '%';
 	    break;
 	  case 'H':
-	    fprintf(SS->outfp,"%s",SS->myhostname);
-	    if (logfp) fputs(SS->myhostname,logfp);
+	    len = strlen(SS->myhostname);
+	    memcpy(l, SS->myhostname, freespc < len ? freespc : len);
+	    l += len;
 	    break;
 	  case 'I':
 	    if (identflg) {
-	      fprintf(SS->outfp,"+IDENT");
-	      if (logfp) fputs("+IDENT",logfp);
+	      len = 6;
+	      memcpy(l, "+IDENT", freespc < len ? freespc : len);
+	      l += len;
 	    }
 	    break;
 	  case 'V':
-	    fprintf(SS->outfp,"%s",VersionNumb);
-	    if (logfp) fputs(VersionNumb,logfp);
+	    len = strlen(VersionNumb);
+	    memcpy(l, VersionNumb, freespc < len ? freespc : len);
+	    l += len;
 	    break;
 	  case 'T':
-	    fprintf(SS->outfp,"%s",curtime);
-	    if (logfp) fputs(curtime,logfp);
+	    len = strlen(curtime);
+	    memcpy(l, curtime, freespc < len ? freespc : len);
+	    l += len;
 	    break;
 	  case 'X':
 	    if (!xlatelang) xlatelang = "";
-	    fprintf(SS->outfp,"%s",xlatelang);
-	    if (logfp) fputs(xlatelang,logfp);
+	    len = strlen(xlatelang);
+	    memcpy(l, xlatelang, freespc < len ? freespc : len);
+	    l += len;
 	    break;
 	  default:
 	    /* Duh ?? */
 	    break;
 	  }
 	} else {
-	  fprintf(SS->outfp,"%c",*s);
-	  if (logfp) putc(*s, logfp);
+	  *l++ = *s;
 	}
 	if (*s) ++s;
       }
-      fprintf(SS->outfp,"\r\n");
-      if (logfp) fputc('\n',logfp);
+      if (l < le)
+	*l = 0;
+      *le = 0;
+
+      fprintf(SS->outfp, "220%c%s\r\n", c, linebuf);
+
+      if (logfp_to_syslog)
+	zsyslog((LOG_DEBUG, "%s w 220%c%s", logtag, c, linebuf));
+      if (logfp)
+	fprintf(logfp, "%sw\t220%c%s\n", logtag, c, linebuf);
+
     }
     fflush(SS->outfp);
     if (logfp) fflush(logfp);
@@ -2359,7 +2396,9 @@ va_dcl
 
       buflen = bp - buf;
 
-      if (logfp != NULL)
+      if (logfp_to_syslog)
+	zsyslog((LOG_DEBUG, "%s w %s", logtag, buf));
+      if (logfp)
 	fprintf(logfp, "%sw\t%s\n", logtag, buf);
 
       strcpy(bp, "\r\n");

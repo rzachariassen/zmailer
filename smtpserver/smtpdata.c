@@ -171,9 +171,8 @@ const char *buf, *cp;
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
 	if (SS->policyresult < 0) {
-	  if (logfp != NULL)
-	    type(NULL,0,NULL,
-		 "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
+	  type(NULL,0,NULL,
+	       "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
 	  type(SS, 552, m571, "Content-policy analysis rejected this message");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
@@ -182,30 +181,29 @@ const char *buf, *cp;
 	if (SS->policyresult > 0) {
 	    char polbuf[20];
 	    struct stat stbuf;
+
 	    fflush(SS->mfp);
 	    fstat(FILENO(SS->mfp), &stbuf);
 	    runasrootuser();
 	    sprintf(polbuf,"policy-%d",SS->policyresult);
 	    if (mail_close_alternate(SS->mfp, FREEZERDIR, polbuf) != 0) {
-		if (logfp != NULL) {
-		  type(NULL,0,NULL,
-		       "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
-		       polbuf, errno, strerror(errno));
-		}
-		type(SS, 452, m430, "Message file disposition failed");
-		typeflush(SS);
-		SS->mfp = NULL;
-		reporterr(SS, tell, "message file close failed");
+	      type(NULL,0,NULL,
+		   "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
+		   polbuf, errno, strerror(errno));
+	      type(SS, 452, m430, "Message file disposition failed");
+	      typeflush(SS);
+	      SS->mfp = NULL;
+	      reporterr(SS, tell, "message file close failed");
 	    } else {
-		static int freezecnt = 1;
-		freezecnt <<= 1;
-		sleep(freezecnt);
-		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area...",SS->policyresult);
-		typeflush(SS);
-		SS->mfp = NULL;
-		zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze[%d]",
-			 (int) stbuf.st_ino, (int) stbuf.st_size,
-			 SS->rhostname, SS->rport, SS->policyresult));
+	      static int freezecnt = 1;
+	      freezecnt <<= 1;
+	      sleep(freezecnt);
+	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area...",SS->policyresult);
+	      typeflush(SS);
+	      SS->mfp = NULL;
+	      zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze[%d]",
+		       (int) stbuf.st_ino, (int) stbuf.st_size,
+		       SS->rhostname, SS->rport, SS->policyresult));
 	    }
 	    runastrusteduser();
 	} else {
@@ -232,14 +230,14 @@ const char *buf, *cp;
 		  zsyslog((LOG_INFO,
 			   "%s: (%ldc) accepted from %s/%d", taspid, tell,
 			   SS->rhostname, SS->rport));
-
-		if (logfp != NULL) {
-		  type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
+		
+		type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
+		if (logfp)
 		  fflush(logfp);
-		}
 	    }
 	}
     }
+
     SS->state = MailOrHello;
     typeflush(SS);
     return 0;
@@ -382,61 +380,57 @@ const char *buf, *cp;
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
 	if (SS->policyresult < 0) {
-	  if (logfp != NULL)
-	    type(NULL,0,NULL,
-		 "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
+type(NULL,0,NULL,
+  "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
 	  type(SS, 552, m571, "Content-policy analysis rejected this message");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	}
 
 	if (SS->policyresult > 0) {
-	    struct stat stbuf;
-	    fflush(SS->mfp);
-	    fstat(FILENO(SS->mfp), &stbuf);
-	    runasrootuser();
-	    if (mail_close_alternate(SS->mfp, FREEZERDIR, "policy") != 0) {
-		if (logfp != NULL) {
-		  type(NULL,0,NULL,
-		       "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
-		       "policy", errno, strerror(errno));
-		  fflush(logfp);
-		}
-		type(SS, 452, m430, "Message file disposition failed");
-		SS->mfp = NULL;
-		reporterr(SS, tell, "message file close failed");
-	    } else {
-		type(SS, 250, "2.6.0", "message accepted; into freezer area...");
-		SS->mfp = NULL;
-		zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze",
-			 (int) stbuf.st_ino, (int) stbuf.st_size,
-			 SS->rhostname, SS->rport));
-	    }
-	    runastrusteduser();
-	} else if (_mail_close_(SS->mfp, &inum, &mtime) == EOF) {
-	    type(SS, 452, m400, (char *) NULL);
+	  struct stat stbuf;
+	  fflush(SS->mfp);
+	  fstat(FILENO(SS->mfp), &stbuf);
+	  runasrootuser();
+	  if (mail_close_alternate(SS->mfp, FREEZERDIR, "policy") != 0) {
+	    type(NULL,0,NULL,
+		 "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
+		 "policy", errno, strerror(errno));
+	    if (logfp)
+	      fflush(logfp);
+	    type(SS, 452, m430, "Message file disposition failed");
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
-	} else {
-	    /* Ok, build responce with proper "spoolid" */
-	    char taspid[30];
-	    taspoolid(taspid, mtime, inum);
-
+	  } else {
+	    type(SS, 250, "2.6.0", "message accepted; into freezer area...");
 	    SS->mfp = NULL;
-	    type(SS, 250, "2.6.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
-		 taspid, bdata_chunksize, (long) tell);
-	    if (logfp)
-		type(NULL,0,NULL,"-- pipeline input: %d bytes",s_hasinput(SS));
+	    zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze",
+		     (int) stbuf.st_ino, (int) stbuf.st_size,
+		     SS->rhostname, SS->rport));
+	  }
+	  runastrusteduser();
+	} else if (_mail_close_(SS->mfp, &inum, &mtime) == EOF) {
+	  type(SS, 452, m400, (char *) NULL);
+	  SS->mfp = NULL;
+	  reporterr(SS, tell, "message file close failed");
+	} else {
+	  /* Ok, build responce with proper "spoolid" */
+	  char taspid[30];
+	  taspoolid(taspid, mtime, inum);
 
-	    if (smtp_syslog)
-	      zsyslog((LOG_INFO,
-		       "%s: (%ldc) accepted from %s/%d", taspid, tell,
-		       SS->rhostname, SS->rport));
+	  SS->mfp = NULL;
+	  type(SS, 250, "2.6.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
+	       taspid, bdata_chunksize, (long) tell);
+	  type(NULL,0,NULL,"-- pipeline input: %d bytes",s_hasinput(SS));
 
-	    if (logfp != NULL) {
-	      type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
-	      fflush(logfp);
-	    }
+	  if (smtp_syslog)
+	    zsyslog((LOG_INFO,
+		     "%s: (%ldc) accepted from %s/%d", taspid, tell,
+		     SS->rhostname, SS->rport));
+
+	  type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
+	  if (logfp)
+	    fflush(logfp);
 	}
     } else {			/* Not last chunk! */
 	type(SS, 250, "2.6.0", "Received %ld bytes", bdata_chunksize);
@@ -762,12 +756,13 @@ char *msg;
 		do_decode = cte;
 	    if (X_translation && X_8bit && ct_is_text && (X_settrrc == 0))
 		do_translate = 1;
-	    if (logfp)
-	      type(NULL,0,NULL,"(8bit decode: %s, translate: %s) [%s%s,%s]",
-		   do_decode ? "YES" : "NO", do_translate ? "YES" : "NO",
-		   X_translation ? "-X " : "",
-		   X_8bit ? "-8" : "",
-		   ct_is_text ? "text" : "non-text");
+
+	    type(NULL,0,NULL,"(8bit decode: %s, translate: %s) [%s%s,%s]",
+		 do_decode ? "YES" : "NO", do_translate ? "YES" : "NO",
+		 X_translation ? "-X " : "",
+		 X_8bit ? "-8" : "",
+		 ct_is_text ? "text" : "non-text");
+
 	    /* write out content-type and content-transfer-encoding */
 	    if (delay_ct) {
 		if (do_translate) {
@@ -873,14 +868,12 @@ char *msg;
 	if (CISTREQN(linebuf, "X-Advertisement:",16)) {
 	  /* Gee... Only SPAMmers (Cyberpromo!) use this .. (I hope..) */
 	  SS->policyresult = FREEZE__X_ADVERTISEMENT_FOUND;
-	  if (logfp)
-	    type(NULL,0,NULL,"Found X-Advertisement header");
+	  type(NULL,0,NULL,"Found X-Advertisement header");
 	}
 	if (CISTREQN(linebuf, "X-Advertisment:",15)) {
 	  /* Gee... Only SPAMmers (Cyberpromo!) use this .. (I hope..) */
 	  SS->policyresult = FREEZE__X_ADVERTISEMENT_FOUND;
-	  if (logfp)
-	    type(NULL,0,NULL,"Found X-Advertisment header");
+	  type(NULL,0,NULL,"Found X-Advertisment header");
 	}
 #ifdef USE_ANTISPAM_HACKS
 	if (strncmp(linebuf, "X-UIDL:", 7)==0) {
@@ -900,8 +893,7 @@ char *msg;
 	  while (*s) {
 	    if (CISTREQN(s, "(really ", 8)) {
 	      SS->policyresult = FREEZE__IMPROBABLE_RECEIVED_HEADER_FOUND;
-	      if (logfp)
-		type(NULL,0,NULL,"Improbable Received: header");
+	      type(NULL,0,NULL,"Improbable Received: header");
 	      break;
 	    }
 	    ++s;
@@ -920,31 +912,26 @@ char *msg;
 	    ++s;
 	  if (*s != '<') {
 	    SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
-	    if (logfp)
-	      type(NULL,0,NULL,"No <> around Message-Id");
+	    type(NULL,0,NULL,"No <> around Message-Id");
 	  } else if (s[1] == '@') {
 	    SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
-	    if (logfp)
-	      type(NULL,0,NULL,"Source route in Message-Id:");
+	    type(NULL,0,NULL,"Source route in Message-Id:");
 	  } else if (s[1] == '>') {
 	    SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
-	    if (logfp)
-	      type(NULL,0,NULL,"Empty Message-Id:");
+	    type(NULL,0,NULL,"Empty Message-Id:");
 	  } else {
 	    const char *t = rfc821_path(s, 1);
 	    if (s == t) { /* error */
 #ifdef USE_STRICT_MSGID_FREEZING
 	      SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
-	      if (logfp)
-		type(NULL,0,NULL,"Message-Id: syntax error");
+	      type(NULL,0,NULL,"Message-Id: syntax error");
 #endif
 	    } else {
 	      while (*t == ' ' || *t == '\t' || *t == '\r' || *t == '\n')
 		++t;
 	      if (*t) {
 		SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
-		if (logfp)
-		  type(NULL,0,NULL,"Spurious junk after Message-Id:");
+		type(NULL,0,NULL,"Spurious junk after Message-Id:");
 	      }
 	    }
 	  }
@@ -1052,7 +1039,7 @@ char *msg;
 	has8bit = 0;
 	col = 0;
     }
-    if (logfp && verbose)
+    if (verbose)
       type(NULL,0,NULL,"(mail_priority=%d)", mail_priority);
 #endif
 

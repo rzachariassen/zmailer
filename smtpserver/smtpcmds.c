@@ -169,9 +169,16 @@ const char *buf, *cp;
     if (logfp) {
       char *s = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || s != NULL) {
-	fprintf(logfp, "%s\t-- policy result=%d, msg: %s\n", logtag,
+	fprintf(logfp, "%s#\t-- policy result=%d, msg: %s\n", logtag,
 		SS->policyresult, (s ? s : "<NONE!>"));
 	fflush(logfp);
+      }
+    }
+    if (logfp_to_syslog) {
+      char *s = policymsg(policydb, &SS->policystate);
+      if (SS->policyresult != 0 || s != NULL) {
+	zsyslog((LOG_DEBUG, "%s # policy result=%d, msg: %s", logtag,
+		SS->policyresult, (s ? s : "<NONE!>")));
       }
     }
 
@@ -651,12 +658,13 @@ int insecure;
     SS->policyresult = policytest(policydb, &SS->policystate,
 				  POLICY_MAILFROM, cp, addrlen,
 				  SS->authuser);
-    if (logfp) {
+    if (logfp || logfp_to_syslog) {
       char *ss = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || ss != NULL) {
 	type(NULL,0,NULL,"-- policy result=%d, msg: %s",
 	     SS->policyresult, (ss ? ss : "<NONE!>"));
-	fflush(logfp);
+	if (logfp)
+	  fflush(logfp);
       }
     }
 
@@ -1200,12 +1208,13 @@ const char *buf, *cp;
     SS->policyresult = policytest(policydb, &SS->policystate,
 				  POLICY_RCPTTO, cp, addrlen,
 				  SS->authuser);
-    if (logfp) {
+    if (logfp || logfp_to_syslog) {
       char *ss = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || ss != NULL) {
 	type(NULL,0,NULL,"-- policy result=%d, msg: %s",
 	     SS->policyresult, (ss ? ss : "<NONE!>"));
-	fflush(logfp);
+	if (logfp)
+	  fflush(logfp);
       }
     }
 
@@ -1222,12 +1231,13 @@ const char *buf, *cp;
 	    if (rc == 0)
 	      SS->policyresult = 0;
 
-	    if (logfp) {
+	    if (logfp || logfp_to_syslog) {
 	      char *ss = policymsg(policydb, &SS->policystate);
 	      if (SS->policyresult != 0 || ss != NULL) {
 		type(NULL,0,NULL,"-- policy result=%d, msg: %s",
 		     SS->policyresult, (ss ? ss : "<NONE!>"));
-		fflush(logfp);
+		if (logfp)
+		  fflush(logfp);
 	      }
 	    }
 	  }

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "3 Sep 1999"
+.TH SMTPSERVER 8 "8 Feb 2000"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -11,6 +11,10 @@ smtpserver \- zmailer SMTP server
 [
 .B \-p
 .I port
+]
+[
+.B \-l
+.I SYSLOG
 ]
 [
 .B \-l
@@ -89,8 +93,19 @@ With
 .I \-v
 option this echoes incoming BSMTP to create more accurate faximille
 of BITNET BSMTP mailers.
+.IP \-l\ \fISYSLOG\fR
+A magic value of "SYSLOG" for the
+.I logfile
+is interpreted by directing all session log stuff thru syslogd;
+something which
+.B may
+require better syslogd, than your system
+has by default; see ``syslog-ng'' at a well indexed free software
+sites.
 .IP \-l\ \fIlogfile\fR
 specifies a logfile and enables recording of incoming SMTP conversations.
+If you want both file based session log, and syslog() based, issue this
+option after ``\-l\ SYSLOG'' one.
 .IP \-n
 indicates the program is being run from
 .IR inetd (8).
@@ -145,14 +160,6 @@ The flags are concatenated to form the argument to the \-s option.  The
 default is \fBve\fR.
 .IP \-V
 prints a version message and exits.
-.SH EHLO AND 8BITMIME
-On
-.B RFC 1651/1652/1653+1428
-there are extended SMTP specifications, which contain mechanism for declaring
-8-bit transparent SMTP capability, as well as so called SIZE extension.
-When sending SMTP does \fBEHLO\fR instead of \fBHELO\fR
-it gets a set of responces which indicate that this system is capable on
-multiple things, and one of them is so called \fB8BITMIME\fR.
 .SH CONFIGURATION
 If the \fIMAILSHARE/\fBsmtpserver.conf\fR exists it is read
 to configure two kinds of things:
@@ -182,14 +189,14 @@ This is synonym to start-time
 .I \-M
 option.
 
-.IP PARAM\ min-availspace\ 5000
+.IP PARAM\ min\-availspace\ 5000
 This defines, in
 .BR kilobytes ,
 the minimum available space in
 .B POSTOFFICE
 directory after the message has been accepted in.
 
-.IP PARAM\ max-error-recipients
+.IP PARAM\ max\-error\-recipients
 This defines how many recipients can be on a message whose source
 address is
 .B MAIL FROM:<>\fR.
@@ -241,10 +248,6 @@ This sets the maximum number of accepted recipients per one
 message transaction.  Default (and minimum!) value is 100,
 which is mandated by the RFC 821.
 
-.IP PARAM\ use-tcp-wrapper
-Even if the system has tcp-wrapper (see below), it won't be used
-to limit access, unless this PARAM entry is set.
-
 .IP PARAM\ BindPort\ \ \ 25
 .IP PARAM\ BindAddress\ [0.0.0.0]
 .IP PARAM\ BindAddress\ [IPv6.0::0]
@@ -275,8 +278,8 @@ to protect your system.
 To enable EXPN and VRFY, this must be enabled, but be
 .B very carefull
 when you do this.
-This is also required for interactive router processing of
-'MAIL FROM' and 'RCPT TO' addresses.
+This is also required for interactive router processing
+of ``MAIL FROM'' and ``RCPT TO'' addresses.
 
 .IP PARAM\ smtp\-auth
 This enables 'SMTP AUTH' facility (AUTH verb, plus optional parameter
@@ -367,9 +370,6 @@ multiplier for formula:
 #
 #PARAM RcptLimitCount    10000 # Max number of recipients for one
 #                              # MAIL FROM session. Minimum: 100
-#
-#PARAM use-tcp-wrapper         # Use tcp-wrapper in addition to
-#                              # actual input policy controls.
 #
 #PARAM BindPort          25    # Binding port
 #PARAM BindAddress  [0.0.0.0]  # Binding address - for multihomers..
@@ -501,30 +501,17 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 *                   999 veR
 .fi
 .sp
-.SH TCP-WRAPPER AND SMTPSERVER
-If the ZMailer system is configured with tcp-wrapper code, then service-id
-"smtp-receiver" is looked for all those addresses that are allowed to feed
-smtp email in.
-.P
-Usually this mode of operation is not used, and "hosts.allow"
-file contains entry:
-.P
-.nf
-  smtp-receiver : ALL@ALL
-.fi
-.P
-Alternatively, all the functions which tcp-wrapper could supply are
-also available thru the policy database machinery.
 .SH PAM-SUPPORT FOR SMTP-AUTH
 If the system has <security/pam_appl.h> file, following file will also
 be needed for the system:
-.P
+.PP
 .nf
+\fC
 ------- /etc/pam.d/smtpauth-login -----------
 #%PAM-1.0
-auth       required     /lib/security/pam_pwdb.so shadow
-auth       required     /lib/security/pam_nologin.so
-account    required     /lib/security/pam_pwdb.so
+auth     required  /lib/security/pam_pwdb.so shadow
+auth     required  /lib/security/pam_nologin.so
+account  required  /lib/security/pam_pwdb.so
 .fi
 .SH FILES
 .I /etc/zmailer.conf
@@ -534,13 +521,29 @@ account    required     /lib/security/pam_pwdb.so
 .I /local/share/mail/smtpserver.conf (MAILSHARE/smtpserver.conf)
 .SH SEE ALSO
 router(8)
-.br
-RFC821, RFC1123, RFC1651, RFC1652, RFC1653, RFC1428
+.PP
+.ta 2.5i
+.nf
+RFC 821	 The basic SMTP specification
+
+Several extended SMTP facilities are implemented:
+
+RFC 1427/1653/1870	 SIZE
+RFC 1426/1652	 8BITMIME
+RFC 1854/2197	 PIPELINING
+RFC 1830	 CHUNKING
+RFC 2034	 ENHANCEDSTATUSCODES
+RFC 1891	 DSN
+RFC 2554+NetScape	 AUTH=LOGIN
+RFC 2554+M$ Exchange	 AUTH LOGIN
+RFC 2487	 STARTTLS
+RFC 1985	 ETRN
+.fi
 .SH AUTHOR
 This program authored and copyright by:
 .br
 Rayan Zachariassen (was at U of Toronto)
 .br
-RFC165* (and several other) extensions by
+Extended SMTP, policy facilities, etc. by
 .br
 Matti Aarnio  <mea@nic.funet.fi>

@@ -1,3 +1,12 @@
+2000-02-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* man/smtpserver.8, smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/smtpdata.c, smtpserver/smtpcmds.c, smtpserver/smtpauth.c:
+	    Created smtpserver runtime command-line option "-l SYSLOG",
+	    which is a magic thing to send logfile material through syslog()
+	    facility.  Beware is *huge* amount of dataflow there!
+	    Some updates to smtpserver.8 man-page.
+
 2000-02-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.c, lib/taspoolid.c:

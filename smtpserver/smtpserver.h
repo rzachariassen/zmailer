@@ -305,6 +305,7 @@ extern void reporterr __((SmtpState *, long, const char *));
 extern const char *Copyright;
 extern const char *Copyright2;
 extern FILE *logfp;
+extern int   logfp_to_syslog;
 extern int pid;
 
 extern char *routerprog;
