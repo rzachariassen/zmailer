@@ -2839,6 +2839,17 @@ abort();
 
 	smtp_flush(SS);
 
+	if (sa->sa_family == AF_INET) {
+	  struct sockaddr_in *si = (struct sockaddr_in*) sa;
+	  unsigned long  ia = ntohl(si->sin_addr.s_addr);
+	  int anet = ia >> 24;
+	  if (anet <= 0 || anet >= 224) {
+	    close(sk);
+	    errno = EADDRNOTAVAIL;
+	    return EX_UNAVAILABLE;
+	  }
+	}
+
 	if (connect(sk, sa, addrsiz) < 0 &&
 	    (errno == EWOULDBLOCK || errno == EINPROGRESS)) {
 

@@ -1,5 +1,10 @@
 2000-10-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/smtp/smtp.c, utils/mxerify/mxverify-cgi.c:
+	    For IPv4 addresses, verify that our connect(2)
+	    destination is of valid IPv4 network (first octect
+	    is in range of 1..223), at mxverify exclude loopback.
+
 	* transports/smtp/Makefile.in:
 	    Add into "make install" installation of $MAILBIN/getmxrr-test
 	    so that it will be available at all installations...
