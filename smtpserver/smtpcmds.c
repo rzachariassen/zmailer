@@ -540,7 +540,7 @@ int insecure;
 
     if (SS->policyresult < 0) {
       char *ss = policymsg(policydb, &SS->policystate);
-      if (s != NULL) {
+      if (ss != NULL) {
 	type(SS,-453, m471, "Policy analysis reported:");
 	type(SS, 453, m471, "%s", ss);
       } else if (SS->policyresult < -99) {
@@ -562,7 +562,7 @@ int insecure;
 	}
       } else {
 	char *ss = policymsg(policydb, &SS->policystate);
-	if (s != NULL) {
+	if (ss != NULL) {
 	  type(SS,-553, m571, "Policy analysis reported:");
 	  type(SS, 553, m571, "%s", ss);
 	} else if (SS->policyresult < -1) {
