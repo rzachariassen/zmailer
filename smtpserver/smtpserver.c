@@ -24,7 +24,7 @@ const char *Copyright2 = "Copyright 1991-1997 Matti Aarnio";
 #include "libtrans.h"
 #endif				/* USE_TRANSLATION */
 
-#ifdef WHOSON
+#ifdef HAVE_WHOSON_H
 #include <whoson.h>
 #endif
 
