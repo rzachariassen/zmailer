@@ -288,18 +288,18 @@ internet (address, hname) {
 		########## SENDER #########
 		tsift "$address" in
 		(.*)<@(.+)>(.*)
-			if a="$(userdb "\1@\2\3:mailname")" ; then
+			if a="$(userdb "\1@\2\3:mailname" -- "\1" "" "@\2")" ; then
 				address="$(canonicalize "$a")"
-			elif a="$(userdb "@\2:mailname")" ; then
+			elif a="$(userdb "@\2:mailname" -- "\1" "" "@\2")" ; then
 				address="\1<$a>\3"
-			elif a="$(deliver "\2")" && a="$(userdb "\1:mailname")"
+			elif a="$(deliver "\2")" && a="$(userdb "\1:mailname" -- "\1" "" "@\2")"
 			then
 			    address="$a<@\2>\3"
 			fi
 			break
 			;;
 		(.*)
-			a="$(userdb "\1:mailname")" &&
+			a="$(userdb "\1:mailname" -- "" "" "")" &&
 				address="$(canonicalize "$a")"
 			;;
 		tfist
@@ -308,18 +308,18 @@ internet (address, hname) {
 		## ----- eh ? really ? ----- ##
 		tsift "$address" in
 		(.*)<@(.+)>(.*)
-			if a="$(userdb "\1@\2\3:mailname")" ; then
+			if a="$(userdb "\1@\2\3:mailname" -- "\1" "" "@\2")" ; then
 				address="$(canonicalize "$a")"
-			elif a="$(userdb "@\2:mailname")" ; then
+			elif a="$(userdb "@\2:mailname" -- "\1" "" "@\2")" ; then
 				address="\1<$a>\3"
-			elif a="$(deliver "\2")" && a="$(userdb "\1:mailname")"
+			elif a="$(deliver "\2")" && a="$(userdb "\1:mailname" -- "\1" "" "@\2")"
 			then
 			    address="$a<@\2>\3"
 			fi
 			break
 			;;
 		(.*)
-			a="$(userdb "\1:mailname")" &&
+			a="$(userdb "\1:mailname" -- "" "" "")" &&
 				address="$(canonicalize "$a")"
 			;;
 		tfist

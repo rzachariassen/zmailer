@@ -27,10 +27,11 @@
 #  mapping for allowing masking single users..
 #
 # Two percent substitutions are supported here:
-#   %1  plustail
-#   %2  atdomain
+#   %1  user
+#   %2  plustail
+#   %3  atdomain
 #
 
 #user:mailname		user.name@here.dom
-#user@some.dom:mailname	user.name%1@other1.dom
-#@some.dom:mailname	@other2.dom
+#user@some.dom:mailname	user.name%2@other1.dom
+#@some.dom:mailname	%1%2@other2.dom

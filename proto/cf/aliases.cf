@@ -131,7 +131,9 @@ esac
 # Hooks to define USERDB mapping
 #
 # Percent expansions are:
-#  %1  plustail
+#  %1  user
+#  %2  plustail
+#  %3  atdomain
 #
 
 if [ -f $MAILVAR/db/userdb.zmsh ]; then
@@ -244,7 +246,7 @@ routeuser (quad, plustail, domain) {
 
 	case $type in
 	sender)
-		if a=$(userdb "$user:mailname" -- "$plustail" "@$domain") ; then
+		if a=$(userdb "$user:mailname" -- "$user" "$plustail" "@$domain") ; then
 		  returns ((("$chan" "$a" "$a" $attr)))
 		fi
 		returns ((("$chan" "$host" "$user$plustail$domain" $attr)))

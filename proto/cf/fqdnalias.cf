@@ -275,7 +275,7 @@ fqdn_neighbour (domain, address, A) {
 	case "$(get $A type)" in
 	sender)
 		if $(didexpand userdbmailname) && 
-		   a="$(userdb "$user$athost:mailname" -- "$plustail" "$athost")" ; then
+		   a="$(userdb "$user$athost:mailname" -- "$user" "$plustail" "$athost")" ; then
 
 		  db add expansions "$key.userdbmailname" 1
 		  nattr=$(newattribute $A privilege $priv)
