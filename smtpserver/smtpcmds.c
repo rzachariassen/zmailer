@@ -837,6 +837,7 @@ int insecure;
 	}
 	/* The 's' goes to use below */
     }
+
     if (SS->mfp == NULL &&
 	(SS->mfp = mail_open(MSG_RFC822)) == NULL) {
 	if (s)
@@ -1426,9 +1427,12 @@ const char *buf, *cp;
     s = NULL;
     if (STYLE(SS->cfinfo, 't')) {
 	s = router(SS, RKEY_TO, 1, cp, addrlen);
-	if (s == NULL)
+	if (s == NULL) {
 	    /* the error was printed in router() */
+	    if (newcp)
+		free((void *) newcp);
 	    return;
+	}
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
 	    smtp_tarpit(SS);
@@ -1548,7 +1552,12 @@ const char *buf, *cp;
 	    type(SS, 552, m571, "SPAM trap -- too many recipients for an empty source address!");
 	} else {
 	    err = atoi(s);
-	    type(SS, err, "%s", s + 4);
+	    if (err >= 400) {
+	      smtp_tarpit(SS);
+	      mail_abort(SS->mfp);
+	      SS->mfp = NULL;
+	    }
+	    type(SS, err, s + 4, "Ok");
 	    if (err < 400)
 	      err = 0;
 	}

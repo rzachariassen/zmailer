@@ -2316,16 +2316,17 @@ va_dcl
 #ifdef HAVE_STDARG_H
 void
 #ifdef __STDC__
- type(SmtpState * SS, const int Code, const char *status, const char *fmt,...)
+type(SmtpState * SS, const int Code, const char *status, const char *fmt,...)
 #else				/* Non ANSI-C */
- type(SS, Code, status, fmt)
+type(SS, Code, status, fmt)
 SmtpState *SS;
 const int Code;
 const char *status, *fmt;
 #endif
 #else
 /* VARARGS2 */
-void type(SS, Code, status, fmt, va_alist)
+void
+type(SS, Code, status, fmt, va_alist)
 SmtpState *SS;
 const int Code;
 const char *status, *fmt;
@@ -2333,7 +2334,8 @@ va_dcl
 #endif
 #else				/* No VPRINTF */
 /* VARARGS2 */
-void type(SS, Code, status, fmt, s1, s2, s3, s4, s5, s6)
+void
+type(SS, Code, status, fmt, s1, s2, s3, s4, s5, s6)
 SmtpState *SS;
 const int Code;
 const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;

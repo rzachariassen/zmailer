@@ -1,3 +1,9 @@
+2001-02-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* smtpserver/smtpcmds.c:
+	    Make RCPT TO synchronous router reporting to be a copy
+	    of MAIL FROM one -- report things correctly, that is.
+
 2001-02-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* router/rfc822.c, router/rtsyslog.c:
