@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-Apr-30"
+.TH SMTPSERVER 8zm "2004-May-03"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -100,9 +100,15 @@ This server supports following variations of \fCSMTP\fR protocol:
 .IP \(bu 3em
 "SMTP" at TCP port 25
 .IP \(bu 3em
+.RS 3em
 "SUBMIT" at TCP port 587.
 Serves message submission protocol, which is SMTP with
 mandatory user authentication. (See RFC 2476)
+.PP
+Actually this mode has exactly same IP-ACL datasets, as
+the main mode, and isn't really at all different from
+the primary SMTP service, just running at different port.
+.RE
 .IP \(bu 3em
 "SMTPS" at TCP port 465.
 This is deprecated in favour of using "STARTTLS" command
@@ -493,6 +499,11 @@ This enables 'SMTP AUTH' facility (AUTH verb, plus optional parameter
 to MAIL verb).  With this the users who are able to 'login' successfully
 to this host, are then able to relay the email thru the server unlimited.
 .RE
+.IP "PARAM auth-failrate 20"
+.RS
+Limit number of failed SMTP AUTHs per hour to this number,
+above this, and all AUTHs will always fail...
+.RE
 .IP "PARAM AUTH-LOGIN-also-without-TLS"
 .RS
 This enables 'SMTP AUTH' facility usage also without running
@@ -819,18 +830,19 @@ PARAM  enable-router
 #               # with the default code against system /etc/passwd
 #               # (or whatever source  getpwnam() uses for it..)
 #
+#PARAM  auth-failrate 20
+#               # Limit number of failed SMTP AUTHs per hour to
+#               # this number, above this, and all AUTHs will
+#               # always fail...
+#
 #PARAM  AUTH-LOGIN-also-without-TLS
 #               # Enable, if the "AUTH LOGIN" is to be allowed to
 #               # be used without running under SSL/TLS security
 #               # envelope.
 #
 #PARAM  MSA-mode
-#               # Message Submission Agent mode. Require
-#               # successful user authentication during SMTP
-#               # sessions initiated from outside of the trusted
-#               # networks or the networks with relaying enabled
-#               # (see "fulltrustnet" and "relaycustnet" in
-#               # smtp-policy.src file).
+#               # Message Submission Agent mode.  Obsoleted by
+#               # the  BindSubmit  parameter.
 #
 #PARAM  SMTP-auth-pipe /path/to/program
 #               # External authentication program. The

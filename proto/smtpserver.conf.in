@@ -76,7 +76,9 @@
 #                       # This is intended to be used WITH the TLS network
 #                       # encryption!  This supports just plaintext logins.
 #PARAM  auth-failrate 20
-#                       # 
+#                       # Limit number of failed SMTP AUTHs per hour to
+#                       # this number, above this, and all AUTHs will
+#                       # always fail...
 #
 #PARAM  SMTP-auth-pipe /path/to/program
 #                       # External authentication program. The
