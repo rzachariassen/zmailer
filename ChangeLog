@@ -1,3 +1,9 @@
+2000-04-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/db.c:
+	    A mistake in cache LRU chain hanling caused eternal
+	    loop to form sometimes.  Oops.
+
 2000-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/libta/ctlopen.c:

@@ -777,10 +777,12 @@ db(dbname, key)
 	/* look for the desired result in the cache first */
 	if (dbip->cache_size > 0) {
 		struct cache **pcache = &dbip->cfirst;
+		struct cache *cnext;
 
 		cache   = *pcache;
 
-		for ( ; cache != NULL; cache = cache->next) {
+		for ( ; cache != NULL; cache = cnext) {
+			cnext = cache->next;
 
 			if (cache->expiry > 0 && cache->expiry < now) {
 				if (D_db)
@@ -912,7 +914,7 @@ db(dbname, key)
 			for (;cache && cache->next; cache = *pcache)
 			  pcache = &cache->next;
 
-			/* This *MUST* be the non-NULL thing! */
+			/* This *MUST* be a non-NULL thing! */
 
 			if (cache->key) free(cache->key);
 
