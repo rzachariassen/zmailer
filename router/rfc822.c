@@ -1412,7 +1412,8 @@ sequencer(e, file)
 	char  vbuf[2048], verbosefile[1024];
 	const char     *envid;
 	const char     *notaryret;
-	int   nrcpts = 0;
+	int   onrcpts = 0;
+	int   inrcpts = 0;
 	const char     *fromaddr = "?from?";
 	const char     *msgidstr = "?msgid?";
 	const char     *smtprelay = NULL;
@@ -2115,6 +2116,7 @@ sequencer(e, file)
 			DSN = NULL;
 		}
 		for (a = h->h_contents.a; a != NULL; a = a->a_next) {
+			++inrcpts;
 /*ROUTER*/		l = router(a, def_uid, "recipient", senderstr);
 			if (l == NULL)
 				continue;
@@ -2530,7 +2532,7 @@ sequencer(e, file)
 				}
 				
 				putc('\n', ofp);
-				++nrcpts;
+				++onrcpts;
 				/* DSN data output ! */
 				prdsndata(rcp->info, ofp, "recipient");
 				if (vfp) {
@@ -2675,10 +2677,11 @@ sequencer(e, file)
 
 	rtsyslog(e->e_spoolid, e->e_statbuf.st_mtime,
 		 fromaddr, smtprelay, (int) e->e_statbuf.st_size,
-		 nrcpts, msgidstr, start_now);
+		 onrcpts, msgidstr, start_now);
 
 	MIBMtaEntry->m.mtaTransmittedMessagesRt   += 1;
-	MIBMtaEntry->m.mtaTransmittedRecipientsRt += nrcpts;
+	MIBMtaEntry->m.mtaReceivedRecipientsRt    += inrcpts;
+	MIBMtaEntry->m.mtaTransmittedRecipientsRt += onrcpts;
 
 	MIBMtaEntry->m.mtaTransmittedVolumeRt     += infilesize_kb;
 	MIBMtaEntry->m.mtaTransmittedVolume2Rt    += taskfilesize_kb;

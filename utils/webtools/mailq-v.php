@@ -40,10 +40,12 @@ if ($CHAN == "" || $HOST == "") {
     $patterns[0] = "/&/";
     $patterns[1] = "/>/";
     $patterns[2] = "/</";
+    $patterns[3] = "/@/";
 
     $replacements[0] = "&amp;";
     $replacements[1] = "&gt;";
     $replacements[2] = "&lt;";
+    $replacements[3] = "&#64;";
 
 
     $fh = popen("/opt/mail/bin/mailq -v -c ".$CHAN." -h ".$HOST, 'r');

@@ -1,3 +1,9 @@
+2003-05-25  Matti Aarnio  <mea@zmailer.org>
+
+	* router/rfc822.c:
+	    Track the number of recipient addresses before routing
+	    those addresses (and possibly expanding them).
+
 2003-05-24  Matti Aarnio  <mea@zmailer.org>
 
 	* include/shmmib.h, lib/zshmmibattach.c, router/daemonsub.c,
