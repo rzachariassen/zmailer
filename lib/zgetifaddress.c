@@ -11,7 +11,7 @@
     smtp connection open!
 
     Original copyright SunSoft/Berkeley/Almann, modifications
-    by Matti Aarnio <mea@nic.funet.fi> 1997
+    by Matti Aarnio <mea@nic.funet.fi> 1997,2000
 */
 
 #include "hostenv.h"

@@ -1,5 +1,10 @@
 2000-11-12  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* lib/selfaddrs.c:
+	    Learned something about the SIOCGIFFLAGS/SIOCGLIFFLAGS
+	    ioctl parameters, and what is necessary for initializing
+	    its call.
+
 	* transports/smtp/smtp.c:
 	    Some oddball moments don't fail properly after response
 	    timeout during certain critical periods -- mainly of DATA/RSET.
