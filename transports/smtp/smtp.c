@@ -13,13 +13,13 @@
      - While writing data, a block
        at the time: 3 minutes  (How large a block ?)
      - From "." to "250 OK": 10 minutes
-       (We use 60 minutes here - sendmail's default)
+       (We use 20 minutes here - sendmail uses 60 minutes..)
  */
 int timeout = 0;		/* how long do we wait for response? (sec.) */
 int timeout_cmd  =  5*60;
 int timeout_data =  2*60;
 int timeout_tcpw =  3*60;	/* All tcp writes ?? */
-int timeout_dot  = 60*60;
+int timeout_dot  = 20*60;
 int timeout_conn =  3*60;	/* connect() timeout */
 
 char *defcharset;
@@ -3672,10 +3672,6 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  _Z_FD_SET(infd,rdset);
 
 	  gotalarm = 0;
-
-	  /* Sync us - just in case... */
-	  if (SS->smtpfp && sffileno(SS->smtpfp) >= 0)
-	    sfsync(SS->smtpfp);
 
 	  r = select(infd+1, &rdset, NULL, NULL, &tv);
 	  if (r < 0 && errno == EINTR) goto do_reread;
