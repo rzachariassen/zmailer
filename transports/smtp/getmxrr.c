@@ -27,7 +27,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	int saw_cname = 0;
 	int ttl;
 	int had_eai_again = 0;
-	struct addrinfo req, *ai, *ai2;
+	struct addrinfo req, *ai, *ai2, **aip;
 	querybuf qbuf, answer;
 	msgdata buf[8192], realname[8192];
 	char mxtype[MAXFORWARDERS];
@@ -360,7 +360,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    /* Pick the address data */
 	    for (i = 0; i < nmx; ++i) {
 	      /* Is this known (wanted) name ?? */
-	      if (strcasecmp(buf, mx[i].host) == 0) {
+	      if (CISTREQ(buf, mx[i].host)) {
 		/* YES! */
 
 		/* We do have a wanted name! */
@@ -498,19 +498,17 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    }
 	    if (ai2 && ai) {
 	      /* BOTH ?!  Catenate them! */
-	      a = ai;
-	      while (a && a->ai_next) a = a->ai_next;
-	      if (a) a->ai_next = ai2;
+	      aip = &ai->ai_next;
+	      while (*aip) aip = &((*aip)->ai_next);
+	      *aip = ai2;
 	    }
 	  }
 #endif
 
-	  /* Catenate old stuff into the tail of the new ... */
-	  ai2 = ai;
-	  while (ai2 && ai2->ai_next) ai2 = ai2->ai_next;
-	  if (ai2) ai2->ai_next = mx[i].ai;
-
-	  mx[i].ai = ai; /* Save it (whatever it was..) */
+	  /* Catenate new stuff into the tail of the old ... */
+	  aip = &(mx[i].ai);
+	  while (*aip) aip = &((*aip)->ai_next);
+	  *aip = ai;
 
 	  if (n != 0) {
 	    if (n == EAI_AGAIN) {
