@@ -3701,7 +3701,7 @@ smtp_sync(SS, r, nonblocking)
 	  if (code >= 400) {
 	    /* Errors */
 
-	    /* MAIL From:<*>: ... */
+	    /* MAIL From:<*>: 250/ 552/451/452/ 500/501/421 */
 	    /* DATA: 354/ 451/554/ 500/501/503/421 */
 	    /* RCPT To:<*>: 250/251/ 550/551/552/553/450/451/452/455/ 500/501/503/421 */
 
@@ -3722,6 +3722,11 @@ smtp_sync(SS, r, nonblocking)
 	      }
 
 	      /* Diagnose the errors, we report successes AFTER the DATA phase.. */
+	      if (SS->verboselog)
+		fprintf(SS->verboselog,
+			" -> diagnostic(rc=%d idx=%d) remotemsg='%s'\n",
+			rc, idx, SS->remotemsg);
+
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
 	      notaryreport(SS->pipercpts[idx]->addr->user,FAILED,NULL,NULL);
@@ -3745,6 +3750,7 @@ smtp_sync(SS, r, nonblocking)
 		  SS->rcptstates |= FROMSTATE_400;
 		else
 		  SS->rcptstates |= FROMSTATE_OK;
+
 	      } else {
 
 		/* "DATA" or "BDAT" phase */
