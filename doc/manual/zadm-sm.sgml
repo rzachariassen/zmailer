@@ -1,8 +1,8 @@
 <CHAPTER ID="ZADM-SM"><?dbhtml filename="zadm-sm.html">
-<TITLE><EMPHASIS>Sm</> Configuration</TITLE>
+<TITLE><COMMAND>Sm</> Configuration</TITLE>
 
 <PARA>
-<EMPHASIS>sm</> is a ZMailer's <COMMAND>sendmail</>(8) compatible
+<COMMAND>sm</> is a ZMailer's <COMMAND>sendmail</>(8) compatible
 <EMPHASIS>transport agent</> to deliver messages by invoking a program
 with facilities and in a way compatible with a <COMMAND>sendmail</>(8)
 MTA.
@@ -87,7 +87,7 @@ character should be used to indicate presence of the field.
 All normal <APPLICATION>sendmail</> (<EMPHASIS>of 5.x era..</>)
 flags are recognized, but the ones that do not make sense in
 the context of ZMailer will produce an error (or some are ignored).
-The flags that change the behaviour of <EMPHASIS>sm</> are:
+The flags that change the behaviour of <COMMAND>sm</> are:
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>b</OPTION></TERM><LISTITEM><PARA>
@@ -98,7 +98,7 @@ algorithm; e.g. quite ordinary SMTP stream, but in ``batch mode''.
 <VARLISTENTRY><TERM><OPTION>B</OPTION></TERM><LISTITEM><PARA>
 The  first ``<OPTION>B</>''  turns on similar BSMTP wrapping
 as ``<OPTION>b</>'', but adds
-SIZE and, if the <EMPHASIS>sm</> is  started  with option ``<OPTION>-8</>'',
+SIZE and, if the <COMMAND>sm</> is  started  with option ``<OPTION>-8</>'',
 also 8BITMIME options.  The second ``<OPTION>B</>'' adds there also DSN
 (Delivery Status  Notification) parameters.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -123,14 +123,14 @@ adds ``<OPTION>-r sender</>'' arguments to the delivery program.
 
 <VARLISTENTRY><TERM><OPTION>S</OPTION></TERM><LISTITEM><PARA>
 will run the delivery program with the same real and effective uid as
-the <EMPHASIS>sm</> process.
+the <COMMAND>sm</> process.
 If this flag is not set, the delivery program will be run with the real
-uid of the <EMPHASIS>sm</> process.
-This may be useful if <EMPHASIS>sm</> is setuid.
+uid of the <COMMAND>sm</> process.
+This may be useful if <COMMAND>sm</> is setuid.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>m</OPTION></TERM><LISTITEM><PARA>
-informs <EMPHASIS>sm</> that each instance of the delivery program
+informs <COMMAND>sm</> that each instance of the delivery program
 can deliver to many destinations.
 This affects <OPTION>$u</>  expansion  in the argument list, see below.
 </PARA></LISTITEM></VARLISTENTRY>

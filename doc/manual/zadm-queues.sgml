@@ -46,7 +46,8 @@ Postmaster analysis area
 </ITEMIZEDLIST>
 </PARA>
 
-<SECT1><TITLE>Message Submission Areas</>
+<SECT1 ID=zadm-queue-msgsubmission>
+<TITLE>Message Submission Areas</>
 
 
 <PARA>
@@ -58,7 +59,7 @@ the  actual format of the submitted message is described in
 
 <PARA>
 When the temporary file is completely written, it is renamed into one 
-of the <EMPHASIS>router</> input directories, usually into 
+of the <COMMAND>router</> input directories, usually into 
   <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/router/</>
 ith a name that is a decimal representation of the spool-file i-node number.
 This is a way to ensure that the name of the file in the
@@ -72,12 +73,12 @@ which give lower priorities on which messages to process when.
 </PARA>
 
 <PARA>
-Sometimes, especially <EMPHASIS>smtpserver</> built files may be moved
+Sometimes, especially <COMMAND>smtpserver</> built files may be moved
 into alternate directories.
 The smtpserver <QUOTE>ETRN</> command has two implementations, original one
 is by moving the built special file to the directory
   <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>
-without going through the <EMPHASIS>router</>.
+without going through the <COMMAND>router</>.
 The smtpserver may also move newly arrived files into the
   <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/freezer/</>
 directory.
@@ -85,7 +86,8 @@ directory.
 
 </SECT1>
 
-<SECT1><TITLE>Router Behaviour on Queues</>
+<SECT1 ID=zadm-queue-router-behaviour>
+<TITLE>Router Behaviour on Queues</>
 
 <PARA>
 <SCREEN>
@@ -99,7 +101,7 @@ FIXME:
 
 <PARA>
 FIXME:
-The system can have multiple <EMPHASIS>router</> processes running in parallel
+The system can have multiple <COMMAND>router</> processes running in parallel
 and competeting on input files.  Multiple processes may make sense when
 there are multiple processors in the system allowing running them in
 parallel, but also perhaps for handling cases where one process is handling
@@ -107,7 +109,7 @@ routing of some large list, and other (hopefully) will get less costly jobs.
 </PARA>
 
 <PARA>
-The <EMPHASIS>router</> processes have a few different behaviours when
+The <COMMAND>router</> processes have a few different behaviours when
 they go over their input directories.
 </PARA>
 
@@ -119,14 +121,14 @@ directory is found empty.
 </PARA>
 
 <PARA>
-Within each directory, the <EMPHASIS>router</> will sort files
+Within each directory, the <COMMAND>router</> will sort files
 at first into mod-time order, and then process the oldest message
-first. (Unless the  <EMPHASIS>router</> has been started with
+first. (Unless the  <COMMAND>router</> has been started with
 the `-s' option.)
 </PARA>
 
 <PARA>
-The <EMPHASIS>router</> acquires a lock on the message (spool file) by means of
+The <COMMAND>router</> acquires a lock on the message (spool file) by means of
 renaming the file from its previous name to a name created with
 formatting statement:
 <SCREEN>
@@ -135,9 +137,9 @@ formatting statement:
 </PARA>
 
 <PARA>
-Once the <EMPHASIS>router</> has been able to acquire a new name
+Once the <COMMAND>router</> has been able to acquire a new name
 for the file, it starts off by creating a temporary file of
-<EMPHASIS>router</> routing decisions. 
+<COMMAND>router</> routing decisions. 
 The file has a name created with formatting statement:
 <SCREEN>
   sprintf(buf, "..%ld-%d", (long)filestat.st_ino, (int)getpid());
@@ -148,8 +150,8 @@ The file has a name created with formatting statement:
 Once the processing has completed successfully, the original
 input file is moved into the directory
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>,
-and the <EMPHASIS>router</> produced
-<EMPHASIS>scheduler work-specification file</>
+and the <COMMAND>router</> produced
+<COMMAND>scheduler work-specification file</>
 is moved to the <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transports/</> directory with the <EMPHASIS ROLE="BOLD">same name</>
 that the original file has.
 </PARA>
@@ -160,7 +162,7 @@ moved into the directory
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/deferred/</>,
 from which the command <COMMAND>zmailer resubmit</> is needed to return
 the messages into processing
-(The <EMPHASIS>router</> logs should be consulted for the reason why
+(The <COMMAND>router</> logs should be consulted for the reason why
  the message ended up in the <FILENAME CLASS="DIRECTORY">/deferred/</>
  area, especially if the command <COMMAND>zmailer resubmit</> is not able
  to get the messages processed successfully and the files end up back
@@ -175,12 +177,13 @@ directory <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/postman/</>.
 
 <PARA>
 See Postmaster Analysis Area on section
-<XREF LINKEND="postmaster-analysis-area">.
+<XREF LINKEND="zadm-queue-postmaster-analysis-area">.
 </PARA>
 
 </SECT1>
 
-<SECT1><TITLE>Scheduler, and Transport Agents</>
+<SECT1 ID=zadm-queue-scheduler-and-transport-agents>
+<TITLE>Scheduler, and Transport Agents</>
 
 <PARA>
 The scheduler work specification files are in the directory
@@ -193,15 +196,15 @@ the transport agents, when they open files, (and also in the scheduler).
 </PARA>
 
 <PARA>
-When the <EMPHASIS>router</> has completed message file processing,
+When the <COMMAND>router</> has completed message file processing,
 it places the resulting files into the top level directory of the
-<EMPHASIS>scheduler</>; 
+<COMMAND>scheduler</>; 
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>,
 and <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>.
 </PARA>
 
 <PARA>
-The <EMPHASIS>scheduler</> (if so configured by ``<OPTION>-H</>'' option) will
+The <COMMAND>scheduler</> (if so configured by ``<OPTION>-H</>'' option) will
 move the messages into ``hashed subdirectories,'' when it finds the
 new work specification files, and then start processing them.
 </PARA>
@@ -219,7 +222,7 @@ file name.
 Usually it is the <EMPHASIS>transport agent's</> duty to log different
 permanent status reports (failures, successes) into the end of
 the work-specification file.  
-Sometimes the <EMPHASIS>scheduler</> also logs something at the end of
+Sometimes the <COMMAND>scheduler</> also logs something at the end of
 this file.  
 All such operations are attempted <EMPHASIS ROLE="BOLD">without</> any sort 
 of explicit locking, instead trusting the <EMPHASIS>write(2)</> system call
@@ -228,7 +231,7 @@ having a single buffer of data to write.
 </PARA>
 
 <PARA>
-Once the <EMPHASIS>scheduler</> has had all message recipient addresses
+Once the <COMMAND>scheduler</> has had all message recipient addresses
 processed by the <EMPHASIS>transport agents</>, it will handle possible
 diagnostics on the message, and finally it will remove the original spool-file
 from the <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>, and 
@@ -238,7 +241,8 @@ the work-specification file from
 
 </SECT1>
 
-<SECT1 ID="postmaster-analysis-area"><TITLE>Postmaster Analysis Area</TITLE>
+<SECT1 ID="zadm-queue-postmaster-analysis-area">
+<TITLE>Postmaster Analysis Area</TITLE>
 
 <PARA>
 If the filename in the

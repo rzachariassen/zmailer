@@ -7,10 +7,11 @@ Not all of them even become installed into your system in all situations.
 </PARA>
 
 
-<SECT1 ID="zref.util.vacation"><TITLE><EMPHASIS>vacation</></TITLE>
+<SECT1 ID="zref.util.vacation">
+<TITLE><COMMAND>vacation</></TITLE>
 
 <PARA>
-<EMPHASIS>vacation</> automatically replies to incoming mail.
+<COMMAND>vacation</> automatically replies to incoming mail.
 The canned reply is contained in the file <FILENAME>~/.vacation.msg</>,
 that you should create in your home directory (or the file
 <USERINPUT>Msgfile</> specified by the <OPTION>-m</> option).
@@ -29,7 +30,7 @@ especially if you use the <OPTION>-m</> option), for example.
 <VARLISTENTRY><TERM>Usage:</><LISTITEM>
 
 <PARA>
-To start <EMPHASIS>vacation</>, run the command <USERINPUT>vacation start</>.
+To start <COMMAND>vacation</>, run the command <USERINPUT>vacation start</>.
 It will create a <FILENAME>~/.vacation.msg</> file (if you don't already 
 have one) in your home directory containing the message you want to send 
 people who send you mail, and a <FILENAME>~/.forward</> file in your home 
@@ -126,7 +127,7 @@ The default vacation message is stored in <FILENAME>/opt/mail/vacation.msg</>
 </PARA>
 
 <PARA>
-On machines running ZMailer, the ``name'' argument to <EMPHASIS>vacation</>
+On machines running ZMailer, the ``name'' argument to <COMMAND>vacation</>
 is optional, and the $USER environment variable is used to determine where
 to look for the message and the list of previous recipients.
 </PARA>
@@ -144,7 +145,7 @@ The ``From '' line is used only as a last resort.
 </SECT1>
 
 <SECT1 ID="zref.util.makedb">
-<TITLE><EMPHASIS>makedb</></TITLE>
+<TITLE><COMMAND>makedb</></TITLE>
 
 <PARA>
 The way the ZMailer uses DBM entries is by using strings with 
@@ -194,7 +195,8 @@ The {\tt -a} option is for parsing input that comes in
 
 </SECT1>
 
-<SECT1 ID="zref.util.dblook"><TITLE><EMPHASIS>dblook</></TITLE>
+<SECT1 ID="zref.util.dblook">
+<TITLE><COMMAND>dblook</></TITLE>
 
 <SCREEN>
 The way the ZMailer uses DBM entries is by using strings with 
@@ -393,10 +395,11 @@ exit 0
 
 </SECT1>
 
-<SECT1><TITLE>autoanswer</TITLE>
+<SECT1 ID=zref.util.autoanswer>
+<TITLE>autoanswer</TITLE>
 
 <PARA>
-The <EMPHASIS>autoanswer</> program is intended to be placed into
+The <COMMAND>autoanswer</> program is intended to be placed into
 system global aliases database as following entry:
 <SCREEN>
   autoanswer:  "| /path/to/MAILBIN/autoanswer"
@@ -526,13 +529,14 @@ sub LOG {
 </SCREEN>
 </SECT1>
 
-<SECT1 ID="zref.util.newdb"><TITLE><EMPHASIS>newdb</></TITLE>
+<SECT1 ID="zref.util.newdb">
+<TITLE><COMMAND>newdb</></TITLE>
 
 <PARA>
 This is elementary wrapper script building binary databases with
-<EMPHASIS>makedb</> utility into a temporary file, and replacing
+<COMMAND>makedb</> utility into a temporary file, and replacing
 the old files with the new ones in proper order for the 
-<EMPHASIS>router</>'s automatic source change detecting relation 
+<COMMAND>router</>'s automatic source change detecting relation 
 parameter {\tt -m} to work correctly.
 </PARA>
 

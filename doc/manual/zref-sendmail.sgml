@@ -1,12 +1,12 @@
 <CHAPTER ID="ZREF-SENDMAIL"><?dbhtml filename="zref-sendmail.html">
-<TITLE><EMPHASIS>Sendmail Reference</></TITLE>
+<TITLE><COMMAND>Sendmail</> Reference</TITLE>
 
 <PARA>
-This ``<EMPHASIS>sendmail</>'' program is an emulation of the original
+This ``<COMMAND>sendmail</>'' program is an emulation of the original
 <APPLICATION>sendmail</> interface. It provides all the original options
 that make sense to support in the context of ZMailer.
 This is not intended to be the normal user interface to
-<EMPHASIS>mail</>, rather it is used by the old User Agent programs,
+<COMMAND>mail</>, rather it is used by the old User Agent programs,
 e.g., <APPLICATION>mail(1)</>, to submit mail.
 This mechanism has been superseded by the <FUNCTION>zmailer(3)</> library
 routines as the native submission interface (Application Program Interface)
@@ -82,41 +82,41 @@ Usage: sendmail [sendmail options] [recipient addresses]
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>-bm</OPTION></TERM><LISTITEM><PARA>
-asks <EMPHASIS>sendmail</> to deliver mail, which it does anyway. 
+asks <COMMAND>sendmail</> to deliver mail, which it does anyway. 
 This option has no effect.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-bs</OPTION></TERM><LISTITEM><PARA>
 will start a SMTP server reading from <LITERAL>STDIN</>. 
-This causes the <EMPHASIS>smtpserver(8)</> program to be executed.
+This causes the <COMMAND>smtpserver(8)</> program to be executed.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-bd</OPTION></TERM><LISTITEM><PARA>
-starts the <EMPHASIS>router(8)</> and <EMPHASIS>scheduler(8)</>
+starts the <COMMAND>router(8)</> and <COMMAND>scheduler(8)</>
 programs to emulate <APPLICATION>sendmail</>'s daemon mode.
 This is <EMPHASIS ROLE=BOLD>not</> a recommended method to start these
-programs, instead use <EMPHASIS>zmailer(1)</> script.
+programs, instead use <COMMAND>zmailer(1)</> script.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-bt</OPTION></TERM><LISTITEM><PARA>
-runs the <EMPHASIS>router(8)</> in interactive mode for testing.
+runs the <COMMAND>router(8)</> in interactive mode for testing.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-bu</OPTION></TERM><LISTITEM><PARA>
-runs <EMPHASIS>newaliases(8)</> to rebuild the alias file database.
+runs <COMMAND>newaliases(8)</> to rebuild the alias file database.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-bp</OPTION></TERM><LISTITEM><PARA>
-runs <EMPHASIS>mailq(1)</> to print the mail transport queue status.
+runs <COMMAND>mailq(1)</> to print the mail transport queue status.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-C configfile</OPTION></TERM><LISTITEM><PARA>
-specifies the <EMPHASIS>router(8)</> configuration file.
+specifies the <COMMAND>router(8)</> configuration file.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-E</OPTION></TERM><LISTITEM><PARA>
 indicates the origin of this message is an insecure channel.
-This should be used when <EMPHASIS>sendmail</> is used to submit messages
+This should be used when <COMMAND>sendmail</> is used to submit messages
 coming in from outside the local machine, to avoid security problems during
 message processing.
 This flag ensures the message will have no privileges even if the current
@@ -138,7 +138,7 @@ specifies the full name of the (local) sender.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-i</OPTION></TERM><LISTITEM><PARA>
-tells <EMPHASIS>sendmail</> to not use a period (``.'') on a line by itself
+tells <COMMAND>sendmail</> to not use a period (``.'') on a line by itself
 as a message terminator, only the end of file will terminate the message.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -183,8 +183,8 @@ This is also the default behaviour, so this option has no effect.
 
 <VARLISTENTRY><TERM><OPTION>-v</OPTION></TERM><LISTITEM><PARA>
 will report the progress of the message after it has been submitted.
-The <EMPHASIS>sendmail</> process will write verbose log information to
-the <LITERAL>STDERR</> stream until the <EMPHASIS>scheduler</> deletes
+The <COMMAND>sendmail</> process will write verbose log information to
+the <LITERAL>STDERR</> stream until the <COMMAND>scheduler</> deletes
 the message.
 </PARA></LISTITEM></VARLISTENTRY>
 

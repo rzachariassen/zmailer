@@ -1,13 +1,13 @@
 <CHAPTER ID="ZADM-SMTPSERVER-CONFIG"><?dbhtml filename="zadm-smtpserver.html">
-<TITLE><EMPHASIS>Smtpserver</> Configuration</TITLE>
+<TITLE><COMMAND>Smtpserver</> Configuration</TITLE>
 
 <PARA>
-The <EMPHASIS>smtpserver</> is ZMailer's component to receive incoming
+The <COMMAND>smtpserver</> is ZMailer's component to receive incoming
 email via SMTP protocol.  Be it thru TCP channel, or thru Batch-SMTP.
 </PARA>
 
 <PARA>
-The <EMPHASIS>smtpserver</> program actually has several operational modes.
+The <COMMAND>smtpserver</> program actually has several operational modes.
 It can operate as a stand-alone internet service socket listener, which
 forks off childs that do the actual SMTP-protocol service.
 </PARA>
@@ -52,7 +52,7 @@ The most commonly used command line options are:
 </PARA>
 
 <PARA>
-Without any arguments the  <EMPHASIS>smtpserver</>  will start as a daemon
+Without any arguments the  <COMMAND>smtpserver</>  will start as a daemon
 listening on TCP port 25 (SMTP).
 </PARA>
 
@@ -88,7 +88,7 @@ Verbose trace written to stdout for use in conjunktion with "-i", and "-B".
 <VARLISTENTRY>
 <TERM>-n</TERM>
 <LISTITEM><PARA>
-This tells that the <EMPHASIS>smtpserver</> is running under
+This tells that the <COMMAND>smtpserver</> is running under
 <COMMAND>inetd</>(8), and that the stdin/stdout file handles
 are actually network sockets on which we can do peer identity
 lookups, for example.
@@ -113,15 +113,15 @@ picky for average (sloppy) applications out there...
 <VARLISTENTRY>
 <TERM>-l logfilepath</TERM>
 <LISTITEM><PARA>
-Filename for the <EMPHASIS>smtpserver</> input protocol log.
+Filename for the <COMMAND>smtpserver</> input protocol log.
 This logs about everything, except actual message data...
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM>-l 'SYSLOG'</TERM>
 <LISTITEM><PARA>
-This tells <EMPHASIS>smtpserver</> that it shall send all incoming smtp
-protocol transactions via <EMPHASIS>syslog</> facility to elsewere.
+This tells <COMMAND>smtpserver</> that it shall send all incoming smtp
+protocol transactions via <FUNCTION>syslog</> facility to elsewere.
 Used syslog parameters are: FACILITY=mail, LEVEL=debug.
 </PARA><PARA>
 This option may be used in addition to the preceding file logging variant.
@@ -132,7 +132,7 @@ doesn't affect files at all.
 <VARLISTENTRY>
 <TERM>-C configfilepath</TERM>
 <LISTITEM><PARA>
-Full path for the <EMPHASIS>smtpserver</> configuration in case
+Full path for the <COMMAND>smtpserver</> configuration in case
 the default location can not be used for some reason.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -146,14 +146,15 @@ for incoming email. (Default: infinite) (This is a local policy issue.)
 <VARLISTENTRY>
 <TERM>-T IPv4-or-IPv6-address-literal</TERM>
 <LISTITEM><PARA>
-<EMPHASIS>address literal</> is used in interactive test mode to check
+<COMMAND>address literal</> is used in interactive test mode to check
 how 
 </PARA></LISTITEM></VARLISTENTRY>
 
 </VARIABLELIST>
 </PARA>
 
-<SECT1><TITLE><FILENAME>smtpserver.conf</></>
+<SECT1 ID=zadm-smtpserver-conf>
+<TITLE><FILENAME>smtpserver.conf</></>
 
 <PARA>
 If the system has file <FILENAME>$<VARNAME>MAILSHARE</>/smtpserver.conf</>
@@ -204,7 +205,8 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 </SCREEN>
 </FIGURE>
 
-<SECT2><TITLE><FILENAME>smtpserver.conf</>; PARAM keywords</TITLE>
+<SECT2 ID=zadm-smtpserver-conf-param-keywords>
+<TITLE><FILENAME>smtpserver.conf</>; PARAM keywords</TITLE>
 
 <PARA>
 The PARAM keywords and values are:
@@ -242,7 +244,7 @@ open in parallel.  The default value for this limit is 10.
 <VARLISTENTRY>
 <TERM>ListenQueueSize nn</TERM>
 <LISTITEM><PARA>
-This relates to newer systems where the <COMMAND>listen</>(2)
+This relates to newer systems where the <FUNCTION>listen</>(2)
 system call can define higher limits, than the traditional/original 5.
 This limit tells how many nascent TCP streams we can have in
 SYN_RCVD state before we stop answering to incoming SYN packets
@@ -281,15 +283,15 @@ type specific suffixes to the path prefix.  For example NDBM
 database appends ".pag" and ".dir", while BSD-Btree appends only
 ".db".  (And the latter has only one file, while the first has two.)
 </PARA><PARA>
-For an operative overview, see  <XREF LINKEND="adm.smtp-policy-filtering">,
-and for deeper details, see <XREF LINKEND="ref.smtp-policy-filtering">.
+For an operative overview, see <XREF LINKEND=zadm-smtpserver-policy-filtering>,
+and for deeper details, see <XREF LINKEND=zref-smtpserver-policy-filtering>.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
 
 </SECT2>
 
-<SECT2 ID="adm.smtpserver.ehlostyle">
+<SECT2 ID="zadm-smtpserver-conf-ehlostyle">
 <TITLE><FILENAME>smtpserver.conf</>; ``EHLO-style options''</TITLE>
 <SCREEN>
 \index{smtpserver!{\tt smtpserver.conf}; ``EHLO-style options''}
@@ -298,7 +300,7 @@ and for deeper details, see <XREF LINKEND="ref.smtp-policy-filtering">.
 <PARA>
 All lines that are not comments, nor start with uppercase keyword
 ``POLICY'' are ``EHLO-style patterns''.
-This is the oldest form of configuring the <EMPHASIS>smtpserver</>, and
+This is the oldest form of configuring the <COMMAND>smtpserver</>, and
 as such, it can be seen...
 </PARA>
 
@@ -345,14 +347,15 @@ properly; WinCE1.0 does: ``<EMPHASIS>MAIL FROM:user@domain</>'' :-(
 </SECT1>
 
 
-<SECT1 ID="adm.smtp-policy-filtering"><TITLE>Policy Based Filtering</TITLE>
+<SECT1 ID="zadm-smtpserver-policy-filtering">
+<TITLE>Policy Based Filtering</TITLE>
 <SCREEN>
 \index{smtp!policy filtering, overview}
 </SCREEN>
 
 <PARA>
-The policy database that <EMPHASIS>smtpserver</> uses is built with
-<EMPHASIS>policy-builder.sh</> script, which bundles together a set
+The policy database that <COMMAND>smtpserver</> uses is built with
+<COMMAND>policy-builder.sh</> script, which bundles together a set
 of policy source files:
 <SCREEN>
   DB/smtp-policy.src          The boilerplate

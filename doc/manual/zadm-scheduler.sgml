@@ -1,16 +1,16 @@
 <CHAPTER ID="ZADM-SCHEDULER"><?dbhtml filename="zadm-scheduler.html">
-<TITLE><EMPHASIS>Scheduler</> Configuration</TITLE>
+<TITLE><COMMAND>Scheduler</> Configuration</TITLE>
 
 <PARA>
-The <EMPHASIS>scheduler</> is the part of the ZMailer that manages
+The <COMMAND>scheduler</> is the part of the ZMailer that manages
 message processing outbound from the MTA proper.
 </PARA>
 
 <PARA>
-The major action of the <EMPHASIS>scheduler</> is to periodically
+The major action of the <COMMAND>scheduler</> is to periodically
 start up <EMPHASIS>Transport Agents</> and tell them what to do.
 This is controlled by a table in a configuration file that is read by the
-<EMPHASIS>scheduler</> when it starts.  
+<COMMAND>scheduler</> when it starts.  
 </PARA>
 
 <PARA>
@@ -20,7 +20,7 @@ All other lines must follow a rigid format.
 </PARA>
 
 <PARA>
-The <EMPHASIS>scheduler</> configuration file consists of a set of clauses.
+The <COMMAND>scheduler</> configuration file consists of a set of clauses.
 Each clause is selected by the pattern it starts with.
 The patterns for the clauses are matched, in sequence, with
 the <EMPHASIS>channel/host</> string for each recipient address.
@@ -106,14 +106,14 @@ up default values.
 
 <LISTITEM><PARA>
 clauses specific to the other channels  known  by
-the <EMPHASIS>router</>, for example: smtp and uucp.
+the <COMMAND>router</>, for example: smtp and uucp.
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
 </PARA>
 
 <PARA>
 The actual names of these channels are completely controlled
-by the <EMPHASIS>router</> configuration file.
+by the <COMMAND>router</> configuration file.
 </PARA>
 
 <PARA>
@@ -268,7 +268,7 @@ a command definition, as it limits the recyclability of the idled transporter.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>bychannel</TERM><LISTITEM><PARA>
-is a keyword (with no associated value which tells the <EMPHASIS>scheduler</>
+is a keyword (with no associated value which tells the <COMMAND>scheduler</>
 that the transport agent specified in the command will only process
 destination addresses that match the first destination channel it encounters.
 </PARA><PARA>
@@ -279,7 +279,7 @@ This is rarely used.
 
 <VARLISTENTRY><TERM>queueonly</TERM><LISTITEM><PARA>
 a clause with queueonly flag does not auto-start at the arrival of a message,
-instead it must be started by means of <EMPHASIS>smtpserver</>(8) command
+instead it must be started by means of <COMMAND>smtpserver</>(8) command
 ETRN thru an SMTP connection.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>

@@ -1,5 +1,5 @@
 <CHAPTER ID="ZREF-ROUTER"><?dbhtml filename="zref-router.html">
-<TITLE><COMMAND>Router Reference</></TITLE>
+<TITLE><COMMAND>Router</> Reference</TITLE>
 
 <PARA>
 The <COMMAND>router</> daemon makes all decisions affecting 
@@ -384,7 +384,7 @@ Text to be inserted here.
 <TITLE>Script Language Internal Functions</TITLE>
 
 <PARA>
-This section describes the <EMPHASIS>router</> internal functions.
+This section describes the <COMMAND>router</> internal functions.
 </PARA>
 
 <PARA>
@@ -1207,7 +1207,8 @@ entries and maximum size, flags, and associated files. See the
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-<TABLE FRAME=ALL><TITLE>DB type specific notes:</TITLE>
+<TABLE FRAME=ALL ID=tbl-zref-router-db-type-specific-notes>
+<TITLE>DB type specific notes:</TITLE>
 <TGROUP COLS=6 ALIGN=LEFT COLSEP=1 ROWSEP=1>
 <COLSPEC COLNAME=C1-DBTYPE-NAME>
 <COLSPEC COLNAME=C2-DBFUNC-ADD>
@@ -1380,7 +1381,7 @@ none
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 The access function to the database facilities in the 
-<EMPHASIS>router</>.
+<COMMAND>router</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>

@@ -10,7 +10,8 @@ This text has been copied from other sections and will change...
 
 <!-- ..........................................................
 
-<SECT1><TITLE>Checking the Log Files</>
+<SECT1 ID=zadm-logging-checking-log-files>
+<TITLE>Checking the Log Files</>
 
 <PARA>
 Start ZMailer:
@@ -30,7 +31,8 @@ in case of resource problems.
 
 </SECT1>
 
-<SECT1><TITLE>Trimdown of Logging</>
+<SECT1 ID=zadm-logging-trimdown>
+<TITLE>Trimdown of Logging</>
 
 <PARA>
 Once satisfied that things appear to work, you may want to trim down
@@ -86,7 +88,8 @@ for your site.
 </SECT1>
 ........................................................ -->
 
-<SECT1><TITLE>Scheduler Statistics log</>
+<SECT1 ID=zadm-logging-scheduler-perflog>
+<TITLE>Scheduler Statistics Log</>
 
 <PARA>
 The  statistics log reports condenced performance oriented
@@ -138,7 +141,8 @@ Where/how it was processed.
 
 </SECT1>
 
-<SECT1><TITLE>syslogged log formats</>
+<SECT1 ID=zadm-logging-syslogged-log-formats>
+<TITLE>Syslogged Log Formats</>
 
 <PARA>
 At <EMPHASIS>syslog</> facility the system logs also material,
@@ -149,7 +153,8 @@ if it has so been configured.
 Different subsystems do different logs, they are described below.
 </PARA>
 
-<SECT2><TITLE>Smtpserver's Syslog Format</TITLE>
+<SECT2 ID=zadm-logging-syslog-from-smtpserver>
+<TITLE>Smtpserver's Syslog Format</TITLE>
 
 <PARA>
 The <EMPHASIS>smtpserver</> may log in multiple formats:
@@ -174,7 +179,8 @@ in the system, and should be long-term unique, even.  (Per system.)
 
 </SECT2>
 
-<SECT2><TITLE>Router's Syslog Format</TITLE>
+<SECT2 ID=zadm-logging-syslog-from-router>
+<TITLE>Router's Syslog Format</TITLE>
 
 <PARA>
 The <EMPHASIS>router</> does <FUNCTION>syslog</>() in following format:
@@ -227,7 +233,8 @@ The ``Message-ID:'' header content
 
 </SECT2>
 
-<SECT2><TITLE>Transport Agent's Syslog Format</TITLE>
+<SECT2 ID=zadm-logging-syslog-from-transport-agents>
+<TITLE>Transport Agent's Syslog Format</TITLE>
 
 <PARA>
 The transport agents log in following format:

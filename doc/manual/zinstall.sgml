@@ -1002,7 +1002,7 @@ of abuse of your system.
 Basically you want to install the boilerplates and the tool scripts,
 edit them a bit, and run <COMMAND>policy-builder.sh</> script.
 For further details on this, see chapter
-<XREF LINKEND="adm.smtp-policy-filtering">.
+<XREF LINKEND="zadm-smtpserver-policy-filtering">.
 </PARA>
 
 <PARA>
@@ -1018,7 +1018,7 @@ their totally broken SMTP sending system.
 
 <PARA>
 Both of these things are handled by ``EHLO-style options'' described
-at chapter <XREF LINKEND="adm.smtpserver.ehlostyle">.
+at chapter <XREF LINKEND="zadm-smtpserver-conf-ehlostyle">.
 </PARA>
 
 </SECT2>
@@ -1177,7 +1177,7 @@ as local delivery agent </PARA></LISTITEM>
 </PARA>
 
 <PARA>
-For more information, see <XREF LINKEND="ref.ta.smconfig">.
+For more information, see <XREF LINKEND="zref-ta-sm-config">.
 </PARA>
 
 </SECT2>

@@ -12,14 +12,15 @@ doing to the messages, and what kind of channels they handle.
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
-<SECT1><TITLE>mailbox</TITLE>
+<SECT1 ID=zref-ta-mailbox>
+<TITLE><COMMAND>mailbox</></TITLE>
 
 <PARA>
-The <EMPHASIS>mailbox</> is a ZMailer transport agent which is usually
-only run by the <EMPHASIS>scheduler(8)</> program to deliver mail to
-local user mailbox files. The <EMPHASIS>mailbox</> program must be run
+The <COMMAND>mailbox</> is a ZMailer transport agent which is usually
+only run by the <COMMAND>scheduler</>(8) program to deliver mail to
+local user mailbox files. The <COMMAND>mailbox</> program must be run
 with root privileges and invoked with the same current directory as
-the <EMPHASIS>scheduler</>, namely:
+the <COMMAND>scheduler</>, namely:
   <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>.
 </PARA>
 
@@ -59,7 +60,7 @@ Recipient addresses are processed  as follows:
 
 <PARA>
 If delivering to a user mailbox (<FILENAME>$<VARNAME>MAILBOX</>/userid</>)
-which does not exist, <EMPHASIS>mailbox</> will try to create it.
+which does not exist, <COMMAND>mailbox</> will try to create it.
 If the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBOX</>/</> directory is
 mounted from a remote system this will succeed if the directory is group
 writable.
@@ -82,7 +83,7 @@ Some sanity checks are done on deliveries to files and mailboxes:
 
 <PARA>
 There is a further sanity check on mailbox deliveries, namely if
-the mailbox is not empty the <EMPHASIS>mailbox</> program will
+the mailbox is not empty the <COMMAND>mailbox</> program will
 enforce 2 newlines as a separator before the message to be 
 delivered.
 This guarantees that User Agents, like <COMMAND>Mail(1)</>,
@@ -346,23 +347,24 @@ the subprograms it runs in the pipes:
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
 
-<SECT1><TITLE><EMPHASIS>hold</></TITLE>
+<SECT1 ID=zref-ta-hold>
+<TITLE><COMMAND>hold</></TITLE>
 
 <PARA>
-<EMPHASIS>hold</> - zmailer deferred processing transport agent
+<COMMAND>hold</> - zmailer deferred processing transport agent
 </PARA>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Description:</><LISTITEM><PARA>
 
-<EMPHASIS>hold</> is a ZMailer transport agent which is usually only
-run by the <EMPHASIS>scheduler(8)</> program to test conditions for
+<COMMAND>hold</> is a ZMailer transport agent which is usually only
+run by the <COMMAND>scheduler(8)</> program to test conditions for
 reprocessing of previously deferred message addresses.
 </PARA>
 
 <PARA>
-The <EMPHASIS>hold</> program must be run with the same current
-directory as the <EMPHASIS>scheduler</>, namely:
+The <COMMAND>hold</> program must be run with the same current
+directory as the <COMMAND>scheduler</>, namely:
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>.
 </PARA>
 
@@ -370,7 +372,7 @@ directory as the <EMPHASIS>scheduler</>, namely:
 The program will interpret the host part of an address
 destined for its channel as a condition that must be met
 before the original address (in the user part) can be
-reprocessed by the <EMPHASIS>router</>.
+reprocessed by the <COMMAND>router</>.
 The condition specification contains a general condition
 class name followed by colon followed by a parameter string.
 The currently supported condition classes are:
@@ -474,19 +476,20 @@ The exit status is a code from
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
 
-<SECT1><TITLE><EMPHASIS>smtp</></TITLE>
+<SECT1 ID=zref-ta-smtp>
+<TITLE><COMMAND>smtp</></TITLE>
 
 
 <PARA>
-<EMPHASIS>smtp</> - zmailer SMTP client transport agent
+<COMMAND>smtp</> - zmailer SMTP client transport agent
 </PARA>
 
 <PARA>
-<EMPHASIS>smtp</> is a ZMailer transport agent which is usually only
-run by the <EMPHASIS>scheduler(8)</> to transfer messages to a remote
+<COMMAND>smtp</> is a ZMailer transport agent which is usually only
+run by the <COMMAND>scheduler(8)</> to transfer messages to a remote
 Internet host using the SMTP protocol.
-The <EMPHASIS>smtp</> program must be run with the same current directory
-as the <EMPHASIS>scheduler</>, namely
+The <COMMAND>smtp</> program must be run with the same current directory
+as the <COMMAND>scheduler</>, namely
  <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>.
 </PARA>
 
@@ -595,7 +598,7 @@ on the command line in a way that will be visible to <COMMAND>ps(1)</>.
 <VARLISTENTRY><TERM><OPTION>-x</OPTION></TERM><LISTITEM><PARA>
 turns off MX lookups on delivery connections.
 This may be used ignore public MX knowledge and do exactly what
-the <EMPHASIS>router</> says in cases where delivering to an explicit
+the <COMMAND>router</> says in cases where delivering to an explicit
 IP address is inappropriate.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -671,15 +674,15 @@ When ``Content-Transfer-Encoding:''-header is not present in the headers,
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
-<SECT1>
-<TITLE><EMPHASIS>sm</> - zmailer Sendmail compatible transport agent</TITLE>
+<SECT1 ID=zref-ta-sm>
+<TITLE><COMMAND>sm</> - zmailer Sendmail compatible transport agent</TITLE>
 
 <PARA>
-<EMPHASIS>sm</> is a ZMailer transport agent which is usually only run by
- the <EMPHASIS>scheduler(8)</>, to deliver messages by invoking a program
+<COMMAND>sm</> is a ZMailer transport agent which is usually only run by
+ the <COMMAND>scheduler(8)</>, to deliver messages by invoking a program
  with facilities and in a way compatible with a <APPLICATION>sendmail</> MTA.
-The <EMPHASIS>sm</> program must be run with the same current directory as
-the <EMPHASIS>scheduler</>, namely
+The <COMMAND>sm</> program must be run with the same current directory as
+the <COMMAND>scheduler</>, namely
 <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/transport/</>.
 </PARA>
 
@@ -759,11 +762,12 @@ prints a version message and exits.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
-<SECT2 ID="ref.ta.smconfig"><TITLE>configuration of <EMPHASIS>sm</></TITLE>
+<SECT2 ID="zref-ta-sm-config">
+<TITLE>configuration of <COMMAND>sm</></TITLE>
 
 <PARA>
-<EMPHASIS>sm</> is a ZMailer's <COMMAND>sendmail</>(8) compatible
-<EMPHASIS>transport agent</> to deliver messages by invoking a program
+<COMMAND>sm</> is a ZMailer's <COMMAND>sendmail</>(8) compatible
+<COMMAND>transport agent</> to deliver messages by invoking a program
 with facilities and in a way compatible with a <COMMAND>sendmail</>(8)
 MTA.
 </PARA>
@@ -847,7 +851,7 @@ character should be used to indicate presence of the field.
 All normal <APPLICATION>sendmail</> (<EMPHASIS>of 5.x era..</>)
 flags are recognized, but the ones that do not make sense in
 the context of ZMailer will produce an error (or some are ignored).
-The flags that change the behaviour of <EMPHASIS>sm</> are:
+The flags that change the behaviour of <COMMAND>sm</> are:
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>b</OPTION></TERM><LISTITEM><PARA>
@@ -858,7 +862,7 @@ algorithm; e.g. quite ordinary SMTP stream, but in ``batch mode''.
 <VARLISTENTRY><TERM><OPTION>B</OPTION></TERM><LISTITEM><PARA>
 The  first ``<OPTION>B</>''  turns on similar BSMTP wrapping
 as ``<OPTION>b</>'', but adds
-SIZE and, if the <EMPHASIS>sm</> is  started  with option ``<OPTION>-8</>'',
+SIZE and, if the <COMMAND>sm</> is  started  with option ``<OPTION>-8</>'',
 also 8BITMIME options.  The second ``<OPTION>B</>'' adds there also DSN
 (Delivery Status  Notification) parameters.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -883,14 +887,14 @@ adds ``<OPTION>-r sender</>'' arguments to the delivery program.
 
 <VARLISTENTRY><TERM><OPTION>S</OPTION></TERM><LISTITEM><PARA>
 will run the delivery program with the same real and effective uid as
-the <EMPHASIS>sm</> process.
+the <COMMAND>sm</> process.
 If this flag is not set, the delivery program will be run with the real
-uid of the <EMPHASIS>sm</> process.
-This may be useful if <EMPHASIS>sm</> is setuid.
+uid of the <COMMAND>sm</> process.
+This may be useful if <COMMAND>sm</> is setuid.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>m</OPTION></TERM><LISTITEM><PARA>
-informs <EMPHASIS>sm</> that each instance of the delivery program
+informs <COMMAND>sm</> that each instance of the delivery program
 can deliver to many destinations.
 This affects <OPTION>$u</>  expansion  in the argument list, see below.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -956,16 +960,27 @@ will be replicated as necessary for each recipient.
 </SECT1>
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT1 ID=zref-ta-expirer>
+<TITLE><COMMAND>expirer</></TITLE>
 
+<PARA>
+FIXME! FIMXE!  write me..
+(about the tool to kill out messages from the queue)
+</PARA>
+</SECT1>
 
-<SECT1><TITLE>libta - Transport Agent Support Library</TITLE>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zref-ta-libta>
+<TITLE>libta - Transport Agent Support Library</TITLE>
 
 <PARA>
 This is the library that all transport agents use, and several of its
 functions are intended to aid message processing.
 </PARA>
 
-<SECT2><TITLE>Function groupings</TITLE>
+<SECT2 ID=zref-ta-libta-function-groups>
+<TITLE>Function groupings</TITLE>
 
 <PARA>
 Transport agent support library function groups are:
@@ -981,7 +996,8 @@ Message file manipulation routines.
 
 </SECT2>
 
-<SECT2><TITLE>Function listings</TITLE>
+<SECT2 ID=zref-ta-libta-function-listings>
+<TITLE>Function listings</TITLE>
 
 <PARA>
 Text to be inserted here.
@@ -989,7 +1005,8 @@ Text to be inserted here.
 
 </SECT2>
 
-<SECT2><TITLE>Function usage examples</TITLE>
+<SECT2 ID=zref-ta-libta-fucntion-usage-examples>
+<TITLE>Function usage examples</TITLE>
 
 <PARA>
 Text to be inserted here.
@@ -1000,7 +1017,8 @@ Text to be inserted here.
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
-<SECT1><TITLE>Security Issues</TITLE>
+<SECT1 ID=zref-ta-security-issues>
+<TITLE>Security Issues</TITLE>
 
 <PARA>
 Text to be inserted here.

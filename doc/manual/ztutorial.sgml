@@ -16,7 +16,7 @@
 <CHAPTER><?dbhtml filename="ztut-intro.html">
 <TITLE>Introduction to Email</TITLE>
 
-<SECT1>
+<SECT1 ID=ztut-messaging>
 <TITLE>Messaging</TITLE>
 
 <PARA>
@@ -80,7 +80,7 @@ but not interpersonal.
 </PARA>
 
 
-<SECT2>
+<SECT2 ID=ztut-messaging-model>
 <TITLE>The Messaging Model</TITLE>
 
 <PARA>
@@ -115,11 +115,11 @@ functionality (UAs, MSs and AUs).
 
 <PARA>
 A graphical example of the messaging model is shown in figure
-<XREF LINKEND="fig.messagemodel">.
+<XREF LINKEND="fig.ztut.messagemodel">.
 It shows the relationships between different elements of the model.
 </PARA>
 
-<FIGURE ID="fig.messagemodel" PGWIDE="0" FLOAT="1">
+<FIGURE ID=fig.ztut.messagemodel PGWIDE="0" FLOAT="1">
   <TITLE>A graphical example of the messaging model.</>
   <MEDIAOBJECT>
     <IMAGEOBJECT>
@@ -149,7 +149,7 @@ parts are all part of the outermost bodypart.
 &PGBREAK; <!-- hard-break for TeX processing -->
 </PARA>
 
-<FIGURE FLOAT="1">
+<FIGURE FLOAT="1" ID=fig.ztut.normalmsg>
 <TITLE>How a message looks normally.</>
 <SCREEN>
   Headers
@@ -165,7 +165,7 @@ parts are all part of the outermost bodypart.
     The Manager</SCREEN>
 </FIGURE>
 
-<FIGURE FLOAT="1">
+<FIGURE FLOAT="1" ID=fig.ztut.more-complex-message>
 <TITLE>A possible, more complex message structure.</>
 <SCREEN>
   Headers
@@ -211,10 +211,10 @@ This is a sure recipe for trouble.
 
 <PARA>
 Graphically, the way a message should be dealt with is shown 
-in figure <XREF LINKEND="FIG.MSGROUT">.
+in figure <XREF LINKEND=fig.ztut.msgrout>.
 </PARA>
 
-<FIGURE ID="FIG.MSGROUT" PGWIDE="1" FLOAT="1">
+<FIGURE ID=fig.ztut.msgrout PGWIDE="1" FLOAT="1">
   <TITLE>How a message should be handled.</TITLE>
   <MEDIAOBJECT>
     <IMAGEOBJECT>
@@ -262,7 +262,7 @@ to behave the same way.
 
 </SECT2>
 
-<SECT2>
+<SECT2 ID=ztut-routing-and-delivering>
 <TITLE>Routing And Delivering Messages</TITLE>
 
 
@@ -327,7 +327,7 @@ a UA function.
 <TITLE>ZMailer's Features, and Facilities</TITLE>
 
 
-<SECT1>
+<SECT1 ID=ztut-zfeatures-intro>
 <TITLE>Introduction</TITLE>
 
 <PARA>
@@ -355,11 +355,11 @@ which will excel in demanding environments, but is simple enough to
 fit easily everywhere.
 </PARA>
 
-<SECT2>
+<SECT2 ID=ztut-zfeatures-design-summary>
 <TITLE>Design Summary</TITLE>
 
-<FIGURE PGWIDE="1" FLOAT="1">
-  <TITLE ID="FIG.ZMPROCS">ZMailer's processes.</TITLE>
+<FIGURE PGWIDE="1" FLOAT="1" ID=fig.ztut.zmprocs>
+  <TITLE ID=figtit.ztut.zmprocs>ZMailer's processes.</TITLE>
   <MEDIAOBJECT>
     <IMAGEOBJECT>
       <IMAGEDATA FILEREF="zmprocs.&GEXT;" FORMAT="&GEXT;">
@@ -424,8 +424,8 @@ environment.  This allows ZMailer to replace a Sendmail installation
 without requiring changes in standard User Agents.
 </PARA>
 
-<FIGURE PGWIDE="1" FLOAT="1">
-  <TITLE ID="FIG.ZMDIRS">
+<FIGURE PGWIDE="1" FLOAT="1" ID=fig.ztut.zmdirs>
+  <TITLE ID=figtit.ztut.zmdirs>
     Directories that ZMailer uses for message processing.
   </TITLE>
   <MEDIAOBJECT>
@@ -438,7 +438,8 @@ without requiring changes in standard User Agents.
 </SECT2>
 </SECT1>
 
-<SECT1><TITLE>Running ZMailer</TITLE>
+<SECT1 ID=ztut-zfeatures-running-zmailer>
+<TITLE>Running ZMailer</TITLE>
 
 <PARA>
 ZMailer is fairly simple to run, once the setups are completed
@@ -675,7 +676,8 @@ mail administrator a software tool that fits the times.
 </PARA>
 
 
-<SECT1><TITLE>Feature comparisons of MTAs</TITLE>
+<SECT1 ID=ztut-zfeatures-mta-feature-comparisons>
+<TITLE>Feature comparisons of MTAs</TITLE>
 
 <ABSTRACT>
 <PARA>
@@ -685,7 +687,8 @@ MTA comparison experiment report at
 </PARA>
 </ABSTRACT>
 
-<TABLE FRAME=ALL><TITLE>MTA feature comparisons</TITLE>
+<TABLE FRAME=ALL ID=tbl.ztut-mta-feature-comparisons>
+<TITLE>MTA feature comparisons</TITLE>
 <TGROUP COLS=4 ALIGN=LEFT COLSEP=1 ROWSEP=1>
 <COLSPEC COLNAME=C1-MTANAME>
 <COLSPEC COLNAME=C2-DNS-CONC>

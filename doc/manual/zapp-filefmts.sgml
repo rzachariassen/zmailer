@@ -43,7 +43,8 @@ The semantics of the two message file sections is quite different, and
 will be covered later.
 </PARA>
 
-<SECT1><TITLE>Envelope Header Lines</TITLE>
+<SECT1 ID=zapp-filefmts-envelope-header-lines>
+<TITLE>Envelope Header Lines</TITLE>
 
 <PARA>
 The message envelope headers are used to carry meta-information about
@@ -305,7 +306,8 @@ line length.
 
 </SECT1>
 
-<SECT1><TITLE>Message Control File</TITLE>
+<SECT1 ID=zapp-filefmts-message-control-file>
+<TITLE>Message Control File</TITLE>
 
 <PARA>
 A message control file is a file created by the <EMPHASIS>router</> to
@@ -345,7 +347,8 @@ subsection.
 </PARA>
 
 
-<SECT2><TITLE>Format</TITLE>
+<SECT2 ID=zapp-filefmts-message-control-file-format>
+<TITLE>Format</TITLE>
 
 <PARA>
 A control file consists of a sequence of fields.
@@ -623,7 +626,8 @@ header field.
 </SECT2>
 </SECT1>
 
-<SECT1><TITLE>Scheduler and Transport Agent Protocol</TITLE>
+<SECT1 ID=zapp-filefmts-scheduler-to-ta-protocol>
+<TITLE>Scheduler and Transport Agent Protocol</TITLE>
 
 <PARA>
 The transport agent interface follows a master-slave model,
@@ -691,11 +695,13 @@ The exit status is a code from
 </SECT1>
 
 
-<SECT1><TITLE>Database File Formats</TITLE>
+<SECT1 ID=zapp-filefmts-database-fmts>
+<TITLE>Database File Formats</TITLE>
 
 
 
-<SECT2><TITLE>Aliases File</TITLE>
+<SECT2 ID=zapp-filefmts-database-fmts-aliases>
+<TITLE>Aliases File</TITLE>
 
 
 <SCREEN>
@@ -743,5 +749,21 @@ auto-aliases to work. &mdash; but to <APPLICATION>sendmail</> style lists:
 </SCREEN>
 </PARA>
 </SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-fqdnaliases>
+<TITLE>FQDNAliases File</TITLE>
+<PARA>Filler text</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-routes>
+<TITLE>Routes File</TITLE>
+<PARA>Filler text</PARA>
+</SECT2>
+
+<SECT2 ID=zapp-filefmts-database-fmts-mailbox>
+<TITLE>Mailbox File</TITLE>
+<PARA>Filler text</PARA>
+</SECT2>
+
 </SECT1>
 </APPENDIX>

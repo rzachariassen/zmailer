@@ -1,12 +1,12 @@
 <CHAPTER ID="ZREF-SMTPSERVER"><?dbhtml filename="zref-smtpserver.html">
-<TITLE><EMPHASIS>Smtpserver</></TITLE>
+<TITLE><COMMAND>Smtpserver</> Reference</TITLE>
 
 <PARA>
-The ZMailer distribution contains an <EMPHASIS>smtpserver</> program
+The ZMailer distribution contains an <COMMAND>smtpserver</> program
 for the BSD socket implementation of TCP/IP.
 It is an asynchronous implementation, in that while address syntax is
 checked in real time, semantics are not, nor are other (optional in
-the SMTP standard) functions that require <EMPHASIS>router</> functionality.
+the SMTP standard) functions that require <COMMAND>router</> functionality.
 </PARA>
 
 <PARA>
@@ -22,21 +22,21 @@ This program implements the server side of the <EMPHASIS>SMTP</> protocol
 as described in <LINK LINKEND="RFC821">RFC821</LINK>, and knows about
 the common extensions to the protocol expected by <APPLICATION>sendmail</>
 and BSMTP clients.
-By default the program will kill the previous <EMPHASIS>smtpserver</> daemon,
+By default the program will kill the previous <COMMAND>smtpserver</> daemon,
 if any, then detach and listen for <EMPHASIS>SMTP</> connections.
 Incoming messages will be submitted for processing using the 
 <LINK LINKEND="zref-zmailer3"><EMPHASIS>zmailer(3)</></LINK> interface
 to ZMailer.
 Some non-trivial address checking is doable in optional policy analysis
-functions within the <EMPHASIS>smtpserver</>, or can be acomplished with
+functions within the <COMMAND>smtpserver</>, or can be acomplished with
 synchronous (or asynchronous) running of router.
 This behaviour can be changed by a command line option (or HELO/EHLO style
 patterns) if you cannot afford to transfer data just to bounce it back.
 </PARA>
 
 <PARA>
-All <EMPHASIS>router</> assisted checking is done by executing
-the <EMPHASIS>router</>(8) program in interactive mode, and executing
+All <COMMAND>router</> assisted checking is done by executing
+the <COMMAND>router</>(8) program in interactive mode, and executing
 well-known shell function with well-known parameters for each request.
 </PARA>
 
@@ -73,7 +73,8 @@ Escape character is '^]'.
 </FIGURE>
 
 
-<SECT1><TITLE><EMPHASIS>Smtpserver</> Runtime Parameters</TITLE>
+<SECT1 ID=zref-smtpserver-runtime-params>
+<TITLE><COMMAND>Smtpserver</> Runtime Parameters</TITLE>
 
 <VARIABLELIST>
 <VARLISTENTRY>
@@ -203,7 +204,7 @@ port: 25.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-R <REPLACEABLE>routerpath</></></><LISTITEM><PARA>
-Specifies an alternate <EMPHASIS>router</>(8) program to use for address
+Specifies an alternate <COMMAND>router</>(8) program to use for address
 verification.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -304,7 +305,8 @@ old Eudora or other MUAs that do not correctly support koi8-r charset.
 </VARIABLELIST>
 </SECT1>
 
-<SECT1><TITLE><EMPHASIS>Smtpserver</> Configuration</TITLE>
+<SECT1 ID=zref-smtpserver-configuration>
+<TITLE><COMMAND>Smtpserver</> Configuration</TITLE>
 
 <PARA>
 If the <FILENAME>$<VARNAME>MAILSHARE</>/smtpserver.conf</> file exists
@@ -339,7 +341,8 @@ client software or mailers.
 </VARIABLELIST>
 </PARA>
 
-<SECT2><TITLE>Smtpserver configuration; PARAM -entries</TITLE>
+<SECT2 ID=zref-smtpserver-config-param-entries>
+<TITLE>Smtpserver configuration; PARAM -entries</TITLE>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>PARAM maxsize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
@@ -455,7 +458,7 @@ For example NDBM database appends ``.pag'' and ``.dir'', while BSD-Btree
 appends only ``.db''.
 (And the latter has only one file, while the first has two.)
 </PARA><PARA>
-More information below, and at <EMPHASIS>newdb</> at
+More information below, and at <COMMAND>newdb</> at
 <XREF LINKEND="zref.util.newdb">
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -467,7 +470,7 @@ Instead it carries the original source-route into the system as is.
 </VARIABLELIST>
 
 <PARA>
-A possible <EMPHASIS>smtpserver</> configuration file is shown in figure
+A possible <COMMAND>smtpserver</> configuration file is shown in figure
 <XREF LINKEND="fig.ref.smtpserver2">.
 </PARA>
 
@@ -534,8 +537,8 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 </SECT2>
 </SECT1>
 
-<SECT1 ID="ref.smtp-policy-builder">
-<TITLE><EMPHASIS>policy-builder.sh </> utility</TITLE>
+<SECT1 ID="zref-smtpserver-policy-builder">
+<TITLE><COMMAND>policy-builder.sh </> utility</TITLE>
 <!-- \index{smtp!policy filtering, {\em policy-builder.sh}} -->
 
 <PARA>
@@ -642,7 +645,7 @@ The ``{\tt policy-builder.sh}'' builds this file from external sources.
 </SCREEN>
 </SECT1>
 
-<SECT1 ID="ref.smtp-policy-filtering">
+<SECT1 ID="zref-smtpserver-policy-filtering">
 <TITLE>Policy Filtering Language</TITLE>
 <!-- \index{smtp!policy filtering, reference} -->
 
@@ -883,7 +886,8 @@ Placeholder for further code
 %\end{multicols}
 </SCREEN>
 
-<SECT2><TITLE>Semantics</TITLE>
+<SECT2 ID=zref-smtpserver-policy-filtering-semantics>
+<TITLE>Semantics</TITLE>
 
 <SCREEN>
 The {\tt policytest()} function is called by smtp-server to check the client 

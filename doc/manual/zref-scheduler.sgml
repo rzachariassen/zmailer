@@ -1,15 +1,15 @@
 <!-- <!DOCTYPE chapter PUBLIC    "-//OASIS//DTD DocBook V3.1//EN"> -->
 
 <CHAPTER ID="ZREF-SCHEDULER"><?dbhtml filename="zref-scheduler.html">
-<TITLE><EMPHASIS>Scheduler Reference</></TITLE>
+<TITLE><COMMAND>Scheduler</> Reference</TITLE>
 
 <PARA>
-The <EMPHASIS>scheduler</> daemon manages the delivery processing
+The <COMMAND>scheduler</> daemon manages the delivery processing
 of messages in ZMailer.
 </PARA>
 
 <PARA>
-The <EMPHASIS>router</> creates message control files in the
+The <COMMAND>router</> creates message control files in the
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>
 directory.
 These refer to  the original message files in the
@@ -18,7 +18,7 @@ directory.
 </PARA>
 
 <PARA>
-The <EMPHASIS>scheduler</> reads each message control file from
+The <COMMAND>scheduler</> reads each message control file from
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>,
 translates the contained message and destination information into
 internal data structures.
@@ -26,17 +26,17 @@ internal data structures.
 
 <PARA>
 Based on scheduling, priority, and execution information read from a
-configuration file, the <EMPHASIS>scheduler</> arranges to execute
+configuration file, the <COMMAND>scheduler</> arranges to execute
 <EMPHASIS>Transport Agents</> relevant to the queued messages.
 </PARA>
 
 <PARA>
 At the time scheduled for a particular transport agent invocation,
-the <EMPHASIS>scheduler</> will start a transport agent (or use one
+the <COMMAND>scheduler</> will start a transport agent (or use one
 from idle-pool), and tell it one by one which message control files
 to process.
 When all the destination addresses in a message have been processed,
-the <EMPHASIS>scheduler</> performs error reporting tasks if any,
+the <COMMAND>scheduler</> performs error reporting tasks if any,
 and then deletes the message control file in
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</> and 
 the original message file in
@@ -45,9 +45,9 @@ the original message file in
 
 <PARA>
 All message delivery is actually performed by <EMPHASIS>Transport Agents</>,
-which are declared in a configuration file for the <EMPHASIS>scheduler</>.
+which are declared in a configuration file for the <COMMAND>scheduler</>.
 Each transport agent is executed with the same current directory as the
-<EMPHASIS>scheduler</>.
+<COMMAND>scheduler</>.
 The <EMPHASIS>scheduler-transporter</> interaction protocol is described later.
 </PARA>
 
@@ -58,7 +58,7 @@ or deferral of the address.
 Each report uses byte offsets in the message control file to refer to
 the address.
 Reports may also include a comment line which will be displayed in
-the reports of the <EMPHASIS>scheduler</>.
+the reports of the <COMMAND>scheduler</>.
 </PARA>
 
 <PARA>
@@ -68,17 +68,17 @@ Two types of reports are produced:
  Error messages caused by unsuccessful delivery of a message are appended
 to its message control file.
  Occasionally, for example, when all addresses have been processed,
-the <EMPHASIS>scheduler</> generates an error message to the error
+the <COMMAND>scheduler</> generates an error message to the error
 return address of the message (usually the original sender).
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
- The <EMPHASIS>scheduler</> binds itself to a well-known TCP/IP port 
+ The <COMMAND>scheduler</> binds itself to a well-known TCP/IP port 
 (<EMPHASIS>MAILQ, TCP port 174</>) on startup.
  Any connections to this port are processed synchronously in the
-<EMPHASIS>scheduler</> at points in the execution where the state
+<COMMAND>scheduler</> at points in the execution where the state
 is internally consistent.
- The <EMPHASIS>scheduler</> simply dumps its internal state in a terse format
+ The <COMMAND>scheduler</> simply dumps its internal state in a terse format
 to the TCP stream.
  It is expected that the client program will reconstruct the data structures
 sufficiently to give a user a good idea of what the scheduler thinks the world
@@ -90,7 +90,7 @@ looks like.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Usage:</TERM><LISTITEM><PARA>
-Invoking <EMPHASIS>scheduler</> without any parameter will start
+Invoking <COMMAND>scheduler</> without any parameter will start
 it as a daemon.
 <CMDSYNOPSIS>
  <COMMAND>scheduler</>
@@ -166,7 +166,7 @@ This option does not override originator supplied DSN RET parameter value.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-N <REPLACEABLE>transmaxfno</></OPTION></TERM><LISTITEM><PARA>
-sets how many filehandles are allocated for the <EMPHASIS>scheduler</>'s
+sets how many filehandles are allocated for the <COMMAND>scheduler</>'s
 started children (if the system has adjustable resources.)
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -185,7 +185,7 @@ specifies an alternate <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>
 <VARLISTENTRY><TERM><OPTION>-q <REPLACEABLE>rendezvous</></OPTION></TERM><LISTITEM><PARA>
 the rendezvous between machines without TCP/IP networking,
 </PARA><PARA>
-<EMPHASIS>Scheduler</> and <EMPHASIS>mailq(1)</> is done using a well-known
+<COMMAND>Scheduler</> and <COMMAND>mailq(1)</> is done using a well-known
 named pipe. 
 This option overrides the default location for this special file, either 
 <FILENAME>$<VARNAME>RENDEZVOUS</></> or <FILENAME>/usr/tmp/.mailq.text</>.
@@ -228,7 +228,7 @@ the transporters.
 </SCREEN> -->
 
 <PARA>
-The <EMPHASIS>scheduler</> configuration file consists of a set of clauses. 
+The <COMMAND>scheduler</> configuration file consists of a set of clauses. 
 </PARA>
 
 <PARA>
@@ -297,7 +297,8 @@ Current method is <EMPHASIS>somewhat</> quicker.
 </SECT2>
 
 
-<SECT2><TITLE>Group-Clause selection</TITLE>
+<SECT2 ID=zref-sch-group-clause-selection>
+<TITLE>Group-Clause selection</TITLE>
 
 <PARA>
 Each clause is selected by the pattern it starts with.
@@ -343,7 +344,8 @@ a channel pattern and the host pattern is assumed to be the wildcard
 
 </SECT2>
 
-<SECT2><TITLE>Clause components</TITLE>
+<SECT2 ID=zref-sch-clause-components>
+<TITLE>Clause components</TITLE>
 
 <PARA>
 The components of a clause are separated by whitespace.
@@ -376,7 +378,7 @@ The typical configuration file will contain the following clauses:
  a clause matching the error reporting channel (usually ``error'').
 </PARA></LISTITEM>
 <LISTITEM><PARA>
- clauses specific to the other channels known by the <EMPHASIS>router</>,
+ clauses specific to the other channels known by the <COMMAND>router</>,
   for example, ``smtp'' and ``uucp''.
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
@@ -384,7 +386,7 @@ The typical configuration file will contain the following clauses:
 
 <PARA>
 The actual names of these channels are completely controlled by
-the <EMPHASIS>router</> configuration file.
+the <COMMAND>router</> configuration file.
 </PARA>
 
 <PARA>
@@ -404,7 +406,8 @@ a second, minute, hour, or day value. For example:
 
 </SECT2>
 
-<SECT2><TITLE>Variables and keywords</TITLE>
+<SECT2 ID=zref-sch-vars-and-keywords>
+<TITLE>Variables and keywords</TITLE>
 
 <PARA>
 The known variables and keywords, and their typical values and semantics are:
@@ -417,7 +420,7 @@ Oldest first.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>bychannel</></TERM><LISTITEM><PARA>
-is a keyword (with no associated value) that tells the <EMPHASIS>scheduler</>
+is a keyword (with no associated value) that tells the <COMMAND>scheduler</>
 that the transport agent specified in the command will only process destination
 addresses that match the first destination channel it encounters.
 This is automatically set when the string ``<OPTION>$channel</>'' occurs
@@ -446,7 +449,7 @@ beginning of the line:
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>expiry=nn</> (3d)</TERM><LISTITEM><PARA>
-specifies the maximum age of an address in the <EMPHASIS>scheduler</>
+specifies the maximum age of an address in the <COMMAND>scheduler</>
 queue before a repeatedly deferred address is bounced with an expiration
 error.
 The actual report is produced when all addresses have been processed.
@@ -497,7 +500,7 @@ The check is repeated frequently so the address may be retried as soon
 as possible after the scheduled retry interval. 
 If the value is 0, a value of 1000<FOOTNOTE><PARA>
 The maximum number of supported TA's is actually probed by
-the <EMPHASIS>scheduler</> at its startup; procedure is:
+the <COMMAND>scheduler</> at its startup; procedure is:
 <ORDEREDLIST>
 <LISTITEM><PARA>
 Ask system for maximum number of file descriptors the scheduler's
@@ -533,7 +536,7 @@ Default is not to use this.   Value range in between -40 to 40.
 <VARLISTENTRY><TERM><OPTION>overfeed=nnn</OPTION> (0)</TERM><LISTITEM><PARA>
 Max number of tasks to feed from the thread to the transporter agent
  when feeding jobs to it.
-The <EMPHASIS>scheduler</> main-loop at the <FUNCTION>mux()</> is
+The <COMMAND>scheduler</> main-loop at the <FUNCTION>mux()</> is
 a bit sluggish, thus with this we can keep the transporters busy.
 </PARA><PARA>
 The default is defined at the <EMPHASIS>*/*</> clause.
@@ -546,7 +549,7 @@ Default is not to use this.  Value range in between -20 to 20.
 
 <VARLISTENTRY><TERM><OPTION>queueonly</></TERM><LISTITEM><PARA>
 a clause with <EMPHASIS>queueonly</> flag does not auto-start at the arrival
-of a message, instead it must be started by means of <EMPHASIS>smtpserver(8)</>
+of a message, instead it must be started by means of <COMMAND>smtpserver(8)</>
 command <USERINPUT>ETRN</> through an SMTP connection.
 </PARA><PARA>
 To have message expiration working, following additional entries are suggested:
@@ -562,13 +565,13 @@ Placeholder for DELAYED reporting mechanism.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>retries="n n n"</> (1 1 2 3 4 8 13 21 34)</TERM><LISTITEM><PARA>
-specifies the retry interval policy of the <EMPHASIS>scheduler</> for
+specifies the retry interval policy of the <COMMAND>scheduler</> for
 an address.
 The value must be a sequence of positive integers, these being multiples
 of the primary interval before a retry is scheduled.
-The <EMPHASIS>scheduler</> starts by going through the sequence as an address
+The <COMMAND>scheduler</> starts by going through the sequence as an address
 is repeatedly deferred.
-When the end of the sequence is reached, the <EMPHASIS>scheduler</> will
+When the end of the sequence is reached, the <COMMAND>scheduler</> will
 jump into the sequence at a random spot and continue towards the end.
 This allows various retry strategies to be specified easily:
 <ITEMIZEDLIST>
@@ -615,7 +618,7 @@ exponential sequence:
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>skew=nn</> (5)</TERM><LISTITEM><PARA>
-Leftover of earlier <EMPHASIS>scheduler</> internal algorithms,
+Leftover of earlier <COMMAND>scheduler</> internal algorithms,
 does not make sense anymore.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -696,14 +699,15 @@ systematic errors leading to a deadlock of any queue.
 </SECT2>
 </SECT1>
 
-<SECT1><TITLE>Resource Management</TITLE>
+<SECT1 ID=zref-sch-resource-management>
+<TITLE>Resource Management</TITLE>
 
 <PARA>
 For resource management there are following configuration attributes: 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>maxta=nn</OPTION></TERM><LISTITEM><PARA>
-Max number of transporter processes under the <EMPHASIS>scheduler</>.
+Max number of transporter processes under the <COMMAND>scheduler</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>maxchannel=nn</OPTION></TERM><LISTITEM><PARA>
@@ -726,7 +730,7 @@ around.
 <VARLISTENTRY><TERM><OPTION>overfeed=nnn</OPTION></TERM><LISTITEM><PARA>
 Max number of tasks to feed from the thread to the transporter agent
  when feeding jobs to it.
-The <EMPHASIS>scheduler</> main-loop at the <FUNCTION>mux()</> is
+The <COMMAND>scheduler</> main-loop at the <FUNCTION>mux()</> is
 a bit sluggish, thus with this we can keep the transporters busy.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -735,7 +739,9 @@ a bit sluggish, thus with this we can keep the transporters busy.
 
 </SECT1>
 
-<SECT1 ID="zref.scheduler.auth.file"><TITLE><FILENAME>scheduler.auth</> file</TITLE>
+<SECT1 ID="zref.scheduler.auth.file">
+<TITLE><FILENAME>scheduler.auth</> file</TITLE>
+
 <PARA>
 The file whose default boilerplate is shown at
 <XREF LINKEND="fig.ref.scheduler.auth.file"> is able to
@@ -784,7 +790,8 @@ nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0
 </FIGURE>
 </SECT1>
 
-<SECT1><TITLE>mailq</TITLE>
+<SECT1 ID=zref-sch-mailq-cmd>
+<TITLE>mailq</TITLE>
 
 <PARA>FIXME! FIXME!</PARA>
 
@@ -900,7 +907,8 @@ to.
 
 </SECT1>
 
-<SECT1><TITLE>Security Issues</TITLE>
+<SECT1 ID=zref-sch-security-issues>
+<TITLE>Security Issues</TITLE>
 
 <SCREEN>
 Text to be inserted here.

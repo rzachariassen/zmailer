@@ -1,9 +1,9 @@
 <CHAPTER ID="ZREF-RMAIL"><?dbhtml filename="zref-rmail.html">
-<TITLE><EMPHASIS>Rmail Reference</></TITLE>
+<TITLE><COMMAND>Rmail</> Reference</TITLE>
 
 <PARA>
-The <EMPHASIS>rmail</> is a program to process incoming UUCP mail.
-<EMPHASIS>rmail</> is usually invoked by a remote UUCP neighbour
+The <COMMAND>rmail</> is a program to process incoming UUCP mail.
+<COMMAND>rmail</> is usually invoked by a remote UUCP neighbour
 host's mailer using a command line like:
 </PARA>
 
@@ -12,8 +12,8 @@ uux - -r -asender -gC thishost!rmail (recipient1) (recipient2) ...
 </SYNOPSIS>
 
 <PARA>
-The end result is that the remote neighbour's <EMPHASIS>uuxqt</>(8)
-runs <EMPHASIS>rmail</> on <EMPHASIS>thishost</> with this command line:
+The end result is that the remote neighbour's <COMMAND>uuxqt</>(8)
+runs <COMMAND>rmail</> on <COMMAND>thishost</> with this command line:
 <SCREEN>
 rmail recipient1 recipient2 ...
 </SCREEN>
@@ -24,7 +24,7 @@ In both cases, a UUCP format mail message is on the standard input.
 </PARA>
 
 <PARA>
-The task of <EMPHASIS>rmail</> is to transform the trace information in
+The task of <COMMAND>rmail</> is to transform the trace information in
 the UUCP format message to the equivalent RFC822 trace information, and
 to submit the message to the <COMMAND>zmailer</>(1) router with
 the appropriate envelope information.
@@ -50,7 +50,7 @@ This is considered equivalent to the following
 
 <PARA>
 In order for the mailer to process the incoming message properly,
-<EMPHASIS>rmail</> must be run by a ``<EMPHASIS>userid</>'' which
+<COMMAND>rmail</> must be run by a ``<EMPHASIS>userid</>'' which
 the <COMMAND>router</>(1) will accept forged mail from.
 his is normally the UUCP account id.
 </PARA>
