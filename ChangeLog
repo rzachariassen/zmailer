@@ -9,7 +9,9 @@
 	    with  opendir() target object. To be used in  router process,
 	    when a   fchdir()  is needed.
 
-	* libc/mail.c, libc/sfmail.c, ...
+	* libc/mail.c, libc/sfmail.c:
+	    A wee bit of adaptations to compile the beast in Windows
+	    (cygwin, that is..)
 
 	* proto/cf/process.cf, router/daemonsub.c, router/rfc822.c:
 	    Support input files going into ROUTERDIRHASH= sublevel,
