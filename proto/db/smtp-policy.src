@@ -299,7 +299,7 @@ _private_address    message "We reject your network" rejectnet + message "We don
 #| Hosts of our organization can do anything...
 #|
 _our_network		= _full_rights
-_full_rights	rejectnet - relaycustnet + relaycustomer + relaytarget +
+_full_rights	rejectnet - relaycustnet + relaytarget +
 _localnames	rejectnet - relaycustnet - localdomain + relaytarget +
 #
 #sztaki.hu		= _full_rights

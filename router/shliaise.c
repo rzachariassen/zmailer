@@ -263,25 +263,21 @@ hdr_rewrite(name, h)
 			nap->a_tokens = ap->a_tokens;
 		} else {
 			/* integrate result with original address form */
-#if 1
+
 			const char *cs = s_value->cstring;
-			char *s = tmalloc(strlen(cs)+1);
+			char *s;
+			memtypes osticky = stickymem;
+			stickymem = MEM_TEMP;
+
+			/* This really does need long-term storage! */
+			s = tmalloc(strlen(cs)+1);
 			strcpy(s, cs);
 			/* t = HDR_SCANNER(cs); */
-			t = scan822(&s, strlen(s), /* XXX: Does this really need long-term storage ??? */
+			t = scan822((const char**)&s, strlen(s),
 				    '!', '%', 0, &ap->a_tokens->p_tokens);
-#else
-			conscell *l;
-			GCVARS1;
-			l = s_copy_tree(s_value);
-			GCPRO1(l);
-			/* s_free_tree(s_value); */
-			s_value = NULL;
-			/* t = HDR_SCANNER(l->cstring); */
-			t = scan822(&l->cstring, strlen(l->cstring),
-				    '!', '%', 0, &ap->a_tokens->p_tokens);
-			UNGCPRO1;
-#endif
+
+			stickymem = osticky;
+
 			/* X: check for errors! */
 			nap->a_tokens = mergeAddress(ap->a_tokens, t);
 		}

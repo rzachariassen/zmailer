@@ -1220,9 +1220,6 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 #define COMMANDMAXDEPTH 30
 	struct osCmd commandStack[COMMANDMAXDEPTH];
 #define VARMAXDEPTH 30
-#if 0
-	conscell *varStack[VARMAXDEPTH], *vmeterStack[VARMAXDEPTH];
-#endif
 	conscell *varmeter = NULL;
 	conscell *varmchain = NULL;
 #ifdef	MAILER
@@ -1375,9 +1372,13 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 				}
 				if (!quote && STRING(d) && *(d->string) == '\0')
 					break;
-			} else if (*arg1 != '\0' || quote)
+			} else if (*arg1 != '\0' || quote) {
+#if 0
 				d = newstring(dupstr(arg1));
-			else
+#else
+				d = conststring(arg1);
+#endif
+			} else
 				break;	/* it is a null string! */
 #ifdef DEBUGxx
 fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffer);
@@ -1515,17 +1516,9 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 				command->argv = newcell();
 GCPLABPRINTis(command->gcpro4);
 				command->argv->flags = 0;
-#ifdef CONSCELL_PREV
-				command->argv->pflags = 0;
-				command->argv->prev = NULL;
-#endif
 				cdr(command->argv) = NULL;
 				car(command->argv) = newcell();
 				car(command->argv)->flags = 0;
-#ifdef CONSCELL_PREV
-				car(command->argv)->pflags = 0;
-				car(command->argv)->prev = NULL;
-#endif
 				cdar(command->argv) = NULL;
 				caar(command->argv) = d;
 				cdar(command->argv) = s_last(d);
@@ -1570,12 +1563,6 @@ GCPLABPRINTis(command->gcpro4);
 				grindef("Variable = ", variable);
 			break;
 		case sVariablePush:
-#if 0
-			if (variableIndex >= 0) {
-				varStack   [variableIndex] = variable;
-				vmeterStack[variableIndex] = varmeter;
-			}
-#endif
 			if (variableIndex >= 0) {
 			  tmp = ncons(varmeter);  cdr(tmp) = varmchain; varmchain = tmp;
 			  tmp = ncons(variable);  cdr(tmp) = varmchain; varmchain = tmp;
@@ -1602,16 +1589,6 @@ GCPLABPRINTis(command->gcpro4);
 			break;
 		case sVariablePop:
 			--variableIndex;
-#if 0
-			if (varmchain)
-			   varmchain = cddr(varmchain);
-			if (variableIndex >= 0) {
-				variable = varStack   [variableIndex];
-				varmeter = vmeterStack[variableIndex];
-				if (isset('I'))
-					grindef("Variable = ", variable);
-			}
-#else
 			if (varmchain) {
 				variable = car(varmchain);
 				varmeter = cadr(varmchain);
@@ -1619,7 +1596,6 @@ GCPLABPRINTis(command->gcpro4);
 				if (isset('I'))
 					grindef("Variable = ", variable);
 			}
-#endif
 			else
 			  variable = varmeter = NULL;
 
@@ -1821,19 +1797,12 @@ fprintf(stderr,"%s:%d &command->buffer=%p\n",__FILE__,__LINE__,
 					}
 					if (--variableIndex < 0)
 					  break;
-#if 0
-					if (varmchain)
-					   varmchain = cddr(varmchain);
-					variable = varStack   [variableIndex];
-					varmeter = vmeterStack[variableIndex];
-#else
 					if (varmchain) {
 					  variable = car(varmchain);
 					  varmeter = cadr(varmchain);
 					  varmchain = cddr(varmchain);
 					} else
 					  variable = varmeter = NULL;
-#endif
 				}
 				if (isset('I'))
 					grindef("Variable = ", variable);
@@ -1994,15 +1963,19 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 					name = "";
 				if (d != NULL && LIST(d)) {
 				  cdr(d) = NULL;
-				  d = s_copy_tree(d);
+				  d = copycell(d);
 				} else
 				  d = newstring(dupstr(name));
 				/* create the variable in the current scope */
 				l = car(envarlist);
 				cdr(d) = car(l);
-				if (*arg1)
+				if (*arg1) {
+#if 0
 				  car(l) = newstring(dupstr(arg1));
-				else
+#else
+				  car(l) = conststring(arg1);
+#endif
+				} else
 				  car(l) = conststring(uBLANK);
 				cdar(l) = d;
 
@@ -2219,10 +2192,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			stickytmp = stickymem;
 			stickymem = MEM_MALLOC;
 			d = NIL;
-			tmp = newstring(dupstr(arg1));
-#ifdef CONSCELL_PREV
-			s_set_prev(tmp, d);
-#endif
+			tmp = newstring(dupstr(arg1)); /* must allocate a fresh! */
 			cdr(d) = caar(envarlist);
 			cdr(tmp) = d;
 			caar(envarlist) = tmp;
@@ -2397,7 +2367,11 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			    setsubexps(&sift[nsift].subexps, re);
 			  arg1 = regsub(re, atoi(arg1));
 			  if (arg1 != NULL) {
+#if 0
+			    tmp = coststring(arg1);
+#else
 			    tmp = newstring(dupstr(arg1));
+#endif
 			    tmp->flags |= QUOTEDSTRING;
 			    /* cdr(tmp) = command->buffer; */
 			    *command->bufferp = tmp;
@@ -2413,7 +2387,11 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			    tsetsubexps(&sift[nsift].subexps, tre);
 			  arg1 = (const char *)tregsub(tre, atoi(arg1));
 			  if (arg1 != NULL) {
+#if 0
+			    tmp = coststring(arg1);
+#else
 			    tmp = newstring(dupstr(arg1));
+#endif
 			    tmp->flags |= QUOTEDSTRING;
 			    /* cdr(tmp) = command->buffer; */
 			    *command->bufferp = tmp;
@@ -2550,7 +2528,11 @@ std_printf("set %x at %d\n", tre, cdp->trearray_idx);
 			else
 				tsetsubexps(&sift[nsift].subexps, tre);
 			if ((arg1 = tregsub(tre,atoi(arg1))) != NULL) {
+#if 0
+				tmp = coststring(arg1);
+#else
 				tmp = newstring(dupstr(arg1));
+#endif
 				tmp->flags |= QUOTEDSTRING;
 				/* cdr(tmp) = command->buffer; */
 				*command->bufferp = tmp;
@@ -2590,11 +2572,6 @@ getout:
 			car(varmeter) = NULL;
 			varmeter->flags = 0;
 		}
-#if 0
-		variable = varStack   [variableIndex];
-		varmeter = vmeterStack[variableIndex];
-		varmchain = cddr(varmchain);
-#else
 		if (varmchain) {
 		  variable = car(varmchain);
 		  varmeter = cadr(varmchain);
@@ -2603,7 +2580,6 @@ getout:
 		  variable = varmeter = NULL;
 		if (isset('I'))
 		  grindef("Variable = ", variable);
-#endif
 		--variableIndex;
 	}
 	while (nsift >= 0) {
@@ -2806,6 +2782,8 @@ lapply(fname, l)
 	GCPRO4(ll, l, avc.argv, avc.rval);
 	if (l != NULL) {
 		ll = newstring(dupstr(fname));
+		/* Sometimes could do without strdup(),
+		   but often not... :-/ */
 		cdr(ll) = car(l);
 		car(l) = ll;
 		avc.argv = l;

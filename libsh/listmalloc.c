@@ -87,6 +87,12 @@ int newcell_gc_interval = 1000;	/* Number of newcell() calls before GC */
 int newcell_gc_callcount = 0;	/* ... trigger-count of those calls ... */
 int newcell_callcount = 0;	/* ... cumulative count of those calls ... */
 
+long newcell_gc_freecount = 0;
+long newcell_gc_freestrcount = 0;
+long newcell_gc_dupnstrcount = 0;
+long newcell_gc_strusecnt = 0;
+
+
 consblock *consblock_root = NULL;
 consblock *consblock_tail = NULL;
 conscell *conscell_freechain = NULL;	/* pick first .. */
@@ -448,7 +454,7 @@ conscell *source;
 
 int cons_garbage_collect()
 {
-    int i, freecnt, usecnt, newfreecnt;
+    int i, freecnt, usecnt, strusecnt, newfreecnt;
     consblock *cb = NULL;
     conscell *cc, **freep;
     struct gcpro *gcp;
@@ -526,7 +532,7 @@ int cons_garbage_collect()
        will do  free(cellptr->string)    */
 
     freep = & conscell_freechain;
-    usecnt = freecnt = newfreecnt = 0;
+    strusecnt = usecnt = freecnt = newfreecnt = 0;
     for (cb = consblock_root; cb != NULL; cb = cb->nextblock) {
 	cc = cb->cells;
 	for (i = 0; i < cb->cellcount; ++i,++cc)
@@ -536,13 +542,18 @@ int cons_garbage_collect()
 
 		cc->flags &= ~(DSW_MARKER | DSW_BACKPTR);
 		++usecnt;
+		if (ISNEW(cc))
+		  ++strusecnt;
 
 	    } else {
 
 		/* This was not reachable, no marker was added.. */
 		if (ISNEW(cc)) {   /* if (cc->flags & NEWSTRING) */
 #ifdef DEBUG
-		    fprintf(stderr," freestr(%p) cell=%p called from %p s='%s'\n",cc->string,cc,__builtin_return_address(0), cc->string);
+		    fprintf(stderr,
+			    " freestr(%p) cell=%p called from %p s='%s'\n",
+			    cc->string, cc, __builtin_return_address(0),
+			    cc->string);
 #endif
 		    freestr(cc->string);
 		    cc->string = NULL;
@@ -562,6 +573,10 @@ int cons_garbage_collect()
 	    }
     }
     *freep = NULL;
+
+    newcell_gc_freecount += freecnt;
+    newcell_gc_strusecnt = strusecnt;
+
 #ifdef DEBUG
     fprintf(stderr,"cons_garbage_collect() freed %d, found %d free, and %d used cells\n",
 	    newfreecnt, freecnt-newfreecnt, usecnt);
@@ -756,6 +771,9 @@ char *dupnstr(str,len)
   fprintf(stderr," dupnstr() returns %p to caller at %p\n", p,
 	  __builtin_return_address(0));
 #endif
+
+  ++newcell_gc_dupnstrcount;
+
   return (p);
 }
 
@@ -778,5 +796,7 @@ void freestr(str)
   if (*ip != strmagic) *(int*)0L = 0; /* ZAP! */
 
   free(ip);
+
+  ++newcell_gc_freestrcount;
 }
 

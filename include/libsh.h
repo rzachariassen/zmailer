@@ -56,9 +56,6 @@ extern conscell * s_last     __((conscell *));
 extern int        s_equal1   __((conscell *, conscell *));
 extern int        s_equal    __((conscell *, conscell *));
 extern conscell * s_nth      __((conscell *list, int n));
-#ifdef CONSCELL_PREV
-extern void       s_set_prev __((conscell *prev, conscell *list));
-#endif
 extern void       s_grind    __((conscell *, FILE *));
 extern void       _grind     __((conscell *));
 extern conscell * s_catstring __((conscell *));

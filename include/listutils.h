@@ -31,23 +31,7 @@ typedef struct _conscell {
 		char		 *u_string;
 		const char	 *cu_string;
 	} u;
-#if 1 /* use this branch when you don't have setf(),
-	 and friends in use anymore... */
 	int		flags;
-#else
-#define CONSCELL_PREV
-#ifdef __alpha	/* Alpha doesn't take nicely stores into too small objects.
-		   The hardware has store support only for 32/64/128-bit
-		   objects. (Well, newer EV5/EV56/EV6 processors have byte
-		   and short store/read operations too..) */
-	int		flags;	/* if 0 is a list, otherwise a string */
-	int		pflags;	/* if 1 x->prev->cdr == x */
-#else
-	short		flags;	/* if 0 is a list, otherwise a string */
-	short		pflags;	/* if 1 x->prev->cdr == x */
-#endif
-	struct _conscell *prev;	/* points to whichever dtpr points to here */
-#endif
 } conscell;
 
 #define	NEWSTRING	0x001	/* newly allocated string (free() when GC) */

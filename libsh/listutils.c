@@ -111,30 +111,6 @@ s_nth(list, n)
 }
 
 
-#ifdef CONSCELL_PREV
-/*
- * Set the back-pointers (->prev) for the passed structure.
- * This is used by the setf facility to figure out where stuff is stashed.
- */
-
-void
-s_set_prev(prev, list)
-	register conscell *prev, *list;
-{
-	while (list != NULL) {
-		list->prev = prev;
-		if (LIST(list))
-			s_set_prev(list, car(list));
-		prev = list;
-		list = cdr(list);
-		if (list == envarlist)
-			return;
-		else if (list)
-			list->pflags = 1;
-	}
-}
-#endif
-
 /*
  * Does a string contain any metacharacters that might be misinterpreted
  * if the string was read in as is?
@@ -297,10 +273,6 @@ s_read(fp)
 		list = newcell();
 		list->flags = 0;
 		cdr(list) = NULL;
-#ifdef CONSCELL_PREV
-		list->prev = 0;
-		list->pflags = 0;
-#endif
 		listp = &car(list);
 		do {
 			if ((*listp = s_read(fp)) == NULL)
@@ -326,10 +298,6 @@ s_read(fp)
 		}
 		*bp = '\0';
 		list = newstring(dupnstr(buf, bp - buf));
-#ifdef CONSCELL_PREV
-		list->prev = 0;
-		list->pflags = 0;
-#endif
 		break;
 	default:	/* normal symbol */
 		*bp++ = ch;
@@ -346,10 +314,6 @@ s_read(fp)
 		stickymem = MEM_MALLOC;
 		list = newstring(dupnstr(buf, bp - buf));
 		stickymem = oval;
-#ifdef CONSCELL_PREV
-		list->prev = 0;
-		list->pflags = 0;
-#endif
 		break;
 	}
 	/* putc('>', runiofp);s_grind(list, runiofp); putc('\n', runiofp); */
