@@ -465,8 +465,10 @@ hdr_print(h, fp)
 		    while (*p == ' ' || *p == '\t' ||
 			   *p == '\n' || *p == '\r') {
 		      putc(*p, fp);
-		      if (*p == ' ' || *p == '\t')
+		      if (*p == ' ')
 			++col;
+		      else if (*p == '\t')
+			col += 8 - (col % 8);
 		      else
 			col = 0;
 		      ++p;
@@ -474,6 +476,9 @@ hdr_print(h, fp)
 		    if (*p != 0)
 		      break;
 		  }
+		  /* Fill to column 8 in all cases.. */
+		  for ( ; col < 8; ++col)
+		    putc(' ', fp);
 		}
 		break;
 	default:

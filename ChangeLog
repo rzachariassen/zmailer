@@ -4,7 +4,8 @@
 	    Multiline compound tokens (topic for recent activities)
 	    had still major problems.  Did also modify "Received:"
 	    header content generation, although not quite sufficiently
-	    in all situations..
+	    in all situations (considering when/how to fold commentary
+	    material in 'from' entry.)
 
 1999-07-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
