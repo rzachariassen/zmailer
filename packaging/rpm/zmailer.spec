@@ -1,28 +1,32 @@
 #
-# Mon Apr 19 23:52:42 CEST 2001
+# Thu Sep 27 12:14:35 CEST 2001 <xose@wanadoo.es>
 #
 
-%define name zmailer
-%define version 2.99.55
-%define release 4
+%define _Zsysconfdir	%{_sysconfdir}/zmailer
+%define _Zincludedir	%{_includedir}/zmailer
+%define _Zlibdir 	%{_libdir}/zmailer
+%define _Zlogdir	%{_localstatedir}/log/zmailer
+%define _Zmaildir	%{_localstatedir}/spool/mail
+%define _Zpostoffdir	%{_localstatedir}/spool/postoffice
 
 Summary: Mailer for extreme performance demands, secure mail delivery agent.
-Name: %{name}
-Version: %{version}
-Release: %{release}
-Copyright: Freely usable, see /usr/doc/%{name}-%{version}/README
+Summary(pt_BR): Mailer for extreme performance demands, secure mail delivery agent.
+Summary(es): Mailer para demandas de rendimiento extremas, agente de entrega de correo seguro.
+Name: zmailer
+Version: 2.99.55
+Release: 5
+Copyright: Freely usable, see %{_defaultdocdir}/%{name}-%{version}/README
 Group: System Environment/Daemons
 Provides: smtpdaemon
 Packager: Xose Vazquez <xose@wanadoo.es>
 URL: http://www.zmailer.org
 Source0: ftp://ftp.funet.fi/pub/unix/mail/zmailer/src/%{name}-%{version}.tar.gz
-Source1: zmailer.init
-Source2: zmailer.logrotate
-Source3: zmailer.cron
-Source4: zmailer.pam
-Source5: README-RPM
-BuildRoot: /var/tmp/%{name}-%{version}-root
-Prereq: /sbin/chkconfig
+Source1: %{name}.init
+Source2: %{name}.logrotate
+Source3: %{name}.cron
+Source4: %{name}.pam
+BuildRoot: %{_tmppath}/%{name}-%{version}-root
+Prereq: chkconfig
 Conflicts: sendmail postfix qmail exim smail
 NoSource: 0
 
@@ -38,67 +42,108 @@ included, mostly due to its excellent queueing algorithms.
 Most users don't need this package -- for most users, sendmail or exim 
 or smail will suffice.
 
+%description -l pt_BR
+This is a package that implements an internet message transfer agent
+called ZMailer.  It is intended for gateways or mail servers or other
+large site environments that have extreme demands on the abilities of
+the mailer.  It was motivated by the problems of the Sendmail design
+in such situations. ZMailer is one of the mailers able to deal with
+huge quantities of mail and is more efficient any other mailer, qmail
+included, mostly due to its excellent queueing algorithms.
+ 
+Most users don't need this package -- for most users, sendmail or exim
+or smail will suffice.
+
+%description -l es
+Este paquete implementa un agente de tranferencia de mensajes llamado
+Zmailer. Es apropiado para pasarelas de correo o servidores de correo
+u otros grandes entornos que tienen demandas de correo extremas.
+Su desarrollo fue motivado por los problemas de diseño de Sendmail en
+estas situaciones. Zmailer es uno de los mailers capaces de gestionar
+elevadas cantidades de correo y es mas eficiente que otros mailers,
+qmail incluido, debido a sus excelentes algoritmos de cola.
+
+La mayoria de usuarios no necesitan de este paquete -- a la mayoria,
+les bastara sendmail o exim o smail.
+
 %package doc
 Summary: Documentation about the Zmailer Mail Transport Agent program.
+Summary(pt_BR): Documentation about the Zmailer Mail Transport Agent program.
+Summary(es): Documentacion sobre el programa Zmailer Mail Transport Agent.
 Group: Documentation
 
 %description doc
-The zmailer-doc package contains documentation about the Zmailer
+The %{name}-doc package contains documentation about the Zmailer
 Mail Transport Agent (MTA) program, including desing notes, 
 the ZMailer manual, and a few papers written about ZMailer.
 The papers are available in PostScript, tex, html, txt and sgml.
 
-Install the zmailer-doc package if you need documentation about
+Install the %{name}-doc package if you need documentation about
 Zmailer.
 
 Get the latest version of the Zmailer Manual from the zmailer web.
 
+%description doc -l pt_BR
+The %{name}-doc package contains documentation about the Zmailer
+Mail Transport Agent (MTA) program, including desing notes, 
+the ZMailer manual, and a few papers written about ZMailer.
+The papers are available in PostScript, tex, html, txt and sgml.
+
+Install the %{name}-doc package if you need documentation about
+Zmailer.
+
+Get the latest version of the Zmailer Manual from the zmailer web.
+
+%description doc -l es
+El paquete %{name}-doc contiene documentacion sobre el programa
+Zmailer Mail Transport Agent (MTA), incluyendo notas de diseño,
+el manual de Zmailer, y unos poco articulos sobre Zmailer. Los 
+articulos estan disponibles en PostScript, tex, html, txt and sgml.
+
+Instale el paquete %{name}-doc si necesita documentacion sobre
+Zmailer.
+
+Obtenga la ultima version del Manual de Zmailer de la web de zmailer.
+
 %prep
 
-# unpack zmalier (and patch it).
+# unpack (and patch it).
 %setup -q 
+#patch0 -p1 -b .orig
 
-# build zmailer
+# rebuild configure to the autoconf of the system
+autoconf
+
+# build it
 %build
-CFLAGS="$RPM_OPT_FLAGS" \
-./configure --prefix=/usr \
-	--with-zconfig=/etc/zmailer/zmailer.conf \
-	--mandir=/usr/man \
-	--libdir=/usr/lib \
-	--includedir=/usr/include/zmailer \
-	--with-mailbox=/var/spool/mail \
-	--with-postoffice=/var/spool/postoffice \
-	--with-mailshare=/etc/zmailer \
-	--with-mailvar=/etc/zmailer \
-	--with-mailbin=/usr/lib/zmailer \
-	--with-logdir=/var/log/zmailer \
-        --with-sendmailpath=/usr/sbin/sendmail \
-        --with-rmailpath=/usr/bin/rmail \
-	--with-vacationpath=/usr/bin/vacation \
-        --with-system-malloc \
-	--with-ta-mmap
-
-# do you need ssl ?
+CFLAGS="%{optflags}" \
+./configure --prefix=%{_prefix} \
+	--libdir=%{_libdir} \
+	--includedir=%{_Zincludedir} \
+	--with-zconfig=%{_Zsysconfdir}/zmailer.conf \
+	--with-mailbox=%{_Zmaildir} \
+	--with-postoffice=%{_Zpostoffdir} \
+	--with-mailshare=%{_Zsysconfdir} \
+	--with-mailvar=%{_Zsysconfdir} \
+	--with-mailbin=%{_Zlibdir} \
+	--with-logdir=%{_Zlogdir} \
+	--with-sendmailpath=%{_sbindir}/sendmail \
+	--with-vacationpath=%{_bindir}/vacation \
+	--with-rmailpath=%{_bindir}/rmail \
+	--mandir=%{_mandir} \
+	--with-system-malloc \
+	--with-ta-mmap \
+# do you need SSL ?
 #	--with-openssl \
-#	--with-openssl-prefix=/usr \
-#	--with-openssl-include=/usr/include/openssl \
-#	--with-openssl-lib=/usr/lib \
-#
-# ldap ?
-#	--with-ldap-prefix=/usr \
-#	--with-ldap-include-dir=/usr/include/ldap \
-#	--with-ldap-library-dir=/usr/lib \
-#
 # IPv6 ?
 #	--with-ipv6 \
-#
+# LDAP ?
+#	--with-ldap-library-dir= %{_lib} \
+#	--with-ldap-include-dir= %{_includedir} \
 # whoson ?
 #	--with-whoson \
-#
-# and yp/nis ?
+# and YP/NIS ?
 #	--with-yp \
-#	--with-yp-lib=/usr/lib \
-#
 # look ./configure --help and doc/guides/configure for more options
 
 make
@@ -106,211 +151,208 @@ make -C man groff
 make -C man html
 
 %install
-rm -rf $RPM_BUILD_ROOT
-make install prefix=$RPM_BUILD_ROOT
+rm -rf %{buildroot}
+make install prefix=%{buildroot}
 
-# install man pages
-make MANDIR=$RPM_BUILD_ROOT/usr/man -C man install
+# install man pages, --mandir= don't work
+make MANDIR=%{buildroot}%{_mandir} -C man install
 
-# doc stuff
-install -m644 $RPM_SOURCE_DIR/README-RPM \
-	$RPM_BUILD_DIR/zmailer-%{version}
-
-# ps and html man pages
+# copy ps and html man pages
 for i in ps html ; do
-mkdir -p $RPM_BUILD_DIR/zmailer-%{version}/man-$i
-install -m644 $RPM_BUILD_DIR/zmailer-%{version}/man/*.$i \
-	$RPM_BUILD_DIR/zmailer-%{version}/man-$i
+mkdir -p %{_builddir}/%{name}-%{version}/man-$i
+install -m644 %{_builddir}/%{name}-%{version}/man/*.$i \
+	%{_builddir}/%{name}-%{version}/man-$i
 done
 
 # install SYSV init stuff
-mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -m755 $RPM_SOURCE_DIR/zmailer.init \
-        $RPM_BUILD_ROOT/etc/rc.d/init.d/zmailer
+mkdir -p %{buildroot}%{_initrddir}
+install -m755 %{_sourcedir}/%{name}.init \
+        %{buildroot}%{_initrddir}/%{name}
 
 # install log rotation stuff
-mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
-install -m644 $RPM_SOURCE_DIR/zmailer.logrotate \
-	$RPM_BUILD_ROOT/etc/logrotate.d/zmailer
+mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
+install -m644 %{_sourcedir}/%{name}.logrotate \
+	%{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 
 # install cron stuff
-mkdir -p $RPM_BUILD_ROOT/etc/cron.d/
-install -m644 $RPM_SOURCE_DIR/zmailer.cron \
-	 $RPM_BUILD_ROOT/etc/cron.d/zmailer
+mkdir -p %{buildroot}%{_sysconfdir}/cron.d
+install -m644 %{_sourcedir}/%{name}.cron \
+	%{buildroot}%{_sysconfdir}/cron.d/%{name}
 
 # install pam support
-mkdir -p $RPM_BUILD_ROOT/etc/pam.d
-install -m644 $RPM_SOURCE_DIR/zmailer.pam \
-	$RPM_BUILD_ROOT/etc/pam.d/smtpauth-login
+mkdir -p %{buildroot}%{_sysconfdir}/pam.d
+install -m644 %{_sourcedir}/%{name}.pam \
+	%{buildroot}%{_sysconfdir}/pam.d/smtpauth-login
 
-# change zmailer.h file, --includedir= in zmailer don't work ok
-if ! [ -f $RPM_BUILD_ROOT/usr/include/zmailer/zmailer.h ]  ; then
-	mkdir -p $RPM_BUILD_ROOT/usr/include/zmailer
-	install -m644 $RPM_BUILD_ROOT/usr/include/zmailer.h \
-	  $RPM_BUILD_ROOT/usr/include/zmailer/zmailer.h
+# change zmailer.h file, --includedir= don't work
+if ! [ -f %{buildroot}%{_Zincludedir}/zmailer.h ]  ; then
+	mkdir -p %{buildroot}%{_Zincludedir}
+	install -m644 %{buildroot}%{_includedir}/zmailer.h \
+	  %{buildroot}%{_Zincludedir}/zmailer.h
 fi
-	
-# zmailer control script in the PATH is more coooooool :-)
-ln -sf ../lib/zmailer/zmailer $RPM_BUILD_ROOT/usr/sbin/zmailer
-
-# sendmail compatible stuff
-ln -sf zmailer/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
-ln -sf ../lib/zmailer/sendmail $RPM_BUILD_ROOT/usr/sbin/sendmail
-ln -sf ../lib/zmailer/rmail $RPM_BUILD_ROOT/usr/bin/rmail
-
-for I in mailq newaliases vacation; do
-	ln -sf ../lib/zmailer/$I \
-	$RPM_BUILD_ROOT/usr/bin/$I
-done
-
-touch $RPM_BUILD_ROOT/etc/mail.conf
 
 %pre
 # ####################
 # pre-install section
 
-# get source zmailer configuration.
-if [ -f /etc/zmailer/zmailer.conf ] ; then
-        . /etc/zmailer/zmailer.conf
-fi
-
-# Source function library.
-. /etc/rc.d/init.d/functions
+# RedHat source function library.
+. %{_initrddir}/functions
 
 # is zmailer running ?
 
+rm -f %{_localstatedir}/run/.%{name}_was_run
+
 if ( status scheduler || status router || status smtpserver ) | grep -v stop 2> /dev/null ; then
-	if [ -f $MAILBIN/zmailer ] ; then
-		$MAILBIN/zmailer kill
-		$MAILBIN/zmailer bootclean
-	else 
+	if [ -f %{_initrddir}/%{name} ] ; then
+		%{_initrddir}/%{name} stop
+	else
 		for i in scheduler router smtpserver ; do 
 		killproc $i > /dev/null
-		rm -rf /var/spool/postoffice/.pid.* 2> /dev/null
+		rm -rf %{_Zpostoffdir}/.pid.* 2> /dev/null
 		done
 	fi
-	echo "running" > /var/run/.zmailer_was_run
+	echo "running" > %{_localstatedir}/run/.%{name}_was_run
 fi
 
 # make zmailer group
 
-if ! grep -q "^zmailer:" /etc/group ; then
+if ! grep -q "^zmailer:" %{_sysconfdir}/group ; then
         # Use 'mail' group for zmailer...
-        echo "zmailer:x:12:root,daemon,uucp" >> /etc/group
+        echo "zmailer:x:12:root,daemon,uucp" >> %{_sysconfdir}/group
+fi
+
+# port to mailer transport queue
+if ! grep -q "^mailq" %{_sysconfdir}/services > /dev/null ; then
+        echo "mailq           174/tcp                         # Mailer transport queue" >> %{_sysconfdir}/services
 fi
 
 %post
 # #####################
 # post-install section
 
-# put SYSV init stuff
-/sbin/chkconfig --add zmailer
-
-# get source zmailer configuration.
-. /etc/zmailer/zmailer.conf
-
-# mail.conf stuff
-if ! ( [ -s /etc/mail.conf ] && grep -c '^hostname' /etc/mail.conf ) > /dev/null ; then
-	echo "# Where am I?" > /etc/mail.conf
-	[ -z "`hostname -d`" ] || echo "orgdomain=`hostname -d`" >> /etc/mail.conf
-	echo "# Who am I?" >> /etc/mail.conf
-	[ -z "`hostname -d`" ] || echo "mydomain=`hostname -d`" >> /etc/mail.conf
-	echo "# Who do I claim to be?" >> /etc/mail.conf
-	[ -z "`hostname -f`" ] || echo "hostname=`hostname -f`" >> /etc/mail.conf
-fi
-
-ln -sf /etc/mail.conf /etc/zmailer/mail.conf
-
-# port to mailer transport queue
-if ! grep -q "^mailq" /etc/services > /dev/null ; then
-        echo "mailq           174/tcp                         # Mailer transport queue" >> /etc/services
-fi
-
-(cd /etc/ && ln -sf zmailer/db/aliases .)
+# SYSV init
+chkconfig --add %{name}
 
 # run post-install script
 # rebuild the zmailer aliases database, recreates the FQDN alias map,
 # smtp-policy-db builder, create the postoffice dir ....... and more.
-$MAILBIN/post-install -OLDSTYLE
+%{_Zlibdir}/post-install -OLDSTYLE
+
+# mail.conf stuff
+if ! ( [ -s %{_Zsysconfdir}/mail.conf ] && grep -c '^hostname' %{_Zsysconfdir}/mail.conf ) > /dev/null ; then
+	echo "# Where am I?" > %{_Zsysconfdir}/mail.conf
+	[ -z "`hostname -d`" ] || echo "orgdomain=`hostname -d`" >> %{_Zsysconfdir}/mail.conf
+	echo "# Who am I?" >> %{_Zsysconfdir}/mail.conf
+	[ -z "`hostname -d`" ] || echo "mydomain=`hostname -d`" >> %{_Zsysconfdir}/mail.conf
+	echo "# Who do I claim to be?" >> %{_Zsysconfdir}/mail.conf
+	[ -z "`hostname -f`" ] || echo "hostname=`hostname -f`" >> %{_Zsysconfdir}/mail.conf
+fi
+
+# localnames stuff
+if ! ( [ -f %{_Zsysconfdir}/db/localnames ] && \
+        grep -c "^localhost" %{_Zsysconfdir}/db/localnames ) > /dev/null ; then
+        echo "localhost" >> %{_Zsysconfdir}/db/localnames
+        echo "`hostname -f`" >> %{_Zsysconfdir}/db/localnames
+        echo "`hostname`" >> %{_Zsysconfdir}/db/localnames
+        echo "`hostname -d`" >> %{_Zsysconfdir}/db/localnames
+        echo "localhost.`hostname -d`" >> %{_Zsysconfdir}/db/localnames
+fi
 
 # SECURITY NOTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# plain text passwd !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-chown root:root /etc/zmailer/scheduler.auth
-chmod 600 /etc/zmailer/scheduler.auth
+# scheduler.auth is a plain text passwd !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+chown root:root %{_Zsysconfdir}/scheduler.auth
+chmod 600 %{_Zsysconfdir}/scheduler.auth
 
-if ! ( [ -f /etc/zmailer/db/localnames ] && \
-        grep -c "^localhost" /etc/zmailer/db/localnames ) > /dev/null ; then
-        echo "localhost" >> /etc/zmailer/db/localnames
-        echo "`hostname -f`" >> /etc/zmailer/db/localnames
-        echo "`hostname`" >> /etc/zmailer/db/localnames
-        echo "`hostname -d`" >> /etc/zmailer/db/localnames
-        echo "localhost.`hostname -d`" >> /etc/zmailer/db/localnames
-fi
+# zmailer control script in the PATH is more coooooool :-)
+ln -sf %{_Zlibdir}/zmailer %{_sbindir}/zmailer
 
-$MAILBIN/zmailer newdb > /dev/null
-$MAILBIN/policy-builder.sh -n > /dev/null
+# sendmail compatible stuff
+ln -sf %{_Zlibdir}/sendmail %{_libdir}/sendmail
+ln -sf %{_Zlibdir}/sendmail %{_sbindir}/sendmail
+
+for i in mailq newaliases rmail vacation; do
+	ln -sf %{_Zlibdir}/$i %{_bindir}/$i
+done
+ln -sf %{_Zsysconfdir}/db/aliases %{_sysconfdir}/aliases
+
+# rebuild the zmailer databases
+%{_Zlibdir}/zmailer newdb > /dev/null
+%{_Zlibdir}/policy-builder.sh -n > /dev/null
 
 # notices
-echo " "  
-echo "       If you are running PROCMAIL as your local delivery agent"
-echo "       read /usr/doc/zmailer-doc-%{version}/doc/guides/procmail."
-echo "       If you need docs, install the zmailer-doc-%{version}."
-echo "       Visit the www.zmailer.org site to get a new version of"
-echo "       the Zmailer Manual and take a look to the news."
-echo "       A mailing list is avaliable at zmailer@nic.funet.fi"
-echo "       Use <mailserver@nic.funet.fi> to subscribe yourself to"
-echo "       the list by sending it a message with body content:"
-echo "                subscribe zmailer Your Name"
-echo " "
+cat << EOF
+
+	If you are running PROCMAIL as your local delivery agent
+	read %{_defaultdocdir}/%{name}-doc-%{version}/doc/guides/procmail.
+	If you need docs, install the %{name}-doc-%{version}.
+	Visit the www.zmailer.org site to get a new version of
+	the Zmailer Manual and take a look to the news.
+	A mailing list is avaliable at zmailer@nic.funet.fi
+	Use <mailserver@nic.funet.fi> to subscribe yourself to
+	the list by sending it a message with body content:
+		subscribe zmailer Your Name
+
+EOF
 
 # Yes, it was running. Startup zmailer again
-if [ -s /var/run/.zmailer_was_run ] > /dev/null ; then
-        /etc/rc.d/init.d/zmailer start
+if [ -s %{_localstatedir}/run/.%{name}_was_run ] > /dev/null ; then
+        %{_initrddir}/%{name} start
+	rm -f %{_localstatedir}/run/.%{name}_was_run
 fi
-rm -f /var/run/.zmailer_was_run
 
 %preun
 # ######################
 # pre-uninstall section
 
-# get source zmailer configuration.
-. /etc/zmailer/zmailer.conf
-
 # stop zmailer if it is running
-if ( /etc/rc.d/init.d/zmailer status | grep -v stop ) > /dev/null ; then
-        $MAILBIN/zmailer kill
-	$MAILBIN/zmailer bootclean
+if ( %{_initrddir}/%{name} status | grep -v stop ) > /dev/null ; then
+	%{_initrddir}/%{name} stop
 fi
 
 # delete SYSV init stuff
-/sbin/chkconfig --del zmailer
-
-# delete zmailer group
-groupdel zmailer || : #"WARNING: failed to remove group zmailer"
+chkconfig --del %{name}
 
 %postun
 # ######################
 # post-uninstall section
 
-echo " "
-echo "     Look at /var/log/zmailer to delete the zmailer logs,"
-echo "     /var/spool/postoffice where are the zmailer big work"
-echo "     dirs and /etc/zmailer where are the config files."
-echo "     Look for the zmailer group in /etc/group and delete it."
-echo " "
+# delete zmailer group
+groupdel zmailer 2> /dev/null || echo "WARNING: failed to remove group zmailer"
+
+# delete links
+rm -f  %{_sbindir}/zmailer %{_sbindir}/sendmail %{_libdir}/sendmail \
+	%{_sysconfdir}/aliases %{_sysconfdir}/mail.conf 
+for i in mailq newaliases rmail vacation; do
+        rm -f %{_bindir}/$i
+done	
+
+cat << EOF
+
+	Look at %{_Zlogdir} to delete the zmailer logs,
+	%{_Zpostoffdir} where are the zmailer big work
+	dirs and %{_Zsysconfdir} where are the config files.
+	Look for the zmailer group in %{_sysconfdir}/group and delete it.
+
+EOF
 
 %clean
-rm -rf $RPM_BUILD_ROOT
-rm -rf $RPM_BUILD_DIR/zmailer-%{version}
+rm -rf %{buildroot}
+rm -rf %{_builddir}/zmailer-%{version}
 
 %changelog
+
+* Sat Sep 22 2001 Xose Vazquez <xose@wanadoo.es>
+
+- update the rpm with macros for rpm-4 
+  and a lot of changes, I think that this 
+  is a new spec from top to botton
 
 * Mon Apr 16 2001 Xose Vazquez <xose@wanadoo.es>
 
 - minor changes for Zmailer-2.99.55
 - bugs in Zmailer-2.99.55 :
 - --includedir= in configure don't work
-- /etc/mail.conf don't work, made a link to /etc/zmailer/mail.conf
+- /etc/mail.conf don't work, made a link to /etc/mail.conf
 - make -j x, it is like linux kernel ;-) , broken
 
 * Fri Feb 23 2001 Xose Vazquez <xose@wanadoo.es>
@@ -357,40 +399,29 @@ rm -rf $RPM_BUILD_DIR/zmailer-%{version}
 %files
 %defattr(-,root,root)
 
-/etc/mail.conf
+%{_sysconfdir}/pam.d/smtpauth-login
+%{_sysconfdir}/cron.d/zmailer
+%{_sysconfdir}/logrotate.d/zmailer
+%{_initrddir}/zmailer
 
-/etc/pam.d/smtpauth-login
-/etc/cron.d/zmailer
-/etc/logrotate.d/zmailer
-/etc/rc.d/init.d/zmailer
+%config(missingok) %{_Zsysconfdir}/cf/proto/*
+%config(missingok) %{_Zsysconfdir}/db/proto/*
+%config(missingok) %{_Zsysconfdir}/forms/proto/*
+%dir %{_Zsysconfdir}/fqlists
+%dir %{_Zsysconfdir}/lists
+%config(missingok) %{_Zsysconfdir}/proto/*
+%{_Zsysconfdir}/vacation.msg
+%{_Zsysconfdir}/zmailer.conf
 
-%config(missingok) /etc/zmailer/cf/proto/*
-%config(missingok) /etc/zmailer/db/proto/*
-%config(missingok) /etc/zmailer/forms/proto/*
-%dir /etc/zmailer/fqlists
-%dir /etc/zmailer/lists
-%config(missingok) /etc/zmailer/proto/*
-/etc/zmailer/vacation.msg
-/etc/zmailer/zmailer.conf
+%{_Zincludedir}/zmailer.h
 
-/usr/bin/mailq
-/usr/bin/newaliases
-/usr/bin/rmail
-/usr/bin/vacation
+%{_libdir}/libzmailer.a
+%{_Zlibdir}
 
-/usr/include/zmailer/zmailer.h
+%{_mandir}
 
-/usr/lib/libzmailer.a
-/usr/lib/sendmail
-/usr/lib/zmailer
-
-/usr/man
-
-/usr/sbin/sendmail
-/usr/sbin/zmailer
-
-%dir /var/log/zmailer
-%attr(2755,root,root) %dir /var/spool/postoffice
+%dir %{_Zlogdir}
+%attr(2755,root,root) %dir %{_Zpostoffdir}
 
 %doc ChangeLog INSTALL MANIFEST Overview README* TODO contrib/README.debian
 

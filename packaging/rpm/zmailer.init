@@ -13,19 +13,17 @@
 # Source function library.
 if [ -f /etc/rc.d/init.d/functions ] ; then
 	. /etc/rc.d/init.d/functions
-	else
-		if [ -f /etc/init.d/functions ] ; then
+		elif [ -f /etc/init.d/functions ] ; then
 			. /etc/init.d/functions
 			else
-				exit 0
-		fi
+				exit 1
 fi
 
 # Source networking configuration.
 if  [ -f  /etc/sysconfig/network ] ; then
 	. /etc/sysconfig/network
 	else
-		exit 0
+		exit 1
 fi
 
 # Check that networking is up.
@@ -35,10 +33,10 @@ fi
 if [ -f /etc/zmailer/zmailer.conf ] ; then
 	. /etc/zmailer/zmailer.conf
 else 
-	exit 0
+	exit 1
 fi
 
-[ -f $MAILBIN/zmailer ] || exit 0
+[ -f $MAILBIN/zmailer ] || exit 1
 
 RETVAL=0
 

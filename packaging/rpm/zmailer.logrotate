@@ -1,5 +1,6 @@
 errors root@localhost
 compress
+missingok
 
 /var/log/zmailer/router {
     postrotate
