@@ -54,7 +54,7 @@ $(OBJS): $(srcdir)/../include/shmmib.h ../include/mail.h
 $(OBJS): $(srcdir)/prototypes.h $(srcdir)/router.h
 
 $(PROGRAM): $(TOPDIR)/include/rfc822.entry $(LIBDEB) version.o $(OBJS)
-	$(CC) $(CFLAGS) -o $@.x $(OBJS) version.o $(ROUTER_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@.x $(OBJS) version.o $(LIB) $(ROUTER_LIB)
 	mv $@.x $@
 
 $(PROGRAM).third: $(TOPDIR)/include/rfc822.entry $(LIBDEB) version.o $(OBJS)

@@ -2,7 +2,8 @@
 
 	* proto/cf/server.cf, proto/cf/aliases.cf, proto/cf/rrouter.cf:
 	    No more using  $(dequote .. )  function, but using
-	    explicite pattern in  ssift  clauses.
+	    explicite patterns in  ssift  clauses to handle couple
+	    forms of quoted localparts.
 
 	* libsh/execute.c, libsh/listutils.c:
 	    Found dangerous code deep inside the execute.c handling
