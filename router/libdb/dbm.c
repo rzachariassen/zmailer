@@ -4,10 +4,15 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002,2004
  */
 
-/* NOTE: This can't co-exist with ndbm! */
+/* NOTE: This can't co-exist with ndbm!
+ *  (depends on many things, but as a rule, when 'ndbm' is badish,
+ *   the old 'dbm' is horrible..  Most ancient versions don't even
+ *   have the dbmclose()... )
+ */
+
 
 /* We close the db after EVERY operation -- every search, every
    add, NOW we can co-exist with anything -- expect perhaps NDBM...  */
@@ -40,6 +45,15 @@ extern int store();
 #ifndef dbmclose
  extern void dbmclose();
 #endif
+
+
+typedef struct ZDbmPrivate {
+  GDBM_FILE db;
+  int    roflag;
+  time_t stmtime;
+  long   stino;
+  int    stnlink;
+} ZGdbmPrivate;
 
 
 int
@@ -84,14 +98,14 @@ search_dbm(sip)
 
 	if (open_dbm(sip, "search_dbm") < 0)
 		return NULL;
+	memset(&key, 0, sizeof(key));
 	key.dptr  = sip->key;
 	key.dsize = strlen(sip->key) + 1;
 	val = fetch(key);
-	if (val.dptr == NULL) {
-		close_dbm(sip,"search_dbm");
-		return NULL;
-	}
-	tmp = newstring(dupnstr(val.dptr, val.dsize), val.dsize);
+	if (val.dptr == NULL)
+	  tmp = NULL;
+	else
+	  tmp = newstring(dupnstr(val.dptr, val.dsize), val.dsize);
 	close_dbm(sip,"search_dbm");
 	return tmp;
 }
@@ -128,6 +142,9 @@ add_dbm(sip, value)
 
 	if (open_dbm(sip, "add_dbm") < 0)
 		return EOF;
+	memset(&key, 0, sizeof(key));
+	memset(&val, 0, sizeof(val));
+
 	key.dptr  = sip->key;
 	key.dsize = strlen(sip->key) + 1;
 	val.dptr  = value;
@@ -156,8 +173,10 @@ remove_dbm(sip)
 
 	if (open_dbm(sip, "remove_dbm") < 0)
 		return EOF;
+	memset(&key, 0, sizeof(key));
 	key.dptr  = sip->key;
 	key.dsize = strlen(sip->key) + 1;
+
 	if (delete(key) < 0) {
 		++deferit;
 		v_set(DEFER, DEFER_IO_ERROR);
