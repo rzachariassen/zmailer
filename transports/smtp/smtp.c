@@ -4026,6 +4026,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	gotalarm = 0;
 
 	/* we don't need to turn alarms off again (yay!) */
+#if 0
 	if (!pipelining) {
 	  alarm(timeout);	/* This much total to write and get answer */
 	  if (setjmp(alarmjmp) == 0)
@@ -4033,6 +4034,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  alarm(0);
 	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	}
+#endif
 	outfd = infd = FILENO(SS->smtpfp);
 
 	if (pipelining) {
