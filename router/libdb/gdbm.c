@@ -92,7 +92,9 @@ open_gdbm(sip, roflag, comment)
 		}
 
 		for (i = 0; i < 3; ++i) {
-		  db = gdbm_open((void*)sip->file, 0, flag, 0, NULL);
+		  /* sigh.. name parameter is 'char *', where our
+		     variable is 'const char *' ... */
+		  db = gdbm_open((char*)sip->file, 0, flag, 0, NULL);
 		  if (db != NULL)
 		    break;
 		  sleep(1);

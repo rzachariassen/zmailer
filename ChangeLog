@@ -4,6 +4,8 @@
 	    Eugene Crosser reports odd gdbm database opening problems
 	    in, and I see the same in Solaris, but not in Linux...
 	    Adding now some extra debug stuff to see what goes wrong.
+	    .. Looks like 'make clean; make' would help ?
+	    My own Solaris problem was bad ZENV setup.
 
 	* include/sleepycatdb.h, lib/sleepycatdb.c, man/smtpserver.8.in,
 	  smtpserver/policytest.h, smtpserver/policytest.c:
