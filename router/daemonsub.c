@@ -240,6 +240,15 @@ static int  start_child (i)
 
 	  int idx;
 
+#if	defined(SA_NOCLDSTOP)||defined(SA_ONSTACK)||defined(SA_RESTART)
+	/* ================ POSIX.1 STUFF ================ */
+	  extern void sigact_segv __((int, siginfo_t *, void *));
+	  extern void sigact_bus __((int, siginfo_t *, void *));
+
+	  SIGNAL_ACTION(SIGSEGV, sigact_segv);
+	  SIGNAL_ACTION(SIGBUS,  sigact_bus);
+#endif
+
 	  setitimer(ITIMER_PROF, &  profiler_itimer_at_start, NULL);
 
 

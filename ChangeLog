@@ -1,3 +1,18 @@
+2004-10-28  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/standard.cf, proto/cf/process.cf:
+	    Decrease amount of logging.  No point in logging all
+	    manner of details into the router log file.
+	    Place there only things that report about BIG PROBLEMS.
+
+	* router/daemonsub.c:
+	    (about those PROBLEMS...)
+	    I have seen router processes failing with SEGV, but
+	    without further information, understanding and fixing
+	    them is difficult.  This patch uses SIGACTION machinery
+	    to process child deaths, and report also the address
+	    in which the fault happened (program counter ? destination ?)
+
 2004-10-24  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/listmalloc.c:

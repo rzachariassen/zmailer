@@ -224,7 +224,7 @@ router (address, attributes) {
 #| in case of database lookup timeouts or other problems.  We null it
 #| here, and test it later to check for problems.
 
-	log address: "$address"
+###	log address: "$address"
 
 #| A gratuitous log entry so we can later on tell the exact addresses
 #| that were routed.  This could be removed if you like terse logs.
@@ -310,8 +310,8 @@ toplevels=(ad ae af ag ai al am an ao aq ar as at au aw az ba
 	nu nz om pa pe pf pg ph pk pl pm pn pr ps pt pw py qa
 	re ro ru rw sa sb sc sd se sg sh si sj sk sl sm sn so
 	sr st sv sy sz tc td tf tg th tj tk tl tm tn to tr tt
-	tv tw tz ua ug um us uy uz va vc ve vg vi vn vu wf ws
-	ye yt yu za zm zw
+	tv tw tz ua ug uk um us uy uz va vc ve vg vi vn vu wf
+	ws ye yt yu za zm zw
 	com edu gov int mil net org
 	aero biz coop info museum name pro
 	eu uucp )
