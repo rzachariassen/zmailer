@@ -1054,12 +1054,12 @@ int strict;
     }
     if (*q == ' ' || *q == '\t') {
 	/* Sometimes sending systems have:  <foo@foo   >, painfull.. */
-	for (q = q + 1; (*p == ' ' || *p == '\t');)
-	    ++p;
+	p = q;
+	while (*p == ' ' || *p == '\t') ++p;
 	/* Ok, copy down the rest of the input, and thus save the day..
 	   Purist would just report an error, but lets be lenient, when
 	   it is fairly easy, and painless to do.. */
-	if (*p == '>')
+	if (p > q)
 	    strcpy(q, p);
     }
     if (*q != '>') {

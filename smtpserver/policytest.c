@@ -1253,7 +1253,11 @@ const int len;
     }
 
     if (state->always_accept) {
-      int rc = client_dns_verify('+', at+1, len - (1 + at - str));
+      int rc, c = '-';
+      if (state->values[P_A_ACCEPTifMX] != 0) {
+	c = state->values[P_A_ACCEPTifMX];
+      }
+      rc = client_dns_verify(c, at+1, len - (1 + at - str));
       /* XX: state->message setup! */
       if (debug)
 	printf("... returns: %d\n", rc);
