@@ -21,6 +21,7 @@
 #include <pwd.h>			/* for run_homedir() */
 #include <grp.h>			/* for run_grpmems() */
 #include <errno.h>
+#include <sysexits.h>
 
 #include "zmsignal.h"
 #include "zsyslog.h"
@@ -205,7 +206,7 @@ run_trace(argc, argv)
 		for (dbi = &buggers[0]; dbi->name != NULL; ++dbi)
 			fprintf(stderr, "|%s", dbi->name);
 		putc('\n', stderr);
-		return 1;
+		return EX_USAGE;
 	}
 	prog = argv[0];
 	debug = (strncmp(*argv, "un", 2) != 0);
@@ -344,7 +345,7 @@ run_erraddrlog(argc, argv)
 		break;
 	default:
 		fprintf(stderr, "Usage: %s [ /path ]\n", argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	return 0;
 }
@@ -524,7 +525,7 @@ run_praliases(argc, argv)
 		fprintf(stderr,
 			"Usage: %s [ -v ] [ -o indexoutputfile ] aliasfile\n",
 			argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 
 	e = (struct envelope *)tmalloc(sizeof (struct envelope));
@@ -1587,7 +1588,7 @@ run_listaddresses(argc, argv)
 	  if (errors_to != old_errorsto)
 	    free(errors_to);
 	  errors_to = old_errorsto;
-	  return 1;
+	  return EX_USAGE;
 	}
 	e = (struct envelope *)tmalloc(sizeof (struct envelope));
 	e->e_nowtime = now;
@@ -1895,7 +1896,7 @@ run_filepriv(argc, argv)
 		fprintf(stderr, "Usage: %s [-M maxperm] pathname [ uid ]\n", argv0);
 		if (maxperm & (~0664))
 		  fprintf(stderr, "       maxperm must be 664 or stricter!\n");
-		return 1;
+		return EX_USAGE;
 	}
 	file = argv[1];
 	if (argc == 3 && isascii(argv[2][0]) && isdigit(argv[2][0])) {
@@ -2010,7 +2011,7 @@ run_runas(argc, argv)
 
 	if (argc < 3) {
 		fprintf(stderr, "Usage: %s user function [args...]\n", argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	cp = argv[1];
 	if (*cp == '-')
@@ -2053,7 +2054,7 @@ run_cat(argc, argv)
 
 	if (argc < 2) {
 		fprintf(stderr, "Usage: %s [filenames ...]\n", argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 
 	for ( ;argv[1] != NULL; ++argv) {
@@ -2084,7 +2085,7 @@ run_uid2login(argc, argv)
 {
 	if (argc != 2 || !isdigit(argv[1][0])) {
 		fprintf(stderr, "Usage: %s uid\n", argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	printf("%s\n", uidpwnam(atoi(argv[1])));
 	return 0;
@@ -2097,7 +2098,7 @@ run_login2uid(argc, argv)
 {
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s login\n", argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	printf("%d\n", login_to_uid(argv[1]));
 	return 0;
@@ -2114,7 +2115,7 @@ run_basename(argc, argv)
 	if (argc == 1) {
 		fprintf(stderr, "Usage: %s pathname suffix-to-strip\n",
 				argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	cp = strrchr(argv[1], '/');
 	if (cp == NULL)
@@ -2174,7 +2175,7 @@ run_syslog(argc, argv)
 
 	if (errflg || zoptind != argc - 1) {
 		fprintf(stderr, "Usage: %s [-p prio] string\n", argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	zsyslog((prio, "%s", argv[zoptind]));
 	return 0;
@@ -2209,7 +2210,7 @@ run_recase(argc, argv)
 	if (errflg || zoptind != argc - 1) {
 		fprintf(stderr, "Usage: %s [ -u | -l | -p ] string\n",
 				argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 
 	switch (action) {
@@ -2316,7 +2317,7 @@ run_squirrel(argc, argv)
 				fprintf(stderr, " %s", fyitable[j].fyiname);
 		}
 		fprintf(stderr, " ]\n");
-		return 1;
+		return EX_USAGE;
 	}
 	return 0;
 }
@@ -2392,7 +2393,7 @@ run_condquote_(argc, argv, condq)
 	  fprintf(stderr,
 		  "Usage: %s [ -s SPCCHR ] [ -a APPENDSTR ] string\n",
 		  argv[0]);
-	  return 1;
+	  return EX_USAGE;
 	}
 
 	s = argv[zoptind];

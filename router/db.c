@@ -51,7 +51,7 @@ struct cache {
 };
 
 #define DBFUNC(_fn_)  (* _fn_) __((search_info *))
-#define DBFUNCD(_fn_)  (* _fn_) __((conscell *DBFUNC(lookupfn), search_info *))
+#define DBFUNCD(_fn_) (* _fn_) __((conscell *DBFUNC(lookupfn), search_info *))
 #define DBFUNCV(_fn_) (* _fn_) __((search_info *, const char *))
 #define DBFUNCF(_fn_) (* _fn_) __((search_info *, FILE *))
 

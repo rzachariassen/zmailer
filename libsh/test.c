@@ -1,6 +1,7 @@
 /*
  *	Copyright 1989 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *	Some subfunctions Copyright 1991-2001 Matti Aarnio.
  */
 
 /*
@@ -284,7 +285,8 @@ testeval(avp, ignoreferrs)
 		*avp += 2;
 	} else if (av1 != NULL && av2 != NULL
 		   && strcmp(av1, "-le") == 0) {
-		value = (N1 <= N2), *avp += 2;
+		value = (N1 <= N2);
+		*avp += 2;
 
 	} else if (av1 != NULL && av2 != NULL
 		   && strcmp(av1, "-nt") == 0) {

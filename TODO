@@ -400,7 +400,6 @@ transports/smtp:
 	- lib/selfaddrs.c: Don't properly do automatic IPv6 interface address
 			   picking (IPv4 is ok)
 	- libc/myhostname.c: don't do automatic IPv6
-	- scheduler/mailq.c: don't do IPv6 connect
 	- transports/hold/hold.c: incomplete NS/AAAA, no IPv6 PTR
 	- transports/mailbox/mailbox.c: BIFF gethostbyname() ?
 
