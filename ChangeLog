@@ -1,5 +1,11 @@
 2000-07-30  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* libident/identuser.c:
+	    A buglet in read loop.  The 'break' affects only
+	    the innermost loop construct, and it needed to go
+	    out the outer too..  Nuisance think, I would say.
+	    (And usage of indent is questionable anyway..)
+
 	* smtpserver/smtpserver.h, smtpserver/smtpcmds.c,
 	  smtpserver/cfgread.c, smtpserver/smtpserver.c,
 	  include/ta.h, transports/libta/ctlopen.c:

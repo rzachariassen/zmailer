@@ -216,7 +216,7 @@ static volatile const char *ident_sockuser2(s,local,remote,realbuf,realbuflen)
 	continue;
     if (w == 0)
 	break; /* EOF */
-    while (w > 0 && buf < ebuf) {
+    while (w >= 0 && buf < ebuf) {
       c = *pp;
       if (!(c == ' ' || c == '\t' || c == '\r')) {
 	*buf = c;
@@ -225,9 +225,11 @@ static volatile const char *ident_sockuser2(s,local,remote,realbuf,realbuflen)
       ++pp;
       --w;
       if (c == '\n')
-	break;
+	goto bail_out;
     }
   }
+ bail_out:;
+
   SIGNAL_HANDLE(SIGPIPE, old_sig);
   if (w == -1)
     CLORETS("SOCKREAD");
