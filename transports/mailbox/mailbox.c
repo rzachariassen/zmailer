@@ -1115,6 +1115,11 @@ deliver(dp, rp, usernam, timestring)
 	    pw = getpwnam(usernam);
 	    if (pw == NULL) {
 	      if (plus) *plus = '+';
+#ifdef __osf__
+	      /*  KLUDGE TIME!   Yuck!  */
+	      if (errno == EINVAL)
+		errno = 0;
+#endif
 	      if (errno != 0) { /* getpwnam() failed for some other
 				   reason than simply not finding the
 				   given user... */
