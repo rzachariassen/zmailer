@@ -1261,6 +1261,7 @@ AC_OUTPUT(Makefile
 	proto/mailrm.sh			proto/db/Makefile		\
 	proto/smtpserver.conf		proto/cf/TELE-FI.cf		\
 	proto/cf/SMTP+UUCP.cf		proto/cf/UTdefault.cf		\
+	proto/cf/SMTP.cf						\
 	proto/db/aliases		proto/sm.conf			\
 	bin/mkdep			bin/mklibdep			\
 	SiteConfig	,

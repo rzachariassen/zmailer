@@ -1,5 +1,10 @@
 1998-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/Makefile.in, proto/cf/SMTP.cf.in, configure.in:
+	    Default router.cf is altered to have protocols 'routes',
+	    and 'smtp'.  Per default the system install will not
+	    have UUCP in routing stage anymore.
+
 	* smtpserver/smtpdata.c:
 	    Oops: At DATA processing the content-policy was tested
 	    only if the last RCPT policy analysis yielded All-OK (0)
