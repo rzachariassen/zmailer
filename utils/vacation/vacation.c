@@ -26,6 +26,7 @@
 /* #include <tzfile.h> */  /* Not needed ? */
 #include <errno.h>
 #include <sysexits.h>
+#include <ctype.h>
 
 /* Database format preferrence order:
    NDBM, GDBM, SleepyCat4, SleepyCat3, SleepyCat2, BSD DB 1
@@ -151,6 +152,7 @@ static int recent __((void));
 static int junkmail __((void));
 static int nsearch __((const char *name, const char *str));
 static void sendmessage __((const char *msgf, const char *myname));
+static void str_to_lower __((char *));
 
 const char *progname;
 const char *zenv_vinterval;
@@ -217,6 +219,7 @@ main(argc, argv)
 	    if (!cur)
 	      break;
 	    cur->name = optarg;
+	    str_to_lower((char*)(cur->name));
 	    cur->next = names;
 	    names = cur;
 	    break;
@@ -341,7 +344,8 @@ main(argc, argv)
 	  } else {
 	    const char *myname = pw->pw_name;
 
-	    cur->name = pw->pw_name;
+	    cur->name = strdup(pw->pw_name);
+	    str_to_lower((char*)(cur->name));
 	    cur->next = names;
 	    names = cur;
 
@@ -637,9 +641,10 @@ nsearch(name, str)
 {
 	register int len;
 
-	for (len = strlen(name); *str; ++str)
-		if (*str == *name && !strncasecmp(name, str, len))
+	for (len = strlen(name); *str; ++str) {
+		if (tolower(*str) == *name && !strncasecmp(name, str, len))
 			return(1);
+	}
 	return(0);
 }
 
@@ -865,4 +870,12 @@ usage()
 {
 	fprintf(stderr,"vacation: [-i] [-d] [-a alias] [-m msgfile] [-r interval] {login | 'start' | 'stop' }\n");
 	exit(EX_USAGE);
+}
+
+static void
+str_to_lower(str)
+	char *str;
+{
+	for (; *str; ++str)
+	  *str = tolower(*str);
 }
