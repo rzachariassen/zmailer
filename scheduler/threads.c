@@ -1,7 +1,7 @@
 /*
  *	ZMailer 2.99.16+ Scheduler "threads" routines
  *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-96
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-98
  *
  *
  *	These "threads" are for book-keeping of information
@@ -35,6 +35,9 @@ extern time_t now;
 extern char *procselect, *procselhost;
 extern time_t sched_starttime; /* From main() */
 
+static long groupid  = 0;
+static long threadid = 0;
+
 struct threadgroup *
 create_threadgroup(cep, wc, wh, withhost, ce_fillin)
 struct config_entry *cep;
@@ -49,6 +52,9 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	thgp = (struct threadgroup*)malloc(sizeof(*thgp));
 	if (!thgp) return NULL;
 	memset(thgp,0,sizeof(*thgp));
+
+	++groupid;
+	thgp->groupid  = groupid;
 
 	thgp->cep      = cep;
 	thgp->withhost = withhost;
@@ -121,6 +127,8 @@ static void _thread_timechain_unlink __((struct thread *));
 static void _thread_timechain_unlink(thr)
 struct thread *thr;
 {
+	struct threadgroup *thg = thr->thgrp;
+
 	if (thr->prevtr != NULL)
 	  thr->prevtr->nexttr = thr->nexttr;
 	if (thr->nexttr != NULL)
@@ -133,23 +141,57 @@ struct thread *thr;
 
 	thr->nexttr = NULL;
 	thr->prevtr = NULL;
+
+	if (thr->prevthg != NULL)
+	  thr->prevthg->nextthg = thr->nextthg;
+	if (thr->nextthg != NULL)
+	  thr->nextthg->prevthg = thr->prevthg;
+
+	if (thg->thread == thr)
+	  thg->thread = thr->nextthg;
+	if (thg->thrtail == thr)
+	  thg->thrtail = thr->prevthg;
+
+	thr->prevthg = NULL;
+	thr->nextthg = NULL;
 }
 
 static void _thread_timechain_append __((struct thread *));
 static void _thread_timechain_append(thr)
 struct thread *thr;
 {
+	struct threadgroup *thg = thr->thgrp;
+
 	if (thread_head == NULL) {
 	  thread_head = thr;
 	  thread_tail = thr;
 	  thr->nexttr = NULL;
 	  thr->prevtr = NULL;
-	  return;
+
+	} else {
+
+	  thread_tail->nexttr = thr;
+	  thr->nexttr = NULL;
+	  thr->prevtr = thread_tail;
+	  thread_tail = thr;
+
 	}
-	thread_tail->nexttr = thr;
-	thr->nexttr = NULL;
-	thr->prevtr = thread_tail;
-	thread_tail = thr;
+
+	if (thg->thread == NULL) {
+
+	  thg->thread  = thr;
+	  thg->thrtail = thr;
+	  thr->nextthg = NULL;
+	  thr->prevthg = NULL;
+
+	} else {
+
+	  thg->thrtail->nextthg = thr;
+	  thr->nextthg = NULL;
+	  thr->prevthg = thg->thrtail;
+	  thg->thrtail = thr;
+
+	}
 }
 
 
@@ -173,9 +215,12 @@ struct config_entry *cep;
 
 	memset(thr,0,sizeof(*thr));
 
+	++threadid;
+	thr->threadid = threadid;
+
 	thr->thgrp   = thgrp;
-	thr->nextthg = thr;
-	thr->prevthg = thr;
+	thr->nextthg = NULL;
+	thr->prevthg = NULL;
 	thr->wchan   = vtx->orig[L_CHANNEL];
 	thr->whost   = vtx->orig[L_HOST];
 
@@ -188,14 +233,6 @@ struct config_entry *cep;
 		}
 	}
 
-	if (thgrp->thread == NULL) {
-	  thgrp->thread = thr;
-	} else {
-	  thr->nextthg = thgrp->thread->nextthg;
-	  thr->prevthg = thgrp->thread->nextthg->prevthg;
-	  thgrp->thread->nextthg->prevthg = thr;
-	  thgrp->thread->nextthg          = thr;
-	}
 	thgrp->threads += 1;
 	thr->vertices   = vtx;
 	thr->lastvertex = vtx;
@@ -211,6 +248,45 @@ struct config_entry *cep;
 
 	return thr;
 }
+
+
+static void pick_next_thread __((struct threadgroup *,
+				 struct thread *,
+				 struct procinfo *));
+
+static void pick_next_thread(thg, thr0, proc)
+     struct threadgroup *thg;
+     struct thread *thr0;
+     struct procinfo *proc;
+{
+	struct thread *thr;
+	int once = 1;
+
+	for (thr = thg->thread; thr != NULL; thr = thr->nextthg) {
+
+	  if (thr == thr0)
+	    continue;
+
+	  if (thg != thr->thgrp)
+	    continue;
+
+	  if (thr->wakeup > now && thr->attempts > 0 )
+	    continue; /* wakeup in future, unless first time around! */
+
+	  if (thr->proc == NULL ||
+	      thr->proc->thread != thr) {
+
+	    /* Ok, this thread is not busy, choose it! */
+	    mytime(&now);
+
+	    thread_start(thr);
+	    /* Attempt to  thread_start() may scramble the thr object.. */
+	    return;
+
+	  }
+	}
+}
+
 
 static void delete_thread __((struct thread *, int));
 static void
@@ -237,23 +313,12 @@ int ok;
 	}
 
 	/* Unlink us from the thread time-chain */
+	/* ... and thread-group-ring */
 	_thread_timechain_unlink(thr);
-
-	if (thr->nextthg == thr) { /* we are the last! */
-	  last = 1;
-	}
-       
-	/* ... and now from thread-group-ring */
-	thr->nextthg->prevthg = thr->prevthg;
-	thr->prevthg->nextthg = thr->nextthg;
-
-	/* If we are the ring hookup, connect another */
-	if (thg->thread == thr)
-	  thg->thread = thr->nextthg;
 
 	thg->threads -= 1;
 	/* If threads count goes zero.. */
-	if (last) {
+	if (thg->threads == 0) {
 	  thg->thread = NULL;	/* Oops.. we were last!		*/
 	  if (thr->proc &&
 	      thr->proc->thread == thr) { /* There is a process, idle it! */
@@ -283,36 +348,22 @@ int ok;
 	     the process' current thread is no longer in the ring!	*/
 	  if (thr->proc &&
 	      thr->proc->thread == thr) {
-	    struct thread *thr0, *thr1, *thrn;
-	    struct procinfo *proc = thr->proc;
-	    int once = 1;
 	    /* Move it into the idle pool -- and try to find
 	       a free thread to start!				*/
+	    struct procinfo *proc = thr->proc;
 	    proc->vertex = NULL;
 	    proc->thread = NULL;
-	    proc->next = thg->idleproc;
+	    proc->next   = thg->idleproc;
+	    thr->proc    = NULL;
 	    thg->idleproc = proc;
 	    thg->idlecnt += 1;
-	    idle_child(thr->proc);
+	    idle_child(proc);
 	    ++idleprocs;
 	    if (verbose)
 	      fprintf(stderr, "delete_thread(2) thr->proc=0x%p pid=%d ",
-		      thr->proc, thr->proc->pid);
+		      proc, proc->pid);
 	    /* Find a free thread - or stay in idle.. */
-	    for (thr0 = thg->thread, thr1 = thr0;
-		 once || thr0 != thr1;
-		 thr1 = thrn) {
-	      /* Attempt to  thread_start() may scramble the thr1 object.. */
-	      thrn = thr1->nextthg;
-	      once = 0;
-	      if (thr1->proc == NULL ||
-		  thr1->proc->thread != thr1) {
-		/* Ok, this thread is not busy, choose it! */
-		mytime(&now);
-		thread_start(thr1);
-		break;
-	      }
-	    }
+	    pick_next_thread(thg, thr, proc);
 	    if (verbose)
 	      fprintf(stderr,"proc->thr=0x%p\n",proc->thread);
 
@@ -961,14 +1012,25 @@ int ok, justfree;
 	  return;
 	}
 
-	/* Pick another thread in our ring */
-	thr = thr->nextthg;
+	if (proc->overfed > 0 && proc->fed) {
+	  /* we have an overfeed situation, we are to stop at
+	     the end of the thread, and wait thread purge to
+	     happen -- by timeouts, or whatever.
+	     We don't idle, we don't move, just return.. */
+	  if (verbose) printf(" ... OVERFEED - don't change thread yet.\n");
+	  return;
+	}
 
 	mytime(&now);
 
+#if 1
+	/* Move this thread to the last of the threads eligible for start */
+	_thread_timechain_unlink(thr);
+	_thread_timechain_append(thr);
+	/* Idle the process, and be happy.. */
+#else
 	/* the threads are in a ring.. */
 	for ( ;thr != thr0; thr = thr->nextthg) {
-
 	  if (thr->proc != NULL &&
 	      thr->proc->thread == thr)
 	    continue; /* in processing, don't touch! */
@@ -1009,18 +1071,10 @@ int ok, justfree;
 	  proc->fed = 0;
 	  return; /* It is eligible to run! */
 	}
-
-	if (proc->overfed > 0 && proc->fed) {
-	  /* we have an overfeed situation, we are to stop at
-	     the end of the thread, and wait thread purge to
-	     happen -- by timeouts, or whatever.
-	     We don't idle, we don't move, just return.. */
-	  if (verbose) printf(" ... OVERFEED - don't change thread yet.\n");
-	  return;
-	}
+#endif
 
 	/* No free threads/vertices here, idle the process */
-	if (verbose) printf(" ... NONE, idle the process (of=%d, f=%d).\n",
+	if (verbose) printf(" ... idle the process (of=%d, f=%d), and try to pick next thread.\n",
 			    proc->overfed, proc->fed);
 	proc->thread = NULL;
 	proc->vertex = NULL;
@@ -1030,6 +1084,8 @@ int ok, justfree;
 	thg->idlecnt += 1;
 	idle_child(proc);
 	++idleprocs;
+
+	pick_next_thread(thg, thr, proc);
 }
 
 /*
@@ -1147,6 +1203,12 @@ time_t retrytime;
 	}
 	if (thr != NULL)
 	  thr->wakeup = wakeup;
+
+	/* In every case the rescheduling means we move this thread
+	   to the end of the thread_head chain.. */
+
+	_thread_timechain_unlink(thr);
+	_thread_timechain_append(thr);
 }
 
 
@@ -1402,8 +1464,9 @@ struct thread *th;
 	return (now - oo);
 }
 
-void thread_report(fp)
+void thread_report(fp,fullmode)
 FILE *fp;
+int fullmode;
 {
 	struct threadgroup *thg;
 	int thg_once = 1;
@@ -1435,50 +1498,65 @@ FILE *fp;
 	  procs = 0;
 	  jobsum = 0;
 	  thr_once = 1;
-	  for (thr = thg->thread; thr && (thr_once || thr != thg->thread); thr = thr->nextthg) {
-	    int width;
-	    width = fprintf(fp,"    %s/%s/%d",
-			    /* thr->vertices->orig[L_CHANNEL]->name, */ thr->channel,
-			    /* thr->vertices->orig[L_HOST]->name, */ thr->host,
-			    thr->thgrp->withhost);
-	    if (width == EOF) return;
-	    width += 7;
-	    if (width < 16-1)
-	      putc('\t',fp);
-	    if (width < 24-1)
-	      putc('\t',fp);
-	    if (width < 32-1)
-	      putc('\t',fp);
-	    if (width < 40-1)
-	      putc('\t',fp);
-	    else
-	      putc(' ',fp);
-	    thr_once = 0;
-	    jobsum += thr->jobs;
-	    fprintf(fp,"R=%-2d", thr->jobs);
-	    fprintf(fp," A=%-2d",thr->attempts);
-	    ++cnt;
-	    if (thr->proc != NULL &&
-		thr->proc->thread == thr) {
-	      ++procs;
-	      fprintf(fp," P=%-5d",thr->proc->pid);
-	      fprintf(fp," HA=%ds",(int)(now - thr->proc->hungertime));
-	      if (thr->proc->feedtime == 0)
-		fprintf(fp," FA=never");
-	      else
-		fprintf(fp," FA=%ds",(int)(now - thr->proc->feedtime));
-	      fprintf(fp," OF=%-2d", thr->proc->overfed);
-	    } else if (thr->wakeup > now)
-	      fprintf(fp," W=%ds",(int)(thr->wakeup - now));
-	    *timebuf = 0;
-	    saytime((long)oldest_age_on_thread(thr), timebuf, 1);
-	    fprintf(fp," QA=%s", timebuf);
+	  if (fullmode) {
 
-	    if (thr->vertices && thr->vertices->ce_pending)
-	      fprintf(fp,
-		      thr->vertices->ce_pending == SIZE_L ? "" :
-		      (thr->vertices->ce_pending == L_CHANNEL ? " channelwait" : " threadwait"));
-	    fprintf(fp,"\n");
+	    /* for (thr = thg->thread;
+	       thr && (thr_once || thr != thg->thread);
+	       thr = thr->nextthg) */
+
+	    /* We scan there in start order from the  thread_head
+	       chain! */
+
+	    for (thr = thg->thread; thr != NULL ; thr = thr->nextthg) {
+
+	      int width;
+
+	      if (thr->thgrp != thg) /* Not of this group ? */
+		continue; /* Next! */
+
+	      width = fprintf(fp,"    %s/%s/%d",
+			      /* thr->vertices->orig[L_CHANNEL]->name, */ thr->channel,
+			      /* thr->vertices->orig[L_HOST]->name, */ thr->host,
+			      thr->thgrp->withhost);
+	      if (width == EOF) return;
+	      width += 7;
+	      if (width < 16-1)
+		putc('\t',fp);
+	      if (width < 24-1)
+		putc('\t',fp);
+	      if (width < 32-1)
+		putc('\t',fp);
+	      if (width < 40-1)
+		putc('\t',fp);
+	      else
+		putc(' ',fp);
+	      thr_once = 0;
+	      jobsum += thr->jobs;
+	      fprintf(fp,"R=%-2d", thr->jobs);
+	      fprintf(fp," A=%-2d",thr->attempts);
+	      ++cnt;
+	      if (thr->proc != NULL &&
+		  thr->proc->thread == thr) {
+		++procs;
+		fprintf(fp," P=%-5d",thr->proc->pid);
+		fprintf(fp," HA=%ds",(int)(now - thr->proc->hungertime));
+		if (thr->proc->feedtime == 0)
+		  fprintf(fp," FA=never");
+		else
+		  fprintf(fp," FA=%ds",(int)(now - thr->proc->feedtime));
+		fprintf(fp," OF=%-2d", thr->proc->overfed);
+	      } else if (thr->wakeup > now)
+		fprintf(fp," W=%ds",(int)(thr->wakeup - now));
+	      *timebuf = 0;
+	      saytime((long)oldest_age_on_thread(thr), timebuf, 1);
+	      fprintf(fp," QA=%s", timebuf);
+
+	      if (thr->vertices && thr->vertices->ce_pending)
+		fprintf(fp,
+			thr->vertices->ce_pending == SIZE_L ? "" :
+			(thr->vertices->ce_pending == L_CHANNEL ? " channelwait" : " threadwait"));
+	      fprintf(fp,"\n");
+	    }
 	  }
 	  fprintf(fp,"\tThreads: %4d",thg->threads);
 	  if (thg->threads != cnt)

@@ -659,7 +659,6 @@ parse(fp)
 	names[L_CHANNEL] = "Channels:";
 	names[L_END]     = "End:";
 
-
 	buf = emalloc(bufsize);
 
 	GETLINE(buf,fp);
@@ -673,6 +672,25 @@ parse(fp)
 	  fprintf(stderr, "%s: version mismatch, input is \"%s\".\n", progname, buf);
 	  return 0;
 	}
+
+	if (schedq) {
+	  /* We ignore the classical mailq data, just read it fast */
+	  while (1) {
+	    int c;
+	    buf[bufsize-1] = 0;
+	    if (fgets(buf, bufsize, fp) == NULL)
+	      return 1; /* EOF ? */
+	    if (buf[bufsize-1] != 0) {
+	      /* A VERY long string */
+	      while ((c = getc(fp)) != '\n' && c != EOF) ;
+	      continue;
+	    }
+	    if (memcmp(buf,"End:",4) == 0)
+	      return 1;
+	  }
+	  /* NOT REACHED */
+	}
+
 	GETLINE(buf,fp);
 	if (!EQNSTR(buf, names[L_CTLFILE]))
 	  return 0;
@@ -937,6 +955,8 @@ void query2(fp)
 	int  len;
 	char buf[512];
 
+	/* XX: Authenticate the query */
+
 	if (schedq) {
 	  if (schedq > 1)
 	    strcpy(buf,"SHOW-QUEUE CONDENCED\n");
@@ -966,16 +986,27 @@ report(fp)
 	  return;
 	if (rc == 2) {
 	  query2(fp);
+	  return;
 	}
 	if (schedq) {
-	  char linebuf[4000];
-	  while (!feof(fp) && !ferror(fp)) {
-	    if (fgets(linebuf,sizeof(linebuf),fp) == NULL)
+	  /* Old-style processing */
+	  int prevc = -1;
+	  int linesuppress = 0;
+	  while (!ferror(fp)) {
+	    int c = getc(fp);
+	    if (c == EOF)
 	      break;
-	    if (schedq > 1 && linebuf[0] == ' ')
-	      continue;
-	    fputs(linebuf,stdout);
+	    if (prevc == '\n') {
+	      linesuppress = 0;
+	      if (c == ' ' && schedq > 1)
+		linesuppress = 1;
+	      fflush(stdout);
+	    }
+	    if (!linesuppress)
+	      putc(c,stdout);
+	    prevc = c;
 	  }
+	  fflush(stdout);
 	  return;
 	}
 
@@ -1004,7 +1035,7 @@ printaddrs(v)
 	if (v->cfp->contents == NULL) {
 	  sprintf(path, "%s/%s/%s", postoffice, TRANSPORTDIR, v->cfp->mid);
 	  if ((fd = open(path, O_RDONLY, 0)) < 0) {
-#if	0
+#if 0
 	    printf("\t\t%s: %s\n", path, strerror(errno));
 #endif
 	    return;

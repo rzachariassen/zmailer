@@ -328,8 +328,8 @@ void unvertex(vp, justfree, ok)
 	  pick_next_vertex(vp->proc, ok, justfree);
 	  if (vp->proc && vp->proc->vertex == vp){
 	    fprintf(stderr,
-		    "unvertex(vtx=0x%p,%d,%d) failed to pick_next_vertex()!\n",
-		    vp,justfree,ok);
+		    "unvertex(vtx=0x%p,%d,%d) failed to pick_next_vertex() file=%s!\n",
+		    vp,justfree,ok, vp->cfp->mid);
 	    /* We may become called with child feeder yet unflushed;
 	       shall we kill the kid ? (pick_next_vertex won't change
 	       vertex then..) */

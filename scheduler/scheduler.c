@@ -1083,6 +1083,8 @@ void resync_file(file)
 	const char *s;
 	int fd;
 
+	queryipccheck();
+
 	lstat(file,&stbuf);
 
 	s = strrchr(file,'/');
@@ -1103,7 +1105,7 @@ void resync_file(file)
 	  return;
 	}
 	printf("Resyncing file \"%s\" (ino=%d)", file, (int) ino);
-	printf(" .. in processing db\n");
+	/* printf(" .. in processing db\n"); */
 
 	/* cfp_free()->unvertex()->unctlfile() will do reinsertion */
 	/* dq_insert(NULL,ino,file,31); */
@@ -1114,11 +1116,15 @@ void resync_file(file)
 	/* Now read it back! */
 	fd = eopen(file, O_RDWR, 0);
 	if (fd < 0) {
+	  printf(" .. FILE OPEN FAILED!\n");
 	  /* ???? */
 	  return;
 	}
 	if (schedule(fd, file, ino, 1) != NULL) {
 	  /* ????  What ever, it succeeds, or it fails, all will be well */
+	  printf(" .. resynced!\n");
+	} else {
+	  printf(" .. NOT resynced!\n");
 	}
 }
 

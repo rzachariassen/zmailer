@@ -115,7 +115,7 @@ extern void        unweb __((int flag, struct web *wp));
 extern int   thread_start __((struct thread *thr));
 extern int   idle_cleanup __((void));
 extern void  pick_next_vertex __((struct procinfo *proc, int ok, int justfree));
-extern void  thread_report __((FILE *));
+extern void  thread_report __((FILE *, int));
 extern int   idleprocs;
 extern void  web_disentangle __((struct vertex *vp, int ok));
 extern void  reschedule __((struct vertex *vp, int factor, int index));

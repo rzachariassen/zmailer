@@ -97,7 +97,7 @@ qprint(fd)
 	}
 	fprintf(qpfp, "End:\n");
 
-	thread_report(qpfp);
+	thread_report(qpfp, 1);
 	
 	fclose(qpfp);
 

@@ -87,6 +87,7 @@ struct ctlfile {
 };
 
 struct threadgroup {
+	int		groupid;	/* Unique id */
 	int		threads;	/* Number of threads in the group   */
 	int		transporters;	/* Number of transporters running   */
 	int		idlecnt;	/* Number of idle transporters	    */
@@ -95,13 +96,15 @@ struct threadgroup {
 	struct web	*whost;		/* Host identity web		    */
 	char		*hostpatt;
 	int		withhost;	/* When set, wchan matters.	    */
-	struct thread	*thread;	/* Any of the threads in the group  */
+	struct thread	*thread;	/* First of the thread in the group */
+	struct thread	*thrtail;	/* Last of the threads in the group */
 	struct threadgroup *next, *prev; /* Ring of thread groups	    */
 	struct config_entry *cep;	/* Pointer to a config database     */
 	struct config_entry ce;		/* consed scheduler config file entry*/
 };
 
 struct thread {
+	long		threadid;	/* Unique id */
 	time_t		wakeup;		/* When to wake up ?		    */
 	int		attempts;	/* How many times activated ?	    */
 	int		retryindex;	/* when, what ?			    */

@@ -1405,7 +1405,7 @@ deliver(SS, dp, startrp, endrp)
 	       buffer flushes... */
 	    smtpclose(SS);
 	    if (logfp)
-	      fprintf(logfp, "%s#\t(closed SMTP channel - appendlet() failure, status=%d)\n", logtag(), rp->status);
+	      fprintf(logfp, "%s#\t(closed SMTP channel - appendlet() failure, status=%d)\n", logtag(), rp ? rp->status : -999);
 	  }
 	  return EX_TEMPFAIL;
 	}

@@ -1,3 +1,18 @@
+1998-02-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/threads.c (and others):
+	    Radical thread-group job-picking reorganizing.
+	    More deterministic approach on scheduling with
+	    better guarantees of even activation of threads.
+
+	* scheduler/mailq.c:
+	    The "-Q" mode receiving of non-Q-mode vertices
+	    data streamlined so that it does not require
+	    up to infinitely long linebuffers...
+	
+	* transports/smtp/smtp.c:
+	    NULL-ptr reference in logfp output.  Oops...
+
 1998-02-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
