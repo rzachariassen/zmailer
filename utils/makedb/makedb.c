@@ -904,6 +904,7 @@ char *argv[];
 #endif
 #if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
 #if defined(HAVE_DB_CREATE)
+
     case 3:
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
@@ -939,9 +940,10 @@ char *argv[];
 	strcat(dbasename, ".db");	/* ALWAYS append this */
 
 	dbfile = NULL;
-	db_open(dbasename, DB_BTREE,  DB_CREATE|DB_TRUNCATE,
-		0644, NULL, NULL, &dbfile);
-	dbf = dbfile;
+	err = db_open(dbasename, DB_BTREE,  DB_CREATE|DB_TRUNCATE,
+		      0644, NULL, NULL, &dbfile);
+	if (!err)
+	  dbf = dbfile;
 	break;
 
     case 4:
@@ -950,9 +952,10 @@ char *argv[];
 	strcat(dbasename, ".db");	/* ALWAYS append this */
 
 	dbfile = NULL;
-	db_open(dbasename, DB_HASH,  DB_CREATE|DB_TRUNCATE,
-		0644, NULL, NULL, &dbfile);
-	dbf = dbfile;
+	err = db_open(dbasename, DB_HASH,  DB_CREATE|DB_TRUNCATE,
+		      0644, NULL, NULL, &dbfile);
+	if (! err)
+	  dbf = dbfile;
 	break;
 #else
     case 3:
