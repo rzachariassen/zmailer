@@ -822,6 +822,8 @@ int     tls_start_clienttls(SS,peername)
 
     /*
      * Now, connect the filedescripter set earlier to the SSL connection
+     * (this is for clean UNIX environment, for example windows "sockets"
+     *  need somewhat different approach with customized BIO_METHODs.)
      */
     if (!SSL_set_fd(SS->ssl, sffileno(SS->smtpfp))) {
 	msg_info(SS, "SSL_set_fd failed");

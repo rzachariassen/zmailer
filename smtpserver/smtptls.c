@@ -980,6 +980,8 @@ tls_start_servertls(SS)
 
     /*
      * Now, connect the filedescripter set earlier to the SSL connection
+     * (this is for clean UNIX environment, for example windows "sockets"
+     *  need somewhat different approach with customized BIO_METHODs.)
      */
     if (!SSL_set_fd(SS->ssl, fileno(SS->outfp))) {
 	type(SS,0,NULL,"SSL_set_fd failed");
