@@ -165,7 +165,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    }
 	  }
 
-	  rc = (subdaemon_handler->preselect)( & statep, & rdset, & wrset, &topfd );
+	  rc = (subdaemon_handler->preselect)( statep, & rdset, & wrset, &topfd );
 
 
 	  rc = select( topfd+1, &rdset, &wrset, NULL, &tv );
@@ -173,7 +173,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	  if (rc > 0) { /* Things have been read or written.. */
 
 
-	    rc = (subdaemon_handler->postselect)( & statep, & rdset, & wrset );
+	    rc = (subdaemon_handler->postselect)( statep, & rdset, & wrset );
 
 	    /* The rendezvous socket ?? */
 
@@ -263,7 +263,6 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 			/* Xnone .. ??
 			   Can't handle ?? */
 		      }
-		      peer->inlen = 0;
 		    }
 		  }
 

@@ -648,9 +648,9 @@ struct peerdata {
 };
 
 struct subdaemon_handler {
-	int (*init)__((void **));
-	int (*input)__((struct peerdata *, void *));
-	int (*preselect)__((void *state, fd_set *rdset, fd_set *wrset, int *topfd));
+	int (*init)      __((void **statepp));
+	int (*input)     __((void *state, struct peerdata *));
+	int (*preselect) __((void *state, fd_set *rdset, fd_set *wrset, int *topfd));
 	int (*postselect)__((void *state, fd_set *rdset, fd_set *wrset));
 };
 

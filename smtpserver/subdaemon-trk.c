@@ -20,7 +20,7 @@
 
 
 static int subdaemon_handler_trk_init  __((void**));
-static int subdaemon_handler_trk_input __((struct peerdata *, void*));
+static int subdaemon_handler_trk_input __((void *, struct peerdata *));
 static int subdaemon_handler_trk_preselect  __((void*, fd_set *, fd_set *, int *));
 static int subdaemon_handler_trk_postselect __((void*, fd_set *, fd_set *));
 
@@ -37,8 +37,8 @@ struct subdaemon_handler subdaemon_handler_ratetracker = {
 
 
 static int
-subdaemon_handler_trk_init (state)
-     void **state;
+subdaemon_handler_trk_init (statep)
+     void **statep;
 {
 	int i;
 
@@ -46,7 +46,7 @@ subdaemon_handler_trk_init (state)
 }
 
 static int
-subdaemon_handler_trk_input (peerdata, state)
+subdaemon_handler_trk_input (state, peerdata)
      struct peerdata *peerdata;
      void *state;
 {
