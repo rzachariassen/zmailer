@@ -61,18 +61,10 @@ extern void *dirq;
 
 extern FILE *vfp_open __((struct ctlfile *));
 
-#ifdef  HAVE_WAITPID
+#ifdef HAVE_SYS_WAIT_H /* POSIX.1 compatible */
 # include <sys/wait.h>
-#else
-# ifdef HAVE_WAIT3
-#  include <sys/wait.h> /* Has BSD wait3() */
-# else
-#  ifdef HAVE_SYS_WAIT_H /* POSIX.1 compatible */
-#   include <sys/wait.h>
-#  else /* Not POSIX.1 compatible, lets fake it.. */
+#else /* Not POSIX.1 compatible, lets fake it.. */
 extern int wait();
-#  endif
-# endif
 #endif
 
 #ifndef WEXITSTATUS
@@ -1806,12 +1798,16 @@ int signum;
 	for (;;) {
 
 #ifdef	HAVE_WAITPID
-	  pid = waitpid(-1,&statloc,WNOHANG);
+	  pid = waitpid(-1, &statloc, WNOHANG);
+#else
+#ifdef  HAVE_WAIT4
+	  pid = wait4(-1, &statloc, WNOHANG, NULL);
 #else
 #ifdef  HAVE_WAIT3
-	  pid = wait3(&statloc,WNOHANG,NULL);
+	  pid = wait3(&statloc, WNOHANG, NULL);
 #else
 	  pid = wait(&statloc);
+#endif
 #endif
 #endif
 	  if (pid <= 0) break;

@@ -68,6 +68,9 @@
 #ifdef  HAVE_WAITPID
 #include <sys/wait.h>
 #else
+#ifdef HAVE_WAIT4
+#include <sys/wait.h>		/* Has BSD wait4() */
+#else
 #ifdef HAVE_WAIT3
 #include <sys/wait.h>		/* Has BSD wait3() */
 #else
@@ -75,6 +78,7 @@
 #include <sys/wait.h>
 #else				/* Not POSIX.1 compatible, lets fake it.. */
 extern int wait();
+#endif
 #endif
 #endif
 #endif

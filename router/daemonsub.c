@@ -151,7 +151,7 @@ struct router_child {
   int   readsize, readout;
 
   int   statloc;
-#if defined(HAVE_WAIT3) && defined(HAVE_SYS_RESOURCE_H)
+#if defined(HAVE_SYS_RESOURCE_H)
   struct rusage r;
 #endif
 
@@ -315,17 +315,29 @@ int signum;
 
 	for (;;) {
 
+#ifdef HAVE_SYS_RESOURCE_H
+	  memset(&r, 0, sizeof(r));
+#endif
+
+#ifdef  HAVE_WAIT4
+#ifdef HAVE_SYS_RESOURCE_H
+	  pid = wait4(-1, &statloc, WNOHANG, &r);
+#else
+	  pid = wait4(-1, &statloc, WNOHANG, NULL);
+#endif
+#else
 #ifdef  HAVE_WAIT3
 #ifdef HAVE_SYS_RESOURCE_H
-	  pid = wait3(&statloc,WNOHANG,&r);
+	  pid = wait3(&statloc, WNOHANG, &r);
 #else
-	  pid = wait3(&statloc,WNOHANG,NULL);
+	  pid = wait3(&statloc, WNOHANG, NULL);
 #endif
 #else
 #ifdef	HAVE_WAITPID
-	  pid = waitpid(-1,&statloc,WNOHANG);
+	  pid = waitpid(-1, &statloc, WNOHANG);
 #else
 	  pid = wait(&statloc);
+#endif
 #endif
 #endif
 	  if (pid <= 0) break;
@@ -334,7 +346,7 @@ int signum;
 	    if (pid == routerchilds[i].childpid) {
 	      routerchilds[i].childpid = -pid;
 	      routerchilds[i].statloc = statloc;
-#if defined(HAVE_WAIT3) && defined(HAVE_SYS_RESOURCE_H)
+#if defined(HAVE_SYS_RESOURCE_H)
 	      routerchilds[i].r = r;
 #endif
 	    }
@@ -376,11 +388,15 @@ static int reader_getc(rc)
 	fprintf(stdout, "EXIT %d", WEXITSTATUS(rc->statloc));
       else
 	fprintf(stdout, "0x%04X ??", WEXITSTATUS(rc->statloc));
-#if defined(HAVE_WAIT3) && defined(HAVE_SYS_RESOURCE_H)
+
+#if (defined(HAVE_WAIT3) || defined(HAVE_WAIT4))  && \
+    defined(HAVE_SYS_RESOURCE_H)
+
       fprintf(stdout, "; time = %ld.%06ld usr %ld.%06ld sys",
 	      (long)rc->r.ru_utime.tv_sec, (long)rc->r.ru_utime.tv_usec,
 	      (long)rc->r.ru_stime.tv_sec, (long)rc->r.ru_stime.tv_usec);
 #endif
+
       fprintf(stdout,"\n");
       fflush(stdout);
     }

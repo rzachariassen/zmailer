@@ -55,18 +55,10 @@
 #include "splay.h"
 #include "sieve.h"
 
-#ifdef  HAVE_WAITPID
+#ifdef HAVE_SYS_WAIT_H /* POSIX.1 compatible */
 # include <sys/wait.h>
-#else
-# ifdef HAVE_WAIT3
-#  include <sys/wait.h> /* Has BSD wait3() */
-# else
-#  ifdef HAVE_SYS_WAIT_H /* POSIX.1 compatible */
-#   include <sys/wait.h>
-#  else /* Not POSIX.1 compatible, lets fake it.. */
+#else /* Not POSIX.1 compatible, lets fake it.. */
 extern int wait();
-#  endif
-# endif
 #endif
 
 #ifdef HAVE_UNISTD_H

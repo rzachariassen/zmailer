@@ -22,7 +22,7 @@ rfc822tz(timep, ts, prettyname)
 {
 	char *cp;
 	int sign, offset;
-	static char zone[32];
+	static char zone[64];
 
 	*ts    = localtime(timep);
 #ifdef HAVE_TM_GMTOFF
@@ -62,11 +62,11 @@ rfc822tz(timep, ts, prettyname)
 
 #ifdef	HAVE_TM_ZONE
 	if (prettyname)
-	  sprintf(cp," (%s)",(*ts)->tm_zone);
+	  sprintf(cp," (%.19s)",(*ts)->tm_zone);
 #else	/* !HAVE_TM_ZONE */
 #ifdef HAVE_TZNAME
 	if (prettyname)
-	  sprintf(cp, " (%s)", tzname[(*ts)->tm_isdst]);
+	  sprintf(cp, " (%.19s)", tzname[(*ts)->tm_isdst]);
 #else
 	if (prettyname)
 	  strcat(cp, " (Zone Name?)");

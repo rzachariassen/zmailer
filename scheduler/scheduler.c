@@ -386,7 +386,8 @@ struct ctlfile *cfp;
 struct dirqueue dirqb = { 0, };
 struct dirqueue *dirq = &dirqb;
 
-const char **ArgvSave;
+char *ArgvSave;
+const char *EOArgvSave;
 
 extern int main __((int, const char **));
 
@@ -538,7 +539,8 @@ main(argc, argv)
 	freeze = 0;
 	/* setlinebuf(stderr);  -- no need for this ? */
 
-	ArgvSave = argv;
+	ArgvSave   = (char *) argv[0];
+	EOArgvSave = argv[argc-1] + strlen(argv[argc-1]) + 1;
 
 	mytime(&sched_starttime);
 
@@ -3000,8 +3002,14 @@ static void init_timeserver()
 	}
 	if (ppid < 0) return; /* Error ?? brr.. */
 
-	ArgvSave[1] = NULL;
-	strcpy((char*)ArgvSave[0],"TimeServer");
+#ifdef HAVE_SETPROCTITLE
+	setproctitle("[TimeServer]")
+#else
+	strncpy(ArgvSave,"[Scheduler TimeServer]", EOArgvSave - ArgvSave);
+#endif
+
+	if (ArgvSave < EOArgvSave)
+	  ArgvSave[EOArgvSave-ArgvSave-1] = 0;
 
 	ppid = getppid(); /* who is our parent ? */
 

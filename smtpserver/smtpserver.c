@@ -391,9 +391,7 @@ char **argv;
 
     progname = argv[0] ? argv[0] : "smtpserver";
     cmdline = &argv[0][0];
-    eocmdline = cmdline;
-    for (i = 0; i < argc; ++i)
-	eocmdline += strlen(argv[i]) + 1;
+    eocmdline = argv[argc-1] + strlen(argv[argc-1]) + 1;
 
 
     setvbuf(stdout, NULL, _IOFBF, 8192);
@@ -1475,6 +1473,9 @@ int sig;
 #ifdef	HAVE_WAITPID
     while ((lpid = waitpid(-1, &status, WNOHANG)) > 0)
 #else
+#ifdef	HAVE_WAIT4
+    while ((lpid = wait4(-1, &status, WNOHANG, (struct rusage *) NULL)) > 0)
+#else
 #ifdef	HAVE_WAIT3
     while ((lpid = wait3(&status, WNOHANG, (struct rusage *) NULL)) > 0)
 #else				/* ... plain simple waiting wait() ... */
@@ -1482,6 +1483,7 @@ int sig;
        without wait3()/waitpid(), but with BSD networking ??? */
     while ((lpid = wait(&status)) > 0)
 #endif				/* WNOHANG */
+#endif
 #endif
     {
 	if (lpid == routerpid && routerpid > 0) {
@@ -2524,6 +2526,7 @@ va_dcl
     va_list ap;
     char buf[8192], *s;
     int cmdlen;
+    int bufspace;
 
 #ifdef HAVE_STDARG_H
     va_start(ap, cp);
@@ -2535,20 +2538,36 @@ va_dcl
     SS = va_arg(ap, SmtpState *);
     cp = va_arg(ap, const char *);
 #endif
+    memset(buf, 0, sizeof(buf));
+
+#ifdef HAVE_SNPRINTF
+    snprintf(buf, sizeof(buf)-2, "<%s ", SS->rhostname);
+#else
     sprintf(buf, "<%s ", SS->rhostname);
+#endif
     s = buf + strlen(buf);
-#ifdef	HAVE_VPRINTF
+    bufspace = sizeof(buf) - (s - buf) - 2;
+
+#ifdef	HAVE_VSPRINTF
+# ifdef HAVE_VSNPRINTF
+    vsnprintf(s, bufspace, cp, ap);
+# else
     vsprintf(s, cp, ap);
-#else				/* !HAVE_VPRINTF */
+# endif
+#else				/* !HAVE_VSPRINTF */
+# ifdef HAVE_SNPRINTF
+    sprintf(s, bufspace, cp, va_arg(ap, char *));
+# else
     sprintf(s, cp, va_arg(ap, char *));
+#endif
 #endif				/* HAVE_VPRINTF */
+#ifdef HAVE_SETPROCTITLE
+    setproctitle("%s", buf);
+#else
     cmdlen = (eocmdline - cmdline);
-    if (cmdlen >= sizeof(buf))
-	cmdlen = sizeof(buf) - 1;
-    for (s = s + strlen(s); s < buf + cmdlen; ++s)
-	*s = '\0';
-    buf[cmdlen] = '\0';
-    memcpy((char *) cmdline, buf, cmdlen+1);
+    buf[sizeof(buf)-1] = '\0';
+    strncpy((char *) cmdline, buf, cmdlen+1);
+#endif /* HAVE_SETPROCTITLE */
     va_end(ap);
 }
 

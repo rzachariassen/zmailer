@@ -261,7 +261,7 @@ while (defined $ARGV[0]) {
 #}
 
 if ($STYLE eq '') {
-    printf(STDERR "post-install.sh [--zconfig @ZMAILERCFGFILES@] [-MD5|-OLDSTYLE]\n");
+    printf(STDERR "post-install.sh [--zconfig @ZMAILERCFGFILE@] [-MD5|-OLDSTYLE]\n");
     printf(STDERR " On first time around, it is SUGGESTED that you use\n");
     printf(STDERR " the  -OLDSTYLE   option....\n");
     exit 1;

@@ -4559,6 +4559,8 @@ report(va_alist)
 	SS  = va_arg(ap, SmtpState *);
 	fmt = va_arg(ap, char *);
 #endif
+	memset(buf, 0, sizeof(buf));
+
 	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0)
 	  sprintf(buf, ">%.200s ", SS->remotehost);
 	else
@@ -4573,6 +4575,10 @@ report(va_alist)
 #else	/* !HAVE_VPRINTF */
 	sprintf(buf+strlen(buf), fmt, va_arg(ap, char *));
 #endif	/* HAVE_VPRINTF */
+
+#ifdef HAVE_SETPROCTITLE
+	setproctitle("%s", buf);
+#else
 	cmdlen = (eocmdline - cmdline);
 	if (cmdlen >= sizeof(buf))
 	  cmdlen = sizeof(buf) - 1;
@@ -4580,6 +4586,7 @@ report(va_alist)
 	  *fmt = '\0';
 	buf[cmdlen] = '\0';
 	memcpy((char*)cmdline, buf, cmdlen); /* Overwrite it! */
+#endif
 	va_end(ap);
 }
 

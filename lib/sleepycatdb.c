@@ -85,14 +85,6 @@ static int readsleepycfg(prv)
 	  while (*s && (*s == ' ' || *s == '\t' || *s == ':' || *s == '='))++s;
 	  param = s;
 
-	  if (CISTREQ(cmd,"envhome")) {
-#if   defined(HAVE_DB3) || defined(HAVE_DB4)
-	    if (ZSE.envhome) free((void*)ZSE.envhome);
-	    ZSE.envhome  = strdup(param);
-	    zseset = 1;
-#endif
-	    continue;
-	  }
 	  if (CISTREQ(cmd,"envflags")) {
 	    /*   envflags = CDB, RO  */
 	    ZSE.envflags = 0;
@@ -103,40 +95,60 @@ static int readsleepycfg(prv)
 	      if (*p) *p++ = 0;
 	      while (*p && strchr(" \t,",*p)) ++p;
 
-	      if (CISTREQ(param, "cdb")) {
 #if defined(DB_INIT_CDB) && defined(DB_INIT_MPOOL)
+	      if (CISTREQ(param, "cdb")) {
 		ZSE.envflags |= DB_INIT_CDB|DB_INIT_MPOOL;
 		zseset = 1;
-#endif
+
+		param = p;
+		continue;
 	      }
+#endif
+#ifdef DB_CREATE
 	      if (CISTREQ(param, "create")) {
 		ZSE.envflags |= DB_CREATE;
 		zseset = 1;
+
+		param = p;
+		continue;
 	      }
+#endif
 	      if (CISTREQ(param, "ro")) {
 		prv->roflag = 1;
-	      }
-	      param = p;
 
+		param = p;
+		continue;
+	      }
+
+	      fprintf(stderr, "In file '%s'  envflags parameter '%s' is not supported in this system.\n",prv->cfgname, param);
+	      param = p;
 	    }
 	    continue;
 	  }
-	  if (CISTREQ(cmd,"envmode")) {
 #if   defined(HAVE_DB3) || defined(HAVE_DB4)
+	    if (CISTREQ(cmd,"envhome")) {
+	    if (ZSE.envhome) free((void*)ZSE.envhome);
+	    ZSE.envhome  = strdup(param);
+
+	    zseset = 1;
+	    continue;
+	  }
+	  if (CISTREQ(cmd,"envmode")) {
 	    ZSE.envmode = 0600;
 	    sscanf(param,"%o",&ZSE.envmode);
+
 	    zseset = 1;
-#endif
 	    continue;
 	  }
 	  if (CISTREQ(cmd,"tmpdir")) {
-#if   defined(HAVE_DB3) || defined(HAVE_DB4)
 	    ZSE.tmpdir  = strdup(param);
 	    if (ZSE.tmpdir) free((void*)ZSE.tmpdir);
+
 	    zseset = 1;
-#endif
 	    continue;
 	  }
+#endif
+	  fprintf(stderr, "In file '%s'  the keyword '%s' is not supported in this system\n", prv->cfgname, cmd);
 	}
 
 	fclose(cfgfp);

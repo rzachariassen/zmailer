@@ -47,7 +47,7 @@ void *BADPTR = (void*) (unsigned long)0x5555555555555555L;
 
 /* Push reports regarding recipients out this often, unless
    parametrized to do differently */
-int global_report_interval = 900; /* 15min */
+int global_report_interval = 5*60; /* 5 min */
 
 /* Limit the time spent at one time at the cleanup scrubber */
 int expiry2_timelimit = 10; /* 10 seconds.. */

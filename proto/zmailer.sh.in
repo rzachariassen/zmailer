@@ -274,8 +274,8 @@ do
         resubmit)
             (cd $POSTOFFICE/deferred &&				\
 		find . -type f -print |				\
-		perl -ne 'chomp; $new = $_; $new =~ s#^.*/##;	\
-			  rename($_, "../router/" . $new) or	\
+		@PERL@ -ne 'chomp; $new = $_; $new =~ s#^.*/##;	\
+			    rename($_, "../router/" . $new) or	\
 	printf STDERR "rename %s -> ../router/%s failed; $!\n, $_, $new;' )
             ;;
 
