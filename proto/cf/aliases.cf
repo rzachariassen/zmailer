@@ -485,7 +485,7 @@ routeuser (quad, plustail, domain) {
 		    db add expansions "$key.unixgroup" 1
 		    nattr=$(newattribute $attr privilege $nobodypriv )
 		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
-		    a=$(echo $a |
+		    a=$(echo "$a" |
 			listaddresses -e postmaster -c "$lcuser expansion" |
 			maprrouter $nattr $lcuser "$host" "$plustail" \
 				   "$domain")
