@@ -95,26 +95,22 @@ Rotation is separate from addition to prevent recomputation.
 #define FF(a, b, c, d, x, s, ac) { \
  (a) += F ((b), (c), (d)) + (x) + (UINT4)(ac); \
  (a) = ROTATE_LEFT ((a), (s)); \
- (a) += (b); \
- TO32((a)); \
+ a = TO32((a+b)); \
   }
 #define GG(a, b, c, d, x, s, ac) { \
  (a) += G ((b), (c), (d)) + (x) + (UINT4)(ac); \
  (a) = ROTATE_LEFT ((a), (s)); \
- (a) += (b); \
- TO32((a)); \
+ a = TO32((a+b)); \
   }
 #define HH(a, b, c, d, x, s, ac) { \
  (a) += H ((b), (c), (d)) + (x) + (UINT4)(ac); \
  (a) = ROTATE_LEFT ((a), (s)); \
- (a) += (b); \
- TO32((a)); \
+ a = TO32((a+b)); \
   }
 #define II(a, b, c, d, x, s, ac) { \
  (a) += I ((b), (c), (d)) + (x) + (UINT4)(ac); \
  (a) = ROTATE_LEFT ((a), (s)); \
- (a) += (b); \
- TO32((a)); \
+ a = TO32((a+b)); \
   }
 
 /* MD5 initialization. Begins an MD5 operation, writing a new context.
@@ -285,10 +281,10 @@ unsigned char block[64];
   II (c, d, a, b, x[ 2], S43, 0x2ad7d2bb); /* 63 */
   II (b, c, d, a, x[ 9], S44, 0xeb86d391); /* 64 */
 
-  state[0] += a; TO32(state[0]);
-  state[1] += b; TO32(state[1]);
-  state[2] += c; TO32(state[2]);
-  state[3] += d; TO32(state[3]);
+  state[0] = TO32(state[0] + a);
+  state[1] = TO32(state[1] + b);
+  state[2] = TO32(state[2] + c);
+  state[3] = TO32(state[3] + d);
 
   /* Zeroize sensitive information.
    */
