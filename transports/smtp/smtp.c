@@ -1047,7 +1047,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		      for ( ; rphead != rp->next; rphead = rphead->next) {
 			if (rphead->lockoffset != 0) {
 			  notaryreport(rphead->addr->user, FAILED, NULL, NULL);
-			  diagnostic(rphead,openstatus,0, "%s", SS->remotemsg);
+			  diagnostic(rphead, openstatus, 60, "%s", SS->remotemsg);
 			}
 		      }
 		      break;
@@ -1078,7 +1078,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		for (;rphead && rphead != rp->next; rphead = rphead->next) {
 		  if (rphead->lockoffset != 0) {
 		    notaryreport(rphead->addr->user, FAILED, NULL, NULL);
-		    diagnostic(rphead, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
+		    diagnostic(rphead, EX_TEMPFAIL, 60, "%s", SS->remotemsg);
 		  }
 		}
 
