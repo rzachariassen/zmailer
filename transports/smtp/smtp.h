@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-1999 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2000 by Matti Aarnio -- modifications, including MIME
  */
 
 #define	RFC974		/* If BIND, check that TCP SMTP service is enabled */
@@ -325,6 +325,7 @@ typedef struct {
   int  rcpt_limit;		/* Number of recipients that can be sent on
 				   one session.. */
 
+  int   smtpfd;			/* FD from the remote host		*/
   Sfio_t *smtpfp;		/* Sfio_t* to the remote host           */
   struct smtpdisc smtpdisc;	/* SMTP outstream discipline data	*/
 

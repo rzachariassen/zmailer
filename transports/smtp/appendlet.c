@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-1999 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2000 by Matti Aarnio -- modifications, including MIME
  */
 
 #include "smtp.h"
@@ -237,7 +237,7 @@ ssputc(SS, ch, fp)
 {
   if (SS->chunkbuf == NULL) {
     if (sferror(fp)) return EOF;
-    sfputc(fp, ch);
+    if (sfputc(fp, ch) < 0) return EOF;
     return 0;
   }
   if (SS->chunksize >= CHUNK_MAX_SIZE) {

@@ -1,5 +1,9 @@
 2000-02-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/smtp/appendlet.c, transports/smtp/smtp.h,
+	  transports/smtp/smtptls.c,   transports/smtp/smtp.c:
+	    More of the same work as yesterday evening/today early morning..
+
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c,
 	  transports/libta/swriteheaders.c:
 	    Some code rearrangements to better(?) handle stream
@@ -42,12 +46,11 @@
 	    Turn all header start spaces to optimized TABs plus spaces.
 
 	* smtpserver/smtpcmds.c:
-	    Now (!) people tell me that the most common
-	    M$ email clients are absolutely stupid, and won't be able
-	    to correlate outgoing SMTP verbs to responses they receive.
-	    They just tell to user the error which Z returns, and as
-	    it doesn't repeat the address in fault (why should it?),
-	    user has no clue...
+	    Now (!) people tell me that the most common M$ email clients
+	    are absolutely stupid, and won't be able to correlate outgoing
+	    SMTP verbs to responses they receive.  They just tell to user
+	    the error which Z returns, and as it doesn't repeat the address
+	    in fault (why should it?), user has no clue...
 	    (So the one-line reports will from now on also mention the
 	     received address...)
 

@@ -5,7 +5,7 @@
  *	Universitaetsplatz 3-4
  *	D-03044 Cottbus, Germany
  *
- * Adaptation to ZMailer is by Matti Aarnio <mea@nic.funet.fi> (c) 1999
+ * Adaptation to ZMailer is by Matti Aarnio <mea@nic.funet.fi> (c) 1999-2000
  */
 
 #include "smtp.h"
@@ -1124,6 +1124,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 
 	/* Don't even consider writing, if the stream has error status.. */
 	if (sferror(sfp)) return -1;
+	if (sffileno(sfp) < 0) return -1; /* Write-FD killed! */
 
 	/* If 'len' is zero, return zero.. */
 	/* (I have a feeling such writes are sometimes asked for..) */
@@ -1250,7 +1251,7 @@ int smtp_nbread(SS, buf, spc)
      int spc;
 {
 	int r, e;
-	int infd = sffileno(SS->smtpfp);
+	int infd = SS->smtpfd;
 
 
 #ifdef HAVE_OPENSSL

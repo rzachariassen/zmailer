@@ -166,8 +166,8 @@ outbuf_fillup:
 	  rc = select(infd+1, &rdset, NULL, NULL, &tv);
 	  time(&now);
 
-	  if (now > tmout && SS->smtpfp != NULL) {
-	    /* Timed out, and have a SMTP connection active.. */
+	  if (now > tmout && SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
+	    /* Timed out, and have a writable SMTP connection active.. */
 	    /* Lets write a NOOP there. */
 	    i = smtpwrite(SS, 0, "NOOP", 0, NULL);
 	    if (i != EX_OK && SS->smtpfp != NULL) {
@@ -1094,7 +1094,7 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->smtpfp) {
 	    sleep(10); /* After a sleep of 10 seconds, if we find that
 			  we have some new input, do close the connection */
-	    if (has_readable(sffileno(SS->smtpfp))) {
+	    if (has_readable(SS->smtpfd)) {
 	      /* Drain the input, and then close the channel */
 	      (void) smtpwrite(SS, 1, NULL, 0, NULL);
 	      smtpclose(SS, 1);
@@ -1770,8 +1770,9 @@ smtpopen(SS, host, noMX)
 	      if (logfp)
 		fprintf(logfp, "%s#\t(closed SMTP channel - HELO failed ?)\n", logtag());
 	    }
-	    if (i == EX_TEMPFAIL || !SS->smtpfp) {
+	    if (i == EX_TEMPFAIL || !SS->smtpfp || sffileno(SS->smtpfp) < 0) {
 	      /* Ok, sometimes EHLO+HELO cause crash, open and do HELO only */
+	      if (SS->smtpfp) smtpclose(SS, 1);
 	      i = makereconn(SS);
 	      if (i != EX_OK)
 		continue;;
@@ -1779,7 +1780,9 @@ smtpopen(SS, host, noMX)
 	      if (i != EX_OK && SS->smtpfp) {
 		smtpclose(SS, 1);
 		if (logfp)
-		  fprintf(logfp, "%s#\t(closed SMTP channel - HELO failed(2))\n", logtag());
+		  fprintf(logfp,
+			  "%s#\t(closed SMTP channel - HELO failed(2))\n",
+			  logtag());
 	      }
 	    }
 	  }
@@ -2350,6 +2353,7 @@ makeconn(SS, ai, ismx)
 
 	  switch (i) {
 	  case EX_OK:
+	      SS->smtpfd = mfd;
 	      SS->smtpfp = sfnew(NULL, NULL, SS->smtp_bufsize,
 				 mfd, SF_WRITE|SF_WHOLE);
 
@@ -2851,7 +2855,9 @@ smtpclose(SS, failure)
 	  /* First close the socket so that no FILE buffered stuff
 	     can become flushed out anymore. */
 
-	  close(sffileno(SS->smtpfp));
+	  if (SS->smtpfd >= 0)
+	    close(SS->smtpfd);
+	  SS->smtpfd = -1;
 	  sfsetfd(SS->smtpfp, -1);
 
 	  /* Now do all normal SFIO close things -- including
@@ -2916,6 +2922,7 @@ int bdat_flush(SS, lastflg)
 	    pos += i;
 	  else {
 	    /* ERROR!!! */
+	    SS->chunksize = 0;
 	    notaryreport(NULL,NULL,
 			 "5.4.2 (BDAT message write failed)",
 			 "smtp; 566 (BDAT Message write failed)");
@@ -3101,19 +3108,27 @@ smtp_sync(SS, r, nonblocking)
 	int r, nonblocking;
 {
 	char *s, *eof, *eol;
-	int infd = sffileno(SS->smtpfp);
-	volatile int idx = 0, code = 0;
-	volatile int rc = EX_OK, len;
+	int          infd = SS->smtpfd;
+	volatile int idx  = 0, code = 0;
+	volatile int rc   = EX_OK, len;
 	volatile int some_ok = 0;
 	volatile int datafail = EX_OK;
-	volatile int err = 0;
+	volatile int err  = 0;
 	char buf[512];
 	char *p;
 	static int continuation_line = 0;
 	static int first_line = 1;
 
-	if (!nonblocking)
+	if (!nonblocking && SS->smtpfp && sffileno(SS->smtpfp) >= 0)
 	  sfsync(SS->smtpfp);			/* Flush output */
+
+	if (SS->smtpfp && sferror(SS->smtpfp) && sffileno(SS->smtpfp) >= 0) {
+	  /* Error on write stream, write is thus from now on FORBIDDEN!
+	     We do a write direction shutdown on the socket, and only
+	     listen for replies from now on... */
+	  shutdown(sffileno(SS->smtpfp), 1);
+	  sfsetfd(SS->smtpfp, -1);
+	}
 
 	SS->smtp_outcount = 0;
 	SS->block_written = 0;
@@ -3426,7 +3441,7 @@ void
 pipeblockread(SS)
 SmtpState *SS;
 {
-	int infd = sffileno(SS->smtpfp);
+	int infd = SS->smtpfd;
 	char buf[512];
 
 	/* BLOCKALARM; */
@@ -3486,7 +3501,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	gotalarm = 0; /* smtp_sfwrite() may set it.. */
 
-	infd = sffileno(SS->smtpfp);
+	infd = SS->smtpfd;
 
 	if (pipelining) {
 	  if (SS->pipespace <= SS->pipeindex) {
@@ -3508,7 +3523,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  SS->pipeindex += 1;
 
 	} /* ... end of if(pipelining) */
-	
+
 	if (strbuf != NULL) {
 	  int len = strlen(strbuf) + 2;
 	  volatile int err = 0;
@@ -3555,6 +3570,14 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    if (sferror(SS->smtpfp) || sfsync(SS->smtpfp))
 	      err = 1;
 	  }
+
+	  if (sferror(SS->smtpfp) && sffileno(SS->smtpfp) >= 0) {
+	    /* Error on write stream, write is thus from now on FORBIDDEN!
+	       We do a write direction shutdown on the socket, and only
+	       listen for replies from now on... */
+	    shutdown(sffileno(SS->smtpfp), 1);
+	    sfsetfd(SS->smtpfp, -1);
+	  }
   
 	  if (err) {
 	    if (gotalarm) {
@@ -3572,11 +3595,13 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    }
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"%s\n",SS->remotemsg);
+#if 0
 	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - timeout on smtpwrite())\n", logtag());
 	    /* Alarm OFF */
 	    return EX_TEMPFAIL;
+#endif
 	  } else if (r != len) {
 	    sprintf(SS->remotemsg, "smtp; 500 (SMTP cmd write failure: Only wrote %d of %d bytes!)", r, len);
 	    time(&endtime);
@@ -3584,11 +3609,13 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    notaryreport(NULL,FAILED,"5.4.2 (SMTP cmd partial write failure)",SS->remotemsg);
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"%s\n",SS->remotemsg);
+#if 0
 	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - second timeout on smtpwrite() )\n", logtag());
 	    /* Alarm OFF */
 	    return EX_TEMPFAIL;
+#endif
 	  }
 	  if (logfp != NULL) {
 	    if (dflag) abort();
@@ -3788,9 +3815,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	ch = buf[i];
 	buf[i] = '\0';
 	response = atoi(buf);
-	if (logfp != NULL) {
+	if (logfp != NULL)
 	  fprintf(logfp, "%sr\t%s%c%s\n", logtag(), buf, ch, &buf[i+1]);
-	}
 	buf[i] = ch;
 
 	if (SS->within_ehlo)
@@ -3860,7 +3886,7 @@ report(va_alist)
 	SS  = va_arg(ap, SmtpState *);
 	fmt = va_arg(ap, char *);
 #endif
-	if (SS->smtpfp)
+	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0)
 	  sprintf(buf, ">%.200s ", SS->remotehost);
 	else
 	  sprintf(buf, ">[%.200s] ", SS->remotehost);
