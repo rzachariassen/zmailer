@@ -786,7 +786,7 @@ thread_start(thr, queue_only_too)
 	struct web         *ch  = vp->orig[L_CHANNEL];
 
 
-	if (!queue_only_too && !(thg->cep->flags & CFG_QUEUEONLY)) return 0;
+	if (!queue_only_too && (thg->cep->flags & CFG_QUEUEONLY)) return 0;
 
 	if (syncstart || (freeze && !slow_shutdown)) return 0;
 	if (procselect) {
