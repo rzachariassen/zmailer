@@ -36,7 +36,12 @@ if [ -f $MAILVAR/db/routes.bitnet ]; then
     if [ -f $MAILVAR/db/routes.bitnet$DBEXTtest ]; then
 	relation -lmt $DBTYPE -f $MAILVAR/db/routes.bitnet$DBEXT -d pathalias bitnetdb
     else
-	relation -lmt ordered -f $MAILVAR/db/routes.bitnet -d pathalias bitnetdb
+	relation -lmt unordered -f $MAILVAR/db/routes.bitnet -d pathalias bitnetdb
     fi
+else
+    # No database available, dummy placeholder
+    bitnetdb () {
+	return 1
+    }
 fi
 
