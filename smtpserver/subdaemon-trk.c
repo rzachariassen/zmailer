@@ -371,7 +371,11 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
      int incr;
 {
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
-	if (!reg) return 0;    /*  not alloced!  */
+	if (!reg && incr) {
+	  reg = alloc_ipv4_reg( state, ipv4addr );
+	  if (reg) reg->mails = 0;
+	}
+	if (!reg) return 0;    /*  alloc failed!  */
 
 	reg->recipients += incr;
 	reg->last_recipients = now;
