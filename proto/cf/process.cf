@@ -13,6 +13,7 @@ process (file) {
 	db flush fullname
 	db flush hostexpansions
 	db flush recipients
+	db flush expansions
 
 #| Since we cannot detect that the password database has been updated under
 #| our feet, we flush the cached information every once in a while (in this

@@ -284,19 +284,23 @@ routeuser (quad, plustail, domain) {
 	':include:[\ \t]*(.+)[\ \t]*'
 		# Weird format to do explicite white-space stripping...
 		priv=$(get $attr privilege)
-		if [ -f "\1" ] && $(didexpand ':include:') &&
-		   priv=$(getpriv "644" $priv "\1" include) ; then
-		  # sendmail-like :include: expansion
-		  db add expansions "$key.:include:" 1
-		  nattr=$(newattribute $attr privilege $priv)
-		  $(zapDSNnotify $nattr expanded "$sender" "$user$domain")
-		  defer=''
-		  a=$(runas $priv cat "\1" | \
-		      listexpand -E "postmaster" -e root -p $priv	\
-				 -c ":include:\1 file expansion"	\
-				 "$nattr" "\1" "$host" "" "$domain" )
-		  postzapDSNnotify a
-		  return $a
+		if $(didexpand ':include:') ; then
+		  if [ -f "\1" ] &&
+		     priv=$(getpriv "644" $priv "\1" include) ; then
+		    # sendmail-like :include: expansion
+		    db add expansions "$key.:include:" 1
+		    nattr=$(newattribute $attr privilege $priv)
+		    $(zapDSNnotify $nattr expanded "$sender" "$user$domain")
+		    defer=''
+		    a=$(runas $priv cat "\1" | \
+		        listexpand -E "postmaster" -e root -p $priv	\
+				   -c ":include:\1 file expansion"	\
+				   "$nattr" "\1" "$host" "" "$domain" )
+		    postzapDSNnotify a
+		    return $a
+		  fi
+		else
+		  return (((bitbucket "duplicate-$key-:include:" "$user" $attr)))
 		fi
 		;;
 
@@ -321,7 +325,8 @@ routeuser (quad, plustail, domain) {
 #	alias expansion
 
 	priv=$nobodypriv
-	if $(didexpand aliases) && a="$(aliases "$user")" ; then
+	if $(didexpand aliases) ; then
+	  if a="$(aliases "$user")" ; then
 		db add expansions "$key.aliases" 1
 		nattr=$(newattribute $attr privilege $priv)
 		$(zapDSNnotify $nattr expanded "$sender" "$user$domain")
@@ -333,12 +338,16 @@ routeuser (quad, plustail, domain) {
 		    maprrouter $nattr "$user" "$host" "$plustail" "$domain")
 		postzapDSNnotify a
 		return $a
+	  fi
+	else
+	  return (((bitbucket "duplicate-$key-aliases" "$user" $attr)))
 	fi
 
 # ---- from rrouter.cf:
 
 	priv=$nobodypriv
-	if $(didexpand fullnamemap) && a="$(fullnamemap "$user")" ; then
+	if $(didexpand fullnamemap) ; then
+	  if a="$(fullnamemap "$user")" ; then
 		db add expansions "$key.fullnamemap" 1
 		nattr=$(newattribute $attr privilege $priv)
 		$(zapDSNnotify $nattr expanded "$sender" "$user$domain")
@@ -346,6 +355,9 @@ routeuser (quad, plustail, domain) {
 		a=$(rrouter "$a" "$user" $nattr "$plustail" "$domain")
 		postzapDSNnotify a
 		return $a
+	  fi
+	else
+	  return (((bitbucket "duplicate-$key-fullnamemap" "$user" $attr)))
 	fi
 	if [ "$do_newsgroup" ] && [ -n "$(newsgroup "$user")" ]; then
 		# Retain possible DSN attributes
@@ -359,7 +371,8 @@ routeuser (quad, plustail, domain) {
 		return (((error acctexpired "$user" $attr)))
 	fi
 
-	if pobox="$(mboxmap "$user")" && $(didexpand mboxmap) ; then
+	if $(didexpand mboxmap) ; then
+	  if pobox="$(mboxmap "$user")"; then
 		tsift "$pobox" in
 		([^:]+):([^:]+):(.+)
 			if [ "\1" != $hostname ]; then
@@ -373,6 +386,9 @@ routeuser (quad, plustail, domain) {
 			return (((error database "$user" $attr)))
 			;;
 		tfist
+	  fi
+	else
+	  return (((bitbucket "duplicate-$key-mboxmap" "$user" $attr)))
 	fi
 
 	priv=$(get $attr privilege)
@@ -396,7 +412,8 @@ routeuser (quad, plustail, domain) {
 	a="$MAILVAR/lists/$lcuser"
 	nattr=()
 	#l="$preowner$lcuser$postowner$domain"
-	if [ -f "$a" ] && $(didexpand lists) ; then
+	if $(didexpand lists) ; then
+	  if [ -f "$a" ] ; then
 	    db add expansions "$key.lists" 1
 	    if priv=$(getpriv "664" $priv "$a" maillist) &&
 	       nattr=$(newattribute $attr privilege $priv sender "$l") ; then
@@ -408,12 +425,16 @@ routeuser (quad, plustail, domain) {
 		postzapDSNnotify a
 		return $a
 	    fi
+	  fi
+	else
+	  return (((bitbucket "duplicate-$key-lists" "$user" $attr)))
 	fi
 
 	a="$MAILVAR/modlists/$lcuser"
 # /bin/ls -lL "$a"
 	# WARNING: THIS SHOULD USE  $(listexpand ...) FACILITY !
-	if [ -f "$a" ] && $(didexpand modlists) ; then
+	if $(didexpand modlists) ; then
+	  if [ -f "$a" ] ; then
 	    db add expansions "$key.modlists" 1
 	    priv=$(getpriv "664" $priv "$a" maillist)
 	    case "$lcuser" in
@@ -433,6 +454,9 @@ routeuser (quad, plustail, domain) {
 			return $a
 			;;
 	    esac
+	  fi
+	else
+	  return (((bitbucket "duplicate-$key-modlists" "$user" $attr)))
 	fi
 
 	# turn *-owner and *-request into the owner of a mailing list file
@@ -441,7 +465,8 @@ routeuser (quad, plustail, domain) {
 	ssift "$lcuser" in
 	(.+)-owner
 		a="$MAILVAR/lists/\1"
-		if [ -f "$a" ] && $(didexpand listowner) ; then
+		if  $(didexpand listowner) ; then
+		  if [ -f "$a" ] ; then
 		    db add expansions "$key.listowner" 1
 		    priv=$(filepriv -M 664 "$a")
 		    nattr=$(newattribute $attr privilege $priv)
@@ -450,6 +475,9 @@ routeuser (quad, plustail, domain) {
 				"$host" $nattr "$plustail" "$domain")
 		    postzapDSNnotify a
 		    return $a
+		  fi
+		else
+		  return (((bitbucket "duplicate-$key-lists-owner" "$user" $attr)))
 		fi
 		break
 		;;

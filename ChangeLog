@@ -1,10 +1,18 @@
+2001-05-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* proto/cf/fqdnaliases.cf, proto/cf/process.cf,
+	  proto/cf/aliases.cf:
+	    Some experiments on doing message-wide 'didexpand' analysis
+	    to see if complicated duplicate recipient removal code works.
+
 2001-05-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* smtpserver/smtpetrn.c:
 	    Tell to the remote scheduler [source.ip.address]@mynodename
 	    when issueing ETRN thru MQ2 mechanism.
 	    Helps to hunt down cases where lots of ETRN requests are
-	    appearing into the scheduler.
+	    appearing into the scheduler for domains that we don't serve,
+	    and/or other such strange things...
 
 	* configure.in, libc/gai_strerror.c:
 	    Problems at compling "replacement-ipv6-libc" with RH 7.1 libc.
