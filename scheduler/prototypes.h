@@ -39,7 +39,6 @@ extern char *strchr(), *strrchr();
 extern u_int ranny __((u_int m));
 
 /* agenda.c */
-extern time_t qipcretry;
 extern int doagenda __((void));
 extern int doexpiry2 __((void));
 extern int turnme __((const char *));

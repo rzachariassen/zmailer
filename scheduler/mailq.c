@@ -703,7 +703,7 @@ void
 checkrouter()
 {
 	int pid, n, r;
-	FILE *fp;
+	FILE *fp = NULL;
 	struct stat pidbuf, corebuf;
 	struct dirent *dp;
 	DIR *dirp;

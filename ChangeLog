@@ -1,5 +1,8 @@
 2005-03-24  Matti Aarnio  <mea@zmailer.org>
 
+	* scheduler/prototypes.h, scheduler/mailq.c:
+	    GCC-4.0.0 fixes.
+
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
 	    GCC-4.0.0 fixes.
 
