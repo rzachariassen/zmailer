@@ -1,5 +1,10 @@
 2000-11-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/smtp/smtp.c:
+	    Blocking read waiting was done with busy-loop, and
+	    if the connection *stays* in ESTABLISHED state, but
+	    never timeouts --> busy spin goes on, and on...
+
 	* scheduler/msgerror.c:
 	    Don't try to be clever with cfp->mid field reuse at
 	    the slurp()ed instance -- use incoming 'cfpi->mid'.

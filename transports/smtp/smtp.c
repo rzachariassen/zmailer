@@ -3486,22 +3486,31 @@ smtp_sync(SS, r, nonblocking)
 		      (int)(eol-SS->pipebuf));
 	  } else { /* No newline.. Read more.. */
 	    int en;
-	    if (nonblocking) {
-	      err = 0;
-	    } else {
-	      infd = SS->smtpfd;
+
+	  reread_line:
+
+	    infd = SS->smtpfd;
 #ifdef HAVE_OPENSSL
-	      if (SS->sslmode) {
+	    if (SS->sslmode) {
+	      err = 0;
+	      len = smtp_nbread(SS, buf, sizeof(buf));
+	      if (SS->wantreadwrite > 0)
+		infd = -infd;
+	      if (len < 0)
+		err = errno;
+	      else
+		goto have_some_data;
+	    } else
+#endif /* - HAVE_OPENSSL */
+	      {
 		err = 0;
 		len = smtp_nbread(SS, buf, sizeof(buf));
-		if (SS->wantreadwrite > 0)
-		  infd = -infd;
 		if (len < 0)
 		  err = errno;
-		else
-		  goto have_some_data;
 	      }
-#endif /* - HAVE_OPENSSL */
+
+	    if (!nonblocking) {
+
 	      err = select_sleep(infd, timeout);
 	      en = errno;
 	      if (debug && logfp)
@@ -3511,19 +3520,12 @@ smtp_sync(SS, r, nonblocking)
 		if (logfp)
 		  fprintf(logfp,"%s#\tTimeout (%d sec) while waiting responses from remote (errno=%d)\n",logtag(),timeout,en);
 		if (SS->smtpfp) 
-		if (SS->verboselog)
-		  fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
+		  if (SS->verboselog)
+		    fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
 		break;
 	      }
 	    }
-	    
-	  reread_line:
 
-	    err = 0;
-	    len = smtp_nbread(SS, buf, sizeof(buf));
-	    if (len < 0)
-	      err = errno;
-	    
 #ifdef HAVE_OPENSSL
 	  have_some_data:
 #endif
