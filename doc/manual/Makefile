@@ -3,7 +3,10 @@
 #
 
 #
-#  Utilizing 
+#  Utilizing DocBook 3.1, Structured Stylesheets, DSSSL, jade-1.2.2(+)
+#
+#  All relevant bits are available at for example in redhat 6.2 beta
+#  as RPM packages (February 2000)
 #
 
 PARTS=	zmanual.sgml		zmanual-cover.sgml		\
@@ -60,6 +63,7 @@ zmanual.html: gifs $(PARTS)
 	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl   sh -x  ./db2html zmanual.sgml
 	#sh -x  ./db2html zmanual.sgml
 	cp -p *.gif zmanual/
+	cd zmanual; ../html-post-fixup.sh *.html
 
 zmanual.ps: zmanual.dvi $(FIGEPS)
 	dvips -ta4 -ozmanual.ps zmanual.dvi

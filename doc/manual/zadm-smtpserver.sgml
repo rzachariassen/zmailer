@@ -33,7 +33,7 @@ The runtime command-line options are as follows:
 <ARG>-46aignvBV</>
 <ARG>-p <REPLACEABLE>port</></>
 <ARG>-l <REPLACEABLE>logfile</></>
-<ARG>-s <REPLACEABLE>[ftveR]|'strict'</></>
+<ARG>-s <REPLACEABLE>[ftveR]|<LITERAL>'strict'</></></>
 <ARG>-L <REPLACEABLE>maxloadaver</></>
 <ARG>-M <REPLACEABLE>SMTPmaxsize</></>
 <ARG>-P <REPLACEABLE>postoffice</></>

@@ -20,7 +20,7 @@ that you should create in your home directory (or the file
 This file should include a header with at least
 a <QUOTE><LINK LINKEND="rfc822.subject">Subject:</></> line
 (it should not include a <QUOTE><LINK LINKEND="rfc822.to">To:</></> line
-&emdash; if you want, you may include
+&mdash; if you want, you may include
 <QUOTE><LINK LINKEND="rfc822.from">From:</></> line,
 especially if you use the <OPTION>-m</> option), for example.
 </PARA>

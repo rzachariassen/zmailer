@@ -8,6 +8,8 @@ This text has been copied from other sections and will change...
 </PARA>
 
 
+<!-- ..........................................................
+
 <SECT1><TITLE>Checking the Log Files</>
 
 <PARA>
@@ -37,7 +39,7 @@ logging: there are 4 kinds of logging to deal with:
 <LISTITEM><PARA>
 router logs, usually kept in <FILENAME>$<VARNAME>LOGDIR</>/router</>.
 This is the stdout and stderr output of the router daemon.
-If you wish to turn it off, invoke router with a ``<EMPHASIS>-L /dev/null</>''
+If you wish to turn it off, invoke router with a ``<OPTION>-L /dev/null</>''
 option, i.e. change the <COMMAND>zmailer</> script.
 Alternatively, modify the <FUNCTION>log()</> function in the configuration
 file, or its invocations.
@@ -51,7 +53,7 @@ Same as router.
 <LISTITEM><PARA>
 general mail logs, usually kept in syslog files, depending on how
 you have configured the syslog utility (<FILENAME>/etc/syslog.conf</>).
-All ZMailer programs log using the <EMPHASIS>LOG_MAIL</> facility code
+All ZMailer programs log using the <CONSTANT>LOG_MAIL</> facility code
 for normal messages.
 You can deal with this specifically in your <COMMAND>syslogd</>(8)
 configuration file on systems with a 4.3bsd-based syslog.
@@ -63,8 +65,8 @@ The following reflects the recommended configuration on SunOS 4.0:
 </PARA>
 <PARA>
 For pre-4.3bsd-based syslogs, you may want the syslog log file to be just
-for important messages (e.g. LOG_NOTICE and higher priority), and have
-a separate file for informational messages (LOG_DEBUG and up).
+for important messages (e.g. <CONSTANT>LOG_NOTICE</> and higher priority), and have
+a separate file for informational messages (<CONSTANT>LOG_DEBUG</> and up).
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
@@ -82,6 +84,7 @@ for your site.
 </PARA>
 
 </SECT1>
+........................................................ -->
 
 <SECT1><TITLE>Scheduler Statistics log</>
 

@@ -23,7 +23,7 @@ For the file <FILENAME>/etc/resolv.conf</>:
 </PARA>
 
 <PARA>
-For the local nameserver daemon (<COMMAND>named</>(8)) you should have
+For the local nameserver daemon (<APPLICATION>named</>(8)) you should have
 at least following type of configuration:
 <SCREEN>
 For 4.* series:  /etc/named.boot

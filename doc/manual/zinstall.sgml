@@ -30,7 +30,8 @@ If you use the BIND nameserver, you should be using (or install)
 a recent version, at least BIND 4.8. In this package there is also 
 a bundled resolver from  bind-4.9.4, however it is a bit difficult
 at BSD systems (because those developers use BSD themselves, and
-make an assumption that verybody has their version of things...
+make an assumption that verybody has their version of things&hellip;
+
 On the other hand, those systems have reasonably modern resolvers,
 so no need to worry about it &mdash; I hope.) 
 </PARA>
@@ -143,8 +144,8 @@ compile there: (But it may need <APPLICATION>GNU make</>
 as system ``<COMMAND>make</>''!)
 <SCREEN>
   <PROMPT>$ </><USERINPUT>mkdir myhost ; cd myhost</>
-  <USERINPUT>../configure ...</>
-  <USERINPUT>make </>...
+  <PROMPT>$ </><USERINPUT>../configure ...</>
+  <PROMPT>$ </><USERINPUT>make </>...
 </SCREEN>
 </PARA>
 
@@ -353,6 +354,12 @@ directory.
 <SECT2><TITLE>Installing the Manual Pages.</TITLE>
 <!-- <INDEXTERM><PRIMARY>build</><secondary>man-page install</></>
      <INDEXTERM><PRIMARY>installation</><secondary>man-pages</></> -->
+
+<PARA>
+Because for a long time the installation location of ZMailer's man-pages
+has not had an obvious destination location, normal ``make install''
+does <EMPHASIS>not</> install them!
+</PARA>
 
 <PARA>
 Go into the <FILENAME CLASS="DIRECTORY">man/</> directory,
@@ -849,7 +856,7 @@ for ``<FILENAME>local/*</>'' selector</TITLE>
 
 <PARA>
 There are three variants of the ``command='' entry:
-<VARIABLELIST>
+<VARIABLELIST TERMLENGTH="99">
 <VARLISTENTRY>
 <TERM>command="mailbox -8"</TERM>
 <LISTITEM><PARA>
@@ -1147,7 +1154,7 @@ This section describes the installation at clients.
 
 <SECT1><TITLE>Required Files</TITLE>
 
-<VARIABLELIST>
+<VARIABLELIST TERMLENGTH="99">
 <TITLE>The following files/programs are needed on clients:</TITLE>
 <VARLISTENTRY><TERM><FILENAME>/etc/zmailer.conf</></>
 <LISTITEM><PARA>
@@ -1248,7 +1255,8 @@ The  configure  script has three kinds of parameters for it:
 
 <SECT1><TITLE>Used environment variables</TITLE>
 
-<VARIABLELIST><TITLE>User environment variables</TITLE>
+<VARIABLELIST TERMLENGTH="99">
+<TITLE>User environment variables</TITLE>
 <VARLISTENTRY><TERM><VARNAME>ZCONFIG</>="/file/path"</TERM>
 <LISTITEM><PARA>
 Using this is alternate for using ``<OPTION>--with-zconfig=../</>'' option.
@@ -1303,22 +1311,23 @@ Recycled ZENV variables (from $<VARNAME>ZCONFIG</> file):
 
 <SECT1><TITLE>Options for various facilities</TITLE>
 
-<VARIABLELIST><TITLE>Options for various facilities</TITLE>
+<VARIABLELIST TERMLENGTH="99">
+<TITLE>Options for various facilities</TITLE>
 <VARLISTENTRY>
-<TERM>--prefix=/DIR/PATH</TERM>
+<TERM><OPTION>--prefix=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 The only really mandatory option, gives actually
 defaults for <FILENAME>$<VARNAME>MAILSHARE</>/$<VARNAME>MAILVAR</>/$<VARNAME>MAILBIN</></FILENAME>:.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-gcc</TERM>
+<TERM><OPTION>--with-gcc</OPTION></TERM>
 <LISTITEM><PARA>
 Compile with GCC even when you have "cc" around.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-zconfig=/FILE/PATH</TERM>
+<TERM><OPTION>--with-zconfig=/FILE/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Where the runtime  <FILENAME>zmailer.conf</>   file is located
 at (and with what name).  This is <EMPHASIS>the only</>
@@ -1332,7 +1341,7 @@ Default: <FILENAME>/etc/zmailer.conf</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-mailbox=/DIR/PATH</TERM>
+<TERM><OPTION>--with-mailbox=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Overrides system-dependent location of the user mail-boxes.
 Defaults are looked up thru list of directories:
@@ -1348,7 +1357,7 @@ system yields  <FILENAME CLASS="DIRECTORY">/usr/spool/mail</>.
 
 
 <VARLISTENTRY>
-<TERM>--with-postoffice=/DIR/PATH</TERM>
+<TERM><OPTION>--with-postoffice=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Overrides system-dependent location of
 the ``<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</></>'' directory
@@ -1361,9 +1370,11 @@ in case there is no previously created postoffice directory.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-mailshare=/DIR/PATH</TERM>
-<TERM>--with-mailvar=/DIR/PATH</TERM>
-<TERM>--with-mailbin=/DIR/PATH</TERM>
+<TERM><OPTION>--with-mailshare=/DIR/PATH</OPTION></TERM>
+<!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
+<TERM><OPTION>--with-mailvar=/DIR/PATH</OPTION></TERM>
+<!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
+<TERM><OPTION>--with-mailbin=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 These are overrides for values derived from  <OPTION>--prefix=/DIR</>
 option.</PARA>
@@ -1372,35 +1383,35 @@ but the last is <FILENAME>MAILBIN</> = "$PREFIX/bin".
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-logdir=/DIR/PATH</TERM>
+<TERM><OPTION>--with-logdir=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Explicite value to replace $<VARNAME>LOGDIR</> ZENV value and/or to
 override default value of:  <FILENAME CLASS="DIRECTORY">/var/log/mail/</>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-nntpserver=HOST</TERM>
+<TERM><OPTION>--with-nntpserver=HOST</OPTION></TERM>
 <LISTITEM><PARA>
 If you want to use ``<COMMAND>usenet</>'' channel, you need to name
 NNTP server into which you feed news with NNTP.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-sendmailpath=/FILE/PATH</TERM>
+<TERM><OPTION>--with-sendmailpath=/FILE/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Overrider for default location(s) of sendmail program.
 ZENV variable $<VARNAME>SENDMAILPATH</> can be overridden with this.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-rmailpath=/FILE/PATH</TERM>
+<TERM><OPTION>--with-rmailpath=/FILE/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Overrider for default location(s) of rmail program.
 ZENV variable $<VARNAME>RMAILPATH</> can be overridden with this.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-selfaddresses="NAME,NAME"</TERM>
+<TERM><OPTION>--with-selfaddresses="NAME,NAME"</OPTION></TERM>
 <LISTITEM><PARA>
 Obsolete option regarding providing into in ZENV variable
 to yield system internal names automagically for the SMTP
@@ -1409,7 +1420,7 @@ if destination IP address is local at the system.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-system-malloc</TERM>
+<TERM><OPTION>--with-system-malloc</OPTION></TERM>
 <LISTITEM><PARA>
 Use system malloc() library, don't compile own:
 Alternate for using: <OPTION>--with-libmalloc=system</>
@@ -1417,25 +1428,25 @@ This is default.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-libmalloc=LIBNAME</TERM>
+<TERM><OPTION>--with-libmalloc=LIBNAME</OPTION></TERM>
 <LISTITEM><PARA>
 Where ``LIBNAME'' is one of:
 </PARA>
-<VARIABLELIST>
+<VARIABLELIST TERMLENGTH="99">
 <VARLISTENTRY>
-<TERM>system</TERM>
+<TERM><OPTION>system</OPTION></TERM>
 <LISTITEM><PARA>
 System malloc() as is.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>malloc</TERM>
+<TERM><OPTION>malloc</OPTION></TERM>
 <LISTITEM><PARA>
 Bundled "libmalloc" without debugging things.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>malloc_d</TERM>
+<TERM><OPTION>malloc_d</OPTION></TERM>
 <LISTITEM><PARA>
 Bundled "libmalloc" <EMPHASIS>with</> debugging things.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1444,19 +1455,19 @@ Bundled "libmalloc" <EMPHASIS>with</> debugging things.
 </LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-yp</TERM>
+<TERM><OPTION>--with-yp</OPTION></TERM>
 <LISTITEM><PARA>
 Want to use YP, and has it at default locations
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-yp-lib='-L... -lyp'</TERM>
+<TERM><OPTION>--with-yp-lib='-L... -lyp'</OPTION></TERM>
 <LISTITEM><PARA>
 If needed to define linking-time options to find the YP-library.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-ldap-prefix=DIRPREFIX</TERM>
+<TERM><OPTION>--with-ldap-prefix=DIRPREFIX</OPTION></TERM>
 <LISTITEM><PARA>
 If UMich/NetScape <APPLICATION>LDAP</> are available thru
 <FILENAME CLASS="DIRECTORY">DIRPREFIX/include/</>
@@ -1469,19 +1480,19 @@ will be ignored.  There is no default value for
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-ldap-include-dir=/DIR/PATH</TERM>
+<TERM><OPTION>--with-ldap-include-dir=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Special overrider for compilation include directory of LDAP
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-ldap-library-dir=/DIR/PATH</TERM>
+<TERM><OPTION>--with-ldap-library-dir=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Special overrider for linkage library directory of LDAP
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--without-fsync</TERM>
+<TERM><OPTION>--without-fsync</OPTION></TERM>
 <LISTITEM><PARA>
 At systems where the local filesystem is log-based/journaling,
 doing   fsync()  is wastefull.  This disables fsync() in
@@ -1494,7 +1505,7 @@ not have made any difference..  fsck was mighty unhappy..)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-bundled-libresolv</TERM>
+<TERM><OPTION>--with-bundled-libresolv</OPTION></TERM>
 <LISTITEM><PARA>
 If your system is not very modern, you may consider using
 this option to compile in a resolver from bind-4.9.4-REL.
@@ -1503,7 +1514,7 @@ even newer resolver in it.  At such time, don't use this!
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-ipv6</TERM>
+<TERM><OPTION>--with-ipv6</OPTION></TERM>
 <LISTITEM><PARA>
 Use IPv6 at things where it is supported.  This is often
 highly experimental, although many subsystems in ZMailer
@@ -1512,14 +1523,14 @@ works both on IPv4 and IPv6.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-ipv6-replacement-libc</TERM>
+<TERM><OPTION>--with-ipv6-replacement-libc</OPTION></TERM>
 <LISTITEM><PARA>
 If the system needs more support for user-space IPv6
 things, this generates those.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--without-rfc822-tabs</TERM>
+<TERM><OPTION>--without-rfc822-tabs</OPTION></TERM>
 <LISTITEM><PARA>
 Some systems dislike getting RFC-822 headers with form of:
 <SCREEN>
@@ -1530,8 +1541,9 @@ space character is used.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-tcp-wrappers</TERM>
-<TERM>--with-tcp-wrappers=/DIR/PATH</TERM>
+<TERM><OPTION>--with-tcp-wrappers</OPTION></TERM>
+<!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
+<TERM><OPTION>--with-tcp-wrappers=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 
 Optional  <OPTION>=/DIR/PATH</>  value gives directory where there are
@@ -1542,14 +1554,15 @@ hooks,
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-ta-mmap</TERM>
+<TERM><OPTION>--with-ta-mmap</OPTION></TERM>
 <LISTITEM><PARA>
-On some systems with good mmap() with ``MAP_FILE|MAP_SHARED,''
-and well behaving  munmap()  it does make sense to replace
-read()/write() thru a file-descriptor to the file with
-mmap() &mdash; however that requires munmap() not to scrub
-away in-mapped blocks any more actively, than the buffer-cache
-works at read()/write() blocks.
+On some systems with good <FUNCTION>mmap</>(2) with
+``<CONSTANT>MAP_FILE|MAP_SHARED</>,'' and well behaving
+<FUNCTION>munmap</>()  it does make sense to replace
+<FUNCTION>read</>()/<FUNCTION>write</>() thru a file-descriptor to
+the file with <FUNCTION>mmap</>() &mdash; however that requires
+<FUNCTION>munmap</>() not to scrub away in-mapped blocks any more actively,
+than the buffer-cache works at <FUNCTION>read</>()/<FUNCTION>write</>() blocks.
 </PARA>
 
 <PARA>
@@ -1559,7 +1572,7 @@ have really well-behaved munmap()s :-/
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-getpwnam-library="-L... -l..."</TERM>
+<TERM><OPTION>--with-getpwnam-library="-L... -l..."</OPTION></TERM>
 <LISTITEM><PARA>
 Certain sites have expressed wishes to use their own libraries
 to replace the standard getpwnam() (and possibly getpwuid())
@@ -1574,15 +1587,16 @@ usernames to whatever the system needs them for.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-generic-include="-I/..."</TERM>
+<TERM><OPTION>--with-generic-include="-I/..."</OPTION></TERM>
 <LISTITEM><PARA>
 This parameter allows ubiquitous ``<OPTION>-I/...</>'' options to be used
 in all program compilations throughout the package.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>--with-whoson</TERM>
-<TERM>--with-whoson="/dir/prefix"</TERM>
+<TERM><OPTION>--with-whoson</OPTION></TERM>
+<!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
+<TERM><OPTION>--with-whoson="/dir/prefix"</OPTION></TERM>
 <LISTITEM><PARA>
 This does explicite integration with ``<APPLICATION>whoson</>'' server; see
 the ``<FILENAME>whoson-*.tar.gz</>'' file in

@@ -22,13 +22,22 @@
 -->
 <GRAPHIC FILEREF="zmailer-logo"></GRAPHIC>
 
+<ABSTRACT><PARA><WARNING><PARA>
+THIS IS A WORK IN PROGRESS, AND ALL OF THE ORIGINAL LATEX MATERIAL
+HAS NOT BEEN YET CONVERTED TO DOCBOOK SGML!</PARA>
+<PARA>Once full conversion has been achieved, a lot of information updates
+are also needed.</PARA>
+</WARNING></PARA></ABSTRACT>
+
 <AUTHORGROUP>
 <AUTHOR>
 <FIRSTNAME>Matti</FIRSTNAME>
 <SURNAME>Aarnio</SURNAME>
 </AUTHOR>
 </AUTHORGROUP>
+
 <PUBDATE>2000</PUBDATE>
+
 <COPYRIGHT>
 <YEAR>1992</YEAR>
 <HOLDER>Rayan Zacharaiassen, All rights reserved.</HOLDER>
@@ -40,4 +49,5 @@
 <YEAR>2000</YEAR>
 <HOLDER>Matti Aarnio, All rights reserved.</HOLDER>
 </COPYRIGHT>
+
 </BOOKINFO>

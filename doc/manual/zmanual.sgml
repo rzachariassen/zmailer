@@ -8,6 +8,7 @@
 <!-- -------------------------------------------------------- -->
 
 <!DOCTYPE book PUBLIC    "-//OASIS//DTD DocBook V3.1//EN" [
+
 <!ENTITY ZManVersion     "v1.99.20">
 <!ENTITY ZMAN-COVER      SYSTEM "zmanual-cover.sgml">
 <!ENTITY ZTUTORIAL       SYSTEM "ztutorial.sgml">
@@ -41,6 +42,11 @@
 <!ENTITY ZAPP-SSL-LANG   SYSTEM "zapp-ssl-lang.sgml">
 <!ENTITY ZAPP-RFC821     SYSTEM "zapp-rfc821.sgml">
 <!ENTITY ZAPP-RFC822     SYSTEM "zapp-rfc822.sgml">
+
+<!ENTITY % isopub   PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN">
+<!ENTITY % isolat1  PUBLIC "ISO 8879:1986//ENTITIES Added Latin 1//EN">
+
+%isopub; %isolat1;
 
 ]>
 <BOOK STATUS="draft" ID="ZMANUAL"><?dbhtml filename="zmanual.html">

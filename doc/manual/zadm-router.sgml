@@ -80,9 +80,9 @@ address rewriting function:
 
 <LISTITEM><PARA>
 Multiple-value returns are allowed.
-The {\tt return} statement can be used to return a non-``'' value
-from a function.
-The following are all legal {\tt return} statements:
+The <FUNCTION>return</> statement can be used to return a non-``''
+(non-empty string) value from a function.
+The following are all legal <FUNCTION>return</> statements:
 <SCREEN>
   return
   return $address
@@ -91,12 +91,11 @@ The following are all legal {\tt return} statements:
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-Variables are dynamically scoped, local variables are the ones
-in a function's parameter list and those declared with the ``{\tt local}''
-statement.
+Variables are dynamically scoped, local variables are the ones in a function's
+parameter list and those declared with the ``<FUNCTION>local</>'' statement.
 Only the first value of a multiple-value return may be assigned to a variable.
-All values are strings, so no type information, checking, or declaration,
-is  necessary.
+All values are strings, so no type information, checking, or declaration, is
+necessary.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
@@ -162,21 +161,21 @@ A ``String Sift'' where the input string is handled as is.
 
 <VARLISTENTRY><TERM>tsift</TERM><LISTITEM><PARA>
 A ``Token Sift'' where the input string is spliced according to
-RFC-822 tokenization rules.  Especially RFC-822 special characters
-cause tokens to split.
+RFC-822 tokenization rules.
+Especially RFC-822 special characters cause tokens to split.
 </PARA>
 
 <PARA>
-With ``tsift'' the ``.'' (dot) becomes match any single {\bf token},
-that is, input string ``foo.bar'' has three tokens: ``foo'', ``.'', and
-``bar''.
+With ``<FUNCTION>tsift</>'' the ``<LITERAL>.</>'' (dot) becomes match
+any single ``token'', that is, input string ``foo.bar'' has three
+tokens: ``foo'', ``.'' (dot), and ``bar''.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
 
 <PARA>
-Overall usage of these ``sifts'' is very much like that of ``case'',
-including the need for matching termination tokens.
+Overall usage of these ``<FUNCTION>sifts</>'' is very much like that of
+``<FUNCTION>case</>'', including the need for matching termination tokens:
 <SCREEN>
   ssift "$invar" in
   pattern
@@ -220,32 +219,38 @@ There are currently only three entry points (i.e. magic names known to the
 <EMPHASIS ROLE="STRONG">crossbar</>() -functions.
 </PARA>
 
+<ITEMIZEDLIST>
+<LISTITEM>
 <PARA>
-The {\tt process()} function is called with a file name as argument. 
-The file is typically located in the {\tt \$POSTOFFICE/router/} 
-directory. {\tt Process} is a protocol switch function which uses the 
-form of the file name to determine how to process different types of 
-messages.
-</PARA>
+The <FUNCTION>process()</> script function is called with a file name
+as argument. 
+The file is typically located in the 
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/router/</> directory.
+The <FUNCTION>process()</> is a protocol switch function which uses
+the  form of the file name to determine how to process different types
+of  messages.
+</PARA></LISTITEM>
 
+<LISTITEM>
 <PARA>
-The {\tt router()} function is called with an address as argument,
-and returns a quad of (channel, host, user, attribs) as three
-separate values,  corresponding to the channel the message should
-be sent out on (or, the router function can also be called to check
-on who sent a message), the host or node name for that channel
-(semantics depend per what channel is in effect), and the address
-the receiving agent should transmit to.
-The fourth parameter is ``attribute'' storage variable name from
-which a ``privilege'' value-pair is picked for recipient address
-security control functions.
-</PARA>
+The <FUNCTION>router()</> script function is called with an address
+as argument, and returns a quad of (channel, host, user, attribs) as
+three separate values,  corresponding to <EMPHASIS>the channel</>
+the message should be sent out on (or, the router function can also
+be called to check on who sent a message), <EMPHASIS>the host</> or
+node name for that channel (semantics depend per what channel is in effect),
+and <EMPHASIS>the address</> the receiving agent should transmit to.
+<EMPHASIS>The fourth parameter</> is ``attribute'' storage
+<EMPHASIS>variable name</> from which a ``privilege'' value-pair is
+picked for recipient address security control functions.
+</PARA></LISTITEM>
 
+<LISTITEM>
 <PARA>
-The {\tt crossbar()} function is in charge of rewriting envelope addresses,
-selecting message header address munging type (a function to be called with
-each message header address), and possibly doing per-message logging or
-enforcing restrictions deemed necessary.
+The <EMPHASIS>crossbar()</> function is in charge of rewriting envelope
+addresses, selecting message header address munging type (a function to
+be called with each message header address), and possibly doing per-message
+logging or enforcing restrictions deemed necessary.
 It takes a sender-quad and a receiver-quad as arguments (eight parameters
 altogether).
 It returns the new values for each element of the two quads, and in addition
@@ -253,22 +258,25 @@ a function name corresponding to the function to be used to rewrite header
 addresses for the specific destination.
 If the destination is to be ignored, returning a null function name will
 accomplish this.
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+
+
+<PARA>
+There is a fourth script entrypoint used by the <EMPHASIS>smtpserver</>
+program, namely the <FUNCTION>server()</>, which is used to implement
+smtpserver's realtime support facilities for
+``<USERINPUT>EXPN</>'' and ``<USERINPUT>VRFY</>'' commands, and optionally
+also to process addresses in ``<USERINPUT>MAIL FROM:&lt;&hellip;&gt;</>'',
+and ``<USERINPUT>RCPT TO:&lt;&hellip;&gt;</>'' commands.
 </PARA>
 
 <PARA>
-There is a fourth script entrypoint used by the {\em smtpserver} program,
-namely the {\tt server()}, which is used to implement smtpserver's
-realtime support facilities for ``EXPN'' and ``VRFY'' commands, and
-optionally also to process addresses in ``MAIL FROM'', and ``RCPT TO''
-commands.
-</PARA>
-
-<PARA>
-The {\em router} has several built in (C coded) functions.
-Their calling sequence and interface specification is exactly the same
-as for the functions defined in the configuration file.
-Some of these functions have special semantics, and they fall into three
-classes, as follows:
+The <EMPHASIS>router</> has several built in (C coded) functions.
+Their calling sequence and interface specification is exactly
+the same as for the functions defined in the configuration file.
+Some of these functions have special semantics, and they fall
+into three classes, as follows:
 
 <ITEMIZEDLIST>
 <LISTITEM><PARA>
@@ -336,8 +344,8 @@ turns off selected debugging output
 <TERM>[</TERM>
 <TERM>test</TERM>
 <LISTITEM><PARA>
-emulates a subset of {\tt /bin/test}
-(a.k.a. \verb!/bin/[!) functionality.
+emulates a subset of ``<COMMAND>/bin/test</>''
+(a.k.a. ``<COMMAND>/bin/[</>'') functionality.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA></LISTITEM>
@@ -345,10 +353,10 @@ emulates a subset of {\tt /bin/test}
 </PARA>
 
 <PARA>
-The {\tt relation} function is described in 
-{\em Databases}, section <XREF LINKEND="adm.Databases">.
-Functions {\tt trace} and {\tt untrace} are described
-in connection with debugging. 
+The <FUNCTION>relation</> function is described in ``<EMPHASIS>Databases</>'',
+section <XREF LINKEND="adm.Databases">.
+Functions <FUNCTION>trace</> and <FUNCTION>untrace</> are described in
+connection with debugging. 
 </PARA>
 
 <PARA>
@@ -358,18 +366,21 @@ See <EMPHASIS>Logging and Statistics</>, section
 </PARA>
 
 <PARA>
-The {\tt hostname} function requires some further explanation.
-It is intended to emulate the BSD UNIX {\tt /bin/hostname}
+The <FUNCTION>hostname</> function requires some further explanation.
+It is intended to emulate the BSD UNIX <COMMAND>/bin/hostname</>
 functionality, except that setting the hostname will only set
-the {\em router's} idea of the hostname, not the system's.
-Doing so will enable generation of `Message-Id' and `Received'
-``trace'' headers on all messages processed by the {\em router}.
-It is done this way since the {\em router} needs to know the official
+the <EMPHASIS>router's</> idea of the hostname, not the system's.
+Doing so will enable generation of ``Message-Id:'' and ``Received:''
+``trace'' headers on all messages processed by the <EMPHASIS>router</>.
+<!-- -->
+
+It is done this way since the <EMPHASIS>router</> needs to know the official
 domain name of the local host in order to properly generate these headers,
 and this method is cleaner than reserving a magic variable for the purpose.
-The {\em router} cannot assume the hostname reported by the system is
-a properly qualified domain name, so the configuration file may generate
-it using whichever method it chooses.
+<!-- -->
+The <EMPHASIS>router</> cannot assume the hostname reported by the system is
+a properly qualified domain name, so the configuration file may generate it
+using whichever method it chooses.
 </PARA>
 
 <PARA>
@@ -381,15 +392,14 @@ will enable generation of trace headers.
 </PARA>
 
 <PARA>
-Finally, note that a symbol can have both a function-value and a
-string-value.
-The string value is of course accessed using the \$ prefix
+Finally, note that a symbol can have both a function-value and a string-value.
+The string value is of course accessed using the ``<USERINPUT>$</>'' prefix
 convention of the Bourne shell language.
 </PARA>
 
 <PARA>
-<EMPHASIS>However careless usage of {\tt\$var} is DANGEROUS, as you
-may trip on following:</EMPHASIS>
+<EMPHASIS>However careless usage of ``<USERINPUT>$var</>'' is
+<EMPHASIS ROLE="BOLD">dangerous</>, as you may trip on following:</EMPHASIS>
 <SCREEN>
   SS="1 -o bar"
   if [ $SS = 0 ]; then
@@ -416,31 +426,34 @@ shown in figure <XREF LINKEND="fig.adm.testing">.
 <FIGURE ID="fig.adm.testing" PGWIDE="1" FLOAT="1">
 <TITLE>Example of running tests on <EMPHASIS>router</></TITLE>
 <SCREEN>
-sh$ $MAILBIN/router -i        {\rm(select interactive mode)}
-z$ rtrace                     {\rm(turn tracing on)}
-z$ router user@broken.address {\rm(the address that gave you trouble)}
-z$ router another@address     {\rm(and so on)}
+sh$ $MAILBIN/router -i         (select interactive mode)
+z$ rtrace                      (turn tracing on)
+z$ router user@broken.address  (the address that gave you trouble)
+z$ router another@address      (and so on)
 </SCREEN>
 </FIGURE>
 
 <PARA>
-Old salts can use {\tt /usr/lib/sendmail -bt} instead of {\tt router -i}.
+Old salts can use ``<USERINPUT>/usr/lib/sendmail -bt</>'' instead
+of ``<USERINPUT>router -i</>''.
 Once satisfied that routing works, command:
 <SCREEN>
   zmailer router
 </SCREEN>
-will restart the {\em router}.
+will restart the <EMPHASIS>router</>.
 </PARA>
 
 <PARA>
-You can also run the {\em router} directly on a message.  Copy your message
-to someplace other than the postoffice ({\tt /tmp} is usually good), in a
-numeric file name.  If the file name is {\tt 123}, you run
+You can also run the <EMPHASIS>router</> directly on a message.
+Copy your message to someplace other than the postoffice
+(<FILENAME CLASS="DIRECTORY">/tmp/</> is usually good), to a numeric
+file name.
+If the file name is ``<FILENAME>123</>'', you run
 <SCREEN>
   $MAILBIN/router 123
 </SCREEN>
-this will create the file ``{\tt .123}'' containing the control information
-produced by the {\em router}.
+this will create the file ``<FILENAME>.123</>'' containing the control
+information produced by the <EMPHASIS>router</>.
 </PARA>
 </SECT1>
 
@@ -449,85 +462,94 @@ produced by the {\em router}.
 
 <PARA>
 Many of the decisions and actions taken by configuration file code depend
-on the specifics of the environment the MTA finds itself in.  So, not just
-the facts that the local host is attached to (say) the UUCP network and a
-Local Area Network are important, but it is also essential to know the specific
-hosts that are reachable by this method.  Hardcoding large amounts of such
-information into the configuration file is not practical.  It is also
-undesirable to change what is really a program (the configuration file),
-when the information (the data) changes.
+on the specifics of the environment the MTA finds itself in.
+So, not just the facts that the local host is attached to (say)
+the UUCP network and a Local Area Network are important, but it
+is also essential to know the specific hosts that are reachable
+by this method.
+Hardcoding large amounts of such information into the configuration
+file is not practical.
+It is also undesirable to change what is really a program
+(the configuration file), when the information (the data) changes.
 </PARA>
 
 <PARA>
 The desirable solution to this data abstraction problem is to provide a way
 for the configuration file programmer to manage such information externally
-to ZMailer, and access it from within the {\em router}.  The logical way to do
-this is to have an interface to externally maintained databases.  These
-databases need not be terribly complicated; after all the simplest kind of
-information needed is that a string is a member of some collection.  This
-could simply correspond to finding that string as a word in a list of
+to ZMailer, and access it from within the <EMPHASIS>router</>.
+The logical way to do this is to have an interface to externally
+maintained databases.
+These databases need not be terribly complicated;
+  after all the simplest kind of information needed is that a string
+  is a member of some collection.
+This could simply correspond to finding that string as a word in a list of
 words.
 </PARA>
 
 <PARA>
 However, there are many ways to organize databases, and the necessary
-interfaces cannot be known in advance.  The {\em router} therefore implements a
-framework that allows flexible interfacing to databases, and easy extension
-to cover new types of databases.
+interfaces cannot be known in advance.
+The <EMPHASIS>router</> therefore implements a framework that allows
+flexible interfacing to databases, and easy extension to cover new types
+of databases.
 </PARA>
 
 <PARA>
-To use a database, two things are needed: the name of the database, and a
-way of retrieving the data associated with a particular key from that
-database.  In addition to this knowledge, the needs of an MTA do include
-some special processing pertinent to its activities and the kind of keys to
-be looked up.
+To use a database, two things are needed: the name of the database,
+and a way of retrieving the data associated with a particular key from
+that database.
+In addition to this knowledge, the needs of an MTA do include some special
+processing pertinent to its activities and the kind of keys to be looked up.
 </PARA>
 
 <PARA>
 Specifically, the result of the data lookup can take different forms: one
 may be interested only in the existence of a datum, not its value, or one
-may be looking up paths in a pathalias database and need to substitute the
-proper thing in place of `{\tt %s}' in the string returned from the database
-lookup.  It should be possible to specify that this kind of postprocessing
-should be carried out in association with a specific data access.
-Similarly, there may be a need for search routines that depend on the
-semantics of keys or the retrieved data.  These possibilities have all been
-taken into consideration in the definition of a relation.  A relation maps
-a key to a value obtained by applying the appropriate lookup and search
-routines, and perhaps a postprocessing step, applied to a specified
-database that has a specified access method.
+may be looking up paths in a <EMPHASIS>pathalias</> database and need
+to substitute the proper thing in place of ``<COMPUTEROUTPUT>%s</>'' in
+the string returned from the database lookup.
+It should be possible to specify that this kind of postprocessing should
+be carried out in association with a specific data access.
+Similarly, there may be a need for search routines that depend on
+the semantics of keys or the retrieved data.
+These possibilities have all been taken into consideration in
+the definition of a <FUNCTION>relation</>.
+A <FUNCTION>relation</> maps a key to a value obtained by applying
+the appropriate lookup and search routines, and perhaps a postprocessing
+step, applied to a specified database that has a specified access method.
 </PARA>
 
 <PARA>
-The various attributes that define a relation are largely independent.
+The various attributes that define a <FUNCTION>relation</> are largely
+independent.
 There will of course be dependencies due to the contents or other semantics
-of a database.  In addition to the features mentioned, each relation may
-optionally have associated with it a subtype, which is a string value used
-to tell the lookup routine which table of several in a database
-one is interested in.
+of a database.
+In addition to the features mentioned, each relation may optionally have
+associated with it a subtype, which is a string value used to tell
+the lookup routine which table of several in a database one is interested in.
 </PARA>
 
 <PARA>
-There are no predefined relations in the {\em router}.
+There are no predefined relations in the <EMPHASIS>router</>.
 They must all be specified in the configuration file before first use.
-This is done by calling the special function {\tt relation} with
+This is done by calling the special function <FUNCTION>relation</> with
 various options, as indicated by the usage strings printed by
-the {\tt relation} function when called the wrong way.
+the <FUNCTION>relation</> function when called the wrong way.
 See figure <XREF LINKEND="fig.relation.params">.
 </PARA>
 
 <FIGURE ID="fig.relation.params" PGWIDE="0" FLOAT="1">
-<TITLE>``Usage:'' report from {\tt relation}</TITLE>
+<TITLE>``Usage:'' report from <FUNCTION>relation</></TITLE>
 <SCREEN>
 Usage: relation -t dbtype[,subtype] [-f file -e# -s# -bilmnpu -d driver] name
-  dbtypes: incore,header,unordered,ordered,hostsfile,bind,selfmatch,ndbm,gdbm,btree,bhash
+  dbtypes: incore,header,unordered,ordered,hostsfile,bind,selfmatch, \
+          ndbm,gdbm,btree,bhash
 </SCREEN>
 </FIGURE>
 
 <PARA>
-The `{\tt t}' option specifies one of several predefined database types,
-each with their specific lookup routine.
+The ``<OPTION>t</>'' option specifies one of several predefined
+database types, each with their specific lookup routine.
 It determines a template for the set of attributes associated with
 a particular relation.
 The predefined database types are:
@@ -547,10 +569,10 @@ the database is in BSD DB BTREE format.
 
 <VARLISTENTRY><TERM>dbm</TERM><LISTITEM><PARA>
 the database is in DBM format.
-Note that the original dbm had no {\tt dbm\_close()} function, thus
-there was no way to dissociate active database from a process.
+Note that the original dbm had no <FUNCTION>dbm_close()</> function,
+thus there was no way to dissociate active database from a process.
 A bit newer variant of dbm has the close function, and multiple
-dbm's can be used.
+dbm's can be used.  (You propably won't encounter this beast at all..)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>gdbm</TERM><LISTITEM><PARA>
@@ -563,18 +585,18 @@ to be treated.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>hostsfile</TERM><LISTITEM><PARA>
-{\tt /etc/hosts} lookup using {\tt gethostbyname()}.
+<FILENAME>/etc/hosts</> lookup using <FUNCTION>gethostbyname()</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>incore</TERM><LISTITEM><PARA>
 the database is a high-speed bundle of data kept entirely in the router
-process core memory.  This is for a short-term data storage, like handling
-duplicate detection.
+process core memory.
+This is for a short-term data storage, like handling duplicate detection.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>ldap</TERM><LISTITEM><PARA>
-Mechanism for X.500 Directory access lookup with the "light-weight
-directory access protocol."
+Mechanism for X.500 Directory access lookup with the "Light-weight
+Directory Access Protocol."
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>ndbm</TERM><LISTITEM><PARA>
@@ -582,19 +604,23 @@ the database is in NDBM (new DBM) format.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>ordered</TERM><LISTITEM><PARA>
-the database is a text file with key-datum pairs on each line, keys are looked up using a binary search in the sorted file.
+the database is a text file with key-datum pairs on each line,
+keys are looked up using a linewise binary search in the sorted file.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>selfmatch</TERM><LISTITEM><PARA>
 a special type that does translate the numerical address of format
-\verb/12.34.56.78/ (from within address-literal bracets) into binary
-form, and checks that it is (or is not) actually our own local IP addresses.
+<COMPUTEROUTPUT>12.34.56.78</> (from within address-literal bracets)
+into binary form, and checks that it is (or is not) actually our own
+local IP addresses.
 This is used in address literal testing of addresses of type:
-\verb/localpart@[12.34.56.78]/.
+<COMPUTEROUTPUT>localpart@[12.34.56.78]</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>unordered</TERM><LISTITEM><PARA>
-the database is a text file with key-datum pairs on each line, keys are looked up using a sequential search.
+the database is a text file with key-datum pairs on each line,
+keys are looked up using a sequential search.
+First to match is used.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>yp</TERM><LISTITEM><PARA>
@@ -606,79 +632,84 @@ Sun SunOS 4.x YP (these days "NIS") interface library.
 <PARA>
 A subtype is specified by appending it to the database type name separated
 by a slash, or a comma.
-For example, specifying {\tt bind/mx} as the argument to the `{\tt t}' option
-will store `{\tt mx}' for reference by the access routines whenever a query
-to that relation is processed.
+For example, specifying <OPTION>bind/mx</> as the argument to
+the ``<OPTION>t</>'' option will store ``<OPTION>mx</>'' for reference
+by the access routines whenever a query to that relation is processed.
 The subtypes must therefore be recognized by either the database-specific
 access routines (for translation into some other form), or by the database
 interface itself.
 </PARA>
 
 <PARA>
-For {\tt unordered} and {\tt ordered} database types, the datum 
-corresponding to a particular key may be null.  This situation arises if 
-the database is a simple list, with one key per line and nothing else.  
+For <OPTION>unordered</> and <OPTION>ordered</> database types,
+the datum corresponding to a particular key may be null.
+This situation arises if the database is a simple list, with
+one key per line and nothing else. 
 In this situation, the use of an appropriate post-processor option 
-(e.g. ``{\tt b}'') is recommended to be able to detect whether or not 
+(e.g. ``<OPTION>b</>'') is recommended to be able to detect whether or not 
 the lookup succeeded.
 </PARA>
 
 <PARA>
-The ``{\tt f}'' option specifies the name of the database.  This is typically a
-path that either names the actual (and single) database file, or gives the
-root path for a number of files comprising the database (e.g. {\tt foo} may
-refer to the NDBM files ``{\tt foo.pag}'' and ``{\tt foo.dir}'').  For the 
-{\tt hostsfile} type of database, the {\tt /etc/hosts} file is the one 
-used (and since the normal hosts file access routines do not allow specifying 
-a different file, this cannot be overridden).
+The ``<OPTION>f</>'' option specifies the name of the database.
+This is typically a path that either names the actual (and single)
+database file, or gives the root path for a number of files comprising
+the database (e.g. ``<FILENAME>foo</>'' may refer to the NDBM files
+``<FILENAME>foo.pag</>'' and ``<FILENAME>foo.dir</>'').
+For the <OPTION>hostsfile</> type of database, the <FILENAME>/etc/hosts</>
+file is the one used (and since the normal ``hosts'' file access routines
+do not allow specifying  different file, this cannot be overridden).
 </PARA>
 
 <PARA>
-The ``{\tt s}'' option specifies the size of the cache.  If this value 
-is non-zero (by default it is 10), then an LRU cache of this size is 
-maintained for previous queries to this relation, including both positive 
-and negative results.
+The ``<OPTION>s</>'' option specifies the size of the cache.
+If this value is non-zero (by default it is 10), then an LRU cache
+of this size is maintained for previous queries to this relation,
+including both positive and negative results.
 </PARA>
 
 <PARA>
-The ``{\tt e}'' option specifies the cache data expiration time in seconds.
+The ``<OPTION>e</>'' option specifies the cache data expiration time
+in seconds.
 </PARA>
 
 <PARA>
-The ``{\tt b}'' option asks that a postprocessor is applied to the database 
-lookup result, so the empty string is returned from the relation query if the
-database search failed, and the key itself it returned if the search
-succeeded.  In the latter case, any retrieved data is discarded.  The
-option letter is short for Boolean.
+The ``<OPTION>b</>'' option asks that a postprocessor is applied to
+the database lookup result, so the empty string is returned from
+the relation query if the database search failed, and the key itself
+it returned if the search succeeded.
+In the latter case, any retrieved data is discarded.
+The option letter is short for Boolean.
 </PARA>
 
 <PARA>
-The ``{\tt n}'' option asks that a postprocessor is applied to the database 
-lookup result, so the key string is returned from the relation query if the
-database search failed, and the retrieved datum string is returned if the
-search succeeded.  The option letter is short for Non-Null.
+The ``<OPTION>n</>'' option asks that a postprocessor is applied to
+the database lookup result, so the key string is returned from
+the relation query if the database search failed, and the retrieved
+datum string is returned if the search succeeded.
+The option letter is short for Non-Null.
 </PARA>
 
 <PARA>
-The ``{\tt l}'' option asks that all keys are converted to lowercase before 
-lookup in the database.  This is mutually exclusive with the ``{\tt u}'' 
-option.
+The ``<OPTION>l</>'' option asks that all keys are converted to
+<EMPHASIS>lowercase</> before lookup in the database.
+This is mutually exclusive with the ``<OPTION>u</>'' option.
 </PARA>
 
 <PARA>
-The ``{\tt u}'' option asks that all keys are converted to uppercase before 
-lookup in the database.  This is mutually exclusive with the ``{\tt l}'' 
-option.
+The ``<OPTION>u</>'' option asks that all keys are converted to
+<EMPHASIS>uppercase</> before lookup in the database.
+This is mutually exclusive with the ``<OPTION>l</>'' option.
 </PARA>
 
 <PARA>
-The ``{\tt d}'' option specifies a search routine.  Currently the only legal
-argument to this option is {\tt pathalias}, specifying a driver that searches
-for the key using domain name lookup rules.
+The ``<OPTION>d</>'' option specifies a search routine.
+Currently the only legal argument to this option is ``<OPTION>pathalias</>'',
+specifying a driver that searches for the key using domain name lookup rules.
 </PARA>
 
 <FIGURE ID="fig.adm-dbfrag1" PGWIDE="0" FLOAT="1">
-<TITLE>Some examples of {\tt relation} definitions</TITLE>
+<TITLE>Some examples of <FUNCTION>relation</> definitions</TITLE>
 <SCREEN>
  if [ -f /etc/resolv.conf ]; then
    relation -nt bind/cname -s 100 canon # T_CNAME canonicalize hostname
@@ -710,7 +741,7 @@ for the key using domain name lookup rules.
 </FIGURE>
 
 <FIGURE ID="fig.adm-dbfrag3" PGWIDE="0" FLOAT="1">
-<TITLE>More miscellaneous {\tt relation} definitions
+<TITLE>More miscellaneous <FUNCTION>relation</> definitions
 to illustriate various possibilities</TITLE>
 <SCREEN>
  relation -t unordered -f /usr/lib/news/active -b newsgroup
@@ -720,53 +751,57 @@ to illustriate various possibilities</TITLE>
 </FIGURE>
 
 <PARA>
-The final argument for the {\tt relation} is not preceeded by
+The final argument for the <FUNCTION>relation</> is not preceeded by
 an option letter.
 It specifies the name the relation is known under.
 Note that it is quite possible for different relations to use
-the same database (like in case of {\em bind}).
+the same database (like in case of ``<OPTION>bind</>'').
 </PARA>
 
 <PARA>
-Some sample relation definitions are in
-figure <XREF LINKEND="fig.adm-dbfrag1">.
+Some sample relation definitions are in figure
+ <XREF LINKEND="fig.adm-dbfrag1">.
 That fragment defines a set of relations that can be accessed in the
 same way, using the same names, independent of their actual definition.
 </PARA>
 
 <PARA>
 {\bf\Large CHECK! (-i option!)}
-As the comment says, the relation name {\tt aliases} has
-special significance to the {\em router}.
+As the comment says, the relation name <EMPHASIS>aliases</> has
+special significance to the <EMPHASIS>router</>.
 Although the relation is not special in any other way (i.e. it can
 be used in the normal fashion), the semantics of the data retrieved
 are bound by assumptions in the aliasing mechanism.
+(Or more specifically, actually database compilation in case
+this isn't ``ordered'' or ``unordered'' file will handle this.)
 </PARA>
 
 <PARA>
-These assumptions are that key strings are local-name's, and
-the corresponding datum gives a byte offset into another file
-(the root name of the aliases file, with a {\tt .dat} extention),
-which contains the actual addresses associated with that alias.
+These assumptions are that key strings are local-name's, and the corresponding
+datum gives a byte offset into another file (the root name of the aliases file,
+with a ``<FILENAME>.dat</>'' extention), which contains the actual addresses
+associated with that alias.
 </PARA>
 
 <PARA>
 The reason for this indirection is that the number of addresses associated
 with a particular alias can be very large, and this makes the traditional
-simple database formats inadequate.  For example, quick lookup in a text
-file is only practical if it is sorted and has a regular structure.  A
-large number of addresses associated with an alias makes structuring a
-problem.  The situation for DBM files and variations have problems too, due
-to the intrinsic limits of the storage method.  The chosen indirection
-scheme avoids such problems without loss of efficiency.
+simple database formats inadequate.
+For example, quick lookup in a text file is only practical if it is sorted
+and has a regular structure.
+A large number of addresses associated with an alias makes structuring a
+problem.
+The situation for DBM files and variations have problems too, due to
+the intrinsic limits of the storage method.
+The chosen indirection scheme avoids such problems without loss of efficiency.
 </PARA>
 
 <PARA>
-More examples on figure <XREF LINKEND="fig.adm-dbfrag3">, where the first
-two illustrate convenient coincidences of format, and the last
-definition shows what might be used if outgoing channel information
-is maintained in a pathalias-format database (e.g. {\tt bar smtp!bar}
-means to send mail to {\tt bar} via the SMTP channel).
+More examples on figure <XREF LINKEND="fig.adm-dbfrag3">, where
+the first two illustrate convenient coincidences of format, and
+the last definition shows what might be used if outgoing channel
+information is maintained in a pathalias-format database
+(e.g. ``bar smtp!bar'' means to send mail to ``bar'' via the SMTP channel).
 </PARA>
 
 <SECT2><TITLE>Using a Pathalias Database</TITLE>
@@ -776,18 +811,18 @@ Accessing route databases is a rather essential capability for a mailer.
 At the University of Toronto, all hosts access a centrally stored database
 through a slightly modified nameserver program.
 If such a setup is not practical at your site, other methods are available.
-The most widespread kind of route database is produced by the {\em pathalias}
-program.
+The most widespread kind of route database is produced by
+the <APPLICATION>pathalias</> program.
 </PARA>
 
 <PARA>
-{\em pathalias} generates key-value pairs of the form:
+<APPLICATION>pathalias</> generates key-value pairs of the form:
 <SCREEN>
   uunet    ai.toronto.edu!uunet!%s
   .css.gov ai.toronto.edu!uunet!seismo!%s
 </SCREEN>
-which when queried about {\tt uunet} and {\tt beno.css.gov} correspond to 
-the routes:
+which when queried about ``uunet'' and ``beno.css.gov''
+correspond to the routes:
 <SCREEN>
   ai.toronto.edu!uunet
   ai.toronto.edu!uunet!seismo!beno.css.gov
@@ -796,12 +831,12 @@ the routes:
 
 <PARA>
 Notice that there are two basic forms of routes listed: routes to UUCP node
-names and routes to subdomain gateways.  Depending on the type of route
-query, the value returned from a pathalias database lookup needs to be
-treated differently.
-For now, this may be accomplished by a configuration
-file relation definition and interface function as shown in figure
-<XREF LINKEND="fig.adm-pathalias-driver">.
+names and routes to subdomain gateways.
+Depending on the type of route query, the value returned from a pathalias
+database lookup needs to be treated differently.
+For now, this may be accomplished by a configuration file relation definition
+and interface function as shown in figure
+  <XREF LINKEND="fig.adm-pathalias-driver">.
 </PARA>
 
 <FIGURE ID="fig.adm-pathalias-driver" PGWIDE="0" FLOAT="1">
@@ -811,7 +846,7 @@ generated database</TITLE>
 relation -t ndbm -f $MAILBIN/uuDB -d pathalias padb
 
 # pathalias database lookup function
-padblookup (name) \{
+padblookup (name) {
     local path
     path = $(padb "$name")
     tsift "$path" in
@@ -827,17 +862,18 @@ padblookup (name) \{
         ;;
     tfist
     return "$path"
-\}
+}
 </SCREEN>
 </FIGURE>
 
 <PARA>
 This is actually a simplistic algorithm, but it does illustrate the method.
-The lookup algorithm used when the ``{\tt -d}'' flag is specified in the
-relation definition command is rather simple; it doesn't test various case
-combinations for the keys it tries.  Therefore, the keys in the pathalias
-output data should probably be converted to a single case, and the ``{\tt -l}''
-or ``{\tt -u}'' flag given in the relation definition.
+The lookup algorithm used when the ``<OPTION>-d</>'' flag is specified in
+the <FUNCTION>relation</> definition command is rather simple; it doesn't
+test various case combinations for the keys it tries.
+Therefore, the keys in the pathalias output data should probably
+be converted to a single case, and the ``<OPTION>-l</>'' or ``<OPTION>-u</>''
+option given in the <FUNCTION>relation</> definition as well..
 </PARA>
 
 </SECT2>
@@ -845,125 +881,141 @@ or ``{\tt -u}'' flag given in the relation definition.
 <SECT2 ID="mailing-list-maintenance">
 <TITLE>Mailing Lists and <FILENAME>~/.forward</></TITLE>
 
-<PARA>
-Mailing lists are implemented as files in the {\tt \$MAILSHARE/lists/} 
-directory (or symlinks in there to files residing elsewere, though from
-a system reliability standpoint it is better to have them in that directory,
-and let users have symlinks to those files &mdash; consider the NFS
-with the user home directories in other machines...)
+<PARA> FIXME! FIXME! -- VERIFY! UPDATE!
 </PARA>
 
 <PARA>
-An alternate mechanism is to implement lists in the traditional {\em sendmail}
-manner, however it means feeding the message to the scheduler, and
-external program ({\tt /usr/lib/sendmail}) before it comes back to the
-{\em router}.
+One form of mailing lists are implemented as files in
+the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/lists/</>
+directory (or symlinks in there to files residing elsewere, though
+from a system reliability standpoint it is better to have them in
+that directory, and let users have symlinks to those files &mdash;
+consider the NFS with the user home directories in other machines&hellip;)
 </PARA>
 
 <PARA>
-The list {\em file} must have protection 0664 or stricter, 0700 has
-invalid bits.
+An alternate mechanism is to implement lists in the traditional
+<APPLICATION>sendmail</> manner, however it means feeding the message
+to the <EMPHASIS>scheduler</>, and external program
+(<EMPHASIS>>/usr/lib/sendmail</>) before it comes back to
+the <EMPHASIS>router</>.
+</PARA>
+
+<PARA>
+The list <EMPHASIS>file</> must have protection 0664 or stricter,
+as an example: 0700 has invalid bits.
 (ok, so the ``x''-bit is not used, but illegal it is, all the same.)
 Preferrable protection is: 0600
 </PARA>
 
 <PARA>
-The {\tt \$MAILSHARE/lists/} directory must be owned by root.
-The directory containing the "aliases" file  ({\tt \$MAILSHARE/db/}) 
-must be owned by root, and the aliases file must comply with above mentioned 
-protections.
+The <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/lists/</> directory
+must be owned by root.
+The directory containing the ``<EMPHASIS>aliases</>'' file
+(<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/db/</>) must be owned
+by root, and the aliases file must comply with above mentioned protections.
 </PARA>
 
 <PARA>
-The owner of FILE gets FILE-owner, and FILE-request mails,
-{\em unless any of the above listed limitations are breached}.
+The owner of ``<EMPHASIS>FILE</>'' gets ``<EMPHASIS>FILE-owner</>'',
+and ``<EMPHASIS>FILE-request</>'' mails,
+<EMPHASIS ROLE="STRONG">unless any of the above listed limitations
+ are breached</>.
 </PARA>
 
 <PARA>
-If FILE has protection 666 (for example), the ZMailer internal function
-``{\tt \$(filepriv \$filepath)}''
-returns ``{\tt \$nobody}'' (userid of nobody), and  function
-``{\tt \$(uid2login \$nobody)}'' fails, thus losing -owner, and 
--request features.
+If ``<EMPHASIS>FILE</>'' has protection 666 (for example),
+the ZMailer internal function ``<COMPUTEROUTPUT>$(filepriv $filepath)</>''
+returns ``<LITERAL>$nobody</>'' (userid of nobody), and function
+``<COMPUTEROUTPUT>$(uid2login $nobody)</>'' fails, thus losing ``*-owner''
+and  ``*-request'' features.
 </PARA>
 
 <PARA>
-Also lists with filepriv ``nobody'' cannot be archived simply
-by having an ``address'' of form {\tt /file/path} amongst the
-recipient addresses.
+Also lists with filepriv ``nobody'' cannot be archived simply by having
+an ``address'' of form ``<LITERAL>/file/path</>'' amongst the recipient
+addresses.
 </PARA>
 
 <PARA>
-A mailing list is set up by creating a file in the 
-{\tt \$MAILVAR/lists/} directory.
-The file name is the list's name (LIST) in all lowercase
+This type of a mailing list is set up by creating a file in the 
+<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/lists/</> directory.
+The file name is the list's name (LIST) in <EMPHASIS>all lowercase</>
 (case-insensitive matching is done by converting to lowercase
 before comparison).
 </PARA>
 
 <PARA>
 The file contains a list of mail addresses (typically one per line)
-which are parsed to pull out the destination addresses.  This means
-the users' full names can be given just as in any valid RFC822 address.
+which are parsed to pull out the destination addresses.
+This means the users' full names can be given just as in any valid
+RFC822 address.
 </PARA>
 
 <PARA>
 The local account which owns the file will by default receive messages
-sent to LIST-owner and LIST-request.  This can be explicitly overridden
-in the aliases file.  Mail to the list will go out with LIST-owner as
-the sender, so list bounce messages will return to the LIST-owner
-address.  Archives of the list can be created by adding a file name
-address (a local pathname starting with ``/'') to the LIST file.  The
-archive file is written with the ownership of the owner of the LIST
-file.  Forwarding the mailing list into a newsgroup
-can be done using a mail to news script (two generations are provided
-in utils/distribute and utils/mail2news).
+sent to LIST-owner and LIST-request.
+This can be explicitly overridden in the aliases file.
+Mail to the list will go out with LIST-owner as the sender, so list
+bounce messages will return to the LIST-owner address.
+Archives of the list can be created by adding a file name address
+(a local pathname starting with ``/'') to the LIST file.
+The archive file is written with the ownership of the owner of the LIST file.
+Forwarding the mailing list into a newsgroup can be done using a mail to news
+script (two generations are provided in
+<FILENAME>utils/distribute</> and <FILENAME>utils/mail2news</>
+in the sources).
 </PARA>
 
 <SECT3><TITLE><FILENAME>aliases.cf</> Logic</TITLE>
 
+<PARA> FIXME! FIXME! -- VERIFY! UPDATE!
+</PARA>
+
 <ITEMIZEDLIST>
 <LISTITEM><PARA>
-If an aliases database exists and local-part is found in it, the list of
-addresses mapped to by the alias entry is substituted.
+If an <EMPHASIS>aliases</> database exists and local-part is found in it,
+the list of addresses mapped to by the alias entry is substituted.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-If an mboxmap file exists and a mapping for the local-part is found in it,
-the mapping (a ``host!homedir!user'' value) determines the remote recipient
-(user@host) or recipient mailbox ({\tt homedir/../PObox/user}) if host 
-is local.
+If an <EMPHASIS>mboxmap</> file exists and a mapping for the local-part is
+found in it, the mapping (a ``<LITERAL>host!homedir!user</>'' value)
+determines the remote recipient (<LITERAL>user@host</>) or recipient
+mailbox (<FILENAME>homedir/../PObox/user</>) if host is local.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-If local-part is a login name and a readable ``{\tt .forward}'' file 
-exists in the home directory, the list of addresses it contains is
+If local-part is a login name and a readable ``<FILENAME>~/.forward</>''
+file  exists in the home directory, the list of addresses it contains is
 substituted.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-If local-part is a file basename in the {\tt \$MAILVAR/lists} 
-directory, the   list of addresses contained in the file is
-substituted, and the sender address set to local-part-owner.
+If local-part is a file basename in
+the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/lists/</> directory,
+the list of addresses contained in the file is substituted, and
+the sender address set to local-part-owner.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-If local-part is of the form file-owner or file-request, where file is
-an entry in the {\tt \$MAILVAR/lists} directory, the account name 
-of the owner of the file is substituted.   (File-owner identity and correct 
-protections are important.)
+If local-part is of the form ``file-<EMPHASIS>owner</>'' or
+``file-<EMPHASIS>request</>'', where file is an entry in
+the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/lists/</> directory,
+the account name of the owner of the file is substituted.
+(File-owner identity and correct file and directory protections are important.)
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-If the local-part is of format  ``user.name'',  it is actually mapped via
-separate   fullnamemap, and NEVER via {\tt \$MAILVAR/db/aliases}.
+If the local-part is of format  ``user.name'', it is optionally mapped via
+separate <EMPHASIS>fullnamemap</>.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-If PUNTHOST is defined (in {\tt /etc/zmailer.conf}) the address
-{\tt local-part@\$PUNTHOST} is substituted.  Note that in this case
-the mboxmap mechanism should be used to ensure local spool
-mailbox delivery for local users.
+If <VARNAME>PUNTHOST</> is defined (in <FILENAME>/etc/zmailer.conf</>)
+the address <LITERAL>local-part@$PUNTHOST</> is substituted.
+Note that in this case the <EMPHASIS>mboxmap</> mechanism should be used
+to ensure local spool mailbox delivery for local users.
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
 
@@ -971,12 +1023,17 @@ mailbox delivery for local users.
 
 <SECT3><TITLE>aliases</TITLE>
 
+<PARA> FIXME! FIXME! -- aliases db regeneration methods have changed since
+</PARA>
+
+
 <PARA>
 The file containing the actual aliasing data is automatically created by
-the {\em router} when asked to reconstruct the aliases database.  It does this
-based on a text file containing the alias definitions.  This text file,
-which corresponds to the {\em sendmail} aliases file, consists of individual
-alias definitions, possibly separated by blank lines or commentary.
+the <EMPHASIS>router</> when asked to reconstruct the aliases database.
+It does this based on a text file containing the alias definitions.
+This text file, which corresponds to the <APPLICATION>sendmail</> aliases
+file, consists of individual alias definitions, possibly separated by blank
+lines or commentary.
 Comments are introduced by a sharp sign (octothorp: `\#') at any point where
 a token might start (for example the beginning of a line, but not in the
 middle of an address), and extend to the end of the line.  Each alias
@@ -1078,6 +1135,11 @@ as such, there is no way to avoid this requirement.)
 </SECT3>
 
 <SECT3><TITLE>About Large Lists, and Memory Consumption</TITLE>
+
+<PARA> FIXME! FIXME! -- VERIFY! UPDATE!
+(router internal memory management has improved dramatically at
+2.99.51, and no serious bloat effect appears anymore.)
+</PARA>
 
 <PARA>
 With old configuration scripts there used to be problems with list
