@@ -156,14 +156,6 @@ deliver (name) {	# Produce rc=0 and output our CANONIC hostname
 }
 
 
-# optional: Fullname database: <Full_Name>    <login>
-
-if [ -f $MAILVAR/db/fullnames$DBEXTtest  ]; then
-	relation -lmt $DBTYPE -f $MAILVAR/db/fullnames$DBEXT fullnamemap
-else
-	fullnamemap () { return 1 }
-fi
-
 #| The code to use this is disabled in the rrouter function.  This
 #| illustrates a possible mechanism.
 

@@ -1,5 +1,4 @@
 router/functions:
-	To test  $(lreplace ...)  function [ok!]
 	To document  lreplace, and lappend [half-hearted work]
 	To get rid of 'setf' -- 3.0 thing, as is conscell 'prev'
 	component removal, too.

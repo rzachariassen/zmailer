@@ -30,22 +30,85 @@ provide aliases
 # Define the 'Sendmail-like' aliases database
 # 
 
-if [ -f $MAILVAR/db/aliases ]; then
+if [ -f $MAILVAR/db/aliases.zmsh ]; then
+
+    # If that file exists, it contains scripts defining our databases
+    # at load-in time (relation entries), and also runtime callable
+    # entrypoint  aliases(uname) { ... }  which "return 1" in case no
+    # lookup succeeds.  It yields the first lookup result that succeeded.
+    # Also, successfull lookup must yield file privileges of the database
+    # file where the lookup was done.  The return is done to a "priv"
+    # variable which has local scope in the caller's symbol stack.
+
+    . $MAILVAR/db/aliases.zmsh
+
+else
+    if [ -f $MAILVAR/db/aliases ]; then
 	# Need to be updated at boot ?
 	if [ ! -f $MAILVAR/db/aliases$DBEXTtest -o \
 	     $MAILVAR/db/aliases -nt $MAILVAR/db/aliases$DBEXTtest ]; then
 		# Yes, so update!
-		$MAILBIN/zmailer newaliases
+		$MAILBIN/newdb -l -a $MAILVAR/db/aliases
 	fi
-	relation -lmt $DBTYPE -f $MAILVAR/db/aliases$DBEXT aliases
-else
+# ---- raw relation entry
+	relation -lmt $DBTYPE -f $MAILVAR/db/aliases$DBEXT aliasesdb
+# ---- interface function
+	aliases(key) {
+		local a
+		if a="$(aliasesdb "$key")"; then
+		  priv="$(filepriv -M 644 $MAILVAR/db/aliases$DBEXTtest \
+					$(db owner aliasesdb))" &&
+		  return "$a"
+		fi
+		return 1
+	}
+    else
 	aliases () { return 1 }
+    fi
 fi
 
 # If the 'm' option was NOT specified on the aliases relation,
 # presumably whatever creates new aliases will poke us (using SIGURG).
 
-trap "db flush aliases ; log flushed aliases" 16
+trap "db flush aliasesdb ; log flushed aliases" 16
+
+
+#
+# Safeguard if fullnamemapdb() is not yet created (as part of aliases()?)
+#
+case "$(type fullnamemapdb)" in
+*"not found")
+
+    # optional: Fullname database: <Full_Name>    <login>
+
+    if [ -f $MAILVAR/db/fullnames$DBEXTtest  ]; then
+	relation -lmt $DBTYPE -f $MAILVAR/db/fullnames$DBEXT fullnamemapdb
+	fullnamemap (key) {
+	    local a;
+	    if a="$(fullnamemapdb "$key")" ; then
+		# "priv" analysis ???
+		return "$a"
+	    fi
+	    return 1
+	}
+    else
+	fullnamemap () { return 1 }
+    fi
+
+    ;;
+
+*)  # Can be found!
+    case "$(type fullnamemap)" in
+    *"not found")
+	# The DB is there, but not this function, propably as a part of
+	# aliases() database call entry...
+	fullnamemap() { return 1 }
+	;;
+    esac
+    ;;
+esac
+
+
 
 # If an mboxmap file exists, only users specified in the mboxmap are
 # recognized, and we want to deliver to them on the host, home directory
@@ -55,8 +118,8 @@ trap "db flush aliases ; log flushed aliases" 16
 # The mboxmap file is in MAILSHARE because it is identical for all machines
 # in the cluster.
 
-if [ -f $MAILSHARE/db/mboxmap ]; then
-	relation -lmt ordered -f $MAILSHARE/db/mboxmap mboxmap
+if [ -f $MAILSHARE/db/mboxmap$DBEXTtest ]; then
+	relation -lmt $DBTYPE -f $MAILSHARE/db/mboxmap$DBEXT mboxmap
 	POBOX=PObox	# becomes $HOME/../PObox/$USER
 else
 	mboxmap () { return 1 }
@@ -67,8 +130,8 @@ fi
 # Map containing accounts that have expired, we return
 # a special error report on them.
 #
-if [ -f $MAILVAR/db/expiredaccts.pag ]; then
-       relation -lmt ndbm -f $MAILVAR/db/expiredaccts expired
+if [ -f $MAILVAR/db/expiredaccts$DBEXTtest ]; then
+       relation -lmt $DBTYPE -f $MAILVAR/db/expiredaccts$DBTEXT expired
 else
        expired () { return 1 }
 fi
@@ -79,13 +142,11 @@ fi
 #
 # This is where local alias expansion is controlled.
 
-routeuser (quad, domain) {
+routeuser (quad, plustail, domain) {
 	local chan user host lcuser mxh al a l
 	local key attr pobox didexpand nattr homedir
-	local plustail plustail2 forward
+	local plustail2 forward priv hashomedir
 
-
-	plustail=""
 	plustail2=""
 	attr="$(attributes $quad)"
 	chan="$(channel $quad)"
@@ -192,18 +253,39 @@ routeuser (quad, domain) {
 	tfiss
 
 #	alias expansion
-	a="$(aliases "$user")" && [ -z "$didexpand" ] &&
-		db add expansions "$key" alias &&
-		priv=$(filepriv -M 644 $MAILVAR/db/aliases \
-					$(db owner aliases)) &&
-		nattr=$(newattribute $attr privilege $priv) &&
-		return $(echo "$a" | listexpand -e root \
-						-c 'alias expansion' \
-						-N - \
-						"$nattr" "$a" "$host")
+	#[ -z "$didexpand" ] && a="$(aliases "$user")" &&
+	#	db add expansions "$key" alias &&
+	#	priv=$(filepriv -M 644 $MAILVAR/db/aliases \
+	#				$(db owner aliases)) &&
+	#	nattr=$(newattribute $attr privilege $priv) &&
+	#	...
+	if [ -z "$didexpand" ] && a="$(aliases "$user")" ; then
+		db add expansions "$key" alias
+		nattr=$(newattribute $attr privilege $priv \
+			sender "\\$user")
+
+		return $(echo "$a" |			\
+			 listaddresses	-E "root"	\
+					-e "root"	\
+					-c "$user file expansion" | \
+			maprrouter $nattr "$user" "$host" \
+					 "$plustail" "$domain")
+
+	fi
+
+# ---- from rrouter.cf:
+
+	if a="$(fullnamemap "$user")" ; then
+		return $(rrouter "$a" "$user" $attr "$plustail" "$domain")
+	fi
+	if [ "$do_newsgroup" ] && [ -n "$(newsgroup "$user")" ]; then
+		return (((usenet - "$user" $attr)))
+	fi
+
+# ---- end of "from rrouter.cf":
 
 	# Listed in 'expired accounts' database ?
-	[ -z "$PUNTHOST" ] &&  [ -z "$didexpand" ] &&
+	[ -z "$didexpand" ] && [ -z "$PUNTHOST" ] &&
 	    a=$(expired "$user") &&
 		db add expansions "$key" expired &&
 		return (((error acctexpired "$user" $attr)))
@@ -237,7 +319,8 @@ routeuser (quad, domain) {
 #	        return $(listaddresses	-E "$l" -e "$l"	\
 #					-c "$a file expansion" < "$a" |
 #		         maprrouter $(newattribute $attr privilege $priv \
-#					sender "$l") "$a" "$host")
+#					sender "$l")			 \
+#				"$a" "$host" "$plustail" "$domain")
 
 	a="$MAILVAR/lists/$lcuser"
 	nattr=()
@@ -265,7 +348,8 @@ routeuser (quad, domain) {
 						-c "$a file expansion" < "$a" |
 				maprrouter $(newattribute $attr		\
 					      privilege $priv		\
-					      sender "$l") "$a" "$host")
+					      sender "$l")		\
+					"$a" "$host" "$plustail" "$domain")
 			;;
 		esac
 	fi
@@ -279,21 +363,21 @@ routeuser (quad, domain) {
 		a="$MAILVAR/lists/\1"
 		[ -f "$a" ] &&
 		 return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
-					 "$host" $attr "" "")
+					 "$host" $attr "$plustail" "$domain")
 		break
 		;;
 	owner-(.+)
 		a="$MAILVAR/lists/\1"
 		[ -f "$a" ] &&
 		 return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
-					 "$host" $attr "" "")
+					 "$host" $attr "$plustail" "$domain")
 		break
 		;;
 	(.+)-request
 		a="$MAILVAR/lists/\1"
 		[ -f "$a" ] &&
 		 return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
-					 "$host" $attr "" "")
+					 "$host" $attr "$plustail" "$domain")
 		break
 		;;
 	(.*)-group
@@ -302,34 +386,41 @@ routeuser (quad, domain) {
 		  return $(echo $a |
 			   listaddresses -e postmaster -c "$lcuser expansion" |
 			   maprrouter $(newattribute $attr sender postmaster) \
-					"$lcuser" "$host")
+				"$lcuser" "$host" "$plustail" "$domain")
 		;;
 	tfiss
 
 
 #	only allow .forward file reading if privs allow it
 
-	homedir="$(homedirectory "$user")" ||
-	ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
-	(.+)\+.+
+	hashomedir=0
+	if homedir="$(homedirectory "$user")" ; then
+		hashomedir=1
+	else
+	    ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
+	    (.+)\+.+
 		# Try expanding 'user+', and then plain 'user'
 		didexpand=$(expansions "$(channel $quad)\1+")
 		if [ -n "$didexpand" ] ; then
 			return (((bitbucket "$(host $quad)2" "$(user $quad)" $(attributes $quad))))
 			# Return empty -- plusfull was expanded!
 		fi
-		a="$(aliases "\1+")" &&
-		  db add expansions "$key" alias &&
-		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
-					  $(db owner aliases)) &&
-		  nattr=$(newattribute $attr privilege $priv) &&
-		  return $(echo "$a" | listexpand -e root \
-						  -c 'alias expansion' \
-						  -N - \
-						  "$nattr" "$a" "$host")
+		if a="$(aliases "\1+")"; then
+		  db add expansions "$key" alias
+		  nattr=$(newattribute $attr privilege $priv \
+			  sender "\\\1")
+
+		  return $(echo "$a" |			\
+			 listaddresses	-E "root"	\
+					-e "root"	\
+					-c "$user alias expansion" | \
+			maprrouter $nattr "$user" "$host" \
+					 "$plustail" "$domain")
+
+		fi
 		# For a "user+" there is no homedirectory, try plusless below
 		;;
-	(.+)\+(.*)
+	    (.+)\+(.*)
 		# It was 'user+', try now plain 'user' for
 		# aliases, and .forward
 		didexpand=$(expansions "$(channel $quad)\1") &&
@@ -337,16 +428,26 @@ routeuser (quad, domain) {
 			return (((bitbucket "$(host $quad)3" "$(user $quad)" $(attributes $quad))))
 			# Return empty -- plusfull was expanded!
 		fi
-		a="$(aliases "\1")" &&
-		  db add expansions "$key" alias &&
-		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
-					  $(db owner aliases)) &&
-		  nattr=$(newattribute $attr privilege $priv) &&
-		  return $(echo "$a" | listexpand -e root \
-						  -c 'alias expansion' \
-						  -N - \
-						  "$nattr" "$a" "$host")
+
 		plustail2="+\2"
+
+		if a="$(aliases "\1")"; then
+		  db add expansions "$key" alias
+		  nattr=$(newattribute $attr privilege $priv \
+			  sender "\\\1")
+
+		  return $(echo "$a" |			\
+			 listaddresses	-E "root"	\
+					-e "root"	\
+					-c "$user alias expansion" | \
+			maprrouter $nattr "$user" "$host" \
+					 "$plustail2" "$domain")
+
+		fi
+
+		a="$(fullnamemap "\1")" && \
+		  return $(rrouter "$a" "$user" $attr "$plustail2" "$domain")
+
 		pobox="$(mboxmap "\1")" &&
 		  tsift "$pobox" in
 		  ([^:]+):([^:]+):(.+)
@@ -363,9 +464,12 @@ routeuser (quad, domain) {
 			;;
 		  tfist
 
-		homedir="$(homedirectory "\1")"
+		if homedir="$(homedirectory "\1")"; then
+			hashomedir=1
+		fi
 		;;
-	tfiss
+	    tfiss
+	fi
 
 	forward="$homedir/.forward"
 
@@ -376,13 +480,14 @@ routeuser (quad, domain) {
 
 	priv=$(get $attr privilege)
 
-	[ -z "$PUNTHOST" ] && [ -n "$homedir" ] && [ -f "$forward" ] &&
-	[ -z "$didexpand" ] &&
+	if [ -z "$didexpand" -a -z "$PUNTHOST" ] && [ "$hashomedir" ] &&
+	   [ -f "$forward" ] ; then
 	  db add expansions "$key" user &&
 	    priv=$(getpriv "644" $priv "$forward" .forward) &&
 	      return $(listaddresses -e '"\\'"$user"'"' -c "$forward .forward expansion" < "$forward" | \
 			 maprrouter $(newattribute $attr privilege $priv) \
-					"$forward" "$host")
+				"$forward" "$host" "$plustail" "$domain")
+	fi
 
 	# local user with no alias and no .forward file
 
@@ -423,12 +528,26 @@ routeuser (quad, domain) {
 	esac
 
 
-	case x$POBOX in
+# Ending case 1: If not POBOX, let local channel handle it
+	case "x$POBOX" in
 	x)	db add expansions "$key" local
 		if [ -z "$localdoesdomain" ]; then
 			domain=""
 		fi
-		quad=($chan $host "$user$plustail$domain" $attr)
+		quad=($chan "$host" "$user$plustail$domain" $attr)
+		return (($quad))
+		;;
+	esac
+
+# Ending case 2: If not POBOX, nor homedirectory defined, then
+#                fall to "error" case below.
+
+	case "${hashomedir}x$POBOX" in
+	1x)	db add expansions "$key" local
+		if [ -z "$localdoesdomain" ]; then
+			domain=""
+		fi
+		quad=($chan "$host" "$user$plustail$domain" $attr)
 		return (($quad))
 		;;
 	esac
@@ -488,7 +607,7 @@ newattribute (oldattribute) {
 # return value is the concatenation of the return values of the rrouter
 # invocations.
 
-maprrouter (attribute, localpart, origaddr) {
+maprrouter (attribute, localpart, origaddr, plustail, domain) {
 	local shh al
 
 	al=()
@@ -502,7 +621,8 @@ maprrouter (attribute, localpart, origaddr) {
 		esac
 
 		defer=''
-		shh=$(rrouter "$address" "$origaddr" $attribute "" "")
+		shh=$(rrouter "$address" "$origaddr" $attribute \
+			"$plustail" "$domain")
 		[ "$defer" ] &&
 		    shh=(((hold "$defer" "$address" $attribute)))
 		defer=''

@@ -1,0 +1,51 @@
+# This is example of file:  $MAILVAR/db/aliases.zmsh 
+# If that file exists, it contains scripts defining our databases
+# at load-in time (relation entries), and also runtime callable
+# entrypoint  aliases(uname) { ... }  which "return 1" in case no
+# lookup succeeds.  It yields the first lookup result that succeeded.
+# Also, successfull lookup must yield file privileges of the database
+# file where the lookup was done.  The return is done to a "priv"
+# variable which has local scope in the caller's symbol stack.
+
+if [ -f $MAILVAR/db/aliases ]; then
+	# Need to be updated at boot ?
+	if [ ! -f $MAILVAR/db/aliases$DBEXTtest -o \
+	     $MAILVAR/db/aliases -nt $MAILVAR/db/aliases$DBEXTtest ]; then
+		# Yes, so update!
+		$MAILBIN/newdb -l -a $MAILVAR/db/aliases
+	fi
+
+# ---- raw relation entries
+
+	relation -lmt $DBTYPE -f $MAILVAR/db/aliases$DBEXT aliasesdb
+
+# ---- interface function
+
+	aliases(key) {
+	    local a
+	    # Usage of "if" around the lookup and store is IMPORTANT!
+	    if a="$(aliasesdb "$key")" ; then
+		priv=$(filepriv -M 644 $MAILVAR/db/aliases$DBEXTtest \
+				$(db owner aliasesdb)) &&
+		return "$a"
+	    fi
+	    return 1
+	}
+
+#
+# Substitution to "priv" variable DOES NOT WORK in following code:
+# (use the style above with 'if' where the db-lookup is the conditionality)
+#
+#	aliases(key) {
+#	    local a
+#	    a="$(aliasesdb "$key")" &&
+#		priv=$(filepriv -M 644 $MAILVAR/db/aliases$DBEXTtest \
+#				$(db owner aliasesdb)) &&
+#		return "$a"
+#	    return 1
+#	}
+
+else
+	aliases () { return 1 }
+fi
+

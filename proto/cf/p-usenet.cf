@@ -6,6 +6,9 @@
 #require
 provide usenet
 
+do_newsgroup=1	# A signal to aliases.cf about the existence of this
+		# database..
+
 # optional: newsgroup database in news.group format
 if [ -f $MAILVAR/db/active$DBEXTtest ]; then
 

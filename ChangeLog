@@ -1,3 +1,21 @@
+1998-06-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf, proto/cf/p-usenet.cf,
+	  proto/cf/rrouter.cf, proto/cf/standard.cf,
+	  proto/db/aliases.zmsh.example:
+	    Major reorganisation of scripts;
+	    - All things that have something to do with local users
+	      are clustered into aliases.cf. (Away from  standard.cf,
+	      and from  rrouter.cf)
+	    - A new calling arguments for  routeuser (aliases.cf,
+	      and rrouter.cf)
+	    - Smart "+plustail" processing into fqdnaliases.cf
+	    - Hooks in between p-usenet.cf, and aliases.cf to handle
+	      'newsgroup' database.
+	    With these the system can handle usernames that have
+	    dots in them, and unifying multiple (in theory: arbitary
+	    number of: aliases.zmsh.example) aliases, and other databases.
+
 1998-06-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* include/policy.h, smtpserver/policytest.c, smtpserver/policytest.h,

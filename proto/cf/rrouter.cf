@@ -71,7 +71,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 #	\\(.+)	return (((local - "$address" $A))) ;;
 	@	# handle <> form ???
 		tmp=(local user postmaster $A)
-		return $(routeuser $tmp "")
+		return $(routeuser $tmp "$plustail" "")
 		;;
 
 ## -----------------------------------------------------------------
@@ -209,11 +209,19 @@ rrouter (address, origaddr, A, plustail, domain) {
 		;;
 	tfist
 
+# ------- begin new "localpart" processing
+
+	tmp=(local "$origaddr" "$address" $A)
+	return $(routeuser $tmp "$plustail" "$domain")
+
+# ------- end new "localpart" processing
+# ------- rest of the function is never run...
+
 	ssift "$address" in
 	\\(.+)	# A back-quote prefixed userid (most likely)
 		#return $(rrouter "\1" "$origaddr" $A "$plustail" "")
 		tmp=(local "$origaddr" "$address" $A)
-		return $(routeuser $tmp "")
+		return $(routeuser $tmp "$plustail" "")
 		;;
 
 	/.+	# file
@@ -227,7 +235,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		# We must test this here, because the file-path after
 		# this prefix may have a dot!
 		tmp=(local "$origaddr" "$address" $A)
-		return $(routeuser $tmp "")
+		return $(routeuser $tmp "$plustail" "")
 		;;
 	# Ok, from now on if we don't have a domain set, we use $mydomain
 	.*	if [ -z "$domain" ] ; then
@@ -253,7 +261,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 			# It can be found from the normal aliases,
 			# run the alias processing!
 			tmp=(local "$origaddr" "$address" $A)
-			return $(routeuser $tmp "$domain")
+			return $(routeuser $tmp "$plustail" "$domain")
 		fi
 		return (((error norealname "$address" $A)))
 		return (((error nonewsgroup "$address" $A)))
@@ -261,7 +269,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 
 	.*	# Now all the rest of the cases..
 		tmp=(local "$origaddr" "$address$plustail" $A)
-		return $(routeuser $tmp "$domain")
+		return $(routeuser $tmp "$plustail" "$domain")
 		;;
 	tfist
 }	# end of rrouter
@@ -271,7 +279,7 @@ routes_spec (domain, address, A) {
 
 	tsift "$domain" in
 #	(bsmtp3nd|bsmtp3|bitnet2|bitnet2deliver2)!(.)!(.)
-	(bsmtp3nd|bsmtp3|bsmtp3nd|bsmtp3rfc|bsmtp3ndrfc)!(.)!(.)
+	(bsmtp3nd|bsmtp3|bsmtp3rfc|bsmtp3ndrfc)!(.)!(.)
 		return ((("\1" "\2@\3" "$address" $A))) ;;
 	(defrt1)!(.)
 		channel="\1"
