@@ -36,6 +36,10 @@ if ($QAmode) {
   echo ("<H2>Selected listing of queues with retried entries</H2>");
 } else {
   echo ("<H2>Unabridged queue listing</H2>");
+  echo ("<UL>");
+  echo ("<LI><FONT COLOR=BLUE>BLUE</FONT> lines have QA over 3d0h, potential for expiring!");
+  echo ("<LI><FONT COLOR=RED>RED</FONT> lines have too high value for HA=");
+  echo ("</UL>");
 }
 
 

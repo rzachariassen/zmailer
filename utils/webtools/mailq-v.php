@@ -9,6 +9,8 @@
 <P>
  <A HREF="mailq-q.php?QA=3">Long-duration queue entries</A>
 &nbsp;
+ <A HREF="mailq-q.php?A=1">Queues with retries</A>
+&nbsp;
  <A HREF="mailq-q.php">Full queue print</A>
 
 <P>
