@@ -3,6 +3,12 @@
 	* configure.in:
 	    Version label: 2.99.57-pre1
 
+	* smtpserver/subdaemons.c, smtpserver/Makefile.in,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h:
+	    Coding subdaemon-server subsystem.
+	    This does not even compile right now..  must get
+	    another opinnion from SunCC to understand the bug..
+
 	* proto/post-install.sh.in:
 	    Do CONDITIONALLY create individual subdirectories
 	    inside the $POSTOFFICE  when called.  E.g. if a directory

@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2003.
+ *      Copyright 1991-2004.
  */
 
 /*
@@ -15,10 +15,7 @@
 
 const char *VerbID = "ZMailer SMTP server %s";
 const char *Copyright = "Copyright 1990 Rayan S. Zachariassen";
-const char *Copyright2 = "Copyright 1991-2003 Matti Aarnio";
-
-/* Timing parameters -- when expired, session is killed ... */
-
+const char *Copyright2 = "Copyright 1991-2004 Matti Aarnio";
 
 #include "identuser.h"
 #ifdef USE_TRANSLATION
@@ -855,6 +852,9 @@ char **argv;
 	  if (lmtp_mode && (!bindport_set || (bindport_set && bindport == 25)))
 	    lmtp_mode = 0; /* Disable LMTP mode unless we are bound at other
 			      than port 25. */
+
+	resources_maximize_nofiles();
+	subdaemons_init();
 
 #ifdef HAVE_OPENSSL
 	Z_init(); /* Some things for private processors */
