@@ -2054,7 +2054,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	pid = fork();
 	if (pid == 0) { /* child */
-	  environ = (char**)env;
+	  const char *argv[100];
+
 	  setregid(gid,gid);
 	  setreuid(uid,uid);
 	  close(in[0]);
@@ -2071,6 +2072,28 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  SIGNAL_IGNORE(SIGINT);
 	  SIGNAL_IGNORE(SIGHUP);
 	  SIGNAL_HANDLE(SIGTERM, SIG_DFL);
+
+#if 1 /* hmm.. must split the command line to inputs for  execve();
+	 I have uses for strict environment without  /bin/sh ... [mea] */
+
+	  cp = cmdbuf+1;
+	  i = 0;
+	  for (; *cp != 0; ++cp) {
+	    while (*cp == ' ') ++cp;
+	    if (*cp == '\'') {
+	      argv[i++] = ++cp;
+	      while (*cp != 0 && *cp != '\'') ++cp;
+	      if (*cp == '\'') *cp++ = 0;
+	    } else if (*cp != 0)
+	      argv[i++] = cp;
+	    while (*cp != 0 && *cp != ' ') ++cp;
+	    if (*cp == ' ') *cp++ = 0;
+	  }
+	  argv[i] = NULL;
+	  execve(argv[0], argv, env);
+
+#else
+
 	  /*
 	   * Note that argv[0] is set to the command we are running.
 	   * That way, we should get some better error messages, at
@@ -2078,8 +2101,10 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	   * Some bourne shells may go into restricted mode if the
 	   * stuff to run contains an 'r'. XX: investigate.
 	   */
+
 	  execl("/bin/sh",  cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
 	  execl("/sbin/sh", cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
+#endif
 	  write(2, "Cannot exec /bin/sh\n", 20);
 	  _exit(128);
 	} else if (pid < 0) {	/* fork failed */
