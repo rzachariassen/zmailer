@@ -409,11 +409,9 @@ An error here will be reported with obscureish code;
 .IP PARAM\ contentfilter\ $MAILBIN/smtp-contentfilter
 An external program for received message content analysis.
 
-The interface to the program is simple synchronous half-duplex one,
-smtpserver writes relative filepath of the message into programs stdin,
-ending it with a newline.
-The filter programs reply must begin with a signed integer, then whatever
-text is desired to give to the user.
+The interface is desribed below at
+.I "CONTENTFILTER INTERFACE"
+section.
 
 .IP PARAM\ tarpit\ n1\ n2
 This defines a pre-reply slow-down factor, and next delay multiplier
@@ -670,11 +668,6 @@ program is started without parameters running userid of
 .I daemon 
 in directory $POSTOFFICE.
 .PP
-The program must silently wait for input, which is full path to
-the message spool file, analyze it, and reply with exactly one
-line matching rule of: "%i " -- begin with signed integer, then
-have one or more whitespace, then whatever filter writer liked.
-.PP
 The protocol in between the
 .IR smtpserver (8),
 and the content-policy program is a clone from the scheduler to
@@ -690,7 +683,16 @@ Namely:
 .PP
 3) policy: \fC"RESULT DATA\\n"\fR
 .PP
-The loop repeats from 1, unless either sees an EOF, when reading.
+The loop repeats from 1, and terminates at 2, when the
+content-filter program reads an EOF.
+.PP
+The
+.I smtpserver
+does expect that the
+.I contentfilter
+program behaves according to this protocol, and e.g. a system
+where the filter program runs once, and exists, has in the past
+proven incompatible with the system.
 .RE
 .PP
 General rule:
@@ -723,9 +725,10 @@ then some possibly senseless default is supplied.)
 .PP
 Interface message text lines beginning with anything except signed integer
 are logged, and the communication channel from the smtpserver to the
-contentfilter program is closed.  Interface continues to scan things
-reported by the contentfilter program, and if no properly formatted line
-appears, default is to send the message into the freezer ("-1");
+contentfilter program is closed.
+Interface continues to scan things reported by the contentfilter program,
+and if no properly formatted line appears, default is to send the message
+into the freezer with code "1".
 .SH TCP\-WRAPPER AND SMTPSERVER
 If the ZMailer system is configured with \fItcp-wrapper\fR code,
 and ``PARAM use\-tcp\-wrapper'' is active in configuration,
