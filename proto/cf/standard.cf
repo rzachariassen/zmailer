@@ -15,10 +15,10 @@ log () {
 #| /etc/zmailer.conf.  If set, it will restrict log output to messages that
 #| begin with tags in the string value of the variable.
 	''|*"$1"*)
-		echo "$(get envelopeinfo message-id):" "$@"  ;;
+		echo -- "$(get envelopeinfo message-id):" "$@"  ;;
 	*)	# We want to log anything that doesn't have a tag!
 		case "$1" in
-		*[^:])	echo "$(get envelopeinfo message-id):" "$@" ;;
+		*[^:])	echo -- "$(get envelopeinfo message-id):" "$@" ;;
 		esac ;;
 	esac
 }
@@ -159,7 +159,7 @@ deliver (name) {	# Produce rc=0 and output our CANONIC hostname
 		if [ -z "$dtmp" ]; then
 			dtmp="$name"	# Its blank -> its the original $name.
 		fi
-		$(otherservers "$name") || { echo "$dtmp" ; return 0 }
+		$(otherservers "$name") || { echo -- "$dtmp" ; return 0 }
 	fi
 	return 1 # error code return
 }

@@ -47,10 +47,10 @@ if [ -f /etc/resolv.conf -o -f /usr/etc/resolv.conf ]; then
 #| (UK) orderings.
 
 	# reverse the order of the subdomain levels in the domain name
-		tsift $domain in
-		([^.]).(.+)	domain=$(revdomain \2).\1 ;;
+		tsift "$domain" in
+		([^.]).(.+)	domain="$(revdomain \2).\1" ;;
 		tfist
-		echo $domain
+		echo -- "$domain"
 	}
 
 	gethostbyaddr (ipaddrliteral) {

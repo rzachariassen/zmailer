@@ -269,15 +269,15 @@ routeuser (quad, plustail, domain) {
 		;;
 	esac
 
-	user=$(condquote $user)
-	host=$(condquote $host)
+	user=$(condquote -- $user)
+	host=$(condquote -- $host)
 
 # echo "routeuser: host=$host, user=$user" >> /dev/tty
 
 	[ -n "$FORCEPUNT" ] &&
 		returns $(rrouter "$user@$FORCEPUNT" "$host" $attr "" "")
 
-	ssift $(dequote $user) in
+	ssift $(dequote -- $user) in
 	\\(.*)	user="\1" # Back-quoted username -- most likely
 		#didexpand=local
 		;;
@@ -314,7 +314,7 @@ routeuser (quad, plustail, domain) {
 #	# Here we have SPACE and TAB in this pattern!
 #	'[^"]*[ 	][^"]*'
 #		# If the $user had no quotes on it, we add them here!
-#		if [ "$(dequote "$user")" = "$user" ]; then
+#		if [ "z$(dequote -- "$user")" = "z$user" ]; then
 #			user="\"$user\""
 #		fi
 #		;;
@@ -331,7 +331,7 @@ routeuser (quad, plustail, domain) {
 		nattr=$(newattribute $attr privilege $priv)
 		$(zapDSNnotify $nattr expanded "$sender" "$user$domain")
 
-		a=$(echo "$a" |				\
+		a=$(echo -- "$a" |				\
 		    listaddresses	-E "root"	\
 					-e "root"	\
 					-c "$user file expansion" | \
@@ -375,7 +375,7 @@ routeuser (quad, plustail, domain) {
 	  if pobox="$(mboxmap "$user")"; then
 		tsift "$pobox" in
 		([^:]+):([^:]+):(.+)
-			if [ "\1" != $hostname ]; then
+			if [ "z\1" != "z$hostname" ]; then
 				returns (((smtp "\1" "$user@\1" $attr)))
 			fi
 			user="\3"	# this is also good for .forward stuff
@@ -394,7 +394,7 @@ routeuser (quad, plustail, domain) {
 	priv=$(get $attr privilege)
 
 	# check in the mailing list directory
-	lcuser="$(recase -l "$user")"
+	lcuser="$(recase -l -- "$user")"
 
 	l="$preowner$lcuser$postowner$domain"
 #	a="$MAILVAR/listrun/$lcuser"
@@ -443,7 +443,7 @@ routeuser (quad, plustail, domain) {
 			nattr=$(newattribute $attr privilege $priv sender "$l")
 			$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
 
-			# echo "$l exists!" >> /dev/tty
+			# echo -- "$l exists!" >> /dev/tty
 			a=$(runas $priv cat "$a" | \
 			    listaddresses	-E "$l$domain"		\
 						-e "$l"			\
@@ -514,7 +514,7 @@ routeuser (quad, plustail, domain) {
 		    db add expansions "$key.unixgroup" 1
 		    nattr=$(newattribute $attr privilege $nobodypriv )
 		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
-		    a=$(echo "$a" |
+		    a=$(echo -- "$a" |
 			listaddresses -e postmaster -c "$lcuser expansion" |
 			maprrouter $nattr $lcuser "$host" "$plustail" \
 				   "$domain")
@@ -631,7 +631,7 @@ fi
 	if homedir="$(homedirectory "$user")" ; then
 		hashomedir=1
 	else
-	    [ "$defer" ] &&
+	    [ -n "$defer" ] &&
 		    returns (((hold "$defer" "$address" $attr)))
 
 	    ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
@@ -643,7 +643,7 @@ fi
 		  nattr=$(newattribute $attr privilege $priv)
 		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
-		  a=$(echo "$a" |			\
+		  a=$(echo -- "$a" |			\
 		      listaddresses	-E "root"	\
 					-e "root"	\
 					-c "$user alias expansion" | \
@@ -666,7 +666,7 @@ fi
 		  nattr=$(newattribute $attr privilege $priv)
 		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
-		  a=$(echo "$a" |			\
+		  a=$(echo -- "$a" |			\
 		      listaddresses	-E "root"	\
 					-e "root"	\
 					-c "$user alias expansion" | \
@@ -690,7 +690,7 @@ fi
 		pobox="$(mboxmap "\1")" &&
 		  tsift "$pobox" in
 		  ([^:]+):([^:]+):(.+)
-			if [ "\1" != $hostname ]; then
+			if [ "z\1" != "z$hostname" ]; then
 				returns (((smtp "\1" "$user@\1" $attr)))
 			fi
 			plustail="$plustail2"
@@ -705,7 +705,7 @@ fi
 		if homedir="$(homedirectory "\1")"; then
 			hashomedir=1
 		fi
-		[ "$defer" ] &&
+		[ -n "$defer" ] &&
 		    returns (((hold "$defer" "$address" $attr)))
 		;;
 	    tfiss
@@ -807,10 +807,10 @@ fi
 # people stop complainig about the former behaviour...
 
 getpriv (maxperm, priv, file, type) {
-#echo "getpriv($maxperm, $priv, $file, $type)" > /dev/tty
+#echo -- "getpriv($maxperm, $priv, $file, $type)" > /dev/tty
 	for ptype in $(elements $private)
 	do
-		if [ $type = $ptype ]; then
+		if [ "z$type" = "z$ptype" ]; then
 			filepriv -M $maxperm "$file"
 			return $?
 		fi
@@ -825,19 +825,15 @@ getpriv (maxperm, priv, file, type) {
 
 newattribute (oldattribute) {
 	local a null value
-#echo "newattribute(old=$oldattribute,args=$*)" > /dev/tty
+#echo -- "newattribute(old=$oldattribute,args=$*)" > /dev/tty
 	a=$(gensym)
 	eval $a=\$$oldattribute
 	while [ "$#" != 0 ];
 	do
 		lreplace $a "$1" "$2"
-		# value=$(get $a "$1")
-		# if [ x"$value" != x"$2" ]; then
-		# 	null=$(setf $(get $a "$1") "$2")
-		# fi
 		shift ; shift
 	done
-	echo "$a"
+	echo -- "$a"
 }
 
 # Usage: maprrouter <newattributes> <what-is-being-expanded> <what-it-was>
@@ -864,7 +860,7 @@ maprrouter (attribute, localpart, origaddr, plustail, domain) {
 		defer=''
 		shh=$(rrouter "$address" "$origaddr" $attribute \
 			"$plustail" "$domain")
-		[ "$defer" ] &&
+		[ -n "$defer" ] &&
 		    shh=(((hold "$defer" "$address" $attribute)))
 		defer=''
 		lappend al $shh

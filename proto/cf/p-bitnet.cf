@@ -124,7 +124,7 @@ bitnetShortroute (address) {
 
 bitnet2internet (address) {
 	tsift "$address" in
-	(.)@(.)		address="$(recase -l "\1%\2").bitnet@${mydomain}" ;;
+	(.)@(.)		address="$(recase -l -- "\1%\2").bitnet@${mydomain}" ;;
 	tfist
 	return $(internet "$address")
 }	# end of bitnet2internet

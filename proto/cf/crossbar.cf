@@ -273,7 +273,7 @@ intramachine (address, hname) {		# strip hostname if it came from here
 
 	tsift "$address" in
 	(.*)@($hostname|$mydomain)
-		address="$(condquote "\1")" ;;
+		address="$(condquote -- "\1")" ;;
 	tfist
 	returns "$address"
 }	# end of intramachine
@@ -352,7 +352,7 @@ internet (address, hname) {
 	(.*)<(.+)>(.*)	address="\1\2\3" ;;		# defocus
 	[^@]+
 		# This is a local part address w/o any domains!
-		address="$(condquote "$address")"
+		address="$(condquote -- "$address")"
 		address="$address@$mydomain"	# add our hostname
 		;;
 	tfist

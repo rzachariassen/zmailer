@@ -298,8 +298,8 @@ routeuser (quad, plustail, domain) {
 		;;
 	esac
 
-	user="$(condquote "$(user $quad)")"
-	host="$(condquote "$(host $quad)")"
+	user="$(condquote -- "$(user $quad)")"
+	host="$(condquote -- "$(host $quad)")"
 
 # echo "routeuser: host=$host, user=$user" >> /dev/tty
 
@@ -327,7 +327,7 @@ routeuser (quad, plustail, domain) {
 #	# Here we have SPACE and TAB in this pattern!
 #	'[^"]*[ 	][^"]*'
 #		# If the $user had no quotes on it, we add them here!
-#		if [ "$(dequote "$user")" = "$user" ]; then
+#		if [ "$(dequote -- "$user")" = "$user" ]; then
 #			user="\"$user\""
 #		fi
 #		;;
@@ -393,9 +393,9 @@ routeuser (quad, plustail, domain) {
 		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
 					  $(db owner aliases)) &&
 		  nattr=$(newattribute $attr privilege $priv) &&
-		  returns $(echo "$a" | listexpand -e root \
+		  returns $(echo -- "$a" | listexpand -e root \
 						  -c 'alias expansion' \
-						  -N - \
+						  -N -   -- \
 						  "$nattr" "$a" "$host")
 		# For a "user+" there is no homedirectory, try plusless below
 		;;
@@ -412,9 +412,9 @@ routeuser (quad, plustail, domain) {
 		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
 					  $(db owner aliases)) &&
 		  nattr=$(newattribute $attr privilege $priv) &&
-		  returns $(echo "$a" | listexpand -e root \
+		  returns $(echo -- "$a" | listexpand -e root \
 						  -c 'alias expansion' \
-						  -N - \
+						  -N -   --  \
 						  "$nattr" "$a" "$host")
 		plustail2="+\2"
 		pobox="$(mboxmap "\1")" &&
@@ -559,7 +559,7 @@ expand_lists(user,host,attr,key) {
 	priv=$(get $attr privilege)
 
 	# check in the mailing list directory
-	lcuser="$(recase -l "$user")"
+	lcuser="$(recase -l -- "$user")"
 
 	l="$preowner$lcuser$postowner$domain"
 #	a="$MAILVAR/listrun/$lcuser"
@@ -593,7 +593,7 @@ expand_lists(user,host,attr,key) {
 		case "$lcuser" in
 		*-mod)
 			l="$preowner$(basename "$lcuser" -mod)$postowner"
-			# echo "$l exists!" >> /dev/tty
+			# echo -- "$l exists!" >> /dev/tty
 			returns $(runas $priv cat "$a" | \
 				 listaddresses	-E "$l$domain"		\
 						-e "$l"			\
@@ -719,7 +719,7 @@ expand_listserv(user,host,attr,key) {
 	local LISTSERV a listbase lcuser
 
 	# check in the mailing list directory
-	lcuser="$(recase -l "$user")"
+	lcuser="$(recase -l -- "$user")"
 
 	LISTSERV="/v/net/listserv.funet.fi"
 	a="$LISTSERV/home/$lcuser.list"

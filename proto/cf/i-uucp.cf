@@ -59,7 +59,7 @@ if [ -f $MAILVAR/db/pathdb.dir -o -f $MAILVAR/db/pathdb ]; then
 		.*%s.*	log Pathalias database contains illegal route: $path
 			;;
 		tfist
-		echo $path
+		echo -- $path
 	}
 else
 
@@ -76,7 +76,7 @@ else
 
 			pathalias (host) {
 				if [ "$(ldotsys $host)" ]; then
-					echo $hostname
+					echo -- $hostname
 				fi
 			}
 			break

@@ -86,7 +86,7 @@ routeuser (quad) {
 
 	attr=$(attributes $quad)
 	user="$(user $quad)"
-    lcuser="$(recase -l "$user")"
+    lcuser="$(recase -l -- "$user")"
 	host="$(host $quad)"
     priv=$(get $attr privilege)
 
@@ -133,7 +133,7 @@ routeuser (quad) {
 
     # expand the  user's .forward file
     $(expansions "$key"-user) ||
-    [ "$(recase -l "$DOT_FORWARD_FILE")" != "ignore" ] &&
+    [ "$(recase -l -- "$DOT_FORWARD_FILE")" != "ignore" ] &&
         a="$(homedirectory "$user")/.forward" && [ -f "$a" ] &&
         db add expansions "$key"-user "" &&
         priv=$(getpriv $priv "$a" .forward) &&
@@ -263,7 +263,7 @@ maprrouter (attribute, localpart, origaddr, fwdchk) {
 			shh=(((hold "$defer" "$address" $attribute)))
 		defer=''
 
-		if [ "$(recase -l "$fwdchk")" = "restricted" ]; then
+		if [ "$(recase -l -- "$fwdchk")" = "restricted" ]; then
 			tmp=$(car $(car $shh))
 			case "$(channel $tmp)" in
 			local)

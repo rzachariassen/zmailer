@@ -71,7 +71,7 @@ focus (address) {
 				address="\1<@\2.uucp>\3"
 			fi ;;
 	tfist
-	echo "$address"
+	echo -- "$address"
 }	# end of focus
 
 #
@@ -79,7 +79,7 @@ focus (address) {
 #
 case "$(type canon)" in
 *"not found")
-	canon () { echo "$@" } ;;
+	canon () { echo -- "$@" } ;;
 esac
 #
 # Safeguard if deliver() is not there
@@ -128,7 +128,7 @@ canonical (host) {
 }
 
 canonicalize (address) {
-	# address="$(dequote "$address")"
+	# address="$(dequote -- "$address")"
 #
 # We need string ssift to detect '|' because '|' is not RFC822 special
 #
@@ -137,7 +137,7 @@ canonicalize (address) {
 		break	# /S=R.SCHNEIDER/OU1=S28A@MHS-FSWA.ATTMAIL.COM
 		;;
 	((\|.+)|(/.+)|(:include:.+))		# unqouted pipes and files
-		echo "$address"			# pass through
+		echo -- "$address"		# pass through
 		return
 		;;
 	tfiss
@@ -223,7 +223,7 @@ canonicalize (address) {
 		;;
 	tfist
 
-	echo "$address"
+	echo -- "$address"
 }
 
 
@@ -234,7 +234,7 @@ canonicalize (address) {
 xx_canonicalize (address) {
 	# -- stringwise sift
 	ssift "$address" in
-	\|.+		echo "$address" ; return ;;	# pass through
+	\|.+		echo -- "$address" ; return ;;	# pass through
 	tfiss
 
 	## -- tokenized sift
@@ -242,7 +242,7 @@ xx_canonicalize (address) {
 	ssift "$address" in
 	# preliminaries
 	<>		echo @ ; return ;;		# turn into magic token
-	:include:.+	echo "$address" ; return ;;	# pass through
+	:include:.+	echo -- "$address" ; return ;;	# pass through
 	('"'.*'"')<(.*)>(.*)
 			address="\1\2\3" ;;		# defocus
 #	('"'.*'"')(.*)<(.*)	# Extra "<" with an address
@@ -260,10 +260,10 @@ xx_canonicalize (address) {
 	# Reversed JANET addresses...
 #	(.*)@uk.ac.(.*)	address="\1@$(revdomain uk.ac.\2)";
 #			address="$(canonicalize "$address")";
-#			echo "$address"; return;;
+#			echo -- "$address"; return;;
 #	(.*)@UK.AC.(.*)	address="\1@$(revdomain UK.AC.\2)";
 #			address="$(canonicalize "$address")";
-#			echo "$address"; return;;
+#			echo -- "$address"; return;;
 
 #	in%(.*)		echo "<in%>\1" ; return ;; # in%".." cludge
 #	IN%(.*)		echo "<in%>\1" ; return ;; # in%".." cludge
@@ -297,5 +297,5 @@ xx_canonicalize (address) {
 	([^:]+):(.+)	focus "\2<@\1>" ; return ;;	   # berknet syntax
 #	(.)\=(.+)	focus "\2<@\1.bitnet>" ; return ;; # bitnet kludge
 	tfiss
-	echo "$address"
+	echo -- "$address"
 }	# end of canonicalize

@@ -24,7 +24,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 	tmp=$(fqdn_neighbour "$origaddr" "$address" $A) &&
 		returns $tmp
 
-	#address="$(condquote "$address")"
+	#address="$(condquote -- "$address")"
 
 	#
 	# We have troublesome addresses coming here...
@@ -77,7 +77,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 #	 handle special cases.....
 #	\\(.+)	returns (((local - "$address" $A))) ;;
 	@	# handle <> form ???
-		if [ "$(get $A type)" = sender ]; then
+		if [ "z$(get $A type)" = zsender ]; then
 			tmp=(error user postmaster $A)
 		else
 			tmp=(local user postmaster $A)
@@ -100,7 +100,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 #		;;
 	(.*)<@\[(.+)\]>(.*)
 		# numeric internet spec
-		if [ $(selfmatch "\2") ]; then
+		if $(selfmatch "\2") ; then
 			address="\1$plustail<@>\3"
 			domain="@[\2]"
 			plustail=""
@@ -123,7 +123,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		plustail=""
 		;;
 	<@(.*)>[:,](.+)@(.+)
-		if [ $(deliver "\1") ]; then # Source routed to our name ?
+		if tmp=$(deliver "\1") ; then # Source routed to our name ?
 			tmp=$(rrouter "\2$plustail@\3" "$origaddr" $A "" "") \
 				&& returns $tmp
 			return $tmp # error code return
@@ -139,12 +139,12 @@ rrouter (address, origaddr, A, plustail, domain) {
 		# This recase is needed to handle testing against
 		# $hostname variable content, which is supposedly
 		# lowercase name.
-		tmp="$(recase -l "\2")"
-		if [ $(deliver "$tmp") ]; then	# Do we handle this ?
+		tmp="$(recase -l -- "\2")"
+		if tee=$(deliver "$tmp") ; then	# Do we handle this ?
 			address="\1$plustail<@>\3"
 			domain="@\2"
 			plustail=""
-		elif [ "$tmp" = "$hostname" ]; then # Is it at local host ?
+		elif [ "z$tmp" = "z$hostname" ]; then # Is it at local host ?
 			address="\1$plustail<@>\3" # (this is a backup test)
 			domain="@\2"
 			plustail=""
@@ -186,7 +186,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		plustail=""
 
 
-		#if [ x$seenbitnet = xtrue ]; then
+		#if [ "z$seenbitnet" = ztrue ]; then
 		#	address="\1@\2.bitnet"
 		#fi
 
@@ -198,7 +198,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 				returns $tmp
 		done
 
-		#if [ x$seenuucp = xtrue ]; then
+		#if [ "z$seenuucp" = ztrue ]; then
 		#	if [ "$UUCPACTION" != "" ]; then
 		#		returns ((($UUCPACTION "\1@\2.uucp" $A)))
 		#	fi
@@ -206,7 +206,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		#		returns $tmp
 		#fi
 
-		#if [ x$seenbitnet = xtrue ]; then
+		#if [ "z$seenbitnet" = ztrue ]; then
 		#	if [ "$BITNETACTION" != "" ]; then
 		#		returns ((($BITNETACTION "\1@\2.BITNET" $A)))
 		#	fi
@@ -219,7 +219,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 
 	# Ok, possible LOCAL things must be matched dequoted here!
 
-	ssift "$(dequote "$address")" in
+	ssift "$(dequote -- "$address")" in
 	\\(.+)	# A back-quote prefixed userid (most likely)
 		##tmp=$(rrouter "\1" "$origaddr" $A "$plustail" "") &&
 		##   returns $tmp

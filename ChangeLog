@@ -1,3 +1,27 @@
+2001-10-10  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* proto/cf/aliases.cf,  proto/cf/aliases-new.cf, proto/cf/canon.cf,
+	  proto/cf/crossbar.cf, proto/cf/fqdnaliases.cf, proto/cf/server.cf,
+	  proto/cf/fussy-aliases.cf, proto/cf/i-smtp.cf, proto/cf/i-uucp.cf,
+	  proto/cf/p-bitnet.cf, proto/cf/rrouter.cf, proto/cf/standard.cf:
+	    Noticed strange bounces which turned out to be due to
+	    calls of functions which have optional options beginning
+	    with '-' character.  These fixes handle cases where localpart
+	    and/or domain name begins with a minus.  A full throughout
+	    analysis of all functions inside the router, and related
+	    documentation in the ZMailer Manual is future project.
+
+2001-10-09  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* man/smtpserver.8, smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpcmds.c, smtpserver/cfgparse.c, proto/smtpserver
+	    PARAM force-rcpt-notify-never
+	    Whatever the incoming DNS NOTIFY= value is, we force it always
+	    to be NOTIFY=NEVER.   This is for those who won't like to let
+	    others even to find out that the message made into the system,
+	    but still want to support incoming DSN.
+	    (That is, not to disable DSN!)
+
 2001-10-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* proto/cf/p-smtp.cf, proto/cf/standard.cf, proto/cf/trusted.cf:

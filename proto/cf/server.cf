@@ -9,7 +9,7 @@ quadprint (quad) {
 
 	user="$(user $quad)"
 	case $(channel $quad) in
-	local)	ssift "$(dequote "$user")" in
+	local)	ssift "$(dequote -- "$user")" in
 		[|/].*	text="250 2.1.5 local delivery for"
 			break
 			;;
@@ -30,7 +30,7 @@ quadprint (quad) {
 			if text="$(fullname "$user")"; then
 				text="250 2.1.5 $text"
 			else
-				if text="$(fullname "$(recase -l "$user")")"; then
+				if text="$(fullname "$(recase -l -- "$user")")"; then
 					text="250 2.1.5 $text"
 				else
 					text="550 5.1.1 no such user:"
