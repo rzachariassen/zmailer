@@ -40,6 +40,7 @@ install:
 		fi ;						\
 	done
 	@$(INSTALL) -m 755 $(srcdir)/bitbucket $(MAILBIN)/ta
+	@$(INSTALL) -m 755 listexpand $(MAILBIN)/ta
 	@cd makedb ; $(MAKE) $(MFLAGS) install
 	@cd vacation ; $(MAKE) $(MFLAGS) install
 

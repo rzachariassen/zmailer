@@ -2,7 +2,7 @@
  *  listexpand -- expand mailinglist from a file to have an envelope
  *		  containing all the addresses listed individually.
  *
- *  listexpand owner@address /path/to/file/containing/addresses
+ *  listexpand owner@address /path/to/file/containing/addresses privuid
  *
  *  This EXPECTS things from the listfile:
  *	recipient@address <TAB> (other data in comments) <NEWLINE>
@@ -50,7 +50,7 @@ extern char *strchr();
 
 void usage()
 {
-  fprintf(stderr,"%s:  owner@address /path/to/file/containing/addresses\n",
+  fprintf(stderr,"%s:  owner@address /path/to/file/containing/addresses privuid\n",
 	  progname);
   exit(EX_USAGE);
 }
@@ -66,10 +66,13 @@ main(argc,argv)
 	char buf[8192];
 	int first = 1;
 	char *newcp;
+	long privuid;
 
-	if (argc != 3)
+	if (argc != 4)
 	  usage();
 	if ((addrfile = fopen(argv[2],"r")) == NULL)
+	  usage();
+	if (sscanf(argv[3],"%ld",&privuid) != 1)
 	  usage();
 
 	while (!feof(addrfile) && !ferror(addrfile)) {
@@ -152,6 +155,7 @@ main(argc,argv)
 	  mail_abort(mfp);
 	  exit(EX_CANTCREAT);
 	}
+	fchown(FILENO(mfp),privuid,-1);
 	mail_close(mfp);
 	return 0;
 }
