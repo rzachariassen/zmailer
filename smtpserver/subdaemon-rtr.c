@@ -323,11 +323,10 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 	int sawhungry = 0;
 
 	if (! RTR) return -1; /* No state to monitor */
-	if (RTR->fromfd < 0) return -1; /* No router there.. */
 
 	for (idx = 0; idx < MaxRtrs; ++idx) {
 	  if (RTR->fromfd[idx] < 0)
-	    continue;
+	    continue; /* No router at this slot */
 
 	  if ( _Z_FD_ISSETp(RTR->fromfd[idx], rdset) ||
 	       RTR->fdb[idx].rdsize ) {
@@ -615,7 +614,7 @@ router(SS, function, holdlast, arg, len)
 		isdigit(p[0]) && isdigit(p[1]) && isdigit(p[2]) && 
 		(p[3] == ' ' || p[3] == '-')) {
 	      int code = atoi(state->pbuf);
-	      unsigned char *s = p + 4;
+	      char *s = (char*) p + 4;
 	      p += 4;
 	      while (*p && (isdigit(*p) || *p == '.')) ++p;
 	      if(*p == ' ') *p++ = 0;

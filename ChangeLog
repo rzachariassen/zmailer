@@ -1,5 +1,9 @@
 2004-07-06  Matti Aarnio  <mea@zmailer.org>
 
+	* scheduler/Makefile.in, smtpserver/Makefile.in,
+	  smtpserver/subdaemon-rtr.c:
+	    Compiling in Solaris  with Sun CC shows subtle bugs..
+
 	* proto/cf/server.cf, proto/cf/aliases.cf, proto/cf/rrouter.cf:
 	    No more using  $(dequote .. )  function, but using
 	    explicite patterns in  ssift  clauses to handle couple

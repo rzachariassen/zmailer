@@ -16,7 +16,7 @@ DEFS=		@DEFS@
 INSTALL=	@INSTALL@
 SCHEDULER_INCL=	@INCLRESOLV@ @INCLWRAP@ @GENINCL@
 #   possibly add following to SCHEDULER_LIB:  @GETPWLIB@
-SCHEDULER_LIB=	-lsfio @LIBWRAP@ @LIBRESOLV@ @LIBSOCKET@ $(LIBMALLOC)
+SCHEDULER_LIB=	-lsfio @GENLIB@ @LIBWRAP@ @LIBRESOLV@ @LIBSOCKET@
 MAILQ_INCL=	@INCLRESOLV@ @GENINCL@
 MAILQ_LIB=	@LIBRESOLV@ @LIBSOCKET@ $(LIBMALLOC)
 #   Above the  LIBSOCKET (for SysVR4) must be last
@@ -26,7 +26,7 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SCHEDULER_INCL)
 MQCFLAGS=	$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(MAILQ_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
-LIB=		-L$(TOPDIR)/libs -lzm -lzc  -lta
+LIB=		-L$(TOPDIR)/libs -lzm -lzc  -lta  $(SCHEDULER_LIB) $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
 		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/transports/libta/llib-llibta.ln
@@ -41,7 +41,7 @@ SOURCE=	scheduler.c readconfig.c conf.c agenda.c transport.c  \
 all:	$(LIBDEB) $(PROGRAM) mailq
 
 $(PROGRAM): $(LIBDEB) $(OBJS) version.o
-	$(CC) $(CFLAGS) -o $@.x $(OBJS) version.o $(LIB) $(SCHEDULER_LIB)
+	$(CC) $(CFLAGS) -o $@.x $(OBJS) version.o $(LIB)
 	mv $@.x $@
 
 $(PROGRAM).third: $(PROGRAM)

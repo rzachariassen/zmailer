@@ -26,7 +26,7 @@ INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTPSERVER_INCL) 
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
-LIB=		-L$(TOPDIR)/libs -lzm -lzc -lident -lta $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lzm -lzc -lident -lta  $(SMTPSERVER_LIB) $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
 		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a \
 		$(TOPDIR)/libs/libident.a $(TOPDIR)/include/sfio.h
@@ -64,7 +64,7 @@ zpwmatch.o:	$(srcdir)/$(privateauth)zpwmatch.c
 
 $(PROGRAM):	$(LIBDEB) $(OBJS)
 	$(MAKE) $(MFLAGS) version.o
-	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(SMTPSERVER_LIB) $(LIB) 
+	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(LIB)
 
 version.c:	$(OBJS) $(TOPDIR)/Makefile
 	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
