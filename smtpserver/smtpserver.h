@@ -212,6 +212,7 @@ extern int vrfycmdok;
 extern int pipeliningok;
 extern int mime8bitok;
 extern int chunkingok;
+extern int enhancedstatusok;
 extern int dsn_ok;
 extern int ehlo_ok;
 extern int etrn_ok;

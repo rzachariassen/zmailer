@@ -229,12 +229,13 @@ SMTP verbs which have some uses in the debug mode.
 They are normally disabled, but running them enabled does not allow
 direct attacks with them.  (That we know of.)
 
-.IP PARAM\ NoPIPELINING
 .IP PARAM\ No8BITMIME
 .IP PARAM\ NoCHUNKING
 .IP PARAM\ NoDSN
-.IP PARAM\ NoETRN
 .IP PARAM\ NoEHLO
+.IP PARAM\ NoENCHANCEDSTATUS(CODES)
+.IP PARAM\ NoETRN
+.IP PARAM\ NoPIPELINING
 This set are
 .B disablers
 of like named Extended SMTP EHLO responses, plus EHLO verb itself,

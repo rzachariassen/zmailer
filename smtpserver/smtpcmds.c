@@ -287,7 +287,8 @@ const char *buf, *cp;
 	  type(SS, -250, NULL, "PIPELINING");
 	if (chunkingok)
 	  type(SS, -250, NULL, "CHUNKING");	/* RFC 1830: BDAT */
-	type(SS, -250, NULL, "ENHANCEDSTATUSCODES");
+	if (enhancedstatusok)
+	  type(SS, -250, NULL, "ENHANCEDSTATUSCODES");
 	if (expncmdok && STYLE(SS->cfinfo, 'e'))
 	  type(SS, -250, NULL, "EXPN");
 	if (vrfycmdok && STYLE(SS->cfinfo, 'v'))

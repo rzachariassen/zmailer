@@ -187,6 +187,7 @@ int use_ipv6 = 0;
 int ident_flag = 0;
 int pipeliningok = 1;
 int chunkingok = 1;
+int enhancedstatusok = 1;
 int mime8bitok = 1;
 int dsn_ok = 1;
 int ehlo_ok = 1;
@@ -1824,12 +1825,12 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 	c = ' ';
 
     fprintf(SS->outfp, "%03d%c", code, c);
-    if (status && status[0] != 0)
+    if (enhancedstatusok && status && status[0] != 0)
       fprintf(SS->outfp, "%s ", status);
 
     if (logfp != NULL) {
       fprintf(logfp, "%dw\t%03d%c", pid, code, c);
-      if (status && status[0] != 0)
+      if (enhancedstatusok && status && status[0] != 0)
 	fprintf(logfp, "%s ", status);
     }
 
@@ -2070,9 +2071,15 @@ va_dcl
 
     abscode = (code < 0) ? -code : code;
 
-    fprintf(SS->outfp, "%03d-%s ", abscode, status);
-    if (logfp != NULL)
+    if (status && enhancedstatusok) {
+      fprintf(SS->outfp, "%03d-%s ", abscode, status);
+      if (logfp != NULL)
 	fprintf(logfp, "%dw\t%03d-%s ", pid, abscode, status);
+    } else { /* No status codes */
+      fprintf(SS->outfp, "%03d- ", abscode);
+      if (logfp != NULL)
+	fprintf(logfp, "%dw\t%03d- ", pid, abscode);
+    }
     while (s < rfc821_error_ptr && --maxcnt >= 0) {
 	++s;
 	putc(' ', SS->outfp);

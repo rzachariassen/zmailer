@@ -147,6 +147,14 @@ char *str;
       pipeliningok = 0;
       return;
     }
+    if (cistrcmp(name, "noenhancedstatuscodes") == 0) {
+      enhancedstatusok = 0;
+      return;
+    }
+    if (cistrcmp(name, "noenhancedstatus") == 0) {
+      enhancedstatusok = 0;
+      return;
+    }
     if (cistrcmp(name, "no8bitmime") == 0) {
       mime8bitok = 0;
       return;

@@ -655,6 +655,83 @@ expand_aliases(user,host,attr,key) {
 					"$nattr" "$a" "$host")
 }
 
+#
+# LISTSERV expansion
+#
+expand_listserv(user,host,attr,key) {
+
+# listserv automatic list alias mapping support, the listserv home
+# probably should go to zmailer.conf or elsewhere at some time
+# but let's keep it simple during testing <hks@nic.funet.fi> 1998
+# We check first zmailer lists that can override listserv in an
+# emergency, for example.
+#
+	local LISTSERV a listbase lcuser
+
+	# check in the mailing list directory
+	lcuser="$(recase -l "$user")"
+
+	LISTSERV="/v/net/listserv.funet.fi"
+	a="$LISTSERV/home/$lcuser.list"
+  
+	if [ -f "$a" ] ; then
+		return (((local pipe.$lcuser "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $lcuser" $(newattribute $attr privilege "0" ))))
+	fi
+
+	ssift "$lcuser" in
+
+	owner-(.+)
+		listbase="\1"
+		a="$LISTSERV/home/$listbase.list"
+		if [ -f "$a" ]; then
+		   return (((local pipe.owner-$listbase "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool owner-$listbase" $(newattribute $attr privilege "0" ))))
+		fi
+		;;
+
+	(.+)-owner
+		listbase="\1"
+		a="$LISTSERV/home/$listbase.list"
+		if [ -f "$a" ]; then
+		   return (((local pipe.owner-$listbase "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool owner-$listbase" $(newattribute $attr privilege "0" ))))
+		fi
+		;;
+
+	(.+)-search-request
+		listbase="\1"
+#listsserv search facility support <hks>
+		a="$LISTSERV/home/$listbase.list"
+		if [ -f "$a" ]; then
+		   return (((local pipe.$listbase-search-request "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-search-request" $(newattribute $attr privilege "0" ))))
+		fi
+		;;
+
+	(.+)-request
+		listbase="\1"
+		a="$LISTSERV/home/$listbase.list"
+		if [ -f "$a" ] ; then
+		   return (((local pipe.$listbase-request "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-request" $(newattribute $attr privilege "0" ))))
+		fi
+		;;
+
+	(.+)-server
+		listbase="\1"
+#listsserv search facility support <hks>
+		a="$LISTSERV/home/$listbase.list"
+		if [ -f "$a" ]; then
+		   return (((local pipe.$listbase-server "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-server" $(newattribute $attr privilege "0" ))))
+		fi
+		;;
+	(.+)
+		listbase="\1"
+		a="$LISTSERV/home/$listbase.list"
+		if [ -f "$a" ] ; then
+		   return (((local pipe.owner-$listbase "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool owner-$listbase" $(newattribute $attr privilege "0" ))))
+		fi
+		break
+		;;
+	tfiss
+}
+
 
 # Usage: getpriv <maxperm> <present privilege> <filename> <filename type>
 #

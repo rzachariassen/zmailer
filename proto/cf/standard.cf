@@ -148,7 +148,7 @@ deliver (name) {	# Produce rc=0 and output our CANONIC hostname
 	tmp=$(thishost "$name")
 	if [ $? = 0 ]; then
 		if [ "$tmp" = "" ]; then
-			tmp=$mydomain	# Its blank -> its $mydomain ...
+			tmp="$name"	# Its blank -> its the original $name.
 		fi
 		[ $(otherservers "$name") ] || { echo "$tmp" ; return 0 }
 	fi

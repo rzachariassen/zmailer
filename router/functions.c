@@ -851,7 +851,7 @@ run_daemon(argc, argv)
 	stickymem = oval;
 	did_cnt = 0;
 	i = -1;
-	for (;;) {
+	for (; !mustexit ;) {
 		++i;	/* Increment it */
 		/* The last of the alternate dirs ?  Reset.. */
 		if (i >= ROUTERDIR_CNT || dirs[i] == NULL) {
