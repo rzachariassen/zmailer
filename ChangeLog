@@ -1,5 +1,20 @@
 2003-04-30  Matti Aarnio  <mea@zmailer.org>
 
+	* Makefile.in:
+	   Version 2.99.56-pre5
+
+	* README.UPGRADING:
+	    The router internal logic change IS script incompatible!
+	    Carefull out there with your  aliases.cf,  and  fqdnaliases.cf !
+
+	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf, router/functions.c:
+	    - When a list-expansions fails to produce recipient list,
+	      do produce an error message only, when the message being
+	      routed is _not_ an error message in itself.
+	    - In scripts, do understand that the 'listexpand' can yield
+	      a NULL list, and branch at it conditionally to do different
+	      codepath behaviour.
+
 	* scheduler/update.c:
 	    Change in debug outputs to use more usefull spoolid reference.
 

@@ -13,6 +13,15 @@
 	are important, naturally!
 
 
+	ZMailer-2.99.56-pre5:
+		Router internal implementation of   $(listexpand ..)
+		function has changed a tiny weeny bit, and scripts
+		needing it need to be updated -- those are:
+			aliases.cf,  and  fqdnaliases.cf
+
+		Removal of '$(listaddress ...)'  function is also
+		being contemplated, but hasn't been done yet.
+
 
 	ZMailer-2.99.56pre3:
 		Change in   sm  program, now it produces (if wanted)
