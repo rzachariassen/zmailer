@@ -16,6 +16,7 @@ struct sieve {
 	int	pipeuid;
 	char	pipecmdbuf[2048];
 	void	*opaqueblock;
+	int	keep_or_discard; /* <0: discard, ==0: not set, >0: keep */
 };
 
 

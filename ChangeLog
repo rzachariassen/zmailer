@@ -8,7 +8,8 @@
 	    Router got new commandline option: '-W'
 	    Existence of that option activates OLD behaviour of
 	    the router where it writes 'Illegal-Object:' headers
-	    to the file...
+	    to the file... The new behaviour passes the faulty
+	    lines unmodified; "as is".
 
 	* utils/policy-builder.sh.in:
 	    Modifications to handle non-clean spam-domain input better.

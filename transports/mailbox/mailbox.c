@@ -1336,7 +1336,18 @@ deliver(dp, rp, usernam, timestring)
 	    /* Cleanup of sieve processor */
 	    sieve_end(&sv);
 	  }
-	  
+
+	  /* Sieve-filter sets state mode -- keep_or_discard (<=>0) to
+	     tell what we should do to the message regarding its storage
+	     to the local message store. */
+
+	  if (sv.keep_or_discard >= 0)
+	    store_to_file(dp, rp, file, ismbox, usernam, &st, uid,
+#ifdef HAVE_SOCKET
+			  nbp,
+#endif
+			  starttime, timestring );
+
 	} else {
 
 	  store_to_file(dp, rp, file, ismbox, usernam, &st, uid,
