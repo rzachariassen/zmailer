@@ -1,3 +1,10 @@
+2000-03-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    When socket write failure causes shutdown of write direction
+	    socket, do turn all back reported 500 series errors into softer
+	    400 series codes.  Won't unnecessarily reject messages.
+
 2000-02-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpetrn.c, man/smtpserver.8, man/scheduler.8:
@@ -8,7 +15,9 @@
 	  smtpserver/cfgread.c, smtpserver/smtpcmds.c:
 	    - PARAM sum-sizeoption-value  -- modify how MAIL FROM:<> SIZE=nn
 	      option value is processed when compared against various limits
-	      in the system -- if the option is present, 
+	      in the system -- if the option is present, effectively the
+	      system required free space is message size multiplied by the
+	      recipient count.
 	    - PARAM max-unknown-commands nn -- how many pure junk commands
 	      can be accepted before our side hungs the connection. Default
 	      limit: 10
