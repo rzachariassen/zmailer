@@ -857,8 +857,9 @@ if test "$ac_with_ipv6" = yes; then
 		[int af = AF_INET6;],
 		ac_cv_af_inet6=yes, ac_cv_af_inet6=no)
     if test "$ac_cv_af_inet6" = yes; then
-	AC_TRY_LINK([#include <sys/socket.h>
-		     #include <netinet/in.h>],
+	AC_TRY_LINK([#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>],
 		    [/* Has AF_INET6, but does one have all related things ? */
 		     struct in6_addr sin6;],
 		    ac_cv_struct_in6_addr=yes, ac_cv_struct_in6_addr=no)
@@ -1027,12 +1028,14 @@ if test "x$LIBRESOLV" = "x"; then
   LIBS="$LIBS $LIBSOCKET"
   ac_cv_var__res_options=no
   # This following is for IRIX6.4, and I sincerely hope it
-  # will not fail on other systems...
-  AC_TRY_LINK([
+  # will not fail on other systems...  It did! It did!
+  # Many systems don't have idemponent headers, they need specific
+  # includes before latter ones, or the latter ones won't be successful...
+  AC_TRY_LINK([#include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/nameser.h>
-#include <resolv.h>
-],
+#include <resolv.h>],
 	      [_res.options = RES_INIT;],
 		ac_cv_var__res_options=yes);
   if test "$ac_cv_var__res_options" != "yes"; then
@@ -1165,8 +1168,13 @@ if test "$use_tcpwrappers" = 0 ; then
 	LIBS="$LIBS $LIBSOCKET $LIBWRAP"
 	CPPFLAGS="$CPPFLAGS $INCLWRAP"
 	AC_CACHE_VAL(ac_cv_lib_tcpwrap,
-	  [AC_TRY_LINK([#include <tcpd.h>
-			int deny_severity, allow_severity;],[hosts_access();],
+	  [AC_TRY_LINK([#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <tcpd.h>
+struct request_info request;
+int deny_severity, allow_severity;],[hosts_access(&request);],
 			ac_cv_lib_tcpwrap=yes,ac_cv_lib_tcpwrap=no)
 	  ])
 	if test "$ac_cv_lib_tcpwrap" = yes; then

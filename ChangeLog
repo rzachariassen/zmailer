@@ -1,3 +1,28 @@
+1999-04-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* ChangeLog:
+	    Log these last changes..
+
+	* include/listutils.h:
+	    A surprising macro in FreeBSD/OpenBSD clashed with s_push() gcc
+	    extended macro code contained variable name (_X), replaced with
+	    another name (_tmpX), which hopefully doesn't clash...
+
+	* scheduler/threads.c:
+	    Change 'ulong' type to 'u_long', which should please also
+	    FreeBSD and OpenBSD..
+
+	* configure.in:
+	    Modify tests for <tcpd.h>, and resolver so that systems where
+	    all headers are not idemponent will be able to do the test
+	    compiles successfully, and thus avoiding false negatives..
+
+	* smtpserver/mxverify.c:
+	    Changed IPv6 RBL tests to use "x.x.x....x.x.ip6.rbl.maps.vix.com"
+	    domain format.  Those small digits at the top of the address
+	    range without "ip6" are clashing with various IPv4 "banned"
+	    address spaces...
+
 1999-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/cf/fqdnaliases.cf:
