@@ -1107,7 +1107,6 @@ if test $without_fsync = 0; then
 	AC_CHECK_FUNCS(fsync)
 fi
 
-AC_FUNC_SVR4_MAILLOCK
 without_maillock=0
 AC_ARG_WITH(maillock,[  --without-maillock       Do not use maillock() even if you have it],
 	without_maillock=1)
