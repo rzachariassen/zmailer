@@ -143,12 +143,12 @@ char * zpwmatch(uname,password,uidp)
 	ret = pam_authenticate(ph, 0);
 	/* type(NULL,0,NULL,"pam_authentication() ret=%d",ret); */
     }
-
+#if 0
     if (ret == PAM_SUCCESS) {
 	ret = pam_acct_mgmt(ph, 0);
 	/* type(NULL,0,NULL,"pam_acct_mgmt() ret=%d",ret); */
     }
-
+#endif
     val = ret;
     if ((ret = pam_end(ph, ret)) != PAM_SUCCESS) {
 	/* type(NULL,0,NULL,"pam_end() ret=%d",ret); */

@@ -1,3 +1,19 @@
+1999-12-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    '--disable-pam' option.
+
+	* scheduler/*:
+	    Pulled back most of logic changes introduced during last
+	    10 or so days, but kept (of course) all SFIO things.
+
+	* smtpserver/smtpserver.c, smtpserver/smtpcmds.c:
+	    changed most (all?) 553 and 453 return codes to 550 and 450
+	    respectively.
+
+	* smtpserver/zpwmatch.c:
+	    Don't call (at all)  pam_acct_mgmt()  function.
+
 1999-12-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/msgerror.c:

@@ -991,22 +991,33 @@ AC_CHECK_HEADERS(string.h fcntl.h limits.h errno.h unistd.h stdlib.h \
 AC_CHECK_HEADERS(sys/utsname.h maillock.h arpa/inet.h)
 
 AC_SUBST(AUTHLIB)
-AC_CHECK_HEADERS(security/pam_appl.h shadow.h)
-if test "$ac_cv_header_security_pam_appl_h" = "yes"; then
-    # Some systems need only "-lpam", others need also "-ldl"
-    t_oldLibs="$LIBS"
-    LIBS="$LIBS -lpam"
-    AC_TRY_LINK([#include <stdio.h>], [pam_end(NULL,0);],
-		AUTHLIB="-lpam" ,
-		AUTHLIB="-lpam -ldl");
-    LIBS="$t_oldLibs"
-else
-    if test "$ac_cv_header_shadow_h" = "yes"; then
-	AC_TRY_LINK([], [getspnam("foo");],
-			AUTHLIB="",
-			AUTHLIB="-lshadow")
+
+use_pam=1
+AC_ARG_WITH(pam,   [  --disable-pam            Disable PAM(3) facility autoconfig ],
+	[if test "$withval" = no; then
+	   use_pam=0
+	 else
+	   use_pam=1
+	 fi], [use_pam=1])
+
+if test "$use_pam" = 1 ; then
+    AC_CHECK_HEADERS(security/pam_appl.h shadow.h)
+    if test "$ac_cv_header_security_pam_appl_h" = "yes"; then
+	# Some systems need only "-lpam", others need also "-ldl"
+	t_oldLibs="$LIBS"
+	LIBS="$LIBS -lpam"
+        AC_TRY_LINK([#include <stdio.h>], [pam_end(NULL,0);],
+		    AUTHLIB="-lpam" ,
+		    AUTHLIB="-lpam -ldl");
+        LIBS="$t_oldLibs"
     else
-	AUTHLIB=""
+        if test "$ac_cv_header_shadow_h" = "yes"; then
+	    AC_TRY_LINK([], [getspnam("foo");],
+			    AUTHLIB="",
+			    AUTHLIB="-lshadow")
+        else
+	    AUTHLIB=""
+        fi
     fi
 fi
 
