@@ -37,7 +37,7 @@ fi
 # We are compiling ALIAS file, using '-a' to tell that we may
 # have continuation lines lurking there...
 #
-$MAILBIN/makedb -a $DBTYPE $ALIASFILE.$$ < $ALIASES
+$MAILBIN/makedb -a -l $DBTYPE $ALIASFILE.$$ < $ALIASES
 
 case $? in
 0)	;;

@@ -122,10 +122,10 @@ do
 	    $MAILBIN/router -f $MAILBIN/newaliases
 	    ;;
 	new-route*)
-	    $MAILBIN/newdb $MAILVAR/db/routes
+	    $MAILBIN/newdb -l $MAILVAR/db/routes
 	    ;;
 	new-local*)
-	    $MAILBIN/newdb $MAILVAR/db/localnames
+	    $MAILBIN/newdb -l $MAILVAR/db/localnames
 	    ;;
 	logsync)
 	    if [ -f $POSTOFFICE/.pid.router ]; then
