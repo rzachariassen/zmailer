@@ -1237,7 +1237,7 @@ deliver(SS, dp, startrp, endrp)
 	strcpy(SMTPbuf, "MAIL From:<");
 	s = SMTPbuf + 11;
 	if (!STREQ(startrp->addr->link->channel,"error")) {
-	  if (!startrp->ezmlm) {
+	  if (1 || !startrp->ezmlm) {
 	    /* Normal mode */
 	    sprintf(s, "%.1000s", startrp->addr->link->user);
 	    s += strlen(s);
@@ -1265,6 +1265,7 @@ deliver(SS, dp, startrp, endrp)
 	      strcpy(s, startrp->ezmlm);
 	      s += strlen(s);
 	    }
+	    /* FIXME: make sure here won't happen any buffer overflows, ever.. */
 	    strcpy(s, u);
 	    s += strlen(s);
 	  }
