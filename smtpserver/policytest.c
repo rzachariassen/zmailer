@@ -1282,6 +1282,7 @@ const int len;
 	return pt_rcptpostmaster(rel, state, str, len);
 
     abort();			/* Code error! Bad policy ! */
+    return 9999; /* To silence most compilers.. */
 }
 
 char *
