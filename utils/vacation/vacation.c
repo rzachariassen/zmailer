@@ -343,7 +343,7 @@ main(argc, argv)
 	    /* read message from standard input (just from line) */
 	    readheaders();
 	    purge_input();
-	    if (!recent()) {
+	    {
 	      const char *myname = pw->pw_name;
 	      if (orcpt) {
 		const char *s = strchr(orcpt, ';');
@@ -359,8 +359,13 @@ main(argc, argv)
 		else
 		  myname = inrcpt;
 	      }
-	      setreply();
-	      sendmessage(msgfile,myname);
+	      if (!recent()) {
+		setreply();
+		sendmessage(msgfile,myname);
+	      } else {
+		zsyslog((LOG_NOTICE, "vacation: from '%s' to '%s' is too recent.",
+		       from, myname));
+	      }
 	    }
 	  }
 	}
@@ -430,6 +435,9 @@ sendmessage(msgf, myname)
 
 	fclose(f);
 	mail_close(mf);
+
+	zsyslog((LOG_NOTICE, "vacation: sent message from '%s' to '%s'",
+		 myname, from));
 }
 /*
 **  USRERR -- print user error
@@ -705,7 +713,7 @@ recent()
 	DBT key, data;
 	time_t then, next;
 
-	if (!dblog) return 0;
+	if (!dblog) return 0;  /* No DB -> always recent! */
 
 	memset(&key, 0, sizeof(key));
 	memset(&data, 0, sizeof(data));
@@ -760,7 +768,7 @@ recent()
 #endif
 	if (data.dptr) {
 		memcpy(&then, data.dptr, sizeof(then));
-		if (next == INT_MAX || then + next > time(NULL))
+		if (next == INT_MAX || ((then + next) > time(NULL)))
 			return(1);
 	}
 	return(0);
