@@ -174,6 +174,7 @@ static int set_cert_stuff(SSL_CTX * ctx, char *cert_file, char *key_file)
     return (1);
 }
 
+
 /* taken from OpenSSL apps/s_cb.c */
 
 static RSA *tmp_rsa_cb(SSL * s, int export, int keylength)
@@ -748,6 +749,7 @@ int     tls_init_clientengine(SS, cfgpath)
     c_key_file = NULL;
   else
     c_key_file = tls_key_file;
+
   if (c_cert_file || c_key_file)
     if (!set_cert_stuff(SS->ctx, c_cert_file, c_key_file)) {
 #if 0

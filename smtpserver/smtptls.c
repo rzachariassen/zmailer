@@ -51,7 +51,7 @@ static const char hexcodes[] = "0123456789ABCDEF";
 
 char       *tls_peer_CN     = NULL;
 char       *tls_issuer_CN   = NULL;
-char       *tls_protocol    = NULL;
+const char *tls_protocol    = NULL;
 const char *tls_cipher_name = NULL;
 int         tls_cipher_usebits = 0;
 int         tls_cipher_algbits = 0;
@@ -645,6 +645,55 @@ bio_dump_cb(bio, cmd, argp, argi, argl, ret)
 }
 
 
+
+/* taken from OpenSSL apps/s_server.c */
+
+static DH *load_dh_param(char *dhfile)
+{
+	DH *ret=NULL;
+	BIO *bio;
+
+	bio = BIO_new_file(dhfile,"r");
+	if (bio != NULL) {
+	  ret = PEM_read_bio_DHparams(bio,NULL,NULL,NULL);
+	  BIO_free(bio);
+	}
+	return(ret);
+}
+
+/* taken from OpenSSL apps/s_server.c */
+
+static unsigned char dh512_p[]={
+	0xDA,0x58,0x3C,0x16,0xD9,0x85,0x22,0x89,0xD0,0xE4,0xAF,0x75,
+	0x6F,0x4C,0xCA,0x92,0xDD,0x4B,0xE5,0x33,0xB8,0x04,0xFB,0x0F,
+	0xED,0x94,0xEF,0x9C,0x8A,0x44,0x03,0xED,0x57,0x46,0x50,0xD3,
+	0x69,0x99,0xDB,0x29,0xD7,0x76,0x27,0x6B,0xA2,0xD3,0xD4,0x12,
+	0xE2,0x18,0xF4,0xDD,0x1E,0x08,0x4C,0xF6,0xD8,0x00,0x3E,0x7C,
+	0x47,0x74,0xE8,0x33,
+};
+static unsigned char dh512_g[]={
+	0x02,
+};
+
+static DH *get_dh512(void)
+{
+	DH *dh;
+
+	dh = DH_new();
+	if (dh != NULL) {
+	  dh->p = BN_bin2bn(dh512_p,sizeof(dh512_p),NULL);
+	  dh->g = BN_bin2bn(dh512_g,sizeof(dh512_g),NULL);
+	  if ((dh->p == NULL) || (dh->g == NULL)) {
+	    /* Should never ever happen.. */
+	    DH_free(dh);
+	    dh = NULL;
+	  }
+	}
+	return(dh);
+}
+
+
+
  /*
   * This is the setup routine for the SSL server. As smtpd might be called
   * more than once, we only want to do the initialization one time.
@@ -654,7 +703,6 @@ bio_dump_cb(bio, cmd, argp, argi, argl, ret)
 
 static int tls_serverengine = 0;
 static SSL_CTX *ssl_ctx = NULL;
-
 
 int
 tls_init_serverengine(verifydepth, askcert, requirecert)
@@ -781,6 +829,15 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
   else
     s_key_file = tls_key_file;
 
+  if (s_cert_file) {
+    DH *dh = load_dh_param(s_cert_file);
+    if (!dh) dh = get_dh512();
+    if (dh) {
+      SSL_CTX_set_tmp_dh(ssl_ctx, dh);
+      DH_free(dh);
+    }
+  }
+
   if (!set_cert_stuff(ssl_ctx, s_cert_file, s_key_file)) {
     type(NULL,0,NULL,"TLS engine: cannot load cert/key data");
     return (-1);
@@ -824,7 +881,15 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
       | SSL_VERIFY_CLIENT_ONCE;
   SSL_CTX_set_verify(ssl_ctx, verify_flags, verify_callback);
 
+  {
+    int s_server_session_id = 1; /* anything will do */
+    SSL_CTX_set_session_id_context(ssl_ctx,
+				   (void*) &s_server_session_id,
+				   sizeof(s_server_session_id));
+  }
+
   SSL_CTX_set_client_CA_list(ssl_ctx, SSL_load_client_CA_file(CAfile));
+
 
   tls_serverengine = 1;
   return (0);
