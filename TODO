@@ -7,6 +7,10 @@ router:
 	--> SEGV
 
 
+scheduler:
+	SNMP Mail Monitoring MIB variable maintance is wrong at the
+	Stored Recipients Count Gauge.  It leaks...
+
 router:
 	Have separate queueing processor feeding actual routers
 	to take care of the problem related to message priorities.
