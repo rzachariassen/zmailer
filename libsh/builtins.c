@@ -710,86 +710,97 @@ sh_read(argc, argv)
 	int flag, offset, eoinp = 0;
 
 	if (argc == 1) {
-		fprintf(stderr, USAGE_READ, argv[0]);
-		return EX_USAGE;
+	  fprintf(stderr, USAGE_READ, argv[0]);
+	  return EX_USAGE;
 	}
 	if (ifs == NULL)
-		ifs_flush();
+	  ifs_flush();
+
 	--argc, ++argv;
+
 	if (buf == NULL) {
-		bufsize = BUFSIZ - 24;
-		buf = emalloc(bufsize);
+	  bufsize = BUFSIZ - 24;
+	  buf = emalloc(bufsize);
+	  fprintf(stderr, "SHREAD[1]: bufsize=%u  buf=%p\n", bufsize, buf);
 	}
+
 	flag = 0;
 	bp = NULL;
 	buf[0] = '\0';
 	while (argc > 0) {
-		if (fgets(buf, bufsize, stdin) == NULL) {
-		  eoinp = 1;
+	  if (fgets(buf, bufsize, stdin) == NULL) {
+	    eoinp = 1;
+	    break;
+	  }
+	  for (cp = buf; argc > 0 && *cp != '\0'; ) {
+	    while (*cp != '\0' && WHITESPACE((unsigned)*cp))
+	      ++cp;
+	    if (*cp == '\0') {
+	      if ((cp > buf) && (*(cp-1) != '\n') &&
+		  (offset = cp - buf)) {
+		bufsize = 2*bufsize;
+		fprintf(stderr, "SHREAD[2]: bufsize=%u  buf=%p\n", bufsize, buf);
+
+		buf = erealloc(buf, bufsize);
+		if (buf && fgets(cp, bufsize/2, stdin)) {
+		  cp = buf + offset;
+		  continue;
+		} else
 		  break;
+	      } else
+		break;
+	    }
+	    if (!flag) {
+	      bp = cp;
+	      value = cp;
+	    }
+	    if (argc == 1)
+	      flag = 1;
+	    while (*cp == '\0' || !WHITESPACE((unsigned)*cp)) {
+	      if (*cp == '\0') {
+		if ((cp > buf) && (*(cp-1) != '\n') &&
+		    (offset = cp - buf)) {
+		  bufsize = 2*bufsize;
+		  buf = erealloc(buf, bufsize);
+		  fprintf(stderr, "SHREAD[3]: bufsize=%u  buf=%p\n", bufsize, buf);
+		  if (buf && fgets(cp, bufsize/2, stdin)) {
+		    cp = buf + offset;
+		    continue;
+		  } else
+		    break;
+		} else
+		  break;
+	      }
+	      if (*cp == '\\' && *(cp+1) != '\0') { /* bug */
+		if (*++cp == '\n') {
+		  *cp++ = '\0'; /* defeat above */
+		  continue;
 		}
-		for (cp = buf; argc > 0 && *cp != '\0'; ) {
-			while (*cp != '\0' && WHITESPACE((unsigned)*cp))
-				++cp;
-			if (*cp == '\0') {
-				if (cp > buf && *(cp-1) != '\n' &&
-				    (offset = cp - buf)		&&
-				    (bufsize = 2*bufsize)	&&
-				    (buf = erealloc(buf, bufsize)) &&
-				    fgets(cp, bufsize/2, stdin) != NULL) {
-					cp = buf + offset;
-					continue;
-				} else
-					break;
-			}
-			if (!flag) {
-				bp = cp;
-				value = cp;
-			}
-			if (argc == 1)
-				flag = 1;
-			while (*cp == '\0' || !WHITESPACE((unsigned)*cp)) {
-				if (*cp == '\0') {
-					if (cp > buf && *(cp-1) != '\n' &&
-					    (offset = cp - buf)		&&
-					    (bufsize = 2*bufsize)	&&
-					    (buf = erealloc(buf, bufsize)) &&
-					    fgets(cp, bufsize/2, stdin)!=NULL) {
-						cp = buf + offset;
-						continue;
-					} else
-						break;
-				}
-				if (*cp == '\\' && *(cp+1) != '\0') { /* bug */
-					if (*++cp == '\n') {
-						*cp++ = '\0'; /* defeat above */
-						continue;
-					}
-				}
-				*bp++ = *cp++;
-			}
-			if (argc > 1) {
-				--argc;
-				if (*cp == '\0') {
-					*bp = '\0';	/* bp might == cp */
-					v_set(*argv++, value);
-					bp = value;
-					break;
-				} else {
-					*bp = '\0';
-					v_set(*argv++, value);
-					++cp;
-				}
-			} else if (*cp++ != '\0')
-				*bp++ = ' ';
-		}
-		if (bp > value) {
-			if (*(bp-1) == ' ')
-				*--bp = '\0';
-			else
-				*bp = '\0';
-			v_set(*argv++, value), --argc;
-		}
+	      }
+	      *bp++ = *cp++;
+	    }
+	    if (argc > 1) {
+	      --argc;
+	      if (*cp == '\0') {
+		*bp = '\0';	/* bp might == cp */
+		v_set(*argv++, value);
+		bp = value;
+		break;
+	      } else {
+		*bp = '\0';
+		v_set(*argv++, value);
+		++cp;
+	      }
+	    } else if (*cp++ != '\0')
+	      *bp++ = ' ';
+	  }
+	  if (bp > value) {
+	    if (*(bp-1) == ' ')
+	      *--bp = '\0';
+	    else
+	      *bp = '\0';
+	    v_set(*argv++, value), --argc;
+	  }
 	}
 	/* if (buf[0] == '\0') return 1; */
 	if (eoinp) return 1;
