@@ -1,0 +1,184 @@
+%% \section{sendmail}
+
+This {\em sendmail\/} program is an emulation of the original
+{\em sendmail\/} interface. It provides all the original options
+that make sense to support in the context of ZMailer.
+This is not intended to be the normal user interface to
+{\em mail\/}, rather it is used by the old User Agent programs, e.g.,
+{\tt mail(1)}, to submit mail. This mechanism has been superseded
+by the {\tt zmailer(3)} library routines as the native
+submission interface (Application Program Interface) for ZMailer.
+
+The default action is to submit the RFC822 format mail
+message expected on {\tt stdin} to the mailer, with the
+addresses listed on the command line as recipients. If
+there are no recipient addresses specified on the command
+line, the mailer will infer them from the message header.
+The sender is the account of the current {\tt userid}, 
+except for {\tt root} where the preferred sender is the 
+account of the current login session. The message terminates 
+when a period is seen by itself on a line, or at end of file on
+the input stream.
+
+If the message submission fails immediately on the
+{\tt mail\_open(3)}, the data on {\tt stdin} will be 
+appended to a {\tt dead.letter} file in the submitters home directory.
+
+{\bf Usage}
+
+{\tt sendmail [-C configfile] [-EimqtUv] [-b[msdtip]]
+[-Bbodytype] [-Nnotify] [-Rretmode]
+[-Venvid] [-f address] [-F fullname]
+[-r address] [-o[i$\|$Qpostoffice]] [address ...]}
+
+{\bf Parameters}
+
+\begin{description}
+\item[ {\tt -bm}] \mbox{} \\
+
+asks {\em sendmail\/} to deliver mail, which it does anyway. 
+This option has no effect.
+
+
+
+\item[ {\tt -bs}] \mbox{} \\
+
+will start an {\em SMTP\/} server reading from {\tt stdin}. 
+This causes the {\em smtpserver(8)\/} program to be executed.
+
+
+
+\item[ {\tt -bd}] \mbox{} \\
+
+starts the {\em router(8)\/} and {\em scheduler(8)\/} 
+programs to emulate {\em sendmail\/}'s daemon mode. This is {\bf not} a 
+recommended method to start these programs, instead use {\em zmailer(1)\/}.
+
+
+
+\item[ {\tt -bt}] \mbox{} \\
+
+runs the {\em router(8)\/} in interactive mode for testing.
+
+
+
+\item[ {\tt -bi}] \mbox{} \\
+
+runs {\em newaliases(8)\/} to rebuild the alias file database.
+
+
+
+\item[ {\tt -bp}] \mbox{} \\
+
+runs {\em mailq(1)\/} to print the mail transport queue status.
+
+
+
+\item[ {\tt -C configfile}] \mbox{} \\
+
+specifies the {\em router(8)\/} configuration file.
+
+
+
+\item[ {\tt -E}] \mbox{} \\
+
+indicates the origin of this message is an insecure 
+channel. This should be used when {\em sendmail\/} is used to submit 
+messages coming in from outside the local machine, to avoid security 
+problems during message processing. This flag ensures the message will 
+have no privileges even if the current {\tt userid} is ``trusted''.
+
+
+
+\item[ {\tt -f address}] \mbox{} \\
+
+specifies the sender address. This is the default 
+originator address if there is no {\tt From:} header in the message. 
+It becomes the {\tt Sender:} address otherwise. In either case if the 
+current {\tt userid} is not ``trusted'' by the mailer, it is free to 
+ignore both this option and any header information to ensure properly 
+authenticated originator information.
+
+
+
+\item[ {\tt -F fullname}] \mbox{} \\
+
+specifies the full name of the (local) sender.
+
+
+
+\item[ {\tt -i}] \mbox{} \\
+
+tells {\em sendmail\/} to not use a period (`.') on a line 
+by itself as a message terminator, only the end of file will terminate the message.
+
+
+
+\item[ {\tt -m}] \mbox{} \\
+
+asks the mailer not to ignore the originator in the 
+addressee list. This is default behaviour, so this option has no effect.
+
+
+
+\item[ {\tt -N notify}] \mbox{} \\
+
+sets Delivery-Status-Notification notify parameter 
+to be: {\tt NEVER}, or any combination of: {\tt SUCCESS}, 
+{\tt FAILURE}, {\tt DELAY}.
+
+
+
+\item[ {\tt -oi}] \mbox{} \\
+
+is like {\tt -i}.
+
+
+
+\item[ {\tt -oQ postoffice}] \mbox{} \\
+
+specifies an alternate {\tt \$POSTOFFICE/} 
+directory.
+
+
+
+\item[ {\tt -q}] \mbox{} \\
+
+asks for queue processing. This option has no effect.
+
+
+
+\item[ {\tt -R retmode}] \mbox{} \\
+
+sets Delivery-Status-Notification parameter to be 
+either of: {\tt FULL}, {\tt HDRS}.
+
+
+
+\item[ {\tt -r address}] \mbox{} \\
+
+is like {\tt -f}.
+
+
+
+\item[ {\tt -t}] \mbox{} \\
+
+scans header for recipient addresses if none are specified 
+on the command line. This is also the default behaviour, so this option has no effect.
+
+
+
+\item[ {\tt -v}] \mbox{} \\
+
+will report the progress of the message after it has been 
+submitted. The {\em sendmail\/} process will write verbose log information 
+to the {\tt stderr} stream until the {\em scheduler\/} deletes the message.
+
+
+
+\item[ {\tt -V envid}] \mbox{} \\
+
+sets Delivery-Status-Notification parameter {\tt ENVID} 
+to be any arbitrary [{\tt xtext}] string.
+
+\end{description}

@@ -1,0 +1,798 @@
+%% \section{SMTP-server}
+
+%\begin{multicols}{2}
+
+The ZMailer distribution contains an {\em SMTP} server program
+for the BSD socket implementation of TCP/IP.
+It is an asynchronous implementation, in that address semantics are
+not checked in real time, nor are other (optional in the {\em SMTP}
+standard) functions that require {\em router} functionality.
+
+The server will run an RFC-821 syntax scanner for addresses, plus possible
+policy analysis phase, and if things are ok, it says ``Yes yes, sure!'' to
+everything.
+The program may also be used in non-daemon mode to unpack BSMTP format
+messages on the standard input stream.
+
+This program implements the server side of the {\em SMTP} protocol
+as described in RFC821, and knows about the common extensions to
+the protocol expected by {\em sendmail} and BSMTP clients.
+By default the program will kill the previous smtp-server daemon,
+if any, then detach and listen for {\em SMTP} connections.
+Incoming messages will be submitted for processing using the 
+{\tt zmailer(3)} interface to ZMailer.
+Some non-trivial address checking is doable in optional policy analysis
+functions within the {\em smtpserver}, or can be acomplished with
+synchronous (or asynchronous) running of router.
+This behaviour can be changed by a command line option (or
+HELO/EHLO style patterns) if you cannot afford to transfer
+data just to bounce it back.
+
+All {\em router} assisted checking is done by executing
+the  {\em router(8)} program in interactive mode, and executing
+well-known shell function with well-known parameters for each request.
+
+The server implements also most of the ESMTP facilities invented
+up to date (May, 1998).  The ones that are active are visible
+at greeting response to ``{\bf EHLO}'' command, as can be seen
+in figure \vref{fig:ref:smtpserver1}.
+
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+\$ {\bfseries{}telnet 127.1 smtp}
+Connected to 127.1.
+Escape character is '^]'.
+220 localhost ZMailer ....
+{\bfseries{}EHLO foo}
+250-localhost expected "EHLO localhost"
+250-SIZE 1234567
+250-8BITMIME
+250-PIPELINING
+250-CHUNKING
+250-ENHANCEDSTATUSCODES
+250-EXPN
+250-VRFY
+250-DSN
+250-X-RCPTLIMIT 10000
+250-ETRN
+250 HELP
+...
+\medskip\hrule\end{alltt}
+\label{fig:ref:smtpserver1}
+\caption{Sample ``{\bf EHLO}'' greeting with smtpserver}
+\end{figure*}
+
+
+\subsection{SMTP-server Runtime Parameters}
+
+{\em Usage}
+
+{\tt smtpserver [ -46aginvBV ] [ -p port ] [ -l logfile ] [ -s [ftveR] ] [ -L maxloadaver ] [ -M SMTPmaxsize ] [ -P postoffice ] [ -R router ] [ -C cfgfile ]}
+
+{\em Parameters}
+
+\begin{description}
+\item[{\tt -4}] \mbox{} \\
+Explicitly use IPv4 type of socket even on machines that are capable to do
+IPv6 type of sockets.
+
+\item[{\tt -6}] \mbox{} \\
+Explicitely (try to) use IPv6 type of socket even if the machine does not
+support it.
+By default the server will try to use IPv6, if it has been compiled in
+an environment where it is present, but will fall back to IPv4, if
+the runtime system does not have IPv6.
+
+\item[{\tt -8}] \mbox{} \\
+This option is part of optional inbound translate processing;
+see ``-X'' option below.
+
+\item[{\tt -a}] \mbox{} \\
+Turn on RFC931/RFC1413 identification protocol, and log the information
+acquired with it into the submitted file.
+
+\item[{\tt -B}] \mbox{} \\
+Flags the email to arrive via BSMTP channel (via BITNET, for example).
+
+\item[{\tt -C cfgfile}] \mbox{} \\
+Specifies nonstandard configuration file location; the default is 
+{\tt \$MAILSHARE/smtpserver.conf}.
+
+\item[\tt -d nnn] \mbox{} \\
+This option sets numeric debug value.  Any non-zero will work.
+(This numeric argument is provision for possible bit-flag or
+level oriented debugging mode\ldots)
+
+\item[{\tt -g}] \mbox{} \\
+The ``gullible'' option will make the program believe any information
+it is told (such as origin of a connection) without checking.
+
+\item[\tt -h] \mbox{} \\
+Check ``HELO'' parameter very closely (syntax), and if it is bad,
+complain with ``501''.
+Such behaviour is against ``{\em Be lenient on what you accept}'' policy,
+and apparently will break a lot of bad clients\ldots
+
+\item[\tt -i] \mbox{} \\
+Runs the server interactively, which makes it usable for processing a batched 
+{\em SMTP} stream (BSMTP) on {\tt stdin}. With {\tt -v} option this echoes incoming BSMTP to create more 
+accurate faximile of BITNET BSMTP mailers.
+
+\item[\tt -L maxloadaver] \mbox{} \\
+The maximum load-average the system is under when we still accept email.
+
+\item[\tt -l logfile] \mbox{} \\
+Specifies a logfile and enables recording of incoming {\em SMTP} conversations.
+
+\item[\tt -M SMTPmaxsize] \mbox{} \\
+Defines the absolute maximum size we accept from incoming email. 
+(Default: infinite) (This is a local policy issue.)
+
+\item[\tt -n] \mbox{} \\
+Indicates the program is being run from {\em inetd(8)}.
+
+\item[\tt -P postoffice] \mbox{} \\
+Specifies an alternate {\tt \$POSTOFFICE} directory.
+
+\item[\tt -p port] \mbox{} \\
+Specifies the TCP port to listen on instead of the default {\em SMTP} port, 25.
+
+\item[\tt -R {\em router}] \mbox{} \\
+Specifies an alternate {\em router(8)} program to use for address verification.
+
+\item[\tt -s] \mbox{} \\
+Specifies the style of address verification to be performed. There are four independent commands 
+that can invoke some kind of address verification, and four independent flags to control whether this should be done. 
+They are:
+
+\begin{description}
+\item[\tt f] \mbox{} \\
+Run ``MAIL FROM'' address through online router for analysis.
+
+\item[\tt t] \mbox{} \\
+Run ``RCPT TO'' address through online router for analysis.
+
+\item[\tt v] \mbox{} \\
+Enable ``VRFY'' command for this style selector
+(of configuration ``PARAM vrfycmd'' is in effect)
+
+\item[\tt e] \mbox{} \\
+Enable ``EXPN'' command for this style selector
+(of configuration ``PARAM expncmd'' is in effect)
+
+\item[\tt R] \mbox{} \\
+Require incoming addresses to be of fully-qualified domained form.
+
+Don't use this, if you want to allow non-domained addresses accepted
+into your server through SMTP.
+
+\item[\tt S] \mbox{} \\
+Allow ``Sloppy'' behaviour from the sending smtp clients; namely
+allow ``{\em MAIL FROM:foo@bar}'', that is, addresses without
+mandatory (RFC-821) angle braces.
+\end{description}
+
+The flags are concatenated to form the argument to the {\tt -s} option. 
+The default is ``{\tt ve}''.
+
+\item[\tt -S \em suffixstyle] \mbox{} \\
+This defines log suffix which can alter the default logfile
+name to one which splits incoming traffic into separate files.
+
+Possible values are:
+\begin{description}
+\item[\tt remote] \mbox{} \\
+Append remote hostname to the logfile name (after a dot) so that
+from host ``foo.bar.edu'' the logfile would be:
+``smtpserver.foo.bar.edu''.
+\item[\tt local] \mbox{} \\
+Append local end reversed hostname to the logfile name (after a dot)
+so that in multihomed hosts all different ``hosts'' have different logfiles.
+Such does, of course, assume that different IP addresses in the host reverse
+to different names.
+\end{description}
+
+\item[\tt -v] \mbox{} \\
+``Verbose'' option to be used with ``-i'' option.
+This is especially for ``BSMTP'' processing.
+
+\item[\tt -V] \mbox{} \\
+prints a version message and exits.
+
+\item[\tt -X] \mbox{} \\
+``Xlate'' option.  For more info, see source file:
+{\em README.translation:
+
+``It may be necessary in some cases (e.g. in Cyrillic-language countries)
+to translate charset on the messages coming from the clients with, e.g.
+old Eudora or other MUAs that do not correctly support koi8-r charset.
+\ \ldots''
+}
+
+\end{description}
+
+
+
+\subsection{Smtpserver configuration}
+
+
+If the {\tt \$MAILSHARE/smtpserver.conf} file exists it is read 
+to configure two kinds of things. Specifically the following:
+
+\begin{description}
+\item[\rm PARAM -entries] \mbox{} \\
+Allow server start-time parametrization of several things, including:
+
+\begin{itemize}
+\item  system parameters
+\item  help texts
+\item  acceptance/rejection database definitions
+\end{itemize}
+
+\item[\rm The style ({\tt -s}) options] \mbox{} \\
+Behaviour is based on glob patterns matching the {\bf HELO/EHLO} name given
+by a remote client.
+Lines beginning with a \# or whitespace are ignored in the file, and all other
+lines must consist of two tokens:
+a shell-style (glob) pattern starting at the beginning of the line,
+whitespace, and a sequence of style flags.
+The first matching line is used.
+
+As a special case, the flags section may start with a ``{\tt !}'' character
+in which case the remainder of the line is a failure comment message to print
+at the client.
+This configuration capability is intended as a way to control misbehaving
+client software or mailers.
+\end{description}
+
+\subsubsection{Smtpserver configuration; PARAM -entries}
+
+
+\begin{description}
+\item[\tt PARAM maxsize nn] \mbox{} \\
+Maximum size in the number of bytes of the entire spool message
+containing both the transport envelope, and the actual message.
+That is, if the max-size is too low, and there are a lot of
+addresses, the message may entirely become undeliverable..
+
+This sets system default value, and overrides {\em -M} option.
+
+\item[\tt PARAM max-error-recipients nn] \mbox{} \\
+In case the message envelope is an error envelope (MAIL FROM:{\(<>\)}),
+the don't accept more than this many separate recipient addresses
+for it. The default value is 3, which should be enough for most cases.
+(Some SPAMs claim to be error messages, and then provide a huge
+number of recipient addresses...)
+
+\item[\tt PARAM MaxSameIpSource nn] \mbox{} \\
+(Effective only on daemon-mode server -- not on "-i", nor "-n" modes.)
+Sometimes some systems set up multiple parallel connections to same
+host  (qmail ones especially, not that ZMailer has entirely clean
+papers on this - at least up to 2.99.X series), we won't accept
+more than this many connections from the same IP source address
+open in parallel.  The default value for this limit is 10.
+
+The principal reason for this has been authors experience at nic.funet.fi,
+where some MS-Windows users have caused {\bf huge} numbers
+of parallel connections to some services.  So huge, that the system
+did in fact run out of swap due to that, and caused all manner of
+other nasty things to occur too...  All this simply because some
+windows client had opened 800+ parallel sessions, and each server
+process consumed separate blocks of swap space...  To avoid the
+system to succumb under such an accidental denial-of-service attack
+at the overall system, this parallel limit was created.
+
+
+\item[\tt PARAM TcpRcvBufferSize nnn] \mbox{} \\
+This sets {\tt setsockopt(SO\_RCVBUF)} value, 
+in case the system default is not suitable for some reason.
+
+\item[\tt PARAM TcpXmitBufferSize nnn] \mbox{} \\
+This sets {\tt setsockopt(SO\_SNDBUF)} value, 
+in case the system default is not suitable for some reason.
+
+\item[\tt PARAM ListenQueueSize nnn] \mbox{} \\
+This relates to newer systems where the {\tt listen(2)} system call
+can define higher limits, than the traditional/original 5.
+This limit tells how many nascent TCP streams we can have in
+SYN\_RCVD state before we stop answering to incoming SYN packets
+requesting opening of a connection.
+
+There are entirely deliberate denial-of-service attacks based on
+flooding to some server many SYNS on which it can't send replies
+back (because the target machines don't have network connectivity,
+for example), and thus filling the back-queue of nascent sockets.
+This can also happen accidentally, as the connectivity in between
+the client host, and the server host may have a black hole into
+which the SYN-ACK packets disappear, and the client thus will not
+be able to get the TCP startup three-way handshake completed.
+
+Most modern systems can have this value upped to thousands to
+improve systems resiliency against malicious attacks, and most
+likely to provide complete immunity against the accidental
+``attack'' by the failing network routing.
+
+
+\item[\tt PARAM help string] \mbox{} \\
+This one adds yet another string (no quotes are used) into those
+that are presented to the client when it asks for ``HELP'' in the
+SMTP session.
+
+\item[\tt PARAM debugcmd] \mbox{} \\
+Enables ``DEBUG'' command in the {\em smtpserver}.
+This command turns on various trace functions which ruin the protocol
+from standards compliant client, but may help interactive debuggers.
+
+\item[\tt PARAM expncmd] \mbox{} \\
+Enables ``EXPN'' command in the {\em smtpserver}.
+
+\item[\tt PARAM vrfycmd] \mbox{} \\
+Enables ``VRFY'' command in the {\em smtpserver}.
+
+
+\item[\tt PARAM PolicyDB dbtype dbpath] \mbox{} \\
+This defines the database type, and file path prefix to the binary
+database containing policy processing information.  More of this
+below.  Actual binary database file names are formed by appending
+type specific suffixes to the path prefix.  For example NDBM
+database appends ".pag" and ".dir", while BSD-Btree appends only
+".db".  (And the latter has only one file, while the first has two.)
+
+More information below.
+
+\item[\tt PARAM allowsourceroute] \mbox{} \\
+When present, this parameter will not convert input of form
+{\(<\)@aa,@bb:cc@dd\(>\)} into source-route-less form of {\(<\)cc@dd\(>\)}.
+Instead it carries the original source-route into the system as is.
+
+\item[\tt PARAM accept-percent-kludge] \mbox{} \\
+Accept locally destined localparts which contain ``%'' and ``!'' characters.
+\item[\tt PARAM reject-percent-kludge] \mbox{} \\
+Reject locally destined localparts which contain ``%'' and ``!'' characters.
+
+\end{description}
+
+
+A possible {\em smtpserver} configuration file is shown in figure
+\vref{fig:ref:smtpserver2}.
+
+\begin{figure*}
+\begin{alltt}\hrule\setlength{\baselineskip}{0.8\baselineskip}\medskip
+#
+# {\rm{}smtpserver.conf - autogenerated edition}
+#
+#PARAM maxsize              10000000    # {\rm{}Same as -M -option}
+#PARAM max-error-recipients        3    # {\rm{}More than this is propably SPAM!}
+#PARAM MaxSameIpSource            10    # {\rm{}Max simultaneous connections from}
+#                                       # {\rm{}any IP source address}
+#PARAM TcpRcvBufferSize        32000    # {\rm{}Should not need to set!}
+#PARAM TcpXmitBufferSize       32000    # {\rm{}Should not need to set!}
+#PARAM ListenQueueSize            10    # {\rm{}listen(2) parameter}
+
+# {\rm{}Enables of some commands:}
+PARAM debugcmd
+PARAM expncmd
+PARAM vrfycmd
+
+PARAM help -------------------------------------------------------------
+PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
+PARAM help  Our telephone number is: +1-234-567-8900, and
+PARAM help  telefax number is: +1-234-567-8999
+PARAM help  Our business-hours are Mon-Fri: 0800-1700 (Timezone: -0700)
+PARAM help
+PARAM help  Questions regarding our email service should be sent via
+PARAM help  email to address  <postmaster@OURDOMAIN>
+PARAM help  Reports about abuse are to be sent to: <abuse@OURDOMAIN>
+PARAM help -------------------------------------------------------------
+
+# {\rm{}Uncomment following for not to strip incoming addresses of format:}
+# {\rm}<{\rm{}@aa,@bb:cc@dd}>{\rm\ into non-source-routed base form: }<{\rm{}cc@dd}>
+#PARAM  allowsourceroute
+
+PARAM   accept-percent-kludge # "localpart" can contain '%' and '!'
+#PARAM  reject-percent-kludge # "localpart" can't contain  --"--
+
+# {\rm{}The policy database:  (NOTE: See  'makedb'  for its default suffixes!)}
+PARAM  policydb   btree  /opt/mail/db/smtp-policy
+
+#
+# HELO/EHLO-pattern     style-flags
+#               [max loadavg]
+
+localhost           999 ftveR
+some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
+
+# {\rm{}If the host presents itself as:  HELO [1.2.3.4], be lenient to it..}
+# {\rm{}The syntax below is due to these patterns being SH-GLOB patterns,}
+# {\rm{}where brackets are special characters.}
+
+\verb/\/[*\verb/\/]               999 ve
+
+# {\rm{}Per default demant strict syntactic adherence, including fully}
+# {\rm{}qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient}
+# {\rm{}on that detail, remove the "R" from "veR" string below:}
+
+*                   999 veR
+\medskip\hrule\end{alltt}
+\caption{Full-featured {\tt smtpserver.conf} file example}
+\label{fig:ref:smtpserver2}
+\end{figure*}
+
+
+
+\subsection{{\em policy-builder.sh} utility}
+\label{ref:smtp_policy_builder}
+\index{smtp!policy filtering, {\em policy-builder.sh}}
+
+The policy database that {\em smtpserver} uses is built with
+{\tt policy-builder.sh} script, which bundles together a set
+of policy source files:
+
+\begin{alltt}\medskip\hrule\small\medskip
+DB/smtp-policy.src   The boilerplate
+DB/localnames        ('= _localnames')
+DB/smtp-policy.relay ('= _full_rights')
+DB/smtp-policy.mx    ('relaytargets +')
+DB/smtp-policy.spam  ('= _bulk_mail')
+\medskip\hrule\end{alltt}\medskip
+
+
+At the moment, {\tt smtp-policy.spam} source is retrieved with LYNX from
+the URL:
+\begin{alltt}\medskip\scriptsize\medskip
+http://www.webeasy.com:8080/spam/spam\_download\_table
+\medskip\end{alltt}\medskip
+however it seems there are sites out there that are spam havens, and
+that serve valid spam source/responce domains, which are not registered
+at that database.
+
+{\em If you want, you can modify your {\tt smtp-policy.src} boilerplate
+file as well as your installed {\tt\small policy-builder.sh} script.}
+{\bf In fact you SHOULD modify both to match your environment!}
+
+Doing {\tt make install} will overwrite {\tt\small policy-builder.sh},
+but not {\tt smtp-policy.src}.
+
+Basically these various source files (if they exist) are used to
+combine knowledge of valid users around us:
+
+\begin{description}
+\item[\tt localnames] \mbox{}
+
+Who we are -- ok domains for receiving.
+
+\item[\tt smtp-policy.relay] \mbox{}
+
+Who can use us as outbound relay.
+
+Use  {\em\verb/[/ip.number\verb/]//maskwidth}  here for
+listing those senders (networks) we absolutely trust.
+You may also use domains, or domain suffixes so that the IP-reversed
+hostnames are accepted (but that is a it risky thing due to ease of
+fakeing the reversed domain names):
+
+\begin{alltt}\medskip\hrule\medskip
+[11.22.33.00]/24
+ip-reversed.host.name
+.domain.suffix
+\medskip\hrule\end{alltt}\medskip
+
+Server sets its internal ``always\_accept'' flag at the source IP tests
+before it decides on what to tell to the contacting client.
+The flag is not modified afterwards during the session.
+
+Usage of domain names here is discouraged as there is no way to tell
+that domain ``foo.bar'' here has different meaning than same domain
+elsewere -- at ``{\tt smtp-policy.mx}'', for example.
+
+\item[\tt smtp-policy.mx] \mbox{}
+
+Who really are our MX clients.
+Use this when you really know them, and don't want just to trust
+that if recipient has MX to you, it would be ok\ldots
+
+You can substitute this knowledge with a fuzzy feeling by using
+``acceptifmx -'' attribute at the generic boilerplate.
+List here domain names. 
+\begin{alltt}\medskip\hrule\medskip
+ mx-target.dom
+ .mx-target.dom
+\medskip\hrule\end{alltt}\medskip
+
+You CAN also list here all POSTMASTER addresses you accept email routed to: 
+
+\begin{alltt}\medskip\hrule\medskip
+ postmaster@local.domain
+ postmaster@client.domain
+\medskip\hrule\end{alltt}\medskip
+
+these are magic addresses that email is accepted to, even when everything
+else is blocked. 
+
+\item[\tt smtp-policy.spam] \mbox{}
+
+Those users, and domains that are absolutely no-no for senders,
+or recipients no matter what earlier analysis has shown.
+(Except for those senders that we absolutely trust..)
+
+\begin{alltt}\medskip\hrule\medskip
+ user@domain
+ user@
+ domain
+\medskip\hrule\end{alltt}\medskip
+
+The ``{\tt policy-builder.sh}'' builds this file from external sources. 
+
+\end{description}
+
+
+
+
+\subsection{Policy Filtering Language}
+\label{ref:smtp_policy_filtering}
+\index{smtp!policy filtering, reference}
+
+
+Policy based filter database boilerplate for smtp-server.
+
+File:  {\tt \$MAILVAR/db/smtp-policy.src}
+
+This file is compiled into an actual database using the command:
+\begin{alltt}\medskip\hrule\medskip
+  \$MAILBIN/policy-builder.sh
+\medskip\hrule
+\end{alltt}\par
+
+
+The basic syntax of non-comment lines in the policy source is:
+\begin{alltt}\medskip\hrule\medskip
+  key  [attribute value]* [= \_tag]
+\medskip\hrule
+\end{alltt}\par
+
+There are any number of attribute-value pairs associated with the key.
+
+There can be only one key of any kind currently active, unless ``{\em makedb}''
+is called with ``-A'' option (Append mode) in which case latter appearances
+of some keys will yield catenation of of latter data into previous datasets.
+(This may or may not be a good idea\ldots)
+
+The key can be any of following forms:
+\begin{description}
+\item[\rm domain, or .domain.suffix] \mbox{} \\
+a domain name optionally preceded by a dot (.)
+
+\item[\rm``user@'', or ``user@domain''] \mbox{} \\
+Usernames -- domainless (``user@'') or domainfull.
+
+\item[\rm An IP address in {[}nn.nn.nn.nn{]}/prefix form] \mbox{} \\
+Unspecified bits must be 0.
+(Network IPv6 addresses containing IPv4-mapped addresses are translated
+ into plain IPv4.)
+
+\item[\rm A tag -- word begining with underscore] \mbox{} \\
+An ``alias'' dataset entry for ``='' ``attribute'' uses.
+\end{description}
+
+
+{\em attribute} and {\em value} are tokens.
+They are used by {\tt policytest()} to make decisions.
+
+The attribute scanners operate in a manner, where the first
+instance of interesting attribute is the one that is used.
+Thus you can construct setups which set some attribute, and
+then {\em ignore} all latter instances of that same attribute
+which have been pulled in via ``{\em = \_alias\_tag}'' mechanism,
+for example.
+
+In following, ``understood'' value is one or both of literals: ``+'', ``-'',
+if they are listed at the definition entry.
+In case only one is understood, the other one can be considered as
+placeholder which stops the scanner for that attribute.
+
+Attribute names, and understood value tokens are:
+
+\begin{description}
+\item[\tt = \_any\_tag] \mbox{} \\
+The analysis function will descend to look up ``\_any\_tag'' from
+the database, and expand its content in this place.
+
+\item[\tt rejectnet +] \mbox{} \\
+Existence of this attribute pair sets persistent session flag:
+``always-reject'', which causes all ``MAIL FROM'' and ``RCPT TO''
+commands to fail until end of the session.
+
+This is tested for at the connection start against connecting
+IP address, and against IP-reversed domain name.
+This is also tested against the ``HELO/EHLO'' supplied parameter
+string.
+
+Use of this should be limited only to addresses against which you
+really have grudges.
+
+\item[\tt freezenet +] \mbox{} \\
+Existence of this attribute pair sets persistent session flag:
+``always-freeze'', which will accept messages in, but all of them
+are moved into ``freezer'' spool directory.
+
+This is tested for at the same time as ``rejectnet''.
+
+\item[\tt rejectsource +] \mbox{} \\
+Existence of this attribute pair rejects ``MAIL FROM'' address,
+and thus all subsequent ``RCPT TO'' and ``DATA'' transactions
+until new ``MAIL FROM'' is supplied.
+
+\item[\tt freezesource +] \mbox{} \\
+Existence of this attribute pair causes subsequently following
+``DATA'' phase message to be placed into ``freezer'' spool directory.
+
+This is tested for only at ``MAIL FROM'', and subsequent ``MAIL FROM''
+may supply another value.
+
+\item[\tt relaycustomer +/-] \mbox{} \\
+Existence of this attribute pair is tested for at ``MAIL FROM'',
+and it affects subsequent ``RCPT TO'' address testing.
+
+Pair ``relaycustomer -'' is a placeholder no-op, while
+``relaycustomer +'' tells to the system that it should not
+test the ``RCPT TO'' address very deeply.
+
+{\em Usage of this attribute is not encouraged!
+Anybody could get email relayed through just by claiming
+a ``MAIL FROM'' domain which has this attribute.}
+
+\item[\tt relaycustnet +] \mbox{} \\
+Existence of this attribute pair is tested for at the  connection
+start against connecting IP address, and against IP-reversed domain name.
+
+If this pair exists, session sets persistent ``always-accept'' flag,
+and will not do further policy analysing for the ``MAIL FROM'', nor
+``RCPT TO'' addresses.  (Except looking for valid A/MX data from the
+DNS for the sender/recipient domains.)
+
+\item[\tt fulltrustnet +] \mbox{} \\
+Because the DNS lookups still done with ``relaycustnet +'' setting on,
+a massive feed for fanout servers might become slowed down/effectively
+killed, unless we use ``fulltrustnet +'' specification for the feeder
+host.  Then everything is taken in happily from that source address.
+
+\item[\tt trustrecipients +] \mbox{} \\
+This is a variant of ``relaycustnet,'' where  ``RCPT TO'' addresses are
+not checked at all, but ``MAIL FROM'' addresses are looked up from
+the DNS. (Unless some other test with the ``MAIL FROM'' domain name
+has matched before that.)
+
+\item[\tt trust-whoson +] \mbox{} \\
+If the system has been compiled with support to ``{\em whoson}'' services,
+see file ``{\em whoson-*.tar.gz}'' in the ``contrib/'' subdirectory.
+This facilitates indirectly authenticated (via POP/IMAP) SMTP message
+submission for dialup-type users.
+
+\item[\tt relaytarget +] \mbox{} \\
+With this attribute pair the current ``RCPT TO'' address is accepted in
+without further trouble. (Theory being, that keys where this attribute
+pair exist are fully qualified, and valid, thus no need for DNS analysis.)
+
+See ``RCPT TO'' processing algorithm for further details.
+
+\item[\tt relaytarget -] \mbox{} \\
+This attribute pair causes instant rejection of the current ``RCPT TO''
+address.
+
+See ``RCPT TO'' processing algorithm for further details.
+
+\item[\tt freeze +] \mbox{} \\
+When ``RCPT TO'' address test meets this attribute pair, the entire
+message will be placed into ``freezer'' directory.
+
+\item[\tt acceptifmx +/-] \mbox{} \\
+This attribute pair is used to give fuzzy feeling in anti-relay setups
+so that we don't need to list {\bf all} those target domains that we
+are allowing to use ourselves as relays.
+
+This will basically check that ``RCPT TO'' address has our server
+as one of its MX entries.
+
+The value (``+'' or ``-'') determines how ``severe'' the nonexistence
+of MX data is.  With ``+'' the server will yield ``400'' series temporary
+error with implied invitation to try again, and with ``-'' the server will
+yield ``500'' series permanent error.
+
+\item[\tt acceptifdns +/-] \mbox{} \\
+This attribute pair is complementary for the ``acceptifmx'' in sense
+that it accept the recipient address in case the DNS system has any
+A or MX information for it.
+
+This attribute pair should not be used.
+
+\item[\tt senderokwithdns +/-] \mbox{} \\
+This attribute pair will do DNS analysis for ``MAIL FROM'' domain, and
+accept it only if there exists A or MX data for the said domain.
+
+The value (``+'' or ``-'') determines how ``severe'' the nonexistence
+of DNS data is.  With ``+'' the server will yield ``400'' series temporary
+error with implied invitation to try again, and with ``-'' the server will
+yield ``500'' series permanent error.
+
+
+\item[\tt sendernorelay +] \mbox{} \\
+Tested at ``MAIL FROM'' address domain, and affects ``RCPT TO''
+address domain analysis.
+{\em At the moment this attribute does not make sense, don't use!}
+
+\item[\tt test-dns-rbl +] \mbox{} \\
+This attribute pair will use Paul Vixie's RBL
+( HTTP://maps.vix.com/rbl/ )
+system to block undesired connection sources.
+
+\item[\tt rply-dns-rbl +] \mbox{} \\
+\item[\tt test-rply-dns-rbl +] \mbox{} \\
+This is a ``recipient selective'' version of the RBL.
+The first one is to be placed into the default address case
+(the ``[0.0.0.0]/0´´), and then the latter can be used in given
+destination domain(s) to test for the result of the lookup.
+
+This allows selective usage of 'RBL' blocking via this server.
+For example if you have {\tt smtp-policy.mx} file listing special
+cases (opposite of your default domain address ``.'' values)
+
+\begin{alltt}\medskip\hrule\medskip
+ fobar.com  test-rply-dns-rbl + relaytarget +
+ barfo.dom  test-rply-dns-rbl + relaytarget +
+\medskip\hrule\end{alltt}\medskip
+
+The selectivity can be either by means of listing those where the test
+happens, or those where it doesn't happen -- the latter means that
+the default domain address (``.'') must have ``test-rply-dns-rbl +'' entry.
+
+\item[\tt maxinsize nnn] \mbox{} \\
+This attribute pair yields numeric limit for incoming message
+size.  With this you can define source specific message size
+limits so that if your intranetwork has a system with lower
+inbound message size, than you do, you can report this limit
+at the ``EHLO'' responses.
+
+Partly this is placeholder for further code with for example
+source/target domain specific runtime enforced size limits.
+
+\item[\tt maxoutsize nnn] \mbox{} \\
+Placeholder for further code
+
+\item[\tt localdomain *] \mbox{} \\
+Placeholder for further code
+
+\item[\tt message "text string in quotes"] \mbox{} \\
+Placeholder for further code
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\end{multicols}
+
+\subsubsection{Semantics}
+
+
+
+The {\tt policytest()} function is called by smtp-server to check the client 
+host, the sender's and recipients' addresses.  {\tt policytest()} looks for 
+the name and address of the client host as well as full and partial user address 
+and domain part of sender and recipient addresses in this database.  The 
+retrieved attributes are used to make decissions on accepting or rejecting 
+the incoming mail.
+
+If looking for ``foo.bar.edu'' and an exact match failed, the database looks
+for keys in sequence:  ``.foo.bar.edu'', ``.bar.edu'', ``.edu'', and ``.''.
+
+The order of entries in the input file is not important, as the file is
+compiled into binary database for faster lookup.
+
+When searching for an IP address the entry with the most common (leftside)
+bits is returned.   So you can have a [0.0.0.0]/0 entry what specifies the 
+default addributes for all unlisted IP addresses. (Both IPv4 and IPv6)
+
+`=' is a special attribute.
+
+The notation `= \_tag' means ``See also at `\_tag'". If {\tt server()} doesn't 
+find the requested attribute of the object, it will replace object name 
+with `\_tag' and restart the search.
+
+{\Large SCRIPT REMOVED; SEE FILE  smtp-policy.src}

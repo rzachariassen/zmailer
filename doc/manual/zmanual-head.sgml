@@ -1,0 +1,170 @@
+<!DOCTYPE book PUBLIC "-//OATS/DTD DocBook V3.1//EN">
+<book>
+<bookinfo>
+
+<!ENTITY ZMailerManual "ZMailer Manual">
+<!ENTITY ZManVersion   "v1.99.15">
+
+<!--
+
+%begin{latexonly}
+
+\usepackage{float}
+%\usepackage{flafter}
+\usepackage{afterpage}
+\afterpage{}
+\usepackage{multicol}
+
+%
+% Do rather fancy heading style..
+% In fact imitate  The \LaTeX\ Companion  -book
+%
+
+\usepackage{fancyheadings}
+\pagestyle{fancyplain}
+
+% Throw away the margin space for side notes..
+\newlength{\footerrecenter}
+\setlength{\footerrecenter}{0.2\marginparwidth}
+\addtolength{\footerrecenter}{0.25\marginparsep}
+
+\addtolength{\textwidth}{0.4\marginparwidth}
+\addtolength{\headwidth}{\marginparsep}
+\addtolength{\headwidth}{\marginparwidth}
+\setlength{\marginparwidth}{0.6\marginparwidth}
+
+\renewcommand{\chaptermark}[1]%  % (BOOK-style only)
+	{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]%
+	{\markboth{\thesection\ #1}{\thesection\ #1}}
+\renewcommand{\subsectionmark}[1]%
+	{\markboth{\thesubsection\ #1}{\thesubsection\ #1}}
+\renewcommand{\subsubsectionmark}[1]%
+	{\markboth{\thesubsubsection\ #1}{\thesubsubsection\ #1}}
+\renewcommand{\paragraphmark}[1]%
+	{\markboth{\theparagraph\ #1}{\theparagraph\ #1}}
+\renewcommand{\subparagraphmark}[1]%
+	{\markboth{\thesubparagraph\ #1}{\thesubparagraph\ #1}}
+
+% \lhead[evenpage]{oddpage}
+\lhead[\fancyplain{}{\bf\thepage}]%
+      {\fancyplain{}{\bf\rightmark}}
+% \rhead[evenpage]{oddpage}
+\rhead[\fancyplain{}{\bf\leftmark}]%
+      {\fancyplain{}{\bf\thepage}}
+% \cfoot[evenpage]{oddpage}
+\cfoot[{\hspace{\footerrecenter}}{\sf \ZMailerManual} -- \ZManVersion]%
+	{{\hspace{-1.0\footerrecenter}}{\sf \ZMailerManual} -- \ZManVersion}
+
+%
+% Modify the article style seriously at \paragraph,
+% and \subparagraph commands
+%
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+	{3.25ex \@plus1ex \@minus.2ex}%
+	{1.5ex \@plus .2ex}%
+	{\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
+	{3.25ex \@plus1ex \@minus .2ex}%
+	{1.5ex \@plus .2ex}%
+	{\normalfont\normalsize\bfseries}}
+\makeatother
+
+
+%
+% Modify the way how basic text body presents separate paragraphs
+%
+
+ \setlength{\parskip}{\baselineskip}
+ \setlength{\parindent}{0pt}
+ \setlength{\partopsep}{\parskip}
+ \setlength{\topsep}{-\parskip}
+
+%end{latexonly}
+
+-->
+
+
+<!--
+
+\setcounter{secnumdepth}{10}
+\setcounter{tocdepth}{10}
+
+%\sloppy
+
+-->
+
+%
+% read own internals for sections/contents before any
+% from the segments.
+%
+
+\begin{document}
+\startdocument
+
+\begin{titlepage}
+\rule{\textwidth}{1mm}
+\begin{center}
+\bf
+\Huge
+%begin{latexonly}
+\vspace{2ex}
+%end{latexonly}
+\ZMailerManual \\
+%begin{latexonly}
+\vspace{2ex}
+%end{latexonly}
+
+\begin{htmlonly}
+\htmladdimg[center]{zmailer-logo2.gif}
+\end{htmlonly}
+
+%begin{latexonly}
+\begin{figure}[h]
+  \htmlimage{noantialias,transparent}
+  \htmlborder{1}
+  \includegraphics[width=\textwidth]{zmailer-logo.eps}
+\end{figure}
+%end{latexonly}
+\vspace{2ex}
+
+\Large
+Matti Aarnio, et.al. \\
+% ------------
+%begin{latexonly}
+\vspace{2ex}
+%end{latexonly}
+\begin{htmlonly}
+\vspace{1ex}
+\end{htmlonly}
+% ------------
+\ZManVersion \\
+%{\date{}} \\
+{\today{}} \\
+for ZMailer 2.99.50 \\
+% ------------
+%begin{latexonly}
+\vspace{2ex}
+%end{latexonly}
+\begin{htmlonly}
+\vspace{1ex}
+\end{htmlonly}
+% ------------
+\Large
+\sf
+*** THIS IS WORK IN PROGRESS ***
+\end{center}
+\vfill
+\rule{\textwidth}{1mm}
+\end{titlepage}
+
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+
+
+% ------------------
+% Below generate \internal[xx]{} statements,
+% and catenate  zmanual-tail.tex
+%

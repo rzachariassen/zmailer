@@ -1,0 +1,167 @@
+<!-- -------------------------------------------------------- -->
+<!--  ZMailer manual                                          -->
+<!--                                                          -->
+<!--  Copyright Matti Aarnio                                  -->
+<!--  <mea@nic.funet.fi>                                      -->
+<!--  1995-2000                                               -->
+<!--                                                          -->
+<!-- -------------------------------------------------------- -->
+
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
+<!ENTITY ZManVersion  "v1.99.20">
+<!ENTITY ZMAN-COVER   SYSTEM "zmanual-cover.sgml">
+<!ENTITY ZTUTORIAL    SYSTEM "ztutorial.sgml">
+<!ENTITY ZINSTALL     SYSTEM "zinstall.sgml">
+]>
+<BOOK STATUS="draft" ID="ZMANUAL"><?dbhtml filename="zmanual.html">
+<TITLE>ZMailer</TITLE>
+
+&ZMAN-COVER;
+
+<!--
+
+%
+%  MAIN MANUAL
+%
+
+%begin{latexonly}
+\cleardoublepage
+%end{latexonly}
+\pagenumbering{arabic}
+%% \setcounter{page}{1}
+
+\relax   %% this is important, else the next segment doesn't get processed
+
+\afterpage{}
+
+% \twocolumn
+
+-->
+
+<!--  <PREFACE> ??? -->
+
+&ZTUTORIAL;
+&ZINSTALL;
+
+
+<!--  REST NOT UPDATED ------------------------------------------------ -->
+<!-- % \onecolumn							-->
+<!-- \afterpage{\clearpage}						-->
+<!-- 									-->
+<!-- 									-->
+<!-- \segment{zadministration}{chapter}{Administration}			-->
+<!-- %begin{latexonly}							-->
+<!-- \cleardoublepage							-->
+<!-- %end{latexonly}							-->
+<!-- 									-->
+<!-- \chead[{\sf TO-BE-REVISED}]{{\sf TO-BE-REVISED}}			-->
+<!-- 									-->
+<!-- \segment{zreference}{chapter}{Reference}				-->
+<!-- 									-->
+<!-- \appendix								-->
+<!-- 									-->
+<!-- 									-->
+<!-- % \segment{zapp-scripts}{chapter}{Sample Router Configuration Scripts} -->
+<!-- \chapter{Sample Router Configuration Scripts}			-->
+<!-- {\Large\sf THIS IS A PLACEHOLDER - THINGS COME INTO APPENDIX A}	-->
+<!-- %begin{latexonly}							-->
+<!-- \cleardoublepage							-->
+<!-- %end{latexonly}							-->
+<!-- 									-->
+<!-- \segment{zapp-listmgrs}{chapter}{Using ZMailer with Mailinglist Managers} -->
+<!-- %begin{latexonly}							-->
+<!-- \cleardoublepage							-->
+<!-- %end{latexonly}							-->
+<!-- 									-->
+<!-- \segment{zapp-tragents}{chapter}{Adding new transport agents}	-->
+<!-- %begin{latexonly}							-->
+<!-- \cleardoublepage							-->
+<!-- %end{latexonly}							-->
+<!-- 									-->
+<!-- \segment{zapp-filefmts}{chapter}{Internal File Data Formats}	-->
+<!-- %begin{latexonly}							-->
+<!-- \cleardoublepage							-->
+<!-- %end{latexonly}							-->
+<!-- 									-->
+<!-- \segment{zapp-ssl-lang}{chapter}{S/SL Language}			-->
+<!-- %begin{latexonly}							-->
+<!-- \cleardoublepage							-->
+<!-- %end{latexonly}							-->
+<!-- 									-->
+<!-- 									-->
+<!-- %									-->
+<!-- % Index info stored in:  manual.ind ,  which was created using:	-->
+<!-- %									-->
+<!-- %       makeindex -s l2hidx.ist manual.idx				-->
+<!-- %       								-->
+<!-- 									-->
+<!-- <INDEX>								-->
+<!-- 									-->
+<!-- %									-->
+<!-- %  Alphabetization and navigation within the index			-->
+<!-- %  ...these special index entries must come *after* the  \printindex -->
+<!-- %  else half of the hyperlinks will point to the preceding page.	-->
+<!-- %									-->
+<!-- \begin{htmlonly}							-->
+<!-- \newcommand{\indexAlpha}[5]{\index{#1@\htmlref{_}{#2}%		-->
+<!--  \htmlref{\HTML{SUB}{\LARGE #3}}{AZ}\htmlref{_}{#4}\label{#5}| }}	-->
+<!-- %									-->
+<!-- \indexAlpha{\$}{Z}{\$}{dot}{doll}%					-->
+<!-- \indexAlpha{.}{doll}{~.~}{A}{dot}%					-->
+<!-- \indexAlpha{A}{dot}{A}{B}{A}%					-->
+<!-- \indexAlpha{B}{A}{B}{C}{B}%					-->
+<!-- \indexAlpha{C}{B}{C}{D}{C}%					-->
+<!-- \indexAlpha{D}{C}{D}{E}{D}%					-->
+<!-- \indexAlpha{E}{D}{E}{F}{E}%					-->
+<!-- \indexAlpha{F}{E}{F}{G}{F}%					-->
+<!-- \indexAlpha{G}{F}{G}{H}{G}%					-->
+<!-- \indexAlpha{H}{G}{H}{I}{H}%					-->
+<!-- %\indexAlpha{I}{H}{I}{J}{I}%					-->
+<!-- \indexAlpha{I}{H}{I}{L}{I}%					-->
+<!-- \indexAlpha{J}{I}{J, K}{L}{K}%					-->
+<!-- %\indexAlpha{J}{I}{J}{K}{J}%					-->
+<!-- %\indexAlpha{K}{J}{K}{L}{K}%					-->
+<!-- \indexAlpha{L}{K}{L}{M}{L}%					-->
+<!-- \indexAlpha{M}{L}{M}{N}{M}%					-->
+<!-- \indexAlpha{N}{M}{N}{O}{N}%					-->
+<!-- \indexAlpha{O}{N}{O}{P}{O}%					-->
+<!-- %\indexAlpha{P}{O}{P}{Q}{P}%					-->
+<!-- \indexAlpha{P}{O}{P}{R}{P}%					-->
+<!-- \indexAlpha{Q}{P}{Q, R}{S}{R}%					-->
+<!-- %\indexAlpha{Q}{P}{Q}{R}{Q}%					-->
+<!-- %\indexAlpha{R}{Q}{R}{S}{R}%					-->
+<!-- \indexAlpha{S}{R}{S}{T}{S}%					-->
+<!-- \indexAlpha{T}{S}{T}{U}{T}%					-->
+<!-- \indexAlpha{U}{T}{U}{V}{U}%					-->
+<!-- \indexAlpha{V}{U}{V}{W}{V}%					-->
+<!-- \indexAlpha{W}{V}{W}{X}{W}%					-->
+<!-- %\indexAlpha{X}{W}{X}{Y}{X}%					-->
+<!-- \indexAlpha{X}{W}{X}{Z}{X}%					-->
+<!-- \indexAlpha{Y}{X}{Y, Z}{doll}{Z}%					-->
+<!-- %\indexAlpha{Y}{X}{Y}{Z}{Y}%					-->
+<!-- %\indexAlpha{Z}{Y}{Z}{doll}{Z}%					-->
+<!-- %									-->
+<!-- %									-->
+<!-- %% This is an alphabetical navigation panel.			-->
+<!-- \index{@\label{AZ}\textbf{\LARGE					-->
+<!-- \htmlref{\$}{doll} \htmlref{.}{dot} \htmlref{ A }{A} 		-->
+<!--  \htmlref{B}{B} \htmlref{C}{C} \htmlref{D}{D} \htmlref{E}{E}	-->
+<!--  \htmlref{F}{F} \htmlref{G}{G} \htmlref{H}{H} \htmlref{I}{I}	-->
+<!--  \htmlref{J}{K} \htmlref{K}{K} \htmlref{L}{L} \htmlref{M}{M}	-->
+<!--  \htmlref{N}{N} \htmlref{O}{O} \htmlref{P}{P} \htmlref{Q}{R}	-->
+<!--  \htmlref{R}{R} \htmlref{S}{S} \htmlref{T}{T} \htmlref{U}{U}	-->
+<!--  \htmlref{V}{V} \htmlref{W}{W} \htmlref{X}{X} \htmlref{Y}{Z}	-->
+<!--  \htmlref{Z}{Z}							-->
+<!-- \htmlrule[all]| }}							-->
+<!-- 									-->
+<!-- \end{htmlonly}							-->
+<!-- 									-->
+<!-- 									-->
+<!-- </INDEX>								-->
+<!-- 									-->
+<!-- 									-->
+<!-- 									-->
+<!-- 									-->
+<!-- 									-->
+
+</BOOK>

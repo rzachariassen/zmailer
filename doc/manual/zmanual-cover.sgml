@@ -1,0 +1,43 @@
+<!-- -------------------------------------------------------- -->
+<!--  ZMailer manual                                          -->
+<!--                                                          -->
+<!--  Cover page                                              -->
+<!--                                                          -->
+<!--  Copyright Matti Aarnio                                  -->
+<!--  <mea@nic.funet.fi>                                      -->
+<!--  1995-2000                                               -->
+<!--                                                          -->
+<!-- -------------------------------------------------------- -->
+
+<BOOKINFO>
+<TITLE>ZMailer</TITLE>
+<SUBTITLE>The Manual; &ZManVersion;</SUBTITLE>
+<TITLEABBREV>ZMailer</TITLEABBREV>
+
+<!--
+ <MEDIAOBJECT>
+ <IMAGEOBJECT><IMAGEDATA FILEREF="zmailer-logo.eps" FORMAT="eps"></IMAGEOBJECT>
+ <IMAGEOBJECT><IMAGEDATA FILEREF="zmailer-logo.gif" FORMAT="gif"></IMAGEOBJECT>
+ </MEDIAOBJECT>
+-->
+<GRAPHIC FILEREF="zmailer-logo"></GRAPHIC>
+
+<AUTHORGROUP>
+<AUTHOR>
+<FIRSTNAME>Matti</FIRSTNAME>
+<SURNAME>Aarnio</SURNAME>
+</AUTHOR>
+</AUTHORGROUP>
+<PUBDATE>2000</PUBDATE>
+<COPYRIGHT>
+<YEAR>1992</YEAR>
+<HOLDER>Rayan Zacharaiassen, All rights reserved.</HOLDER>
+</COPYRIGHT>
+<COPYRIGHT>
+<YEAR>1994</YEAR>
+<YEAR>1995</YEAR>
+<YEAR>1997</YEAR>
+<YEAR>2000</YEAR>
+<HOLDER>Matti Aarnio, All rights reserved.</HOLDER>
+</COPYRIGHT>
+</BOOKINFO>

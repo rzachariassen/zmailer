@@ -1,0 +1,610 @@
+%% \section{Scheduler}
+
+The {\em scheduler\/} daemon manages the delivery processing of 
+messages in ZMailer.
+
+The {\em router\/} creates message control files in the
+{\tt \$POSTOFFICE/transport/} directory. These refer to 
+the original message files in the {\tt \$POSTOFFICE/queue/} 
+directory.
+
+The {\em scheduler\/} reads each message control file from
+{\tt \$POSTOFFICE/transport/}, translates the contained 
+message and destination information into internal data structures, 
+and unlinks the message control file.
+
+Based on scheduling, priority, and execution information read from a
+configuration file, the {\em scheduler\/} arranges to execute 
+Transport Agents relevant to the queued messages.
+
+At the time scheduled for a particular transport agent invocation, the
+{\em scheduler\/} will start a transport agent (or use one from idle-pool),
+and tell it one by one which message control files to process.
+When all the destination addresses in a message have been processed, the
+{\em scheduler\/} performs error reporting tasks if any, and then deletes the
+message control file in {\tt \$POSTOFFICE/transport/} and 
+the original message file in {\tt \$POSTOFFICE/queue/}.
+
+All message delivery is actually performed by Transport Agents, which
+are declared in a configuration file for the {\em scheduler\/}.
+Each transport agent is executed with the same current directory as the
+{\em scheduler\/}. {\em scheduler-transporter\/} interaction protocol is
+described later.
+
+The standard output of each transport agent are destination address
+delivery reports; either successful delivery, unsuccessful delivery, or
+deferral of the address. Each report uses byte offsets in the message
+control file to refer to the address. Reports may also include a comment
+line which will be displayed in the reports of the {\em scheduler\/}.
+
+Two types of reports are produced:
+\begin{enumerate}
+\item Error messages caused by unsuccessful delivery of a message
+are appended to its message control file. Occasionally,
+for example, when all addresses have been processed, the {\em scheduler\/}
+generates an error message to the error return address of the message
+(usually the original sender).  
+\item The {\em scheduler\/} binds itself to a well-known TCP/IP port
+{\tt (MAILQ, TCP port 174)} on startup.  Any connections to this port
+are processed synchronously in the scheduler at points in the execution
+where the state is internally consistent. The {\em scheduler\/}
+simply dumps its internal state in a terse format to the TCP stream.
+It is expected that the client program will reconstruct the data structures
+sufficiently to give a user a good idea of what the scheduler thinks the
+world looks like. The {\em mailq (1)\/} program serves this purpose.
+\end{enumerate}
+
+
+{\bf Usage}
+
+Invoking {\em scheduler\/} without any parameter will start it as a daemon.
+
+\begin{verbatim}
+scheduler [-divFHQSVW] [-f configfile] [-E newentsmax] [-Llogfile] [-lstatisticslog]
+[-Ntranspmaxfno] [-P postoffice] [-R maxforkfreq] [-q rendezvous]
+\end{verbatim}
+
+
+{\bf Parameters}
+
+\begin{description}
+\item[{\tt -d}] \mbox{}
+
+run as a daemon, usually used after -v to log daemon activity 
+in great detail.
+
+\item[{\tt -E newentsmax}] \mbox{}
+
+when globbing new tasks from the directory, pick 
+only first {\tt newentsmax} of them, and leave rest for a new scan run.
+
+\item[{\tt -f configfile}] \mbox{}
+
+overrides the default configuration file 
+{\tt MAILSHARE/scheduler.cf}.
+
+\item[{\tt -F}] \mbox{}
+
+Freeze -- don't actually run anything, just do queue scanning.
+(For debug purposes..)
+
+\item[{\tt -H -HH}] \mbox{}
+
+Use multi-level hashing at the spool directories.
+This will efficiently reduce the lengths of the scans at the directories
+to find some arbitary file in them.
+One {\tt H} means {\tt single level hashing}, two {\tt HH} mean
+{\tt dual level hashing}. {\tt Hash} is directory which name is
+single upper case alphabet (A-Z).
+
+\item[{\tt -i}] \mbox{}
+
+run interactively, i.e., not as a daemon.
+
+\item[{\tt -L logfile}] \mbox{}
+
+overrides the default log file location 
+{\tt LOGDIR/scheduler}.
+
+\item[{\tt -l statisticslog}] \mbox{}
+
+starts the appending of delivery statistics 
+information (ASCII form) into given file.  No default value.
+
+\item[{\tt -N transmaxfno}] \mbox{}
+
+sets how many filehandles are allocated for the 
+{\em scheduler\/}'s started children (if the system has adjustable resources.)
+
+\item[{\tt -P postoffice}] \mbox{}
+
+specifies an alternate {\tt POSTOFFICE/} directory.
+
+\item[{\tt -q rendezvous}] \mbox{}
+
+the rendezvous between machines without TCP/IP networking, 
+
+\item[{\tt -Q}] \mbox{}
+
+The `{\tt Q}'-mode, don't output the old style data into the queue 
+querier, only the new-style one.
+
+\item[{\tt -S}] \mbox{}
+
+Synchronous startup mode, scans all jobs at the directory before 
+starting even the first transporter.
+
+\item[{\tt -v}] \mbox{}
+
+Verbose logging in interactive mode -- for debug uses.
+
+\item[{\tt -V}] \mbox{}
+
+Print version, and exit
+
+\item[{\tt -W}] \mbox{}
+
+Another option for debugging, delay the start of the verbose logging
+until after all jobs have been scanned in, and it is time to start the transporters. 
+{\em scheduler\/} and {\em mailq (1)\/} is done using a well-known named pipe. 
+This option overrides the default location for this special file, either 
+{\tt \$RENDEZVOUS} or {\tt /usr/tmp/.mailq.text}.
+
+\end{description}
+
+
+
+
+\subsection{Configuration Language}
+\label{schedulerconfig}
+\index{{\tt scheduler.conf} file}\index{scheduler, {\tt scheduler.conf}}
+
+The {\em scheduler\/} configuration file consists of a set of clauses. 
+
+
+
+
+\subsubsection{Clause selection}
+
+Each clause is selected by
+the pattern it starts with. The patterns for the clauses are matched,
+in sequence, with the {\tt channel/host} string for each recipient
+address. When a clause pattern matches an address, the parameters set in
+the clause will be applied to the {\em scheduler\/}'s processing of 
+that address. If the clause specifies a command, the clause pattern 
+matching sequence is terminated. This is a clause:
+\begin{verbatim}
+local/* interval=10s
+        expiry=3h
+        # want 20 channel slots in case of blockage on one
+        maxchannel=20
+        # want 20 thread-ring slots
+        maxring=20
+        command="mailbox -8"
+\end{verbatim}
+
+
+A clause consists of:
+\begin{itemize}
+\item A selection pattern (in shell style) that is matched against the
+{\tt channel/host} string for an address.
+\item 0 or more variable assignments or keywords (described below).
+\end{itemize}
+
+If the selection pattern does not contain a {\tt /}, it is assumed to
+be a channel pattern and the host pattern is assumed to be the wildcard
+{\tt *}.
+
+
+
+
+\subsubsection{Clause components}
+
+The components of a clause are separated by whitespace. The pattern
+introducing a clause must start in the first column of a line, and the
+variable assignments or keywords inside a clause must not start in the
+first column of a line. This means a clause may be written both compactly
+all on one line, or spread out with an assignment or keyword per line.
+
+If the clause is empty (i.e., consists only of a pattern), then the
+contents of the next non-empty clause will be used.
+
+The typical configuration file will contain the following clauses:
+\begin{itemize}
+\item a clause matching all addresses (using the pattern {\tt */*})
+that sets up default values.
+\item a clause matching the local delivery channel (usually {\tt local}).
+\item a clause matching the deferred delivery channel (usually {\tt hold}).
+\item a clause matching the error reporting channel (usually {\tt error}).
+\item clauses specific to the other channels known by the {\em router\/},
+for example, {\tt smtp} and {\tt uucp}.
+\end{itemize}
+
+The actual names of these channels are completely controlled by the
+{\em router\/} configuration file.
+
+Empty lines, and lines whose first non-whitespace character is {\tt \#},
+are ignored.
+
+Variable values may be unquoted words or values or doublequoted strings.
+Intervals (delta time) are specified using a concatenation of: numbers
+suffixed with `s', `m', `h', or `d' modifiers designating the number as
+a second, minute, hour, or day value. For example: {\tt 1h5m20s}.
+
+
+
+
+\subsubsection{Variables and keywords}
+
+The known variables and keywords, and their typical values and semantics are:
+\begin{description}
+\item[{\tt interval (1m)}] \mbox{}
+
+specifies the primary retry interval, which 
+determines how frequently a transport agent should be scheduled for an address. 
+The value is a delta time specification. This value, and the {\tt retries}
+value mentioned below, are combined to determine the interval between
+each retry attempt.
+
+
+
+\item[{\tt idlemax (3x interval)}] \mbox{}
+
+When a transport agent runs out of jobs, 
+they are moved to {\tt idle pool}, and if a TA spends more than 
+{\tt idlemax} time in there, it is terminated.
+
+
+
+\item[{\tt expiry (3d)}] \mbox{}
+
+specifies the maximum age of an address in the 
+{\em scheduler\/} queue before a repeatedly deferred address is bounced 
+with an expiration error. The actual report is produced when all addresses 
+have been processed.
+
+
+
+\item[{\tt retries (1 1 2 3 5 8 13 21 34)}] \mbox{}
+
+specifies the retry interval 
+policy of the {\em scheduler\/} for an address. The value must be a sequence 
+of positive integers, these being multiples of the primary interval before a 
+retry is scheduled. The {\em scheduler\/} starts by going through the 
+sequence as an address is repeatedly deferred. When the end of the sequence 
+is reached, the {\em scheduler\/} will jump into the sequence at a random 
+spot and continue towards the end. This allows various retry strategies to be 
+specified easily:
+\begin{itemize}
+\item brute force (or "jackhammer"):
+\begin{verbatim}
+retries=0
+\end{verbatim}
+\item constant primary interval:
+\begin{verbatim}
+retries=1
+\end{verbatim}
+\item instant backoff:
+\begin{verbatim}
+retries="1 50 50 50 50 50 50 50 50 50 50 50 50"
+\end{verbatim}
+\item slow increasing (fibonacci) sequence:
+\begin{verbatim}
+retries="1 1 2 3 5 8 13 21 34"
+\end{verbatim}
+\item s-curve sequence:
+\begin{verbatim}
+retries="1 1 2 3 5 10 20 25 28 29 30"
+\end{verbatim}
+\item exponential sequence:
+\begin{verbatim}
+retries="1 2 4 8 16 32 64 128 256"
+\end{verbatim}
+\item etc.
+\end{itemize}
+
+
+
+
+\item[{\tt maxta (0)}] \mbox{}
+
+if retrying an address would cause the number of 
+simultaneously active transport agents to exceed the specified value, 
+the retry is postponed. The check is repeated frequently so the address 
+may be retried as soon as possible after the scheduled retry interval. 
+If the value is 0, a value of 1000 is used instead. Keep in mind that all 
+running transport agents will keep open {\bf two} {\tt pipe (2)} 
+file-handle, and thus system-wide limits may force lower maximum, than 1000.
+On a system with max 256 open files, this would most likely succeed at 120.
+
+
+
+\item[{\tt maxchannel (0)}] \mbox{}
+
+if retrying an address would cause the number of simultaneously active
+transport agents processing mail for the same channel to exceed
+the specified value, the retry is postponed.
+The check is repeated frequently so the address may be retried as soon
+as possible after the scheduled retry interval. If the value is 0,
+a value of 1000 is used instead.
+
+
+
+\item[{\tt maxring (0)}] \mbox{}
+
+Recipients are groupped into {\tt threads}, 
+and similar threads are groupped into {\tt thread-rings}, where same 
+transport agent can be switched over from one recipient to another. This 
+defines how many transport agents can be running at any time at the ring.
+
+
+
+\item[{\tt skew (5)}] \mbox{}
+
+is the maximum number of retries before the retry 
+time is aligned to a standard boundary (seconds since epoch, modulo primary 
+interval). The lower this number (1 is lowest), the faster the alignment is 
+done. The purpose of this alignment is to ensure that eventually a single 
+transport agent invocation will be able to process destination addresses 
+that arrived randomly to the {\em scheduler\/}.
+
+
+
+\item[{\tt user (root)}] \mbox{}
+
+is the user id of a transport agent processing 
+the address. The value is either numeric (a uid) or an account name.
+
+
+
+\item[{\tt group (daemon)}] \mbox{}
+
+is the group id of a transport agent processing 
+the address. The value is either numeric (a gid) or a group name.
+
+
+
+\item[{\tt command}] \mbox{}
+
+{\tt command (smtp -srl /var/log/smtp \$host)} 
+is the command line used to start a transport agent to process the address.
+The program pathname is specified relative to the {\tt \$MAILBIN/ta/}
+directory. The string `{\tt \$channel}' is replaced by the current
+matched channel, and `{\tt \$host}' replaced by the current matched 
+host, from the destination address. It is strongly recommended that the 
+`{\tt \$host}' is not to be used on a command definition, as it limits 
+the usability of idled transporter.
+
+
+
+\item[{\tt bychannel}] \mbox{}
+
+is a keyword (with no associated value) that tells 
+the {\em scheduler\/} that the transport agent specified in the command will 
+only process destination addresses that match the first destination channel it 
+encounters. This is automatically set when the string `{\tt \$channel}' 
+occurs in the command, but may also be specified manually by this keyword. 
+This is rarely used.
+
+
+
+\item[{\tt sm (8)}] \mbox{}
+
+to avoid the {\em scheduler\/} having to discover that 
+the transport agent didn't consider a destination address the {\em scheduler\/}
+thought it should have. The penalty for not using this keyword in such situations 
+is that delivery of passed-over addresses will be staggered.
+
+
+
+\item[{\tt queueonly}] \mbox{}
+
+a clause with {\tt queueonly} flag does not auto-start 
+at the arrival of a message, instead it must be started by means of 
+{\em smtpserver(8)\/} command {\bf ETRN} through an SMTP connection.
+
+
+
+\end{description}
+
+
+For example, this is a complete configuration file:
+\begin{verbatim}
+# Default values
+*/*     interval=1m expiry=3d retries="1 1 2 3 5 8 13 21 34"
+        maxring=0 maxta=0 skew=5 user=root group=daemon
+# Boilerplate parameters for local delivery and service channels
+local/* interval=10s expiry=3h maxchannel=2 command=mailbox
+error   interval=5m maxchannel=10 command=errormail
+hold/*  interval=5m maxchannel=1 command=hold
+# Miscellaneous channels supported by router configuration
+smtp/*.toronto.edu
+smtp/*.utoronto.ca maxchannel=10 maxring=2
+        command="smtp -srl /var/log/smtp"
+smtp/*  maxchannel=10 maxring=5
+        command="smtp -esrl /var/log/smtp"
+uucp/*  maxchannel=5 command="sm -c $channel uucp"
+\end{verbatim}
+
+The first clause ({\tt */*}) sets up default values for all
+addresses. There is no command specification, so clause matching
+will continue after address have picked up the parameters set here. 
+
+The third clause ({\tt error}) has an implicit host wildcard of `*', 
+so it would match the same as specifying {\tt error/*} would have.
+
+The fifth clause ({\tt smtp/*.toronto.edu}) has no further components 
+so it selects the components of the following non-empty clause (the sixth).
+
+Both the fifth and sixth clauses are specific to address destinations
+within the {\tt TORONTO.EDU} and {\tt UTORONTO.CA} organization (the 
+two are parallel domains). At most 10 deliveries to the {\tt smtp} channel
+may be concurrently active, and at most 2 for all possible hosts within
+{\tt TORONTO.EDU}. If `{\tt \$host}' is mentioned in the command 
+specification, the transport agent will only be told about the message 
+control files that indicate SMTP delivery to a particular host. The actual 
+host is picked at random from the current choices, to avoid systematic
+errors leading to a deadlock of any queue. 
+
+
+
+
+
+
+\subsection{Resource Management}
+
+
+
+For resource management there are following configuration attributes: 
+
+\begin{description}
+\item[{\tt maxta=nnn}] \mbox{}
+
+Max number of transporter processes under 
+the {\em scheduler\/}. 
+
+\item[{\tt maxchannel=nnn}] \mbox{}
+
+Max number of processes with this same 
+`{\tt channel}'. 
+
+\item[{\tt maxring=nnn}] \mbox{}
+
+Max number of processes with this set of 
+threads. 
+
+\item[{\tt idlemax=time}] \mbox{}
+
+How long the non-active (idle) transporter 
+processes are allowed to keep around. 
+
+\item[{\tt overfeed=nnn}] \mbox{}
+
+Max number of tasks to feed from the 
+thread to the transporter agent when feeding jobs to it. The 
+{\em scheduler\/} main-loop at the {\tt mux()} is a bit sluggish, 
+thus with this we can keep the transporters busy. 
+
+\item[{\tt ageorder}] \mbox{}
+
+Default is to randomize the order of tasks 
+at the queue, when it is started, with this the order is that of 
+the original spool-file MTIME. Oldest first. 
+
+\end{description}
+
+
+
+
+
+
+
+\subsection{mailq}
+
+
+
+Upon  accepting a  TCP  connection on the MAILQ port (TCP
+port 174), the scheduler dumps data to the TCP  stream  in
+the  following  format  and immediately closes the connec-
+tion:
+
+The TCP stream syntax is:
+\begin{verbatim}
+version id\n
+data in id-dependent format<close>
+\end{verbatim}
+
+
+The first line (all bytes up to an ASCII LF character,
+octal 12) is used to identify the syntax of all bytes fol-
+lowing the line terminator LF.  The first 8 characters  of
+the first line are ``version'' as a check that this is
+indeed a MAILQ port server that has been reached, the
+remaining  bytes are the real data format identification.
+The data is interpreted according to that format until the
+terminating connection close.
+
+Format identifiers should be registered with the author.
+The only one currently defined is {\tt zmailer 1.0}. For that
+data format, the syntax of the data following the first LF
+is:
+\begin{verbatim}
+Vertices:\n
+(<key>:\t><msg-file>\t><n-addrs>; <off1>(,<offN>)*\t>[#<text>]\n)*
+(Channels:\n
+(<word>:\t>(><key>)+\n)+
+Hosts:\n
+(<word>:\t>(><key>)+\n)+)?
+\end{verbatim}
+
+Where:
+\begin{description}
+\item[] \mbox{}
+
+\begin{verbatim}
+\n
+\end{verbatim}
+/ is an ASCII linefeed
+
+\item[] \mbox{}
+
+\begin{verbatim}
+\t
+\end{verbatim}
+/ is an ASCII tab
+
+\item[key] \mbox{}
+
+is an unsigned decimal number
+
+\item[msg-file] \mbox{}
+
+is a contiguous string (it is the message file name relative 
+to a known directory)
+
+\item[n-addrs] \mbox{}
+
+is an unsigned decimal number (number of addresses)
+
+\item[off1...offN] \mbox{}
+
+are unsigned decimal numbers (address byte offsets)
+
+\item[text] \mbox{}
+
+is a string not containing an ASCII linefeed (status message)
+
+\item[word] \mbox{}
+
+is a contiguous string (a ``contiguous string'' is a sequence of 
+printable non-space characters
+
+\end{description}
+
+For example, here is sample output from connecting to  the
+MAILQ port:
+\begin{verbatim}
+version zmailer 1.0
+Vertices:
+311424:37141; 116
+311680:64722; 151,331#128.100.8.4: Null read! (will retry)
+312192:63471; 152#128.89.0.93: connect: Connection timed out (will retry)
+Channels:
+smtp:>311424>311680>312192
+Hosts:
+scg.toronto.edu:>311424
+mv04.ecf.toronto.edu:>311680
+relay1.cs.net:>312192
+\end{verbatim}
+
+
+This is sufficient information to be able to reconstruct
+the transport queues as seen by the scheduler process, and
+to find more information than what is shown here by 
+actually  looking  up  the  message     control  and  data  files
+referred to.
+
+\subsection{Security Issues}
+
+Text to be inserted here.
+
