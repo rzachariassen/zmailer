@@ -191,8 +191,8 @@ subdaemon_handler_rtr_init (statep)
      void **statep;
 {
 	RtState *state = calloc(1, sizeof(RtState));
-	*statep = state;
 	int idx;
+	*statep = state;
 
 	MaxRtrs = enable_router_maxpar;
 	if (MaxRtrs < 1)       MaxRtrs = 1;
