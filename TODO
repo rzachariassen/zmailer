@@ -134,15 +134,28 @@ transports/smtp:
 	the current activity has already reached the end of the thread ?
 	When will the new job be fed to the transport agent ?
 
+        Considering ways how to achieve that multi-process per thread:
+        - thread-head needs a way to account the number of processes
+          in active service (an int)
+        - processes in active service need to be chained together
+          (bidirectionally) to ease removing them from active work
+          gangs when whatever they were doing is completed.
+          (moving to other thread, or to idle..)
+        - thread->proc pointer is then just root for that chain
+        - Thread activation would need to start desired number of
+          processes - keeping in mind that it isn't usefull to start
+          more processes than there are items in the thread..
+          Possibly some lesser number of processes - like at most
+          half the number of items on the thread..
+          Start them afesh/pick processes from thread-group idle pool.
+
+        ... and a few other things I don't have a moment to think about
+        now..
+
+
 	Sometimes will generate spurious successfull-delivery-
 	reports when the command is retried, and the tag selector
 	is unable to start the real processor.
-
-	resync mechanism needs to be rewritten; now it throws away
-	all info about the file, while it should only scan thru all
-	data, and sync in-core status with the file.
-		(incomplete code skeleton written for this)
-		( sync_cfps() is that skeleton.. )
 
 	Tool/mechanism for requeueing a message from the transport
 	back to the router -- all message recipients that have not
