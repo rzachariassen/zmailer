@@ -318,7 +318,7 @@ ta_hungry(proc)
 
 	  for (;;) {
 
-	    if (!pick_next_vertex(proc))
+	    if (!pick_next_vertex(proc, proc->pvertex))
 	      break;
 
 	    if (!feed_child(proc))
@@ -338,7 +338,7 @@ ta_hungry(proc)
 	  /* Next: either the thread changes, or
 	     the process moves into IDLE state */
 
-	  if (pick_next_thread(proc)) {
+	  if (pick_next_thread(proc, proc->pthread)) {
 	    /* We have WORK ! */
 	    proc->state = CFSTATE_LARVA;
 	    goto cfstate_larva;
@@ -1285,8 +1285,8 @@ static void readfrom(fd)
 	      int rlen = eobuf - (cp+1);
 	      *cp = '\0';
 	      if (verbose)
-		sfprintf(sfstderr, "%d fd=%d processed: %s\n",
-			(int)proc->pid, fd, buf);
+		sfprintf(sfstderr, "%p %d fd=%d processed: %s\n",
+			 proc, (int)proc->pid, fd, buf);
 	      update(fd,buf);
 	      ++cp;
 	      if (rlen > 0)
