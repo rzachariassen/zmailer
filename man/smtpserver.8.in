@@ -1,12 +1,12 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "20 Feb 1998"
+.TH SMTPSERVER 8 "2 Jul 1999"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
 .B smtpserver
 [
-.B \-46aignvBV
+.B \-46aignBVvw
 ]
 [
 .B \-p
@@ -72,6 +72,9 @@ the runtime system does not have IPv6.
 .IP \-a
 turn on RFC931/RFC1413 indentification protocol, and log the information
 acquired with it to the submitted file.
+.IP \-w
+turn on usage of "whoson" protocol.  This option is available even if
+actual code is not available.
 .IP \-g
 the gullible option will make the program believe any information it is
 told (such as origin of a connection) without checking.

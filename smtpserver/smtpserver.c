@@ -193,6 +193,7 @@ int expncmdok = 0;
 int vrfycmdok = 0;
 int use_ipv6 = 0;
 int ident_flag = 0;
+int do_whoson = 0;
 int pipeliningok = 1;
 int chunkingok = 1;
 int enhancedstatusok = 1;
@@ -361,15 +362,15 @@ char **argv;
 #ifndef __STDC__
 #if defined(AF_INET6) && defined(INET6)
 #ifdef USE_TRANSLATION
-		       "?46aBC:d:ighl:np:L:M:P:R:s:S:VvX8"
+		       "?46aBC:d:ighl:np:L:M:P:R:s:S:VvwX8"
 #else /* xlate */
-		       "?46aBC:d:ighl:np:L:M:P:R:s:S:Vv"
+		       "?46aBC:d:ighl:np:L:M:P:R:s:S:Vvw"
 #endif /* xlate */
 #else /* INET6 */
 #ifdef USE_TRANSLATION
-		       "?4aBC:d:ighl:np:L:M:P:R:s:S:VvX8"
+		       "?4aBC:d:ighl:np:L:M:P:R:s:S:VvwX8"
 #else
-		       "?4aBC:d:ighl:np:L:M:P:R:s:S:Vv"
+		       "?4aBC:d:ighl:np:L:M:P:R:s:S:Vvw"
 #endif /* xlate */
 #endif /* INET6 */
 #else /* __STDC__ */
@@ -380,7 +381,7 @@ char **argv;
 #endif
 		       "aBC:d:ighl:n"
 		       "p:"
-		       "L:M:P:R:s:S:Vv"
+		       "L:M:P:R:s:S:Vvw"
 #ifdef USE_TRANSLATION
 		       "X8"
 #endif /* USE_TRANSLATION */
@@ -467,7 +468,10 @@ char **argv;
 	case 'V':
 	    prversion("smtpserver");
 	    exit(0);
-	    break;		/* paranoia */
+	    break; /* paranoia */
+	case 'w':		/* Do Who-is-on query */
+	    do_whoson = 1;
+	    break;
 #ifdef USE_TRANSLATION
 	case 'X':
 	    X_translation = 1;
@@ -498,7 +502,7 @@ char **argv;
     if (errflg || optind != argc) {
 	fprintf(stderr,
 #ifndef __STDC__
-		"Usage: %s [-46aBivgnV]\
+		"Usage: %s [-46aBignVvw]\
  [-C cfgfile] [-s xx] [-L maxLoadAvg]\
  [-M SMTPmaxsize] [-R rtrprog] [-p port#]\
  [-P postoffice] [-l logfile] [-S 'local'|'remote']\n"
@@ -507,7 +511,7 @@ char **argv;
 #if defined(AF_INET6) && defined(INET6)
 		"6"
 #endif
-		"aBivgnV"
+		"aBignVvw"
 #ifdef USE_TRANSLATION
 		"X8"
 #endif
@@ -1483,7 +1487,7 @@ int insecure;
 #endif				/* USE_TRANSLATION */
     }
 #ifdef HAVE_WHOSON_H
-    {
+    if (do_whoson) {
 	char buf[64];
 	buf[0]='\0';
 	if (SS->raddr.v4.sin_family == AF_INET) {
@@ -1499,6 +1503,8 @@ int insecure;
 					   sizeof(SS->whoson_data)))) {
 	    strcpy(SS->whoson_data,"UNAVAILABLE");
 	}
+    } else {
+	strcpy(SS->whoson_data,"NOT-CHECKED");
     }
     policystatus     = policyinit(&policydb, &SS->policystate,
 				  SS->whoson_result);
