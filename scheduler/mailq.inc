@@ -94,7 +94,7 @@
   sfprintf(fp,"SS.SUBMITconnects               %10u\n",
 	   M.ss.IncomingSUBMITconnects);
   sfprintf(fp,"SS.SMTPTLSes                    %10u\n",
-	   M.ss.IncomingSMTPTLSes);
+	   M.ss.IncomingSMTP_STARTTLS);
 
   sfprintf(fp,"SS.SMTPcommands                 %10u\n",
 	   M.ss.IncomingCommands);
@@ -120,6 +120,10 @@
   sfprintf(fp,"SS.SMTP_EHLO_bad                %10u\n",
 	   M.ss.IncomingSMTP_EHLO_bad);
 
+  sfprintf(fp,"SS.SMTP_STARTTLS                %10u\n",
+	   M.ss.IncomingSMTP_STARTTLS);
+  sfprintf(fp,"SS.SMTP_STARTTLS_fail           %10u\n",
+	   M.ss.IncomingSMTP_STARTTLS_fail);
   sfprintf(fp,"SS.SMTP_NOOP                    %10u\n",
 	   M.ss.IncomingSMTP_NOOP);
   sfprintf(fp,"SS.SMTP_RSET                    %10u\n",
@@ -303,90 +307,232 @@
 
   sfprintf(fp,"\n");
 
-  sfprintf(fp,"TA.OutgoingSmtpTAprocesses      %10u\n",
-	   M.tas.OutgoingSmtpTAprocesses);
-  sfprintf(fp,"TA.OutgoingSmtpTAprocCount-G    %10u\n",
-	   M.tas.OutgoingSmtpTAprocCountG);
+  sfprintf(fp,"TA-SMTP.TaProcessStarts         %10u\n",
+	   M.tasmtp.TaProcessStarts);
+  sfprintf(fp,"TA-SMTP.TaProcCount-G            %9d\n",
+	   M.tasmtp.TaProcCountG);
+  sfprintf(fp,"TA-SMTP.TaIdleStates            %10u\n",
+	   M.tasmtp.TaIdleStates);
+  sfprintf(fp,"TA-SMTP.TaMessages              %10u\n",
+	   M.tasmtp.TaMessages);
+  sfprintf(fp,"TA-SMTP.TaDeliveryStarts        %10u\n",
+	   M.tasmtp.TaDeliveryStarts);
 
 
-  sfprintf(fp,"TA.OutgoingSmtpStarts           %10u\n",
-	   M.tas.OutgoingSmtpStarts);
-  sfprintf(fp,"TA.OutgoingLmtpConnects         %10u\n",
-	   M.tas.OutgoingLmtpConnects);
-  sfprintf(fp,"TA.OutgoingSmtpConnects         %10u\n",
-	   M.tas.OutgoingSmtpConnects);
-  sfprintf(fp,"TA.OutgoingSmtpConnectFails     %10u\n",
-	   M.tas.OutgoingSmtpConnectFails);
-  sfprintf(fp,"TA.OutgoingSmtpConnectsCnt-G     %9d\n",
-	   M.tas.OutgoingSmtpConnectsCnt);
+  sfprintf(fp,"TA-SMTP.SmtpStarts              %10u\n",
+	   M.tasmtp.SmtpStarts);
+  sfprintf(fp,"TA-SMTP.LmtpConnects            %10u\n",
+	   M.tasmtp.LmtpConnects);
+  sfprintf(fp,"TA-SMTP.SmtpConnects            %10u\n",
+	   M.tasmtp.SmtpConnects);
+  sfprintf(fp,"TA-SMTP.SmtpConnectFails        %10u\n",
+	   M.tasmtp.SmtpConnectFails);
+  sfprintf(fp,"TA-SMTP.SmtpConnectsCnt-G        %9d\n",
+	   M.tasmtp.SmtpConnectsCnt);
 
-  sfprintf(fp,"TA.OutgoingSmtpPIPELINING       %10u\n",
-	   M.tas.OutgoingSmtpPIPELINING);
+  sfprintf(fp,"TA-SMTP.SmtpPIPELINING          %10u\n",
+	   M.tasmtp.SmtpPIPELINING);
 
-  sfprintf(fp,"TA.OutgoingSmtpSTARTTLS         %10u\n",
-	   M.tas.OutgoingSmtpSTARTTLS);
-  sfprintf(fp,"TA.OutgoingSmtpSTARTTLSok       %10u\n",
-	   M.tas.OutgoingSmtpSTARTTLSok);
-  sfprintf(fp,"TA.OutgoingSmtpSTARTTLSfail     %10u\n",
-	   M.tas.OutgoingSmtpSTARTTLSfail);
+  sfprintf(fp,"TA-SMTP.SmtpSTARTTLS            %10u\n",
+	   M.tasmtp.SmtpSTARTTLS);
+  sfprintf(fp,"TA-SMTP.SmtpSTARTTLSok          %10u\n",
+	   M.tasmtp.SmtpSTARTTLSok);
+  sfprintf(fp,"TA-SMTP.SmtpSTARTTLSfail        %10u\n",
+	   M.tasmtp.SmtpSTARTTLSfail);
 
-  sfprintf(fp,"TA.OutgoingSmtpEHLO             %10u\n",
-	   M.tas.OutgoingSmtpEHLO);
-  sfprintf(fp,"TA.OutgoingSmtpEHLOok           %10u\n",
-	   M.tas.OutgoingSmtpEHLOok);
-  sfprintf(fp,"TA.OutgoingSmtpEHLOfail         %10u\n",
-	   M.tas.OutgoingSmtpEHLOfail);
-  sfprintf(fp,"TA.OutgoingSmtpHELO             %10u\n",
-	   M.tas.OutgoingSmtpHELO);
-  sfprintf(fp,"TA.OutgoingSmtpHELOok           %10u\n",
-	   M.tas.OutgoingSmtpHELOok);
-  sfprintf(fp,"TA.OutgoingSmtpHELOfail         %10u\n",
-	   M.tas.OutgoingSmtpHELOfail);
-  sfprintf(fp,"TA.OutgoingSmtpLHLO             %10u\n",
-	   M.tas.OutgoingSmtpLHLO);
-  sfprintf(fp,"TA.OutgoingSmtpLHLOok           %10u\n",
-	   M.tas.OutgoingSmtpLHLOok);
-  sfprintf(fp,"TA.OutgoingSmtpLHLOfail         %10u\n",
-	   M.tas.OutgoingSmtpLHLOfail);
+  sfprintf(fp,"TA-SMTP.SmtpEHLO                %10u\n",
+	   M.tasmtp.SmtpEHLO);
+  sfprintf(fp,"TA-SMTP.SmtpEHLOok              %10u\n",
+	   M.tasmtp.SmtpEHLOok);
+  sfprintf(fp,"TA-SMTP.SmtpEHLOfail            %10u\n",
+	   M.tasmtp.SmtpEHLOfail);
+  sfprintf(fp,"TA-SMTP.SmtpHELO                %10u\n",
+	   M.tasmtp.SmtpHELO);
+  sfprintf(fp,"TA-SMTP.SmtpHELOok              %10u\n",
+	   M.tasmtp.SmtpHELOok);
+  sfprintf(fp,"TA-SMTP.SmtpHELOfail            %10u\n",
+	   M.tasmtp.SmtpHELOfail);
+  sfprintf(fp,"TA-SMTP.SmtpLHLO                %10u\n",
+	   M.tasmtp.SmtpLHLO);
+  sfprintf(fp,"TA-SMTP.SmtpLHLOok              %10u\n",
+	   M.tasmtp.SmtpLHLOok);
+  sfprintf(fp,"TA-SMTP.SmtpLHLOfail            %10u\n",
+	   M.tasmtp.SmtpLHLOfail);
 
-  sfprintf(fp,"TA.OutgoingSmtpMAIL             %10u\n",
-	   M.tas.OutgoingSmtpMAIL);
-  sfprintf(fp,"TA.OutgoingSmtpMAILok           %10u\n",
-	   M.tas.OutgoingSmtpMAILok);
+  sfprintf(fp,"TA-SMTP.SmtpMAIL                %10u\n",
+	   M.tasmtp.SmtpMAIL);
+  sfprintf(fp,"TA-SMTP.SmtpMAILok              %10u\n",
+	   M.tasmtp.SmtpMAILok);
 
-  sfprintf(fp,"TA.OutgoingSmtpRCPT             %10u\n",
-	   M.tas.OutgoingSmtpRCPT);
-  sfprintf(fp,"TA.OutgoingSmtpRCPTok           %10u\n",
-	   M.tas.OutgoingSmtpRCPTok);
+  sfprintf(fp,"TA-SMTP.SmtpRCPT                %10u\n",
+	   M.tasmtp.SmtpRCPT);
+  sfprintf(fp,"TA-SMTP.SmtpRCPTok              %10u\n",
+	   M.tasmtp.SmtpRCPTok);
 
-  sfprintf(fp,"TA.OutgoingSmtpDATA             %10u\n",
-	   M.tas.OutgoingSmtpDATA);
-  sfprintf(fp,"TA.OutgoingSmtpDATAok           %10u\n",
-	   M.tas.OutgoingSmtpDATAok);
+  sfprintf(fp,"TA-SMTP.SmtpDATA                %10u\n",
+	   M.tasmtp.SmtpDATA);
+  sfprintf(fp,"TA-SMTP.SmtpDATAok              %10u\n",
+	   M.tasmtp.SmtpDATAok);
 
-  sfprintf(fp,"TA.OutgoingSmtpBDAT             %10u\n",
-	   M.tas.OutgoingSmtpBDAT);
-  sfprintf(fp,"TA.OutgoingSmtpBDATok           %10u\n",
-	   M.tas.OutgoingSmtpBDATok);
+  sfprintf(fp,"TA-SMTP.SmtpBDAT                %10u\n",
+	   M.tasmtp.SmtpBDAT);
+  sfprintf(fp,"TA-SMTP.SmtpBDATok              %10u\n",
+	   M.tasmtp.SmtpBDATok);
 
-  sfprintf(fp,"TA.OutgoingSmtpDATAvolume-kB    %10u\n",
-	   M.tas.OutgoingSmtpDATAvolume);
-  sfprintf(fp,"TA.OutgoingSmtpBDATvolume-kB    %10u\n",
-	   M.tas.OutgoingSmtpBDATvolume);
+  sfprintf(fp,"TA-SMTP.SmtpDATAvolume-kB       %10u\n",
+	   M.tasmtp.SmtpDATAvolume);
+  sfprintf(fp,"TA-SMTP.SmtpBDATvolume-kB       %10u\n",
+	   M.tasmtp.SmtpBDATvolume);
 
-  sfprintf(fp,"TA.OutgoingSmtpRcptsOk          %10u\n",
-	   M.tas.OutgoingSmtpRcptsOk);
-  sfprintf(fp,"TA.OutgoingSmtpRcptsRetry       %10u\n",
-	   M.tas.OutgoingSmtpRcptsRetry);
-  sfprintf(fp,"TA.OutgoingSmtpRcptsFail        %10u\n",
-	   M.tas.OutgoingSmtpRcptsFail);
+  sfprintf(fp,"TA-SMTP.RcptsOk                 %10u\n",
+	   M.tasmtp.TaRcptsOk);
+  sfprintf(fp,"TA-SMTP.RcptsRetry              %10u\n",
+	   M.tasmtp.TaRcptsRetry);
+  sfprintf(fp,"TA-SMTP.RcptsFail               %10u\n",
+	   M.tasmtp.TaRcptsFail);
 
 
 #if 0
   sfprintf(fp,"mtaSuccessfulConvertedMessages  %10u\n",
-	   M.tas.SuccessfulConvertedMessages);
+	   M.tasmtp.SuccessfulConvertedMessages);
   sfprintf(fp,"mtaFailedConvertedMessages      %10u\n",
-	   M.tas.FailedConvertedMessages);
+	   M.tasmtp.FailedConvertedMessages);
   sfprintf(fp,"mtaLoopsDetected                %10u\n",
-	   M.tas.LoopsDetected);
+	   M.tasmtp.LoopsDetected);
 #endif
+
+  /* SM: */
+
+
+  sfprintf(fp,"\n");
+
+  sfprintf(fp,"TA-SMCM.TaProcessStarts         %10u\n",
+	   M.tasmcm.TaProcessStarts);
+  sfprintf(fp,"TA-SMCM.TaProcCount-G            %9d\n",
+	   M.tasmcm.TaProcCountG);
+  sfprintf(fp,"TA-SMCM.TaIdleStates            %10u\n",
+	   M.tasmcm.TaIdleStates);
+  sfprintf(fp,"TA-SMCM.TaMessages              %10u\n",
+	   M.tasmcm.TaMessages);
+  sfprintf(fp,"TA-SMCM.TaDeliveryStarts        %10u\n",
+	   M.tasmcm.TaDeliveryStarts);
+
+  sfprintf(fp,"TA-SMCM.RcptsOk                 %10u\n",
+	   M.tasmcm.TaRcptsOk);
+  sfprintf(fp,"TA-SMCM.RcptsRetry              %10u\n",
+	   M.tasmcm.TaRcptsRetry);
+  sfprintf(fp,"TA-SMCM.RcptsFail               %10u\n",
+	   M.tasmcm.TaRcptsFail);
+
+
+
+
+
+  sfprintf(fp,"\n");
+
+  sfprintf(fp,"TA-MBOX.TaProcessStarts         %10u\n",
+	   M.tambox.TaProcessStarts);
+  sfprintf(fp,"TA-MBOX.TaProcCount-G            %9d\n",
+	   M.tambox.TaProcCountG);
+  sfprintf(fp,"TA-MBOX.TaIdleStates            %10u\n",
+	   M.tambox.TaIdleStates);
+  sfprintf(fp,"TA-MBOX.TaMessages              %10u\n",
+	   M.tambox.TaMessages);
+  sfprintf(fp,"TA-MBOX.TaDeliveryStarts        %10u\n",
+	   M.tambox.TaDeliveryStarts);
+
+  sfprintf(fp,"TA-MBOX.RcptsOk                 %10u\n",
+	   M.tambox.TaRcptsOk);
+  sfprintf(fp,"TA-MBOX.RcptsRetry              %10u\n",
+	   M.tambox.TaRcptsRetry);
+  sfprintf(fp,"TA-MBOX.RcptsFail               %10u\n",
+	   M.tambox.TaRcptsFail);
+
+
+
+  sfprintf(fp,"\n");
+
+  sfprintf(fp,"TA-HOLD.TaProcessStarts         %10u\n",
+	   M.tahold.TaProcessStarts);
+  sfprintf(fp,"TA-HOLD.TaProcCount-G            %9d\n",
+	   M.tahold.TaProcCountG);
+  sfprintf(fp,"TA-HOLD.TaIdleStates            %10u\n",
+	   M.tahold.TaIdleStates);
+  sfprintf(fp,"TA-HOLD.TaMessages              %10u\n",
+	   M.tahold.TaMessages);
+  sfprintf(fp,"TA-HOLD.TaDeliveryStarts        %10u\n",
+	   M.tahold.TaDeliveryStarts);
+
+  sfprintf(fp,"TA-HOLD.RcptsOk                 %10u\n",
+	   M.tahold.TaRcptsOk);
+  sfprintf(fp,"TA-HOLD.RcptsRetry              %10u\n",
+	   M.tahold.TaRcptsRetry);
+  sfprintf(fp,"TA-HOLD.RcptsFail               %10u\n",
+	   M.tahold.TaRcptsFail);
+
+
+
+  sfprintf(fp,"\n");
+
+  sfprintf(fp,"TA-ERRM.TaProcessStarts         %10u\n",
+	   M.taerrm.TaProcessStarts);
+  sfprintf(fp,"TA-ERRM.TaProcCount-G            %9d\n",
+	   M.taerrm.TaProcCountG);
+  sfprintf(fp,"TA-ERRM.TaIdleStates            %10u\n",
+	   M.taerrm.TaIdleStates);
+  sfprintf(fp,"TA-ERRM.TaMessages              %10u\n",
+	   M.taerrm.TaMessages);
+  sfprintf(fp,"TA-ERRM.TaDeliveryStarts        %10u\n",
+	   M.taerrm.TaDeliveryStarts);
+
+  sfprintf(fp,"TA-ERRM.RcptsOk                 %10u\n",
+	   M.taerrm.TaRcptsOk);
+  sfprintf(fp,"TA-ERRM.RcptsRetry              %10u\n",
+	   M.taerrm.TaRcptsRetry);
+  sfprintf(fp,"TA-ERRM.RcptsFail               %10u\n",
+	   M.taerrm.TaRcptsFail);
+
+
+
+  sfprintf(fp,"\n");
+
+  sfprintf(fp,"TA-EXPI.TaProcessStarts         %10u\n",
+	   M.taexpi.TaProcessStarts);
+  sfprintf(fp,"TA-EXPI.TaProcCount-G            %9d\n",
+	   M.taexpi.TaProcCountG);
+  sfprintf(fp,"TA-EXPI.TaIdleStates            %10u\n",
+	   M.taexpi.TaIdleStates);
+  sfprintf(fp,"TA-EXPI.TaMessages              %10u\n",
+	   M.taexpi.TaMessages);
+  sfprintf(fp,"TA-EXPI.TaDeliveryStarts        %10u\n",
+	   M.taexpi.TaDeliveryStarts);
+
+  sfprintf(fp,"TA-EXPI.RcptsOk                 %10u\n",
+	   M.taexpi.TaRcptsOk);
+  sfprintf(fp,"TA-EXPI.RcptsRetry              %10u\n",
+	   M.taexpi.TaRcptsRetry);
+  sfprintf(fp,"TA-EXPI.RcptsFail               %10u\n",
+	   M.taexpi.TaRcptsFail);
+
+
+
+  sfprintf(fp,"\n");
+
+  sfprintf(fp,"TA-RERT.TaProcessStarts         %10u\n",
+	   M.tarert.TaProcessStarts);
+  sfprintf(fp,"TA-RERT.TaProcCount-G            %9d\n",
+	   M.tarert.TaProcCountG);
+  sfprintf(fp,"TA-RERT.TaIdleStates            %10u\n",
+	   M.tarert.TaIdleStates);
+  sfprintf(fp,"TA-RERT.TaMessages              %10u\n",
+	   M.tarert.TaMessages);
+  sfprintf(fp,"TA-RERT.TaDeliveryStarts        %10u\n",
+	   M.tarert.TaDeliveryStarts);
+
+  sfprintf(fp,"TA-RERT.RcptsOk                 %10u\n",
+	   M.tarert.TaRcptsOk);
+  sfprintf(fp,"TA-RERT.RcptsRetry              %10u\n",
+	   M.tarert.TaRcptsRetry);
+  sfprintf(fp,"TA-RERT.RcptsFail               %10u\n",
+	   M.tarert.TaRcptsFail);
+

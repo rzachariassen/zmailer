@@ -32,7 +32,7 @@ config.roff: FRC
 	$(CF2TROFF) Aliasing $(CFDIR)/aliases.cf >>$@
 	$(CF2TROFF) Policy $(CFDIR)/crossbar.cf >>$@
 
-clean:
+clean mostlyclean:
 	-rm -f config.roff *~
 	-cd design && $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean
 

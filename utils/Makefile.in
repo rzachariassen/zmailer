@@ -65,7 +65,7 @@ md5sum: md5sum.o $(LIBDEB)
 
 FRC:
 
-clean:	FRC
+clean mostlyclean:	FRC
 	rm -f ./+* *~ *.o listexpand md5sum
 	cd vacation ; $(MAKE) $(MFLAGS) clean
 	cd makedb ; $(MAKE) $(MFLAGS) clean

@@ -217,7 +217,7 @@ guides:	FRC
 	cp -p $$src/* $$MAILSHARE/guides/
 
 
-clean:	FRC
+clean mostlyclean:	FRC
 	rm -f ./+* *~
 distclean: clean
 	rm -f Makefile sm.conf zmailer.sh

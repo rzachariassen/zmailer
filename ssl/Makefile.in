@@ -35,7 +35,7 @@ test:	ssl
 install:	ssl
 	$(INSTALL) -s -m 755 ssl $(BIN)
 
-clean:
+clean mostlyclean:
 	-rm -f ssl ssl.sst.c ssl.sst.h ssl.o ssl.entry
 	-rm -f *~
 distclean: clean

@@ -20,7 +20,7 @@ libtag: ${ALL}
 
 depend:  # Eh ?
 
-clean:
+clean mostlyclean:
 	rm -f *.a *~ *.o libtag
 
 distclean clean-recursive: clean

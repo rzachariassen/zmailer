@@ -82,7 +82,7 @@ llib-l$(LIBNAME).ln:	$(SOURCE)
 lint:
 	lint -u $(DEFS) $(INCL) $(SOURCE)
 
-clean-recursive clean:
+clean-recursive clean mostlyclean:
 	-rm -f $(TOPDIR)/libs/$(LIBNAME).a make.log rfc822date-test
 	-rm -f *.o *.out *.ln *~ selfaddrs-test hashtest fdstatfs-test
 

@@ -22,6 +22,8 @@
 #include "libz.h"
 #include "libc.h"
 
+#include "shmmib.h"
+
 #define	PROGNAME	"errormail"
 #define	CHANNEL		"error"	/* the default channel name we deliver for */
 
@@ -56,6 +58,43 @@ extern char *strrchr(), *strchr();
 int D_alloc = 0; /* For tmalloc() from libz.a ... */
 
 
+static void MIBcountCleanup __((void))
+{
+	MIBMtaEntry->taerrm.TaProcCountG -= 1;
+}
+
+static void SHM_MIB_diag(rc)
+     const int rc;
+{
+  switch (rc) {
+  case EX_OK:
+    /* OK */
+    MIBMtaEntry->taerrm.TaRcptsOk ++;
+    break;
+  case EX_TEMPFAIL:
+  case EX_IOERR:
+  case EX_OSERR:
+  case EX_CANTCREAT:
+  case EX_SOFTWARE:
+  case EX_DEFERALL:
+    /* DEFER */
+    MIBMtaEntry->taerrm.TaRcptsRetry ++;
+    break;
+  case EX_NOPERM:
+  case EX_PROTOCOL:
+  case EX_USAGE:
+  case EX_NOUSER:
+  case EX_NOHOST:
+  case EX_UNAVAILABLE:
+  default:
+    /* FAIL */
+    MIBMtaEntry->taerrm.TaRcptsFail ++;
+    break;
+  }
+}
+
+
+
 int
 main(argc, argv)
 	int argc;
@@ -82,6 +121,15 @@ main(argc, argv)
 	SIGNAL_IGNORE(SIGPIPE);
 
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
+
+	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
+
+	MIBMtaEntry->taerrm.TaProcessStarts += 1;
+	MIBMtaEntry->taerrm.TaProcCountG    += 1;
+
+	atexit(MIBcountCleanup);
+
 
 	if ((progname = strrchr(argv[0], '/')) == NULL)
 	  progname = argv[0];
@@ -125,8 +173,10 @@ main(argc, argv)
 	  if (strchr(msgfilename, '\n') == NULL) break; /* No ending '\n' !
 							   Must have been
 							   partial input! */
-	  if (strcmp(msgfilename, "#idle\n") == 0)
+	  if (strcmp(msgfilename, "#idle\n") == 0) {
+	    MIBMtaEntry->taerrm.TaIdleStates += 1;
 	    continue; /* Ah well, we can stay idle.. */
+	  }
 
 	  /* Input:
 	       spool/file/name [ \t host.info ] \n
@@ -134,6 +184,8 @@ main(argc, argv)
 
 	  if (emptyline(msgfilename, sizeof msgfilename))
 	    break;
+
+	  MIBMtaEntry->taerrm.TaMessages += 1;
 
 	  host = strchr(msgfilename,'\t');
 	  if (host != NULL)
@@ -249,6 +301,8 @@ process(dp)
 	if (fstat(dp->msgfd, &stbuf) != 0)
 	  abort(); /* This is a "CAN'T FAIL" case.. */
 
+	MIBMtaEntry->taerrm.TaDeliveryStarts += 1;
+
 	/* recipient host field is the error message file name in FORMSDIR */
 	/* recipient user field is the address causing the error */
 
@@ -260,14 +314,18 @@ process(dp)
 	   * We do NOT want to bounce this, but
 	   * instead just drop it on the floor.
 	   */
-	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
+	  for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	    diagnostic(verboselog, rp, EX_OK, 0, "error bounce dropped");
+	    SHM_MIB_diag(EX_OK);
+	  }
 	  return;
 	}
 
 	if ((mfp = sfmail_open(MSG_RFC822)) == NULL) {
-	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
+	  for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	    diagnostic(verboselog, rp, EX_TEMPFAIL, 0, "sfmail_open failure");
+	    SHM_MIB_diag(EX_TEMPFAIL);
+	  }
 	  warning("Cannot open mail file!");
 	  return;
 	}
@@ -370,8 +428,10 @@ process(dp)
 	  /* No, throw it away and ack success. */
 	  sfmail_abort(mfp);
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
-	    if (!(rp->notifyflgs & _DSN_NOTIFY_FAILURE))
+	    if (!(rp->notifyflgs & _DSN_NOTIFY_FAILURE)) {
 	      diagnostic(verboselog, rp, EX_OK, 0, "discarded, reportcnt=0");
+	      SHM_MIB_diag(EX_OK);
+	    }
 	  return;
 	}
 
@@ -468,6 +528,7 @@ process(dp)
 
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	    diagnostic(verboselog, rp, n, 0, taspid);
+	    SHM_MIB_diag(n);
 	  }
 	}
 }

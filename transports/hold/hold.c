@@ -21,14 +21,16 @@
 #include "zsyslog.h"
 
 #include "ta.h"
+#include "libz.h"
+#include "libc.h"
+
+#include "shmmib.h"
 
 #ifdef	HAVE_RESOLVER
 #include "netdb.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif
-#include "libz.h"
-#include "libc.h"
 #include "dnsgetrr.h"
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
@@ -141,6 +143,44 @@ extern char *strchr(), *strrchr();
 #define	putc	fputc
 #endif	/* lint */
 
+
+
+static void MIBcountCleanup __((void))
+{
+	MIBMtaEntry->tahold.TaProcCountG -= 1;
+}
+
+static void SHM_MIB_diag(rc)
+     const int rc;
+{
+  switch (rc) {
+  case EX_OK:
+    /* OK */
+    MIBMtaEntry->tahold.TaRcptsOk ++;
+    break;
+  case EX_TEMPFAIL:
+  case EX_IOERR:
+  case EX_OSERR:
+  case EX_CANTCREAT:
+  case EX_SOFTWARE:
+  case EX_DEFERALL:
+    /* DEFER */
+    MIBMtaEntry->tahold.TaRcptsRetry ++;
+    break;
+  case EX_NOPERM:
+  case EX_PROTOCOL:
+  case EX_USAGE:
+  case EX_NOUSER:
+  case EX_NOHOST:
+  case EX_UNAVAILABLE:
+  default:
+    /* FAIL */
+    MIBMtaEntry->tahold.TaRcptsFail ++;
+    break;
+  }
+}
+
+
 FILE *verboselog = NULL;
 
 static char filename[MAXPATHLEN+8000];
@@ -175,6 +215,15 @@ main(argc, argv)
 	  SIGNAL_HANDLE(SIGHUP, wantout);
 
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
+
+	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
+
+	MIBMtaEntry->tahold.TaProcessStarts += 1;
+	MIBMtaEntry->tahold.TaProcCountG    += 1;
+
+	atexit(MIBcountCleanup);
+
 
 	if ((progname = strrchr(argv[0], '/')) == NULL)
 	  progname = argv[0];
@@ -220,10 +269,15 @@ main(argc, argv)
 	    break;
 	  if (strchr(filename, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */
-	  if (strcmp(filename, "#idle\n") == 0)
+	  if (strcmp(filename, "#idle\n") == 0) {
+	    MIBMtaEntry->tahold.TaIdleStates += 1;
 	    continue; /* Ah well, we can stay idle.. */
+	  }
 	  if (emptyline(filename, sizeof(filename)))
 	    break;
+
+	  MIBMtaEntry->tahold.TaMessages += 1;
+
 
 	  s = strchr(filename,'\t');
 	  host = NULL;
@@ -261,6 +315,8 @@ process(dp)
 	const char *cp;
 	char buf[BUFSIZ];
 
+	MIBMtaEntry->tahold.TaDeliveryStarts += 1;
+
 	sawok = 0;
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	  cp = rp->addr->user;
@@ -292,6 +348,7 @@ process(dp)
 	    }
 	    notaryreport(rp->addr->user,action,status,diagnostics);
 	    diagnostic(verboselog, rp, rp->status, 0, "%s", rp->addr->user);
+	    SHM_MIB_diag(rp->status);
 	  }
 	}
 
@@ -312,6 +369,7 @@ process(dp)
 			   "x-local; 400 (Cannot resubmit anything, out of spool space?)");
 	      diagnostic(verboselog, rp, EX_TEMPFAIL, 0,
 			 "cannot resubmit anything!");
+	      SHM_MIB_diag(EX_TEMPFAIL);
 	    }
 	  SETEUID(getuid());
 	  return;
@@ -388,6 +446,7 @@ process(dp)
 			 "2.2.0 (Relayed via deferral channel)",
 			 "x-local; 250 (Relayed via deferral channel)");
 	    diagnostic(verboselog, rp, code, 0, cp);
+	    SHM_MIB_diag(code);
 	  }
 }
 

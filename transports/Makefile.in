@@ -25,7 +25,7 @@ depend:
 	    fi	;					\
 	done
 
-clean:
+clean mostlyclean:
 	cd libta ; $(MAKE) $(MFLAGS) clean
 	for x in $(SUBDIRS); do				\
 	    if [ -f $$x/Makefile ]; then		\

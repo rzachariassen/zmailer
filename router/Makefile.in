@@ -91,7 +91,7 @@ install:	$(PROGRAM)-a $(PROGRAM)
 tags:
 	ctags *.c *.h
 
-clean:
+clean mostlyclean:
 	-rm -f $(PROGRAM) rfc822test tags make.log *~
 	-rm -f *.o *.out *.ln *.sst.? *.lst *.3rd *.3log
 	cd libdb ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean

@@ -55,6 +55,8 @@
 #include "splay.h"
 #include "sieve.h"
 
+#include "shmmib.h"
+
 #ifdef HAVE_SYS_WAIT_H /* POSIX.1 compatible */
 # include <sys/wait.h>
 #else /* Not POSIX.1 compatible, lets fake it.. */
@@ -63,6 +65,10 @@ extern int wait();
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
 #endif
 
 #ifdef	HAVE_LOCKF
@@ -206,19 +212,24 @@ const char *maildirs[] = {
 					(*(U) == TO_PIPE \
 					 && (R)->status != EX_OK \
 					 && (R)->status != EX_TEMPFAIL) ? \
-					      EX_UNAVAILABLE : (E), 0, (A1), (A2))
+					      EX_UNAVAILABLE : (E), 0, (A1), (A2)); \
+	SHM_MIB_diag(E)
 #define	DIAGNOSTIC3(R,U,E,A1,A2,A3)   diagnostic(verboselog, (R), \
 					(*(U) == TO_PIPE \
 					 && (R)->status != EX_OK \
 					 && (R)->status != EX_TEMPFAIL) ? \
 					      EX_UNAVAILABLE : (E), 0, \
-						(A1), (A2), (A3))
+						(A1), (A2), (A3)); \
+	SHM_MIB_diag(E)
+
 #define	DIAGNOSTIC4(R,U,E,A1,A2,A3,A4) diagnostic(verboselog, (R), \
 					(*(U) == TO_PIPE \
 					 && (R)->status != EX_OK \
 					 && (R)->status != EX_TEMPFAIL) ? \
 					      EX_UNAVAILABLE : (E), 0, \
-						(A1), (A2), (A3), (A4))
+						(A1), (A2), (A3), (A4)); \
+	SHM_MIB_diag(E)
+
 
 #ifdef CHECK_MB_SIZE
 extern int checkmbsize(const char *uname, const char *host, const char *user,
@@ -383,6 +394,42 @@ static void zsfclose(fp)
 }
 
 
+static void MIBcountCleanup __((void))
+{
+	MIBMtaEntry->tambox.TaProcCountG -= 1;
+}
+
+static void SHM_MIB_diag(rc)
+     const int rc;
+{
+  switch (rc) {
+  case EX_OK:
+    /* OK */
+    MIBMtaEntry->tambox.TaRcptsOk ++;
+    break;
+  case EX_TEMPFAIL:
+  case EX_IOERR:
+  case EX_OSERR:
+  case EX_CANTCREAT:
+  case EX_SOFTWARE:
+  case EX_DEFERALL:
+    /* DEFER */
+    MIBMtaEntry->tambox.TaRcptsRetry ++;
+    break;
+  case EX_NOPERM:
+  case EX_PROTOCOL:
+  case EX_USAGE:
+  case EX_NOUSER:
+  case EX_NOHOST:
+  case EX_UNAVAILABLE:
+  default:
+    /* FAIL */
+    MIBMtaEntry->tambox.TaRcptsFail ++;
+    break;
+  }
+}
+
+
 static void decodeXtext __((Sfio_t *, const char *));
 
 #if defined(HAVE_SOCKET) && defined(HAVE_PROTOCOLS_RWHOD_H)
@@ -446,7 +493,20 @@ main(argc, argv)
 
 	SIGNAL_IGNORE(SIGPIPE);
 
+#if defined(HAVE_LOCALE_H) && defined(HAVE_SETLOCALE) && defined(LC_ALL)
+	setlocale(LC_ALL, "C");
+#endif
+
+
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
+	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
+
+	MIBMtaEntry->tambox.TaProcessStarts += 1;
+	MIBMtaEntry->tambox.TaProcCountG    += 1;
+
+	atexit(MIBcountCleanup);
+
 
 	progname = strrchr(argv[0], '/');
 	if (progname == NULL)
@@ -591,10 +651,14 @@ main(argc, argv)
 	    break;
 	  if (strchr(filename, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */
-	  if (strcmp(filename, "#idle\n") == 0)
+	  if (strcmp(filename, "#idle\n") == 0) {
+	    MIBMtaEntry->tambox.TaIdleStates += 1;
 	    continue; /* Ah well, we can stay idle.. */
+	  }
 	  if (emptyline(filename, sizeof filename))
 	    break;
+
+	  MIBMtaEntry->tambox.TaMessages += 1;
 
 	  s = strchr(filename,'\t');
 	  if (s != NULL) {
@@ -1073,6 +1137,8 @@ deliver(dp, rp, usernam, timestring)
 	const char *unam = usernam;
 	struct Zpasswd *pw = NULL;
 	time_t starttime;
+
+	MIBMtaEntry->tambox.TaDeliveryStarts += 1;
 
 	time(&starttime);
 	notary_setxdelay(0); /* Our initial speed estimate is

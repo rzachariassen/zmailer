@@ -69,16 +69,18 @@ smtp_starttls(SS, buf, cp)
     }
 
 
-    MIBMtaEntry->ss.IncomingSMTPTLSes += 1;
+    MIBMtaEntry->ss.IncomingSMTP_STARTTLS += 1;
 
     if (SS->sslmode) {
       type(SS, 554, m540, "TLS already active, restart not allowed!");
+      MIBMtaEntry->ss.IncomingSMTP_STARTTLS_fail += 1;
       return;
     }
 
     if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
     if (*cp != 0) {
       type(SS, 501, m513, "Extra junk following 'STARTTLS' command!");
+      MIBMtaEntry->ss.IncomingSMTP_STARTTLS_fail += 1;
       return;
     }
     /* XX: engine ok ?? */
@@ -100,6 +102,7 @@ smtp_starttls(SS, buf, cp)
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
       }
+      MIBMtaEntry->ss.IncomingSMTP_STARTTLS_fail += 1;
       exit(2);
     }
 }

@@ -414,10 +414,10 @@ static int net_socks_open_cnt;
 
 static void MIBcountCleanup __((void))
 {
-	MIBMtaEntry->tas.OutgoingSmtpTAprocCountG -= 1;
+	MIBMtaEntry->tasmtp.TaProcCountG -= 1;
 
 	/* Clean this counter, just in case it is non-zero... */
-	MIBMtaEntry->tas.OutgoingSmtpConnectsCnt  -= net_socks_open_cnt;
+	MIBMtaEntry->tasmtp.SmtpConnectsCnt  -= net_socks_open_cnt;
 }
 
 
@@ -453,6 +453,10 @@ main(argc, argv)
 	__free_hook = my_free_hook;
 #endif
 
+#if defined(HAVE_LOCALE_H) && defined(HAVE_SETLOCALE) && defined(LC_ALL)
+	setlocale(LC_ALL, "C");
+#endif
+
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
 
 	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
@@ -460,8 +464,8 @@ main(argc, argv)
 
 	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
 
-	MIBMtaEntry->tas.OutgoingSmtpTAprocesses += 1;
-	MIBMtaEntry->tas.OutgoingSmtpTAprocCountG += 1;
+	MIBMtaEntry->tasmtp.TaProcessStarts += 1;
+	MIBMtaEntry->tasmtp.TaProcCountG    += 1;
 
 	atexit(MIBcountCleanup);
 
@@ -802,12 +806,15 @@ main(argc, argv)
 
 	  if (STREQ(filename, "#idle\n")) {
 	    idle = 1;
+	    MIBMtaEntry->tasmtp.TaIdleStates += 1;
 	    continue; /* XX: We can't stay idle for very long, but.. */
 	  }
 	  if (emptyline(filename, filenamesize))
 	    break;
 
 	  time(&now);
+
+	  MIBMtaEntry->tasmtp.TaMessages += 1;
 
 	  s = strchr(filename,'\t');
 	  if (s != NULL) {
@@ -871,6 +878,7 @@ main(argc, argv)
 	  else
 #endif /* BIND */
 	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, NULL, NULL, matchroutermxes, &SS);
+
 	  if (dp == NULL) {
 	    fprintf(stdout,"#resync %.200s\n", filename);
 	    fflush(stdout);
@@ -1097,6 +1105,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	int doing_reopen, did_open;
 	int r, once;
 
+	MIBMtaEntry->tasmtp.TaDeliveryStarts += 1;
+
 	hdr = has_header(startrp,"Content-Type:");
 	if (hdr)
 	  CT = parse_content_type(*hdr);
@@ -1174,7 +1184,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	SS->pipelining = pipelining;
 
 	if (pipelining && did_open)
-	  MIBMtaEntry->tas.OutgoingSmtpPIPELINING ++;
+	  MIBMtaEntry->tasmtp.SmtpPIPELINING ++;
 
 	SS->chunking   = ( SS->ehlo_capabilities & ESMTP_CHUNKING );
 
@@ -1379,7 +1389,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	SS->do_rset = 1; /* Unless completed successfully,
 			    we must do RSET later... */
 
-	MIBMtaEntry->tas.OutgoingSmtpMAIL ++;
+	MIBMtaEntry->tasmtp.SmtpMAIL ++;
 
 	strcpy(SMTPbuf, "MAIL From:<");
 	s = SMTPbuf + 11;
@@ -1644,7 +1654,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    }
 	  }
 	  
-	  MIBMtaEntry->tas.OutgoingSmtpRCPT ++;
+	  MIBMtaEntry->tasmtp.SmtpRCPT ++;
 
 	  /* RCPT To:<...> -- pipelineable */
  	  r = smtpwrite(SS, 1, SMTPbuf, pipelining, rp);
@@ -1791,7 +1801,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  /* In PIPELINING mode ...... send "DATA" and SYNC ! */
 	  /* In non-pipelining mode .. send "DATA" and SYNC ! */
 
-	  MIBMtaEntry->tas.OutgoingSmtpDATA ++;
+	  MIBMtaEntry->tasmtp.SmtpDATA ++;
 
 	  timeout = timeout_data;
 	  r = smtpwrite(SS, 1, "DATA", 0 /* SYNC! */, NULL);
@@ -2286,23 +2296,23 @@ smtpopen(SS, host, noMX)
 
 	    if (lmtp_mode) {
 	      SMTPbuf[0] = 'L';
-	      MIBMtaEntry->tas.OutgoingSmtpLHLO ++;
+	      MIBMtaEntry->tasmtp.SmtpLHLO ++;
 	    } else {
-	      MIBMtaEntry->tas.OutgoingSmtpEHLO ++;
+	      MIBMtaEntry->tasmtp.SmtpEHLO ++;
 	    }
 
 	    i = smtp_ehlo(SS, SMTPbuf);
 
 	    if (i == EX_OK) {
 	      if (lmtp_mode)
-		MIBMtaEntry->tas.OutgoingSmtpLHLOok ++;
+		MIBMtaEntry->tasmtp.SmtpLHLOok ++;
 	      else
-		MIBMtaEntry->tas.OutgoingSmtpEHLOok ++;
+		MIBMtaEntry->tasmtp.SmtpEHLOok ++;
 	    } else {
 	      if (lmtp_mode)
-		MIBMtaEntry->tas.OutgoingSmtpLHLOfail ++;
+		MIBMtaEntry->tasmtp.SmtpLHLOfail ++;
 	      else
-		MIBMtaEntry->tas.OutgoingSmtpEHLOfail ++;
+		MIBMtaEntry->tasmtp.SmtpEHLOfail ++;
 	    }
 
 
@@ -2325,9 +2335,9 @@ smtpopen(SS, host, noMX)
 	      strcpy(SS->remotemsg,"500 (Remote system doesn't support mandated TLS mode)");
 
 	      if (lmtp_mode) /* really sort of TLS failure... */
-		MIBMtaEntry->tas.OutgoingSmtpLHLOfail ++;
+		MIBMtaEntry->tasmtp.SmtpLHLOfail ++;
 	      else
-		MIBMtaEntry->tas.OutgoingSmtpEHLOfail ++;
+		MIBMtaEntry->tasmtp.SmtpEHLOfail ++;
 
 	      continue;
 	    }
@@ -2335,7 +2345,7 @@ smtpopen(SS, host, noMX)
 	    if ((i == EX_OK) && tls_available &&
 		(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
 
-	      MIBMtaEntry->tas.OutgoingSmtpSTARTTLS += 1;
+	      MIBMtaEntry->tasmtp.SmtpSTARTTLS += 1;
 
 	      SS->rcptstates = 0;
 	      i = smtpwrite(SS, 0, "STARTTLS", 0, NULL);
@@ -2343,9 +2353,9 @@ smtpopen(SS, host, noMX)
 		/* Wow, "STARTTLS" command started successfully! */
 		i = tls_start_clienttls(SS, host);
 		if (i)
-		  MIBMtaEntry->tas.OutgoingSmtpSTARTTLSfail += 1;
+		  MIBMtaEntry->tasmtp.SmtpSTARTTLSfail += 1;
 		else
-		  MIBMtaEntry->tas.OutgoingSmtpSTARTTLSok += 1;
+		  MIBMtaEntry->tasmtp.SmtpSTARTTLSok += 1;
 
 		if (i != 0) {
 		  /* TLS startup failed :-( */
@@ -2439,7 +2449,7 @@ smtpopen(SS, host, noMX)
 	      } else {
 		smtpclose(SS, 1); /* D'uh.. STARTTLS verb failed! */
 		
-		MIBMtaEntry->tas.OutgoingSmtpSTARTTLSfail += 1;
+		MIBMtaEntry->tasmtp.SmtpSTARTTLSfail += 1;
 
 		SS->esmtp_on_banner = SS->main_esmtp_on_banner;
 		SS->ehlo_capabilities = 0;
@@ -2477,14 +2487,14 @@ smtpopen(SS, host, noMX)
 	      sprintf(SMTPbuf, "HELO %.200s", SS->myhostname);
 	    else
 	      sprintf(SMTPbuf, "HELO %.200s", myhostname);
-	    MIBMtaEntry->tas.OutgoingSmtpHELO ++;
+	    MIBMtaEntry->tasmtp.SmtpHELO ++;
 
 	    i = smtp_ehlo(SS, SMTPbuf);
 
 	    if (i == EX_OK)
-	      MIBMtaEntry->tas.OutgoingSmtpHELOok ++;
+	      MIBMtaEntry->tasmtp.SmtpHELOok ++;
 	    else
-	      MIBMtaEntry->tas.OutgoingSmtpHELOfail ++;
+	      MIBMtaEntry->tasmtp.SmtpHELOfail ++;
 
 	    if (i != EX_OK && SS->smtpfp) {
 	      smtpclose(SS, 1);
@@ -3049,7 +3059,7 @@ makeconn(SS, hostname, ai, ismx)
 #endif	/* BIND */
 
 
-	MIBMtaEntry->tas.OutgoingSmtpStarts += 1;
+	MIBMtaEntry->tasmtp.SmtpStarts += 1;
 
 
 	retval = EX_DEFERALL;
@@ -3173,9 +3183,9 @@ makeconn(SS, hostname, ai, ismx)
 	  case EX_OK:
 
 	      if (lmtp_mode)
-		MIBMtaEntry->tas.OutgoingLmtpConnects  += 1;
+		MIBMtaEntry->tasmtp.LmtpConnects  += 1;
 	      else
-		MIBMtaEntry->tas.OutgoingSmtpConnects  += 1;
+		MIBMtaEntry->tasmtp.SmtpConnects  += 1;
 
 	      SS->smtpfd = mfd;
 	      SS->smtpfp = sfnew(NULL, NULL, SS->smtp_bufsize, mfd, SF_WRITE);
@@ -3197,7 +3207,7 @@ makeconn(SS, hostname, ai, ismx)
 		abort(); /* sock-stream fdopen() failure! */
 	      }
 
-	      MIBMtaEntry->tas.OutgoingSmtpConnectsCnt += 1;
+	      MIBMtaEntry->tasmtp.SmtpConnectsCnt += 1;
 	      ++ net_socks_open_cnt;
 
 	      deducemyifname(SS);
@@ -3224,11 +3234,13 @@ makeconn(SS, hostname, ai, ismx)
 		 * the below should be 'return EX_TEMPFAIL'.
 		 */
 		break;		/* try another host address */
+
 	      if (SS->verboselog)
 		fprintf(SS->verboselog,"Connection attempt did yield code %d / %s\n", retval, sysexitstr(retval));
 	      return EX_OK;
+
 	  default:
-	      MIBMtaEntry->tas.OutgoingSmtpConnectFails  += 1;
+	      MIBMtaEntry->tasmtp.SmtpConnectFails  += 1;
 	      if (logfp)
 		fprintf(logfp,"%s#\t(vcsetup() did yield %d )\n",logtag(), i);
 	      break;
@@ -3660,7 +3672,7 @@ smtpclose(SS, failure)
 {
 	if (SS->smtpfp != NULL) {
 
-	  MIBMtaEntry->tas.OutgoingSmtpConnectsCnt -= 1;
+	  MIBMtaEntry->tasmtp.SmtpConnectsCnt -= 1;
 	  -- net_socks_open_cnt;
 
 	  /* First close the socket so that no FILE buffered stuff
@@ -3727,7 +3739,7 @@ int bdat_flush(SS, lastflg)
 	if (SS->smtpfp) tcpstream_denagle(sffileno(SS->smtpfp));
 
 
-	MIBMtaEntry->tas.OutgoingSmtpBDAT ++;
+	MIBMtaEntry->tasmtp.SmtpBDAT ++;
 
 	if (lastflg)
 	  sprintf(lbuf, "BDAT %d LAST", SS->chunksize);
@@ -5242,7 +5254,7 @@ static void SMTP_MIB_diag(rc)
   switch (rc) {
   case EX_OK:
     /* OK */
-    MIBMtaEntry->tas.OutgoingSmtpRcptsOk ++;
+    MIBMtaEntry->tasmtp.TaRcptsOk ++;
     break;
   case EX_TEMPFAIL:
   case EX_IOERR:
@@ -5251,7 +5263,7 @@ static void SMTP_MIB_diag(rc)
   case EX_SOFTWARE:
   case EX_DEFERALL:
     /* DEFER */
-    MIBMtaEntry->tas.OutgoingSmtpRcptsRetry ++;
+    MIBMtaEntry->tasmtp.TaRcptsRetry ++;
     break;
   case EX_NOPERM:
   case EX_PROTOCOL:
@@ -5261,7 +5273,7 @@ static void SMTP_MIB_diag(rc)
   case EX_UNAVAILABLE:
   default:
     /* FAIL */
-    MIBMtaEntry->tas.OutgoingSmtpRcptsFail ++;
+    MIBMtaEntry->tasmtp.TaRcptsFail ++;
     break;
   }
 }

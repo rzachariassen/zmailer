@@ -45,6 +45,9 @@ SFIO: lib include
 		cd src/lib/sfio && $(MAKE) -f makefile $(MFLAGS) all
 
 
+mostlyclean:
+	# Do nothing in SFIO !
+
 clean:
 	-cd src/lib/sfio && $(MAKE) -f makefile $(MFLAGS) clean
 	rm -f ../libs/libsfio.a ../libs/libstdio.a

@@ -78,7 +78,7 @@ install:	$(PROGRAM)
 	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/$(PROGRAM).x
 	mv $(MAILBIN)/$(PROGRAM).x $(MAILBIN)/$(PROGRAM)
 
-clean:
+clean mostlyclean:
 	-rm -f $(PROGRAM) make.log *.o *.out *~ 
 
 distclean: clean

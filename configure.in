@@ -1513,6 +1513,9 @@ AC_CHECK_HEADERS(ifaddrs.h)
 AC_CHECK_FUNCS(select syslog getdtablesize setpriority)
 AC_CHECK_FUNCS(getifaddrs freeifaddrs)
 
+AC_CHECK_HEADERS(locale.h)
+AC_CHECK_FUNCS(setlocale)
+
 #
 # Test to see, if we have BSD4.4  sa_len -field in the "struct sockaddr*"
 #

@@ -1,9 +1,45 @@
+2003-06-04  Matti Aarnio  <mea@zmailer.org>
+
+	* include/shmmib.h, scheduler/mailq.inc, smtpserver/smtptls.c,
+	  transports/mailbox/mailbox.c, transports/smtp/smtp.c,
+	  transports/hold/hold.c, transports/errormail/errormail.c,
+	  transports/sm/sm.c, transports/expirer/expirer.c,
+	  transports/reroute/reroute.c:
+	    Changed names of a number of variables, and added basic counters
+	    into all transport agents, which didn't have anything.
+
+	* Makefile.in, compat/Makefile.in, doc/Makefile.in, lib/Makefile.in,
+	  libc/Makefile.in, libident/Makefile.in, libmalloc/Makefile.in,
+	  libresolv/Makefile.in, libs/Makefile.in, libsh/Makefile.in,
+	  man/Makefile.in, proto/Makefile.in, router/Makefile.in,
+	  scheduler/Makefile.in, sfio/Makefile.in, smtpserver/Makefile.in,
+	  ssl/Makefile.in, transports/Makefile.in, utils/Makefile.in:
+	    "make mostlyclean" -- clean everything except SFIO library.
+	    (Which is stand-alone in itself..)  This is side-result from
+	    SHMMIB-block tunings.
+
+
+	* configure.in, proto/zmailer.sh.in, transports/sm/sm.c,
+	  transports/smtp/smtp.h, transports/smtp/smtp.c,
+	  transports/mailbox/mailbox.c:
+	    While going over some unrelated things, spotted
+	    mentions about mailbox "From " header syntax details.
+	    Its presumed syntax is very particular, and needs
+	    care with correct values.  Particular danger is of
+	    getting some odd system-wide locale setting to wreck
+	    proper date presentation rules.  Best solution would
+	    most likely be to open-code the presentation of time,
+	    instead of using  ctime(3), but ...
+
 2003-06-02  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Wondering, if we are sometimes missing closing of
 	    smtp sessions in SMTP transport agents.  Just in case
 	    we do, added an   atexit()  mechanism to handle it.
+	    Latter experiments of shutting down the scheduler, and
+	    observing that eventually the outgoing socket gauges
+	    do go to zero..  all is thus well.
 
 2003-05-30  Matti Aarnio  <mea@zmailer.org>
 

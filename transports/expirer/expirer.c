@@ -46,6 +46,7 @@
 #include "libz.h"
 #include "libc.h"
 
+#include "shmmib.h"
 
 
 const char *defcharset;
@@ -83,6 +84,42 @@ int sig;
 {
 	/* Sigh, actually dummy routine.. */
 }
+
+static void MIBcountCleanup __((void))
+{
+	MIBMtaEntry->taexpi.TaProcCountG -= 1;
+}
+
+static void SHM_MIB_diag(rc)
+     const int rc;
+{
+  switch (rc) {
+  case EX_OK:
+    /* OK */
+    MIBMtaEntry->taexpi.TaRcptsOk ++;
+    break;
+  case EX_TEMPFAIL:
+  case EX_IOERR:
+  case EX_OSERR:
+  case EX_CANTCREAT:
+  case EX_SOFTWARE:
+  case EX_DEFERALL:
+    /* DEFER */
+    MIBMtaEntry->taexpi.TaRcptsRetry ++;
+    break;
+  case EX_NOPERM:
+  case EX_PROTOCOL:
+  case EX_USAGE:
+  case EX_NOUSER:
+  case EX_NOHOST:
+  case EX_UNAVAILABLE:
+  default:
+    /* FAIL */
+    MIBMtaEntry->taexpi.TaRcptsFail ++;
+    break;
+  }
+}
+
 
 
 #ifndef	MAXPATHLEN
@@ -124,6 +161,15 @@ main(argc, argv)
 	SIGNAL_IGNORE(SIGPIPE);
 
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
+
+	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
+
+	MIBMtaEntry->taexpi.TaProcessStarts += 1;
+	MIBMtaEntry->taexpi.TaProcCountG    += 1;
+
+	atexit(MIBcountCleanup);
+
 
 	progname = strrchr(argv[0], '/');
 	if (progname == NULL)
@@ -210,10 +256,15 @@ main(argc, argv)
 	    break;
 	  if (strchr(file, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */
-	  if (strcmp(file, "#idle\n") == 0)
+	  if (strcmp(file, "#idle\n") == 0) {
+	    MIBMtaEntry->taexpi.TaIdleStates += 1;
 	    continue; /* Ah well, we can stay idle.. */
+	  }
 	  if (emptyline(file, sizeof file))
 	    break;
+
+	  MIBMtaEntry->taexpi.TaMessages += 1;
+
 
 	  s = strchr(file,'\t');
 	  if (s != NULL) {
@@ -267,15 +318,20 @@ process(dp, optmsg, silent, verboselog)
 	if (optmsg == NULL || *optmsg == 0)
 	  optmsg = "x-local; 500 (Administrative message deletion from delivery queue)";
 
+	MIBMtaEntry->taexpi.TaDeliveryStarts += 1;
+
+
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 
 	  notary_setxdelay(0);
 	  if (silent) {
 	    notaryreport(rp->addr->user, "delivered", "2.0.0 (Silent ok)", "");
 	    diagnostic(verboselog, rp, EX_OK, 0, "");
+	    SHM_MIB_diag(EX_OK);
 	  } else {
 	    notaryreport(rp->addr->user, "failed", "5.7.0 (Administrative deletion command)", optmsg);
 	    diagnostic(verboselog, rp, EX_UNAVAILABLE, 0, "%s", optmsg);
+	    SHM_MIB_diag(EX_UNAVAILABLE);
 	  }
 	}
 }

@@ -61,6 +61,10 @@
 
 #include <sys/time.h>
 
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
 #ifdef HAVE_NETINET_TCP_H
 #include <netinet/tcp.h>
 #endif

@@ -35,7 +35,8 @@ PROGS	= router/router scheduler/scheduler			\
 SUBDIRS =  smtpserver router scheduler transports compat utils
 # Subdirectories where to run 'make clean'
 MOREDIRS = libs lib libc libsh libident libmalloc libresolv ssl \
-	   proto doc man sfio
+	   proto doc man
+MOREDIRS2 = sfio
 # Files to remove in cleanup
 CLEANFILES = include/rfc822.entry $(ZCONF) version.c
 
@@ -199,9 +200,8 @@ distclean: distclean-recursive distclean-local
 realclean: realclean-recursive realclean-local
 	: rm config.status
 
-TAGS clean-recursive distclean-recursive \
-	    mostlyclean-recursive realclean-recursive:
-	for subdir in $(SUBDIRS) $(MOREDIRS); do \
+TAGS clean-recursive distclean-recursive realclean-recursive mostlyclean-recursive:
+	for subdir in $(SUBDIRS) $(MOREDIRS) $(MOREDIRS2); do \
 	  target=`echo $@|sed 's/-recursive//'`; \
 	  echo making $$target in $$subdir; \
 	  (cd $$subdir && $(MAKE) $(MFLAGS) $$target) || exit 1; \

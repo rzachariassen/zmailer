@@ -8,7 +8,7 @@ rmail/rmail-always:
 sendmail/sendmail-always:
 	cd sendmail ; $(MAKE) $(MFLAGS)
 
-clean:
+clean mostlyclean:
 	cd rmail ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean
 	cd sendmail ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean
 

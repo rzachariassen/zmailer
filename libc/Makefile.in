@@ -86,7 +86,7 @@ install:  $(TOPDIR)/libs/libzmailer.a
 	-$(RANLIB) $(LIBRARYDIR)/libzmailer.a
 	-$(INSTALL) -m 644 $(TOPDIR)/include/mail.h $(INCLUDEDIR)/zmailer.h
 
-clean-recursive clean:
+clean-recursive clean mostlyclean:
 	-rm -f $(TOPDIR)/libs/$(LIBNAME).a make.log whathost-test
 	-rm -f *.o *.out *.ln *~
 

@@ -110,7 +110,7 @@ ${DESTDIR}${DESTLIB}/libresolv.a: ${OBJS}
 	${CC} ${CPPFLAGS} ${CFLAGS} -c $<
 	-${LDS} ld -x -r $@ && ${LDS} mv a.out $@
 
-clean: FRC
+clean mostlyclean: FRC
 	rm -f errs a.out core libresolv.a tags .depend
 	rm -f *.o *.BAK *.CKP *~ *.orig
 

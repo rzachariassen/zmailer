@@ -185,7 +185,7 @@ onefile.c: $(SRCS) $(SPLAYSRC)
 cleanprogs:
 	-rm -f $(PROGS) $(LIBMALLOC) out$(EXT) trace$(EXT) .lib$(EXT)
 
-clean:
+clean mostlyclean:
 	-rm -f *.a *.o \#* *~ core a.out gmon.out mon.out onefile.c *.sL prof.out
 	cd splay; $(MAKE) clean
 

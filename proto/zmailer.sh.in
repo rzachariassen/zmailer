@@ -55,6 +55,14 @@ if [ "$ZCONFIG" = "" ] ; then
 fi
 export ZCONFIG
 
+# Make sure that if the system supports locales, that it treats time
+# in one particular way. Lots of things expect it!
+# Apparently some systems are prone to make wrong things with this
+# environement variable set, but those are likely old and obsolete
+# ones...  (Those systems have broken locale handling to begin with.)
+LC_TIME=C
+export LC_TIME
+
 
 # Sense how the  echo  works, it is either, or..
 # There are POSIX echos, SysV echos, BSD echos...

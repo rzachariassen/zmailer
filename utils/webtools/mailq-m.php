@@ -24,7 +24,16 @@ ZMailer has several subsystems:
 <LI> SS: Smtpserver
 <LI> RT: Router
 <LI> SC: scheduler
-<LI> TA: transport agents of which there is particular interest to "outgoing SMTP".
+<LI> TA-*: transport agents:
+ <UL>
+  <LI> TA-SMTP: Outgoing SMTP 
+  <LI> TA-SMCM: Sendmail-Compatible-Mailer
+  <LI> TA-MBOX: Delivery to std UNIX mailboxes, and to pipes
+  <LI> TA-HOLD: Routing produced 'deferred' results, addresses go to 'hold' for latter retry
+  <LI> TA-ERRM: Messages/recipients routed directly to an error channel
+  <LI> TA-EXPI: Messages/recipients, which sysadmin decided to expire from the outgoing queue via special tool
+  <LI> TA-RERT: Messages/recipients, which sysadmin decided to reroute from the outgoing queue via special tool
+ </UL>
 </UL>
 <P>
 

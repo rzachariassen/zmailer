@@ -9,7 +9,7 @@
  *
  */
 
-#define ZM_MIB_MAGIC 0x33120004
+#define ZM_MIB_MAGIC 0x33120005
 
 struct timeserver {
 	int	pid;
@@ -59,7 +59,8 @@ struct MIB_MtaEntrySs {
   uint		IncomingSMTPSconnects;	/* Incoming SMTPS sessions */
   uint		IncomingSUBMITconnects;	/* Incoming SUBMIT sessions */
 
-  uint		IncomingSMTPTLSes;	/* Number of STARTTLSes */
+  uint		IncomingClientPipelines;
+  uint		IncomingSmtpTarpits;
 
   uint		IncomingCommands;	/* counters */
   uint		IncomingCommands_unknown;
@@ -76,11 +77,18 @@ struct MIB_MtaEntrySs {
   uint		IncomingSMTP_ETRN_ok;
   uint		IncomingSMTP_ETRN_bad;
 
+  uint		IncomingSMTP_STARTTLS;	/* Number of STARTTLSes */
+  uint		IncomingSMTP_STARTTLS_fail;
   uint		IncomingSMTP_HELP;
-
   uint		IncomingSMTP_EXPN;
   uint		IncomingSMTP_VRFY;
   uint		IncomingSMTP_RSET;
+  uint		IncomingSMTP_TURN;
+  uint		IncomingSMTP_NOOP;
+  uint		IncomingSMTP_VERBOSE;
+  uint		IncomingSMTP_DEBUG;
+  uint		IncomingSMTP_TICK;
+  uint		IncomingSMTP_QUIT;
 
   uint		IncomingSMTP_MAIL;
   uint		IncomingSMTP_MAIL_ok;
@@ -101,25 +109,15 @@ struct MIB_MtaEntrySs {
   uint		IncomingSMTP_BDAT_KBYTES;
   uint		IncomingSMTP_spool_KBYTES;
 
-
-  double dummy3; /* Alignment, etc.. */
-
   uint		ReceivedMessagesSs;	/* counter, smtpserver	*/
   uint		ReceivedRecipientsSs;	/* counter, smtpserver	*/
   uint		TransmittedMessagesSs;	/* counter, smtpserver	*/
   uint		TransmittedRecipientsSs;/* counter, smtpserver	*/
 
-  uint		IncomingSMTP_TURN;
-  uint		IncomingSMTP_NOOP;
-  uint		IncomingSMTP_VERBOSE;
-  uint		IncomingSMTP_DEBUG;
-  uint		IncomingSMTP_TICK;
-  uint		IncomingSMTP_QUIT;
 
-  uint		IncomingClientPipelines;
-  uint		IncomingSmtpTarpits;
+  double dummy3; /* Alignment, etc.. */
 
-  uint	space[24]; /* Add to tail without need to change MAGIC */
+  uint	space[32]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -152,6 +150,9 @@ struct MIB_MtaEntryRt {
 
 struct MIB_MtaEntrySc {
   /* SCHEDULER subsystem counters */
+
+  uint		schedulerTimeserverStarts;
+  uint		schedulerTimeserverStartTime;
 
   uint		ReceivedMessagesSc;	/* counter, scheduler	*/
   uint		ReceivedRecipientsSc;	/* counter, scheduler	*/
@@ -206,10 +207,7 @@ struct MIB_MtaEntrySc {
   uint		MQ2sockCommandShow7;	/* spares.. */
   uint		MQ2sockCommandShow8;
 
-  uint		schedulerTimeserverStarts;
-  uint		schedulerTimeserverStartTime;
-
-  uint	space[30]; /* Add to tail without need to change MAGIC */
+  uint	space[32]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -217,37 +215,44 @@ struct MIB_MtaEntryTaS {
 
   /* SMTP TRANSPORT AGENT generic counters  */
 
-  uint		OutgoingSmtpStarts;	/* counter */
-  uint		OutgoingSmtpConnects;	/* counter */
-  uint		OutgoingLmtpConnects;	/* counter */
-  uint		OutgoingSmtpConnectFails; /* counter ?? */
-  uint		OutgoingSmtpConnectsCnt;/* gauge */
-  uint		OutgoingSmtpSTARTTLS;	/* counter */
-  uint		OutgoingSmtpSTARTTLSok;	/* counter */
-  uint		OutgoingSmtpSTARTTLSfail; /* counter */
-  uint		OutgoingSmtpEHLO;	/* counter */
-  uint		OutgoingSmtpEHLOok;	/* counter */
-  uint		OutgoingSmtpEHLOfail;	/* counter */
-  uint		OutgoingSmtpHELO;	/* counter */
-  uint		OutgoingSmtpHELOok;	/* counter */
-  uint		OutgoingSmtpHELOfail;	/* counter */
-  uint		OutgoingSmtpLHLO;	/* counter */
-  uint		OutgoingSmtpLHLOok;	/* counter */
-  uint		OutgoingSmtpLHLOfail;	/* counter */
-  uint		OutgoingSmtpMAIL;	/* counter, all tried */
-  uint		OutgoingSmtpMAILok;	/* counter, successfull */
-  uint		OutgoingSmtpRCPT;	/* counter, all tried */
-  uint		OutgoingSmtpRCPTok;	/* counter, successfull */
-  uint		OutgoingSmtpDATA;	/* counter, all tried */
-  uint		OutgoingSmtpDATAok;	/* counter, successfull */
-  uint		OutgoingSmtpBDAT;	/* counter, all tried */
-  uint		OutgoingSmtpBDATok;	/* counter, successfull */
-  uint		OutgoingSmtpDATAvolume;	/* counter, in kB, successfull	*/
-  uint		OutgoingSmtpBDATvolume;	/* counter, in kB, successfull	*/
+  uint		TaProcessStarts;	/* counter */
+  uint		TaProcCountG;		/* gauge */
+  uint		TaIdleStates;		/* counter */
+  uint		TaMessages;		/* counter */
+  uint		TaDeliveryStarts;		/* counter,  delivery() calls */
 
-  uint		OutgoingSmtpRcptsOk;	/* counter, delivered recipients */
-  uint		OutgoingSmtpRcptsRetry;	/* counter, issued a retry */
-  uint		OutgoingSmtpRcptsFail;	/* counter, resulted in a failure */
+  uint		SmtpStarts;		/* counter */
+  uint		SmtpConnects;		/* counter */
+  uint		LmtpConnects;		/* counter */
+  uint		SmtpConnectFails; 	/* counter ?? */
+  uint		SmtpConnectsCnt;	/* gauge */
+  uint		SmtpPIPELINING;		/* counter */
+  uint		SmtpSTARTTLS;		/* counter */
+  uint		SmtpSTARTTLSok;		/* counter */
+  uint		SmtpSTARTTLSfail; 	/* counter */
+  uint		SmtpEHLO;		/* counter */
+  uint		SmtpEHLOok;		/* counter */
+  uint		SmtpEHLOfail;		/* counter */
+  uint		SmtpHELO;		/* counter */
+  uint		SmtpHELOok;		/* counter */
+  uint		SmtpHELOfail;		/* counter */
+  uint		SmtpLHLO;		/* counter */
+  uint		SmtpLHLOok;		/* counter */
+  uint		SmtpLHLOfail;		/* counter */
+  uint		SmtpMAIL;		/* counter, all tried */
+  uint		SmtpMAILok;		/* counter, successfull */
+  uint		SmtpRCPT;		/* counter, all tried */
+  uint		SmtpRCPTok;		/* counter, successfull */
+  uint		SmtpDATA;		/* counter, all tried */
+  uint		SmtpDATAok;		/* counter, successfull */
+  uint		SmtpBDAT;		/* counter, all tried */
+  uint		SmtpBDATok;		/* counter, successfull */
+  uint		SmtpDATAvolume;		/* counter, in kB, successfull	*/
+  uint		SmtpBDATvolume;		/* counter, in kB, successfull	*/
+
+  uint		TaRcptsOk;		/* counter, delivered recipients */
+  uint		TaRcptsRetry;		/* counter, issued a retry */
+  uint		TaRcptsFail;		/* counter, resulted in a failure */
 
   double dummy7; /* Alignment, etc.. */
 
@@ -260,15 +265,111 @@ struct MIB_MtaEntryTaS {
 
   double dummy99; /* Alignment, etc.. */
 
-  uint		OutgoingSmtpTAprocesses;	/* counter */
-  uint		OutgoingSmtpTAprocCountG;	/* counter */
-
-  uint		OutgoingSmtpPIPELINING;		/* counter */
-
-  uint	space[29]; /* Add to tail without need to change MAGIC */
+  uint	space[32]; /* Add to tail without need to change MAGIC */
 
 };
 
+
+struct MIB_MtaEntryTaSm {
+  /* SM TRANSPORT AGENT */
+  uint		TaProcessStarts;		/* counter */
+  uint		TaProcCountG;			/* gauge */
+  uint		TaIdleStates;
+  uint		TaMessages;
+  uint		TaDeliveryStarts;
+  uint		TaRcptsOk;
+  uint		TaRcptsRetry;
+  uint		TaRcptsFail;
+
+  double dummy99; /* Alignment, etc.. */
+
+  uint	space[32]; /* Add to tail without need to change MAGIC */
+};
+
+struct MIB_MtaEntryTaMbx {
+  /* MAILBOX TRANSPORT AGENT */
+  uint		TaProcessStarts;		/* counter */
+  uint		TaProcCountG;			/* gauge */
+  uint		TaIdleStates;
+  uint		TaMessages;
+  uint		TaDeliveryStarts;
+  uint		TaRcptsOk;
+  uint		TaRcptsRetry;
+  uint		TaRcptsFail;
+
+
+  double dummy99; /* Alignment, etc.. */
+
+  uint	space[32]; /* Add to tail without need to change MAGIC */
+};
+
+struct MIB_MtaEntryTaHo {
+  /* HOLD TRANSPORT AGENT */
+  uint		TaProcessStarts;		/* counter */
+  uint		TaProcCountG;		/* gauge */
+  uint		TaIdleStates;
+  uint		TaMessages;
+  uint		TaDeliveryStarts;
+  uint		TaRcptsOk;
+  uint		TaRcptsRetry;
+  uint		TaRcptsFail;
+
+
+  double dummy99; /* Alignment, etc.. */
+
+  uint	space[32]; /* Add to tail without need to change MAGIC */
+};
+
+struct MIB_MtaEntryTaErr {
+  /* ERRORMAIL TRANSPORT AGENT */
+  uint		TaProcessStarts;		/* counter */
+  uint		TaProcCountG;			/* gauge */
+  uint		TaIdleStates;
+  uint		TaMessages;
+  uint		TaDeliveryStarts;
+  uint		TaRcptsOk;
+  uint		TaRcptsRetry;
+  uint		TaRcptsFail;
+
+
+  double dummy99; /* Alignment, etc.. */
+
+  uint	space[32]; /* Add to tail without need to change MAGIC */
+};
+
+struct MIB_MtaEntryTaExpi {
+  /* EXPIRER TRANSPORT AGENT */
+  uint		TaProcessStarts;		/* counter */
+  uint		TaProcCountG;			/* gauge */
+  uint		TaIdleStates;
+  uint		TaMessages;
+  uint		TaDeliveryStarts;
+  uint		TaRcptsOk;
+  uint		TaRcptsRetry;
+  uint		TaRcptsFail;
+
+
+  double dummy99; /* Alignment, etc.. */
+
+  uint	space[32]; /* Add to tail without need to change MAGIC */
+};
+
+struct MIB_MtaEntryTaRert {
+  /* REROUTE TRANSPORT AGENT */
+  uint		TaProcessStarts;		/* counter */
+  uint		TaProcCountG;			/* gauge */
+  uint		TaIdleStates;
+  uint		TaMessages;
+  uint		TaDeliveryStarts;
+  uint		TaRcptsOk;
+  uint		TaRcptsRetry;
+  uint		TaRcptsFail;
+
+
+  double dummy99; /* Alignment, etc.. */
+
+  uint	space[32]; /* Add to tail without need to change MAGIC */
+};
 
 
 
@@ -336,5 +437,29 @@ struct MIB_MtaEntry {
 
 	double dummy4; /* Alignment / spacer .. */
 
-	struct MIB_MtaEntryTaS	tas;
+	struct MIB_MtaEntryTaS	tasmtp;
+
+	double dummy5; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntryTaSm	tasmcm;
+
+	double dummy6; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntryTaMbx tambox;
+
+	double dummy7; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntryTaHo	tahold;
+
+	double dummy8; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntryTaErr taerrm;
+
+	double dummy9; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntryTaExpi taexpi;
+
+	double dummy10; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntryTaRert tarert;
 };

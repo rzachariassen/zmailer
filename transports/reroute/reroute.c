@@ -54,93 +54,11 @@
 #include "zmsignal.h"
 #include "zsyslog.h"
 
-#ifdef	HAVE_RESOLVER
-#include "netdb.h"
-#include <sys/socket.h>
-#include <netinet/in.h>
-#endif
 #include "libz.h"
 #include "libc.h"
-#include "dnsgetrr.h"
 
-#if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
-#define	BIND		/* Want BIND (named) nameserver support enabled */
-#endif	/* TRY_AGAIN */
-#ifdef	BIND
-#undef NOERROR /* Solaris  <sys/socket.h>  has  NOERROR too.. */
-#include <arpa/nameser.h>
-#include <resolv.h>
+#include "shmmib.h"
 
-#ifndef	BIND_VER
-#ifdef	GETLONG
-/* 4.7.3 introduced the {GET,PUT}{LONG,SHORT} macros in nameser.h */
-#define	BIND_VER	473
-#else	/* !GETLONG */
-#define	BIND_VER	472
-#endif	/* GETLONG */
-#endif	/* !BIND_VER */
-#endif	/* BIND */
-
-#if	defined(BIND_VER) && (BIND_VER >= 473)
-typedef u_char msgdata;
-#else	/* !defined(BIND_VER) || (BIND_VER < 473) */
-typedef char msgdata;
-#endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
-
-
-/* Define all those things which exist on newer BINDs, and which may
-   get returned to us, when we make a query with  T_ANY ... */
-
-#ifndef	T_TXT
-# define T_TXT 16
-#endif
-#ifndef T_RP
-# define T_RP 17
-#endif
-#ifndef T_AFSDB
-# define T_AFSDB 18
-#endif
-#ifndef T_NSAP
-# define T_NSAP 22
-#endif
-#ifndef T_AAAA
-# define T_AAAA 28	/* IPv6 Address */
-#endif
-#ifndef T_NSAP_PTR
-# define T_NSAP_PTR 23
-#endif
-#ifndef	T_UINFO
-# define T_UINFO 100
-#endif
-#ifndef T_UID
-# define T_UID 101
-#endif
-#ifndef T_GID
-# define T_GID 102
-#endif
-#ifndef T_UNSPEC
-# define T_UNSPEC 103
-#endif
-#ifndef T_SA
-# define T_SA 200
-#endif
-
-
-#include "mail.h"
-
-#if HAVE_SYS_WAIT_H /* POSIX-thing ?  If not, declare it so.. */
-# include <sys/wait.h>
-#endif
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
-#endif
-
-#ifndef	SEEK_SET
-#define	SEEK_SET 0
-#endif	/* SEEK_SET */
 
 #define	PROGNAME	"reroute"	/* for logging */
 #define	CHANNEL		"reroute"	/* the default channel name we look at */
@@ -173,6 +91,42 @@ extern char *strchr(), *strrchr();
 #undef	putc
 #define	putc	fputc
 #endif	/* lint */
+
+
+static void MIBcountCleanup __((void))
+{
+	MIBMtaEntry->tarert.TaProcCountG -= 1;
+}
+
+static void SHM_MIB_diag(rc)
+     const int rc;
+{
+  switch (rc) {
+  case EX_OK:
+    /* OK */
+    MIBMtaEntry->tarert.TaRcptsOk ++;
+    break;
+  case EX_TEMPFAIL:
+  case EX_IOERR:
+  case EX_OSERR:
+  case EX_CANTCREAT:
+  case EX_SOFTWARE:
+  case EX_DEFERALL:
+    /* DEFER */
+    MIBMtaEntry->tarert.TaRcptsRetry ++;
+    break;
+  case EX_NOPERM:
+  case EX_PROTOCOL:
+  case EX_USAGE:
+  case EX_NOUSER:
+  case EX_NOHOST:
+  case EX_UNAVAILABLE:
+  default:
+    /* FAIL */
+    MIBMtaEntry->tarert.TaRcptsFail ++;
+    break;
+  }
+}
 
 static char filename[MAXPATHLEN+8000];
 
@@ -207,6 +161,15 @@ main(argc, argv)
 	  SIGNAL_HANDLE(SIGHUP, wantout);
 
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
+
+	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
+
+	MIBMtaEntry->tarert.TaProcessStarts += 1;
+	MIBMtaEntry->tarert.TaProcCountG    += 1;
+
+	atexit(MIBcountCleanup);
+
 
 	if ((progname = strrchr(argv[0], '/')) == NULL)
 	  progname = argv[0];
@@ -258,10 +221,14 @@ main(argc, argv)
 	    break;
 	  if (strchr(filename, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */
-	  if (strcmp(filename, "#idle\n") == 0)
+	  if (strcmp(filename, "#idle\n") == 0) {
+	    MIBMtaEntry->tarert.TaIdleStates += 1;
 	    continue; /* Ah well, we can stay idle.. */
+	  }
 	  if (emptyline(filename, sizeof(filename)))
 	    break;
+
+	  MIBMtaEntry->tarert.TaMessages += 1;
 
 	  s = strchr(filename,'\t');
 
@@ -326,6 +293,8 @@ process(dp)
 	time_t mtime;
 	int rcpt_cnt = 0;
 
+	MIBMtaEntry->tarert.TaDeliveryStarts += 1;
+
 	sawok = 0;
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	  cp = rp->addr->user;
@@ -350,6 +319,7 @@ process(dp)
 			   "x-local; 400 (Cannot resubmit anything, out of spool space?)");
 	      diagnostic(verboselog, rp, EX_TEMPFAIL, 0,
 			 "cannot resubmit anything!");
+	      SHM_MIB_diag(EX_TEMPFAIL);
 	    }
 	  }
 	  return;
@@ -452,6 +422,7 @@ process(dp)
 
 	      notaryreport(rp->addr->user, "relayed",  msgbuf, msgbuf2);
 	      diagnostic(verboselog, rp, code, 0, cp);
+	      SHM_MIB_diag(code);
 	    }
 	  }
 	}

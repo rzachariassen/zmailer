@@ -22,9 +22,15 @@
 #include <unistd.h>
 #endif
 #include <errno.h>
+
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
 #include "libz.h"
 #include "libc.h"
 
+#include "shmmib.h"
 
 #ifdef HAVE_SYS_WAIT_H /* POSIX.1 compatible */
 # include <sys/wait.h>
@@ -136,6 +142,43 @@ decodeXtext(mfp,xtext)
 }
 
 
+static void MIBcountCleanup __((void))
+{
+	MIBMtaEntry->tasmcm.TaProcCountG -= 1;
+}
+
+static void SM_MIB_diag(rc)
+     const int rc;
+{
+  switch (rc) {
+  case EX_OK:
+    /* OK */
+    MIBMtaEntry->tasmcm.TaRcptsOk ++;
+    break;
+  case EX_TEMPFAIL:
+  case EX_IOERR:
+  case EX_OSERR:
+  case EX_CANTCREAT:
+  case EX_SOFTWARE:
+  case EX_DEFERALL:
+    /* DEFER */
+    MIBMtaEntry->tasmcm.TaRcptsRetry ++;
+    break;
+  case EX_NOPERM:
+  case EX_PROTOCOL:
+  case EX_USAGE:
+  case EX_NOUSER:
+  case EX_NOHOST:
+  case EX_UNAVAILABLE:
+  default:
+    /* FAIL */
+    MIBMtaEntry->tasmcm.TaRcptsFail ++;
+    break;
+  }
+}
+
+
+
 extern int check_7bit_cleanness __((struct ctldesc *dp));
 
 extern int writemimeline __(( struct maildesc *mp, FILE *fp, const char *buf, int len, int convertmode));
@@ -227,7 +270,19 @@ main(argc, argv)
 
 	SIGNAL_HANDLE(SIGPIPE, sigpipe);
 
+#if defined(HAVE_LOCALE_H) && defined(HAVE_SETLOCALE) && defined(LC_ALL)
+	setlocale(LC_ALL, "C");
+#endif
+
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
+	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
+
+	MIBMtaEntry->tasmcm.TaProcessStarts += 1;
+	MIBMtaEntry->tasmcm.TaProcCountG    += 1;
+
+	atexit(MIBcountCleanup);
+
 
 	if ((progname = strrchr(argv[0], '/')) == NULL)
 	  progname = argv[0];
@@ -309,10 +364,14 @@ main(argc, argv)
 	    break;
 	  if (strchr(file, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */
-	  if (strcmp(file, "#idle\n") == 0)
+	  if (strcmp(file, "#idle\n") == 0) {
+	    MIBMtaEntry->tasmcm.TaIdleStates += 1;
 	    continue; /* Ah well, we can stay idle.. */
+	  }
 	  if (emptyline(file, sizeof file))
 	    break;
+
+	  MIBMtaEntry->tasmcm.TaMessages += 1;
 
 	  s = strchr(file,'\t');
 	  if (s != NULL) {
@@ -403,6 +462,8 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	char *timestring;
 	CONVERTMODE convertmode = _CONVERT_NONE;
 	char *lineendseq = "\n";
+
+	MIBMtaEntry->tasmcm.TaDeliveryStarts += 1;
 
 	now = time((time_t *)0);
 	timestring = ctime(&now);
@@ -530,6 +591,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    diagnostic(verboselog, rp, EX_OSERR, 0,
 		       "cannot create pipe from \"%s\"",
 		       mp->command);
+	    SM_MIB_diag(EX_OSERR);
 	  }
 	  return;
 	}
@@ -541,6 +603,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    diagnostic(verboselog, rp, EX_OSERR, 0,
 		       "cannot create pipe to \"%s\"",
 		       mp->command);
+	    SM_MIB_diag(EX_OSERR);
 	  }
 	  return;
 	}
@@ -589,6 +652,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 			 "5.3.0 (Out of system resources, fork failed)",
 			 "x-local; 500 (fork failure, out of system resources ?)");
 	    diagnostic(verboselog, rp, EX_OSERR, 0, "cannot fork");
+	    SM_MIB_diag(EX_OSERR);
 	  }
 	  return;
 	}
@@ -879,6 +943,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 			 "5.3.0 (Write to target failed for some reason)",
 			 "x-local; 500 (Write to target failed for some reason)");
 	    diagnostic(verboselog, rp, i, 0, "write error");
+	    SM_MIB_diag(i);
 	  }
 	  /* just to make sure nothing will get delivered */
 	  kill(pid, SIGTERM);
@@ -946,6 +1011,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  else
 	    notaryreport(rp->addr->user, "failed", exs, exd);
 	  diagnostic(verboselog, rp, i, 0, "%s", buf);
+	  SM_MIB_diag(i);
 	}
 	/* XX: still need to deal with MO_STRIPQUOTES */
 }

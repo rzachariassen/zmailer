@@ -39,7 +39,7 @@ llib-l$(LIBNAME).ln:	$(SOURCE)
 lint:
 	lint -u $(DEFS) $(INCL) $(SOURCE)
 
-clean:
+clean mostlyclean:
 	-rm -f $(TOPDIR)/libs/$(LIBNAME).a make.log
 	-rm -f *.o *.out *.ln *~
 

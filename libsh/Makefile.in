@@ -94,7 +94,7 @@ $(OBJS): $(TOPDIR)/include/mail.h $(TOPDIR)/include/sfio.h
 
 lint:
 	lint $(CFLAGS) $(SOURCE)
-clean:
+clean mostlyclean:
 	-rm -f $(PROGRAM) $(LIBNAME).a sh.sst.c sh.sst.h sh.entry sh.lst tags 
 	-rm -f *.o sh-*.i *~
 distclean: clean

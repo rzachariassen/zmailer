@@ -74,7 +74,7 @@ install-mailq: mailq
 tags:
 	ctags *.c *.h
 
-clean:
+clean mostlyclean:
 	-rm -f $(PROGRAM) mailq *.o *.out tags make.log *~
 	-rm -f *.log *.3rd *.3log
 distclean: clean
