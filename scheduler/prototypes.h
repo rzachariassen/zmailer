@@ -96,6 +96,7 @@ extern const char *rendezvous;
 extern const char *pidfile;
 extern const char *mailshare;
 extern const char *logfn;
+extern int  msgwriteasync;
 extern int  hungry_childs;
 extern int  global_maxkids;
 extern int  verbose;

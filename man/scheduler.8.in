@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8zm "2003-Aug-28"
+.TH SCHEDULER 8zm "2003-Sep-26"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -623,6 +623,10 @@ Interval by which all permanent reports accumulated into a message
 are reported by; sends out early reports of delivery failures, and
 does not force to wait for maximum queue timeout in case the message
 has more than once recipient.
+.PP
+.IP "PARAMmsgwriteasync = 1"
+If you desire to speed up the system a bit, and run slightly
+dangerously, enable this parameter entry.
 .PP
 .SH MESSAGE CONTROL FILE SYNTAX
 A message control file contains all the information needed by delivery

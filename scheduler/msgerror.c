@@ -1049,10 +1049,10 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	free_cfp_memory(cfp);
 
 	if (no_error_report > 0) {
-	  sfmail_close_alternate(errfp,POSTMANDIR,":error-on-error");
+	  sfmail_close_alternate_async(errfp,POSTMANDIR,":error-on-error", msgwriteasync);
 	  sprintf(rptspoolid, "POSTMAN :error-on-error"); /* < 30 chr ! */
 	} else {
-	  _sfmail_close_(errfp, &ino, &mtime);	/* XX: check for error */
+	  _sfmail_close_async(errfp, &ino, &mtime, msgwriteasync);	/* XX: check for error */
 	  taspoolid(rptspoolid, mtime, ino);
 	}
 

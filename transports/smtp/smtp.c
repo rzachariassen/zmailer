@@ -432,6 +432,7 @@ main(argc, argv)
 	int skip_host = 0;
 	volatile int idle;
 	volatile int noMX = 0;
+ 	volatile int selfconnect = 1;
 	SmtpState SS;
 	struct ctldesc *dp;
 #ifdef	BIND
@@ -522,7 +523,7 @@ main(argc, argv)
 	SS.remotemsg[0] = '\0';
 	SS.remotehost[0] = '\0';
 	while (1) {
-	  c = getopt(argc, argv, "c:deh:l:p:rsvw:xDEF:L:HMPS:T:VWZ:678");
+	  c = getopt(argc, argv, "c:deh:l:p:rsvw:xXDEF:L:HMPS:T:VWZ:678");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -560,6 +561,9 @@ main(argc, argv)
 	    break;
 	  case 's':		/* report status to command line */
 	    statusreport = 1;
+	    break;
+	  case 'X':		/* allow self connect for -x */
+	    selfconnect = 1;
 	    break;
 	  case 'x':		/* don't use MX records lookups */
 	    noMX = 1;
@@ -672,6 +676,8 @@ main(argc, argv)
 	    break;
 	  }
 	}
+	if (noMX != 0 && selfconnect != 0)
+		noMX = -2;	/* -2 means allow self connect */
 
 
 	time(&now);
@@ -679,7 +685,7 @@ main(argc, argv)
 
 	if (errflg || optind > argc) {
 	  fprintf(stderr,
-		  "Usage: %s [-8|-8H|-7][-e][-r][-x][-E][-P][-W][-T timeout][-h myhostname][-l logfile][-p portnum][-c channel][-F forcedest][-L localidentity][-S /path/to/SmtpSSL.conf] [host]\n", argv[0]);
+		  "Usage: %s [-8|-8H|-7][-e][-r][-x][-X][-E][-P][-W][-T timeout][-h myhostname][-l logfile][-p portnum][-c channel][-F forcedest][-L localidentity][-S /path/to/SmtpSSL.conf] [host]\n", argv[0]);
 	  exit(EX_USAGE);
 	}
 
@@ -2966,7 +2972,10 @@ smtpconn(SS, host, noMX)
 	      sprintf(buf,"dns; %.200s", host);
 	      notary_setwtt(buf);
 	    }
-	    retval = makeconn(SS, host, ai, -1);
+	    if (noMX == -2)
+	    	retval = makeconn(SS, host, ai, -2);
+	    else
+	    	retval = makeconn(SS, host, ai, -1);
 
 	    if (ai != NULL)
 	      freeaddrinfo(ai);

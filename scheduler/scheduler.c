@@ -103,6 +103,7 @@ time_t	sched_starttime;
 int	do_syslog = 0;
 int	verbose = 0;
 int	querysocket = -1;	/* fd of TCP socket to listen for queries */
+int	msgwriteasync = 0;
 int	D_alloc = 0;
 int	hungry_childs = 0;
 int	global_wrkcnt = 0;

@@ -421,11 +421,12 @@ int sfmail_close(fp)
 
 static int routersubdirhash = -1;
 
-int
-_sfmail_close_(fp,inop, mtimep)
+static int
+_sfmail_close__(fp,inop, mtimep, async)
 	Sfio_t *fp;
 	long *inop;
 	time_t *mtimep;
+	int async;
 {
 	char *message, *nmessage, *type, *ftype;
 	const char *routerdir;
@@ -484,13 +485,15 @@ _sfmail_close_(fp,inop, mtimep)
 	  return -1;
 	}
 #ifdef HAVE_FSYNC
-	while (fsync(fn) < 0) {
-	  if (errno == EINTR || errno == EAGAIN)
-	    continue;
-	  if (ftype) mail_free(ftype);
-	  mail_free(message);
-	  errno = EIO;
-	  return -1;
+	if (!async) {
+	  while (fsync(fn) < 0) {
+	    if (errno == EINTR || errno == EAGAIN)
+	      continue;
+	    if (ftype) mail_free(ftype);
+	    mail_free(message);
+	    errno = EIO;
+	    return -1;
+	  }
 	}
 #endif
 	if (sfclose(fp) == EOF) {
@@ -726,16 +729,41 @@ _sfmail_close_(fp,inop, mtimep)
 	return 0;
 }
 
+
+
+int
+_sfmail_close_(fp,inop, mtimep)
+	Sfio_t *fp;
+	long *inop;
+	time_t *mtimep;
+{
+	return _sfmail_close__(fp, inop, mtimep, 0);
+}
+
+ int
+_sfmail_close_async(fp,inop, mtimep, async)
+	Sfio_t *fp;
+	long *inop;
+	time_t *mtimep;
+	int async;
+{
+	return _sfmail_close__(fp, inop, mtimep, async);
+}
+
+
+
+
 /*
  * Close the message file on the indicated stream, and submit
  * it to alternate directory. (For smtpserver->scheduler messages,
  * for example.)
  */
 
-int
-sfmail_close_alternate(fp,where,suffix)
+static int
+sfmail_close_alternate_(fp,where,suffix,async)
 	Sfio_t *fp;
 	const char *where, *suffix;
+	int async;
 {
 	char *message, *nmessage, *msgbase;
 	char *type, *ftype;
@@ -786,13 +814,15 @@ sfmail_close_alternate(fp,where,suffix)
 	  return -1;
 	}
 #ifdef HAVE_FSYNC
-	while (fsync(fn) < 0) {
-	  if (errno == EINTR || errno == EAGAIN)
-	    continue;
-	  if (ftype) mail_free(ftype);
-	  mail_free(message);
-	  errno = EIO;
-	  return -1;
+	if (!async) {
+	  while (fsync(fn) < 0) {
+	    if (errno == EINTR || errno == EAGAIN)
+	      continue;
+	    if (ftype) mail_free(ftype);
+	    mail_free(message);
+	    errno = EIO;
+	    return -1;
+	  }
 	}
 #endif
 	if (sfclose(fp) == EOF) {
@@ -833,3 +863,22 @@ sfmail_close_alternate(fp,where,suffix)
 	if (ftype) mail_free(ftype);
 	return 0;
 }
+
+int
+sfmail_close_alternate(fp,where,suffix)
+	Sfio_t *fp;
+	const char *where, *suffix;
+{
+	return sfmail_close_alternate_(fp, where, suffix, 0);
+}
+
+
+int
+sfmail_close_alternate_async(fp,where,suffix,async)
+	Sfio_t *fp;
+	const char *where, *suffix;
+	int async;
+{
+	return sfmail_close_alternate_(fp, where, suffix, async);
+}
+

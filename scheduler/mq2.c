@@ -400,7 +400,7 @@ void mq2_register(fd, addr)
   MIBMtaEntry->sc.MQ2sockParallel ++;
   
   mq->fd = fd;
-  mq->apopteosis = now + max_mq_life;
+  mq->apoptosis = now + max_mq_life;
   mq->qaddr = *addr;
 
   mq->nextmailq = mq2root;
@@ -491,7 +491,7 @@ void mq2_areinsets(rdmaskp, wrmaskp)
       }
 
       /* Time of forced death ? */
-      if (now > mq->apopteosis) {
+      if (now > mq->apoptosis) {
 	MIBMtaEntry->sc.MQ2sockTimedOut ++;
 	mq2_discard(mq);
       }

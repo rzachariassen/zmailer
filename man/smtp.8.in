@@ -1,13 +1,13 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8zm "2003-Aug-28"
+.TH SMTP 8zm "2003-Sep-26"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
 .SH SYNOPSIS
 .IP \fBsmtp\fR 5em
-[\fB\-678deEHMrPsVxW\fR]
+[\fB\-678deEHMrPsVxXW\fR]
 [\fB\-c\fR\ \fIchannel\fR]
 [\fB\-h\fR\ \fIheloname\fR]
 [\fB\-l\fR\ \fIlogfile\fR]
@@ -141,30 +141,36 @@ mode (\-F option).
 Alternate is to use "punt" mode (\-F option) to a UNIX-socket.
 .RE
 .IP \-r
-asks to set up SMTP connections using a source TCP port number under 1024.
-This is in the range of port numbers only available to a privileged process
-on some UNIX systems, which has led to some misguided attempts at mail security
-based on this mechanism.
+Asks to set up SMTP connections using a source TCP port number
+under 1024.
+This is in the range of port numbers only available to a privileged
+process on some UNIX systems, which has led to some misguided attempts
+at mail security based on this mechanism.
 .IP \-s
 asks to report the progress of the SMTP conversation and data transfer on
 the command line in a way that will be visible to
 .IR ps (1).
 .IP \-x
-turns off MX lookups on delivery connections.  This may be used ignore
+Turns off MX lookups on delivery connections.  This may be used ignore
 public MX knowledge and do exactly what the router says in cases where
 delivering to an explicit IP address is inappropriate.
+.IP \-X
+Allow connection to local address.
+This may be used in conjunction with -x option only,
+if no -x option present, -X is silently ignored. 
 .IP \-P
 disable SMTP-PIPELINING usage (ESMTP keyword: PIPELINING)
 .IP \-S\ \fI/path/to/smtp-tls.conf\fR
-Transport-Layer-Security (a.k.a. Secure-Socket-Layer) feature configuration
-file.  When this is supplied, and system is compiled to possibly use it,
+Transport-Layer-Security (a.k.a. Secure-Socket-Layer) feature
+configuration file.
+When this is supplied, and system is compiled to possibly use it,
 and the remote system reports EHLO capability of
 .BR STARTTLS ,
 this client attempts to turn on the encryption on the socket.
 There exists also a posssibility of
 .I demanding
-TLS mode of the connection - if so has been demand, but it is not available,
-email is not sent over the connection.
+TLS mode of the connection - if so has been demand, but it is not
+available, email is not sent over the connection.
 .IP "-T \fItimeouts\fR"
 .RS
 specifies the timeouts when waiting for various things.
@@ -191,11 +197,11 @@ The default is 20 minutes. (RFC 1123 gives 10 minutes.)
 prints a version message and exits.
 .IP "\-w \fIsockwbufsize\fR"
 Sets the local socket write buffer size to non-default value.
-Some Win-NT systems seem to want to have unbelievably low values, like
-2000 bytes which appears as acceptance of two first TCP frames, and discard
-of all the rest which high-performance systems usually send.  Some Solaris
-versions then go to "lost packet retry backoff" from which they never really
-recover.
+Some Win-NT systems seem to want to have unbelievably low values,
+like 2000 bytes which appears as acceptance of two first TCP frames,
+and discard of all the rest which high-performance systems usually send.
+Some Solaris versions then go to "lost packet retry backoff" from which
+they never really recover.
 .IP \-W
 turns on the DNS WKS checking, and if the remote system does not
 have SMTP in its WKS-bits, email delivery to such address is aborted

@@ -1006,6 +1006,11 @@ static int paramparse(line)
 	  return 0;
 	}
 
+	if (cistrcmp(line,"msgwriteasync")==0 && a) {
+	  msgwriteasync = atoi(s);
+	  return 0;
+	}
+
 	if (cistrcmp(line,"notifysock")==0 && a) {
 	  if (notifysock)
 	    free((void*)notifysock);

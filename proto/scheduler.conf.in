@@ -136,6 +136,10 @@ PARAMauthfile = "${MAILSHARE}/scheduler.auth"
 # than one diagnostic in case of multi-recipient messages.
 #PARAMglobal-report-interval = 15m
 
+# If you desire to speed up the system a bit, and run slightly
+# dangerously, enable this:
+#PARAMmsgwriteasync = 1
+
 #
 # ========================================================================
 #

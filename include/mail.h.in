@@ -95,7 +95,9 @@ extern FILE * mail_open __((const char *type));
 extern char * mail_fname __((FILE *fp));
 extern int    mail_abort __((FILE *fp));
 extern int    mail_close_alternate __((FILE *fp, const char *where, const char *suffix));
+extern int    mail_close_alternate_async __((FILE *fp, const char *where, const char *suffix, int async));
 extern int   _mail_close_ __((FILE *fp, long *inop, time_t *mtimep));
+extern int   _mail_close_async __((FILE *fp, long *inop, time_t *mtimep, int async));
 extern int    mail_close __((FILE *fp));
 
 /* smail.c */
@@ -108,7 +110,9 @@ extern Sfio_t * sfmail_open __((const char *type));
 extern char *   sfmail_fname __((Sfio_t *fp));
 extern int    	sfmail_abort __((Sfio_t *fp));
 extern int    	sfmail_close_alternate __((Sfio_t *fp, const char *where, const char *suffix));
+extern int    	sfmail_close_alternate_async __((Sfio_t *fp, const char *where, const char *suffix, int async));
 extern int     _sfmail_close_ __((Sfio_t *fp, long *inop, time_t *mtimep));
+extern int     _sfmail_close_async __((Sfio_t *fp, long *inop, time_t *mtimep, int async));
 extern int 	sfmail_close  __((Sfio_t *fp));
 #endif
 

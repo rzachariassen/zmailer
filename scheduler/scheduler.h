@@ -283,7 +283,7 @@ struct mailq {
 	Usockaddr	qaddr;
 #endif /* HAVE_SOCKET */
 
-	time_t		apopteosis;
+	time_t		apoptosis;
 
 	char		*challenge;
 

@@ -1,3 +1,22 @@
+2003-09-26  Matti Aarnio  <mea@zmailer.org>
+
+	* include/mail.h.in, libc/mail.c, libc/sfmail.c:
+	    New variants of *mail_close*() functions, now
+	    can control the asynchronity of the close()
+	    thing.  Essentially controlling use of  fsync(2)
+	    on outgoing spool file descriptor.
+
+	* man/scheduler.8.in, proto/scheduler.conf.in,
+	  scheduler/msgerror.c, scheduler/prototypes.h,
+	  scheduler/readconfig.c, scheduler/scheduler.c:
+	    Added  "PARAMmsgwriteasync = 1" option that
+	    can control the asynchronity in mail.c/sfmail.c
+	    library routines.
+
+	 * transports/smtp/smtp.c, man/smtp.8.in:
+	     From Andrey Blochintsev <bag@iptelecom.net.ua> an option
+	     to allow connection to IP addresses of the same host.
+
 2003-09-25  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, router/db.c, router/libdb/gdbm.c,

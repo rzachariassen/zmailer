@@ -414,11 +414,12 @@ int mail_close(fp)
 
 static int routersubdirhash = -1;
 
-int
-_mail_close_(fp,inop, mtimep)
+static int
+_mail_close__(fp,inop, mtimep, async)
 	FILE *fp;
 	long *inop;
 	time_t *mtimep;
+	int async;
 {
 	char *message, *nmessage, *type, *ftype;
 	const char *routerdir;
@@ -476,13 +477,15 @@ _mail_close_(fp,inop, mtimep)
 	  return -1;
 	}
 #ifdef HAVE_FSYNC
-	while (fsync(fn) < 0) {
-	  if (errno == EINTR || errno == EAGAIN)
-	    continue;
-	  if (ftype) mail_free(ftype);
-	  mail_free(message);
-	  errno = EIO;
-	  return -1;
+	if (!async) {
+	  while (fsync(fn) < 0) {
+	    if (errno == EINTR || errno == EAGAIN)
+	      continue;
+	    if (ftype) mail_free(ftype);
+	    mail_free(message);
+	    errno = EIO;
+	    return -1;
+	  }
 	}
 #endif
 	if (fclose(fp) == EOF) {
@@ -721,16 +724,39 @@ _mail_close_(fp,inop, mtimep)
 	return 0;
 }
 
+
+int
+_mail_close_(fp,inop, mtimep)
+	FILE *fp;
+	long *inop;
+	time_t *mtimep;
+{
+	return _mail_close__(fp, inop, mtimep, 0);
+}
+
+int
+_mail_close_async(fp,inop, mtimep, async)
+	FILE *fp;
+	long *inop;
+	time_t *mtimep;
+	int async;
+{
+	return _mail_close__(fp, inop, mtimep, async);
+}
+
+
+
 /*
  * Close the message file on the indicated stream, and submit
  * it to alternate directory. (For smtpserver->scheduler messages,
  * for example.)
  */
 
-int
-mail_close_alternate(fp,where,suffix)
+static int
+mail_close_alternate_(fp,where,suffix,async)
 	FILE *fp;
 	const char *where, *suffix;
+	int async;
 {
 	char *message, *nmessage, *msgbase;
 	char *type, *ftype;
@@ -827,4 +853,21 @@ mail_close_alternate(fp,where,suffix)
 	mail_free(nmessage);
 	if (ftype) mail_free(ftype);
 	return 0;
+}
+
+int
+mail_close_alternate(fp,where,suffix)
+	FILE *fp;
+	const char *where, *suffix;
+{
+	return mail_close_alternate_(fp, where, suffix, 0);
+}
+
+int
+mail_close_alternate_async(fp,where,suffix,async)
+	FILE *fp;
+	const char *where, *suffix;
+	int async;
+{
+	return mail_close_alternate_(fp, where, suffix, async);
 }
