@@ -738,7 +738,8 @@ static void child_server(tofd,frmfd)
     fprintf(tofp, "\n#hungry\n");
     fflush(tofp);
 
-    dohup(SIGHUP);
+    if (gothup)
+      dohup(SIGHUP);
 
     if (fgets(linebuf, sizeof(linebuf)-1, fromfp) == NULL)
       break; /* EOF ?? */
