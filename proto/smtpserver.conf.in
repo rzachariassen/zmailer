@@ -11,7 +11,7 @@
 #PARAM ListenQueueSize		  10	# listen(2) parameter
 #
 # Enables of some commands:
-PARAM	debugcmd
+#PARAM	debugcmd
 PARAM	expncmd
 PARAM	vrfycmd
 #

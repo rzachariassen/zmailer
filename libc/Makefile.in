@@ -74,8 +74,12 @@ lint:
 	lint $(DEFS) $(INCL) $(LIBC_INCL) $(SOURCE)
 
 install:  $(TOPDIR)/libs/libzmailer.a
-	-if [ ! -d $(LIBRARYDIR) ] ; then $(MKDIR) $(LIBRARYDIR); fi
-	-if [ ! -d $(INCLUDEDIR) ] ; then $(MKDIR) $(INCLUDEDIR); fi
+	-if [ ! -d $(prefix)$(LIBRARYDIR) ] ; then	\
+		$(MKDIR) $(prefix)$(LIBRARYDIR);	\
+	 fi
+	-if [ ! -d $(prefix)$(INCLUDEDIR) ] ; then	\
+		$(MKDIR) $(prefix)$(INCLUDEDIR);	\
+	 fi
 	-$(INSTALL) -m 644 $(TOPDIR)/libs/libzmailer.a $(prefix)$(LIBRARYDIR)/libzmailer.a
 	-$(RANLIB) $(prefix)$(LIBRARYDIR)/libzmailer.a
 	-$(INSTALL) -m 644 $(TOPDIR)/include/mail.h $(prefix)$(INCLUDEDIR)/zmailer.h

@@ -23,8 +23,11 @@ FRC:
 	@echo "make groff"
 	@echo "make clean"
 
-clean distclean:
+clean:
 	rm -rf *~
+
+distclean:
+	rm -rf *~ vacation.1
 
 install:
 	$(INSTALL) -m 644 $S/aliases.5	${MANDIR}/man5
