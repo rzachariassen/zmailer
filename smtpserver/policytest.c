@@ -1,6 +1,6 @@
 /*
  *  relaytest.c -- module for ZMailer's smtpserver
- *  By Matti Aarnio <mea@nic.funet.fi> 1997
+ *  By Matti Aarnio <mea@nic.funet.fi> 1997-1999
  *
  */
 

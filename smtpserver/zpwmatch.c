@@ -1,3 +1,10 @@
+/*
+ *  ZMailer smtpserver,  AUTH command things;
+ *  part of ZMailer.
+ *
+ *  by Matti Aarnio <mea@nic.funet.fi> 1999
+ */
+
 /* This is *NOT* universal password matcher!
    Consider Shadow passwords, PAM systems, etc.. */
 

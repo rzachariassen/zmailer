@@ -1,5 +1,10 @@
-/* relay-blocking policy tests;  Added for ZMailer 2.99.44 by Matti Aarnio
-   on 16-Dec-96 */
+/*
+ *  ZMailer smtpserver, policy tests;
+ *  Added for ZMailer 2.99.44 by Matti Aarnio on 16-Dec-1996;
+ *  part of ZMailer.
+ *
+ *  by Matti Aarnio <mea@nic.funet.fi> 1996-1999
+ */
 
 /* Pre-included before including this:
    - all type-defining files

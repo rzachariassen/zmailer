@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-1998.
+ *      Copyright 1991-1999.
  */
 
 /*
@@ -15,7 +15,7 @@
 
 const char *VerbID = "ZMailer SMTP server %s";
 const char *Copyright = "Copyright 1990 Rayan S. Zachariassen";
-const char *Copyright2 = "Copyright 1991-1997 Matti Aarnio";
+const char *Copyright2 = "Copyright 1991-1999 Matti Aarnio";
 
 /* Timing parameters -- when expired, session is killed ... */
 

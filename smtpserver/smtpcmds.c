@@ -297,12 +297,8 @@ const char *buf, *cp;
 	if (dsn_ok)
 	  type(SS, -250, NULL, "DSN");
 
-#if 1 /* This may cause problems for the router, will fix router
-	 performance first, then enable this again.. */
-
 	if (rcptlimitcnt > 100)
 	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
-#endif
 
 	if (auth_ok)
 	  type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/

@@ -1,5 +1,5 @@
 /*
- *  ZMailer smtpserver,  AUTH command things;
+ *  ZMailer smtpserver,  AUTH command things (RFC 2554, sort of);
  *  part of ZMailer.
  *
  *  by Matti Aarnio <mea@nic.funet.fi> 1999

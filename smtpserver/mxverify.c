@@ -1,7 +1,7 @@
 /*
  *   mx_client_verify() -- subroutine for ZMailer smtpserver
  *
- *   By Matti Aarnio <mea@nic.funet.fi> 1997
+ *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999
  */
 
 #include "hostenv.h"
