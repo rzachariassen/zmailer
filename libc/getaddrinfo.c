@@ -74,6 +74,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(EAI_AGAIN) || !defined(AI_NUMERICHOST)
 # include "netdb6.h"
 #endif
+#include <arpa/nameser.h> /* Sol 2.6 barfs without this.. */
 #include <resolv.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -88,6 +89,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <net/if.h>
 
 #include "libc.h" /* More of ZMailer environment */
+
+#ifndef AF_LOCAL
+#define AF_LOCAL AF_UNIX
+#endif
+#ifndef PF_LOCAL
+#define PF_LOCAL PF_UNIX
+#endif
 
 
 #define GAIH_OKIFUNSPEC 0x0100
