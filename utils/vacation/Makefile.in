@@ -53,7 +53,7 @@ distclean: clean
 
 install: vacation-inst
 	-VACATIONDIR=`echo $(VACATIONPATH) | sed -e 's!/[^/]*$$!!'` ;	\
-	if [ ! -f "$${VACATIONDIR}" -a ! -l "$${VACATIONDIR}" -a 	\
+	if [ ! -f "$${VACATIONDIR}" -a ! -h "$${VACATIONDIR}" -a 	\
 	     ! -d "$${VACATIONDIR}" ] ; then				\
 		mkdir -p -m 755 "$${VACATIONDIR}" ; fi
 	@if [ $(LN_S) = "ln -s" -a					\

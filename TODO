@@ -26,10 +26,10 @@ router:
 	scanner runs interactive routers alike the smtpserver hooks
 	to routers:
 		$MAILBIN/router -io-i
-		z# stable-process 123456
-		z# stable-process 123457
-		z# stable-process 123458
-		z# stable-process 123459
+		z# stableprocess 123456
+		z# stableprocess 123457
+		z# stableprocess 123458
+		z# stableprocess 123459
 	All results (except prompts) of the router need to be dumped
 	to the router logfile.  At each prompt, that logfile can be
 	re-opened so that simple log rotate with 'mv' works.

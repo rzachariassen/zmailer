@@ -1,3 +1,48 @@
+1999-06-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libsh/interpret.c, router/functions.c, router/rfc822.c,
+	  router/libdb/bind.c:
+	    Code massage to silence the egcs-1.1.2 about "possibly unset
+	    variable" -- if there is any code flow before variables are
+	    set, then it doesn't know, what has happened.
+
+	* scheduler/readconfig.c, scheduler/scheduler.c:
+	    Removed/moved unused variable.
+
+	* transports/smtp/smtp.c:
+	    Sigh.. "warning: variable `channel' might be clobbered
+	    by `longjmp' or `vfork'"
+
+	* utils/vacation/Makefile.in:
+	    [ -l somepath ] is NOT known function, it is:  [ -h somepath ]
+
+1999-06-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* README.UPGRADING:
+	    Explicitely list all standard commands for different
+	    database regenerations.
+
+	* contrib/zmailstats:
+	    RE change in the main syslog pattern rule to handle the
+	    timestamp format at the beginning of the syslog line.
+
+	* libsh/interpret.c:
+	    Tracked memory leakage in case the script did following:
+	       ssift "$somevar" in
+	         (.*)@(.*)  return "$somevar" ;;
+	       tfiss
+
+	* router/functions.c:
+	    "stableprocess" routine used wrong argv[] element to
+	    pass along to the real "process" script.
+
+	* router/rtsyslog.c:
+	    A bit more of compiler pleasing; smaller stack frame
+	    when the 8000 byte buffer isn't off the stack..
+
+	* smtpserver/policytest.c:
+	    Silenced compiler about storing into constant variable.
+
 1999-06-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* lib/selfmatch.c:

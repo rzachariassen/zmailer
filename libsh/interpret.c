@@ -1261,31 +1261,7 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 #endif	/* MAILER */
 	GCVARS6;
 
-
-#ifdef	MAILER
-	++funclevel;
-	if (funclevel > max_interpreter_recursions) {
-	  fprintf(stderr,"zmailer: interpret: recursed more than %d levels deep on invocation!  script termination condition error ?\n",max_interpreter_recursions);
-	  zsyslog((LOG_EMERG,"zmailer: interpret: recursed more than %d levels deep on invocation!  script termination condition error ?\n",max_interpreter_recursions));
-	  abort(); /* excessively deep recursion - *.cf -script termination condition error ? */
-	}
-#endif	/* MAILER */
 	optind = 0;	/* for getopts */
-	if (cdp == NULL) {
-	  cdp = (struct codedesc *)emalloc(sizeof (struct codedesc));
-	  cdp->table   = code;
-	  cdp->eotable = eocode;
-	  cdp->functions = NULL;
-#ifdef	MAILER
-	  cdp->rearray = NULL;
-	  cdp->rearray_size = 0;
-	  cdp->rearray_idx = -1;
-	  cdp->trearray = NULL;
-	  cdp->trearray_size = 0;
-	  cdp->trearray_idx = -1;
-#endif	/* MAILER */
-	  cdp->oktofree = 0;
-	}
 	commandIndex  = -1;
 	command = &commandStack[++commandIndex];
 	command->buffer = NULL;
@@ -1301,8 +1277,7 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 	quote = 0;
 	varmeter = NULL;
 	fds[0] = fds[1] = fds[2] = 1;   /* XX: this isn't recursive, eh?? */
-	if (entry == NULL)
-		pipefd = -1;
+
 	margin = car(envarlist);/* so we can be sure to pop scopes on exit */
 #define	MAGIC_LARGE_IGNORE_LEVEL	123435	/* >> any valid ignore level */
 	ignore_level = MAGIC_LARGE_IGNORE_LEVEL;
@@ -1318,6 +1293,33 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 	stickytmp = MEM_SHCMD;
 	d = NULL;
 	argi1 = 0;
+
+	if (entry == NULL)
+		pipefd = -1;
+
+	if (cdp == NULL) {
+	  cdp = (struct codedesc *)emalloc(sizeof (struct codedesc));
+	  cdp->table   = code;
+	  cdp->eotable = eocode;
+	  cdp->functions = NULL;
+#ifdef	MAILER
+	  cdp->rearray = NULL;
+	  cdp->rearray_size = 0;
+	  cdp->rearray_idx = -1;
+	  cdp->trearray = NULL;
+	  cdp->trearray_size = 0;
+	  cdp->trearray_idx = -1;
+#endif	/* MAILER */
+	  cdp->oktofree = 0;
+	}
+#ifdef	MAILER
+	++funclevel;
+	if (funclevel > max_interpreter_recursions) {
+	  fprintf(stderr,"zmailer: interpret: recursed more than %d levels deep on invocation!  script termination condition error ?\n",max_interpreter_recursions);
+	  zsyslog((LOG_EMERG,"zmailer: interpret: recursed more than %d levels deep on invocation!  script termination condition error ?\n",max_interpreter_recursions));
+	  abort(); /* excessively deep recursion - *.cf -script termination condition error ? */
+	}
+#endif	/* MAILER */
 
   	GCPRO6(varmchain, variable, l, margin, d, tmp);
 

@@ -1527,7 +1527,6 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	struct stat stbuf;
 	struct offsort *offarr;
 	int offspc, mypid;
-	long ino;
 	int prevrcpt = -1;
 	int is_turnme = 0;
 	time_t wakeuptime;
@@ -1563,6 +1562,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	     */
 	    if (!lockverify(cfp, cp, !rereading)) {
 #if 0
+	      long ino = 0;
 	      /*
 	       * IMO we are better off by forgetting for a while that
 	       * this spool-file exists at all.  Thus very least we

@@ -49,8 +49,6 @@ static int rc_sysnice     __((char *key, char *arg, struct config_entry *ce));
 
 extern int errno;
 
-static const char *mailbin = NULL;
-
 extern struct group *getgrnam();
 extern struct passwd *getpwnam();
 

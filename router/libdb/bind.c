@@ -330,6 +330,11 @@ getmxrr(host, localhost, ttlp, depth)
 	time_t ttl, maxttl;
 	GCVARS1;
 
+	nmx = 0;
+	maxttl = ttl = 0;
+	maxpref = -1;
+	lhead = l = NULL;
+
 	if (depth > 4) {
 	  fprintf(stderr,
 		  "search_res: CNAME chain length exceeded (%s)\n",
@@ -408,10 +413,7 @@ getmxrr(host, localhost, ttlp, depth)
 #else	/* !defined(BIND_VER) || (BIND_VER < 473) */
 		cp += dn_skip((CUC*)cp) + QFIXEDSZ;
 #endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
-	nmx = 0;
-	maxttl = ttl = 0;
 	realname[0] = '\0';
-	maxpref = -1;
 	/* assert: stickymem == MEM_MALLOC;  for storing RHS of MX RR's */
 	while (--ancount >= 0 && cp < eom && nmx < (sizeof mx/sizeof mx[0])) {
 		n = dn_expand((CUC*)&answer, (CUC*)eom, (CUC*)cp,
@@ -481,7 +483,6 @@ getmxrr(host, localhost, ttlp, depth)
 #endif	/* RFC974 */
 	/* determine how many are left, and their max ttl */
 	n = 0;
-	lhead = l = NULL;
 	GCPRO1(lhead);
 	for (i = 0; i < nmx; ++i) {
 		int slen;

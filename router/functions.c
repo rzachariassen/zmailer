@@ -1293,7 +1293,7 @@ run_listexpand(avl, il)
 	conscell *al = NULL, *alp = NULL, *tmp = NULL;
 	conscell *plustail = NULL, *domain = NULL;
 	conscell *l, *lrc;
-	char *localpart, *origaddr, *attributenam;
+	char *localpart = NULL, *origaddr = NULL, *attributenam = NULL;
 	int c, n, errflag, stuff;
 	volatile int cnt;
 	const char *comment, *erroraddress;

@@ -103,7 +103,7 @@ run_rfc822(argc, argv)
 	struct envelope *e; /* TWO GC PROTECTABLE ITEMS! */
 	const char *file;
 	char buf[8196];   /* FILE* buffer, will be released at fclose() */
-	int status, errflg;
+	int status = PERR_OK, errflg;
 	memtypes oval;
 	GCVARS2;
 
@@ -1170,7 +1170,7 @@ sequencer(e, file)
 	conscell       *rwmchain;
 	struct rwmatrix *rwhead, *nsp, *rwp = NULL, *rcp = NULL;
 	token822   *t = NULL;
-	int   idnumber, nxor, i, slen;
+	int   idnumber = 0, nxor = 0, i, slen;
 	int   def_uid, header_error, perr;
 	FILE	       *ofp, *vfp;
 	int		ofperrors = 0;

@@ -608,20 +608,20 @@ main(argc, argv)
 	char *argv[];
 {
 	char file[MAXPATHLEN+128];
-	char *channel = NULL, *host = NULL;
+	volatile char *channel = NULL, *host = NULL;
 	int i, fd, errflg, c;
-	int smtpstatus;
-	int need_host = 0;
+	volatile int smtpstatus;
+	volatile int need_host = 0;
 	int skip_host = 0;
-	int idle;
-	int noMX = 0;
+	volatile int idle;
+	volatile int noMX = 0;
 	SmtpState SS;
-	struct ctldesc *dp;
+	volatile struct ctldesc *dp;
 #ifdef	BIND
-	int checkmx = 0; /* check all destination hosts for MXness */
+	volatile int checkmx = 0; /* check all destination hosts for MXness */
 #endif	/* BIND */
 	RETSIGTYPE (*oldsig)__((int));
-	const char *smtphost, *punthost = NULL;
+	volatile const char *smtphost, *punthost = NULL;
 
 	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
 	fd_blockingmode(FILENO(stdout)); /* Just to make sure.. */
@@ -632,7 +632,9 @@ main(argc, argv)
 	cmdline = &argv[0][0];
 	eocmdline = cmdline;
 
+#if 0
 & oldsig; /* volatile-like trick.. */ & channel; & host; & smtpstatus; & need_host; & idle; &noMX; & dp; & checkmx; & smtphost; & punthost;
+#endif
 
 	memset(&SS,0,sizeof(SS));
 	SS.main_esmtp_on_banner = -1;
@@ -786,7 +788,7 @@ main(argc, argv)
 
 	if (optind < argc) {
 	  host = strdup(argv[optind]);
-	  strncpy(SS.remotehost, host, sizeof(SS.remotehost));
+	  strncpy(SS.remotehost, (char*)host, sizeof(SS.remotehost));
 	  SS.remotehost[sizeof(SS.remotehost)-1] = 0;
 	} else
 	  need_host = 1;
@@ -799,7 +801,7 @@ main(argc, argv)
 
 	if (conndebug && !debug && host) {
 	  SS.firstmx = 0;
-	  smtpconn(&SS, host, noMX);
+	  smtpconn(&SS, (char*)host, noMX);
 	  exit(0);
 	}
 
@@ -875,7 +877,7 @@ main(argc, argv)
 	  if (s != NULL) {
 	    *s++ = 0;
 
-	    if (host && strcasecmp(host,s)==0) {
+	    if (host && strcasecmp((char*)host,s)==0) {
 	      extern time_t retryat_time;
 
 	      if (now < retryat_time) {
@@ -890,7 +892,7 @@ main(argc, argv)
 
 	    /* If different target host, close the old connection.
 	       In theory we could use same host via MX, but...     */
-	    if (host && strcmp(s,host) != 0) {
+	    if (host && strcmp(s,(char*)host) != 0) {
 	      if (SS.smtpfp) {
 		if (!getout)
 		  smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
@@ -902,13 +904,13 @@ main(argc, argv)
 		if (logfp) {
 		  fprintf(logfp, "%s#\t(closed SMTP channel - new host)\n", logtag());
 		}
-		strncpy(SS.remotehost, host, sizeof(SS.remotehost));
+		strncpy(SS.remotehost, (char*)host, sizeof(SS.remotehost));
 		SS.remotehost[sizeof(SS.remotehost)-1] = 0;
 		if (statusreport)
 		  report(&SS, "NewDomain: %s", host);
 	      }
 	    }
-	    if (host) free(host);
+	    if (host) free((void*)host);
 	    host = strdup(s);
 	  } else
 	    if (need_host) {
@@ -926,10 +928,10 @@ main(argc, argv)
 	  res_init();
 
 	  if (checkmx)
-	    dp = ctlopen(file, channel, host, &getout, rightmx, &SS, matchroutermxes, &SS);
+	    dp = ctlopen(file, (char*)channel, (char*)host, &getout, rightmx, &SS, matchroutermxes, &SS);
 	  else
 #endif /* BIND */
-	    dp = ctlopen(file, channel, host, &getout, NULL, NULL, matchroutermxes, &SS);
+	    dp = ctlopen(file, (char*)channel, (char*)host, &getout, NULL, NULL, matchroutermxes, &SS);
 	  if (dp == NULL) {
 	    printf("#resync %.200s\n", file);
 	    fflush(stdout);
@@ -955,7 +957,8 @@ main(argc, argv)
 	  }
 	  if (setjmp(procabortjmp) == 0) {
 	    procabortset = 1;
-	    smtpstatus = process(&SS, dp, smtpstatus, smtphost, noMX);
+	    smtpstatus = process(&SS, (struct ctldesc *)dp, smtpstatus,
+				 (char*)smtphost, noMX);
 	  }
 	  procabortset = 0;
 
@@ -963,7 +966,7 @@ main(argc, argv)
 	    fclose(SS.verboselog);
 	  SS.verboselog = NULL;
 
-	  ctlclose(dp);
+	  ctlclose((struct ctldesc *)dp);
 	} /* while (!getout) ... */
 
 	if (smtpstatus == EX_OK) {
@@ -2902,7 +2905,8 @@ vcsetup(SS, sa, fdp, hostname)
 	int *fdp;
 	char *hostname;
 {
-	int af, addrsiz, port;
+	int af, port;
+	volatile int addrsiz;
 	register int sk;
 	struct sockaddr_in *sai = (struct sockaddr_in *)sa;
 	struct sockaddr_in sad;
@@ -2922,8 +2926,9 @@ vcsetup(SS, sa, fdp, hostname)
 	int errnosave;
 	char *se;
 
+#if 0
 	& addrsiz;
-
+#endif
 	time(&now);
 
 	af = sa->sa_family;
@@ -3560,7 +3565,7 @@ smtp_sync(SS, r, nonblocking)
 	volatile int rc = EX_OK, len;
 	volatile int some_ok = 0;
 	volatile int datafail = EX_OK;
-	int err = 0;
+	volatile int err = 0;
 	char buf[512];
 	char *p;
 	static int continuation_line = 0;
@@ -3941,9 +3946,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	struct rcpt *syncrp;
 {
 	register char *s;
-	char *cp;
+	volatile char *cp;
 	int response, infd, outfd, rc;
-	int r = 0, i;
+	volatile int r = 0, i;
 	char *se;
 	char *status = NULL;
 	char buf[2*8192]; /* XX: static buffer - used in several places */
@@ -3951,8 +3956,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	jmp_buf oldalarmjmp;
 	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
 
+#if 0
 	&cp; &r; &i;
-
+#endif
 	gotalarm = 0;
 
 	/* we don't need to turn alarms off again (yay!) */
@@ -4107,7 +4113,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  alarm(timeout);
 	  if (setjmp(alarmjmp) == 0) {
 	    gotalarm = 0;
-	    r = read(infd, cp, sizeof(buf) - (cp - buf));
+	    r = read(infd, (char*)cp, sizeof(buf) - (cp - buf));
 	  } else
 	    r = -1;
 
@@ -4116,8 +4122,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	  if (r > 0) {
 	    if (SS->verboselog)
-	      fwrite(cp,r,1,SS->verboselog);
-	    s = cp;
+	      fwrite((char*)cp,r,1,SS->verboselog);
+	    s = (char*)cp;
 	    cp += r;
 	    for ( ; s < cp; ++s ) {
 	      switch (i) {
