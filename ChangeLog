@@ -1,3 +1,9 @@
+2000-09-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/mq2.c:
+	    mq2_discard() function did completely bogus chain traverse.
+	    Oops..
+
 2000-09-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* Makefile.in:

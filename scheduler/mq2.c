@@ -88,16 +88,17 @@ int mq2_active __((void))
 static void mq2_discard(mq)
      struct mailq *mq;
 {
-  if (mq == mq2root) {
-    mq2root = mq->nextmailq;
-  } else {
-    struct mailq *m2 = mq2root;
-    while (m2 && m2->nextmailq  != mq)
-      m2 = m2->nextmailq;
-    if (m2 && m2->nextmailq == mq)
-      m2->nextmailq = m2->nextmailq;
+  struct mailq **mqp = &mq2root;
+  while (*mqp && **mqp) {
+    if (*mqp == mq) {
+      *mqp = mq->nextmailq;
+      break;
+    }
+    mqp = &((*mqp)->nextmailq);
   }
+
   close(mq->fd);
+
   if (mq->inbuf)
     free(mq->inbuf);
   if (mq->inpline)
