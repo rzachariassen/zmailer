@@ -1,3 +1,14 @@
+1999-07-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    Minor nit-pick in <sys/socket.h> study.. Must include <sys/types.h>
+	    at first as in many systems all headers are not idemponent, and
+	    thus have some pre-requisite headers for inclusion..
+
+	* libsh/interpret.c, proto/cf/canon.cf:
+	    Don't do implicite dequotation of quotefull strings in ssift and
+	    tsift..  ( '"foo@bar"' -> 'foo@bar' )
+	
 1999-07-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in:

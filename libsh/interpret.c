@@ -98,6 +98,8 @@ freeio(fioop, mark)
 	}
 }
 
+#define NO_DEQUOTE_AT_SIFTS
+
 /* #define DEQUOTE_STICKY */
 
 STATIC char *dequote __((const char *str, int len));
@@ -122,6 +124,10 @@ dequote (str, len)
 				AND they fit running in-place! */
 #endif
 
+#ifdef NO_DEQUOTE_AT_SIFTS
+	memcpy(s0, str, len);
+	s0[len] = 0;
+#else
 	do {
 
 	  sp = str;
@@ -156,7 +162,7 @@ dequote (str, len)
 	  len = strlen(str);
 
 	} while (ep > s0 && *s0 == *ep && (*s0 == '"' || *s0 == '\''));
-
+#endif
 /* fprintf(stderr,"\"%s\"\n",s0); */
 
 #ifdef DEQUOTE_STICKY
@@ -1187,22 +1193,31 @@ tscanstring(s)
 	int len;
 	token822 *t;
 
+	/* fprintf(stderr,"tscanstring('%s') ", s); */
 	t = HDR_SCANNER(s);
 	if (t != NULL && t->t_next == NULL && t->t_type == String) {
 	  /* we need to de-quote the quoted-string */
 	  char *bp;
 	  const char *buf;
 	  len = TOKENLEN(t);
-	  buf = bp = (char *)tmalloc(len+1);
+	  buf = bp = (char *)tmalloc(len+3);
+#ifdef NO_DEQUOTE_AT_SIFTS
+	  *bp++ = '"';
+#endif
 	  for (cp = t->t_pname; (cp - t->t_pname) < len ; ++cp) {
 	    if ((*cp == '\\') && ((cp - t->t_pname) < len-1))
 	      *bp++ = *++cp;
 	    else
 	      *bp++ = *cp;
 	  }
+#ifdef NO_DEQUOTE_AT_SIFTS
+	  *bp++ = '"';
+#endif
 	  *bp = '\0';
+	  /* fprintf(stderr,"dequote -> '%s'", buf); */
 	  t = HDR_SCANNER(buf);
 	}
+	/* fprintf(stderr,"\n"); */
 	return t;
 }
 

@@ -331,7 +331,7 @@ _relaytarget	relaytarget +
 #| Thanks, no bulk mails! Drop them when used as sources, also reject
 #| when asked to send for them.
 #|
-_bulk_mail	message "You are not liked source for email" rejectsource + message "This is not accepted relay target" relaytarget -
+_bulk_mail	message "Your domain is not liked source for email" rejectsource + message "Your IP address is not liked source for email" rejectnet + message "This is not accepted relay target" relaytarget -
 #|
 #| The actual list of domains, and perhaps user addresses should
 #| be gotten from some active Anti-SPAM database
