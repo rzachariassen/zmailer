@@ -494,6 +494,7 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
 #if defined(AF_INET6) && defined(INET6)
 	if (use_ipv6) {
 
+	  int on = 1;
 	  struct sockaddr_in6 si6;
 	  memset(&si6, 0, sizeof(si6));
 	  si6.sin6_family = AF_INET6;
@@ -502,7 +503,12 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
 	  memcpy( &si6.sin6_addr, zin6addrany, 16 );
 	  if (bindaddr && bindaddr->v6.sin6_family == AF_INET6)
 	    memcpy(&si6.sin6_addr, &bindaddr->v6.sin6_addr, 16);
-	  
+
+#ifdef IPV6_V6ONLY
+	  /* Bind us only to IPv6, if we can... */
+	  setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on));
+#endif
+
 	  i = bind(s, (struct sockaddr *) &si6, sizeof si6);
 	  if (i < 0) {
 	    type(NULL,0,NULL,"bind(s=%d, v6, port=%d) failed; errno=%s",
@@ -511,6 +517,7 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
 
 	    *lscnt_p -= 1;
 	  }
+
 	} else
 #endif
 	  {
@@ -1389,22 +1396,25 @@ int main(argc, argv, envp)
 		  continue;
 		}
 
+		sameipcount = childsameip(&SS.raddr, socktag, &childcnt);
 
 		switch (socktag) {
 		case LSOCKTYPE_SMTP:
 		  MIBMtaEntry->ss.IncomingSMTPconnects += 1;
+		  MIBMtaEntry->ss.IncomingParallelSMTPconnects = childcnt;
 		  break;
 		case LSOCKTYPE_SSMTP:
 		  MIBMtaEntry->ss.IncomingSMTPSconnects += 1;
+		  MIBMtaEntry->ss.IncomingParallelSMTPSconnects = childcnt;
 		  break;
 		case LSOCKTYPE_SUBMIT:
 		  MIBMtaEntry->ss.IncomingSUBMITconnects += 1;
+		  MIBMtaEntry->ss.IncomingParallelSUBMITconnects = childcnt;
 		  break;
 		default:
 		  break;
 		}
 
-		sameipcount = childsameip(&SS.raddr, &childcnt);
 		SS.sameipcount = sameipcount;
 		/* We query, and warn the remote when
 		   the count exceeds the limit, and we

@@ -244,6 +244,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	void *statep = NULL;
 	int ppid;
 	int top_peer = 0, top_peer2, topfd, newfd;
+	int last_peer_index = 0;
 
 	fd_set rdset, wrset;
 	struct timeval tv;
@@ -400,15 +401,15 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    break; /* Out of the for-loop! */
 		  }
 		}
-		if (newfd >= 0) {
-		  /* Oh no...  We had no place to put this in... */
-		  close(newfd);
-		  /* XXX: syslog this situation ???? */
-		}
+	      }
+	      if (newfd >= 0) {
+		/* Oh no...  We had no place to put this in... */
+		close(newfd);
+		/* XXX: syslog this situation ???? */
 	      }
 	    }
 
-	    /* Now all of my peers.. */
+	    /* Now I/O of all of my peers.. */
 
 	    for (n = 0; n < top_peer; ++n) {
 	      peer = & peers[n];
@@ -423,9 +424,11 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    if ((rc < 0) && (errno == EINTR))
 		      continue; /* try again */
 		    if ((rc < 0) && (errno == EPIPE)) {
-		      /* SIGPIPE from writing to the socket..  */
-		      break;  /* Lets ignore it, and reading from
-				 the same socket will be EOF - I hope.. */
+		      /* SIGPIPE from writing to the socket..
+			 Abort it completely! */
+		      close(peer->fd);
+		      peer->fd = -1;
+		      break;
 		    }
 		    break;
 		  }
@@ -440,7 +443,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		} /* ... Writability testing */
 
 		/* Now if we have something to read ?? */
-		if (_Z_FD_ISSET(peer->fd, rdset)) {
+		if (peer->fd >= 0 && _Z_FD_ISSET(peer->fd, rdset)) {
 		  for (;;) {
 		    if ((peer->inpspace - peer->inlen) < 32) {
 		      /* Enlarge the buffer! */
@@ -462,31 +465,47 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		  }
 		  if (rc == 0) { /* EOF! */
 		    close(peer->fd);
-		    memset( peer, 0, sizeof(peer) );
 		    peer->fd = -1;
 		    continue;
 		  }
-		  if (rc > 0) {
-		    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
-		      rc = (subdaemon_handler->input)( statep, peer );
-		      if (rc > 0) {
-			/* XOFF .. busy right now, come back again.. */
-		      } else if (rc == 0) {
-			/* XON .. give me more jobs */
-			subdaemon_pick_next_job( peers, top_peer,
-						 subdaemon_handler, statep );
-		      } else {
-			/* Xnone .. ??
-			   Can't handle ?? */
-		      }
-		    }
-		  }
-
 		} /* ... read things */
 
 	      } /* peers with valid fd */
 	    } /* all peers */
 	  } /* readability or writeability detected */
+
+
+	  /* Now I/O of all peers with subdaemon
+	     Track the point where subprocess said: XOF! */
+
+	  if (last_peer_index >= top_peer)
+	    last_peer_index = top_peer -1;
+
+	  for (n = 0; n < top_peer; ++n) {
+	    int i = last_peer_index + n;
+	    if (i >= top_peer) i -= top_peer;
+	    peer = & peers[i];
+	    if (peer->fd >= 0 && peer->inlen > 0) {
+
+	    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
+	      rc = (subdaemon_handler->input)( statep, peer );
+	      if (rc > 0) {
+		/* XOFF .. busy right now, come back again.. */
+		last_peer_index = i;
+		break;
+	      } else if (rc == 0) {
+		/* XON .. give me more jobs */
+		subdaemon_pick_next_job( peers, top_peer,
+					 subdaemon_handler, statep );
+	      } else {
+		/* Xnone .. ??
+		   Can't handle ?? */
+	      }
+	    }
+	  }
+	}
+
+
 
 	} /* ... for(;;) ... */
 
@@ -574,7 +593,8 @@ subdaemon_send_to_peer(peer, buf, len)
 
 	  if ((rc < 0) && (errno == EPIPE)) {
 	    /* SIGPIPE from writing to the socket..  */
-	    peer->outlen =  peer->outptr = len = 0;
+	    close(peer->fd);
+	    peer->fd = -1;
 	    break;  /* Lets ignore it, and reading from
 		       the same socket will be EOF - I hope.. */
 	  }
@@ -757,7 +777,7 @@ fdgets (bufp, endi, buflenp, fdp, fd, timeout)
 		buf = realloc(buf, buflen);
 	    }
 
-	    if (c < 0) break; /* Any of break reasons.. */
+	    if (c <= 0) break; /* Any of break reasons.. */
 
 	    buf[i++] = c;
 	    if (c == '\n') break;

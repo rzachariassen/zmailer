@@ -610,7 +610,7 @@ extern char *optarg;
 #define	putc	fputc
 #endif				/* lint */
 
-extern int  childsameip __((Usockaddr *addr, int *childcntp));
+extern int  childsameip __((Usockaddr *addr, int, int *childcntp));
 extern void childregister __((int cpid, Usockaddr *addr, int tag));
 extern void childreap   __((int cpid));
 extern void disable_childreap __((void));

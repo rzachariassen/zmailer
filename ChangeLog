@@ -1,12 +1,28 @@
+2004-09-03  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpchild.c:
+	    Do classfull connection accounting statistics.
+
+	* smtpserver/smtpserver.c:
+	    setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&on, sizeof(on))
+	    (if available, binds the IPv6 socket only to v6 version
+	     of the protocol port, not v4+v6 combined space!)
+
+	* smtpserver/subdaemons.c:
+	    Process customer inputs in fair round-robin manner.
+	    Otherwise customers who have gotten lowest socket
+	    numbers might just dominate the server, and those
+	    that have higher numbers would starve.
+
 2004-08-22  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, man/smtp.8.in:
-	    Added  -1  option to order SMTP connection closure
-	    after each message having been delivered.  This isn't
-	    quite the same thing, as "one MAIL-transaction per connection"
-	    under all operational conditions, if 'listexpand's'
-	    EZMLM-mode is used, but it definitely is for all normal
-	    cases without it.
+	    Added  -1  option to order SMTP connection shutdown after
+	    every message delivery.  This isn't quite the same thing,
+	    as "one MAIL-transaction per connection" under all operational
+	    conditions (e.g. if 'listexpand's' EZMLM-mode is used) but
+	    it definitely is for all normal cases.
 
 2004-08-20  Matti Aarnio  <mea@zmailer.org>
 

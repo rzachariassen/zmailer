@@ -5,7 +5,7 @@
  *  talking with us in order to figure out of there are too
  *  many parallel connections from same IP address out there..
  *
- *  Copyright Matti Aarnio <mea@nic.funet.fi> 1998-1999, 2003
+ *  Copyright Matti Aarnio <mea@nic.funet.fi> 1998-1999, 2003-2004
  *
  */
 
@@ -25,9 +25,9 @@ static int child_poll_interval = 30;
 static time_t child_now = 0;
 
 
-int childsameip(addr, childcntp)
+int childsameip(addr, socktag, childcntp)
      Usockaddr *addr;
-     int *childcntp;
+     int socktag, *childcntp;
 {
     int i, cnt = 1; /* Ourself */
     int childcnt = 1; /* Ourself */
@@ -51,8 +51,8 @@ int childsameip(addr, childcntp)
 	  continue;
 	}
       }
-      if (childs[i].pid != 0 &&
-	  /* PID non zero */
+      if (childs[i].pid != 0  /* PID non zero */ &&
+	  childs[i].tag == socktag /* Same type! */ &&
 	  addr->v4.sin_family == childs[i].addr.v4.sin_family) {
 	/* Same AddressFamily */
 	if ((addr->v4.sin_family == AF_INET &&
@@ -95,20 +95,6 @@ void childregister(cpid, addr, socktag)
 	MIBMtaEntry->ss.IncomingSMTPSERVERprocesses += 1;
 	MIBMtaEntry->ss.IncomingSMTPSERVERforks     += 1;
 
-	switch (socktag) {
-	case 0:
-	  MIBMtaEntry->ss.IncomingParallelSMTPconnects   += 1;
-	  break;
-	case 1:
-	  MIBMtaEntry->ss.IncomingParallelSMTPSconnects  += 1;
-	  break;
-	case 2:
-	  MIBMtaEntry->ss.IncomingParallelSUBMITconnects += 1;
-	  break;
-	default:
-	  break;
-	}
-
 	/* And do registering!         */
 
 	time(&child_now);
@@ -119,11 +105,14 @@ void childregister(cpid, addr, socktag)
 	  } else {
 	    child_space <<= 1;
 	  }
-	  if (childs == NULL) {
-	    childs = emalloc(child_space * sizeof(*childs));
-	  } else {
-	    childs = erealloc(childs, child_space * sizeof(*childs));
+	  /* 'childs' can be NULL here.. */
+	  childs = erealloc(childs, child_space * sizeof(*childs));
+	  /* Now it is NULL only in error.. and we are in deep trouble.. */
+	  if (!childs) {
+	    child_space = 0;
+	    return;
 	  }
+
 	  for (i = child_top; i < child_space; ++i)
 	    memset(&childs[i], 0, sizeof(childs[i]));
 	}
@@ -142,8 +131,9 @@ void childregister(cpid, addr, socktag)
 	    }
 	  }
 	  if (childs[i].pid == 0) { /* Free slot! */
-	    childs[i].pid = cpid;
+	    childs[i].pid  = cpid;
 	    childs[i].when = child_now + child_poll_interval;
+	    childs[i].tag  = socktag;
 	    if (addr->v4.sin_family == AF_INET) {
 	      childs[i].addr.v4.sin_family = AF_INET;
 	      memcpy(&childs[i].addr.v4.sin_addr, &addr->v4.sin_addr, 4);
@@ -180,6 +170,10 @@ int cpid;
 	  if (childs[i].pid == cpid) {
 
 	    MIBMtaEntry->ss.IncomingSMTPSERVERprocesses -= 1;
+
+	    /* Drop the class-full counts; the main loop does
+	       setting of these gauges, we just speed their
+	       decrementing, just in case.  */
 
 	    switch (childs[i].tag) {
 	    case 0:
