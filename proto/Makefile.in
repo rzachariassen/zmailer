@@ -10,7 +10,7 @@ MD5SUM=		@MD5SUM@
 
 PMAILSHARE=	scheduler.conf sm.conf smtpserver.conf scheduler.auth \
 		smtp-tls.conf
-PMAILBIN=	mailrm.sh newaliases newfqdnaliases newdb zmailer.sh
+PMAILBIN=	mailrm.sh newaliases newfqdnaliases newdb zmailer.sh \
 		newdbprocessor post-install.sh
 
 all:
