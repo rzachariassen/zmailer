@@ -1,0 +1,179 @@
+#! /p/bin/perl
+#
+# A prototype version of smtpserver content policy filter
+#
+# This is *not* a fast one, but shows the interface
+#
+# - smtpserver tells this program relative pathname of the spoolfile to check
+# - this reports by telling numeric return value, plus commentary string:
+#    negative values:  instant rejections
+#               zero:  normal acceptance
+#    positive values:  the message is to be placed into the freezer
+#
+
+$passallrcpts='hks[+@]|harri\.salminen[+@]|tv[+@]|funet-tv[+@]|postmaster[@]|vinsci[+@]';
+
+%UNIQSET = ('from' => 1, 'message-id' => 1, 'mime-version' => 1,
+	    'content-type' => 1, 'content-transfer-encoding' => 1,
+	    'subject' => 1, 'date' => 1, 'reply-to' => 1,
+	    'in-reply-to' => 1, 'errors-to' => 1);
+@MANDATORYSET = ('from', 'message-id', 'date');
+
+%RFC822 = ();
+
+select(STDOUT); $| = 1;
+
+while (<>) {
+	chomp;
+	$fname = $_;
+
+	%RFC822 = ();
+
+	$rc = & filter( $fname );
+	printf "%s\n", $rc;
+}
+exit 0;
+
+sub filter {
+	local($fname) = @_;
+	local($rc) = '0 250 2.7.0 nothing set';
+
+	open(SP, "< ".$fname) ||
+		return "0 Oops.. filter can't open file $fname";
+
+	local($cnt_to,$passall_to) = (0,0);
+
+	# Scan the envelope thru to spot the magic "env-end" line
+	while (<SP>) {
+		chomp;
+		$line = $_;
+
+		if ($line =~ m/^to <(.*)>/o) {
+			$toaddr = $1;
+			++$cnt_to;
+			if ($toaddr =~ m/^($passallrcpts)/io) {
+				++$passall_to;
+			}
+		}
+
+		last if ($line eq 'env-end');
+	}
+	#return "0 250 2.7.0 message accepted.";
+	if ($cnt_to == $passall_to) {
+		$s = sprintf("0 250 2.7.0 message accepted; tocnt:%d/%d",
+			     $cnt_to, $passall_to);
+		close(SP);
+		return $s;
+	}
+
+	# Ok, either EOF, or got that "env-end" token.
+
+	my(@RFC822) = ();
+	undef $HDR822;
+
+	# Collect RFC 822 headers
+	while (<SP>) {
+		chomp;
+		last if ($_ eq '');
+		if ($_ =~ m/^[^ \t]+/o) {
+			if (defined ($HDR822)) {
+				push(@RFC822, $HDR822);
+				my($HDR,$REST)    = split(/:/, $HDR822, 2);
+				# $RFC822{lc($HDR)} = $REST;
+				# $RFC822{$HDR}     = $REST;
+
+				# Analyze the 822 header
+				$rc = &rfc822syntax($HDR,$REST);
+				goto DONEIT if (defined $rc);
+			}
+			$HDR822  = $_;
+		} else {
+			$HDR822 .= $_;
+		}
+	}
+	if (defined $HDR822) {
+		push(@RFC822, $HDR822);
+		my($HDR,$REST)    = split(/:/, $HDR822, 2);
+
+		# Analyze the 822 header
+		$rc = &rfc822syntax($HDR,$REST);
+		goto DONEIT if (defined $rc);
+	}
+
+	# stand-alone RFC 822 (et.al.) piecemal syntax analysis is done,
+	# now do multi-header dependent things, and check for MISSING
+	# headers...
+
+	# XXXX: TODO!
+
+	if ($RFC822{'content-type'} =~ m!text/html!i) {
+	    close(SP);
+	    return "1 550 5.7.1 All pure HTML emails are considered SPAM, ALWAYS! (V0.3)";
+	}
+
+
+	# Scan the body ...
+	while (<SP>) {
+		$line = $_;
+		chomp $line;
+		# XXXX: TODO!
+		if ($line =~ m!and even Oprah!io) {
+		    close(SP);
+		    return "-1 550 5.7.1 Marketing something on American TV does not make it any less crap, spammer, stay away!";
+		}
+		if ($line =~ m!Section 301!io) {
+		    close(SP);
+		    return "-1 550 5.7.1 Referring to 'Murkowsky Bill' is direct admission of the message being spam.";
+		}
+		if ($line =~ m!centralremovalservice!io) {
+		    close(SP);
+		    return "-1 550 5.7.1 'centralremovalservice' is known excuse for spammers, stay away!";
+		}
+		if ($line =~ m!^Content-Type:\s*text/html!io) {
+		    close(SP);
+		    return "-1 550 5.7.1 Any HTML component containing email is considered SPAM (or VIRUS), ALWAYS! This system accepts only TEXT/PLAIN messages.";
+		}
+		if ($line =~ m!endlessopportunitieshotline!io) {
+		    close(SP);
+		    return "-1 550 5.7.1 very active spammer";
+		}
+		if ($line =~ m!D I P L O M A!io) {
+		    close(SP);
+		    return "-1 550 5.7.1 University diplomas, eh ?";
+		}
+		if ($line =~ m!this special offer!io) {
+		    close(SP);
+		    return "-1 550 5.7.1 'This Special Offer' is considered SPAM SIGNATURE!";
+		}
+		if ($line =~ m!To Be Removed From Our List!io) {
+		    close(SP);
+		    return "-1 550 5.7.1 'To Be Removed From Our List' is SPAM SIGNATURE!";
+		}
+	}
+
+	$rc = sprintf('0 250 2.6.0 nothing apparently wrong in the message. code:%d/%d',
+			$cnt_to,$passall_to);
+
+DONEIT:
+	close(SP);
+
+	return $rc;
+}
+
+
+sub rfc822syntax {
+	local($inphdr,$inprest) = @_;
+	local($lchdr) = lc($inphdr);
+
+	# XXX: Uniqueness tests ???
+
+	if (defined $UNIQSET{$lchdr} &&
+	    defined $RFC822{$lchdr}) {
+		return "3 550 5.7.1 Multiple occurrances of unique RFC2822 header: '${inphdr}:'";
+	}
+
+	$RFC822{$lchdr}  = $inprest;
+	$RFC822{$inphdr} = $inprest;
+
+	return undef;
+}
