@@ -91,7 +91,6 @@ fqdn_neighbour (domain, address, A) {
 	# Didn't match,
 
 
-
 	# We may also match for:  "@domain.name"
 
 	# Already expanded ?  If yes, go away!

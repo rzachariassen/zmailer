@@ -78,9 +78,9 @@ if [ -f $MAILVAR/db/localnames ]; then
 	if [ $MAILVAR/db/localnames -nt $MAILVAR/db/localnames$DBEXTtest ]; then
 	    $MAILBIN/newdb $MAILVAR/db/localnames
 	fi
-	relation -lt $DBTYPE -f $MAILVAR/db/localnames$DBEXT -d pathalias thishost
+	relation -lmt $DBTYPE -f $MAILVAR/db/localnames$DBEXT -d pathalias thishost
     else
-        relation -lt unordered -f $MAILVAR/db/localnames -d pathalias thishost
+        relation -lmt unordered -f $MAILVAR/db/localnames -d pathalias thishost
     fi
 else
 	# The default set of hostnames is:
