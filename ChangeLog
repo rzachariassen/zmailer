@@ -3,6 +3,17 @@
 	* Makefile.in:
 	    Version number: 2.99.50-s8
 
+	* configure.in, acconfig.h:
+	    Autoconfigure Eugene Crosser's  whoson  system into
+	    the ZMailer smtpserver.
+
+	* configure.in, proto/sm.conf.in:
+	    Autoconfigure ``procmail'' path.
+
+	* router/libdb/Makefile.in:
+	    Use of "::" on dependency tupe caused unnecessary
+	    recompilation of  router/libdb/*.c files.
+
 1998-07-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/policytest.c, smtpserver/mxverify.c:
