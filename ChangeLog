@@ -1,3 +1,9 @@
+2000-01-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/threads.c:
+	    abort() replaced with correct code -- "the thing never to
+	    happen *did* happen"...
+
 2000-01-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/rfc822.c, lib/skip821address.c, transports/libta/ctlopen.c:

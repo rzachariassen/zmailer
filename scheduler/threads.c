@@ -1,7 +1,7 @@
 /*
  *	ZMailer 2.99.16+ Scheduler "threads" routines
  *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-1999
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-2000
  *
  *
  *	These "threads" are for book-keeping of information
@@ -696,7 +696,8 @@ web_detangle(vp, ok)
 
 	struct thread *thr = vp->thread;
 
-	if (thr && thr->nextfeed == vp) abort();
+	if (thr && thr->nextfeed == vp)
+	  thr->nextfeed = vp->nextitem; /* Oh, next one then.. */
 
 	unthread(vp);
 
