@@ -73,10 +73,11 @@ EOF
 	read md2 junk <<EOF
 `cat "$x.md5"`
 EOF
+	# echo "File: $x MD1=$md1 MD2=$md2"
 	if [ "$md1" = "$md2" ]; then
 	    # They do match! We overwrite old file with new
-	   : mv "$x" ../
-	   : $MD5SUM -b "../$x" > "$x.md5"
+	   mv "$x" ../
+	   $MD5SUM -b "../$x" > "$x.md5"
 	fi
     fi
     if [ -f "$x" ]; then
@@ -136,8 +137,8 @@ for x in $MAILSHARE/proto/router.cf	   $MAILSHARE/proto/scheduler.conf  \
 	 $MAILVAR/db/proto/smtp-policy.src $MAILVAR/db/proto/smtp-policy.mx \
 	 $MAILVAR/db/proto/smtp-policy.relay
 do
-    y="`echo "$"x | sed -e 's!/proto/!/!'`"
-    if [ -f "$"x ] ; then
+    y="`echo "$x" | sed -e 's!/proto/!/!'`"
+    if [ -f "$x" ] ; then
 	cmp -s "$x" "$y" && echo "*** Verify  $y  file!"
     fi
 done
