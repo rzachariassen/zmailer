@@ -201,3 +201,16 @@ MAX_LOAD=300
 #
 #SYSLOGFLG=SRT
 SYSLOGFLG=RT
+
+# Per default,  ZMailer uses ``daemon'' userid when it wants to
+# operate in  ``runastrusteduser()''  mode.  Finding that userid
+# (or rather its numeric uid) can be a bit difficult, and if it
+# *fails*, apparently uid 65535 will be used.
+#
+#TRUSTEDUSER=daemon
+
+# Use  ORGDOMAIN  in ZENV if the system can't generate
+# MIME multipart boundary string contained host/domain ids
+# automagically...
+#
+#ORGDOMAIN=my.local.domain
