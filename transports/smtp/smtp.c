@@ -384,6 +384,10 @@ main(argc, argv)
 	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
 	fd_blockingmode(FILENO(stdout)); /* Just to make sure.. */
 
+#ifdef	BIND
+	res_init();
+#endif
+
 	pid = getpid();
 	msgfile = "?";
 	getout = 0;
@@ -747,7 +751,6 @@ main(argc, argv)
 	  }
 
 #ifdef	BIND
-	  res_init();
 
 	  if (checkmx)
 	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, rightmx, &SS, matchroutermxes, &SS);
