@@ -1,5 +1,9 @@
 2000-11-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* lib/selfaddrs.c, lib/zgetifaddress.c:
+	    Fix the support for FreeBSD 4.2*/OpenBSD 2.7* featured
+	    getifaddrs() function.
+
 	* Makefile.in:
 	    Mark version "2.99.55-pre1cvs" (which means nothing much)
 

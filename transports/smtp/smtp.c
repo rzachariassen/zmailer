@@ -996,6 +996,17 @@ deliver(SS, dp, startrp, endrp)
 	hdr = has_header(startrp,"Content-Type:");
 	if (hdr)
 	  CT = parse_content_type(hdr);
+
+	if (!CT && SS->verboselog)
+	  fprintf(SS->verboselog, ".. No Content-Type: header parsed ??\n");
+	else if (CT && SS->verboselog)
+	  fprintf(SS->verboselog, " Content-Type: '%s'/'%s'; charset='%s'; boundary='%s'; name='%s'\n",
+		  CT->basetype ? CT->basetype : "<NIL>",
+		  CT->subtype  ? CT->subtype  : "<NIL>",
+		  CT->charset  ? CT->charset  : "<NIL>",
+		  CT->boundary ? CT->boundary : "<NIL>",
+		  CT->name     ? CT->name     : "<NIL>");
+
 	hdr = has_header(startrp,"Content-Transfer-Encoding:");
 	if (hdr)
 	  CTE = parse_content_encoding(hdr);

@@ -653,7 +653,12 @@ static char * foldmalloccopy (start, end)
 	b = malloc(space);
 	if (!b) return NULL; /* UARGH! */
 
-	memcpy(b, start, len);
+	if (*start == '"') {
+	  /* QUOTED-STRING, which we UNQUOTE here */
+	  memcpy(b, start+1, len -2);
+	  len -= 2;
+	} else
+	  memcpy(b, start, len);
 	b[len] = 0;
 	return b;
 }

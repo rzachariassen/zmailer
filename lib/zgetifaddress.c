@@ -121,10 +121,10 @@ zgetifaddress(af, ifname, sap)
 
 	      /* We have matching name, do we have matching AF ?? */
 
-	      if (sa->sa.sa_family != af)
+	      if (sa->sa_family != af)
 		continue; /* Nope.. */
 
-	      if (sa->sa.sa_family == AF_INET) {
+	      if (sa->sa_family == AF_INET) {
 		struct sockaddr_in *si4 = (void*)sap;
 
 		if (si4 == NULL) break; /* Bad param! */
@@ -136,7 +136,7 @@ zgetifaddress(af, ifname, sap)
 	      }
 
 #if defined(AF_INET6) && defined(INET6)
-	      if (sa->sa.sa_family == AF_INET6) {
+	      if (sa->sa_family == AF_INET6) {
 		struct sockaddr_in6 *si6 = (void*)sap;
 
 		if (si6 == NULL) break;

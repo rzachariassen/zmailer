@@ -34,12 +34,16 @@ appendlet(SS, dp, convertmode, CT)
 
 	register int i, rc;
 	int lastwasnl = 0;
+	int ct_boundary_len = 999999;
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	volatile int bufferfull = 0;
 	char iobuf[ZBUFSIZ];
 	Sfio_t *mfp = NULL;
 #endif
+
+	if (CT->boundary)
+	  ct_boundary_len = strlen(CT->boundary);
 
 	SS->state  = 1;
 	SS->column = -1;
@@ -166,6 +170,16 @@ appendlet(SS, dp, convertmode, CT)
 	    s = s2;
 #endif
 	    /* XX: Detect multiparts !! */
+	    if (CT->boundary /* defined at all! */ &&
+		let_buffer[0] == '-' &&
+		let_buffer[1] == '-' &&
+		i > ct_boundary_len &&
+		memcmp(let_buffer+2, CT->boundary, ct_boundary_len)==0) {
+	      /* Begin/intermediate/end boundary line of something */
+
+	      /* XXX: Multipart part-switching line detected ? */
+
+	    }
 
 	    /* Ok, write the line -- decoding QP can alter the "lastwasnl" */
 	    rc = writemimeline(SS, let_buffer, i, convertmode);
