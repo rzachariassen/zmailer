@@ -3252,8 +3252,13 @@ int sig;
 	errno = EINTR;
 	SIGNAL_HANDLE(sig, sig_alarm);
 	SIGNAL_RELEASE(sig);
-	if (!noalarmjmp)
+	if (!noalarmjmp) {
+#ifdef JB_PC
+	  zsyslog((LOG_ERR,"sigalrm(PC=%lx SP=%lx)",
+		   alarmjmp[JB_PC], alarmjmp[JB_SP]));
+#endif
 	  longjmp(alarmjmp, 1);
+	}
 }
 
 #ifdef HAVE_STDARG_H
@@ -3351,7 +3356,7 @@ int bdat_flush(SS, lastflg)
 	int lastflg;
 {
 	int pos, i, wrlen;
-	volatile int r;   /* longjump() globber danger */
+	volatile int r;   /* longjmp() globber danger */
 	char lbuf[80];
 	jmp_buf oldalarmjmp;
 	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
