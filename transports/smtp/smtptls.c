@@ -2044,8 +2044,8 @@ int smtp_nbread(SS, buf, spc)
 	    /* Normal read(2) */
 	    r = read(infd, buf, spc);
 	    e = errno;
-	    msg_info(SS,"smtp_nbread() rc=%d errno=%d", r, e);
 #if 0
+	    msg_info(SS,"smtp_nbread() rc=%d errno=%d", r, e);
 	    if (r > 0) tls_dump(SS, buf, r);
 #endif
 	  }
