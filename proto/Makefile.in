@@ -180,7 +180,8 @@ forms:	FRC
 		$(MKDIR) "$$FORMSDIR/bak" ; \
 	fi ; \
 	cd $(srcdir)/forms; \
-	for file in ???* ; \
+	files=`ls ????*`; cd .. ; \
+	for file in ????* ; \
 	do \
 		name="`basename $$file`" ; \
 		if [ "$$name" != bak -a -f "$$FORMSDIR/$$name" ]; then \
@@ -188,8 +189,8 @@ forms:	FRC
 			mv -f $$FORMSDIR/$$name $$FORMSDIR/bak/$$name ; \
 		fi ; \
 		if [ "$$name" != bak ]; then \
-			echo $(INSTALL) -m 644 $$file $$FORMSDIR/$$name ; \
-			$(INSTALL) -m 644 $$file $$FORMSDIR/$$name ; \
+			echo $(INSTALL) -m 644 files/$$file $$FORMSDIR/$$name ; \
+			$(INSTALL) -m 644 files/$$file $$FORMSDIR/$$name ; \
 		fi ; \
 	done
 
