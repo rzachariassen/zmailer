@@ -1460,8 +1460,6 @@ run_daemon(argc, argv)
 	time_t nextdirscan = 0;
 
 
-	Z_SHM_MIB_Attach (1); /* Read/write attach (attempt) */
-
 	MIBMtaEntry->m.mtaRouterMasterPID  =  getpid();
 
 	/* Zero the gauges at our startup.. */

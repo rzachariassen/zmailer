@@ -767,6 +767,42 @@ main(argc, argv)
 	}
 
 
+	{
+	  int r = Z_SHM_MIB_Attach (1);
+
+	  if (r < 0) {
+	    /* Error processing -- magic set of constants: */
+	    switch (r) {
+	    case -1:
+	      /* fprintf(stderr, "No ZENV variable: SNMPSHAREDFILE\n"); */
+	      break;
+	    case -2:
+	      perror("Failed to open for exclusively creating of the SHMSHAREDFILE");
+	      break;
+	    case -3:
+	      perror("Failure during creation fill of SGMSHAREDFILE");
+	      break;
+	    case -4:
+	      perror("Failed to open the SHMSHAREDFILE at all");
+	      break;
+	    case -5:
+	      perror("The SHMSHAREDFILE isn't of proper size! ");
+	      break;
+	    case -6:
+	      perror("Failed to mmap() of SHMSHAREDFILE into memory");
+	      break;
+	    case -7:
+	      fprintf(stderr, "The SHMSHAREDFILE  has magic value mismatch!\n");
+	      break;
+	    default:
+	      break;
+	    }
+	    /* return; NO giving up! */
+	  }
+	}
+
+
+
 	if (postoffice == NULL && (postoffice = getzenv("POSTOFFICE")) == NULL)
 	  postoffice = POSTOFFICE;
 
@@ -795,8 +831,6 @@ main(argc, argv)
 
 	/* Now we are either interactive, or daemon, lets attach monitoring
 	   memory block.. and fill it in.  */
-
-	Z_SHM_MIB_Attach (1);
 
 	MIBMtaEntry->m.mtaSchedulerMasterPID  = getpid();
 

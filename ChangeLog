@@ -1,5 +1,23 @@
 2003-05-24  Matti Aarnio  <mea@zmailer.org>
 
+	* router/router.c, router/daemonsub.c, scheduler/scheduler.c,
+	  smtpserver/smtpserver.c:
+	    Moved  Z_SHM_MIB_Attach()  into a place where these programs
+	    have _not_yet_ detached themselves from the console, and will
+	    loudly complain if the SHM attachement fails (presuming that
+	    SNMPSHAREDFILE  ZENV variable is set at all.)
+
+	* scheduler/mailq.c, scheduler/mq2.c, utils/perl/mailq/mailq.pm,
+	  man/mailq.1.in:
+	    A new primitive:  "SHOW COUNTERS", which can be invoked
+	    with "mailq -QQQQ" and is same text as local memory attached
+	    "mailq -M" -- but can be at remote system.
+
+	* man/Makefile.in, man/man-to-html.sh, man/zmailer.3.in:
+	    Using GNU Makefile "pattern rules" to do things that
+	    had been open-coded into the makefile.  Also support
+	    referring to  e.g.  ZMailer::mailq(3)  in hyperlinks.
+
 	* configure.in, lib/zshmmibattach.c, include/libz.h, scheduler/mailq.c:
 	    Added test for <sys/file.h> header,  Added  flock()/lockf()  locking
 	    of the shared segment storage, and detailed error status returning

@@ -32,6 +32,8 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
+#include "zmsignal.h"
+
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -594,6 +596,156 @@ static int mq2cmd_etrn(mq,s)
   return 0;
 }
 
+
+/* INTERNAL */
+static void mq2_show_snmp(mq)
+     struct mailq *mq;
+{
+
+  Sfio_t *fp;
+  struct mq2discipline mq2d;
+
+  fp = sfnew(NULL, NULL, 0, 0, SF_LINE|SF_WRITE);
+  if (!fp) {
+    mq2_puts(mq, " *** FAILURE: sfnew(NULL, NULL, 0, -1, SF_LINE|SF_STRING|SF_WRITE);\n");
+    return;
+  }
+
+  memset(&mq2d, 0, sizeof(mq2d));
+  mq2d.mq = mq;
+  mq2d.D.writef  = mq2_sfwrite;
+
+  sfdisc(fp, &mq2d.D);
+
+
+#define M  MIBMtaEntry->m
+
+sfprintf(fp,"ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
+sfprintf(fp,"Time_now                        %10lu\n", (unsigned long)time(NULL));
+ 
+sfprintf(fp,"\n");
+
+sfprintf(fp,"SYS.RouterMasterPID             %10u",M.mtaRouterMasterPID);
+if (kill(M.mtaRouterMasterPID, 0) < 0 && errno == ESRCH) sfprintf(fp," NOT PRESENT!");
+sfprintf(fp,"\n");
+
+sfprintf(fp,"SYS.SchedulerMasterPID          %10u",M.mtaSchedulerMasterPID);
+if (kill(M.mtaSchedulerMasterPID, 0) < 0 && errno == ESRCH) sfprintf(fp," NOT PRESENT!");
+sfprintf(fp,"\n");
+
+sfprintf(fp,"SYS.SmtpServerMasterPID         %10u",M.mtaSmtpServerMasterPID);
+if (kill(M.mtaSmtpServerMasterPID, 0) < 0 && errno == ESRCH) sfprintf(fp," NOT PRESENT!");
+sfprintf(fp,"\n");
+
+
+sfprintf(fp,"SYS.SpoolFreeSpace-kB-G          %9d\n", M.mtaSpoolFreeSpace);
+sfprintf(fp,"SYS.LogFreeSpace-kB-G            %9d\n", M.mtaLogFreeSpace);
+
+
+sfprintf(fp,"\n");
+
+sfprintf(fp,"SS.Processes-G                        %4d\n",
+	 M.mtaIncomingSMTPSERVERprocesses);
+
+sfprintf(fp,"SS.ParallelSMTPconnects-G             %4d\n",
+	 M.mtaIncomingParallelSMTPconnects);
+sfprintf(fp,"SS.ParallelSMTPSconnects-G            %4d\n",
+	 M.mtaIncomingParallelSMTPSconnects);
+sfprintf(fp,"SS.ParallelSUBMITconnects-G           %4d\n",
+	 M.mtaIncomingParallelSUBMITconnects);
+
+sfprintf(fp,"SS.SMTPconnects                 %10u\n", M.mtaIncomingSMTPconnects);
+sfprintf(fp,"SS.SMTPSconnects                %10u\n", M.mtaIncomingSMTPSconnects);
+sfprintf(fp,"SS.SUBMITconnects               %10u\n", M.mtaIncomingSUBMITconnects);
+sfprintf(fp,"SS.SMTPTLSes                    %10u\n", M.mtaIncomingSMTPTLSes);
+
+sfprintf(fp,"SS.SMTP_MAIL                    %10u\n", M.mtaIncomingSMTP_MAIL);
+sfprintf(fp,"SS.SMTP_MAIL_ok                 %10u\n", M.mtaIncomingSMTP_MAIL_ok);
+sfprintf(fp,"SS.SMTP_MAIL_bad                %10u\n", M.mtaIncomingSMTP_MAIL_bad);
+sfprintf(fp,"SS.SMTP_RCPT                    %10u\n", M.mtaIncomingSMTP_RCPT);
+sfprintf(fp,"SS.SMTP_RCPT_ok                 %10u\n", M.mtaIncomingSMTP_RCPT_ok);
+sfprintf(fp,"SS.SMTP_RCPT_bad                %10u\n", M.mtaIncomingSMTP_RCPT_bad);
+sfprintf(fp,"SS.SMTP_HELO                    %10u\n", M.mtaIncomingSMTP_HELO);
+sfprintf(fp,"SS.SMTP_EHLO                    %10u\n", M.mtaIncomingSMTP_EHLO);
+sfprintf(fp,"SS.SMTP_ETRN                    %10u\n", M.mtaIncomingSMTP_ETRN);
+sfprintf(fp,"SS.SMTP_HELP                    %10u\n", M.mtaIncomingSMTP_HELP);
+sfprintf(fp,"SS.SMTP_DATA                    %10u\n", M.mtaIncomingSMTP_DATA);
+sfprintf(fp,"SS.SMTP_DATA_ok                 %10u\n", M.mtaIncomingSMTP_DATA_ok);
+sfprintf(fp,"SS.SMTP_DATA_bad                %10u\n", M.mtaIncomingSMTP_DATA_bad);
+sfprintf(fp,"SS.SMTP_BDAT                    %10u\n", M.mtaIncomingSMTP_BDAT);
+sfprintf(fp,"SS.SMTP_BDAT_ok                 %10u\n", M.mtaIncomingSMTP_BDAT_ok);
+sfprintf(fp,"SS.SMTP_BDAT_bad                %10u\n", M.mtaIncomingSMTP_BDAT_bad);
+sfprintf(fp,"SS.SMTP_DATA-kB                 %10u\n", M.mtaIncomingSMTP_DATA_KBYTES);
+sfprintf(fp,"SS.SMTP_BDAT-kB                 %10u\n", M.mtaIncomingSMTP_BDAT_KBYTES);
+sfprintf(fp,"SS.SMTP_input_spool-kB          %10u\n", M.mtaIncomingSMTP_spool_KBYTES);
+sfprintf(fp,"SS.ReceivedMessages             %10u\n", M.mtaReceivedMessagesSs);
+sfprintf(fp,"SS.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsSs);
+sfprintf(fp,"SS.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSs);
+sfprintf(fp,"SS.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSs);
+
+sfprintf(fp,"\n");
+
+sfprintf(fp,"RT.RouterProcesses-G             %9d\n", M.mtaRouterProcesses);
+sfprintf(fp,"RT.ReceivedMessages             %10u\n", M.mtaReceivedMessagesRt);
+sfprintf(fp,"RT.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsRt);
+sfprintf(fp,"RT.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesRt);
+sfprintf(fp,"RT.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsRt);
+
+sfprintf(fp,"RT.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeRt);
+sfprintf(fp,"RT.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeRt);
+sfprintf(fp,"RT.TransmittedVolume2-kB        %10u\n", M.mtaTransmittedVolume2Rt);
+
+sfprintf(fp,"RT.StoredMessages-G              %9d\n", M.mtaStoredMessagesRt);
+sfprintf(fp,"RT.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsRt);
+sfprintf(fp,"RT.StoredVolume-kB-G             %9d\n", M.mtaStoredVolumeRt);
+
+sfprintf(fp,"\n");
+
+sfprintf(fp,"SC.ReceivedMessages             %10u\n", M.mtaReceivedMessagesSc);
+sfprintf(fp,"SC.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsSc);
+sfprintf(fp,"SC.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSc);
+sfprintf(fp,"SC.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSc);
+sfprintf(fp,"SC.StoredMessages-G              %9d\n", M.mtaStoredMessagesSc);
+sfprintf(fp,"SC.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsSc);
+sfprintf(fp,"SC.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeSc);
+sfprintf(fp,"SC.StoredVolume-kB-G            %10u\n", M.mtaStoredVolumeSc);
+sfprintf(fp,"SC.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeSc);
+sfprintf(fp,"SC.StoredThreads-G               %9d\n", M.mtaStoredThreadsSc);
+sfprintf(fp,"SC.TransportAgentsActive-G       %9d\n", M.mtaTransportAgentsActiveSc);
+sfprintf(fp,"SC.TransportAgentsIdle-G         %9d\n", M.mtaTransportAgentsIdleSc);
+
+sfprintf(fp,"\n");
+
+sfprintf(fp,"TA.OutgoingSmtpConnects         %10u\n", M.mtaOutgoingSmtpConnects);
+sfprintf(fp,"TA.OutgoingSmtpConnectFails     %10u\n", M.mtaOutgoingSmtpConnectFails);
+sfprintf(fp,"TA.OutgoingSmtpSTARTTLS         %10u\n", M.mtaOutgoingSmtpSTARTTLS);
+sfprintf(fp,"TA.OutgoingSmtpMAIL             %10u\n", M.mtaOutgoingSmtpMAIL);
+sfprintf(fp,"TA.OutgoingSmtpRCPT             %10u\n", M.mtaOutgoingSmtpRCPT);
+sfprintf(fp,"TA.OutgoingSmtpDATA             %10u\n", M.mtaOutgoingSmtpDATA);
+sfprintf(fp,"TA.OutgoingSmtpBDAT             %10u\n", M.mtaOutgoingSmtpBDAT);
+sfprintf(fp,"TA.OutgoingSmtpDATAvolume-kB    %10u\n", M.mtaOutgoingSmtpDATAvolume);
+sfprintf(fp,"TA.OutgoingSmtpBDATvolume-kB    %10u\n", M.mtaOutgoingSmtpBDATvolume);
+sfprintf(fp,"TA.OutgoingSmtpMAILok           %10u\n", M.mtaOutgoingSmtpMAILok);
+sfprintf(fp,"TA.OutgoingSmtpRCPTok           %10u\n", M.mtaOutgoingSmtpRCPTok);
+sfprintf(fp,"TA.OutgoingSmtpDATAok           %10u\n", M.mtaOutgoingSmtpDATAok);
+sfprintf(fp,"TA.OutgoingSmtpBDATok           %10u\n", M.mtaOutgoingSmtpBDATok);
+sfprintf(fp,"TA.OutgoingSmtpDATAvolumeOK-kB  %10u\n", M.mtaOutgoingSmtpDATAvolumeOK);
+sfprintf(fp,"TA.OutgoingSmtpBDATvolumeOK-kB  %10u\n", M.mtaOutgoingSmtpBDATvolumeOK);
+
+#if 0
+sfprintf(fp,"mtaSuccessfulConvertedMessages  %10u\n", M.mtaSuccessfulConvertedMessages);
+sfprintf(fp,"mtaFailedConvertedMessages      %10u\n", M.mtaFailedConvertedMessages);
+sfprintf(fp,"mtaLoopsDetected                %10u\n", M.mtaLoopsDetected);
+#endif
+
+
+  zsfsetfd(fp, -1);
+  sfclose(fp);
+
+
+}
+
+
 /* INTERNAL */
 static int mq2cmd_show(mq,s)
      struct mailq *mq;
@@ -611,6 +763,15 @@ static int mq2cmd_show(mq,s)
 
   /* 's' points to the first arg, 't' points to string after
      separating white-space has been skipped. */
+
+  /* This really should be "SHOW SNMP", but that command
+     was reserved for other use... */
+  if (strcmp(s,"COUNTERS") == 0) {
+    mq2_puts(mq, "+OK until LF.LF\n");
+    mq2_show_snmp(mq);
+    mq2_puts_(mq, ".\n");
+    return 0;
+  }
 
   if (strcmp(s,"SNMP") == 0) {
     if (! (MQ2MODE_SNMP & mq->auth)) /* If not allowed operation, exit! */

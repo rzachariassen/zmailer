@@ -1030,6 +1030,45 @@ char **argv;
 	  }
 	}
 
+	if (daemon_flg) {
+
+	  /* Daemon attaches the SHM block, and may complain, but will not
+	     give up..  instead uses builtin fallback  */
+
+	  int r = Z_SHM_MIB_Attach (1);  /* R/W mode */
+
+	  if (r < 0) {
+	    /* Error processing -- magic set of constants: */
+	    switch (r) {
+	    case -1:
+	      /* fprintf(stderr, "No ZENV variable: SNMPSHAREDFILE\n"); */
+	      break;
+	    case -2:
+	      perror("Failed to open for exclusively creating of the SHMSHAREDFILE");
+	      break;
+	    case -3:
+	      perror("Failure during creation fill of SGMSHAREDFILE");
+	      break;
+	    case -4:
+	      perror("Failed to open the SHMSHAREDFILE at all");
+	      break;
+	    case -5:
+	      perror("The SHMSHAREDFILE isn't of proper size! ");
+	      break;
+	    case -6:
+	      perror("Failed to mmap() of SHMSHAREDFILE into memory");
+	      break;
+	    case -7:
+	      fprintf(stderr, "The SHMSHAREDFILE  has magic value mismatch!\n");
+	      break;
+	    default:
+	      break;
+	    }
+	    /* return; NO giving up! */
+	  }
+	}
+
+
 	settrusteduser();	/* dig out the trusted user ID */
 	zcloselog();		/* close the syslog too.. */
 	detach();		/* this must NOT close fd's */
@@ -1048,8 +1087,6 @@ char **argv;
 	  killprevious(0, pidfile);	/* deposit pid */
 	}
 
-
-	Z_SHM_MIB_Attach (1); /* Attach in R/W mode */
 
 	MIBMtaEntry->m.mtaSmtpServerMasterPID  =  getpid();
 

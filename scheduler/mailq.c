@@ -1384,12 +1384,22 @@ void query2(fpi, fpo)
 
 	if (schedq) {
 
-	  if (schedq > 2)
+	  switch (schedq) {
+	  case 4:
+	    strcpy(buf,"SHOW COUNTERS\n");
+	    break;
+	  case 3:
 	    strcpy(buf,"SHOW SNMP\n");
-	  else if (schedq > 1)
+	    break;
+	  case 2:
 	    strcpy(buf,"SHOW QUEUE SHORT\n");
-	  else
+	    break;
+	  case 1:
 	    strcpy(buf,"SHOW QUEUE THREADS\n");
+	    break;
+	  default:
+	    break;
+	  }
 
 	  len = strlen(buf);
 

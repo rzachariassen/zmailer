@@ -195,6 +195,7 @@ ZMailer::mailq - Perl extension for interaction with the scheduler
   # Examples of SHOW commands: (see ZMailer's scheduler(8)
   # man-page about  "MAILQv2 PROTOCOL")
   ( $rc,@lines ) = $zmq->showcmd("SHOW SNMP");
+  ( $rc,@lines ) = $zmq->showcmd("SHOW COUNTERS");
   ( $rc,@lines ) = $zmq->showcmd("SHOW QUEUE SHORT");
   ( $rc,@lines ) = $zmq->showcmd("SHOW QUEUE THREADS");
   ( $rc,@lines ) = $zmq->showcmd("SHOW THREAD $channel $host");
@@ -219,7 +220,7 @@ None by default.
 
 =head1 SEE ALSO
 
-ZMailer's  scheduler(8)
+ZMailer's  scheduler(8), and mailq(1)
 
 =head1 AUTHOR
 

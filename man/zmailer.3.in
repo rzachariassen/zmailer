@@ -150,7 +150,7 @@ Just before the data starts, a magic entry:
 Then starts the message RFC-822 headers, and below it, the body
 .fi
 .SH EXAMPLE
-.ta 4em 8em 12em 16em 20em
+.ta 1i 1.5i 2.0i 2.5i
 .nf
 	\&\fI... set up signal handlers ...\fR
 	\fBFILE\fR *mfp = mail_open(\fBMSG_RFC822\fR,0);
