@@ -351,10 +351,10 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	int top_peer = 0, top_peer2, topfd, newfd;
 	/* int last_peer_index = 0; */
 
-	SIGNAL_HANDLE(SIGCHLD, sigchld);
-
 	fd_set rdset, wrset;
 	struct timeval tv;
+
+	SIGNAL_HANDLE(SIGCHLD, sigchld);
 
 	memset( & job_head, 0, sizeof(job_head) );
 
