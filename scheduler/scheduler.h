@@ -154,6 +154,7 @@ struct procinfo {
 	pid_t	pid;		/* Process-id				*/
 	int	reaped;
 	int	tofd;		/* tell transporter job data thru this	*/
+	int	waitstat;	/* What previously called WAIT told..   */
 
 	TASTATE	state;		/* Child-Feed State Machine state	*/
 

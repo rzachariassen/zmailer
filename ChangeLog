@@ -1,5 +1,12 @@
 1999-12-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/scheduler.h, scheduler/transport.c:
+	    Report at reclaim() to scheduler main error log if subprogram
+	    has returned with non-zero exit status.
+
+	* scheduler/agenda.c, scheduler/threads.c, scheduler/prototypes.h:
+	    Moved  QUEUE_ONLY  flag observation inside the  thread_start().
+
 	* scheduler/scheduler.c:
 	    Timeserver waking up on select() every circa 0.3 seconds.
 	    (Goal is to have *some* reliability at getting a bit more

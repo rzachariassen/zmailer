@@ -751,6 +751,24 @@ if (verbose)
 	   fromfd, tofd, (int)proc->pid, proc->reaped,
 	   proc->ch->name, proc->ho->name);
 
+	if (proc->reaped &&
+	    ((WIFEXITED(proc->waitstat) && WEXITSTATUS(proc->waitstat)) ||
+	     WIFSIGNALED(proc->waitstat))) {
+
+	  /* Child sig-faulted, or had non-zero exit status! */
+
+	  sfprintf(sfstderr,
+		   "reclaim(%d,%d) pid=%d, reaped=%d, chan=%s, host=%s ",
+		   fromfd, tofd, (int)proc->pid, proc->reaped,
+		   proc->ch->name, proc->ho->name);
+	  if (WIFEXITED(proc->waitstat))
+	    sfprintf(sfstderr,"EXIT=%d\n", WEXITSTATUS(proc->waitstat));
+	  else if (WIFSIGNALED(proc->waitstat))
+	    sfprintf(sfstderr,"SIGNAL=%d\n", WTERMSIG(proc->waitstat));
+	  else
+	    sfprintf(sfstderr,"WAITSTAT=0x%04x\n", proc->waitstat);
+	}
+
 	proc->pid = 0;
 	proc->reaped = 0;
 	if (proc->carryover != NULL) {
@@ -1485,18 +1503,20 @@ int signum;
 	      if (cpids[i].pid == pid) {
 		cpids[i].pid = -pid; /* Mark it as reaped.. */
 		cpids[i].reaped = 1;
+		cpids[i].waitstat = statloc;
 		ok = 0;
 		if (WSIGNALSTATUS(statloc) == 0 &&
 		    WEXITSTATUS(statloc) == EX_SOFTWARE) {
 		  zsyslog((LOG_EMERG, "Transporter process %d exited with EX_SOFTWARE!", pid));
 		  sfprintf(sfstderr, "Transporter process %d exited with EX_SOFTWARE; cmdline='%s'\n", pid, cpids[i].cmdline);
-	  }
+		}
 		break;
 	      }
 	      if (cpids[i].pid == -pid) {
 		sfprintf(sfstdout," .. already reaped ??\n");
 		cpids[i].pid = -pid; /* Mark it as reaped.. */
 		cpids[i].reaped = 1;
+		cpids[i].waitstat = statloc;
 		ok = 0;
 		break;
 	      }

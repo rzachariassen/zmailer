@@ -39,8 +39,10 @@ doagenda()
 	    /* Object pointed by  ncuritem  may disappear due to
 	       expiration at thread_start() .. */
 	    nncuritem = ncuritem->nexttr;
+	    /* Not running, and wakeup in past ? */
 	    if (ncuritem->proc == NULL && ncuritem->wakeup <= now)
-	      didsomething += thread_start(ncuritem);
+	      /* Try to start it! */
+	      didsomething += thread_start(ncuritem, 0);
 
 	    ncuritem = nncuritem;
 	  }
@@ -94,7 +96,7 @@ const char *turnarg;
 
 	  if (wp == ncuritem->whost && ncuritem->proc == NULL) {
 	    ncuritem->wakeup = 0; /* Force its starttime! */
-	    thread_start(ncuritem);
+	    thread_start(ncuritem, 1);
 	    /* We MAY get multiple matches, though it is unlikely.. */
 	  }
 	  ncuritem = nncuritem;

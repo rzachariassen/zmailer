@@ -520,10 +520,10 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	      _thread_linktail(thr,vp);
 	      vp->thgrp = thg;
 	      thr->jobs += 1;
+
 	      /* Hookay..  Try to start it, in case it isn't yet running */
-	      if (!(thg->cep->flags & CFG_QUEUEONLY)) {
-		thread_start(thr);
-	      }
+	      if (!thr->proc)
+		thread_start(thr, 0);
 
 	      return;
 	    }
@@ -539,11 +539,9 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 		     thg,cep->channel,thg->withhost,cep->host,
 		     thr,wc->name,wh->name);
 
-
 	  /* Try to start it too */
-	  if(!(thg->cep->flags & CFG_QUEUEONLY)) {
-		thread_start(thr);
-	  }
+	  thread_start(thr, 0);
+
 	  return;
 	}
 
@@ -557,9 +555,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 		 thg,cep->channel,thg->withhost,cep->host,
 		 wc->name,wh->name);
 	/* Try to start it too */
-	if(!(thg->cep->flags & CFG_QUEUEONLY)) {
-		thread_start(thr);
-	}
+	thread_start(thr, 0);
 }
 
 struct web *
@@ -778,8 +774,9 @@ struct thread *thr;
  */
 
 int
-thread_start(thr)
-struct thread *thr;
+thread_start(thr, queue_only_too)
+     struct thread *thr;
+     int queue_only_too;
 {
 	int rc;
 	struct vertex      *vp  = thr->thvertices;
@@ -788,6 +785,8 @@ struct thread *thr;
 	struct web         *ho  = vp->orig[L_HOST];
 	struct web         *ch  = vp->orig[L_CHANNEL];
 
+
+	if (!queue_only_too && !(thg->cep->flags & CFG_QUEUEONLY)) return 0;
 
 	if (syncstart || (freeze && !slow_shutdown)) return 0;
 	if (procselect) {
@@ -822,13 +821,8 @@ struct thread *thr;
 	  /* There is at least one.. */
 	  proc  = *ipp;
 
-	  while (proc) {
-	    if (proc->ho == ho && proc->ch == ch)
-	      break;
+	  for (;proc && !(proc->ho == ho && proc->ch == ch); ipp  = &(proc->pnext), proc = *ipp) ;
 
-	    ipp  = &(proc->pnext);
-	    proc = *ipp;
-	  }
 	  if (proc == NULL) {
 	    /* None of the previous ones matched, pick the first anyway */
 	    ipp = &(thg->idleproc);
