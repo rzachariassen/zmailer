@@ -32,7 +32,13 @@
 #define SMTPLINESIZE	8192
 
 #include "hostenv.h"
+
 #include <stdio.h>
+#ifndef FILE /* Some systems don't have this as a MACRO.. */
+# define FILE FILE
+#endif
+#include <sfio.h>
+
 #include "zmalloc.h"
 #include <sys/types.h>
 #include <ctype.h>

@@ -8,6 +8,7 @@
 #include "mailer.h"
 #ifdef	HAVE_RESOLVER
 #include <netdb.h>
+
 #include "search.h"
 #include "libz.h"
 #include "libc.h"

@@ -1,12 +1,20 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
+ *
+ *	SFIO version by Matti Aarnio, copyright 1999
  */
 
 /*LINTLIBRARY*/
 
-#include <stdio.h>
 #include "hostenv.h"
+
+#include <stdio.h>
+#ifndef FILE /* Some systems don't have this as a MACRO.. */
+# define FILE FILE
+#endif
+#include <sfio.h>
+
 #include <errno.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -15,6 +23,7 @@
 #endif
 #include <sys/file.h>
 #include <sys/socket.h>
+
 #include "mail.h"
 
 #include "listutils.h"
@@ -30,19 +39,19 @@
  *
  *	...
  *      mail_priority = 0;
- *	FILE *mfp = mail_open(type);
- *	if (mfp != NULL) {
- *	... output the mail message to mfp ...
+ *	Sfio_t *msp = sfmail_open(type);
+ *	if (msp != NULL) {
+ *	... output the mail message to msp ...
  *	} else
  *		... error handling for not even being able to open the file ...
  *	if (oops)
- *		(void) mail_abort(mfp);
- *	else if (mail_close(mfp) == EOF)
+ *		(void) sfmail_abort(msp);
+ *	else if (sfmail_close(msp) == EOF)
  *		... error handling if something went wrong ...
  *	...
  *
  * Note that the return value from these routines corresponds to the
- * return values of fopen() and fclose() respectively. The routines
+ * return values of sfopen() and sfclose() respectively. The routines
  * are single-threaded due to the need to remember a filename.
  *
  * Note also that the mail_alloc() routine is called instead of malloc()
@@ -74,13 +83,13 @@ int mail_priority;
  * suffix-characters message files at once.
  */
 
-FILE *
-_mail_fopen(filenamep)
+Sfio_t *
+_sfmail_fopen(filenamep)
 	char **filenamep;
 {
 	const char *suffix, *post;
 	char *path, *cp;
-	FILE *fp;
+	Sfio_t *fp;
 	int fd, eno;
 
 	if (postoffice == NULL && (postoffice = getzenv("POSTOFFICE")) == NULL)
@@ -105,9 +114,9 @@ _mail_fopen(filenamep)
 		} else
 			strcpy(cp, post);
 		if ((fd = open(path, O_CREAT|O_EXCL|O_RDWR, 0600)) >= 0) {
-			fp = fdopen(fd, "w+");
+			fp = sfnew(NULL, NULL, 8192, fd,
+				   SF_READ|SF_WRITE|SF_WHOLE);
 			if (fp) {
-			  setvbuf(fp, NULL, _IOFBF, 8192);
 			  mail_free(*filenamep);
 			  *filenamep = path;
 			}
@@ -128,7 +137,7 @@ _mail_fopen(filenamep)
  */
 
 int
-mail_link(from, tonamep)
+sfmail_link(from, tonamep)
 	const char *from;
 	char **tonamep;
 {
@@ -173,13 +182,13 @@ mail_link(from, tonamep)
  * information (i.e. the file position on return may not be 0).
  */
 
-FILE *
-mail_open(type)
+Sfio_t *
+sfmail_open(type)
 	const char *type;
 {
 	char *scratch, *message;
 	const char *cp;
-	FILE *fp;
+	Sfio_t *fp;
 	int eno;
 	struct stat stbuf;
 	char namebuf[BUFSIZ];
@@ -194,10 +203,10 @@ mail_open(type)
 
 	sprintf(scratch, "%s/%7s:%d%%", PUBLICDIR, cp, (int)getpid());
 
-	fp = _mail_fopen(&scratch);
+	fp = _sfmail_fopen(&scratch);
 	if (fp == NULL) {
 		eno = errno;
-		fprintf(stderr, "mail_fopen(\"%s\", \"w+\"): errno %d\n",
+		fprintf(stderr, "sfmail_fopen(\"%s\", \"w+\"): errno %d\n",
 			scratch, errno);
 		mail_free(scratch);
 		errno = eno;
@@ -206,7 +215,7 @@ mail_open(type)
 
 	/* Determine a unique id associated with the file (inode number) */
 
-	if (fstat(FILENO(fp), &stbuf) < 0) {
+	if (fstat(sffileno(fp), &stbuf) < 0) {
 		eno = errno;
 		fprintf(stderr, "fstat(\"%s\"): errno %d\n", scratch, errno);
 		mail_free(scratch);
@@ -225,9 +234,9 @@ mail_open(type)
 	message = mail_alloc(strlen(PUBLICDIR)+strlen(type)+1+1+10);
 	sprintf(message, "%s/%d%%%s", PUBLICDIR, (int)stbuf.st_ino, type);
 #endif
-	if (mail_link(scratch, &message) < 0) {
+	if (sfmail_link(scratch, &message) < 0) {
 		eno = errno;
-		fprintf(stderr, "mail_link(\"%s\", \"%s\"): errno %d\n",
+		fprintf(stderr, "sfmail_link(\"%s\", \"%s\"): errno %d\n",
 				scratch, message, errno);
 		mail_free(scratch);
 		mail_free(message);
@@ -239,8 +248,8 @@ mail_open(type)
 
 	/* Extend when need! */
 
-	if (FILENO(fp) >= mail_nfiles) {
-	  int nfile = FILENO(fp)+1;
+	if (sffileno(fp) >= mail_nfiles) {
+	  int nfile = sffileno(fp)+1;
 	  if (mail_file == NULL) {
 	    mail_file = (char**)mail_alloc((u_int)(sizeof(char*) * nfile));
 	  } else {
@@ -252,21 +261,21 @@ mail_open(type)
 	    ++mail_nfiles;
 	  }
 	}
-	mail_file[FILENO(fp)] = message;
+	mail_file[sffileno(fp)] = message;
 
 	/* Grab preferences from the environment to initialize the envelope */
 
 #ifndef	notype
 	if (type != NULL && *type != '\0')
-		fprintf(fp, "type %s\n", type);
+		sfprintf(fp, "type %s\n", type);
 #endif
 	cp = getenv("FULLNAME");
 	if (cp != NULL)
-		fprintf(fp, "fullname %s\n",
+		sfprintf(fp, "fullname %s\n",
 			fullname(cp, namebuf, sizeof namebuf, (char *)NULL));
 	cp = getenv("PRETTYLOGIN");
 	if (cp != NULL)
-		fprintf(fp, "loginname %s\n", cp);
+		sfprintf(fp, "loginname %s\n", cp);
 	/*
 	 * If the postoffice lives elsewhere, put our hostname
 	 * in the Received-from header, to aid in message tracing.
@@ -282,7 +291,7 @@ mail_open(type)
 	      cp = getenv("USER");
 	    if (cp == NULL)
 	      cp = "\"??\"";
-	    fprintf(fp, "rcvdfrom STDIN (%s@%s)\n", cp, namebuf);
+	    sfprintf(fp, "rcvdfrom STDIN (%s@%s)\n", cp, namebuf);
 	  }
 	return fp;
 }
@@ -293,10 +302,10 @@ mail_open(type)
  */
 
 char *
-mail_fname(fp)
-	FILE *fp;
+sfmail_fname(fp)
+	Sfio_t *fp;
 {
-	int fd = FILENO(fp);
+	int fd = sffileno(fp);
 
 	if (fd < 0 || fd >= mail_nfiles)
 	  return NULL;
@@ -310,8 +319,8 @@ mail_fname(fp)
  */
 
 int
-mail_abort(fp)
-	FILE *fp;
+sfmail_abort(fp)
+	Sfio_t *fp;
 {
 	register char **messagep, *message;
 	int r;
@@ -320,14 +329,14 @@ mail_abort(fp)
 		errno = EBADF;
 		return -1;
 	}
-	if (FILENO(fp) >= mail_nfiles)
+	if (sffileno(fp) >= mail_nfiles)
 		abort(); /* Usage error -- no such fileno in our use! */
-	messagep = &mail_file[FILENO(fp)];
+	messagep = &mail_file[sffileno(fp)];
 	if (*messagep == NULL) {
 		errno = ENOENT;
 		return -1;
 	}
-	fclose(fp);
+	sfclose(fp);
 	message = *messagep;
 	*messagep = NULL;
 	r = unlink(message);
@@ -339,19 +348,9 @@ mail_abort(fp)
  * Close the message file on the indicated stream and submit it to the mailer.
  */
 
-int mail_close(fp)
-	FILE *fp;
-{
-	int ino;
-	time_t mtime;
-
-	return _mail_close_(fp, &ino, &mtime);
-}
-
-
 int
-_mail_close_(fp,inop, mtimep)
-	FILE *fp;
+_sfmail_close_(fp,inop, mtimep)
+	Sfio_t *fp;
 	int *inop;
 	time_t *mtimep;
 {
@@ -361,7 +360,7 @@ _mail_close_(fp,inop, mtimep)
 	struct stat stb;
 
 	if (postoffice == NULL) {
-		fprintf(stderr, "mail_close: called out of order!\n");
+		fprintf(stderr, "sfmail_close: called out of order!\n");
 		errno = EINVAL;
 		return -1;
 	}
@@ -369,9 +368,9 @@ _mail_close_(fp,inop, mtimep)
 		errno = EBADF;
 		return -1;
 	}
-	if (FILENO(fp) >= mail_nfiles)
+	if (sffileno(fp) >= mail_nfiles)
 		abort(); /* Usage error -- no such fileno in our use! */
-	messagep = &mail_file[FILENO(fp)];
+	messagep = &mail_file[sffileno(fp)];
 	if (*messagep == NULL) {
 		errno = ENOENT;
 		return -1;
@@ -382,16 +381,16 @@ _mail_close_(fp,inop, mtimep)
 
 	/*
 	 * *** NFS users beware ***
-	 * the fsync() between fflush() and fclose() may be mandatory
+	 * the fsync() between sfsync() and sfclose() may be mandatory
 	 * on NFS mounted postoffices if you want to guarantee not losing
 	 * data without being told about it.
 	 */
 
-	if (fflush(fp) != 0
+	if (sfsync(fp) != 0
 #ifdef HAVE_FSYNC
-	    || fsync(FILENO(fp)) < 0
+	    || fsync(sffileno(fp)) < 0
 #endif
-	    || fclose(fp) != 0) {
+	    || sfclose(fp) != 0) {
 		mail_free(message);
 		errno = EIO;
 		return -1;
@@ -504,15 +503,15 @@ _mail_close_(fp,inop, mtimep)
  */
 
 int
-mail_close_alternate(fp,where,suffix)
-	FILE *fp;
+sfmail_close_alternate(fp,where,suffix)
+	Sfio_t *fp;
 	const char *where, *suffix;
 {
 	char **messagep, *message, *nmessage, *msgbase;
 	int eno;
 
 	if (postoffice == NULL) {
-		fprintf(stderr, "mail_close: called out of order!\n");
+		fprintf(stderr, "sfmail_close_alternate: called out of order!\n");
 		errno = EINVAL;
 		return -1;
 	}
@@ -520,9 +519,9 @@ mail_close_alternate(fp,where,suffix)
 		errno = EBADF;
 		return -1;
 	}
-	if (FILENO(fp) >= mail_nfiles)
+	if (sffileno(fp) >= mail_nfiles)
 		abort(); /* Usage error -- no such fileno in our use! */
-	messagep = &mail_file[FILENO(fp)];
+	messagep = &mail_file[sffileno(fp)];
 	if (*messagep == NULL) {
 		errno = ENOENT;
 		return -1;
@@ -533,15 +532,15 @@ mail_close_alternate(fp,where,suffix)
 
 	/*
 	 * *** NFS users beware ***
-	 * the fsync() between fflush() and fclose() may be mandatory
+	 * the fsync() between sfsync() and sfclose() may be mandatory
 	 * on NFS mounted postoffices if you want to guarantee not losing
 	 * data without being told about it.
 	 */
-	if (fflush(fp) == EOF
+	if (sfsync(fp) == EOF
 #ifdef HAVE_FSYNC
-	    || fsync(FILENO(fp)) < 0
+	    || fsync(sffileno(fp)) < 0
 #endif
-	    || fclose(fp) == EOF) {
+	    || sfclose(fp) == EOF) {
 		mail_free(message);
 		errno = EIO;
 		return -1;
@@ -580,4 +579,14 @@ mail_close_alternate(fp,where,suffix)
 	unlink(message);
 	mail_free(message);
 	return 0;
+}
+
+
+int sfmail_close(fp)
+	Sfio_t *fp;
+{
+	int ino;
+	time_t mtime;
+
+	return _sfmail_close_(fp, &ino, &mtime);
 }

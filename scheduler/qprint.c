@@ -8,7 +8,7 @@
  */
 
 #include "hostenv.h"
-#include <stdio.h>
+#include <sfio.h>
 #include "scheduler.h"
 #include <fcntl.h>
 #include <sys/file.h>
@@ -38,7 +38,7 @@ static int qphost __((struct spblk *spl));
 /* XXX: struct utimbuf defined ??? */
 #endif
 
-static FILE *qpfp;
+static Sfio_t *qpfp;
 static char qpch;
 static time_t qpnow;
 
@@ -62,44 +62,43 @@ qprint(fd)
 #ifndef O_NDELAY
 #define O_NDELAY 0	/* you lose */
 #endif
-		fd = open(rendezvous, O_WRONLY|O_CREAT|O_TRUNC|O_NDELAY, 0644);
-		if (fd < 0) {
-			fprintf(stderr,
-				"open(%s): %d\n", rendezvous, errno);
-			return;
-		}
+	  fd = open(rendezvous, O_WRONLY|O_CREAT|O_TRUNC|O_NDELAY, 0644);
+	  if (fd < 0) {
+	    sfprintf(sfstderr,"open(%s): %d\n", rendezvous, errno);
+	    return;
+	  }
 	}
-	if ((qpfp = fdopen(fd, "w")) == NULL) {
-		fprintf(stderr, "hmmm\n");
-		close(fd);
-		return;
+	if ((qpfp = sfnew(NULL, NULL, 0, fd, SF_WRITE)) == NULL) {
+	  sfprintf(sfstderr, "hmmm\n");
+	  close(fd);
+	  return;
 	}
 	qpch = '\0';
 	qid  = 0;
 
-	fprintf(qpfp, "version zmailer 1.0\nVertices:\n");
+	sfprintf(qpfp, "version zmailer 1.0\nVertices:\n");
 	mytime(&qpnow);
 #ifndef NO_VERBOSE_MAILQ
 	if (!mailq_Q_mode)
 	  sp_scan(qpctlfile, (struct spblk *)NULL, spt_mesh[L_CTLFILE]); 
 #endif
 	if (qpch != '\0') {
-		fprintf(qpfp, "Channels:\n");
+	  sfprintf(qpfp, "Channels:\n");
 #ifndef NO_VERBOSE_MAILQ
-		if (!mailq_Q_mode)
-		  sp_scan(qpchannel, (struct spblk *)NULL, spt_mesh[L_CHANNEL]);
+	  if (!mailq_Q_mode)
+	    sp_scan(qpchannel, (struct spblk *)NULL, spt_mesh[L_CHANNEL]);
 #endif
-		fprintf(qpfp, "Hosts:\n");
+	  sfprintf(qpfp, "Hosts:\n");
 #ifndef NO_VERBOSE_MAILQ
-		if (!mailq_Q_mode)
-		  sp_scan(qphost, (struct spblk *)NULL, spt_mesh[L_HOST]);
+	  if (!mailq_Q_mode)
+	    sp_scan(qphost, (struct spblk *)NULL, spt_mesh[L_HOST]);
 #endif
 	}
-	fprintf(qpfp, "End:\n");
+	sfprintf(qpfp, "End:\n");
 
 	thread_report(qpfp, 1);
 	
-	fclose(qpfp);
+	sfclose(qpfp);
 
 	/* XX: I suppose we don't really need to do this if we use TCP. */
 	if (rendezvous != NULL) {
@@ -127,56 +126,56 @@ static int qpctlfile(spl)
 	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
 	  vp->qid = ++qid;
 	  if (cfp->dirind >= 0)
-	    fprintf(qpfp, "%d:\t%s/%s\t%d;",
-		    vp->qid, cfpdirname(cfp->dirind), cfp->mid, vp->ngroup);
+	    sfprintf(qpfp, "%d:\t%s/%s\t%d;",
+		     vp->qid, cfpdirname(cfp->dirind), cfp->mid, vp->ngroup);
 	  else
-	    fprintf(qpfp, "%d:\t%s\t%d;", vp->qid, cfp->mid, vp->ngroup);
+	    sfprintf(qpfp, "%d:\t%s\t%d;", vp->qid, cfp->mid, vp->ngroup);
 	  qpch = ' ';
 	  for (i = 0; i < vp->ngroup; ++i) {
-	    fprintf(qpfp, "%c%ld", qpch, (long)cfp->offset[vp->index[i]]);
+	    sfprintf(qpfp, "%c%ld", qpch, (long)cfp->offset[vp->index[i]]);
 	    qpch = ',';
 	  }
 	  if (vp->message != NULL)
-	    fprintf(qpfp, "\t#%s ", vp->message);
+	    sfprintf(qpfp, "\t#%s ", vp->message);
 	  else
-	    fprintf(qpfp, "\t#");
+	    sfprintf(qpfp, "\t#");
 
 	  i = 0;
 	  if (vp->wakeup > qpnow) {
 	    buf[0] = '\0';
 	    saytime((u_long)(vp->wakeup - qpnow), buf, 1);
-	    fprintf(qpfp, "(retry in %s", buf);
+	    sfprintf(qpfp, "(retry in %s", buf);
 	    ++i;
 	  } else if (vp->ce_pending) {
-	    fprintf(qpfp, "(waiting for %sslot",
-		    vp->ce_pending == SIZE_L ? "" :
-		    vp->ce_pending == L_CHANNEL ? "channel " :
-		    "thread ");
+	    sfprintf(qpfp, "(waiting for %sslot",
+		     vp->ce_pending == SIZE_L ? "" :
+		     vp->ce_pending == L_CHANNEL ? "channel " :
+		     "thread ");
 	    ++i;
 	  } else {
 	    if (vp->proc) {
-	      fprintf(qpfp,"(running now, pid=%d ", (int)vp->proc->pid);
+	      sfprintf(qpfp,"(running now, pid=%d ", (int)vp->proc->pid);
 	      if (vp->proc->vertex == vp)
-		fprintf(qpfp,"active");
+		sfprintf(qpfp,"active");
 	      else
 		if (vp->proc->vertex == NULL)
-		  fprintf(qpfp,"vtx=NULL??");
+		  sfprintf(qpfp,"vtx=NULL??");
 		else
-		  fprintf(qpfp,"touched");
+		  sfprintf(qpfp,"touched");
 	    } else {
-	      fprintf(qpfp, "(activation pending, thread");
+	      sfprintf(qpfp, "(activation pending, thread");
 	      /* A vertex is always on some thread.. */
 	      if (vp->thread && vp->thread->proc) {
-		fprintf(qpfp," pid=%d ", (int)vp->thread->proc->pid);
+		sfprintf(qpfp," pid=%d ", (int)vp->thread->proc->pid);
 		if (vp->thread->proc->thread == vp->thread)
-		  fprintf(qpfp,"expected");
+		  sfprintf(qpfp,"expected");
 		else
-		  fprintf(qpfp,"bygone");
+		  sfprintf(qpfp,"bygone");
 	      } else {
 		if (vp->thread == NULL)
-		  fprintf(qpfp," NO_THREAD!");
+		  sfprintf(qpfp," NO_THREAD!");
 		else
-		  fprintf(qpfp," inactive");
+		  sfprintf(qpfp," inactive");
 	      }
 	    }
 	    ++i;
@@ -185,14 +184,14 @@ static int qpctlfile(spl)
 	    /* [mea] Want to know when it expires.. */
 	    buf[0] = '\0';
 	    saytime((long)(vp->ce_expiry - qpnow), buf, 1);
-	    fprintf(qpfp,"%sexpires in %s, tries=%d",
-		    i ? ", " : "(", buf, vp->attempts);
-	    }
-	    if (i)
-	      putc(')', qpfp);
-
-	    putc('\n', qpfp);
+	    sfprintf(qpfp,"%sexpires in %s, tries=%d",
+		     i ? ", " : "(", buf, vp->attempts);
 	  }
+	  if (i)
+	    sfputc(qpfp, ')');
+
+	  sfputc(qpfp, '\n');
+	}
 	  return 0;
 	}
 
@@ -203,13 +202,13 @@ static int qpchannel(spl)
 	register struct vertex *vp;
 
 	if (wc->link != NULL) {
-	  fprintf(qpfp, "%s:\t", wc->name);
+	  sfprintf(qpfp, "%s:\t", wc->name);
 	  for (vp = wc->link; vp != NULL; vp = vp->next[L_CHANNEL])
 	    if (vp->qid)
-	      fprintf(qpfp, ">%d", vp->qid);
+	      sfprintf(qpfp, ">%d", vp->qid);
 	    else
-	      fprintf(qpfp, ">999%04d", (int)vp->cfp->id);
-	  fprintf(qpfp, "\n");
+	      sfprintf(qpfp, ">999%04d", (int)vp->cfp->id);
+	  sfprintf(qpfp, "\n");
 	}
 	return 0;
 }
@@ -221,13 +220,13 @@ static int qphost(spl)
 	register struct vertex *vp;
 
 	if (wc->link != NULL) {
-	  fprintf(qpfp, "%s:\t", wc->name);
+	  sfprintf(qpfp, "%s:\t", wc->name);
 	  for (vp = wc->link; vp != NULL; vp = vp->next[L_HOST])
 	    if (vp->qid)
-	      fprintf(qpfp, ">%d", vp->qid);
+	      sfprintf(qpfp, ">%d", vp->qid);
 	    else
-	      fprintf(qpfp, ">999%04d", (int)vp->cfp->id);
-	  fprintf(qpfp, "\n");
+	      sfprintf(qpfp, ">999%04d", (int)vp->cfp->id);
+	  sfprintf(qpfp, "\n");
 	}
 	return 0;
 }

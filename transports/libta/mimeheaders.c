@@ -26,7 +26,6 @@
  */
 
 #include "hostenv.h"
-#include <stdio.h>
 #ifdef HAVE_STDARG_H
 # include <stdarg.h>
 #else
@@ -42,9 +41,10 @@
 #endif
 #endif
 
+#include "ta.h"
+
 #include "zmalloc.h"
 #include "libz.h"
-#include "ta.h"
 
 #ifndef strdup
 extern char *strdup();

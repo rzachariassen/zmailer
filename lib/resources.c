@@ -6,7 +6,7 @@
 
 
 #include "hostenv.h"
-#include <stdio.h>
+#include <sfio.h>
 #include <sys/types.h>
 
 #if defined(HAVE_SETRLIMIT) && !defined(_AIX)

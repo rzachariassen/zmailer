@@ -28,7 +28,6 @@
  */
 
 #include "hostenv.h"
-#include <stdio.h>
 #include <ctype.h>
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -37,10 +36,12 @@
 # include <fcntl.h>
 #endif
 #include <sysexits.h>
+
+#include "ta.h"
+
 #include "mail.h"
 #include "zmalloc.h"
 #include "libz.h"
-#include "ta.h"
 
 #if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
 #include <sys/mman.h>

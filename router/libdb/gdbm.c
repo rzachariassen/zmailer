@@ -32,6 +32,7 @@ struct __gdbmfoo {
 
 #include <fcntl.h>
 #include <sys/file.h>
+
 #include "libsh.h"
 #include "search.h"
 #include "io.h"

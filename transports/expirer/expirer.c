@@ -21,7 +21,6 @@
  */
 
 #include "hostenv.h"
-#include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
 #include <pwd.h>
@@ -34,13 +33,15 @@
 #include <unistd.h> /* F_LOCK is there at some systems.. */
 #endif
 #include <string.h>
+
+#include "ta.h"
+
 #include "mail.h"
 #include "zsyslog.h"
 #include "zmsignal.h"
 
 #include "zmalloc.h"
 #include "libz.h"
-#include "ta.h"
 #include "splay.h"
 
 

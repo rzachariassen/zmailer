@@ -10,13 +10,15 @@
  *
  */
 
-#include "hostenv.h"
-#include <stdio.h>
 #include <sys/types.h>
 
-#include "splay.h"
-#include "zmalloc.h"
-#include "libz.h"
+#ifndef __
+# ifdef __STDC__
+#  define __(x) x
+# else
+#  define __(x) ()
+# endif
+#endif
 
 /* crc table and hash algorithm from pathalias */
 /*

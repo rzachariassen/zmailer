@@ -23,12 +23,12 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#include "ta.h"
+
 #include "mail.h"
 #include "zmalloc.h"
 #include "libz.h"
 #include "libc.h"
-
-#include "ta.h"
 
 /*
 

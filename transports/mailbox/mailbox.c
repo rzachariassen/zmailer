@@ -595,8 +595,9 @@ main(argc, argv)
 	    verboselog = NULL;
 	  }
 	  if (dp->verbose) {
-	    verboselog = (FILE*)fopen(dp->verbose,"a");
+	    verboselog = fopen(dp->verbose,"a");
 	    if (verboselog) {
+	      /* Buffering, and Close-On-Exec bit! */
 	      setbuf(verboselog,NULL);
 	      fcntl(FILENO(verboselog), F_SETFD, 1);
 	    }
@@ -2702,8 +2703,7 @@ appendlet(dp, rp, fp, file, ismime)
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	register int i;
 	register int bufferfull;
-	char iobuf[BUFSIZ]; /* For setvbuf(mfp) */
-	FILE *mfp;
+	Sfio_t *mfp;
 	int mfd = dp->msgfd;
 #else
 	char *s;
@@ -2745,10 +2745,9 @@ appendlet(dp, rp, fp, file, ismime)
 	  }
 
 	  lseek(mfd, (off_t)dp->msgbodyoffset, SEEK_SET);
-	  mfp = fdopen(mfd,"r");
-	  setvbuf(mfp, iobuf, _IOFBF, sizeof(iobuf));
+	  mfp = sfnew(NULL, NULL, 16*1024, mfd, SF_READ|SF_WHOLE);
 
-#define MFPCLOSE i = dup(mfd); fclose(mfp); dup2(i,mfd); close(i)
+#define MFPCLOSE sfsetfd(mfp,-1); sfclose(mfp);
 
 	  /* we are assuming to be positioned properly
 	     at the start of the message body */
@@ -2769,7 +2768,7 @@ appendlet(dp, rp, fp, file, ismime)
 	      return -256;
 	    }
 	  }
-	  if (i == EOF && !feof(mfp)) {
+	  if (i == EOF && !sfeof(mfp) && !sferror(mfp)) {
 	    DIAGNOSTIC(rp, file, EX_IOERR, "read error from message file", 0);
 	    MFPCLOSE;
 	    return -256;

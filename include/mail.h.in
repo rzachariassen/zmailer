@@ -92,6 +92,20 @@ extern int    mail_close_alternate __((FILE *fp, const char *where, const char *
 extern int   _mail_close_ __((FILE *fp, int *inop, time_t *mtimep));
 extern int    mail_close __((FILE *fp));
 
+/* smail.c */
+#ifdef _SFIO_H
+extern const char * postoffice;
+extern int      mail_priority;
+extern Sfio_t *_sfmail_fopen __((char **filenamep));
+extern int      sfmail_link __((const char *from, char **tonamep));
+extern Sfio_t * sfmail_open __((const char *type));
+extern char *   sfmail_fname __((Sfio_t *fp));
+extern int    	sfmail_abort __((Sfio_t *fp));
+extern int    	sfmail_close_alternate __((Sfio_t *fp, const char *where, const char *suffix));
+extern int     _sfmail_close_ __((Sfio_t *fp, int *inop, time_t *mtimep));
+extern int 	sfmail_close  __((Sfio_t *fp));
+#endif
+
 #define _MAILPRIO_HIGH	 0
 #define _MAILPRIO_NORMAL 0
 #define _MAILPRIO_BULK   1

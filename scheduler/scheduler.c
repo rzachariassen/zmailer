@@ -12,6 +12,7 @@
  */
 
 #include <stdio.h>
+#include <sfio.h>
 #include <sys/param.h>
 #include "hostenv.h"
 #include <ctype.h>
@@ -86,7 +87,7 @@ const char * pidfile = PID_SCHEDULER;
 const char * mailshare;
 const char * logfn;
 const char * statusfn;
-FILE    * statuslog = NULL;
+Sfio_t     * statuslog = NULL;
 int	slow_shutdown = 0;
 extern int readsockcnt; /* from transport.c: mux() */
  
@@ -175,36 +176,36 @@ int sig;
 	int flags;
 
 	if (logfn != NULL) {
-	  fflush(stdout);
-	  rewind(stdout);
-	  fflush(stderr);
-	  rewind(stderr);
-	  if (freopen(logfn, "a", stdout) != stdout
-	      || dup2(FILENO(stdout), FILENO(stderr)) < 0) {	/* sigh */
+	  sfsync(sfstdout);
+	  sfseek(sfstdout, 0, 0);
+	  sfsync(sfstderr);
+	  sfseek(sfstderr, 0, 0);
+	  if (sfopen(sfstdout, logfn, "a") != sfstdout
+	      || dup2(sffileno(sfstdout), sffileno(sfstderr)) < 0) {	/* sigh */
 	    /* XX: stderr might be closed at this point... */
-	    fprintf(stderr, "%s: cannot open log: %s, errno=%d\n", progname, logfn, errno);
+	    sfprintf(sfstderr, "%s: cannot open log: %s, errno=%d\n", progname, logfn, errno);
 	    return -1;
 	  }
 #if	defined(F_SETFL) && defined(O_APPEND)
-	  flags = fcntl(FILENO(stdout), F_GETFL, 0);
+	  flags = fcntl(sffileno(sfstdout), F_GETFL, 0);
 	  flags |= O_APPEND;
-	  fcntl(FILENO(stdout), F_SETFL, flags);
+	  fcntl(sffileno(sfstdout), F_SETFL, flags);
 #endif	/* F_SETFL */
 #if defined(F_SETFD)
-	  fcntl(FILENO(stdout), F_SETFD, 1); /* close-on-exec */
+	  fcntl(sffileno(sfstdout), F_SETFD, 1); /* close-on-exec */
 #endif
-	  setvbuf(stdout, (char *)NULL, _IOLBF, 0);
-	  setvbuf(stderr, (char *)NULL, _IOLBF, 0);
+	  sfset(sfstdout, SF_LINE, 1);
+	  sfset(sfstderr, SF_LINE, 1);
 	}
 	if (statusfn != NULL && statuslog != NULL) {
-	  fflush(statuslog);
-	  if (freopen(statusfn, "a", statuslog) != statuslog) {
-	    fprintf(stderr,"%s: cannot open statuslog: %s, errno=%d\n", progname, statusfn, errno);
+	  sfsync(statuslog);
+	  if (sfopen(statuslog, statusfn, "a") != statuslog) {
+	    sfprintf(sfstderr,"%s: cannot open statuslog: %s, errno=%d\n", progname, statusfn, errno);
 	    return -1;
 	  }
-	  setvbuf(statuslog, (char *)NULL, _IOLBF, 0);
+	  sfset(statuslog, SF_WHOLE, 1);
 #if defined(F_SETFD)
-	  fcntl(FILENO(statuslog), F_SETFD, 1); /* close-on-exec */
+	  fcntl(sffileno(statuslog), F_SETFD, 1); /* close-on-exec */
 #endif
 	}
 	SIGNAL_HANDLE(SIGHUP, (RETSIGTYPE(*)__((int))) loginitsched);
@@ -234,11 +235,10 @@ static int syncweb __((struct dirqueue *dq));
 int global_maxkids = 1000;
 time_t now;
 
-FILE * vfp_open __((struct ctlfile *));
-FILE * vfp_open(cfp)
+Sfio_t * vfp_open(cfp)
 struct ctlfile *cfp;
 {
-	FILE *vfp;
+	Sfio_t *vfp;
 	int fd;
 
 	if (!cfp->vfpfn) return NULL;
@@ -251,11 +251,10 @@ struct ctlfile *cfp;
 	fd = open(cfp->vfpfn, O_WRONLY|O_APPEND, 0);
 	setreuid(0, 0);
 	if (fd < 0) return NULL; /* Can't open it! */
-	vfp = fdopen(fd,"a");
+	vfp = sfnew(NULL, NULL, 0, fd, SF_WRITE|SF_APPEND|SF_LINE);
 	if (!vfp) return NULL; /* Failure to open */
 
-	setvbuf(vfp, (char *)NULL, _IOLBF, 0);   /* Set LINEBUFFERING */
-	fseek(vfp, (off_t)0, SEEK_END);
+	sfseek(vfp, (Sfoff_t)0, SEEK_END);
 	return vfp;
 }
 
@@ -272,12 +271,12 @@ struct ctlfile *cfp;
 	/* Delete from memory */
 
 	if (cfp->vfpfn) {
-	  FILE *vfp = vfp_open(cfp);
+	  Sfio_t *vfp = vfp_open(cfp);
 	  if (vfp) {
-	    fprintf(vfp,
-		    "ordered deletion of task file from scheduler memory (%s)\n",
-		    cfp->mid);
-	    fclose(vfp);
+	    sfprintf(vfp,
+		     "ordered deletion of task file from scheduler memory (%s)\n",
+		     cfp->mid);
+	    sfclose(vfp);
 	  }
 	}
 
@@ -420,14 +419,14 @@ main(argc, argv)
 			break;
 		case 'l':
 			statusfn = optarg;
-			statuslog = fopen(statusfn,"a");
+			statuslog = sfopen(NULL, statusfn, "a");
 			if (!statuslog) {
 			  perror("Can't open statistics log file (-l)");
 			  exit(1);
 			}
-			setvbuf(statuslog, (char *)NULL, _IOLBF, 0);
+			sfset(statuslog, SF_LINE, 1);
 #if defined(F_SETFD)
-			fcntl(FILENO(statuslog), F_SETFD, 1);
+			fcntl(sffileno(statuslog), F_SETFD, 1);
 			/* close-on-exec */
 #endif
 			break;
@@ -441,7 +440,7 @@ main(argc, argv)
 		case 'M':
 			mailqmode = atoi(optarg);
 			if (mailqmode < 1 || mailqmode > 2) {
-			  fprintf(stderr,"scheduler: -M parameter is either 1, or 2\n");
+			  sfprintf(sfstderr,"scheduler: -M parameter is either 1, or 2\n");
 			  exit(EX_USAGE);
 			}
 			break;
@@ -458,7 +457,7 @@ main(argc, argv)
 			if (procselhost)
 			  *procselhost++ = 0;
 			else {
-			  fprintf(stderr,"scheduler: -p parameter is of form: channel/host\n");
+			  sfprintf(sfstderr,"scheduler: -p parameter is of form: channel/host\n");
 			  exit(64);
 			}
 			break;
@@ -505,9 +504,9 @@ main(argc, argv)
 	}
 
 	if (errflg) {
-	  fprintf(stderr,
-		  "Usage: %s [-dHisvV -M (1|2) -f configfile -L logfile -P postoffice -Q rendezvous]\n",
-		  progname);
+	  sfprintf(sfstderr,
+		   "Usage: %s [-dHisvV -M (1|2) -f configfile -L logfile -P postoffice -Q rendezvous]\n",
+		   progname);
 	  exit(128+errflg);
 	}
 	mailshare = getzenv("MAILSHARE");
@@ -528,8 +527,7 @@ main(argc, argv)
 	  SIGNAL_HANDLE(SIGHUP, (RETSIGTYPE(*)__((int))) loginitsched);
 	} else {
 	  SIGNAL_IGNORE(SIGHUP); /* no surprises please */
-	  setvbuf(stdout, (char *)NULL, _IOLBF, 0);
-	  setbuf(stderr,NULL);	/* [mea] No buffering on stdout.. */
+	  sfset(sfstdout, SF_LINE, 1);
 	}
 #ifdef USE_SIGREAPER
 # ifdef SIGCLD
@@ -552,10 +550,10 @@ main(argc, argv)
 	  prversion("scheduler");
 	  if (version)
 	    exit(0);
-	  putc('\n', stderr);
+	  sfputc(sfstderr, '\n');
 	}
-	offout = ftell(stdout);
-	offerr = ftell(stderr);
+	offout = sftell(sfstdout);
+	offerr = sftell(sfstderr);
 	if (config == NULL) {
 	  config = emalloc(3 + (u_int)(strlen(mailshare)
 				       + strlen(progname)
@@ -574,30 +572,30 @@ main(argc, argv)
 	  postoffice = POSTOFFICE;
 
 	if (chdir(postoffice) < 0 || chdir(TRANSPORTDIR) < 0)
-	  fprintf(stderr, "%s: cannot chdir to %s/%s.\n",
-		  progname, postoffice, TRANSPORTDIR);
+	  sfprintf(sfstderr, "%s: cannot chdir to %s/%s.\n",
+		   progname, postoffice, TRANSPORTDIR);
 
 	if (rendezvous == NULL && (rendezvous = getzenv("RENDEZVOUS")) == NULL)
 	  rendezvous = qoutputfile;
 	if (daemonflg) {
 	  /* X: check if another daemon is running already */
 	  if (!verbose
-	      && (offout < ftell(stdout) || offerr < ftell(stderr))) {
-	    fprintf(stderr, "%ld %ld %ld %ld\n", offout, ftell(stdout),
-		    offerr, ftell(stderr));
-	    fprintf(stderr, "%s: daemon not started.\n", progname);
+	      && (offout < sftell(sfstdout) || offerr < sftell(sfstderr))) {
+	    sfprintf(sfstderr, "%ld %ld %ld %ld\n", offout, sftell(sfstdout),
+		     offerr, sftell(sfstderr));
+	    sfprintf(sfstderr, "%s: daemon not started.\n", progname);
 	    die(1, "too many scheduler daemons");
 	    /* NOTREACHED */
 	  }
 	  detach();		/* leave worldy matters behind */
 	  mytime(&now);
-	  printf("%s: scheduler daemon (%s)\n\tpid %d started at %s\n",
-		 progname, Version, (int)getpid(), (char *)rfc822date(&now));
+	  sfprintf(sfstdout, "%s: scheduler daemon (%s)\n\tpid %d started at %s\n",
+		   progname, Version, (int)getpid(), (char *)rfc822date(&now));
 	}
 	/* Actually we want this to act as daemon,
 	   even when not in daemon mode.. */
 	if (killprevious(SIGTERM, pidfile) != 0) {
-	  printf("%s: Can't write my pid to a file ?? Out of diskspace ??\n",progname);
+	  sfprintf(sfstdout, "%s: Can't write my pid to a file ?? Out of diskspace ??\n",progname);
 	  die(1,"Can't write scheduler pid to a file!?");
 	  /* NOTREACHED */
 	}
@@ -617,8 +615,8 @@ main(argc, argv)
 	    cfp = schedule(fd, argv[optind], ino, 0);
 	    if (cfp == NULL) {
 	      if (verbose)
-		fprintf(stderr, "Nothing scheduled for %s!\n",
-			argv[optind]);
+		sfprintf(sfstderr, "Nothing scheduled for %s!\n",
+			 argv[optind]);
 	    } else
 	      eunlink(argv[optind]);
 	  }
@@ -662,9 +660,9 @@ main(argc, argv)
 	      break;
 	    queryipccheck();
 	  }
-	  fprintf(stderr,"Synchronous startup completed, messages: %d (%d skipped) recipients: %d\n",
-		  global_wrkcnt, startcount - global_wrkcnt, thread_count_recipients());
-	  fprintf(stderr,"***********************************************************************\n");
+	  sfprintf(sfstderr,"Synchronous startup completed, messages: %d (%d skipped) recipients: %d\n",
+		   global_wrkcnt, startcount - global_wrkcnt, thread_count_recipients());
+	  sfprintf(sfstderr,"***********************************************************************\n");
 	  syncstart = 0;
 	}
 
@@ -841,13 +839,13 @@ dq_insert(DQ, ino, file, delay)
 
 	/* 
 	   if (DQ == NULL)
-	   fprintf(stderr,"dq_insert(NULL,ino=%ld, file='%s', delay=%d)\n",
+	   sfprintf(sfstderr,"dq_insert(NULL,ino=%ld, file='%s', delay=%d)\n",
 	   ino,file,delay);
 	 */
 
 	/* Is it already in the database ? */
 	if (sp_lookup((u_long)ino,dirscan_mesh) != NULL) {
-	  fprintf(stderr,"scheduler: tried to dq_insert(ino=%ld, file='%s') already in queue\n",ino, file);
+	  sfprintf(sfstderr,"scheduler: tried to dq_insert(ino=%ld, file='%s') already in queue\n",ino, file);
 	  return 1; /* It is! */
 	}
 
@@ -957,7 +955,8 @@ static int dirqueuescan(dir, dq, subdirs)
 #endif
 
 	if (verbose && dir[0] == '.') {
-	  printf("dirqueuescan(dir='%s') ",dir); fflush(stdout);
+	  sfprintf(sfstdout, "dirqueuescan(dir='%s') ",dir);
+	  sfsync(sfstdout);
 	}
 
 	/* Some changes lately, open the dir and read it */
@@ -1034,7 +1033,7 @@ static int dirqueuescan(dir, dq, subdirs)
 	closedir(dirp);
 
 	if (verbose && dir[0] == '.')
-	  printf("wrksum=%d new=%d\n",dq->wrksum,newents);
+	  sfprintf(sfstdout,"wrksum=%d new=%d\n",dq->wrksum,newents);
 
 	return newents;
 }
@@ -1212,8 +1211,8 @@ void resync_file(proc, file)
 	spl = sp_lookup((u_long)ino, spt_mesh[L_CTLFILE]);
 	if (spl == NULL) {
 	  if (!in_dirscanqueue(NULL,ino)) {
-	    printf("Resyncing file \"%s\" (ino=%ld)", file, ino);
-	    printf(" .. not in processing database\n");
+	    sfprintf(sfstdout,"Resyncing file \"%s\" (ino=%ld)", file, ino);
+	    sfprintf(sfstdout," .. not in processing database\n");
 	  }
 	  /* Not (anymore) in processing! */
 	  return;
@@ -1226,10 +1225,10 @@ void resync_file(proc, file)
 	  sp_delete(spl, spt_mesh[L_CTLFILE]);
 	spl = NULL;
 
-	printf("Resyncing file \"%s\" (ino=%d) (of=%d ho='%s')",
-	       file, (int) ino, proc->overfed,
-	       (proc->ho ? proc->ho->name : "<NULL>"));
-	/* printf(" .. in processing db\n"); */
+	sfprintf(sfstdout, "Resyncing file \"%s\" (ino=%d) (of=%d ho='%s')",
+		 file, (int) ino, proc->overfed,
+		 (proc->ho ? proc->ho->name : "<NULL>"));
+	/* sfprintf(sfstdout, " .. in processing db\n"); */
 
 	/* cfp_free()->unvertex()->unctlfile() will do reinsertion */
 	/* dq_insert(NULL,ino,file,31); */
@@ -1238,7 +1237,7 @@ void resync_file(proc, file)
 	fd = eopen(file, O_RDWR, 0);
 	if (fd < 0) {
 	  /* ???? */
-	  printf(" .. FILE OPEN FAILED!\n");
+	  sfprintf(sfstdout," .. FILE OPEN FAILED!\n");
 
 	  /* Delete it from memory */
 	  cfp_free(oldcfp, NULL);
@@ -1261,9 +1260,9 @@ void resync_file(proc, file)
 	  oldcfp->id = ino;
 	  sp_install(oldcfp->id, (void *)oldcfp, 0, spt_mesh[L_CTLFILE]);
 
-	  printf(" .. resynced!\n");
+	  sfprintf(sfstdout," .. resynced!\n");
 	} else {
-	  printf(" .. NOT resynced!\n");
+	  sfprintf(sfstdout," .. NOT resynced!\n");
 	  /* Sigh.. Throw everything away :-( */
 	  oldcfp->id = ino;
 	  cfp_free(oldcfp, NULL);
@@ -1276,9 +1275,9 @@ void resync_file(proc, file)
 #else
 
 	if (newcfp != NULL) {
-	  printf(" .. resynced!\n");
+	  sfprintf(sfstdout," .. resynced!\n");
 	} else {
-	  printf(" .. NOT resynced!\n");
+	  sfprintf(sfstdout," .. NOT resynced!\n");
 	  /* Sigh.. Throw everything away :-( */
 	  oldcfp->id = ino;
 	}
@@ -1310,7 +1309,7 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	  if (!vtxprep_skip) {	/* Unless skipped.. */
 	    eunlink(file);	/* everything here has been processed */
 	    if (verbose)
-	      printf("completed, unlink %s\n",file);
+	      sfprintf(sfstdout,"completed, unlink %s\n",file);
 	    return NULL;
 	  }
 	  vtxprep_skip_any += vtxprep_skip;
@@ -1436,7 +1435,7 @@ slurp(fd, ino)
 		/* cfp->erroraddr = strsave(s+2); */
 	      } else if (*s == _CF_TURNME) {
 		/* Umm... it is a bit complex */
-		printf("A TURNME request for target '%s'\n",s+2);
+		sfprintf(sfstdout,"A TURNME request for target '%s'\n",s+2);
 	      }
 	    }
 	  }
@@ -1509,8 +1508,8 @@ lockverify(cfp,cp,verbflg)	/* Return 1 when lock process does not exist */
 	if (kill(lockpid,sig) != 0) return 1; /* PID does not exist, or
 					       other error.. */
 	if (verbflg)
-	  fprintf(stderr,"lockverify: Lock with PID=%d is active on %s:%s\n",
-		  lockpid, cfp->mid, cp+_CFTAG_RCPTPIDSIZE);
+	  sfprintf(sfstderr,"lockverify: Lock with PID=%d is active on %s:%s\n",
+		   lockpid, cfp->mid, cp+_CFTAG_RCPTPIDSIZE);
 	return 0;	/* Locking PID does exist.. */
 }
 
@@ -1585,11 +1584,11 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	       */
 	      close(cfp->fd);	/* Was opened on  schedule() */
 	      if (cfp->vfpfn != NULL) {
-		FILE *vfp = vfp_open(cfp);
+		Sfio_t *vfp = vfp_open(cfp);
 		if (vfp) {
-		  fprintf(vfp,
-			  "New scheduler: Skipped a job-file because it is held locked by PID=%6.6s\n",cp+1);
-		  fclose(vfp);
+		  sfprintf(vfp,
+			   "New scheduler: Skipped a job-file because it is held locked by PID=%6.6s\n",cp+1);
+		  sfclose(vfp);
 		}
 	      }
 	      cfp_free(cfp, NULL);
@@ -1757,7 +1756,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      cfp->vfpfn = strsave(cp+2);
 	      break;
 	    case _CF_TURNME:
-	      printf("TURNME: %s\n",cp+2);
+	      sfprintf(sfstdout,"TURNME: %s\n",cp+2);
 	      strlower(cp+2);
 	      turnme(cp+2);
 	      is_turnme = 1;
@@ -1844,11 +1843,11 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	if (cfp->mid == NULL || cfp->logident == NULL ||
 	    estat(mfpath, &stbuf) < 0) {
 	  if (!is_turnme) {
-	    FILE *vfp = vfp_open(cfp);
+	    Sfio_t *vfp = vfp_open(cfp);
 	    if (vfp) {
-	      fprintf(vfp,
-		      "aborted due to missing information\n");
-	      fclose(vfp);
+	      sfprintf(vfp,
+		       "aborted due to missing information\n");
+	      sfclose(vfp);
 	    }
 	  }
 	  cfp_free(cfp, NULL);
@@ -2009,9 +2008,9 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	*l_echannel = *l_ehost = ' ';
 	/*
 	   for (vp = head; vp != NULL; vp = vp->next[L_CTLFILE]) {
-	     printf("--\n");
+	     sfprintf(sfstdout,"--\n");
 	     for (i = 0; i < vp->ngroup; ++i)
-	       printf("\t%s\n", cfp->contents+cfp->offset[vp->index[i]]);
+	       sfprintf(sfstdout,"\t%s\n", cfp->contents+cfp->offset[vp->index[i]]);
 	   }
 	*/
 	cfp->head = head;
@@ -2019,16 +2018,16 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	if (verbose) {
 	  int completed = cfp->rcpnts_total - cfp->rcpnts_work -
 			  cfp->rcpnts_failed;
-	  printf("vtxprep: msg %s rcptns total %d work %d failed %d done %d\n",
+	  sfprintf(sfstdout,"vtxprep: msg %s rcptns total %d work %d failed %d done %d\n",
 		 cfp->mid, cfp->rcpnts_total, cfp->rcpnts_work,
 		 cfp->rcpnts_failed, completed );
 	}
 
 	{
-	  FILE *vfp = vfp_open(cfp);
+	  Sfio_t *vfp = vfp_open(cfp);
 	  if (vfp != NULL && cfp->mid != NULL)
-	    fprintf(vfp, "scheduler processing %s\n", cfp->mid);
-	  if (vfp) fclose(vfp);
+	    sfprintf(vfp, "scheduler processing %s\n", cfp->mid);
+	  if (vfp) sfclose(vfp);
 	}
 
 	return cfp;
@@ -2046,7 +2045,7 @@ static int vtxmatch(vp, tp)
 {
 	/* if the channel doesn't match, there's no hope! */
 	if (verbose>1)
-	  printf("ch? %s %s\n", vp->orig[L_CHANNEL]->name, tp->channel);
+	  sfprintf(sfstdout,"ch? %s %s\n", vp->orig[L_CHANNEL]->name, tp->channel);
 	if (tp->channel[0] == '*' && tp->channel[1] == '\0')
 	  return 0; /* Never match the defaults entry! */
 	if (!globmatch(tp->channel, vp->orig[L_CHANNEL]->name))
@@ -2059,7 +2058,7 @@ static int vtxmatch(vp, tp)
 	}
 
 	if (verbose>1)
-	  printf("host %s %s\n", vp->orig[L_HOST]->name, tp->host);
+	  sfprintf(sfstdout,"host %s %s\n", vp->orig[L_HOST]->name, tp->host);
 
 	return 1;
 }
@@ -2139,14 +2138,14 @@ static void vtxdo(vp, cehdr, path)
 	  }
 	}
 	if (n == 0) {
-	  fprintf(stderr, "%s: no pattern matched %s/%s address\n",
-		  progname, vp->orig[L_CHANNEL]->name, vp->orig[L_HOST]->name);
+	  sfprintf(sfstderr, "%s: no pattern matched %s/%s address\n",
+		   progname, vp->orig[L_CHANNEL]->name,vp->orig[L_HOST]->name);
 	  /* XX: memory leak here? */
 	  return;
 	}
 	if (verbose)
-	  printf("Matched %dth config entry with: %s/%s\n", cnt,
-		 vp->orig[L_CHANNEL]->name, vp->orig[L_HOST]->name);
+	  sfprintf(sfstdout, "Matched %dth config entry with: %s/%s\n", cnt,
+		   vp->orig[L_CHANNEL]->name, vp->orig[L_HOST]->name);
 
 	/* set default values */
 	if (tp->expiry > 0)
@@ -2355,11 +2354,12 @@ static void init_timeserver()
 	int fd = -1;
 	char blk[1024];
 	int i;
-	FILE *fp = tmpfile();
+	Sfio_t *fp = sftmp(1); /* Create the backing file fairly reliably. */
 
 	if (fp) {
-	  fd = dup(fileno(fp));
-	  fclose(fp);
+	  fd = sffileno(fp);
+	  sfsetfd(fp,-1); /* hide the fd */
+	  sfclose(fp);
 	}
 	if (fd < 0) return; /* Brr! */ 
 

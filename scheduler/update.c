@@ -5,11 +5,11 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1998
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
  */
 
 #include "hostenv.h"
-#include <stdio.h>
+#include <sfio.h>
 #include <ctype.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -25,8 +25,6 @@ static struct vertex *findvertex __((long, long, int*));
 static int ctlowner __((struct ctlfile *));
 static void vtxupdate __((struct vertex *, int, int));
 static void expaux __((struct vertex *, int, const char *));
-
-extern FILE *vfp_open __((struct ctlfile *));
 
 #if 0
 extern int ermdir();
@@ -115,20 +113,20 @@ update(fd, diagnostic)
 	if (*diagnostic != '#') { /* Not debug diagnostic message */
 	  inum = atol(diagnostic);
 	  if ((cp = strchr(diagnostic, '/')) == NULL) {
-	    fprintf(stderr, "%s Misformed diagnostic: %s\n",
-		    timestring(), diagnostic);
+	    sfprintf(sfstderr, "%s Misformed diagnostic: %s\n",
+		     timestring(), diagnostic);
 	    return;
 	  }
 	  offset = atol(++cp);
 	  if ((cp = strchr(cp, '\t')) == NULL) {
-	    fprintf(stderr, "%s Misformed diagnostic: %s\n",
-		    timestring(), diagnostic);
+	    sfprintf(sfstderr, "%s Misformed diagnostic: %s\n",
+		     timestring(), diagnostic);
 	    return;
 	  }
 	  notary = ++cp;
 	  if ((cp = strchr(cp, '\t')) == NULL) {
-	    fprintf(stderr, "%s Misformed diagnostic: %s\n",
-		    timestring(), diagnostic);
+	    sfprintf(sfstderr, "%s Misformed diagnostic: %s\n",
+		     timestring(), diagnostic);
 	    return;
 	  }
 	  *cp = 0; /* Trailing TAB after notary string, NULL it */
@@ -142,7 +140,8 @@ update(fd, diagnostic)
 	    message = cp;
 	  }
 	  if (verbose)
-	    printf("diagnostic: %ld/%ld\t%s\t%s\n",inum,offset,notary,type);
+	    sfprintf(sfstdout,"diagnostic: %ld/%ld\t%s\t%s\n",
+		     inum, offset, notary, type);
 
 	  if ((vp = findvertex(inum, offset, &index)) == NULL)
 	    return;
@@ -164,8 +163,8 @@ update(fd, diagnostic)
 	    }
 	  }
 	  if (dcp->name == NULL)
-	    fprintf(stderr, "%s Unknown diagnostic type ignored: %s\n",
-		    timestring(), type);
+	    sfprintf(sfstderr, "%s Unknown diagnostic type ignored: %s\n",
+		     timestring(), type);
 	  return;
 	}
 
@@ -210,12 +209,12 @@ update(fd, diagnostic)
 	      proc->hungry = 0; /* ... satiated.. */
 	    } else {
 	      if (verbose)
-		printf("... child pid %d overfed=%d\n",
-		       (int)proc->pid, proc->overfed);
+		sfprintf(sfstdout, "... child pid %d overfed=%d\n",
+			 (int)proc->pid, proc->overfed);
 	    }
 	  } else
 	    if (verbose)
-	      printf("'#hungry' from child without forward-channel\n");
+	      sfprintf(sfstdout,"'#hungry' from child without forward-channel\n");
 	  return;
 	} /* end of '#hungry' processing */
 
@@ -233,7 +232,7 @@ update(fd, diagnostic)
 	  return;
 	}
 
-	fprintf(stderr, "%s DBGdiag: %s\n", timestring(), diagnostic);
+	sfprintf(sfstderr, "%s DBGdiag: %s\n", timestring(), diagnostic);
 	return;
 }
 
@@ -266,7 +265,8 @@ unctlfile(cfp, no_unlink)
 
 	  eunlink(path);
 	  if (verbose)
-	    printf("%s: unlink %s (mid=0x%p)", cfp->logident, path, cfp->mid);
+	    sfprintf(sfstdout,"%s: unlink %s (mid=0x%p)",
+		     cfp->logident, path, cfp->mid);
 
 	  if (cfp->dirind > 0)
 	    sprintf(path, "../%s/%s/%s",
@@ -277,13 +277,13 @@ unctlfile(cfp, no_unlink)
 
 	  eunlink(path);
 	  if (verbose)
-	    printf("   and %s/\n", path);
+	    sfprintf(sfstdout, "   and %s/\n", path);
 
 	  if (cfp->vfpfn != NULL) {
-	    FILE *vfp = vfp_open(cfp);
+	    Sfio_t *vfp = vfp_open(cfp);
 	    if (vfp) {
-	      fprintf(vfp, "scheduler done processing %s\n", cfp->mid);
-	      fclose(vfp);
+	      sfprintf(vfp, "scheduler done processing %s\n", cfp->mid);
+	      sfclose(vfp);
 	    }
 	  }
 	} else {
@@ -317,9 +317,9 @@ void unvertex(vp, justfree, ok)
 	  return;
 
 	if (verbose && justfree < 0)
-	  fprintf(stderr,
-		  "unvertex(vtx=0x%p (thr=0x%p proc=0x%p, ng=%d) ,%d,%d)\n",
-		  vp,vp->thread,vp->proc,vp->ngroup,justfree,ok);
+	  sfprintf(sfstderr,
+		   "unvertex(vtx=0x%p (thr=0x%p proc=0x%p, ng=%d) ,%d,%d)\n",
+		   vp,vp->thread,vp->proc,vp->ngroup,justfree,ok);
 
 	if (vp->thread != NULL &&
 	    vp->thread->vertices == vp && vp->thread->proc &&
@@ -350,9 +350,9 @@ void unvertex(vp, justfree, ok)
 	    /* Ok, now the 'vertex' will either differ
 	       from 'vp', or it is NULL. */
 #if 0
-	    fprintf(stderr,
-		    "unvertex(vtx=0x%p,%d,%d) failed to pick_next_vertex() file=%s!\n",
-		    vp, justfree, ok, vp->cfp->mid);
+	    sfprintf(sfstderr,
+		     "unvertex(vtx=0x%p,%d,%d) failed to pick_next_vertex() file=%s!\n",
+		     vp, justfree, ok, vp->cfp->mid);
 	    /* We may become called with child feeder yet unflushed;
 	       shall we kill the kid ? (pick_next_vertex won't change
 	       vertex then..) */
@@ -415,8 +415,8 @@ static struct vertex *findvertex(inum, offset, idx)
 	if (spl == NULL || (cfp = (struct ctlfile *)spl->data) == NULL) {
 	  /* It may have been kicked into input queue */
 	  if (!in_dirscanqueue(NULL,(long)inum))
-	    fprintf(stderr, "%s: cannot find control file for %ld!\n",
-		    progname, inum);
+	    sfprintf(sfstderr, "%s: cannot find control file for %ld!\n",
+		     progname, inum);
 	  return NULL;
 	}
 	for (i = 0; i < cfp->nlines; ++i) {
@@ -426,18 +426,18 @@ static struct vertex *findvertex(inum, offset, idx)
 	  }
 	}
 	if (i >= cfp->nlines) {
-	  fprintf(stderr,
-		  "%s: unknown address offset %ld in control file %ld!\n",
-		  progname, offset, inum);
+	  sfprintf(sfstderr,
+		   "%s: unknown address offset %ld in control file %ld!\n",
+		   progname, offset, inum);
 	  return NULL;
 	}
 	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE])
 	  for (i = 0; i < vp->ngroup; ++i)
 	    if (vp->index[i] == *idx)
 	      return vp;
-	fprintf(stderr,
-		"%s: multiple processing of address at %ld in control file %ld!\n",
-		progname, offset, inum);
+	sfprintf(sfstderr,
+		 "%s: multiple processing of address at %ld in control file %ld!\n",
+		 progname, offset, inum);
 	return NULL;
 }
 
@@ -645,12 +645,12 @@ static void logstat(vp,reason)
 	if (!statuslog) return;
 
 	mytime(&now);
-	fprintf(statuslog, "%ld %s %ld %ld %s %s/%s\n",
-		(long)vp->cfp->mtime, vp->cfp->mid,
-		(long)(vp->cfp->envctime - vp->cfp->mtime),
-		(long)(now - vp->cfp->envctime), reason,
-		vp->orig[L_CHANNEL]->name,vp->orig[L_HOST]->name);
-	fflush(statuslog);
+	sfprintf(statuslog, "%ld %s %ld %ld %s %s/%s\n",
+		 (long)vp->cfp->mtime, vp->cfp->mid,
+		 (long)(vp->cfp->envctime - vp->cfp->mtime),
+		 (long)(now - vp->cfp->envctime), reason,
+		 vp->orig[L_CHANNEL]->name,vp->orig[L_HOST]->name);
+	sfsync(statuslog);
 }
 
 
@@ -669,9 +669,9 @@ static void expaux(vp, index, buf)
 	  }
 
 	/* Log something into the scheduler log */
-	fprintf(stderr, "%s %s: %s/%s from %s %s\n", timestring(), progname,
-		vp->orig[L_CHANNEL]->name, vp->orig[L_HOST]->name,
-		vp->cfp->erroraddr == NULL ? "?" : vp->cfp->erroraddr, buf);
+	sfprintf(sfstderr, "%s %s: %s/%s from %s %s\n", timestring(), progname,
+		 vp->orig[L_CHANNEL]->name, vp->orig[L_HOST]->name,
+		 vp->cfp->erroraddr == NULL ? "?" : vp->cfp->erroraddr, buf);
 
 	logstat(vp,"expire");
 
@@ -732,16 +732,16 @@ static int u_ok(vp, index, inum, offset, notary, message)
 	const char	*message;
 {
 	if (verbose)
-	  fprintf(stderr,"%s: %ld/%ld/%s/ok %s\n", vp->cfp->logident, inum,
-		  offset, notary, message ? message : "-");
+	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok %s\n", vp->cfp->logident, inum,
+		   offset, notary, message ? message : "-");
 #if 0
 	if (vp->cfp->contents != NULL) {
-	  FILE *vfp = vfp_open(vp->cfp);
+	  Sfio_t *vfp = vfp_open(vp->cfp);
 	  if (vfp) {
-	    fprintf(vfp, "%s: ok %s\n",
-		  vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		  message == NULL ? "(sent)" : message);
-	    fclose(vfp);
+	    sfprintf(vfp, "%s: ok %s\n",
+		     vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		     message == NULL ? "(sent)" : message);
+	    sfclose(vfp);
 	  }
 	}
 #endif
@@ -769,16 +769,16 @@ static int u_ok2(vp, index, inum, offset, notary, message)
 	  vp->cfp->haderror = 1; /* The transporter logged it for us! */
 	}
 	if (verbose)
-	  fprintf(stderr,"%s: %ld/%ld/%s/ok2 %s\n", vp->cfp->logident, inum,
-		  offset, notary, message ? message : "-");
+	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok2 %s\n", vp->cfp->logident, inum,
+		   offset, notary, message ? message : "-");
 #if 0
 	if (vp->cfp->contents != NULL) {
-	  FILE *vfp = vfp_open(vp->cfp);
+	  Sfio_t *vfp = vfp_open(vp->cfp);
 	  if (vfp) {
-	    fprintf(vfp, "%s: ok2 %s\n",
-		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		    message == NULL ? "(sent)" : message);
-	    fclose(vfp);
+	    sfprintf(vfp, "%s: ok2 %s\n",
+		     vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		     message == NULL ? "(sent)" : message);
+	    sfclose(vfp);
 	  }
 	}
 #endif
@@ -800,16 +800,16 @@ static int u_ok3(vp, index, inum, offset, notary, message)
 	/* Success, but the transporter was able to relay the DSN info
 	   to another system, thus no diagnostics here! */
 	if (verbose)
-	  fprintf(stderr,"%s: %ld/%ld/%s/ok3 %s\n", vp->cfp->logident, inum,
-		  offset, notary, message ? message : "-");
+	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok3 %s\n", vp->cfp->logident, inum,
+		   offset, notary, message ? message : "-");
 #if 0
 	if (vp->cfp->contents != NULL) {
-	  FILE *vfp = vfp_open(vp->cfp);
+	  Sfio_t *vfp = vfp_open(vp->cfp);
 	  if (vfp) {
-	    fprintf(vfp, "%s: ok3 %s\n",
-		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		    message == NULL ? "(sent)" : message);
-	    fclose(vfp);
+	    sfprintf(vfp, "%s: ok3 %s\n",
+		     vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		     message == NULL ? "(sent)" : message);
+	    sfclose(vfp);
 	  }
 	}
 #endif
@@ -828,24 +828,24 @@ static int u_deferred(vp, index, inum, offset, notary, message)
 	const char	*notary;
 	const char	*message;
 {
-	/* fprintf(stderr,"%s: %ld/%ld/%s/deferred %s\n", vp->cfp->logident,
+	/* sfprintf(sfstderr,"%s: %ld/%ld/%s/deferred %s\n", vp->cfp->logident,
 	   inum, offset, notary, message ? message : "-"); */
 	if (message != NULL) {
 	  if (vp->message != NULL)
 	    free(vp->message);
-	  /* fprintf(stderr, "add message '%s' to node %s/%s\n",
+	  /* sfprintf(sfstderr, "add message '%s' to node %s/%s\n",
 	     message, vp->orig[L_CHANNEL]->name,
 	     vp->orig[L_HOST]->name); */
 	  vp->message = strsave(message);
 	}
 #if 0
 	if (vp->cfp->contents != NULL) {
-	  FILE *vfp = vfp_open(vp->cfp);
+	  Sfio_t *vfp = vfp_open(vp->cfp);
 	  if (vfp) {
-	    fprintf(vfp, "%s: deferred %s\n",
-		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		    message == NULL ? "(sent)" : message);
-	    fclose(vfp);
+	    sfprintf(vfp, "%s: deferred %s\n",
+		     vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		     message == NULL ? "(sent)" : message);
+	    sfclose(vfp);
 	  }
 	}
 #endif
@@ -866,20 +866,20 @@ static int u_error(vp, index, inum, offset, notary, message)
 {
 	if (message == NULL)
 	  message = "(unknown)";
-	fprintf(stderr,
-		"%s %s: %ld/%ld/%s/error %s\n", timestring(),
-		vp->thgrp->ce.command, inum, offset, notary, message);
+	sfprintf(sfstderr,
+		 "%s %s: %ld/%ld/%s/error %s\n", timestring(),
+		 vp->thgrp->ce.command, inum, offset, notary, message);
 
 	if (!procselect && vp->notaryflg & NOT_FAILURE)
 	  msgerror(vp, offset, message);
 #if 0
 	if (vp->cfp->contents != NULL) {
-	  FILE *vfp = vfp_open(vp->cfp);
+	  Sfio_t *vfp = vfp_open(vp->cfp);
 	  if (vfp) {
-	    fprintf(vfp, "%s: error %s\n",
-		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		    message == NULL ? "(sent)" : message);
-	    fclose(vfp);
+	    sfprintf(vfp, "%s: error %s\n",
+		     vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		     message == NULL ? "(sent)" : message);
+	    sfclose(vfp);
 	  }
 	}
 #endif
@@ -901,7 +901,7 @@ static int u_error2(vp, index, inum, offset, notary, message)
 {
 	if (message == NULL)
 	  message = "(unknown)";
-	fprintf(stderr,
+	sfprintf(sfstderr,
 		"%s %s: %ld/%ld/%s/error2 %s\n", timestring(),
 		vp->thgrp->ce.command, inum, offset, notary, message);
 
@@ -909,12 +909,12 @@ static int u_error2(vp, index, inum, offset, notary, message)
 	vp->cfp->haderror = 1; /* Mark it into the incore dataset */
 #if 0
 	if (vp->cfp->contents != NULL) {
-	  FILE *vfp = vfp_open(vp->cfp);
+	  Sfio_t *vfp = vfp_open(vp->cfp);
 	  if (vfp) {
-	    fprintf(vfp, "%s: error2 %s\n",
-		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		    message == NULL ? "(sent)" : message);
-	    fclose(vfp);
+	    sfprintf(vfp, "%s: error2 %s\n",
+		     vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		     message == NULL ? "(sent)" : message);
+	    sfclose(vfp);
 	  }
 	}
 #endif
@@ -957,19 +957,19 @@ static int u_retryat(vp, index, inum, offset, notary, message)
 	if (message != NULL) {
 	  if (vp->message != NULL)
 	    free(vp->message);
-	  /* fprintf(stderr, "add message '%s' to node %s/%s\n",
+	  /* sfprintf(sfstderr, "add message '%s' to node %s/%s\n",
 	     message, vp->orig[L_CHANNEL]->name,
 	     vp->orig[L_HOST]->name); */
 	  vp->message = strsave(message);
 	}
 #if 0
 	if (vp->cfp->contents != NULL) {
-	  FILE *vfp = vfp_open(vp->cfp);
+	  Sfio-t *vfp = vfp_open(vp->cfp);
 	  if (vfp) {
-	    fprintf(vfp, "%s: retryat %d %s\n",
-		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		    (int)retrytime, message == NULL ? "(unknown)" : message);
-	    fclose(vfp);
+	    sfprintf(vfp, "%s: retryat %d %s\n",
+		     vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		     (int)retrytime, message == NULL ? "(unknown)" : message);
+	    sfclose(vfp);
 	  }
 	}
 #endif

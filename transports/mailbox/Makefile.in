@@ -16,7 +16,7 @@ MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
 MAILBOX_INCL=	@GENINCL@
-MAILBOX_LIB=	@GETPWLIB@ @LIBMAIL@ @LIBRESOLV@ @LIBSOCKET@
+MAILBOX_LIB=	@GETPWLIB@ @LIBMAIL@ @LIBRESOLV@ @LIBSOCKET@ -lsfio
 
 # Compile & install time: 'make privatembox="private/"'
 privatembox=	@PRIVATEMBOX@

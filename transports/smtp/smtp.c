@@ -6,6 +6,20 @@
 
 #include "smtp.h"
 
+/* About timeouts the RFC 1123 recommends:
+     - Initial 220: 5 minutes
+     - MAIL, RCPT : 5 minutes
+     - DATA initialization (until "354.."): 2 minutes
+     - While writing data, a block
+       at the time: 3 minutes  (How large a block ?)
+     - From "." to "250 OK": 10 minutes
+
+   I think we simplify:  5 minutes each, except "."
+   to "250 ok" which is 60 (!) minutes. (sendmail's
+   default value.)
+   Block-size is 1kB.   4-Feb-95: [mea@utu.fi]
+ */
+
 char *defcharset;
 char myhostname[MAXHOSTNAMELEN+1];
 int myhostnameopt;
@@ -21,8 +35,6 @@ int getout  = 0;		/* signal handler turns this on when we are wanted to abort! *
 int timeout = 0;		/* how long do we wait for response? (sec.) */
 int conntimeout = 3*60;		/* connect() timeout */
 int gotalarm = 0;		/* indicate that alarm happened! */
-int noalarmjmp = 0;		/* Don't long-jmp on alarm! */
-jmp_buf alarmjmp;
 jmp_buf procabortjmp;
 int procabortset = 0;
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
@@ -85,61 +97,6 @@ char *logtag()
 	++logcnt;
 	return buf;
 }
-
-
-#ifdef _AIX /* Defines NFDBITS, et.al. */
-#include <sys/types.h>
-#endif
-
-#ifdef HAVE_SYS_SELECT_H
-#include <sys/select.h>
-#endif
-
-#include <sys/time.h>
-
-#ifndef	NFDBITS
-/*
- * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
- * assumption we are dealing with pre-4.3bsd select().
- */
-
-/* #error "FDSET macro susceptible" */
-
-typedef long	fd_mask;
-
-#ifndef	NBBY
-#define	NBBY	8
-#endif	/* NBBY */
-#define	NFDBITS		((sizeof fd_mask) * NBBY)
-
-/* SunOS 3.x and 4.x>2 BSD already defines this in /usr/include/sys/types.h */
-#ifdef	notdef
-typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
-#endif	/* notdef */
-
-#ifndef	_Z_FD_SET
-/* #warning "_Z_FD_SET[1]" */
-#define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
-#define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
-#define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
-#define _Z_FD_ZERO(p)	  memset((char *)(p), 0, sizeof(*(p)))
-#endif	/* !FD_SET */
-#endif	/* !NFDBITS */
-
-#ifdef FD_SET
-/* #warning "_Z_FD_SET[2]" */
-#define _Z_FD_SET(sock,var) FD_SET(sock,&var)
-#define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
-#define _Z_FD_ZERO(var) FD_ZERO(&var)
-#define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
-#else
-/* #warning "_Z_FD_SET[3]" */
-#define _Z_FD_SET(sock,var) var |= (1 << sock)
-#define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
-#define _Z_FD_ZERO(var) var = 0
-#define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
-#endif
-
 
 /*
  *  ssfgets(bufp, bufsize, infilep, SS)
@@ -298,7 +255,7 @@ main(argc, argv)
 	memset(&SS,0,sizeof(SS));
 	SS.main_esmtp_on_banner = -1;
 	SS.servport      = -1;
-	SS.smtp_bufsize  = 8*1024;
+	SS.smtp_bufsize  = 64*1024;
 	SS.ehlo_sizeval  = -1;
 
 	for (i = 0; argv[i] != NULL; ++i)
@@ -320,7 +277,6 @@ main(argc, argv)
 	if (oldsig != SIG_IGN)
 	  SIGNAL_HANDLE(SIGHUP, wantout);
 	SIGNAL_IGNORE(SIGPIPE);
-	SIGNAL_HANDLE(SIGALRM, sig_alarm);
 	timeout = TIMEOUT;
 
 	progname = PROGNAME;
@@ -2382,9 +2338,9 @@ if (SS->verboselog)
 		  hostname, SS->ipaddress, ntohs(sai->sin_port));
 
 
-	alarm(0); /* Stop any alarm, just in case ... */
 	gotalarm = 0;
 
+	/* The socket will be non-blocking for its entire lifetime.. */
 	fd_nonblockingmode(sk);
 
 	errnosave = errno = 0;
@@ -2429,8 +2385,6 @@ if (SS->verboselog)
 
 	if (!errnosave)
 	  errnosave = errno;
-
-	fd_blockingmode(sk);
 
 #ifdef SO_ERROR
 	flg = 0;
@@ -2551,23 +2505,6 @@ int sig;
 	SIGNAL_RELEASE(sig);
 }
 
-RETSIGTYPE
-sig_alarm(sig)
-int sig;
-{
-	gotalarm = 1;
-	errno = EINTR;
-	SIGNAL_HANDLE(sig, sig_alarm);
-	SIGNAL_RELEASE(sig);
-#ifdef __alpha
-	  zsyslog((LOG_ERR,"sigalrm(PC=%lx SP=%lx)",
-		   alarmjmp[2], alarmjmp[34]));
-#endif
-	if (!noalarmjmp) {
-	  longjmp(alarmjmp, 1);
-	}
-}
-
 #ifdef HAVE_STDARG_H
 #ifdef __STDC__
 void
@@ -2626,14 +2563,8 @@ void
 smtpclose(SS)
 SmtpState *SS;
 {
-	int onaj = noalarmjmp;
-
-	noalarmjmp = 1;
-	alarm(10);
 	if (SS->smtpfp != NULL)
 	  sfclose(SS->smtpfp);
-	alarm(0);
-	noalarmjmp = onaj;
 
 	SS->smtpfp = NULL;
 	if (SS->smtphost != NULL)
@@ -2665,8 +2596,6 @@ int bdat_flush(SS, lastflg)
 	int pos, i, wrlen;
 	volatile int r;   /* longjmp() globber danger */
 	char lbuf[80];
-	jmp_buf oldalarmjmp;
-	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
 
 	if (lastflg)
 	  sprintf(lbuf, "BDAT %d LAST", SS->chunksize);
@@ -2677,67 +2606,33 @@ int bdat_flush(SS, lastflg)
 	if (r != EX_OK)
 	  return r;
 
-
-	if (setjmp(alarmjmp) == 0) {
-#if 1
-	  for ( pos = 0; pos < SS->chunksize && !sferror(SS->smtpfp); ) {
-	    wrlen = SS->chunksize - pos;
-	    alarm(timeout);
-	    i = sfwrite(SS->smtpfp, SS->chunkbuf + pos, wrlen);
+	for ( pos = 0; pos < SS->chunksize && !sferror(SS->smtpfp); ) {
+	  wrlen = SS->chunksize - pos;
+	  i = sfwrite(SS->smtpfp, SS->chunkbuf + pos, wrlen);
+	  if (i >= 0)
 	    pos += i;
-	  }
-#else
-	  for (pos = 0; pos < SS->chunksize && !sferror(SS->smtpfp);) {
-	    wrlen = SS->chunksize - pos;
-	    if (wrlen > ALARM_BLOCKSIZE) wrlen = ALARM_BLOCKSIZE;
-	    alarm(timeout);
-	    i = sfwrite(SS->smtpfp, SS->chunkbuf + pos, wrlen);
-	    sfsync(SS->smtpfp);
-	    if (i <= 0) {
-	      if (errno == EINTR)
-		continue;
-	      alarm(0);
-	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	      notaryreport(NULL,NULL,
-			   "5.4.2 (BDAT message write failed)",
-			   "smtp; 566 (BDAT Message write failed)");
-	      return EX_TEMPFAIL;
-	    }
-	    pos += i;
-	    SS->hsize += i;
-	    if (sferror(SS->smtpfp)) {
-	      alarm(0);
-	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	      notaryreport(NULL,NULL,
-			   "5.4.2 (BDAT message write failed)",
-			   "smtp; 566 (BDAT message write failed)");
-	      return EX_TEMPFAIL;
-	    }
-	  }
-#endif
-	  alarm(0);
-	  SS->chunksize = 0;
-
-	  if (SS->smtpfp && !sferror(SS->smtpfp)) {
-	    if (lastflg || ! SS->pipelining)
-	      r = smtp_sync(SS, r, 0);
-	    else
-	      r = smtp_sync(SS, r, 1); /* non-blocking */
-	  } else {
-	    r = EX_TEMPFAIL;
+	  else {
+	    /* ERROR!!! */
 	    notaryreport(NULL,NULL,
 			 "5.4.2 (BDAT message write failed)",
-			 "smtp; 566 (BDAT message write failed)");
+			 "smtp; 566 (BDAT Message write failed)");
+	    return EX_TEMPFAIL;
 	  }
+	}
+	SS->chunksize = 0;
+
+	if (SS->smtpfp && !sferror(SS->smtpfp)) {
+	  if (lastflg || ! SS->pipelining)
+	    r = smtp_sync(SS, r, 0);
+	  else
+	    r = smtp_sync(SS, r, 1); /* non-blocking */
 	} else {
-	  /* Arrival of alarm is caught... */
 	  r = EX_TEMPFAIL;
 	  notaryreport(NULL,NULL,
-		       "5.4.2 (Message write failed; timeout)",
-		       "smtp; 566 (Message write failed; timeout)");
-	  alarm(0);
+		       "5.4.2 (BDAT message write failed)",
+		       "smtp; 566 (BDAT message write failed)");
 	}
-	memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+
 	return r;
 }
 
@@ -2914,21 +2809,8 @@ smtp_sync(SS, r, nonblocking)
 	static int continuation_line = 0;
 	static int first_line = 1;
 
-	if (!nonblocking) {
-	  volatile unsigned int oldalarm;
-	  jmp_buf oldalarmjmp;
-	  memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
-
-	  gotalarm = 0;
-	  if (setjmp(alarmjmp) == 0) {
-	    oldalarm = alarm(timeout);
-	    sfsync(SS->smtpfp);			/* Flush output */
-	  }
-	  if (gotalarm)
-	    oldalarm = 1; /* Don't waste time below ... */
-	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	  alarm(oldalarm);
-	}
+	if (!nonblocking)
+	  sfsync(SS->smtpfp);			/* Flush output */
 
 	SS->smtp_outcount = 0;
 	SS->block_written = 0;
@@ -2982,7 +2864,7 @@ smtp_sync(SS, r, nonblocking)
 	    
 	  reread_line:
 	    err = 0;
-	    len = smtp_nbread(SS, buf, sizeof(buf), nonblocking);
+	    len = smtp_nbread(SS, buf, sizeof(buf));
 	    if (len < 0)
 	      err = errno;
 	    
@@ -2990,12 +2872,20 @@ smtp_sync(SS, r, nonblocking)
 	      /* Some error ?? How come ?
 		 We have select() confirmed input! */
 	      if (nonblocking) {
-		if (err == EINTR || err == EAGAIN) {
+		if (err == EINTR || err == EAGAIN
+#ifdef EWOULDBLOCK
+		    || err == EWOULDBLOCK
+#endif
+		    ) {
 		  err = 0;
 		  break; /* XX: return ?? */
 		}
 	      } else {
-		if (err == EINTR || err == EAGAIN) {
+		if (err == EINTR || err == EAGAIN
+#ifdef EWOULDBLOCK
+		    || err == EWOULDBLOCK
+#endif
+		    ) {
 		  err = 0;
 		  goto reread_line;
 		}
@@ -3234,7 +3124,7 @@ SmtpState *SS;
 	  /* Read and buffer all so far accumulated responses.. */
 	  for (;;) {
 	    /* Do non-blocking */
-	    int r = smtp_nbread(SS, buf, sizeof buf, 1);
+	    int r = smtp_nbread(SS, buf, sizeof buf);
 	    if (r <= 0) break; /* Nothing to read ? EOF ?! */
 	    if (SS->pipebuf == NULL) {
 	      SS->pipebufspace = 240;
@@ -3275,31 +3165,16 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 {
 	register char *s;
 	volatile char *cp;
-	int response, infd, outfd, rc;
+	int response, infd, rc;
 	volatile int r = 0, i;
 	char *se;
 	char *status = NULL;
 	char buf[2*8192]; /* XX: static buffer - used in several places */
 	char ch;
-	jmp_buf oldalarmjmp;
-	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
 
-#if 0
-	&cp; &r; &i;
-#endif
-	gotalarm = 0;
+	gotalarm = 0; /* smtp_sfwrite() may set it.. */
 
-	/* we don't need to turn alarms off again (yay!) */
-#if 0
-	if (!pipelining) {
-	  alarm(timeout);	/* This much total to write and get answer */
-	  if (setjmp(alarmjmp) == 0)
-	    sfsync(SS->smtpfp);
-	  alarm(0);
-	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	}
-#endif
-	outfd = infd = sffileno(SS->smtpfp);
+	infd = sffileno(SS->smtpfp);
 
 	if (pipelining) {
 	  if (SS->pipespace <= SS->pipeindex) {
@@ -3326,51 +3201,44 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  int len = strlen(strbuf) + 2;
 	  volatile int err = 0;
 
+	  if (pipelining) {
+	    /* We are asynchronous! */
+	    SS->smtp_outcount += len; /* Where will we grow to ? */
 
-	  if (!gotalarm && setjmp(alarmjmp) == 0) {
-	    alarm(timeout);	/* This much total to write and get answer */
-	    gotalarm = 0;
+	    /* Read possible reponses into response buffer.. */
+	    pipeblockread(SS);
 
-	    if (pipelining) {
-	      /* We are asynchronous! */
-	      SS->smtp_outcount += len; /* Where will we grow to ? */
+	    memcpy(buf,strbuf,len-2);
+	    memcpy(buf+len-2,"\r\n",2);
 
-	      /* Read possible reponses into response buffer.. */
-	      pipeblockread(SS);
+	    if (SS->verboselog)
+	      fwrite(buf, 1, len, SS->verboselog);
 
-	      memcpy(buf,strbuf,len-2);
-	      memcpy(buf+len-2,"\r\n",2);
+	    r = sfwrite(SS->smtpfp, buf, len);
+	    err = (r != len) || sferror(SS->smtpfp);
 
-	      if (SS->verboselog)
-		fwrite(buf, 1, len, SS->verboselog);
-
-	      r = sfwrite(SS->smtpfp, buf, len);
-	      err = (r != len) || sferror(SS->smtpfp);
-
-	      if (SS->smtp_outcount > SS->smtp_bufsize) {
-		SS->smtp_outcount -= SS->smtp_bufsize;
-		SS->block_written = 1;
-	      }
-
-	    } else {
-	      /* We act synchronously */
-
-	      memcpy(buf,strbuf,len-2);
-	      memcpy(buf+len-2,"\r\n",2);
-
-	      if (SS->verboselog)
-		fwrite(buf, 1, len, SS->verboselog);
-
-	      r = sfwrite(SS->smtpfp, buf, len);
-	      err = (r != len) || sferror(SS->smtpfp);
-	      if (sfsync(SS->smtpfp))
-		err = 1;
+	    if (SS->smtp_outcount > SS->smtp_bufsize) {
+	      SS->smtp_outcount -= SS->smtp_bufsize;
+	      SS->block_written = 1;
 	    }
-	  } /* Long-jmp ends */
-	  alarm(0); /* Turn off the alarm */
-	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+
+	  } else {
+
+	    /* We act synchronously */
+
+	    memcpy(buf,strbuf,len-2);
+	    memcpy(buf+len-2,"\r\n",2);
+
+	    if (SS->verboselog)
+	      fwrite(buf, 1, len, SS->verboselog);
+
+	    r = sfwrite(SS->smtpfp, buf, len);
+	    err = (r != len) || sferror(SS->smtpfp);
+	    if (sfsync(SS->smtpfp))
+	      err = 1;
+	  }
 	  
-	  if (err || gotalarm) {
+	  if (err) {
 	    if (gotalarm) {
 	      strcpy(SS->remotemsg, "Timeout on cmd write");
 	      time(&endtime);
@@ -3453,7 +3321,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  gotalarm = 0;
 	  r = select(infd+1, &rdset, NULL, NULL, &tv);
 	  if (r == 1) {
-	    r = smtp_nbread(SS, (char*)cp, sizeof(buf) - (cp - buf), 1);
+	    r = smtp_nbread(SS, (char*)cp, sizeof(buf) - (cp - buf));
 	  } else {
 	    if (r == 0)
 	      gotalarm = 1;

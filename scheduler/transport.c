@@ -9,7 +9,7 @@
 
 
 #include "hostenv.h"
-#include <stdio.h>
+#include <sfio.h>
 #include <sys/param.h>
 #include "scheduler.h"
 #include "mail.h"
@@ -116,7 +116,7 @@ struct procinfo *proc;
 	  if (proc->cmdlen >= proc->cmdspc)
 	    cmdbufalloc(proc->cmdlen, &proc->cmdbuf, &proc->cmdspc);
 	  proc->cmdbuf[proc->cmdlen] = 0;
-	  fprintf(stderr,"idle_child(proc->cmdbuf=\"%s\") -> abort()!\n",proc->cmdbuf);
+	  sfprintf(sfstderr,"idle_child(proc->cmdbuf=\"%s\") -> abort()!\n",proc->cmdbuf);
 	  fflush(stderr);
 	  /* abort(); */ /* Hmm.. ??? */
 	  return;
@@ -177,7 +177,7 @@ struct procinfo *proc;
 	  /* We have some leftovers from previous feed..
 	     .. feed them now.  */
 
-	  /* fprintf(stderr,
+	  /* sfprintf(sfstderr,
 	     "flushing to child pid %d, cmdlen=%d, cmdbuf='%s'\n",
 	     proc->pid, proc->cmdlen, proc->cmdbuf);  */
 
@@ -229,7 +229,7 @@ struct procinfo *proc;
 	if (proc->fed) {
 	  /* DON'T RE-FEED! */
 	  if (verbose)
-	    printf(" ... no refeeding\n");
+	    sfprintf(sfstdout," ... no refeeding\n");
 	  return;
 	}
 
@@ -289,24 +289,24 @@ struct procinfo *proc;
 	proc->cmdlen += cmdlen;
 
 	if (verbose) {
-	  printf("feed: tofd=%d, fed=%d, chan='%s', proc=0x%p, vtx=0x%p, ",
+	  sfprintf(sfstdout,"feed: tofd=%d, fed=%d, chan='%s', proc=0x%p, vtx=0x%p, ",
 		 proc->tofd, proc->fed, proc->ch->name, proc, vtx);
 	  fflush(stdout);
 	}
 
 	if (vtx->cfp->vfpfn != NULL) {
-	  FILE *vfp = vfp_open(vtx->cfp);
+	  Sfio_t *vfp = vfp_open(vtx->cfp);
 	  int i;
 	  if (vfp) {
-	    fprintf(vfp, "Feeding to child; ce.argv = \"");
+	    sfprintf(vfp, "Feeding to child; ce.argv = \"");
 	    for (i = 0; vtx->thgrp->ce.argv[i] != NULL; ++i) {
 	      if (i == 0)
-		fprintf(vfp, "'%s'", vtx->thgrp->ce.argv[i]);
+		sfprintf(vfp, "'%s'", vtx->thgrp->ce.argv[i]);
 	      else
-		fprintf(vfp, " '%s'", vtx->thgrp->ce.argv[i]);
+		sfprintf(vfp, " '%s'", vtx->thgrp->ce.argv[i]);
 	    }
-	    fprintf(vfp, "\" chan = '%s' cmd: %s", proc->ch->name, cmdbuf);
-	    fclose(vfp);
+	    sfprintf(vfp, "\" chan = '%s' cmd: %s", proc->ch->name, cmdbuf);
+	    sfclose(vfp);
 	  }
 	}
 
@@ -319,7 +319,7 @@ struct procinfo *proc;
 	proc->fed = 1;
 
 	if (verbose)
-	  printf("len=%d buf=%s", cmdlen, cmdbuf);
+	  sfprintf(sfstdout,"len=%d buf=%s", cmdlen, cmdbuf);
 
 	proc->feedtime = now;
 	if (vtx)
@@ -350,7 +350,7 @@ start_child(vhead, chwp, howp)
 	if (freeze) return 0;
 
 	if (verbose)
-	  printf("transport(vhead,chan=%s,host=%s)\n",
+	  sfprintf(sfstdout,"transport(vhead,chan=%s,host=%s)\n",
 		 chwp->name,howp->name);
 
 	++startcnt;
@@ -360,12 +360,12 @@ start_child(vhead, chwp, howp)
 	  prev_time = this_time;
 	} else if (startcnt > forkrate_limit) {
 	  if (verbose)
-	    printf(" ... too many forks per second!\n");
+	    sfprintf(sfstdout," ... too many forks per second!\n");
 	  return 0;
 	}
 
 	if (vhead->thgrp->ce.argv == NULL) {
-	  fprintf(stderr, "No command defined for %s/%s!\n",
+	  sfprintf(sfstderr, "No command defined for %s/%s!\n",
 		  chwp->name, howp->name);
 	  return 0;
 	}
@@ -413,7 +413,7 @@ start_child(vhead, chwp, howp)
 	    av[avi] = vhead->thgrp->ce.argv[i];
 
 	  if (os >= (buf+sizeof(buf))) {
-	    fprintf(stderr,"BUFFER OVERFLOW IN ARGV[] SUBSTITUTIONS!\n");
+	    sfprintf(sfstderr,"BUFFER OVERFLOW IN ARGV[] SUBSTITUTIONS!\n");
 	    abort();
 	  }
 
@@ -432,7 +432,7 @@ start_child(vhead, chwp, howp)
 	    av[avi++] = buf2;
 	    if (strlen(buf2) > sizeof(buf2)) {
 	      /* Buffer overflow ! This should not happen, but ... */
-	      fprintf(stderr,"BUFFER OVERFLOW IN ARGV[0] CONSTRUCTION!\n");
+	      sfprintf(sfstderr,"BUFFER OVERFLOW IN ARGV[0] CONSTRUCTION!\n");
 	      abort();
 	    }
 	  } else
@@ -448,13 +448,13 @@ start_child(vhead, chwp, howp)
 
 	/* fork off the appropriate command with the appropriate stdin */
 	if (verbose) {
-	  printf("${ ");
+	  sfprintf(sfstdout,"${ ");
 	  for (i = 0; ev[i] != NULL; ++i)
-	    printf(" %s", ev[i]);
-	  printf(" }");
+	    sfprintf(sfstdout," %s", ev[i]);
+	  sfprintf(sfstdout," }");
 	  for (i = 0; ev[i] != NULL; ++i)
-	    printf(" %s", av[i]);
-	  printf("\n");
+	    sfprintf(sfstdout," %s", av[i]);
+	  sfprintf(sfstdout,"\n");
 	}
 	return runcommand(av, ev, vhead, chwp, howp);
 }
@@ -480,7 +480,7 @@ static int runcommand(argv, env, vhead, chwp, howp)
 	  pipesize = resources_query_pipesize(to[0]);
 
 	if (verbose)
-	  fprintf(stderr, "to %d/%d from %d/%d\n",
+	  sfprintf(sfstderr, "to %d/%d from %d/%d\n",
 		  to[0],to[1],from[0],from[1]);
 
 	if ((pid = fork()) == 0) {	/* child */
@@ -510,12 +510,12 @@ static int runcommand(argv, env, vhead, chwp, howp)
 	  setgid(gid);	/* Do GID setup while still UID 0..   */
 	  setuid(uid);	/* Now discard all excessive powers.. */
 	  execve(cmd, argv, env);
-	  fprintf(stderr, "Exec of %s failed!\n", cmd);
+	  sfprintf(sfstderr, "Exec of %s failed!\n", cmd);
 	  _exit(1);
 	} else if (pid < 0) {	/* fork failed - yell and forget it */
 	  close(to[0]); close(to[1]);
 	  close(from[0]); close(from[1]);
-	  fprintf(stderr, "Fork failed!\n");
+	  sfprintf(sfstderr, "Fork failed!\n");
 	  return 0;
 	}
 
@@ -604,7 +604,7 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->cmdline[l] = '\0';
 
 	if (verbose)
-	  fprintf(stderr, "stashprocess(%d, %d, %d, %s, %s, '%s')\n",
+	  sfprintf(sfstderr, "stashprocess(%d, %d, %d, %s, %s, '%s')\n",
 		  pid, fromfd, tofd, chwp ? chwp->name : "nil",
 		  howp ? howp->name : "nil", proc->cmdline);
 }
@@ -640,14 +640,14 @@ static void reclaim(fromfd, tofd)
 	struct procinfo *proc = &cpids[fromfd];
 
 if (verbose)
-  fprintf(stderr,"reclaim(%d,%d) pid=%d, reaped=%d, chan=%s, host=%s\n",
+  sfprintf(sfstderr,"reclaim(%d,%d) pid=%d, reaped=%d, chan=%s, host=%s\n",
 	  fromfd,tofd,(int)proc->pid,proc->reaped,
 	  proc->ch->name,proc->ho->name);
 
 	proc->pid = 0;
 	proc->reaped = 0;
 	if (proc->carryover != NULL) {
-	  fprintf(stderr, "%s: HELP! Lost %d bytes: '%s'\n",
+	  sfprintf(sfstderr, "%s: HELP! Lost %d bytes: '%s'\n",
 		  progname, (int)strlen(proc->carryover), proc->carryover);
 	  free(proc->carryover);
 	  proc->carryover = NULL;
@@ -808,7 +808,7 @@ time_t timeout;
 	struct procinfo *proc = cpids;
 
 	if (in_select) {
-	  fprintf(stderr,"**** recursed into mux()! ***\n");
+	  sfprintf(sfstderr,"**** recursed into mux()! ***\n");
 	  return 0;
 	}
 
@@ -845,24 +845,24 @@ time_t timeout;
 	  return -1;
 
 	++maxf;
-	/*fprintf(stderr, "about to select on %x [%d]\n",
+	/*sfprintf(sfstderr, "about to select on %x [%d]\n",
 			  mask.fds_bits[0], maxf); */
 
 	in_select = 1;
 
 	if ((n = select(maxf, &rdmask, &wrmask, NULL, &tv)) < 0) {
 	  int err = errno;
-	  /* fprintf(stderr, "got an interrupt (%d)\n", errno); */
+	  /* sfprintf(sfstderr, "got an interrupt (%d)\n", errno); */
 	  in_select = 0;
 	  if (errno == EINTR || errno == EAGAIN)
 	    return 0;
 	  if (errno == EINVAL || errno == EBADF) {
-	    fprintf(stderr, "** select() returned errno=%d\n", err);
+	    sfprintf(sfstderr, "** select() returned errno=%d\n", err);
 	    for (i = 0; i < maxf; ++i) {
 	      if (_Z_FD_ISSET(i,rdmask)  &&  fcntl(i,F_GETFL,0) < 0)
-		fprintf(stderr,"** Invalid fd on a select() rdmask: %d\n",i);
+		sfprintf(sfstderr,"** Invalid fd on a select() rdmask: %d\n",i);
 	      if (_Z_FD_ISSET(i,wrmask)  &&  fcntl(i,F_GETFL,0) < 0)
-		fprintf(stderr,"** Invalid fd on a select() wrmask: %d\n",i);
+		sfprintf(sfstderr,"** Invalid fd on a select() wrmask: %d\n",i);
 	    }
 	    fflush(stderr);
 	    abort(); /* mux() select() error EINVAL or EBADF !? */
@@ -871,12 +871,12 @@ time_t timeout;
 	  fflush(stderr);
 	  abort(); /* Select with unknown error */
 	} else if (n == 0) {
-	  /* fprintf(stderr, "abnormal 0 return from select!\n"); */
+	  /* sfprintf(sfstderr, "abnormal 0 return from select!\n"); */
 	  /* -- just a timeout -- fast or long */
 	  in_select = 0;
 	  return 1;
 	} else {
-	  /*fprintf(stderr, "got %d ready (%x)\n", n, rdmask.fds_bits[0]);*/
+	  /*sfprintf(sfstderr, "got %d ready (%x)\n", n, rdmask.fds_bits[0]);*/
 	  if (querysocket >= 0 && _Z_FD_ISSET(querysocket, rdmask)) {
 	    struct sockaddr_in raddr;
 	    int	raddrlen;
@@ -919,7 +919,7 @@ time_t timeout;
 	      if (cpids[i].pid != 0 && _Z_FD_ISSET(i, rdmask)) {
 		--n;
 		_Z_FD_CLR(i, rdmask);
-		/*fprintf(stderr,"that is fd %d\n",i);*/
+		/*sfprintf(sfstderr,"that is fd %d\n",i);*/
 		/* do non-blocking reads from this fd */
 		readfrom(i);
 		/* Because this loop might take a while ... */
@@ -940,7 +940,7 @@ time_t timeout;
 
 	  in_select = 0;
 	}
-	/* fprintf(stderr, "return from mux\n"); */
+	/* sfprintf(sfstderr, "return from mux\n"); */
 	return 0;
 }
 
@@ -1076,7 +1076,7 @@ queryipcinit()
 	  mytime(&now);
 	  if (!modedata || !*modedata || sscanf(modedata,"%d",&port) != 1) {
 	    if ((serv = getservbyname(modedata ? modedata : "mailq", "tcp")) == NULL) {
-	      fprintf(stderr, "No 'mailq' tcp service defined!\n");
+	      sfprintf(sfstderr, "No 'mailq' tcp service defined!\n");
 	    } else
 	      port = ntohs(serv->s_port);
 	  }
@@ -1184,14 +1184,14 @@ static void readfrom(fd)
 	while ((n = read(fd, dontbreak ? cp : buf,
 			 bufsize - (dontbreak ? (cp - buf) : 0))) > 0) {
 	  if (verbose)
-	    fprintf(stderr, "read from %d returns %d\n", fd, n);
+	    sfprintf(sfstderr, "read from %d returns %d\n", fd, n);
 	  eobuf = (dontbreak ? cp : buf) + n;
 
 	  for (cp = buf, pcp = buf; cp < eobuf; ++cp) {
 	    if (*cp == '\n') {
 	      *cp = '\0';
 	      if (verbose)
-		fprintf(stderr, "%d fd=%d processed: %s\n",
+		sfprintf(sfstderr, "%d fd=%d processed: %s\n",
 			(int)proc->pid,fd, pcp);
 	      update(fd,pcp);
 	      *cp = '_';
@@ -1225,18 +1225,18 @@ static void readfrom(fd)
 
 	if (verbose) {
 	  if (!(errno == EAGAIN || errno == EWOULDBLOCK))
-	    fprintf(stderr,
+	    sfprintf(sfstderr,
 		    "read from %d returns %d, errno=%d\n", fd, n, errno);
 	}
 	if (n == 0 || (n < 0 && errno != EWOULDBLOCK && errno != EAGAIN &&
 		       errno != EINTR)) {
-	  /*printf("about to call waitandclose(), n=%d, errno=%d\n",n,errno);*/
+	  /*sfprintf(sfstdout,"about to call waitandclose(), n=%d, errno=%d\n",n,errno);*/
 	  if (proc->tofd >= 0)
 	    pipes_shutdown_child(proc->tofd);
 	  proc->tofd = -1;
 	  waitandclose(fd);
 	}
-	/* fprintf(stderr, "n = %d, errno = %d\n", n, errno); */
+	/* sfprintf(sfstderr, "n = %d, errno = %d\n", n, errno); */
 	/*
 	 * if n < 0, then either we got an interrupt or the read would
 	 * block (EINTR or EWOULDBLOCK). In both cases we basically just
@@ -1250,7 +1250,7 @@ static void readfrom(fd)
 	    memcpy(proc->carryover, pcp, cp-pcp);
 	    proc->carryover[cp-pcp] = '\0';
 	  } else
-	    fprintf(stderr,
+	    sfprintf(sfstderr,
 		    "HELP! Lost %ld bytes (n=%d/%d, off=%ld): '%s'\n",
 		    (long)(cp - pcp), n, errno, (long)(pcp-buf), pcp);
 	}
@@ -1351,7 +1351,7 @@ int signum;
 	  if (WSIGNALSTATUS(statloc) != 0) ok = 1;
 
 	  if (verbose)
-	    fprintf(stderr,"sig_chld() pid=%d, ok=%d, stat=0x%x\n",
+	    sfprintf(sfstderr,"sig_chld() pid=%d, ok=%d, stat=0x%x\n",
 		    pid,ok,statloc);
 
 	  if (ok && cpids != NULL) {
@@ -1365,12 +1365,12 @@ int signum;
 		if (WSIGNALSTATUS(statloc) == 0 &&
 		    WEXITSTATUS(statloc) == EX_SOFTWARE) {
 		  zsyslog((LOG_EMERG, "Transporter process %d exited with EX_SOFTWARE!", pid));
-		  fprintf(stderr, "Transporter process %d exited with EX_SOFTWARE; cmdline='%s'\n", pid, cpids[i].cmdline);
+		  sfprintf(sfstderr, "Transporter process %d exited with EX_SOFTWARE; cmdline='%s'\n", pid, cpids[i].cmdline);
 	  }
 		break;
 	      }
 	      if (cpids[i].pid == -pid) {
-		printf(" .. already reaped ??\n");
+		sfprintf(sfstdout," .. already reaped ??\n");
 		cpids[i].pid = -pid; /* Mark it as reaped.. */
 		cpids[i].reaped = 1;
 		ok = 0;

@@ -34,11 +34,8 @@ appendlet(SS, dp, convertmode)
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	volatile int bufferfull = 0;
 	char iobuf[BUFSIZ];
-	FILE *mfp = NULL;
+	Sfio_t *mfp = NULL;
 #endif
-
-	jmp_buf oldalarmjmp;
-	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
 
 	SS->state  = 1;
 	SS->column = -1;
@@ -50,38 +47,29 @@ appendlet(SS, dp, convertmode)
 	   wrapping which breaks out of the lower levels if the
 	   timer does not get reset.. */
 
-	alarm(timeout);
+	gotalarm = 0;
 
-	if (setjmp(alarmjmp) == 0) {
-
-	  gotalarm = 0;
-	  /* sfsync(SS->smtpfp); */
-
-	} else {
-	  /*  Alarm jumped here! */
-
-	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-	  alarm(0);
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-#define MFPCLOSE	if (mfp != NULL) {	\
-			  i = dup(dp->msgfd);	\
-			  fclose(mfp);		\
-			  dup2(i,dp->msgfd);	\
-			  close(i);		\
+#define MFPCLOSE	if (mfp != NULL) {				\
+			  sfsetfd(mfp,-1);	/* keep the fd      */	\
+			  sfclose(mfp);		/* close the stream */	\
 			}
 #else
 #define MFPCLOSE
 #endif
 
-	  if (statusreport)
-	    report(SS,"DATA %d/%d (%d%%)",
+	if (statusreport)
+	  report(SS,"DATA %d/%d (%d%%)",
 		   SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
+#if 0 /* No, we aren't SYNCin now.. */
+	sfsync(SS->smtpfp);
+	if (gotalarm) {
 	  sprintf(SS->remotemsg,"smtp; 500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
 		  SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	  return EX_IOERR;
-
 	}
+#endif
 
 	/* Makeing sure we are properly positioned
 	   at the begin of the message body */
@@ -109,8 +97,6 @@ appendlet(SS, dp, convertmode)
 	    if (i < 0) {
 	      strcpy(SS->remotemsg,
 		     "smtp; 500 (Read error from message file!?)");
-	      alarm(0);
-	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	      return EX_IOERR;
 	    }
 #endif /* !HAVE_MMAP */
@@ -121,8 +107,6 @@ appendlet(SS, dp, convertmode)
 		     SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	    /* We NEVER get timeouts here.. We get anything else.. */
 	    if (rc != i) {
-	      alarm(0);
-	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	      if (gotalarm) {
 		sprintf(SS->remotemsg,"smtp; 500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
 			SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
@@ -139,10 +123,10 @@ appendlet(SS, dp, convertmode)
 	      break;
 	  }
 #endif
-	  alarm(0);
-
 	  /* End of "NO CONVERSIONS" mode, then ... */
+
 	} else {
+
 	  /* ... various esoteric conversion modes:
 	     We are better to feed writemimeline() with
 	     LINES instead of blocks of data.. */
@@ -150,8 +134,7 @@ appendlet(SS, dp, convertmode)
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	  /* Classical way to read in things */
 
-	  mfp = (FILE *)fdopen(dp->msgfd,"r");
-	  setvbuf(mfp, iobuf, _IOFBF, sizeof(iobuf));
+	  mfp = sfnew(NULL, NULL, sizeof(iobuf), dp->msgfd, SF_READ|SF_WHOLE);
 	  bufferfull = 0;
 #else /* HAVE_MMAP */
 	  const char *s = dp->let_buffer + dp->msgbodyoffset;
@@ -185,12 +168,10 @@ appendlet(SS, dp, convertmode)
 
 	    /* We NEVER get timeouts here.. We get anything else.. */
 	    if (rc != i) {
-	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	      sprintf(SS->remotemsg,
 		      "500 (msgbuffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
 		      strerror(errno),
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	      alarm(0);
 	      MFPCLOSE
 	      return EX_IOERR;
 	    }
@@ -198,12 +179,10 @@ appendlet(SS, dp, convertmode)
 	    s = s2; /* Advance one linefull.. */
 #endif
 	  } /* End of line loop */
-	  alarm(0);
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  if (i == EOF && !feof(mfp)) {
+	  if (i == EOF && !sfeof(mfp)) {
 	    strcpy(SS->remotemsg, "500 (Read error from message file!?)");
-	    memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	    MFPCLOSE
 	    return EX_IOERR;
 	  }
@@ -213,10 +192,7 @@ appendlet(SS, dp, convertmode)
 
 	/* we must make sure the last thing we transmit is a CRLF sequence */
 	if (!lastwasnl || SS->lastch != '\n') {
-	  alarm(timeout);
 	  if (writebuf(SS, "\n", 1) != 1) {
-	    alarm(0);
-	    memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	    if (gotalarm) {
 	      sprintf(SS->remotemsg,"500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
@@ -232,22 +208,16 @@ appendlet(SS, dp, convertmode)
 	    return EX_IOERR;
 	  }
 	}
-	alarm(0);
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	if (bufferfull > 1)	/* not all in memory, need to reread */
 	  readalready = 0;
 #endif
 #if 0
-	alarm(timeout);
 	if (sfsync(SS->smtpfp) != 0) {
-	  alarm(0);
-	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	  return EX_IOERR;
 	}
-	alarm(0);
 #endif
-	memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 
 	return EX_OK;
 }
@@ -322,7 +292,6 @@ writebuf(SS, buf, len)
 	  if (--alarmcnt <= 0) {
 	    alarmcnt = ALARM_BLOCKSIZE;
 	    /* sfsync(fp); */
-	    alarm(timeout);	/* re-arm it */
 
 	    if (statusreport)
 	      report(SS,"DATA %d/%d (%d%%)",
@@ -425,7 +394,6 @@ writemimeline(SS, buf, len, convertmode)
 	  if (--alarmcnt <= 0) {
 	    alarmcnt = ALARM_BLOCKSIZE;
 	    /* sfsync(fp); */
-	    alarm(timeout);
 
 	    if (statusreport)
 	      report(SS,"DATA %d/%d (%d%%)",

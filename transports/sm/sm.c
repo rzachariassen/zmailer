@@ -884,12 +884,10 @@ appendlet(dp, mp, fp, verboselog, convertmode)
 	     We are better to feed writemimeline() with LINES
 	     instead of blocks of data.. */
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  char iobuf[BUFSIZ];
-	  FILE *mfp = fdopen(mfd,"r");
-	  setvbuf(mfp, iobuf, _IOFBF, sizeof(iobuf));
-	  fseek(mfp, dp->msgbodyoffset, SEEK_SET);
+	  Sfio_t *mfp = sfnew(NULL, NULL, 64*1024, mfd, SF_READ|SF_WHOLE);
+	  sfseek(mfp, dp->msgbodyoffset, SEEK_SET);
 
-#define MFPCLOSE i = dup(mfd); fclose(mfp); dup2(i,mfd); close(i);
+#define MFPCLOSE sfsetfd(mfp, -1); sfclose(mfp);
 
 	  readalready = 0;
 #else
@@ -932,7 +930,7 @@ appendlet(dp, mp, fp, verboselog, convertmode)
 	    }
 	  }
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	  if (i == EOF && !feof(mfp)) {
+	  if (i == EOF && !sfeof(mfp) && !sferror(mfp)) {
 	    MFPCLOSE
 	    return EX_IOERR;
 	  }

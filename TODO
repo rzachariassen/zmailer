@@ -66,12 +66,6 @@ transports/smtp:
 	very long living and hard working smtp-ta program as
 	slow size growth.
 
-	SSL/TLS client functionality has been asked for repeatedly.
-	To implement it we must rewamp the entire FILE* abstraction
-	based network socket (write) buffering at the smtp program,
-	PLUS at libta/mimeheaders.c ( writeheaders() ) as well...
-	Not so nice.  (AT&T Research Sfio *may* help here..)
-
 	VERIFY: BDAT (and DATA) status processing in case the remote
 	yields disk-full temporary error.
 
@@ -176,8 +170,6 @@ transports/smtp:
 - smtpserver
   - Supply PARAM entries for *all* (well, very nearly) command-line
     startup options where it makes sense... (NOW DOES!)
-  - SSL/TLS code needs to be updated to support non-blocking operations,
-    which appeared at 0.9.4 release of the OpenSSL.
   - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills
   -	Report that if the router subprocess crashes, interactive
 	processing goes into mixed state -- it reports 2XX, and

@@ -37,12 +37,13 @@ LIBOBJS=  @LIBOBJS@
 #
 OBJS	= mail.o mail_alloc.o mail_host.o fullname.o getopt.o myhostname.o \
 	getzenv.o whathost.o getdtblsiz.o __fopen.o setreuid.o setregid.o \
-	md5c.o
+	md5c.o sfmail.o
 LIBMAILERobjs = mail.o mail_alloc.o getzenv.o mail_host.o myhostname.o	\
-	fullname.o whathost.o strerror.o
+	fullname.o whathost.o strerror.o sfmail.o
 SOURCE	= mail.c mail_alloc.c mail_host.c fullname.c getopt.c myhostname.c \
 	getzenv.c setvbuf.c strchr.c strrchr.c strsignal.c strerror.c \
-	whathost.c getdtblsiz.c setreuid.c __fopen.c setreuid.c setregid.c
+	whathost.c getdtblsiz.c setreuid.c __fopen.c setreuid.c setregid.c \
+	sfmail.c
 
 $(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a $(TOPDIR)/libs/libzmailer.a
 

@@ -14,6 +14,7 @@
 #include <errno.h>
 
 #include "ta.h"
+#include "libz.h"
 #include "md5.h"
 
 /*
@@ -83,16 +84,16 @@ static struct mq2pw * authuser(user)
   static char linebuf[2000];
   static struct mq2pw mpw;
   char *s;
-  FILE *fp;
+  Sfio_t *fp;
   int ulen = strlen(user)+1;
 
   if (!mq2authfile) return NULL; /* D'uh! */
 
-  fp = fopen(mq2authfile,"r");
+  fp = sfopen(NULL, mq2authfile, "r");
   if (!fp) return NULL; /* D'uh! */
 
   mpw.user = linebuf;
-  while ((s = fgets(linebuf, sizeof(linebuf)-1, fp))) {
+  while (cfgets(linebuf, sizeof(linebuf)-1, fp) >= 0) {
     if (*linebuf == '#' || *linebuf == '*' || *linebuf == '\n')
       continue;
     s = strchr(linebuf,'\n');
@@ -113,7 +114,7 @@ static struct mq2pw * authuser(user)
     }
   }
 
-  fclose(fp);
+  sfclose(fp);
   return NULL; /* nothing found */
 }
 

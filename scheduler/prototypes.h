@@ -100,7 +100,10 @@ extern void free_cfp_memory __((struct ctlfile *cfp));
 extern int  vtxredo __((struct spblk *spl));
 extern char *timestring __((void));
 extern time_t now;
-extern FILE *statuslog;
+#ifdef _SFIO_H
+extern Sfio_t *statuslog;
+extern Sfio_t * vfp_open __((struct ctlfile *));
+#endif
 extern void resync_file __((struct procinfo *proc, const char *filename));
 extern int thread_count_recipients __((void));
 extern time_t mytime __((time_t *));
@@ -120,7 +123,9 @@ extern void        unweb __((int flag, struct web *wp));
 extern int   thread_start __((struct thread *thr));
 extern int   idle_cleanup __((void));
 extern void  pick_next_vertex __((struct procinfo *proc, int ok, int justfree));
-extern void  thread_report __((FILE *, int));
+#ifdef _SFIO_H
+extern void  thread_report __((Sfio_t *, int));
+#endif
 extern int   idleprocs;
 extern void  web_disentangle __((struct vertex *vp, int ok));
 extern void  reschedule __((struct vertex *vp, int factor, int index));

@@ -27,7 +27,9 @@ extern char *    strsave  __((const char *s));
 extern char *    strnsave __((const char *s, const size_t n));
 
 /* cfgets.c */
-extern int cfgets __((char *, int, FILE *));
+#ifdef _SFIO_H
+extern int cfgets __((char *, int, Sfio_t *));
+#endif
 
 /* cleanenv.c */
 extern const char * nukelist[];

@@ -8,7 +8,7 @@
  */
 
 #include "hostenv.h"
-#include <stdio.h>
+#include <sfio.h>
 #include "scheduler.h"
 #include "prototypes.h"
 

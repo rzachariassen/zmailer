@@ -9,12 +9,12 @@
  */
 
 #include "hostenv.h"
+
 #include <stdio.h>
 #include <sys/types.h>
 
 #include "splay.h"
 #include "zmalloc.h"
-#include "libz.h"
 
 #ifdef	symbol
 #undef	symbol

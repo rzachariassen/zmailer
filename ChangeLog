@@ -1,3 +1,16 @@
+1999-12-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* ALL OVER THE PLACE:
+	  - Replaced *all* stdio usage within the Scheduler with
+	    SFIO -- now it can go beyond 255 open file descriptors
+	    at Solaris systems... (FILE->_file is 'u_char' there,
+	    while Sfio_t->file is a 'short' - huge difference!)
+	  - More work on SMTP TA code to eradict last vestiges of
+	    alarm(2) based timeout breaks, now SFIO stream discipline
+	    routines will handle the timeout gracefully
+	  - Some changes to few very commonly used headers, and resulting
+	    small call changes all over..
+
 1999-12-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/smtp-tls.conf, transports/smtp/smtp.c,

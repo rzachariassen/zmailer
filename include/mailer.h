@@ -4,7 +4,12 @@
  */
 
 #include "hostenv.h"
+
 #include <stdio.h>
+#ifndef FILE /* Some systems don't have this as a MACRO.. */
+# define FILE FILE
+#endif
+#include <sfio.h>
 
 #ifndef __
 # ifdef __STDC__

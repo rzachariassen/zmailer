@@ -28,7 +28,6 @@ int	tls_use_scache     = 0;
 static char peer_CN[CCERT_BUFSIZ];
 static char issuer_CN[CCERT_BUFSIZ];
 
-static unsigned char md[EVP_MAX_MD_SIZE];
 static unsigned char peername_md5[MD5_DIGEST_LENGTH];
 
 extern int demand_TLS_mode;
@@ -827,13 +826,10 @@ int     tls_start_clienttls(SS,peername)
      const char *peername;
 {
     int     sts;
-    int     j;
-    unsigned int n;
     SSL_SESSION *session;
     SSL_CIPHER *cipher;
     X509   *peer;
     int     save_session;
-    int	    length;
     int     verify_result;
     unsigned char *old_session_id;
 
@@ -1045,54 +1041,184 @@ int     tls_stop_clienttls(SS, failure)
 #endif /* - HAVE_OPENSSL */
 
 
-ssize_t smtp_sfwrite(sfp, p, len, discp)
+/* About timeouts the RFC 1123 recommends:
+     - Initial 220: 5 minutes
+     - MAIL, RCPT : 5 minutes
+     - DATA initialization (until "354.."): 2 minutes
+     - While writing data, a block
+       at the time: 3 minutes  (How large a block ?)
+     - From "." to "250 OK": 10 minutes
+
+   I think we simplify:  5 minutes each, except "."
+   to "250 ok" which is 60 (!) minutes. (sendmail's
+   default value.)
+   Block-size is 1kB.   4-Feb-95: [mea@utu.fi]
+
+ */
+
+extern int timeout;  /* That is the global setting.. */
+
+
+/*
+ * We have moved buffered writes to Sfio_t discipline function
+ * smtp_sfwrite(), and now we can do timeouting properly in it..
+ *
+ * The write socket is ALWAYS in non-blocking mode!
+ */
+ssize_t smtp_sfwrite(sfp, vp, len, discp)
      Sfio_t *sfp;
-     const void * p;
+     const void * vp;
      size_t len;
      Sfdisc_t *discp;
 {
-#ifdef HAVE_OPENSSL
-  /* FIXME: Must be changed for SSL/TLS streams! */
+    struct smtpdisc *sd = (struct smtpdisc *)discp;
+    SmtpState *SS = (SmtpState *)sd->SS;
 
-#if 0 /* Code in reserve for latter work... */
-  struct smtpdisc *sd = (struct smtpdisc *)discp;
-  SmtpState *SS = (SmtpState *)sd->SS;
+    const char * p = (const char *)vp;
+    int r, rr, e, i;
+
+    rr = -1; /* No successfull write */
+    e = 0;
+
+#if 1 /* Remove after debug tests */
+    if (SS->verboselog)
+      fprintf(SS->verboselog,
+	      " smtp_sfwrite() to write %d bytes\n", (int)len);
 #endif
 
-#endif /* - HAVE_OPENSSL */
+    while (len > 0) {
 
-  return write(sffileno(sfp), p, len);
+#ifdef HAVE_OPENSSL
+      if (SS->sslmode) {
+	r = SSL_write(SS->ssl, p, len);
+	e = errno; /* FIXME: Some SSL function ??? */
+	if (r < 0) {
+	  e = SSL_get_error(SS->ssl, r);
+	  if (e == SSL_ERROR_WANT_WRITE) {
+	    /* Right, so we want to wait a bit, and retry.. */
+	    e = EAGAIN;
+	  } else {
+	    /* XXX: Err... What ??? */
+	    e = ETIMEDOUT; /* not precisely.. */
+	    gotalarm = 1;  /* Well, sort of.. */
+	    break;
+	  }
+	}
+      } else
+#endif /* - HAVE_OPENSSL */
+	{
+	  r = write(sffileno(sfp), p, len);
+	  e = errno;
+	}
+
+      if (r >= 0) {
+	if (rr < 0) rr = 0;	/* something successfull. init this!	*/
+	rr  += r;		/* Accumulate writeout accounting	*/
+	p   += r;		/* move pointer				*/
+	len -= r;		/* count down the length to be written	*/
+	continue;
+      }
+
+      /* Hmm..  Write bounced for some reason */
+      switch (e) {
+      case EAGAIN:
+#ifdef EWOULDBLOCK
+#if EWOULDBLOCK != EAGAIN
+      case EWOULDBLOCK:
+#endif
+#endif
+	{
+	  /* Write blocked, lets select (and sleep) for write.. */
+	  struct timeval tv, t0;
+	  fd_set wrset;
+
+#if 1 /* Remove after debug tests */
+	  if (SS->verboselog)
+	    gettimeofday(&t0, NULL);
+#endif
+
+	  i = sffileno(sfp);
+	  _Z_FD_ZERO(wrset);
+	  _Z_FD_SET(i, wrset);
+	  tv.tv_sec = timeout;
+	  tv.tv_usec = 0;
+
+	  r = select(i+1, NULL, &wrset, NULL, &tv);
+	  e = errno;
+
+#if 1 /* Remove after debug tests */
+	  if (SS->verboselog) {
+	    struct timeval t2;
+
+	    gettimeofday(&t2, NULL);
+
+	    t2.tv_usec -= t0.tv_usec;
+	    if (t2.tv_usec < 0) {
+	      t2.tv_usec += 1000000;
+	      t2.tv_sec  -= 1;
+	    }
+	    t2.tv_sec -= t0.tv_sec;
+	    fprintf(SS->verboselog,
+		    " smtp_sfwrite() did select; rc=%d errno=%d len=%d dt=%d.%06d\n",
+		    r, e, (int)len, (int)t2.tv_sec, (int)t2.tv_usec);
+	  }
+#endif
+
+	  if (r > 0)
+	    /* Ready to write! */
+	    continue;
+
+	  if (r == 0) {
+	    /* TIMEOUT!  Uarrgh!! */
+	    rr = -1; /* Zap the write-count! We are to FAIL! */
+	    e = ETIMEDOUT;
+	    break;
+	  }
+
+	  /* Khrm... */
+	  /* Select error status is sent out */
+	}
+	break;
+      default:
+	/* Any other errno.. */
+	break;
+      }
+
+      /* If STILL a error, break out -- will retry EINTR at  Sfio  library. */
+      if (r < 0) break;
+
+    } /* End of while(len > 0) loop */
+
+  errno = e;
+  return rr;
 }
 
-
-int smtp_nbread(SS, buf, spc, nonblocking)
+/*
+ *  Our callers are doing all timeout processing all by themselves.
+ *  Indeed this call is always executed on a non-blocking socket!
+ */
+int smtp_nbread(SS, buf, spc)
      SmtpState *SS;
      void *buf;
-     int spc, nonblocking;
+     int spc;
 {
-  int r, flg, e;
+  int r, e;
   int infd = sffileno(SS->smtpfp);
 
 
-  if (nonblocking) {
-    flg = fd_nonblockingmode(infd);
 #ifdef HAVE_OPENSSL
-    if (SS->sslmode)
-      r = SSL_read(SS->ssl, buf, spc);
-    else
-#endif /* - HAVE_OPENSSL */
-      r = read(infd, buf, spc);
-    e = errno;
-    fcntl(infd, F_SETFL, flg);
+  if (SS->sslmode) {
+    r = SSL_read(SS->ssl, buf, spc);
+    e = SSL_get_error(SS->ssl, r);
+    if (e == SSL_ERROR_WANT_READ) {
+      e = EAGAIN;
+    } else
+      e = EINTR;
     errno = e;
-  } else {
-#ifdef HAVE_OPENSSL
-    if (SS->sslmode)
-      r = SSL_read(SS->ssl, buf, spc);
-    else
+  } else
 #endif /* - HAVE_OPENSSL */
-      r = read(infd, buf, spc);
-  }
-
+    /* Normal read(2) */
+    r = read(infd, buf, spc);
+  
   return r;
 }

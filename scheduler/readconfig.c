@@ -8,7 +8,7 @@
  */
 
 #include "hostenv.h"
-#include <stdio.h>
+#include <sfio.h>
 #include <ctype.h>
 #include <pwd.h>
 #include <grp.h>
@@ -23,7 +23,7 @@
 #include "libz.h"
 
 static void celink __((struct config_entry *, struct config_entry **, struct config_entry **));
-static int readtoken __((FILE *fp, char *buf, int buflen, int *linenump));
+static int readtoken __((Sfio_t *fp, char *buf, int buflen, int *linenump));
 static u_int parse_intvl __((char *string));
 static int paramparse __((char *line));
 
@@ -160,53 +160,54 @@ vtxprint(vp)
 	struct config_entry *ce = &(vp->thgrp->ce);
 
 	if (vp->orig[L_CHANNEL] != NULL && vp->orig[L_HOST] != NULL)
-	  printf("%s/%s", vp->orig[L_CHANNEL]->name, vp->orig[L_HOST]->name);
+	  sfprintf(sfstdout, "%s/%s", vp->orig[L_CHANNEL]->name,
+		   vp->orig[L_HOST]->name);
 	else
-	  printf("%s/%s", ISS(ce->channel), ISS(ce->host));
-	printf(" 0x%lx\n",		(unsigned long)ce);
-	printf("\tinterval %d\n",	(int)ce->interval);
-	printf("\tidlemax %d\n",	ce->idlemax);
-	printf("\texpiry %d\n",		(int)ce->expiry);
-	printf("\texpiryform %s\n",	ISS(ce->expiryform));
-	printf("\tdeliveryform %s\n",	ISS(ce->deliveryform));
-	printf("\tuid %d\n",		ce->uid);
-	printf("\tgid %d\n",		ce->gid);
-	printf("\tcommand %s\n",	ISS(ce->command));
-	printf("\tflags:");
+	  sfprintf(sfstdout, "%s/%s", ISS(ce->channel), ISS(ce->host));
+	sfprintf(sfstdout," 0x%lx\n",		(unsigned long)ce);
+	sfprintf(sfstdout,"\tinterval %d\n",	(int)ce->interval);
+	sfprintf(sfstdout,"\tidlemax %d\n",	ce->idlemax);
+	sfprintf(sfstdout,"\texpiry %d\n",		(int)ce->expiry);
+	sfprintf(sfstdout,"\texpiryform %s\n",	ISS(ce->expiryform));
+	sfprintf(sfstdout,"\tdeliveryform %s\n",	ISS(ce->deliveryform));
+	sfprintf(sfstdout,"\tuid %d\n",		ce->uid);
+	sfprintf(sfstdout,"\tgid %d\n",		ce->gid);
+	sfprintf(sfstdout,"\tcommand %s\n",	ISS(ce->command));
+	sfprintf(sfstdout,"\tflags:");
 	if (ce->flags == 0)
-	  printf(" (none)");
+	  sfprintf(sfstdout," (none)");
 	else {
-	  if (ce->flags & CFG_BYCHANNEL) printf(" BYCHANNEL");
-	  if (ce->flags & CFG_WITHHOST)  printf(" WITHHOST");
-	  if (ce->flags & CFG_AGEORDER)  printf(" AGEORDER");
+	  if (ce->flags & CFG_BYCHANNEL) sfprintf(sfstdout," BYCHANNEL");
+	  if (ce->flags & CFG_WITHHOST)  sfprintf(sfstdout," WITHHOST");
+	  if (ce->flags & CFG_AGEORDER)  sfprintf(sfstdout," AGEORDER");
 	}
-	printf("\n");
-	printf("\tmaxkids %d\n",	ce->maxkids);
-	printf("\tmaxkidChannel %d\n",	ce->maxkidChannel);
-	printf("\tmaxkidThreads %d\n",	ce->maxkidThreads);
-	printf("\toverfeed %d\n",	ce->overfeed);
+	sfprintf(sfstdout,"\n");
+	sfprintf(sfstdout,"\tmaxkids %d\n",	ce->maxkids);
+	sfprintf(sfstdout,"\tmaxkidChannel %d\n",	ce->maxkidChannel);
+	sfprintf(sfstdout,"\tmaxkidThreads %d\n",	ce->maxkidThreads);
+	sfprintf(sfstdout,"\toverfeed %d\n",	ce->overfeed);
 
 	if (ce->priority >= 80)
-	  printf("\tpriority %d\n",	ce->priority - 100);
+	  sfprintf(sfstdout,"\tpriority %d\n",	ce->priority - 100);
 	else
-	  printf("\tnice %d\n",		ce->priority);
+	  sfprintf(sfstdout,"\tnice %d\n",		ce->priority);
 
 	if (ce->argv != NULL) {
 	  for (i = 0; ce->argv[i] != NULL; ++i)
-	    printf("\targv[%d] = %s\n", i, ce->argv[i]);
+	    sfprintf(sfstdout,"\targv[%d] = %s\n", i, ce->argv[i]);
 	}
-	printf("\tnretries %d\n", ce->nretries);
+	sfprintf(sfstdout,"\tnretries %d\n", ce->nretries);
 	if (ce->nretries > 0) {
-	  printf("\tretries = (");
+	  sfprintf(sfstdout,"\tretries = (");
 	  for (i = 0; i < ce->nretries ; ) {
-	    printf("%d", ce->retries[i]);
+	    sfprintf(sfstdout,"%d", ce->retries[i]);
 	    ++i;
 	    if (i < ce->nretries)
-	      printf(" ");
+	      sfprintf(sfstdout," ");
 	  }
-	  printf(")\n");
+	  sfprintf(sfstdout,")\n");
 	}
-	printf("\tskew %d\n", ce->skew);
+	sfprintf(sfstdout,"\tskew %d\n", ce->skew);
 }
 
 static void
@@ -255,25 +256,25 @@ readconfig(file)
 	struct config_entry *ce, *head, *tail;
 	struct rckeyword *rckp;
 	struct vertex v;
-	FILE *fp;
+	Sfio_t *fp;
 	int linenum = 0;
 
 	ce = head = tail = NULL;
 	errflag = 0;
 
-	if ((fp = fopen(file, "r")) == NULL) {
-	  fprintf(stderr, "%s: %s: %s\n",
-		  progname, file, strerror(errno));
+	if ((fp = sfopen(NULL, file, "r")) == NULL) {
+	  sfprintf(sfstderr, "%s: %s: %s\n",
+		   progname, file, strerror(errno));
 	  return NULL;
 	}
 	while ((n = readtoken(fp, line, sizeof line, &linenum)) != -1) {
 	  if (verbose)
-	    printf("read '%s' %d\n",  line, n);
+	    sfprintf(sfstdout, "read '%s' %d\n",  line, n);
 	  if (n == 1) {
 	    /* Selector entry - or "PARAM" */
 	    if (cistrncmp(line,"PARAM",5) == 0) {
 	      if (paramparse(line+5)) {
-		fprintf(stderr, "%s: illegal syntax at %s:%d\n",
+		sfprintf(sfstderr, "%s: illegal syntax at %s:%d\n",
 			progname, file, linenum);
 		++errflag;
 	      }
@@ -337,20 +338,20 @@ readconfig(file)
 		break;
 	      }
 	    if (rckp->name == NULL) {
-	      fprintf(stderr,
+	      sfprintf(sfstderr,
 		      "%s: unknown keyword %s in %s:%d\n",
 		      progname, line, file, linenum);
 	      ++errflag;
 	    }
 	  } else {
-	    fprintf(stderr, "%s: illegal syntax at %s:%d\n",
+	    sfprintf(sfstderr, "%s: illegal syntax at %s:%d\n",
 		    progname, file, linenum);
 	    ++errflag;
 	  }
 	}
 	if (ce != NULL)
 	  celink(ce, &head, &tail);
-	fclose(fp);
+	sfclose(fp);
 	if (verbose) {
 	  struct threadgroup tg;
 	  v.orig[L_CHANNEL] = v.orig[L_HOST] = NULL;
@@ -365,7 +366,7 @@ readconfig(file)
 
 static int
 readtoken(fp, buf, buflen, linenump)
-	FILE *fp;
+	Sfio_t *fp;
 	char *buf;
 	int buflen, *linenump;
 {
@@ -376,7 +377,7 @@ readtoken(fp, buf, buflen, linenump)
 
 redo_readtoken:
 	if (lp == NULL) {
-	  if (fgets(line, sizeof line, fp) == NULL)
+	  if (cfgets(line, sizeof line, fp) < 0)
 	    return -1;
 	  *linenump += 1;
 	  lp = line;
@@ -410,8 +411,8 @@ redo_readtoken:
 	    ++elp;
 	    while (*elp != '"' && *elp != '\0') {
 	      if (*elp == '\\' && *(elp+1) == '\n') {
-		if (fgets(elp, sizeof line - (elp - line), fp) == NULL) {
-		  fprintf(stderr,
+		if (cfgets(elp, sizeof line - (elp - line), fp) < 0) {
+		  sfprintf(sfstderr,
 			  "%s: bad continuation line\n",
 			  progname);
 		  return -1;
@@ -420,7 +421,7 @@ redo_readtoken:
 	      ++elp;
 	    }
 	    if (*elp == '\0') {
-	      fprintf(stderr,
+	      sfprintf(sfstderr,
 		      "%s: missing end-quote in: %s\n",
 		      progname, line);
 	      return -1;
@@ -480,7 +481,7 @@ rereadconfig(head, file)
 {
 	struct config_entry *ce, *nce, *head2;
 
-	fprintf(stderr,
+	sfprintf(sfstderr,
 		"%s: reread configuration file: %s\n", progname, file);
 	/* free all the old config file entries */
 	for (ce = head; ce != NULL; ce = nce) {
@@ -602,7 +603,7 @@ static int rc_group(key, arg, ce)
 	if (isascii(*arg) && isdigit(*arg))
 	  ce->gid = atoi(arg);
 	else if ((gr = getgrnam(arg)) == NULL) {
-	  fprintf(stderr, "%s: unknown group: %s\n", progname, arg);
+	  sfprintf(sfstderr, "%s: unknown group: %s\n", progname, arg);
 	  return 1;
 	} else
 	  ce->gid = gr->gr_gid;
@@ -641,7 +642,7 @@ static int rc_priority(key, arg, ce)
 {
 	if (sscanf(arg,"%d",&ce->priority) != 1 ||
 	    ce->priority < -20 || ce->priority > 19) {
-	  fprintf(stderr, "%s: Bad UNIX priority value, acceptable in range: -20..19; input=\"%s\"\n", progname, arg);
+	  sfprintf(sfstderr, "%s: Bad UNIX priority value, acceptable in range: -20..19; input=\"%s\"\n", progname, arg);
 	  return 1;
 	}
 	ce->priority += 100;
@@ -654,7 +655,7 @@ static int rc_nice(key, arg, ce)
 {
 	if (sscanf(arg,"%d",&ce->priority) != 1 ||
 	    ce->priority < -40 || ce->priority > 39) {
-	  fprintf(stderr, "%s: Bad UNIX nice offset value, acceptable in range: -40..39; input=\"%s\"\n", progname, arg);
+	  sfprintf(sfstderr, "%s: Bad UNIX nice offset value, acceptable in range: -40..39; input=\"%s\"\n", progname, arg);
 	  return 1;
 	}
 	return 0;
@@ -667,7 +668,7 @@ static int rc_syspriority(key, arg, ce)
 	int i;
 	if (sscanf(arg,"%d",&i) != 1 ||
 	    i < -20 || i > 19) {
-	  fprintf(stderr, "%s: Bad UNIX priority value, acceptable in range: -20..19; input=\"%s\"\n", progname, arg);
+	  sfprintf(sfstderr, "%s: Bad UNIX priority value, acceptable in range: -20..19; input=\"%s\"\n", progname, arg);
 	  return 1;
 	}
 #ifdef HAVE_SETPRIORITY
@@ -683,7 +684,7 @@ static int rc_sysnice(key, arg, ce)
 	int i;
 	if (sscanf(arg,"%d",&i) != 1 ||
 	    i < -40 || i > 39) {
-	  fprintf(stderr, "%s: Bad UNIX nice offset value, acceptable in range: -40..39; input=\"%s\"\n", progname, arg);
+	  sfprintf(sfstderr, "%s: Bad UNIX nice offset value, acceptable in range: -40..39; input=\"%s\"\n", progname, arg);
 	  return 1;
 	}
 	nice(i);
@@ -744,7 +745,7 @@ static int rc_retries(key, arg, ce)
 	  if (i > 0)
 	    arr[j++] = i;
 	  else {
-	    fprintf(stderr,
+	    sfprintf(sfstderr,
 		    "%s: not a numeric factor: %s\n",
 		    progname, d);
 	    return 1;
@@ -760,7 +761,7 @@ static int rc_retries(key, arg, ce)
 	  memcpy((char *)ce->retries, (char *)&arr[0], sizeof (int) * j);
 	  ce->nretries = j;
 	} else {
-	  fprintf(stderr, "%s: empty retry factor list\n", progname);
+	  sfprintf(sfstderr, "%s: empty retry factor list\n", progname);
 	  return 1;
 	}
 	return 0;
@@ -775,7 +776,7 @@ static int rc_user(key, arg, ce)
 	if (isascii(*arg) && isdigit(*arg))
 	  ce->uid = atoi(arg);
 	else if ((pw = getpwnam(arg)) == NULL) {
-	  fprintf(stderr, "%s: unknown user: %s\n", progname, arg);
+	  sfprintf(sfstderr, "%s: unknown user: %s\n", progname, arg);
 	  return 1;
 	} else
 	  ce->uid = pw->pw_uid;
@@ -789,7 +790,7 @@ static int rc_skew(key, arg, ce)
 	int v;
 
 	if (!isascii(*arg) || !isdigit(*arg) || (v = atoi(arg)) < 1) {
-	  fprintf(stderr, "%s: bad skew value: %s\n", progname, arg);
+	  sfprintf(sfstderr, "%s: bad skew value: %s\n", progname, arg);
 	  return 1;
 	}
 	ce->skew = v;
