@@ -157,18 +157,18 @@ else
   fi
 fi])
 
-AC_DEFUN(AC_STRUCT_ST_BLKSIZE,
-[dnl
-#
-# Do we have "st_blksize" in the "struct stat" ?
-# Defines  HAVE_ST_BLKSIZE  if we do
-#
-AC_CACHE_CHECK(for st_blksize in struct stat, ac_cv_struct_stat_st_blksize, [
-AC_TRY_LINK([#include <sys/types.h>
-#include <sys/stat.h>], [struct stat st; st.st_blksize; ],
-		AC_DEFINE(HAVE_ST_BLKSIZE) ac_cv_struct_stat_st_blksize=yes)
-])
-])
+# AC_DEFUN(AC_STRUCT_ST_BLKSIZE,
+# [dnl
+# #
+# # Do we have "st_blksize" in the "struct stat" ?
+# # Defines  HAVE_ST_BLKSIZE  if we do
+# #
+# AC_CACHE_CHECK(for st_blksize in struct stat, ac_cv_struct_stat_st_blksize, [
+# AC_TRY_LINK([#include <sys/types.h>
+# #include <sys/stat.h>], [struct stat st; st.st_blksize; ],
+# 		AC_DEFINE(HAVE_ST_BLKSIZE) ac_cv_struct_stat_st_blksize=yes)
+# ])
+# ])
 
 AC_DEFUN(AC_FUNC_GETMNTENT_MORE,
 [dnl

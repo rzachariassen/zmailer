@@ -1,3 +1,9 @@
+2001-03-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* configure.in, aclocal.m4, config.h.in:
+	    Using experimental  autoconf 2.49d  mandated couple of
+	    changes...
+
 2001-03-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* README.UPGRADING:
