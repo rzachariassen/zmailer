@@ -948,7 +948,7 @@ char **argv;
 	  int s, j, once;
 	  int childpid, sameipcount, childcnt;
 	  int  listensocks_count = 0;
-	  int *listensocks       = malloc( 3 * sizeof(int) );;
+	  int *listensocks       = malloc( 3 * sizeof(int) );
 	  int *listensocks_types = malloc( 3 * sizeof(int) );
 	  int  msgfd;
 	  
