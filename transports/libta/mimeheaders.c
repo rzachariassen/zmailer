@@ -666,6 +666,9 @@ static char * _skip_822atom(p, tspecial)
 	    break;
 	  }
 	  ++s;
+	  if (c == ':' && *s == ':')
+	    ++s; /* Consider '::' as single atom -- DECNET token */
+
 	  if (isdelim) break;
 	}
 
