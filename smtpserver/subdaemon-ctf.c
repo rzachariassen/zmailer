@@ -448,7 +448,7 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 		/* Whole line accumulated, send it out! */
 		
 		subdaemon_send_to_peer(CTF->replypeer[idx], CTF->buf[idx], rc);
-		CTF->bufsize[idx] = 0; /* Zap it.. */
+		CTF->inlen[idx] = 0; /* Zap it.. */
 	      }
 
 	      if (strcmp( CTF->buf[idx], Hungry ) == 0) {
