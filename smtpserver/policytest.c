@@ -1585,6 +1585,7 @@ PolicyTest what;
 const char *str, *authuser;
 const int len;
 {
+    int rc;
     if (rel == NULL)
       return 0;
 
@@ -1600,19 +1601,28 @@ const int len;
       free(state->message);
     state->message = NULL;
 
-    if (what == POLICY_SOURCEDOMAIN)
-	return pt_sourcedomain(rel, state, str, len);
-    if (what == POLICY_HELONAME)
-	return pt_heloname(rel, state, str, len);
-    if (what == POLICY_MAILFROM)
-	return pt_mailfrom(rel, state, str, len);
-    if (what == POLICY_RCPTTO)
-	return pt_rcptto(rel, state, str, len);
-    if (what == POLICY_RCPTPOSTMASTER)
-	return pt_rcptpostmaster(rel, state, str, len);
-
-    abort();			/* Code error! Bad policy ! */
-    return 9999; /* To silence most compilers.. */
+    switch(what) {
+    case POLICY_SOURCEDOMAIN:
+      rc = pt_sourcedomain(rel, state, str, len);
+      break;
+    case POLICY_HELONAME:
+      rc = pt_heloname(rel, state, str, len);
+      break;
+    case POLICY_MAILFROM:
+      rc = pt_mailfrom(rel, state, str, len);
+      break;
+    case POLICY_RCPTTO:
+      rc = pt_rcptto(rel, state, str, len);
+      break;
+    case POLICY_RCPTPOSTMASTER:
+      rc = pt_rcptpostmaster(rel, state, str, len);
+      break;
+    default:
+      abort();			/* Code error! Bad policy ! */
+      return 9999; /* To silence most compilers.. */
+    }
+    fflush(stdout);
+    return rc;
 }
 
 char *

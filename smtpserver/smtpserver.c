@@ -114,6 +114,7 @@ int X_settrrc = 9;
 int strict_protocol = 0;
 int mustexit = 0;
 int configuration_ok = 0;
+int gotalarm;
 
 char logtag[16];
 
@@ -1201,10 +1202,11 @@ static RETSIGTYPE
  timedout(sig)
 int sig;
 {
-    /* Return to the smtpserver's mail-program.
+    /* Return to the smtpserver's main-program.
        We are commiting a suicide, but we need
        data that exists only in that context... */
-    longjmp(jmpalarm, 1);
+    gotalarm = 1;
+    siglongjmp(jmpalarm, 1);
     _exit(253);			/* We did return ?!?! Boo!! */
 }
 
@@ -1302,7 +1304,7 @@ SmtpState *SS;
 }
 
 int s_getc(SS)
-SmtpState *SS;
+     SmtpState *SS;
 {
     int rc = 0;
 
@@ -1313,9 +1315,9 @@ SmtpState *SS;
     redo:
 	rc = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
 	if (rc < 0) {
-	  goto redo; /* XX: ??? some input-problem circumvention problem ?? */
 	  if (errno == EINTR || errno == EAGAIN)
-	    goto redo;
+	    if (!gotalarm)
+	      goto redo;
 	  /* Other results are serious errors -- maybe */
 	  SS->s_status = EOF;
 	  return EOF;

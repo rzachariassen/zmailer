@@ -158,21 +158,10 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	    return -EX_NOHOST;
 	  case SERVFAIL:
 	    return -EX_TEMPFAIL;
-#ifdef OLDJEEVES
-	    /*
-	     * Jeeves (TOPS-20 server) still does not
-	     * support MX records.  For the time being,
-	     * we must accept FORMERRs as the same as
-	     * NOERROR.
-	     */
-	  case FORMERR:
-#endif
 	  case NOERROR:
 	    goto perhaps_address_record;
 
-#ifndef OLDJEEVES
 	  case FORMERR:
-#endif
 	  case NOTIMP:
 	  case REFUSED:
 	    return -EX_NOPERM;
@@ -258,7 +247,7 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	      int k = 1, rc;
 	    
 	      for ( ; ai2 != NULL; ai2 = ai2->ai_next, ++k ) {
-#if 0
+#if 1
 		if (debug) {
 		  struct sockaddr * sa = ai2->ai_addr;
 		  char buf[60];
@@ -331,12 +320,12 @@ perhaps_address_record:
 	  i = _getaddrinfo_((const char*)host, "0", &req, &ai, debug ? stdout : NULL);
 #endif
 	  if (debug)
-	    printf("000-   getaddrinfo('%s','0') -> r=%d, ai=%p\n",host,i,ai);
+	    printf("000-   perhaps A? getaddrinfo('%s','0') -> r=%d, ai=%p\n",host,i,ai);
 	  if (i != 0) /* Found nothing! */
-	    return 0;
+	    return i;
 
 	  i = matchmyaddresses(ai);
-#if 0
+#if 1
 	  /* With this we can refuse to accept any message with
 	     source domain pointing back to loopback ! */
 	  if (i == 2) {
@@ -405,7 +394,7 @@ int sender_dns_verify(retmode, domain, alen)
      int retmode, alen;
      const char *domain;
 {
-	char hbuf[2000];
+	char hbuf[500];
 	int rc;
 
 	if (alen >= sizeof(hbuf)-2)
@@ -416,14 +405,20 @@ int sender_dns_verify(retmode, domain, alen)
 
 	rc = dnsmxlookup(hbuf, 0, 0, T_MX);
 
+	if (debug)
+	  printf("000- dnsmxlookup() did yield: %d, retmode='%c'\n",
+		 rc,retmode);
+
 	if (rc == 1) return 0; /* Found! */
 
 	if (rc == -EX_TEMPFAIL) {
 	  return -104;
 	}
 	if (retmode == '+') {
-	  if (rc == -EX_NOHOST ||
-	      rc == -EX_UNAVAILABLE)
+	  if (rc == -EX_NOHOST      ||
+	      rc == -EX_UNAVAILABLE ||
+	      rc == EAI_NODATA      ||
+	      rc == EAI_NONAME)
 	    return -2; /* Definitely hard errors */
 	  if (rc == 2)
 	    return -103;
