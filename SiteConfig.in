@@ -170,8 +170,10 @@ RMAILPATH=	@RMAILPATH@
 # The SELFADDRESSES is a comma separated list of IP address literals
 # listing all of our acceptable IP addresses (Comma because IPv6 uses
 # colon for short-hand notation..):
-# This really should be done with some system ioctl(), but those are
-# damn varying, and often still do kmem reads...
+# For usual (IPv4) universe, no addresses are needed listing, however
+# for IPv6 it may be necessary - likewise if you want to use cluster-mode,
+# you may want to list all *cluster* addresses here - nodes know only
+# their local ones, after all.. (See: doc/guides/etrn-cluster)
 #SELFADDRESSES=[1.2.3.4],[2.3.4.5],[ipv6.::1.2.3.4]
 SELFADDRESSES=@SELFADDRESSES@
 

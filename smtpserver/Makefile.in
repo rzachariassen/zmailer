@@ -32,13 +32,13 @@ LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/lib
 OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o fdstatfs.o \
 		policytest.o cfgread.o smtpdata.o smtpcmds.o smtphelp.o \
 		smtprouter.o smtpchild.o mxverify.o contentpolicy.o     \
-		smtpauth.o zpwmatch.o smtptls.o zpwmatch-pipe.o
+		smtpauth.o zpwmatch.o smtptls.o zpwmatch-pipe.o smtpetrn.o
 # loadaver.o
 
 SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c fdstatfs.c \
 		policytest.c  cfgread.c smtpdata.c smtpcmds.c smtphelp.c \
 		smtprouter.c smtpchild.c mxverify.c contentpolicy.c	 \
-		smtpauth.c zpwmatch.c smtptls.c zpwmatch-pipe.c
+		smtpauth.c zpwmatch.c smtptls.c zpwmatch-pipe.c smtpetrn.c
 # loadaver.c
 
 # Compile & install time: 'make privateauth="private/"'
@@ -57,6 +57,7 @@ smtpcmds.o:   $(srcdir)/smtpcmds.c $(srcdir)/smtpserver.h	\
 		$(srcdir)/policytest.h
 smtpauth.o:   $(srcdir)/smtpauth.c $(srcdir)/smtpserver.h
 smtpdata.o:   $(srcdir)/smtpdata.c $(srcdir)/smtpserver.h
+smtpetrn.o:   $(srcdir)/smtpetrn.c $(srcdir)/smtpserver.h
 smtphelp.o:   $(srcdir)/smtphelp.c $(srcdir)/smtpserver.h
 smtprouter.o: $(srcdir)/smtprouter.c $(srcdir)/smtpserver.h
 policytest.o:  $(srcdir)/policytest.c $(srcdir)/policytest.h # ignored: $(srcdir)/smtpserver.h

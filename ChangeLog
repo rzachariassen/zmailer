@@ -1,10 +1,27 @@
+2000-02-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* lib/selfaddrs.c:
+	    In *addition* to interface picked addresses, collect also
+	    z-environment defined  SELFADDRESSES=  listed addresses.
+	    (For the support of an ETRN-CLUSTER.)
+
+	* transports/smtp/smtp.c:
+	    A read timeout at response wait after write timeout is now
+	    limited to 300 seconds.
+
+	* smtpserver/Makefile.in, smtpserver/smtpserver.h,
+	  smtpserver/cfgread.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpetrn.c, SiteConfig.in,
+	  proto/smtpserver.conf.in, doc/guides/etrn-cluster:
+	    Some initial work for an ETRN-CLUSTER.
+
 2000-02-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* man/smtpserver.8, smtpserver/smtpserver.h, smtpserver/smtpserver.c,
 	  smtpserver/smtpdata.c, smtpserver/smtpcmds.c, smtpserver/smtpauth.c:
 	    Created smtpserver runtime command-line option "-l SYSLOG",
 	    which is a magic thing to send logfile material through syslog()
-	    facility.  Beware is *huge* amount of dataflow there!
+	    facility.  Beware there is *huge* amount of dataflow there!
 	    Some updates to smtpserver.8 man-page.
 
 2000-02-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
@@ -6433,7 +6450,7 @@ Mon Jan 22 09:34:35 1996  Matti Aarnio  <mea@nic.funet.fi>
 	    on and off..  ( fd_nonblockingmode() / fd_blockingmode() )
 
 	* smtpserver/smtpserver.c:
-	    - Added EHLO responce "PIPELINING"
+	    - Added EHLO response "PIPELINING"
 	      (server-side was easy..)
 	    - Made sure that if no RCPT TO:<> -addresses
 	      are given, will issue an "550"-error at the
@@ -6806,7 +6823,7 @@ Fri Nov 10 12:54:30 1995  Matti Aarnio  <mea@nic.funet.fi>
 Mon Nov  6 12:09:28 1995  Matti Aarnio  <mea@nic.funet.fi>
 
 	* smtpserver/smtpserver.c:
-	    - Wrong code on "HELP" responces: 241, changed to  214
+	    - Wrong code on "HELP" responses: 241, changed to  214
 	    - EXPN and VRFY changed to demand HELO/EHLO before
 	      being usable
 
@@ -6988,7 +7005,7 @@ Sun Oct  1 15:57:39 1995  Matti Aarnio  (mea@oh1mqk)
 Fri Sep 29 09:22:50 1995  Matti Aarnio  <mea@nic.funet.fi>
 
 	* transports/smtp/smtp.c:
-	    Odd, SMTP responce "552 permanent resource limitation"
+	    Odd, SMTP response "552 permanent resource limitation"
 	    did trigger ONLY an EX_TEMPFAIL, which caused retry..
 	    Does now EX_UNAVAIL, which causes snappy reject.
 
@@ -7274,7 +7291,7 @@ Tue Jun  6 23:35:34 1995  Matti Aarnio  <mea@nic.funet.fi>
 	    and to feed them ONE JOB at the time.
 
 	    To achieve syncronization the report-back format
-	    is amended with a blank line after the last responce
+	    is amended with a blank line after the last response
 	    from entries in a file. (That is, an extra "\n".)
 
 Sat Apr 15 02:05:18 1995  Matti Aarnio  <mea@nic.funet.fi>
@@ -7472,7 +7489,7 @@ Sat Feb  4 17:34:14 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 		10 minutes for a kilobyte of SMTP DATA.
 
 	* smtpserver/smtpserver.c mgets():
-	    Something funny with responce buffer realloc(); It did scramble
+	    Something funny with response buffer realloc(); It did scramble
 	    the pointer to the chars in the buffer (GCC 2.5.8 on SPARC),
 	    and eventually caused a SIGSEGV..  Amazingly small change
 	    fixed it :-/
@@ -7817,7 +7834,7 @@ Thu Dec 29 08:31:42 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 
 	* smtpserver/smtpserver.c:
 	    Gives "a bit" mystic result-codes when the EHLO
-	    responce generation procedure is unable to create
+	    response generation procedure is unable to create
 	    a mail-spool-file  -- it was used earlier to
 	    determine available free storage, but when I became
 	    informed that using it in the "SIZE" code would mean:
@@ -8479,8 +8496,8 @@ Wed Aug 24 02:00:17 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 Tue Aug 23 21:52:18 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 
 	* transports/smtp/smtp.c:
-	    An error in EHLO responce analysis did omit the
-	    final responce line, which in one case did have
+	    An error in EHLO response analysis did omit the
+	    final response line, which in one case did have
 	    effect:
 		250-XXXXX
 		250 8BITMIME

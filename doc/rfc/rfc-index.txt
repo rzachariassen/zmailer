@@ -9778,6 +9778,17 @@ For example:
      Lin, J. Heinanen, G. Armitage, A. Malis. February 2000. (Format:
      TXT=163215 bytes) (Status: INFORMATIONAL)
 
+2765 Stateless IP/ICMP Translation Algorithm (SIIT). E. Nordmark.
+     February 2000. (Format: TXT=59465 bytes) (Status: PROPOSED STANDARD)
+
+2766 Network Address Translation - Protocol Translation (NAT-PT). G.
+     Tsirtsis, P. Srisuresh. February 2000. (Format: TXT=49836 bytes)
+     (Status: PROPOSED STANDARD)
+
+2767 Dual Stack Hosts using the "Bump-In-the-Stack" Technique (BIS).
+     K. Tsuchiya, H. Higuchi, Y. Atarashi. February 2000. (Format:
+     TXT=26402 bytes) (Status: INFORMATIONAL)
+
 2768 Network Policy and Services: A Report of a Workshop on
      Middleware. B. Aiken, J. Strassner, B. Carpenter, I. Foster, C.
      Lynch, J. Mambretti, R. Moore, B. Teitelbaum. February 2000. (Format:

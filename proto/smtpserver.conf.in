@@ -20,6 +20,7 @@
 #PARAM BindPort	                  25	# Binding port
 #PARAM BindAddress         [0.0.0.0]	# Binding address - for multihomers..
 #PARAM BindAddress       [IPv6.0::0]	# and here is for IPv6 - NO SPACES!
+#PARAM BindAddress            eth0:2    # Addresses of that interface
 #
 # Enables of some commands:
 #PARAM	DEBUGcmd
@@ -108,7 +109,8 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 #
 # TLSv1/SSLv[23] parameters; all must be used for the system to work!
 #
-# See  http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
+# See  doc/guides/openssl,  or:
+# http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
 #
 #PARAM	use-tls
 #PARAM	tls-CAfile	@MAILVAR@/db/smtpserver-CAcert.pem
@@ -132,6 +134,16 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 #PARAM rcvd-auth-user	# Authenticated Username
 #PARAM rcvd-tls-mode	# Cipher, or not
 #PARAM rcvd-tls-peer	# Client Certificate reference
+
+# A load-balanced server cluster may want to communicate
+# the ETRN request to cluster components, here is how:
+# See also:  doc/guides/etrn-cluster
+#
+#PARAM etrn-cluster localhost (node-1-name-or-address)
+#PARAM etrn-cluster node-2-name-or-address
+#PARAM etrn-cluster node-3-name-or-address
+#...
+#PARAM etrn-cluster node-40-name-or-address
 
 #
 #

@@ -217,7 +217,7 @@ const char *buf, *cp;
 		SS->mfp = NULL;
 		reporterr(SS, tell, "message file close failed");
 	    } else {
-		/* Ok, build responce with proper "spoolid" */
+		/* Ok, build response with proper "spoolid" */
 		char fnam[20], taspid[30];
 		sprintf(fnam, "%d", ino);
 		taspoolid(taspid, mtime, (long)ino);
@@ -414,7 +414,7 @@ type(NULL,0,NULL,
 	  SS->mfp = NULL;
 	  reporterr(SS, tell, "message file close failed");
 	} else {
-	  /* Ok, build responce with proper "spoolid" */
+	  /* Ok, build response with proper "spoolid" */
 	  char taspid[30];
 	  taspoolid(taspid, mtime, inum);
 

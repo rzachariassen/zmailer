@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "8 Feb 2000"
+.TH SMTPSERVER 8 "12 Feb 2000"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -306,7 +306,7 @@ input. Exit status 0 means successful authentication.
 
 .B It is relatively easy to make a mistake in external authentication
 .B program that follows the specification. Use this option only if
-.B you know exactly what you do!
+.B you know exactly what you do! BE CAREFULL!
 
 .IP PARAM\ No8BITMIME
 .IP PARAM\ NoCHUNKING
@@ -346,6 +346,23 @@ Default values are (0, 0).  Delay tops at 250 (seconds).
 The ``n1'' is used as the initial tarpit delay, and ``n2'' is
 multiplier for formula:
 .I next = prev + (prev * n2)
+
+.IP PARAM\ rcvd\-ident
+.IP PARAM\ rcvd\-whoson
+.IP PARAM\ rcvd\-auth\-user
+.IP PARAM\ rcvd\-tls\-mode
+.IP PARAM\ rcvd\-tls\-peer
+This quintet controls what possibly collected data is shown at
+the published ``Received:'' header that this system generates.
+
+.IP PARAM\ etrn\-cluster\ node\-name\-or\-address
+In load-balance clusters a network level load-balancer may distribute
+the incoming SMTP connections to multiple real machines, and by using
+this parameter (repeatedly) to list those peers, system can relay
+user initiated ETRN requests to all cluster nodes.
+.PP
+.I This method requires that the scheduler runs its mailq service
+.I in MAILQv2 mode!
 
 .IP Here\ is\ a\ possible\ configuration\ file:
 .sp
@@ -460,7 +477,8 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 # TLSv1/SSLv[23] parameters;
 # all must be used for the system to work!
 #
-# See  http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
+# See   doc/guides/openssl,  or:
+# http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
 #
 #PARAM  use-tls
 #PARAM  tls-CAfile      /opt/mail/db/smtpserver-CAcert.pem
@@ -483,6 +501,16 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 #PARAM rcvd-auth-user   # Authenticated Username
 #PARAM rcvd-tls-mode    # Cipher or not
 #PARAM rcvd-tls-ccert   # Client Certificate reference
+
+# A load-balanced server cluster may want to communicate
+# the ETRN request to cluster components, here is how:
+# See also:  doc/guides/etrn-cluster
+#
+#PARAM etrn-cluster localhost (node-1-name-or-address)
+#PARAM etrn-cluster node-2-name-or-address
+#PARAM etrn-cluster node-3-name-or-address
+#...
+#PARAM etrn-cluster node-40-name-or-address
 
 #
 #

@@ -406,10 +406,11 @@ const char *host;
 	  myaddrs = sa;
 	  nmyaddrs = sacnt;
 
-	  return;
 	}
 
-	/* Didn't get any by probeing interfaces ?! Lets use environment .. */
+	/* Independent of getting (or not) of interface data, stash in
+	   also whatever we can get from our environment.  Thus was
+	   we can block CLUSTER input addresses, for example. */
 
 	zenv = getzenv("SELFADDRESSES");
 

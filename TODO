@@ -8,19 +8,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 - scheduler + mailq: Complete the V2 protocol authentication,
   and turn it into mandated default mode.
 
-- smtp TA  *sometimes* bounces messages with remote giving
-  heaps of ``bad command''.  It all sounds very much like
-  something breaks, and wrong stuff gets sent out.  Data/Dot
-  encoding fails in some combinations ??  At nic.funet.fi
-  I see it every 1-3 days..
-	Cured around 25-Jan-2000 ??? (for 2.99.52patch2)
-	Cured around 02-Feb-2000 ???
-
-  (3-Feb-2000)
-  Perhaps yes - additional debug statements do show
-  that there are *different* connections where these
-  timeouts happen -- backup MXes..
-
 
 - smtp TA (all TAs ??) leak memory in MIME header processing.
   (or something else ?)
@@ -95,6 +82,14 @@ transports/smtp:
 	  D with lower preferrence..
 	  (Noting that all MX-hosts with same or larger privilege,
 	   than ourselves are to be pre-removed from the list!)
+
+	- BIND to INTERFACE's address -- assuming a set of servers
+	  has their system setups defining that a eth0:1 has individual
+	  addresses, and servers are wanted to be attached at said
+	  *interface's* address, *and* that each node has identical
+	  ZMailer configuration, binding needs to be done by interface
+	  "name" as well as by literal addresses.
+	  (This is for the '-L' option.)
 
 	- We violate RFC 1123 part 5.2.2 which says that at MAIL FROM
 	  and at RCPT TO the domain parts MUST be primary DNS objects,
@@ -176,6 +171,18 @@ transports/smtp:
 	  living connection...
 
 - smtpserver
+  - Cluster ETRN ???
+	When SMTPSERVER gets an ETRN request, it could use
+	MAILQv2 to communicate the info to the scheduler(s)
+	in load-balance/redundant cluster
+
+  - BIND to INTERFACE's address -- assuming a set of servers
+    has their system setups defining that a eth0:1 has individual
+    addresses, and servers are wanted to be attached at said
+    *interface's* address, *and* that each node has identical
+    ZMailer configuration, binding needs to be done by interface
+    "name" as well as by literal addresses.
+
   - Control somehow if lack of configuration and/or PolicyDB is
     a system security offence, or not..
 

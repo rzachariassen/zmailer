@@ -3653,6 +3653,13 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  tv.tv_sec = timeout;
 	  tv.tv_usec = 0;
 
+	  if (sffileno(SS->smtpfp) < 0  &&  timeout > 300) {
+	    /* Earlier write failure has bitten us, and we
+	       arrived into DOT-WAIT, or some such.. */
+	    /* Cut this wait down to 5 minutes */
+	    tv.tv_sec = 300;
+	  }
+
 	  _Z_FD_ZERO(rdset);
 	  _Z_FD_SET(infd,rdset);
 

@@ -123,6 +123,8 @@ static void cfparam(str)
 	  }
 	  bindaddr.v4.sin_family = AF_INET;
 	} else {
+	  /* XXX: TODO: Try to see if this is an interface name, and pick
+	     IPv4 and/or IPv6 addresses for that interface. */
 	  bindaddr_set = 0;
 	}
     }
@@ -275,8 +277,15 @@ static void cfparam(str)
 #ifdef HAVE_OPENSSL
       sscanf(param1,"%d", & tls_scache_timeout);
 #endif /* - HAVE_OPENSSL */
-
     }
+
+    /* Cluster-wide ETRN support for load-balanced smtp relay use */
+    else if (cistrcmp(name, "etrn-cluster") == 0 && param1) {
+      static int idx = 0;
+      if (idx < MAX_ETRN_CLUSTER_IDX)
+	etrn_cluster[idx++] = strdup(param1);
+    }
+
     else {
       /* XX: report error for unrecognized PARAM keyword ?? */
     }

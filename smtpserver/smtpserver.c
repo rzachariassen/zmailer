@@ -217,6 +217,7 @@ int ehlo_ok = 1;
 int etrn_ok = 1;
 int starttls_ok = 0;
 int msa_mode = 0;
+char *etrn_cluster[MAX_ETRN_CLUSTER_IDX] = { NULL, };
 char *tls_cert_file = NULL;
 char *tls_key_file  = NULL;
 char *tls_CAfile    = NULL;
@@ -2250,9 +2251,6 @@ type220headers(SS, identflg, xlatelang, curtime)
       
       le = linebuf + sizeof(linebuf) -1;
       l  = linebuf;
-
-      sprintf(l, "%03d%c", 220, c);
-      l += strlen(l);
 
       /* The format meta-tags:
        *
