@@ -3630,7 +3630,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  if (r < 0 && errno == EINTR) goto do_reread;
 	  if (r == 1) {
 	    r = smtp_nbread(SS, (char*)cp, sizeof(buf) - (cp - buf));
-	    if (errno == EINTR) goto do_reread;
+	    if (r < 0 && errno == EINTR) goto do_reread;
 	  } else {
 	    if (r == 0)
 	      gotalarm = 1;
