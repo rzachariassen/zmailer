@@ -74,10 +74,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <arpa/nameser.h> /* Sol 2.6 barfs without this.. */
 #include <resolv.h>
 #include <sys/un.h>
@@ -167,7 +167,7 @@ getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
   int serrno = errno;
   int ok = 0;
 
-  if (sa == NULL || addrlen < sizeof (sa_family_t))
+  if (sa == NULL || addrlen < sizeof (sa->sa_family))
     return -1;
 
   switch (sa->sa_family) {

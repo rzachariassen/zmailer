@@ -74,10 +74,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <arpa/nameser.h> /* Sol 2.6 barfs without this.. */
 #include <resolv.h>
 #include <sys/un.h>
@@ -122,7 +122,7 @@ struct gaih_addrtuple {
   struct gaih_addrtuple *next;
   int family;
   char addr[16];
-  uint32_t scopeid;
+  unsigned int scopeid;
 };
 
 struct gaih_typeproto {
@@ -482,7 +482,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
     if (req->ai_family == 0 || req->ai_family == AF_INET) {
       atr->family = AF_INET;
       if ((req->ai_flags & AI_PASSIVE) == 0)
-	*(uint32_t *) atr->addr = htonl (INADDR_LOOPBACK);
+	*(unsigned int *) atr->addr = htonl (INADDR_LOOPBACK);
     }
   }
 
