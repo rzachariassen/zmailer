@@ -3546,10 +3546,8 @@ smtp_sync(SS, r, nonblocking)
 	    if (len < 0)
 	      err = errno;
 
-#ifdef HAVE_OPENSSL
 	    /* Actually can come here with len >= 0 ! */
 	  have_some_data:
-#endif
 
 	    if (len < 0) {
 	      /* Some error ?? How come ?
