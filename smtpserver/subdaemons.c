@@ -461,10 +461,13 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		      /* Sigh..  partial write :-( */
 		      peer->outptr += rc;
 		      rc = peer->outlen - peer->outptr;
+		      /* (rc > 0) */
 		      memmove(peer->outbuf, peer->outbuf+peer->outptr, rc);
 		      peer->outptr = 0;
 		      peer->outlen = rc;
 		    }
+		    /* Clean debug outputs */
+		    peer->outbuf[ peer->outlen ] = 0;
 		  }
 		} /* ... Writability testing */
 

@@ -289,6 +289,7 @@ subdaemon_handler_rtr_input (state, peerdata)
 	  RTR->bufsize    = 0;
 	  RTR->sawhungry  = 0;
 	  peerdata->inlen = 0;
+	  peerdata->inpbuf[0] = 0;
 
 	  return 0; /* I _MAY_ be able to take more work! */
 	}
@@ -314,9 +315,10 @@ subdaemon_handler_rtr_killpeer (state, peerdata)
 
 	  RTR->replypeer = NULL;
 
-	  RTR->bufsize    = 0;
-	  RTR->sawhungry  = 0;
-	  peerdata->inlen      = 0;
+	  RTR->bufsize        = 0;
+	  RTR->sawhungry      = 0;
+	  peerdata->inlen     = 0;
+	  peerdata->inpbuf[0] = 0;
 
 	  break;
 	}
