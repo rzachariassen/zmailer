@@ -1,5 +1,8 @@
 2003-05-20  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in:
+	    Mark version: 2.99.56-pre6
+
 	* router/rfc822.c:
 	    Eugene Crosser reported that envelope header
 	    "with" without a value does cause router process
