@@ -45,7 +45,7 @@ BEGIN{FS="\t =";}
 /^MAJORVERSION/{major=$2}
 /^MINORVERSION/{minor=$2}
 /^PATCHLEVEL/{patch=$2}
-END{printf "%s.%s.%s\n",major,minor,patch;}'`
+END{printf "%s.%s.%s\n",major,minor,patch;}' < Makefile`
 
 echo "ZVERSION=$ZVERSION"
 
