@@ -4191,7 +4191,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    SS->remotemsg[0] = 0;
 	    rmsgappend(SS, 0, "\r<<- (null)");
 	  }
-	} else {
+	} else if (strbuf != NULL) {
 	  /* socket closed outwards, commands not written! */
 	  if (strbuf)
 	    rmsgappend(SS, 0, "\rWrite Failure; shunted cmd: %s", strbuf);
