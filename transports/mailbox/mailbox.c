@@ -340,7 +340,7 @@ extern void setrootuid __((struct rcpt *));
 extern void process __((struct ctldesc *dp));
 extern void deliver __((struct ctldesc *dp, struct rcpt *rp, const char *userbuf, const char *timestring));
 extern Sfio_t *putmail __((struct ctldesc *dp, struct rcpt *rp, int fdmail, const char *fdopmode, const char *timestring, const char *file));
-extern int appendlet __((struct ctldesc *dp, struct rcpt *rp, Sfio_t *fp, const char *file, int ismime));
+extern int appendlet __((struct ctldesc *dp, struct rcpt *rp, struct writestate *WS, const char *file, int ismime));
 extern char **environ;
 extern int writebuf __((struct writestate *, const char *buf, int len));
 extern int writemimeline __((struct writestate *, const char *buf, int len));
@@ -1761,6 +1761,61 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	return;
 }
 
+
+/*
+ * SFIO write discipline which ignores PIPE write errors (EPIPE)
+ * and just claims success at them.  Otherwise quite normal
+ * error processing.
+ *
+ */
+
+ssize_t
+mbox_sfwrite(sfp, vp, len, discp)
+     Sfio_t *sfp;
+     const void * vp;
+     size_t len;
+     Sfdisc_t *discp;
+{
+    struct wsdisc *wd = (struct wsdisc *)discp;
+    struct writestate *WS = wd->WS;
+    const char * p = (const char *)vp;
+    int outlen = 0;
+
+    /* If knowingly write to a pipe, and failing with EPIPE,
+       *then* silently ignore it.. */
+
+    if (WS->epipe_seen > 0) return len; /* We ignore - fast - the EPIPE */
+
+    while (len > 0) {
+      int rc = write(sffileno(sfp), p, len);
+      int e  = errno;
+
+if (verboselog)
+  fprintf(verboselog, " mbox_sfwrite(ptr, len=%d) rc=%d errno=%d\n",
+	  (int)len, rc, e);
+
+      if (rc < 0) {
+	if (e == EPIPE && WS->epipe_seen >= 0) {
+	  WS->epipe_seen = 1;
+	  return len + outlen; /* CLAIM success */
+	}
+	/* Retry on interrupts */
+	if (e == EINTR)
+	  continue;
+	errno = e;
+	/* All other errors, return written amount, or if none, then error! */
+	if (outlen == 0)
+	  return rc;
+	return outlen;
+      }
+      outlen += rc;
+      len    -= rc;
+      p      += rc;
+    }
+    return outlen;
+}
+
+
 Sfio_t *
 putmail(dp, rp, fdmail, fdopmode, timestring, file)
      struct ctldesc *dp;
@@ -1776,6 +1831,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	int lastch = 0xFFF;
 	int topipe = (*(file) == TO_PIPE);
 	int failed = 0;
+	struct writestate WS;
 
 	fstat(fdmail, &st);
 
@@ -1786,6 +1842,23 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 		      fdmail,fdopmode);
 	  return NULL;
 	}
+
+
+	WS.fp     = fp;
+	WS.expect = mmdf_mode ? 0 : 'F';
+	WS.lastch = 256;	/* Something no character can be,
+				   and not "-1" either.. */
+	WS.frombuf[0] = 0;
+	WS.fromp = WS.frombuf;
+	WS.epipe_seen = topipe ? 0 : -1;
+	memset(&WS.WSdisc, 0, sizeof(WS.WSdisc));
+	WS.WSdisc.D.readf   = NULL;
+	WS.WSdisc.D.writef  = mbox_sfwrite;
+	WS.WSdisc.D.seekf   = NULL;
+	WS.WSdisc.D.exceptf = NULL;
+	WS.WSdisc.WS        = &WS;
+	sfdisc(WS.fp, &WS.WSdisc.D);
+
 
 	if (!topipe && eofindex > 0L) {
 
@@ -1922,7 +1995,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	  fp = NULL;
 	  goto time_reset;
 	}
-	lastch = appendlet(dp, rp, fp, file, is_mime);
+	lastch = appendlet(dp, rp, &WS, file, is_mime);
 
 	sfsync(fp);
 
@@ -2715,52 +2788,6 @@ setrootuid(rp)
 	currenteuid = 0;
 }
 
-/*
- * SFIO write discipline which ignores PIPE write errors (EPIPE)
- * and just claims success at them.  Otherwise quite normal
- * error processing.
- *
- */
-
-ssize_t
-mbox_sfwrite(sfp, vp, len, discp)
-     Sfio_t *sfp;
-     const void * vp;
-     size_t len;
-     Sfdisc_t *discp;
-{
-    struct wsdisc *wd = (struct wsdisc *)discp;
-    struct writestate *WS = wd->WS;
-    const char * p = (const char *)vp;
-    int outlen = 0;
-
-    if (WS->epipe_seen) return len; /* We ignore - fast - the EPIPE */
-
-    while (len > 0) {
-      int rc = write(sffileno(sfp), p, len);
-      int e  = errno;
-if (verboselog)
-  fprintf(verboselog, " mbox_sfwrite(ptr, len=%d) rc=%d errno=%d\n", len,rc,e);
-      if (rc < 0) {
-	if (e == EPIPE) {
-	  WS->epipe_seen = 1;
-	  return len + outlen; /* CLAIM success */
-	}
-	/* Retry on interrupts */
-	if (e == EINTR)
-	  continue;
-	errno = e;
-	/* All other errors, return written amount, or if none, then error! */
-	if (outlen == 0)
-	  return rc;
-	return outlen;
-      }
-      outlen += rc;
-      len    -= rc;
-      p      += rc;
-    }
-    return outlen;
-}
 
 /*
  * appendlet - append letter to file pointed at by fd
@@ -2769,15 +2796,13 @@ if (verboselog)
  *
  */
 int
-appendlet(dp, rp, fp, file, ismime)
+appendlet(dp, rp, WS, file, ismime)
      struct ctldesc *dp;
      struct rcpt *rp;
-     Sfio_t *fp;
+     struct writestate *WS;
      int ismime;
      const char *file;
 {
-	struct writestate WS;
-
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	register int i;
 	register int bufferfull;
@@ -2787,20 +2812,6 @@ appendlet(dp, rp, fp, file, ismime)
 	char *s;
 #endif
 
-	WS.fp     = fp;
-	WS.expect = mmdf_mode ? 0 : 'F';
-	WS.lastch = 256;	/* Something no character can be,
-				   and not "-1" either.. */
-	WS.frombuf[0] = 0;
-	WS.fromp = WS.frombuf;
-	WS.epipe_seen = 0;
-	memset(&WS.WSdisc, 0, sizeof(WS.WSdisc));
-	WS.WSdisc.D.readf   = NULL;
-	WS.WSdisc.D.writef  = mbox_sfwrite;
-	WS.WSdisc.D.seekf   = NULL;
-	WS.WSdisc.D.exceptf = NULL;
-	WS.WSdisc.WS        = &WS;
-	sfdisc(WS.fp, &WS.WSdisc.D);
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 
@@ -2819,7 +2830,7 @@ appendlet(dp, rp, fp, file, ismime)
 	      if (*s == '\n' && readidx < readalready) {
 		++s; ++linelen; ++readidx;
 	      }
-	      if (writemimeline(&WS, s0, linelen) != linelen) {
+	      if (writemimeline(WS, s0, linelen) != linelen) {
 		DIAGNOSTIC(rp, file, EX_IOERR,
 			   "write to \"%s\" failed(1)", file);
 		return -256;
@@ -2827,7 +2838,7 @@ appendlet(dp, rp, fp, file, ismime)
 	      s0 = s;
 	    }
 	    rp->status = EX_OK;
-	    return WS.lastch;
+	    return WS->lastch;
 	  }
 
 	  lseek(mfd, (off_t)dp->msgbodyoffset, SEEK_SET);
@@ -2848,7 +2859,7 @@ appendlet(dp, rp, fp, file, ismime)
 		let_buffer[sizeof(let_buffer)-1] != '\n')
 	      ismime = 0;
 	    /* Ok, write the line */
-	    if (writemimeline(&WS, let_buffer, i) != i) {
+	    if (writemimeline(WS, let_buffer, i) != i) {
 	      DIAGNOSTIC(rp, file, EX_IOERR, "write to \"%s\" failed(2)", file);
  	      MFPCLOSE;
 	      return -256;
@@ -2866,13 +2877,13 @@ appendlet(dp, rp, fp, file, ismime)
 
 	  /* can we use cache of message body data ? */
 	  if (readalready != 0) {
-	    if (writebuf(&WS, let_buffer, readalready) != readalready) {
+	    if (writebuf(WS, let_buffer, readalready) != readalready) {
 	      DIAGNOSTIC(rp, file, EX_IOERR,
 			 "write to \"%s\" failed(3)", file);
 	      return -256;
 	    }
 	    rp->status = EX_OK;
-	    return WS.lastch;
+	    return WS->lastch;
 	  }
 
 	  /* Make sure we are properly positioned at the start
@@ -2889,7 +2900,7 @@ appendlet(dp, rp, fp, file, ismime)
 	      readalready = 0;
 	      return -256;
 	    }
-	    if (writebuf(&WS, let_buffer, i) != i) {
+	    if (writebuf(WS, let_buffer, i) != i) {
 	      DIAGNOSTIC(rp, file, EX_IOERR, "write to \"%s\" failed(4)", file);
 	      readalready = 0;
 	      return -256;
@@ -2911,7 +2922,7 @@ appendlet(dp, rp, fp, file, ismime)
 	    i = 0;
 	    while (s2 < dp->let_end && *s2 != '\n') ++s2, ++i;
 	    if (s2 < dp->let_end && *s2 == '\n') ++s2, ++i;
-	    if (writemimeline(&WS, s, i) != i) {
+	    if (writemimeline(WS, s, i) != i) {
 	      DIAGNOSTIC(rp, file, EX_IOERR,
 			 "write to \"%s\" failed(5)", file);
 	      return -256;
@@ -2919,14 +2930,14 @@ appendlet(dp, rp, fp, file, ismime)
 	    s = s2;
 	  }
 	} else {
-	  if (writebuf(&WS, s, dp->let_end - s) != (dp->let_end - s)) {
+	  if (writebuf(WS, s, dp->let_end - s) != (dp->let_end - s)) {
 	      DIAGNOSTIC(rp, file, EX_IOERR,
 			 "write to \"%s\" failed(6)", file);
 	      return -256;
 	  }
 	}
 #endif
-	return WS.lastch;
+	return WS->lastch;
 }
 
 
