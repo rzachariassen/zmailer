@@ -105,7 +105,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 #		;;
 	(.*)<@\[(.+)\]>(.*)
 		# numeric internet spec
-		if $(selfmatch "\2") ; then
+		if [ "$(selfmatch "\2")" ] ; then
 			address="\1$plustail<@>\3"
 			domain="@[\2]"
 			plustail=""

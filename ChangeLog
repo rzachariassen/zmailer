@@ -1,3 +1,14 @@
+2004-04-23  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/rrouter.cf:
+	    Bug in treatment of addresses where the domain part
+	    has IP address literal:  local@[1.2.3.4]
+	    The net result was scary attempt of execution of
+	    commands that have names like:  "1.2.3.4",
+	    which naturally always failed resulting failure
+	    of doing detection of intended "this is local IP
+	    address in this system".
+
 2004-04-22  Matti Aarnio  <mea@zmailer.org>
 
 	* SiteConfig.in, man/man-index.sh, man/smtpserver.8.in:
