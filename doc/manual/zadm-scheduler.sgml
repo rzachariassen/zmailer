@@ -1,34 +1,40 @@
-<CHAPTER ID="ZADM-SCHEDULER">
+<CHAPTER ID="ZADM-SCHEDULER"><?dbhtml filename="zadm-scheduler.html">
 <TITLE>Scheduler Configuration</TITLE>
 
-<SCREEN>
-% \section{Scheduler Configuration}
-
-The {\em scheduler} is the part of the ZMailer that manages
+<PARA>
+The <EMPHASIS>scheduler</> is the part of the ZMailer that manages
 message processing outbound from the MTA proper.
+</PARA>
 
-%\begin{multicols}{2}
+<PARA>
+The major action of the <EMPHASIS>scheduler</> is to periodically
+start up <EMPHASIS>Transport Agents</> and tell them what to do.
+This is controlled by a table in a configuration file that is read by the
+<EMPHASIS>scheduler</> when it starts.  
+</PARA>
 
-The major action of the Scheduler is to periodically start up Transport
-Agents and tell them what to do.  This is controlled by a table in a
-configuration file that is read by the Scheduler when it starts.  
+<PARA>
+Any line starting with a ``#'' character is assumed to be a comment 
+line, and is ignored, as are empty lines.
+All other lines must follow a rigid format. 
+</PARA>
 
-Any line starting with a `{\tt \#}' character is assumed to be a comment 
-line, and is ignored, as are empty lines.  All other lines must follow a rigid
-format. 
+<PARA>
+The <EMPHASIS>scheduler</> configuration file consists of a set of clauses.
+Each clause is selected by the pattern it starts with.
+The patterns for the clauses are matched, in sequence, with
+the <EMPHASIS>channel/host</> string for each recipient address.
+When a clause pattern matches an address, the parameters set in
+the clause will be applied to the scheduler's processing of that address.
+If the clause specifies a command, the clause pattern matching sequence
+is terminated.
+Example of the clause can be seen in figure
+<XREF LINKEND="fig.adm.clause-example">.
+</PARA>
 
-The scheduler configuration file consists of a set  of
-clauses. Each clause is selected by the pattern it starts
-with. The patterns  for  the  clauses   are  matched,  in
-sequence, with the channel/host string for each recipient
-address. When a clause pattern matches  an  address,  the
-parameters set in the clause will be applied to the scheduler's 
-processing of that address. If the clause specifies a command,  
-the clause pattern matching sequence is terminated.
-Example of the clause can be seen in figure \vref{fig:adm:clause_example}.
-
-\begin{figure*}
-\begin{alltt}\hrule\medskip
+<FIGURE ID="fig.adm.clause-example">
+<TITLE>Example of <FILENAME>scheduler.conf</> clause</TITLE>
+<SCREEN>
 local/*
         interval=10s
         expiry=3h
@@ -37,85 +43,116 @@ local/*
         # want 20 thread-ring slots
         maxring=20
         command="mailbox -8"
-\medskip\hrule\end{alltt}\medskip
-\caption{\label{fig:adm:clause_example}Example of {\tt scheduler.conf} clause}
-\end{figure*}
+</SCREEN>
+</FIGURE>
 
+<PARA>
 A clause consists of:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+A selection pattern  (in  shell style) that  is matched  against
+the  channel/host  string  for an address.
+</PARA></LISTITEM>
 
-\begin{itemize}
-\item A selection pattern  (in  shell style) that  is
-matched  against        the  channel/host  string  for an
-address.
-\item 0  or more  variable assignments or keywords
+<LISTITEM><PARA>
+0  or more  variable assignments or keywords
 (described below).
-\end{itemize}
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
 
-
+<PARA>
 If the selection pattern does not contain a '/', it is
 assumed to be a channel pattern and the host  pattern  is
 assumed to be the wildcard '*'.
+</PARA>
 
+<PARA>
 The components of a clause are separated by whitespace.
 The pattern introducing a clause must start in the first
 column of a line, and the variable assignments or keywords
 inside a clause must not start in the first  column of a
 line. This means a clause may be written both compactly
 all on one line, or spread out with an assignment or keyword per line.
+</PARA>
 
+<PARA>
 If the clause is empty (i.e., consists only of a pattern),
 then the contents of the next non-empty clause will be used.
+</PARA>
 
+<PARA>
 The typical configuration file will contain the following clauses:
-\begin{itemize}
-\item a clause matching all addresses (using the pattern */*) that sets 
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+a clause matching all addresses (using the pattern */*) that sets 
 up default values.
-\item a  clause  matching  the  local delivery channel
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ a  clause  matching  the  local delivery channel
 (usually local).
-\item a clause matching the deferred    delivery  channel
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ a clause matching the deferred    delivery  channel
 (usually hold).
-\item a  clause  matching  the error reporting channel
+</PARA></LISTITEM>
+
+<LISTITEM><PARA>
+ a  clause  matching  the error reporting channel
 (usually error).
-\item clauses specific to the other channels    known  by
-the {\em router}, for example, smtp and uucp.
-\end{itemize}
+</PARA></LISTITEM>
 
+<LISTITEM><PARA>
+clauses specific to the other channels  known  by
+the <EMPHASIS>router</>, for example: smtp and uucp.
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
 
-The  actual  names  of  these channels are completely 
-controlled by the {\em router} configuration file.
+<PARA>
+The actual names of these channels are completely controlled
+by the <EMPHASIS>router</> configuration file.
+</PARA>
 
-Empty  lines,  and  lines   whose   first   non-whitespace
-character is '\#', are ignored.
+<PARA>
+Empty lines, and lines whose first non-whitespace character is
+``#'', are ignored.
+</PARA>
 
-Variable values may be unquoted words or values or double 
-quoted strings.  Intervals  (delta  time)  are  specified
-using  a concatenation of: numbers suffixed with 's', 'm',
-'h', or 'd' modifiers designating the number as a  second,
-minute, hour, or day value.  For example: 1h5m20s.
+<PARA>
+Variable values may be unquoted words or values or double quoted strings.
+Intervals (delta time) are specified using a concatenation of numbers
+suffixed with 's', 'm', 'h', or 'd'; modifiers designating the number
+as a second, minute, hour, or day value.  For example: 1h5m20s.
+</PARA>
 
+<PARA>
 The known variables and keywords, and their typical values
 and semantics are:
-
-\begin{description}
-
-\item[\tt interval \rm(1m)] \mbox{} \\
+<VARIABLELIST>
+<VARLISTENTRY><TERM>interval (1m)</TERM><LISTITEM><PARA>
 specifies the primary retry interval, which determines how frequently a 
 transport agent should be scheduled for an address. The value is a delta
 time specification. This value, and the retries value mentioned below, 
 are combined to determine the interval between each retry attempt.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt idlemax] \mbox{} \\
+<VARLISTENTRY><TERM>idlemax</TERM><LISTITEM><PARA>
 When a transport agent runs out of jobs, they are moved
 to ``idle pool'', and if a transport agent spends more than idlemax
 time in there, it is terminated.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt expiry \rm(3d)] \mbox{} \\
+<VARLISTENTRY><TERM>expiry (3d)</TERM><LISTITEM><PARA>
 specifies  the  maximum age of an address in the scheduler 
 queue before  a repeatedly  deferred  address  is
 bounced with an expiration error.  The actual report is
 produced when all addresses have been processed.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt retries \rm(1 1 2 3 5 8 13 21 34)] \mbox{} \\
+<VARLISTENTRY><TERM>retries (1 1 2 3 5 8 13 21 34)</TERM><LISTITEM><PARA>
 specifies the retry interval policy  of the scheduler 
 for an address. The value must be a sequence of positive integers, these 
 being multiples of the primary interval  before  a  retry is scheduled. 
@@ -123,39 +160,61 @@ The scheduler starts by going through the sequence as an  address  is
 repeatedly deferred. When the end of the sequence is reached, the scheduler 
 will jump into the sequence at a random  spot and continue towards the end.  
 This allows various retry strategies to be specified easily:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>
+brute force (or ``jackhammer'')
+</TERM><LISTITEM><PARA>
+retries=0
+</PARA></LISTITEM></VARLISTENTRY>
 
-\begin{description}
-\item[\rm brute force (or ``jackhammer'')]\mbox{} \\
-{\tt  retries=0 }
+<VARLISTENTRY><TERM>
+constant primary interval
+</TERM><LISTITEM><PARA>
+retries=1
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\rm constant primary interval]\mbox{}\\
-{\tt  retries=1 }
+<VARLISTENTRY><TERM>
+instant backoff
+</TERM><LISTITEM><PARA>
+retries="1 50 50 50 50 50 50 50 50 50 50 50 50"
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\rm instant backoff]\mbox{}\\
-{\tt  retries="1 50 50 50 50 50 50 50 50 50 50 50 50" }
+<VARLISTENTRY><TERM>
+slow increasing (fibonacci) sequence
+</TERM><LISTITEM><PARA>
+retries="1 1 2 3 5 8 13 21 34"
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\rm slow increasing (fibonacci) sequence]\mbox{}\\
-{\tt  retries="1 1 2 3 5 8 13 21 34" }
+<VARLISTENTRY><TERM>
+s-curve sequence
+</TERM><LISTITEM><PARA>
+etries="1 1 2 3 5 10 20 25 28 29 30"
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\rm s-curve sequence]\mbox{}\\
-{\tt  retries="1 1 2 3 5 10 20 25 28 29 30" }
+<VARLISTENTRY><TERM>
+exponential sequence
+</TERM><LISTITEM><PARA>
+retries="1 2 4 8 16 32 64 128 256"
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\rm exponential sequence]\mbox{}\\
-{\tt  retries="1 2 4 8 16 32 64 128 256" }
+<VARLISTENTRY><TERM>maxta (0)</TERM><LISTITEM><PARA>
+FIXME: REVISE RESOURCE CHECK NOTES!
+if retrying an address would cause the number of simultaneously active
+transport agents to exceed the specified value, the retry is postponed.
+The check is repeated frequently so the address may be retried as soon
+as possible after the scheduled retry interval.
+If the value is 0, a value of 1000 is used instead.
+Keep in mind that all running transport agents will keep open two
+<FUNCTION>pipe</>(2) file-handles, (or one <FUNCTION>socketpair</>(2),
+if system has such bidirectional pipe entity,) and thus system-wide
+limits may force a lower maximum than 1000.
+On a system with a maximum of 256 open files, this would most likely
+succeed at 120.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\end{description}
-
-\item[\tt maxta \rm(0)]\mbox{}\\
-if retrying an address would cause the number of simultaneously 
-active transport agents to exceed the specified  value, the retry is  
-postponed. The check is repeated  frequently so  the address may be retried as
-soon as possible after the  scheduled  retry interval. If the value is 0, 
-a value of 1000 is used instead. Keep in mind that all  running  
-transport  agents  will  keep open two {\tt pipe(2)} file-handles, and thus 
-system-wide  limits may force a lower maximum than 1000. On a system
-with a maximum of 256 open files, this would most likely succeed at 120.
-
-\item[\tt maxchannel \rm(0)]\mbox{}\\
+<VARLISTENTRY><TERM>maxchannel (0)</TERM><LISTITEM><PARA>
 if retrying an address would cause the number of 
 simultaneously  active  transport agents processing mail for
 the same channel to exceed  the  specified  value,  the
@@ -163,15 +222,17 @@ retry  is  postponed.  The check is repeated frequently
 so the address may be retried as soon as possible after
 the  scheduled  retry  interval.   If the value is 0, a
 value of 1000 is used instead.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt maxring \rm(0)]\mbox{}\\
+<VARLISTENTRY><TERM>maxring (0)</TERM><LISTITEM><PARA>
 Recipients are groupped into ``threads'',  and  similar
 threads  are groupped into ``thread-rings'', where the same
 transport agent can be switched over from one recipient
 to another.  This defines how many transport agents can
 be running at any time at the ring.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt skew \rm(5)]\mbox{}\\
+<VARLISTENTRY><TERM>skew (5)</TERM><LISTITEM><PARA>
 is the maximum number of retries before the retry  time
 is aligned to a standard boundary (seconds since epoch,
 modulo primary interval).  The lower this number (1  is
@@ -179,49 +240,59 @@ lowest), the faster the alignment is done.  The purpose
 of this alignment is to ensure that eventually a single
 transport agent invokation will be able to process 
 destination addresses that arrived randomly at the  scheduler.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt user \rm(root)]\mbox{}\\
+<VARLISTENTRY><TERM>user (root)</TERM><LISTITEM><PARA>
 is  the  user  id  of  a transport agent processing the
 address.  The value is either numeric  (a  uid)  or  an
 account name.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt group \rm(daemon)]\mbox{}\\
+<VARLISTENTRY><TERM>group (daemon)</TERM><LISTITEM><PARA>
 is  the  group  id  of a transport agent processing the
 address.  The value is either  numeric  (a  gid)  or a
 group name.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt command \rm(smtp -srl \$\{LOGDIR\}/smtp \$\{host\})]\mbox{}\\
-is  the command line used to start a transport agent to
-process the address. The program pathname is specified
-relative  to the  {\tt \$MAILBIN/ta/}  directory.   The  string
-``\$\{channel\}'' is replaced by the current matched  channel,
-and  ``\$\{host\}'' is  replaced by the current matched host,
-from the destination address, and ``\$\{LOGDIR\}'' substitutes
-ZENV variable LOGDIR value there.  It is strongly 
-recommended that the ``\$\{host\}'' is not to be used on a command
-definition, as it limits the usability of the idled transporter.
+<VARLISTENTRY><TERM>command (smtp -srl ${LOGDIR}/smtp ${host}</TERM><LISTITEM><PARA>
+is the command line used to start a transport agent to process the address.
+The program pathname is specified relative to the
+<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/ta/</> directory.
+The string ``${channel}'' is replaced by the current matched channel,
+and ``${host}'' is replaced by the current matched host, from
+the destination address, and ``${LOGDIR}'' substitutes ZENV variable
+LOGDIR value there.
+</PARA><PARA>
+It is strongly recommended that the ``${host}'' is not to be used on
+a command definition, as it limits the recyclability of the idled transporter.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt bychannel]\mbox{}\\
-is a keyword (with no associated value) that tells  the
-scheduler  that  the transport  agent specified in the
-command will only process  destination  addresses  that
-match  the  first  destination  channel  it encounters.
-This is automatically set when  the  string  ``\$\{channel\}''
-occurs  in the command, but may also be specified manu-
-ally by this keyword.  This is rarely used.
+<VARLISTENTRY><TERM>bychannel</TERM><LISTITEM><PARA>
+is a keyword (with no associated value which tells the <EMPHASIS>scheduler</>
+that the transport agent specified in the command will only process
+destination addresses that match the first destination channel it encounters.
+</PARA><PARA>
+This is automatically set when the string ``${channel}'' occurs in
+the command, but may also be specified manually.
+This is rarely used.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt queueonly]\mbox{}\\
-a clause with queueonly flag does not auto-start at the
-arrival  of  a  message,  instead it must be started by
-means of {\em smtpserver(8)} command ETRN thru an  SMTP  connection.
+<VARLISTENTRY><TERM>queueonly</TERM><LISTITEM><PARA>
+a clause with queueonly flag does not auto-start at the arrival of a message,
+instead it must be started by means of <EMPHASIS>smtpserver</>(8) command
+ETRN thru an SMTP connection.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\end{description}
+<PARA>
+An example of full <FILENAME>scheduler.conf</> file is in
+figure <XREF LINKEND="fig.adm.full-schedconf-sample">.
+</PARA>
 
-An example of full {\tt scheduler.conf} file is in
-figure \vref{fig:adm:full_schedconf_sample}.
-
-\begin{figure*}
-\begin{alltt}\hrule\medskip
+<FIGURE ID="fig.adm.full-schedconf-sample">
+<TITLE>Example of full <FILENAME>scheduler.conf</> file</TITLE>
+<SCREEN>
 # Default values
 */*       interval=1m expiry=3d retries="1 1 2 3 5 8 13 21 34"
           maxring=0 maxta=0 skew=5 user=root group=daemon
@@ -233,40 +304,43 @@ hold/*    interval=5m maxchannel=1 command=hold
 # Miscellaneous channels supported by router configuration
 smtp/*.toronto.edu
 smtp/*.utoronto.ca maxchannel=10 maxring=2
-          command="smtp -srl $\{LOGDIR\}/smtp"
+          command="smtp -srl ${LOGDIR}/smtp"
 smtp      maxchannel=10 maxring=5
-          command="smtp -esrl $\{LOGDIR\}/smtp"
+          command="smtp -esrl ${LOGDIR}/smtp"
 
-uucp/*    maxchannel=5 command="sm -c $\{channel\} uucp"
-\medskip\hrule\end{alltt}\medskip
-\caption{\label{fig:adm:full_schedconf_sample}Example of full {\tt scheduler.conf} file}
-\end{figure*}
+uucp/*    maxchannel=5 command="sm -c ${channel} uucp"
+</SCREEN>
+</FIGURE>
 
+<PARA>
+The first clause (<EMPHASIS>*/*</>) sets up default values for all addresses.
+There is no command specification, so clause matching will continue after
+address have picked up the parameters set here.
+</PARA>
 
-The  first  clause  (*/*)  sets up default values for all
-addresses.  There is no command specification,  so  clause
-matching  will  continue  after address have picked up the
-parameters set here.
-
+<PARA>
 The third clause (error) has an implicit host wildcard  of
-'*',  so  it  would  match  the same as specifying error/*
+``*'',  so  it  would  match  the same as specifying <EMPHASIS>error/*</>
 would have.
+</PARA>
 
-The fifth clause ({\tt smtp/*.toronto.edu}) has no further  
+<PARA>
+The fifth clause (<EMPHASIS>smtp/*.toronto.edu</>) has no further  
 components so it selects the components of the following nonempty 
 clause (the sixth).
+</PARA>
 
-Both the fifth and sixth clauses are specific  to  address
-destinations  within the TORONTO.EDU and UTORONTO.CA 
-organization (the two  are  parallel  domains).   At  most  10
-deliveries to the smtp channel may be concurrently active,
-and at most 2 for all possible hosts  within  TORONTO.EDU.
-If \$host  is  mentioned in the command specification, the
-transport agent will only be told about the  message  control  
-files that indicate SMTP delivery to a particular
-host. The actual host is picked at random from the  current  
-choices, to avoid systematic errors leading to a deadlock of any queue.
+<PARA>
+Both the fifth and sixth clauses are specific to address destinations
+within the TORONTO.EDU and UTORONTO.CA organization (the two are parallel
+domains).
+At most 10 deliveries to the <EMPHASIS>smtp</> channel may be concurrently
+active, and at most 2 for all possible hosts within TORONTO.EDU.
+If ``$host'' is mentioned in the command specification, the
+<EMPHASIS>transport agent</> will only be told about the message control  
+files that indicate SMTP delivery to a particular host.
+The actual host is picked at random from the current choices, to avoid
+systematic errors leading to a deadlock of any queue.
+</PARA>
 
-%\end{multicols}
-</SCREEN>
 </CHAPTER>

@@ -1,18 +1,20 @@
-<CHAPTER ID="ZREF-TR-AGENTS">
+<CHAPTER ID="ZREF-TR-AGENTS"><?dbhtml filename="zref-tr-agents.html">
 <TITLE>Transport Agents</TITLE>
 
-<SCREEN>
-%% \section{Delivery agents}
-
+<PARA>
 The delivery agent programs normally form the final stage of message delivery.
+</PARA>
 
+<PARA>
 These programs vary in function and facilities based on what they are
 doing to the messages, and what kind of channels they handle.
+</PARA>
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
-\subsection{mailbox}
+<SECT1><TITLE>mailbox</TITLE>
 
+<SCREEN>
 The {\em mailbox} is a ZMailer transport agent which is usually
 only run by the {\em scheduler(8)} program to deliver mail to
 local user mailbox files. The {\em mailbox} program must be
@@ -255,18 +257,16 @@ message injection into this system. See RFC 1891 for details.
 \item {\tt MAILSHARE} is the value from ZENV.
 \end{enumerate}
 
+</SCREEN>
+</SECT1>
 
 
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<SECT1><TITLE>hold</TITLE>
 
-
-
-\subsection{hold}
-
-
-
+<SCREEN>
 hold - zmailer deferred processing transport agent
 
 {\bf Description}
@@ -376,17 +376,17 @@ log.
 
 The exit status is a code from &lt;sysexits.h&gt;.
 
+</SCREEN>
+</SECT1>
 
 
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<SECT1><TITLE>smtp</TITLE>
 
 
-\subsection{smtp}
-
-
-
+<SCREEN>
 {\em smtp} - zmailer SMTP client transport agent
 
 {\em smtp} is a ZMailer transport agent which is usually only
@@ -607,13 +607,16 @@ stripping method.
 
 
 
+</SCREEN>
+</SECT1>
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{sm}
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
-{\em sm} - zmailer Sendmail compatible transport agent
+<SECT1>
+<TITLE><EMPHASIS>sm</> - zmailer Sendmail compatible transport agent</TITLE>
 
+<SCREEN>
 {\em sm} is a ZMailer transport agent which is usually only run
 by the {\tt scheduler(8)}, to deliver messages by invoking a
 program with facilities and in a way compatible with a
@@ -678,11 +681,11 @@ There is no default. If this option is not specified, the {\tt -c} option must b
 prints a version message and exits.
 
 \end{description}
+</SCREEN>
 
+<SECT2 ID="ref.ta.smconfig"><TITLE>configuration of <EMPHASIS>sm</></TITLE>
 
-\subsubsection{configuration of \tt sm}
-\label{smconfig}
-
+<SCREEN>
 The configuration file associates the mailer keyword from
 the command line with a specification of a delivery program. 
 This is very similar to the way the definition of a
@@ -831,39 +834,61 @@ log.
 The exit status is a code from {\tt {\(&lt;\)}sysexits.h{\(&gt;\)}}.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+</SCREEN>
+</SECT2>
+</SECT1>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
 
-\subsection{libta - Transport Agent Support Library}
+<SECT1><TITLE>libta - Transport Agent Support Library</TITLE>
 
-
+<PARA>
 This is the library that all transport agents use, and several of its
 functions are intended to aid message processing.
+</PARA>
 
+<SECT2><TITLE>Function groupings</TITLE>
 
-\subsubsection{Function groupings}
-
+<PARA>
 Transport agent support library function groups are:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+Message file manipulation routines.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ Diagnostics routines.
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
 
-\begin{itemize}
-\item Message file manipulation routines.
-\item Diagnostics routines.
-\end{itemize}
+</SECT2>
 
+<SECT2><TITLE>Function listings</TITLE>
 
-\subsubsection{Function listings }
-
+<PARA>
 Text to be inserted here.
+</PARA>
 
-\subsubsection{Function usage examples}
+</SECT2>
 
+<SECT2><TITLE>Function usage examples</TITLE>
+
+<PARA>
 Text to be inserted here.
+</PARA>
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+</SECT2>
+</SECT1>
 
-\subsection{Security Issues}
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
+<SECT1><TITLE>Security Issues</TITLE>
+
+<PARA>
 Text to be inserted here.
+</PARA>
 
-</SCREEN>
+</SECT1>
+
 </CHAPTER>

@@ -15,7 +15,7 @@ PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 	zapp-tragents.sgml      zref-utilities.sgml		\
 	zinstall.sgml           zref-zmailer3.sgml		\
 	zreference.sgml		zref-rmail.sgml			\
-	ztutorial.sgml		zappendixes.sgml		\
+	ztutorial.sgml		zappendices.sgml		\
 	zadm-dnsissues.sgml	zadm-router.sgml		\
 	zadm-sm.sgml		zadm-logging.sgml		\
 	zadm-scheduler.sgml	zadm-smtpserver.sgml		\

@@ -58,6 +58,38 @@
 ;; customize the html stylesheet here
 ;; ====================
 
+;;
+;; No breaking at top-most SECTION levels, only at CHAPTER and alike.
+;;
+(define (chunk-element-list)
+  (list (normalize "preface")
+        (normalize "chapter")
+        (normalize "appendix") 
+        (normalize "article")
+        (normalize "glossary")
+        (normalize "bibliography")
+        (normalize "index")
+        (normalize "colophon")
+        (normalize "setindex")
+     ;; (normalize "reference")
+     ;; (normalize "refentry")
+        (normalize "part")
+     ;; (normalize "sect1") 
+     ;; (normalize "section") 
+        (normalize "book") ;; just in case nothing else matches...
+        (normalize "set")  ;; sets are definitely chunks...
+        ))
+
+;;
+;; Redefine TOC-DEPTH for HTML so TOC will contain more of sublevel data
+;; Default limit level for PRINT mode is 7 ...
+;;
+
+(define (toc-depth nd)
+  (if (string=? (gi nd) (normalize "book"))
+      7 ;; was '3'
+      1))
+
 
 (define %hyphenation%
   ;; Allow automatic hyphenation?

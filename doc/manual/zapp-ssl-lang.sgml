@@ -1,50 +1,56 @@
-<APPENDIX ID="ZAPP-SSL-LANG">
+<APPENDIX ID="ZAPP-SSL-LANG"><?dbhtml filename="zapp-ssl-lang.html">
 <TITLE>S/SL Language</TITLE>
 
-<SCREEN>
-
+<PARA>
 The information in this appendix is based on 
-``Specification of S/SL: Syntax/Semantic Language'' by 
+``<EMPHASIS>Specification of S/SL: Syntax/Semantic Language</EMPHASIS>'' by 
 J.R. Cordy and R.C. Holt, December 1979 (Revised March 1980).
 Copyright (C) 1979, 1980 by the  University of  Toronto.
+</PARA>
 
-This appendix describes the S/SL language which is used
-within several scanners of the router system; rfc-822
-object token scanner, and zmsh script language scanner
-to name the most important ones.
+<PARA>
+This appendix describes the S/SL language which is used within several
+scanners of the router system; RFC-822 object token scanner, and 
+<EMPHASIS>zmsh</> script language scanner to name the most important ones.
+</PARA>
 
-S/SL is a programming language developed at
-the Computer Systems Research Group,
-University of Toronto as a tool for constructing compilers.
-It has been used to implement scanners, parsers, semantic
-analyzers, storage allocators and machine code generators.
+<PARA>
+S/SL is a programming language developed at the
+<EMPHASIS>Computer Systems Research Group, University of Toronto</>
+as a tool for constructing compilers.
+It has been used to implement scanners, parsers, semantic analyzers,
+storage allocators and machine code generators.
 S/SL  has  been  used  to implement compilers for Euclid, PT
 Pascal and Speckle, a PL/1 subset.
+</PARA>
 
+<SECT1><TITLE>S/SL Introduction</TITLE>
 
-\section{Introduction}
+<PARA>
+S/SL is a procedure-based variable-free programming language in which
+the program logic is stated using a small number of simple control
+constructs.
+It accesses data in terms of a set of operations organized into
+data-management modules called mechanisms.
+The interface to these mechanisms is defined in S/SL but their
+implementation is hidden from the S/SL program.
+</PARA>
 
-S/SL is a procedure-based variable-free programming 
-language in which the program logic is  stated  using  a  small
-number  of  simple  control constructs.  It accesses data in
-terms of a set of operations organized into  data-management
-modules  called  mechanisms.   The interface to these 
-mechanisms is defined in S/SL but their implementation is  hidden
-from the S/SL program.
+<PARA>
+S/SL has one input stream and one output stream, each of which is strictly
+sequential.
+These streams are organized into ``tokens'' each of which is
+read and written as a unit.
+An auxiliary output stream for error diagnostics is also provided.
+</PARA>
 
-S/SL has one input stream and one output stream, each of
-which is strictly sequential.  These streams  are  organized
-into ``tokens'' each of which is read and written as a unit.
-An auxiliary output stream for  error  diagnostics  is  also
-provided.
+</SECT1>
 
+<SECT1><TITLE>S/SL: Identifiers, Strings and Integers</TITLE>
 
-
-
-\section{Identifiers, Strings and Integers}
-
+<PARA>
 An  S/SL identifier may consist of any string of up to 50
-letters, digits and underscores (\_) beginning with a letter.
+letters, digits and underscores (_) beginning with a letter.
 Upper  and  lower  case  letters are considered identical in
 S/SL, hence {\tt aa}, {\tt aA}, {\tt Aa} and {\tt AA} 
 all represent the same identifier.  {\tt INPUT}, {\tt OUTPUT}, 
@@ -53,35 +59,42 @@ all represent the same identifier.  {\tt INPUT}, {\tt OUTPUT},
 and their various lower case forms are  keywords
 of  S/SL and must not be used as identifiers in an S/SL 
 program.
+</PARA>
 
+<PARA>
 An S/SL string is any sequence of characters not  
 including a quote surrounded by quotes (").
+</PARA>
 
-Integers  may be signed or unsigned and must lie within a
-range defined by  the  implementation.   For  example,  this
-range could be -32767 to 32767 on the PDP-11.
+<PARA>
+Integers  may be signed or unsigned and must lie within a range defined
+by the implementation.
+For example, this range could be -32767 to 32767 on a 16 bit machine.
+</PARA>
 
-Identifiers, keywords,  strings  and  integers  must not
-cross line boundaries.  Identifiers, keywords  and  integers
-must not contain embedded blanks.
+<PARA>
+Identifiers, keywords, strings and integers must not cross line boundaries.
+Identifiers, keywords and integers must not contain embedded blanks.
+</PARA>
 
-
-
-
-\section{Comments}
-
-A  comment consists of the character ``\%'' (which is not in
-a string) and the characters to the right of it on a  source
-line.
+</SECT1>
 
 
+<SECT1><TITLE>S/SL: Comments</TITLE>
 
+<PARA>
+A comment consists of the character ``%'' (which is not in a string)
+and the characters to the right of it on a source line.
+</PARA>
+</SECT1>
 
-\section{Character Set}
+<SECT1><TITLE>S/SL: Character Set</TITLE>
 
+<PARA>
 Since  not all of the special characters used in S/SL are
 available on all machines,  the  following  alternatives  to
 special characters are allowed.
+<SCREEN>
 \begin{itemize}
 \item {\tt !} for {\tt $\|$}
 \item {\tt DO} for {\tt \{}
@@ -89,47 +102,50 @@ special characters are allowed.
 \item {\tt IF} for {\tt [}
 \item {\tt FI} for {\tt ]}
 \end{itemize}
+</SCREEN></PARA>
 
+</SECT1>
 
+<SECT1><TITLE>S/SL: Source Program Format</TITLE>
 
-
-
-\section{Source Program Format}
-
+<PARA>
 S/SL programs are free format; that is, the identifiers,
 keywords, strings, integers  and  special  characters  which
 make  up  an  S/SL program may be separated by any number of
 blanks, tab characters, form feeds and  source  line  bound-
 aries.
+</PARA>
 
+<SECT2><TITLE>S/SL: Notation</TITLE>
 
+<PARA>
+The following sections define the syntax of S/SL.
+Throughout the following, <EMPHASIS>{item}</> means zero or more  of the
+item,  and <EMPHASIS>[item]</> means the item is optional.
+The abbreviation  ``<EMPHASIS>id</>'' is used for identifier.
+</PARA>
 
+<SECT2><TITLE>S/SL: Programs</TITLE>
 
-\section{Notation}
-
-The      following  sections  define  the  syntax  of  S/SL.
-Throughout the following, {\tt \{item\}} means zero or more  of the
-item,  and {\tt [item]} means the item is optional.  The abbreviation 
-{\tt id} is used for identifier.
-
-
-\subsection{Programs}
-
+<PARA>
 An S/SL program consists of a set of definitions followed
 by a set of rules.
+</PARA>
 
+<PARA>
 A program is:
-\begin{verbatim}
+<SCREEN>
         [inputDefinition]               [outputDefinition]
         [inputOutputDefinition]
         [errorDefinition]               {typeOrMechanismDefinition}
         RULES                           {rule}             
         END
-\end{verbatim}
+</SCREEN></PARA>
+</SECT2>
 
+<SECT2><TITLE>S/SL: Input and Output Definitions</TITLE>
 
-\subsection{Input and Output Definitions}
-
+<SCREEN>
 An {\tt inputDefinition} is:
 \begin{verbatim}
         INPUT   ":"                      {tokenDefinition} ";"
@@ -151,24 +167,28 @@ A {\tt tokenDefinition} is:
 \begin{verbatim}
          id [string] ["=" tokenValue]
 \end{verbatim}
+</SCREEN>
 
-
+<PARA>
 The {\tt inputDefinition} section defines the input  tokens  to
 the  S/SL program.  The {\tt outputDefinition} section defines the
 output tokens of  the  program.   The  {\tt inputOutputDefinition}
 section defines those tokens which are both input tokens and
 output tokens of the program.  Tokens already defined in the
 {\tt inputDefinition} or  {\tt outputDefinition} sections
-must not be
-redefined in the {\tt inputOutputDefinition section.}
+must not be redefined in the {\tt inputOutputDefinition section.}
+</PARA>
 
+<PARA>
 The optional string which may be given in a {\tt tokenDefinition}
 is  a synonym for the token identifier and can be used
 in place of the identifier anywhere in the S/SL program.
+</PARA>
 
-Each input and output token is assigned an integer  value
-for  use  in  the  implementation of the S/SL program.  This
-value may be optionally specified in  each  {\tt tokenDefinition}.
+<PARA>
+Each input and output token is assigned an integer value for use in
+the implementation of the S/SL program.
+This value may be optionally specified in each {\tt tokenDefinition}.
 The {\tt tokenValue} may  be  specified  as an integer or as the
 value of any previously defined identifier  or  string.   If
 omitted,  the value assigned to the token is the value associated with 
@@ -180,12 +200,14 @@ token defined in the {\tt inputDefinition} section  and  the    last
 token  defined in the {\tt outputDefinition} section.    In this way
 the  default  input-output  token  values  are  unique  with
 respect to both input tokens and output tokens.
+</PARA>
+
+</SECT2>
 
 
+<SECT2><TITLE>S/SL: Error Signals</TITLE>
 
-
-\subsection{Error Signals}
-
+<SCREEN>
 An {\tt errorDefinition} is:
 \begin{verbatim}
          ERROR  ":"                       {errorSignalDefinition} ";"
@@ -195,7 +217,9 @@ An {\tt errorSignalDefinition} is:
 \begin{verbatim}
          id ["=" errorValue]
 \end{verbatim}
+</SCREEN>
 
+<PARA>
 Each {\tt errorSignalDefinition} defines an error signal  which
 can be signalled by the S/SL program.  An integer error code
 value is associated with each errorId for use in the  
@@ -206,44 +230,49 @@ defined identifier or string.  The default value  associated
 with an error signal is the value associated with the 
 previous error signal plus one.  The default value for the  first
 error signal is 10 (errors 0 to 9 are reserved for S/SL system use).
+</PARA>
 
+</SECT2>
 
+<SECT2><TITLE>S/SL: Type and Mechanism Definitions</TITLE>
 
+<PARA>
+Type and mechanism definitions may be grouped and inter-mixed
+to reflect the association of types and the operation definitions
+which use them.
+</PARA>
 
-\subsection{Type and Mechanism Definitions}
-
-Type and mechanism definitions may be grouped and  inter-
-mixed  to reflect the association of types and the operation
-definitions which use them.
-
+<PARA>
 A {\tt typeOrMechanismDefinition} is one of:
 \begin{itemize}
 \item {\tt typeDefinition}
 \item {\tt mechanismDefinition}
 \end{itemize}
+</PARA>
 
+</SECT2>
 
+<SECT2><TITLE>S/SL: Types.</TITLE>
 
-
-
-\subsubsection{Types.}
-
+<SCREEN>
 A {\tt typeDefinition} is:
 \begin{verbatim}
          TYPE id ":"                      {valueDefinition} ";"
 \end{verbatim}
 
-
 A {\tt valueDefinition} is:
 \begin{verbatim}
          id ["=" value]
 \end{verbatim}
+</SCREEN>
 
-
+<PARA>
 Each {\tt typeDefinition} defines a type of values for  use  as
 the  parameter  or result type of a semantic operation or as
 the result type of a rule.
+</PARA>
 
+<PARA>
 Each {\tt valueDefinition} defines a {\tt valueId} in the  type. An
 integer value is associated with each {\tt valueId} for use in the
 implementation of the  S/SL  program.   This  value  may  be
@@ -253,21 +282,29 @@ defined identifier or string.  The default value assigned to
 a value identifier is the value associated with the previous
 value  identifier  plus  one.   The default value associated
 with the first {\tt valueDefinition} in a type is zero.
+</PARA>
+
+</SECT2>
 
 
-\subsubsection{Mechanisms.}
+<SECT2><TITLE>S/SL: Mechanisms.</TITLE>
 
+<SCREEN>
 A {\tt mechanismDefinition} is:
 \begin{verbatim}
          MECHANISM    id    ":"         {operationDefinition} ";"
 \end{verbatim}
+</SCREEN>
 
-Each {\tt mechanismDefinition}  defines  the  set        of semantic
-operations associated with a semantic mechanism.  The 
-{\tt mechanismId} itself is unused in the S/SL program.  However, 
-operation identifiers associated with a mechanism are by 
+<PARA>
+Each {\tt mechanismDefinition}  defines the set of semantic
+operations associated with a semantic mechanism.
+The  {\tt mechanismId} itself is unused in the S/SL program.
+However, operation identifiers associated with a mechanism are by 
 convention expected to begin with the mechanism identifier.
+</PARA>
 
+<SCREEN>
 An {\tt operationDefinition} is one of:
 \begin{enumerate}
 \item {\tt id}
@@ -275,8 +312,9 @@ An {\tt operationDefinition} is one of:
 \item {\tt id ">>" typeId}
 \item {\tt id "(" typeId ")" ">>" typeId}
 \end{enumerate}
+</SCREEN>
 
-
+<SCREEN>
 Each {\tt operationDefinition} defines  a  semantic operation
 associated with the mechanism.
 \begin{itemize}
@@ -295,22 +333,26 @@ and can be any previously defined type.
 first {\tt typeId} gives the parameter type, the second the result
 type.  Each can be any previously defined type.
 \end{itemize}
+</SCREEN>
 
+<PARA>
 Choice operations  (forms 3 and 4 above)  may  be
 invoked only as the selector in a semantic choice.
+</PARA>
 
+</SECT2>
 
+<SECT2><TITLE>S/SL: Rules</TITLE>
 
-
-\subsection{Rules}
-
+<SCREEN>
 A rule is one of:
 \begin{enumerate}
 \item {\tt id     ":"           \{action\} ";"}
 \item {\tt id ">>"  typeId  ":" \{action\} ";"}
 \end{enumerate}
+</SCREEN>
 
-
+<SCREEN>
 The     rules  define  the  subroutines and functions of the
 S/SL program.  Rules may call one  another  recursively.   A
 rule  need  not  be defined before it is used.  Execution of
@@ -323,11 +365,12 @@ value  of  the  specified  type.   The  {\tt typeId}    can  be  any
 previously  defined  type.  Choice rules may only be invoked
 as the selector in a rule choice.
 \end{itemize}
+</SCREEN>
+</SECT2>
 
+<SECT2><TITLE>S/SL: Actions</TITLE>
 
-
-\subsection{Actions}
-
+<SCREEN>
 An action is one of the following:
 \begin{enumerate}
 \item 
@@ -502,12 +545,13 @@ If the returned value in a rule choice or semantic choice
 does not match any of the alternative labels and  no  
 otherwise  alternative  is  present, continued execution is 
 undefined (the implementation aborts).
+</SCREEN>
+</SECT2>
+</SECT1>
 
+<SECT1><TITLE>The Syntax of S/SL</TITLE>
 
-
-
-\subsection{The Syntax of S/SL}
-
+<SCREEN>
 A program is:
 \begin{verbatim}
      [inputDefinition]     [outputDefinition]
@@ -653,7 +697,7 @@ parameterizedUpdateOpId "(" valueId ")"
                 ["|" "*" ":" {action} ] "]"
 \end{verbatim}
 \end{enumerate}
-
 </SCREEN>
+</SECT1>
 
 </APPENDIX>

@@ -1,33 +1,32 @@
-<CHAPTER ID="ZADM-SECURITY-ISSUES">
+<CHAPTER ID="ZADM-SECURITY-ISSUES"><?dbhtml filename="zadm-security-issues.html">
 <TITLE>Security Issues</TITLE>
 
-<SCREEN>
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% \section{Security Issues}
-
-%\begin{multicols}{2}
-
-
-Having local-parts that allow delivery to arbitary files, or which can trigger
-execution of arbitrary programs, can clearly lead to a huge security
-problem.  {\em sendmail} does address this problem, but in a restrictive and
+<PARA>
+Having local-parts that allow delivery to arbitary files, or which can
+trigger execution of arbitrary programs, can clearly lead to a huge security
+problem.
+<COMMAND>sendmail</> does address this problem, but in a restrictive and
 unintuitive manner.  This aspect of ZMailer security has been designed to
 allow the privileges expected by common sense.
+</PARA>
 
+<PARA>
 The responsibility for implementing this kind of security is split between
-the {\em router} and the transport agent that delivers a message to
-an address.
+the <EMPHASIS>router</> and the <EMPHASIS>transport agent</> that delivers
+a message to an address.
 Since it is the Transport Agent that must enforce the security, it needs
 some information to guide it.  Specifically, for each address it delivers
-to, some information about the ``{\em trustworthyness}'' of that address
-is necessary so that the transport agent can determine which privileges
-it can assume when delivering for that destination.
-This information is determined by the {\em router}, and passed to the
-transport agent in the message control file.
+to, some information about the ``<EMPHASIS>trustworthyness</>'' of that
+address is necessary so that the transport agent can determine which
+privileges it can assume when delivering for that destination.
+This information is determined by the <EMPHASIS>router</>, and passed
+to the transport agent in the message control file.
 The specific measure of trustworthyness chosen by ZMailer, is simply
-a numeric user id (uid) value {\em representing the source of the address.}
+a numeric user id (uid) value <EMPHASIS>representing the source of
+the address.</>
+</PARA>
 
+<PARA>
 When a message comes into the mailer from an external source,
 the destination addresses should obviously have no privileges
 on the local host (when mailing to a file or a program).
@@ -42,44 +41,57 @@ writable, and the directory containing the file is owned by the same user
 and is likewise neither group nor world writable.
 If any of these conditions do not hold, an unprivileged user id will
 be assigned as the privilege level of the address.
+</PARA>
 
+<PARA>
 It is entirely up to the transport agent whether it will honour the
 privilege assignment of an address, and indeed in many cases it might not
 make sense (for example for outbound mail).  However, it is strongly
 recommended that appropriate measures are taken when a transport agent has
 no control over some action that may affect local files, security, or
 resources.
+</PARA>
 
-
+<PARA>
 The described algorithm is far from perfect. The obvious dangers are:
-\begin{itemize}\sloppy
-\item The grandparent directories, to the Nth degree, are ignored, and may
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+ The grandparent directories, to the Nth degree, are ignored, and may
 not be secure. In that case all security is lost.
-\item There is a window of vulnerability between when the permissions are
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+There is a window of vulnerability between when the permissions are
 checked, and the delivery is actually made. This is the best argument
 I have heard so far for embedding the local delivery program
-(currently a separate transport agent) in the {\em router}.
-\end{itemize}
+(currently a separate transport agent) in the <EMPHASIS>router</>.
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
 
 
-There is also another kind of security that must be addressed.  That is the
-mechanism by which the {\em router} is told about the origin of a message.  This
-is something that must be possible for the message receiving programs
-({\tt /bin/rmail} and the SMTP server are examples of these) to specify to
-ZMailer. The {\em router} knows of a list of trusted accounts on the system.
+<PARA>
+There is also another kind of security that must be addressed.
+That is the mechanism by which the <EMPHASIS>router</> is told
+about the origin of a message.
+This is something that must be possible for the message receiving
+programs (<COMMAND>/bin/rmail</> and the <EMPHASIS>SMTP server</>
+are examples of these) to specify to ZMailer.
+The <EMPHASIS>router</> knows of a list of trusted accounts on the system.
 If a message file is owned by one of these user id's, any sender specification
-within the message file will be believed by ZMailer.  If the message file
-is not owned by such a trusted account, the {\em router} will cross-check the
-message file owner with any stated {\tt From:} or {\tt Sender:} address 
-in the message header, or any origin specified in the envelope.  If a 
-discrepancy is discovered, appropriate action will be taken.  This means 
-that there is no way to forge the origin of a message without access to a 
-trusted account.
+within the message file will be believed by ZMailer.
+If the message file is not owned by such a trusted account, the
+<EMPHASIS>router</> will cross-check the message file owner with any
+stated <QUOTE><LINK LINKEND="rfc822.from">From:</></> or
+<QUOTE><LINK LINKEND="rfc822.sender">Sender:</></> address 
+in the message header, or any origin specified in the envelope.
+If a discrepancy is discovered, appropriate action will be taken.
+This means that there is no way to forge the origin of a message
+without access to a trusted account.
+</PARA>
 
+<PARA>
 Trusted accounts are those listed in the ZMailer group or the ``trusted'' 
-variable in the system configuration ({\em router.cf}) file.
+variable in the system configuration (<FILENAME>router.cf</>) file.
+</PARA>
 
-
-%\end{multicols}
-</SCREEN>
 </CHAPTER>

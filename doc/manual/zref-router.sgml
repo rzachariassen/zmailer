@@ -1,142 +1,152 @@
-<CHAPTER ID="ZREF-ROUTER">
+<CHAPTER ID="ZREF-ROUTER"><?dbhtml filename="zref-router.html">
 <TITLE>Router</TITLE>
 
-<SCREEN>
-%% \section{Router}
-
-
-The {\em router} daemon makes all decisions affecting 
+<PARA>
+The <EMPHASIS>router</> daemon makes all decisions affecting 
 the processing of messages in ZMailer.
+</PARA>
 
+<PARA>
 A mail message is submitted by placing it in a file in the
-{\tt \$POSTOFFICE/router/} directory. The 
-{\em router} frequently scans this directory for new 
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/router/</> directory.
+The  <EMPHASIS>router</> frequently scans this directory for new 
 files and will lock and process them as it finds them. 
 The result is a message control file that gets linked into 
-the {\tt \$POSTOFFICE/scheduler/} and 
-{\tt \$POSTOFFICE/transport/} directories for use 
-by the {\em scheduler(8)} in the next step of message 
-processing. The original message file is then moved to the 
-{\tt \$POSTOFFICE/queue/} directory. 
+the <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/scheduler/</> and 
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>
+directories for use by the <EMPHASIS>scheduler</> in the next step
+of message processing.
+The original message file is then moved to the 
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>
+directory. 
+</PARA>
 
-The {\em router}'s behaviour is controlled by a 
-configuration file read at startup. It is really a 
-{\em zmsh(1)} script that uses facilities provided 
-builtin to the {\em router}. 
+<PARA>
+The <EMPHASIS>router</>'s behaviour is controlled by a configuration
+file read at startup.
+It is really a  <EMPHASIS>zmsh</>(1) script that uses facilities provided 
+builtin to the <EMPHASIS>router</>. 
+</PARA>
 
-{\bf Usage}
+<PARA>
+Usage:
+</PARA>
 
-Invoking router without any arguments will do nothing
-(except make it read its configuration file and promptly
-exit). The normal startup method is to run the {\em zmailer(1)} 
-script, as in {\tt zmailer router}. This will start the 
-{\em router} as a daemon and  kill the previous 
-incarnation of the {\em router}. 
+<PARA>
+Invoking router without any arguments will do nothing (except make it read
+its configuration file and promptly exit).
+The normal startup method is to run the <COMMAND>zmailer</>(1) script, as
+in ``<COMMAND>zmailer router</>''.
+This will start the <EMPHASIS>router</> as a daemon and kill the previous 
+incarnation of the <EMPHASIS>router</>.
+</PARA>
 
-{\tt router [ -diksSV ] [ -f configfile ] [ -n \#routers ] [ -o zmshoptions ] [ -t traceflag ] [ -L logfile ] [ -P postoffice ]}
- 
+<PARA>
+<SYNOPSIS>router [ -diksSV ] [ -f configfile ] [ -n #routers ] [ -o zmshoptions ] [ -t traceflag ] [ -L logfile ] [ -P postoffice ]</SYNOPSIS>
+</PARA>
 
-{\bf Parameters}
-
-\begin{description}
-\item[{\tt -d}] \mbox{}
-
+<PARA>
+Parameters:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>-d</TERM><LISTITEM><PARA>
 Detach and run as a daemon. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -f configfile}] \mbox{}
-
+<VARLISTENTRY><TERM>-f configfile</TERM><LISTITEM><PARA>
 Overrides the default configuration 
-file {\tt MAILSHARE/router.cf}. 
+file <FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -i}] \mbox{}
-
-Run interactively, presenting a {\em zmsh}  
+<VARLISTENTRY><TERM>-i</TERM><LISTITEM><PARA>
+Run interactively, presenting a <EMPHASIS>zmsh</>  
 session with the configuration file preloaded. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -k}] \mbox{}
-
+<VARLISTENTRY><TERM>-k</TERM><LISTITEM><PARA>
 Kill the currently running router by 
-sending it a {\tt SIGTERM} signal. 
+sending it a <CONSTANT>SIGTERM</> signal. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -L logfile}] \mbox{}
+<VARLISTENTRY><TERM>-L logfile</TERM><LISTITEM><PARA>
+Overrides the default  log file location 
+<FILENAME>$<VARNAME>LOGDIR</>/router</>. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-Overrides the default   log file location 
-{\tt \$LOGDIR/router/}. 
+<VARLISTENTRY><TERM>-n #routers</TERM><LISTITEM><PARA>
+Starts the specified number of parallel router processes.
+The default is a single router process. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -n \#routers}] \mbox{}
+<VARLISTENTRY><TERM>-o zmshoptions</TERM><LISTITEM><PARA>
+Sets the option string passed on the internal <EMPHASIS>zmsh</> invocation.
+The default is <OPTION>-O</>. 
+Note that the leading ``-'' is mandatory.
+See <EMPHASIS>zmsh</>(1) for the available options. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-Starts the specified number of 
-parallel router processes. The default is a single router process. 
-
-\item[{\tt -o zmshoptions}] \mbox{}
-
-Sets the option string passed on the 
-internal {\em zmsh} invocation. The default is {\tt -O}. 
-Note that the leading `-' is mandatory. See {\em zmsh(1)} 
-for the available options. 
-
-\item[{\tt -P postoffice}] \mbox{}
-
+<VARLISTENTRY><TERM>-P postoffice</TERM><LISTITEM><PARA>
 Specifies an alternate 
-{\tt \$POSTOFFICE/} directory. 
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</> directory. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -S}] \mbox{}
-
+<VARLISTENTRY><TERM>-S</TERM><LISTITEM><PARA>
 Can be used to turn off non-serious syslogging. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -s}] \mbox{}
-
+<VARLISTENTRY><TERM>-s</TERM><LISTITEM><PARA>
 Turns stability-flag off and on. Without this
 flag, the search of new jobs will be done with (sometimes) 
 timeconsuming care of organizing the job files into time order. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -t traceflag}] \mbox{}
+<VARLISTENTRY><TERM>-t traceflag</TERM><LISTITEM><PARA>
+Sets trace options, one per -t switch, even before the configuration
+file is loaded.
+This is otherwise equivalent to the builtin <EMPHASIS>trace</> command.
+The currently known options are:
+<OPTION>assign, bind, compare, db, final, functions, matched, memory,
+on, regexp, resolv, rewrite, router, and sequencer</OPTION>. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-Sets trace options, one per -t switch, 
-even before the configuration file is loaded. This is otherwise 
-equivalent to the builtin {\tt trace} command. The currently 
-known options are: {\tt assign, bind, compare, db, final, functions, matched, memory, on, regexp, resolv, rewrite, router, and sequencer}. 
-
-\item[{\tt -V}] \mbox{}
-
+<VARLISTENTRY><TERM>-V</TERM><LISTITEM><PARA>
 Print version message and run interactively. 
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\end{description}
- 
-
-To restart a {\em router} daemon: 
-\begin{alltt}
+<PARA>
+To restart a <EMPHASIS>router</> daemon: 
+<SCREEN>
    router -dk
-\end{alltt}
+</SCREEN>
+</PARA>
 
-
+<PARA>
 To test an address, start up an interactive session: 
-\begin{alltt}
-   router -i
-\end{alltt}
+<SCREEN>
+  router -i
+</SCREEN>
+or if the ZMailer <EMPHASIS>sendmail</>(8) is installed: 
+<SCREEN>
+  sendmail -bt
+</SCREEN>
+</PARA>
 
-
-or if the ZMailer {\em sendmail(8)} is installed: 
-\begin{alltt}
-   sendmail -bt
-\end{alltt}
-
-
+<PARA>
 Then just use the pre-defined functions.
+</PARA>
 
+<SECT1><TITLE>ZMSH Script Language</TITLE>
 
-
-
-\subsection{ZMSH Script Language}
-
-
-
-{\em zmsh} is an implementation of the Bourne shell 
-suitable for use with the ZMailer {\em router(8)} as 
+<PARA>
+<EMPHASIS>zmsh</> is an implementation of the Bourne shell 
+suitable for use with the ZMailer <EMPHASIS>router</>(8) as 
 its configuration file language interpreter. It contains 
 extensions that allow structured data (in the form of lists) 
-to be manipulated. 
+to be manipulated.
+</PARA>
 
+<PARA> 
 The shell supports three basic kinds of functions: Unix 
 commands, user-defined functions, and builtin commands. 
 The latter comes in two variations: normal functions which 
@@ -145,26 +155,34 @@ embedded Unix command would work), and list-manipulation
 functions which understand list arguments and can return 
 list arguments. The defined functions can take any form 
 of argument and return any form of value (a status code, 
-a string, or a list). 
+a string, or a list).
+</PARA>
 
+<PARA>
 Shell operations (pipes, backquote evaluation and substitution) 
 will work between combinations of builtin functions, 
 defined functions, and Unix commands.
+</PARA>
 
-The shell precompiles its input to a (possibly optimized) 
-byte-code form, which is then interpreted as required. 
-This means that the original form of the input is not kept 
-around {\tt in-core} for future reference. If the input 
-is an included file, the shell will try to save the byte-code 
-form in a {\tt .fc} file associated with the input file. 
-For example, if input is from {\tt file.cf}, the shell 
-will try to create {\tt fc/file.fc} and then {\tt file.fc}. 
-These files will in turn be searched for and loaded 
-(after a consistency check) whenever a {\tt .cf} file is included. 
+<PARA>
+The shell precompiles its input to a (possibly optimized) byte-code form,
+which is then interpreted as required.
+This means that the original form of the input is not kept around
+<EMPHASIS>in-core</> for future reference.
+If the input is an included file, the shell will try to save the byte-code 
+form in a <FILENAME>.fc</> file associated with the input file. 
+For example, if input is from <FILENAME>file.cf</>, the shell will try to
+create <FILENAME>fc/file.fc</> and then <FILENAME>file.fc</>. 
+These files will in turn be searched for and loaded (after a consistency
+check) whenever a <FILENAME>.cf</> file is included.
+</PARA>
 
+<PARA>
 The effects of input and output redirections are predicted 
 prior to the execution of a command and its I/O setup.
+</PARA>
 
+<SCREEN>
 {\bf Usage}
 
 {\tt zmsh [ -CILOPRSYaefhinstuvx ] [ -c command ] [ script ...]}
@@ -237,114 +255,107 @@ Print shell input as it is read.
 Print commands as they are executed. 
 
 \end{description}
+</SCREEN>
+
+</SECT1>
 
 
 
+<SECT1><TITLE>Configuration Script Writing Rules</TITLE>
 
-
-\subsection{Configuration Script Writing Rules}
-
+<SCREEN>
 Text to be inserted here.
+</SCREEN>
 
+</SECT1>
 
+<SECT1><TITLE>Debugging</TITLE>
 
-
-\subsection{Debugging}
-
-
-
+<PARA>
 The following debugging options are specific to the internal 
-function of {\em zmsh}: 
-\begin{description}
-\item[{\tt -C}] \mbox{}
+function of <EMPHASIS>zmsh</>: 
+<VARIABLELIST>
+<VARLISTENTRY><TERM>-C</TERM><LISTITEM><PARA>
+Print code generation output onto <FILENAME>stdout</>.
+If this option is doubled, the non-optimized code is printed out instead.
+</PARA></LISTITEM></VARLISTENTRY>
 
-Print code generation output onto 
-{\tt stdout}. If this option is doubled, the non-optimized 
-code is printed out instead. 
+<VARLISTENTRY><TERM>-I</TERM><LISTITEM><PARA>
+Print runtime interpreter activity onto <FILENAME>/dev/tty</>.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -I}] \mbox{}
+<VARLISTENTRY><TERM>-L</TERM><LISTITEM><PARA>
+Print lexer output onto <FILENAME>stdout</>. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-Print runtime interpreter activity onto 
-{\tt /dev/tty}. 
+<VARLISTENTRY><TERM>-O</TERM><LISTITEM><PARA>
+Optimize the compiled script.
+If this option is doubled, the optimized code is also printed out. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -L}] \mbox{}
+<VARLISTENTRY><TERM>-P</TERM><LISTITEM><PARA>
+Print parser output (S/SL trace output) onto <FILENAME>stdout</>. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-Print lexer output onto {\tt stdout}. 
+<VARLISTENTRY><TERM>-R</TERM><LISTITEM><PARA>
+Print I/O actions onto <FILENAME>/dev/tty</>.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -O}] \mbox{}
+<VARLISTENTRY><TERM>-S</TERM><LISTITEM><PARA>
+Print scanner output (token assembly) onto <FILENAME>stdout</>.
+</PARA></LISTITEM></VARLISTENTRY>
 
-Optimize the compiled script. If this 
-option is doubled, the optimized code is also printed out. 
+<VARLISTENTRY><TERM>-Y</TERM><LISTITEM><PARA>
+Open <FILENAME>/dev/tty</> for internal debugging use. 
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\item[{\tt -P}] \mbox{}
-
-Print parser output (S/SL trace output) 
-onto {\tt stdout}. 
-
-\item[{\tt -R}] \mbox{}
-
-Print I/O actions onto {\tt /dev/tty}. 
-
-\item[{\tt -S}] \mbox{}
-
-Print scanner output (token assembly) 
-onto {\tt stdout}. 
-
-\item[{\tt -Y}] \mbox{}
-
-Open {\tt /dev/tty} for internal 
-debugging use. 
-
-\end{description}
+</SECT1>
 
 
+<SECT1><TITLE>Security Issues</TITLE>
 
-
-
-\subsection{Security Issues}
-
+<SCREEN>
 Text to be inserted here.
+</SCREEN>
+
+</SECT1>
 
 
+<SECT1><TITLE>Script Language Internal Functions</TITLE>
 
-
-\subsection{Internal Functions}
-
+<PARA>
 This section describes the router internal functions.
+</PARA>
 
-% -------------------------------------------
-\hrule
-\subsubsection{``:''}
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2 ID="zmshref.doublecolon">
+<TITLE>``:'' (doublecolon)</TITLE>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<SYNOPSIS>
+ : &lt;SPC&gt; anything else forming a command pipeline
+</SYNOPSIS>
 
-{\tt {\bf :}}
+<SCREEN>
+Description
+	none
 
-\item[{\bf Return Values:}] \mbox{}
+Return Values:
+	0
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+Options:
+	none
 
+Notes:
+	none
+</SCREEN>
+</SECT2>
 
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>``.'', ``include''</TITLE>
 
-\end{description}
-
-
-\item[{\bf Options:}] \mbox{}
-
-none  
-
-\item[{\bf Notes:}] \mbox{}
-
-none
-
-\end{description}
-
-
-% -------------------------------------------
-\hrule
-\subsubsection{``.'', ``include''}
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -366,9 +377,13 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{``['', ``test''}
+</SCREEN>
+</SECT2>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>``['', ``test''</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -545,9 +560,12 @@ This is basically the shell {\tt {[}} a.k.a.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{attributes}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>attributes</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -570,9 +588,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{basename}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>basename</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -605,9 +626,12 @@ Prints the base filename of the pathname.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{break}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>break</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -635,9 +659,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{builtin}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>builtin</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -665,9 +692,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{builtins}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>builtins</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -689,9 +719,12 @@ List builtin functions.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{car}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>car</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -715,9 +748,12 @@ and {\tt first} commands.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{cd}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>cd</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -749,9 +785,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{cdr}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>cdr</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -775,9 +814,12 @@ command.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{channel}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>channel</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -801,9 +843,12 @@ synonymous to this command.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{continue}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>continue</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -831,9 +876,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{daemon}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>daemon</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -865,9 +913,12 @@ other purpose.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{db}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>db</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -953,9 +1004,12 @@ ldap      no  no    yes   no    no
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{dblookup}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>dblookup</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -987,9 +1041,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{echo}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>echo</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1024,9 +1081,12 @@ The access function to the database facilities in the
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{elements}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>elements</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1048,9 +1108,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{envars}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>envars</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1078,9 +1141,12 @@ Print internal variable tree.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{erraddron}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>erraddron</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1111,9 +1177,12 @@ or other collectors of address trivia.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{eval}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>eval</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1135,9 +1204,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{exit}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>exit</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1165,9 +1237,12 @@ Exit from the shell with exit code.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{export}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>export</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1196,9 +1271,12 @@ export prints a list of which variables have been exported.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{filepriv}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>filepriv</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1243,9 +1321,12 @@ for nonwritability and for having the same (or a 0) uid.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{first}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>first</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1269,9 +1350,12 @@ and {\tt channel} commands.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{gensym}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>gensym</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1303,9 +1387,12 @@ hold attached address property lists, during alias expansion.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{get}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>get</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1327,9 +1414,12 @@ Returns a property list corresponding to key string.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{getopts}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>getopts</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1361,9 +1451,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{grind}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>grind</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1385,9 +1478,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{groupmembers}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>groupmembers</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1418,9 +1514,12 @@ not listed in the groups file, will not appear in this list.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{hash}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>hash</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1454,9 +1553,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{homedirectory}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>homedirectory</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1489,9 +1591,12 @@ user account.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{host}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>host</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1514,9 +1619,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{hostname}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>hostname</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1552,9 +1660,12 @@ will only be generated if a hostname has been set using this function.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{lappend; \em experimental}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>lappend; \em experimental</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1583,9 +1694,12 @@ will quickly use massive amounts of heap.
 
 \end{description}
 
-% -------------------------------------------
-\hrule
-\subsubsection{last}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>last</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1608,9 +1722,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{length}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>length</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1633,9 +1750,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{list}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>list</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1657,9 +1777,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{listaddresses}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>listaddresses</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1711,9 +1834,12 @@ files or similar.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{listexpand}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>listexpand</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1754,9 +1880,12 @@ handling. (That is, without variable duplicating {\tt setf}'s.)
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{login2uid}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>login2uid</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1792,9 +1921,12 @@ the uid to login name mapping to the {\tt pwuid} in-core database.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{lreplace; \em experimental}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>lreplace; \em experimental</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax1:}] \mbox{}
@@ -1847,9 +1979,12 @@ will quickly use massive amounts of heap.
 
 \end{description}
 
-% -------------------------------------------
-\hrule
-\subsubsection{malcontents}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>malcontents</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1871,9 +2006,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{printaliases}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>printaliases</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1922,9 +2060,12 @@ from a source file.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{process}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>process</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1963,9 +2104,12 @@ configuration file.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{read}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>read</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -1997,9 +2141,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{recase}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>recase</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2046,9 +2193,12 @@ string in either all-uppercase, all-lowercase, or capitalized (pretty).
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{recipient}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>recipient</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2082,9 +2232,12 @@ is a recipient address in a message header''.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{relation}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>relation</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2262,9 +2415,12 @@ search. (Makes less system calls that way.)
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{rest}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>rest</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2288,9 +2444,12 @@ command.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{return}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>return</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2327,9 +2486,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{returns}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>returns</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2361,9 +2523,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{rfc822}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>rfc822</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2387,9 +2552,12 @@ called by the {\tt process} function.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{rfc822date}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>rfc822date</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2417,9 +2585,12 @@ Prints the current time in RFC822 format.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{rfc822syntax}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>rfc822syntax</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2456,9 +2627,12 @@ exit status.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{runas}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>runas</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2490,9 +2664,12 @@ user id of the process back (to root).
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{sender}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>sender</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2526,9 +2703,12 @@ is a sender address in a message header''.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{set}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>set</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2617,9 +2797,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{setf}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>setf</TITLE>
+
+<SCREEN>
 
 {\em THIS FUNCTION IS NO LONGER AVAILABLE! }
 
@@ -2643,9 +2826,12 @@ Replaces variable reference within a {\tt varcell}.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{shift}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>shift</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2677,9 +2863,12 @@ Modifies caller's argument vector.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{sleep}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>sleep</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2711,9 +2900,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{squirrel}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>squirrel</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2769,9 +2961,12 @@ indicate what to do to toggle the event flag.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{stability}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>stability</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2804,15 +2999,21 @@ similar characteristic of sorting algorithms.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{``test'', ``[''}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>``test'', ``[''</TITLE>
+
+<SCREEN>
 
 {\em see: ``['', ``test''}
 
-% -------------------------------------------
-\hrule
-\subsubsection{times}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>times</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2844,9 +3045,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{trace}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>trace</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2956,9 +3160,12 @@ each message.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{trap}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>trap</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -2987,9 +3194,12 @@ known traps.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{type}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>type</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -3017,9 +3227,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{uid2login}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>uid2login</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -3054,9 +3267,12 @@ exists with that user id. It has the same side-effects as the
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{umask}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>umask</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -3079,9 +3295,12 @@ Without parameters default mask is 077.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{unset}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>unset</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -3113,9 +3332,12 @@ none
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{untrace}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>untrace</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -3150,9 +3372,12 @@ valid keywords.
 \end{description}
 
 
-% -------------------------------------------
-\hrule
-\subsubsection{user}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>user</TITLE>
+
+<SCREEN>
 
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
@@ -3174,10 +3399,12 @@ none
 
 \end{description}
 
-% -------------------------------------------
-\hrule
-\subsubsection{wait}
+</SCREEN>
+</SECT2>
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2><TITLE>wait</TITLE>
 
+<SCREEN>
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
@@ -3197,5 +3424,7 @@ none
 
 \end{description}
 </SCREEN>
+</SECT2>
+</SECT1>
 
 </CHAPTER>

@@ -1,80 +1,85 @@
-<CHAPTER ID="ZREF-RMAIL">
+<CHAPTER ID="ZREF-RMAIL"><?dbhtml filename="zref-rmail.html">
 <TITLE>rmail</TITLE>
 
-<SCREEN>
+<PARA>
+<EMPHASIS>rmail</> is a program to process incoming UUCP mail.
+<EMPHASIS>rmail</> is usually invoked by a remote UUCP neighbour
+host's mailer using a command line like:
+</PARA>
 
-%% \section{rmail}
-
-{\em rmail} is a program to process incoming UUCP mail.
-{\em rmail} is usually invoked by a remote UUCP neighbour host's
-mailer using a command line like:
-
-\begin{alltt}\small
+<SYNOPSIS>
 uux - -r -asender -gC thishost!rmail (recipient1) (recipient2) ...
-\end{alltt}
+</SYNOPSIS>
 
-
-The end result is that the remote neighbour's {\em uuxqt(8)} runs
-{\em rmail} on {\tt thishost} with this command line:
-
-\begin{alltt}
+<PARA>
+The end result is that the remote neighbour's <EMPHASIS>uuxqt</>(8)
+runs <EMPHASIS>rmail</> on <EMPHASIS>thishost</> with this command line:
+<SCREEN>
 rmail recipient1 recipient2 ...
-\end{alltt}
+</SCREEN>
+</PARA>
 
-
+<PARA>
 In both cases, a UUCP format mail message is on the standard input.
+</PARA>
 
-The task of {\em rmail} is to transform the trace information in
-the UUCP format message to the equivalent RFC822 trace
-information, and to submit the message to the {\em zmailer(1)}
-router with the appropriate envelope information.
+<PARA>
+The task of <EMPHASIS>rmail</> is to transform the trace information in
+the UUCP format message to the equivalent RFC822 trace information, and
+to submit the message to the <COMMAND>zmailer</>(1) router with
+the appropriate envelope information.
+</PARA>
 
+<PARA>
 The expected input format looks like:
-
-\begin{alltt}
+<SCREEN>
 From address3  date3 remote from host3
->From address2  date2 remote from host2
->From address1  date1 remote from host1
-\end{alltt}
-
-
-followed by the rest of the message. This is considered
-equivalent to the following (as it might appear in a mailbox):
-
-\begin{alltt}
+&gt;From address2  date2 remote from host2
+&gt;From address1  date1 remote from host1
+</SCREEN>
+followed by the rest of the message.
+This is considered equivalent to the following
+(as it might appear in a mailbox):
+<SCREEN>
 From host3!host2!host1!address1 date
 Received: by host3 ... ; date3
 Received: by host2 ... ; date2
 Received: by host1 ... ; date1
-\end{alltt}
-
-
-In order for the mailer to process the incoming message
-properly, {\em rmail} must be run by a {\tt userid} which the
-{\em router(1)} will accept forged mail from. This is normally
-the UUCP account id.
-
-{\bf Usage}
-{\tt rmail [-d] [-h somewhere] recipient\ldots }
-{\bf Parameters}
-
-\begin{description}
-\item[ {\tt -d} ] \mbox{} \\
-
-turns on debugging output.
-
-
-
-\item[ {\tt -h somewhere} ] \mbox{} \\
-
-will use the argument as the 
-default remote UUCP host name to use if there is no {\tt remote from host}
-tag in the first From-space line in  the message.
-The  default value for this is usually {\tt somewhere} or
-{\tt uunet} (since uunet was a frequent purveyor of this
-protocol violation).
-
-\end{description}
-
 </SCREEN>
+</PARA>
+
+<PARA>
+In order for the mailer to process the incoming message properly,
+<EMPHASIS>rmail</> must be run by a ``<EMPHASIS>userid</>'' which
+the <COMMAND>router</>(1) will accept forged mail from.
+his is normally the UUCP account id.
+</PARA>
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Usage:</TERM><LISTITEM><PARA>
+<SYNOPSIS>
+rmail [-d] [-h somewhere] recipient...
+</SYNOPSIS>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM>
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>-d</TERM><LISTITEM><PARA>
+turns on debugging output.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>-h somewhere</TERM><LISTITEM><PARA>
+will use the argument as the  default remote UUCP host name
+to use if there is no <EMPHASIS>remote from host</> tag in the
+first <EMPHASIS>From-space</> line in the message.
+The  default value for this is usually <EMPHASIS>somewhere</>
+or <EMPHASIS>uunet</>
+(since uunet was a frequent purveyor of this protocol violation).
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+</LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
 </CHAPTER>

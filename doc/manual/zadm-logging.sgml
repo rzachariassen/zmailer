@@ -1,209 +1,295 @@
-<CHAPTER ID="ZADM-LOGGING">
+<CHAPTER ID="ZADM-LOGGING"><?dbhtml filename="zadm-logging.html">
 <TITLE>Logging and Statistics</TITLE>
 
-<SCREEN>
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% \section{Logging and Statistics}
-\label{Logging_and_Statistics}
-
-{\Large This text has been copied from other sections and will change...}
+<PARA>
+<EMPHASIS>
+This text has been copied from other sections and will change...
+</EMPHASIS>
+</PARA>
 
 
-\subsection{Checking the Log Files}
+<SECT1><TITLE>Checking the Log Files</>
 
+<PARA>
 Start ZMailer:
-\nopagebreak
-
-\vbox{
-\begin{alltt}\medskip\hrule\medskip
+<SCREEN>
  $MAILBIN/zmailer
-\medskip\hrule\end{alltt}\medskip
-}
+</SCREEN>
+</PARA>
 
+<PARA>
+Keep an eye on the log files (<FILENAME>$<VARNAME>LOGDIR</>/router</>,
+<FILENAME>$<VARNAME>LOGDIR</>/scheduler</>), the
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/postman/</>
+directory for malformed message files, and
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/deferred/</>
+in case of resource problems.
+</PARA>
 
-Keep an eye on the log files ({\tt \$LOGDIR/router}, {\tt \$LOGDIR/scheduler}),
-the {\tt \$POSTOFFICE/postman/} directory for malformed message files,
-and {\tt \$POSTOFFICE/deferred/} in case of resource problems.
+</SECT1>
 
+<SECT1><TITLE>Trimdown of Logging</>
 
-\subsection{Trimdown of Logging}
-
+<PARA>
 Once satisfied that things appear to work, you may want to trim down
 logging: there are 4 kinds of logging to deal with:
-\begin{itemize}
-\item router logs, usually kept in {\tt \$LOGDIR/router}.  This is the stdout
-and stderr output of the router daemon.  If you wish to turn it off,
-invoke router with a {\tt -L/dev/null} option, i.e. change the zmailer
-script.  Alternatively, modify the {\tt log()} function in the
-configuration file, or its invocations.
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+router logs, usually kept in <FILENAME>$<VARNAME>LOGDIR</>/router</>.
+This is the stdout and stderr output of the router daemon.
+If you wish to turn it off, invoke router with a ``<EMPHASIS>-L /dev/null</>''
+option, i.e. change the <COMMAND>zmailer</> script.
+Alternatively, modify the <FUNCTION>log()</> function in the configuration
+file, or its invocations.
+</PARA></LISTITEM>
 
-*** NOTE, THIS IS INCORRECT INFO, see  \$MAILSHARE/cf/standard.cf for
-*** routine   dribble(),  and especially its invocations!
-\item scheduler logs, usually kept in {\tt \$LOGDIR/scheduler}.  Same as router.
-\item general mail logs, usually kept in syslog files, depending on how
-you have configured the syslog utility ({\tt /etc/syslog.conf}).  All
-ZMailer programs log using the LOG\_MAIL facility code for normal
-messages.  You can deal with this specifically in your {\tt syslog}
-configuration file on systems with a 4.3bsd-based syslog.  The
-following reflects the recommended configuration on SunOS 4.0:
-\begin{alltt}\medskip\hrule\medskip
-mail.crit   /var/log/syslog
-mail.debug  /var/log/mail
-\medskip\hrule\medskip\end{alltt}
+<LISTITEM><PARA>
+scheduler logs, usually kept in <FILENAME>$<VARNAME>LOGDIR</>/scheduler</>.
+Same as router.
+</PARA></LISTITEM>
 
-For pre-4.3bsd-based syslogs, you may want the syslog log file
-to be just for important messages (e.g. LOG\_NOTICE and higher
-priority), and have a separate file for informational messages
-(LOG\_DEBUG and up).
-\item By default, the postmaster will receive a copy of all bounced
-mail; this can be turned off selectively by simply editing the
-various canned forms used to create the error messages.  These
-forms are located in the FORMSDIR ({\tt proto/forms} in the distribution,
-or {\tt \$MAILSHARE/forms} when installed).  You should review these
-in any case to make sure the text is appropriate for your site.
-\end{itemize}
+<LISTITEM><PARA>
+general mail logs, usually kept in syslog files, depending on how
+you have configured the syslog utility (<FILENAME>/etc/syslog.conf</>).
+All ZMailer programs log using the <EMPHASIS>LOG_MAIL</> facility code
+for normal messages.
+You can deal with this specifically in your <COMMAND>syslogd</>(8)
+configuration file on systems with a 4.3bsd-based syslog.
+The following reflects the recommended configuration on SunOS 4.0:
+<SCREEN>
+  mail.crit   /var/log/syslog
+  mail.debug  /var/log/mail
+</SCREEN>
+</PARA>
+<PARA>
+For pre-4.3bsd-based syslogs, you may want the syslog log file to be just
+for important messages (e.g. LOG_NOTICE and higher priority), and have
+a separate file for informational messages (LOG_DEBUG and up).
+</PARA></LISTITEM>
 
+<LISTITEM><PARA>
+By default, the postmaster will <EMPHASIS>not</> receive a copy of
+all bounced mail; this can be turned on selectively by simply editing
+the various canned forms used to create the error messages.
+These forms are located in the <VARNAME>FORMSDIR</>
+(<FILENAME CLASS="DIRECTORY">proto/forms/</> in the distribution,
+or <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/forms/</>
+when installed).
+You should review these in any case to make sure the text is appropriate
+for your site.
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
 
+</SECT1>
 
+<SECT1><TITLE>Scheduler Statistics log</>
 
-\subsection{Scheduler Statistics log}
-
+<PARA>
 The  statistics log reports condenced performance oriented
 information in following format:
-\begin{alltt}\medskip\scriptsize\hrule\medskip
+<SCREEN>
 timestamp fileid  dt1 dt2 state $channel/$host
 812876190 90401-2   0   5    ok usenet/-
 812876228 90401-1   0   7    ok usenet/-
 812876244 90401-1   0   1    ok local/gopher-admin
 812876244 90401-1   0   5    ok smtp/funet.fi
 812876559 90401-1   0  21    ok smtp/utu.fi
-\medskip\hrule\end{alltt}\medskip
-
+</SCREEN>
 where the fields are:
-\begin{description}
-\item[timestamp] \mbox{} \\
-The original spoolfile {\tt ctime} (creation time)  stamp
-in decimal.
 
-\item[fileid] \mbox{} \\
+<VARIABLELIST>
+<VARLISTENTRY><TERM>timestamp
+</TERM><LISTITEM><PARA>
+The original spoolfile <EMPHASIS>ctime</> (creation time) stamp in decimal.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>fileid
+</TERM><LISTITEM><PARA>
 Spoolfile name after the router has processed it.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[dt1] \mbox{} \\
+<VARLISTENTRY><TERM>dt1
+</TERM><LISTITEM><PARA>
 The time difference from spoolfile ctime to 
 scheduler control file creation by the router.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[dt2] \mbox{} \\
-The time difference from scheduler file {\tt ctime} to
+<VARLISTENTRY><TERM>dt2
+</TERM><LISTITEM><PARA>
+The time difference from scheduler file <EMPHASIS>ctime</> to
 the delivery that is logged on.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[state] \mbox{} \\
-What happened?  Values: {\tt ok}, {\tt error}, {\tt expiry}
+<VARLISTENTRY><TERM>state
+</TERM><LISTITEM><PARA>
+What happened?  Values: ok, ok2, ok3, error, error2, expiry
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\$channel-\$host] \mbox{} \\
+<VARLISTENTRY><TERM>$channel/$host
+</TERM><LISTITEM><PARA>
 Where/how it was processed.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\end{description}
+</SECT1>
 
+<SECT1><TITLE>syslogged log formats</>
 
-\subsection{syslogged log formats}
+<PARA>
+At <EMPHASIS>syslog</> facility the system logs also material,
+if it has so been configured.
+</PARA>
 
-At {\em syslog} facility the system logs also material, if it has so been
-configured.
-
+<PARA>
 Different subsystems do different logs, they are described below.
+</PARA>
 
-\subsubsection{Smtpserver's Syslog Format}
+<SECT2><TITLE>Smtpserver's Syslog Format</TITLE>
 
-The {\em smtpserver} may log in multiple formats:
-\begin{description}
-\item[\em INFO: connection from ...]
-\item[\em WARN: refusing connection from ...]
-\item[\em INFO: accepted id ... into freeze..]
-\item[\em INFO: TASPID accepted from...] \mbox{} \\
+<PARA>
+The <EMPHASIS>smtpserver</> may log in multiple formats:
+<VARIABLELIST>
+<VARLISTENTRY>
+<TERM>INFO: connection from ...</TERM>
+<TERM>WARN: refusing connection from ...</TERM>
+<TERM>INFO: accepted id ... into freeze..</TERM>
+<TERM>INFO: TASPID accepted from...</TERM>
+<LISTITEM><PARA>
+where TASPID: A spool-id that is valid throughout message lifetime
+in the system, and should be long-term unique, even.  (Per system.)
+</PARA></LISTITEM></VARLISTENTRY>
 
-The ta-spool-id -- A spool-id that is valid throughout message lifetime.
+<VARLISTENTRY>
+<TERM>EMERG: smtpserver policy database problem...</TERM>
+<TERM>ERR:  MAILBIN unspecified in zmailer.conf</TERM>
+<LISTITEM><PARA></PARA></LISTITEM>
+</VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\item[\rm EMERG: smtpserver policy database problem...]
-\item[\rm ERR:  MAILBIN unspecified in zmailer.conf]
-\end{description}
+</SECT2>
 
-\subsubsection{Router's Syslog Format}
+<SECT2><TITLE>Router's Syslog Format</TITLE>
 
-The {\em router} does syslog in following format:
+<PARA>
+The <EMPHASIS>router</> does <FUNCTION>syslog</>() in following format:
+</PARA>
 
-{\tt taspid: from=&lt;addr&gt;, rrelay=smtprelay, size=nnn, nrcpts=nnn, msgid=str}
+<PARA>
+<SYNOPSIS>taspid: from=&lt;addr&gt;, rrelay=smtprelay, size=nnn, nrcpts=nnn, msgid=str</SYNOPSIS>
+</PARA>
 
-\begin{description}
-\item[taspid] \mbox{} \\
+<PARA>
+Where:
+<VARIABLELIST>
+<VARLISTENTRY>
+<TERM>taspid</TERM>
+<LISTITEM><PARA>
+The TA-SPOOL-ID &mdash; A spool-id that is valid throughout message lifetime
+</PARA></LISTITEM></VARLISTENTRY>
 
-The ta-spool-id -- A spool-id that is valid throughout message lifetime
+<VARLISTENTRY>
+<TERM>from=</TERM>
+<LISTITEM><PARA>
+the envelope source address
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[from=] \mbox{} \\
+<VARLISTENTRY>
+<TERM>rrelay=</TERM>
+<LISTITEM><PARA>
+the message ``rcvdfrom'' envelope header reports.
+</PARA></LISTITEM></VARLISTENTRY>
 
-What is the envelope source address
-
-\item[rrelay=] \mbox{} \\
-
-What the message ``rcvdfrom'' envelope header reports.
-
-\item[size=] \mbox{} \\
-
+<VARLISTENTRY>
+<TERM>size=</TERM>
+<LISTITEM><PARA>
 Total message size in bytes (envelope+headers+body)
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[nrcpts=] \mbox{} \\
-
+<VARLISTENTRY>
+<TERM>nrcpts=</TERM>
+<LISTITEM><PARA>
 Number of recipients for this message
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[msgid=] \mbox{} \\
-
+<VARLISTENTRY>
+<TERM>msgid=</TERM>
+<LISTITEM><PARA>
 The ``Message-ID:'' header content
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\end{description}
+</SECT2>
 
-\subsubsection{Transport Agent's Syslog Format}
+<SECT2><TITLE>Transport Agent's Syslog Format</TITLE>
 
+<PARA>
 The transport agents log in following format:
+</PARA>
 
-{\tt taspid: to=&lt;addr&gt;, delay=dd, xdelay=xx, mailer=mm, relay=rr (wtt), stat=\%s msg}
+<PARA>
+<SYNOPSIS>taspid: to=&lt;addr&gt;, delay=dd, xdelay=xx, mailer=mm, relay=rr (wtt), stat=%s msg</SYNOPSIS>
+</PARA>
 
+<PARA>
 Here the fields are:
-\begin{description}
-\item[taspid] \mbox{} \\
+<VARIABLELIST>
+<VARLISTENTRY>
+<TERM>taspid</TERM>
+<LISTITEM><PARA>
+The ta-spool-id &mdash; A spool-id that is valid throughout message lifetime
+</PARA></LISTITEM></VARLISTENTRY>
 
-The ta-spool-id -- A spool-id that is valid throughout message lifetime
-
-\item[to=] \mbox{} \\
-
+<VARLISTENTRY>
+<TERM>to=</TERM>
+<LISTITEM><PARA>
 Destination address in whatever form the transport agent uses.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[delay=] \mbox{} \\
-
+<VARLISTENTRY>
+<TERM>delay=</TERM>
+<LISTITEM><PARA>
 Delay from message arrival to the system to this logging moment
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[xdelay=] \mbox{} \\
-
-Delay during this processing attempt -- tells how much time {\em this}
+<VARLISTENTRY>
+<TERM>xdelay=</TERM>
+<LISTITEM><PARA>
+Delay during this processing attempt &mdash; tells how much time <EMPHASIS>this</>
 time was spent to process the message.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[mailer=] \mbox{} \\
-
+<VARLISTENTRY>
+<TERM>mailer=</TERM>
+<LISTITEM><PARA>
 Tells what ``channel'' was used.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[relay=] \mbox{} \\
-
+<VARLISTENTRY>
+<TERM>relay=</TERM>
+<LISTITEM><PARA>
 Reports on which host the message is relayed thru (``wtthost''), and for
 SMTP, also (in parenthesis) what was the relay's IP address.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[stat=] \mbox{} \\
-
-What status was achieved: {\tt ok}, {\tt delayed}, {\tt failed}...
+<VARLISTENTRY>
+<TERM>stat=</TERM>
+<LISTITEM><PARA>
+What status was achieved: ok*, delayed, failed, ...
 {\bf\Large CHECK!}
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[msg] \mbox{} \\
-
+<VARLISTENTRY>
+<TERM>msg</TERM>
+<LISTITEM><PARA>
 Arbitary text line from whatever system is out there.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\end{description}
-</SCREEN>
+</SECT2>
+</SECT1>
 </CHAPTER>

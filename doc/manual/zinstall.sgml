@@ -19,7 +19,7 @@ for more information.</PARA></TIP>
 
 </PARTINTRO>
 
-<CHAPTER>
+<CHAPTER><?dbhtml filename="zins-buildinstall.html">
 <TITLE>Build and Install</TITLE>
 <SECT1 ID="build.environment"><TITLE>Environment Issues</>
 
@@ -32,7 +32,7 @@ a bundled resolver from  bind-4.9.4, however it is a bit difficult
 at BSD systems (because those developers use BSD themselves, and
 make an assumption that verybody has their version of things...
 On the other hand, those systems have reasonably modern resolvers,
-so no need to worry about it -- I hope.) 
+so no need to worry about it &mdash; I hope.) 
 </PARA>
 
 <PARA>
@@ -99,10 +99,10 @@ which gives at most 15 characters for your prefix!
 </PARA>
 
 <PARA>
-Also, if the <FILENAME>/etc/zmailer.conf</> file exists,
-<FOOTNOTE><PARA>Default location is <FILENAME>/etc/zmailer.conf</>,
-and it can be changed with <OPTION>--with-zmailer-conf=</> option.
-</PARA></FOOTNOTE>
+Also, if the <FILENAME>/etc/zmailer.conf</> file
+exists<FOOTNOTE><PARA>Default location is <FILENAME>/etc/zmailer.conf</>,
+and it can be changed with <OPTION>--with-zconfig=</> option.
+</PARA></FOOTNOTE>,
 it is read to initialize several different environment paths (including
 <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</>, et.al.!)
 
@@ -112,7 +112,7 @@ it is read to initialize several different environment paths (including
   --with-postoffice=/var/spool/postoffice \
   --with-mailbox=/var/mail                \
   --with-logdir=/var/log/mail             \
-  --with-zmailer-conf=/etc/zmailer.conf</USERINPUT></SCREEN></PARA>
+  --with-zconfig=/etc/zmailer.conf</USERINPUT></SCREEN></PARA>
 
 <PARA>
 Or an example from my development machine:
@@ -203,7 +203,7 @@ or perhaps:
 <SCREEN>
   <PROMPT>$ </><USERINPUT>make clean all</>
 </SCREEN>
-which at first cleans everything, and then makes -- great if you
+which at first cleans everything, and then makes &mdash; great if you
 changed some configuration parameters.
 </PARA>
 
@@ -396,7 +396,8 @@ the <FILENAME>proto/</> directory in the source tree.
 </SECT1>
 </CHAPTER>
 
-<CHAPTER><TITLE>System Configuring</>
+<CHAPTER><?dbhtml filename="zins-sysconfig.html">
+<TITLE>System Configuring</>
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</></>
      <INDEXTERM><PRIMARY>configuration</><SECONDARY>basic ZMailer installation</></> -->
 
@@ -488,7 +489,7 @@ See the files specific to the University of Toronto
 <PARA>
 Location of this file is written in
 <FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>.
-By editing that entry you can alter it -- into
+By editing that entry you can alter it &mdash; into
 <FILENAME>$<VARNAME>MAILSHARE</>/mail.conf</>,
 for example.
 </PARA>
@@ -698,8 +699,8 @@ You can compile the file into binary database with command:
 <SECT2><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/fqdnaliases</> file</>
 
 <PARA>
-The <FILENAME>fqdnaliases</> database is for mapping fully-qualified user
-addresses to others -- for example you machine has a set of
+The <FILENAME>fqdnaliases</> database is for mapping fully-qualified
+user addresses to others &mdash; for example you machine has a set of
 domain-names for it to consider local, but you want to have
 separate people to be postmasters for each of them as shown at
 <XREF LINKEND="fig.inst.fqdnaliases">.
@@ -727,7 +728,7 @@ some arbitary addresses as shown at <XREF LINKEND="fig.inst.fqdnaliases-2">.
 </FIGURE>
 
 <PARA>
-This facility is always in stand-by -- just add the file, and
+This facility is always in stand-by &mdash; just add the file, and
 you have it at the next router startup.
 </PARA>
 
@@ -871,14 +872,14 @@ Variant for using <APPLICATION>CMU Cyrus</> message store server.
 
 <PARA>
 For more information regarding <EMPHASIS>scheduler</> configuration language,
-see <XREF LINKEND="schedulerconfig">.
+see <XREF LINKEND="zref.schedulerconfig">.
 </PARA>
 
 <SECT2 ID="sm.conf"><TITLE>Checking <FILENAME>sm.conf</> file</>
 <!-- <INDEXTERM><PRIMARY><FILENAME>sm.conf</>-file</></> -->
 
 <PARA>
-For some uses the scheduler runs <COMMAND>sm</>(8) program -- called
+For some uses the scheduler runs <COMMAND>sm</>(8) program &mdash; called
 ``sendmail-like mailer''.
 </PARA>
 
@@ -901,7 +902,7 @@ as local delivery agent </PARA></LISTITEM>
 </PARA>
 
 <PARA>
-For more information, see <XREF LINKEND="smconfig">.
+For more information, see <XREF LINKEND="ref.ta.smconfig">.
 </PARA>
 
 </SECT2>
@@ -924,7 +925,7 @@ For further details on this, see chapter
 <PARA>
 In <COMMAND>smtpserver</> front you may need to lower the strict standards
 of the basic RFC-821 SMTP protocol and allow acceptance of non-qualified
-addresses -- ones without any sort of domain name in them.
+addresses &mdash; ones without any sort of domain name in them.
 </PARA>
 
 <PARA>
@@ -1137,7 +1138,8 @@ appropriate for your site.
 </SECT1>
 </CHAPTER>
 
-<CHAPTER><TITLE>Installation to Clients</>
+<CHAPTER><?dbhtml filename="zins-clientinst.html">
+<TITLE>Installation to Clients</>
 
 <PARA>
 This section describes the installation at clients.
@@ -1225,6 +1227,7 @@ one of following (depending upon the system):
 </CHAPTER>
 
 <CHAPTER ID="ZINS.CONFIGURE-OPTIONS-LIST">
+<?dbhtml filename="zins-configure-options.html">
 <TITLE><FILENAME>./configure</> options</>
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY>configure</><TERTIARY>options</></>
      <INDEXTERM><PRIMARY>configure</><SECONDARY>options</></>  -->
@@ -1262,14 +1265,14 @@ Obvious ones, compiler, and possible "-g -O" flags...
 <VARLISTENTRY>
 <TERM><VARNAME>CPPDEP</>="command"</>
 <LISTITEM><PARA>
-Not normally needed -- builds dependencies
+Not normally needed &mdash; builds dependencies
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><VARNAME>INEWSBIN</>=/file/path</>
 <LISTITEM><PARA>
 If you want to pre-define where your `inews' program
-is -- for possible use of `usenet' channel.
+is &mdash; for possible use of `usenet' channel.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
@@ -1339,7 +1342,7 @@ Defaults are looked up thru list of directories:
  /usr/mail
  /usr/spool/mail
 </SCREEN>
-First found directory will be the default -- or then
+First found directory will be the default &mdash; or then
 system yields  <FILENAME CLASS="DIRECTORY">/usr/spool/mail</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1458,7 +1461,7 @@ If needed to define linking-time options to find the YP-library.
 If UMich/NetScape <APPLICATION>LDAP</> are available thru
 <FILENAME CLASS="DIRECTORY">DIRPREFIX/include/</>
 and <FILENAME CLASS="DIRECTORY">DIRPREFIX/lib/</>
-locations, this is a short-hand to find the interface -- with files
+locations, this is a short-hand to find the interface &mdash; with files
 in the system primary include and lib locations,
 ``<FILENAME CLASS="DIRECTORY">/usr</>'' is a special value which
 will be ignored.  There is no default value for
@@ -1483,7 +1486,7 @@ Special overrider for linkage library directory of LDAP
 At systems where the local filesystem is log-based/journaling,
 doing   fsync()  is wastefull.  This disables fsync() in
 cases where it is not needed.    (In others it may boost
-your system performance by about 20% -- with dangers..
+your system performance by about 20% &mdash; with dangers..
 On the other hand, recently a system disk(?) fault which
 hang mailer at spool directory access did cause severe
 damage all over, and propably use of this option would
@@ -1544,7 +1547,7 @@ hooks,
 On some systems with good mmap() with ``MAP_FILE|MAP_SHARED,''
 and well behaving  munmap()  it does make sense to replace
 read()/write() thru a file-descriptor to the file with
-mmap() -- however that requires munmap() not to scrub
+mmap() &mdash; however that requires munmap() not to scrub
 away in-mapped blocks any more actively, than the buffer-cache
 works at read()/write() blocks.
 </PARA>
@@ -1597,7 +1600,9 @@ and whatever others your local system magic needs.
 
 </SECT1>
 </CHAPTER>
-<CHAPTER><TITLE>Verifying the System</TITLE>
+
+<CHAPTER><?dbhtml filename="zins-verification.html">
+<TITLE>Verifying the System</TITLE>
 
 <PARA>
 FIXME! FIXME! <EMPHASIS> TO BE WRITTEN !</>

@@ -1,19 +1,24 @@
-<CHAPTER ID="ZREF-SMTPSERVER">
+<CHAPTER ID="ZREF-SMTPSERVER"><?dbhtml filename="zref-smtpserver.html">
 <TITLE>SMTP-server</TITLE>
 
-<SCREEN>
-The ZMailer distribution contains an {\em SMTP} server program
+<PARA>
+The ZMailer distribution contains an <EMPHASIS>SMTP-server</> program
 for the BSD socket implementation of TCP/IP.
-It is an asynchronous implementation, in that address semantics are
-not checked in real time, nor are other (optional in the {\em SMTP}
-standard) functions that require {\em router} functionality.
+It is an asynchronous implementation, in that while address syntax
+is checked in real time,  semantics are not,  nor are other
+(optional in the SMTP standard) functions that require
+<EMPHASIS>router</> functionality.
+</PARA>
 
+<PARA>
 The server will run an RFC-821 syntax scanner for addresses, plus possible
 policy analysis phase, and if things are ok, it says ``Yes yes, sure!'' to
 everything.
 The program may also be used in non-daemon mode to unpack BSMTP format
 messages on the standard input stream.
+</PARA>
 
+<PARA>
 This program implements the server side of the {\em SMTP} protocol
 as described in RFC821, and knows about the common extensions to
 the protocol expected by {\em sendmail} and BSMTP clients.
@@ -27,18 +32,24 @@ synchronous (or asynchronous) running of router.
 This behaviour can be changed by a command line option (or
 HELO/EHLO style patterns) if you cannot afford to transfer
 data just to bounce it back.
+</PARA>
 
+<PARA>
 All {\em router} assisted checking is done by executing
 the  {\em router(8)} program in interactive mode, and executing
 well-known shell function with well-known parameters for each request.
+</PARA>
 
+<PARA>
 The server implements also most of the ESMTP facilities invented
 up to date (May, 1998).  The ones that are active are visible
 at greeting response to ``{\bf EHLO}'' command, as can be seen
-in figure \vref{fig:ref:smtpserver1}.
+in figure <XREF LINKEND="fig.ref.smtpserver1">.
+</PARA>
 
-\begin{figure*}
-\begin{alltt}\hrule\medskip
+<FIGURE ID="fig.ref.smtpserver1" PGWIDE="0" FLOAT="1">
+<TITLE>Sample ``<EMPHASIS>EHLO</>'' greeting with smtpserver</TITLE>
+<SCREEN>
 \$ {\bfseries{}telnet 127.1 smtp}
 Connected to 127.1.
 Escape character is '^]'.
@@ -57,14 +68,13 @@ Escape character is '^]'.
 250-ETRN
 250 HELP
 ...
-\medskip\hrule\end{alltt}
-\label{fig:ref:smtpserver1}
-\caption{Sample ``{\bf EHLO}'' greeting with smtpserver}
-\end{figure*}
+</SCREEN>
+</FIGURE>
 
 
-\subsection{SMTP-server Runtime Parameters}
+<SECT1><TITLE>SMTP-server Runtime Parameters</TITLE>
 
+<SCREEN>
 {\em Usage}
 
 {\tt smtpserver [ -46aginvBV ] [ -p port ] [ -l logfile ] [ -s [ftveR] ] [ -L maxloadaver ] [ -M SMTPmaxsize ] [ -P postoffice ] [ -R router ] [ -C cfgfile ]}
@@ -211,11 +221,12 @@ old Eudora or other MUAs that do not correctly support koi8-r charset.
 
 \end{description}
 
+</SCREEN>
+</SECT1>
 
+<SECT1><TITLE>Smtpserver configuration</TITLE>
 
-\subsection{Smtpserver configuration}
-
-
+<SCREEN>
 If the {\tt \$MAILSHARE/smtpserver.conf} file exists it is read 
 to configure two kinds of things. Specifically the following:
 
@@ -244,10 +255,11 @@ at the client.
 This configuration capability is intended as a way to control misbehaving
 client software or mailers.
 \end{description}
+</SCREEN>
 
-\subsubsection{Smtpserver configuration; PARAM -entries}
+<SECT2><TITLE>Smtpserver configuration; PARAM -entries</TITLE>
 
-
+<SCREEN>
 \begin{description}
 \item[\tt PARAM maxsize nn] \mbox{} \\
 Maximum size in the number of bytes of the entire spool message
@@ -417,26 +429,28 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 \caption{Full-featured {\tt smtpserver.conf} file example}
 \label{fig:ref:smtpserver2}
 \end{figure*}
+</SCREEN>
+</SECT2>
+</SECT1>
 
+<SECT1 ID="ref.smtp-policy-builder">
+<TITLE><EMPHASIS>policy-builder.sh</> utility</TITLE>
+<!-- \index{smtp!policy filtering, {\em policy-builder.sh}} -->
 
-
-\subsection{{\em policy-builder.sh} utility}
-\label{ref:smtp_policy_builder}
-\index{smtp!policy filtering, {\em policy-builder.sh}}
-
+<PARA>
 The policy database that {\em smtpserver} uses is built with
 {\tt policy-builder.sh} script, which bundles together a set
 of policy source files:
+<SCREEN>
+  DB/smtp-policy.src   The boilerplate
+  DB/localnames        ('= _localnames')
+  DB/smtp-policy.relay ('= _full_rights')
+  DB/smtp-policy.mx    ('relaytargets +')
+  DB/smtp-policy.spam  ('= _bulk_mail')
+</SCREEN>
+</PARA>
 
-\begin{alltt}\medskip\hrule\small\medskip
-DB/smtp-policy.src   The boilerplate
-DB/localnames        ('= _localnames')
-DB/smtp-policy.relay ('= _full_rights')
-DB/smtp-policy.mx    ('relaytargets +')
-DB/smtp-policy.spam  ('= _bulk_mail')
-\medskip\hrule\end{alltt}\medskip
-
-
+<SCREEN>
 At the moment, {\tt smtp-policy.spam} source is retrieved with LYNX from
 the URL:
 \begin{alltt}\medskip\scriptsize\medskip
@@ -524,15 +538,14 @@ or recipients no matter what earlier analysis has shown.
 The ``{\tt policy-builder.sh}'' builds this file from external sources. 
 
 \end{description}
+</SCREEN>
+</SECT1>
 
+<SECT1 ID="ref.smtp-policy-filtering">
+<TITLE>Policy Filtering Language</TITLE>
+<!-- \index{smtp!policy filtering, reference} -->
 
-
-
-\subsection{Policy Filtering Language}
-\label{ref:smtp_policy_filtering}
-\index{smtp!policy filtering, reference}
-
-
+<SCREEN>
 Policy based filter database boilerplate for smtp-server.
 
 File:  {\tt \$MAILVAR/db/smtp-policy.src}
@@ -767,11 +780,11 @@ Placeholder for further code
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\end{multicols}
+</SCREEN>
 
-\subsubsection{Semantics}
+<SECT2><TITLE>Semantics</TITLE>
 
-
-
+<SCREEN>
 The {\tt policytest()} function is called by smtp-server to check the client 
 host, the sender's and recipients' addresses.  {\tt policytest()} looks for 
 the name and address of the client host as well as full and partial user address 
@@ -797,4 +810,6 @@ with `_tag' and restart the search.
 
 {\Large SCRIPT REMOVED; SEE FILE  smtp-policy.src}
 </SCREEN>
+</SECT2>
+</SECT1>
 </CHAPTER>

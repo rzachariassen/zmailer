@@ -1,92 +1,168 @@
-<CHAPTER ID="ZADM-SMTPSERVER-CONFIG">
+<CHAPTER ID="ZADM-SMTPSERVER-CONFIG"><?dbhtml filename="zadm-smtpserver.html">
 <TITLE><COMMAND>smtpserver</> Configuration</TITLE>
 
-<SCREEN>
-% \section{Smtpserver Configuration}
+<PARA>
+The <EMPHASIS>smtpserver</> is ZMailer's component to receive incoming
+email via SMTP protocol.  Be it thru TCP channel, or thru Batch-SMTP.
+</PARA>
 
-The {\em smtpserver} is ZMailer's component to receive SMTP form
-incoming email.  Be it thru TCP channel, or thru Batch-SMTP.
-
-%\begin{multicols}{2}
-
-The {\em smtpserver} program actually has several operational modes.
+<PARA>
+The <EMPHASIS>smtpserver</> program actually has several operational modes.
 It can operate as a stand-alone internet service socket listener, which
 forks off childs that do the actual SMTP-protocol service.
+</PARA>
 
-It can be started from under the control of the {\em inetd} server, and
-it can there fulfill the same role as it does in the stand-alone mode.
+<PARA>
+It can be started from under the control of the <COMMAND>inetd</>(8) server,
+and it can there fulfill most of the the same roles as it does in
+the stand-alone mode.
+</PARA>
 
+<PARA>
 It can even be used to accept Batch-SMTP from incoming files (UUCP,
 and BITNET uses, for example).
+</PARA>
 
+<PARA>
 The runtime command-line options are as follows:
+</PARA>
 
-{\tt smtpserver [ -46aignvBV ] [ -p port ] [ -l logfile ] [ -s [ftveR] ] [ -L maxloadaver ] [ -M SMTPmaxsize ] [ -P postoffice ] [ -R router ] [ -C cfgfile ]}
+<PARA>
+<CMDSYNOPSIS>
+<COMMAND>smtpserver</>
+<ARG>-46aignvBV</>
+<ARG>-p <REPLACEABLE>port</></>
+<ARG>-l <REPLACEABLE>logfile</></>
+<ARG>-s <REPLACEABLE>[ftveR]|'strict'</></>
+<ARG>-L <REPLACEABLE>maxloadaver</></>
+<ARG>-M <REPLACEABLE>SMTPmaxsize</></>
+<ARG>-P <REPLACEABLE>postoffice</></>
+<ARG>-R <REPLACEABLE>router</></>
+<ARG>-C <REPLACEABLE>cfgfile</></>
+</CMDSYNOPSIS>
+</PARA>
 
+<PARA>
 The most commonly used command line options are:
+<SYNOPSIS>
+ smtpserver [-aBivn] [-s ehlo-styles] [-l logfile] [-C cfgpath]
+</SYNOPSIS>
+</PARA>
 
-{\tt smtpserver [-aBivn] [-s ehlo-styles] [-l logfile] [-C cfgpath]}
-
-Without any arguments the  smtpserver  will start as a daemon
+<PARA>
+Without any arguments the  <EMPHASIS>smtpserver</>  will start as a daemon
 listening on TCP port 25 (SMTP).
+</PARA>
 
+<PARA>
 The options are:
+<VARIABLELIST>
+<VARLISTENTRY>
+<TERM>-a</TERM>
+<LISTITEM><PARA>
+Query IDENT information about the incoming connection.
+This information (if available at all) may, or may not tell who is forming
+a connection.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\begin{description}
-\item[{\tt -a}] \mbox{}
-
-Query IDENT information about the incoming connection. This information (if available at all) may, or may not tell who is forming a connection.
-
-\item[{\tt -B}] \mbox{}
-
+<VARLISTENTRY>
+<TERM>-B</TERM>
+<LISTITEM><PARA>
 The session is Batch-SMTP a.k.a. BSMTP type of session. Use of "-i" option is needed, when feeding the input batch file.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -i}] \mbox{}
-
+<VARLISTENTRY>
+<TERM>-i</TERM>
+<LISTITEM><PARA>
 This is interactive session.  I/O is done thru stdin/stdout.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -v}] \mbox{}
-
+<VARLISTENTRY>
+<TERM>-v</TERM>
+<LISTITEM><PARA>
 Verbose trace written to stdout for use in conjunktion with "-i", and "-B".
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -n}] \mbox{}
+<VARLISTENTRY>
+<TERM>-n</TERM>
+<LISTITEM><PARA>
+This tells that the <EMPHASIS>smtpserver</> is running under
+<COMMAND>inetd</>(8), and that the stdin/stdout file handles
+are actually network sockets on which we can do peer identity
+lookups, for example.
+</PARA></LISTITEM></VARLISTENTRY>
 
-This tells that the smtpserver is running under inetd, and that the stdin/stdout file handles are actually network sockets on which we can do peer identity lookups, for example.
+<VARLISTENTRY>
+<TERM>-s ehlo-style</TERM>
+<LISTITEM><PARA>
+Default value for various checks done at SMTP protocol MAIL FROM, RCPT TO,
+VRFY, and EXPN commands. These are overridden with the value from
+EHLO-patterns, if they are available (more below)
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -s ehlo-style}] \mbox{}
+<VARLISTENTRY>
+<TERM>-s 'strict'</TERM>
+<LISTITEM><PARA>
+Special value directing the system to be extremely picky about the incoming
+SMTP protocol &mdash; mainly for protocol compliance testing, usually way too
+picky for average (sloppy) applications out there...
+</PARA></LISTITEM></VARLISTENTRY>
 
-Default value for various checks done at MAIL FROM, RCPT TO, VRFY, and EXPN commands. These are overridden with the value from EHLO-patterns, if they are available (more below)
+<VARLISTENTRY>
+<TERM>-l logfilepath</TERM>
+<LISTITEM><PARA>
+Filename for the <EMPHASIS>smtpserver</> input protocol log.
+This logs about everything, except actual message data...
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -l logfilepath}] \mbox{}
+<VARLISTENTRY>
+<TERM>-l 'SYSLOG'</TERM>
+<LISTITEM><PARA>
+This tells <EMPHASIS>smtpserver</> that it shall send all incoming smtp
+protocol transactions via <EMPHASIS>syslog</> facility to elsewere.
+Used syslog parameters are: FACILITY=mail, LEVEL=debug.
+</PARA><PARA>
+This option may be used in addition to the preceding file logging variant.
+Double-use of file referring variant uses the last defined file, but this
+doesn't affect files at all.
+</PARA></LISTITEM></VARLISTENTRY>
 
-Filename for the smtpserver input protocol log. This logs about everything, except actual message data...
+<VARLISTENTRY>
+<TERM>-C configfilepath</TERM>
+<LISTITEM><PARA>
+Full path for the <EMPHASIS>smtpserver</> configuration in case
+the default location can not be used for some reason.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -C configfilepath}] \mbox{}
+<VARLISTENTRY>
+<TERM>-M SMTPmaxsize</TERM>
+<LISTITEM><PARA>
+<EMPHASIS>SMTPmaxsize</> defines the absolute maximum size we accept
+for incoming email. (Default: infinite) (This is a local policy issue.)
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-Full path for the smtpserver configuration in case the default location can not be used for some reason.
+<SECT1><TITLE><FILENAME>smtpserver.conf</></>
 
-\item[{\tt -M}] \mbox{}
+<PARA>
+If the system has file <FILENAME>$<VARNAME>MAILSHARE</>/smtpserver.conf</>
+(by default), that file is read for various parameters, which can override
+most of those possibly issued at the command line.
+</PARA>
 
-SMTPmaxsize Defines the asolute maximum size we accept from incoming email. (Default: infinite) (This is a local policy issue.)
+<PARA>
+Example configuration is is in figure <XREF LINKEND="fig.sample-smtpserver-cfg">.
+</PARA>
 
-\end{description}
-
-
-\subsection{\tt smtpserver.conf}
-
-If the system has file  {\tt \$MAILSHARE/smtpserver.conf} (by default),
-that file is read for various parameters, which can override a few
-of those possibly issued at the command line.
-
-Example configuration is is in figure \vref{fig:sample_smtpserver_cfg}.
-
-\begin{figure*}[ht]
-\begin{alltt}\hrule\medskip
-#PARAM maxsize          10000000    # {\rm{}Same as -M -option}
-#PARAM max-error-recipients    3    # {\rm{}More than this is propably SPAM!}
-#PARAM MaxSameIpSource        10    # {\rm{}Max simultaneous connections from}
-#                                   # {\rm{}any IP source address}
-#PARAM ListenQueueSize        10    # {\rm{}listen(2) parameter}
+<FIGURE ID="fig.sample-smtpserver-cfg" PGWIDE="0" FLOAT="1">
+<TITLE>Sample <FILENAME>smtpserver.conf</> file</TITLE>
+<SCREEN>
+#PARAM maxsize          10000000    # Same as -M -option
+#PARAM max-error-recipients    3    # More than this is propably SPAM!
+#PARAM MaxSameIpSource        10    # Max simultaneous connections from
+#                                   # any IP source address
+#PARAM ListenQueueSize        10    # listen(2) parameter
 #
 PARAM help -------------------------------------------------------------
 PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
@@ -94,7 +170,7 @@ PARAM help  Our telephone number is: +1-234-567-8900, and
 ....
 PARAM help -------------------------------------------------------------
 
-# {\rm{}The policy database:  (NOTE: See  'makedb'  for its default suffixes!)}
+# The policy database:  (NOTE: See  'makedb'  for its default suffixes!)
 PARAM  policydb   btree  /opt/mail/db/smtp-policy
 
 #
@@ -104,59 +180,64 @@ PARAM  policydb   btree  /opt/mail/db/smtp-policy
 localhost           999 ftveR
 some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 
-# {\rm{}If the host presents itself as:  HELO [1.2.3.4], be lenient to it..}
-# {\rm{}The syntax below is due to these patterns being SH-GLOB patterns,}
-# {\rm{}where brackets are special characters.}
+# If the host presents itself as:  HELO [1.2.3.4], be lenient to it..
+# The syntax below is due to these patterns being SH-GLOB patterns,
+# where brackets are special characters.
 
-\verb/\/[*\verb/]/                 999 ve
+[*]                 999 ve
 
-# {\rm{}Per default demant strict syntactic adherence, including fully}
-# {\rm{}qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient}
-# {\rm{}on that detail, remove the "R" from "veR" string below:}
+# Per default demant strict syntactic adherence, including fully
+# qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient
+# on that detail, remove the "R" from "veR" string below:
 
 *                   999 veR
-\medskip\hrule\end{alltt}\medskip
-\caption{Sample {\tt smtpserver.conf} file\label{fig:sample_smtpserver_cfg}}
-\end{figure*}
+</SCREEN>
+</FIGURE>
 
+<SECT2><TITLE><FILENAME>smtpserver.conf</>; PARAM keywords</TITLE>
 
-\subsubsection{{\tt smtpserver.conf}; PARAM keywords}
-
+<PARA>
 The PARAM keywords and values are:
-
-\begin{description}
-\item[{\tt maxsize nn}] \mbox{} \\
+<VARIABLELIST>
+<VARLISTENTRY>
+<TERM>maxsize nn</TERM>
+<LISTITEM><PARA>
 Maximum size in the number of bytes of the entire spool message
 containing both the transport envelope, and the actual message.
 That is, if the max-size is too low, and there are a lot of
 addresses, the message may entirely become undeliverable..
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-\item[{\tt max-error-recipients nn}] \mbox{} \\
+<VARLISTENTRY>
+<TERM>max-error-recipients nn</TERM>
+<LISTITEM><PARA>
 In case the message envelope is an error envelope (MAIL FROM:&lt;&gt;),
 the don't accept more than this many separate recipient addresses
 for it. The default value is 3, which should be enough for most cases.
 (Some SPAMs claim to be error messages, and then provide a huge
 number of recipient addresses...)
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-\item[{\tt MaxSameIpSource nn}] \mbox{} \\
-(Effective only on daemon-mode server -- not on "-i", nor "-n" modes.)
+<VARLISTENTRY>
+<TERM>MaxSameIpSource nn</TERM>
+<LISTITEM><PARA>
+(Effective only on daemon-mode server &mdash; not on "-i", nor "-n" modes.)
 Sometimes some systems set up multiple parallel connections to same
 host  (qmail ones especially, not that ZMailer has entirely clean
 papers on this - at least up to 2.99.X series), we won't accept
 more than this many connections from the same IP source address
 open in parallel.  The default value for this limit is 10.
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-\item[{\tt ListenQueueSize nn}] \mbox{}
-
-This relates to newer systems where the {\tt listen(2)} system call
-can define higher limits, than the traditional/original 5.
+<VARLISTENTRY>
+<TERM>ListenQueueSize nn</TERM>
+<LISTITEM><PARA>
+This relates to newer systems where the <COMMAND>listen</>(2)
+system call can define higher limits, than the traditional/original 5.
 This limit tells how many nascent TCP streams we can have in
-SYN\_RCVD state before we stop answering to incoming SYN packets
+SYN_RCVD state before we stop answering to incoming SYN packets
 requesting opening of a connection.
-
+</PARA><PARA>
 There are entirely deliberate denial-of-service attacks based on
 flooding to some server many SYNS on which it can't send replies
 back (because the target machines don't have network connectivity,
@@ -165,50 +246,56 @@ This can also happen accidentally, as the connectivity in between
 the client host, and the server host may have a black hole into
 which the SYN-ACK packets disappear, and the client thus will not
 be able to get the TCP startup three-way handshake completed.
-
+</PARA><PARA>
 Most modern systems can have this value upped to thousands to
 improve systems resiliency against malicious attacks, and most
 likely to provide complete immunity against the accidental
 "attack" by the failing network routing.
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-
-\item[{\tt help 'string'}] \mbox{}
-
+<VARLISTENTRY>
+<TERM>help 'string'</TERM>
+<LISTITEM><PARA>
 This one adds yet another string (no quotes are used) into those
 that are presented to the client when it asks for "HELP" in the
 SMTP session.
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-
-\item[{\tt PolicyDB dbtype dbpath}] \mbox{}
-
+<VARLISTENTRY>
+<TERM>PolicyDB dbtype dbpath</TERM>
+<LISTITEM><PARA>
 This defines the database type, and file path prefix to the binary
 database containing policy processing information.  More of this
 below.  Actual binary database file names are formed by appending
 type specific suffixes to the path prefix.  For example NDBM
 database appends ".pag" and ".dir", while BSD-Btree appends only
 ".db".  (And the latter has only one file, while the first has two.)
+</PARA><PARA>
+For an operative overview, see  <XREF LINKEND="adm.smtp-policy-filtering">,
+and for deeper details, see <XREF LINKEND="ref.smtp-policy-filtering">.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-For an operative overview, see  \vref{adm:smtp_policy_filtering}, and
-for deeper details, see \vref{ref:smtp_policy_filtering}.
+</SECT2>
 
-\end{description}
-
-
-\subsubsection{{\tt smtpserver.conf}; ``EHLO-style options''}
+<SECT2 ID="adm.smtpserver.ehlostyle">
+<TITLE><FILENAME>smtpserver.conf</>; ``EHLO-style options''</TITLE>
+<SCREEN>
 \index{smtpserver!{\tt smtpserver.conf}; ``EHLO-style options''}
-\label{adm:smtpserver:ehlostyle}
+</SCREEN>
 
+<PARA>
 All lines that are not comments, nor start with uppercase keyword
 ``POLICY'' are ``EHLO-style patterns''.
-This is the oldest form of configuring the {\em smtpserver}, and
-as such, it can be seen\ldots
+This is the oldest form of configuring the <EMPHASIS>smtpserver</>, and
+as such, it can be seen...
+</PARA>
 
-
-Behaviour is based on glob patterns matching the {\bf HELO/EHLO} name
-given by a remote client.
-Lines beginning with a ``\#'', or whitespace are ignored in the file,
+<PARA>
+Behaviour is based on glob patterns matching the
+<EMPHASIS ROLE="BOLD">HELO/EHLO</> name given by a remote client.
+Lines beginning with a ``#'', or whitespace are ignored in the file,
 and all other lines must consist of two tokens: a shell-style (glob) 
 pattern starting at the beginning of the line, whitespace, and a 
 sequence of style flags. The first matching line is used. As a 
@@ -216,201 +303,223 @@ special case, the flags section may start with a ! character in
 which case the remainder of the line is a failure comment message 
 to print at the client. This configuration capability is intended 
 as a way to control misbehaving client software or mailers.
+</PARA>
 
+<PARA>
 The meanings of the style flag characters are as follow:
-\begin{description}
-\item[f]\mbox{}\\
-Check {\tt MAIL FROM} addresses through online processing in router
-\item[t]\mbox{}\\
+<VARIABLELIST>
+<VARLISTENTRY><TERM>f</TERM><LISTITEM><PARA>
+Check ``<EMPHASIS>MAIL FROM</>'' addresses through online processing in router
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>t</TERM><LISTITEM><PARA>
 Check {\tt RCPT TO} addresses through online processing in router
-\item[v]\mbox{}\\
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>v</TERM><LISTITEM><PARA>
 Allow execution of {\tt VRFY} command online at attached router
-\item[e]\mbox{}\\
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>e</TERM><LISTITEM><PARA>
 Allow execution {\tt EXPN} command online at attached router
-\item[R]\mbox{}\\
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>R</TERM><LISTITEM><PARA>
 Require addresses to be in fully qualified (domained) form:
-``{\tt local@remote}'' (strict 821)
-\item[S]\mbox{}\\
+``<EMPHASIS>local@remote</>'' (strict 821)
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>S</TERM><LISTITEM><PARA>
 Allow Sloppy input for systems incapable to respect RFC 821
-properly; WinCE1.0 does: ``{\tt MAIL FROM:user@domain}'' :-(
-\end{description}
+properly; WinCE1.0 does: ``<EMPHASIS>MAIL FROM:user@domain</>'' :-(
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
+
+</SECT2>
+</SECT1>
 
 
-
-
-
-\subsection{Policy Based Filtering}
+<SECT1 ID="adm.smtp-policy-filtering"><TITLE>Policy Based Filtering</TITLE>
+<SCREEN>
 \index{smtp!policy filtering, overview}
-\label{adm:smtp_policy_filtering}
+</SCREEN>
 
-
-The policy database that {\em smtpserver} uses is built with
-{\tt policy-builder.sh} script, which bundles together a set
+<PARA>
+The policy database that <EMPHASIS>smtpserver</> uses is built with
+<EMPHASIS>policy-builder.sh</> script, which bundles together a set
 of policy source files:
+<SCREEN>
+  DB/smtp-policy.src          The boilerplate
+  DB/localnames               ('= _localnames')
+  DB/smtp-policy.relay        ('= _full_rights')
+  DB/smtp-policy.mx           ('relaytargets +')
+  DB/smtp-policy.spam         ('= _bulk_mail')
+  DB/smtp-policy.spam.manual  ('= _bulk_mail')
+</SCREEN>
+</PARA>
 
-\begin{alltt}\medskip\hrule\medskip
-DB/smtp-policy.src   The boilerplate
-DB/localnames        ('= _localnames')
-DB/smtp-policy.relay ('= _full_rights')
-DB/smtp-policy.mx    ('relaytargets +')
-DB/smtp-policy.spam  ('= _bulk_mail')
-\medskip\hrule\end{alltt}\medskip
+<PARA>
+FIXME: {\tt smtp-policy.spam} source
+</PARA>
+<PARA>
+FIXME: {\tt smtp-policy.spam.manual} source
+</PARA>
 
-
-At the moment, {\tt smtp-policy.spam} source is retrieved with LYNX from
-the URL:
-\begin{alltt}\medskip\medskip
-http://www.webeasy.com:8080/spam/spam\_download\_table
-\medskip\end{alltt}\medskip
-however it seems there are sites out there that are spam havens, and
-that serve valid spam source/responce domains, which are not registered
-at that database.
-
+<PARA>
 {\em If you want, you can modify your {\tt smtp-policy.src} boilerplate
 file as well as your installed {\tt policy-builder.sh} script.}
 {\bf In fact you SHOULD modify both to match your environment!}
+</PARA>
 
+<PARA>
 Doing {\tt make install} will overwrite {\tt policy-builder.sh},
 but not {\tt smtp-policy.src}.
+</PARA>
 
+<PARA>
 Basically these various source files (if they exist) are used to
 combine knowledge of valid users around us:
+</PARA>
 
-\begin{description}
-\item[\tt localnames] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>localnames</TERM><LISTITEM><PARA>
+Who we are &mdash; ok domains for receiving.
+</PARA></LISTITEM></VARLISTENTRY>
 
-Who we are -- ok domains for receiving.
-
-\item[\tt smtp-policy.relay] \mbox{}
-
+<VARLISTENTRY><TERM>smtp-policy.relay</TERM><LISTITEM><PARA>
 Who can use us as outbound relay.
+</PARA>
 
+<PARA>
 Use  {\em\verb/[/ip.number\verb/]//maskwidth}  here for
 listing those senders (networks) we absolutely trust.
 You may also use domains, or domain suffixes so that the IP-reversed
 hostnames are accepted (but that is a it risky thing due to ease of
 fakeing the reversed domain names):
 
-\begin{alltt}\medskip\hrule\medskip
-[11.22.33.00]/24
-ip-reversed.host.name
-.domain.suffix
-\medskip\hrule\end{alltt}\medskip
+<SCREEN>
+  [11.22.33.00]/24
+  ip-reversed.host.name
+  .domain.suffix
+</SCREEN>
+</PARA>
 
-Server sets its internal ``always\_accept'' flag at the source IP tests
+<PARA>
+Server sets its internal ``always_accept'' flag at the source IP tests
 before it decides on what to tell to the contacting client.
 The flag is not modified afterwards during the session.
+</PARA>
 
+<PARA>
 Usage of domain names here is discouraged as there is no way to tell
 that domain ``foo.bar'' here has different meaning than same domain
-elsewere -- at ``{\tt smtp-policy.mx}'', for example.
+elsewere &mdash; at ``{\tt smtp-policy.mx}'', for example.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt smtp-policy.mx] \mbox{}
-
+<VARLISTENTRY><TERM>smtp-policy.mx</TERM><LISTITEM><PARA>
 Who really are our MX clients.
 Use this when you really know them, and don't want just to trust
 that if recipient has MX to you, it would be ok\ldots
+</PARA>
 
+<PARA>
 You can substitute this knowledge with a fuzzy feeling by using
 ``acceptifmx -'' attribute at the generic boilerplate.
 List here domain names. 
-\begin{alltt}\medskip\hrule\medskip
+<SCREEN>
  mx-target.dom
  .mx-target.dom
-\medskip\hrule\end{alltt}\medskip
+</SCREEN>
+</PARA>
 
+<PARA>
 You CAN also list here all POSTMASTER addresses you accept email routed to: 
-
-\begin{alltt}\medskip\hrule\medskip
+<SCREEN>
  postmaster@local.domain
  postmaster@client.domain
-\medskip\hrule\end{alltt}\medskip
-
+</SCREEN>
 these are magic addresses that email is accepted to, even when everything
 else is blocked. 
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt smtp-policy.spam] \mbox{}
-
+<VARLISTENTRY>
+<TERM>smtp-policy.spam</TERM>
+<TERM>smtp-policy.spam.manual</TERM>
+<LISTITEM><PARA>
 Those users, and domains that are absolutely no-no for senders,
 or recipients no matter what earlier analysis has shown.
 (Except for those senders that we absolutely trust..)
-
-\begin{alltt}\medskip\hrule\medskip
+<SCREEN>
  user@domain
  user@
  domain
-\medskip\hrule\end{alltt}\medskip
+</SCREEN>
+</PARA>
 
+<PARA>
 The ``{\tt policy-builder.sh}'' builds this file from external sources. 
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
-\end{description}
-
-
-
-At the ``smtp-policy.src'' boiler-plate file there is one
+<PARA>
+At the ``<FILENAME>smtp-policy.src</>'' boiler-plate file there is one
 particular section containing default setting statements.
-See figure \vref{fig:adm:smtp-policy-boiler} for the salient
-details concerning these details.
+See figure <XREF LINKEND="fig.adm.smtp-policy-boiler"> for the salient
+details concerning this.
+</PARA>
 
-\begin{figure*}[ht]
-\begin{alltt}\medskip\hrule\medskip\setlength{\baselineskip}{0.8\baselineskip}
+<FIGURE ID="fig.adm.smtp-policy-boiler" PGWIDE="0" FLOAT="1">
+<TITLE>The <FILENAME>smtp-policy.src</> file default settings fragment</TITLE>
+<SCREEN>
 ...
 #|-----------
 #|
-#| {\rm Default handling boilerplates:}
+#| Default handling boilerplates:
 #|
-#|   {\rm\em "We are not relaying between off-site hosts, except when ..."}
+#|   "We are not relaying between off-site hosts, except when ..."
 #|
-#| {\bf You MUST uncomment one of these default-defining pairs, or the blocking}
-#| {\bf of relay hijack will not work at all !}
+#| You MUST uncomment one of these default-defining pairs, or the blocking
+#| of relay hijack will not work at all !
 #|
-#| {\rm -- 1st alternate: No MX target usage, no DNS existence verify}
-#|    {\rm Will accept for reception only those domains explicitely listed}
-#|    {\rm in ``smtp-policy.mx'' and  ``localnames''  files.  Will not do}
-#|    {\rm verifications on validity/invalidity of source domains:}&lt;foo@bar&gt;
+#| -- 1st alternate: No MX target usage, no DNS existence verify
+#|    Will accept for reception only those domains explicitely listed
+#|    in ``smtp-policy.mx'' and  ``localnames''  files.  Will not do
+#|    verifications on validity/invalidity of source domains:&lt;foo@bar&gt;
 #
 # .             relaycustomer - relaytarget -
 # [0.0.0.0]/0   relaycustomer - relaytarget -
 #
-#| {\rm -- 2nd alternate: No MX target usage, DNS existence verify}
-#|    {\rm Like the 1st alternate, except will verify the sender} (MAIL FROM:&lt;..&gt;)
-#|    {\rm address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.}
+#| -- 2nd alternate: No MX target usage, DNS existence verify
+#|    Like the 1st alternate, except will verify the sender (MAIL FROM:&lt;..&gt;)
+#|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
 #
 # .             relaycustomer - relaytarget - senderokwithdns +
 # [0.0.0.0]/0   relaycustomer - relaytarget - senderokwithdns +
 #
-#| {\rm -- 3rd alternate: MX relay trust, DNS existence verify}
-#|    {\rm For the people who are in deep s*...  That is, those who for some}
-#|    {\rm reason have given open permissions for people to use their server}
-#|    {\rm as MX backup for their clients, but don't know all domains valid}
-#|    {\rm to go thru...  Substitutes accurate data to user's whimsical DNS}
-#|    {\rm maintenance activities.  Vulnerable to inbound MX resource abuse.}
+#| -- 3rd alternate: MX relay trust, DNS existence verify
+#|    For the people who are in deep s*...  That is, those who for some
+#|    reason have given open permissions for people to use their server
+#|    as MX backup for their clients, but don't know all domains valid
+#|    to go thru...  Substitutes accurate data to user's whimsical DNS
+#|    maintenance activities.  Vulnerable to inbound MX resource abuse.
 
 .               relaycustomer - acceptifmx - senderokwithdns +
 [0.0.0.0]/0     relaycustomer - acceptifmx - senderokwithdns +
 
-#| {\rm -- 4th alternate: Sender & recipient DNS existence verify}
-#|    {\rm This is more of an example for the symmetry's sake, verifies that}
-#|    {\rm the source and destination domains are DNS resolvable, but does not}
-#|    {\rm block relaying}
+#| -- 4th alternate: Sender & recipient DNS existence verify
+#|    This is more of an example for the symmetry's sake, verifies that
+#|    the source and destination domains are DNS resolvable, but does not
+#|    block relaying
 #
 # .             senderokwithdns - acceptifdns -
 # [0.0.0.0]/0   senderokwithdns - acceptifdns -
 #
 #|
-#|  {\rm\em You may also add  ``test-dns-rbl +''  attribute pair to [0.0.0.0]/0 of your}
-#|  {\rm\em choice to use Paul Vixie's  http://maps.vix.com/  MAPS RBL system.}
+#|  You may also add  ``test-dns-rbl +''  attribute pair to [0.0.0.0]/0 of your
+#|  choice to use Paul Vixie's  http://maps.vix.com/  MAPS RBL system.
 #|
-#| {\bf These rules mean that locally accepted hostnames MUST be listed in}
-#| {\bf the database with ``relaytarget +'' attribute.}
+#| These rules mean that locally accepted hostnames MUST be listed in
+#| the database with ``relaytarget +'' attribute.
 #|
 #|-----------
 ...
-\medskip\hrule\end{alltt}\medskip
-\caption{\label{fig:adm:smtp-policy-boiler}
-The {\tt smtp-policy.src} file default setting fragment}
-\end{figure*}
-
-%\end{multicols}
 </SCREEN>
+</FIGURE>
+</SECT1>
 </CHAPTER>

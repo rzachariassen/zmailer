@@ -1,49 +1,58 @@
-<CHAPTER ID="ZADM-SM-CONFIG">
+<CHAPTER ID="ZADM-SM"><?dbhtml filename="zadm-sm.html">
 <TITLE><COMMAND>sm</> Configuration</TITLE>
 
-<SCREEN>
-% \section{sm Configuration}
+<PARA>
+<EMPHASIS>sm</> is a ZMailer's <COMMAND>sendmail</>(8) compatible
+<EMPHASIS>transport agent</> to deliver messages by invoking a program
+with facilities and in a way compatible with a <COMMAND>sendmail</>(8)
+MTA.
+</PARA>
 
-{\em sm} is a ZMailer's {\em sendmail} compatible transport agent to
-deliver messages by invoking a program with facilities and in a way 
-compatible with a {\em sendmail} mailer.
-
-%\begin{multicols}{2}
-
+<PARA>
 The program scans the message control files named on stdin
 for addresses destined for the channel and/or the host
 given on the command line. If any are found, all matching
 addresses and messages are processed according to the
 specifications for the mailer in the configuration file.
+</PARA>
 
+<PARA>
 The exit status of a mailer should be one of the standard
-values specified in {\tt &lt;sysexits.h&gt;};.
-Of these, EX_OK indicates successful deliver, and EX_DATAERR,
-EX_NOUSER, EX_NOHOST, EX_UNAVAILABLE, and EX_NOPERM indicate
+values specified in <EMPHASIS>#include &lt;sysexits.h&gt;</>.
+Of these, <CONSTANT>EX_OK</> indicates successful deliver, and
+<CONSTANT>EX_DATAERR</>, <CONSTANT>EX_NOUSER</>, <CONSTANT>EX_NOHOST</>,
+<CONSTANT>EX_UNAVAILABLE</>, and <CONSTANT>EX_NOPERM</> indicate
 permanent failure.
 All other exit codes will be treated as a temporary failure
 and the delivery will be retried.
+</PARA>
 
-{\em Usage}
+<PARA>
+Usage:
 
-{\tt sm [ -8HQV ] [ -f configfile ] -c channel -h host mailer}
+<SYNOPSIS>sm [ -8HQV ] [ -f configfile ] -c channel -h host mailer</SYNOPSIS>
+</PARA>
 
+<PARA>
+Configuration:
+</PARA>
 
-{\em Configuration}
-
-The configuration file {\tt \$MAILSHARE/sm.conf } associates
-the mailer keyword from the command line with a specification
+<PARA>
+The configuration file <FILENAME>$<VARNAME>MAILSHARE</>/sm.conf</>
+associates the mailer keyword from the command line with a specification
 of a delivery program.
 This is very similar to the way the definition of a ``mailer'' in
-{\em sendmail}.
+<COMMAND>sendmail</>(8).
 It requires flags, a program name, and a command line specification.
 These are in fact the fields of the entries of the configuration file.
-Lines starting with whitespace or a `{\tt \#}' are ignored, and all
-others are assumed to follow format shown in figure
-\vref{fig:adm:sample_sm_conf}.
+Lines starting with whitespace or a ``<EMPHASIS ROLE="STRONG">#</>''
+are ignored, and all others are assumed to follow format shown in figure
+<XREF LINKEND="fig.adm.sample-sm-conf">.
+</PARA>
 
-\begin{figure*}
-\begin{alltt}\hrule\medskip
+<FIGURE ID="fig.adm.sample-sm-conf" PGWIDE="1" FLOAT="1">
+<TITLE>Sample <FILENAME>sm.conf</> file</TITLE>
+<SCREEN>
 #mailer flags program        argument list
 #------ ----- -------------- --------------------------------
 local   mS    sm/localm      localm -r $g $u
@@ -52,103 +61,123 @@ tty     rs    /usr/local/to  to $u
 uucp    U     /usr/bin/uux   uux - -r -a$g -gC $h!rmail ($u)
 usenet  m     sm/usenet      usenet $u
 test    n     sm/test        test $u
-\medskip\hrule\end{alltt}
-\caption{\label{fig:adm:sample_sm_conf}Sample {\tt sm.conf} file}
-\end{figure*}
+</SCREEN>
+</FIGURE>
 
+<PARA>
 The mailer field extends from the beginning of the line to
 the first whitespace.  It is used simply as a key index to
 the configuration  file  contents.  Whitespace is used as
 the field separator for all the fields.
+</PARA>
 
+<PARA>
 The flags field contains  a  concatenation  of  one-letter
-flags.  If no flags are desired, a ``{\tt -}'' character should be
-used to indicate presence of the field.
-All normal {\em sendmail} ({\em of 5.x era..}) flags are recognized, but the ones that
-do not make sense in the context of ZMailer will produce an error.
-The flags that change the behaviour of {\em sm} are:
-
-\begin{description}
-\item[ {\tt b}] \mbox{} \\
+flags.  If no flags are desired, a ``<EMPHASIS ROLE="STRONG">-</>''
+character should be used to indicate presence of the field.
+All normal <COMMAND>sendmail</> (<EMPHASIS>of 5.x era..</>)
+flags are recognized, but the ones that do not make sense in
+the context of ZMailer will produce an error (or some are ignored).
+The flags that change the behaviour of <EMPHASIS>sm</> are:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>b</TERM><LISTITEM><PARA>
 will activate BSMTP-type wrapping with a ``hidden-dot''
 algorithm; e.g. quite ordinary SMTP stream, but in ``batch mode''.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt B}] \mbox{} \\
-The  first ``{\tt B}''  turns on similar BSMTP wrapping as
-``{\tt b}'', but adds SIZE and, if the sm is  started  with
-option ``{\tt -8}'', also 8BITMIME options.  The second ``{\tt B}''
-adds there also DSN (Delivery Status  Notification) parameters.
+<VARLISTENTRY><TERM>B</TERM><LISTITEM><PARA>
+The  first ``B''  turns on similar BSMTP wrapping as ``b'', but adds
+SIZE and, if the <EMPHASIS>sm</> is  started  with option ``-8'',
+also 8BITMIME options.  The second ``B'' adds there also DSN
+(Delivery Status  Notification) parameters.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt E}] \mbox{} \\
-will prepend `\verb/>/' to any message body line starting
-with ``\verb*/From /''. (Read: ``From-space'')
+<VARLISTENTRY><TERM>E</TERM><LISTITEM><PARA>
+will prepend ``>'' to any message body line starting
+with ``<EMPHASIS ROLE="STRONG">From </>''. (Read: ``From-space'')
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt f}] \mbox{} \\
-adds ``{\tt -f sender}'' arguments to the delivery program.
+<VARLISTENTRY><TERM>f</TERM><LISTITEM><PARA>
+adds ``-f sender'' arguments to the delivery program.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt n}] \mbox{} \\
-will not prepend a \verb*/From /-line (normal mailbox
-separator line) to the message.
+<VARLISTENTRY><TERM>n</TERM><LISTITEM><PARA>
+will not prepend a ``<EMPHASIS ROLE="STRONG">From </>''-line
+(normal mailbox separator line) to the message.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt r}] \mbox{} \\
-adds ``{\tt -r sender}'' arguments to the delivery program.
+<VARLISTENTRY><TERM>r</TERM><LISTITEM><PARA>
+adds ``-r sender'' arguments to the delivery program.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt S}] \mbox{} \\
-will run the delivery program with the same real
-and effective uid as the sm process.  If this  flag
-is  not  set, the delivery program will be run with
-the real uid of the sm process. This may be useful if sm is setuid.
+<VARLISTENTRY><TERM>S</TERM><LISTITEM><PARA>
+will run the delivery program with the same real and effective uid as
+the <EMPHASIS>sm</> process.
+If this flag is not set, the delivery program will be run with the real
+uid of the <EMPHASIS>sm</> process.
+This may be useful if <EMPHASIS>sm</> is setuid.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt m}] \mbox{} \\
-informs sm that each instance of the delivery program  
-can deliver to many destinations. This affects {\bf \$u} expansion 
-in the argument list, see below.
+<VARLISTENTRY><TERM>m</TERM><LISTITEM><PARA>
+informs sm that each instance of the delivery program can deliver to
+many destinations.
+This affects <EMPHASIS>$u</>  expansion  in the argument list, see below.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt P}] \mbox{} \\
-prepends a Return-Path: header to the message.
+<VARLISTENTRY><TERM>P</TERM><LISTITEM><PARA>
+prepends a ``Return-Path:'' header to the message.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt U}] \mbox{} \\
-will prepend a \verb*/From /-line, with a ``remote from
-myuucpname'' at the end, to the message. This is what is expected by remote 
-{\tt rmail(1)} programs for incoming UUCP mail.
+<VARLISTENTRY><TERM>U</TERM><LISTITEM><PARA>
+will prepend a ``<EMPHASIS ROLE="STRONG">From </>''-line, with
+a ``remote from myuucpname'' at the end, to the message.
+This is what is expected by remote  <COMMAND>rmail</>(1)
+programs for incoming UUCP mail.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt R}] \mbox{} \\
+<VARLISTENTRY><TERM>R</TERM><LISTITEM><PARA>
 use CRLF sequence as end-of-line sequence. Without
 it, will use LF-only end-of-line sequence.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt X}] \mbox{} \\
+<VARLISTENTRY><TERM>X</TERM><LISTITEM><PARA>
 does SMTP-like ``hidden-dot'' algorithm  of doubling
 all dots that are at the start of the line.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt 7}] \mbox{} \\
-will strip (set to 0) the 8th bit of every character in the 
-message.
+<VARLISTENTRY><TERM>7</TERM><LISTITEM><PARA>
+will strip (set to 0) the 8th bit of every character in the message.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\end{description}
+<PARA>
+The path field specifies the location of the delivery program.
+Relative pathnames are allowed and are relative to the
+<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</> directory.
+</PARA>
 
-
-The path field specifies the location of the delivery program. Relative 
-pathnames are allowed and are relative to the {\tt MAILBIN/} directory.
-
-The arguments field extends to the end of the line. It
-contains  whitespace separated  argv  parameters which may
+<PARA>
+The arguments field extends to the end of the line.
+It contains whitespace separated <EMPHASIS>argv</> parameters which may
 contain one of the following sequences:
 
-\begin{description}
-\item[ {\tt \$g}] \mbox{} \\
+<VARIABLELIST>
+<VARLISTENTRY><TERM>$g</TERM><LISTITEM><PARA>
 which is replaced by the sender address.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt \$h}] \mbox{} \\
+<VARLISTENTRY><TERM>$h</TERM><LISTITEM><PARA>
 which is replaced by the destination host.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[ {\tt \$u}] \mbox{} \\
-which is replaced by the recipient address.  If the
-{\tt -m} mailer flag is set and there are several recipients for this 
-message, the argument containing  the {\tt \$u} will be replicated 
+<VARLISTENTRY><TERM>$u</TERM><LISTITEM><PARA>
+which is replaced by the recipient address.
+If the ``-m'' mailer flag is set and there are several recipients
+for this message, the argument containing the ``$u'' will be replicated 
 as necessary for each recipient.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\end{description}
-
-%\end{multicols}
-</SCREEN>
 </CHAPTER>

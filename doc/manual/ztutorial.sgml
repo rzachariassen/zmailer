@@ -13,7 +13,7 @@
 <TITLE>Tutorial</TITLE>
 
 
-<CHAPTER>
+<CHAPTER><?dbhtml filename="ztut-intro.html">
 <TITLE>Introduction to Email</TITLE>
 
 <SECT1>
@@ -325,7 +325,7 @@ a UA function.
 </SECT1>
 </CHAPTER>
 
-<CHAPTER>
+<CHAPTER><?dbhtml filename="ztut-zfeatures.html">
 <TITLE>ZMailer's Features, and Facilities</TITLE>
 
 
@@ -560,7 +560,7 @@ other sendmail/system utilities:
 </CHAPTER>
 
 
-<CHAPTER>
+<CHAPTER><?dbhtml filename="ztut-some-comparisons.html">
 <TITLE>Comparison With Other Popular MTA's</TITLE>
 
 <VARIABLELIST>

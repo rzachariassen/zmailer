@@ -1,28 +1,29 @@
-<CHAPTER ID="ZREF-UTILITIES">
+<CHAPTER ID="ZREF-UTILITIES"><?dbhtml filename="zref-utilities.html">
 <TITLE>ZMailer Utilities</TITLE>
 
-<SCREEN>
-%% \section{Utilities}
-
-There is considerable collection of various utilities in the
-ZMailer package. Not all of them even become installed into
-your system in all situations.
-
-%\begin{multicols}{2}
+<PARA>
+There is considerable collection of various utilities in the ZMailer sources.
+Not all of them even become installed into your system in all situations.
+</PARA>
 
 
-\subsection{vacation}
+<SECT1><TITLE>vacation</TITLE>
 
-{\em vacation\/} automatically replies to incoming mail. The canned 
-reply is contained in the file {\tt .vacation.msg}, that you should 
-create in your home directory (or the file {\tt Msgfile} specified by 
-the {\tt -m} option).
+<PARA>
+<EMPHASIS>vacation</> automatically replies to incoming mail.
+The canned reply is contained in the file <FILENAME>~/.vacation.msg</>,
+that you should create in your home directory (or the file
+{\tt Msgfile}> specified by the {\tt -m} option).
+</PARA>
 
+<PARA>
 This file should include a header with at least a {\tt Subject:} line 
 (it should not include a {\tt To:} line -- if you want, you may include 
 a {\tt From:} line, especially if you use the {\tt -m} option). 
 For example:
+</PARA>
 
+<SCREEN>
 {\bf Usage}
 
 To start {\em vacation\/}, run the command {\tt vacation start}. 
@@ -59,14 +60,12 @@ If the {\tt -I} (or {\tt -i}) flag is not specified, vacation
 tries to reply to the sender.
 
 
-
 \item[{\tt -tN}] \mbox{}
 
 Change the interval between repeat replies to the same 
 sender. The default is one week. A trailing {\tt s}, {\tt m}, 
 {\tt h}, {\tt d}, or {\tt w} scales N to seconds, minutes, 
 hours, days, or weeks respectively.
-
 
 
 \item[{\tt -mMsgfile}] \mbox{}
@@ -76,12 +75,10 @@ sent is kept.
 The default is {\tt \$HOME/.vacation.msg}.
 
 
-
 \item[{\tt -r}] \mbox{}
 
 interval defines interval in days when not to answer 
 again to the same sender. (Default is 1 day.)
-
 
 
 \item[{\tt -d}] \mbox{}
@@ -128,18 +125,19 @@ safeguard against sending replies to mailing lists, the PostMaster
 or the mailer daemon, since standards and common sense dictate that 
 it never points back to an address that could cause a loop. The 
 {\tt From\_} line is used only as a last resort.
+</SCREEN>
 
+</SECT1>
 
+<SECT1><TITLE>makedb</TITLE>
 
-
-\subsection{makedb}
-
-
-
+<PARA>
 The way the ZMailer uses DBM entries is by using strings with 
-their terminating {\tt NULL} as keys, and as data.. Thus 
-the length is {\tt strlen(string)+1}, not {\tt strlen(string)} !
+their terminating <CONSTANT>NULL</> as keys, and as data..
+Thus the length is {\tt strlen(string)+1}, not {\tt strlen(string)} !
+</PARA>
 
+<SCREEN>
 WARNING: Policy data parsing does use unchecked buffers!
 
 \begin{verbatim}
@@ -177,14 +175,13 @@ into the actual db file names.
 
 The {\tt -a} option is for parsing input that comes in 
 {\tt aliases} format: {\tt key: data,in,single,long,line}
+</SCREEN>
 
+</SECT1>
 
+<SECT1><TITLE>dblook</TITLE>
 
-
-\subsection{dblook}
-
-
-
+<SCREEN>
 The way the ZMailer uses DBM entries is by using strings with 
 their terminating {\tt NULL} as keys, and as data.. Thus the 
 length is {\tt strlen(string)+1}, not {\tt strlen(string)} !
@@ -377,30 +374,36 @@ esac
 
 exit 0
 \end{alltt}
+</SCREEN>
 
+</SECT1>
 
-\subsection{autoanswer}
+<SECT1><TITLE>autoanswer</TITLE>
 
-
-
-The {\em autoanswer\/} program is intended to be placed into
+<PARA>
+The <EMPHASIS>autoanswer</> program is intended to be placed into
 system global aliases database as following entry:
+<SCREEN>
+  autoanswer:  "| /path/to/MAILBIN/autoanswer"
+</SCREEN>
+</PARA>
 
-\begin{verbatim}
-autoanswer:  "| /path/to/MAILBIN/autoanswer"
-\end{verbatim}
-
-
+<PARA>
 It yields a reply message for all, except the error messages, nor
-to those with {\tt X-autoanswer-loop:} header in them.
+to those with <COMPUTEROUTPUT>X-autoanswer-loop:</> header in them.
+</PARA>
 
+<PARA>
 The reply sends back the original incoming message headers in the
 message body along with some commentary texts.
+</PARA>
 
+<PARA>
 The program is, in reality, a perl script which can easily be tuned
 to local needs.
+</PARA>
 
-\begin{verbatim}
+<SCREEN>
 #!@PERL@
 
 ##########################################################################
@@ -505,18 +508,20 @@ sub LOG {
         printf (LOGf "$ttime autoanswer: @_\n");
         close LOGf;
 }
-\end{verbatim}
+</SCREEN>
+</SECT1>
 
+<SECT1><TITLE>newdb</TITLE>
 
-\subsection{newdb}
-
-
-This is elementary wrapper script building binary databases
-with {\tt makedb} utility into a temporary file, and replacing
+<PARA>
+This is elementary wrapper script building binary databases with
+<EMPHASIS>makedb</> utility into a temporary file, and replacing
 the old files with the new ones in proper order for the 
-{\bf router}'s automatic source change detecting relation 
+<EMPHASIS>router</>'s automatic source change detecting relation 
 parameter {\tt -m} to work correctly.
+</PARA>
 
+<SCREEN>
 {\bf Usage}
 
 \begin{verbatim}
@@ -536,5 +541,7 @@ gdbm    .gdbm
 btree   .db   
 \end{verbatim}
 </SCREEN>
+
+</SECT1>
 
 </CHAPTER>

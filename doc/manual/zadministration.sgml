@@ -1,4 +1,4 @@
-<PART ID="ZADMINISTRATION">
+<PART ID="ZADMINISTRATION"><?dbhtml filename="zadministration.html">
 <TITLE>Administation</TITLE>
 <!-- %% \chapter{Administration} -->
 
@@ -30,6 +30,7 @@ explanations of how pre-existing scripts have been done.
   <!ENTITY ZADM-ROUTER     SYSTEM "zadm-router.sgml">
   <!ENTITY ZADM-SCHEDULER  SYSTEM "zadm-scheduler.sgml">
   <!ENTITY ZADM-SM         SYSTEM "zadm-sm.sgml">
+  <!ENTITY ZADM-LOGGING    SYSTEM "zadm-logging.sgml">
 -->
 </PARA>
 
@@ -42,5 +43,6 @@ explanations of how pre-existing scripts have been done.
 &ZADM-ROUTER;
 &ZADM-SCHEDULER;
 &ZADM-SM;
+&ZADM-LOGGING;
 
 </PART>

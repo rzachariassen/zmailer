@@ -21,6 +21,7 @@
 <!ENTITY ZADM-ROUTER     SYSTEM "zadm-router.sgml">
 <!ENTITY ZADM-SCHEDULER  SYSTEM "zadm-scheduler.sgml">
 <!ENTITY ZADM-SM         SYSTEM "zadm-sm.sgml">
+<!ENTITY ZADM-LOGGING    SYSTEM "zadm-logging.sgml">
 
 <!ENTITY ZREFERENCE      SYSTEM "zreference.sgml">
 <!ENTITY ZREF-SMTPSERVER SYSTEM "zref-smtpserver.sgml">
@@ -32,11 +33,13 @@
 <!ENTITY ZREF-TR-AGENTS  SYSTEM "zref-transport-agents.sgml">
 <!ENTITY ZREF-UTILITIES  SYSTEM "zref-utilities.sgml">
 
+<!ENTITY ZAPPENDICES     SYSTEM "zappendices.sgml">
 <!ENTITY ZAPP-SCRIPTS    SYSTEM "zapp-scripts.sgml">
 <!ENTITY ZAPP-LISTMGRS   SYSTEM "zapp-listmgrs.sgml">
 <!ENTITY ZAPP-TR-AGENTS  SYSTEM "zapp-tragents.sgml">
 <!ENTITY ZAPP-FILEFMTS   SYSTEM "zapp-filefmts.sgml">
 <!ENTITY ZAPP-SSL-LANG   SYSTEM "zapp-ssl-lang.sgml">
+
 ]>
 <BOOK STATUS="draft" ID="ZMANUAL"><?dbhtml filename="zmanual.html">
 <TITLE>ZMailer</TITLE>
@@ -73,20 +76,5 @@
 &ZREFERENCE;
 
 <!-- \appendix								-->
-<PART ID="ZAPPENDICES">
-<TITLE>Appendices</TITLE>
-
-<!-- % \segment{zapp-scripts}{chapter}{Sample Router Configuration Scripts} -->
-<!-- \chapter{Sample Router Configuration Scripts}			-->
-&ZAPP-SCRIPTS;
-<!-- \segment{zapp-listmgrs}{chapter}{Using ZMailer with Mailinglist Managers} -->
-&ZAPP-LISTMGRS;
-<!-- \segment{zapp-tragents}{chapter}{Adding new transport agents}	-->
-&ZAPP-TR-AGENTS;
-<!-- \segment{zapp-filefmts}{chapter}{Internal File Data Formats}	-->
-&ZAPP-FILEFMTS;
-<!-- \segment{zapp-ssl-lang}{chapter}{S/SL Language}			-->
-&ZAPP-SSL-LANG;
-
-</PART>
+&ZAPPENDICES;
 </BOOK>

@@ -1,0 +1,16 @@
+<PART ID="ZAPPENDICES"><?dbhtml filename="zappendices.html">
+<TITLE>Appendices</TITLE>
+
+<!-- % \segment{zapp-scripts}{chapter}{Sample Router Configuration Scripts} -->
+<!-- \chapter{Sample Router Configuration Scripts}			-->
+&ZAPP-SCRIPTS;
+<!-- \segment{zapp-listmgrs}{chapter}{Using ZMailer with Mailinglist Managers} -->
+&ZAPP-LISTMGRS;
+<!-- \segment{zapp-tragents}{chapter}{Adding new transport agents}	-->
+&ZAPP-TR-AGENTS;
+<!-- \segment{zapp-filefmts}{chapter}{Internal File Data Formats}	-->
+&ZAPP-FILEFMTS;
+<!-- \segment{zapp-ssl-lang}{chapter}{S/SL Language}			-->
+&ZAPP-SSL-LANG;
+
+</PART>

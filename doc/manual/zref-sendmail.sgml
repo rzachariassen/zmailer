@@ -1,9 +1,7 @@
-<CHAPTER ID="ZREF-SENDMAIL">
+<CHAPTER ID="ZREF-SENDMAIL"><?dbhtml filename="zref-sendmail.html">
 <TITLE>sendmail</TITLE>
 
 <SCREEN>
-%% \section{sendmail}
-
 This {\em sendmail\/} program is an emulation of the original
 {\em sendmail\/} interface. It provides all the original options
 that make sense to support in the context of ZMailer.

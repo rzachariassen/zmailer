@@ -1,76 +1,103 @@
-<CHAPTER ID="ZREF-SCHEDULER">
+<CHAPTER ID="ZREF-SCHEDULER"><?dbhtml filename="zref-scheduler.html">
 <TITLE>Scheduler</TITLE>
 
-<SCREEN>
-%% \section{Scheduler}
+<PARA>
+The <EMPHASIS>scheduler</> daemon manages the delivery processing
+of messages in ZMailer.
+</PARA>
 
-The {\em scheduler\/} daemon manages the delivery processing of 
-messages in ZMailer.
-
-The {\em router\/} creates message control files in the
-{\tt \$POSTOFFICE/transport/} directory. These refer to 
-the original message files in the {\tt \$POSTOFFICE/queue/} 
+<PARA>
+The <EMPHASIS>router</> creates message control files in the
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>
 directory.
+These refer to  the original message files in the
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>
+directory.
+</PARA>
 
-The {\em scheduler\/} reads each message control file from
-{\tt \$POSTOFFICE/transport/}, translates the contained 
-message and destination information into internal data structures, 
-and unlinks the message control file.
+<PARA>
+The <EMPHASIS>scheduler</> reads each message control file from
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>,
+translates the contained message and destination information into
+internal data structures.
+</PARA>
 
+<PARA>
 Based on scheduling, priority, and execution information read from a
-configuration file, the {\em scheduler\/} arranges to execute 
-Transport Agents relevant to the queued messages.
+configuration file, the <EMPHASIS>scheduler</> arranges to execute
+<EMPHASIS>Transport Agents</> relevant to the queued messages.
+</PARA>
 
-At the time scheduled for a particular transport agent invocation, the
-{\em scheduler\/} will start a transport agent (or use one from idle-pool),
-and tell it one by one which message control files to process.
-When all the destination addresses in a message have been processed, the
-{\em scheduler\/} performs error reporting tasks if any, and then deletes the
-message control file in {\tt \$POSTOFFICE/transport/} and 
-the original message file in {\tt \$POSTOFFICE/queue/}.
+<PARA>
+At the time scheduled for a particular transport agent invocation,
+the <EMPHASIS>scheduler</> will start a transport agent (or use one
+from idle-pool), and tell it one by one which message control files
+to process.
+When all the destination addresses in a message have been processed,
+the <EMPHASIS>scheduler</> performs error reporting tasks if any,
+and then deletes the message control file in
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</> and 
+the original message file in
+<FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>.
+</PARA>
 
-All message delivery is actually performed by Transport Agents, which
-are declared in a configuration file for the {\em scheduler\/}.
+<PARA>
+All message delivery is actually performed by <EMPHASIS>Transport Agents</>,
+which are declared in a configuration file for the <EMPHASIS>scheduler</>.
 Each transport agent is executed with the same current directory as the
-{\em scheduler\/}. {\em scheduler-transporter\/} interaction protocol is
-described later.
+<EMPHASIS>scheduler</>.
+The <EMPHASIS>scheduler-transporter</> interaction protocol is described later.
+</PARA>
 
+<PARA>
 The standard output of each transport agent are destination address
-delivery reports; either successful delivery, unsuccessful delivery, or
-deferral of the address. Each report uses byte offsets in the message
-control file to refer to the address. Reports may also include a comment
-line which will be displayed in the reports of the {\em scheduler\/}.
+delivery reports; either successful delivery, unsuccessful delivery,
+or deferral of the address.
+Each report uses byte offsets in the message control file to refer to
+the address.
+Reports may also include a comment line which will be displayed in
+the reports of the <EMPHASIS>scheduler</>.
+</PARA>
 
+<PARA>
 Two types of reports are produced:
-\begin{enumerate}
-\item Error messages caused by unsuccessful delivery of a message
-are appended to its message control file. Occasionally,
-for example, when all addresses have been processed, the {\em scheduler\/}
-generates an error message to the error return address of the message
-(usually the original sender).  
-\item The {\em scheduler\/} binds itself to a well-known TCP/IP port
-{\tt (MAILQ, TCP port 174)} on startup.  Any connections to this port
-are processed synchronously in the scheduler at points in the execution
-where the state is internally consistent. The {\em scheduler\/}
-simply dumps its internal state in a terse format to the TCP stream.
-It is expected that the client program will reconstruct the data structures
-sufficiently to give a user a good idea of what the scheduler thinks the
-world looks like. The {\em mailq (1)\/} program serves this purpose.
-\end{enumerate}
+<ORDEREDLIST NUMERATION="ARABIC">
+<LISTITEM><PARA>
+ Error messages caused by unsuccessful delivery of a message are appended
+to its message control file.
+ Occasionally, for example, when all addresses have been processed,
+the <EMPHASIS>scheduler</> generates an error message to the error
+return address of the message (usually the original sender).
+</PARA></LISTITEM>
 
+<LISTITEM><PARA>
+ The <EMPHASIS>scheduler</> binds itself to a well-known TCP/IP port 
+(<EMPHASIS>MAILQ, TCP port 174</>) on startup.
+ Any connections to this port are processed synchronously in the
+<EMPHASIS>scheduler</> at points in the execution where the state
+is internally consistent.
+ The <EMPHASIS>scheduler</> simply dumps its internal state in a terse format
+to the TCP stream.
+ It is expected that the client program will reconstruct the data structures
+sufficiently to give a user a good idea of what the scheduler thinks the world
+looks like.
+ The <EMPHASIS>mailq</>(1) program serves this purpose.
+</PARA></LISTITEM>
+</ORDEREDLIST>
+</PARA>
 
-{\bf Usage}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Usage:</TERM><LISTITEM><PARA>
+Invoking <EMPHASIS>scheduler</> without any parameter will start
+it as a daemon.
+<SYNOPSIS>
+scheduler [-divFHQSVW] [-f configfile] [-E newentsmax] [-Llogfile] [-lstatisticslog] [-Ntranspmaxfno] [-P postoffice] [-R maxforkfreq] [-q rendezvous]
+</SYNOPSIS>
+</PARA></LISTITEM></VARLISTENTRY>
 
-Invoking {\em scheduler\/} without any parameter will start it as a daemon.
+<VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM><PARA>
 
-\begin{verbatim}
-scheduler [-divFHQSVW] [-f configfile] [-E newentsmax] [-Llogfile] [-lstatisticslog]
-[-Ntranspmaxfno] [-P postoffice] [-R maxforkfreq] [-q rendezvous]
-\end{verbatim}
-
-
-{\bf Parameters}
-
+<SCREEN>
 \begin{description}
 \item[{\tt -d}] \mbox{}
 
@@ -155,29 +182,37 @@ This option overrides the default location for this special file, either
 {\tt \$RENDEZVOUS} or {\tt /usr/tmp/.mailq.text}.
 
 \end{description}
+</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-
-
-\subsection{Configuration Language}
-\label{schedulerconfig}
+<SECT1 ID="zref.schedulerconfig"><TITLE>Configuration Language</TITLE>
+<SCREEN>
 \index{{\tt scheduler.conf} file}\index{scheduler, {\tt scheduler.conf}}
+</SCREEN>
 
-The {\em scheduler\/} configuration file consists of a set of clauses. 
+<PARA>
+The <EMPHASIS>scheduler</> configuration file consists of a set of clauses. 
+</PARA>
 
 
 
+<SECT2><TITLE>Clause selection</TITLE>
 
-\subsubsection{Clause selection}
+<PARA>
+Each clause is selected by the pattern it starts with.
+The patterns for the clauses are matched, in sequence, with
+the <EMPHASIS>channel/host</> string for each recipient address.
+When a clause pattern matches an address, the parameters set in the clause
+will be applied to the <EMPHASIS>scheduler</>'s processing of that address.
+If the clause specifies a command, the clause pattern matching sequence
+is terminated.
+</PARA>
 
-Each clause is selected by
-the pattern it starts with. The patterns for the clauses are matched,
-in sequence, with the {\tt channel/host} string for each recipient
-address. When a clause pattern matches an address, the parameters set in
-the clause will be applied to the {\em scheduler\/}'s processing of 
-that address. If the clause specifies a command, the clause pattern 
-matching sequence is terminated. This is a clause:
-\begin{verbatim}
+<PARA>
+This is a clause:
+<SCREEN>
 local/* interval=10s
         expiry=3h
         # want 20 channel slots in case of blockage on one
@@ -185,25 +220,33 @@ local/* interval=10s
         # want 20 thread-ring slots
         maxring=20
         command="mailbox -8"
-\end{verbatim}
+</SCREEN>
+</PARA>
 
-
+<PARA>
 A clause consists of:
-\begin{itemize}
-\item A selection pattern (in shell style) that is matched against the
-{\tt channel/host} string for an address.
-\item 0 or more variable assignments or keywords (described below).
-\end{itemize}
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+A selection pattern (in shell style) that is matched against the
+<EMPHASIS>channel/host</> string for an address.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+ 0 or more variable assignments or keywords (described below).
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
 
-If the selection pattern does not contain a {\tt /}, it is assumed to
-be a channel pattern and the host pattern is assumed to be the wildcard
-{\tt *}.
+<PARA>
+If the selection pattern does not contain a ``/'', it is assumed to be
+a channel pattern and the host pattern is assumed to be the wildcard
+``*''.
+</PARA>
 
+</SECT2>
 
+<SECT2><TITLE>Clause components</TITLE>
 
-
-\subsubsection{Clause components}
-
+<SCREEN>
 The components of a clause are separated by whitespace. The pattern
 introducing a clause must start in the first column of a line, and the
 variable assignments or keywords inside a clause must not start in the
@@ -235,11 +278,12 @@ Intervals (delta time) are specified using a concatenation of: numbers
 suffixed with `s', `m', `h', or `d' modifiers designating the number as
 a second, minute, hour, or day value. For example: {\tt 1h5m20s}.
 
+</SCREEN>
+</SECT2>
 
+<SECT2><TITLE>Variables and keywords</TITLE>
 
-
-\subsubsection{Variables and keywords}
-
+<SCREEN>
 The known variables and keywords, and their typical values and semantics are:
 \begin{description}
 \item[{\tt interval (1m)}] \mbox{}
@@ -451,13 +495,13 @@ host is picked at random from the current choices, to avoid systematic
 errors leading to a deadlock of any queue. 
 
 
+</SCREEN>
+</SECT2>
+</SECT1>
 
+<SECT1><TITLE>Resource Management</TITLE>
 
-
-
-\subsection{Resource Management}
-
-
+<SCREEN>
 
 For resource management there are following configuration attributes: 
 
@@ -498,14 +542,12 @@ the original spool-file MTIME. Oldest first.
 \end{description}
 
 
+</SCREEN>
+</SECT1>
 
+<SECT1><TITLE>mailq</TITLE>
 
-
-
-
-\subsection{mailq}
-
-
+<SCREEN>
 
 Upon  accepting a  TCP  connection on the MAILQ port (TCP
 port 174), the scheduler dumps data to the TCP  stream  in
@@ -608,8 +650,13 @@ to find more information than what is shown here by
 actually  looking  up  the  message     control  and  data  files
 referred to.
 
-\subsection{Security Issues}
+</SCREEN>
+</SECT1>
 
+<SECT1><TITLE>Security Issues</TITLE>
+
+<SCREEN>
 Text to be inserted here.
 </SCREEN>
+</SECT1>
 </CHAPTER>
