@@ -569,7 +569,7 @@ outbuf_fillup:
 
 	    if (rc > 0) { /* We have data! */
 	      SS->stdinsize += rc;
-	      fcntl(infd, F_SETFL, oldflags);
+	      fd_blockingmode(infd);
 	      goto outbuf_fillup;
 	    }
 #if 0
@@ -579,7 +579,7 @@ outbuf_fillup:
 	  }
 	}
 
-	fcntl(infd, F_SETFL, oldflags);
+	fd_blockingmode(infd);
 
 	if (s == buf)
 	  return NULL; /* NOTHING received, gotten EOF! */
@@ -839,6 +839,8 @@ main(argc, argv)
 	   */
 	  char *s;
 
+	  fd_blockingmode(FILENO(stdout));
+
 	  fprintf(stdout, "#hungry\n");
 	  fflush(stdout);
 
@@ -1093,6 +1095,8 @@ process(SS, dp, smtpstatus, host, noMX)
 	  /* processing fails entirely is PROCABORT is received */
 	  smtpstatus = EX_UNAVAILABLE;
 	  smtpclose(SS);
+	  if (logfp)
+	    fprintf(logfp, "%s#\t(procabort executed)\n", logtag());
 	}
 
 	procabortset = 0;
@@ -2331,7 +2335,8 @@ smtpopen(SS, host, noMX)
 
 	  i = smtpconn(SS, host, noMX);
 	  if (i != EX_OK)
-	    return i;
+	    continue;
+
 	  if (SS->esmtp_on_banner) {
 	    /* Either it is not tested, or it is explicitely
 	       desired to be tested, and was found! */
@@ -2345,7 +2350,7 @@ smtpopen(SS, host, noMX)
 		 greet them with an "EHLO".. Do here a normal "HELO".. */
 	      i = smtpconn(SS, host, noMX);
 	      if (i != EX_OK)
-		return i;
+		continue;
 	      i = EX_TEMPFAIL;
 	    }
 	  }
@@ -2371,7 +2376,7 @@ smtpopen(SS, host, noMX)
 	      /* Ok, sometimes EHLO+HELO cause crash, open and do HELO only */
 	      i = smtpconn(SS, host, noMX);
 	      if (i != EX_OK)
-		return i;
+		continue;;
 	      i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
 	      if (i == EX_TEMPFAIL && SS->smtpfp) {
 		smtpclose(SS);
@@ -2389,7 +2394,7 @@ smtpopen(SS, host, noMX)
 
 	} while ((i == EX_TEMPFAIL) && (SS->firstmx < SS->mxcount));
 
-	if (debug) {
+	if (logfp) {
 	  fprintf(logfp, "%s#\tsmtpopen: status = %d\n", logtag(), i);
 	}
 	return i;
@@ -2897,6 +2902,7 @@ makeconn(SS, ai, ismx)
 	      if (SS->esmtp_on_banner > 0)
 		SS->esmtp_on_banner = 0;
 
+	      /* Wait for the initial "220-" greeting */
 	      retval = smtpwrite(SS, 1, NULL, 0, NULL);
 	      if (retval != EX_OK)
 		/*
@@ -3713,7 +3719,7 @@ smtp_sync(SS, r, nonblocking)
 	    if (nonblocking) {
 	      int oldflags = fd_nonblockingmode(infd);
 
-	      errno = 0;
+	      err = 0;
 	      len = read(infd,buf,sizeof(buf));
 	      if (len < 0)
 		err = errno;
@@ -3721,7 +3727,7 @@ smtp_sync(SS, r, nonblocking)
 	      fcntl(infd, F_SETFL, oldflags);
 
 	    } else {
-	      errno = 0;
+	      err = 0;
 	      len = read(infd,buf,sizeof(buf));
 	      if (len < 0)
 		err = errno;
@@ -4198,8 +4204,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  gotalarm = 0;
 	  r = select(infd+1, &rdset, NULL, NULL, &tv);
 	  if (r == 1) {
-	    int flg = fcntl(infd, F_GETFL, 0);
-	    fcntl(infd, F_SETFL, flg | O_NONBLOCK);
+	    int flg = fd_nonblockingmode(infd);
 	    r = read(infd, (char*)cp, sizeof(buf) - (cp - buf));
 	    fcntl(infd, F_SETFL, flg);
 	  } else {
