@@ -46,7 +46,7 @@ version.c: $(srcdir)/sendmail.c $(TOPDIR)/Makefile
 # comment (loudly!) to the user --- who on earth can have
 # any modern system without symlinks ?
 install: $(LIBDEB) sendmail
-	@sdir=`echo $(SENDMAILPATH)|sed -e 's!^\(.*\)/\([^/]*\)$$!\1!'`; $(MKDIR) $$sdir;echo "  sdir = $$sdir"
+	@sdir=`echo $(SENDMAILPATH)|sed -e 's!/[^/]*$$!!'`; $(MKDIR) -p $$sdir;echo "  sdir = $$sdir"
 	@$(INSTALL) -m 0755 sendmail $(prefix)$(MAILBIN)/sendmail.x ; \
 	mv $(prefix)$(MAILBIN)/sendmail.x $(prefix)$(MAILBIN)/sendmail
 	@if [ $(LN_S) = "ln -s" -a				\

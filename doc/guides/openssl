@@ -28,23 +28,27 @@ B)  ZMailer:
     Oh, you will also need CAcert.pem file...
 
     For a document about being your own CA supplying the certificate(s):
+
 http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/myownca.html
+
    (That document had bug on 10-May-1999 where it told to use command
 	CA.pl -sign
     to sign the certificate; it really needs command:
 	CA.pl -signcert
     got me scratching my head for a few hours..)
 
-    If you use that document, and OpenSSL in default setup, you pick:
-	~/demoCA/cacert.pem	->  smtpserver-CAcert.pem
-	~/newreq.pem		->  smtpserver-key.pem
-	~/newcert.pem		->  smtpserver-cert.pem
-
     That generated certificate must be *SERVER* certificate!
     At  openssl.cnf  file following must be enabled when
     creating this certificate:
 		# This is OK for an SSL server.
 		nsCertType			= server
+    (you may need to do some searching to find that file)
+
+    If you use that document with above given corrections, running at
+    your home directory, and OpenSSL in default setup, you pick:
+	~/demoCA/cacert.pem	->  smtpserver-CAcert.pem
+	~/newreq.pem		->  smtpserver-key.pem
+	~/newcert.pem		->  smtpserver-cert.pem
 
 
  4) The  $MAILVAR/smtpserver.conf  will need PARAMs:

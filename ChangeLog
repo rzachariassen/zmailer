@@ -1,5 +1,13 @@
 1999-06-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in, ChangeLog:
+	    Version 2.99.50-s19
+
+	* ChangeLog, utils/vacation/Makefile.in, compat/rmail/Makefile.in,
+	  compat/sendmail/Makefile.in, doc/guides/openssl:
+	    At places 'make install-bin' complained, review/fixup of some
+	    Makefile.in:s.  OpenSSL referral document finetuning.
+
 	* ChangeLog, configure.in, acconfig.h, router/libdb/bsdbtree.c,
 	  router/libdb/bsdhash.c, smtpserver/policytest.c,
 	  utils/makedb/makedb.c, utils/makedb/dblook.c, README.UPGRADING,
