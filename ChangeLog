@@ -1,4 +1,10 @@
-2000-10-05  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-10  Ambrose Li <acli@mingpaoxpress.com>
+
+	* utils/vacation/vacation.c:
+	    Removed some duplicate code, and detect autoreplies whose
+	    source address is:  <>
+
+2000-10-10  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* lib/Makefile.in:
 	    "make install" did put zmailer.h into  $prefix/$prefix/include/,

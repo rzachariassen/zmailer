@@ -246,17 +246,6 @@ main(argc, argv)
 	  exit(EX_NOUSER);
 	}
 
-	/* verify recipient argument */
-#ifdef ZMAILER
-	if (argc == 0) {
-	  p = getenv("USER");
-	  if (p == NULL) {
-	    usrerr("Zmailer error: USER environment variable not set");
-	    exit(EX_USAGE+102);
-	  }
-	}
-#endif /* ZMAILER */
-
 #ifdef	HAVE_NDBM_H
 	if (dblog)
 	  db = dbm_open(VDB, O_RDWR | (iflag ? O_TRUNC|O_CREAT : 0),
@@ -610,6 +599,9 @@ junkmail()
 	register struct ignore *cur;
 	register int len;
 	register char *p;
+
+	if (strcmp(from, "<>") == 0)
+		return(1);
 
 	/*
 	 * This is mildly amusing, and I'm not positive it's right; trying
