@@ -6809,7 +6809,7 @@ fi
 t_oldLibs="$LIBS"
 t_oldCpp="$CPPFLAGS"
 
-if test "$use_whoson" = 0 ; then
+if test "$use_whoson" != 0 ; then
   if test "$use_whoson" = 2 ; then
 
 #    if test "$ac_cv_lib_whoson" = yes; then
