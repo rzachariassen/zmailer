@@ -52,6 +52,8 @@ if [ "$1" = "start" -o "$1" = "reload" -o $# = 0 ]; then
 	echo $eopt "Starting Zmailer mail server: $eeol"
 fi
 
+umask 022
+
 KILL=
 
 for op in $@
