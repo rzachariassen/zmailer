@@ -623,12 +623,12 @@ int policyinit(state, rel, whosonrc)
     int openok;
     char *dbname;
 
-    state->PT = rel;
-
     if (rel == NULL)
       return -1;  /* Not defined! */
 
     memset(state, 0, sizeof(*state));
+
+    state->PT = rel; /* Store the policytest dataset into state pointer.. */
 
 #ifdef HAVE_NDBM
     if (cistrcmp(rel->dbtype, "ndbm") == 0)
