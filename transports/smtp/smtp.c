@@ -448,7 +448,7 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #endif	/* notdef */
 
 #ifndef	_Z_FD_SET
-#warning "_Z_FD_SET[1]"
+/* #warning "_Z_FD_SET[1]" */
 #define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
 #define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
 #define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
@@ -457,13 +457,13 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #endif	/* !NFDBITS */
 
 #ifdef FD_SET
-#warning "_Z_FD_SET[2]"
+/* #warning "_Z_FD_SET[2]" */
 #define _Z_FD_SET(sock,var) FD_SET(sock,&var)
 #define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
 #define _Z_FD_ZERO(var) FD_ZERO(&var)
 #define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
 #else
-#warning "_Z_FD_SET[3]"
+/* #warning "_Z_FD_SET[3]" */
 #define _Z_FD_SET(sock,var) var |= (1 << sock)
 #define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
 #define _Z_FD_ZERO(var) var = 0
