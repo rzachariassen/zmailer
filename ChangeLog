@@ -1,5 +1,8 @@
 2001-01-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/hold/hold.c:
+	    Do same processing here as at router/functions.c.
+
 	* router/functions.c:
 	    Condition "no such user" can be signaled with   getpwnam()
 	    yielding NULL and errno == 0.  Not only   errno == ENOENT.

@@ -730,10 +730,14 @@ const char *user;
 	struct passwd *pw;
 	struct stat st;
 
+	errno = 0;
 	pw = getpwnam(user);
-	if (!pw)
-	  pw = getpwnam(user);
 	if (!pw) {
+	  errno = 0;
+	  pw = getpwnam(user);
+	}
+	if (!pw) {
+	  if (errno == 0)      return 1;
 	  if (errno == ENOENT) return 1;
 #ifdef __osf__
 	  if (errno == EINVAL) return 1;
