@@ -769,7 +769,9 @@ reporterrs(cfpi, delayreports)
 	  ccp = notaries[i].message;
 	  if (strchr(ccp, '\r')) {
 	    sfprintf(errfp, "...\\\n        ");
-	    for (s = ccp; *s != '\0'; ++s) {
+	    s = ccp;
+	    if (*s == '\r') ++s; /* Skip possible first '\r' */
+	    for (; *s != '\0'; ++s) {
 	      if (*s == '\r') {
 		sfprintf(errfp,"\n        ");
 	      } else {
