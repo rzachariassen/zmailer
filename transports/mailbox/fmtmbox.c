@@ -1,10 +1,11 @@
 /* Formatter for user's mailbox path */
 
-/* Public domain; written by Eugene G. Crosser <crosser@average.org> */
+/* Public domain; written by Eugene G. Crosser <crosser@average.org>
+   September 1999 */
 
 /*
    this is developed for Zmailer (http://www.zmailer.org/) but do not
-   inlcude Zmailer's headers so the same file may be used with other
+   include Zmailer's headers so the same file may be used with other
    products (notably IMAP/POP servers)
 */
 
