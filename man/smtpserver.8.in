@@ -397,6 +397,12 @@ support, use that instead of built-in plain-text authenticator code.
 .PP
 .B "Presently experimental code!"
 .RE
+.IP "PARAM smtp\-mechanisms mech name list"
+.RS
+List only those mechanisms that are wanted to be supported in the
+running system.
+Undefined list means: any and all what the SASL-system supports.
+.RE
 .IP "PARAM MSA\-mode"
 .RS
 Enable Message Submission Agent mode, where smtpserver
@@ -611,6 +617,15 @@ PARAM  enable-router
 #               # to ZMailer router shell environment with some
 #               # suitably pervert input, if quotation rules are
 #               # broken in the scripts.
+#
+#PARAM  smtp-auth-sasl
+#               # Authentication with SASL[2] mechanisms
+#               # in the system.  Enabling this takes precedence over
+#               # smtp-auth below!
+#
+#PARAM  sasl-mechanisms  LIST OF SASL MECHANISMS
+#               # A space delimittered list of SASL mechanisms we
+#               # want to support.
 #
 #PARAM  smtp-auth
 #               # enable if you want to allow SMTP to autenticate
@@ -845,7 +860,6 @@ contain following kind of entries:
 .PP
 .RS 3em
 .nf
-\fC
 \fI/ETC/hosts.allow\fC
 mailq : ALL@1.2.3.0
 smtp\-receiver: ALL@ALL
@@ -866,8 +880,21 @@ The
 .I smtpserver
 does contain
 .B experimental
-code supporting authentication interaction with
-
+code supporting authentication interaction using SASL mechanisms
+as they are implemented in 
+.I "CMU Cyrus\-SASL\-2"
+library.
+.PP
+This will also necessitate adding SASL\-2 library related
+configuration telling what backside systems are to be used.
+Possible configuration file is:
+.PP
+.RS 3em
+.nf
+# ---- /usr/lib/sasl2/smtpserver.conf ----
+\fCpwcheck_method: saslauthd
+.fi
+.RE
 .SH TLS MODE
 .PP
 .B "TO BE WRITTEN;"

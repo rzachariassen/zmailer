@@ -41,6 +41,10 @@
 #			# in the system.  Enabling this takes precedence over
 #			# smtp-auth below!
 #
+#PARAM  sasl-mechanisms  LIST OF SASL MECHANISMS
+#			# A space delimittered list of SASL mechanisms we
+#			# want to support.
+#
 #PARAM  smtp-auth       # Enable, if you want to allow SMTP to autenticate
 #                       # with the default code against system  /etc/passwd
 #                       # (or whatever source  getpwnam() uses for it..)

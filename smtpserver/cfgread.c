@@ -159,6 +159,12 @@ static void cfparam(str, size, cfgfilename, linenum)
 	hdr220lines[i+1] = NULL;
 	return;
     }
+    if (cistrcmp(name, "sasl-mechanisms") == 0) {
+      param2 = strchr(str, '\n');
+      if (param2) *param2 = 0;
+      SASL_Auth_Mechanisms = strdup(str);
+      return;
+    }
 
     /* Do '$' expansions on the string */
     dollarexpand((unsigned char *)str, size - (str - str0));

@@ -409,6 +409,7 @@ extern const char *tls_dcert_file, *tls_dkey_file, *tls_dh1024_param;
 extern const char *tls_dh512_param;
 extern const char *tls_random_source;
 extern const char *tls_cipherlist;
+extern const char *SASL_Auth_Mechanisms;
 extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd, tls_use_scache;
 extern int tls_ask_cert, tls_req_cert, tls_scache_timeout;
 extern int log_rcvd_whoson, log_rcvd_ident, log_rcvd_authuser;

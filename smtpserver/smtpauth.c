@@ -11,6 +11,8 @@
 #include "smtpserver.h"
 
 int SASLSecOpts;
+const char *SASL_Auth_Mechanisms;
+
 
 /* "AUTH LOGIN" command per
    http://help.netscape.com/products/server/messaging/3x/info/smtpauth.html
@@ -84,6 +86,120 @@ char * zpwmatch(uname,password,uidp)
 }
 #endif
 
+#ifdef HAVE_SASL2
+/*
+**  ITEMINLIST -- does item appear in list?
+**
+**	Check whether item appears in list (which must be separated by a
+**	character in delim) as a "word", i.e. it must appear at the begin
+**	of the list or after a space, and it must end with a space or the
+**	end of the list.
+**
+**	Parameters:
+**		item -- item to search.
+**		list -- list of items.
+**		delim -- list of delimiters.
+**
+**	Returns:
+**		pointer to occurrence (NULL if not found).
+*/
+
+static const char * iteminlist __((const char *, const char *, const char *));
+static const char *
+iteminlist(item, list, delim)
+	const char *item;
+	const char *list;
+	const char *delim;
+{
+	const char *s;
+	int len;
+
+	if (list == NULL || *list == '\0')
+		return NULL;
+	if (item == NULL || *item == '\0')
+		return NULL;
+	s = list;
+	len = strlen(item);
+	while (s != NULL && *s != '\0')
+	{
+		if (strncasecmp(s, item, len) == 0 &&
+		    (s[len] == '\0' || strchr(delim, s[len]) != NULL))
+			return s;
+		s = strpbrk(s, delim);
+		if (s != NULL)
+			while (*++s == ' ')
+				continue;
+	}
+	return NULL;
+}
+
+/*
+**  INTERSECT -- create the intersection between two lists
+**
+**	Parameters:
+**		s1, s2 -- lists of items (separated by single blanks).
+**		rpool -- resource pool from which result is allocated.
+**
+**	Returns:
+**		the intersection of both lists.
+*/
+
+
+static const char * intersect __((const char *, const char *));
+static const char *
+intersect(s1, s2)
+	const char *s1, *s2;
+{
+	char *hr, *h1, *h, *res;
+	int l1, l2, rl;
+
+	if (s1 == NULL || s2 == NULL)	/* NULL string(s) -> NULL result */
+		return NULL;
+	l1 = strlen(s1);
+	l2 = strlen(s2);
+	rl = (l1 < l2 ? l1 : l2);
+	res = (char *) malloc(rl + 1);
+	if (res == NULL)
+		return NULL;
+	*res = '\0';
+	if (rl == 0)	/* at least one string empty? */
+		return res;
+	hr = res;
+	h1 = (char *) s1;
+	h  = (char *) s1;
+
+	/* walk through s1 */
+	while (h != NULL && *h1 != '\0')
+	{
+		/* is there something after the current word? */
+		if ((h = strchr(h1, ' ')) != NULL)
+			*h = '\0';
+		l1 = strlen(h1);
+
+		/* does the current word appear in s2 ? */
+		if (iteminlist(h1, s2, " ") != NULL)
+		{
+			/* add a blank if not first item */
+			if (hr != res)
+				*hr++ = ' ';
+
+			/* copy the item */
+			memcpy(hr, h1, l1);
+
+			/* advance pointer in result list */
+			hr += l1;
+			*hr = '\0';
+		}
+		if (h != NULL)
+		{
+			/* there are more items */
+			*h = ' ';
+			h1 = h + 1;
+		}
+	}
+	return res;
+}
+#endif
 
 
 void smtp_auth(SS,buf,cp)
@@ -287,13 +403,13 @@ void smtp_auth(SS,buf,cp)
 	      break;
 	    }
 	  }
-#if 0 /* this test happens also in  sasl_server_start() */
+
 	  /* check whether mechanism is available */
 	  if (iteminlist(cp, SS->sasl.mechlist, " ") == NULL) {
 	    type(SS, 503, "5.3.3", "AUTH mechanism %.32s not available", cp);
 	    return;
 	  }
-#endif
+
 	  if (ismore) {
 	    /* could this be shorter? XXX */
 	    len = 1+strlen(q);
@@ -361,10 +477,16 @@ void smtp_auth(SS,buf,cp)
 
 	    i = s_gets( SS, abuf, sizeof(abuf), &rc, &co, &c );
 	    abuf[sizeof(abuf)-1] = 0;
+	    if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
 
 	    if (logfp != NULL) {
+#if 1
 	      fprintf(logfp, "%s%04dr\t**user-response**  -- len=%d\n",
 		      logtag, (int)(now - logtagepoch), i );
+#else
+	      fprintf(logfp, "%s%04dr\t%s\n",
+		      logtag, (int)(now - logtagepoch), abuf );
+#endif
 	      fflush(logfp);
 	    }
 
@@ -683,8 +805,11 @@ smtpauth_ehloresponse(SS)
 	    }
 	    if (num > 0) {
 	      type(NULL,0,NULL, "AUTH: available mech=%s, allowed mech=%s",
-		   SS->sasl.mechlist, "-ignored-" /* AuthMechanisms */);
-	      /* XXX: intersect the mechlist with AuthMechanisms ??? */
+		   SS->sasl.mechlist, 
+		   SASL_Auth_Mechanisms ? SASL_Auth_Mechanisms : "<-nil->" );
+	      if (SASL_Auth_Mechanisms)
+		SS->sasl.mechlist = intersect( SASL_Auth_Mechanisms,
+					       SS->sasl.mechlist );
 	    } else {
 	      SS->sasl.mechlist = NULL;	/* be paranoid... */
 	      type(NULL,0,NULL, "AUTH warning: no mechanisms");
@@ -717,299 +842,3 @@ smtpauth_ehloresponse(SS)
 	    }
 	  }
 }
-
-
-
-#if 0
- ---------------------------------------------
-#if SASL
-	bool ismore;
-	int result;
-	volatile int authenticating;
-	char *user;
-	char *in, *out, *out2;
-	const char *errstr;
-	unsigned int inlen, out2len;
-	unsigned int outlen;
-	char *volatile auth_type;
-	char *mechlist;
-	sasl_conn_t *conn;
-	volatile bool sasl_ok;
-	volatile unsigned int n_auth = 0;	/* count of AUTH commands */
-	volatile unsigned int n_mechs;
-	unsigned int len;
-	sasl_security_properties_t ssp;
-	sasl_external_properties_t ext_ssf;
-	sasl_ssf_t *ssf;
-#endif /* SASL */
- ---------------------------------------------
-
-#if SASL
-		else
-		{
-			/* don't want to do any of this if authenticating */
-#endif /* SASL */
- ---------------------------------------------
-#if SASL
-		  case CMDAUTH: /* sasl */
-			DELAY_CONN("AUTH");
-			if (!sasl_ok || n_mechs <= 0)
-			{
-				message("503 5.3.3 AUTH not available");
-				break;
-			}
-			if (authenticating == SASL_IS_AUTH)
-			{
-				message("503 5.5.0 Already Authenticated");
-				break;
-			}
-			if (smtp.sm_gotmail)
-			{
-				message("503 5.5.0 AUTH not permitted during a mail transaction");
-				break;
-			}
-			if (tempfail)
-			{
-				if (LogLevel > 9)
-					sm_syslog(LOG_INFO, e->e_id,
-						  "SMTP AUTH command (%.100s) from %.100s tempfailed (due to previous checks)",
-						  p, CurSmtpClient);
-				usrerr("454 4.7.1 Please try again later");
-				break;
-			}
-
-			ismore = false;
-
-			/* crude way to avoid crack attempts */
-			(void) checksmtpattack(&n_auth, n_mechs + 1, true,
-					       "AUTH", e);
-
-			/* make sure mechanism (p) is a valid string */
-			for (q = p; *q != '\0' && isascii(*q); q++)
-			{
-				if (isspace(*q))
-				{
-					*q = '\0';
-					while (*++q != '\0' &&
-					       isascii(*q) && isspace(*q))
-						continue;
-					*(q - 1) = '\0';
-					ismore = (*q != '\0');
-					break;
-				}
-			}
-
-			/* check whether mechanism is available */
-			if (iteminlist(p, mechlist, " ") == NULL)
-			{
-				message("503 5.3.3 AUTH mechanism %.32s not available",
-					p);
-				break;
-			}
-
-			if (ismore)
-			{
-				/* could this be shorter? XXX */
-				in = sm_rpool_malloc(e->e_rpool, strlen(q));
-				result = sasl_decode64(q, strlen(q), bbuf, sizeof(bbuf)
-						       &inlen);
-				if (result != SASL_OK)
-				{
-					message("501 5.5.4 cannot BASE64 decode '%s'",
-						q);
-					if (LogLevel > 5)
-						sm_syslog(LOG_WARNING, e->e_id,
-							  "AUTH decode64 error [%d for \"%s\"]",
-							  result, q);
-					/* start over? */
-					authenticating = SASL_NOT_AUTH;
-					in = NULL;
-					inlen = 0;
-					break;
-				}
-			}
-			else
-			{
-				in = NULL;
-				inlen = 0;
-			}
-
-			/* see if that auth type exists */
-			result = sasl_server_start(conn, p, in, inlen,
-						   &out, &outlen, &errstr);
-
-			if (result != SASL_OK && result != SASL_CONTINUE)
-			{
-				message("500 5.7.0 authentication failed");
-				if (LogLevel > 9)
-					sm_syslog(LOG_ERR, e->e_id,
-						  "AUTH failure (%s): %s (%d) %s",
-						  p,
-						  sasl_errstring(result, NULL,
-								 NULL),
-						  result,
-						  errstr);
-				break;
-			}
-			auth_type = newstr(p);
-
-			if (result == SASL_OK)
-			{
-				/* ugly, but same code */
-				goto authenticated;
-				/* authenticated by the initial response */
-			}
-
-			/* len is at least 2 */
-			len = ENC64LEN(outlen);
-			out2 = xalloc(len);
-			result = sasl_encode64(out, outlen, out2, len,
-					       &out2len);
-
-			if (result != SASL_OK)
-			{
-				message("454 4.5.4 Temporary authentication failure");
-				if (LogLevel > 5)
-					sm_syslog(LOG_WARNING, e->e_id,
-						  "AUTH encode64 error [%d for \"%s\"]",
-						  result, out);
-
-				/* start over? */
-				authenticating = SASL_NOT_AUTH;
-			}
-			else
-			{
-				message("334 %s", out2);
-				authenticating = SASL_PROC_AUTH;
-			}
-			break;
-#endif /* SASL */
- ---------------------------------------------
-			  /* EHLO response: */
-#if SASL
-			if (sasl_ok && mechlist != NULL && *mechlist != '\0')
-				message("250-AUTH %s", mechlist);
-#endif /* SASL */
-
- ---------------------------------------------
-			  /* STARTTLS processing: */
-# if SASL
-			if (sasl_ok)
-			{
-				char *s;
-
-				s = macvalue(macid("{cipher_bits}"), e);
-				if (s != NULL && (ext_ssf.ssf = atoi(s)) > 0)
-				{
-					ext_ssf.auth_id = macvalue(macid("{cert_subject}"),
-								   e);
-					sasl_ok = sasl_setprop(conn, SASL_SSF_EXTERNAL,
-							       &ext_ssf) == SASL_OK;
-					mechlist = NULL;
-					if (sasl_ok)
-						n_mechs = saslmechs(conn,
-								    &mechlist);
-				}
-			}
-# endif /* SASL */
-
- ---------------------------------------------
-			  /* QUIT processing: */
-#if SASL
-			if (authenticating == SASL_IS_AUTH)
-			{
-				sasl_dispose(&conn);
-				authenticating = SASL_NOT_AUTH;
-				/* XXX sasl_done(); this is a child */
-			}
-#endif /* SASL */
- ---------------------------------------------
-			  /* MAIL FROM  AUTH= processing: */
-#if SASL
-	else if (sm_strcasecmp(kp, "auth") == 0)
-	{
-		int len;
-		char *q;
-		char *auth_param;	/* the value of the AUTH=x */
-		bool saveQuickAbort = QuickAbort;
-		bool saveSuprErrs = SuprErrs;
-		bool saveExitStat = ExitStat;
-		char pbuf[256];
-
-		if (vp == NULL)
-		{
-			usrerr("501 5.5.2 AUTH= requires a value");
-			/* NOTREACHED */
-		}
-		if (e->e_auth_param != NULL)
-		{
-			usrerr("501 5.5.0 Duplicate AUTH parameter");
-			/* NOTREACHED */
-		}
-		if ((q = strchr(vp, ' ')) != NULL)
-			len = q - vp + 1;
-		else
-			len = strlen(vp) + 1;
-		auth_param = xalloc(len);
-		(void) sm_strlcpy(auth_param, vp, len);
-		if (!xtextok(auth_param))
-		{
-			usrerr("501 5.5.4 Syntax error in AUTH parameter value");
-			/* just a warning? */
-			/* NOTREACHED */
-		}
-
-		/* XXX this might be cut off */
-		(void) sm_strlcpy(pbuf, xuntextify(auth_param), sizeof pbuf);
-		/* xalloc() the buffer instead? */
-
-		/* XXX define this always or only if trusted? */
-		macdefine(&e->e_macro, A_TEMP, macid("{auth_author}"), pbuf);
-
-		/*
-		**  call Strust_auth to find out whether
-		**  auth_param is acceptable (trusted)
-		**  we shouldn't trust it if not authenticated
-		**  (required by RFC, leave it to ruleset?)
-		*/
-
-		SuprErrs = true;
-		QuickAbort = false;
-		if (strcmp(auth_param, "<>") != 0 &&
-		     (rscheck("trust_auth", pbuf, NULL, e, true, false, 9,
-			      NULL, NOQID) != EX_OK || Errors > 0))
-		{
-			if (tTd(95, 8))
-			{
-				q = e->e_auth_param;
-				sm_dprintf("auth=\"%.100s\" not trusted user=\"%.100s\"\n",
-					pbuf, (q == NULL) ? "" : q);
-			}
-
-			/* not trusted */
-			e->e_auth_param = "<>";
-# if _FFR_AUTH_PASSING
-			macdefine(&BlankEnvelope.e_macro, A_PERM,
-				  macid("{auth_author}"), NULL);
-# endif /* _FFR_AUTH_PASSING */
-		}
-		else
-		{
-			if (tTd(95, 8))
-				sm_dprintf("auth=\"%.100s\" trusted\n", pbuf);
-			e->e_auth_param = sm_rpool_strdup_x(e->e_rpool,
-							    auth_param);
-		}
-		sm_free(auth_param); /* XXX */
-
-		/* reset values */
-		Errors = 0;
-		QuickAbort = saveQuickAbort;
-		SuprErrs = saveSuprErrs;
-		ExitStat = saveExitStat;
-	}
-#endif /* SASL */
-
- ---------------------------------------------
-			  /* MAIL FROM  AUTH= processing: */
-#endif

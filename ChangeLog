@@ -1,6 +1,13 @@
 2003-08-15  Matti Aarnio  <mea@zmailer.org>
 
-	* smtpserver/smtpserver.c:
+	* man/smtpserver.8.in, smtpserver/cfgread.c,
+	  smtpserver/smtpauth.c, smtpserver/smtpserver.h:
+	    A bit more of SASL related things.
+	    Added "PARAM sasl-mechanisms ...", copied a bit
+	    more of sendmail code into here, and used it.
+	    Still my tests failed to login...
+
+	* scheduler/scheduler.c:
 	    Jerzy Sobczyk reported bug in 'Z' option processing
 
 	* smtpserver/smtpserver.c, smtpserver/smtpauth.c,
