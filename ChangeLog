@@ -1,5 +1,9 @@
 2000-08-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* compat/sendmail/sendmail.c:
+	    - Recognize  "sendmail -bd"  as an order to run "zmailer" script.
+	    - Input and encode INFROM= data into DSN dataset.
+
 	* proto/cf/aliases.cf, proto/cf/crossbar.cf, proto/cf/fqdnalias.cf,
 	  proto/cf/standard.cf, router/functions.c, router/prototypes.h,
 	  router/rfc822.c, router/shliaise.c:
