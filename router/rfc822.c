@@ -1296,14 +1296,6 @@ sequencer(e, file)
 				t = p->p_tokens;
 				QCHANNEL(e->e_from_trusted) =
 				  strnsave(t->t_pname, TOKENLEN(t));
-				if (TOKENLEN(t) == 5 &&
-				    strncmp(t->t_pname,"error",5)==0) {
-				  /* Ok, "channel error", we turn this
-				     stuff over to "<>" address.. */
-				  t = makeToken("<>", 2);
-				  t->t_type = Atom;
-				  p->p_tokens = t;
-				}
 			} else {
 				/*
 				 * No origination channel, or channel
@@ -1594,6 +1586,26 @@ sequencer(e, file)
 			dprintf(" none available!\n");
 			optsave(FYI_NOSENDER, e);
 		} else {
+			ph = h;
+			FindEnvelope(eChannel);
+			if (h != NULL) {
+			  if ((ap = ph->h_contents.a) != NULL
+			      && (p = ap->a_tokens) != NULL
+			      && (p->p_tokens != NULL)) {
+			    t = p->p_tokens;
+			    if (TOKENLEN(t) == 5 &&
+				strncmp(t->t_pname,"error",5)==0) {
+			      /* Ok, "channel error", we turn this
+				 stuff over to "<>" address.. */
+			      t = makeToken("<>", 2);
+			      t->t_type = Atom;
+			      p->p_tokens = t;
+			    }
+			  }
+			  h = ph;
+			} else {
+			  h = ph;
+			}
 			/* assume we only care about local users */
 			nh = (struct header *)tmalloc(sizeof (struct header));
 			*nh = *h;
@@ -2275,7 +2287,7 @@ prctladdr(info, fp, cfflag, comment)
 	if ((cfflag == _CF_SENDER) && channel && strcmp(channel,"error") == 0)
 		user = ""; /* error channel source address -> no user! */
 	if (!privilege || !('0' <= *privilege && *privilege <= '9')) {
-	  printf(stderr, "Malformed %s privilege data!\n", comment);
+	  fprintf(stderr, "Malformed %s privilege data!\n", comment);
 	  return NULL;
 	}
 	return user;

@@ -1,3 +1,23 @@
+1998-04-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/rfc822.c:
+	    Alternate scheme for dealing with SMTP MAIL FROM:<>, and
+	    lack of "From:" header in the message.
+
+1998-04-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in, acconfig.h, lib/prversion.c:
+	    Store ./configure command parameters into a #define,
+	    and present them in places calling  prversion().
+	    (Makes sense in several cases, IMO..)
+
+	* configure.in, (most)/Makefile.in:
+	    New configuration option:
+		--with-getpwnam-library="-L.. -l.."
+	    helping overloading of  getpwnam()  (and getpwuid() ?)
+	    library calls with your own special ones; if you have some
+	    ISP system with backend databases, etc..
+
 1998-04-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in:
@@ -9,7 +29,7 @@
 	    from  getpwnam()  call yields.  Previously this canonification
 	    was done blindly -- does not affect most people, but there are
 	    a few weird fellas whose  getpwnam() uses key A, and yields
-	    string B in pw_name field..  (This is not only Telecom Finland
+	    string B in pw_name field..  (These are not only Telecom Finland
 	    weirdos..)
 
 1998-04-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
