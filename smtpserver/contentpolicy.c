@@ -146,34 +146,34 @@ const char *fname;
   
   if (state->always_reject) {
     if (debug_content_filter)
-      type(NULL,0,NULL, "ContentPolicy nor run; AlwaysReject");
+      type(NULL,0,NULL, "ContentPolicy not run; AlwaysReject");
     return -1;
   }
   if (state->sender_reject) {
     if (debug_content_filter)
-      type(NULL,0,NULL, "ContentPolicy nor run; SenderReject");
+      type(NULL,0,NULL, "ContentPolicy not run; SenderReject");
     return -2;
   }
   if (state->always_freeze) {
     if (debug_content_filter)
-      type(NULL,0,NULL, "ContentPolicy nor run; AlwaysFreeze");
+      type(NULL,0,NULL, "ContentPolicy not run; AlwaysFreeze");
     return 1;
   }
   if (state->sender_freeze) {
     if (debug_content_filter)
-      type(NULL,0,NULL, "ContentPolicy nor run; SenderFreeze");
+      type(NULL,0,NULL, "ContentPolicy not run; SenderFreeze");
     return 2;
   }
   /* If no 'filter *' defined, use old behaviour */
   if (state->always_accept && (state->content_filter < 0)) {
     if (debug_content_filter)
-      type(NULL,0,NULL, "ContentPolicy nor run; AlwaysAccept w/o FILTER+");
+      type(NULL,0,NULL, "ContentPolicy not run; AlwaysAccept w/o FILTER+");
     return 0;
   }
   /* 'filter', but not 'filter +' ! */
   if (state->content_filter == 0) {
     if (debug_content_filter)
-      type(NULL,0,NULL, "ContentPolicy nor run; AlwaysAccept w FILTER but not '+'");
+      type(NULL,0,NULL, "ContentPolicy not run; AlwaysAccept w FILTER but not '+'");
     return 0;
   }
 
@@ -183,13 +183,13 @@ const char *fname;
 
   if (! contentfilter) {
     if (debug_content_filter)
-      type(NULL,0,NULL, "ContentPolicy nor run; not configured");
+      type(NULL,0,NULL, "ContentPolicy not run; not configured");
     return 0; /* Until we have implementation */
   }
 
   if (contentpolicypid < 0)
     if (!init_content_policy()) {
-      type(NULL,0,NULL, "ContentPolicy nor run; failed to start ?!");
+      type(NULL,0,NULL, "ContentPolicy not run; failed to start ?!");
       return 0; /* DUH! */
     }
 

@@ -1,11 +1,15 @@
 2003-08-28  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/contentpolicy.c, smtpserver/smtpdata.c:
+	    - Typo in debug texts of contentpolicy filter harness.
+	    - Small default-text code rearrangements in smtpdata.c
+
 	* man/man-to-html.sh:
 	    Apparently we can be without 'groff -c' option, and still not
 	    get colour output to produced HTML..   Oh yes, that was when
 	    using '-Thtml' output driver.  Present HTML generation uses
 	    '-Tascii' and magic state processor to convert produced (with 
-	    occasional escapes) text file into fixed with courier font HTML.
+	    occasional escapes) text file into fixed width courier font HTML.
 
 2003-08-26  Matti Aarnio  <mea@zmailer.org>
 

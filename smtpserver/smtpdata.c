@@ -257,7 +257,7 @@ const char *buf, *cp;
 	       "Content-policy analysis ordered message %s. (code=%d); msg='%s'",
 	       (SS->policyresult < 0 ? "rejection" :
 		(SS->policyresult > 0 ? "freezing" : "acceptance")),
-	       SS->policyresult, ss0 ? ss0 : "<NIL>");
+	       SS->policyresult, ss);
 
 	if (ss) {
 	  char *p, *s;
@@ -276,8 +276,14 @@ const char *buf, *cp;
 	      p = strchr(s,'\r');
 	    }
 	  }
-	} else {
-	  sslines[0] = ss = "rejected, no further explanations";
+	}
+	if (!ss || *ss == 0) {
+	  if (SS->policyresult < 0)
+	    sslines[0] = ss = "rejected, no further explanations";
+	  else  if (SS->policyresult == 0)
+	    sslines[0] = ss = "accepted";
+	  else
+	    sslines[0] = ss = "accepted into freezer, no explanations";
 	  sslines[1] = NULL;
 	}
 
@@ -319,12 +325,6 @@ const char *buf, *cp;
 	  } else {
 
 	    smtp_tarpit(SS);
-
-	    if (!ss) {
-	      ss = "message ordered frozen, no explanation";
-	      code = 250;
-	      statcode = "2.7.1";
-	    }
 
 	    if (!statcode)  statcode = "2.7.1";
 	    if (!code)      code = 250;
@@ -632,7 +632,7 @@ const char *buf, *cp;
 	       "Content-policy analysis ordered message %s. (code=%d); msg='%s'",
 	       (SS->policyresult < 0 ? "rejection" :
 		(SS->policyresult > 0 ? "freezing" : "acceptance")),
-	       SS->policyresult, ss0 ? ss0 : "<NIL>");
+	       SS->policyresult, ss);
 
 	if (ss) {
 	  char *p, *s;
@@ -651,8 +651,14 @@ const char *buf, *cp;
 	      p = strchr(s,'\r');
 	    }
 	  }
-	} else {
-	  sslines[0] = ss = "rejected, no further explanations";
+	}
+	if (!ss || *ss == 0) {
+	  if (SS->policyresult < 0)
+	    sslines[0] = ss = "rejected, no further explanations";
+	  else  if (SS->policyresult == 0)
+	    sslines[0] = ss = "accepted";
+	  else
+	    sslines[0] = ss = "accepted into freezer, no explanations";
 	  sslines[1] = NULL;
 	}
 
@@ -696,12 +702,6 @@ const char *buf, *cp;
 	  } else {
 
 	    smtp_tarpit(SS);
-
-	    if (!ss) {
-	      ss = "message ordered frozen, no explanation";
-	      code = 250;
-	      statcode = "2.7.1";
-	    }
 
 	    if (!statcode)  statcode = "2.7.1";
 	    if (!code)      code = 250;
