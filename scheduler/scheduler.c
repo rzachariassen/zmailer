@@ -1141,6 +1141,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 {
 	struct vertex *ovp,  *nvp;
 	struct vertex *novp, *nnvp;
+	int ovp_count = 0;
 
 	/* Scan both files thru their   vp->next[L_CTLFILE]  vertex chains.
 	   If oldcfp has things that newcfp does not have, remove those from
@@ -1172,6 +1173,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 
 
 	while (ovp != NULL && nvp != NULL) {
+	  ++ovp_count;
 
 	  /* Always prepare for removal of the ovp object..
 	     Pick the next-ovp pointer now */
