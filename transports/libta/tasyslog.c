@@ -112,6 +112,9 @@ const char *msg;
     case _CONVERT_NONE:
       s = "NONE";
       break;
+    case _CONVERT_MULTIPARTQP:
+      s = "MPQP";
+      break;
     case _CONVERT_QP:
       s = "QP";
       break;
