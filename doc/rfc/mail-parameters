@@ -1,0 +1,268 @@
+
+MAIL ENCODING HEADER FIELD KEYWORDS
+
+
+[RFC1505] specifies an initial list of keywords for the experimental
+encoding header field (EHF-MAIL), and provides that additional
+keywords may be registered with the IANA.
+
+
+Keyword         Description                             Reference
+_______         ___________                          ____________
+
+EDIFACT         EDIFACT format                          [RFC1505]
+EDI-X12         EDI X12 format                         [ANSI-X12]
+EVFU            FORTRAN format                          [RFC1505]
+FS              File System format                      [RFC1505]
+Hex             Hex binary format                       [RFC1505]
+LZJU90          LZJU90 format                           [RFC1505]
+LZW             LZW format                              [RFC1505]
+Message         Encapsulated Message                     [RFC822] 
+PEM, PEM-Clear  Privacy Enhanced Mail                   [RFC1421]
+PGP             Pretty Good Privacy                     [RFC1505]
+Postscript      Postscript format                    [POSTSCRIPT]
+Shar            Shell Archive format                    [RFC1505]
+Signature       Signature                               [RFC1505]
+Tar             Tar format                              [RFC1505]
+Text            Text                                   [IS-10646]
+uuencode        uuencode format                         [RFC1505]
+URL             external URL-reference                  [RFC1505]
+
+
+MAIL SERVICE TYPES
+
+The set of services desired from a mail server are sometines
+characterises by the "hello" keword used.  These are listed here.
+
+Keywords        Description                              Reference
+------------    --------------------------------         ---------
+HELO            Simple Mail                               [RFC821]
+EHLO            Mail Service Extensions                  [RFC1869]
+LHLO            Local Mail                               [RFC2033]
+
+
+MAIL ENCRYPTION TYPES
+
+[RFC822] specifies that Encryption Types for mail may be assigned.
+There are currently no RFC 822 encryption types assigned.  Please use
+instead the Mail Privacy procedures defined in [RFC1421, RFC1422,
+RFC1423].
+
+
+SMTP SERVICE EXTENSIONS
+
+The Simple Mail Transfer Protocol [RFC821] specifies a set of commands
+or services for mail transfer.  A general procedure for extending the
+set of services is defined in [STD11,RFC1869].  The set of service
+extensions is listed here.
+
+The service extensions are identified by keywords sent from the server
+to the client in response to the EHLO command.
+
+Keywords	Description				 Reference
+------------    --------------------------------         ---------
+SEND		Send as mail				  [RFC821]
+SOML		Send as mail or terminal		  [RFC821]
+SAML		Send as mail and terminal		  [RFC821]
+EXPN		Expand the mailing list			  [RFC821]
+HELP		Supply helpful information		  [RFC821]
+TURN		Turn the operation around		  [RFC821]
+8BITMIME	Use 8-bit data				 [RFC1652]
+SIZE		Message size declaration		 [RFC1870]
+VERB		Verbose		                     [Eric Allman]
+ONEX		One message transaction only	     [Eric Allman]
+CHUNKING        Chunking                                 [RFC1830]
+BINARYMIME      Binary MIME                              [RFC1830]
+CHECKPOINT	Checkpoint/Restart                       [RFC1845]
+PIPELINING      Command Pipelining                       [RFC2197]
+DSN             Delivery Status Notification             [RFC1891]
+ETRN            Extenderd Turn                           [RFC1985]
+ENHANCEDSTATUSCODES Enhanced Status Codes                [RFC2034]
+
+Some of these keywords have parameters.  These are listed here (those
+keywords not listed here have no parameters).
+
+Service Ext      EHLO Keyword   Parameters               Reference
+-----------      ------------   -----------              ---------
+Size		 SIZE            number                  [RFC1870]
+
+
+MAIL CONTENT DISPOSITION
+
+In RFC 2183 there is a discussion of the "Content-Disposition" header
+field and the description of the initial parameters allowed in this
+header.  Additional parameters may be registered with the IANA
+following the procedues in section 9 of RFC 2183.
+
+Name        Description                                        Reference
+-----       ------------                                       ---------
+inline      displayed automatically                            [RFC2183]
+attachment  user controlled display                            [RFC2183]
+
+
+MAIL SYSTEM NAMES and ADDRESS TYPES
+
+In some places, an identification of other mail systems is used.
+
+One of these is in "The COSINE and Internet X.500 Schema" (section
+9.3.18) [RFC1274].  The mail system names listed here are used as the
+legal values in that schema under the "otherMailbox" attribute
+"mailboxType" type (which must be a PrintableString).
+
+Another place is in "Mapping between X.400(1988) / ISO 10021 and RFC
+822" (section 4.2.2) [RFC1327].  The names listed here are used as
+the legal values in that schema under the "std-or-address" attribute
+"registered-dd-type" type (which must be a "key-string").
+
+Note that key-string = <a-z, A-Z, 0-9, and "-" >.
+
+Mail System Name	Description			Reference
+----------------	------------------------------- ---------
+mcimail			MCI Mail
+
+ADDRESS TYPES
+
+The "address-type" is defined for use in the SMTP Delivery Status
+Notification [RFC1891].
+
+Address Type    	Description			Reference
+----------------	------------------------------- ---------
+rfc822                  Internet Mail                   [RFC1891]
+
+
+DIAGNOSTIC TYPES
+
+The "diagnostic-type" is defined for use in the SMTP Delivery Status
+Notification [RFC1891].
+
+Diagnostic Type    	Description			Reference
+----------------	------------------------------- ---------
+smtp                    Internet Mail                   [RFC1891]
+
+
+MTA NAME TYPES
+
+The "mta-name-type" is defined for use in the SMTP Delivery Status
+Notification [RFC1891].
+
+Address Type    	Description			Reference
+----------------	------------------------------- ---------
+dns                     Internet Mail                   [RFC1891]
+
+
+MAIL TRANSMISSION TYPES
+
+
+The Simple Mail Transfer Protocol [RFC821] and the Standard for the
+Format of ARPA Internet Text Messages [RFC822] specify that a set of
+"Received" lines will be prepended to the headers of electronic mail
+messages as they are transported through the Internet.  These received
+line may optionally include either or both a "via" phrase and/or a
+"with" phrase.  The legal values for the phrases are listed here.  The
+via phrase is intended to indicate the link or physical medium over
+which the message was transferred.  The with phrase is intended to
+indicate the protocol or logical process that was used to transfer the
+message.
+
+
+VIA link types	Description				Reference
+--------------	----------------------------		---------
+UUCP		Unix-to-Unix Copy Program		    [???]
+
+
+WITH protocol types  Description                        Reference
+-------------------  ----------------------------       ---------
+SMTP	             Simple Mail Transfer Protocol	 [RFC821]
+ESMTP	             SMTP with Service Extensions       [RFC1869]
+
+
+REFERENCES
+
+
+[ANSI-X12]
+
+[POSTSCRIPT] Adobe Systems Inc., "PostScript Langpuage Reference
+Manual", 2nd Edition, 2nd Printing, January 1991.
+
+[IS-10646]
+
+[RFC821]  Postel, J., "Simple Mail Transfer Protocol", STD 10, RFC 821,
+          USC/Information Sciences Institute, August 1982.
+
+[RFC822]  Crocker, D., "Standard for the Format of ARPA-Internet Text
+          Messages", STD 11, RFC 822, UDEL, August 1982.
+
+[RFC1274] Barker, P., and S. Kille, "The COSINE and Internet X.500
+          Schema", RFC 1274, University College London, November 1991. 
+
+[RFC1327] Hardcastle-Kille, S., "Mapping between X.400(1988) / ISO
+          10021 and RFC 822", RFC 1327, University College London,
+          May 1992.
+
+[RFC1421] Linn, J., "Privacy Enhancement for Internet Electronic
+          Mail: Part I: Message Encipherment and Authentication
+          Procedures", RFC 1421, IAB IRTF PSRG, IETF PEM WG,
+          February 1993.
+
+[RFC1422] Kent, S., "Privacy Enhancement for Internet
+          Electronic Mail: Part II -- Certificate-Based Key
+          Management", BBN, IAB IRTF PSRG, IETF PEM, February 1993.
+
+[RFC1423] Balenson, D., "Privacy Enhancement for Internet Electronic
+          Mail: Part III -- Algorithms, Modes, and Identifiers",
+          RFC 1423, TIS, IAB IRTF PSRG, IETF PEM WG, February 1993.
+
+[RFC1505] Costanzo, A., Robinson, D., and R. Ullmann, "Encoding Header
+          Field for Internet Messages", RFC 1505, AKC Consulting,
+          Computervision Corporation, August 1993.
+
+[RFC1652] Klensin, J., Freed, N., Rose, M., Stefferud, E., and D.
+          Crocker, "SMTP Service Extension for 8bit-MIMEtransport", 
+          RFC 1652, MCI, Innosoft, Dover Beach Consulting, Inc.,
+          Network Management Associates, Inc., Silicon Graphics, Inc.,
+          July 1994.
+
+[RFC1830] Vaudreuil, G., "SMTP Service Extensions for Transmission of
+          Large and Binary MIME Messages", RFC 1830, Octel Network
+          Services, August 1995.
+
+[RFC1845] Crocker, D., N. Freed, and A. Cargille, "SMTP Service
+          Extension for Checkpoint/Restart", RFC 1845, Brandenburg
+          Consulting, Innosoft International, September 1995.
+
+[RFC1869] Klensin, J., Freed, N., Rose, M., Stefferud, E., and D.
+          Crocker, "SMTP Service Extensions", RFC 1869, MCI, Innosoft,
+          Dover Beach Consulting, Inc., Network Management Associates,
+          Inc., Brandenberg Consulting., November 1995.
+
+[RFC1870] Klensin, J., Freed, N., and K. Moore, "SMTP Service
+          Extension for Message Size Declaration", RFC 1870,
+          MCI, Innosoft, University of Tennessee, November 1995.
+
+[RFC1891] Moore, K., "SMTP Service Extension for Delivery Status
+          Notification", RFC 1891, University of Tennessee, January
+          1996.
+
+[RFC1985] DeWinter, J., "SMTP Service Extension for Remote Message
+          Queue Starting", RFC1985, Wildbear Consulting, August 1996.
+
+[RFC2033] Myers, J., "Local Mail Transfer Protocol", RFC 2033,
+          Carnegie Mellon, October 1996.
+
+[RFC2034] Freed, N., "SMTP Service Extension for Returning Enhanced
+          Status Codes", RFC Innosoft International, October 1996.
+
+[RFC2183] Troost, R., S. Dorner, and K. Moore, "Communicating
+          Presentation Information in Internet Messages: The
+          Content-Disposition Header Field", RFC 2183, New Century
+          Systems, QUALCOMM Incorporated, University of Tennessee,
+          August 1997.
+
+[RFC2197] Freed, N., "SMTP Service Extension for Command Pipelining",
+          RFC 2197, Innosoft, September 1997.
+
+[]
+
+
+
+
