@@ -136,7 +136,7 @@ static void showpolicydata(fp, dp, len)
      int len;
 {
   fprintf(fp, " %s \"%s\"", showattr(dp), dp+2);
-}       
+}
 
 
 void dumpit(fp, flag, keyptr, keylen, datptr, datlen)

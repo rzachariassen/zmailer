@@ -1,5 +1,12 @@
 2000-10-17  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/libta/ctlopen.c:
+	    Return NULL, not 'void' in certain silence case.
+
+	* transports/libta/diagnostic.c:
+	    Try not to do so verbose diagnostic report over
+	    syslog as via TA->scheduler channel.
+
 	* smtpserver/smtpdata.c:
 	    Parse possible "contentpolicy" analysis report, and present
 	    it (in several cases) to the user.

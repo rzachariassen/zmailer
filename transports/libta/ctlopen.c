@@ -362,7 +362,8 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 #endif	  
 	  /* Is it perhaps just the ETRN request file ?
 	     and manual expirer gave it to us ?  Never mind then.. */
-	  if (contents[0] == _CF_TURNME) return;
+	  if (contents[0] == _CF_TURNME)
+	    return NULL;
 
 	  warning("Truncated or illegal control file \"%s\"!", file);
 	  /* exit(EX_PROTOCOL); */

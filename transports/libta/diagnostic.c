@@ -220,6 +220,7 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	char	message[8192];
 	char	statmsgbuf[32+16];
 	const char * statmsg;
+	const char * syslogmsg;
 	char	mark;
 	register char *s, *es, *s2;
 	va_list	ap;
@@ -462,6 +463,8 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	    rp->lockoffset = 0;	/* mark this recipient unlocked */
 	  }
 
+	  syslogmsg = strrchr(message, '\r');
+	  if (!syslogmsg) syslogmsg = message;
 	  tasyslog(rp, xdelay, wtthost, wttip, statmsg, message);
 	}
 	fflush(stdout);
