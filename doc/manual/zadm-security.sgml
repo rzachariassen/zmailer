@@ -1,3 +1,7 @@
+<CHAPTER ID="ZADM-SECURITY-ISSUES">
+<TITLE>Security Issues</TITLE>
+
+<SCREEN>
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \section{Security Issues}
@@ -77,3 +81,5 @@ variable in the system configuration ({\em router.cf}) file.
 
 
 %\end{multicols}
+</SCREEN>
+</CHAPTER>

@@ -1,3 +1,8 @@
+<APPENDIX ID="ZAPP-FILEFMTS">
+<TITLE>Internal File Data Formats</TITLE>
+<!-- <DOCINFO> ?? -->
+
+<SCREEN>
 %% \section{Internal File Data Formats}
 
 \section{Message File Format}
@@ -52,14 +57,14 @@ At first the message starts with a set of envelope headers
  *with %s \verb!\n!
  *identinfo %s \verb!\n!
 {\rm{}Either:}
-   from <%s> \verb!\n!
+   from &lt;%s&gt; \verb!\n!
 {\rm{}Or:}
    channel error \verb!\n!
  *envid %s \verb!\n!
  *notaryret %s \verb!\n!
 {\rm{}Then for each recipient pairs of:}
  *todsn [NOTIFY=...] [ORCPT=...] \verb!\n!
- to <%s> \verb!\n!
+ to &lt;%s&gt; \verb!\n!
 {\rm{}Just before the data starts, a magic entry:}
  env-end \verb!\n!
 \end{alltt}
@@ -122,7 +127,7 @@ when the message is originated by some John Doe in the system.
 Normal recipient address list; usually used in form of listing
 one address in angle braces:
 \begin{alltt}
-  to <user@somewhere>
+  to &lt;user@somewhere&gt;
 \end{alltt}
 
 \item[{\tt todsn} `phrase'] \mbox{} \\
@@ -202,11 +207,11 @@ message header.  A more sophisticated example in the same vein:
 \begin{alltt}
      --------------------
      from ps/d-ops
-     to <007@sis.mod.uk>
+     to &lt;007@sis.mod.uk&gt;
      env-end
-     From: M <d-ops@sis.mod.uk>
-     Sender: Moneypenny <ps/d-ops@sis.mod.uk>
-     To: James Bond <007@sis.mod.uk>
+     From: M &lt;d-ops@sis.mod.uk&gt;
+     Sender: Moneypenny &lt;ps/d-ops@sis.mod.uk&gt;
+     To: James Bond &lt;007@sis.mod.uk&gt;
      Subject: where are you???!
      Classification: Top Secret
      Priority: Flash
@@ -227,8 +232,8 @@ the ones shown above (assuming the local host is {\tt sis.mod.uk}):
 
 \begin{alltt}
      --------------------
-     From Moneypenny <ps/d-ops@sis.mod.uk>
-     To James Bond <007@sis.mod.uk>
+     From Moneypenny &lt;ps/d-ops@sis.mod.uk&gt;
+     To James Bond &lt;007@sis.mod.uk&gt;
      ...
      --------------------
 \end{alltt}
@@ -299,26 +304,26 @@ was removed by the Scheduler:
      --------------------
      i 24700
      o 72
-     l <88Jan10.003129est.24700@bay.csri.toronto.edu>
-     e Rayan Zachariassen <rayan>
+     l &lt;88Jan10.003129est.24700@bay.csri.toronto.edu&gt;
+     e Rayan Zachariassen &lt;rayan&gt;
      s local - rayan
      r+local - rayan 2003
      m
      Received: by bay.csri.toronto.edu id 24700; Sun, 10 Jan 88 00:31:29 EST
-     From:   Rayan Zachariassen <rayan>
+     From:   Rayan Zachariassen &lt;rayan&gt;
      To:     rayan, rayan@ephemeral
      Subject: a test
-     Message-Id: <88Jan10.003129est.24700@bay.csri.toronto.edu>
+     Message-Id: &lt;88Jan10.003129est.24700@bay.csri.toronto.edu&gt;
      Date:   Sun, 10 Jan 88 00:31:24 EST
      
      s local - rayan@bay.csri.toronto.edu
      r+smtp ephemeral.ai.toronto.edu rayan@ephemeral.ai.toronto.edu 2003
      m
      Received: by bay.csri.toronto.edu id 24700; Sun, 10 Jan 88 00:31:29 EST
-     From:   Rayan Zachariassen <rayan@csri.toronto.edu>
+     From:   Rayan Zachariassen &lt;rayan@csri.toronto.edu&gt;
      To:     rayan@csri.toronto.edu, rayan@ephemeral.ai.toronto.edu
      Subject: a test
-     Message-Id: <88Jan10.003129est.24700@bay.csri.toronto.edu>
+     Message-Id: &lt;88Jan10.003129est.24700@bay.csri.toronto.edu&gt;
      Date:   Sun, 10 Jan 88 00:31:24 EST
      
      --------------------
@@ -334,11 +339,11 @@ which currently contains:
 #define _CF_BODYOFFSET  'o'     /* byte offset into message file of body */
 #define _CF_BODYFILE    'b'     /* alternate message file for new body */
 #define _CF_SENDER      's'     /* sender triple (channel, host, user) */
-#define _CF_RECIPIENT   'r'     /* recipient n-tuple, n >= 3 */
+#define _CF_RECIPIENT   'r'     /* recipient n-tuple, n &gt;= 3 */
 #define _CF_DSNRETMODE  'R'     /* DSN message body return control */
 #define _CF_XORECIPIENT 'X'     /* one of XOR set of recipient n-tuples */
 #define _CF_RCPTNOTARY  'N'     /* DSN parameters for previous recipient */
-#define _CF_DSNENVID    'n'     /* DSN 'MAIL FROM<> ENVID=XXXX' data */
+#define _CF_DSNENVID    'n'     /* DSN 'MAIL FROM&lt;&gt; ENVID=XXXX' data */
 #define _CF_ERRORADDR   'e'     /* return address for error messages */
 #define _CF_DIAGNOSTIC  'd'     /* diagnostic message for ctlfile offset */
 #define _CF_MSGHEADERS  'm'     /* message header for preceeding recipients */
@@ -386,7 +391,7 @@ Gives an address to which delivery errors should be sent.  The address
 must be an RFC822 mailbox.  For example:
 
 \begin{alltt}
-          e "Operations Directorate" <d-ops@sis.mod.uk>
+          e "Operations Directorate" &lt;d-ops@sis.mod.uk&gt;
 \end{alltt}
 
 
@@ -396,7 +401,7 @@ messages and accounting records associated with this message.  This
 value is typically the message id string.  For example:
 
 \begin{alltt}
-          l <88Jan6.103158gmt.24694@sis.mod.uk>
+          l &lt;88Jan6.103158gmt.24694@sis.mod.uk&gt;
 \end{alltt}
 
 
@@ -441,7 +446,7 @@ One of XOR set of recipient n-tuples.
 DSN parameters for previous recipient.
 
 {\tt n}
-DSN {\tt MAIL FROM{\(<>\)} ENVID=XXXX} data.
+DSN {\tt MAIL FROM{\(&lt;&gt;\)} ENVID=XXXX} data.
 
 {\tt m}     
 Apart from a message body, a Transport Agent needs the message headers
@@ -543,10 +548,10 @@ a new job.
 A short sample session looks like this:
 \begin{alltt}
 {\rm{}(start the transport agent)}
-#hungry             {\rm{--> (TA to scheduler)}}
-spoolid \verb/\t/ hostspec {\rm{<-- (scheduler to TA)}}
-diagnostics         {\rm{--> (TA to scheduler)}}
-#hungry             {\rm{<-- (scheduler to TA)}}
+#hungry             {\rm{--&gt; (TA to scheduler)}}
+spoolid \verb/\t/ hostspec {\rm{&lt;-- (scheduler to TA)}}
+diagnostics         {\rm{--&gt; (TA to scheduler)}}
+#hungry             {\rm{&lt;-- (scheduler to TA)}}
 ...
 \end{alltt}
 
@@ -590,7 +595,7 @@ the text is a numeric parameter, either an incremental
 time in seconds if prefixed by `+', or otherwise an absolute
 time in seconds since {\tt epoch}.
 
-The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
+The exit status is a code from {\tt {\(&lt;\)}sysexits.h{\(&gt;\)}}.
 
 
 
@@ -644,3 +649,6 @@ listname-owner: owner-listname
 listname-request: root
 listname-dist: ":include:/dev/null"
 \end{alltt}
+
+</SCREEN>
+</APPENDIX>

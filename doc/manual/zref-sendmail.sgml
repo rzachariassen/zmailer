@@ -1,3 +1,7 @@
+<CHAPTER ID="ZREF-SENDMAIL">
+<TITLE>sendmail</TITLE>
+
+<SCREEN>
 %% \section{sendmail}
 
 This {\em sendmail\/} program is an emulation of the original
@@ -182,3 +186,5 @@ sets Delivery-Status-Notification parameter {\tt ENVID}
 to be any arbitrary [{\tt xtext}] string.
 
 \end{description}
+</SCREEN>
+</CHAPTER>

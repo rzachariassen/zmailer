@@ -1,3 +1,7 @@
+<CHAPTER ID="ZADM-LOGGING">
+<TITLE>Logging and Statistics</TITLE>
+
+<SCREEN>
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \section{Logging and Statistics}
@@ -128,7 +132,7 @@ The ta-spool-id -- A spool-id that is valid throughout message lifetime.
 
 The {\em router} does syslog in following format:
 
-{\tt taspid: from=<addr>, rrelay=smtprelay, size=nnn, nrcpts=nnn, msgid=str}
+{\tt taspid: from=&lt;addr&gt;, rrelay=smtprelay, size=nnn, nrcpts=nnn, msgid=str}
 
 \begin{description}
 \item[taspid] \mbox{} \\
@@ -161,7 +165,7 @@ The ``Message-ID:'' header content
 
 The transport agents log in following format:
 
-{\tt taspid: to=<addr>, delay=dd, xdelay=xx, mailer=mm, relay=rr (wtt), stat=\%s msg}
+{\tt taspid: to=&lt;addr&gt;, delay=dd, xdelay=xx, mailer=mm, relay=rr (wtt), stat=\%s msg}
 
 Here the fields are:
 \begin{description}
@@ -201,4 +205,5 @@ What status was achieved: {\tt ok}, {\tt delayed}, {\tt failed}...
 Arbitary text line from whatever system is out there.
 
 \end{description}
-
+</SCREEN>
+</CHAPTER>

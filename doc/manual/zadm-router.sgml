@@ -1,3 +1,7 @@
+<CHAPTER ID="ZADM-ROUTER">
+<TITLE>Router Configuration</TITLE>
+
+<SCREEN>
 % \section{Router Configuration}
 
 %\begin{multicols}{2}
@@ -924,7 +928,7 @@ consumption\ldots)
 
 The rest of these notes apply to older config files using old style pipe of:
 \begin{alltt}\medskip\hrule\medskip
- $(listaddresses < file | maprrouter ...)
+ $(listaddresses &lt; file | maprrouter ...)
 \medskip\hrule\end{alltt}\medskip
 where the maprrouter caused the actual memory bloat...
 
@@ -980,3 +984,5 @@ sticky-bitted if you want your general user population (or special admin
 group) to be able to create mailing lists.
 
 %\end{multicols}
+</SCREEN>
+</CHAPTER>

@@ -1,3 +1,7 @@
+<CHAPTER ID="ZREF-UTILITIES">
+<TITLE>ZMailer Utilities</TITLE>
+
+<SCREEN>
 %% \section{Utilities}
 
 There is considerable collection of various utilities in the
@@ -403,7 +407,7 @@ to local needs.
 #
 # Autoanswer.pl 1.0 for ZMailer 2.99.48+
 # (C) 1997 Telecom Finland
-#          Valtteri Karu <valtteri.karu@tele.fi>
+#          Valtteri Karu &lt;valtteri.karu@tele.fi&gt;
 # 
 # This program sends autoreply and the original headers to the originator 
 # of the message. Version 2.99.48+ of the Zmailer is required for detecting
@@ -425,8 +429,8 @@ if( ! -r "$ENV{'ZCONFIG'}") {
     exit 2;
 }
 
-open(ZMAILER,"< $ENV{'ZCONFIG'}" );
-while(<ZMAILER>) {
+open(ZMAILER,"&lt; $ENV{'ZCONFIG'}" );
+while(&lt;ZMAILER&gt;) {
     chomp;
     split(/=/);
     $ZMAILER{$_[0]}=$_[1];
@@ -436,7 +440,7 @@ close ZMAILER;
 
 $logfile = $ZMAILER{'LOGDIR'} . "/autoanswer";
 
-while (<STDIN>) {
+while (&lt;STDIN&gt;) {
 
     $text = $_;
 
@@ -459,7 +463,7 @@ while (<STDIN>) {
     push(@header,$text);
 }
 
-if (($address eq '<>') || ($nosend = 0)) {
+if (($address eq '&lt;&gt;') || ($nosend = 0)) {
     LOG("SENDER invalid");
     exit 1;
 }
@@ -474,7 +478,7 @@ select(OUT);
 print "channel error\n";
 print "to $address\n";
 print "env-end\n"; 
-print "From: Autoreply service <postmaster>\n";
+print "From: Autoreply service &lt;postmaster&gt;\n";
 print "To: $address\n";
 print "Subject: Autoreply\n";
 print "X-autoanswer-loop: Megaloop \n\n";
@@ -531,3 +535,6 @@ ndbm    .pag and .dir
 gdbm    .gdbm
 btree   .db   
 \end{verbatim}
+</SCREEN>
+
+</CHAPTER>

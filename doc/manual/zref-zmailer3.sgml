@@ -1,9 +1,13 @@
+<CHAPTER ID="ZREF-ZMAILER3">
+<TITLE>sendmail</TITLE>
+
+<SCREEN>
 %% \section{zmailer(3)}
 
 {\bf Usage}
 \begin{verbatim}
-#include <stdio.h>
-#include <zmailer.h>
+#include &lt;stdio.h&gt;
+#include &lt;zmailer.h&gt;
 
 FILE *mail_open(char *);
 
@@ -25,18 +29,18 @@ char *mail_host();
 
 At linkage time use {\tt -lzmailer}.
 
-{\tt mail\_open()} will return a {\tt FILE *} to a message
+{\tt mail_open()} will return a {\tt FILE *} to a message
 file that should be written to by the application. This
 message file contains three parts: the message envelope,
 the message header, and the message body. The exact format of
 these components depend on the message protocol,
-which must be specified as the parameter to {\tt mail\_open()}.
+which must be specified as the parameter to {\tt mail_open()}.
 The choices are predetermined by the capabilities of the
 mailer, and are defined in the header file. The known
 possibilities are:
 
 \begin{description}
-\item[ {\tt MSG\_RFC822}] \mbox{}
+\item[ {\tt MSG_RFC822}] \mbox{}
 
 this is the only format supported 
 by default by the mailer. The message headers and body in this format
@@ -45,36 +49,36 @@ The message envelope syntax is similar to the message header syntax.
 
 
 
-\item[ {\tt MSG\_FAX}] \mbox{}
+\item[ {\tt MSG_FAX}] \mbox{}
 
 intended for fax transmissions.
 
 
 
-\item[ {\tt MSG\_UUCP}] \mbox{}
+\item[ {\tt MSG_UUCP}] \mbox{}
 
 intended for old style UUCP format message headers
 
 
 
-\item[ {\tt MSG\_X400}] \mbox{}
+\item[ {\tt MSG_X400}] \mbox{}
 
 intended for X.400(88) messages.
 
 \end{description}
 
 
-The {\tt mail\_open()} routine will look for {\tt \$FULLNAME} 
+The {\tt mail_open()} routine will look for {\tt \$FULLNAME} 
 and {\tt \$PRETTYLOGIN} environment variables and translate 
 them into message envelope data for use by the mailer if it generates 
 a sender address header for the message.
 
-Note that the return value from the {\tt mail\_open()} routine
+Note that the return value from the {\tt mail_open()} routine
 corresponds to the return value of an {\tt fopen(3)}, and similarly
-the return values from {\tt mail\_abort()} and {\tt mail\_close()} 
+the return values from {\tt mail_abort()} and {\tt mail_close()} 
 correspond to the return value of {\tt fclose(3)}.
 
-The {\tt mail\_priority} variable has a default value of 0, 
+The {\tt mail_priority} variable has a default value of 0, 
 and is used on scanning Zmailer configuration variable 
 {\tt \$ROUTERDIRS}, which tells alternate router directories 
 under the {\tt \$POSTOFFICE} directory. At value 0, 
@@ -82,17 +86,17 @@ under the {\tt \$POSTOFFICE} directory. At value 0,
 successive directory from {\tt \$ROUTERDIRS} is taken. 
 See below about Z-Environment.
 
-The {\tt mail\_close\_alternate(3)} can be used to send currently
+The {\tt mail_close_alternate(3)} can be used to send currently
 open message file to some alternate destination, and is
 used at {\em smtpserver(8)\/} to send some quick-action requests
 directly to the {\em scheduler(8)\/}.
 
-The {\tt mail\_alloc()} and {\tt mail\_free()} routines are used 
+The {\tt mail_alloc()} and {\tt mail_free()} routines are used 
 to provide memory space for internal data structures. The versions
 of these routines in the library simply call {\tt malloc(3)} and
 {\tt free(3)} but an application may override them if desired.
 
-Similarly the {\tt mail\_host()} routine is intended to return a
+Similarly the {\tt mail_host()} routine is intended to return a
 unique string for each host, by default the hostname, and
 this too is intended to be overridden by an application
 that may already have this information available in some form.
@@ -114,8 +118,8 @@ At first the message starts with a set of envelope headers
 \end{verbatim}
 
 Either: \\
-% {\tt\ \ \ from {\(<\)}\%s{\(>\)} \(\backslash\)n} \\
-\verb!  from <%s> \n! \\
+% {\tt\ \ \ from &lt;%s&gt; \
+\verb!  from &lt;%s&gt; \n! \\
 Or: \\
 \verb!  channel error \n! \\
 % {\tt\ \ \ channel error \(\backslash\)n}
@@ -129,7 +133,7 @@ Or: \\
 Then for each recipient pairs of:
 \begin{verbatim}
  *todsn [NOTIFY=...] [ORCPT=...] \n
- to <%s> \n
+ to &lt;%s&gt; \n
 \end{verbatim}
 
 
@@ -200,3 +204,5 @@ if alternate queueing priority mechanism is desired to be used.
 Example: {\tt \$ROUTERDIRS=router1:router2:router3:router4}
 
 \end{description}
+</SCREEN>
+</CHAPTER>

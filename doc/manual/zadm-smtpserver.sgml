@@ -1,3 +1,7 @@
+<CHAPTER ID="ZADM-SMTPSERVER-CONFIG">
+<TITLE><COMMAND>smtpserver</> Configuration</TITLE>
+
+<SCREEN>
 % \section{Smtpserver Configuration}
 
 The {\em smtpserver} is ZMailer's component to receive SMTP form
@@ -129,7 +133,7 @@ addresses, the message may entirely become undeliverable..
 
 
 \item[{\tt max-error-recipients nn}] \mbox{} \\
-In case the message envelope is an error envelope (MAIL FROM:{\(<>\)}),
+In case the message envelope is an error envelope (MAIL FROM:&lt;&gt;),
 the don't accept more than this many separate recipient addresses
 for it. The default value is 3, which should be enough for most cases.
 (Some SPAMs claim to be error messages, and then provide a huge
@@ -363,13 +367,13 @@ details concerning these details.
 #| {\rm -- 1st alternate: No MX target usage, no DNS existence verify}
 #|    {\rm Will accept for reception only those domains explicitely listed}
 #|    {\rm in ``smtp-policy.mx'' and  ``localnames''  files.  Will not do}
-#|    {\rm verifications on validity/invalidity of source domains:}<foo@bar>
+#|    {\rm verifications on validity/invalidity of source domains:}&lt;foo@bar&gt;
 #
 # .             relaycustomer - relaytarget -
 # [0.0.0.0]/0   relaycustomer - relaytarget -
 #
 #| {\rm -- 2nd alternate: No MX target usage, DNS existence verify}
-#|    {\rm Like the 1st alternate, except will verify the sender} (MAIL FROM:<..>)
+#|    {\rm Like the 1st alternate, except will verify the sender} (MAIL FROM:&lt;..&gt;)
 #|    {\rm address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.}
 #
 # .             relaycustomer - relaytarget - senderokwithdns +
@@ -408,3 +412,5 @@ The {\tt smtp-policy.src} file default setting fragment}
 \end{figure*}
 
 %\end{multicols}
+</SCREEN>
+</CHAPTER>

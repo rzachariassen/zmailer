@@ -1,7 +1,7 @@
-%% \section{SMTP-server}
+<CHAPTER ID="ZREF-SMTPSERVER">
+<TITLE>SMTP-server</TITLE>
 
-%\begin{multicols}{2}
-
+<SCREEN>
 The ZMailer distribution contains an {\em SMTP} server program
 for the BSD socket implementation of TCP/IP.
 It is an asynchronous implementation, in that address semantics are
@@ -258,7 +258,7 @@ addresses, the message may entirely become undeliverable..
 This sets system default value, and overrides {\em -M} option.
 
 \item[\tt PARAM max-error-recipients nn] \mbox{} \\
-In case the message envelope is an error envelope (MAIL FROM:{\(<>\)}),
+In case the message envelope is an error envelope (MAIL FROM:&lt;&gt;),
 the don't accept more than this many separate recipient addresses
 for it. The default value is 3, which should be enough for most cases.
 (Some SPAMs claim to be error messages, and then provide a huge
@@ -284,18 +284,18 @@ at the overall system, this parallel limit was created.
 
 
 \item[\tt PARAM TcpRcvBufferSize nnn] \mbox{} \\
-This sets {\tt setsockopt(SO\_RCVBUF)} value, 
+This sets {\tt setsockopt(SO_RCVBUF)} value, 
 in case the system default is not suitable for some reason.
 
 \item[\tt PARAM TcpXmitBufferSize nnn] \mbox{} \\
-This sets {\tt setsockopt(SO\_SNDBUF)} value, 
+This sets {\tt setsockopt(SO_SNDBUF)} value, 
 in case the system default is not suitable for some reason.
 
 \item[\tt PARAM ListenQueueSize nnn] \mbox{} \\
 This relates to newer systems where the {\tt listen(2)} system call
 can define higher limits, than the traditional/original 5.
 This limit tells how many nascent TCP streams we can have in
-SYN\_RCVD state before we stop answering to incoming SYN packets
+SYN_RCVD state before we stop answering to incoming SYN packets
 requesting opening of a connection.
 
 There are entirely deliberate denial-of-service attacks based on
@@ -342,7 +342,7 @@ More information below.
 
 \item[\tt PARAM allowsourceroute] \mbox{} \\
 When present, this parameter will not convert input of form
-{\(<\)@aa,@bb:cc@dd\(>\)} into source-route-less form of {\(<\)cc@dd\(>\)}.
+&lt;@aa,@bb:cc@dd&gt; into source-route-less form of &lt;cc@dd&gt;
 Instead it carries the original source-route into the system as is.
 
 \item[\tt PARAM accept-percent-kludge] \mbox{} \\
@@ -381,12 +381,12 @@ PARAM help  telefax number is: +1-234-567-8999
 PARAM help  Our business-hours are Mon-Fri: 0800-1700 (Timezone: -0700)
 PARAM help
 PARAM help  Questions regarding our email service should be sent via
-PARAM help  email to address  <postmaster@OURDOMAIN>
-PARAM help  Reports about abuse are to be sent to: <abuse@OURDOMAIN>
+PARAM help  email to address  &lt;postmaster@OURDOMAIN&gt;
+PARAM help  Reports about abuse are to be sent to: &lt;abuse@OURDOMAIN&gt;
 PARAM help -------------------------------------------------------------
 
 # {\rm{}Uncomment following for not to strip incoming addresses of format:}
-# {\rm}<{\rm{}@aa,@bb:cc@dd}>{\rm\ into non-source-routed base form: }<{\rm{}cc@dd}>
+# &lt;@aa,@bb:cc@dd&gt;  into non-source-routed base form: &lt;cc@dd&gt;
 #PARAM  allowsourceroute
 
 PARAM   accept-percent-kludge # "localpart" can contain '%' and '!'
@@ -440,7 +440,7 @@ DB/smtp-policy.spam  ('= _bulk_mail')
 At the moment, {\tt smtp-policy.spam} source is retrieved with LYNX from
 the URL:
 \begin{alltt}\medskip\scriptsize\medskip
-http://www.webeasy.com:8080/spam/spam\_download\_table
+http://www.webeasy.com:8080/spam/spam_download_table
 \medskip\end{alltt}\medskip
 however it seems there are sites out there that are spam havens, and
 that serve valid spam source/responce domains, which are not registered
@@ -477,7 +477,7 @@ ip-reversed.host.name
 .domain.suffix
 \medskip\hrule\end{alltt}\medskip
 
-Server sets its internal ``always\_accept'' flag at the source IP tests
+Server sets its internal ``always_accept'' flag at the source IP tests
 before it decides on what to tell to the contacting client.
 The flag is not modified afterwards during the session.
 
@@ -546,7 +546,7 @@ This file is compiled into an actual database using the command:
 
 The basic syntax of non-comment lines in the policy source is:
 \begin{alltt}\medskip\hrule\medskip
-  key  [attribute value]* [= \_tag]
+  key  [attribute value]* [= _tag]
 \medskip\hrule
 \end{alltt}\par
 
@@ -582,7 +582,7 @@ The attribute scanners operate in a manner, where the first
 instance of interesting attribute is the one that is used.
 Thus you can construct setups which set some attribute, and
 then {\em ignore} all latter instances of that same attribute
-which have been pulled in via ``{\em = \_alias\_tag}'' mechanism,
+which have been pulled in via ``{\em = _alias_tag}'' mechanism,
 for example.
 
 In following, ``understood'' value is one or both of literals: ``+'', ``-'',
@@ -593,8 +593,8 @@ placeholder which stops the scanner for that attribute.
 Attribute names, and understood value tokens are:
 
 \begin{description}
-\item[\tt = \_any\_tag] \mbox{} \\
-The analysis function will descend to look up ``\_any\_tag'' from
+\item[\tt = _any_tag] \mbox{} \\
+The analysis function will descend to look up ``_any_tag'' from
 the database, and expand its content in this place.
 
 \item[\tt rejectnet +] \mbox{} \\
@@ -791,8 +791,10 @@ default addributes for all unlisted IP addresses. (Both IPv4 and IPv6)
 
 `=' is a special attribute.
 
-The notation `= \_tag' means ``See also at `\_tag'". If {\tt server()} doesn't 
+The notation `= _tag' means ``See also at `_tag'". If {\tt server()} doesn't 
 find the requested attribute of the object, it will replace object name 
-with `\_tag' and restart the search.
+with `_tag' and restart the search.
 
 {\Large SCRIPT REMOVED; SEE FILE  smtp-policy.src}
+</SCREEN>
+</CHAPTER>

@@ -1,4 +1,5 @@
-<PART><TITLE>Administation</TITLE>
+<PART ID="ZADMINISTRATION">
+<TITLE>Administation</TITLE>
 <!-- %% \chapter{Administration} -->
 
 <PARTINTRO>
@@ -21,7 +22,25 @@ explanations of how pre-existing scripts have been done.
 \clearpage
 \segment{zadm-sm}{section}{{\em sm} Configuration}
 \clearpage
+<!-- 
+  <!ENTITY ZADM-DNSISSUES  SYSTEM "zadm-dnsissues.sgml">
+  <!ENTITY ZADM-SECURITY   SYSTEM "zadm-security.sgml">
+  <!ENTITY ZADM-QUEUES     SYSTEM "zadm-queues.sgml">
+  <!ENTITY ZADM-SMTPSERVER SYSTEM "zadm-smtpserver.sgml">
+  <!ENTITY ZADM-ROUTER     SYSTEM "zadm-router.sgml">
+  <!ENTITY ZADM-SCHEDULER  SYSTEM "zadm-scheduler.sgml">
+  <!ENTITY ZADM-SM         SYSTEM "zadm-sm.sgml">
+-->
 </PARA>
 
 </PARTINTRO>
+
+&ZADM-DNSISSUES;
+&ZADM-SECURITY;
+&ZADM-QUEUES;
+&ZADM-SMTPSERVER;
+&ZADM-ROUTER;
+&ZADM-SCHEDULER;
+&ZADM-SM;
+
 </PART>

@@ -1,3 +1,7 @@
+<CHAPTER ID="ZREF-SCHEDULER">
+<TITLE>Scheduler</TITLE>
+
+<SCREEN>
 %% \section{Scheduler}
 
 The {\em scheduler\/} daemon manages the delivery processing of 
@@ -511,7 +515,7 @@ tion:
 The TCP stream syntax is:
 \begin{verbatim}
 version id\n
-data in id-dependent format<close>
+data in id-dependent format&lt;close&gt;
 \end{verbatim}
 
 
@@ -530,11 +534,11 @@ data format, the syntax of the data following the first LF
 is:
 \begin{verbatim}
 Vertices:\n
-(<key>:\t><msg-file>\t><n-addrs>; <off1>(,<offN>)*\t>[#<text>]\n)*
+(&lt;key&gt;:\t&gt;&lt;msg-file&gt;\t&gt;&lt;n-addrs&gt;; &lt;off1&gt;(,&lt;offN&gt;)*\t&gt;[#&lt;text&gt;]\n)*
 (Channels:\n
-(<word>:\t>(><key>)+\n)+
+(&lt;word&gt;:\t&gt;(&gt;&lt;key&gt;)+\n)+
 Hosts:\n
-(<word>:\t>(><key>)+\n)+)?
+(&lt;word&gt;:\t&gt;(&gt;&lt;key&gt;)+\n)+)?
 \end{verbatim}
 
 Where:
@@ -590,11 +594,11 @@ Vertices:
 311680:64722; 151,331#128.100.8.4: Null read! (will retry)
 312192:63471; 152#128.89.0.93: connect: Connection timed out (will retry)
 Channels:
-smtp:>311424>311680>312192
+smtp:&gt;311424&gt;311680&gt;312192
 Hosts:
-scg.toronto.edu:>311424
-mv04.ecf.toronto.edu:>311680
-relay1.cs.net:>312192
+scg.toronto.edu:&gt;311424
+mv04.ecf.toronto.edu:&gt;311680
+relay1.cs.net:&gt;312192
 \end{verbatim}
 
 
@@ -607,4 +611,5 @@ referred to.
 \subsection{Security Issues}
 
 Text to be inserted here.
-
+</SCREEN>
+</CHAPTER>

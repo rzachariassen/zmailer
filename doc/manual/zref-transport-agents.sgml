@@ -1,3 +1,7 @@
+<CHAPTER ID="ZREF-TR-AGENTS">
+<TITLE>Transport Agents</TITLE>
+
+<SCREEN>
 %% \section{Delivery agents}
 
 The delivery agent programs normally form the final stage of message delivery.
@@ -149,7 +153,7 @@ pathnames of message control files from  standard input
 standard output. Normal diagnostic output is of the form:
 
 \begin{verbatim}
-id/offset<TAB>notify-data<TAB>status message
+id/offset&lt;TAB&gt;notify-data&lt;TAB&gt;status message
 \end{verbatim}
 
 
@@ -160,7 +164,7 @@ the message is descriptive text associated with the report. The
 text is terminated by a linefeed. Any other format (as might be
 produced by subprocesses) is passed to standard output for 
 logging in the scheduler log.
-The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
+The exit status is a code from {\tt &lt;sysexits.h&gt;}.
 
 {\bf Locks}
 
@@ -240,8 +244,8 @@ in the pipes:
 \item {\tt HOME} The home directory path is taken from abovementioned getpwuid()
 lookup.
 \item {\tt USER} Likewise the textual username.
-\item {\tt SENDER} is the incoming ``MAIL FROM:{\(<\)}..{\(>\)}'' address without brackets. For
-an incoming error message, value ``{\(<\)}{\(>\)}'' is used.
+\item {\tt SENDER} is the incoming ``MAIL FROM:&lt;..&gt;'' address without brackets. For
+an incoming error message, value ``&lt;&gt;'' is used.
 \item {\tt ORCPT} when present, is the XTEXT encoded ORCPT value received at the
 message injection into this system. See RFC 1891 for details.
 \item {\tt ENVID} when present, is the XTEXT encoded ENVID value received at the
@@ -370,7 +374,7 @@ Any other format (as might be produced by subprocesses) is
 passed to standard output for logging in the scheduler
 log.
 
-The exit status is a code from {\(<\)}sysexits.h{\(>\)}.
+The exit status is a code from &lt;sysexits.h&gt;.
 
 
 
@@ -571,7 +575,7 @@ on the standard output. Normal diagnostic output is of
 the form:
 
 \begin{verbatim}
-id/offset<TAB>notify-data<TAB>status message
+id/offset&lt;TAB&gt;notify-data&lt;TAB&gt;status message
 \end{verbatim}
 
 
@@ -584,7 +588,7 @@ Any other format (as might be produced by subprocesses) is
 passed to standard output for logging in the scheduler
 log.
 
-The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
+The exit status is a code from {\tt {\(&lt;\)}sysexits.h{\(&gt;\)}}.
 
 {\bf Extended SMTP}
 
@@ -624,7 +628,7 @@ addresses and messages are processed according to the
 specifications for the mailer in the configuration file.
 
 The exit status of a mailer should be one of the standard
-values specified in {\tt {\(<\)}sysexits.h{\(>\)}}. Of these, EX\_OK indicates 
+values specified in {\tt {\(&lt;\)}sysexits.h{\(&gt;\)}}. Of these, EX\_OK indicates 
 successful delivery, and EX\_DATAERR, EX\_NOUSER,
 EX\_NOHOST, EX\_UNAVAILABLE, and EX\_NOPERM indicate permanent 
 failure. All other exit codes will be treated as a
@@ -736,7 +740,7 @@ parameters.
 
 
 \item[E] \mbox{}
-will prepend `{\(>\)}' to any message body line starting
+will prepend `{\(&gt;\)}' to any message body line starting
 with `From '.
 
 \item[f] \mbox{}
@@ -811,7 +815,7 @@ on the standard output. Normal diagnostic output is of
 the form:
 
 \begin{verbatim}
-id/offset<TAB>notify-data<TAB>status message
+id/offset&lt;TAB&gt;notify-data&lt;TAB&gt;status message
 \end{verbatim}
 
 
@@ -824,7 +828,7 @@ Any other format (as might be produced by subprocesses) is
 passed to standard output for logging in the scheduler
 log.
 
-The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
+The exit status is a code from {\tt {\(&lt;\)}sysexits.h{\(&gt;\)}}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -861,3 +865,5 @@ Text to be inserted here.
 
 Text to be inserted here.
 
+</SCREEN>
+</CHAPTER>

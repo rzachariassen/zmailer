@@ -1,3 +1,7 @@
+<CHAPTER ID="ZADM-SM-CONFIG">
+<TITLE><COMMAND>sm</> Configuration</TITLE>
+
+<SCREEN>
 % \section{sm Configuration}
 
 {\em sm} is a ZMailer's {\em sendmail} compatible transport agent to
@@ -13,9 +17,9 @@ addresses and messages are processed according to the
 specifications for the mailer in the configuration file.
 
 The exit status of a mailer should be one of the standard
-values specified in {\tt {\(<\)}sysexits.h{\(>\)}};.
-Of these, EX\_OK indicates successful deliver, and EX\_DATAERR,
-EX\_NOUSER, EX\_NOHOST, EX\_UNAVAILABLE, and EX\_NOPERM indicate
+values specified in {\tt &lt;sysexits.h&gt;};.
+Of these, EX_OK indicates successful deliver, and EX_DATAERR,
+EX_NOUSER, EX_NOHOST, EX_UNAVAILABLE, and EX_NOPERM indicate
 permanent failure.
 All other exit codes will be treated as a temporary failure
 and the delivery will be retried.
@@ -146,3 +150,5 @@ as necessary for each recipient.
 \end{description}
 
 %\end{multicols}
+</SCREEN>
+</CHAPTER>

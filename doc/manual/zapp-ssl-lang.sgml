@@ -1,4 +1,7 @@
-%% \section{S/SL Language}
+<APPENDIX ID="ZAPP-SSL-LANG">
+<TITLE>S/SL Language</TITLE>
+
+<SCREEN>
 
 The information in this appendix is based on 
 ``Specification of S/SL: Syntax/Semantic Language'' by 
@@ -650,3 +653,7 @@ parameterizedUpdateOpId "(" valueId ")"
                 ["|" "*" ":" {action} ] "]"
 \end{verbatim}
 \end{enumerate}
+
+</SCREEN>
+
+</APPENDIX>

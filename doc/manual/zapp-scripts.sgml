@@ -1,5 +1,7 @@
-%% \section{Sample Router Configuration Scripts}
+<APPENDIX ID="ZAPP-SCRIPTS">
+<TITLE>Sample Router Configuration Scripts</TITLE>
 
+<SCREEN>
 Text to be inserted here.
 
 The following are examples of the router configuration scripts SMTP+UUCP.cf, crossbar.cf, process.cf, and rrouter.cf.
@@ -115,7 +117,7 @@ mailconf () {
         if [ -f /bin/hostname ]; then
                 rawhostname=$(/bin/hostname)
         elif [ -f /etc/sys_id ]; then
-                read rawhostname < /etc/sys_id
+                read rawhostname &lt; /etc/sys_id
         else
                 rawhostname=$(/bin/uname -n)
         fi
@@ -337,7 +339,7 @@ transport requirement.
                 (@$hostname[:,].*)|([^@:,]+@$hostname)
                         break ;;
                 .*
-                        # tmp="@$hostname:$tmp"  # <-- that creates RFC-822
+                        # tmp="@$hostname:$tmp"  # &lt;-- that creates RFC-822
                                                  #     source-routing, AVOID!
                         tmp="$tmp"
                         ;;
@@ -454,14 +456,14 @@ internet (address) {
         address="$(canonicalize "$address")"    # Canonicalize does local
                                                 # hostname hiding...
         sift "$address" in
-        (.*)<@(.+)>(.*)
+        (.*)&lt;@(.+)&gt;(.*)
                         #if [ $(deliver \2) ]; then     # hostname hiding
                         #       address="\1@${mydomain}\3"
                         #       break
                         #fi
                         address="\1@\2\3" # No hostname hiding...
                         ;;
-        (.*)<(.+)>(.*)  address="\1\2\3" ;;             # defocus
+        (.*)&lt;(.+)&gt;(.*)  address="\1\2\3" ;;             # defocus
         [^@]+           
                 # This is a local part address w/o any domains!
                 address="$(condquote "$address")"
@@ -510,8 +512,8 @@ elsewhere, and processed at the end of this function.
 \begin{verbatim}
         case "$file" in
 #       [0-9]*.x400)    x400 "$file" ;;
-#       [0-9]*.uucp)    uucpfilter "$file" > /tmp/X.$$
-#                       cat /tmp/X.$$ > "$file"
+#       [0-9]*.uucp)    uucpfilter "$file" &gt; /tmp/X.$$
+#                       cat /tmp/X.$$ &gt; "$file"
 #                       rfc822 "$file" ;;
         [0-9]*)         rfc822 "$file" ;;
         core*)          /bin/mv "$file" ../$file.router.$$
@@ -546,7 +548,7 @@ of which were logged earlier (in C code).
         for f in $LOGMSG
         do
                 { echo "==${file}==$(rfc822date)==" ;
-                  /bin/cat ../queue/"$file" } >> $f && log saved "$file" in $f
+                  /bin/cat ../queue/"$file" } &gt;&gt; $f && log saved "$file" in $f
         done
 }
 \end{verbatim}
@@ -571,7 +573,7 @@ provide rrouter
 \begin{verbatim}
 . fqdnalias.cf # Pick that set of tools into here!
 
-envelopeinfo=(message-id "<$USER.interactive@$hostname>" now 0)
+envelopeinfo=(message-id "&lt;$USER.interactive@$hostname&gt;" now 0)
 
 : ${UNRESOLVABLEACTION:='error unresolvable'}
 
@@ -583,7 +585,7 @@ rrouter (address, origaddr, A, plustail, domain) {
         # seenuucp=false
         # seenbitnet=false
         didhostexpand="";
-# echo "rrouter: address=$address, origaddr=$origaddr" >> /dev/tty
+# echo "rrouter: address=$address, origaddr=$origaddr" &gt;&gt; /dev/tty
 
         tmp=$(fqdn_neighbour "$origaddr" "$address" $A) &&
                 return $tmp
@@ -595,8 +597,8 @@ We have troublesome addresses coming here...
 \begin{verbatim}
         #       "|pipe-program"
         #       "|quoted string"@domain
-        #       "foo > faa"@domain
-        #       "fii < fuu"@domain
+        #       "foo &gt; faa"@domain
+        #       "fii &lt; fuu"@domain
         #       "foo @ faa"@domain
         #       "|foo @ faa"
 \end{verbatim}
@@ -604,15 +606,15 @@ and we want to do correct focusing...
 \begin{verbatim}
         ssift "$address" in
         # Now make canonical
-        '"'(.*)'"'<(.*)
+        '"'(.*)'"'&lt;(.*)
                 address="\1\2"                  # defocus
                 ;;
-        '"'(.*)'"'>(.*)
+        '"'(.*)'"'&gt;(.*)
                 address="\1\2"                  # defocus
                 break ;;
-        ([\'"'].*[\'"'])<(.*)
+        ([\'"'].*[\'"'])&lt;(.*)
                 address="\1\2" ;;               # defocus
-        ([\'"'].*[\'"'])>(.*)
+        ([\'"'].*[\'"'])&gt;(.*)
                 address="\1\2" ;;               # defocus
         # See that it does not start with a pipe ...
 #       \|.+    # Looks like a pipe... Don't mutilate it!
@@ -624,17 +626,17 @@ and we want to do correct focusing...
         address=$(canonicalize "$address")
 
         ssift "$address" in
-#       <in%>(.*)
+#       &lt;in%&gt;(.*)
 #               return (((error vms-in-pros "in%\1" $A))) ;;
-#       (.*)<@(.+)\.uucp>(.*)
+#       (.*)&lt;@(.+)\.uucp&gt;(.*)
 #               seenuucp=true
-#               address="\1$plustail<@\2>\3" ;;         # fix host.uucp!route
-#       (.*)<@(.+)\.(bitnet|earn|netnorth)>(.*)
+#               address="\1$plustail&lt;@\2&gt;\3" ;;         # fix host.uucp!route
+#       (.*)&lt;@(.+)\.(bitnet|earn|netnorth)&gt;(.*)
 #               seenbitnet=true         # Strip off the (bitnet|netnorth|earn)
-#               address="\1<@\2>\4" ;;          # fix host.bitnet!route
+#               address="\1&lt;@\2&gt;\4" ;;          # fix host.bitnet!route
 #        handle special cases.....
 #       \\(.)   return (((local - "$address" $A))) ;;
-        @       # handle <> form???
+        @       # handle &lt;&gt; form???
                 tmp=(local user postmaster $A)
                 return $(routeuser $tmp "")
                 ;;
@@ -646,13 +648,13 @@ speaking we should use the SECOND one, but your mileage may vary...
 (Problems exist when WE are the target..)
 
 \begin{verbatim}
-#       (.*)<@\[(.)\]>(.*)
-#               address="\1$plustail<@$(gethostbyaddr \2)>\3"
+#       (.*)&lt;@\[(.)\]&gt;(.*)
+#               address="\1$plustail&lt;@$(gethostbyaddr \2)&gt;\3"
 #               ;;
-        (.*)<@\[(.)\]>(.*)
+        (.*)&lt;@\[(.)\]&gt;(.*)
                 # numeric internet spec
                 if [ $(selfmatch "\2") ]; then
-                        address="\1$plustail<@>\3"
+                        address="\1$plustail&lt;@&gt;\3"
                         domain="@[\2]"
                         plustail=""
                 else
@@ -665,8 +667,8 @@ speaking we should use the SECOND one, but your mileage may vary...
 This is the end of the $1.2.3.4$ address case...
 
 \begin{verbatim}
-        (.*)<@(.*)\.>(.*)
-                address="\1$plustail<@\2>\3"
+        (.*)&lt;@(.*)\.&gt;(.*)
+                address="\1$plustail&lt;@\2&gt;\3"
                 plustail=""
                 ;;
 \end{verbatim}
@@ -675,32 +677,32 @@ This is the end of the $1.2.3.4$ address case...
 Now massage the local info.
 
 \begin{verbatim}
-        (.*)<@(.*)($orgdomains)>(.*)
-                address="\1$plustail<@\2$orgdomain>\4"
+        (.*)&lt;@(.*)($orgdomains)&gt;(.*)
+                address="\1$plustail&lt;@\2$orgdomain&gt;\4"
                 domain="@\2$orgdomain"
                 plustail=""
                 ;;
-        <@(.*)>[:,](.+)@(.+)
+        &lt;@(.*)&gt;[:,](.+)@(.+)
                 if [ $(deliver "\1") ]; then # Source routed to our name?
                         return $(rrouter "\2$plustail@\3" "$origaddr" $A "" "")
                 fi
                 ;;
-        <@($orgdomains)>[:,](.+)@(.+)
+        &lt;@($orgdomains)&gt;[:,](.+)@(.+)
                 return $(rrouter "\2$plustail@\3" "$origaddr" $A "" "")
                 ;;      # strip organization
-        (.+)<@(.+)>(.*)
+        (.+)&lt;@(.+)&gt;(.*)
                 if [ $(deliver "\2") ]; then    # Do we handle this?
-                        address="\1$plustail<@>\3"
+                        address="\1$plustail&lt;@&gt;\3"
                         domain="@\2"
                         plustail=""
                 elif [ "\2" = "$hostname" ]; then # Is it at local host?
-                        address="\1$plustail<@>\3" # (this is a backup test)
+                        address="\1$plustail&lt;@&gt;\3" # (this is a backup test)
                         domain="@\2"
                         plustail=""
                 fi ;;
-        <@>.(.+)        # This plustail is propably wrong...
+        &lt;@&gt;.(.+)        # This plustail is propably wrong...
                 return $(rrouter "\1$plustail" "$origaddr" $A "" "$domain") ;;  # try after route strip
-        (.+)<@> 
+        (.+)&lt;@&gt; 
                 if [ -z "$domain" ]; then
                         domain="$mydomain"
                 fi
@@ -710,8 +712,8 @@ Now massage the local info.
 #log "BITNET name=$bitnetname, address=$address"
         case $bitnetname in
         ?*)     tsift "$address" in
-                (.*)<@(.*)\.(bitnet|netnorth|earn)>(.*)
-                        address="\1<@\2>\4" ;;
+                (.*)&lt;@(.*)\.(bitnet|netnorth|earn)&gt;(.*)
+                        address="\1&lt;@\2&gt;\4" ;;
                         # Strip off the (bitnet|netnorth|earn)
                 tfist
                 ;;
@@ -725,7 +727,7 @@ Resolve names to routes, get the actual channel name mostly from an external dat
 \begin{verbatim}
 
         ssift "$address" in
-        (.*)<@(.+)>(.*) 
+        (.*)&lt;@(.+)&gt;(.*) 
 #log "neighbourg test: domain: \2, addr: $address"
                 address="\1$plustail@\2\3"
                 plustail=""
@@ -948,7 +950,7 @@ uucproute.
 
 \begin{verbatim}
         sift "$address" in
-        (.*)<(.*)>(.*)          address=\1\2\3 ;;               # defocus
+        (.*)&lt;(.*)&gt;(.*)          address=\1\2\3 ;;               # defocus
         (.+!)@(.+)              address=\1$(uucproute "@\2") ;;
         (.+)([,:]@)(.+)         address=\1!\3 ; continue ;;
         :include:[^!]+          return $address ;;
@@ -966,7 +968,7 @@ It will work properly in other cases though, so if we have to guess...
         #                       else
         #                               address=\3!\1!\2
         #                       fi ;;
-        (.+)!([^!]+)%([^!%]+)@(.+)      # route!a%b@c -> route!c!a@b
+        (.+)!([^!]+)%([^!%]+)@(.+)      # route!a%b@c -&gt; route!c!a@b
                                 address=\1!\4!\2@\3 ; continue ;;
         ([^@]+)@(.+)            address=\2!\1 ;;
         @(.+)                   address=\1 ;;
@@ -975,3 +977,6 @@ It will work properly in other cases though, so if we have to guess...
         return "$address"
 }       # end of uucproute
 \end{verbatim}
+
+</SCREEN>
+</APPENDIX>

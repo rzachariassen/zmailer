@@ -1,3 +1,7 @@
+<CHAPTER ID="ZADM-THE-QUEUE">
+<TITLE>The Queue</TITLE>
+
+<SCREEN>
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \section{The Queue}
@@ -179,3 +183,5 @@ as of this wiring, there are no tools to automatically process them for
 obvious spams, and just those that were falsely triggered.
 
 %\end{multicols}
+</SCREEN>
+</CHAPTER>

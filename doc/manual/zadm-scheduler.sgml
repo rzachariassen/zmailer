@@ -1,3 +1,7 @@
+<CHAPTER ID="ZADM-SCHEDULER">
+<TITLE>Scheduler Configuration</TITLE>
+
+<SCREEN>
 % \section{Scheduler Configuration}
 
 The {\em scheduler} is the part of the ZMailer that manages
@@ -264,3 +268,5 @@ host. The actual host is picked at random from the  current
 choices, to avoid systematic errors leading to a deadlock of any queue.
 
 %\end{multicols}
+</SCREEN>
+</CHAPTER>
