@@ -3698,6 +3698,19 @@ smtp_sync(SS, r, nonblocking)
 	     SS->pipecmds[idx] ? SS->pipecmds[idx] : "<nil>");
 	  */
 
+	  if (SS->rcptstates & (FROMSTATE_500)) {
+	    /* If "MAIL From:<..>" tells non-200 report, and
+	       causes "RCPT To:<..>" commands to yield "400/500",
+	       we IGNORE the "500" status. */
+	    rc = EX_UNAVAILABLE;
+	  } else if (SS->rcptstates & (FROMSTATE_400)) {
+	    /* If "MAIL From:<..>" tells non-200 report, and
+	       causes "RCPT To:<..>" commands to yield "400/500",
+	       we IGNORE the "500" status. */
+	    SS->rcptstates |= RCPTSTATE_400;
+	    rc = EX_TEMPFAIL;
+	  }
+
 	  if (code >= 400) {
 	    /* Errors */
 
@@ -3707,19 +3720,11 @@ smtp_sync(SS, r, nonblocking)
 
 	    if (SS->pipercpts[idx] != NULL) {
 
-	      if (SS->rcptstates & (FROMSTATE_400)) {
-		/* If "MAIL From:<..>" tells non-200 report, and
-		   causes "RCPT To:<..>" commands to yield "400/500",
-		   we IGNORE the "500" status. */
+	      if (code >= 500)
+		SS->rcptstates |= RCPTSTATE_500;
+	      else
 		SS->rcptstates |= RCPTSTATE_400;
-		rc = EX_TEMPFAIL;
-	      } else {
-		if (code >= 500)
-		  SS->rcptstates |= RCPTSTATE_500;
-		else
-		  SS->rcptstates |= RCPTSTATE_400;
-		/* ``rc'' is correct. */
-	      }
+	      /* ``rc'' is correct. */
 
 	      /* Diagnose the errors, we report successes AFTER the DATA phase.. */
 	      if (SS->verboselog)
