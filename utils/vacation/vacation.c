@@ -154,6 +154,30 @@ static void sendmessage __((const char *msgf, const char *myname));
 
 const char *progname;
 
+const char *zenv_vinterval;
+
+
+static void vacation_exit_handler()
+{
+#ifdef	HAVE_NDBM
+	if (dblog)
+	  dbm_close(db);
+#else
+#ifdef HAVE_GDBM
+	if (dblog)
+	  gdbm_close(db);
+#else
+#ifdef HAVE_DB_CLOSE2
+	if (dblog)
+	  db->close(db, 0);
+#else
+	if (dblog)
+	  db->close(db);
+#endif
+#endif
+#endif
+}
+
 int
 main(argc, argv)
      int argc;
@@ -165,6 +189,11 @@ main(argc, argv)
 	time_t interval;
 	char *msgfile = NULL;
 	int ch, iflag, ret;
+	char *zenv = getenv("ZCONFIG");
+	if (zenv) readzenv(getenv("ZCONFIG"));
+	zenv_vinterval = getzenv("VACATIONINTERVAL");
+
+	atexit(vacation_exit_handler);
 
 	progname = argv[0];
 
@@ -194,9 +223,12 @@ main(argc, argv)
 	  case 't':
 	  case 'r':
 	    if (isdigit(*optarg)) {
-	      interval = atol(optarg) * (24*60*60);
-	      if (interval < 0)
+	      const char *rest;
+	      interval = parse_interval(optarg,&rest);
+	      if (interval < 0 || *rest)
 		usage();
+	      if (interval < 30)
+		interval *= (60*60*24); /* Old "days" multiplier */
 	    }
 	    else
 	      interval = INT_MAX;
@@ -305,24 +337,6 @@ main(argc, argv)
 	    }
 	  }
 	}
-
-#ifdef	HAVE_NDBM
-	if (dblog)
-	  dbm_close(db);
-#else
-#ifdef HAVE_GDBM
-	if (dblog)
-	  gdbm_close(db);
-#else
-#ifdef HAVE_DB_CLOSE2
-	if (dblog)
-	  db->close(db, 0);
-#else
-	if (dblog)
-	  db->close(db);
-#endif
-#endif
-#endif
 
 	exit(ret);
 }
@@ -686,10 +700,14 @@ recent()
 #endif
 #endif
 #endif
-	if (data.dptr == NULL)
-		next = (60*60*24*7); /* One week */
-	else
-		memcpy(&next, data.dptr, sizeof(next));
+	if (data.dptr == NULL) {
+	    next = 0;
+	    if (zenv_vinterval)
+		next = parse_interval(zenv_vinterval, NULL);
+	    if (next < 30)
+		next = (60*60*24*1); /* One DAY (like is documented) */
+	} else
+	    memcpy(&next, data.dptr, sizeof(next));
 
 	memset(&key, 0, sizeof(key));
 	memset(&data, 0, sizeof(data));

@@ -23,8 +23,8 @@
 
 u_long
 parse_interval(string, restp)
-	char *string;
-	char **restp;
+	const char *string;
+	const char **restp;
 {
 	u_long	intvl = 0;
 	long	val;

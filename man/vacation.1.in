@@ -1,6 +1,6 @@
 '\" t
 .\" @(#)vacation.1 1.4 87/02/12 SMI
-.TH VACATION 1zm "2003-Aug-28"
+.TH VACATION 1zm "2004-May-11"
 .SH NAME
 vacation \- reply to mail automatically 
 .SH SYNOPSIS
@@ -9,7 +9,7 @@ vacation \- reply to mail automatically
 .IP \fBvacation\fR 9em
 \fB\-I\fR
 .IP \fBvacation\fR 9em
-[\fB\-t\ \fIN\fR]
+[\fB\-t\ \fIinterval\fR]
 [\fB\-m\ \fIMsgfile\fR]
 [\fB\-d\fR]
 [\fIuser\fR]
@@ -111,9 +111,12 @@ flag is not specified,
 .I vacation
 tries to reply to the sender.
 .TP
-.BI \-t N
+.BI \-t interval
+.TP
+.BI \-r interval
+.RS
 Change the interval between repeat replies to the same sender.
-The default is 1 week.
+.PP
 A trailing
 .BR s ,
 .BR m ,
@@ -121,17 +124,18 @@ A trailing
 .BR d ,
 or
 .B w
-scales 
-.I N
+scales
+.I interval
 to seconds, minutes, hours, days, or weeks respectively.
+.PP
+Default interval is 1.00 days.
+.PP
+.I "Minimum supported interval is 30 seconds!"
+.RE
 .TP
 .BI \-m Msgfile
 specifies the file in which the message to be sent is kept. The default
 is $HOME/.vacation.msg.
-.TP
-.B \-r interval
-defines interval in days when not to answer again to the same sender.
-(Default is 1 day.)
 .TP
 .B \-d
 disables the list of senders kept in the 

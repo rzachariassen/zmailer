@@ -105,7 +105,7 @@ extern /* RETSIGTYPE */ int loginit __((int));
 extern int getnobody __((void));
 
 /* parseintv.c */
-extern unsigned long parse_interval __((char *str, char **retp));
+extern unsigned long parse_interval __((const char *str, const char **retp));
 
 /* prversion.c */
 extern void prversion __((const char *prgname));
