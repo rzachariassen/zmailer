@@ -71,11 +71,13 @@
 	 * Basic integral types.  Omit the typedef if
 	 * not possible for a machine/compiler combination.
 	 */
+#if !defined(_SYS_INT_TYPES_H)
 	typedef /*signed*/ char            int8_t;
-	typedef unsigned char            u_int8_t;
 	typedef short                     int16_t;
-	typedef unsigned short          u_int16_t;
 	typedef int                       int32_t;
+#endif
+	typedef unsigned char            u_int8_t;
+	typedef unsigned short          u_int16_t;
 	typedef unsigned int            u_int32_t;
 
 # if 0	/* don't fight with these unless you need them */
