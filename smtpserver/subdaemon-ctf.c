@@ -47,6 +47,8 @@
 
 #include "smtpserver.h"
 
+char *contentfilter;
+
 static const char *Hungry = "#hungry\n";
 
 static int subdaemon_handler_ctf_init  __((void**));
@@ -80,20 +82,57 @@ static void
 subdaemon_killctf(CTF)
      Ctfstate *CTF;
 {
-	if (CTF->contentfilterpid > 1) {
-	  if (CTF->tofp == NULL)
-	    fclose(CTF->tofp);
-	  CTF->tofp   = NULL;
-	  if (CTF->fromfd >= 0)
-            close(CTF->fromfd);
-	  CTF->fromfd = -1;
+	if (CTF->tofp == NULL)
+	  fclose(CTF->tofp);
+	CTF->tofp   = NULL;
+
+	if (CTF->fromfd >= 0)
+	  close(CTF->fromfd);
+	CTF->fromfd = -1;
+
+	if (CTF->contentfilterpid > 1)
 	  kill(CTF->contentfilterpid, SIGKILL);
-	  CTF->contentfilterpid = 0;
-	}
+	CTF->contentfilterpid = 0;
 }
 
 
 /* ============================================================ */
+
+static int subdaemon_ctf_sock __((Ctfstate * CTF));
+static int
+subdaemon_ctf_sock(CTF)
+     Ctfstate *CTF;
+{
+	int msgsock;
+	struct sockaddr_un server;
+
+	memset((char*)&server,0,sizeof(server));
+	server.sun_family = AF_UNIX;
+	strncpy(server.sun_path,contentfilter,sizeof(server.sun_path)-1);
+	server.sun_path[sizeof(server.sun_path)-1]='\0';
+
+	msgsock = socket(AF_UNIX,SOCK_STREAM,0);
+
+	if (msgsock < 0) {
+	  type(NULL,0,NULL, "contentfilter socket(%s) error %d (%s)",
+	       contentfilter,errno,strerror(errno));
+	  return(0);
+	}
+	if (connect(msgsock,(struct sockaddr *)&server,
+		    sizeof(server) - sizeof (server.sun_path)
+		    + strlen(server.sun_path)+1) < 0) {
+	  type(NULL,0,NULL, "contentfilter connect(%s) error %d (%s)",
+	       contentfilter,errno,strerror(errno));
+	  return 0;
+	}
+
+	CTF->tofp   = fdopen(msgsock, "w");
+	CTF->fromfd = msgsock;
+
+	CTF->contentfilterpid = 0;
+
+	return 3;
+}
 
 
 #ifndef HAVE_PUTENV
@@ -101,8 +140,8 @@ static const char *newenviron[] =
   { "SMTPSERVER=y", NULL };
 #endif
 
-static int subdaemon_callr __((Ctfstate * CTF));
-static int subdaemon_callr (CTF)
+static int subdaemon_ctf_proc __((Ctfstate * CTF));
+static int subdaemon_ctf_proc (CTF)
      Ctfstate *CTF;
 {
 	int rpid = 0, to[2], from[2], rc;
@@ -181,6 +220,26 @@ static int subdaemon_callr (CTF)
 	return rpid;
 }
 
+static int subdaemon_ctf_start __((Ctfstate * CTF));
+static int
+subdaemon_ctf_start __((CTF))
+     Ctfstate * CTF;
+{
+  struct stat stbuf;
+
+  if (!contentfilter) return -1; /* D'uh!  Not configured! */
+
+  if (stat(contentfilter, &stbuf)) {
+    type(NULL,0,NULL, "contentfilter stat(%s) error %d",contentfilter,errno);
+    return 0;
+  }
+  if (S_ISREG(stbuf.st_mode))
+    return subdaemon_ctf_proc(CTF);
+  else
+    return subdaemon_ctf_sock(CTF);
+}
+
+
 
 /* ------------------------------------------------------------ */
 
@@ -228,8 +287,8 @@ subdaemon_handler_ctf_input (state, peerdata)
 	Ctfstate *CTF = state;
 	int rc = 0;
 
-	if (CTF->contentfilterpid <= 1) {
-	  rc = subdaemon_callr(CTF);
+	if (CTF->fromfd < 0) {
+	  rc = subdaemon_ctf_start(CTF);
 	  if (rc < 2) {
 	    /* FIXME: error processing! */
 	    struct timeval tv;
@@ -347,11 +406,12 @@ struct ctf_state {
 };
 
 
-static void smtpcontentfilter_kill __((struct ctf_state *));
-static void
-smtpcontentfilter_kill ( state )
-     struct ctf_state * state;
+void
+smtpcontentfilter_kill ( statep )
+     void * statep;
 {
+	struct ctf_state * state = statep;
+
 	if (state->outfp) fclose(state->outfp);
 	state->outfp = NULL;
 
@@ -364,19 +424,23 @@ smtpcontentfilter_kill ( state )
 }
 
 
-static int smtpcontentfilter_init __((struct ctf_state **));
+static int smtpcontentfilter_init __((struct ctf_state **pp));
 
 static int
-smtpcontentfilter_init ( statep )
-     struct ctf_state **statep;
+smtpcontentfilter_init ( statepp )
+     struct ctf_state **statepp;
 {
-	struct ctf_state *state = *statep;
+	struct ctf_state *state = *statepp;
 	int toserver[2];
 	int rc;
 
 	if (!state)
-	  state = *statep = malloc(sizeof(*state));
+	  state = calloc(1, sizeof(*state));
+
 	if (!state) return -1;
+
+	*statepp = state; /* alloced! */
+
 
 	memset( state, 0, sizeof(*state) );
 	state->fd_io = -1;
@@ -441,11 +505,10 @@ smtpcontentfilter_init ( statep )
 
 char *
 contentfilter_proc(ctfstatep, fname)
-     struct ctf_state **ctfstatep;
+     void **ctfstatep;
      const char *fname;
 {
 	int rc;
-	unsigned char *p;
 	struct ctf_state *ctfstate =  * ctfstatep;
 
 
@@ -530,5 +593,5 @@ contentfilter_proc(ctfstatep, fname)
 
 	}
 
-	
+	return NULL; /* very bad! */
 }

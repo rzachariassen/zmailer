@@ -538,7 +538,7 @@ extern int X_settrrc;
 extern void header_from_mime __((char *, int *, int));
 #endif				/* USE_TRANSLATION */
 
-extern void killcfilter __((SmtpState * SS, int rpid));
+extern void killcfilter __((SmtpState * SS));
 extern void typeflush __((SmtpState *));
 #if defined(HAVE_STDARG_H) && defined(HAVE_VPRINTF)
 extern void type __((SmtpState *, int code, const char *status, const char *fmt,...));
@@ -690,6 +690,9 @@ extern int  smtp_report_ip __((SmtpState *SS, const char *ip));
 
 /* contentpolicy.c */
 extern int contentpolicy __((struct policytest *rel, struct policystate *ps, const char *fname));
+/* subdaemon-ctf.c */
+extern char *contentfilter_proc __((void **, const char *fname));
+extern void  smtpcontentfilter_kill __((void *));
 
 extern int mx_client_verify  __((int, const char *, int));
 extern int sender_dns_verify __((int, const char *, int));

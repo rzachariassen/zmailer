@@ -1442,6 +1442,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    /* The EZMLM mode appendix... */
 	    const char *p = startrp->ezmlm;
 	    while (*p && (s < se)) *s++ = *p++;
+	    if (s < se) *s++ = '-';
+	    /* Make 'em unique..  tag on the taspoolid. */
+	    p = dp->taspoolid;
+	    while (*p && (s < se)) *s++ = *p++;
 	  }
 
 	  /* Normal (tail) mode */

@@ -1,5 +1,14 @@
 2004-04-19  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/contentpolicy.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h, smtpserver/subdaemon-ctf.c:
+	    Cleaning the new contentfilter interface, dead
+	    code, etc.
+
+	* transports/smtp/smtp.c:
+	    Slight change in outbound EZMLM mode MAIL FROM
+	    addresses; added spoolid on the generated "local-part".
+
 	* man/scheduler.8.in, man/smtpserver.8.in:
 	    Document editing; Z-REPORT ACL explanation,
 	    although not result explanation...

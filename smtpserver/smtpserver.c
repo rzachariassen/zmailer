@@ -106,7 +106,6 @@ int checkhelo = 0;
 int verbose = 0;
 int daemon_flg = 1;
 int pid;
-extern int contentpolicypid;
 int router_status = 0;
 FILE *logfp = NULL;
 int   logfp_to_syslog = 0;
@@ -1569,8 +1568,7 @@ char **argv;
 		     the mandatory sleep(2) below. */
 		  close(0); close(1); close(2);
 		  
-		  if (contentpolicypid > 1)
-		    killcfilter(&SS, contentpolicypid);
+		  killcfilter(&SS);
 		    
 		  if (SS.netconnected_flg)
 		    sleep(2);
@@ -1597,8 +1595,7 @@ char **argv;
 
 	} /* stand-alone server */
 
-	if (contentpolicypid > 1)
-	  killcfilter(&SS, contentpolicypid);
+	killcfilter(&SS);
 	if (SS.netconnected_flg)
 	  sleep(2);
 	exit(0);
@@ -1739,9 +1736,6 @@ int sig;
 #endif
 #endif
     {
-	if (lpid == contentpolicypid && contentpolicypid > 1) {
-	  contentpolicypid = -lpid;
-	}
 	if (lpid == pipeauthchild_pid && lpid > 0) {
 	  pipeauthchild_status = status;
 	  pipeauthchild_pid = -1;
@@ -2169,8 +2163,7 @@ int insecure;
 	}
 	SS->mfp = NULL;
 
-	if (contentpolicypid > 1)
-	  killcfilter(SS, contentpolicypid);
+	killcfilter(SS);
 	exit(0);
     }
     report(SS, "(connected)");
