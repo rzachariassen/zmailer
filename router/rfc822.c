@@ -1725,11 +1725,13 @@ sequencer(e, file)
 
 			if ((x = crossbar(sender, to)) == NULL)
 				continue;
-#if 0
-			printf("crossbar returns: ");
-			s_grind(x, stdout);
-			putchar('\n');
-#endif
+
+			if (D_sequencer) {
+			  printf("crossbar returns: ");
+			  s_grind(x, stdout);
+			  putchar('\n');
+			}
+			
 			++nxor;
 			tmp   = copycell(car(x));
 			cdr(tmp) = NULL;

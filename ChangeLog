@@ -1,6 +1,30 @@
+1998-02-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/aliases.cf:
+	    User's domain identity carrying fixed
+
+	* proto/cf/canon.cf:
+	    Unnecessary back-slashes removed
+	
+	* proto/cf/crossbar.cf:
+	    Fine-tunings for rewriting outbound email envelope with source
+	    domain at the local host
+
+	* proto/cf/p-usenet.cf:
+	    Automatic dbtype configuration
+
+	* router/db.c:
+	    Cleaned up the address processing expressions
+
+	* smtpserver/smtpdata.c:
+	    Corrected message-id analysis routines a bit
+	
 1998-02-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/zmailer.sh.in, utils/rotate-log.sh:
+	    Updates for log-chop processing with various
+	    programs -- routers and the scheduler are
+	    slightly different animals in this regard..
 
 1998-02-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 

@@ -211,7 +211,7 @@ routeuser (quad, domain) {
 	# check in the mailing list directory
 	lcuser="$(recase -l "$user")"
 
-	l="$preowner$lcuser$postowner@$mydomain"
+	l="$preowner$lcuser$postowner$domain"
 #	a="$MAILVAR/listrun/$lcuser"
 #	[ -z "$didexpand" ] && [ -f "$a" ] &&
 #	    db add expansions "$key" list &&
@@ -223,7 +223,7 @@ routeuser (quad, domain) {
 
 	a="$MAILVAR/lists/$lcuser"
 	nattr=()
-	#l="$preowner$lcuser$postowner@$mydomain"
+	#l="$preowner$lcuser$postowner$domain"
 	[ -z "$didexpand" ] && [ -f "$a" ] &&
 	  db add expansions "$key" list &&
 	    priv=$(getpriv "664" $priv "$a" maillist) &&
@@ -242,7 +242,7 @@ routeuser (quad, domain) {
 		*-mod)
 			l="$preowner$(basename "$lcuser" -mod)$postowner"
 			# echo "$l exists!" >> /dev/tty
-			return $(listaddresses	-E "$l@$mydomain"	\
+			return $(listaddresses	-E "$l$domain"		\
 						-e "$l"			\
 						-c "$a file expansion" < "$a" |
 				maprrouter $(newattribute $attr		\

@@ -105,7 +105,6 @@ crossbar (from, to) {
 	# Rewrite the envelope addresses appropriately
 
 	case "$(channel $to)" in
-#	uucp|local)
 	uucp)
 		# Local destination on a system that delivers in UCB Mail
 		# compatible mail spool files means that the From_ line
@@ -124,9 +123,19 @@ crossbar (from, to) {
 		(.)\.uucp!(.*)	setf "$(user $to)" \1!\2 ;;
 		tfist
 		;;
-#	smtp)
 	smtp|smtpx|local|bsmtp3*)
-		tmp="$(smtproute "$(user $from)")"
+		case "$(channel $from)" in
+		local)
+			# This looks weird, doesn't it ?
+			# the 'host' component contains FQDN form of
+			# address on 'local' channels, others have it
+			# also in the 'user' part.
+			tmp="$(smtproute "$(host $from)")"
+			;;
+		*)
+			tmp="$(smtproute "$(user $from)")"
+			;;
+		esac
 		tsift "$tmp" in
 		(@$hostname[:,].*)|([^@:,]+@$hostname)
 			break ;;

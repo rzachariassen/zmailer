@@ -7,14 +7,14 @@
 provide usenet
 
 # optional: newsgroup database in news.group format
-if [ -f $MAILVAR/db/active.pag ]; then
+if [ -f $MAILVAR/db/active$DBEXTtest ]; then
 
 #| If the usenet protocol is loaded, we recognize mail to newsgroup names
 #| by looking them up in the active file.  If the real active file is on
 #| another system, this database should be a copy on local disk.  This
 #| avoids the mailer hanging due to outages of the news server.
 
-	relation -lmt ndbm -f $MAILVAR/db/active -b newsgroup
+	relation -lmt $DBTYPE -f $MAILVAR/db/active$DBEXT -b newsgroup
 else
 	newsgroup () { return 1 }
 fi

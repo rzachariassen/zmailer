@@ -26,7 +26,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-
 void got_alarm(n)
      int n;
 {
@@ -38,17 +37,19 @@ void read_220(fp)
 FILE *fp;
 {
 	char line[2048];
+	int lines = 0;
 
 	while(!feof(fp) && !ferror(fp)) {
 	  *line = 0;
 	  if (fgets(line, sizeof(line), fp) == NULL) exit(19);
+	  ++lines;
 	  if (line[0] != '2' ||
 	      line[1] != '2' ||
 	      line[2] != '0') exit(18);
 	  if (line[3] == ' ') break;
 	}
+	if (lines == 0) exit(17);
 }
-
 
 int main(argc, argv)
 int argc;
@@ -62,7 +63,7 @@ char *argv[];
 
 	SIGNAL_HANDLE(SIGALRM, got_alarm);
 
-	alarm(60);
+	alarm(60); /* --> hits, _exit(20) */
 
 	if (argc <= 1) exit(99);
 

@@ -115,7 +115,7 @@ canonicalize (address) {
 #
 canonical (host) {
 	local tmp
-	tmp="$(deliver \"$host\")" || tmp="$(canon \"$host\")" || tmp="$host"
+	tmp="$(deliver "$host")" || tmp="$(canon "$host")" || tmp="$host"
 	echo "$tmp"
 }
 

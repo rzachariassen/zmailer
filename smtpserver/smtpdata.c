@@ -722,7 +722,7 @@ char *msg;
 	  /* Freeze any mail with no message id in the message-id header,
 	   * or a message id with obvious syntax errors, or message id
 	   * with junk after it. These are highly likely to be spam, though
-	   * they might only be a result of buggy software.
+	   * they might only be a result of buggy software. (MS Exchange?)
 	   */
 	  s = linebuf + 11;
 	  while (*s == ' ' || *s == '\t')
@@ -737,10 +737,6 @@ char *msg;
 	      fprintf(logfp, "%d#\tSource route in Message-Id\n", pid);
 	  } else if (s[1] == '>') {
 	    SS->policyresult = 1; /* Mark it for the freezer! */
-	    if (logfp)
-	      fprintf(logfp, "%d#\tEmpty Message-Id\n", pid);
-	  } else {
-	    const char *t = rfc821_path(s, 1);
 	    if (logfp)
 	      fprintf(logfp, "%d#\tEmpty Message-Id\n", pid);
 	  } else {
