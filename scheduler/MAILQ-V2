@@ -1,0 +1,28 @@
+		MAILQ protocol version 2
+
+
+Scheduler writes following to the interface socket:
+
+	"version zmailer 2.0\n"
+	"some magic random gunk used as challenge\n"
+
+Then client writes there:
+
+	"APOP username HEXAUTHENTICATOR\n"
+
+and scheduler replies:
+
+	"- some message \n"
+	"+ some message \n"
+
+where "+" at line beginning is success (and anything else is failure).
+
+That done, initial login phase has completed, and actual command interface
+can commence.
+
+
+	---------- ToBeWritten: commands ... -------------
+	(and multiline replies, and state things, and ...)
+
+SHOW-QUEUE CONDENCED
+SHOW-QUEUE THREADS

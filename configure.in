@@ -1294,13 +1294,19 @@ AC_MSG_RESULT([RFC-822 TABs setting: $use_rfc822_tabs])
 AC_SUBST(LIBWRAP)
 AC_SUBST(INCLWRAP)
 use_tcpwrappers=0
-AC_ARG_WITH(tcp-wrappers,   [  --with-tcp-wrappers=DIRPATH Where the TCP-WRAPPERS can be found],
-	use_tcpwrappers=1)
+AC_ARG_WITH(tcp-wrappers,   [  --with-tcp-wrappers[=DIRPATH] Where the TCP-WRAPPERS can be found],
+	[if test "$withval" = yes; then
+	   use_tcpwrappers=2
+	 else
+	   use_tcpwrappers=1
+	 fi])
 
 t_oldLibs="$LIBS"
 t_oldCpp="$CPPFLAGS"
 
-if test "$use_tcpwrappers" = 0 ; then
+if test "$use_tcpwrappers" != 0 ; then
+  if test "$use_tcpwrappers" = 2 ; then
+
 #    if test "$ac_cv_lib_tcpwrap" = yes; then
 #	LIBWRAP="-lwrap"
 #	INCLWRAP=""
@@ -1319,6 +1325,7 @@ if test "$use_tcpwrappers" = 0 ; then
 #	fi
 #	: # "nop"	
 #-------------
+
 	AC_CHECK_HEADERS(tcpd.h)
 	if test "$ac_cv_header_tcpd_h" = yes; then
 	    LIBWRAP="-lwrap"
@@ -1368,13 +1375,14 @@ int deny_severity, allow_severity;],[hosts_access(&request);],
 	    LIBWRAP=""
 	    INCLWRAP=""
 	fi
-#    fi
-else
+  #    fi
+  else
     LIBWRAP="-L$withval -lwrap"
     INCLWRAP="-I$withval"
     unset ac_cv_lib_tcpwrap
     AC_DEFINE(HAVE_TCPD_H)
     AC_MSG_RESULT([Using tcp-wrappers at directory: $withval]);
+  fi
 fi
 
 
@@ -1399,13 +1407,19 @@ AC_ARG_WITH(privateauth,   [  --with-privateauth       Use 'private/' in a part 
 AC_SUBST(LIBWHOSON)
 AC_SUBST(INCLWHOSON)
 use_whoson=0
-AC_ARG_WITH(whoson,   [  --with-whoson=DIRPATH    Where the WHOSON libs can be found],
-	use_whoson=1)
+AC_ARG_WITH(whoson,   [  --with-whoson[=DIRPATH]    Where the WHOSON libs can be found],
+	[if test "$withval" = yes; then
+		use_whoson=2
+	 else
+		use_whoson=1
+	 fi])
 
 t_oldLibs="$LIBS"
 t_oldCpp="$CPPFLAGS"
 
 if test "$use_whoson" = 0 ; then
+  if test "$use_whoson" = 2 ; then
+
 #    if test "$ac_cv_lib_whoson" = yes; then
 #	LIBWHOSON="-lwhoson"
 #	INCLWHOSON=""
@@ -1524,8 +1538,8 @@ dnl AC_MSG_RESULT([ ... link -L/opt/lib -lwhoson yields: $ac_cv_lib_whoson])
 	    LIBWHOSON=""
 	    INCLWHOSON=""
 	fi
-#    fi
-else
+  #  fi
+  else
     if test -f "$withval"/lib/libwhoson.a ; then
 	LIBWHOSON="-L$withval/lib -lwhoson"
 	AC_MSG_RESULT([Using whoson libs at directory: $withval/lib]);
@@ -1542,6 +1556,7 @@ else
     fi
     unset ac_cv_lib_whoson
     AC_DEFINE(HAVE_WHOSON_H)
+  fi
 fi
 
 CPPFLAGS="$t_oldCpp"
@@ -1661,7 +1676,8 @@ if test -n "$OPENSSLINCL" -a -n "$OPENSSLLIB" ; then
   AC_DEFINE(HAVE_OPENSSL)
 fi
 
-if test -z "$OPENSSLINCL" ; then
+AC_ARG_WITH(openssl, [  --with-openssl           Search for, and use OpenSSL, if it can be found],
+[if test -z "$OPENSSLINCL" ; then
   # No Explicite setup, lets do some auto-tests
   if test -f /usr/local/ssl/include/openssl/ssl.h ; then
     # Gee, OpenSSL 0.9.3a at default prefix!
@@ -1687,7 +1703,7 @@ if test -z "$OPENSSLINCL" ; then
     fi
     AC_MSG_RESULT([You have OpenSSL version 0.9.3a (or newer) at system root!])
   fi
-fi
+fi])
 
 
 AC_CHECK_FUNCS(crypt)

@@ -686,10 +686,15 @@ main(argc, argv)
 	  }
 
 	  /* Submit one item from pre-scheduler-queue into the scheduler */
-	  if (dirq->wrksum > 100 ) {
-	    /* If more than 100 in queue, submit 20 in a burst.. */
-	    for (i=0; i < 20; ++i)
-	      syncweb(dirq);
+	  if (dirq->wrksum > 1 ) {
+	    /* If more things in queue, submit them up to 200 pieces, or
+	       until spent two seconds at it! */
+	    time_t now0 = now + 2;
+	    for (i=0; i < 200 && now > now0; ++i) {
+	      if (syncweb(dirq) < 0)
+		break; /* Out of queue! */
+	      mytime(&now);
+	    }
 	  }
 	  if (dirq->wrksum > 0)
 	    syncweb(dirq);

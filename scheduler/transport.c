@@ -46,6 +46,226 @@ static struct mailq *mq2root  = NULL;
 static int           mq2count = 0;
 static int	     mq2max   = 20; /* How many can live simultaneously */
 
+static void mq2_discard(mq)
+     struct mailq *mq;
+{
+  if (mq == mq2root) {
+    mq2root = mq->nextmailq;
+  } else {
+    struct mailq *m2 = mq2root;
+    while (m2 && m2->nextmailq  != mq)
+      m2 = m2->nextmailq;
+    if (m2 && m2->nextmailq == mq)
+      m2->nextmailq = m2->nextmailq;
+  }
+  close(mq->fd);
+  if (mq->inbuf)
+    free(mq->inbuf);
+  if (mq->outbuf)
+    free(mq->outbuf);
+  free(mq);
+}
+
+
+static struct mailq * mq2pickmq(fd)
+     int fd;
+{
+  struct mailq *mq = mq2root;
+  for ( ;mq && mq->fd != fd; mq = mq->nextmailq);
+  return mq;
+}
+
+static int mq2__putc(mq,c)
+     struct mailq *mq;
+     int c;
+{
+  if (!mq->outbuf) {
+    mq->outbufspace = 500;
+    mq->outbuf = emalloc(mq->outbufspace);
+  }
+
+  if (mq->outbufsize+2 >= mq->outbufspace) {
+    mq->outbufspace *= 2;
+    mq->outbuf = erealloc(mq->outbuf, mq->outbufspace);
+  }
+
+  if (mq->outbuf == NULL)
+    return -2; /* Out of memory :-/ */
+
+  mq->outbuf[mq->outbufsize ++] = c;
+
+  return 0; /* Implementation ok */
+}
+
+int mq2_putc(fd,c)
+     int fd, c;
+{
+  struct mailq *mq = mq2pickmq(fd);
+  if (!mq) return -2; /* D'uh...  FD is not among MQs.. */
+
+  return mq2__putc(mq,c);
+}
+
+int mq2_puts(fd,s)
+     int fd;
+     char *s;
+{
+  int rc;
+  struct mailq *mq = mq2pickmq(fd);
+  if (!mq) return -2; /* D'uh...  FD is not among MQs.. */
+
+  for (;s && *s; ++s)
+    if ((rc = mq2__putc(mq,*s)) < 0)
+      return rc;
+
+  return 0; /* Ok. */
+}
+
+
+/*
+ * mq2: wflush() - return <0: error detected,
+ *                        >0: write pending,
+ *                       ==0: flush complete
+ */
+int mq2_wflush(mq)
+     struct mailq *mq;
+{
+  if (verbose)
+    fprintf(stderr,"mq2_wflush() fd = %d", mq->fd);
+
+  while (mq->outbufcount < mq->outbufsize) {
+    int r, i;
+    i = mq->outbufsize - mq->outbufcount;
+    r = write(mq->fd, mq->outbuf + mq->outbufcount, i);
+
+    if (r > 0) {
+
+      /* Some written! */
+      mq->outbufcount += r;
+
+    } else {
+      /* Error ??? */
+      if (errno == EAGAIN || errno == EINTR)
+	break; /* Back latter .. */
+      /* Err... what ?? */
+
+      if (verbose)
+	fprintf(stderr, " -- failure; errno = %d\n", errno);
+
+      mq2_discard(mq);
+
+      return -1;
+    }
+  }
+  if (mq->outbufcount >= mq->outbufsize)
+    mq->outbufcount = mq->outbufsize = 0;
+
+  if (verbose)
+    fprintf(stderr," -- ok; buf left: %d chars\n",
+	    mq->outbufsize - mq->outbufcount);
+
+  return (mq->outbufcount < mq->outbufsize);
+}
+
+
+static void mq2_read(mq)
+     struct mailq *mq;
+{
+  int i, spc;
+
+  if (!mq->inbuf) {
+    mq->inbufspace = 500;
+    mq->inbuf = emalloc(mq->inbufspace);
+  }
+
+  if (mq->inbufsize+80 >= mq->inbufspace) {
+    mq->inbufspace *= 2;
+    mq->inbuf = erealloc(mq->inbuf, mq->inbufspace);
+  }
+
+  if (mq->inbuf == NULL) {
+    mq2_discard(mq);  /* Out of memory :-/ */
+    return;
+  }
+
+  spc = mq->inbufspace - mq->inbufsize;
+  i = read(mq->fd, mq->inbuf + mq->inbufsize, spc);
+
+  if (i == 0) {
+    mq2_discard(mq);
+    return; /* ZAP! */
+  }
+  if (i > 0) {
+    /* GOT SOMETHING! */
+    mq->inbufsize += i;
+  } else {
+    if (errno == EINTR || errno == EAGAIN) {
+      /* Ok, come back latter */
+    } else {
+      mq2_discard(mq); /* ZAP! */
+    }
+    return;
+  }
+
+  /* XX: Do some processing here! */
+  
+}
+
+
+static void mq2_register(fd)
+     int fd;
+{
+  struct mailq *mq;
+
+  static int cnt = 0;
+  char buf[200];
+  struct timeval tv;
+
+  if (mq2count > mq2max) {
+    close(fd); /* TOO MANY! */
+    return;
+  }
+  
+  mq = emalloc(sizeof(*mq));
+  if (!mq) {
+    close(fd);
+    return;
+  }
+  memset(mq, 0, sizeof(*mq));
+  
+  mq->fd = fd;
+
+  mq->nextmailq = mq2root;
+  mq2root = mq;
+
+  fd_nonblockingmode(fd);
+
+  /* 
+     Scheduler writes following to the interface socket:
+
+	"version zmailer 2.0\n"
+	"some magic random gunk used as challenge\n"
+  */
+
+  mq2_puts(fd,"version zmailer 2.0\n");
+  
+  gettimeofday(&tv,NULL);
+
+  sprintf(buf,"MAILQ-V2-CHALLENGE: %ld.%ld.%d\n",
+	  (long)tv.tv_sec, (long)tv.tv_usec, ++cnt);
+
+  mq2_puts(fd, buf);
+  mq2_wflush(mq);
+
+  mq->auth = 0;
+}
+
+
+
+
+
+
+
 #ifdef  HAVE_WAITPID
 # include <sys/wait.h>
 #else
@@ -777,14 +997,27 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #endif
 
 
-extern int mq2add_to_rdmask __((fd_set *, int));
+extern int mq2add_to_mask __((fd_set *, fd_set *, int));
 
-int mq2add_to_rdmask(maskp, maxfd)
-fd_set *maskp;
-int maxfd;
+int mq2add_to_mask(rdmaskp, wrmaskp, maxfd)
+     fd_set *rdmaskp, *wrmaskp;
+     int maxfd;
 {
+  struct mailq *mq = mq2root;
+
+  for ( ; mq ; mq = mq->nextmailq ) {
+    if (mq->fd > maxfd)
+      maxfd = mq->fd;
+
+    _Z_FD_SET(mq->fd, *rdmaskp);
+
+    if (mq->outbufcount < mq->outbufsize)
+      _Z_FD_SET(mq->fd, *wrmaskp);
+  }
+
   return maxfd;
 }
+
 
 int in_select = 0;
 
@@ -828,6 +1061,10 @@ time_t timeout;
 	  if (maxf < querysocket)
 	    maxf = querysocket;
 	}
+
+	if (mailqmode == 2)
+	  maxf = mq2add_to_mask(&rdmask, &wrmask, maxf);
+
 	if (maxf < 0)
 	  return -1;
 
@@ -896,7 +1133,8 @@ time_t timeout;
 		 ++numkids; */
 	      close(i);
 	    } else {
-	      /* XXX: mailqmode == 2 ?? */
+	      /* mailqmode == 2 */
+	      mq2_register(i);
 	    }
 	  }
 	  if (cpids != NULL) {
@@ -921,6 +1159,33 @@ time_t timeout;
 		queryipccheck();
 	      }
 	  }
+	  {
+	    struct mailq *mq;
+
+	    /* The mq-queue may change while we are going it over,
+	       thus we *must not* try to do write and read things
+	       at the same time! and be *very* carefull at following
+	       the 'next' pointers... */
+
+	    mq = mq2root;
+	    while ( mq ) {
+	      struct mailq *mq2 = mq->nextmailq;
+	      if (_Z_FD_ISSET(mq->fd, wrmask)) {
+		mq2_wflush(mq);
+	      }
+	      mq = mq2;
+	    }
+
+	    mq = mq2root;
+	    while ( mq ) {
+	      struct mailq *mq2 = mq->nextmailq;
+	      if (_Z_FD_ISSET(mq->fd, rdmask)) {
+		mq2_read(mq);
+	      }
+	      mq = mq2;
+	    }
+	  }
+
 	  in_select = 0;
 	}
 	/* fprintf(stderr, "return from mux\n"); */
@@ -932,23 +1197,51 @@ queryipccheck()
 {
 	if (querysocket >= 0) {
 	  int	n;
-	  fd_set	mask;
+	  fd_set	rdmask;
+	  fd_set	wrmask;
 	  struct timeval tv;
 	  int maxfd = querysocket;
 
 	  tv.tv_sec = 0;
 	  tv.tv_usec = 0;
 
-	  _Z_FD_ZERO(mask);
-	  _Z_FD_SET(querysocket, mask);
+	  _Z_FD_ZERO(rdmask);
+	  _Z_FD_ZERO(wrmask);
+	  _Z_FD_SET(querysocket, rdmask);
 
-	  if (mailqmode == 2) {
-	    maxfd = mq2add_to_rdmask(&mask, maxfd);
+	  if (mailqmode == 2)
+	    maxfd = mq2add_to_mask(&rdmask, &wrmask, maxfd);
+
+	  n = select(maxfd+1, &rdmask, &wrmask, NULL, &tv);
+	  if (n > 0) {
+	    struct mailq *mq;
+
+	    /* The mq-queue may change while we are going it over,
+	       thus we *must not* try to do write and read things
+	       at the same time! and be *very* carefull at following
+	       the 'next' pointers... */
+
+	    mq = mq2root;
+	    while ( mq ) {
+	      struct mailq *mq2 = mq->nextmailq;
+	      if (_Z_FD_ISSET(mq->fd, wrmask)) {
+		mq2_wflush(mq);
+	      }
+	      mq = mq2;
+	    }
+
+	    mq = mq2root;
+	    while ( mq ) {
+	      struct mailq *mq2 = mq->nextmailq;
+	      if (_Z_FD_ISSET(mq->fd, rdmask)) {
+		mq2_read(mq);
+	      }
+	      mq = mq2;
+	    }
+
 	  }
-
-	  n = select(maxfd+1, &mask, NULL, NULL, &tv);
 	  if (n > 0 &&
-	      _Z_FD_ISSET(querysocket, mask)) {
+	      _Z_FD_ISSET(querysocket, rdmask)) {
 	    struct sockaddr_in raddr;
 	    int raddrlen = sizeof(raddr);
 
@@ -974,10 +1267,11 @@ queryipccheck()
 		  /* execl("/bin/false","false",NULL); */
 		  _exit(0); /* _exit() should be silent too.. */
 		}
+		close(n);
 	      } else {
-		/* XXX: mailqmode == 2 */
+		/* mailqmode == 2 */
+		mq2_register(n);
 	      }
-	      close(n);
 	    }
 	  }
 	}
@@ -990,18 +1284,17 @@ queryipcinit()
 	struct servent *serv;
 	struct sockaddr_in sad;
 	int on = 1;
+	int port = 174; /* MAGIC knowledge */
 
 	if (querysocket >= 0)
 		return;
 	mytime(&now);
 	if ((serv = getservbyname("mailq", "tcp")) == NULL) {
 	  fprintf(stderr, "No 'mailq' tcp service defined!\n");
-	  /* try again in 5 minutes or so */
-	  qipcretry = now + 300;
-	  return;
-	}
+	} else
+	  port = serv->s_port;
 	qipcretry = now + 5;
-	sad.sin_port        = serv->s_port;
+	sad.sin_port        = port;
 	sad.sin_family      = AF_INET;
 	sad.sin_addr.s_addr = htonl(INADDR_ANY);
 	if ((querysocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {

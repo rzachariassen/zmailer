@@ -150,12 +150,13 @@ extern void expire __((struct vertex *, int));
 /* wantconn.c */
 extern int wantconn __(( int sock, const char *prgname ));
 
+/* mailq.c */
 extern int isalive __(( const char *pidfil, int *pidp, FILE **fpp ));
 extern void docat __(( const char *file, int fd ));
 extern void printaddrs __(( struct vertex *v ));
 extern void checkrouter __(( void ));
 extern void checkscheduler __(( void ));
-extern void report __(( FILE *fp ));
+extern void report __(( FILE *fpi, FILE *fpo ));
 
 /* Transport library */
 /* extern int lockaddr __((int, char *, int, int, int)); */

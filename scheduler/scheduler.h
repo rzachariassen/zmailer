@@ -206,4 +206,5 @@ struct mailq {
 	int		outbufsize;
 	int		outbufcount;
 	char		*outbuf;
+
 };

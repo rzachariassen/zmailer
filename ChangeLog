@@ -8,6 +8,11 @@
 	    and output.  Sometimes we are *not* running with
 	    bidirectional socket as the point of contact..
 
+	* scheduler/scheduler.h, scheduler/scheduler.c, scheduler/mailq.c,
+	  scheduler/prototypes.h, libc/md5c.c, scheduler/MAILQ-V2:
+	    Initial steps to write an interactive command channel
+	    via the MAILQ port.
+
 1999-10-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/Makefile.in, smtpserver/smtpserver.c,

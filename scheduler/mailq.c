@@ -27,6 +27,8 @@
 #include "zmalloc.h"
 #include "mailer.h"
 
+#include "md5.h"
+
 #ifdef HAVE_DIRENT_H
 # include <dirent.h>
 #else /* not HAVE_DIRENT_H */
@@ -74,6 +76,9 @@ extern char *strchr(), *strrchr();
 const char	*progname;
 const char	*postoffice;
 
+char * v2username = "nobody";
+char * v2password = "nobody";
+
 int	debug, verbose, summary, user, status, onlyuser, nonlocal, schedq;
 int	sawcore, othern;
 
@@ -82,6 +87,8 @@ time_t	now;
 extern char *optarg;
 extern int   optind;
 char	path[MAXPATHLEN];
+
+char *host = NULL;
 
 int
 main(argc, argv)
@@ -93,7 +100,6 @@ main(argc, argv)
 #ifdef	AF_INET
 	short port = 0;
 	struct in_addr naddr;
-	char *host = NULL;
 	struct hostent *hp = NULL, he;
 	struct sockaddr_in sad;
 	struct servent *serv = NULL;
@@ -205,7 +211,7 @@ main(argc, argv)
 
 	  if (port == 0 && (serv = getservbyname("mailq", "tcp")) == NULL) {
 	    fprintf(stderr, "%s: cannot find 'mailq' tcp service\n", progname);
-	    exit(EX_TEMPFAIL);
+	    port = 174; /* MAGIC knowledge! */
 	  } else if (port == 0)
 	    port = serv->s_port;
 
@@ -377,20 +383,24 @@ docat(file, fd)
 {
 	char buf[BUFSIZ];
 	int n;
-	FILE *fp = NULL;
+	FILE *fpi = NULL, *fpo = NULL;
 
-	if (fd < 0 && (fp = fopen(file, "r")) == NULL) {
+	if (fd < 0 && (fpi = fopen(file, "r")) == NULL) {
 	  fprintf(stderr, "%s: %s: %s\n", progname, file, strerror(errno));
 	  exit(EX_OSFILE);
 	  /* NOTREACHED */
-	} else if (fd >= 0)
-	  fp = fdopen(fd, "r");
-	if (debug)
-	  while ((n = fread(buf, sizeof buf[0], sizeof buf, fp)) > 0)
+	} else if (fd >= 0) {
+	  fpi = fdopen(fd, "r");
+	  fpo = fdopen(fd, "w");
+	}
+	if (debug && fpi)
+	  while ((n = fread(buf, sizeof buf[0], sizeof buf, fpi)) > 0)
 	    fwrite(buf, sizeof buf[0], n, stdout);
 	else
-	  report(fp);
-	fclose(fp);
+	  if (fpi && fpo)
+	    report(fpi, fpo);
+	if (fpi) fclose(fpi);
+	if (fpo) fclose(fpo);
 }
 
 /*
@@ -621,14 +631,21 @@ isalive(pidfil, pidp, fpp)
 #define	LEN_MAGIC_PREAMBLE	(sizeof MAGIC_PREAMBLE - 1)
 #define	VERSION_ID		"zmailer 1.0"
 #define	VERSION_ID2		"zmailer 2.0"
-#define	GETLINE(buf,fp)		\
-	if (fgets(buf, bufsize, fp) == NULL) {\
-		fprintf(stderr, "%s: no input from scheduler\n", progname);\
-		buf[0] = '\0';\
-		return 0;\
-	}\
-	{ char *s; if ((s = strchr(buf,'\n'))) *s = '\0'; }
-				
+
+static int GETLINE(buf, bufsize, fp)
+     char *buf;
+     int bufsize;
+     FILE *fp;
+{
+  if (fgets(buf, bufsize, fp) == NULL) {
+    fprintf(stderr, "%s: no input from scheduler\n", progname);
+    buf[0] = '\0';
+    return -1;
+  }
+  buf = strchr(buf, '\n');
+  if (buf) *buf = 0;
+  return 0; /* Got something */
+}
 
 const char *names[SIZE_L+2];
 
@@ -660,7 +677,8 @@ parse(fp)
 
 	buf = emalloc(bufsize);
 
-	GETLINE(buf,fp);
+	if (GETLINE(buf,bufsize,fp))
+	  return 0;
 
 	if (EQNSTR(buf, MAGIC_PREAMBLE) &&
 	    EQNSTR(buf+LEN_MAGIC_PREAMBLE, VERSION_ID2))
@@ -690,7 +708,8 @@ parse(fp)
 	  /* NOT REACHED */
 	}
 
-	GETLINE(buf,fp);
+	if (GETLINE(buf,bufsize,fp))
+	  return 0;
 	if (!EQNSTR(buf, names[L_CTLFILE]))
 	  return 0;
 	list = L_CTLFILE;
@@ -947,27 +966,61 @@ repscan(spl)
 	return 0;
 }
 
-void query2 __((FILE *));
-void query2(fp)
-	FILE *fp;
+void query2 __((FILE *, FILE*));
+void query2(fpi, fpo)
+	FILE *fpi, *fpo;
 {
-	int  len;
-	char buf[512];
+	int  len, i;
+	int bufsize = 512;
+	char *challenge = emalloc(bufsize);
+	char *buf = emalloc(8192*32);
+	MD5_CTX CTX;
+	unsigned char digbuf[16];
 
-	/* XX: Authenticate the query */
+	/* XX: Authenticate the query - get challenge */
+	if (GETLINE(challenge, bufsize, fpi))
+	  return;
+
+	MD5Init(&CTX);
+	MD5Update(&CTX, challenge, strlen(challenge));
+	MD5Update(&CTX, v2password, strlen(v2password));
+	MD5Final(digbuf, &CTX);
+	
+	bufsize = 8192*32;
+	
+	fprintf(fpo, "APOP %s ", v2username);
+	for (i = 0; i < 16; ++i) fprintf(fpo,"%02X",digbuf[i]);
+	fprintf(fpo, "\n");
+	if (fflush(fpo) || ferror(fpo)) {
+	    perror("login to scheduler command interface failed");
+	    return;
+	}
+
+	if (GETLINE(buf, bufsize, fpi))
+	    return;
+
+	if (*buf != '+') {
+	  printf("User '%s' not accepted to server '%s'; err='%s'\n",
+		 v2username, host ? host : "<NO-HOST-?>", buf+1);
+	  return;
+	}
 
 	if (schedq) {
+
 	  if (schedq > 1)
 	    strcpy(buf,"SHOW-QUEUE CONDENCED\n");
 	  else
 	    strcpy(buf,"SHOW-QUEUE THREADS\n");
+
 	  len = strlen(buf);
-	  if (write(fileno(fp),buf,len) != len) {
+
+	  if (fwrite(buf,1,len,fpo) != len || fflush(fpo)) {
 	    perror("write to scheduler command interface failed");
 	    return;
 	  }
-	  while (!feof(fp) && !ferror(fp)) {
-	    int c = getc(fp);
+
+	  while (!feof(fpi) && !ferror(fpi)) {
+	    int c = getc(fpi);
 	    if (c == EOF) break;
 	    putc(c,stdout);
 	  }
@@ -977,22 +1030,22 @@ void query2(fp)
 }
 
 void
-report(fp)
-	FILE *fp;
+report(fpi,fpo)
+	FILE *fpi, *fpo;
 {
-	int rc = parse(fp);
+	int rc = parse(fpi);
 	if (rc == 0)
 	  return;
 	if (rc == 2) {
-	  query2(fp);
+	  query2(fpi,fpo);
 	  return;
 	}
 	if (schedq) {
 	  /* Old-style processing */
 	  int prevc = -1;
 	  int linesuppress = 0;
-	  while (!ferror(fp)) {
-	    int c = getc(fp);
+	  while (!ferror(fpi)) {
+	    int c = getc(fpi);
 	    if (c == EOF)
 	      break;
 	    if (prevc == '\n') {
