@@ -1,10 +1,10 @@
 #
-# Fri Feb 23 23:58:13 CET 2001
+# Mon Apr 19 23:52:42 CEST 2001
 #
 
 %define name zmailer
 %define version 2.99.55
-%define release 1
+%define release 4
 
 Summary: Mailer for extreme performance demands, secure mail delivery agent.
 Name: %{name}
@@ -23,7 +23,7 @@ Source4: zmailer.pam
 Source5: README-RPM
 BuildRoot: /var/tmp/%{name}-%{version}-root
 Prereq: /sbin/chkconfig
-Conflicts: sendmail qmail postfix smail exim
+Conflicts: sendmail postfix qmail exim smail
 NoSource: 0
 
 %description
@@ -61,10 +61,11 @@ Get the latest version of the Zmailer Manual from the zmailer web.
 # build zmailer
 %build
 CFLAGS="$RPM_OPT_FLAGS" \
-	./configure --prefix=/usr/lib/zmailer \
+./configure --prefix=/usr \
+	--with-zconfig=/etc/zmailer/zmailer.conf \
+	--mandir=/usr/man \
 	--libdir=/usr/lib \
 	--includedir=/usr/include/zmailer \
-	--with-zconfig=/etc/zmailer/zmailer.conf \
 	--with-mailbox=/var/spool/mail \
 	--with-postoffice=/var/spool/postoffice \
 	--with-mailshare=/etc/zmailer \
@@ -73,30 +74,32 @@ CFLAGS="$RPM_OPT_FLAGS" \
 	--with-logdir=/var/log/zmailer \
         --with-sendmailpath=/usr/sbin/sendmail \
         --with-rmailpath=/usr/bin/rmail \
+	--with-vacationpath=/usr/bin/vacation \
         --with-system-malloc \
 	--with-ta-mmap
+
 # do you need ssl ?
+#	--with-openssl \
+#	--with-openssl-prefix=/usr \
 #	--with-openssl-include=/usr/include/openssl \
 #	--with-openssl-lib=/usr/lib \
 #
-# and, ldap ?
-#	--with-ldap-include-dir=/usr/local/include \
-#	--with-ldap-library-dir=/usr/local/lib \
+# ldap ?
+#	--with-ldap-prefix=/usr \
+#	--with-ldap-include-dir=/usr/include/ldap \
+#	--with-ldap-library-dir=/usr/lib \
 #
-# look doc/guides/configure for more options
-
-# do not use, compiler errors!
-# Do you have SMP ?
-#if [ -x /usr/bin/getconf ] ; then
-#	NRPROC=$(/usr/bin/getconf _NPROCESSORS_ONLN)
-#		if [ $NRPROC -eq 0 ] ; then
-#			NRPROC=1
-#		fi
-#else
-#	NRPROC=1
-#fi
-#make -j $NRPROC
-# -> it does not work, compiler errors. why ?
+# IPv6 ?
+#	--with-ipv6 \
+#
+# whoson ?
+#	--with-whoson \
+#
+# and yp/nis ?
+#	--with-yp \
+#	--with-yp-lib=/usr/lib \
+#
+# look ./configure --help and doc/guides/configure for more options
 
 make
 make -C man groff
@@ -109,9 +112,6 @@ make install prefix=$RPM_BUILD_ROOT
 # install man pages
 make MANDIR=$RPM_BUILD_ROOT/usr/man -C man install
 
-# compress man pages
-gzip $RPM_BUILD_ROOT/usr/man/man{1,3,5,8}/* ||:
-
 # doc stuff
 install -m644 $RPM_SOURCE_DIR/README-RPM \
 	$RPM_BUILD_DIR/zmailer-%{version}
@@ -123,17 +123,10 @@ install -m644 $RPM_BUILD_DIR/zmailer-%{version}/man/*.$i \
 	$RPM_BUILD_DIR/zmailer-%{version}/man-$i
 done
 
-# strip only binary files, OBSOLETE
-# rpm-3.0.5 striped all bin files.
-# strip `file $RPM_BUILD_ROOT/usr/lib/zmailer/* | awk -F':' '/not stripped/ { print $1 }'`
-# strip `file $RPM_BUILD_ROOT/usr/lib/zmailer/ta/* | awk -F':' '/not stripped/ { print $1 }'`
-
 # install SYSV init stuff
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -m755 $RPM_SOURCE_DIR/zmailer.init \
         $RPM_BUILD_ROOT/etc/rc.d/init.d/zmailer
-
-touch $RPM_BUILD_ROOT/etc/mail.conf
 
 # install log rotation stuff
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
@@ -150,7 +143,7 @@ mkdir -p $RPM_BUILD_ROOT/etc/pam.d
 install -m644 $RPM_SOURCE_DIR/zmailer.pam \
 	$RPM_BUILD_ROOT/etc/pam.d/smtpauth-login
 
-# change zmailer.h file, --includedir= in zmailer-2.99.54patch1 don't work ok
+# change zmailer.h file, --includedir= in zmailer don't work ok
 if ! [ -f $RPM_BUILD_ROOT/usr/include/zmailer/zmailer.h ]  ; then
 	mkdir -p $RPM_BUILD_ROOT/usr/include/zmailer
 	install -m644 $RPM_BUILD_ROOT/usr/include/zmailer.h \
@@ -169,6 +162,8 @@ for I in mailq newaliases vacation; do
 	ln -sf ../lib/zmailer/$I \
 	$RPM_BUILD_ROOT/usr/bin/$I
 done
+
+touch $RPM_BUILD_ROOT/etc/mail.conf
 
 %pre
 # ####################
@@ -224,6 +219,8 @@ if ! ( [ -s /etc/mail.conf ] && grep -c '^hostname' /etc/mail.conf ) > /dev/null
 	[ -z "`hostname -f`" ] || echo "hostname=`hostname -f`" >> /etc/mail.conf
 fi
 
+ln -sf /etc/mail.conf /etc/zmailer/mail.conf
+
 # port to mailer transport queue
 if ! grep -q "^mailq" /etc/services > /dev/null ; then
         echo "mailq           174/tcp                         # Mailer transport queue" >> /etc/services
@@ -259,8 +256,11 @@ echo "       If you are running PROCMAIL as your local delivery agent"
 echo "       read /usr/doc/zmailer-doc-%{version}/doc/guides/procmail."
 echo "       If you need docs, install the zmailer-doc-%{version}."
 echo "       Visit the www.zmailer.org site to get a new version of"
-echo "       the Zmailer Manual and take a look to the news"
-echo "       A mailing list is avaliable at nic.funet.fi"
+echo "       the Zmailer Manual and take a look to the news."
+echo "       A mailing list is avaliable at zmailer@nic.funet.fi"
+echo "       Use <mailserver@nic.funet.fi> to subscribe yourself to"
+echo "       the list by sending it a message with body content:"
+echo "                subscribe zmailer Your Name"
 echo " "
 
 # Yes, it was running. Startup zmailer again
@@ -293,10 +293,10 @@ groupdel zmailer || : #"WARNING: failed to remove group zmailer"
 # post-uninstall section
 
 echo " "
-echo "     Look at /var/log/zmailer/ to delete the zmailer logs,"
-echo "     /var/spool/postoffice/ where are the zmailer big work"
-echo "     dirs and /etc/zmailer/ where are the config files."
-echo "     Look for zmailer group in /etc/group and delete it."
+echo "     Look at /var/log/zmailer to delete the zmailer logs,"
+echo "     /var/spool/postoffice where are the zmailer big work"
+echo "     dirs and /etc/zmailer where are the config files."
+echo "     Look for the zmailer group in /etc/group and delete it."
 echo " "
 
 %clean
@@ -304,6 +304,14 @@ rm -rf $RPM_BUILD_ROOT
 rm -rf $RPM_BUILD_DIR/zmailer-%{version}
 
 %changelog
+
+* Mon Apr 16 2001 Xose Vazquez <xose@wanadoo.es>
+
+- minor changes for Zmailer-2.99.55
+- bugs in Zmailer-2.99.55 :
+- --includedir= in configure don't work
+- /etc/mail.conf don't work, made a link to /etc/zmailer/mail.conf
+- make -j x, it is like linux kernel ;-) , broken
 
 * Fri Feb 23 2001 Xose Vazquez <xose@wanadoo.es>
 
@@ -336,7 +344,7 @@ rm -rf $RPM_BUILD_DIR/zmailer-%{version}
 
 * Fri Aug 6  1999 Xose Vazquez <xose@ctv.es>
 
-- split zmailer, the doc is a independent rpm
+- split zmailer, the doc is an independent rpm
 
 * Thu Jul 29 1999 Xose Vazquez <xose@ctv.es>
 
@@ -356,13 +364,12 @@ rm -rf $RPM_BUILD_DIR/zmailer-%{version}
 /etc/logrotate.d/zmailer
 /etc/rc.d/init.d/zmailer
 
-%dir /etc/zmailer/cf/fc
-%config /etc/zmailer/cf/proto/*
-%config /etc/zmailer/db/proto/*
-%config /etc/zmailer/forms/proto/*
+%config(missingok) /etc/zmailer/cf/proto/*
+%config(missingok) /etc/zmailer/db/proto/*
+%config(missingok) /etc/zmailer/forms/proto/*
 %dir /etc/zmailer/fqlists
 %dir /etc/zmailer/lists
-%config /etc/zmailer/proto/*
+%config(missingok) /etc/zmailer/proto/*
 /etc/zmailer/vacation.msg
 /etc/zmailer/zmailer.conf
 
@@ -377,13 +384,13 @@ rm -rf $RPM_BUILD_DIR/zmailer-%{version}
 /usr/lib/sendmail
 /usr/lib/zmailer
 
-/usr/man/
+/usr/man
 
 /usr/sbin/sendmail
 /usr/sbin/zmailer
 
 %dir /var/log/zmailer
-%attr(2755,root,root) %dir /var/spool/postoffice/
+%attr(2755,root,root) %dir /var/spool/postoffice
 
 %doc ChangeLog INSTALL MANIFEST Overview README* TODO contrib/README.debian
 

@@ -47,7 +47,6 @@ start() {
 
 	if ( status scheduler || status router || status smtpserver ) | grep -v stop > /dev/null ; then
 		echo "Zmailer is running yet"
-	
 	else
 		if [ "${SMTPSERVER}" ]; then
 			$MAILBIN/zmailer smtp
@@ -55,7 +54,6 @@ start() {
 			$MAILBIN/zmailer bootclean
 			$MAILBIN/zmailer
 		fi
-
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/zmailer
@@ -68,14 +66,11 @@ stop() {
 	# Stop daemons.
 
 	if ( status scheduler || status router || status smtpserver ) | grep stop > /dev/null ; then
-
 		echo "Zmailer is not running"
 	else
-
 		if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
 			$MAILBIN/zmailer kill
 		fi
-
 	RETVAL=$?
         echo
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/zmailer $POSTOFFICE/.pid.*
