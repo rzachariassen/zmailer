@@ -1966,9 +1966,9 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	const char *timestring;
 	int uid;
 {
-	int i, pid, in[2], out[2];
+	int envi, rc, pid, in[2], out[2];
 	int gid = -1;
-	const char *env[20], *s;
+	const char *env[40], *s;
 	char buf[8192], *cp, *cpe;
 	int status;
 	struct passwd *pw;
@@ -1980,23 +1980,23 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	notaryreport(rp->addr->user, NULL, NULL, NULL);
 
-	i = 0;
-	env[i++] = "SHELL=/bin/sh";
-	env[i++] = "IFS= \t\n";
+	envi = 0;
+	env[envi++] = "SHELL=/bin/sh";
+	env[envi++] = "IFS= \t\n";
 	cp = buf;
 	*cp = 0; /* Trunc the buf string... */
 	cpe = buf + sizeof(buf) - 20;
 	if ((s = getzenv("PATH")) == NULL)
-	  env[i++] = "PATH=/usr/bin:/bin:/usr/ucb";
+	  env[envi++] = "PATH=/usr/bin:/bin:/usr/ucb";
 	else {
 	  sprintf(cp, "PATH=%.999s", s);
-	  env[i++] = cp;
+	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
 	}
 	s = getenv("TZ");
 	if (s != NULL) {
 	  sprintf(cp,"TZ=%s", s);
-	  env[i++] = cp;
+	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
 	}
 
@@ -2016,47 +2016,47 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	} else {
 	  gid = pw->pw_gid;
 	  sprintf(cp, "HOME=%.500s", pw->pw_dir);
-	  env[i++] = cp;
+	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
 	  if (user[0] == 0)
 	    sprintf(cp, "USER=%.100s", pw->pw_name);
 	  else
 	    sprintf(cp, "USER=%.100s", user);
-	  env[i++] = cp;
+	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
 	}
 	if (strcmp(rp->addr->link->channel,"error")==0)
 	  sprintf(cp, "SENDER=<>");
 	else
 	  sprintf(cp, "SENDER=%.999s", rp->addr->link->user);
-	env[i++] = cp;
+	env[envi++] = cp;
 	cp += strlen(cp) + 1;
 	sprintf(cp, "UID=%d", (int)uid);
-	env[i++] = cp;
+	env[envi++] = cp;
 	if ((s = getzenv("ZCONFIG")) == NULL)
 	  s = ZMAILER_ENV_FILE;
 	cp += strlen(cp) + 1;
 	sprintf(cp, "ZCONFIG=%.200s", s);
-	env[i++] = cp;
+	env[envi++] = cp;
 	if ((s = getzenv("MAILBIN")) == NULL)
 		s = MAILBIN;
 	cp += strlen(cp) + 1;
 	sprintf(cp, "MAILBIN=%.200s", s);
-	env[i++] = cp;
+	env[envi++] = cp;
 	if ((s = getzenv("MAILSHARE")) == NULL)
 		s = MAILSHARE;
 	cp += strlen(cp) + 1;
 	sprintf(cp, "MAILSHARE=%.200s", s);
-	env[i++] = cp;
+	env[envi++] = cp;
 	cp += strlen(cp) + 1;
 	if (rp->orcpt) {
 	  sprintf(cp, "ORCPT=%.999s", rp->orcpt);
-	  env[i++] = cp;
+	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
 	}
 	if (dp->envid) {
 	  sprintf(cp, "ENVID=%.999s", dp->envid);
-	  env[i++] = cp;
+	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
 	}
 
@@ -2064,7 +2064,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  fprintf(verboselog,"To run a pipe with uid=%d gid=%d cmd='%s'\n",
 		  uid, gid, cmdbuf);
 
-	env[i] = NULL;
+	env[envi] = NULL;
 
 	if (cp >= cpe)
 	  /* OVERFLOWED THE 8kB BUFFER FOR THE NEW ENVIRONMENT VARIABLES! */
@@ -2093,6 +2093,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	pid = fork();
 	if (pid == 0) { /* child */
 	  const char *argv[100];
+	  int i;
 
 	  setregid(gid,gid);
 	  setreuid(uid,uid);
@@ -2118,6 +2119,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  s = strchr(cp,'$');
 	  if (!s)
 	    s = strchr(cp,'>');
+
 	  if (*cp == '/' && s == NULL) {
 	    /* Starts with an ABSOLUTE PATH -- at least "/" */
 	    /* ... and does *NOT* contain '$', nor '>' */
@@ -2215,7 +2217,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	/* Union or not, we treat it as if it were an integer.. */
 
 	if (status == 0) {
-	  i = EX_OK;
+	  rc = EX_OK;
 	  if (cp != buf)
 	    *cp++ = ' ';
 	  strcpy(cp, "[Exit Status 0]");
@@ -2226,16 +2228,16 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  if (status & 0200)
 	    strcat(cp, " (Core dumped)");
 	  strcat(cp, "]");
-	  i = EX_TEMPFAIL;
-	} else if ((i = (status >> 8) & 0377) > 0) {
+	  rc = EX_TEMPFAIL;
+	} else if ((rc = (status >> 8) & 0377) > 0) {
 	  if (cp != buf)
 	    *cp++ = ' ';
-	  sprintf(cp, "[exit status %d]", i);
+	  sprintf(cp, "[exit status %d]", rc);
 	  /* We report following status codes to the system as is,
 	     all the rest are treated as EX_TEMPFAIL, and retried.. */
-	  if (i != EX_NOPERM && i != EX_UNAVAILABLE && i != EX_NOHOST &&
-	      i != EX_NOUSER && i != EX_DATAERR     && i != EX_OK )
-	    i = EX_TEMPFAIL;
+	  if (rc != EX_NOPERM && rc != EX_UNAVAILABLE && rc != EX_NOHOST &&
+	      rc != EX_NOUSER && rc != EX_DATAERR     && rc != EX_OK )
+	    rc = EX_TEMPFAIL;
 	}
 
 	if (verboselog)
@@ -2243,7 +2245,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	time(&endtime);
 	notary_setxdelay((int)(endtime-starttime));
-	if (i == EX_OK) {
+	if (rc == EX_OK) {
 	  notaryreport(NULL,"delivery",
 		       "2.2.0 (Delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
@@ -2255,8 +2257,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 		       buf2);
 	}
 	
-	DIAGNOSTIC(rp, cmdbuf, i, "%s", buf);
-	return i;
+	DIAGNOSTIC(rp, cmdbuf, rc, "%s", buf);
+	return rc;
 }
 
 static void mkhashpath __((char *, const char *));
