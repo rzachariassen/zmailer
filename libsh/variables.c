@@ -25,7 +25,7 @@ int v_record = 0;	/* record variable accesses */
 int v_changed = 0;	/* a variable in v_accessed was changed */
 struct vaccess *v_accessed = NULL;
 
-extern char **environ; /* Should be declated in  <stdlib.h>, but isn't.. */
+extern char **environ; /* Should be declared in  <stdlib.h>, but isn't.. */
 
 void
 v_written(l)
@@ -89,6 +89,9 @@ STATIC struct vsync {
 };
 
 
+FILE *vfindlog;
+int vfindtest;
+
 /*
  * The ifs_flush() routine is defined below, it maintains this global value:
  */
@@ -105,15 +108,36 @@ v_find(name)
 {
 	register conscell *l, *pl, *scope;
 	int nlen = strlen(name);
+	int varscopedepth = 0;
+	int varposcount = 0;
+	int varsearchcount = 0;
+	
+	if (!vfindtest) {
+	  char *s = getenv("VFINDLOGFILE");
+	  if (s)  {
+	    vfindlog = fopen(s, "a");
+	  }
+	  vfindtest = 1;
+	}
+
 
 	if (name == NULL) return NULL; /* No input name, no output var.. */
 
 	/* if (fvcache.namesymbol > 0 && fvcache.namesymbol == symbol(name))
 		return fvcache.location; */
 
+	if (vfindlog)
+	  fprintf(vfindlog, "vfind{%d:%s}\t", nlen, name);
+
 	pl = NULL;
 	for (scope = car(envarlist); scope != NULL; scope = cdr(scope)) {
+		++ varscopedepth;
+		varposcount = 0;
+
 		for (l = car(scope); l != NULL; pl = cdr(l), l = cddr(l)) {
+			++varsearchcount;
+			++varposcount;
+
 			if (l->slen == nlen &&
 			    memcmp(name, l->cstring, nlen) == 0){
 				if (l != car(scope)) {
@@ -135,10 +159,18 @@ v_find(name)
 					v_accessed = v;
 				}
 #endif	/* MAILER */
+				if (vfindlog)
+				  fprintf(vfindlog, "%d\t%d\t%d\n",
+					  varscopedepth, varposcount, varsearchcount);
+
 				return l;
 			}
 		}
 	}
+	if (vfindlog)
+	  fprintf(vfindlog, "%d\t%d\t%d\n",
+		  0, 0, varsearchcount);
+
 	return NULL;
 }
 
