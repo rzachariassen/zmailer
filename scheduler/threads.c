@@ -1569,7 +1569,7 @@ void thread_report(fp,mqmode)
 		  }
 		  sfprintf(fp, "}");
 		} else
-		  sfprintf(fp," S=%s", proc_state_names[proc->state]);
+		  sfprintf(fp," S=%s", proc_state_names[thr->proc->state]);
 	      }
 
 	    } else if (thr->wakeup > now) {
