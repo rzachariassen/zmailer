@@ -16,7 +16,7 @@ MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
 SMTPLIB=	@OPENSSLLIB@  @LIBSOCKET@ @LIBRESOLV@ $(LIBMALLOC)
-SMTPINCL=	@GENINCL@   @OPENSSLINCL@ @INCLRESOLV@
+SMTPINCL=	@OPENSSLINCL@ @INCLRESOLV@ @GENINCL@
 #
 SOURCE=		smtp.c appendlet.c smtptls.c getmxrr.c
 OBJS=		smtp.o appendlet.o smtptls.o getmxrr.o

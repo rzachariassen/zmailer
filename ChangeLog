@@ -1,5 +1,18 @@
 2002-09-02  Matti Aarnio  <mea@zmailer.org>
 
+	* libc/Makefile.in, libresolv/Makefile.in, router/Makefile.in,
+	  router/libdb/Makefile.in, scheduler/Makefile.in,
+	  smtpserver/Makefile.in, transports/hold/Makefile.in,
+	  transports/libta/Makefile.in, transports/mailbox/Makefile.in,
+	  transports/reroute/Makefile.in, utils/makedb/Makefile.in,
+	  utils/vacation/Makefile.in:
+	    Modified usage of  @GENINCL@  autoconfig macro so that it
+	    will always be the LAST inclusion define for the each
+	    compilation.  This way if the (as has happened to yours
+	    truly) GENINCL ( /usr/local/include ) has a file with
+	    same name as something important ZMailer internal (mail.h
+	    from UW-IMAP C-client), it won't override internal file..
+
 	* proto/cf/fqdnalias.cf:
 	    When doing  fqdnroute  processing on a "plus-full"
 	    address, pass proper parameters to the database lookup.
