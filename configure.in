@@ -868,9 +868,10 @@ AC_CHECK_FUNC(res_mkquery)
 AC_SUBST(LIBRESOLV)
 AC_SUBST(INCLRESOLV)
 AC_SUBST(LIBRESOLVA)
+use_resolvopt=0
 AC_ARG_WITH(bundled-libresolv,   [  --with-bundled-libresolv Use bundled libresolv source],
 	use_resolvopt=1)
-if test -z "$use_resolvopt" ; then
+if test "$use_resolvopt" = 0 ; then
     if test $ac_cv_func_res_mkquery = yes ; then
 	LIBRESOLV="" #  res_mkquery() is at system libc
 	AC_MSG_RESULT([Using no -lresolv; res_mkquery() in libc ?])
