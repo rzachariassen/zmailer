@@ -3497,9 +3497,14 @@ smtp_sync(SS, r, nonblocking)
 	  } else { /* No newline.. Read more.. */
 	    int en;
 
+	  reread_line:
+
 	    infd = SS->smtpfd;
 	    err = 0;
 	    if (!nonblocking) {
+
+	      /* Blocking read mode */
+
 #ifdef HAVE_OPENSSL
 	      if (SS->sslmode) {
 		err = 0;
@@ -3526,9 +3531,12 @@ smtp_sync(SS, r, nonblocking)
 		    fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
 		break;
 	      }
+	      goto reread_line;
 	    }
 
-	  reread_line:
+	    /* Here we are either because we are non-blocking,
+	       or blocking was waiting at select() to confirm
+	       input availability */
 
 	    err = 0;
 	    len = smtp_nbread(SS, buf, sizeof(buf));
@@ -3552,30 +3560,21 @@ smtp_sync(SS, r, nonblocking)
 		  err = 0;
 		  break; /* XX: return ?? */
 		}
-	      } else {
+	      } else { /* blocking mode -- we won't come here ?? */
 
 		if (err == EINTR || err == EAGAIN
 #ifdef EWOULDBLOCK
 		    || err == EWOULDBLOCK
 #endif
 		    ) {
-		  err = select_sleep(infd, timeout);
-		  en = errno;
-		  if (debug && logfp)
-		    fprintf(logfp,"%s#\tselect_sleep(%d,%d); rc=%d\n",
-			    logtag(),infd,timeout,err);
-		  if (err < 0) {
-		    if (logfp)
-		      fprintf(logfp,"%s#\tTimeout (%d sec) while waiting responses from remote (errno=%d)\n",logtag(),timeout,en);
-		    if (SS->smtpfp) 
-		      if (SS->verboselog)
-			fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
-		    break;
-		  }
+		  abort();
 		  goto reread_line;
 		}
+
 	      }
+
 	      /* XX: what to do with the error ? */
+
 	      if (logfp)
 		fprintf(logfp,"%s#\tRemote gave error %d (%s) while %d responses missing\n",
 			logtag(), err, strerror(err), SS->pipeindex - 1 - idx);
