@@ -19,8 +19,8 @@
 # How to do those is left as an excercise to the reader; the reader
 # is assumed to be quite bright when s/he is playing with MRTG.
 #
-# The output is space separates sequence of tokens -- numbers
-# in following order:
+# The output is one line of space separates sequence of tokens -- numeric
+# values in following order:
 #
 #  - router queue (by directory scan)
 #  - transport queue (by directory scan)
@@ -38,6 +38,20 @@
 # Only the first seven (7) fields are there always, and the triplets
 # may or may not exist, plus their order is somewhat unpredictable.
 #
+
+#
+# You may want to add system load-average to the outputs, if so,
+# here is one way to do it fairly platform independently, usable
+# in case you don't have SNMP agent available for it.
+#
+
+# open(f, "/usr/bin/uptime|") || crash("Cannot open uptime: $!");
+# $U = <f>; chomp $U; @U = split(/ ,/,$U);
+# close(f);
+# $aver = $U[$#U-2];  # The three load-avgs are at offsets: -2, -1, -0
+#                     # They are 1/5/15 minutes averages respectively
+#		      # The value may trail with extra ",", but it should
+#		      # not be much of a problem..
 
 open(f, "/usr/bin/mailq -sQQ |") || crash("Cannot open mailq: $!");
 
@@ -59,7 +73,11 @@ while ($l = <f>) {
 
 close(f);
 
-print "$routerq $transpq $kids $idle $msgs $threads $rcpnts @dst\n";
+#
+# Pick either, format changes...
+#
+  print       "$routerq $transpq $kids $idle $msgs $threads $rcpnts @dst\n";
+# print "$aver $routerq $transpq $kids $idle $msgs $threads $rcpnts @dst\n";
 
 exit 0;
 
