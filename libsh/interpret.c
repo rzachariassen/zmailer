@@ -2407,11 +2407,7 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			  arg1 = (const char *)tregsub(tre, atoi(arg1));
 			  if (arg1 != NULL) {
 			    int slen = strlen(arg1);
-#if 0
-			    tmp = conststring(arg1,slen);
-#else
-			    tmp = newstring(dupnstr(arg1,slen),slen);
-#endif
+			    tmp = newstring(arg1,slen);
 			    tmp->flags |= QUOTEDSTRING;
 			    /* cdr(tmp) = command->buffer; */
 			    *command->bufferp = tmp;

@@ -1,5 +1,10 @@
 1999-05-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* libsh/tregexp.c, libsh/interpret.c:
+	    A bit less copying around, and way smaller initial malloc
+	    to avoid need for big memory blocks, which don't seem to be
+	    available for latter reuse -- memory fragments, you see..
+
 	* configure.in:
 	    Improve a bit of the testing of  <db_185.h> vs. <db.h>,
 	    and  -ldb1  vs.  -ldb  -- perhaps this is glibc 2.1 systems

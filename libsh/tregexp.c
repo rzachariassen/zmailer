@@ -1418,13 +1418,13 @@ tregsub(prog, n)
 	ts = prog->startp[n];
 
 	/* Must use malloc()ed buffer -- May resize while processing */
-	buflen = 4000;
+	buflen = 100;
 	buf = (char*)malloc(buflen);
 	len = printdToken(&buf, &buflen, ts, te, 0);
 	buf[len] = '\0';
 
-	cp = (char*) tmalloc(len+1);
-	memcpy(cp,buf,len+1);
+	cp = dupnstr(buf, len); /* caller does need this! */
+
 	free(buf);
 
 	return cp;
