@@ -406,13 +406,7 @@ if false ; then
 	fi
 
 	ssift "$lcuser" in
-		listbase="\1"
-		a="$LISTSERV/home/$listbase.list"
-		if [ -f "$a" ] ; then
-		   return (((local pipe.owner-$listbase "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool owner-$listbase" $(newattribute $attr privilege "0" ))))
-		fi
-		break
-		;;
+
 	owner-(.+)
 		listbase="\1"
 		a="$LISTSERV/home/$listbase.list"
@@ -453,6 +447,14 @@ if false ; then
 		if [ -f "$a" ]; then
 		   return (((local pipe.$listbase-server "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-server" $(newattribute $attr privilege "0" ))))
 		fi
+		;;
+	(.+)
+		listbase="\1"
+		a="$LISTSERV/home/$listbase.list"
+		if [ -f "$a" ] ; then
+		   return (((local pipe.owner-$listbase "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool owner-$listbase" $(newattribute $attr privilege "0" ))))
+		fi
+		break
 		;;
 	tfiss
 fi
