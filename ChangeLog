@@ -4,11 +4,11 @@
 	    Version 2.99.51-pre2
 
 	* transports/smtp/smtp.c:
-	    - Reworked even more that reconnect mechanism.
+	    - Reworked even more that reconnect mechanism. (core drops)
 	    - Noticed that 'No MX, no address' reports are coming
 	      out more and more regularly in cases where they should
 	      *not* occur.  As I don't seem to be able to coerce
-	      the system to do the *right* think, let it be TEMPFAIL
+	      the system to do the *right* thing, let it be TEMPFAIL
 	      once again...  Rather delayed erroring attempts, than
 	      rejections because of wrong reports.
 
@@ -35,7 +35,7 @@
 	* lib/rfc822scan.c:
 	    MKERROR() did crash for some reason in previous form.
 	    Modified call a bit and changed it into a static function
-	    of its own.  Now it seems to work.
+	    of its own.  Now it seems to work.  (Compiler bug ??)
 
 	* Makefile.in:
 	    Version 2.99.51-pre1
