@@ -670,23 +670,28 @@ int sock;
 	      ('0' <= linebuf[1] && linebuf[1] <= '9') &&
 	      ('0' <= linebuf[2] && linebuf[2] <= '9') &&
 	      (linebuf[3] == '\r' || linebuf[3] == '\n' ||
-	       linebuf[3] == ' '  || linebuf[3] == '\t'))
-	    end_seen = 1;
+	       linebuf[3] == ' '  || linebuf[3] == '\t')) {
+	    end_seen = atoi(linebuf);
+	  }
 
 	  if (linelen > 0) {
 	    fprintf(stdout, " ");
 	    for (i = 0; i < linelen; ++i) {
 	      if (linebuf[i] == '\n' ||
-		  (linebuf[i] >= ' ' && linebuf[i] < 127))
-		fprintf(stdout, "&#%d;", linebuf[i]);
+		  (linebuf[i] >= ' ' && linebuf[i] < 127)) {
+		if (linebuf[i] == '\n')
+		  fprintf(stdout, "\n");
+		else
+		  fprintf(stdout, "&#%d;", linebuf[i]);
+	      }
 	      else
 		fprintf(stdout, "\\0x%02X", linebuf[i]);
 	    }
 	  }
 	}
-	if (c < 0 && no_more) c = 1;
+	if (c < 0 && no_more) c = 0;
 
-	return (c < 0) ? -c : 0;
+	return (c < 0) ? c : end_seen;
 }
 
 
@@ -763,7 +768,7 @@ struct addrinfo *ai;
 	/* Initial greeting */
 
 	rc = readsmtp(sock); /* Read response.. */
-	if (rc != EX_OK) goto end_test_1;
+	if (rc < 0 || rc > 299) goto end_test_1;
 
 
 	sprintf(smtpline, "HELO %s\r\n", myhostname);
@@ -773,7 +778,7 @@ struct addrinfo *ai;
 	if (rc == ETIMEDOUT) wtout = 1;
 	if (rc != EX_OK) goto end_test_1;
 	rc = readsmtp(sock); /* Read response.. */
-	if (rc != EX_OK) goto end_test_1;
+	if (rc < 0 || rc > 299) goto end_test_1;
 
 	sprintf(smtpline, "MAIL FROM:<>\r\n");
 	fprintf(stdout, " MAIL FROM:&lt;&gt;\n");
@@ -781,7 +786,7 @@ struct addrinfo *ai;
 	if (rc == ETIMEDOUT) wtout = 1;
 	if (rc != EX_OK) goto end_test_1;
 	rc = readsmtp(sock); /* Read response.. */
-	if (rc != EX_OK) goto end_test_1;
+	if (rc < 0 || rc > 299) goto end_test_1;
 
 	sprintf(smtpline, "RCPT TO:<postmaster@%s>\r\n", thatdomain);
 	fprintf(stdout, " RCPT TO:&lt;postmaster@%s&gt;\n", thatdomain);
@@ -789,16 +794,22 @@ struct addrinfo *ai;
 	if (rc == ETIMEDOUT) wtout = 1;
 	if (rc != EX_OK) goto end_test_1;
 	rc = readsmtp(sock); /* Read response.. */
+	if (rc < 0 || rc > 299) goto end_test_1;
 
-	sprintf(smtpline, "RSET\r\nQUIT\r\n");
-	writesmtp(sock, smtpline);
+	rc = 0; /* All fine, no complaints! */
 
  end_test_1:
+	sprintf(smtpline, "RSET\r\nQUIT\r\n");
+	writesmtp(sock, smtpline);
 	close(sock);
 	fprintf(stdout,"\n</PRE>\n");
 	/* fprintf(stdout, "RC = %d\n", rc); */
 	if (wtout)
 	  fprintf(stdout,"<H2> WRITE TIMEOUT!</H2>\n");
+	else if (rc == 0)
+	  fprintf(stdout,"<H2>Apparently OK!</H2>\n");
+	else
+	  fprintf(stdout,"<H2>Something WRONG!! rc=%d</H2>\n", rc);
 }
 
 
