@@ -1,3 +1,13 @@
+2001-05-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/smtp.h, transports/smtp/smtp.c:
+	    Reworking (simplifying) DATA phase processing,
+	    and quick-retry handling of socket write/read
+	    failure induced closes.  There is limit of three
+	    attempts on any given host for the delivery before
+	    giving up entirely.  (Passing the failure to the
+	    scheduler..)
+
 2001-05-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* proto/cf/p-routes.cf:

@@ -351,7 +351,6 @@ typedef struct {
   Sfio_t *smtpfp;		/* Sfio_t* to the remote host           */
   struct smtpdisc smtpdisc;	/* SMTP outstream discipline data	*/
 
-  char *smtphost;		/* strdup()ed name of the remote host */
   char *myhostname;		/* strdup()ed name of my outbound interface */
 
   FILE *verboselog;		/* verboselogfile */
@@ -466,7 +465,7 @@ extern int  process    __((SmtpState *SS, struct ctldesc*, int, const char*, int
 extern int  check_7bit_cleanness __((struct ctldesc *dp));
 extern void notarystatsave __((SmtpState *SS, char *smtpstatline, char *status));
 
-extern int  makeconn  __((SmtpState *SS, struct addrinfo *, int));
+extern int  makeconn  __((SmtpState *SS, const char *, struct addrinfo *, int));
 extern int  makereconn __((SmtpState *SS));
 extern int  vcsetup  __((SmtpState *SS, struct sockaddr *, int*, char*));
 #ifdef	BIND

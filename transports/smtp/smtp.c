@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2000 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2001 by Matti Aarnio -- modifications, including MIME
  */
 
 #include "smtp.h"
@@ -863,6 +863,7 @@ process(SS, dp, smtpstatus, host, noMX)
 	  struct rcpt *rp, *rphead;
 	  int loggedid;
 	  int openstatus = EX_OK;
+	  int retrymax;
 
 	  procabortset = 1;
 
@@ -886,6 +887,8 @@ process(SS, dp, smtpstatus, host, noMX)
 		  loggedid = 1;
 		  fprintf(logfp, "%s#\t%s: %s\n", logtag(), dp->msgfile, dp->logident);
 		}
+
+		retrymax = 3;
 
 		do {
 
@@ -914,7 +917,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		    smtpstatus = deliver(SS, dp, rphead, rp->next);
 
 		  /* Only for EX_TEMPFAIL, or for any non EX_OK ? */
-		  if (smtpstatus == EX_TEMPFAIL) {
+		  if (smtpstatus == EX_TEMPFAIL && SS->smtpfp) {
 		    smtpclose(SS, 1);
 		    notary_setwtt(NULL);
 		    notary_setwttip(NULL);
@@ -925,7 +928,10 @@ process(SS, dp, smtpstatus, host, noMX)
 		  }
 
 		  /* If delivery fails, try other MX hosts */
-		} while (((smtpstatus == EX_TEMPFAIL) ||
+		  --retrymax;
+
+		} while ((retrymax > 0) &&
+			 ((smtpstatus == EX_TEMPFAIL && !SS->smtpfp) ||
 			  (smtpstatus == EX_IOERR)) &&
 			 (SS->firstmx < SS->mxcount));
 
@@ -1240,7 +1246,9 @@ deliver(SS, dp, startrp, endrp)
 
 	/* MAIL FROM:<...> -- pipelineable.. */
 	r = smtpwrite(SS, 1, SMTPbuf, pipelining, NULL);
+
 	if (!SS->smtpfp || sffileno(SS->smtpfp) < 0) r = EX_TEMPFAIL; /* ALWAYS! */
+
 	if (r != EX_OK) {
 	  /* If we err here, we probably are in SYNC mode... */
 	  /* Uh ??  Many new sendmail's have a pathological error mode:
@@ -1255,10 +1263,10 @@ deliver(SS, dp, startrp, endrp)
 			  we have some new input, do close the connection */
 	    if (has_readable(SS->smtpfd)) {
 	      /* Drain the input, and then close the channel */
-	      (void) smtpwrite(SS, 1, NULL, 0, NULL);
+	      (void) smtpwrite(SS, 0, NULL, 0, NULL);
 	      smtpclose(SS, 1);
 	      if (logfp)
-		fprintf(logfp, "%s#\t(closed SMTP channel - MAIL FROM:<> got two responses!)\n", logtag());
+		fprintf(logfp, "%s#\t(closed SMTP channel - MAIL FROM:<> got two responses! [or EOF])\n", logtag());
 	    }
 	  }
 	  time(&endtime);
@@ -1284,21 +1292,33 @@ deliver(SS, dp, startrp, endrp)
 	      }
 	  }
 
-	  for (rp = startrp; rp && rp != endrp; rp = rp->next) {
-	    /* NOTARY: address / action / status / diagnostic */
-	    if (rp->lockoffset) {
+	  /* Returning here EX_TEMPFAIL while smtpfp == NULL will do
+	     quick retry!  DON'T diagnose those now! */
+
+	  if (r != EX_TEMPFAIL && !SS->smtpfp)
+	    for (rp = startrp; rp && rp != endrp; rp = rp->next) {
+	      /* NOTARY: address / action / status / diagnostic */
+	      if (rp->lockoffset) {
 		notaryreport(rp->addr->user, FAILED,
-			   "5.5.0 (Undetermined protocol error)",NULL);
-	      diagnostic(rp, r, 0, "%s", SS->remotemsg);
+			     "5.5.0 (Undetermined protocol error)",NULL);
+		diagnostic(rp, r, 0, "%s", SS->remotemsg);
+	      }
 	    }
-	  }
+
 	  return r;
 	}
+
 	mail_from_failed = 0;
 	nrcpt = 0;
 	rcpt_cnt = 0;
 
 	for (rp = startrp; rp && rp != endrp; rp = rp->next) {
+
+	  if (!rp->lockoffset) continue; /* SKIP IT! */
+
+	  /* Make sure the recipient diagnostics status at this
+	     point is "OK". */
+	  rp->status = EX_OK;
 
 	  if (++rcpt_cnt >= SS->rcpt_limit) {
 	    /* Limit Count full */
@@ -1383,7 +1403,9 @@ deliver(SS, dp, startrp, endrp)
 	    /* Actually we DO NOT KNOW, we need to sync this latter on.. */
 	    rp->status = EX_OK;
 	  }
-	}
+
+	} /* ... for (rp = startrp; rp && rp != endrp; rp = rp->next) ... */
+
 
 	if (nrcpt == 0) {
 	  /* all the RCPT To addresses were rejected, so reset server */
@@ -1402,13 +1424,15 @@ deliver(SS, dp, startrp, endrp)
 	    goto more_recipients;
 
 	  if (SS->rcptstates & RCPTSTATE_400)
+	    /* The smtpfp != NULL -> no retry for these
+	       recipients -- at least not right away! */
 	    return EX_TEMPFAIL; /* Even ONE temp failure -> total result
 				   is then TEMPFAIL */
 	  return EX_UNAVAILABLE;
 	}
 
 	if (!SS->smtpfp)
-	  return EX_TEMPFAIL;
+	  return EX_TEMPFAIL; /* Doing quick retry on these rcpts! */
 
 	chunkblkptr   = NULL;
 	SS->chunksize = 0;
@@ -1463,7 +1487,8 @@ deliver(SS, dp, startrp, endrp)
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 		r = EX_TEMPFAIL;
 	    }
-	    return r;
+	    return r; /* The smtpfp != NULL -> no retry for these
+			 recipients -- at least not right away! */
 	  }
 
 	  /* OK, we synced, lets continue with BDAT ...
@@ -1471,34 +1496,16 @@ deliver(SS, dp, startrp, endrp)
 	     pipelining with BDAT, but lets do this
 	     with checkpoints at first */
 
-	} else if (pipelining) {
+	} else {
 
 	  /* No CHUNKING here... do normal DATA-dot exchange */
 
-	  /* In PIPELINING mode ... send "DATA" and SYNC ! */
-	  r = smtpwrite(SS, 1, "DATA", 0, NULL);
-#if 0
-	  if (r != EX_OK) { /* failure on pipes ? */
-	    time(&endtime);
-	    notary_setxdelay((int)(endtime-starttime));
-	    if (SS->smtpfp)
-	      r = smtp_sync(SS, r, 0); /* Sync it.. */
-	    for (rp = startrp; rp && rp != endrp; rp = rp->next)
-	      if (rp->lockoffset) {
-		/* NOTARY: address / action / status / diagnostic / wtt */
-		notaryreport(rp->addr->user,FAILED,NULL,NULL);
-		diagnostic(rp, r, 0, "%s", SS->remotemsg);
-	      }
-	    smtpclose(SS, 1);
-	    r = EX_TEMPFAIL;
-	    return r;
-	  }
-	  time(&endtime);
-	  notary_setxdelay((int)(endtime-starttime));
-	  /* Now it is time to do synchronization .. */
-	  if (SS->smtpfp)
-	    r = smtp_sync(SS, EX_OK, 0); /* Up & until "DATA".. */
-#endif
+	  /* In PIPELINING mode ...... send "DATA" and SYNC ! */
+	  /* In non-pipelining mode .. send "DATA" and SYNC ! */
+
+	  timeout = timeout_data;
+	  r = smtpwrite(SS, 1, "DATA", 0 /* SYNC! */, NULL);
+
 	  if (r != EX_OK) {
 	    if (SS->smtpfp &&
 		(SS->rcptstates & DATASTATE_OK)) {
@@ -1555,24 +1562,6 @@ deliver(SS, dp, startrp, endrp)
 	    return r;
 	  }
 
-	  /* Successes are reported AFTER the DATA-transfer is ok */
-	} else {
-	  /* Non-PIPELINING sync mode */
-	  timeout = timeout_data;
-	  r = smtpwrite(SS, 1, "DATA", 0, NULL);
-	  if (r != EX_OK) {
-	    time(&endtime);
-	    notary_setxdelay((int)(endtime-starttime));
-	    for (rp = startrp; rp && rp != endrp; rp = rp->next)
-	      if (rp->lockoffset) {
-		/* NOTARY: address / action / status / diagnostic / wtt */
-		notaryreport(rp->addr->user,FAILED,NULL,NULL);
-		diagnostic(rp, r, 0, "%s", SS->remotemsg);
-	      }
-	    smtpclose(SS, 1);
-	    r = EX_TEMPFAIL;
-	    return r;
-	  }
 	  timeout = timeout_dot;
 	}
 	/* Headers are 7-bit stuff -- says MIME specs */
@@ -2221,7 +2210,7 @@ smtpconn(SS, host, noMX)
 	  }
 
 	  SS->mxcount = 0;
-	  retval = makeconn(SS, ai, -2);
+	  retval = makeconn(SS, host, ai, -2);
 
 	} else {
 
@@ -2446,7 +2435,7 @@ smtpconn(SS, host, noMX)
 	      sprintf(buf,"dns; %.200s", host);
 	      notary_setwtt(buf);
 	    }
-	    retval = makeconn(SS, ai, -1);
+	    retval = makeconn(SS, host, ai, -1);
 
 	    if (ai != NULL)
 	      freeaddrinfo(ai);
@@ -2465,7 +2454,7 @@ smtpconn(SS, host, noMX)
 	      sprintf(buf,"dns; %.200s", SS->mxh[i].host);
 	      notary_setwtt(buf);
 
-	      r = makeconn(SS, SS->mxh[i].ai, i);
+	      r = makeconn(SS, SS->mxh[i].host, SS->mxh[i].ai, i);
 	      SS->firstmx = i+1;
 	      if (r == EX_OK) {
 		retval = EX_OK;
@@ -2517,8 +2506,9 @@ deducemyifname(SS)
 }
 
 int
-makeconn(SS, ai, ismx)
+makeconn(SS, hostname, ai, ismx)
 	SmtpState *SS;
+	const char *hostname;
 	struct addrinfo *ai;
 	int ismx;
 {
@@ -2534,7 +2524,7 @@ makeconn(SS, ai, ismx)
 	if (ai->ai_canonname)
 	  strncpy(hostbuf, ai->ai_canonname, sizeof(hostbuf));
 	else
-	  *hostbuf = 0;
+	  strncpy(hostbuf, hostname, sizeof(hostbuf));
 	hostbuf[sizeof(hostbuf)-1] = 0;
 
 	if (checkwks && SS->verboselog)
@@ -2595,6 +2585,8 @@ makeconn(SS, ai, ismx)
 	    SS->ai.ai_canonname = NULL;
 	    if (ai->ai_canonname)
 	      SS->ai.ai_canonname = strdup(ai->ai_canonname);
+	    else if (hostname)
+	      SS->ai.ai_canonname = strdup(hostname);
 	    SS->ai.ai_next = NULL;
 	    SS->ismx = ismx;
 	  }
@@ -2715,7 +2707,7 @@ makereconn(SS)
      SmtpState *SS;
 {
   smtpclose(SS, 1);
-  return makeconn(SS, & SS->ai, SS->ismx);
+  return makeconn(SS, SS->ai.ai_canonname, & SS->ai, SS->ismx);
 }
 
 int
@@ -3160,9 +3152,6 @@ smtpclose(SS, failure)
 	SS->sslmode = 0;
 #endif /* - HAVE_OPENSSL */
 
-	if (SS->smtphost != NULL)
-	  free(SS->smtphost);
-	SS->smtphost = NULL;
 }
 
 void

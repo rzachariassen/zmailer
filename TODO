@@ -5,6 +5,9 @@ check: Is router/db.c::db() now consistent at  argv1  construction ??
 check: scheduler.conf: command=  $channel  expansion ??
 	2.99.52-pre3  has apparently some problems!
 
+configure.in:
+	--includedir=.... not working ?? (Xos… V·zquez <xose@smi-ps.com>)
+
 Wanted done for 3.0:
   - router  aliases.cf  to have similar 'protocols' feature as
     domain routing has currently
