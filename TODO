@@ -16,7 +16,9 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	Cured around 25-Jan-2000 ??? (for 2.99.52patch2)
 	Cured around 02-Feb-2000 ???
 
-  Perhaps not:
+  Perhaps not:  (or perhaps yes - additional debug statements do show
+		 that there are *different* connections where these
+		 timeouts happen -- backup MXes..)
 
 Feb  3 11:07:13 nic smtp[2791]: S14836AbQBCJC1: to=<vps@phoenix.math.spbu.ru>, delay=00:04:46, xdelay=00:00:02, mailer=smtp, relay=phoenix.math.spbu.ru ([195.19.230.5|25|193.166.0.145|64634]), stat=ok3 250 2.0.0 e1397GH02222 Message accepted for delivery cvt=NONE
 Feb  3 11:13:57 nic smtp[2791]: ERROR: SMTP socket write timeout; leftover=48779
@@ -161,28 +163,10 @@ transports/smtp:
 	the current activity has already reached the end of the thread ?
 	When will the new job be fed to the transport agent ?
 
-        Considering ways how to achieve that multi-process per thread:
-        - thread-head needs a way to account the number of processes
-          in active service (an int)
-        - processes in active service need to be chained together
-          (bidirectionally) to ease removing them from active work
-          gangs when whatever they were doing is completed.
-          (moving to other thread, or to idle..)
-        - thread->proc pointer is then just root for that chain
-        - Thread activation would need to start desired number of
-          processes - keeping in mind that it isn't usefull to start
-          more processes than there are items in the thread..
-          Possibly some lesser number of processes - like at most
-          half the number of items on the thread..
-          Start them afesh/pick processes from thread-group idle pool.
-
-        ... and a few other things I don't have a moment to think about
-        now..
-
-
 	Sometimes will generate spurious successfull-delivery-
 	reports when the command is retried, and the tag selector
 	is unable to start the real processor.
+		(quite old entry -- 1997-1998 ?)
 
 	Tool/mechanism for requeueing a message from the transport
 	back to the router -- all message recipients that have not
@@ -223,6 +207,8 @@ transports/smtp:
 
   - accept email to postmaster(s), never mind what else policy testers
     have determined...
+  - Do delayed-reject processing -- don't (almoast ever) reject at MAIL FROM.
+    (allowing email thru to postmaster will be then easier..)
   - "-s" option processing is entirely wrong...
   - The connection source IP reversal is not verified paranoidly, we
     may accept people who claim dishonest reversals..  (But then we
