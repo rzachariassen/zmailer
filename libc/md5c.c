@@ -31,7 +31,7 @@ documentation and/or software.
 ** Thanks to Ken Pizzini (ken@spry.com) for finally nailing this one!
 */
 
-#if defined(sun) && defined(__svr4__)
+#if defined(__sun) && defined(__SVR4)
 #define MD5Init		MD5Init_perl
 #define MD5Update	MD5Update_perl
 #define MD5Final	MD5Final_perl
