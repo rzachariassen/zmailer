@@ -1,7 +1,12 @@
+1999-09-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.52-pre2
+
 1999-09-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* doc/guides/smtp-etrn:
-	    Spotted a typo error at the ISP side document.
+	    Spotted a typo error at the ISP side of the document.
 
 	* smtpserver/zpwmatch-pipe.c, smtpserver/smtpserver.h,
 	  smtpserver/smtpserver.c, smtpserver/smtpauth.c,
@@ -11,7 +16,7 @@
 	    for authentication" approach into the baseline system.
 	    (Documents could use some additional words about the
 	     topic..)
-	
+
 	* smtpserver/zpwmatch.c:
 	    Fix  HAVE_SHADOW_H  branch of the code per report
 	    from Eugene Crosser.
