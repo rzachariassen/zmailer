@@ -848,7 +848,7 @@ struct rcpt *rp;
 const char *file;
 int iuid;
 {
-#ifdef	HAVE_MAILLOCK_H
+#ifdef	HAVE_MAILLOCK
 	const char *maillockuser;
 	struct passwd *pw;
 	int i;
@@ -856,8 +856,10 @@ int iuid;
 	const char *cp;
 	uid_t uid = (uid_t) iuid;
 
+	pw = getpwuid(uid);
+
 	if (*(rp->addr->user) == TO_FILE) {
-	  if ((pw = getpwuid(uid)) == NULL) {
+	  if (pw == NULL) {
 	    notaryreport(file,"failed",
 			 "5.2.1 (Target file has no known owner)",
 			 "x-local; 510 (Target file has no known owner)");
@@ -866,9 +868,22 @@ int iuid;
 	    return 1;
 	  }
 	  maillockuser = pw->pw_name;
-	}
-	else
+	} else {
+	  char *at, *plus;
 	  maillockuser = rp->addr->user;
+	  at = strchr(maillockuser, '@');
+	  if (at) *at = 0;
+	  plus = strchr(maillockuser, '+');
+	  if (plus) *plus = 0;
+
+	  pw = getpwnam(maillockuser);
+
+	  if (plus) *plus = '+';
+	  if (at) *at = '@';
+
+	  if (pw)
+	    maillockuser = pw->pw_name;
+	}
 
 	i = maillock((char*)maillockuser, 2); /* Sigh.. proto vs. man-page */
 	switch (i) {
@@ -912,7 +927,7 @@ int iuid;
 	  return 1;
 	}
 	havemaillock = 1;
-#endif	/* HAVE_MAILLOCK_H */
+#endif	/* HAVE_MAILLOCK */
 #ifdef  HAVE_DOTLOCK
 	havedotlock = (dotlock(file) == 0);
 	if (!havedotlock) {
@@ -1642,11 +1657,11 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 		case '"':
 		  break;
 		case '.':
-#ifdef	HAVE_MAILLOCK_H
+#ifdef	HAVE_MAILLOCK
 		  if (havemaillock && ismbox)
 		    mailunlock();
 		  havemaillock = 0;
-#endif	/* HAVE_MAILLOCK_H */
+#endif	/* HAVE_MAILLOCK */
 #ifdef	HAVE_DOTLOCK
 		  if (ismbox)
 		    dotunlock(file);
@@ -1710,11 +1725,11 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	    case '"':
 	      break;
 	    case '.':
-#ifdef	HAVE_MAILLOCK_H
+#ifdef	HAVE_MAILLOCK
 	      if (ismbox && havemaillock)
 		mailunlock();
 	      havemaillock = 0;
-#endif	/* HAVE_MAILLOCK_H */
+#endif	/* HAVE_MAILLOCK */
 #ifdef	HAVE_DOTLOCK
 	      if (ismbox)
 		dotunlock(file);

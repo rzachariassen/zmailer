@@ -1,3 +1,14 @@
+2000-03-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in, transports/mailbox/mailbox.c:
+	    "--without-maillock" configuration option from
+	    Eugene Crosser.   We don't seem to be quite
+	    as happy chaps with Solaris maillock() as we
+	    would like to be in all cases :-/
+	    (E.g. if we use any other than  /var/mail/ directory
+	     for mailboxes, Solaris  maillock()  will still put
+	     locks into /var/mail/ directory :-?  Hmm..)
+
 2000-03-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/msgerror.c:

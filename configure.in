@@ -1108,6 +1108,15 @@ if test $without_fsync = 0; then
 fi
 
 AC_FUNC_SVR4_MAILLOCK
+without_maillock=0
+AC_ARG_WITH(maillock,[  --without-maillock       Do not use maillock() even if you have it],
+	without_maillock=1)
+if test without_maillock = 0; then
+	AC_FUNC_SVR4_MAILLOCK  
+else
+	AC_DEFINE(HAVE_DOTLOCK)
+fi
+              
 
 AC_CHECK_FUNCS(mkdir mktime mkstemp rename rmdir strcpy strdup strstr \
 		strchr strrchr setvbuf strerror strsignal setreuid \
