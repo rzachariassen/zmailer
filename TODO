@@ -1,9 +1,23 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- BUG(security sensitivity):
+  - "zmailer newdb" script will run "newdb" database compilations
+    without becoming same uid+gid as the source file is (and with
+    matching umask) -- perhaps the current SH script must be turned
+    into e.g. C program ? 
+  - Also, how about enabling non-privileged users to execute "zmailer newdb"
+    to recompile their own databases even though they won't be able to
+    recreate all dbases and their hook .zmsh scripts ?
+  - Add to  dbases.conf  a triplet: user:group:maxperm
+    (either with doublecolon separation, or whitespace separation ?)
+
 - BUG? router/libdb/bind.c: relation of bind,mxlocal doesn't seem to
   work completely :-/ (30-mar-2000)
 - BUG? PIPELINING but no CHUNKING under TLS wrapper jams against
-  CommuniGate Pro 3.2 ... Suspect Communigate.
+  CommuniGate Pro 3.2 ... Suspect CommuniGate.
+
+- BUG: Scheduler running with  "maxthr>1"  seem to loose sync about
+  tasks already fed to the processing.
 
 - router+scheduler+TA status MIB areas in an SHM segment
   (Solaris et.al. which don't allow ARGV overwrite..

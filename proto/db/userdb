@@ -5,7 +5,7 @@
 #  There are white-space separated key and data fields.
 #
 #  Sendmail implements things called: ":maildrop" which is alike
-#  standard aliases. (Except works at header rewriting also.)
+#  standard aliases. (Except works at header rewriting also?)
 #  Sendmail implements also ":mailname" things which map VISIBLE HEADER
 #  addresses to other.
 #
