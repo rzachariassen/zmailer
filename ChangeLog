@@ -3,11 +3,16 @@
 	* configure.in:
 	    Version label: 2.99.57-pre1
 
+	* include/netdb6.h, lib/fdpassing.c, libc/fullname.c,
+	  libc/myhostname.c, router/libdb/ndbm.c, smtpserver/cfgread.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c, ssl/ssl.c,
+	  router/libdb/yp.c:
+	    Some SunPro C-compiler warnings silenced...
+
 	* smtpserver/subdaemons.c, smtpserver/Makefile.in,
 	  smtpserver/smtpserver.c, smtpserver/smtpserver.h:
-	    Coding subdaemon-server subsystem.
-	    This does not even compile right now..  must get
-	    another opinnion from SunCC to understand the bug..
+	    Coding subdaemon-server subsystem; initial steps,
+	    not yet in use in any form or shape...
 
 	* proto/post-install.sh.in:
 	    Do CONDITIONALLY create individual subdirectories

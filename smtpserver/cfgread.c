@@ -499,7 +499,7 @@ readcffile(name)
 {
     FILE *fp;
     struct smtpconf scf, *head, *tail = NULL;
-    char c, *cp, buf[1024], *s, *s0;
+    unsigned char c, *cp, buf[1024], *s, *s0;
     int linenum = 0;
 
     if ((fp = fopen(name, "r")) == NULL)
@@ -513,9 +513,9 @@ readcffile(name)
 	    continue;
 	if (buf[sizeof(buf) - 1] != 0 &&
 	    buf[sizeof(buf) - 1] != '\n') {
-	    int cc;
-	    while ((cc = getc(fp)) != '\n' &&
-		   cc != EOF);	/* Scan until end-of-line */
+	  int cc;
+	  while ((cc = getc(fp)) != '\n' &&
+		 cc != EOF);	/* Scan until end-of-line */
 	}
 	buf[sizeof(buf) - 1] = 0;	/* Trunc, just in case.. */
 

@@ -769,7 +769,7 @@ sh_read(argc, argv)
 	const char *argv[];
 {
 	static char *buf     = NULL;
-	static u_int bufsize = (BUFSIZ / 2) - 12;
+	static int bufsize = (BUFSIZ / 2) - 12;
 
 	int eoinp, i, flag;
 
@@ -815,7 +815,7 @@ sh_read(argc, argv)
 		    ;
 		}
 		/* Store this character into the buffer */
-		sh_read_cput(c, &i, &buf, &bufsize);
+		sh_read_cput(c, &i, &buf, & bufsize);
 	    }
 
 	    /* Store collected value */

@@ -605,7 +605,7 @@ OutputAddress outputPointer = 0;
 
 /* The Symbol Table */
 SymbolClass symClass[maxSymbols];
-const char *symText[maxSymbols];
+const unsigned char *symText[maxSymbols];
 int symHash[maxSymbols];
 int symValue[maxSymbols];
 SymbolClass symParmClass[maxSymbols];

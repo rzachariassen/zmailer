@@ -46,7 +46,7 @@ static int parsestatcode(ssp, statcodep)
      const char **statcodep;
 {
     int code = -1;
-    const char *ss = *ssp;
+    const unsigned char *ss = *ssp;
     static char statcodebuf[6];
 
     *statcodep = NULL;

@@ -40,7 +40,7 @@ search_yp(sip)
 	char *valptr;
 	int vallen;
 	conscell *tmp;
-	char *ypdomainptr = NULL;
+	const char *ypdomainptr = NULL;
 	char ypdomainname[YPMAXDOMAIN];
 
 	/* use -f specification for default domain */
@@ -71,8 +71,9 @@ search_yp(sip)
 	}
 	valptr = NULL;
 	vallen = 0;
-	yperr = yp_match(ypdomainptr, sip->subtype, sip->key,
-			 strlen(sip->key), &valptr, &vallen);
+	yperr = yp_match( ypdomainptr, (char*) sip->subtype,
+			  (char*) sip->key, strlen(sip->key),
+			  &valptr, &vallen );
 decode_result:
 	switch (yperr) {
 
@@ -96,8 +97,9 @@ decode_result:
 	   */
 	  valptr = NULL;
 	  vallen = 0;
-	  yperr = yp_match(ypdomainptr, sip->subtype, sip->key,
-			   strlen(sip->key)+1, &valptr, &vallen);
+	  yperr = yp_match( ypdomainptr, (char*) sip->subtype,
+			    (char*) sip->key, strlen(sip->key)+1,
+			    &valptr, &vallen );
 	  if (yperr != YPERR_KEY)
 	    goto decode_result;
 	  return NULL;

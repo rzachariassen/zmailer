@@ -105,7 +105,7 @@ int fdpass_receivefd(fd, newfdp)
 	*newfdp = -1;
 
 	n = recvmsg(fd,  &msg, 0);
-	if (n < 0)  return n;
+	if (n <= 0)  return n;
 
 #ifdef CMSG_SPACE /* HAVE_MSGHDR_MSG_CONTROL */
 	cmptr = CMSG_FIRSTHDR(&msg);
@@ -151,7 +151,7 @@ int fdpass_sendfd(passfd, sendfd)
 	msg.msg_name    = NULL;
 	msg.msg_namelen = 0;
 
-	iov[0].iov_base = &msg;
+	iov[0].iov_base = & msg;
 	iov[0].iov_len  = 1;  /* send 1 byte */
 	msg.msg_iov     = iov;
 	msg.msg_iovlen  = 1;

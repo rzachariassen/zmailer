@@ -87,8 +87,8 @@ _getmyhostname(namebuf, len)
 
 	/* VARIANT WITHOUT  getaddrinfo()  IN ITS LIBC REQUIREMENTS */
 
-	struct hostent *hp;
-	int i, rc;
+	struct hostent *hp = NULL;
+	int i;
 #ifdef	HAVE_SYS_UTSNAME_H
 	struct utsname id;
 	extern int uname();

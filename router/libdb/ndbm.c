@@ -326,8 +326,6 @@ modp_ndbm(sip)
 {
 	ZNdbmPrivate *prv;
 	struct stat stbuf;
-	struct spblk *spl;
-	spkey_t symid;
 	int rval;
 
 	prv = open_ndbm(sip, O_RDONLY, "owner_ndbm");

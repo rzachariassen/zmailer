@@ -22,14 +22,15 @@ extern char *getenv();
  */
 
 char *
-fullname(s, buf, buflen, up)
+fullname(s, buf, buflen, up1)
 	const char *s;		/* the name we wish to quotify */
 	char buf[];		/* place to put the result */
 	int buflen;		/* how much space we have */
-	const char *up;		/* what to use for a login name */
+	const char *up1;	/* what to use for a login name */
 {
 	register char *cp, *eob;
 	int mustquote;
+	const unsigned char *up = (const unsigned char *) up1;
 
 	mustquote = 0;
 	eob = buf + buflen - 1;

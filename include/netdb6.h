@@ -1,7 +1,7 @@
 /*
 	IPv6 API additions for the ZMailer at those machines
 	without proper libraries and includes.
-	By Matti Aarnio <mea@nic.funet.fi> 1997
+	By Matti Aarnio <mea@nic.funet.fi> 1997,2004
  */
 
 #ifndef HAVE_GETADDRINFO
@@ -17,6 +17,13 @@ struct addrinfo {
   struct sockaddr *ai_addr; /* binary address */
   struct addrinfo *ai_next; /* next structure in linked list */
 };
+
+
+extern int getaddrinfo __(( const char *node, const char *service,
+			    const struct addrinfo *hints,
+			    struct addrinfo **res ));
+extern void freeaddrinfo __(( struct addrinfo *res ));
+extern const char *gai_strerror __((int errcode));
 
 #define AI_PASSIVE     1       /* Socket address is intended for `bind'.  */
 #endif
