@@ -233,7 +233,7 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 
 
 	/* Nothing to do ?? */
-	if (rp->lockoffset == 0 && !verboselog) return;
+	if (lockoffset == 0 && !verboselog) return;
 
 	/* Ok, we either release the lock, and do diagnostics,
 	   or we do verbose logging... or both. */
@@ -466,9 +466,10 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 
 	if (verboselog) {
 	  fprintf(verboselog,
-		  "DIAG: C='%s' H='%s' U='%s' P='%s' L=%d -- stat='%s' notary='%s' ",
+		  "DIAG: C='%s' H='%s' U='%s' P='%s' ID=%d/%d L=%d -- stat='%s' notary='%s' ",
 		  rp->addr->channel, rp->addr->host, rp->addr->user,
-		  rp->addr->misc, lockoffset,
+		  rp->addr->misc,
+		  rp->desc->ctlid, rp->id, lockoffset,
 		  statmsg, (notarybuf ? notarybuf : ""));
 	  if (wtthost)
 	    fprintf(verboselog, "WTT='%s' ", wtthost);
