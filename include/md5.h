@@ -33,7 +33,15 @@ typedef struct _MD5_CTX {
   unsigned char buffer[64];	/* input buffer */
 } MD5_CTX;
 
-void   MD5Init (MD5_CTX *);
-void   MD5Update (MD5_CTX *, const unsigned char *, const unsigned int);
-void   MD5Final (unsigned char [16], MD5_CTX *);
+#ifndef __
+# ifdef __STDC__
+#  define __(x) x
+# else
+#  define __(x) ()
+# endif
+#endif
+
+void   MD5Init   __((MD5_CTX *));
+void   MD5Update __((MD5_CTX *, const unsigned char *, const unsigned int));
+void   MD5Final  __((unsigned char [16], MD5_CTX *));
 #endif /* _MD5_H_ */

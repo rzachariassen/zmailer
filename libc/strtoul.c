@@ -23,6 +23,11 @@
  * ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
+
+#ifndef __STDC__
+# define const
+#endif
+
 static const char rcsid[] = "$Header$ SPRITE (Berkeley)";
 
 #include <ctype.h>
@@ -64,6 +69,13 @@ static const char cvtIn[] = {
  *----------------------------------------------------------------------
  */
 
+#ifndef __STDC__
+unsigned long int
+strtoul(string, endPtr, base)
+     char *string;
+     char **endPtr;
+     int base;
+#else
 unsigned long int
 strtoul(
     char *string,		/* String of ASCII digits, possibly
@@ -80,6 +92,7 @@ strtoul(
 				 * else means decimal.
 				 */
 )
+#endif
 {
     register char *p;
     register unsigned long int result = 0;

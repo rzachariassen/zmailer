@@ -37,6 +37,10 @@ documentation and/or software.
 #define MD5Final	MD5Final_perl
 #endif
 
+#ifndef __STDC__
+# define const
+#endif
+
 #include "md5-global.h"
 #include "md5.h"
 
