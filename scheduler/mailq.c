@@ -290,7 +290,7 @@ main(argc, argv)
 	    }
 	    if (strcmp(host, "localhost") != 0 &&
 		strcmp(host, "127.0.0.1") != 0) {
-	      printf("[%s]\n", hp->h_name);
+	      fprintf(stdout,"[%s]\n", hp->h_name);
 	      nonlocal = 1;
 	    } else
 	      nonlocal = 0;	/* "localhost" is per default a "local" */
@@ -482,7 +482,7 @@ checkrouter()
 	close(dirp->dd_fd);
 #endif
 	closedir(dirp);
-	printf("%d entr%s in router queue: ", n, n != 1 ? "ies" : "y");
+	fprintf(stdout,"%d entr%s in router queue: ", n, n != 1 ? "ies" : "y");
 
 	if (nonlocal)
 	  r = -2;
@@ -496,23 +496,23 @@ checkrouter()
 	  if (fstat(FILENO(fp), &pidbuf) < 0) {
 	    fprintf(stderr, "\n%s: fstat: %s", progname, strerror(errno));
 	  } else if (stat(path, &corebuf) == 0 && pidbuf.st_mtime < corebuf.st_mtime)
-	    printf("core dumped\n");
+	    fprintf(stdout,"core dumped\n");
 	  else
-	    printf("no daemon\n");
+	    fprintf(stdout,"no daemon\n");
 	  fclose(fp);
 	  break;
 	case EX_OK:
 	  if (n)
-	    printf("processing\n");
+	    fprintf(stdout,"processing\n");
 	  else
-	    printf("idle\n");
+	    fprintf(stdout,"idle\n");
 	  fclose(fp);
 	  break;
 	case -2:
-	  printf("non-local\n");
+	  fprintf(stdout,"non-local\n");
 	  break;
 	default:
-	  printf("never started\n");
+	  fprintf(stdout,"never started\n");
 	  break;
 	}
 
@@ -537,7 +537,7 @@ checkrouter()
 #endif
 	closedir(dirp);
 	if (n)
-	  printf("%d message%s deferred\n", n, n != 1 ? "s" : "");
+	  fprintf(stdout,"%d message%s deferred\n", n, n != 1 ? "s" : "");
 }
 
 int countfiles __((const char *));
@@ -610,7 +610,7 @@ checkscheduler()
 
 	n = countfiles(path);
 
-	printf("%d message%s in transport queue: ",
+	fprintf(stdout,"%d message%s in transport queue: ",
 	       n, n != 1 ? "s" : "");
 
 	if (nonlocal)
@@ -620,27 +620,27 @@ checkscheduler()
 
 	switch (r) {
 	case EX_UNAVAILABLE:
-	  printf("no scheduler daemon");
+	  fprintf(stdout,"no scheduler daemon");
 	  fclose(fp);
 	  break;
 	case EX_OK:
 	  if (n == 0)
-	    printf("idle");
+	    fprintf(stdout,"idle");
 	  else
-	    printf("working");
+	    fprintf(stdout,"working");
 	  break;
 	case -2:
-	  printf("non-local");
+	  fprintf(stdout,"non-local");
 	  break;
 	default:
-	  printf("never started");
+	  fprintf(stdout,"never started");
 	  if (n > 0)
-	    printf(" \"%s/%s\" polluted", postoffice, TRANSPORTDIR);
+	    fprintf(stdout," \"%s/%s\" polluted", postoffice, TRANSPORTDIR);
 	  break;
 	}
 	if (sawcore)
-	  printf(" (core exists)");
-	printf("\n");
+	  fprintf(stdout," (core exists)");
+	fprintf(stdout,"\n");
 
 }
 
@@ -955,7 +955,7 @@ repscan(spl)
 	  if (vv->ngroup == 0)
 	    continue;
 	  if (!onlyuser)
-	    printf("%s/%s:\n", w->name, vv->orig[L_HOST]->name);
+	    fprintf(stdout,"%s/%s:\n", w->name, vv->orig[L_HOST]->name);
 	  else
 	    flag = 0;
 	  filecnt = 0;
@@ -974,18 +974,18 @@ repscan(spl)
 	      }
 	      close(fd);
 	      if (flag == 0)
-		printf("%s/%s:\n", w->name, vv->orig[L_HOST]->name);
+		fprintf(stdout,"%s/%s:\n", w->name, vv->orig[L_HOST]->name);
 	    }
 	    if (!summary) {
 	      flag = 1;
-	      printf("\t%s", v->cfp->mid);
+	      fprintf(stdout,"\t%s", v->cfp->mid);
 	      if (v->ngroup > 1)
-		printf("/%d", v->ngroup);
-	      putchar(':');
+		fprintf(stdout,"/%d", v->ngroup);
+	      fprintf(stdout,":");
 	      if (v->message)
-		printf("\t%s\n", v->message);
+		fprintf(stdout,"\t%s\n", v->message);
 	      else
-		putchar('\n');
+		fprintf(stdout,"\n");
 	      if (verbose)
 		printaddrs(v);
 	    } else {
@@ -1013,15 +1013,15 @@ repscan(spl)
 	    v->ngroup = 0;
 	  }
 	  if (summary == 1 && !onlyuser) {
-	    printf("\t  %d file%s, ", (int)filecnt, filecnt>1 ? "s":"");
+	    fprintf(stdout,"\t  %d file%s, ", (int)filecnt, filecnt>1 ? "s":"");
 	    if (filesizesum == 0)
-	      printf("no file size info available\n");
+	      fprintf(stdout,"no file size info available\n");
 	    else
-	      printf("%ld bytes total, %d bytes average\n",
-		     filesizesum, (int)(filesizesum/filecnt));
+	      fprintf(stdout,"%ld bytes total, %d bytes average\n",
+		      filesizesum, (int)(filesizesum/filecnt));
 	  }
 	  if (summary > 1 && !onlyuser) {
-	    printf("\t  %d file%s\n", (int)filecnt, filecnt>1 ? "s":"");
+	    fprintf(stdout,"\t  %d file%s\n", (int)filecnt, filecnt>1 ? "s":"");
 	  }
 	}
 	return 0;
@@ -1062,8 +1062,8 @@ void query2(fpi, fpo)
 	    return;
 
 	if (*buf != '+') {
-	  printf("User '%s' not accepted to server '%s'; err='%s'\n",
-		 v2username, host ? host : "<NO-HOST-?>", buf+1);
+	  fprintf(stdout,"User '%s' not accepted to server '%s'; err='%s'\n",
+		  v2username, host ? host : "<NO-HOST-?>", buf+1);
 	  return;
 	}
 
@@ -1089,7 +1089,7 @@ void query2(fpi, fpo)
 
 	  if (*buf != '+') {
 
-	    printf("Scheduler response: '%s'\n",buf);
+	    fprintf(stdout,"Scheduler response: '%s'\n",buf);
 
 	  } else {
 
@@ -1100,12 +1100,12 @@ void query2(fpi, fpo)
 	      if (buf[0] == '.' && buf[1] == 0)
 		break;
 	      /* Do leading dot duplication suppression */
-	      printf("%s\n",((*buf == '.') ? buf+1 : buf));
+	      fprintf(stdout,"%s\n",((*buf == '.') ? buf+1 : buf));
 	    }
 
 	  }
 	} else {
-	  printf("Sorry, scheduler with protocol version 2 can't give results without -Q option\n");
+	  fprintf(stdout,"Sorry, scheduler with protocol version 2 can't give results without -Q option\n");
 	}
 }
 
@@ -1146,12 +1146,12 @@ report(fpi,fpo)
 	sp_scan(repscan, (struct spblk *)NULL, spt_ids[L_CHANNEL]);
 	if (!r_i) {
 	  if (onlyuser)
-	    printf("No user messages found\n");
+	    fprintf(stdout,"No user messages found\n");
 	  else
 	    if (schedq == 0)
-	      printf("Transport queue is empty -- or scheduler uses -Q -mode\n");
+	      fprintf(stdout,"Transport queue is empty -- or scheduler uses -Q -mode\n");
 	    else
-	      printf("Transport queue is empty\n");
+	      fprintf(stdout,"Transport queue is empty\n");
 	}
 }
 
@@ -1168,24 +1168,24 @@ printaddrs(v)
 	  sprintf(path, "%s/%s/%s", postoffice, TRANSPORTDIR, v->cfp->mid);
 	  if ((fd = open(path, O_RDONLY, 0)) < 0) {
 #if 0
-	    printf("\t\t%s: %s\n", path, strerror(errno));
+	    fprintf(stdout,"\t\t%s: %s\n", path, strerror(errno));
 #endif
 	    return;
 	  }
 	  if (fstat(fd, &stbuf) < 0) {
-	    printf("\t\tfstat(%s): %s\n", path, strerror(errno));
+	    fprintf(stdout,"\t\tfstat(%s): %s\n", path, strerror(errno));
 	    close(fd);
 	    return;
 	  }
 	  v->cfp->contents = malloc((u_int)stbuf.st_size);
 	  if (v->cfp->contents == NULL) {
-	    printf("\t\tmalloc(%d): out of memory!\n", (int)stbuf.st_size);
+	    fprintf(stdout,"\t\tmalloc(%d): out of memory!\n", (int)stbuf.st_size);
 	    close(fd);
 	    return;
 	  }
 	  errno = 0;
 	  if (read(fd, v->cfp->contents, stbuf.st_size) < stbuf.st_size){
-	    printf("\t\tread(%d): %s\n", (int)stbuf.st_size,
+	    fprintf(stdout,"\t\tread(%d): %s\n", (int)stbuf.st_size,
 		   errno == 0 ? "failed" : strerror(errno));
 	    close(fd);
 	    return;
@@ -1223,34 +1223,34 @@ printaddrs(v)
 	if (summary)
 	  return;
 	if (v->cfp->logident)
-	  printf("\t  id\t%s", v->cfp->logident);
+	  fprintf(stdout,"\t  id\t%s", v->cfp->logident);
 	if (verbose > 1 && v->cfp->offset[0] > 0) {
 	  long dt = now - v->cfp->mtime;
 	  int fields = 3;
-	  printf(", %ld bytes, age ", (long)v->cfp->offset[0]);
+	  fprintf(stdout,", %ld bytes, age ", (long)v->cfp->offset[0]);
 	  /* age (now-mtime) printout */
 	  if (dt > (24*3600)) {	/* Days */
-	    printf("%dd", (int)(dt /(24*3600)));
+	    fprintf(stdout,"%dd", (int)(dt /(24*3600)));
 	    dt %= (24*3600);
 	    --fields;
 	  }
 	  if (dt > 3600) {
-	    printf("%dh",(int)(dt/3600));
+	    fprintf(stdout,"%dh",(int)(dt/3600));
 	    dt %= 3600;
 	    --fields;
 	  }
 	  if (dt > 60 && fields > 0) {
-	    printf("%dm",(int)(dt/60));
+	    fprintf(stdout,"%dm",(int)(dt/60));
 	    dt %= 60;
 	    --fields;
 	  }
 	  if (fields > 0) {
-	    printf("%ds",(int)dt);
+	    fprintf(stdout,"%ds",(int)dt);
 	  }
 	}
-	putchar('\n');
+	fprintf(stdout,"\n");
 	if (v->cfp->mark > 0)
-	  printf("\t  from\t%s\n", v->cfp->contents + v->cfp->mark);
+	  fprintf(stdout,"\t  from\t%s\n", v->cfp->contents + v->cfp->mark);
 	for (i = 0; i < v->ngroup; ++i) {
 	  cp = v->cfp->contents + v->index[i] + 2;
 	  if (*cp == ' ' || (*cp >= '0' && *cp <= '9'))
@@ -1280,10 +1280,9 @@ printaddrs(v)
 	      *cp = '\0';
 	    }
 	  }
-	  putchar('\t');
+	  fprintf(stdout,"\t");
 	  if (i == 0)
-	    printf("  to");
-	  putchar('\t');
-	  puts(ocp);
+	    fprintf(stdout,"  to");
+	  fprintf(stdout,"\t%s",ocp);
 	}
 }
