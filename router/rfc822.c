@@ -863,8 +863,11 @@ mkSender(e, name, flag)
 			if (pp->p_next == NULL)
 				break;
 		}
-	} else if ((spl = sp_lookup(symbol_db(name,spt_fullnamemap->symbols),
-				    spt_fullnamemap)) != NULL) {
+	} else {
+	  spkey_t spk = symbol_lookup_db(name,spt_fullnamemap->symbols);
+	  if (spk)
+	    spl = sp_lookup(spk, spt_fullnamemap);
+	  if (spk && spl != NULL) {
 		*ppp = (struct addr *)tmalloc(sizeof (struct addr));
 		pp = *ppp;
 		ppp = &pp->p_next;
@@ -872,6 +875,7 @@ mkSender(e, name, flag)
 					 strlen((char *)spl->data));
 		pp->p_tokens->t_type = Word;
 		pp->p_type = aPhrase;
+	  }
 	}
 	if (sh->h_contents.a->a_tokens != NULL) {	/* 'Full Name <' */
 		*ppp = (struct addr *)tmalloc(sizeof (struct addr));
