@@ -1,3 +1,24 @@
+1999-05-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* SiteConfig.in, proto/cf/rrouter.cf:
+	    Moved "SMARTHOST" into historical bit-bucket.
+	    Suggested way is to use "dot-route" to default
+	    all non-local traffic to some server.
+
+	* smtpserver/smtpauth.c:
+	    The "ok" reply was wrong (253), and M$ clients
+	    barfed at the login. Change that to 235 and it
+	    works just fine.
+
+	* proto/smtpserver.conf.in, doc/guides/openssl,
+	  smtpserver/cfgread.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c, smtpserver/smtptls.c,
+	  smtpserver/smtpcmds.c:
+	    Interoperability testing dig various weird things.
+	    Now I know lots of details about the certificates :)
+	    For the juicy bits about server certificates, see
+	    file: doc/guides/openssl
+
 1999-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

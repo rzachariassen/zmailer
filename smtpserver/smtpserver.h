@@ -243,6 +243,7 @@ extern int etrn_ok;
 extern int starttls_ok;
 extern char *tls_cert_file, *tls_key_file, *tls_CAfile, *tls_CApath;
 extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd;
+extern int tls_ask_cert, tls_req_cert;
 extern int strict_protocol;
 extern int rcptlimitcnt;
 extern int enable_router;

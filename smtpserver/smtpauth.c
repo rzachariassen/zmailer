@@ -175,16 +175,16 @@ void smtp_auth(SS,buf,cp)
     if (debug)
       type(SS, 0, NULL, "-> %s", bbuf);
 
-#if 0
-    if (tls_loglevel > 1)
+    if (tls_loglevel > 3)
       type(NULL,0,NULL,"zpwmatch: user ´%s' password '%s'", uname, bbuf);
-#endif
+    else if (tls_loglevel > 0)
+      type(NULL,0,NULL,"zpwmatch: user ´%s' (password: *not so easy*!)", uname);
 
     if (zpwmatch(uname, bbuf) > 0) {
 	SS->authuser = uname;
-	type(SS, 253, NULL, "Authentication successfull");
+	type(SS, 235, NULL, "Authentication successful.");
     } else {
-	type(SS, 535, NULL, "Authentication failed");
+	type(SS, 535, NULL, "Authentication failed.");
 	if (uname) free(uname);
     }
 }

@@ -52,13 +52,14 @@ smtp_starttls(SS, buf, cp)
       return;
     }
     /* XX: engine ok ?? */
-    type(SS, 220, NULL, "Ok to start TLS");
+    type(SS, 220, NULL, "Ready to start TLS");
     typeflush(SS);
     if (SS->mfp != NULL) {
       clearerr(SS->mfp);
       mail_abort(SS->mfp);
       SS->mfp = NULL;
     }
+
     start_servertls(SS);
 
     SS->sslwrbuf = emalloc(8192);
@@ -304,8 +305,7 @@ tls_dump(s, len)
      int len;
 {
     int     ret = 0;
-    char    buf[160 + 1];
-    char    tmp[20];
+    char    buf[160 + 1], *ss;
     int     i;
     int     j;
     int     rows;
@@ -322,29 +322,34 @@ tls_dump(s, len)
     rows = (len / DUMP_WIDTH);
     if ((rows * DUMP_WIDTH) < len)
 	rows++;
+
     for (i = 0; i < rows; i++) {
-	buf[0] = '\0';				/* start with empty string */
-	sprintf(tmp, "%04x - ", i * DUMP_WIDTH);
-	strcpy(buf, tmp);
+	ss = buf;
+	*ss = 0;	/* start with empty string */
+
+	sprintf(ss, "%04x ", i * DUMP_WIDTH);
+	ss += strlen(ss);
 	for (j = 0; j < DUMP_WIDTH; j++) {
 	    if (((i * DUMP_WIDTH) + j) >= len) {
-		strcat(buf, "   ");
+		strcpy(ss, "   ");
+		ss += 3;
 	    } else {
 		ch = ((unsigned char) *((char *) (s) + i * DUMP_WIDTH + j))
 		    & 0xff;
-		sprintf(tmp, "%02x%c", ch, j == 7 ? '-' : ' ');
-		strcat(buf, tmp);
+		sprintf(ss, "%02x%c", ch, j == 7 ? '|' : ' ');
+		ss += 3;
 	    }
 	}
-	strcat(buf, "  ");
+	ss += strlen(ss);
+	*ss++ = ' ';
 	for (j = 0; j < DUMP_WIDTH; j++) {
 	    if (((i * DUMP_WIDTH) + j) >= len)
 		break;
 	    ch = ((unsigned char) *((char *) (s) + i * DUMP_WIDTH + j)) & 0xff;
-	    sprintf(tmp, "%c", ((ch >= ' ') && (ch <= '~')) ? ch : '.');
-	    strcat(buf, tmp);
+	    *ss++ = (((ch >= ' ') && (ch <= '~')) ? ch : '.');
+	    if (j == 7) *ss++ = ' ';
 	}
-	strcat(buf, "\n");
+	*ss = 0;
 	/* if this is the last call then update the ddt_dump thing so that
          * we will move the selection point in the debug window
          */
@@ -353,7 +358,7 @@ tls_dump(s, len)
     }
 #ifdef TRUNCATE
     if (trunc > 0) {
-	sprintf(buf, "%04x - <SPACES/NULS>\n", len + trunc);
+	sprintf(buf, "%04x - <SPACES/NULS>", len + trunc);
 	type(NULL,0,NULL,"%s", buf);
 	ret += strlen(buf);
     }
@@ -493,6 +498,7 @@ void
 tls_stop_servertls(SS)
      SmtpState *SS;
 {
+    type(NULL,0,NULL,"TLS stopping; mode was: %s", SS->sslmode ? "ON" : "OFF");
     if (SS->sslmode) {
 	SSL_shutdown(SS->ssl);
 	SSL_clear(SS->ssl);

@@ -42,6 +42,13 @@ http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/myownca.html
 	~/newreq.pem		->  smtpserver-key.pem
 	~/newcert.pem		->  smtpserver-cert.pem
 
+    That generated certificate must be *SERVER* certificate!
+    At  openssl.cnf  file following must be enabled when
+    creating this certificate:
+		# This is OK for an SSL server.
+		nsCertType			= server
+
+
  4) The  $MAILVAR/smtpserver.conf  will need PARAMs:
 
 #

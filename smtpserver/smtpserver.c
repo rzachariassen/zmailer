@@ -208,6 +208,8 @@ char *tls_CApath    = NULL;
 int tls_loglevel    = 0;
 int tls_enforce_tls = 0;
 int tls_ccert_vd    = 1;
+int tls_ask_cert    = 0;
+int tls_req_cert    = 0;
 
 #ifdef HAVE_OPENSSL
 SSL_CTX *ssl_ctx = NULL;
@@ -524,7 +526,7 @@ char **argv;
 
 #ifdef HAVE_OPENSSL
     if (starttls_ok)
-      tls_init_serverengine(1,1,0);
+      tls_init_serverengine(tls_ccert_vd,tls_ask_cert,tls_req_cert);
 #endif
 
     if (!allow_source_route)
@@ -1685,12 +1687,24 @@ int insecure;
 	    smtp_rcpt(SS, buf, cp);
 	    break;
 	case Data:
-	    if (smtp_data(SS, buf, cp) < 0)
-		return;
+	    if (smtp_data(SS, buf, cp) < 0) {
+#ifdef HAVE_OPENSSL
+	      if (SS->sslmode) {
+		tls_stop_servertls(SS);
+	      }
+#endif
+	      return;
+	    }
 	    break;
 	case BData:
-	    if (smtp_bdata(SS, buf, cp) < 0)
-		return;
+	    if (smtp_bdata(SS, buf, cp) < 0) {
+#ifdef HAVE_OPENSSL
+	      if (SS->sslmode) {
+		tls_stop_servertls(SS);
+	      }
+#endif
+	      return;
+	    }
 	    break;
 	case Reset:
 	    if (*cp != 0 && strict_protocol) {
@@ -1770,6 +1784,11 @@ int insecure;
 	    SS->mfp = NULL;
 	    type(SS, 221, m200, NULL, "Out");
 	    typeflush(SS);
+#ifdef HAVE_OPENSSL
+	    if (SS->sslmode) {
+	      tls_stop_servertls(SS);
+	    }
+#endif
 	    return;
 	default:
 	    break;
@@ -1781,9 +1800,14 @@ int insecure;
 	tell = lseek(0, 0, SEEK_CUR);
 	reporterr(SS, tell, "session terminated");
     } else if (logfp != NULL) {
-	fprintf(logfp, "%d-\tSession closed w/o QUIT\n", pid);
+	type(NULL,0,NULL,"Session closed w/o QUIT");
 	fflush(logfp);
     }
+#ifdef HAVE_OPENSSL
+    if (SS->sslmode) {
+	tls_stop_servertls(SS);
+    }
+#endif
 }
 
 #if 0				/* tmalloc() is in the library, isn't it ? */

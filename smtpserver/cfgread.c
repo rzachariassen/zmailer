@@ -177,6 +177,12 @@ static void cfparam(str)
 
     } else if (cistrcmp(name, "tls-ccert-vd")  == 0 && param1) {
       sscanf(param1,"%d", & tls_ccert_vd);
+
+    } else if (cistrcmp(name, "tls-ask-cert")  == 0 && param1) {
+      sscanf(param1,"%d", & tls_ask_cert);
+
+    } else if (cistrcmp(name, "tls-require-cert")  == 0 && param1) {
+      sscanf(param1,"%d", & tls_req_cert);
     }
     /* XX: report error for unrecognized PARAM keyword ?? */
 }

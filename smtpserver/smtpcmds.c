@@ -303,14 +303,13 @@ const char *buf, *cp;
 	if (auth_ok)
 	  type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/
 						 Sun Solstice/M$ Exchange ? */
-#ifdef HAVE_OPENSSL
 	if (auth_ok)
 	  type(SS, -250, NULL, "AUTH LOGIN"); /* RFC 2554, M$ Exchange ? */
+#ifdef HAVE_OPENSSL
 	/* NOTE: This seems to require TLS and STARTTLS facilities,
 	   better known as SSL..  TLS: RFC 2246, STARTTLS: RFC 2487 */
 	if (starttls_ok && !SS->sslmode) {
 	  type (SS, -250, NULL, "STARTTLS"); /* RFC 2487 */
-	  type (SS, -250, NULL, "TLS");      /* Netscapeism ? */
 	}
 #endif
 	if (etrn_ok)
