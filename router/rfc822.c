@@ -1014,10 +1014,16 @@ mkTrace(e)
 	} else
 		th->h_contents.r->r_with = NULL;
 	/* id */
-	na = (struct addr *)tmalloc(sizeof (struct addr));
-	na->p_tokens = makeToken(e->e_file, strlen(e->e_file));
-	na->p_next = NULL;
-	na->p_type = anAddress;	/* really a message id */
+	{
+	  char fnam[20], taspid[30];
+	  sprintf(fnam, "%d", e->e_statbuf.st_ino);
+	  taspoolid(taspid, sizeof(taspid), e->e_statbuf.st_mtime, fnam);
+
+	  na = (struct addr *)tmalloc(sizeof (struct addr));
+	  na->p_tokens = makeToken(taspid, strlen(taspid));
+	  na->p_next = NULL;
+	  na->p_type = anAddress;	/* really a message id */
+	}
 	ap = (struct address *)tmalloc(sizeof (struct address));
 	ap->a_tokens = na;
 	ap->a_next = NULL;

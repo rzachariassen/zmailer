@@ -1,3 +1,39 @@
+1999-05-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/rfc822.c:
+	    Change the Received: header 'id' information to be the same
+	    which syslog() uses, and which is reported at the smtpserver.
+	    Eases looking for message spoolids at syslog outputs.
+
+	* transports/smtp/smtp.c:
+	    Overhauled error processing in various situations, now an
+	    EX_TEMPFAIL condition will use next MX server (if one is
+	    available) very much independent of where along the code
+	    the problem occurred.   Originally a problem in e.g. connection
+	    setup until EHLO/HELO probe was retryable to an MX, but now
+	    a much latter problem phase (DATA + . yielding 4** code,
+	    for example) can do the same.
+
+	* smtpserver/smtpserver.h, smtpserver/cfgread.c,
+	  smtpserver/smtpserver.c, smtpserver/smtptls.c,
+	  smtpserver/smtpsmds.c:
+	    Much work again, now to parametrize ways of selectively adding
+	    pieces of "Received:" header contained commentary information.
+	    Features: ident, whoson, auth-username, tls-cipher, tls-client-cert
+	    ( Last one is a FIXME item :-| )
+
+1999-05-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c:
+	    Fix introduced accidental NULL referral.
+
+	* SiteConfig.in:
+	    Partially undo previous change to SiteConfig.in;
+	    let the  FORCEPUNT  to be there...
+
+	* scheduler/scheduler.c, scheduler/update.c:
+	    Fixed the 'stored recipient count' gauge leakage.
+
 1999-05-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	DISTRIBUTION: 2.99.50s17

@@ -281,21 +281,22 @@ const char *buf, *cp;
 	sprintf(sizebuf, "SIZE %ld", maxinlimit); /* 0: No fixed max size
 						     in force, else:
 						     The FIXED maximum */
-	type(SS, -250, NULL, sizebuf);
+
+	type(SS, -250, NULL, sizebuf);		/* RFC 1427/1653/1870 */
 	if (mime8bitok)
-	  type(SS, -250, NULL, "8BITMIME");
+	  type(SS, -250, NULL, "8BITMIME");	/* RFC 1426/1652 */
 	if (pipeliningok)
-	  type(SS, -250, NULL, "PIPELINING");
+	  type(SS, -250, NULL, "PIPELINING");	/* RFC 1854/2197 */
 	if (chunkingok)
 	  type(SS, -250, NULL, "CHUNKING");	/* RFC 1830: BDAT */
 	if (enhancedstatusok)
-	  type(SS, -250, NULL, "ENHANCEDSTATUSCODES");
+	  type(SS, -250, NULL, "ENHANCEDSTATUSCODES"); /* RFC 2034 */
 	if (expncmdok && STYLE(SS->cfinfo, 'e'))
-	  type(SS, -250, NULL, "EXPN");
+	  type(SS, -250, NULL, "EXPN");		/* RFC 821 */
 	if (vrfycmdok && STYLE(SS->cfinfo, 'v'))
-	  type(SS, -250, NULL, "VRFY");
+	  type(SS, -250, NULL, "VRFY");		/* RFC 821 */
 	if (dsn_ok)
-	  type(SS, -250, NULL, "DSN");
+	  type(SS, -250, NULL, "DSN");		/* RFC 1891 */
 
 	if (rcptlimitcnt > 100)
 	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
@@ -313,8 +314,8 @@ const char *buf, *cp;
 	}
 #endif
 	if (etrn_ok)
-	  type(SS, -250, NULL, "ETRN");
-	type(SS, 250, NULL, "HELP");
+	  type(SS, -250, NULL, "ETRN");		/* RFC 1985 */
+	type(SS, 250, NULL, "HELP");		/* RFC 821 ? */
 	SS->with_protocol = WITH_ESMTP;
 	multilinereplies = multiline;
     }
@@ -705,16 +706,55 @@ int insecure;
       if (SS->ihostaddr[0] != 0)
 	fprintf(SS->mfp, "%s:%d ", SS->ihostaddr, SS->rport);
       rfc822commentprint(SS->mfp, SS->helobuf);
-      if (ident_flag) {
+
+      if (ident_flag && log_rcvd_ident) {
 	fprintf(SS->mfp, " ident: ");
 	rfc822commentprint(SS->mfp, SS->ident_username);
       }
 #ifdef HAVE_WHOSON_H
-      fprintf(SS->mfp, " whoson: ");
-      rfc822commentprint(SS->mfp,
-			 ((SS->whoson_result == 0) ? SS->whoson_data :
-			  ((SS->whoson_result == 1) ? "-unregistered-" : 
-			   "-unavailable-")));
+      if (log_rcvd_whoson) {
+	fprintf(SS->mfp, " whoson: ");
+	rfc822commentprint(SS->mfp,
+			   ((SS->whoson_result == 0) ? SS->whoson_data :
+			    ((SS->whoson_result == 1) ? "-unregistered-" : 
+			     "-unavailable-")));
+      }
+#endif
+      if (log_rcvd_authuser) {
+	fprintf(SS->mfp, " smtp-auth: ");
+	if (SS->authuser) {
+	  rfc822commentprint(SS->mfp,SS->authuser);
+	} else {
+	  fprintf(SS->mfp, "<none>");
+	}
+      }
+#ifdef HAVE_OPENSSL
+      if (SS->sslmode && SS->ssl) {
+	if (log_rcvd_tls_mode) {
+	  SSL_CIPHER *cp = SSL_get_current_cipher(SS->ssl);
+	  char cbuf[2000];
+	  int n, cb;
+	  cb = SSL_CIPHER_get_bits(cp, &n);
+	  sprintf(cbuf, "%s keybits %d version %s",
+		  SSL_CIPHER_get_name(cp), cb, SSL_CIPHER_get_version(cp));
+	  fprintf(SS->mfp, " TLS-CIPHER: ");
+	  rfc822commentprint(SS->mfp, cbuf);
+	}
+	if (log_rcvd_tls_ccert) {
+	  X509	*peer = SSL_get_peer_certificate(SS->ssl);
+	  if (!peer) {
+	    fprintf(SS->mfp, " TLS-CCERT: <none>");
+	  } else {
+	    /* Wow, have something, now store the client cert reference.. */
+	    char cbuf[2000];
+	  XXXXXXXXXXXX:;
+	  }
+	}
+      } else {
+	if (log_rcvd_tls_mode)
+	  fprintf(SS->mfp, " TLS-CIPHER: <none>");
+	if (log_rcvd_tls_ccert)
+	  fprintf(SS->mfp, " TLS-CCERT: <none>");
 #endif
       fprintf(SS->mfp, ")\n");
     }

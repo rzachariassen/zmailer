@@ -210,6 +210,11 @@ int tls_enforce_tls = 0;
 int tls_ccert_vd    = 1;
 int tls_ask_cert    = 0;
 int tls_req_cert    = 0;
+int log_rcvd_whoson = 0;
+int log_rcvd_ident  = 0;
+int log_rcvd_authuser = 0;
+int log_rcvd_tls_mode = 0;
+int log_rcvd_tls_ccert = 0;
 
 #ifdef HAVE_OPENSSL
 SSL_CTX *ssl_ctx = NULL;

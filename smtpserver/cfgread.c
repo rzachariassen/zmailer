@@ -66,6 +66,10 @@ static void cfparam(str)
     if (*str != 0)
 	*str++ = 0;
 
+    /* How many parallel clients a servermode smtpserver allows
+       running in parallel, and how many parallel sessions can
+       be coming from same IP address */
+
     if (cistrcmp(name, "same-ip-source-parallel-max") == 0) {
 	sscanf(param1, "%d", &MaxSameIpSource);
     } else if (cistrcmp(name, "MaxSameIpSource") == 0) {
@@ -74,6 +78,9 @@ static void cfparam(str)
 	sscanf(param1, "%d", &MaxParallelConnections);
     } else if (cistrcmp(name, "max-parallel-connections") == 0) {
 	sscanf(param1, "%d", &MaxParallelConnections);
+
+    /* TCP related parameters */
+
     } else if (cistrcmp(name, "ListenQueueSize") == 0) {
 	sscanf(param1, "%d", &ListenQueueSize);
     } else if (cistrcmp(name, "tcprcvbuffersize") == 0) {
@@ -120,6 +127,20 @@ static void cfparam(str)
       enable_router = 1;
     } else if (cistrcmp(name, "smtp-auth") == 0) {
       auth_ok = 1;
+    }
+
+    /* Store various things into 'rvcdfrom' header per selectors */
+
+    else if (cistrcmp(name, "rcvd-ident") == 0) {
+      log_rcvd_ident = 1;
+    } else if (cistrcmp(name, "rcvd-whoson") == 0) {
+      log_rcvd_whoson = 1;
+    } else if (cistrcmp(name, "rcvd-auth-user") == 0) {
+      log_rcvd_authuser = 1;
+    } else if (cistrcmp(name, "rcvd-tls-mode") == 0) {
+      log_rcvd_tls_mode = 1;
+    } else if (cistrcmp(name, "rcvd-tls-ccert") == 0) {
+      log_rcvd_tls_ccert = 1;
     }
 
     /* Some Enhanced-SMTP facility disablers: (default: on ) */
