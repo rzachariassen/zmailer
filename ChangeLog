@@ -1,3 +1,10 @@
+2002-04-05  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/libta/ctlopen.c:
+	    The RP data block is not initialized completely in all cases,
+	    which causes occasional bugs.  Doing   memset()  for it at
+	    first, then filling in non-zero values.
+
 2002-03-08  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/reroute/reroute.c, transports/reroute/Makefile.in,

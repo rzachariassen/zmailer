@@ -489,6 +489,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	      *exitflagp = 1;
 	      break;
 	    }
+	    memset(rp, 0, sizeof(*rp));
 	    rp->addr = ap;
 	    rp->delayslot = delayslot;
 	    rp->id = d.offset[i];
@@ -496,14 +497,14 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	    rp->lockoffset = rp->id + 1;
 	    rp->next = d.recipients;
 	    rp->desc = &d;
-	    rp->orcpt  = NULL;
-	    rp->inrcpt = NULL;
-	    rp->ezmlm  = NULL;
-	    rp->notify = NULL;
+	    /* rp->orcpt  = NULL;
+	       rp->inrcpt = NULL;
+	       rp->ezmlm  = NULL;
+	       rp->notify = NULL; */
 	    rp->notifyflgs = _DSN_NOTIFY_FAILURE; /* Default behaviour */
 	    d.recipients = rp;
 	    rp->status = EX_OK;
-	    rp->newmsgheader = NULL;
+	    /* rp->newmsgheader = NULL; */
 	    rp->drptoffset   = -1;
 	    rp->headeroffset = -1;
 	    prevrp = rp;
