@@ -4,6 +4,8 @@
  */
 
 /*
+ *	Copyright 1994-2000 by Matti Aarnio
+ *
  * To really understand how headers (and their converted versions)
  * are processed you do need to draw a diagram.
  * Basically:
@@ -64,6 +66,8 @@ extern char *getzenv();
 # endif
 #endif
 
+extern char * dupnstr __((const char *str, const int len));
+
 static int mime_received_convert __((struct rcpt *rp, char *convertstr));
 
 /* extern FILE *verboselog; */
@@ -74,25 +78,27 @@ static int mime_received_convert __((struct rcpt *rp, char *convertstr));
 /* strqcpy() -- store the string into buffer with quotes if it
    		is not entirely of alphanums+'-'+'_'.. */
 
-static int strqcpy __((char *buf, int buflen, char *str));
+static int strqcpy __((char **buf, int startpos, int *buflenp, char *str));
 
 static int
-strqcpy(buf,buflen,str)
-	char *buf, *str;
-	int buflen;
+strqcpy(bufp, startpos, buflenp, str)
+	char **bufp, *str;
+	int *buflenp;
 {
 	char *s = str;
-	char *p = buf;
-	int cnt = buflen;
+	char *buf = *bufp;
+	char *p = buf + startpos;
 	int needquotes = 0;
+	int buflen = *buflenp - startpos;
+	int cnt = buflen;
 
 	/* Copy while scanning -- redo if need quotes.. */
 	while (*s) {
 	  char c = *s;
-	  if (!((c >= '0' && c <= '9') ||
-		(c >= 'A' && c <= 'Z') ||
-		(c >= 'a' && c <= 'z') ||
-		c == '-' || c == '_')) {
+	  if (!(('0' <= c && c <= '9') ||
+		('A' <= c && c <= 'Z') ||
+		('a' <= c && c <= 'z') ||
+		c == '-' || c == '_' || c == '.')) {
 	    needquotes = 1;
 	    break;
 	  }
@@ -100,18 +106,34 @@ strqcpy(buf,buflen,str)
 	    *p++ = c;
 	    --cnt;
 	  }
+	  if (cnt == 0) {
+	    cnt = 32;
+	    *buflenp += cnt;
+	    buflen = *buflenp;
+	    buf = realloc(buf, *buflenp + 5);
+	  }
 	  ++s;
 	}
-	if (cnt && !needquotes) {
+	if (cnt && !needquotes) { /* Space left, not need quotes */
 	  *p = 0;
+	  *bufp = buf;
 	  return (buflen - cnt);
 	}
+
 	/* Ok, need quotes.. */
-	p = buf;
+	p = buf + startpos;
 	cnt = buflen -3;
 	s = str;
 	*p++ = '"';
 	while (*s) {
+	  if (cnt < 2) {
+	    cnt += 32;
+	    *buflenp += cnt;
+	    buflen = *buflenp;
+	    startpos = p - buf;
+	    buf = realloc(buf, *buflenp + 5);
+	    p = buf + startpos;
+	  }
 	  if (*s == '"' || *s == '\\')
 	    *p++ = '\\', --cnt;
 	  if (cnt>0)
@@ -122,6 +144,7 @@ strqcpy(buf,buflen,str)
 
 	*p++ = '"';
 	*p   = 0;
+	*bufp = buf;
 	return (buflen - cnt);
 }
 
@@ -263,14 +286,33 @@ output_content_type(rp,ct,old)
 			attr_2="ajdsh 8327ead"
 	 */
 
-	char buf[200];
-	char *lines[40]; /* XX: Hopefully enough.. */
+	char *lines[400]; /* XX: Hopefully enough.. */
+	int  linelens[400];
 	int  linecnt = 0, i;
 	char **newmsgheaders;
-	char **h1, **o1, **o2, ***basep;
-	int  oldcnt, hdrlines, newlines;
+	char **h1, **o2, ***basep;
+	int  hdrlines;
 	char *bp;
 	char **unk = ct->unknown;
+	int bufsiz, len, totlen = 0;
+	char *buf;
+
+	bufsiz  = 18;
+	if (ct->basetype)
+	  bufsiz += strlen(ct->basetype);
+	if (ct->subtype)
+	  bufsiz += strlen(ct->subtype) + 4;
+	if (ct->charset)
+	  bufsiz += strlen(ct->charset) + 14;
+
+	if (ct->boundary) {
+	  int siz2 = strlen(ct->boundary) + 16 ;
+	  if (siz2 > bufsiz) bufsiz = siz2;
+	}
+	if (ct->name) {
+	  int siz2 = strlen(ct->name) + 10 ;
+	  if (siz2 > bufsiz) bufsiz = siz2;
+	}
 
 	sprintf(buf,"Content-Type:\t%s",ct->basetype);
 	bp = buf + strlen(buf);
@@ -282,67 +324,83 @@ output_content_type(rp,ct,old)
 	if (ct->charset) {
 	  strcat(bp,"; charset=");
 	  bp = bp + strlen(bp);
-	  strqcpy(bp,sizeof(buf)-1-(bp-buf),ct->charset);
+	  strqcpy(&buf, bp - buf, &bufsiz, ct->charset);
 	  bp = bp + strlen(bp);
-	  if (ct->boundary != NULL ||
-	      ct->name != NULL ||
-	      ct->unknown != NULL) {
-	    *bp++ = ';';
-	    *bp = 0;
-	  }
-	}
+	  if (ct->boundary || ct->name || unk)
+	    strcat(bp, ";");
+	} else if (ct->boundary || ct->name || unk)
+	  strcat(bp, ";");
+
 /*if (verboselog) fprintf(verboselog,"CT_out: '%s'\n",buf);*/
-	lines[linecnt++] = strdup(buf);
-	*buf = 0; bp = buf;
-	if (ct->boundary) {
-	  strcat(buf,"\tboundary=");
-	  bp = bp + strlen(bp);
-	  strqcpy(bp,sizeof(buf)-1-(bp-buf),ct->boundary);
-	  bp = bp + strlen(bp);
-	  if (ct->unknown != NULL) {
-	    *bp++ = ';';
-	    *bp = 0;
-	  }
-	}
-	if (*buf != 0) {
-/*if (verboselog) fprintf(verboselog,"CT_out: '%s'\n",buf);*/
-	  lines[linecnt++] = strdup(buf);
-	}
+	len = strlen(buf);
+	linelens[linecnt] = len;
+	lines[linecnt++] = dupnstr(buf, len);
+	totlen += len;
 
 	*buf = 0; bp = buf;
+
+	if (ct->boundary) {
+	  strcat(bp,"\tboundary=");
+	  bp = bp + strlen(bp);
+	  strqcpy(&buf, bp - buf, &bufsiz, ct->boundary);
+	  bp = bp + strlen(bp);
+	  if (ct->name || unk)
+	    strcat(bp, ";");
+
+/*if (verboselog) fprintf(verboselog,"CT_out: '%s'\n",buf);*/
+	  len = strlen(buf);
+	  linelens[linecnt] = len;
+	  lines[linecnt++] = dupnstr(buf, len);
+	  totlen += len + 1;
+	  *buf = 0; bp = buf;
+	}
+
 	if (ct->name) {
-	  strcat(buf,"\tname=");
+	  strcat(bp,"\tname=");
 	  bp = bp + strlen(bp);
-	  strqcpy(bp,sizeof(buf)-1-(bp-buf),ct->name);
+	  strqcpy(&buf, bp - buf, &bufsiz, ct->name);
 	  bp = bp + strlen(bp);
-	  if (ct->boundary != NULL ||
-	      ct->unknown != NULL) {
-	    *bp++ = ';';
-	    *bp = 0;
-	  }
-	}
-	if (*buf != 0) {
+	  if (unk)
+	    strcat(bp, ";");
+
 /*if (verboselog) fprintf(verboselog,"CT_out: '%s'\n",buf);*/
-	  lines[linecnt++] = strdup(buf);
+	  len = strlen(buf);
+	  linelens[linecnt] = len;
+	  lines[linecnt++] = dupnstr(buf, len);
+	  totlen += len +1;
+	  *buf = 0; bp = buf;
 	}
-	*buf = 0; bp = buf;
+
 	while (unk && *unk) {
-	  if (*buf) {
-	    /* There is something already, and more wants to push in.. */
-	    strcat(bp,";");
+	  int ulen = strlen(*unk);
+	  if (bufsiz < ((bp - buf) + 2 + ulen)) {
+	    bufsiz = (bp - buf) + 2 + ulen + 8;
+	    buf = realloc(buf, bufsiz);
+	  }
+	  if (((bp - buf) + 2 + ulen) >= 78 && *buf) {
+	    /* There is something already, and more wants to push in,
+	       but would overflow the 78 column marker! */
+	    memcpy(bp, ";", 2);
 /*if (verboselog) fprintf(verboselog,"CT_out: '%s'\n",buf);*/
-	    lines[linecnt++] = strdup(buf);
-	    *buf = 0;
-	    bp = buf;
+	    len = strlen(buf);
+	    linelens[linecnt] = len;
+	    lines[linecnt++] = dupnstr(buf, len);
+	    totlen += len +1;
+	    *buf = 0; bp = buf;
 	  }
 	  *bp++ = '\t';
-	  strcpy(bp,*unk);
+	  memcpy(bp, *unk, ulen);
+	  bp += ulen;
+	  *bp = 0;
 	  ++unk;
 	}
 
 	if (*buf != 0) {
 /*if (verboselog) fprintf(verboselog,"CT_out: '%s'\n",buf);*/
-	  lines[linecnt++] = strdup(buf);
+	  len = strlen(buf);
+	  linelens[linecnt] = len;
+	  lines[linecnt++] = dupnstr(buf, len);
+	  totlen += len +1;
 	}
 
 	/* The lines are formed, now save them.. */
@@ -354,18 +412,10 @@ output_content_type(rp,ct,old)
 	h1 = *basep;
 	for (; *h1; ++h1, ++hdrlines) ;
 
-	oldcnt = 0;
-	o1 = NULL;
-	if (old != NULL) {
-	  o1 = old;
-	  o2 = o1+1;
-	  while (*o2 != NULL && (**o2 == ' ' || **o2 == '\t'))
-	    ++o2, ++oldcnt;
-	}
-	newlines = hdrlines + linecnt - oldcnt + 1;
-	newmsgheaders = (char**)malloc(sizeof(char*)*newlines);
+	newmsgheaders = (char**)malloc(sizeof(char*)*(hdrlines +2));
 	if (! newmsgheaders) {
 	  zmalloc_failure = 1;
+	  if (buf) free(buf);
 	  return;
 	}
 	o2 = newmsgheaders;
@@ -376,10 +426,19 @@ output_content_type(rp,ct,old)
 	if (h1 == old) {
 	  /* Found the old entry ?  Skip over it.. */
 	  ++h1;
-	  while (*h1 && (**h1 == ' ' || **h1 == '\t')) ++h1;
 	}
-	for (i = 0; i < linecnt; ++i)
-	  *o2++ = lines[i];
+	buf = realloc(buf, totlen + 3);
+	bp = buf;
+	for (i = 0; i < linecnt; ++i) {
+	  memcpy(bp, lines[i], linelens[i]);
+	  free(lines[i]);
+	  bp += linelens[i];
+	  if (i+1 < linecnt)
+	    *bp++ = '\n';
+	}
+	*bp = 0;
+	*o2++ = buf; /* DO NOT FREE buf HERE! */
+
 	while (*h1)
 	  *o2++ = *h1++;
 	*o2 = NULL;
@@ -390,11 +449,221 @@ output_content_type(rp,ct,old)
 	*basep = newmsgheaders;
 }
 
+static char * skip_822linearcomments __((char *p));
+
+#if 0 /* This code not needed */
+static char * skip_822dtext __((char *p));
+static char * skip_822dtext(p)
+     char *p;
+{
+	/* This shall do skipping of RFC 822:
+	   3.1.4: Structured Field Bodies  defined ATOMs */
+
+	char *s = p;
+
+#warning "skip_822dtext() code missing!"
+
+	return s;
+}
+static char * skip_822domainliteral __((char *p));
+static char * skip_822domainliteral(p)
+     char *p;
+{
+	/* This shall do skipping of RFC 822: DOMAIN LITERALs */
+
+	char *s = p;
+
+#warning " skip_822dliteral() missing code!"
+
+	return s;
+}
+#endif
+
+static char * skip_822qtext __((char *p));
+static char * skip_822qtext(p)
+     char *p;
+{
+	/* This shall do skipping of RFC 822:  qtext  items */
+
+	char *s = p;
+
+	while (*s && *s != '"' && *s != '\\') ++s;
+
+	return s;
+}
+
+static char * skip_822qpair __((char *p));
+static char * skip_822qpair(p)
+     char *p;
+{
+	/* This shall do skipping of RFC 822:  quoted-pair  items */
+
+	char *s = p;
+
+	++s; /* We come in with '\\' at *s */
+	/* End-of-header ?? */
+	if (*s != 0)
+	  ++s;
+
+	return s;
+}
+
+static char * skip_822quotedstring __((char *p));
+static char * skip_822quotedstring(p)
+     char *p;
+{
+	/* This shall do skipping of RFC 822:  quoted-string  items */
+
+	char *s = p;
+
+	/* At arrival:  *s == '"' */
+	++s;
+
+	while (*s && *s != '"') {
+	  if (*s == '\\')
+	    s = skip_822qpair(s);
+	  else
+	    s = skip_822qtext(s);
+	}
+	if (*s == '"')
+	  ++s;
+
+	return s;
+}
+
+static char * skip_comment __((char *p));
+static char * skip_comment(p)
+     char *p;
+{
+	/* This shall do skipping of RFC 822:
+	   3.1.4: Structured Field Bodies
+	   defined COMMENTS */
+
+	char *s = p;
+
+	++s; /* We are called with *s == '(' */
+	while (*s && *s != ')') {
+
+	  if (*s == '\\') { /* Quoted-Pair */
+	    s = skip_822qpair(s);
+	    continue;
+	  }
+	  if (*s == '(') {
+	    s = skip_comment(s);
+	    continue;
+	  }
+	  /* Anything else, just advance... */
+	  ++s;
+	}
+	if (*s == ')')
+	  ++s;
+
+	return s;
+}
+
+static char * skip_822linearcomments(p)
+     char *p;
+{
+	/* This shall do skipping of RFC 822:
+	   3.1.4: Structured Field Bodies
+	   defined LINEAR-WHITESPACES and COMMENTS */
+
+	char *s = p;
+
+	while (*s) {
+
+	  while (*s == '\n' || *s == ' ' || *s == '\t') ++s;
+
+	  if (*s == '(') {
+	    s = skip_comment(s);
+	    continue;
+	  }
+
+	  if (*s != 0) /* Not line-end */
+	    break; /* Anything else is worth ending the scan ? */
+	}
+
+	return s;
+}
+
+static char * _skip_822atom __((char *p, int tspecial));
+static char * _skip_822atom(p, tspecial)
+     char *p;
+     int tspecial;
+{
+	/* This shall do skipping of RFC 822:
+	   3.1.4: Structured Field Bodies  defined ATOMs */
+
+	char *s = p;
+
+	while (*s) {
+	  int isdelim = 0;
+	  char c = *s;
+	  if (c == 127 || (0 <= c && c <= ' '))
+	    break; /* Delimiters (controls, SPACE) */
+
+	  if (c == '.' && !tspecial) /* RFC 822 at odds with RFC 2045 */
+	    isdelim = 1;
+
+	  switch (c) { /* Any of specials ? */
+	  case '/':
+	  case '?':
+	  case '=': /* TokenSpecial as defined at MIME / RFC 2045 et.al. */
+	    if (!tspecial) break;
+	  case '(':
+	  case ')':
+	  case '\\':
+	  case '<':
+	  case '>':
+	  case '@':
+	  case ',':
+	  case ';':
+	  case ':':
+	  case '"':
+	  case '[':
+	  case ']':
+	    isdelim = 1;
+	  default:
+	    break;
+	  }
+	  if (isdelim) break;
+	  ++s;
+	}
+
+	return s;
+}
+
+static char * skip_mimetoken __((char *p));
+static char * skip_mimetoken(p)
+     char *p;
+{
+  return _skip_822atom(p, 1);
+}
+
+
+static char * foldmalloccopy __((char *start, char *end));
+static char * foldmalloccopy (start, end)
+     char *start;
+     char *end;
+{
+	int len = end - start;
+	int space = len + 1;
+	char *b;
+
+	b = malloc(space);
+	if (!b) return NULL; /* UARGH! */
+
+	memcpy(b, start, len);
+	b[len] = 0;
+	return b;
+}
+
+
 struct ct_data *
 parse_content_type(ct_linep)
      char **ct_linep;	/* Could be multiline! */
 {
-	char *s, *p, *pv, *ss;
+	char *s, *p;
 	struct ct_data *ct = (struct ct_data*)malloc(sizeof(struct ct_data));
 	int unknowncount = 0;
 
@@ -410,159 +679,77 @@ parse_content_type(ct_linep)
 	s = *ct_linep;
 	s += 13;	/* "Content-Type:" */
 
-	while (*s == ' ' || *s == '\t') ++s;
-	p = s;
-	while (*s && *s != ' ' && *s != '/' && *s != '\t' && *s != ';')
-	  ++s;
-	ct->basetype = malloc((s - p)+2);
-	/* FIXME: malloc problem check ?? */
-	ss = ct->basetype;
-	/* Copy over the basetype */
-	while (p < s) *ss++ = *p++;
-	*ss = 0;
-	while (*s == ' ' || *s == '\t') ++s;
-	if (*s == '/') {	/* Subtype defined */
-	  ++s;
-	  while (*s == ' ' || *s == '\t') ++s;
-	  p = s;
-	  while (*s && *s != ' ' && *s != '/' && *s != '\t' && *s != ';')
-	    ++s;
-	  ct->subtype = malloc((s - p)+2);
-	  /* FIXME: malloc problem check ?? */
-	  ss = ct->subtype;
-	  /* Copy over the subtype */
-	  while (p < s) *ss++ = *p++;
-	  *ss = 0;
+	p = skip_822linearcomments(s);
+	s = skip_mimetoken(p);
+
+	ct->basetype = foldmalloccopy(p, s);
+
+	p = skip_822linearcomments(s);
+
+	if (*p == '/') {	/* Subtype defined */
+	  ++p;
+	  p = skip_822linearcomments(p);
+	  s = skip_mimetoken(p);
+
+	  ct->subtype = foldmalloccopy(p, s);
 	}
 
-	while (1) {
+	while (*s) {
 	  /* Check for possible parameters on the first and/or continuation
 	     line(s) of the header line... */
-	  char paramname[40];
-	  char *parval, c;
+	  char *paramname;
+	  char *parval;
 
-	  if (*s == 0) {
-	  /* Check if we have a continuation line */
-	    if ((s = ct_linep[1])) {
-	      if (*s != ' ' && *s != '\t') /* No continuation */
-		return ct;
-	      while (*s == ' ' || *s == '\t') ++s;
-	      if (*s == 0)
-		return ct;	/* No continuation,
-				   just a blank line w/ LWSP on it */
-	      ++ct_linep;	/* Advance.. */
-	    } else
-	      return ct;	/* Last of the header lines */
+	  s = skip_822linearcomments(s);
+	  if (!*s) break;
+	  if (*s == ';') ++s;
+	  else {
+	    /* Not found semicolon at expected phase ?? Whoo..
+	       Now shall we scan towards the end, and HOPE for the best,
+	       or what shall we do ? */
 	  }
-	  while (*s == ';' || *s == ' ' || *s == '\t') ++s;
-	  if (*s == 0) continue; /* last token on this line ? */
+	  p = skip_822linearcomments(s);
+	  if (!*p) return ct;
+	  s = skip_mimetoken(p);
+	  if (s == p && *s == 0) break; /* Nothing anymore */
 
-	  p = s;
-	  c = *s;
-	  while (c && (('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') ||
-		       ('0' <= c && c <= '9') || c == '-' || c == '_'))
-	    c = *++s; /* Scan over a parameter name.. */
+	  paramname = foldmalloccopy(p, s);
 
-	  /* Ok, `p' points to a parameter name string */
-	  if (s < (p+sizeof(paramname))) {
-	    strncpy(paramname,p,s-p);
-	    paramname[s-p] = 0;
-	  } else {
-	    strncpy(paramname,p,sizeof(paramname)-1);
-	    paramname[sizeof(paramname)-1] = 0;
-	  }
 	  /* Picked up a param name, now scan the value */
-	  pv = s;
 
 	  /* Have seen cases where there was:
-	         charset = "foo-bar"
+		charset = "foo-bar"
 	     That is, it had whitespaces around the "=" sign. */
 
-	  while (*s == ' ' || *s == '\t') ++s;
+	  s = skip_822linearcomments(s);
 
 	  if (*s == '=') {	    /* What if no `=' ?? */
-	    ++pv;
 	    ++s;
+	  }
+	  p = skip_822linearcomments(s);
 
-	    /* Skip possible further whitespace */
-	    while (*s == ' ' || *s == '\t') ++s;
-
-	    if (*s == '"') {
-	      /* Scan a quoted string, stop at trailing '"' */
-	      int quoted = 0; /* Quoted with '\' */
-	      ++s;
-	      while (*s) {
-		if (!quoted && *s == '"') break;
-		if (*s == '\\') /* This quote skips over the next char */
-		  quoted = 2;
-		if (quoted) --quoted;
-		++s;
-	      }
-	      if (*s) ++s; /* Skip the trailing '"' */
-	    } else {
-	      /* Scan an alphanumeric string -- stop at ';', and LWSP */
-	      while (*s && *s != ';' && *s != ' ' && *s != '\t')
-		++s;
-	    }
+	  if (*p == '"') {
+	    s = skip_822quotedstring(p);
 	  } else {
-	    /* XX: what if no `=' after the parameter name ? */
-	    /* ... it never happens, and then somebody screw things
-	       up in 9th of June, 1996, and nic.funet.fi experienced
-	       smtp crash.. */
-	    /* pv is at the start of the stuff as is.. */
-	    ++s;
-	    if (*s == '"') {
-	      /* Scan a quoted string, stop at trailing '"' */
-	      int quoted = 0; /* Quoted with '\' */
-	      ++s;
-	      while (*s) {
-		if (!quoted && *s == '"') break;
-		if (*s == '\\') /* This quote skips over the next char */
-		  quoted = 2;
-		if (quoted) --quoted;
-		++s;
-	      }
-	      if (*s) ++s; /* Skip the trailing '"' */
-	    } else {
-	      /* Scan an alphanumeric string -- stop at ';', and LWSP */
-	      while (*s && *s != ';' && *s != ' ' && *s != '\t')
-		++s;
-	    }
+	    s = skip_mimetoken(p);
 	  }
 
-	  parval = malloc((s - pv) + 2);
-	  /* FIXME: malloc problem check ?? */
-	  ss = parval;
-	  if (*pv == '"') { /* Copy the quoted string to parval */
-	    int quoted = 0;
-	    ++pv;
-	    while (*pv && pv < s) {
-	      if (!quoted && *pv == '"') break;
-	      if (*pv == '\\') quoted = 2;
-	      if (quoted)    --quoted;
-	      if (!quoted)
-		*ss++ = *pv;
-	      ++pv;
-	    }
-	  } else { /* Copy the unquoted string to parval */
-	    while (pv < s)
-	      *ss++ = *pv++;
-	  }
-	  *ss = 0; /* Terminate the string */
+	  parval = foldmalloccopy(p, s);
 
-	  if (cistrcmp("charset",paramname)==0) {
+	  if (CISTREQ("charset",paramname)) {
 	    /* Parameter:  charset="..." */
 	    ct->charset = parval;
-	  } else if (cistrcmp("boundary",paramname)==0) {
+	  } else if (CISTREQ("boundary",paramname)) {
 	    /* Parameter:  boundary="...." */
 	    ct->boundary = parval;
-	  } else if (cistrcmp("name",paramname)==0) {
+	  } else if (CISTREQ("name",paramname)) {
 	    /* Parameter:  name="...." */
 	    ct->name     = parval;
 	  } else {
 	    /* Unknown parameter.. */
 	    int unklen = strlen(parval)+5+strlen(paramname);
 	    int unkpos;
+	    char *unk;
 	    if (!ct->unknown) {
 	      ct->unknown = (char**)malloc(sizeof(char*)*2);
 	/* FIXME: malloc problem check ?? */
@@ -572,46 +759,47 @@ parse_content_type(ct_linep)
 					    sizeof(char*)*(unknowncount+2));
 	/* FIXME: malloc problem check ?? */
 	    }
-	    ct->unknown[unknowncount] = malloc(unklen);
+	    unk = malloc(unklen);
 	/* FIXME: malloc problem check ?? */
-	    sprintf(ct->unknown[unknowncount],"%s=",paramname);
-	    unkpos = strlen(ct->unknown[unknowncount]);
-	    strqcpy(ct->unknown[unknowncount]+unkpos,unklen-unkpos,parval);
-	    ct->unknown[++unknowncount] = NULL;
+	    sprintf(unk, "%s=", paramname);
+	    unkpos = strlen(unk);
+	    strqcpy(&unk, unkpos, &unklen, parval);
+	    ct->unknown[unknowncount] = unk;
+	    ct->unknown[unknowncount] = NULL;
+	    ++unknowncount;
+	    free (parval);
 	  }
+	  if (paramname)
+	    free(paramname);
 	}
-	/*NOTREACHABLE*/
+	return ct;
 }
 
 struct cte_data *
 parse_content_encoding(cte_linep)
      char **cte_linep;	/* Probably is not a multiline entry.. */
 {
-	char *line, *s;
+	char *s;
 	struct cte_data *cte = malloc(sizeof(struct cte_data));
 
 	if (!cte) return NULL;
 
 	s = (*cte_linep) + 26;
 	/* Skip over the 'Content-Transfer-Encoding:' */
-	while (*s != 0 && (*s == ' ' || *s == '\t')) ++s;
-	line = s;
+	s = skip_822linearcomments(s);
 	if (*s == '"') {
-	  char *p;
-	  cte->encoder = p = malloc(strlen(s));
-	/* FIXME: malloc problem check ?? */
-	  while (*s && *s != '"')
-	    *p++ = *s++;
-	  *p = 0;
+	  char *p = skip_822quotedstring(s);
+	  cte->encoder = foldmalloccopy(s, p);
+	  /* FIXME: malloc problem check ?? */
+	  s = p;
 	} else {
-	  char *p;
-	  cte->encoder = p = malloc(strlen(s));
-	/* FIXME: malloc problem check ?? */
-	  while (*s && *s != ' ' && *s != '\t')
-	    *p++ = *s++;
-	  *p = 0;
+	  char *p = skip_mimetoken(s);
+	  cte->encoder = foldmalloccopy(s, p);
+	  /* FIXME: malloc problem check ?? */
+	  s = p;
 	}
-	while (*s == ' ' || *s == '\t') ++s;
+
+	/* while (*s == ' ' || *s == '\t') ++s; */
 	/* XX: if (*s) -- errornoeus data */
 
 	return cte;
@@ -631,11 +819,12 @@ check_conv_prohibit(rp)
 	if (!hdrs) return 0;
 
 	while (*hdrs) {
-	  if (cistrncmp(*hdrs,"Content-conversion:", 19)==0) {
+	  if (CISTREQN(*hdrs,"Content-conversion:", 19)) {
 	    char *s = *hdrs + 19;
-	    while (*s == ' ' || *s == '\t') ++s;
-	    if (cistrncmp(s,"prohibited",10)==0) return -1;
-	    if (cistrncmp(s,"forced-qp",9)==0) return 7;
+	    char *p = skip_822linearcomments(s);
+	    if (*p == '"') ++p;
+	    if (CISTREQN(p,"prohibited",10)) return -2;
+	    if (CISTREQN(p,"forced-qp",9)) return 7;
 	    /* Prohibits (?) the content conversion.. */
 	  }
 	  ++hdrs;
@@ -663,14 +852,15 @@ cte_check(rp)
 
 	while (*hdrs && (!mime || !cte)) {
 	  char *buf = *hdrs;
-	  if (!cte && cistrncmp(buf,cCTE,26)==0) {
+	  if (!cte && CISTREQN(buf,cCTE,26)) {
 	    buf += 26;
-	    while (*buf == ' ' || *buf == '\t') ++buf;
+	    buf = skip_822linearcomments(buf);
+	    if (*buf == '"') ++buf;
 	    if (*buf == '8' /* 8BIT */) cte = 8;
 	    else if (*buf == '7' /* 7BIT */) cte = 7;
 	    else if (*buf == 'Q' || *buf == 'q') cte = 9; /*QUOTED-PRINTABLE*/
 	    else cte = 1; /* Just something.. BASE64 most likely .. */
-	  } else if (!mime && cistrncmp(buf,"MIME-Version:",13)==0) {
+	  } else if (!mime && CISTREQN(buf,"MIME-Version:",13)) {
 	    mime = 1;
 	  }
 	  ++hdrs;
@@ -693,7 +883,7 @@ has_header(rp,keystr)
 
 	if (hdrs)
 	  while (*hdrs) {
-	    if (cistrncmp(*hdrs,keystr,keylen)==0) return hdrs;
+	    if (CISTREQN(*hdrs,keystr,keylen)) return hdrs;
 	    ++hdrs;
 	  }
 	return NULL;
@@ -708,10 +898,6 @@ delete_header(rp,hdrp)	/* Delete the header, and its possible
 	char **h1 = hdrp;
 	char **h2 = hdrp+1;
 	ctlfree(rp->desc,*hdrp);
-	while (*h2 && (**h2 == ' ' || **h2 == '\t')) {
-	  ctlfree(rp->desc,*h2);
-	  ++h2;
-	}
 	while (*h2)
 	  *h1++ = *h2++;
 	/* And one more time.. To copy the terminating NULL ptr. */
@@ -736,12 +922,12 @@ downgrade_charset(rp, verboselog)
 
 	if (ct->basetype == NULL ||
 	    ct->subtype  == NULL ||
-	    cistrcmp(ct->basetype,"text") != 0 ||
-	    cistrcmp(ct->subtype,"plain") != 0) return 0; /* Not TEXT/PLAIN! */
+	    !CISTREQ(ct->basetype,"text") ||
+	    !CISTREQ(ct->subtype,"plain")) return 0; /* Not TEXT/PLAIN! */
 
 	if (ct->charset &&
-	    cistrncmp(ct->charset,"ISO-8859",8) != 0 &&
-	    cistrncmp(ct->charset,"KOI8",4)     != 0) return 0; /* Not ISO-* */
+	    !CISTREQN(ct->charset,"ISO-8859",8) &&
+	    !CISTREQN(ct->charset,"KOI8",4)    ) return 0; /* Not ISO-* */
 
 	if (ct->charset)
 	  free(ct->charset);
@@ -879,8 +1065,8 @@ NULL };
 
 	is_textplain = (ct->basetype != NULL &&
 			ct->subtype  != NULL &&
-			cistrcmp(ct->basetype,"text") == 0 &&
-			cistrcmp(ct->subtype,"plain") == 0);
+			CISTREQ(ct->basetype,"text") &&
+			CISTREQ(ct->subtype,"plain"));
 
 	if (ct->charset && is_textplain &&
 	    (convertmode != _CONVERT_QP) &&
@@ -888,8 +1074,8 @@ NULL };
 	       inputs where the claimed charset(prefix) has
 	       all its charsets equal to US-ASCII in the
 	       low 128 characters. */
-	    (cistrncmp(ct->charset,"ISO-8859",8) == 0 ||
-	     cistrncmp(ct->charset,"KOI8",4)     == 0)) {
+	    (CISTREQN(ct->charset,"ISO-8859",8) ||
+	     CISTREQN(ct->charset,"KOI8",4)        )) {
 
 	  if (ct->charset)
 	    free(ct->charset);
@@ -929,26 +1115,24 @@ mime_received_convert(rp, convertstr)
 
 	char **inhdr = *(rp->newmsgheadercvt);
 	char **hdro = NULL;
+	char *sc;
 
 	/* We have one advantage: The "Received:" header we
 	   want to fiddle with is the first one of them. */
 
-	if (!inhdr || cistrncmp(*inhdr,"Received:",9) != 0) {
+	if (!inhdr || !CISTREQN(*inhdr,"Received:",9)) {
 	  return 0; /* D'uh ??  Not 'Received:' ??? */
 	}
 
 	/* Look for the LAST semicolon in this Received: header.. */
 
-	do {
-	  char *sc = strrchr(*inhdr, ';');
-	  if (sc) {
-	    semic = sc;
-	    schdr = inhdr;
-	    semicindex = sc - *inhdr;
-	  }
-	  hdro = inhdr;
-	  ++inhdr;
-	} while (*inhdr && (**inhdr == ' ' || **inhdr == '\t'));
+	sc = strrchr(*inhdr, ';');
+	if (sc) {
+	  semic = sc;
+	  schdr = inhdr;
+	  semicindex = sc - *inhdr;
+	}
+	hdro = inhdr;
 
 	/* Now 'semic' is either set, or not; if set, 'schdr' points
 	   to the begin of the line where it is.
@@ -1010,13 +1194,14 @@ qp_to_8bit(rp)
 
 	if (ct->basetype == NULL ||
 	    ct->subtype  == NULL ||
-	    cistrcmp(ct->basetype,"text") != 0 ||
-	    cistrcmp(ct->subtype,"plain") != 0) return 0; /* Not TEXT/PLAIN! */
+	    !CISTREQ(ct->basetype,"text") ||
+	    !CISTREQ(ct->subtype,"plain") ) return 0; /* Not TEXT/PLAIN! */
 
 	hdr = *CTE;
 
 	p = hdr + 26;
-	while (*p == ' ' || *p == '\t') ++p;
+	p = skip_822linearcomments(p);
+
 	if (*p == 'Q' || *p == 'q') {
 	  if (strlen(hdr+26) >= 5)
 	    strcpy(hdr+26," 8BIT");

@@ -1,4 +1,24 @@
+2000-11-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* Makefile.in:
+	    Mark version "2.99.55-pre1cvs" (which means nothing much)
+
+	* include/ta.h, transports/libta/fwriteheaders.c,
+	  transports/libta/swriteheaders.c, transports/libta/markoff.c,
+	  transports/libta/mime2headers.c, transports/libta/mimeheaders.c,
+	  transports/libta/stringlib.c, transports/smtp/appendlet.c,
+	  transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    Initial steps towards doing proper format downgrade
+	    during (SMTP) transport.
+	    - Modified header handling to process folded lines as single
+	      string, not as a sequence of strings.
+	    - Wrote proper RFC822/MIME token scanner into  mimeheaders.c
+	      which is able to correctly skip over places where (folded)LWSP
+	      is allowed, including possible (comments) in them.
+
 2000-11-12  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* Marked this as  zmailer-2-99-54-patch1
 
 	* lib/selfaddrs.c:
 	    Learned something about the SIOCGIFFLAGS/SIOCGLIFFLAGS
@@ -29,7 +49,7 @@
 	    ... and latter on I removed this change.
 	    It looks like getting NXDOMAIN is trouble at whatever
 	    system happens to be the DNS server, and we are better
-	    of when we don't trouble ourselves too much with
+	    off when we don't trouble ourselves too much with
 	    circumventations at the resolver code for it.
 
 2000-10-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>

@@ -64,6 +64,7 @@ router:
 		possible errno telling that there is e.g. temporary
 		access error with backend database...
 	   Fixed(?) on 21-Sep-2000 with HOLD/DEFER code.
+	   Not, pulled that code back.  It is DIFFICULT problem..
 
 	Error address pickup  ( router/rfc822.c: erraddress() )
 	picks *bad* choices sometimes; e.g. it might consider

@@ -4,6 +4,10 @@
  */
 
 /*
+ *	Copyright 1994-2000 by Matti Aarnio <mea@nic.funet.fi>
+ */
+
+/*
  * Useful string functions.
  */
 
@@ -14,7 +18,7 @@
 
 int
 cistrcmp(a, b)
-	register char *a, *b;
+	register const char *a, *b;
 {
 	unsigned char	ac, bc;
 
@@ -37,7 +41,7 @@ cistrcmp(a, b)
 
 int
 cistrncmp(a, b, n)
-	register char *a, *b;
+	register const char *a, *b;
 	int	n;
 {
 	unsigned char	ac, bc;
@@ -61,7 +65,7 @@ cistrncmp(a, b, n)
 
 int
 ci2strncmp(a, b, n)
-	register char *a, *b;
+	register const char *a, *b;
 	int	n;
 {
 	unsigned char	ac, bc;
@@ -77,4 +81,16 @@ ci2strncmp(a, b, n)
 		++a, ++b;
 	}
 	return 0;
+}
+
+char *
+dupnstr(str, len)
+     const char *str;
+     const int len;
+{
+	char *s = malloc(len + 1);
+	if (!s) return NULL; /* AARGH!! */
+	memcpy(s, str, len);
+	s[len] = 0;
+	return s;
 }

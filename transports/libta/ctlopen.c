@@ -615,8 +615,10 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		++s;
 	      ++s;
 
-	      /* Collect all the header lines into
-		 individual lines.. [mea] */
+	      /* Collect all the headers into individual "lines",
+		 keep folding information ('\n' chars) in them,
+		 if some particular header happens to be a folded one.. */
+
 	      while (*s) {
 		if (headerlines == 0) {
 		  msgheader = (char **)malloc(sizeof(char**) * 8);
@@ -628,7 +630,15 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 					      sizeof(void*) * (headerspace+1));
 		}
 		ss = s;
-		while (*ss && *ss != '\n') ++ss;
+		/* Scan the string, until we see a newline *not* followed
+		   by a SPACE, or a TAB. */
+		while (*ss) {
+		  while (*ss && *ss != '\n') ++ss;
+		  if (*ss == '\n' && (ss[1] == ' ' || ss[1] == '\t'))
+		    ++ss;
+		  else
+		    break;
+		}
 		if (*ss == '\n') *ss++ = '\0';
 		msgheader[headerlines++] = s;
 		msgheader[headerlines  ] = NULL;

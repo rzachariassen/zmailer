@@ -41,12 +41,14 @@ struct taddress {
 /* `convertmode' controls the behaviour of the message conversion:
      _CONVERT_NONE (0): send as is
      _CONVERT_QP   (1): Convert 8-bit chars to QUOTED-PRINTABLE
-     _CONVERT_8BIT (2): Convert QP-encoded chars to 8-bit
-     _CONVERT_UNKNOWN (3): Turn message to charset=UNKNOWN-8BIT, Q-P..
+     _CONVERT_MULTIPARTQP (2): Convert substructures to QP - when not it..
+     _CONVERT_8BIT (3): Convert QP-encoded chars to 8-bit
+     _CONVERT_UNKNOWN (4): Turn message to charset=UNKNOWN-8BIT, Q-P..
 */
 typedef enum {
   _CONVERT_NONE,
   _CONVERT_QP,
+  _CONVERT_MULTIPARTQP,
   _CONVERT_8BIT,
   _CONVERT_UNKNOWN
 } CONVERTMODE;

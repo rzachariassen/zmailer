@@ -1,7 +1,7 @@
 /*
  *	MIME-part-2 header 8-bit coding to MIME-coded-tokens
  *
- *      Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1996
+ *      Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1996, 2000
  *	(and   Markku T Jarvinen <mta@sci.fi>)
  */
 
@@ -226,17 +226,17 @@ headers_to_mime2(rp,defcharset,vlog)
 
 	  for (s = (char*)hdr; *s; ++s) {
 	    int c = (*s) & 0xFF;
-	    if (c != '\t' && (c < ' ' || c > 126)) {
+	    if (c != '\n' && c != '\t' && (c < ' ' || c > 126)) {
 
 	      /* Bad stuff, can't exist in the headers! */
 if (vlog) fprintf(vlog,"8-bit header: '%s'\n",hdr);
 
 	      /* Now rewind BACK to begin of this token,
-		 separators are: ' ','\t','(' */
-	      while (s > (char*)hdr && *s != ' ' &&
+		 separators are: '\n', ' ','\t','(' */
+	      while (s > (char*)hdr && *s != ' ' && *s != '\n' &&
 		     *s != '\t' && *s != '(' && *s != ')')
 		--s;
-	      if (*s == ' ' || *s == '\t' || *s == ')') ++s;
+	      if (*s == ' ' || *s == '\t' || *s == ')' || *s == '\n') ++s;
 	      /* Now the 's' points at the begin of the token */
 	      p = (char*)hdr;
 	      if (!newbuf) {
@@ -250,7 +250,7 @@ if (vlog) fprintf(vlog,"8-bit header: '%s'\n",hdr);
 	      sprintf(q,"=?%s?Q?", defcharset);
 	      q += strlen(q);
 
-	      for ( ; *s && (*s != ' ' && *s != '\t' && *s != ')'); ++s) {
+	      for ( ; *s && (*s != ' ' && *s != '\t' && *s != ')' && *s != '\n'); ++s) {
 		c = (*s) & 0xFF;
 		if (c < ' '  || c > 126  ||
 		    c == '=' || c == '?' || c == '_') {

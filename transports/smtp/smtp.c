@@ -1017,14 +1017,16 @@ deliver(SS, dp, startrp, endrp)
 	SS->chunking   = ( SS->ehlo_capabilities & ESMTP_CHUNKING );
 
 	convertmode = _CONVERT_NONE;
+
+	/* If the header says '8BIT' and ISO-8859-* something,
+	   but body is plain 7-bit, turn it to '7BIT', and US-ASCII */
+	/* Or if this is some more complicated type... */
+	ascii_clean = check_7bit_cleanness(dp);
+
 	if (conv_prohibit >= 0) {
 
 	  /* Content-Transfer-Encoding: 8BIT ? */
 	  content_kind = cte_check(startrp);
-
-	  /* If the header says '8BIT' and ISO-8859-* something,
-	     but body is plain 7-bit, turn it to '7BIT', and US-ASCII */
-	  ascii_clean = check_7bit_cleanness(dp);
 
 	  if (ascii_clean && content_kind == 8) {
 	    if (downgrade_charset(startrp, SS->verboselog))
@@ -1080,7 +1082,21 @@ deliver(SS, dp, startrp, endrp)
 	    headers_to_mime2(startrp,defcharset,SS->verboselog);
 	  }
 
-	}
+	} else if (conv_prohibit == -1) {
+
+	  if (CT && CT->basetype &&
+	      CISTREQ(CT->basetype,"multipart")) {
+
+	    if ((force_7bit || (SS->ehlo_capabilities & ESMTP_8BITMIME)== 0) &&
+		!ascii_clean) {
+	      convertmode = _CONVERT_MULTIPARTQP;
+	      if (SS->verboselog)
+		fprintf(SS->verboselog, " MULTIPART message with 8-bit set content, AND  forced encoding downgrade or with ESMTP encoding downgrade\n");
+	    }
+
+	  }
+	  
+	} /* else -- "Content-Conversion: Prohibited" */
 
 	notary_setcvtmode(convertmode);
 
@@ -1558,7 +1574,7 @@ deliver(SS, dp, startrp, endrp)
 
 	/* Append the message body itself */
 
-	r = appendlet(SS, dp, convertmode);
+	r = appendlet(SS, dp, convertmode, CT);
 
 	if (r != EX_OK) {
 	  time(&endtime);

@@ -18,16 +18,18 @@ static char let_buffer[ZBUFSIZ*8];
 #endif
 
 int
-appendlet(SS, dp, convertmode)
+appendlet(SS, dp, convertmode, CT)
 	SmtpState *SS;
 	struct ctldesc *dp;
 	CONVERTMODE convertmode;
+	struct ct_data *CT;
 {
 	/* `convertmode' controls the behaviour of the message conversion:
 	     _CONVERT_NONE (0): send as is
 	     _CONVERT_QP   (1): Convert 8-bit chars to QUOTED-PRINTABLE
-	     _CONVERT_8BIT (2): Convert QP-encoded chars to 8-bit
-	     _CONVERT_UNKNOWN (3): Turn message to charset=UNKNOWN-8BIT, Q-P..
+	     _CONVERT_MULTIPARTQP (2): Convert substructures to QP
+	     _CONVERT_8BIT (3): Convert QP-encoded chars to 8-bit
+	     _CONVERT_UNKNOWN (4): Turn message to charset=UNKNOWN-8BIT, Q-P..
 	 */
 
 	register int i, rc;
@@ -373,8 +375,9 @@ writemimeline(SS, buf, len, convertmode)
 	/* `convertmode' controls the behaviour of the message conversion:
 	     _CONVERT_NONE (0): send as is
 	     _CONVERT_QP   (1): Convert 8-bit chars to QUOTED-PRINTABLE
-	     _CONVERT_8BIT (2): Convert QP-encoded chars to 8-bit
-	     _CONVERT_UNKNOWN (3): Turn message to charset=UNKNOWN-8BIT, Q-P..
+	     _CONVERT_MULTIPARTQP (2): Convert substructures to QP
+	     _CONVERT_8BIT (3): Convert QP-encoded chars to 8-bit
+	     _CONVERT_UNKNOWN (4): Turn message to charset=UNKNOWN-8BIT, Q-P..
 	 */
 
 	alarmcnt = SS->alarmcnt;

@@ -3,8 +3,8 @@
  *	This will be free software, but only when it is finished.
  */
 /*
- *	Matti E Aarnio 1994,1999 -- write (new) multiline headers to the file
- *      This is part of the Zmailer
+ *	Matti E Aarnio 1994,1999,2000 -- write (new) multiline headers
+ *	to the file.  This is part of the Zmailer
  *
  *	TODO: auto-wrapping/widening of (continued) headers to given
  *	      width! That is, to enable to limit header width to 80
@@ -36,8 +36,6 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	char **msgheaders = *(rp->newmsgheader);
 	int newlinelen = strlen(newline);
 	int hsize = 0;
-	int col, linelen;
-	char *s, *p;
 
 	if (! WriteTabs) {
 	  WriteTabs = getzenv("RFC822TABS");
@@ -52,107 +50,118 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 
 	if (chunkbufp) {
 	  for ( ; *msgheaders; ++msgheaders ) {
-	    s = *msgheaders;
-	    linelen = strlen(s);
+	    char *s = *msgheaders;
+	    while (*s) {
+	      char *p = strchr(s, '\n');
+	      int linelen = p ? (p - s) : strlen(s);
 
-	    if (*WriteTabs == '0') {
-	      /* Expand line TABs */
-	      int col = 0;
-	      for (; linelen > 0; --linelen, ++s) {
-		if (*s == '\t')
-		  col += 8 - (col & 7);
-		else
-		  ++col;
+	      if (*WriteTabs == '0') {
+		/* Expand line TABs */
+		int col = 0;
+		p = s;
+		for (; linelen > 0; --linelen, ++s) {
+		  if (*s == '\t')
+		    col += 8 - (col & 7);
+		  else
+		    ++col;
+		}
+		linelen = col;
+		s = p;
 	      }
-	      linelen = col;
-	    }
 
-	    if (*chunkbufp == NULL)
-	      /* Actually the SMTP has already malloced a block,
-		 thus this branch should not be needed ... */
-	      *chunkbufp = malloc( hsize + linelen + newlinelen );
-	    else
-	      *chunkbufp = realloc(*chunkbufp, hsize + linelen + newlinelen );
-	    if (*chunkbufp == NULL) return -1;
+	      if (*chunkbufp == NULL)
+		/* Actually the SMTP has already malloced a block,
+		   thus this branch should not be needed ... */
+		*chunkbufp = malloc( hsize + linelen + newlinelen );
+	      else
+		*chunkbufp = realloc(*chunkbufp, hsize + linelen + newlinelen );
+	      if (*chunkbufp == NULL) return -1;
 
-	    p = hsize + (*chunkbufp);
+	      p = hsize + (*chunkbufp);
 
-	    if (*WriteTabs == '0') {
-	      /* Expand line TABs */
-	      col = 0;
-	      s = *msgheaders;
-	      linelen = strlen(s);
-	      for (; linelen > 0; --linelen, ++s) {
-		if (*s == '\t') {
-		  int c2 = col + 8 - (col & 7);
-		  while (col < c2) {
-		    *p = ' ';
+	      if (*WriteTabs == '0') {
+		/* Expand line TABs */
+		int col = 0;
+		for (; linelen > 0; --linelen, ++s) {
+		  char c1 = *s;
+		  if (c1 == '\t') {
+		    int c2 = col + 8 - (col & 7);
+		    while (col < c2) {
+		      *p = ' ';
+		      ++p;
+		      ++col;
+		      ++hsize;
+		    }
+		  } else {
+		    *p = c1;
 		    ++p;
 		    ++col;
 		    ++hsize;
 		  }
-		} else {
-		  ++col;
-		  *p = *s;
-		  ++p;
-		  ++hsize;
 		}
 	      }
-	    }
 
-	    if (linelen > 0)
-	      memcpy( p, s, linelen);
-	    hsize += linelen;
-	    p     += linelen;
-	    memcpy( p, newline, newlinelen );
-	    hsize += newlinelen;
+	      if (linelen > 0)
+		memcpy( p, s, linelen);
+	      hsize += linelen;
+	      p     += linelen;
+	      s     += linelen;
+
+	      memcpy( p, newline, newlinelen );
+	      hsize += newlinelen;
+
+	      /* New sub-line of the header ? */
+	      if (*s == '\n') ++s;
+	    }
 	  }
 	} else {
-	  while (*msgheaders && !sferror(fp)) {
-	    s = *msgheaders;
-	    linelen = strlen(s);
-	    if (**msgheaders == '.')
-	      /* sferror() not needed to check here.. */
-	      sfputc(fp,'.'); /* ALWAYS double-quote the begining
-				 dot -- though it should NEVER occur
-				 in the headers, but better safe than
-				 sorry.. */
-	    if (*WriteTabs == '0') {
-	      /* Expand line TABs */
-	      int col = 0;
-	      for (; linelen > 0 && !sferror(fp); --linelen, ++s) {
-		if (*s == '\t') {
-		  int c2 = col + 8 - (col & 7);
-		  while (col < c2) {
-		    sfputc(fp, ' ');
+	  for (;*msgheaders && !sferror(fp); ++msgheaders) {
+	    char *s = *msgheaders;
+	    while (*s) {
+	      char *p = strchr(s, '\n');
+	      int linelen = p ? (p - s) : strlen(s);
+
+	      if (*s == '.')
+		/* sferror() not needed to check here.. */
+		sfputc(fp,'.'); /* ALWAYS double-quote the beginning
+				   dot -- though it should NEVER occur
+				   in the headers, but better safe than
+				   sorry.. */
+	      if (*WriteTabs == '0') {
+		/* Expand line TABs */
+		int col = 0;
+		for (; linelen > 0 && !sferror(fp); --linelen, ++s) {
+		  if (*s == '\t') {
+		    int c2 = col + 8 - (col & 7);
+		    while (col < c2) {
+		      sfputc(fp, ' ');
+		      ++col;
+		    }
+		  } else {
+		    sfputc(fp, *s);
 		    ++col;
 		  }
-		} else {
-		  sfputc(fp, *s);
-		  ++col;
 		}
 	      }
-	    }
 
-	    if (linelen > 0)
-	      if (sferror(fp) || sfwrite(fp, s, linelen) != linelen)
+	      /* Write the rest (or all) */
+	      if (linelen > 0)
+		if (sfwrite(fp, s, linelen) != linelen)
+		  return -1;
+
+	      hsize += linelen;
+	      s     += linelen;
+
+	      if (sfwrite(fp, newline, newlinelen) != newlinelen ||
+		  sferror(fp))
 		return -1;
 
-	    hsize += linelen;
+	      hsize += newlinelen;
 
-	    if (sferror(fp) || sfwrite(fp, newline, newlinelen) != newlinelen)
-	      return -1;
-
-	    hsize += newlinelen;
-
-	    ++msgheaders;
+	      /* New sub-line of the header ? */
+	      if (*s == '\n') ++s;
+	    }
 	  }
 	}
-#if 0 /* CHANGE: All transport agents must now write the blank line
-	         separating headers, and the messagebody! */
-	if (sfwrite(fp, newline, newlinelen) != newlinelen)
-		return -1;
-	hsize += newlinelen;
-#endif
 	return hsize;
 }
