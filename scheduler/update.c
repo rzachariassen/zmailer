@@ -237,7 +237,8 @@ unctlfile(cfp, no_unlink)
 #if 1
 	  /* We will LOOSE this from the schedules -- add info about
 	     it into the indirscanqueue -- at the tail... */
-	  dq_insert(NULL, cfp->id, path, 30);
+	  if (cfp->id)
+	    dq_insert(NULL, cfp->id, path, 30);
 #endif
 	}
 

@@ -834,6 +834,8 @@ dq_insert(DQ, ino, file, delay)
 	struct dirstatname *dsn;
 	struct dirqueue *dq = DQ;
 
+	if (!ino) return 1; /* Well, actually it isn't, but we "makebelieve" */
+
 	mytime(&now);
 
 	if (dq == NULL)
