@@ -86,14 +86,16 @@ include a comment line which will be displayed in the \fIscheduler\fR's
 own reports.
 .PP
 Two types of reports are produced:
-.IP "1." 1i
+
+.IP "1." 0.4i
 Error messages caused by unsuccessful delivery of a message
 are appended to its message control file.  Occasionally,
 for example, when all addresses have been processed, the
 .I scheduler
 generates an error message to the error return address of the message
 (usually the original sender).  
-.IP "2." 1i
+
+.IP "2." 0.4i
 The
 .I scheduler
 binds itself to a well-known TCP/IP port (\fBMAILQ\fR, TCP port 174)
@@ -112,34 +114,45 @@ program serves this purpose.
 Invoking
 .I scheduler
 without any argument will start it as a daemon.
+
 .IP \-d 1i
 run as a daemon, usually used after \-v to log daemon activity in great
 detail.
+
 .IP "\-E \fInewentsmax\fR"
 when globbing new tasks from the directory, pick only first ``newentsmax''
 of them, and leave rest for a new scan run.
+
 .IP "\-f \fIconfigfile\fR"
 overrides the default configuration file \fIMAILSHARE\fB/scheduler.cf\fR.
+
 .IP "\-F"
 Freeze -- don't actually run anything, just do queue scanning.
 (For debug purposes..)
+
 .IP "\-H \-HH"
+.RS
 Use multi-level hashing at the spool directories.
 This will efficiently reduce the lengths of the scans at the directories
 to find some arbitary file in them.
 One `H' means "single level hashing", two `HH's mean "dual level hashing".
 ``Hash'' is directory which name is single upper case alphabet (A-Z).
-
+.LP
 When existing, ZENV variable
 .I SCHEDULERDIRHASH
 overrides the `H' option.
+.RE
+
 .IP "\-i"
 run interactively, i.e., not as a daemon.
+
 .IP "\-L \fIlogfile\fR"
 overrides the default log file location \fILOGDIR\fB/scheduler\fR.
+
 .IP "\-l \fIstatisticslog\fR"
 starts the appending of delivery statistics information (ASCII form)
 into given file.  No default value.
+
 .IP "\-M [1|2]"
 Version of the
 .I mailq
@@ -149,25 +162,32 @@ existence of
 assignment at the
 .I scheduler.conf
 file turns the protocol into version 2.
+
 .IP "\-N \fItransmaxfno\fR"
 sets how many filehandles are allocated for the scheduler's started
 children (if the system has adjustable resources.)
+
 .IP "\-n"
+.RS
 Toggles configuration flag `default_full_content', which defines what
 will be DSN RET parameter assumed value in case the originator didn't
 supply that parameter.
-
+.LP
 Default behaviour is similar to RET=FULL, while usage of this option
 is equivalent of RET=HDRS.  This option does not override originator
 supplied DSN RET parameter value.
+
 .IP "\-p \fIchannel/host\fR"
 A debug-type option for running selectively some thread under a single
 instance of the
 .IR scheduler .
-
+.LP
 Use this with options: \-v
+.RE
+
 .IP "\-P \fIpostoffice\fR"
 specifies an alternate \fIPOSTOFFICE\fR directory.
+
 .IP "\-q \fIrendezvous\fR"
 on machines without TCP/IP networking, the rendezvous between
 .I scheduler
@@ -176,20 +196,26 @@ and
 is done using a well-known named pipe.  This option overrides the default
 location for this special file, either \fIRENDEZVOUS\fR or
 \fB/usr/tmp/.mailq.text\fR.
+
 .IP "\-Q"
 The ``Q''-mode, don't output the old style data into the queue querier,
 only the new-style one.
+
 .IP "\-S"
 Synchronous startup mode, scans all jobs at the directory before starting
 even the first transporter.
+
 .IP "\-v"
 be verbose about activity, and do not detach as a daemon.
+
 .IP "\-W"
 be used in conjunction with \-v to delay verbose logging
 start until after all the files have been parsed in, and
 it is a time for doing scheduling.
+
 .IP "\-V"
 print version message and run interactively.
+
 .SH CONFIGURATION FILE
 The
 .I scheduler
@@ -222,11 +248,14 @@ command="mailbox -8"
 .PP
 A clause consists of:
 .PP
-.RS
-\- A selection pattern (in shell style) that is matched against the
+.RS 0.3i
+.TP 0.3i
+\(bu
+A selection pattern (in shell style) that is matched against the
 \fIchannel\fR/\fIhost\fR string for an address.
-.PP
-\- 0 or more variable assignments or keywords (described below).
+.TP 0.3i
+\(bu
+0 or more variable assignments or keywords (described below).
 .PP
 .RE
 .PP
@@ -248,26 +277,33 @@ contents of the next non-empty clause will be used.
 .PP
 The typical configuration file will contain the following clauses:
 .PP
-.RS
-\- a clause matching all addresses (using the pattern
+.RS 0.3i
+.TP 0.3i
+\(bu
+a clause matching all addresses (using the pattern
 .BR */* )
 that sets up default values.
-.PP
-\- a clause matching the local delivery channel (usually
+.TP 0.3i
+\(bu
+a clause matching the local delivery channel (usually
 .BR local ).
-.PP
-\- a clause matching the deferred delivery channel (usually
+.TP 0.3i
+\(bu
+a clause matching the deferred delivery channel (usually
 .BR hold ).
-.PP
-\- a clause matching the error reporting channel (usually
+.TP 0.3i
+\(bu
+a clause matching the error reporting channel (usually
 .BR error ).
-.PP
-\- clauses specific to the other channels known by the
+.TP 0.3i
+\(bu
+clauses specific to the other channels known by the
 .IR router ,
 for example,
 .B smtp
 and
 .BR uucp .
+.RE
 .RE
 .PP
 The actual names of these channels are completely controlled by the
@@ -283,6 +319,7 @@ suffixed with 's', 'm', 'h', or 'd' modifiers designating the number as
 a second, minute, hour, or day value.  For example: 1h5m20s.
 .PP
 The known variables and keywords, and their typical values and semantics are:
+
 .IP "interval (1m)"
 specifies the primary retry interval, which determines how frequently
 a transport agent should be scheduled for an address.  The value is a
@@ -291,17 +328,20 @@ This value, and the
 .I retries
 value mentioned below, are combined to determine the interval between
 each retry attempt.
+
 .IP "idlemax (3x interval)"
 When a transport agent runs out of jobs, they are moved to ``idle pool'',
 and it a TA spends more than
 .I idlemax
 time in there, it is terminated.
+
 .IP "expiry (3d)"
 specifies the maximum age of an address in the
 .I scheduler
 queue before a repeatedly deferred address is bounced with an expiration
 error.  The actual report is produced when all addresses have
 been processed.
+
 .IP "retries (1 1 2 3 5 8 13 21 34)"
 specifies the retry interval policy of the
 .I scheduler
@@ -344,15 +384,17 @@ etc.
 .fi
 .RE
 .PP
+
 .IP "maxta (0)"
+.RS
 This is
 .B global
 parameter limiting the number of transport-agent processes that
 the sceduler can have running concurrently.
-
+.LP
 If retrying an address would cause the number of simultaneously active
 transport agents to exceed the specified value, the retry is postponed.
-
+.LP
 When no
 .I maxta
 parameter is used, or '0' is used, the
@@ -362,7 +404,7 @@ maximize the number of available file descriptors for the process.
 The thus maximized value minus about 20 is then used as 
 .I maxta
 value.
-
+.LP
 At some operating systems there are no bidirectional pipes or sockets
 for the scheduler to talk with the transport agents, thus at those systems
 each TA process uses
@@ -371,59 +413,67 @@ each TA process uses
 file-handles, and thus system-wide limit on
 .I maxta
 halves from what was maximum derived above.
+.RE
 
 .IP "maxchannel (0)"
+.RS
 This limits the number of concurrent transport agent processes for which
 the
 .I channel
 part of the address quad are same.
-
+.LP
 The default value is copied from the
 .IR maxta .
-
+.LP
 It is advisable, although not mandatory, to have the same value for all
 .I maxchannel
 parameters at all clauses with matching channel parts.
-
+.LP
 Case where non-alike values might make sense is when you want to guarantee
 resources for a subset of destinations, e.g. for all other "smtp/" clauses
 have 
 .I maxchannel
 of say 100, but for your very important domain domain have there a bit
 higher, say: 120.
-
+.RE
 
 .IP "maxring (0)"
+.RS
 The recipients are groupped into ``threads'' by recipient channel+host parts,
 and threads matching same selector clause are groupped into ``thread-rings'',
 where same transport agent can be switched over from one recipient to another.
-
+.LP
 This parameter defines how many transport agents can be running at any time
 at the ring.
-
+.LP
 When no limit is given, then
 .I maxta
 value is used for default.
+.RE
 
 .IP "maxthr (1)"
+.RS
 This limits the number of parallel transport agents within each
 thread; that is, using higher value than default ``1'' will allow
 running more than one TA for the jobs at the thread.
-
+.LP
 Do note that running more than one TA in parallel may also require
 lowering OVERFEED value.  (E.g. having a queue of 30 messages will
 not benefit from more TAs, unless they all get something to process.
 Having OVERFEED per default at 150 will essentially feed whole queue
 to one TA, others are not getting any.)
+.RE
 
 .IP "overfeed (150)"
+.RS
 Because the scheduler spins around a bit sluggishly to spot
 active TAs, it does make sense to feed more than one task to a TA,
 and then wait for the results, thus came about the ``overfeed''
 mechanism.
-
+.LP
 This tells how many job specifiers to feed to the TA when
 the TA process state is ``STUFFING.''
+.RE
 
 .IP "skew (5)"
 Leftover from earlier scheduler internal structure.
@@ -438,27 +488,31 @@ is the group id of a transport agent processing the address.  The value
 is either numeric (a gid) or a group name.
 
 .IP "command (smtp -srl ${LOGDIR}/smtp $host)"
+.RS
 is the command line used to start a transport agent to process the address.
-
+.LP
 The program pathname is specified relative to the \fIMAILBIN\fB/ta\fR
 directory.
-
+.LP
 The string "$channel" is replaced by the current matched channel,
 and "$host" is replaced by the current matched host, from the destination
 address, and "${LOGDIR}" substitutes ZENV variable LOGDIR value there.
-
-.I It is strongly recommended that the "$host" is not to be used on
-.I a command definition, as it limits the usability of idled transporter.
-
+.LP
+\fIIt is strongly recommended that the "$host" is not to be used on
+a command definition, as it limits the usability of idled transporter.\fR
+.LP
 It is possible to place environment-string setting statements into
 the beginning of the line:
-
+.LP
+.RS 0.3i
 .nf
-  command="MALLOC_DEBUG_=1 OTHER=var  cmdname cmdparams"
+command="MALLOC_DEBUG_=1 OTHER=var  cmdname cmdparams"
 .fi
-.sp
+.RE
+.RE
 
 .IP queueonly
+.RS
 a clause with
 .I queueonly
 flag does not auto-start at the arrival of a message, instead it
@@ -468,10 +522,11 @@ be started by means of
 command
 .B ETRN
 thru an SMTP connection.
-
+.LP
 To have message expiration working, following additional entries are
 suggested:
 .I interval=1h retries="24"
+.RE
 
 .PP
 For example, this is a complete configuration file:
@@ -545,9 +600,12 @@ The scheduler can assign several of its internal parameters
 by having variable assignments beginning at column 0, and
 beginning with "PARAM" text:
 
-.IP PARAMmailqpath\ \=\ "UNIX:/path/to/pf_unix/mailq/socket"
-.IP PARAMmailqpath\ \=\ "TCP:mailq"
-.IP PARAMmailqpath\ \=\ "TCP:174"
+.TP 0.4i
+PARAMmailqpath\ \=\ "UNIX:/path/to/pf_unix/mailq/socket"
+.TP 0.4i
+PARAMmailqpath\ \=\ "TCP:mailq"
+.TP 0.4i
+PARAMmailqpath\ \=\ "TCP:174"
 These define two different types of possible socket addresses for the
 .RI " mailq "
 protocol; a UNIX socket, and a TCP socket.
@@ -596,13 +654,15 @@ slowly running transporter.
 The following fields are mandatory:
 
 .IP "@ 0xHHHHHH"
+.RS
 Carries hex-encoded bitflags of what kind of format this dataset really is in.
-
+.LP
 This is to ensure that ``featurefullness'' relation of:
 router <= scheduler <= TA-programs is not violated, and that the messages in
 the spool meet this criteria too.
-
+.LP
 Rolling binaries back too far might break things.
+.RE
 
 .IP "i 123456\-789"
 the name of the message file in the
@@ -1028,24 +1088,44 @@ Reports details usable to implement mailq-v1 like interface.
 The details are TAB separated fields in a line until an LF.
 Fields are:
 .PP
-.TS
-r l.
-1)	filepath under $POSTOFFICE/transport/
-2)	line number within a group, 0 starts a group
-3)	error address in brackets
-4)	recipient line offset within the control file
-5)	message expiry time (time_t)
-6)	next wakeup time (time_t)
-7)	last feed time (time_t)
-8)	count of attempts at the delivery
-9)	"retry in NNN" or a pending on "channel"/"thread"
-10)	possible diagnostic message from previous delivery attempt
-.TE
+.TP 0.4i
+1)
+filepath under $POSTOFFICE/transport/
+.TP 0.4i
+2)
+line number within a group, 0 starts a group
+.TP 0.4i
+3)
+error address in brackets
+.TP 0.4i
+4)
+recipient line offset within the control file
+.TP 0.4i
+5)
+message expiry time (time_t)
+.TP 0.4i
+6)
+next wakeup time (time_t)
+.TP 0.4i
+7)
+last feed time (time_t)
+.TP 0.4i
+8)
+count of attempts at the delivery
+.TP 0.4i
+9)
+"retry in NNN" or a pending on "channel"/"thread"
+.TP 0.4i
+10)
+possible diagnostic message from previous delivery attempt
 .RE
+
 .IP "ETRN etrn_string"
 Supports ETRN-cluster subsystem at smtpserver.
+
 .IP "KILL MSG spoolid"
 Unimplemented.
+
 .IP "KILL THREAD channel host"
 Unimplemented.
 .PP
@@ -1119,27 +1199,35 @@ nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0
 .sp
 .PP
 .SH Z\-ENVIRONMENT VARIABLES
+
 .IP LOGDIR
 defines location of log files. Example:
 .B LOGDIR=/var/log/mail
+
 .IP MAILBIN
 Defines where executable transport-agent binaries exist under
 $\fBMAILBIN\fR/ta/ directory.
+
 .IP MAILSHARE
 Location of scheduler configuration files
+
 .IP PATH
 What PATH environment variable to give to transport-agent subprograms.
+
 .IP POSTOFFICE
 defines directory where all POSTOFFICE functions are under.
 .br
 Example:
 .B POSTOFFICE=/var/spool/postoffice
+
 .IP SCHEDULERDIRHASH
 Carries a numeric value of ``1'' or ``2'' (if defined at all),
 which will then override possible ``-H'' option.
+
 .IP SYSLOGFLG
 Existence of ``c'' or ``C'' character in value string enables
 syslogging of some events as seen by the scheduler.
+
 .IP ZCONFIG
 Gives location of
 .I zmailer.conf
@@ -1173,20 +1261,27 @@ contain following kind of entries:
 .P
 .I "(Do note that smtpserver(8) has also tcp\-wrapper support, which becomes"
 .I "active simultaneously with scheduler's tcp\-wrapper code!)"
+
 .SH SIGNALS
+
 .IP \fBSIGHUP\fR:
 close and reopen the stdout/stderr log file.
+
 .IP \fBSIGTERM\fR:
 exit cleanly.
+
 .IP \fBSIGQUIT\fR:
 exit cleanly, but at first order transporter childs to shut down,
 and collect their status reports.
+
 .IP \fBSIGALRM\fR:
 check pending work.
+
 .IP \fBSIGUSR1\fR:
 reread the
 .I scheduler
 configuration file.
+
 .IP \fBSIGUSR2\fR:
 dump state information to the
 .I rendezvous

@@ -23,20 +23,18 @@ utility call with suitable parameters for generating input.
 Suggested parameters for
 .IR expirer (8)
 are:
-.IP
-\-c channel
+.IP \-c\ channel
 Message recipient selector "channel" (optional)
-.IP
-\-h hostname
+.IP \-h\ hostname
 Message recipient selector "host" (optional)
-.IP
-\-m "message string"
+.IP "\-m 'message string'"
 An alternate report string.
-.IP
-\-s
-Silent mode. Message expiration occurs without any report to anywhere.
+.IP "\-s\ \ \ \ \ \ \ \ \ \ \ "
+Silent mode.
+Message expiration occurs without any report to anywhere.
 .SH SEE ALSO
-scheduler(8), expirer(8)
+.BR scheduler (8),
+.BR expirer (8)
 .SH AUTHOR
 This script is authored and copyright by:
 Matti Aarnio <mea@nic.funet.fi>

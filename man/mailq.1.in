@@ -1,7 +1,7 @@
 .\" $Header$
 .ds ]W "ZMailer 2.99"
 .nr X
-.TH MAILQ 1 "15 May 2001"
+.TH MAILQ 1 "7 Nov 2001"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
@@ -40,7 +40,10 @@ mailq \- zmailer mail queue printer
 .B \-Q[Q[Q]]
 ]
 [
-.B "\-c channel \-h host"
+[
+\fB\-c\ \fIchannel\fR
+]
+\fB\-h\ \fIhost\fR
 ]
 [
 .I host
@@ -142,21 +145,15 @@ Examples of ``mailq -Q'' output:
 .PP
 .nf
 \fCsmtp/*.com/0
-.br
-.RS
+.RS 0.3i
 \fCsmtp/aol.com/0  \fRR=1 A=147 P={19598} HA={571}s FA={571}s OF=1 S={STUFF} UF=0 QA=1d18h
-.br
 \fCsmtp/some.com/0 \fRR=1 A=58 W=1860s QA=11h11m28s
-.br
-.RS
+.RS 0.3i
 \fCThreads: 11 Msgs: 36 Procs: 23 Idle: 12 Plim:90 Flim: 150 Tlim: 1
-.br
 .RE
 .RE
 \fCKids: 414 Idle: 324 Msgs: 754 Thrds: 129 Rcpnts: 943 Uptime: 1d31m22s
-.br
-\fCMsgs in 5384 out 4630 stored 754 Rcpnts in 441890 out 440917 stored 971
-.br
+\fCMsgs in 5384 out 4630 stored 754 Rcpnts in 441890 out 440917 stored 971\fR
 .fi
 .PP
 The codes mean following:
@@ -175,9 +172,8 @@ to do delivery at this thread.
 .IP \fBP=\fR
 .IR P rocess
 number(s) of the transport agent actively handling this thread.
-.br
 \fIThere can be multiple processes, and they are listed comma-separated
-\fIinside the curly brackets.  Similarly for the test of the things below.
+inside the curly brackets.  Similarly for the test of the things below.\fR
 .IP \fBW=\fR
 Delay time until next time the transport-agent may try to send this
 thread.
@@ -246,8 +242,6 @@ fed to the current TA process set ?
 .IP \fBQA=\fR
 Age of oldest message in the queue at this thread.
 ("\fIQ\fRueue\fIA\fRge")
-.SH BUGS
-MAILQ-V2 isn't described yet (nor is that protocol implementation complete)
 .SH FILES
 .I /etc/zmailer.conf
 .br
@@ -256,6 +250,9 @@ MAILQ-V2 isn't described yet (nor is that protocol implementation complete)
 .I /var/spool/postoffice/queue (POSTOFFICE/queue)
 .br
 .SH SEE ALSO
+The \fBMAILQ-V2\fR protocol is described at the
+\fIscheduler\fR(8) manual page.
+.PP
 zmailer(1), router(8), scheduler(8)
 .SH AUTHOR
 This program authored and copyright by:
