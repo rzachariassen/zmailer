@@ -215,8 +215,15 @@ stamp-h: config.status $(srcdir)/config.h.in
 
 config.status: configure
 	./config.status --recheck
-configure: configure.in
-	cd $(srcdir) && autoconf
+#
+# The GNU autoconf guide says: have following condition, however
+# not all systems have "autoconf", and thus people pulling this
+# package from CVS are getting serious problems -- or have to
+# "touch configure" after the CVS pull.
+#
+#configure: configure.in
+#	cd $(srcdir) && autoconf
+
 config.h.in: stamp-h.in
 stamp-h.in: configure.in
 # 	cd $(srcdir) && autoheader

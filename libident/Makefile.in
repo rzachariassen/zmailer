@@ -8,14 +8,14 @@ SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
 CPPDEP=		@CPPDEP@
+CPPFLAGS=	@CPPFLAGS@
 DEFS=		@DEFS@
 TOPDIR=		..
 RANLIB=		@RANLIB@
 INSTALL=	@INSTALL@
 #
-# /usr/5include is so we get the right declaration for malloc in <stdlib.h>
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
 #
 OBJS=	identuser.o
 

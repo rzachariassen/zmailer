@@ -10,6 +10,7 @@ SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
 CPPDEP=		@CPPDEP@
+CPPFLAGS=	@CPPFLAGS@
 DEFS=		@DEFS@
 TOPDIR=	..
 RANLIB=		@RANLIB@
@@ -17,7 +18,7 @@ LIBZ_INCL=
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(TOPDIR)/router
 
-CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(LIBZ_INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(LIBZ_INCL)
 #
 OBJS=	esyslib.o stringlib.o rfc822date.o detach.o \
 	killprev.o linebuffer.o loginit.o die.o \

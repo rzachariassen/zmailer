@@ -18,6 +18,7 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		..
 DEFS=		@DEFS@
@@ -79,7 +80,7 @@ MALLOC= @MALLOC@
 
 PROGS=	testmalloc$(EXT) simumalloc$(EXT) teststomp$(EXT) maltrace$(EXT)
 
-DEFINES= $(NORMALDEFS) $(DEBUGDEFS)
+DEFINES= $(CPPFLAGS) $(NORMALDEFS) $(DEBUGDEFS)
 
 SPLAYOBJ = splay/sptree.o
 SPLAYSRC = splay/sptree.c

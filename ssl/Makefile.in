@@ -6,11 +6,12 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 DEFS=		@DEFS@
 TOPDIR=		..
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
 TOPDIR=		..
 INSTALL=	@INSTALL@
 

@@ -75,7 +75,11 @@
 # include "netdb6.h"
 #endif
 
-/* #include "malloc.h" */
+#include "malloc.h"
+#include "libz.h"
+#include "libc.h"
+
+#include "dnsgetrr.h"
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
 #define	BIND		/* Want BIND (named) nameserver support enabled */
@@ -357,12 +361,8 @@ extern int process    __((SmtpState *SS, struct ctldesc*, int, const char*, int)
 extern int check_7bit_cleanness __((struct ctldesc *dp));
 extern void notarystatsave __((SmtpState *SS, char *smtpstatline, char *status));
 
-extern void getnobody();
 extern int makeconn __((SmtpState *SS, struct addrinfo *, int));
 extern int vcsetup  __((SmtpState *SS, struct sockaddr *, int*, char*));
-extern void hp_init __((struct hostent*));
-extern char **hp_getaddr __((void)), **hp_nextaddr __((void));
-extern void hp_setalist  __((struct hostent*,char**));
 #ifdef	BIND
 extern int rightmx  __((const char*, const char*, void*));
 extern int h_errno;
@@ -448,6 +448,7 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #endif	/* notdef */
 
 #ifndef	_Z_FD_SET
+#warning "_Z_FD_SET[1]"
 #define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
 #define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
 #define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
@@ -456,11 +457,13 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #endif	/* !NFDBITS */
 
 #ifdef FD_SET
+#warning "_Z_FD_SET[2]"
 #define _Z_FD_SET(sock,var) FD_SET(sock,&var)
 #define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
 #define _Z_FD_ZERO(var) FD_ZERO(&var)
 #define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
 #else
+#warning "_Z_FD_SET[3]"
 #define _Z_FD_SET(sock,var) var |= (1 << sock)
 #define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
 #define _Z_FD_ZERO(var) var = 0
@@ -600,7 +603,8 @@ main(argc, argv)
 {
 	char file[MAXPATHLEN+128];
 	char *channel = NULL, *host = NULL;
-	int i, fd, errflg, c, smtpstatus;
+	int i, fd, errflg, c;
+	int smtpstatus;
 	int need_host = 0;
 	int skip_host = 0;
 	int idle;
@@ -608,7 +612,7 @@ main(argc, argv)
 	SmtpState SS;
 	struct ctldesc *dp;
 #ifdef	BIND
-	int checkmx = 0;	/* check all destination hosts for MXness */
+	int checkmx = 0; /* check all destination hosts for MXness */
 #endif	/* BIND */
 	RETSIGTYPE (*oldsig)__((int));
 	const char *smtphost, *punthost = NULL;
@@ -1248,7 +1252,7 @@ deliver(SS, dp, startrp, endrp)
 			  we have some new input, do close the connection */
 	    if (has_readable(FILENO(SS->smtpfp))) {
 	      /* Drain the input, and then close the channel */
-	      int r2 = smtpwrite(SS, 1, NULL, 0, NULL);
+	      (void) smtpwrite(SS, 1, NULL, 0, NULL);
 	      smtpclose(SS);
 	      if (logfp)
 		fprintf(logfp, "%s#\t(closed SMTP channel - MAIL FROM:<> got two responses!)\n", logtag());
@@ -1903,7 +1907,6 @@ ssputc(SS, ch, fp)
       return EOF;
   }
   if (SS->chunksize >= SS->chunkspace) {
-    char *s;
     SS->chunkspace <<= 1; /* Double the size */
     SS->chunkbuf = realloc(SS->chunkbuf, SS->chunkspace);
     if (SS->chunkbuf == NULL)
@@ -2267,9 +2270,9 @@ smtpopen(SS, host, noMX)
 	  if (SS->esmtp_on_banner && i == EX_OK ) {
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,
-		      "  EHLO response flags = 0x%02x, rcptlimit=%d, sizeopt=%d\n",
-		      SS->ehlo_capabilities, SS->rcpt_limit,
-		      SS->ehlo_sizeval);
+		      "  EHLO response flags = 0x%02x, rcptlimit=%d, sizeopt=%ld\n",
+		      (int)SS->ehlo_capabilities, (int)SS->rcpt_limit,
+		      (long)SS->ehlo_sizeval);
 	  } else {
 	    if (SS->myhostname)
 	      sprintf(SMTPbuf, "HELO %.200s", SS->myhostname);

@@ -5,6 +5,7 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 MAILBIN=	$(prefix)@MAILBIN@
 MAILSHARE=	$(prefix)@MAILSHARE@
@@ -22,7 +23,7 @@ CONVTIME= convtime.o
 MANEXT=1
 
 COPTS=		@CFLAGS@
-CFLAGS=		$(COPTS) $(DEFS) -DZMAILER $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) -DZMAILER $(INCL)
 
 SOURCE=		vacation.c convtime.c
 

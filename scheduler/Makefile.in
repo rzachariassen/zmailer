@@ -8,6 +8,7 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		..
 MAILBIN=	$(prefix)@MAILBIN@
@@ -20,8 +21,8 @@ MAILQ_LIB=	@LIBRESOLV@ @LIBSOCKET@
 #   Above the  LIBSOCKET (for SysVR4) must be last
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(SCHEDULER_INCL)
-MQCFLAGS=	$(COPTS) $(DEFS) $(INCL) $(MAILQ_INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SCHEDULER_INCL)
+MQCFLAGS=	$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(MAILQ_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lz -lzc  -lta $(LIBMALLOC)

@@ -9,6 +9,7 @@ VPATH=          @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 DEFS=		@DEFS@
 TOPDIR=	..
@@ -24,7 +25,7 @@ LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libs/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lsh -lz -lzc  $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag
-CFLAGS=		$(COPTS) $(ZSHDEFS) $(DEFS) $(INCL) $(ZSH_INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(ZSHDEFS) $(DEFS) $(INCL) $(ZSH_INCL)
 
 SSLRUN = $(SSL) -D short -h sh.sst.h -t sh.sst.c -e sh.entry -l sh.lst $(srcdir)/sh.ssl
 

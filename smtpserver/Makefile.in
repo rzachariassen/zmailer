@@ -10,6 +10,7 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		..
 MAILBIN=	$(prefix)@MAILBIN@
@@ -20,7 +21,7 @@ SMTPSERVER_LIB=	 @GETPWLIB@ @LIBDBMS@ @LIBWRAP@ @LIBLOADAVER@ @LIBRESOLV@ @LIBSO
 #   Above the  LIBSOCKET (for SysVR4) must be last
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(SMTPSERVER_INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTPSERVER_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lz -lzc -lident -lta $(LIBMALLOC)

@@ -9,6 +9,7 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		../..
 DEFS=		@DEFS@
@@ -16,7 +17,7 @@ RANLIB=		@RANLIB@
 LIBDB_INCL=	@INCLRESOLV@ @INCLLDAP@
 #
 INCL=		-I$(TOPDIR) -I$(TOPDIR)/include -I$(srcdir)/$(TOPDIR)/include -I$(srcdir)/$(TOPDIR)/libsh
-CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(LIBDB_INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(LIBDB_INCL)
 #
 OBJS	= bind.o dbm.o gdbm.o header.o hostsfile.o incore.o ndbm.o \
 	ordered.o unordered.o yp.o bsdbtree.o bsdhash.o selfmatch.o ldap.o

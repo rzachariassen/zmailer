@@ -211,7 +211,7 @@ char *argv[];
 	fprintf(stderr,"Key %s not found\n",argv[3]);
 	return 2;
       }
-      printf("siz:%d, dat: %s\n", result.size, (char*)result.data);
+      printf("siz:%ld, dat: %s\n", (long)result.size, (char*)result.data);
     }
 
     (dbfile->close)(dbfile);
@@ -248,7 +248,7 @@ char *argv[];
 	fprintf(stderr,"Key %s not found\n",argv[3]);
 	return 2;
       }
-      printf("siz:%d, dat: %s\n",result.size,(char*)result.data);
+      printf("siz:%ld, dat: %s\n",(long)result.size,(char*)result.data);
     }
 
     (dbfile->close)(dbfile);

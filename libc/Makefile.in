@@ -9,6 +9,7 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		..
 DEFS=		@DEFS@
@@ -22,7 +23,7 @@ LIBRARYDIR=	@libdir@
 INSTALL=	@INSTALL@
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(LIBC_INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(LIBC_INCL)
 #
 #  The LIBOBJS is autoconfigure generated macro which feeds in several
 #  usefull/important bits:

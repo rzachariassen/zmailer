@@ -8,6 +8,7 @@ VPATH=		@srcdir@
 CC=		@CC@
 DEFS=		@DEFS@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 MAILBIN=	@MAILBIN@
 RMAIL_INCL=	
@@ -20,7 +21,7 @@ LN_S=		"@LN_S@"
 INCL=   -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 LIB=    -L$(TOPDIR)/libs -lz -lzc
 LIBDEB= $(TOPDIR)/libs/libtag
-CFLAGS= $(COPTS) $(DEFS) $(INCL) $(RMAIL_INCL)
+CFLAGS= $(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(RMAIL_INCL)
 #BIN=    /bin
 SOURCE=	$(srcdir)/rmail.c $(srcdir)/$(TOPDIR)/lib/linebuffer.c
 

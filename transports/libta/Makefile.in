@@ -9,13 +9,14 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		../..
 DEFS=		@DEFS@
 RANLIB=		@RANLIB@
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) @INCLRESOLV@
-CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
 #
 OBJS=	markoff.o warning.o lockaddr.o myuucpname.o wantout.o \
 	stringlib.o diagnostic.o emptyline.o \

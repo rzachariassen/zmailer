@@ -8,11 +8,12 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
-CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
 TOPDIR=		../..
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 

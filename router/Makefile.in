@@ -9,6 +9,7 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		..
 MAILBIN=	$(prefix)@MAILBIN@
@@ -19,7 +20,7 @@ ROUTER_LIB=	@GETPWLIB@ @LIBDBMS@ @LIBNIS@ @LIBRESOLV@ @LIBSOCKET@
 #   Above the  LIBSOCKET (for SysVR4) must be last
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(srcdir)/$(TOPDIR)/libsh -I$(TOPDIR)/libsh -I.
-CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(ROUTER_INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(ROUTER_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 #

@@ -9,6 +9,7 @@ VPATH = @srcdir@
 SHELL=		/bin/sh
 CC=		@CC@
 COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
 CPPDEP=		@CPPDEP@
 TOPDIR=		../..
 MAILBIN=	$(prefix)@MAILBIN@
@@ -19,7 +20,7 @@ ERRORMAIL_LIB=	@LIBRESOLV@ @LIBSOCKET@
 #
 SOURCE=		errormail.c
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) $(ERRORMAIL_INCL)
-CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lta -lz -lzc $(LIBMALLOC)

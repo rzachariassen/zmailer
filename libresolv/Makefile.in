@@ -65,20 +65,21 @@ srcdir=         @srcdir@
 VPATH=          @srcdir@
 
 DESTDIR =
-DESTLIB = ../libs
-CC= 	@CC@
-SHELL= /bin/sh
-CPPDEP = @CPPDEP@
-TOPDIR=	..
-INCL =	-I${TOPDIR} -I${TOPDIR}/include
-AR=	@AR@ cru
-LD=	@LD@
+DESTLIB =	../libs
+CC= 		@CC@
+SHELL=		/bin/sh
+CPPFLAGS=	@CPPFLAGS@
+CPPDEP =	@CPPDEP@
+TOPDIR=		..
+INCL =		-I${TOPDIR} -I${TOPDIR}/include
+AR=		@AR@ cru
+LD=		@LD@
 LDS=	: # Some systems can't support data squeeze, and why to
 #	  # bother with it, when the final product will be squeezed
 #	  # if needed -- or else all symbols are desired..
 #	  # (just another kludge due to Sun Solaris 2 ..)
 RANLIB= @RANLIB@
-DEFS=	@CFLAGS@ @DSPRINTF_TYPE@
+DEFS=	@CFLAGS@ $(CPPFLAGS) @DSPRINTF_TYPE@
 LOCDEFS= -DUSELOOPBACK #-DUSE_OPTIONS_H
 
 AROBJS= ${ARPREF} ${OBJS} ${ARSUFF}
