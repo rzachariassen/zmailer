@@ -1,3 +1,4 @@
+'\" t TBL macroes present!
 .\" $Header$
 .ds ]W ZMailer 2.99
 .TH ROUTER 8 "9 May 2000"
@@ -134,45 +135,51 @@ rendering them thru any formatting RFC-822 engine.
 To restart a
 .I router
 daemon:
-.sp
-.ta 1i
+.PP
+.RS
 .nf
-	router -dk
+router -dk
 .fi
-.sp
+.RE
+.PP
 To test an address, start up an interactive session:
-.sp
+.PP
+.RS
 .nf
-	router -i
+router -i
 .fi
-.sp
+.RE
+.PP
 or if the ZMailer
 .IR sendmail (8)
 is installed:
-.sp
+.PP
+.RS
 .nf
-	sendmail -bt
+sendmail -bt
 .fi
-.sp
+.RE
+.PP
 Then just use the pre-defined functions.
 .SH CONFIGURATION FILE
 The
 .I router
 configuration file must provide some services so the message processing
 can proceed:
-.IP
+.PP
+.IP -
 There must be a way to translate an arbitrary syntactically valid address
 into a specification for how to deliver for that address.  This is routing
 and must be implemented by a configuration file function with the name:
 \fBrouter\fR.
-.IP
+.IP -
 There must be a way to make policy decisions about what to do with an
 address in the context of the particular message it came from.  The most
 typical kind of policy decision is how to rewrite addresses in the message
 header for the immediate destination of a message envelope recipient address.
 Policy at this level is implemented by a configuration file function
 called \fBcrossbar\fR.
-.IP
+.IP -
 There must be a way to specify what should happen when message processing
 cannot continue due to a temporary resource unavailability (e.g., when
 the nameserver is acting up).  There is a shell variable, \fBdefer\fR,
@@ -202,15 +209,16 @@ conversation.  The expected name for this function is \fBserver\fR.
 The following are the interface specifications for the functions mentioned
 above:
 .IP "\fBrouter\fR \fIaddress\fR \fIattributes\fR"
+.RS
 This function is applied to all message envelope addresses.
 The first argument to this function is a syntactically valid
 (understood by the parser) address.  The second argument is
 a symbol whose value is a property list for the address.
 The property list consists of alternating keys and values,
 and is modified using the
-.B setf
+.B lreplace
 function.
-.IP
+.PP
 The
 .B router
 function returns a list of address groups.  Each address group
@@ -218,50 +226,51 @@ is a list of mutually exclusive address tuples, i.e. delivering to one
 is equivalent to delivering to any other destination address in the group.
 An address tuple is a list of 4 elements (another name for this is a quad),
 which in order are:
-.IP
-\- the delivery channel, designating a transport agent.
-.IP
-\- the next host to be delivered to (an uninterpreted channel parameter).
-.IP
-\- the address to present the next host.
-.IP
-\- the symbol whose value is a property list for this address.
-.IP
+.IP -
+the delivery channel, designating a transport agent.
+.IP -
+the next host to be delivered to (an uninterpreted channel parameter).
+.IP -
+the address to present the next host.
+.IP -
+the symbol whose value is a property list for this address.
+.PP
 By convention, if either the channel or host is irrelevant, it is
 given as "-".
-.IP
+.PP
 For example, these are possible parameters and return value:
-.ta 0.5i
-.sp
+.PP
+.RS
 .nf
-	z# g0=(privilege 0 type recipient)
-	z# router rayan g0
-	(((local - rayan g0)))
+z# g0=(privilege 0 type recipient)
+z# router rayan g0
+(((local - rayan g0)))
 .fi
-.sp
-.IP
+.RE
+.PP
 This function also handles any alias expansion that may be necessary.
 The following example shows the expansion of a single address to
 multiple independent recipients:
-.sp
+.PP
+.RS
 .nf
-	z# router root g0
-	(((local - ken g0)) ((local - rayan g0)))
+z# router root g0
+(((local - ken g0)) ((local - rayan g0)))
 .fi
-.sp
-.IP
+.RE
+.PP
 The
 .B router
 function is free to change the privilege of the address, or to add
 any other information to the property list for use by the
 .B crossbar
 function.
-.IP
+.PP
 Note: in the current version of ZMailer, only the
 .I router
 knows about mutually exclusive addresses.  Therefore all quads must
 be the lone element of their address group.
-.IP
+.PP
 If a resource deferral occurs during processing (e.g., the nameserver
 is busy or broken), the global variable
 .B defer
@@ -269,7 +278,9 @@ will be set to a non-null string indicating the problem.
 This string is in a format interpreted by the
 .I hold
 transport agent when it sees a host name in a destination address.
+.RE
 .IP "\fBcrossbar\fR \fIfrom\fR \fIto\fR"
+.RS
 This function controls policy decisions that require context knowledge.
 It rewrites the next-address portion of an address quad to the proper
 form, and determines which style of message header rewriting is appropriate.
@@ -277,21 +288,19 @@ The arguments are sender and recipient address quads, as returned by the
 .B router
 function.
 The return value is a list of three elements:
-.IP
-\- the name of a function that will be used to
+.PP
+.IP -
+the name of a function that will be used to
 rewrite all message header addresses
-.IP
-\- the sender address quad, with components changed appropriately
-using
-.BR setf.
-.IP
-\- the recipient address quad, with components changed appropriately
-using
-.BR setf.
-.IP
+.IP -
+rewritten sender address quad
+.IP -
+rewritten recipient address quad
+.PP
 The message header address rewriting function will be called with
 a single argument, the address in original form, and returns a string
 argument, the address rewritten.
+.RE
 .IP "\fBheader_defer\fR \fIaddress\fR"
 This function rewrites a message header address that might not have been
 rewritten properly due to a resource deferral.  In that case the
@@ -308,6 +317,7 @@ deferral during the execution of this function is ignored.  Typically
 .B header_defer
 would just quote the address and make it relative to the local host.
 .IP "\fBserver\fR \fIkey\fR ..."
+.RS
 This function is not used by the
 .I router
 while processing mail.  It is called from the
@@ -317,7 +327,7 @@ may need services provided by other parts of the normal configuration file,
 it is included by convention.  The first argument is a keyword which describes
 the desired service, followed by parameters to that service.  The known
 keywords are:
-.RS
+.PP
 .IP \fBinit\fR
 which should be invoked before any other service.
 .IP \fBto\fR
@@ -328,13 +338,13 @@ verifies its single parameter as a valid SMTP MAIL FROM address.
 verifies its single parameter as a resolvable address.
 .IP \fBexpand\fR
 prints the alias expansion, if any, of the single address parameter.
-.RE
-.IP
+.PP
 SMTP error codes and text may be
 .BR echo 'ed
 directly, and multiline output is handled by a filter in the
 .IR smtpserver .
-.sp
+.RE
+.PP
 .SH BUILTIN FUNCTIONS
 The following builtin functions are provided in the
 .I router
@@ -443,6 +453,13 @@ printed.  The
 has no preconceived notion of what the hostname is, so
 Message-Id and Received headers will only be generated if a hostname
 has been set using this function.
+.IP "lappend \fIvarname $values..\fR"
+.RS
+Looks up named variable, and gives up if does not find it.
+.PP
+The variable data content is considered to be a simple list, and the values
+are appended to it as a chain.
+.RE
 .IP "listaddresses [ -e \fIerror-address\fR ] [ -E \fIerrors-to-address\fR ] [ -c \fIcomment\fR ]"
 filters an RFC822 address list on standard input to produce one normal
 form (no non-address tokens) address per line on its output.
@@ -454,6 +471,10 @@ If a comment is specified, it will be inserted in the error report.
 If an errors occurs while messages are being delivered, the
 `errors-to-address' can be used to force error message destination
 elsewere than to the default `sender' of the message.
+.IP "listexpand [ -c \fIcomment\fR ] [ -e \fIerroraddress\fR ] [ -E \fIerrors-to\fR ] \fI$attribute $localpart $origaddr\fR < listfile"
+implements the most common pipeline where
+.I listaddresses
+was used with more efficient memory consumption handling.
 .IP "login2uid \fIlogin\fR"
 Prints the uid associated with the specified account name, if any.
 A side-effect is to add the GECOS name field of the account to the
@@ -463,12 +484,20 @@ in-core database, to add the login name to uid mapping to the
 in-core database, and to add the uid to login name mapping to the
 .B pwuid
 in-core database.
-.IP "listexpand [ -c \fIcomment\fR ] [ -e \fIerroraddress\fR ] [ -E \fIerrors-to\fR ] \fI$attribute $localpart $origaddr\fR < listfile"
-implements the most common pipeline where
-.I listaddresses
-was used with more efficient memory consumption handling.
-(That is, without variable duplicating
-.IR setf 's.)
+.IP "lreplace \fIlistvarname fieldindex $newvalue\fR"
+.RS
+This modifies the content of named \fIlistvarname\fR (property-list) variable
+by replacing:
+.IP "with numeric index"
+the value of indexed element; say "1" would replace second data item in
+simple chain.  If the index goes beyond the chain, the new value is added
+at the tail of the chain.
+.IP "with property-element name"
+the value of possibly existing property-element pair
+(say: "name1" "value1" "name2" "value2") is replaced with a new one.
+If the name can not be found, name and its value are appended to
+the variable.
+.RE
 .IP "printaliases [ -v ] [ -o \fIindexoutputfile\fR ] \fIfile\fR"
 reads RFC822 syntax header lines from the specified file, parses them
 assuming contents must be an address list, and sorts and prints the header
@@ -510,7 +539,7 @@ a recipient address in a message header".
 .IP "recase [ -u | -l | -p ] \fIstring\fR"
 is a case-mapping function that prints the parameter string in either
 all-uppercase, all-lowercase, or capitalized (pretty).
-.IP "relation -t \fIdbtype[,subtype]\fR [ -f \fIfile\fR -e\fI#\fR -s\fI#\fR -bilmnu -d \fIdriver\fR ] \fIname\fR"
+.IP "relation -t \fIdbtype[,subtype]\fR [ -f \fIfile\fR -e\fI#\fR -s\fI#\fR -bilmnNu% -d \fIdriver\fR ] \fIname\fR"
 informs the
 .I router
 of the existence of a database, and how to access it.  It also creates a
@@ -540,6 +569,14 @@ is the BIND implementation of a Domain Name System resolver.  The subtype
 for this type is the name of a Resource Record type in the
 .B IN
 class.
+.IP \fBbtree\fR
+Is
+.I SleepyCat BSD DB version 2.x
+B-TREE database.
+.IP \fBbhash\fR
+Is
+.I SleepyCat BSD DB version 2.x
+HASH database.
 .IP \fBndbm\fR
 is the new DBM library.
 The
@@ -593,6 +630,7 @@ use new data.
 This is warmly recommended on relations which use unordered, or ordered
 datasets (aliases, routes, ...), and especially if the system is configured
 to use mmap(2) facility.
+
 Updateing such databases should preferrably use
 .I mv
 command to move a new version of the database in place of the old one.
@@ -602,15 +640,76 @@ command to move a new version of the database in place of the old one.
 .IP \-n
 if the key exists in the database and the value is null or a list,
 return the key as value.  Otherwise return the value retrieved, if any.
+.IP \-N
+.IR "Negative Cache" ,
+if the key is not found from the backend DB, place the result into the cache
+with configured TTL. (See \fI\-e\fR option.)
 .IP \-u
 map all keys to uppercase before searching.
 .IP "\-d \fIdriver\fR"
 specifies a search driver that allows searching for structured
 keys using special knowledge.  The argument to this option must be
-a known driver.  Currently the only known driver is
-.B pathalias
-which will search a pathalias format database for an entry matching
-a domain name using the pathalias rules.
+a known driver.
+
+Currently known drivers are:
+.RS
+.IP "\fBpathalias\fR"
+The lookup sequence for ``foo.bar.edu'' is:
+
+.RS
+.nf
+ foo.bar.edu
+ .foo.bar.edu
+ .bar.edu
+ .edu
+ .
+.fi
+.RE
+.IP "\fBpathalias.nodot\fR"
+The lookup sequence for ``foo.bar.edu'' is:
+
+.RS
+.nf
+ bar.edu
+ edu
+.fi
+.RE
+.IP "\fBlongestmatch\fR"
+The lookup sequence for ``foo.bar.edu'' is:
+
+.RS
+.nf
+ foo.bar.edu
+ .bar.edu
+ .edu
+ .
+.fi
+.RE
+.RE
+.IP "\-%"
+.RS
+Marks that the database results containing '%0' thru '%9' are
+to be replaced with positional arguments to the database call
+(via \fIname\fR).
+.PP
+The '%0' is always the full key, '%1' \fBmay\fR be "wildcarded"
+portion of the key in case any of the driver routines is used,
+and the original full key does not give a match.
+.PP
+Nominally '%1' thru '%9' are positional options to \fIname\fR:
+.PP
+.RS
+.nf
+result=$(name $keyval $opt1 $opt2 ... $opt9)
+.fi
+.RE
+.PP
+However like is above mentioned, "wildcarding" lookup drivers
+may change the indices making "$opt1" above to be '%2', and
+eight option would become '%9' making ninth inaccessible.
+.RE
+.IP "\fIname\fR"
+is the name bound to the lookup function of defined database.
 .RE
 .IP "rfc822 \fImessagefile\fR"
 This function controls the parsing and processing of a message file in
@@ -651,11 +750,22 @@ will by default do the first queue scan in stable mode, and subsequent
 scans in unstable mode.  The name of this command is the name for a
 similar characteristic of sorting algorithms.
 .IP "trace \fIkey1 ... keyN\fR"
-Enables tracing of the specified items.  The valid keywords are:
 .RS
+Enables tracing of the specified items.  The valid keywords are:
+.PP
 .IP \fBall\fR
 turns on all tracing options.  You only do this to test the I/O capabilities
 of your system.
+.IP \fBexcept\fR
+.RS
+flips the sense of tokens following this one.
+.PP
+The \fIrtrace\fR routine at the default router scripts is defined as:
+.PP
+.RS
+trace all except rfc822 regexp
+.RE
+.RE
 .IP \fBassign\fR
 print shell variable assignments.
 .IP \fBbind\fR
@@ -708,7 +818,7 @@ It has the same side-effects as the
 .I login2uid
 function.
 .IP "untrace \fIkey1 ... keyN\fR"
-Disables tracing of the specified items.
+Complement of the \fItrace\fR function.
 .PP
 In addition any defined relations will create a builtin function with
 the same name as the relation.
@@ -792,23 +902,25 @@ Typically these are purely address headers.  The optional entries are
 for headers that are not essential to the relaying of mail, but whose
 semantics are in fact specified in RFC822.  For example, here is a
 representative sample of the contents of the database:
-.sp
-.nf
-    sender                  Mailbox:Sender:- (permanent)
-    bcc                     Addresses:Recipient:- (permanent)
-    from                    AMailboxList:Sender:- (permanent)
-    message-id              MessageID:-:- (permanent)
-    reply-to                AddressList:Sender:- (permanent)
-    resent-from             AMailboxList:Sender:Resent (permanent)
-    resent-sender           Mailbox:Sender:Resent (permanent)
-    return-receipt-to       AddressList:Sender:- (optional)
-    return-path             Mailbox:Sender:- (optional)
-    date                    DateTime:-:- (optional)
-    encrypted               Encrypted:-:- (optional)
-    errors-to               AddressList:Sender:- (optional)
-    keywords                PhraseList:-:- (optional)
-.fi
-.sp
+.PP
+.RS
+.TS
+l l l.
+sender	Mailbox:Sender:-	(permanent)
+bcc	Addresses:Recipient:-	(permanent)
+from	AMailboxList:Sender:-	(permanent)
+message-id	MessageID:-:-	(permanent)
+reply-to	AddressList:Sender:-	(permanent)
+resent-from	AMailboxList:Sender:Resent	(permanent)
+resent-sender	Mailbox:Sender:Resent	(permanent)
+return-receipt-to	AddressList:Sender:-	(optional)
+return-path	Mailbox:Sender:-	(optional)
+date	DateTime:-:-	(optional)
+encrypted	Encrypted:-:-	(optional)
+errors-to	AddressList:Sender:-	(optional)
+keywords	PhraseList:-:-	(optional)
+.TE
+.RE
 .PP
 You may decide to add or remove header definitions from this database.
 This is done using the normal database interface function,
@@ -872,14 +984,16 @@ to send messages directly to the scheduler's hash subdirectories,
 thus eliminating a few directory operations which the scheduler would
 otherwise do, and at the same time limiting the size of the directory
 files.
+.IP SYSLOGFLG
+.B ** document missing **
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /var/spool/postoffice/.pid.router (POSTOFFICE/.pid.router)
-.br
-.I /var/spool/postoffice/router (POSTOFFICE/router)
-.br
-.I /var/spool/postoffice/{ROUTERDIRS} (POSTOFFICE/{ROUTERDIRS})
+.TS
+l l.
+\fI/etc/zmailer.conf\fR	
+\fI/var/spool/postoffice/.pid.router\fR	(POSTOFFICE/.pid.router)
+\fI/var/spool/postoffice/router\fR	(POSTOFFICE/router)
+\fI/var/spool/postoffice/{ROUTERDIRS}\fR	(POSTOFFICE/{ROUTERDIRS})
+.TE
 .SH SEE ALSO
 router(8), mailq(1), zmailer(3), zmsh(1)
 .SH AUTHOR

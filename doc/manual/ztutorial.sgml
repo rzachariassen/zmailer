@@ -141,8 +141,8 @@ nature of a message and the way UAs and MTAs deal with it.
 
 <PARA>
 A message consists of a body and headers. In case of messages with more 
-than one bodypart (for example some MIME messages) the different body 
-parts are all part of the outermost bodypart.
+than one body-part (for example some MIME messages) the different body 
+parts are all part of the outermost body-part.
 </PARA>
 
 <PARA>
@@ -182,10 +182,10 @@ parts are all part of the outermost bodypart.
 
 <PARA>
 As can be seen, there is always just one outermost body that contains 
-all other bodyparts. In some cases, for example X.400 the protocol 
-seems to violate this by leaving out the outermost bodypart. However, 
+all other body-parts. In some cases, for example X.400 the protocol 
+seems to violate this by leaving out the outermost body-part. However, 
 even on those cases we must assume, at the abstract level, 
-that the outermost bodypart is there.
+that the outermost body-part is there.
 </PARA>
 
 <PARA>
@@ -300,7 +300,7 @@ address but also the sender address in the envelope. In this way,
 undeliverable messages are sent to the owner of the list, who can deal 
 with the problem, and not to the sender of the message, who can do nothing 
 to remedy the situation.
-(The ZMailer has some builtin facilities for this, see about
+(The ZMailer has some built-in facilities for this, see about
 <emphasis>Mailing Lists&hellip;</> on section
 <XREF LINKEND="mailing-list-maintenance">.)
 </PARA>
@@ -346,7 +346,7 @@ and to a variety of databases describing the mailer's environment.
 
 <PARA>
 ZMailer provides this functionality in a package and with a philosophy
-that has benefited from experiences with earlier mailers.
+that has benefitted from experiences with earlier mailers.
 </PARA>
 
 <PARA>
@@ -387,7 +387,7 @@ After parsing the envelope and RFC822 header information, the Router
 validates the information extracted, and calls functions defined in the
 configuration file to decide exactly how to deliver the message and how to
 transform the embedded addresses.  The algorithms that do this are easily
-reconfigurable, since the control flow and address manipulation is
+re-configurable, since the control flow and address manipulation is
 specified by familiar shell script statements.  When the Router is
 finished, it will produce a message control file for use by the delivery
 processing stage of ZMailer, and move the original message file to another
@@ -499,7 +499,7 @@ directory.
 Basically the administration is as follows:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>
-At system startup (to start all subsystems):
+At system start-up (to start all subsystems):
 <SCREEN>
 <PROMPT># </><USERINPUT>zmailer</>
 </SCREEN>
@@ -515,7 +515,7 @@ At system shutdown (to kill all subsystems):
 
 <PARA>
 There is also a way to make sure the system will not let the ZMailer
-to start at the system startup, because you have some massive work
+to start at the system start-up, because you have some massive work
 going on, and the system is not in condition to accept email for a while: 
 <SCREEN>
 <PROMPT># </><USERINPUT>zmailer freeze</>
@@ -573,9 +573,9 @@ facility and lack of caching.
 
 <VARLISTENTRY><TERM><APPLICATION>sendmail 8.x</APPLICATION></TERM>
 <LISTITEM><PARA>
-Since long time of no development, sendmail got a developemnt boost
+Since long time of no development, sendmail got a development boost
 around mid 1990'es, which has made it somewhat better, but still the
-principal queueing model is the same as always.
+principal queuing model is the same as always.
 </PARA></LISTITEM></VARLISTENTRY>
 
 
@@ -585,7 +585,7 @@ principal queueing model is the same as always.
 own mail composition program and of course a mailer.
 There are too many parts to it as can be said, it is a system, not a
 subsystem), and the address manipulation is only sufficient for a
-relatively homogenous environment. It does have reasonable database
+relatively homogeneous environment. It does have reasonable database
 facilities and caching, as opposed to Sendmail, and the concept of Channels.
 However, knowledge about address semantics is distributed in several
 programs instead of being centralized.
@@ -636,7 +636,7 @@ Sendmail package.
 
 <VARLISTENTRY><TERM><APPLICATION>Smail 3.1</APPLICATION></TERM>
 <LISTITEM><PARA>
-Further developemnts for <APPLICATION>Smail 3.0</>.
+Further developments for <APPLICATION>Smail 3.0</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 
@@ -645,7 +645,7 @@ Further developemnts for <APPLICATION>Smail 3.0</>.
 <ULINK URL="http://www.exim.org/">http://www.exim.org/</ULINK>
 </PARA>
 <PARA>
-A post-developemnt version of <APPLICATION>Smail</>.
+A post-development version of <APPLICATION>Smail</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 
@@ -700,7 +700,7 @@ MTA comparison experiment report at
   <ENTRY>MTA name</ENTRY>
   <ENTRY>DNS Concurrency</ENTRY>
   <ENTRY>SMTP Concurrency</ENTRY>
-  <ENTRY>SMTP Pickybacking</ENTRY>
+  <ENTRY>SMTP Piggybacking</ENTRY>
 </ROW>
 </THEAD>
 <!-- <TFOOT>
@@ -767,10 +767,10 @@ Not concurrent
 Single process doing it all via threads
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>fork</TERM><LISTITEM><PARA>
-DNS lookups happen at forked subprocess
+DNS look-ups happen at forked sub-process
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>partial</TERM><LISTITEM><PARA>
-sendmail does MX RR lookups before any SMTP deliveries, and
+sendmail does MX RR look-ups before any SMTP deliveries, and
 the A RR queries are made only when connection for some server
 is desired.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -795,12 +795,12 @@ Operation is serialized
 Single process doing it all via threads
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>fork</TERM><LISTITEM><PARA>
-SMTP connections are done by forked subprocesses
+SMTP connections are done by forked sub-processes
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>SMTP Pickybacking</TERM>
+<VARLISTENTRY><TERM>SMTP Piggybacking</TERM>
 <LISTITEM><PARA>
 In which way the MTA bundles together transmitted messages
 into as few SMTP sessions as possible:
@@ -820,7 +820,7 @@ Deliver only those messages which recipients have same domain thru
 same SMTP connection
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>None</TERM><LISTITEM><PARA>
-Deliver each message/destination individually, no parallellism at all.
+Deliver each message/destination individually, no parallelism at all.
 </PARA><PARA>
 In fact the <APPLICATION>qmail</APPLICATION> delivers each
 <EMPHASIS>recipient</EMPHASIS> in separate SMTP connections.

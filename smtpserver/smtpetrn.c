@@ -40,7 +40,7 @@ int silence;
 	return -1;
     }
 
-    fprintf(mfp, "%c%c%s\n", _CF_TURNME, _CFTAG_NORMAL, cp);
+    fprintf(mfp, "%c%c%s %s\n", _CF_TURNME,  _CFTAG_NORMAL, cp, SS->ihostaddr);
     /* printf("050-My uid=%d/%d\r\n",getuid(),geteuid()); */
     runasrootuser();
     rc = mail_close_alternate(mfp, TRANSPORTDIR, "");
@@ -143,7 +143,7 @@ const char *name, *cp;
       if (port && isdigit(port[1])) {
 	portnum = atol(port+1);
       } else if (port == NULL) {
-	serv = getservbyname(port ? port : "mailq", "tcp");
+	serv = getservbyname("mailq", "tcp");
 	if (serv == NULL) {
 
 	  type(SS,-250,m200,"Cannot find 'mailq' tcp service");
@@ -291,7 +291,7 @@ const char *name, *cp;
       goto failure_exit;
     }
 
-    fprintf(fpo,"ETRN %s\n", cp);
+    fprintf(fpo,"ETRN %s %s\n", cp, SS->ihostaddr);
     if (fflush(fpo) || ferror(fpo)) {
       type(SS,-250,m200,"MQ2-ETRN write failure occurred");
       goto failure_exit;

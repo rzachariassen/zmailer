@@ -36,9 +36,9 @@ else
 		$MAILBIN/zmailer newfqdnaliases
 	fi
 	relation -lmt $DBTYPE -f $MAILVAR/db/fqdnaliases$DBEXT fqdnaliases_1
-	fqdnaliases (key) {
+	fqdnaliases (key, o1, o2, o3, o4, o5, o6, o7, o8, o9) {
 	  local a
-	  if a="$(fqdnaliases_1 "$key")"; then
+	  if a="$(fqdnaliases_1 $key $o1 $o2 $o3 $o4 $o5 $o6 $o7 $o8 $o9)"; then
 	    priv="$(filepriv -M 644 $MAILVAR/db/fqdnaliases$DBEXTtest \
 			$(db owner fqdnaliases_1))" &&
 	    return "$a"
@@ -97,14 +97,14 @@ fqdn_neighbour (domain, address, A) {
 	case "$(get $A type)" in
 	sender)
 		if $(didexpand userdbmailname) && 
-		   a="$(userdb "$lcaddress:mailname")" ; then
+		   a="$(userdb "$lcaddress:mailname" "$user")" ; then
 
 		  db add expansions "$key.userdbmailname" 1
 		  nattr=$(newattribute $A privilege $priv)
 		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		  a=$(echo "$a" |				\
 		      listaddresses -c "$a sender fqdn userdb mailname" \
-				    -e root -l "$user"		 |	\
+				    -e root			 |	\
 		      maprrouter $nattr "sender-fqdn-userdb-mailname"	\
 					"$address" "$plustail" "$athost")
 		  return $a
@@ -131,26 +131,27 @@ fqdn_neighbour (domain, address, A) {
 	#
 
 	# key="$lcaddress"
-	if $(didexpand fqdnaliases) &&  a="$(fqdnaliases "$lcaddress")" ; then
+	if $(didexpand fqdnaliases) &&
+	   a="$(fqdnaliases "$lcaddress" "$user")" ; then
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo "$a" |					\
+		a=$(echo "$a" |						\
 		    listaddresses	-c "$a fqdn alias expansion" 	\
-					-e root  -l "$user"	 |	\
-		    maprrouter $nattr "fqdnalias" "$address"	\
+					-e root			 |	\
+		    maprrouter $nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		return $a
 	fi
 
 	if $(didexpand fqdnaliasesldap) &&
-	    a="$(fqdnaliasesldap "$lcaddress")" ; then
+	   a="$(fqdnaliasesldap "$lcaddress" "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo "$a" |					\
+		a=$(echo "$a" |						\
 		    listaddresses	-c "$a fqdn ldap expansion" 	\
-					-e root  -l "$user"	 |	\
+					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		return $a
@@ -166,26 +167,27 @@ fqdn_neighbour (domain, address, A) {
 	    u2="\1"
 	    pl2="+\2"
 	    key="$u2$athost"
-	    if $(didexpand fqdnaliases) && a="$(fqdnaliases "$key")" ; then
+	    if $(didexpand fqdnaliases) &&
+	       a="$(fqdnaliases "$key")" ; then
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo "$a" |					\
+		a=$(echo "$a" |						\
 		    listaddresses	-c "$a fqdn+ alias expansion" 	\
-					-e root -l "$user"	 |	\
+					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"	\
 				"$pl2" "$athost")
 		return $a
 
 	    fi
 	    if $(didexpand fqdnaliasesldap) &&
-	       a="$(fqdnaliasesldap "$key")" ; then
+	       a="$(fqdnaliasesldap "$key" "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo "$a" |					\
+		a=$(echo "$a" |						\
 			 listaddresses	-c "$a fqdn+ ldap expansion" 	\
-					-e root -l "$user"	 |	\
+					-e root			 |	\
 			 maprrouter $nattr "fqdnalias" "$address"	\
 				"$plustail" "$athost")
 		return $a
@@ -268,25 +270,26 @@ fqdn_neighbour (domain, address, A) {
 	#         Yes, do the expansion! (echo .. | listexpand ...)
 	#
 	key="$athost"
-	if $(didexpand fqdnaliases) && a="$(fqdnaliases "$key")" ; then
+	if $(didexpand fqdnaliases) &&
+	   a="$(fqdnaliases "$key" "$user")" ; then
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv) &&
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |						\
 		    listaddresses	-c "$a fqdn alias expansion" 	\
-					-e root -l "$user"	 |	\
+					-e root			 |	\
 		    maprrouter	$nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		return $a
 	fi
 	if $(didexpand fqdnaliasesldap) &&
-	   a="$(fqdnaliasesldap "$key")" ; then
+	   a="$(fqdnaliasesldap "$key" "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv) &&
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo "$a" |					\
+		a=$(echo "$a" |						\
 		    listaddresses	-c "$a fqdn ldap expansion" 	\
-					-e root -l "$user"	 |	\
+					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		return $a

@@ -361,7 +361,7 @@ initialize(configfile, argc, argv)
 	int ac;
 	const char **cpp;
 	const char **av;
-	char *zconfig;
+	const char *zconfig;
 
 	av = (const char **)emalloc((5+argc)*(sizeof (char *)));
 	/* initialize shell */

@@ -2,7 +2,7 @@
 <TITLE>Security Issues</TITLE>
 
 <PARA>
-Having local-parts that allow delivery to arbitary files, or which can
+Having local-parts that allow delivery to arbitrary files, or which can
 trigger execution of arbitrary programs, can clearly lead to a huge security
 problem.
 <COMMAND>sendmail</> does address this problem, but in a restrictive and
@@ -16,12 +16,12 @@ the <EMPHASIS>router</> and the <EMPHASIS>transport agent</> that delivers
 a message to an address.
 Since it is the Transport Agent that must enforce the security, it needs
 some information to guide it.  Specifically, for each address it delivers
-to, some information about the ``<EMPHASIS>trustworthyness</>'' of that
+to, some information about the ``<EMPHASIS>trustworthiness</>'' of that
 address is necessary so that the transport agent can determine which
 privileges it can assume when delivering for that destination.
 This information is determined by the <EMPHASIS>router</>, and passed
 to the transport agent in the message control file.
-The specific measure of trustworthyness chosen by ZMailer, is simply
+The specific measure of trustworthiness chosen by ZMailer, is simply
 a numeric user id (uid) value <EMPHASIS>representing the source of
 the address.</>
 </PARA>

@@ -223,5 +223,5 @@ distclean: clean
 	rm -f Makefile sm.conf zmailer.sh
 	rm -f newfqdnaliases newaliases newdb mailrm.sh
 	rm -f scheduler.conf post-install.sh smtp-tls.conf
-	rm -f smtpserver.conf
+	rm -f smtpserver.conf newdbprocessor scheduler.auth
 depend:

@@ -81,6 +81,7 @@ struct db_info {
 #define	DB_MAPTOUPPER	0x02
 #define	DB_MODCHECK	0x04
 #define DB_NEG_CACHE	0x08
+#define DB_PERCENTSUBST	0x10
 
 
 struct db_kind {
@@ -240,7 +241,7 @@ run_relation(argc, argv)
 	proto_config
 		= db_kinds[sizeof db_kinds/(sizeof (struct db_kind))-1].config;
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "CbilmnNpud:f:s:L:t:Te:");
+		c = getopt(argc, (char*const*)argv, "CbilmnNpud:f:s:L:t:Te:%");
 		if (c == EOF)
 			break;
 		switch (c) {
@@ -305,6 +306,9 @@ run_relation(argc, argv)
 			break;
 		case 'u':	/* map all keys to uppercase */
 			proto_config.flags |= DB_MAPTOUPPER;
+			break;
+		case '%':
+			proto_config.flags |= DB_PERCENTSUBST;
 			break;
 		case 'F':	/* find routine */
 		case 'S':	/* search routine */
@@ -902,7 +906,7 @@ db(dbname, argv10)
 				free(realkey);
 			}
 			UNGCPRO3;
-			if (si.argv1) free(si.argv1);
+			if (si.argv1) free((void*)si.argv1);
 			si.argv1 = NULL;
 			return NULL;
 		}
@@ -964,42 +968,92 @@ db(dbname, argv10)
 	UNGCPRO3;
  post_subst:
 
-	if (ll) {
-	  char *buf, *s;
-	  const char *p;
-	  int buflen;
+	if (ll && dbip->flags & DB_PERCENTSUBST) {
+	  char *buf, *b;
+	  const char *p, *s;
+	  int i;
+	  int do_subst = 0;
 
-	  l = tmp = NULL;
-	  GCPRO3(l, ll, tmp);
+	  slen = 0;
 
-	  buflen = strlen(p);
 	  p = ll->cstring;
 
 	  /* TODO: %0 .. %9 substitutions ? */
+
+	  /* Estimate the required size, can safely overestimate! */
+
 	  for (;*p;++p) {
 	    if (*p == '%' && ('0' <= p[1] && p[1] <= '9')) {
-	      int slen = 0;
-	      switch (p[1]) {
+	      ++p;
+	      switch (*p) {
 	      case '0':
 		s = si.key;
 		break;
 	      case '1':
 		s = si.argv1;
+		if (!s) s = si.argv10[1];
 		break;
 	      default:
-		s = si.argv1;
+		i = (*p - '0');
+		if (si.argv1) --i;
+		s = si.argv10[i];
 		break;
 	      }
-	      slen = strlen(s);
-	      if (!buf)
-		buf = malloc(buflen + slen);
+	      if (s)
+		slen += strlen(s);
+	      if (s)
+		do_subst = 1;
+	      continue;
 	    }
+	    ++slen;
 	  }
 
-	  if (si.argv1) free(si.argv1);
-	  si.argv1 = NULL;
+	  /* We have some work to do, not all plain joy.. */
 
-	  UNGCPRO3;
+	  if (do_subst) {
+
+	    l = tmp = NULL;
+	    GCPRO3(l, ll, tmp);
+
+	    b = buf = malloc(slen + 3); /* probably 1 extra is enough .. */
+
+	    for (p = ll->cstring; *p; ++p) {
+	      if (*p == '%' && ('0' <= p[1] && p[1] <= '9')) {
+		++p;
+		switch (*p) {
+		case '0':
+		  s = si.key;
+		  break;
+		case '1':
+		  s = si.argv1;
+		  if (!s) s = si.argv10[1];
+		  break;
+		default:
+		  i = (*p - '1');
+		  if (si.argv1) --i;
+		  s = si.argv10[i];
+		  break;
+		}
+		if (s)
+		  while (*s) *b++ = *s++;
+		continue;
+	      }
+	      *b++ = *p;
+	    }
+	    *b = 0;
+
+	    l = newstring(dupnstr(buf, b-buf), b-buf);
+	    free(buf);
+
+
+	    if (si.argv1) free((void*)si.argv1);
+	    si.argv1 = NULL;
+
+	    ll = l;
+
+	    UNGCPRO3;
+	  }
+
 	}
 	return ll;
 }
@@ -1154,7 +1208,7 @@ find_domain(lookupfn, sip)
 			sip->key = cp-1;
 			l = (*lookupfn)(sip);
 			if (l) {
-				if (sip->argv1) free(sip->argv1);
+				if (sip->argv1) free((void*)sip->argv1);
 				sip->argv1 = dupnstr(buf, sip->key - buf);
 #ifdef PREDOT_TEST
 #ifndef HAVE_ALLOCA
@@ -1188,7 +1242,7 @@ find_domain(lookupfn, sip)
 	sip->key = ".";
 	l = (*lookupfn)(sip);
 	if (l) {
-		if (sip->argv1) free(sip->argv1);
+		if (sip->argv1) free((void*)sip->argv1);
 		sip->argv1 = dupnstr(realkey, keylen);
 		return l;
 	}
@@ -1222,7 +1276,7 @@ find_nodot_domain(lookupfn, sip)
 			sip->key = cp;
 			l = (*lookupfn)(sip);
 			if (l) {
-				if (sip->argv1) free(sip->argv1);
+				if (sip->argv1) free((void*)sip->argv1);
 				sip->argv1 = dupnstr(realkey,
 						     sip->key - realkey);
 				return l;
@@ -1314,7 +1368,7 @@ find_longest_match(lookupfn, sip)
 				sip->key = cp-1;
 				l = (*lookupfn)(sip);
 				if (l) {
-					if (sip->argv1) free(sip->argv1);
+					if (sip->argv1) free((void*)sip->argv1);
 					sip->argv1 = dupnstr(realkey,
 							     sip->key-realkey);
 					return l;
@@ -1325,7 +1379,7 @@ find_longest_match(lookupfn, sip)
 		sip->key = ".";
 		l = (*lookupfn)(sip);
 		if (l) {
-			if (sip->argv1) free(sip->argv1);
+			if (sip->argv1) free((void*)sip->argv1);
 			sip->argv1 = dupnstr(realkey, strlen(realkey));
 			return l;
 		}

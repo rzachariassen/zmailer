@@ -30,11 +30,11 @@ for more information.</PARA></TIP>
 <PARA>
 The cornerstone of everything in busy Internet email routing
 is a well-working DNS server, and modern resolver library.
-If you use the BIND nameserver, you should be using (or install)
+If you use the BIND name-server, you should be using (or install)
 a recent version, at least BIND 4.8. In this package there is also 
 a bundled resolver from  bind-4.9.4, however it is a bit difficult
 at BSD systems (because those developers use BSD themselves, and
-make an assumption that verybody has their version of things&hellip;
+make an assumption that everybody has their version of things&hellip;
 
 On the other hand, those systems have reasonably modern resolvers,
 so no need to worry about it &mdash; I hope.) 
@@ -42,15 +42,15 @@ so no need to worry about it &mdash; I hope.)
 
 <PARA>
 For performance reasons you should have <EMPHASIS>local</> instance of
-nameserver. <EMPHASIS>Even when you don't have any DNS zone data to
-originate yourself, an instance of nameserver is able to cache
+name-server. <EMPHASIS>Even when you don't have any DNS zone data to
+originate yourself, an instance of name-server is able to cache
 replies it receives from the network, and thus be able to faster
 yield replies for repeated questions.</EMPHASIS>
 </PARA>
 
 <PARA>
 You may also choose to use ``<APPLICATION>whoson</>'' services provided by
-a utility package at ``<FILENAME CLASS="DIRECTORY">contrib/</>'' subdirectory.
+a utility package at ``<FILENAME CLASS="DIRECTORY">contrib/</>'' sub-directory.
 If you do, then do install that before configuring and installing the ZMailer.
 (More on section <XREF LINKEND="installing-whoson-service">.)
 </PARA>
@@ -76,7 +76,7 @@ them into your system (before compiling and installing ZMailer, that is):
   </LISTITEM>
   <LISTITEM>
     <PARA>
-      Private replacement libary for  <FUNCTION>getpwnam</>(), and/or
+      Private replacement library for  <FUNCTION>getpwnam</>(), and/or
       for  <FUNCTION>zgetpwnam</>()
     </PARA>
   </LISTITEM>
@@ -96,7 +96,7 @@ them into your system (before compiling and installing ZMailer, that is):
 
 <!-- ############################################################### -->
 
-<SECT1 ID="build.autoconfiguration"><TITLE>Autoconfiguration</TITLE>
+<SECT1 ID="build.autoconfiguration"><TITLE>Auto-configuration</TITLE>
 
 <PARA>
 The <FILENAME>zmailer.conf</> file carries various so called
@@ -131,7 +131,7 @@ different things:
 <LISTITEM><PARA>The mailbox spool:
   <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBOX</>/</>
   (<FILENAME CLASS="DIRECTORY">/var/mail</>)</></>
-<LISTITEM><PARA>The postoffice spool:
+<LISTITEM><PARA>The post-office spool:
   <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
   (<FILENAME CLASS="DIRECTORY">/var/spool/postoffice/</>)</></>
 <LISTITEM><PARA>The log directory:
@@ -141,7 +141,7 @@ different things:
 </PARA>
 
 <PARA>
-The <APPLICATION>GNU autoconfig</> mechanism is used, however, you
+The <APPLICATION>GNU autoconf</> mechanism is used, however, you
 still may need to touch on some files after that system has run through:
 You MUST define <OPTION>&dd;prefix=</> so that ZMailer components end up
 in reasonable places.  The <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</>
@@ -149,12 +149,12 @@ in reasonable places.  The <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</>
  <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>)
 variable values are derived from the <OPTION>&dd;prefix=</>, which can
 cause surprises if you do <COMMAND>make install</> with
-<APPLICATION>GNU autoconfig</> defaults.
+<APPLICATION>GNU autoconf</> defaults.
 </PARA>
 
 <PARA>
 When choosing your prefix, do try to keep is fairly short, as
-there are a few scripts which catenate string-components of:
+there are a few scripts which concatenate string-components of:
 <SCREEN>
   "#! "+prefix+"/bin/router -f"
 </SCREEN>
@@ -201,7 +201,7 @@ Or an example from my development machine:
 </PARA>
 
 <PARA>
-You can also go into a subdirectory, and configure and
+You can also go into a sub-directory, and configure and
 compile there: (But it may need <APPLICATION>GNU make</>
 as system ``<COMMAND>make</>''!)
 <SCREEN>
@@ -268,7 +268,7 @@ Additional examples:
 <SECT1><TITLE>Compilation</>
 
 <PARA>
-At the toplevel, run
+At the top-level, run
 <SCREEN>
   <PROMPT>$ </><USERINPUT>make</>
 </SCREEN>
@@ -282,7 +282,7 @@ changed some configuration parameters.
 
 <PARA>
 This should compile everything, and leave a <FILENAME>zmailer.Config</>
-file in the toplevel directory.  Nothing outside the source area will be
+file in the top-level directory.  Nothing outside the source area will be
 touched at this point.
 </PARA>
 
@@ -319,14 +319,14 @@ as database files and anything else in the installation areas you want
 to be sure to keep.
 This is just paranoia, the installation should not overwrite precious
 files, and will save old versions of distribution files in
-``<FILENAME CLASS="DIRECTORY">bak/</>'' subdirectories.
+``<FILENAME CLASS="DIRECTORY">bak/</>'' sub-directories.
 </PARA>
 
 <PARA>
 The interface in between the commonly used sendmail, and ZMailer
-is a ``compability program'', which is to replace the
+is a ``compatibility program'', which is to replace the
 <FILENAME>/usr/lib/sendmail</FILENAME>
-(aka <FILENAME>/usr/sbin/sendmail</> on some systems).
+(a.k.a. <FILENAME>/usr/sbin/sendmail</> on some systems).
 The system attempts to automate the replacement, but it <EMPHASIS>may</>
 present a cry for help if your system does not have functioning symlinks.
 Also if ``<COMMAND>test -h $<VARNAME>SENDMAILPATH</></>'' does fault in mysterious ways,
@@ -336,14 +336,14 @@ the reason may be that your system does not have symlinks.
 <PARA>
 If you are currently running Sendmail, kill your SMTP server
 and drain the Sendmail queue.  There is no automatic method
-to requeue Sendmail messages under ZMailer.  If you later want
+to re-queue Sendmail messages under ZMailer.  If you later want
 to back out to Sendmail, all you need to do is move the former
 version of the sendmail (on <FILENAME>/usr/lib/sendmail.bak</>,
 for example) binary back to <FILENAME>/usr/lib/sendmail</>.
 </PARA>
 
 <PARA>
-(You may also need to do some magics with system startup scripts
+(You may also need to do some magics with system start-up scripts
 in case you are running SysV-style init. BSD <FILENAME>/etc/rc.local</>
 does need its own gymnastics too.
 Sample SysV-init script is at file: ``<FILENAME>proto/zmailer.init.sh</>'')
@@ -352,7 +352,7 @@ Sample SysV-init script is at file: ``<FILENAME>proto/zmailer.init.sh</>'')
 <PARA>
 A sort of method to quickly handle your sendmail queue is to
 start ZMailer's SMTP server, reconfigure the old sendmail to
-use smarthost, which happens to be at the same machine.
+use smart-host, which happens to be at the same machine.
 (Or at an adjacent machine if you moved the queue, or ...)
 Anyway the point is to get the sendmail to send its queue
 via SMTP to the ZMailer.
@@ -385,9 +385,9 @@ directories.   The configurations will still need editing! See below.
 
 <PARA>
 The <COMMAND>post-install</> handles important activity in tracking the
-base versions of configuration files by storing MD5 checksums of original
+base versions of configuration files by storing MD5 check-sums of original
 files with <FILENAME>.md5</> suffix tagged to them into their original
-location (<FILENAME CLASS="DIRECTORY">proto/</> subdirectories).
+location (<FILENAME CLASS="DIRECTORY">proto/</> sub-directories).
 This way when sysadmin changes something, the new run of
 <COMMAND>post-install</> will detect the changes and not write over such
 file.
@@ -446,7 +446,7 @@ or in case the default guessing didn't get it right:
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Runtime files</TITLE>
+<SECT1><TITLE>Run-time files</TITLE>
 <PARA>
 This section describes the configuration in short. More detailed information 
 can be found in section FIXME! FIXME! xxxxx....
@@ -535,8 +535,8 @@ host-specific services:
 mailq   174/tcp  # Mailer transport queue
 </SCREEN>
 Indeed this isn't <EMPHASIS>quite</> mandatory, as the <COMMAND>scheduler</>
-subsystem can be configured to use different ipc socket.
-See more about this at Scheduler's PARAM enties: <XREF LINKEND="scheduler.param.entries">.
+subsystem can be configured to use different IPC socket.
+See more about this at Scheduler's PARAM entries: <XREF LINKEND="scheduler.param.entries">.
 </PARA>
 
 </SECT2>
@@ -551,7 +551,7 @@ See more about this at Scheduler's PARAM enties: <XREF LINKEND="scheduler.param.
      <INDEXTERM><PRIMARY><FILENAME>router.cf</>; router configuration</><SECONDARY>config</></> -->
 
 <PARA>
-You must now pick a toplevel router configuration file.
+You must now pick a top-level router configuration file.
 The default is provided in <FILENAME>proto/cf/SMTP.cf(.in)</>.
 (The <COMMAND>post-install</> places it into
  <FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>).
@@ -676,7 +676,7 @@ and forms files against your previous setup.
 In older systems users had fixed choices on which databases to have
 at the <COMMAND>router</> subsystem for which looked up relation.
 Newer systems have <FILENAME>$<VARNAME>MAILBAR</>/db/dbases.conf</>
-configuration file to tell the association of database to lookup relations,
+configuration file to tell the association of database to look-up relations,
 and also the source files.
 </PARA>
 
@@ -698,8 +698,8 @@ init-script as well.
 <SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</> file</>
 
 <PARA>
-As mentioned above, this file configures (when exists) database lookup
-functions versus actual backend databases.
+As mentioned above, this file configures (when exists) database look-up
+functions versus actual back-end databases.
 </PARA>
 
 <PARA>
@@ -710,7 +710,7 @@ which are bound together in pre-determined query order (first matcher wins).
 <PARA>
 This configuration file is used to translate a semi-vague idea
 about what database sources (in what forms) are mapped together
-under which lookup names, and what format they are, etc..
+under which look-up names, and what format they are, etc..
 </PARA>
 
 <PARA>
@@ -752,7 +752,7 @@ For more complete example, see the default boilerplate version of this file.
 #| done when the dbtype is any of: *DBTYPE/dbm/gdbm/ndbm/btree
 #|
 #| The "dbfile" need not be located underneath of $MAILVAR, as long as
-#| it is in system local filesystem (for performance reasons.)  E.g.
+#| it is in system local file-system (for performance reasons.)  E.g.
 #| one can place one of e.g. aliases files to some persons directory.
 #|
 
@@ -852,7 +852,7 @@ some arbitrary addresses as shown at <XREF LINKEND="fig.inst.fqdnaliases-2">.
 
 <PARA>
 This facility is always in stand-by &mdash; just add the file, and
-you have it at the next router startup.
+you have it at the next router start-up.
 </PARA>
 
 <PARA>
@@ -911,10 +911,10 @@ If you have multiple fqdnaliases databases defined at the
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY><FILENAME>$<VARNAME>MAILVAR</>/db/localnames</></></> -->
 
 <PARA>
-Add the hostnames you want ZMailer to do local delivery for, to the
+Add the host-names you want ZMailer to do local delivery for, to the
 <FILENAME>$<VARNAME>MAILVAR</>/db/localnames</> file.
 Due to my own belief in Murphy, I usually add partially qualified
-domain names and nicknames in addition to canonicalized names.
+domain names and nicknames in addition to canonized names.
 If you want to do local delivery for mail clients, put their names
 in here too.
 You may use pathalias style ``<EMPHASIS ROLE="BOLD">.domain</>'' names
@@ -924,7 +924,7 @@ in this file, to indicate everything under some subdomain.
 <PARA>
 With the sample config files for ZMailer-2.98, and latter,
 this <FILENAME>localnames</> is actually a mapping of those various
-names to the desired forms of the canonic name, thus an example as seen
+names to the desired forms of the canonical name, thus an example as seen
 in figure <XREF LINKEND="fig.inst.localnames">.
 </PARA>
 
@@ -961,11 +961,11 @@ really is accepted.
 </PARA>
 
 <PARA>
-Compile this into runtime binary database with command:
+Compile this into run-time binary database with command:
 <SCREEN>
   <PROMPT># </><USERINPUT>zmailer newdb</>
 </SCREEN>
-(fall-back method is sequential rescan of the text file)
+(fall-back method is sequential re-scan of the text file)
 </PARA>
 
 </SECT3>
@@ -1301,10 +1301,10 @@ are more, only the first one is picked.
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Bootup Scripts</TITLE>
+<SECT1><TITLE>Boot-up Scripts</TITLE>
 
 <PARA>
-Add something like the following lines to bootup scripts
+Add something like the following lines to boot-up scripts
 (<FILENAME>/etc/rc.local</> or <FILENAME>/etc/rc2.d/S99local</> or similar):
 <SCREEN>
   if [ -r /etc/zmailer.conf ]; then
@@ -1373,7 +1373,7 @@ the root to run.  There are three entries:
 <LISTITEM><PARA>
 This will ``<COMMAND>resubmit</>'' messages that have been deferred
 with no useful processing possible at time of deferral.
-Adjust the resubmission interval to suit your environment.
+Adjust the re-submission interval to suit your environment.
 <EMPHASIS>Having files in ``deferred'' state is a sign of troubles!
 Always investigate!</>
 </PARA></LISTITEM>
@@ -1386,21 +1386,21 @@ directories.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-The automatic logfile trimmer/rotater is a good idea to have, but
+The automatic log-file trimmer/rotater is a good idea to have, but
 you need to customize it for your environment.  More of that below.
 </PARA></LISTITEM>
 </ORDEREDLIST>
 </PARA>
 
 <PARA>
-You may want to hardwire the location of the <COMMAND>zmailer</> script.
+You may want to hard-wire the location of the <COMMAND>zmailer</> script.
 </PARA>
 </SECT1>
 
 
 <!-- ############################################################### -->
 
-<SECT1><TITLE>Trimdown of Logging</TITLE>
+<SECT1><TITLE>Trim-down of Logging</TITLE>
 
 <PARA>
 Once satisfied that things appear to work, you may want to trim down
@@ -1546,7 +1546,7 @@ caused by bad attribute caches.)
 </PARA>
 
 <PARA>
-If you are mounting people's home directories (<FILENAME>~/.forward</> et al.)
+If you are mounting people's home directories (<FILENAME>~/.forward</> et. al.)
 via NFS, consider the same rule!
 </PARA>
 
@@ -1668,10 +1668,10 @@ Compile with GCC even when you have "cc" around.
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-zconfig=/FILE/PATH</OPTION></TERM>
 <LISTITEM><PARA>
-Where the runtime  <FILENAME>zmailer.conf</>   file is located
+Where the run-time  <FILENAME>zmailer.conf</>   file is located
 at (and with what name).  This is <EMPHASIS>the only</>
 hard-coded info within libraries and thus programs using them.
-Everything else is runtime relocatable by means of using
+Everything else is run-time relocatable by means of using
 "variables" listed in this file.
 </PARA>
 
@@ -1687,7 +1687,7 @@ present in pre-existing file.
 <PARA>
 When environment variable <ENVAR>ZCONFIG</> is set and exported to the
 <COMMAND>./configure</> script, use of ``<OPTION>&dd;with-zconfig=no</>''
-will set the location of the file, but prevents preload of various values
+will set the location of the file, but prevents pre-load of various values
 from it to the auto-configuration environment.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1728,7 +1728,7 @@ in case there is no previously created postoffice directory.
 <TERM><OPTION>&dd;with-mailbin=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 These are overrides for values derived from  <OPTION>&dd;prefix=/DIR</>
-option, or possibly preloaded from <ENVAR>ZCONFIG</> file.</PARA>
+option, or possibly pre-loaded from <ENVAR>ZCONFIG</> file.</PARA>
 
 <PARA><VARNAME>MAILSHARE</> = "$PREFIX", <VARNAME>MAILVAR</> = "$PREFIX",
 but <FILENAME>MAILBIN</> = "$PREFIX/bin".
@@ -1737,7 +1737,7 @@ but <FILENAME>MAILBIN</> = "$PREFIX/bin".
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-logdir=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
-Explicite value to replace $<VARNAME>LOGDIR</> ZENV value and/or to
+Explicit value to replace $<VARNAME>LOGDIR</> ZENV value and/or to
 override default value of:  <FILENAME CLASS="DIRECTORY">/var/log/mail/</>
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1751,14 +1751,14 @@ NNTP server into which you feed news with NNTP.
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-sendmailpath=/FILE/PATH</OPTION></TERM>
 <LISTITEM><PARA>
-Overrider for default location(s) of sendmail program.
+Overrides for default location(s) of sendmail program.
 ZENV variable $<VARNAME>SENDMAILPATH</> can be overridden with this.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-rmailpath=/FILE/PATH</OPTION></TERM>
 <LISTITEM><PARA>
-Overrider for default location(s) of rmail program.
+Overrides for default location(s) of rmail program.
 ZENV variable $<VARNAME>RMAILPATH</> can be overridden with this.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1766,7 +1766,7 @@ ZENV variable $<VARNAME>RMAILPATH</> can be overridden with this.
 <TERM><OPTION>&dd;with-selfaddresses="NAME,NAME"</OPTION></TERM>
 <LISTITEM><PARA>
 Obsolete option regarding providing into in ZENV variable
-to yield system internal names automagically for the SMTP
+to yield system internal names auto-magically for the SMTP
 transport channel uses, and also for the router to see,
 if destination IP address is local at the system.
 </PARA><PARA>
@@ -1838,32 +1838,32 @@ will be ignored.  There is no default value for
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-ldap-include-dir=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
-Special overrider for compilation include directory of LDAP
+Special over-rider for compilation include directory of LDAP
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-ldap-library-dir=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
-Special overrider for linkage library directory of LDAP
+Special over-rider for linkage library directory of LDAP
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>&dd;disable-pam</OPTION></TERM>
 <LISTITEM><PARA>
-Disable PAM(3) facility from becoming autoconfigured even when
+Disable PAM(3) facility from becoming auto-configured even when
 its API headers and libraries are present.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>&dd;without-fsync</OPTION></TERM>
 <LISTITEM><PARA>
-At systems where the local filesystem is log-based/journaling,
-doing   <FUNCTION>fsync</>()  is wastefull.  This disables
+At systems where the local file-system is log-based/journaling,
+doing   <FUNCTION>fsync</>()  is wasteful.  This disables
 <FUNCTION>fsync</>() in cases where it is not needed.
 (In others it may boost your system performance by about 20% &mdash;
  with dangers..
 On the other hand, once a system disk(?) fault which hang mailer at
-spool directory access did cause severe damage all over, and propably
+spool directory access did cause severe damage all over, and probably
 use of this option would not have made any difference..
  <COMMAND>fsck</> was mighty unhappy..)
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1914,7 +1914,7 @@ With this option, no TABs are used and instead "ordinary"
 space character is used.
 </PARA>
 <PARA>
-In real life, this feature is superceded by the <COMMAND>router</>
+In real life, this feature is superseded by the <COMMAND>router</>
 to <EMPHASIS>always</> <EMPHASIS>TABifying</> all headers, and
 the transport-agent header write-out to <EMPHASIS>untabifying</>
 them, if ZENV variable <VARNAME>RFC822TABS=</> has value ``0''.
@@ -1962,14 +1962,14 @@ Set 'CHECK_MB_SIZE' #define for mailbox.c compilation, and expect
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-privateauth"</OPTION></TERM>
 <LISTITEM><PARA>
-Use ``<FILENAME CLASS="DIRECTORY">private/</>'' subdirectory in a part of
+Use ``<FILENAME CLASS="DIRECTORY">private/</>'' sub-directory in a part of
 <COMMAND>smtpserver</> program compilation.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-privatembox"</OPTION></TERM>
 <LISTITEM><PARA>
-Use ``<FILENAME CLASS="DIRECTORY">private/</>'' subdirectory in a part of
+Use ``<FILENAME CLASS="DIRECTORY">private/</>'' sub-directory in a part of
 <COMMAND>mailbox</> program compilation.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1985,9 +1985,9 @@ These are used in <COMMAND>router</>, <COMMAND>scheduler</>,
 
 <PARA>
 These programs use <FUNCTION>getpwnam</>() libary call to look up various
-customer usernames to whatever the system needs them for.
+customer user-names to whatever the system needs them for.
 </PARA><PARA>
-For ZMailer needs the library must support userids:
+For ZMailer needs the library must support user-ids:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>root</></>
 <LISTITEM><PARA>daemon, or daemons</></>
@@ -2028,9 +2028,9 @@ Search for, and use OpenSSL, if it can be found.
 <!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
 <TERM><OPTION>&dd;with-whoson="/dir/prefix"</OPTION></TERM>
 <LISTITEM><PARA>
-This does explicite integration with ``<APPLICATION>whoson</>'' server; see
+This does explicit integration with ``<APPLICATION>whoson</>'' server; see
 the ``<FILENAME>whoson-*.tar.gz</>'' file in
-the ``<FILENAME CLASS="DIRECTORY">contrib/</>'' subdirectory.
+the ``<FILENAME CLASS="DIRECTORY">contrib/</>'' sub-directory.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 

@@ -67,8 +67,9 @@ const char *turnarg;
 	int rc = 0;
 
 	/* caller has done 'strlower()' to our input.. */
-	if (cp) *cp++ = 0;
-	/* If cp is non-null, some additional args were present.. */
+	if (cp) *cp = 0;  /* Chop at the first SPACE or TAB */
+	cp = strchr(turnarg,'\t');
+	if (cp) *cp = 0;
 
 	spk = symbol_lookup_db((void*)turnarg, spt_mesh[L_HOST]->symbols);
 	spl = sp_lookup(spk, spt_mesh[L_HOST]);

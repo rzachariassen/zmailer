@@ -72,101 +72,101 @@ install:
 
 
 aliases.5.ps: $(srcdir)/aliases.5
-	groff -man $< > $@
+	groff -t -man $< > $@
 authuser.3.ps: $(srcdir)/authuser.3
-	groff -man $< > $@
+	groff -t -man $< > $@
 mailq.1.ps: $(srcdir)/mailq.1
-	groff -man $< > $@
+	groff -t -man $< > $@
 mailrm.1.ps: $(srcdir)/mailrm.1
-	groff -man $< > $@
+	groff -t -man $< > $@
 newaliases.1.ps: $(srcdir)/newaliases.1
-	groff -man $< > $@
+	groff -t -man $< > $@
 rmail.1.ps: $(srcdir)/rmail.1
-	groff -man $< > $@
+	groff -t -man $< > $@
 ssl.1.ps: $(srcdir)/ssl.1
-	groff -man $< > $@
+	groff -t -man $< > $@
 vacation.1.ps: vacation.1
-	groff -man $< > $@
+	groff -t -man $< > $@
 zmailer.1.ps: $(srcdir)/zmailer.1
-	groff -man $< > $@
+	groff -t -man $< > $@
 zmsh.1.ps: $(srcdir)/zmsh.1
-	groff -man $< > $@
+	groff -t -man $< > $@
 zmailer.3.ps: $(srcdir)/zmailer.3
-	groff -man $< > $@
+	groff -t -man $< > $@
 errormail.8.ps: $(srcdir)/errormail.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 hold.8.ps: $(srcdir)/hold.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 router.8.ps: $(srcdir)/router.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 scheduler.8.ps: $(srcdir)/scheduler.8
 	groff -t -man $< > $@
 sendmail.8.ps: $(srcdir)/sendmail.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 sm.8.ps: $(srcdir)/sm.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 smtp.8.ps: $(srcdir)/smtp.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 smtpserver.8.ps: $(srcdir)/smtpserver.8
-	gtbl $< | groff -man > $@
+	groff -t -man $< > $@
 manual-expirer.8.ps: $(srcdir)/manual-expirer.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 expirer.8.ps: $(srcdir)/expirer.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 mprobe.8.ps: $(srcdir)/mprobe.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 mailbox.8.ps: $(srcdir)/mailbox.8
-	groff -man $< > $@
+	groff -t -man $< > $@
 mboxpath.1.ps: $(srcdir)/mboxpath.1
-	groff -man $< > $@
+	groff -t -man $< > $@
 
 
 
 aliases.5.html: $(srcdir)/aliases.5
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 authuser.3.html: $(srcdir)/authuser.3
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 mailq.1.html: $(srcdir)/mailq.1
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 mailrm.1.html: $(srcdir)/mailrm.1
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 newaliases.1.html: $(srcdir)/newaliases.1
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 rmail.1.html: $(srcdir)/rmail.1
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 ssl.1.html: $(srcdir)/ssl.1
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 vacation.1.html: vacation.1
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 zmailer.1.html: $(srcdir)/zmailer.1
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 zmsh.1.html: $(srcdir)/zmsh.1
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 zmailer.3.html: $(srcdir)/zmailer.3
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 errormail.8.html: $(srcdir)/errormail.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 hold.8.html: $(srcdir)/hold.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 router.8.html: $(srcdir)/router.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 scheduler.8.html: $(srcdir)/scheduler.8
 	groff -t -man -Thtml $< > $@
 sendmail.8.html: $(srcdir)/sendmail.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 sm.8.html: $(srcdir)/sm.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 smtp.8.html: $(srcdir)/smtp.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 smtpserver.8.html: $(srcdir)/smtpserver.8
-	gtbl $< | groff -man -Thtml > $@
+	groff -t -man -Thtml $< > $@
 manual-expirer.8.html: $(srcdir)/manual-expirer.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 expirer.8.html: $(srcdir)/expirer.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 mprobe.8.html: $(srcdir)/mprobe.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 mailbox.8.html: $(srcdir)/mailbox.8
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@
 mboxpath.1.html: $(srcdir)/mboxpath.1
-	groff -man -Thtml $< > $@
+	groff -t -man -Thtml $< > $@

@@ -1,3 +1,18 @@
+2001-02-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/agenda.c, scheduler/scheduler.c, scheduler/mq2.c,
+	  smtpserver/smtpetrn.c:
+	    Report the ETRN information with contactee's IP address, and
+	    timestamp when writing it into the scheduler's log.
+
+	* proto/newdbprocessor.in, proto/db/dbases.conf, man/router.8,
+	  proto/cf/fqdnalias.cf, router/db.c, router/functions.c:
+	    Add '-%' option to the 'relation' routine to control, when
+	    looked up data contained '%0' thru '%9' may get substituted.
+
+	* proto/Makefile.in:
+	    Remove at 'distclean' files which are autoconf generated.
+
 2001-02-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/getmxrr.c:

@@ -30,7 +30,7 @@
 #|Security sensitive ones ("dbpriv" must be defined!)
 #| aliases         $DBTYPE  0:0:644    -la $MAILVAR/db/aliases        -lm
 #| aliases         $DBTYPE  root:0:644 -la $MAILVAR/db/aliases-2      -lm
-#| fqdnaliases     $DBTYPE  root:0:644 -la $MAILVAR/db/fqdnaliases    -lm
+#| fqdnaliases     $DBTYPE  root:0:644 -la $MAILVAR/db/fqdnaliases    -lm%
 #| userdb          $DBTYPE  root:0:644 -la $MAILVAR/db/userdb         -lm
 #|
 #|Security insensitive ones ("dbpriv" need not be defined!)
@@ -39,7 +39,7 @@
 #| mboxmap         $DBTYPE  -    -l  $MAILSHARE/db/mboxmap      -lm
 #| expired         $DBTYPE  -    -l  $MAILVAR/db/expiredaccts   -lm
 #| iproutesdb      $DBTYPE  -    -l  $MAILVAR/db/iproutes       -lm -d longestmatch
-#| routesdb        $DBTYPE  -    -l  $MAILVAR/db/routes         -lm
+#| routesdb        $DBTYPE  -    -l  $MAILVAR/db/routes         -lm%
 #| thishost        $DBTYPE  -    -l  $MAILVAR/db/localnames     -lm
 #| thishost        unordered -   -   $MAILVAR/db/localnames     -l
 #| thishost        bind,mxlocal - -  -                          -l
@@ -224,10 +224,16 @@ foreach $rel (keys %rels) {
 		$rdbext    = '.dat';
 	}
 
+	local($optset) = ' $o1 $o2 $o3 $o4 $o5 $o6 $o7 $o8 $o9';
+	if (!($rdbflags =~ /\%/)) {
+	    $optset = '';
+	}
+
+
 	if ($rpriv eq '-') {
 	    # ---- No privilege things collected -----
 	    push(@tfn,
-"	if a=\"\$($rn \"\$key\")\"; then
+"	if a=\"\$($rn \$key ".$optset.")\"; then
 	    return \"\$a\"
 	fi");
 
@@ -253,7 +259,7 @@ foreach $rel (keys %rels) {
 	    }
 
 	    push(@tfn,
-"	if a=\"\$($rn \"\$key\")\"; then
+"	if a=\"\$($rn \$key ".$optset.")\"; then
 	    priv=\"\$(filepriv -M $fmask $rdbfile$rdbexttst \\
 			    \$(db owner $rn))\" &&
 	    return \"\$a\"
@@ -267,10 +273,11 @@ foreach $rel (keys %rels) {
 	}
     } # --- foreach $inp (@inps) ....
 
+
     # --- put out tails, and complete..
     push(@ofn, "# boilerplate tail---
 
-${rel}(key) {
+${rel}(key, o1, o2, o3, o4, o5, o6, o7, o8, o9) {
     local a");
 
     push(@ofn, @tfn);

@@ -1731,7 +1731,7 @@ slurp(fd, ino)
 		/* cfp->erroraddr = strsave(s+2); */
 	      } else if (*s == _CF_TURNME) {
 		/* Umm... it is a bit complex */
-		sfprintf(sfstdout,"A TURNME request for target '%s'\n",s+2);
+		/* sfprintf(sfstdout,"An ETRN request for target '%s'\n",s+2); */
 	      }
 	    }
 	  }
@@ -2088,7 +2088,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      cfp->vfpfn = strsave(cp);
 	      break;
 	    case _CF_TURNME:
-	      sfprintf(sfstdout,"TURNME: %s\n",cp);
+	      sfprintf(sfstdout,"%s ETRN: %s\n", timestring(), cp);
 	      strlower(cp);
 	      turnme(cp);
 	      is_turnme = 1;

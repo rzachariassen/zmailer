@@ -40,6 +40,10 @@
           "UNREGISTERED::James Clark//Characteristic::preserve-sdata?"
           #t)
 
+(define bop-footnotes
+  ;; Make "bottom-of-page" footnotes?
+  #t)
+
 (define %section-autolabel% 
   ;; Are sections enumerated?
   #t)
@@ -137,6 +141,10 @@
 (declare-characteristic preserve-sdata?
           "UNREGISTERED::James Clark//Characteristic::preserve-sdata?"
           #t)
+
+(define bop-footnotes
+  ;; Make "bottom-of-page" footnotes?
+  #t)
 
 (define %section-autolabel% 
   ;; Are sections enumerated?
