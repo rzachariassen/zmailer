@@ -26,7 +26,7 @@
 
 #include "prototypes.h"
 
-const char *postoffice = NULL;
+extern const char *postoffice; /* At libzmailer.a: mail.c */
 
 #if 0
 extern struct group *getgrnam __();
