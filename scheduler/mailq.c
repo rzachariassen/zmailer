@@ -97,6 +97,10 @@ extern char *optarg;
 extern int   optind;
 char	path[MAXPATHLEN];
 
+#define  ISDIGIT(cc) ('0' <= cc && cc <= '9')
+#define  ISSPACE(cc) (cc == ' ' || cc == '\t')
+
+
 char *host = NULL;
 
 int
@@ -274,7 +278,7 @@ main(argc, argv)
 
 	  if (status < 2 || summary) {
 
-	    if (port && isdigit(*port)) {
+	    if (port && ISDIGIT(*port)) {
 	      portnum = atol(port);
 	    } else if (port == NULL &&
 		       (serv = getservbyname(port ? port : "mailq", "tcp")) == NULL) {
@@ -569,7 +573,7 @@ const char *dirpath;
 	      (dp->d_name[1] == 0 || (dp->d_name[1] == '.' &&
 				      dp->d_name[2] == 0)))
 	    continue; /* . and .. */
-	  if (isascii(dp->d_name[0]) && isdigit(dp->d_name[0]))
+	  if (ISDIGIT(dp->d_name[0]))
 	    ++n;
 	  else if (strcmp("core",dp->d_name)==0)
 	    sawcore = 1, ++othern;
@@ -663,7 +667,7 @@ checkrouter()
 	  return;
 	}
 	for (dp = readdir(dirp), n = 0; dp != NULL; dp = readdir(dirp)) {
-	  if (isascii(dp->d_name[0]) && isdigit(dp->d_name[0]))
+	  if (ISDIGIT(dp->d_name[0]))
 	    ++n;
 	}
 #ifdef	BUGGY_CLOSEDIR
@@ -882,7 +886,7 @@ parse(fp)
 	  switch ((int)list) {
 	  case L_CTLFILE:
 	    /* decid:\tfile\tnaddr; off1[,off2,...][\t#message] */
-	    if (!isdigit(buf[0])) {
+	    if (!ISDIGIT(buf[0])) {
 	      if (EQNSTR(buf, names[L_CHANNEL])) {
 		list = L_CHANNEL;
 		break;
@@ -891,18 +895,16 @@ parse(fp)
 		return 1;
 	      }
 	    }
-	    if (!isdigit(buf[0]) ||
+	    if (!ISDIGIT(buf[0]) ||
 		(cp = strchr(buf, ':')) == NULL) {
 	      fprintf(stderr, "%s: %s: orphaned pending recovery\n", progname, buf);
 	      break;
 	    }
 	    *cp++ = '\0';
 	    key = atol(buf);
-	    while (isascii(*cp) && isspace(*cp))
-	      ++cp;
+	    while ( ISSPACE(*cp)) ++cp;
 	    ocp = cp;
-	    while (isascii(*cp) && !isspace(*cp))
-	      ++cp;
+	    while (!ISSPACE(*cp)) ++cp;
 	    *cp++ = '\0';
 if (debug)
   fprintf(stderr," - '%s'\n",ocp);
@@ -942,12 +944,10 @@ if (debug)
 	    memset((void*)v,0,sizeof (struct vertex)+(i-1)*sizeof(long));
 	    v->ngroup = i;
 	    v->cfp = cfp;
-	    while (isascii(*cp) && isspace(*cp))
-	      ++cp;
-	    for (i = 0; isascii(*cp) && isdigit(*cp); ++cp) {
+	    while (ISSPACE(*cp)) ++cp;
+	    for (i = 0; ISDIGIT(*cp); ++cp) {
 	      ocp = cp;
-	      while (isascii(*cp) && isdigit(*cp))
-		++cp;
+	      while (ISDIGIT(*cp)) ++cp;
 	      *cp = '\0';
 	      v->index[i++] = atol(ocp);
 
@@ -1027,10 +1027,10 @@ if (debug)
 	    /* Pick each vertex reference */
 
 	    ++cp;		/* skip the first '>' */
-	    while (*cp && isascii(*cp) && isdigit(*cp)) {
+	    while (ISDIGIT(*cp)) {
 	      int c;
 	      ocp = cp;
-	      while (*cp && isascii(*cp) && isdigit(*cp))
+	      while (ISDIGIT(*cp))
 		++cp;
 	      c = *cp;
 	      *cp = '\0';
@@ -1515,22 +1515,16 @@ printaddrs(v)
 	  cp = v->cfp->contents + v->index[i] + 2;
 	  if (*cp == ' ' || (*cp >= '0' && *cp <= '9'))
 	    cp += _CFTAG_RCPTPIDSIZE;
-	  while (isascii(*cp) && !isspace(*cp))
-	    ++cp;
-	  while (isascii(*cp) && isspace(*cp))
-	    ++cp;
-	  while (isascii(*cp) && !isspace(*cp))
-	    ++cp;
-	  while (isascii(*cp) && isspace(*cp))
-	    ++cp;
+	  while (!ISSPACE(*cp)) ++cp;
+	  while ( ISSPACE(*cp)) ++cp;
+	  while (!ISSPACE(*cp)) ++cp;
+	  while ( ISSPACE(*cp)) ++cp;
 	  ocp = cp;
 	  while (*cp != '\0' && *cp != '\n')
 	    ++cp;
 	  if (*cp-- == '\n') {
-	    while (isascii(*cp) && !isspace(*cp))
-	      --cp;
-	    while (isascii(*cp) && isspace(*cp))
-	      --cp;
+	    while (!ISSPACE(*cp)) --cp;
+	    while ( ISSPACE(*cp)) --cp;
 	    if (cp >= ocp)
 	      *++cp = '\0';
 	    else {
