@@ -720,7 +720,8 @@ const char *names[SIZE_L+2];
 
 #define	L_VERTEX	SIZE_L
 #define L_END		SIZE_L+1
-struct sptree *spt_ids[SIZE_L+2];
+struct sptree *spt_ids [SIZE_L+2];
+struct sptree *spt_syms[SIZE_L+2];
 
 #define	EQNSTR(a,b)	(!strncmp(a,b,strlen(b)))
 
@@ -776,10 +777,14 @@ parse(fp)
 	if (!EQNSTR(buf, names[L_CTLFILE]))
 	  return 0;
 	list = L_CTLFILE;
-	spt_ids[L_CTLFILE] = sp_init();
-	spt_ids[L_VERTEX ] = sp_init();
-	spt_ids[L_CHANNEL] = sp_init();
-	spt_ids[L_HOST   ] = sp_init();
+	spt_ids [L_CTLFILE] = sp_init();
+	spt_ids [L_VERTEX ] = sp_init();
+	spt_ids [L_CHANNEL] = sp_init();
+	spt_ids [L_HOST   ] = sp_init();
+	spt_syms[L_CTLFILE] = sp_init();
+	spt_syms[L_VERTEX ] = sp_init();
+	spt_syms[L_CHANNEL] = sp_init();
+	spt_syms[L_HOST   ] = sp_init();
 	while (1) {
 
 	  bufsize = 0;
@@ -811,7 +816,8 @@ parse(fp)
 	    while (isascii(*cp) && !isspace(*cp))
 	      ++cp;
 	    *cp++ = '\0';
-	    spl = sp_lookup(symbol(ocp), spt_ids[L_CTLFILE]);
+	    spl = sp_lookup(symbol_db(ocp,spt_syms[L_CTLFILE]),
+			    spt_ids[L_CTLFILE]);
 	    if (spl == NULL || (cfp = (struct ctlfile *)spl->data) == NULL) {
 	      cfp = (struct ctlfile *)emalloc(sizeof (struct ctlfile));
 	      memset((void*)cfp,0,sizeof(struct ctlfile));
@@ -824,7 +830,8 @@ parse(fp)
 	      cfp->id = 0;
 	      cfp->mid = strsave(ocp);
 	      cfp->mark = 0;
-	      sp_install(symbol(ocp), (void *)cfp, 0, spt_ids[L_CTLFILE]);
+	      sp_install(symbol_db(ocp,spt_syms[L_CTLFILE]),
+			 (void *)cfp, 0, spt_ids[L_CTLFILE]);
 	    }
 	    while (*cp == ' ' || *cp == '\t')
 	      ++cp;
@@ -897,14 +904,15 @@ parse(fp)
 	    *cp++ = '\0';
 
 	    /* Look for channel/host identifier splay-tree */
-	    spl = sp_lookup(symbol(buf), spt_ids[list]);
+	    spl = sp_lookup(symbol_db(buf,spt_syms[list]), spt_ids[list]);
 	    if (spl == NULL || (w = (struct web *)spl->data) == NULL) {
 	      w = (struct web *)emalloc(sizeof (struct web));
 	      memset((void*)w,0,sizeof(struct web));
 	      w->name = strsave(buf);
 	      w->kids = 0;
 	      w->link = w->lastlink = NULL;
-	      sp_install(symbol(buf), (void *)w, 0, spt_ids[list]);
+	      sp_install(symbol_db(buf,spt_syms[list]),
+			 (void *)w, 0, spt_ids[list]);
 	    }
 	    while (*cp == ' ' || *cp == '\t')
 	      ++cp;
