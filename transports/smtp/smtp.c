@@ -55,6 +55,10 @@
 #include <setjmp.h>
 #include <string.h>
 
+#include "mail.h"
+#include "zsyslog.h"
+#include "ta.h"
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #ifdef HAVE_NETINET_IN6_H
@@ -71,9 +75,6 @@
 # include "netdb6.h"
 #endif
 
-#include "mail.h"
-#include "zsyslog.h"
-#include "ta.h"
 /* #include "malloc.h" */
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
@@ -713,10 +714,10 @@ main(argc, argv)
 	    break;
 	  case 'F':		/* Send all SMTP sessions to that host,
 				   possibly set also '-x' to avoid MXes! */
-	    punthost = optarg;
+	    punthost = strdup(optarg);
 	    break;
 	  case 'L':		/* Specify which local identity to use */
-	    localidentity = optarg;
+	    localidentity = strdup(optarg);
 	    break;
 	  case 'T':		/* specify Timeout in seconds */
 	    if ((timeout = atoi(optarg)) < 5) {
@@ -2520,7 +2521,7 @@ if (SS->verboselog)
 		} else {
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s', errno=%s, gai_errno='%s')",
-			  host,strerror(errno), gai_strerror(gai_err));
+			  host, strerror(errno), gai_strerror(gai_err));
 #if 1
 		  zsyslog((LOG_ALERT, "%s", SS->remotemsg));
 		  r = EX_TEMPFAIL; /* This gives delayed rejection (after a timeout) */
@@ -2718,10 +2719,16 @@ if (SS->verboselog)
 	  if (i != 0 && SS->servport == IPPORT_SMTP) {
 	    time(&endtime);
 	    notary_setxdelay((int)(endtime-starttime));
-	    if (i == 2) {
+	    switch (i) {
+	    case 3:
+	      notaryreport(NULL,FAILED,"5.4.6 (trying to use invalid destination address)","smtp; 500 (Trying to talk to invalid destination network address!)");
+	      break;
+	    case 2:
 	      notaryreport(NULL,FAILED,"5.4.6 (trying to talk to loopback (=myself)!)","smtp; 500 (Trying to talk to loopback (=myself)!)");
-	    } else {
+	      break;
+	    default:
 	      notaryreport(NULL,FAILED,"5.4.6 (trying to talk with myself!)","smtp; 500 (Trying to talk with myself!)");
+	      break;
 	    }
 	    sprintf(SS->remotemsg,"Trying to talk with myself!");
 	    break;		/* TEMPFAIL or UNAVAILABLE.. */
@@ -2955,12 +2962,16 @@ if (SS->verboselog)
 	} else if (localidentity != NULL) {
 	  /* Ok, it wasn't a desire for any PRIVILEGED port, just
 	     binding on the specific IP will be accepted. */
+	  errno = 0;
 	  if (af == AF_INET)
 	    bind(s, (struct sockaddr *)&sad, sizeof sad);
 #if defined(AF_INET6) && defined(INET6)
 	  if (af == AF_INET6)
 	    bind(s, (struct sockaddr *)&sad6, sizeof sad6);
 #endif
+	  if (logfp)
+	    fprintf(logfp,"%s#\tlocalidentity=%s bind() errno = %d\n",
+		    logtag(), localidentity, errno);
 	  /* If it fails, what could we do ? */
 	}
 
