@@ -395,7 +395,7 @@ writebuf(SS, buf, len)
 
 	  if (state && c != '\n') {
 	    state = 0;
-	    if (c == '.' && !SS->chunking) {
+	    if (c == '.' && !SS->doing_chunking) {
 	      if (ssputc(SS, c, fp) == EOF || ssputc(SS, c, fp) == EOF) {
 		time(&endtime);
 		notary_setxdelay((int)(endtime-starttime));
@@ -562,7 +562,7 @@ writemimeline(SS, buf, len, convertmode)
 	    }
 	  } /* .... end convertmode	*/
 
-	  if (column == 0 && c == '.' && !SS->chunking) {
+	  if (column == 0 && c == '.' && !SS->doing_chunking) {
 	    if (ssputc(SS, c, fp) == EOF) {
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));

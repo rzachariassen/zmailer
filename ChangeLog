@@ -1,3 +1,18 @@
+2003-11-29  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf, proto/db/dbases.conf,
+	  proto/cf/crossbar.cf, proto/db/userdb:
+	    Went thru details about 'userdb' processing, and why the
+	    'user:mailname' things didn't produce public results.
+	    Support is present for mapping  user+foo  to  user.name+foo@domain
+	    thru %-substitution.
+
+	* transports/smtp/appendlet.c:
+	    Slipped a brain-fart into this code during the earlier
+	    "Don't use BDAT every time" thing.  Oops!
+	    The bug: Failure to do the "dot-duplication" algorithm
+	    in DATA mode for non text/plain messages!  :-(
+
 2003-11-27  Matti Aarnio  <mea@zmailer.org>
 
 	* router/libdb/ldap.c:

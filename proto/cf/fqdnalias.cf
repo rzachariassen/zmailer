@@ -254,6 +254,12 @@ fqdn_neighbour (domain, address, A) {
 	@(.*):(.+)@(.+)
 		return 1   # Source route
 		;;
+	([^+]+)\+(.*)@(.+)
+		user="\1"
+		plustail="+\2"
+		athost="@\3"
+		break
+		;;
 	(.+)@(.+)
 		user="\1"
 		athost="@\2"
@@ -269,7 +275,7 @@ fqdn_neighbour (domain, address, A) {
 	case "$(get $A type)" in
 	sender)
 		if $(didexpand userdbmailname) && 
-		   a="$(userdb "$lcaddress:mailname" -- "$user")" ; then
+		   a="$(userdb "$user$athost:mailname" -- "$plustail" "$athost")" ; then
 
 		  db add expansions "$key.userdbmailname" 1
 		  nattr=$(newattribute $A privilege $priv)
