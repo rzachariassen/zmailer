@@ -507,7 +507,7 @@ if test "$ac_cv_header_gdbm_h" = yes ; then
 	    t_found_at="gdbm library"
 	    DBTYPE="gdbm"
 	  else
-	    AC_MSG_RESULT([Has <gdbm.h>, but gdbm_open() is not at libc, nor at libgdbm ??])
+	    AC_MSG_RESULT([??? Has <gdbm.h>, but gdbm_open() is not at libc, nor at libgdbm ???])
 	    
 	  fi
 	  LIBS="$t_oldLibs"
@@ -568,7 +568,7 @@ if test "$ac_cv_header_ndbm_h" = yes ; then
 		  t_found_at="db library"
 		  DBTYPE="ndbm"
 	      else
-		  AC_MSG_RESULT([Has <ndbm.h>, but dbm_open() is not at libc, libndbm, nor at libdb ??])
+		  AC_MSG_RESULT([??? Has <ndbm.h>, but dbm_open() is not at libc, libndbm, nor at libdb ???])
 	      fi
 	    fi
 	    LIBS="$t_oldLibs"
@@ -629,7 +629,7 @@ if test "$ac_cv_header_sdbm_h" = yes ; then
 	    t_found_at="sdbm library"
 	    DBTYPE="ndbm"
 	  else
-	    AC_MSG_RESULT([Has <sdbm.h>, but dbm_open() is not at libc, nor at libsdbm ??])
+	    AC_MSG_RESULT([??? Has <sdbm.h>, but dbm_open() is not at libc, nor at libsdbm ???])
 	  fi
 	  LIBS="$t_oldLibs"
 	else
@@ -678,7 +678,7 @@ if test "$ac_cv_header_db_185_h" = yes ; then
 	    t_found_at="db1 library"
 	    DBTYPE="btree"
 	  else
-	    AC_MSG_RESULT([Has <db_185.h>, but dbopen() is not at libc, nor at libdb ??])
+	    AC_MSG_RESULT([??? Has <db_185.h>, but dbopen() is not at libc, nor at libdb ???])
 	  fi
 	  LIBS="$t_oldLibs"
 	else
@@ -737,7 +737,7 @@ if test "$ac_cv_header_db_h" = yes ; then
 	    t_found_at="db library"
 	    DBTYPE="btree"
 	  else
-	    AC_MSG_RESULT([Has <db.h>, but dbopen() is not at libc, nor at libdb ??])
+	    AC_MSG_RESULT([??? Has <db.h>, but dbopen() is not at libc, nor at libdb ???])
 	  fi
 	  LIBS="$t_oldLibs"
 	else
@@ -797,7 +797,12 @@ if test "$ac_cv_header_db_h" = yes ; then
 	    DBTYPE="btree"
 	    AC_DEFINE(HAVE_DB_OPEN2)
 	  else
-	    AC_MSG_RESULT([Has <db.h>, but db_open() is not at libc, nor at libdb ??])
+	    if test "$ac_cv_lib_db_dbopen"   != yes -a \
+		    "$ac_cv_lib_c_dbopen"    != yes -a \
+		    "$ac_cv_lib_db1_dbopen1" != yes -a \
+		    "$ac_cv_lib_c_dbopen1"   != yes ; then
+	      AC_MSG_RESULT([??? Has <db.h>, but db_open() is not at libc, nor at libdb ???])
+	    fi
 	  fi
 	  LIBS="$t_oldLibs"
 	else
