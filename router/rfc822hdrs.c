@@ -452,6 +452,9 @@ hdr_print(h, fp)
 		  } else {
 		    fprintf(fp, "%s: ", h->h_pname);  /* spoilsport! */
 		    ++col;
+		    /* Fill to column 8 in all cases.. */
+		    for ( ; col < 8; ++col)
+		      putc(' ', fp);
 		  }
 		  break;
 		} else {
