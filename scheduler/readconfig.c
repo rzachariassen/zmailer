@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2001
  */
 
 #include "mailer.h"
@@ -26,7 +26,7 @@
 #define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t' && *Y != '\n') ++Y
 #define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
 
-static void celink __((struct config_entry *, struct config_entry **, struct config_entry **));
+static void celink __((struct config_entry *, struct config_entry **, struct config_entry **, int copy));
 static int readtoken __((Sfio_t *fp, char *buf, int buflen, int *linenump));
 static int paramparse __((char *line));
 
@@ -140,7 +140,9 @@ defaultconfigentry(ce,defaults)
 	} else if (defaults == NULL) {
 	  /* Compile these defaults in.. Only for the "*" / "* / *" entry.. */
 	  ce->next	= NULL;
+#if 0
 	  ce->mark	= 0;
+#endif
 
 	  ce->interval	= -1;
 	  ce->idlemax   = -1;
@@ -180,7 +182,7 @@ vtxprint(vp)
 		   vp->orig[L_HOST]->name);
 	else
 	  sfprintf(sfstdout, "%s/%s", ISS(ce->channel), ISS(ce->host));
-	sfprintf(sfstdout," %p\n",		ce);
+	sfprintf(sfstdout," %p  mark %d\n",	ce, ce->mark);
 	sfprintf(sfstdout,"\tinterval %d\n",	(int)ce->interval);
 	sfprintf(sfstdout,"\tidlemax %d\n",	ce->idlemax);
 	sfprintf(sfstdout,"\texpiry %d\n",		(int)ce->expiry);
@@ -240,9 +242,10 @@ vtxprint(vp)
 }
 
 static void
-celink(ce, headp, tailp)
+celink(ce, headp, tailp, copy)
 	struct config_entry *ce;
 	struct config_entry **headp, **tailp;
+	int copy;
 {
 	if (ce == default_entry && *headp != NULL && *tailp != NULL)
 	  return; /* XX: ?? */
@@ -252,9 +255,15 @@ celink(ce, headp, tailp)
 	else {
 	  (*tailp)->next = ce;
 	  (*tailp) = ce;
+
+	  if (!copy) return;
+
 	  for (ce = (*headp); ce != (*tailp); ce = ce->next) {
-	    if (ce->mark == 0)
-	      continue;
+
+	    if (verbose)
+	      sfprintf(sfstdout,"celink() ce = %p  mark=%d\n", ce, ce->mark);
+
+	    if (ce->mark == 0) continue;
 	    ce->mark = 0;
 	    ce->interval	= (*tailp)->interval;
 	    ce->idlemax		= (*tailp)->idlemax;
@@ -288,6 +297,7 @@ readconfig(file)
 	struct vertex v;
 	Sfio_t *fp;
 	int linenum = 0;
+	int attrs = 0;
 
 	ce = head = tail = NULL;
 	errflag = 0;
@@ -312,8 +322,13 @@ readconfig(file)
 	    }
 
 	    if (ce != NULL)
-	      celink(ce, &head, &tail);
+	      celink(ce, &head, &tail, attrs);
+	    attrs = 0;
 	    ce = (struct config_entry *)emalloc(sizeof (struct config_entry));
+	    memset((void*)ce, 0, sizeof(ce));
+	    if (verbose) sfprintf(sfstdout,"CE= %p mark=1\n", ce);
+
+	    defaultconfigentry(ce,NULL);
 	    ce->mark = 1;
 	    if ((s = strchr(line, '/')) != NULL) {
 	      *s = 0;
@@ -359,8 +374,11 @@ readconfig(file)
 	      }
 	    }
 
-	    if (ce)
+	    if (ce && ce->mark) {
+	      if (verbose)
+		sfprintf(sfstdout," reading entry, ce = %p, mark=0\n", ce);
 	      ce->mark = 0;
+	    }
 
 	    for (rckp = &rckeys[0]; rckp->name != NULL ; ++rckp)
 	      if (cistrcmp(rckp->name, line) == 0) {
@@ -373,6 +391,9 @@ readconfig(file)
 		      progname, line, file, linenum);
 	      ++errflag;
 	    }
+
+	    if (!errflag) attrs = 1;
+
 	  } else {
 	    sfprintf(sfstderr, "%s: illegal syntax at %s:%d\n",
 		    progname, file, linenum);
@@ -380,7 +401,7 @@ readconfig(file)
 	  }
 	}
 	if (ce != NULL)
-	  celink(ce, &head, &tail);
+	  celink(ce, &head, &tail, 1);
 	sfclose(fp);
 	if (verbose) {
 	  struct threadgroup tg;
