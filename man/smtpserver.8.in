@@ -493,6 +493,11 @@ The interface is desribed below at
 .I "CONTENTFILTER INTERFACE"
 section.
 .RE
+.IP "PARAM debug\-contentfilter"
+.RS
+Sends some debug-data of the content-filter interface
+into the smtpserver protocol log file.
+.RE
 .IP "PARAM tarpit initial exponent toplimit"
 .RS
 This defines a pre-reply slow-down factor, and next delay multiplier
@@ -699,6 +704,7 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
 #
 # External program for received message content analysis:
 #PARAM  contentfilter  $MAILBIN/smtp-content-policy-analysis
+#PARAM  debug-contentfilter # Debug the content-filter interface
 
 #PARAM  tarpit 0 0 0    # No "tarpit" for 4XX/5XX reply codes
 #PARAM  tarpit 20 2 300 # Initial delay: 20 secs, next = prev + (prev * 2)
@@ -846,6 +852,15 @@ contentfilter program is closed.
 Interface continues to scan things reported by the contentfilter program,
 and if no properly formatted line appears, default is to send the message
 into the freezer with code "1".
+.PP
+The message text
+.B may
+contain CR characters, in which case the code in smtp-server will
+produce multi-line replies to the message originator.
+.PP
+Keep always in mind, that SMTP protocol (and thus the message texts here)
+are presumed to be plain 7-bit US-ASCII!
+However: You may (most of the time) get away with 8-bit chars in the texts...
 .SH TCP\-WRAPPER AND SMTPSERVER
 If the ZMailer system is configured with \fItcp-wrapper\fR code,
 and ``PARAM use\-tcp\-wrapper'' is active in configuration,

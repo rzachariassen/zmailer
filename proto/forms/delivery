@@ -1,6 +1,6 @@
 HDR From: The Post Office <postmaster>
 HDR Sender:	mailer-daemon
-SUB Subject: Delivery reports about your email
+SUB Subject: Returned mail: see the transcript
 
 This is a collection of reports about email delivery
 process concerning a message you originated.
@@ -9,3 +9,5 @@ Some explanations/translations for these reports
 can be found at:
       http://www.zmailer.org/delivery-report-decoding.html
 
+If you are our customer, further help is available
+at email address: ____ @ ______  (TO BE FILLED IN)

@@ -31,7 +31,7 @@ AC_COPYRIGHT([ZMailer autoconfiguration setup
 copyright 1996-2003 by Matti Aarnio <mea@nic.funet.fi>])
 AC_REVISION($Revision$)
 
-AC_INIT(ZMailer, [2.99.56.pre8], [zmhack@nic.funet.fi])
+AC_INIT(ZMailer, [2.99.56.pre9], [zmhack@nic.funet.fi])
 
 AC_PREFIX_DEFAULT([/opt/zmailer])
 
@@ -132,8 +132,9 @@ AC_DEFINE_UNQUOTED(CONFIGURE_CMD,
                    "CC='$CC' CFLAGS='$CFLAGS' $0 $ac_configure_args",
 		   [Configuration command line])
 
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION(0.11.5)
 
-AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PATH_PROG(AR, ar, ar)dnl
 AC_PATH_PROG(LD, ld, ld)dnl
@@ -2412,6 +2413,7 @@ AC_CONFIG_FILES([
 	utils/smtp-contentfilter	
         packaging/Makefile              packaging/solaris/Makefile      
         SiteConfig
+	po/Makefile.in			intl/Makefile
 ],[])dnl
 AC_CONFIG_FILES([
         proto/Makefile                  proto/zmailer.sh                

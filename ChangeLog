@@ -1,3 +1,22 @@
+2003-08-22  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.h, smtpserver/cfgread.c,
+	  smtpserver/contentpolicy.c, smtpserver/smtpdata.c,
+	  man/smtpserver.8.in:
+	    Support multiline replies from the content-policy program.
+	    Separator in between lines is '\r' (CR) character!
+
+	* Makefile.in:
+	    Added target "make autoconf" -- to help myself...
+
+2003-08-22  gettextize  <bug-gnu-gettext@gnu.org> / Matti Aarnio
+
+	* configure.in (AC_CONFIG_FILES), aclocal.m4, config.sub,
+	  config.guess. config.rpath, include/gettext.h, po/*, m4/*
+	  ABOUT-NLS, intl/*:
+	    Ran  "gettextize --c --intl", and did what it told to do.
+	    Introduced also m4/ directory.
+
 2003-08-21  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/contentpolicy.c:

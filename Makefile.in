@@ -10,7 +10,7 @@ VPATH = @srcdir@
 @SET_MAKE@
 
 DESTDIR=
-prefix = ${DESTDIR}
+prefix=
 
 ZCONFIG = @ZMAILERCFGFILE@
 ZCONF   = ./zmailer.Config
@@ -293,6 +293,15 @@ config.status: configure
 #
 #configure: configure.in
 #	cd $(srcdir) && autoconf
+
+
+#
+# Doing all parts of multistage autoconf process:
+#
+autoconf:
+	aclocal -I m4/
+	autoconf
+	autoheader
 
 config.h.in: stamp-h.in
 stamp-h.in: configure.in

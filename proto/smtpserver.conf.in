@@ -124,6 +124,7 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 #
 # External program for received message content analysis:
 #PARAM  contentfilter   $MAILBIN/smtp-contentfilter
+#PARAM  debug-contentfilter # Debug the content-filter interface protocol
 
 #
 #PARAM  tarpit 0 0 0   # No "tarpit" for 4XX/5XX reply codes (default)

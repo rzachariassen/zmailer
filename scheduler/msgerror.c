@@ -334,8 +334,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 
 	if (!*no_error_reportp)
 	  printenvaddr(errfp, eaddr);
-	sprintf(path, "%s/%s/%s", mailshare, FORMSDIR,
-		deliveryform ? deliveryform : "delivery");
+	sprintf(path, "%s/%s/%s", mailshare, FORMSDIR, deliveryform);
 	fp = sfopen(NULL, path, "r");
 	if (fp != NULL) {
 	  int inhdr = 1, hadsubj =0;
@@ -496,7 +495,7 @@ reporterrs(cfpi, delayreports)
 	no_error_report = cfpi->iserrmesg;
 
 	eaddr        = cfpi->erroraddr;
-	deliveryform = cfpi->deliveryform;
+	deliveryform = cfpi->deliveryform ? cfpi->deliveryform : "delivery";
 	envid        = cfpi->envid;
 
 	/* exclusive access required, but we're the only scheduler... */
@@ -1046,17 +1045,21 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	sfprintf(errfp, "--%s--\n", boundarystr);
 
 	ino = 0; mtime = 0;
-	if (no_error_report > 0)
-	  sfmail_close_alternate(errfp,POSTMANDIR,":error-on-error");
-	else
-	  _sfmail_close_(errfp, &ino, &mtime);	/* XX: check for error */
 	close(cfp->fd);
 	free_cfp_memory(cfp);
-	taspoolid(rptspoolid, mtime, ino);
+
+	if (no_error_report > 0) {
+	  sfmail_close_alternate(errfp,POSTMANDIR,":error-on-error");
+	  sprintf(rptspoolid, "POSTMAN :error-on-error"); /* < 30 chr ! */
+	} else {
+	  _sfmail_close_(errfp, &ino, &mtime);	/* XX: check for error */
+	  taspoolid(rptspoolid, mtime, ino);
+	}
 
 	if (do_syslog)
-	  zsyslog((LOG_INFO, "%s: Created report on spoolid: %s",
-		     cfpi->spoolid ? cfpi->spoolid:"-", rptspoolid));
+	  zsyslog((LOG_INFO, "%s: Created '%s' report on spoolid: %s",
+		   cfpi->spoolid ? cfpi->spoolid:"-",
+		   deliveryform, rptspoolid));
 
 }
 

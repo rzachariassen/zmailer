@@ -39,6 +39,7 @@ char *contentfilter; /* set at cfgread.c */
 /* Local data */
 
 int contentpolicypid      = -1;
+int debug_content_filter;
 
 static FILE *cpol_tofp;
 static FILE *cpol_fromfp;
@@ -143,42 +144,67 @@ const char *fname;
   int i, rc, neg, val;
   int seenhungry = 0;
   
-  if (state->always_reject)
+  if (state->always_reject) {
+    if (debug_content_filter)
+      type(NULL,0,NULL, "ContentPolicy nor run; AlwaysReject");
     return -1;
-  if (state->sender_reject)
+  }
+  if (state->sender_reject) {
+    if (debug_content_filter)
+      type(NULL,0,NULL, "ContentPolicy nor run; SenderReject");
     return -2;
-  if (state->always_freeze)
+  }
+  if (state->always_freeze) {
+    if (debug_content_filter)
+      type(NULL,0,NULL, "ContentPolicy nor run; AlwaysFreeze");
     return 1;
-  if (state->sender_freeze)
-    return 1;
+  }
+  if (state->sender_freeze) {
+    if (debug_content_filter)
+      type(NULL,0,NULL, "ContentPolicy nor run; SenderFreeze");
+    return 2;
+  }
   /* If no 'filter *' defined, use old behaviour */
-  if (state->always_accept && (state->content_filter < 0))
+  if (state->always_accept && (state->content_filter < 0)) {
+    if (debug_content_filter)
+      type(NULL,0,NULL, "ContentPolicy nor run; AlwaysAccept w/o FILTER+");
     return 0;
+  }
   /* 'filter', but not 'filter +' ! */
-  if (state->content_filter == 0)
+  if (state->content_filter == 0) {
+    if (debug_content_filter)
+      type(NULL,0,NULL, "ContentPolicy nor run; AlwaysAccept w FILTER but not '+'");
     return 0;
+  }
 
   if (state->message != NULL)
     free(state->message);
   state->message = NULL;
 
-  if (! contentfilter)
+  if (! contentfilter) {
+    if (debug_content_filter)
+      type(NULL,0,NULL, "ContentPolicy nor run; not configured");
     return 0; /* Until we have implementation */
+  }
 
   if (contentpolicypid < 0)
-    if (!init_content_policy())
+    if (!init_content_policy()) {
+      type(NULL,0,NULL, "ContentPolicy nor run; failed to start ?!");
       return 0; /* DUH! */
+    }
 
   /* Ok, we seem to have content-filter program configured... */
 
-  type(NULL,0,NULL, "ContentPolicy program running with pid %d; input='%s'",
-       contentpolicypid, fname);
+  if (debug_content_filter)
+    type(NULL,0,NULL, "ContentPolicy program running with pid %d; input='%s'",
+	 contentpolicypid, fname);
 
  pick_reply:;
 
 
   i = pickresponse(responsebuf, sizeof(responsebuf), cpol_fromfp);
-  type(NULL,0,NULL, "policyprogram said: rc=%d  '%s'", i, responsebuf);
+  if (debug_content_filter)
+    type(NULL,0,NULL, "policyprogram said: rc=%d  '%s'", i, responsebuf);
   if (i <= 0) return 0; /* Urgh.. */
 
   if (strcmp(responsebuf, "#hungry") == 0) {
@@ -200,7 +226,8 @@ const char *fname;
     for (;;) {
       i = pickresponse(responsebuf, sizeof(responsebuf), cpol_fromfp);
       if (i <= 0) break;
-      type(NULL,0,NULL, "policyprogram said: %s", responsebuf);
+      if (debug_content_filter)
+	type(NULL,0,NULL, "policyprogram said: %s", responsebuf);
     }
     /* Finally yield zero.. */
     return 0;

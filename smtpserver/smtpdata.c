@@ -76,7 +76,7 @@ const char *buf, *cp;
 {
     int filsiz;
     long tell = 0;
-    int i;
+    int i, j;
     char msg[2048];
 
     struct stat stbuf;
@@ -213,8 +213,6 @@ const char *buf, *cp;
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	reporterr(SS, tell, "premature EOF on DATA input");
-	if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	  reporterr(SS, tell, "premature EOF on DATA input");
 	typeflush(SS);
 	return -1;
     } else if (availspace < 0 || ferror(SS->mfp)) {
@@ -243,6 +241,8 @@ const char *buf, *cp;
 
 	const char *statcode = NULL, *ss, *ss0;
 	int code = 0;
+	const char *sslines[20];
+	int sslinecnt = 0;
 
 
 	/* Lets see what the content-policy will tell now ? */
@@ -251,24 +251,51 @@ const char *buf, *cp;
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
 	ss0 = ss  = policymsg(policydb, &SS->policystate);
+
 	if (ss)
+	  type(NULL,0,NULL,
+	       "Content-policy analysis ordered message %s. (code=%d); msg='%s'",
+	       (SS->policyresult < 0 ? "rejection" :
+		(SS->policyresult > 0 ? "freezing" : "acceptance")),
+	       SS->policyresult, ss0 ? ss0 : "<NIL>");
+
+	if (ss) {
+	  char *p, *s;
 	  code = parsestatcode(&ss,&statcode);
+	  s = (char *)ss;
+	  p = strchr(s,'\r');
+	  sslinecnt = 0;
+	  if (p) {
+	    /* Multiline! CRs in message text... */
+	    while (p && sslinecnt < 17) { /* Arbitrary fixed limit.. */
+	      *p++ = '\0';
+	      sslines[sslinecnt++] = s;
+	      sslines[sslinecnt+0] = p;
+	      sslines[sslinecnt+1] = NULL;
+	      s = p;
+	      p = strchr(s,'\r');
+	    }
+	  }
+	} else {
+	  sslines[0] = ss = "rejected, no further explanations";
+	  sslines[1] = NULL;
+	}
 
 	if (SS->policyresult < 0) {
-	  type(NULL,0,NULL,
-	       "Content-policy analysis ordered message rejection. (code=%d); msg='%s'", SS->policyresult, ss0 ? ss0 : "<NIL>");
 
 	  if (!statcode)  statcode = m571;
 	  if (!code)      code = 552;
 
-	  if (!ss) {
-	    type(SS,code,statcode,"Content-Policy-Analysis rejected this message; %s", taspid);
-	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	      type(SS,code,statcode,"Content-Policy-Analysis rejected this message; %s", taspid);
-	  } else {
-	    type(SS, code, statcode, "%s; %s", ss, taspid);
-	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	      type(SS, code, statcode, "%s; %s", ss, taspid);
+	  type(SS, -code, statcode, "Content-Policy msg: %s; %s", ss, taspid);
+	  for (j= 1; j <= sslinecnt; ++j)
+	    type(SS, -code, statcode, "msg: %s", sslines[j]);
+	  type(SS, code, statcode, "Content-Policy analysis rejected this message");
+
+	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
+	    type(SS, -code, statcode, "Content-Policy msg: %s; %s", ss, taspid);
+	    for (j= 1; j <= sslinecnt; ++j)
+	      type(SS, -code, statcode, "msg: %s", sslines[j]);
+	    type(SS, code, statcode, "Content-Policy analysis rejected this message");
 	  }
 
 	  mail_abort(SS->mfp);
@@ -276,7 +303,6 @@ const char *buf, *cp;
 	  SS->mfp = NULL;
 	} else if (SS->policyresult > 0) {
 	  char polbuf[20];
-	  char *ss = policymsg(policydb, &SS->policystate);
 
 	  runasrootuser();
 	  sprintf(polbuf,"policy-%d",SS->policyresult);
@@ -295,15 +321,24 @@ const char *buf, *cp;
 	    smtp_tarpit(SS);
 
 	    if (!ss) {
-	      type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
-	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
-	    } else {
-	      if (!statcode)  statcode = "2.7.1";
-	      if (!code)      code = 250;
-	      type(SS, code, statcode, "%s; %s", ss, taspid);
-	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, code, statcode, "%s; %s", ss, taspid);
+	      ss = "message ordered frozen, no explanation";
+	      code = 250;
+	      statcode = "2.7.1";
+	    }
+
+	    if (!statcode)  statcode = "2.7.1";
+	    if (!code)      code = 250;
+
+	    type(SS, -code, statcode, "%s; %s", ss, taspid);
+	    for (j= 1; j <= sslinecnt; ++j)
+	      type(SS, -code, statcode, "%s", sslines[j]);
+	    type(SS, code, statcode, "Content-Policy accepted this message into freezer-%d; %s", SS->policyresult, taspid);
+	    
+	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
+	      type(SS, -code, statcode, "%s; %s", ss, taspid);
+	      for (j= 1; j <= sslinecnt; ++j)
+		type(SS, -code, statcode, "%s", sslines[j]);
+	      type(SS, code, statcode, "Content-Policy accepted this message into freezer-%d; %s", SS->policyresult, taspid);
 	    }
 
 	    typeflush(SS);
@@ -339,9 +374,25 @@ const char *buf, *cp;
 	    } else {
 	      if (!statcode)  statcode = "2.0.0";
 	      if (!code)      code = 250;
-	      type(SS, code, statcode, "%s; %s", ss, taspid);
-	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, code, statcode, "%s; %s", ss, taspid);
+
+	      if (sslinecnt < 1)
+		type(SS,  code, statcode, "%s; %s", ss, taspid);
+	      else
+		type(SS, -code, statcode, "%s; %s", ss, taspid);
+	      for (j= 1; j <= sslinecnt; ++j)
+		type(SS, -code, statcode, "%s", sslines[j]);
+	      if (sslinecnt >= 1)
+		type(SS, code, statcode, "Content-Policy accepted this message; %s", taspid);
+	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
+		if (sslinecnt < 1)
+		  type(SS,  code, statcode, "%s; %s", ss, taspid);
+		else
+		  type(SS, -code, statcode, "%s; %s", ss, taspid);
+		for (j= 1; j <= sslinecnt; ++j)
+		  type(SS, -code, statcode, "%s", sslines[j]);
+		if (sslinecnt >= 1)
+		  type(SS, code, statcode, "Content-Policy accepted this message; %s", taspid);
+	      }
 	    }
 	    typeflush(SS);
 
@@ -378,7 +429,7 @@ const char *buf, *cp;
     long tell;
     char msg[2048];
     long bdata_chunksize;
-    int bdata_last, i;
+    int bdata_last, i, j;
 
     struct stat stbuf;
     char *fname;
@@ -454,10 +505,11 @@ const char *buf, *cp;
 	    cp = NULL;
 	    break;
 	}
-	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+
+	type(SS, 503, m552, cp);
+	if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	  type(SS, 503, m552, cp);
-	else
-	  type(SS, 503, m552, cp);
+
 	typeflush(SS);
 	if (SS->mfp)
 	    mail_abort(SS->mfp);
@@ -470,10 +522,11 @@ const char *buf, *cp;
 	    cp = "No valid sender, rejecting all recipients";
 	    if (SS->sender_ok != 0)
 		cp = "No valid recipient at RCPT addresses, or no RCPT addresses at all";
-	    if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+
+	    type(SS, 550, "5.1.3", cp);
+	    if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	      type(SS, 550, "5.1.3", cp);
-	    else
-	      type(SS, 550, "5.1.3", cp);
+
 	    typeflush(SS);
 	    SS->state = MailOrHello;
 	    if (SS->mfp)
@@ -483,11 +536,12 @@ const char *buf, *cp;
 	    return 0;
 	}
 	if ((SS->from_box != 0) && (SS->rcpt_count > MaxErrorRecipients)) {
+
 	  /* Too many recipients for a  "MAIL FROM:<>" */
-	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	  type(SS, 550, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");
+	  if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	    type(SS, 550, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");
-	  else
-	    type(SS, 550, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");
+
 	  typeflush(SS);
 	  SS->state = MailOrHello;
 	  mail_abort(SS->mfp);
@@ -514,17 +568,15 @@ const char *buf, *cp;
 
     /* The common typeflush() is at the end... */
     if (SS->mfp == NULL) {
-	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
-	  type(SS, 452, m430, "BDAT block discarded due to earlier error");
-	else
+      type(SS, 452, m430, "BDAT block discarded due to earlier error");
+	if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	  type(SS, 452, m430, "BDAT block discarded due to earlier error");
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
     } else if (*msg != 0) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
-	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
-	  type(SS, 452, "%s", msg);
-	else
+	type(SS, 452, "%s", msg);
+	if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	  type(SS, 452, "%s", msg);
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
     } else if (s_feof(SS)) {
@@ -540,11 +592,12 @@ const char *buf, *cp;
 	typeflush(SS); /* Pointless ?? */
 	return -1;
     } else if (availspace < 0 || ferror(SS->mfp)) {
-	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	type(SS, 452, m400, (char *) NULL);
+	if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	  type(SS, 452, m400, (char *) NULL);
-	else
-	  type(SS, 452, m400, (char *) NULL);
-	reporterr(SS, tell, ferror(SS->mfp) ? "write to spool file failed" : "system free storage under limit");
+	reporterr(SS, tell,
+		  ferror(SS->mfp) ? "write to spool file failed" :
+				    "system free storage under limit");
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
@@ -553,10 +606,10 @@ const char *buf, *cp;
 	mail_abort(SS->mfp);
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
-	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
+	if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	  type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
-	else
-	  type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
+	
     } else if (bdata_last) {
 
 	/* Things have been good thus far, now we store
@@ -565,38 +618,67 @@ const char *buf, *cp;
 
 	const char *statcode = NULL, *ss, *ss0;
 	int code = 0;
-
+	const char *sslines[20];
+	int sslinecnt = 0;
 
 	/* Lets see what the content-policy will tell now ? */
 
 	if (debug) typeflush(SS);
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
-
 	ss0 = ss  = policymsg(policydb, &SS->policystate);
+
 	if (ss)
+	  type(NULL,0,NULL,
+	       "Content-policy analysis ordered message %s. (code=%d); msg='%s'",
+	       (SS->policyresult < 0 ? "rejection" :
+		(SS->policyresult > 0 ? "freezing" : "acceptance")),
+	       SS->policyresult, ss0 ? ss0 : "<NIL>");
+
+	if (ss) {
+	  char *p, *s;
 	  code = parsestatcode(&ss,&statcode);
+	  s = (char *) ss;
+	  p = strchr(s,'\r');
+	  sslinecnt = 0;
+	  if (p) {
+	    /* Multiline! CRs in message text... */
+	    while (p && sslinecnt < 17) { /* Arbitrary fixed limit.. */
+	      *p++ = '\0';
+	      sslines[sslinecnt++] = s;
+	      sslines[sslinecnt+0] = p;
+	      sslines[sslinecnt+1] = NULL;
+	      s = p;
+	      p = strchr(s,'\r');
+	    }
+	  }
+	} else {
+	  sslines[0] = ss = "rejected, no further explanations";
+	  sslines[1] = NULL;
+	}
 
 	if (SS->policyresult < 0) {
-	  type(NULL,0,NULL,
-	       "Content-policy analysis ordered message rejection. (code=%d); msg: '%s'", SS->policyresult, ss0 ? ss0 : "<NIL>");
+	  
+	  if (!statcode)  statcode = m571;
+	  if (!code)      code = 552;
 
-	  if (!code) code = 552;
-	  if (!statcode) statcode = m571;
+	  type(SS, -code, statcode, "Content-Policy msg: %s; %s", ss, taspid);
+	  for (j= 1; j <= sslinecnt; ++j)
+	    type(SS, -code, statcode, "msg: %s", sslines[j]);
+	  type(SS, code, statcode, "Content-Policy analysis rejected this message");
 
-	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i){
-	    type(SS,-552,m571,"Content-Policy analysis rejected this message");
-	    type(SS, 552,m571,"Content-Policy msg: %s; %s",
-		 ss ? ss : "rejected", taspid);
-	  } else {
-	    type(SS,-552,m571,"Content-Policy analysis rejected this message");
-	    type(SS, 552,m571,"Content-Policy msg: %s; %s",
-		 ss ? ss : "rejected", taspid);
+	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
+	    type(SS, -code, statcode, "Content-Policy msg: %s; %s", ss, taspid);
+	    for (j= 1; j <= sslinecnt; ++j)
+	      type(SS, -code, statcode, "msg: %s", sslines[j]);
+	    type(SS, code, statcode, "Content-Policy analysis rejected this message");
 	  }
+
 	  mail_abort(SS->mfp);
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	  SS->mfp = NULL;
+
 	} else if (SS->policyresult > 0) {
-	  char *ss = policymsg(policydb, &SS->policystate);
+
 	  runasrootuser();
 	  if (mail_close_alternate(SS->mfp, FREEZERDIR, "policy") != 0) {
 	    type(NULL,0,NULL,
@@ -604,13 +686,11 @@ const char *buf, *cp;
 		 "policy", errno, strerror(errno));
 	    if (logfp)
 	      fflush(logfp);
-	    if (lmtp_mode && bdata_last) {
-	      for(i = 0; i < SS->ok_rcpt_count; ++i)
-		type(SS, 452, m430, "Message file disposition failed; %s",
-		     taspid);
-	    } else
-	      type(SS, 452, m430, "Message file disposition failed; %s",
-		   taspid);
+
+	    type(SS, 452, m430, "Message file disposition failed; %s", taspid);
+	    if (lmtp_mode) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	      type(SS, 452, m430, "Message file disposition failed; %s",taspid);
+
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
 	  } else {
@@ -618,15 +698,24 @@ const char *buf, *cp;
 	    smtp_tarpit(SS);
 
 	    if (!ss) {
-	      type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
-	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
-	    } else {
-	      if (!statcode)  statcode = "2.7.1";
-	      if (!code)      code = 250;
-	      type(SS, code, statcode, "%s; %s", ss, taspid);
-	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, code, statcode, "%s; %s", ss, taspid);
+	      ss = "message ordered frozen, no explanation";
+	      code = 250;
+	      statcode = "2.7.1";
+	    }
+
+	    if (!statcode)  statcode = "2.7.1";
+	    if (!code)      code = 250;
+
+	    type(SS, -code, statcode, "%s; %s", ss, taspid);
+	    for (j= 1; j <= sslinecnt; ++j)
+	      type(SS, -code, statcode, "%s", sslines[j]);
+	    type(SS, code, statcode, "Content-Policy accepted this message into freezer-%d; %s", SS->policyresult, taspid);
+	    
+	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
+	      type(SS, -code, statcode, "%s; %s", ss, taspid);
+	      for (j= 1; j <= sslinecnt; ++j)
+		type(SS, -code, statcode, "%s", sslines[j]);
+	      type(SS, code, statcode, "Content-Policy accepted this message into freezer-%d; %s", SS->policyresult, taspid);
 	    }
 
 	    typeflush(SS);
@@ -637,11 +726,11 @@ const char *buf, *cp;
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	  runastrusteduser();
 	} else if (mail_close(SS->mfp) == EOF) {
-	  if (lmtp_mode && bdata_last) {
-	    for(i = 0; i < SS->ok_rcpt_count; ++i)
-	      type(SS, 452, m400, (char *) NULL);
-	  } else
+
+	  type(SS, 452, m400, (char *) NULL);
+	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	    type(SS, 452, m400, (char *) NULL);
+
 	  SS->mfp = NULL;
 	  reporterr(SS, tell, "message file close failed");
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
@@ -650,13 +739,39 @@ const char *buf, *cp;
 
 	  SS->mfp = NULL;
 
-	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i) {
+#if 1
+	  type(SS, 250, "2.0.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
+	       taspid, bdata_chunksize, (long) tell);
+	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	    type(SS, 250, "2.0.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
 	       taspid, bdata_chunksize, (long) tell);
-	  } else
-	    type(SS, 250, "2.0.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
-	       taspid, bdata_chunksize, (long) tell);
+
 	  type(NULL,0,NULL,"-- pipeline input: %d bytes",s_hasinput(SS));
+
+#else
+	  if (!statcode)  statcode = "2.0.0";
+	  if (!code)      code = 250;
+
+	  if (sslinecnt < 1)
+	    type(SS,  code, statcode, "%s; %s", ss, taspid);
+	  else
+	    type(SS, -code, statcode, "%s; %s", ss, taspid);
+	  for (j= 1; j <= sslinecnt; ++j)
+	    type(SS, -code, statcode, "%s", sslines[j]);
+	  if (sslinecnt >= 1)
+	    type(SS, code, statcode, "Content-Policy accepted this message; %s", taspid);
+	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
+	    if (sslinecnt < 1)
+	      type(SS,  code, statcode, "%s; %s", ss, taspid);
+	    else
+	      type(SS, -code, statcode, "%s; %s", ss, taspid);
+	    for (j= 1; j <= sslinecnt; ++j)
+	      type(SS, -code, statcode, "%s", sslines[j]);
+	    if (sslinecnt >= 1)
+	      type(SS, code, statcode, "Content-Policy accepted this message; %s", taspid);
+	  }
+#endif
+
 
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_ok    += 1;
 
@@ -676,9 +791,8 @@ const char *buf, *cp;
 	    fflush(logfp);
 	}
     } else {			/* Not last chunk! */
-      if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i) {
-	type(SS, 250, "2.0.0", "Received %ld bytes", bdata_chunksize);
-      } else
+      type(SS, 250, "2.0.0", "Received %ld bytes", bdata_chunksize);
+      if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
 	type(SS, 250, "2.0.0", "Received %ld bytes", bdata_chunksize);
     }
     if (bdata_last) {
