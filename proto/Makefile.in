@@ -220,7 +220,8 @@ guides:	FRC
 clean:	FRC
 	rm -f ./+* *~
 distclean: clean
-	rm -f Makefile sm.conf zmailer.sh \
-		newfqdnaliases newaliases newdb mailrm.sh \
-		scheduler.conf post-install.sh smtp-tls.conf
+	rm -f Makefile sm.conf zmailer.sh
+	rm -f newfqdnaliases newaliases newdb mailrm.sh
+	rm -f scheduler.conf post-install.sh smtp-tls.conf
+	rm -f smtpserver.conf
 depend:

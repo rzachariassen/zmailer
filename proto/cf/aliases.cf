@@ -215,9 +215,11 @@ routeuser (quad, plustail, domain) {
 	local plustail2 forward priv hashomedir type
 
 	plustail2=""
-	attr="$(attributes $quad)"
-	chan="$(channel $quad)"
-	host="$(host $quad)"
+
+	attr=$(attributes $quad)
+	chan=$(channel $quad)
+	host=$(host $quad)
+	user=$(user $quad)
 	
 	# For the expansions control tag we can use only
 	# the 'channel',  and the 'username' strings, we CAN'T
@@ -225,13 +227,12 @@ routeuser (quad, plustail, domain) {
 	# will have subsequently DIFFERENT values for it.
 	# Use of 'host' field means we can't use 
 
-	user="$(user $quad)"
 	key="$user"
 
 	type="$(get $attr type)"
 	sender="$(get $attr sender)"
 
-	case "$type" in
+	case $type in
 	sender)
 		a=$(userdb "$user:mailname") \
 		  || return ((("$chan" "$host" "$user$plustail$domain" $attr)))
@@ -245,22 +246,20 @@ routeuser (quad, plustail, domain) {
 
 	al=()
 
-	case "$(channel $quad)" in
-	#smtp)	mxh=$(mxhosts $(host $quad).)
-	#	user="$(user $quad)"
-	#	attr="$(attributes $quad)"
+	case $chan in
+	#smtp)	mxh=$(mxhosts $host.)
 	#	case $#mxh in
 	#	[1-9]*)	# make the XOR list
-	#		for host in $(elements $mxh)
+	#		for hostx in $(elements $mxh)
 	#		do
 	#			case $#al in
 	#			0)	al=$(rrouter "$address" "$address" $attr "" "") ;;
 	#			*)	set $(cdr $(last $al)) \
-	#				    (((smtp "$host" "$user" $attr))) ;;
+	#				    (((smtp $hostx $user $attr))) ;;
 	#			esac
 	#		done
 	#		return $al
-	#		#a=((x) (smtp '$x' "$(user $quad)" $attr))
+	#		#a=((x) (smtp '$x' $user $attr))
 	#		#mapcar $a $mxhosts
 	#		;;
 	#	esac
@@ -270,15 +269,15 @@ routeuser (quad, plustail, domain) {
 		;;
 	esac
 
-	user="$(condquote "$(user $quad)")"
-	host="$(condquote "$(host $quad)")"
+	user=$(condquote $user)
+	host=$(condquote $host)
 
 # echo "routeuser: host=$host, user=$user" >> /dev/tty
 
 	[ -n "$FORCEPUNT" ] &&
 		return $(rrouter "$user@$FORCEPUNT" "$host" $attr "" "")
 
-	ssift "$(dequote "$user")" in
+	ssift $(dequote $user) in
 	\\(.*)	user="\1" # Back-quoted username -- most likely
 		#didexpand=local
 		;;
@@ -290,7 +289,7 @@ routeuser (quad, plustail, domain) {
 		  # sendmail-like :include: expansion
 		  db add expansions "$key.:include:" 1
 		  nattr=$(newattribute $attr privilege $priv)
-		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
+		  $(zapDSNnotify $nattr expanded "$sender" "$user$domain")
 		  defer=''
 		  a=$(runas $priv cat "\1" | \
 		      listexpand -E "postmaster" -e root -p $priv	\
@@ -325,7 +324,7 @@ routeuser (quad, plustail, domain) {
 	if $(didexpand aliases) && a="$(aliases "$user")" ; then
 		db add expansions "$key.aliases" 1
 		nattr=$(newattribute $attr privilege $priv)
-		$(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
+		$(zapDSNnotify $nattr expanded "$sender" "$user$domain")
 
 		a=$(echo "$a" |				\
 		    listaddresses	-E "root"	\
@@ -342,7 +341,7 @@ routeuser (quad, plustail, domain) {
 	if $(didexpand fullnamemap) && a="$(fullnamemap "$user")" ; then
 		db add expansions "$key.fullnamemap" 1
 		nattr=$(newattribute $attr privilege $priv)
-		$(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
+		$(zapDSNnotify $nattr expanded "$sender" "$user$domain")
 
 		a=$(rrouter "$a" "$user" $nattr "$plustail" "$domain")
 		postzapDSNnotify a
@@ -781,7 +780,7 @@ fi
 
 getpriv (maxperm, priv, file, type) {
 #echo "getpriv($maxperm, $priv, $file, $type)" > /dev/tty
-	for ptype in $private
+	for ptype in $(elements $private)
 	do
 		if [ $type = $ptype ]; then
 			filepriv -M $maxperm "$file"

@@ -110,12 +110,10 @@ extern unsigned long parse_interval __((char *str, char **retp));
 /* prversion.c */
 extern void prversion __((const char *prgname));
 
-#ifdef USE_ZGETPWNAM
 /* pwdgrp.c */
-extern struct passwd	*zgetpwnam __((const char *name));
-extern struct passwd	*zgetpwuid __((const char *uid));
-extern struct group	*zgetgrnam __((const char *name));
-#endif
+extern struct Zpasswd	*zgetpwnam __((const char *name));
+extern struct Zpasswd	*zgetpwuid __((const uid_t uid));
+extern struct Zgroup	*zgetgrnam __((const char *name));
 
 /* ranny.c */
 extern u_int ranny __((u_int m));

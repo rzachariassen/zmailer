@@ -12,6 +12,21 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.55-pre1cvs (22-Jan-2001)
+		Detail change at how variable expansion happens inside
+		the router scripts with aim to allow less opportunities
+		to do variable expansions which lead to unintended
+		splitting (at IFS chars) of (positional) function call
+		parameters.   Few things which used to be string literals
+		are now changed to lists:  Check your  router.cf !
+			Was:	protocols='router smtp'
+				private='something'
+			Now:	protocols=(router smtp)
+				private=(something)
+		COMPARE YOUR  router.cf  AGAINST THE  $MAILSHARE/cf/SMTP.cf !
+		(or whatever your prototype file was)
+
+
 	ZMailer-2.99.53+ (just after release cut)
 		Changes at BSD/SleepyCat DB interface codes may again have
 		altered default DB binary formats so that regeneration of

@@ -9,11 +9,7 @@
    products (notably IMAP/POP servers)
 */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#else
-#define STDC_HEADERS   /* assume we are in sane environment... */
-#endif
+#include "mailer.h"
 
 #include <sys/types.h>
 #ifdef STDC_HEADERS
@@ -41,7 +37,7 @@
 
 /********
 int fmtmbox (char *buf, int size, const char *format,
-            const char *userid, const struct passwd *pwd);
+            const char *userid, const struct Zpasswd *pwd);
 
 format specifiers:
 
@@ -96,14 +92,14 @@ static int put_s(q,ebuf,s)
 	return 0;
 }
 
-int fmtmbox __((char *, int, const char *, const char *, const struct passwd *));
+int fmtmbox __((char *, int, const char *, const char *, const struct Zpasswd *));
 
 int fmtmbox (buf, size, format, address, pwd)
      char *buf;
      int size;
      const char *format;
      const char *address;
-     const struct passwd *pwd;
+     const struct Zpasswd *pwd;
 {
 	char *q,*at,*dom,*dot;
 	const char *p;
@@ -188,7 +184,7 @@ int main(argc, argv)
 int argc;
 char *argv[];
 {
-	struct passwd *pwd;
+	struct Zpasswd *pwd;
 	char buf[1024];
 	int rc;
 
@@ -197,7 +193,8 @@ char *argv[];
 		exit(1);
 	}
 
-	if ((pwd=getpwnam(argv[2])) == NULL) {
+	pwd = zgetpwnam(argv[2]);
+	if (pwd == NULL) {
 		if (errno) perror("getpwnam");
 		else fprintf(stderr,"no such user\n");
 		exit(1);

@@ -7,7 +7,7 @@
  *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
  */
 
-#include "hostenv.h"
+#include "mailer.h"
 #include <sfio.h>
 #include <ctype.h>
 #include <pwd.h>
@@ -58,9 +58,6 @@ static int rc_syspriority	RCKEYARGS;
 static int rc_sysnice		RCKEYARGS;
 
 extern int errno;
-
-extern struct group *getgrnam();
-extern struct passwd *getpwnam();
 
 struct config_entry *default_entry = NULL;
 struct config_entry *rrcf_head     = NULL;
@@ -588,11 +585,11 @@ static int rc_group(key, arg, ce)
 	char *key, *arg;
 	struct config_entry *ce;
 {
-	struct group *gr;
+	struct Zgroup *gr;
 
 	if (isascii(*arg) && isdigit(*arg))
 	  ce->gid = atoi(arg);
-	else if ((gr = getgrnam(arg)) == NULL) {
+	else if ((gr = zgetgrnam(arg)) == NULL) {
 	  sfprintf(sfstderr, "%s: unknown group: '%s'\n", progname, arg);
 	  return 1;
 	} else
@@ -810,11 +807,11 @@ static int rc_user(key, arg, ce)
 	char *key, *arg;
 	struct config_entry *ce;
 {
-	struct passwd *pw;
+	struct Zpasswd *pw;
 
 	if (isascii(*arg) && isdigit(*arg))
 	  ce->uid = atoi(arg);
-	else if ((pw = getpwnam(arg)) == NULL) {
+	else if ((pw = zgetpwnam(arg)) == NULL) {
 	  sfprintf(sfstderr, "%s: unknown user: %s\n", progname, arg);
 	  return 1;
 	} else

@@ -150,6 +150,9 @@ v_find(name)
  */
 
 
+#define ALWAYS_QUOTE_EXPANDS
+
+
 conscell *
 v_expand(s, caller, retcode)
 	const char *s;			/* variable name */
@@ -160,6 +163,7 @@ v_expand(s, caller, retcode)
 	register int n;
 	register char *cp;
 	char np[CHARSETSIZE+1]; /* each possible option, plus last NUL */
+	int noquote = 0;
 
 	GCVARS3;
 	GCPRO3(d,l,tmp);
@@ -172,6 +176,7 @@ v_expand(s, caller, retcode)
 	 */
 	switch (*s) {
 	case '@':
+		noquote = NOQUOTEIFQUOTED;
 	case '*':
 		if (caller == NULL || cdar(caller->argv) == NULL) {
 			goto end_v_expand;
@@ -180,9 +185,13 @@ v_expand(s, caller, retcode)
 		for (l = d; l != NULL && cdr(l) != NULL ; l = cdr(l)) {
 			tmp = conststring(" ",1);
 			cdr(tmp) = cdr(l);
-			l = cdr(l) = tmp;
-			if (*s == '@')
-				tmp->flags |= NOQUOTEIFQUOTED;
+			cdr(l)   = tmp;
+			l        = cdr(l);
+			tmp->flags |= noquote;
+#ifdef ALWAYS_QUOTE_EXPANDS
+			if (!noquote)
+			  tmp->flags |= QUOTEDSTRING;
+#endif
 		}
 		/* grindef("ARGW = ", ncons(d)); */
 		goto end_v_expand;
@@ -198,6 +207,9 @@ v_expand(s, caller, retcode)
 		}
 		d = copycell(d);
 		cdr(d) = NULL;
+#ifdef ALWAYS_QUOTE_EXPANDS
+		d->flags |= QUOTEDSTRING;
+#endif
 		/* d = s_copy_tree(d); */ /* XXX: Needed ? */
 		goto end_v_expand;
 
@@ -260,6 +272,10 @@ v_expand(s, caller, retcode)
 	if ((d = v_find(s)) != NULL) {
 		d = copycell(cdr(d));
 		cdr(d) = NULL;
+#ifdef ALWAYS_QUOTE_EXPANDS
+		if (STRING(d))
+		  d->flags |= QUOTEDSTRING;
+#endif
 	}
  end_v_expand:
 
@@ -404,9 +420,9 @@ v_envinit()
 		*--cp = '=';
 	}
 	if (!gotpath) {
-		s = conststring(PATH,strlen(PATH));
+		s = conststring(PATH,sizeof(PATH)-1);
 		nconc(envarlist, s);
-		s = conststring(DEFAULT_PATH,strlen(DEFAULT_PATH));
+		s = conststring(DEFAULT_PATH,sizeof(DEFAULT_PATH)-1);
 		nconc(envarlist, s);
 	}
 	/* now make it into a list of plists */
@@ -414,7 +430,7 @@ v_envinit()
 	envarlist = ncons(envarlist);	/* ((env)) */
 	/* ... and prepend the normal scope */
 	/* ... and put it in the list of pre-defined non-env. variables */
-	s = conststring(ENVIRONMENT,strlen(ENVIRONMENT));
+	s = conststring(ENVIRONMENT,sizeof(ENVIRONMENT)-1);
 	cdr(s) = envarlist;	/* must only use s_push with envarlist now */
 	cdr(s_last(e)) = s;	/* (envcopy ENVIRONMENT (env))		*/
 	s = ncons(e);		/* s = (envcopy ENVIRONMENT (env))	*/

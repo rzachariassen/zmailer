@@ -36,7 +36,7 @@ erraddron $POSTOFFICE/postman/ERRADDRLOG
 # Set up the dependency checking
 
 . consist.cf
-require siteinfo router crossbar process server
+require siteinfo rrouter crossbar process server
 
 # The following are standard setup files and must be loaded in this order
 

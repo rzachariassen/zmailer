@@ -10,7 +10,7 @@
 #define CHUNK_MAX_SIZE 64000
 #define DO_CHUNKING 1
 
-#include "hostenv.h"
+#include "mailer.h"
 
 #ifdef linux_xx
 #define __USE_BSD 1
@@ -115,6 +115,8 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
 #endif
 
+#undef string
+#undef cstring
 
 #ifdef HAVE_OPENSSL
 #include <openssl/ssl.h>

@@ -198,7 +198,7 @@ routeuser (quad) {
 # that they couldn't access otherwise.  If private='.forward maillist' then
 # people stop complainig about the former behaviour...
 getpriv (priv, file, type) {
-	for ptype in $private
+	for ptype in $(elements $private)
 	do
 		if [ $type = $ptype ]; then
 			filepriv "$file"

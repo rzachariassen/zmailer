@@ -5,7 +5,7 @@
  *  modified by Matti Aarnio over years 1988(?) thru 1998.
  */
 
-#include "hostenv.h"
+#include "mailer.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -118,7 +118,7 @@ extern void   usage __((void));
 
 typedef struct alias {
 	struct alias *next;
-	char *name;
+	const char *name;
 } ALIAS;
 ALIAS *names = NULL;
 
@@ -143,7 +143,6 @@ char *subject_str = NULL;	/* Glob subject from input */
 int dblog = 1;
 
 extern void purge_input __((void));
-extern struct passwd *getpwnam();
 extern int optind, opterr;
 extern char *optarg;
 extern FILE *freopen(), *tmpfile();
@@ -157,7 +156,7 @@ extern void readheaders __((void));
 extern char *strerror __((int));
 static int recent __((void));
 static int junkmail __((void));
-static int nsearch __((char *name, char *str));
+static int nsearch __((const char *name, const char *str));
 static void sendmessage __((const char *msgf, const char *myname));
 
 const char *progname;
@@ -168,7 +167,7 @@ main(argc, argv)
      char *argv[];
 {
 	register char *p;
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	ALIAS *cur;
 	time_t interval;
 	char *msgfile = NULL;
@@ -232,12 +231,12 @@ main(argc, argv)
 	if (argc != 1) {
 	  if (!iflag)
 	    usage();
-	  pw = getpwuid(getuid());
+	  pw = zgetpwuid(getuid());
 	  if (!pw) {
 	    fprintf(stderr, "vacation: no such user uid %ld.\n", (long)getuid());
 	    exit(EX_NOUSER);
 	  }
-	} else if (!(pw = getpwnam(*argv))) {
+	} else if (!(pw = zgetpwnam(*argv))) {
 	  fprintf(stderr, "vacation: no such user %s.\n", *argv);
 	  exit(EX_NOUSER);
 	}
@@ -566,7 +565,7 @@ findme:			for (cur = names; !tome && cur; cur = cur->next)
  */
 static int
 nsearch(name, str)
-	register char *name, *str;
+	register const char *name, *str;
 {
 	register int len;
 

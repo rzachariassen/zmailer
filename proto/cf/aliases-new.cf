@@ -20,9 +20,8 @@
 # which has following default value -- unless  router.cf  (pre)defines
 # some other value:
 
-if [ -z "$localprotocols" ]; then
-	localprotocols="include aliases mboxmap lists uid_trap punthost local"
-fi
+[ $localprotocols ] || \
+	localprotocols=(include aliases mboxmap lists uid_trap punthost local)
 
 #
 # These call functions with names:
@@ -336,7 +335,7 @@ routeuser (quad, plustail, domain) {
 		;;
 	tfiss
 
-	for func in $localprotocols; do
+	for func in ($elements $localprotocols); do
 	    if [ -z "$didexpand" ]; then
 		a=$(localexpand "$func" "$user" "$host" "$attr" "$key") &&
 			return $a
@@ -780,7 +779,7 @@ expand_listserv(user,host,attr,key) {
 
 getpriv (maxperm, priv, file, type) {
 #echo "getpriv($maxperm, $priv, $file, $type)" > /dev/tty
-	for ptype in $private
+	for ptype in $(elements $private)
 	do
 		if [ $type = $ptype ]; then
 			filepriv -M $maxperm "$file"

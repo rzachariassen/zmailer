@@ -4,6 +4,13 @@ dnl Process this file with autoconf to produce a configure script.
 # and modified by hand by <matti.aarnio@nic.funet.fi>  for the ZMailer
 #
 
+#
+# Things to do:
+#   AC_DEFINE(NO_SECURITY_PAM)	# Done with:  --disable-pam
+#   AC_DEFINE(NO_SHADOW)	# ???
+#   AC_DEFINE(CHECK_MB_SIZE)    # mailbox.c feature using external function
+#
+
 #PACKAGE=ZMailer
 #VERSION=2.99.51patch1
 #PACKAGE_VERSION="$PACKAGE-$VERSION"

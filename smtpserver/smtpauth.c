@@ -68,7 +68,7 @@ char * zpwmatch(uname,password,uidp)
      char *uname, *password;
      long *uidp;
 {
-    struct passwd *pw = getpwnam(uname);
+  struct Zpasswd *pw = zgetpwnam(uname); /* ... */
     char *cr;
 
     if (!pw) return -1; /* No such user */

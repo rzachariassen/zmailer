@@ -11,22 +11,32 @@ unset provide
 require=()
 provide=()
 
-declare (plist, modules) {
-	local a
-	for m in $modules
+declare (plist, m) {
+	lreplace $plist $m $m
+}
+
+require () {
+	for x in $@
 	do
-		lreplace $plist $m $m
-		#a=$(setf $(get $plist $m) $m)
+		declare require $x
 	done
 }
 
-require (modules) { declare require $modules }
-provide (module) { declare provide $module }
+provide () {
+	for x in $@
+	do
+		declare provide $x
+	done
+}
 
 consist () {
 	local rval
 
+#grind $require
+#grind $provide
+
 	rval=0
+	# Scan for EVERY SECOND token of the array..
 	while [ $#require -gt 0 ];
 	do
 		want=$(car $require)

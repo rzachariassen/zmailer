@@ -4345,9 +4345,9 @@ if (SS->verboselog)
 
 void getdaemon()
 {
-	struct passwd *pw = getpwnam("daemon");
-	if (!pw) pw = getpwnam("daemons"); /* Some SGI machines! */
-	if (!pw) pw = getpwnam("uucp");
+	struct Zpasswd *pw = zgetpwnam("daemon");
+	if (!pw) pw = zgetpwnam("daemons"); /* Some SGI machines! */
+	if (!pw) pw = zgetpwnam("uucp");
 
 	if (!pw) daemon_uid = 0; /* Let it be root, if nothing else */
 	else     daemon_uid = pw->pw_uid;

@@ -36,7 +36,7 @@ void
 settrusteduser()
 {
 	const char *trusteduser;
-	struct passwd *pw;
+	struct Zpasswd *pw;
 
 	if ((trusteduser = getzenv("TRUSTEDUSER")) == NULL)
 		trusteduser = DEFTRUSTEDUSER;
@@ -48,7 +48,8 @@ settrusteduser()
 		}
 	}
 	errno = 0;
-	if ((pw = getpwnam(trusteduser)) == NULL) {
+	pw = zgetpwnam(trusteduser);
+	if (pw == NULL) {
 		trusteduid = 0;		/* can't do anything, run as root */
 		return;
 	}

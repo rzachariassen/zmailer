@@ -3,10 +3,10 @@
  *	This will be free software, but only when it is finished.
  */
 
-#include <stdio.h>
-#include <errno.h>
 #include "hostenv.h"
 #include "mailer.h"
+#include <stdio.h>
+#include <errno.h>
 #include "libz.h"
 #include "libc.h"
 #include <ctype.h>
@@ -52,7 +52,7 @@ int
 getnobody()
 {
 	int i, factor = 1;
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	const char *s;
 
 	if (didnobody)
@@ -67,14 +67,15 @@ getnobody()
 			goto done;
 		}
 		errno = 0;
-		if (isalpha(*s) && (pw = getpwnam(s)) != NULL) {
+		if (isalpha(*s) && (pw = zgetpwnam(s)) != NULL) {
 			nobody = pw->pw_uid;
 			goto done;
 		}
 	}
 
 	errno = 0;
-	if ((pw = getpwnam(nouser)) != NULL) {
+	pw = zgetpwnam(nouser);
+	if (pw != NULL) {
 		nobody = pw->pw_uid;
 		goto done;
 	}

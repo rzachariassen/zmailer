@@ -18,7 +18,7 @@ process (file) {
 #| our feet, we flush the cached information every once in a while (in this
 #| case, before every message).
 
-	LOGMSG=''
+	LOGMSG=()   # This is a LIST of files where to log..
 
 #| The LOGMSG variable is used by the intercept facility (in crossbar.cf)
 #| to make sure only a single copy of a message is saved when required.
@@ -59,7 +59,7 @@ process (file) {
 #| list in its entirety, except for the file name, and the message id, both
 #| of which were logged earlier (in C code).
 
-	for f in $LOGMSG
+	for f in $(elements $LOGMSG)
 	do
 		{ echo "==${file}==$(rfc822date)==" ;
 		  /bin/cat ../queue/"$file" } >> $f && log saved "$file" in $f
@@ -69,3 +69,5 @@ process (file) {
 
 }
 
+provide process
+# require XX XX XX

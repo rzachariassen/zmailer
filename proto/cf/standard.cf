@@ -288,7 +288,7 @@ fi
 #| Domains with these toplevels will not be canonicalized via DNS lookup
 #| This list is from ISOC table of 16-April-95  + "su" + bitnet + uucp
 
-toplevels="ad ae af ag ai al am an ao aq ar as at au aw az ba
+toplevels=(ad ae af ag ai al am an ao aq ar as at au aw az ba
 	bb bd be bf bg bh bi bj bm bn bo br bs bt bv bw by bz
 	ca cc cf cg ch ci ck cl cm cn co com cr cu cv cx cy cz
 	de dj dk dm do dz ec edu ee eg eh es et fi fj fk fm fo
@@ -301,10 +301,10 @@ toplevels="ad ae af ag ai al am an ao aq ar as at au aw az ba
 	pw py qa re ro ru rw sa sb sc sd se sg sh si sj sk sl
 	sm sn so sr st su sv sy sz tc td tf tg th tj tk tm tn
 	to tp tr tt tv tw tz ua ug uk um us uy uz va vc ve vg
-	vi vn vu wf ws ye yu za zm zr zw uucp bitnet"
+	vi vn vu wf ws ye yu za zm zr zw uucp bitnet)
 
 relation -lbt incore istoplevel
-for x in $toplevels
+for x in $(elements $toplevels)
 do
 	db add istoplevel $x 1
 done

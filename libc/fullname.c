@@ -26,7 +26,7 @@ fullname(s, buf, buflen, up)
 	const char *s;		/* the name we wish to quotify */
 	char buf[];		/* place to put the result */
 	int buflen;		/* how much space we have */
-	char *up;		/* what to use for a login name */
+	const char *up;		/* what to use for a login name */
 {
 	register char *cp, *eob;
 	int mustquote;

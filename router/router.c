@@ -28,12 +28,6 @@
 
 extern const char *postoffice; /* At libzmailer.a: mail.c */
 
-#if 0
-extern struct group *getgrnam __();
-extern struct passwd *getpwnam __();
-extern struct passwd *getpwuid __();
-#endif
-
 extern struct shCmd fnctns[];
 extern time_t time __((time_t *));
 
@@ -362,7 +356,7 @@ initialize(configfile, argc, argv)
 	int argc;
 	const char *argv[];
 {
-	struct group *grp;
+	struct Zgroup *grp;
 	struct sptree_init *sptip;
 	int ac;
 	const char **cpp;
@@ -415,7 +409,7 @@ initialize(configfile, argc, argv)
 		add_incoresp(*cpp, "", spt_goodguys);
 
 	if (files_group != NULL) {
-		if ((grp = getgrnam(files_group)) == NULL)
+		if ((grp = zgetgrnam(files_group)) == NULL)
 			files_gid = -1;
 		else
 			files_gid = grp->gr_gid;
@@ -441,7 +435,7 @@ int
 login_to_uid(name)
 	const char	*name;
 {
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	uid_t uid;
 	char buf[BUFSIZ];
 	char *cp;
@@ -452,8 +446,11 @@ login_to_uid(name)
 		memtypes oval = stickymem;
 
 		stickymem = MEM_MALLOC;
-		errno = 0;
-		pw = getpwnam(name);
+
+		pw = zgetpwnam(name);
+		if (!pw)
+			pw = zgetpwnam(name);
+
 		if (pw == NULL) {
 			uid = nobody;
 		} else {
@@ -474,14 +471,14 @@ const char *
 uidpwnam(uid)
 	int	uid;
 {
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	register const char *cp;
 	struct spblk *spl;
 	char buf[BUFSIZ];
 
 	spl = sp_lookup((u_long)uid, spt_uidmap);
 	if (spl == NULL) {
-		pw = getpwuid((uid_t)uid);
+		pw = zgetpwuid((uid_t)uid);
 		if (pw == NULL) {
 			/* memory shall be temporary in
 			   its nature for this data! */

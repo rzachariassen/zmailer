@@ -178,9 +178,9 @@ rrouter (address, origaddr, A, plustail, domain) {
 
 		didhostexpand=$(hostexpansions "\2")
 
-		for method in $protocols
+		for method in $(elements $protocols)
 		do
-		   	tmp=$(${method}_neighbour "\2" "$address" $A) &&
+		   	tmp=$("${method}_neighbour" "\2" "$address" $A) &&
 				return $tmp
 		done
 

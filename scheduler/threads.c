@@ -1,7 +1,7 @@
 /*
  *	ZMailer 2.99.16+ Scheduler "threads" routines
  *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-2000
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-2001
  *
  *
  *	These "threads" are for book-keeping of information
@@ -1371,7 +1371,7 @@ idle_cleanup()
 
 		zsyslog((LOG_ERR, "ZMailer scheduler kludge shutdown of TA channel (info for debug only); %s/%s/%d HA=%ds",
 			 thr->channel, thr->host, thr->thgrp->withhost,
-			 now - p->hungertime));
+			 (int)(now - p->hungertime)));
 	      }
 	    }
 	  }

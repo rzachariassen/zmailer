@@ -250,6 +250,27 @@ struct envelope {
 #define	getgrnam	zgetgrnam
 #endif	/* USE_GETPWNAM */
 
+struct Zpasswd {
+  /* Basic normal 'struct passwd' things */
+  const char *pw_name;
+  const char *pw_passwd;
+  uid_t pw_uid;
+  gid_t pw_gid;
+  const char *pw_gecos;
+  const char *pw_dir;
+  const char *pw_shell;
+  /* Our ``Z'' extensions */
+  long quota1, quota2;
+  const char *mail_forward;
+};
+
+struct Zgroup {
+  const char *gr_name;
+  const char *gr_passwd;
+  gid_t gr_gid;
+  const char **gr_mem;
+};
+
 /* lib/allocate.c: */
 extern void      tfree __((const memtypes memtype));
 extern univptr_t getlevel __((const memtypes memtype));

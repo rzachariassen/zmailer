@@ -1423,9 +1423,14 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 			} else if (*arg1 != '\0' || quote) {
 				int slen = strlen(arg1);
 #if 0
-				d = newstring(dupnstr(arg1,slen),slen);
-#else
+				/* XXX: If we can be sure of input
+				   (arg1) being on stabile storage..
+				   Command-line interpreter (shell)
+				   is not stabile storage, but script
+				   interpreter is! */
 				d = conststring(arg1,slen);
+#else
+				d = newstring(dupnstr(arg1,slen),slen);
 #endif
 			} else
 				break;	/* it is a null string! */
@@ -2027,9 +2032,14 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				if (*arg1) {
 				  slen = strlen(arg1);
 #if 0
-				  car(l) = newstring(dupnstr(arg1,slen),slen);
-#else
+				/* XXX: If we can be sure of input
+				   (arg1) being on stabile storage..
+				   Command-line interpreter (shell)
+				   is not stabile storage, but script
+				   interpreter is! */
 				  car(l) = conststring(arg1,slen);
+#else
+				  car(l) = newstring(dupnstr(arg1,slen),slen);
 #endif
 				} else
 				  car(l) = conststring(uBLANK,0);
@@ -2055,15 +2065,12 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			  command->buffer = conststring(uBLANK,0);
 			if (nsift >= 0)
 			  v_accessed = sift[nsift].accessed;
-#if 0
-			assign(d, command->buffer,
-			       cmd==sAssign ? (struct osCmd *)NULL : command);
-#else
+
 			if (cmd == sAssign)
 			  assign(d, command->buffer, NULL);
 			else
 			  assign(d, command->buffer, command);
-#endif
+
 			/* do NOT reset *retcodep here */
 			command->bufferp = &command->buffer;
 			command->argv    = NULL;
@@ -2249,9 +2256,14 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			{
 			  int slen = strlen(arg1);
 #if 0
-			  tmp = newstring(dupnstr(arg1,slen),slen); /* must allocate a fresh! */
+			  /* XXX: If we can be sure of input
+			     (arg1) being on stabile storage..
+			     Command-line interpreter (shell)
+			     is not stabile storage, but script
+			     interpreter is! */
+			  tmp = conststring(arg1,slen);
 #else
-			  tmp = conststring(arg1, slen);
+			  tmp = newstring(dupnstr(arg1,slen),slen);
 #endif
 			}
 			cdr(d) = caar(envarlist);
@@ -2428,11 +2440,17 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			  if (arg1 != NULL) {
 			    int slen = strlen(arg1);
 #if 0
+			    /* XXX: If we can be sure of input
+			       (arg1) being on stabile storage..
+			       Command-line interpreter (shell)
+			       is not stabile storage, but script
+			       interpreter is! */
 			    tmp = conststring(arg1,slen);
 #else
 			    tmp = newstring(dupnstr(arg1,slen),slen);
 #endif
 			    tmp->flags |= QUOTEDSTRING;
+
 			    /* cdr(tmp) = command->buffer; */
 			    *command->bufferp = tmp;
 			    command->bufferp = &cdr(tmp);

@@ -8,7 +8,7 @@
 struct sieve {
 	int			 state; /* 0: END */
 	int			 uid;	 /* input */
-	const struct passwd	*pw;	 /* input */
+	const struct Zpasswd	*pw;	 /* input */
 	const char		*username;  /* input */
 	const char		*spoolfile; /* input */
 	int			command;

@@ -8,14 +8,14 @@
 
 /* Sendmail -- a sendmail compatible interface to ZMailer */
 
-#include "hostenv.h"
+#include "mailer.h"
+
 #include <stdio.h>
 #include <sysexits.h>
 #include <ctype.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
 #include "mail.h"
 #include "zmsignal.h"
 #ifdef HAVE_FCNTL_H
@@ -144,7 +144,7 @@ main(argc, argv)
 	const char *configfile, *mailpriority, *pooption;
 	char * path;
 	FILE	*vfp;
-	struct passwd *pwd;
+	struct Zpasswd *pwd;
 	char	*LC_ctype;
 	char	buf[8192];
 	char   *buf2 = NULL;
@@ -521,7 +521,7 @@ otherprog:
 		  else
 #endif /* HAVE_FCHOWN */
 		    if (from == NULL) {
-		      if (uid != 0 && (pwd = getpwuid(uid)) != NULL)
+		      if (uid != 0 && (pwd = zgetpwuid(uid)) != NULL)
 			from = pwd->pw_name;
 		      else if ((cp = getlogin()) != NULL)
 			from = cp;
@@ -760,11 +760,12 @@ FILE *
 deadletter(uid)
 	int uid;
 {
-	struct passwd *pwd;
+	struct Zpasswd *pwd;
 	FILE *fp;
 	char	buf[8192];
 
-	if ((pwd = getpwuid(uid)) == NULL) {
+	pwd = zgetpwuid(uid);
+	if (pwd == NULL) {
 		fprintf(stderr, "%s: can't save mail!\n", zmailer);
 		exit(EX_NOUSER);
 		/* NOTREACHED */

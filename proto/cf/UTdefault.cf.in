@@ -33,7 +33,7 @@ PS1=z$PS1
 
 # The transport preference order
 
-protocols='routes smtp uucp'
+protocols=(routes smtp uucp)
 
 #| The list of protocols given here are exactly the list that will be
 #| supported in the configuration being loaded, and in the specified
@@ -47,7 +47,7 @@ protocols='routes smtp uucp'
 # checking the privileges of such files.  Don't add 'include' to this list,
 # since anyone can :include: any file.
 
-#private='.forward maillist'
+#private=('.forward' maillist)
 
 #| This variable is used in the alias expansion (in the routeuser
 #| function) to determine how to use the privilege level associated with
@@ -95,7 +95,7 @@ require siteinfo router crossbar process server
 # Load the databases so they and the variables defined (e.g. network-specific
 # node names for this host) can be used in the site specific configuration.
 
-for method in $protocols
+for method in $(elements $protocols)
 do
 	test -f $MAILSHARE/cf/i-${method}.cf && . i-${method}.cf
 done
@@ -169,7 +169,7 @@ fi
 #| and rewrite addresses.  They use other manipulation functions that are
 #| specific to the varius message transfer protocols.
 
-for method in $protocols
+for method in $(elements $protocols)
 do
 	. p-${method}.cf
 done

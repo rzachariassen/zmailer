@@ -24,10 +24,10 @@
 
 #include <sys/types.h>
 
-#ifdef HAVE_SECURITY_PAM_APPL_H
+#if defined(HAVE_SECURITY_PAM_APPL_H) && !defined(NO_SECURITY_PAM)
 # include <security/pam_appl.h>
 #else
-# ifdef HAVE_SHADOW_H
+# if defined(HAVE_SHADOW_H) && !defined(NO_SHADOW)
 #  include <shadow.h>
 # endif /* HAVE_SHADOW_H */
 # include <pwd.h>
@@ -39,7 +39,7 @@
 
 extern char * zpwmatch __((const char *, const char *, long *));
 
-#ifdef HAVE_SECURITY_PAM_APPL_H
+#if defined(HAVE_SECURITY_PAM_APPL_H) && !defined(NO_SECURITY_PAM)
 
 static char *username = NULL;
 static char *pword = NULL;
@@ -171,7 +171,7 @@ char * zpwmatch(uname,password,uidp)
 }
 
 #else
-# ifdef HAVE_SHADOW_H
+# if defined(HAVE_SHADOW_H) && !defined(NO_SHADOW)
 
 char * zpwmatch(uname, password, uidp)
      const char *uname, *password;
@@ -227,12 +227,12 @@ char * zpwmatch(uname,password,uidp)
      const char *uname, *password;
      long *uidp;
 {
-    struct passwd *pw;
+    struct Zpasswd *pw;
     char *cr;
 
     runasrootuser();
 
-    pw = getpwnam(uname);
+    pw = zgetpwnam(uname);
 
     runastrusteduser();
 

@@ -3,7 +3,8 @@
  *	This will be free software, but only when it is finished.
  */
 
-#include "hostenv.h"
+#include "mailer.h"
+
 #ifdef linux
 #define __USE_BSD 1
 #endif
@@ -727,21 +728,14 @@ int
 hold_home(user)
 const char *user;
 {
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	struct stat st;
 
-	errno = 0;
-	pw = getpwnam(user);
-	if (!pw) {
-	  errno = 0;
-	  pw = getpwnam(user);
-	}
+	pw = zgetpwnam(user);
+	if (!pw)
+	  pw = zgetpwnam(user);
 	if (!pw) {
 	  if (errno == 0)      return 1;
-	  if (errno == ENOENT) return 1;
-#ifdef __osf__
-	  if (errno == EINVAL) return 1;
-#endif
 	  return ranny(2) == 0;	/* 30% of the time */
 	}
 	if (pw->pw_dir == NULL || pw->pw_dir[0] == '\0') return 1;

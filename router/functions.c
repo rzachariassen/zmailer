@@ -87,8 +87,6 @@ static int run_malcontents ARGCV;
 
 extern const char *traps[];
 extern int nobody;
-extern struct group  *getgrnam __((const char *));
-extern struct passwd *getpwnam __((const char *));
 extern time_t time __((time_t *));
 extern int routerdirloops;
 
@@ -437,13 +435,13 @@ run_grpmems(argc, argv)
 	const char *argv[];
 {
 	char **cpp;
-	struct group *grp;
+	struct Zgroup *grp;
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s groupname\n", argv[0]);
 		return 1;
 	}
-	grp = getgrnam(argv[1]);
+	grp = zgetgrnam(argv[1]);
 	if (grp == NULL) {
 		fprintf(stderr, "%s: no group '%s'\n", argv[0], argv[1]);
 		return 1;
@@ -1783,7 +1781,7 @@ run_homedir(argc, argv)
 	int argc;
 	const char *argv[];
 {
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	char *b;
 	int err;
 
@@ -1791,20 +1789,15 @@ run_homedir(argc, argv)
 		fprintf(stderr, "Usage: %s name\n", argv[0]);
 		return 1;
 	}
-	errno = 0;
-	pw = getpwnam(argv[1]);
+
+	pw = zgetpwnam(argv[1]);
 	err = errno;
 	if (pw == NULL) {
 		strlower((char*)argv[1]);
-		errno = 0;
-		pw = getpwnam(argv[1]);
+		pw = zgetpwnam(argv[1]);
 		err = errno;
 		if (pw == NULL) {
 		  if (err == 0)      return 2;
-		  if (err == ENOENT) return 2;
-#ifdef __osf__
-		  if (err == EINVAL) return 2;
-#endif
 		  ++deferit;
 
 		  b = malloc(strlen(argv[1])+10);

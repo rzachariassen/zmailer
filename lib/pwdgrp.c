@@ -3,6 +3,16 @@
  *	This will be free software, but only when it is finished.
  */
 
+
+#include "mailer.h"
+
+#include <stdio.h>
+#include <errno.h>
+#include <pwd.h>
+#include <grp.h>
+
+#if 0 /* Once upon a time ... */
+
 /*
  * We implement getpwnam(), getpwuid(), and getgrnam() using the primitive
  * iteration functions (*ent()), in order to avoid constant allocations and
@@ -11,13 +21,7 @@
  * with slow iteration, but that can be handled elsewhere.
  */
 
-#include "hostenv.h"
-#ifdef	USE_ZGETPWNAM
-#include <stdio.h>
-#include <pwd.h>
-#include <grp.h>
-
-struct passwd *
+struct Zpasswd *
 zgetpwnam(name)
 	char *name;
 {
@@ -33,7 +37,7 @@ zgetpwnam(name)
 	return NULL;
 }
 
-struct passwd *
+struct Zpasswd *
 zgetpwuid(uid)
 	int uid;
 {
@@ -47,7 +51,7 @@ zgetpwuid(uid)
 	return NULL;
 }
 
-struct group *
+struct Zgroup *
 zgetgrnam(name)
 	char *name;
 {
@@ -60,4 +64,117 @@ zgetgrnam(name)
 			return gr;
 	return NULL;
 }
-#endif	/* !USE_GETPWNAM */
+#endif /* ... once upona time ... */
+
+extern struct passwd *getpwnam();
+extern struct passwd *getpwuid();
+
+struct Zpasswd *
+zgetpwnam(name)
+	char *name;
+{
+	struct passwd *pw;
+	static struct Zpasswd zpw;
+
+	errno = 0;
+
+	pw = getpwnam(name);
+
+	if (pw) {
+	  memset(&zpw, 0, sizeof(zpw));
+	  zpw.pw_name   = pw->pw_name;
+	  zpw.pw_passwd = pw->pw_passwd;
+	  zpw.pw_uid    = pw->pw_uid;
+	  zpw.pw_gid    = pw->pw_gid;
+	  zpw.pw_gecos	= pw->pw_gecos;
+	  zpw.pw_dir	= pw->pw_dir;
+	  zpw.pw_shell	= pw->pw_shell;
+
+	  return &zpw;
+	}
+
+	switch (errno) {
+	case ENOENT:
+#ifdef __osf__
+	case EINVAL:
+#endif
+	  errno = 0;
+	  break;
+	default:
+	  break;
+	}
+	return NULL;
+}
+
+struct Zpasswd *
+zgetpwuid(uid)
+	int uid;
+{
+	struct passwd *pw;
+	static struct Zpasswd zpw;
+
+	errno = 0;
+
+	pw = getpwuid(uid);
+
+	if (pw) {
+	  memset(&zpw, 0, sizeof(zpw));
+	  zpw.pw_name   = pw->pw_name;
+	  zpw.pw_passwd = pw->pw_passwd;
+	  zpw.pw_uid    = pw->pw_uid;
+	  zpw.pw_gid    = pw->pw_gid;
+	  zpw.pw_gecos	= pw->pw_gecos;
+	  zpw.pw_dir	= pw->pw_dir;
+	  zpw.pw_shell	= pw->pw_shell;
+
+	  return &zpw;
+	}
+
+	switch (errno) {
+	case ENOENT:
+#ifdef __osf__
+	case EINVAL:
+#endif
+	  errno = 0;
+	  break;
+	default:
+	  break;
+	}
+	return NULL;
+}
+
+struct Zgroup *
+zgetgrnam(name)
+	char *name;
+{
+	struct group *gr;
+	static struct Zgroup zgr;
+
+	errno = 0;
+
+	gr = getgrnam(name);
+
+	if (gr) {
+
+	  memset(&zgr, 0, sizeof(zgr));
+
+	  zgr.gr_name   = gr->gr_name;
+	  zgr.gr_passwd = gr->gr_passwd;
+	  zgr.gr_gid    = gr->gr_gid;
+	  zgr.gr_mem    = gr->gr_mem;
+
+	  return &zgr;
+	}
+
+	switch (errno) {
+	case ENOENT:
+#ifdef __osf__
+	case EINVAL:
+#endif
+	  errno = 0;
+	  break;
+	default:
+	  break;
+	}
+	return NULL;
+}

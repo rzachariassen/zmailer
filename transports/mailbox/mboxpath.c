@@ -42,7 +42,7 @@
 #endif
 
 extern int fmtmbox __((char *, int, const char *, const char *, \
-			const struct passwd *));
+			const struct Zpasswd *));
 int dirhashes = 0;
 int pjwhashes = 0;
 int crchashes = 0;
@@ -141,7 +141,7 @@ int main(argc,argv)
 	const char *cs;
 	struct stat st;
 	const char **maild;
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	char pathbuf[2000]; /* more than enough, he said.. */
 
 	cs = getzenv("MAILBOX");
@@ -188,8 +188,9 @@ int main(argc,argv)
 	}
 
 	if (strchr(*maild,'%')) {
-	  if ((pw=getpwnam(uname)) == NULL) {
-	    if (errno) perror("getpwnam");
+	  pw = zgetpwnam(uname);
+	  if (pw == NULL) {
+	    if (errno) perror("zgetpwnam");
 	    else fprintf(stderr,"%s: no such user\n",uname);
 	    exit(8);
 	  }

@@ -30,10 +30,9 @@
 
 #define DefCharset "ISO-8859-1"
 
-#include "hostenv.h"
+#include "mailer.h"
 #include <ctype.h>
 #include <errno.h>
-#include <pwd.h>
 #include <sysexits.h>
 #include <sys/param.h>
 #include <fcntl.h>
@@ -230,7 +229,7 @@ const char *maildirs[] = {
 
 #ifdef CHECK_MB_SIZE
 extern int checkmbsize(const char *uname, const char *host, const char *user,
-		       size_t cursize, struct passwd *pw);
+		       size_t cursize, struct Zpasswd *pw);
 #endif
 
 #if	defined(HAVE_SOCKET)
@@ -319,7 +318,7 @@ int  do_xuidl = 0;		/* Store our own  X-UIDL: header to allow
 				   counter..  See RFC 2060 for IMAP4. */
 
 extern int fmtmbox __((char *, int, const char *, const char *, \
-			const struct passwd *));
+			const struct Zpasswd *));
 
 extern RETSIGTYPE wantout __((int));
 extern int optind;
@@ -327,15 +326,12 @@ extern char *optarg;
 extern void biff __((const char *, const char *, long));
 extern void rbiff __((struct biffer *));
 extern void prversion __((const char *));
-#if 0
-extern struct passwd *getpwnam __((const char *));
-extern struct passwd *getpwuid __((uid_t));
-#endif
+
 extern int setupuidgid __((struct rcpt *, int, int));
 extern int createfile __((struct rcpt *, const char *, int, int));
 extern int exstat __((struct rcpt *, const char *, struct stat *, int (*)(const char*, struct stat*) ));
-extern int creatembox __((struct rcpt *, const char *, char **, uid_t*, gid_t*, struct passwd *));
-extern char *exists __((const char *, const char *, struct passwd *, struct rcpt *));
+extern int creatembox __((struct rcpt *, const char *, char **, uid_t*, gid_t*, struct Zpasswd *));
+extern char *exists __((const char *, const char *, struct Zpasswd *, struct rcpt *));
 extern void setrootuid __((struct rcpt *));
 extern void process __((struct ctldesc *dp));
 extern void deliver __((struct ctldesc *dp, struct rcpt *rp, const char *userbuf, const char *timestring));
@@ -368,7 +364,6 @@ extern void * emalloc __((size_t));
 #else
 struct conshell *envarlist = NULL;
 #endif
-extern int stickymem;	/* for strsave() */
 int	D_alloc = 0;
 
 static int zsfsetfd(fp, fd)
@@ -851,13 +846,13 @@ int iuid;
 {
 #ifdef	HAVE_MAILLOCK
 	const char *maillockuser;
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	int i;
 	char errbuf[30];
 	const char *cp;
 	uid_t uid = (uid_t) iuid;
 
-	pw = getpwuid(uid);
+	pw = zgetpwuid(uid);
 
 	if (*(rp->addr->user) == TO_FILE) {
 	  if (pw == NULL) {
@@ -877,8 +872,7 @@ int iuid;
 	  plus = strchr(maillockuser, '+');
 	  if (plus) *plus = 0;
 
-	  errno = 0;
-	  pw = getpwnam(maillockuser);
+	  pw = zgetpwnam(maillockuser);
 
 	  if (plus) *plus = '+';
 	  if (at) *at = '@';
@@ -1065,7 +1059,7 @@ deliver(dp, rp, usernam, timestring)
 #endif
 #endif
 	const char *unam = usernam;
-	struct passwd *pw = NULL;
+	struct Zpasswd *pw = NULL;
 	time_t starttime;
 
 	time(&starttime);
@@ -1182,15 +1176,14 @@ deliver(dp, rp, usernam, timestring)
 			 needed for multi-recipient processing ? */
 #endif
 	  unam = usernam;
-	  errno = 0;
-	  pw = getpwnam(usernam);
+
+	  pw = zgetpwnam(usernam);
 	  if (pw == NULL) {
 
 	    /* No match as is ?  Lowercasify, and try again! */
 	    strlower((char*)usernam);
 
-	    errno = 0;
-	    pw = getpwnam(usernam);
+	    pw = zgetpwnam(usernam);
 	    if (pw == NULL) {
 	      if (plus) *plus = '+';
 
@@ -1212,30 +1205,20 @@ deliver(dp, rp, usernam, timestring)
 		 problem, which time will solve (as with system
 		 operator taking some action) ?  */
 
-	      /* Many systems seem to use this in otherwise
-		 fine lookup -- to mark lack of data */
-	      if (errno == ENOENT)
-		errno = 0;
-#ifdef __osf__
-	      /* ... and OSF/1 *must* be different, of course ...
-		 (I just wonder what AIX does) */
-	      if (errno == EINVAL)
-		errno = 0;
-#endif
-	      if (errno != 0) { /* getpwnam() failed for some other
+	      if (errno != 0) { /* zgetpwnam() failed for some other
 				   reason than simply not finding the
 				   given user... */
 		int err = errno;
 
 		if (verboselog)
 		  fprintf(verboselog,
-			"   getpwnam(\"%s\") failed (%d)\n", usernam, errno);
+			"   zgetpwnam(\"%s\") failed (%d)\n", usernam, errno);
 
 		notaryreport(rp->addr->user,"failed",
 			     "5.3.0 (Error getting user identity)",
 			     "x-local; 550 (Error getting user identity)");
 		DIAGNOSTIC3(rp, usernam, EX_TEMPFAIL,
-			   "getpwnam for user \"%s\" failed; errno=%d",
+			   "zgetpwnam for user \"%s\" failed; errno=%d",
 			   usernam, err);
 
 	      } else if (probably_x400(usernam)) {
@@ -1374,7 +1357,7 @@ deliver(dp, rp, usernam, timestring)
 	if (1) {
 	  extern  int checkmbsize __((const char *uname,
 				      const char *host, const char *user,
-				      size_t cursize, struct passwd *pw));
+				      size_t cursize, struct Zpasswd *pw));
 
 	  /* external procedure checkmbsize() accepts user name, "host"
 	     name as on routing result, "user" part of routed data,
@@ -2218,7 +2201,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	const char *s;
 	char buf[8192], *cp, *cpe;
 	int status;
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	Sfio_t *errfp;
 	Sfio_t *fp;
 	time_t starttime, endtime;
@@ -2248,7 +2231,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  cp += strlen(cp) + 1;
 	}
 
-	pw = getpwuid(uid);
+	pw = zgetpwuid(uid);
 	if (pw == NULL) {
 
 	  if (verboselog) {
@@ -2573,7 +2556,7 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	char **filep;
 	uid_t *uid;
 	gid_t *gid;
-	struct passwd *pw;
+	struct Zpasswd *pw;
 {
 	const char **maild;
 	int fd = -1;
@@ -2766,7 +2749,7 @@ setupuidgid(rp, uid, gid)
 
 	if (gid == -3) {
 	  /* MAGIC! Ask GID of the UID of 'uid' */
-	  struct passwd *pw = getpwuid(uid);
+	  struct Zpasswd *pw = zgetpwuid(uid);
 	  if (pw != NULL)
 	    gid = pw->pw_gid;
 	}
@@ -2802,7 +2785,7 @@ char *
 exists(maildir, uname, pw, rp)
 	const char *maildir;
 	const char *uname;
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	struct rcpt *rp;
 {
 	char *file, *s;
@@ -3452,7 +3435,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 	struct rcpt *rp;
 	int n;
 	char boundarystr[400];
-	struct passwd *pw;
+	struct Zpasswd *pw;
 	int uid;
 	struct stat stb;
 	const char *username = "unknown";
@@ -3464,7 +3447,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 	while ((s = strchr(retaddr, '\t'))) *s = ' ';
 
 	uid = atoi(uidstr);
-	pw = getpwuid(uid);
+	pw = zgetpwuid(uid);
 	if (pw)
 	  username = pw->pw_name;
 

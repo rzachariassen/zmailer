@@ -16,8 +16,9 @@ squirrel -breakin
 squirrel badheader
 
 # The transport preference order
+# This is a LIST of protocols
 
-protocols='routes smtp uucp'
+protocols=(routes smtp uucp)
 
 # Will the  MAILVAR/lists/listname  show out sender identity as
 # either:  owner-listname, or:  listname-owner ?
@@ -39,8 +40,9 @@ localdoesdomain=1
 # We may want .forward and mailing list files to be private, i.e., we ignore
 # the current privileges when checking the privileges of such files.
 # Don't add 'include' to this list, since anyone can :include: any file.
+# This is a LIST of keywords
 
-private='.forward maillist'
+private=('.forward' 'maillist')
 
 # Set up the dependency checking
 
@@ -55,7 +57,7 @@ require siteinfo router crossbar process server
 # Load the databases so they and the variables defined (e.g. network-specific
 # node names for this host) can be used in the site specific configuration.
 
-for method in $protocols
+for method in $(elements $protocols)
 do
 	test -f $MAILSHARE/cf/i-${method}.cf && . i-${method}.cf
 done
@@ -109,7 +111,7 @@ hostname $hostname
 . rrouter.cf
 . crossbar.cf
 
-for method in $protocols
+for method in $(elements $protocols)
 do
 	. p-${method}.cf
 done

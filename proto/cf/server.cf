@@ -151,3 +151,6 @@ server (key) {
 	esac
 }
 
+
+provide server
+require rrouter

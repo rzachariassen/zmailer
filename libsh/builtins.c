@@ -59,6 +59,7 @@ static conscell *sh_length	CSARGS2;
 static conscell *sh_last	CSARGS2;
 static conscell *sh_lappend     CSARGS2;
 static conscell *sh_lreplace    CSARGS2;
+static conscell *sh_ifssplit    CSARGS2;
 extern conscell *sh_glob	CSARGS2; /* expand.c */
 
 #define CSARGV2 __((int argc, const char *argv[]))
@@ -95,6 +96,7 @@ struct shCmd builtins[] = {
 {	"elements",	NULL,	sh_elements,	NULL,	SH_ARGV		},
 {	"get",		NULL,	sh_get,		NULL,	SH_ARGV		},
 {	"length",	NULL,	sh_length,	NULL,	SH_ARGV		},
+{	"ifssplit",	NULL,	sh_ifssplit,	NULL,	SH_ARGV		},
 {	"[",		sh_test,	NULL,	NULL,	0		},
 {	"test",		sh_test,	NULL,	NULL,	0		},
 {	"echo",		sh_echo,	NULL,	NULL,	0		},
@@ -451,6 +453,7 @@ sh_get(avl, il)
 	return d;
 }
 
+/* This is NUMBER OF ELEMENTS in a chain! */
 static conscell *
 sh_length(avl, il)
 	conscell *avl, *il;
@@ -458,7 +461,8 @@ sh_length(avl, il)
 	char buf[10];
 	int len = 0;
 
-	if ((il = cdar(avl)) && LIST(il)) {
+	il = cdar(avl);
+	if (il && LIST(il)) {
 		for (il = car(il); il != NULL; il = cdr(il))
 			++len;
 	}
@@ -467,6 +471,58 @@ sh_length(avl, il)
 
 	avl = newstring(dupnstr(buf,len),len);
 	return avl;
+}
+
+/* This splits incoming string at WHITESPACEs to a list of strings */
+
+static conscell *
+sh_ifssplit(avl, il)
+	conscell *avl, *il;
+{
+	int len, l;
+	conscell *tmp, *reply, *t;
+	const char *p, *p0;
+	GCVARS1;
+
+	if (ifs == NULL)
+		ifs_flush();
+
+	il = cdar(avl);
+	/* 'il' is supposedly a single string */
+
+	if (!il || !STRING(il)) return il;
+	p0  = il->cstring;
+	len = il->slen;
+	if (!p0) return il;
+
+
+	reply = t = NULL;
+	GCPRO1(reply);
+
+	for (;len > 0; ++p0, --len) {
+
+	  if (WHITESPACE(*p0)) continue;
+	  p = p0;
+	  while (len > 0 && !WHITESPACE(*p)) ++p, --len;
+
+	  l = p - p0; /* Will always be at least 1 ! */
+
+	  tmp = newstring(dupnstr(p0, l), l);
+	  tmp->flags |= QUOTEDSTRING|ELEMENT;
+
+	  p0 = p;
+
+	  if (!t)
+	    reply = t = tmp;
+	  else {
+	    cdr(t) = tmp;
+	    t = tmp;
+	  }
+
+	}
+
+	UNGCPRO1;
+	return reply;
 }
 
 /* returns -- return ALWAYS a string [mea] */
@@ -508,27 +564,32 @@ sh_return(avl, il, statusp)
 	conscell *avl, *il;
 	int *statusp;
 {
-	int n;
-	char *cp;
+	int n, l;
+	const char *cp;
 
 	if ((il = cdar(avl)) && LIST(il) && cdr(il) == NULL)
 		return il;
 	else if (il == NULL)
 		return NULL;
 	else if (STRING(il)) {
-		for (cp = il->string; *cp != 0; ++cp) {
+		cp = il->cstring;
+		l  = il->slen;
+		n  = 0;
+		for (;l > 0; ++cp, --l) {
 		  int c = (*cp) & 0xFF;
 		  if (!isascii(c) || !isdigit(c))
 		    break;
+		  n = n * 10 + c - '0';
 		}
-		if (*cp != 0)
+		if (l > 0) /* all not consumed! */
 			return il;
-		n = atoi(il->string);
+#if 0 /* can't happen... */
 		if (n < 0) {
 			fprintf(stderr, "%s: %s: %d\n", car(avl)->string,
 					NEGATIVE_VALUE, n);
 			n = 1;
 		}
+#endif
 		*statusp = n;
 		return NULL;
 	}
@@ -749,7 +810,7 @@ sh_read(argc, argv)
 	}
 	/* if (buf[0] == '\0') return 1; */
 	if (eoinp) return 1;
-eoinput:
+/* eoinput: */
 	while (argc-- > 0) v_set(*argv++, "");
 	return 0;
 }

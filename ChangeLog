@@ -1,3 +1,29 @@
+2001-01-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* include/libz.h, include/mailer.h, compat/sendmail/sendmail.c,
+	  lib/nobody.c, lib/pwdgrp.c, lib/trusted.c, router/functions.c,
+	  router/router.c, scheduler/readconfig.c, smtpserver/zpwmatch.c,
+	  transports/hold/hold.c, transports/mailbox/fmtmbox.c,
+	  transports/mailbox/mailbox.c, transports/mailbox/mboxpath.c,
+	  transports/smtp/smtp.c, transports/smtp/smtp.h,
+	  utils/vacation/Makefile.in, utils/vacation/vacation.c:
+	    Use  zgetpwnam()  everywhere where there used to be   getpwnam(),
+	    supply also our very own   struct Zpasswd   for the data referral.
+	    Library  lib/pwdgrp.c  is the location of the wrapper function
+	    which intention is to clarify error handling of various
+	    systems -- getpwnam() returning NULL may mean many things,
+	    and interpreting  errno  is -- challenging.
+
+	* libsh/builtin.c, libsh/interpret.c, libsh/variables.c,
+	  proto/cf/SMTP+UUCP.cf.in, proto/cf/SMTP.cf.in,
+	  proto/cf/aliases-new.cf, proto/cf/aliases.cf, proto/cf/consist.cf,
+	  proto/cf/fuzzy-aliases.cf, proto/cf/process.cf, proto/cf/rrouter.cf,
+	  proto/cf/server.cf, proto/cf/standard.cf, README.UPGRADING:
+	    Change internal variable expantion to never do IFS tokenisation
+	    at expanded strings.  Supply  $(ifssplit ...)  function in case
+	    it is needed for something, and just token-lists don't make it.
+	    Write some definite words on README.UPGRADING !
+
 2001-01-22  Eugene Crosser <crosser@online.ru>
 
 	* transports/libta/mimeheaders.c:
