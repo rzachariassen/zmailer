@@ -84,6 +84,11 @@
 
 
 
+	Short usage instructions:
+		- Fill in/modify related files
+		- execute  MAILBIN/policy-builder.sh  script
+
+
 #| File:  $MAILVAR/db/smtp-policy.src
 #|
 #|   Policy based filter database boilerplate for smtpserver

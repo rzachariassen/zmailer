@@ -1,7 +1,8 @@
 1998-07-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* */*.h */*.c */*/*.c: (all over the place)
-	    Did use 
+	    Did use "egcs -Wall -W -W***" to get lots of warnings.
+	    Tried to fix most of them.
 
 	* transports/mailbox/mailbox.c, transports/sm/sm.c:
 	    Internally the  append_header()  routine has a buffer of 2kB

@@ -482,6 +482,10 @@ Installation procedure:
 	Perhaps you need only to run that script, but running it is
 	mandatory for things to work!
 
+	The default  $MAILSHARE/smtpserver.conf  file REQUIRES use of
+	the policy code, but you can disable that (and thus have wide-
+	open doors for abuse -- but perhaps ok for intranet) stuff by
+	commenting out line:  "PARAM policydb ..." in the file.
 
 13.	Add something like the following lines to bootup scripts (/etc/rc.local
 	or /etc/rc2.d/S99local or similar):
