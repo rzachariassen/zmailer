@@ -169,7 +169,8 @@ Options:
 
 	--with-ipv6-replacement-libc
 		If the system needs more support for user-space IPv6
-		things, this generates those.
+		things, this generates those.  OR IF THE EXISTING USER-
+		SPACE IPv6 SUPPORT IS BUGGY LIKE AT GNU LIBC 2.0/2.1/2.2!
 
 	--without-rfc822-tabs
 		Some systems dislike getting RFC-822 headers with form of:
