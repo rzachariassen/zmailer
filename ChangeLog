@@ -1,5 +1,13 @@
 1998-06-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/zmailer.sh.in, proto/Makefile.in, proto/newdb.in:
+	    - Alterations on "zmailer" command, streamlining, adding
+	      a "zmailer makedb" function to compile all common database.
+	    - Option processing improvements on  newdb  to allow arbitary
+	      order of options affecting the underlying  makedb.
+	    - Makefile changes to (possibly) improve "make forms"
+	      installation processing to be more generic.
+	
 	* utils/vacation/vacation.c:
 	    Add HAVE_DB_H test to be third known/supported database.
 	    Will it be sufficient for all environments shall be seen..

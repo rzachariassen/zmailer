@@ -179,7 +179,8 @@ forms:	$(srcdir)/forms/???*
 	if [ ! -d $$FORMSDIR/bak ]; then \
 		$(MKDIR) $$FORMSDIR/bak ; \
 	fi ; \
-	for file in $? ; \
+	cd $(srcdir)/forms; \
+	for file in ???* ; \
 	do \
 		name=`expr $$file : '.*/\(.*\)'` ; \
 		if [ $$name != bak -a -f $$FORMSDIR/$$name ]; then \

@@ -1,33 +1,57 @@
 #! /bin/sh
 #
-#  Generate default (DBTYPE) type database with 'namendbm'
-#  utility with following args:
-#     1  base file name
-#     2  Optional input name
+# See usage below ...
 #
 
 LUOPT=""
-if [ "x-l" = "x$1" ]; then
-  LUOPT="-l"
-  shift
-fi
-if [ "x-u" = "x$1" ]; then
-  LUOPT="-u"
-  shift
-fi
 AOPT=""
-if [ "x-a" = "x$1" ]; then
-  AOPT="-a"
-  shift
-fi
 SOPT=""
-if [ "x-s" = "x$1" ]; then
-  SOPT="-s"
-  shift
-fi
+TOPT=""
+more=1
+err=0
+while [ $more ]; do
+  case "x$1" in
+  x-l)
+    LUOPT="-l"
+    shift
+    ;;
+  x-u)
+    LUOPT="-u"
+    shift
+    ;;
+  x-a)
+    AOPT="-a"
+    shift
+    ;;
+  x-s)
+    SOPT="-s"
+    shift
+    ;;
+  x-t)
+    TOPT="$2"
+    shift; shift;
+    ;;
+  x-*)
+    err=1
+    ;;
+  *)
+    more=0
+    ;;
+  esac
+done
 
-if [ -z "$1" ]; then
-  echo "newdb [-l|-u] [-a] [-s] dbfilenamebase [inputfile]"
+if [ -z "$1" -o "$err" = 1 ]; then
+  cat <<EOF
+newdb [-l|-u][-a][-s][-t dbtype] dbfilenamebase [inputfile]
+  A wrapper for   makedb  command, which does result file renameing
+  in order to avoid need for LOCKING database files for compile time.
+    -l/-u:     lower-/uppercasify the keys (default: no conversion)
+    -a:        use alias rules
+    -s:        be silent about result statistics
+    -t dbtype: define what type of DB to use
+         where dbtype is one of: btree bhash ndbm dbm gdbm
+         see  makedb  for actually supported databases.
+EOF
   exit 64
 fi
 
@@ -41,6 +65,10 @@ ZCONFIG=@ZMAILERCFGFILE@
 PATH=/bin:/usr/bin:$PATH # ZMailer router paths are a bit restrictive..
 
 trap "rm -f $BASENAME.$$*" 0
+
+if [ -n "$TOPT" ]; then
+  DBTYPE="$TOPT"
+fi
 
 $MAILBIN/makedb $LUOPT $AOPT $SOPT $DBTYPE $BASENAME.$$ < $INPUTNAME
 

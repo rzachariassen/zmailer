@@ -14,16 +14,23 @@ if [ -d /usr/ucb ]; then
     PATH=$PATH:/usr/ucb
 fi
 FLAGS="defaults 50"
+
 ZCONFIG=@ZMAILERCFGFILE@
 
 # Sense how the  echo  works, it is either, or..
 # There are POSIX echos, SysV echos, BSD echos...
-case "`echo "foo\c"`" in
+case "`echo 'foo\c'`" in
     foo)   eopt='' ; eeol='\c' ;;
     *)     eopt='-n' ; eeol='' ;;
 esac
 
 . $ZCONFIG || exit 1
+
+#
+# We NEED $MAILBIN directory as our first element
+# in the $PATH variable; 
+#
+PATH=$MAILBIN:$PATH
 
 case $POSTOFFICE in
     /*)	;;
@@ -63,7 +70,7 @@ do
 	    case $KILL in
 		-*)
 		    if [ -f $POSTOFFICE/.pid.router ]; then
-			$MAILBIN/router -k > /dev/null
+			router -k > /dev/null
 	#	    else
 	#		echo $eopt "(warning: no .pid.router file) $eeol"
 		    fi
@@ -73,7 +80,7 @@ do
 			echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
 			exit 0
 		    fi
-		    $MAILBIN/router $ROUTEROPTIONS
+		    router $ROUTEROPTIONS
 		    ;;
 	    esac
 	    ;;
@@ -95,7 +102,7 @@ do
 	#		else
 	#		    echo $eopt "(warning: no $PIDFILE file) $eeol"
 			fi
-			$MAILBIN/scheduler $SCHEDULEROPTIONS
+			scheduler $SCHEDULEROPTIONS
 			;;
 	    esac
 	    ;;
@@ -111,7 +118,7 @@ do
 			    echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
 			    exit 0
 			fi
-			cd / ; $MAILBIN/smtpserver $SMTPOPTIONS
+			cd / ; smtpserver $SMTPOPTIONS
 			;;
 	    esac
 	    ;;
@@ -123,34 +130,34 @@ do
 	    if [   -f $MAILVAR/db/routes -a  \
 		 ! -f $MAILVAR/db/routes.zmsh ] ; then
 		echo $eopt "routes $eeol"
-		$MAILBIN/newdb -l $MAILVAR/db/routes
+		newdb -l $MAILVAR/db/routes
 	    fi
 	    if [   -f $MAILVAR/db/localnames -a \
 		 ! -f $MAILVAR/db/localnames.zmsh ] ; then
 		echo $eopt "localnames $eeol"
-		$MAILBIN/newdb -l $MAILVAR/db/localnames
+		newdb -l $MAILVAR/db/localnames
 	    fi
 	    if [ -f $MAILVAR/db/aliases ] ; then
 		echo $eopt "aliases $eeol"
-		$MAILBIN/newaliases -s
+		newaliases -s
 	    fi
 	    if [ -f $MAILVAR/db/fqdnaliases ] ; then
 		echo $eopt "fqdnaliases $eeol"
-		$MAILBIN/newfqdnaliases -s
+		newfqdnaliases -s
 	    fi
 	    echo $eopt ") $eeol"
 	    ;;
 	newf*)
-	    $MAILBIN/newfqdnaliases
+	    newfqdnaliases
 	    ;;
 	newal*)
-	    $MAILBIN/newaliases
+	    newaliases
 	    ;;
 	new-route*)
-	    $MAILBIN/newdb -l $MAILVAR/db/routes
+	    newdb -l $MAILVAR/db/routes
 	    ;;
 	new-local*)
-	    $MAILBIN/newdb -l $MAILVAR/db/localnames
+	    newdb -l $MAILVAR/db/localnames
 	    ;;
 	logsync)
 	    if [ -f $POSTOFFICE/.pid.router ]; then
@@ -162,12 +169,15 @@ do
 		kill -1 $pid # SIGHUP the scheduler PROCESS
 	    fi
 	    ;;
+	logrotate)
+	    rotate-logs.sh
+	    ;;
 	stop|kill|nuke|kills|killr)
 	    case $# in
-		0)	exec $0 $op router scheduler smtpserver ;;
+		0)	exec zmailer $op router scheduler smtpserver ;;
 	    esac
 	    case $op in
-		kill|stop)
+		kill|stop|kills|killr)
 		    KILL="-TERM"
 		    echo $eopt "Stopping Zmailer services: $eeol"
 		    ;;
