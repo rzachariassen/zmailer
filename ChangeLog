@@ -1,3 +1,9 @@
+2000-07-18  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* lib/rfc822scan.c:
+	    A bit more characters into "no need to quote these here"
+	    set -- allow address <@[1.2.3.4]:foo@bar> and <foo@[1.2.3.4]>
+
 2000-07-17  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* libs/Makefile.in, Makefile.in:

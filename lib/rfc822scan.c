@@ -108,8 +108,8 @@ int rfc822_mustquote(s, spc)
 	    /* This special outside a quote is ok */
 	    continue;
 
-	  if (c == '.' || c == ',' || c == ':')
-	    /* special, thus must be checked before set lookups below */
+	  if (c == '.' || c == ',' || c == ':' || c == '[' || c == ']')
+	    /* specials, thus must be checked before set lookups below */
 	    continue;
 
 	  if (c == ' ' && spckosher)
