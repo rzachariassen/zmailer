@@ -294,7 +294,7 @@ pick_next_thread(proc)
 	struct thread	    *thr;
 	struct thread       *thr0 = proc->pthread;
 	struct threadgroup  *thg  = proc->thg;
-	int once = 1;
+	int once;
 
 	if (thr0 && thr0->proc) /* Anybody ? */
 	  thr0->proc = NULL; /* Remove it */
@@ -307,10 +307,9 @@ pick_next_thread(proc)
 
 	mytime(&now);
 
-	thr  = thg->thread;
-	if (!thr) return 0;
-
-	for ( ; once || (thr != thg->thread); thr = thr->nextthg, once = 0 ) {
+	for ( thr = thg->thread, once = 1;
+	      thr && (once || (thr != thg->thread));
+	      thr = thr->nextthg, once = 0 ) {
 
 	  if (thr == thr0)
 	    continue; /* No, can't be what we just were! */
@@ -474,7 +473,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	 *
 	 */
 	for (thg = thrg_root, thg_once = 1;
-	     thg_once || thg != thrg_root;
+	     thg && (thg_once || thg != thrg_root);
 	     thg = thg->nextthg, thg_once = 0) {
 
 	  int thr_once;
@@ -492,39 +491,38 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	  
 	  /* The config-entry matches, we have changes to match group */
 
-	  if (thg->thread)
-	    for (thr = thg->thread, thr_once = 1;
-		 thr_once || (thr != thg->thread);
-		 thr = thr->nextthg, thr_once = 0) {
+	  for (thr = thg->thread, thr_once = 1;
+	       thr && (thr_once || (thr != thg->thread));
+	       thr = thr->nextthg, thr_once = 0) {
 
 #if 0
-	      if (!thr->vertex) abort();	/* No vertices ?? */
+	    if (!thr->vertex) abort();	/* No vertices ?? */
 
-	      /* no need ? (Channels within a group are identical..) */
-	      if (wc != thr->wchan)  abort();
+	    /* no need ? (Channels within a group are identical..) */
+	    if (wc != thr->wchan)  abort();
 #endif
-	      /* Nice! What about host ? */
-	      if (wh != thr->whost)  continue;
+	    /* Nice! What about host ? */
+	    if (wh != thr->whost)  continue;
 	    
-	      /* We have matching channel, AND matching host */
+	    /* We have matching channel, AND matching host */
 
-	      /* Link the vertex into this thread! */
+	    /* Link the vertex into this thread! */
 
-	      if (verbose)
-		sfprintf(sfstdout,"thread_linkin() to thg=%p[%s/%d/%s]; added into existing thread [%s/%s] thr->jobs=%d\n",
-			 thg,cep->channel,thg->withhost,cep->host,
-			 wc->name,wh->name,thr->jobs+1);
+	    if (verbose)
+	      sfprintf(sfstdout,"thread_linkin() to thg=%p[%s/%d/%s]; added into existing thread [%s/%s] thr->jobs=%d\n",
+		       thg,cep->channel,thg->withhost,cep->host,
+		       wc->name,wh->name,thr->jobs+1);
 
-	      _thread_linktail(thr,vp);
-	      vp->thgrp = thg;
-	      thr->jobs += 1;
+	    _thread_linktail(thr,vp);
+	    vp->thgrp = thg;
+	    thr->jobs += 1;
 
-	      /* Hookay..  Try to start it, in case it isn't yet running */
-	      if (!thr->proc)
-		thread_start(thr, 0);
+	    /* Hookay..  Try to start it, in case it isn't yet running */
+	    if (!thr->proc)
+	      thread_start(thr, 0);
 
-	      return;
-	    }
+	    return;
+	  }
 
 	  /* No matching thread, however this GROUP matches (or does it?) */
 
@@ -1248,7 +1246,7 @@ idle_cleanup()
 	    /* Clean-up faulty client  --  KLUDGE :-(  --  OF=0, HA > much */
 
 	    for (thr = thg->thread, thr_once = 1;
-		 thr_once || (thr != thg->thread);
+		 thr && (thr_once || (thr != thg->thread));
 		 thr = nthr, thr_once = 0) {
 
 	      nthr = thr->nextthg;
@@ -1381,7 +1379,7 @@ void thread_report(fp,mqmode)
 	  /* We scan thru the local ring of threads */
 
 	  for (thr = thg->thread, thr_once = 1;
-	       thr_once || (thr != thg->thread);
+	       thr && (thr_once || (thr != thg->thread));
 	       thr = thr->nextthg, thr_once = 0)
 #else
 	  /* We scan there in start order from the  thread_head
@@ -1535,21 +1533,23 @@ int thread_count_recipients()
 	if (thrg_root == NULL)
 	  return 0;
 
-	for (thg = thrg_root, thg_once = 1;
-	     thg_once || thg != thrg_root;
-	     thg = thg->nextthg, thg_once = 0) {
+	if (thrg_root)
+	  for (thg = thrg_root, thg_once = 1;
+	       thg_once || thg != thrg_root;
+	       thg = thg->nextthg, thg_once = 0) {
 
-	  int thr_once;
-	  int jobsum = 0;
+	    int thr_once;
+	    int jobsum = 0;
 
-	  for (thr = thg->thread, thr_once = 1;
-	       thr_once || (thr != thg->thread);
-	       thr = thr->nextthg, thr_once = 0) {
+	    if (thg->thread)
+	      for (thr = thg->thread, thr_once = 1;
+		   thr_once || (thr != thg->thread);
+		   thr = thr->nextthg, thr_once = 0) {
 
-	    jobsum += thr->jobs;
+		jobsum += thr->jobs;
 
+	      }
+	    jobtotal += jobsum;
 	  }
-	  jobtotal += jobsum;
-	}
 	return jobtotal;
 }
