@@ -966,13 +966,13 @@ const char *buf, *cp;
 	 policydb != NULL && SS->policyresult < 0 ) {
       smtp_tarpit(SS);
       if (!multilinereplies)
-	type(SS, 553, m571, "Access denied by the policy analysis functions by earlier rejection");
+	type(SS, 550, m571, "Access denied by the policy analysis functions by earlier rejection");
       else {
-	type(SS, -553, m571, "Access denied by the policy analysis functions.");
-	type(SS, -553, m571, "This may be due to your source IP address,");
-	type(SS, -553, m571, "the IP reversal domain, the data you gave for");
-	type(SS, -553, m571, "the HELO/EHLO parameter, or address/domain");
-	type(SS,  553, m571, "you gave at the MAIL FROM:<...> address.");
+	type(SS, -550, m571, "Access denied by the policy analysis functions.");
+	type(SS, -550, m571, "This may be due to your source IP address,");
+	type(SS, -550, m571, "the IP reversal domain, the data you gave for");
+	type(SS, -550, m571, "the HELO/EHLO parameter, or address/domain");
+	type(SS,  550, m571, "you gave at the MAIL FROM:<...> address.");
       }
       return;
     }
@@ -1289,33 +1289,33 @@ const char *buf, *cp;
 	  }
 	} else {
 	  if (ss != NULL) {
-	    type(SS, 553, m571, "Policy analysis reported: %s rcpt=<%*s>",
+	    type(SS, 550, m571, "Policy analysis reported: %s rcpt=<%*s>",
 		 ss, addrlen, cp);
 	  } else if (SS->policyresult < -2) {
 	    /* Code: -3 */
 	    if (!multilinereplies)
-	      type(SS,553,m571, "This target address is not our MX service client: <%*s>", addrlen, cp);
+	      type(SS,550,m571, "This target address is not our MX service client: <%*s>", addrlen, cp);
 	    else {
-	      type(SS,-553, m571, "This target address is not our MX service");
-	      type(SS,-553, m571, "client, nor you are connecting from address");
-	      type(SS,-553, m571, "that is allowed to openly use us to relay");
-	      type(SS,-553, m571, "to any arbitary address thru us.");
-	      type(SS, 553, m571, "We don't accept this recipient: <%*s>",
+	      type(SS,-550, m571, "This target address is not our MX service");
+	      type(SS,-550, m571, "client, nor you are connecting from address");
+	      type(SS,-550, m571, "that is allowed to openly use us to relay");
+	      type(SS,-550, m571, "to any arbitary address thru us.");
+	      type(SS, 550, m571, "We don't accept this recipient: <%*s>",
 		   addrlen, cp);
 	    }
 
 	  } else if (SS->policyresult < -1) {
 	    /* Code: -2 */
 	    if (!multilinereplies) {
-	      type(SS,553,m543, "Policy analysis found DNS error on the target domain: <%*s>", addrlen, cp);
+	      type(SS,550,m543, "Policy analysis found DNS error on the target domain: <%*s>", addrlen, cp);
 	    } else {
-	      type(SS,-553, m543, "Policy analysis found DNS error on");
-	      type(SS,-553, m543, "the target address. This address is");
-	      type(SS, 553, m543, "not currently acceptable: <%*s>",
+	      type(SS,-550, m543, "Policy analysis found DNS error on");
+	      type(SS,-550, m543, "the target address. This address is");
+	      type(SS, 550, m543, "not currently acceptable: <%*s>",
 		   addrlen, cp);
 	    }
 	  } else {
-	    type(SS,553,m571, "Policy rejection on the target address: <%*s>",
+	    type(SS,550,m571, "Policy rejection on the target address: <%*s>",
 		 addrlen, cp);
 	  }
 	}

@@ -856,7 +856,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		    rphead->notifyflgs &= ~ _DSN__TEMPFAIL_NO_UNLOCK;
 
 		    notaryreport(rphead->addr->user, FAILED, NULL, NULL);
-		    diagnostic(rphead, EX_TEMPFAIL, 60, "%s", SS->remotemsg);
+		    diagnostic(rphead, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
 		  }
 		}
 
@@ -876,7 +876,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		    notaryreport(rp->addr->user,FAILED,
 				 "5.0.0 (Target status indeterminable)",
 				 NULL);
-		    diagnostic(rphead, EX_TEMPFAIL, 60, "%s", SS->remotemsg);
+		    diagnostic(rphead, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
 		  }
 
 		  rphead = rphead->next;
@@ -2010,13 +2010,27 @@ smtpconn(SS, host, noMX)
 	    }
 	  }
 #endif /* BIND */
+
+	  if (!checkwks && SS->mxcount > 0 && SS->mxh[0].host == NULL) {
+
+	    /* Condition ( SS->mxcount > 0 && SS->mxh[0].host == NULL ) can
+	       be considered as: Instant (Configuration?) Error;
+	       No usable MXes, possibly we are at the lowest MX priority level,
+	       and somebody has made some configuration errors... */
+
+	    if (ai != NULL)
+	      freeaddrinfo(ai);
+
+	    strcpy(SS->remotemsg,
+		   "smtp; 500 (configuration inconsistency, we are lowest MX, but this is not our local domain!)");
+	    notaryreport(NULL, NULL,
+			 "5.4.4 (unable to route)",
+			 "smtp; 500 (configuration inconsistency, we are lowest MX but this is not our local domain)");
+
+	    return EX_NOHOST;
+	  }
+
 	  if (SS->mxcount == 0 || SS->mxh[0].host == NULL) {
-
-	    /* Condition ( SS->mxcount > 0 && SS->mxh[0].host == NULL ) can be also
-	       considered as: Instant (Configuration?) Error; No usable MXes, possibly
-	       we are at the lowest MX priority level, and somebody has made some
-	       configuration errors... */
-
 
 	    errno = 0;
 	    /* Either forbidden MX usage, or does not have MX entries! */
@@ -3325,7 +3339,7 @@ smtp_sync(SS, r, nonblocking)
 	     500-series hard errors into soft ones, as we must try
 	     re-sending the message sometime. */
 
-	  if (sffileno(SS->smtpfp) < 0 && code >= 500)
+	  if ((SS->smtpfp == NULL || sffileno(SS->smtpfp) < 0) && code >= 500)
 	    code -= 100; /* SOFTEN IT! */
 
 	  if (code >= 400) {
@@ -3384,9 +3398,14 @@ smtp_sync(SS, r, nonblocking)
 		  free(SS->mailfrommsg);
 		SS->mailfrommsg = strdup(SS->remotemsg);
 	      } else {
+		/* "DATA" or "BDAT" phase */
 		if (code >= 500) {
-		  datafail = EX_UNAVAILABLE;
-		  SS->rcptstates |= DATASTATE_500;
+		  if (SS->rcptstates & (FROMSTATE_400|RCPTSTATE_400)) {
+		    datafail = EX_TEMPFAIL;
+		  } else {
+		    datafail = EX_UNAVAILABLE;
+		    SS->rcptstates |= DATASTATE_500;
+		  }
 		} else if (code >= 400) {
 		  datafail = EX_TEMPFAIL;
 		  SS->rcptstates |= DATASTATE_400;

@@ -1,3 +1,23 @@
+2000-03-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    - Do (at least try) shunt new scheduler TA driver state-
+	      machine only when connection fails, not when a message
+	      delivery yields some 400 series status code.
+	    - PIPELINING mode in smtp_sync() did react suboptimally
+	      (wrong) to DATA yielding 500 series code when MAIL FROM
+	      or any/all RCPT TO commands yield 400 series status.
+	    - DRUMS/SMTPUPD tells that if MX records are available,
+	      but none are usable (preference pruning rule), this
+	      must be reported as an error.  We allow '-W' mode to
+	      override this so that when '-W' is present, this case
+	      is not an error, IF destination domain has A + WKS/smtp
+	      permitting delivery there.
+
+	* smtpserver/smtpcmds.c:
+	    DRUMS/SMTPUPD tells that policy based rejections of recipients
+	    shall use 550 (and 450) codes.
+
 2000-03-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/libta/diagnostic.c, include/ta.h,

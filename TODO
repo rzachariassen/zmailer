@@ -71,12 +71,15 @@ transports/smtp:
    BUG:	PIPELINING:  If all RCPTs are rejected with 400 series code,
 	and the final DATA is then rejected with 500 series code, DON'T
 	abort with permanent error -- plus retry..
+		Fixed ? (20000313)
 
    DRUMS/SMTPUPD:
 	If MX set after the backup-prune is empty (and initially was non-
 	empty), reject the message with suitable report, don't continue
 	to try to use A-record -- parametrized somehow..
 	E.g. go to use of A in this case only if WKS checking is enabled.
+		Conditionalized on non-usage of -W option
+		Works ? (20000313)
 
    BUG?
 	Bad interaction with scheduler in some instances.  If e.g.
@@ -85,6 +88,7 @@ transports/smtp:
 	processing back the same way as 'connection timed out' does.
 	(But no response within timeout from remote server should be
 	 treated the same way as 'conn timeout' -- I think ?)
+		Fixed ? (20000313)
 
    BUG:	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
 	(syncing for BDAT, for example.)
