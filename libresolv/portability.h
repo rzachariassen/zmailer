@@ -173,7 +173,9 @@
 #if defined(SYSV) || defined(__ultrix) || defined(__osf__) \
 	|| (defined(BSD) && BSD >= 199306) || defined(linux)
 # define USE_UTIME
-# define HAVE_SETVBUF
+# ifndef HAVE_SETVBUF
+#  define HAVE_SETVBUF
+# endif
 #endif
 
 #if defined(SYSV) && !defined(SVR4)
