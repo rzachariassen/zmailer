@@ -1,7 +1,23 @@
+1999-08-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    An odd-ball case of lacking RSET is PIPELINING mode when
+	    none of the recipients were successfull..
+
+1999-08-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/fqdnalias.cf:
+	    One last missing usage instance of "runas .. cat ..".
+	
+	* scheduler/msgerror.c:
+	    Printout the  MESSAGE/DELIVERY-STATUS  report to the end of
+	    the initial text report - because so many (M$) email clients
+	    are uterly unable to display them...
+
 1999-08-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in:
-	    For Solaris 2.6 (and 2.7 ?) autodetect  -lxnet  for
+	    For Solaris 2.6 (and Solaris 7 ?) autodetect  -lxnet  for
 	    socket related functions.
 
 	* smtpserver/zpwmatch.c, utils/listexpand.c:

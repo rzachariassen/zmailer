@@ -197,10 +197,11 @@ fqdn_neighbour (domain, address, A) {
 		db add expansions "$lcaddress" fqlist
 		priv=$(getpriv "644" $priv "$a" maillist)
 		nattr=$(newattribute $A privilege $priv sender "$l")
-		return $(listexpand	-E "$l" -e "$l" -p $priv	\
+		return $(runas $priv cat "$a" |				\
+		         listexpand	-E "$l" -e "$l" -p $priv	\
 					-c "$a file expansion"		\
 					"$nattr" "$a" "$user$athost"    \
-					"$plustail" "$athost" < "$a")
+					"$plustail" "$athost")
 	fi
 
 	# Ok, if the list (MAILVAR/fqlists/user@host) did exist, we did

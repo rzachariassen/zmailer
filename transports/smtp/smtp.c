@@ -1246,6 +1246,8 @@ deliver(SS, dp, startrp, endrp)
 	}
 
 
+	SS->rcptstates = 0;
+
     more_recipients:
 	if (more_rp != NULL) {
 	  startrp = more_rp;
@@ -1498,10 +1500,8 @@ deliver(SS, dp, startrp, endrp)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		diagnostic(rp, EX_TEMPFAIL, 0, "%s", SS->remotemsg);
 	      }
-#if 0
 	    if (SS->smtpfp)
 	      smtpwrite(SS, 0, "RSET", 0, NULL);
-#endif
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog," .. timeout ? smtp_sync() rc = %d\n",r);
 	    return r;
@@ -3741,7 +3741,8 @@ smtp_sync(SS, r, nonblocking)
 	    ++eol; /* points to char AFTER the newline */
 	    if (debug && logfp)
 	      fprintf(logfp,"%s#\t(pipebufsize=%d, s=%d, eol=%d)\n",
-		      logtag(), SS->pipebufsize,(int)(s-SS->pipebuf),(int)(eol-SS->pipebuf));
+		      logtag(), SS->pipebufsize,(int)(s-SS->pipebuf),
+		      (int)(eol-SS->pipebuf));
 	  } else { /* No newline.. Read more.. */
 	    int en;
 	    if (nonblocking) {

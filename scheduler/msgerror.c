@@ -624,6 +624,40 @@ reporterrs(cfpi)
 	    fprintf(errfp, "%s\n", ccp);
 	}
 
+
+	fprintf(errfp,"\n\
+Following is a copy of MESSAGE/DELIVERY-STATUS format section below.\n\
+It is copied here in case your email client is unable to show it to you.\n\
+The information here below is in  Internet Standard  format designed to\n\
+assist automatic, and accurate presentation and usage of said information.\n\
+In case you need human assistance from the Postmaster(s) of the system which\n\
+sent you this report, please include this information in your question!\n\
+\n\
+\tVirtually Yours,\n\
+\t\tAutomatic Email delivery Software\n\
+\n");
+
+
+	if (mydomain() != NULL) {
+	  fprintf(errfp, "Reporting-MTA: dns; %s\n", mydomain() );
+	} else {
+	  fprintf(errfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
+	}
+	if (envid != NULL) {
+	  fprintf(errfp, "Original-Envelope-Id: ");
+	  decodeXtext(errfp,envid);
+	  putc('\n',errfp);
+	}
+	/* rfc822date() returns a string with trailing newline! */
+	fprintf(errfp, "Arrival-Date: %s", rfc822date(&cfpi->mtime));
+	fprintf(errfp, "\n");
+
+	/* Now scan 'em all again for IETF-NOTARY */
+	for (i = 0; i < notarycnt; ++i) {
+	  scnotaryreport(errfp, &notaries[i],&has_errors,no_error_report);
+	}
+
+
 	fprintf(errfp, "\n");
 	fprintf(errfp, "--%s\n", boundarystr);
 	fprintf(errfp, "Content-Type: message/delivery-status\n\n");
