@@ -459,6 +459,14 @@ address, and "${LOGDIR}" substitutes ZENV variable LOGDIR value there.
 .I It is strongly recommended that the "$host" is not to be used on
 .I a command definition, as it limits the usability of idled transporter.
 
+It is possible to place environment-string setting statements into
+the beginning of the line:
+
+.nf
+\fC
+  command="MALLOC_DEBUG_=1 OTHER=var  cmdname cmdparams"
+.fi
+
 .IP queueonly
 a clause with
 .I queueonly
