@@ -2203,6 +2203,7 @@ run_cat(argc, argv)
 	FILE *fp;
 	char buf[8192];
 	int i;
+	struct stat stbuf;
 
 	if (argc < 2) {
 		fprintf(stderr, "Usage: %s [filenames ...]\n", argv[0]);
@@ -2210,19 +2211,22 @@ run_cat(argc, argv)
 	}
 
 	for ( ;argv[1] != NULL; ++argv) {
-	    fp = fopen(argv[1], "r");
-	    if (!fp) continue; /* next .... */
-	    for (;;) {
+	    /* Must be a regular file (via a symlink, though!), no
+	       pipes, sockets, devices... */
+	    if (stat(argv[1], &stbuf) == 0 && S_ISREG(stbuf.st_mode) &&
+		(fp = fopen(argv[1], "r"))) {
+	      for (;;) {
 		i = fread(buf, 1, sizeof(buf), fp);
 		if (i > 0) {
-		    int j = 0;
-		    while (j < i) {
-			j += fwrite(buf + j, 1, i - j, stdout);
-		    }
+		  int j = 0;
+		  while (j < i) {
+		    j += fwrite(buf + j, 1, i - j, stdout);
+		  }
 		} else
-		    break;
-	    }
+		  break;
+	      }
 	    fclose(fp);
+	    }
 	}
 	return 0;
 }
