@@ -29,10 +29,12 @@
 #include <errno.h>
 #endif
 
-#ifdef __STDC__
-#define __(x) x
-#else
-#define __(x) /* */
+#ifndef __
+# ifdef __STDC__
+#  define __(x) x
+# else
+#  define __(x) /* */
+# endif
 #endif
 
 #define DEFAULTDOMAIN "defaultdomain"
@@ -66,22 +68,24 @@ Examples:
 extern int pjwhash32 __((const char *));
 extern int crc32 __((const char *));
 
-static int put_c __((char **, char *, char));
+static int put_c __((char **, char *, int));
+
 static int put_c(q,ebuf,c)
-char **q;
-char *ebuf;
-char c;
+     char **q;
+     char *ebuf;
+     char c;
 {
 	if (*q >= ebuf) return 1;
 	*((*q)++)=(c);
 	return 0;
 }
 
-static int put_s __((char **, char *, char *));
+static int put_s __((char **, char *, const char *));
+
 static int put_s(q,ebuf,s)
-char **q;
-char *ebuf;
-char *s;
+     char **q;
+     char *ebuf;
+     const char *s;
 {
 	char c;
 
@@ -93,14 +97,16 @@ char *s;
 }
 
 int fmtmbox __((char *, int, const char *, const char *, const struct passwd *));
+
 int fmtmbox (buf, size, format, address, pwd)
-char *buf;
-int size;
-const char *format;
-const char *address;
-const struct passwd *pwd;
+     char *buf;
+     int size;
+     const char *format;
+     const char *address;
+     const struct passwd *pwd;
 {
-	char *p,*q,*at,*dom,*dot;
+	char *q,*at,*dom,*dot;
+	const char *p;
 	char c;
 	enum {norm,percentseen} state;
 	int overflow=0;
