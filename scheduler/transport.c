@@ -199,9 +199,10 @@ struct procinfo *proc;
 		proc->cmdlen = 0;
 		return -1;
 	      }
-	      if (rc < 0) rc = 0;
 	      if (rc > 0)
 		memcpy(proc->cmdbuf, proc->cmdbuf+rc, proc->cmdlen - rc +1);
+	      else
+		break;
 	      proc->cmdlen -= rc;
 	    } else {
 	      proc->cmdlen = 0; /* Clean the pending info.. */
