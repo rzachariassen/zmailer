@@ -1420,7 +1420,8 @@ int insecure;
 				  Always reject, or Always freeze.. */
       SS->policyresult = policytest(policydb, &SS->policystate,
 				    POLICY_SOURCEDOMAIN,
-				    SS->rhostname,strlen(SS->rhostname));
+				    SS->rhostname,strlen(SS->rhostname),
+				    SS->authuser);
 
     /* re-opening the log ?? */
     zopenlog("smtpserver", LOG_PID, LOG_MAIL);
@@ -1857,8 +1858,6 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     if (code < 0) {
 	code = -code;
 	c = '-';
-	if (!multilinereplies) /* Ignore ALL negative codes */
-	  return;
     } else
 	c = ' ';
 

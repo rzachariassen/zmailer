@@ -1127,7 +1127,7 @@ const int len;
 	return -1;
     if (state->always_freeze)
 	return 1;
-    if (state->full_trust)
+    if (state->full_trust || state->authuser)
       return 0;
 
     if (len == 0) /* MAIL FROM:<> -- error message ? */
@@ -1228,6 +1228,7 @@ const int len;
     if (state->always_freeze) return  1;
     if (state->sender_freeze) return  1;
     if (state->full_trust)    return  0;
+    if (state->authuser)      return  0;
     if (state->trust_recipients) return 0;
 
     /* rcptfreeze even for 'rcpt-nocheck' ? */
@@ -1363,15 +1364,18 @@ const int len;
 }
 
 
-int policytest(rel, state, what, str, len)
+int policytest(rel, state, what, str, len, authuser)
 struct policytest *rel;
 struct policystate *state;
 PolicyTest what;
-const char *str;
+const char *str, *authuser;
 const int len;
 {
     if (rel == NULL)
       return 0;
+
+    if (state->authuser == NULL)
+      state->authuser = authuser;
 
     if (debug) {
 	printf("000- policytest what=%d\n", what);

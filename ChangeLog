@@ -1,3 +1,55 @@
+1999-04-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c,smtpserver/smtpdata.c:
+	    Change the 'multilinereplies' processing around "a bit".
+	    Have sensible reports even when single-line mode is used.
+
+	* proto/smtpserver.conf.in, man/smtpserver.8, smtpserver/cfgread.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpdata.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpauth.c,
+	  smtpserver/Makefile.in, smtpserver/smtpcmds.c,
+	  smtpserver/policytest.c, smtpserver/policytest.h:
+	    Created base work for ESMTP "AUTH LOGIN ..." command
+	    processing.  It does receive the input parameter, and
+	    decodes the initial input, plus asks for the password,
+	    plus decodes that, but then the final hurdle of checking
+	    the password is not completed -- all the kwazillion ways
+	    of doing it in different systems ...
+
+	    THIS EXTENSION IS NOT ENABLED CURRENTLY IN THE SYSTEM!
+	
+	* router/rfc822.c:
+	    Converted from symbol() to symbol_lookup_db() in place where
+	    the data to be looked up is stored in specific spl set.
+
+	* include/ta.h, scheduler/mailq.c, scheduler/msgerror.c,
+	  scheduler/prototypes.h, scheduler/qprint.c, scheduler/scheduler.c,
+	  scheduler/scheduler.h, transports/libta/ctlopen.c,
+	  transports/libta/lockaddr.c:
+	    I decided that there is no point in using 'long' to store offsets
+	    to transport specification file -- if that file exceeds 2G in
+	    32-bit systems we are in deep trouble anyway -- and there is no
+	    point in trying to fit this animal into 16-bit machines... Could
+	    squeeze around 16 bytes per recipient in the scheduler memory use.
+	    (Consider having a million recipients in memory data...)
+
+	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/cfgread.c, smtpserver/smtpcmds.c,
+	  proto/smtpserver.conf.in:
+	    "PARAM no-multiline-replies" which hides away all RFC-821
+	    Appendix E described multiline replies, in case you have
+	    no other way to fix your non-conformant clients...
+	    The result is often rather jumbled as the last reported line
+	    usually isn't very usefull..
+	
+	* include/mail.h.in, include/ta.h, transports/libta/ctlopen.c,
+	  scheduler/scheduler.c:
+	    Reserve some space into "r" entries of the TA files for
+	    delay state reports.
+
+	* scheduler/scheduler.c:
+	    Don't unnecessarily unlink() ETRN requests twice..
+
 1999-04-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* ChangeLog:

@@ -147,8 +147,7 @@ const char *buf, *cp;
     } else if (maxsize > 0 && filsiz > maxsize) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
-	type(SS, -552, "5.3.4", "Size of this message exceeds the fixed maximum");
-	type(SS, -552, "5.3.4", "size of  %ld  chars for received email ", maxsize);
+	type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
 	typeflush(SS);
     } else {
 
@@ -346,8 +345,7 @@ const char *buf, *cp;
     } else if (maxsize > 0 && tell > maxsize) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
-	type(SS, -552, "5.3.4", "Size of this message exceeds the fixed maximum");
-	type(SS, -552, "5.3.4", "size of  %ld  chars for received email ", maxsize);
+	type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
     } else if (bdata_last) {
 	time_t mtime;
 	int inum;
