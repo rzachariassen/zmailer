@@ -229,6 +229,7 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	int report_notary = 1;
 	int logreport = 0;
 	int no_notary = 0;
+	int lockoffset = rp->lockoffset;
 
 
 	/* Nothing to do ?? */
@@ -467,7 +468,7 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	  fprintf(verboselog,
 		  "DIAG: C='%s' H='%s' U='%s' P='%s' L=%d -- stat='%s' notary='%s' ",
 		  rp->addr->channel, rp->addr->host, rp->addr->user,
-		  rp->addr->misc, rp->lockoffset,
+		  rp->addr->misc, lockoffset,
 		  statmsg, (notarybuf ? notarybuf : ""));
 	  if (wtthost)
 	    fprintf(verboselog, "WTT='%s' ", wtthost);
