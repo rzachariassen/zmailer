@@ -218,7 +218,10 @@ char *argv[];
 #else
       rc = (dbfile->cursor)(dbfile, NULL, &curs);
 #endif
+      memset(&key, 0, sizeof(key));
+      memset(&result, 0, sizeof(key));
       rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
+      if (rc) fprintf(stderr,"cursor errno=%d (%s)\n",rc, strerror(rc));
       while ( rc == 0 ) {
 	dumpit(stdout, key.data, key.size, result.data, result.size);
 	rc = (curs->c_get)(curs, &key, &result, DB_NEXT);
@@ -265,6 +268,8 @@ char *argv[];
 #else
       rc = (dbfile->cursor)(dbfile, NULL, &curs);
 #endif
+      memset(&key, 0, sizeof(key));
+      memset(&result, 0, sizeof(key));
       rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
       while ( rc == 0 ) {
 	dumpit(stdout, key.data, key.size, result.data, result.size);
@@ -305,6 +310,8 @@ char *argv[];
     }
 
     if (dumpflag) {
+      memset(&key, 0, sizeof(key));
+      memset(&result, 0, sizeof(key));
       rc = (dbfile->seq)(dbfile, &key, &result, R_FIRST);
       while ( rc == 0 ) {
 	dumpit(stdout, key.data, key.size, result.data, result.size);
@@ -342,6 +349,8 @@ char *argv[];
     }
 
     if (dumpflag) {
+      memset(&key, 0, sizeof(key));
+      memset(&result, 0, sizeof(key));
       rc = (dbfile->seq)(dbfile, &key, &result, R_FIRST);
       while ( rc == 0 ) {
 	dumpit(stdout, key.data, key.size, result.data, result.size);
