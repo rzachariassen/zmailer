@@ -2146,7 +2146,7 @@ if (verboselog)
 	  goto write_failure;
 	}
 #ifdef HAVE_FSYNC
-	if (mmfd_mode <= 1) {
+	if (mmdf_mode <= 1) {
 	  while (fsync(fdmail) < 0) {
 	    if (errno == EINTR || errno == EAGAIN)
 	      continue;

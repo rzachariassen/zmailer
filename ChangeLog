@@ -1,3 +1,25 @@
+2001-01-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/mailbox/mailbox.c:
+	    Typo -- mmfd_mode which should be  mmdf_mode ...
+
+	* transports/libta/diagnostic.c:
+	    #include <errno.h> -- apparently cc at Solaris 2.6
+	    didn't like it without :-/
+
+	* smtpserver/smtpserver.h, smtpserver/cfgread.c:
+	    More Sol26/SunSoft CC things.
+
+	* lib/rfc822scan.c:
+	    Recognize  "HOST::USER"@decnet-IV.gw  syntax,
+	    and don't ever unquote it.  We don't support
+	    being the DECNET-IV gateway ourselves.
+
+	* proto/zmailer.sh.in:
+	    If  dbases.conf  is not in use, and we execute
+	    'zmailer newdb', do 'newdb' the $MAILSHARE/db/mboxmap
+	    also.
+
 2000-12-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/mailbox/mailbox.c:

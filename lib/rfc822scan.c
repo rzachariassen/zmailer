@@ -108,7 +108,14 @@ int rfc822_mustquote(s, spc)
 	    /* This special outside a quote is ok */
 	    continue;
 
-	  if (c == '.' || c == ',' || c == ':' || c == '[' || c == ']')
+	  if (c == ':') {
+	    /* Special, but  "HOST::USER"@gwhost   syntax is
+	       even more special ... */
+	    if (s[1] == ':' && inquote) mustquote = 1;
+	    continue;
+	  }
+
+	  if (c == '.' || c == ',' || c == '[' || c == ']')
 	    /* specials, thus must be checked before set lookups below */
 	    continue;
 

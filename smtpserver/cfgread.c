@@ -65,11 +65,11 @@ static void dollarexpand(s0, space)
       if (*namebuf == 0) /* If there are e.g.  "$/" or "${}" or "$()", or
 			    just "$" at the end of the line, then let it be. */
 	continue;
-      s = (char*) getzenv(namebuf); /* Pick whatever name there was.. */
+      s = (char*) getzenv((char*)namebuf); /* Pick whatever name there was.. */
       if (!s) continue;     /* No ZENV variable with this name ? */
 
-      len     = strlen(s);
-      taillen = strlen(str);
+      len     = strlen((char*)s);
+      taillen = strlen((char*)str);
 
       if (len > (str - s0)) {
 	/* Must expand the spot! */
@@ -106,7 +106,7 @@ static void dollarexpand(s0, space)
 	  memcpy(s0, s, len);
 	if (s0+len < str)
 	  /* Copy down */
-	  strcpy(s0+len, str);
+	  strcpy((char*)(s0+len), str);
 	str = s0 + len;
 	str[taillen] = 0; /* Chop the possible old junk from the tail */
 

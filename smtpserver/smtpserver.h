@@ -320,7 +320,7 @@ extern int auth_ok;
 extern int ehlo_ok;
 extern int etrn_ok;
 extern int starttls_ok;
-extern int ssmtp_listen;;
+extern int ssmtp_listen;
 extern int msa_mode;
 extern int deliverby_ok;
 #define MAX_ETRN_CLUSTER_IDX 40

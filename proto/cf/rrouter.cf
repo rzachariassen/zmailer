@@ -24,6 +24,8 @@ rrouter (address, origaddr, A, plustail, domain) {
 	tmp=$(fqdn_neighbour "$origaddr" "$address" $A) &&
 		return $tmp
 
+	# Verify address  "NODE::USER"@decnetgw.host
+
 	address="$(condquote "$address")"
 
 	#

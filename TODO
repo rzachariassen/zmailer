@@ -1,5 +1,12 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+DECNET route handling BUG  (rrouter.cf ?)
+	"NODE::USER"@gw.host  ->  NODE::USER@gw.host  ->  USER@gw.host@NODE
+    which is WRONG!  Uaargh...
+
+"zmailer newdb"
+	Update also  mboxmap  if it exists..
+
 mailq: man-page update to match all options
 
 "make install": (Eugene Crosser)
@@ -17,6 +24,9 @@ getmxrr()  MX retrieve failure with its merriment:
 
   For a comparison a successfull access has:
     DNS lookup reply: len=237 rcode=0 qdcount=1 ancount=4 nscount=3 arcount=4 RD=1 TC=0 AA=0 QR=1 RA=1
+
+  CAN I DO ANYTHING ?!  Lack of data *is* valid result, how can those
+  rare bad lacks of data be detected ?  Flags do look the same :-/
 
 
 Wanted done for 3.0:

@@ -181,6 +181,11 @@ do
                     echoo "routes "
                     newdb -l $MAILVAR/db/routes
                 fi
+                if [   -f $MAILSHARE/db/mboxmap -a  \
+                     ! -f $MAILSHARE/db/mboxmap.zmsh ] ; then
+                    echoo "mboxmap "
+                    newdb -l $MAILSHARE/db/mboxmap
+                fi
                 if [   -f $MAILVAR/db/localnames -a \
                      ! -f $MAILVAR/db/localnames.zmsh ] ; then
                     echoo "localnames "
