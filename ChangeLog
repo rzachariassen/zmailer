@@ -1,3 +1,38 @@
+2003-04-02  Matti Aarnio  <mea@zmailer.org>
+
+	* man/smtpserver.8:
+	    Document several months old  PARAM tls-random-source /sock/path
+	    parameter.
+
+	* include/ta.h, transports/libta/mimeheaders.c:
+	    New  header_received_for_clause()  function to add a FOR
+	    clause into top-most RECEIVED: header.
+
+	* transports/smtp/smtp.c, transports/mailbox/mailbox.c,
+	  transports/sm/sm.c, transports/errormail/errormail.c:
+	    Use  header_received_for_clause()  function.
+
+	* transports/smtp/smtp.c, transports/smtp/getmxrr.c,
+	  transports/smtp/smtp.h:
+	    Follow strictures of RFC 821 about rewriting RCPT TO
+	    envelope domain, if target domain did resolve via CNAME.
+	    XXX: HAS A CHECK TODO!
+
+	* transports/smtp/smtp.c:
+	   If target system has DSN capability, but our sent address
+	   does not (for some reason) have DSN data, generate them
+	   from default values...
+
+	* router/daemonsub.c:
+	    When the child process closes, as its final act, do: exit(0)
+
+	* smtpserver/cfgread.c:
+	    A bit of cleanup of the parser: wrap all OpenSSL related options
+	    inside appropriate IFDEF test,  AND  from now on, begin reporting
+	    in smtpserver's verbose log, if configuration contains PARAM
+	    entry which isn't known/doesn't have enough parameters.
+	    (Helps debugging...)
+
 2003-03-13  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/update.c, scheduler/statuslog-ids-to-spoolids.pl,

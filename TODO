@@ -1,5 +1,16 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+VERIFY: transports/smtp/smtp.c  ... that the CNAME rewrite
+	for the target domain is only used, when destination
+	domain matches work selector domain!
+
+VERIFY: router/daemonsub.c around line 1470 the routerchilds[]
+	dirq[] allocation compared with  nrouters  setting..
+	What happens, when   nrouters  is smaller, than the
+	number of processes needed for ROUTERDIRS ?
+	How will  NOTIFY  messages affect the job pickup ?
+
+
 Wanted done for 3.0:
   - router  aliases.cf  to have similar 'protocols' feature as
     domain routing has currently
