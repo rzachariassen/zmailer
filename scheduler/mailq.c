@@ -1891,18 +1891,46 @@ printaddrs(v)
 
 static void print_shm __((void))
 {
+  int r;
 
-  Z_SHM_MIB_Attach (0); /* Attach read-only! */
+  r = Z_SHM_MIB_Attach (0); /* Attach read-only! */
 
-  if ( ! Z_SHM_MIB_is_attached() ) {
-    fprintf(stderr,"FAILED TO ATTACH SYSTEM LOCAL SHARED MONITOR SEGMENT\n");
-    exit(64);
+  if (r < 0) {
+    /* Error processing -- magic set of constants: */
+    switch (r) {
+    case -1:
+      fprintf(stderr, "No ZENV variable: SNMPSHAREDFILE\n");
+      break;
+    case -2:
+      perror("Failed to open for exclusively creating of the SHMSHAREDFILE");
+      break;
+    case -3:
+      perror("Failure during creation fill of SGMSHAREDFILE");
+      break;
+    case -4:
+      perror("Failed to open the SHMSHAREDFILE at all");
+      break;
+    case -5:
+      perror("The SHMSHAREDFILE isn't of proper size! ");
+      break;
+    case -6:
+      perror("Failed to mmap() of SHMSHAREDFILE into memory");
+      break;
+    case -7:
+      fprintf(stderr, "The SHMSHAREDFILE  has magic value mismatch!\n");
+      break;
+    default:
+      break;
+    }
+    return;
   }
 
 #define M  MIBMtaEntry->m
 
   printf("ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
   printf("Time_now                        %10lu\n", (unsigned long)time(NULL));
+
+  printf("\n");
 
   printf("SYS.RouterMasterPID             %10u",M.mtaRouterMasterPID);
   if (kill(M.mtaRouterMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
@@ -1917,9 +1945,11 @@ static void print_shm __((void))
   printf("\n");
 
 
-  printf("SYS.SpoolFreeSpace-kB            %9d\n", M.mtaSpoolFreeSpace);
-  printf("SYS.LogFreeSpace-kB              %9d\n", M.mtaLogFreeSpace);
+  printf("SYS.SpoolFreeSpace-kB-G          %9d\n", M.mtaSpoolFreeSpace);
+  printf("SYS.LogFreeSpace-kB-G            %9d\n", M.mtaLogFreeSpace);
 
+
+  printf("\n");
 
   printf("SS.Processes-G                        %4d\n",
 	 M.mtaIncomingSMTPSERVERprocesses);
@@ -1961,6 +1991,8 @@ static void print_shm __((void))
   printf("SS.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSs);
   printf("SS.TransmittedRecipients        %10u\n", M.mtaTransmittedRecipientsSs);
 
+  printf("\n");
+
   printf("RT.RouterProcesses-G             %9d\n", M.mtaRouterProcesses);
   printf("RT.ReceivedMessages             %10u\n", M.mtaReceivedMessagesRt);
   printf("RT.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsRt);
@@ -1975,6 +2007,8 @@ static void print_shm __((void))
   printf("RT.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsRt);
   printf("RT.StoredVolume-kB-G             %9d\n", M.mtaStoredVolumeRt);
 
+  printf("\n");
+
   printf("SC.ReceivedMessages             %10u\n", M.mtaReceivedMessagesSc);
   printf("SC.ReceivedRecipients           %10u\n", M.mtaReceivedRecipientsSc);
   printf("SC.TransmittedMessages          %10u\n", M.mtaTransmittedMessagesSc);
@@ -1982,11 +2016,13 @@ static void print_shm __((void))
   printf("SC.StoredMessages-G              %9d\n", M.mtaStoredMessagesSc);
   printf("SC.StoredRecipients-G            %9d\n", M.mtaStoredRecipientsSc);
   printf("SC.ReceivedVolume-kB            %10u\n", M.mtaReceivedVolumeSc);
-  printf("SC.StoredVolume-kB              %10u\n", M.mtaStoredVolumeSc);
+  printf("SC.StoredVolume-kB-G            %10u\n", M.mtaStoredVolumeSc);
   printf("SC.TransmittedVolume-kB         %10u\n", M.mtaTransmittedVolumeSc);
   printf("SC.StoredThreads-G               %9d\n", M.mtaStoredThreadsSc);
   printf("SC.TransportAgentsActive-G       %9d\n", M.mtaTransportAgentsActiveSc);
   printf("SC.TransportAgentsIdle-G         %9d\n", M.mtaTransportAgentsIdleSc);
+
+  printf("\n");
 
   printf("TA.OutgoingSmtpConnects         %10u\n", M.mtaOutgoingSmtpConnects);
   printf("TA.OutgoingSmtpConnectFails     %10u\n", M.mtaOutgoingSmtpConnectFails);

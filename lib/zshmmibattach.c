@@ -21,6 +21,9 @@
 #ifdef HAVE_MMAP
 #include <sys/mman.h>
 #endif
+#ifdef HAVE_SYS_FILE_H
+#include <sys/file.h>
+#endif
 
 
 #include "libc.h"
@@ -93,12 +96,39 @@ int Z_SHM_MIB_is_attached __((void)) {
 	return (SHM_block_ptr != NULL && SHM_block_size > 0);
 }
 
-void Z_SHM_MIB_Attach(rw)
+
+/* Lock strategy is simple:
+   - File handle associated lock with AUTOMATIC purge at handle close
+     (simpler error routines)
+   - Only RW mode locks
+   - After attachment is verified successfully, lock is released
+*/
+
+static void Z_SHM_unlock(rw, storage_fd)
+     int rw, storage_fd;
+{
+	int r = errno;
+	if (rw) {
+#ifdef HAVE_FLOCK
+	  flock(storage_fd, LOCK_UN);
+#else
+#ifdef HAVE_LOCKF
+	  lseek(storage_fd, 0, 0);
+	  lockf(storage_fd, F_ULOCK, 0);
+#endif
+#endif
+	}
+	errno = r;
+}
+
+
+int Z_SHM_MIB_Attach(rw)
 	int rw;
 {
 	int storage_fd = -1;
 	int block_size = sizeof(* MIBMtaEntry);
 	struct stat stbuf;
+	int retrylimit = 5;
 
 	void *p; int i, r;
 
@@ -126,7 +156,7 @@ void Z_SHM_MIB_Attach(rw)
 
 	SHM_SNMPSHAREDFILE_NAME = getzenv("SNMPSHAREDFILE");
 
-	if (!SHM_SNMPSHAREDFILE_NAME) return; /* No attach, private data.. */
+	if (!SHM_SNMPSHAREDFILE_NAME) return -1; /* No attach, private data.. */
 
 	for (;;) {
 	  if (rw)
@@ -134,8 +164,22 @@ void Z_SHM_MIB_Attach(rw)
 	  else
 	    storage_fd = open(SHM_SNMPSHAREDFILE_NAME, O_RDONLY, 0);
 
-	  if (storage_fd >= 0)
-	    break;  /* GOT IT! */
+	  if (storage_fd >= 0) {
+	    /* GOT IT!  Now lock.. */
+
+	    if (rw) {
+#ifdef HAVE_FLOCK
+	      flock(storage_fd, LOCK_EX);
+#else
+#ifdef HAVE_LOCKF
+	      lseek(storage_fd, 0, 0);
+	      lockf(storage_fd, F_LOCK, 0);
+#endif
+#endif
+	    }
+
+	    break;
+	  }
 
 	  if (errno == EAGAIN || errno == EINTR)
 	    continue; /* Retry! */
@@ -152,19 +196,43 @@ void Z_SHM_MIB_Attach(rw)
 		break; /* Got it */
 	      if (errno == EINTR || errno == EAGAIN)
 		continue;
+	      if (errno == EEXIST) /* Appeared while we were at it! */
+		break;
 	      break;
 	    }
+	    if (storage_fd < 0 && errno == EEXIST && --retrylimit > 0)
+	      continue;
+
 	    /* Now non-negative fd means we have a file.. */
-	    if (storage_fd < 0) break;
+	    if (storage_fd < 0) {
+	      r = errno;
+	      unlink("-shm-storage-excl-create-failure-");
+	      errno = r;
+	      return -2; /* FAILURE! */
+	    }
+
+	    /* if (rw) ... (we do!) */
+#ifdef HAVE_FLOCK
+	    flock(storage_fd, LOCK_EX);
+#else
+#ifdef HAVE_LOCKF
+	    lseek(storage_fd, 0, 0);
+	    lockf(storage_fd, F_LOCK, 0);
+#endif
+#endif
+
 
 	    p = calloc(1, block_size);
 	    if (!p) {
 
 storage_fill_failure: ;
 
+	      r = errno;
+	      Z_SHM_unlock(rw, storage_fd);
 	      close(storage_fd);
 	      eunlink(SHM_SNMPSHAREDFILE_NAME,"-shm-storage-fill-failure-");
-	      return; /* FAILURE! */
+	      errno = r;
+	      return -3; /* FAILURE! */
 	    }
 
 	    
@@ -189,13 +257,19 @@ storage_fill_failure: ;
 	  }
 
 	  break; /* Other unspecified error! */
+	  /* Including: EACCES, EROFS, EMFILE, ENFILE ... */
 
 	}
 
 	if (storage_fd < 0) {
+	  r = errno;
 	  unlink("-shm-storage-open-failure-");
-	  return; /* FAILURE! */
+	  errno = r;
+	  return -4; /* FAILURE! */
 	}
+
+
+
 
 
 	memset( &stbuf, 0, sizeof(stbuf) );
@@ -209,9 +283,12 @@ storage_fill_failure: ;
 
 	if (stbuf.st_size != block_size) {
 	  /* NOT PROPER SIZE!  WTF! ??? */
+	  r = errno;
+	  Z_SHM_unlock(rw, storage_fd);
 	  close(storage_fd);
 	  unlink("-shm-storage-bad-size-");
-	  return; /* Bail out! */
+	  errno = r;
+	  return -5; /* Bail out! */
 	}
 
 	lseek(storage_fd, 0, 0);
@@ -232,9 +309,15 @@ storage_fill_failure: ;
 
 
 	if (-1L == (long)p   ||  p == NULL) {
+	  r = errno;
 	  perror("mmap() of Shared MIB segment gave error");
+
+	  Z_SHM_unlock(rw, storage_fd);
+	  close(storage_fd);
+
 	  unlink("-shm-storage-mmap-fail-");
-	  return; /* Brr.. */
+	  errno = r;
+	  return -6; /* Brr.. */
 	}
 
 
@@ -246,21 +329,34 @@ storage_fill_failure: ;
 	if (MIBMtaEntry->m.magic != ZM_MIB_MAGIC) {
 	  /* AAARRRRGGHHH!!!!  Version disagree! */
 
+	  r = errno;
+
+#ifdef HAVE_MMAP  /* Remove the mapping */
+#ifdef MS_SYNC
+	  msync(p, block_size, MS_SYNC);
+#endif /* MS_SYNC */
+	  munmap(p, SHM_block_size);
+#endif /* HAVE_MMAP */
+
+	  Z_SHM_unlock(rw, storage_fd);
 	  close(storage_fd);
 
 	  MIBMtaEntry = &MIBMtaEntryLocal;
 
 	  unlink("-shm-storage-version-mismatch-");
 
-	  return;
+	  errno = r;
+	  return -7;
 	}
 
 	/* Ok, MAGIC matches, pointers have been set...
 	   Finalize:   */
 
+	Z_SHM_unlock(rw, storage_fd);
+
 	SHM_block_size = block_size;
 	SHM_storage_fd = storage_fd;
 	SHM_block_ptr  = p;
 
-	return;
+	return 0;
 }

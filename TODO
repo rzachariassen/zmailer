@@ -65,7 +65,7 @@ mailq: man-page update to match all options
     recreate all dbases and their hook .zmsh scripts ?
 
 FEATURE:
-  router+scheduler+TA status MIB areas in an SHM segment
+  router+scheduler+TA status (SNMP) MIB areas in an SHM segment
   (Solaris et.al. which don't allow ARGV overwrite..
    DNS lookups, connecting, protocol exchanges, ...)
   + tool(s) to read that segment
@@ -279,6 +279,22 @@ transports/smtp:
 
 
 - smtpserver
+
+    BUG:
+	Ugh ?  Are we producing invalid ORCPT data, or are we rejecting
+	valid ?  Or is just  mail3.centrum.cz  producing invalid one ?
+	They have ZMailers from 1999 ..  what the exact version might be.
+
+WIirGqB0000r    MAIL From:<> BODY=8BITMIME SIZE=4679
+WIirGqB0000w    250 2.0.0 Ok (sourcechannel 'error' accepted) Ok
+WIirGqB0000#    000--- pipeline input exists 1268 bytes
+WIirGqB0000r    RCPT To:<linux-kernel-owner+jan.slezak=40centrum.cz@vger.kernel.org> ORCPT=rfc822;linux-kernel-owner+jan.slezak=40centrum.cz@vger.kernel.org
+WIirGqB0000w    501-4.5.4 Invalid ORCPT value 'ORCPT=rfc822;linux-kernel-owner+jan.slezak=40centrum.cz@vger.kernel.org'
+WIirGqB0000w    501 4.5.4 ORCPT-param data error!
+WIirGqB0000#    000--- pipeline input exists 1252 bytes
+WIirGqB0000r    BDAT 4649 LAST
+WIirGqB0000w    503 5.5.2 Waiting for RCPT command
+
 
     FEATURE(?): Verify that MAIL FROM MX data resolves to valid
 	IP addresses, and does not contain loopback.

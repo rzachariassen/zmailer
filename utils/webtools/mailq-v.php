@@ -34,15 +34,24 @@ if ($CHAN == "" || $HOST == "") {
 
 # special processing to get queue-detail printout parameters..
 
-   $CHAN = escapeshellarg($CHAN);
-   $HOST = escapeshellarg($HOST);
+    $CHAN = escapeshellarg($CHAN);
+    $HOST = escapeshellarg($HOST);
+
+    $patterns[0] = "/&/";
+    $patterns[1] = "/>/";
+    $patterns[2] = "/</";
+
+    $replacements[0] = "&amp;";
+    $replacements[1] = "&gt;";
+    $replacements[2] = "&lt;";
 
 
     $fh = popen("/opt/mail/bin/mailq -v -c ".$CHAN." -h ".$HOST, 'r');
 
     while (!feof ($fh)) {
         $buffer = fgets($fh, 4096);
-        echo $buffer;
+	
+	print preg_replace($patterns, $replacements, $buffer);
     }
 
     pclose($fh);
