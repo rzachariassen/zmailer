@@ -1,5 +1,17 @@
 1998-08-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* include/malloc.h, include/zsyslog.h, libsh/builtins.c,
+	  libsh/test.c, router/libdb/header.c, libsh/shconfig.h,
+	  lib/strmatch.c, lib/pjwhash32.c, lib/selfaddrs.c,
+	  libc/fullname.c, include/md5.h, libc/__fopen.c, libc/md5c.c,
+	  libc/strtoul.c, libc/gai_strerror.c, libc/getaddrinfo.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpserver.c:
+	    A burst of activity to fix compilation at SunOS 4.1.*
+	    systems with the system's K&R compiler.  (Sigh what a
+	    moron for a compiler...  Was the pre ANSI-C era really
+	    that awfull ???)  (This is not complete work, more needs
+	    to be done before it all goes thru..)
+
 	* utils/policy-builder.sh.in:
 	    Add use of '-A' (append) to the policy-building parameters.
 
