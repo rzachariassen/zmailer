@@ -1,5 +1,8 @@
 2003-04-28  Matti Aarnio  <mea@zmailer.org>
 
+	* utils/mxverify/mxverify-cgi.c:
+	    Auto-detect, if can use IPv6 addresses in testing.
+
 	* scheduler/mailq.c, man/mailq.1:
 	    Added '-Z' option to mailq, alike at scheduler, et.al.
 
