@@ -221,9 +221,9 @@ static void cfparam(str, size, cfgfilename, linenum)
 	sscanf(param1, "%ld", &maxsize);
     } else if (cistrcmp(name, "min-availspace") == 0 && param1) {
 	if (sscanf(param1, "%ld", &minimum_availspace) == 1) {
-	  minimum_availspace *= 1024;
-	  if (minimum_availspace < 1000000)
-	    minimum_availspace = 1000000;
+	  /* Minimum of minimum is 1000 kB ! */
+	  if (minimum_availspace < 1000)
+	    minimum_availspace = 1000;
 	}
     } else if (cistrcmp(name, "RcptLimitCnt") == 0 && param1) {
 	sscanf(param1, "%d", &rcptlimitcnt);

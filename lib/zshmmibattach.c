@@ -62,7 +62,7 @@ int SHM_file_mode = 0664;
 long Z_SHM_FileSysFreeSpace __((void))
 {
 	if (SHM_storage_fd >= 0) {
-	  return ( fd_statfs(SHM_storage_fd) / 1024 );
+	  return ( fd_statfs(SHM_storage_fd) );
 	} else {
 	  return ( 2000000 );
 	}

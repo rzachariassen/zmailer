@@ -58,6 +58,13 @@
 #include <varargs.h>		/* If no  <stdarg.h>,  then presume <varargs.h> ... */
 #endif
 
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+#ifndef LONG_MAX
+# define LONG_MAX 2147483647L /* For 32 bit machine! */
+#endif
+
 #include <netinet/in.h> /* In some systems needed before <arpa/inet.h> */
 #include <arpa/inet.h>
 

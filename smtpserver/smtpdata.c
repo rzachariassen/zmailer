@@ -185,12 +185,13 @@ const char *buf, *cp;
 
     availspace = fd_statfs(FILENO(SS->mfp));
     if (availspace < 0)
-	availspace = 2000000000;	/* Over 2G ? */
-
+	availspace = LONG_MAX / 1024;	/* Over 2G ? */
     if (availspace >= 0)
-      MIBMtaEntry->sys.SpoolFreeSpace = availspace / 1024;
-
+      MIBMtaEntry->sys.SpoolFreeSpace = availspace;
     availspace -= minimum_availspace;
+    if (availspace > (LONG_MAX / 1024))
+      availspace = LONG_MAX / 1024;
+    availspace *= 1024;
 
     if (*msg != 0) {
 	mail_abort(SS->mfp);
@@ -498,13 +499,14 @@ const char *buf, *cp;
 
     availspace = fd_statfs(FILENO(SS->mfp));
     if (availspace < 0)
-	availspace = 2000000000;	/* Over 2G ? */
+	availspace = LONG_MAX / 1024;	/* Over 2G ? */
 
     if (availspace >= 0)
-      MIBMtaEntry->sys.SpoolFreeSpace = availspace / 1024;
-
-
+      MIBMtaEntry->sys.SpoolFreeSpace = availspace;
     availspace -= minimum_availspace;
+    if (availspace > (LONG_MAX / 1024))
+      availspace = LONG_MAX / 1024;
+    availspace *= 1024;
 
     /* The common typeflush() is at the end... */
     if (SS->mfp == NULL) {

@@ -242,7 +242,7 @@ void timed_log_reinit()
 	S_ISREG(stbuf.st_mode)) {
 
       long fsspace = fd_statfs(sffileno(sfstdout));
-      MIBMtaEntry->sys.LogFreeSpace = fsspace / 1024;
+      MIBMtaEntry->sys.LogFreeSpace = fsspace;
     }
   }
 }

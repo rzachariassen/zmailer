@@ -171,7 +171,7 @@ const char *m571 = "5.7.1";
 const char *style = "ve";
 
 long availspace = -1;		/* available diskspace/2 in bytes       */
-long minimum_availspace = 5000000; /* 5 million bytes free, AT LEAST */
+long minimum_availspace = 5000; /* 5 million bytes free, AT LEAST */
 long maxsize = 0;
 int ListenQueueSize  = 20000;
 int TcpRcvBufferSize = 0;

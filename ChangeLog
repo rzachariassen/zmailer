@@ -1,5 +1,14 @@
 2003-06-09  Matti Aarnio  <mea@zmailer.org>
 
+	* lib/fdstatfs.c, lib/zshmmibattach.c, scheduler/scheduler.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpcmds.c,
+	  smtpserver/smtpdata.c, smtpserver/smtpserver.c:
+	    Changed the  fd_statfs()  to report KILOBYTES of free space,
+	    while still returning it via mere 'long' variable in all
+	    systems (e.g. may have limit of LONG_MAX a.k.a. around 2 G,
+	    which in kilobytes means: around 2 Terabytes ..)
+	    Also re-juggled codes using this free-space data.
+
 	* man/Makefile.in, man/mailq-m-generate.pl, scheduler/mailq.inc,
 	  man/man-to-html.sh, man/mailq.1.in:
 	    Generating "mailq-m(5)" man-page from within mailq.inc
