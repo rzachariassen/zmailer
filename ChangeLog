@@ -1,3 +1,29 @@
+1999-05-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* README.CRYPTO, bin/usa-itar-stripper.sh, Makefile.in,
+	  smtpserver/smtpauth.c, smtpserver/smtpcmds.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/smtptls.c:
+	    Modifications and tools to allow package management
+	    to be done with command:  'make dist-usa'
+	    The resulting TAR file should be US ITAR compliant.
+
+	* include/listutils.h:
+	    K&R compiler reminder; all the world isn't ANSI...
+
+	* transports/mailbox/mailbox.c:
+	    Don't generate X-UIDL: header when sending the message
+	    thru a pipe...
+
+	* transports/smtp/smtp.c:
+	    Hunting the reason for SEGV in case ALRM triggers in
+	    a few odd situations.
+
+	* scheduler/transport.c:
+	    If the command= line for some channel/host selector
+	    tag contains $-expression for ZENV variable, and that
+	    variable does not exist, the scheduler did crash..
+	
 1999-05-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* VERSION 2.99.50s18

@@ -1887,8 +1887,8 @@ appendlet(SS, dp, convertmode)
 		      "500 (msgbuffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
 		      strerror(errno),
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	      MFPCLOSE
 	      alarm(0);
+	      MFPCLOSE
 	      return EX_IOERR;
 	    }
 #if (defined(HAVE_MMAP) && defined(TA_USE_MMAP))
@@ -3330,7 +3330,8 @@ int bdat_flush(SS, lastflg)
 	SmtpState *SS;
 	int lastflg;
 {
-	int pos, i, wrlen, r;
+	int pos, i, wrlen;
+	volatile int r;   /* longjump() globber danger */
 	char lbuf[80];
 	jmp_buf oldalarmjmp;
 	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
@@ -3344,7 +3345,6 @@ int bdat_flush(SS, lastflg)
 	if (r != EX_OK)
 	  return r;
 
-	&r; /* longjump() globber danger */
 
 	if (setjmp(alarmjmp) == 0) {
 	  for (pos = 0; pos < SS->chunksize;) {
@@ -3368,22 +3368,23 @@ int bdat_flush(SS, lastflg)
 	      return EX_TEMPFAIL;
 	    }
 	  }
-	}
-	alarm(0);
-	SS->chunksize = 0;
-	memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+	  alarm(0);
+	  SS->chunksize = 0;
 
-	if (gotalarm)
-	  return EX_TEMPFAIL;
-
-	if (SS->smtpfp) {
-	  if (lastflg || ! SS->pipelining)
-	    r = smtp_sync(SS, r, 0);
-	  else
-	    r = smtp_sync(SS, r, 1); /* non-blocking */
+	  if (SS->smtpfp) {
+	    if (lastflg || ! SS->pipelining)
+	      r = smtp_sync(SS, r, 0);
+	    else
+	      r = smtp_sync(SS, r, 1); /* non-blocking */
+	  } else {
+	    r = EX_TEMPFAIL;
+	  }
 	} else {
+	  /* Arrival of alarm is caught... */
 	  r = EX_TEMPFAIL;
+	  alarm(0);
 	}
+	memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	return r;
 }
 
@@ -3561,13 +3562,13 @@ smtp_sync(SS, r, nonblocking)
 	static int first_line = 1;
 
 	if (!nonblocking) {
-	  unsigned int oldalarm;
+	  volatile unsigned int oldalarm;
 	  jmp_buf oldalarmjmp;
 	  memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
 
-	  oldalarm = alarm(timeout);
 	  gotalarm = 0;
 	  if (setjmp(alarmjmp) == 0) {
+	    oldalarm = alarm(timeout);
 	    fflush(SS->smtpfp);			/* Flush output */
 	  }
 	  if (gotalarm)

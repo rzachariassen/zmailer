@@ -13,4 +13,9 @@
 	and at the web-server  http://www.zmailer.org/
 
 
+	There is a way to quickly construct US ITAR compliant source,
+	by executing command  'make dist-usa',  the resulting TAR
+	package is exportable out from USA.
+
+
 /Matti Aarnio - 1999-May-14

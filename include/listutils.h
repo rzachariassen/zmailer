@@ -115,13 +115,13 @@ extern conscell *s_last __((conscell *));
 
 #if !defined(__GNUC__)
 
-extern conscell *copycell(conscell*X);
-extern conscell *nconc(conscell *X, conscell *Y);
-extern conscell *ncons(conscell *X);
-extern conscell *cons(conscell *X, conscell *Y);
-extern conscell *s_push(conscell *X, conscell *Y);
-extern conscell *newstring(char *s, const int slen);
-extern conscell *conststring(const char *s, const int slen);
+extern conscell * copycell    __((conscell*X));
+extern conscell * nconc       __((conscell *X, conscell *Y));
+extern conscell * ncons       __((conscell *X));
+extern conscell * cons        __((conscell *X, conscell *Y));
+extern conscell * s_push      __((conscell *X, conscell *Y));
+extern conscell * newstring   __((char *s, const int slen));
+extern conscell * conststring __((const char *s, const int slen));
 
 #else /* ---- not profiling ---- */
 

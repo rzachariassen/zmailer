@@ -329,8 +329,11 @@ start_child(vhead, chwp, howp)
 		    strcpy(s,howp->name);
 		  } else if (strcmp(ocp,"channel")==0) {
 		    strcpy(s,chwp->name);
-		  } else
-		    strcpy(s, getzenv(ocp));
+		  } else {
+		    char *t = getzenv(ocp);
+		    if (t)
+		      strcpy(s, t);
+		  }
 		  s += strlen(s);
 		  *cp = '}';
 		} else

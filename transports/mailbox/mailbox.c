@@ -1832,7 +1832,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	  decodeXtext(fp, dp->envid);
 	  fprintf(fp, "\n");
 	}
-	if (do_xuidl) {
+	if (do_xuidl && !topipe) {
 	  struct timeval tv;
 	  gettimeofday(&tv, NULL);
 

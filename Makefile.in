@@ -221,6 +221,19 @@ distprivate:
 	(cd .. ; tar cvf - `cat /tmp/MANIFEST` ) > `basename \`pwd\``.tar
 	rm -f /tmp/MANIFEST #MANIFEST
 
+dist-usa:
+	@echo 'Did you run "make scrub" first?' ; sleep 2
+	chmod -R a+rX .
+	./bin/usa-itar-stripper.sh
+	find . -type d -o -type f -print | \
+	  egrep -v -e '/(private[/$$]|config.cache|crypto|config.status|CVS[/$$]|RCS[/$$]|ID$$|.*\.o$$|fc[/$$]|.*\.a$$)' | \
+	  CWD=`pwd` sed -e '/\.tar.*/d' -e "s/^\./`sh -c 'basename \`pwd\`'`/" | \
+	  sort -t/ > MANIFEST
+	cp MANIFEST /tmp
+	(cd .. ; tar cvf - `cat /tmp/MANIFEST` ) > `basename \`pwd\``.tar
+	./bin/usa-itar-stripper.sh reverse
+	rm -f /tmp/MANIFEST #MANIFEST
+
 
 # For the justification of the following Makefile rules, see node
 # `Automatic Remaking' in GNU Autoconf documentation.
