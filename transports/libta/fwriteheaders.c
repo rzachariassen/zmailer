@@ -83,9 +83,7 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 		      ++p;
 		      ++col;
 		      ++hsize;
-		      --linelen;
 		    }
-		    ++linelen; /* Compensate the for(;;--linelen) */
 		  } else {
 		    *p = c1;
 		    ++p;

@@ -1,11 +1,15 @@
 2000-11-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+	
+	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
+	    Some leftover counter adjustments in places where it now harmed...
 
 	* transports/smtp/smtp.c:
 	    Debugging most peculiar problems - propably at swriteheader.c
+	    Showing at the verbose log the WRITTEN headers.
 
 	* transports/smtp/smtp.c:
 	    A bit different handling on pipelined response collection.
-	    If MAIL FROM yields error, report it, never mind what socket
+	    If MAIL FROM yields an error, report it, never mind what socket
 	    read did latter..
 
 	* transports/libta/mimeheaders.c:
