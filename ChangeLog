@@ -1,5 +1,10 @@
 1998-02-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/scheduler.c, scheduler/update.c:
+	    When #resync:ing a file, read it immediately back, but
+	    for those vertices that have a lock, issue a delayed
+	    "wakeup"..
+
 	* proto/cf/aliases.cf:
 	    User's domain identity carrying fixed
 
