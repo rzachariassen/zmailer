@@ -75,7 +75,8 @@ INCLUDEDIR=	@includedir@
 
 # The INPUTNOTIFY defines, where is a socket at which some pre-router queue
 # processor listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
-# The injection library informs the router queuing subsystem of new jobs.
+# The injection library informs the router queuing subsystem of new jobs,
+# and does it with same message as  ROUTERNOTIFY=  uses.
 #INPUTNOTIFY=@POSTOFFICE@/.input.notify
 
 

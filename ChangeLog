@@ -1,3 +1,13 @@
+2003-05-05  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/mailrm.sh.in, proto/newaliases.in, proto/newfqdnaliases.in,
+	  proto/post-install.sh.in, transports/expirer/manual-expirer.in,
+	  transports/reroute/manual-rerouter.in, utils/policy-builder.sh.in,
+	  utils/rotate-logs.sh.in, utils/zmailer.init.sh.in:
+	    Eugene Crosser noted, that not all scripts inherit / are
+	    otherwise configurable to use alternate (than configured-in)
+	    value of  ZCONFIG.
+
 2003-05-02  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/contentpolicy.c, smtpserver/readpolicy.c,
