@@ -56,7 +56,7 @@ pkgs-01:	# DIRECTORIES, BINARIES
 		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next} \
 			{print}' \
 		> proto
-	cat pkginfo-01.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
+	cat ${srcdir}/pkginfo-01.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
 	pkgmk -o -f proto
 
 pkgs-02:	# CONFIGURATION FILES, FORMS, ...
@@ -75,5 +75,5 @@ pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next} \
 			{print}' \
 		> proto
-	cat pkginfo-02.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
+	cat ${srcdir}/pkginfo-02.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
 	pkgmk -o -f proto
