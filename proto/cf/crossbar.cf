@@ -92,8 +92,13 @@ crossbar (from, to) {
 	# of the message instance.  Here we cooperate in the scheme which
 	# is to set the 'sender' attribute of the destination address.
 
-	tmp="$(get $(attributes $to) sender)" && [ x"$tmp" != x ] &&
-		from=(local "$tmp" "$tmp" $(attributes $from))
+	if tmp="$(get $(attributes $to) sender)" && [ x"$tmp" != x ] ; then
+		if [ "$tmp" = '<>' ] ; then
+			from=(error "$tmp" "$tmp" $(attributes $from))
+		else
+			from=(local "$tmp" "$tmp" $(attributes $from))
+		fi
+	fi
 
 
 	case "$(channel $from)" in

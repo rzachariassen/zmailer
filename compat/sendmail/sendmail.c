@@ -51,7 +51,7 @@ extern int  errno;
 extern int  optind;
 extern void doabort __((int));
 extern int  mail_priority;
-extern void check_and_print_to __((FILE *, const char*, const char*));
+extern void check_and_print_to __((FILE *, const char*, const char*, const char *));
 extern int  is_xtext_string __((const char *));
 
 const char *progname;
@@ -440,15 +440,12 @@ otherprog:
 			exit(EX_UNAVAILABLE);
 		}
 		if ((pid = fork()) > 0) {
-			mav[1] = "-dk";
-			execv(ROUTER, (char*const*)mav);
-			perror(ROUTER);
-			exit(EX_UNAVAILABLE);
-		} else if (pid == 0) {
-			mav[0] = "scheduler";
-			mav[1] = "-d";
-			execv(SCHEDULER, (char*const*)mav);
-			perror(SCHEDULER);
+			exit(0);
+		} else if (pid == 0) { /* Child */
+			mav[0] = "zmailer";
+			mav[1] = NULL;
+			execv("zmailer", (char*const*)mav);
+			perror(zmailer);
 			exit(EX_UNAVAILABLE);
 		}
 		perror("fork");
@@ -602,7 +599,7 @@ otherprog:
 
 		if (!rfc822recipients)
 		  for (; optind < argc; ++optind)
-		    check_and_print_to(mfp,argv[optind],notificationopt);
+		    check_and_print_to(mfp,argv[optind],notificationopt,from);
 
 		fprintf(mfp,"env-end\n");
 
@@ -799,11 +796,11 @@ int dummy;
 
 /* haa@cs.hut.fi:  Sometimes address components contain pure junk.. */
 void
-check_and_print_to(mfp, addr, notify)
+check_and_print_to(mfp, addr, notify, from)
 	FILE *mfp;
-	const char *addr, *notify;
+	const char *addr, *notify, *from;
 {
-	const char *copy = NULL, *printme = addr, *from;
+	const char *copy = NULL, *printme = addr, *frm;
 	const char *s, *newcp = NULL;
 	char *to;
 
@@ -817,8 +814,8 @@ check_and_print_to(mfp, addr, notify)
 	  if (to == NULL) return;	  /* should never happen... */
 
 	  copy = to;
-	  for (from = addr; *from; ++from)
-	    if (*from != '\n') *to++ = *from;
+	  for (frm = addr; *frm; ++frm)
+	    if (*frm != '\n') *to++ = *frm;
 	  *to = 0;
 
 	  printme = copy;
@@ -837,6 +834,31 @@ check_and_print_to(mfp, addr, notify)
 	    fprintf(mfp,"+%02X",c);
 	  ++s;
 	}
+
+	fprintf(mfp, " INRCPT=rfc822;");
+	s = printme;
+	while (*s) {
+	  u_char c = *s;
+	  if ('!' <= c && c <= '~' && c != '+' && c != '=')
+	    putc(c,mfp);
+	  else
+	    fprintf(mfp,"+%02X",c);
+	  ++s;
+	}
+
+	if (from) {
+	  fprintf(mfp, " INFROM=rfc822;");
+	  s = from;
+	  while (*s) {
+	    u_char c = *s;
+	    if ('!' <= c && c <= '~' && c != '+' && c != '=')
+	      putc(c,mfp);
+	    else
+	      fprintf(mfp,"+%02X",c);
+	    ++s;
+	  }
+	}
+
 	if (notify)
 	  fprintf(mfp," NOTIFY=%s", notify);
 	putc('\n',mfp);

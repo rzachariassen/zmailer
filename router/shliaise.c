@@ -376,7 +376,7 @@ static char gsbuf[30];
  *  newattribute_2()
  */
 char *newattribute_2(onam,nam,val)
-const char *onam, *nam, *val;
+     const char *onam, *nam, *val;
 {
 	conscell *l, *lc, *tmp, **pl;
 	conscell	*l1;
@@ -395,11 +395,15 @@ const char *onam, *nam, *val;
 	pl = &car(l);
 	l1 = *pl;
 	for (lc = l1; lc && cdr(lc); pl = &cddr(lc),lc = *pl) {
-	  if (!STRING(lc))
+	  if (!STRING(lc)) {
+	    UNGCPRO4;
 	    return NULL; /* ?? */
+	  }
 	  if (strcmp(nam,lc->string)==0) {
-	    if (!cdr(lc))
+	    if (!cdr(lc)) {
+	      UNGCPRO4;
 	      return NULL;
+	    }
 	    *pl = cddr(lc) /* Skip this in chain */;
 	  }
 	}
@@ -424,10 +428,12 @@ const char *onam, *nam, *val;
 /*
  * Build gensym
  */
-char *
-build_gensym(uid,type,DSNstr,errorsto,sender)
-int uid;
-const char *type, *DSNstr, *errorsto, *sender;
+static char  *build_gensym __((int, const char*, const char*, const char*, const char*, const char*, const char*));
+
+static char *
+build_gensym(uid, type, DSNstr, DSNret, DSNenv, errorsto, sender)
+     int uid;
+     const char *type, *DSNstr, *DSNret, *DSNenv, *errorsto, *sender;
 {
 	char buf[20];
 	conscell *l, *pl;
@@ -440,21 +446,29 @@ const char *type, *DSNstr, *errorsto, *sender;
 	sprintf(buf, "%d", uid);
 	pl = l;
 	NEWDUPSTR(buf);
-	if (type != NULL) {
+	if (type) {
 		CONSTSTR("type");
-		NEWDUPSTR(type);
+		CONSTSTR(type); /* Always a constant string */
 	}
-	if (DSNstr != NULL) {
+	if (DSNstr) {
 		CONSTSTR("DSN");
 		NEWDUPSTR(DSNstr);
 	}
+	if (DSNret) {
+		CONSTSTR("DSNr");
+		NEWDUPSTR(DSNret);
+	}
+	if (DSNenv) {
+		CONSTSTR("DSNe");
+		NEWDUPSTR(DSNenv);
+	}
 	/* See if some "errorsto" definition is available.. */
-	if (errorsto != NULL) {
+	if (errorsto) {
 		CONSTSTR("ERR");
 		NEWDUPSTR(errorsto);
 	}
 	/* See if some "sender" definition is available.. */
-	if (sender != NULL) {
+	if (sender) {
 		CONSTSTR("sender");
 		NEWDUPSTR(sender);
 	}
@@ -476,10 +490,10 @@ const char *type, *DSNstr, *errorsto, *sender;
  */
 
 conscell *
-router(a, uid, type)
+router(a, uid, type, senderstr)
 	struct address *a;
 	int uid;
-	const char *type;
+	const char *type, *senderstr;
 {
 	register token822 *t, *tt;
 	int r;
@@ -489,14 +503,20 @@ router(a, uid, type)
 	const char *gsym;
 	struct notary *DSN = NULL;
 	const char *DSNstr;
+	const char *DSNret;
+	const char *DSNenv;
 	GCVARS1;
 
 	if (a == NULL)
 		return NULL;
 	t = last = NULL;
 	DSN = a->a_dsn;
-	DSNstr = NULL;
-	if (DSN) DSNstr = DSN->dsn;
+	DSNstr = DSNret = DSNenv = NULL;
+	if (DSN) {
+	  DSNstr = DSN->dsn;
+	  DSNret = DSN->ret;
+	  DSNenv = DSN->envid;
+	}
 	for (p = a->a_tokens; p != NULL; p = p->p_next)
 		if (p->p_type == anAddress) {
 			/* link up all address tokens together */
@@ -520,7 +540,7 @@ router(a, uid, type)
 	if (t->t_pname[0] == '<' && TOKENLEN(t) == 1 && t->t_next == NULL)
 		abort();
 
-	gsym = build_gensym(uid,type,DSNstr,errors_to,NULL);
+	gsym = build_gensym(uid, type, DSNstr, DSNret, DSNenv, errors_to, senderstr);
 
 	deferit = 0;
 	v_set(DEFER, "");

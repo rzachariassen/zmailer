@@ -62,7 +62,8 @@ extern int run_process   ARGCV;
 
 static int run_grpmems   ARGCV;
 static int run_praliases ARGCV;
-static int run_listaddrs ARGCV;
+static int run_listaddresses ARGCV;
+static int zap_DSN_notify ARGCV;
 static int run_homedir   ARGCV;
 static int run_822date   ARGCV;
 static int run_filepriv  ARGCV;
@@ -116,7 +117,8 @@ struct shCmd fnctns[] = {
 {	"rfc822",	run_rfc822,	NULL,	NULL,	0	},
 {	"groupmembers",	run_grpmems,	NULL,	NULL,	0	},
 {	"printaliases",	run_praliases,	NULL,	NULL,	0	},
-{	"listaddresses",run_listaddrs,	NULL,	NULL,	SH_ARGV	},
+{	"listaddresses",run_listaddresses,NULL,	NULL,	SH_ARGV	},
+{	"zapDSNnotify", zap_DSN_notify,	NULL,	NULL,	SH_ARGV	},
 {	"listexpand",	NULL,	run_listexpand,	NULL,	SH_ARGV	},
 #if 0
 {	"newattribute",	NULL,	run_newattribute, NULL,	SH_ARGV	},
@@ -659,6 +661,149 @@ FILE *fp;
 }
 #endif
 
+
+/*
+ *  zap_DSN_notify()
+ *
+ *  To be called immediately after a new nattr value has been generated,
+ *  and thus a new storage variable for it exists!
+ *
+ *  $(zapDSNnotify attrlistvarname [diagname finalsuccessrcpt])
+ *
+ */
+static int zap_DSN_notify(argc, argv)
+     int argc;
+     const char *argv[];
+{
+	conscell *l, *lc, **pl;
+	conscell *l1, *tmp;
+	int notifysuccess = 0;
+	int notifytrace   = 0;
+	int len;
+	char *s;
+	const char *onam = argv[1];
+	const char *diagname = NULL;
+
+	l1 = v_find(onam);
+	if (!l1)
+	  return 0;
+	l = cdr(l1);
+	lc = l1 = NULL;
+
+	pl = &car(l);
+	l = *pl;
+	for (lc = l; lc && cdr(lc); pl = &cddr(lc),lc = *pl) {
+	  if (!STRING(lc))
+	    return 0; /* ?? */
+	  if (strcmp("DSN",lc->string)==0) {
+	    lc = cdr(lc);
+	    if (!lc || !STRING(lc))
+	      return 0;
+	    break;
+	  }
+	}
+	if (!lc) return 0; /* No DSN data */
+
+	s = lc->string;
+
+	if (D_sequencer)
+	  fprintf(stderr," zapDSNnotify('%s') DSN='%s'  -> ", onam, s);
+
+	while (*s) {
+	  if (CISTREQN(s,"NOTIFY=",7)) {
+	    char *p = s+7;
+	    /* While non-blank (parameter) string */
+	    while (*p && *p != ' ' && *p != '\t') {
+	      if (*p == ',') {
+		++p;
+		continue;
+	      }
+	      if (CISTREQN(p,"SUCCESS",7)) {
+		notifysuccess=1;
+		if (p[7] == ',')
+		  strcpy(p,p+8); /* ZAP the "SUCCESS," status! */
+		else
+		  strcpy(p,p+7); /* ZAP the "SUCCESS" status! */
+		continue;
+	      }
+	      if (CISTREQN(p,"TRACE",5)) {
+		notifytrace = 1;
+		if (p[5] == ',')
+		  strcpy(p,p+6); /* ZAP the "TRACE," status! */
+		else
+		  strcpy(p,p+5); /* ZAP the "TRACE" status! */
+		continue;
+	      }
+	      ++p;
+	    }
+	    /* Ok,  Now we may have e.g.:
+	         i1: NOTIFY=NEVER
+	         o1: NOTIFY=NEVER
+		 i2: NOTIFY=SUCCESS,DELAY,FAILURE
+		 o2: NOTIFY=DELAY,FAILURE
+		 i3: NOTIFY=DELAY,SUCCESS,FAILURE
+		 o3: NOTIFY=DELAY,FAILURE
+		 i4: NOTIFY=DELAY,FAILURE,SUCCESS
+		 o4: NOTIFY=DELAY,FAILURE,
+		 i5: NOTIFY=SUCCESS
+		 o5: NOTIFY=
+	       of which the o4 needs trailing comma cleanup,
+	       and o5 zapping of the entire NOTIFY parameter. */
+
+	    if (p > s && p[-1] == ',') /* Case 4 */
+	      p[-1] = ' '; /* An extra comma to zap */
+
+	    if (p > s && p[-1] == '=') /* Case 5 */ {
+	      while (*p == ' ' || *p == '\t') ++p;
+	      strcpy(s, p); /* That the entire NOTIFY= parameter */
+	      continue;
+	    }
+
+	    /* Skip over trailing whitespace */
+	    while (*p == ' ' || *p == '\t') ++p;
+	    s = p;
+	    continue; /* This is done, restart */
+	  } /* end of  if ("NOTIFY=") */
+
+	  /* Nothing recognized, scan over the non-blank string */
+	  while (*s && *s != ' ' && *s != '\t') ++s;
+	  /* And possible trailing whitespace */
+	  while (      *s == ' ' || *s == '\t') ++s;
+	}
+
+	if (D_sequencer)
+	  fprintf(stderr,"'%s'  rc=%d\n", lc->string, notifysuccess);
+
+	if (!notifysuccess && !notifytrace) return 0; /* We are DONE! */
+
+	/* Now depending are we handling a mailing-list expansion, or
+	   an alias expansion (RFC 1894, 6.2.7.*) we either report
+	   "delivered" to the list input address, OR "expanded"
+	   for aliases and .forwards (single recipient ones should
+	   *not* report anything but rewrite the recipient address,
+	   but we slip at that..) */
+
+	s = lc->string;
+	len = strlen(s);
+
+	s = (char *)realloc(s, len+23);
+	if (!s) return -1; /* Hardly happens, but... */
+
+	lc->string = s;
+
+	s += len;
+
+	if (notifysuccess && notifytrace)
+	  strcpy(s, " NTRACE=SUCCESS,TRACE");
+	else if (notifysuccess)
+	  strcpy(s, " NTRACE=SUCCESS");
+	else if (notifytrace)
+	  strcpy(s, " NTRACE=TRACE");
+
+	return notifysuccess;
+}
+
+
 /* listexpand()  -- do a bunch of tasks usually done with a group of
    functions, starting with  "listaddresses" ... */
 
@@ -912,11 +1057,6 @@ run_listexpand(avl, il)
 	}
 
 
-	if (mfp != NULL) {
-	  siofds[FILENO(mfp)] = osiop;
-	  mail_close(mfp);
-	}
-
 	fclose(fp);	/* Now we discard the stdio buffers, but not the
 			   fd number 0!  Actually we use a copy of it..	*/
 	dup2(fd2,0);	/* Return the fd to descriptor 0..		*/
@@ -948,6 +1088,31 @@ run_listexpand(avl, il)
 		  while (*atail != NULL)
 		    atail = &((*atail)->a_next);
 		}
+
+		if (mfp == NULL) {
+		  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
+		    osiop = siofds[FILENO(mfp)];
+		    siofds[FILENO(mfp)] = NULL;
+		    fprintf(mfp, "channel error\n");
+		    fprintf(mfp, "to <%s>\n", erroraddress);
+		    fprintf(mfp, "to <postmaster>\n");
+		    fprintf(mfp, "env-end\n");
+		    fprintf(mfp, "From: Error Channel <MAILER-DAEMON>\n");
+		    fprintf(mfp, "To: %s\n", erroraddress);
+		    fprintf(mfp, "Cc: The Post Office <postmaster>\n");
+		    fprintf(mfp, "Subject: Error in %s\n", comment);
+		    fprintf(mfp, "Precedence: junk\n\n");
+		    /* Print the report: */
+		    fprintf(mfp,"NO valid recipient addresses!\n");
+		  }
+		} else { /* mfp != NULL */
+		  fprintf(mfp,"\nNO valid recipient addresses!\n");
+		}
+	}
+
+	if (mfp != NULL) {
+	  siofds[FILENO(mfp)] = osiop;
+	  mail_close(mfp);
 	}
 
 	cnt = 0;
@@ -1153,7 +1318,7 @@ run_listexpand(avl, il)
 
 
 static int
-run_listaddrs(argc, argv)
+run_listaddresses(argc, argv)
 	int argc;
 	const char *argv[];
 {
@@ -1349,12 +1514,6 @@ run_listaddrs(argc, argv)
 		++okaddresses;
 	}
 
-	if (mfp != NULL) {
-	  siofds[FILENO(mfp)] = osiop;
-	  mail_close(mfp);
-	}
-
-
 	fclose(fp);	/* Now we discard the stdio buffers, but not the
 			   fd number 0!  Actually we use a copy of it..	*/
 	dup2(fd2,0);	/* Return the fd to descriptor 0..		*/
@@ -1385,6 +1544,32 @@ run_listaddrs(argc, argv)
 		  while (*atail != NULL)
 		    atail = &((*atail)->a_next);
 		}
+
+		if (mfp == NULL) {
+		  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
+		    osiop = siofds[FILENO(mfp)];
+		    siofds[FILENO(mfp)] = NULL;
+		    fprintf(mfp, "channel error\n");
+		    fprintf(mfp, "to <%s>\n", erroraddress);
+		    fprintf(mfp, "to <postmaster>\n");
+		    fprintf(mfp, "env-end\n");
+		    fprintf(mfp, "From: Error Channel <MAILER-DAEMON>\n");
+		    fprintf(mfp, "To: %s\n", erroraddress);
+		    fprintf(mfp, "Cc: The Post Office <postmaster>\n");
+		    fprintf(mfp, "Subject: Error in %s\n", comment);
+		    fprintf(mfp, "Precedence: junk\n\n");
+		    /* Print the report: */
+		    fprintf(mfp,"NO valid recipient addresses!\n");
+		  }
+		} else { /* mfp != NULL */
+		  fprintf(mfp,"\nNO valid recipient addresses!\n");
+		}
+
+	}
+
+	if (mfp != NULL) {
+	  siofds[FILENO(mfp)] = osiop;
+	  mail_close(mfp);
 	}
 
 	for (ap = aroot; ap != NULL; ap = ap->a_next) {
@@ -1456,7 +1641,7 @@ run_filepriv(argc, argv)
 	const char *file, *cp;
 	char *dir;
 	int maxperm = 0666 ^ filepriv_mask_reg; /* XOR.. */
-	FILE *fp;
+	int fd;
 
 	if (argc > 2 && argv[1][0] == '-' && argv[1][1] == 'M') {
 	  ++argv;
@@ -1475,21 +1660,21 @@ run_filepriv(argc, argv)
 	if (argc == 3 && isascii(argv[2][0]) && isdigit(argv[2][0]))
 		id = atoi(argv[2]);
 	else {
-		fp = fopen(file, "r");
-		if (fp == NULL) {
+		fd = open(file, O_RDONLY, 0);
+		if (fd < 0) {
 			/* if we can't open it, don't trust it */
 			perror(file);
 			fprintf(stderr,
-				"%s: cannot fopen(\"%s\")!\n", argv0, file);
+				"%s: cannot open(\"%s\")!\n", argv0, file);
 			return 2;
 		}
-		if (fstat(FILENO(fp), &stbuf) < 0) {
+		if (fstat(fd, &stbuf) < 0) {
 			fprintf(stderr, "%s: cannot fstat(\"%s\")!\n",
 				argv0, file);
-			fclose(fp);
+			close(fd);
 			return 3;
 		}
-		fclose(fp);
+		close(fd);
 		if (!S_ISREG(stbuf.st_mode)
 		    || ((stbuf.st_mode & 07777) & ~maxperm) != 0) {
 			/*

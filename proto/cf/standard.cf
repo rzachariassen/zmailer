@@ -327,3 +327,11 @@ if [ -r $MAILVAR/db/kill-headers ]
 then
   . $MAILVAR/db/kill-headers
 fi
+
+if nobodypriv=$(login2uid nobody) ; then
+ # Curiously, this is what nonexistent user should return for
+ # the login2uid function as well :)
+ :
+else
+  echo "nobodypriv (uid)  IS BAD ??  No 'nobody' user ???"
+fi

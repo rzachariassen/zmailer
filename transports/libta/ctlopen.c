@@ -581,6 +581,13 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		  if (*s) *s++ = 0;
 		  continue;
 		}
+		if (CISTREQN("INFROM=",s,7)) {
+		  s += 7;
+		  /* FIXME: pull INFROM into some sensible use.. */
+		  while (*s && *s != ' ' && *s != '\t') ++s;
+		  if (*s) *s++ = 0;
+		  continue;
+		}
 		/* XX: BOO! Unknown value! */
 		while (*s && *s != ' ' && *s != '\t') ++s;
 	      }

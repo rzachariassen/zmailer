@@ -179,8 +179,7 @@ extern int	s_apply __((int argc, const char *argv[]));
 extern int	n_apply __((char **cpp, int argc, const char *argv[]));
 extern struct header *hdr_rewrite __((const char *name, struct header *h));
 extern void	setenvinfo __((struct envelope *e));
-extern char     *build_gensym __((int uid, const char *type, const char *DSNstr, const char *errorsto, const char *sender));
-extern conscell *router __((struct address *a, int uid, const char *type));
+extern conscell *router __((struct address *a, int uid, const char *type, const char *senderstr));
 extern conscell *crossbar __((conscell *from, conscell *to));
 extern char *newattribute_2 __((const char *, const char *, const char *));
 
