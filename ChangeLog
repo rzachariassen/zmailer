@@ -1,3 +1,38 @@
+1998-10-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.50-s10
+
+	* transports/mailbox/mailbox.c:
+	    - Pass "TZ" environment variable to subprocess
+	    - Lots of playing with 'sieve' interface
+
+	* transports/smtp/smtp.c:
+	    Allow address-literals of form  [addrlit]:portnum,
+	    that is you can define explicite route of style:
+		sometarget smtp![ip.addr.lit]:5678
+	    which will then connect to given host and port.
+	    The default port is 25.
+
+	* proto/newdb.in:
+	    "while true" does not work everywhere, use: "while /bin/true"
+
+	* proto/cf/rrouter.cf:
+	    Support for channel-group 'smtpgw*' with its own peculiar
+	    rules.  Originally Sonera internal stuff.
+	
+	* configure.in (and configure):
+	    "--with-privatembox" option added
+
+	* packaging/solaris/*:
+	    Solaris 'pkgadd' tools
+
+	* scheduler/scheduler.c, scheduler/scheduler.h,
+	  scheduler/threads.c, scheduler/transport.c,
+	  scheduler/servauth.h, scheduler/servauth.c:
+	    Two new files (servauth.[ch]), and changes elsewere
+	    to support them.  Incomplete.
+
 1998-08-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* man/mailbox.8, doc/manual/zref-transport-agents.tex:
