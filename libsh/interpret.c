@@ -2384,6 +2384,7 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			if (sift[nsift].str)
 			       free((void*)sift[nsift].str);
 #endif
+			sift[nsift].str = NULL;
 			for (v_accessed = sift[nsift].accessed;
 			     v_accessed != NULL;
 			     v_accessed = sift[nsift].accessed) {
@@ -2439,19 +2440,17 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			}
 			break;
 		case sJumpIfRegmatch:
-#ifndef DEQUOTE_STICKY
 			stickytmp = stickymem;
+#ifndef DEQUOTE_STICKY
 			stickymem = MEM_PERM;
 			if (sift[nsift].str == NULL)
 				sift[nsift].str = strsave("");
-			stickymem = stickytmp;
 #else
-			stickytmp = stickymem;
 			stickymem = MEM_SHCMD;
 			if (sift[nsift].str == NULL)
 				sift[nsift].str = strsave("");
-			stickymem = stickytmp;
 #endif
+			stickymem = stickytmp;
 			setsubexps(&sift[nsift].subexps, re);
 			if ((sift[nsift].count >= 0) &&
 			    !reg_exec(re, sift[nsift].str))
@@ -2631,8 +2630,10 @@ getout:
 		--variableIndex;
 	}
 	while (nsift >= 0) {
+#ifndef DEQUOTE_STICKY
 		if (sift[nsift].str)
 		  free((void*)sift[nsift].str);
+#endif
 		for (v_accessed = sift[nsift].accessed;
 		     v_accessed != NULL;
 		     v_accessed = sift[nsift].accessed) {
