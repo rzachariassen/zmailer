@@ -8,6 +8,18 @@
 <!-- -------------------------------------------------------- -->
 
 <!DOCTYPE book PUBLIC    "-//OASIS//DTD DocBook V3.1//EN" [
+<!--
+  <!ENTITY % local.notation.class "">
+  <!ENTITY % notation.class
+                "BMP| CGM-CHAR | CGM-BINARY | CGM-CLEAR | DITROFF | DVI
+                | EPS | EQN | FAX | GIF | GIF87a | GIF89a
+                | JPG | JPEG | IGES | PCX
+                | PIC | PS | SGML | TBL | TEX | TIFF | WMF | WPG | PDF
+                | linespecific
+                %local.notation.class;">
+  <!ENTITY PDF  "">
+-->
+
 
 <!ENTITY ZManVersion     "v1.99.20">
 

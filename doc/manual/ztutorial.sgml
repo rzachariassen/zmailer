@@ -120,15 +120,8 @@ It shows the relationships between different elements of the model.
 </PARA>
 
 <FIGURE ID="fig.messagemodel" PGWIDE="0" FLOAT="1">
-<TITLE>A graphical example of the messaging model.</>
-<MEDIAOBJECT>
-<IMAGEOBJECT>
-<IMAGEDATA FILEREF="msgmodl.eps" FORMAT="eps">
-</IMAGEOBJECT>
-<IMAGEOBJECT>
-<IMAGEDATA FILEREF="msgmodl.gif" FORMAT="gif">
-</IMAGEOBJECT>
-</MEDIAOBJECT>
+ <TITLE>A graphical example of the messaging model.</>
+ <GRAPHIC FILEREF="msgmodl"></GRAPHIC>
 </FIGURE>
 
 <PARA>
@@ -214,15 +207,8 @@ in figure <XREF LINKEND="FIG.MSGROUT">.
 </PARA>
 
 <FIGURE ID="FIG.MSGROUT" PGWIDE="1" FLOAT="1">
-<TITLE>How a message should be handled.</TITLE>
-<MEDIAOBJECT>
-<IMAGEOBJECT>
-<IMAGEDATA FILEREF="msgrout.eps" FORMAT="eps">
-</IMAGEOBJECT>
-<IMAGEOBJECT>
-<IMAGEDATA FILEREF="msgrout.gif" FORMAT="gif">
-</IMAGEOBJECT>
-</MEDIAOBJECT>
+ <TITLE>How a message should be handled.</TITLE>
+ <GRAPHIC FILEREF="msgrout"></GRAPHIC>
 </FIGURE>
 
 <PARA>
@@ -361,15 +347,8 @@ fit easily everywhere.
 <TITLE>Design Summary</TITLE>
 
 <FIGURE PGWIDE="1" FLOAT="1">
-<TITLE ID="FIG.ZMPROCS">ZMailer's processes.</TITLE>
-<MEDIAOBJECT>
-<IMAGEOBJECT>
-<IMAGEDATA FILEREF="zmprocs.eps" FORMAT="eps">
-</IMAGEOBJECT>
-<IMAGEOBJECT>
-<IMAGEDATA FILEREF="zmprocs.gif" FORMAT="gif">
-</IMAGEOBJECT>
-</MEDIAOBJECT>
+ <TITLE ID="FIG.ZMPROCS">ZMailer's processes.</TITLE>
+ <GRAPHIC FILEREF="msgrout"></GRAPHIC>
 </FIGURE>
 
 <PARA>
@@ -430,17 +409,10 @@ without requiring changes in standard User Agents.
 </PARA>
 
 <FIGURE PGWIDE="1" FLOAT="1">
-<TITLE ID="FIG.ZMDIRS">
-Directories that ZMailer uses for message processing.
-</TITLE>
-<MEDIAOBJECT>
-<IMAGEOBJECT>
-<IMAGEDATA FILEREF="zmdirs.eps" FORMAT="eps">
-</IMAGEOBJECT>
-<IMAGEOBJECT>
-<IMAGEDATA FILEREF="zmdirs.gif" FORMAT="gif">
-</IMAGEOBJECT>
-</MEDIAOBJECT>
+ <TITLE ID="FIG.ZMDIRS">
+  Directories that ZMailer uses for message processing.
+ </TITLE>
+ <GRAPHIC FILEREF="zmdirs"></GRAPHIC>
 </FIGURE>
 
 </SECT2>

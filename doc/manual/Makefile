@@ -32,9 +32,13 @@ PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig \
 		zmdirs.fig zmprocs.fig
 
+.SUFFIXES: .eps .pdf .ps .gif .fig .gif-green .png
+
 FIGEPS :=	$(FIGS:%.fig=%.eps)
+FIGPDF :=	$(FIGS:%.fig=%.pdf)
 FIG_PS :=	$(FIGS:%.fig=%.ps)
 FIGGIF :=	$(FIGS:%.fig=%.gif)
+FIGPNG :=	$(FIGS:%.fig=%.png)
 
 # set and export TEXINPUTS
 TEXINPUTS=$(LATEX2HTMLLIB):$(LINUXDOCLIB):$$TEXINPUTS:
@@ -65,8 +69,8 @@ zmanual.html: gifs $(PARTS)
 	rm -rf zmanual
 	TZ=UTC date > z-datetime.txt
 	echo "HTML" > z-what.txt
-	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl   sh -x  ./db2html zmanual.sgml
-	#sh -x  ./db2html zmanual.sgml
+	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl   sh   ./db2html zmanual.sgml
+	#sh  ./db2html zmanual.sgml
 	cp -p *.gif zmanual/
 	cd zmanual; ../html-post-fixup.sh *.html
 
@@ -76,16 +80,16 @@ zmanual.ps: zmanual.dvi $(FIGEPS)
 zmanual.dvi: $(PARTS) $(FIGEPS) zmanual.sgml
 	TZ=UTC date > z-datetime.txt
 	echo "PostScript" > z-what.txt
-	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh -x  ./db2dvi zmanual.sgml
+	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh  ./db2dvi zmanual.sgml
 
-zmanual.pdf: $(PARTS) $(FIGEPS) zmanual.sgml
+zmanual.pdf: $(PARTS) $(FIGPDF) zmanual.sgml
 	TZ=UTC date > z-datetime.txt
 	echo "PDF" > z-what.txt
-	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh -x  ./db2pdf zmanual.sgml
+	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh  ./db2pdf zmanual.sgml
 
 distclean clean:
 	# Leave "zmanual.ps" in place, if it exists
-	rm -f *~ *.html *.eps *.gif *.bak *.dvi *.toc *.lof
+	rm -f *~ *.html *.eps *.gif *.bak *.dvi *.toc *.lof *.pdf
 	rm -f *.css *.aux *.ptr *.old *.ilg *.gls *.cb *.glo *.log
 	rm -rf l2h[1-9][0-9]* *sections.pl *internals.pl *index.pl
 	rm -f *contents.pl *.ind *.idx *images.pl *table.pl
@@ -94,7 +98,6 @@ distclean clean:
 	rm -f *.gif-green z-datetime.txt
 
 
-.SUFFIXES: .gif .fig .eps .ps .gif-green
 
 %.gif: %.ps
 	rm -f $@.ppm
@@ -113,18 +116,33 @@ distclean clean:
 %.ps: %.fig
 	fig2dev -Lps -c -P -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@
 
-zmanual-logo.eps: zmanual-logo.fig
-	fig2dev -Lps -c -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@
+zmailer-logo.eps: zmailer-logo.fig
+	fig2dev -Leps -c -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@
 
 %.eps: %.fig
-	fig2dev -Lps -c -p x -z A3 -m 0.5000 -x 0 -y 0 -n $@ $< $@
+	fig2dev -Leps -c -p x -z A3 -m 0.5000 -x 0 -y 0 -n $@ $< $@
+
+zmailer-logo.pdf: zmailer-logo.fig
+	fig2dev -Leps -c -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@.eps
+	sh ./eps2epdf $@.eps $@
+	rm -f $@.eps
+
+%.pdf: %.fig
+	fig2dev -Leps -c -p x -z A3 -m 0.5000 -x 0 -y 0 -n $@ $< $@.eps
+	sh ./eps2epdf $@.eps $@
+	rm -f $@.eps
 
 #%.pdf: %.ps
 #	gs510 -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $^ -c quit
+#%.pdf: %.ps
+#	ps2pdf $< $>
+
 
 
 $(FIG_PS): $(FIGS)
 $(FIGEPS): $(FIGS)
+$(FIGPDF): $(FIGS)
+$(FIGPNG): $(FIGS)
 
 manual_parts.tar.gz: manual_parts.tar
 

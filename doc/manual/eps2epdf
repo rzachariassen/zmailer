@@ -1,0 +1,43 @@
+#!/bin/sh
+# $Id$
+# Convert Encapsulated PostScript to EncapsulatedPDF.
+
+OPTIONS=""
+while true
+do
+	case "$1" in
+	-*) OPTIONS="$OPTIONS $1" ;;
+	*)  break ;;
+	esac
+	shift
+done
+
+if [ $# -lt 1 -o $# -gt 2 ]; then
+	echo "Usage: `basename $0` [options...] input.ps [output.pdf]" 1>&2
+	exit 1
+fi
+
+infile=$1;
+
+if [ $# -eq 1 ]
+then
+	case "${infile}" in
+	  *.eps)		base=`basename ${infile} .eps` ;;
+	  *)		base=`basename ${infile}` ;;
+	esac
+	outfile=${base}.pdf
+else
+	outfile=$2
+fi
+
+bbox="`egrep '^%%BoundingBox:' $infile`"
+gopt="`awk '/^%%BoundingBox:/{
+#print STDERR, $0;
+#printf "BBOX: %d x %d\n",$4-$2,$5-$3;
+printf "-g%dx%d\n",$4-$2,$5-$3;
+}' < $infile` -r72"
+
+#echo "gopt: $gopt"
+
+# Doing an initial 'save' helps keep fonts from being flushed between pages.
+exec gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$outfile $OPTIONS $gopt -c save pop -f $infile

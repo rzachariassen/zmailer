@@ -1,22 +1,78 @@
 <!DOCTYPE style-sheet PUBLIC "-//James Clark//DTD DSSSL Style Sheet//EN" [
+
 <!ENTITY % html "IGNORE">
 <![%html;[
+<!ENTITY % GEXT "gif">
 <!ENTITY % print "IGNORE">
+<!ENTITY % pdf   "IGNORE">
 <!ENTITY docbook.dsl SYSTEM "/usr/lib/sgml/stylesheets/nwalsh-modular/html/docbook.dsl" CDATA dsssl>
 ]]>
 <!ENTITY % print "INCLUDE">
 <![%print;[
+<!ENTITY % GEXT "eps">
+<!ENTITY % html  "IGNORE">
+<!ENTITY % pdf   "IGNORE">
+<!ENTITY docbook.dsl SYSTEM "/usr/lib/sgml/stylesheets/nwalsh-modular/print/docbook.dsl" CDATA dsssl>
+]]>
+<!ENTITY % pdf "INCLUDE">
+<![%print;[
+<!ENTITY % GEXT "pdf">
+<!ENTITY % html  "IGNORE">
+<!ENTITY % print "IGNORE">
 <!ENTITY docbook.dsl SYSTEM "/usr/lib/sgml/stylesheets/nwalsh-modular/print/docbook.dsl" CDATA dsssl>
 ]]>
 ]>
 
 <style-sheet>
+<style-specification id="pdf" use="docbook">
+<style-specification-body> 
+
+;; ====================
+;; customize the PDF stylesheet
+;; ====================
+
+;; this is necessary because right now jadetex does not understand
+;; symbolic entities, whereas things work well with numeric entities.
+(declare-characteristic preserve-sdata?
+          "UNREGISTERED::James Clark//Characteristic::preserve-sdata?"
+          #f)
+
+(define %section-autolabel% 
+  ;; Are sections enumerated?
+  #t)
+
+(define %hyphenation%
+  ;; Allow automatic hyphenation?
+  #t)
+
+(define %graphic-default-extension% "pdf")
+
+(define %two-side% 
+  ;; Is two-sided output being produced?
+  #f)
+
+(define %paper-type%
+  ;; Name of paper type
+  "A4"
+  ;; "USletter"
+  )
+
+(define %titlepage-in-info-order% 
+  ;; Place elements on title page in document order?
+  #t)
+
+</style-specification-body>
+</style-specification>
+
 <style-specification id="print" use="docbook">
 <style-specification-body> 
 
 ;; ====================
 ;; customize the print stylesheet
 ;; ====================
+
+
+
 
 ;; this is necessary because right now jadetex does not understand
 ;; symbolic entities, whereas things work well with numeric entities.
