@@ -267,10 +267,10 @@ rrouter (address, origaddr, A, plustail, domain) {
 # ------- end new "localpart" processing
 }	# end of rrouter
 
-routes_spec (domain, address, A) {
+routes_spec (rtedata, address, A) {
 	local tmp channel rscshost
 
-	ssift "$domain" in
+	ssift "$rtedata" in
 #	(bsmtp3nd|bsmtp3|bitnet2|bitnet2deliver2)!(.+)!(.+)
 	(bsmtp3nd|bsmtp3|bsmtp3rfc|bsmtp3ndrfc)!(.+)!(.+)
 		returns ((("\1" "\2@\3" "$address" $A))) ;;
@@ -281,12 +281,12 @@ routes_spec (domain, address, A) {
 		tmp="$(uucproute "$address")"
 		tsift "$tmp" in
 		.+!([^!]+)!([^!]+)
-			# we are trying to gateway through a DEFRT1 domain(!)
+			# we are trying to gateway through a DEFRT1 rtedata(!)
 			#returns (((error bitnetgw "$address" $A))) ;;
 			# usually this will work anyway, sigh...
 			returns (((bsmtp3 "mailer@$rscshost" "\2@\1" $A))) ;;
 		([^!]+)!([^!]+)
-			# destination domain is next hop, so we're all happy
+			# destination rtedata is next hop, so we're all happy
 			returns ((($channel "\2@$rscshost" "\2@\1" $A))) ;;
 		tfist
 		;;
@@ -336,7 +336,7 @@ routes_spec (domain, address, A) {
 		returns ((("\1" "\2" "$address" $A))) ;;
 	(.+)!(.+)
 		# BEWARE LOOPS
-		tmp=$(rrouter "\2!$(uucproute "$address")" "$address" $A "" "$domain") && \
+		tmp=$(rrouter "\2!$(uucproute "$address")" "$address" $A "" "$rtedata") && \
 			returns $tmp
 		return $tmp # error code return
 		;;

@@ -1,0 +1,57 @@
+# FQDN-ROUTES
+#
+# Entries in this file are checked first by router.cf. they have the forms:
+#	user@domain	channel!additional-data
+#	@domain		channel!additional-data
+#
+# The percent-substitutions are supported at these datatabases.
+#   %0   =  used lookup key
+#   %1   =  user (sans possible "+tail")
+#   %2   =  possible "+tail"
+#   %3   =  athost ("@domain")
+#   %4   =  domain ("domain")  (possible dummy..)
+#   %5   =  address  -  the full original address
+#
+#
+# We have FOUR different fallback lookup tags:
+#       .:ERROR	   For cases where error messages WE generated are being routed
+#	.:sender   For routing sender addresses - never in practise
+#	.:recipient For routing recipient addresses
+#       .          For general case
+#
+# This dictomy is due to need to route everything by explicite tables,
+# EXCEPT in case of errors when '.' maps to 'error!something'
+# ("We know to whom we route, others get error report back.")
+#
+# To generate runtime BINARY database of this source, issue command:
+#   $MAILBIN/newdb $MAILSHARE/db/fqdnroutes
+# or in this directory with usual configuration:
+#   ../bin/newdb fqdnroutes
+# Or:
+#   ../bin/zmailer newdb
+#
+
+#
+#  Sample route statements (and channels):
+#
+#	.:ERROR	ignore!
+#	# Orders to ignore the fqdnroute database for error cases.
+#	# Use of other methods for routing locally generated error messages
+#	# is suggested
+#
+#	.:recipient  error!cannedmsgfilename
+#	.            error!cannedmsgfilename
+#	.	     error!notourcustomer
+#	#	Canned error message from $MAILSHARE/forms/cannedmsgfilename
+#
+#	user@domain   smtp!%3!%5
+#	@domain	      smtp!%3!%5
+#
+#	@domain	      error!nosuchuser
+#
+#       user@domain  local!%1%2
+#	user@domain  lmtp!lmtphost!%5
+#
+
+.:ERROR		ignore!
+

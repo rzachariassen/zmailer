@@ -247,7 +247,8 @@ foreach $x (qw("$MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf
 	 $MAILSHARE/proto/smtp-tls.conf
 	 $MAILVAR/db/proto/dbases.conf
 	 $MAILVAR/db/proto/aliases         $MAILVAR/db/proto/localnames
-	 $MAILVAR/db/proto/fqdnaliases     $MAILVAR/db/proto/routes
+	 $MAILVAR/db/proto/fqdnaliases     $MAILVAR/db/proto/fqdnroutes
+	 $MAILVAR/db/proto/routes
 	 $MAILVAR/db/proto/smtp-policy.src $MAILVAR/db/proto/smtp-policy.mx
 	 $MAILVAR/db/proto/smtp-policy.relay")) {
 

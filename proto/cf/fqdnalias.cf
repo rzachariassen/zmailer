@@ -3,13 +3,23 @@
 # This is the simple interface to the db/fqdnalias file in classical
 # aliasing style.
 #
+# call point:
+#    fqdn_neighbour(domain, address, attrvarname)
+#        return (((address quad)),((or list)))
+#
+#
 # We check in order following:
+#
 #   - address existing (in lower-case) in the  fqdnaliases  database
-#   - address domain-part existing (@domain) in the  fqdnaliases  database
+#   - address existing (in lower-case) in the  fqdnroutes   database
+#
 #   - address existing (in lower-case) in the MAILVAR/fqlists/ -directory
 #     in similar manner to those in  MAILVAR/lists/  at the  aliases.cf
 #   - owner-*, *-owner, and *-request -relation of the MAILVAR/fqlists/
 #     likewise
+#
+#   - address domain-part existing (@domain) in the  fqdnaliases  database
+#   - address domain-part existing (@domain) in the  fqdnroutes   database
 #
 # We do not support '+'-selectors in similar manner to those that aliases
 # processing does!
@@ -18,6 +28,15 @@
 # FQDN-aliases initializations
 #
 # Relations: fqdnalias
+
+
+#
+# Can externally (at router.cf) disable the fqlists sub-mechanism.
+#
+if [ -z "$nofqlists" ]; then
+    dofqlists=1
+fi
+
 
 provide fqdnaliasdb
 
@@ -37,13 +56,13 @@ else
 	fi
 	relation -lmt $DBTYPE -f $MAILVAR/db/fqdnaliases$DBEXT fqdnaliases_1
 	fqdnaliases (key, o1, o2, o3, o4, o5, o6, o7, o8, o9) {
-	  local a
-	  if a="$(fqdnaliases_1 $key $o1 $o2 $o3 $o4 $o5 $o6 $o7 $o8 $o9)"; then
-	    priv="$(filepriv -M 644 $MAILVAR/db/fqdnaliases$DBEXTtest \
-			$(db owner fqdnaliases_1))" &&
-	    returns "$a"
-	  fi
-	  return 1
+	    local a
+	    if a="$(fqdnaliases_1 $key $o1 $o2 $o3 $o4 $o5 $o6 $o7 $o8 $o9)"; then
+		priv="$(filepriv -M 644 $MAILVAR/db/fqdnaliases$DBEXTtest \
+				  $(db owner fqdnaliases_1))" &&
+		returns "$a"
+	    fi
+	    return 1
 	}
     else
 	fqdnaliases () { return 1 }
@@ -64,6 +83,149 @@ else
 	fqdnaliasesldap () { return 1 }
     fi
 fi
+
+#
+# Define an FQDNROUTES hook, just in case...
+
+if [ -f $MAILVAR/db/fqdnroutes.zmsh ]; then
+	. $MAILVAR/db/fqdnroutes.zmsh
+else
+    if [ -f $MAILVAR/db/fqdnroutes ]; then
+	# Need to be updated at boot ?
+	if [ ! -f $MAILVAR/db/fqdnroutes$DBEXTtest -o \
+	     $MAILVAR/db/fqdnroutes -nt $MAILVAR/db/fqdnroutes$DBEXTtest ]; then
+		# Yes, so update!
+		$MAILBIN/zmailer newfqdnroutes
+	fi
+	relation -lmt $DBTYPE -f $MAILVAR/db/fqdnroutes$DBEXT fqdnroutes_1
+	fqdnroutes (key) {
+	  local a
+	  if a="$(fqdnroutes_1 $*)"; then
+	    priv="$(filepriv -M 644 $MAILVAR/db/fqdnroutes$DBEXTtest \
+			$(db owner fqdnroutes_1))" &&
+	    returns "$a"
+	  fi
+	  return 1
+	}
+    else
+	fqdnroutes () { return 1 }
+    fi
+fi
+
+
+# a=$(fqdnroutes_neighbour "$lcaddress" "$user" "" "$athost" $domain $A) && return $a
+
+
+fqdnroutes_neighbour (key, user, plustail, athost, domain, A) {
+	local tmp
+
+	# Gets 'address' from callers variables
+
+	# We have Alternate default-lookup for cases of locally generated
+	# ERROR MESSAGES -- for case where the dot (.) leads to error!
+	# and we want to reply with DIFFERENT address, thus:  '.:ERROR' key.
+
+	$(iserrormsg) &&
+		tmp=$(fqdnroutes "$key" -: '.:ERROR' -- "$user" "$plustail" \
+				 "$athost" "$domain" "$address") &&
+			tmp=$(fqdnroutes_spec "$tmp" "$address" $A) &&
+				returns $tmp
+
+	tmp="$(get $A type)"
+	tmp=$(fqdnroutes "$key" -: ".:$tmp" -: '.' -- "$user" "$plustail" \
+			 "$athost" "$domain" "$address") &&
+		tmp=$(fqdnroutes_spec "$tmp" "$address" $A) &&
+			returns $tmp
+
+#| The fqdnroutes_spec function interprets the return value from the
+#| fqdnroutes  lookup.
+
+	return 1
+}
+
+
+fqdnroutes_spec (rtedata, address, A) {
+	local tmp channel rscshost
+
+	ssift "$rtedata" in
+	ERROR
+		break
+		;;
+	ignore!.*
+		break
+		;;
+
+	error!(.+)
+		returns (((error "\1" "$address" $A)))
+		;;
+
+	(smtpgw.*)!
+		tmp="\1"
+		tsift "$address" in
+		(.*)@(.+)
+			returns ((("$tmp" "\1" "$address" $A)))
+			;;
+		tfist
+		;;
+	(smtp.*)!
+		tmp="\1"
+		tsift "$address" in
+		(.*)@(.+)
+			returns ((("$tmp" "\2" "$address" $A)))
+			;;
+		tfist
+		;;
+	dns!
+		tsift "$address" in
+		(.*)@(.+)
+			returns (((smtp "\2" "$address" $A)))
+			;;
+		tfist
+		;;
+	(.+)!
+		# "CHANNEL!"  cases
+		returns ((("\1" - "$address" $A)))
+		;;
+
+	lotusgw!(.+)!(.+)
+		# Map user@domain to user%gwdom@gateway
+		tmp="\1"; channel="\2" # Variable name reuse..
+		tsift "$address" in
+		(.+)@(.+)
+			returns (((smtp "$channel" "\1%$tmp@$channel" $A)))
+			;;
+		tfist
+		;;
+
+#	delay!(.+)
+#		# NB! envelopeinfo *must* also be defined in interactive mode
+#		tmp="$(/bin/expr $(get envelopeinfo now) + "\1")"
+#		returns (((hold "$tmp" "$address" $A))) ;;
+
+	([^!]+)!([^!]+)
+		# "CHANNEL!HOST"  type cases
+		returns ((("\1" "\2" "$address" $A))) ;;
+
+	([^!]+)!([^!]+)!(.*)
+		# "CHANNEL!HOST!MORE"  type cases
+		returns ((("\1" "\2" "\3" $A))) ;;
+
+
+#	(.+)!(.+)
+#		# "CHANNEL!HOST!MORE..."  type cases
+#		# BEWARE LOOPS
+#		tmp=$(rrouter "\2!$(uucproute "$address")" "$address" $A "" "$rtedata") && \
+#			returns $tmp
+#		return $tmp # error code return
+#		;;
+
+	tfiss
+	return 1 # error code return
+}
+
+
+
+
 
 require fqdnaliasdb
 provide fqdnalias
@@ -166,6 +328,9 @@ fqdn_neighbour (domain, address, A) {
 	  returns (((bitbucket "duplicate-$key.fqdnaliasesldap"  "$address" $A)))
 	fi
 
+
+	a=$(fqdnroutes_neighbour "$lcaddress" "$user" "" "$athost" $domain $A) && returns $a
+
 	# Didn't match,
 
 	# Plusfull usernames ??
@@ -176,6 +341,7 @@ fqdn_neighbour (domain, address, A) {
 	    u2="\1"
 	    pl2="+\2"
 	    key="$u2$athost"
+
 	    if $(didexpand fqdnaliases) ; then
 	      if a="$(fqdnaliases "$key")" ; then
 		db add expansions "$key.fqdnaliases" 1
@@ -192,6 +358,7 @@ fqdn_neighbour (domain, address, A) {
 	      # DID EXPAND !
 	      return (((bitbucket "duplicate-$key.fqdnaliases" "$address" $A)))
 	    fi
+
 	    if $(didexpand fqdnaliasesldap) ; then
 	      if a="$(fqdnaliasesldap "$key" -- "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
@@ -208,6 +375,9 @@ fqdn_neighbour (domain, address, A) {
 	      # DID EXPAND !
 	      returns (((bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)))
 	    fi
+
+	    a=$(fqdnroutes_neighbour "$key" "$user" "$pl2" "$athost" $domain $A) && returns $a
+
 	    ;;
 	tfiss
 
@@ -215,35 +385,38 @@ fqdn_neighbour (domain, address, A) {
 
 	priv=$(get $A privilege)
 
-	# Do we have a file with that name ?
-	a="$MAILVAR/fqlists/$lcaddress"
-	key="$lcaddress"
-	l="$preowner$user$postowner$athost"
-	nattr=()
-	if $(didexpand fqlists); then
-	  if [ -f "$a" ] ; then
-		db add expansions "$key.fqlists" 1
-		priv=$(getpriv "644" $priv "$a" maillist)
-		nattr=$(newattribute $A privilege $priv sender "$l")
-		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(runas $priv cat "$a" |				\
-		    listexpand	-E "$l" -e "$l" -p $priv		\
-				-c "$a file expansion" $nattr "$a"	\
-				"$user$athost" "$plustail" "$athost") &&
+	if [ -n "$dofqlists" ]; then
+
+	    # Do we have a file with that name ?
+	    a="$MAILVAR/fqlists/$lcaddress"
+	    key="$lcaddress"
+	    l="$preowner$user$postowner$athost"
+	    nattr=()
+	    if $(didexpand fqlists); then
+		if [ -f "$a" ] ; then
+		    db add expansions "$key.fqlists" 1
+		    priv=$(getpriv "644" $priv "$a" maillist)
+		    nattr=$(newattribute $A privilege $priv sender "$l")
+		    $(zapDSNnotify $nattr) ## FIXME!FIXME!
+		    a=$(runas $priv cat "$a" |				\
+			listexpand	-E "$l" -e "$l" -p $priv	\
+					-c "$a file expansion" $nattr	\
+					"$a" "$user$athost" "$plustail"	\
+					"$athost") &&
 			returns $a
-		return $a # error code return
-	  fi
-	else
-	  # DID EXPAND !
-	  returns (((bitbucket "duplicate-$key.fqlists" "$address" $A)))
-	fi
+		    return $a # error code return
+		fi
+	    else
+		# DID EXPAND !
+		returns (((bitbucket "duplicate-$key.fqlists" "$address" $A)))
+	    fi
 
-	# Ok, if the list (MAILVAR/fqlists/user@host) did exist, we did
-	# process it's expansion above.  See if we are looking for *-owner,
-	# owner-*, or *-request of same lists.
+	    # Ok, if the list (MAILVAR/fqlists/user@host) did exist, we did
+	    # process it's expansion above.  See if we are looking for *-owner,
+	    # owner-*, or *-request of same lists.
 
-	ssift "$user" in
-	(.+)-owner
+	    ssift "$user" in
+	    (.+)-owner
 		a="$MAILVAR/fqlists/\1$athost"
 		key="\1$athost"
 		if $(didexpand fqlistowner); then
@@ -263,7 +436,7 @@ fqdn_neighbour (domain, address, A) {
 		fi
 		break
 		;;
-	(.+)-request
+	    (.+)-request
 		a="$MAILVAR/fqlists/\1$athost"
 		key="\1$athost"
 		if $(didexpand fqlistrequest); then
@@ -282,7 +455,7 @@ fqdn_neighbour (domain, address, A) {
 		fi
 		break
 		;;
-	owner-(.+)
+	    owner-(.+)
 		a="$MAILVAR/fqlists/\1$athost"
 		key="\1$athost"
 		if $(didexpand ownerfqlists); then
@@ -300,7 +473,10 @@ fqdn_neighbour (domain, address, A) {
 		  returns (((bitbucket "duplicate-$key.owner-fqlists" "$address" $A)))
 		fi
 		;;
-	tfiss
+	    tfiss
+
+	fi
+	###  end of  if [ -n "$dofqlists" ]
 
 
 	# We may also match for:  "@domain.name"
@@ -343,6 +519,8 @@ fqdn_neighbour (domain, address, A) {
 	  # DID EXPAND !
 	  returns (((bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)))
 	fi
+
+	a=$(fqdnroutes_neighbour "$key" "$user" "$pl2" "$athost" $domain $A) && returns $a
 
 	return 1
 }

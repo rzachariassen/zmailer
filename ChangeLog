@@ -1,5 +1,11 @@
 2002-07-05  Matti Aarnio  <mea@zmailer.org>
 
+	* proto/post-install.sh.in, proto/cf/fqdnalias.cf, proto/cd/rrouter.cf,
+	  proto/db/dbases.conf, proto/db/fqdnroutes, proto/Makefile.in:
+	    - cleaned up a bit the  routes_spec()  function parameter
+	      variables -- less confusion with the new name, I hope..
+	    - new routing mechanism:  fqdnroutes -- user@domain -> chan!data..
+	
 	* lib/sleepycatdb.c, include/sleepycatdb.c, router/libdb/bsdbtree.c,
 	  router/libdb/bsdhash.c
 	    More rework on SleepyCat DB driver routines to better use
