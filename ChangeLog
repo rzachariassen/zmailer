@@ -1,5 +1,10 @@
 2003-04-17  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/libta/ctlopen.c, transports/libta/mimeheaders.c:
+	    Cleaning up the for-clause code a bit. Removing unnecessary
+	    malloc()/free() things, which are dropping core at one
+	    test system.
+
 	* man/zmailer.1, proto/zmailer.sh.in, router/router.c, man/router.8,
 	  scheduler/scheduler.c, man/scheduler.8, smtpserver/smtpserver.c,
 	  man/smtpserver.8, transports/sm/sm.c, transports/smtp/smtp.c,
