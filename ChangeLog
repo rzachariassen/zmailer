@@ -8,8 +8,9 @@
 	* configure.in, router/db.c, router/libdb/bsdbtree.c,
 	  router/libdb/bsdhash.c, smtpserver/policytest.h,
 	  smtpserver/policytest.c, utils/makedb/makedb.c,
-	  utils/makedb/dblook.c, utils/vacation/vacation.c:
-	    Rewamped things to support another kind of set of
+	  utils/makedb/dblook.c, utils/vacation/vacation.c,
+	  README.UPGRADING:
+	    Reworked things to support another kind of set of
 	    SleepyCat DB libraries.  Not yet covering version 3.x.
 
 	* lib/rfc822scan.c:

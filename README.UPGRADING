@@ -12,6 +12,13 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.53+ (just after release cut)
+		Changes at BSD/SleepyCat DB interface codes may again have
+		altered default DB binary formats so that regeneration of
+		the binary databases is propably in order.
+		(This is due to possible movement from DB 1.x to 2.x and
+		 possibly even to 3.x with different binary db formats.)
+
 	ZMailer-2.99.53-pre1
 		Router scripts have changed a bit to better accomodate
 		logging in environment where it isn't necessary to
