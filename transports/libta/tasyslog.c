@@ -24,6 +24,9 @@
 #include "ta.h"
 #include "libz.h"
 
+extern        int   wtttaidpid;
+extern CONVERTMODE  wttcvtmode;
+
 void
 tasyslog(rp,xdelay,wtthost,wttip,statstr,msg)
 struct rcpt *rp;
@@ -101,6 +104,24 @@ const char *msg;
       sprintf(linebuf, ((*t == 't') ? fmt3t : fmt3c),
 	      spoolid, rp->addr->user, delays, xdelays, rp->addr->channel,
 	      wtthost, statstr, msg);
+  }
+
+  if (wtttaidpid > 0) {
+    char *s = "UNKNOWN";
+    switch (wttcvtmode) {
+    case _CONVERT_NONE:
+      s = "NONE";
+      break;
+    case _CONVERT_QP:
+      s = "QP";
+      break;
+    case _CONVERT_8BIT:
+      s = "8BIT";
+      break;
+    case _CONVERT_UNKNOWN:
+      break;
+    }
+    sprintf(linebuf + strlen(linebuf), " cvt=%s", s);
   }
 
   zsyslog((LOG_INFO, "%s", linebuf));

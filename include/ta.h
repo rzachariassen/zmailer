@@ -154,6 +154,7 @@ extern void            notary_setxdelay __((int));
 extern void            notary_setwtt __(( const char *host ));
 extern void            notary_setwttip __(( const char *ip ));
 extern void            notary_settaid __(( const char *name, int ));
+extern void            notary_setcvtmode __(( CONVERTMODE ));
 #if defined(HAVE_STDARG_H)
 extern void	       diagnostic __((struct rcpt *rp, int rc, int timeout, const char *fmt, ... ));
 #else

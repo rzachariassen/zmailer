@@ -91,7 +91,8 @@ const char *okstr;
 static char *wtthost = NULL; /* NOTARY wtthost: 'While-Talking-To -host' */
 static char *wttip   = NULL;
 static char *wtttaid = NULL;
-static int   wtttaidpid = -1;
+       int   wtttaidpid = -1;
+CONVERTMODE wttcvtmode = _CONVERT_UNKNOWN;
 
 void notary_setwtt(host)
 const char *host;
@@ -105,6 +106,7 @@ const char *host;
 
 void notary_settaid(progname,pid)
 const char *progname;
+int pid;
 {
 	if (wtttaid) free(wtttaid);
 	if (progname)
@@ -112,6 +114,12 @@ const char *progname;
 	else
 	  wtttaid = NULL;
 	wtttaidpid = pid;
+}
+
+void notary_setcvtmode(mode)
+CONVERTMODE mode;
+{
+	wttcvtmode = mode;
 }
 
 void notary_setwttip(ip)

@@ -999,6 +999,7 @@ deliver(SS, dp, startrp, endrp)
 
 	}
 
+	notary_setcvtmode(convertmode);
 
 	if (SS->ehlo_capabilities & ESMTP_SIZEOPT) {
 

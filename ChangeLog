@@ -1,5 +1,10 @@
 2000-01-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* include/ta.h,           transports/libta/diagnostic.c,
+	  transports/smtp/smtp.c, transports/libta/tasyslog.c:
+	    Report (at smtp) also the conversion mode used
+	    at the reported session.
+
 	* utils/mxverify-cgi.c, utils/Makefile.in:
 	    Writing a utility to ease destination domain verification
 	    by testing *all* MXes of given domain. WORK-IN-PROGRESS!
