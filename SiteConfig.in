@@ -1,8 +1,10 @@
-#
+#<VAR><HEAD>DESCRIPTION</HEAD><DESC>
+#  ZMailer 'ZENV' Environment Variables:
+#.PP
 #  A config file for storing various SITE CONFIG parameters
-#
+#.PP
 #  These are generic material that DO NOT DEPEND UPON COMPILERS et.al!
-#
+#.PP
 #  This is generated with autoconfiguration process from  SiteConfig.in
 #  file, and the configuration parameters.  The standard installation
 #  procedure WILL NOT overwrite the destination  ZCONFIG  file with
@@ -10,40 +12,54 @@
 #  in the binaries, and is not overridable with this file, namely
 #  the  ZCONFIG  variable, alias the final location of the processed
 #  result of this SiteConfig file.
-#
+#</DESC></VAR>
 
+#<VAR><NAME>ZCONFIG</NAME><DESC>
 # ZCONFIG is the pathname of the configuration file specifying all the other
 # host-dependent information needed by ZMailer programs.  This file is
 # created from the Config file in the distribution (the file you are reading
 # right now), and contains variable assignments in an sh-compatible format.
+#</DESC></VAR>
 ZCONFIG=	@ZMAILERCFGFILE@
 
+#<VAR><NAME>MAILBIN</NAME><DESC>
 # MAILBIN is the directory hierarchy containing all ZMailer binaries.
 # Usually /usr/lib/mail/bin or /local/lib/mail.
+#</DESC></VAR>
 MAILBIN=	@MAILBIN@
 
+#<VAR><NAME>MAILSHARE</NAME><DESC>
 # MAILSHARE is the directory hierarchy containing site-wide configuration
 # files and databases.  Usually /usr/lib/mail or /local/share/mail.
+#</DESC></VAR>
 MAILSHARE=	@MAILSHARE@
 
+#<VAR><NAME>MAILVAR</NAME><DESC>
 # MAILVAR is the directory that will contain machine-specific configuration
 # files and databases.  Usually /usr/lib/mail or /var/db/mail or
 # /local/share/mail.
+#</DESC></VAR>
 MAILVAR=	@MAILVAR@
 
+#<VAR><NAME>MAILBOX</NAME><DESC>
 # MAILBOX is the directory containing all the user mailboxes.  This is
 # defaulted inside the mailbox.c program (currently /var/mail) and may
 # be overridden here.  Usually /usr/spool/mail or /var/mail.
+#</DESC></VAR>
 MAILBOX=	@MAILBOX@
 
+#<VAR><NAME>POSTOFFICE</NAME><DESC>
 # POSTOFFICE is the directory hierarchy used to manipulate message files,
-# where runtime activity takes places.  Usually /usr/spool/postoffice or
-# /var/spool/postoffice.
+# where runtime activity takes places.
+# Usually /usr/spool/postoffice or /var/spool/postoffice.
+#</DESC></VAR>
 POSTOFFICE=	@POSTOFFICE@
 
 
-# LOGDIR is the directory where log files will appear.  Usually /usr/spool/log
-# or /var/log.
+#<VAR><NAME>LOGDIR</NAME><DESC>
+# LOGDIR is the directory where log files will appear.
+# Usually /usr/spool/log, or /var/log.
+#</DESC></VAR>
 LOGDIR=		@LOGDIR@
 
 # prefix per autoconfig:
@@ -62,71 +78,91 @@ LIBRARYDIR=	@libdir@
 INCLUDEDIR=	@includedir@
 
 
-
+#<VAR><NAME>INPUTDIRS</NAME><DESC>
 # INPUTDIRS  are alternate directories to receive files INSTEAD of standard
 # "router" and $ROUTERDIRS set.
+#</DESC></VAR>
 #INPUTDIRS=input:input2
 
+#<VAR><NAME>INPUTDIRHASH</NAME><DESC>
 # When defined, INPUTDIRHASH submits messages immediately into the
 # 'A' thru 'Z' subdirectory of whatever directory (e.g. see INPUTDIRS).
 # IF NO SUCH "hash subdirs" EXIST, MESSAGE SUBMISSION WILL FAIL!
 # (The value must be "1" for this to take effect!)
+#</DESC></VAR>
 #INPUTDIRHASH=1
 
+#<VAR><NAME>INPUTNOTIFY</NAME><DESC>
 # The INPUTNOTIFY defines, where is a socket at which some pre-router queue
 # processor listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
 # The injection library informs the router queuing subsystem of new jobs,
 # and does it with same message as  ROUTERNOTIFY=  uses.
+#</DESC></VAR>
 #INPUTNOTIFY=@POSTOFFICE@/.input.notify
 
 
 
+#<VAR><NAME>ROUTEROPTIONS</NAME><DESC>
 # ROUTEROPTIONS are command line options given to the router when started
 # from the zmailer shell script. The default values are "-dWkn 4"
+#</DESC></VAR>
 #ROUTEROPTIONS= "-dWkn 4"
 ROUTEROPTIONS= @ROUTEROPTIONS@
 
+#<VAR><NAME>ROUTERDIRS</NAME><DESC>
 # Multiple LOWER priorities on message routing can be defined by creating
 # $POSTOFFICE/<component-of-$ROUTERDIRS> -directories.
 # Routers process first   $POSTOFFICE/router/ -directory, and once it is
 # empty, files from subsequent dirs.   See  mail(3)  mail_priority
 # These can be only under the $POSTOFFICE.
+#</DESC></VAR>
 ROUTERDIRS=router1:router2:router3:router4
 
+#<VAR><NAME>ROUTERDIRHASH</NAME><DESC>
 # When defined, ROUTERDIRHASH submits messages immediately into the
 # 'A' thru 'Z' subdirectory of whatever directory (e.g. see ROUTERDIRS).
 # IF NO SUCH "hash subdirs" EXIST, MESSAGE SUBMISSION WILL FAIL!
 # (The value must be "1" for this to take effect!)
+#</DESC></VAR>
 #ROUTERDIRHASH=1
 
+#<VAR><NAME>ROUTERNOTIFY</NAME><DESC>
 # The ROUTERNOTIFY defines, where is a socket at which the router
 # listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
 # The injection library informs the router queuing subsystem of new jobs.
+#</DESC></VAR>
 ROUTERNOTIFY=@POSTOFFICE@/.router.notify
 
+#<VAR><NAME>SMTPOPTIONS</NAME><DESC>
 # SMTPOPTIONS are command line options given to the smtpserver when started
 # from the zmailer shell script.  The intent is that if you want non-default
 # address verification options they can be specified here.  The default
 # value is "-sve".   This is also used, when invoking  ``sendmail'' with
 # "-bs" option.
+#</DESC></VAR>
 #SMTPOPTIONS= "-l ${LOGDIR}/smtpserver"
 SMTPOPTIONS=	@SMTPOPTIONS@
 
+#<VAR><NAME>ALLOWSOURCEROUTE</NAME><DESC>
+# VALID ANYMORE ???
 # ALLOWSOURCEROUTE (when present) stops the system from ignoring
 # the old RFC821/822 source routes of type:  @a,@b:c@d;  By "ignoring"
 # we mean here that system chops away "@a,@b:" and uses only:  c@d
 # This is done at all input portals; smtpserver, and at sendmail/rmail.
 # System behaviour is prone to problems in case this is ever enabled!
+#</DESC></VAR>
 #ALLOWSOURCEROUTE=
 
+#<VAR><NAME>SCHEDULEROPTIONS</NAME><DESC>
 # SCHEDULEROPTIONS are command line options given to the scheduler when
 # started from the zmailer shell script.  The intent is that if you want
 # non-default logging options, the can be specified here.  The default
 # value is ""
-#
+#</DESC></VAR>
 #SCHEDULEROPTIONS=	"-l ${LOGDIR}/scheduler.perflog -S -H"
 SCHEDULEROPTIONS= @SCHEDULEROPTIONS@
 
+#<VAR><NAME>SCHEDULERDIRHASH</NAME><DESC>
 # The SCHEDULERDIRHASH is magic thing to tell to the router that it
 # should move resulting files directly into hash subdir(s) of the
 # scheduler subsystem, and not only to the main-level.
@@ -135,100 +171,145 @@ SCHEDULEROPTIONS= @SCHEDULEROPTIONS@
 # If these hash subdirectories don't exist, system failure happens!
 # SYSTEMS WITH LOW LOADS CAN DO WITH VALUE "1", WHILE
 # SYSTEMS WITH LARGE QUEUES SHOULD DEFINITELY USE VALUE "2" !
+#</DESC></VAR>
 SCHEDULERDIRHASH=2
 
+#<VAR><NAME>SCHEDULERNOTIFY</NAME><DESC>
 # The SCHEDULERNOTIFY defines, where is a socket at which the scheduler
 # listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
 # The router(s) inform the scheduler of new jobs.
+#</DESC></VAR>
 SCHEDULERNOTIFY=@POSTOFFICE@/.scheduler.notify
 
 
-# Here you can put any ZM ``environment'' variables you want to place in
-# the system-wide configuration file (/etc/zmailer.conf).  Typically this
-# would be information used by the router configuration at your site.
+#<VAR><DESC>
+#.PP
+# Following few ZM ``environment'' variables are used by the \fIrouter\fR(8zm)
+# configuration at your site.
+#</DESC></VAR>
 
+#<VAR><NAME>MAILSERVER</NAME><DESC>
 # MAILSERVER is the hostname of the remote machine where the postoffice is
 # located.  This value is only needed in an environment with distributed file
 # systems, and if it exists will be used by the mail queue querying program
 # as the default name of the host to query.  It is a way of overriding the
 # algorithm used by mailq in an NFS environment, or when you are running a
 # different kind of DFS.  Usually undefined or a hostname.
+#</DESC></VAR>
 #MAILSERVER=	neat.cs
 
+#<VAR><NAME>PUNTHOST</NAME><DESC>
 # PUNTHOST is where mail that is supposed to go to a local address, but
 # no such address exists, is punted to.
+#</DESC></VAR>
 #PUNTHOST=	relay.cs
 
+#<VAR><NAME>FORCEPUNT</NAME><DESC>
 # FORCEPUNT is for cases when the local machine under no circumstances
 # is to store any email locally, but send all such to this given address
 # (local host is a member on a "cluster" whose message store is at some
 #  other cluster server, and said node handles "local" delivery for all
 #  cluster members... *including* running pipes..)
+#</DESC></VAR>
 #FORCEPUNT=    mailhost
 
+#<VAR><NAME>FORCEPUNT</NAME><DESC>
 # SMARTHOST is where mail that cannot be resolved or routed is punted to.
+#.PP
 # There used to be a variable for this, now a better way is to use 'routes'
 # database at which you put line:   .  smtp!smart.host.name
 # (That is: dot, white-space(s), "smtp!smart.host.name" )
+#</DESC></VAR>
 
+#<VAR><NAME>NOBODY</NAME><DESC>
 # NOBODY is the unprivileged UID value.
+#.PP
 # This is absolutely necessary if setuid() will fail on your "nobody" account
 # uid (if it is -2, for example).  Make sure that whatever value you give
 # here will work with setuid().  Values between 1 and 29999 will usually work.
 # BE CAREFULL WITH THIS!  THE SYSTEM RELIES ON IT VERY MUCH IN DEED!
+#.PP
 #  (On SunOS 4.1.x, the value of "-2" works the best,  on Solaris the default
 #   for nobody is 60001!  If your system has "nobody" "account", use here the
 #   name instead of number -- it should (usually) work)
+#.PP
 # -- Use a mapping via /etc/passwd, this is most generic..
+#</DESC></VAR>
 NOBODY=nobody
 
-# TA_USE_MMAP - existence of this definition mmap()s control-,
-# and message body files into transport agent process memories.
-# This may, or may not give performance boost.
-TA_USE_MMAP=@TA_USE_MMAP@
-
-# TALOCKMODE=[TFW] -- don't use!
-
+#<VAR><NAME>LOGLEVEL</NAME><DESC>
 # LOGLEVEL may be set to restrict the log output of the router to entries
 # whose tags are found in the specified string value.  The currently known
 # tags are:
+#.PP
 #	address: deferred: file: header_defer: info: recipient:
+#</DESC></VAR>
 #LOGLEVEL=	"file: recipient:"
 LOGLEVEL=	"deferred: file: header_defer:"
 
+#<VAR><NAME>NNTPSERVER></NAME><DESC>
 # Builtin USENET channel uses  NNTPSERVER variable (depending upon your
 # inews ..) to send the artickle to..
+#</DESC></VAR>
 NNTPSERVER=	@NNTPSERVER@
 INEWSBIN=	@INEWS@
 
+#<VAR><NAME>SENDMAILPATH</NAME><DESC>
 # Where the sendmail (compability one) shall be located ?
+#</DESC></VAR>
 SENDMAILPATH=	@SENDMAILPATH@
+
+#<VAR><NAME>RMAILPATH</NAME><DESC>
 # Where is the rmail to be located at ?
+#</DESC></VAR>
 RMAILPATH=	@RMAILPATH@
 
+#<VAR><NAME>TA_USE_MMAP</NAME><DESC>
+# TA_USE_MMAP - value "1" in this variable  mmap()s control-,
+# and message body files into transport agent process memories.
+# This may, or may not give performance boost.
+#.PP
+# This has no effect, if the system does not have functional
+# \fImmap\fR(2) system call.
+#</DESC></VAR>
+TA_USE_MMAP=@TA_USE_MMAP@
+
+#<VAR><NAME>TALOCKMODE</NAME><DESC>
+# TALOCKMODE=[TFW] -- don't use!
+#</DESC></VAR>
+
+#<VAR><NAME>MBOXLOCKS</NAME><DESC>
 # MAILBOX locking scheme -- no configuration option (yet)
-# See man-page of  mailbox.8  for details; the order of key-chars
-# is meaningfull:
-#	`.'	Dotlock scheme for mailboxes at $MAILBOX/ directory
-#	`F'	flock() locking of files (and perhaps mailboxes)
-#	`L'	lockf() locking of files (and perhaps mailboxes)
-#	`:'	Separates the two parts of the parameter; left part
-#		is for the mailbox locking, and right part is for
-#		all other kinds of files.
-#
+# See man-page of  \fImailbox\fR(8zm) for details;
+# the order of key-chars is meaningfull:
+#.IP `.'
+#	Dotlock scheme for mailboxes at $MAILBOX/ directory
+#.IP `F'
+#	flock() locking of files (and perhaps mailboxes)
+#.IP `L'
+#	lockf() locking of files (and perhaps mailboxes)
+#.IP `:'
+#	Separates the two parts of the parameter; left part
+#	is for the mailbox locking, and right part is for
+#	all other kinds of files.
+#.PP
 # We use compiled-in defaults at the mailbox program!
 # Following examples are for  flock(), and lockf() systems with their
 # respective defaults.  ( Systems capable to use both will use lockf() )
+#</DESC></VAR>
 #MBOXLOCKS=".F:F"
 #MBOXLOCKS=".L:L"
 
+#<VAR><NAME>SELFADDRESSES</NAME><DESC>
 # The SELFADDRESSES is a comma separated list of IP address literals
 # listing all of our acceptable IP addresses (Comma because IPv6 uses
 # colon for short-hand notation..):
+#.PP
 # For usual (IPv4) universe, no addresses are needed listing, however
 # for IPv6 it may be necessary - likewise if you want to use cluster-mode,
 # you may want to list all *cluster* addresses here - nodes know only
 # their local ones, after all.. (See: doc/guides/etrn-cluster)
+#</DESC></VAR>
 #SELFADDRESSES=[1.2.3.4],[2.3.4.5],[ipv6.::1.2.3.4]
 SELFADDRESSES=@SELFADDRESSES@
 
@@ -320,3 +401,8 @@ BINDADDR=@BINDADDR@
 # this file are NEVER reset.  Gauges are managed as shadows
 # of subsystem internal state.
 SNMPSHAREDFILE=@POSTOFFICE@/.zmailer.SNMP.block
+
+#<VAR><DESC>
+#.PP
+# MORE MISSING!!!
+#</DESC></VAR>

@@ -1,5 +1,11 @@
 2003-08-28  Matti Aarnio  <mea@zmailer.org>
 
+	* man/Makefile.in, SiteConfig.in, man/zmailer-conf-generate.pl,
+	  man/mailq-m-generate-pl:
+	    New generator (zmailer.conf.5zm), and typo fix in the old.
+	    Also source changes in SiteConfig.in  which is used as
+	    input for the  zmailer.conf.5zm  file.
+
 	* configure.in, transports/libta/ctlopen.c, SiteConfig.in:
 	    Change the  --with-ta-mmap  to control what  SiteConfig
 	    file (and thus  zmailer.conf  file) gets about TA_USE_MMAP=

@@ -1,8 +1,8 @@
 #! /usr/bin/perl
 
 #
-# Script to generate the mailq-m  man-page from source material embedded in
-# scheduler/mailq.inc  file
+# Script to generate the zmailer.conf.5  man-page from source material
+# embedded in   SiteConfig   file
 #
 
 #use strict; no strict "subs";
@@ -18,34 +18,29 @@ $fn = $ARGV[0];
 # PERL 5.6+ syntax... 
 open SRCFILE, "<",$fn || die "Can't open file: $fn; $!";
 
-
-
-SRCFILE->autoflush(0);
-my $oldinsep = $/;
-$/ = undef; # Slurp everything into one long line
-my $srcdata = SRCFILE->getline;
-$/ = $oldinsep; # Restore the separator
+$srcdata = '';
+while (<SRCFILE>) {
+    $_ =~ s/^(#|\s)+//go;
+    $srcdata .= $_;
+}
 
 close SRCFILE;
 
 
 print '\'\" t
-.\" THIS FILE IS GENERATED WITH  mailq-m-generate.pl  FROM  mailq.inc
+.\" THIS FILE IS GENERATED WITH  zmailer-conf-generate.pl  FROM  SiteConfig
 .ds ]W "ZMailer 2.99"
 .nr X
 ';
 
-printf ".TH MAILQ-M 5zm \"%s\"\n", strftime("%Y-%b-%d",localtime());
+printf ".TH ZMAILER.CONF 5zm \"%s\"\n", strftime("%Y-%b-%d",localtime());
 
 print '.SH NAME
-"mailq \-M" \- output format description
+zmailer.conf  \-  file format
 .SH SYNOPSIS
-Lots of odd variables and counters
-.PP
 These are generated from inline XMLishly tagged
-descriptions in file
-.I "scheduler/mailq.inc" 
-.SH DESCRIPTION
+descriptions in generated file:
+.IR "SiteConfig" .
 ';
 
 for (;;) {
@@ -59,15 +54,18 @@ for (;;) {
 	    my $l = $2; chomp $l;chomp $l;chomp $l;
 	    printf "%s\n",$l;
 	    printf ".RE\n";
-	} elsif ($thisvar =~ m{\s*<HEAD>\s*(.*)\s*</HEAD>\s*<DESC>\s*(.*)\s*</DESC>\s*}s) {
+	    next;
+	}
+	if ($thisvar =~ m{\s*<HEAD>\s*(.*)\s*</HEAD>\s*<DESC>\s*(.*?)\s*</DESC>\s*}s) {
 	    my $l = $1; chomp $l;chomp $l;chomp $l;
-	    printf ".SS \"%s\"\n",$l;
+	    printf ".SH \"%s\"\n",$l;
 	    my $l = $2; chomp $l;chomp $l;chomp $l;
 	    printf "%s\n",$l;
+	    next;
         } elsif ($thisvar =~ m{\s*<DESC>\s*(.*)\s*</DESC>\s*}s) {
 	    my $l = $1; chomp $l;chomp $l;chomp $l;
 	    printf "%s\n",$l;
-	}
+        }
     } else {
 	last; ## No more vars ...
     }
@@ -77,7 +75,7 @@ for (;;) {
 
 
 print '.SH SEE ALSO
-.IR mailq (1zm),
+.IR zmailer (1zm),
 .PP
 .SH AUTHOR
 This document authored and copyright by:
@@ -87,4 +85,3 @@ Matti Aarnio <mea@nic.funet.fi>
 ';
 
 exit 0;
-

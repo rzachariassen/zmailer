@@ -27,7 +27,7 @@ PS2PDF	  = ps2pdf
 
 MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
 MAN3=	zmailer.3 authuser.3
-MAN5=	aliases.5 zdbases.conf.5 mailq-m.5
+MAN5=	aliases.5 zdbases.conf.5 mailq-m.5 zmailer.conf.5
 MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8 mailbox.8 makedb.8 newdb.8 reroute.8 manual-rerouter.8
 MANe=	ZMailer-mailq.3pm  mailq-m.5
 
@@ -112,6 +112,7 @@ install:
 	$(INSTALL) -m 644 smtpserver.8		${MANDIR}/man8/smtpserver.8zm
 	$(INSTALL) -m 644 vacation.1		${MANDIR}/man1/vacation.1zm
 	$(INSTALL) -m 644 zdbases.conf.5	${MANDIR}/man5/zdbases.conf.5zm
+	$(INSTALL) -m 644 zmailer.conf.5	${MANDIR}/man5/zmailer.conf.5zm
 	$(INSTALL) -m 644 zmailer.1		${MANDIR}/man1/zmailer.1zm
 	$(INSTALL) -m 644 zmailer.3		${MANDIR}/man3/zmailer.3zm
 	$(INSTALL) -m 644 zmsh.1		${MANDIR}/man1/zmsh.1zm
@@ -124,3 +125,6 @@ ZMailer-mailq.3pm: $(srcdir)/../utils/perl/mailq/mailq.pm
 
 mailq-m.5: $(srcdir)/mailq-m-generate.pl $(srcdir)/$(TOPDIR)/scheduler/mailq.inc
 	$(PERL) $(srcdir)/mailq-m-generate.pl $(srcdir)/$(TOPDIR)/scheduler/mailq.inc > mailq-m.5
+
+zmailer.conf.5: $(srcdir)/zmailer-conf-generate.pl ../SiteConfig
+	$(PERL)  $(srcdir)/zmailer-conf-generate.pl ../SiteConfig > zmailer.conf.5
