@@ -645,7 +645,8 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  case 8:		/* 8BIT */
 	    if (!can_8bit && !ascii_clean) {
 	      convertmode = _CONVERT_QP;
-	      downgrade_headers(startrp, convertmode, verboselog);
+	      if (!downgrade_headers(startrp, convertmode, verboselog))
+		convertmode = _CONVERT_NONE;
 	    }
 	    break;
 	  case 9:		/* QUOTED-PRINTABLE */
@@ -653,7 +654,8 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	      /* Force(d) to decode Q-P while transfer.. */
 	      convertmode = _CONVERT_8BIT;
 	      /*  UPGRADE TO 8BIT !  */
-	      qp_to_8bit(startrp);
+	      if (!qp_to_8bit(startrp))
+		convertmode = _CONVERT_NONE;
 	      content_kind = 10;
 	      ascii_clean = 0;
 	    }

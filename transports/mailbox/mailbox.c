@@ -1103,16 +1103,32 @@ deliver(dp, rp, usernam, timestring)
 			 needed for multi-recipient processing ? */
 #endif
 	  unam = usernam;
+	  errno = 0;
 	  pw = getpwnam(usernam);
 	  if (pw == NULL) {
 
 	    /* No match as is ?  Lowercasify, and try again! */
 	    strlower((char*)usernam);
 
+	    errno = 0;
 	    pw = getpwnam(usernam);
 	    if (pw == NULL) {
 	      if (plus) *plus = '+';
-	      if (propably_x400(usernam)) {
+	      if (errno != 0) { /* getpwnam() failed for some other
+				   reason than simply not finding the
+				   given user... */
+
+		if (verboselog)
+		  fprintf(verboselog,
+			"   getpwnam(\"%s\") failed (%d)\n", usernam, errno);
+
+		notaryreport(rp->addr->user,"failed",
+			     "5.3.0 (Error getting user identity)",
+			     "x-local; 550 (Error getting user identity)");
+		DIAGNOSTIC(rp, usernam, EX_TEMPFAIL,
+			   "getpwnam for user \"%s\" failed", usernam);
+
+	      } else if (propably_x400(usernam)) {
 
 		if (verboselog)
 		  fprintf(verboselog,
@@ -1134,8 +1150,8 @@ deliver(dp, rp, usernam, timestring)
 			     "x-local; 550 (User does not exist)");
 		DIAGNOSTIC(rp, usernam, EX_NOUSER,
 			   "user \"%s\" doesn't exist", usernam);
+
 	      }
-	      if (plus) *plus = '+';
 	      return;
 	    }
 	  }

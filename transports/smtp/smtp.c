@@ -1145,7 +1145,8 @@ deliver(SS, dp, startrp, endrp)
 	    if ((force_7bit || (SS->ehlo_capabilities & ESMTP_8BITMIME)== 0) &&
 		!ascii_clean && !force_8bit) {
 	      convertmode = _CONVERT_QP;
-	      downgrade_headers(startrp, convertmode, SS->verboselog);
+	      if (!downgrade_headers(startrp, convertmode, SS->verboselog))
+		convertmode = _CONVERT_NONE; /* Failed! */
 	    }
 	    break;
 	  case 9:		/* C-T-E: Quoted-Printable */
@@ -1153,7 +1154,8 @@ deliver(SS, dp, startrp, endrp)
 	      /* Force(d) to decode Q-P while transfer.. */
 	      convertmode = _CONVERT_8BIT;
 	      /*  UPGRADE TO 8BIT !  */
-	      qp_to_8bit(startrp);
+	      if (!qp_to_8bit(startrp))
+		convertmode = _CONVERT_NONE;
 	      content_kind = 10;
 	      ascii_clean = 0;
 	    }

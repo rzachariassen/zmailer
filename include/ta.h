@@ -205,7 +205,7 @@ extern int cte_check __((struct rcpt *rp));
 extern char **has_header __((struct rcpt *rp, const char *keystr));
 extern void delete_header __((struct rcpt *rp, char **hdrp));
 extern int  downgrade_charset __((struct rcpt *rp, FILE *verboselog));
-extern void downgrade_headers __((struct rcpt *rp, int downgrade, FILE *verboselog));
+extern int  downgrade_headers __((struct rcpt *rp, int downgrade, FILE *verboselog));
 extern int qp_to_8bit __((struct rcpt *rp));
 
 /* mime2headers.c */
