@@ -14,7 +14,7 @@
  *    key for successfull acceptance of smtp traffic for outbound relay
  *    from any address in the known netaddress universe.
  *  The integration is not complete (into autoconfig), because
- *  our libraries are not so easily autoconfigurable :-/
+ *  our low-level libraries are not so easily autoconfigurable :-/
  *
  */
 /*
