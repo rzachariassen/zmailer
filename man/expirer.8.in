@@ -93,7 +93,7 @@ This program uses no \fBZMailer\fR environment variables.
 .SH FILES
 .TS
 l l.
-\fI@ZMAILERCFGFILE\fR	(ZCONFIG)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
 \fI@POSTOFFICE@\fR	(POSTOFFICE)
 .TE
 .PP

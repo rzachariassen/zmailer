@@ -1379,7 +1379,7 @@ Passed on authentication subprocess program, see:
 system global parameters
 .IP \fI@POSTOFFICE@/.pid.smtpserver\fR
 $POSTOFFICE/.pid.smtpserver
-.IP \fI@ZMAILSHARE@/smtpserver.conf\fR
+.IP \fI@MAILSHARE@/smtpserver.conf\fR
 $MAILSHARE/smtpserver.conf
 .IP \fI/etc/pam.d/smtpauth-login\fR
 if PAM mechanism is present and plain-password authentication is wanted
