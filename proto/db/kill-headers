@@ -8,12 +8,13 @@
 # Just some (built-in) examples, add your own ones!
 #
 
-#db add headers return-path		-:kill:-
-#db add headers resent-return-path	-:kill:-
-#db add headers x-orcpt			-:kill:-
-#db add headers resent-x-orcpt		-:kill:-
-#db add headers x-envid			-:kill:-
-#db add headers resent-x-envid		-:kill:-
+db add headers return-path		-:kill:-
+db add headers resent-return-path	-:kill:-
+db add headers x-orcpt			-:kill:-
+db add headers resent-x-orcpt		-:kill:-
+db add headers x-envid			-:kill:-
+db add headers resent-x-envid		-:kill:-
+db add headers x-envelope-to		-:kill:-
 
 # A likely usefull addition:
 

@@ -1,5 +1,8 @@
 2000-09-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* packaging/solaris/*:
+	    Reworked a bit with Solaris pkgmk wizard..
+
 	* proto/cf/aliases.cf:
 	    A nuisance (unlikely a security problem) with *-group
 	    expansion.  One pair of double-quotes missing.
