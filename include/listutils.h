@@ -13,7 +13,11 @@
 #define	_LISTUTILS_H
 
 extern char *dupnstr __((const char *str, const int len));
+#ifndef __GNUC__
 #define dupstr(str) ({int _l = strlen(str); char *_s = dupnstr(str,_l); _s;})
+#else
+extern char *dupstr __((const char *str));
+#endif
 extern void  freestr __((const char *str));
 
 /*
@@ -101,7 +105,7 @@ extern conscell * newcell __((void));
 
 extern conscell *s_last __((conscell *));
 
-#if defined(__GNUC__) && defined(PROFILING)
+#if !defined(__GNUC__)
 
 extern conscell *copycell(conscell*X);
 extern conscell *nconc(conscell *X, conscell *Y);
@@ -124,8 +128,6 @@ EXTINLINE conscell *copycell(conscell *X) {
   }
   return tmp;
 }
-
-
 
 /*
 #define nconc(X,Y)	(car(X) != 0 ? cdr(s_last(car(X))) = (Y) \
@@ -280,19 +282,19 @@ struct gcpro {	/* ZMailer way -- to store a bit more info in one block */
 extern struct gcpro *gcprolist;
 
 #ifdef CELLDEBUG /* while testing */
-#define GCPLABPRINT(var) ({fprintf(stderr,"%s:%d %s() GCPROx(" #var "= %p )\n", \
-	__FILE__, __LINE__, __FUNCTION__, &var);})
-#define GCPLABPRINTis(var) ({fprintf(stderr,"%s:%d %s() GCPROis(" #var "= %p )\n", \
-	__FILE__, __LINE__, __FUNCTION__, &var);})
-#define GCULABPRINT(var) ({fprintf(stderr,"%s:%d %s() UNGCPROx(" #var "= %p )\n", \
-	__FILE__, __LINE__, __FUNCTION__, &var);})
+#define GCPLABPRINT(var) {fprintf(stderr,"%s:%d %s() GCPROx(" #var "= %p )\n", \
+	__FILE__, __LINE__, __FUNCTION__, &var);}
+#define GCPLABPRINTis(var) {fprintf(stderr,"%s:%d %s() GCPROis(" #var "= %p )\n", \
+	__FILE__, __LINE__, __FUNCTION__, &var);}
+#define GCULABPRINT(var) {fprintf(stderr,"%s:%d %s() UNGCPROx(" #var "= %p )\n", \
+	__FILE__, __LINE__, __FUNCTION__, &var);}
 
-#define UNGCASSERT(var) ({GCULABPRINT(var); \
+#define UNGCASSERT(var) {GCULABPRINT(var); \
 	if(gcprolist != &(var)) {	\
 	  fprintf(stderr, "%s:%d %s UNGCASSERT FAIL; labeladdr = %p\n", \
-	  __FILE__, __LINE__, __FUNCTION__, \
-	  (var).labeladdr); \
-	*(long*)0 = 0; /* ZAP! */}})
+	  __FILE__, __LINE__, __FUNCTION__ /* GCCism? */, \
+	  (var).labeladdr), \
+	*(long*)0 = 0; /* ZAP! */}}
 
 #else
 
@@ -305,112 +307,111 @@ extern struct gcpro *gcprolist;
 #endif
 
 #ifdef __GNUC__
-#define LABELME(varname) __label__ _gc_; _gc_:; varname ## .labeladdr = &&_gc_
+#define LABELME(varname) ({__label__ _gc_; _gc_:; varname ## .labeladdr = &&_gc_;})
 #else
-#define LABELME(varname) /*not GCC..*/
+#define LABELME(varname)
 #endif
-
 #define GCVARS1 struct gcpro gcpro1
 #define GCPRO1(varname) \
- ({LABELME(gcpro1);GCPLABPRINT(gcpro1);	\
+ {LABELME(gcpro1);GCPLABPRINT(gcpro1);	\
   gcpro1.next = gcprolist; gcpro1.var[0] = &varname; gcpro1.nvars = 1; \
-  gcprolist = &gcpro1; })
-#define UNGCPRO1 ({UNGCASSERT(gcpro1); gcprolist = gcpro1.next;})
+  gcprolist = &gcpro1; }
+#define UNGCPRO1 {UNGCASSERT(gcpro1); gcprolist = gcpro1.next;}
 #define GCPRO1STORE(storage,varname)	\
- ({LABELME(storage gcpro1);GCPLABPRINT(storage gcpro1);	\
+ {LABELME(storage gcpro1);GCPLABPRINT(storage gcpro1);	\
   storage gcpro1.next = gcprolist;	\
   storage gcpro1.var[0] = &varname;	\
   storage gcpro1.nvars = 1;		\
-  gcprolist = &storage gcpro1; })
+  gcprolist = &storage gcpro1; }
 #define UNGCPROSTORE1(storage) \
  { UNGCASSERT(storage gcpro1); gcprolist = storage gcpro1.next; }
 
 #define GCVARS2 struct gcpro gcpro2
 #define GCPRO2(varname1, varname2) 	\
- ({LABELME(gcpro2);GCPLABPRINT(gcpro2);				\
+ {LABELME(gcpro2);GCPLABPRINT(gcpro2);				\
   gcpro2.var[0] = &varname1; gcpro2.var[1] = &varname2;		\
   gcpro2.next = gcprolist; gcpro2.nvars = 2;			\
-  gcprolist = &gcpro2; })
-#define UNGCPRO2 ({UNGCASSERT(gcpro2);gcprolist = gcpro2.next;})
+  gcprolist = &gcpro2; }
+#define UNGCPRO2 {UNGCASSERT(gcpro2);gcprolist = gcpro2.next;}
 #define GCPRO2STORE(storage, varname1, varname2) \
- ({LABELME(storage gcpro2);GCPLABPRINT(storage gcpro2);			\
+ {LABELME(storage gcpro2);GCPLABPRINT(storage gcpro2);			\
   storage gcpro2.var[0] = &varname1; storage gcpro2.bar[1] = &varname2; \
   storage gcpro2.next = gcprolist; storage gcpro2.nvars = 2;		\
-  gcprolist = &storage gcpro2; })
+  gcprolist = &storage gcpro2; }
 #define UNGCPROSTORE2(storage) \
  { UNGCASSERT(storage gcpro2);gcprolist = storage gcpro2.next; }
 
 #define GCVARS3 struct gcpro gcpro3
 #define GCPRO3(varname1, varname2, varname3) \
- ({LABELME(gcpro3);GCPLABPRINT(gcpro3);				\
+ {LABELME(gcpro3);GCPLABPRINT(gcpro3);				\
   gcpro3.var[0] = &varname1; gcpro3.var[1] = &varname2;		\
   gcpro3.var[2] = &varname3;					\
   gcpro3.next = gcprolist; gcpro3.nvars = 3;			\
-  gcprolist = &gcpro3; })
-#define UNGCPRO3 ({UNGCASSERT(gcpro3);gcprolist = gcpro3.next;})
+  gcprolist = &gcpro3; }
+#define UNGCPRO3 {UNGCASSERT(gcpro3);gcprolist = gcpro3.next;}
 #define GCPRO3STORE(storage, varname1, varname2, varname3) \
- ({LABELME(storage gcpro3);GCPLABPRINT(storage gcpro3);			\
+ {LABELME(storage gcpro3);GCPLABPRINT(storage gcpro3);			\
   storage gcpro3.var[0] = &varname1; storage gcpro3.bar[1] = &varname2; \
   storage gcpro3.var[2] = &varname3;				\
   storage gcpro3.next = gcprolist; storage gcpro3.nvars = 3;	\
-  gcprolist = &storage gcpro3; })
+  gcprolist = &storage gcpro3; }
 #define UNGCPROSTORE3(storage) \
  {UNGCASSERT(storage gcpro3);gcprolist = storage gcpro3.next; }
 
 #define GCVARS4 struct gcpro gcpro4
 #define GCPRO4(varname1, varname2, varname3, varname4) \
- ({LABELME(gcpro4);GCPLABPRINT(gcpro4);				\
+ {LABELME(gcpro4);GCPLABPRINT(gcpro4);				\
   gcpro4.var[0] = &varname1; gcpro4.var[1] = &varname2;		\
   gcpro4.var[2] = &varname3; gcpro4.var[3] = &varname4;		\
   gcpro4.next = gcprolist; gcpro4.nvars = 4;			\
-  gcprolist = &gcpro4; })
-#define UNGCPRO4 ({UNGCASSERT(gcpro4);gcprolist = gcpro4.next;})
+  gcprolist = &gcpro4; }
+#define UNGCPRO4 {UNGCASSERT(gcpro4);gcprolist = gcpro4.next;}
 #define GCPRO4STORE(storage, varname1, varname2, varname3, varname4) \
- ({LABELME(storage gcpro4);GCPLABPRINT(storage gcpro4);			\
+ {LABELME(storage gcpro4);GCPLABPRINT(storage gcpro4);			\
   storage gcpro4.var[0] = &varname1; storage gcpro4.var[1] = &varname2; \
   storage gcpro4.var[2] = &varname3; storage gcpro4.var[3] = &varname4;	\
   storage gcpro4.next = gcprolist; storage gcpro4.nvars = 4;	\
-  gcprolist = &storage gcpro4; })
+  gcprolist = &storage gcpro4; }
 #define UNGCPROSTORE4(storage) \
  {UNGCASSERT(storage gcpro4);gcprolist = storage gcpro4.next; }
 
 #define GCVARS5 struct gcpro gcpro5
 #define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
- ({LABELME(gcpro5);GCPLABPRINT(gcpro5);				\
+ {LABELME(gcpro5);GCPLABPRINT(gcpro5);				\
   gcpro5.var[0] = &varname1; gcpro5.var[1] = &varname2;		\
   gcpro5.var[2] = &varname3; gcpro5.var[3] = &varname4;		\
   gcpro5.var[4] = &varname5;					\
   gcpro5.next = gcprolist; gcpro5.nvars = 5;			\
-  gcprolist = &gcpro5; })
-#define UNGCPRO5 ({UNGCASSERT(gcpro5);gcprolist = gcpro5.next;})
+  gcprolist = &gcpro5; }
+#define UNGCPRO5 {UNGCASSERT(gcpro5);gcprolist = gcpro5.next;}
 #define GCPRO5STORE(storage, varname1, varname2, varname3, varname4, varname5) \
- ({LABELME(storage gcpro5);GCPLABPRINT(storage gcpro5);			\
+ {LABELME(storage gcpro5);GCPLABPRINT(storage gcpro5);			\
   storage gcpro5.var[0] = &varname1; storage gcpro5.var[1] = &varname2; \
   storage gcpro5.var[2] = &varname3; storage gcpro5.var[3] = &varname4;	\
   storage gcpro5.var[4] = &varname5;				\
   storage gcpro5.next = gcprolist; storage gcpro5.nvars = 5;	\
-  gcprolist = &storage gcpro5; })
+  gcprolist = &storage gcpro5; }
 #define UNGCPROSTORE5(storage) \
- ({UNGCASSERT(storage gcpro5);gcprolist = storage gcpro5.next;})
+ {UNGCASSERT(storage gcpro5);gcprolist = storage gcpro5.next;}
 
 #define GCVARS6 struct gcpro gcpro6
 #define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
- ({LABELME(gcpro6);GCPLABPRINT(gcpro6);				\
+ {LABELME(gcpro6);GCPLABPRINT(gcpro6);				\
   gcpro6.var[0] = &varname1; gcpro6.var[1] = &varname2;		\
   gcpro6.var[2] = &varname3; gcpro6.var[3] = &varname4;		\
   gcpro6.var[4] = &varname5; gcpro6.var[5] = &varname6;		\
   gcpro6.next = gcprolist; gcpro6.nvars = 6;			\
-  gcprolist = &gcpro6; })
-#define UNGCPRO6 ({UNGCASSERT(gcpro6);gcprolist = gcpro6.next;})
+  gcprolist = &gcpro6; }
+#define UNGCPRO6 {UNGCASSERT(gcpro6);gcprolist = gcpro6.next;}
 #define GCPRO6STORE(storage, varname1, varname2, varname3, varname4, varname5, varname6) \
- ({LABELME(storage gcpro6);GCPLABPRINT(storage gcpro6);			\
+ {LABELME(storage gcpro6);GCPLABPRINT(storage gcpro6);			\
   storage gcpro6.var[0] = &varname1; storage gcpro6.var[1] = &varname2; \
   storage gcpro6.var[2] = &varname3; storage gcpro6.var[3] = &varname4;	\
   storage gcpro6.var[4] = &varname5; storage gcpro6.var[5] = &varname6; \
   storage gcpro6.next = gcprolist; storage gcpro6.nvars = 6;	\
-  gcprolist = &storage gcpro6; })
+  gcprolist = &storage gcpro6; }
 #define UNGCPROSTORE6(storage) \
- ({UNGCASSERT(storage gcpro6);gcprolist = storage gcpro6.next;})
+ {UNGCASSERT(storage gcpro6);gcprolist = storage gcpro6.next;}
 
 
 
