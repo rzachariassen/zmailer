@@ -1470,7 +1470,7 @@ void query2(fpi, fpo)
 		    split[j] = b;
 		  }
 		}
-		b = strchr(b ? b : "", '\t');
+		b = strchr(b, '\t');
 		if (b) *b++ = 0;
 	      }
 	      
@@ -1516,8 +1516,6 @@ void query2(fpi, fpo)
 		    printf("\t  from\t%s\n", *split[2] ? split[2] : "<>");
 		  }
 
-		  /* XXX: TO line ... */
-
 		  s = cfp->contents + atoi(split[3]) +2;
 		  if (s > (cfp->contents + cfp->nlines)) {
 		    printf("\t\tto-ptr bad; split[3]='%s'\n",split[3]);
@@ -1547,7 +1545,19 @@ void query2(fpi, fpo)
 		  fprintf(stdout,"\t%s\n",ocp);
 
 
-		} /* have cfp */
+		} else /* not have cfp */ {
+		  /* Can't show 'message-id', nor 'to' addresses,
+		     but have 'from'! */
+		  if (j == 0) {
+		    /* First recipient in the group */
+		    printf("\t  from\t%s\n", *split[2] ? split[2] : "<>");
+		  }
+		}
+
+		/* remember to show the diagnostics */
+
+		if (*(split[9]))
+		  printf("\t\t%s\n", split[9]);
 
 	      } /* verbose */
 

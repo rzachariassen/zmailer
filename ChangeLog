@@ -1,5 +1,10 @@
 2000-11-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* scheduler/mailq.c:
+	    Wondered that "mailq -vv" didn't show diagnostic messages
+	    along other data.  Now it does.  Plus other small tuneups
+	    of the result.
+
 	* transports/smtp/smtp.c:
 	    A bit more of care on referencing 'logfile' variable.
 	    Not using uninitialized one.
