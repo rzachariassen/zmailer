@@ -741,7 +741,7 @@ dnl library which contains call API (ABI?) compatible interface, however which
 dnl does not necessarily contain binary compatible DATABASE which would use
 dnl same binary layout as old BSD DB 1.85 version did...
 
-if test "$ac_cv_header_db_h" = yes ; then
+if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db1_db_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_dbopen" = yes ; then
     LIBDB=""
@@ -815,7 +815,7 @@ dnl
 dnl Ok, a third case; SleepyCat's BSD DB 2.*;  db_open() et.al.
 dnl
 
-if test "$ac_cv_header_db_h" = yes ; then
+if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_db_open2" = yes ; then
     LIBDB=""
@@ -865,7 +865,7 @@ if test "$ac_cv_header_db_h" = yes ; then
                   "$ac_cv_lib_c_dbopen"    != yes -a \
                   "$ac_cv_lib_db1_dbopen1" != yes -a \
                   "$ac_cv_lib_c_dbopen1"   != yes ; then
-            AC_MSG_RESULT([??? Has <db.h>, but db_open() is not at libc, nor at libdb ???])
+            AC_MSG_RESULT([??? Has <db.h> or <db2/db.h>, but db_open() is not at libc, nor at -ldb or -ldb2 ???])
           fi
         fi
       else

@@ -4349,7 +4349,7 @@ rm -f conftest*
 fi
 
 
-if test "$ac_cv_header_db_h" = yes ; then
+if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db1_db_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_dbopen" = yes ; then
     LIBDB=""
@@ -4468,7 +4468,7 @@ rm -f conftest*
 fi
 
 
-if test "$ac_cv_header_db_h" = yes ; then
+if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_db_open2" = yes ; then
     LIBDB=""
@@ -4581,7 +4581,7 @@ EOF
                   "$ac_cv_lib_c_dbopen"    != yes -a \
                   "$ac_cv_lib_db1_dbopen1" != yes -a \
                   "$ac_cv_lib_c_dbopen1"   != yes ; then
-            echo "$ac_t""??? Has <db.h>, but db_open() is not at libc, nor at libdb ???" 1>&6
+            echo "$ac_t""??? Has <db.h> or <db2/db.h>, but db_open() is not at libc, nor at -ldb or -ldb2 ???" 1>&6
           fi
         fi
       else
