@@ -471,7 +471,7 @@ readheaders()
 		case 'P':		/* "Precedence:" */
 			cont = 0;
 			if (strncasecmp(buf, "Precedence", 10) ||
-			    buf[10] != ':' && buf[10] != ' ' && buf[10] != '\t')
+			    (buf[10] != ':' && buf[10] != ' ' && buf[10] != '\t'))
 				break;
 			if (!(p = strchr(buf, ':')))
 				break;
