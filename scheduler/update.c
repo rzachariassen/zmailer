@@ -213,7 +213,7 @@ unctlfile(cfp, no_unlink)
 	  eunlink(path,"sch-unctl-1");
 	  if (verbose)
 	    sfprintf(sfstdout,"%s: unlink %s (mid=%p)",
-		     cfp->logident, path, cfp->mid);
+		     cfp->spoolid, path, cfp->mid);
 
 	  sprintf(path, "../%s/%s%s",
 		  QUEUEDIR, cfpdirname(cfp->dirind), cfp->mid);
@@ -404,7 +404,7 @@ deletemsg(msgid, curcfp)
 	     spl = sp_fnext(spl)) {
 	  cfp = (struct ctlfile *)spl->data;
 	  /* XX: message-id comparison is a Hard Problem. Approximate. */
-	  if (strcmp(cfp->logident, msgid) == 0)
+	  if (strcmp(cfp->spoolid, msgid) == 0)
 	    break;
 	}
 	if (spl == NULL)
@@ -648,7 +648,7 @@ static int u_ok(proc, vp, index, inum, offset, notary, message)
      const char	*message;
 {
 	if (verbose)
-	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok %s\n", vp->cfp->logident, inum,
+	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok %s\n", vp->cfp->spoolid, inum,
 		   offset, notary, message ? message : "-");
 #if 0
 	if (vp->cfp->contents != NULL) {
@@ -686,7 +686,7 @@ static int u_ok2(proc, vp, index, inum, offset, notary, message)
 	  vp->cfp->haderror = 1; /* The transporter logged it for us! */
 	}
 	if (verbose)
-	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok2 %s\n", vp->cfp->logident, inum,
+	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok2 %s\n", vp->cfp->spoolid, inum,
 		   offset, notary, message ? message : "-");
 #if 0
 	if (vp->cfp->contents != NULL) {
@@ -718,7 +718,7 @@ static int u_ok3(proc, vp, index, inum, offset, notary, message)
 	/* Success, but the transporter was able to relay the DSN info
 	   to another system, thus no diagnostics here! */
 	if (verbose)
-	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok3 %s\n", vp->cfp->logident, inum,
+	  sfprintf(sfstderr,"%s: %ld/%ld/%s/ok3 %s\n", vp->cfp->spoolid, inum,
 		   offset, notary, message ? message : "-");
 #if 0
 	if (vp->cfp->contents != NULL) {
@@ -747,7 +747,7 @@ static int u_deferred(proc, vp, index, inum, offset, notary, message)
      const char	*notary;
      const char	*message;
 {
-	/* sfprintf(sfstderr,"%s: %ld/%ld/%s/deferred %s\n", vp->cfp->logident,
+	/* sfprintf(sfstderr,"%s: %ld/%ld/%s/deferred %s\n", vp->cfp->spoolid,
 	   inum, offset, notary, message ? message : "-"); */
 	if (message != NULL) {
 	  if (vp->message != NULL)
@@ -822,7 +822,7 @@ static int u_deferall(proc, vp, index, inum, offset, notary, message)
 	  /* Don't count on the thread! */
 
 	  /* sfprintf(sfstderr,"%s: %ld/%ld/%s/deferall %s\n",
-	     vp->cfp->logident, inum, offset, notary,
+	     vp->cfp->spoolid, inum, offset, notary,
 	     message ? message : "-"); */
 
 	  if (message != NULL) {
