@@ -1,3 +1,16 @@
+1998-03-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/aliases.cf, proto/cf/rrouter.cf, proto/cf/fqdnaliases.cf:
+	    Rewamped $(rrouter ..) and some other scripts after reports
+	    regarding mysterious problems with $PUNTHOST.
+
+	* include/shmmib.h, scheduler/prototypes.h, scheduler/scheduler.c,
+	  scheduler/scheduler.h, scheduler/update.c:
+	    Hooks/preparations for RFC 2249
+
+	* smtpserver/smtpdata.c:
+	    Some anti-spam hacks merged in
+
 1998-03-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
