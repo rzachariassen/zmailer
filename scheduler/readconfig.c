@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
  */
 
 #include "hostenv.h"
@@ -547,7 +547,10 @@ static int rc_command(key, arg, ce)
 	  for (av = &ce->argv[0]; *av != NULL; ++av)
 	    if (strcmp(*av, replchannel) == 0) {
 	      ce->flags |= CFG_BYCHANNEL;
-	      if (ce->channel && strtok(ce->channel,"[{*?") != NULL)
+	      cp = ce->channel;
+	      while (cp && !(*cp == '[' || *cp == '{' ||
+			     *cp == '*' || *cp == '?')) ++cp;
+	      if (cp && *cp)
 		ce->flags |= CFG_WITHHOST; /* Well, sort of..
 					      Channel-part is wild-card, thus
 					      it is also very restrictive.. */
