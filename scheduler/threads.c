@@ -302,6 +302,8 @@ pick_next_thread(proc)
 	mytime(&now);
 
 	thr  = thg->thread;
+	if (!thr) return 0;
+
 	for ( ; once || (thr != thg->thread); thr = thr->nextthg, once = 0 ) {
 
 	  if (thr == thr0)
@@ -948,8 +950,9 @@ pick_next_vertex(proc)
 	  return 0;
 	}
 
+#if 0
 	if (proc->pvertex && proc->pvertex->nextitem == (void*)0x55555555L) abort();
-
+#endif
 	if (proc->pvertex) /* Pick next item */
 	  proc->pvertex = proc->pvertex->nextitem;
 
