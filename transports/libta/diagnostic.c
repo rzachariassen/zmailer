@@ -4,7 +4,7 @@
  */
 /*
  *	A lot of changes all around over the years by Matti Aarnio
- *	<mea@nic.funet.fi>, copyright 1992-2002
+ *	<mea@nic.funet.fi>, copyright 1992-2003
  */
 
 /*
@@ -228,6 +228,7 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	va_list	ap;
 	int report_notary = 1;
 	int logreport = 0;
+	int no_notary = 0;
 
 
 	/* Nothing to do ?? */
@@ -453,8 +454,7 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	    fcntl(rp->desc->ctlfd, F_SETFL, oldfl);
 
 	  /* Now we have no reason to send also the NOTARY report up.. */
-	  if (notarybuf != NULL)
-	    *notarybuf = 0;
+	  no_notary = 1;
 	}
 
 
@@ -465,15 +465,15 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 
 	if (verboselog) {
 	  fprintf(verboselog,
-		  "DIAG: C='%s' H='%s' U='%s' P='%s' -- stat='%s' ",
+		  "DIAG: C='%s' H='%s' U='%s' P='%s' L=%d -- stat='%s' notary='%s' ",
 		  rp->addr->channel, rp->addr->host, rp->addr->user,
-		  rp->addr->misc, statmsg);
+		  rp->addr->misc, rp->lockoffset,
+		  statmsg, (notarybuf ? notarybuf : ""));
 	  if (wtthost)
 	    fprintf(verboselog, "WTT='%s' ", wtthost);
 	  fprintf(verboselog, " MSG='%s'\n", message);
 	  fflush(verboselog);
 	}
-
 
 
 	/* "Delay" the diagnostics from mailbox sieve subprocessing.
@@ -482,7 +482,7 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 
 	  fprintf(stdout,"%d/%d\t%s\t%s %s\n",
 		  rp->desc->ctlid, rp->id,
-		  (notarybuf && report_notary) ? notarybuf : "",
+		  (!no_notary && notarybuf && report_notary) ? notarybuf : "",
 		  statmsg, message);
 	  fflush(stdout);
 
