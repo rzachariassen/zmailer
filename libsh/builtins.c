@@ -58,6 +58,7 @@ static conscell *sh_setf	CSARGS2;
 static conscell *sh_get		CSARGS2;
 static conscell *sh_length	CSARGS2;
 static conscell *sh_last	CSARGS2;
+static conscell *sh_lappend     CSARGS2;
 
 #define CSARGV2 __((int argc, const char *argv[]))
 
@@ -122,6 +123,7 @@ struct shCmd builtins[] = {
 {	"sleep",	sh_sleep,	NULL,	NULL,	0		},
 {	"true",		sh_true,	NULL,	NULL,	0		},
 {	"false",	sh_false,	NULL,	NULL,	0		},
+{	"lappend",	NULL,	sh_lappend,	NULL,	SH_ARGV		},
 {	NULL,		NULL,		NULL,	NULL,	0		},
 };
 
@@ -292,6 +294,48 @@ sh_setf(avl, il)
 #endif	/* MAILER */
 	return cddar(avl);
 }
+
+
+/*
+ *  call: lappend varname $value
+ *  The varname is looked up, and appended with supplied value;
+ *  approach 
+ *
+ */
+
+static conscell *
+sh_lappend(avl, il)
+	conscell *avl, *il;
+{
+	conscell *plist, *key, *d, *tmp, *data;
+	memtypes omem = stickymem;
+
+	key = cdar(avl);
+	if (key == NULL 
+	    || !STRING(key)) {
+		fprintf(stderr, "Usage: %s variable-name $moredata\n",
+				car(avl)->string);
+		return NULL;
+	}
+	d = v_find(key->string);
+	if (!d) return NULL;
+
+	d = cdr(d);
+
+	stickymem = MEM_MALLOC;
+
+	data = s_copy_tree(cdr(key));
+
+	tmp = car(d);
+	while (cdr(tmp)) tmp = cdr(tmp);
+	cdr(tmp) = data;
+	tmp =  ncons(car(d));
+
+	stickymem = omem;
+	return tmp;
+}
+
+
 
 static conscell *
 sh_get(avl, il)
