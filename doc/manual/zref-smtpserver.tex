@@ -646,7 +646,14 @@ start against connecting IP address, and against IP-reversed domain name.
 
 If this pair exists, session sets persistent ``always-accept'' flag,
 and will not do further policy analysing for the ``MAIL FROM'', nor
-``RCPT TO'' addresses.
+``RCPT TO'' addresses.  (Except looking for valid A/MX data from the
+DNS for the sender/recipient domains.)
+
+\item[\tt fulltrustnet +] \mbox{} \\
+Because the DNS lookups still done with ``relaycustnet +'' setting on,
+a massive feed for fanout servers might become slowed down/effectively
+killed, unless we use ``fulltrustnet +'' specification for the feeder
+host.  Then everything is taken in happily from that source address.
 
 \item[\tt relaytarget +] \mbox{} \\
 With this attribute pair the current ``RCPT TO'' address is accepted in
