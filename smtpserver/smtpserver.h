@@ -437,6 +437,7 @@ extern int debug_content_filter;
 extern int strict_protocol;
 extern int rcptlimitcnt;
 extern int enable_router;
+extern int enable_router_maxpar;
 extern int use_tcpwrapper;
 extern int configuration_ok;
 extern int unknown_cmd_limit;

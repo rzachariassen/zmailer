@@ -1,5 +1,14 @@
 2004-04-30  Matti Aarnio  <mea@zmailer.org>
 
+	* man/smtpserver.8.in, proto/smtpserver.conf.in,
+	  smtpserver/cfgread.c, smtpserver/smtpserver.h,
+	  smtpserver/subdaemon-rtr.c:
+	    Cloned content-filter interaction machinery
+	    also into router interactions, now there
+	    can be multiple instances of the router
+	    if single isn't enough..  By default there
+	    can be 2 i-routers.
+
 	* smtpserver/smtpserver.h, smtpserver/subdaemons.c:
 	    "Test and debug before release..."  Damn..
 	    Ok, now that subdaemon_send_to_peer() works.

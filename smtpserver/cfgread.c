@@ -359,6 +359,10 @@ static void cfparam(str, size, cfgfilename, linenum)
       vrfycmdok = 1;
     } else if (cistrcmp(name, "enable-router") == 0) {
       enable_router = 1;
+    } else if (cistrcmp(name, "enable-router-maxpar") == 0 && param1) {
+      enable_router_maxpar = atoi(param1);
+      if (enable_router_maxpar < 1)
+	enable_router_maxpar  = 1;
     } else if (cistrcmp(name, "smtp-auth") == 0) {
       auth_ok = 1;
     } else if (cistrcmp(name, "auth-login-also-without-tls") == 0) {

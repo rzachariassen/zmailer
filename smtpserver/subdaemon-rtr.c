@@ -34,33 +34,39 @@ struct subdaemon_handler subdaemon_handler_router = {
 	subdaemon_handler_rtr_shutdown
 };
 
+#define MAXRTRS 20
+
+static int MaxRtrs = 2;
+int enable_router_maxpar = 2;
+
 typedef struct state_rtr {
-	struct peerdata *replypeer;
-	int   routerpid;
-	FILE *tofp;
-	int   fromfd;
-	char *buf;
-	int   bufsize;
-	int   sawhungry;
-	struct fdgets_fdbuf fdb;
+	struct peerdata *replypeer[MAXRTRS];
+	int   routerpid[MAXRTRS];
+	FILE *tofp[MAXRTRS];
+	int   fromfd[MAXRTRS];
+	char *buf[MAXRTRS];
+	int   bufsize[MAXRTRS];
+	int   sawhungry[MAXRTRS];
+	struct fdgets_fdbuf fdb[MAXRTRS];
 } RtState;
 
 
-static void subdaemon_killr __(( RtState * RTR ));
+static void subdaemon_killr __(( RtState * RTR, int idx ));
 
 static void
-subdaemon_killr(RTR)
+subdaemon_killr(RTR, idx)
      RtState *RTR;
+     int idx;
 {
-	if (RTR->routerpid > 1) {
-	  if (RTR->tofp == NULL)
-	    fclose(RTR->tofp);
-	  RTR->tofp   = NULL;
-	  if (RTR->fromfd >= 0)
-            close(RTR->fromfd);
-	  RTR->fromfd = -1;
-	  kill(RTR->routerpid, SIGKILL);
-	  RTR->routerpid = 0;
+	if (RTR->routerpid[idx] > 1) {
+	  if (RTR->tofp[idx] == NULL)
+	    fclose(RTR->tofp[idx]);
+	  RTR->tofp[idx]   = NULL;
+	  if (RTR->fromfd[idx] >= 0)
+            close(RTR->fromfd[idx]);
+	  RTR->fromfd[idx] = -1;
+	  kill(RTR->routerpid[idx], SIGKILL);
+	  RTR->routerpid[idx] = 0;
 	}
 }
 
@@ -81,9 +87,10 @@ static const char *newenviron[] =
   { "SMTPSERVER=y", NULL };
 #endif
 
-static int subdaemon_callr __((RtState * RTR));
-static int subdaemon_callr (RTR)
+static int subdaemon_callr __((RtState * RTR, int idx));
+static int subdaemon_callr (RTR, idx)
      RtState *RTR;
+     int idx;
 {
 	int rpid = 0, to[2], from[2], rc;
 	char *cp;
@@ -131,44 +138,46 @@ static int subdaemon_callr (RTR)
 	} else if (rpid < 0)
 	  return -1;
 
-	RTR->routerpid = rpid;
+	RTR->routerpid[idx] = rpid;
 
 	close(to[0]);
 	close(from[1]);
 
-	RTR->tofp   = fdopen(to[1], "w");
+	RTR->tofp[idx]   = fdopen(to[1], "w");
 	fd_blockingmode(to[1]);
-	if (! RTR->tofp ) return -1; /* BAD BAD! */
+	if (! RTR->tofp[idx] ) return -1; /* BAD BAD! */
 
-	RTR->fromfd = from[0];
-	fd_blockingmode(RTR->fromfd);
+	RTR->fromfd[idx] = from[0];
+	fd_blockingmode(RTR->fromfd[idx]);
 	
 	for (;;) {
-	  RTR->bufsize = 0;
-	  rc = fdgets( & RTR->buf, & RTR->bufsize, & RTR->fdb, RTR->fromfd, 10);
+	  RTR->bufsize[idx] = 0;
+	  rc = fdgets( & RTR->buf[idx], & RTR->bufsize[idx],
+		       & RTR->fdb[idx], RTR->fromfd[idx], 10);
+
 	  /* type(NULL,0,NULL,"fdgets-RTR-1: bufsize=%d '%s' rc=%d lastc=%d",
-	     RTR->bufsize, RTR->buf, rc, RTR->buf[rc-1]);
+	     RTR->bufsize[idx], RTR->buf[idx], rc, RTR->buf[idx][rc-1]);
 	  */
 
-	  if ( rc < 1 || ! RTR->buf ) {
+	  if ( rc < 1 || ! RTR->buf[idx] ) {
 	    /* FIXME: ERROR PROCESSING ! */
 	    if (rc == 0) {
 	      /* EOF! */
-	      subdaemon_killr(RTR);
+	      subdaemon_killr(RTR, idx);
 	    }
 	    return -1;
 	  }
-	  if (strncmp( RTR->buf, BADEXEC, sizeof(BADEXEC) - 3) == 0) {
-	    subdaemon_killr(RTR);
+	  if (strncmp( RTR->buf[idx], BADEXEC, sizeof(BADEXEC) - 3) == 0) {
+	    subdaemon_killr(RTR, idx);
 	    return -1;
 	  }
 
-	  if (strcmp( RTR->buf, Hungry ) == 0) {
-	    RTR->sawhungry = 1;
+	  if (strcmp( RTR->buf[idx], Hungry ) == 0) {
+	    RTR->sawhungry[idx] = 1;
 	    break;
 	  }
 	}
-	fd_nonblockingmode(RTR->fromfd);
+	fd_nonblockingmode(RTR->fromfd[idx]);
 
 	return rpid;
 }
@@ -183,10 +192,17 @@ subdaemon_handler_rtr_init (statep)
 {
 	RtState *state = calloc(1, sizeof(RtState));
 	*statep = state;
+	int idx;
+
+	MaxRtrs = enable_router_maxpar;
+	if (MaxRtrs < 1)       MaxRtrs = 1;
+	if (MaxRtrs > MAXRTRS) MaxRtrs = MAXRTRS;
 
 	if (state) {
-	  state->routerpid = 0;
-	  state->fromfd = -1;
+	  for (idx = 0; idx < MaxRtrs; ++idx) {
+	    state->routerpid[idx] = 0;
+	    state->fromfd[idx]    = -1;
+	  }
 	}
 
 #if 0
@@ -219,33 +235,41 @@ subdaemon_handler_rtr_input (state, peerdata)
 {
 	RtState *RTR = state;
 	int rc = 0;
+	int idx;
 
-	if (RTR->routerpid <= 1) {
-	  rc = subdaemon_callr(RTR);
-	  if (rc < 2) {
-	    /* FIXME: error processing! */
-	    struct timeval tv;
-	    tv.tv_sec = 1;
-	    tv.tv_usec = 0;
-	    select(0, NULL, NULL, NULL, &tv); /* Sleep about 1 sec.. */
-	    return EAGAIN;
+	for (idx = 0; idx < MaxRtrs; ++idx) {
+
+	  if (RTR->replypeer[idx])
+	    continue; /* Busy talking with somebody.. */
+
+	  if (RTR->routerpid[idx] <= 1) {
+	    rc = subdaemon_callr(RTR, idx);
+	    if (rc < 2) {
+	      /* FIXME: error processing! */
+	      struct timeval tv;
+	      tv.tv_sec = 1;
+	      tv.tv_usec = 0;
+	      select(0, NULL, NULL, NULL, &tv); /* Sleep about 1 sec.. */
+	      return EAGAIN;
+	    }
+	    
+	    /* Now   RTR->fromfd[idx]   is in NON-BLOCKING MODE!
+	       However  RTR->tofp[idx]  is definitely in blocking! */
 	  }
 
-	  /* Now   RTR->fromfd   is in NON-BLOCKING MODE!
-	     However  RTR->tofp  is definitely in blocking! */
+	  if (!RTR->sawhungry[idx])
+	    return EAGAIN; /* Do come again! */
+
+	  RTR->replypeer[idx] = peerdata;
+
+	  fwrite(peerdata->inpbuf, peerdata->inlen, 1, RTR->tofp[idx]);
+	  fflush(RTR->tofp[idx]);
+
+	  RTR->bufsize[idx]    = 0;
+	  RTR->sawhungry[idx]  = 0;
+	  peerdata->inlen      = 0;
+	  break;
 	}
-
-	if (!RTR->sawhungry)
-	  return EAGAIN; /* Do come again! */
-
-	RTR->replypeer = peerdata;
-
-	fwrite(peerdata->inpbuf, peerdata->inlen, 1, RTR->tofp);
-	fflush(RTR->tofp);
-
-	RTR->bufsize    = 0;
-	RTR->sawhungry  = 0;
-	peerdata->inlen = 0;
 
 	return EAGAIN;
 }
@@ -259,18 +283,21 @@ subdaemon_handler_rtr_preselect (state, rdset, wrset, topfdp)
 {
 	RtState *RTR = state;
 	int rc = -1;
+	int idx;
 
 	if (! RTR) return 0; /* No state to monitor */
 
 	/* If we have router underneath us,
 	   check if it has something to say! */
  
-	if (RTR->fromfd >= 0) {
-	  _Z_FD_SETp(RTR->fromfd, rdset);
-	  if (*topfdp < RTR->fromfd)
-	    *topfdp = RTR->fromfd;
-	  if (RTR->fdb.rdsize)
-	    rc = 1;
+	for (idx = 0; idx < MaxRtrs; ++idx) {
+	  if (RTR->fromfd[idx] >= 0) {
+	    _Z_FD_SETp(RTR->fromfd[idx], rdset);
+	    if (*topfdp < RTR->fromfd[idx])
+	      *topfdp = RTR->fromfd[idx];
+	    if (RTR->fdb[idx].rdsize)
+	      rc = 1;
+	  }
 	}
 
 	return rc;
@@ -283,40 +310,51 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 {
 	RtState *RTR = state;
 	int rc = 0;
+	int idx;
+	int sawhungry = 0;
 
 	if (! RTR) return -1; /* No state to monitor */
 	if (RTR->fromfd < 0) return -1; /* No router there.. */
 
-	if ( _Z_FD_ISSETp(RTR->fromfd, rdset) || RTR->fdb.rdsize ) {
-	  /* We have something to read ! */
+	for (idx = 0; idx < MaxRtrs; ++idx) {
+	  if (RTR->fromfd[idx] < 0)
+	    continue;
 
-	  rc = fdgets( & RTR->buf, & RTR->bufsize, & RTR->fdb, RTR->fromfd, -1);
+	  if ( _Z_FD_ISSETp(RTR->fromfd[idx], rdset) ||
+	       RTR->fdb[idx].rdsize ) {
+	    /* We have something to read ! */
 
-	  /* type(NULL,0,NULL,"fdgets-RTR-2: bufsize=%d '%s' rc=%d lastc=%d",
-	     RTR->bufsize, RTR->buf, rc, RTR->buf[rc-1]);
-	  */
+	    rc = fdgets( & RTR->buf[idx], & RTR->bufsize[idx],
+			 & RTR->fdb[idx], RTR->fromfd[idx], -1);
 
-	  if (rc < 0 && errno == EAGAIN) return -EAGAIN;  /* */
-	  if (rc == 0) { /* EOF */
-	    subdaemon_killr(RTR);
-	  }
-
-	  if (rc > 0) {
-	    if (RTR->buf[rc-1] == '\n') {
-	      /* Whole line accumulated, send it out! */
-
-	      subdaemon_send_to_peer(RTR->replypeer, RTR->buf, rc);
-	      RTR->bufsize = 0; /* Zap it.. */
+	    /* type(NULL,0,NULL,"fdgets-RTR-2: bufsize=%d '%s' rc=%d lastc=%d",
+	       RTR->bufsize[idx], RTR->buf[idx], rc, RTR->buf[idx][rc-1]);
+	    */
+#if 0 /* Let the loop to spin ... */
+	    if (rc < 0 && errno == EAGAIN) return -EAGAIN;  /* */
+#endif
+	    if (rc == 0) { /* EOF */
+	      subdaemon_killr(RTR, idx);
 	    }
 
-	    if (strcmp( RTR->buf, Hungry ) == 0) {
-	      RTR->sawhungry = 1;
-	      RTR->replypeer = NULL;
+	    if (rc > 0) {
+	      if (RTR->buf[idx][rc-1] == '\n') {
+		/* Whole line accumulated, send it out! */
+
+		subdaemon_send_to_peer(RTR->replypeer[idx], RTR->buf[idx], rc);
+		RTR->bufsize[idx] = 0; /* Zap it.. */
+	      }
+
+	      if (strcmp( RTR->buf[idx], Hungry ) == 0) {
+		RTR->sawhungry[idx] = 1;
+		sawhungry = 1;
+		RTR->replypeer[idx] = NULL;
+	      }
 	    }
 	  }
 	}
 
-	return RTR->sawhungry;
+	return sawhungry;
 }
 
 

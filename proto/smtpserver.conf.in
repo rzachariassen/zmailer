@@ -26,14 +26,14 @@
 #
 #PARAM spf-received                     # create "Received-SPF:" header
 #PARAM spf-threshold        softfail    # worst acceptable SPF check result
-#                                       # 'fail' - always accept
-#                                       # 'softfail' - accept if 'softfail',
-#                                       #   'unpublished', 'neutral', 'pass'
-#                                       # 'none' - treat 'softfail' as 'fail'
-#                                       #   accept all better results
-#                                       # 'neutral' - reject unpublished
-#                                       # 'pass' - accept only 'pass' and
-#                                       #   DNS errors.
+#                               # 'fail' - always accept
+#                               # 'softfail' - accept if 'softfail',
+#                               #   'unpublished', 'neutral', 'pass'
+#                               # 'none' - treat 'softfail' as 'fail'
+#                               #   accept all better results
+#                               # 'neutral' - reject unpublished
+#                               # 'pass' - accept only 'pass' and
+#                               #   DNS errors.
 #
 #PARAM BindPort                   25    # Binding port
 #PARAM BindAddress         [0.0.0.0]    # Binding address - for multihomers..
@@ -57,6 +57,10 @@
 #                       # to ZMailer router shell environment with suitably
 #                       # pervert input, if quotation rules are broken in
 #                       # the scripts.
+#PARAM  enable-router-maxpar 2
+#                       # Resource control: Start at most 2 interactive
+#                       # routers, if such are needed. The value range
+#                       # is 1 thru 20 ...
 #
 #PARAM  smtp-auth-sasl  # Authentication with SASL[2] mechanisms
 #                       # in the system.  Enabling this takes precedence over

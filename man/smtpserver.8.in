@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-Apr-27"
+.TH SMTPSERVER 8zm "2004-Apr-30"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -412,6 +412,13 @@ when you do this.
 This is also required for interactive router processing
 of ``MAIL FROM'' and ``RCPT TO'' addresses.
 .RE
+.IP "PARAM enable-router-maxpar 2"
+.RS
+Sets the upper limit of how many parallel interactive routers
+can be activated to handle received routing requests.
+.PP
+Default is 2, accepted value range is 1 thru 20.
+.RE
 .IP "PARAM smtp-auth"
 .RS
 This enables 'SMTP AUTH' facility (AUTH verb, plus optional parameter
@@ -719,6 +726,10 @@ PARAM  enable-router
 #               # to ZMailer router shell environment with some
 #               # suitably pervert input, if quotation rules are
 #               # broken in the scripts.
+#PARAM  enable-router-maxpar 2
+#               # Resource control: Start at most 2 interactive
+#               # routers, if such are needed. The value range
+#               # is 1 thru 20 ...
 #
 #PARAM  smtp-auth-sasl
 #               # Authentication with SASL[2] mechanisms
