@@ -35,6 +35,7 @@ extern void         cleanenv __((void));
 
 /* detach.c */
 extern void detach __((void));
+extern int  countfds __((void));
 
 /* die.c */
 extern void die __((int status, const char *message));
