@@ -1,0 +1,239 @@
+% \section{Scheduler Configuration}
+
+The major action of the Scheduler is to periodically start up Transport
+Agents and tell them what to do.  This is controlled by a table in a
+configuration file that is read by the Scheduler when it starts.  
+
+Any line starting with a `{\tt \#}' character is assumed to be a comment 
+line, and is ignored, as are empty lines.  All other lines must follow a rigid
+format. 
+
+The scheduler configuration file consists of a set  of
+clauses. Each clause is selected by the pattern it starts
+with. The patterns  for  the  clauses   are  matched,  in
+sequence, with the channel/host string for each recipient
+address. When a clause pattern matches  an  address,  the
+parameters set in the clause will be applied to the scheduler's 
+processing of that address. If the clause specifies a command,  
+the clause pattern matching sequence is terminated. This is a clause:
+
+\begin{alltt}
+    local/*   interval=10s
+              expiry=3h
+              # want 20 channel slots in case of blockage on one
+              maxchannel=20
+              # want 20 thread-ring slots
+              maxring=20
+              command="mailbox -8"
+\end{alltt}
+
+A clause consists of:
+
+\begin{itemize}
+\item A selection pattern  (in  shell style) that  is
+matched  against        the  channel/host  string  for an
+address.
+\item 0  or more  variable assignments or keywords
+(described below).
+\end{itemize}
+
+
+If the selection pattern does not contain a '/', it is
+assumed to be a channel pattern and the host  pattern  is
+assumed to be the wildcard '*'.
+
+The components of a clause are separated by whitespace.
+The pattern introducing a clause must start in the first
+column of a line, and the variable assignments or keywords
+inside a clause must not start in the first  column of a
+line. This means a clause may be written both compactly
+all on one line, or spread out with an assignment or keyword per line.
+
+If the clause is empty (i.e., consists only of a pattern),
+then the contents of the next non-empty clause will be used.
+
+The typical configuration file will contain the following clauses:
+\begin{itemize}
+\item a clause matching all addresses (using the pattern */*) that sets 
+up default values.
+\item a  clause  matching  the  local delivery channel
+(usually local).
+\item a clause matching the deferred    delivery  channel
+(usually hold).
+\item a  clause  matching  the error reporting channel
+(usually error).
+\item clauses specific to the other channels    known  by
+the {\em router}, for example, smtp and uucp.
+\end{itemize}
+
+
+The  actual  names  of  these channels are completely 
+controlled by the {\em router} configuration file.
+
+Empty  lines,  and  lines   whose   first   non-whitespace
+character is '\#', are ignored.
+
+Variable values may be unquoted words or values or double 
+quoted strings.  Intervals  (delta  time)  are  specified
+using  a concatenation of: numbers suffixed with 's', 'm',
+'h', or 'd' modifiers designating the number as a  second,
+minute, hour, or day value.  For example: 1h5m20s.
+
+The known variables and keywords, and their typical values
+and semantics are:
+
+{\tt interval (1m)}
+specifies the primary retry interval, which determines how frequently a 
+transport agent should be scheduled for an address. The value is a delta
+time specification. This value, and the retries value mentioned below, 
+are combined to determine the interval between each retry attempt.
+
+{\tt idlemax}
+When a transport agent runs out of jobs, they are moved
+to ``idle pool'', and if a transport agent spends more than idlemax
+time in there, it is terminated.
+
+{\tt expiry (3d)}
+specifies  the  maximum age of an address in the scheduler 
+queue before  a repeatedly  deferred  address  is
+bounced with an expiration error.  The actual report is
+produced when all addresses have been processed.
+
+{\tt retries (1 1 2 3 5 8 13 21 34)} 
+specifies the retry interval policy  of the scheduler 
+for an address. The value must be a sequence of positive integers, these 
+being multiples of the primary interval  before  a  retry is scheduled. 
+The scheduler starts by going through the sequence as an  address  is 
+repeatedly deferred. When the end of the sequence is reached, the scheduler 
+will jump into the sequence at a random  spot and continue towards the end.  
+This allows various retry strategies to be specified easily:
+
+brute force (or "jackhammer"): {\tt  retries=0 }
+
+constant primary interval: {\tt  retries=1 }
+
+instant backoff: {\tt  retries="1 50 50 50 50 50 50 50 50 50 50 50 50" }
+
+slow increasing (fibonacci) sequence: {\tt  retries="1 1 2 3 5 8 13 21 34" }
+
+s-curve sequence: {\tt  retries="1 1 2 3 5 10 20 25 28 29 30" }
+
+exponential sequence: {\tt  retries="1 2 4 8 16 32 64 128 256" }
+
+etc.
+
+{\tt maxta (0)} 
+if retrying an address would cause the number of simultaneously 
+active transport agents to exceed the specified  value, the retry is  
+postponed. The check is repeated  frequently so  the address may be retried as
+soon as possible after the  scheduled  retry interval. If the value is 0, 
+a value of 1000 is used instead. Keep in mind that all  running  
+transport  agents  will  keep open two {\tt pipe(2)} file-handles, and thus 
+system-wide  limits may force a lower maximum than 1000. On a system
+with a maximum of 256 open files, this would most likely succeed at 120.
+
+{\tt maxchannel (0)}
+if retrying an address would cause the number of 
+simultaneously  active  transport agents processing mail for
+the same channel to exceed  the  specified  value,  the
+retry  is  postponed.  The check is repeated frequently
+so the address may be retried as soon as possible after
+the  scheduled  retry  interval.   If the value is 0, a
+value of 1000 is used instead.
+
+{\tt maxring (0)}
+Recipients are groupped into ``threads'',  and  similar
+threads  are groupped into ``thread-rings'', where the same
+transport agent can be switched over from one recipient
+to another.  This defines how many transport agents can
+be running at any time at the ring.
+
+{\tt skew (5)}
+is the maximum number of retries before the retry  time
+is aligned to a standard boundary (seconds since epoch,
+modulo primary interval).  The lower this number (1  is
+lowest), the faster the alignment is done.  The purpose
+of this alignment is to ensure that eventually a single
+transport agent invokation will be able to process 
+destination addresses that arrived randomly at the  scheduler.
+
+{\tt user (root)}
+is  the  user  id  of  a transport agent processing the
+address.  The value is either numeric  (a  uid)  or  an
+account name.
+
+{\tt group (daemon)}
+is  the  group  id  of a transport agent processing the
+address.  The value is either  numeric  (a  gid)  or a
+group name.
+
+{\tt command (smtp -srl \$LOGDIR/smtp \$host)}
+is  the command line used to start a transport agent to
+process the address. The program pathname is specified
+relative  to the  {\tt MAILBIN/ta}  directory.   The  string
+"\$channel" is replaced by the current matched  channel,
+and  "\$host" is  replaced by the current matched host,
+from the destination address, and "\$LOGDIR" substitutes
+ZENV variable LOGDIR value there.  It is strongly 
+recommended that the \$host is not to be used on a  command
+definition, as it limits the usability of the idled transporter.
+
+{\tt bychannel}
+is a keyword (with no associated value) that tells  the
+scheduler  that  the transport  agent specified in the
+command will only process  destination  addresses  that
+match  the  first  destination  channel  it encounters.
+This is automatically set when  the  string  "\$channel"
+occurs  in the command, but may also be specified manu-
+ally by this keyword.  This is rarely used.
+
+{\tt queueonly}
+a clause with queueonly flag does not auto-start at the
+arrival  of  a  message,  instead it must be started by
+means of {\tt smtpserver(8)} command ETRN thru an  SMTP  connection.
+
+For example, this is a complete configuration file:
+
+\begin{alltt}
+    # Default values
+    */*       interval=1m expiry=3d retries="1 1 2 3 5 8 13 21 34"
+              maxring=0 maxta=0 skew=5 user=root group=daemon
+    # Boilerplate parameters for local delivery and service channels
+    local/*   interval=10s expiry=3h maxchannel=2 command=mailbox
+    error     interval=5m maxchannel=10 command=errormail
+    hold/*    interval=5m maxchannel=1 command=hold
+
+    # Miscellaneous channels supported by router configuration
+    smtp/*.toronto.edu
+    smtp/*.utoronto.ca maxchannel=10 maxring=2
+              command="smtp -srl $LOGDIR/smtp"
+    smtp      maxchannel=10 maxring=5
+              command="smtp -esrl $LOGDIR/smtp"
+
+    uucp/*    maxchannel=5 command="sm -c $channel uucp"
+\end{alltt}
+
+
+The  first  clause  (*/*)  sets up default values for all
+addresses.  There is no command specification,  so  clause
+matching  will  continue  after address have picked up the
+parameters set here.
+
+The third clause (error) has an implicit host wildcard  of
+'*',  so  it  would  match  the same as specifying error/*
+would have.
+
+The fifth clause ({\tt smtp/*.toronto.edu}) has no further  
+components so it selects the components of the following nonempty 
+clause (the sixth).
+
+Both the fifth and sixth clauses are specific  to  address
+destinations  within the TORONTO.EDU and UTORONTO.CA 
+organization (the two  are  parallel  domains).   At  most  10
+deliveries to the smtp channel may be concurrently active,
+and at most 2 for all possible hosts  within  TORONTO.EDU.
+If \$host  is  mentioned in the command specification, the
+transport agent will only be told about the  message  control  
+files that indicate SMTP delivery to a particular
+host. The actual host is picked at random from the  current  
+choices, to avoid systematic errors leading to a deadlock of any queue.

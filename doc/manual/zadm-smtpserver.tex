@@ -1,0 +1,399 @@
+% \section{Smtpserver Configuration}
+
+The {\em smtpserver} program actually has several operational modes.
+It can operate as a stand-alone internet service socket listener, which
+forks off childs that do the actual SMTP-protocol service.
+
+It can be started from under the control of the {\em inetd} server, and
+it can there fulfill the same role as it does in the stand-alone mode.
+
+It can even be used to accept Batch-SMTP from incoming files (UUCP,
+and BITNET uses, for example).
+
+The runtime command-line options are as follows:
+
+{\tt smtpserver [ -46aignvBV ] [ -p port ] [ -l logfile ] [ -s [ftveR] ] [ -L maxloadaver ] [ -M SMTPmaxsize ] [ -P postoffice ] [ -R router ] [ -C cfgfile ]}
+
+The most commonly used command line options are:
+
+{\tt smtpserver [-aBivn] [-s ehlo-styles] [-l logfile] [-C cfgpath]}
+
+Without any arguments the  smtpserver  will start as a daemon
+listening on TCP port 25 (SMTP).
+
+The options are:
+
+\begin{description}
+\item[{\tt -a}] \mbox{}
+
+Query IDENT information about the incoming connection. This information (if available at all) may, or may not tell who is forming a connection.
+
+\item[{\tt -B}] \mbox{}
+
+The session is Batch-SMTP a.k.a. BSMTP type of session. Use of "-i" option is needed, when feeding the input batch file.
+
+\item[{\tt -i}] \mbox{}
+
+This is interactive session.  IO is done thru stdin/stdout.
+
+\item[{\tt -v}] \mbox{}
+
+Verbose trace written to stdout for use in conjunktion with "-i", and "-B".
+
+\item[{\tt -n}] \mbox{}
+
+This tells that the smtpserver is running under inetd, and that the stdin/stdout file handles are actually network sockets on which we can do peer identity lookups, for example.
+
+\item[{\tt -s ehlo-style}] \mbox{}
+
+Default value for various checks done at MAIL FROM, RCPT TO, VRFY, and EXPN commands. These are overridden with the value from EHLO-patterns, if they are available (more below)
+
+\item[{\tt -l logfilepath}] \mbox{}
+
+Filename for the smtpserver input protocol log. This logs about everything, except actual message data...
+
+\item[{\tt -C configfilepath}] \mbox{}
+
+Full path for the smtpserver configuration in case the default location can not be used for some reason.
+
+\item[{\tt -M}] \mbox{}
+
+SMTPmaxsize Defines the asolute maximum size we accept from incoming email. (Default: infinite) (This is a local policy issue.)
+
+\end{description}
+
+
+\subsection{\tt smtpserver.conf}
+
+If the system has file  {\tt \$MAILSHARE/smtpserver.conf} (by default),
+that file is read for various parameters, which can override a few
+of those possibly issued at the command line.
+
+Example configuration is is in figure \vref{fig:sample_smtpserver_cfg}.
+
+\begin{figure*}[ht]
+\begin{alltt}\hrule\small\medskip
+#PARAM maxsize          10000000    # Same as -M -option
+#PARAM max-error-recipients    3    # More than this is propably SPAM!
+#PARAM MaxSameIpSource        10    # Max simultaneous connections from
+#                                   # any IP source address
+#PARAM ListenQueueSize        10    # listen(2) parameter
+#
+PARAM help -------------------------------------------------------------
+PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
+PARAM help  Our telephone number is: +1-234-567-8900, and
+....
+PARAM help -------------------------------------------------------------
+#
+# The policy database:  (NOTE: See  'makedb'  for its default suffixes!)
+#
+PARAM  policydb   btree  /opt/mail/db/smtp-policy
+
+#
+# HELO/EHLO-pattern     style-flags
+#               [max loadavg]
+#
+localhost           999 ftveR
+some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
+# If the host presents itself as:  HELO [1.2.3.4], be lenient to it..
+[*]                 999 ve
+#
+# Per default: demand strict syntactic adherence, including fully
+# qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient
+# on that detail, remove the "R" from "veR" string below:
+#
+*                   999 veR
+\medskip\hrule\end{alltt}\medskip
+\caption{Sample {\tt smtpserver.conf} file\label{fig:sample_smtpserver_cfg}}
+\end{figure*}
+
+
+\subsubsection{{\tt smtpserver.conf}; PARAM keywords}
+
+The PARAM keywords and values are:
+
+\begin{description}
+\item[{\tt maxsize nn}] \mbox{}
+
+Maximum size in the number of bytes of the entire spool message
+containing both the transport envelope, and the actual message.
+That is, if the max-size is too low, and there are a lot of
+addresses, the message may entirely become undeliverable..
+
+
+
+\item[{\tt max-error-recipients nn}] \mbox{}
+
+In case the message envelope is an error envelope (MAIL FROM:{\verb/<>/}),
+the don't accept more than this many separate recipient addresses
+for it. The default value is 3, which should be enough for most cases.
+(Some SPAMs claim to be error messages, and then provide a huge
+number of recipient addresses...)
+
+
+
+\item[{\tt MaxSameIpSource nn}] \mbox{}
+
+(Effective only on daemon-mode server -- not on "-i", nor "-n" modes.)
+Sometimes some systems set up multiple parallel connections to same
+host  (qmail ones especially, not that ZMailer has entirely clean
+papers on this - at least up to 2.99.X series), we won't accept
+more than this many connections from the same IP source address
+open in parallel.  The default value for this limit is 10.
+
+The principal reason for this has been authors experience at nic.funet.fi,
+where some MS-Windows users have caused {\bf huge} numbers
+of parallel connections to some services.  So huge, that the system
+did in fact run out of swap due to that, and caused all manner of
+other nasty things to occur too...  All this simply because some
+windows client had opened 800+ parallel sessions, and each server
+process consumed separate blocks of swap space...  To avoid the
+system to succumb under such an accidental denial-of-service attack
+at the overall system, this parallel limit was created.
+
+
+
+\item[{\tt ListenQueueSize nn}] \mbox{}
+
+This relates to newer systems where the {\tt listen(2)} system call
+can define higher limits, than the traditional/original 5.
+This limit tells how many nascent TCP streams we can have in
+SYN\_RCVD state before we stop answering to incoming SYN packets
+requesting opening of a connection.
+
+There are entirely deliberate denial-of-service attacks based on
+flooding to some server many SYNS on which it can't send replies
+back (because the target machines don't have network connectivity,
+for example), and thus filling the back-queue of nascent sockets.
+This can also happen accidentally, as the connectivity in between
+the client host, and the server host may have a black hole into
+which the SYN-ACK packets disappear, and the client thus will not
+be able to get the TCP startup three-way handshake completed.
+
+Most modern systems can have this value upped to thousands to
+improve systems resiliency against malicious attacks, and most
+likely to provide complete immunity against the accidental
+"attack" by the failing network routing.
+
+
+
+\item[{\tt help 'string'}] \mbox{}
+
+This one adds yet another string (no quotes are used) into those
+that are presented to the client when it asks for "HELP" in the
+SMTP session.
+
+
+
+\item[{\tt PolicyDB dbtype dbpath}] \mbox{}
+
+This defines the database type, and file path prefix to the binary
+database containing policy processing information.  More of this
+below.  Actual binary database file names are formed by appending
+type specific suffixes to the path prefix.  For example NDBM
+database appends ".pag" and ".dir", while BSD-Btree appends only
+".db".  (And the latter has only one file, while the first has two.)
+
+For an operative overview, see  \vref{adm:smtp_policy_filtering}, and
+for deeper details, see \vref{ref:smtp_policy_filtering}.
+
+\end{description}
+
+
+\subsubsection{{\tt smtpserver.conf}; ``EHLO-style options''}
+
+All lines that are not comments, nor start with uppercase keyword
+``POLICY'' are ``EHLO-style patterns''.
+This is the oldest form of configuring the {\em smtpserver}, and
+as such, it can be seen\ldots
+
+
+Behaviour is based on glob patterns matching the {\bf HELO/EHLO} name
+given by a remote client.
+Lines beginning with a ``\#'', or whitespace are ignored in the file,
+and all other lines must consist of two tokens: a shell-style (glob) 
+pattern starting at the beginning of the line, whitespace, and a 
+sequence of style flags. The first matching line is used. As a 
+special case, the flags section may start with a ! character in 
+which case the remainder of the line is a failure comment message 
+to print at the client. This configuration capability is intended 
+as a way to control misbehaving client software or mailers.
+
+
+
+
+
+
+\subsection{Policy Based Filtering}
+\index{smtp!policy filtering, overview}
+\label{adm:smtp_policy_filtering}
+
+
+The policy database that {\em smtpserver} uses is built with
+{\tt policy-builder.sh} script, which bundles together a set
+of policy source files:
+
+\begin{alltt}\medskip\hrule\small\medskip
+DB/smtp-policy.src   The boilerplate
+DB/localnames        ('= _full_rights')
+DB/smtp-policy.relay ('= _full_rights')
+DB/smtp-policy.mx    ('relaytargets +')
+DB/smtp-policy.spam  ('= _bulk_mail')
+\medskip\hrule\end{alltt}\medskip
+
+
+At the moment, {\tt smtp-policy.spam} source is retrieved with LYNX from
+the URL:
+\begin{alltt}\medskip\scriptsize\medskip
+http://www.webeasy.com:8080/spam/spam\_download\_table
+\medskip\end{alltt}\medskip
+however it seems there are sites out there that are spam havens, and
+that serve valid spam source/responce domains, which are not registered
+at that database.
+
+{\em If you want, you can modify your {\tt smtp-policy.src} boilerplate
+file as well as your installed {\tt\small policy-builder.sh} script.}
+{\bf In fact you SHOULD modify both to match your environment!}
+
+Doing {\tt make install} will overwrite {\tt\small policy-builder.sh},
+but not {\tt smtp-policy.src}.
+
+Basically these various source files (if they exist) are used to
+combine knowledge of valid users around us:
+
+\begin{description}
+\item[\tt localnames] \mbox{}
+
+Who we are -- ok domains for receiving.
+
+(Although ``\_full\_rights'' is a bit too broad for that, because
+ its value ``relaycustomer +'' can allow anybody to use us for relaying
+ by claiming some local identity at {\tt MAIL FROM}:\verb/<..>/.)
+
+
+\item[\tt smtp-policy.relay] \mbox{}
+
+Who can use us as outbound relay.
+
+Use  {\em\verb/[/ip.number\verb/]//maskwidth}  here for
+listing those senders (networks) we absolutely trust.
+You may also use domains, or domain suffixes so that the IP-reversed
+hostnames are accepted (but that is a it risky thing due to ease of
+fakeing the reversed domain names):
+
+\begin{alltt}\medskip\hrule\medskip
+  [11.22.33.00]/24
+  ip-reversed.host.name
+  .domain.suffix
+\medskip\hrule\end{alltt}\medskip
+
+Server sets its internal ``always\_accept'' flag at the source IP test
+before it decides on what to tell to the contacting client.
+The flag is not modified afterwards during the session.
+
+
+\item[\tt smtp-policy.mx] \mbox{}
+
+Who really are our MX clients.
+Use this when you really know them, and don't want just to trust
+that if recipient has MX to you, it would be ok\ldots
+
+You can substitute this knowledge with a fuzzy feeling by using
+``acceptifmx -'' attribute at the generic boilerplate.
+List here domain names. 
+\begin{alltt}\medskip\hrule\medskip
+ mx-target.dom
+ .mx-target.dom
+\medskip\hrule\end{alltt}\medskip
+
+You CAN also list here all POSTMASTER addresses you accept email routed to: 
+
+\begin{alltt}\medskip\hrule\medskip
+ postmaster@local.domain
+ postmaster@client.domain
+\medskip\hrule\end{alltt}\medskip
+
+these are magic addresses that email is accepted to, even when everything
+else is blocked. 
+
+\item[\tt smtp-policy.spam] \mbox{}
+
+Those users, and domains that are absolutely no-no for senders,
+or recipients no matter what earlier analysis has shown.
+(Except for those senders that we absolutely trust..)
+
+\begin{alltt}\medskip\hrule\medskip
+ user@domain
+ user@
+ domain
+\medskip\hrule\end{alltt}\medskip
+
+The ``{\tt policy-builder.sh}'' builds this file from external sources. 
+
+\end{description}
+
+
+
+At the ``smtp-policy.src'' boiler-plate file there is one
+particular section containing default setting statements.
+See figure \vref{fig:adm:smtp-policy-boiler} for the salient
+details concerning these details.
+
+\begin{figure*}[ht]
+\begin{alltt}\medskip\hrule\medskip\setlength{\baselineskip}{0.8\baselineskip}
+...
+#|-----------
+#|
+#| {\rm Default handling boilerplates:}
+#|
+#|   {\em "We are not relaying between off-site hosts, except when ..."}
+#|
+#| {\bf You MUST uncomment one of these default-defining pairs, or the blocking}
+#| {\bf of relay hijack will not work at all !}
+#|
+#| {\rm -- 1st alternate: No MX target usage, no DNS existence verify}
+#|    {\rm Will accept for reception only those domains explicitely listed}
+#|    {\rm in ``smtp-policy.mx'' and  ``localnames''  files.  Will not do}
+#|    {\rm verifications on validity/invalidity of source domains:}<foo@bar>
+#
+# .             relaycustomer - relaytarget -
+# [0.0.0.0]/0   relaycustomer - relaytarget -
+#
+#| {\rm -- 2nd alternate: No MX target usage, DNS existence verify}
+#|    {\rm Like the 1st alternate, except will verify the sender} (MAIL FROM:<..>)
+#|    {\rm address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.}
+#
+# .             relaycustomer - relaytarget - senderokwithdns +
+# [0.0.0.0]/0   relaycustomer - relaytarget - senderokwithdns +
+#
+#| {\rm -- 3rd alternate: MX relay trust, DNS existence verify}
+#|    {\rm For the people who are in deep s*...  That is, those who for some}
+#|    {\rm reason have given open permissions for people to use their server}
+#|    {\rm as MX backup for their clients, but don't know all domains valid}
+#|    {\rm to go thru...  Substitutes accurate data to user's whimsical DNS}
+#|    {\rm maintenance activities.  Vulnerable to inbound resource abuse.}
+
+.               relaycustomer - acceptifmx - senderokwithdns +
+[0.0.0.0]/0     relaycustomer - acceptifmx - senderokwithdns +
+
+#| {\rm -- 4th alternate: Sender & recipient DNS existence verify}
+#|    {\rm This is more of an example for the symmetry's sake, verifies that}
+#|    {\rm the source and destination domains are DNS resolvable, but does not}
+#|    {\rm block relaying}
+#
+# .             senderokwithdns - acceptifdns -
+# [0.0.0.0]/0   senderokwithdns - acceptifdns -
+#
+#|
+#|  {\em You may also add  `test-dns-rbl +'  attribute pair to [0.0.0.0]/0 of your}
+#|  {\em choice to use Paul Vixie's  http://maps.vix.com/ MAPS RBL system.}
+#|
+#| {\bf These rules mean that locally accepted hostnames MUST be listed in}
+#| {\bf the database with ``'relaytarget +'' attribute.}
+#|
+#|-----------
+...
+\medskip\hrule\end{alltt}\medskip
+\caption{\label{fig:adm:smtp-policy-boiler}
+The {\tt smtp-policy.src} file default setting fragment}
+\end{figure*}

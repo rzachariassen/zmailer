@@ -1,0 +1,204 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \section{Logging and Statistics}
+\label{Logging_and_Statistics}
+
+{\Large This text has been copied from other sections and will change...}
+
+
+\subsection{Checking the Log Files}
+
+Start ZMailer:
+\nopagebreak
+
+\vbox{
+\begin{alltt}\medskip\hrule\medskip
+ $MAILBIN/zmailer
+\medskip\hrule\end{alltt}\medskip
+}
+
+
+Keep an eye on the log files ({\tt \$LOGDIR/router}, {\tt \$LOGDIR/scheduler}),
+the {\tt \$POSTOFFICE/postman/} directory for malformed message files,
+and {\tt \$POSTOFFICE/deferred/} in case of resource problems.
+
+
+\subsection{Trimdown of Logging}
+
+Once satisfied that things appear to work, you may want to trim down
+logging: there are 4 kinds of logging to deal with:
+\begin{itemize}
+\item router logs, usually kept in {\tt \$LOGDIR/router}.  This is the stdout
+and stderr output of the router daemon.  If you wish to turn it off,
+invoke router with a {\tt -L/dev/null} option, i.e. change the zmailer
+script.  Alternatively, modify the {\tt log()} function in the
+configuration file, or its invocations.
+
+*** NOTE, THIS IS INCORRECT INFO, see  \$MAILSHARE/cf/standard.cf for
+*** routine   dribble(),  and especially its invocations!
+\item scheduler logs, usually kept in {\tt \$LOGDIR/scheduler}.  Same as router.
+\item general mail logs, usually kept in syslog files, depending on how
+you have configured the syslog utility ({\tt /etc/syslog.conf}).  All
+ZMailer programs log using the LOG\_MAIL facility code for normal
+messages.  You can deal with this specifically in your {\tt syslog}
+configuration file on systems with a 4.3bsd-based syslog.  The
+following reflects the recommended configuration on SunOS 4.0:
+\begin{alltt}\medskip\hrule\medskip
+mail.crit   /var/log/syslog
+mail.debug  /var/log/mail
+\medskip\hrule\medskip\end{alltt}
+
+For pre-4.3bsd-based syslogs, you may want the syslog log file
+to be just for important messages (e.g. LOG\_NOTICE and higher
+priority), and have a separate file for informational messages
+(LOG\_DEBUG and up).
+\item By default, the postmaster will receive a copy of all bounced
+mail; this can be turned off selectively by simply editing the
+various canned forms used to create the error messages.  These
+forms are located in the FORMSDIR ({\tt proto/forms} in the distribution,
+or {\tt \$MAILSHARE/forms} when installed).  You should review these
+in any case to make sure the text is appropriate for your site.
+\end{itemize}
+
+
+
+
+\subsection{Scheduler Statistics log}
+
+The  statistics log reports condenced performance oriented
+information in following format:
+\begin{alltt}\medskip\scriptsize\hrule\medskip
+timestamp fileid  dt1 dt2 state $channel/$host
+812876190 90401-2   0   5    ok usenet/-
+812876228 90401-1   0   7    ok usenet/-
+812876244 90401-1   0   1    ok local/gopher-admin
+812876244 90401-1   0   5    ok smtp/funet.fi
+812876559 90401-1   0  21    ok smtp/utu.fi
+\medskip\hrule\end{alltt}\medskip
+
+where the fields are:
+\begin{description}
+\item[timestamp] \mbox{} \\
+The original spoolfile {\tt ctime} (creation time)  stamp
+in decimal.
+
+\item[fileid] \mbox{} \\
+Spoolfile name after the router has processed it.
+
+\item[dt1] \mbox{} \\
+The time difference from spoolfile ctime to 
+scheduler control file creation by the router.
+
+\item[dt2] \mbox{} \\
+The time difference from scheduler file {\tt ctime} to
+the delivery that is logged on.
+
+\item[state] \mbox{} \\
+What happened?  Values: {\tt ok}, {\tt error}, {\tt expiry}
+
+\item[\$channel-\$host] \mbox{} \\
+Where/how it was processed.
+
+\end{description}
+
+
+\subsection{syslogged log formats}
+
+At {\em syslog} facility the system logs also material, if it has so been
+configured.
+
+Different subsystems do different logs, they are described below.
+
+\subsubsection{Smtpserver's Syslog Format}
+
+The {\em smtpserver} may log in multiple formats:
+\begin{description}
+\item[\em INFO: connection from ...]
+\item[\em WARN: refusing connection from ...]
+\item[\em INFO: accepted id ... into freeze..]
+\item[\em INFO: TASPID accepted from...] \mbox{} \\
+
+The ta-spool-id -- A spool-id that is valid throughout message lifetime.
+
+\item[\rm EMERG: smtpserver policy database problem...]
+\item[\rm ERR:  MAILBIN unspecified in zmailer.conf]
+\end{description}
+
+\subsubsection{Router's Syslog Format}
+
+The {\em router} does syslog in following format:
+
+{\tt taspid: from=<addr>, rrelay=smtprelay, size=nnn, nrcpts=nnn, msgid=str}
+
+\begin{description}
+\item[taspid] \mbox{} \\
+
+The ta-spool-id -- A spool-id that is valid throughout message lifetime
+
+\item[from=] \mbox{} \\
+
+What is the envelope source address
+
+\item[rrelay=] \mbox{} \\
+
+What the message ``rcvdfrom'' envelope header reports.
+
+\item[size=] \mbox{} \\
+
+Total message size in bytes (envelope+headers+body)
+
+\item[nrcpts=] \mbox{} \\
+
+Number of recipients for this message
+
+\item[msgid=] \mbox{} \\
+
+The ``Message-ID:'' header content
+
+\end{description}
+
+\subsubsection{Transport Agent's Syslog Format}
+
+The transport agents log in following format:
+
+{\tt taspid: to=<addr>, delay=dd, xdelay=xx, mailer=mm, relay=rr (wtt), stat=\%s msg}
+
+Here the fields are:
+\begin{description}
+\item[taspid] \mbox{} \\
+
+The ta-spool-id -- A spool-id that is valid throughout message lifetime
+
+\item[to=] \mbox{} \\
+
+Destination address in whatever form the transport agent uses.
+
+\item[delay=] \mbox{} \\
+
+Delay from message arrival to the system to this logging moment
+
+\item[xdelay=] \mbox{} \\
+
+Delay during this processing attempt -- tells how much time {\em this}
+time was spent to process the message.
+
+\item[mailer=] \mbox{} \\
+
+Tells what ``channel'' was used.
+
+\item[relay=] \mbox{} \\
+
+Reports on which host the message is relayed thru (``wtthost''), and for
+SMTP, also (in parenthesis) what was the relay's IP address.
+
+\item[stat=] \mbox{} \\
+
+What status was achieved: {\tt ok}, {\tt delayed}, {\tt failed}...
+{\bf\Large CHECK!}
+
+\item[msg] \mbox{} \\
+
+Arbitary text line from whatever system is out there.
+
+\end{description}
+

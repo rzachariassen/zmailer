@@ -1,0 +1,937 @@
+% \section{Router Configuration}
+
+
+The names (determined at compile-time) and interface specifications for the
+routing and crossbar functions, are the only crucial ``magical'' things one
+needs to contend with in a proper {\em router} configuration.  The syntax and
+semantics of the configuration file's contents are dealt with in the
+following subsection. The details of the two functions introduced here are
+specified after that, once the necessary background information has been
+given.
+
+{\em Router} behavior is controlled by a configuration file read at 
+startup. It is a {\tt zmsh(1)} script that uses facilities provided 
+built into the {\em router}. 
+
+The configuration file looks like a Bourne Shell script at first glance.
+There are minor syntax changes from standard {\tt sh}, but the aim is to be as
+close to the Bourne Shell language as is practical. The contents of the
+file are compiled into a parse tree, which can then be interpreted by the
+{\em router}.  The configuration file is usually self-contained, although an easy
+mechanism exists to make use of external UNIX programs when so desired.
+Together with a very flexible database lookup mechanism, functions, and
+address manipulation based on token-matching regular expressions, the
+configuration file language is an extremely flexible substrate to
+accomplish its purpose. When the language is inadequate, or if speed
+becomes an issue, it is possible to call built in (C coded) functions. The
+interface to these functions is mostly identical to what a standalone
+program would expect (modulo symbol name clashes and return values), to
+ease migration of external programs to inclusion in the {\em router} process.
+
+
+
+
+\subsection{Configuration File Programming Language}
+
+
+
+Whenever the {\em router} process starts, its first action is to read its
+configuration file.  The configuration file is a text file which contains
+statements interpreted immediately when the file is read.  Some statements
+are functions, in which case the function is defined at that point in
+reading the configuration file.  The purpose of the configuration file is
+to provide a simple way to customize the behavior of the mailer, and this
+is primarily achieved by defining the {\tt router} and {\tt crossbar} 
+functions. For these to work properly, some initialization code and auxiliary
+functions will usually be needed.
+
+At first sight, a configuration file looks like a Bourne shell script.
+The ideal is to duplicate the functionality, syntax, and to a large
+degree the semantics, of a shell script.  Therefore, the configuration file
+programming language is defined in terms of its deviation from standard
+Bourne shell syntax and semantics.  The present differences are:
+
+\begin{itemize}
+\item
+No {\tt repeat} statement.
+\item
+Functions are allowed, parameter lists are allowed. If not enough
+arguments are present in a function call to exhaust the parameter
+list, the so-far unbound parameter variables are bound to `' (the
+empty string) as local variables. For example, this is the identity
+address rewriting function:
+     
+\begin{alltt}
+null (address) \{
+  return $address  # surprise!
+\}
+\end{alltt}
+
+\item
+Multiple-value returns are allowed.
+The {\tt return} statement can be used to return a non-``'' value
+from a function.
+The following are all legal {\tt return} statements:
+\begin{alltt}\medskip\small
+return
+return $address
+return $channel ${next_host} ${next_address}
+\end{alltt}
+
+\item
+Variables are dynamically scoped, local variables are the ones
+in a function's parameter list and those declared with the ``{\tt local}''
+statement.
+Only the first value of a multiple-value return may be assigned to a variable.
+All values are strings, so no type information, checking, or declaration,
+is  necessary.
+\item
+Quoting is a bit stilted.
+All quotes (double-, single-, back-), must appear in matching pairs at
+the beginning and at the end of a word.
+
+{\bf\large CHECK!}
+Single quotes are not stripped, double quotes cause the enclosed character
+sequence to be collected into a quoted-string RFC822 token.
+
+For example, the statement:
+\begin{alltt}
+ foo `bar "`baz`"`
+\end{alltt}
+is evaluated as
+\begin{alltt}
+ (apply 'foo (apply 'bar (baz)))
+\end{alltt}
+
+\item
+Conditional substitution forms are supported:
+\begin{alltt}
+  $\{variable:=value\}
+  $\{variable:-value\}
+  $\{variable:+value\}
+\end{alltt}
+
+\item
+Patterns (in case labels) are evaluated once,
+the first time they are encountered.
+
+\item
+At the end of a case label, the sequentially next case labels of
+the same case statement will be tried for successful pattern matching
+(and the corresponding case label body executed).
+The only exceptions (apart from encountering a return statement) are:
+\begin{description}
+\item[\tt again] \mbox{} \\
+a function which retries the current case label for a match
+\item[\tt break] \mbox{} \\
+continues execution after the current case statement
+\end{description}
+
+\item
+A regular expressions using variant of ``case'', with two
+flavours:
+\begin{description}
+\item[ssift]
+A ``String Sift'' where the input string is handled as is.
+\item[tsift]
+A ``Token Sift'' where the input string is spliced according to
+RFC-822 tokenization rules.  Especially RFC-822 special characters
+cause tokens to split.
+
+With ``tsift'' the ``.'' (dot) becomes match any single {\bf token},
+that is, input string ``foo.bar'' has three tokens: ``foo'', ``.'', and
+``bar''.
+\end{description}
+
+Overall usage of these ``sifts'' is very much like that of ``case'',
+including the need for matching termination tokens.
+\begin{alltt}\medskip
+  ssift "$invar" in
+  pattern
+        statements
+        ;;
+  tfiss
+  tsift "$invar" in
+  pattern
+        statements
+        ;;
+  tfist
+\end{alltt}
+
+\item
+Various standard Bourne shell functions do not exist built in.
+\item
+The general form of function calls in the system is:
+\begin{alltt}
+  \$(funcname arguments)
+\end{alltt}
+It returns a scalar or list object, and the result can be stored
+into variables at will.
+
+\item
+Relations, and other database lookups are constructed as function calls
+where the relation name is the function name.
+More about this later.
+\end{itemize}
+
+There are currently only three entry points (i.e. magic names known to the
+{\em router} code) in the configuration scripts, namely the {\tt process}, {\tt router} and 
+{\tt crossbar} functions.
+
+The {\tt process} function is called with a file name as argument. 
+The file is typically located in the {\tt \$POSTOFFICE/router/} 
+directory. {\tt Process} is a protocol switch function which uses the 
+form of the file name to determine how to process different types of 
+messages.
+
+The {\tt router} function is called with an address as argument,
+and returns a quad of (channel, host, user, attribs) as three
+separate values,  corresponding to the channel the message should
+be sent out on (or, the router function can also be called to check
+on who sent a message), the host or node name for that channel
+(semantics depend per what channel is in effect), and the address
+the receiving agent should transmit to.
+The fourth parameter is ``attribute'' storage variable name from
+which a ``privilege'' value-pair is picked for recipient address
+security control functions.
+
+The {\tt crossbar} function is in charge of rewriting envelope addresses,
+selecting message header address munging type (a function to be called with
+each message header address), and possibly doing per-message logging or
+enforcing restrictions deemed necessary.
+It takes a sender-quad and a receiver-quad as arguments (eight parameters
+altogether).
+It returns the new values for each element of the two quads, and in addition
+a function name corresponding to the function to be used to rewrite header
+addresses for the specific destination.
+If the destination is to be ignored, returning a null function name will
+accomplish this.
+
+The {\em router} has several built in (C coded) functions.
+Their calling sequence and interface specification is exactly the same
+as for the functions defined in the configuration file.
+Some of these functions have special semantics, and they fall into three
+classes, as follows:
+
+\begin{itemize}
+\item
+Functions that are critical to the proper functioning of the configuration
+file interpreter:
+
+\begin{description}
+\item[{\tt return}] \mbox{}
+
+returns its argument(s) as the value of a function call
+
+\item[{\tt again}] \mbox{}
+
+repeats the current case, and *sift label
+
+\item[{\tt break}] \mbox{}
+
+exits case, and *sift statements
+
+\end{description}
+
+
+\item
+Functions that are necessary to complete the capabilities of the
+interpreter:
+
+\begin{description}
+\item[{\tt relation}] \mbox{}
+
+defines a database to the database lookup mechanism
+
+\item[{\tt sh}] \mbox{}
+
+an internal function which runs its arguments as {\tt /bin/sh} would
+
+\end{description}
+
+
+\item
+Non-critical but recommended functions:
+
+\begin{description}
+\item[{\tt getzenv}] \mbox{}
+
+retrieves global ZMailer configuration values
+
+\item[{\tt echo}] \mbox{}
+
+emulates {\tt /bin/echo}
+
+\item[{\tt exit}] \mbox{}
+
+aborts the {\em router} with the specified status code
+
+\item[{\tt hostname}] \mbox{}
+
+internal function to get and set the system name
+
+\item[{\tt trace}] \mbox{}
+
+turns on selected debugging output
+
+\item[{\tt untrace}] \mbox{}
+
+turns off selected debugging output
+
+\item[{\tt [}] \mbox{}
+
+emulates a subset of {\tt /bin/test}
+(a.k.a. \verb!/bin/[!) functionality.
+
+\end{description}
+\end{itemize}
+
+
+The {\tt relation} function is described in 
+{\em Databases}, section \vref{Databases}.
+Functions {\tt trace} and {\tt untrace} are described
+in connection with debugging. 
+
+See {\em Logging and Statistics},  section \vref{Logging_and_Statistics}.
+({\bf This will probably change to Reference, Router, Debugging})
+
+The {\tt hostname} function requires some further explanation.
+It is intended to emulate the BSD UNIX {\tt /bin/hostname}
+functionality, except that setting the hostname will only set
+the {\em router's} idea of the hostname, not the system's.
+Doing so will enable generation of `Message-Id' and `Received'
+``trace'' headers on all messages processed by the {\em router}.
+It is done this way since the {\em router} needs to know the official
+domain name of the local host in order to properly generate these headers,
+and this method is cleaner than reserving a magic variable for the purpose.
+The {\em router} cannot assume the hostname reported by the system is
+a properly qualified domain name, so the configuration file may generate
+it using whichever method it chooses.
+
+If the hostname indeed is a fully qualified domain name, then:
+\begin{alltt}\medskip\hrule\medskip
+  hostname "hostname"
+\medskip\hrule\medskip\end{alltt}
+
+will enable generation of trace headers.
+
+Finally, note that a symbol can have both a function-value and a
+string-value.
+The string value is of course accessed using the \$ prefix
+convention of the Bourne shell language.
+
+{\em However careless usage of {\tt\$var} is DANGEROUS, as you
+may trip on following:
+\begin{alltt}\medskip\hrule\medskip
+  SS="1 -o bar"
+  if [ $SS = 0 ]; then
+    ...
+  fi
+\medskip\hrule\end{alltt}\medskip
+In this kind of places you must tread carefully, and use double-quotes
+to save your neck:
+\begin{alltt}\medskip\hrule\medskip
+  SS="1 -o bar"
+  if [ "$SS" = 0 ]; then
+    ...
+  fi
+\medskip\hrule\end{alltt}\medskip
+}
+
+To test the configuration or routing data, proceed as follows:
+
+\begin{alltt}\medskip\hrule\scriptsize\medskip
+  $MAILBIN/router -i         (select interactive mode)
+  rtrace                     (turn tracing on)
+  router user@broken.address (the address that gave you trouble)
+  router another@address     (and so on)
+\medskip\hrule\end{alltt}\medskip
+
+
+Old salts can use {\tt /usr/lib/sendmail -bt} instead of {\tt router -i}. Once satisfied that routing works, command:
+\begin{alltt}\medskip\hrule\medskip
+  zmailer router
+\medskip\hrule\end{alltt}\medskip
+will restart the {\em router}.
+
+You can also run the {\em router} directly on a message.  Copy your message
+to someplace other than the postoffice ({\tt /tmp} is usually good), in a
+numeric file name.  If the file name is {\tt 123}, you run
+\begin{alltt}\medskip\hrule\medskip
+  $MAILBIN/router 123
+\medskip\hrule\medskip\end{alltt}
+this will create the file ``{\tt .123}'' containing the control information
+produced by the {\em router}.
+
+
+\subsection{Databases\label{Databases}}
+
+Many of the decisions and actions taken by configuration file code depend
+on the specifics of the environment the MTA finds itself in.  So, not just
+the facts that the local host is attached to (say) the UUCP network and a
+Local Area Network are important, but it is also essential to know the specific
+hosts that are reachable by this method.  Hardcoding large amounts of such
+information into the configuration file is not practical.  It is also
+undesirable to change what is really a program (the configuration file),
+when the information (the data) changes.
+
+The desirable solution to this data abstraction problem is to provide a way
+for the configuration file programmer to manage such information externally
+to ZMailer, and access it from within the {\em router}.  The logical way to do
+this is to have an interface to externally maintained databases.  These
+databases need not be terribly complicated; after all the simplest kind of
+information needed is that a string is a member of some collection.  This
+could simply correspond to finding that string as a word in a list of
+words.
+
+However, there are many ways to organize databases, and the necessary
+interfaces cannot be known in advance.  The {\em router} therefore implements a
+framework that allows flexible interfacing to databases, and easy extension
+to cover new types of databases.
+
+To use a database, two things are needed: the name of the database, and a
+way of retrieving the data associated with a particular key from that
+database.  In addition to this knowledge, the needs of an MTA do include
+some special processing pertinent to its activities and the kind of keys to
+be looked up.
+
+Specifically, the result of the data lookup can take different forms: one
+may be interested only in the existence of a datum, not its value, or one
+may be looking up paths in a pathalias database and need to substitute the
+proper thing in place of `{\tt \%s}' in the string returned from the database
+lookup.  It should be possible to specify that this kind of postprocessing
+should be carried out in association with a specific data access.
+Similarly, there may be a need for search routines that depend on the
+semantics of keys or the retrieved data.  These possibilities have all been
+taken into consideration in the definition of a relation.  A relation maps
+a key to a value obtained by applying the appropriate lookup and search
+routines, and perhaps a postprocessing step, applied to a specified
+database that has a specified access method.
+
+The various attributes that define a relation are largely independent.
+There will of course be dependencies due to the contents or other semantics
+of a database.  In addition to the features mentioned, each relation may
+optionally have associated with it a subtype, which is a string value used
+to tell the lookup routine which table of several in a database
+one is interested in.
+
+There are no predefined relations in the {\em router}.
+They must all be specified in the configuration file,
+before first use.
+This is done by calling the special function {\tt relation} with
+various options, as indicated by the usage strings printed by
+the {\tt relation} function when called the wrong way.
+See figure \vref{fig:relation:params}.
+
+\begin{figure*}
+\begin{alltt}\medskip\hrule\small\medskip
+Usage: relation -t dbtype[,subtype] [-f file -e# -s# -bilmnpu -d driver] name
+  dbtypes: incore,header,unordered,ordered,hostsfile,bind,selfmatch,ndbm,gdbm,btree,bhash
+\medskip\hrule\end{alltt}\medskip
+\caption{\label{fig:relation:params}``Usage:'' report from {\tt relation}} 
+\end{figure*}
+
+The `{\tt t}' option specifies one of several predefined database types,
+each with their specific lookup routine.
+It determines a template for the set of attributes associated with
+a particular relation.
+The predefined database types are:
+
+
+\begin{description}
+\item[{\tt bhash}] \mbox{}
+
+the database is in BSD DB HASH format.
+
+\item[{\tt bind}] \mbox{}
+
+the database is the BIND nameserver, accessed through the standard resolver routines.
+
+\item[{\tt btree}] \mbox{}
+
+the database is in BSD DB BTREE format.
+
+\item[{\tt dbm}] \mbox{}
+
+the database is in DBM format.
+Note that the original dbm had no {\tt dbm\_close()} function, thus
+there was no way to dissociate active database from a process.
+A bit newer variant of dbm has the close function, and multiple
+dbm's can be used.
+
+\item[{\tt gdbm}] \mbox{}
+
+the database is in GNU GDBM format.
+
+\item[{\tt headers}] \mbox{}
+
+router internal database of various headers, and how they are
+to be treated.
+
+\item[{\tt hostsfile}] \mbox{}
+
+{\tt /etc/hosts} lookup using {\tt gethostbyname()}.
+
+\item[{\tt incore}] \mbox{}
+
+the database is a high-speed bundle of data kept entirely in the router process core memory.  This is for a short-term data storage, like handling duplicate detection.
+
+\item[{\tt ldap}] \mbox{}
+
+Mechanism for X.500 Directory access lookup with the "light-weight
+directory access protocol."
+
+\item[{\tt ndbm}] \mbox{}
+
+the database is in NDBM (new DBM) format.
+
+\item[{\tt ordered}] \mbox{}
+
+the database is a text file with key-datum pairs on each line, keys are looked up using a binary search in the sorted file.
+
+\item[{\tt selfmatch}] \mbox{}
+
+a special type that does translate the numerical address of format
+\verb/12.34.56.78/ (from within address-literal bracets) into binary
+form, and checks that it is (or is not) actually our own local IP addresses.
+This is used in address literal testing of addresses of type:
+\verb/localpart@[12.34.56.78]/.
+
+\item[{\tt unordered}] \mbox{}
+
+the database is a text file with key-datum pairs on each line, keys are looked up using a sequential search.
+
+\item[{\tt yp}] \mbox{}
+
+Sun SunOS 4.x YP (these days "NIS") interface library.
+
+\end{description}
+
+
+A subtype is specified by appending it to the database type name separated
+by a slash, or a comma.
+For example, specifying {\tt bind/mx} as the argument to the `{\tt t}' option
+will store `{\tt mx}' for reference by the access routines whenever a query
+to that relation is processed.
+The subtypes must therefore be recognized by either the database-specific
+access routines (for translation into some other form), or by the database
+interface itself.
+
+For {\tt unordered} and {\tt ordered} database types, the datum 
+corresponding to a particular key may be null.  This situation arises if 
+the database is a simple list, with one key per line and nothing else.  
+In this situation, the use of an appropriate post-processor option 
+(e.g. `{\tt b}') is recommended to be able to detect whether or not 
+the lookup succeeded.
+
+The `{\tt f}' option specifies the name of the database.  This is typically a
+path that either names the actual (and single) database file, or gives the
+root path for a number of files comprising the database (e.g. {\tt foo} may
+refer to the NDBM files `{\tt foo.pag}' and `{\tt foo.dir}').  For the 
+{\tt hostsfile} type of database, the {\tt /etc/hosts} file is the one 
+used (and since the normal hosts file access routines do not allow specifying 
+a different file, this cannot be overridden).
+
+The `{\tt s}' option specifies the size of the cache.  If this value 
+is non-zero (by default it is 10), then an LRU cache of this size is 
+maintained for previous queries to this relation, including both positive 
+and negative results.
+
+The `{\tt e}' option specifies the cache data expiration time in seconds.
+
+The `{\tt b}' option asks that a postprocessor is applied to the database 
+lookup result, so the empty string is returned from the relation query if the
+database search failed, and the key itself it returned if the search
+succeeded.  In the latter case, any retrieved data is discarded.  The
+option letter is short for Boolean.
+
+The `{\tt n}' option asks that a postprocessor is applied to the database 
+lookup result, so the key string is returned from the relation query if the
+database search failed, and the retrieved datum string is returned if the
+search succeeded.  The option letter is short for Non-Null.
+
+The `{\tt l}' option asks that all keys are converted to lowercase before 
+lookup in the database.  This is mutually exclusive with the `{\tt u}' 
+option.
+
+The `{\tt u}' option asks that all keys are converted to uppercase before 
+lookup in the database.  This is mutually exclusive with the `{\tt l}' 
+option.
+
+The `{\tt d}' option specifies a search routine.  Currently the only legal
+argument to this option is {\tt pathalias}, specifying a driver that searches
+for the key using domain name lookup rules.
+
+
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+ if [ -f /etc/resolv.conf ]; then
+   relation -nt bind/cname -s 100 canon # T_CNAME canonicalize hostname
+   relation -nt bind/uname uname        # T_UNAME UUCP name
+   relation -bt bind/mx neighbour       # T_MX/T_WKS/T_A reachability
+   relation -t  bind/mp pathalias       # T_MP pathalias lookup
+ else
+   relation -nt hostsfile -s 100 canon  # canonicalize hostname
+   relation -t unordered -f $MAILBIN/db/hosts.uucp uname
+   relation -bt hostsfile neighbour
+   relation -t unordered -f /dev/null pathalias
+ fi
+\medskip\hrule\end{alltt}
+\caption{\label{fig:adm_dbfrag1}Some examples of {\tt relation} definitions}
+\end{figure*}
+
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+ #
+ # We maintain an aliases database, and may access it via NDBM,
+ # or via indirect indexing:
+ #
+ if [ -f $MAILBIN/db/aliases.dat ]; then
+     relation -t ndbm -f $MAILBIN/db/aliases aliases
+ else
+     relation -it ordered -f $MAILBIN/db/aliases.idx aliases
+ fi
+\medskip\hrule\end{alltt}
+\caption{\label{fig:adm_dbfrag2}More examples of alternate forms of
+database reference}
+\end{figure*}
+
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+ relation -t unordered -f /usr/lib/news/active -b newsgroup
+ relation -t unordered -f /usr/lib/uucp/L.sys -b ldotsys
+ relation -t ordered -f $MAILBIN/db/hosts.transport -d pathalias transport
+\medskip\hrule\end{alltt}
+\caption{\label{fig:adm_dbfrag3}More miscellaneous {\tt relation} definitions
+to illustriate various possibilities}
+\end{figure*}
+
+
+
+The final argument for the {\tt relation} is not preceeded by
+an option letter.
+It specifies the name the relation is known under.
+Note that it is quite possible for different relations to use
+the same database (like in case of {\em bind}).
+
+Some sample relation definitions are in figure \vref{fig:adm_dbfrag1}.
+That fragment defines a set of relations that can be accessed in the
+same way, using the same names, independent of their actual definition.
+
+{\bf\Large CHECK! (-i option!)}
+As the comment says, the relation name {\tt aliases} has
+special significance to the {\em router}.
+Although the relation is not special in any other way (i.e. it can
+be used in the normal fashion), the semantics of the data retrieved
+are bound by assumptions in the aliasing mechanism.
+
+These assumptions are that key strings are local-name's, and
+the corresponding datum gives a byte offset into another file
+(the root name of the aliases file, with a {\tt .dat} extention),
+which contains the actual addresses associated with that alias.
+
+The reason for this indirection is that the number of addresses associated
+with a particular alias can be very large, and this makes the traditional
+simple database formats inadequate.  For example, quick lookup in a text
+file is only practical if it is sorted and has a regular structure.  A
+large number of addresses associated with an alias makes structuring a
+problem.  The situation for DBM files and variations have problems too, due
+to the intrinsic limits of the storage method.  The chosen indirection
+scheme avoids such problems without loss of efficiency.
+
+More examples on figure \vref{fig:adm_dbfrag3}, where the first
+two illustrate convenient coincidences of format, and the last
+definition shows what might be used if outgoing channel information
+is maintained in a pathalias-format database (e.g. {\tt bar smtp!bar}
+means to send mail to {\tt bar} via the SMTP channel).
+
+\subsubsection{Using a Pathalias Database}
+
+Accessing route databases is a rather essential capability for a mailer.
+At the University of Toronto, all hosts access a centrally stored database
+through a slightly modified nameserver program.
+If such a setup is not practical at your site, other methods are available.
+The most widespread kind of route database is produced by the {\em pathalias}
+program.
+
+{\em pathalias} generates key-value pairs of the form:
+\begin{alltt}\small\medskip
+  uunet    ai.toronto.edu!uunet!\%s
+  .css.gov ai.toronto.edu!uunet!seismo!\%s
+\medskip\end{alltt}
+which when queried about {\tt uunet} and {\tt beno.css.gov} correspond to 
+the routes:
+\begin{alltt}\small\medskip
+  ai.toronto.edu!uunet
+  ai.toronto.edu!uunet!seismo!beno.css.gov
+\medskip\end{alltt}
+
+Notice that there are two basic forms of routes listed: routes to UUCP node
+names and routes to subdomain gateways.  Depending on the type of route
+query, the value returned from a pathalias database lookup needs to be
+treated differently.
+For now, this may be accomplished by a configuration
+file relation definition and interface function as shown in figure
+\vref{fig:adm_pathalias_driver}.
+
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+relation -t ndbm -f $MAILBIN/uuDB -d pathalias padb
+
+# pathalias database lookup function
+padblookup (name) \{
+    local path
+    path = $(padb "$name")
+    tsift "$path" in
+    ((.+)!)?([^!]+)!%s
+        if [ "$3" == "$name" ]; then
+            path = "$2!$3"
+        else
+            path = "$2!$3!$name"
+        fi
+        ;;
+    .*%s.*
+        echo "illegal route in pathalias db: $path"
+        ;;
+    tfist
+    return "$path"
+\}
+\medskip\hrule\end{alltt}
+\caption{\label{fig:adm_pathalias_driver}An example of lookup driver for
+{\em pathalias} generated database}
+\end{figure*}
+
+This is actually a simplistic algorithm, but it does illustrate the method.
+The lookup algorithm used when the `{\tt -d}' flag is specified in the
+relation definition command is rather simple; it doesn't test various case
+combinations for the keys it tries.  Therefore, the keys in the pathalias
+output data should probably be converted to a single case, and the `{\tt -l}'
+or `{\tt -u}' flag given in the relation definition.
+
+
+
+
+\subsection{Mailing Lists and {\tt\~{}/.forward}}%
+\label{mailing_list_maintenance}
+
+
+Mailing lists are implemented as files in the {\tt \$MAILSHARE/lists/} 
+directory (or symlinks in there to files residing elsewere, though from a system
+reliability standpoint it is better to have them in that directory,
+and let users have symlinks to those files -- consider the NFS
+with the user home directories in other machines...)
+
+An alternate mechanism is to implement lists in the traditional {\em sendmail}
+manner, however it means feeding the message to the scheduler, and
+external program ({\tt /usr/lib/sendmail}) before it comes back to the
+{\em router}.
+
+The list FILE must have protection 0664 or stricter, 0700 has invalid bits.
+(ok, so the ``x"-bit is not used, but illegal it is, all the same.)
+Preferrable protection is: 0600
+
+The {\tt \$MAILSHARE/lists/} directory must be owned by root.
+The directory containing the "aliases" file  ({\tt \$MAILSHARE/db/}) 
+must be owned by root, and the aliases file must comply with above mentioned 
+protections.
+
+The owner of FILE gets FILE-owner, and FILE-request mails,
+{\em unless any of the above listed limitations are breached}.
+
+If FILE has protection 666 (for example), the ZMailer internal function
+"{\tt \$(filepriv \$filepath)}" 
+returns "{\tt \$nobody}" (userid of nobody), and  function
+"{\tt \$(uid2login \$nobody)}" fails, thus losing -owner, and 
+-request features.
+
+Also lists with filepriv ``nobody'' cannot be archived simply
+by having an ``address'' of form {\tt /file/path} amongst the
+recipient addresses.
+
+A mailing list is set up by creating a file in the 
+{\tt \$MAILVAR/lists/} directory.
+The file name is the list's name (LIST) in all lowercase
+(case-insensitive matching is done by converting to lowercase
+before comparison).
+
+The file contains a list of mail addresses (typically one per line)
+which are parsed to pull out the destination addresses.  This means
+the users' full names can be given just as in any valid RFC822 address.
+
+The local account which owns the file will by default receive messages
+sent to LIST-owner and LIST-request.  This can be explicitly overridden
+in the aliases file.  Mail to the list will go out with LIST-owner as
+the sender, so list bounce messages will return to the LIST-owner
+address.  Archives of the list can be created by adding a file name
+address (a local pathname starting with "/") to the LIST file.  The
+archive file is written with the ownership of the owner of the LIST
+file.  Forwarding the mailing list into a newsgroup
+can be done using a mail to news script (two generations are provided
+in utils/distribute and utils/mail2news).
+
+
+
+\subsubsection{aliases.cf Logic}
+
+\begin{itemize}
+\item If an aliases database exists and local-part is found in it, the list of
+addresses mapped to by the alias entry is substituted.
+\item If an mboxmap file exists and a mapping for the local-part is found in it,
+the mapping (a host!homedir!user value) determines the remote recipient
+(user@host) or recipient mailbox ({\tt homedir/../PObox/user}) if host 
+is local.
+\item If local-part is a login name and a readable {\tt .forward} file 
+exists in the home directory, the list of addresses it contains is substituted.
+\item If local-part is a file basename in the {\tt \$MAILVAR/lists} 
+directory, the   list of addresses contained in the file is substituted, and 
+the sender address set to local-part-owner.
+\item If local-part is of the form file-owner or file-request, where file is
+an entry in the {\tt \$MAILVAR/lists} directory, the account name 
+of the owner of the file is substituted.   (File-owner identity and correct 
+protections are important.)
+\item If the local-part is of format  ``user.name'',  it is actually mapped via
+separate   fullnamemap, and NEVER via {\tt \$MAILVAR/db/aliases}.
+\item If PUNTHOST is defined (in {\tt /etc/zmailer.conf}) the address
+{\tt local-part@\$PUNTHOST} is substituted.  Note that in this case
+the mboxmap mechanism should be used to ensure local spool
+mailbox delivery for local users.
+\end{itemize}
+
+
+\subsubsection{About Large Lists, and Memory Consumption}
+
+
+
+With old configuration scripts there used to be problems with list
+expansion causing serious memory bloat.  {\em ZMailer-2.98-mea} did introduce
+a working solution via the builtin  {\tt \$(listexpand ..)} function.
+
+The rest of these notes apply to older config files using old style pipe
+of:
+\begin{alltt}
+ $(listaddresses  < file | maprrouter ...)
+\end{alltt}
+where the maprrouter caused the actual memory bloat...
+
+Internal list expansion (through the  {\tt \$MAILVAR/lists/LISTNAME} 
+mechanism) is a sure way to expand {\em router} process memory usage.
+
+You can decrease the memory requirement dramatically, if you can
+feed all the addresses in the envelope, or via {\tt utils/listexpand.c}
+utility (alpha-test tool on 1-Sep-94) You don't need to worry about 
+it unless your list is 100+ recipients, only then the memory usage starts 
+to bloat seriously with the old-style in-core {\tt \$(listaddress ...)} 
+expander.
+
+Although more interesting and useful models exist, the mail forwarding
+functionality of ZMailer has been designed to generally emulate the
+interface and behaviour of {\em sendmail}.  The mechanisms that accomplish this
+are likely to be generalized in a future version.
+
+The file containing the actual aliasing data is automatically created by
+the {\em router} when asked to reconstruct the aliases database.  It does this
+based on a text file containing the alias definitions.  This text file,
+which corresponds to the {\em sendmail} aliases file, consists of individual
+alias definitions, possibly separated by blank lines or commentary.
+Comments are introduced by a sharp sign (octothorp: `\#') at any point where
+a token might start (for example the beginning of a line, but not in the
+middle of an address), and extend to the end of the line.  Each alias
+definition has the exact syntax of an RFC822 message header, containing an
+address-list, except for comments.  The header field name is the local-part
+being aliased to the address-list that is the header value.
+
+The fact that an alias definition follows the syntax for an RFC822 message
+header, introduces an incompatibility with {\em sendmail}.  The string
+{\tt :include:} at the start of a local-part (a legacy of RFC733) has special
+semantics. {\em Sendmail} would strip this prefix, and regard the rest of the
+local-part as a path to a file containing a list of addresses to be
+included in the alias expansion. Indeed, the {\em router} behaves in the same
+manner, but because some of the characters in the prefix are RFC822
+specials, the entire local-part must be quoted.  Thus, whereas {\em sendmail}
+allowed:
+
+\begin{alltt}
+ people: :include:/usr/lib/mail/lists/people
+\end{alltt}
+
+the proper syntax with ZMailer is:
+\begin{alltt}
+ people: ":include:/usr/lib/mail/lists/people"
+\end{alltt}
+
+
+Like {\em sendmail}, if a local-part is not found in the aliases database, the
+{\em router} also checks {\tt \~{}local-part/.forward} (if such exists) for 
+any address expansion.  The {\tt .forward} file format is also an RFC822 
+address list, similar to what {\em sendmail} expects.
+
+As special cases, a local-part starting with a pipe character (`{\tt $\|$}') is
+treated as mail destined for a program (the rest of the local-part is any
+valid argument to a {\tt sh -c} command), and a local-part starting with a
+slash character (`{\tt /}') is treated as mail destined for the file named 
+by the local-part.
+
+General format:
+
+\begin{alltt}
+ local-address-token:    "replacement address" ,
+                         "extension line w/ another addr"
+ --------------------    --------------------------------
+     "The Key"                "The Data"
+\end{alltt}
+
+Protection of the aliases database must be at least 0644.
+Protection of the {\tt \$MAILVAR/db/} directory must be at least 03755.
+
+
+
+The following processing is done for (replacement) local-parts
+(local mail addresses):  Note that @'s are not allowed in any local-part.
+
+
+
+If the local-part starts with ``{\tt $\|$}" assume it is a command specification:
+\begin{alltt}
+    prog-pipe: "|/path/to/program -args"
+\end{alltt}
+
+If the local-part starts with ``/" assume it is a file pathname:
+\begin{alltt}
+    file-path: "/path/to/file"
+\end{alltt}
+
+If the local-part starts with {\tt :include:} the rest should be a file
+pathname of a list of mail addresses.  They are substituted:
+\begin{alltt}
+    included-list: ":include:/path/to/address/file"
+\end{alltt}
+
+After this point, all matches are case-insensitive by means of translating
+the value to be looked up to lower-case, and then conducting a case-sensitive
+lookup. {\bf All keys in aliases et.al. must be in lower case}.
+(The hash functions inside  {\tt ndbm/gdbm/db/dbm}  are case sensitive, and 
+as such, there is no way to avoid this requirement.)
+
+
+\subsubsection{Security Considerations}
+
+
+
+A LIST file must not be world writable, while most likely it can be
+group-writable.
+The {\tt \$MAILVAR/lists/} directory must also not be group or world
+writable and must be owned by root or by the owner of the LIST file.
+Otherwise the file is declared insecure and all addresses in the file
+get the least possible privilege associated (the ``nobody'' uid).
+This can cause various things to break, for example mailing list archival,
+or the -owner and -request features if ``nobody'' is not a valid account.
+
+There is a mechanism to override using the modes on a {\tt file/directory}
+as an indicator of its safeness.
+
+Turning on the sticky bit on a file or directory tells the mailer to treat
+it as if it was only owner writable independent of its actual modes.
+
+This allows {\tt MAILVAR/lists/} to be group or world writable and
+sticky-bitted if you want your general user population (or special admin
+group) to be able to create mailing lists.

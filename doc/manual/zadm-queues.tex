@@ -1,0 +1,175 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \section{The Queue}
+
+\begin{figure*}[ht]
+\hrule\medskip
+\fbox{\bf **Picture of queues**}
+\medskip\hrule\medskip
+\end{figure*}
+
+There are multiple queues in ZMailer. Messages exist in
+in one of five locations:
+
+\begin{itemize}\sloppy
+\item
+Submission temporary directory ({\tt \$POSTOFFICE/public/})
+\item
+Freezer directory ({\tt \$POSTOFFICE/freezer/})
+\item
+Router directory ({\tt \$POSTOFFICE/router/})
+\item
+Deferred directory ({\tt \$POSTOFFICE/deferred/})
+\item
+Scheduler directories ({\tt \$POSTOFFICE/transport/}, 
+{\tt \$POSTOFFICE/queue/})
+\end{itemize}
+
+and sometimes is also copied into the 
+\begin{itemize}
+\item Postmaster analysis area ({\small\tt \$POSTOFFICE/postman/})
+\end{itemize}
+
+
+
+\subsection{Message Submission Areas}
+
+
+
+Message submission is done by writing a temporary file
+into the directory ({\tt \$POSTOFFICE/public/}), the 
+actual format of the submitted message is described in
+\vref{msg_file_format}.
+
+When the temporary file is completely written, it is renamed into one 
+of the {\em router} input directories, usually into 
+{\tt \$POSTOFFICE/router/} with a name that is a decimal representation
+of the file i-node number. This is a way to ensure that the
+name of the file in the {\tt \$POSTOFFICE/router/} directory is unique.
+
+The message may also be renamed into alternate router directories, 
+which give lower priorities on which messages to process when.
+
+Sometimes, especially {\em smtpserver} built files may be moved
+into alternate directories. The smtpserver {\tt ETRN}
+command is implemented by moving the built special file to the 
+directory {\tt \$POSTOFFICE/transport/} without going through the
+{\em router}.  The smtpserver may also move newly arrived
+files into the {\tt \$POSTOFFICE/freezer/} directory.
+
+
+
+
+\subsection{Router Behaviour on Queues}
+
+The system can have multiple {\em router} processes running in parallel
+and competeting on input files.  Multiple processes may make sense when
+there are multiple processors in the system allowing running them in
+parallel, but also perhaps for handling cases where one process is handling
+routing of some large list, and other (hopefully) will get less costly jobs.
+
+The {\em router} processes have a few different behaviours when
+they go over their input directories.
+
+First of all, if there are {\tt ROUTERDIRS} entries, those
+are scanned for processing after the primary 
+{\tt \$POSTOFFICE/router/} directory is found empty.
+
+Within each directory, the {\em router} will sort files at first into 
+mod-time order, and then process the oldest message first. (Unless the 
+{\em router} has been started with the `-s' option.)
+
+The {\em router} acquires a lock on the message (spool file) by means
+of renaming the file from its previous name to a name with the format: 
+{\small\tt concat(file\_ino\_number,"-",progpid)}
+
+Once the {\em router} has been able to acquire a new name
+for the file, it starts off by creating a temporary file of
+{\em router} routing decisions.  The file has a name with the format:
+{\small\tt concat("..",file\_ino\_number,"-",progpid)}
+
+Once the processing has completed successfully, the original
+input file is moved into the directory {\tt \$POSTOFFICE/queue/}, and
+the {\em router} produced scheduler work-specification file is moved
+to the {\tt \$POSTOFFICE/transports/} directory with the {\bf same}
+name that the original file has.
+
+If the routing analysis encountered problems, the message
+may end up moved into the directory {\tt \$POSTOFFICE/deferred/}, from
+which the command {\tt zmailer resubmit} is needed to return 
+the messages to processing. (The {\em router} logs should be consulted 
+for the reason why the message ended up in the {\em /deferred/} area,
+especially if the command {\tt zmailer resubmit} is not able
+to get the messages processed successfully and
+the files end up back in the {\em /deferred/} area.)
+
+If the original message had errors in its RFC-822 compliance,
+or some other detail, a copy of the message may end up in the 
+directory {\tt \$POSTOFFICE/postman/}.  
+
+See Postmaster Analysis Area on section \vref{postmaster_analysis_area}.
+
+\subsection{Scheduler, and Transport Agents}
+
+
+The scheduler work specification files are in the directory
+{\tt \$POSTOFFICE/transport/}, under which there can be (optionally)
+one or two levels of subdirectories into which the actual
+work files will be scattered to lessen the sizes of individual
+directories in which files reside, and thus to speed up the
+system implied directory lookups at the transport agents, when
+they open files, (and also in the scheduler).
+
+When the {\em router} has completed message file processing, it places the
+resulting files into the top level directory of the scheduler; 
+{\tt \$POSTOFFICE/transport/}, and {\tt \$POSTOFFICE/queue/}.
+
+The scheduler (if so configured) will move the messages into 
+``hashed subdirectories,'' when it finds the work specification files, 
+and then start processing addresses in them.
+
+The transport agents are run with their CWD in directory 
+{\tt \$POSTOFFICE/transport/}, 
+and they open files relative to that location. Actual message bodies, when 
+needed, are opened with the path prefix ``{\tt ../queue/}'' to the work 
+specification file name.
+
+Usually it is the transport agent's duty to log different permanent status reports 
+(failures, successes) into the end of the work-specification file.  
+Sometimes the scheduler also logs something at the end of this file.  
+All such operations are attempted {\bf without} any sort 
+of explicit locking, instead trusting the {\em write(2)} system call to 
+behave in an atomic manner while writing to the disk file, and 
+having a single buffer of data to write.
+
+Once the scheduler has had all message recipient addresses 
+processed by the transport agents, it will handle possible
+diagnostics on the message, and finally it will remove the
+original spool-file from the {\tt \$POSTOFFICE/queue/}, and 
+the work-specification file from {\tt \$POSTOFFICE/transport/}.
+
+
+
+
+\subsection{Postmaster Analysis Area\label{postmaster_analysis_area}}
+
+
+
+If the filename in the {\tt \$POSTOFFICE/postman/} directory has an 
+underscore in it, the reason for the copy is {\bf soft}, that is, the 
+message has been sent through successfully in spite of being copied into
+the {\tt \$POSTOFFICE/postman/} directory.
+
+If the filename in the {\tt \$POSTOFFICE/postman/}
+{\em does not have an underscrore in it, that file has not been processed
+successfully, and the} {\bf only} {\em copy of the message
+is now in {\tt \$POSTOFFICE/postman/}}
+
+If the  smtpserver  receives a message with content that the policy filtering
+system decides to be dubious, it can move the message into
+{\tt \$POSTOFFICE/freezer/} directory with a bit explanatory name of type:
+{\small\tt concat(file\_ino\_number,".",causecode)}.
+
+The files in the freezer-area are in the input format to the router, and
+as of this wiring, there are no tools to automatically process them for
+obvious spams, and just those that were falsely triggered.

@@ -1,0 +1,31 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \section{DNS and ZMailer}
+
+The cornerstone of everything in busy Internet email routing is a properly
+working DNS server, and a modern resolver library. If you use the BIND 
+nameserver, you should be using a recent version, at least BIND 4.8.
+(As of this writing, bind is on version 8.1.1)
+
+You can get improved DNS performance by installing local {\tt named},
+which does cache replies, including {\bf negative} replies.
+
+For the file {\tt /etc/resolv.conf}:
+\begin{alltt}\medskip\hrule\medskip
+domain     your.domain
+nameserver 127.0.0.1
+nameserver (some other server)
+\medskip\hrule\medskip\end{alltt}
+
+
+For the local nameserver daemon ({\em named}) you should have
+at least following type of configuration:
+\begin{alltt}\medskip\hrule\medskip
+forwarders 10.12.34.56  10.45.67.89
+options forward-only
+\medskip\hrule\medskip\end{alltt}
+
+which means that all the queries are attempted to be resolved
+by the servers at IP addresses {\em 10.12.34.56} and
+{\em 10.45.67.89}, and both the local server, and remote
+servers will cache DNS responses.
