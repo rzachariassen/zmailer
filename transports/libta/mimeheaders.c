@@ -129,7 +129,7 @@ strqcpy(buf,buflen,str)
 void cvtspace_free(rp)
      struct rcpt *rp;
 {
-	char **ss;
+	char ***ss;
 
 	if (!rp->newmsgheadercvt) return;
 

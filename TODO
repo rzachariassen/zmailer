@@ -1,5 +1,9 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- smtp TA (all TAs ??) leak memory in MIME header processing,
+  and (what is worse) they seem to refer thru pointers located
+  within FREED memory blocks..
+
 - smtp TA to ETRN type destinations (usually not reachable) work
   poorly ever since non-blocking connection was taken into use.
 
