@@ -335,11 +335,11 @@
 2001-01-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* lib/selfaddrs.c, transports/smtp/smtp.c:
-	    If resolver support option flag  RES_USE_INET6, but
+	    If resolver supports option flag  RES_USE_INET6, but
 	    system doesn't support IPv6 socket, clear that flag.
 
 	* libresolv/gethnamaddr.c, libresolv/netdb.h:
-	    When using   --with-bundled-libresolv  silense things a bit
+	    When using   --with-bundled-libresolv  silence things a bit
 	    as one particular #define may be set before calling this.
 	    Also, do explicitely at first lookup /etc/hosts file for
 	    host, only then do resolver lookups.
@@ -457,9 +457,6 @@
 	* scheduler/readconfig.c, scheduler/transport.c:
 	    setpriority() syscall autoconfig things
 
-	* smtpserver/smtpdata.c:
-	    "BDAT 0 LAST" is valid thing!
-
 2000-12-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* smtpserver/smtpdata.c:
@@ -571,7 +568,7 @@
 
 	* transports/smtp/smtp.c:
 	    Few hours of going over the  smtp_sync()'s smtp_nbread()
-	    call, and its surroundings.  Iverted its logic, and finally
+	    call, and its surroundings.  Inverted its logic, and finally
 	    got simple, clean, understandable code.  ("I smell Wumpus!")
 
 	* scheduler/mailq.c:
