@@ -837,7 +837,7 @@ dq_insert(DQ, ino, file, delay)
 	}
 
 	/* Now store the entry */
-	dsn = (struct dirstatname*)emalloc(sizeof(*dsn)+strlen(file));
+	dsn = (struct dirstatname*)emalloc(sizeof(*dsn)+strlen(file)+1);
 	memcpy(&(dsn->st),&stbuf,sizeof(stbuf));
 	dsn->ino = ino;
 	dsn->not_before = now + delay;
@@ -2225,7 +2225,7 @@ static int globmatch(pattern, string)
 		int len = strlen(string);
 		i = strlen(pattern);
 		if (i > len) return 0; /* Tough.. pattern longer than string */
-		if (strcmp(string +(len-i),pattern) == 0)
+		if (memcmp(string + len - i, pattern, i) == 0)
 		  return 1; /* MATCH! */
 	      }
 	    }
