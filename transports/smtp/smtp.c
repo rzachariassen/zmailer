@@ -349,6 +349,7 @@ my_free_hook (void *ptr, const void *CALLER)
 
 static char *filename;
 static int   filenamesize;
+static int task_count;
 
 int
 main(argc, argv)
@@ -383,10 +384,6 @@ main(argc, argv)
 
 	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
 	fd_blockingmode(FILENO(stdout)); /* Just to make sure.. */
-
-#ifdef	BIND
-	res_init();
-#endif
 
 	pid = getpid();
 	msgfile = "?";
@@ -656,6 +653,10 @@ main(argc, argv)
 	filenamesize = 80;
 	filename = malloc(filenamesize);
 
+#ifdef	BIND
+	res_init();
+#endif
+
 	while (!getout && !zmalloc_failure) {
 	  /* Input:
 	       spool/file/name [ \t host.info ] \n
@@ -677,6 +678,8 @@ main(argc, argv)
 	  /* if (fgets(filename, sizeof(filename), stdin) == NULL) break; */
 	  if (ssfgets(&filename, &filenamesize, FILENO(stdin), &SS) == NULL)
 	    break;
+
+	  ++task_count; /* Just a debug tool */
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	  readalready = 0; /* internal body read buffer 'flush' */
