@@ -2,7 +2,7 @@
  *  mxverify-cgi  -- a ZMailer associated utility for doing web-based
  *                   analysis of ``is my incoming email working properly ?''
  *
- *  By Matti Aarnio <mea@nic.funet.fi> 20-Jan-2000
+ *  By Matti Aarnio <mea@nic.funet.fi> 20-Jan-2000, 2001
  *
  *  This program plays fast&loose with HTTP/CGI interface, and presumes
  *  quite exactly the <FORM ... > stuff that is present in the file
@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <errno.h>
 #include "zmsignal.h"
 #include <string.h>
@@ -29,6 +30,61 @@ int plaintext = 0;
 int conn_ok   = 0;
 
 /* Input by 'GET' method, domain-name at CGI URL */
+
+/* STDARG && STDC */
+void htmlprintf(const char *fmt, ...)
+{
+  va_list ap;
+  int in_tag = 0;
+
+  va_start(ap, fmt);
+
+  for ( ; *fmt ; ++fmt ) {
+
+    if (!in_tag && *fmt == '<') {
+      in_tag = 1;
+    } else if (in_tag && *fmt == '>') {
+      in_tag = 0;
+    }
+
+    if (in_tag && plaintext) continue;
+
+    if (*fmt == '%') {
+      int width = 0;
+      ++fmt;
+      while ('0' <= *fmt && *fmt <= '9') {
+	width = width * 10 + (*fmt - '0');
+	++fmt;
+      }
+      switch (*fmt) {
+      case 's':
+	{
+	  const char *str = va_arg(ap, const char *);
+	  if (plaintext) {
+	    printf("%s",str);
+	  } else
+	    for (;str && *str; ++str) {
+	      printf("&#%d;", 0xFF & *str);
+	    }
+	}
+	break;
+      case 'd':
+	{
+	  int d = va_arg(ap, int);
+	  printf("%*d", width, d);
+	}
+	break;
+      default:
+	break;
+      }
+
+      continue;
+    }
+
+    printf("%c", *fmt);
+  }
+}
+
 
 extern int mxverifyrun();
 
@@ -114,15 +170,14 @@ char *argv[];
 
   if (!plaintext) {
     fprintf(stdout, "Content-Type: TEXT/HTML\nPragma: no-cache\n\n");
-    fprintf(stdout, "<HTML><HEAD><TITLE>\n");
+    fprintf(stdout, "\n");
   }
-  fprintf(stdout, "MX-VERIFY-CGI run for ``%s''\n", getstr);
+  htmlprintf("<HTML><HEAD><TITLE>MX-VERIFY-CGI run for ``%s''</TITLE></HEAD>\n", getstr);
   if (!plaintext) {
-    fprintf(stdout, "</TITLE></HEAD>\n<BODY BGCOLOR=\"WHITE\" TEXT=\"BLACK\" LINK=\"#0000EE\" VLINK=\"#551A8B\" ALINK=\"RED\">\n\n");
+    fprintf(stdout, "<BODY BGCOLOR=WHITE TEXT=BLACK LINK=#0000EE VLINK=#551A8B ALINK=RED>\n\n");
 
-    fprintf(stdout, "<H1>MX-VERIFY-CGI run for ``%s''</H1>\n", getstr);
-    fprintf(stdout, "<P>\n");
-    fprintf(stdout, "<HR>\n");
+    htmlprintf("<H1>MX-VERIFY-CGI run for ``%s''</H1>\n", getstr);
+    fprintf(stdout, "<P><HR>\n");
   }
 
   if (!err)
@@ -136,9 +191,7 @@ char *argv[];
     fprintf(stdout, "Sorry, NO MX-VERIFY-CGI run with this input!<P>\n");
   }
   if (!plaintext) {
-    fprintf(stdout, "<P>\n");
-    fprintf(stdout, "<HR>\n");
-    fprintf(stdout, "</BODY></HTML>\n");
+    fprintf(stdout, "<P><HR></BODY></HTML>\n");
   }
 
   if ((err & 127) == 0 && err != 0) err = 1; /* Make sure that after an exit()
@@ -358,7 +411,7 @@ getmxrr(host, mx, maxmx, depth)
 	  h_errno = 0;
 
 	if (depth > 3) {
-	  fprintf(stdout,"<H1>ERROR:  RECURSIVE CNAME ON DNS LOOKUPS: domain=``%s''</H1>\n", host);
+	  htmlprintf("<H1>ERROR:  RECURSIVE CNAME ON DNS LOOKUPS: domain=``%s''</H1>\n", host);
 	  return EX_NOHOST;
 	}
 
@@ -366,21 +419,15 @@ getmxrr(host, mx, maxmx, depth)
 	qlen = res_mkquery(QUERY, host, C_IN, T_MX, NULL, 0, NULL,
 			   (void*)&qbuf, sizeof qbuf);
 	if (qlen < 0) {
-	  fprintf(stdout,"<H1>ERROR:  res_mkquery() failed! domain=``%s''</H1>\n", host);
+	  htmlprintf("<H1>ERROR:  res_mkquery() failed! domain=``%s''</H1>\n", host);
 	  return EX_SOFTWARE;
 	}
 
-	if (plaintext)
-	  fprintf(stdout,"Doing resolver lookup for T=MX domain=``%s''\n",host);
-	else
-	  fprintf(stdout,"<H1>Doing resolver lookup for T=MX domain=``%s''</H1>\n",host);
+	htmlprintf("<H1>Doing resolver lookup for T=MX domain=``%s''</H1>\n", host);
 
 	n = res_send((void*)&qbuf, qlen, (void*)&answer, sizeof answer);
 	if (n < 0) {
-	  if (plaintext)
-	    fprintf(stdout,"ERROR:  No resolver response for domain=``%s''\n", host);
-	  else
-	    fprintf(stdout,"<H1>ERROR:  No resolver response for domain=``%s''</H1>\n", host);
+	  htmlprintf("<H1>ERROR:  No resolver response for domain=``%s''</H1>\n", host);
 	  return EX_TEMPFAIL;
 	}
 
@@ -399,34 +446,29 @@ getmxrr(host, mx, maxmx, depth)
 	     * due to a bug; if that is the case by you,
 	     * change to return EX_TEMPFAIL iff hp->aa == 0.
 	     */
-	    fprintf(stdout,"<H1>ERROR:  NO SUCH DOMAIN: ``%s''</H1>\n", host);
+	    htmlprintf("<H1>ERROR:  NO SUCH DOMAIN: ``%s''</H1>\n", host);
 	    return EX_TEMPFAIL;
 	  case SERVFAIL:
-	    fprintf(stdout,"<H1>ERROR:  DNS Server Failure: domain=``%s''</H1>\n", host);
+	    htmlprintf("<H1>ERROR:  DNS Server Failure: domain=``%s''</H1>\n", host);
 	    return EX_TEMPFAIL;
 	  case NOERROR:
-	    if (plaintext) {
-	      fprintf(stdout,"Questionable:  NO MX DATA: domain=``%s''  We SIMULATE!\n", host);
-	      fprintf(stdout,"Do have at least one MX entry added!\n");
-	    } else {
-	      fprintf(stdout,"<H1>Questionable:  NO MX DATA: domain=``%s''  We SIMULATE!</H1>\n", host);
-	      fprintf(stdout,"<H1>Do have at least one MX entry added!</H1>\n");
-	    }
+	    htmlprintf("<H1>Questionable:  NO MX DATA: domain=``%s''  We SIMULATE!</H1>\n", host);
+	    htmlprintf("<H1>Do have at least one MX entry added!</H1>\n");
 	    mx[0].host = host;
 	    mx[0].pref = 999999;
 	    mx[1].host = NULL;
 	    return 0;
 	  case FORMERR:
-	    fprintf(stdout,"<H1>ERROR:  DNS Internal FORMERR error: domain=``%s''</H1>\n", host);
+	    htmlprintf("<H1>ERROR:  DNS Internal FORMERR error: domain=``%s''</H1>\n", host);
 	    return EX_NOPERM;
 	  case NOTIMP:
-	    fprintf(stdout,"<H1>ERROR:  DNS Internal NOTIMP error: domain=``%s''</H1>\n", host);
+	    htmlprintf("<H1>ERROR:  DNS Internal NOTIMP error: domain=``%s''</H1>\n", host);
 	    return EX_NOPERM;
 	  case REFUSED:
-	    fprintf(stdout,"<H1>ERROR:  DNS Internal REFUSED error: domain=``%s''</H1>\n", host);
+	    htmlprintf("<H1>ERROR:  DNS Internal REFUSED error: domain=``%s''</H1>\n", host);
 	    return EX_NOPERM;
 	  }
-	  fprintf(stdout,"<H1>ERROR:  DNS Unknown Error! (rcode=%d) domain=``%s''</H1>\n", hp->rcode, host);
+	  htmlprintf("<H1>ERROR:  DNS Unknown Error! (rcode=%d) domain=``%s''</H1>\n", hp->rcode, host);
 	  return EX_UNAVAILABLE;
 	}
 	nmx = 0;
@@ -497,23 +539,13 @@ getmxrr(host, mx, maxmx, depth)
 	}
 
 
-	if (!plaintext)
-	  fprintf(stdout, "<P><H1>");
-	fprintf(stdout, "DNS yields following MX entries\n");
-	if (!plaintext)
-	  fprintf(stdout, "</H1><PRE>\n");
+	htmlprintf("<P><H1>DNS yields following MX entries\n</H1><PRE>\n");
 	for (i = 0; i < nmx; ++i)
-	  fprintf(stdout,"  %s  IN MX %3d %s\n", host,mx[i].pref,mx[i].host);
-	if (!plaintext)
-	  fprintf(stdout, "</PRE>\n<P>\n");
-	else
-	  fprintf(stdout, "\n\n");
+	  htmlprintf("  %s  IN MX %3d %s\n", host,mx[i].pref,mx[i].host);
+	htmlprintf("</PRE>\n<P>\n");
 
 	if (nmx == 1) {
-	  if (plaintext)
-	    fprintf(stdout, "Only one MX record...\nWell, no backups, but as all systems are looking for MX record *in every case*, not bad..\n\n");
-	  else
-	    fprintf(stdout, "<H2>Only one MX record...<BR>Well, no backups, but as all systems are looking for MX record <I>in every case</I>, not bad..</H2>\n<P>\n");
+	  htmlprintf("<H2>Only one MX record...\n<BR>Well, no backups, but as all systems are looking for MX record <I>in every case</I>, not bad..</H2>\n<P>\n");
 	}
 
 	mx[nmx].host = NULL;
@@ -563,8 +595,8 @@ vcsetup(sa, fdp, myname, mynamemax)
 	sk = socket(af, SOCK_STREAM, 0);
 	if (sk < 0) {
 	  se = strerror(errno);
-	  fprintf(stdout,"<H2>ERROR: Failed to create %s type socket! err='%s'</H2>\n",
-		  af == AF_INET ? "AF_INET" : "AF_INET6", se);
+	  htmlprintf("<H2>ERROR: Failed to create %s type socket! err='%s'</H2>\n",
+		     af == AF_INET ? "AF_INET" : "AF_INET6", se);
 	  return EX_TEMPFAIL;
 	}
 
@@ -664,10 +696,7 @@ vcsetup(sa, fdp, myname, mynamemax)
 
 	if (errnosave == 0 && !gotalarm) {
 	  *fdp = sk;
-	  if (plaintext)
-	    fprintf(stdout,"[ CONNECTED! ]\n");
-	  else
-	    fprintf(stdout,"<CODE>[ CONNECTED! ]</CODE><BR>\n");
+	  htmlprintf("<CODE>[ CONNECTED! ]</CODE><BR>\n");
 
 	  ++conn_ok;
 
@@ -677,10 +706,7 @@ vcsetup(sa, fdp, myname, mynamemax)
 	close(sk);
 
 	se = strerror(errnosave);
-	if (plaintext)
-	  fprintf(stdout,"ERROR: Connect failure reason: %s\n(Still possibly all OK!)",se);
-	else
-	  fprintf(stdout,"<H2>ERROR: Connect failure reason: %s</H2><BR>(Still possibly all OK!)<BR>\n",se);
+	htmlprintf("<H2>ERROR: Connect failure reason: %s</H2><BR>(Still possibly all OK!)<BR>\n",se);
 
 	return 0;
 }
@@ -928,15 +954,7 @@ int smtptest(thatuser, ai)
 
 	if (thatdomain != thatuser) {
 	  sprintf(smtpline, "RCPT TO:<%s>\r\n", thatuser);
-	  if (plaintext)
-	    fprintf(stdout, " RCPT TO:<");
-	  else
-	    fprintf(stdout, " RCPT TO:&lt;");
-	  htmlwrite(thatuser,strlen(thatuser));
-	  if (plaintext)
-	    fprintf(stdout,">\n");
-	  else
-	    fprintf(stdout,"&gt;\n");
+	  htmlprintf(" RCPT TO:%s%s%s\n","<",thatuser,">");
 	  rc = writesmtp(sock, smtpline);
 	  if (rc == ETIMEDOUT) wtout = 1;
 	  if (rc != EX_OK) goto end_test_1;
@@ -945,15 +963,7 @@ int smtptest(thatuser, ai)
 	}
 
 	sprintf(smtpline, "RCPT TO:<postmaster@%s>\r\n", thatdomain);
-	if (plaintext)
-	  fprintf(stdout, " RCPT TO:<postmaster@");
-	else
-	  fprintf(stdout, " RCPT TO:&lt;postmaster@");
-	htmlwrite(thatdomain,strlen(thatdomain));
-	if (plaintext)
-	  fprintf(stdout,">\n");
-	else
-	  fprintf(stdout,"&gt;\n");
+	htmlprintf(" RCPT TO:%spostmaster@%s%s\n","<",thatdomain,">");
 	rc = writesmtp(sock, smtpline);
 	if (rc == ETIMEDOUT) wtout = 1;
 	if (rc != EX_OK) goto end_test_1;
@@ -968,25 +978,16 @@ int smtptest(thatuser, ai)
 	sprintf(smtpline, "RSET\r\nQUIT\r\n");
 	writesmtp(sock, smtpline);
 	close(sock);
-	if (plaintext) {
-	  fprintf(stdout,"\n\n");
-	  /* fprintf(stdout, "RC = %d\n", rc); */
-	  if (wtout)
-	    fprintf(stdout," WRITE TIMEOUT!\n");
-	  else if (rc == 0)
-	    fprintf(stdout,"Apparently OK!\n");
-	  else
-	    fprintf(stdout,"Something WRONG!! rc=%d\n", rc);
-	} else {
-	  fprintf(stdout,"\n</PRE>\n");
-	  /* fprintf(stdout, "RC = %d\n", rc); */
-	  if (wtout)
-	    fprintf(stdout,"<H2> WRITE TIMEOUT!</H2>\n");
-	  else if (rc == 0)
-	    fprintf(stdout,"<H2>Apparently OK!</H2>\n");
-	  else
-	    fprintf(stdout,"<H2>Something WRONG!! rc=%d</H2>\n", rc);
-	}
+
+	htmlprintf("\n</PRE>\n");
+	/* htmlprintf("RC = %d\n", rc); */
+	if (wtout)
+	  htmlprintf("<H2> WRITE TIMEOUT!</H2>\n");
+	else if (rc == 0)
+	  htmlprintf("<H2>Apparently OK!</H2>\n");
+	else
+	  htmlprintf("<H2>Something WRONG!! rc=%d</H2>\n", rc);
+
 	return rc;
 }
 
@@ -1034,24 +1035,16 @@ int testmxsrv(thatdomain, hname)
 
 	if (i) {
 	  /* It is fucked up somehow.. */
-	  fprintf(stdout, "<H2> --- sorry, address lookup for ``%s'' failed;<BR> code = %s</H2>\n", hname, gai_strerror(i));
+	  htmlprintf("<H2> --- sorry, address lookup for ``%s'' failed;<BR>\n code = %s</H2>\n", hname, gai_strerror(i));
 	  return i;
 	}
 	if (!ai) {
-	  if (plaintext)
-	    fprintf(stdout,"Address lookup _did not_ yield any addresses!\n");
-	  else
-	    fprintf(stdout,"Address lookup <B>did not</B> yield any addresses!\n");
+	  htmlprintf("Address lookup <B>did not</B> yield any addresses!\n");
 	  return EX_DATAERR;
 	}
 
-	if (plaintext) {
-	  fprintf(stdout,"Address lookup did yield following ones:\n\n");
-	  fprintf(stdout,"\n");
-	} else {
-	  fprintf(stdout,"Address lookup did yield following ones:\n<P>\n");
-	  fprintf(stdout,"<PRE>\n");
-	}
+	htmlprintf("Address lookup did yield following ones:\n<P>\n");
+	htmlprintf("<PRE>\n");
 
 	for (a = ai; a; a = a->ai_next) {
 	  char buf[200];
@@ -1077,10 +1070,7 @@ int testmxsrv(thatdomain, hname)
 	  fprintf(stdout,"  %s\n", buf);
 	}
 
-	if (plaintext)
-	  fprintf(stdout,"\n");
-	else
-	  fprintf(stdout,"</PRE>\n");
+	htmlprintf("</PRE>\n");
 
 	for (a = ai; a; a = a->ai_next) {
 	  char buf[200];
@@ -1102,15 +1092,11 @@ int testmxsrv(thatdomain, hname)
 	  } else
 #endif
 	    sprintf(buf,"UNKNOWN-ADDR-FAMILY-%d", a->ai_family);
-	  if (plaintext) {
-	    fprintf(stdout,"\n");
-	    fprintf(stdout," Testing server at address: %s\n", buf);
-	    fprintf(stdout,"\n");
-	  } else {
-	    fprintf(stdout,"<P>\n");
-	    fprintf(stdout,"<H2>Testing server at address: %s</H2>\n", buf);
-	    fprintf(stdout,"<P>\n");
-	  }
+
+	  htmlprintf("<P>\n");
+	  htmlprintf("<H2>Testing server at address: %s</H2>\n", buf);
+	  htmlprintf("<P>\n");
+
 	  rc2 = smtptest(thatdomain, a);
 	  if (!rc) rc = rc2;
 	}
@@ -1140,7 +1126,7 @@ int mxverifyrun(thatuser)
 	    fprintf(stdout, "<P>\n");
 	    fprintf(stdout, "<HR>\n");
 	    fprintf(stdout, "<P>\n");
-	    fprintf(stdout,"<H1>Testing MX server: %s</H1>\n", mx[i].host);
+	    htmlprintf("<H1>Testing MX server: %s</H1>\n", mx[i].host);
 	    fprintf(stdout,"<P>\n");
 	  }
 	  rc2 = testmxsrv(thatuser, mx[i].host);

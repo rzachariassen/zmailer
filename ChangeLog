@@ -1,3 +1,10 @@
+2001-06-11  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* utils/mxverify/mxverify-cgi.c:
+	    Print out the user supplied input (arg strings) properly
+	    protected so that even if the input happens to be HTML
+	    text in disguise, it shows up as "a string".
+
 2001-06-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/transport.c, scheduler/msgerror.c:
