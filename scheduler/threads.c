@@ -857,6 +857,9 @@ struct thread *thr;
 
 	  /* Its idle process, feed it! */
 
+#if 1
+	  proc->fed = 0;
+#else
 	  proc->hungry = 1;	/* Simulate hunger.. */
 	  pick_next_vertex(proc, 1, 0);
 	  if (proc->fed != 0) {
@@ -864,6 +867,7 @@ struct thread *thr;
 	    reschedule(vp, 0, -1);
 	    return 0;
 	  }
+#endif
 	  feed_child(proc);
 
 #if 1
