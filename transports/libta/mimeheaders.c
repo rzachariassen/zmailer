@@ -835,11 +835,10 @@ NULL };
 
 	/* Ok, this was C-T-E: 7BIT, turn charset to US-ASCII if it
 	   was  ISO-*  */
-	if (CT == NULL && verboselog) {
-	  fprintf(verboselog,"Had Content-Transfer-Encoding -header, but no Content-Type header ???  Adding C-T..\n");
-	}
 
 	if (CT == NULL) { /* ???? Had C-T-E, but no C-T ?? */
+	  if (verboselog)
+	    fprintf(verboselog,"Had Content-Transfer-Encoding -header, but no Content-Type header ???  Adding C-T..\n");
 	  append_header(rp,"Content-Type: TEXT/PLAIN; charset=US-ASCII");
 	  return 0;
 	}
@@ -872,6 +871,10 @@ NULL };
 	output_content_type(rp,ct,CT);
 
 	if (convertmode == _CONVERT_QP) {
+
+	  /* Preceding 'output_content_type()' call scrambled lists,
+	     we have to reget the CTE pointer */
+	  CTE  = has_header(rp,cCTE);
 
 	  strcpy(*CTE, "Content-Transfer-Encoding: QUOTED-PRINTABLE");
 	  mime_received_convert(rp," convert rfc822-to-quoted-printable");

@@ -84,16 +84,16 @@ ctlrealloc(dp,anyp,size)
 	unsigned long highlim = lowlim + dp->contentsize;
 	void *anyp2;
 
+	/* If old one isn't our local thing, delete it! */
+	if ((unsigned long)anyp < lowlim ||
+	    (unsigned long)anyp > highlim)
+	  return realloc(anyp, size); /* realloc(); it isn't within DP->CONTENTS data.. */
+
 	/* Allocate a new storage.. */
 	anyp2 = (void*) malloc(size);
 	if (!anyp) return NULL;
 
 	memcpy(anyp2,anyp,size);
-
-	/* If old one isn't our local thing, delete it! */
-	if ((unsigned long)anyp < lowlim ||
-	    (unsigned long)anyp > highlim)
-	  free(anyp); /* Old place  --  It isn't within DP->CONTENTS data.. */
 
 	return anyp2;
 }
