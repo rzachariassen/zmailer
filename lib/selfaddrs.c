@@ -98,32 +98,93 @@ struct mbuf;
 
 /* #include "l-if.h" --- just some fake test stuff for SIOCGLIF*** */
 
+#ifdef HAVE_IFADDRS_H
+#include <ifaddrs.h>
+#endif
 
 int
 loadifaddresses(sockaddrp)
 struct sockaddr ***sockaddrp;
 {
-	int s;
 	int i;
 	int sapcount = -1;
 	int sapspace = 2;
-	int ifbufsize = 4 * sizeof(struct ifreq) + 4;
-	char *interfacebuf = (void*)malloc(ifbufsize);
 	union sockaddr_uni **sap;
 
 	sap = (void*)malloc(sizeof(union sockaddr_uni*) * (sapspace + 2));
 
-	if (! sap || !interfacebuf) {
-	  if (interfacebuf)
-	    free(interfacebuf);
-	  if (sap)
-	    free(sap);
+	if (! sap)
 	  return -3; /* UAARGH! */
-	}
 
+#ifdef HAVE_GETIFADDRS
+	{
+	  struct ifaddrs *ifar = NULL, *ifa;
+
+	  i = getifaddrs( &ifar );
+	  if (i < 0) {
+	    free(sap);
+	    return i;
+	  }
+
+	  for (i = 0, ifa = ifar; ifa ; ++i, ifa = ifa->ifa_next) {
+	    if ((ifa->ifa_flags & IFF_UP) &&
+		(ifa->ifa_addr != NULL)) {
+
+	      struct sockaddr *sa = ifa->ifa_addr;
+
+	      if (sapcount +2 >= sapspace) {
+		sapspace <<= 1;
+		sap = (void*)realloc(sap, (sizeof(union sockaddr_uni*) *
+					   (sapspace + 2)));
+	      }
+
+	      if (! sap) {
+		return -5; /* UAARGH! */
+	      }
+
+	      if (sa->sa.sa_family == AF_INET) {
+		struct sockaddr_in *si4 = (void*)malloc(sizeof(*si4));
+		if (si4 == NULL)
+		  break;
+
+		/* pick the whole sockaddr package! */
+		memcpy(si4, sa, sizeof(*si4));
+		sap[++sapcount] = (union sockaddr_uni *)si4;
+	      }
+
+#if defined(AF_INET6) && defined(INET6)
+	      if (sa->sa.sa_family == AF_INET6) {
+		struct sockaddr_in6 *si6 = (void*)malloc(sizeof(*si6));
+		if (si6 == NULL)
+		  break;
+
+		/* pick the whole sockaddr package! */
+		memcpy(si6, sa, sizeof(*si6));
+		sap[++sapcount] = (union sockaddr_uni *)si6;
+	      }
+#endif
+	    }
+	  }
+
+
+#ifdef HAVE_FREEIFADDRS
+	  freeifaddrs(ifar);
+#else
+	  free(ifar);
+#endif
+	}
+#else /* not HAVE_GETIFADDRS */
 #ifdef SIOCGIFCONF
 	{
 	  struct ifconf ifc;
+	  int ifbufsize = 4 * sizeof(struct ifreq) + 4;
+	  char *interfacebuf = (void*)malloc(ifbufsize);
+	  int s;
+
+	  if (!interfacebuf) {
+	    free(sap);
+	    return -2;
+	  }
 
 	  s = socket(PF_INET, SOCK_DGRAM, 0);
 
@@ -175,12 +236,16 @@ struct sockaddr ***sockaddrp;
 	    struct ifreq ifrf;
 #endif
 
-#ifdef HAVE_SA_LEN
-	    if (sa->sa.sa_len > sizeof ifr->ifr_addr)
-	      i += sizeof ifr->ifr_name + sa->sa.sa_len;
+#if defined(SA_LEN)
+	    if (SA_LEN(((struct sockaddr*)sa)) > sizeof ifr->ifr_addr)
+	      i += sizeof ifr->ifr_name + SA_LEN(((struct sockaddr *)sa));
 	    else
+#elif defined(HAVE_SA_LEN)
+	      if (sa->sa.sa_len > sizeof ifr->ifr_addr)
+		i += sizeof ifr->ifr_name + sa->sa.sa_len;
+	      else
 #endif
-	      i += sizeof *ifr;
+		i += sizeof *ifr;
 
 	    /* Known address families ?
 	       The one we scanned for ??*/
@@ -233,6 +298,7 @@ struct sockaddr ***sockaddrp;
 	    }
 	  }
 	  close(s);
+	  free(interfacebuf);
 	}
 #endif /* defined(SIOCGIFCONF) */
 
@@ -240,6 +306,15 @@ struct sockaddr ***sockaddrp;
 #warning "experimental INET6 related SIOCGLIFCONF code activated!"
 	{
 	  struct lifconf lifc;
+	  struct ifconf ifc;
+	  int ifbufsize = 4 * sizeof(struct ifreq) + 4;
+	  char *interfacebuf = (void*)malloc(ifbufsize);
+	  int s;
+
+	  if (!interfacebuf) {
+	    free(sap);
+	    return -2;
+	  }
 
 	  s = socket(PF_INET6, SOCK_DGRAM, 0);
 	  if (s < 0)
@@ -264,7 +339,8 @@ struct sockaddr ***sockaddrp;
 	    if (ioctl(s, SIOCGLIFCONF, (char *)&lifc) < 0) {
 	      if (errno == EINTR)
 		continue;
-	      close(s);
+	      if (errno == EINVAL)
+		continue;
 	      goto done_this_ipv6; /* HUH!! ??? */
 	    }
 
@@ -286,12 +362,16 @@ struct sockaddr ***sockaddrp;
 	    struct lifreq lifrf;
 #endif
 
-#ifdef HAVE_SA_LEN
-	    if (sa->sa.sa_len > sizeof lifr->lifr_addr)
-	      i += sizeof lifr->lifr_name + sa->sa.sa_len;
+#if defined(SA_LEN)
+	    if (SA_LEN(((struct sockaddr *)sa)) > sizeof(lifr->lifr_addr))
+	      i += sizeof lifr->lifr_name + SA_LEN(((struct sockaddr *)sa));
 	    else
+#elif defined(HAVE_SA_LEN)
+	      if (sa->sa.sa_len > sizeof lifr->lifr_addr)
+		i += sizeof lifr->lifr_name + sa->sa.sa_len;
+	      else
 #endif
-	      i += sizeof *lifr;
+		i += sizeof *lifr;
 
 	    /* Known address families ?
 	       The one we scanned for ??*/
@@ -361,19 +441,19 @@ struct sockaddr ***sockaddrp;
 	    }
 	  }
 	}
-	close(s);
  done_this_ipv6:
-#endif
-
-
+	if (s >= 0) close(s);
 	free(interfacebuf);
-	*sockaddrp = (struct sockaddr **)sap;
+#endif
+#endif /* not HAVE_GETIFADDRS */
 
-	if (sapcount > 0)
-	  sap[sapcount] = NULL;
+	  *sockaddrp = (struct sockaddr **)sap;
 
-	return sapcount;
-}
+	  if (sapcount > 0)
+	    sap[sapcount] = NULL;
+
+	  return sapcount;
+	}
 
 #ifndef TESTMODE /* We test ONLY of  loadifaddresses() routine! */
 

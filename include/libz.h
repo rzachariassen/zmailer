@@ -136,6 +136,9 @@ extern int  matchmyaddress    __((struct sockaddr *));
 extern int  matchmyaddresses  __((struct addrinfo *));
 #endif
 
+/* zgetifaddress.c */
+extern int zgetifaddress __((int af, const char *ifname, struct sockaddr *));
+
 /* splay.c */
 /* .... much ... in  "splay.h" */
 

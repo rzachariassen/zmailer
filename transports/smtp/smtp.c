@@ -2625,24 +2625,10 @@ abort();
 	  if (0)
 	    ;
 #if defined(AF_INET6) && defined(INET6)
-#ifdef SIOCGLIFADDR
 	  else if (af == AF_INET6 &&
-	      cistrncmp(localidentity,"iface:",6) == 0) {
-	    /* Named interface */
-	    int sk2 = socket(PF_INET6, SOCK_DGRAM, 0);
-	    struct lifreq lifr;
-	    memset(&lifr, 0, sizeof(lifr));
-	    strncpy(lifr.lifr_name, localidentity+6, IFNAMSIZ);
-	    lifr.lifr_name[IFNAMSIZ-1] = 0;
-	    lifr.lifr_addr.sa_family = AF_INET6;
-	    if (ioctl(sk2, SIOCGLIFADDR, &lifr) == 0) {
-	      /* Got the IP address of the interface */
-	      memcpy(&sad6, &lifr.lifr_addr, sizeof(sad6));
-	    }
-	    close(sk2);
-
+		   cistrncmp(localidentity,"iface:",6) == 0) {
+	    zgetifaddress(af, localidentity+6, (struct sockaddr *)&sad6);
 	  }
-#endif /* SIOCGLIFADDR */
 	  else if (cistrncmp(localidentity,"[ipv6 ",6) == 0 ||
 		   cistrncmp(localidentity,"[ipv6:",6) == 0 ||
 		   cistrncmp(localidentity,"[ipv6.",6) == 0) {
@@ -2654,42 +2640,10 @@ abort();
 	    }
 	  }
 #endif /* AF_INET6 && INET6 */
-#ifdef SIOCGIFADDR
 	  else if (af == AF_INET &&
 		   cistrncmp(localidentity,"iface:",6) == 0) {
-	    /* Named IPv4 interface */
-	    int sk2 = socket(PF_INET, SOCK_DGRAM, 0);
-	    struct ifreq ifr;
-	    memset(&ifr, 0, sizeof(ifr));
-	    strncpy(ifr.ifr_name, localidentity+6, IFNAMSIZ);
-	    ifr.ifr_name[IFNAMSIZ-1] = 0;
-	    ifr.ifr_addr.sa_family = AF_INET;
-	    if (ioctl(sk2, SIOCGIFADDR, &ifr) == 0) {
-	      /* Got the IP address of the interface */
-	      memcpy(&sad, &ifr.ifr_addr, sizeof(sad));
-	    }
-	    close(sk2);
-
+	    zgetifaddress(af, localidentity+6, (struct sockaddr *)&sad);
 	  }
-#else /* SIOCGIFADDR */
-#ifdef SIOCGLIFADDR
-	  else if (af == AF_INET &&
-		   cistrncmp(localidentity, "iface:",6) == 0) {
-	    /* Named IPv4 interface */
-	    int sk2 = socket(PF_INET, SOCK_DGRAM, 0);
-	    struct lifreq lifr;
-	    memset(&lifr, 0, sizeof(lifr));
-	    strncpy(lifr.lifr_name, localidentity+6, IFNAMSIZ);
-	    lifr.lifr_name[IFNAMSIZ-1] = 0;
-	    lifr.lifr_addr.sa_family = AF_INET;
-	    if (ioctl(sk2, SIOCGLIFADDR, &lifr) == 0) {
-	      /* Got the IP address of the interface */
-	      memcpy(&sad, &lifr.lifr_addr, sizeof(sad));
-	    }
-	    close(sk2);
-	  }
-#endif /* SIOCGLIFADDR */
-#endif /* SIOCGIFADDR */
 	  else if (*localidentity == '[') {
 	    char *s = strchr(localidentity,']');
 	    if (s) *s = 0;

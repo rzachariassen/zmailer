@@ -1,5 +1,14 @@
 2000-06-20  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    Use  zgetifaddress() for '-L iface:eth0' binding.
+
+	* configure.in, include/libz.h, lib/Makefile.in,
+	  lib/selfaddrs.c, lib/zgetifaddress.c:
+	    Autoconfigure  BSDI derived  getifaddrs()  call,
+	    and have sensible IOCTL set for both interface
+	    list, and for interface address lookup code.
+
 	* scheduler/mailq.c:
 	    One-off in array realloc() biting us at Solaris..
 
