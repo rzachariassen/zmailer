@@ -244,9 +244,9 @@ struct envelope {
 };
 
 #ifdef	RFC976
-#define HDR_SCANNER(x)	scan822(&(x), strlen((const char *)x), '!', '%', 0, (token822 **)0)
+#define HDR_SCANNER(x)	scan822(&(x), strlen((const char *)x), '!', '%', (token822 **)0)
 #else	/* !RFC976 */
-#define HDR_SCANNER(x)	scan822(&(x), strlen((const char *)x), 0, 0, 0, (token822 **)0)
+#define HDR_SCANNER(x)	scan822(&(x), strlen((const char *)x), 0, 0, (token822 **)0)
 #endif	/* RFC976 */
 
 struct Zpasswd {

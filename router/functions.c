@@ -532,7 +532,10 @@ run_praliases(argc, argv)
 
 	for (h = e->e_headers; h != NULL; h = h->h_next) {
 		h->h_descriptor = &aliashdr;
-		h->h_contents = hdr_scanparse(e, h, 1, 0);
+		/* NOTE: (although this is dead code)
+		   the '#' commenting in input file must be handled
+		   in THIS code, not delayed into  hdr_scanparse() ! */
+		h->h_contents = hdr_scanparse(e, h, 0);
 		h->h_stamp = hdr_type(h);
 		if (h->h_stamp == BadHeader) {
 			hdr_errprint(e, h, stderr, "alias expansion");
@@ -1156,6 +1159,13 @@ run_listexpand(avl, il)
 			++n;
 		}
 
+		/* NOTE:
+		   the '#' commenting in input file must be handled
+		   in THIS code, not delayed into  hdr_scanparse() ! */
+
+		if (zlinebuf[0] == '#')
+		  continue;
+
 /* #ifdef SENDMAIL_COMPABILITY_KLUDGE */
 		/**
 		 * Additional sendmail compability kludge ++haa
@@ -1185,7 +1195,7 @@ run_listexpand(avl, il)
 		if (c && (*s == ',' || *s == '\n'))
 		  *s = '\0';
 
-		hs.h_contents = hdr_scanparse(e, &hs, 1, 1);
+		hs.h_contents = hdr_scanparse(e, &hs, 1);
 		hs.h_stamp = hdr_type(&hs);
 
 		if (hs.h_stamp == BadHeader || hs.h_contents.a == NULL) {
@@ -1271,7 +1281,7 @@ run_listexpand(avl, il)
 		if (c && (*s == ',' || *s == '\n'))
 		  *s = '\0';
 
-		hs.h_contents = hdr_scanparse(e, &hs, 1, 1);
+		hs.h_contents = hdr_scanparse(e, &hs, 1);
 		hs.h_stamp = hdr_type(&hs);
 
 		if (hs.h_stamp == BadHeader || hs.h_contents.a == NULL) {
@@ -2060,7 +2070,7 @@ run_822syntax(argc, argv)
 	hs.h_lines = makeToken(argv[1], strlen(argv[1]));
 	hs.h_lines->t_type = Line;
 	hs.h_lines->t_next = NULL;
-	hs.h_contents = hdr_scanparse(&es, &hs, 1, 0);
+	hs.h_contents = hdr_scanparse(&es, &hs, 0);
 	hs.h_stamp = hdr_type(&hs);
 	if (hs.h_stamp == BadHeader) {
 	    if (z_isterminal(0))

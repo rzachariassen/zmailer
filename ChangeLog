@@ -1,5 +1,13 @@
 2004-09-06  Matti Aarnio  <mea@zmailer.org>
 
+	* include/mailer.h, include/libz.h, lib/rfc822scan.c,
+	  router/functions.c, router/prototypes.h, router/rfc822.c,
+	  router/rfc822hdrs.c, router/shliaise.c:
+	    Removed all vestiges of detecting '#' at the lead of
+	    the address lines, and considering it as an indication
+	    of a comment.  Doing that comment-skipping in callers,
+	    where appropriate at all.
+
 	* scheduler/mq2.c, scheduler/mailq.inc:
 	    Added (into the scheduler's "MAILQ -QQQQ" processing)
 	    a way to call external arbitrary command, whose output

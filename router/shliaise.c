@@ -271,7 +271,7 @@ hdr_rewrite(name, h)
 			strcpy(s, cs);
 			/* t = HDR_SCANNER(cs); */
 			t = scan822((const char**)&s, strlen(s),
-				    '!', '%', 0, &ap->a_tokens->p_tokens);
+				    '!', '%', &ap->a_tokens->p_tokens);
 
 			stickymem = osticky;
 

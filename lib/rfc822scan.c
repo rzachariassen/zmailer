@@ -398,11 +398,10 @@ _unfold(type, len, start, cpp, t)
  * for efficiency this was changed to avoid function call overhead. The tokens
  * returned are classified by type (TokenType enum class).
  */
-token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
+token822 * scan822(cpp, nn, c1, c2, tlistp)
 	const char **cpp;		/* pointer to pointer to text */
 	size_t	nn;			/* number of characters to scan */
 	int	c1, c2;			/* temporary specials */
-	int allowcomments;		/* #prefix tokens are comments to EOT */
 	token822 **tlistp;		/* continuation line tokens if any */
 {
 	register const char *cp;
@@ -524,10 +523,6 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 		t.t_len -= n;
 		/* return two values */
 		*cpp += t.t_len;
-		if (allowcomments && t.t_len >= 1 && t.t_pname[0] == '#') {
-			*cpp += n;
-			break;
-		}
 		t.t_next = tlist;
 		if (t.t_len > 0)
 			tlist = copyToken(&t);

@@ -333,14 +333,14 @@ makeLetter(e)
 					progname, h->h_descriptor->class);
 				fwrite((char *)zlinebuf, sizeof (char), -i, stderr);
 				putc('\n', stderr);
-				h->h_contents = hdr_scanparse(e, h, 0, 0);
+				h->h_contents = hdr_scanparse(e, h, 0);
 				h->h_stamp = hdr_type(h);
 				return PERR_BADSUBMIT;
 				/* break; */
 			case eFrom:		/* pity to break the elegance */
 				osem = h->h_descriptor->semantics;
 				h->h_descriptor->semantics = Mailbox;
-				h->h_contents = hdr_scanparse(e, h, 0, 0);
+				h->h_contents = hdr_scanparse(e, h, 0);
 				h->h_stamp = hdr_type(h);
 				h->h_descriptor->semantics = osem;
 				break;
@@ -351,7 +351,7 @@ makeLetter(e)
 				e->e_eHeaders = h->h_next;
 				break;
 			default:		/* a real envelope header */
-				h->h_contents = hdr_scanparse(e, h, 0, 0);
+				h->h_contents = hdr_scanparse(e, h, 0);
 				h->h_stamp = hdr_type(h);
 				break;
 			}
@@ -378,7 +378,7 @@ makeLetter(e)
 		nh = h->h_next;
 		h->h_next = ph;
 		if (h->h_descriptor) {
-			h->h_contents = hdr_scanparse(e, h, 0, 0);
+			h->h_contents = hdr_scanparse(e, h, 0);
 			h->h_stamp = hdr_type(h);
 			if (!hdr_nilp(h))	/* excise null-valued headers */
 				ph = h;
@@ -982,7 +982,7 @@ mkSender(e, name, flag)
 	/* X: sprintf(buf, "%s <%s>", fullname, name); more or less */
 	sh->h_lines = makeToken(name, strlen((char *)name));
 	sh->h_lines->t_type = Line;
-	sh->h_contents = hdr_scanparse(e, sh, 0, 0);
+	sh->h_contents = hdr_scanparse(e, sh, 0);
 #endif
 	/* X: optimize: save this in a hashtable somewhere */
 	UNGCPRO1;
@@ -1359,7 +1359,7 @@ sequencer(e, file)
 
 	  rcvdhdr->h_lines    = makeToken(ts+9, strlen(ts+9));
 	  rcvdhdr->h_lines->t_type = Line;
-	  rcvdhdr->h_contents = hdr_scanparse(e, rcvdhdr, 0, 0);
+	  rcvdhdr->h_contents = hdr_scanparse(e, rcvdhdr, 0);
 	  rcvdhdr->h_stamp    = hdr_type(rcvdhdr);
 
 	  smtprelay     = ts+9;
@@ -1651,7 +1651,7 @@ sequencer(e, file)
 			    h = makeHeader(spt_eheaders, ss, 4);
 			    h->h_lines = makeToken(ss+5,2);
 			    h->h_lines->t_type = Line;
-			    h->h_contents = hdr_scanparse(e, h, 0, 0);
+			    h->h_contents = hdr_scanparse(e, h, 0);
 			    /* And now we bend the result beyond any
 			       recognition.. */
 			    h->h_contents.a->a_tokens->p_type     =  anAddress;
@@ -1861,7 +1861,7 @@ sequencer(e, file)
 			    nh = makeHeader(spt_headers, ss, 4);
 			    nh->h_lines = makeToken(ss+5,3);
 			    nh->h_lines->t_type = Line;
-			    nh->h_contents = hdr_scanparse(e, nh, 0, 0);
+			    nh->h_contents = hdr_scanparse(e, nh, 0);
 			    nh->h_stamp = hdr_type(nh);
 			    FindHeader("to",e->e_resent);
 			    if (h == NULL) {

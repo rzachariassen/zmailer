@@ -20,10 +20,10 @@ int D_rfc822 = 0; /* Debug traceing */
  */
 
 union misc
-hdr_scanparse(e, h, commentflag, no_line_crossing)
+hdr_scanparse(e, h, no_line_crossing)
 	struct envelope *e;
 	struct header *h;
-	int commentflag, no_line_crossing;
+	int no_line_crossing;
 {
 	register token822 *t;
 	long		 len;
@@ -120,7 +120,7 @@ hdr_scanparse(e, h, commentflag, no_line_crossing)
 		while (len > 0) {
 			ocp = cp;
 			nt = t;
-			scan_t = scan822(&cp, len, c1, c2, commentflag, &nt);
+			scan_t = scan822(&cp, len, c1, c2, &nt);
 			if (nt != t && !no_line_crossing) {
 				/* compound token across line */
 
@@ -361,7 +361,7 @@ mkMessageId(e, unixtime)
 #endif
 	h->h_lines = makeToken(buf, strlen(buf));
 	h->h_lines->t_type = Line;
-	h->h_contents = hdr_scanparse(e, h, 0, 0);
+	h->h_contents = hdr_scanparse(e, h, 0);
 	/* OPTIMIZE: save this in a hashtable somewhere */
 	return h;
 }
@@ -388,7 +388,7 @@ mkToHeader(e, buf)
 	h->h_next = 0;
 	h->h_lines = makeToken(buf, strlen(buf));
 	h->h_lines->t_type = Line;
-	h->h_contents = hdr_scanparse(e, h, 0, 0);
+	h->h_contents = hdr_scanparse(e, h, 0);
 	/* OPTIMIZE: save this in a hashtable somewhere */
 	return h;
 }

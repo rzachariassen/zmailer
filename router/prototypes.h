@@ -119,7 +119,7 @@ extern int	sequencer __((struct envelope *e, const char *file));
 /* File: rfc822hdrs.c */
 extern int do_hdr_warning; /* If set, headers with errors in them are
 			      printed "as is" -- h_line */
-extern union misc	 hdr_scanparse __((struct envelope *e, struct header *h, int commentflag, int no_line_crossing));
+extern union misc	 hdr_scanparse __((struct envelope *e, struct header *h, int no_line_crossing));
 extern struct header	*makeHeader __((struct sptree *sb, const char *s, int len));
 extern struct headerinfo *senderDesc __((void));
 extern void   set_pname __((struct envelope *e, struct header *h, const char *s));
