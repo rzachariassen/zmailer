@@ -120,7 +120,10 @@ Installation procedure:
 		./configure --prefix=/opt/mail --with-ipv6 \
 				--with-ipv6-replacement-libc
 		( DEC Alpha Linux 2.1.59 with glibc-2.0.5c;
-		  RedHat/Alpha developement 22-Oct-1997 )
+		  RedHat/Alpha developement 22-Oct-1997.
+		  USE THIS FOR ALL SYSTEMS WITH GNU LIBC VERSION
+		  2.0/2.1/2.2 -- timeout handling in getaddrinfo()
+		  is broken at those systems.  21-Aug-2000 )
 
 
 	Explanations about these configuration options are listed

@@ -10,16 +10,23 @@
  * thing for ZMailer.  (Also DE-ANSIfied to K&R style..)
  *
  * Original reason for having   getaddrinfo()  API in ZMailer was
- * to support IPv6 universe -- and that is still the reason, but
- * this adaptation module is for those systems which don't have this
- * IPv6 API, and DON'T support IPv6 at kernel level either!
+ * to support IPv6 universe -- and that is still the reason.  This
+ * adaptation module is primarily for those systems which don't have
+ * this IPv6 API, but there are also some systems (all those using
+ * the original INNER NET code -- glibc 2.0/2.1/2.2(?) especially)
+ * which have faulty error condition processing in them. Specifically
+ * plain simple TIMEOUTS on queries are not handled properly!
+ *
  * Now that Linuxes have caught up at libc level, we no longer have
  * a reason to support kernel things which don't exist at libc level.
  * (Running ZMailer on Linux with libc5 is not supported in sense of
  * supporting IPv6 at the kernel..)
- * 
- * All that mumbling means simply that here we support ONLY IPv4.
  *
+ *
+ *  THIS   getnameinfo()  FUNCTION IS NOT USED IN ZMAILER, BUT IS
+ *  SUPPLIED JUST TO COMPLETE THE API IN CASE IT WILL SOMETIME BECOME
+ *  USED...
+ * 
  */
 
 /* The Inner Net License, Version 2.00

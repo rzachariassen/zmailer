@@ -10,16 +10,18 @@
  * thing for ZMailer.  (Also DE-ANSIfied to K&R style..)
  *
  * Original reason for having   getaddrinfo()  API in ZMailer was
- * to support IPv6 universe -- and that is still the reason, but
- * this adaptation module is for those systems which don't have this
- * IPv6 API, and DON'T support IPv6 at kernel level either!
+ * to support IPv6 universe -- and that is still the reason.  This
+ * adaptation module is primarily for those systems which don't have
+ * this IPv6 API, but there are also some systems (all those using
+ * the original INNER NET code -- glibc 2.0/2.1/2.2(?) especially)
+ * which have faulty error condition processing in them. Specifically
+ * plain simple TIMEOUTS on queries are not handled properly!
+ *
  * Now that Linuxes have caught up at libc level, we no longer have
  * a reason to support kernel things which don't exist at libc level.
  * (Running ZMailer on Linux with libc5 is not supported in sense of
  * supporting IPv6 at the kernel..)
  * 
- * All that mumbling means simply that here we support ONLY IPv4.
- *
  */
 
 /* The Inner Net License, Version 2.00
@@ -118,12 +120,34 @@ struct gaih_servtuple {
 
 static struct gaih_servtuple nullserv = { NULL, 0, 0, 0 };
 
+static void freeservtuple(st)
+     struct gaih_servtuple *st;
+{
+  while (st && st != &nullserv) {
+    struct gaih_servtuple *stn = st->next;
+    free(st);
+    st = stn;
+  }
+}
+
+
 struct gaih_addrtuple {
   struct gaih_addrtuple *next;
   int family;
   char addr[16];
   unsigned int scopeid;
 };
+
+static void freeaddrtuple(at)
+     struct gaih_addrtuple *at;
+{
+  while (at) {
+    struct gaih_addrtuple *atn = at->next;
+    free(at);
+    at = atn;
+  }
+}
+
 
 struct gaih_typeproto {
   int socktype;
@@ -316,10 +340,11 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
 	st = (struct gaih_servtuple *)
 	  malloc (sizeof (struct gaih_servtuple));
+	if (!st) return -EAI_MEMORY;
 
 	rc = gaih_inet_serv (service->name, tp, st);
 	if (rc) {
-	  free(st);
+	  freeservtuple(st);
 	  return rc;
 	}
 
@@ -335,12 +360,17 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
 	  newp = (struct gaih_servtuple *)
 	    malloc (sizeof (struct gaih_servtuple));
+	  if (!newp) {
+	    freeservtuple(st);
+	    return -EAI_MEMORY;
+	  }
 
 	  rc = gaih_inet_serv (service->name, tp, newp);
 	  if (rc) {
 	    if (rc & GAIH_OKIFUNSPEC)
 	      continue;
 	    free(newp);
+	    freeservtuple(st);
 	    return rc;
 	  }
 
@@ -348,15 +378,15 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	  pst = &(newp->next);
 	  free(newp);
 	}
-	if (st == &nullserv) {
-	  /* FIX!FIX! garbage collect! */
+	if (st == &nullserv)
 	  return (GAIH_OKIFUNSPEC | -EAI_SERVICE);
-	}
       }
 
     } else {
 
       st = malloc (sizeof (struct gaih_servtuple));
+      if (!st) return -EAI_MEMORY;
+
       st->next     = NULL;
       st->socktype = tp->socktype;
       st->protocol = tp->protocol;
@@ -368,6 +398,10 @@ gaih_inet (const char *name, const struct gaih_service *service,
   if (name != NULL) {
 
     at = malloc (sizeof (struct gaih_addrtuple));
+    if (!at) {
+      freeservtuple(st);
+      return -EAI_MEMORY;
+    }
 
     at->family = AF_UNSPEC;
     at->scopeid = 0;
@@ -378,17 +412,151 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	  req->ai_family == AF_INET)
 	at->family = AF_INET;
       else {
-	free(at);
-	if (st != &nullserv) free(st);
+	freeaddrtuple(at);
+	freeservtuple(st);
 	return -EAI_ADDRFAMILY;
       }
     }
+
+#if defined(INET6) && defined(AF_INET6)
+    /* INET6 code */
+    if (at->family == AF_UNSPEC) {
+      char *namebuf = strdup (name);
+      char *scope_delim;
+
+      scope_delim = strchr (namebuf, '%');
+      if (scope_delim != NULL)
+	*scope_delim = '\0';
+
+      if (inet_pton (AF_INET6, namebuf, at->addr) > 0) {
+	if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET6)
+	  at->family = AF_INET6;
+	else {
+	  free(namebuf);
+	  freeaddrtuple(at);
+	  freeservtuple(st);
+	  return -EAI_ADDRFAMILY;
+	}
+#if 0 /* IPv6 scope-id ... */
+	if (scope_delim != NULL) {
+	  int try_numericscope = 0;
+	  if (IN6_IS_ADDR_LINKLOCAL (at->addr)
+	      || IN6_IS_ADDR_MC_LINKLOCAL (at->addr)) {
+
+	    at->scopeid = if_nametoindex (scope_delim + 1);
+	    if (at->scopeid == 0)
+	      try_numericscope = 1;
+
+	  } else
+	    try_numericscope = 1;
+
+	  if (try_numericscope != 0) {
+	    char *end;
+	    assert (sizeof (uint32_t) <= sizeof (unsigned long));
+	    at->scopeid = (uint32_t) strtoul (scope_delim + 1, &end, 10);
+	    if (*end != '\0') {
+	      free(namebuf);
+	      freeaddrtuple(at);
+	      freeservtuple(st);
+	      return GAIH_OKIFUNSPEC | -EAI_NONAME;
+	    }
+	  }
+	}
+#endif
+      }
+      free(namebuf);
+    }
+#endif
 
     if (at->family == AF_UNSPEC && (req->ai_flags & AI_NUMERICHOST) == 0) {
 
       struct hostent *h;
       struct gaih_addrtuple **pat = &at;
       int no_data = 0;
+
+#if defined(INET6) && defined(AF_INET6)
+      int no_inet6_data = 0;
+      int old_res_options = _res.options;
+
+      /* If we are looking for both IPv4 and IPv6 address we don't
+	 want the lookup functions to automatically promote IPv4
+	 addresses to IPv6 addresses.  Currently this is decided
+	 by setting the RES_USE_INET6 bit in _res.options.  */
+      if (req->ai_family == AF_UNSPEC)
+	_res.options &= ~RES_USE_INET6;
+
+      if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET6) {
+	int i;
+
+	h = gethostbyname2 (name, AF_INET6);
+
+
+	if (vlog)
+	  fprintf(vlog, " gaih_inet('%s') gethostbyname2(INET6) h=%p  h_errno=%d\n",
+		  name, h, h_errno);
+
+	if (!h) {
+	  switch (h_errno) {
+	  case NETDB_INTERNAL:
+	    freeaddrtuple(at);
+	    freeservtuple(st);
+	    return -EAI_SYSTEM;
+	    break;
+	  case HOST_NOT_FOUND:
+	    freeaddrtuple(at);
+	    freeservtuple(st);
+	    return -EAI_NONAME;
+	    break;
+	  case TRY_AGAIN:
+	    freeaddrtuple(at);
+	    freeservtuple(st);
+	    return -EAI_AGAIN;
+	    break;
+	  case NO_RECOVERY:
+	    freeaddrtuple(at);
+	    freeservtuple(st);
+	    return -EAI_FAIL;
+	    break;
+	  case NO_DATA:
+	    /* 
+	       freeaddrtuple(at);
+	       freeservtuple(st);
+	       return -EAI_NODATA; */
+	    break;
+	  default:
+	    /* 
+	       freeaddrtuple(at);
+	       freeservtuple(st);
+	       return -EAI_SYSTEM; */
+	    break;
+	  }
+	}
+	
+	if (h) {
+	  for (i = 0; h->h_addr_list[i]; i++) {
+	    if (*pat == NULL)
+	      *pat = malloc (sizeof(struct gaih_addrtuple));
+	    if (*pat == NULL) {
+	      freeaddrtuple(at);
+	      freeservtuple(st);
+	      return -EAI_MEMORY;
+	    }
+
+	    (*pat)->next = NULL;
+	    (*pat)->family = AF_INET6;
+	    memcpy ((*pat)->addr, h->h_addr_list[i],
+		    sizeof(struct in6_addr));
+	    pat = &((*pat)->next);
+	  }
+	}
+	if (!h)
+	  no_inet6_data = (h_errno == NO_DATA);
+      }
+
+
+      if (req->ai_family == AF_UNSPEC)
+	_res.options = old_res_options;
+#endif
 
       if (req->ai_family == AF_UNSPEC ||
 	  req->ai_family == AF_INET      ) {
@@ -404,33 +572,35 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	if (!h) {
 	  switch (h_errno) {
 	  case NETDB_INTERNAL:
-	    free(at);
-	    if (st != &nullserv) free(st);
+	    freeaddrtuple(at);
+	    freeservtuple(st);
 	    return -EAI_SYSTEM;
 	    break;
 	  case HOST_NOT_FOUND:
-	    free(at);
-	    if (st != &nullserv) free(st);
+	    freeaddrtuple(at);
+	    freeservtuple(st);
 	    return -EAI_NONAME;
 	    break;
 	  case TRY_AGAIN:
-	    free(at);
-	    if (st != &nullserv) free(st);
+	    freeaddrtuple(at);
+	    freeservtuple(st);
 	    return -EAI_AGAIN;
 	    break;
 	  case NO_RECOVERY:
-	    free(at);
-	    if (st != &nullserv) free(st);
+	    freeaddrtuple(at);
+	    freeservtuple(st);
 	    return -EAI_FAIL;
 	    break;
 	  case NO_DATA:
-	    /* free(at);
-	       if (st != &nullserv) free(st);
+	    /* 
+	       freeaddrtuple(at);
+	       freeservtuple(st);
 	       return -EAI_NODATA; */
 	    break;
 	  default:
-	    /* free(at);
-	       if (st != &nullserv) free(st);
+	    /* 
+	       freeaddrtuple(at);
+	       freeservtuple(st);
 	       return -EAI_SYSTEM; */
 	    break;
 	  }
@@ -440,6 +610,12 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	  for (i = 0; h->h_addr_list[i]; i++) {
 	    if (*pat == NULL)
 	      *pat = malloc (sizeof(struct gaih_addrtuple));
+	    if (*pat == NULL) {
+	      freeaddrtuple(at);
+	      freeservtuple(st);
+	      return -EAI_MEMORY;
+	    }
+
 	    (*pat)->next = NULL;
 	    (*pat)->family = AF_INET;
 	    memcpy ((*pat)->addr, h->h_addr_list[i],
@@ -450,34 +626,55 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	no_data = !h && h_errno == NO_DATA;
       }
 
-      if (no_data) {
-	/* We made requests but they turned out no data.  The name
-	   is known, though.  */
-	/* FIX!FIX! garbage collect! */
-	free(at);
-	if (st != &nullserv) free(st);
-	return (GAIH_OKIFUNSPEC | -EAI_NODATA);
-      }
+#if defined(INET6) && defined(AF_INET6)
+      if (no_data && no_inet6_data)
+#else
+      if (no_data)
+#endif
+	{
+	  /* We made requests but they turned out no data.  The name
+	     is known, though.  */
+	  freeaddrtuple(at);
+	  freeservtuple(st);
+	  return (GAIH_OKIFUNSPEC | -EAI_NODATA);
+	}
     }
 
     if (at->family == AF_UNSPEC) {
-      /* FIX!FIX! garbage collect! */
-      free(at);
-      if (st != &nullserv) free(st);
+      freeaddrtuple(at);
+      freeservtuple(st);
       return (GAIH_OKIFUNSPEC | -EAI_NONAME);
     }
 
-  } else {
+  } else {   /* name == NULL */
 
     struct gaih_addrtuple *atr;
     atr = at = malloc (sizeof (struct gaih_addrtuple));
-    /* FIX!FIX! garbage collect! */
+    if (!at) {
+      freeservtuple(st);
+      return -EAI_MEMORY;
+    }
+
     memset (at, '\0', sizeof (struct gaih_addrtuple));
 
     if (req->ai_family == 0) {
       at->next = malloc (sizeof (struct gaih_addrtuple));
+      if (!at->next) {
+	freeservtuple(st);
+	free(at);
+	return -EAI_MEMORY;
+      }
       memset (at->next, '\0', sizeof (struct gaih_addrtuple));
     }
+
+#if defined(INET6) && defined(AF_INET6)
+    if (req->ai_family == 0 || req->ai_family == AF_INET6) {
+      at->family = AF_INET6;
+      if ((req->ai_flags & AI_PASSIVE) == 0)
+	memcpy (at->addr, &in6addr_loopback, sizeof (struct in6_addr));
+      atr = at->next;
+    }
+#endif
 
     if (req->ai_family == 0 || req->ai_family == AF_INET) {
       atr->family = AF_INET;
@@ -487,10 +684,8 @@ gaih_inet (const char *name, const struct gaih_service *service,
   }
 
   if (pai == NULL) {
-    /* FIX!FIX! GC! */
-    if (st != &nullserv) free(st);
-    if (at && at->next) free(at->next);
-    if (at) free(at);
+    freeaddrtuple(at);
+    freeservtuple(st);
     return 0;
   }
 
@@ -509,15 +704,16 @@ gaih_inet (const char *name, const struct gaih_service *service,
       if (req->ai_flags & AI_CANONNAME) {
 	struct hostent *h = NULL;
 
-	do {
-
-	  h = gethostbyaddr (at2->addr, sizeof(struct in_addr),
-			     at2->family);
-
-	} while (!h &&  h_errno == NETDB_INTERNAL);
+#if defined(INET6) && defined(AF_INET6)
+	if (at2->family == AF_INET6)
+	  h = gethostbyaddr (at2->addr, sizeof(struct in6_addr), AF_INET6);
+	else
+#endif
+	  h = gethostbyaddr (at2->addr, sizeof(struct in_addr), AF_INET);
 
 	if (!h && h_errno == NETDB_INTERNAL) {
-	  /* FIX!FIX! GC! */
+	  freeaddrtuple(at);
+	  freeservtuple(st);
 	  return -EAI_SYSTEM;
 	}
 
@@ -526,9 +722,11 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	else
 	  c = h->h_name;
 
-	if (c == NULL)
-	  /* FIX!FIX! GC! */
+	if (c == NULL) {
+	  freeaddrtuple(at);
+	  freeservtuple(st);
 	  return GAIH_OKIFUNSPEC | -EAI_NONAME;
+	}
 
 	namelen = strlen (c) + 1;
 
@@ -536,13 +734,21 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
 	namelen = 0;
 
-      socklen = sizeof (struct sockaddr_in);
+#if defined(INET6) && defined(AF_INET6)
+      if (at2->family == AF_INET6)
+	socklen = sizeof (struct sockaddr_in6);
+      else
+#endif
+	socklen = sizeof (struct sockaddr_in);
 
       for (st2 = st; st2 != NULL; st2 = st2->next) {
 
 	*pai = malloc (sizeof (struct addrinfo) + socklen + namelen);
-	if (*pai == NULL)
+	if (*pai == NULL) {
+	  freeaddrtuple(at);
+	  freeservtuple(st);
 	  return -EAI_MEMORY;
+	}
 
 	(*pai)->ai_flags    = req->ai_flags;
 	(*pai)->ai_family   = at2->family;
@@ -555,14 +761,24 @@ gaih_inet (const char *name, const struct gaih_service *service,
 #endif /* SALEN */
 	(*pai)->ai_addr->sa_family = at2->family;
 
-	{
-	  struct sockaddr_in *sinp =
-	    (struct sockaddr_in *) (*pai)->ai_addr;
-	  memcpy (&sinp->sin_addr,
-		  at2->addr, sizeof (struct in_addr));
-	  sinp->sin_port = st2->port;
-	  memset (sinp->sin_zero, '\0', sizeof (sinp->sin_zero));
-	}
+#if defined(INET6) && defined(AF_INET6)
+	if (at2->family == AF_INET6) {
+	  struct sockaddr_in6 *sin6p = (struct sockaddr_in6 *) (*pai)->ai_addr;
+
+	  sin6p->sin6_flowinfo = 0;
+	  memcpy (&sin6p->sin6_addr, at2->addr, sizeof (struct in6_addr));
+	  sin6p->sin6_port = st2->port;
+#if 0
+	  sin6p->sin6_scope_id = at2->scopeid;
+#endif
+	} else
+#endif
+	  {
+	    struct sockaddr_in *sinp = (struct sockaddr_in *) (*pai)->ai_addr;
+	    memcpy (&sinp->sin_addr, at2->addr, sizeof (struct in_addr));
+	    sinp->sin_port = st2->port;
+	    memset (sinp->sin_zero, '\0', sizeof (sinp->sin_zero));
+	  }
 
 	if (c) {
 	  (*pai)->ai_canonname = ((void *) (*pai) +
@@ -580,10 +796,17 @@ gaih_inet (const char *name, const struct gaih_service *service,
       at2 = at2->next;
     }
   }
+
+  freeaddrtuple(at);
+  freeservtuple(st);
+
   return 0;
 }
 
 static struct gaih gaih[] = {
+#if defined(INET6) && defined(AF_INET6)
+  { PF_INET6, gaih_inet },
+#endif
   { PF_INET,  gaih_inet  },
   { PF_LOCAL, gaih_local },
   { PF_UNSPEC, NULL }
