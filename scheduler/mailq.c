@@ -1206,13 +1206,14 @@ static struct ctlfile *readmq2cfp(fname)
 	  return NULL;
 	}
 
-	s0 = s = (char *)cfp+1;
+	s0 = (char *)cfp+1;
 
 	i = read(fd, s0, stbuf.st_size);
 	close(fd);
 
 	memset(cfp, 0, sizeof(*cfp));
 	cfp->contents = s0;
+	cfp->nlines = stbuf.st_size; /* reuse the variable .. */
 
 	if (i != stbuf.st_size) {
 	  /* whatever reason.. */
@@ -1222,9 +1223,8 @@ static struct ctlfile *readmq2cfp(fname)
 
 	s0[i] = 0;
 
-	cfp->nlines = stbuf.st_size; /* reuse the variable .. */
 
-	for (;i > 0;++s, --i) {
+	for (s = s0; i > 0; ++s, --i) {
 	  if (*s == '\n') {
 	    char c;
 	    char *p;
