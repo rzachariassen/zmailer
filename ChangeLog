@@ -1,5 +1,8 @@
 1998-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/cf/standard.cf:
+	    Add "bitnet" and "uucp" into the default toplevels list.
+
 	* proto/cf/rrouter.cf, proto/cf/i-bitnet.cf:
 	    Updated BITNET routing rules;  nic.funet.fi  is Finland's
 	    *only* BITNET host these days, and works as BITNET-bound
