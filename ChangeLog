@@ -1,5 +1,10 @@
 2003-05-02  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/contentpolicy.c, smtpserver/readpolicy.c,
+	  include/policy.h, smtpserver/policytest.c, smtpserver/policytest.h,
+	  doc/guides/smtp-policy, proto/db/smtp-policy.src:
+	    Added 'filtering +' phrase to smtpserver's IP ADDRESS tests.
+
 	* utils/perl/mailq/Makefile.PL, utils/perl/mailq/mailq.pm,
 	  utils/perl/mailq/MANIFEST, utils/perl/mailq/README,
 	  utils/perl/mailq/Changes, utils/perl/Makefile.in, utils/Makefile.in,
