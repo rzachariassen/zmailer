@@ -1,5 +1,9 @@
 2000-04-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/mq2.c, scheduler/mq2auth.c, scheduler/prototypes.h,
+	  scheduler/scheduler.h, scheduler/scheduler.c, scheduler/transport.c:
+	    Hooks for verifying MAILQv2 contactee IP address.
+
 	* router/db.c:
 	    Mathias Ulrichs <smurf@noris.de> suggest negative cache
 	    for DB lookup related caches.  It is simple to do, but

@@ -11,7 +11,6 @@
 #include "hostenv.h"
 #include <sfio.h>
 #include <sys/param.h>
-#include "scheduler.h"
 #include "mail.h"
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -23,7 +22,6 @@
 /* #include <stdlib.h> */
 #include <unistd.h>
 
-#include "prototypes.h"
 #include "zsyslog.h"
 #include <sysexits.h>
 #ifdef HAVE_SYS_RESOURCE_H
@@ -32,6 +30,10 @@
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
+
+#include "scheduler.h"
+#include "prototypes.h"
+
 #include "ta.h"
 #include "libz.h"
 
@@ -1004,16 +1006,6 @@ static void waitandclose(fd)
 # include <sys/select.h>
 #endif
 
-
-#if	defined(BSD4_3) || defined(sun)
-#include <sys/file.h>
-#endif
-#include <errno.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-
 #ifndef	NFDBITS
 /*
  * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
@@ -1229,7 +1221,7 @@ queryipccheck()
 
 	  if (n > 0 &&
 	      _Z_FD_ISSET(querysocket, rdmask)) {
-	    struct sockaddr_in raddr;
+	    Usockaddr raddr;
 	    int raddrlen = sizeof(raddr);
 
 	    n = accept(querysocket, (struct sockaddr *)&raddr, &raddrlen);
@@ -1257,7 +1249,7 @@ queryipccheck()
 		close(n);
 	      } else {
 		/* mailqmode == 2 */
-		mq2_register(n);
+		mq2_register(n, &raddr);
 	      }
 	    }
 	  }

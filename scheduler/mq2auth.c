@@ -77,9 +77,20 @@ static long mq2authtokens(s)
   return rc;
 }
 
+static int mq2amaskverify(mq, s)
+     struct mailq *mq;
+     char *s;
+{
+  /* TO BE WRITTEN!
+     Verify that  mq->qaddr  stored address is ok
+     for this user/authenticator to use us.        */
+
+  return 0;
+}
 
 
-static struct mq2pw * authuser(user)
+static struct mq2pw * authuser(mq, user)
+     struct mailq *mq;
      char *user;
 {
   static char linebuf[2000];
@@ -110,7 +121,11 @@ static struct mq2pw * authuser(user)
       *s++ = '\000';
       mpw.attrs = s;
 
-      mpw.auth = mq2authtokens(s);
+      s = strchr(s, ':');
+      if (!s) continue; /* Bad syntax! */
+      *s++ = '\000';
+      if (mq2amaskverify(mq, s)) continue; /* BAD! */
+      mpw.auth = mq2authtokens(mpw.attrs);
       return & mpw;
     }
   }
@@ -141,10 +156,10 @@ void mq2auth(mq,str)
   /* Now 'str' points to username, and from 'p' onwards
      there is the HEX-encoded MD5 authenticator.. */
 
-  pw = authuser(str);
+  pw = authuser(mq, str);
 
   if (!pw) {
-    mq2_puts(mq,"-BAD USER OR PASSWORD\n");
+    mq2_puts(mq,"-BAD USER OR PASSWORD OR CONTACT ADDRESS\n");
     return;
   }
 

@@ -173,7 +173,7 @@ extern void report __(( FILE *fpi, FILE *fpo ));
 
 /* mq2.c */
 extern int mq2add_to_mask __((fd_set *rdmaskp, fd_set *wrmaskp, int));
-extern void mq2_register __((int fd));
+extern void mq2_register __((int fd, Usockaddr *));
 extern void mq2_areinsets __((fd_set *rdmaskp, fd_set *wrmaskp));
 extern int  mq2_puts __((struct mailq *, char *s));
 extern int  mq2_putc __((struct mailq *, int c));

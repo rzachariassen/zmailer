@@ -17,7 +17,6 @@
 #include "hostenv.h"
 #include <ctype.h>
 #include <errno.h>
-#include "scheduler.h"
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "mail.h"
@@ -49,6 +48,7 @@
 #include <sys/mman.h>
 #endif
 
+#include "scheduler.h"
 #include "prototypes.h"
 #include "zsyslog.h"
 #include "libz.h"
@@ -1576,24 +1576,24 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	  vtxprep_skip_any += vtxprep_skip;
 	  return NULL;
 	}
+
+	++MIBMtaEntry->mtaStoredMessages;
+	++global_wrkcnt;
+
 	if (cfp->head == NULL) {
-	  ++global_wrkcnt;
-	  ++MIBMtaEntry->mtaStoredMessages;
 	  unctlfile(cfp, 0); /* Delete the file.
 				(decrements those counters above!) */
 	  return NULL;
 	}
 
-	if (!reread)
+	if (!reread) {
 	  sp_install(cfp->id, (void *)cfp, 0, spt_mesh[L_CTLFILE]);
-	++MIBMtaEntry->mtaStoredMessages;
-	++global_wrkcnt;
-	
-	if (!reread)
+
 	  for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
 	    /* Put into the schedules */
 	    vtxdo(vp, cehead, file);
 	  }
+	}
 
 	/* Now we have no more need for the contents in core */
 	if (cfp->contents != NULL) {

@@ -350,8 +350,9 @@ static void mq2_read(mq)
 
 
 /* EXTERNAL */
-void mq2_register(fd)
+void mq2_register(fd, addr)
      int fd;
+     Usockaddr *addr;
 {
   struct mailq *mq;
 
@@ -373,6 +374,7 @@ void mq2_register(fd)
   
   mq->fd = fd;
   mq->apopteosis = now + max_mq_life;
+  mq->qaddr = *addr;
 
   mq->nextmailq = mq2root;
   mq2root = mq;

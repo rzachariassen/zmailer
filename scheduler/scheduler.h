@@ -242,6 +242,28 @@ struct vertex {
 };
 
 
+
+#ifdef HAVE_SELECT
+#if	defined(BSD4_3) || defined(sun)
+#include <sys/file.h>
+#endif
+#include <errno.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+
+#ifndef __Usockaddr__  /* Match the same one in  smtpserver.h */
+typedef union {
+    struct sockaddr_in v4;
+#ifdef INET6
+    struct sockaddr_in6 v6;
+#endif
+} Usockaddr;
+#define __Usockaddr__
+#endif
+#endif /* HAVE_SOCKET */
+
 /* mailq iterator state -- non-forking reporter mode */
 
 struct mailq; /* forward declarator */
@@ -250,6 +272,9 @@ struct mailq {
 	struct mailq	*nextmailq;
 	int		auth;		/* what can do */
 	int		fd;		/* FD for I/O (nonblocking-IO) */
+#ifdef HAVE_SELECT
+	Usockaddr	qaddr;
+#endif /* HAVE_SOCKET */
 
 	time_t		apopteosis;
 

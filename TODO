@@ -1,4 +1,4 @@
-Known/suspected bugs/Missing Features on current Zmailer sources
+Known/suspected bugs/Missing Features on current ZMailer sources
 
 - BUG(security sensitivity):
   - "zmailer newdb" script will run "newdb" database compilations
@@ -13,8 +13,9 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 
 - BUG? PIPELINING but no CHUNKING under TLS wrapper jams against
   CommuniGate Pro 3.2 ... Suspect CommuniGate.  Or perhaps OpenSSL ?
-	--> OpenSSL with read-ahead set doesn't always read all
-	    input from the read ahead buffer before wanting more input..
+	--> OpenSSL with read-ahead set doesn't always read all input
+	    from the read ahead buffer before wanting more input..
+	    (2000/4/6)
 
 - router+scheduler+TA status MIB areas in an SHM segment
   (Solaris et.al. which don't allow ARGV overwrite..
@@ -26,15 +27,9 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   IP-ACL controls (tcp-wrapper-like) integrated into this
   authentication somehow ?
 
-- scheduler: BUG? (cured? 2000/3/29)
-   - Seen a ta_hungry() related VTX == NULL crash on thread_reschedule()
-   - Seen idle chains getting completely trashed up ( propably also
-     related to  ta_hungry() -- or excessive calls of it thereof. )
-- BUG: Scheduler running with  "maxthr>1"  seem to loose sync about
+- scheduler: BUG? (2000/3/29)
+  BUG: Scheduler running with  "maxthr>1"  seem to loose sync about
   tasks already fed to the processing.
-  POSSIBLY the pointer at proc->pthread->nextfeed will at some point
-  hit freed memory block, and then comes a merry chaos (and core...)
-
 
 - smtp TA (all TAs ??) leak memory in MIME header processing.
   (or something else ?)
@@ -45,8 +40,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 
 - Configuration files, esp.   cf/aliases.cf   has controversy in it.
   Many people think it is broken (I tend to agree) - 940614/mea
-BUG: Loop preventation needs a rewrite, and current one (2000/Apr/2)
-     is only 90% of it.. --> also cf/fqdnalias.cf
 
 - Canned error messages are abysmal -- they need more complete ways to
   configure what is told and how, whole error facility needs an overhaul
