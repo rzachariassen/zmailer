@@ -17,7 +17,7 @@ if [ -f $MAILVAR/db/routes ]; then
         . $MAILVAR/db/routes.zmsh
     elif [ -f $MAILVAR/db/routes$DBEXTtest ]; then
         if [ $MAILVAR/db/routes -nt $MAILVAR/db/routes$DBEXTtest ]; then
-	    $MAILBIN/newdb $MAILVAR/db/routes
+	    $MAILBIN/newdb -l $MAILVAR/db/routes
 	fi
         relation -lmt $DBTYPE -f $MAILVAR/db/routes$DBEXT -d pathalias routesdb
     else

@@ -86,7 +86,7 @@ if [ -f $MAILVAR/db/localnames ]; then
         . "$MAILVAR/db/localnames.zmsh"
     elif [ -f $MAILVAR/db/localnames$DBEXTtest ]; then
 	if [ $MAILVAR/db/localnames -nt $MAILVAR/db/localnames$DBEXTtest ]; then
-	    $MAILBIN/newdb $MAILVAR/db/localnames
+	    $MAILBIN/newdb -l $MAILVAR/db/localnames
 	fi
 	relation -lmt $DBTYPE -f $MAILVAR/db/localnames$DBEXT -d pathalias thishost
     else

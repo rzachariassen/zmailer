@@ -1,4 +1,4 @@
-#! @MAILBIN@/router -f
+#! /bin/sh
 #
 # This zshell script recreates the traditional aliases file database.
 #

@@ -248,6 +248,15 @@ at your configurations:
   # make install-bin
 \medskip\hrule\end{alltt}\medskip
 
+There exists also a way to do the installation into a ``parallel universe''
+by means of install-time ``prefix'' environment variable:
+\begin{alltt}\medskip\hrule\medskip
+  # prefix=/var/tmp/build make install-bin
+\medskip\hrule\end{alltt}\medskip
+which of course expects to have ``/var/tmp/build'' directory in existence,
+and possibly some others under it, but you will soon see, what it needs.
+
+
 {\bf\Large ?!}
 All programs are stored into  {\tt \$MAILBIN/}, and {\tt \$MAILBIN/ta/}, and
 possible older binaries are saved into ``bak'' subdirectories.
@@ -266,20 +275,6 @@ The {\tt \$MAILSHARE/forms/*} files are always replaced, but the
 old files will be saved in a ``bak'' directory.
 }
 
-\subsubsection{The Router Configuration File (\$MAILSHARE/router.cf).}%
-\index{build!config!router configuration; {\tt router.cf}}%
-\index{{\tt router.cf}; router configuration!config}
-
-You must now pick a toplevel router configuration file.  The
-default is provided in {\tt proto/cf/SMTP+UUCP.cf} (by now copied to
-{\tt \$MAILSHARE/cf/SMTP+UUCP.cf}).
-
-You need to create {\tt \$MAILSHARE/router.cf}.
-
-The simplest method is to make it symbolic link to, or copy of,
-the {\tt cf/SMTP+UUCP.cf} file.
-
-Some real-life samples of {\tt router.cf} are at the {\tt proto/} directory.
 
 
 \subsubsection{Installing the Manual Pages.}%
@@ -299,6 +294,21 @@ or in case the default guessing didn't get it right:
   make install MANDIR=/our/manpages
 \medskip\hrule\end{alltt}\medskip
 
+
+\subsubsection{The Router Configuration File (\$MAILSHARE/router.cf).}%
+\index{build!config!router configuration; {\tt router.cf}}%
+\index{{\tt router.cf}; router configuration!config}
+
+You must now pick a toplevel router configuration file.  The
+default is provided in {\tt proto/cf/SMTP+UUCP.cf} (by now copied to
+{\tt \$MAILSHARE/cf/SMTP+UUCP.cf}).
+
+You need to create {\tt \$MAILSHARE/router.cf}.
+
+The simplest method is to make it symbolic link to, or copy of,
+the {\tt cf/SMTP+UUCP.cf} file.
+
+Some real-life samples of {\tt router.cf} are at the {\tt proto/} directory.
 
 \section{System Configuring}%
 \index{build!config}%

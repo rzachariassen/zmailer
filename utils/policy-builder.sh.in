@@ -4,7 +4,7 @@
 #
 # This merges following files from $MAILVAR/db/ directory:
 #	smtp-policy.src
-#	localnames	  ('= _full_rights')
+#	localnames	  ('= _localnames')
 #	smtp-policy.relay ('= _full_rights')
 #	smtp-policy.mx	  ('relaytargets +')
 #	smtp-policy.spam  ('= _bulk_mail')

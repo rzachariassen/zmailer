@@ -1,5 +1,10 @@
 1998-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/newaliases.in, proto/newdb.in, proto/cf/i-routes.cf,
+	  proto/cf/standard.cf, proto/newfqdnaliases.in:
+	    Synced 'newdb' usages to supply explicite '-l' option,
+	    Modified scripts to require /bin/sh, not MAILBIN/router !
+
 	* router/rfc822.c:
 	    If the message had no 'From: ' header, generate one for it.
 
