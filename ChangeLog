@@ -1,3 +1,13 @@
+2001-10-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/mq2.c:
+	    Correct the way how orderly close ("QUIT") of mailq is
+	    handled -- the socket needs to be discarded properly...
+
+	* libsh/builtins.c, router/functions.c, router/daemonsub.c:
+	    Fixup the various return codes, specifically use EX_USAGE
+	    for the usage report.
+
 2001-10-10  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* proto/cf/aliases.cf,  proto/cf/aliases-new.cf, proto/cf/canon.cf,

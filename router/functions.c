@@ -171,22 +171,22 @@ static struct debugind {
 	const char	*name;
 	int		*indicator;
 } buggers[] = {
-	{	"rfc822",		&D_rfc822	},
-	{	"sequencer",		&D_sequencer	},
-	{	"rewrite",		&D_hdr_rewrite	},
-	{	"router",		&D_router	},
-	{	"functions",		&D_functions	},
-	{	"on",			&D_functions	},	/* dup */
-	{	"compare",		&D_compare	},
-	{	"matched",		&D_matched	},
 	{	"assign",		&D_assign	},
-	{	"regexp",		&D_regnarrate	},
-	{	"final",		&D_final	},
-	{	"db",			&D_db		},
 	{	"bind",			&D_bind		},
-	{	"resolv",		&D_resolv	},
-	{	"memory",		&D_alloc	},
+	{	"compare",		&D_compare	},
+	{	"db",			&D_db		},
 	{	"except",		0		},
+	{	"final",		&D_final	},
+	{	"functions",		&D_functions	},
+	{	"matched",		&D_matched	},
+	{	"memory",		&D_alloc	},
+	{	"on",			&D_functions	},	/* dup */
+	{	"regexp",		&D_regnarrate	},
+	{	"resolv",		&D_resolv	},
+	{	"rewrite",		&D_hdr_rewrite	},
+	{	"rfc822",		&D_rfc822	},
+	{	"router",		&D_router	},
+	{	"sequencer",		&D_sequencer	},
 	{	NULL,			0		}
 };
 
@@ -200,6 +200,7 @@ run_trace(argc, argv)
 	struct debugind *dbi;
 	int debug;
 	const char *prog;
+	int rc = 0;
 
 	if (argc == 1) {
 		fprintf(stderr, "Usage: %s all", argv[0]);
@@ -228,11 +229,13 @@ run_trace(argc, argv)
 				}
 			}
 		}
-		if (dbi->name == NULL)
+		if (dbi->name == NULL) {
 			fprintf(stderr, "%s: unknown attribute: %s\n",
 					prog, *argv);
+			rc = EX_USAGE;
+		}
 	}
-	return 0;
+	return rc;
 }
 
 
@@ -1097,7 +1100,7 @@ run_listexpand(avl, il)
 	if (errflag || cnt < 3 || cnt > 5 ||
 	    !STRING(il) || !STRING(cdr(il)) || !STRING(cddr(il)) ) {
 		fprintf(stderr,
-			"Usage: %s [ -e error-address ] [ -E errors-to-address ] [-p privilege] [ -c comment ] [ -N notarystring ] $attribute $localpart $origaddr [$plustail [$domain]]< /file/path \n",
+			"Usage: %s [ -e error-address ] [ -E errors-to-address ] [-p privilege] [ -c comment ] [ -N notarystring ] $attribute $localpart $origaddr [$plustail [$domain]] [ [<] /file/path ]\n",
 		car(avl)->string);
 		if (errors_to != olderrors)
 		  free(errors_to);
@@ -2208,7 +2211,7 @@ run_recase(argc, argv)
 		}
 	}
 	if (errflg || zoptind != argc - 1) {
-		fprintf(stderr, "Usage: %s [ -u | -l | -p ] string\n",
+		fprintf(stderr, "Usage: %s [ -u | -l | -p ] -- string\n",
 				argv[0]);
 		return EX_USAGE;
 	}
@@ -2336,7 +2339,7 @@ run_822syntax(argc, argv)
 	/*char buf[4096];*/
 
 	if (argc != 2)
-		return 2;
+		return EX_USAGE;
 	es.e_nowtime = now;
 	es.e_file = argv[0];
 	hs.h_descriptor = &addrhdr;
@@ -2347,7 +2350,7 @@ run_822syntax(argc, argv)
 	hs.h_contents = hdr_scanparse(&es, &hs, 1, 0);
 	hs.h_stamp = hdr_type(&hs);
 	if (hs.h_stamp == BadHeader) {
-		hdr_errprint(&es, &hs, stderr, "RFC822/976");
+		hdr_errprint(&es, &hs, stderr, "RFC822/976/2822");
 		return 1;
 	} else if (hs.h_contents.a == NULL)
 		return 1;

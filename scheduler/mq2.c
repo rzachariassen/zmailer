@@ -682,8 +682,8 @@ static void mq2interpret(mq,s)
   if (cistrcmp(s,"QUIT")==0 || cistrcmp(s,"EXIT") == 0) {
     mq2_puts(mq, "+Bye bye\n");
     mq2_wflush(mq);
-    close(mq->fd);
-    mq->fd = -1;
+    mq2_discard(mq);
+    return;
   }
 
   if (mq->auth == 0 && strcmp(s,"AUTH") == 0) {

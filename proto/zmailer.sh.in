@@ -16,7 +16,7 @@
 checkfreeze () {
     if [ -f $POSTOFFICE/.freeze ]; then
 	echo "Sorry, ZMailer is frozen, won't start anything until thawed !"
-	echo "* CHECK THAT FREEZE CONDITION ISN'T DUE TO E.G. MAINTENANCE *"
+	echo "* CHECK THAT THE FREEZE CONDITION ISN'T DUE TO E.G. MAINTENANCE *"
 	exit 2
     fi
 }

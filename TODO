@@ -8,6 +8,15 @@ check: scheduler.conf: command=  $channel  expansion ??
 configure.in:
 	--includedir=.... not working ?? (Xos… V·zquez <xose@smi-ps.com>)
 
+libsh/builtins.c: sh_read()
+    Command:   echo "11 22" | read v1 v2 v3
+    Does put:   v1="11", v2="22", v3="22"
+    Should put: v1="11", v2="22", v3=""
+    Command:   echo "11" | read v1 v2 v3
+    Does put:   v1="11", v2="11"
+    Should put: v1="11", v2="", v3=""
+
+
 Wanted done for 3.0:
   - router  aliases.cf  to have similar 'protocols' feature as
     domain routing has currently

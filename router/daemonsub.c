@@ -23,6 +23,7 @@
 #include <errno.h>
 
 #include "shmmib.h"
+#include "sysexits.h"
 
 extern struct MIB_MtaEntry *MIBMtaEntry;
 
@@ -1235,14 +1236,14 @@ run_stability(argc, argv)
 	case 2:
 		if (strcmp(argv[1], "on") == 0) {
 			real_stability = 1;
+			break;
 		} else if (strcmp(argv[1], "off") == 0) {
 			real_stability = 0;
-		} else {
-	default:
-			fprintf(stderr, "Usage: %s [ on | off ]\n", argv[0]);
-			return 1;
+			break;
 		}
-		break;
+	default:
+		fprintf(stderr, "Usage: %s [ on | off ]\n", argv[0]);
+		return EX_USAGE;
 	}
 	return 0;
 }

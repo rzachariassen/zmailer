@@ -15,6 +15,7 @@
 #include "interpret.h"
 #include "io.h"		/* redefines stdio routines */
 #include "shconfig.h"
+#include "sysexits.h"
 
 #include "libz.h"
 #include "libc.h"
@@ -651,7 +652,7 @@ sh_cd(argc, argv)
 		dir = argv[1];
 	} else {
 		fprintf(stderr, USAGE_CD, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	if (!(dir[0] == '/' ||
 	      (dir[0] == '.' &&
@@ -674,7 +675,7 @@ sh_cd(argc, argv)
 		return 0;
 
 	fprintf(stderr, "%s: %s: %s\n", argv[0], dir, strerror(errno));
-	return 1;
+	return 2;
 }
 
 static int
@@ -709,7 +710,7 @@ sh_read(argc, argv)
 
 	if (argc == 1) {
 		fprintf(stderr, USAGE_READ, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	if (ifs == NULL)
 		ifs_flush();
@@ -809,9 +810,9 @@ sh_include(argc, argv)
 	char *dir, *buf, *path = NULL;
 	const char *rpath = NULL;
 
-	if (argc < 2 || argv[1][0] == '\0') {
+	if (argc != 2 || argv[1][0] == '\0') {
 		fprintf(stderr, USAGE_INCLUDE, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	fd = -1;
 	if (strchr(argv[1], '/') == NULL) {
@@ -852,7 +853,7 @@ sh_include(argc, argv)
 	if (status != (int) stbuf.st_size) {
 		perror("read");
 		close(fd);
-		return 1;
+		return 2;
 	}
 	close(fd);
 	buf[(u_int)stbuf.st_size] = '\0';
@@ -969,7 +970,7 @@ sh_getopts(argc, argv)
 
 	if (argc < 3) {
 		fprintf(stderr, USAGE_GETOPTS, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	zopterr = 0;
 	--argc, ++argv;
@@ -1011,7 +1012,7 @@ sh_shift(argc, argv)
 
 	if (argc > 2 || (argc == 2 && !isdigit(argv[1][0]))) {
 		fprintf(stderr, USAGE_SHIFT, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	if (argc == 2) {
 		if ((n = atoi(argv[1])) < 1)
@@ -1034,7 +1035,7 @@ sh_umask(argc, argv)
 
 	if (argc > 2 || (argc == 2 && !isdigit(argv[1][0]))) {
 		fprintf(stderr, USAGE_UMASK, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	if (argc == 1) {
 		mask = umask(077);
@@ -1166,7 +1167,7 @@ sh_unset(argc, argv)
 
 	if (argc == 1) {
 		fprintf(stderr, USAGE_UNSET, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	av0 = argv[0];
 	--argc, ++argv;
@@ -1212,7 +1213,7 @@ sh_wait(argc, argv)
 
 	if (argc > 2 || (argc == 2 && !isdigit(argv[1][0]))) {
 		fprintf(stderr, USAGE_WAIT, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	while ((pid = wait(&status)) > 0) {
 		if (argc == 2 && pid == atoi(argv[1]))
@@ -1240,7 +1241,7 @@ sh_times(argc, argv)
 
 	if (argc > 1) {
 		fprintf(stderr, USAGE_TIMES, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	if (times(&foo) < 0)
 		return 1;
@@ -1298,7 +1299,7 @@ sh_sleep(argc, argv)
 {
 	if (argc != 2 || atoi(argv[1]) <= 0) {
 		fprintf(stderr, USAGE_SLEEP, argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	sleep(atoi(argv[1]));
 	return 0;
