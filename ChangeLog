@@ -1,5 +1,8 @@
 1999-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in:
+	    Version 2.99.50s17
+
 	* doc/guides/openssl, doc/guides/configure:
 	    A bit of updates...
 
