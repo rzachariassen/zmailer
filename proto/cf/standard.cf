@@ -302,4 +302,5 @@ do
 	db add istoplevel $x 1
 done
 
+toplevels=""
 unset toplevels # No need for that variable anymore..

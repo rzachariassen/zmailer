@@ -8,9 +8,8 @@
 	      in the  smtp-policy.mx  file..
 	    - Do <bar%foo.fi%mea.tmt.tele.fi@[127.0.0.1]> processing
 	      fully, and detect that  "foo.fi"  is not acceptable
-	      target domain...
-	    - Does NOT handle !-paths.  (Except rejects addresses
-	      with them...)
+	      target domain...  (For RCPT TO, that is..)
+	    - Some level of '!' path processing implemented..
 
 	* include/libsh.h, libsh/builtins.c, libsh/expand.c,
 	  libsh/interpret.c:

@@ -90,13 +90,18 @@ const char *key;
 	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), key+2);
     } else
       if (key[1] == P_K_IPv4)
-	sprintf(buf,"%d/%s/%u.%u.%u.%u",
+	sprintf(buf,"%d/%s/%u.%u.%u.%u/%d",
 		key[0], KK(key[1]),
-		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff);
+		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
+		key[6] & 0xff);
       else
-	sprintf(buf,"%d/%s/%02x%02x:%02x%02x:...",
+	sprintf(buf,"%d/%s/%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x/%d",
 		key[0], KK(key[1]),
-		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff);
+		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
+		key[6] & 0xff, key[7] & 0xff, key[8] & 0xff, key[9] & 0xff,
+		key[10] & 0xff, key[11] & 0xff, key[12] & 0xff, key[13] & 0xff,
+		key[14] & 0xff, key[15] & 0xff, key[16] & 0xff, key[17] & 0xff,
+		key[18] & 0xff);
     return buf;
 }
 
@@ -667,10 +672,12 @@ int sourceaddr;
 {
     u_char ipaddr[16];
     int ipaf = pbuf[1];
-    int myaddress = 0;
+    int myaddress, lcldom;
     Usockaddr saddr;
 
     /* Prepare for automatic match of the address */
+
+    memset(&saddr, 0, sizeof(saddr));
 
     if (pbuf[1] == P_K_IPv4) {
       memcpy(ipaddr, pbuf+2, 4);
@@ -685,8 +692,11 @@ int sourceaddr;
 #endif
     }
 
-    if (state->request & (1 << P_A_LocalDomain))
-      myaddress = matchmyaddress((struct sockaddr*)&saddr);
+    lcldom = (state->request & (1 << P_A_LocalDomain));
+    myaddress = matchmyaddress((struct sockaddr*)&saddr);
+
+    if (debug)
+      printf("000- policytestaddr: lcldom/myaddress=%d/%d\n",lcldom,myaddress);
 
     /* state->request initialization !! */
 
@@ -694,14 +704,12 @@ int sourceaddr;
       state->request = ( 1 << P_A_REJECTNET         |
 			 1 << P_A_FREEZENET         |
 			 1 << P_A_RELAYCUSTNET      |
-			 1 << P_A_TestDnsRBL        |
-			 1 << P_A_RcptDnsRBL        |
 			 1 << P_A_InboundSizeLimit  |
 			 1 << P_A_OutboundSizeLimit |
 			 1 << P_A_FullTrustNet      |
 			 1 << P_A_TrustRecipients   |
 			 1 << P_A_TrustWhosOn        );
-    else
+    if (!myaddress)
       state->request |= ( 1 << P_A_TestDnsRBL       |
 			  1 << P_A_RcptDnsRBL        );
 
@@ -711,7 +719,8 @@ int sourceaddr;
     if (checkaddr(rel, state, pbuf) != 0)
       return 0; /* Nothing found */
 
-    if (myaddress) {
+    if (myaddress && lcldom) {
+
       if (state->values[P_A_LocalDomain]) free(state->values[P_A_LocalDomain]);
       state->values[P_A_LocalDomain] = strdup("+");
       if (state->values[P_A_RELAYTARGET]) free(state->values[P_A_RELAYTARGET]);
@@ -720,6 +729,11 @@ int sourceaddr;
       state->values[P_A_TestDnsRBL] = NULL;
       if (state->values[P_A_RcptDnsRBL]) free(state->values[P_A_RcptDnsRBL]);
       state->values[P_A_RcptDnsRBL] = NULL;
+
+      if (debug)
+	printf("000-   %s\n", showresults(state->values));
+
+      return 0;
     }
 
     if (!sourceaddr)
@@ -1251,7 +1265,9 @@ const int len;
       state->sender_norelay = 1;
       PICK_PA_MSG(P_A_SENDERNoRelay);
     }
-    if (state->values[P_A_SENDERokWithDNS]) {
+
+    if (state->values[P_A_SENDERokWithDNS] && (at[1] != '[')) {
+      /* Accept if found in DNS, and not an address literal! */
       int rc = sender_dns_verify(state->values[P_A_SENDERokWithDNS][0],
 				 at+1, len - (1 + at - str));
       if (debug)
@@ -1275,7 +1291,8 @@ const int len;
 	return -1;
     }
 
-    if (state->always_accept) {
+    if (state->always_accept && at[1] != '[') {
+      /* Always accept, and not an address literal! */
       int rc = sender_dns_verify('-', at+1, len - (1 + at - str));
       if (debug)
 	printf("000- ... returns: %d\n", rc);
@@ -1300,6 +1317,7 @@ const char *str;
 const int len;
 {
     const char *at;
+    int localdom;
 
     if (state->always_reject) return -1;
     if (state->sender_reject) return -2;
@@ -1365,7 +1383,7 @@ const int len;
    #      [return -1;]
  */
 
-    while (valueeq(state->values[P_A_LocalDomain], "+") &&
+    while ((localdom = valueeq(state->values[P_A_LocalDomain], "+")) &&
 	   (percent_accept < 0)) {
 
       /* Ok, local domain recognized, now see if it has
@@ -1377,7 +1395,22 @@ const int len;
       /* How about '!' ??? */
       phack = find_nonqchr(str, '!', llen);
       if (phack != NULL && percent_accept < 0) {
-	return -2; /* Reject the percent kludge */
+	/* Bang-path from left to right... */
+	/* ... each component from str to phack-1 */
+	/* state->request initialization !! */
+	state->request = ( 1 << P_A_RELAYTARGET     |
+			   1 << P_A_ACCEPTbutFREEZE |
+			   1 << P_A_ACCEPTifMX      |
+			   1 << P_A_ACCEPTifDNS     |
+			   1 << P_A_TestRcptDnsRBL  |
+			   1 << P_A_LocalDomain );
+
+	llen = (phack - str);
+	if (check_domain(rel, state, str, llen) != 0)
+	  return -1;
+	
+	str = phack+1;
+	continue;
       }
 
       /* Find the LAST of unquoted '%' characters! */

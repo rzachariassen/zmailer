@@ -70,7 +70,8 @@ PARAM help -------------------------------------------------------------
 # Uncomment following for not to strip incoming addresses of format:
 # <@aa,@bb:cc@dd> into non-source-routed base form: <cc@dd>
 #
-#PARAM	allowsourceroute
+#PARAM	allowsourceroute # DON'T ENABLE UNLESS YOU USE ROUTER BASED
+#                        # POLICY ANALYSIS!
 #
 #PARAM	accept-percent-kludge # "localpart" can contain '%' and '!'
 PARAM	reject-percent-kludge # "localpart" can't contain  --"--
