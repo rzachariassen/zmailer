@@ -310,8 +310,8 @@ void mq2auth(mq,str)
   }
 
   MD5Init(&CTX);
-  MD5Update(&CTX, mq->challenge, strlen(mq->challenge));
-  MD5Update(&CTX, pw->plain, strlen(pw->plain));
+  MD5Update(&CTX, (const void *)(mq->challenge), strlen(mq->challenge));
+  MD5Update(&CTX, (const void *)(pw->plain),     strlen(pw->plain));
   MD5Final(digest, &CTX);
 
   for (i = 0; i < 16; ++i)

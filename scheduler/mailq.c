@@ -1294,8 +1294,8 @@ void query2(fpi, fpo)
 	  return;
 
 	MD5Init(&CTX);
-	MD5Update(&CTX, challenge, strlen(challenge));
-	MD5Update(&CTX, v2password, strlen(v2password));
+	MD5Update(&CTX, (const void *)challenge,  strlen(challenge));
+	MD5Update(&CTX, (const void *)v2password, strlen(v2password));
 	MD5Final(digbuf, &CTX);
 	
 	fprintf(fpo, "AUTH %s ", v2username);

@@ -38,7 +38,7 @@ static void dollarexpand(s0, space)
       ++str;
       if (*str == '$') {
 	/* A '$$' sequence shrinks to '$' */
-	strcpy((char*)str, str+1);
+	strcpy((char*)str, (const char *)(str+1));
 	continue;
       }
       s = namebuf;

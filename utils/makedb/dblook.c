@@ -130,12 +130,13 @@ const char *key;
     return buf;
 }
 
+static void showpolicydata __((FILE *, const void *, int));
 static void showpolicydata(fp, dp, len)
      FILE *fp;
-     unsigned char *dp;
+     const void *dp;
      int len;
 {
-  fprintf(fp, " %s \"%s\"", showattr(dp), dp+2);
+  fprintf(fp, " %s \"%s\"", showattr(dp), (char *)dp+2);
 }
 
 

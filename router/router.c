@@ -210,7 +210,6 @@ main(argc, argv)
 	if (mailshare == NULL)
 		mailshare = MAILSHARE;
 	if (config == NULL) {
-		config = cf_suffix; /* XX: ???? delete this ? */
 		/* we don't need to remember this for long */
 		config = smalloc(MEM_TEMP, 3 + (u_int)(strlen(mailshare)
 					     + strlen(progname)

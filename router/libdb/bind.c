@@ -768,8 +768,8 @@ getrrtypec(host, rrtype, ttlp, depth)
 			  int slen; char *s;
 			  UNGCPRO1;
 			  *(char*)(cp+1+n) = 0;
-			  slen = strlen(cp+1);
-			  s = dupnstr(cp+1, slen);
+			  slen = strlen((const char *)(cp+1));
+			  s = dupnstr((const char *)(cp+1), slen);
 			  return newstring(s, slen);
 			}
 			break;

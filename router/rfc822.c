@@ -1219,7 +1219,7 @@ sequencer(e, file)
 	GCVARS5;
 
 	if (schedulersubdirhash < 0) {
-	  char *s = getzenv("SCHEDULERDIRHASH");
+	  const char *s = getzenv("SCHEDULERDIRHASH");
 	  if (s && ((s[0] == '1' || s[0] == '2') && s[1] == 0))
 	    schedulersubdirhash = s[0] - '0';
 	  else

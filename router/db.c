@@ -192,6 +192,7 @@ iccachemarkup(spl)
 	return 0;
 }
 
+static void cache_gc_markup_iterator __(( void (*mrkupfunc)(conscell*) ));
 static void
 cache_gc_markup_iterator(mrkupfunc)
      void (*mrkupfunc)__((conscell*));

@@ -183,7 +183,7 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	      printf("000  MX[%d] = '%s'\n", mxcount, buf);
 
 	    if (mxcount < MAXMX) {
-	      mx[mxcount] = strdup(buf);
+	      mx[mxcount] = strdup((const char *)buf);
 	      if (!mx[mxcount]) break; /* Out of memory ?? */
 	      mxtype[mxcount] = 0;
 	      ++mxcount;
@@ -302,7 +302,7 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	    /* Pick the address data */
 	    for (i = 0; i < mxcount; ++i) {
 	      /* Is this known (wanted) name ?? */
-	      if (strcasecmp(buf, mx[i]) == 0) {
+	      if (strcasecmp((const char *)buf, mx[i]) == 0) {
 		/* YES! */
 
 		mxtype[i] |= (type == T_A) ? 1 : 2 ; /* bitflag: 1 or 2 */
@@ -336,7 +336,7 @@ dnsmxlookup(host, depth, mxmode, qtype)
 		if (debug) {
 		  struct sockaddr * sa = (struct sockaddr*) &usa;
 		  if (sa->sa_family == AF_INET) {
-		    inet_ntop(AF_INET, (void*) & ((struct sockaddr_in *)sa)->sin_addr, buf, sizeof(buf));
+		    inet_ntop(AF_INET, (void*) & ((struct sockaddr_in *)sa)->sin_addr, (char *)buf, sizeof(buf));
 		    printf("000-  matching %s AR address IPv4:[%s]\n", mx[i], buf);
 		  }
 #if defined(AF_INET6) && defined(INET6)

@@ -262,14 +262,14 @@ const char *name, *cp;
 
 #ifdef HAVE_OPENSSL
     MD5_Init(&CTX);
-    MD5_Update(&CTX, challenge, strlen(challenge));
-    MD5_Update(&CTX, node->password, strlen(node->password));
+    MD5_Update(&CTX, (const void *)challenge, strlen(challenge));
+    MD5_Update(&CTX, (const void *)(node->password), strlen(node->password));
     MD5_Final(digbuf, &CTX);
 #endif /* - HAVE_OPENSSL */
 #ifndef HAVE_OPENSSL
     MD5Init(&CTX);
-    MD5Update(&CTX, challenge, strlen(challenge));
-    MD5Update(&CTX, node->password, strlen(node->password));
+    MD5Update(&CTX, (const void *)challenge, strlen(challenge));
+    MD5Update(&CTX, (const void *)(node->password), strlen(node->password));
     MD5Final(digbuf, &CTX);
 #endif /* --HAVE_OPENSSL */
 

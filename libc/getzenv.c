@@ -115,7 +115,7 @@ getzenv(variable)
 	   * We want to return cp, but also make sure the string is
 	   * properly terminated.
 	   */
-	  for (save = (unsigned char *)cp; *cp != '\0'; ++cp)
+	  for (save = (char *)cp; *cp != '\0'; ++cp)
 	    if (*cp == '\n') {
 	      *cp = '\0';
 	      break;
