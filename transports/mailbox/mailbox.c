@@ -1539,7 +1539,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	/* Add the From_ line and print out the header */
 
 	if (fprintf(fp, "%s%s %s", FROM_, fromuser, timestring) < 0
-	    || writeheaders(rp,fp,"\n",convert_qp,0) < 0)
+	    || writeheaders(rp, fp, "\n", convert_qp, 0, NULL) < 0)
 	  failed = 1;
 
 	if (!failed && rp->orcpt) {
@@ -2970,7 +2970,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 
 	rp = dp->recipients;
 	/* write the (new) headers with local "Received:"-line.. */
-	writeheaders(rp,mfp,"\n",0,0);
+	writeheaders(rp, mfp, "\n", 0, 0, NULL);
 	fprintf(mfp, "\n");
 
 	fprintf(mfp, "--%s--\n", boundarystr);

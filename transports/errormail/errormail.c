@@ -423,7 +423,7 @@ process(dp)
 	lseek(dp->msgfd, (off_t)(dp->msgbodyoffset), SEEK_SET);
 
 	/* write the (new) headers with local "Received:"-line.. */
-	writeheaders(rp,mfp,"\n",0,0);
+	writeheaders(rp,mfp,"\n",0,0,NULL);
 	fprintf(mfp,"\n");
 
 	/* If the DSN RET=HDRS is in effect, don't copy the msg body! */

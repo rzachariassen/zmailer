@@ -658,15 +658,15 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  append_header(startrp,"Return-Path: <%s>", uu);
 	}
 	if (mp->flags & MO_CRLF) {
-	  writeheaders(startrp, tafp, "\r\n", convertmode, maxwidth);
+	  writeheaders(startrp, tafp, "\r\n", convertmode, maxwidth, NULL);
 	  fprintf(tafp, "\r\n");
 	} else {
-	  writeheaders(startrp, tafp, "\n",   convertmode, maxwidth);
+	  writeheaders(startrp, tafp, "\n",   convertmode, maxwidth, NULL);
 	  fprintf(tafp, "\n");
 	}
 
 	if (verboselog) {
-	  writeheaders(startrp, verboselog, "\n", convertmode, maxwidth);
+	  writeheaders(startrp, verboselog, "\n", convertmode, maxwidth, NULL);
 	  fprintf(verboselog, "\n");
 	}
 

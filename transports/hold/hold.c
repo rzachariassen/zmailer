@@ -333,7 +333,7 @@ process(dp)
 	    }
 	  }
 
-	writeheaders(dp->recipients,mfp,"\n",0,0);
+	writeheaders(dp->recipients,mfp,"\n",0,0,NULL);
 	fprintf(mfp,"\n");
 
 	/* append message body itself */
