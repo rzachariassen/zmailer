@@ -219,7 +219,7 @@ const char *buf, *cp;
     if (checkhelo && skeptical && partridge(SS, cp)) {
 	smtp_tarpit(SS);
 	type821err(SS, -501, "", buf, "Invalid `%.200s' parameter!", buf);
-	type(SS, 501, "", "Sorrt %s, Err: %s", SS->rhostaddr, rfc821_error);
+	type(SS, 501, "", "Sorry %s, Err: %s", SS->rhostaddr, rfc821_error);
 	strcpy(SS->helobuf, "Bad.Helo.Input");
 	return;
     }
@@ -270,12 +270,12 @@ const char *buf, *cp;
       if (atoi(s) / 100 != 2) {
 	/* verification failed */
 	smtp_tarpit(SS);
-	type(SS, atoi(s), s+4, "Failed", "Failed");
+	type(SS, atoi(s), NULL, "%s", s+4);
 	free(s);
 	return;
       }
       else {
-	type(SS, -atoi(s), s+4, "Ok", "Ok");
+	type(SS, -atoi(s), NULL, "%s", s+4);
 	free(s);
       }
     }
@@ -850,7 +850,7 @@ int insecure;
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
 	    smtp_tarpit(SS);
-	    type(SS, atoi(s), "Hi %s, %s", SS->rhostaddr, s + 4);
+	    type(SS, atoi(s), NULL, "Hi %s, %s", SS->rhostaddr, s + 4);
 	    free((void *) s);
 	    if (newcp)
 		free((void *) newcp);
@@ -1062,9 +1062,9 @@ int insecure;
 			 NULL, SS->rcpt_count, NULL);
 	      SS->mfp = NULL;
 	    }
-	    type(SS, rrc, s + 4, "Ok");
+	    type(SS, rrc, NULL, "%s; Ok", s + 4);
 	} else
-	    type(SS, 250, "2.1.0", "Sender syntax Ok%s", srcrtestatus);
+	    type(SS, 250, "2.1.0", "Sender syntax Ok; %s", srcrtestatus);
 	SS->sender_ok = 1;
     }
     if (s)
@@ -1465,7 +1465,7 @@ const char *buf, *cp;
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
 	    smtp_tarpit(SS);
-	    type(SS, atoi(s), "Hi %s, %s", SS->rhostaddr, s + 4);
+	    type(SS, atoi(s), NULL, "Hi %s, %s", SS->rhostaddr, s + 4);
 	    free((void *) s);
 	    if (newcp)
 		free((void *) newcp);
@@ -1589,7 +1589,7 @@ const char *buf, *cp;
 			 NULL, SS->rcpt_count, NULL);
 	      SS->mfp = NULL;
 	    }
-	    type(SS, err, s + 4, "Ok");
+	    type(SS, err, NULL, "%s", s + 4);
 	    if (err < 400)
 	      err = 0;
 	}

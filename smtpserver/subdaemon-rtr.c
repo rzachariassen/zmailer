@@ -589,7 +589,7 @@ router(SS, function, holdlast, arg, len)
 	    type(NULL,0,NULL, "fdgets()->%p rc=%d buf=\"%s\"",
 		 state->buf, rc, (state->buf ? state->buf : "<NULL>"));
 
-	  if (rc <= 0) {
+	  if (rc < 0) {
 	    /* TIMED OUT !  BRR... */
 	    smtprouter_kill( state );
 	    type(SS, 450, "4.5.0", "Interactive router %s!",
