@@ -1533,7 +1533,7 @@ void thread_report(fp,mqmode)
 
 		if (thr->proc->pnext) {
 		  proc = thr->proc;
-		  sfprintf(fp, " HA={");
+		  sfprintf(fp, " FA={");
 		  while (proc) {
 		    if (proc->feedtime == 0)
 		      sfprintf(fp, "never");
@@ -1554,7 +1554,7 @@ void thread_report(fp,mqmode)
 		    if (proc->pnext) sfprintf(fp, ",");
 		    proc = proc->pnext;
 		  }
-		  sfprintf(fp, "}s");
+		  sfprintf(fp, "}");
 		} else
 		  sfprintf(fp," OF=%d", thr->proc->overfed);
 
@@ -1566,7 +1566,7 @@ void thread_report(fp,mqmode)
 		    if (proc->pnext) sfprintf(fp, ",");
 		    proc = proc->pnext;
 		  }
-		  sfprintf(fp, "}s");
+		  sfprintf(fp, "}");
 		} else
 		  sfprintf(fp," S=%d", (int)thr->proc->state);
 	      }

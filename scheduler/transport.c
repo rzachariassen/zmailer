@@ -353,7 +353,7 @@ ta_hungry(proc)
 	proc->overfed -= 1;
 
 	switch(proc->state) {
-	case CFSTATE_LARVA:
+	case CFSTATE_LARVA: /* "1" */
 
 	  /* Thread selected already along with its first vertex,
 	     which is pointer by  proc->pthread->nextfeed  */
@@ -367,7 +367,7 @@ ta_hungry(proc)
 	  proc->state = CFSTATE_STUFFING;
 	  return;
 
-	case CFSTATE_STUFFING:
+	case CFSTATE_STUFFING: /* "2" */
 
 	  if (proc->overfed > 0) return;
 
@@ -380,9 +380,9 @@ ta_hungry(proc)
 	       - state stays in STUFFING
 	    */
 
-	    if (feed_child(proc)) {
-	      return; /* If an error, bail out.. */
-	    }
+	    if (feed_child(proc) < 0)
+	      goto feed_error_handler; /* Outch! */
+
 	    if (proc->tofd >= 0 && proc->cmdlen != 0)
 	      return; /* Outbuf full -- stop feeding here */
 
@@ -394,7 +394,7 @@ ta_hungry(proc)
 	  proc->state = CFSTATE_FINISHING;
 	  /* FALL THRU! */
 
-	case CFSTATE_FINISHING:
+	case CFSTATE_FINISHING: /* "3" */
 
 	  if (proc->overfed > 0) return;
 
@@ -465,7 +465,7 @@ ta_hungry(proc)
 	  flush_child(proc);  /* May flip the state to CFSTATE_ERROR */
 	  return;
 
-	case CFSTATE_IDLE:
+	case CFSTATE_IDLE: /* "4" */
 	  /* The process has arrived into IDLE pool! */
 
 	  if (proc->overfed != 0) abort();
@@ -497,7 +497,7 @@ ta_hungry(proc)
 	  
 	  return;
 
-	default: /* CFSTATE_ERROR */
+	default: /* CFSTATE_ERROR: "0" */
 	  /* Some error was encountered at  feed_child()  at some
 	     point, we do nothing! */
 
