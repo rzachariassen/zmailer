@@ -67,7 +67,8 @@
 
 2000-11-12  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
-	* Marked this as  zmailer-2-99-54-patch1
+	* CVS tagged this as Version zmailer-2-99-54-patch1
+	  Made also CVS based diff against 2.99.54.
 
 	* lib/selfaddrs.c:
 	    Learned something about the SIOCGIFFLAGS/SIOCGLIFFLAGS
@@ -794,7 +795,7 @@
 2000-07-12  John D Groenveld <jdg117@elvis.arl.psu.edu>
 
 	* man/Makefile.in:
-	    If "${MANDIR}/man3 directory does not exist, create it.
+	    If "${MANDIR}/man3" directory does not exist, create it.
 
 2000-07-11  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
@@ -1125,7 +1126,7 @@
 	    in fumes, so crazy it was (but then, I don't drink nor
 	    smoke...)
 
-	* router/functions.c:
+	* router/functions.c, lib/rfc822scan.c:
 	    Router function "$(dequote ...)" was previously castrated
 	    a bit too much.  This isn't like sendmail-8's dequote class,
 	    but far more brutal beast..
@@ -3579,7 +3580,7 @@
 
 1999-05-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
-	DISTRIBUTION: 2.99.50s17
+	DISTRIBUTION: version 2.99.50s17
 
 	* SiteConfig.in, proto/cf/rrouter.cf:
 	    Moved "SMARTHOST" into historical bit-bucket.
