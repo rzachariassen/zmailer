@@ -15,7 +15,7 @@
 
 tst - output{
 	#include	<stdio.h>
-	main() { printf("#define _siz_fpos_t	%d\\n", sizeof(fpos_t)); exit(0); }
+	main() { printf("#define _siz_fpos_t	%d\n", sizeof(fpos_t)); exit(0); }
 }end
 
 FILE _cnt note{ field FILE.__cnt exists }end compile{
