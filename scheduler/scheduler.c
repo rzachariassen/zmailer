@@ -640,7 +640,6 @@ main(argc, argv)
 	vtxprep_skip_lock = 0;
 	syncweb(dirq);
 
-	if (dlyverbose) verbose = dlyverbose;
 
 	canexit = 1;
 	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* split */
@@ -665,6 +664,8 @@ main(argc, argv)
 	  sfprintf(sfstderr,"***********************************************************************\n");
 	  syncstart = 0;
 	}
+
+	if (dlyverbose) verbose = dlyverbose;
 
 	do {
 	  time_t timeout;
