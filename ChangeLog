@@ -1,5 +1,10 @@
 1998-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* libsh/builtins.c, proto/cf/aliases.cf, proto/cf/aliases-new.cf:
+	    Whoops, two mistakes in  aliases.cf -- wrong name at
+	    lappend parameter, and lappend internal functionality
+	    at empty target variable content was faulty (SIGSEGV..)
+
 	* configure.in, libc/setregid.c, libc/Makefile.in,
 	  transports/mailbox/mailbox.c:
 	    Within mailbox.c there is one instance of fork(), and

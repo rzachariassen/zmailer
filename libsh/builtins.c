@@ -322,7 +322,7 @@ sh_lappend(avl, il)
 	d = v_find(key->string);
 	if (!d) return NULL;
 
-	d = car(cdr(d)); /* This is variable pointed object */
+	d = cdr(d); /* This is variable content pointing object */
 
 	stickymem = MEM_MALLOC;
 
@@ -331,8 +331,15 @@ sh_lappend(avl, il)
 	  tmp = car(tmp);
 	data = s_copy_tree(tmp);
 
-	while (cdr(d)) tmp = cdr(d); /* Scan to the end of the list */
-	cdr(d) = data;
+	if (car(d) != NULL) {
+	  d = car(d);
+
+	  while (cdr(d)) d = cdr(d); /* Scan to the end of the list */
+	
+	  cdr(d) = data;
+	} else {
+	  car(d) = data; /* the first entry into the list */
+	}
 
 	stickymem = omem;
 	return NULL; /* Be quiet, don't force the caller

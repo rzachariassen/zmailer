@@ -496,7 +496,7 @@ maprrouter (attribute, localpart, origaddr) {
 	do
 		case "$address" in
 		'')	shh=(((error expansion "$localpart")))
-			lappend al $ssh
+			lappend al $shh
 			continue
 			;;
 		esac
@@ -506,7 +506,7 @@ maprrouter (attribute, localpart, origaddr) {
 		[ "$defer" ] &&
 		    shh=(((hold "$defer" "$address" $attribute)))
 		defer=''
-		lappend al $ssh
+		lappend al $shh
 	done
 	return $al
 }

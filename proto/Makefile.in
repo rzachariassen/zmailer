@@ -14,7 +14,7 @@ all:
 
 install: dirs mailbin mailshare db cf forms
 
-install-bin: dirs mailbin
+install-bin: dirs mailbin cf db
 
 FRC:
 
@@ -193,22 +193,32 @@ db:	FRC
 	if [ ! -f $$MAILVAR/db/aliases ]; then \
 		echo $(INSTALL) -m 644 $(srcdir)/db/aliases $$MAILVAR/db/aliases ; \
 		$(INSTALL) -m 644 $(srcdir)/db/aliases $$MAILVAR/db/aliases ; \
+	else \
+		echo "*** No overwrite of db/aliases, old exists"; \
 	fi ; \
 	if [ ! -f $$MAILVAR/db/fqdnaliases ]; then \
 		echo $(INSTALL) -m 644 $(srcdir)/db/fqdnaliases $$MAILVAR/db/fqdnaliases ; \
 		$(INSTALL) -m 644 $(srcdir)/db/fqdnaliases $$MAILVAR/db/fqdnaliases ; \
+	else \
+		echo "*** No overwrite of db/fqdnaliases, old exists"; \
 	fi ; \
 	if [ ! -f $$MAILVAR/db/routes ]; then \
 		echo $(INSTALL) -m 644 $(srcdir)/db/routes $$MAILVAR/db/routes ; \
 		$(INSTALL) -m 644 $(srcdir)/db/routes $$MAILVAR/db/routes ; \
+	else \
+		echo "*** No overwrite of db/routes, old exists"; \
 	fi ; \
 	if [ ! -f $$MAILVAR/db/localnames ]; then \
 		echo $(INSTALL) -m 644 $(srcdir)/db/localnames $$MAILVAR/db/localnames ; \
 		$(INSTALL) -m 644 $(srcdir)/db/localnames $$MAILVAR/db/localnames ; \
+	else \
+		echo "*** No overwrite of db/localnames, old exists"; \
 	fi ; \
 	if [ ! -f $$MAILVAR/db/smtp-policy.src ]; then \
 		echo $(INSTALL) -m 644 $(srcdir)/db/smtp-policy.src $$MAILVAR/db/smtp-policy.src ; \
 		$(INSTALL) -m 644 $(srcdir)/db/smtp-policy.src $$MAILVAR/db/smtp-policy.src ; \
+	else \
+		echo "*** No overwrite of smtp-policy.src, old exists"; \
 	fi
 
 cf:	FRC
@@ -220,9 +230,13 @@ cf:	FRC
 		: cp $(srcdir)/cf/SMTP.cf $(prefix)$$MAILSHARE/router.cf ; \
 		/bin/rm -f `find $(prefix)$$MAILSHARE/. -name "*.fc" -print` \
 			foo-file ; \
+	else \
+		echo "*** No overwrite of $$MAILSHARE/cf/ files, old exists"; \
 	fi ; \
 	if [ ! -f $(prefix)$$MAILSHARE/router.cf ]; then \
 		cp -p $(srcdir)/cf/SMTP.cf $(prefix)$$MAILSHARE/router.cf ; \
+	else \
+		echo "*** No overwrite of $$MAILSHARE/cf/router.cf file, old exists"; \
 	fi
 
 clean:	FRC
