@@ -76,6 +76,18 @@ int	keep_header8 = 0;	/* Don't do "MIME-2" to the headers */
 int	D_alloc = 0;		/* Memory debugging */
 char    *defcharset;
 
+
+extern RETSIGTYPE sigpipe();
+int gotsigpipe = 0;
+
+RETSIGTYPE
+sigpipe(sig)
+int sig;
+{
+	gotsigpipe = 1;
+	SIGNAL_HANDLE(SIGPIPE, sigpipe);
+}
+
 extern RETSIGTYPE wantout();
 #ifndef MALLOC_TRACE
 extern univptr_t emalloc();
@@ -187,7 +199,7 @@ main(argc, argv)
 	if (oldsig != SIG_IGN)
 	  SIGNAL_HANDLE(SIGHUP, wantout);
 
-	SIGNAL_IGNORE(SIGPIPE);
+	SIGNAL_HANDLE(SIGPIPE, sigpipe);
 
 	if ((progname = strrchr(argv[0], '/')) == NULL)
 	  progname = argv[0];
@@ -471,6 +483,9 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	}
 	/* End of: "for (j = ...) {" */
 	av[i] = NULL;
+
+	gotsigpipe = 0;
+
 	/* now we can fork off and run the command... */
 	if (pipe(out) < 0) {
 	  for (rp = startrp; rp != endrp; rp = rp->next) {
@@ -542,9 +557,9 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  }
 	  return;
 	}
-	close(out[0]);
+	close(out[0]); /* child ends.. */
 	close(in[1]);
-	tafp = fdopen(out[1], "w");
+	tafp = fdopen(out[1], "w"); /* parent ends .. */
 	errfp = fdopen(in[0], "r");
 	/* read any messages from its stdout/err on in[0] */
 
@@ -712,7 +727,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 
 	/* append message body itself */
 	i = appendlet(dp, mp, tafp, verboselog, convertmode);
-	if (i != EX_OK) {
+	if (i != EX_OK && !gotsigpipe) {
 	  for (rp = startrp; rp != endrp; rp = rp->next) {
 	    notaryreport(rp->addr->user,"failed",
 			 /* Could indicate: 4.3.1 - mail system full ?? */
@@ -725,6 +740,8 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  sleep(1);
 	  kill(pid, SIGKILL);
 	  wait(NULL);
+	  fclose(tafp); /* FP/pipe cleanups */
+	  fclose(errfp);
 	  return;
 	}
 

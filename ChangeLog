@@ -1,5 +1,10 @@
 1999-09-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/sm/sm.c:
+	    - If write to pipe fails (except with 'gotsigpipe'), cleanup
+	      PIPEs to the child process.
+	    - Don't be upset even if write to pipe fails with EPIPE/SIGPIPE.
+
 	* router/dateparse.c:
 	    Certain pathologic inputs are able to feed extra data to
 	    the date parsing, and it turned out to run with month zero,
