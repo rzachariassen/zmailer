@@ -397,12 +397,10 @@ char **argv;
 	    if (maxloadavg < 1)
 		maxloadavg = 10;	/* Humph.. */
 	    break;
-#ifdef	USE_INET
 	case 'p':
 	    port = htons(atoi(optarg));
 	    port_set = 1;
 	    break;
-#endif				/* USE_INET */
 	case 'R':		/* router binary used for verification */
 	    routerprog = strdup(optarg);
 	    break;
@@ -442,24 +440,25 @@ char **argv;
 #endif				/* CHECK42INETD */
     if (errflg || optind != argc) {
 	fprintf(stderr,
-		"Usage: %s [-"
-#ifdef	USE_INET
-		"4"
+#ifndef __STDC__
+		"Usage: %s [-46aBivgnV]\
+ [-C cfgfile] [-s xx] [-L maxLoadAvg]\
+ [-M SMTPmaxsize] [-R rtrprog] [-p port#]\
+ [-P postoffice] [-l logfile] [-S 'local'|'remote']\n"
+#else /* __STDC__ */
+		"Usage: %s [-4"
 #if defined(AF_INET6) && defined(INET6)
 		"6"
-#endif
 #endif
 		"aBivgnV"
 #ifdef USE_TRANSLATION
 		"X8"
 #endif
 		"] [-C cfgfile] [-s xx] [-L maxLoadAvg]"
-		" [-M SMTPmaxsize] [-R rtrprog]"
-#ifdef USE_INET
-		" [-p port#]"
-#endif
-		" [-P postoffice] [-l logfile] [-S 'local'|'remote']\n",
-		progname);
+		" [-M SMTPmaxsize] [-R rtrprog] [-p port#]"
+		" [-P postoffice] [-l logfile] [-S 'local'|'remote']\n"
+#endif /* __STDC__ */
+		, progname);
 	exit(1);
     }
     pid = getpid();
@@ -504,7 +503,6 @@ char **argv;
       smtpserver(&SS, 0);
 
     } else
-#ifdef	USE_INET
     if (inetd) {
 #if 0
 	if (maxloadavg != 999 &&
@@ -956,14 +954,6 @@ char **argv;
 	    }
 	}
     }
-#else				/* !USE_INET */
-
-	fprintf(stderr,
-		"%s: no daemon mode since no IPC available\n",
-		argv[0]);
-    exit(1);
-
-#endif				/* !USE_INET */
     if (routerpid > 0)
 	killr(&SS, routerpid);
     sleep(2);
@@ -1004,7 +994,6 @@ char *arg;
 #endif				/* CHECK42INETD */
 
 
-#ifdef	USE_INET
 /*
  * set the (default) remote host name, possibly based on the remote IP
  * host address if we are feeling untrusting.
@@ -1059,7 +1048,6 @@ SmtpState *SS;
 	strcpy(SS->rhostname, SS->ihostaddr);
     }
 }
-#endif				/* USE_INET */
 
 static RETSIGTYPE
  timedout(sig)

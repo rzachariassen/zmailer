@@ -32,9 +32,6 @@
 #define SMTPLINESIZE	8192
 
 #include "hostenv.h"
-#ifdef HAVE_RESOLVER
-#define USE_INET
-#endif
 #include <stdio.h>
 #include "malloc.h"
 #include <sys/types.h>
