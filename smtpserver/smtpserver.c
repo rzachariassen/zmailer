@@ -239,6 +239,7 @@ const char *tls_CApath    = NULL;
 const char *tls_dh1024_param = NULL;
 const char *tls_dh512_param = NULL;
 const char *tls_cipherlist = NULL;
+const char *tls_random_source = NULL;
 int tls_loglevel    = 0;
 int tls_enforce_tls = 0;
 int tls_ccert_vd    = 1;

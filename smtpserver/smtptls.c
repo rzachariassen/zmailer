@@ -40,8 +40,6 @@ int tls_use_scache = 0;
 /* We must keep some of info available */
 static const char hexcodes[] = "0123456789ABCDEF";
 
-const char *tls_random_source = NULL;
-
 /* Structure used for random generator seeding.. */
 struct _randseed {
 	int pid;
