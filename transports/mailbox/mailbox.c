@@ -3154,7 +3154,7 @@ appendlet(dp, rp, WS, file, ismime)
 	} else {		/* is NOT MIME message.. */
 
 	  /* can we use cache of message body data ? */
-	  if (readalready != 0) {
+	  if (readalready > 0) {
 	    if (writebuf(WS, dp->let_buffer, readalready) != readalready) {
 #if 0
 	      DIAGNOSTIC3(rp, file, EX_IOERR, "write to \"%s\" failed(3); %s",

@@ -1039,23 +1039,22 @@ appendlet(dp, mp, fp, verboselog, convertmode)
 
       writebuf(mp, fp, (char *)NULL, 0);  /* magic initialization */
 
-      if (ta_use_mmap <= 0) {
-	/* can we use cache of message body data */
-	if (convertmode == _CONVERT_NONE && readalready != 0) {
-	  lastch = dp->let_buffer[readalready-1];
-	  if (writebuf(mp, fp, dp->let_buffer, readalready) != readalready)
-	    return EX_IOERR;
-	  if (lastch != '\n')
-	    if (writebuf(mp, fp, "\n", 1) != 1)
-	      return EX_IOERR;
-	  return EX_OK;
-	}
-      }
-
       lastch = -1;
       if (convertmode == _CONVERT_NONE) {
 
 	if (ta_use_mmap <= 0) {
+
+	  /* can we use cache of message body data */
+	  if (readalready > 0) {
+	    lastch = dp->let_buffer[readalready-1];
+	    if (writebuf(mp, fp, dp->let_buffer, readalready) != readalready)
+	      return EX_IOERR;
+	    if (lastch != '\n')
+	      if (writebuf(mp, fp, "\n", 1) != 1)
+		return EX_IOERR;
+	    return EX_OK;
+	  }
+
 	  bufferfull = 0;
 	  readalready = 0;
 	  lastch = -256;

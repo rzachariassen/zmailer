@@ -88,9 +88,11 @@ appendlet(SS, dp, convertmode, CT)
 	      /* Optimization:  If the buffer has stuff in it due to
 		 earlier read in some of the check algorithms, we use
 		 it straight away: */
-	      if (readalready == 0)
+	      if (readalready == 0 || bufferfull > 0) {
 		i = read(dp->msgfd, (void*)(dp->let_buffer), dp->let_buffer_size);
-	      else
+		if (i > 0)
+		  readalready = i;
+	      } else if (bufferfull == 0)
 		i = readalready;
 	      if (i == 0)
 		break;
