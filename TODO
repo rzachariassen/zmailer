@@ -10,6 +10,29 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	data, and sync in-core status with the file.
 		(incomplete code skeleton written for this)
 
+	- "Remote-MTA:" field needs info about the remote host IP
+	  we had connection with. (When some MX target has multiple
+	  IP addresses -- for multiple hosts, for example.)  However
+	  the delivery report format does not allow differentiation..
+	- Delivery messages plain-text part needs easier human
+	  understandable format on the messages.
+
+	- Does the NOTIFY=SUCCESS work ok ?
+		[2.99.49b2 - now it should ("ok3" status code)]
+
+	Have two waiting threads (one message each):
+	- start both of them with ETRN
+	- both issue report of "retryat +nn"
+	- both are rescheduled about immediately..
+	- system spins (FAST) on those two...
+
+	- New cfg param:  maxha -- max age that a child-process can be
+	  active, and the scheduler will wait for that much after the
+	  feed for any "#hungry" message from (to detect hung-up processes)
+	- Another:  maxlife  -- maximum lifetime for a transport agent
+	  for limiting the time a smtp-channel stays open for a long-
+	  living connection...
+
 - smtpserver
   -	Report that if the router subprocess crashes, interactive
 	processing goes into mixed state -- it reports 2XX, and
@@ -50,14 +73,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   manual is in need
 	[July 1997: technical writers are hard at work on this one]
 
-- scheduler:
-	- "Remote-MTA:" field needs info about the remote host IP
-	  we had connection with. (When some MX target has multiple
-	  IP addresses -- for multiple hosts, for example.)  However
-	  the delivery report format does not allow differentiation..
-	- Delivery messages plain-text part needs easier human
-	  understandable format on the messages.
-
 - transports/sm/sm.c:
 	- what UID it runs programs like procmail with ?
 	  What uid it should run them ?
@@ -70,10 +85,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	- "localize" the destination address properly.  That is, strip
 	  quotes from around a quoted destination address according to
 	  the RFC822 syntax. -- Is this always correct ?
-
-- scheduler/ta:
-	- Does the NOTIFY=SUCCESS work ok ?
-		[2.99.49b2 - now it should ("ok3" status code)]
 
 - router:
 	- Log-file option does not set (reliably) the logfile
@@ -104,13 +115,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	- $MAILVAR/lists/ -dir, and files in it
 	- ~/.forward -files (and home directories)
 
-- scheduler:
-	Have two waiting threads (one message each):
-	- start both of them with ETRN
-	- both issue report of "retryat +nn"
-	- both are rescheduled about immediately..
-	- system spins (FAST) on those two...
-
 - transports/smtp/smtp.c:
 	- To rewrite the MX processing in streamlined flashion (see next)
 	- In case two domains have common (sub-)set of MX servers, and
@@ -130,14 +134,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	- scheduler/mailq.c: don't do IPv6 connect
 	- transports/hold/hold.c: incomplete NS/AAAA, no IPv6 PTR
 	- transports/mailbox/mailbox.c: BIFF gethostbyname() ?
-
-- scheduler:
-	- New cfg param:  maxha -- max age that a child-process can be
-	  active, and the scheduler will wait for that much after the
-	  feed for any "#hungry" message from (to detect hung-up processes)
-	- Another:  maxlife  -- maximum lifetime for a transport agent
-	  for limiting the time a smtp-channel stays open for a long-
-	  living connection...
 
 - whole chain (smtpserver/router/mailbox+hold):
 	- Have a NEW pseudoheader (NRCPT) in addition to the ORCPT, which
