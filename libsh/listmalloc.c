@@ -52,7 +52,9 @@ typedef struct consvarptrs {
 static conscell **staticvec[NSTATICVARS] = { NULL };
 static int staticidx = 0;
 
-static void (*functionvec[NSTATICVARS])() = { NULL };
+
+static void (*functionvec[NSTATICVARS])__((void (*objectiterator)(void (*gcmarkupfunc)(conscell *)))) = { NULL };
+
 static int functionidx = 0;
 
 /* Put an entry in staticvec, pointing at the variable
@@ -67,7 +69,7 @@ conscell **varaddress;
 }
 
 void functionprot (funcaddress)
-void (*funcaddress) __((conscell *));
+     void (*funcaddress)__((void(*mrkupfunc)(conscell *)));
 {
 	functionvec[functionidx++] = funcaddress;
 	if (functionidx >= NSTATICVARS)
@@ -322,7 +324,7 @@ int cons_garbage_collect()
       }
     /* Function-format iterators */
     for (i = 0; i < functionidx; ++i)
-      if (*functionvec[i] != NULL)
+      if (functionvec[i] != NULL)
 	functionvec[i](cons_DSW);
     
     /* Dynamically inserted (and removed) GCPROx() -variables */

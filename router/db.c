@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Modifications/maintance, Matti Aarnio, over years 1990-2002
+ *	Modifications/maintance, Matti Aarnio, over years 1990-2003
  *
  *	'longestmatch' driver kissg@sztaki.hu 970209
  */

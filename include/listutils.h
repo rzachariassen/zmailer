@@ -438,6 +438,6 @@ extern struct gcpro *gcprolist;
 /* Call staticprot (&var) to protect static variable `var'.  */
 extern void staticprot __((conscell **));
 /* Register a function yielding conscells by calling function given as param */
-extern void functionprot __((void (*)(conscell *)));
+extern void functionprot __((void (*objectiterator)(void (*gcmarkupfunc)(conscell *))));
 
 #endif	/* _LISTUTILS_H */
