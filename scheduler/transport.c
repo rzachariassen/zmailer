@@ -326,6 +326,8 @@ ta_hungry(proc)
 	   where actor tells, when it needs a new
 	   job to be fed to it. */
 
+	struct thread *thr0;
+
 	mytime(&proc->hungertime);
 
 	if (verbose)
@@ -396,26 +398,29 @@ ta_hungry(proc)
 
 	  if (proc->overfed > 0) return;
 
-	  /* Disconnect the previous thread from the proc. */
-	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
-	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
-
+	  thr0 = proc->pthread;
 	  if (proc->pthread) {
 	    if (proc->pthread->proc == proc)
 	      proc->pthread->proc = proc->pnext;
 
+	    proc->pthread->thrkids -= 1;
+
 	    /* Possibly also reschedule the thread (if last thrkid!) */
-	    if (proc->pthread)
-	      thread_reschedule(proc->pthread,0,-1);
+	    thread_reschedule(proc->pthread,0,-1);
 	  }
 	  proc->pthread = NULL;
+
+	  /* Disconnect the previous thread from the proc. */
+	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
+	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
+	  proc->pnext = proc->pprev = NULL;
 
 	  /* Next: either the thread changes, or
 	     the process moves into IDLE state */
 
 	  if (pick_next_thread(proc)) {
 	    struct thread *thr = proc->pthread;
-	    /* We have WORK ! */
+	    /* We have WORK !  We are reconnected to the new thread! */
 
 	    if (verbose)
 	      sfprintf(sfstdout, "%% pick_next_thread(proc=%p) gave thread %p\n",
@@ -432,6 +437,18 @@ ta_hungry(proc)
 	  }
 
 	  /* No work in sight, queue up '#idle\n' string. */
+
+	  if (thr0) {
+
+	    /* Previously we were disconnected from the thread,
+	     now join back so that IDLE will disconnect us... */
+
+	    proc->pthread = thr0;
+	    proc->pthread->thrkids += 1;
+	    proc->pnext = proc->pthread->proc;
+	    if (proc->pnext) proc->pnext->pprev = proc;
+	    proc->pthread->proc = proc;
+	  }
 
 	  if ((proc->cmdlen + 7) >= proc->cmdspc) {
 	    cmdbufalloc(proc->cmdlen+7, &proc->cmdbuf, &proc->cmdspc);
@@ -451,10 +468,11 @@ ta_hungry(proc)
 	case CFSTATE_IDLE:
 	  /* The process has arrived into IDLE pool! */
 
-	  /* ASSERT(proc->overfed == 0) ???? */
+	  if (proc->overfed != 0) abort();
 
-	  if (verbose) sfprintf(sfstdout," ... IDLE THE PROCESS %p (of=%d).\n",
-				proc, proc->overfed);
+	  if (verbose)
+	    sfprintf(sfstdout, " ... IDLE THE PROCESS %p (of=%d).\n",
+		     proc, proc->overfed);
 
 	  /* Unlink me from the active chain */
 	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
@@ -469,11 +487,11 @@ ta_hungry(proc)
 	    proc->pthread = NULL;
 	  }
 
-	  proc->pnext   = proc->thg->idleproc;
+	  proc->pnext = proc->thg->idleproc;
 	  if (proc->pnext) proc->pnext->pprev = proc;
 	  proc->pprev = NULL;
-
 	  proc->thg->idleproc = proc;
+
 	  proc->thg->idlecnt += 1;
 	  ++idleprocs;
 	  
@@ -523,7 +541,10 @@ start_child(vhead, chwp, howp)
 	time_t this_time;
 
 
-	if (freeze) return 0;
+	if (freeze) {
+	  vhead->thread->pending = "Frozen";
+	  return 0;
+	}
 
 	if (verbose)
 	  sfprintf(sfstdout,"transport(vhead=%p,chan=%s,host=%s)\n",
@@ -537,12 +558,14 @@ start_child(vhead, chwp, howp)
 	} else if (startcnt > forkrate_limit) {
 	  if (verbose)
 	    sfprintf(sfstdout," ... too many forks per second!\n");
+	  vhead->thread->pending = "ForkRateLimit";
 	  return 0;
 	}
 
 	if (vhead->thgrp->ce.argv == NULL) {
 	  sfprintf(sfstderr, "No command defined for %s/%s!\n",
 		  chwp->name, howp->name);
+	  vhead->thread->pending = "ConfBUG:NoCmdDefined!";
 	  return 0;
 	}
 	/*
@@ -694,6 +717,7 @@ static int runcommand(argv, env, vhead, chwp, howp)
 	  close(to[0]); close(to[1]);
 	  close(from[0]); close(from[1]);
 	  sfprintf(sfstderr, "Fork failed!\n");
+	  vhead->thread->pending = "System:ForkFailure!";
 	  return 0;
 	}
 

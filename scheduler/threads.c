@@ -370,7 +370,12 @@ pick_next_thread(proc)
 	    /* Move the pickup pointer forward.. */
 	    thg->thread = thg->thread->nextthg;
 
-	    return (thr->nextfeed != NULL);
+	    if (thr->nextfeed == NULL) {
+	      thr->pending = "NoNextFeed";
+	      return 0;
+	    }
+
+	    return 1;
 	  }
 	}
 	/* No result :-( */
@@ -856,8 +861,7 @@ thread_start(thr, queue_only_too)
 	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
 	  if (thg->idleproc == proc) thg->idleproc = proc->pnext;
 
-	  proc->pnext   = NULL;
-	  proc->pprev   = NULL;
+	  proc->pnext = proc->pprev   = NULL;
 
 	  thg->idlecnt -= 1;
 	  --idleprocs;
