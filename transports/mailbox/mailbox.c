@@ -1195,7 +1195,7 @@ deliver(dp, rp, usernam, timestring)
 
 	if (checkmbsize(usernam,st.st_size)) {
 	  notaryreport(usernam, "failed",
-		       "5.2.2 (Destination mailbox full)",
+		       "4.2.2 (Destination mailbox full)",
 		       "x-local; 500 (Attempting to deliver to full mailbox)");
 	  DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
 		     "size of mailbox \"%s\" exceeds quota for the user",
@@ -1587,7 +1587,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 
 	if (failed) {
 	  notaryreport(rp->addr->link->user, "failed",
-		       "5.2.2 (Write to user's mailbox failed)",
+		       "4.2.2 (Write to user's mailbox failed)",
 		       "x-local; 500 (Write to user's mailbox failed)");
 	  DIAGNOSTIC(rp, file, EX_IOERR,
 		     "header write to \"%s\" failed", file);
