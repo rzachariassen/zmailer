@@ -1464,6 +1464,7 @@ const int len;
 	if (check_domain(rel, state, phack+1, llen) != 0)
 	  return -1;
 	at = phack;
+	len = (1 + at - str) + llen;
 	continue;
       }
 
