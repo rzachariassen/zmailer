@@ -100,8 +100,6 @@ int sigarg;
 	SIGNAL_HANDLE(SIGHUP, sig_hup);
 }
 
-extern void traphup __((int));
-
 static void dohup __((int));
 static void dohup(sig)
      int sig;

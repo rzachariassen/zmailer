@@ -32,8 +32,10 @@
 #include "libz.h"
 #include "libsh.h"
 
+#include <sys/wait.h>
+/* extern pid_t wait __((int *)); */
+
 extern struct sptree *spt_funclist;
-/* extern int wait __((int *)); */
 extern int v_record, v_changed;
 
 int magic_number = 3;	/* check id for precompiled script files */

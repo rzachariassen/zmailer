@@ -1,3 +1,17 @@
+2004-07-07  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in:
+	    Version 2.99.57.pre2
+
+	* configure.in:
+	    New:  --with-resolvlib="-L ... -R ... -lxxx"
+	    Allow manual definition of linking-time of possibly
+	    esoteric resolver library name, and linking rules.
+
+	* include/libsh.h, libsh/interpret.c, router/daemonsub.c:
+	    Moved  traphup()  prototype into  libsh.h, and
+	    fixed wait() prototype in interpret.c.
+
 2004-07-06  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/subdaemon-rtr.c:
@@ -91,8 +105,8 @@
 
 	* smtpserver/subdaemons.c:
 	    After exec()ing actual subdaemons, the  subdaemon_nofiles
-	    variable must be reinitialized -- doing it in subdaemons_loop()
-	    now.
+	    variable must be reinitialized -- doing it in
+	    subdaemons_loop() now.
 
 2004-05-17  Matti Aarnio  <mea@zmailer.org>
 

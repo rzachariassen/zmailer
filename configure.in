@@ -31,7 +31,8 @@ AC_COPYRIGHT([ZMailer autoconfiguration setup
 copyright 1996-2003 by Matti Aarnio <mea@nic.funet.fi>])
 AC_REVISION($Revision$)
 
-AC_INIT(ZMailer, [2.99.57-pre1], [zmhack@nic.funet.fi])
+# In version numbers, USE NO HYPHENS!
+AC_INIT(ZMailer, [2.99.57.pre2], [zmhack@nic.funet.fi])
 
 AC_PREFIX_DEFAULT([/opt/zmailer])
 
@@ -1732,6 +1733,19 @@ else
     INCLRESOLV='-I$(TOPDIR)/libresolv'
     LIBRESOLVA="libresolv.a"
     AC_MSG_RESULT([Using bundled (bind 4.9.4-REL) libresolv])
+fi
+
+use_resolvopt=0
+AC_ARG_WITH(resolvlib,   [  --with-resolvlib="-L ... -R .. -lxxx"  Use explicitely given
+               resolver library with its linkage options.],
+        use_resolvopt=1)
+if test "$use_resolvopt" = 1; then
+    AC_DEFINE(HAVE_GETHOSTBYNAME,1,[])
+    AC_DEFINE(HAVE_RESOLVER,1,[])
+    LIBRESOLV="$withval"
+    INCLRESOLV=''
+    LIBRESOLVA=""
+    AC_MSG_RESULT([Using explicitely given resolvlib: '$withval'])
 fi
 
 #
