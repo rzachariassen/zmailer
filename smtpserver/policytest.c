@@ -1481,8 +1481,9 @@ const int len;
 	return -2; /* Reject the percent kludge */
       }
 
-      return  0;
+      break; /* Ok, could be ok, but RBL may say differently ... */
     }
+
     if (valueeq(state->values[P_A_RELAYTARGET], "+")) {
 	PICK_PA_MSG(P_A_RELAYTARGET);
 	return  0;
