@@ -1,3 +1,9 @@
+1999-09-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/zpwmatch.c:
+	    Fix  HAVE_SHADOW_H  branch of the code per report
+	    from Eugene Crosser.
+
 1999-09-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:

@@ -180,6 +180,7 @@ char * zpwmatch(uname, password, uidp)
     struct spwd *spw;
     struct passwd *pw;
     char *cr;
+    int ok = 0;
     
     runasrootuser();
 
@@ -194,7 +195,23 @@ char * zpwmatch(uname, password, uidp)
     if (!spw) return 0; /* No such user */
     pw = getpwnam(uname);
     if (!pw) return 0;  /* No such user! HUH! (had shadow-entry, though!) */
-    cr = crypt(password, spw->sp_pwdp);
+
+    /* Either the   getpwnam()  returns working password out of
+       the shadow dataset, or a third-party shadow set must be used
+       to pick also the encrypted data..  Both fetches are done,
+       and now we do comparisons presuming the first fetch result
+       usable encrypted password ...  (Thanks to Eugene Crosser for report.)
+    */
+
+    cr = crypt(password, pw->pw_passwd);
+    if (strcmp(cp, pw->pw_passwd) == 0)
+      ok = 1;
+    else {
+      cr = crypt(password, spw->sp_pwdp);
+      if (strcmp(cp, spw->sp_pwdp) == 0)
+	ok = 1;
+    }
+
     *uidp = pw->pw_uid;
 
     return (strcmp(cr, spw->sp_pwdp) == 0) ? NULL : "Authentication Failed";

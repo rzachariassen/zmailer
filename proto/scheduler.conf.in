@@ -317,3 +317,8 @@ ean/*		maxchannel=1
 bitbucket/*
 		maxchannel=1
 		command="sm -c $channel bitbucket"
+
+smtpgw-*/*
+		maxchannel=30
+		maxring=30
+		command="sm -8c $channel $channel"
