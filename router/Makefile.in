@@ -69,6 +69,12 @@ $(TOPDIR)/include/rfc822.entry rfc822.sst.c rfc822.sst.h:  rfc822.ssl ${SSL}
 
 rfc822walk.o: rfc822walk.c rfc822.sst.c rfc822.sst.h
 
+$(TOPDIR)/scheduler/pipes.o:
+	cd $(TOPDIR)/scheduler ; $(MAKE) $(MFLAGS) pipes.o
+
+$(TOPDIR)/scheduler/resources.o:
+	cd $(TOPDIR)/scheduler ; $(MAKE) $(MFLAGS) resources.o
+
 ${SSL}:	$(srcdir)/${SSL}.c
 	cd $(TOPDIR)/ssl ; $(MAKE) $(MFLAGS)
 

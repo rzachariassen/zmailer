@@ -103,12 +103,7 @@ main(argc, argv)
 {
 	int fd, c, errflg, eval;
 	struct passwd *pw;
-#ifdef	AF_INET
-	struct in_addr naddr;
-	struct hostent *hp = NULL, he;
-	struct sockaddr_in sad;
-	struct servent *serv = NULL;
-#else	/* !AF_INET */
+#ifndef	AF_INET
 	char *rendezvous = NULL;
 	FILE *fp;
 	struct stat stbuf;
@@ -209,7 +204,7 @@ main(argc, argv)
 
 #if defined(AF_UNIX) && defined(HAVE_SYS_UN_H)
 	if (port && *port == '/') {
-	  struct sockaddr_un sun;
+	  struct sockaddr_un sad;
 
 	  if (status) {
 	    checkrouter();
@@ -226,12 +221,12 @@ main(argc, argv)
 	    exit(EX_UNAVAILABLE);
 	  }
 
-	  sun.sun_family = AF_UNIX;
-	  strncpy(sun.sun_path, port, sizeof(sun.sun_path));
-	  sun.sun_path[ sizeof(sun.sun_path) ] = 0;
+	  sad.sun_family = AF_UNIX;
+	  strncpy(sad.sun_path, port, sizeof(sad.sun_path));
+	  sad.sun_path[ sizeof(sad.sun_path) ] = 0;
 
-	  if (connect(fd, (void*)&sun, sizeof sun) < 0) {
-	    fprintf(stderr,"%s: connect failed to path: '%s'\n",progname,sun.sun_path);
+	  if (connect(fd, (void*)&sad, sizeof sad) < 0) {
+	    fprintf(stderr,"%s: connect failed to path: '%s'\n",progname,sad.sun_path);
 	    exit(EX_UNAVAILABLE);
 	  }
 
@@ -240,6 +235,11 @@ main(argc, argv)
 #endif
 #ifdef	AF_INET
 	if (!port || (port && *port != '/')) {
+
+	  struct in_addr naddr;
+	  struct hostent *hp = NULL, he;
+	  struct sockaddr_in sad;
+	  struct servent *serv = NULL;
 
 	  int portnum = 174;
 	  nonlocal = 0; /* Claim it to be: "localhost" */
@@ -758,7 +758,6 @@ parse(fp)
 	if (schedq) {
 	  /* We ignore the classical mailq data, just read it fast */
 	  while (1) {
-	    int c;
 	    bufsize = 0;
 	    if (GETLINE(buf, bufsize, bufspace, fp))
 	      return 1; /* EOF ? */
