@@ -435,7 +435,7 @@ main(argc, argv)
 	volatile int idle;
 	volatile int noMX = 0;
 	SmtpState SS;
-	volatile struct ctldesc *dp;
+	struct ctldesc *dp;
 #ifdef	BIND
 	volatile int checkmx = 0; /* check all destination hosts for MXness */
 #endif	/* BIND */
@@ -937,7 +937,7 @@ main(argc, argv)
 	    fclose(SS.verboselog);
 	  SS.verboselog = NULL;
 
-	  ctlclose((struct ctldesc *)dp);
+	  ctlclose(dp);
 	} /* while (!getout) ... */
 
 	if (SS.smtpfp && !getout) {

@@ -181,6 +181,10 @@ ctlclose(dp)
 	if (dp->taspoolid)
 	  free((void*)dp->taspoolid);
 	dp->taspoolid = NULL;
+
+
+	free( (void*) dp );
+
 }
 
 
@@ -273,12 +277,16 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	int  mypid = getpid();
 	long format = 0;
 
-	static struct ctldesc d; /* ONLY ONE OPEN AT THE TIME! */
+	struct ctldesc *d;
 
 	if (selectaddr == ctlsticky)
 	  ctlsticky(NULL,NULL,NULL); /* Reset the internal state.. */
 
-	memset(&d,0,sizeof(d));
+	d = (struct ctldesc *)malloc(sizeof(*d));
+	if (!d) return NULL;
+
+	memset(d,0,sizeof(*d));
+
 	if (*file >= 'A') {
 	  char *p;
 	  /* Has some hash subdirectory in front of itself */
@@ -291,9 +299,9 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	  dirprefix[0] = 0;
 
 
-	d.msgfd = -1; /* The zero is not always good for your health .. */
-	d.ctlfd = open(file, O_RDWR, 0);
-	if (d.ctlfd < 0) {
+	d->msgfd = -1; /* The zero is not always good for your health .. */
+	d->ctlfd = open(file, O_RDWR, 0);
+	if (d->ctlfd < 0) {
 	  char cwd[MAXPATHLEN], buf[MAXPATHLEN+MAXPATHLEN+100];
 	  int e = errno;	/* Save it over the getwd() */
 
@@ -309,32 +317,33 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	  if (host == NULL)
 	    host = "-";
 	  warning(buf, file, channel, host);
+	  ctlclose(d);
 	  return NULL;
 	}
-	if (fstat(d.ctlfd, &stbuf) < 0) {
+	if (fstat(d->ctlfd, &stbuf) < 0) {
 	  warning("Cannot stat control file \"%s\"! (%m)", file);
-	  close(d.ctlfd);
+	  ctlclose(d);
 	  return NULL;
 	}
 	if (!S_ISREG(stbuf.st_mode)) {
 	  warning("Control file \"%s\" is not a regular file!", file);
-	  close(d.ctlfd);
+	  close(d->ctlfd);
 	  return NULL;
 	}
 	/* 4 is the minimum number of characters per line */
 	n = sizeof (long) * (stbuf.st_size / 4);
-	d.contents = contents = s = malloc((u_int)stbuf.st_size+1);
-	if (d.contents == NULL) {
+	d->contents = contents = s = malloc((u_int)stbuf.st_size+1);
+	if (d->contents == NULL) {
 	  warning("Out of virtual memory!", (char *)NULL);
 	  exit(EX_SOFTWARE);
 	}
-	d.offset = (long *)malloc((u_int)n);
-	if (d.offset == NULL) {
+	d->offset = (long *)malloc((u_int)n);
+	if (d->offset == NULL) {
 	  warning("Out of virtual memory!", (char *)NULL);
 	  exit(EX_SOFTWARE);
 	}
 
-	fcntl(d.ctlfd, F_SETFD, 1); /* Close-on-exec */
+	fcntl(d->ctlfd, F_SETFD, 1); /* Close-on-exec */
 
 #if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
 #ifndef MAP_VARIABLE
@@ -344,31 +353,31 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 # define MAP_FILE 0
 #endif
 	/* We do recipient locking via MMAP_SHARED RD/WR ! Less syscalls.. */
-	d.ctlmap = (char *)mmap(NULL, stbuf.st_size,
+	d->ctlmap = (char *)mmap(NULL, stbuf.st_size,
 				PROT_READ|PROT_WRITE,
 				MAP_FILE|MAP_SHARED|MAP_VARIABLE,
-				d.ctlfd, 0);
-	if ((int)d.ctlmap == -1)
-	  d.ctlmap = NULL; /* Failed ?? */
+				d->ctlfd, 0);
+	if ((int)d->ctlmap == -1)
+	  d->ctlmap = NULL; /* Failed ?? */
 #else
-	d.ctlmap = NULL;
+	d->ctlmap = NULL;
 #endif
-	d.contentsize = (int) stbuf.st_size;
-	contents[ d.contentsize ] = 0; /* Treat it as a long string.. */
-	if (read(d.ctlfd, contents, d.contentsize) != d.contentsize) {
+	d->contentsize = (int) stbuf.st_size;
+	contents[ d->contentsize ] = 0; /* Treat it as a long string.. */
+	if (read(d->ctlfd, contents, d->contentsize) != d->contentsize) {
 	  warning("Wrong size read from control file \"%s\"! (%m)",
 		  file);
-	  ctlclose(&d);
+	  ctlclose(d);
 	  return NULL;
 	}
-	n = markoff(contents, d.contentsize, d.offset, file);
+	n = markoff(contents, d->contentsize, d->offset, file);
 	if (n < 4) {
 	  int was_turnme = (contents[0] == _CF_TURNME);
 	  /*
 	   * If it is less than the minimum possible number of control
 	   * lines, then there is something wrong...
 	   */
-	  ctlclose(&d);
+	  ctlclose(d);
 
 	  /* Is it perhaps just the ETRN request file ?
 	     and manual expirer gave it to us ?  Never mind then.. */
@@ -382,25 +391,25 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 
 	s = strrchr(file,'/');	/* In case the file in in a subdir.. */
 	if (s)
-	  d.ctlid = atol(s+1);
+	  d->ctlid = atol(s+1);
 	else
-	  d.ctlid = atol(file);
-	d.senders = NULL;
-	d.recipients = NULL;
-	d.ta_chain   = NULL;
-	d.rp_chain   = NULL;
-	d.rcpnts_total = 0;
-	d.rcpnts_remaining = 0;
-	d.rcpnts_failed = 0;
-	d.logident   = "none";
-	d.envid      = NULL;
-	d.dsnretmode = NULL;
-	d.verbose    = NULL;
+	  d->ctlid = atol(file);
+	d->senders = NULL;
+	d->recipients = NULL;
+	d->ta_chain   = NULL;
+	d->rp_chain   = NULL;
+	d->rcpnts_total = 0;
+	d->rcpnts_remaining = 0;
+	d->rcpnts_failed = 0;
+	d->logident   = "none";
+	d->envid      = NULL;
+	d->dsnretmode = NULL;
+	d->verbose    = NULL;
 
 	headers_cnt = 0;
 	headers_spc = 2;
 	for (i = 0; i < n; ++i)
-	  if (contents[ d.offset[i] ] == _CF_MSGHEADERS)
+	  if (contents[ d->offset[i] ] == _CF_MSGHEADERS)
 	    ++headers_spc;
 
 	msgheaders = (char***)malloc(sizeof(char***) *
@@ -408,16 +417,16 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	msgheaderscvt = (char***)malloc(sizeof(char***) *
 					(headers_spc+1));
 
-	d.msgheaders    = msgheaders;		/* Original headers	*/
-	d.msgheaderscvt = msgheaderscvt;	/* Modified set		*/
+	d->msgheaders    = msgheaders;		/* Original headers	*/
+	d->msgheaderscvt = msgheaderscvt;	/* Modified set		*/
 
 
 	/* run through the file and set up the information we need */
 	for (i = 0; i < n; ++i) {
-	  if (*exitflagp && d.recipients == NULL)
+	  if (*exitflagp && d->recipients == NULL)
 	    break;
 	  /* Shudder... we trash the memory block here.. */
-	  s = contents + d.offset[i];
+	  s = contents + d->offset[i];
 
 	  switch (*s) {
 	  case _CF_FORMAT:
@@ -433,34 +442,34 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	    break;
 
 	  case _CF_SENDER:
-	    ap = ctladdr(&d,s+2);
+	    ap = ctladdr(d,s+2);
 	    if (ap == NULL) {
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
 	      break;
 	    }
-	    ap->link  = d.senders;
+	    ap->link  = d->senders;
 	    /* Test if this is "error"-channel..
 	       If it is,  ap->user  points to NUL string. */
 	    /* mea: altered the scheme, we must detect the "error" channel
 	       otherwise */
 	    /* if (strcmp(ap->channel,"error")==0)
 	         ap->user = ""; */
-	    d.senders = ap;
+	    d->senders = ap;
 	    break;
 
 	  case _CF_RECIPIENT:
 	    ++s;
 	    /* Calculate statistics .. Scheduler asks for it.. */
-	    d.rcpnts_total += 1;
+	    d->rcpnts_total += 1;
 	    if (*s == _CFTAG_NOTOK) {
-	      d.rcpnts_failed    += 1;
+	      d->rcpnts_failed    += 1;
 	      prevrp = NULL;
 	    } else if (*s != _CFTAG_OK) {
-	      d.rcpnts_remaining += 1;
+	      d->rcpnts_remaining += 1;
 	    }
 
-	    if (*s != _CFTAG_NORMAL || d.senders == NULL)
+	    if (*s != _CFTAG_NORMAL || d->senders == NULL)
 	      break;
 
 	    ++s;
@@ -473,7 +482,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	      delayslot = s;
 	      s += _CFTAG_RCPTDELAYSIZE;
 	    }
-	    ap = ctladdr(&d,s);
+	    ap = ctladdr(d,s);
 	    if (ap == NULL) {
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
@@ -485,38 +494,38 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 		    && !(*selectaddr)(host, (const char *)ap->host, saparam))
 		|| (selectaddr == NULL
 		    && host != NULL && cistrcmp(host,ap->host) !=0)
-		|| !lockaddr(d.ctlfd, d.ctlmap, d.offset[i]+1,
+		|| !lockaddr(d->ctlfd, d->ctlmap, d->offset[i]+1,
 			     _CFTAG_NORMAL, _CFTAG_LOCK, file, host, mypid)) {
-	      free_last_ap(&d);
+	      free_last_ap(d);
 	      break;
 	    }
-	    ap->link = d.senders; /* point at sender address */
+	    ap->link = d->senders; /* point at sender address */
 	    rp = (struct rcpt *)malloc(sizeof (struct rcpt));
 	    if (rp == NULL) {
-	      lockaddr(d.ctlfd, d.ctlmap, d.offset[i]+1,
+	      lockaddr(d->ctlfd, d->ctlmap, d->offset[i]+1,
 		       _CFTAG_LOCK, _CFTAG_DEFER, file, host, mypid);
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
-	      free_last_ap(&d);
+	      free_last_ap(d);
 	      break;
 	    }
 	    memset(rp, 0, sizeof(*rp));
-	    rp->rp_next = d.rp_chain;
-	    d.rp_chain = rp;
+	    rp->rp_next = d->rp_chain;
+	    d->rp_chain = rp;
 
 	    rp->addr = ap;
 	    rp->delayslot = delayslot;
-	    rp->id = d.offset[i];
+	    rp->id = d->offset[i];
 	    /* XX: XOR locks are different */
 	    rp->lockoffset = rp->id + 1;
-	    rp->next = d.recipients;
-	    rp->desc = &d;
+	    rp->next = d->recipients;
+	    rp->desc = d;
 	    /* rp->orcpt  = NULL;
 	       rp->inrcpt = NULL;
 	       rp->ezmlm  = NULL;
 	       rp->notify = NULL; */
 	    rp->notifyflgs = _DSN_NOTIFY_FAILURE; /* Default behaviour */
-	    d.recipients = rp;
+	    d->recipients = rp;
 	    rp->status = EX_OK;
 	    /* rp->newmsgheader = NULL; */
 	    rp->drptoffset   = -1;
@@ -528,7 +537,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	    /*  IETF-NOTARY-DSN  DATA */
 	    ++s;
 	    if (prevrp != NULL) {
-	      prevrp->drptoffset = d.offset[i];
+	      prevrp->drptoffset = d->offset[i];
 	      while (*s) {
 		while (*s && (*s == ' ' || *s == '\t')) ++s;
 		if (CISTREQN("NOTIFY=",s,7)) {
@@ -675,12 +684,12 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	      msgheaderscvt[headers_cnt] = NULL;
 
 	      /* fill in header * of recent recipients */
-	      for (rp = d.recipients;
+	      for (rp = d->recipients;
 		   rp != NULL && rp->newmsgheader == NULL;
 		   rp = rp->next) {
 		rp->newmsgheader    = &msgheaders   [headers_cnt];
 		rp->newmsgheadercvt = &msgheaderscvt[headers_cnt];
-		rp->headeroffset    = d.offset[i] + 2;
+		rp->headeroffset    = d->offset[i] + 2;
 	      }
 
 	      msgheaders   [++headers_cnt] = NULL;
@@ -688,49 +697,49 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	    }
 	    break;
 	  case _CF_MESSAGEID:
-	    d.msgfile = s+2;
+	    d->msgfile = s+2;
 	    break;
 	  case _CF_DSNENVID:
-	    d.envid = s+2;
+	    d->envid = s+2;
 	    break;
 	  case _CF_DSNRETMODE:
-	    d.dsnretmode = s+2;
+	    d->dsnretmode = s+2;
 	    break;
 	  case _CF_BODYOFFSET:
-	    d.msgbodyoffset = (long)atoi(s+2);
+	    d->msgbodyoffset = (long)atoi(s+2);
 	    break;
 	  case _CF_LOGIDENT:
-	    d.logident = s+2;
+	    d->logident = s+2;
 	    break;
 	  case _CF_VERBOSE:
-	    d.verbose = s+2;
+	    d->verbose = s+2;
 	    break;
 	  default:		/* We don't use them all... */
 	    break;
 	  }
 	}
 
-	/* Sometimes we bail out before terminating NULLs are added..
-	   probably before anything is added. */
+	/* Sometimes we bail out before terminating NULLs are added->.
+	   probably before anything is added-> */
 	msgheaders   [headers_cnt] = NULL;
 	msgheaderscvt[headers_cnt] = NULL;
 
-	if (d.recipients == NULL) {
-	  ctlclose(&d);
+	if (d->recipients == NULL) {
+	  ctlclose(d);
 	  return NULL;
 	}
 
 #ifdef USE_ALLOCA
 	mfpath = alloca((u_int)5 + sizeof(QUEUEDIR)
-			+ strlen(dirprefix) + strlen(d.msgfile));
+			+ strlen(dirprefix) + strlen(d->msgfile));
 #else
 	mfpath = malloc((u_int)5 + sizeof(QUEUEDIR)
-			+ strlen(dirprefix) + strlen(d.msgfile));
+			+ strlen(dirprefix) + strlen(d->msgfile));
 #endif
-	sprintf(mfpath, "../%s/%s%s", QUEUEDIR, dirprefix, d.msgfile);
-	if ((d.msgfd = open(mfpath, O_RDONLY, 0)) < 0) {
+	sprintf(mfpath, "../%s/%s%s", QUEUEDIR, dirprefix, d->msgfile);
+	if ((d->msgfd = open(mfpath, O_RDONLY, 0)) < 0) {
 	  int e = errno;
-	  for (rp = d.recipients; rp != NULL; rp = rp->next) {
+	  for (rp = d->recipients; rp != NULL; rp = rp->next) {
 	    diagnostic(NULL, rp, EX_UNAVAILABLE, 0,
 		       "message file is missing(!) -- possibly due to delivery scheduler restart.  Consider resending your message");
 	  }
@@ -739,15 +748,15 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 #ifndef USE_ALLOCA
 	  free(mfpath);
 #endif
-	  ctlclose(&d);
+	  ctlclose(d);
 	  return NULL;
 	}
-	if (fstat(d.msgfd,&stbuf) < 0) {
+	if (fstat(d->msgfd,&stbuf) < 0) {
 	  stbuf.st_mode = S_IFCHR; /* Make it to be something what it
 				      clearly can't be.. */
 	}
 	if (!S_ISREG(stbuf.st_mode)) {
-	  for (rp = d.recipients; rp != NULL; rp = rp->next) {
+	  for (rp = d->recipients; rp != NULL; rp = rp->next) {
 	    diagnostic(NULL, rp, EX_UNAVAILABLE, 0,
 		       "Message file is not a regular file!");
 	  }
@@ -755,28 +764,28 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 #ifndef USE_ALLOCA
 	  free(mfpath);
 #endif
-	  ctlclose(&d);
+	  ctlclose(d);
 	  return NULL;
 	}
 
-	d.msginonumber = (long)stbuf.st_ino;
+	d->msginonumber = (long)stbuf.st_ino;
 
-	fcntl(d.msgfd, F_SETFD, 1); /* Close-on-exec */
+	fcntl(d->msgfd, F_SETFD, 1); /* Close-on-exec */
 
 #if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
-	d.let_buffer = (char *)mmap(NULL, stbuf.st_size, PROT_READ,
+	d->let_buffer = (char *)mmap(NULL, stbuf.st_size, PROT_READ,
 				    MAP_FILE|MAP_SHARED|MAP_VARIABLE,
-				    d.msgfd, 0);
-	if ((long)d.let_buffer == -1L) {
+				    d->msgfd, 0);
+	if ((long)d->let_buffer == -1L) {
 	  warning("Out of MMAP() memory! Tried to map in (r/o) %d bytes (%m)",
 		  stbuf.st_size);
 #ifndef USE_ALLOCA
 	  free(mfpath);
 #endif
-	  ctlclose(&d);
+	  ctlclose(d);
 	  return NULL;
 	}
-	d.let_end    = d.let_buffer + stbuf.st_size;
+	d->let_end    = d->let_buffer + stbuf.st_size;
 #endif
 
 #ifndef USE_ALLOCA
@@ -784,23 +793,23 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 #endif
 
 	/* The message file mtime -- arrival of the message to the system */
-	d.msgmtime = stbuf.st_mtime;
+	d->msgmtime = stbuf.st_mtime;
 
 	/* Estimate the size of the message file when sent out.. */
-	d.msgsizeestimate  = stbuf.st_size - d.msgbodyoffset;
-	d.msgsizeestimate += largest_headersize;
+	d->msgsizeestimate  = stbuf.st_size - d->msgbodyoffset;
+	d->msgsizeestimate += largest_headersize;
 	/* A nice fudge factor, usually this is enough..                 */
 	/* Add 3% for CRLFs.. -- assume average line length of 35 chars. */
-	d.msgsizeestimate += (3 * d.msgsizeestimate) / 100;
+	d->msgsizeestimate += (3 * d->msgsizeestimate) / 100;
 
-	taspoolid(spoolid, d.msgmtime, d.msginonumber);
-	d.taspoolid = strdup(spoolid);
-	if (!d.taspoolid) {
-	  ctlclose(&d);
+	taspoolid(spoolid, d->msgmtime, d->msginonumber);
+	d->taspoolid = strdup(spoolid);
+	if (!d->taspoolid) {
+	  ctlclose(d);
 	  return NULL;
 	}
 
-	return &d;
+	return d;
 }
 
 int

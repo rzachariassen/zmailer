@@ -23,16 +23,16 @@
 #|    in  'smtp-policy.mx'  and  'localnames'  files.  Will not do
 #|    verifications on validity/invalidity of source domains:  <foo@bar>
 #
-# .			relaycustomer - relaytarget -
-# [0.0.0.0]/0		relaycustomer - relaytarget -
+# _default_dot		relaycustomer - relaytarget -
+# _default_ipaddr	relaycustomer - relaytarget -
 #
 #| -- 2nd alternate: No MX target usage, DNS existence verify
 #|    Like the 1st alternate, except will verify the sender (mail from:<..>)
 #|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
 #|    If RBL parameters are set below, will use them.
 #
-# .			relaycustomer - relaytarget - senderokwithdns + = _rbl1
-# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _rbl0
+# _default_dot		relaycustomer - relaytarget - senderokwithdns + = _rbl1
+# _default_ipaddr	relaycustomer - relaytarget - senderokwithdns + = _rbl0
 #
 #| -- 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
@@ -43,18 +43,24 @@
 #|    service abuse.
 #|    If RBL parameters are set below, will use them.
 
-.			relaycustomer - acceptifmx - senderokwithdns + = _rbl1
-[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _rbl0
+_default_dot		relaycustomer - acceptifmx - senderokwithdns + = _rbl1
+_default_ipaddr		relaycustomer - acceptifmx - senderokwithdns + = _rbl0
 
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
 #|    the source and destination domains are DNS resolvable, but does not
 #|    block relaying -- DANGER! DANGER! WILL ROBINSON! DANGER!
 #
-# .			senderokwithdns - acceptifdns -
-# [0.0.0.0]/0		senderokwithdns - acceptifdns -
+# _default_dot		senderokwithdns - acceptifdns -
+# _default_ipaddr	senderokwithdns - acceptifdns -
 #
-#|
+
+
+#| -----------------------------------
+#|  Now use above defined macroes at these default labels:
+.		= _default_dot
+[0.0.0.0]/0	= _default_ipaddr
+
 #| -----------------------------------
 #|
 #| RBL type test rules:
@@ -203,7 +209,7 @@ _bulk_mail	message "Your address is not liked source for email" rejectsource + m
 #|	'fulltrustnet'	{ '+', '-' }
 #|	'trustrecipients' { '+', '-' }
 #|	'trust-whoson'	{ '+', '-' }
-#|	'filter'	{ '+', '-' }
+#|	'filtering'	{ '+', '-' }
 #|
 #| Semantics:
 #|

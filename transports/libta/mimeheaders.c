@@ -1092,7 +1092,8 @@ downgrade_headers(rp, convertmode, verboselog)
 	if (*(rp->newmsgheadercvt) != NULL)
 	  return 0; /* Already converted ! */
 
-	if (!cvtspace_copy(rp)) return 0; /* XX: auch! */
+	if (*(rp->newmsgheadercvt) == NULL)
+	  if (!cvtspace_copy(rp)) return 0; /* XX: auch! */
 
 	oldmsgheader = rp->newmsgheadercvt;
 

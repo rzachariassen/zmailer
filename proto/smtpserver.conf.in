@@ -173,7 +173,7 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 # The syntax below is due to these patterns being SH-GLOB style patterns
 # where the brackets are special characters.
 \[*\]               999 ve
-# Per default demant strict syntactic adherence, including fully
+# Per default demand strict syntactic adherence, including fully
 # qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient
 # on that detail, remove the "R" from "veR" string below:
 *                   999 veR

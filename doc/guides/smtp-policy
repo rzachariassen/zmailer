@@ -414,7 +414,7 @@ _bulk_mail	message "Your domain is not liked source for email" rejectsource + me
 #|	'fulltrustnet'	{ '+', '-' }
 #|	'trustrecipients' { '+', '-' }
 #|	'trust-whoson'	{ '+', '-' }
-#|	'filter'	{ '+', '-' }
+#|	'filtering'	{ '+', '-' }
 #|
 #| Semantics:
 #|
