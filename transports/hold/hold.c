@@ -135,13 +135,14 @@ extern char *strchr(), *strrchr();
 #define	putc	fputc
 #endif	/* lint */
 
+static char filename[MAXPATHLEN+8000];
+
 int
 main(argc, argv)
 	int argc;
 	char *argv[];
 {
 	const char *channel, *host;
-	char file[MAXPATHLEN+1];
 	int errflg, c, i;
 	struct ctldesc *dp;
 	RETSIGTYPE (*oldsig) __((int));
@@ -205,16 +206,16 @@ main(argc, argv)
 
 	  printf("#hungry\n");
 	  fflush(stdout);
-	  if (fgets(file, sizeof file, stdin) == NULL)
+	  if (fgets(filename, sizeof(filename), stdin) == NULL)
 	    break;
-	  if (strchr(file, '\n') == NULL) break; /* No ending '\n' !  Must
+	  if (strchr(filename, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */
-	  if (strcmp(file, "#idle\n") == 0)
+	  if (strcmp(filename, "#idle\n") == 0)
 	    continue; /* Ah well, we can stay idle.. */
-	  if (emptyline(file, sizeof file))
+	  if (emptyline(filename, sizeof(filename)))
 	    break;
 
-	  s = strchr(file,'\t');
+	  s = strchr(filename,'\t');
 	  host = NULL;
 	  if (s != NULL) {
 	    /* Ignore the host part */
@@ -222,12 +223,12 @@ main(argc, argv)
 	    host = s;
 	  }
 
-	  dp = ctlopen(file, channel, host, &getout, NULL, NULL, NULL, NULL);
+	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL, NULL, NULL);
 	  if (dp != NULL) {
 	    process(dp);
 	    ctlclose(dp);
 	  } else {
-	    printf("#resync %s\n",file);
+	    printf("#resync %s\n",filename);
 	    fflush(stdout);
 	  }
 	}

@@ -602,12 +602,13 @@ int sig;
 }
 
 
+static char filename[MAXPATHLEN+8000];
+
 int
 main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	char file[MAXPATHLEN+128];
 	volatile char *channel = NULL, *host = NULL;
 	int i, fd, errflg, c;
 	volatile int smtpstatus;
@@ -851,29 +852,29 @@ main(argc, argv)
 	      report(&SS,"#hungry");
 	  }
 
-	  /* if (fgets(file, sizeof file, stdin) == NULL) break; */
-	  if (ssfgets(file, sizeof(file), stdin, &SS) == NULL)
+	  /* if (fgets(filename, sizeof(filename), stdin) == NULL) break; */
+	  if (ssfgets(filename, sizeof(filename), stdin, &SS) == NULL)
 	    break;
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	  readalready = 0; /* internal body read buffer 'flush' */
 #endif
 	  idle = 0; skip_host = 0;
-	  if (strchr(file, '\n') == NULL) break; /* No ending '\n' !  Must
+	  if (strchr(filename, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */
 	  if (logfp) {
-	    fprintf(logfp,"%s#\tjobspec: %s",logtag(),file);
+	    fprintf(logfp,"%s#\tjobspec: %s",logtag(),filename);
 	  }
-	  if (strcmp(file, "#idle\n") == 0) {
+	  if (strcmp(filename, "#idle\n") == 0) {
 	    idle = 1;
 	    continue; /* XX: We can't stay idle for very long, but.. */
 	  }
-	  if (emptyline(file, sizeof file))
+	  if (emptyline(filename, sizeof(filename)))
 	    break;
 
 	  time(&now);
 
-	  s = strchr(file,'\t');
+	  s = strchr(filename,'\t');
 	  if (s != NULL) {
 	    *s++ = 0;
 
@@ -920,7 +921,7 @@ main(argc, argv)
 	    }
 
 	  if (debug > 1) { /* "DBGdiag:"-output */
-	    printf("# (fdcnt=%d, file:%.200s, host:%.200s)\n", countfds(), file, host);
+	    printf("# (fdcnt=%d, file:%.200s, host:%.200s)\n", countfds(), filename, host);
 	    fflush(stdout);
 	  }
 
@@ -928,15 +929,15 @@ main(argc, argv)
 	  res_init();
 
 	  if (checkmx)
-	    dp = ctlopen(file, (char*)channel, (char*)host, &getout, rightmx, &SS, matchroutermxes, &SS);
+	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, rightmx, &SS, matchroutermxes, &SS);
 	  else
 #endif /* BIND */
-	    dp = ctlopen(file, (char*)channel, (char*)host, &getout, NULL, NULL, matchroutermxes, &SS);
+	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, NULL, NULL, matchroutermxes, &SS);
 	  if (dp == NULL) {
-	    printf("#resync %.200s\n", file);
+	    printf("#resync %.200s\n", filename);
 	    fflush(stdout);
 	    if (logfp)
-	      fprintf(logfp, "%s#\tc='%s' h='%s' #resync %s\n", logtag(), channel, host, file);
+	      fprintf(logfp, "%s#\tc='%s' h='%s' #resync %s\n", logtag(), channel, host, filename);
 	    continue;
 	  }
 

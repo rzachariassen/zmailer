@@ -151,8 +151,10 @@ struct procinfo {
 	struct threadgroup *thg; /* The thread-ring we are in		*/
 	char	*carryover;	/* Long responces..			*/
 	int	cmdlen;		/* buffer content size			*/
-	char	cmdbuf[1000];	/* outgoing pipe leftovers..		*/
-	char	cmdline[1000];	/* Approximation of the execl() params	*/
+	int	cmdspc;		/* buffer size				*/
+	char	*cmdbuf;	/* outgoing pipe leftovers..		*/
+	char	*cmdline;	/* Approximation of the execl() params	*/
+	int	cmdlspc;	/* cmdline buffer size			*/
 };
 
 /* Stores the offset indices of all addresses that have same channel and host*/

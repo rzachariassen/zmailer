@@ -385,12 +385,13 @@ free_spu(p)
 #define	MAXPATHLEN 1024
 #endif
 
+char filename[MAXPATHLEN+8000];
+
 int
 main(argc, argv)
 	int argc;
 	const char *argv[];
 {
-	char file[MAXPATHLEN+128];
 	char *s;
 	int c, errflg, fd;
 	char *host = NULL;	/* .. and what is my host ? */
@@ -553,16 +554,16 @@ main(argc, argv)
 	  printf("#hungry\n");
 	  fflush(stdout);
 
-	  if (fgets(file, sizeof file, stdin) == NULL)
+	  if (fgets(filename, sizeof(filename), stdin) == NULL)
 	    break;
-	  if (strchr(file, '\n') == NULL) break; /* No ending '\n' !  Must
+	  if (strchr(filename, '\n') == NULL) break; /* No ending '\n' !  Must
 						    have been partial input! */
-	  if (strcmp(file, "#idle\n") == 0)
+	  if (strcmp(filename, "#idle\n") == 0)
 	    continue; /* Ah well, we can stay idle.. */
-	  if (emptyline(file, sizeof file))
+	  if (emptyline(filename, sizeof filename))
 	    break;
 
-	  s = strchr(file,'\t');
+	  s = strchr(filename,'\t');
 	  if (s != NULL) {
 	    if (host) free(host);
 	    host = strdup(s+1);
@@ -575,9 +576,9 @@ main(argc, argv)
 	  notary_setxdelay(0); /* Our initial speed estimate is
 				  overtly optimistic.. */
 
-	  dp = ctlopen(file, channel, host, &getout, NULL, NULL, NULL, NULL);
+	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL, NULL, NULL);
 	  if (dp == NULL) {
-	    printf("#resync %s\n",file);
+	    printf("#resync %s\n",filename);
 	    fflush(stdout);
 	    continue;
 	  }

@@ -9,6 +9,12 @@
 	    As a result, routing did need terrible things.
 	    Now won't do that db-reopen at search miss with
 	    bsd-btree and bsd-hash codes.
+
+	* scheduler/scheduler.h, scheduler/transport.c:
+	    Spotted a case of 'very long' "host" information, which
+	    naturally crashed the scheduler when scribling over fixed
+	    buffer in the stack.  Now using malloc()ed buffers, which
+	    are grown in case a need arises.
 	
 
 1999-06-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
