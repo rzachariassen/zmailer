@@ -58,6 +58,14 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+union sockaddr_uni {
+    struct sockaddr     sa;
+    struct sockaddr_in  v4;
+#if defined(AF_INET6) && defined(INET6)
+    struct sockaddr_in6 v6;
+#endif
+};
+
 #include "libz.h"
 
 extern char  *getzenv     __((const char *));
@@ -98,9 +106,9 @@ struct sockaddr ***sockaddrp;
         struct ifconf ifc;
 	int ifbufsize = 4 * sizeof(struct ifreq) + 4;
 	char *interfacebuf = (void*)malloc(ifbufsize);
-	struct sockaddr **sap;
+	union sockaddr_uni **sap;
 
-	sap = (void*)malloc(sizeof(struct sockaddr*) * (ifcount + 2));
+	sap = (void*)malloc(sizeof(union sockaddr_uni*) * (ifcount + 2));
 	if (! sap || !interfacebuf) {
 	  if (interfacebuf)
 	    free(interfacebuf);
@@ -159,7 +167,7 @@ other_socktype:
 	for (i = 0; i < ifc.ifc_len; ) {
 
 	  struct ifreq *ifr = (struct ifreq *) &ifc.ifc_buf[i];
-	  struct sockaddr *sa = &ifr->ifr_addr;
+	  union sockaddr_uni *sa = (union sockaddr_uni *) &ifr->ifr_addr;
 #ifdef SIOCGIFFLAGS
 	  struct ifreq ifrf;
 #endif
@@ -205,7 +213,7 @@ other_socktype:
 	    continue;
 #endif
 
-	  sap = (void*)realloc(sap, sizeof(struct sockaddr*) * (ifcount + 2));
+	  sap = (void*)realloc(sap, sizeof(union sockaddr_uni*) * (ifcount + 2));
 	  if (! sap) {
 	    close(s);
 	    free(interfacebuf);
@@ -213,16 +221,16 @@ other_socktype:
 	  }
 
 	  /* XX: Use sa_len on BSD44 ??? */
-	  if (sa->sa_family == AF_INET) {
+	  if (sa->sa.sa_family == AF_INET) {
 	    struct sockaddr_in *si4 = (void*)malloc(sizeof(*si4));
 	    if (si4 == NULL)
 	      break;
 	    /* pick the whole sockaddr package! */
 	    memcpy(si4, &ifr->ifr_addr, sizeof(struct sockaddr_in));
-	    sap[ifcount] = (struct sockaddr*)si4;
+	    sap[ifcount] = (union sockaddr_uni *)si4;
 	  }
 #if defined(AF_INET6) && defined(INET6)
-	  if (sa->sa_family == AF_INET6) {
+	  if (sa->sa.sa_family == AF_INET6) {
 	    struct sockaddr_in6 *si6 = (void*)malloc(sizeof(*si6));
 	    if (si6 == NULL)
 	      break;
@@ -231,7 +239,7 @@ other_socktype:
 
 	    /* pick the whole sockaddr package! */
 	    memcpy(si6, &ifr->ifr_addr, sizeof(struct sockaddr_in6));
-	    sap[ifcount] = (struct sockaddr*)si6;
+	    sap[ifcount] = (union sockaddr_uni *)si6;
 	  }
 #endif
 	  ++ifcount;
@@ -247,7 +255,7 @@ other_socktype:
 #endif
 
 	free(interfacebuf);
-	*sockaddrp = sap;
+	*sockaddrp = (struct sockaddr **)sap;
 
 	return ifcount;
 #else
@@ -258,7 +266,7 @@ other_socktype:
 #ifndef TESTMODE /* We test ONLY of  loadifaddresses() routine! */
 
 static             int    nmyaddrs = 0;
-static struct sockaddr  ** myaddrs = NULL;
+static union sockaddr_uni  ** myaddrs = NULL;
 
 static void stashmyaddress __((const char *));
 static void
@@ -334,10 +342,10 @@ stashmyaddress(host)
 	}
 	if (myaddrs == NULL) {
 	  nmyaddrs = 0;
-	  myaddrs = (void*)malloc((nmyaddrs + naddrs +1) * sizeof(struct sockaddr*));
+	  myaddrs = (void*)malloc((nmyaddrs + naddrs +1) * sizeof(union sockaddr_uni*));
 	} else
 	  myaddrs = (void*)realloc((void*)myaddrs,
-				   (nmyaddrs + naddrs +1) * sizeof(struct sockaddr*));
+				   (nmyaddrs + naddrs +1) * sizeof(union sockaddr_uni*));
 
 	if (!myaddrs) return; /* Uurgh.... */
 
@@ -348,7 +356,7 @@ stashmyaddress(host)
 	    if (!si) {
 	      return;
 	    }
-	    myaddrs[nmyaddrs++] = (struct sockaddr *) si;
+	    myaddrs[nmyaddrs++] = (union sockaddr_uni *) si;
 	    memset(si,0,sizeof(*si));
 	    si->sin_family = AF_INET;
 	    memcpy(&si->sin_addr.s_addr, *hp_getaddr(), hp->h_length);
@@ -360,7 +368,7 @@ stashmyaddress(host)
 	    if (!si6) {
 	      return;
 	    }
-	    myaddrs[nmyaddrs++] = (struct sockaddr *) si6;
+	    myaddrs[nmyaddrs++] = (union sockaddr_uni *) si6;
 	    memset(si6,0,sizeof(*si6));
 	    si6->sin6_family = AF_INET;
 	    memcpy(&si6->sin6_addr.s6_addr, *hp_getaddr(), hp->h_length);
@@ -375,7 +383,7 @@ stashmyaddresses(host)
 const char *host;
 {
 	char *s1, *s2, *zenv;
-	struct sockaddr **sa;
+	union sockaddr_uni **sa;
 	int sacnt;
 
 	/* Clear them all away */
@@ -391,7 +399,7 @@ const char *host;
 
 	/* Now start fillig -- interface addresses, if you can get them */
 
-	sacnt = loadifaddresses(&sa);
+	sacnt = loadifaddresses((struct sockaddr ***)&sa);
 
 	if (sacnt > 0) {
 	  /* Okay, we GOT some addresses, I bet we got them all!
@@ -423,23 +431,25 @@ const char *host;
 }
 
 
+/* Here we compare only the address portion, not ports, nor anything else! */
+
+
 int
-matchmyaddress(sa)
-	struct sockaddr *sa;
+matchmyaddress(_sa)
+	struct sockaddr *_sa;
 {
 	int i;
+	union sockaddr_uni *sau = (union sockaddr_uni *) _sa;
 
 	if (!myaddrs)
 		stashmyaddresses(NULL);
 	if (!myaddrs) return 0; /* Don't know my addresses ! */
 	
 	/* Match loopback net.. */
-	if (sa->sa_family == AF_INET) {
-	  struct sockaddr_in *si;
+	if (sau->sa.sa_family == AF_INET) {
 	  int net;
-	  si = (struct sockaddr_in *)sa;
 
-	  net = (ntohl(si->sin_addr.s_addr) >> 24) & 0xFF;
+	  net = (ntohl(sau->v4.sin_addr.s_addr) >> 24) & 0xFF;
 	  if (net == 127)
 	    return 2; /* Loopback network */
 	  if (net == 0 || net == 127 || net > 223)
@@ -450,13 +460,13 @@ matchmyaddress(sa)
 
 	for (i = 0; i < nmyaddrs; ++i) {
 	  /* if this is myself, skip to next MX host */
-	  if (sa->sa_family == myaddrs[i]->sa_family) {
-	    if (sa->sa_family == AF_INET &&
-		memcmp(sa, myaddrs[i], sizeof(struct sockaddr_in)) == 0)
+	  if (sau->sa.sa_family == myaddrs[i]->sa.sa_family) {
+	    if (sau->sa.sa_family == AF_INET &&
+		memcmp(&sau->v4.sin_addr, &myaddrs[i]->v4.sin_addr, 4) == 0)
 	      return 1;
 #if defined(AF_INET6) && defined(INET6)
-	    if (sa->sa_family == AF_INET6 &&
-		memcmp(sa, myaddrs[i], sizeof(struct sockaddr_in6)) == 0)
+	    if (sau->sa.sa_family == AF_INET6 &&
+		memcmp(&sau->v6.sin6_addr, &myaddrs[i]->v6.sin6_addr, 16) == 0)
 	      return 1;
 #endif
 	  }

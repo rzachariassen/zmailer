@@ -81,6 +81,7 @@ static int run_homedir   ARGCV;
 static int run_822date   ARGCV;
 static int run_filepriv  ARGCV;
 static int run_runas     ARGCV;
+static int run_cat       ARGCV;
 static int run_gensym    ARGCV;
 static void free_gensym __((void));
 static int run_uid2login ARGCV;
@@ -139,6 +140,7 @@ struct shCmd fnctns[] = {
 {	"rfc822date",	run_822date,	NULL,	NULL,	0	},
 {	"filepriv",	run_filepriv,	NULL,	NULL,	SH_ARGV	},
 {	"runas",	run_runas,	NULL,	NULL,	SH_ARGV	},
+{	"cat",		run_cat,	NULL,	NULL,	SH_ARGV	},
 {	"gensym",	run_gensym,	NULL,	NULL,	0	},
 {	"uid2login",	run_uid2login,	NULL,	NULL,	0	},
 {	"login2uid",	run_login2uid,	NULL,	NULL,	0	},
@@ -2191,6 +2193,38 @@ run_runas(argc, argv)
 	}
 
 	return r;
+}
+
+static int
+run_cat(argc, argv)
+	int argc;
+	const char *argv[];
+{
+	FILE *fp;
+	char buf[8192];
+	int i;
+
+	if (argc < 2) {
+		fprintf(stderr, "Usage: %s [filenames ...]\n", argv[0]);
+		return 1;
+	}
+
+	for ( ;argv[1] != NULL; ++argv) {
+	    fp = fopen(argv[1], "r");
+	    if (!fp) continue; /* next .... */
+	    for (;;) {
+		i = fread(buf, 1, sizeof(buf), fp);
+		if (i > 0) {
+		    int j = 0;
+		    while (j < i) {
+			j += fwrite(buf + j, 1, i - j, stdout);
+		    }
+		} else
+		    break;
+	    }
+	    fclose(fp);
+	}
+	return 0;
 }
 
 

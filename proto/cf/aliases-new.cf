@@ -421,7 +421,8 @@ routeuser (quad, plustail, domain) {
 	[ -z "$didexpand" ] &&
 	  db add expansions "$key" user &&
 	    priv=$(getpriv "644" $priv "$forward" .forward) &&
-	      return $(listaddresses -e '"\\'"$user"'"' -c "$forward .forward expansion" < "$forward" | \
+	      return $(runas $priv cat "$forward" | \
+			listaddresses -e '"\\'"$user"'"' -c "$forward .forward expansion" | \
 			 maprrouter $(newattribute $attr privilege $priv) \
 					"$forward" "$host")
 
@@ -536,8 +537,9 @@ expand_lists(user,host,attr,key) {
 #	[ -f "$a" ] &&
 #	    db add expansions "$key" list &&
 #	      priv=$(getpriv "644" $priv "$a" maillist) &&
-#	        return $(listaddresses	-E "$l" -e "$l"	\
-#					-c "$a file expansion" < "$a" |
+#	        return $(runas $priv cat "$a" | \
+#			 listaddresses	-E "$l" -e "$l"	\
+#					-c "$a file expansion" |
 #		         maprrouter $(newattribute $attr privilege $priv \
 #					sender "$l") "$a" "$host")
 
@@ -548,9 +550,10 @@ expand_lists(user,host,attr,key) {
 	  db add expansions "$key" list &&
 	    priv=$(getpriv "664" $priv "$a" maillist) &&
 	      nattr=$(newattribute $attr privilege $priv sender "$l") &&
-		return $(listexpand -E "$l" -e "$l" -p $priv		\
+		return $(runas $priv cat "$a" | \
+			 listexpand -E "$l" -e "$l" -p $priv		\
 				    -c "$a file expansion"		\
-				    "$nattr"  "$a" "$host" < "$a")
+				    "$nattr"  "$a" "$host" )
 
 	a="$MAILVAR/modlists/$lcuser"
 # /bin/ls -lL "$a"
@@ -562,9 +565,10 @@ expand_lists(user,host,attr,key) {
 		*-mod)
 			l="$preowner$(basename "$lcuser" -mod)$postowner"
 			# echo "$l exists!" >> /dev/tty
-			return $(listaddresses	-E "$l$domain"		\
+			return $(runas $priv cat "$a" | \
+				 listaddresses	-E "$l$domain"		\
 						-e "$l"			\
-						-c "$a file expansion" < "$a" |
+						-c "$a file expansion" |
 				maprrouter $(newattribute $attr		\
 					      privilege $priv		\
 					      sender "$l") "$a" "$host")
@@ -633,9 +637,10 @@ expand_include (file,host,attr,key) {
 	  nattr=$(newattribute $attr privilege $priv) &&
 	   defer=''
 
-	return $(listexpand -E "postmaster" -e root -p $priv	\
+	return $(runas $priv cat "$file" | \
+		 listexpand -E "postmaster" -e root -p $priv	\
 			    -c ":include:$file file expansion"	\
-			    "$nattr" "$file" "$host" < "$file")
+			    "$nattr" "$file" "$host" )
 }
 
 #

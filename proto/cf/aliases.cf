@@ -220,9 +220,10 @@ routeuser (quad, plustail, domain) {
 		 priv=$(getpriv "644" $priv "\1" include) &&
 		  nattr=$(newattribute $attr privilege $priv) &&
 		   defer=''
-		return $(listexpand -E "postmaster" -e root -p $priv	\
+		return $(runas $priv cat "\1" | \
+			 listexpand -E "postmaster" -e root -p $priv	\
 				    -c ":include:\1 file expansion"	\
-				    "$nattr" "\1" "$host" "" "$domain" < "\1")
+				    "$nattr" "\1" "$host" "" "$domain" )
 		;;
 
 #	# This following requires ZM 2.99.46+ shell language!
@@ -306,8 +307,9 @@ routeuser (quad, plustail, domain) {
 #	[ -f "$a" ] &&
 #	    db add expansions "$key" list &&
 #	      priv=$(getpriv "644" $priv "$a" maillist) &&
-#	        return $(listaddresses	-E "$l" -e "$l"	\
-#					-c "$a file expansion" < "$a" |
+#	        return $(runas $priv cat "$a" | \
+#			 listaddresses	-E "$l" -e "$l"	\
+#					-c "$a file expansion" | \
 #		         maprrouter $(newattribute $attr privilege $priv \
 #					sender "$l")			 \
 #				"$a" "$host" "$plustail" "$domain")
@@ -319,9 +321,10 @@ routeuser (quad, plustail, domain) {
 	  db add expansions "$key" list &&
 	    priv=$(getpriv "664" $priv "$a" maillist) &&
 	      nattr=$(newattribute $attr privilege $priv sender "$l") &&
-		return $(listexpand -E "$l" -e "$l" -p $priv		\
+		return $(runas $priv cat "$a" | \
+			 listexpand -E "$l" -e "$l" -p $priv		\
 				    -c "$a file expansion"		\
-				    "$nattr"  "$a" "$host" "" "$domain" < "$a")
+				    "$nattr"  "$a" "$host" "" "$domain" )
 
 	a="$MAILVAR/modlists/$lcuser"
 # /bin/ls -lL "$a"
@@ -333,10 +336,11 @@ routeuser (quad, plustail, domain) {
 		*-mod)
 			l="$preowner$(basename "$lcuser" -mod)$postowner"
 			# echo "$l exists!" >> /dev/tty
-			return $(listaddresses	-E "$l$domain"		\
+			return $(runas $priv cat "$a" | \
+				 listaddresses	-E "$l$domain"		\
 						-e "$l"			\
-						-c "$a file expansion" < "$a" |
-				maprrouter $(newattribute $attr		\
+						-c "$a file expansion" |
+				 maprrouter $(newattribute $attr	\
 					      privilege $priv		\
 					      sender "$l")		\
 					"$a" "$host" "$plustail" "$domain")
@@ -541,7 +545,8 @@ fi
 	   [ -f "$forward" ] ; then
 	  db add expansions "$key" user &&
 	    priv=$(getpriv "644" $priv "$forward" .forward) &&
-	      return $(listaddresses -e '"\\'"$user"'"' -c "$forward .forward expansion" < "$forward" | \
+	      return $(runas $priv cat "$forward" | \
+			listaddresses -e '"\\'"$user"'"' -c "$forward .forward expansion" | \
 			 maprrouter $(newattribute $attr privilege $priv) \
 				"$forward" "$host" "$plustail" "$domain")
 	fi

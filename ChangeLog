@@ -1,3 +1,18 @@
+1999-08-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* lib/selfaddrs.c:
+	    After example code at the list, did some of my own code tweaks
+	    to do comparison of address (IPv4 or IPv6) only, not the entire
+	    'struct sockaddr', which contains ports, and other things...
+	    (The port might not necessarily be zero in all cases..)
+
+	* proto/cf/aliases.cf, proto/cf/aliases-new.cf, router/functions.c:
+	    A potential security problem in the scripts.  I wonder how the
+	    "ancient" 2.2.1 did handle this one..  Introduced "cat" builtin
+	    to be used within a sequence of:   runas $priv cat "$filepath"  ...
+	    Now strategically placed symlinks can't be used to divulge file
+	    contents whose access is prohibited from the symlink creator..
+
 1999-07-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in:
