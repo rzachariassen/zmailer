@@ -292,7 +292,7 @@ internet (address, hname) {
 #	# Alexis Yushin <alexis@NL.net> mentioned that he does following:
 #	$(sender) && {
 #		local tmp
-#		tmp=$(masquerades $address) && address=$tmp
+#		tmp="$(masquerades "$address")" && address="$tmp"
 #	}
 
 	address="$(canonicalize "$address")"	# Canonicalize does local
