@@ -666,7 +666,7 @@ again:	/* \relax */
 		century = this_century;
 	if (year <= 0 && !have_year) /* default year (wraparound buggy...) */
 		year += localtmptr->tm_year%100;
-	if (month < 0) 	/* default month */
+	if (month <= 0) 	/* default month */
 		month = localtmptr->tm_mon + 1;
 	if (dayinmonth < 0)	/* default day in month */
 		dayinmonth = localtmptr->tm_mday;

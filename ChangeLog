@@ -1,3 +1,8 @@
+2000-07-14  Grace He <ghe@scs.Ryerson.CA>
+
+	* router/dateparse.c:
+	    Fix for "Date: 00-06-29 03:50:11" induced crashes
+
 2000-07-14  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* lib/selfaddrs.c:
