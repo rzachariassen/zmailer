@@ -1,3 +1,14 @@
+1999-12-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/scheduler.c:
+	    Timeserver waking up on select() every circa 0.3 seconds.
+	    (Goal is to have *some* reliability at getting a bit more
+	     accurate 1 second tick..)
+
+	* scheduler/threads.c:
+	    Fixed  'thr->attempts' accounting, threw away a pile of
+	    dead (#if 0 ... #endif) code.
+	
 1999-12-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/transport.c:
