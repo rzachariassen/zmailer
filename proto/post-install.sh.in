@@ -40,6 +40,7 @@ do
     if [ ! -f ../$x ] ; then
 	mv $x ..
     else
+	echo "=== $MAILSHARE/forms/$x  exists, not overwritten!"
     fi
 done
 
@@ -52,6 +53,7 @@ do
     if [ ! -f ../$x ] ; then
 	mv $x ..
     else
+	echo "=== $MAILSHARE/$x  exists, not overwritten!"
     fi
 done
 
@@ -64,44 +66,25 @@ do
     if [ ! -f ../$x ] ; then
 	mv $x ..
     else
+	echo "=== $MAILVAR/db/$x  exists, not overwritten!"
     fi
 done
 
 # ----------------------------
 #    Database prototypes ???
 
-if [ ! -f $MAILSHARE/proto/router.cf ]; then
-  echo "*** Verify  $MAILSHARE/router.cf        file !"
-fi
-if [ ! -f $MAILSHARE/proto/scheduler.conf ]; then
-  echo "*** Verify  $MAILSHARE/scheduler.conf   file !"
-fi
-if [ ! -f $MAILSHARE/proto/smtpserver.conf ]; then
-  echo "*** Verify  $MAILSHARE/smtpserver.conf  file !"
-fi
-if [ ! -f $MAILSHARE/proto/sm.conf ]; then
-  echo "*** Verify  $MAILSHARE/sm.conf  file !"
-fi
-
-if [ ! -f $MAILVAR/db/proto/aliases ]; then
-  echo "*** Verify  $MAILVAR/db/aliases   file !"
-fi
-if [ ! -f $MAILVAR/db/proto/localnames ]; then
-  echo "*** Verify  $MAILVAR/db/localnames   file !"
-fi
-if [ ! -f $MAILVAR/db/proto/fqdnaliases ]; then
-  echo "*** Verify  $MAILVAR/db/fqdnaliases   file !"
-fi
-if [ ! -f $MAILVAR/db/proto/routes ]; then
-  echo "*** Verify  $MAILVAR/db/routes   file !"
-fi
-if [ ! -f $MAILVAR/db/proto/smtp-policy.src ]; then
-  echo "*** Verify  $MAILVAR/db/smtp-policy.src   file !"
-fi
-if [ ! -f $MAILVAR/db/proto/smtp-policy.mx ]; then
-  echo "*** Verify  $MAILVAR/db/smtp-policy.mx   file !"
-fi
-if [ ! -f $MAILVAR/db/proto/smtp-policy.relay ]; then
+for x in $MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf \
+	 $MAILSHARE/proto/smtpserver.conf $MAILSHARE/proto/sm.conf  \
+	 $MAILVAR/db/proto/aliases $MAILVAR/db/proto/localnames     \
+	 $MAILVAR/db/proto/fqdnaliases $MAILVAR/db/proto/routes	    \
+	 $MAILVAR/db/proto/smtp-policy.src $MAILVAR/db/proto/smtp-policy.mx \
+	 $MAILVAR/db/proto/smtp-policy.relay
+do
+    y=`echo $x | sed -e 's!/proto/!/!'`
+    if [ -f $x ] ; then
+	cmp $x $y && echo "*** Verify  $y  file!"
+    fi
+done
   echo "*** Verify  $MAILVAR/db/smtp-policy.relay   file !"
 fi
 
@@ -110,4 +93,9 @@ $MAILBIN/zmailer newdb
 
 $MAILBIN/policy-builder.sh -n
 
-echo "*** "
+cat <<EOF
+*** Remember to verify input databases, and then execute commands:
+***    $MAILBIN/zmailer newdb
+***    $MAILBIN/policy-builder.sh (-n)
+***
+EOF

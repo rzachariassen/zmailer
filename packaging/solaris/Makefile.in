@@ -51,8 +51,8 @@ pkgs-01:
 	 echo $(SENDMAILPATH)|sed -e 's!^/!!' ; \
 	  ) \
 		| sort | uniq | pkgproto ) | \
-		awk '/^[^si] /{printf "%s %s /%s=$(prefix)/%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next}
-		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next}
+		awk '/^[^si] /{printf "%s %s /%s=$(prefix)/%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next} \
+		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next} \
 			{print}' \
 		> proto-01.dirs
 	rm -f pkginfo
