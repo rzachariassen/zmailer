@@ -2807,13 +2807,18 @@ is a recipient address in a message header''.
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <CMDSYNOPSIS>
   <COMMAND>relation</COMMAND>
-  <ARG>-t <REPLACEABLE>dbtype</><ARG>,<REPLACEABLE>subtype</></ARG></ARG>
+  <ARG CHOICE=PLAIN>-t <REPLACEABLE>dbtype</><ARG>,<REPLACEABLE>subtype</></ARG></ARG>
   <ARG>-f <REPLACEABLE>file</REPLACEABLE></ARG>
   <ARG>-e <REPLACEABLE>#</></ARG>
   <ARG>-s <REPLACEABLE>#</></ARG>
   <ARG>-bilmnu</ARG>
   <ARG>-d <REPLACEABLE>driver</></ARG>
   <ARG CHOICE=PLAIN>name</ARG>
+</CMDSYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>relation</COMMAND>
+  <ARG CHOICE=PLAIN>-T -t <REPLACEABLE>dbtype</><ARG>,<REPLACEABLE>subtype</></ARG></ARG>
+  <ARG CHOICE=PLAIN>dummy_name</ARG>
 </CMDSYNOPSIS>
 </PARA>
 
@@ -2848,49 +2853,59 @@ Error.
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
+<VARLISTENTRY><TERM><OPTION>-T</OPTION></TERM><LISTITEM><PARA>
+
+Special flag enabling script to test for given db-type:
+
+<SCREEN>
+  relation -T -t btree dummy && echo "have BTREE database"
+</SCREEN>
+
+</PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>-t <REPLACEABLE>dbtype</>[,<REPLACEABLE>subtype</>]</OPTION></TERM><LISTITEM><PARA>
 
 One of the known types 
 of databases, currently: 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt incore}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>incore</></TERM><LISTITEM><PARA>
 
 A database maintained in virtual memeory (using 
 splay trees). This type should not be used for any database that must 
 periodically be flushed, since all occupied memory can be freed.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt header}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>header</></TERM><LISTITEM><PARA>
 
-A database type used to store RFC822 header 
+A special incore database type used to store RFC822 header 
 semantics information. It is unlikely to be used for anything else.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt ordered}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>ordered</></TERM><LISTITEM><PARA>
 
 A file with key-value pairs on every line, 
 separated by whitespace, sorted by key. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt unordered}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>unordered</></TERM><LISTITEM><PARA>
 
 A file with key-value pairs on every line, 
 separated by whitespace. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt hostsfile}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>hostsfile</></TERM><LISTITEM><PARA>
 
-{\em hosts(5)} file.
+A rather theorethical database looking into <EMPHASIS>hosts(5)</>
+database file (often <FILENAME>/etc/hosts</>).
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt bind}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>bind</></TERM><LISTITEM><PARA>
 
 The BIND implementation of a Domain Name System 
 resolver. The subtype for this type is the name of a Resource Record 
 type in the {\tt IN} class.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt ndbm}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>ndbm</></TERM><LISTITEM><PARA>
 
 The new DBM library. The BSD4.4 has a thing called 
 {\tt db}, which is a different thing, but it can be used in place 
@@ -2898,7 +2913,7 @@ of {\tt ndbm} via its interface library. (The {\tt BSD4.4-db}
 does have only one database file, not two, like {\tt ndbm} does.)
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt gdbm}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>gdbm</></TERM><LISTITEM><PARA>
 
 The GNU implementation of the new DBM library. 
 {\bf Note:} GDBM uses one file, which is named exactly as you 
@@ -2906,98 +2921,118 @@ parametrize it. This is unlike NDBM, which appends .dir and .pag to
 the supplied name!
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt dbm }</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>dbm</></TERM><LISTITEM><PARA>
 
 The old DBM library. There can be only one DBM 
 open at the time, and this system keeps them all open all the time. 
 Avoid if you can.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt yp}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>yp</></TERM><LISTITEM><PARA>
 
 The Network Information Service from Sun Microsystems 
 Inc. (Later renamed to be NIS, the still newer NIS+ is not supported).
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt btree}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>btree</></TERM><LISTITEM><PARA>
+
+SleepyCat DB 1.x, 2.x or 3.x B-Tree database
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>bhash</></TERM><LISTITEM><PARA>
+
+SleepyCat DB 1.x, 2.x or 3.x HASH database
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>selfmatch</></TERM><LISTITEM><PARA>
+
+Given address literal <EMPHASIS>without</> wrapping square brackets,
+this ``database'' decodes the address, and checks if presented IP
+address is one used by the system at the moment.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -f file}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-f <REPLACEABLE>file</></></TERM><LISTITEM><PARA>
+A file associated with the database, typically the file containing the data,
+or the basename of DBM files or something similarly relevant to the database
+access routine. 
 
-A file associated with the database, typically 
-the file containing the data, or the basename of DBM files or something 
-similarly relevant to the database access routine. 
+</PARA><PARA>
+Note that for <OPTION>incore</> and <OPTION>header</> relations
+the <OPTION>-f</> is <EMPHASIS ROLE=BOLD>not</> used!
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -e\#}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-e <REPLACEABLE>#</></></TERM><LISTITEM><PARA>
 
 The default time-to-live on cached information. 
-When the information has been in the cache for this many seconds, it 
-is discarded. The default is 0. 
+When the information has been in the cache for this many seconds,
+it is discarded. The default is 0.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -s\#}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-s <REPLACEABLE>#</></></TERM><LISTITEM><PARA>
 
 Sets the cache size to the specified number. 
 The default is usually 10, depending on the database type. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -b}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-b</></TERM><LISTITEM><PARA>
 
 If the key exists in the database, return the key 
-as the value. 
+as the value. (``Boolean relation'')
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -i}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-i</></TERM><LISTITEM><PARA>
 
 If the key exists, its value is a byte offset into 
 a file named by the subtype for this database. The value then becomes 
 the concatenation of the data on the lines following that offset which 
-start with whitespace. This is used for the aliases file. 
+start with whitespace.
+</PARA><PARA>
+
+This was used for the aliases file back in early 1990.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -l}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-l</></TERM><LISTITEM><PARA>
 
 Map all keys to lowercase before searching.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -m}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-m</></TERM><LISTITEM><PARA>
 
-Check for file content modification before every 
-access. Reopen the file when a change is detected. This option is 
-used when the {\em router} should discover changes to a database
-underfoot so it need not be restarted to use new data. This is 
-recommended on relations which use unordered, or ordered datasets 
-(aliases, routes, ...), and especially if the system is configured 
-to use {\tt mmap(2)} facility. Updating such databases should 
-preferably use {\tt mv} command to move a new version of the 
-database in place of the old one. 
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -n}</TERM><LISTITEM><PARA>
-
-If the key exists in the database and the value is 
-null or list, return the key as value. Otherwise return the value 
-retrieved, if any. 
+Check for file content modification before every access.
+Reopen the file when a change is detected.
+This option is used when the <COMMAND>router</> should discover
+changes to a database underfoot so it need not be restarted to
+use new data.
+This is recommended on relations which use unordered, or ordered
+datasets (aliases, routes, ...), and especially if the system is
+configured to use <FUNCTION>mmap(2)</> facility.
+Updating such databases should preferably use <COMMAND>mv</> command
+to move a new version of the database in place of the old one.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -u}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-n</></TERM><LISTITEM><PARA>
+
+If the key exists in the database and the value is null or list,
+return the key as value.
+Otherwise return the value retrieved, if any. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>-u</></TERM><LISTITEM><PARA>
 
 Map all keys to uppercase before searching. 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -d driver}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-d <REPLACEABLE>[pathalias|pathalias.nodot|longestmatch]</></></TERM><LISTITEM><PARA>
 
-Specifies a search driver that allows
-searching for structured keys using special knowledge. The 
-argument to this option must be a known driver. Currently the 
-only known driver is {\tt pathalias} which will search a
-pathalias format database for an entry matching a domain name 
-using the pathalias rules.
+Specifies a search driver that allows searching for structured keys using
+special knowledge.
+The argument to this option must be a known driver.
+</PARA><PARA>
+FIXME! WRITEME! WRITE MORE!
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
