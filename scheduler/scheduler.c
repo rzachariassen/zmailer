@@ -201,10 +201,10 @@ int sig;
 	    fprintf(stderr,"%s: cannot open statuslog: %s, errno=%d\n", progname, statusfn, errno);
 	    return -1;
 	  }
+	  setvbuf(statuslog, (char *)NULL, _IOLBF, 0);
 #if defined(F_SETFD)
 	  fcntl(FILENO(statuslog), F_SETFD, 1); /* close-on-exec */
 #endif
-	  setvbuf(statuslog, (char *)NULL, _IOLBF, 0);
 	}
 	SIGNAL_HANDLE(SIGHUP, (RETSIGTYPE(*)__((int))) loginitsched);
 	return 0;
@@ -244,8 +244,8 @@ struct ctlfile *cfp;
 	setreuid(0, 0);
 	if (!vfp) return NULL; /* Failure to open */
 
-	fseek(vfp, (off_t)0, SEEK_END);
 	setvbuf(vfp, (char *)NULL, _IOLBF, 0);   /* Set LINEBUFFERING */
+	fseek(vfp, (off_t)0, SEEK_END);
 	return vfp;
 }
 
@@ -414,11 +414,11 @@ main(argc, argv)
 			  perror("Can't open statistics log file (-l)");
 			  exit(1);
 			}
+			setvbuf(statuslog, (char *)NULL, _IOLBF, 0);
 #if defined(F_SETFD)
 			fcntl(FILENO(statuslog), F_SETFD, 1);
 			/* close-on-exec */
 #endif
-			setvbuf(statuslog, (char *)NULL, _IOLBF, 0);
 			break;
 		case 'H':
 			if (hashlevels < 2)
