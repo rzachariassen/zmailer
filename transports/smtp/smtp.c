@@ -1048,8 +1048,8 @@ deliver(SS, dp, startrp, endrp)
 	CONVERTMODE convertmode;
 	int ascii_clean = 0;
 	struct stat stbuf;
-	char SMTPbuf[2000];
 	char *s, *se;
+	char SMTPbuf[2000];
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
 	int pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
@@ -1162,7 +1162,7 @@ deliver(SS, dp, startrp, endrp)
 	  hdr_mime2 = headers_need_mime2(startrp);
 	  if (hdr_mime2 && !keep_header8) {
 	    headers_to_mime2(startrp,defcharset,SS->verboselog);
-	  }
+         }
 
 	} else if (conv_prohibit == -1) {
 
@@ -1236,8 +1236,9 @@ deliver(SS, dp, startrp, endrp)
 
 	strcpy(SMTPbuf, "MAIL From:<");
 	s = SMTPbuf + 11;
+
 	if (!STREQ(startrp->addr->link->channel,"error")) {
-	  if (1 || !startrp->ezmlm) {
+	  if (!startrp->ezmlm) {
 	    /* Normal mode */
 	    sprintf(s, "%.1000s", startrp->addr->link->user);
 	    s += strlen(s);
@@ -1272,6 +1273,7 @@ deliver(SS, dp, startrp, endrp)
 	} /* non-error source address mode */
 
 	*s++ = '>';
+	*s = 0;
 
 	if (SS->ehlo_capabilities & ESMTP_8BITMIME) {
 	  strcpy(s, " BODY=8BITMIME");
@@ -1281,10 +1283,12 @@ deliver(SS, dp, startrp, endrp)
 	/* Size estimate is calculated in the  ctlopen()  by
 	   adding msg-body size to the largest known header size,
 	   though excluding possible header and body rewrites.. */
+
 	if (SS->ehlo_capabilities & ESMTP_SIZEOPT) {
 	  sprintf(s, " SIZE=%ld", startrp->desc->msgsizeestimate);
 	  s += strlen(s);
 	}
+
 	/* DSN parameters ... */
 	if (SS->ehlo_capabilities & ESMTP_DSN) {
 	  if (startrp->desc->envid != NULL) {
