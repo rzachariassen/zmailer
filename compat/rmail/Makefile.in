@@ -53,7 +53,8 @@ install: $(LIBDEB) rmail
 	rdir=`echo $(RMAILPATH)|sed -e 's!^\(.*\)/\([^/]*\)$$!\1!'`; $(MKDIR) $$rdir; echo "  rdir = $$rdir"
 	$(INSTALL) -m 0755 rmail $(prefix)$(MAILBIN)/rmail.x ; \
 	mv $(prefix)$(MAILBIN)/rmail.x $(prefix)$(MAILBIN)/rmail
-	@if [ $(LN_S) = "ln -s" ]; then				\
+	@if [ $(LN_S) = "ln -s" -a				\
+	     "$(MAILBIN)/rmail" != "$(RMAILPATH)"]; then	\
 	    if [ -h $(RMAILPATH) ]; then			\
 		test -f $(RMAILPATH) &&				\
 			rm -f $(prefix)$(RMAILPATH) ;		\

@@ -21,7 +21,7 @@ bitnet2		snS	/usr/local/funetnje/bmail	bmail $g $u
 #local	mS	/usr/lib/mail/localm		localm -r $g $u
 cyrus	Pn	/usr/cyrus/bin/deliver		deliver -e -m $h -- $u
 #		# CYRUS example from: Tom Samplonius <tom@sdf.com>
-procm	sSPfn	/usr/local/bin/procmail		procmail -a $h -d $u
+procm	sSPfn	@PROCMAIL@	procmail -a $h -d $u
 #		# Procmail example from: Ken Pizzini <ken@spry.com>
 #
 #prog	-	/bin/sh				sh -c $u

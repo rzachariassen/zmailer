@@ -16,12 +16,19 @@ start)
 		$MAILBIN/zmailer bootclean
 		$MAILBIN/zmailer
 	fi
+	touch /var/lock/subsys/zmailer
 	;;
 
 stop)
 	if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
 		$MAILBIN/zmailer kill
 	fi
+	rm -f /var/lock/subsys/zmailer
 	;;
 
+*)
+	echo "Usage: zmailer.init {start|stop}"
+	exit 0
+	;;
 esac
+exit 0
