@@ -1,3 +1,10 @@
+1999-07-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* root/prototypes.h, root/rfc822hdrs.c:
+	    Still more finetuning of the RFC-822 output folding
+	    rules.  Now things look nice in all cases that I have
+	    encountered/imagined.
+
 1999-07-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

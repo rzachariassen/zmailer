@@ -138,7 +138,7 @@ extern int	hdr_nilp __((struct header *h));
 extern void	pureAddress __((FILE *fp, struct addr *pp));
 extern int	pureAddressBuf __((char *buf, int len, struct addr *pp));
 extern int	printAddress __((FILE *fp, struct addr *pp, int col));
-extern int	printLAddress __((FILE *fp, struct addr *pp, int col, int foldcol));
+extern int	printLAddress __((FILE *fp, struct addr *pp, int col, int foldcol, int nofold));
 extern char    *saveAddress __((struct addr *pp));
 extern void	errprint __((FILE *fp, struct addr *pp, int hdrlen));
 extern HeaderStamp hdr_type __((struct header *h));

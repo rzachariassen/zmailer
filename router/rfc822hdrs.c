@@ -420,6 +420,7 @@ hdr_print(h, fp)
 	struct addr *pp;
 	HeaderSemantics sem;
 	int foldcol;
+	int canprefold = 0;
 
 	if (h == NULL)
 		return;
@@ -515,24 +516,24 @@ hdr_print(h, fp)
 			  col += 5;
 			}
 			if (pp)
-			  col = printLAddress(fp, pp, col, 8);
+			  col = printLAddress(fp, pp, col, 8, 0);
 			else
 			  fprintf(fp, "(nil??)"), col += 7;
 		    }
 		}
 		if ((ap = h->h_contents.r->r_by) != NULL) {
-			cl = printAddress(NULL, ap->a_tokens, col+6);
-			if (cl > 76) {
+			cl = printAddress(NULL, ap->a_tokens, col+4);
+			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
 			  putc(' ',fp), ++col;
 			fprintf(fp, "by ");
-			col = printLAddress(fp, ap->a_tokens, col+3, 8);
+			col = printLAddress(fp, ap->a_tokens, col+3, 8, 0);
 		}
 		if ((t = h->h_contents.r->r_via) != NULL) {
-			cl = fprintToken(NULL, t, col+4);
-			if (cl > 76) {
+			cl = fprintToken(NULL, t, col+5);
+			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
@@ -541,8 +542,8 @@ hdr_print(h, fp)
 			col = fprintToken(fp, t, col+4);
 		}
 		for (t = h->h_contents.r->r_with; t != NULL; t = t->t_next) {
-			cl = fprintToken(NULL, t, col+4);
-			if (cl > 76) {
+			cl = fprintToken(NULL, t, col+6);
+			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
@@ -552,40 +553,38 @@ hdr_print(h, fp)
 		}
 		if ((ap = h->h_contents.r->r_id) != NULL) {
 			cl = printAddress(NULL, ap->a_tokens, col+6);
-			if (cl > 76) {
+			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
 			  putc(' ',fp), ++col;
 			fprintf(fp, "id <");
-			col = printLAddress(fp, ap->a_tokens, col+5, 8);
+			col = printLAddress(fp, ap->a_tokens, col+5, 8, 0);
 			putc('>', fp); ++col;
 		}
 		if ((ap = h->h_contents.r->r_for) != NULL) {
 			cl = printAddress(NULL, ap->a_tokens, col+5);
-			if (cl > 76) {
+			if (cl > hdr_width) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
 			  putc(' ',fp), ++col;
 			fprintf(fp, "for ");
-			col = printLAddress(fp, ap->a_tokens, col+4, 8);
+			col = printLAddress(fp, ap->a_tokens, col+4, 8, 0);
 		}
 		putc(';', fp);
 		++col;
-		if ((col + 32) > 78) {
-		  fprintf(fp, "\n\t");
-		  col = 8;
-		} else
-		  putc(' ', fp);
 		{
 		  char *cp, *s;
+		  int len;
 		  cp = rfc822date(&(h->h_contents.r->r_time));
-		  s = cp + strlen(cp) -1;
+		  s = cp + (len = strlen(cp)) -1;
 		  if (*cp != 0 && *s == '\n') *s = 0;
-		  fputs(cp, fp);
+		  if ((col+len+1) > hdr_width)
+		    fprintf(fp, "\n\t%s\n", cp);
+		  else
+		    fprintf(fp, " %s\n", cp);
 		}
-		putc('\n', fp);
 		break;
 	case Address:
 	case Addresses:
@@ -602,33 +601,39 @@ hdr_print(h, fp)
 		newline = 1;
 		for (ap = h->h_contents.a; ap != NULL; ap = ap->a_next) {
 
-		  /* XXX: 'addrlen' is COL or total length ??? */
 		  addrlen = printAddress(NULL, ap->a_tokens, col);
-		  
+
 		  for (pp = ap->a_tokens; pp != NULL; pp = pp->p_next)
 		    if (pp->p_type == anAddress)
 		      break;
+
 		  /* pp == NULL means mail group phrase */
 		  if (ap->a_next != NULL)
 		    ++addrlen;
-		  if (newline || addrlen < hdr_width) {
-		    if (newline)
-		      newline = 0;
-		    else
-		      ++col, putc(' ', fp);
-#if 0
-		    col = printLAddress(fp, ap->a_tokens, col, foldcol);
-#else
-		    if (addrlen + 8 > hdr_width) {
-		      col = printLAddress(fp, ap->a_tokens, col, foldcol);
+
+		  if (newline || ((addrlen+3 > hdr_width) && !canprefold)) {
+		    if (!newline)
+		      ++col, putc(' ',fp);
+
+		    if (addrlen + 3 >= hdr_width) {
+		      /* Too close to the edge, (or over it) do folding */
+		      col = printLAddress(fp, ap->a_tokens, col, foldcol,
+					  canprefold);
 		    } else {
+		      /* Within right margin, no fold needed */
 		      col = printAddress(fp, ap->a_tokens, col);
 		    }
-#endif
-		  } else if (addrlen +8 < hdr_width/* columns */) {
+		    newline = 0;
+
+		  } else if (addrlen +3 < hdr_width /* columns */) {
+
+		    /* Within margins, plain simple insert, no folding */
 		    putc(' ', fp);
 		    col = printAddress(fp, ap->a_tokens, col+1);
+
 		  } else {
+
+		    /* Explicite prefold */
 		    putc('\n', fp);
 		    for (col = 0; col + 8  < foldcol; col += 8)
 		      putc('\t', fp);
@@ -636,8 +641,11 @@ hdr_print(h, fp)
 		      putc(' ', fp);
 		    if (col < 1)
 		      putc(' ', fp), ++col;
-		    col = printLAddress(fp, ap->a_tokens, col, foldcol);
+		    col = printLAddress(fp, ap->a_tokens, col, foldcol, 0);
+
 		  }
+		  canprefold = 1;
+
 		  if (pp != NULL && ap->a_next != NULL)
 		    ++col, putc(',', fp);
 		}
@@ -836,12 +844,34 @@ printAddress(fp, pp, col)
 	return col;
 }
 
+static int ThisAddressLen(pp)
+     register struct addr *pp;
+{
+  int len = 0;
+  token822 *t;
+  int hadSpecial = (pp->p_type == aSpecial);
+
+  if (hadSpecial)
+    /* Ok, this one is aSpecial '<', next one is anAddress.
+       Scan as long as there are Addresses. */
+    ++len;
+
+  for (pp = pp->p_next; pp && pp->p_type == anAddress; pp = pp->p_next)
+    for (t = pp->p_tokens; t != NULL; t = t->t_next)
+      len = fprintToken(NULL, t, len);
+
+  if (hadSpecial) /* Just imply it.. */
+    len += 2;
+
+  return len;
+}
+
 /* Return the column where the cursor is */
 int
-printLAddress(fp, pp, col, foldcol)
+printLAddress(fp, pp, col, foldcol, canprefold)
 	FILE *fp;
 	register struct addr *pp;
-	int col, foldcol;
+	int col, foldcol, canprefold;
 {
 	int inAddress;
 	token822 *t;
@@ -857,10 +887,38 @@ printLAddress(fp, pp, col, foldcol)
 			putc('(', fp);
 		} else if (pp->p_type == anAddress)
 			inAddress = 1;
+		
+		if (canprefold)
+		  if ((!inAddress &&
+		       ((pp->p_type == aSpecial) && (t = pp->p_tokens) &&
+			(*t->t_pname == '<') && (pp->p_next) &&
+			((pp->p_next->p_type == anAddress) ||
+			 (pp->p_next->p_type == aDomain))))
+		      || (inAddress == 1)) {
+
+		    /* If *first* of them, see how long is the address
+		       sequence ? Do have have a need to fold NOW ? */
+
+		    int alen = ThisAddressLen(pp);
+
+		    if (alen + col > hdr_width) {
+		      /* Ok, fold now */
+		      putc('\n', fp);
+		      for (col = 0; col+8  < foldcol; col += 8)
+			putc('\t', fp);
+		      for (;col < foldcol; ++col)
+			putc(' ', fp);
+		      if (col < 1)
+			putc(' ', fp), ++col;
+		    }
+		  }
+		canprefold = 1;
 
 		for (t = pp->p_tokens; t != NULL; t = t->t_next) {
 			int special = 0;
 			int add_space = 0;
+			int canfold = 0;
+
 			switch (pp->p_type) {
 			case aPhrase:
 			case aComment:
@@ -870,19 +928,25 @@ printLAddress(fp, pp, col, foldcol)
 					++col;
 					putc(' ', fp);
 				}
+				canfold = 1;
 				/* fall through */
 			case anAddress:
 			case aDomain:
 			case anError:
 			case reSync:
 #if 1
-				col = fprintFold(fp, t, col, foldcol);
+				if (canfold)
+				  col = fprintFold(fp, t, col, foldcol);
+				else
+				  col = fprintToken(fp, t, col);
 #else
+  fputs("(<)",fp);
 				if (pp->p_type == aComment) {
 				  col = fprintFold(fp, t, col, foldcol);
 				} else {
 				  col = fprintToken(fp, t, col);
 				}
+  fputs("(>)",fp);
 #endif
 				if (pp->p_type == reSync && t->t_next != NULL
 				    && (t->t_next->t_type == t->t_type
@@ -899,10 +963,14 @@ printLAddress(fp, pp, col, foldcol)
 				}
 				break;
 			}
-			if ((special && (col + 10) >= hdr_width) ||
-			    (t->t_next != NULL && (TOKENLEN(t->t_next) > 1)
-			     && (fprintToken(NULL, t->t_next, col+2)
-				 >= hdr_width))) {
+
+			if (inAddress) ++inAddress;
+
+			if (canfold &&
+			    ((special && (col + 10) >= hdr_width) ||
+			     (t->t_next != NULL && (TOKENLEN(t->t_next) > 1)
+			      && (fprintToken(NULL, t->t_next, col+2)
+				  >= hdr_width)))) {
 			  putc('\n', fp);
 			  for (col = 0; col+8  < foldcol; col += 8)
 			    putc('\t', fp);
