@@ -1,13 +1,14 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH EXPIRER 8zm "2003-Aug-28"
+.TH EXPIRER 8zm "2005-May-24"
 .SH NAME
 expirer \- zmailer forced queue expiration utility
 .SH SYNOPSIS
 .IP \fBexpirer\fR 8em
 [\fB\-c\fR\ \fIchannel\fR]
 [\fB\-h\fR\ \fI"hostname"\fR]
+[\fB\-u\fR\ \fI"user@domain"\fR]
 [\fB\fR\-Vs]
 [\fB\-l\fR\ \fIlogfile\fR]
 [\fB\-m\fR\ \fI"message\ string"\fR]
@@ -27,6 +28,8 @@ namely \fIPOSTOFFICE\fB/transport\fR.
 Message recipient selector "channel" (optional)
 .IP \-h\ \fI"hostname"\fR
 Message recipient selector "host" (optional)
+.IP \-u\ \fI"user@domain"\fR
+Message recipient selector "user" (optional)
 .IP \-m\ \fI"message\ string"\fR
 An alternate report string.
 .IP \-s

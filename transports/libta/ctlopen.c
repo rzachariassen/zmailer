@@ -4,7 +4,7 @@
  */
 
 /*
- *	Copyright 1994-2003 by Matti Aarnio
+ *	Copyright 1994-2005 by Matti Aarnio
  *
  * To really understand how headers (and their converted versions)
  * are processed you do need to draw a diagram.
@@ -260,8 +260,8 @@ ctladdr(d,cp)
 
 struct ctldesc *
 ctlopen(const char *file, const char *channel, const char *host,
-	int *exitflagp, int (*selectaddr)(const char *, const char *, void *),
-	void *saparam)
+	int *exitflagp, int (*selectaddr)(const char *spec_host, const struct taddress *ap, const void *saparam),
+	const void *saparam)
 
 #else
 
@@ -269,8 +269,8 @@ struct ctldesc *
 ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	const char *file, *channel, *host;
 	int *exitflagp;
-	int (*selectaddr)  __((const char *, const char *, void *));
-	void *saparam;
+	int (*selectaddr)  __((const char *spec_host, const struct taddress *ap, const void *saparam));
+	const void *saparam;
 #endif
 {
 	register char *s, *contents;
@@ -511,11 +511,9 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 	      break;
 	    }
 
-	    if ((channel != NULL  &&  strcmp(channel, ap->channel) != 0)
-		|| (selectaddr != NULL
-		    && !(*selectaddr)(host, (const char *)ap->host, saparam))
-		|| (selectaddr == NULL
-		    && host != NULL && cistrcmp(host,ap->host) !=0)
+	    if ((channel  &&  strcmp(channel, ap->channel) != 0)
+		|| (selectaddr && !(*selectaddr)(host, ap, saparam))
+		|| (!selectaddr && host && cistrcmp(host, ap->host) !=0)
 		|| !lockaddr(d->ctlfd, d->ctlmap, d->offset[i]+1,
 			     _CFTAG_NORMAL, _CFTAG_LOCK, file, host, mypid)) {
 	      free_last_ap(d);
@@ -843,21 +841,28 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 }
 
 int
-ctlsticky(spec_host, addr_host, cbparam)
-	const char *spec_host, *addr_host;
-	void *cbparam;
+ctlsticky(spec_host, ap, cbparam)
+	const char *spec_host;
+	const struct taddress *ap;
+	const void *cbparam;
 {
 	static const char *hostref = NULL;
 
-	if (hostref == NULL) {
-	  if (spec_host != NULL)
-	    hostref = spec_host;
-	  else
-	    hostref = addr_host;
-	}
-	if (spec_host == NULL && addr_host == NULL) {
+	/* Internal state reset */
+	if (!spec_host && !ap && !cbparam) {
 	  hostref = NULL;
 	  return 0;
 	}
-	return cistrcmp(hostref, addr_host) == 0;
+
+	if (hostref == NULL) {
+	  if (spec_host)
+	    hostref = spec_host;
+	  else {
+	    /* NOTE: if AP is NULL, this will CRASH!
+	       ... but it should never happen ... */
+	    hostref = ap->host;
+	  }
+	}
+
+	return cistrcmp(hostref, ap->host) == 0;
 }

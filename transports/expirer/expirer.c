@@ -3,7 +3,7 @@
  *
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-2003 Matti Aarnio.
+ *	Copyright 1992-2005 Matti Aarnio.
  */
 
 /*
@@ -54,6 +54,7 @@ const char *progname;
 const char *channel;
 const char *logfile;
 FILE *logfp = NULL;
+int dryrun;
 
 extern RETSIGTYPE wantout __((int));
 extern int optind;
@@ -128,6 +129,39 @@ static void SHM_MIB_diag(rc)
 #define	MAXPATHLEN 1024
 #endif
 
+struct _saparam {
+  const char *host;
+  const char *user;
+};
+
+static int selectaddr __((const char *spec_host, const struct taddress *ap, const void *saparam_));
+static int
+selectaddr(spec_host, ap, saparam_)
+     const char *spec_host;
+     const struct taddress *ap;
+     const void *saparam_;
+{
+	struct _saparam *saparam = saparam;
+
+	/* When we are called, the CHANNEL has already been matched
+	   (or can be ignored..) */
+	/* Now we verify that host is matched (or ignored for match)
+	   and finally that user is matched (or ignored for match) */
+	if (saparam->host) {
+	  if (cistrcmp(saparam->host, ap->host) != 0) return 0;
+	} else if (spec_host) {
+	  if (cistrcmp(spec_host, ap->host) != 0) return 0;
+	}
+
+	if (saparam->user) {
+	  if (cistrcmp(saparam->user, ap->user) != 0) return 0;
+	}
+
+	/* And we have a match... */
+
+	return 1;
+}
+
 int
 main(argc, argv)
 	int argc;
@@ -139,9 +173,12 @@ main(argc, argv)
 	int c, errflg, fd;
 	int silent = 0;
 	char *host = NULL;	/* .. and what is my host ? */
+	char *user = NULL;
 	int matchhost = 0;
+	int matchuser = 0;
 	struct ctldesc *dp;
 	FILE *verboselog = NULL;
+	struct _saparam saparam = { NULL, NULL };
 
 	RETSIGTYPE (*oldsig) __((int));
 
@@ -183,7 +220,7 @@ main(argc, argv)
 	logfile = NULL;
 	channel = "";
 	while (1) {
-	  c = getopt(argc, (char*const*)argv, "?c:Vh:m:l:s");
+	  c = getopt(argc, (char*const*)argv, "?c:Vh:m:nl:su:");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -204,8 +241,15 @@ main(argc, argv)
 	  case 'm':
 	    optmsg = optarg;
 	    break;
+	  case 'n':
+	    dryrun = 1;
+	    break;
 	  case 's':
 	    silent = 1;
+	    break;
+	  case 'u':
+	    user = strdup(optarg);
+	    matchuser = 1;
 	    break;
 	  default:
 	    ++errflg;
@@ -213,7 +257,7 @@ main(argc, argv)
 	  }
 	}
 	if (errflg || optind != argc) {
-	  fprintf(stderr, "Usage: %s [-s] [-V] [-l logfile] [-c channel] [-h host] [-m msgstr]\n",
+	  fprintf(stderr, "Usage: %s [-s] [-V] [-l logfile] [-c channel] [-h host] [-u user@domain] [-m msgstr]\n",
 		  argv[0]);
 	  exit(EX_USAGE);
 	}
@@ -281,7 +325,7 @@ main(argc, argv)
 	  notary_setxdelay(0); /* Our initial speed estimate is
 				  overtly optimistic.. */
 
-	  dp = ctlopen(file, channel, host, &getout, NULL, NULL);
+	  dp = ctlopen(file, channel, host, &getout, selectaddr, &saparam);
 	  if (dp == NULL) {
 	    printf("#resync %s\n",file);
 	    fflush(stdout);
@@ -326,6 +370,11 @@ process(dp, optmsg, silent, verboselog)
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 
 	  notary_setxdelay(0);
+	  if (dryrun) {
+	    notaryreport(rp->addr->user, "delayed", "4.0.0 (dryrun)", "");
+	    diagnostic(verboselog, rp, EX_TEMPFAIL, 0, "");
+	    SHM_MIB_diag(EX_TEMPFAIL);
+	  }
 	  if (silent) {
 	    notaryreport(rp->addr->user, "delivered", "2.0.0 (Silent ok)", "");
 	    diagnostic(verboselog, rp, EX_OK, 0, "");

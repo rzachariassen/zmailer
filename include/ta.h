@@ -161,9 +161,9 @@ struct mimestate {
 extern int	       ta_use_mmap;
 extern void            ctlfree __((struct ctldesc *dp, void *anyp));
 extern void           *ctlrealloc __((struct ctldesc *dp, void *anyp, size_t size));
-extern struct ctldesc *ctlopen __((const char *file, const char *channel, const char *host, int *exitflag, int (*selectaddr)(const char *, const char *, void *), void *saparam));
+extern struct ctldesc *ctlopen __((const char *file, const char *channel, const char *host, int *exitflag, int (*selectaddr)(const char *spec_host, const struct taddress *ap, const void *saparam), const void *saparam));
 extern void            ctlclose __((struct ctldesc *dp));
-extern int	       ctlsticky __((const char *spec_host, const char *addr_host, void *cbparam));
+extern int	       ctlsticky __((const char *spec_host, const struct taddress *ap, const void *cbparam));
 
 /* diagnostic.c: */
 extern const char     *notaryacct __((int rc, const char *okstr));

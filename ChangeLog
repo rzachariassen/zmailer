@@ -1,5 +1,12 @@
 2005-03-24  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/libta/ctlopen.c, include/ta.h,
+	  transports/expirer/expirer.c, man/expirer.8.in:
+	    Added optional '-u' selector for expirer to help
+	    queue purge tasks in some situations, when target
+	    X has lots of recipients, and only one of them is
+	    failing with 400 codes and thus filling the queue...
+
 	* smtpserver/smtpserver.c, smtpserver/policytest.h, 
 	  smtpserver/mxverify.c,   smtpserver/policytest.c,
 	  smtpserver/cfgread.c,    man/smtpserver.8.in:
