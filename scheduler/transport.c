@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1998
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
  */
 
 
@@ -46,6 +46,7 @@ static void reclaim      __((int, int));
 static void waitandclose __((int));
 static void readfrom     __((int));
 
+extern FILE *vfp_open __((struct ctlfile *));
 
 #ifdef  HAVE_WAITPID
 # include <sys/wait.h>
@@ -288,9 +289,25 @@ struct procinfo *proc;
 	proc->cmdlen += cmdlen;
 
 	if (verbose) {
-	  printf("feed: tofd=%d, fed=%d, chan=%s, proc=0x%p, vtx=0x%p, ",
+	  printf("feed: tofd=%d, fed=%d, chan='%s', proc=0x%p, vtx=0x%p, ",
 		 proc->tofd, proc->fed, proc->ch->name, proc, vtx);
 	  fflush(stdout);
+	}
+
+	if (vtx->cfp->vfpfn != NULL) {
+	  FILE *vfp = vfp_open(vtx->cfp);
+	  int i;
+	  if (vfp) {
+	    fprintf(vfp, "Feeding to child; ce.argv = \"");
+	    for (i = 0; vtx->thgrp->ce.argv[i] != NULL; ++i) {
+	      if (i == 0)
+		fprintf(vfp, "'%s'", vtx->thgrp->ce.argv[i]);
+	      else
+		fprintf(vfp, " '%s'", vtx->thgrp->ce.argv[i]);
+	    }
+	    fprintf(vfp, "\" chan = '%s' cmd: %s", proc->ch->name, cmdbuf);
+	    fclose(vfp);
+	  }
 	}
 
 	vtx->proc = proc;    /* Flag that it is in processing */

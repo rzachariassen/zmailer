@@ -37,6 +37,35 @@
 # endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
 
+
+#ifdef HAVE_SYS_RESOURCE_H
+#ifdef linux
+# define _USE_BSD
+#endif
+#include <sys/resource.h>
+#endif
+
+#ifdef  HAVE_WAITPID
+# include <sys/wait.h>
+#else
+# ifdef HAVE_WAIT3
+#  include <sys/wait.h> /* Has BSD wait3() */
+# else
+#  ifdef HAVE_SYS_WAIT_H /* POSIX.1 compatible */
+#   include <sys/wait.h>
+#  else /* Not POSIX.1 compatible, lets fake it.. */
+extern int wait();
+#  endif
+# endif
+#endif
+
+#ifndef WEXITSTATUS
+# define WEXITSTATUS(s) (((s) >> 8) & 0377)
+#endif
+#ifndef WSIGNALSTATUS
+# define WSIGNALSTATUS(s) ((s) & 0177)
+#endif
+
 #include "zmsignal.h"
 #include "zsyslog.h"
 #include "mail.h"
@@ -489,17 +518,29 @@ struct router_child {
   int   fromchild;
   int   childpid;
   int   hungry;
+
   char *linebuf;
   int   linespace;
   int   linelen;
+
   char  readbuf[64];
   int   readsize, readout;
+
+  int   statloc;
+#if defined(HAVE_WAIT3) && defined(HAVE_SYS_RESOURCE_H)
+  struct rusage r;
+#endif
 };
 
 struct router_child routerchilds[MAXROUTERCHILDS];
 
 extern int nrouters;
 extern const char *logfn;
+
+/* ../transports/libta/nonblocking.c */
+extern int  fd_nonblockingmode __((int fd));
+extern int  fd_blockingmode __((int fd));
+extern void fd_restoremode __((int fd, int mode));
 
 /* ../scheduler/pipes.c */
 extern int  pipes_create         __((int *tochild, int *fromchild));
@@ -515,6 +556,7 @@ extern int  resources_query_pipesize __((int fildes));
 
 static void child_server __((int tofd, int frmfd));
 static int  rd_doit __((const char *filename, const char *dirs));
+static void parent_reader __((void));
 
 
 static int  start_child   __((int idx));
@@ -538,6 +580,10 @@ static int  start_child(i)
 
     resources_maximize_nofiles();
 
+    zcloselog();
+    /* Each (sub-)process does openlog() all by themselves */
+    zopenlog("router", LOG_PID, LOG_MAIL);
+
     child_server(0, 1);
 
     exit(1);
@@ -559,22 +605,83 @@ static int  start_child(i)
   return 0;
 }
 
+/*
+ *	Catch each child-process death, and reap them..
+ */
+RETSIGTYPE sig_chld(signum)
+int signum;
+{
+	int pid;
+	int i;
+	int statloc;
+#ifdef HAVE_SYS_RESOURCE_H
+	struct rusage r;
+#endif
 
-static void start_childs  __((int nchilds));
-static void start_childs(nchilds)
-     int nchilds;
+	for (;;) {
+
+#ifdef  HAVE_WAIT3
+#ifdef HAVE_SYS_RESOURCE_H
+	  pid = wait3(&statloc,WNOHANG,&r);
+#else
+	  pid = wait3(&statloc,WNOHANG,NULL);
+#endif
+#else
+#ifdef	HAVE_WAITPID
+	  pid = waitpid(-1,&statloc,WNOHANG);
+#else
+	  pid = wait(&statloc);
+#endif
+#endif
+	  if (pid <= 0) break;
+
+	  for (i = 0; i < nrouters; ++i)
+	    if (pid == routerchilds[i].childpid) {
+	      routerchilds[i].childpid = -pid;
+	      routerchilds[i].statloc = statloc;
+#if defined(HAVE_WAIT3) && defined(HAVE_SYS_RESOURCE_H)
+	      routerchilds[i].r = r;
+#endif
+	    }
+	}
+
+	/* re-instantiate the signal handler.. */
+#ifdef SIGCLD
+	SIGNAL_HANDLE(SIGCLD,  sig_chld);
+#else
+	SIGNAL_HANDLE(SIGCHLD, sig_chld);
+#endif
+}
+
+
+static void start_childs  __((void));
+static void start_childs()
 {
   int i;
 
   memset(routerchilds, 0, sizeof(routerchilds));
 
-  for (i = 0; i < nchilds; ++i)
+  for (i = 0; i < nrouters; ++i)
     routerchilds[i].fromchild = -1;
 
-  for (i = 0; i < nchilds; ++i) {
+  /* instantiate the signal handler.. */
+#ifdef SIGCLD
+  SIGNAL_HANDLE(SIGCLD,  sig_chld);
+#else
+  SIGNAL_HANDLE(SIGCHLD, sig_chld);
+#endif
+
+  for (i = 0; i < nrouters; ++i) {
     if (start_child(i))
       break; /* fork failed.. */
   }
+
+  sleep(5); /* Wait a bit before continuting so that
+	       child processes have change to boot */
+
+  /* Collect start reports (initial "#hungry\n" lines) */
+  parent_reader();
+
 }
 
 /*
@@ -587,7 +694,53 @@ static int reader_getc(rc)
      struct router_child *rc;
 {
   unsigned char c;
+
+  /* Child exited but 'FILE *tochild' still set ? close it! */
+  if (rc->childpid < 0 && rc->tochild != NULL) {
+    if (rc->fromchild == FILENO(rc->tochild)) {
+
+      /* In case of socketpair(PF_UNIX), the
+	 fd is *same* both ways.  We must be
+	 carefull when closing the FILE* object
+	 to stil have the FD around */
+
+      int fd = dup(rc->fromchild);
+
+      fclose(rc->tochild);
+
+      dup2(fd, rc->fromchild);
+      pipes_shutdown_child(rc->fromchild);
+      close(fd);
+    }
+    else
+      fclose(rc->tochild);
+    rc->tochild = NULL;
+
+    /* Back to positive value */
+    rc->childpid = - rc->childpid;
+
+    if (logfn) {
+      loginit(SIGHUP); /* Reinit/rotate the log every at line .. */
+      fprintf(stdout, "[%d] ROUTER CHILD PROCESS TERMINATED; wait() status = ", rc->childpid);
+      if (WIFSIGNALED(rc->statloc))
+	fprintf(stdout, "SIGNAL %d", WSIGNALSTATUS(rc->statloc));
+      else if (WIFEXITED(rc->statloc))
+	fprintf(stdout, "EXIT %d", WEXITSTATUS(rc->statloc));
+      else
+	fprintf(stdout, "0x%04X ??", WEXITSTATUS(rc->statloc));
+#if defined(HAVE_WAIT3) && defined(HAVE_SYS_RESOURCE_H)
+      fprintf(stdout, "; time = %ld.%06ld usr %ld.%06ld sys",
+	      (long)rc->r.ru_utime.tv_sec, (long)rc->r.ru_utime.tv_usec,
+	      (long)rc->r.ru_stime.tv_sec, (long)rc->r.ru_stime.tv_usec);
+#endif
+      fprintf(stdout,"\n");
+      fflush(stdout);
+    }
+
+  }
+
   errno = 0;
+
   if (rc->readout >= rc->readsize)
     rc->readout = rc->readsize = 0;
   if (rc->readsize <= 0)
@@ -608,12 +761,12 @@ static int reader_getc(rc)
 }
 
 
-static int parent_reader __((int idx));
-static int parent_reader(i)
+/* Single child reader.. */
+static int _parent_reader __((const int i));
+static int _parent_reader(i)
      const int i;
 {
   struct router_child *rc = &routerchilds[i];
-  FILE *logfp;
   int c;
 
   if (rc->fromchild < 0) return 0;
@@ -630,7 +783,8 @@ static int parent_reader(i)
 	break;
 
       /* An EOF ? -- child existed ?? */
-      fclose(rc->tochild);
+      if (rc->tochild)
+	fclose(rc->tochild);
       rc->tochild = NULL;
       rc->fromchild = -1;
       rc->hungry = 0;
@@ -652,7 +806,7 @@ static int parent_reader(i)
       /* End of line */
       rc->linebuf[rc->linelen] = 0;
 
-      /*fprintf(stderr,"parent_reader() len=%d buf='%s'\n",rc->linelen,rc->linebuf);*/
+      /*fprintf(stderr,"_parent_reader[%d] len=%d buf='%s'\n",rc->childpid,rc->linelen,rc->linebuf);*/
 
       if (rc->linelen == 1) {
 	/* Just a newline.. */
@@ -668,7 +822,7 @@ static int parent_reader(i)
       /* LOG THIS LINE! */
 
       if (logfn) {
-	loginit(SIGHUP); /* Reinit/rotate the log every line .. */
+	loginit(SIGHUP); /* Reinit/rotate the log every at line .. */
 	fprintf(stdout, "[%d] ", rc->childpid);
 	fputs(rc->linebuf, stdout);
 	fflush(stdout);
@@ -679,6 +833,117 @@ static int parent_reader(i)
   }
   return rc->hungry;
 }
+
+
+#ifdef	HAVE_SELECT
+
+#ifdef _AIX /* The select.h  defines NFDBITS, etc.. */
+# include <sys/types.h>
+# include <sys/select.h>
+#endif
+
+
+#if	defined(BSD4_3) || defined(sun)
+#include <sys/file.h>
+#endif
+#include <errno.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+
+#ifndef	NFDBITS
+/*
+ * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
+ * assumption we are dealing with pre-4.3bsd select().
+ */
+
+typedef long	fd_mask;
+
+#ifndef	NBBY
+#define	NBBY	8
+#endif	/* NBBY */
+#define	NFDBITS		((sizeof fd_mask) * NBBY)
+
+/* SunOS 3.x and 4.x>2 BSD already defines this in /usr/include/sys/types.h */
+#ifdef	notdef
+typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
+#endif	/* notdef */
+
+#ifndef	_Z_FD_SET
+#define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
+#define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
+#define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
+#define _Z_FD_ZERO(p)	  memset((char *)(p), 0, sizeof(*(p)))
+#endif	/* !FD_SET */
+#endif	/* !NFDBITS */
+
+#ifdef FD_SET
+#define _Z_FD_SET(sock,var) FD_SET(sock,&var)
+#define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
+#define _Z_FD_ZERO(var) FD_ZERO(&var)
+#define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
+#else
+#define _Z_FD_SET(sock,var) var |= (1 << sock)
+#define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
+#define _Z_FD_ZERO(var) var = 0
+#define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
+#endif
+
+static void parent_reader()
+{
+  fd_set rdset;
+  int i, highfd, fd, rc;
+  struct timeval tv;
+
+ redo_again:;
+
+  _Z_FD_ZERO(rdset);
+  highfd = -1;
+
+  for (i = 0; i < nrouters; ++i) {
+    fd = routerchilds[i].fromchild;
+    if (fd >= 0) {
+      _Z_FD_SET(fd, rdset);
+      if (highfd < fd)
+	highfd = fd;
+    }
+  }
+  if (highfd < 0) return; /* Nothing to do! */
+
+  tv.tv_sec = tv.tv_usec = 0;
+  rc = select(highfd+1, &rdset, NULL, NULL, &tv);
+
+  if (rc == 0) return; /* Nothing to do, leave.. */
+
+  if (rc < 0) {
+    /* Drat, some error.. */
+    if (errno == EINTR)
+      goto redo_again;
+    /* Hmm.. Do it just blindly (will handle error situations) */
+    for (i = 0; i < nrouters; ++i)
+      _parent_reader(i);
+    return;
+  }
+
+  /* Ok, select gave indication of *something* being ready for read */
+  for (i = 0; i < nrouters; ++i) {
+    fd = routerchilds[i].fromchild;
+    if (fd >= 0 && _Z_FD_ISSET(fd, rdset))
+      _parent_reader(i);
+  }
+}
+
+#else /* NO HAVE_SELECT */
+static void parent_reader()
+{
+  int i;
+  /* No select, but can do non-blocking -- we hope.. */
+  for (i = 0; i < nrouters; ++i)
+    _parent_reader(i);
+}
+#endif
+
 
 /*
  * Child-process job feeder - distributes jobs in even round-robin
@@ -713,16 +978,19 @@ static int parent_feed_child(fname,dir)
     /* Hmm..  perhaps it is safe to feed to a subprocess */
   }
 
-  ++rridx; if (rridx >= nrouters) rridx = 0;
-  for (i = nrouters; i > 0; --i) {
-    rc = &routerchilds[rridx];
+  parent_reader();
 
-    parent_reader(rridx);
+  ++rridx; if (rridx >= nrouters) rridx = 0;
+  for (i = 0; i < nrouters; ++i) {
+    rc = &routerchilds[rridx];
 
     /* If no child at this slot, start one!
        (whatever has been the reason for its death..) */
-    if (rc->childpid == 0)
+    if (rc->childpid == 0) {
       start_child(rridx);
+      sleep(2); /* Allow a moment for child startup */
+      parent_reader();
+    }
 
     /* If we have a hungry child with all faculties intact.. */
     if (rc->tochild && rc->fromchild >= 0 && rc->hungry)
@@ -765,13 +1033,16 @@ static int parent_feed_child(fname,dir)
 static void child_server(tofd,frmfd)
      int tofd, frmfd;
 {
-  FILE *fromfp = fdopen(tofd,"r");
-  FILE *tofp   = fdopen(frmfd,"w");
+  FILE *fromfp = fdopen(tofd,  "r");
+  FILE *tofp   = fdopen(frmfd, "w");
   char linebuf[8000];
   char *s, *fn;
 
   setvbuf(fromfp, NULL, _IOLBF, 0);
   setvbuf(tofp,   NULL, _IOFBF, 0);
+
+  fprintf(tofp, "ROUTER CHILD PROCESS STARTED\n");
+  fflush(tofp);
 
   linebuf[sizeof(linebuf)-1] = 0;
 
@@ -800,6 +1071,9 @@ static void child_server(tofd,frmfd)
   }
   /* Loop ends for some reason, perhaps parent died and
      pipe got an EOF ?  We leave... Our caller exits. */
+
+  fprintf(tofp, "ROUTER CHILD PROCESS TERMINATING\n");
+  fflush(tofp);
 }
 
 
@@ -1177,12 +1451,11 @@ run_daemon(argc, argv)
 	char *s, *rd, *routerdirs = getzenv("ROUTERDIRS");
 	char pathbuf[256];
 	memtypes oval = stickymem;
-	struct stat stb;
 
 	if (nrouters > MAXROUTERCHILDS)
 	  nrouters = MAXROUTERCHILDS;
 
-	start_childs(nrouters);
+	start_childs();
 
 	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* mustexit = 1 */
 	for (i=0; i<ROUTERDIR_CNT; ++i) {
@@ -1205,15 +1478,9 @@ run_daemon(argc, argv)
 			sprintf(pathbuf,"../%s",rd);
 			/* strcat(pathbuf,"/"); */
 
-			if (lstat(pathbuf,&stb) == 0 && S_ISDIR(stb.st_mode)) {
-#if 0
-#ifdef	BSD
-			  dirp[i]->dd_size = 0;
-#endif
-#endif
-			  dirs[i] = strdup(pathbuf);
-			  ++i;
-			}
+			dirs[i] = strdup(pathbuf);
+			++i;
+
 			if (s)
 			  *s = ':';
 			if (s)
@@ -1270,33 +1537,34 @@ run_daemon(argc, argv)
 		closedir(dirp[i]);
 #endif
 		dirp[i] = opendir(dirs[i][0] == 0 ? "." : dirs[i]);
+
 		did_cnt = 0;
 		if (dirp[i] != NULL) {
 		  if (stability)
 		    did_cnt = rd_stability(dirp[i],dirs[i]);
 		  else
 		    did_cnt = rd_instability(dirp[i],dirs[i]);
-		}
 
-		if (stability != real_stability) {
-			stability = real_stability;
-			if (stability == 0)
-				rd_endstability();
-			else
-				rd_initstability();
-		}
+		  if (stability != real_stability) {
+		    stability = real_stability;
+		    if (stability == 0)
+		      rd_endstability();
+		    else
+		      rd_initstability();
+		  }
 #if 1
 #ifdef	BUGGY_CLOSEDIR
-		/*
-		 * Major serious bug time here;  some closedir()'s
-		 * free dirp before referring to dirp->dd_fd. GRRR.
-		 * XX: remove this when bug is eradicated from System V's.
-		 */
-		close(dirp[i]->dd_fd);
+		  /*
+		   * Major serious bug time here;  some closedir()'s
+		   * free dirp before referring to dirp->dd_fd. GRRR.
+		   * XX: remove this when bug is eradicated from System V's.
+		   */
+		  close(dirp[i]->dd_fd);
 #endif
-		closedir(dirp[i]);
-		dirp[i] = NULL;
+		  closedir(dirp[i]);
+		  dirp[i] = NULL;
 #endif
+		}
 
 		if (mustexit)
 			break;
@@ -1306,20 +1574,23 @@ run_daemon(argc, argv)
 		if (did_cnt > 0)
 			i = -1;
 	}
-	for (i=0; dirp[i] != NULL && i < ROUTERDIR_CNT; ++i) {
+	for (i=0; i < ROUTERDIR_CNT; ++i)
+	  if (dirs[i]) {
+	    if (dirp[i]) {
 #if 0
 #ifdef	BUGGY_CLOSEDIR
-		/*
-		 * Major serious bug time here;  some closedir()'s
-		 * free dirp before referring to dirp->dd_fd. GRRR.
-		 * XX: remove this when bug is eradicated from System V's.
-		 */
-		close(dirp[i]->dd_fd);
+	      /*
+	       * Major serious bug time here;  some closedir()'s
+	       * free dirp before referring to dirp->dd_fd. GRRR.
+	       * XX: remove this when bug is eradicated from System V's.
+	       */
+	      close(dirp[i]->dd_fd);
 #endif
-		closedir(dirp[i]);
+	      closedir(dirp[i]);
 #endif
-		free(dirs[i]);
-	}
+	    }
+	    free(dirs[i]);
+	  }
 	return 0;
 }
 

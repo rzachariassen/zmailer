@@ -1,10 +1,5 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
-- router: Works now as a work-gang under leadership of one process
-          whose task is to scan the directories for work..
-	  However it is somewhat *slow* to start (30 seconds, or so)
-	  before first messages get processed...
-
 - smtp TA to ETRN type destinations (usually not reachable) work
   poorly ever since non-blocking connection was taken into use.
 
@@ -44,17 +39,12 @@ router:
 	of   "From: foo%bar <fii@faa.fuu>"  formats causes the scanner
 	to react mistakenly we 'Illegal-Object:'.
 
-	Replace current multi-process router farm with one where queue
-	scanner runs interactive routers alike the smtpserver hooks
-	to routers:
-		$MAILBIN/router -io-i
-		z# stableprocess 123456
-		z# stableprocess 123457
-		z# stableprocess 123458
-		z# stableprocess 123459
-	All results (except prompts) of the router need to be dumped
-	to the router logfile.  At each prompt, that logfile can be
-	re-opened so that simple log rotate with 'mv' works.
+	Works now as a work-gang under leadership of one process
+        whose task is to scan the directories for work..
+	It is still not quite as flexible as one might want, but
+	better than the old system, and now router logs are done
+	in a smarter way, which is easy to rotate without any
+	need for signals to anywhere..
 
 	(older entry way below had:)
 	Have separate queueing processor feeding actual routers
@@ -65,16 +55,6 @@ router:
 	queue; E.g. at least one router per class, but if some
 	class is (momentrarily) empty, its router can work other
 	class jobs.
-
-	(another old entry had:)
-	- Log-file option does not set (reliably) the logfile
-	  to be something else, than the default.
-	** Well...  See  $MAILSHARE/cf/standard.cf:  dribble routine, and
-	** especially its calls!  Not so easy to configure externally...
-	- SIGHUP log close/reopen does not work quite as one would
-	  want it to work.  In fact it does not close the files, rather
-	  opens new ones after it has dup()ed old descriptors away from
-	  the harms way..  e.g. it leaks log-files..
 
 transports/smtp:
 	This is a tell-tale indication that total/header byte accounting
@@ -199,7 +179,7 @@ transports/smtp:
 
 - smtpserver
   - Supply PARAM entries for *all* (well, very nearly) command-line
-    startup options where it makes sense...
+    startup options where it makes sense... (NOW DOES!)
   - SSL/TLS code needs to be updated to support non-blocking operations,
     which appeared at 0.9.4 release of the OpenSSL.
   - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills

@@ -239,10 +239,19 @@ FILE * vfp_open(cfp)
 struct ctlfile *cfp;
 {
 	FILE *vfp;
+	int fd;
+
+	if (!cfp->vfpfn) return NULL;
+
+	/* Open the vfp *ONLY* if the logging file exists,
+	   and can be written to.  If the file does not
+	   exist, no logging shall happen! */
 
 	setreuid(0, cfp->uid);
-	vfp = fopen(cfp->vfpfn, "a+");
+	fd = open(cfp->vfpfn, O_WRONLY|O_APPEND, 0);
 	setreuid(0, 0);
+	if (fd < 0) return NULL; /* Can't open it! */
+	vfp = fdopen(fd,"a");
 	if (!vfp) return NULL; /* Failure to open */
 
 	setvbuf(vfp, (char *)NULL, _IOLBF, 0);   /* Set LINEBUFFERING */
@@ -1746,15 +1755,6 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      break;
 	    case _CF_VERBOSE:
 	      cfp->vfpfn = strsave(cp+2);
-
-	      {
-		FILE *vfp = vfp_open(cfp);
-		if (vfp != NULL && cfp->mid != NULL)
-		  fprintf(vfp,
-			  "scheduler processing %s\n",
-			  cfp->mid);
-		if (vfp) fclose(vfp);
-	      }
 	      break;
 	    case _CF_TURNME:
 	      printf("TURNME: %s\n",cp+2);
@@ -1843,7 +1843,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	}
 	if (cfp->mid == NULL || cfp->logident == NULL ||
 	    estat(mfpath, &stbuf) < 0) {
-	  if (!is_turnme && cfp->vfpfn != NULL) {
+	  if (!is_turnme) {
 	    FILE *vfp = vfp_open(cfp);
 	    if (vfp) {
 	      fprintf(vfp,
@@ -2023,6 +2023,14 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 		 cfp->mid, cfp->rcpnts_total, cfp->rcpnts_work,
 		 cfp->rcpnts_failed, completed );
 	}
+
+	{
+	  FILE *vfp = vfp_open(cfp);
+	  if (vfp != NULL && cfp->mid != NULL)
+	    fprintf(vfp, "scheduler processing %s\n", cfp->mid);
+	  if (vfp) fclose(vfp);
+	}
+
 	return cfp;
 }
 

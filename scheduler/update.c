@@ -636,20 +636,21 @@ static void vtxupdate(vp, index, ok)
 	  }
 }
 
-static void logstat __((FILE *, struct vertex *, const char *));
+static void logstat __((struct vertex *, const char *));
 
-static void logstat(fp,vp,reason)
-	FILE *fp;
+static void logstat(vp,reason)
 	struct vertex *vp;
 	const char *reason;
 {
+	if (!statuslog) return;
+
 	mytime(&now);
-	fprintf(fp,"%ld %s %ld %ld %s %s/%s\n",
+	fprintf(statuslog, "%ld %s %ld %ld %s %s/%s\n",
 		(long)vp->cfp->mtime, vp->cfp->mid,
 		(long)(vp->cfp->envctime - vp->cfp->mtime),
 		(long)(now - vp->cfp->envctime), reason,
 		vp->orig[L_CHANNEL]->name,vp->orig[L_HOST]->name);
-	fflush(fp);
+	fflush(statuslog);
 }
 
 
@@ -672,8 +673,7 @@ static void expaux(vp, index, buf)
 		vp->orig[L_CHANNEL]->name, vp->orig[L_HOST]->name,
 		vp->cfp->erroraddr == NULL ? "?" : vp->cfp->erroraddr, buf);
 
-	if (statuslog)
-	  logstat(statuslog,vp,"expire");
+	logstat(vp,"expire");
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 0);
@@ -735,11 +735,14 @@ static int u_ok(vp, index, inum, offset, notary, message)
 	  fprintf(stderr,"%s: %ld/%ld/%s/ok %s\n", vp->cfp->logident, inum,
 		  offset, notary, message ? message : "-");
 #if 0
-	if (vp->cfp->vfp != NULL && vp->cfp->contents != NULL) {
-	  fseek(vp->cfp->vfp, (off_t)0, SEEK_END);
-	  fprintf(vp->cfp->vfp, "%s: ok %s\n",
+	if (vp->cfp->contents != NULL) {
+	  FILE *vfp = vfp_open(vp->cfp);
+	  if (vfp) {
+	    fprintf(vfp, "%s: ok %s\n",
 		  vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
 		  message == NULL ? "(sent)" : message);
+	    fclose(vfp);
+	  }
 	}
 #endif
 	if (vp->notaryflg & NOT_SUCCESS) {
@@ -747,8 +750,7 @@ static int u_ok(vp, index, inum, offset, notary, message)
 	  msgerror(vp, offset, message);
 	}
 
-	if (statuslog)
-	  logstat(statuslog,vp,"ok");
+	logstat(vp,"ok");
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 1);
@@ -770,15 +772,17 @@ static int u_ok2(vp, index, inum, offset, notary, message)
 	  fprintf(stderr,"%s: %ld/%ld/%s/ok2 %s\n", vp->cfp->logident, inum,
 		  offset, notary, message ? message : "-");
 #if 0
-	if (vp->cfp->vfp != NULL && vp->cfp->contents != NULL) {
-	  fseek(vp->cfp->vfp, (off_t)0, SEEK_END);
-	  fprintf(vp->cfp->vfp, "%s: ok %s\n",
-		  vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		  message == NULL ? "(sent)" : message);
+	if (vp->cfp->contents != NULL) {
+	  FILE *vfp = vfp_open(vp->cfp);
+	  if (vfp) {
+	    fprintf(vfp, "%s: ok2 %s\n",
+		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		    message == NULL ? "(sent)" : message);
+	    fclose(vfp);
+	  }
 	}
 #endif
-	if (statuslog)
-	  logstat(statuslog,vp,"ok2");
+	logstat(vp,"ok2");
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 1);
@@ -799,15 +803,17 @@ static int u_ok3(vp, index, inum, offset, notary, message)
 	  fprintf(stderr,"%s: %ld/%ld/%s/ok3 %s\n", vp->cfp->logident, inum,
 		  offset, notary, message ? message : "-");
 #if 0
-	if (vp->cfp->vfp != NULL && vp->cfp->contents != NULL) {
-	  fseek(vp->cfp->vfp, (off_t)0, SEEK_END);
-	  fprintf(vp->cfp->vfp, "%s: ok %s\n",
-		  vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		  message == NULL ? "(sent)" : message);
+	if (vp->cfp->contents != NULL) {
+	  FILE *vfp = vfp_open(vp->cfp);
+	  if (vfp) {
+	    fprintf(vfp, "%s: ok3 %s\n",
+		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		    message == NULL ? "(sent)" : message);
+	    fclose(vfp);
+	  }
 	}
 #endif
-	if (statuslog)
-	  logstat(statuslog,vp,"ok3");
+	logstat(vp,"ok3");
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 1);
@@ -833,11 +839,14 @@ static int u_deferred(vp, index, inum, offset, notary, message)
 	  vp->message = strsave(message);
 	}
 #if 0
-	if (vp->cfp->vfp != NULL && vp->cfp->contents != NULL) {
-	  fseek(vp->cfp->vfp, (off_t)0, SEEK_END);
-	  fprintf(vp->cfp->vfp, "%s: deferred %s\n",
-		  vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		  message == NULL ? "(unknown)" : message);
+	if (vp->cfp->contents != NULL) {
+	  FILE *vfp = vfp_open(vp->cfp);
+	  if (vfp) {
+	    fprintf(vfp, "%s: deferred %s\n",
+		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		    message == NULL ? "(sent)" : message);
+	    fclose(vfp);
+	  }
 	}
 #endif
 	/*
@@ -864,15 +873,17 @@ static int u_error(vp, index, inum, offset, notary, message)
 	if (!procselect && vp->notaryflg & NOT_FAILURE)
 	  msgerror(vp, offset, message);
 #if 0
-	if (vp->cfp->vfp != NULL && vp->cfp->contents != NULL) {
-	  fseek(vp->cfp->vfp, (off_t)0, SEEK_END);
-	  fprintf(vp->cfp->vfp, "%s: error %s\n",
-		  vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		  message);
+	if (vp->cfp->contents != NULL) {
+	  FILE *vfp = vfp_open(vp->cfp);
+	  if (vfp) {
+	    fprintf(vfp, "%s: error %s\n",
+		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		    message == NULL ? "(sent)" : message);
+	    fclose(vfp);
+	  }
 	}
 #endif
-	if (statuslog)
-	  logstat(statuslog,vp,"error");
+	logstat(vp,"error");
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 0);
@@ -897,15 +908,17 @@ static int u_error2(vp, index, inum, offset, notary, message)
 	/* We don't need to log it! */
 	vp->cfp->haderror = 1; /* Mark it into the incore dataset */
 #if 0
-	if (vp->cfp->vfp != NULL && vp->cfp->contents != NULL) {
-	  fseek(vp->cfp->vfp, (off_t)0, SEEK_END);
-	  fprintf(vp->cfp->vfp, "%s: error %s\n",
-		  vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		  message);
+	if (vp->cfp->contents != NULL) {
+	  FILE *vfp = vfp_open(vp->cfp);
+	  if (vfp) {
+	    fprintf(vfp, "%s: error2 %s\n",
+		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		    message == NULL ? "(sent)" : message);
+	    fclose(vfp);
+	  }
 	}
 #endif
-	if (statuslog)
-	  logstat(statuslog,vp,"error");
+	logstat(vp,"error");
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 0);
@@ -950,11 +963,14 @@ static int u_retryat(vp, index, inum, offset, notary, message)
 	  vp->message = strsave(message);
 	}
 #if 0
-	if (vp->cfp->vfp != NULL && vp->cfp->contents != NULL) {
-	  fseek(vp->cfp->vfp, (off_t)0, SEEK_END);
-	  fprintf(vp->cfp->vfp, "%s: retryat %d %s\n",
-		  vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
-		  (int)retrytime, message == NULL ? "(unknown)" : message);
+	if (vp->cfp->contents != NULL) {
+	  FILE *vfp = vfp_open(vp->cfp);
+	  if (vfp) {
+	    fprintf(vfp, "%s: retryat %d %s\n",
+		    vp->cfp->contents + offset + 2 + _CFTAG_RCPTPIDSIZE,
+		    (int)retrytime, message == NULL ? "(unknown)" : message);
+	    fclose(vfp);
+	  }
 	}
 #endif
 	/*

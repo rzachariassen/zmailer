@@ -1,8 +1,27 @@
 1999-11-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/functions.c:
+	    More system rework, now signal handlers don't muck with
+	    stdio stuff, and associated trouble (which *might* be
+	    problem at some systems).  Report child-process runtime
+	    statistics when the child dies.  Use  select()  to detect
+	    when children have things to report, if available.
+	    A dead router child is reclaimed properly, and new ones
+	    are started as the need arises.
+
+	* scheduler/scheduler.c, scheduler/transport.c, scheduler/update.c:
+	    Fix message-specific interactive report logging to use
+	    vfp_open() routine (which had a feature/security problem
+	    in itself). Rearranged several logging points so that
+	    'scheduler processing' messages are done correctly.
+	    Wrote 'Feeding to child..' report into the transport.c.
+	    At update.c rewrote  logstat(),  and dead code now using
+	    vfp_open() to write individual recipient statuses; problem
+	    being that 'vp->cfp->contents' is NULL at the call time..
+
 	* scheduler/transport.c:
 	    mailq interface specification had a case where data can be
-	    omitted, and pointer is thus NULL -- referring via which
+	    omitted, and one pointer is thus NULL -- referring via which
 	    is an open invitation to trouble (SIGSEGV usually..)
 
 1999-11-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
