@@ -1256,10 +1256,14 @@ deliver(SS, dp, startrp, endrp)
 	  }
 	  time(&endtime);
 	  notary_setxdelay((int)(endtime-starttime));
-	  if (pipelining && SS->smtpfp /* might have timed out */)
-	    r = smtp_sync(SS, r, 0);
-	  else
-	    r = smtp_sync(SS, r, 1); /* non-blocking */
+	  if (SS->smtpfp) {
+	    if (pipelining)
+	      r = smtp_sync(SS, r, 0);
+	    else
+	      r = smtp_sync(SS, r, 1); /* non-blocking */
+	  } else {
+	    r = EX_TEMPFAIL; /* XXX: ??? */
+	  }
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	    /* NOTARY: address / action / status / diagnostic */
 	    notaryreport(rp->addr->user, FAILED,
@@ -1304,10 +1308,14 @@ deliver(SS, dp, startrp, endrp)
 		SS->rcptstates |= RCPTSTATE_500;
 	    time(&endtime);
 	    notary_setxdelay((int)(endtime-starttime));
-	    if (pipelining && SS->smtpfp)
-	      r = smtp_sync(SS, r, 0);
-	    else
-	      r = smtp_sync(SS, r, 1); /* non-blocking */
+	    if (SS->smtpfp) {
+	      if (pipelining)
+		r = smtp_sync(SS, r, 0);
+	      else
+		r = smtp_sync(SS, r, 1); /* non-blocking */
+	    } else {
+	      r = EX_TEMPFAIL; /* XXX: ??? */
+	    }
 	    /* NOTARY: address / action / status / diagnostic / wtt */
 	    notaryreport(NULL, FAILED, NULL, NULL);
 	    diagnostic(rp, r, 0, "%s", SS->remotemsg);
@@ -3239,10 +3247,14 @@ int bdat_flush(SS, lastflg)
 	}
 	SS->chunksize = 0;
 
-	if (lastflg || ! SS->pipelining)
-	  r = smtp_sync(SS, r, 0);
-	else
-	  r = smtp_sync(SS, r, 1); /* non-blocking */
+	if (SS->smtpfp) {
+	  if (lastflg || ! SS->pipelining)
+	    r = smtp_sync(SS, r, 0);
+	  else
+	    r = smtp_sync(SS, r, 1); /* non-blocking */
+	} else {
+	  r = EX_TEMPFAIL;
+	}
 	return r;
 }
 
@@ -3405,7 +3417,7 @@ char **statusp;
 int
 smtp_sync(SS, r, nonblocking)
 	SmtpState *SS;
-	int r, nonblocking; /* XX: implement nonblocking */
+	int r, nonblocking;
 {
 	char *s, *eof, *eol;
 	int infd = FILENO(SS->smtpfp);
