@@ -294,7 +294,7 @@ search_res(sip)
 		    "search_res: deferred: %s: %s (%d) error\n",
 		    host, qtp->typename, h_errno);
 
-	  sprintf(buf, "NS:%s/%s", host, qtp->typename);
+	  sprintf(buf, "NS:%.500s/%.20s", host, qtp->typename);
 	  v_set(DEFER, buf);
 	}
 	return rval;
@@ -549,7 +549,7 @@ getcrrtype(host, rrtype, ttlp, depth)	/* getrrtypec() with completion */
 	}
 	for (i = 0, domain = _res.dnsrch[i];
 	     h_errno == 0 && (domain = _res.dnsrch[i]) != NULL; ++i) {
-		sprintf(buf, "%s.%s", host, domain);
+		sprintf(buf, "%.200s.%.300s", host, domain);
 		rval = getrrtypec(buf, rrtype, ttlp, depth+1);
 		if (rval != NULL)
 			return rval;

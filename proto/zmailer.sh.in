@@ -41,10 +41,16 @@ esac
 
 cd $POSTOFFICE	# So that possible cores are there..
 
-if [ ! -d $MAILBOX ]; then
-    echo "$0: panic!!  MAILBOX-variable does not point to a directory!  Verify $ZCONFIG!"
-    exit 1
-fi
+case "$MAILBOX" in
+*%*)
+    ;; # Format-rule, don't check it being a dir...
+*)
+    if [ ! -d $MAILBOX ]; then
+	echo "$0: panic!!  MAILBOX-variable does not point to a directory!  Verify $ZCONFIG!"
+	exit 1
+    fi
+    ;;
+esac
 
 # set up the default arguments
 if [ "$1" = "start" -o "$1" = "reload" -o $# = 0 ]; then

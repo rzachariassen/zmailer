@@ -3,11 +3,10 @@
  *  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- *  Private authentication mechanism through an external program, pointed by
- *  the PIPEAUTHPATH variable in zmailer.conf. The program (or script) should
- *  read the user name from command line and the password from the standard
- *  input. Exit status 0 means successfull authentication.  The message
- *  directed to the standard output or standard error is logged via syslogd
+ *  User authentication through an external program. The program (or script)
+ *  should read a username from command line and a password from standard
+ *  input. Exit status 0 means successful authentication.  The message
+ *  directed to standard output or standard error is logged via syslogd
  *  (facility=auth, priority=info).  The authentication mechanism can be
  *  dangerous when used without care!
  *

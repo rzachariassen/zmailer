@@ -40,18 +40,23 @@
 #			# with the default code against system  /etc/passwd
 #			# (or whatever source  getpwnam() uses for it..)
 #
-#PARAM AUTH-LOGIN-also-without-TLS
+#PARAM  AUTH-LOGIN-also-without-TLS
 #			# Enable, if the "AUTH LOGIN" is to be allowed to
 #			# be used without running under SSL/TLS security
 #			# envelope.
 #
-#PARAM MSA-mode		# Message Submission Agent Mode. Require successfull
-#			# user authentication before message submission during
-#			# SMTP session from outside of "fulltrustnet" and
-#			# "relaycustnet" (see smtp-policy.src).
+#PARAM  MSA-mode	# Message Submission Agent mode. Require
+#			# successful user authentication during SMTP
+#			# sessions initiated from outside of the trusted
+#			# networks or the networks with relaying enabled
+#			# (see "fulltrustnet" and "relaycustnet" in
+#			# smtp-policy.src file).
 #
-#PARAM SMTP-Auth-Pipe /path/to/program
-#			# See  doc/guides/smtp-msa-mode  "document"
+#PARAM  SMTP-auth-pipe /path/to/program
+#			# External authentication program. The
+#			# authenticator should read a username from
+#			# command line and a password from standard input.
+#			# Exit status 0 means successful authentication.
 #
 # Disablers of some facility adverticements
 #PARAM  NoEHLO

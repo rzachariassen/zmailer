@@ -23,6 +23,10 @@ smtpserver \- zmailer SMTP server
 .B \-s strict
 ]
 [
+.B \-I
+.I pidfile
+]
+[
 .B \-L
 .I maxloadaver
 ]
@@ -94,6 +98,8 @@ indicates the program is being run from
 specifies the TCP port to listen on instead of the default SMTP port, 25.
 .IP \-B
 flags the email to arrive via BSMTP channel (via BITNET, for example).
+.IP \-I\ \fIpidfile\fR
+specifies an alternate PID file location.
 .IP \-L\ \fImaxloadaver\fR
 tells the maximum load-average the system is under when we still accept
 email in.
@@ -281,6 +287,24 @@ to this host, are then able to relay the email thru the server unlimited.
 This enables 'SMTP AUTH' facility usage also without running
 under SSL/TLS security envelope.
 
+.IP PARAM\ MSA\-mode
+Enable Message Submission Agent mode, where smtpserver
+.B requires
+successful user authentication during SMTP sessions initiated from
+outside of the trusted networks or the networks with relaying enabled
+(see "fulltrustnet" and "relaycustnet" at the sample
+.I proto/db/smtp-policy.src
+file).
+
+.IP PARAM\ SMTP\-auth\-pipe\ /path/to/program
+This is a path to the external authentication program. The authenticator
+should read a username from command line and a password from standard
+input. Exit status 0 means successful authentication.
+
+.B It is relatively easy to make a mistake in external authentication
+.B program that follows the specification. Use this option only if
+.B you know exactly what you do!
+
 .IP PARAM\ No8BITMIME
 .IP PARAM\ NoCHUNKING
 .IP PARAM\ NoDSN
@@ -301,17 +325,6 @@ for it, as in general they work quite fine.
 
 Of these, 8BITMIME can not in reality be disabled, only its adverticement
 can be turned off.
-
-.IP PARAM\ MSA\-mode
-.I Message Submission Agent Mode
-(RFC 2476).
-
-Require successfull user authentication before message submission during
-SMTP session from outside of "fulltrustnet" and "relaycustnet"
-(see smtp-policy.src).
-
-.IP PARAM\ SMTP\-Auth\-Pipe\ /path/to/program
-See ``doc/guides/smtp-msa-mode'' file.
 
 .IP PARAM\ no\-multiline\-replies
 Turn off ZMailer's default multiline replies; many systems (especially
@@ -358,7 +371,7 @@ file.
 #PARAM  DEBUGcmd
 PARAM   EXPNcmd
 PARAM   VRFYcmd
-#PARAM  enable-router
+PARAM  enable-router
 #               # This is a security decission for you.
 #               # This is needed for EXPN/VRFY and interactive
 #               # processing of MAIL FROM and RCPT TO addresses.
@@ -372,18 +385,24 @@ PARAM   VRFYcmd
 #               # with the default code against system /etc/passwd
 #               # (or whatever source  getpwnam() uses for it..)
 #
-#PARAM AUTH-LOGIN-also-without-TLS
+#PARAM  AUTH-LOGIN-also-without-TLS
 #               # Enable, if the "AUTH LOGIN" is to be allowed to
 #               # be used without running under SSL/TLS security
 #               # envelope.
 #
-#PARAM MSA-mode # Message Submission Agent Mode. Require successfull
-#               # user authentication before message submission during
-#               # SMTP session from outside of "fulltrustnet" and
-#               # "relaycustnet" (see smtp-policy.src).
+#PARAM  MSA-mode
+#               # Message Submission Agent mode. Require
+#               # successful user authentication during SMTP
+#               # sessions initiated from outside of the trusted
+#               # networks or the networks with relaying enabled
+#               # (see "fulltrustnet" and "relaycustnet" in
+#               # smtp-policy.src file).
 #
-#PARAM SMTP-Auth-Pipe /path/to/program
-#               # See  doc/guides/smtp-msa-mode  "document"
+#PARAM  SMTP-auth-pipe /path/to/program
+#               # External authentication program. The
+#               # authenticator should read a username from
+#               # command line and a password from standard input.
+#               # Exit status 0 means successful authentication.
 #
 # Disablers of some facility adverticements
 #PARAM  NoEHLO

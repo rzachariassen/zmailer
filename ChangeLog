@@ -1,3 +1,13 @@
+1999-09-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/smtpserver.conf.in, proto/zmailer.sh.in,
+	  smtpserver/zpwmatch-pipe.c, man/smtpserver.8:
+	    Documentation entries from Artur Urbanowicz.
+
+	* router/libdb/bind.c:
+	    Limited one potential buffer-overflow into more sensible
+	    sizes of input.
+
 1999-09-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/mailbox/mailbox.c, transports/mailbox/fmtmbox.c,
