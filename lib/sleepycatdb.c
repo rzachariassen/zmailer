@@ -8,6 +8,11 @@
  */
 
 #include "hostenv.h"
+
+#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
+    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H) || \
+    defined(HAVE_DB4_DB_H)
+
 #include <sys/types.h>
 #if (defined(__svr4__) || defined(__SVR4)) && defined(__sun)
 # define BSD_COMP /* Damn Solaris, and its tricks... */
@@ -309,3 +314,6 @@ int zsleepyprivateopen(prv, roflag, mode, comment)
 
 	return err;
 }
+
+
+#endif /* SleepyCat headers exist */
