@@ -1,5 +1,11 @@
 2003-05-01  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  man/smtpserver.8, proto/smtpserver.conf.in:
+	    tar-pit things from James MacKinnon.
+	    Actually diff against 2.99.55, which has been adapted to
+	    current CVS.
+
 	* proto/zmailer.sh.in:
 	    Quote typo introduced when adding  --zconfig   option..  Oops.
 
@@ -854,7 +860,7 @@
 	    and that is indeed possible if the deprecated  ssmtp
 	    service is in use.  Moving relevant initialization code
 	    upwards slightly fixes the problem.
-	    (Latter Eugene admitted that there could have been
+	    (Later Eugene admitted that there could have been
 	     a pilot error -- omitting "make clean" before "make".)
 
 2002-05-20  Matti Aarnio  <mea@zmailer.org>
@@ -1181,7 +1187,7 @@
 	    to fail in most annoying way.
 	    Also allowed for 'challenge' subfield to be filled
 	    with a NULL pointer by the  strdup(), which a bit
-	    latter could lead to NULL referral, and thus SigSEGV..
+	    later could lead to NULL referral, and thus SigSEGV..
 
 2001-10-21  Michael Loftis <mloftis@wgops.com>
 
@@ -2132,7 +2138,7 @@
 	* transports/smtp/smtp.c:
 	    A bit different handling on pipelined response collection.
 	    If MAIL FROM yields an error, report it, never mind what
-	    socket read did latter..
+	    socket read did later..
 
 	* transports/libta/mimeheaders.c:
 	    Simplify!  Don't try to be smart when playing with malloced
@@ -2302,7 +2308,7 @@
 	    indicate NXDOMAIN DNS query reply status, but the
 	    darn thing happens *rarely*...
 	    ... I am not sure this change is a smart thing to do,
-	    ... and latter on I removed this change.
+	    ... and later on I removed this change.
 	    It looks like getting NXDOMAIN is trouble at whatever
 	    system happens to be the DNS server, and we are better
 	    off when we don't trouble ourselves too much with
@@ -3109,7 +3115,7 @@
 
 	* transports/smtp/smtp.c:
 	    Allow  ssfgets()  to enlarge the input string in runtime,
-	    which enables us latter to make weird things like multiple
+	    which enables us later to make weird things like multiple
 	    hosts feeding in same connection... (perhaps)
 
 	* transports/smtp/smtp.c:
@@ -3253,7 +3259,7 @@
 	    for a while -- especially if the db is *very* small.
 	    The  dbm_pagfno()  yields always ok filehandle number,
 	    and thus we use it -- and change file moving order to
-	    .DIR .PAG to match which is tested latter.
+	    .DIR .PAG to match which is tested later.
 
 2000-05-10  Matti Aarnio  <mea@zmailer.org>
 
@@ -3384,12 +3390,12 @@
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c,
 	  transports/smtp/smtp.h:
 	    Try to combat certain TLS related problems mentioned before.
-	    (An hour latter: Cured them apparently..)
+	    (An hour later: Cured them apparently..)
 
 	* smtpserver/smtptls.c, smtpserver/smtpserver.c:
 	    Under TLS do always flush replies - to simulate one other
 	    MTA running under TLS wrapper.
-	    (This was removed a bit latter.)
+	    (This was removed a bit later.)
 
 2000-04-12  Matti Aarnio  <mea@zmailer.org>
 
@@ -4231,7 +4237,7 @@
 
 	* scheduler/scheduler.c, scheduler/scheduler.h:
 	    After some fixed amount of resyncs on a file, throw it away
-	    alltogether for latter input queue scanner to find.
+	    alltogether for later input queue scanner to find.
 	
 1999-12-22  Matti Aarnio  <mea@zmailer.org>
 
@@ -5687,7 +5693,7 @@
 	* libsh/tregexp.c, libsh/interpret.c:
 	    A bit less copying around, and way smaller initial malloc
 	    to avoid need for big memory blocks, which don't seem to be
-	    available for latter reuse -- memory fragments, you see..
+	    available for later reuse -- memory fragments, you see..
 	    (At least I think so..)
 
 	* configure.in:
@@ -5820,14 +5826,14 @@
 	    available) very much independent of where along the code
 	    the problem occurred.   Originally a problem in e.g. connection
 	    setup until EHLO/HELO probe was retryable to an MX, but now
-	    a much latter problem phase (DATA + . yielding 4** code,
+	    a much later problem phase (DATA + . yielding 4** code,
 	    for example) can do the same.
 	
-	    Latter continued the theme with logging of the smtp client session
+	    Later continued the theme with logging of the smtp client session
 	    to one client with weird looking problem:  Ah, finally some clue
 	    on the PIPELINING problem; smtp_sync() ignored (or treated poorly)
 	    certain way how EXIM responds when it has disk full.  We missed
-	    the initial MAIL FROM-> 4** code, and errored with the latter
+	    the initial MAIL FROM-> 4** code, and errored with the later
 	    "503 No sender yet given"... D'uh..  (Likely this was entirely
 	    ZMailer problem, but was it only introduced yesterday, or has it
 	    been lurking there all along with PIPELING, and never spotted
@@ -6572,7 +6578,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 
 	* */*.h */*.c */*/*.c: (all over the place)
 	    Did use "egcs -Wall -W -W***" to get lots of warnings.
-	    Tried to fix most of them.  (latter heard that the CVS
+	    Tried to fix most of them.  (later heard that the CVS
 	    dumpped source is a bit broken in Solaris 2.5.1 ...
 	    will have to return to this...)
 
@@ -8294,8 +8300,8 @@ Fri Jun 13 22:41:04 1997  Matti Aarnio  <mea@mea-koti.tmt.tele.fi>
 	    - Added function prototypes all around, and fixed a couple
 	      real bugs in rarely used parts of the system
 	    - changed all instances of 'struct conscell' into 'conscell'
-	      (typedefed object) for a latter jump in altering the
-	      conscell object handling sometime latter in the developement.
+	      (typedefed object) for a later jump in altering the
+	      conscell object handling sometime later in the developement.
 
 	* lib/strlower.c, lib/strupper.c:
 	    New library routines
@@ -9349,7 +9355,7 @@ Mon Nov 11 18:56:21 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.c:
 	    - Lowercase the whole input string with "channel host",
-	      then latter sort those lines with  strcmp()  instead
+	      then later sort those lines with  strcmp()  instead
 	      of  cistrcmp() ...
 	    - Fix parsing the NOTIFY= parameter -- wrong index..
 
@@ -9991,7 +9997,7 @@ Tue Jun  4 18:52:08 1996  Matti Aarnio  <mea@nic.funet.fi>
 	    Removed one  setlevel(MEM_SHCMD,...)  that caused memory
 	    to be freed too agressively in some cases, and which in
 	    turn was able to corrupt memory, when it was taken into
-	    use a bit latter:  for x in $(/bin/cat /etc/group); do ... ; done
+	    use a bit later:  for x in $(/bin/cat /etc/group); do ... ; done
 
 Fri May 31 15:30:01 1996  Matti Aarnio  <mea@nic.funet.fi>
 
@@ -10230,7 +10236,7 @@ Tue Feb  6 00:54:37 1996  Matti Aarnio  <mea@nic.funet.fi>
 	* scheduler/update.c, scheduler/scheduler.c:
 	    Understands "#resync .." reqests, drops the
 	    info pertained to the jobspec, and returns
-	    to the problem sometime latter (via normal
+	    to the problem sometime later (via normal
 	    job scan..)
 	    
 	* transports/smtp/smtp.c, smtpserver/smtpserver.c:
@@ -10613,7 +10619,7 @@ Fri Nov 10 12:54:30 1995  Matti Aarnio  <mea@nic.funet.fi>
 	    magnificent :-)
 	    (That compiler does need substantial amounts of memory
 	     to run, at least 200M to "ulimit -m" -- max memory size!)
-	    A bit latter: Decreased optimization demands by small
+	    A bit later: Decreased optimization demands by small
 	                  amounts -> smaller code (less inlining),
 			  and faster compile..  A LOT faster..
 
@@ -10679,7 +10685,7 @@ Tue Oct 24 22:30:50 1995  Matti Aarnio  <mea@nic.funet.fi>
 	    Changed the way the  diagnostic() call works,
 	    now the SMTP transporter can send a "retryat +NNN "
 	    request.  It is used for rescheduling entire thread
-	    for a bit latter time -- now fixed at 60 seconds.
+	    for a bit later time -- now fixed at 60 seconds.
 
 	* scheduler-new/
 	    Revised somewhat the internal logics, introduced
@@ -10728,7 +10734,7 @@ Fri Oct 13 17:21:27 1995  Matti Aarnio  <mea@nic.funet.fi>
 	* scheduler-new/
 	    - Still more hammering at it with DEC ATOM-tools Third Degree :)
 	      Now only memory leakages around are in the system libc! (Brr...)
-	    [ well, new leaks introduced latter, but that is another story.. ]
+	    [ well, new leaks introduced later, but that is another story.. ]
 
 Thu Oct 12 20:23:26 1995  Matti Aarnio  <mea@nic.funet.fi>
 
@@ -10799,7 +10805,7 @@ Wed Oct  4 15:15:03 1995  Matti Aarnio  <mea@nic.funet.fi>
 
 Sun Oct  1 15:57:39 1995  Matti Aarnio  (mea@oh1mqk)
 
-	* Dumped 2.99.17 -- and a bit latter revised scheduler-new..
+	* Dumped 2.99.17 -- and a bit later revised scheduler-new..
 
 	* libsh/Makefile{.in,}: (Michael Thompson <mickey@diva.com>)
 	    Fix to an awk script embedded into the Makefile.
@@ -10946,7 +10952,7 @@ Fri Sep  1 11:37:09 1995  Matti Aarnio  <mea@nic.funet.fi>
 	    Two subtle one-off errors which DEC OSF/1 ATOM-tool
 	    "Third Degree" detected. These caused actually buffer
 	    overflows :-( (by one byte), which in turn caused
-	    far latter errors, which looked rather weird..
+	    far later errors, which looked rather weird..
 
 	* scheduler/ - all files :)
 	    Made prototype functions for all inter-twined routines
@@ -11027,7 +11033,7 @@ Fri Aug 25 13:24:30 1995  Matti Aarnio  <mea@nic.funet.fi>
 
 	* scheduler/agenda.c:
 	    Fixes on time-stamp processing, adding up-to-date code
-	    into time handling -- setting all variables that are latter
+	    into time handling -- setting all variables that are later
 	    read from.
 
 	* scheduler/mailq.c:
@@ -11792,7 +11798,7 @@ Thu Dec 15 23:29:59 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 		new:	... router -dkn $NROUTERS
 	    Now it should start more than 9 routers...
 	    (On some platforms there is a behaviour where former
-	     would not start 10 routers, only one, while the latter
+	     would not start 10 routers, only one, while the later
 	     would start all 10.. -- On Solaris 2.3 it works with
 	     both ways, SunOS 4.1.3 (I think) had problems. )
 
@@ -11801,7 +11807,7 @@ Thu Dec 15 23:29:59 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 	    regexpr matches with GNU regex engine, and converted
 	    the old behaviour to name:  tsift/in/tfist
 
-	    -- a bit latter altered the names to be:
+	    -- a bit later altered the names to be:
 		sift/in/tfis	-- Tokens - compability alias
 		tsift/in/tfist	-- Tokens  (new PRIMARY name)
 		ssift/in/tfiss	-- Strings (new name)
@@ -11881,7 +11887,7 @@ Mon Dec 12 20:42:59 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 	* router/libdb/ordered.c, router/libdb/unordered.c,
 	  router/libdb/search.h:
 	    Use  USE_MMAP  capability and map the textual database
-	    file into memory for latter use -- will need less syscalls
+	    file into memory for later use -- will need less syscalls
 	    for the lookup...
 
 	* transports/smtp/smtp.c: writemimeline()
@@ -12270,7 +12276,7 @@ Wed Aug 24 02:00:17 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 	    can't run more than about 50 (!) channel programs at a time!
 	    (Marco Hernandez @ CREN.ORG reported this problem..)
 	    At the moment:  NO IDEA  :-/
-	    (20 hours latter:
+	    (20 hours later:
 			Each scheduler file is kept open when it is in
 			active processing, each active transporter has
 			a diagnostics pipe back to the scheduler, and some
@@ -12295,9 +12301,9 @@ Wed Aug 24 02:00:17 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 
 	    Transporter main error reporter is  scheduler/msgerror.c,
 	    NOT the  transports/errormsg/errormsg.c !
-	    The latter can be used for some trivialities, though..
+	    The later can be used for some trivialities, though..
 	    (How the heck it can get NOTARY data ? -- solved three
-	     days latter..)
+	     days later..)
 
 Tue Aug 23 21:52:18 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
 
