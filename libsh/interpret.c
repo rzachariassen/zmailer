@@ -2397,6 +2397,7 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			    command->bufferp = &cdr(tmp);
 			  }
 			} else { /* TokenSift */
+			  char *s;
 			  if (arg1 == NULL || tre == NULL ||
 			      !isdigit((*arg1)&0xFF))
 			    break;
@@ -2404,10 +2405,10 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			    tsetsubexps(&sift[nsift-1].subexps, tre);
 			  else
 			    tsetsubexps(&sift[nsift].subexps, tre);
-			  arg1 = (const char *)tregsub(tre, atoi(arg1));
-			  if (arg1 != NULL) {
-			    int slen = strlen(arg1);
-			    tmp = newstring(arg1,slen);
+			  s = tregsub(tre, atoi(arg1));
+			  if (s != NULL) {
+			    int slen = strlen(s);
+			    tmp = newstring(s,slen);
 			    tmp->flags |= QUOTEDSTRING;
 			    /* cdr(tmp) = command->buffer; */
 			    *command->bufferp = tmp;
