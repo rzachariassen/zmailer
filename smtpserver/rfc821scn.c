@@ -850,8 +850,13 @@ int strict;
 	}
 #endif
 	q = rfc821_string(p, strict);
-	if (q == p)
-	    return s;		/* Missing string */
+	if (q == p) {
+	  if (*q == '@') {
+	    rfc821_error = "Localpart must not end with unquoted dot!";
+	  }
+	  return s;		/* Missing string */
+	}
+	
     }
     return q;
 }
