@@ -2161,6 +2161,7 @@ makeconn(SS, ai, ismx)
 	  if (! isreconnect) {
 
 	    /* For possible reconnect */
+	    if (SS->ai.ai_canonname) free(SS->ai.ai_canonname);
 	    memcpy(&SS->ai, ai, sizeof(*ai));
 	    memset(&SS->ai_addr, 0, sizeof(SS->ai_addr));
 	    if (ai->ai_family == AF_INET)
@@ -2170,7 +2171,6 @@ makeconn(SS, ai, ismx)
 	      memcpy(&SS->ai_addr.v6, ai->ai_addr, sizeof(SS->ai_addr.v6));
 #endif
 	    SS->ai.ai_addr = (struct sockaddr *) & SS->ai_addr;
-	    if (SS->ai.ai_canonname) free(SS->ai.ai_canonname);
 	    SS->ai.ai_canonname = NULL;
 	    if (ai->ai_canonname)
 	      SS->ai.ai_canonname = strdup(ai->ai_canonname);
