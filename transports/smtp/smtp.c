@@ -2673,8 +2673,12 @@ if (SS->verboselog)
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s')",
 			  host);
 		  zsyslog((LOG_ERR, "%s r=%d", SS->remotemsg, r));
+#if 0
 		  if (r != EX_TEMPFAIL)
 		    r = EX_NOHOST; /* Can do instant reject */
+#else
+		  r = EX_TEMPFAIL;
+#endif
 		} else {
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s', errno=%s, gai_errno='%s')",
