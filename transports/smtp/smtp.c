@@ -2405,7 +2405,7 @@ if (SS->verboselog)
 	    return EX_NOHOST;
 	  }
 
-	  retval = makeconn(SS, ai, -1);
+	  retval = makeconn(SS, ai, -2);
 	} else {
 	  hbuf[0] = '\0';
 	  errno = 0;
@@ -2725,11 +2725,15 @@ makeconn(SS, ai, ismx)
 
 	  notary_setwttip(SS->ipaddress);
 
-if (SS->verboselog)
-  fprintf(SS->verboselog,"Trying address: %s port %d\n", SS->ipaddress, SS->servport);
+	  if (i != 0 && ismx == -2)
+	    i = 0; /* Allow routing back to [1.2.3.4] ! */
 
-/* XXX: Locally matched address is on some MX target, if  ismx >= 0.
-        In such a case, the error should be ???? What ? */
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog,"Trying address: %s port %d\n",
+		    SS->ipaddress, SS->servport);
+
+	  /* XXX: Locally matched address is on some MX target, if  ismx >= 0.
+	     In such a case, the error should be ???? What ? */
 
 	  if (i != 0 && SS->servport == IPPORT_SMTP) {
 	    time(&endtime);
