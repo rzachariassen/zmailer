@@ -1,3 +1,8 @@
+2002-10-04  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtptls.c:
+	    Make CA file/directory issuance optional for smtpserver.
+
 2002-09-23  Matti Aarnio  <mea@zmailer.org>
 
 	* compat/sendmail/sendmail.c:
