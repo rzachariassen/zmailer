@@ -1256,17 +1256,17 @@ if test "$ac_cv_libsocket_both" = 1 ; then
   # Check cache
   if test "$ac_cv_func_socket_lxnet" = yes ; then
     AC_MSG_RESULT([need -lxnet library (cached)])
-    LIBSOCKET="-lnsl -lxnet"
+    LIBSOCKET="-lnsl -lsocket -lxnet"
   else
   if test "$ac_cv_func_socket_lsocket" = yes ; then
     AC_MSG_RESULT([need -lsocket library (cached)])
     LIBSOCKET="-lsocket"
     if test "$ac_cv_func_gethostbyname_lnsl" = yes ; then
-	LIBSOCKET="-lsocket -lnsl"
+	LIBSOCKET="-lnsl -lsocket"
     fi
   else
     # Well, will this work ?  SysVR4, but not Sun Solaris ?
-    AC_CHECK_LIB(xnet, connect, [LIBSOCKET="-lnsl -lxnet"
+    AC_CHECK_LIB(xnet, connect, [LIBSOCKET="-lnsl -lsocket -lxnet"
 				 ac_cv_func_socket_lsocket=no
 				 ac_cv_func_socket_lxnet=yes],[
       AC_CHECK_LIB(socket, connect, [LIBSOCKET="-lsocket"
