@@ -1,0 +1,40 @@
+	Some hints at using  tcp-wrapper  with ZMailer
+
+
+		Short:
+
+
+/etc/hosts.allow:
+
+  smtp-receiver : ALL : allow
+  mailq : small-list : allow
+
+
+
+		Long:
+
+SMTPSERVER and SCHEDULER programs use tcp-wrapper to check which systems
+are allowed to connect to the  SMTP  and  MAILQ  ports.
+
+A bug(?) in autoconfiguration scripts present since times immemorial
+caused that  tcpd.h  header file was not found automagically until
+system version 2.99.51-patch1.  (Presuming it resides at /usr/include/ )
+
+With that header, and related library ( -lwrap ) available, system does
+enable tcp-wrapper a bit sneakily, and you *MUST* supply these explicite
+lines into the  /etc/hosts.allow  (or where-ever it is in your system):
+
+	smtp-receiver : ALL : allow
+	mailq : small-list : allow
+
+The "small-list" at "mailq" means listing just a few machines from
+which you allow mailq to be queried at all.
+
+Make sure these entries are before any wild-card "reject all" entries.
+
+In the long run I will propably remove the wrapper test at SMTPSERVER,
+because that program has other more powerfull machinery in place for
+access control.
+
+
+/Matti Aarnio - 17Aug1999

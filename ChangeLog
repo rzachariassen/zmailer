@@ -1,3 +1,8 @@
+1999-08-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* README.TCP-WRAPPER:
+	    New file.
+
 1999-08-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/cf/aliases.cf:
