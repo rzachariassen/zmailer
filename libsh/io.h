@@ -86,6 +86,7 @@ extern struct siobuf *sIOp;
 			 (long)(sIOp->sb_ptr - sIOp->sb_base))
 
 #define	fgets(s,n,p)	(_FILEIO(p) ? std_fgets(s,n,p) : siofgets(s,n,p))
+#define	fgetc(p)	(_FILEIO(p) ? std_fgetc(p) : siofgetc(p))
 #define	gets(s)		(_FILEIO(stdin) ? std_gets(s) : siogets(s))
 #define	fputs(s,p)	(_FILEIO(p) ? std_fputs(s,p) : siofputs(s,p))
 #define	puts(s)		(_FILEIO(stdout) ? std_puts(s) : sioputs(s))
@@ -100,8 +101,10 @@ extern struct siobuf *sIOp;
 
 extern char	*std_gets  __((char *));
 extern char	*std_fgets __((char *, u_int, FILE *));
+extern int	std_fgetc __((FILE *));
 extern char	*siogets  __((char *));
 extern char	*siofgets __((char *, u_int, FILE *));
+extern int	siofgetc  __((FILE *));
 extern int	std_puts  __((const char *));
 extern int	std_fputs __((const char *, FILE *));
 extern int	sioputs   __((const char *));

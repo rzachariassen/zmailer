@@ -1,7 +1,7 @@
 /*
  *	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Some functions Copyright 1991-2001 Matti Aarnio.
+ *	Some functions Copyright 1991-2003 Matti Aarnio.
  */
 
 #include "hostenv.h"
@@ -699,114 +699,139 @@ sh_hash(argc, argv)
 	return 0;
 }
 
+
+/*
+
+The "man sh" tells us:
+
+     read name ...
+          One line is read from the standard input and, using the
+          internal  field separator, IFS (normally space or tab),
+          to delimit word boundaries, the first word is  assigned
+          to  the first name, the second word to the second name,
+          and so forth, with leftover words assigned to the  last
+          name.   Lines can be continued using \newline.  Charac-
+          ters other than newline can be quoted by preceding them
+          with a backslash.  These backslashes are removed before
+          words are assigned to names, and no  interpretation  is
+          done  on the character that follows the backslash.  The
+          return code is 0, unless an EOF is encountered.
+
+We add a note:
+
+	  We ignore backslash quoting completely, no line continuations!
+
+	  If there are fewer input "words" than parameter names,
+	  rest of the names will be assigned empty strings.
+
+This is tested with ZMSH script:
+
+  oldIFS=$IFS;IFS=":";while read user pass rest;do echo "u: $user";echo "p: $pass";echo "r: $rest";done < /etc/passwd;IFS=$oldIFS
+
+which shows:
+
+  u: root
+  p: x
+  r: 0:0:root:/root:/bin/bash
+...etc...
+
+*/
+
+/* Store a char into buffer, allocate it, if necessary. */
+
+static void sh_read_cput __((int, int *, char **, int *));
+static void sh_read_cput(c, ip, bufp, sizep)
+	int c, *ip, *sizep;
+	char **bufp;
+{
+	char *buf   = *bufp;
+	int bufsize = *sizep;
+	int i       = *ip;
+
+	if (i >= bufsize || !buf) {
+	  /* Need to grow ... */
+	  bufsize <<= 1;
+	  buf = erealloc(buf, bufsize+3);
+	}
+
+	buf[i]   = c;
+
+	buf[++i] = 0; /* Keep the string terminated.. */
+
+	*ip = i;
+	*sizep = bufsize;
+	*bufp  = buf;
+}
+
 static int
 sh_read(argc, argv)
 	int argc;
 	const char *argv[];
 {
-	static char *buf = NULL;
-	static u_int bufsize;
-	char *cp, *value = NULL, *bp;
-	int flag, offset, eoinp = 0;
+	static char *buf     = NULL;
+	static u_int bufsize = (BUFSIZ / 2) - 12;
+
+	int eoinp, i, flag;
 
 	if (argc == 1) {
-	  fprintf(stderr, USAGE_READ, argv[0]);
-	  return EX_USAGE;
+	    fprintf(stderr, USAGE_READ, argv[0]);
+	    return EX_USAGE;
 	}
 	if (ifs == NULL)
-	  ifs_flush();
+	    ifs_flush();
 
 	--argc, ++argv;
 
-	if (buf == NULL) {
-	  bufsize = BUFSIZ - 24;
-	  buf = emalloc(bufsize);
-	  fprintf(stderr, "SHREAD[1]: bufsize=%u  buf=%p\n", bufsize, buf);
-	}
+	eoinp = 0;
 
-	flag = 0;
-	bp = NULL;
-	buf[0] = '\0';
-	while (argc > 0) {
-	  if (fgets(buf, bufsize, stdin) == NULL) {
-	    eoinp = 1;
-	    break;
-	  }
-	  for (cp = buf; argc > 0 && *cp != '\0'; ) {
-	    while (*cp != '\0' && WHITESPACE((unsigned)*cp))
-	      ++cp;
-	    if (*cp == '\0') {
-	      if ((cp > buf) && (*(cp-1) != '\n') &&
-		  (offset = cp - buf)) {
-		bufsize = 2*bufsize;
-		fprintf(stderr, "SHREAD[2]: bufsize=%u  buf=%p\n", bufsize, buf);
+	for ( ; argc > 0; ) {
 
-		buf = erealloc(buf, bufsize);
-		if (buf && fgets(cp, bufsize/2, stdin)) {
-		  cp = buf + offset;
-		  continue;
-		} else
-		  break;
-	      } else
-		break;
-	    }
-	    if (!flag) {
-	      bp = cp;
-	      value = cp;
-	    }
-	    if (argc == 1)
-	      flag = 1;
-	    while (*cp == '\0' || !WHITESPACE((unsigned)*cp)) {
-	      if (*cp == '\0') {
-		if ((cp > buf) && (*(cp-1) != '\n') &&
-		    (offset = cp - buf)) {
-		  bufsize = 2*bufsize;
-		  buf = erealloc(buf, bufsize);
-		  fprintf(stderr, "SHREAD[3]: bufsize=%u  buf=%p\n", bufsize, buf);
-		  if (buf && fgets(cp, bufsize/2, stdin)) {
-		    cp = buf + offset;
-		    continue;
-		  } else
-		    break;
-		} else
-		  break;
-	      }
-	      if (*cp == '\\' && *(cp+1) != '\0') { /* bug */
-		if (*++cp == '\n') {
-		  *cp++ = '\0'; /* defeat above */
-		  continue;
+	    int c;
+
+	    i = 0; /* Collect one variable full at the time into
+		      the buffer.  Reuse the buffer for next variable
+		      content. */
+
+	    flag = 0; /* 0 == SKIP IFS;  0 !=  ARGC rules */
+
+	    for (;;) {
+		c = fgetc(stdin);
+		if (c == EOF) break;
+		++eoinp;
+		if (c == '\r' || c == 0) continue; /* ignore those */
+		if (c == '\n') break;
+		if (!flag) {
+		    /* Skipping leading IFSs */
+		    if (WHITESPACE(c)) continue;
+		    /* Non IFS character! */
+		    flag = 1;
 		}
-	      }
-	      *bp++ = *cp++;
+		if (argc > 1) {
+		    /* Scan over all non-IFS chars - stop at IFS chars */
+		    if (WHITESPACE(c)) break;
+		} else {
+		    /* Scan until end of line (or EOF), as
+		       the last variable collects the tail... */
+		    ;
+		}
+		/* Store this character into the buffer */
+		sh_read_cput(c, &i, &buf, &bufsize);
 	    }
-	    if (argc > 1) {
-	      --argc;
-	      if (*cp == '\0') {
-		*bp = '\0';	/* bp might == cp */
-		v_set(*argv++, value);
-		bp = value;
-		break;
-	      } else {
-		*bp = '\0';
-		v_set(*argv++, value);
-		++cp;
-	      }
-	    } else if (*cp++ != '\0')
-	      *bp++ = ' ';
-	  }
-	  if (bp > value) {
-	    if (*(bp-1) == ' ')
-	      *--bp = '\0';
-	    else
-	      *bp = '\0';
-	    v_set(*argv++, value), --argc;
-	  }
+
+	    /* Store collected value */
+	    if (argc > 0 && buf && i > 0) {
+		--argc;
+		v_set(*argv++, buf);
+	    }
+
+	    if ((c == EOF && i == 0) || c == '\n') break; /* Urgh.. EOF */
+
 	}
-	/* if (buf[0] == '\0') return 1; */
-	if (eoinp) return 1;
-/* eoinput: */
+
+	/* Left-over variables to be zeroed: */
 	while (argc-- > 0) v_set(*argv++, "");
-	return 0;
+
+	return (0 == eoinp);
 }
 
 int

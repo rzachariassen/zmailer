@@ -55,6 +55,7 @@ long std_ftell(fp) FILE *fp; { return ftell(fp); }
 char *std_gets(s) char *s; { return gets(s); }
 #endif
 
+int std_fgetc(fp) FILE *fp; { return fgetc(fp); }
 char *std_fgets(s, n, fp) char *s; u_int n; FILE *fp; { return fgets(s, n, fp); }
 
 int std_puts(s) const char *s; { return puts(s); }
@@ -98,6 +99,21 @@ siogets(s)
 	return (s == os) ? NULL : os;
 }
 #endif
+
+int
+siofgetc(fp)
+	FILE *fp;
+{
+	register struct siobuf *siop = siofds[FILENO(fp)];
+
+	/* assert siop != NULL */
+	if (siop->sb_ptr + siop->sb_cnt < siop->sb_base + siop->sb_bufsiz) {
+	  register int ch = (int)*siop->sb_ptr++;
+	  if (ch == '\0')  return EOF;
+	  return ch;
+	}
+	return EOF;
+}
 
 char *
 siofgets(s, n, fp)
