@@ -498,7 +498,7 @@ execute(c, caller, oretcode, name)
 			RUNIO(c->undoio);
 		fprintf(stderr, "%s: %s\n", av[0], NOT_FOUND);
 		if (!z_isterminal(0))
-		  zsyslog((LOG_EMERG, "zmailer: interpreter: cmd not found: '%s'  ppid=%d", av[0], getppid();));
+		  zsyslog((LOG_EMERG, "zmailer: interpreter: cmd not found: '%s'  ppid=%d", av[0], getppid()));
 		if (!nofork)
 			_exit(1);
 		SIGNAL_HANDLE(SIGTERM, oterm_handler);
