@@ -809,9 +809,8 @@ thread_start(thr, queueonly_too)
 	struct vertex      *vp  = thr->thvertices;
 	struct threadgroup *thg = thr->thgrp;
 	struct config_entry *ce = &(thr->thgrp->ce);
-	struct web         *ho  = vp->orig[L_HOST];
-	struct web         *ch  = vp->orig[L_CHANNEL];
-
+	struct web         *ho;
+	struct web         *ch;
 
 	queryipccheck();
 
@@ -829,6 +828,9 @@ thread_start(thr, queueonly_too)
 	    return 0;
 	}
 	thr->pending = NULL;
+
+	ho = vp->orig[L_HOST];
+	ch = vp->orig[L_CHANNEL];
 
 	if (verbose)
 	  sfprintf(sfstderr,"thread_start(thr=%s/%d/%s) (dt=%d thr=%p jobs=%d)\n",
