@@ -83,6 +83,7 @@ typedef struct state_ctf {
 	FILE *tofp[MAXCTFS];
 	int   fromfd[MAXCTFS];
 	char *buf[MAXCTFS];
+	int   inlen[MAXCTFS];
 	int   bufsize[MAXCTFS];
 	int   sawhungry[MAXCTFS];
 	struct fdgets_fdbuf fdb[MAXCTFS];
@@ -211,8 +212,7 @@ static int subdaemon_ctf_proc (CTF, idx)
 	fd_blockingmode(CTF->fromfd[idx]);
 	
 	for (;;) {
-	  CTF->bufsize[idx] = 0;
-	  rc = fdgets( & CTF->buf[idx], & CTF->bufsize[idx], &CTF->fdb[idx], CTF->fromfd[idx], 10);
+	  rc = fdgets( & CTF->buf[idx], 0, & CTF->bufsize[idx], &CTF->fdb[idx], CTF->fromfd[idx], 10);
 	  if ( rc < 1 || ! CTF->buf[idx] ) {
 	    /* FIXME: ERROR PROCESSING ! */
 	    if (rc == 0) {
@@ -430,7 +430,8 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 	  if ( _Z_FD_ISSETp(CTF->fromfd[idx], rdset) || CTF->fdb[idx].rdsize ) {
 	    /* We have something to read ! */
 	    
-	    rc = fdgets( & CTF->buf[idx], & CTF->bufsize[idx],
+	    rc = fdgets( & CTF->buf[idx], CTF->inlen[idx],
+			 & CTF->bufsize[idx],
 			 &CTF->fdb[idx], CTF->fromfd[idx], -1);
 
 #if 0 /* Let the loop to spin... */
@@ -442,6 +443,7 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 	    }
 	    
 	    if (rc > 0) {
+	      CTF->inlen[idx] = rc;
 	      if (CTF->buf[idx][rc-1] == '\n') {
 		/* Whole line accumulated, send it out! */
 		
@@ -561,8 +563,7 @@ smtpcontentfilter_init ( statepp )
 	errno = 0;
 
 	if (state->buf) state->buf[0] = 0;
-	state->buflen = 0;
-	if (fdgets( & state->buf, & state->buflen, & state->fdb, state->fd_io, 10 ) < 0) {
+	if (fdgets( & state->buf, 0, & state->buflen, & state->fdb, state->fd_io, 10 ) < 0) {
 	  /* something failed! -- timeout in 10 secs ?? */
 	  if (debug)
 	    type(NULL,0,NULL,"smtpcontentfilter_init; FAILURE 10-B");
@@ -634,8 +635,7 @@ contentfilter_proc(ctfstatep, fname)
 	  /* The reply is better to reach us within 60 seconds.. */
 
 	  if (ctfstate->buf) ctfstate->buf[0] = 0;
-	  ctfstate->buflen = 0;
-	  rc = fdgets( & ctfstate->buf, & ctfstate->buflen, & ctfstate->fdb, ctfstate->fd_io, 120 );
+	  rc = fdgets( & ctfstate->buf, 0, & ctfstate->buflen, & ctfstate->fdb, ctfstate->fd_io, 120 );
 
 	  if (ctfstate->buf && (rc > 0))
 	    if (ctfstate->buf[rc-1] == '\n')

@@ -649,7 +649,7 @@ struct fdgets_fdbuf {
 	int rdsize;
 	char rdbuf[100];
 };
-extern int fdgets __((char **bufp, int *buflenp, struct fdgets_fdbuf *fdp, int fd, int timeout));
+extern int fdgets __((char **bufp, int endi, int *buflenp, struct fdgets_fdbuf *fdp, int fd, int timeout));
 
 extern int  ratetracker_rdz_fd;
 extern int  ratetracker_server_pid;

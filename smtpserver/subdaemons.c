@@ -606,10 +606,10 @@ fdgetc(fdp, fd, timeout)
 }
 
 int
-fdgets (bufp, buflenp, fdp, fd, timeout)
+fdgets (bufp, endi, buflenp, fdp, fd, timeout)
      char **bufp;
      struct fdgets_fdbuf *fdp;
-     int *buflenp, fd, timeout;
+     int *buflenp, endi, fd, timeout;
 {
 	int i;
 	char c;
@@ -619,7 +619,7 @@ fdgets (bufp, buflenp, fdp, fd, timeout)
 	if (fd < 0) return -1;
 	fd_nonblockingmode(fd);
 
-	i = buflen;
+	i = endi;
 	for (;;) { /* Accumulate a line */
 	    c = fdgetc(fdp, fd, timeout);
 

@@ -45,6 +45,7 @@ typedef struct state_rtr {
 	FILE *tofp[MAXRTRS];
 	int   fromfd[MAXRTRS];
 	char *buf[MAXRTRS];
+	int   inlen[MAXRTRS];
 	int   bufsize[MAXRTRS];
 	int   sawhungry[MAXRTRS];
 	struct fdgets_fdbuf fdb[MAXRTRS];
@@ -151,8 +152,7 @@ static int subdaemon_callr (RTR, idx)
 	fd_blockingmode(RTR->fromfd[idx]);
 	
 	for (;;) {
-	  RTR->bufsize[idx] = 0;
-	  rc = fdgets( & RTR->buf[idx], & RTR->bufsize[idx],
+	  rc = fdgets( & RTR->buf[idx], 0, & RTR->bufsize[idx],
 		       & RTR->fdb[idx], RTR->fromfd[idx], 10);
 
 	  /* type(NULL,0,NULL,"fdgets-RTR-1: bufsize=%d '%s' rc=%d lastc=%d",
@@ -324,7 +324,7 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 	       RTR->fdb[idx].rdsize ) {
 	    /* We have something to read ! */
 
-	    rc = fdgets( & RTR->buf[idx], & RTR->bufsize[idx],
+	    rc = fdgets( & RTR->buf[idx], RTR->inlen[idx], & RTR->bufsize[idx],
 			 & RTR->fdb[idx], RTR->fromfd[idx], -1);
 
 	    /* type(NULL,0,NULL,"fdgets-RTR-2: bufsize=%d '%s' rc=%d lastc=%d",
@@ -338,11 +338,12 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 	    }
 
 	    if (rc > 0) {
+	      RTR->inlen[idx] = rc;
 	      if (RTR->buf[idx][rc-1] == '\n') {
 		/* Whole line accumulated, send it out! */
 
 		subdaemon_send_to_peer(RTR->replypeer[idx], RTR->buf[idx], rc);
-		RTR->bufsize[idx] = 0; /* Zap it.. */
+		RTR->inlen[idx] = 0; /* Zap it.. */
 	      }
 
 	      if (strcmp( RTR->buf[idx], Hungry ) == 0) {
@@ -454,8 +455,7 @@ smtprouter_init ( statep )
 	errno = 0;
 
 	if (state->buf) state->buf[0] = 0;
-	state->buflen = 0;
-	if (fdgets( & state->buf, & state->buflen, & state->fdb, state->fd_io, 10 ) < 0) {
+	if (fdgets( & state->buf, 0, & state->buflen, & state->fdb, state->fd_io, 10 ) < 0) {
 	  /* something failed! -- timeout in 10 secs ?? */
 	  if (debug)
 	    type(NULL,0,NULL,"smtprouter_init; FAILURE 10-B");
@@ -558,8 +558,7 @@ router(SS, function, holdlast, arg, len)
 	  /* The reply is better to reach us within 60 seconds.. */
 
 	  if (state->buf) state->buf[0] = 0;
-	  state->buflen = 0;
-	  rc = fdgets( & state->buf, & state->buflen, & state->fdb, state->fd_io, 60 );
+	  rc = fdgets( & state->buf, 0, & state->buflen, & state->fdb, state->fd_io, 60 );
 
 	  if (state->buf && (rc > 0))
 	    if (state->buf[rc-1] == '\n')
