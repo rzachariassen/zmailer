@@ -1,3 +1,11 @@
+2002-05-28  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Eugene Crosser reported smtpserver spinning in place,
+	    and that is indeed possible if the deprecated  ssmtp
+	    service is in use.  Moving relevant initialization code
+	    upwards slightly fixes the problem.
+
 2002-05-20  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:

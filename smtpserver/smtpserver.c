@@ -1952,6 +1952,11 @@ int insecure;
       }
     }
 
+    /* Actually all modes use this write-out buffer */
+    SS->sslwrbuf = emalloc(8192);
+    SS->sslwrspace = 8192;
+    SS->sslwrin = SS->sslwrout = 0;
+
 #ifdef HAVE_OPENSSL
     if (ssmtp_connected) {
       if (tls_start_servertls(SS)) {
@@ -1960,11 +1965,6 @@ int insecure;
       }
     }
 #endif /* - HAVE_OPENSSL */
-
-    /* Actually all modes use this write-out buffer */
-    SS->sslwrbuf = emalloc(8192);
-    SS->sslwrspace = 8192;
-    SS->sslwrin = SS->sslwrout = 0;
 
 
 #ifdef HAVE_WHOSON_H
