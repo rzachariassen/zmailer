@@ -322,6 +322,10 @@ typedef struct {
   char *mailfrommsg;
   char ipaddress[200];
 
+  struct addrinfo *ai;		/* Lattest active connection */
+  int ismx;
+  struct addrinfo *ai_root;	/* All lattest addresses */
+
   char stdinbuf[8192];
   int  stdinsize; /* Available */
   int  stdincurs; /* Consumed  */
@@ -365,7 +369,8 @@ extern int process    __((SmtpState *SS, struct ctldesc*, int, const char*, int)
 extern int check_7bit_cleanness __((struct ctldesc *dp));
 extern void notarystatsave __((SmtpState *SS, char *smtpstatline, char *status));
 
-extern int makeconn __((SmtpState *SS, struct addrinfo *, int));
+extern int makeconn  __((SmtpState *SS, struct addrinfo *, int));
+extern int makereconn __((SmtpState *SS));
 extern int vcsetup  __((SmtpState *SS, struct sockaddr *, int*, char*));
 #ifdef	BIND
 extern int rightmx  __((const char*, const char*, void*));
@@ -2348,7 +2353,7 @@ smtpopen(SS, host, noMX)
 	    if (i == EX_TEMPFAIL) {
 	      /* There are systems, which hang up on us, when we
 		 greet them with an "EHLO".. Do here a normal "HELO".. */
-	      i = smtpconn(SS, host, noMX);
+	      i = makereconn(SS);
 	      if (i != EX_OK)
 		continue;
 	      i = EX_TEMPFAIL;
@@ -2374,7 +2379,7 @@ smtpopen(SS, host, noMX)
 	    }
 	    if (i == EX_TEMPFAIL) {
 	      /* Ok, sometimes EHLO+HELO cause crash, open and do HELO only */
-	      i = smtpconn(SS, host, noMX);
+	      i = makereconn(SS);
 	      if (i != EX_OK)
 		continue;;
 	      i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
@@ -2514,6 +2519,7 @@ smtpconn(SS, host, noMX)
 
 	  SS->mxcount = 0;
 	  retval = makeconn(SS, ai, -2);
+	  ai = NULL; /* Don't free -- now */
 
 	} else {
 
@@ -2690,8 +2696,8 @@ if (SS->verboselog)
 	      notary_setwtt(buf);
 	    }
 	    retval = makeconn(SS, ai, -1);
-	    freeaddrinfo(ai);
-	    ai = NULL;
+	    /* freeaddrinfo(ai); -- stored into the SS */
+	    ai = NULL; /* Make sure we don't free the 'ai' chain below */
 	  } else {
 
 	    /* Has valid MX records, they have been suitably randomized
@@ -2710,6 +2716,8 @@ if (SS->verboselog)
 	      SS->firstmx = i+1;
 	      if (r == EX_OK) {
 		retval = EX_OK;
+		SS->mxh[i].ai = NULL; /* Save this chain into
+					 internal SS context! */
 		break;
 	      } else if (r == EX_TEMPFAIL)
 		retval = EX_TEMPFAIL;
@@ -2721,8 +2729,11 @@ if (SS->verboselog)
 	  fprintf(logfp,
 		  "%s#\tsmtpconn: retval = %d\n", logtag(), retval);
 	}
-	if (ai != NULL)
-	  freeaddrinfo(ai);
+
+	if (retval != EX_OK)
+	  if (ai != NULL)
+	    freeaddrinfo(ai);
+
 	return retval;
 }
 
@@ -2803,7 +2814,8 @@ makeconn(SS, ai, ismx)
 #endif	/* RFC974 */
 #endif	/* BIND */
 
-	retval = EX_UNAVAILABLE;
+
+	retval = EX_TEMPFAIL;
 #if 0
 	if (SS->verboselog) {
 	  fprintf(SS->verboselog,"makeconn('%.200s') to IP addresses:", hostbuf);
@@ -2815,6 +2827,16 @@ makeconn(SS, ai, ismx)
 	  fprintf(SS->verboselog,"\n");
 	}
 #endif
+
+	/* discard old reconnect state */
+
+	if (SS->ai_root)
+	  freeaddrinfo(SS->ai_root);
+
+	/* Save new reconnect state */
+
+	SS->ai_root = ai;
+
 	for ( ; ai && !getout ; ai = ai->ai_next ) {
 
 	  int i = 0;
@@ -2822,6 +2844,10 @@ makeconn(SS, ai, ismx)
 #if defined(AF_INET6) && defined(INET6)
 	  struct sockaddr_in6 *si6;
 #endif
+
+	  /* For possible reconnect */
+	  SS->ai   = ai;
+	  SS->ismx = ismx;
 
 	  if (ai->ai_family == AF_INET) {
 	    si = (struct sockaddr_in *)ai->ai_addr;
@@ -2869,6 +2895,7 @@ makeconn(SS, ai, ismx)
 	      break;
 	    }
 	    sprintf(SS->remotemsg,"Trying to talk with myself!");
+	    retval = EX_UNAVAILABLE;
 	    break;		/* TEMPFAIL or UNAVAILABLE.. */
 	  }
 
@@ -2880,7 +2907,8 @@ makeconn(SS, ai, ismx)
 	  }
 
 
-	  i = vcsetup(SS, /* (struct sockaddr *) */ ai->ai_addr, &mfd, hostbuf);
+	  i = vcsetup(SS, /* (struct sockaddr*) */ ai->ai_addr, &mfd, hostbuf);
+	  retval = i;
 
 	  switch (i) {
 	  case EX_OK:
@@ -2915,10 +2943,19 @@ makeconn(SS, ai, ismx)
 	      retval = EX_TEMPFAIL;
 	      break;
 	  }
-	}
+	} /* end of for-loop */
+
 	if (getout)
 	  retval = EX_TEMPFAIL;
 	return retval;
+}
+
+int
+makereconn(SS)
+     SmtpState *SS;
+{
+  smtpclose(SS);
+  return makeconn(SS, SS->ai, SS->ismx);
 }
 
 int
@@ -3822,8 +3859,7 @@ smtp_sync(SS, r, nonblocking)
 	      if (strncmp(SS->pipecmds[idx],
 			  "RSET",4) != 0) /* If RSET, append to previous! */
 		SS->remotemsg[0] = 0;
-	      rmsgappend(SS,"\r<<- ");
-	      rmsgappend(SS,"%s", SS->pipecmds[idx]);
+	      rmsgappend(SS,"\r<<- %s", SS->pipecmds[idx]);
 	    } else {
 	      strcpy(SS->remotemsg,"\r<<- (null)");
 	    }
@@ -4165,8 +4201,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	if (strbuf) {
 	  if (strncmp(strbuf,"RSET",4) != 0) /* If RSET, append to previous! */
 	    *SS->remotemsg = 0;
-	  rmsgappend(SS,"\r<<- ");
-	  rmsgappend(SS,"%s", strbuf);
+	  rmsgappend(SS,"\r<<- %s", strbuf);
 	} else {
 	  strcpy(SS->remotemsg,"\r<<- (null)");
 	}
@@ -4224,6 +4259,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 		if (*s != '\n')
 		  break;
 		*s = '\0';
+
+		rmsgappend(SS,"\r->> %s",buf);
+
 		if (SS->within_ehlo)
 		  ehlo_check(SS,&buf[4]);
 		if (!strbuf && !SS->esmtp_on_banner)
@@ -4324,7 +4362,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  return EX_TEMPFAIL;
 	}
 	*--cp = '\0';	/* kill the LF */
-	if ((cp - buf) < 4) {
+	if ((cp - buf) < 3) {
 	  /* A '354<CRLR>' could be treated as ok... */
 	  sprintf(SS->remotemsg, "smtp; 500 (SMTP response '%s' unexpected!)", buf);
 	  time(&endtime);
@@ -4360,9 +4398,6 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	if (!strbuf && !SS->esmtp_on_banner)
 	  esmtp_banner_check(SS,&buf[4]);
 
-	rmsgappend(SS,"\r->> %s",buf);
-
-	
 	dflag = 0;
 
 	if (response >= 400)

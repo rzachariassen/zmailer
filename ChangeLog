@@ -1,5 +1,11 @@
 1999-07-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    Reworked the EHLO/HELO reconnect mechanisms.  Now it
+	    reconnects to the *same* address where EHLO failed
+	    just previously.  Otherwise it could connect to some
+	    other address in case the target has several addresses..
+
 	* lib/rfc822scan.c:
 	    MKERROR() did crash for some reason in previous form.
 	    Modified call a bit and changed it into a static function
