@@ -1658,8 +1658,14 @@ run_daemon(argc, argv)
 	    for (i = 0; i < MAXROUTERCHILDS; ++i) {
 	      if ( routerchilds[i].tochild < 0 &&
 		   routerchilds[i].dq &&
-		   routerchilds[i].dq->wrkcount )
+		   routerchilds[i].dq->wrkcount ) {
 		start_child(i);
+#ifdef SIGCLD /* re-instantiate the child processor */
+		sig_chld(SIGCLD);
+#else
+		sig_chld(SIGCHLD);
+#endif
+	      }
 
 	      if ( routerchilds[i].tochild >= 0 &&
 		   routerchilds[i].childsize == 0 &&
