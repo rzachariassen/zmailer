@@ -1188,7 +1188,7 @@ static struct ctlfile *readmq2cfp __((const char *fname));
 static struct ctlfile *readmq2cfp(fname)
      const char *fname;
 {
-	struct ctlfile *cfp;
+	struct ctlfile *cfp = NULL;
 	int i, fd;
 	struct stat stbuf;
 	char *s, *s0;
@@ -1207,11 +1207,13 @@ static struct ctlfile *readmq2cfp(fname)
 	}
 
 	s0 = s = (char *)cfp+1;
-	memset(cfp, 0, sizeof(*cfp));
-	cfp->contents = s0;
 
 	i = read(fd, s0, stbuf.st_size);
 	close(fd);
+
+	memset(cfp, 0, sizeof(*cfp));
+	cfp->contents = s0;
+
 	if (i != stbuf.st_size) {
 	  /* whatever reason.. */
 	  free(cfp);
@@ -1234,24 +1236,19 @@ static struct ctlfile *readmq2cfp(fname)
 	      p = memchr(s, '\n', i);
 	    else
 	      break;
+	    if (!p) break;
 	    switch(c) {
 	    case _CF_FORMAT:
 	      *p = 0;
 	      cfp->format = 0;
 	      sscanf(s, "%i", &cfp->format);
+	      i -= (p - s);
 	      s = p;
 	      break;
 	    case _CF_LOGIDENT:
 	      cfp->logident = s;
 	      *p = 0;
-	      s = p;
-	      break;
-	    case _CF_SENDER:
-	      *p = 0;
-	      s = p;
-	      break;
-	    case _CF_RECIPIENT:
-	      *p = 0;
+	      i -= (p - s);
 	      s = p;
 	      break;
 	    case _CF_MSGHEADERS:
@@ -1263,6 +1260,9 @@ static struct ctlfile *readmq2cfp(fname)
 	      }
 	      break;
 	    default:
+	      *p = 0;
+	      i -= (p - s);
+	      s = p;
 	      break;
 	    }
 	  }
