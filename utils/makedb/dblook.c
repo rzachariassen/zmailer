@@ -126,7 +126,7 @@ const char *key;
     static char buf[500];
     char *name = KA(key[1]);
     if (key[1] == P_A_ALIAS) name = "=";
-    sprintf(buf,"%s %s",  name, key+2);
+    sprintf(buf, "%s",  name);
     return buf;
 }
 
@@ -135,11 +135,7 @@ static void showpolicydata(fp, dp, len)
      unsigned char *dp;
      int len;
 {
-  fprintf(fp, " %s \"", showattr(dp));
-  dp += 2;
-  len -= 2;
-  fwrite(dp, 1, len, fp);
-  fprintf(fp, "\"");
+  fprintf(fp, " %s \"%s\"", showattr(dp), dp+2);
 }       
 
 
