@@ -64,6 +64,7 @@ struct rcpt {
 	struct ctldesc	*desc;		/* backpointer to descriptor */
 	/* XX: something needed for XOR address lists */
 
+	char		*delayslot;
 #if 0 /* not yet ?? */
 	/* Delayed diagnostics */
 	char		*diagdelaybuf;

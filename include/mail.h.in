@@ -63,6 +63,7 @@
 #define _CFTAG_NOTOK	'-'	/* something went wrong */
 #define _CFTAG_DEFER	_CFTAG_NORMAL	/* try again later */
 #define _CFTAG_RCPTPIDSIZE 6	/* 6 chars for PID of the active transporter. */
+#define _CFTAG_RCPTDELAYSIZE 4	/* 4 chars for delay report indicator of this recipient; field contains decimal numeric string */
 
 
 #ifndef __

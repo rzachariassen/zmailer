@@ -219,7 +219,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 #endif
 {
 	register char *s, *contents;
-	char *mfpath;
+	char *mfpath, *delayslot;
 	int i, n;
 	struct taddress *ap;
 	struct rcpt *rp = NULL, *prevrp = NULL;
@@ -384,18 +384,22 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	    if (*s != _CFTAG_NORMAL || d.senders == NULL)
 	      break;
 	    ++s;
+	    s += _CFTAG_RCPTPIDSIZE;
 	    if (*s >= 'a' && *s <= 'z') {
-	      /* The old style file.. w/o PID-lock */
+	      /* The old style file.. w/o delay indicator slot */
 	      if ((ap = ctladdr(s)) == NULL) {
 		warning("Out of virtual memory!", (char *)NULL);
 		*exitflagp = 1;
 		break;
 	      }
-	    } else if ((ap = ctladdr(s+_CFTAG_RCPTPIDSIZE)) == NULL) {
+	      delayslot = NULL;
+	    } else if ((ap = ctladdr(s+_CFTAG_RCPTDELAYSIZE)) == NULL) {
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
 	      break;
-	    }
+	    } else
+	      delayslot = s;
+
 	    /* [mea] understand  'host' of type:
 	       "((mxer)(mxer mxer))"   */
 	    if ((channel != NULL
@@ -426,6 +430,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	      break;
 	    }
 	    rp->addr = ap;
+	    rp->delayslot;
 	    rp->id = d.offset[i];
 	    /* XX: XOR locks are different */
 	    rp->lockoffset = rp->id + 1;
