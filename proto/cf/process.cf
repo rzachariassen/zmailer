@@ -54,8 +54,8 @@ process (file) {
 #| because the rfc822 function knows about them.  There are no other
 #| message formats supported in this distribution.
 
-##	log info: recipients $(db count recipients) $(elements $(cdr $(cdr $(cdr $(cdr $envelopeinfo))))) '
-'
+##	log info: recipients $(db count recipients) $(elements $(cdr $(cdr $(cdr $(cdr $envelopeinfo)))))
+
 
 #| For statistics gathering we print out the envelope information property
 #| list in its entirety, except for the file name, and the message id, both

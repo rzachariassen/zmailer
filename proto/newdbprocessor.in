@@ -283,7 +283,7 @@ foreach $rel (keys %rels) {
 			    $data =~ s{\\}{\\\\}go;
 			    $data =~ s{"}{\\"}go;
 
-			    pushd(@ofn, 'db add '.$rel.' "'.$data.'"');
+			    pushd(@ofn, "db add ${rel} ${key} \"${data}\"");
 			}
 			close(RDBFILE);
 		    }
@@ -293,12 +293,6 @@ foreach $rel (keys %rels) {
 	} else {
 		$rdbexttst = '.dat';
 		$rdbext    = '.dat';
-	}
-
-	local($optset) = ' $o1 $o2 $o3 $o4 $o5 $o6 $o7 $o8 $o9 $o10 $o11 $o12 $o13 $o14 $o15 $o16 $o17 $o18 $o19';
-	if ((!($rdbflags =~ /:/)) &&
-	    (!($rdbflags =~ /\%/))) {
-	    $optset = '';
 	}
 
 	if ($rtype ne 'NONE') {
@@ -313,7 +307,7 @@ foreach $rel (keys %rels) {
 	    if ($rpriv eq '-') {
 		# ---- No privilege things collected -----
 		push(@tfn,
-"	if a=\"\$($rn \$key ".$optset.")\"; then
+"	if a=\"\$($rn \$\@)\"; then
 	    returns \"\$a\"
 	fi");
 
@@ -338,7 +332,7 @@ foreach $rel (keys %rels) {
 		}
 
 		push(@tfn,
-"	if a=\"\$($rn \$key ".$optset.")\"; then
+"	if a=\"\$($rn \$\@)\"; then
 	    priv=\"\$(filepriv -M $fmask $rdbfile$rdbexttst \\
 			    \$(db owner $rn))\" &&
 	    returns \"\$a\"
@@ -356,7 +350,7 @@ foreach $rel (keys %rels) {
     # --- put out tails, and complete..
     push(@ofn, "# boilerplate tail---
 
-${rel}(key, o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14, o15, o16, o17, o18, o19) {
+${rel}() {
     local a");
 
     push(@ofn, @tfn);

@@ -253,9 +253,10 @@ static int  start_child (i)
 
 
 	  pipes_to_child_fds(tofd,frmfd);
-	  for (idx = resources_query_nofiles(); idx >= 3; --idx)
+	  for (idx = resources_query_nofiles(); idx >= 3; --idx) {
+	    if (idx == 99) continue; /* Special debug handle, if ever used */
 	    close(idx);
-
+	  }
 #if 0
 	  resources_maximize_nofiles();
 #endif
