@@ -45,6 +45,7 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <sysexits.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -94,6 +95,7 @@ extern int wait();
 #endif
 #endif
 #endif
+#include <arpa/inet.h>
 
 #include "libc.h"
 #include "libz.h"

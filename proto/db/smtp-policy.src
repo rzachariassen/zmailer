@@ -36,8 +36,8 @@
 #|	'sendernorelay' { '+', '-' }
 #|	'test-dns-rbl'	{ '+', '-', "suffix.one:suffix.two" }
 #|	  Sample suffixes: rbl.maps.vix.com  relays.mail-abuse.org
-#|			   dul.maps.vix.com  relays.orbs.org
-#|  ------------- document update for following items needed!
+#|			   dul.maps.vix.com
+#|			   ok.orbs.org:relays.orbs.org  <-- that is a PAIR!
 #|	'rcpt-dns-rbl'	{ '+', '-', "suffix.one:suffix.two" }
 #|	'test-rcpt-dns-rbl' { '+', '-', "suffix.one:suffix.two" }
 #|	'message'	"quoted constant string message"

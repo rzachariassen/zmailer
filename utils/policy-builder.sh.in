@@ -64,19 +64,19 @@ if [ ! -f smtp-policy.src ] ; then
 	exit 64 # EX_USAGE
 fi
 
-if [ f$FLAG != fn ]; then
-    if [ -x $MAILBIN/smtp-policy-retrieve.pl ] ; then
-	$MAILBIN/smtp-policy-retrieve.pl
-    else
-	if [ -x $MAILBIN/spamlist.py -a -r spamlist_sources ] ; then
-	    $MAILBIN/spamlist.py spamlist_sources > smtp-policy.spam.new && \
-		mv  smtp-policy.spam.new smtp-policy.spam
-	else
-	    #
-	    # Following IS NOT SAFE, if either produces errors, those
-	    # go (usually) to the result file, and in the end the result
-	    # OVERWRITES the "running"  smtp-policy.spam  file.
-	    #
+#if [ f$FLAG != fn ]; then
+#    if [ -x $MAILBIN/smtp-policy-retrieve.pl ] ; then
+#	$MAILBIN/smtp-policy-retrieve.pl
+#    else
+#	if [ -x $MAILBIN/spamlist.py -a -r spamlist_sources ] ; then
+#	    $MAILBIN/spamlist.py spamlist_sources > smtp-policy.spam.new && \
+#		mv  smtp-policy.spam.new smtp-policy.spam
+#	else
+#	    #
+#	    # Following IS NOT SAFE, if either produces errors, those
+#	    # go (usually) to the result file, and in the end the result
+#	    # OVERWRITES the "running"  smtp-policy.spam  file.
+#	    #
 #	    > smtp-policy.spam.new
 #	   lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
 #		| sed -e '1,$s/^@/./' \
@@ -94,10 +94,10 @@ if [ f$FLAG != fn ]; then
 #		echo "Please try again."
 # 		exit 1
 #	    fi
-	    :
-	fi
-    fi
-fi
+#	    :
+#	fi
+#    fi
+#fi
 
 # Fork off a subshell to do it all...
 (

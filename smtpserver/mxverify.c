@@ -4,6 +4,9 @@
  *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999
  */
 
+#include "smtpserver.h"
+
+#if 0
 #include "hostenv.h"
 #include <stdio.h>
 #ifdef linux
@@ -13,7 +16,6 @@
 #include <errno.h>
 #include <pwd.h>
 #include "zmsignal.h"
-#include <sysexits.h>
 #ifdef HAVE_STDARG_H
 # include <stdarg.h>
 #else
@@ -41,6 +43,7 @@
 #ifndef EAI_AGAIN
 # include "netdb6.h"
 #endif
+#include <arpa/inet.h>
 
 #include "mail.h"
 #include "zsyslog.h"
@@ -48,6 +51,10 @@
 #include "zmalloc.h"
 #include "libz.h"
 #include "libc.h"
+
+
+#include "policytest.h"
+#endif
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
 #define	BIND		/* Want BIND (named) nameserver support enabled */
@@ -83,15 +90,13 @@ typedef u_char msgdata;
 typedef char msgdata;
 #endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
 
+
 static int dnsmxlookup __((const char*, int, int, int));
 
 typedef union {
 	HEADER qb1;
 	char qb2[PACKETSZ];
 } querybuf;
-
-
-#include "policytest.h"
 
 extern int debug;
 static char * txt_buf = NULL;
@@ -257,7 +262,7 @@ dnsmxlookup(host, depth, mxmode, qtype)
 		  }
 #if defined(AF_INET6) && defined(INET6)
 		  else if (sa->sa_family == AF_INET6) {
-		    inet_ntop(AF_INET6, ((struct sockaddr_in6 *)sa)->sin6_addr, buf, sizeof(buf));
+		    inet_ntop(AF_INET6, & ((struct sockaddr_in6 *)sa)->sin6_addr, buf, sizeof(buf));
 		    printf("  matching address IPv6:[%s]\n", buf);
 		  }
 #endif
@@ -445,6 +450,8 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 {
 	char hbuf[2000], *s, *suf;
 	/* int hspc; */
+	struct hostent *hp;
+	int has_ok = 0;
 
 	if (ipaf == P_K_IPv4) {
 	  sprintf(hbuf, "%d.%d.%d.%d.",
@@ -484,11 +491,25 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	  if (debug)
 	    printf("000- looking up DNS A object: %s\n", hbuf);
 
-	  type(NULL,0,NULL, "Looking up DNS A object: %s", hbuf);
 
-	  if (gethostbyname(hbuf) != NULL) {
+	  hp = gethostbyname(hbuf);
+	  if (hp != NULL) {
 	    /* XX: Should verify that the named object has A record: 127.0.0.2
 	       D'uh.. alternate dataset has A record: 127.0.0.3 */
+	    char abuf[30];
+
+	    inet_ntop(AF_INET, hp->h_addr, abuf, sizeof(abuf));
+
+	    type(NULL,0,NULL, "Looked up DNS A object: %s -> %s", hbuf, abuf);
+
+	    if (strncmp("127.0.0.",abuf,8) != 0) {
+	      has_ok = 1;
+	      continue; /* Isn't  127.0.0.* */
+	    }
+	    if (strcmp("127.0.0.4",abuf) == 0) {
+	      /* ORBS NETBLOCK */
+	      if (has_ok) continue;
+	    }
 
 	    /* Ok, then lookup for the TXT entry too! */
 	    if (debug)
@@ -501,6 +522,8 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	    }
 	    return -1;
 	  }
+	  /* Didn't find A record */
+	  type(NULL,0,NULL, "Looking up DNS A object: %s", hbuf);
 	}
 
 	return 0;
