@@ -1,0 +1,53 @@
+Subject: Re: offline zmailer?
+From:	mea@nic.funet.fi
+To:	P.Dekkers@phys.uu.nl (Paul Dekkers)
+Date:	Fri, 31 Jul 1998 00:38:10 +0300 (EET DST)
+Cc:	zmailer@nic.funet.fi
+
+> Hi
+> 
+> I'm reading my mail offline sometimes, like now, and I just sent some
+> replies. Now, the scheduler is trying to deliver the messages on the
+> background with 'smtp', which results in an running process that expires,
+> and than tries another message...
+...
+
+A possible way to do it:
+
+Define explicite routes for all target systems, including
+default "." route.
+
+$MAILVAR/db/routes:
+
+	host1.local.dom   smtpx!host1.local.dom
+	host2.local.dom   smtpx!host2.local.dom
+	.                 smtpx!outbound.relay.dom
+
+
+$MAILSHARE/scheduler.conf:
+
+	smtpx/outbound.relay.dom
+		queueonly	# since 2.99.49p5 (July 25, 1997)
+		#(+ other parms)
+		command="smtp -c smtpx -x"
+	smtpx/*
+		# NO queueonly HERE!
+		command="smtp -c smtpx -x"
+
+
+Now these mean that all your non-local traffic will go
+to a non-automatically kicked queue, and you have to
+manually initiate a "ETRN outbound.relay.dom" operation
+on it every now and then..
+
+
+> Paul
+> -- 
+> Paul Dekkers
+> E-Mail: <P.Dekkers@phys.uu.nl> / <P.Dekkers@cgu.nl>
+> In the beginning there was nothing, which exploded.
+	.. and invented Inflation ...
+
+
+/Matti Aarnio <mea@nic.funet.fi>
+

@@ -1,0 +1,52 @@
+Subject: Re: zmailer & virtual domains
+From:	mea@nic.funet.fi
+To:	vit@takthq.lipetsk.su (Victor Gamov)
+Date:	Thu, 30 Jul 1998 01:46:40 +0300 (EET DST)
+Cc:	zmailer@nic.funet.fi
+In-Reply-To: <199807291222.QAA09462@takthq.lipetsk.su> from "Victor Gamov" at Jul 29, 98 04:22:58 pm
+
+> 	Hi!  It's me again :-))
+> 
+>   I have the following question -- can I have some different mail domains
+> in one UNIX-box with zmailer?  For example, I want to have user1@domain1 and
+> user2@domain2 but user1@domain2 must be error address.
+> 
+> 	Any suggestion?
+
+	Presuming login usernames have nothing to do with address
+	names, and are unique over the entire user base, you could
+	do following mappings:
+
+	$MAILVAR/db/fqdnaliases:
+
+	user1@domain1:      login1@server1
+	user2@domain2:      login2@server1
+	user3@domain3:      login3@server2
+	postmaster@domain1: postmaster
+	postmaster@domain2: postmaster
+	postmaster@domain3: postmaster
+
+	(and presuming everything else at these two domains
+	 is invalid..)
+
+	$MAILVAR/db/routes:
+	domain1  	error!novirtuser
+	domain2   	error!novirtuser
+	domain3   	error!novirtuser
+
+	(And you may guess from that example one detail of
+	 how Sonera does virtual domains, and distribution
+	 to multiple servers for load distribution ...)
+
+
+	With '$MAILSHARE/forms/novirtuser' form (must be
+	written at first, though) a message of following
+	kind:
+
+		"Sorry, this is not known user in our
+		 virtual mapping database."
+
+> -- 
+> 	CU, Victor Gamov
+
+/Matti Aarnio <mea@nic.funet.fi>
