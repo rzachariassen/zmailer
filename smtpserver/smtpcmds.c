@@ -213,22 +213,23 @@ const char *buf, *cp;
     /* Router interacting policy analysis functions */
     /* Note, these are orthogonal to those of smtp-server
        internal policy functions! */
-    if (STYLE(cfinfo, 'h')) {
+    if (STYLE(SS->cfinfo, 'h')) {
       char argbuf[MAXHOSTNAMELEN+30];
-      sprintf(argbuf,"%s %s", rhostname,
+      char *s;
+      sprintf(argbuf,"%s %s", SS->rhostname,
 	      ((SS->ihostaddr && (SS->ihostaddr[0] != '\0'))
 	       ? SS->ihostaddr : "[0.0.0.0]"));
-      if ((s = router(RKEY_HELLO, 1, argbuf)) == NULL)
+      if ((s = router(SS, RKEY_HELLO, 1, argbuf, strlen(argbuf))) == NULL)
 	/* the error was printed in router() */
 	return;
       if (atoi(s) / 100 != 2) {
 	/* verification failed */
-	type(atoi(s), s+4, "Failed", "Failed");
+	type(SS, atoi(s), s+4, "Failed", "Failed");
 	free(s);
 	return;
       }
       else {
-	type(-atoi(s), s+4, "Ok", "Ok");
+	type(SS, -atoi(s), s+4, "Ok", "Ok");
 	free(s);
       }
     }
