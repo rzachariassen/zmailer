@@ -454,6 +454,8 @@ hdr_print(h, fp)
 		}
 		if (*p != 0)
 		  break;
+		if (!t->t_next) /* Don't fold here ! */
+		  break;
 		col = 0;
 		putc('\n', fp);
 		foldcol = 0;
@@ -1150,7 +1152,6 @@ errprint(fp, pp, hdrlen)
 			case aDomain:
 			case reSync:
 				len = fprintToken(fp, t, len);
-				fprintToken(fp, t, 0);
 				if (pp->p_type == reSync && t->t_next != NULL
 				    && (t->t_next->t_type == t->t_type
 					|| *(t->t_next->t_pname) == '<'))
