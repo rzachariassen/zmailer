@@ -1,3 +1,17 @@
+2001-10-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/mq2.c:
+	    Tracked wrong resource accounting at mailq2 code;
+	    it used to increment the number of (tracked) childs
+	    in a place where such increment is harmfull, and
+	    did lead to sort of "inflation" of children to such
+	    an extent that there were phantoms in all allowed
+	    resource slots..  Thus the 'mailq -Q' thing begun
+	    to fail in most annoying way.
+	    Also allowed for 'challenge' subfield to be filled
+	    with a NULL pointer by the  strdup(), which a bit
+	    latter could lead to NULL referral, and thus SigSEGV..
+
 2001-10-21  Michael Loftis <mloftis@wgops.com>
 
 	* scheduler/scheduler.c:

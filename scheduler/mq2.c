@@ -353,7 +353,6 @@ static void mq2_read(mq)
   }
 
   mq2_wflush(mq);
-  ++mq2count;
 }
 
 
@@ -406,6 +405,7 @@ void mq2_register(fd, addr)
 
     mq2_puts(mq, "550 NO ACCESS FOR YOU\n");
     mq2_wflush(mq);
+  mq2_abort:;
     mq2_discard(mq);
 
   } else {
@@ -417,7 +417,8 @@ void mq2_register(fd, addr)
     sprintf(buf,"220 MAILQ-V2-CHALLENGE: %ld.%ld.%d",
 	    (long)tv.tv_sec, (long)tv.tv_usec, ++cnt);
 
-    mq->challenge = strdup(buf);
+    mq->challenge = strdup(buf); /* This MAY yield NULL */
+    if (!mq->challenge) goto mq2_abort;
 
     mq2_puts(mq, buf);
     mq2_puts(mq, "\n");
