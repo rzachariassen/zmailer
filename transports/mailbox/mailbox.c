@@ -2040,7 +2040,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 {
 	int envi, rc, pid, in[2], out[2];
 	int gid = -1;
-	const char *env[40], *s;
+	char *env[40];
+	const char *s;
 	char buf[8192], *cp, *cpe;
 	int status;
 	struct passwd *pw;
@@ -2164,7 +2165,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	pid = fork();
 	if (pid == 0) { /* child */
-	  const char *argv[100];
+	  char * argv[100];
 	  int i;
 
 	  setregid(gid,gid);
@@ -2231,9 +2232,9 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	     * stuff to run contains an 'r'. XX: investigate.
 	     */
 
-	    argv[0] = cmdbuf+1;
+	    argv[0] = (char*)cmdbuf+1;
 	    argv[1] = "-c";
-	    argv[2] = cmdbuf+1;
+	    argv[2] = (char*)cmdbuf+1;
 	    argv[3] = NULL;
 
 	    execve("/bin/sh", argv, env);
@@ -3225,7 +3226,7 @@ find_return_receipt_hdr (rp)
         return (NULL);
 
     hdr = *ptr + 18;
-    while (*hdr != '\0' && isspace(*hdr))
+    while (*hdr != '\0' && isspace(*(unsigned char *)hdr))
         hdr++;
 
     return(hdr);
