@@ -1,3 +1,17 @@
+1999-11-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/Makefile.in, router/daemonsub.c, router/functions.c,
+	  router/router.c:
+	    Moved daemon management functions into own file, and rewrote
+	    them somewhat when Linux 2.3.30pre3 caused a hangup..
+	    (And cleaned some dead code from  router.c )
+	
+	* scheduler/mailq.c:
+	    Do line-start dot-duplication a'la SMTP...
+	
+	* utils/smtpserver-log-parser.pl:
+	    Synced this tool with my lattest online edition, fairly usable..
+
 1999-11-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/functions.c:

@@ -14,11 +14,17 @@
 #
 
 
+$match = undef;
+if (defined($ARGV[0])) {
+    $match = $ARGV[0];
+}
+
 #
 #  You wonder why this utility was written ?
 #  Well, "technical monitoring with tail -f" is something which propably
-#  is not allowed for people in Telecom Carrier business in Finland.
-#  
+#  is not allowed for people in Telecom Carrier business in Finland, thus
+#  we have to have a way to select only cases containing *errors* (or other
+#  interesting things), while basic flow goes by unseen...
 #
 
 
@@ -39,7 +45,7 @@ while (<STDIN>) {
 
     #print "line='".$line."'\n";
 
-    if ($line =~ m/^([0-9]*)([^0-9].*)$/) {
+    if ($line =~ m/^(.{9})(.*)$/o) {
 	$pid  = $1;
 	$rest = $2;
     } else {
@@ -51,16 +57,22 @@ while (<STDIN>) {
     #print "rest='".$rest."'\n";
 
     $isend = 0;
-    if ($rest =~ m/^-/) {
+    if ($rest =~ m/^-/o) {
 	$isend = 1;
     }
-    if ($rest =~ m/^w\t221/) {
+    if ($rest =~ m/^w\t221/o) {
 	$isend = 1;
     }
 
     $haserror = 0;
-    if ($rest =~ m/^w\t[45]/) {
-	$haserror = 1;
+    if (defined ($match)) {
+	if ($rest =~ m/$match/oi) {
+	    $haserror = 1;
+	}
+    } else {
+	if ($rest =~ m/^w\t[45]/o) {
+	    $haserror = 1;
+	}
     }
 
     if (!defined($sernrostore{$pid})) {

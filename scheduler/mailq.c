@@ -1099,7 +1099,8 @@ void query2(fpi, fpo)
 		break;
 	      if (buf[0] == '.' && buf[1] == 0)
 		break;
-	      printf("%s\n",buf);
+	      /* Do leading dot duplication suppression */
+	      printf("%s\n",((*buf == '.') ? buf+1 : buf));
 	    }
 
 	  }

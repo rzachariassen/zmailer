@@ -252,6 +252,7 @@ main(argc, argv)
 		/* lax, no NULL guard on end of tav */
 		run_trace(++tac, tav);
 	}
+
 	stickymem = MEM_PERM;
 
 	initialize(config, argc - c, &argv[c]);
@@ -260,9 +261,9 @@ main(argc, argv)
 	offout = ftell(stdout);
 	offerr = ftell(stderr);
 
-#ifdef	MALLOC_TRACE
+#ifdef MALLOC_TRACE
 	mal_leaktrace(1);
-#endif	/* MALLOC_TRACE */
+#endif /* MALLOC_TRACE */
 
 	if (daemonflg) {
 		if (chdir(postoffice) < 0 || chdir(ROUTERDIR) < 0)
@@ -275,6 +276,7 @@ main(argc, argv)
 		  fprintf(stderr, "%s: daemon not started.\n", progname);
 		  die(1, "errors during startup");
 		}
+
 		if (tac == 0)		/* leave worldy matters behind */
 		  detach();
 		printf("%s: router daemon (%s)\n\tstarted at %s\n",
@@ -285,7 +287,7 @@ main(argc, argv)
 		    fprintf(stderr,"router can't create pidfile ?? Disk full ??\n");
 		    exit(2);
 		  }
-		if (nrouters > 1) {
+		if (nrouters > 0) {
 		  int pgrp, ppid = getpid();
 #ifndef	GETPGRP_VOID		/* We assume getpgrp() and setpgrp() calling
 				   conventions match in the machine.. */
@@ -592,53 +594,7 @@ logit(file, id, from, to)
 	const char *file, *id, *from, *to;
 {
 	int flen, baselen;
-#if 0
-	char c;
 
-	if (id == NULL)
-		id = file;
-	baselen = strlen(file) + strlen(id) + 4;
-	c = '\0';
-	while (baselen + strlen(from) > MAXSAFESIZE) {
-		/* Wonderful software we're dealing with here... */
-		c = *(from+MAXSAFESIZE-baselen);
-		*(from+MAXSAFESIZE-baselen) = '\0';
-		printf("%s: file: %s %s...\n", id, file, from);
-		if (!nosyslog)
-		  zsyslog((LOG_INFO, "%s: file: %s %s...", id, file, from));
-		from += MAXSAFESIZE-baselen;
-		*from = c;
-		*--from = '.';
-		*--from = '.';
-		*--from = '.';
-	}
-	flen = strlen(from);
-	while (baselen + flen + strlen(to) > MAXSAFESIZE) {
-		c = *(to+MAXSAFESIZE-baselen-flen);
-		*(to+MAXSAFESIZE-baselen-flen) = '\0';
-		if (flen > 0)
-			printf("%s: file: %s %s =>%s\n", id, file, from, to);
-		else
-			printf("%s: file: %s %s\n", id, file, to);
-		if (!nosyslog)
-		  if (flen > 0)
-		    zsyslog((LOG_INFO, "%s: file: %s %s =>%s",
-			     id, file, from, to));
-		  else
-		    zsyslog((LOG_INFO, "%s: file: %s %s", id, file, to));
-		to += MAXSAFESIZE-baselen-flen;
-		*to = c;
-		*--to = '.';
-		*--to = '.';
-		*--to = '.';
-		flen = 0;
-	}
-	if (flen > 0) {
-	  printf("%s: file: %s %s =>%s\n", id, file, from, to);
-	  if (!nosyslog)
-	    zsyslog((LOG_INFO, "%s: file: %s %s =>%s", id, file, from, to));
-	}
-#else
 	if (id == NULL)
 		id = file;
 	baselen = strlen(file) + strlen(id) + 4;
@@ -659,7 +615,6 @@ logit(file, id, from, to)
 	  else
 	    zsyslog((LOG_INFO, "%.200s: file: %.150s %.200s", id, file, to));
 	}
-#endif
 }
 
 const char *
