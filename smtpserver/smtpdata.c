@@ -125,7 +125,8 @@ const char *buf, *cp;
     } else if (maxsize > 0 && filsiz > maxsize) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
-	type(SS, 552, "5.3.4", "Message size exceeded fixed maximum size of %ld chars for acceptable email", maxsize);
+	type(SS, -552, "5.3.4", "Size of this message exceeds the fixed maximum");
+	type(SS, -552, "5.3.4", "size of  %ld  chars for received email ", maxsize);
 	typeflush(SS);
     } else {
 
@@ -138,7 +139,7 @@ const char *buf, *cp;
 	    /* No rejection from earlier sources, lets see what we
 	       will do now ? */
 
-	    char *fname = mail_filename(SS->mfp);
+	    char *fname = mail_fname(SS->mfp);
 
 	    SS->policyresult = contentpolicy(policydb,&SS->policystate,fname);
 	}
@@ -315,7 +316,8 @@ const char *buf, *cp;
     } else if (maxsize > 0 && tell > maxsize) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
-	type(SS, 552, "5.3.4", "Message size exceeded fixed maximum size of %ld chars for acceptable email", maxsize);
+	type(SS, -552, "5.3.4", "Size of this message exceeds the fixed maximum");
+	type(SS, -552, "5.3.4", "size of  %ld  chars for received email ", maxsize);
     } else if (bdata_last) {
 	time_t mtime;
 	int inum;
@@ -329,7 +331,7 @@ const char *buf, *cp;
 	    /* No rejection from earlier sources, lets see what we
 	       will do now ? */
 
-	    char *fname = mail_filename(SS->mfp);
+	    char *fname = mail_fname(SS->mfp);
 
 	    SS->policyresult = contentpolicy(policydb,&SS->policystate,fname);
 	}

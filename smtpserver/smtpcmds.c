@@ -642,7 +642,8 @@ int insecure;
     if (ferror(SS->mfp)) {
 	type(SS, 452, m430, (char *) NULL);
     } else if (SS->sizeoptval > maxsize && maxsize > 0) {
-	type(SS, 552, "5.3.4", "The message size exceeds fixed maximum of %ld chars for message size", maxsize);
+	type(SS, -552, "5.3.4", "This message is larger, than our maximum acceptable");
+	type(SS,  552, "5.3.4", "incoming message size of  %d  chars.", maxsize);
     } else if (SS->sizeoptval > availspace) {
 	type(SS, 452, "4.3.1", "Try again later, insufficient storage available at the moment");
     } else {
