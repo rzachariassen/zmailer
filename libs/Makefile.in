@@ -9,10 +9,11 @@ VPATH=          @srcdir@
 LIBRESOLVA= @LIBRESOLVA@
 LIBMALLOC=  @LIBMALLOC@
 
-all:	libident.a libzmdb.a libsh.a libta.a libzm.a libzc.a	\
-	$(LIBRESOLVA) lib@MALLOC@.a
+ALL =		libident.a libzmdb.a libsh.a libta.a libzm.a libzc.a \
+		libsfio.a $(LIBRESOLVA) lib@MALLOC@.a
 
-libtag: all
+
+libtag all: ${ALL}
 	touch libtag
 
 depend:  # Eh ?
@@ -23,25 +24,25 @@ clean:
 distclean clean-recursive: clean
 	rm -f Makefile
 
-libident.a:	force
+libident.a:
 	cd ../libident; $(MAKE) $(MFLAGS) $@
 
-libzmdb.a:	force
+libzmdb.a:
 	cd ../router/libdb;  $(MAKE) $(MFLAGS) $@
 
-libsh.a:	force
+libsh.a:
 	cd ../libsh; $(MAKE) $(MFLAGS) $@
 
-libta.a:	force
+libta.a:
 	cd ../transports/libta; $(MAKE) $(MFLAGS) $@
 
-libzm.a:	force
+libzm.a:
 	cd ../lib; $(MAKE) $(MFLAGS) $@
 
-libzc.a:	force
+libzc.a:
 	cd ../libc; $(MAKE) $(MFLAGS) $@
 
-libmalloc.a libmalloc_d.a:	force
+libmalloc.a libmalloc_d.a:
 	if [ "x$(LIBMALLOC)" != "x" ] ; then	  \
 	  cd ../libmalloc; $(MAKE) $(MFLAGS) $@ ; \
 	fi
@@ -49,13 +50,14 @@ libmalloc.a libmalloc_d.a:	force
 libsystem.a:
 	: # Dummy...
 
+libsfio.a:
+	cd ../sfio; $(MAKE) $(MFLAGS) all
+
 #
 #  Usage of this resolver depends on if the configurer
 #  has issued configuration option:  --with-bundled-libresolv
 #
-libresolv.a:	force
+libresolv.a:
 	if [ "x$(LIBRESOLVA)" != "x" ] ; then	   \
 	  cd ../libresolv; $(MAKE) $(MFLAGS) $@	;  \
 	fi
-
-force:

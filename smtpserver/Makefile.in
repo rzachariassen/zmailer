@@ -45,7 +45,7 @@ SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c fdstatfs.c \
 privateauth=	@PRIVATEAUTH@
 
 
-all: $(PROGRAM)-a
+all: $(PROGRAM)
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -65,8 +65,6 @@ contentpolicy.o: $(srcdir)/contentpolicy.c $(srcdir)/policytest.h # ignored: $(s
 
 zpwmatch.o:	$(srcdir)/$(privateauth)zpwmatch.c
 	$(CC) $(CFLAGS) -c $(srcdir)/$(privateauth)zpwmatch.c
-
-$(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)
 
 $(PROGRAM):	$(OBJS) $(LIBDEB) version.o
 	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(LIB) $(SMTPSERVER_LIB)

@@ -28,7 +28,7 @@ PROGS	= router/router scheduler/scheduler			\
 	utils/vacation/vacation utils/makedb/makedb
 
 # Subdirectories to run make in for the primary targets.
-SUBDIRS =   sfio smtpserver router scheduler transports compat utils
+SUBDIRS =   smtpserver router scheduler transports compat utils
 # Subdirectories where to run 'make clean'
 MOREDIRS = libs lib libc libsh libident libmalloc libresolv ssl \
 	   proto doc man
@@ -45,17 +45,23 @@ DISTCLEANFILES = include/mail.h SiteConfig bin/mklibdeb bin/mkdeb	\
 #.SUFFIXES:
 
 all: config.h Makefile rfc822.entry $(ZCONF) SiteConfig
-	rm -f libs/libtag
+	#rm -f libs/libtag
 	for subdir in $(SUBDIRS); do \
 		echo making $@ in $$subdir; \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
+
+#	If need be, "make libs" at the top-level will remake all libraries
+libs:	force
+	cd libs && $(MAKE) $(MFLAGS) clean all
+
 
 info dvi:
 	cd doc && $(MAKE) $@
 
 check:
 installcheck:
+
 
 rfc822.entry: include/rfc822.entry
 
