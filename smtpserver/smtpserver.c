@@ -471,12 +471,14 @@ char **argv;
     } else
 #ifdef	USE_INET
     if (inetd) {
+#if 0
 	if (maxloadavg != 999 &&
 	    maxloadavg < loadavg_current()) {
 	    write(1, msg_toohighload, strlen(msg_toohighload));
 	    sleep(2);
 	    exit(1);
 	}
+#endif
 	raddrlen = sizeof SS.raddr;
 	memset(&SS.raddr, 0, raddrlen);
 	if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen)) {
@@ -804,6 +806,7 @@ char **argv;
 		    fclose(logfp);
 		logfp = NULL;
 
+#if 0
 		if (maxloadavg != 999 &&
 		    maxloadavg < loadavg_current()) {
 		    write(msgfd, msg_toohighload,
@@ -811,6 +814,7 @@ char **argv;
 		    sleep(2);
 		    exit(1);
 		}
+#endif
 		SIGNAL_HANDLE(SIGTERM, SIG_IGN);
 
 #if defined(AF_INET6) && defined(INET6)
