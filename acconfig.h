@@ -162,3 +162,6 @@
 #undef HAVE_DB_OPEN2
 /* Latter versions of 2.x have 4-args (db->cursor)() method */
 #undef HAVE_DB_CURSOR4
+
+/* For mailbox; check mailbox quota thru  checkmbsize() routine.. */
+#undef CHECK_MB_SIZE

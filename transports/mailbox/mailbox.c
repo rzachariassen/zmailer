@@ -1300,29 +1300,31 @@ deliver(dp, rp, usernam, timestring)
 	}
 
 #ifdef CHECK_MB_SIZE
-	/* extern  int checkmbsize(const char *uname,
-				   const char *host, const char *user,
-				   size_t cursize, struct passwd *pw); */
+	if (1) {
+	  extern  int checkmbsize __((const char *uname,
+				      const char *host, const char *user,
+				      size_t cursize, struct passwd *pw));
 
-	/* external procedure checkmbsize() accepts user name, "host"
-	   name as on routing result, "user" part of routed data,
-	   and current mailbox size.  It should return 0 if it is OK
-	   to write to the mailbox, or non-zero if `mailbox full'
-	   condition encountered.  The procedure itself is not included
-	   in ZMailer distribution; you need to write it yourself and
-	   modify the Makefile to pass -DCHECK_MB_SIZE to the compiler
-	   and to link with the object containing your custom
-	   checkmbsize() procedure. == <crosser@average.org> */
+	  /* external procedure checkmbsize() accepts user name, "host"
+	     name as on routing result, "user" part of routed data,
+	     and current mailbox size.  It should return 0 if it is OK
+	     to write to the mailbox, or non-zero if `mailbox full'
+	     condition encountered.  The procedure itself is not included
+	     in ZMailer distribution; you need to write it yourself and
+	     modify the Makefile to pass -DCHECK_MB_SIZE to the compiler
+	     and to link with the object containing your custom
+	     checkmbsize() procedure. == <crosser@average.org> */
 
-	if (checkmbsize(usernam, rp->addr->host, rp->addr->user,
-			st.st_size, pw)) {
-	  notaryreport(usernam, "failed",
-		       "4.2.2 (Destination mailbox full)",
-		       "x-local; 500 (Attempting to deliver to full mailbox)");
-	  DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
-		     "size of mailbox \"%s\" exceeds quota for the user",
-		     file);
-	  return;
+	  if (checkmbsize(usernam, rp->addr->host, rp->addr->user,
+			  st.st_size, pw)) {
+	    notaryreport(usernam, "failed",
+			 "4.2.2 (Destination mailbox full)",
+			 "x-local; 500 (Attempting to deliver to full mailbox)");
+	    DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
+		       "size of mailbox \"%s\" exceeds quota for the user",
+		       file);
+	    return;
+	  }
 	}
 #endif
 	

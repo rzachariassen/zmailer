@@ -1,3 +1,18 @@
+1999-06-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/mailbox/mailbox.c, configure.in, acconfig.h:
+	    configure time option "--with-mboxquotacheck"
+
+1999-06-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    More of "mailq -Q | grep OF=0" tracking.
+	    Also several cases of eradicting extra  fflush() calls.
+
+	* smtpserver/smtpdata.c:
+	    Do "TRANSLATION" facility with PARANOID mode; and some
+	    Asperin, or equivalent to Eugene Crosser...
+
 1999-06-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/libta/mimeheaders.c:

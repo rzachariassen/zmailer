@@ -1301,6 +1301,10 @@ PRIVATEMBOX=""
 AC_ARG_WITH(privatembox,   [  --with-privatembox       Use 'private/' in a part of mailbox compilations],
 	PRIVATEMBOX="private/")
 
+AC_ARG_WITH(mboxquotacheck,[  --with-mboxquotacheck    Use 'CHECK_MB_SIZE' define in mailbox program.
+                           Linking is presumed to use  --with-generic-lib=DIR],
+	AC_DEFINE(CHECK_MB_SIZE));
+
 AC_SUBST(PRIVATEAUTH)
 PRIVATEAUTH=""
 AC_ARG_WITH(privateauth,   [  --with-privateauth       Use 'private/' in a part of smtpserver compilations],
