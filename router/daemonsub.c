@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Some functions Copyright 1991-2000 Matti Aarnio.
+ *	Some functions Copyright 1991-2002 Matti Aarnio.
  */
 
 /*
@@ -21,7 +21,12 @@
 #include <pwd.h>			/* for run_homedir() */
 #include <grp.h>			/* for run_grpmems() */
 #include <errno.h>
+#ifdef HAVE_SYS_UN_H
+#include <sys/socket.h>
+#include <sys/un.h>
+#endif
 
+#include "zsyslog.h"
 #include "shmmib.h"
 #include "sysexits.h"
 
@@ -179,11 +184,6 @@ struct router_child routerchilds[MAXROUTERCHILDS];
 extern int nrouters;
 extern const char *logfn;
 
-/* ../transports/libta/nonblocking.c */
-extern int  fd_nonblockingmode __((int fd));
-extern int  fd_blockingmode __((int fd));
-extern void fd_restoremode __((int fd, int mode));
-
 /* ../scheduler/pipes.c */
 extern int  pipes_create         __((int *tochild, int *fromchild));
 extern void pipes_close_parent   __((int *tochild, int *fromchild));
@@ -198,7 +198,73 @@ extern int  resources_query_pipesize __((int fildes));
 
 static void child_server __((int tofd, int frmfd));
 static int  rd_doit __((const char *filename, const char *dirs));
-static int  parent_reader __((void));
+static int  parent_reader __((int waittime));
+static void notify_reader __((int sock));
+
+
+static int notifysocket = -1;
+static time_t notifysocket_reinit = 1;
+
+
+static void notifysock_init()
+{
+	while (notifysocket < 0) {
+
+	  struct sockaddr_un sad;
+	  int on = 1;
+	  char *notifysock;
+	  int oldumask;
+
+	  notifysock = (char *)getzenv("ROUTERNOTIFY");
+	  if (!notifysock) {
+	    notifysocket_reinit = 0;
+	    return;
+	  }
+
+#ifdef  AF_UNIX
+
+	  memset(&sad, 0, sizeof(sad));
+	  sad.sun_family = AF_UNIX;
+	  strncpy(sad.sun_path, notifysock, sizeof(sad.sun_path));
+	  sad.sun_path[ sizeof(sad.sun_path)-1 ] = 0;
+
+	  notifysocket = socket(PF_UNIX, SOCK_DGRAM, 0);
+	  if (notifysocket < 0) {
+	    perror("notifysocket: socket(PF_UNIX)");
+	    break;
+	  }
+
+	  setsockopt(notifysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
+
+	  /* In case that one already exists.. */
+	  unlink(sad.sun_path);
+
+	  oldumask = umask(0555);
+
+	  if (bind(notifysocket, (struct sockaddr *)&sad, sizeof sad) < 0) {
+	    perror("bind:UNIX notify socket");
+	    umask(oldumask);
+	    close(notifysocket);
+	    notifysocket = -1;
+	    break;
+	  }
+	  umask(oldumask);
+
+	  fd_nonblockingmode(notifysocket);
+
+#if defined(F_SETFD)
+	  fcntl(notifysocket, F_SETFD, 1); /* close-on-exec */
+#endif
+#endif /* AF_UNIX */
+	  break;
+	}
+
+	if (notifysocket < 0) {
+	  time(&notifysocket_reinit);
+	  notifysocket_reinit += 10;
+	} else
+	  notifysocket_reinit = 0;
+}
 
 
 static int  start_child   __((int idx));
@@ -519,17 +585,24 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 
 /* Return info re has some waiting been done */
 
-static int parent_reader()
+static int parent_reader(waittime)
+	int waittime;
 {
   fd_set rdset, wrset;
   int i, highfd, fd, rc;
   struct timeval tv;
 
+  if (notifysocket_reinit && notifysocket_reinit < now)
+    notifysock_init();
+
  redo_again:;
 
   _Z_FD_ZERO(rdset);
   _Z_FD_ZERO(wrset);
-  highfd = -1;
+
+  highfd = notifysocket;
+  if (notifysocket >= 0)
+    _Z_FD_SET(notifysocket, rdset);
 
   for (i = 0; i < MAXROUTERCHILDS; ++i) {
     /* Places to read from ?? */
@@ -548,9 +621,12 @@ static int parent_reader()
 	highfd = fd;
     }
   }
+#if 0
   if (highfd < 0) return 0; /* Nothing to do! */
+#endif
 
-  tv.tv_sec = tv.tv_usec = 1;
+  tv.tv_sec = waittime;
+  tv.tv_usec = 0;
   rc = select(highfd+1, &rdset, &wrset, NULL, &tv);
 
   if (rc == 0) return 1; /* Nothing to do, leave..
@@ -569,6 +645,10 @@ static int parent_reader()
   }
 
   /* Ok, select gave indication of *something* being ready for read */
+
+  if (notifysocket >= 0 && _Z_FD_ISSET(notifysocket, rdset))
+    notify_reader(notifysocket);
+
   for (i = 0; i < MAXROUTERCHILDS; ++i) {
     fd = routerchilds[i].tochild;
     if (fd >= 0 && _Z_FD_ISSET(fd, wrset))
@@ -581,12 +661,13 @@ static int parent_reader()
 }
 
 #else /* NO HAVE_SELECT */
-static int parent_reader()
+static int parent_reader(waittime)
+	int waittime;
 {
   int i;
   /* No select, but can do non-blocking -- we hope.. */
   for (i = 0; i < MAXROUTERCHILDS; ++i)
-    _parent_reader(i);
+    _parent_reader(i, waittime);
   return 0;
 }
 #endif
@@ -671,7 +752,7 @@ static int parent_feed_child(fname,dir)
       /* Hmm..  perhaps it is safe to feed to a subprocess */
     }
 
-    parent_reader();
+    parent_reader(0);
 
     rridx = 0;
     rc    = NULL;
@@ -686,7 +767,7 @@ static int parent_feed_child(fname,dir)
       if (rc->childpid == 0) {
 	start_child(rridx);
 	sleep(2); /* Allow a moment for child startup */
-	parent_reader();
+	parent_reader(0);
       }
 
       /* If we have a hungry child with all faculties intact.. */
@@ -707,7 +788,7 @@ static int parent_feed_child(fname,dir)
 #if 0 /* NO sync waiting here! */
   /* .. or if not, we wait here until it has been fed.. */
   while (rc->childout < rc->childsize)
-    parent_reader();
+    parent_reader(0);
 #endif
 
   return 1; /* Did feed successfully ?? */
@@ -801,6 +882,10 @@ static int dirqueuescan __((const char *dir,struct dirqueue *dq, int subdirs));
 struct dirqueue dirqb[ROUTERDIR_CNT];
 struct dirqueue *dirq[ROUTERDIR_CNT];
 
+/* Following is filled at  run_daemon(), and cleared also.. */
+static char     *routerdirs[ROUTERDIR_CNT];
+static char	*routerdirs2[ROUTERDIR_CNT];
+
 /*
  * Absorb any new files that showed up in our directory.
  */
@@ -830,10 +915,15 @@ dq_insert(DQ, ino, file, dir)
 	  return -1;
 	}
 
+#if 0
+loginit(SIGHUP); /* Reinit/rotate the log every at line .. */
+fprintf(stdout,"dqinsert: ino=%ld file='%s' dir='%s'\n",ino,file,dir);
+#endif
+
 	/* Is it already in the database ? */
 	if (sp_lookup((u_long)ino,dq->mesh) != NULL) {
 #if 0
-	  sfprintf(sfstderr,"scheduler: tried to dq_insert(ino=%ld, file='%s') already in queue\n",ino, file);
+	  fprintf(stderr,"daemonsub: tried to dq_insert(ino=%ld, file='%s') already in queue\n",ino, file);
 #endif
 	  return 1; /* It is! */
 	}
@@ -1054,6 +1144,98 @@ int syncweb(rc)
 	return wrkcnt;
 }
 
+/*
+ *  The  notify_reader()  receives messages from message submitters,
+ *  and uses them to find (most of the) new jobs.
+ *
+ *  The messages are of SPACE separated string:  'NEW dirname X/Y/filename'
+ *
+ */
+
+static void notify_reader(sock)
+	int sock;
+{
+	char buf[1000], *r, *p, *s;
+	int i, ok, cnt;
+	long ino;
+
+	/* Pick at most 10 in a row */
+	for (cnt=10; cnt!=0; --cnt) {
+
+	  i = recvfrom(sock, buf, sizeof(buf), 0, NULL, NULL);
+	  if (i <= 0 && errno != EINTR) return;
+	  if (i < 0) continue;
+
+	  if (i >= sizeof(buf)) i = sizeof(buf)-1;
+	  buf[i] = 0;
+
+	  /* The only supported notify is:
+	       "NEW router X/Y/file-name"
+	     message */
+
+#if 0 /* DEBUG IT! */
+	  if (logfn) {
+	    loginit(SIGHUP); /* Reinit/rotate the log every at line .. */
+	    fprintf(stdout, "NOTIFY got: i=%d '%s'\n", i, buf);
+	    fflush(stdout);
+	  }
+#endif
+
+	  if (strncmp(buf,"NEW ",4) != 0) continue;
+
+	  r = s = p = buf+4;
+	  while (*s != 0 && *s != ' ') ++s;
+	  if (*s == ' ') *s++ = 0;
+	  p = s;
+	  ok = 0;
+
+	  if ('1' <= s[0] && s[0] <= '9' && strchr(s, '/') == NULL) {
+	    ok = 1;
+	  } else  if ('A' <= s[0] && s[0] <= 'Z' && s[1] == '/') {
+	    s += 2;
+	    if ('1' <= s[0] && s[0] <= '9' && strchr(s, '/') == NULL) {
+	      ok = 1;
+	    } else  if ('A' <= s[0] && s[0] <= 'Z' && s[1] == '/') {
+	      s += 2;
+	      if ('1' <= s[0] && s[0] <= '9' && strchr(s, '/') == NULL) {
+		ok = 1;
+	      }
+	    }
+	  }
+	  if (!ok) continue;
+
+	  ino = atol(p);
+
+	  for (i = 0; i < ROUTERDIR_CNT; ++i) {
+	    if (routerdirs[i] && strcmp(routerdirs[i],r) == 0) {
+#if 0
+	      if (lstat(p,&stbuf) != 0) continue;
+	      if (!S_ISFILE(stbuf.st_mode)) continue;
+
+	      if (in_dirscanqueue(dirq[i],stbuf.st_ino)) continue;
+#endif
+#if 0 /* DEBUG IT! */
+	      if (logfn) {
+		loginit(SIGHUP); /* Reinit/rotate the log every at line .. */
+		fprintf(stdout, " ... routerdirs[%d] == '%s', ino=%ld, file='%s'\n",
+			i, routerdirs[i], ino, p);
+		fflush(stdout);
+	      }
+	      zsyslog((LOG_INFO, "notify dir='%s' ino=%ld file='%s'",
+		       r, ino, p));
+#endif
+
+	      dq_insert(dirq[i], ino, p, routerdirs2[i]);
+	      break;
+	    }
+	  }
+
+	}
+}
+
+
+
+
 /* "rd_doit()" at the feeding parent server */
 
 
@@ -1254,10 +1436,9 @@ run_daemon(argc, argv)
 	const char *argv[];
 {
 	DIR *dirp[ROUTERDIR_CNT];  /* Lets say we have max 30 router dirs.. */
-	char *dirs[ROUTERDIR_CNT];
 	int i, ii;
 	const char *s, *rd;
-	const char *routerdirs = getzenv("ROUTERDIRS");
+	const char *routerdir_s = getzenv("ROUTERDIRS");
 	char pathbuf[256];
 	memtypes oval = stickymem;
 
@@ -1287,7 +1468,8 @@ run_daemon(argc, argv)
 	  dirq[i] = &dirqb[i];
 	  dirqb[i].mesh = sp_init();
 	  dirp[i] = NULL;
-	  dirs[i] = NULL;
+	  routerdirs[i] = NULL;
+	  routerdirs2[i] = NULL;
 	}
 	/* dirp[0] = opendir("."); */	/* assert dirp != NULL ... */
 
@@ -1303,10 +1485,11 @@ run_daemon(argc, argv)
 	ii = MAXROUTERCHILDS;
 
 	stickymem = MEM_MALLOC;
-	dirs[0] = strnsave(".",2);
-	if (routerdirs) {
+	routerdirs[0]  = strnsave("router",6);
+	routerdirs2[0] = strnsave(".",2);
+	if (routerdir_s) {
 	  /* Store up secondary router dirs! */
-	  rd = routerdirs;
+	  rd = routerdir_s;
 	  for (i = 1; i < ROUTERDIR_CNT && *rd; ) {
 
 	    s = strchr(rd,':');
@@ -1314,7 +1497,8 @@ run_daemon(argc, argv)
 	    sprintf(pathbuf,"../%s",rd);
 	    /* strcat(pathbuf,"/"); */
 
-	    dirs[i] = strdup(pathbuf);
+	    routerdirs[i] = strdup(rd);
+	    routerdirs2[i] = strdup(pathbuf);
 
 	    if (ii > 2)
 	      routerchilds[ --ii ].dq = dirq[i];
@@ -1336,8 +1520,8 @@ run_daemon(argc, argv)
 	/* Do initial synchronous queue scan now */
 
 	for (i = 0; i < ROUTERDIR_CNT; ++i) {
-	  if (dirs[i])
-	    dirqueuescan(dirs[i], dirq[i], 1);
+	  if (routerdirs2[i])
+	    dirqueuescan(routerdirs2[i], dirq[i], 1);
 	}
 
 	for (i = 0; i < MAXROUTERCHILDS; ++i) {
@@ -1351,7 +1535,7 @@ run_daemon(argc, argv)
 		     child processes have change to boot */
 
 	/* Collect start reports (initial "#hungry\n" lines) */
-	parent_reader();
+	parent_reader(0);
 
 	for (; !mustexit ;) {
 
@@ -1360,10 +1544,9 @@ run_daemon(argc, argv)
 	      nextdirscan = now + 10;
 
 	      for (i = 0; i < ROUTERDIR_CNT; ++i) {
-		if (dirs[i])
-		  dirqueuescan(dirs[i], dirq[i], 1);
+		if (routerdirs2[i])
+		  dirqueuescan(routerdirs2[i], dirq[i], 1);
 	      }
-
 	    }
 
 	    for (i = 0; i < MAXROUTERCHILDS; ++i) {
@@ -1382,13 +1565,17 @@ run_daemon(argc, argv)
 	      }
 	    }
 
-	    if (! parent_reader())
-	      sleep(1);
+	    parent_reader(1);
 	}
 
-	for (i=0; i < ROUTERDIR_CNT; ++i)
-	  if (dirs[i])
-	    free(dirs[i]);
+	for (i=0; i < ROUTERDIR_CNT; ++i) {
+	  if (routerdirs2[i])
+	    free(routerdirs2[i]);
+	  routerdirs2[i] = NULL;
+	  if (routerdirs[i])
+	    free(routerdirs[i]);
+	  routerdirs[i] = NULL;
+	}
 
 	return 0;
 }

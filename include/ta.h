@@ -242,9 +242,4 @@ extern void tasyslog __((struct rcpt *rp, int xdelay, const char *wtthost, const
 
 extern int getmyuucename __((char *, int));
 
-/* nonblocking.c */
-extern int  fd_nonblockingmode __((int fd));
-extern int  fd_blockingmode __((int fd));
-extern void fd_restoremode __((int fd, int mode));
-
 #endif

@@ -124,6 +124,9 @@
 
 PARAMauthfile = "${MAILSHARE}/scheduler.auth"
 
+#
+# Define the MAILQ(v2) socket where the scheduler listens...
+#
 
 #PARAMmailqsock = "UNIX:/path/to/mailq.sock"
 #PARAMmailqsock = "TCP:174"

@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2001
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
  */
 
 /*
@@ -123,7 +123,8 @@ char * procselect = NULL;	/* Non-null defines  channel/host specifier
 char *  procselhost = NULL;	/* Just spliced out 'host'-part of the above */
 extern int forkrate_limit;	/* How many forks per second ? */
 int	mailqmode = 1;		/* ZMailer v1.0 mode on mailq */
-const char *  mailqsock = NULL;
+char *  mailqsock = NULL;
+char *  notifysock = NULL;
 
 static int vtxprep_skip      = 0;
 static int vtxprep_skip_any  = 0;
@@ -668,8 +669,6 @@ main(argc, argv)
 	  if ((cp[0] == '1' || cp[0] == '2') &&
 	      cp[1] == 0)
 	    hashlevels = cp[0] - '0';
-	  else
-	    hashlevels = 0;
 	}
 
 	mailshare = getzenv("MAILSHARE");
@@ -842,11 +841,22 @@ main(argc, argv)
 	   * So a 'busy' system will potentially be running dirqueuescan()
 	   * EVERY pass thru the loop... This could be bad
 	   */
+
 	  if (now >= next_dirscan) {
 	    /* Directory scan time for new jobs ..    */
 	    /* Do it recursively every now and then,
 	       so that if we forget some jobs, they will
 	       become relearned soon enough.          */
+#if 1
+	    int wrk;
+	    i = dirqueuescan(".", dirq, (now >= next_idlecleanup));
+	    mytime(&now);
+	    wrk = dirq->wrksum;
+	    wrk >>= 5; /* Divide by 32 -- just presume 32 msgs/sec.. */
+	    if (wrk > 10) wrk = 10; /* But limit to 10... */
+	    next_dirscan = now + sweepinterval + wrk; /* 10 .. 20 second
+							 sweep interval */
+#else
 	    /* SAH dirqueuescan() is not deterministic and is _highly_
 	     * sensitive to the number of files to be scanned.  This
 	     * means that the degenerate cases (like us!) could be 
@@ -875,11 +885,12 @@ main(argc, argv)
 		i = dirq->wrksum; i >>= 5;  /* work divided by 32/sec        */
 		next_dirscan = now + i - 2; /* 2 second fudge factor         */
 	     }
+#endif
 	  }
-	   
 
 	  if (now >= next_idlecleanup) {
-	    next_idlecleanup = now + 20; /* 20 second interval */
+	    next_idlecleanup = now + idle_sweepinterval; /* 120 second
+							    interval */
 	    idle_cleanup();
 	  }
 
@@ -1600,6 +1611,83 @@ void resync_file(proc, file)
 	  sfprintf(sfstdout," .. NOT resynced!  (wrkcnt %ld)\n", global_wrkcnt);
 	}
 }
+
+
+
+void receive_notify(fd)
+	int	fd;
+{
+	char buf[1000], *s, *file;
+	int i, ok, cnt;
+	u_long ino;
+
+	/* 10 receives at the time AT MOST */
+	for (cnt=10;cnt;--cnt) {
+
+	  i = recvfrom(fd, buf, sizeof(buf), 0, NULL, NULL);
+	  if (i <= 0 && errno != EINTR) return;
+	  if (i < 0) continue;
+
+	  if (i >= sizeof(buf)) i = sizeof(buf)-1;
+	  buf[i] = 0;
+
+	  /* The only supported notify is:
+	       "NEW X/Y/file-name"
+	     message */
+
+
+	  if (strncmp(buf,"NEW ",4) != 0) continue;
+
+	  file = s = buf+4;
+	  ok = 0;
+
+	  if ('1' <= s[0] && s[0] <= '9' && strchr(s, '/') == NULL) {
+	    ok = 1;
+	  } else  if ('A' <= s[0] && s[0] <= 'Z' && s[1] == '/') {
+	    s += 2;
+	    if ('1' <= s[0] && s[0] <= '9' && strchr(s, '/') == NULL) {
+	      ok = 1;
+	    } else  if ('A' <= s[0] && s[0] <= 'Z' && s[1] == '/') {
+	      s += 2;
+	      if ('1' <= s[0] && s[0] <= '9' && strchr(s, '/') == NULL) {
+		ok = 1;
+	      }
+	    }
+	  }
+
+	  ino = atol(s);
+
+#if 0
+	  sfprintf(sfstderr,"SCH-NOTIFY: len=%d '%s' file='%s', ino=%ld ok=%d\n",
+		   i, buf, file, ino, ok);
+	  zsyslog((LOG_INFO, "Got notify: '%s'", buf));
+#endif
+
+	  if (!ok) continue;
+
+#if 0
+	  if (lstat(file,&stbuf) != 0) continue;
+	  if (!S_ISFILE(stbuf.st_mode)) continue;
+
+	  if (in_dirscanqueue(dirq,stbuf.st_ino)) continue;
+#endif
+
+	  /* We may have this file in processing state...  */
+	  {
+	    struct spblk *spl;
+	    spl = sp_lookup(ino, spt_mesh[L_CTLFILE]);
+	    if (spl != NULL) {
+	      /* Already in processing, don't touch.. */
+	      printf("File: '%s' active (not previously locked)\n", buf+4);
+	      continue;
+	    }
+	  }
+
+	  dq_insert(dirq, ino, buf+4, -1);
+	}
+} 
+
+
 
 
 /*

@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1996
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
  */
 
 /* stdout and stderr end up in qlogdir/progname when scheduler is a daemon */
@@ -31,6 +31,9 @@ int	nobody = -2;
 
 /* directory scanning interval in seconds */
 int	sweepinterval = 10;
+
+/* directory idle-scanning interval in seconds */
+int	idle_sweepinterval = 120;
 
 /* At most 30 new childs per second -- The 'R'-option can be used to increase this */
 int	forkrate_limit = 30;

@@ -21,6 +21,11 @@
 #endif
 #include "zsyslog.h"
 
+#ifdef HAVE_SYS_UN_H
+#include <sys/socket.h>
+#include <sys/un.h>
+#endif
+
 #include "prototypes.h"
 #include "libsh.h"
 
@@ -1234,6 +1239,7 @@ sequencer(e, file)
 	  else
 	    schedulersubdirhash = 0;
 	}
+
 
 	if (schedulersubdirhash) {
 	  long ino = e->e_statbuf.st_ino;
@@ -2456,6 +2462,39 @@ sequencer(e, file)
 	rtsyslog(e->e_statbuf.st_mtime, (long)e->e_statbuf.st_ino,
 		 fromaddr, smtprelay, (int) e->e_statbuf.st_size,
 		 nrcpts, msgidstr, start_now);
+#ifdef AF_UNIX
+	do {
+
+	  const char *schedulernotify;
+	  char buf[1000];
+	  int notifysocket;
+	  struct sockaddr_un sad;
+
+	  schedulernotify = getzenv("SCHEDULERNOTIFY");
+	  if (!schedulernotify) break;
+
+	  memset(&sad, 0, sizeof(sad));
+	  sad.sun_family = AF_UNIX;
+	  strncpy(sad.sun_path, schedulernotify, sizeof(sad.sun_path));
+	  sad.sun_path[ sizeof(sad.sun_path)-1 ] = 0;
+
+	  notifysocket = socket(PF_UNIX, SOCK_DGRAM, 0);
+	  if (notifysocket < 0) {
+	    perror("notifysocket: socket(PF_UNIX)");
+	    break;
+	  }
+	  fd_nonblockingmode(notifysocket);
+
+	  sprintf(buf, "NEW %s%.300s", subdirhash, file);
+	  sendto(notifysocket, buf, strlen(buf),
+		 MSG_DONTWAIT|MSG_NOSIGNAL,
+		 (struct sockaddr *)&sad, sizeof(sad));
+
+	  close(notifysocket);
+
+	} while (0);
+#endif
+
 
 #ifndef	USE_ALLOCA
 	free(ofpname);

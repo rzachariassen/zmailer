@@ -895,7 +895,7 @@ static int rc_wakeuprestartonly(key, arg, ce)
 
 extern int mailqmode;
 
-static char *zenvexpand(line)
+char *zenvexpand(line)
      char *line;
 {
 	char *s = line;
@@ -988,6 +988,13 @@ static int paramparse(line)
 	  if (mailqsock)
 	    free((void*)mailqsock);
 	  mailqsock = zenvexpand(strsave(a));
+	  return 0;
+	}
+
+	if (cistrcmp(line,"notifysock")==0 && a) {
+	  if (notifysock)
+	    free((void*)notifysock);
+	  notifysock = zenvexpand(strsave(a));
 	  return 0;
 	}
 

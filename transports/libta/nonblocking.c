@@ -1,3 +1,4 @@
+#if 0
 /*
  *	A component for ZMailer by Matti Aarnio <mea@nic.funet.fi>
  *	Copyright 1996 Matti Aarnio
@@ -65,3 +66,4 @@ int fd, mode;
 {
 	fcntl(fd, F_SETFL, mode);
 }
+#endif

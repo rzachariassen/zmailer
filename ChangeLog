@@ -1,3 +1,44 @@
+2002-02-11  Matti Aarnio  <mea@zmailer.org>
+
+	* SiteConfig.in:
+	    By default publish  SCHEDULERDIRHASH=1  value.
+	    Publish also  SCHEDULERNOTIFY=  and ROUTERNOTIFY=
+	    variables, which are used by the notifier codes.
+
+	* include/libc.h, transports/libta/nonblocking.c:
+	    Moved the non-blocking code to be macro in  libc.h.
+	    At some places a #include <fcntl.h> is needed before
+	    #include "libc.h".
+
+	* include/ta.h, scheduler/mq2.c, scheduler/transport.c,
+	  transports/libta/warning.c:
+	    The preceding fd-blocking macro thing affected these
+	    files.  (Other usage places already did suitable #includes)
+
+	* libc/mail.c, libc/sfmail.c, router/daemonsub.c:
+	    If ROUTERNOTIFY is defined in  zmailer.conf, then
+	    mail_close() (not .._alternative() !) will presume
+	    there might exist an AF_UNIX socket with that name
+	    into which a notification message about a new job
+	    can be sent.
+
+	* router/rfc822.c, scheduler/transport.c:
+	    The Scheduler Notify socket got changed to use  SCHEDULERNOTIFY=
+	    ZENV variable, and be AF_UNIX socket.
+
+2002-02-07  Matti Aarnio  <mea@zmailer.org>
+
+	* scheduler/scheduler.c, scheduler/conf.c, scheduler/prototypes.h,
+	  scheduler/transport.c:
+	    Implemented a 'notifysocket', which is an UDP socket (mailq/udp)
+	    receiving simple "NEW X/Y/123-456" text lines, and verifying
+	    the inputs a bit..  Perhaps should have this configurable,
+	    so that the system could have multiple schedulers around.
+
+	* scheduler/scheduler.c:
+	    Reworked  2001-10-27 Stephen <steve@activemessage.com>
+	    scheduler queue rescan timer thing into less magic..
+
 2002-02-05  Matti Aarnio  <mea@zmailer.org>
 
 	* router/db.c, proto/cf/p-routes.cf, router/libdb/search.h:
@@ -72,7 +113,13 @@
 	    recovers, and the write connection times out.
 	    Implemented thus a '-w 1000' option to define the
 	    value of the socket option SO_SNDBUF.
-	
+
+2001-10-27  Stephen <steve@activemessage.com>
+
+	* scheduler/scheduler.c:
+	    Observed problems with scheduler's input queue scanning.
+	    Sent in a patch (which didn't quite do it..)
+
 2001-10-25  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
@@ -80,6 +127,7 @@
 	      short (1 sec) busy-loopings every now and then.
 	    - When MAIL FROM results a 5xx status with immediate
 	      closure of the socket following that report,
+	      yield proper rejection, not EX_TEMPFAIL.
 
 	* transports/smtp/smtptls.c, transports/smtp/smtp.h,
 	  transports/smtp/smtp.c, transports/libta/ctlopen.c,
@@ -214,7 +262,7 @@
 	    ( *: "old" as "long existing" )
 
 	* Makefile.in:
-	    Release version 2.99.56-pre1
+	    CVS tagged version 2.99.56-pre1
 
 	* include/libc.h, proto/zmailer.sh.in, man/zmailer.1:
 	    Update the beast at Solaris 2.6, and learn some
@@ -448,6 +496,7 @@
 	    but this will also mark ALL subsequent messages in the thread
 	    (via "nextitem" chain) to 1) have been attempted, and 2) with
 	    the same message as we initially have.
+	    (It does not, however, expire any messages - at least directly.)
 
 	* scheduler/mailq.c:
 	    The 'mailq -v' did show the ta-work-specification-file

@@ -4,7 +4,7 @@
  */
 /*
  *	A lot of changes all around over the years by Matti Aarnio
- *	<mea@nic.funet.fi>, copyright 1992-1999
+ *	<mea@nic.funet.fi>, copyright 1992-2002
  */
 
 #include "hostenv.h"
@@ -22,6 +22,11 @@ extern const char *progname;
 #else
 # include <varargs.h>
 #endif
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#include "libc.h"
 
 #include "ta.h"
 

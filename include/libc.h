@@ -105,3 +105,111 @@ extern const char *progname;
 
 /* whathost.c */
 extern char *whathost __((const char *file));
+
+
+
+#ifdef O_NONBLOCK /* POSIXy thing */
+
+#define fd_nonblockingmode(fd)	/* void */	\
+do {						\
+	int __i, __i2;				\
+	__i2 = __i = fcntl(fd, F_GETFL, 0);	\
+	if (__i >= 0) {				\
+	  /* set up non-blocking I/O */		\
+	  __i |= O_NONBLOCK;			\
+	  __i = fcntl(fd, F_SETFL, __i);	\
+	}					\
+} while(0)
+
+
+#define ifd_nonblockingmode(fd)			\
+do {						\
+	int __i, __i2;				\
+	__i2 = __i = fcntl(fd, F_GETFL, 0);	\
+	if (__i >= 0) {				\
+	  /* set up non-blocking I/O */		\
+	  __i |= O_NONBLOCK;			\
+	  __i = fcntl(fd, F_SETFL, __i);	\
+	}					\
+	__i2;					\
+} while(0)
+
+#define fd_blockingmode(fd)			\
+do {						\
+	int __i, __i2;				\
+	__i2 = __i = fcntl(fd, F_GETFL, 0);	\
+	if (__i >= 0) {				\
+	  /* set up blocking I/O */		\
+	  __i &= ~O_NONBLOCK;			\
+	  __i = fcntl(fd, F_SETFL, __i);	\
+	}					\
+} while(0)
+
+#define ifd_blockingmode(fd)			\
+do {						\
+	int __i, __i2;				\
+	__i2 = __i = fcntl(fd, F_GETFL, 0);	\
+	if (__i >= 0) {				\
+	  /* set up blocking I/O */		\
+	  __i &= ~O_NONBLOCK;			\
+	  __i = fcntl(fd, F_SETFL, __i);	\
+	}					\
+	__i2;					\
+} while(0)
+
+#else
+#ifdef	FNONBLOCK
+
+#define fd_nonblockingmode(fd)			\
+do {						\
+	int __i, __i2;				\
+	__i2 = __i = fcntl(fd, F_GETFL, 0);	\
+	if (__i >= 0) {				\
+	  /* set up non-blocking I/O */		\
+	  __i |= FNONBLOCK;			\
+	  __i = fcntl(fd, F_SETFL, __i);	\
+	}					\
+	__i2;					\
+} while(0)
+
+#define fd_blockingmode(fd)			\
+do {						\
+	int __i, __i2;				\
+	__i2 = __i = fcntl(fd, F_GETFL, 0);	\
+	if (__i >= 0) {				\
+	  /* set up blocking I/O */		\
+	  __i &= ~FNONBLOCK;			\
+	  __i = fcntl(fd, F_SETFL, __i);	\
+	}					\
+	__i2;					\
+} while(0)
+
+#else
+
+#define fd_nonblockingmode(fd)			\
+do {						\
+	int __i, __i2;				\
+	__i2 = __i = fcntl(fd, F_GETFL, 0);	\
+	if (__i >= 0) {				\
+	  /* set up non-blocking I/O */		\
+	  __i |= FNDELAY;			\
+	  __i = fcntl(fd, F_SETFL, __i);	\
+	}					\
+	__i2;					\
+} while(0)
+
+#define fd_blockingmode(fd)			\
+do {						\
+	int __i, __i2;				\
+	__i2 = __i = fcntl(fd, F_GETFL, 0);	\
+	if (__i >= 0) {				\
+	  /* set up blocking I/O */		\
+	  __i &= ~FNDELAY;			\
+	  __i = fcntl(fd, F_SETFL, __i);	\
+	}					\
+	__i2;					\
+} while(0)
+#endif
+#endif
+
+#define fd_restoremode(fd,mode) fcntl(fd, F_SETFL, mode)

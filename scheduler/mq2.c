@@ -1,7 +1,7 @@
 /*
  *	ZMailer 2.99.53+ Scheduler "mailq2" routines
  *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1999-2001
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1999-2002
  *
  */
 
@@ -31,6 +31,12 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#include "libc.h"
+
 
 #ifndef	NFDBITS
 /*

@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2001
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
  */
 
 
@@ -37,6 +37,8 @@
 
 #include "ta.h"
 #include "libz.h"
+
+#include "libc.h"
 
 extern int forkrate_limit;
 extern int freeze;
@@ -87,6 +89,9 @@ struct procinfo *cpids = NULL;
 int	numkids = 0;
 int	readsockcnt = 0; /* Count how many childs to read there are;
 			    this for the SLOW Shutdown */
+
+int	notifysocket = -1;	/* fd of UDP socket to listen for notifies */
+
 
 static void cmdbufalloc __((int, char **, int *));
 
@@ -1119,6 +1124,11 @@ time_t timeout;
 	  if (maxf < querysocket)
 	    maxf = querysocket;
 	}
+	if (notifysocket >= 0) {
+	  _Z_FD_SET(notifysocket, rdmask);
+	  if (maxf < notifysocket)
+	    maxf = notifysocket;
+	}
 
 	/* Although we don't react on the results of these MQ2 fd's,
 	   getting them to break timeouts is important for MAILQv2
@@ -1226,7 +1236,7 @@ queryipccheck()
 	   */
 	}
 
-	if (querysocket >= 0) {
+	if (querysocket >= 0 || notifysocket >= 0) {
 
 	  maxfd = querysocket;
 
@@ -1235,7 +1245,13 @@ queryipccheck()
 
 	  _Z_FD_ZERO(rdmask);
 	  _Z_FD_ZERO(wrmask);
-	  _Z_FD_SET(querysocket, rdmask);
+	  if (querysocket >= 0)
+	    _Z_FD_SET(querysocket, rdmask);
+	  if (notifysocket >= 0) {
+	    _Z_FD_SET(notifysocket, rdmask);
+	    if (notifysocket > maxfd)
+	      maxfd = notifysocket;
+	  }
 
 	  if (mailqmode == 2) {
 	    maxfd = mq2add_to_mask(&rdmask, &wrmask, maxfd);
@@ -1245,8 +1261,12 @@ queryipccheck()
 	  } else 
 	    n = select(maxfd+1, &rdmask, &wrmask, NULL, &tv);
 
+	  if (n > 0 && notifysocket >= 0 &&
+	      _Z_FD_ISSET(notifysocket, rdmask)) {
+	    receive_notify(notifysocket);
+	  }
 
-	  if (n > 0 &&
+	  if (n > 0 && querysocket >= 0 &&
 	      _Z_FD_ISSET(querysocket, rdmask)) {
 	    Usockaddr raddr;
 	    int raddrlen = sizeof(raddr);
@@ -1262,7 +1282,7 @@ queryipccheck()
 #ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H /* TCP-Wrapper code */
 		  if (wantconn(n, "mailq") == 0) {
-		    char *msg = "refusing 'mailq' query from your whereabouts\r\n";
+		    char *msg = "500 TCP-WRAPPER refusing 'mailq' query from your whereabouts\r\n";
 		    int   len = strlen(msg);
 		    write(n,msg,len);
 		    _exit(0);
@@ -1281,7 +1301,7 @@ queryipccheck()
 #ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H /* TCP-Wrapper code */
 		if (wantconn(n, "mailq") == 0) {
-		  char *msg = "refusing 'mailq' query from your whereabouts\r\n";
+		  char *msg = "500 TCP-WRAPPER refusing 'mailq' query from your whereabouts\r\n";
 		  int   len = strlen(msg);
 		  write(n,msg,len);
 		  close(n);
@@ -1300,138 +1320,245 @@ void
 queryipcinit()
 {
 	int modecode = 1; /* Modes: 1=TCP, 2=UNIX, default=TCP */
-	const char *modedata = NULL;
+	char *modedata = NULL;
 
-	if (querysocket >= 0)
-		return;
+	while (notifysocket < 0) {
 
-	if (mailqsock) {
-	  if (cistrncmp(mailqsock,"UNIX:",5)==0) {
-	    modedata = mailqsock+5;
-	    modecode = 2;
-	  } else if (*mailqsock == '/') {
-	    /* If it begins with '/', it is AF_UNIX socket */
-	    modedata = mailqsock;
-	    modecode = 2;
-	  } else if (cistrncmp(mailqsock,"TCP:",4)==0) {
-	    modedata = mailqsock+4;
-	    modecode = 1;
-	  } else {
-	    /* The default mode is TCP/IP socket */
-	    modedata = mailqsock;
-	    modecode = 1;
-	  }
-	}
-
-#ifdef  AF_UNIX
-	if (modecode == 2) {
-	  struct sockaddr_un sad;
-	  int on = 1;
-
-	  mytime(&now);
-	  qipcretry = now + 5;
-
-	  sad.sun_family = AF_UNIX;
-	  strncpy(sad.sun_path, modedata, sizeof(sad.sun_path));
-	  sad.sun_path[ sizeof(sad.sun_path)-1 ] = 0;
-
-	  if ((querysocket = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-	    perror("querysocket: socket(PF_UNIX)");
-	    return;
+	  if (!notifysock) {
+	    notifysock = (char *)getzenv("SCHEDULERNOTIFY");
+	    if (notifysock) {
+	      notifysock = zenvexpand(notifysock);
+	    } else {
+	      notifysock = strsave("UNIX:${POSTOFFICE}/.scheduler.notify");
+	      notifysock = zenvexpand(notifysock);
+	    }
 	  }
 
-	  setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
-
-	  /* In case that one already exists.. */
-	  unlink(sad.sun_path);
-
-	  if (bind(querysocket, (struct sockaddr *)&sad, sizeof sad) < 0) {
-	    perror("bind:mailq socket");
-	    close(querysocket);
-	    querysocket = -1;
-	    return;
-	  }
-#if defined(F_SETFD)
-	  fcntl(querysocket, F_SETFD, 1); /* close-on-exec */
-#endif
-
-	  if (listen(querysocket, 5) < 0) {
-	    perror("listen:mailq socket");
-	    close(querysocket);
-	    querysocket = -1;
-	    return;
-	  }
-	  qipcretry = 0;
-	}
-#endif
-#ifdef	AF_INET
-	if (modecode == 1) {
-	  struct servent *serv;
-	  Usockaddr ua;
-	  int on = 1;
-	  int port = 174; /* MAGIC knowledge */
-
-	  mytime(&now);
-	  if (!modedata || !*modedata || sscanf(modedata,"%d",&port) != 1) {
-	    if ((serv = getservbyname(modedata ? modedata : "mailq", "tcp")) == NULL) {
-	      sfprintf(sfstderr, "No 'mailq' tcp service defined!\n");
-	    } else
-	      port = ntohs(serv->s_port);
-	  }
-	  qipcretry = now + 5;
-	  memset(&ua, 0, sizeof(ua));
-	  ua.v4.sin_port        = htons(port);
-	  ua.v4.sin_family      = AF_INET;
-	  ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
-	  querysocket = -1;
-#ifdef INET6
-	  querysocket = socket(PF_INET6, SOCK_STREAM, 0);
-#endif
-	  if (querysocket < 0)
-	    querysocket = socket(PF_INET, SOCK_STREAM, 0);
-#ifdef INET6
-	  else {
-	    memset(&ua, 0, sizeof(ua));
-	    ua.v6.sin6_port   = htons(port);
-	    ua.v6.sin6_family = AF_INET6;
-	  }
-#endif
-	  if (querysocket < 0) {
-	    perror("querysocket: socket(PF_INET)");
-	    return;
-	  }
-	  setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
-
-#ifdef INET6
-	  if (ua.v6.sin6_family == AF_INET6) {
-	    if (bind(querysocket, (struct sockaddr *)&ua, sizeof ua.v6) < 0) {
-	      perror("bind:mailq ipv6 socket");
-	      close(querysocket);
-	      querysocket = -1;
-	      return;
+	  if (notifysock) {
+	    if (cistrncmp(notifysock,"UNIX:",5)==0) {
+	      modedata = (char *)notifysock+5;
+	      modecode = 2;
+	    } else if (*notifysock == '/') {
+	      /* If it begins with '/', it is AF_UNIX socket */
+	      modedata = (char *)notifysock;
+	      modecode = 2;
+	    } else if (cistrncmp(notifysock,"UDP:",4)==0) {
+	      modedata = (char *)notifysock+4;
+	      modecode = 1;
+	    } else {
+	      /* The default mode is UDP/IP socket */
+	      modedata = (char *)notifysock;
+	      modecode = 1;
 	    }
 	  } else
-#endif
-	    if (bind(querysocket, (struct sockaddr *)&ua, sizeof ua.v4) < 0) {
-	      perror("bind:mailq ipv4 socket");
-	      close(querysocket);
-	      querysocket = -1;
-	      return;
+	    modecode = 0;
+
+#ifdef  AF_UNIX
+	  if (modecode == 2) {
+	    struct sockaddr_un sad;
+	    int on = 1, oldumask;
+
+	    memset(&sad, 0, sizeof(sad));
+	    sad.sun_family = AF_UNIX;
+	    strncpy(sad.sun_path, modedata, sizeof(sad.sun_path));
+	    sad.sun_path[ sizeof(sad.sun_path)-1 ] = 0;
+
+	    if ((notifysocket = socket(PF_UNIX, SOCK_DGRAM, 0)) < 0) {
+	      perror("notifysocket: socket(PF_UNIX)");
+	      break;
 	    }
 
+	    setsockopt(notifysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
+
+	    /* In case that one already exists.. */
+	    unlink(sad.sun_path);
+
+	    oldumask = umask(0577);
+
+	    if (bind(notifysocket, (struct sockaddr *)&sad, sizeof sad) < 0) {
+	      perror("bind:UNIX notify socket");
+	      umask(oldumask);
+	      close(notifysocket);
+	      notifysocket = -1;
+	      break;
+	    }
+	    umask(oldumask);
+
+	    fcntl(notifysocket, F_SETFL,
+		  fcntl(notifysocket, F_GETFL, 0)|O_NONBLOCK);
+
 #if defined(F_SETFD)
-	  fcntl(querysocket, F_SETFD, 1); /* close-on-exec */
+	    fcntl(notifysocket, F_SETFD, 1); /* close-on-exec */
+#endif
+	  }
+#endif /* AF_UNIX */
+	  break;
+	}
+
+	while (querysocket < 0) {
+
+	  modedata = NULL;
+	  modecode = 0;
+	  if (mailqsock) {
+	    if (cistrncmp(mailqsock,"UNIX:",5)==0) {
+	      modedata = (char *)mailqsock+5;
+	      modecode = 2;
+	    } else if (*mailqsock == '/') {
+	      /* If it begins with '/', it is AF_UNIX socket */
+	      modedata = (char *)mailqsock;
+	      modecode = 2;
+	    } else if (cistrncmp(mailqsock,"TCP:",4)==0) {
+	      modedata = (char *)mailqsock+4;
+	      modecode = 1;
+	    } else {
+	      /* The default mode is TCP/IP socket */
+	      modedata = (char *)mailqsock;
+	      modecode = 1;
+	    }
+	  } else {
+	    /* The default mode is TCP/IP socket */
+	    modedata = (char *)mailqsock;
+	    modecode = 1;
+	  }
+
+#ifdef  AF_UNIX
+	  if (modecode == 2) {
+	    struct sockaddr_un sad;
+	    int on = 1, oldumask;
+
+	    memset(&sad, 0, sizeof(sad));
+	    sad.sun_family = AF_UNIX;
+	    strncpy(sad.sun_path, modedata, sizeof(sad.sun_path));
+	    sad.sun_path[ sizeof(sad.sun_path)-1 ] = 0;
+
+	    if ((querysocket = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+	      perror("querysocket: socket(PF_UNIX)");
+	      break;
+	    }
+
+	    setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
+
+	    /* In case that one already exists.. */
+	    unlink(sad.sun_path);
+
+	    oldumask = umask(0111);
+
+	    if (bind(querysocket, (struct sockaddr *)&sad, sizeof sad) < 0) {
+	      perror("bind:UNIX mailq socket");
+	      umask(oldumask);
+	      close(querysocket);
+	      querysocket = -1;
+	      break;
+	    }
+	    umask(oldumask);
+
+	    fd_nonblockingmode(querysocket);
+
+#if defined(F_SETFD)
+	    fcntl(querysocket, F_SETFD, 1); /* close-on-exec */
 #endif
 
-	  if (listen(querysocket, 5) < 0) {
-	    perror("listen:mailq socket");
-	    close(querysocket);
-	    querysocket = -1;
-	    return;
+	    if (listen(querysocket, 5) < 0) {
+	      perror("listen:UNIX mailq socket");
+	      close(querysocket);
+	      querysocket = -1;
+	      break;
+	    }
 	  }
-	  qipcretry = 0;
-	}
+#endif
+#ifdef	AF_INET
+	  if (modecode == 1) {
+	    struct servent *serv;
+	    Usockaddr ua;
+	    int on = 1;
+	    int port = 174;
+	    char *modedata2 = NULL;
+
+	    if (modedata) {
+	      modedata2 = strchr(modedata,'@');
+	      if (modedata2) *modedata2++ = 0;
+	    }
+
+	    if (!modedata || !*modedata || sscanf(modedata,"%d",&port) != 1) {
+	      serv = getservbyname(modedata ? modedata : "mailq", "tcp");
+	      if (serv == NULL) {
+		sfprintf(sfstderr, "No 'mailq' tcp service defined!\n");
+		port = 174; /* magic knowledge */
+	      } else
+		port = ntohs(serv->s_port);
+	    }
+	    if (modedata2)  modedata2[-1] = '@';
+
+	    memset(&ua, 0, sizeof(ua));
+	    ua.v4.sin_port        = htons(port);
+	    ua.v4.sin_family      = AF_INET;
+	    ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
+	    querysocket = -1;
+#ifdef INET6
+	    querysocket = socket(PF_INET6, SOCK_STREAM, 0);
+#endif
+	    if (querysocket < 0)
+	      querysocket = socket(PF_INET, SOCK_STREAM, 0);
+#ifdef INET6
+	    else {
+	      memset(&ua, 0, sizeof(ua));
+	      ua.v6.sin6_port   = htons(port);
+	      ua.v6.sin6_family = AF_INET6;
+	    }
+#endif
+	    if (querysocket < 0) {
+#ifdef INET6
+	      perror("querysocket: socket(PF_INET6/PF_INET)");
+#else
+	      perror("querysocket: socket(PF_INET)");
+#endif
+	      break;
+	    }
+	    setsockopt(querysocket, SOL_SOCKET, SO_REUSEADDR, (void*)&on, sizeof(on));
+
+#ifdef INET6
+	    if (ua.v6.sin6_family == AF_INET6) {
+	      if (bind(querysocket, (struct sockaddr *)&ua, sizeof ua.v6) < 0) {
+		perror("bind:TCP6 mailq socket");
+		close(querysocket);
+		querysocket = -1;
+		break;
+	      }
+	    } else
+#endif
+	      if (bind(querysocket, (struct sockaddr *)&ua, sizeof ua.v4) < 0) {
+		perror("bind:TCP4 mailq socket");
+		close(querysocket);
+		querysocket = -1;
+		break;
+	      }
+
+	    fcntl(querysocket, F_SETFL,
+		  fcntl(querysocket, F_GETFL, 0)|O_NONBLOCK);
+
+
+#if defined(F_SETFD)
+	    fcntl(querysocket, F_SETFD, 1); /* close-on-exec */
+#endif
+
+	    if (listen(querysocket, 5) < 0) {
+	      perror("listen:TCP mailq socket");
+	      close(querysocket);
+	      querysocket = -1;
+	      break;
+	    }
+	  }
 #endif	/* AF_INET */
+	  break;
+	}
+
+	if (querysocket >= 0 && notifysocket >= 0)
+	  qipcretry = 0; /* Successfull init done. */
+	else {
+	  mytime(&now); 
+	  qipcretry = now + 5; /* Will do retry soon.. */
+
+	}
 }
 
 #else	/* !HAVE_SELECT */

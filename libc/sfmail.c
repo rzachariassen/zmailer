@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	SFIO version by Matti Aarnio, copyright 1999-2000
+ *	SFIO version by Matti Aarnio, copyright 1999-2002
  */
 
 /*LINTLIBRARY*/
@@ -23,6 +23,9 @@
 #endif
 #include <sys/file.h>
 #include <sys/socket.h>
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
 
 #include "mail.h"
 
@@ -569,6 +572,46 @@ _sfmail_close_(fp,inop, mtimep)
 
 	stat(nmessage, &stb);
 
+#ifdef AF_UNIX
+	do {
+
+	  const char *routernotify;
+	  char buf[1000];
+	  int notifysocket;
+	  struct sockaddr_un sad;
+
+	  routernotify = getzenv("ROUTERNOTIFY");
+	  if (!routernotify) break;
+
+	  memset(&sad, 0, sizeof(sad));
+	  sad.sun_family = AF_UNIX;
+	  strncpy(sad.sun_path, routernotify, sizeof(sad.sun_path));
+	  sad.sun_path[ sizeof(sad.sun_path)-1 ] = 0;
+
+	  notifysocket = socket(PF_UNIX, SOCK_DGRAM, 0);
+	  if (notifysocket < 0) {
+	    perror("notifysocket: socket(PF_UNIX)");
+	    break;
+	  }
+
+	  fcntl(notifysocket, F_SETFL, O_NONBLOCK);
+
+	  s = strchr(routerdir,':');
+	  if (s) *s = 0;
+
+	  sprintf(buf, "NEW %s %s%ld%s", routerdir, subdirhash, ino, type);
+
+	  if (s) *s = ':';
+
+	  sendto(notifysocket, buf, strlen(buf),
+		 MSG_DONTWAIT|MSG_NOSIGNAL,
+		 (struct sockaddr *)&sad, sizeof(sad));
+
+	  close(notifysocket);
+
+	} while (0);
+#endif
+
 #ifndef HAVE_ALLOCA
 	mail_free(nmessage);
 #endif
@@ -579,6 +622,7 @@ _sfmail_close_(fp,inop, mtimep)
 	  *inop   = (long) stb.st_ino;
 	if (mtimep != NULL)
 	  *mtimep = (time_t) stb.st_mtime;
+
 
 	return 0;
 }

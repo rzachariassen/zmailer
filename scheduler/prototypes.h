@@ -1,6 +1,6 @@
 /*	Prototypes of ZMailer Scheduler component routines	*/
 /*
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-1999
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-2002
  */
 
 #ifndef __
@@ -52,8 +52,10 @@ extern const char *replhost;
 extern const char *replchannel;
 extern int  nobody;
 extern int  sweepinterval;
+extern int  idle_sweepinterval;
 extern const char *mq2authfile;
-extern const char *mailqsock;
+extern char *mailqsock;
+extern char *notifysock;
 extern const void *BADPTR;
 extern int   global_report_interval;
 
@@ -78,6 +80,7 @@ extern void   defaultconfigentry __((struct config_entry *ce, struct config_entr
 extern void   vtxprint __((struct vertex *vp));
 extern struct config_entry *readconfig __((const char *file));
 extern struct config_entry *rereadconfig __((struct config_entry *head, const char *file));
+extern char  *zenvexpand __(( char *line));
 
 /* resources.c */
 extern int  resources_query_nofiles  __((void));
@@ -96,6 +99,7 @@ extern int  hungry_childs;
 extern int  global_maxkids;
 extern int  verbose;
 extern int  querysocket;
+extern int  notifysocket;
 extern int  do_syslog;
 extern struct ctlfile *slurp __((int fd, long ino));
 extern void free_cfp_memory __((struct ctlfile *cfp));
@@ -148,6 +152,7 @@ extern void queryipcinit __((void));
 #if defined(USE_BINMKDIR) || defined(USE_BINRMDIR)
 extern int system __((char*));
 #endif
+extern void receive_notify __((int fd));
 
 /* update.c */
 extern void update __((int, char *));
