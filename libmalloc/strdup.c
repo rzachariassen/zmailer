@@ -10,6 +10,10 @@ RCSID("$Id$")
  *  makes a copy of a null terminated string in malloc'ed storage.
  *  returns null if it fails.
  */
+#ifdef strdup
+#undef strdup
+#endif
+
 char *
 strdup(s)
 const char *s;

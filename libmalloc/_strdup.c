@@ -8,8 +8,12 @@
 
 RCSID("$Id$")
 
+#ifdef __strdup
+#undef __strdup
+#endif
+
 char *
-__strdup(s, fname, linenum)
+___strdup(s, fname, linenum)
 char *s;
 const char *fname;
 int linenum;

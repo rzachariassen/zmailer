@@ -20,7 +20,8 @@ size_t nbytes;
 		(void) fputs("No more memory for emalloc\n", stderr);
 #ifdef DEBUG
 		(void) fflush(stderr);
-		(void) fflush(_malloc_statsfile);
+		if (_malloc_statsfile)
+		  (void) fflush(_malloc_statsfile);
 		abort();
 #else
 		exit(EXIT_FAILURE);
@@ -44,7 +45,8 @@ size_t nbytes;
 		(void) fputs("No more memory for erealloc\n", stderr);
 #ifdef DEBUG
 		(void) fflush(stderr);
-		(void) fflush(_malloc_statsfile);
+		if (_malloc_statsfile)
+		  (void) fflush(_malloc_statsfile);
 		abort();
 #else
 		exit(EXIT_FAILURE);

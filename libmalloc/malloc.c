@@ -20,6 +20,8 @@ RCSID("$Id$")
  * blocks, marked by boundary tags that indicate the size.
  */
 
+#ifndef DEBUG
+
 /* GETBIN returns a number such that i <= _malloc_binmax[bin] */
 #define GETBIN(i)   \
 	(((i) <= _malloc_binmax[3]) ? \
@@ -99,6 +101,101 @@ RCSID("$Id$")
 			reqsize = epsize; \
 		} \
 	 }
+
+#else /* is DEBUG */
+
+/* GETBIN returns a number such that i <= _malloc_binmax[bin] */
+static int GETBIN(i)
+     size_t i;
+{
+  if (i <= _malloc_binmax[3]) {
+    if (i <= _malloc_binmax[1])
+      return ((i <= _malloc_binmax[0]) ? 0 : 1);
+    else
+      return ((i <= _malloc_binmax[2]) ? 2 : 3);
+  } else {
+    if (i <= _malloc_binmax[5])
+      return ((i <= _malloc_binmax[4]) ? 4 : 5);
+    else
+      return ((i <= _malloc_binmax[6]) ? 6 : 7);
+  }
+}
+
+/* UNLINK removes the block 'ep' from the free list 'epbin' */
+static void UNLINK(ep, epbin)
+     Word *ep;
+     int epbin;
+{
+  REGISTER Word *epnext = NEXT(ep);
+  if (ep == epnext) {
+    _malloc_rovers[epbin] = NULL;
+    if (_malloc_firstbin == epbin)
+      while (! _malloc_rovers[_malloc_firstbin] &&
+	     _malloc_firstbin < MAXBINS-1)
+	_malloc_firstbin++;
+  } else {
+    REGISTER Word *epprev = PREV(ep);
+    NEXT(epprev) = epnext;
+    PREV(epnext) = epprev;
+    if (ep == _malloc_rovers[epbin])
+      _malloc_rovers[epbin] = epprev;
+  }
+}
+
+/*
+ * LINK adds the block 'ep' (psize words) to the free list 'epbin',
+ * immediately after the block pointed to by that bin's rover.
+ */
+static void LINK(ep, epsize, epbin)
+     Word *ep;
+     size_t epsize;
+     int epbin;
+{
+  REGISTER Word *epprev;
+  REGISTER Word *eprover = _malloc_rovers[epbin];
+
+  if (eprover == NULL) {
+    _malloc_rovers[epbin] = eprover = epprev = ep;
+    if (_malloc_firstbin > epbin)
+      _malloc_firstbin = epbin;
+  } else {
+    CHECKFREEPTR(eprover, "while checking rover");
+    epprev = PREV(eprover);
+  }
+  NEXT(ep) = eprover;
+  PREV(eprover) = ep;
+  NEXT(epprev) = ep;
+  PREV(ep) = epprev; /* PREV(eprover) */
+  SIZEFIELD(ep) = SIZEFIELD(ep-epsize+1) = FREEMASK(epsize);
+}
+
+static void CARVE(ep, epsize, epbin, reqsize)
+     Word *ep;
+     size_t epsize;
+     int epbin;
+     size_t reqsize;
+{
+  REGISTER size_t eprest = epsize - reqsize;
+  int newepbin;
+
+  if (eprest >= _malloc_minchunk) {
+    newepbin = GETBIN(eprest);
+    if (newepbin != epbin) {
+      UNLINK(ep, epbin);
+      LINK(ep, eprest, newepbin);
+    } else {
+      SIZEFIELD(ep)
+	= SIZEFIELD(ep-eprest+1)
+	= FREEMASK(eprest);
+    }
+  } else {
+    /* alloc the entire block */
+    UNLINK(ep, epbin);
+    reqsize = epsize;
+  }
+}
+#endif
+
 
 static int
 grabhunk(nwords)
@@ -196,7 +293,7 @@ size_t nwords;
 		DMEMSET(ptr + FREEHEADERWORDS, sbrkwords - FREE_OVERHEAD);
 		ptr = _malloc_hiword - 1;
 		_malloc_lastbin = GETBIN(sbrkwords);
-		LINK(ptr, sbrkwords, _malloc_lastbin)
+		LINK(ptr, sbrkwords, _malloc_lastbin);
 		_malloc_rovers[_malloc_lastbin] = ptr;
 		while (_malloc_rovers[_malloc_firstbin] == NULL &&
 		       _malloc_firstbin < MAXBINS-1)
@@ -358,7 +455,7 @@ univptr_t cp;
 	 * valid pointer. If tag p0-1 is allocated, then it could be an
 	 * arena bound.
 	 */
-
+#ifndef DEBUG /* Don't merge prev/next */
 	if (TAG(p2) == FREE) {
 		/*
 		 * Aha - block p2 (physically after p0) is free.  Merging
@@ -394,6 +491,7 @@ univptr_t cp;
 		 */
 		DMEMSET(p1 - FREETRAILERWORDS + 1, FREETRAILERWORDS + FREEHEADERWORDS);
 	}
+#endif
 	bin = GETBIN(sizep0);
 	if (oldbin != bin) {
 		/*
@@ -411,7 +509,6 @@ univptr_t cp;
 		_malloc_lastbin = bin;
 		_malloc_rovers[bin] = p0;
 	}
-
 	CHECKHEAP();
 	return;
 }

@@ -24,7 +24,8 @@ int linenumber, is_end_ptr;
 
 	if (notagain == 0) {
 		/* Try to flush the trace file and unbuffer stderr */
-		(void) fflush(_malloc_statsfile);
+		if (_malloc_statsfile)
+		  (void) fflush(_malloc_statsfile);
 		(void) setvbuf(stderr, (char *) 0, _IONBF, 0);
 		(void) sprintf(linebuf, "%d: ", linenumber);
 		(void) fputs("memory corruption found, file ",

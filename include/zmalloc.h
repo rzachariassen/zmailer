@@ -37,7 +37,7 @@ extern univptr_t __memalign __proto((const size_t, size_t, const char *, const i
 extern univptr_t __emalloc __proto((const size_t, const char *, const int));
 extern univptr_t __ecalloc __proto((const size_t, const size_t, const char *, const int));
 extern univptr_t __erealloc __proto((univptr_t, const size_t, const char *, const int));
-extern char *__strdup __proto((const char *, const char *, int));
+extern char *___strdup __proto((const char *, const char *, int));
 extern char *__strsave __proto((const char *, const char *, const int));
 extern void ___free __proto((univptr_t, const char *, int));
 extern void ___cfree __proto((univptr_t, const char *, int));
@@ -50,7 +50,7 @@ extern void ___cfree __proto((univptr_t, const char *, int));
 #define emalloc(x)		__emalloc((x), __FILE__, __LINE__)
 #define ecalloc(x, n)		__ecalloc((x), (n), __FILE__, __LINE__)
 #define erealloc(p, x)		__erealloc((p), (x), __FILE__, __LINE__)
-#define strdup(p)		__strdup((p), __FILE__, __LINE__)
+#define strdup(p)		___strdup((p), __FILE__, __LINE__)
 #define strsave(p)		__strsave((p), __FILE__, __LINE__)
 /* cfree and free are identical */
 #define cfree(p)		___free((p), __FILE__, __LINE__)

@@ -26,7 +26,7 @@
 # define NALIGN 8
 #endif
 
-#if defined(__alpha) || (defined(_MIPS_SZPTR) && _MIPS_SZPTR == 64)
+#if defined(__alpha) || defined(__alpha__) || (defined(_MIPS_SZPTR) && _MIPS_SZPTR == 64)
 /* 64 bit */
 # define ALIGN long foo
 # define NALIGN 8

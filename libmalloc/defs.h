@@ -99,6 +99,7 @@ union word { /* basic unit of storage */
 	char **cpp;
 	int *ip;
 	int **ipp;
+	void (*allocator)(void);
 	ALIGN;			/* alignment stuff - wild fun */
 };
 
@@ -176,7 +177,9 @@ typedef union word Word;
  *  free block header uses extra words in the block itself
  */
 #ifdef DEBUG
-# define HEADERWORDS		2	/* Start boundary tag + real size in bytes */
+# define HEADERWORDS		3	/* Start boundary tag
+					   + real size in bytes 
+					   + allocator address */
 #else /* ! DEBUG */
 # define HEADERWORDS		1	/* Start boundary tag */
 #endif /* DEBUG */
@@ -332,7 +335,8 @@ typedef union word Word;
 # define PRTRACE(x) \
   if (_malloc_tracing) { \
 	(void) x; \
-	(void) fputs(_malloc_statsbuf, _malloc_statsfile); \
+	if (_malloc_statsfile) \
+	  (void) fputs(_malloc_statsbuf, _malloc_statsfile); \
   } else \
 	_malloc_tracing += 0
 #else
