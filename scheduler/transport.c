@@ -1057,7 +1057,7 @@ queryipcinit()
 	  int port = 174; /* MAGIC knowledge */
 
 	  mytime(&now);
-	  if (sscanf(modedata,"%d",&port) != 1) {
+	  if (!modedata || !*modedata || sscanf(modedata,"%d",&port) != 1) {
 	    if ((serv = getservbyname(modedata ? modedata : "mailq", "tcp")) == NULL) {
 	      fprintf(stderr, "No 'mailq' tcp service defined!\n");
 	    } else

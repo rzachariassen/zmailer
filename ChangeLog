@@ -1,3 +1,10 @@
+1999-11-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/transport.c:
+	    mailq interface specification had a case where data can be
+	    omitted, and pointer is thus NULL -- referring via which
+	    is an open invitation to trouble (SIGSEGV usually..)
+
 1999-11-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
