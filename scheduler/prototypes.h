@@ -124,6 +124,7 @@ extern int   thread_start __((struct thread *thr));
 extern int   idle_cleanup __((void));
 extern int   pick_next_thread __((struct procinfo *proc, struct thread *));
 extern int   pick_next_vertex __((struct procinfo *proc, struct vertex *));
+extern void  thread_vertex_shuffle __((struct thread *thr));
 #ifdef _SFIO_H
 extern void  thread_report __((Sfio_t *, int));
 #endif

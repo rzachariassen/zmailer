@@ -343,7 +343,21 @@ ta_hungry(proc)
 	     the process moves into IDLE state */
 
 	  if (pick_next_thread(proc, proc->pthread)) {
+	    struct thread *thr = proc->pthread;
 	    /* We have WORK ! */
+
+	    /* Clean vertices 'proc'-pointers,  randomize the
+	       order of thread vertices  (or sort by spool file
+	       mtime, if in AGEORDER..) */
+	    thread_vertex_shuffle(thr);
+
+	    thr->attempts += 1;
+	    proc->pvertex = thr->vertices;
+	    proc->pthread = thr;
+
+	    thr->proc           = proc;
+	    thr->vertices->proc = proc;
+
 	    proc->state = CFSTATE_LARVA;
 	    goto cfstate_larva;
 	  }

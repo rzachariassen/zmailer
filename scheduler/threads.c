@@ -252,7 +252,7 @@ struct config_entry *cep;
 
 	if (thgrp->cep->flags & CFG_QUEUEONLY) {
 		/* Start with the first retry */
-		thr->attempts = 1;
+		thr->attempts = 0;
 		if(thgrp->cep->nretries) {
 			mytime(&now);
 			thr->wakeup = now + thgrp->cep->retries[0];
@@ -316,9 +316,6 @@ pick_next_thread(proc, thr0)
 	    continue; /* wakeup in future, unless first time around! */
 
 	  if (thr->proc == NULL) {
-
-	    /* XXXX: found thread, prepare it for start, shuffle vertices,
-	       if so configured, and set results.. */
 
 	    thr->proc = proc;
 	    proc->pthread = thr;
@@ -397,6 +394,7 @@ struct vertex *ap, *vp;
 
 /* the  _thread_linktail()  links a vertex into thread */
 static void _thread_linktail __((struct thread *, struct vertex *));
+
 static void _thread_linktail(thr,vp)
 struct thread *thr;
 struct vertex *vp;
@@ -570,7 +568,7 @@ const char *s;
 
 void
 unweb(flag, wp)
-	int flag;
+int flag;
 	struct web *wp;
 {
 	struct spblk *spl = NULL;
@@ -663,8 +661,7 @@ static int vtx_mtime_cmp(ap, bp)
 }
 
 
-static void thread_vertex_shuffle __((struct thread *thr));
-static void thread_vertex_shuffle(thr)
+void thread_vertex_shuffle(thr)
 struct thread *thr;
 {
 	register struct vertex *vp;
@@ -766,9 +763,9 @@ struct thread *thr;
 		  ch->name, thg->withhost, ho->name, (int)(thr->wakeup-now),
 		  thr, thr->jobs);
 
-	if (thr->proc != NULL &&
-	    thr->proc->pthread == thr) {
-	  if (verbose) sfprintf(sfstderr," -- already running\n");
+	if (thr->proc) {
+	  if (verbose)
+	    sfprintf(sfstderr," -- already running; proc=%p\n", thr->proc);
 	  return 0; /* Already running */
 	}
 
@@ -974,8 +971,8 @@ time_t retrytime;
 	int skew;
 
 	if (verbose)
-	  sfprintf(sfstdout,"thread_reschedule() ch=%s ho=%s jobs=%d\n",
-		   thr->channel,thr->host,thr->jobs);
+	  sfprintf(sfstdout,"thread_reschedule() ch=%s ho=%s jobs=%d thr=%p proc=%p\n",
+		   thr->channel,thr->host,thr->jobs,thr,thr->proc);
 
 	if (thr->proc) {
 	  /* We also disjoin possible current TA process */
