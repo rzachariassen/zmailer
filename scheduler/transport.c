@@ -170,9 +170,6 @@ struct procinfo *proc;
 	if (proc->cmdbuf == NULL)
 	  cmdbufalloc(2000, &proc->cmdbuf, &proc->cmdspc);
 
-	/* Make sure it is zero terminated! */
-	proc->cmdbuf[proc->cmdlen] = 0;
-
 	if (proc->cmdlen != 0 && proc->tofd >= 0) {
 	  /* We have some leftovers from previous feed..
 	     .. feed them now.  */
@@ -181,28 +178,30 @@ struct procinfo *proc;
 	     "flushing to child pid %d, cmdlen=%d, cmdbuf='%s'\n",
 	     proc->pid, proc->cmdlen, proc->cmdbuf);  */
 
-	  rc = write(proc->tofd, proc->cmdbuf, proc->cmdlen);
-	  if (rc != proc->cmdlen) {
-	    if (rc < 0 && (errno != EAGAIN && errno != EINTR &&
-			   errno != EWOULDBLOCK)) {
-	      /* Some real failure :-( */
-	      pipes_shutdown_child(proc->tofd);
-	      proc->tofd = -1;
-	      if (proc->vertex)
-		proc->vertex->proc = NULL;
-	      if (proc->thread) {
-		proc->thread->proc = NULL;
-		proc->thread       = NULL;
+	  while (proc->tofd >= 0 && proc->cmdlen > 0) {
+	    rc = write(proc->tofd, proc->cmdbuf, proc->cmdlen);
+	    if (rc != proc->cmdlen) {
+	      if (rc < 0 && (errno != EAGAIN && errno != EINTR &&
+			     errno != EWOULDBLOCK)) {
+		/* Some real failure :-( */
+		pipes_shutdown_child(proc->tofd);
+		proc->tofd = -1;
+		if (proc->vertex)
+		  proc->vertex->proc = NULL;
+		if (proc->thread) {
+		  proc->thread->proc = NULL;
+		  proc->thread       = NULL;
+		}
+		proc->cmdlen = 0;
+		return -1;
 	      }
-	      proc->cmdlen = 0;
-	      return -1;
+	      if (rc < 0) rc = 0;
+	      if (rc > 0)
+		memcpy(proc->cmdbuf, proc->cmdbuf+rc, proc->cmdlen - rc +1);
+	      proc->cmdlen -= rc;
+	    } else {
+	      proc->cmdlen = 0; /* Clean the pending info.. */
 	    }
-	    if (rc < 0) rc = 0;
-	    if (rc > 0)
-	      strcpy(proc->cmdbuf, proc->cmdbuf+rc);
-	    proc->cmdlen -= rc;
-	  } else {
-	    proc->cmdlen = 0; /* Clean the pending info.. */
 	  }
 	  proc->feedtime = now;
 	  return proc->cmdlen; /* We return latter.. */
@@ -313,9 +312,9 @@ struct procinfo *proc;
 	vtx->proc = proc;    /* Flag that it is in processing */
 	vtx->ce_pending = 0; /* and clear the pending.. */
 	
-	if (proc->hungry) --hungry_childs;
+	if (proc->hungry > 0) --hungry_childs;
 	/* It was fed (to buffer), clear this flag.. */
-	proc->hungry -= 1;
+	proc->hungry = 0;
 	proc->fed = 1;
 	proc->overfed += 1;
 
@@ -832,7 +831,7 @@ time_t timeout;
 	      _Z_FD_SET(i, rdmask);
 	      maxf = i;
 	      ++readsockcnt;
-	      if (proc->cmdlen != 0)
+	      if (proc->cmdlen != 0 && proc->tofd >= 0)
 		_Z_FD_SET(i, wrmask);
 	    }
 	if (querysocket >= 0) {
@@ -926,19 +925,15 @@ time_t timeout;
 		/*sfprintf(sfstderr,"that is fd %d\n",i);*/
 		/* do non-blocking reads from this fd */
 		readfrom(i);
-		/* Because this loop might take a while ... */
-		queryipccheck();
 	      }
-	    }
-	    /* In case we have non-completed 'feeds', try feeding them */
-	    for (i = 0; i < scheduler_nofiles; ++i)
-	      if (cpids[i].pid > 0
-		  && cpids[i].cmdlen != 0
-		  && _Z_FD_ISSET(i, wrmask)) {
+	      /* In case we have non-completed 'feeds', try feeding them */
+	      if (cpids[i].pid > 0    && cpids[i].tofd >= 0 &&
+		  cpids[i].cmdlen > 0 && _Z_FD_ISSET(i, wrmask)) {
 		flush_child(&cpids[i]);
-		/* Because this loop might take a while ... */
-		queryipccheck();
 	      }
+	      /* Because this loop might take a while ... */
+	      queryipccheck();
+	    }
 	  }
 	  mq2_areinsets(&rdmask, &wrmask);
 

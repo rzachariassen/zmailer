@@ -970,7 +970,6 @@ int ok, justfree;
 	struct threadgroup *thg;
 	struct vertex *vtx;
 
-	proc->fed = 1; /* We clear this, when we have something to feed */
 
 	thr  = proc->thread;
 
@@ -986,6 +985,7 @@ int ok, justfree;
 	    proc->vertex->proc = NULL;
 	  proc->vertex = NULL;
 	  if (verbose) printf(" ... NONE, 'Jim, He is dead!'\n");
+	  proc->fed = 1;
 	  return;
 	}
 
@@ -993,31 +993,33 @@ int ok, justfree;
 	  if (verbose) printf(" ... NONE, we are idle.\n");
 	  return; /* WE ARE IDLE! */
 	}
-
+#if 0 /* dead code ?? */
 	if (!justfree && proc->fed == 0 && proc->vertex != NULL) {
 	  if (verbose) printf(" ... NONE, current one has not been fed..\n");
 	  return; /* Current one has not been (completely) fed..	*/
 	}
-
+#endif
 	thr0 = thr;
 	thg  = thr->thgrp;
-	vtx  = thr->vertices;
 	/* proc->vertex->proc = NULL; */ /* Mark that we are busy.. */
 
 	/* Ok, if that one was/is busy/marked off, AND we are ok to
 	   use vertices from the same thread: try next vertex */
-	while (ok && vtx) {
+	if (ok) {
+	  vtx  = thr->vertices;
+	  while (vtx) {
 
-	  /* Is the current one in processing ? */
-	  if (vtx->proc == NULL) {
-	    proc->vertex = vtx;
-	    if (verbose) printf(" ... thr=same vtx=0x%p\n",vtx);
-	    proc->fed = 0;
-	    return; /* No, it is eligible! */
+	    /* Is the current one in processing ? */
+	    if (vtx->proc == NULL) {
+	      proc->vertex = vtx;
+	      if (verbose) printf(" ... thr=same vtx=0x%p\n",vtx);
+	      proc->fed = 0;
+	      return; /* No, it is eligible! */
+	    }
+
+	    /* Pick next */
+	    vtx = vtx->nextitem;
 	  }
-
-	  /* Pick next */
-	  vtx = vtx->nextitem;
 	}
 	/* Umm.. All vertices on this thread used! */
 
@@ -1032,6 +1034,7 @@ int ok, justfree;
 	/* .. except if ordered by 'justfree' -- damn resync.. */
 	if (!justfree && proc->cmdlen != 0) {
 	  if (verbose) printf(" ... NONE, this thread empty, and feeding incomplete..\n");
+	  proc->fed = 1;
 	  return;
 	}
 
