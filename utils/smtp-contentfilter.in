@@ -19,6 +19,8 @@
 
 %RFC822 = ();
 
+select(STDOUT); $| = 1;
+
 while (<>) {
 	chomp;
 
@@ -31,6 +33,7 @@ exit 0;
 
 sub filter {
 	local($fname) = @_;
+	local($rc) = '0 nothing set';
 
 	open(SP, "< ".$fname) ||
 		return "0 Oops.. filter can't open file $fname";
@@ -57,7 +60,8 @@ sub filter {
 				$RFC822{$HDR}     = $REST;
 
 				# Analyze the 822 header
-				$rc = &rfc822syntax($HDR,$REST) && goto DONEIT;
+				$rc = &rfc822syntax($HDR,$REST);
+				goto DONEIT if (defined $rc);
 			}
 			$HDR822  = $_;
 		} else {
@@ -69,7 +73,8 @@ sub filter {
 		my($HDR,$REST)    = split(/:/, $HDR822, 2);
 
 		# Analyze the 822 header
-		$rc = &rfc822syntax($HDR,$REST) && goto DONEIT;
+		$rc = &rfc822syntax($HDR,$REST);
+		goto DONEIT if (defined $rc);
 	}
 
 	# stand-alone RFC 822 (et.al.) piecemal syntax analysis is done,
