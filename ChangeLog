@@ -1,3 +1,19 @@
+1999-12-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/hold/Makefile.in, transports/mailbox/Makefile.in,
+	  transports/sm/Makefile.in, transports/smtp/Makefile.in:
+	    Modify library linkage orders; in case @LIBMALLOC@ is used,
+	    link it *last*.  That should avoid some problems I had recently
+	    when running memory-debug TAs..
+
+	* scheduler/transport.c:
+	    One more oddball corner case - missed to do *thread* rescheduling
+	    at the thread-switch..
+
+	* scheduler/scheduler.c, scheduler/scheduler.h:
+	    After some fixed amount of resyncs on a file, throw it away
+	    alltogether for latter input queue scanner to find.
+	
 1999-12-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* lib/selfaddrs.c:
