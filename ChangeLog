@@ -1,3 +1,33 @@
+2004-07-06  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/server.cf, proto/cf/aliases.cf, proto/cf/rrouter.cf:
+	    No more using  $(dequote .. )  function, but using
+	    explicite pattern in  ssift  clauses.
+
+	* libsh/execute.c, libsh/listutils.c:
+	    Found dangerous code deep inside the execute.c handling
+	    stream redirections under some esoteric conditions.
+
+	* smtpserver/Makefile.in, router/Makefile.in, snmp/Makefile.in,
+	  utils/vacation/Makefile.in, utils/makedb/Makefile.in:
+	    Rearranged library specifications so that --generic-lib=
+	    parameters will lead the linking (in case -L is used!)
+
+	* libsh/trap.c, router/daemonsub.c:
+	    Noticed that in Solaris the master router leaves zombies.
+	    This is a bit uncertain attempt at handling that by regularly
+	    collecting all zombies, and instantiating processing vectors.
+
+	* libsh/trap.c:
+	    Nick Briggs reports odd compiler things on Solaris
+	    with Sun compilers in strict ANSI mode...  I tried
+	    to introduce safe fallbacks.
+
+	* smtpserver/mxverify.c, smtpserver/policytest.c,
+	  smtpserver/policytest.h:
+	    Hunted down (finally) conditions of when MX testing
+	    lets thru something into %-hack
+
 2004-07-01  Matti Aarnio  <mea@zmailer.org>
 
 	* router/db.c:

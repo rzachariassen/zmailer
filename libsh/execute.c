@@ -1068,6 +1068,8 @@ fprintf(stderr,"runio(@%p) ioop=%p &ioop->command->buffer=%p\n",
 				siop = siofds[ioop->fd];
 				*(siop->sb_base + siop->sb_bufsiz
 						- siop->sb_cnt) = '\0';
+#if 0 /* Bad input excercised this code (and SEGVed in glibc-2.x),
+	 no other has ever hit it.  KILL IT! */
 				if (*siop->sb_base == '(') {
 					FILE f;
 					/*
@@ -1091,7 +1093,9 @@ fprintf(stderr,"runio(@%p) ioop=%p &ioop->command->buffer=%p\n",
 					*(ioop->command->bufferp) = s_read(&f);
 					UNGCPRO1;
 					ioop->command->bufferp = &cdr(*ioop->command->bufferp);
-				} else {
+				} else
+#endif
+				  {
 					GCPRO1(ioop->command->buffer);
 					addbuffer(siop->sb_base, siop->sb_bufsiz - siop->sb_cnt, 0, ioop->command);
 					UNGCPRO1;

@@ -16,6 +16,14 @@ VERIFY: router/daemonsub.c around line 1470 the routerchilds[]
 	number of processes needed for ROUTERDIRS ?
 	How will  NOTIFY  messages affect the job pickup ?
 
+VERIFY:  smtpserver: 
+	hunting down odd corner situations, where:
+	- domain X isn't listed in 'localnames' file
+	- domain X does not have MXes, but has A/AAAA matching our IP
+	- domain X has MXes  with lowest being ours
+	( The 'domain does not have MX data' case works ok,
+	  the 'domain has MX data' case isn't fully verified! )
+
 sleepycat db integration:
    - Support RPC client mode!
      - Observe new error modes to creep up everywhere!

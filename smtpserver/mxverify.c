@@ -14,6 +14,21 @@ static int dnsmxlookup __((struct policystate *, const char*, int, int, int));
 extern int debug;
 static char * txt_buf = NULL;
 
+struct mxset {
+  int pref;
+  char islocal;
+  char type; /* bitset: 1 | 2 */
+  char *mx;
+};
+
+/*
+ * return values:
+ *   state->islocaldomain
+ *   ret: 0 = not found ( = reject )
+ *   ret: 1 = FOUND MX MATCH ( = ACCEPT )
+ *   ret: 2 = reject by MX rule
+ */
+
 static int
 dnsmxlookup(state, host, depth, mxmode, qtype)
 	struct policystate *state;
@@ -23,18 +38,19 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	int qtype;
 {
 	HEADER *hp;
-	msgdata *eom, *cp;
-	int qlen, n, i, qdcount, ancount, nscount, arcount, maxpref, class;
+	msgdata *eom, *cp, *cpnext;
+	int qlen, n, j, qdcount, ancount, nscount, arcount, maxpref, class;
 	u_short type;
 	int saw_cname = 0, had_mx_record = 0;
 	int ttl;
 	struct addrinfo req, *ai;
 #define MAXMX 128
-	char *mx[MAXMX];
-	int   mxtype[MAXMX];
+	struct mxset mxs[MAXMX];
 	int mxcount;
 	querybuf qbuf, answer;
 	msgdata buf[8192], realname[8192];
+
+	memset( mxs, 0, sizeof(mxs) );
 
 	if (depth == 0)
 	  h_errno = 0;
@@ -108,7 +124,9 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	realname[0] = '\0';
 	maxpref = 70000;
 	mxcount = 0;
-	while (--ancount >= 0 && cp < eom) {
+
+	for ( ; --ancount >= 0 && cp < eom; cp = cpnext) {
+
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0)
 	    break;
@@ -119,38 +137,40 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	  NS_GET32(ttl,   cp); /* ttl   */
 	  NS_GET16(n,     cp); /* dlen  */
 
-	  if (cp + n > eom) {
+	  cpnext = cp + n;
+
+	  if (cpnext > eom) {
 	    /* BAD data.. */
 	    break;
 	  }
 
 	  if (type == T_CNAME) {
-	    cp += dn_expand((msgdata *)&answer, eom, cp,
-			    (void*)realname, sizeof realname);
+	    dn_expand((msgdata *)&answer, eom, cp,
+		      (void*)realname, sizeof realname);
 	    saw_cname = 1;
 	    continue;
 	  }
 
 	  if (type != qtype)  {
 	    /* Not looked for .. */
-	    cp += n;
 	    continue;
 	  }
 
 	  if (type == T_MX) {
-	    cp += 2; /* MX preference value */
+	    int pref;
+	    NS_GET16(pref, cp); /* MX preference value */
 	    n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	    if (n < 0)
 	      break;
-	    cp += n;
 
 	    if (debug)
 	      printf("000  MX[%d] = '%s'\n", mxcount, buf);
 
 	    if (mxcount < MAXMX) {
-	      mx[mxcount] = strdup((const char *)buf);
-	      if (!mx[mxcount]) break; /* Out of memory ?? */
-	      mxtype[mxcount] = 0;
+	      mxs[mxcount].mx   = strdup((const char *)buf);
+	      mxs[mxcount].pref = pref;
+	      mxs[mxcount].type = 0;
+	      if (!mxs[mxcount].mx) break; /* Out of memory ?? */
 	      ++mxcount;
 	    }
 	    /* If too many MXes, just skip the rest.. */
@@ -160,7 +180,7 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	  } /* ===== END OF MX DATA PROCESING ========= */
 
 	  if (type == T_TXT) {
-	    int len = (*cp) & 0xFF; /* 0..255 chars */
+	    int i, len = (*cp) & 0xFF; /* 0..255 chars */
 
 	    /* Mal-formed inputs are possible overflowing the buffer.. */
 	    if (len > (eom - cp))
@@ -175,29 +195,31 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	    memcpy(txt_buf, cp, len);
 	    txt_buf[len] = '\0';
 	    for (i = 0; i < mxcount; ++i) {
-	      if (mx[i]) free(mx[i]);
-	      mx[i] = NULL;
+	      if (mxs[i].mx) free(mxs[i].mx);
+	      mxs[i].mx = NULL;
 	    }
 	    return 1; /* OK! */
 	  }
 
 	  /* If reached here, skip the data tail */
 	  /* In theory could be an abort even..  */
-	  cp += n;
+
 	} /* ===== END OF DNS ANSWER PROCESSING ======= */
 
 
 	if (ancount > 0) {
 	  /* Sigh, waste of time :-( */
-	  for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
+	  int i;
+	  for (i = 0; i < mxcount; ++i) if (mxs[i].mx) free(mxs[i].mx);
 	  return -EX_SOFTWARE;
 	}
+
 
 #if 0
 	if (qtype == T_MX && !mxmode && had_mx_record) {
 	  /* Accept if found ANYTHING! */
 	  if (debug) printf("000-  ... accepted!\n");
-	  for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
+	  for (i = 0; i < mxcount; ++i) if (mxs[i].mx) free(mxs[i].mx);
 	  return 1;
 	}
 #endif
@@ -235,7 +257,10 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	   look for the 'AA' bit.  If it isn't set, we don't use this
 	   data, but do explicite lookups below. */
 
-	while (hp->aa && nscount == 0 && arcount > 0 && cp < eom) {
+	for ( ;
+	      hp->aa && nscount == 0 && arcount > 0 && cp < eom;
+	      cp = cpnext) {
+
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0) { cp = eom; break; }
 	  cp += n;
@@ -246,15 +271,16 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	  cp += NS_INT32SZ;    /* ttl   - long  */
 	  NS_GET16(n, cp);     /* dlen  - short */
 
-	  if (cp + n > eom) { cp = eom; break; }
+	  cpnext = cp + n;
+
+	  if (cpnext > eom)    { continue; /* BAD BAD! */ }
 
 	  if (class != C_IN) {
-	    cp += n; --nscount;
+	    --arcount;
 	    continue;
 	  }
 
 	  /* Ok, we have Type IN data in the ADDITIONAL SECTION */
-
 
 	  /* A and AAAA are known here! */
 
@@ -265,14 +291,16 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	      ) {
 
 	    Usockaddr usa;
+	    
+	    --arcount;
 
 	    /* Pick the address data */
-	    for (i = 0; i < mxcount; ++i) {
+	    for (n = 0; n < mxcount; ++n) {
 	      /* Is this known (wanted) name ?? */
-	      if (strcasecmp((const char *)buf, mx[i]) == 0) {
+	      if (strcasecmp((const char *)buf, mxs[n].mx) == 0) {
 		/* YES! */
 
-		mxtype[i] |= (type == T_A) ? 1 : 2 ; /* bitflag: 1 or 2 */
+		mxs[n].type |= (type == T_A) ? 1 : 2 ; /* bitflag: 1 or 2 */
 
 		/* We do have a wanted name! */
 
@@ -299,41 +327,44 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 		if (debug) {
 		  if (usa.v4.sin_family == AF_INET) {
 		    inet_ntop(AF_INET, (void*) & usa.v4.sin_addr, (char *)buf, sizeof(buf));
-		    printf("000-  matching %s AR address IPv4:[%s]\n", mx[i], buf);
+		    printf("000-  matching %s AR address IPv4:[%s]\n", mxs[n].mx, buf);
 		  }
 #if defined(AF_INET6) && defined(INET6)
 		  else if (usa.v6.sin6_family == AF_INET6) {
 		    inet_ntop(AF_INET6, (void*) & usa.v6.sin6_addr, buf, sizeof(buf));
-		    printf("000-  matching %s AR address IPv6:[%s]\n", mx[i], buf);
+		    printf("000-  matching %s AR address IPv6:[%s]\n", mxs[n].mx, buf);
 		  }
 #endif
 		  else
 		    printf("000- matching unknown %s AR address family address; AF=%d\n",
-			   mx[i], usa.v4.sin_family);
+			   mxs[n].mx, usa.v4.sin_family);
 		}
 #endif
 
-		i = matchmyaddress( &usa );
-		if (i == 1) {
+		j = matchmyaddress( &usa );
+		if (j == 1) {
 		  if (debug)
 		    printf("000-   AR ADDRESS MATCH!\n");
-		  for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
-		  return 1; /* Found a match! */
-		} else if (i == 2) {
+		  mxs[n].islocal = 1;
+		  /* Found a match! */
+		  goto ponder_mx_result;
+		} else if (j == 2) {
 		  if (debug)
 		    printf("000-   AR ADDRESS LOOPBACK MATCH!\n");
-		  for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
-		  return 2; /* Found a match! */
+		  mxs[n].islocal = 2;
+		  /* Found a match! */
+		  goto ponder_mx_result;
 		} else
 		  if (debug)
-		    printf("000-   AR matchmyaddress() yields: %d\n", i);
+		    printf("000-   AR matchmyaddress() yields: %d\n", j);
 
 		break; /* Name matched, no need to spin more here.. */
 	      } /* Matched name! */
 	    } /* Name matching loop */
+	    continue;
 	  } /* type = T_A or T_AAAA */
 
-	  cp += n;
+	  /* All other cases.. */
 	  --arcount;
 	} /* Additional data collected! */
 
@@ -347,7 +378,7 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 
 	  memset(&req, 0, sizeof(req));
 
-	  switch(mxtype[n]) {
+	  switch(mxs[n].type) {
 	  case 0: /* no addresses seen! */
 	    req.ai_family   = 0; /* Both OK (IPv4/IPv6) */
 	    /* Definitely ask for it! */
@@ -379,15 +410,16 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	  /* This resolves CNAME, it should not happen in case
 	     of MX server, though..    */
 #ifdef HAVE__GETADDRINFO_
-	  i = _getaddrinfo_(mx[n], "0", &req, &ai,
+	  rc = _getaddrinfo_(mxs[n].mx, "0", &req, &ai,
 			    debug ? stdout : NULL);
 #else
-	  i = getaddrinfo(mx[n], "0", &req, &ai);
+	  rc = getaddrinfo(mxs[n].mx, "0", &req, &ai);
 #endif
 	  if (debug)
-	    printf("000-  getaddrinfo('%s','0') -> r=%d, ai=%p\n",mx[n],i,ai);
+	    printf("000-  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
+		   mxs[n].mx,rc,ai);
 	    
-	  if (i != 0)
+	  if (rc != 0)
 	    continue;		/* Well well.. spurious! */
 
 	  for ( ai2 = ai ; ai2 != NULL; ai2 = ai2->ai_next) {
@@ -399,17 +431,19 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 
 	      if (usa->v4.sin_family == AF_INET) {
 		inet_ntop(AF_INET, (void*) & usa->v4.sin_addr, buf, sizeof(buf));
-		printf("000-  matching %s address IPv4:[%s]\n", mx[n], buf);
+		printf("000-  matching %s address IPv4:[%s]\n",
+		       mxs[n].mx, buf);
 	      }
 #if defined(AF_INET6) && defined(INET6)
 	      else if (usa->v6.sin6_family == AF_INET6) {
 		inet_ntop(AF_INET6, (void*) & usa->v6.sin6_addr, buf, sizeof(buf));
-		printf("000-  matching %s address IPv6:[%s]\n", mx[n], buf);
+		printf("000-  matching %s address IPv6:[%s]\n",
+		       mxs[n].mx, buf);
 	      }
 #endif
 	      else
 		printf("000- matching %s unknown address family address; AF=%d\n",
-		       mx[n], usa->v4.sin_family);
+		       mxs[n].mx, usa->v4.sin_family);
 	    }
 #endif
 	    rc = matchmyaddress((Usockaddr *)ai2->ai_addr);
@@ -417,14 +451,16 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	      if (debug)
 		printf("000-   ADDRESS MATCH!\n");
 	      freeaddrinfo(ai);
-	      for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
-	      return 1; /* Found a match! */
+	      mxs[n].islocal = 1;
+	      /* Found a match! */
+	      goto ponder_mx_result;
 	    } else if (rc == 2) {
 	      if (debug)
 		printf("000-   LOOPBACK ADDRESS MATCH!\n");
 	      freeaddrinfo(ai);
-	      for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
-	      return 2; /* Found a match! */
+	      mxs[n].islocal = 2;
+	      /* Found a match! */
+	      goto ponder_mx_result;
 	    } else
 	      if (debug)
 		printf("000-   matchmyaddress() yields: %d\n", rc);
@@ -435,15 +471,28 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	  freeaddrinfo(ai);
 
 	  if (!mxmode) /* Accept if found ANYTHING! */ {
+	    int i;
+
 	    if (debug) printf("000-  ... accepted!\n");
-	    for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
+	    for (i = 0; i < mxcount; ++i)
+	      if (mxs[i].mx)
+		free(mxs[i].mx);
+
 	    return 1;
 	  }
+	} /* Thru all MXS[] ... */
 
+
+	/* No MX match found.. */
+	for (n = 0; n < mxcount; ++n) {
+	  if (mxs[n].mx)
+	    free(mxs[n].mx);
+	  mxs[n].mx = NULL;
 	}
 
-	for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
-
+	if (debug)
+	  printf("000-   saw_cname=%d  had_mx_record=%d  mxmode=%d\n",
+		 saw_cname, had_mx_record, mxmode);
 
 	/* Didn't find any, but saw CNAME ? Recurse with the real name */
 	if (saw_cname)
@@ -452,8 +501,12 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	if (had_mx_record && mxmode)
 	    return 2; /* We have SOME date, but no match on ourselves! */
 
+	return 0; /* No match, but had MXes.. */
+
 perhaps_address_record:
 	if (qtype == T_MX) {
+	  int i;
+
 	  /* No MX, perhaps A ? */
 	  memset(&req, 0, sizeof(req));
 	  req.ai_socktype = SOCK_STREAM;
@@ -461,7 +514,6 @@ perhaps_address_record:
 	  req.ai_flags    = AI_CANONNAME;
 	  req.ai_family   = PF_INET;
 	  ai = NULL;
-
 
 	  /* This resolves CNAME, it should not happen in case
 	     of MX server, though..    */
@@ -517,25 +569,27 @@ perhaps_address_record:
 #endif
 
 	  if (i)
-	    return i;
-
+	    return 0; /* Bad lookup result -> no match */
 
 	  i = matchmyaddresses(ai);
+
+	  freeaddrinfo(ai);
+
+	  if (i > 0)
+	    state->islocaldomain = 1;
 #if 1
 	  /* With this we can refuse to accept any message with
 	     source domain pointing back to loopback ! */
 	  if (i == 2) {
 	    /* Loopback ! */
-	    freeaddrinfo(ai);
+	    state->islocaldomain = 2;
 	    return 2;
 	  }
 #endif
 	  if (i == 0 && mxmode) {
-	    freeaddrinfo(ai);
 	    return 2; /* Didn't find our local address in client-MX-mode */
 	  }
 
-	  freeaddrinfo(ai);
 	  return 1; /* Found any address, or in client-MX-mode,
 		       a local address! */
 	}
@@ -544,6 +598,37 @@ perhaps_address_record:
 	  return 2; /* Not found, had no MX data either */
 	
 	return 0; /* Not found! */
+
+ ponder_mx_result:;
+	/* Ok, we have some MX match, lets see closer..
+	   If we have...
+	   - TODO: What shall we do with MX server sets ?
+	   - Can we set  state->islocaldomain   ??
+	*/
+#if 0
+	{
+	  int lowpref = 100000;
+
+	  for (n = 0; n < mxcount; ++n) {
+	    if ((mxs[n].pref < lowpref) && mxs[n].islocal)
+	      lowpref = mxs[n].pref;
+	  }
+
+	  for (n = 0; n < mxcount; ++n) {
+	    if (mxs[n].pref < lowpref)
+	      return 0;
+	  }
+
+	}
+#endif
+
+	for (n = 0; n < mxcount; ++n) {
+	  if (mxs[n].mx)
+	    free(mxs[n].mx);
+	}
+
+	/* Report as successfull match, didn't set  'state->islocaldomain' */
+	return 1;
 }
 
 

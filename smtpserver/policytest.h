@@ -56,7 +56,10 @@ struct policystate {		/* Part of SmtpState structure */
     long maxinsize;
     long maxoutsize;
     long maxsameiplimit;
-    int  islocaldomain;
+    int  islocaldomain; /* DNS lookup finds just A/AAAA record(s),
+			   and at least one of them is ours.
+			   But... what about it us being lowest/only MX ?
+			*/
 #ifdef HAVE_WHOSON_H
     int whoson_result;
 #endif

@@ -9,9 +9,13 @@ quadprint (quad) {
 
 	user="$(user $quad)"
 	case $(channel $quad) in
-	local)	user2="$(dequote -- "$user")"
-		ssift "$user2" in
-		[|/].*	text="250 2.1.5 local delivery for"
+	local)
+		# user2="$(dequote -- "$user")"
+		# ssift "$user2" in
+		ssift "$user" in
+		[|/].*
+		'"[|/].*"'
+			text="250 2.1.5 local delivery for"
 			break
 			;;
 		.*

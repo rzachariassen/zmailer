@@ -2024,15 +2024,18 @@ static int pt_rcptto(state, str, len)
    #      [return -1;]
  */
 
-    while (((localdom = valueeq(state->values[P_A_LocalDomain], "+")) ||
-	    (relayable = valueeq(state->values[P_A_RELAYTARGET], "+"))) &&
-	   (percent_accept < 0)) {
+ process_local_domain:;
+
+    while ((localdom = valueeq(state->values[P_A_LocalDomain], "+")) ||
+	   (relayable = valueeq(state->values[P_A_RELAYTARGET], "+"))) {
 
       /* Ok, local domain recognized, now see if it has
 	 '%'-hack at the local-part.. */
 
       const char *phack, *phack2;
-      int llen = (at - str);
+      int llen;
+
+      llen = (at - str);
 
       /* How about '!' ??? */
       phack = find_nonqchr(str, '!', llen);
@@ -2151,11 +2154,28 @@ static int pt_rcptto(state, str, len)
 
     if (state->values[P_A_ACCEPTifMX] || state->sender_norelay != 0) {
       int c = state->values[P_A_ACCEPTifMX] ? state->values[P_A_ACCEPTifMX][0] : '.';
-      int rc = mx_client_verify(state, c, at+1, len - (1 + at - str)); 
+      int rc;
+
+      /* The getmxrr() testing will report, if
+	 the target domain has just A record,
+	 and it is one of ours. */
+      state->islocaldomain = 0;
+
+      rc = mx_client_verify(state, c, at+1, len - (1 + at - str)); 
       /* XX: state->message setup! */
       if (debug)
-	type(NULL,0,NULL," ...(mx_client_verify('%.*s')) returns: %d",
-	       (int)(len - (1 + at - str)), at+1, rc);
+	type(NULL,0,NULL,
+	     " ...(mx_client_verify('%.*s')) returns: %d; lcldom=%d",
+	     (int)(len - (1 + at - str)), at+1, rc, state->islocaldomain);
+
+      if (state->islocaldomain) {
+	/* Simulate proper 'localnames' listing for this domain! */
+	if (state->values[P_A_LocalDomain])
+	  free(state->values[P_A_LocalDomain]);
+	state->values[P_A_LocalDomain] = strdup("+");
+	goto process_local_domain;
+      }
+
       PICK_PA_MSG(P_A_ACCEPTifMX);
       return rc;
     }

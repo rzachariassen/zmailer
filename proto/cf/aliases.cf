@@ -282,20 +282,31 @@ routeuser (quad, plustail, domain) {
 		;;
 	esac
 
-	user=$(condquote -- $user)
-	host=$(condquote -- $host)
+	# user=$(condquote -- $user)
+	# host=$(condquote -- $host)
 
 # echo "routeuser: host=$host, user=$user" >> /dev/tty
 
 	[ -n "$FORCEPUNT" ] &&
 		returns $(rrouter "$user@$FORCEPUNT" "$host" $attr "" "")
 
-	a="$(dequote -- "$user")"
+	# a="$(dequote -- "$user")"
 
-	ssift "$a" in
-	\\(.*)	user="\1" # Back-quoted username -- most likely
+	ssift "$user" in
+	\\(.*)	# Back-quoted username -- most likely
 		#didexpand=local
+		return (((local $host "\1$plustail$domain" $attr)))
 		;;
+	'"'\\(.*)'"'
+		# Back-quoted username -- most likely
+		#didexpand=local
+		return (((local $host "\1$plustail$domain" $attr)))
+		;;
+	real-(.*)
+		db add expansions "$key" local
+		return (((local $host "\1$plustail$domain" $attr)))
+		;;
+	'"'':include:[\ \t]*(.+)[\ \t]*"[\ \t]*''"'
 	':include:[\ \t]*(.+)[\ \t]*'
 		# Weird format to do explicite white-space stripping...
 		priv=$(get $attr privilege)
@@ -337,7 +348,12 @@ routeuser (quad, plustail, domain) {
 #			user="\"$user\""
 #		fi
 #		;;
-	[|/].*	returns (($quad))
+
+	'"[|/].*"'
+		returns (($quad))
+		;;
+	[|/].*
+		returns (($quad))
 		;;
 	tfiss
 

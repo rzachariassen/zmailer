@@ -15,8 +15,8 @@ TOPDIR=		..
 MAILBIN=	$(DESTDIR)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
-ROUTER_INCL=	@INCLRESOLV@ @GENINCL@ 
-ROUTER_LIB=	@GETPWLIB@ @LIBDBMS@ @LIBNIS@ @LIBRESOLV@ @LIBSOCKET@ @GENLIB@
+ROUTER_INCL=	@GENINCL@ @INCLRESOLV@
+ROUTER_LIB=	@GENLIB@ @GETPWLIB@ @LIBDBMS@ @LIBNIS@ @LIBRESOLV@ @LIBSOCKET@
 #   Above the  LIBSOCKET (for SysVR4) must be last
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(srcdir)/$(TOPDIR)/libsh -I$(TOPDIR)/libsh -I.
@@ -54,7 +54,7 @@ $(OBJS): $(srcdir)/../include/shmmib.h ../include/mail.h
 $(OBJS): $(srcdir)/prototypes.h $(srcdir)/router.h
 
 $(PROGRAM): $(TOPDIR)/include/rfc822.entry $(LIBDEB) version.o $(OBJS)
-	$(CC) $(CFLAGS) -o $@.x $(OBJS) version.o $(LIB) $(ROUTER_LIB)
+	$(CC) $(CFLAGS) -o $@.x $(OBJS) version.o $(ROUTER_LIB) $(LIB)
 	mv $@.x $@
 
 $(PROGRAM).third: $(TOPDIR)/include/rfc822.entry $(LIBDEB) version.o $(OBJS)

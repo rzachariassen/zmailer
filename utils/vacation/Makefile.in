@@ -18,7 +18,7 @@ MAILSHARE=	$(DESTDIR)@MAILSHARE@
 MANDIR=		$(DESTDIR)@MANDIR@
 INSTALL=	@INSTALL@
 TOPDIR=		../..
-LIBS=		-L$(TOPDIR)/libs -lzm -lzc @GETPWLIB@ @LIBRESOLV@ @LIBSOCKET@ @GENLIB@
+LIBS=		-L$(TOPDIR)/libs -lzm -lzc @GENLIB@ @GETPWLIB@ @LIBRESOLV@ @LIBSOCKET@
 LN_S=		"@LN_S@"
 MKDIR=		@MKDIR@
 
@@ -40,7 +40,7 @@ all: vacation
 
 vacation: vacation.o $(CONVTIME)
 	rm -f $@
-	$(CC) $(CFLAGS) -o $@ vacation.o $(CONVTIME) $(DBMLIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ vacation.o $(CONVTIME) $(LIBS) $(DBMLIB)
 
 vacation.o: $(srcdir)/vacation.c
 	rm -f $@

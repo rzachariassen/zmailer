@@ -100,16 +100,15 @@ int sigarg;
 	SIGNAL_HANDLE(SIGHUP, sig_hup);
 }
 
+extern void traphup __((int));
+
 static void dohup __((int));
-static void
-dohup(sig)
-int sig;
+static void dohup(sig)
+     int sig;
 {
 	gothup = 0;
-	if (traps[SIGHUP] != NULL)
-		eval(traps[SIGHUP], "trap", NULL, NULL);
+	traphup(sig);
 }
-
 
 /*
  * Run the Router in Daemon mode.
@@ -318,7 +317,8 @@ int signum;
 #ifdef	HAVE_WAITPID
 	  pid = waitpid(-1, &statloc, WNOHANG);
 #else
-	  pid = wait(&statloc);
+	  pid = wait(&statloc); :: ERROR :: ERROR :: ERROR ::
+	    /* THIS IS EXTREMELY BAD CASE! */
 #endif
 #endif
 #endif
@@ -1562,9 +1562,9 @@ run_daemon(argc, argv)
 
 	/* instantiate the signal handler.. */
 #ifdef SIGCLD
-	SIGNAL_HANDLE(SIGCLD,  sig_chld);
+	sig_chld(SIGCLD);
 #else
-	SIGNAL_HANDLE(SIGCHLD, sig_chld);
+	sig_chld(SIGCHLD);
 #endif
 
 	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* mustexit = 1 */
@@ -1637,7 +1637,7 @@ run_daemon(argc, argv)
 	      break; /* fork failed.. */
 	}
 
-	sleep(5); /* Wait a bit before continuting so that
+	sleep(5); /* Wait a bit before continuing so that
 		     child processes have a change to start */
 
 	/* Collect start reports (initial "#hungry\n" lines) */

@@ -224,13 +224,16 @@ rrouter (address, origaddr, A, plustail, domain) {
 
 	# Ok, possible LOCAL things must be matched dequoted here!
 
-	tmp="$(dequote -- "$address")"
-	ssift "$tmp" in
-	\\(.+)	# A back-quote prefixed userid (most likely)
+	# tmp="$(dequote -- "$address")"
+	# ssift "$tmp" in
+	ssift "$address" in
+	\\(.+)
+	'"\\(.+)"'
+		# A back-quote prefixed userid (most likely)
 		##tmp=$(rrouter "\1" "$origaddr" $A "$plustail" "") &&
 		##   returns $tmp
 		##return $tmp  # error code return
-		tmp=(local "$origaddr" "$address" $A)
+		tmp=(local "$origaddr" "\1" $A)
 		tmp=$(routeuser $tmp "$plustail" "") && returns $tmp
 		return $tmp # error code return
 		;;
@@ -239,9 +242,11 @@ rrouter (address, origaddr, A, plustail, domain) {
 		# -- well, it could be a slash-notated X.400 address too..
 		returns (((local "file.$origaddr" "$address" $A)))
 		;;
-	\|.+	# pipe
+	'"\|.+"'  # pipe
+	\|.+	  # pipe
 		returns (((local "pipe.$origaddr" "$address" $A)))
 		;;
+	'":include:.+"'
 	:include:.+ # ":include:" -alias
 		# We must test this here, because the file-path after
 		# this prefix may have a dot!

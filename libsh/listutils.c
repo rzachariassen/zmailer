@@ -10,10 +10,16 @@
 #include "hostenv.h"
 #include "listutils.h"
 #ifdef	MAILER
-#include "sift.h"
+#include "sift.h"	/* This must be before "mailer.h" ! */
 #endif	/* MAILER */
-#include "mailer.h"
+#include "mailer.h"	/* <stdio.h> called here is needed
+			   to be before io.h below */
 #include <ctype.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
+
 #include "sh.h"
 #include "io.h"
 #include "shconfig.h"

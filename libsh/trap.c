@@ -26,12 +26,26 @@ extern const char *VersionNumb;
 #define SIGCHLD SIGCLD
 #endif  /* SIGCHLD */
 
+/* In some cases the NSIG macro will not be defined, and we get
+   into trouble below in otder to define array sizes et.al.
+   This is true with e.g. Solaris under struct ANSI rules with
+   Sun compiler.  In that system there is  _sys_nsig  which does
+   tell how many signals there are, but it being an integer variable,
+   we can't use it to define array sizes..
+   Lets pick something that will be "sufficiently large" in case
+   we don't get that macro in compilation.
+*/
+
+#ifndef NSIG
+#define NSIG 128
+#endif
+
 /*
  * The script to execute for a particular trap is stored as a string in
  * malloc()'ed storage, with a pointer to it in the traps[] array.
  */
 
-const char *traps[NSIG];
+static const char *traps[NSIG];
 
 /*
  * The effect of a signal is to increment a count of seen but unprocessed
@@ -83,6 +97,20 @@ trapsnap()
 		if (orig_handler[i] != SIG_DFL && i != SIGCHLD)
 			SIGNAL_HANDLE(i, orig_handler[i]);
 }
+
+
+/*
+ * Call this to process SH environment arrived SIGHUP
+ */
+
+void
+traphup(sig)
+int sig;
+{
+	if (traps[SIGHUP] != NULL)
+		eval(traps[SIGHUP], "trap", NULL, NULL);
+}
+
 
 /*
  * This is the generic signal handler that is set whenever a trap is laid.
