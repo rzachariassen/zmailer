@@ -342,9 +342,12 @@ main(argc, argv)
 	    int addrsiz = sizeof(sa->v4);
 
 #if defined(AF_INET6) && defined(INET6)
-	    if (ai->ai_family == AF_INET6)
+	    if (ai->ai_family == AF_INET6) {
 	      addrsiz = sizeof(sa->v6);
+	      sa->v6.sin6_port = htons(portnum);
+	    } else
 #endif
+	      sa->v4.sin_port = htons(portnum);
 
 	    /* try grabbing a port */
 	    fd = socket(ai->ai_family, SOCK_STREAM, 0);

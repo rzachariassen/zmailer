@@ -1,5 +1,14 @@
 2000-08-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* Makefile.in:
+	    At the end of "make install", correct the "post-install"
+	    suggestion to correct program name.
+
+	* scheduler/mailq.c:
+	    Do set the PORTNUM to the destination socket addresses
+	    before trying to connect -- connecting to port 0 is not
+	    usually a successfull thing...
+
 	* libc/getaddrinfo.c:
 	    At Solaris the  uname(2)  call return NON NEGATIVE
 	    value on success, not necessarily ZERO as in Linux...

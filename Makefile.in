@@ -118,7 +118,7 @@ install:	dirs # all
 	@cd libc  ;      $(MAKE) $(MFLAGS) install
 	@cd utils ;      $(MAKE) $(MFLAGS) install
 	@echo ">>>> "
-	@echo ">>>> Please do run $(MAILBIN)/post-install.sh"
+	@echo ">>>> Please do run $(MAILBIN)/post-install"
 	@echo ">>>> "
 
 router/router:
