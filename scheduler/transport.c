@@ -415,8 +415,8 @@ start_child(vhead, chwp, howp)
 	if (freeze) return 0;
 
 	if (verbose)
-	  sfprintf(sfstdout,"transport(vhead,chan=%s,host=%s)\n",
-		 chwp->name,howp->name);
+	  sfprintf(sfstdout,"transport(vhead=%p,chan=%s,host=%s)\n",
+		   vhead,chwp->name,howp->name);
 
 	++startcnt;
 	this_time = mytime(NULL);

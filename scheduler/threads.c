@@ -926,8 +926,9 @@ pick_next_vertex(proc)
 	  proc->pvertex->proc = NULL; /* Done with the previous one */
 
 	if (verbose)
-	  sfprintf(sfstdout,"pick_next_vertex(proc->tofd=%d, thr=%p, vtx=%p, jobs=%d OF=%d)\n",
-		 proc->tofd, thr, proc->pvertex, thr ? thr->jobs : 0, proc->overfed);
+	  sfprintf(sfstdout,"pick_next_vertex(proc->tofd=%d, thr=%p, vtx=%p, jobs=%d OF=%d S=%d)\n",
+		   proc->tofd, thr, proc->pvertex, thr ? thr->jobs : 0,
+		   proc->overfed, (int)proc->state);
 
 
 	if (proc->pid < 0 || proc->tofd < 0) {	/* "Jim, He is dead!"	*/
@@ -942,6 +943,8 @@ pick_next_vertex(proc)
 	  if (verbose) sfprintf(sfstdout," ... NONE, 'Jim, He is dead!'\n");
 	  return 0;
 	}
+
+	if (proc->pvertex && proc->pvertex->nextitem == (void*)0x55555555L) abort();
 
 	if (proc->pvertex) /* Pick next item */
 	  proc->pvertex = proc->pvertex->nextitem;
