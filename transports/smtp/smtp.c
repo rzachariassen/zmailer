@@ -1851,7 +1851,7 @@ if (SS->verboselog)
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s' (%s))",
 			  host, gai_err == EAI_NONAME ? "NONAME" : "NODATA");
 		  zsyslog((LOG_ERR, "%s r=%d", SS->remotemsg, r));
-#if 1
+#if 0
 		  if (r != EX_TEMPFAIL)
 		    r = EX_NOHOST; /* Can do instant reject */
 #else
