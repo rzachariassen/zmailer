@@ -503,7 +503,15 @@ Installation procedure:
 	open doors for abuse -- but perhaps ok for intranet) stuff by
 	commenting out line:  "PARAM policydb ..." in the file.
 
-13.	Add something like the following lines to bootup scripts (/etc/rc.local
+13.	At the start the scheduler reads  $MAILSHARE/scheduler.conf  file
+	for the instructions about how to handle router produced files with
+	recipient addresses.   Propably the default boiler-plate file is
+	sufficient for you, but have a look at it anyway.
+	You will need to tinker with it for example when you want to
+	use 'Cyrus' server for local message store.
+	(See doc/guides/ files)
+
+14.	Add something like the following lines to bootup scripts (/etc/rc.local
 	or /etc/rc2.d/S99local or similar):
 
 	if [ -r /etc/zmailer.conf ]; then
@@ -521,27 +529,27 @@ Installation procedure:
 	You may want to comment out startup of the Sendmail daemon.
 
 
-14.	Edit several of the canned error messages and programs (scripts)
+15.	Edit several of the canned error messages and programs (scripts)
 	to reflect your local configuration:
 		- $MAILSHARE/forms/ -files
 		- $MAILBIN/ta/usenet  (injected message..)
 
 
-15.	Read the notes on alias expansion in the file doc/guides/aliases and
+16.	Read the notes on alias expansion in the file doc/guides/aliases and
 	on mailing list maintenance in doc/guides/lists.
 
 
-16.	Start ZMailer:
+17.	Start ZMailer:
 
 		$MAILBIN/zmailer
 
 
-17.	Keep an eye on the log files ($LOGDIR/{router,scheduler}),
+18.	Keep an eye on the log files ($LOGDIR/{router,scheduler}),
 	the $POSTOFFICE/postman directory for malformed message files,
 	and $POSTOFFICE/deferred in case of resource problems.
 
 
-18.	Add the following entry (or equivalent) to your crontab:
+19.	Add the following entry (or equivalent) to your crontab:
 
 		28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
 
@@ -557,7 +565,7 @@ Installation procedure:
 	You may want to hardwire the location of the zmailer script.
 
 
-19.	Once satisfied that things appear to work, you may want to trim down
+20.	Once satisfied that things appear to work, you may want to trim down
 	logging: there are 4 kinds of logging to deal with:
 
 	- router logs, usually kept in $LOGDIR/router.  This is the stdout
