@@ -263,7 +263,7 @@ void unvertex(vp, justfree, ok)
 	if (vp->ngroup > 0)
 	  return;
 
-	if (verbose && justfree < 0)
+	if (verbose)
 	  sfprintf(sfstderr,
 		   "unvertex(vtx=%p (thr=%p proc=%p, ng=%d) ,%d,%d)\n",
 		   vp, vp->thread, vp->proc, vp->ngroup, justfree, ok);
