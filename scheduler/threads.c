@@ -1066,9 +1066,9 @@ int ok, justfree;
 	_thread_timechain_append(thr);
 	/* Idle the process, and be happy.. */
 #else
-	/* the threads are in a ring.. */
-	thr = thr->nextthg;
-	for ( ;thr != thr0; thr = thr->nextthg) {
+	/* the threads are in a ring/chain.. */
+	thr = (thr->nextthg ? thr->nextthg : thg->thread);
+	for (;thr != thr0; thr = (thr->nextthg ? thr->nextthg : thg->thread)) {
 	  if (thr->proc != NULL &&
 	      thr->proc->thread == thr)
 	    continue; /* in processing, don't touch! */
