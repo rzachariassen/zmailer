@@ -1510,17 +1510,22 @@ const int len;
       return rc;
     }
 
-    if (valueeq(state->values[P_A_TestRcptDnsRBL], "+") &&
-	state->rblmsg != NULL) {
-      /* Now this is cute... the source address had RBL entry,
-	 and the recipient domain had a request to honour the
-	 RBL data. */
-      if (state->message != NULL) free(state->message);
-      state->message = strdup(state->rblmsg);
-      if (debug)
-	printf("000- ... TestRcptDnsRBL has a message: '%s'\n",
-	       state->rblmsg);
-      return -1;
+    if (valueeq(state->values[P_A_TestRcptDnsRBL], "+")) {
+
+      type(NULL, 0, NULL, "test-rcpt-dns-rbl test; rblmsg='%s'",
+	   state->rblmsg ? state->rblmsg : "<none>");
+
+      if (state->rblmsg != NULL) {
+	/* Now this is cute... the source address had RBL entry,
+	   and the recipient domain had a request to honour the
+	   RBL data. */
+	if (state->message != NULL) free(state->message);
+	state->message = strdup(state->rblmsg);
+	if (debug)
+	  printf("000- ... TestRcptDnsRBL has a message: '%s'\n",
+		 state->rblmsg);
+	return -1;
+      }
     }
 
     if (state->values[P_A_ACCEPTifMX] || state->sender_norelay != 0) {
