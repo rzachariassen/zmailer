@@ -7,7 +7,7 @@ MAILBIN=	$(prefix)@MAILBIN@
 srcdir=         @srcdir@
 VPATH=          @srcdir@
 
-BINS=	autoanswer.pl policy-builder.sh \
+BINS=	autoanswer.pl policy-builder.sh make-incore.sh \
 	$(srcdir)/make-incore.sh $(srcdir)/bitbucket
 
 all:
