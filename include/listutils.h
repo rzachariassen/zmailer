@@ -304,7 +304,10 @@ extern struct gcpro *gcprolist;
 
 #endif
 
+#ifdef __GNUC__
 #define LABELME(varname) __label__ _gc_; _gc_:; varname ## .labeladdr = &&_gc_
+#endif
+
 #define GCVARS1 struct gcpro gcpro1
 #define GCPRO1(varname) \
  ({LABELME(gcpro1);GCPLABPRINT(gcpro1);	\
