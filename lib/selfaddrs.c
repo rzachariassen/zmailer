@@ -258,8 +258,9 @@ struct sockaddr ***sockaddrp;
 
 #ifdef SIOCGLIFFLAGS
 
-	    /* memset(&lifrf, 0, sizeof(struct lifreq)); */
-	    lifrf.lifr_index = 0;
+	    memset(&lifrf, 0, sizeof(struct lifreq));
+	    /* lifrf.lifr_index = 0;
+	       -- Solaris has _index, Linux has _ifindex */
 	    strncpy(lifrf.lifr_name, lifr->lifr_name, sizeof(lifrf.lifr_name));
 
 	    if (ioctl(s, SIOCGLIFFLAGS, (char *) &lifrf) < 0)
@@ -401,8 +402,9 @@ done_this_ipv6:
 
 #ifdef SIOCGIFFLAGS
 
-	    /* memset(&ifrf, 0, sizeof(struct ifreq)); */
-	    ifrf.ifr_index = 0;
+	    memset(&ifrf, 0, sizeof(struct ifreq));
+	    /* ifrf.ifr_index = 0;
+	       -- Solaris has _index, Linux has _ifindex */
 	    strncpy(ifrf.ifr_name, ifr->ifr_name, sizeof(ifrf.ifr_name));
 
 	    if (ioctl(s, SIOCGIFFLAGS, (char *) &ifrf) < 0)

@@ -17,6 +17,9 @@
 
 	* lib/selfaddrs.c:
 	    there is no field called ifr_ifindex, there is: ifr_index
+	    -- returned to previous: memset(ptr, 0, size)
+	    -- because Linux glibc 2.1+ has ifr_ifindex, solaris has ifr_index
+	    (barf...)
 
 2000-11-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
