@@ -490,8 +490,12 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    last_peer_index = top_peer -1;
 
 	  for (n = 0; n < top_peer; ++n) {
-	    if (last_peer_index >= top_peer) last_peer_index = top_peer-1;
-	    peer = & peers[ last_peer_index ];
+	    if (last_peer_index >= top_peer) last_peer_index = 0;
+#if 1
+	    peer = & peers[ last_peer_index ]; /* Round-robin */
+#else
+	    peer = & peers[ n ];     /* Low slots get service */
+#endif
 	    if (peer->fd >= 0 && peer->inlen > 0) {
 
 	    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
