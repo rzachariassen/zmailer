@@ -339,7 +339,7 @@ subdaemon_handler_ctf_input (state, peerdata)
 	      tv.tv_sec = 0;
 	      tv.tv_usec = 500000;
 	      select(0, NULL, NULL, NULL, &tv); /* Sleep about 0.5 sec.. */
-	      return EAGAIN;
+	      return 1;
 	    }
 
 	    /* Now   CTF->fromfd[idx]   is in NON-BLOCKING MODE!
@@ -361,9 +361,9 @@ subdaemon_handler_ctf_input (state, peerdata)
 	  CTF->sawhungry[idx]  = 0;
 	  peerdata->inlen = 0;
 
-	  break;
+	  return 0;
 	}
-	return EAGAIN;
+	return 1;
 }
 
 static int

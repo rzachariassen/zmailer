@@ -1,5 +1,9 @@
 2004-10-07  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/subdaemon-ctf.c:
+	    Match interactive content-filter call interface with
+	    documented behaviour (and what the router does).
+
 	* smtpserver/subdaemons.c, smtpserver/subdaemon-rtr.c:
 	    Reworked (more carefully) of how the round-robin job
 	    queueing should work.  Now there is perhaps a bit of
