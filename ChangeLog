@@ -1,5 +1,10 @@
 2003-05-24  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/fdstatfs.c, smtpserver/fdstatfs-test.c, smtpserver/Makefile.in,
+	  lib/fdstatfs.c, lib/fdstatfs-test.c, lib/Makefile.in:
+	    Moved the fdstatfs*.c files from one directory to another.
+	    Did that also in CVS repository, and thus preserved revision data..
+
 	* scheduler/mailq.c:
 	    More 'mailq -M' printouts.
 

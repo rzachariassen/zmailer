@@ -31,14 +31,14 @@ LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
 		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a \
 		$(TOPDIR)/libs/libident.a $(TOPDIR)/include/sfio.h
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/libident/llib-llibident.ln
-OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o fdstatfs.o \
+OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o \
 		policytest.o cfgread.o smtpdata.o smtpcmds.o smtphelp.o \
 		smtprouter.o smtpchild.o mxverify.o contentpolicy.o     \
 		smtpauth.o zpwmatch.o smtptls.o zpwmatch-pipe.o smtpetrn.o \
 		wantconn.o
 # loadaver.o
 
-SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c fdstatfs.c \
+SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c \
 		policytest.c  cfgread.c smtpdata.c smtpcmds.c smtphelp.c \
 		smtprouter.c smtpchild.c mxverify.c contentpolicy.c	 \
 		smtpauth.c zpwmatch.c smtptls.c zpwmatch-pipe.c smtpetrn.c \
@@ -83,13 +83,10 @@ install:	$(PROGRAM)
 	mv $(MAILBIN)/$(PROGRAM).x $(MAILBIN)/$(PROGRAM)
 
 clean:
-	-rm -f $(PROGRAM) make.log *.o *.out *~ fdstatfs-test
+	-rm -f $(PROGRAM) make.log *.o *.out *~ 
 
 distclean: clean
 	-rm -f Makefile
-
-fdstatfs-test: fdstatfs-test.o fdstatfs.o
-	$(CC) $(CFLAGS) -o $@ fdstatfs-test.o fdstatfs.o
 
 lint:	$(LINTLIB)
 	lint $(DEFS) $(INCL) $(LINTLIB) $(PROGRAM).c
