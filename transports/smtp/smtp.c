@@ -2449,6 +2449,9 @@ makeconn(SS, ai, ismx)
 	      if (SS->esmtp_on_banner > 0)
 		SS->esmtp_on_banner = 0;
 
+	      SS->prevcmdstate = 99;
+	      SS->cmdstate     = SMTPSTATE_MAILFROM;
+
 	      /* Wait for the initial "220-" greeting */
 	      retval = smtpwrite(SS, 1, NULL, 0, NULL);
 	      if (retval != EX_OK)
