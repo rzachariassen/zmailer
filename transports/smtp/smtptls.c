@@ -599,18 +599,18 @@ static int tls_randseeder(const char *source)
 	    /*
 	     * Source is a EGD compatible socket
 	     */
-	    struct sockaddr_un sun;
+	    struct sockaddr_un un;
 	    int rc;
 	    int fd = socket(PF_UNIX, SOCK_STREAM, 0);
 
 	    if (fd < 0) return -1; /* URGH.. */
 
-	    memset(&sun, 0, sizeof(sun));
-	    sun.sun_family = AF_UNIX;
-	    strncpy(sun.sun_path, source+4, sizeof(sun.sun_path));
-	    sun.sun_path[sizeof(sun.sun_path)-1] = 0;
+	    memset(&un, 0, sizeof(un));
+	    un.sun_family = AF_UNIX;
+	    strncpy(un.sun_path, source+4, sizeof(un.sun_path));
+	    un.sun_path[sizeof(un.sun_path)-1] = 0;
 	    for (;;) {
-	      rc = connect(fd, (struct sockaddr *)&sun, sizeof(sun));
+	      rc = connect(fd, (struct sockaddr *)&un, sizeof(un));
 	      if (rc < 0 && (errno == EWOULDBLOCK || errno == EINTR || errno == EINPROGRESS))
 		continue;
 	      break;

@@ -1,3 +1,10 @@
+2002-09-19  root  <root@zmailer.org>
+
+	* transports/smtp/smtptls.c, transports/smtp/smtp.h, man/smtp.8,
+	  proto/smtp-tls.conf.in:
+	    The OpenSSL code doesn't (anymore) like to work without proper
+	    random pre-seeding...
+
 2002-09-10  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.c:
