@@ -727,13 +727,17 @@ db(dbname, key)
 		fprintf(stderr, "%s(%s)\n", dbname, key);
 	/* apply flags */
 	realkey = NULL;
-	keylen = strlen(key); if (keylen > sizeof(kbuf)) keylen = sizeof(kbuf);
+
 	if (dbip->flags & DB_MAPTOLOWER) {
+	  keylen = strlen(key)+1;
+	  if (keylen > sizeof(kbuf)) keylen = sizeof(kbuf);
 	  memcpy(kbuf, key, keylen); /* was: strncpy */
 	  kbuf[sizeof(kbuf)-1] = 0;
 	  strlower(kbuf);
 	  key = kbuf;
 	} else if (dbip->flags & DB_MAPTOUPPER) {
+	  keylen = strlen(key)+1;
+	  if (keylen > sizeof(kbuf)) keylen = sizeof(kbuf);
 	  memcpy(kbuf, key, keylen); /* was: strncpy */
 	  kbuf[sizeof(kbuf)-1] = 0;
 	  strupper(kbuf);
