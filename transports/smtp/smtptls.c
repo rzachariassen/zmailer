@@ -38,7 +38,7 @@ extern int demand_TLS_mode;
 extern int tls_available;
 
 int	tls_peer_verified = 0;
-int	tls_use_read_ahead = 0;
+int	tls_use_read_ahead = 1;
 
 char   *tls_CAfile = NULL;
 char   *tls_CApath = NULL;
@@ -573,7 +573,7 @@ int     tls_init_clientengine(SS, cfgpath)
      SmtpState *SS;
      char *cfgpath;
 {
-  int     off = 0;
+  int     off = 0, linenum = 0;
   int     verify_flags = SSL_VERIFY_NONE;
   char   *CApath;
   char   *CAfile;
@@ -597,6 +597,7 @@ int     tls_init_clientengine(SS, cfgpath)
   while (!feof(fp) && !ferror(fp)) {
     if (!fgets(buf, sizeof(buf), fp))
       break;
+    ++linenum;
     s = (void*) strchr(buf, '\n');
     if (s) *s = 0;
     s = (void*) buf;
@@ -638,8 +639,11 @@ int     tls_init_clientengine(SS, cfgpath)
       if (tls_loglevel > 4) tls_loglevel = 4;
     } else if (strcasecmp(n, "demand-tls-mode") == 0) {
       demand_TLS_mode = 1;
-    } else if (strcasecmp(n, "use-tls-readahead") == 0) {
-      tls_use_read_ahead = 1;
+    } else if (strcasecmp(n, "no-tls-readahead") == 0) {
+      tls_use_read_ahead = 0;
+    } else {
+      sfprintf(sfstderr,"# TLS config file, line %d verb: '%s' unknown or missing parameters!\n",
+	       linenum, n);
     }
   }
   fclose(fp);

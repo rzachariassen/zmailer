@@ -7,6 +7,7 @@
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c,
 	  transports/smtp/smtp.h:
 	    Try to combat certain TLS related problems mentioned before.
+	    (An hour latter: Cured them apparently..)
 
 	* smtpserver/smtptls.c, smtpserver/smtpserver.c:
 	    Under TLS do always flush replies - to simulate one other

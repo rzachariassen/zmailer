@@ -1927,9 +1927,9 @@ int insecure;
 	    break;
 #ifdef HAVE_OPENSSL
 	case StartTLS:
-
+#if 0 /* A debug thing.. */
 	    always_flush_replies = 1;
-
+#endif
 	    smtp_starttls(SS, buf, cp);
 	    break;
 #endif /* - HAVE_OPENSSL */

@@ -15,6 +15,9 @@ tls-CAfile	@MAILVAR@/db/smtpserver-CAcert.pem
 
 #tls-scache-timeout 3600 # Value in seconds, default: 3600
 
+#no-tls-readahead # Disable OpenSSL read-ahead code usage. It
+#                 # may be due to a problem at OpenSSL, or at Z..
+
 #|
 #| If the TLS mode is MANDATED for a session, copy this file to
 #| e.g. "smtp-tls-mandatory.conf", uncomment following line, and

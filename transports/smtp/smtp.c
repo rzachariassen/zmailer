@@ -3011,16 +3011,23 @@ int fd, tout;
 	struct timeval tv;
 	int rc;
 	fd_set rdmask;
+	fd_set wrmask;
 
 	tv.tv_sec = tout;
 	tv.tv_usec = 0;
 	_Z_FD_ZERO(rdmask);
-	_Z_FD_SET(fd,rdmask);
+	_Z_FD_ZERO(wrmask);
+	if (fd > 0)
+	  _Z_FD_SET(fd,rdmask);
+	else {
+	  _Z_FD_SET(fd,wrmask);
+	  fd = -fd;
+	}
 
-	rc = select(fd+1,&rdmask,NULL,NULL,&tv);
+	rc = select(fd+1,&rdmask,&wrmask,NULL,&tv);
 	if (rc == 0) /* Timeout w/o input */
 	  return -1;
-	if (rc == 1) /* There is something to read! */
+	if (rc == 1) /* There is something to read (or write)! */
 	  return 0;
 	return 1;    /* interrupt, or some such.. */
 }
@@ -3164,12 +3171,12 @@ smtp_sync(SS, r, nonblocking)
 	int r, nonblocking;
 {
 	char *s, *eof, *eol;
-	int          infd = SS->smtpfd;
 	volatile int idx  = 0, code = 0;
 	volatile int rc   = EX_OK, len;
 	volatile int some_ok = 0;
 	volatile int datafail = EX_OK;
 	volatile int err  = 0;
+	int          infd;
 	char buf[512];
 	char *p;
 	static int continuation_line = 0;
@@ -3216,6 +3223,19 @@ smtp_sync(SS, r, nonblocking)
 	    if (nonblocking) {
 	      err = 0;
 	    } else {
+	      infd = SS->smtpfd;
+#ifdef HAVE_OPENSSL
+	      if (SS->sslmode) {
+		err = 0;
+		len = smtp_nbread(SS, buf, sizeof(buf));
+		if (SS->wantreadwrite > 0)
+		  infd = -infd;
+		if (len < 0)
+		  err = errno;
+		else
+		  goto have_some_data;
+	      }
+#endif /* - HAVE_OPENSSL */
 	      err = select_sleep(infd, timeout);
 	      en = errno;
 	      if (debug && logfp)
@@ -3231,11 +3251,14 @@ smtp_sync(SS, r, nonblocking)
 	    }
 	    
 	  reread_line:
+
 	    err = 0;
 	    len = smtp_nbread(SS, buf, sizeof(buf));
 	    if (len < 0)
 	      err = errno;
 	    
+	  have_some_data:
+
 	    if (len < 0) {
 	      /* Some error ?? How come ?
 		 We have select() confirmed input! */
