@@ -947,7 +947,7 @@ char *s;			/* Stretched RFC821 a bit here.. !%-hacks */
 int strict;
 {
     char *p = s, *q;
-    int _ok = 0;
+    /* int _ok = 0; */
 
     if (!s || !*s)
 	return s;		/* Pathological termination */

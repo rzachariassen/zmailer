@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8 "2003-May-13"
+.TH SMTPSERVER 8 "2003-Aug-18"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -345,6 +345,11 @@ Per default the server mode SMTP-server binds to port 25 and any
 locally accepted address, but occasionally people seem to want to
 have separate server instances with different configurations, and
 for those cases are these parameters.
+.PP
+Multiple instances of
+.I BindAddress
+will work, and bind all presently supported ports to all those
+addresses.
 .RE
 .IP "PARAM DEBUGcmd"
 .IP "PARAM EXPNcmd"
@@ -383,6 +388,14 @@ to this host, are then able to relay the email thru the server unlimited.
 .RS
 This enables 'SMTP AUTH' facility usage also without running
 under SSL/TLS security envelope.
+.RE
+.IP "PARAM smtp\-auth\-sasl"
+.RS
+If the system has been configured with
+.I SASL2
+support, use that instead of built-in plain-text authenticator code.
+.PP
+.B "Presently experimental code!"
 .RE
 .IP "PARAM MSA\-mode"
 .RS
@@ -848,6 +861,13 @@ also available thru the policy database machinery.
 .I "(Do note that scheduler(8) has also tcp\-wrapper support, which becomes"
 .I "active simultaneously with smtpserver's tcp\-wrapper code!)"
 .P
+.SH "SASL[2] AUTHENTICATION MECHANISMS"
+The
+.I smtpserver
+does contain
+.B experimental
+code supporting authentication interaction with
+
 .SH TLS MODE
 .PP
 .B "TO BE WRITTEN;"
@@ -1368,6 +1388,7 @@ RFC 2033	 LMTP server mode (for testing)
 RFC 2034	 ESMTP ENHANCEDSTATUSCODES
 .\" RFC 2476	 SUBMIT protocol (port 587)
 RFC 2487/3207	 ESMTP STARTTLS
+RFC 2222	 SASL mechanism mase definition
 RFC 2554+M$ Exchange	 ESMTP AUTH LOGIN
 RFC 2554+NetScape	 ESMTP AUTH=LOGIN
 RFC 2852	 ESMTP DELIVERBY (incomplete implementation)

@@ -44,6 +44,7 @@ struct policystate {		/* Part of SmtpState structure */
     char *rblmsg;
     long maxinsize;
     long maxoutsize;
+    long maxsameiplimit;
     int  islocaldomain;
 #ifdef HAVE_WHOSON_H
     int whoson_result;
@@ -118,6 +119,7 @@ extern int policytest __((struct policytest * rel, struct policystate * ps, Poli
 extern int policytestaddr __((struct policytest * rel, struct policystate * ps, PolicyTest how, Usockaddr * raddr));
 extern char *policymsg __((struct policytest *rel, struct policystate *ps));
 extern long  policyinsizelimit __((struct policytest *rel, struct policystate *ps));
+extern long  policysameiplimit __((struct policytest *rel, struct policystate *ps));
 
 extern struct policytest *policydb;
 

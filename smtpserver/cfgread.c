@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2001.
+ *      Copyright 1991-2003.
  */
 
 /*
@@ -18,6 +18,7 @@
 #define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
 
 static int called_getbindaddr = 0;
+static Usockaddr bindaddr;
 
 static void dollarexpand __((unsigned char *s0, int space));
 static void dollarexpand(s0, space)
@@ -211,8 +212,15 @@ static void cfparam(str, size, cfgfilename, linenum)
       if (bindport != 0 && bindport != 0xFFFFU)
 	bindport_set = 1;
     } else if (cistrcmp(name, "BindAddress") == 0 && param1) {
-	called_getbindaddr=1;
-	bindaddr_set = !zgetbindaddr(param1,&bindaddr);
+      called_getbindaddr=1;
+      if (!zgetbindaddr(param1,&bindaddr)) {
+	bindaddrs_count += 1;
+	bindaddrs = realloc( bindaddrs, sizeof(Usockaddr) * bindaddrs_count );
+	if (!bindaddrs)
+	  bindaddrs_count = 0;
+	else
+	  bindaddrs[ bindaddrs_count ] = bindaddr;
+      }
     }
 
     /* SMTP Protocol limit & policy tune options */
@@ -292,6 +300,8 @@ static void cfparam(str, size, cfgfilename, linenum)
       auth_ok = 1;
     } else if (cistrcmp(name, "auth-login-also-without-tls") == 0) {
       auth_login_without_tls = 1;
+    } else if (cistrcmp(name, "smtp-auth-sasl") == 0) {
+      do_sasl = 1;
     } else if (cistrcmp(name, "msa-mode") == 0) {
       msa_mode = 1;
     } else if (cistrcmp(name, "smtp-auth-pipe") == 0 && param1) {

@@ -531,16 +531,6 @@ main(argc, argv)
 	__free_hook = my_free_hook;
 #endif
 
-	syslogflg = getzenv("SYSLOGFLG");
-	if (syslogflg == NULL)
-	  syslogflg = "";
-	t = syslogflg;
-	for ( ; *t ; ++t ) {
-	  if (*t == 'c' || *t == 'C')
-	    break;
-	}
-	do_syslog = (*t != '\0');
-
 #ifdef HAVE_SETGROUPS
 	/* We null supplementary groups list entirely */
 	setgroups(0, NULL);
@@ -712,6 +702,18 @@ main(argc, argv)
 		   progname);
 	  exit(128+errflg);
 	}
+
+	syslogflg = getzenv("SYSLOGFLG");
+	if (syslogflg == NULL)
+	  syslogflg = "";
+	t = syslogflg;
+	for ( ; *t ; ++t ) {
+	  if (*t == 'c' || *t == 'C')
+	    break;
+	}
+	do_syslog = (*t != '\0');
+
+
 	cp = getzenv("SCHEDULERDIRHASH");
 	if (cp){
 	  if ((cp[0] == '1' || cp[0] == '2') &&

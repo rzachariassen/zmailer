@@ -130,17 +130,25 @@ static int valueeq(value,str)
     return (strcmp(value,str) == 0);
 }
 
-static char *showresults __((char *values[]));
-static char *showresults(values)
-char *values[];
+static char *showresults __((struct policystate *state));
+static char *showresults(state)
+struct policystate *state;
 {
     static char buf[2000];
     int i;
+    char **values=state->values;
 
     buf[0] = '\0';
     for (i = P_A_FirstAttr; i <= P_A_LastAttr; ++i) {
 	sprintf(buf+strlen(buf),"%s ",KA(i));
-	sprintf(buf+strlen(buf),"%s ",values[i] ? values[i] : ".");
+	if (i == P_A_InboundSizeLimit )
+	    sprintf(buf+strlen(buf),"%li ",state->maxinsize);
+	else if (i == P_A_OutboundSizeLimit )
+	    sprintf(buf+strlen(buf),"%li ",state->maxoutsize);
+	else if (i == P_A_MaxSameIpSource )
+	    sprintf(buf+strlen(buf),"%li ",state->maxsameiplimit);
+	else
+	    sprintf(buf+strlen(buf),"%s ",values[i] ? values[i] : ".");
     }
     return buf;
 }
@@ -167,6 +175,10 @@ const struct policystate *state;
 		 (state->origrequest & (1<<i)) ? "" : "not ",
 		 state->values[i]?state->values[i]:".");
 	}
+
+	type(NULL,0,NULL," maxinsize=%li", state->maxinsize);
+	type(NULL,0,NULL," maxoutsize=%li", state->maxoutsize);
+	type(NULL,0,NULL," maxsameiplimit=%li", state->maxsameiplimit);
 }
 
 static void mask_ip_bits __((unsigned char *, int, int));
@@ -455,6 +467,11 @@ int init;
 	  sscanf(str+2,"%li", &state->maxoutsize);
 	  goto nextattr;
 
+	} else if (str[1] == P_A_MaxSameIpSource) {
+
+	  sscanf(str+2,"%li", &state->maxsameiplimit);
+	  goto nextattr;
+
 	} else if ((str[2] != '+' && str[2] != '-') &&
 		   !state->values[str[1] & 0xFF]) {
 
@@ -530,7 +547,7 @@ const char *pbuf;
 	  type(NULL,0,NULL," checkaddr(): domain of '%s'",pbuf+2);
 	result = resolveattributes(rel, maxrecursions, state, pbuf, 1);
 	if (debug) {
-	  type(NULL,0,NULL," Results: %s", showresults(state->values));
+	  type(NULL,0,NULL," Results: %s", showresults(state));
 	}
 	return (result);
     }
@@ -539,7 +556,7 @@ const char *pbuf;
 	  type(NULL,0,NULL," checkaddr(): user of '%s'",pbuf+2);
 	result = resolveattributes(rel, maxrecursions, state, pbuf, 1);
 	if (debug) {
-	  type(NULL,0,NULL," Results: %s", showresults(state->values));
+	  type(NULL,0,NULL," Results: %s", showresults(state));
 	}
 	return (result);
     } else if (pbuf[1] == P_K_IPv4)
@@ -588,7 +605,7 @@ const char *pbuf;
       return -1;
     } else
       if (debug) {
-	type(NULL,0,NULL,"   %s", showresults(state->values));
+	type(NULL,0,NULL," Results:  %s", showresults(state));
       }
     return 0;
 }
@@ -748,6 +765,7 @@ int whosonrc;
 #ifdef HAVE_WHOSON_H
     state->whoson_result = whosonrc;
 #endif
+    state->maxsameiplimit = -1;
     return 0;
 }
 
@@ -799,7 +817,8 @@ int sourceaddr;
 			 1 << P_A_FullTrustNet      |
 			 1 << P_A_TrustRecipients   |
 			 1 << P_A_TrustWhosOn       |
-			 1 << P_A_Filtering          );
+			 1 << P_A_Filtering         |
+			 1 << P_A_MaxSameIpSource    );
     if (!myaddress)
       state->request |= ( 1 << P_A_TestDnsRBL       |
 			  1 << P_A_RcptDnsRBL        );
@@ -833,7 +852,7 @@ int sourceaddr;
       }
 
       if (debug)
-	type(NULL,0,NULL,"   %s", showresults(state->values));
+	type(NULL,0,NULL," Results:  %s", showresults(state));
 
       return 0;
     }
@@ -1336,7 +1355,7 @@ const int len;
 		       1 << P_A_FREEZENET    |
 		       1 << P_A_RELAYCUSTNET |
 		       1 << P_A_InboundSizeLimit  |
-		       1 << P_A_OutboundSizeLimit   );
+		       1 << P_A_OutboundSizeLimit  );
     state->request |= ( 1 << P_A_RcptDnsRBL );	/* bag */
 
     check_domain(rel, state, str, len);
@@ -1830,4 +1849,12 @@ struct policytest *rel;
 struct policystate *state;
 {
     return state->maxinsize;
+}
+
+long
+policysameiplimit(rel, state)
+struct policytest *rel;
+struct policystate *state;
+{
+    return state->maxsameiplimit;
 }

@@ -159,7 +159,7 @@ struct db_kind {
 { "yp",		{ NULL, NULL, NULL, 0, 0, 0, NULL, search_yp, NULL, NULL,
 		  NULL, print_yp, NULL, owner_yp, NULL, Nul, NULL, NULL } },
 #endif	/* HAVE_YP */
-#ifdef HAVE_LDAP
+#ifdef HAVE_LDAP_H
 { "ldap",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_ldap, close_ldap,
 		  NULL, NULL, NULL, NULL, NULL, modp_ldap, Nul, NULL, NULL } },
 #endif

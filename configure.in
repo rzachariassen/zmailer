@@ -560,9 +560,10 @@ DEFDBTYPE="$DBTYPE" # From possible entry in  zmailer.conf above...
 AC_SUBST(DBTYPE) # Default db-type, unless we figure out something.
 AC_SUBST(DBEXT)  # Default db-extension (pag/db) for FILE OPEN
 AC_SUBST(DBEXTtest) # Default db-extension (pag/db) for FILE AGE TESTS
-AC_CHECK_HEADERS(ndbm.h sdbm.h gdbm.h db.h db1/db.h db_185.h db3.h)
-AC_CHECK_HEADERS(db2/db.h db2/db_185.h db3/db.h db3/db_185.h)
-AC_CHECK_HEADERS(db4/db.h)
+
+AC_CHECK_HEADERS(ndbm.h sdbm.h gdbm.h db.h db1/db.h db_185.h db3.h \
+		 db2/db.h db2/db_185.h db3/db.h db3/db_185.h db4/db.h \
+		 ldap.h)
 
 dblocation=""
 
@@ -1226,11 +1227,16 @@ fi
 AC_SUBST(INCLLDAP)
 LIBLDAP=""
 INCLLDAP=""
+if test "$ac_cv_header_ldap_h" = yes ; then
+    AC_MSG_RESULT([Found  <ldap.h>, setting up defaults])
+    INCLLDAP=""
+    LIBLDAP="-lldap -llber"
+fi
 AC_ARG_WITH(ldap-prefix,[  --with-ldap-prefix=/usr  Prefix of UMich/NetScape LDAP includes, and library
                            the directories are  PREFIX/include/ and PREFIX/lib/],
         use_ldap=1)
 if test "$use_ldap" = 1 ; then
-    AC_DEFINE(HAVE_LDAP,1,[HAVE_LDAP, 1])
+    AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 1])
     LIBLDAP="-lldap -llber"
     if test "$withval" != "/usr" ; then
         LIBLDAP="-L$withval/lib $LIBLDAP"
@@ -1241,7 +1247,7 @@ use_ldap=0
 AC_ARG_WITH(ldap-include-dir,[  --with-ldap-include-dir=/.. Directory of UMich/NetScape LDAP includes],
         use_ldap=1)
 if test "$use_ldap" = 1 ; then
-    AC_DEFINE(HAVE_LDAP,1,[HAVE_LDAP, 2])
+    AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 2])
     LIBLDAP="-lldap -llber"
     if test "$withval" != "/usr/include" ; then
         INCLLDAP="-I$withval/include"
@@ -1251,12 +1257,30 @@ use_ldap=0
 AC_ARG_WITH(ldap-library-dir,[  --with-ldap-library-dir=/... Directory of UMich/NetScape LDAP libraries],
         use_ldap=1)
 if test "$use_ldap" = 1 ; then
-    AC_DEFINE(HAVE_LDAP,1,[HAVE_LDAP, 3])
+    AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 3])
     LIBLDAP="-lldap -llber"
     if test "$withval" != "/usr/lib" -a "$withval" != "/lib" ; then
         LIBLDAP="-L$withval/lib $LIBLDAP"
     fi
 fi
+AC_ARG_WITH(ldap,  [  --with-ldap              Search for, and use LDAP, if it can be found],
+[if test -z "$INCLLDAP" ; then
+  # No Explicite setup, lets do some auto-tests
+  SaslH=/usr/local/include/ldap.h
+  if test -r $SaslH ; then
+    AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 4])
+    LIBLDAP="-L /usr/local/lib -lldap -llber"
+    INCLLDAP="-I/usr/local/include"
+  fi
+  SaslH=/usr/include/ldap.h
+  if test -r $SaslH ; then
+    AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 5])
+    LIBLDAP="-lldap -llber"
+    INCLLDAP=""
+  fi
+fi])
+
+
 
 # Lets build a nice single substitute variable
 AC_SUBST(LIBDBMS)
@@ -1349,10 +1373,10 @@ AC_MSG_RESULT([>>>  DBEXTtest    = '$DBEXTtest' ])
 
 
 AC_CHECK_HEADERS(string.h fcntl.h limits.h errno.h unistd.h stdlib.h \
-    sys/param.h sys/statfs.h sys/fstyp.h mnttab.h mntent.h utime.h \
-    sys/statvfs.h sys/vfs.h sys/mount.h sys/filsys.h sys/fs_types.h \
-    sys/file.h )
-AC_CHECK_HEADERS(sys/utsname.h maillock.h arpa/inet.h)
+		 sys/param.h sys/statfs.h sys/fstyp.h mnttab.h mntent.h utime.h \
+		 sys/statvfs.h sys/vfs.h sys/mount.h sys/filsys.h sys/fs_types.h \
+		 sys/file.h \
+		 sys/utsname.h maillock.h arpa/inet.h )
 
 AC_SUBST(AUTHLIB)
 
@@ -1502,19 +1526,17 @@ fi
 # Additional tests for the emulations..
 AC_CHECK_FUNCS(index rindex)
 # more tests..
-AC_CHECK_FUNCS(endgrent fchdir ftime getcwd getgroups setgroups \
+AC_CHECK_FUNCS( endgrent fchdir ftime getcwd getgroups setgroups \
                 getmntinfo gettimeofday isascii memcpy memchr mkfifo   \
-                getpgrp setsid seteuid setuid setegid setgid)
-AC_CHECK_FUNCS(setrlimit fchown utimes utime sysconf fpathconf)
+                getpgrp setsid seteuid setuid setegid setgid \
+	        setrlimit fchown utimes utime sysconf fpathconf )
 # Networking stuff is in deep trouble, if sockets are not found..
 AC_CHECK_HEADERS(netdb.h syslog.h sys/resource.h \
-                protocols/rwhod.h select.h sys/select.h)
-AC_CHECK_HEADERS(ifaddrs.h)
-AC_CHECK_FUNCS(select syslog getdtablesize setpriority)
-AC_CHECK_FUNCS(getifaddrs freeifaddrs)
+                 protocols/rwhod.h select.h sys/select.h \
+		 ifaddrs.h locale.h )
 
-AC_CHECK_HEADERS(locale.h)
-AC_CHECK_FUNCS(setlocale)
+AC_CHECK_FUNCS(select syslog getdtablesize setpriority \
+	       getifaddrs freeifaddrs setlocale)
 
 AC_CHECK_HEADERS(sys/loadavg.h) dnl Solaris 8, BSD uses <stdlib.h>
 dnl AC_CHECK_FUNCS(getloadavg) dnl BSDs and Solaris 8, at least..

@@ -242,7 +242,7 @@ provide fqdnalias
 
 fqdn_neighbour (domain, address, A) {
 	# "domain" is dummy..
-	local lcaddress key l a priv nattr user athost
+	local lcaddress key l a priv nattr user u1 athost
 	local plustail
 
 	lcaddress="$(recase -l -- "$address")"
@@ -356,7 +356,14 @@ fqdn_neighbour (domain, address, A) {
 
 	# Plusfull usernames ??
 
-	ssift "$user" in
+	u1="$user"
+	ssift "$u1" in # Just in case:  user--.*
+	(.+)--(.*)
+	    u1="\1+\2"
+	    ;;
+	tfiss
+
+	ssift "$u1" in
 	([^+]+)\+(.*)
 	    local u2 pl2
 	    u2="\1"

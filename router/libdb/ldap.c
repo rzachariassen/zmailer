@@ -12,9 +12,13 @@
 #include "search.h"
 #include "io.h"
 #include <ctype.h>
-#ifdef HAVE_LDAP
+#ifdef HAVE_LDAP_H
 #include "lber.h"
 #include "ldap.h"
+
+#ifndef LDAP_FILT_MAXSIZ
+#define LDAP_FILT_MAXSIZ 1024
+#endif
 
 typedef struct ldapmap_struct {
 	  /* Setup parameters */
@@ -339,4 +343,4 @@ modp_ldap(sip)
                    stbuf.st_nlink, spt_modcheck);
         return rval;
 }
-#endif	/* HAVE_LDAP */
+#endif	/* HAVE_LDAP_H */

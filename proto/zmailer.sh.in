@@ -45,7 +45,7 @@ if [ "$1" = "--zconfig" ] ; then
     if [ ! -r "$ZCONFIG" ] ; then
 	unset ZCONFIG
     else
-	setZCONFIG=="-Z $ZCONFIG"
+	setZCONFIG="-Z $ZCONFIG"
     fi
 fi
 
@@ -265,7 +265,7 @@ do
 	    ;;
         stop|kill|nuke|kills|killr)
             case $# in
-                0)      exec zmailer $op router scheduler smtpserver ;;
+                0)      exec zmailer --zconfig $ZCONFIG $op router scheduler smtpserver ;;
             esac
             case $op in
                 kill|stop|kills|killr)

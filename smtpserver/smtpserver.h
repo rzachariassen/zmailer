@@ -256,6 +256,26 @@ struct smtpserver_ssl_subset {
 
 #endif /* - HAVE_OPENSSL */
 
+#ifdef HAVE_SASL2
+struct SmtpSASLState {
+    char  *volatile auth_type;
+    const char *mechlist;
+    sasl_conn_t *conn;
+    volatile int sasl_ok;
+    volatile unsigned int n_auth;	/* count of AUTH commands */
+    volatile unsigned int n_mechs;
+    unsigned int len;
+    sasl_security_properties_t ssp;
+#if 0 /* Is in SASL-1, different/not in SASL-2 */
+#ifdef SASL_SSF_EXTERNAL
+    sasl_external_properties_t ext_ssf;
+#endif
+#endif
+    sasl_ssf_t *ssf;
+};
+#endif /* HAVE_SASL2 */
+
+
 
 typedef struct SmtpState {
     int  outputfd;		/* stdout */
@@ -326,21 +346,14 @@ typedef struct SmtpState {
 #endif
 
     int unknown_cmd_count;
+    long sameipcount;
 
 #ifdef HAVE_SASL2
-    char  *volatile auth_type;
-    char *mechlist;
-    sasl_conn_t *conn;
-    volatile bool sasl_ok;
-    volatile unsigned int n_auth = 0;	/* count of AUTH commands */
-    volatile unsigned int n_mechs;
-    unsigned int len;
-    sasl_security_properties_t ssp;
-  /* sasl_external_properties_t ext_ssf; */ /* not at SASL 2.x ? */
-    sasl_ssf_t *ssf;
+    struct SmtpSASLState sasl;
 #endif
 
 } SmtpState;
+
 
 #define STYLE(i,c)	(strchr(((i)==NULL ? style : (i)->flags), (c)) != NULL)
 
@@ -419,7 +432,8 @@ extern int force_rcpt_notify_never;
 
 extern int bindaddr_set, bindport_set, testaddr_set;
 extern u_short   bindport;
-extern Usockaddr bindaddr;
+extern Usockaddr *bindaddrs;
+extern int        bindaddrs_count;
 extern Usockaddr testaddr;
 
 extern const char *progname;

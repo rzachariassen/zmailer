@@ -291,9 +291,8 @@ const char *buf, *cp;
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
 	  } else {
-	    static int freezecnt = 1;
-	    freezecnt <<= 1;
-	    sleep(freezecnt);
+
+	    smtp_tarpit(SS);
 
 	    if (!ss) {
 	      type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
@@ -615,9 +614,8 @@ const char *buf, *cp;
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
 	  } else {
-	    static int freezecnt = 1;
-	    freezecnt <<= 1;
-	    sleep(freezecnt);
+
+	    smtp_tarpit(SS);
 
 	    if (!ss) {
 	      type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);

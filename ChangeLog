@@ -1,7 +1,53 @@
+2003-08-15  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Jerzy Sobczyk reported bug in 'Z' option processing
+
+	* smtpserver/smtpserver.c, smtpserver/smtpauth.c,
+	  smtpserver/smtpserver.h,  man/smtpserver.8.in,
+	  proto/smtpserver.conf.in, smtpserver/Makefile.in,
+	  smtpserver/cfgread.c:
+	    Complete the  Cyrus-SASL-2  code integration,
+	    quite experimental yet!
+	    In early tests the SASL library appears to use
+	    /dev/random,  which is very bad news...
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/cfgread.c, man/smtpserver.8.in:
+	    Support multiple instances of  "PARAM BindAddr"
+	    Also massive code rearrangement around the primary
+	    accept() call.
+
+	* smtpserver/smtpdata.c:
+	    Use  smtp_tarpit()  calls instead of local own response
+	    delayer..
+
+	* include/policy.h, smtpserver/readpolicy.c,
+	  smtpserver/policytest.c, smtpserver/policytest.h,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h:	  
+	    Eugene Crosser's IP source configurable maxparallelipconnects
+
+	* proto/zmailer.sh.in:
+	    Couple typos in -Z/--zconfig parameter passing
+
+	* router/db.c, router/libdb/ldap.c, configure.in:
+	    Synced to be in par with OpenLDAP 2.1.25, should also
+	    work with older ones.
+
+	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf:
+	    Support (convert!)  (.+)--(.*)  in place of  ([^+]+)\+(.*)
+
+	* scheduler/scheduler.c:
+	    Move the first getzenv() call to be after readzenv() call,
+	    if any.
+
+	* smtpserver/rfc821scn.c:
+	    Comment away an unused variable.
+
 2003-07-23  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.c:
-	    Found likely reason for scheduler's file descriptor leakage..
+	    Found a likely reason for scheduler's file descriptor leakage..
 	    The sfio-package does something wrong in odd case used in
 	    log-file re-opening, and filehandle recycling.
 

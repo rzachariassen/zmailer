@@ -180,6 +180,7 @@ struct _tokenpair {
   { "trust-whoson",	P_A_TrustWhosOn		},
 #endif
   { "filtering",	P_A_Filtering		},
+  { "maxsameipsource",	P_A_MaxSameIpSource	},
   { NULL, 0 },
 };
 

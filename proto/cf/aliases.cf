@@ -632,6 +632,12 @@ fi
 	    [ -n "$defer" ] &&
 		    returns (((hold "$defer" "$address" $attr)))
 
+	    ssift "$user" in # Just in case:  user--.*
+	    (.+)--(.*)
+		user="\1+\2"
+		;;
+	    tfiss
+
 	    ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
 	    ([^+]+)\+.+
 		# Try expanding 'user+', and then plain 'user'
