@@ -219,9 +219,9 @@ const int holdlast, len;
 	  if (debug)
 	    fputs("'\"'\"", stdout);
 	}
-	putc(*args, tofp);
+	fputc(*args, tofp);
 	if (debug)
-	  putc(*args, stdout);
+	  fputc(*args, stdout);
     }
     fprintf(tofp, "'\n");
     fflush(tofp);

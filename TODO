@@ -332,9 +332,6 @@ transports/smtp:
    process..)
 
 - Processing of several headers is questionable/lack of:
-	From: <>  -- should be valid! --- now is (940626/mea)
-	Return-Path: <> -- ANYTHING ACCEPTED -- header removed! (961114/mea)
-		
 	Generic: header wrapping within N chars (like to 80-chars
 		 space of BITNET) and also infinite wide systems,
 		 like News.. (transports/libta/writeheaders.c ?)

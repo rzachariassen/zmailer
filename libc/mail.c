@@ -106,8 +106,11 @@ _mail_fopen(filenamep)
 			strcpy(cp, post);
 		if ((fd = open(path, O_CREAT|O_EXCL|O_RDWR, 0600)) >= 0) {
 			fp = fdopen(fd, "w+");
-			mail_free(*filenamep);
-			*filenamep = path;
+			if (fp) {
+			  setvbuf(fp, NULL, _IOFBF, 8192);
+			  mail_free(*filenamep);
+			  *filenamep = path;
+			}
 			return fp;
 		}
 		eno = errno;

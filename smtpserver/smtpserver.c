@@ -293,7 +293,7 @@ int insecure;
 			progname, fname, strerror(errno));
 	} else {
 	    logfp = fdopen(fd, "a");
-	    /* XX: */ setvbuf(logfp, NULL, _IOLBF, BUFSIZ);
+	    setvbuf(logfp, NULL, _IOFBF, BUFSIZ);
 	    /* Line-buffered */
 	}
 #ifndef HAVE_ALLOCA
@@ -304,7 +304,8 @@ int insecure;
 	logfp = NULL;
 }
 
-extern int main __((int, char **));
+int main __((int, char **));
+
 int main(argc, argv)
 int argc;
 char **argv;
@@ -320,9 +321,13 @@ char **argv;
     SmtpState SS;
     int childpid, sameipcount, childcnt;
     time_t now;
+    char *t, *syslogflg;
 
 
-    char *t, *syslogflg = getzenv("SYSLOGFLG");
+    setvbuf(stdout, NULL, _IOFBF, 8192);
+    setvbuf(stderr, NULL, _IOLBF, 8192);
+
+    syslogflg = getzenv("SYSLOGFLG");
     if (syslogflg == NULL)
       syslogflg = "";
     t = syslogflg;
@@ -331,9 +336,6 @@ char **argv;
 	break;
     }
     smtp_syslog = (*t != '\0');
-
-    setvbuf(stdout, NULL, _IOFBF, 8192);
-    setvbuf(stderr, NULL, _IOLBF, 8192);
 
     memset(&SS, 0, sizeof(SS));
     SS.mfp = NULL;
@@ -567,7 +569,7 @@ char **argv;
       SS.ihostaddr[0] = '\0';
       sprintf(SS.ident_username, "uid#%d@localhost", (int)getuid());
 
-      s_setup(&SS, FILENO(stdin), stdout);
+      s_setup(&SS, FILENO(stdin));
       smtpserver(&SS, 0);
 
     } else
@@ -607,7 +609,7 @@ char **argv;
 	}
 	zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
-	s_setup(&SS, FILENO(stdin), stdout);
+	s_setup(&SS, FILENO(stdin));
 
 	if (ident_flag != 0)
 	    setrfc1413ident(&SS);
@@ -961,7 +963,7 @@ char **argv;
 	    }
 	    zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
-	    s_setup(&SS, msgfd, stdout);
+	    s_setup(&SS, msgfd);
 
 	    if (ident_flag != 0)
 	      setrfc1413ident(&SS);
@@ -1383,11 +1385,15 @@ int buflen, *rcp;
 }
 
 
-void s_setup(SS, infd, outfp)
+void s_setup(SS, infd)
 SmtpState *SS;
 int infd;
-FILE *outfp;
 {
+
+    FILE *outfp = fdopen(dup(infd),"w");
+
+    setvbuf(outfp, NULL, _IOFBF, 8192);
+
     SS->inputfd = infd;
     SS->outfp = outfp;
     SS->s_status = 0;
@@ -2131,8 +2137,8 @@ type220headers(SS, identflg, xlatelang, curtime)
 	  ++s;
 	  switch (*s) {
 	  case '%':
-	    putc('%',SS->outfp);
-	    if (logfp) putc('%',logfp);
+	    fputc('%',SS->outfp);
+	    if (logfp) fputc('%',logfp);
 	    break;
 	  case 'H':
 	    fputs(SS->myhostname,SS->outfp);
@@ -2162,14 +2168,13 @@ type220headers(SS, identflg, xlatelang, curtime)
 	    break;
 	  }
 	} else {
-	  putc(*s, SS->outfp);
-	  if (logfp) putc(*s, logfp);
+	  fputc(*s, SS->outfp);
+	  if (logfp) fputc(*s, logfp);
 	}
 	if (*s) ++s;
       }
-      putc('\r',SS->outfp);
-      putc('\n',SS->outfp);
-      if (logfp) putc('\n',logfp);
+      fputs("\r\n",SS->outfp);
+      if (logfp) fputc('\n',logfp);
     }
     fflush(SS->outfp);
     if (logfp) fflush(logfp);

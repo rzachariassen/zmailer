@@ -1,7 +1,17 @@
+1999-08-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c, smtpserver/smtprouter.c:
+	    Modify (somewhat) buffering issues; small change at  s_setup(),
+	    all around change  putc()  to  fputc().
+
+	* libc/mail.c:
+	    Do  setvbuf( _IOFBF )  on freshly opened file descriptor.
+
 1999-08-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
-	    An odd-ball case of lacking RSET is PIPELINING mode when
+	    An odd-ball case of lacking RSET in PIPELINING mode when
 	    none of the recipients were successfull..
 
 1999-08-21  Matti Aarnio  <mea@mea.tmt.tele.fi>

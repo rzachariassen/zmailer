@@ -703,7 +703,7 @@ char *msg;
 			else
 			    header_from_mime(linebuf, &col, sizeof(linebuf));
 			for (wi = 0; wi < col; ++wi)
-			    putc(TR_IN(linebuf[wi]), SS->mfp);
+			    fputc(TR_IN(linebuf[wi]), SS->mfp);
 #else				/* USE_TRANSLATION */
 			if (has8bit)
 			    header_to_mime(linebuf, &col, sizeof(linebuf));
@@ -830,7 +830,7 @@ char *msg;
 		header_from_mime(linebuf, &col, sizeof(linebuf));
 	    if (col > 0)
 		for (wi = 0; wi < col; wi++)
-		    putc(TR_IN(linebuf[wi]), SS->mfp);
+		    fputc(TR_IN(linebuf[wi]), SS->mfp);
 #else				/* USE_TRANSLATION */
 	    if (has8bit)
 		header_to_mime(linebuf, &col, sizeof(linebuf));
@@ -1025,7 +1025,7 @@ char *msg;
 	/* Write the line out */
 	if (col > 0)
 	    for (wi = 0; wi < col; ++wi)
-		putc(TR_IN(linebuf[wi]), SS->mfp);
+		fputc(TR_IN(linebuf[wi]), SS->mfp);
 #else				/* USE_TRANSLATION */
 	if (has8bit)
 	    header_to_mime(linebuf, &col, sizeof(linebuf));
@@ -1064,7 +1064,7 @@ char *msg;
 		continue;
 	    }
 	    if (!ferror(SS->mfp))
-		putc((state >> 8), SS->mfp);
+		fputc((state >> 8), SS->mfp);
 	    state = state & 0xFF;
 	}
 	if (!ferror(SS->mfp)) {
@@ -1127,10 +1127,10 @@ char *msg;
 		}
 	    }
 	    if (do_translate)
-		putc(TR_IN(c), SS->mfp);
+		fputc(TR_IN(c), SS->mfp);
 	    else
 #endif				/* USE_TRANSLATION */
-		putc(c, SS->mfp);
+		fputc(c, SS->mfp);
 	}
     }
     typeflush(SS);
@@ -1171,19 +1171,19 @@ register long incount;
 		/* Suspended lone CR */
 		if (SS->mfp) {	/* We just discard it, if no output stream */
 		    if (!ferror(SS->mfp))
-			putc(SS->mvbstate, SS->mfp);
+			fputc(SS->mvbstate, SS->mfp);
 		    if (!ferror(SS->mfp))
-			putc(c, SS->mfp);
+			fputc(c, SS->mfp);
 		}
 	    } else {
 		/* CR + LF -- forget the CR */
 		if (SS->mfp && !ferror(SS->mfp))
-		    putc(c, SS->mfp);
+		    fputc(c, SS->mfp);
 	    }
 	} else {
 	    /* Anything else, just output it! */
 	    if (SS->mfp && !ferror(SS->mfp))
-		putc(c, SS->mfp);
+		fputc(c, SS->mfp);
 	}
 	SS->mvbstate = c;
     }

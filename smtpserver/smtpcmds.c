@@ -53,14 +53,14 @@ rfc822commentprint(mfp, str)
 FILE *mfp;
 const char *str;
 {
-  putc('"', mfp);
+  fputc('"', mfp);
   for ( ; *str ; ++str ) {
     int c = (*str) & 0xFF;
     if (c == '"' || c == '\\' || c == '(' || c == ')')
-      putc('\\', mfp);
-    putc(c, mfp);
+      fputc('\\', mfp);
+    fputc(c, mfp);
   }
-  putc('"', mfp);
+  fputc('"', mfp);
 }
 
 
@@ -1222,11 +1222,11 @@ const char *buf, *cp;
     /* IETF-NOTARY DSN data: */
     fputs("todsn", SS->mfp);
     if (drpt_notify) {
-	putc(' ', SS->mfp);
+	fputc(' ', SS->mfp);
 	fwrite(drpt_notify, 1, notifylen, SS->mfp);
     }
     if (drpt_orcpt) {
-	putc(' ', SS->mfp);
+	fputc(' ', SS->mfp);
 	fwrite(drpt_orcpt, 1, orcptlen, SS->mfp);
     } else {
 	const char *p = cp;
@@ -1235,13 +1235,13 @@ const char *buf, *cp;
 	while (*p && p < ep) {
 	    char c = (*p) & 0xFF;
 	    if ('!' <= c && c <= '~' && c != '+' && c != '=')
-		putc(c, SS->mfp);
+		fputc(c, SS->mfp);
 	    else
 		fprintf(SS->mfp, "+%02X", c);
 	    ++p;
 	}
     }
-    putc('\n', SS->mfp);
+    fputc('\n', SS->mfp);
 
     /* Normal "RCPT TO:<>" data: */
     fprintf(SS->mfp, "to <");
