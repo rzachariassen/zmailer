@@ -730,6 +730,51 @@ also available thru the policy database machinery.
 .I "(Do note that scheduler(8) has also tcp\-wrapper support, which becomes"
 .I "active simultaneously with smtpserver's tcp\-wrapper code!)"
 .P
+.SH TLS MODE
+.PP
+.B "TO BE WRITTEN;"
+Some further notes on how to setup the TLS encryption on the
+.IR smtpserver (8).
+For the time being, see notes at "doc/guides/openssl"
+as well as what is written above at the "PARAM use\-tls", or
+there abouts.
+.PP
+.SH SMTP\-AUTH -- AUTHENTICATE (RELAY) USER
+.PP
+The idea with "smtp\-auth" is to authenticate the user who wants
+extra privileges from the SMTP service, namely if a user wants to
+send email to an address considered non-local at the system, this
+user needs special privilege.
+.PP
+In usual cases the privilege is granted based on IP address of the
+user (See "smtp\-policy.relay*" below in SMTP\-Policy Configuration).
+.PP
+The privilege can also be granted by doing a "login" procedure
+where the user gives some personal identifier, and related secret.
+.PP
+Becase the normal authenticator is a plain-text password, this
+operation should be done under the security envelope of the SSL.
+(Or equivalent under IPSEC encryption, although ZMailer's smtpserver
+does not know how to detect the session being IPSEC protected!)
+.PP
+You will likely need:
+.RS
+.IP \(bu 3em
+"PARAM smtp\-auth"
+.IP \(bu 3em
+The TLS related notes above.
+.RE
+.PP
+Possibly also:
+.RS
+.IP \(bu 3em
+"PARAM\ AUTH\-LOGIN\-also\-without\-TLS"
+.IP \(bu 3em
+"PARAM\ SMTP\-auth\-pipe\ /path/to/program"
+.IP \(bu 3em
+And possibly also PAM\-support for SMTP\-Auth, see below.
+.RE
+.PP
 .SH PAM\-SUPPORT FOR SMTP\-AUTH
 If the system has <security/pam_appl.h> file, following file will also
 be needed for the system:
