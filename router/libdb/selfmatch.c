@@ -1,6 +1,10 @@
 /*
  *	Copyright 1997 Matti Aarnio <mea@nic.funet.fi>
  */
+/*
+ *	Lots of modifications (new guts, more or less..) by
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ */
 
 /* LINTLIBRARY */
 

@@ -1,3 +1,31 @@
+2002-02-01  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/fqdnaliases.cf:
+	    Instead of:     returns (bitbucket ...)
+	    do it properly: returns (((bitbucket ...)))
+
+	* scheduler/update.c:
+	    At   u_error2()  log the 
+
+	* router/libdb/bind.c:
+	    h_errhost[] change into source material length safe construction.
+
+	* router/libdb/dbm.c:
+	    Mark this file with a  "#warning"  for being suspicuously
+	    old-fashioned system with various problems...
+
+2002-01-31  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/newdb.in:
+	    Match the test in  router/libdb/ndbm.c  about which
+	    component file to move _last_.  This has been a bug
+	    since  2000-05-18 ...
+
+2002-01-31   Alexey Antipov <rabbit@lipetsk.ru>
+
+	* router/libdb/bind.c:
+	    h_errhost[] buffer overflow in some oddball cases.
+
 2001-12-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* man/sm.8:

@@ -5,7 +5,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2001
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
  */
 
 #include "hostenv.h"
@@ -920,7 +920,7 @@ static int u_error2(proc, vp, index, inum, offset, notary, message)
 	  }
 	}
 #endif
-	logstat(vp,"error");
+	logstat(vp,"error2");
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 0);

@@ -73,8 +73,8 @@ if ($DBTYPE eq 'btree') {
 } elsif ($DBTYPE eq 'bhash') {
 	system("mv $BASENAME.$$.dbh $BASENAME.dbh");
 } elsif ($DBTYPE eq 'ndbm') {
-	system("mv $BASENAME.$$.pag $BASENAME.pag"); # First PAG, then DIR
-	system("mv $BASENAME.$$.dir $BASENAME.dir");
+	system("mv $BASENAME.$$.dir $BASENAME.dir"); # First DIR, then PAG
+	system("mv $BASENAME.$$.pag $BASENAME.pag");
 } elsif ($DBTYPE eq 'dbm') {
 	system("mv $BASENAME.$$.pag $BASENAME.pag"); # First PAG, then DIR
 	system("mv $BASENAME.$$.dir $BASENAME.dir");

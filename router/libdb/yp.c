@@ -2,6 +2,10 @@
  *	Copyright 1990 by Nicholas H. Briggs, all rights reserved.
  *	This will be free software, but only when it is finished.
  */
+/*
+ *	Lots of modifications (new guts, more or less..) by
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ */
 
 /* LINTLIBRARY */
 

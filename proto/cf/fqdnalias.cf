@@ -146,7 +146,7 @@ fqdn_neighbour (domain, address, A) {
 	  fi
 	else
 	  # DID EXPAND !
-	  returns (bitbucket "duplicate-$key.fqdnaliases"  "$address" $A)
+	  returns (((bitbucket "duplicate-$key.fqdnaliases"  "$address" $A)))
 	fi
 
 	if $(didexpand fqdnaliasesldap); then
@@ -163,7 +163,7 @@ fqdn_neighbour (domain, address, A) {
 	  fi
 	else
 	  # DID EXPAND !
-	  returns (bitbucket "duplicate-$key.fqdnaliasesldap"  "$address" $A)
+	  returns (((bitbucket "duplicate-$key.fqdnaliasesldap"  "$address" $A)))
 	fi
 
 	# Didn't match,
@@ -190,7 +190,7 @@ fqdn_neighbour (domain, address, A) {
 	      fi
 	    else
 	      # DID EXPAND !
-	      return (bitbucket "duplicate-$key.fqdnaliases" "$address" $A)
+	      return (((bitbucket "duplicate-$key.fqdnaliases" "$address" $A)))
 	    fi
 	    if $(didexpand fqdnaliasesldap) ; then
 	      if a="$(fqdnaliasesldap "$key" -- "$user")" ; then
@@ -206,7 +206,7 @@ fqdn_neighbour (domain, address, A) {
 	      fi
 	    else
 	      # DID EXPAND !
-	      returns (bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)
+	      returns (((bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)))
 	    fi
 	    ;;
 	tfiss
@@ -235,7 +235,7 @@ fqdn_neighbour (domain, address, A) {
 	  fi
 	else
 	  # DID EXPAND !
-	  returns (bitbucket "duplicate-$key.fqlists" "$address" $A)
+	  returns (((bitbucket "duplicate-$key.fqlists" "$address" $A)))
 	fi
 
 	# Ok, if the list (MAILVAR/fqlists/user@host) did exist, we did
@@ -258,8 +258,8 @@ fqdn_neighbour (domain, address, A) {
 		  fi
 		else
 		  # DID EXPAND !
-		  returns (bitbucket "duplicate-$key.fqlists-owner" \
-			   "$address" $A)
+		  returns (((bitbucket "duplicate-$key.fqlists-owner" \
+			   "$address" $A)))
 		fi
 		break
 		;;
@@ -278,7 +278,7 @@ fqdn_neighbour (domain, address, A) {
 		  fi
 		else
 		  # DID EXPAND !
-		  returns (bitbucket "duplicate-$key.fqlists-request" "$address" $A)
+		  returns (((bitbucket "duplicate-$key.fqlists-request" "$address" $A)))
 		fi
 		break
 		;;
@@ -297,7 +297,7 @@ fqdn_neighbour (domain, address, A) {
 		  fi
 		else
 		  # DID EXPAND !
-		  returns (bitbucket "duplicate-$key.owner-fqlists" "$address" $A)
+		  returns (((bitbucket "duplicate-$key.owner-fqlists" "$address" $A)))
 		fi
 		;;
 	tfiss
@@ -325,7 +325,7 @@ fqdn_neighbour (domain, address, A) {
 	  fi
 	else
 	  # DID EXPAND !
-	  returns (bitbucket "duplicate-$key.fqdnaliases" "$address" $A)
+	  returns (((bitbucket "duplicate-$key.fqdnaliases" "$address" $A)))
 	fi
 	if $(didexpand fqdnaliasesldap) ; then
 	  if a="$(fqdnaliasesldap "$key" -- "$user")" ; then
@@ -341,7 +341,7 @@ fqdn_neighbour (domain, address, A) {
 	  fi
 	else
 	  # DID EXPAND !
-	  returns (bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)
+	  returns (((bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)))
 	fi
 
 	return 1

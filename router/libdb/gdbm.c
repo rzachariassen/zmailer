@@ -6,6 +6,10 @@
  *
  *	Currently uses GDBM version 1.7.3 !
  */
+/*
+ *	Lots of modifications (new guts, more or less..) by
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ */
 
 /* LINTLIBRARY */
 

@@ -2,6 +2,10 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  */
+/*
+ *	Lots of modifications (new guts, more or less..) by
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ */
 
 /* LINTLIBRARY */
 
@@ -138,7 +142,7 @@ const char * conffile;
 extern int D_bind, D_resolv;
 
 extern int	h_errno;
-char h_errhost[MAXNAME];
+char *h_errhost = NULL;
 
 #define T_MXWKS    0x00010000
 #define T_MXLOCAL  0x00020000
@@ -255,7 +259,8 @@ search_res(sip)
 	  return NULL;
 	}
 	h_errno = 0;
-	h_errhost[0] = '\0';
+	if (h_errhost) free(h_errhost);
+	h_errhost = NULL;
 	switch (0xFF & qtp->value) {
 	case T_MX:
 		if (qtp->value & T_MXLOCAL)
@@ -287,7 +292,7 @@ search_res(sip)
 		rval = NULL;
 	}
 	if (h_errno > 0) {
-	  if (h_errhost[0] == '\0')
+	  if (!h_errhost)
 	    host = sip->key;
 	  else
 	    host = h_errhost;
@@ -351,6 +356,7 @@ getmxrr(host, ttlp, depth, flags)
 	  fprintf(stderr,
 		  "search_res: CNAME chain length exceeded (%s)\n",
 		  host);
+	  h_errhost = realloc(h_errhost, strlen(host)+1);
 	  strcpy(h_errhost, host);
 	  h_errno = TRY_AGAIN;
 	  return NULL;
@@ -359,6 +365,7 @@ getmxrr(host, ttlp, depth, flags)
 			   (void *)&buf, sizeof(buf));
 	if (qlen < 0) {
 		fprintf(stderr, "search_res: res_mkquery (%s) failed\n", host);
+		h_errhost = realloc(h_errhost, strlen(host)+1);
 		strcpy(h_errhost, host);
 		h_errno = NO_RECOVERY;
 		return NULL;
@@ -371,6 +378,7 @@ getmxrr(host, ttlp, depth, flags)
 	    if (D_bind || _res.options & RES_DEBUG)
 	      fprintf(stderr,
 		      "search_res: res_send (%s) failed\n", host);
+	    h_errhost = realloc(h_errhost, strlen(host)+1);
 	    strcpy(h_errhost, host);
 	    h_errno = TRY_AGAIN;
 	    return NULL;
@@ -393,6 +401,7 @@ getmxrr(host, ttlp, depth, flags)
 				h_errno = HOST_NOT_FOUND;
 				return NULL;
 			case SERVFAIL:
+				h_errhost = realloc(h_errhost, strlen(host)+1);
 				strcpy(h_errhost, host);
 				h_errno = TRY_AGAIN;
 				return NULL;
@@ -403,6 +412,7 @@ getmxrr(host, ttlp, depth, flags)
 			case FORMERR:
 			case NOTIMP:
 			case REFUSED:
+				h_errhost = realloc(h_errhost, strlen(host)+1);
 				strcpy(h_errhost, host);
 				h_errno = NO_RECOVERY;
 				return NULL;
@@ -590,6 +600,7 @@ getcrrtype(host, rrtype, ttlp, depth)	/* getrrtypec() with completion */
 		fprintf(stderr,
 			"search_res: CNAME chain length exceeded (%s)\n",
 			host);
+		h_errhost = realloc(h_errhost, strlen(host)+1);
 		strcpy(h_errhost, host);	/* use strcat on purpose */
 		h_errno = TRY_AGAIN;
 		return NULL;
@@ -609,6 +620,7 @@ getcrrtype(host, rrtype, ttlp, depth)	/* getrrtypec() with completion */
 		if (rval != NULL)
 			return rval;
 	}
+	h_errhost = realloc(h_errhost, strlen(host)+1);
 	strcpy(h_errhost, host);
 	return NULL;
 }
@@ -636,6 +648,7 @@ getrrtypec(host, rrtype, ttlp, depth)
 		fprintf(stderr,
 			"search_res: CNAME chain length exceeded (%s)\n",
 			host);
+		h_errhost = realloc(h_errhost, strlen(host)+1);
 		strcpy(h_errhost, host);	/* use strcat on purpose */
 		h_errno = TRY_AGAIN;
 		return NULL;
@@ -647,6 +660,7 @@ getrrtypec(host, rrtype, ttlp, depth)
 		if (D_bind || _res.options & RES_DEBUG)
 			fprintf(stderr,
 				"search_res: res_mkquery (%s) failed\n", host);
+		h_errhost = realloc(h_errhost, strlen(host)+1);
 		strcpy(h_errhost, host);
 		h_errno = NO_RECOVERY;
 		return NULL;
@@ -659,6 +673,7 @@ getrrtypec(host, rrtype, ttlp, depth)
 	    if (D_bind || _res.options & RES_DEBUG)
 	      fprintf(stderr,
 		      "search_res: res_send (%s) failed\n", host);
+	    h_errhost = realloc(h_errhost, strlen(host)+1);
 	    strcpy(h_errhost, host);
 	    h_errno = TRY_AGAIN;
 	    return NULL;

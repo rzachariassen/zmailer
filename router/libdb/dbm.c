@@ -2,6 +2,10 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  */
+/*
+ *	Lots of modifications (new guts, more or less..) by
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ */
 
 /* NOTE: This can't co-exist with ndbm! */
 
@@ -12,6 +16,9 @@
 
 #include "mailer.h"
 #ifdef	HAVE_DBM_H
+
+#warning "This really is not recommened anymore, and probably won't work"
+#warning "if you can, try to pick something else, like gdbm ..."
 
 #ifdef	NeXT
 #define	__STRICT_BSD__
