@@ -2212,12 +2212,12 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  i = EX_OK;
 	  if (cp != buf)
 	    *cp++ = ' ';
-	  strcpy(cp, "[exit status 0]");
-	} else if ((status&0177) > 0) {
+	  strcpy(cp, "[Exit Status 0]");
+	} else if ((status & 0177) > 0) {
 	  if (cp != buf)
 	    *cp++ = ' ';
-	  sprintf(cp, "[signal %d", status&0177);
-	  if (status&0200)
+	  sprintf(cp, "[signal %d", status & 0177);
+	  if (status & 0200)
 	    strcat(cp, " (Core dumped)");
 	  strcat(cp, "]");
 	  i = EX_TEMPFAIL;
@@ -2227,8 +2227,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  sprintf(cp, "[exit status %d]", i);
 	  /* We report following status codes to the system as is,
 	     all the rest are treated as EX_TEMPFAIL, and retried.. */
-	  if (!(i == EX_NOPERM || i == EX_UNAVAILABLE || i == EX_NOHOST ||
-		i == EX_NOUSER || i == EX_DATAERR || i == EX_OK))
+	  if (i != EX_NOPERM && i != EX_UNAVAILABLE && i != EX_NOHOST &&
+	      i != EX_NOUSER && i != EX_DATAERR     && i != EX_OK )
 	    i = EX_TEMPFAIL;
 	}
 
@@ -2332,19 +2332,19 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	    close(fd);
 	    {
 	      struct stat st;
-#ifdef	HAVE_UTIMES
+#ifdef	HAVE_UTIME
+	      struct utimbuf tv;
+	      stat(*filep,&st); /* This by all propability will not fail.. */
+	      tv.actime  = 0;	/* never read */
+	      tv.modtime = st.st_mtime;
+	      utime(*filep, &tv);
+#else
 	      struct timeval tv[2];
 	      stat(*filep,&st); /* This by all propability will not fail.. */
 	      tv[0].tv_sec = 0; /* never read */
 	      tv[1].tv_sec = st.st_mtime;
 	      tv[0].tv_usec = tv[1].tv_usec = 0;
 	      utimes(*filep, tv);
-#else
-	      struct utimbuf tv;
-	      stat(*filep,&st); /* This by all propability will not fail.. */
-	      tv.actime  = 0;	/* never read */
-	      tv.modtime = st.st_mtime;
-	      utime(*filep, &tv);
 #endif
 	    }
 	    return 1;
