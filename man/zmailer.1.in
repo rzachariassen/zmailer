@@ -126,6 +126,8 @@ a new SMTP server daemon.
 .IP \fBnewdb\fR
 will run database regeneration per definitions at
 "\fIMAILSHARE\fB/db/dbases.conf\fR" file.
+See
+.IR zdbases.conf (5).
 .IP \fBnewaliases\fR
 will run the script to recreate the alias database from the
 "\fIMAILSHARE\fB/db/aliases\fR" file.
