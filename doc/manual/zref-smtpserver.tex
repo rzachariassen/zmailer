@@ -725,6 +725,26 @@ This attribute pair will use Paul Vixie's RBL
 ( HTTP://maps.vix.com/rbl/ )
 system to block undesired connection sources.
 
+\item[\tt rply-dns-rbl +] \mbox{} \\
+\item[\tt test-rply-dns-rbl +] \mbox{} \\
+This is a ``recipient selective'' version of the RBL.
+The first one is to be placed into the default address case
+(the ``[0.0.0.0]/0´´), and then the latter can be used in given
+destination domain(s) to test for the result of the lookup.
+
+This allows selective usage of 'RBL' blocking via this server.
+For example if you have {\tt smtp-policy.mx} file listing special
+cases (opposite of your default domain address ``.'' values)
+
+\begin{alltt}\medskip\hrule\medskip
+ fobar.com  test-rply-dns-rbl + relaytarget +
+ barfo.dom  test-rply-dns-rbl + relaytarget +
+\medskip\hrule\end{alltt}\medskip
+
+The selectivity can be either by means of listing those where the test
+happens, or those where it doesn't happen -- the latter means that
+the default domain address (``.'') must have ``test-rply-dns-rbl +'' entry.
+
 \item[\tt maxinsize nnn] \mbox{} \\
 This attribute pair yields numeric limit for incoming message
 size.  With this you can define source specific message size
