@@ -35,6 +35,6 @@ int sieve_command(svp)
      struct sieve *svp;
 {
   /* Rather dummy tools for now.. */
-  return SIEVE_USERSTORE;
+  return SIEVE_NOOP;
 }
 

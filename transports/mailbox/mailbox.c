@@ -432,6 +432,8 @@ main(argc, argv)
 	  maildirs[1] = NULL;
 	}
 
+	umask(002);
+
 	errflg = 0;
 	logfile = NULL;
 	channel = CHANNEL;
@@ -1325,11 +1327,6 @@ deliver(dp, rp, usernam, timestring)
 			      starttime, timestring );
 		break;
 	      case SIEVE_DISCARD:
-		/* This happens only ONCE per recipient, if ever */
-		notaryreport(rp->addr->user,"delivery",
-			     "2.2.0 (Discarded successfully)",
-			     "x-local; 250 (Discarded successfully)");
-		DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
 		break;
 	      }
 	    }
@@ -1341,12 +1338,19 @@ deliver(dp, rp, usernam, timestring)
 	     tell what we should do to the message regarding its storage
 	     to the local message store. */
 
-	  if (sv.keep_or_discard >= 0)
+	  if (sv.keep_or_discard >= 0) {
 	    store_to_file(dp, rp, file, ismbox, usernam, &st, uid,
 #ifdef HAVE_SOCKET
 			  nbp,
 #endif
 			  starttime, timestring );
+	  } else {
+	    /* This happens only ONCE per recipient, if ever */
+	    notaryreport(rp->addr->user,"delivery",
+			 "2.2.0 (Discarded successfully)",
+			 "x-local; 250 (Discarded successfully)");
+	    DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
+	  }
 
 	} else {
 
@@ -2280,13 +2284,14 @@ createfile(rp, file, iuid, ismbox)
 	struct stat st;
 	char *cp, msg[BUFSIZ];
 	uid_t uid = iuid;
+	int mailmode = MAILMODE;
 
 	if (verboselog)
 	  fprintf(verboselog,
-		  "To create a file with euid=%d egid=%d file='%s'\n",
-		  geteuid(), getegid(), file);
+		  "To create a file with euid=%d egid=%d file='%s', mode=%o\n",
+		  geteuid(), getegid(), file, mailmode);
 
-	fd = open(file, O_RDWR|O_CREAT|O_EXCL, MAILMODE);
+	fd = open(file, O_RDWR|O_CREAT|O_EXCL, mailmode);
 	if (fd < 0) {
 	  saverrno = errno;
 	  if (verboselog)
@@ -2296,7 +2301,8 @@ createfile(rp, file, iuid, ismbox)
 	  
 	  if (errno == EEXIST)
 	    return -3;
-	  if ((cp = strrchr(file, '/')) != NULL) {
+	  cp = strrchr(file, '/');
+	  if (cp != NULL) {
 	    *cp = '\0';
 	    if (exstat(rp, file, &st, stat) < 0) {
 	      *cp = '/';
@@ -2319,15 +2325,16 @@ createfile(rp, file, iuid, ismbox)
 			   file);
 		return -2;
 	      }
+	      mailmode += 0060;
 	    }
 	  }
 
 	  if (verboselog)
 	    fprintf(verboselog,
-		    "To create a file with euid=%d egid=%d file='%s'\n",
-		    geteuid(), getegid(), file);
+		    "To create a file with euid=%d egid=%d file='%s' mode=%o\n",
+		    geteuid(), getegid(), file, mailmode);
 
-	  fd = open(file, O_RDWR|O_CREAT|O_EXCL, MAILMODE);
+	  fd = open(file, O_RDWR|O_CREAT|O_EXCL, mailmode);
 	  if (fd < 0) {
 	    saverrno = errno;
 	    if (verboselog)
