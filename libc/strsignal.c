@@ -8,7 +8,7 @@
 
 #ifndef HAVE_STRSIGNAL
 
-#ifndef SYS_SIGLIST_DECLARED
+#if !HAVE_DECL_SYS_SIGLIST
 #ifndef	HAVE_SYS_SIGLIST /* No  sys_siglist[]  at the libc ? */
 const char *sys_siglist[] = {
 	"Signal 0",
@@ -47,7 +47,7 @@ const char *sys_siglist[] = {
 #endif	/* HAVE_SYS_SIGLIST */
 #endif
 
-#ifndef SYS_SIGLIST_DECLARED /* Not declared anywhere ? */
+#if !HAVE_DECL_SYS_SIGLIST /* Not declared anywhere ? */
 extern const char *sys_siglist[];
 #endif
 

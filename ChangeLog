@@ -1,9 +1,14 @@
 2003-05-13  Matti Aarnio  <mea@zmailer.org>
 
+	* libc/strsignal.c:
+	    Matching tests with earlier autoconf rewrites
+
 	* configure.in, man/Makefile.in, man/*:
-	  Changed ALL man-page files to be autoconf generated
-	  so that @MAILBIN@ substitutions (et.al.) can be
-	  done into the files.
+	    Changed ALL man-page files to be autoconf generated
+	    so that @MAILBIN@ substitutions (et.al.) can be
+	    done into the files.  (Also renamed files in the
+	    CVS repository to reflect changed names in order
+	    to preserve the change history.)
 
 	* proto/post-install.sh.in:
 	    Added '--destdir' option.
