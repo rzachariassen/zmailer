@@ -1831,7 +1831,10 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	int lastch = 0xFFF;
 	int topipe = (*(file) == TO_PIPE);
 	int failed = 0;
-	struct writestate WS;
+
+	/* This data MUST exist at the caller too!
+	   Sure it isn't kosher, but it works!     */
+	static struct writestate WS;
 
 	fstat(fdmail, &st);
 
