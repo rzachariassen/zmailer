@@ -639,10 +639,10 @@ web_detangle(vp, ok)
 
 	struct thread *thr = vp->thread;
 
-	assert_pvertex_null(vp);
-
-	if (thr)
+	if (thr) {
+	  assert_pvertex_null(vp);
 	  unthread(vp);
+	}
 
 	/* The thread can now be EMPTY! */
 
