@@ -1,3 +1,10 @@
+2003-10-03  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Compressed logged commentary lines a bit.
+	    Remote host reversed name, and its actual IP address
+	    are listed in same line.
+
 2003-10-01  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c:

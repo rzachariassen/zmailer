@@ -1368,13 +1368,15 @@ char **argv;
 		  openlogfp(&SS, daemon_flg);
 #ifdef HAVE_WHOSON_H
 		  type(NULL,0,NULL,
-		       "connection from %s ipcnt %d childs %d ident: %s whoson: %s",
-		       SS.rhostname, sameipcount, childcnt,
+		       "connection from %s %s:%d ipcnt %d childs %d ident: %s whoson: %s",
+		       SS.rhostname, SS.ihostaddr,SS.rport,
+		       sameipcount, childcnt,
 		       SS.ident_username, SS.whoson_data);
 #else
 		  type(NULL,0,NULL,
-		       "connection from %s ipcnt %d childs %d ident: %s",
-		       SS.rhostname, sameipcount, childcnt,
+		       "connection from %s %s:%d ipcnt %d childs %d ident: %s",
+		       SS.rhostname, SS.ihostaddr,SS.rport,
+		       sameipcount, childcnt,
 		       SS.ident_username);
 #endif
 
@@ -2209,10 +2211,6 @@ int insecure;
     cfinfo = NULL;
     {
 	char *s = policymsg(policydb, &SS->policystate);
-	if (insecure)
-	  type(NULL,0,NULL,"remote from %s:%d", SS->ihostaddr, SS->rport);
-	else
-	  type(NULL,0,NULL,"local from uid#%d", (int)getuid());
 	if (SS->policyresult != 0 || s != NULL)
 	  type(NULL,0,NULL,"-- policyresult=%d initial policy msg: %s",
 	       SS->policyresult, (s ? s : "<NONE!>"));
