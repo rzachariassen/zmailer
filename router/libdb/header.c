@@ -129,7 +129,7 @@ semname2enum(name)
 }
 
 static const char * semenum2name __((HeaderSemantics d));
-const char *
+static const char *
 semenum2name(d)
 	HeaderSemantics d;
 {
