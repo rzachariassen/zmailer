@@ -282,6 +282,14 @@ extern int prefer_ip6;
 #endif /* - HAVE_OPENSSL */
 
 
+typedef union {
+  struct sockaddr_in  v4;
+#if defined(AF_INET6) && defined(INET6)
+  struct sockaddr_in6 v6;
+#endif
+} Usockaddr;
+
+
 # ifdef RFC974
 
 #if	defined(BIND_VER) && (BIND_VER >= 473)
@@ -383,12 +391,7 @@ typedef struct {
   char ipaddress[200];
 
   struct addrinfo ai;		/* Lattest active connection */
-  union {
-    struct sockaddr_in  v4;
-#if defined(AF_INET6) && defined(INET6)
-    struct sockaddr_in6 v6;
-#endif
-  } ai_addr;
+  Usockaddr ai_addr;
   int ismx;
 
   char stdinbuf[8192];
@@ -461,6 +464,7 @@ extern int res_mkquery(), res_send(), dn_skipname(), dn_expand();
 # ifdef RFC974
 extern int getmxrr __((SmtpState *, const char*, struct mxdata*, int, int));
 # endif /* RFC974 */
+extern void mxsetsave __((SmtpState *SS));
 #endif	/* BIND */
 extern int matchroutermxes __((const char*, struct taddress*, void*));
 extern RETSIGTYPE sig_pipe __((int));
@@ -490,3 +494,4 @@ extern int  tls_stop_clienttls    __((SmtpState *SS, int failure));
 extern char *logtag __((void));
 
 extern time_t starttime, endtime;
+

@@ -1,3 +1,10 @@
+2000-06-20  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    When doing   getmxrr()  for MX data, will use also
+	    the DNS supplied ADDITIONAL DATA segment materiel
+	    for MX machine addresses.
+
 2000-06-19  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* scheduler/update.c:

@@ -96,7 +96,7 @@ transports/smtp:
 	(But no response within timeout from remote server should be
 	 treated the same way as 'conn timeout' -- I think ?)
 		Fixed ? (20000314)
-	Not fixed on 2000/3/14 ...
+	Not fixed on 20000314 ...
 		Fixed ? (20000619)
 
    BUG:	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
@@ -115,6 +115,15 @@ transports/smtp:
 	  D with lower preferrence..
 	  (Noting that all MX-hosts with same or larger privilege,
 	   than ourselves are to be pre-removed from the list!)
+	  sendmail does this by observing that target domains A and B
+	  have same hosts in same preferrence order (*not* pref. value!)
+	  and then considering them as one.  Some MTAs choose to use even
+	  finger-grained parallellism -- if connection is active to server
+	  address N, and it is MX for several domains, all those domains
+	  are routed via it.
+	Worthwhileness of this is *not* unambiguous.
+	How many domains really are served by same system ?
+	At some places a lot, but elsewere perhaps not...
 
    FEATURE:
 	Use DNS reply contained "additional data" as much as possible.
@@ -122,7 +131,7 @@ transports/smtp:
 	Also handle lookup retries in case the DNS server answer is
 	truncated *and* the answer-data doesn't fit all in, then (try to)
 	retry with TCP connection.
-	
+		Done 20000619
 
    FEATURE:
 	BIND to INTERFACE's address -- assuming a set of servers

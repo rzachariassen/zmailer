@@ -2069,6 +2069,10 @@ smtpconn(SS, host, noMX)
 
 	    SS->mxcount = 0;
 	    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0);
+
+	    if (rc == EX_OK)
+	      mxsetsave(SS);
+
 	    if (SS->verboselog) {
 	      if (SS->mxcount == 0)
 		fprintf(SS->verboselog,
@@ -2311,12 +2315,7 @@ void
 deducemyifname(SS)
 	SmtpState *SS;
 {
-	union {
-	  struct sockaddr_in  v4;
-#if defined(AF_INET6) && defined(INET6)
-	  struct sockaddr_in6 v6;
-#endif
-	} laddr;
+	Usockaddr laddr;
 	int laddrsize;
 	struct hostent *hp;
 
@@ -2565,12 +2564,7 @@ vcsetup(SS, sa, fdp, hostname)
 	struct sockaddr_in6 *sai6 = (struct sockaddr_in6 *)sa;
 	struct sockaddr_in6 sad6;
 #endif
-	union {
-	  struct sockaddr_in sai;
-#if defined(AF_INET6) && defined(INET6)
-	  struct sockaddr_in6 sai6;
-#endif
-	} upeername;
+	Usockaddr upeername;
 	int upeernamelen = 0;
 
 	u_short p;
@@ -2833,24 +2827,24 @@ if (SS->verboselog)
 
 	if (upeernamelen != 0) {
 #if defined(AF_INET6) && defined(INET6)
-	  if (upeername.sai6.sin6_family == AF_INET6) {
+	  if (upeername.v6.sin6_family == AF_INET6) {
 	    int len = strlen(SS->ipaddress);
 	    char *s = SS->ipaddress + len;
 	    strcat(s++, "|");
-	    inet_ntop(AF_INET6, &upeername.sai6.sin6_addr,
+	    inet_ntop(AF_INET6, &upeername.v6.sin6_addr,
 		      s, sizeof(SS->ipaddress)-len-9);
 	    s = s + strlen(s);
-	    sprintf(s, "|%d", ntohs(upeername.sai6.sin6_port));
+	    sprintf(s, "|%d", ntohs(upeername.v6.sin6_port));
 	  } else
 #endif
-	    if (upeername.sai.sin_family == AF_INET) {
+	    if (upeername.v4.sin_family == AF_INET) {
 	      int len = strlen(SS->ipaddress);
 	      char *s = SS->ipaddress + len;
 	      strcat(s++, "|");
-	      inet_ntop(AF_INET, &upeername.sai.sin_addr,
+	      inet_ntop(AF_INET, &upeername.v4.sin_addr,
 			s, sizeof(SS->ipaddress)-len-9);
 	      s = s + strlen(s);
-	      sprintf(s, "|%d", ntohs(upeername.sai.sin_port));
+	      sprintf(s, "|%d", ntohs(upeername.v4.sin_port));
 	    } else {
 	      strcat(SS->ipaddress, "|UNKNOWN-LOCAL-ADDRESS");
 	    }
@@ -4136,7 +4130,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	querybuf qbuf, answer;
 	struct mxdata mxtemp;
 	msgdata buf[8192], realname[8192];
-	int qlen, n, i, j, nmx, ancount, qdcount, maxpref;
+	int qlen, n, i, j, nmx, qdcount, ancount, nscount, arcount, maxpref;
+	int class;
 	u_short type;
 	int saw_cname = 0;
 	int ttl;
@@ -4147,6 +4142,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	notary_setwtt  (NULL);
 	notary_setwttip(NULL);
+
+	if (depth == 0)
+	  SS->mxcount = 0;
 
 	if (depth > 3) {
 	  sprintf(SS->remotemsg,"smtp; 500 (DNS: Recursive CNAME on '%.200s')",host);
@@ -4193,8 +4191,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	 * find first satisfactory answer
 	 */
 	hp = (HEADER *) &answer;
-	ancount = ntohs(hp->ancount);
 	qdcount = ntohs(hp->qdcount);
+	ancount = ntohs(hp->ancount);
+	nscount = ntohs(hp->nscount);
+	arcount = ntohs(hp->arcount);
 	if (hp->rcode != NOERROR || ancount == 0) {
 	  switch (hp->rcode) {
 	  case NXDOMAIN:
@@ -4216,7 +4216,6 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    return EX_TEMPFAIL;
 	  case NOERROR:
 	    mx[0].host = NULL;
-	    SS->mxcount = 0;
 	    return EX_OK;
 	  case FORMERR:
 	  case NOTIMP:
@@ -4236,7 +4235,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    return EX_TEMPFAIL;
 	  return EX_UNAVAILABLE;
 	}
-	nmx = SS->mxcount;
+	nmx = 0;
 	cp = (msgdata *)&answer + sizeof(HEADER);
 	for (; qdcount > 0; --qdcount) {
 #if	defined(BIND_VER) && (BIND_VER >= 473)
@@ -4246,17 +4245,16 @@ getmxrr(SS, host, mx, maxmx, depth)
 #endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
 	}
 	realname[0] = '\0';
-	maxpref = -1;
-	while (--ancount >= 0 && cp < eom && nmx < maxmx-1) {
+	maxpref = 66000;
+	while (ancount > 0 && cp < eom && nmx < maxmx-1) {
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0)
 	    break;
 	  cp += n;
+	  if (cp+10 > eom) { cp = eom; break; }
 	  type = _getshort(cp);
 	  cp += 2;
-	  /*
-	     class = _getshort(cp);
-	     */
+	  class = _getshort(cp);
 	  cp += 2;
 	  mx[nmx].expiry = now + _getlong(cp); /* TTL */
 	  cp += 4; /* "long" -- but keep in mind that some machines
@@ -4264,129 +4262,60 @@ getmxrr(SS, host, mx, maxmx, depth)
 		      ones, I mean ... */
 	  n = _getshort(cp); /* dlen */
 	  cp += 2;
+	  if (cp + n > eom) { cp = eom; break; }
+
+	  if (class != C_IN) {
+	    cp += n;
+	    if (cp > eom) break;
+	    --ancount;
+	    continue;
+	  }
 	  if (type == T_CNAME) {
 	    cp += dn_expand((msgdata *)&answer, eom, cp,
 			    (void*)realname, sizeof realname);
+	    if (cp > eom) break;
 	    saw_cname = 1;
+	    --ancount;
 	    continue;
 	  } else if (type != T_MX)  {
 	    cp += n;
+	    if (cp > eom) break;
+	    --ancount;
 	    continue;
 	  }
+	  if (cp + n /* dlen */ >= eom) { cp = eom; break; }
 	  mx[nmx].pref = _getshort(cp);
 	  cp += 2; /* MX preference value */
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
-	  if (n < 0)
-	    break;
+	  if (n < 0) break;
 	  cp += n;
+	  if (cp >= eom) break;
 
-	  memset(&req, 0, sizeof(req));
-	  req.ai_socktype = SOCK_STREAM;
-	  req.ai_protocol = IPPROTO_TCP;
-	  req.ai_flags    = AI_CANONNAME;
-	  req.ai_family   = PF_INET;
-	  ai = NULL;
-
-	  /* This resolves CNAME, it should not happen in case
-	     of MX server, though..    */
-#if !GETADDRINFODEBUG
-	  i = getaddrinfo((const char*)buf, "0", &req, &ai);
-#else
-	  i = _getaddrinfo_((const char*)buf, "0", &req, &ai, SS->verboselog);
-	  if (SS->verboselog)
-	    fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
-		    buf,i,ai);
-#endif
-
-#if defined(AF_INET6) && defined(INET6)
-	  {
-	    struct addrinfo *ai2 = NULL, *a;
-	    int i2;
-	    memset(&req, 0, sizeof(req));
-	    req.ai_socktype = SOCK_STREAM;
-	    req.ai_protocol = IPPROTO_TCP;
-	    req.ai_flags    = AI_CANONNAME;
-	    req.ai_family   = PF_INET6;
-
-	  /* This resolves CNAME, it should not happen in case
-	     of MX server, though..    */
-#if !GETADDRINFODEBUG
-	    i2 = getaddrinfo((const char*)buf, "0", &req, &ai2);
-#else
-	    i2 = _getaddrinfo_((const char*)buf, "0", &req, &ai2,
-			       SS->verboselog);
-	    if (SS->verboselog)
-	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
-		      buf,i2,ai2);
-#endif
-
-	    if (i != 0 && i2 == 0) {
-	      /* IPv6 address, no IPv4 (or error..) */
-	      i = i2;
-	      ai = ai2; ai2 = NULL;
-	    }
-	    if (ai2 && ai) {
-	      /* BOTH ?!  Catenate them! */
-	      a = ai;
-	      while (a && a->ai_next) a = a->ai_next;
-	      if (a) a->ai_next = ai2;
-	    }
+	  mx[nmx].ai   = NULL;
+	  mx[nmx].host = (msgdata *)strdup((void*)buf);
+	  if (mx[nmx].host == NULL) {
+	    fprintf(stderr, "Out of virtual memory!\n");
+	    exit(EX_OSERR);
 	  }
-#endif
+	  ++nmx;
+	  --ancount;
+	} /* Gone thru all answers */
 
-
-	  if (i != 0) {
-	    if (i == EAI_AGAIN) {
-	      sprintf(SS->remotemsg, "smtp; 500 (DNS: getaddrinfo<%.200s> got EAI_AGAIN)", buf);
-	      endtime = now;
-	      notary_setxdelay((int)(endtime-starttime));
-	      notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
-
-	      had_eai_again = 1;
-	    }
-	    continue;		/* Well well.. spurious! */
+	if (ancount > 0) {
+	  /* URGH!!!!   Answers left over, WHAT ?!?!?! */
+	  for (i = 0; i < nmx; ++i) {
+	    if (mx[i].host) free(mx[i].host);
+	    mx[i].host = NULL;
 	  }
-
-
-	  if (cistrcmp(ai->ai_canonname, myhostname) == 0 ||
-	      matchmyaddresses(ai) == 1) {
-
-#if GETMXRRDEBUG
-	    if (SS->verboselog)
-	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", ai->ai_canonname, myhostname);
-#endif
-	    if (maxpref < 0 || maxpref > (int)mx[nmx].pref)
-	      maxpref = mx[nmx].pref;
+	  if (hp->tc) {
+	    /* Yes, it is TRUNCATED reply!   Must retry with e.g.
+	       by using TCP! */
+	    /* FIXME: FIXME! FIXME! Truncated reply handling! */
 	  }
-
-	  /* Separate all addresses into their own MXes */
-	  i = nmx;
-	  while (ai && nmx < maxmx) {
-	    mx[nmx].ai   = ai;
-	    ai = ai->ai_next;
-	    mx[nmx].ai->ai_next = NULL;
-	    mx[nmx].host = (msgdata *)strdup((void*)buf);
-	    if (mx[nmx].host == NULL) {
-	      fprintf(stderr, "Out of virtual memory!\n");
-	      exit(EX_OSERR);
-	    }
-	    if (nmx > i) {
-	      mx[nmx].pref   = mx[i].pref;
-	      mx[nmx].expiry = mx[i].expiry;
-	    }
-	    ++nmx;
-	  }
-	  /* [mea] Canonicalized this target & got A/AAAA records.. */
-	  SS->mxcount = nmx;
+	  return EX_TEMPFAIL; /* FIXME?? FIXME?? */
 	}
 
-#if GETMXRRDEBUG
-	if (SS->verboselog)
-	  fprintf(SS->verboselog,"  getmxrr('%s') -> nmx=%d, maxpref=%d, realname='%s'\n", host, nmx, maxpref, realname);
-#endif
-
-	if (nmx == 0 && realname[0] != '\0' &&
-	    cistrcmp(host,(char*)realname) != 0) {
+	if (nmx == 0 && realname[0] != 0) {
 	  /* do it recursively for the real name */
 	  n = getmxrr(SS, (char *)realname, mx, maxmx, depth+1);
 	  if (had_eai_again)
@@ -4402,24 +4331,270 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  return EX_OK;
 	}
 
-	/* discard MX RRs with a value >= that of  myhost */
-	if (maxpref >= 0) {
-	  for (n = i = 0; n < nmx; ++n) {
-	    if ((int)mx[n].pref >= maxpref) {
-	      free(mx[n].host);
-	      freeaddrinfo(mx[n].ai);
-	      mx[n].host = NULL;
-	      mx[n].ai   = NULL;
-	      ++i;
+	while (nscount > 0 && cp < eom) {
+#if	defined(BIND_VER) && (BIND_VER >= 473)
+	  n = dn_skipname(cp, eom);
+#else	/* !defined(BIND_VER) || (BIND_VER < 473) */
+	  n = dn_skip(cp);
+#endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
+	  if (n < 0)
+	    break;
+	  cp += n;
+	  if (cp+10 > eom) { cp = eom; break; }
+	  /* type = _getshort(cp); */
+	  cp += 2;
+	  /* class = _getshort(cp); */
+	  cp += 2;
+	  /* mx[nmx].expiry = now + _getlong(cp); */ /* TTL */
+	  cp += 4; /* "long" -- but keep in mind that some machines
+		      have "funny" ideas about "long" -- those 64-bit
+		      ones, I mean ... */
+	  n = _getshort(cp); /* dlen */
+	  cp += 2;
+	  cp += n; /* We simply skip this data.. */
+	  if (cp <= eom)
+	    --nscount;
+	}
+
+	/* Ok, can continue to pick the ADDITIONAL SECTION data */
+	while (nscount == 0 && arcount > 0 && cp < eom) {
+	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
+	  if (n < 0) { cp = eom; break; }
+	  cp += n;
+	  if (cp+10 > eom) { cp = eom; break; }
+	  type = _getshort(cp);
+	  cp += 2;
+	  class = _getshort(cp);
+	  cp += 2;
+	  /* mx[nmx].expiry = now + _getlong(cp); */ /* TTL */
+	  cp += 4; /* "long" -- but keep in mind that some machines
+		      have "funny" ideas about "long" -- those 64-bit
+		      ones, I mean ... */
+	  n = _getshort(cp); /* dlen */
+	  cp += 2;
+
+	  if (cp + n > eom) { cp = eom; break; }
+
+	  if (class != C_IN) {
+	    cp += n; --nscount;
+	    continue;
+	  }
+
+	  /* Ok, we have Type IN data in the ADDITIONAL SECTION */
+
+
+	  /* A and AAAA are known here! */
+
+	  if (type == T_A
+#if defined(AF_INET6) && defined(INET6)
+	      || type == T_AAAA
+#endif
+	      ) {
+
+	    struct addrinfo *ai, **aip;
+	    Usockaddr *usa;
+	    char *canon;
+	    int   nlen = strlen(buf);
+
+	    /* Pick the address data */
+	    for (i = 0; i < nmx; ++i) {
+	      /* Is this known (wanted) name ?? */
+	      if (strcasecmp(buf, mx[i].host) != 0)
+		continue; /* Not, perhaps next.. */
+	      break; /* YES! */
+	    }
+	    if (i < nmx) {
+	      /* We do have a wanted name! */
+	      aip = & mx[i].ai;
+	      while (*aip != NULL)
+		aip = &((*aip)->ai_next);
+
+	      /* build addrinfo block, pick addresses */
+
+	      /* WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
+		 This assumes intimate knowledge of the system
+		 implementation of the  ``struct addrinfo'' !  */
+
+	      *aip = ai = (void*)malloc(sizeof(*ai) + sizeof(*usa) + nlen + 1);
+	      if (ai == NULL) exit(EX_OSERR);
+	      memset(ai, 0, sizeof(*ai) + sizeof(*usa) + nlen + 1);
+
+	      usa   = (void*)((char *) ai + sizeof(*ai));
+
+	      canon = ((char *)usa) + sizeof(*usa);
+	      memcpy(canon, buf, nlen);
+
+	      ai->ai_flags    = 0;
+	      ai->ai_socktype = SOCK_STREAM;
+	      ai->ai_protocol = IPPROTO_TCP;
+	      ai->ai_addr     = (struct sockaddr *)usa;
+	      ai->ai_addrlen  = sizeof(*usa);
+	      ai->ai_canonname = canon;
+
+	      switch (type) {
+#if defined(AF_INET6) && defined(INET6)
+	      case T_AAAA:
+		ai->ai_family = PF_INET6;
+		usa->v6.sin6_family = PF_INET6;
+		memcpy(&usa->v6.sin6_addr, cp, 16);
+		break;
+#endif
+	      case T_A:
+		ai->ai_family = PF_INET;
+		usa->v4.sin_family = PF_INET;
+		memcpy(&usa->v4.sin_addr, cp, 4);
+		break;
+	      default:
+		break;
+	      }
 	    }
 	  }
-	  if (i == nmx) {	/* we are the best MX, do it another way */
-	    mx[0].host = NULL;
-	    SS->mxcount = 0;
-	    if (had_eai_again)
-	      return EX_TEMPFAIL;
-	    return EX_OK;
+
+	  cp += n;
+	  --arcount;
+	} /* Additional data collected! */
+
+	for (i = 0; i < nmx; ++i) {
+	  if (mx[i].ai == NULL)
+	    if (SS->verboselog) {
+	      fprintf(SS->verboselog, " MX lookup lacked ADDITIONAL SECTION Address for entry: MX %d %s\n",
+		      mx[i].pref, mx[i].host);
+	    }
+	}
+
+	/* Collect addresses for all those who don't have them from
+	   the ADDITIONAL SECTION data */
+
+	for (i = 0; i < nmx; ++i) {
+
+	  if (mx[i].ai != NULL) /* have address! */
+	    continue;
+
+	  memset(&req, 0, sizeof(req));
+	  req.ai_socktype = SOCK_STREAM;
+	  req.ai_protocol = IPPROTO_TCP;
+	  req.ai_flags    = AI_CANONNAME;
+	  req.ai_family   = PF_INET;
+	  ai = NULL;
+
+	  /* This resolves CNAME, it should not happen in case
+	     of MX server, though..    */
+#if !GETADDRINFODEBUG
+	  n = getaddrinfo((const char*)buf, "0", &req, &ai);
+#else
+	  n = _getaddrinfo_((const char*)buf, "0", &req, &ai, SS->verboselog);
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
+		    buf, n, ai);
+#endif
+
+#if defined(AF_INET6) && defined(INET6)
+	  {
+	    struct addrinfo *ai2 = NULL, *a;
+	    int n2;
+	    memset(&req, 0, sizeof(req));
+	    req.ai_socktype = SOCK_STREAM;
+	    req.ai_protocol = IPPROTO_TCP;
+	    req.ai_flags    = AI_CANONNAME;
+	    req.ai_family   = PF_INET6;
+
+	  /* This resolves CNAME, it should not happen in case
+	     of MX server, though..    */
+#if !GETADDRINFODEBUG
+	    n2 = getaddrinfo((const char*)buf, "0", &req, &ai2);
+#else
+	    n2 = _getaddrinfo_((const char*)buf, "0", &req, &ai2,
+			       SS->verboselog);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
+		      buf,n2,ai2);
+#endif
+
+	    if (n != 0 && n2 == 0) {
+	      /* IPv6 address, no IPv4 (or error..) */
+	      n = n2;
+	      ai = ai2; ai2 = NULL;
+	    }
+	    if (ai2 && ai) {
+	      /* BOTH ?!  Catenate them! */
+	      a = ai;
+	      while (a && a->ai_next) a = a->ai_next;
+	      if (a) a->ai_next = ai2;
+	    }
 	  }
+#endif
+
+
+	  if (n != 0) {
+	    if (n == EAI_AGAIN) {
+	      sprintf(SS->remotemsg, "smtp; 500 (DNS: getaddrinfo<%.200s> got EAI_AGAIN)", buf);
+	      endtime = now;
+	      notary_setxdelay((int)(endtime-starttime));
+	      notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
+
+	      had_eai_again = 1;
+	    }
+	    continue;		/* Well well.. spurious! */
+	  }
+	} /* ... i < nmx ... */
+
+
+	/* Separate all addresses into their own MXes */
+
+	for (i = 0; i < nmx && nmx < maxmx; ++i) {
+	  struct addrinfo *ai = mx[i].ai;
+	  if (ai) ai = ai->ai_next; /* If more than one.. */
+	  while (ai && nmx < maxmx) {
+	    memcpy(&mx[nmx], &mx[i], sizeof(mx[0]));
+	    mx[nmx].ai = ai;
+	    ai         = ai->ai_next;
+	    mx[nmx].ai->ai_next = NULL;
+	    mx[nmx].host = (msgdata *)strdup(mx[i].host);
+	    if (mx[nmx].host == NULL) {
+	      fprintf(stderr, "Out of virtual memory!\n");
+	      exit(EX_OSERR);
+	    }
+	    ++nmx;
+	  }
+	}
+
+	for (i = 0; i < nmx; ++i) {
+
+	  if (cistrcmp(mx[i].ai->ai_canonname, myhostname) == 0 ||
+	      matchmyaddresses(mx[i].ai) == 1) {
+
+#if GETMXRRDEBUG
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", ai->ai_canonname, myhostname);
+#endif
+	    if (maxpref > (int)mx[nmx].pref)
+	      maxpref = mx[nmx].pref;
+	  }
+
+	} /* ... i < nmx ... */
+	SS->mxcount = nmx;
+
+#if GETMXRRDEBUG
+	if (SS->verboselog)
+	  fprintf(SS->verboselog,"  getmxrr('%s') -> nmx=%d, maxpref=%d, realname='%s'\n", host, nmx, maxpref, realname);
+#endif
+
+	/* discard MX RRs with a value >= that of  myhost */
+	for (n = i = 0; n < nmx; ++n) {
+	  if ((int)mx[n].pref >= maxpref) {
+	    free(mx[n].host);
+	    freeaddrinfo(mx[n].ai);
+	    mx[n].host = NULL;
+	    mx[n].ai   = NULL;
+	    ++i; /* discard count */
+	  }
+	}
+	if (i == nmx) {	/* All discarded, we are the best MX :-( */
+	  mx[0].host = NULL;
+	  SS->mxcount = 0;
+	  if (had_eai_again)
+	    return EX_TEMPFAIL;
+	  return EX_OK;
 	}
 #ifdef	RFC974
 	/* discard MX's that do not support SMTP service */
@@ -4444,9 +4619,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  if (mx[i].host == NULL)
 	    continue;
 	  if (n < i) {
-	    mx[n]      = mx[i];
-	    mx[i].host = NULL;
-	    mx[i].ai   = NULL;
+	    memcpy(&mx[n], &mx[i], sizeof(mx[0]));
+	    memset(&mx[i], 0, sizeof(mx[0]));
 	  }
 	  ++n;			/* found one! */
 	}
@@ -4462,18 +4636,19 @@ getmxrr(SS, host, mx, maxmx, depth)
 	}
 	nmx = n;
 	SS->mxcount = nmx;
+
 	/* sort the records per preferrence value */
 	for (i = 0; i < nmx; i++) {
 	  for (j = i + 1; j < nmx; j++) {
 	    if (mx[i].pref > mx[j].pref) {
-	      mxtemp = mx[i];
-	      mx[i] = mx[j];
-	      mx[j] = mxtemp;
+	      memcpy(&mxtemp, &mx[i],  sizeof(mxtemp));
+	      memcpy(&mx[i],  &mx[j],  sizeof(mxtemp));
+	      memcpy(&mx[j],  &mxtemp, sizeof(mxtemp));
 	    }
 	  }
 	}
 
-	/* Randomize the order of those of same preferrence [mea]
+	/* Randomize the order of those of same preferrence.
 	   This will do some sort of load-balancing on large sites
 	   which have multiple mail-servers at the same priority.  */
 	for (i = 0, maxpref = mx[0].pref; i < nmx; ++i) {
@@ -4486,9 +4661,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    int k, len = j-i;
 	    for (k = 0; k < len; ++k) {
 	      int l = ranny(len-1);
-	      mxtemp = mx[i+k];
-	      mx[i+k] = mx[i+l];
-	      mx[i+l] = mxtemp;
+	      memcpy(&mxtemp,  &mx[i+k], sizeof(mxtemp));
+	      memcpy(&mx[i+k], &mx[i+l], sizeof(mxtemp));
+	      memcpy(&mx[i+l], &mxtemp,  sizeof(mxtemp));
 	    }
 #if defined(AF_INET6) && defined(INET6)
 	    if (prefer_ip6) {
@@ -4496,9 +4671,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	      for (l = 0, k = 1; k < len; ++k) {
 		if (mx[l].ai->ai_family == PF_INET &&
 		    mx[k].ai->ai_family == PF_INET6) {
-		  mxtemp = mx[k];
-		  mx[k] = mx[l];
-		  mx[l] = mxtemp;
+		  memcpy(&mxtemp,  &mx[k],  sizeof(mxtemp));
+		  memcpy(&mx[k],   &mx[l],  sizeof(mxtemp));
+		  memcpy(&mx[l],   &mxtemp, sizeof(mxtemp));
 		  ++l;
 		}
 	      }
@@ -4513,8 +4688,11 @@ getmxrr(SS, host, mx, maxmx, depth)
 #if GETMXRRDEBUG
 	if (SS->verboselog) {
 	  fprintf(SS->verboselog,"Target has following MXes (cnt=%d):\n",nmx);
-	  for (i=0; i<nmx; ++i)
-	    fprintf(SS->verboselog,"  MX %3d %.200s\n", mx[i].pref, mx[i].host);
+	  for (i=0; i<nmx; ++i) {
+	    struct addrinfo *ai = mx[i].ai;
+	    for (n = 0; ai; ai = ai->ai_next) ++n;
+	    fprintf(SS->verboselog,"  MX %3d %-30.200s  (%d addrs)\n", mx[i].pref, mx[i].host, n);
+	  }
 	}
 #endif
 	mx[nmx].host = NULL;
@@ -4573,6 +4751,13 @@ rightmx(spec_host, addr_host, cbparam)
 	}
 	return 0;
 }
+
+void
+mxsetsave(SS)
+     SmtpState *SS;
+{
+}
+
 #endif	/* BIND */
 
 /*
