@@ -7,15 +7,15 @@ MANDIR=		@MANDIR@
 TOPDIR=		..
 INSTALL=	@INSTALL@
 
-MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1
+MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
 MAN3=	zmailer.3
 MAN5=	aliases.5
-MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8
+MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8 mailbox.8
 
-MAN1ps=	mailq.1.ps mailrm.1.ps newaliases.1.ps rmail.1.ps ssl.1.ps vacation.1.ps zmailer.1.ps zmsh.1.ps
+MAN1ps=	mailq.1.ps mailrm.1.ps newaliases.1.ps rmail.1.ps ssl.1.ps vacation.1.ps zmailer.1.ps zmsh.1.ps mboxpath.1.ps
 MAN3ps=	zmailer.3.ps
 MAN5ps= aliases.5.ps
-MAN8ps=	errormail.8.ps hold.8.ps router.8.ps scheduler.8.ps sendmail.8.ps sm.8.ps smtp.8.ps smtpserver.8.ps manual-expirer.8.ps expirer.8.ps mprobe.8.ps
+MAN8ps=	errormail.8.ps hold.8.ps router.8.ps scheduler.8.ps sendmail.8.ps sm.8.ps smtp.8.ps smtpserver.8.ps manual-expirer.8.ps expirer.8.ps mprobe.8.ps mailbox.8.ps
 
 FRC:
 	@echo "make install MANDIR=XXXX"
@@ -31,6 +31,7 @@ install:
 	$(INSTALL) -m 644 hold.8	${MANDIR}/man8
 	$(INSTALL) -m 644 mailbox.8	${MANDIR}/man8
 	$(INSTALL) -m 644 mailq.1	${MANDIR}/man1
+	$(INSTALL) -m 644 mboxpath.1	${MANDIR}/man1
 	$(INSTALL) -m 644 mailrm.1	${MANDIR}/man1
 	$(INSTALL) -m 644 newaliases.1	${MANDIR}/man1
 	$(INSTALL) -m 644 rmail.1	${MANDIR}/man1
@@ -93,3 +94,7 @@ expirer.8.ps: expirer.8
 	groff -man expirer.8 > expirer.8.ps
 mprobe.8.ps: mprobe.8
 	groff -man mprobe.8 > mprobe.8.ps
+mailbox.8.ps: mailbox.8
+	groff -man mailbox.8 > mailbox.8.ps
+mboxpath.1.ps: mboxpath.1
+	groff -man mboxpath.1 > mboxpath.1.ps

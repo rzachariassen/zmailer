@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILBOX 8 "21 Nov 1996"
+.TH MAILBOX 8 "8 Apr 1998"
 .SH NAME
 mailbox \- zmailer local delivery transport agent
 .SH SYNOPSIS
@@ -24,7 +24,7 @@ mailbox \- zmailer local delivery transport agent
 .I logfile
 ]
 [
-.B \-VabrH
+.B \-VabrHDP
 ]
 .SH DESCRIPTION
 .I mailbox
@@ -144,6 +144,42 @@ encoded characters.
 .IP \-M
 enables the creation of MMDF-style mail-folder in the incoming mail folder.
 The default is "classic" UNIX-style folder.
+.IP \-D[D]
+For a user with is
+.IR abcdef ,
+one
+.I \-D
+will place the mailbox file into directory
+.IR $MAILBOX/a/abcdef .
+With
+.I \-DD
+the mailbox file will be placed into directory:
+.IR $MAILBOX/a/b/abcdef .
+.IP \-P[P]
+This uses much of similar method as
+.I \-D[D]
+option, but directory names are derived from much more smoothly
+distributing hash function over user names, namely:
+.IR pjwhash32() .
+
+With one
+.IR \-P ,
+the calculated hash value is used by formula:
+.I 'A'+(hash % 26)
+to produce one mid-level directory.
+With
+.I \-PP
+the formula is more complex: upper directory uses formula:
+.I 'A' + (hash / 26) % 26
+and lower uses formula:
+.I 'A'+(hash % 26)
+
+The result of these
+.I \-P[P]
+derived directory paths is something like:
+.I $MAILBOX/X/username
+or
+.I $MAILBOX/Y/X/username
 .SH INTERFACE
 This program reads in processable file names relative to the current
 working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
@@ -225,15 +261,16 @@ program must not use both lockf() and flock() locks.
 .I throughout the system at all programs trying to acquire locks on
 .I mail spools.
 .SH ENVIRONMENT
-The default location for user mailbox files is currently
-.BR /var/mail .
+The default location for user mailbox files varies per systems, but
+usually it is one of:
+.BR /var/mail , \ /var/spool/mail ,
 This may be modified by setting the variable
 .B MAILBOX
 in
 .B /etc/zmailer.conf
 to the directory containing user mailbox files, for example
 .BR /usr/spool/mail .
-This is best done in the ZMailer Config file.
+This is best done in the ZMailer SiteConfig file.
 .PP
 Variable
 .B MBOXLOCKS
@@ -297,7 +334,7 @@ is the value from ZENV.
 .br
 .I /var/mail (MAILBOX)
 .SH SEE ALSO
-scheduler(8), comsat(8C), biff(1), flock(2), Mail(1)
+scheduler(8), comsat(8C), biff(1), flock(2), Mail(1), mboxpath(1)
 .SH AUTHOR
 This program authored and copyright by:
 .br

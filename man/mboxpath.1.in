@@ -1,0 +1,73 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH MBOXPATH 1 "8 Apr 1998"
+.SH NAME
+mboxpath \- ZMailer utility to show user's mailbox path
+.SH SYNOPSIS
+.B mboxpath
+[
+.B \-D[D]
+]
+[
+.B \-P[P]
+]
+[
+.B \-d
+.I dirpath
+]
+.I username
+.SH DESCRIPTION
+.I mboxpath
+is a ZMailer utility program to be used when local user directories
+have been scattered around, and it is desired to have user's shell
+environment variable
+.B MAIL
+be set to where ever his/her UNIX mailbox file is.
+
+This does only manage scattering under common
+.I \-d\ dirpath
+directory prefix, but usually that is sufficient.
+.SH OPTIONS
+.IP \-d\ \fIdirpath\fR
+See
+.IR mailbox (8).
+.IP \-D[D]
+See
+.IR mailbox (8).
+.IP \-P[P]
+See
+.IR mailbox (8).
+.SH USAGE
+This is intended for system-wide startup script usage with
+code something like following for sh:
+
+.B MAIL=`mboxpath\ \ \-P\ \ $USER`
+
+It is important to use SAME options here as are used at running
+the mailbox program.
+
+.SH ENVIRONMENT
+The default location for user mailbox files depends per system,
+but one of them is:
+.BR /var/mail .
+This may be modified by setting the variable
+.B MAILBOX
+in
+.B /etc/zmailer.conf
+to the directory containing user mailbox files, for example
+.BR /usr/spool/mail .
+This is best done in the ZMailer SiteConfig file.
+
+This program outputs the
+.B likely
+mailbox location to the stdout, it does not go and see if there is anything.
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/mail (MAILBOX)
+.SH SEE ALSO
+mailbox(8), scheduler(8), comsat(8C), biff(1), flock(2), Mail(1)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Matti Aarnio <mea@nic.funet.fi>
