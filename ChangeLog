@@ -1,5 +1,9 @@
 1999-11-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/mailq.pl:
+	    A simple demo core for PERL version of the MAILQv2 query
+	    utility..
+
 	* include/md5-global.h:
 	    Found the reason why our MD5 instance did produce wrong
 	    results at my Alpha... It is very important to truncate
