@@ -2061,10 +2061,11 @@ run_822syntax(argc, argv)
 	hs.h_contents = hdr_scanparse(&es, &hs, 1, 0);
 	hs.h_stamp = hdr_type(&hs);
 	if (hs.h_stamp == BadHeader) {
+	    if (z_isterminal(0))
 		hdr_errprint(&es, &hs, stderr, "RFC822/976/2822");
-		return 1;
+	    return 1;
 	} else if (hs.h_contents.a == NULL)
-		return 1;
+	    return 1;
 	return 0;
 }
 
