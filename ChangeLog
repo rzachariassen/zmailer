@@ -1,5 +1,11 @@
 1999-12-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/mailbox/mailbox.c:
+	    When SFIO was introduced here, write to pipes wasn't
+	    anymore working quite as it should -- namely EPIPE
+	    is something which shall just be *ignored*.  Wrote
+	    SFIO write discipline to handle this case.
+
 	* utils/Makefile.in, utils/smtpserver-log-parser.pl:
 	    Autoconfigure the perl for that script, and install
 	    it during normal system install (and install-bin).

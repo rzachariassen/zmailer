@@ -259,6 +259,11 @@ struct userhost {
 	char		*hostname;
 };
 
+struct wsdisc {
+  Sfdisc_t D;		/* Sfio Discipline structure		*/
+  void *WS;		/* Ptr to SS context			*/
+};
+
 struct writestate {
 	Sfio_t *fp;
 	int  lastch;
@@ -267,7 +272,10 @@ struct writestate {
 	char *fromp;
 	char *buf2; /* writemimeline() processing aux buffer */
 	int buf2len;
+	int epipe_seen;
+	struct wsdisc WSdisc;
 };
+
 
 struct sptree *spt_users = NULL;
 #endif /* HAVE_SOCKET -- no use to biff, if no socket available .. */
@@ -1574,7 +1582,7 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	  /* don't lock non-files */;
 	else {
 
-	  int err = 0;
+	  int err;
 
 
 	  if (!ismbox)	/* Not mailbox, use file-locks */
@@ -1585,6 +1593,7 @@ void store_to_file(dp,rp,file,ismbox,usernam,st,uid,
 	  if (verboselog)
 	    fprintf(verboselog,"Locking sequence: '%s'\n",locks);
 
+	  err = 0;
 	  while (*locks != 0) {
 	    switch(*locks) {
 	      case '"': /* ZENV variable may have quotes with it.. */
@@ -2706,6 +2715,48 @@ setrootuid(rp)
 	currenteuid = 0;
 }
 
+/*
+ * SFIO write discipline which ignores PIPE write errors (EPIPE)
+ * and just claims success at them.  Otherwise quite normal
+ * error processing.
+ *
+ */
+
+ssize_t
+mbox_sfwrite(sfp, vp, len, discp)
+     Sfio_t *sfp;
+     const void * vp;
+     size_t len;
+     Sfdisc_t *discp;
+{
+    struct wsdisc *wd = (struct wsdisc *)discp;
+    struct writestate *WS = wd->WS;
+    const char * p = (const char *)vp;
+    int rc, outlen = 0;
+
+    if (WS->epipe_seen) return len; /* We ignore - fast - the EPIPE */
+
+    while (len > 0) {
+      rc = write(sffileno(sfp), p, len);
+      if (rc < 0) {
+	if (errno == EPIPE) {
+	  WS->epipe_seen = 1;
+	  return len + outlen; /* CLAIM success */
+	}
+	/* Retry on interrupts */
+	if (errno == EINTR)
+	  continue;
+	/* All other errors, return written amount, or if none, then error! */
+	if (outlen == 0)
+	  return rc;
+	return outlen;
+      }
+      outlen += rc;
+      len    -= rc;
+      p      += rc;
+    }
+    return outlen;
+}
 
 /*
  * appendlet - append letter to file pointed at by fd
@@ -2738,6 +2789,14 @@ appendlet(dp, rp, fp, file, ismime)
 				   and not "-1" either.. */
 	WS.frombuf[0] = 0;
 	WS.fromp = WS.frombuf;
+	WS.epipe_seen = 0;
+	memset(&WS.WSdisc, 0, sizeof(WS.WSdisc));
+	WS.WSdisc.D.readf   = NULL;
+	WS.WSdisc.D.writef  = mbox_sfwrite;
+	WS.WSdisc.D.seekf   = NULL;
+	WS.WSdisc.D.exceptf = NULL;
+	WS.WSdisc.WS        = &WS;
+	sfdisc(WS.fp, &WS.WSdisc.D);
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 
