@@ -1,0 +1,227 @@
+
+
+
+
+
+
+Network Working Group                                         E. Crosser
+Request for Comments: xXxX                                Sovam Teleport
+                                                           2 August 1998
+
+
+                WHOSON - the Protocol for Keeping Track
+                 of Dynamically Allocated IP addresses
+
+Status of this Memo
+
+   This memo suggests a simple method for Internet server programs to
+   know if a particular (dynamically allocated) IP address is currently
+   allocated to a known (trusted) user and, optionally, the identity of
+   the said user.  This RFC specifies a proposed standard for the
+   Internet community, and requests discussion and suggestions for
+   improvements.  Distribution of this memo is unlimited.
+
+   This memo is not based on any previous work, although it tries to
+   follow the spirit of other Internet protocols.
+
+Introduction
+
+   Over the recent years, a commonly adopted policy has evolved to
+   protect SMTP [1] Mail Transfer System (MTS) servers form being
+   unwillingly used for relaying third party email ("anti-relaying
+   policy").  This policy requests that email submitted from "foreign"
+   networks should only be accepted for delivery if destined to a
+   limited set of addresses served by this MTS.
+
+   This approach has undesirable impact on the "traveling customers",
+   i.e.  the people whose portable systems are connected to the networks
+   of different Internet providers than their "main" provider whose MTS
+   they are using.
+
+   Being connected from IP addresses "foreign" to the MTS, such users
+   will have their email rejected due to anti-relaying policy.
+
+   To avoid this problem, the following approach was suggested: keep a
+   database of "temporarily trusted" IP addresses, e.g. addresses from
+   which a successful POP3 or IMAP session was recently originated, or
+   addresses that have been allocated to a trusted user by a server that
+   provides authentication for Internet roaming.
+
+   The suggested "Who Is Online" ("whoson") protocol can be used to
+   implement this feature in a uniform way.  In addition, it may be used
+   in the same way as the "ident" [2] protocol to identify the users
+   connected to the Internet over dialup connections.
+
+
+
+
+Crosser                                                         [Page 1]
+
+RFC xXxX                  "Who is On" protocol             2 August 1998
+
+
+Rationale
+
+   The design goal of the protocol is to allow the Application Program
+   Interface (API) be simple and fast, and move maintenance of the
+   database of addresses and things like "Time to Live" (TTL)
+   housekeeping to a dedicated server process.  On the other hand, the
+   server process is not supposed to ever perform "slow" operations like
+   DNS lookups, to make possible a "single process" implementation.  The
+   API functions shall allow the programs to register (and optionally
+   unregister) allocation of an IP address to a known user with the
+   whoson server, and to query the whoson server if a particular IP
+   address is currently allocated to a known user and optionally the
+   identity of that user.
+
+   The server process shall listen for incoming stream (such as UNIX
+   domain or TCP) and/or datagram (such as UDP) connections.  The client
+   shall open connection to the server, send request and wait for
+   response.  Then, it may close connection or reuse it for subsequent
+   requests.  Access to the server may be restricted to only some
+   addresses and some protocols by local policy.
+
+Protocol Description
+
+   The client request and the server response are sets of one or more
+   lines of ASCII characters, not containing the <CR> (ASCII 13) and
+   <LF> (ASCII 10) characters.  Each line is terminated with a <CR> <LF>
+   sequence, and the whole request or response is terminated by an empty
+   line, i.e.  the <CR> <LF> <CR> <LF> sequence.  Only the first line is
+   mandatory, other lines are reserved for future extensions of the
+   protocol.  The server and the client shall ignore those of the
+   extension lines that they cannot interpret.  For connectionless
+   transports, the size of the request and the response is limited to a
+   single network send/receive operation; implementation may impose
+   further restrictions on the maximum size.
+
+   The first line of the request that the client sends to the server
+   shall have the following format:
+
+           <verb> <SP> <addr-spec> [ <SP> <user-identity> ] <CR> <LF>
+
+   Here the <verb> is one of the strings "LOGIN", "LOGOUT" and "QUERY",
+   <SP> is one or more space (ASCII 32) or tab (ASCII 9) characters,
+   <addr-spec> is standard printable ASCII representation of the IP
+   address (dotted quad notation for IPv4 addresses), <user-identity> is
+   the user I.D. or whatever is used to identify the user on the local
+   system.  The "<SP> <user-identity>" sequence is only allowed if the
+   verb is "LOGIN".  The <addr-spec> may not contain whitespace (space
+   or tab) characters.  Other verbs may be defined as extensions of this
+
+
+
+Crosser                                                         [Page 2]
+
+RFC xXxX                  "Who is On" protocol             2 August 1998
+
+
+   protocol; if the server cannot recognize the verb, it shall send a
+   "request could not be processed" response (see below).
+
+   The first line of the server response shall have the following
+   format:
+
+           <indicator-character> [ <data> ] <CR> <LF>
+
+   Here <indicator-character> is a single ASCII character; the following
+   values of <indicator-character> are defined:
+
+           '+':    request processed, result is positive ("found")
+           '-':    request processed, result is negative ("not found")
+           '*':    request could not be processed
+
+   Other characters may be specified as extensions of this protocol; if
+   the client cannot recognize the indicator character, it shall
+   interpret it in the same way as '*' (request could not be processed).
+
+   <data> part of the response is optional; if the indicator character
+   is
+    '+', it shall, if present, contain the <user-identity> data
+   associated with the specified <addr-spec>.  If the <indicator-
+   character> is other than '+', <data> may contain plain text
+   explanation of the failure reason.
+
+Notes On Semantics
+
+   "LOGIN" and "LOGOUT" requests tell the server that a particular IP
+   address is in use by a trusted user, and that the address is no
+   longer in use by a trusted user, respectively.  "QUERY" request asks
+   the server which user, if any, currently uses the particular IP
+   address.
+
+   "LOGOUT" request for an address that was previously specified in a
+   "LOGIN" request is optional; the server shall get rid of stale
+   entries basing on locally defined policy.
+
+Security Considerations
+
+   The base protocol does not have any special security features, it may
+   be vulnerable to the same type of attack as other unencrypted IP
+   based protocols.  Special security measures, such as digitally
+   signing of the data, may be defined as extensions to the protocol.
+   Also, the protocol may be used on top of encrypted and/or
+   authenicated (such as SSL/TLS) connections.
+
+   By its nature, the protocol does not guarantee that the information
+
+
+
+Crosser                                                         [Page 3]
+
+RFC xXxX                  "Who is On" protocol             2 August 1998
+
+
+   returned in response to the "QUERY" request is accurate, and
+   therefore cannot be used for the tasks like user authentication.
+
+References
+
+   [1] Postel, J., "Simple Mail Transfer Protocol", STD 10, RFC 821
+
+   [2] Johns, M. St., "Identification Protocol", RFC 1413
+
+Author's Address
+
+   Eugene G. Crosser
+   Sovam Teleport
+   Verhniaya Maslovka 5-16
+   Moscow 125083, Russia
+
+   Phone: +7 095 258 4170
+   Fax: +7 095 258 4133
+   Email: crosser@average.org
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (1998).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published and
+   distributed, in whole or in part, without restriction of any kind,
+   provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
+
+
+
+
+Crosser                                                         [Page 4]
+
