@@ -14,6 +14,8 @@ extern int timeout_tcpw;
 
 #ifdef HAVE_OPENSSL
 
+static FILE *vlog = NULL;
+
 static const char MAIL_TLS_CLNT_CACHE[] = "TLSclntcache";
 static const int id_maxlength = 32;	/* Max ID length in bytes */
 
@@ -66,7 +68,7 @@ msg_info(va_alist)
 #endif
 {
 	va_list	ap;
-	FILE *fp = logfp;
+	FILE *fp;
 #ifdef HAVE_STDARG_H
 	va_start(ap,fmt);
 #else
@@ -77,9 +79,13 @@ msg_info(va_alist)
 	fmt = va_arg(ap, char *);
 #endif
 
-	if (logfp)
-	  fprintf(logfp, "%s#\t", logtag());
-	else {
+	if (vlog) {
+	  fp = vlog;
+	  fprintf(fp, "# ");
+	} else if (logfp) {
+	  fp = logfp;
+	  fprintf(fp, "%s#\t", logtag());
+	} else {
 	  fp = stderr; /* No LOGFP, to STDERR with DBGdiag prefix.. */
 	  fprintf(fp, "# ");
 	}
@@ -91,6 +97,7 @@ msg_info(va_alist)
 #endif	/* HAVE_VPRINTF */
 
 	fprintf(fp,"\n");
+	fflush(fp);
 
 	va_end(ap);
 }
@@ -144,6 +151,8 @@ int     tls_read(SS, fd, buf, count)
     char    mybuf[40];
     char   *mybuf2;
 
+    vlog = SS->verboselog;
+
     if (SS->sslmode) {
 	ret = SSL_read(SS->ssl, buf, count);
 	if (tls_loglevel >= 4) {
@@ -172,6 +181,8 @@ int     tls_write(SS, fd, buf, count)
     int     i;
     char    mybuf[40];
     char   *mybuf2;
+
+    vlog = SS->verboselog;
 
     if (SS->sslmode) {
       if (tls_loglevel >= 4) {
@@ -352,7 +363,7 @@ static void apps_ssl_info_callback(SSL * s, int where, int ret)
 #define TRUNCATE
 #define DUMP_WIDTH	16
 
-static int tls_dump(const char *s, int len)
+int tls_dump(const char *s, int len)
 {
     int     ret = 0;
     char    buf[160 + 1];
@@ -659,6 +670,8 @@ int     tls_init_clientengine(SS, cfgpath)
   char	  buf[1024], *n, *a1;
   unsigned char *s;
 
+  vlog = SS->verboselog;
+
   if (SS->sslmode)
     return (0);				/* already running */
 
@@ -797,6 +810,7 @@ int     tls_init_clientengine(SS, cfgpath)
     CApath = NULL;
   else
     CApath = tls_CApath;
+#if 1
   if (CAfile || CApath)
     if ((!SSL_CTX_load_verify_locations(SS->ctx, CAfile, CApath)) ||
 	(!SSL_CTX_set_default_verify_paths(SS->ctx))) {
@@ -804,6 +818,7 @@ int     tls_init_clientengine(SS, cfgpath)
       tls_print_errors();
       return (-1);
     }
+#endif
 
   if (!tls_cert_file || strlen(tls_cert_file) == 0)
     c_cert_file = NULL;
@@ -857,6 +872,8 @@ int     tls_start_clienttls(SS,peername)
     int     save_session;
     int     verify_result;
     unsigned char *old_session_id;
+
+    vlog = SS->verboselog;
 
     /* FIXME: For some reason NON-BLOCKING socket causes client
        to fail to init! OTOH..  we are single-threaded anyway! */
@@ -1057,6 +1074,8 @@ int     tls_stop_clienttls(SS, failure)
 {
 	SSL_SESSION *session;
 
+	vlog = SS->verboselog;
+
 	if (SS->sslmode) {
 	  session = SSL_get_session(SS->ssl);
 	  SSL_shutdown(SS->ssl);
@@ -1113,6 +1132,8 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 
 	const char * p = (const char *)vp;
 	int r, rr, e, i;
+
+	vlog = SS->verboselog;
 
 	rr = -1; /* No successfull write */
 	e = errno; /* Whatever the previous one was.. */
@@ -1273,6 +1294,7 @@ int smtp_nbread(SS, buf, spc)
 	int r, e;
 	int infd = SS->smtpfd;
 
+	vlog = SS->verboselog;
 
 #ifdef HAVE_OPENSSL
 	if (SS->sslmode) {
@@ -1282,12 +1304,19 @@ int smtp_nbread(SS, buf, spc)
 	    e = EAGAIN;
 	  } else
 	    e = EINTR;
-	  errno = e;
-	} else
+	} else {
 #endif /* - HAVE_OPENSSL */
 	  /* Normal read(2) */
 	  r = read(infd, buf, spc);
+	  e = errno;
+	}
   
+	if (tls_loglevel >= 3) {
+	  msg_info(NULL,"smtp_nbread() rc=%d errno=%d", r, e);
+	  if (r > 0) tls_dump(buf, r);
+	}
+
+	errno = e;
 	return r;
 }
 

@@ -304,7 +304,7 @@ pick_next_thread(proc)
 
 	if (thr0 && thr0->proc) /* Anybody ? */
 	  thr0->proc = NULL; /* Remove it */
-	if (thr0 && thr0->nextfeed)
+	if (thr0 && thr0->nextfeed) /* This should be assertable as NULL.. */
 	  thr0->nextfeed = NULL;
 
 	proc->pthread = NULL;

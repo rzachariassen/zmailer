@@ -1949,6 +1949,9 @@ int insecure;
 	    smtp_rcpt(SS, buf, cp);
 	    break;
 	case Data:
+
+	  typeflush(SS); /* TLS pipelining breakage test */
+
 	    if (smtp_data(SS, buf, cp) < 0) {
 #ifdef HAVE_OPENSSL
 	      Z_cleanup(SS);
@@ -1957,6 +1960,9 @@ int insecure;
 	    }
 	    break;
 	case BData:
+
+	  typeflush(SS); /* TLS pipelining breakage test */
+
 	    if (smtp_bdata(SS, buf, cp) < 0) {
 #ifdef HAVE_OPENSSL
 	      Z_cleanup(SS);

@@ -24,7 +24,7 @@
 	    thread_reschedule() crashed on thr->thvertices being NULL ??
 
 	* router/rfc822hdrs.c:
-	    Sometimes missed sending out at leat one space after the
+	    Sometimes missed sending out at least one space after the
 	    header name tag.
 
 	* scheduler/transport.c, scheduler/update.c, scheduler/mq2auth.c,

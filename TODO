@@ -12,10 +12,7 @@ Known/suspected bugs/Missing Features on current Zmailer sources
     (either with doublecolon separation, or whitespace separation ?)
 
 - BUG? PIPELINING but no CHUNKING under TLS wrapper jams against
-  CommuniGate Pro 3.2 ... Suspect CommuniGate.
-
-- BUG: Scheduler running with  "maxthr>1"  seem to loose sync about
-  tasks already fed to the processing.
+  CommuniGate Pro 3.2 ... Suspect CommuniGate.  Or perhaps OpenSSL ?
 
 - router+scheduler+TA status MIB areas in an SHM segment
   (Solaris et.al. which don't allow ARGV overwrite..
@@ -31,6 +28,11 @@ Known/suspected bugs/Missing Features on current Zmailer sources
    - Seen a ta_hungry() related VTX == NULL crash on thread_reschedule()
    - Seen idle chains getting completely trashed up ( propably also
      related to  ta_hungry() -- or excessive calls of it thereof. )
+- BUG: Scheduler running with  "maxthr>1"  seem to loose sync about
+  tasks already fed to the processing.
+  POSSIBLY the pointer at proc->pthread->nextfeed will at some point
+  hit freed memory block, and then comes a merry chaos (and core...)
+
 
 - smtp TA (all TAs ??) leak memory in MIME header processing.
   (or something else ?)

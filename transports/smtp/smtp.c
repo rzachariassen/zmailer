@@ -65,6 +65,7 @@ int prefer_ip6 = 1;
 #ifdef HAVE_OPENSSL
 int demand_TLS_mode = 0;	/* Demand TLS */
 int tls_available = 0;		/* local client code running ok */
+char *tls_conf_file = NULL;
 #endif /* - HAVE_OPENSSL */
 
 const char *FAILED = "failed";
@@ -347,7 +348,6 @@ main(argc, argv)
 #endif	/* BIND */
 	RETSIGTYPE (*oldsig)__((int));
 	volatile const char *smtphost, *punthost = NULL;
-	char *tls_conf_file = NULL;
 
 #ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
 	old_malloc_hook = __malloc_hook;
@@ -535,7 +535,9 @@ main(argc, argv)
 	    break;
 	  case 'S':
 	    /* -S /path/to/SmtpSSL.conf */
-	    tls_conf_file = optarg;
+#ifdef HAVE_OPENSSL
+	    tls_conf_file = strdup(optarg);
+#endif /* - HAVE_OPENSSL */
 	    break;
 	  default:
 	    ++errflg;
@@ -545,7 +547,7 @@ main(argc, argv)
 
 	if (errflg || optind > argc) {
 	  fprintf(stderr,
-		  "Usage: %s [-8|-8H|-7][-e][-r][-x][-E][-P][-W][-T timeout][-h myhostname][-l logfile][-p portnum][-c channel][-F forcedest][-L localidentity] [host]\n", argv[0]);
+		  "Usage: %s [-8|-8H|-7][-e][-r][-x][-E][-P][-W][-T timeout][-h myhostname][-l logfile][-p portnum][-c channel][-F forcedest][-L localidentity][-S /path/to/SmtpSSL.conf] [host]\n", argv[0]);
 	  exit(EX_USAGE);
 	}
 
@@ -593,18 +595,6 @@ main(argc, argv)
 	/* We need this latter on .. */
 	zopenlog("smtp", LOG_PID, LOG_MAIL);
 	notary_settaid("smtp",getpid());
-
-	if (tls_conf_file) {
-#ifdef HAVE_OPENSSL
-	  /* -S /path/to/SmtpSSL.conf */
-
-	  tls_available = (tls_init_clientengine(&SS, tls_conf_file) == 0);
-
-	  fprintf(stderr,
-		  "# -S %s  tls_init_client_engine() -> tls_available=%d\n",
-		  tls_conf_file, tls_available);
-#endif /* - HAVE_OPENSSL */
-	}
 
 	/* We defer opening a connection until we know there is work */
 
@@ -735,6 +725,28 @@ main(argc, argv)
 	    if (SS.verboselog)
 	      setvbuf(SS.verboselog, NULL, _IONBF, 0);
 	  }
+
+	  if (SS.verboselog)
+	    fprintf(SS.verboselog, "# tls_conf_file='%s'\n", tls_conf_file);
+
+#ifdef HAVE_OPENSSL
+	  if (tls_conf_file && !tls_available) {
+	    /* -S /path/to/SmtpSSL.conf */
+
+	    tls_available = (tls_init_clientengine(&SS, tls_conf_file) == 0);
+
+	    if (SS.verboselog)
+	      fprintf(SS.verboselog,
+		      "# -S '%s' tls_init_client_engine() -> tls_available=%d\n",
+		      tls_conf_file, tls_available);
+	    else
+	      fprintf(stderr,
+		      "# -S '%s' tls_init_client_engine() -> tls_available=%d\n",
+		      tls_conf_file, tls_available);
+	  }
+#endif /* - HAVE_OPENSSL */
+
+
 	  smtpstatus = process(&SS, (struct ctldesc *)dp, smtpstatus,
 			       (char*)smtphost, noMX);
 
@@ -1668,6 +1680,8 @@ smtpopen(SS, host, noMX)
 
 	    if (logfp)
 	      fprintf(logfp, "%s#\tEHLO rc=%d demand_TLS_mode=%d tls_available=%d%s\n", logtag(), i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"");
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog, "%s#\tEHLO rc=%d demand_TLS_mode=%d tls_available=%d%s\n", logtag(), i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"");
 
 	    if ((i == EX_OK) && demand_TLS_mode && tls_available &&
 		!(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
@@ -1767,6 +1781,10 @@ smtpopen(SS, host, noMX)
 	      /* The system *did* successfully respond to EHLO previously,
 		 why would it not do so now ??? */
 	      i = smtp_ehlo(SS, SMTPbuf);
+
+#if 1 /* Kill pipelining */
+	      SS->ehlo_capabilities &= ~ESMTP_PIPELINING;
+#endif
 	    }
 #endif /* - HAVE_OPENSSL */
 	    if (i == EX_TEMPFAIL) {
@@ -4001,8 +4019,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	int had_eai_again = 0;
 	struct addrinfo req, *ai;
 
-	if (depth == 0)
-	  h_errno = 0;
+	h_errno = 0;
 
 	notary_setwtt  (NULL);
 	notary_setwttip(NULL);
