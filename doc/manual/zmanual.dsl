@@ -352,17 +352,25 @@
       (("dash")			"-")
 
       ;; Straight out of Unicode
-      (("ldquo")                "\"")
-      (("rdquo")                "\"")
-      (("ldquor")               "``")
-      (("rdquor")               "''")
-      (("lsquo")                "'")
-      (("rsquo")                "'")
-      (("en-dash")              "-")
-      (("em-dash")              "--")
-      (("en-space")             " ")
-      (("em-space")             "  ")
-      (("bullet")               "*")
+      (("lsquo")                "\U-2018")
+      (("rsquo")                "\U-2019")
+      (("ldquo")                "\U-201C")
+      (("rdquo")                "\U-201D")
+      (("lsaquo")               "\U-2039")
+      (("rsaquo")               "\U-203A")
+
+      (("laquo")                "«")
+      (("raquo")                "»")
+
+      (("ldquor")               "\U-201C")
+      (("rdquor")               "\U-201D")
+
+
+      (("en-dash")              "\U-2013")
+      (("em-dash")              "\U-2014")
+      (("en-space")             "\U-2002")
+      (("em-space")             "\U-2003")
+      (("bullet")               "\U-2022")
       (("copyright-sign")       "(C)")
       (("registered-sign")      "(R)")
       (else

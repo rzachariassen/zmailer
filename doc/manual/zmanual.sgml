@@ -63,8 +63,8 @@
 
 <!ENTITY % isopub   PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN">
 <!ENTITY % isolat1  PUBLIC "ISO 8879:1986//ENTITIES Added Latin 1//EN">
-
-%isopub; %isolat1;
+<!ENTITY % isonum   PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN">
+%isopub; %isolat1; %isonum;
 
 ]>
 <BOOK STATUS="draft" ID="ZMANUAL"><?dbhtml filename="zmanual.html">

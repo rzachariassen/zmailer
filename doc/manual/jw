@@ -157,7 +157,7 @@ then
 fi
 if [ -n "${SGML_FRONTEND%%/*}" ]
 then
-  SGML_FRONTEND=$SGML_BASE_DIR/docbook/utils-0.6/frontends/$SGML_FRONTEND
+  SGML_FRONTEND=$SGML_BASE_DIR/docbook/utils-0.6.9/frontends/$SGML_FRONTEND
 fi
 if [ ! -s $SGML_FRONTEND ]
 then
@@ -173,7 +173,7 @@ then
 fi
 if [ -n "${SGML_BACKEND%%/*}" ]
 then
-  SGML_BACKEND=$SGML_BASE_DIR/docbook/utils-0.6/backends/$SGML_BACKEND
+  SGML_BACKEND=$SGML_BASE_DIR/docbook/utils-0.6.9/backends/$SGML_BACKEND
 fi
 if [ ! -s $SGML_BACKEND ]
 then
