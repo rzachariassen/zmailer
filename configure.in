@@ -73,12 +73,6 @@ AC_CHECK_FUNC(dup2,
 
 
 
-defROUTEROPTIONS='-dkn 4'
-defSMTPOPTIONS='-a -sve -l ${LOGDIR}/smtpserver'
-defSCHEDULEROPTIONS='-l ${LOGDIR}/scheduler.perflog -S -H'
-defNNTPSERVER='nntp'
-ac_default_zmconfig="${ZCONFIG-/etc/zmailer.conf}"
-
 if test "x$prefix" = "xNONE" ; then
   AC_MSG_RESULT([!!!])
   AC_MSG_RESULT([!!! You did not define  --prefix=DIR  -parameter !!!])
@@ -89,9 +83,16 @@ if test "x$prefix" = "xNONE" ; then
   exit 1
 fi
 
+defROUTEROPTIONS='-dkn 4'
+defSMTPOPTIONS='-a -sve -l ${LOGDIR}/smtpserver'
+defSCHEDULEROPTIONS='-l ${LOGDIR}/scheduler.perflog -S -H'
+defNNTPSERVER='nntp'
+ac_default_zmconfig="${ZCONFIG-$prefix/zmailer.conf}"
+
+
 AC_MSG_RESULT([***])
 AC_MSG_RESULT([*** You can set  ZCONFIG  environment variable to define])
-AC_MSG_RESULT([*** the location of the (default) /etc/zmailer.conf -file])
+AC_MSG_RESULT([*** the location of the (default) $prefix/zmailer.conf -file])
 AC_MSG_RESULT([*** (You can use also   --with-zconfig=  -parameter)])
 AC_MSG_RESULT([***])
 AC_MSG_RESULT([*** Consider also setting following parameters:])

@@ -1,3 +1,10 @@
+2001-02-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* configure.in:
+	    Derive  ZCONFIG  (formely defaulted to  /etc/zmailer.conf)
+	    from  --prefix  !  The same way as --prefix derives $MAILSHARE.
+	    Officially zmailer.conf's new location *is* $MAILSHARE.
+
 2001-02-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* proto/cf/fqdnaliases.cf:
