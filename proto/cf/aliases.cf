@@ -63,12 +63,19 @@ fi
 
 trap "db flush aliasesdb ; log flushed aliases" 16
 
+#
+# If FULLNAMEMAP definition can be found..
+#
+if [ -f $MAILVAR/db/fullnamemap.zmsh ]; then
+	. $MAILVAR/db/fullnamemap.zmsh
+fi
 
 #
 # Safeguard if fullnamemapdb() is not yet created (as part of aliases()?)
 #
 case "$(type fullnamemapdb)" in
 *"not found")
+
 
     # optional: Fullname database: <Full_Name>    <login>
 
@@ -109,6 +116,10 @@ esac
 # The mboxmap file is in MAILSHARE because it is identical for all machines
 # in the cluster.
 
+if [ -f $MAILVAR/db/mboxmap.zmsh ]; then
+	. $MAILVAR/db/mboxmap.zmsh
+	POBOX=PObox	# becomes $HOME/../PObox/$USER
+else
 if [ -f $MAILSHARE/db/mboxmap$DBEXTtest ]; then
 	relation -lmt $DBTYPE -f $MAILSHARE/db/mboxmap$DBEXT mboxmap
 	POBOX=PObox	# becomes $HOME/../PObox/$USER
@@ -116,17 +127,21 @@ else
 	mboxmap () { return 1 }
 	POBOX=''
 fi
+fi
 
 #
 # Map containing accounts that have expired, we return
 # a special error report on them.
 #
+if [ -f $MAILVAR/db/expired.zmsh ]; then
+	. $MAILVAR/db/expired.zmsh
+else
 if [ -f $MAILVAR/db/expiredaccts$DBEXTtest ]; then
        relation -lmt $DBTYPE -f $MAILVAR/db/expiredaccts$DBEXT expired
 else
        expired () { return 1 }
 fi
-
+fi
 
 
 # Usage: routeuser (channel host user attributes)

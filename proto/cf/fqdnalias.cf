@@ -25,7 +25,10 @@ provide fqdnaliasdb
 #  FQDN-aliases, in autoconfigured dbase type
 #
 
-if [ -f $MAILVAR/db/fqdnaliases ]; then
+if [ -f $MAILVAR/db/fqdnaliases.zmsh ]; then
+	. $MAILVAR/db/fqdnaliases.zmsh
+else
+    if [ -f $MAILVAR/db/fqdnaliases ]; then
 	# Need to be updated at boot ?
 	if [ ! -f $MAILVAR/db/fqdnaliases$DBEXTtest -o \
 	     $MAILVAR/db/fqdnaliases -nt $MAILVAR/db/fqdnaliases$DBEXTtest ]; then
@@ -33,18 +36,23 @@ if [ -f $MAILVAR/db/fqdnaliases ]; then
 		$MAILBIN/zmailer newfqdnaliases
 	fi
 	relation -lmt $DBTYPE -f $MAILVAR/db/fqdnaliases$DBEXT fqdnaliases
-else
+    else
 	fqdnaliases () { return 1 }
+    fi
 fi
 
 #
 # Define an LDAP hook, just in case...
 #
 
-if [ -f $MAILVAR/db/fqdnalias.ldap ]; then
-	relation -lmt ldap -f $MAILVAR/db/fqdnalias.ldap fqdnaliasesldap
+if [ -f $MAILVAR/db/fqdnaliasesldap.zmsh ]; then
+	. $MAILVAR/db/fqdnaliasesldap.zmsh
 else
+    if [ -f $MAILVAR/db/fqdnalias.ldap ]; then
+	relation -lmt ldap -f $MAILVAR/db/fqdnalias.ldap fqdnaliasesldap
+    else
 	fqdnaliasesldap () { return 1 }
+    fi
 fi
 
 require fqdnaliasdb

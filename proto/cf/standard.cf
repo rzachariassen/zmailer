@@ -75,8 +75,11 @@ relation -lt incore hostexpansions
 # count recipients (and do (perhaps) expansions match too ?)
 relation -lt incore recipients
 
-# We do local delivery, more or less, of mail arriving for these hostnames
-if [ -f $MAILVAR/db/localnames ]; then
+if [ -f $MAILVAR/db/thishost.zmsh ]; then
+  . $MAILVAR/db/thishost.zmsh
+else
+  # We do local delivery, more or less, of mail arriving for these hostnames
+  if [ -f $MAILVAR/db/localnames ]; then
     if [ -f $MAILVAR/db/localnames.zmsh ]; then
         if [ $MAILVAR/db/localnames -nt $MAILVAR/db/localnames.zmsh ]; then
 	    local cmd
@@ -132,10 +135,14 @@ fi
 #| the localnames file the same on all intimate mail servers.  It
 #| describes the service domains.
 
-if [ -f $MAILVAR/db/otherservers ]; then
-	relation -lmt unordered -f $MAILVAR/db/otherservers -d pathalias otherservers
+if [ -f $MAILVAR/db/otherservers.zmsh ]; then
+    . $MAILVAR/db/otherservers.zmsh
 else
+    if [ -f $MAILVAR/db/otherservers ]; then
+	relation -lmt unordered -f $MAILVAR/db/otherservers -d pathalias otherservers
+    else
 	otherservers (name) { return 1 }
+    fi
 fi
 
 #|  deliver(name) -> name'

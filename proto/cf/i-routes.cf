@@ -4,27 +4,25 @@
 
 provide routesdb
 
-if [ -f $MAILVAR/db/routes ]; then
-    if [ -f $MAILVAR/db/routes.zmsh ]; then
-        # With zmailer utility:  make-incore.sh
-        # you can create a static routing database (of reasonable size!)
-        # which is loaded incore of the routing processes.
-	if [ $MAILVAR/db/routes -nt $MAILVAR/db/routes.zmsh ]; then
-	    local cmd
-	    cmd="$MAILBIN/make-incore.sh"
-	    "$cmd" routesdb "$MAILVAR/db/routes" "$MAILVAR/db/routes.zmsh"
-	fi
-        . $MAILVAR/db/routes.zmsh
-    elif [ -f $MAILVAR/db/routes$DBEXTtest ]; then
+if [ -f $MAILVAR/db/routes.zmsh ]; then
+    . $MAILVAR/db/routes.zmsh
+else
+  if [ -f $MAILVAR/db/routesdb.zmsh ]; then
+    . $MAILVAR/db/routesdb.zmsh
+  else
+    if [ -f $MAILVAR/db/routes ]; then
+      if [ -f $MAILVAR/db/routes$DBEXTtest ]; then
         if [ $MAILVAR/db/routes -nt $MAILVAR/db/routes$DBEXTtest ]; then
 	    $MAILBIN/newdb -l $MAILVAR/db/routes
 	fi
         relation -lmt $DBTYPE -f $MAILVAR/db/routes$DBEXT -d pathalias routesdb
-    else
+      else
         relation -lmt unordered -f $MAILVAR/db/routes -d pathalias routesdb
+      fi
+    else
+      routesdb () { return 1 }
     fi
-else
-    routesdb () { return 1 }
+  fi
 fi
 
 #| The "routes" database is the file $MAILVAR/db/routes.

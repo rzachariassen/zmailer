@@ -1,5 +1,10 @@
 2000-01-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/cf/aliases.cf, proto/cf/fqdnalias.cf, proto/cf/i-iprouter.cf,
+	  proto/cf/i-router.cf, proto/cf/standard.cf, proto/db/dbases.conf:
+	    Some collected thoughts about how to do multiple instances of
+	    several popular databases (like aliases) in varying DB formats.
+
 	* router/libdb/bind.c, proto/cf/i-smtp.cf:
 	    Created sub-mode 'mxlocal' for the BIND database.
 	    If local system is lowest MX for given domain, then

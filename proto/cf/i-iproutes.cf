@@ -4,18 +4,11 @@
 
 provide iproutesdb
 
-if [ -f $MAILVAR/db/iproutes ]; then
-    if [ -f $MAILVAR/db/iproutes.zmsh ]; then
-        # With zmailer utility:  make-incore.sh
-        # you can create a static routing database (of reasonable size!)
-        # which is loaded incore of the routing processes.
-	if [ $MAILVAR/db/iproutes -nt $MAILVAR/db/iproutes.zmsh ]; then
-	    local cmd
-	    cmd="$MAILBIN/make-incore.sh"
-	    "$cmd" iproutesdb "$MAILVAR/db/iproutes" "$MAILVAR/db/iproutes.zmsh"
-	fi
-        . $MAILVAR/db/iproutes.zmsh
-    elif [ -f $MAILVAR/db/iproutes$DBEXTtest ]; then
+if [ -f $MAILVAR/db/iproutesdb.zmsh ]; then
+	. $MAILVAR/db/iproutesdb.zmsh
+else
+  if [ -f $MAILVAR/db/iproutes ]; then
+    if [ -f $MAILVAR/db/iproutes$DBEXTtest ]; then
         if [ $MAILVAR/db/iproutes -nt $MAILVAR/db/iproutes$DBEXTtest ]; then
 	    $MAILBIN/newdb $MAILVAR/db/iproutes
 	fi
@@ -23,8 +16,9 @@ if [ -f $MAILVAR/db/iproutes ]; then
     else
         relation -lmt unordered -f $MAILVAR/db/iproutes -d longestmatch iproutesdb
     fi
-else
+  else
     iproutesdb () { return 1 }
+  fi
 fi
 
 #| The "iproutes" database is the file $MAILVAR/db/iproutes.
