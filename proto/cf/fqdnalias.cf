@@ -114,6 +114,13 @@ fqdn_neighbour (domain, address, A) {
 
 	# Didn't match,
 
+# TODO: *@any.domain  which maps  somebody@any.domain via
+#	replacement pattern(s): %s@other.domain or other.uucp!%s, or ..
+#	to:  somebody@other.domain, or other.uucp!somebody
+# Problem: Supporting ONE target replacement is easy, supporting more
+#          will need major coding work at ``listexpand'' [mea]
+
+
 	priv=$(get $A privilege)
 
 	# Do we have a file with that name ?

@@ -285,7 +285,7 @@ routeuser (quad, domain) {
 
 	priv=$(get $attr privilege)
 
-	[ -z "$PUNTHOST" ] && [ -d "$homedir" ] && [ -f "$forward" ] &&
+	[ -z "$PUNTHOST" ] && [ -n "$homedir" ] && [ -f "$forward" ] &&
 	[ -z "$didexpand" ] &&
 	  db add expansions "$key" user &&
 	    priv=$(getpriv "644" $priv "$forward" .forward) &&
@@ -586,14 +586,12 @@ maprrouter (attribute, localpart, origaddr) {
 		esac
 
 		defer=''
-		case $#al in
-		*)	shh=$(rrouter "$address" "$origaddr" $attribute "" "")
-			[ "$defer" ] &&
-			    shh=(((hold "$defer" "$address" $attribute)))
-			defer=''
-			lappend al $ssh
-			;;
-		esac
+
+		shh=$(rrouter "$address" "$origaddr" $attribute "" "")
+		[ -n "$defer" ] &&
+		    shh=(((hold "$defer" "$address" $attribute)))
+		defer=''
+		lappend al $ssh
 	done
 	return $al
 }

@@ -502,14 +502,11 @@ maprrouter (attribute, localpart, origaddr) {
 		esac
 
 		defer=''
-		case $#al in
-		*)	shh=$(rrouter "$address" "$origaddr" $attribute "" "")
-			[ "$defer" ] &&
-			    shh=(((hold "$defer" "$address" $attribute)))
-			defer=''
-			lappend al $ssh
-			;;
-		esac
+		shh=$(rrouter "$address" "$origaddr" $attribute "" "")
+		[ "$defer" ] &&
+		    shh=(((hold "$defer" "$address" $attribute)))
+		defer=''
+		lappend al $ssh
 	done
 	return $al
 }
