@@ -891,7 +891,7 @@ mkSender(e, name, flag)
 			l = pickaddress(l);
 			flag = (QUSER(l) == NULL || !nullhost(QHOST(l)));
 			if (!flag)
-				flag = !CISTREQ(QUSER(l)->cstring, name);
+			  flag = !CISTREQ(QUSER(l)->cstring, name);
 		} else
 			flag = 1;
 	} else
@@ -1097,7 +1097,7 @@ thesender(e, a)
 		return 0;
 	e->e_from_resolved = pickaddress(l);
 
-	if (QUSER(e->e_from_resolved) == NULL ||
+	if (QUSER(e->e_from_resolved)->cstring == NULL ||
 	    !nullhost(QHOST(e->e_from_resolved)))
 		return 0;
 	/*
@@ -1358,8 +1358,10 @@ sequencer(e, file)
 			    && p->p_tokens != NULL) {
 				t = p->p_tokens;
 				slen = TOKENLEN(t);
+				l = cdr(QCHANNEL(e->e_from_trusted));
 				QCHANNEL(e->e_from_trusted) =
 				  newstring(dupnstr(t->t_pname, slen), slen);
+				cdr(QCHANNEL(e->e_from_trusted)) = l;
 			} else {
 				/*
 				 * No origination channel, or channel
@@ -1446,8 +1448,10 @@ sequencer(e, file)
 			    && p->p_tokens != NULL) {
 				t = p->p_tokens;
 				slen = TOKENLEN(t);
+				l = cdr(QCHANNEL(e->e_from_trusted));
 				QCHANNEL(e->e_from_trusted) =
 				  newstring(dupnstr(t->t_pname, slen), slen);
+				cdr(QCHANNEL(e->e_from_trusted)) = l;
 			}
 			if (QCHANNEL(e->e_from_trusted)->cstring == NULL) {
 				/*
@@ -1461,15 +1465,19 @@ sequencer(e, file)
 		if (h != NULL && h->h_contents.a->a_pname) {
 			/* a previous host was specified */
 			slen = strlen(h->h_contents.a->a_pname);
+			l = cdr(QHOST(e->e_from_trusted));
 			QHOST(e->e_from_trusted) =
 			  newstring(dupnstr(h->h_contents.a->a_pname, slen),slen);
+			cdr(QHOST(e->e_from_trusted)) = l;
 		}
 		FindEnvelope(eUser);
 		if (h != NULL && h->h_contents.a->a_pname) {
 			/* a previous user was specified */
 			slen = strlen(h->h_contents.a->a_pname);
+			l = cdr(QHOST(e->e_from_trusted));
 			QHOST(e->e_from_trusted) =
 			  newstring(dupnstr(h->h_contents.a->a_pname, slen),slen);
+			cdr(QHOST(e->e_from_trusted)) = l;
 		}
 		if (QCHANNEL(e->e_from_trusted)->cstring == NULL
 		    || QHOST(e->e_from_trusted)->cstring == NULL
@@ -1565,14 +1573,26 @@ sequencer(e, file)
 		  set_pname(e, nh, "Sender");
 		}
 	}
-	if (QCHANNEL(e->e_from_trusted)->cstring == NULL)
-		QCHANNEL(e->e_from_trusted) = QCHANNEL(e->e_from_resolved);
-	if (QHOST(e->e_from_trusted) == NULL)
-		QHOST(e->e_from_trusted) = QHOST(e->e_from_resolved);
-	if (QUSER(e->e_from_trusted) == NULL)
-		QUSER(e->e_from_trusted) = QUSER(e->e_from_resolved);
-	if (QATTRIBUTES(e->e_from_trusted) == NULL)
-		QATTRIBUTES(e->e_from_trusted)=QATTRIBUTES(e->e_from_resolved);
+	if (QCHANNEL(e->e_from_trusted)->cstring == NULL) {
+	  l = cdr(QCHANNEL(e->e_from_trusted));
+	  QCHANNEL(e->e_from_trusted) = QCHANNEL(e->e_from_resolved);
+	  cdr(QCHANNEL(e->e_from_trusted)) = l;
+	}
+	if (QHOST(e->e_from_trusted) == NULL) {
+	  l = cdr(QHOST(e->e_from_trusted));
+	  QHOST(e->e_from_trusted) = QHOST(e->e_from_resolved);
+	  cdr(QHOST(e->e_from_trusted)) = l;
+	}
+	if (QUSER(e->e_from_trusted) == NULL) {
+	  l = cdr(QUSER(e->e_from_trusted));
+	  QUSER(e->e_from_trusted) = QUSER(e->e_from_resolved);
+	  cdr(QUSER(e->e_from_trusted)) = l;
+	}
+	if (QATTRIBUTES(e->e_from_trusted) == NULL) {
+	  l = cdr(QATTRIBUTES(e->e_from_trusted));
+	  QATTRIBUTES(e->e_from_trusted) = QATTRIBUTES(e->e_from_resolved);
+	  cdr(QATTRIBUTES(e->e_from_trusted)) = l;
+	}
 
 	if (deferuid)
 	  return PERR_DEFERRED;
