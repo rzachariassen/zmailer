@@ -1400,6 +1400,14 @@ int buflen, *rcp;
 	*cop = co;
 	*cp  = c;
 	*rcp = rc;
+
+	if (i == buflen && c != EOF && c != '\n') {
+	  /* Huh, oversized input line ?? */
+	  while ((c = s_getc(SS)) != EOF && c != '\n')
+	    ;
+	  /* Input eaten until a NEWLINE, or EOF occurred at the input. */
+	}
+
 	return i;
 }
 

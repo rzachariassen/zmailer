@@ -1,5 +1,11 @@
 1999-09-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/smtpserver.c:
+	    If (heaven forbid)  s_gets()  routine notes that the input
+	    line length overflows the buffer -- i.e. it filled the buffer,
+	    and didn't get an EOF or NEWLINE yet, then it will glob up
+	    input, until it sees a NEWLINE (and including that newline..)
+
 	* smtpserver/zpwmatch.c:
 	    Missed one part in previous HAVE_SHADOW_H related patch :-(
 
