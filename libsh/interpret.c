@@ -2297,7 +2297,8 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				abort(); /* Too deep SIFTs! */
 			}
 			sift[nsift].kind  = 0;
-			sift[nsift].str = NULL;
+			sift[nsift].tlist = NULL; /* the other sift type */
+			sift[nsift].str = NULL;   /* this sift type */
 			sift[nsift].label = pc+1 - code;
 			sift[nsift].subexps = NULL;
 			sift[nsift].count = 9999; /* Cut eternal loops */
@@ -2444,7 +2445,7 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 #ifndef DEQUOTE_STICKY
 			stickymem = MEM_PERM;
 			if (sift[nsift].str == NULL)
-				sift[nsift].str = strsave("");
+				sift[nsift].str = strdup("");
 #else
 			stickymem = MEM_SHCMD;
 			if (sift[nsift].str == NULL)
@@ -2471,6 +2472,7 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			}
 			sift[nsift].kind  = 1;
 			sift[nsift].tlist = NULL;
+			sift[nsift].str = NULL; /* the other branch */
 			sift[nsift].label = pc+1 - code;
 			sift[nsift].subexps = NULL;
 			sift[nsift].count = 9999; /* Cut eternal loops */
@@ -2634,6 +2636,7 @@ getout:
 		if (sift[nsift].str)
 		  free((void*)sift[nsift].str);
 #endif
+		sift[nsift].str = NULL;
 		for (v_accessed = sift[nsift].accessed;
 		     v_accessed != NULL;
 		     v_accessed = sift[nsift].accessed) {
