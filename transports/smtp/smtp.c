@@ -3662,12 +3662,22 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  }
 	}
 
-	if (strbuf) {
-	  if (strncmp(strbuf,"RSET",4) != 0) /* If RSET, append to previous! */
-	    *SS->remotemsg = 0;
-	  rmsgappend(SS,"\r<<- %s", strbuf);
+	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
+	  if (strbuf) {
+	    if (strncmp(strbuf,"RSET",4) != 0)
+	      /* If RSET, append to previous! */
+	      *SS->remotemsg = 0;
+	    rmsgappend(SS,"\r<<- %s", strbuf);
+	  } else {
+	    strcpy(SS->remotemsg,"\r<<- (null)");
+	  }
 	} else {
-	  strcpy(SS->remotemsg,"\r<<- (null)");
+	  /* socket closed outwards, commands not written! */
+	  if (strbuf)
+	    rmsgappend(SS,"\rWrite Failure; shunted cmd: %s", strbuf);
+	  else
+	    strcpy(SS->remotemsg,
+		   "\rWrite Failure; expecting initial greeting??");
 	}
 
 	if (debug) {

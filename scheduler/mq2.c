@@ -499,10 +499,11 @@ ssize_t mq2_sfwrite(sfp, vp, len, discp)
     return i;
 }
 
-static void mq2_thread_report __((struct mailq *mq, int mode));
-static void mq2_thread_report(mq, mode)
+static void mq2_thread_report __((struct mailq *mq, int mode, char *channel, char *host));
+static void mq2_thread_report(mq, mode, channel, host)
      struct mailq *mq;
      int mode;
+     char *channel, *host;
 {
   Sfio_t *fp;
   struct mq2discipline mq2d;
@@ -519,7 +520,11 @@ static void mq2_thread_report(mq, mode)
 
   sfdisc(fp, &mq2d.D);
 
-  thread_report(fp, mode);
+
+  if (channel && host)
+    thread_detail_report(fp, mode, channel, host);
+  else
+    thread_report(fp, mode);
 
   zsfsetfd(fp, -1);
   sfclose(fp);
@@ -559,40 +564,69 @@ static int mq2cmd_show(mq,s)
      struct mailq *mq;
      char *s;
 {
-  char *t = s;
-  long mode;
+  char *t = s, *u;
 
   while (*t && (*t != ' ') && (*t != '\t')) ++t;
   if (*t) *t++ = '\000';
   while (*t == ' ' || *t == '\t') ++t;
+  u = t;
+  while (*u && (*u != ' ') && (*u != '\t')) ++u;
+  if (*u) *u++ = '\000';
+  while (*u == ' ' || *u == '\t') ++u;
 
   /* 's' points to the first arg, 't' points to string after
      separating white-space has been skipped. */
 
-  if (strcmp(s,"SNMP") == 0 && mq->auth & MQ2MODE_SNMP) {
+  if (strcmp(s,"SNMP") == 0) {
+    if (! (MQ2MODE_SNMP & mq->auth)) /* If not allowed operation, exit! */
+      return -1;
     mq2_puts(mq, "+OK until LF.LF\n");
-    mq2_thread_report(mq, MQ2MODE_SNMP);
+    mq2_thread_report(mq, MQ2MODE_SNMP, NULL, NULL);
     mq2_puts_(mq, ".\n");
     return 0;
   }
 
-  if (strcmp(s,"QUEUE") != 0)
-    return -1; /* XX: OTHER SHOW CMDS ?? */
+  if (strcmp(s,"QUEUE") == 0) {
 
-  mode = -1;
+    if (strcmp(t,"SHORT") == 0) {
 
-  if (strcmp(t,"SHORT") == 0)
-    mode = MQ2MODE_QQ;
-  else if (strcmp(t,"THREADS") == 0)
-    mode = MQ2MODE_FULL;
+      if (! (MQ2MODE_QQ & mq->auth)) /* If not allowed operation, exit! */
+	return -1;
+      mq2_puts(mq, "+OK until LF.LF\n");
+      mq2_thread_report(mq, MQ2MODE_QQ, NULL, NULL);
+      mq2_puts_(mq, ".\n");
+      return 0;
 
-  if (mode < 0 || ! (mode & mq->auth)) /* If not allowed operation, exit! */
+    } else if (strcmp(t,"THREADS") == 0) {
+
+      if (! (MQ2MODE_FULL & mq->auth)) /* If not allowed operation, exit! */
+	return -1;
+      mq2_puts(mq, "+OK until LF.LF\n");
+      mq2_thread_report(mq, MQ2MODE_FULL, NULL, NULL);
+      mq2_puts_(mq, ".\n");
+      return 0;
+
+    }
+    /* Unknown! */
     return -1;
+  }
 
-  mq2_puts(mq, "+OK until LF.LF\n");
-  mq2_thread_report(mq, mode);
-  mq2_puts_(mq, ".\n");
-  return 0;
+  if (strcmp(s,"THREAD") == 0) {
+    /* SHOW THREAD 'channel' 'host' */
+    char *channel = t;
+    char *host    = u;
+
+    if (! (MQ2MODE_FULL & mq->auth)) /* If not allowed operation, exit! */
+      return -1;
+
+    mq2_puts(mq, "+OK until LF.LF\n");
+    mq2_thread_report(mq, MQ2MODE_FULL, channel, host);
+    mq2_puts_(mq, ".\n");
+    return 0;
+  }
+
+  return -1;
+
 }
 
 

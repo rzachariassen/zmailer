@@ -38,11 +38,14 @@ $main::s->login("nobody","nobody");
 #printf("login responce: '%s'\n",$main::s->{resp});
 
 
+local($main::rc,@main::rc) = $main::s->showcmd("SHOW QUEUE THREADS");
+printf "SHOW QUEUE THREADS:\n%s\n",join("\n",@main::rc);
+
 #local($main::rc,@main::rc) = $main::s->showcmd("SHOW SNMP");
 #printf "SHOW SNMP:\n%s\n",join("\n",@main::rc);
 
-local($main::rc,@main::rc) = $main::s->etrncmd("ETRN mea.tmt.tele.fi");
-printf "ETRN mea.tmt.tele.fi:\n%s\n",join("\n",@main::rc);
+#local($main::rc,@main::rc) = $main::s->etrncmd("ETRN mea.tmt.tele.fi");
+#printf "ETRN mea.tmt.tele.fi:\n%s\n",join("\n",@main::rc);
 
 $main::s->bye();
 

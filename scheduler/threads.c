@@ -1679,6 +1679,95 @@ void thread_report(fp,mqmode)
 }
 
 
+void thread_detail_report(fp,mqmode,channel,host)
+     Sfio_t *fp;
+     int mqmode;
+     char *channel, *host;
+{
+	struct thread *th;
+	spkey_t spk;
+	struct spblk *spl;
+	struct web *wh, *wc;
+	struct vertex *vp;
+	int i;
+	char buf[100];
+
+	mytime(&now);
+
+	spk = symbol_lookup_db((void*)channel, spt_mesh[L_CHANNEL]->symbols);
+	spl = sp_lookup(spk, spt_mesh[L_CHANNEL]);
+	if (spl == NULL || spl->data == NULL) {
+	  /* Not found, nothing to do.. */
+	  return;
+	}
+	wc = (struct web *)spl->data;
+
+	spk = symbol_lookup_db((void*)host, spt_mesh[L_HOST]->symbols);
+	spl = sp_lookup(spk, spt_mesh[L_HOST]);
+	if (spl == NULL || spl->data == NULL) {
+	  /* Not found, nothing to do.. */
+	  return;
+	}
+	wh = (struct web *)spl->data;
+
+	for (th = thread_head; th; th = th->nexttr) {
+	  if (wh == th->whost && wc == th->wchan) {
+	    break;
+	  }
+	}
+	if (th) {
+	  /* Found it! */
+	  for (vp = th->thvertices; vp; vp = vp->nextitem) {
+	    struct ctlfile *cfp = vp->cfp;
+	    for (i = vp->ngroup; i >= 0; --i) {
+	      /* Spoolfile */
+	      if (vp->cfp->dirind >= 0)
+		sfprintf(fp, "%s/%s", cfpdirname(cfp->dirind), cfp->mid);
+	      else
+		sfprintf(fp, "%s", cfp->mid);
+	      /* Sender index -- or sender address */
+	      sfprintf(fp, "\t<%s>", vp->sender);
+	      /* Recipient index */
+	      sfprintf(fp,"\t%d", vp->index[i]);
+	      /* Wait status */
+	      sfprintf(fp,"\t%s", "waiting_for_xxx");
+	      /* Expiry stamp */
+	      sfprintf(fp,"\t%ld", (long)vp->ce_expiry);
+	      /* next wakeup */
+	      sfprintf(fp,"\t%ld", (long)vp->wakeup);
+	      /* last feed time */
+	      sfprintf(fp,"\t%ld", (long)vp->lastfeed);
+	      /* attempts */
+	      sfprintf(fp,"\t%d\t", vp->attempts);
+	      /* ce_pending */
+	      if (vp->wakeup > now) {
+		saytime((long)(vp->ce_expiry - now), buf, 1);
+		sfprintf(fp,"retry in %s", buf);
+	      } else {
+		switch(vp->ce_pending) {
+		case SIZE_L: /* BAD! */
+		  break;
+		case L_CHANNEL:
+		  sfprintf(fp,"channel");
+		  break;
+		default:
+		  sfprintf(fp,"thread");
+		  break;
+		}
+	      }
+	      /* message - if any */
+	      sfprintf(fp, "\t");
+	      if (vp->message)
+		sfprintf(fp,"%s", vp->message);
+	      sfprintf(fp, "\n");
+	    }
+	  }
+	}
+
+	sfsync(fp);
+}
+
+
 int thread_count_recipients()
 {
 	struct threadgroup *thg;

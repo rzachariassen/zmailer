@@ -127,6 +127,7 @@ extern int   pick_next_vertex __((struct procinfo * proc));
 extern int   pick_next_thread __((struct procinfo * proc));
 #ifdef _SFIO_H
 extern void  thread_report __((Sfio_t *, int));
+extern void  thread_detail_report __((Sfio_t *, int, char *, char *));
 #endif
 extern int   idleprocs;
 extern void  web_detangle __((struct vertex *vp, int ok));

@@ -1,3 +1,14 @@
+2000-03-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    When the outbound SMTP fp is closed, don't truncate the
+	    reported address -- mainly to stop "." appearing as the
+	    last outbound state, when "data" really is it..
+
+	* scheduler/MAILQ-V2, scheduler/mailq.pl, scheduler/mq2.c,
+	  scheduler/prototypes.h, scheduler/threads.c:
+	    Playing with ideas regarding MAILQ-V2 protocol.
+	
 2000-03-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in, transports/mailbox/dotlock.c:

@@ -29,11 +29,28 @@ that is, lowercase hex characters.
 	---------- ToBeWritten: commands ... -------------
 	(and multiline replies, and state things, and ...)
 
-SHOW QUEUE CONDENCED
+SHOW QUEUE SHORT
+	- Success/Failure indicating reply; "+ xxxx" = success, "- xxx" = fail
+	- On success a multiline appendix with SMTP DATA phase dot-duplication
+	  rules (same as with POP3)
+
 SHOW QUEUE THREADS
+	- Success/Failure indicating reply; "+ xxxx" = success, "- xxx" = fail
+	- On success a multiline appendix with SMTP DATA phase dot-duplication
+	  rules (same as with POP3)
+
 SHOW SNMP
+	- Success/Failure indicating reply; "+ xxxx" = success, "- xxx" = fail
+	- On success a multiline appendix with SMTP DATA phase dot-duplication
+	  rules (same as with POP3)
+
 ETRN etrn_string
+	- Single-line reply
+
 SHOW THREAD channel host
+
 KILL MSG spoolid           (expires the message -- all recipients)
+
 KILL THREAD channel host   (expires the thread)
+
 REQUEUE ROUTER spoolid     (?? - from a TODO item..)
