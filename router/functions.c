@@ -124,7 +124,7 @@ struct shCmd fnctns[] = {
 {	"user",		NULL,	run_caddr,	NULL,	SH_ARGV	},
 {	"attributes",	NULL,	run_cadddr,	NULL,	SH_ARGV	},
 {	"stability",	run_stability,	NULL,	NULL,	0	},
-{	"stable-process", run_doit,	NULL,	NULL,	0	},
+{	"stableprocess", run_doit,	NULL,	NULL,	0	},
 {	"daemon",	run_daemon,	NULL,	NULL,	0	},
 {	"process",	run_process,	NULL,	NULL,	0	},
 {	"rfc822",	run_rfc822,	NULL,	NULL,	0	},
@@ -541,7 +541,7 @@ run_doit(argc, argv)
 	int r;
 	const char *av[3];
 
-	if (argc != 1) {
+	if (argc != 2) {
 	  fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
 	  return 1;
 	}
