@@ -1085,7 +1085,7 @@ deliver(SS, dp, startrp, endrp)
 	const char *cname, *u = NULL;
 	char SMTPbuf[2000];
 	char const * const  se = SMTPbuf + 800;
-	char const * const se2 = SMTPbuf + sizeof(SMTPbuf)-40;
+	/* char const * const se2 = SMTPbuf + sizeof(SMTPbuf)-40; */
 	char *s;
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
@@ -1257,17 +1257,6 @@ deliver(SS, dp, startrp, endrp)
 	  startrp = more_rp;
 	  more_rp = NULL;
 	}
-	SS->rcptstates = 0;
-
-	/* We are starting a new pipelined phase */
-	smtp_flush(SS); /* Flush in every case */
-
-	/* Store estimate on how large a file it is */
-	if (fstat(dp->msgfd, &stbuf) >= 0)
-	  size = stbuf.st_size - dp->msgbodyoffset;
-	else
-	  size = -1;
-	SS->msize = size;
 
 	if (SS->do_rset) {
 
@@ -1281,6 +1270,18 @@ deliver(SS, dp, startrp, endrp)
 	    mail_from_failed = 1;
 	  }
 	}
+
+	SS->rcptstates = 0;
+
+	/* We are starting a new pipelined phase */
+	smtp_flush(SS); /* Flush in every case */
+
+	/* Store estimate on how large a file it is */
+	if (fstat(dp->msgfd, &stbuf) >= 0)
+	  size = stbuf.st_size - dp->msgbodyoffset;
+	else
+	  size = -1;
+	SS->msize = size;
 
 	SS->do_rset = 1; /* Unless completed successfully,
 			    we must do RSET latter... */
@@ -4110,12 +4111,11 @@ smtp_sync(SS, r, nonblocking)
 
 	  notarystatsave(SS,s,status);
 
-	  /* if (SS->verboselog)
+	  if (SS->verboselog)
 	     fprintf(SS->verboselog,
 	     " lmtp_mode=%d code=%d rc=%d idx=%d datarp=%p pipercpts[idx]=%p pipecmds[idx]='%s'\n",
 	     lmtp_mode, code, rc, idx, datarp, SS->pipercpts[idx],
 	     SS->pipecmds[idx] ? SS->pipecmds[idx] : "<nil>");
-	  */
 
 	  if (SS->rcptstates & (FROMSTATE_500|HELOSTATE_500)) {
 	    /* If "MAIL From:<..>" tells non-200 report, and
@@ -4146,10 +4146,12 @@ smtp_sync(SS, r, nonblocking)
 	      /* ``rc'' is correct. */
 
 	      /* Diagnose the errors, we report successes AFTER the DATA phase.. */
+	      /*
 	      if (SS->verboselog)
 		fprintf(SS->verboselog,
 			" -> diagnostic(rc=%d idx=%d) remotemsg='%s'\n",
 			rc, idx, SS->remotemsg);
+	      */
 
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
@@ -4162,6 +4164,13 @@ smtp_sync(SS, r, nonblocking)
 
 	      /* No diagnostic() calls for  MAIL FROM:<>, nor for
 		 DATA/BDAT phases (except in LMTP mode) */
+
+	      /*
+	      if (SS->verboselog)
+		fprintf(SS->verboselog,
+			" -> diagnostic(rc=%d idx=%d) remotemsg='%s'\n",
+			rc, idx, SS->remotemsg);
+	      */
 
 
 	      if ((idx == 0) && (SS->pipecmds[idx] != NULL) &&
