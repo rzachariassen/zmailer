@@ -137,7 +137,9 @@ flush_child(proc)
 	   proc->pid, proc->cmdlen, proc->cmdbuf);  */
 
 	while (proc->tofd >= 0 && proc->cmdlen > 0) {
+
 	  int rc = write(proc->tofd, proc->cmdbuf, proc->cmdlen);
+
 	  if (rc < 0 && (errno != EAGAIN && errno != EINTR &&
 			 errno != EWOULDBLOCK)) {
 	    /* Some real failure :-( */
@@ -157,7 +159,8 @@ flush_child(proc)
 	    memcpy(proc->cmdbuf, proc->cmdbuf + rc, proc->cmdlen - rc);
 	    proc->feedtime = now;
 	  } else
-	    break;
+	    break; /* Zero or negative.. let the writing
+		      proceed latter... */
 	  proc->cmdlen -= rc;
 	}
 	return 0;
@@ -183,6 +186,8 @@ feed_child(proc)
 
 	if (proc->pthread == NULL) {
 	  proc->state = CFSTATE_ERROR;
+	  pipes_shutdown_child(proc->tofd);
+	  proc->tofd = -1;
 	  return -1; /* BUG if called without next THREAD.. */
 	}
 	if (proc->pvertex == NULL) {
@@ -196,9 +201,10 @@ feed_child(proc)
 	vtx = proc->pvertex;
 
 	mytime(&now);
-
+#if 0
 	if (vtx->lastfeed + 10 >= now)
 	  return -1; /* Force at least 10 seconds in between feeds! */
+#endif
 	vtx->lastfeed = now;
 
 	if (slow_shutdown) {
@@ -334,6 +340,8 @@ ta_hungry(proc)
 
 	    if (feed_child(proc))
 	      return; /* If an error, bail out.. */
+	    if (proc->tofd >= 0 && proc->cmdlen != 0)
+	      return; /* Outbuf full -- stop feeding here */
 
 	    if (proc->overfed > proc->thg->ce.overfeed)
 	      return; /* Or over limit ...       */

@@ -815,12 +815,12 @@ thread_start(thr, queue_only_too)
 	  /* There is at least one.. */
 	  proc  = *ipp;
 
-	  for (;proc && !(proc->ho == ho && proc->ch == ch); ipp  = &(proc->pnext), proc = *ipp) ;
+	  for (;proc && (proc->ho != ho || proc->ch != ch); ipp  = &(proc->pnext), proc = *ipp) ;
 
 	  if (proc == NULL) {
 	    /* None of the previous ones matched, pick the first anyway */
 	    ipp = &(thg->idleproc);
-	    /* There is at least one.. */
+	    /* Well... after all, there is at least one.. */
 	    proc  = *ipp;
 	  }
 	  /* Selected one of them.. */
