@@ -247,9 +247,9 @@ append_header(va_alist)
 
 void
 output_content_type(rp,ct,old)
-struct rcpt *rp;
-struct ct_data *ct;
-char **old;
+     struct rcpt *rp;
+     struct ct_data *ct;
+     char **old;
 {
 	/* Output the  Content-Type: with  append_header()
 	   Sample output:
@@ -385,7 +385,7 @@ char **old;
 
 struct ct_data *
 parse_content_type(ct_linep)
-char **ct_linep;	/* Could be multiline! */
+     char **ct_linep;	/* Could be multiline! */
 {
 	char *s, *p, *pv, *ss;
 	struct ct_data *ct = (struct ct_data*)emalloc(sizeof(struct ct_data));
@@ -561,7 +561,7 @@ char **ct_linep;	/* Could be multiline! */
 
 struct cte_data *
 parse_content_encoding(cte_linep)
-char **cte_linep;	/* Propably is not a multiline entry.. */
+     char **cte_linep;	/* Propably is not a multiline entry.. */
 {
 	char *line, *s;
 	struct cte_data *cte = emalloc(sizeof(struct cte_data));
@@ -597,7 +597,7 @@ char **cte_linep;	/* Propably is not a multiline entry.. */
  */
 int
 check_conv_prohibit(rp)
-struct rcpt *rp;
+     struct rcpt *rp;
 {
 	char **hdrs = *(rp->newmsgheader);
 	if (!hdrs) return 0;
@@ -620,7 +620,7 @@ static const char *cCT  = "Content-Type:";
 
 int
 cte_check(rp)
-struct rcpt *rp;
+     struct rcpt *rp;
 {	/* "Content-Transfer-Encoding: 8BIT" */
 
 	char **hdrs = *(rp->newmsgheader);
@@ -654,8 +654,8 @@ struct rcpt *rp;
 
 char **  /* Return a pointer to header line pointer */
 has_header(rp,keystr)
-struct rcpt *rp;
-const char *keystr;
+     struct rcpt *rp;
+     const char *keystr;
 {
 	char **hdrs = *(rp->newmsgheader);
 	int keylen = strlen(keystr);
@@ -674,8 +674,8 @@ const char *keystr;
 void
 delete_header(rp,hdrp)	/* Delete the header, and its possible
 			   continuation lines */
-struct rcpt *rp;
-char **hdrp;
+     struct rcpt *rp;
+     char **hdrp;
 {
 	char **h1 = hdrp;
 	char **h2 = hdrp+1;
@@ -692,8 +692,8 @@ char **hdrp;
 
 int
 downgrade_charset(rp, verboselog)
-struct rcpt *rp;
-FILE *verboselog;
+     struct rcpt *rp;
+     FILE *verboselog;
 {
 	char **CT   = NULL;
 	char **CTE  = NULL;
@@ -730,9 +730,9 @@ FILE *verboselog;
 
 int
 downgrade_headers(rp, convertmode, verboselog)
-struct rcpt *rp;
-CONVERTMODE convertmode;
-FILE *verboselog;
+     struct rcpt *rp;
+     CONVERTMODE convertmode;
+     FILE *verboselog;
 {
 	char ***oldmsgheader;
 	char **CT   = NULL;
