@@ -5,7 +5,7 @@
 	    do it properly: returns (((bitbucket ...)))
 
 	* scheduler/update.c:
-	    At   u_error2()  log the 
+	    At   u_error2()   log the name of the event fully.
 
 	* router/libdb/bind.c:
 	    h_errhost[] change into source material length safe construction.
@@ -26,7 +26,7 @@
 	* router/libdb/bind.c:
 	    h_errhost[] buffer overflow in some oddball cases.
 
-2001-12-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-12-15  Matti Aarnio  <mea@zmailer.org>
 
 	* man/sm.8:
 	    Revising the man-page.
@@ -37,17 +37,18 @@
 	    Added 'O' flag to configuration to output ORCPT data
 	    into  X-Orcpt: header.
 
-2001-12-07  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-12-07  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c, transports/libta/swriteheaders.c:
 	    When message writing into a file fails with e.g. EDQUOTA
 	    (quota exceeded), abort writing completely, discard sfio
 	    buffers, and truncate away the incompletely received message.
+	    This problem appeared at Solaris 8, when using quotas.
 
 	* transports/smtp/getmxrr.c:
 	    Cleanup some compiler warnings.
 
-2001-11-07  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-11-07  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c,
 	  man/smtp.8:
@@ -60,7 +61,7 @@
 	    Implemented thus a '-w 1000' option to define the
 	    value of the socket option SO_SNDBUF.
 	
-2001-10-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-10-25  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
 	    - edge comparisons in time handling code cause
@@ -76,7 +77,7 @@
 	    At  smtp,  copy also the "->taspoolid" pointer
 	    field into the SmtpState structure.
 
-2001-10-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-10-23  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/msgerror.c, scheduler/scheduler.c,
 	  scheduler/scheduler.h, scheduler/update.c:
@@ -94,7 +95,7 @@
 	  utils/makedb/makedb.c:
 	    Reworked SleepyCat DB 1.x/2.x/3.x conditionals.
 
-2001-10-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-10-21  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mq2.c:
 	    Tracked wrong resource accounting at mailq2 code;
@@ -113,7 +114,7 @@
 	* scheduler/scheduler.c:
 	    In queue injection spotted a test of time which is reversed!
 
-2001-10-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-10-16  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mq2.c:
 	    Correct the way how orderly close ("QUIT") of mailq is
@@ -123,7 +124,7 @@
 	    Fixup the various return codes, specifically use EX_USAGE
 	    for the usage report.
 
-2001-10-10  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-10-10  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf,  proto/cf/aliases-new.cf, proto/cf/canon.cf,
 	  proto/cf/crossbar.cf, proto/cf/fqdnaliases.cf, proto/cf/server.cf,
@@ -136,7 +137,7 @@
 	    analysis of all functions inside the router, and related
 	    documentation in the ZMailer Manual is future project.
 
-2001-10-09  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-10-09  Matti Aarnio  <mea@zmailer.org>
 
 	* man/smtpserver.8, smtpserver/smtpserver.c, smtpserver/smtpserver.h,
 	  smtpserver/smtpcmds.c, smtpserver/cfgparse.c, proto/smtpserver
@@ -147,7 +148,7 @@
 	    but still want to support incoming DSN.
 	    (That is, not to disable DSN!)
 
-2001-10-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-10-04  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/p-smtp.cf, proto/cf/standard.cf, proto/cf/trusted.cf:
 	    Add a bit of 'provide nnn' things.
@@ -158,7 +159,7 @@
 	    memory usage, and abort the connection of MQ2 socket if
 	    the buffer size needed for the input line exceeds 16k.
 
-2001-10-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-10-02  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/readconfig.c:
 	    Support arbitrary large sets of:
@@ -181,7 +182,7 @@
 	    Damn!  The  'returns'  primitive WAS NOT returning
 	    _string_ in all cases.
 
-2001-10-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-10-01  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    SH-script bug in SleepyCat DB 3.x tests.
@@ -207,7 +208,7 @@
 	    Update the beast at Solaris 2.6, and learn some
 	    new things...
 
-2001-09-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-09-30  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, acconfig.h:
 	    Autoconfig detection of  SleepyCat DB 3.x
@@ -231,13 +232,13 @@
 	* proto/zmailer.sh.in:
 	    Fix typos at '-q' option processing!
 
-2001-09-27  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-09-27  Matti Aarnio  <mea@zmailer.org>
 
 	* packaging/rpm/*:
 	    Updated version of RPM specs file, et.al. from
 	    Xosé Vázquez
 
-2001-09-26  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-09-26  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:
 	    For HELO/EHLO parameters, do a bit less work, ignore
@@ -247,7 +248,7 @@
 	    Set default expiration to be 5 days (from old 3 days).
 	    RFC 2821 does suggest 4-5 days.
 
-2001-09-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-09-22  Matti Aarnio  <mea@zmailer.org>
 
 	* acconfig.h, config.h.in, configure.in, include/hostenv.h,
 	  lib/nobody.c, lib/trusted.c, router/db.c, router/functions.c,
@@ -286,14 +287,14 @@
 	    TLS when it is told to use TLS, and the destination port is
 	    not 25, but _anything_else_ !
 
-2001-07-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-07-31  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpdata.c:
 	    Had omitted couple  fflush()  calls in DATA and BDAT
 	    to commit accumulated buffered data into file so that
 	    external  contentfilter()  program can analyze it.
 
-2001-07-29  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-07-29  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/autoanswer.pl.in:
 	    Fixing buggy tests; originally about "$nosend", but
@@ -302,7 +303,7 @@
 	* include/mail.h.in:
 	    Forgot this from the inject below...
 
-2001-07-05  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-07-05  Matti Aarnio  <mea@zmailer.org>
 
 	* include/libc.h, include/mail.h.in, libc/mail.c, libc/sfmail.c,
 	  scheduler/msgerror.c, smtpserver/smtpdata.c, 
@@ -310,7 +311,7 @@
 	    Changed (properly) the _*mail_close_() inode parameter to
 	    be 'long'.
 
-2001-07-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-07-04  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/errormail/errormail.c:
 	    Recognize source channel 'error', and produce the destination
@@ -322,21 +323,21 @@
 	    headers "Original-Recipient:"  (for RFC 2298 section 2.3),
 	    and "Envelope-ID:".
 
-2001-06-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-06-15  Matti Aarnio  <mea@zmailer.org>
 
 	* transport/smtp/smtp.c:
 	    In synchronous SMTP connections, handle the result
 	    processing correctly so that permanent reject with
 	    MAIL FROM will permanently reject the message..
 
-2001-06-11  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-06-11  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/mxverify/mxverify-cgi.c:
 	    Print out the user supplied input (arg strings) properly
 	    protected so that even if the input happens to be HTML
 	    text in disguise, it shows up as "a string".
 
-2001-06-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-06-04  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/transport.c, scheduler/msgerror.c:
 	    Oh no, one-off string length after  cfgdirpath()  function
@@ -355,7 +356,7 @@
 	    The previous code has apparently allowed accumulation of servers
 	    which never die out...
 
-2001-06-03  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-06-03  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mailq.c:
 	    Oops time; closing FILE * object twice is BAD THING to do
@@ -366,7 +367,7 @@
 	    In  smtp-auth  related PARAMs, do emphasise their security
 	    implications!
 
-2001-05-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-05-30  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.c, scheduler/msgerror.c, scheduler/qprint.c,
 	  scheduler/threads.c, scheduler/transport.c, scheduler/update.c:
@@ -375,7 +376,7 @@
 	    into stderr like it now does at the end of  findvertex().
 	    Adding some debugging data so that I can verify the thing.
 
-2001-05-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-05-25  Matti Aarnio  <mea@zmailer.org>
 
 	* README.UPGRADING:
 	    Semi-forgotten note about the results of 2001-05-15's
@@ -399,14 +400,14 @@
 	    I am doubtfull that the previous state was in any way capable
 	    to produce system security threat.
 
-2001-05-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-05-22  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/fqdnaliases.cf, proto/cf/process.cf,
 	  proto/cf/aliases.cf:
 	    Some experiments on doing message-wide 'didexpand' analysis
 	    to see if complicated duplicate recipient removal code works.
 
-2001-05-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-05-21  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpetrn.c:
 	    Tell to the remote scheduler [source.ip.address]@mynodename
@@ -418,12 +419,12 @@
 	* configure.in, libc/gai_strerror.c:
 	    Problems at compling "replacement-ipv6-libc" with RH 7.1 libc.
 
-2001-05-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-05-16  Matti Aarnio  <mea@zmailer.org>
 
 	* ssl/Makefile.in, ssl/ssl.c, ssl/ssl:sst.[ch], ssl/ssl_sst.[ch]:
 	    Changed references from   ssl:sst.[ch]  files to  ssl_sst.[ch]
 
-2001-05-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-05-15  Matti Aarnio  <mea@zmailer.org>
 
 	* include/ta.h, scheduler/update.c, transports/libta/diagnostic.c,
 	  transports/smtp/getmxrr.c, transports/smtp/smtp.c:
@@ -446,13 +447,13 @@
 	    the system may have active.  Requires MAILQ-V2 mode, and
 	    '-v' option use (not '-Q'!).
 
-2001-05-10  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-05-10  Matti Aarnio  <mea@zmailer.org>
 
 	* include/libc.h:
 	    Copy the 'GETNAMEINFOFLAGTYPE' test code into this
 	    file too from  libc/getnameinfo.c.  Bloody Solaris..
 
-2001-05-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-05-08  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.55-patch1
@@ -465,7 +466,7 @@
 	    giving up entirely.  (Passing the failure to the
 	    scheduler..)
 
-2001-05-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-05-04  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/p-routes.cf:
 	    Wrong function called to pick the flag data..
@@ -481,13 +482,13 @@
 	    preloading of possibly existing ZCONFIG file contents
 	    into configuration variables.
 
-2001-04-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-04-04  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/getmxrr.c:
 	    If destination has one MX, and lookup for its A yields
 	    EAI_AGAIN, remember to report SS->mxcount = 0 ...
 
-2001-04-03  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-04-03  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/forms/delivery:
 	    Changed the URL reference to a "decode key" at
@@ -517,7 +518,7 @@
 	    addresses separately, as there seems to be some problems
 	    when trying to use  ai_family == 0  ("any goes") form.
 
-2001-03-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-03-08  Matti Aarnio  <mea@zmailer.org>
 
 	* include/mailer.h, router/rfc822.c, router/libdb/header.c,
 	  transports/errormail/errormail.c, scheduler/msgerror.c,
@@ -565,7 +566,7 @@
 	    Using experimental  autoconf 2.49d  mandated couple of
 	    changes...
 
-2001-03-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-03-02  Matti Aarnio  <mea@zmailer.org>
 
 	* README.UPGRADING:
 	    Added a note about the ALTERED default locations
@@ -579,14 +580,14 @@
 	    Print the gauges of message counts in the queue with SIGNED
 	    values, thus making underflows (negatives) more obvious.
 
-2001-03-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-03-01  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mailq.c:
 	    Embarassing uninitialized array elements used for checking
 	    if loop ends - Tomasz Bojakowski <mad@devil.inside.pin.pl>
 	    reported errors.
 
-2001-02-27  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-27  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    At  smtp_sync()  when running in PIPELINING, if the
@@ -600,7 +601,7 @@
 	    Case where this was needed was actually some firewall
 	    product which f**d OUTBOUND SMTP session of raporter...
 
-2001-02-26  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-26  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/listexpand.c, transports/smtp/smtp.c, include/ta.h,
 	  transports/libta/ctlopen.c:
@@ -617,13 +618,13 @@
 	    is expanded for each recipient, say 3000 copies of 60 kB
 	    each..  This mechanism is way faster.)
 
-2001-02-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-24  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c:
 	    Make RCPT TO synchronous router reporting to be a copy
 	    of MAIL FROM one -- report things correctly, that is.
 
-2001-02-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-23  Matti Aarnio  <mea@zmailer.org>
 
 	* router/rfc822.c, router/rtsyslog.c:
 	    Added the time to process the message to the router syslog
@@ -638,7 +639,7 @@
 	    be used with *valid* addresses,  rfc821_path2()
 	    is for possibly invalid input scanning!
 
-2001-02-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-21  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.55  (the real release!)
@@ -648,7 +649,7 @@
 	    removed the '"%1"@..' type substitutions with '-l' option.
 	    See the comment about '-%' at 'relation' function below.
 	
-2001-02-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-20  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/agenda.c, scheduler/scheduler.c, scheduler/mq2.c,
 	  smtpserver/smtpetrn.c:
@@ -663,7 +664,7 @@
 	* proto/Makefile.in:
 	    Remove at 'distclean' files which are autoconf generated.
 
-2001-02-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-19  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/getmxrr.c:
 	    Format printing of '%s' with NULL argument -> NULL referral -> ...
@@ -674,7 +675,7 @@
 	    the files (which may be a lot).  Limit the time of inter-
 	    action with the scheduler to the minumum.
 
-2001-02-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-16  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/readconfig.c:
 	    One-off bug in ${ZENV} substitution code.
@@ -684,7 +685,7 @@
 	    from  --prefix  !  The same way as --prefix derives $MAILSHARE.
 	    Officially zmailer.conf's new location *is* $MAILSHARE.
 
-2001-02-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-15  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/fqdnaliases.cf:
 	    Moved the local-part (user) extraction up a bit so that
@@ -704,13 +705,13 @@
 	* scheduler/mailq.c:
 	    a bit of comments & one missing newline on error printouts.
 
-2001-02-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-14  Matti Aarnio  <mea@zmailer.org>
 
 	* router/router.c:
 	    Cut down logging/log printing a bit -- duplicated data
 	    actually.
 
-2001-02-13  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-13  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/scheduler.conf.in, scheduler/readconfig.c:
 	    Allow ${ZENV} substitutions in PARAM lines.
@@ -724,7 +725,7 @@
 	    Search for the 'mail.conf' from  $MAILSHARE/mail.conf,
 	    and not from  /etc/.
 
-2001-02-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-08  Matti Aarnio  <mea@zmailer.org>
 
 	* router/functions.c:
 	    At  $(filepriv ...)  function, when the call supplies
@@ -742,7 +743,7 @@
 	    Do refer to wantconn.o file in the OBJS macro, it needs to
 	    be compiled in case it is wanted to be used...
 
-2001-02-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-02-01  Matti Aarnio  <mea@zmailer.org>
 
 	* man/mailbox.8, transports/mailbox/mailbox.c:
 	    Add two more environment variables to pre-existing
@@ -754,7 +755,7 @@
 	    meaningfully what was the message disposition.
 	    (Majordomo in my case ;) )
 
-2001-01-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-01-31  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, acconfig.h:
 	    - --with-routeruser-is-abnormal  option
@@ -776,7 +777,7 @@
 	  smtpserver/wantconn.c, scheduler/transport.c, scheduler/wantconn.c:
 	    #ifdef  USE_TCPWRAPPER   in addition to  #ifdef HAVE_TCPD_H
 
-2001-01-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-01-30  Matti Aarnio  <mea@zmailer.org>
 
 	* libresolv/gethnamaddr.c:
 	    Silence the code in several occasions.
@@ -786,7 +787,7 @@
 	    Clean "RSET" response from "250 2.0.0 2.0.0 Reset processed.."
 	    to one with: "250 2.0.0 Reset processed.."
 
-2001-01-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-01-25  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Change all instances of  getaddrinfo()  parameters of
@@ -815,7 +816,7 @@
 	    Specifically report if  getaddrinfo()  calls report
 	    some diagnostics!
 
-2001-01-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-01-24  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/selfaddrs.c, transports/smtp/smtp.c:
 	    If resolver supports option flag  RES_USE_INET6, but
@@ -827,7 +828,7 @@
 	    Also, do explicitely at first lookup /etc/hosts file for
 	    host, only then do resolver lookups.
 
-2001-01-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-01-22  Matti Aarnio  <mea@zmailer.org>
 
 	* include/libz.h, include/mailer.h, compat/sendmail/sendmail.c,
 	  lib/nobody.c, lib/pwdgrp.c, lib/trusted.c, router/functions.c,
@@ -860,14 +861,14 @@
 	    and we must be carefull to do it only with a string of
 	    minimum length of 3.
 
-2001-01-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-01-22  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    When the reply collection goes to timeout ( smtp_sync() ),
 	    CLOSE the smtp-connection.  Also do rmsgappend() a report,
 	    that reply collection went into timeout..
 
-2001-01-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-01-16  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/hold/hold.c:
 	    Do same processing here as at router/functions.c.
@@ -884,7 +885,7 @@
 	    Apparently at Solaris 2.6 it isn't cleared/set quite always
 	    when doing error paths...
 
-2001-01-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2001-01-15  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c:
 	    Typo -- mmfd_mode which should be  mmdf_mode ...
@@ -906,7 +907,7 @@
 	    'zmailer newdb', do 'newdb' the $MAILSHARE/db/mboxmap
 	    also.
 
-2000-12-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-12-31  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c:
 	    At normal success path, do proper  fsync(2)  return
@@ -923,7 +924,7 @@
 	  transports/libta/diagnostic.c:
 	    Also carefull wrappers for  ftruncate(2)  calls.
 
-2000-12-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-12-30  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/mimeheaders.c:
 	    Survive bad control characters in input.
@@ -940,20 +941,20 @@
 	* scheduler/readconfig.c, scheduler/transport.c:
 	    setpriority() syscall autoconfig things
 
-2000-12-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-12-14  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpdata.c:
 	    "BDAT 0 LAST" is valid per explicite example at RFC 3030.
 	    It is also valid per syntax, but not quite so by mere
 	    engineering thought...
 	
-2000-12-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-12-04  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/mimeheaders.c:
 	    ElectricFence is your friend!  Writing over
 	    the end of the allocated array by on element :-/
 
-2000-12-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-12-02  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Don't soften reception of RCPT TO if MAIL FROM gave
@@ -973,7 +974,7 @@
 	* All over the place; (Makefile.in):
 	    More "make -j N" work.
 
-2000-12-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-12-01  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/linebuffer.c, lib/selfaddrs.c, router/daemonsub.c,
 	  scheduler/scheduler.c:
@@ -997,7 +998,7 @@
 	    from within the  smtp_sync()  -- with a theory that the
 	    pipecmds[] array goes boinkers somewhen...
 
-2000-11-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-30  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/mimeheaders.c, transports/mailbox/mailbox.c,
 	  transports/smtp/smtp.c, include/ta.h:
@@ -1011,7 +1012,7 @@
 	    Reusing variable caused wrong content at the pointer, and rare
 	    SIGSEGVs lurking ...
 
-2000-11-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-24  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/mimeheaders.c:
 	    Simplify!  More of the simplification of code.
@@ -1047,7 +1048,7 @@
 	    space needs" to "(re)expand as more space is needed" to
 	    make sure there is no discrepancy in between the two.
 
-2000-11-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-23  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Few hours of going over the  smtp_sync()'s smtp_nbread()
@@ -1079,7 +1080,7 @@
 	    Don't try to be clever with cfp->mid field reuse at
 	    the slurp()ed instance -- use incoming 'cfpi->mid'.
 
-2000-11-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-21  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Meaningless variable name changes (and some revoked changes
@@ -1102,14 +1103,14 @@
 	    -- because Linux glibc 2.1+ has ifr_ifindex, solaris has ifr_index
 	    (barf...)
 
-2000-11-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-19  Matti Aarnio  <mea@zmailer.org>
 
 	* man/smtpserver.8, smtpserver/policytest.c:
 	    Lowercasify the lookup key for alias item lookups,
 	    and fill in the doc/guides/smtp-policy header into
 	    the manual page of the smtpserver.
 
-2000-11-17  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-17  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/threads.c, scheduler/mailq.c:
 	    Some experiments of making the  mailq-v2  mode mailq
@@ -1131,7 +1132,7 @@
 	    the SMTP protocol into log-file.  See "-l" option
 	    at  smtp(8) man-page.
 
-2000-11-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-16  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Some reworking around NDBM tests -- we *MAY* have
@@ -1147,7 +1148,7 @@
 	    At  'make selfaddrs-test', do use autoconfigured @LIBRESOLV@
 	    library reference.
 
-2000-11-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-14  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/selfaddrs.c, lib/zgetifaddress.c:
 	    Fix the support for FreeBSD 4.2*/OpenBSD 2.7* featured
@@ -1169,7 +1170,7 @@
 	      which is able to correctly skip over places where (folded)LWSP
 	      is allowed, including possible (comments) in them.
 
-2000-11-12  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-12  Matti Aarnio  <mea@zmailer.org>
 
 	* CVS tagged this as Version zmailer-2-99-54-patch1
 	  Made also CVS based diff against 2.99.54.
@@ -1186,7 +1187,7 @@
 	    DATA has been sent, and response to it has been waited
 	    for way too long..
 
-2000-11-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-11-02  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c:
 	    Turn the listening sockets into NON-BLOCKING mode,
@@ -1206,7 +1207,7 @@
 	    off when we don't trouble ourselves too much with
 	    circumventations at the resolver code for it.
 
-2000-10-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-31  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Move the  notarystatsave()  function call up so that it will
@@ -1236,7 +1237,7 @@
 	* packaging/solaris/README:
 	    Some additional comments on usage of this tool subset.
 
-2000-10-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-24  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/rrouter.cf, proto/cf/canon.cf:
 	    Support magic trick:
@@ -1245,7 +1246,7 @@
 		(((CHANNELNAME domain user@domain ATTRIBUTES)))
 	    routing result
 
-2000-10-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-23  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, utils/mxerify/mxverify-cgi.c:
 	    For IPv4 addresses, verify that our connect(2)
@@ -1263,7 +1264,7 @@
 	    Noticed a few places where we need to reset the
 	    "SS->rcptstates" variable.
 
-2000-10-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-20  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/Makefile.in, packaging/Makefile.in:
 	    'make install' will install also 'doc/guides/*' files
@@ -1278,7 +1279,7 @@
 	    wide-spread automated data fill-in, plus local
 	    ".manual overrides".
 
-2000-10-17  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-17  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/ctlopen.c:
 	    Return NULL, not 'void' in certain silence case.
@@ -1294,7 +1295,7 @@
 	* smtpserver/smtphelp.c:
 	    Small fixes for help presentation, and parameter recognition.
 
-2000-10-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-16  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpdata.c, smtpserver/smtphelp.c, smtpserver/smtptls.c,
 	  smtpserver/smtpserver.c:
@@ -1347,14 +1348,14 @@
 	    got confused about its calling convention...
 	    (That is: FILE * or Sfio_t * thing..)
 
-2000-10-13  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-13  Matti Aarnio  <mea@zmailer.org>
 
 	* sfio/src/lib/sfio/makefile.in, sfio/src/lib/sfio/Stdio_b/Makefile.in:
 	    Noticed an omission in cross-directory compilations.
 	    Sometimes 'iffe' would fail when directory 'FEATURES' didn't
 	    exist at the running position.  Oops.
 
-2000-10-12  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-12  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/dbdump.c:
 	    New option:  -policydump   which decodes the policy
@@ -1398,7 +1399,7 @@
 	    Removed some duplicate code, and detect autoreplies whose
 	    source address is:  <>
 
-2000-10-10  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-10-10  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/Makefile.in:
 	    "make install" did put zmailer.h into  $prefix/$prefix/include/,
@@ -1441,14 +1442,14 @@
 	  utils/smtpserver-log-parser.pl.in, utils/pop-proxy/pop-proxy.c:
 	    A great speller-bee of "propab*" -> "probab*".
 
-2000-09-26  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-26  Matti Aarnio  <mea@zmailer.org>
 
 	* man/sm.8, transports/sm/sm.c:
 	    Updated (with a radical hand) the manual page to list
 	    what sendmail 8.11 does with flag characters, and what
 	    the ``sm'' does with same characters (and some more).
 
-2000-09-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-25  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/hold/hold.c:
 	    This was left out from the commit 4 days ago.
@@ -1461,14 +1462,14 @@
 	    The 'thishost' relations used to carry '-d pathalias'
 	    driver option on original systems, now it was missing..
 
-2000-09-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-22  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/Makefile.in:
 	    An adjacent directory install failed when system
 	    does not have suitable binary 'install' program, and
 	    'install.sh' is needed.  Rearranged things.
 
-2000-09-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-21  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mq2auth.c, scheduler/scheduler.c:
 	    File leakage at authuser(), which caused opendir() to fail,
@@ -1478,7 +1479,7 @@
 	* router/functions.c, transports/hold/hold.c, proto/cf/aliases.cf:
 	    "hold" handling for the $(homedirectory ...) function.
 
-2000-09-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-20  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/rrouter.cf, proto/db/routes:
 	    Generalizing on various smtp* mechanisms.
@@ -1510,7 +1511,7 @@
 	    mq2_discard() function did completely bogus chain traverse.
 	    Oops..
 
-2000-09-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-19  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.54 (retagged here)
@@ -1535,12 +1536,12 @@
 	    Test for "^bind", "ldap", "ordered" and "unordered" db
 	    types while regenerating the dbases.conf relations.
 
-2000-09-18  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-18  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/transport.c:
 	    A verbose debug printing of the 
 
-2000-09-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-14  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpetrn.c:
 	    Teached IPv6 support to the ETRN-Cluster code.
@@ -1550,21 +1551,21 @@
 	    Know how to turn IPv4-Mapped-in-IPv6 address into IPv4 one,
 	    and thus be able to test it neatly.
 
-2000-09-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-08  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/getmxrr.c:
 	    Even when we have seen EAI_AGAIN results, be a happy
 	    camper in the end if we get ANY MX entries which have
 	    valid address records.
 
-2000-09-07  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-07  Matti Aarnio  <mea@zmailer.org>
 
 	* router/libdb/bsdbtree.c router/libdb/gdbm.c:
 	    At iterative DB walkthroughs there were some
 	    problems at these two functions.  Now they
 	    should a) find data, b) terminate.
 
-2000-09-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-09-04  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Change linkage order of  -lnsl vs. -lxnet.
@@ -1609,7 +1610,7 @@
 	      decimal number string at the destination directory.
 	    - reconverted mail.c to SFIO based sfmail.c
 
-2000-08-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-08-30  Matti Aarnio  <mea@zmailer.org>
 
 	* compat/sendmail/sendmail.c:
 	    - Recognize  "sendmail -bd"  as an order to run "zmailer" script.
@@ -1645,7 +1646,7 @@
 	    At Solaris the  uname(2)  call return NON NEGATIVE
 	    value on success, not necessarily ZERO as in Linux...
 
-2000-08-29  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-08-29  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mq2auth.c:
 	    Copy addresses into separate range buffers for
@@ -1662,7 +1663,7 @@
 	    lack of memory from  getaddrinfo() is handled
 	    properly (e.g. exit(EX_OSERR) -- not best, but..)
 
-2000-08-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+2000-08-23  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/mailq.c:
 	    Use  getaddrinfo()  to pick the peer address.
@@ -1678,7 +1679,7 @@
 	    Pipelined BDAT after failed MAIL FROM segfaulted
 	    on one unprotected SS->mfp referral.  Oops.
 
-2000-08-21  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-08-21  Matti Aarnio  <mea@zmailer.org>
 
 	* libc/getaddrinfo.c:
 	    Complete IPv4/IPv6 functionality with proper
@@ -1688,7 +1689,7 @@
 	    (Necessary at all systems with GNU LIBC versions
 	     up to 2.2.)
 
-2000-08-19  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-08-19  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/newdbprocessor.in:
 	    Process the owner/group/mode triplet too.
@@ -1699,7 +1700,7 @@
 	  transports/smtp/getmxrr.c:
 	    Linux 2.2.* with libc5 fixes.
 
-2000-08-17  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-08-17  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c, router/libdb/bsdhash.c,
 	  router/libdb/bsdbtree.c, utils/makedb/makedb.c,
@@ -1713,7 +1714,7 @@
 	    corrently. (The NDBM even with its faults is sort of ok,
 	    but the DBM - its predecessor - is not...)
 
-2000-08-02  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-08-02  Matti Aarnio  <mea@zmailer.org>
 
 	* include/libz.h, scheduler/scheduler.c, scheduler/update.c,
 	  lib/esyslib.c, include/ta.h:
@@ -1733,7 +1734,7 @@
 	          yielding EAI_NONAME in places of EAI_AGAIN may have
 		  been another.. -- at least for me.]
 	
-2000-08-02  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-08-02  Matti Aarnio  <mea@zmailer.org>
 	
 	* libc/getaddrinfo.c, libc/getnameinfo.c:
 	    Picked lattest versions out from  GLIBC 2.1.92 source,
@@ -1741,7 +1742,7 @@
 	    without locks, and without IPv6 support.
 	    STILL PROBABLY LEAKS MEMORY!
 
-2000-08-01  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-08-01  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Some debug printout revisions.  Somewhat embarassing to have
@@ -1755,7 +1756,7 @@
 	    to get real NDBM, and not some fake layers which all those
 	    others do provide!
 
-2000-07-31  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-07-31  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.h, scheduler/scheduler.c, scheduler/msgerror.c:
 	    Recognize our internal NOTIFY=TRACE flag.
@@ -1776,7 +1777,7 @@
 	    Added acceptance for our internal  -N TRACE flag, which
 	    is for eased debugging of RFC 2852 features.
 
-2000-07-30  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-07-30  Matti Aarnio  <mea@zmailer.org>
 
 	* libident/identuser.c:
 	    A buglet in read loop.  The 'break' affects only
@@ -1811,7 +1812,7 @@
 	    while updating documents revealed that we do unnecessary
 	    scrubbing there.
 
-2000-07-29  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-07-29  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/Makefile.in, transports/smtp/smtp.h,
 	  transports/smtp/smtp.c, transports/smtp/getmxrr.c:
@@ -1825,7 +1826,7 @@
 	* transports/smtp/smtp.c:
 	    Streamlined error handling when returning from getmxrr().
 
-2000-07-27  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-07-27  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    - At getmxrr() a missed state variable initialization
@@ -1834,13 +1835,13 @@
 	    - calls to  stashmyaddresses()  don't need to carry determined
 	      self-host-identity.
 
-2000-07-24  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-07-24  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/msgerror.c:
 	    A simple spelling error in normally invisible text sent
 	    towards the user inside the delivery status reports.
 
-2000-07-18  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-07-18  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Possibly  ssfgets()  fell on over-by-one allocation/storage
@@ -1859,7 +1860,7 @@
 	    A bit more characters into "no need to quote these here"
 	    set -- allow address <@[1.2.3.4]:foo@bar> and <foo@[1.2.3.4]>
 
-2000-07-17  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-07-17  Matti Aarnio  <mea@zmailer.org>
 
 	* libs/Makefile.in, Makefile.in:
 	    Merge  libsfio.a  generation into this file also, so that
@@ -1886,7 +1887,7 @@
 	* router/dateparse.c:
 	    Fix for "Date: 00-06-29 03:50:11" induced crashes
 
-2000-07-14  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-07-14  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/selfaddrs.c:
 	    Rearrange SIOCGLIFCONF / SIOCGIFCONF code a bit, will
@@ -1901,13 +1902,13 @@
 	* man/Makefile.in:
 	    If "${MANDIR}/man3" directory does not exist, create it.
 
-2000-07-11  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-07-11  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Sometimes printing to logfp was done unconditionally -- when
 	    the logfp variable carries NULL :-/
 
-2000-06-22  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-06-22  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, smtpserver/mxverify.c:
 	    Further commentary from  bind-workers  told me that unless
@@ -1916,7 +1917,7 @@
 	    expired.  Thus we shall use that reply section for A/AAAA only
 	    if AA-bit is set.
 
-2000-06-21  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-06-21  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/mxverify.c, transports/smtp/smtp.c:
 	    Made smtpserver MXVERIFY to use DNS ADDITIONAL DATA,
@@ -1933,7 +1934,7 @@
 	* transports/smtp/smtp.c:
 	    Some more tuning of  getmxrr()  pathology processing.
 
-2000-06-20  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-06-20  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Use  zgetifaddress() for '-L iface:eth0' binding.
@@ -1961,7 +1962,7 @@
 	    the DNS supplied ADDITIONAL DATA segment materiel
 	    for MX machine addresses.
 
-2000-06-19  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-06-19  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/update.c:
 	    Organically relating to  smtpopen() -> "retryat +60"
@@ -2005,7 +2006,7 @@
 	    code for all RCPTs which they get, and then said
 	    to DATA that 'no recipients given yet'..
 
-2000-06-14  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-06-14  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/fqdnalias.cf:
 	    Don't fqdn-alias if it looks like RFC-822 source route
@@ -2016,7 +2017,7 @@
 	    needing quotes -- allow ',' and ':' to be included into
 	    addresses without quotes.
 
-2000-06-13  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-06-13  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/fqdnalias.cf:
 	    A missed thing in privilege processing in case db lookup
@@ -2041,7 +2042,7 @@
 	    and has also option '-U' for logging with non-default
 	    username/password pair.
 
-2000-06-07  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-06-07  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/ctlopen.c:
 	    If ctlopen() contained open() of message body file fails,
@@ -2064,7 +2065,7 @@
 	    Modify the '-n' option semantics to control how DSN RET
 	    option value is set in absense of originator supplied value.
 
-2000-06-02  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-06-02  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mailq.c:
 	    Count files in POSTOFFICE/router/ directory also when
@@ -2082,12 +2083,12 @@
 	* proto/post-install.sh.in:
 	    More minor tweaks.
 
-2000-05-28  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-05-28  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/Makefilein, proto/post-install.sh.in:
 	    Small fixes that disjoint installation test shows up..
 
-2000-05-26  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-05-26  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/smtp/smtp.h:
 	    Cosmetics-like things about diagnostics tracking.
@@ -2096,7 +2097,7 @@
 	    These are all PERL scripts now -- that last one should be
 	    renamed, thinking about it...
 
-2000-05-25  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-05-25  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtptls.c:
 	    Proper network timeout monitored non-blocking wrapper
@@ -2109,7 +2110,7 @@
 	     at DATA/dot time, which need all recipients, not just the
 	     last one...)
 
-2000-05-24  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-05-24  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/newdb.in:
 	    Rewritten into PERL(v5) script.
@@ -2121,7 +2122,7 @@
 	    the underscore as starter there -- for a username..
 	    (smtpcmds.c has some diagnostics report beauty warts.)
 
-2000-05-18  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+2000-05-18  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/newdb.in, router/libdb/ndbm.c, router/libdb/dbm.c:
 	    At NewDBM (ndbm) the dbm_dirfno() does not always yield
@@ -2131,7 +2132,7 @@
 	    and thus we use it -- and change file moving order to
 	    .DIR .PAG to match which is tested latter.
 
-2000-05-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-05-10  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/Makefile.in, proto/post-install.sh.in:
 	    Moved POSTOFFICE directory subdir generation into
@@ -2139,7 +2140,7 @@
 	    script before system becomes ready for running is
 	    now MANDATORY!  (At least at fresh installations.)
 
-2000-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-05-09  Matti Aarnio  <mea@zmailer.org>
 
 	* router/rfc822.c:
 	    Existence of ZENV variable ``SCHEDULERDIRHASH'' drives
@@ -2166,7 +2167,7 @@
 	    Call  syncweb()  also inside the   mux()  routine
 	    so that new jobs will get assimilated faster.
 
-2000-05-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-05-08  Matti Aarnio  <mea@zmailer.org>
 
 	* libc/mail.c, router/rfc822.c:
 	    Simplified message injection code a bit; especially
@@ -2191,13 +2192,13 @@
 	    is falling on default of "yes this is always ok relay
 	    source" behaviour -- which in general is wrong :-(
 
-2000-05-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-05-04  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/selfaddrs.c:
 	    Yet Another small surprise at Linux systems about
 	    self-address extraction.  :-/
 
-2000-04-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-20  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c:
 	    Fix "from_box" setting to match current treatment
@@ -2211,13 +2212,13 @@
 	    PARAM name is:  RcptLimitCount,  while it was recognized
 	    only as  RcptLimitCnt ...  Oops.
 
-2000-04-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-18  Matti Aarnio  <mea@zmailer.org>
 
 	* router/db.c:
 	    A mistake in cache LRU chain handling caused eternal
 	    loop to form sometimes.  Oops.
 
-2000-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-14  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/ctlopen.c:
 	    An odd corner case of error handling allowed access to
@@ -2251,7 +2252,7 @@
 	    Moved things around so that it works also when compiled
 	    WITHOUT (Open)SSL.
 
-2000-04-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-13  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Moved one instance of  tls_conf_file  inside HAVE_OPENSSL
@@ -2266,14 +2267,14 @@
 	    Under TLS do always flush replies - to simulate one other
 	    MTA running under TLS wrapper. (This was removed a bit latter.)
 
-2000-04-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-12  Matti Aarnio  <mea@zmailer.org>
 
 	* router/db.c:
 	    For Matthias Urlich; a method to declare at RELATION entry
 	    if NEGATIVE CACHE is used at the particular relation (pre-
 	    requires that cache is also used..) Driven with: -N option.
 
-2000-04-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-11  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mq2.c, scheduler/mq2auth.c, scheduler/prototypes.h,
 	  scheduler/scheduler.h, scheduler/scheduler.c, scheduler/transport.c:
@@ -2284,7 +2285,7 @@
 	    for DB lookup related caches.  It is simple to do, but
 	    not so simple to explain to be usefull...
 
-2000-04-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-08  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/msgerror.c, scheduler/prototypes.h, scheduler/threads.c,
 	  scheduler/transport.c:
@@ -2302,7 +2303,7 @@
 	    Also modified unvertex() slightly to forward nextfeed in
 	    case current vertex is (at all) in any sort of processing.
 
-2000-04-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-07  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/update.c:
 	    Log only really important diagnostics about error
@@ -2315,7 +2316,7 @@
 	    advanced..  Although getting this means that the
 	    scheduler has just fed the same job twice to TAs..
 
-2000-04-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-06  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtptls.c:
 	    Disable TLS read_ahead setting.  That mode doesn't
@@ -2323,7 +2324,7 @@
 	    Stalker Software's  CommuniGate Pro smtpserver when
 	    running in PIPELINING mode.
 
-2000-04-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-04-02  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf, proto/cf/fqdnalias.cf:
 	    - More work on rewritten expansion loop prevention measures.
@@ -2336,14 +2337,14 @@
 	    will be delivered to both, unless some other mapping diverts.
 	    NOT YET A COMPLETE THING!
 
-2000-03-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-30  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/zmailer.sh.in, proto/newdb.in, proto/db/dbases.conf:
 	    Now 'zmailer newdb' uses the  $MAILVAR/db/dbases.conf  file,
 	    if it exists.  (But the converted needs to be rewritten,
 	    and security issues need more thought...)
 
-2000-03-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-29  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/threads.c:
 	    thread_reschedule() crashed on thr->thvertices being NULL ??
@@ -2373,7 +2374,7 @@
 	    linear (urgh..) search time.  (A splay-tree was also considered,
 	    but decided not to use.)
 
-2000-03-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-28  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf, proto/cf/crossbar.cf, proto/cf/standard.cf,
 	  proto/db/dbases.conf, proto/db/kill-headers, proto/db/userdb:
@@ -2392,7 +2393,7 @@
 	* Makefile.in:
 	    Version 2.99.53-pre1
 
-2000-03-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-27  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    When the outbound SMTP fp is closed, don't truncate the
@@ -2403,14 +2404,14 @@
 	  scheduler/prototypes.h, scheduler/threads.c:
 	    Playing with ideas regarding MAILQ-V2 protocol.
 	
-2000-03-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-24  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, transports/mailbox/dotlock.c:
 	    Autosense 'HAVE_GETHOSTID', and if it isn't, try to
 	    create it in couple different ways (For earlier Solaris,
 	    and HPUX systems, very least.)
 
-2000-03-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-23  Matti Aarnio  <mea@zmailer.org>
 
 	* INSTALL, configure.in, Makefile.in, sfio/Makefile.in,
 	  sfio/src/lib/sfio/makefile.in,
@@ -2422,14 +2423,14 @@
 	* doc/guides/smtp-policy:
 	    Added some words about the policy testing by using -T option.
 
-2000-03-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-21  Matti Aarnio  <mea@zmailer.org>
 
 	* man/smtpserver.8, smtpserver/smtpserver.h, smtpserver/smtpserver.c:
 	    Implemented  -T  option for a local interactive policy testing
 	    without having connectivity all around the world.
 	    See the man-page.
 
-2000-03-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-18  Matti Aarnio  <mea@zmailer.org>
 
 	* router/daemonsub.c, router/conf.c:
 	    Spotted a self-healing misbehaviour in the child process feeder,
@@ -2442,7 +2443,7 @@
 	    we don't know about right now.  Perhaps need to have some other
 	    approach on the problem...
 
-2000-03-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-17  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c, smtpserver/smtprouter.c:
 	    Instead of using printf format:  %*s  we need to use  %.*s
@@ -2455,7 +2456,7 @@
 	    Changed  stdout  written log printf() format so that
 	    quite large lists of addresses are allowed.
 
-2000-03-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-15  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, transports/mailbox/mailbox.c:
 	    "--without-maillock" configuration option from
@@ -2466,7 +2467,7 @@
 	     for mailboxes, Solaris  maillock()  will still put
 	     locks into /var/mail/ directory :-?  Hmm..)
 
-2000-03-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-14  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/msgerror.c:
 	    Reworked report suppression; if all RCPTs have NOTIFY=NEVER,
@@ -2493,7 +2494,7 @@
 	    DRUMS/SMTPUPD tells that policy based rejections of recipients
 	    shall use 550 (and 450) codes.
 
-2000-03-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-09  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/diagnostic.c, include/ta.h,
 	  transports/smtp/smtp.c:
@@ -2506,7 +2507,7 @@
 	    Now things should allow recipient address to be retries
 	    properly even with mode locking working ok.
 
-2000-03-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-05  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c:
 	    More systematic approach at MAIL FROM and RCPT TO
@@ -2515,7 +2516,7 @@
 	    just for completely braindead approach prevalent in
 	    M$ client software...
 
-2000-03-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-03  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/msgerror.c:
 	    Basic footwork for DELAYED reporter.
@@ -2542,7 +2543,7 @@
 	    - Slightly simplified doagenda()
 	    - Created accumulated report collector/reporter subservice.
 
-2000-03-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-03-01  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/forms/delivery:
 	    Added an URL reference to a "decode key" at
@@ -2565,7 +2566,7 @@
 	    socket, do turn all back reported 500 series errors into softer
 	    400 series codes.  Won't unnecessarily reject messages.
 
-2000-02-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-29  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpetrn.c, man/smtpserver.8, man/scheduler.8:
 	    Completed the etrn-cluster code. Seems to work, even.
@@ -2582,7 +2583,7 @@
 	      can be accepted before our side hungs the connection. Default
 	      limit: 10
 
-2000-02-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-28  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
 	  smtpserver/cfgread.c, smtpserver/smtpetrn.c,
@@ -2590,7 +2591,7 @@
 	    - A bug in '-l SYSLOG' which bite me at Solaris.. Oops..
 	    - some reworking of ETRN-CLUSTER code, but no completition yet.
 
-2000-02-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-25  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    If DATA-dot-phase ending dot yields EX_TEMPFAIL, don't
@@ -2604,7 +2605,7 @@
 	    Make '-l SYSLOG' option to work in parallel with possible
 	    '-l /path/to/file' logging option.
 
-2000-02-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-18  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Moved   --with-zconfig=  code around a bit, apparently it was
@@ -2619,7 +2620,7 @@
 	          rearrangeing 'USE_TRANSLATION' usage in smtpdata.c
 		  (e.g.: Eugene wrote it, Matti possibly botched it..)
 
-2000-02-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-15  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/agenda.c, scheduler/mq2.c, scheduler/prototypes.h,
 	  scheduler/scheduler.c, scheduler/scheduler.h, scheduler/threads.c,
@@ -2631,7 +2632,7 @@
 	    - Implemented MAILQv2 action ETRN -- exactly alike the SMTP-
 	      server one.
 
-2000-02-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-12  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/selfaddrs.c:
 	    In *addition* to interface picked addresses, collect also
@@ -2648,7 +2649,7 @@
 	  proto/smtpserver.conf.in, doc/guides/etrn-cluster:
 	    Some initial work for an ETRN-CLUSTER.
 
-2000-02-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-08  Matti Aarnio  <mea@zmailer.org>
 
 	* man/smtpserver.8, smtpserver/smtpserver.h, smtpserver/smtpserver.c,
 	  smtpserver/smtpdata.c, smtpserver/smtpcmds.c, smtpserver/smtpauth.c:
@@ -2657,7 +2658,7 @@
 	    facility.  Beware there is *huge* amount of dataflow there!
 	    Some updates to smtpserver.8 man-page.
 
-2000-02-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-04  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, lib/taspoolid.c:
 	    Changed (again) the logtag prefix for smtpserver's -l parameter
@@ -2665,12 +2666,12 @@
 	    via syslog() to where-ever that goes.  (But server process can
 	    have only one syslog() session active with one facility..)
 
-2000-02-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-03  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
 	    Grumble...  Still seeing wrong kind of timeouts..
 
-2000-02-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-02  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    An oddball log error - misreported outwritten message header
@@ -2713,7 +2714,7 @@
 	    after collecting previous input line, not after SYNCing out
 	    previous reply.
 
-2000-02-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-02-01  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/appendlet.c, transports/smtp/smtp.h,
 	  transports/smtp/smtptls.c,   transports/smtp/smtp.c:
@@ -2724,7 +2725,7 @@
 	    Some code rearrangements to better(?) handle stream
 	    write errors.
 
-2000-01-31  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-31  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/mxverify/mxverify-cgi.c:
 	    Move "test with user-suppled address" before the
@@ -2732,13 +2733,13 @@
 	    doesn't exist (which is an error in itself, though..),
 	    the user supplied address was tested very least.
 
-2000-01-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-25  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/smtp/appendlet.c:
 	    Small error test rearrangements so that if  sferror()
 	    is set at the output stream, no writing will happen.
 
-2000-01-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-24  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
 	    Do proper TAB-expand in entire header strings, if so directed.
@@ -2755,7 +2756,7 @@
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
 	    More debug stuff for hunting strance message breaks..
 
-2000-01-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-23  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/token.c, router/rfc822hdrs.c:
 	    Turn all header start spaces to optimized TABs plus spaces.
@@ -2778,7 +2779,7 @@
 		./configure --prefix=/usr
 		cd utils/mxverify ; make
 
-2000-01-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-20  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/listexpand.c:
 	    Added parametrization on how large bundles to make.
@@ -2798,7 +2799,7 @@
 	    Reworked quite some things after initial deployment, added
 	    that page into CVS for supplementary info.
 
-2000-01-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-19  Matti Aarnio  <mea@zmailer.org>
 
 	* include/ta.h,           transports/libta/diagnostic.c,
 	  transports/smtp/smtp.c, transports/libta/tasyslog.c:
@@ -2809,7 +2810,7 @@
 	    Writing a utility to ease destination domain verification
 	    by testing *all* MXes of given domain.
 
-2000-01-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-17  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c:
 	    Accept SMTP verbs which have numbers in them.
@@ -2825,7 +2826,7 @@
 	    ( -> On larger blocked zone, an individual OK entry can
 	         accept email. )
 
-2000-01-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-14  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/msgerror.c, include/ta.h, transports/libta/diagnostic.c,
 	  transports/smtp/smtp.c:
@@ -2847,7 +2848,7 @@
 	    Fixed recent thoughts mentioned below - coded test end
 	    statement ("fi") was missing.
 
-2000-01-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-07  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/threads.c:
 	    Sometimes adding new tasks into a long-running thread did cause
@@ -2876,13 +2877,13 @@
 	    Seen strange junk commands fed out to the remote
 	    systems, trying to determine what is going on..
 
-2000-01-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-05  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c:
 	    Change several policy situation '550' codes to '553';
 	    temporary failure indicators shall stay as '440'.
 
-2000-01-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-04  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c:
 	    Killed 'HAVE_TCPD_H' code from these files; using
@@ -2897,7 +2898,7 @@
 	    If 'DATA' yields '500' series, don't just do RSET + retry
 	    at the same stream. (EX_IOERR)
 
-2000-01-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-03  Matti Aarnio  <mea@zmailer.org>
 
 	* router/libdb/headers.c:
 	    Darn..  Can't just disable "date" from known headers, however
@@ -2907,7 +2908,7 @@
 	    abort() replaced with correct code -- "the thing never to
 	    happen *did* happen"...
 
-2000-01-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+2000-01-02  Matti Aarnio  <mea@zmailer.org>
 
 	* router/rfc822.c, lib/skip821address.c, transports/libta/ctlopen.c:
 	    Have seen one mighty strange local non-delivery, and learned
@@ -2966,7 +2967,7 @@
 	  transports/smtp/smtp.h, doc/guide/openssl:
 	    Debugged the client-mode STARTTLS, it *works*!
 
-1999-12-31  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-31  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.52-patch1
@@ -2984,12 +2985,12 @@
 	    mode operation of SMTP.  Only against other ZMailers,
 	    and a few other rare systems..
 
-1999-12-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-30  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.52
 
-1999-12-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-30  Matti Aarnio  <mea@zmailer.org>
 
 	* contrib/zmailer-spec/*:
 	    SPECS files for RPM generation from XosÉ Vázquez <xose@ctv.es>
@@ -3046,7 +3047,7 @@
 	    Tracked memory freeup order failure!  D'uh it was difficult!
 	    ( ctlclose() did free(d.contents) too early... )
 
-1999-12-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-29  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.h, scheduler/prototypes.h, scheduler/mq2.c,
 	  scheduler/threads.c, scheduler/transport.c, scheduler/readconfig.c,
@@ -3054,12 +3055,12 @@
 	  scheduler/agenda.c:
 	    Implemented changes needed for running multiple TAs at threads.
 
-1999-12-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-28  Matti Aarnio  <mea@zmailer.org>
 
 	* include/netdb.h, libc/getnameinfo.c:
 	    Fixes from Eugene Crosser for Cobalt box.
 
-1999-12-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-23  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/hold/Makefile.in, transports/mailbox/Makefile.in,
 	  transports/sm/Makefile.in, transports/smtp/Makefile.in:
@@ -3075,14 +3076,14 @@
 	    After some fixed amount of resyncs on a file, throw it away
 	    alltogether for latter input queue scanner to find.
 	
-1999-12-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-22  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/selfaddrs.c:
 	    A programming error has lurked here ages -- if system has
 	    more than a few (6-8) IP addresses, previous code failed
 	    to pick *any*.  Cured things so that it will now pick all.
 	
-1999-12-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-21  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.h, scheduler/transport.c:
 	    Report at reclaim() to scheduler main error log if subprogram
@@ -3100,7 +3101,7 @@
 	    Fixed  'thr->attempts' accounting, threw away a pile of
 	    dead (#if 0 ... #endif) code.
 	
-1999-12-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-20  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/transport.c:
 	    Inverted flush_child() return code - to work like specified..
@@ -3113,7 +3114,7 @@
 	* libc/getaddrinfo.c:
 	    Include wrapper test fix
 
-1999-12-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-19  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.c:
 	    Wondered why (at Solaris) the system doesn't run with
@@ -3143,19 +3144,19 @@
 	    Synced  getaddrinfo() API constants with that of Linux
 	    glibc 2.1 proper.
 
-1999-12-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-16  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/prototypes.h, scheduler/threads.c, scheduler/transport.c,
 	  scheduler/update.c:
 	    Reworked vertex processing some more -- the child feed function
 	    (and *only* that) will call  pick_next_vertex().
 
-1999-12-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-15  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.c:
 	    In sync_cfps() vertex index limits one-off :-(
 	
-1999-12-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-14  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.h, scheduler/prototypes.h, scheduler/update.c,
 	  scheduler/transport.c, scheduler/threads.c:
@@ -3164,7 +3165,7 @@
 	    Killed a *lot* of hairy code -- thus must have done something
 	    right...  (Added about 440 lines, removed about 550 lines.)
 
-1999-12-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-14  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    '--disable-pam' option.
@@ -3180,7 +3181,7 @@
 	* smtpserver/zpwmatch.c:
 	    Don't call (at all)  pam_acct_mgmt()  function.
 
-1999-12-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-12  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/msgerror.c:
 	    Put original (or rewritten) message headers to the end of
@@ -3204,13 +3205,13 @@
 	    series "approximative" processing more common in all
 	    public source based system.. (beginning with sendmail..)
 
-1999-12-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-09  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/ctlopen.c, router/rfc822.c, scheduler/scheduler.c,
 	  scheduler/threads.c:
 	    Immediately obvious bugfixes, once the system is under load..
 
-1999-12-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-08  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/mailbox/mailbox.c:
 	    Noticed case where still do MIME downgrading in place
@@ -3247,7 +3248,7 @@
 	    Track successfull configuration, and refuse to accept
 	    email if no rudimentary configuration exists.
 
-1999-12-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-04  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler:
 	  - Some more SFIO fixes which I missed last night
@@ -3268,7 +3269,7 @@
 	  - Some changes to few very commonly used headers, and resulting
 	    small call changes all over..
 
-1999-12-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-02  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/smtp-tls.conf, transports/smtp/smtp.c,
 	  transports/smtp/smtp.h, transports/smtp/smtptls.c:
@@ -3289,7 +3290,7 @@
 	    $POSTOFFICE/TLSclntcache/ directories with protection of 700 ..
 	    (For the SSL session cache storage.)
 	
-1999-12-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-12-01  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/policy-builder.sh.in:
 	    Add some comments to the generated  smtp-policy.dat  file
@@ -3323,7 +3324,7 @@
 	    Further smarts at the transport-time conversions will
 	    go into the  appendlet.c  alone..
 	
-1999-11-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-11-30  Matti Aarnio  <mea@zmailer.org>
 
 	* router/Makefile.in, router/daemonsub.c, router/functions.c,
 	  router/router.c:
@@ -3337,7 +3338,7 @@
 	* utils/smtpserver-log-parser.pl:
 	    Synced this tool with my lattest online edition, fairly usable..
 
-1999-11-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-11-17  Matti Aarnio  <mea@zmailer.org>
 
 	* router/functions.c:
 	    More system rework, now signal handlers don't muck with
@@ -3363,7 +3364,7 @@
 	    omitted, and one pointer is thus NULL -- referring via which
 	    is an open invitation to trouble (SIGSEGV usually..)
 
-1999-11-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-11-16  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Noticed that (again) smtp doesn't always timeout in 3 days
@@ -3377,7 +3378,7 @@
 	    - logging isn't done anymore via router logscript
 	      "dribble" redirection, but via a work-gang leader
 
-1999-11-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-11-15  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    version 2.99.52-pre4
@@ -3414,7 +3415,7 @@
 	    Updated man-pages a bit (quite a bit!), implemented 'mailq -QQQ'
 	    in MAILQv2 mode. (E.g. 'SHOW SNMP')
 
-1999-11-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-11-12  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Autodetect  <sys/un.h>  header file
@@ -3433,7 +3434,7 @@
 	    and allowing each a different mailq port. (Out of PF_UNIX,
 	    and PF_INET protocol families..)
 
-1999-11-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-11-11  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mq2.c, scheduler/scheduler.c, scheduler/prototypes.h,
 	  scheduler/threads.c, scheduler/readconfig.c, proto/scheduler.conf.in,
@@ -3460,14 +3461,14 @@
 	     at libc converts all control characters to ^I (in TAB case)
 	     pairs..  D'uh...)
 
-1999-11-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-11-09  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/makedb.c:
 	    When using NDBM format, if the STORE returns error with
 	    errno=ENOSPC, we report that KEY.LEN+DATA.LEN exceed 1kB
 	    which NDBM allows...
 
-1999-11-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-11-04  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/readconfig.c, scheduler/threads.c, scheduler/conf.c,
 	  scheduler/mailq.c, scheduler/mq2.c, scheduler/mq2auth.c,
@@ -3497,7 +3498,7 @@
 	    Some script tweaks; removed externally sourced 'bad source
 	    addresses' list pickups.
 
-1999-11-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-11-02  Matti Aarnio  <mea@zmailer.org>
 
 	* include/md5.h, libc/md5c.c:
 	    Move call-interface renaming macro into more
@@ -3519,7 +3520,7 @@
 	    Initial steps to write an interactive command channel
 	    via the MAILQ port.
 
-1999-10-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-10-30  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/Makefile.in, smtpserver/smtpserver.c,
 	  smtpserver/wantconn.c:
@@ -3540,7 +3541,7 @@
 	    Mark Visser <mark@cal026031.student.utwente.nl>.
 	    (Who reported of what postfix/vmail can do.)
 
-1999-10-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-10-26  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Smarter (?) default picking for  SENDMAILPATH and MAILBOX
@@ -3556,7 +3557,7 @@
 	    smtpserver.  SMTPSERVER's policy-database has superior
 	    technology for the same thing.
 
-1999-10-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-10-20  Matti Aarnio  <mea@zmailer.org>
 
 	* man/Makefile.in:
 	    Make the destination directories if they don't exist..
@@ -3579,7 +3580,7 @@
 	    does not make much sense - nor exactly in local storage
 	    mode either...
 
-1999-09-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-30  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c:
 	    For ETRN processing be slightly more carefull at
@@ -3599,7 +3600,7 @@
 	    continuing with an open stream (sort of bug..) we do
 	    succesfully deliver email..
 
-1999-09-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-27  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/readconfig.c:
 	    If the  channel/host  selector clause contains wild-cards
@@ -3618,18 +3619,18 @@
 	    the date parsing, and it turned out to run with month zero,
 	    which caused division-by-zero --> core dump...
 
-1999-09-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-21  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.52-pre3
 
-1999-09-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-17  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:
 	    Don't call  whoson(),  nor tcp-wrapper libraries in case
 	    the smtpserver is not running from a network socket.
 
-1999-09-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-15  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, smtpserver/smtprouter.c:
 	    For some proprietary ZMailer instances we realized that
@@ -3642,7 +3643,7 @@
 	    downloading with Lynx, and its associated tests.
 	    Time has passed over them...
 
-1999-09-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-14  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/smtpserver.conf.in, proto/zmailer.sh.in,
 	  smtpserver/zpwmatch-pipe.c, man/smtpserver.8:
@@ -3652,13 +3653,13 @@
 	    Limited one potential buffer-overflow into more sensible
 	    sizes of input.
 
-1999-09-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-10  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c, transports/mailbox/fmtmbox.c,
 	  transports/mailbox/mboxpath.c, transports/mailbox/Makefile.in:
 	    mboxpath-formatter routine from Eugene Crosser.
 
-1999-09-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-09  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/symbol.c:
 	    Use CRC-31 polynome hash function internally.
@@ -3673,7 +3674,7 @@
 	    outside the  symbol.c;  Entrypoints: 'long crc32(char *s);'
 	    and 'long crc32n(char *s, int len);'.
 
-1999-09-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-08  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/interpret.c, libsh/expand.c, include/libsh.c,
 	  libsh/shconfig.h, libsh/zmsh.c:
@@ -3704,7 +3705,7 @@
 	* smtpserver/zpwmatch.c:
 	    More rework at the SHADOW -branch..
 
-1999-09-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-07  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:
 	    If (heaven forbid)  s_gets()  routine notes that the input
@@ -3724,12 +3725,12 @@
 	    Missed one instance of  read()  from converting to  Z_read()
 	    wrapper for OpenSSL call support...
 
-1999-09-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-05  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.52-pre2
 
-1999-09-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-03  Matti Aarnio  <mea@zmailer.org>
 
 	* doc/guides/smtp-etrn:
 	    Spotted a typo error at the ISP side of the document.
@@ -3747,12 +3748,12 @@
 	    Fix  HAVE_SHADOW_H  branch of the code per report
 	    from Eugene Crosser.
 
-1999-09-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-09-01  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Error reports from "." phase were improper, cured.
 
-1999-08-31  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-31  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/rrouter.cf:
 	    Another missed "$(dequote ...)" call.  Without this,
@@ -3760,7 +3761,7 @@
 	    local channel tags so that all other cases can safely
 	    be run to procmail as the local delivery agent.
 
-1999-08-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-30  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.52-pre1
@@ -3768,7 +3769,7 @@
 	* sfio/*
 	    Looking for ways to use this thing...
 
-1999-08-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-27  Matti Aarnio  <mea@zmailer.org>
 
 	* contrib/pipeauth-0.55.tar.gz, contrib/rauth-0.56.tar.gz,
 	  proto/smtpserver.conf.in, proto/zmailer.sh.in,
@@ -3783,12 +3784,12 @@
 	    Report the 'host' part of the referred channel/host pair
 	    for which the diagnostic is being presented.
 
-1999-08-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-26  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c:
 	    Fix support for SLOPPY mode "MAIL FROM:<>" source address.
 
-1999-08-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-24  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
 	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c, smtpserver/smtprouter.c:
@@ -3798,13 +3799,13 @@
 	* libc/mail.c:
 	    Do  setvbuf( _IOFBF )  on freshly opened file descriptor.
 
-1999-08-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-22  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    An odd-ball case of lacking RSET in PIPELINING mode when
 	    none of the recipients were successfull..
 
-1999-08-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-21  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/fqdnalias.cf:
 	    One last missing usage instance of "runas .. cat ..".
@@ -3814,7 +3815,7 @@
 	    the initial text report - because so many (M$) email clients
 	    are uterly unable to display them...
 
-1999-08-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-18  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    For Solaris 2.6 (and Solaris 7 ?) autodetect  -lxnet  for
@@ -3823,7 +3824,7 @@
 	* smtpserver/zpwmatch.c, utils/listexpand.c:
 	    Some cleanup from result of using SUN-CC 4.2 at Solaris 2.6.
 
-1999-08-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-17  Matti Aarnio  <mea@zmailer.org>
 
 	* README.TCP-WRAPPER:
 	    New file.
@@ -3842,7 +3843,7 @@
 	    same call doesn't block (no need!)  Also some errno
 	    saving around.
 
-1999-08-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-16  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf:
 	    When the   ssift  (and tsift)  were changed *not* to
@@ -3856,7 +3857,7 @@
 	    One fine-tuning of "Received:" header generation; leaves
 	    off one space character when no 'from' clause is present.
 
-1999-08-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-15  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Detect better, when the STDIO fwrite() and friends
@@ -3865,7 +3866,7 @@
 	    neath, and when coming back up, it rejected the pre-
 	    existing connections...
 
-1999-08-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-14  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, smtpserver/smtpcmds.c,
 	  smtpserver/rfc821scn.c:
@@ -3879,7 +3880,7 @@
 	* utils/policy-builder.sh.in:
 	    Remove previous static blocking list source entries.
 
-1999-08-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-08  Matti Aarnio  <mea@zmailer.org>
 
 	* man/smtpserver.8:
 	    A bug in the document..  TCP-wrapper service is
@@ -3889,7 +3890,7 @@
 	    Previous work had some weird problems, reworked, and
 	    now it seems to work.
 
-1999-08-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-06  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/mimeheaders.c:
 	    MIME-conversion labeling had problems after the new form
@@ -3901,7 +3902,7 @@
 	    is long about what and where...  look at the ZMailer list
 	    archive about ccNotes gateway problem.
 
-1999-08-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-08-03  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/selfaddrs.c:
 	    After example code at the list, did some of my own code tweaks
@@ -3916,7 +3917,7 @@
 	    Now strategically placed symlinks can't be used to divulge file
 	    contents whose access is prohibited from the symlink creator..
 
-1999-07-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-20  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Minor nit-pick in <sys/socket.h> study.. Must include <sys/types.h>
@@ -3927,13 +3928,13 @@
 	    Don't do implicite dequotation of quotefull strings in ssift and
 	    tsift..  ( '"foo@bar"' -> 'foo@bar' )
 	
-1999-07-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-19  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Instead  AC_CHECK_HEADER() use AC_CHECK_HEADERS() macro.
 	    Former *should* work with single headers, but apparently not..
 
-1999-07-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-19  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.51
@@ -3952,7 +3953,7 @@
 	    GLIBC 2.1 with __USE_GNU active has also 'getline()' function,
 	    thus we renamed to   zgetline() ...
 
-1999-07-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-12  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.51-pre3
@@ -3961,14 +3962,14 @@
 	    - Empty headers caused problems in printout
 	    - At errprint() did some token double-printing, now fixed.
 
-1999-07-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-08  Matti Aarnio  <mea@zmailer.org>
 
 	* root/prototypes.h, root/rfc822hdrs.c:
 	    Still more finetuning of the RFC-822 output folding
 	    rules.  Now things look nice in all cases that I have
 	    encountered/imagined.
 
-1999-07-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-07  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.51-pre2
@@ -3994,7 +3995,7 @@
 	    tokenization, and proper folding at the output.
 	    Most difficult part seemed to be rfc822scan.c ...
 
-1999-07-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-05  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Reworked the EHLO/HELO reconnect mechanisms.  Now it
@@ -4015,7 +4016,7 @@
 	    of reported reversed hostname in the "rcvdfrom" envelope
 	    header, and thus in the resulting "Received:" header.
 
-1999-07-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-04  Matti Aarnio  <mea@zmailer.org>
 
 	* router/rfc822.c, router/rfc822hdrs.c, router/libta/header.c:
 	    A bit more gymnastics to get rid of:
@@ -4038,7 +4039,7 @@
 	    in all situations (considering when/how to fold commentary
 	    material in 'from' entry.)
 
-1999-07-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-03  Matti Aarnio  <mea@zmailer.org>
 
 	* man/smtpserver.8, smtpserver/smtpserver.c, smtpserver/smtpcmds.c,
 	  smtpserver/smtpserver.h, smtpserver/smtpdata.c, smtpserver/cfgread.c,
@@ -4046,7 +4047,7 @@
 	    "PARAM min-availspace 5000" -- specify the minimum required
 	    available space in the $POSTOFFICE/ directory. In KILOBYTES.
 
-1999-07-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-02  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, contrib/whoson-1.08.tgz:
 	    Arkadiusz Mi?kiewicz <misiek@misiek.eu.org>:
@@ -4061,7 +4062,7 @@
 	    canon.cf, but instead have '\!' pair scanned into
 	    token of its own.
 
-1999-07-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-07-01  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/canon.cf:
 	    Received a patch to UUCP routing problem introduced
@@ -4082,7 +4083,7 @@
 	    chains polluted wrong objects with call parameters.  Adding
 	    one strategic copy-chain solved it.
 
-1999-06-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-30  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpauth.c, smtpserver/smtpcmds.c, smtpserver/smtphelp.c,
 	  smtpserver/smtpserver.h, smtpserver/smtpserver.c:
@@ -4094,7 +4095,7 @@
 	    Now doing "egrep ^pppppTTTT smtpserver.log" should pick only
 	    the interesting session...
 
-1999-06-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-29  Matti Aarnio  <mea@zmailer.org>
 
 	* router/dateparse.c:
 	     Fixes for Y2K-correct date parsing; although this
@@ -4130,7 +4131,7 @@
 	    entirely (not so great) but now properly nested
 	    comments are not flagged as an error!
 
-1999-06-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-27  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c, smtpserver/smtpcmds.c,
 	  proto/db/smtp-policy.src, utils/policy-builder.sh.in:
@@ -4141,7 +4142,7 @@
 	    the report out of the machinery used wrong variable in
 	    the  RCPT TO report code.
 
-1999-06-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-26  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, ChangeLog, compat/rmail/Makefile.in,
 	  compat/rmail/rmail.c, compat/sendmail/Makefile.in,
@@ -4179,12 +4180,12 @@
 	      not do full blown shared-library runtime load path define,
 	      as that detail tends to vary from system to system :-(
 	
-1999-06-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-25  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c, configure.in, acconfig.h:
 	    configure time option "--with-mboxquotacheck"
 
-1999-06-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-24  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    More of "mailq -Q | grep OF=0" tracking.
@@ -4194,7 +4195,7 @@
 	    Do "TRANSLATION" facility with PARANOID mode; and some
 	    Asperin, or equivalent to Eugene Crosser...
 
-1999-06-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-23  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/mimeheaders.c:
 	    Do downgrade to QUOTED-PRINTABLE in all cases where it is
@@ -4206,21 +4207,21 @@
 	    now does connect() in NON-BLOCKING mode, and uses select()
 	    to see when the connection has completed, or timeout occurs.
 	
-1999-06-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-22  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/sm/sm.c:
 	    Reworked the 'm'ultiple recipients processing. The previous
 	    patch looped in place and kept allocation more and more memory.
 	    Outch..
 
-1999-06-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-18  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/sm/sm.c:
 	    Internal users reported that somewhen since 2.99.50s5 the
 	    'm'ultiple recipients mode has been broken.  A likely fix
 	    is supplied.  (I haven't had change to test this.)
 
-1999-06-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-16  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:
 	    More from Eugene Crosser; process %-hack also for those
@@ -4240,7 +4241,7 @@
 	    LDAP in themselves.  (Eugene Crosser report about missing
 	    @LIBSOCKET@ substitution because of ldap things at makedb..)
 
-1999-06-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-14  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/transport.c:
 	    To sub-process (Transport Agent) pass environment variables:
@@ -4254,7 +4255,7 @@
 	    Treat "No MX, no A" as a serious error worth discarding the
 	    recipient address.
 
-1999-06-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-13  Matti Aarnio  <mea@zmailer.org>
 
 	* router/libdb/bsdbtree.c (and others during debug):
 	    Spotted strange leakage of 'file' objects in the Linux
@@ -4273,7 +4274,7 @@
 	    are grown in case a need arises.
 	
 
-1999-06-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-12  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/interpret.c, router/functions.c, router/rfc822.c,
 	  router/libdb/bind.c:
@@ -4291,7 +4292,7 @@
 	* utils/vacation/Makefile.in:
 	    [ -l somepath ] is NOT known function, it is:  [ -h somepath ]
 
-1999-06-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-10  Matti Aarnio  <mea@zmailer.org>
 
 	* README.UPGRADING:
 	    Explicitely list all standard commands for different
@@ -4318,7 +4319,7 @@
 	* smtpserver/policytest.c:
 	    Silenced compiler about storing into constant variable.
 
-1999-06-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-07  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/selfmatch.c:
 	    Revoke the change I did while tinkering with
@@ -4347,7 +4348,7 @@
 	* router/libdb/bsdhash.c:
 	    Fix of old BSD DB 1.85 type behaviour.
 
-1999-06-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-06  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in, ChangeLog:
 	    Version 2.99.50-s19
@@ -4372,7 +4373,7 @@
 	      --with-generic-include="-I/path1 -I/path2 .."
 	      --with-generic-library="-L/path1 -L/path2 .."
 
-1999-06-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-03  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:
 	    - Ignore possible 'relaycustomer +' attribute
@@ -4406,14 +4407,14 @@
 	    Change a bit comments regarding 'smtp-policy.relay' file
 	    content treatment!
 
-1999-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-06-01  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/Makefile.in:
 	    Remove  @GETPWLIB@  from scheduler program linkage set.
 	    Users used by the scheduler are *only* those in the local
 	    system  getpwnam()  yields!
 
-1999-05-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-30  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Store into '#define CONFIGURE_CMD' also CC and CFLAGS
@@ -4482,7 +4483,7 @@
 	* proto/db/smtp-policy.src:
 	    Per default, don't block even "private internet" networks.
 
-1999-05-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-28  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/expand.c:
 	    Remove  dupnstr() + freestr() calls by changeing code
@@ -4498,7 +4499,7 @@
 	    With received SIGEXIT/SIGTERM, DON'T die(); this is about
 	    getting the profiling data out...
 
-1999-05-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-27  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/policytest.c,
 	  smtpserver/policytest.h, proto/cf/canon.cf:
@@ -4535,7 +4536,7 @@
 	    sequence completely...
 	    ( read: "small" = under 64 kB, which means almoast all emails ... )
 
-1999-05-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-26  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/readconfig.c, scheduler/transport.c:
 	    Reworked the handling of   command="..."  tags in the
@@ -4562,19 +4563,19 @@
 	* proto/smtpserver.conf.in:
 	    Cleanup (a bit) the default settings
 
-1999-05-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-25  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpauth.c:
 	    Don't log incoming BASE64-encoded passwords.
 
-1999-05-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-17  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpdata.c:
 	    Be a bit sloppy with DATA statement which follows
 	    with white-space.. (or whatnot..)  On the other
 	    hand, if "-s strict" mode is on, complain!
 
-1999-05-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-16  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c:
 	    Add '-U' option for selectively turning on the 'X-UIDL:'
@@ -4585,7 +4586,7 @@
 	    Some ANSI-C present, which the K&R compiler at SunOS 4.1.4
 	    didn't like at all..
 
-1999-05-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-15  Matti Aarnio  <mea@zmailer.org>
 
 	* README.CRYPTO, bin/usa-itar-stripper.sh, Makefile.in,
 	  smtpserver/smtpauth.c, smtpserver/smtpcmds.c,
@@ -4611,7 +4612,7 @@
 	    tag contains $-expression for ZENV variable, and that
 	    variable does not exist, the scheduler did crash..
 	
-1999-05-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-14  Matti Aarnio  <mea@zmailer.org>
 
 	* VERSION 2.99.50s18
 
@@ -4630,7 +4631,7 @@
 	* configure.in:
 	    Autosense OpenSSL at default location, if not otherwise defines.
 
-1999-05-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-13  Matti Aarnio  <mea@zmailer.org>
 
 	* router/router.c:
 	    Move  openlog()  a couple lines down so that also interactive
@@ -4670,7 +4671,7 @@
 	    Added also:  "PARAM AUTH-LOGIN-also-without-TLS" which allows
 	    paintext "AUTH LOGIN" to be used without successfull STARTTLS.
 
-1999-05-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-12  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:
 	    Fix introduced accidental NULL referral.
@@ -4682,7 +4683,7 @@
 	* scheduler/scheduler.c, scheduler/update.c:
 	    Fixed the 'stored recipient count' gauge leakage.
 
-1999-05-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-10  Matti Aarnio  <mea@zmailer.org>
 
 	DISTRIBUTION: version 2.99.50s17
 
@@ -4705,7 +4706,7 @@
 	    For the juicy bits about server certificates, see
 	    file: doc/guides/openssl
 
-1999-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-09  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.50s17
@@ -4731,14 +4732,14 @@
 	    Configuration options to take into use the OpenSSL
 	    TLS code -- although this is not yet complete thing..
 
-1999-05-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-08  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
 	  smtpserver/smtpcmds.c:
 	    Place-holder hooks for 'STARTTLS' related stuff...
 	    (once I get the OpenSSL to work at my Alpha ..)
 
-1999-05-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-07  Matti Aarnio  <mea@zmailer.org>
 
 	* compat/sendmail/sendmail.c, include/mail.h.in,
 	  smtpserver/smtpdata.c:
@@ -4757,7 +4758,7 @@
 	    processing so that all possible multiple instances of same
 	    ``header to be deleted'' will be deleted.
 
-1999-05-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-05-05  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/fdstatfs.c:
 	    A sidestep to a problem with  fstatvfs()  at glibc 2.1.1
@@ -4776,7 +4777,7 @@
 	    The default system uses classical UNIX password analysis.
 	    (but see the comments at   zpwmatch.c!)
 
-1999-04-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-04-26  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.50-s16
@@ -4798,7 +4799,7 @@
 	    moment..  However this isn't the only place where the danger may
 	    lurk, so per default the "enable-router" is OFF.
 
-1999-04-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-04-25  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c,smtpserver/smtpdata.c:
 	    Change the 'multilinereplies' processing around "a bit".
@@ -4850,7 +4851,7 @@
 	* scheduler/scheduler.c:
 	    Don't unnecessarily unlink() ETRN requests twice..
 
-1999-04-21  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-04-21  Matti Aarnio  <mea@zmailer.org>
 
 	* ChangeLog:
 	    Log these last changes..
@@ -4875,7 +4876,7 @@
 	    range without "ip6" are clashing with various IPv4 "banned"
 	    address spaces...
 
-1999-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-04-14  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/fqdnaliases.cf:
 	    Create fqdnalias:
@@ -4894,7 +4895,7 @@
 	* Makefile, Makefile.in:
 	    Release 2.99.50s15 (to have a clean point)
 
-1999-04-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-04-12  Matti Aarnio  <mea@zmailer.org>
 
 	* include/listutils.h:
 	    Small macro change to please gcc 2.7.2.1 at FreeBSD 3.1;
@@ -4902,7 +4903,7 @@
 	    my macro contents somewhere else...  I am listening on
 	    the reports of the issue.
 
-1999-04-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-04-10  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.h, smtpserver/policytest.c,
 	  smtpserver/mxverify.c:
@@ -4935,7 +4936,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	    and Gauge32 type variables.  (On the way towards the
 	    SNMP MIB..)
 
-1999-04-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-04-06  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/builtins.c:
 	    $(elements ...) tinkering; code "cleanup".  (This wasn't the
@@ -4977,7 +4978,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	    Count the number of childs properly, and always remember to
 	    return a value thru the  childcntp  pointer.
 	
-1999-04-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1999-04-03  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in: 2.99.50-s14
 
@@ -5129,7 +5130,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	    Generalized guide on ETRN usage with ZMailer,
 	    and one special case..
 
-1998-11-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-11-19  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Upped version number into  2.99.50-s11
@@ -5203,7 +5204,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	* smtpserver/smtpserver.c:
 	    Missed the call of  settrusteduser()  in one codepath.
 
-1998-10-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-10-10  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in (and configure), utils/vacation/Makefile.in:
 	    Autosense possible location of  'vacation'.  If none
@@ -5249,7 +5250,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	    Two new files (servauth.[ch]), and changes elsewere
 	    to support them.  Incomplete.
 
-1998-08-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-08-14  Matti Aarnio  <mea@zmailer.org>
 
 	* man/mailbox.8, doc/manual/zref-transport-agents.tex:
 	    nroff formatting corrections, spelling fixes
@@ -5265,7 +5266,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	* utils/policy-builder.sh.in:
 	    Modifications to handle non-clean spam-domain input better.
 
-1998-08-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-08-09  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    While reviewing new draft-ietf-drums-smtpupd-08.txt,
@@ -5274,7 +5275,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	    mode codepaths, very least.  (Although with the
 	    ENHANCEDSTATUSCODES that is an unlikely occurrence..)
 
-1998-08-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-08-03  Matti Aarnio  <mea@zmailer.org>
 
 	* include/malloc.h, include/zsyslog.h, libsh/builtins.c,
 	  libsh/test.c, router/libdb/header.c, libsh/shconfig.h,
@@ -5300,7 +5301,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	    SunOS 4.1.* defines 'sigmask' in its <sys/signal.h>
 	    as a MACRO...
 
-1998-07-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-07-30  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in, compat/Makefile.in, compat/rmail/Makefile.in,
 	  compat/sendmail/Makefile.in, proto/Makefile.in,
@@ -5328,13 +5329,13 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	    Had ANSI prototype there, and a K&R compiler
 	    "barfed"...
 
-1998-07-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-07-28  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/Makefile.in: (Mark Visser)
 	    Missed " ; \ " from the middle of "make db" 
 	    sequence.
 
-1998-07-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-07-27  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version number: 2.99.50-s8
@@ -5350,7 +5351,7 @@ b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix
 	    Use of "::" on dependency tupe caused unnecessary
 	    recompilation of  router/libdb/*.c files.
 
-1998-07-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-07-26  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c, smtpserver/mxverify.c:
 	    Prefix all debug-mode outputs with '000-', which
@@ -5377,7 +5378,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    Conditional install in 'make db' the above created
 	    smtp-policy.relay  file.
 
-1998-07-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-07-13  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/policy-builder.sh.in:
 	    Mark Visser <mark@cal026031.student.utwente.nl> reported
@@ -5395,7 +5396,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    "pipe.*" and "file.*" tricks used with the scheduler configs
 	    still work.
 
-1998-07-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-07-08  Matti Aarnio  <mea@zmailer.org>
 
 	* */*.h */*.c */*/*.c: (all over the place)
 	    Did use "egcs -Wall -W -W***" to get lots of warnings.
@@ -5408,7 +5409,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    size.  Under no circumstances allow that to be exceeded, thus
 	    use patterns like:  "%s.999s"  while formatting something.
 
-1998-07-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-07-02  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    An error report from  Serge Lozovsky <serge@helios.intes.odessa.ua>
@@ -5416,7 +5417,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    consider successfull a delivery to remote system that has rejected
 	    the only (or all?) recipient address(es).
 
-1998-07-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-07-01  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c:
 	    Lock acquisition code had "faulty" way to unrolling
@@ -5426,12 +5427,12 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    unrolling did unroll also the failed lock -- in case
 	    of "dot-lock" that is the "mbox.lock" file..
 
-1998-06-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-29  Matti Aarnio  <mea@zmailer.org>
 
 	* man/scheduler.8, man/smtpserver.8:
 	    Added .SH paragraphs about TCP-WRAPPER into them.
 
-1998-06-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-27  Matti Aarnio  <mea@zmailer.org>
 	
 	* TODO, include/libsh.h, include/listutils.h, libsh/builtins.c,
 	  libsh/expand.c, libsh/interpret.c, libsh/listutils.c, libsh/regex.h,
@@ -5443,20 +5444,20 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    without any "setf" anywhere seem to be successfull, and even
 	    reduce the router memory footprint by 2-3 % ...
 	
-1998-06-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-26  Matti Aarnio  <mea@zmailer.org>
 
 	* obsolete/*
 	    Removed this tree from the CVS, perhaps soon also from the
 	    distribution tar files...
 	
-1998-06-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-25  Matti Aarnio  <mea@zmailer.org>
 
 	* libc/md5c.c:
 	    Some fine-tuning added so that the module will compile at most
 	    platforms, but perhaps linking will cause indigection at some
 	    systems still (Solaris -lnsl has md5 routines in...)
 
-1998-06-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-23  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:
 	    For a "always_accept" sender, turn DNS based rejections
@@ -5467,7 +5468,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    analysis turned soft DNS error into hard policy
 	    rejection...  Outch.
 
-1998-06-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-22  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/Makefile.in, smtpserver/smtpserver.h,
 	  smtpserver/libwhoson.c, smtpserver/whoson.h,
@@ -5499,7 +5500,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    APOP-like session authentication for scheduler cmd
 	    interface..)
 
-1998-06-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-16  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    PATCHLEVEL 50-s6
@@ -5508,7 +5509,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    Configure option:  --with-generic-include="-I/..."
 	    which is added into ALL compilation statements
 
-1998-06-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-15  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:
 	    Moved "P_A_FullTrustNet" attribute recognition up a bit
@@ -5532,7 +5533,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    - run_listexpand():  Did complain when it got 5 arguments
 				 and refused to do the work :-(
 
-1998-06-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-14  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf:
 	    Match new listexpand parameters.
@@ -5550,7 +5551,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    which is all right for DATA phase, but a no-no for
 	    the BDAT :-(
 
-1998-06-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-13  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf:
 	    Removing "sender" parameters from alias processing
@@ -5560,7 +5561,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* proto/newaliases.in:
 	    Parameter parsing error; didn't honour '-s' option.
 
-1998-06-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-12  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
 	  smtpserver/smtpcmds.c:
@@ -5568,7 +5569,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    code values presented in replies.  Not all DNS errors are
 	    POLICY (*.7.*) errors although policy analysis detects them..
 
-1998-06-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-11  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/makedb.in:
 	    Altered the parameter pickup routines to be more generic
@@ -5587,7 +5588,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* smtpserver/smtpcmds.c:
 	    Change ETRN reply texts a bit; don't anymore speak of TURNME..
 
-1998-06-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-09  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf, proto/cf/p-usenet.cf,
 	  proto/cf/rrouter.cf, proto/cf/standard.cf,
@@ -5605,7 +5606,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    dots in them, and unifying multiple (in theory: arbitary
 	    number of: aliases.zmsh.example) aliases, and other databases.
 
-1998-06-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-08  Matti Aarnio  <mea@zmailer.org>
 
 	* include/policy.h, smtpserver/policytest.c, smtpserver/policytest.h,
 	  smtpserver/readpolicy.c:
@@ -5624,13 +5625,13 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    Hooks for 'SIEVE' things; ways for the user to define
 	    message arrival time filtering.
 
-1998-06-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-06  Matti Aarnio  <mea@zmailer.org>
 
 	* contrib/spamlist.py, utils/policy-builder.sh.in:
 	    New version of  spamlist.py  from Roy Bixler, a bit
 	    support for its output format into policy-builder.
 
-1998-06-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-05  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/sm/sm.c:
 	    Added "H" flag to the "sm" facility flags.
@@ -5664,7 +5665,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* utils/vacation/convtime.c:
 	    Add a couple autoconf includes
 
-1998-06-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-04  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/newdb.in:
 	    Smarter option processing, usage() function.
@@ -5683,7 +5684,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    the server used occasionally response number 455, where it
 	    should use 501 -- cosmetic bug, I would say..
 
-1998-06-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-03  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/zmailer.sh.in, proto/newaliases.in, proto/newdb.in,
 	  proto/newfqdnaliases.in, utils/makedb/makedb.c:
@@ -5711,7 +5712,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    Revised that 'smtpserver -i' mode code so that
 	    it should work on a wider array of systems.
 
-1998-06-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-02  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, smtpserver/smtpcmds.c:
 	    More Roy Bixler patches.  Moved some code around so
@@ -5736,7 +5737,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    More gymnastics on getting the possibly missing "From: "
 	    header generated in all possible situations.
 
-1998-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-06-01  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/newaliases.in, proto/newdb.in, proto/cf/i-routes.cf,
 	  proto/cf/standard.cf, proto/newfqdnaliases.in:
@@ -5780,7 +5781,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    only if the last RCPT policy analysis yielded All-OK (0)
 	    status.
 
-1998-05-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-05-26  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/newdb.in:
 	    The script is in fact pure /bin/sh script, don't ask for
@@ -5791,12 +5792,12 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    Replaced all uses of 'setf' with  'lappend' and 'lreplace',
 	    where appropriate.
 
-1998-05-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-05-25  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/builtins.c:
 	    Finetuning of  sh_lreplace()  gadget.
 
-1998-05-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-05-19  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/db/smtp-policy.src, utils/policy-builder.sh.in:
 	    Define a new alias tag:  _localnames
@@ -5840,7 +5841,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* configure.in:
 	    Fixes for "-lresolv" tests so that IRIX6.4 is happy.
 
-1998-05-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-05-14  Matti Aarnio  <mea@zmailer.org>
 
 	* All (very nearly) Makefile.in files, plus
 	  configure.in:
@@ -5863,7 +5864,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    to  LOG_ERR -- the detected errors are not ALERT level
 	    stuff. (Andrew Tridgell reported)
 
-1998-05-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-05-13  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/makedb.c:
 	    Fixes on policy parser error reports, and generic duplicate
@@ -5895,7 +5896,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    Runtime options '-l' and '-u' for explicite lower-/upper-
 	    casification of key strings before storing them into db.
 
-1998-05-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-05-05  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/mxverify.c, smtpserver/smtpcmds.c:
 	    Spotted a case of certain timeouts slipping into
@@ -5917,7 +5918,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    If ident lookup is not done, don't add ' ident : ..' stuff
 	    into the 'rcvdfrom ' envelope header.
 
-1998-05-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-05-04  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.50-s3
@@ -5927,7 +5928,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    was already NULLed are now protected.  One can't do
 	    any remote syncing when there is no remote...
 
-1998-04-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-04-27  Matti Aarnio  <mea@zmailer.org>
 
 	* libc/Makefile.in:
 	    Fixes for installation of  zmailer.h, and libzmailer.a
@@ -5950,7 +5951,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* Makefile{,.in}:
 	    Version: 2.99.50-s2
 
-1998-04-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-04-24  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, acconfig.h, lib/prversion.c:
 	    Store ./configure command parameters into a #define,
@@ -5964,7 +5965,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    library calls with your own special ones; if you have some
 	    ISP system with backend databases, etc..
 
-1998-04-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-04-09  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    RedHat 5.0/glibc-2.0.7-6: found   res_init()  in libc, but
@@ -5978,7 +5979,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    string B in pw_name field..  (These are not only Telecom Finland
 	    weirdos..)
 
-1998-04-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-04-08  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.50-s1
@@ -6010,13 +6011,13 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    possible multiple local identities.
 	    Also corrected similar problem with '-F' option processing.
 
-1998-04-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-04-03  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, smtpserver/smtpdata.c:
 	    Report end of "DATA" and "BDAT" commands too -- the server
 	    may be sleeping around on idle-states for a long time..
 	
-1998-03-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-27  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c:
 	    Corrected the use of x.2.2 type of mail status code from
@@ -6036,12 +6037,12 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    in text instead of "magic" numbers -- "NXDOMAIN" instead
 	    of "3", for example.
 	
-1998-03-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-26  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c:
 	    A quota-check hook from Eugene Crosser <crosser@average.org>
 
-1998-03-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-25  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c:
 	    Limit a bit about how much meta-lines are logged.
@@ -6053,7 +6054,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    (Local users at a large SPARC server running 2.6 and
 	     sending email with PINE thru SMTP.)
 
-1998-03-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-22  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/builtin.c:
 	    Function sh_echo() got slight alteration.
@@ -6084,7 +6085,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    data in larger amounts in the network.  Lots of A 0.0.0.0
 	    entries especially.
 
-1998-03-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-20  Matti Aarnio  <mea@zmailer.org>
 
 	* INSTALL, doc/guides/configure, doc/guides/smtp-policy:
 	    A bit of rewriting on INSTALL file, new guide file,
@@ -6093,20 +6094,20 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* ChangeLog, Makefile.in:
 	    Pushing out version 2.99.49p10-s11
 
-1998-03-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-17  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/rrouter.cf, INSTALL:
 	    Match $hostname also with non-lowercase domain
 	    address.
 
-1998-03-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-16  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/msgerror.c:
 	    In case boiler-plate template was not found,  writeheader()
 	    would produce bad error report message which router would
 	    not accept for processing.
 
-1998-03-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-12  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/qprint.c:
 	    A patch from Andrey Blochintsev to restore the functionality
@@ -6118,7 +6119,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    be  "\username", and no recursed .forward will be entered.
 	    Thus the user will stay in the local system.
 
-1998-03-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-11  Matti Aarnio  <mea@zmailer.org>
 
 	* router/rfc822hdrs.c:
 	    A user found pathological case of errors which caused his
@@ -6139,7 +6140,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    Alexis Yushin reported that BDAT didn't work in non-pipelined
 	    mode :-(  Corrected that.
 
-1998-03-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-10  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf, proto/cf/rrouter.cf, proto/cf/fqdnaliases.cf:
 	    Rewamped $(rrouter ..) and some other scripts after reports
@@ -6152,7 +6153,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* smtpserver/smtpdata.c:
 	    Some anti-spam hacks merged in
 
-1998-03-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-04  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Correction to EHLO SIZE processing, aborting message sending
@@ -6161,7 +6162,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    active smtp socket peer IP addresses are presented for diagnostic
 	    reports.
 
-1998-03-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-03-03  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Smarter processing for PIPELINING error reports;
@@ -6199,7 +6200,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    At the same time the source ENVELOPE rewrites
 	    itself to be   postmaster@local.host.name  (hmm..)
 
-1998-02-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-28  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Still problems with PIPELINING; doing  smtp_sync()
@@ -6214,7 +6215,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    smart MTAs can help a lot with system performance
 	    at lotus-smtp-gateways.
 
-1998-02-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-27  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version id 2.99.49p10-s9
@@ -6240,7 +6241,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    method for message sending; needed revised methods
 	    on header writing -- to a buffer.
 
-1998-02-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-26  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/dblook.c, utils/makedb/makedb.c:
 	    printf format string fixes
@@ -6254,7 +6255,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    Last of Gabor Kissig's router-driven policy facility
 	    patches have been incorporated into the server.
 	
-1998-02-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-25  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/resources.c:
 	    Per report from Martin Wendel, AIX 4.2.1 yields
@@ -6265,7 +6266,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* router/functions.c:
 	    $(syslog ...) and $(logger ...) functions
 
-1998-02-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-20  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/threads.c (and others):
 	    Radical thread-group job-picking reorganizing.
@@ -6280,7 +6281,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* transports/smtp/smtp.c:
 	    NULL-ptr reference in logfp output.  Oops...
 
-1998-02-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-17  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    A weird error report surfaced, which turned out to be
@@ -6290,7 +6291,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	    of DATA command error :-(  (There was apparent assumption
 	    that if any RCPT TO is ok, then DATA will be ok too..)
 
-1998-02-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-16  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.c, scheduler/update.c:
 	    When #resync:ing a file, read it immediately back, but
@@ -6316,21 +6317,21 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* smtpserver/smtpdata.c:
 	    Corrected message-id analysis routines a bit
 	
-1998-02-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-13  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/zmailer.sh.in, utils/rotate-log.sh:
 	    Updates for log-chop processing with various
 	    programs -- routers and the scheduler are
 	    slightly different animals in this regard..
 
-1998-02-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-12  Matti Aarnio  <mea@zmailer.org>
 
 	* router/functions.c:
 	    Logical expression error within run_dequote() caused
 	    faulty processing of string "'" in such manner, which
 	    caused process to blow up...
 
-1998-02-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+1998-02-05  Matti Aarnio  <mea@zmailer.org>
 
 	* include/libc.h:
 	    Prototypes of  inet_ntop()  and  inet_pton()  changed to
@@ -6345,7 +6346,7 @@ Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 	* transports/errormail/errormail.c:
 	    An off-by-one fix by Alexis..
 
-Wed Feb  4 19:52:36 1998  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Wed Feb  4 19:52:36 1998  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    More modifications to support RedHat 5.0 systems, and
@@ -6381,7 +6382,7 @@ Wed Feb  4 19:52:36 1998  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    In EHLO/HELO/reconnect/HELO/... connection test attempts
 	    do retry all MXes -- but only once each.
 
-Sun Dec 21 14:59:04 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Sun Dec 21 14:59:04 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* libc/setreuid.c:
 	    AIX code missed "return 0;" at the end.
@@ -6389,7 +6390,7 @@ Sun Dec 21 14:59:04 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    And also SysVr4 emulation code had missing "return rc;"
 	    at its end..
 
-Sat Dec 20 01:05:00 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Sat Dec 20 01:05:00 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpchild.c:
 	    Altered the child registration and detection mechanism
@@ -6416,7 +6417,7 @@ Sat Dec 20 01:05:00 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 		    $MAILBIN/zmailer newaliases
 		fi
 	
-Wed Dec  3 00:39:45 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Wed Dec  3 00:39:45 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* router/libdb/gdbm.c, router/libdb/ndbm.c:
 	    GDBM sets  gdbm_errno  with value  GDBM_EMPTY_DATABASE
@@ -6431,14 +6432,14 @@ Wed Dec  3 00:39:45 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	* smtpserver/mxverify.c:
 	    Considered only the first MX record arriving;  Duh :-(
 
-Sat Nov 29 16:02:48 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Sat Nov 29 16:02:48 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/interpret.c:
 	    Finally!  Found the place(s) of leaking memory
 	    (conscell + string) in the router.  Now nic.funet.fi
 	    does not have infinitely growing router :-)
 
-Mon Nov 24 20:44:27 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Mon Nov 24 20:44:27 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Re-organize the --with-ipv6-replacement-libc option
@@ -6448,7 +6449,7 @@ Mon Nov 24 20:44:27 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    The incore database of filenames (spt_files)
 	    reorganization, and code reuse on the open_seq()...
 
-Fri Nov 21 19:48:06 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Fri Nov 21 19:48:06 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/makedb.c:
 	    - "-A" option to APPEND more data to same key.
@@ -6470,7 +6471,7 @@ Fri Nov 21 19:48:06 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    ok to free() only the top cell. Freeing more blows things
 	    up..
 
-Tue Nov 11 04:16:41 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Tue Nov 11 04:16:41 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Extensive revisioning of MX processing in order to eliminate
@@ -6559,7 +6560,7 @@ Tue Nov 11 04:16:41 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    Set trace header ("Received:" header) date to be that
 	    of the input spool file mtime.
 	
-Mon Oct 27 09:51:02 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Mon Oct 27 09:51:02 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* doc/guides/procmail:
 	    Condensed wisdom on how to use procmail in place of the
@@ -6584,7 +6585,7 @@ Mon Oct 27 09:51:02 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    them when the symbol is no longer needed. (i.e. channel,
 	    and hostnames come and go..)
 
-Sun Oct 26 03:30:08 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Sun Oct 26 03:30:08 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* include/splay.h, lib/splay.c, lib/symbol.c, router/db.c,
 	  router/conf.c, router/prototypes.h, router/router.c,
@@ -6596,7 +6597,7 @@ Sun Oct 26 03:30:08 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	     the need for some named object disappears, it is
 	     removed from the namespace.)
 
-Wed Oct 22 22:38:10 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Wed Oct 22 22:38:10 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Releasing 2.99.49p8 to public after series of compilation,
 	  and running tests at various platforms.  These include:
@@ -6635,7 +6636,7 @@ Wed Oct 22 22:38:10 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    Sync "-t" option with sendmail, and especially so with
 	    the manual page!
 	
-Mon Oct 20 09:46:04 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Mon Oct 20 09:46:04 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.49p8  (way too many p6* versions around..)
@@ -6679,7 +6680,7 @@ Mon Oct 20 09:46:04 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	* utils/vacation/vacation.c:
 	    Do message production without invoking  /usr/lib/sendmail
 	
-Fri Aug  8 18:04:06 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Fri Aug  8 18:04:06 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.49p6  (could it be ?)
@@ -6691,7 +6692,7 @@ Fri Aug  8 18:04:06 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    which accepts recipient address when it has MX or A (or AAAA)
 	    record in the DNS.
 
-Thu Aug  7 23:00:52 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Thu Aug  7 23:00:52 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.49p6a3
@@ -6747,7 +6748,7 @@ Thu Aug  7 23:00:52 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	* utils/vacation/vacation.c:
 	    At Alpha, storing LONG_MAX into time_t doesn't work, use INT_MAX.
 
-Mon Aug  4 17:29:26 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Mon Aug  4 17:29:26 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.49p6a2
@@ -6778,7 +6779,7 @@ Mon Aug  4 17:29:26 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    Altered  eval()  routine call parameters.
 	    Also altered  ZMSH.fc  header format a bit.
 
-Sat Aug  2 19:57:57 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Sat Aug  2 19:57:57 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.49p6a1
@@ -6824,7 +6825,7 @@ Sat Aug  2 19:57:57 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    Handle correctly zero size addresses in MAIL FROM:<>, and
 	    (heaven forbid!) RCPT TO:<>.
 
-Fri Jul 25 01:48:13 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Fri Jul 25 01:48:13 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.49p5
@@ -6890,7 +6891,7 @@ Fri Jul 25 01:48:13 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    Error reporting correction in one rare case, and
 	    general streamlining.
 
-Fri Jul  4 14:54:02 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Fri Jul  4 14:54:02 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.49p4
@@ -6928,7 +6929,7 @@ Fri Jul  4 14:54:02 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    non-conformant reply of form:  "NNN<CRLF>" the same as
 	    conformant reply of form: "NNN<SP><CRLF>".
 
-Sun Jun 29 21:36:43 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Sun Jun 29 21:36:43 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.49p3
@@ -7047,7 +7048,7 @@ Sun Jun 29 21:36:43 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    At Debian systems including <errno.h> causes surprises at
 	    parameters called 'errno' ... rename such parameters.
 
-Sun Jun 22 04:57:02 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Sun Jun 22 04:57:02 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.49p2
@@ -7076,7 +7077,7 @@ Sun Jun 22 04:57:02 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	   Again optimize int returning sprintf better, than
 	   the old char * returning...
 
-Thu Jun 19 19:41:47 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Thu Jun 19 19:41:47 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in
 	    Version 2.99.49p1
@@ -7177,7 +7178,7 @@ Fri Jun 13 22:41:04 1997  Matti Aarnio  <mea@mea-koti.tmt.tele.fi>
 	    Allow talking to self host in case the destination port is
 	    a non-standard port -- not port 25, that is.
 
-Wed May 28 11:03:42 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Wed May 28 11:03:42 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    - Version 2.99.48p3
@@ -7198,7 +7199,7 @@ Wed May 28 11:03:42 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    - Wrong parameters in one logging call at the  BDAT  processing,
 	    - Rearranged typeflush() calls, and pipeline status reporting.
 
-Fri May  2 16:10:28 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Fri May  2 16:10:28 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    - Version 2.99.48p2
@@ -7239,7 +7240,7 @@ Fri May  2 16:10:28 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    Save  errno  before doing library calls -- did yield wrong
 	    error in case the 'dotlock' was busy.
 	
-Thu Apr 24 21:00:28 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Thu Apr 24 21:00:28 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    - Version 2.99.48
@@ -7278,7 +7279,7 @@ Thu Apr 24 21:00:28 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    - Most (nearly all) sprintf()s are output length limited
 	      with "%.200s" -type of format strings
 
-Wed Apr 23 17:58:19 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Wed Apr 23 17:58:19 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.48-970423
@@ -7585,7 +7586,7 @@ Mon Feb 17 22:30:06 1997  Matti Aarnio  <mea@mea-home.tmt.tele.fi>
 	    who found out why the mailbox program keeps crashing on
 	    the HPUX.
 
-Fri Feb 14 20:29:25 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Fri Feb 14 20:29:25 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/esyslib.c: erename(), eqrename()
 	    Rewrote  eqrename()  cleanly in model of Andy Poling's
@@ -7610,7 +7611,7 @@ Fri Feb 14 20:29:25 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    a person with a '.forward' was able to cause a serious
 	    loop that lead to memory exhaustion in pretty short order..
 
-Sat Feb  8 00:19:06 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Sat Feb  8 00:19:06 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* compat/sendmail/sendmail.c, configure.in, lib/esyslib.c,
 	  libs/Makefile.in, router/rfc822.c, smtpserver/relaytest.c,
@@ -7619,7 +7620,7 @@ Sat Feb  8 00:19:06 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    A heap of "minor" fixes to all around to improve this
 	    compilability in various systems besides my RedHat Linuxes.
 
-Thu Feb  6 19:00:24 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Thu Feb  6 19:00:24 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    patchlevel 46 -- time for a release..
@@ -7794,7 +7795,7 @@ Sat Jan 25 15:18:08 1997  Matti Aarnio  <mea@mea-home.tmt.tele.fi>
 	    Yet another parametrization error in the DB code..
 	    (A non-fatal one, I presume.. affected only GDBM)
 
-Sat Jan 18 07:11:07 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Sat Jan 18 07:11:07 1997  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Patchlevel 45
@@ -7832,7 +7833,7 @@ Sat Jan 18 07:11:07 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    - If using TCP-Wrapper stuff, have related INCLWRAP, and LIBWRAP
 	      definitions in use -- for the mailq access control
 	
-Tue Dec 24 00:23:32 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Tue Dec 24 00:23:32 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* all transporters:
 	    Process  SIGQUIT as marker for desire of termination.
@@ -7928,14 +7929,14 @@ Tue Dec 24 00:23:32 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
 				interface before doing connect()
 	
 
-Tue Dec  3 19:17:28 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Tue Dec  3 19:17:28 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:
 	    Missing a couple of fflush()es -- moved the EXPN and
 	    VRFY routines into separate subroutines.  Now have
 	    ONE fflush() after each of the calls.
 
-Mon Dec  2 18:38:09 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Mon Dec  2 18:38:09 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makendbm/makendbm.c:
 	    Yet another parameter error in case the system can do
@@ -7964,7 +7965,7 @@ Mon Dec  2 18:38:09 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	* transports/smtp/smtp.c:
 	    Missing space at DNS RET= parameter writing.
 
-Wed Nov 27 21:23:12 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Wed Nov 27 21:23:12 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    Once more (SmtpState -block).. Clear it with memset(),
@@ -7974,19 +7975,19 @@ Wed Nov 27 21:23:12 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    Finally fixed the VRFY and EXPN behaviours; now
 	    they work as they should.
 
-Tue Nov 26 15:17:03 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Tue Nov 26 15:17:03 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
 	    SmtpState -block needed some more initializations.
 	    Missing one: verboselog
 
-Mon Nov 25 16:21:15 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Mon Nov 25 16:21:15 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/hold/hold.c:
 	    Calling convention of  getrrtype() was changed (a bit),
 	    and I forgot to update it here too.
 
-Thu Nov 21 20:37:19 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Thu Nov 21 20:37:19 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Version 2.99.42
@@ -8052,7 +8053,7 @@ Thu Nov 21 20:37:19 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	* utils/makendbm/makendbm.c:
 	    Correction on 'dbasename' variable specification
 
-Thu Nov 14 22:37:18 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Thu Nov 14 22:37:18 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* router/rfc822.c, router/libdb/headers.c, BUGS:
 	    Treat "Return-Path:" -header with respect -- and
@@ -8060,7 +8061,7 @@ Thu Nov 14 22:37:18 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    stored into the user's mailbox by the FINAL DELIVERY
 	    AGENT, it does not exist outside user's mailbox!
 
-Wed Nov 13 16:48:00 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Wed Nov 13 16:48:00 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/aliases.cf:
 	    Aargh... quotation-rules on ZMSH are "a bit" different
@@ -8086,12 +8087,12 @@ Wed Nov 13 16:48:00 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	* transports/sm/sm.c:
 	    Handle "channel error" at the sender..
 
-Tue Nov 12 17:47:34 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Tue Nov 12 17:47:34 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* config.h.in, configure.in:
 	    Test for  fsync()  at the system.
 
-Mon Nov 11 18:56:21 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Mon Nov 11 18:56:21 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Released version 2.99.41
@@ -8214,7 +8215,7 @@ Mon Nov 11 18:56:21 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    Debugged the REAL MIME-2 header producer to produce
 	    some real MIME-2 format headers..
 
-Mon Nov  4 22:45:37 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Mon Nov  4 22:45:37 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile.in:
 	    Released version 2.99.40
@@ -8291,7 +8292,7 @@ Mon Nov  4 22:45:37 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	    - recognize remote declaring ENHANCEDSTATUSCODES, and
 	      use them in our own report
 
-Tue Oct 22 18:51:07 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Tue Oct 22 18:51:07 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* Makefile:
 	    Version 2.99.39
@@ -8353,7 +8354,7 @@ Tue Oct 22 18:51:07 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
 	* transports/libta/ctlopen.c:
 	    Fix on DSN NOTARY parameter scanning
 	
-Thu Sep 12 22:19:58 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+Thu Sep 12 22:19:58 1996  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, Makefile.in, utils/makendbm/makendbm.c,
 	  utils/makendbm/ndbmlook.c, support/vacation/vacation.SH:

@@ -1918,7 +1918,11 @@ sequencer(e, file)
 /*ROUTER*/		l = router(a, def_uid, "recipient", senderstr);
 			if (l == NULL)
 				continue;
-
+#if 0
+			if (!LIST(l) || !car(l) || !LIST(car(l))) {
+			FIXME: FIXME: react on badly structured result!
+			}
+#endif
 			if (routed_addresses == NULL) {
 				routed_addresses = ncons(car(l));
 			} else {
