@@ -1305,6 +1305,7 @@ deliver(dp, rp, usernam, timestring)
 	  memset(&sv,0,sizeof(sv));
 	  sv.pw       = pw;
 	  sv.uid      = uid;
+	  sv.pipeuid  = uid;
 	  sv.username = usernam;
 	  sv.spoolfile = file;
 
@@ -2129,9 +2130,9 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	     */
 
 	    argv[0] = "/bin/sh";
-	    execl(argv[0],  cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
+	    execle(argv[0],  cmdbuf+1, "-c", cmdbuf+1, (char *)NULL, env);
 	    argv[0] = "/sbin/sh";
-	    execl(argv[0], cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
+	    execle(argv[0], cmdbuf+1, "-c", cmdbuf+1, (char *)NULL, env);
 
 	  }
 
