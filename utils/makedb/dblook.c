@@ -22,7 +22,7 @@
 #undef datum
 #endif
 #ifdef HAVE_DB_H
-#ifdef HAVE_DB_185_H
+#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
 #else
 # include <db.h>
@@ -186,6 +186,97 @@ char *argv[];
   }
 #endif /* GDBM */
 #ifdef HAVE_DB_H
+#ifdef HAVE_DB_OPEN2
+  if (strcmp(argv[1],"btree")==0) {
+    DB *dbfile;
+    DBT key;
+    DBT result;
+    int rc;
+
+    dbfile = NULL;
+    db_open(dbasename, DB_BTREE, DB_RDONLY, 0644, NULL, NULL, &dbfile);
+
+    if (!dbfile) {
+      fprintf(stderr,"Failed to open '%s' BTREE-dbase\n",dbasename);
+      return 1;
+    }
+
+    if (dumpflag) {
+      DBC *curs;
+#ifdef HAVE_DB_CURSOR4
+      rc = (dbfile->cursor)(dbfile, NULL, &curs, 0);
+#else
+      rc = (dbfile->cursor)(dbfile, NULL, &curs);
+#endif
+      rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
+      while ( rc == 0 ) {
+	dumpit(stdout, key.data, key.size, result.data, result.size);
+	rc = (curs->c_get)(curs, &key, &result, DB_NEXT);
+      }
+      (curs->c_close)(curs);
+    } else {
+      key.data = argv[3];
+      key.size = strlen(argv[3]) +1;
+
+      rc = (dbfile->get)(dbfile, NULL, &key, &result, 0);
+
+      if (rc != 0) {
+	fprintf(stderr,"Key %s not found\n",argv[3]);
+	return 2;
+      }
+      printf("siz:%ld, dat: %s\n", (long)result.size, (char*)result.data);
+    }
+
+    (dbfile->close)(dbfile, 0);
+
+    return 0;
+  }
+
+  if (strcmp(argv[1],"bhash")==0) {
+    DB *dbfile;
+    DBT key;
+    DBT result;
+    int rc;
+
+    dbfile = NULL;
+    db_open(dbasename, DB_HASH, DB_RDONLY, 0644, NULL, NULL, &dbfile);
+
+    if (!dbfile) {
+      fprintf(stderr,"Failed to open '%s' BHASH-dbase\n",dbasename);
+      return 1;
+    }
+
+    if (dumpflag) {
+      DBC *curs;
+#ifdef HAVE_DB_CURSOR4
+      rc = (dbfile->cursor)(dbfile, NULL, &curs, 0);
+#else
+      rc = (dbfile->cursor)(dbfile, NULL, &curs);
+#endif
+      rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
+      while ( rc == 0 ) {
+	dumpit(stdout, key.data, key.size, result.data, result.size);
+	rc = (curs->c_get)(curs, &key, &result, DB_NEXT);
+      }
+      (curs->c_close)(curs);
+    } else {
+      key.data = argv[3];
+      key.size = strlen(argv[3]) +1;
+
+      rc = (dbfile->get)(dbfile, NULL, &key, &result, 0);
+
+      if (rc != 0) {
+	fprintf(stderr,"Key %s not found\n",argv[3]);
+	return 2;
+      }
+      printf("siz:%ld, dat: %s\n",(long)result.size,(char*)result.data);
+    }
+
+    (dbfile->close)(dbfile, 0);
+
+    return 0;
+  }
+#else /* Old BSD DB 1.* */
   if (strcmp(argv[1],"btree")==0) {
     DB *dbfile;
     DBT key;
@@ -259,6 +350,7 @@ char *argv[];
 
     return 0;
   }
+#endif
 #endif
 
   usage(argv0, "Unrecognized dbformat", 0);

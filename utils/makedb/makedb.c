@@ -26,7 +26,7 @@
 #undef datum
 #endif
 #ifdef HAVE_DB_H
-#ifdef HAVE_DB_185_H
+#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
 #else
 # include <db.h>
@@ -155,8 +155,13 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 		Bkey.size = tlen;
 		Bdat.data = (void*)s;
 		Bdat.size = slen;
+#ifdef HAVE_DB_OPEN2
+		rc = (dbfile->put) (dbfile, NULL, &Bkey, &Bdat,
+				    overwritemode ? 0: DB_NOOVERWRITE);
+#else
 		rc = (dbfile->put) (dbfile, &Bkey, &Bdat,
 				    overwritemode ? 0: R_NOOVERWRITE);
+#endif
 	}
 #endif
 
@@ -197,7 +202,11 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 	    DBT Bkey, Bdat;
 	    Bkey.data = (void*)t;
 	    Bkey.size = tlen;
+#ifdef HAVE_DB_OPEN2
+	    rc = (dbfile->get) (dbfile, NULL, &Bkey, &Bdat, 0);
+#else
 	    rc = (dbfile->get) (dbfile, &Bkey, &Bdat, 0);
+#endif
 	    if (rc != 0)
 	      memset(&Bdat, 0, sizeof(Bdat));
 	    dataptr = Bdat.data;
@@ -812,6 +821,22 @@ char *argv[];
     }
 #endif
 #ifdef HAVE_DB_H
+#ifdef HAVE_DB_OPEN2
+    if (typ == 3) {
+	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
+	strcat(dbasename, ".db");	/* ALWAYS append this */
+	dbfile = NULL;
+	db_open(dbasename, DB_BTREE,  DB_CREATE|DB_TRUNCATE,
+		0644, NULL, NULL, &dbfile);
+	dbf = dbfile;
+    }
+    if (typ == 4) {
+	dbfile = NULL;
+	db_open(dbasename, DB_HASH,  DB_CREATE|DB_TRUNCATE,
+		0644, NULL, NULL, &dbfile);
+	dbf = dbfile;
+    }
+#else
     if (typ == 3) {
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
@@ -824,6 +849,7 @@ char *argv[];
 			DB_HASH, NULL);
 	dbf = dbfile;
     }
+#endif
 #endif
     if (dbf == NULL)
 	usage(argv0, "Can't open dbase file", errno);
@@ -848,7 +874,11 @@ char *argv[];
 #ifdef HAVE_DB_H
     if (typ == 3 || typ == 4) {
 	(dbfile->sync) (dbfile, 0);
+#ifdef HAVE_DB_OPEN2
+	(dbfile->close) (dbfile, 0);
+#else
 	(dbfile->close) (dbfile);
+#endif
     }
 #endif
 

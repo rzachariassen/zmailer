@@ -35,7 +35,7 @@
 #include <fcntl.h>
 #else
 #ifdef  HAVE_DB_H
-#ifdef HAVE_DB_185_H
+#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
 #else
 # include <db.h>
@@ -258,9 +258,16 @@ main(argc, argv)
 			 iflag ? GDBM_NEWDB : GDBM_WRITER,
 			 S_IRUSR|S_IWUSR, NULL );
 #else
+	db = NULL;
+#ifdef HAVE_DB_OPEN2
+	if (dblog)
+	  db_open(VDB ".db", DB_BTREE, DB_CREATE, S_IRUSR|S_IWUSR,
+		  NULL, NULL, &db);
+#else
 	if (dblog)
 	  db = dbopen(VDB ".db", iflag ? (O_RDWR|O_CREAT) : O_RDWR,
 		      S_IRUSR|S_IWUSR, DB_BTREE, NULL);
+#endif
 #endif
 #endif
 
@@ -303,8 +310,13 @@ main(argc, argv)
 	if (dblog)
 	  gdbm_close(db);
 #else
+#ifdef HAVE_DB_OPEN2
+	if (dblog)
+	  db->close(db, 0);
+#else
 	if (dblog)
 	  db->close(db);
+#endif
 #endif
 #endif
 
@@ -655,8 +667,13 @@ recent()
 #ifdef HAVE_GDBM_H
 	data = gdbm_fetch(db, key);
 #else
+#ifdef HAVE_DB_OPEN2
+	if (db->get(db, NULL, &key, &data, 0) != 0)
+	  data.dptr = NULL;
+#else
 	if (db->get(db, &key, &data, 0) != 0)
 	  data.dptr = NULL;
+#endif
 #endif
 #endif
 	if (data.dptr == NULL)
@@ -673,8 +690,13 @@ recent()
 #ifdef HAVE_GDBM_H
 	data = gdbm_fetch(db, key);
 #else
+#ifdef HAVE_DB_OPEN2
+	if (db->get(db, NULL, &key, &data, 0) != 0)
+	  data.dptr = NULL;
+#else
 	if (db->get(db, &key, &data, 0) != 0)
 	  data.dptr = NULL;
+#endif
 #endif
 #endif
 	if (data.dptr) {
@@ -707,7 +729,11 @@ setinterval(interval)
 #ifdef HAVE_GDBM_H
 	gdbm_store(db, key, data, GDBM_REPLACE);
 #else
+#ifdef HAVE_DB_OPEN2
+	db->put(db, NULL, &key, &data, 0);
+#else
 	db->put(db, &key, &data, 0);
+#endif
 #endif
 #endif
 }
@@ -735,7 +761,11 @@ setreply()
 #ifdef HAVE_GDBM_H
 	gdbm_store(db, key, data, GDBM_REPLACE);
 #else
+#ifdef HAVE_DB_OPEN2
+	db->put(db, NULL, &key, &data, 0);
+#else
 	db->put(db, &key, &data, 0);
+#endif
 #endif
 #endif
 }

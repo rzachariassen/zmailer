@@ -21,7 +21,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #ifdef HAVE_DB_H
-#ifdef HAVE_DB_185_H
+#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
 #else
 # include <db.h>
@@ -267,7 +267,11 @@ int *rlenp;			/* result length ptr ! */
 	Bkey.data = (void *) qptr;
 	Bkey.size = qlen;
 
+#ifdef HAVE_DB_OPEN2
+	rc = (rel->btree->get) (rel->btree, NULL, &Bkey, &Bresult, 0);
+#else
 	rc = (rel->btree->get) (rel->btree, &Bkey, &Bresult, 0);
+#endif
 	if (rc != 0)
 	    return NULL;
 
@@ -285,7 +289,11 @@ int *rlenp;			/* result length ptr ! */
 	Bkey.data = (void *) qptr;
 	Bkey.size = qlen;
 
+#ifdef HAVE_DB_OPEN2
+	rc = (rel->bhash->get) (rel->bhash, NULL, &Bkey, &Bresult, 0);
+#else
 	rc = (rel->bhash->get) (rel->bhash, &Bkey, &Bresult, 0);
+#endif
 	if (rc != 0)
 	    return NULL;
 
@@ -631,12 +639,22 @@ int whosonrc;
     case _dbt_btree:
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.db", rel->dbpath);
+#ifdef HAVE_DB_OPEN2
+	rel->btree = NULL;
+	db_open(dbname, DB_BTREE, DB_RDONLY, 0644, NULL, NULL, &rel->btree);
+#else
 	rel->btree = dbopen(dbname, O_RDONLY, 0644, DB_BTREE, NULL);
+#endif
 	openok = (rel->btree != NULL);
 	break;
 
     case _dbt_bhash:
+#ifdef HAVE_DB_OPEN2
+	rel->bhash = NULL;
+	db_open(dbname, DB_HASH, DB_RDONLY, 0644, NULL, NULL, &rel->bhash);
+#else
 	rel->bhash = dbopen(rel->dbpath, O_RDONLY, 0644, DB_HASH, NULL);
+#endif
 	openok = (rel->bhash != NULL);
 	break;
 #endif

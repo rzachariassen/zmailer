@@ -155,5 +155,10 @@
 #undef HAVE_WHOSON_H
 
 /* HAVE_OPENSSL -- The system has www.OpenSSL.org software;
-   version 0.9.2b, very least */
+   version 0.9.3a, very least */
 #undef HAVE_OPENSSL
+
+/* Have SleepyCat's BSD DB 2.x version of BSD DB database */
+#undef HAVE_DB_OPEN2
+/* Latter versions of 2.x have 4-args (db->cursor)() method */
+#undef HAVE_DB_CURSOR4

@@ -142,6 +142,14 @@ if test "$use_genincl" = 1; then
   GENINCL="$withval"
   CPPFLAGS="$CPPFLAGS $withval"
 fi
+AC_SUBST(GENLIB)
+AC_ARG_WITH(generic-library, [  --with-generic-library=\"-L/...\"
+                            Library directory option for local overriders],
+	use_genlib=1, use_genlib=0)
+if test "$use_genlib" = 1; then
+  GENLIB="$withval"
+  LIBS="$LIBS $GENLIB"
+fi
 
 AC_SUBST(ZMAILERCFGFILE)
 use_zcfg=0
@@ -741,6 +749,75 @@ if test "$ac_cv_header_db_h" = yes ; then
     fi
   fi
   AC_MSG_RESULT([Located BSD DB  dbopen()  routine at $t_found_at])
+  if test "x$LIBDB" != "x" -a "x$LIBDB" = "x$LIBNDBM" ; then
+	# Well, both at the same library ( -ldb ), which propably
+	# means that  <ndbm.h>  is just an emulation mode at BSD DB.
+	LIBNDBM=""
+    AC_MSG_RESULT([Note: It looks like your NDBM is actually BSD DB compability wrapper at])
+    AC_MSG_RESULT([      libdb -library. If so, your NDBM databases are actually BSD DB_HASH ones..])
+  fi
+  if test "$t_found_at" != nowhere; then
+    dblocation="$dblocation;$t_found_at"
+  fi
+fi
+
+dnl
+dnl Ok, a third case; SleepyCat's BSD DB 2.*;  db_open() et.al.
+dnl
+
+if test "$ac_cv_header_db_h" = yes ; then
+  t_found_at="nowhere"
+  if test "$ac_cv_lib_c_db_open" = yes ; then
+    LIBDB=""
+    t_found_at="libc(3)"
+    DBTYPE="btree"
+    AC_DEFINE(HAVE_DB_OPEN2)
+  else
+    if test "$ac_cv_lib_db_db_open" = yes ; then
+      LIBDB="-ldb"
+      t_found_at="db library"
+      DBTYPE="btree"
+      AC_DEFINE(HAVE_DB_OPEN2)
+    else
+      AC_TRY_LINK([], [db_open();], ac_cv_lib_c_db_open=yes,
+				   ac_cv_lib_c_db_open=no)
+      if test "$ac_cv_lib_c_db_open" = no; then
+	if test "x$ac_cv_lib_db_db_open" = x; then # not set
+	  t_oldLibs="$LIBS"
+	  LIBS="$LIBS -ldb"
+	  AC_TRY_LINK([], [db_open();],	ac_cv_lib_db_db_open=yes,
+					ac_cv_lib_db_db_open=no)
+	  if test "$ac_cv_lib_db_db_open" = yes; then
+	    LIBDB="-ldb"
+	    t_found_at="db library"
+	    DBTYPE="btree"
+	    AC_DEFINE(HAVE_DB_OPEN2)
+	  else
+	    AC_MSG_RESULT([Has <db.h>, but db_open() is not at libc, nor at libdb ??])
+	  fi
+	  LIBS="$t_oldLibs"
+	else
+	  AC_MSG_ERROR([config.cache inconsistency! (db) Delete it, and redo!])
+	fi
+      else # Has it in the libc!
+	LIBDB=""
+	t_found_at="libc(4)"
+	DBTYPE="btree"
+	AC_DEFINE(HAVE_DB_OPEN2)
+      fi
+    fi
+  fi
+  AC_MSG_RESULT([Located BSD DB 2.x  db_open()  routine at $t_found_at])
+  if test "x$LIBDB" != "x" ; then
+	# Does (db->cursor)(...) have 3 or 4 args ?
+	AC_TRY_COMPILE([#include <db.h>],[DB *db; DBC *curs;
+int err = (db->cursor)(db, NULL, &curs, 0);],
+			ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
+	if test "x$ac_cv_db_cursor_4" = "xyes"; then
+	  AC_MSG_RESULT([  (db->cursor)() method function seems to want 4 args.])
+	  AC_DEFINE(HAVE_DB_CURSOR4)
+	fi
+  fi
   if test "x$LIBDB" != "x" -a "x$LIBDB" = "x$LIBNDBM" ; then
 	# Well, both at the same library ( -ldb ), which propably
 	# means that  <ndbm.h>  is just an emulation mode at BSD DB.
