@@ -138,6 +138,10 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 		Ndat.dsize = slen;
 		rc = dbm_store(ndbmfile, Nkey, Ndat,
 			       overwritemode ? DBM_REPLACE : DBM_INSERT);
+
+		if (rc < 0 && errno == ENOSPC) {
+		  fprintf(stderr,"NDBM does not allow KEY.LEN + DATA.LEN to exceed 1024 bytes!  linenro=%d\n",linenum);
+		}
 	}
 #endif
 #ifdef HAVE_GDBM_H

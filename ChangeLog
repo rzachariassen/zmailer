@@ -1,3 +1,10 @@
+1999-11-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/makedb/makedb.c:
+	    When using NDBM format, if the STORE returns error with
+	    errno=ENOSPC, we report that KEY.LEN+DATA.LEN exceed 1kB
+	    which NDBM allows...
+
 1999-11-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/readconfig.c, scheduler/threads.c, scheduler/conf.c,
