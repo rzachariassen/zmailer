@@ -8,6 +8,8 @@
 
 unset require
 unset provide
+require=()
+provide=()
 
 declare (plist, modules) {
 	local a
