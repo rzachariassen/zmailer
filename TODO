@@ -17,8 +17,6 @@ Known/suspected bugs/Missing Features on current ZMailer sources
   - Also, how about enabling non-privileged users to execute "zmailer newdb"
     to recompile their own databases even though they won't be able to
     recreate all dbases and their hook .zmsh scripts ?
-  - Add to  dbases.conf  a triplet: user:group:maxperm
-    (either with doublecolon separation, or whitespace separation ?)
 
 FEATURE:
   router+scheduler+TA status MIB areas in an SHM segment

@@ -1,3 +1,8 @@
+2000-09-18  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/transport.c:
+	    A verbose debug printing of the 
+
 2000-09-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* smtpserver/smtpetrn.c:

@@ -718,7 +718,7 @@ start_child(vhead, chwp, howp)
 	  for (i = 0; ev[i] != NULL; ++i)
 	    sfprintf(sfstdout," %s", ev[i]);
 	  sfprintf(sfstdout," }");
-	  for (i = 0; ev[i] != NULL; ++i)
+	  for (i = 0; av[i] != NULL; ++i)
 	    sfprintf(sfstdout," %s", av[i]);
 	  sfprintf(sfstdout,"\n");
 	}
