@@ -149,6 +149,7 @@ distclean clean:
 	rm -f [A-Z]*images.* *labels.pl *figure.pl IMG_PAR*
 	rm -f TEXENV *.ps.gz *.xbm *.png
 	rm -f *.gif-green z-datetime.txt
+	rm -rf zmanual
 
 
 
