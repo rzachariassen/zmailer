@@ -1,9 +1,9 @@
 <CHAPTER ID="ZREF-ZMAILER3"><?dbhtml filename="zref-zmailer3.html">
 <TITLE>zmailer(3)</TITLE>
 
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Usage:</><LISTITEM>
 <SCREEN>
-{\bf Usage}
-\begin{verbatim}
 #include &lt;stdio.h&gt;
 #include &lt;zmailer.h&gt;
 
@@ -22,130 +22,146 @@ char *mail_alloc(unsigned int);
 int mail_free(char *);
 
 char *mail_host();
-\end{verbatim}
+</SCREEN>
 
+<PARA>
+At linkage time use <USERINPUT>-lzmailer</>.
+</PARA>
 
-At linkage time use {\tt -lzmailer}.
-
-{\tt mail_open()} will return a {\tt FILE *} to a message
-file that should be written to by the application. This
-message file contains three parts: the message envelope,
-the message header, and the message body. The exact format of
+<PARA>
+<FUNCTION>mail_open()</> will return a <FUNCTION>FILE *</> to
+a message file that should be written to by the application.
+This message file contains three parts:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+the message envelope
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+the message header
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+the message body
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+The exact format of
 these components depend on the message protocol,
-which must be specified as the parameter to {\tt mail_open()}.
+which must be specified as the parameter to <FUNCTION>mail_open()</>.
 The choices are predetermined by the capabilities of the
-mailer, and are defined in the header file. The known
-possibilities are:
+mailer, and are defined in the header file.
+The known possibilities are:
 
-\begin{description}
-\item[ {\tt MSG_RFC822}] \mbox{}
-
-this is the only format supported 
-by default by the mailer. The message headers and body in this format
-are defined by the DARPA Request For Comments 822 and 1123. 
+<VARIABLELIST>
+<VARLISTENTRY><TERM><LITERAL>MSG_RFC822</></TERM><LISTITEM><PARA>
+this is the only format supported by default by the mailer.
+The message headers and body in this format are defined by the IETF
+Request For Comments 822 and 1123. 
 The message envelope syntax is similar to the message header syntax.
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-
-\item[ {\tt MSG_FAX}] \mbox{}
-
+<VARLISTENTRY><TERM><LITERAL>MSG_FAX</></TERM><LISTITEM><PARA>
 intended for fax transmissions.
+(never used)
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-
-\item[ {\tt MSG_UUCP}] \mbox{}
-
+<VARLISTENTRY><TERM><LITERAL>MSG_UUCP</></TERM><LISTITEM><PARA>
 intended for old style UUCP format message headers
+(never used)
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-
-\item[ {\tt MSG_X400}] \mbox{}
-
+<VARLISTENTRY><TERM><LITERAL>MSG_X400</></TERM><LISTITEM><PARA>
 intended for X.400(88) messages.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
-\end{description}
+<PARA>
+The <FUNCTION>mail_open()</> routine will look for $<VARNAME>FULLNAME</> 
+and $<VARNAME>PRETTYLOGIN</> environment variables and translate them
+into message envelope data for use by the mailer if it generates a sender
+address header for the message.
+</PARA>
 
+<PARA>
+Note that the return value from the <FUNCTION>mail_open()</> routine
+corresponds to the return value of an <FUNCTION>fopen(3)</>, and similarly
+the return values from <FUNCTION>mail_abort()</> and <FUNCTION>mail_close()</>
+correspond to the return value of <FUNCTION>fclose(3)</>.
+</PARA>
 
-The {\tt mail_open()} routine will look for {\tt \$FULLNAME} 
-and {\tt \$PRETTYLOGIN} environment variables and translate 
-them into message envelope data for use by the mailer if it generates 
-a sender address header for the message.
-
-Note that the return value from the {\tt mail_open()} routine
-corresponds to the return value of an {\tt fopen(3)}, and similarly
-the return values from {\tt mail_abort()} and {\tt mail_close()} 
-correspond to the return value of {\tt fclose(3)}.
-
-The {\tt mail_priority} variable has a default value of 0, 
+<PARA>
+The <FUNCTION>mail_priority</> variable has a default value of 0, 
 and is used on scanning Zmailer configuration variable 
-{\tt \$ROUTERDIRS}, which tells alternate router directories 
-under the {\tt \$POSTOFFICE} directory. At value 0, 
-{\tt \$ROUTERDIRS} variable is not used. At higher values, 
-successive directory from {\tt \$ROUTERDIRS} is taken. 
+$<VARNAME>ROUTERDIRS</>, which tells alternate router directories
+under the <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
+directory.
+At value 0, $<VARNAME>ROUTERDIRS</> variable is not used.
+At higher values, successive directory from $<VARNAME>ROUTERDIRS</> is taken. 
 See below about Z-Environment.
+</PARA>
 
-The {\tt mail_close_alternate(3)} can be used to send currently
-open message file to some alternate destination, and is
-used at {\em smtpserver(8)\/} to send some quick-action requests
-directly to the {\em scheduler(8)\/}.
+<PARA>
+The <FUNCTION>mail_close_alternate(3)</> can be used to send currently
+open message file to some alternate destination, and is used at
+<EMPHASIS>smtpserver(8)</> to send some quick-action requests
+directly to the <EMPHASIS>scheduler(8)</>.
+</PARA>
 
-The {\tt mail_alloc()} and {\tt mail_free()} routines are used 
-to provide memory space for internal data structures. The versions
-of these routines in the library simply call {\tt malloc(3)} and
-{\tt free(3)} but an application may override them if desired.
+<PARA>
+The <FUNCTION>mail_alloc()</> and <FUNCTION>mail_free()</> routines are
+used  to provide memory space for internal data structures.
+The versions of these routines in the library simply call
+<FUNCTION>malloc(3)</> and <FUNCTION>free(3)</> but an application
+may override them if desired.
+</PARA>
 
-Similarly the {\tt mail_host()} routine is intended to return a
-unique string for each host, by default the hostname, and
-this too is intended to be overridden by an application
-that may already have this information available in some form.
+<PARA>
+Similarly the <FUNCTION>mail_host()</> routine is intended to return
+a unique string for each host, by default the hostname, and this too
+is intended to be overridden by an application that may already have
+this information available in some form.
+</PARA>
+</LISTITEM></VARLISTENTRY>
 
-{\bf Envelope header lines}
-
+<VARLISTENTRY><TERM>Envelope header lines:</TERM><LISTITEM><PARA>
 The message envelope headers are used to carry meta-information
-about the message.  The goal is to carry transport-envelope 
+about the message.
+ The goal is to carry transport-envelope 
 information separate from message (RFC-822) headers, and body.
 At first the message starts with a set of envelope headers 
 (*-prefix denotes optional):
-
-\begin{verbatim}
+<SCREEN>
  *external \n
  *rcvdfrom %s@%s (%s) \n
  *bodytype %s \n
  *with %s \n
  *identinfo %s \n
-\end{verbatim}
 
-Either: \\
-% {\tt\ \ \ from &lt;%s&gt; \
-\verb!  from &lt;%s&gt; \n! \\
-Or: \\
-\verb!  channel error \n! \\
-% {\tt\ \ \ channel error \(\backslash\)n}
+Either:
+  from &lt;%s&gt; \n
+Or:
+  channel error \n
 
-\begin{verbatim}
  *envid %s \n
  *notaryret %s \n
-\end{verbatim}
-
 
 Then for each recipient pairs of:
-\begin{verbatim}
+
  *todsn [NOTIFY=...] [ORCPT=...] \n
  to &lt;%s&gt; \n
-\end{verbatim}
-
 
 Just before the data starts, a magic entry:
-\begin{verbatim}
+
  env-end \n
-\end{verbatim}
+</SCREEN>
+</PARA>
 
-
+<PARA>
 Then starts the message RFC-822 headers, and below it, the body.
+</PARA></LISTITEM></VARLISTENTRY>
 
-{\bf Example}
+<VARLISTENTRY><TERM>Example:</TERM><LISTITEM><PARA>
 
-\begin{verbatim}
+<SCREEN>
  ... set up signal handlers ...
  FILE *mfp = mail_open(MSG_RFC822,0);
  if (mfp != NULL) {
@@ -157,50 +173,53 @@ Then starts the message RFC-822 headers, and below it, the body.
       (void) mail_abort(mfp);
  else if (mail_close(mfp) == EOF)
       ... error handling if something went wrong ...
-\end{verbatim}
+</SCREEN>
 
+</PARA></LISTITEM></VARLISTENTRY>
 
-{\bf Environment variables}
+<VARLISTENTRY><TERM>Environment variables:</TERM><LISTITEM><PARA>
 
-\begin{description}
-
-
-\item[ {\tt \$FULLNAME}] \mbox{}
-
+<VARIABLELIST>
+<VARLISTENTRY><TERM><VARNAME>FULLNAME</></><LISTITEM><PARA>
 variable defines textual fullname, 
 for example: ``Sample User''
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-
-\item[ {\tt \$PRETTYLOGIN}] \mbox{}
-
+<VARLISTENTRY><TERM><VARNAME>PRETTYLOGIN</></><LISTITEM><PARA>
 variable defines 
-{\tt user@node} format of what user wants to claim as 
+<EMPHASIS>user@node</> format of what user wants to claim as 
 his/her own address (it must match those of mail router accepts.)
-
-\end{description}
-
-
-{\bf Z-environment variables}
-\begin{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[ {\tt \$POSTOFFICE}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
 
-defines the directory where all 
-\$POSTOFFICE functions are. 
-Example: {\tt \$POSTOFFICE=/var/spool/postoffice/}
+<VARLISTENTRY><TERM>Z-environment variables:</TERM><LISTITEM><PARA>
 
+<VARIABLELIST>
 
-
-\item[ {\tt \$ROUTERDIRS}] \mbox{}
-
-defines a `:' separated list of alternate 
-router directories. If these are defined at all, they must exist, 
-if alternate queueing priority mechanism is desired to be used. 
-
-Example: {\tt \$ROUTERDIRS=router1:router2:router3:router4}
-
-\end{description}
+<VARLISTENTRY><TERM><VARNAME>POSTOFFICE</></><LISTITEM><PARA>
+defines the directory where all
+ <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</> functions are. 
+Example:
+<SCREEN>
+  POSTOFFICE=/var/spool/postoffice/
 </SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><VARNAME>ROUTERDIRS</></><LISTITEM><PARA>
+defines a `:' separated list of alternate router directories.
+If these are defined at all, they must exist,  if alternate
+queueing priority mechanism is desired to be used. 
+Example:
+<SCREEN>
+  ROUTERDIRS=router1:router2:router3:router4
+</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
 </CHAPTER>

@@ -535,7 +535,7 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 </SECT1>
 
 <SECT1 ID="ref.smtp-policy-builder">
-<TITLE><EMPHASIS>policy-builder.sh</> utility</TITLE>
+<TITLE><EMPHASIS>policy-builder.sh </> utility</TITLE>
 <!-- \index{smtp!policy filtering, {\em policy-builder.sh}} -->
 
 <PARA>

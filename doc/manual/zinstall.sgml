@@ -171,7 +171,7 @@ Additional examples:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>DEC OSF/1 at nic.funet.fi with DECs best compiler&hellip;
 <SCREEN>
-  <PROMPT>$ </><USERINPUT>CFLAGS="-O -g3 -std1" CC="cc -migrate" </>\
+  <PROMPT>$ </><USERINPUT>CFLAGS="-O -g3 -std1" CC="cc -migrate" \</>
     <USERINPUT>./configure --prefix=/l/mail</>
 </SCREEN></PARA></LISTITEM>
 

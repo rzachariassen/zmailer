@@ -10,6 +10,10 @@
 <!DOCTYPE book PUBLIC    "-//OASIS//DTD DocBook V3.1//EN" [
 
 <!ENTITY ZManVersion     "v1.99.20">
+
+<!ENTITY ZDATETIME       SYSTEM "z-datetime.txt">
+<!ENTITY ZWHAT           SYSTEM "z-what.txt">
+
 <!ENTITY ZMAN-COVER      SYSTEM "zmanual-cover.sgml">
 <!ENTITY ZTUTORIAL       SYSTEM "ztutorial.sgml">
 <!ENTITY ZINSTALL        SYSTEM "zinstall.sgml">

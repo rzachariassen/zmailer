@@ -25,30 +25,33 @@ a <QUOTE><LINK LINKEND="rfc822.subject">Subject:</></> line
 especially if you use the <OPTION>-m</> option), for example.
 </PARA>
 
-<SCREEN>
-{\bf Usage}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Usage:</><LISTITEM><PARA>
 
-To start {\em vacation\/}, run the command {\tt vacation start}. 
-It will create a {\tt .vacation.msg} file (if you don't already 
+To start <EMPHASIS>vacation</>, run the command <USERINPUT>vacation start</>.
+It will create a <FILENAME>~/.vacation.msg</> file (if you don't already 
 have one) in your home directory containing the message you want to send 
-people who send you mail, and a {\tt .forward} file in your home 
+people who send you mail, and a <FILENAME>~/.forward</> file in your home 
 directory containing a line of the form:
-
-\begin{verbatim}
-"\name", "|/opt/mail/bin/vacation name"
-\end{verbatim}
-
+<SCREEN>
+  "\name", "|/opt/mail/bin/vacation name"
+</SCREEN>
 
 where name is your login name. Make sure these files and your home 
-directory are readable by everyone. Also  make sure  that  no  one  
-else  can  write  to  them,  and  that  no  one  can  write  to  your  
-home  directory. ({\tt chmod og-w \$HOME \$HOME/.forward})
+directory are readable by everyone.
+Also make sure that no one else can write to  them,  and  that  no
+one can write to your home  directory.
+ (<SYNOPSIS>chmod og-w $HOME $HOME/.forward</>)
+</PARA>
 
-To stop vacation, run the command {\tt vacation stop} It will move the 
-{\tt .forward} file to {\tt .vacforward}, and the automatic 
-replies will stop.
+<PARA>
+To stop vacation, run the command <COMMAND>vacation stop</>.
+It will move the <FILENAME>~/.forward</> file to <FILENAME>~/.vacforward</>,
+and the automatic replies will stop.
+</PARA>
 
-{\tt vacation start vacation stop vacation -I vacation [ -tN ] [ -mMsgfile ] [ -d ] [user]}
+<SYNOPSIS>
+vacation start vacation stop vacation -I vacation [ -tN ] [ -mMsgfile ] [ -d ] [user]
 
 {\bf Parameters}
 

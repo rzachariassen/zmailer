@@ -8,6 +8,9 @@
 #  All relevant bits are available at for example in redhat 6.2 beta
 #  as RPM packages (February 2000)
 #
+#  (Well, not all, I have CUSTOMIZED JADE - I break certain ligatures
+#   at TeX source in a rather ugly manner, should have a better way..)
+#
 
 PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 	zadministration.sgml    zref-router.sgml		\
@@ -60,6 +63,8 @@ $(L2HGIFS):
 
 zmanual.html: gifs $(PARTS)
 	rm -rf zmanual
+	TZ=UTC date > z-datetime.txt
+	echo "HTML" > z-what.txt
 	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl   sh -x  ./db2html zmanual.sgml
 	#sh -x  ./db2html zmanual.sgml
 	cp -p *.gif zmanual/
@@ -69,9 +74,13 @@ zmanual.ps: zmanual.dvi $(FIGEPS)
 	dvips -ta4 -ozmanual.ps zmanual.dvi
 
 zmanual.dvi: $(PARTS) $(FIGEPS) zmanual.sgml
+	TZ=UTC date > z-datetime.txt
+	echo "PostScript" > z-what.txt
 	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh -x  ./db2dvi zmanual.sgml
 
 zmanual.pdf: $(PARTS) $(FIGEPS) zmanual.sgml
+	TZ=UTC date > z-datetime.txt
+	echo "PDF" > z-what.txt
 	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh -x  ./db2pdf zmanual.sgml
 
 distclean clean:
@@ -82,7 +91,7 @@ distclean clean:
 	rm -f *contents.pl *.ind *.idx *images.pl *table.pl
 	rm -f [A-Z]*images.* *labels.pl *figure.pl IMG_PAR*
 	rm -f TEXENV *.ps.gz *.xbm *.png
-	rm -f *.gif-green
+	rm -f *.gif-green z-datetime.txt
 
 
 .SUFFIXES: .gif .fig .eps .ps .gif-green
@@ -125,5 +134,5 @@ manual_parts.tar: Makefile $(PARTS) $(FIGS)
 
 
 index:	html ps
-	gzip -9 < zmanual.ps > zmanual.ps.gz
-	./makeindex.sh > index.html
+	gzip -9 < zmanual.ps > zmanual/zmanual.ps.gz
+	cd zmanual ; ../makeindex.sh > index.html
