@@ -285,15 +285,17 @@ char *argv[];
       DBC *curs;
       memset(&curs, 0, sizeof(curs));
       rc = (dbfile->cursor)(dbfile, NULL, &curs, 0);
-      memset(&key, 0, sizeof(key));
-      memset(&result, 0, sizeof(key));
-      rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
-      if (rc) fprintf(stderr,"cursor errno=%d (%s)\n",rc, strerror(rc));
+      if (!rc) {
+	memset(&key, 0, sizeof(key));
+	memset(&result, 0, sizeof(key));
+	rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
+      }
+      if (rc) fprintf(stderr,"cursor errno=%d (%s)\n",rc, db_strerror(rc));
       while ( rc == 0 ) {
 	dumpit(stdout, dumpflag, key.data, key.size, result.data, result.size);
 	rc = (curs->c_get)(curs, &key, &result, DB_NEXT);
       }
-      (curs->c_close)(curs);
+      if (curs) (curs->c_close)(curs);
     } else {
       memset(&key,    0, sizeof(key));
       memset(&result, 0, sizeof(result));
