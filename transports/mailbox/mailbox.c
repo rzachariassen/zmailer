@@ -2093,7 +2093,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  if (verboselog) {
 	    fprintf(verboselog," argv:");
 	    for (i = 0; argv[i] != NULL; ++i)
-	      fprintf(verboselog," [%s]<%s>", i, argv[i]);
+	      fprintf(verboselog," [%d]<%s>", i, argv[i]);
 	    fprintf(verboselog,"\n");
 	  }
 	  execve(argv[0], argv, env);
