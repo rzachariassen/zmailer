@@ -2303,7 +2303,7 @@ smtpconn(SS, host, noMX)
 #if HAVE_SA_LEN
 	    su->sun_len = sizeof(su);
 #endif
-	    strncpy(su->sun_path, host+6, 256);
+	    strncpy(su->sun_path, host+5, 256);
 	    su->sun_path[255] = 0;
 
 	    SS->mxcount = 0;

@@ -260,8 +260,8 @@ local/*
 	command="mailbox"
 	# Or with CYRUS server the following might do:
 	#command="sm -c $channel cyrus"
-	#command="smtp -c $channel -M -x -F [127.0.0.1] -p 2525 -s -l ${LOGDIR}/smtp-lmtp"
-	#command="smtp -c $channel -M -x -F UNIX:/var/imap/socket/lmtp -s -l ${LOGDIR}/smtp-lmtp"
+	#command="smtp -c $channel -M -x -F [127.0.0.1] -p 2525 -s" # -l ${LOGDIR}/smtp-lmtp"
+	#command="smtp -c $channel -M -x -F UNIX:/var/imap/socket/lmtp -s" # -l ${LOGDIR}/smtp-lmtp"
 	# Or with PROCMAIL as the local delivery agent:
 	#command="sm -c $channel procm"
 
