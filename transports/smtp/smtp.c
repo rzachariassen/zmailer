@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2003 by Matti Aarnio -- modifications, including
+ *	Copyright 1991-2004 by Matti Aarnio -- modifications, including
  *	MIME things...
  */
 
@@ -5034,15 +5034,15 @@ static void tcpstream_nagle(fd)
 
 #ifdef TCP_CORK		/* Linux 2.4 / FreeBSD 5.x ?	*/
 	i = 1;
-	r = setsockopt(fd, SOL_TCP, TCP_CORK, &i, sizeof(i));
+	r = setsockopt(fd, SOL_TCP, TCP_CORK, (const void *)&i, sizeof(i));
 #else
 #ifdef TCP_NOPUSH	/* FreeBSD -- relates to T/TCP	*/
 	i = 1;
-	r = setsockopt(fd, SOL_TCP, TCP_NOPUSH, &i, sizeof(i));
+	r = setsockopt(fd, SOL_TCP, TCP_NOPUSH, (const void *)&i, sizeof(i));
 #else
 #ifdef TCP_NODELAY	/* old original BSD network stack thing */
 	i = 0;
-	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i));
+	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, (const void *)&i, sizeof(i));
 #else
 	/* No method at hand if none of above.. */
 	i = r = 0; /* silense the compiler */
@@ -5059,13 +5059,13 @@ static void tcpstream_denagle(fd)
 
 #ifdef TCP_CORK
 	i = 0;
-	r = setsockopt(fd, SOL_TCP, TCP_CORK, &i, sizeof(i));
+	r = setsockopt(fd, SOL_TCP, TCP_CORK, (const void *)&i, sizeof(i));
 	if (r < 0)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
 #else
 #ifdef TCP_NOPUSH
 	i = 0;
-	r = setsockopt(fd, SOL_TCP, TCP_NOPUSH, &i, sizeof(i));
+	r = setsockopt(fd, SOL_TCP, TCP_NOPUSH, (const void *)&i, sizeof(i));
 #if 0	/* original sendmail didn't have any code for this, actually */
 	if (r < 0)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
@@ -5074,7 +5074,7 @@ static void tcpstream_denagle(fd)
 #ifdef TCP_NODELAY
 	i = 1;		/* Turning this on DOES NOT FLUSH accumulated
 			   data immediately!  Unlike TCP_CORK at Linux.. */
-	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i));
+	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, (const void *)&i, sizeof(i));
 #if 0	/* original sendmail didn't have any code for this, actually */
 	if (r < 0)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
