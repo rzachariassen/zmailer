@@ -1556,7 +1556,6 @@ deliver(SS, dp, startrp, endrp)
 	r = appendlet(SS, dp, convertmode);
 
 	if (r != EX_OK) {
-	fail:
 	  time(&endtime);
 	  notary_setxdelay((int)(endtime-starttime));
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next)
@@ -1606,8 +1605,37 @@ deliver(SS, dp, startrp, endrp)
 	}
 
 	timeout = tout;
-	if (r != EX_OK)
-	  goto fail;
+	if (r != EX_OK) {
+	  time(&endtime);
+	  notary_setxdelay((int)(endtime-starttime));
+	  for (rp = startrp; rp && rp != endrp; rp = rp->next)
+	    if (rp->status == EX_OK) {
+	      notaryreport(rp->addr->user, FAILED,
+			   "5.4.2 (Message write timed out;3)",
+			   "smtp; 566 (Message write timed out;3)"); /* XX: FIX THE STATUS? */
+	      diagnostic(rp, r, 0, "%s", SS->remotemsg);
+	    }
+	  /* Diagnostics are done, protected (failure-)section ends! */
+	  dotmode = 0;
+	  /* The failure occurred during processing and was due to an I/O
+	   * error.  The safe thing to do is to just abort processing.
+	   * Don't send the dot! 2/June/94 edwin@cs.toronto.edu
+	   */
+	  if (SS->smtpfp) {
+	    /* First close the socket so that no FILE buffered stuff
+	       can become flushed out anymore. */
+	    close(FILENO(SS->smtpfp));
+	    /* Now do all normal FILE close things -- including
+	       buffer flushes... */
+	    smtpclose(SS);
+	    if (logfp)
+	      fprintf(logfp, "%s#\t(closed SMTP channel - appendlet() failure, status=%d)\n", logtag(), rp ? rp->status : -999);
+	  }
+
+	  if (SS->chunkbuf) free(SS->chunkbuf);
+
+	  return EX_TEMPFAIL;
+	}
 
 	time(&body_end); /* body endtime */
 
