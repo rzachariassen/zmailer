@@ -201,6 +201,7 @@ struct vertex {
 	int		attempts;	/* count of number of TA invocations */
 	int		retryindex;	/* cur index into ce->retries array  */
 	time_t		wakeup;		/* time to wake up and run this      */
+	time_t		lastfeed;	/* When the last feed was ?	     */
 	char		*sender;	/* Message Sender/error recipient    */
 	int		ngroup;		/* number of addresses in group      */
 	int		index[1];	/* index of cfp->offset for group    */

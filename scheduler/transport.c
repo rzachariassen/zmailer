@@ -205,6 +205,12 @@ feed_child(proc)
 
 	vtx = proc->pvertex;
 
+	mytime(&now);
+
+	if (vtx->lastfeed + 10 >= now)
+	  return -1; /* Force at least 10 seconds in between feeds! */
+	vtx->lastfeed = now;
+
 	if (slow_shutdown) {
 
 	  cmdlen = 1;
