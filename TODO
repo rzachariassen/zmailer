@@ -36,9 +36,6 @@ Known/suspected bugs/Missing Features on current ZMailer sources
 - Configuration files, esp.   cf/aliases.cf   has controversy in it.
   Many people think it is broken (I tend to agree) - 940614/mea
 
-- Canned error messages are abysmal -- they need more complete ways to
-  configure what is told and how, whole error facility needs an overhaul
-  in fact..  (See mention above about: IETF NOTARY)
 
 libc: "make install" is "crazy"
 proto:	"make install" -- nothing goes in ???

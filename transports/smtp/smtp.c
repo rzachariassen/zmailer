@@ -3386,19 +3386,13 @@ smtp_sync(SS, r, nonblocking)
 	    continuation_line = 1;
 	  }
 
-	  if (first_line) {
-	    if (SS->pipecmds[idx]) {
-	      if (strncmp(SS->pipecmds[idx],
-			  "MAIL",4) == 0) /* If MAIL, flush buffer! */
-		SS->remotemsg[0] = 0;
-	      rmsgappend(SS, 0, "\r<<- %s", SS->pipecmds[idx]);
-	    } else {
-	      SS->remotemsg[0] = 0;
-	      rmsgappend(SS, 0, "\r<<- (null)");
-	    }
-	  }
+	  if (first_line)
+	    rmsgappend(SS, 0, "\r<<- %s",
+		       SS->pipecmds[idx] ? SS->pipecmds[idx] : "(null)");
+
 	  /* first_line is not exactly complement of continuation_line,
-	     it is rather more complex entity. */
+	     it is rather a more complex entity. */
+
 	  first_line = !continuation_line;
 
 	  rmsgappend(SS, 1, "\r->> %s",s);
