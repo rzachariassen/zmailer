@@ -1391,8 +1391,9 @@ void thread_report(fp,mqmode)
 
 	  for (thr = thread_head;
 	       thr != NULL;
-	       thr = thr->nexttr) {
+	       thr = thr->nexttr)
 #endif
+	  {
 	    if (thr->thgrp != thg) /* Not of this group ? */
 	      continue; /* Next! */
 
