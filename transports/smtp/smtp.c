@@ -3110,6 +3110,7 @@ smtp_sync(SS,r)
 	int idx = 0, code;
 	int rc = EX_OK, len;
 	int some_ok = 0;
+	int datafail = 0;
 	int err;
 	char buf[8192];
 	char *p;
@@ -3272,6 +3273,11 @@ smtp_sync(SS,r)
 		  SS->rcptstates |= FROMSTATE_500;
 		else if (code >= 400)
 		  SS->rcptstates |= FROMSTATE_400;
+	      } else {
+		if (code >= 500)
+		  datafail = EX_UNAVAILABLE;
+		else if (code >= 400)
+		  datafail = EX_TEMPFAIL;
 	      }
 	    }
 	  } else {
@@ -3299,6 +3305,7 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	}
 
 	if (some_ok) rc = EX_OK;
+	if (datafail) rc = datafail;
 
 	return rc;
 }
@@ -3360,7 +3367,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	int r = 0;
 	char *se;
 	char *status = NULL;
-	char buf[8192]; /* XX: static buffer - used in several places */
+	char buf[2*8192]; /* XX: static buffer - used in several places */
 	char ch;
 
 	gotalarm = 0;
@@ -3516,7 +3523,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  if (setjmp(alarmjmp) == 0) {
 	    gotalarm = 0;
 	    alarm(timeout);
-	    r = read(infd, cp, sizeof buf - (cp - buf));
+	    r = read(infd, cp, sizeof(buf) - (cp - buf));
 	  } else
 	    r = -1;
 
@@ -3525,7 +3532,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  if (r > 0) {
 	    if (SS->verboselog)
 	      fwrite(cp,r,1,SS->verboselog);
-	    for (s = cp, cp += r; s < cp; ++s) {
+	    s = cp;
+	    cp += r;
+	    for ( ; s < cp; ++s ) {
 	      switch (i) {
 	      	/* i == 0 means we're on last line */
 	      case 1:		/* looking for \n */
@@ -3577,19 +3586,20 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      notary_setxdelay((int)(endtime-starttime));
 	      notaryreport(NULL,FAILED,"5.4.2 (smtp transaction read timeout)",SS->remotemsg);
 	    } else {
-		se = strerror(errno);
-		if (strbuf == NULL)
-		  sprintf(SS->remotemsg,
-			  "smtp; 500 (Error on initial SMTP response read: %s)",se);
+	      se = strerror(errno);
+	      if (strbuf == NULL)
+		sprintf(SS->remotemsg,
+			"smtp; 500 (Error on initial SMTP response read: %s)",se);
 
-		else
-		  sprintf(SS->remotemsg,
-			  "smtp; 500 (Error on SMTP response read: %s, Cmd: %s)",
-			  se, strbuf);
-		time(&endtime);
-		notary_setxdelay((int)(endtime-starttime));
-		notaryreport(NULL,FAILED,"5.4.2 (smtp transaction read timeout)",SS->remotemsg);
-	      }
+	      else
+		sprintf(SS->remotemsg,
+			"smtp; 500 (Error on SMTP response read: %s, Cmd: %s)",
+			se, strbuf);
+	      time(&endtime);
+	      notary_setxdelay((int)(endtime-starttime));
+	      notaryreport(NULL,FAILED,"5.4.2 (smtp transaction read timeout)",SS->remotemsg);
+	    }
+
 	    dflag = 0;
 	    SS->firstmx = 0;
 	    if (SS->verboselog)
@@ -3618,7 +3628,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	     also takes care of the required CRLF termination */
 	} while (cp < buf+sizeof buf && !(i == 0 && *(cp-1) == '\n'));
 
-	if (cp >= buf+sizeof buf) {
+	if (cp >= (buf+sizeof buf)) {
 	  strcpy(SS->remotemsg,"smtp; 500 (SMTP Response overran input buffer!)");
 	  time(&endtime);
 	  notary_setxdelay((int)(endtime-starttime));
