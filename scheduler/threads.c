@@ -974,8 +974,8 @@ int ok, justfree;
 	thr  = proc->thread;
 
 	if (verbose)
-	  printf("pick_next_vertex(proc->tofd=%d, thr=0x%p, vtx=0x%p, jobs=%d ok=%d justfree=%d)\n",
-		 proc->tofd, thr, proc->vertex, thr ? thr->jobs : 0, ok, justfree);
+	  printf("pick_next_vertex(proc->tofd=%d, thr=0x%p, vtx=0x%p, jobs=%d ok=%d justfree=%d OF=%d)\n",
+		 proc->tofd, thr, proc->vertex, thr ? thr->jobs : 0, ok, justfree, proc->overfed);
 
 	if (proc->pid < 0) {	/* "Jim, He is dead!"		*/
 	  if (proc->thread != NULL)
@@ -1010,7 +1010,7 @@ int ok, justfree;
 	  while (vtx) {
 
 	    /* Is the current one in processing ? */
-	    if (vtx->proc == NULL) {
+	    if (vtx->proc == NULL && proc->vertex != vtx) {
 	      proc->vertex = vtx;
 	      if (verbose) printf(" ... thr=same vtx=0x%p\n",vtx);
 	      proc->fed = 0;
