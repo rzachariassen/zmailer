@@ -4447,7 +4447,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 #endif
 	      ) {
 
-	    struct addrinfo *ai, **aip;
+	    struct addrinfo *ai;
 	    Usockaddr *usa;
 	    char *canon;
 	    int   nlen = strlen(buf);
@@ -4455,56 +4455,55 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    /* Pick the address data */
 	    for (i = 0; i < nmx; ++i) {
 	      /* Is this known (wanted) name ?? */
-	      if (strcasecmp(buf, mx[i].host) != 0)
-		continue; /* Not, perhaps next.. */
-	      break; /* YES! */
-	    }
-	    if (i < nmx) {
-	      /* We do have a wanted name! */
-	      aip = & mx[i].ai;
-	      while (*aip != NULL)
-		aip = &((*aip)->ai_next);
+	      if (strcasecmp(buf, mx[i].host) == 0) {
+		/* YES! */
 
-	      /* build addrinfo block, pick addresses */
+		/* We do have a wanted name! */
 
-	      /* WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
-		 This assumes intimate knowledge of the system
-		 implementation of the  ``struct addrinfo'' !  */
+		/* build addrinfo block, pick addresses */
 
-	      *aip = ai = (void*)malloc(sizeof(*ai) + sizeof(*usa) + nlen + 1);
-	      if (ai == NULL) exit(EX_OSERR);
-	      memset(ai, 0, sizeof(*ai) + sizeof(*usa) + nlen + 1);
+		/* WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
+		   This assumes intimate knowledge of the system
+		   implementation of the  ``struct addrinfo'' !  */
 
-	      usa   = (void*)((char *) ai + sizeof(*ai));
+		ai = (void*)malloc(sizeof(*ai) + sizeof(*usa) + nlen + 1);
+		if (ai == NULL) exit(EX_OSERR);
+		memset(ai, 0, sizeof(*ai) + sizeof(*usa) + nlen + 1);
 
-	      canon = ((char *)usa) + sizeof(*usa);
-	      memcpy(canon, buf, nlen);
+		usa   = (void*)((char *) ai + sizeof(*ai));
 
-	      ai->ai_flags    = 0;
-	      ai->ai_socktype = SOCK_STREAM;
-	      ai->ai_protocol = IPPROTO_TCP;
-	      ai->ai_addr     = (struct sockaddr *)usa;
-	      ai->ai_addrlen  = sizeof(*usa);
-	      ai->ai_canonname = canon;
+		canon = ((char *)usa) + sizeof(*usa);
+		memcpy(canon, buf, nlen);
 
-	      switch (type) {
+		ai->ai_flags    = 0;
+		ai->ai_socktype = SOCK_STREAM;
+		ai->ai_protocol = IPPROTO_TCP;
+		ai->ai_addr     = (struct sockaddr *)usa;
+		ai->ai_addrlen  = sizeof(*usa);
+		ai->ai_canonname = canon;
+
+		ai->ai_next     = mx[i].ai;
+		mx[i].ai        = ai;
+
+		switch (type) {
 #if defined(AF_INET6) && defined(INET6)
-	      case T_AAAA:
-		ai->ai_family = PF_INET6;
-		usa->v6.sin6_family = PF_INET6;
-		memcpy(&usa->v6.sin6_addr, cp, 16);
-		break;
+		case T_AAAA:
+		  ai->ai_family = PF_INET6;
+		  usa->v6.sin6_family = PF_INET6;
+		  memcpy(&usa->v6.sin6_addr, cp, 16);
+		  break;
 #endif
-	      case T_A:
-		ai->ai_family = PF_INET;
-		usa->v4.sin_family = PF_INET;
-		memcpy(&usa->v4.sin_addr, cp, 4);
-		break;
-	      default:
-		break;
-	      }
-	    }
-	  }
+		case T_A:
+		  ai->ai_family = PF_INET;
+		  usa->v4.sin_family = PF_INET;
+		  memcpy(&usa->v4.sin_addr, cp, 4);
+		  break;
+		default:
+		  break;
+		}
+	      } /* Matched name! */
+	    } /* Name matching loop */
+	  } /* type = T_A or T_AAAA */
 
 	  cp += n;
 	  --arcount;
@@ -4536,12 +4535,12 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  /* This resolves CNAME, it should not happen in case
 	     of MX server, though..    */
 #if !GETADDRINFODEBUG
-	  n = getaddrinfo((const char*)buf, "0", &req, &ai);
+	  n = getaddrinfo(mx[i].host, "0", &req, &ai);
 #else
-	  n = _getaddrinfo_((const char*)buf, "0", &req, &ai, SS->verboselog);
+	  n = _getaddrinfo_(mx[i].host, "0", &req, &ai, SS->verboselog);
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
-		    buf, n, ai);
+		    mx[i].host, n, ai);
 #endif
 
 #if defined(AF_INET6) && defined(INET6)
@@ -4615,7 +4614,6 @@ getmxrr(SS, host, mx, maxmx, depth)
 	}
 
 	for (i = 0; i < nmx; ++i) {
-
 	  if (cistrcmp(mx[i].ai->ai_canonname, myhostname) == 0 ||
 	      matchmyaddresses(mx[i].ai) == 1) {
 
@@ -4626,8 +4624,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    if (maxpref > (int)mx[nmx].pref)
 	      maxpref = mx[nmx].pref;
 	  }
-
 	} /* ... i < nmx ... */
+
 	SS->mxcount = nmx;
 
 #if GETMXRRDEBUG
