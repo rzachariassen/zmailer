@@ -279,7 +279,7 @@ mail_open(type)
 	      cp = getenv("USER");
 	    if (cp == NULL)
 	      cp = "\"??\"";
-	    fprintf(fp, "rcvdfrom %s@%s\n", cp, namebuf);
+	    fprintf(fp, "rcvdfrom STDIN (%s@%s)\n", cp, namebuf);
 	  }
 	return fp;
 }

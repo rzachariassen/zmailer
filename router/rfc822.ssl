@@ -602,6 +602,15 @@ DomainName:					% domain
 	]}
 	;
 
+OptDomain:					% #domain
+	[
+		| tEndOfHeader:
+			>>
+		| *:
+			@DomainName
+	]
+	;
+
 Phrases:					% #phrase
 	{[
 		| tEndOfHeader:

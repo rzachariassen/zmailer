@@ -419,6 +419,7 @@ hdr_print(h, fp)
 	struct address *ap;
 	struct addr *pp;
 	HeaderSemantics sem;
+	int foldcol;
 
 	if (h == NULL)
 		return;
@@ -430,144 +431,135 @@ hdr_print(h, fp)
 
 	col = 1 + strlen(h->h_pname);
 
-	switch (sem) {
-	case Address:
-	case Addresses:
-	case AddressList:
-	case DomainName:
-	case Mailbox:
-	case Mailboxes:
-	case MailboxList:
-	case AMailboxList:
-	case MessageID:
-	case RouteAddressInAngles:
-	case RouteAddress:
-	case UserAtDomain:
-	case DateTime:
-		/* Use this ONLY if no original lines are available! */
-		if (h->h_contents.d > 0L && h->h_lines == NULL) {
-		  if (wanttabs) {
-		    fprintf(fp, "%s:%c", h->h_pname, col >= 7 ? ' ' : '\t');
-		    col += col >= 7 ? 1 : 8 - col%8;
-		  } else {
-		    fprintf(fp, "%s: ", h->h_pname);  /* spoilsport! */
+	fprintf(fp, "%s:", h->h_pname);
+
+	/* If it was pre-existing header, output all its pre-existing
+	   white-spaces now */
+
+	for (t = h->h_lines; t != NULL; t = t->t_next) {
+		const char *p = t->t_pname;
+		while (*p == ' ' || *p == '\t' ||
+		       *p == '\n' || *p == '\r') {
+		  putc(*p, fp);
+		  if (*p == ' ')
 		    ++col;
-		    /* Fill to column 8 in all cases.. */
-		    for ( ; col < 8; ++col)
-		      putc(' ', fp);
-		  }
-		  break;
-		} else {
-
-		  /* Pre-existing header; print the header name, and
-		     whitespace characters of the pre-existing header. */
-
-		  fprintf(fp, "%s:", h->h_pname);
-		  for (t = h->h_lines; t != NULL; t = t->t_next) {
-		    const char *p = t->t_pname;
-		    while (*p == ' ' || *p == '\t' ||
-			   *p == '\n' || *p == '\r') {
-		      putc(*p, fp);
-		      if (*p == ' ')
-			++col;
-		      else if (*p == '\t')
-			col += 8 - (col % 8);
-		      else
-			col = 0;
-		      ++p;
-		    }
-		    if (*p != 0)
-		      break;
-		  }
-		  /* Fill to column 8 in all cases.. */
-		  for ( ; col < 8; ++col)
-		    putc(' ', fp);
+		  else if (*p == '\t')
+		    col += 8 - (col % 8);
+		  else
+		    col = 0;
+		  ++p;
 		}
-		break;
-	default:
-		fprintf(fp, "%s:", h->h_pname);
-		break;
+		if (*p != 0)
+		  break;
+		col = 0;
+		putc('\n', fp);
 	}
+	if (h->h_lines == 0) {
+		putc(' ', fp);
+		++col;
+	}
+
+	/* Fill to column 8 in all cases.. */
+	for ( ; col < 8; ++col)
+		putc(' ', fp);
+
+	foldcol = col;
+
 	switch (sem) {
 	case Received:
 		if (h->h_lines != NULL) {
-			/* Write out the original lines if possible */
-			for (t = h->h_lines; t != NULL; t = t->t_next) {
-				fwrite(t->t_pname, sizeof (char),
-				       (int)(TOKENLEN(t)), fp);
-				putc('\n', fp);
-			}
-			break;
+		  /* Write out the original lines, if possible */
+		  int first = 1;
+		  for (t = h->h_lines; t != NULL; t = t->t_next) {
+		    const char *p = t->t_pname;
+		    int len = (int)(TOKENLEN(t));
+		    if (first) {
+		      while ((len > 0) &&
+			     (*p == ' '||*p == '\t'||*p == '\n'||*p == '\r'))
+			++p, --len;
+		      if (!len) continue;
+		      first = 0;
+		    }
+		    fwrite(p, sizeof (char), len, fp);
+		    putc('\n', fp);
+		  }
+		  break;
 		}
 		if ((ap = h->h_contents.r->r_from) != NULL) {
 		    if (ap->a_tokens == NULL) {
 			if (ap->a_pname[0] != '(') {
-			  fprintf(fp, " from");
+			  fprintf(fp, "from");
 			  col += 5;
 			}
 			fprintf(fp, " %s", ap->a_pname);
 			col += strlen(ap->a_pname)+1;
 		    } else {
-			fprintf(fp, " from ");
-			col += 6;
-			col += printAddress(fp, ap->a_tokens, 0);
+			pp = ap->a_tokens;
+			t = pp ? pp->p_tokens : NULL;
+			if (t && t->t_type == Atom  && t->t_len == 5 &&
+			    t->t_pname && memcmp(t->t_pname, "STDIN", 5)==0)
+			  pp = pp->p_next;
+			/* PURE comment */
+			else {
+			  fprintf(fp, "from ");
+			  col += 5;
+			}
+			if (pp)
+			  col = printLAddress(fp, pp, col, 8);
+			else
+			  fprintf(fp, "(nil??)"), col += 7;
 		    }
 		}
 		if ((ap = h->h_contents.r->r_by) != NULL) {
-			cl = printAddress(fp, ap->a_tokens, col+6);
+			cl = printAddress(NULL, ap->a_tokens, col+6);
 			if (cl > 76) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
 			  putc(' ',fp), ++col;
 			fprintf(fp, "by ");
-			col += 3;
-			col += printAddress(fp, ap->a_tokens, 0);
+			col = printLAddress(fp, ap->a_tokens, col+3, 8);
 		}
 		if ((t = h->h_contents.r->r_via) != NULL) {
-			cl = fprintToken(fp, t, col+4);
+			cl = fprintToken(NULL, t, col+4);
 			if (cl > 76) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
 			  putc(' ',fp), ++col;
 			fprintf(fp, "via ");
-			col += 4;
-			col += fprintToken(fp, t, 0);
+			col = fprintToken(fp, t, col+4);
 		}
 		for (t = h->h_contents.r->r_with; t != NULL; t = t->t_next) {
-			cl = fprintToken(fp, t, col+4);
+			cl = fprintToken(NULL, t, col+4);
 			if (cl > 76) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
 			  putc(' ',fp), ++col;
 			fprintf(fp, "with ");
-			col += 5;
-			col += fprintToken(fp, t, 0);
+			col = fprintToken(fp, t, col+5);
 		}
 		if ((ap = h->h_contents.r->r_id) != NULL) {
-			cl = printAddress(fp, ap->a_tokens, col+6);
+			cl = printAddress(NULL, ap->a_tokens, col+6);
 			if (cl > 76) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
 			  putc(' ',fp), ++col;
 			fprintf(fp, "id <");
-			col += 5;
-			col += printAddress(fp, ap->a_tokens, 0);
-			putc('>', fp);
+			col = printLAddress(fp, ap->a_tokens, col+5, 8);
+			putc('>', fp); ++col;
 		}
 		if ((ap = h->h_contents.r->r_for) != NULL) {
-			cl = printAddress(fp, ap->a_tokens, col+5);
+			cl = printAddress(NULL, ap->a_tokens, col+5);
 			if (cl > 76) {
 			  fprintf(fp, "\n\t");
 			  col = 8;
 			} else
 			  putc(' ',fp), ++col;
 			fprintf(fp, "for ");
-			col += 4;
-			col += printAddress(fp, ap->a_tokens, 0);
+			col = printLAddress(fp, ap->a_tokens, col+4, 8);
 		}
 		putc(';', fp);
 		++col;
@@ -582,15 +574,8 @@ hdr_print(h, fp)
 		  s = cp + strlen(cp) -1;
 		  if (*cp != 0 && *s == '\n') *s = 0;
 		  fputs(cp, fp);
-		  putc('\n', fp);
 		}
-		break;
-	case nilHeaderSemantics:
-		for (t = h->h_lines; t != NULL; t = t->t_next) {
-			fwrite(t->t_pname, sizeof (char),
-			       (int)TOKENLEN(t), fp);
-			putc('\n', fp);
-		}
+		putc('\n', fp);
 		break;
 	case Address:
 	case Addresses:
@@ -606,38 +591,40 @@ hdr_print(h, fp)
 	case UserAtDomain:
 		newline = 1;
 		for (ap = h->h_contents.a; ap != NULL; ap = ap->a_next) {
-			addrlen = printAddress(fp, ap->a_tokens, col);
-			for (pp = ap->a_tokens; pp != NULL; pp = pp->p_next)
-				if (pp->p_type == anAddress)
-					break;
-			/* pp == NULL means mail group phrase */
-			if (ap->a_next != NULL)
-				++addrlen;
-			if (newline || addrlen < hdr_width) {
-				if (newline)
-					newline = 0;
-				else
-					++col, putc(' ', fp);
-				if (addrlen - col + 8 > hdr_width) {
-					col = printLAddress(fp,
-							    ap->a_tokens, col);
-				} else {
-				/* we don't bother calculating col exactly */
-					col = addrlen;
-					printAddress(fp,
-							    ap->a_tokens, 0);
-				}
-			} else if (addrlen - col +8 > hdr_width/* columns */) {
-				++col, putc(' ', fp);
-				col = printLAddress(fp, ap->a_tokens, col);
-			} else {
-				putc('\n', fp);
-				putc('\t', fp);
-				col = 8 + addrlen - col;
-				printAddress(fp, ap->a_tokens, 0);
-			}
-			if (pp != NULL && ap->a_next != NULL)
-				++col, putc(',', fp);
+
+		  /* XXX: 'addrlen' is COL or total length ??? */
+		  addrlen = printAddress(NULL, ap->a_tokens, col);
+		  
+		  for (pp = ap->a_tokens; pp != NULL; pp = pp->p_next)
+		    if (pp->p_type == anAddress)
+		      break;
+		  /* pp == NULL means mail group phrase */
+		  if (ap->a_next != NULL)
+		    ++addrlen;
+		  if (newline || addrlen < hdr_width) {
+		    if (newline)
+		      newline = 0;
+		    else
+		      ++col, putc(' ', fp);
+#if 1
+		    col = printLAddress(fp, ap->a_tokens, col, foldcol);
+#else
+		    if (addrlen + 8 > hdr_width) {
+		      col = printLAddress(fp, ap->a_tokens, col, foldcol);
+		    } else {
+		      col = printAddress(fp, ap->a_tokens, col);
+		    }
+#endif
+		  } else if (addrlen - col +8 > hdr_width/* columns */) {
+		    putc(' ', fp);
+		    col = printLAddress(fp, ap->a_tokens, col+1, foldcol);
+		  } else {
+		    putc('\n', fp);
+		    putc('\t', fp);
+		    col = printLAddress(fp, ap->a_tokens, 8, foldcol);
+		  }
+		  if (pp != NULL && ap->a_next != NULL)
+		    ++col, putc(',', fp);
 		}
 		putc('\n', fp);
 		break;
@@ -649,22 +636,27 @@ hdr_print(h, fp)
 			s = cp + strlen(cp) -1;
 			if (*cp != 0 && *s == '\n') *s = 0;
 			fputs(cp, fp);
-			putc('\n', fp);
 			break;
 		} /* else we have the original line ... */
-		for (t = h->h_lines; t != NULL; t = t->t_next) {
-			const char *cp = t->t_pname;
-			/* Skip over the leading white-space */
-			while (*cp == ' '||*cp == '\t') ++cp;
-			fputs(cp, fp);
-			putc('\n', fp);
-		}
-		break;
+		/* Fall thru ... */
+	case nilHeaderSemantics:
 	default:
-		for (t = h->h_lines; t != NULL; t = t->t_next) {
-			fwrite(t->t_pname, sizeof (char),
-			       (int)(TOKENLEN(t)), fp);
-			putc('\n', fp);
+		/* Write out the original lines, if possible */
+		{
+		  int first = 1;
+		  for (t = h->h_lines; t != NULL; t = t->t_next) {
+		    const char *p = t->t_pname;
+		    int len = (int)(TOKENLEN(t));
+		    if (first) {
+		      while ((len > 0) &&
+			     (*p == ' '||*p == '\t'||*p == '\n'||*p == '\r'))
+			++p, --len;
+		      if (!len) continue;
+		      first = 0;
+		    }
+		    fwrite(p, sizeof (char), len, fp);
+		    putc('\n', fp);
+		  }
 		}
 		break;
 	}
@@ -747,101 +739,13 @@ pureAddressBuf(buf, len, pp)
  * have been printed is returned instead.
  */
 
-int
-printAddress(fp, pp, onlylength)
-	FILE *fp;
-	register struct addr *pp;
-	int onlylength;
-{
-	int inAddress, len = 0;
-	token822 *t;
-	struct addr *lastp, *tpp;
+/* If 'fp' is non-null, retuns column where the output is,
+ * for null 'fp', returns the number of output characters.
+ */
 
-	inAddress = 0;
-	for (lastp = NULL, tpp = pp; tpp != NULL; tpp = tpp->p_next)
-		if (tpp->p_type == anAddress)
-			lastp = tpp;
-	for (; pp != NULL; pp = pp->p_next) {
-		if (pp->p_type == aComment || pp->p_type == anError) {
-			if (onlylength) ++onlylength;
-			else putc('(', fp);
-			++len;
-		} else if (pp->p_type == anAddress)
-			inAddress = 1;
-		for (t = pp->p_tokens; t != NULL; t = t->t_next) {
-			switch (pp->p_type) {
-			case aPhrase:
-			case aComment:
-			case aGroup:
-			case aWord:
-				if (t != pp->p_tokens) {
-					if (onlylength) ++onlylength;
-					else putc(' ', fp);
-					++len;
-				}
-				/* fall through */
-			case anAddress:
-			case aDomain:
-			case anError:
-			case reSync:
-				if (onlylength)
-				  onlylength = fprintToken(fp, t, onlylength);
-				else
-				  len += fprintToken(fp, t, 0);
-				if (pp->p_type == reSync && t->t_next != NULL
-				    && (t->t_next->t_type == t->t_type
-					|| *(t->t_next->t_pname) == '<')) {
-				  if (onlylength)
-				    ++onlylength;
-				  else
-				    putc(' ', fp);
-				  ++len;
-				}
-				break;
-			case aSpecial:
-				if (t != pp->p_tokens && *(t->t_pname) == '<'){
-				  if (onlylength)
-				    ++onlylength;
-				  else
-				    putc(' ', fp);
-				  ++len;
-				}
-				if (onlylength)
-				  ++onlylength;
-				else
-				  putc((*t->t_pname), fp);
-				++len;
-				break;
-			}
-		}
-		if (pp->p_type == aComment || pp->p_type == anError) {
-			if (onlylength)
-			  ++onlylength;
-			else
-			  putc(')', fp);
-			++len;
-		} else if (lastp == pp)
-			inAddress = 0;
-		if (!inAddress && pp->p_next != NULL
-		    && !(pp->p_next->p_type == anAddress
-			 && pp->p_type == aSpecial
-			 && *pp->p_tokens->t_pname == '<')
-		    && !(pp->p_next->p_type == aSpecial
-			 && pp->p_type == anAddress
-			 && *pp->p_next->p_tokens->t_pname == '>')
-		    && !(pp->p_next->p_type == aSpecial
-			 && *pp->p_next->p_tokens->t_pname == ':')
-		    && pp->p_next->p_type != anError) {
-			if (onlylength) ++onlylength;
-			else putc(' ', fp);
-			++len;
-		}
-	}
-	return (onlylength ? onlylength : len);
-}
 
 int
-printLAddress(fp, pp, col)
+printAddress(fp, pp, col)
 	FILE *fp;
 	register struct addr *pp;
 	int col;
@@ -856,7 +760,8 @@ printLAddress(fp, pp, col)
 			lastp = tpp;
 	for (; pp != NULL; pp = pp->p_next) {
 		if (pp->p_type == aComment || pp->p_type == anError) {
-			++col, putc('(', fp);
+			if (fp) putc('(', fp);
+			++col;
 		} else if (pp->p_type == anAddress)
 			inAddress = 1;
 		for (t = pp->p_tokens; t != NULL; t = t->t_next) {
@@ -866,42 +771,37 @@ printLAddress(fp, pp, col)
 			case aGroup:
 			case aWord:
 				if (t != pp->p_tokens) {
-					++col, putc(' ', fp);
+				  if (fp) putc(' ', fp);
+				  ++col;
 				}
 				/* fall through */
 			case anAddress:
 			case aDomain:
 			case anError:
 			case reSync:
-				if (pp->p_type == aComment) {
-					col = fprintFold(fp, t, col);
-				} else {
-					col = fprintToken(fp, t, col);
-					fprintToken(fp, t, 0);
-				}
+				col = fprintToken(fp, t, col);
+				/* Per fp != NULL state this 'col' is now
+				   either total length, or current column */
 				if (pp->p_type == reSync && t->t_next != NULL
 				    && (t->t_next->t_type == t->t_type
 					|| *(t->t_next->t_pname) == '<')) {
-					++col, putc(' ', fp);
+				  if (fp) putc(' ', fp);
+				  ++col;
 				}
 				break;
 			case aSpecial:
-				if (t != pp->p_tokens && *(t->t_pname) == '<')
-					++col, putc(' ', fp);
-				++col, putc((*t->t_pname), fp);
+				if (t != pp->p_tokens && *(t->t_pname) == '<'){
+				  if (fp) putc(' ', fp);
+				  ++col;
+				}
+				if (fp) putc((*t->t_pname), fp);
+				++col;
 				break;
-			}
-			if (t->t_next != NULL
-			    && TOKENLEN(t->t_next) > 1
-			    && ((col + fprintToken(fp, t->t_next, 1)-1)
-				>= hdr_width)) {
-				     putc('\n', fp);
-				     putc('\t', fp);
-				     col = 8;
 			}
 		}
 		if (pp->p_type == aComment || pp->p_type == anError) {
-			++col, putc(')', fp);
+			if (fp) putc(')', fp);
+			++col;
 		} else if (lastp == pp)
 			inAddress = 0;
 		if (!inAddress && pp->p_next != NULL
@@ -914,7 +814,105 @@ printLAddress(fp, pp, col)
 		    && !(pp->p_next->p_type == aSpecial
 			 && *pp->p_next->p_tokens->t_pname == ':')
 		    && pp->p_next->p_type != anError) {
-			++col, putc(' ', fp);
+			if (fp) putc(' ', fp);
+			++col;
+		}
+	}
+	return col;
+}
+
+/* Return the column where the cursor is */
+int
+printLAddress(fp, pp, col, foldcol)
+	FILE *fp;
+	register struct addr *pp;
+	int col, foldcol;
+{
+	int inAddress;
+	token822 *t;
+	struct addr *lastp, *tpp;
+
+	inAddress = 0;
+	for (lastp = NULL, tpp = pp; tpp != NULL; tpp = tpp->p_next)
+		if (tpp->p_type == anAddress)
+			lastp = tpp;
+	for (; pp != NULL; pp = pp->p_next) {
+		if (pp->p_type == aComment || pp->p_type == anError) {
+			++col;
+			putc('(', fp);
+		} else if (pp->p_type == anAddress)
+			inAddress = 1;
+
+		for (t = pp->p_tokens; t != NULL; t = t->t_next) {
+			int special = 0;
+			int add_space = 0;
+			switch (pp->p_type) {
+			case aPhrase:
+			case aComment:
+			case aGroup:
+			case aWord:
+				if (t != pp->p_tokens) {
+					++col;
+					putc(' ', fp);
+				}
+				/* fall through */
+			case anAddress:
+			case aDomain:
+			case anError:
+			case reSync:
+#if 1
+				col = fprintFold(fp, t, col, foldcol);
+#else
+				if (pp->p_type == aComment) {
+				  col = fprintFold(fp, t, col, foldcol);
+				} else {
+				  col = fprintToken(fp, t, col);
+				}
+#endif
+				if (pp->p_type == reSync && t->t_next != NULL
+				    && (t->t_next->t_type == t->t_type
+					|| *(t->t_next->t_pname) == '<'))
+				  add_space = 1;
+				break;
+			case aSpecial:
+				if (t != pp->p_tokens && *(t->t_pname)=='<')
+				  add_space = 1;
+				special = *t->t_pname;
+				break;
+			}
+			if ((special && (col + 10) >= hdr_width) ||
+			    (t->t_next != NULL && (TOKENLEN(t->t_next) > 1)
+			     && (fprintToken(NULL, t->t_next, col+2)
+				 >= hdr_width))) {
+			  putc('\n', fp);
+			  for (col = 0; col+8  < foldcol; col += 8)
+			    putc('\t', fp);
+			  for (;col < foldcol; ++col)
+			    putc(' ', fp);
+			  if (col < 1)
+			    putc(' ', fp), ++col;
+			} else if (add_space)
+			  putc(' ', fp), ++col;
+			if (special)
+			  putc(special, fp), ++col;
+		}
+		if (pp->p_type == aComment || pp->p_type == anError) {
+			++col;
+			putc(')', fp);
+		} else if (lastp == pp)
+			inAddress = 0;
+		if (!inAddress && pp->p_next != NULL
+		    && !(pp->p_next->p_type == anAddress
+			 && pp->p_type == aSpecial
+			 && *pp->p_tokens->t_pname == '<')
+		    && !(pp->p_next->p_type == aSpecial
+			 && pp->p_type == anAddress
+			 && *pp->p_next->p_tokens->t_pname == '>')
+		    && !(pp->p_next->p_type == aSpecial
+			 && *pp->p_next->p_tokens->t_pname == ':')
+		    && pp->p_next->p_type != anError) {
+			++col;
+			putc(' ', fp);
 		}
 	}
 	return col;
@@ -1098,7 +1096,7 @@ errprint(fp, pp, hdrlen)
 		}
 	}
 	putc('\n', fp);
-	for (i = 0; i < (hdrlen+1)/8 ; ++i)
+	for (i = 0; i < hdrlen; i += 8)
 		putc('\t', fp);
 	putc('\t', fp);
 	for (i = 0, len = 0; i < n;) {

@@ -74,11 +74,7 @@ struct headerinfo envelope_hdrs[] = {
 { "identinfo",	nilHeaderSemantics,	nilUserType,	eIdentinfo	},
 { "loginname",		UserAtDomain,	nilUserType,	ePrettyLogin	},
 { "notaryret",	nilHeaderSemantics,	nilUserType,	eNotaryRet	},
-#if 1
-{ "rcvdfrom",	nilHeaderSemantics,	nilUserType,	eRcvdFrom	},
-#else
 { "rcvdfrom",		DomainName,	nilUserType,	eRcvdFrom	},
-#endif
 { "to",			AddressList,	Recipient,	eTo		},
 { "todsn",	nilHeaderSemantics,	Recipient,	eToDSN		},
 { "user",		Mailbox,	nilUserType,	eUser		},

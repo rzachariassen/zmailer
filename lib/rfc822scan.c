@@ -151,15 +151,17 @@ MKERROR(msg, prevp)
  */
 
 static u_long _hdr_compound __((const char *cp, int *np,
-				      int cstart, int cend,
-				      TokenType type, token822 *tp,
-				      token822 **tlist, token822 **tlistp));
+				int cstart, int cend,
+				const char **cpp,
+				TokenType type, token822 *tp,
+				token822 **tlist, token822 **tlistp));
 
 static u_long
-_hdr_compound(cp, np, cstart, cend, type, tp, tlist, tlistp)
+_hdr_compound(cp, np, cstart, cend, cpp, type, tp, tlist, tlistp)
 	register const char *cp;
 	int	*np;
 	int	cstart, cend;
+	const char	**cpp;
 	TokenType	type;
 	token822	*tp, **tlist, **tlistp;
 {
@@ -213,18 +215,19 @@ nextline:
 			++len;
 			goto nextline;
 		}
-		/* type = Error; */	/* hey, no reason to refuse a message */
+		/* type=Error; */	/* hey, no reason to refuse a message*/
 		sprintf(msgbuf, "missing closing '%c' in token", cend);
 		MKERROR(msgbuf, tlist);
 		tp->t_pname = 0;	/* ugly way of signalling scanner */
 	} else if (*cp == cend) {	/* we found matching terminator */
-		++len;			/* move past terminator */
-		--n;
+	  	++len;
+		--n;			/* move past terminator */
 	} else {	/* there was an error */
 	  abort() ; /* ??? some sort of sanity check ? */
 	}
 	tp->t_type = type;
 	*np = n;
+	*cpp = (char*)cp;
 	return len;
 }
 
@@ -239,34 +242,37 @@ _unfold(len, start, cpp, t)
 	token822 *t;
 {
 	char *s, *cp;
-
-	/*
-	 * Since we will be ignoring CRLF and copying everything else,
-	 * we know the max length is going to be (end - start) (sic).
-	 * However, I like being conservative about these things...
-	 */
+	const char *cpe = *cpp;
 
 	/* Start and End may be at different tmalloc()ed objects! */
 
 	s = cp = (char *)tmalloc(len +1);
-	while (len > 0) {
+	while (len > 0 && start != cpe) {
 		if (*start == 0) {
 		  t = t->t_next;
 		  start = t->t_pname;
+#if 0 /* zero: unfold.. */
 		  *s++ = '\n';
+#else
+		  /* Skip all folding white-space */
+		  while (len > 0 && start != cpe &&
+			 (*start == ' '  || *start == '\t' ||
+			  *start == '\n' || *start == '\r'))
+		    ++start;
+		  /* And replace it with *one* space */
+		  *s++ = ' ';
+#endif
 		  --len;
 		}
-		--len;
-#if 1
 		if (*start == '\n') {
 			++start;
 			continue;
 		}
-#endif
+		--len;
 		*s++ = *start++;
 	}
 	*s = '\0';
-	*cpp = start;
+	*cpp = start +1;
 	return cp;
 }
 
@@ -342,7 +348,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 			int len;
 
 			if (*cp == '"') {
-			  cend = *cp;
+			  cend = '"';
 			  type = String;
 			} else if (*cp == '[') {
 			  cend = ']';
@@ -352,7 +358,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 			  type = Comment;
 			}
 			ot = (tlistp == NULL ? NULL : *tlistp);
-			len = _hdr_compound(cp, &n, *cp, cend,
+			len = _hdr_compound(cp, &n, *cp, cend, cpp,
 					    type, &t, &tlist, tlistp);
 			if (ot != NULL && tlistp != NULL && ot != *tlistp) {
 

@@ -162,8 +162,8 @@ extern int  printToken  __((char *buf, char *eob,
 extern int  printdToken __((char **bufp, int *buflenp,
 			    token822 *t, token822 *tend,
 			    int quotespecials));
-extern int  fprintToken __((FILE *fp, token822 *t, int onlylength));
-extern int  fprintFold  __((FILE *fp, token822 *t, int col));
+extern int  fprintToken __((FILE *fp, token822 *t, int col));
+extern int  fprintFold  __((FILE *fp, token822 *t, int col, int foldcol));
 extern void freeTokens __((token822 *t, int memtype));
 #ifdef TOKENLEN /* Defined in  "mailer.h", like AddrComponent too.. */
 extern const char *formatAddr __((AddrComponent d));

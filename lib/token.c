@@ -176,90 +176,106 @@ printdToken(bufp, buflenp, t, tend, quotespecials)
 	return cp - buf;
 }
 
+/* return output cursor column if 'fp' is non-null,
+ * else return the number of output chars. */
+
 int
 fprintToken(fp, t, onlylength)
 	FILE *fp;
 	token822 *t;
 	int onlylength;
 {
-	int len, ll = 0;
+	int len, col = onlylength;
 
 	len = TOKENLEN(t);
 	if (t->t_type == DomainLiteral) {
-		if (onlylength) ++onlylength;
-		else putc('[', fp);
-		++ll;
+		if (fp) putc('[', fp);
+		else ++onlylength;
+		++col;
 	} else if (t->t_type == String) {
-		if (onlylength) ++onlylength;
-		else putc('"', fp);
-		++ll;
+		if (fp) putc('"', fp);
+		else ++onlylength;
+		++col;
 	} else if (t->t_type == Error) {
-		if (onlylength) ++onlylength;
-		else putc('?', fp);
-		++ll;
+		if (fp) putc('?', fp);
+		else ++onlylength;
+		++col;
 	}
-	if (onlylength)
+	if (fp) {
+		const char *s = (const char *)t->t_pname;
+		int i;
+		fwrite(s, sizeof (char), len, fp);
+		for (i = 0; i < len; ++i) {
+		  if (s[i] == '\t')
+		    col += 8 - (col % 8);
+		  else if (s[i] == '\n')
+		    col = 0;
+		  else
+		    ++col;
+		}
+	} else {
 		onlylength += len;
-	else {
-		fwrite((char *)t->t_pname, sizeof (char), len, fp);
-		ll += len;
 	}
 	if (t->t_type == DomainLiteral) {
-		if (onlylength) ++onlylength;
-		else putc(']', fp);
-		++ll;
+		if (fp) putc(']', fp);
+		else ++onlylength;
+		++col;
 	} else if (t->t_type == String) {
-		if (onlylength) ++onlylength;
-		else putc('"', fp);
-		++ll;
+		if (fp) putc('"', fp);
+		else ++onlylength;
+		++col;
 	} else if (t->t_type == Error) {
-		if (onlylength) ++onlylength;
-		else putc('?', fp);
-		++ll;
+		if (fp) putc('?', fp);
+		else ++onlylength;
+		++col;
 	}
-	return (onlylength ? onlylength : ll);
+	return (fp ? col : onlylength);
 }
 
 #define LINELEN	80
 
+/* return output cursor column if 'fp' is non-null,
+ * else return the number of output chars. */
+
 int
-fprintFold(fp, t, col)
+fprintFold(fp, t, col, foldcol)
 	FILE *fp;
 	token822 *t;
-	int col;
+	int col, foldcol;
 {
 	int len;
 	const char *cp, *ncp;
 
 	len = TOKENLEN(t);
-	if (t->t_type == DomainLiteral)
-		++col, putc('[', fp);
-	else if (t->t_type == String)
-		++col, putc('"', fp);
-	else if (t->t_type == Error)
-		++col, putc('?', fp);
+	if (fp) {
+	  if (t->t_type == DomainLiteral)
+	    putc('[', fp);
+	  else if (t->t_type == String)
+	    putc('"', fp);
+	  else if (t->t_type == Error)
+	    putc('?', fp);
+	}
+	++col;
 
 	cp = t->t_pname;
 	do {
 		/* find a breakpoint */
 		if (col < LINELEN && len > (LINELEN-col)) {
-			/* there is a breakpoint */
-			for (ncp = cp + (LINELEN-col); ncp > cp; --ncp) {
-				if (isascii((*ncp)&0xFF)
-				    && (isspace((*ncp)&0xFF) || *ncp == ','))
-					break;
-			}
-			if (ncp == cp) {
-				for (ncp = cp + (LINELEN-col); ncp < cp + len;
-								++ncp)
-					if (isascii((*ncp)&0xFF)
-					    && (isspace((*ncp)&0xFF) ||
-						*ncp == ','))
-						break;
-			}
-			/* found breakpoint */
+		  /* there is a breakpoint */
+		  for (ncp = cp + (LINELEN-col); ncp > cp; --ncp) {
+		    if (isascii((*ncp)&0xFF) && (isspace((*ncp)&0xFF)
+						 || *ncp == ','))
+		      break;
+		  }
+		  if (ncp == cp) {
+		    for (ncp = cp + (LINELEN-col); ncp < cp + len; ++ncp)
+		      if (isascii((*ncp)&0xFF) && (isspace((*ncp)&0xFF)
+						   || *ncp == ','))
+			break;
+		  }
+		  /* found breakpoint */
 		} else
-			ncp = cp + len;
+		  ncp = cp + len;
 		while (cp < ncp && len > 0) {
 		  int c = (*cp) & 0xFF;
 		  if (isascii(c) && isspace(c)) {
@@ -268,32 +284,39 @@ fprintFold(fp, t, col)
 		      c = (*cp) & 0xFF;
 		      if (!(isascii(c) && isspace(c)))
 			break;
-		      --len, ++cp;
+		      --len;
+		      ++cp;
 		    }
 		  } else {
-		    ++col, putc(*cp, fp);
-		    --len, ++cp;
+		    ++col;
+		    putc(*cp, fp);
+		    --len;
+		    ++cp;
 		  }
 		}
 		if (len > 0) {
 		  /* gobble LWSP at beginning of line */
-		  while (len > 0 &&
-			 isascii((*cp)&0xFF) && isspace((*cp)&0xFF))
+		  while (len > 0 && isascii((*cp)&0xFF) && isspace((*cp)&0xFF))
 		    --len, ++cp;
-		  if (len > 0) {
-		    putc('\n', fp);
+		  putc('\n', fp);
+		  for (col = 0; col + 8  < foldcol; col += 8)
 		    putc('\t', fp);
-		    col = 8;
-		  }
+		  for (;col < foldcol; ++col)
+		    putc(' ', fp);
+		  if (col < 1)
+		    putc(' ', fp), ++col;
 		}
 	} while (len > 0);
-		
-	if (t->t_type == DomainLiteral)
-		++col, putc(']', fp);
-	else if (t->t_type == String)
-		++col, putc('"', fp);
-	else if (t->t_type == Error)
-		++col, putc('?', fp);
+
+	if (fp) {
+	  if (t->t_type == DomainLiteral)
+	    putc(']', fp);
+	  else if (t->t_type == String)
+	    putc('"', fp);
+	  else if (t->t_type == Error)
+	    putc('?', fp);
+	}
+	++col;
 	return col;
 }
 
