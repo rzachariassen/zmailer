@@ -48,13 +48,15 @@ extern struct MIB_MtaEntry *MIBMtaEntry;
 #endif /* HAVE_DIRENT_H */
 
 #ifdef HAVE_DIRFD
-#   define Z_DIRFD(dir) dirfd(dir)
+#   define Z_DIRFD(dirp) dirfd(dirp)
 #else
 # ifdef USE_DIRFD_DD_FD
-#   define Z_DIRFD(dir) ((dir).dd_fd)
+#   define Z_DIRFD(dirp) ((dirp)->dd_fd)
 # else
 #  ifdef USE_DIRFD_D_FD
-#   define Z_DIRFD(dir) ((dir).dd_fd)
+#   define Z_DIRFD(dirp) ((dirp)->d_fd)
+#  else
+#   error "ERROR:ERROR:ERROR: bad dirfd() autoconf"
 #  endif
 # endif
 #endif

@@ -31,7 +31,7 @@ AC_COPYRIGHT([ZMailer autoconfiguration setup
 copyright 1996-2003 by Matti Aarnio <mea@nic.funet.fi>])
 AC_REVISION($Revision$)
 
-AC_INIT(ZMailer, [2.99.56], [zmhack@nic.funet.fi])
+AC_INIT(ZMailer, [2.99.56-patch1pre], [zmhack@nic.funet.fi])
 
 AC_PREFIX_DEFAULT([/opt/zmailer])
 
@@ -1476,7 +1476,7 @@ AC_TRY_COMPILE([
 #  include <ndir.h>
 # endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
-],[ DIR *dp; dp.dd_fd = 0; ],[
+],[ DIR *dp; dp->dd_fd = 0; ],[
  AC_DEFINE([USE_DIRFD_DD_FD],1,[Can do  dirfd()  by referring to  dd_fd])
  AC_MSG_RESULT([Found  DIR  data field: dd_fd])
 ])
@@ -1496,7 +1496,7 @@ AC_TRY_COMPILE([
 #  include <ndir.h>
 # endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
-],[ DIR *dp; dp.d_fd = 0; ],[
+],[ DIR *dp; dp->d_fd = 0; ],[
  AC_DEFINE([USE_DIRFD_D_FD],1,[Can do  dirfd() by referring to  d_fd])
  AC_MSG_RESULT([Found  DIR  data field: d_fd])
 ])

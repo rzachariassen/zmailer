@@ -297,6 +297,7 @@ process(dp)
 	struct stat stbuf;
 	long inum;
 	time_t mtime;
+	const char *fromuser;
 
 	if (fstat(dp->msgfd, &stbuf) != 0)
 	  abort(); /* This is a "CAN'T FAIL" case.. */
@@ -450,8 +451,15 @@ process(dp)
 	  decodeXtext(mfp,dp->envid);
 	  sfputc(mfp,'\n');
 	}
+
+	fromuser = rp->addr->link->user;
+	if (*fromuser == 0 ||
+	    STREQ(rp->addr->link->channel, "error"))
+	  fromuser = "";
+
 	/* rfc822date() returns a string with trailing newline! */
 	sfprintf(mfp, "Arrival-Date: %s", rfc822date(&stbuf.st_ctime));
+	sfprintf(mfp, "Return-Path: <%.999s>\n", fromuser);
 	sfprintf(mfp, "\n");
 
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {

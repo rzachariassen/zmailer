@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2001
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  *
  *	We produce RFC 1894 format reports with everything it contains.
  */
@@ -825,6 +825,7 @@ reporterrs(cfpi, delayreports)
 	} else {
 	  sfprintf(errfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
 	}
+	sfprintf(errfp, "Return-Path: <%s>\n", eaddr);
 	if (envid != NULL) {
 	  sfprintf(errfp, "Original-Envelope-Id: ");
 	  decodeXtext(errfp,envid);

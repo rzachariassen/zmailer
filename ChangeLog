@@ -1,3 +1,14 @@
+2003-11-20  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, router/daemonsub.c:
+	    Buggy (in Solaris et.al.) autoconf of  dirfd()  thing
+	    in they fchdir() callbacks.   Probably should redo
+	    the thing somehow differently...
+
+	* scheduler/msgerror.c, transports/errormail/errormail.c:
+	    Add "Return-Path:" data label into produced
+	    error messages.
+
 2003-11-18  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
