@@ -1,3 +1,26 @@
+1999-10-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* man/Makefile.in:
+	    Make the destination directories if they don't exist..
+
+	* router/libdb/bsdbtree.c, router/libdb/bsdhhash.c,
+	  utils/makedb/makedb.c:
+	    Turns out, 'put' function of  Sleepycat DB 2.x  has
+	    changed the return values completely around, and what
+	    before was negative for permanent/system error, is now
+	    a positive value, and the other way around...
+	    (return value for duplicate key is now negative, while
+	     it was positive before...)
+
+	* smtpserver/smtpcmds.c:
+	    Count incoming message SIZE= option only *once*, as
+	    we may be relaying them all, and not storing locally.
+	    For that matter, in ISP mode a limited message size
+	    where the message quota limits maximum of
+	    	rcptcount * msgsize
+	    does not make much sense - nor exactly in local storage
+	    mode either...
+
 1999-09-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpcmds.c:

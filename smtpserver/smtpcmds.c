@@ -1303,7 +1303,10 @@ const char *buf, *cp;
 
     if (SS->sizeoptval < 0)
 	SS->sizeoptval = 0;
-    SS->sizeoptsum += SS->sizeoptval;
+
+    /* SS->sizeoptsum += SS->sizeoptval; */
+    SS->sizeoptsum = SS->sizeoptval;
+
     if (ferror(SS->mfp)) {
 	type(SS, 452, m430, (char *) NULL);
     } else if (maxsize > 0 && SS->sizeoptsum > maxsize) {

@@ -167,6 +167,10 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 #ifdef HAVE_DB_OPEN2
 		rc = (dbfile->put) (dbfile, NULL, &Bkey, &Bdat,
 				    overwritemode ? 0: DB_NOOVERWRITE);
+
+		/* emulate BSD DB 1.85 return values */
+		rc = -rc;
+
 #else
 		rc = (dbfile->put) (dbfile, &Bkey, &Bdat,
 				    overwritemode ? 0: R_NOOVERWRITE);

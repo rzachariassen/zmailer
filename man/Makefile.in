@@ -30,6 +30,9 @@ distclean:
 	rm -rf *~ vacation.1
 
 install:
+	if [ ! -d ${MANDIR}/man1 ] ; then mkdir -p ${MANDIR}/man1 ; fi
+	if [ ! -d ${MANDIR}/man5 ] ; then mkdir -p ${MANDIR}/man5 ; fi
+	if [ ! -d ${MANDIR}/man8 ] ; then mkdir -p ${MANDIR}/man8 ; fi
 	$(INSTALL) -m 644 $S/aliases.5	${MANDIR}/man5
 	$(INSTALL) -m 644 $S/errormail.8 ${MANDIR}/man8
 	$(INSTALL) -m 644 $S/hold.8	${MANDIR}/man8

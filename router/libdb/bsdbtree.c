@@ -205,6 +205,9 @@ add_btree(sip, value)
 	val.size = strlen(value)+1;
 #ifdef HAVE_DB_OPEN2
 	rc = (db->put)(db, NULL, &key, &val, 0);
+	/* Emulate BSD DB 1.85 behaviour */
+	if (rc != 0)
+	  rc = -1;
 #else
 	rc = (db->put)(db, &key, &val, 0);
 #endif
