@@ -1,5 +1,10 @@
 2003-05-08  Matti Aarnio  <mea@zmailer.org>
 
+	* include/listutils.h, libsh/listmalloc.c, router/db.c:
+	    "function with parameter that is a pointer to a function with ..."
+	    Feeding the intermediate stage to a compiler with Other Opinnion
+	    (than gcc 3.2.2)
+	
 	* configure.in, include/zresolv.h:
 	    Solaris 2.6 oops.. u_int16_t isn't known type there..
 
