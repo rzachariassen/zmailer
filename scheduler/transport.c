@@ -432,7 +432,9 @@ ta_hungry(proc)
 	     This TA may have other things to poke at! */
 
 	  thr0 = proc->pthread;
-	  /* proc->pthread = NULL; */ /* NO KILL YET! */
+
+	  /* proc->pthread = NULL; */
+	  /* ^^^  NO KILL YET! pick_next_thread() needs this! */
 
 	  /* Disconnect the previous thread from the proc. */
 
