@@ -626,7 +626,7 @@ details concerning this.
 #|
 #| == 1st alternate: No MX target usage, no DNS existence verify
 #|    Will accept for reception only those domains explicitely listed
-#|    in <QUOTE>smtp-policy.mx</QUOTE> and  <QUOTE>localnames</QUOTE>  files.  Will not do
+#|    in ``smtp-policy.mx'' and  ``localnames''  files.  Will not do
 #|    verifications on validity/invalidity of source domains:&lt;foo@bar&gt;
 #
 # .             relaycustomer - relaytarget -
@@ -661,12 +661,12 @@ details concerning this.
 # [0.0.0.0]/0   senderokwithdns - acceptifdns -
 #
 #|
-#|  You may also add  <QUOTE>test-dns-rbl +</QUOTE>  attribute pair to [0.0.0.0]/0
+#|  You may also add  ``test-dns-rbl +''  attribute pair to [0.0.0.0]/0
 #|  of your choice to use Paul Vixie's  http://maps.vix.com/  MAPS RBL
 #|  system.
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
-#| the database with <QUOTE>relaytarget +</QUOTE> attribute.
+#| the database with ``relaytarget +'' attribute.
 #|
 #| ===========================
 #|
@@ -689,11 +689,11 @@ _rbl1 # Nothing at late phase
 #|
 #|  The Third RBL variant means that all target domains can all by
 #|  themselves choose if they use RBL to do source filtering.
-#|  The <QUOTE>= _RBL1</QUOTE> test *must* be added to all domain instances
+#|  The ``= _RBL1'' test *must* be added to all domain instances
 #|  where the check is wanted.
 #|  (Including the last-resort domain default of ".")
 #|  (Or inverting: If some recipient domain is *not* wanting RBL-type
-#|   tests, that domain shall have  <QUOTE>test-rcpt-dns-rbl -</QUOTE> attribute
+#|   tests, that domain shall have  ``test-rcpt-dns-rbl -'' attribute
 #|   pair given for it at the input datasets - consider smtp-policy.mx
 #|   file!)
 #|
@@ -703,7 +703,7 @@ _rbl1 # Nothing at late phase
 #|
 #| ===========================
 #|
-#| If your system has <QUOTE>whoson</QUOTE> server (see contrib/whoson-*.tgz),
+#| If your system has ``whoson'' server (see contrib/whoson-*.tgz),
 #| you can activate it by adding  'trust-whoson +' attribute pair to
 #| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
 #|
