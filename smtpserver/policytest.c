@@ -1301,6 +1301,7 @@ static int call_rate_counter(state, incr, what, countp)
 		       shown interest at MAIL for this... */
 	break;
     case POLICY_DATAABORT:
+	cmd   = "DABORT";
 	whatp = "DABORT";
 	count = 1;
 	if (incr  &&  !state->did_query_rate)
@@ -1313,7 +1314,7 @@ static int call_rate_counter(state, incr, what, countp)
 	count = incr;
 	break;
     case POLICY_AUTHFAIL:
-	cmd = "AUTHF";
+	cmd   = "AUTHF";
 	break;
     default:
 	whatp = "xxxx";
