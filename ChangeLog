@@ -1,3 +1,22 @@
+1999-06-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/libta/mimeheaders.c:
+	    Do downgrade to QUOTED-PRINTABLE in all cases where it is
+	    needed.  Convert to C-T-E: 7BIT and/or C-T: ... ;charset=US-ASCII
+	    only when the message is TEXT/PLAIN type.
+
+	* transports/smtp/smtp.c:
+	    Change the way how timeouts are handled for the  connect();
+	    now does connect() in NON-BLOCKING mode, and uses select()
+	    to see when the connection has completed, or timeout occurs.
+	
+1999-06-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/sm/sm.c:
+	    Reworked the 'm'ultiple recipients processing. The previous
+	    patch looped in place and kept allocation more and more memory.
+	    Outch..
+
 1999-06-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/sm/sm.c:

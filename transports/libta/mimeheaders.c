@@ -730,6 +730,7 @@ FILE *verboselog;
 	struct ct_data *ct;
 	int lines = 0;
 	int i;
+	int is_textplain;
 	int newlen;
 
 	if (*(rp->newmsgheadercvt) != NULL)
@@ -837,14 +838,21 @@ NULL };
 
 	ct = parse_content_type(CT);
 
-	if (ct->basetype == NULL ||
-	    ct->subtype  == NULL ||
-	    cistrcmp(ct->basetype,"text") != 0 ||
-	    cistrcmp(ct->subtype,"plain") != 0) return 0; /* Not TEXT/PLAIN! */
+	is_textplain = (ct->basetype != NULL &&
+			ct->subtype  != NULL &&
+			cistrcmp(ct->basetype,"text") == 0 &&
+			cistrcmp(ct->subtype,"plain") == 0);
 
-	if (ct->charset &&
-	    cistrncmp(ct->charset,"ISO-8859",8) != 0 &&
-	    cistrncmp(ct->charset,"KOI8",4)     != 0) return 0; /* Not ISO-* */
+	if (ct->charset && is_textplain &&
+	    (cistrncmp(ct->charset,"ISO-8859",8) == 0 ||
+	     cistrncmp(ct->charset,"KOI8",4)     == 0)) {
+
+	  if (ct->charset)
+	    free(ct->charset);
+
+	  ct->charset = strdup("US-ASCII");
+
+	}
 
 	if (convertmode == _CONVERT_QP) {
 
@@ -852,13 +860,8 @@ NULL };
 	  mime_received_convert(rp," convert rfc822-to-quoted-printable");
 	  return 1; /* No change on Charset.. Otherwise a SUCCESS! */
 
-	} else
+	} else if (is_textplain)
 	  strcpy(*CTE, "Content-Transfer-Encoding: 7BIT");
-
-	if (ct->charset)
-	  free(ct->charset);
-
-	ct->charset = strdup("US-ASCII");
 
 	/* Delete the old one, and place there the new version.. */
 	output_content_type(rp,ct,CT);

@@ -569,8 +569,7 @@ outbuf_fillup:
 
 	    if (rc > 0) { /* We have data! */
 	      SS->stdinsize += rc;
-	      if (oldflags >= 0)
-		fcntl(infd, F_SETFL, oldflags);
+	      fcntl(infd, F_SETFL, oldflags);
 	      goto outbuf_fillup;
 	    }
 #if 0
@@ -580,8 +579,7 @@ outbuf_fillup:
 	  }
 	}
 
-	if (oldflags >= 0)
-	  fcntl(infd, F_SETFL, oldflags);
+	fcntl(infd, F_SETFL, oldflags);
 
 	if (s == buf)
 	  return NULL; /* NOTHING received, gotten EOF! */
@@ -3126,8 +3124,7 @@ if (SS->verboselog)
 	alarm(0); /* Stop any alarm, just in case ... */
 	gotalarm = 0;
 
-	flg = fcntl(sk, F_GETFL, 0);
-	fcntl(sk, F_SETFL, flg|O_NONBLOCK);
+	flg = fd_nonblockingmode(sk);
 
 	if (connect(sk, sa, addrsiz) < 0 &&
 	    (errno == EWOULDBLOCK || errno == EINPROGRESS)) {
@@ -3702,8 +3699,7 @@ smtp_sync(SS, r, nonblocking)
 	      if (len < 0)
 		err = errno;
 
-	      if (oldflags >= 0)
-		fcntl(infd, F_SETFL, oldflags);
+	      fcntl(infd, F_SETFL, oldflags);
 
 	    } else {
 	      errno = 0;

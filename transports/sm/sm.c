@@ -382,19 +382,22 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    av[i++] = startrp->addr->link->user;
 	}
 	for (j = 0; mp->argv[j] != NULL; ++j) {
-	  ii = i; if (j == 0) ii = 0;
 	  while (i+2 >= avsize) {
 	    avsize *= 2;
 	    av = (const char **)erealloc((char *)av,
 					 sizeof av[0] * avsize);
 	  }
-	  if (strchr(mp->argv[j], '$') == 0) {
+	  if (strchr(mp->argv[j], '$') == NULL) {
 	    if (j > 0)
 	      av[i++] = mp->argv[j];
 	    continue;
 	  }
 	  rp = startrp;
 	  do {
+
+	    /* Even argv[0] MAY have $-expansions.. */
+	    ii = i; if (j == 0) ii = 0;
+
 	    while (i+2 >= avsize) {
 	      avsize <<= 1;
 	      av = (const char **)erealloc((char *)av,
@@ -414,9 +417,6 @@ deliver(dp, mp, startrp, endrp, verboselog)
 		case 'u':
 		  ds = rp->addr->user;
 		  rp = rp->next;
-		  if ((mp->flags & MO_MANYUSERS) &&
-		      (rp != endrp) && (rp != startrp))
-		    --j; /* repeat this one! */
 		  break;
 		case 'U':
 		  strncpy(buf2, rp->addr->user, sizeof(buf2));
@@ -424,9 +424,6 @@ deliver(dp, mp, startrp, endrp, verboselog)
 		  strlower(buf2);
 		  ds = buf2;
 		  rp = rp->next;
-		  if ((mp->flags & MO_MANYUSERS) &&
-		      (rp != endrp) && (rp != startrp))
-		    --j; /* repeat this one! */
 		  break;
 		case '{':
 		  s = ++cp;
@@ -470,7 +467,9 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    if (j > 0)
 	      ++i;
 	  } while (rp != startrp && rp != endrp);
+	  /* End of: "do {" */
 	}
+	/* End of: "for (j = ...) {" */
 	av[i] = NULL;
 	/* now we can fork off and run the command... */
 	if (pipe(out) < 0) {
@@ -498,7 +497,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	if (verboselog) {
 	  const char **p = av;
 	  fprintf(verboselog,"To run UID=%d GID=%d ARGV[] =",
-		  getuid(), getgid());
+		  (int)getuid(), (int)getgid());
 	  for ( ;*p != NULL; ++p) {
 	    fprintf(verboselog," '%s'", *p);
 	  }
