@@ -52,6 +52,13 @@
 		sigemptyset(&act.sa_mask);	\
 		sigaction (X, &act, NULL);	\
 	}
+#define SIGNAL_ACTION(X, Y) \
+	{	struct sigaction act;		\
+		act.sa_sigaction = Y;		\
+		act.sa_flags   = SA_SIGINFO|SA_INTERRUPT|SA_NODEFER; \
+		sigemptyset(&act.sa_mask);	\
+		sigaction (X, &act, NULL);	\
+	}
 #define SIGNAL_HANDLESAVE(X,Y,OLD) \
 	{	struct sigaction act, oact;	\
 		act.sa_handler = Y;		\
