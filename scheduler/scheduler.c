@@ -130,11 +130,11 @@ static int newents_limit = 200;
 #include "memtypes.h"
 extern memtypes stickymem;
 
-static struct ctlfile *schedule __((int fd, const char *file, struct config_entry *ce, long ino));
-static struct ctlfile *vtxprep __((struct ctlfile *, const char *));
+static struct ctlfile *schedule __((int fd, const char *file, long ino, const int));
+static struct ctlfile *vtxprep __((struct ctlfile *, const char *, const int));
 static int  vtxmatch __((struct vertex *, struct config_entry *));
 static void link_in __((int flag, struct vertex *vp, const char *s));
-static int  lockverify __((struct ctlfile *, const char *));
+static int  lockverify __((struct ctlfile *, const char *, const int));
 static int  globmatch   __((const char *, const char*));
 static void vtxdo   __((struct vertex *, struct config_entry *, const char *));
 
@@ -219,8 +219,8 @@ struct dirqueue {
 	struct dirstatname **stats2;
 };
 
-static int dirqueuescan __((const char *dir,struct dirqueue *dq,int subdirs));
-static int syncweb __((struct dirqueue *dq, struct config_entry *ce));
+static int dirqueuescan __((const char *dir,struct dirqueue *dq, int subdirs));
+static int syncweb __((struct dirqueue *dq));
 
 int global_maxkids = 1000;
 time_t now;
@@ -313,6 +313,9 @@ const char **ArgvSave;
 
 extern int main __((int, const char **));
 
+static struct config_entry *cehead = NULL;
+
+
 int
 main(argc, argv)
 	int argc;
@@ -322,7 +325,6 @@ main(argc, argv)
 	char *config, *cp;
 	int i, daemonflg, c, errflg, version, fd;
 	long offout, offerr;
-	struct config_entry *tp;
 
 	char *t, *syslogflg = getzenv("SYSLOGFLG");
 	if (syslogflg == NULL)
@@ -519,8 +521,8 @@ main(argc, argv)
 				       + strlen(qcf_suffix)));
 	  sprintf(config, "%s/%s.%s", mailshare, progname, qcf_suffix);
 	}
-	tp = readconfig(config);
-	if (tp == NULL) {
+	cehead = readconfig(config);
+	if (cehead == NULL) {
 	  cp = emalloc(strlen(config)+50);
 	  sprintf(cp, "null control file, propably errors in it: %s", config);
 	  die(1, cp);
@@ -571,7 +573,7 @@ main(argc, argv)
 	    if ((fd = eopen(argv[optind], O_RDWR, 0)) < 0)
 	      continue;
 	    /* the close(fd) is done in vtxprep */
-	    cfp = schedule(fd, argv[optind], tp, ino);
+	    cfp = schedule(fd, argv[optind], ino, 0);
 	    if (cfp == NULL) {
 	      if (verbose)
 		fprintf(stderr, "Nothing scheduled for %s!\n",
@@ -596,7 +598,7 @@ main(argc, argv)
 	dirqueuescan(".", dirq, 1);
 
 	vtxprep_skip_lock = 0;
-	syncweb(dirq, tp);
+	syncweb(dirq);
 
 	if (dlyverbose) verbose = dlyverbose;
 
@@ -614,7 +616,7 @@ main(argc, argv)
 	  dirqueuescan(".", dirq, 1);
 	  startcount = dirq->wrksum;
 	  while (dirq->wrksum > 0 && !mustexit) {
-	    if (syncweb(dirq, tp) < 0)
+	    if (syncweb(dirq) < 0)
 	      break;
 	    queryipccheck();
 	  }
@@ -655,10 +657,10 @@ main(argc, argv)
 	  if (dirq->wrksum > 100 ) {
 	    /* If more than 100 in queue, submit 20 in a burst.. */
 	    for (i=0; i < 20; ++i)
-	      syncweb(dirq, tp);
+	      syncweb(dirq);
 	  }
 	  if (dirq->wrksum > 0)
-	    syncweb(dirq, tp);
+	    syncweb(dirq);
 
 	  /* See when to timeout from mux() */
 	  timeout = next_dirscan;
@@ -683,7 +685,7 @@ main(argc, argv)
 	      dumpq = 0;
 	    }
 	    if (rereadcf) {
-	      tp = rereadconfig(tp, config);
+	      cehead = rereadconfig(cehead, config);
 	      rereadcf = 0;
 	    }
 	    mytime(&now);
@@ -986,9 +988,8 @@ static int dirqueuescan(dir, dq, subdirs)
 	return newents;
 }
 
-static int syncweb(dq, cehead)
+static int syncweb(dq)
 	struct dirqueue *dq;
-	struct config_entry *cehead;
 {
 	struct stat *stbuf;
 	char *file;
@@ -1059,7 +1060,7 @@ static int syncweb(dq, cehead)
 	      eunlink(file);	/* hrmpf! */
 	  } else {
 	    /* Ok, schedule! */
-	    if (schedule(fd, file, cehead, ino) != NULL) {
+	    if (schedule(fd, file, ino, 0) != NULL) {
 	      /* Success, increment counters */
 	      ++wrkcnt;
 	    }
@@ -1080,6 +1081,7 @@ void resync_file(file)
 	struct spblk *spl;
 	long ino;
 	const char *s;
+	int fd;
 
 	lstat(file,&stbuf);
 
@@ -1108,7 +1110,16 @@ void resync_file(file)
 
 	/* Delete it... */
 	cfp_free((struct ctlfile *)spl->data, spl);
-	/* It will return into processing at next queue scan.. */
+
+	/* Now read it back! */
+	fd = eopen(file, O_RDWR, 0);
+	if (fd < 0) {
+	  /* ???? */
+	  return;
+	}
+	if (schedule(fd, file, ino, 1) != NULL) {
+	  /* ????  What ever, it succeeds, or it fails, all will be well */
+	}
 }
 
 
@@ -1120,17 +1131,17 @@ void resync_file(file)
  * of transport directives and schedules the appropriate things to be
  * done at the appropriate time in the future.
  */
-static struct ctlfile *schedule(fd, file, cehead, ino)
+static struct ctlfile *schedule(fd, file, ino, reread)
 	int fd;
 	const char *file;
-	struct config_entry *cehead;
 	long ino;
+	const int reread;
 {
 	struct ctlfile *cfp;
 	struct vertex *vp;
 
 	/* read and process the control file */
-	if ((cfp = vtxprep(slurp(fd, ino), file)) == NULL) {
+	if ((cfp = vtxprep(slurp(fd, ino), file, reread)) == NULL) {
 	  if (!vtxprep_skip) {	/* Unless skipped.. */
 	    eunlink(file);	/* everything here has been processed */
 	    if (verbose)
@@ -1282,6 +1293,7 @@ struct offsort {
 	char	*sender;
 	/* char	*dsnrecipient; */
 	int	notifyflg;
+	time_t	wakeup;
 };
 
 /* ``bcfcn'' is used by the qsort comparison routine,
@@ -1300,9 +1312,10 @@ static int bcfcn(a, b)
 
 
 static int
-lockverify(cfp,cp)		/* Return 1 when lock process does not exist */
+lockverify(cfp,cp,verbflg)	/* Return 1 when lock process does not exist */
 	struct ctlfile *cfp;	/* Call only when the lock is marked active! */
 	const char *cp;
+	const int verbflg;
 {
 	char	lockbuf[1+_CFTAG_RCPTPIDSIZE];
 	int	lockpid;
@@ -1322,8 +1335,9 @@ lockverify(cfp,cp)		/* Return 1 when lock process does not exist */
 	if (sscanf(lockbuf,"%d",&lockpid) != 1) return 1; /* Bad value ? */
 	if (kill(lockpid,sig) != 0) return 1; /* PID does not exist, or
 					       other error.. */
-	fprintf(stderr,"lockverify: Lock with PID=%d is active on %s:%s\n",
-		lockpid, cfp->mid, cp+_CFTAG_RCPTPIDSIZE);
+	if (verbflg)
+	  fprintf(stderr,"lockverify: Lock with PID=%d is active on %s:%s\n",
+		  lockpid, cfp->mid, cp+_CFTAG_RCPTPIDSIZE);
 	return 0;	/* Locking PID does exist.. */
 }
 
@@ -1339,9 +1353,10 @@ lockverify(cfp,cp)		/* Return 1 when lock process does not exist */
  *  wrapped into same vertex node with its respective ``recipient group''.
  *
  */
-static struct ctlfile *vtxprep(cfp, file)
+static struct ctlfile *vtxprep(cfp, file, rereading)
 	struct ctlfile *cfp;
 	const char *file;
+	const int rereading;
 {
 	register int i, opcnt;
 	register long *lp;
@@ -1357,11 +1372,14 @@ static struct ctlfile *vtxprep(cfp, file)
 	long ino;
 	int prevrcpt = -1;
 	int is_turnme = 0;
+	time_t wakeuptime;
 
 	char fpath[128], path[128], path2[128];
 
 	if (cfp == NULL)
 	  return NULL;
+
+	mytime(&now);
 
 	strcpy(fpath, file);
 
@@ -1378,13 +1396,15 @@ static struct ctlfile *vtxprep(cfp, file)
 	lp = &cfp->offset[0];
 	for (i = 0; i < cfp->nlines; ++i, ++lp) {
 	  cp = cfp->contents + *lp + 1;
+	  wakeuptime = 0;
 	  if (*cp == _CFTAG_LOCK) {
 	    /*
 	     * This can happen when we restart the scheduler, and
 	     * some previous transporter is still running.
 	     *
 	     */
-	    if (!lockverify(cfp,cp)) {
+	    if (!lockverify(cfp,cp,1 || !rereading)) {
+#if 0
 	      /*
 	       * IMO we are better off by forgetting for a while that
 	       * this spool-file exists at all.  Thus very least we
@@ -1412,11 +1432,18 @@ static struct ctlfile *vtxprep(cfp, file)
 	      dq_insert(NULL, ino, file, 32);
 
 	      return NULL;
+#else
+	      /* We can't simply forget this, we must do something
+		 smarter -- We use approach of marking the vertex
+		 non-startable until one hour from now. */
+	      wakeuptime = now + 3600; /* 1 hour */
+#endif
+	    } else {
+	      *cp = _CFTAG_NORMAL; /* unlock it */
+	      lockaddr(cfp->fd, NULL, (long) (cp - cfp->contents),
+		       _CFTAG_LOCK, _CFTAG_NORMAL, cfp->mid,
+		       cp+_CFTAG_RCPTPIDSIZE, mypid);
 	    }
-	    *cp = _CFTAG_NORMAL; /* unlock it */
-	    lockaddr(cfp->fd, NULL, (long) (cp - cfp->contents),
-		     _CFTAG_LOCK, _CFTAG_NORMAL, cfp->mid,
-		     cp+_CFTAG_RCPTPIDSIZE, mypid);
 	  }
 	  /* Calculate summary info */
 	  if (cp[-1] == _CF_RECIPIENT) {
@@ -1465,6 +1492,7 @@ static struct ctlfile *vtxprep(cfp, file)
 		/* New PID locking scheme.. */
 		offarr[opcnt].offset += _CFTAG_RCPTPIDSIZE;
 	      }
+	      offarr[opcnt].wakeup = wakeuptime;
 	      offarr[opcnt].myidx = i;
 	      offarr[opcnt].headeroffset = -1;
 	      offarr[opcnt].drptoffset = -1;
@@ -1740,13 +1768,13 @@ static struct ctlfile *vtxprep(cfp, file)
 	      vp->retryindex   = 0;
 	      vp->nextitem     = NULL;
 	      vp->previtem     = NULL;
-	      vp->wakeup       = 0;
 	      vp->proc         = NULL;
 	      vp->attempts     = 0;
 	      vp->notary       = NULL;
 #endif
 	      vp->ngroup       = i - svn;
 	      /* vp->sender       = strsave(offarr[svn].sender); */
+	      vp->wakeup       = offarr[svn].wakeup;
 	      vp->headeroffset = offarr[svn].headeroffset; /*They are similar*/
 	      vp->drptoffset   = offarr[svn].drptoffset;
 	      vp->notaryflg    = offarr[svn].notifyflg;
@@ -1787,12 +1815,12 @@ static struct ctlfile *vtxprep(cfp, file)
 	  vp->nextitem = NULL;
 	  vp->previtem = NULL;
 	  vp->proc = NULL;
-	  vp->wakeup = 0;
 	  vp->attempts     = 0;
 	  vp->notary       = NULL;
 #endif
 	  vp->ngroup = i - svn;
 	  /* vp->sender = strsave(offarr[snv].sender); */
+	  vp->wakeup       = offarr[svn].wakeup;
 	  vp->headeroffset = offarr[svn].headeroffset; /* Just any of them will do */
 	  vp->drptoffset = offarr[svn].drptoffset;
 	  vp->notaryflg  = offarr[svn].notifyflg;
@@ -1909,9 +1937,9 @@ static void ce_fillin(thg,cep)
  *
  */
 
-static void vtxdo(vp, cehead, path)
+static void vtxdo(vp, cehdr, path)
 	struct vertex *vp;
-	struct config_entry *cehead;
+	struct config_entry *cehdr;
 	const char *path;
 {
 	struct config_entry *tp;
@@ -1923,7 +1951,7 @@ static void vtxdo(vp, cehead, path)
 	 * fill in the blanks in the vertex specification
 	 */
 	n = 0;
-	for (tp = cehead; tp != NULL; tp = tp->next) {
+	for (tp = cehdr; tp != NULL; tp = tp->next) {
 	  ++cnt;
 	  if (vtxmatch(vp, tp)) {
 	    /* tp points to the selected config entry */

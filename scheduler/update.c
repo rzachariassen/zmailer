@@ -284,9 +284,11 @@ unctlfile(cfp, no_unlink)
 	    }
 	  }
 	} else {
+#if 0
 	  /* We will LOOSE this from the schedules -- add info about
 	     it into the indirscanqueue -- at the tail... */
 	  dq_insert(NULL, atol(cfp->mid), path, 30);
+#endif
 	}
 	spl = sp_lookup(cfp->id, spt_mesh[L_CTLFILE]);
 	if (spl != NULL)
