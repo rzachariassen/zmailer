@@ -30,10 +30,10 @@ LIB=		-L$(TOPDIR)/libs -lzm -lzc  -lta
 LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/transports/libta/llib-llibta.ln
 #
-OBJS=	scheduler.o readconfig.o conf.o agenda.o transport.o pipes.o \
+OBJS=	scheduler.o readconfig.o conf.o agenda.o transport.o pipes.o  \
 	update.o qprint.o msgerror.o resources.o threads.o wantconn.o \
 	mq2.o mq2auth.o
-SOURCE=	scheduler.c readconfig.c conf.c agenda.c transport.c pipes.c \
+SOURCE=	scheduler.c readconfig.c conf.c agenda.c transport.c pipes.c  \
 	update.c qprint.c msgerror.c resources.c threads.c wantconn.c \
 	mq2.c mq2auth.c
 
@@ -118,6 +118,21 @@ $(TOPDIR)/libmalloc/libmalloc_d.a-a:
 
 depend:
 	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)
+
+scheduler.o: scheduler.c   scheduler.h prototypes.h
+readconfig.o: readconfig.c scheduler.h prototypes.h
+conf.o:      conf.c
+agenda.o:    agenda.c    scheduler.h prototypes.h
+transport.o: transport.c scheduler.h prototypes.h
+pipes.o:     pipes.c     scheduler.h prototypes.h
+update.o:    update.c    scheduler.h prototypes.h
+qprint.o:    qprint.c    scheduler.h prototypes.h
+msgerror.o:  msgerror.c  scheduler.h prototypes.h
+resources.o: resources.c 
+threads.o:   threads.c   scheduler.h prototypes.h
+wantconn.o:  wantconn.c
+mq2.o:       mq2.c       scheduler.h prototypes.h
+mq2auth.o:   mq2auth.c   scheduler.h prototypes.h
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

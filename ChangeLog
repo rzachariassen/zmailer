@@ -1,5 +1,13 @@
 2000-03-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* doc/Makefile.in, man/Makefile.in, libresolv/Makefile.in,
+	  scheduler/Makefile.in:
+	    Fixed "make depend" to work.
+
+	* scheduler/Makefile.in, scheduler/servauth.h:
+	    DELETED servauth.h -- something entirely forgotten,
+	    and same stuff reimplemented elsewere.
+
 	* man/smtp.8, man/smtpserver.8:
 	    Updates/fixes to text.
 

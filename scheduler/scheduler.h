@@ -14,7 +14,6 @@
 #include "zmalloc.h"
 #include "splay.h"
 #include "shmmib.h"
-#include "servauth.h"
 
 /* Some "forward declarations" */
 struct config_entry;

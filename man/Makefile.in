@@ -29,6 +29,8 @@ clean:
 distclean:
 	rm -rf *~ vacation.1
 
+depend:
+
 groff: $(patsubst %, %.ps, $(MAN1) $(MAN3) $(MAN5) $(MAN8))
 html:  $(patsubst %, %.html, $(MAN1) $(MAN3) $(MAN5) $(MAN8))
 	-rm -f index.html
