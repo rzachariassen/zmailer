@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-Apr-19"
+.TH SMTPSERVER 8zm "2004-Apr-20"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -529,6 +529,11 @@ The interface is desribed below at
 .I "CONTENTFILTER INTERFACE"
 section.
 .RE
+.IP "PARAM contentfilter\-maxpar 2"
+.RS
+Max parallel contentfilter instances to be running.
+Default is 2, and internal hard limit is 20.
+.RE
 .IP "PARAM debug\-contentfilter"
 .RS
 Sends some debug-data of the content-filter interface
@@ -781,6 +786,7 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
 #
 # External program for received message content analysis:
 #PARAM  contentfilter  $MAILBIN/smtp-content-policy-analysis
+#PARAM  contentfilter-maxpar 2  # Max parallel content filters; 1 .. 20
 #PARAM  debug-contentfilter # Debug the content-filter interface
 
 #PARAM  tarpit 0 0 0    # No "tarpit" for 4XX/5XX reply codes

@@ -1,5 +1,8 @@
 2004-04-20  Matti Aarnio  <mea@zmailer.org>
 
+	* man/smtpserver.8.in, proto/smtpserver.conf.in:
+	    Document "PARAM contentfilter-maxpar 2".
+
 	* smtpserver/subdaemons.c, smtpserver/subdaemon-ctf.c,
 	  smtpserver/cfgread.c:
 	    Run parallel contentfilters in case one isn't
