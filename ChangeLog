@@ -1,9 +1,79 @@
+2000-12-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/libta/mimeheaders.c:
+	    Survive bad control characters in input.
+
+	* proto/cf/aliases.cf:
+	    Sender address rewrite function to yield full
+	    "$user$plustail$domain" - incoming quad arrives
+	    without domain part.
+
+	* router/rfc822.c
+	    When in 'trace sequencer', do debug print call
+	    parameters to $(crossbar ...) before the call.
+
+	* scheduler/readconfig.c, scheduler/transport.c:
+	    setpriority() syscall autoconfig things
+
+	* smtpserver/smtpdata.c:
+	    "BDAT 0 LAST" is valid thing!
+
 2000-12-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* smtpserver/smtpdata.c:
 	    "BDAT 0 LAST" is valid per explicite example at RFC 3030.
 	    It is also valid per syntax, but not quite so by mere
 	    engineering thought...
+	
+2000-12-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/libta/mimeheaders.c:
+	    ElectricFence is your friend!  Writing over
+	    the end of the allocated array by on element :-/
+
+2000-12-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/smtp.c:
+	    Don't soften reception of RCPT TO if MAIL FROM gave
+	    500 series code -- there was some reason for this...
+
+	* transports/libta/tasyslog.c:
+	    Report correctly if we have detected MULTIPART(QP).
+
+	* lib/selfaddrs.c:
+	    Something odd at Solaris -- none of supported functions
+	    got called ??? -- realloc() bug :-(
+
+	* All over the place;
+	    Changeing  getzenv()'s  return value to 'const char *'
+	    caused all kinds of nuisance warnings to sprout...
+
+	* All over the place; (Makefile.in):
+	    More "make -j N" work.
+
+2000-12-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* lib/linebuffer.c, lib/selfaddrs.c, router/daemonsub.c,
+	  scheduler/scheduler.c:
+	    Changed some code doing
+	    	if (!ptr) ptr = malloc(..); else ptr = realloc(ptr,..);
+	    into
+	    	ptr = realloc(ptr,...)
+	    after wanting to simplyfy one part of code and reading man-page..
+
+	* Makefile.in, libident/Makefile.in, libs/Makefile.in,
+	  libsh/Makefile.in, router/Makefile.in, router/libdb/Makefile.in,
+	  sfio/Makefile.in, sfio/src/lib/sfio/makefile.in,
+	  sfio/src/lib/sfio/Stdio_b/Makefile.in, smtpserver/Makefile.in,
+	  sfio/src/lib/sfio/Stdio_b/sfstdhdr.sh:
+	    Tried to "make -j 20" and learned things about parallellism...
+	    Things really aren't correct yet, and at least sfio may end
+	    up being compiled some N-4 times in parallel...
+
+	* transports/smtp/smtp.c:
+	    Modify some loops - removed unnecessary state free()er code
+	    from within the  smtp_sync()  -- with a theory that the
+	    pipecmds[] array goes boinkers somewhen...
 
 2000-11-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
