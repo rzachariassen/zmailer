@@ -30,17 +30,26 @@ clean:
 distclean:
 	rm -f Makefile
 
-pkgs:	pkgs-01 pkgs-02 pkgs-03
+pkgs:	pkgs-01
 
 pkgs-01:
 	. $(ZCONF) ; \
 	(echo "i pkginfo"; \
+	 echo "s none /usr/bin/mailq=$$MAILBIN/sendmail" ; \
 	 cd $(prefix)/; ( \
+	 echo $$ZCONFIG ; \
 	 po=`echo $$POSTOFFICE|sed -e 's!^/!!'`;find $$po -type d -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -type d -print ; \
-	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv -type d -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf ! -name \*.fc -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/forms -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/proto -print ; \
+	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -print ; \
 	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb -type d -print ; \
-	 ld=`echo $$LOGDIR|sed -e 's!^/!!'`;find $$ld -type d -print ) \
+	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb ! -type d -print ; \
+	 ld=`echo $$LOGDIR|sed -e 's!^/!!'`;find $$ld -type d -print ; \
+	 find $(RMAILPATH) -print ; \
+	 find $(SENDMAILPATH) -print ; \
+	  ) \
 		| sort | uniq | pkgproto ) | \
 		awk '/^d /{printf "%s %s /%s=$(prefix)%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next}{print}' \
 		> proto-01.dirs
@@ -48,39 +57,4 @@ pkgs-01:
 	cp pkginfo-01 pkginfo
 	pkgmk -o -f proto-01.dirs 
 
-#	 mb=`echo $$MAILBOX|sed -e 's!^/!!'`;find $$mb -type d -print ; \
-
-
-pkgs-02:
-	. $(ZCONF) ; \
-	(echo "i pkginfo"; \
-	 echo "s none /usr/bin/mailq=$$MAILBIN/sendmail" ; \
-	 cd $(prefix)/; ( \
-	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb ! -type d -print ; \
-	 echo $$ZCONFIG ; \
-	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -type d -print ; \
-	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv -type d -print ; \
-	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb -type d -print ; \
-	 find $(RMAILPATH) -print ; \
-	 find $(SENDMAILPATH) -print ) \
-		| sort | uniq | pkgproto ) | \
-		awk '/^[^i] /{printf "%s %s /%s=$(prefix)/%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next}{print}' \
-		> proto-02.dirs
-	rm -f pkginfo
-	cp pkginfo-02 pkginfo
-	pkgmk -o -f proto-02.dirs 
-
-pkgs-03:
-	. $(ZCONF) ; \
-	(echo "i pkginfo"; \
-	 cd $(prefix)/; ( \
-	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -type d -print ; \
-	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv -type d -print ; \
-	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf ! -type d -a ! -name \*.fc -print ; \
-	 ) \
-		| sort | uniq | pkgproto ) | \
-		awk '/^[^i] /{printf "%s %s /%s=$(prefix)/%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next}{print}' \
-		> proto-03.dirs
-	rm -f pkginfo
-	cp pkginfo-03 pkginfo
-	pkgmk -o -f proto-03.dirs 
+#	 mb=`echo $$MAILBOX|sed -e 's!^/!!'`;find $$mb -type d -print ;
