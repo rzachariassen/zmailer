@@ -221,6 +221,13 @@ routeuser (quad, domain) {
 		;;
 	tfiss
 
+	for func in $localprotocols; do
+	    if [ -z "$didexpand" ]; then
+		a=$(localexpand $func "$user" "$host" "$attr" "$key") &&
+			return $a
+	    fi
+	done
+
 	if [ $do_aliases -a -z "$didexpand" ]; then
 		a=$(expand_aliases "$user" "$host" "$attr" "$key") &&
 			return $a
