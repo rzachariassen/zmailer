@@ -17,6 +17,12 @@
 #include <sys/file.h>
 #include <sys/param.h>
 #include <errno.h>
+#ifdef HAVE_UNIDSTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 
 #include "libz.h"
 

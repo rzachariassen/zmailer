@@ -1,5 +1,8 @@
 2004-04-12  Matti Aarnio  <mea@zmailer.org>
 
+	* lib/fdpassing.c, smtpserver/smtpserver.h:
+	    Do proper includes for <fcntl.h>
+
 	* router/daemonsub.c, router/prototypes.h, router/router.c,
 	  smtpserver/subdaemon-ctf.c, smtpserver/subdaemon-rtr.c:
 	    Handle gracefully subdaemon router process death,
