@@ -1,5 +1,8 @@
 2001-02-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* scheduler/readconfig.c:
+	    One-off bug in ${ZENV} substitution code.
+
 	* configure.in:
 	    Derive  ZCONFIG  (formely defaulted to  /etc/zmailer.conf)
 	    from  --prefix  !  The same way as --prefix derives $MAILSHARE.
@@ -20,7 +23,7 @@
 	* router/functions.c, router/db.c, router/libsh/search.h:
 	    Support up to 8-9 additional substitution options at the
 	    database lookups.  At the moment is lacking the actual %N
-	    substitution code!
+	    substitution code!  WORK IN PROGRESS!
 
 	* scheduler/mailq.c:
 	    a bit of comments & one missing newline on error printouts.

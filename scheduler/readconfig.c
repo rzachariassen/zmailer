@@ -893,7 +893,7 @@ static char *zenvexpand(line)
 	      for (;*s && *s != '}'; ++s) ;
 	      end_c = *s;
 	      *s = 0;
-	      spotlen = s - v;
+	      spotlen = s - v + 1;
 	      e = getzenv(v+2);
 	      *s = end_c;
 	      if (!e) continue; /* No such zenv-variable :-/ */
