@@ -109,7 +109,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	}
 
 	rmsgappend(SS, 1,
-		   "\rDNSreply: len=%d rcode=%d qd=%d an=%d ns=%d ar=%d",
+		   "\r-> DNSreply: len=%d rcode=%d qd=%d an=%d ns=%d ar=%d",
 		   n, hp->rcode, qdcount, ancount, nscount, arcount);
 
 	if (hp->rcode != NOERROR || ancount == 0) {
@@ -290,14 +290,14 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    /* Yes, it is TRUNCATED reply!   Must retry with e.g.
 	       by using TCP! */
 	    /* FIXME: FIXME! FIXME! Truncated reply handling! */
-	    rmsgappend(SS, 1, "\rTRUNCATED REPLY!");
+	    rmsgappend(SS, 1, "\r   TRUNCATED REPLY!");
 	  }
 
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"  left-over ANCOUNT=%d != 0! TC=%d\n",
 		    ancount, hp->tc);
 
-	  rmsgappend(SS, 1, "\rAnswerCount  %d > 0!!", ancount);
+	  rmsgappend(SS, 1, "\r   AnswerCount  %d > 0!!", ancount);
 
 
 	  return EX_TEMPFAIL; /* FIXME?? FIXME?? */
@@ -503,6 +503,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET) -> r=%d (%s), ai=%p\n",
 		      mx[i].host, n, gai_strerror(n), ai);
+	    if (n != 0)
+	      rmsgappend(SS, 1, "\r-> getaddrinfo('%s','0') (PF_INET) -> r=%d (%s); ai=%p",
+			 mx[i].host, n, gai_strerror(n), ai);
 #if 0
 	    if (n) {
 	      zsyslog((LOG_INFO,"getmxrr('%s') mx[%d]='%s' getaddrinfo(INET) rc=%d",
@@ -553,6 +556,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET6) -> r=%d (%s), ai=%p\n",
 		      mx[i].host, n2, gai_strerror(n2), ai2);
 
+	    if (n2 != 0)
+	      rmsgappend(SS, 1, "\r-> getaddrinfo('%s','0') (PF_INET) -> r=%d (%s); ai=%p",
+			 mx[i].host, n2, gai_strerror(n2), ai2);
 #if 0
 	    if (n) {
 	      zsyslog((LOG_INFO,"getmxrr('%s') mx[%d]='%s' getaddrinfo(INET6) rc=%d",
@@ -637,7 +643,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	for (i = 0; i < nmx; ++i) {
 	  if (mx[i].ai == NULL && mx[i].host != NULL) {
-	    rmsgappend(SS, 1, "\rNo addresses for '%s'[%d]", mx[i].host, i);
+	    rmsgappend(SS, 1, "\r-> No addresses for '%s'[%d]", mx[i].host, i);
 	    free(mx[i].host);
 	    mx[i].host = NULL;
 	    continue;
@@ -646,7 +652,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	       CISTREQ(mx[i].ai->ai_canonname, myhostname)) ||
 	      matchmyaddresses(mx[i].ai) == 1) {
 
-	    rmsgappend(SS, 1, "\rSelfmatch '%s'(%s)[%d]",
+	    rmsgappend(SS, 1, "\r-> Selfmatch '%s'(%s)[%d]",
 		       mx[i].host, mx[i].ai->ai_canonname, i);
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", mx[i].ai->ai_canonname ? mx[i].ai->ai_canonname : "<NIL>", myhostname);
@@ -659,7 +665,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	if (SS->verboselog)
 	  fprintf(SS->verboselog,"  getmxrr('%s') -> nmx=%d, maxpref=%d, realname='%s'\n", host, nmx, maxpref, realname);
-	rmsgappend(SS, 1, "\r nmx=%d maxpref=%d realname='%s'",
+	rmsgappend(SS, 1, "\r-> nmx=%d maxpref=%d realname='%s'",
 		   nmx, maxpref, realname);
 
 	/* discard MX RRs with a value >= that of  myhost */
@@ -715,7 +721,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  return EX_TEMPFAIL;
 
 	if (n == 0) {/* MX's exist, but their WKS's show no TCP smtp service */
-	  rmsgappend(SS, 1, "\rNONE of MXes support SMTP!");
+	  rmsgappend(SS, 1, "\r=> NONE of MXes support SMTP!");
 	  time(&endtime);
 #ifndef TEST
 	  notary_setxdelay((int)(endtime-starttime));

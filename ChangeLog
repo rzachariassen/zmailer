@@ -1,3 +1,10 @@
+2001-01-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/getmxrr.c:
+	    Play a bit more with  rmsgappend()  calls here.
+	    Specifically report if  getaddrinfo()  calls report
+	    some diagnostics!
+
 2001-01-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* lib/selfaddrs.c, transports/smtp/smtp.c:
