@@ -1,0 +1,38 @@
+%\documentstyle[linuxdoc-sgml-a4,isolatin,qwertz,titlepage]{article}
+\documentstyle[linuxdoc-sgml-a4,isolatin,qwertz,titlepage]{article}
+\input{epsf.tex}
+\title{ZMailer Manual}
+\author{}
+\date{v1.99.1, 13 March 1998}
+
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\include{ztutorial}
+\include{zinstall}
+\include{zadministration}
+\include{zreference}
+%
+% Included here are SUBSECTION level files
+%
+\include{zref-smtpserver}
+\include{zref-sendmail}
+\include{zref-rmail}
+\include{zref-zmailer3}
+\include{zref-router}
+\include{zref-scheduler}
+\include{zref-transport-agents}
+\include{zref-utilities}
+%
+% End of Reference \subsection level files
+%
+% \appendix 
+\include{zapp-scripts}
+\include{zapp-listmgrs}
+\include{zapp-tragents}
+\include{zapp-filefmts}
+\include{zapp-ssl-lang}
+
+\end{document}

@@ -1,0 +1,83 @@
+\subsection{rmail}
+
+{\em rmail\/} is a program to process incoming UUCP mail.
+{\em rmail\/} is usually invoked by a remote UUCP neighbour host's
+mailer using a command line like:
+
+\begin{tscreen}
+\begin{verbatim}
+uux - -r -asender -gC thishost!rmail (recipient1) (recipient2) ...
+\end{verbatim}
+\end{tscreen}
+
+
+The end result is that the remote neighbour's {\em uuxqt(8)\/} runs
+{\em rmail\/} on {\tt thishost} with this command line:
+
+\begin{tscreen}
+\begin{verbatim}
+rmail recipient1 recipient2 ...
+\end{verbatim}
+\end{tscreen}
+
+
+In both cases, a UUCP format mail message is on the standard input.
+
+The task of {\em rmail\/} is to transform the trace information in
+the UUCP format message to the equivalent RFC822 trace
+information, and to submit the message to the {\em zmailer(1)\/}
+router with the appropriate envelope information.
+
+The expected input format looks like:
+
+\begin{tscreen}
+\begin{verbatim}
+From address3  date3 remote from host3
+>From address2  date2 remote from host2
+>From address1  date1 remote from host1
+\end{verbatim}
+\end{tscreen}
+
+
+followed by the rest of the message. This is considered
+equivalent to the following (as it might appear in a mailbox):
+
+\begin{tscreen}
+\begin{verbatim}
+From host3!host2!host1!address1 date
+Received: by host3 ... ; date3
+Received: by host2 ... ; date2
+Received: by host1 ... ; date1
+\end{verbatim}
+\end{tscreen}
+
+
+In order for the mailer to process the incoming message
+properly, {\em rmail\/} must be run by a {\tt userid} which the
+{\em router(1)\/} will accept forged mail from. This is normally
+the UUCP account id.
+
+{\bf Usage}
+
+{\tt rmail [-d] [-h somewhere] recipient...}
+
+{\bf Parameters}
+
+\begin{description}
+\item[ {\tt -d}] \mbox{}
+
+turns on debugging output.
+
+
+
+\item[ {\tt -h somewhere}] \mbox{}
+
+will use the argument as the 
+default remote UUCP host name to use if there is no {\tt remote from host}
+tag in the first From-space line in  the message.
+The  default value for this is usually {\tt somewhere} or
+{\tt uunet} (since uunet was a frequent purveyor of this
+protocol violation).
+
+\end{description}
+

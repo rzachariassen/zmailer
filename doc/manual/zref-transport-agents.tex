@@ -1,0 +1,933 @@
+\subsection{Delivery agents}
+
+The delivery agent programs normally form the final stage of message delivery.
+
+These programs vary in function and facilities based on what they are
+doing to the messages, and what kind of channels they handle.
+
+
+\subsubsection{mailbox}
+
+The {\em mailbox\/} is a ZMailer transport agent which is usually
+only run by the {\em scheduler(8)\/} program to deliver mail to
+local user mailbox files. The {\em mailbox\/} program must be
+run with root privileges and invoked with the same current 
+directory as the {\em scheduler\/}, namely 
+{\tt \$POSTOFFICE/transport/}.
+
+Recipient addresses are processed  as follows: 
+
+\begin{itemize}
+\item Strip doublequotes around the address, if any. 
+\item Strip prefixing backslashes, if any.  
+\item If the address starts with a `{\tt {\verbar}}', the rest of the recipient address 
+string is interpreted as  a shell command to be run. 
+\item If the address starts with a `{\tt /}', the recipient address is a  filename
+to append the message to. 
+\item Otherwise the recipient address must be a local user id. 
+\item If user is not  found,  and the first character of the address is a capital 
+letter, the entire address is folded to lowercase and the user lookup is  retried.
+\end{itemize}
+
+
+If delivering to a user mailbox ({\tt \$MAILBOX/userid/}) which
+does not exist, {\em mailbox\/} will try to create it. If the
+{\tt \$MAILBOX/} directory is mounted from a remote system this
+will succeed if the directory is group writable.
+
+Some sanity checks are done on deliveries to files and mailboxes:
+
+\begin{itemize}
+\item The file being delivered to must have one link only, and must be either 
+{\tt /dev/null} or a regular file.
+\item The file lock must be held. (See below for a chapter about locks.)  
+\end{itemize}
+
+
+There is a further sanity check on mailbox deliveries, namely if
+the mailbox is not empty the {\em mailbox\/} program will
+enforce 2 newlines as a separator before the message to be 
+delivered. This guarantees that User Agents, like {\em Mail(1)\/},
+can find the about-to-be delivered message even  if the current
+contents of the mailbox is corrupt.
+
+When delivering to a process (by starting a Bourne shell to 
+execute a specified command line), the environment is set up to 
+contain {\tt \$PATH}, {\tt \$SHELL}, {\tt \$HOME}, 
+{\tt \$USER},
+{\tt \$SENDER},  {\tt \$UID} environment variables. The 
+{\tt \$HOME} and {\tt \$USER} values are the recipient user's home
+directory and login id respectively. The {\tt \$SENDER} value is
+the sender address for the message (as it would appear in a From\_
+line), and the UID value is the owner id of the process. The
+SIGINT and SIGHUP signals are ignored, but SIGTERM is treated
+normally. If the process dumps core, it will be retried later.
+Otherwise any non-zero exit status is taken as a permanent 
+failure and will result in an error message back to the sender.
+The actual data delivered to a file, mailbox,  or process, is
+identical. It  consists of the concationation of a UUCP style
+separator line, the message header specified in the message 
+control file, and the message body from the original message file.
+The separator line starts with ``From '' and is followed by the
+sender address and a timestamp.
+
+After all deliveries and just before exiting, the mailbox process
+will poke comsat(8C) in case recipients have turned on biff(1).
+The program may be compiled to look in the rwho files on the 
+system for recipient names logged onto neighbouring hosts, in which
+case the comsat on the remote host will be poked. Even if this
+compile-time option is enabled, this will only be done for users
+that have a {\tt .rbiff} file in their home directory. (Unless an
+`{\tt -DRBIFF\_ALWAYS}' compile option is used.)
+
+{\bf Usage}
+
+\begin{tscreen}
+\begin{verbatim}
+mailbox [-8][-M][-c channel][-h localpart][-l logfile][-VabrH] 
+\end{verbatim}
+\end{tscreen}
+
+
+{\bf Parameters}
+
+\begin{description}
+\item[{\tt -c channel}] \mbox{}
+
+specifies which channel name should be keyed on. 
+The default is local.
+
+\item[{\tt -h "localpart"}] \mbox{}
+
+specifies which of the possible multiple recipients is to 
+be picked this time. Default is ``none'', which selects all local channel recipients, 
+however when the routing is done with scripts storing some tokens (other than ``-'') 
+into the ``host''-part, it is possible to process ``host-wise'', i.e. so that each 
+user has his or her own lock-state, and not just everybody hang on the same lock(s)...
+
+\item[{\tt -l logfile}] \mbox{}
+
+specifies a logfile. Each entry is a line containing message 
+id, pre-existing mailbox size in bytes, number of bytes appended, and the file name or 
+command line delivered to.
+
+\item[{\tt -V}] \mbox{}
+
+prints a version message and exits.
+
+\item[{\tt -a}] \mbox{}
+
+the access time on mailbox files is, by default, preserved across
+delivery, so that programs such as {\tt login(1)} can determine if new
+mail has arrived. This option disables the above action.
+
+\item[{\tt -b}] \mbox{}
+
+disables biff notification.
+
+\item[{\tt -r}] \mbox{}
+
+disables remote biff notification (if supported).
+
+\item[{\tt -8}] \mbox{}
+
+enables the MIME-QP-decoder to decode incoming  MIME-email with
+Quoted-Printable encoded characters.
+
+\item[{\tt -M}] \mbox{}
+
+enables the creation of MMDF-style mail-folder in the  incoming
+mail folder. The default is ``classic'' UNIX-style folder.
+
+\end{description}
+
+
+{\bf Interface}
+
+As with all transport agents, the program reads relative
+pathnames of message control files from  standard input 
+(terminated with two linefeeds), and produces diagnostic output on the
+standard output. Normal diagnostic output is of the form:
+
+\begin{tscreen}
+\begin{verbatim}
+id/offset<TAB>notify-data<TAB>status message
+\end{verbatim}
+\end{tscreen}
+
+
+where id is the inode number of the message file, offset is a
+byte offset within its control file where the address being
+reported on is kept, status is one of ok, error, or deferred, and
+the message is descriptive text associated with the report. The
+text is terminated by a linefeed. Any other format (as might be
+produced by subprocesses) is passed to standard output for 
+logging in the scheduler log.
+The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
+
+{\bf Locks}
+
+The locking scheme used on the system is configurable at the
+runtime, and has separate parameters for mailboxes and files.
+The data is configurable with zenv variable {\tt \$MBOXLOCKS} in which
+the following characters have the meanings:
+
+\begin{description}
+\item[{\tt `:'}] \mbox{}
+
+Separates mailbox locks, and file-locks at the string. The left
+side has mailbox locks, and the right side has locks for other
+regular files. (Files with explicit paths defined.)
+
+\item[{\tt `.'}] \mbox{}
+
+For mailboxes only: Does ``dotlock'' (userid.lock), or (on Sun
+Solaris) the {\tt maillock()} mechanism.
+
+\item[{\tt `F'}] \mbox{}
+
+If the system has {\tt flock()} system call, uses it to lock 
+the entire file. (Ignored on systems without {\tt flock()})
+
+\item[{\tt `L'}] \mbox{}
+
+If the system has {\tt lockf()} system call, uses it to lock 
+the entire file. (Ignored on systems without {\tt lockf()}) 
+
+\end{description}
+
+
+Locks are acquired in the same order as the key characters are listed.
+
+The default for {\tt lockf()} capable systems is: {\tt MBOXLOCKS=".L:L"}
+You can choose insane combinations of lock mechanisms, which on
+some systems cause locks to fail always, like on {\em Linux-2.0\/} series
+where programs must not use both {\tt lockf()} and {\tt flock()} locks.
+It is extremely important that selected locking methods are consistent
+throughout the system with all programs trying to acquire locks on
+mail spools.
+
+{\bf Environment}
+
+The default location for user mailbox files is 
+currently {\tt /var/mail/}. This may be modified by setting the variable
+{\tt \$MAILBOX} in {\tt /etc/zmailer.conf} to the directory containing 
+user mailbox files, for example {\tt /usr/spool/mail/}. This is best done 
+in the ZMailer Config file. The variable {\tt \$MBOXLOCKS} is used to define locking schemes used for
+mailbox spool files, and separately for other regular files.
+
+{\bf Security}
+
+Like all parts of ZMailer, the mailbox chooses to
+err on the overly cautious side.  In thecase of pipes being run under
+the mailbox, the program in the pipe is started through {\tt /bin/sh} with
+severely sanitized environment variables, and with only the file
+descriptors STDIN, STDOUT, and STDERR. Programs are refused from
+running, if address analysis has found suspicuous data; external
+messages cannot directly run programs, nor those addresses that
+have had a security breach detected during (Same applies also
+with writing into explicitely named files.)
+The pipe subprogram is run with user-id it gets thru the address
+privilege analysis during message routing, and it gets the groupid 
+through lookup of {\tt getpwuid(uid)}. That is, if you have multiple
+usernames with same uid, there are no guarantees as to which of
+them is used for the gid entry.
+
+{\bf Subprogram Environment Variables}
+
+The mailbox sets the following eight environment variables for the subprograms it runs 
+in the pipes:
+\begin{enumerate}
+\item {\tt HOME} The home directory path is taken from abovementioned getpwuid()
+lookup.
+\item {\tt USER} Likewise the textual username.
+\item {\tt SENDER} is the incoming ``MAIL FROM:{\(<\)}..{\(>\)}'' address without brackets. For
+an incoming error message, value ``{\(<\)}{\(>\)}'' is used.
+\item {\tt ORCPT} when present, is the XTEXT encoded ORCPT value received at the
+message injection into this system. See RFC 1891 for details.
+\item {\tt ENVID} when present, is the XTEXT encoded ENVID value received at the
+message injection into this system. See RFC 1891 for details.
+\item {\tt ZCONFIG} is the location of the ZMailer ZENV file.
+\item {\tt MAILBIN} is the value from ZENV.
+\item {\tt MAILSHARE} is the value from ZENV.
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+\subsubsection{hold}
+
+
+
+hold - zmailer deferred processing transport agent
+
+{\bf Description}
+
+hold is a ZMailer transport agent which is usually only
+run by the {\tt scheduler(8)} program to test conditions for
+reprocessing of previously deferred message addresses.
+The hold program must be run with the same current directory 
+as the scheduler, namely {\tt \$POSTOFFICE/transport/}.
+
+The program will interpret the host part of an address
+destined for its channel as a condition that must be met
+before the original address (in the user part) can be
+reprocessed by the {\em router\/}. The condition specification
+contains a general condition class name followed by colon
+followed by a parameter string. The currently supported
+condition classes are:
+
+\begin{description}
+\item[ns] \mbox{}
+
+succeeds when the nameserver lookup indicated by
+the parameter does not produce a temporary nameserver 
+error. The parameter is a domain name followed by a slash 
+followed by a standard Internet
+nameserver Resource Record type name.
+
+
+
+\item[timeout] \mbox{}
+
+succeeds when the time given by the parameter (in
+normal seconds-since-epoch format) has passed.
+
+
+
+\item[io] \mbox{}
+
+succeeds 10\% of the time, to allow retry of temporary I/O failures.
+
+
+
+\item[script] \mbox{}
+
+runs the named shell script with the optional given
+argument. The parameter is a simple name, the
+shell script name within the {\tt \$MAILBIN/bin/} directory,
+optionally followed by a slash followed by an argument to be 
+passed to the shell script.
+
+\end{description}
+
+
+For example:
+
+\begin{tscreen}
+\begin{verbatim}
+NS:nic.ddn.mil/cname
+TIMEOUT:649901432
+IO:error
+SCRIPT:homedir/joe
+\end{verbatim}
+\end{tscreen}
+
+
+The condition class name is case-insensitive but is 
+capitalised by convention. The parameter strings are 
+case-preserved for condition class-specific interpretation.
+Whitespace is not permitted.
+
+The envelope of the resubmitted message is created from
+the sender and (no longer deferred) recipient addresses,
+and a ``via suspension'' header.
+
+{\bf Usage}
+
+\begin{tscreen}
+\begin{verbatim}
+hold [ -c channel ] [ -V ]
+\end{verbatim}
+\end{tscreen}
+
+
+{\bf Parameters}
+
+{\tt -c channel} specifies which channel name should be keyed on. The default is hold.
+
+{\tt -V} prints a version message and exits.
+
+{\bf Interface}
+
+As all transport agents, the program reads relative path-
+names of message control files from standard input (terminated 
+with two linefeeds), and produces diagnostic output
+on the standard output. Normal diagnostic output is of
+the form:
+
+\begin{tscreen}
+\begin{verbatim}
+id/offset/status message
+\end{verbatim}
+\end{tscreen}
+
+
+where id is the inode number of the message file, offset
+is a byte offset within its control file where the address
+being reported on is kept, status is one of ok, error, or
+deferred, and the message is descriptive text associated
+with the report. The text is terminated by a linefeed.
+Any other format (as might be produced by subprocesses) is
+passed to standard output for logging in the scheduler
+log.
+
+The exit status is a code from {\(<\)}sysexits.h{\(>\)}.
+
+
+
+
+
+
+
+
+\subsubsection{smtp}
+
+
+
+{\em smtp\/} - zmailer SMTP client transport agent
+
+{\em smtp\/} is a ZMailer transport agent which is usually only
+run by the {\tt scheduler(8)} to transfer messages to a remote
+Internet host using the SMTP protocol. The {\em smtp\/} program
+must be run with the same current directory as the scheduler, 
+namely {\tt \$POSTOFFICE/transport/}.
+
+The program scans the message control files named on stdin
+for addresses destined for its channel and the host given
+on the command line. If any are found, all matching
+addresses and messages are transferred in a single SMTP
+conversation. The destination host might in fact be
+served by any available mail exchanger for that host.
+
+{\bf Usage}
+
+\begin{tscreen}
+\begin{verbatim}
+smtp [ -78deEHrPsVxW ] [ -c channel ] [ -h heloname ] [ -l logfile ] 
+[ -p remote-port ] [ -T timeout ] [ -F forcedest] [ -L localidentity ] host
+\end{verbatim}
+\end{tscreen}
+
+
+{\bf Parameters}
+
+\begin{description}
+\item[-7] \mbox{}
+
+forces SMTP channel to be 7-bit, and thus forcing
+all 8-bit texts to be MIME-QP-encoded for the transport.
+
+
+
+\item[-8] \mbox{}
+
+forces SMTP channel to be 8-bit-clean, and as such,
+to decode the message while transporting it (is it
+is MIME QP encoded).
+
+
+
+\item[-c channel] \mbox{}
+
+specifies which channel name should be keyed on.
+The default is smtp.
+
+
+
+\item[-d] \mbox{}
+
+turns on debugging output.
+
+
+
+\item[-e] \mbox{}
+
+asks that for every destination address specification 
+with a matching channel name, an MX lookup is
+done on the hostname to see whether the currently
+connected host can provide service for that destination. 
+The default is to just do a textual name
+comparison with the destination hostname as given
+on the command line.
+
+
+
+\item[-E] \mbox{}
+
+use the ``EHLO''-greeting only if the remote server
+initial banner reports ``ESMTP'' on it.
+
+
+
+\item[-h host] \mbox{}
+
+specifies the hostname for the SMTP HELO greeting.
+The default is the hostname of the local system, as
+returned by {\tt gethostname(2)} or {\tt uname(2)}.
+
+
+
+\item[-F forcedest] \mbox{}
+
+overrides delivery destination by forcing all
+email to be sent to given forcedest IP-number/hostname.
+
+
+
+\item[-H] \mbox{}
+
+Disable the per default active forced 8-bit headers
+conversion into MIME-2-format.
+
+
+
+\item[-L localident] \mbox{}
+
+specifies (for multi-homed machines) that they
+should use specified identity when connecting to
+the destination. Think of server with multiple IP
+numbers due to virtual hosting, for example. At
+such systems there may be situation when virtual
+identity needs to be used for reaching the destination system.
+
+
+
+\item[-l logfile] \mbox{}
+
+specifies a log file where the complete SMTP command 
+transaction will be copied. Each line in the
+log will be prefixed with the process id of the
+transport agent process, so the same log file can
+be used by all SMTP clients.
+
+
+
+\item[-r] \mbox{}
+
+asks to set up SMTP connections using a source TCP
+port number under 1024. This is in the range of
+port numbers only available to a privileged process
+on some UNIX systems, which has led to some 
+misguided attempts at mail security based on this
+mechanism.
+
+
+
+\item[-s] \mbox{}
+
+asks to report the progress of the SMTP conversation 
+and data transfer on the command line in a way
+that will be visible to {\tt ps(1)}.
+
+
+
+\item[-x] \mbox{}
+
+turns off MX lookups on delivery connections. This
+may be used ignore public MX knowledge and do
+exactly what the {\em router\/} says in cases where delivering 
+to an explicit IP address is inappropriate.
+
+
+
+\item[-P] \mbox{}
+
+disable SMTP-PIPELINING usage (ESMTP keyword: PIPELINING)
+
+
+
+\item[-T timeout] \mbox{}
+
+specifies the timeout, in seconds, when waiting for
+a response to an SMTP command. The timeout applies
+to all SMTP command-response exchanges except for
+the acknowledgement after terminating the DATA portion 
+of a message transaction (after sending the
+``.'' CRLF sequence). The default timeout is 10 
+minutes, the minimum acceptable value is 5 seconds.
+The timeout on the DATA acknowledgement is very
+large, at least 24 hours.
+
+
+
+\item[-V] \mbox{}
+
+prints a version message and exits.
+
+
+
+\item[-W] \mbox{}
+
+turns on the DNS WKS checking, and if the remote
+system does not have SMTP in its WKS-bits, email
+delivery to such address is aborted with an error
+message.
+
+\end{description}
+
+
+{\bf Interface}
+
+As all transport agents, the program reads relative path
+names of message control files from standard input 
+(terminated with two linefeeds), and produces diagnostic output
+on the standard output. Normal diagnostic output is of
+the form:
+
+\begin{tscreen}
+\begin{verbatim}
+id/offset<TAB>notify-data<TAB>status message
+\end{verbatim}
+\end{tscreen}
+
+
+where id is the inode number of the message file, offset
+is a byte offset within its control file where the address
+being reported on is kept, status is one of ok, error, or
+deferred, and the message is descriptive text associated
+with the report. The text is terminated by a linefeed.
+Any other format (as might be produced by subprocesses) is
+passed to standard output for logging in the scheduler
+log.
+
+The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
+
+{\bf Extended SMTP}
+
+When a user sends out 8-bit mail with the proper headers, this
+module can send it out to conforming servers either in
+8-bit transparent manner, or down-converting Content 
+Transfer-Encoding: 8BIT to Content-Transfer-Encoding: 7BIT
+or Content-Transfer-Encoding: QUOTED-PRINTABLE depending
+on what is the mail contents.
+This works only with Content-Type: text/plain thus no
+fancy multipart/alternate et.al. schemes..
+When Content-Transfer-Encoding: -header is not present in
+the headers, and recipient has not declared 8-bit SMTP
+capability, mail contents are treated with old 7-bit
+stripping method.
+
+
+
+
+
+
+
+
+\subsubsection{{\em sm\/}}
+
+
+
+{\em sm\/} - zmailer Sendmail compatible transport agent
+
+{\em sm\/} is a ZMailer transport agent which is usually only run
+by the {\tt scheduler(8)}, to deliver messages by invoking a
+program with facilities and in a way compatible with a
+{\em sendmail\/} mailer. The {\em sm\/} program must be run with the same
+current directory as the scheduler, namely 
+{\tt \$POSTOFFICE/transport/}.
+
+The program scans the message control files named on stdin
+for addresses destined for the channel and/or the host
+given on the command line. If any are found, all matching
+addresses and messages are processed according to the
+specifications for the mailer in the configuration file.
+
+The exit status of a mailer should be one of the standard
+values specified in {\tt {\(<\)}sysexits.h{\(>\)}}. Of these, EX\_OK indicates 
+successful delivery, and EX\_DATAERR, EX\_NOUSER,
+EX\_NOHOST, EX\_UNAVAILABLE, and EX\_NOPERM indicate permanent 
+failure. All other exit codes will be treated as a
+temporary failure and the delivery will be retried.
+
+{\bf Usage}
+
+\begin{tscreen}
+\begin{verbatim}
+sm [ -8HQV ] [ -f configfile ] -c channel -h host mailer
+\end{verbatim}
+\end{tscreen}
+
+
+{\bf Parameters}
+
+\begin{description}
+\item[{\tt -8}] \mbox{}
+
+tells that the output is 8-bit clean, and for any
+MIME message with QUOTED-PRINTABLE encoding the
+coding can be decoded.
+
+
+
+\item[{\tt -Q}] \mbox{}
+
+tells that the transport channel will likely treat
+poorly control characters like TAB, and possibly
+SPACE too.. This encodes them all by using QUOTED-PRINTABLE encoding.
+
+
+
+\item[{\tt -f configfile}] \mbox{}
+
+specifies the name of a configuration file containing 
+specifications of the various known {\em sendmail\/}
+compatible mailer programs: how to invoke them and
+how to process messages for them. The default is {\tt \$MAILSHARE/sm.cf}.
+
+
+
+\item[{\tt -c channel}] \mbox{}
+
+specifies which channel name should be keyed on.
+There is no default. If this option is not specified, the {\tt -h} option must be.
+
+
+
+\item[{\tt -h host}] \mbox{}
+
+specifies which host name should be keyed on.
+There is no default. If this option is not specified, the {\tt -c} option must be.
+
+
+
+\item[{\tt v-V}] \mbox{}
+
+prints a version message and exits.
+
+\end{description}
+
+
+
+
+{\bf Configuration}
+
+The configuration file associates the mailer keyword from
+the command line with a specification of a delivery program. 
+This is very similar to the way the definition of a
+mailer in Sendmail requires flags, a program name, and a
+command line specification. These are in fact the fields
+of the entries of the configuration file. Lines starting
+with whitespace or a '\#' are ignored, and all others are
+assumed to follow this format:
+
+\begin{tscreen}
+\begin{verbatim}
+mailer flags program argument list
+\end{verbatim}
+\end{tscreen}
+
+
+For example:
+
+\begin{tscreen}
+\begin{verbatim}
+local mS sm/localm localm -r $g $u
+prog - /bin/sh sh -c $u
+tty rs /usr/local/to to $u
+uucp U /usr/bin/uux uux - -r -a$g -gC $h!rmail ($u)
+usenet m sm/usenet usenet $u
+ean mn /local/lib/ean/gwsmean gwsmean -d $u
+test n sm/test test $u
+\end{verbatim}
+\end{tscreen}
+
+
+The mailer field extends from the beginning of the line to
+the first whitespace. It is used simply as a key index to
+the configuration file contents. Whitespace is used as
+the field separator for all the fields.
+
+The flags field contains a concatenation of one-letter
+flags. If no flags are desired, a `-' character should be
+used to indicate presence of the field. All normal {\em sendmail\/} flags 
+are recognised, but the ones that do not make
+sense in the context of ZMailer will produce an error.
+The flags that change the behaviour of {\em sm\/} are:
+
+\begin{description}
+\item[b] \mbox{}
+
+will activate BSMTP-type wrapping with ``hidden-dot''
+algorithm; e.g. quite ordinary SMTP stream, but in
+``batch mode''.
+
+
+
+\item[B] \mbox{}
+
+The first `{\tt B}' turns on similar BSMTP wrapping as
+`{\tt b}', but adds SIZE and, if the {\em sm\/} is started with
+option `{\tt -8}', also 8BITMIME options. The second `{\tt B}'
+adds there also DSN (Delivery Status Notification)
+parameters.
+
+
+
+\item[E] \mbox{}
+
+will prepend `{\(>\)}' to any message body line starting
+with `From '.
+
+
+
+\item[f] \mbox{}
+
+adds ``{\tt -f sender}'' arguments to the delivery program.
+
+
+
+\item[n] \mbox{}
+
+will not prepend a From-space line (normal mailbox
+separator line) to the message.
+
+
+
+\item[r] \mbox{}
+
+adds ``{\tt -r sender}'' arguments to the delivery program.
+
+
+
+\item[S] \mbox{}
+
+will run the delivery program with the same real
+and effective uid as the {\em sm\/} process. If this flag
+is not set, the delivery program will be run with
+the real uid of the {\em sm\/} process. This may be useful
+if {\em sm\/} is setuid.
+
+
+
+\item[m] \mbox{}
+
+informs {\em sm\/} that each instance of the delivery program 
+can deliver to many destinations. This
+affects {\bf {\tt \$u}} expansion in the argument list, see
+below.
+
+
+
+\item[P] \mbox{}
+
+prepends a {\tt Return-Path:} header to the message.
+
+
+
+\item[U] \mbox{}
+
+will prepend a From-space line, with a ``remote from
+myuucpname'' at the end, to the message. This is
+what is expected by remote rmail(1) programs for
+incoming UUCP mail.
+
+
+
+\item[R] \mbox{}
+
+use CRLF sequence as end-of-line sequence. Without it, will use 
+LF-only end-of-line sequence.
+
+
+
+\item[X] \mbox{}
+
+does SMTP-like `hidden-dot' algorithm of doubling all dots that are 
+at the start of the line.
+
+
+
+\item[7] \mbox{}
+
+will strip (set to 0) the 8th bit of every character in the message.
+
+\end{description}
+
+
+The path field specifies the location of the delivery program. 
+Relative pathnames are allowed and are relative to
+the {\tt \$MAILBIN/} directory.
+
+The arguments field extends to the end of the line. It
+contains whitespace-separated argv parameters which may
+contain one of the following sequences:
+
+{\tt \$g} which is replaced by the sender address.
+
+{\tt \$h} which is replaced by the destination host.
+
+{\tt \$u} which is replaced by the recipient address. If the
+
+{\tt -m} mailer flag is set and there are several recipients for this message, the argument containing the {\tt \$u} will be replicated as necessary for each recipient.
+
+{\bf Iterface}
+
+As all transport agents, the program reads relative pathnames 
+of message control files from standard input (terminated 
+with two linefeeds), and produces diagnostic output
+on the standard output. Normal diagnostic output is of
+the form:
+
+\begin{tscreen}
+\begin{verbatim}
+id/offset<TAB>notify-data<TAB>status message
+\end{verbatim}
+\end{tscreen}
+
+
+where id is the inode number of the message file, offset
+is a byte offset within its control file where the address
+being reported on is kept, status is one of ok, error, or
+deferred, and the message is descriptive text associated
+with the report. The text is terminated by a linefeed.
+Any other format (as might be produced by subprocesses) is
+passed to standard output for logging in the scheduler
+log.
+
+The exit status is a code from {\tt {\(<\)}sysexits.h{\(>\)}}.
+
+
+
+
+
+
+\subsubsection{libta - Transport Agent Support Library}
+
+
+
+This is the library that all transport agents use, and several of its
+functions are intended to aid message processing.
+
+
+
+
+\paragraph{Function groupings}
+
+Transport agent support library function groups are:
+
+\begin{itemize}
+\item Message file manipulation routines.
+\item Diagnostics routines.
+\end{itemize}
+
+
+
+
+
+\paragraph{Function listings }
+
+
+\paragraph{Function usage examples}
+
+
+\subsubsection{Security Issues}
+
+Text to be inserted here.
+

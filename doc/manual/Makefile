@@ -2,12 +2,16 @@
 # GNU-Makefile for ZMailer manual
 #
 
-PARTS=	tutorial.sgml install.sgml admin.sgml	\
-	ref_smtp.sgml ref_sendmail.sgml ref_zmailer.sgml	\
-	ref_router.sgml ref_scheduler.sgml ref_agents.sgml	\
-	ref_utils.sgml app_scripts.sgml app_listmgr.sgml	\
-	app_newagnts.sgml app_datafmt.sgml app_ssl.sgml		\
-	end.sgml
+PARTS=	Makefile		\
+	zadministration.tex        zref-router.tex		\
+	zapp-filefmts.tex          zref-scheduler.tex		\
+	zapp-listmgrs.tex          zref-sendmail.tex		\
+	zapp-scripts.tex           zref-smtpserver.tex		\
+	zapp-ssl-lang.tex          zref-transport-agents.tex	\
+	zapp-tragents.tex          zref-utilities.tex		\
+	zinstall.tex               zref-zmailer3.tex		\
+	zmanual.tex                zreference.tex		\
+	zref-rmail.tex             ztutorial.tex
 
 FIGS   :=	msg_modl.fig msg_rout.fig
 
@@ -16,29 +20,25 @@ FIG_PS :=	$(FIGS:%.fig=%.ps)
 FIGGIF :=	$(FIGS:%.fig=%.gif)
 
 LINUXDOCBIN=/usr/bin
-LINUXDOCLIB=/usr/lib/sgml-tools
+#LINUXDOCLIB=/usr/lib/sgml-tools
+LINUXDOCLIB=/usr/lib/linuxdoc-sgml
 # set and export TEXINPUTS
 TEXINPUTS=$$TEXINPUTS:$(LINUXDOCLIB)
 
 
 
 all:
-	@echo "make tag choices: clean dist html tex dvi ps"
+	@echo "make tag choices: clean dist html dvi ps"
 
-tex: manual.tex
 dvi: manual.dvi
 ps:  manual.ps
 html: manual.html
-dist: manual_parts.tar.gz manual.sgml.gz
+dist: manual_parts.tar.gz
 
 gifs: $(FIGGIF)
 
 clean:
-	rm -f *~ *.html manual* *.ps *.eps *.gif *.bak
-
-manual.sgml: $(PARTS) intro.sgml
-	# cat $(PARTS) > manual.sgml
-	(cat intro.sgml;for x in $(PARTS); do echo "<!-- $$x -->";cat $$x;done) > manual.sgml
+	rm -f *~ *.html *.ps *.eps *.gif *.bak *.dvi manual.* *.aux
 
 .SUFFIXES: .gif .fig .eps .ps
 
@@ -61,33 +61,18 @@ $(FIGGIF): $(FIG_PS)
 
 manual_parts.tar.gz: manual_parts.tar
 
-manual_parts.tar: Makefile $(PARTS)
-	tar -cf manual_parts.tar Makefile $(PARTS)
+manual_parts.tar: Makefile $(PARTS) $(FIGS)
+	tar -cf manual_parts.tar Makefile $(PARTS) $(FIGS)
 	gzip -c manual_parts.tar > manual_parts.tar.gz
 
-manual.sgml.gz: manual.sgml
-	gzip -c manual.sgml > manual.sgml.gz
-
-manual.html: manual.sgml $(FIGGIF)
-	cp -p manual.sgml manual.tmp
-	cat manual.tmp | sed "/^<x>.*<\/x>/ d" > manual.sgml
-	./kill_text.pl no_html manual.sgml >manual.tmp
-	./kill_tags.pl no_ps manual.tmp >manual.sgml
-	sgml2html manual
-	#cp -p manual.tmp manual.sgml
-	rm manual.tmp
-	#rm manual.tmp2
-	mv manual.sgml man_old.sgml 
+manual.html: $(PARTS) $(FIGGIF)
+	@echo "****  'make html' NOT YET SUPPORTED   ****"
+	@echo "**** pending  Latex2HTML installation ****"
 
 manual.ps: manual.dvi $(FIGEPS)
 	dvips -ta4 -omanual.ps manual.dvi
 
-manual.dvi: manual.tex
-	TEXINPUTS=$(TEXINPUTS);export TEXINPUTS; \
-		latex manual ; latex manual ; latex manual
-
-manual.tex: manual.sgml
-	./kill_text.pl no_ps manual.sgml >manual.tmp
-	./kill_tags.pl no_html manual.tmp >manual.sgml
-	sgml2latex -a manual.sgml
-	mv manual.sgml man_old.sgml
+manual.dvi: $(PARTS) $(FIGEPS)
+	TEXINPUTS=$(TEXINPUTS);export TEXINPUTS;	\
+	rm -f manual.tex ; cp zmanual.tex manual.tex ;	\
+	latex manual && latex manual && latex manual
