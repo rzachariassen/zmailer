@@ -1404,10 +1404,12 @@ run_listexpand(avl, il)
 	attributenam = (char*)    (il)->string;
 	localpart    = (char*) cdr(il)->string;
 	origaddr     = (char*) cddr(il)->string;
-	if (cdr(cddr(il)))
+	if (cdr(cddr(il))) {
 	  plustail = cdr(cddr(il));
-	if (cddr(cddr(il)))
-	  domain = cddr(cddr(il));
+	  if (cddr(cddr(il)))
+	    domain = cddr(cddr(il));
+	}
+	
 
 	/* We (memory-)leak this stuff for a moment.. (but it is tmalloc()ed)*/
 	e = (struct envelope *)tmalloc(sizeof (struct envelope));
