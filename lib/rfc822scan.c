@@ -148,9 +148,18 @@ _hdr_compound(cp, n, cstart, cend, type, tp, tlist, tlistp)
 nextline:
 	for (; n > 0 && *cp != cend; ++cp, --n) {
 		if (*cp == cstart && type == Comment) {
-			n = _hdr_compound(cp, n, cstart, cend,
-					  type, tp, tlist, tlistp) +1;
+			u_long nleft;
+			nleft = _hdr_compound(cp, n, cstart, cend,
+					      type, tp, tlist, tlistp);
+			cp += (n - nleft);
+			n   = nleft+1; /* for-loop's --n ! */
+#if 0
+			/* Under certain pathological conditions the "tlistp"
+			   is NULL pointer in here! */
+			if (tlistp == NULL)
+				break;
 			cp = (*tlistp)->t_pname + TOKENLEN(*tlistp) - n;
+#endif
 		} else if (*cp == '\\') {
 			if (n == 1) {
 				MKERROR("missing character after backslash",
