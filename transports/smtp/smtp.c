@@ -1492,11 +1492,9 @@ deliver(SS, dp, startrp, endrp)
 	    fprintf(SS->verboselog,"%s\n",*hdrs++);
 	}
 
-	if (chunkptr && !chunkblk)
-	  SS->hsize = -1;
-	else
-	  SS->hsize = writeheaders(startrp, SS->smtpfp, "\r\n",
-				   convertmode, 0, chunkptr);
+	SS->hsize = -1;
+	if (!(chunkptr && !chunkblk))
+	  writeheaders(startrp, SS->smtpfp, "\r\n", convertmode, 0, chunkptr);
 
 	if (SS->hsize >= 0 && chunkblk) {
 
@@ -1725,7 +1723,7 @@ appendlet(SS, dp, convertmode)
 	  if (statusreport)
 	    report(SS,"DATA %d/%d (%d%%)",
 		   SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	  sprintf(SS->remotemsg,"smtp; 500 (let_buffer write timeout!  DATA %d/%d [%d%%])",
+	  sprintf(SS->remotemsg,"smtp; 500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
 		  SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	  return EX_IOERR;
 
@@ -1763,20 +1761,19 @@ appendlet(SS, dp, convertmode)
 #endif /* !HAVE_MMAP */
 	    lastwasnl = (let_buffer[i-1] == '\n');
 	    rc = writebuf(SS, let_buffer, i);
-	    SS->hsize += rc;
 	    if (statusreport)
 	      report(SS,"DATA %d/%d (%d%%)",
 		     SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	    /* We NEVER get timeouts here.. We get anything else.. */
 	    if (rc != i) {
 	      if (gotalarm) {
-		sprintf(SS->remotemsg,"smtp; 500 (let_buffer write timeout!  DATA %d/%d [%d%%])",
+		sprintf(SS->remotemsg,"smtp; 500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
 			SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 		alarm(0);
 		return EX_IOERR;
 	      }
 	      sprintf(SS->remotemsg,
-		      "smtp; 500 (let_buffer write IO-error[1]! [%s] DATA %d/%d [%d%%])",
+		      "smtp; 500 (msgbuffer write IO-error[1]! [%s] DATA %d/%d [%d%%])",
 		      strerror(errno),
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	      alarm(0);
@@ -1830,11 +1827,11 @@ appendlet(SS, dp, convertmode)
 
 	    /* Ok, write the line -- decoding QP can alter the "lastwasnl" */
 	    rc = writemimeline(SS, let_buffer, i, convertmode);
-	    SS->hsize += rc;
+
 	    /* We NEVER get timeouts here.. We get anything else.. */
 	    if (rc != i) {
 	      sprintf(SS->remotemsg,
-		      "500 (let_buffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
+		      "500 (msgbuffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
 		      strerror(errno),
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	      MFPCLOSE
@@ -1863,12 +1860,12 @@ appendlet(SS, dp, convertmode)
 	  if (writebuf(SS, "\n", 1) != 1) {
 	    alarm(0);
 	    if (gotalarm) {
-	      sprintf(SS->remotemsg,"500 (let_buffer write timeout!  DATA %d/%d [%d%%])",
+	      sprintf(SS->remotemsg,"500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	      return EX_IOERR;
 	    }
 	    sprintf(SS->remotemsg,
-		    "500 (let_buffer write IO-error[3]! [%s] DATA %d/%d [%d%%])",
+		    "500 (msgbuffer write IO-error[3]! [%s] DATA %d/%d [%d%%])",
 		    strerror(errno),
 		    SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
@@ -1958,6 +1955,7 @@ writebuf(SS, buf, len)
 	alarmcnt = SS->alarmcnt;
 	for (cp = buf, n = len; n > 0 && !gotalarm; --n, ++cp) {
 	  register char c = (*cp) & 0xFF;
+	  ++SS->hsize;
 
 	  if (--alarmcnt <= 0) {
 	    alarmcnt = ALARM_BLOCKSIZE;
@@ -1966,8 +1964,8 @@ writebuf(SS, buf, len)
 
 	    if (statusreport)
 	      report(SS,"DATA %d/%d (%d%%)",
-		     len-n+SS->hsize, SS->msize,
-		     ((len-n+SS->hsize)*100+SS->msize/2)/SS->msize);
+		     SS->hsize, SS->msize,
+		     (SS->hsize*100+SS->msize/2)/SS->msize);
 	  }
 
 	  if (state && c != '\n') {
@@ -2060,6 +2058,7 @@ writemimeline(SS, buf, len, convertmode)
 	for (cp = buf, n = len; n > 0; --n, ++cp) {
 	  register int c = (*cp) & 0xFF;
 	  ++column;
+	  ++SS->hsize;
 
 	  if (--alarmcnt <= 0) {
 	    alarmcnt = ALARM_BLOCKSIZE;
@@ -2068,8 +2067,8 @@ writemimeline(SS, buf, len, convertmode)
 
 	    if (statusreport)
 	      report(SS,"DATA %d/%d (%d%%)",
-		     len-n+SS->hsize, SS->msize,
-		     ((len-n+SS->hsize)*100+SS->msize/2)/SS->msize);
+		     SS->hsize, SS->msize,
+		     (SS->hsize*100+SS->msize/2)/SS->msize);
 	  }
 
 	  if (convertmode == _CONVERT_8BIT) {
@@ -3265,15 +3264,24 @@ int bdat_flush(SS, lastflg)
 	if (r != EX_OK)
 	  return r;
 
-	for (pos = 0; pos < SS->chunksize; pos += wrlen) {
+	for (pos = 0; pos < SS->chunksize;) {
 	  wrlen = SS->chunksize - pos;
 	  if (wrlen > ALARM_BLOCKSIZE) wrlen = ALARM_BLOCKSIZE;
+	  alarm(timeout);
 	  i = fwrite(SS->chunkbuf + pos, 1, wrlen, SS->smtpfp);
-	  if (i != wrlen)
-	    return EX_TEMPFAIL;
 	  fflush(SS->smtpfp);
-	  if (ferror(SS->smtpfp))
+	  if (i < 0) {
+	    if (errno == EINTR)
+	      continue;
+	    alarm(0);
 	    return EX_TEMPFAIL;
+	  }
+	  pos += i;
+	  SS->hsize += i;
+	  if (ferror(SS->smtpfp)) {
+	    alarm(0);
+	    return EX_TEMPFAIL;
+	  }
 	}
 	SS->chunksize = 0;
 
