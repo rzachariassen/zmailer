@@ -2131,7 +2131,7 @@ writemimeline(SS, buf, len, convertmode)
 
 	  if (--alarmcnt <= 0) {
 	    alarmcnt = ALARM_BLOCKSIZE;
-	    fflush(fp);
+	    /* fflush(fp); */
 	    alarm(timeout);
 
 	    if (statusreport)
@@ -3413,6 +3413,14 @@ int bdat_flush(SS, lastflg)
 
 
 	if (setjmp(alarmjmp) == 0) {
+#if 1
+	  for ( pos = 0; pos < SS->chunksize; ) {
+	    wrlen = SS->chunksize - pos;
+	    alarm(timeout);
+	    i = fwrite(SS->chunkbuf + pos, 1, wrlen, SS->smtpfp);
+	    pos += i;
+	  }
+#else
 	  for (pos = 0; pos < SS->chunksize;) {
 	    wrlen = SS->chunksize - pos;
 	    if (wrlen > ALARM_BLOCKSIZE) wrlen = ALARM_BLOCKSIZE;
@@ -3434,6 +3442,7 @@ int bdat_flush(SS, lastflg)
 	      return EX_TEMPFAIL;
 	    }
 	  }
+#endif
 	  alarm(0);
 	  SS->chunksize = 0;
 
