@@ -592,7 +592,7 @@ reporterrs(cfpi)
 	  struct stat stbuf;
 
 	  fstat(fileno(errfp),&stbuf);
-	  sprintf(fname,"%d",stbuf.st_ino);
+	  sprintf(fname,"%ld",(long)stbuf.st_ino);
 	  taspoolid(boundarystr, sizeof(boundarystr), stbuf.st_ctime, fname);
 	  strcat(boundarystr, "=_/");
 	  strcat(boundarystr, dom);
