@@ -78,6 +78,7 @@ is the hostname of the local system, as returned by
 or
 .IR uname (2).
 .IP \-F\ \fIforcedest\fR
+.RS
 overrides delivery destination by forceing
 .B all
 email to be sent to given
@@ -96,6 +97,7 @@ Literal IPv6 address for IPv6 system
 Literal IPv4 address for non-IPv6 system
 .IP "some.host.name"
 DNS/hosts data registered name
+.RE
 .RE
 .IP \-H
 Disable the per default active forced 8-bit headers conversion into
@@ -120,17 +122,24 @@ Literal IPv4 address for non-IPv6 system
 .IP "some.host.name"
 DNS/hosts data registered name
 .RE
+.RE
 .IP \-l\ \fIlogfile\fR
 specifies a log file where the complete SMTP command transaction will be
 copied.  Each line in the log will be prefixed with the process id of
 the transport agent process, so the same log file can be used by all SMTP
 clients.
 .IP \-M
+.RS
 specifies that system shall run in RFC 2033 specified
 .I LMTP
 mode when contacting remote systems.
+.LP
 Usage of this option requires also that destination port is defined,
-and is not the SMTP default of 25.
+and is not the SMTP default of 25.  Preferrably even running in "punt"
+mode (\-F option).
+.LP
+Alternate is to use "punt" mode (\-F option) to a UNIX-socket.
+.RE
 .IP \-r
 asks to set up SMTP connections using a source TCP port number under 1024.
 This is in the range of port numbers only available to a privileged process

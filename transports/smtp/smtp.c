@@ -647,9 +647,10 @@ main(argc, argv)
 	if (SS.servport < 0)
 	  SS.servport = IPPORT_SMTP;
 
-	if (lmtp_mode && SS.servport == 25) {
+	if (lmtp_mode && SS.servport == 25 &&
+	    (!punthost || !STREQN(punthost,"UNIX:/",6))) {
 	  fprintf(stderr,
-		  "%s: LMTP mode is not allowed without explicite port specifier with value other than 25\n", argv[0]);
+		  "%s: LMTP mode is not allowed without explicite port specifier with value other than 25, or -F to UNIX-socket..\n", argv[0]);
 	  exit(EX_USAGE);
 	}
 
