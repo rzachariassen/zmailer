@@ -306,8 +306,8 @@ int ok;
 	struct threadgroup *thg = thr->thgrp;
 
 	if (verbose)
-	  printf("delete_thread(0x%p:%s/%s) (thg=0x%p)\n",
-		 thr,thr->channel,thr->host,thg);
+	  printf("delete_thread(0x%p:%s/%s) (thg=0x%p) jobs=%d\n",
+		 thr,thr->channel,thr->host,thg, thr->jobs);
 
 	free(thr->channel);
 	free(thr->host);
