@@ -2273,6 +2273,7 @@ sequencer(e, file)
 				    fprintf(vfp, "%d ", rcp->urw.number);
 				  prctladdr(rcp->info, vfp,
 					    _CF_RECIPIENT, "recipient");
+				  putc('\n', vfp);
 				  /* DSN data output ! */
 				  prdsndata(rcp->info, vfp,
 					    _CF_RCPTNOTARY, "recipient");
