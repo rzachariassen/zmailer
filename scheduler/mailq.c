@@ -1904,21 +1904,21 @@ static void print_shm __((void))
   printf("ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
   printf("Time_now                        %10lu\n", (unsigned long)time(NULL));
 
-  printf("SYS.mtaRouterMasterPID          %10u",M.mtaRouterMasterPID);
+  printf("SYS.RouterMasterPID             %10u",M.mtaRouterMasterPID);
   if (kill(M.mtaRouterMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
   printf("\n");
 
-  printf("SYS.mtaSchedulerMasterPID       %10u",M.mtaSchedulerMasterPID);
+  printf("SYS.SchedulerMasterPID          %10u",M.mtaSchedulerMasterPID);
   if (kill(M.mtaSchedulerMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
   printf("\n");
 
-  printf("SYS.mtaSmtpServerMasterPID      %10u",M.mtaSmtpServerMasterPID);
+  printf("SYS.SmtpServerMasterPID         %10u",M.mtaSmtpServerMasterPID);
   if (kill(M.mtaSmtpServerMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
   printf("\n");
 
 
-  printf("SYS.mtaSpoolFreeSpace-kB         %9d\n", M.mtaSpoolFreeSpace);
-  printf("SYS.mtaLogFreeSpace-kB           %9d\n", M.mtaLogFreeSpace);
+  printf("SYS.SpoolFreeSpace-kB            %9d\n", M.mtaSpoolFreeSpace);
+  printf("SYS.LogFreeSpace-kB              %9d\n", M.mtaLogFreeSpace);
 
 
   printf("SS.Processes-G                        %4d\n",

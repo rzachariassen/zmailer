@@ -186,6 +186,10 @@ const char *buf, *cp;
     availspace = fd_statfs(FILENO(SS->mfp));
     if (availspace < 0)
 	availspace = 2000000000;	/* Over 2G ? */
+
+    if (availspace >= 0)
+      MIBMtaEntry->m.mtaSpoolFreeSpace = availspace / 1024;
+
     availspace -= minimum_availspace;
 
     if (*msg != 0) {
@@ -490,6 +494,11 @@ const char *buf, *cp;
     availspace = fd_statfs(FILENO(SS->mfp));
     if (availspace < 0)
 	availspace = 2000000000;	/* Over 2G ? */
+
+    if (availspace >= 0)
+      MIBMtaEntry->m.mtaSpoolFreeSpace = availspace / 1024;
+
+
     availspace -= minimum_availspace;
 
     /* The common typeflush() is at the end... */

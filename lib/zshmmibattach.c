@@ -33,6 +33,8 @@
 #error "Sorry, support for systems without functional MMAP has not been done yet!"
 #endif
 
+extern const char * postoffice;
+
 
 
 /* Private static datablock just in case the actual public datablock is
@@ -51,6 +53,18 @@ int SHM_file_mode = 0664;
 
 static int    SHM_block_size;
 static void * SHM_block_ptr;
+
+extern long fd_statfs __((int));
+
+long Z_SHM_FileSysFreeSpace __((void))
+{
+	if (SHM_storage_fd >= 0) {
+	  return ( fd_statfs(SHM_storage_fd) / 1024 );
+	} else {
+	  return ( 2000000 );
+	}
+}
+
 
 void Z_SHM_MIB_Detach __((void))
 {

@@ -1,5 +1,9 @@
 2003-05-24  Matti Aarnio  <mea@zmailer.org>
 
+	* include/libz.h,  lib/zshmmibattach.c,  smtpserver/smtpdata.c,
+	  scheduler/scheduler.c, smtpserver/smtpcmds.c, scheduler/mailq.c:
+	    More text changes, implemented two instances of spool free space gauge.
+
 	* smtpserver/fdstatfs.c, smtpserver/fdstatfs-test.c, smtpserver/Makefile.in,
 	  lib/fdstatfs.c, lib/fdstatfs-test.c, lib/Makefile.in:
 	    Moved the fdstatfs*.c files from one directory to another.

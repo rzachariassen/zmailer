@@ -3031,42 +3031,69 @@ static void init_timeserver()
 
 	if (ppid < 0) return; /* Error ?? brr.. */
 
+
+	/* ========  TIME SERVER CHILD ======= */
+
+
+	{
+
+	  int space_check_count = 10;
+
 #ifdef HAVE_SETPROCTITLE
-	setproctitle("[TimeServer]");
+	  setproctitle("[TimeServer]");
 #else
-	strncpy(ArgvSave,"[Scheduler TimeServer]", EOArgvSave - ArgvSave);
+	  strncpy(ArgvSave,"[TimeServer]", EOArgvSave - ArgvSave);
 #endif
 
-	if (ArgvSave < EOArgvSave)
-	  ArgvSave[EOArgvSave-ArgvSave-1] = 0;
+	  if (ArgvSave < EOArgvSave)
+	    ArgvSave[EOArgvSave-ArgvSave-1] = 0;
 
-	ppid = getppid(); /* who is our parent ? */
+	  ppid = getppid(); /* who is our parent ? */
 
 #ifdef HAVE_SELECT
-	gettimeofday(&timeserver_segment->tv, NULL);
-#else
-	time(&timeserver_segment->time_sec);
-#endif
-
-	for(;;) {
-#ifdef HAVE_SELECT
-	  struct timeval tv;
-	  int rc;
-
-	  tv.tv_sec = 0;
-	  tv.tv_usec = 300000;
-
 	  gettimeofday(&timeserver_segment->tv, NULL);
-
-	  rc = select(0,NULL,NULL,NULL,&tv);
 #else
 	  time(&timeserver_segment->time_sec);
-	  sleep(1);
 #endif
-	  /* Is the parent still alive ?? */
-	  if (kill(ppid, 0) != 0)
-	    break; /* No ?? Out! */
-	}
+
+	  for(;;) {
+#ifdef HAVE_SELECT
+	    struct timeval tv;
+	    int rc;
+
+	    tv.tv_sec = 0;
+	    tv.tv_usec = 300000;
+
+	    gettimeofday(&timeserver_segment->tv, NULL);
+
+	    rc = select(0,NULL,NULL,NULL,&tv);
+#else
+	    time(&timeserver_segment->time_sec);
+	    sleep(1);
+#endif
+	    /* Is the parent still alive ?? */
+	    if (kill(ppid, 0) != 0)
+	      break; /* No ?? Out! */
+
+	    /* Now check and fill in the filesystem free space
+	       gauges */
+	    if (--space_check_count) {
+	      long spc = Z_SHM_FileSysFreeSpace();
+
+	      MIBMtaEntry->m.mtaSpoolFreeSpace = spc;
+	      /* XXXX: TODO: similar for  mtaLogFreeSpace ??? */
+
+#ifdef HAVE_SELECT
+	      space_check_count = 100; /* About 3 times a second */
+#else
+	      space_check_count =  30; /* Once a second.. */
+#endif
+	    }
+
+	  }
+
+	} /* time-server child block */
+
 	_exit(0);
 }
 #else

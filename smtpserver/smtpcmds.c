@@ -1023,6 +1023,10 @@ int insecure;
     availspace = fd_statfs(FILENO(SS->mfp));
     if (availspace < 0)
 	availspace = 2000000000;	/* Over 2G ? */
+
+    if (availspace >= 0)
+      MIBMtaEntry->m.mtaSpoolFreeSpace = availspace / 1024;
+
     availspace -= minimum_availspace;
 
     if (ferror(SS->mfp)) {

@@ -223,3 +223,4 @@ extern struct MIB_MtaEntry *MIBMtaEntry; /* public MIB block pointer, either
 					    private data before attach call,
 					    or possibly shared data after the
 					    call... */
+extern long Z_SHM_FileSysFreeSpace __((void)); /* in KILOBYTES */
