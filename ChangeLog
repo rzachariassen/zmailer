@@ -1,5 +1,9 @@
 2004-04-30  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpreport.c:
+	    When processing the authorization file, turn on root-powers
+	    to access the file, then return into trusted mode.
+
 	* include/libsh.h, include/splay.h, lib/splay.c, lib/symbol.c,
 	  libsh/interpret.c, libsh/zmsh.c, router/db.c,
 	  router/libdb/hreader.c, router/libdb/incore.c,
@@ -9,6 +13,8 @@
 	    Changed the API of  sp_scan()  function, especially the API of
 	    the CALLED function f.  Now can supply  an opaque (to splay)
 	    parameter that is passed on to item processor.
+	    (Eliminated a bunch of static globals from various places
+	     of code...)
 
 	* transports/mailbox/mailbox.c:
 	    Reworked the rwhois/rbiff related splay-code.

@@ -307,6 +307,7 @@ char *cp;
 {
     char user[32], pass[32], cmd[32], param1[200], *p;
     int l;
+    struct mq2pw *pw;
 
     MIBMtaEntry->ss.IncomingSMTP_REPORT ++;
 
@@ -351,17 +352,21 @@ char *cp;
     }
 
     if (CISTREQ(cmd, "ip")) {
-      struct mq2pw *pw = reportauthuser( & SS->raddr,
-					 reportauthfile,
-					 user, pass );
+      runasrootuser();
+      pw = reportauthuser( & SS->raddr,
+			   reportauthfile,
+			   user, pass );
+      runastrusteduser();
       if (pw) {
 	return smtp_report_ip(SS, param1);
       }
     }
     if (CISTREQ(cmd, "dump")) {
-      struct mq2pw *pw = reportauthuser( & SS->raddr,
-					 reportauthfile,
-					 user, pass );
+      runasrootuser();
+      pw = reportauthuser( & SS->raddr,
+			   reportauthfile,
+			   user, pass );
+      runastrusteduser();
       if (pw) {
 	return smtp_report_dump(SS);
       }
