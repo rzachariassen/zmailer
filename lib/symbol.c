@@ -191,6 +191,7 @@ symbol_null_db(spt)
 	idname = "";
 	idkey  = 0;
 #endif
+	if (!spt && !spt_symtab) return;
 	if (!spt)
 	    spt = spt_symtab;
 
