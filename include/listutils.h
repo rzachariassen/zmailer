@@ -231,7 +231,7 @@ EXTINLINE conscell * conststring(const char *cs, const int slen)
 
 /* s_push(s-expr, list) -> old (s-expr ,@list) */
 #define s_push(X,Y)	\
-	({conscell *_X = (X), *_Y = (Y);	\
+	({conscell *_X = (X); conscell *_Y = (Y);	  \
 	  cdr(_X) = car(_Y); car(_Y) = _X; _Y;})
 
 #define newstring(X,SLEN)	\
