@@ -1189,7 +1189,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	  if (VTXMATCH(ovp, nvp)) {
 	    /* Verify/adjust OVP so that OVP and NVP have same
 	       address indexes in them. */
-	    int i, j, k, id;
+	    int i, j, id;
 	    if (verbose) {
 	      sfprintf(sfstdout, " OLD ngroup=%d {", ovp->ngroup);
 	      for(i = 0; i < ovp->ngroup; ++i)
@@ -1200,15 +1200,15 @@ static int sync_cfps(oldcfp, newcfp, proc)
 		sfprintf(sfstdout, " %d", nvp->index[i]);
 	      sfprintf(sfstdout, " }\n");
 	    }
-	    for (i = ovp->ngroup; i >= 0; --i) {
+	    for (i = ovp->ngroup -1; i >= 0; --i) {
 	      id = ovp->index[i];
-	      for (j = nvp->ngroup; j >= 0; --j) {
+	      for (j = nvp->ngroup -1; j >= 0; --j) {
 		if (nvp->index[j] == id)
 		  goto next_i;
 	      }
 	      /* ovp index elt not found in new set! */
-	      for (k = i+1; k < ovp->ngroup; ++k)
-		ovp->index[k-1] = ovp->index[k];
+	      for (j = i+1; j < ovp->ngroup; ++j)
+		ovp->index[j-1] = ovp->index[j];
 	      ovp->ngroup -= 1;
 	      MIBMtaEntry->mtaStoredRecipients -= 1;
 	    next_i:;
