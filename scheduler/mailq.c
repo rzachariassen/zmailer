@@ -1226,9 +1226,11 @@ static struct ctlfile *readmq2cfp(fname)
 	once = 1;
 	for (s = s0; i > 0; ++s, --i) {
 	  if (*s == '\n' || once) {
+
 	    char c;
 	    char *p;
-	    if (!once) {
+
+	    if (*s == '\n') {
 	      --i; ++s;
 	    }
 	    c = *s;
@@ -1541,7 +1543,7 @@ void query2(fpi, fpo)
 		  s = skip821address(s); /* skip user */
 		  *s++ = 0;
 		  fprintf(stdout,"\t");
-		  if (i == 0)
+		  if (j == 0)
 		    fprintf(stdout,"  to");
 		  fprintf(stdout,"\t%s\n",ocp);
 
