@@ -427,6 +427,10 @@ int insecure;
 	return -1;
     }
 
+    SS->rcpt_count = 0;
+    SS->ok_rcpt_count = 0;
+
+
     if (*cp == ' ') ++cp;
 
     if ((strict_protocol < 1) || sloppy)
@@ -1063,8 +1067,6 @@ int insecure;
     if (SS->mfp) /* State change only, if we still have the mfp */
       SS->state = Recipient;
 
-    SS->rcpt_count = 0;
-    SS->rcpt_count = 0;
     SS->from_box = (addrlen == 0);
 
     return 0; /* Is ok */

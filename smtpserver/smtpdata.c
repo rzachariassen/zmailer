@@ -83,7 +83,6 @@ const char *buf, *cp;
     char *fname;
     char taspid[30];
 
-
     MIBMtaEntry->ss.ReceivedMessagesSs  += 1;
     MIBMtaEntry->ss.ReceivedRecipientsSs += SS->ok_rcpt_count;
     MIBMtaEntry->ss.IncomingSMTP_DATA   += 1;
@@ -168,7 +167,6 @@ const char *buf, *cp;
 	SS->mfp = NULL;
 	return 0;
     }
-    SS->rcpt_count = 0;		/* now we can zero it.. */
     type(SS, 354, NULL, (char *) NULL);
     typeflush(SS);
     fputs("env-end\n", SS->mfp);
