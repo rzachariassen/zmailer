@@ -344,6 +344,26 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary)
 	    }
 	  } /* ... while() ends.. */
 	  fclose(fp);
+	} else {
+	  /* NO error report boilerplate file available ! */
+	  /* Always report to postmaster as well! */
+	  fprintf(errfp, "todsn ORCPT=rfc822;postmaster\nto <postmaster>\n");
+	  fprintf(errfp, "env-end\n");
+	  fseek(fp,(off_t)0,SEEK_SET); /* Rewind! Start building the report */
+
+	  if (*no_error_reportp == 0)
+	    fprintf(errfp, "To: %s\n", eaddr);
+	  else if (*no_error_reportp < 0)
+	    fprintf(errfp, "To: dummy:; (error trapped source)\n");
+
+	  fprintf(errfp,"Subject: Multiple-fault: Report template missing\n");
+
+	  fprintf(errfp,"MIME-Version: 1.0\n");
+	  fprintf(errfp,"Content-Type: multipart/report; report-type=delivery-status;\n");
+	  fprintf(errfp,"\tboundary=\"%s\"\n\n",boundary);
+	  fprintf(errfp, "--%s\n", boundary);
+	  fprintf(errfp, "Content-Type: text/plain\n\n");
+	  fprintf(errfp, "Here are report messages regarding email you (propably) sent:\n\n");
 	}
 }
 
