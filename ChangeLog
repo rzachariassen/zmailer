@@ -3,7 +3,9 @@
 	* transports/libta/ctlopen.c, transports/libta/mimeheaders.c:
 	    Cleaning up the for-clause code a bit. Removing unnecessary
 	    malloc()/free() things, which are dropping core at one
-	    test system.
+	    test system.  (In the end it was mallocated buffer end
+	    overscribling that dropped those cores at mysterious
+	    places, but as this was the only altered place...)
 
 	* man/zmailer.1, proto/zmailer.sh.in, router/router.c, man/router.8,
 	  scheduler/scheduler.c, man/scheduler.8, smtpserver/smtpserver.c,
