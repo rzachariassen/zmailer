@@ -13,11 +13,67 @@
 
 #include "smtpserver.h"
 
-#define SKIPSPACE(Y) while (*Y == ' ' || *Y == '\t') ++Y
-#define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t') ++Y
-#define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
-
 static int called_getbindaddr = 0;
+
+
+static char *SKIPSPACE __((char *Y));
+static char *SKIPSPACE (Y)
+     char *Y;
+{
+	if (!Y) return Y;
+
+	while (*Y == ' ' || *Y == '\t')
+	  ++Y;
+
+	return Y;
+}
+
+static char *SKIPDIGIT __((char *Y));
+static char *SKIPDIGIT (Y)
+     char *Y;
+{
+	if (!Y) return Y;
+
+	while ('0' <= *Y && *Y <= '9')
+	  ++Y;
+
+	return Y;
+}
+
+/* SKIPTEXT:
+ *
+ *  Detect " -> scan until matching double quote
+ *  Detect ' -> scan until matching single quote
+ *  Detect non-eol, non-space(tab): scan until eol, or white-space
+ *
+ *  Will thus stop when found non-quoted space/tab, or
+ *  end of line/string.
+ */
+
+static char * SKIPTEXT __((char *Y));
+static char * SKIPTEXT (Y)
+     char *Y;
+{
+	if (!Y) return Y;
+
+	if (*Y == '"') {
+	  ++Y;
+	  while (*Y && *Y != '"')
+	    ++Y;
+	  /* STOP at the tail-end " */
+	} else if ( *Y == '\'' ) {
+	  ++Y;
+	  while(*Y && *Y != '\'')
+	    ++Y;
+	  /* STOP at the tail-end ' */
+	} else {
+	  while (*Y && *Y != ' ' && *Y != '\t')
+	    ++Y;
+	  /* Stop at white-space */
+	}
+
+	return Y;
+}
 
 static void dollarexpand __((unsigned char *s0, int space));
 static void dollarexpand(s0, space)
@@ -156,10 +212,10 @@ static void cfparam(str, size, cfgfilename, linenum)
     if (name)
 	*name = 0;
 
-    SKIPTEXT (str); /* "PARAM" */
-    SKIPSPACE(str);
+    str = SKIPTEXT (str); /* "PARAM" */
+    str = SKIPSPACE (str);
     name = str;
-    SKIPTEXT (str);
+    str = SKIPTEXT (str);
     if (*str != 0)
 	*str++ = 0;
 
@@ -199,21 +255,24 @@ static void cfparam(str, size, cfgfilename, linenum)
     /* Do '$' expansions on the string */
     dollarexpand((unsigned char *)str, size - (str - str0));
 
-    SKIPSPACE(str);
+    str = SKIPSPACE (str);
 
     param1 = *str ? str : NULL;
 
-    SKIPTEXT (str);
+    str = SKIPTEXT (str);
+    if (param1 && (*param1=='"' || *param1=='\'')) ++param1;
     if (*str != 0)
 	*str++ = 0;
-    SKIPSPACE(str);
+    str = SKIPSPACE (str);
     param2 = *str ? str : NULL;
-    SKIPTEXT (str);
+    str = SKIPTEXT (str);
+    if (param2 && (*param2=='"' || *param2=='\'')) ++param2;
     if (*str != 0)
 	*str++ = 0;
-    SKIPSPACE(str);
+    str = SKIPSPACE (str);
     param3 = *str ? str : NULL;
-    SKIPTEXT (str);
+    str = SKIPTEXT (str);
+    if (param3 && (*param3=='"' || *param3=='\'')) ++param3;
     if (*str != 0)
 	*str++ = 0;
 
@@ -549,6 +608,24 @@ static void cfparam(str, size, cfgfilename, linenum)
 	spf_threshold=0;	/* always accept (even 'fail') */
       }
     }
+    /* SPF localpolicy setting */
+    else if (cistrcmp(name, "spf-localpolicy") == 0 && param1 /* 1 param */) {
+        use_spf=1;
+        spf_localpolicy=strdup(param1);
+    }
+    /* SPF localpolicy: whether to include default whitelist or not */
+    else if (cistrcmp(name, "spf-whitelist-use-default") == 0 && param1 /* 1 param */) {
+        use_spf=1;
+        if(cistrcmp(param1,"true") == 0) {
+            spf_whitelist_use_default=1; /* 'include:spf.trusted-forwarder.org' added to localpolicy */
+        } else if (cistrcmp(param1,"false") == 0) {
+            spf_whitelist_use_default=0;
+        } else {
+            type(NULL,0,NULL, "Cfgfile '%s' line %d param %s has bad arg: '%s'",
+                    cfgfilename, linenum, name, param1);
+            spf_whitelist_use_default=0;
+        }
+    }
 
     else {
       /* XX: report error for unrecognized PARAM keyword ?? */
@@ -584,7 +661,7 @@ readcffile(name)
 	buf[sizeof(buf) - 1] = 0;	/* Trunc, just in case.. */
 
 	cp = buf;
-	SKIPSPACE(cp);
+	cp = SKIPSPACE (cp);
 	if (strncmp(cp, "PARAM", 5) == 0) {
 	    cfparam(cp, sizeof(buf) -(cp-buf), name, linenum);
 	    continue;
@@ -592,7 +669,7 @@ readcffile(name)
 	scf.flags = "";
 	scf.next = NULL;
 	s0 = cp;
-	SKIPTEXT(cp);
+	cp = SKIPTEXT (cp);
 	c = *cp;
 	*cp = '\0';
 	s0 = strdup(s0);
@@ -603,13 +680,13 @@ readcffile(name)
 	scf.maxloadavg = 999;
 	if (c != '\0') {
 	    ++cp;
-	    SKIPSPACE(cp);
+	    cp = SKIPSPACE (cp);
 	    if (*cp && isascii((255 & *cp)) && isdigit((255 & *cp))) {
 		/* Sanity-check -- 2 is VERY LOW */
 		if ((scf.maxloadavg = atoi(cp)) < 2)
 		    scf.maxloadavg = 2;
-		SKIPDIGIT(cp);
-		SKIPSPACE(cp);
+		cp = SKIPDIGIT (cp);
+		cp = SKIPSPACE (cp);
 	    }
 	    scf.flags = strdup(cp);
 	    if ((cp = strchr(scf.flags, '\n')) != NULL)

@@ -665,9 +665,9 @@ router(SS, function, holdlast, arg, len)
 	    if(*p == ' ') *p++ = 0;
 
 	    if ((code / 100) != 2)
-	      type(SS, code, s, "Hi %s, %s", SS->rhostaddr, p);
+	      type(SS, code, (char*)s, "Hi %s, %s", SS->rhostaddr, p);
 	    else
-	      type(SS, code, s, "%s", p);
+	      type(SS, code, (char*)s, "%s", p);
 	  } else {
 	    type(SS, 250, NULL, "%s", p);
 	  }

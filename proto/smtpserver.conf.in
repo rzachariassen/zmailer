@@ -24,6 +24,13 @@
 # Zmailer needs to be compiled with libspf_alt
 # (see http://www.midwestcs.com/spf/libspf-alt/)
 #
+#PARAM spf-localpolicy            "ip4:1.2.3.4/24 ?exists:%{ir}.trusted-forwarders.domain.com"
+#                               # SPF localpolicy (see libspf2 documentation)
+#PARAM spf-whitelist-use-default  false
+#                               # use (true) or not use (false) default whitelist
+#                               # (see libspf2 documentation)
+#
+#
 #PARAM spf-received                     # create "Received-SPF:" header
 #PARAM spf-threshold        softfail    # worst acceptable SPF check result
 #                               # 'fail' - always accept

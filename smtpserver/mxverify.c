@@ -331,7 +331,7 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 		  }
 #if defined(AF_INET6) && defined(INET6)
 		  else if (usa.v6.sin6_family == AF_INET6) {
-		    inet_ntop(AF_INET6, (void*) & usa.v6.sin6_addr, buf, sizeof(buf));
+		    inet_ntop(AF_INET6, (void*) & usa.v6.sin6_addr, (char*)buf, sizeof(buf));
 		    printf("000-  matching %s AR address IPv6:[%s]\n", mxs[n].mx, buf);
 		  }
 #endif
@@ -417,7 +417,7 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 #endif
 	  if (debug)
 	    printf("000-  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
-		   mxs[n].mx,rc,ai);
+		   mxs[n].mx,rc,(void*)ai);
 	    
 	  if (rc != 0)
 	    continue;		/* Well well.. spurious! */
@@ -525,7 +525,7 @@ perhaps_address_record:
 	  i = getaddrinfo((const char*)host, "0", &req, &ai);
 #endif
 	  if (debug)
-	    printf("000-   getaddrinfo('%s','0') (PF_INET) -> r=%d (%s), ai=%p\n",host,i,gai_strerror(i),ai);
+	    printf("000-   getaddrinfo('%s','0') (PF_INET) -> r=%d (%s), ai=%p\n",host,i,gai_strerror(i),(void*)ai);
 
 #if defined(AF_INET6) && defined(INET6)
 	  if (use_ipv6) {
@@ -550,7 +550,7 @@ perhaps_address_record:
 	    n2 = getaddrinfo((const char *)host, "0", &req, &ai2);
 #endif
 	    if (debug)
-	      printf("000-   getaddrinfo('%s','0') (PF_INET6) -> r=%d (%s), ai=%p\n",host,n2,gai_strerror(n2),ai2);
+	      printf("000-   getaddrinfo('%s','0') (PF_INET6) -> r=%d (%s), ai=%p\n",host,n2,gai_strerror(n2),(void*)ai2);
 
 
 	    if (i != 0 && n2 == 0) {

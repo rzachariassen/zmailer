@@ -764,6 +764,18 @@ pass:	5
 .RE
 See http://spf.pobox.com/ for explanation of SPF.
 .RE
+.IP "PARAM spf-localpolicy local_policy"
+.RS
+Specify local policy for SPF check.
+.br
+See http://libspf2.org/docs/api.html#SPF_compile_local_policy for local policy explanation.
+.br
+Note: if your local policy contains space(s) quote it using single (') or double (") quote pair.
+.RE
+.IP "PARAM spf-whitelist-use-default true|false"
+.RS
+Use (true) or not use (false) default globally maintained whitelist of known trusted email forwarders.
+.RE
 .IP "PARAM report-auth-file ${MAILSHARE}/scheduler.auth"
 .RS
 If exists, is used to authenticate a set of interactive report

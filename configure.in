@@ -2450,6 +2450,7 @@ dnl AC_MSG_RESULT([ ... link -L/opt/lib -lspf yields: $ac_cv_lib_spf])
 		if test "$ac_cv_lib_spf2" = yes; then
 		    AC_MSG_RESULT([SPF2 libs  available at $spfloc: -lspf2 !]);
 		    AC_DEFINE(HAVE_SPF_H,1,[SPF2 libs  available at $spfloc: -lspf2 !])
+		    AC_DEFINE(HAVE_SPF2_SPF_H,1)
 		else
 		    AC_MSG_RESULT([No spf2 libs available at system default locations ?])
 		    LIBSPF=""
@@ -2468,6 +2469,7 @@ dnl AC_MSG_RESULT([ ... link -L/opt/lib -lspf yields: $ac_cv_lib_spf])
 		if test "$ac_cv_lib_spf" = yes; then
 		    AC_MSG_RESULT([SPF libs  available at $spfloc: -lspf_alt !]);
 		    AC_DEFINE(HAVE_SPF_H,1,[SPF libs  available at $spfloc: -lspf_alt !])
+		    AC_DEFINE(HAVE_SPF_ALT_SPF_H,1)
 		else
 		    AC_MSG_RESULT([No spf libs available at system default locations ?])
 		    LIBSPF=""
@@ -2480,12 +2482,15 @@ dnl AC_MSG_RESULT([ ... link -L/opt/lib -lspf yields: $ac_cv_lib_spf])
     if test -f "$withval"/lib/libspf2.a ; then
 	LIBSPF="-L$withval/lib -lspf2"
 	AC_MSG_RESULT([Using spf libs at directory: $withval/lib]);
+	AC_DEFINE(HAVE_SPF2_SPF_H,1)
     elif test -f "$withval"/lib/libspf_alt.a ; then
 	LIBSPF="-L$withval/lib -lspf_alt"
 	AC_MSG_RESULT([Using spf libs at directory: $withval/lib]);
+	AC_DEFINE(HAVE_SPF_ALT_SPF_H,1)
     else
 	LIBSPF="-L$withval -lspf_alt"
 	AC_MSG_RESULT([Using spf libs at directory: $withval]);
+	AC_DEFINE(HAVE_SPF_ALT_SPF_H,1)
     fi
     if test -f "$withval"/include/spf2/spf.h ; then
 	INCLSPF="-I$withval/include"

@@ -459,7 +459,8 @@ extern char *AuthMechanisms;
 extern int detect_incorrect_tls_use;
 extern int force_rcpt_notify_never;
 
-extern int use_spf, spf_received, spf_threshold;
+extern int use_spf, spf_received, spf_threshold, spf_whitelist_use_default;
+extern char *spf_localpolicy;
 
 extern int bindaddr_set, bindport_set, testaddr_set;
 extern u_short   bindport;

@@ -1,3 +1,20 @@
+2004-08-04  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, man/smtpserver.8.in, proto/smtpserver.conf,
+	  smtpserver/cfgread.c, smtpserver/policytest.c,
+	  smtpserver/policytest.h, 
+	    Igor Milyakov sent some new SPF related patches.
+
+	* smtpserver/mxverify.c, smtpserver/policytest.c,
+	  smtpserver/smtpserver.c, smtpserver/subdaemon-rtr.c:
+	    Ran "gcc -ansi -pedantic"  and got a bunch of warnings.
+	    This tries to fix most of those.
+	
+	* router/libdb/ldap-new.c:
+	    Experimental fixes, and updates from Jeff Warnica.
+	    He asked this to be stored into some other file,
+	    rather than into baseline of ldap.c.
+
 2004-07-14  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:

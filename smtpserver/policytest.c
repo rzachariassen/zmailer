@@ -46,11 +46,13 @@
 int use_spf;
 int spf_received;
 int spf_threshold;
+char *spf_localpolicy;
+int spf_whitelist_use_default;
 
-static int resolveattributes __((struct policytest *, int, struct policystate *, const char *, int));
-static int  check_domain __((struct policystate *, const char *, int));
-static int  check_user __((struct policystate *, const char *, int));
-static int  checkaddr  __((struct policystate *, const char *));
+static int resolveattributes __((struct policytest *, int, struct policystate *, const unsigned char *, int));
+static int  check_domain __((struct policystate *, const unsigned char *, int));
+static int  check_user __((struct policystate *, const unsigned char *, int));
+static int  checkaddr  __((struct policystate *, const unsigned char *));
 
 #if defined(AF_INET6) && defined(INET6)
 extern const u_char zv4mapprefix[16];
@@ -58,14 +60,14 @@ extern const u_char zv4mapprefix[16];
 
 /* KK() and KA() macroes are at "policy.h" */
 
-static char *showkey __((const char *key));
+static char *showkey __((const unsigned char *key));
 static char *showkey(key)
-const char *key;
+     const unsigned char *key;
 {
     static char buf[256];
 
     if (key[1] != P_K_IPv4 && key[1] != P_K_IPv6) {
-	if (strlen(key+2) > (sizeof(buf) - 200))
+	if (strlen((const char*)key+2) > (sizeof(buf) - 200))
 	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), "<too long name>");
 	else
 	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), key+2);
@@ -97,7 +99,8 @@ const unsigned char *key;
 
 static int valueeq __((const char *value, const char *str));
 static int valueeq(value,str)
-     const char *value, *str;
+     const char *value;
+     const char *str;
 {
     if (!value) return 0;
     return (strcmp(value,str) == 0);
@@ -357,7 +360,7 @@ static int resolveattributes(rel, recursions, state, key, init)
      struct policytest *rel;
      int recursions;
      struct policystate *state;
-     const char *key;
+     const unsigned char *key;
      int init;
 {
     unsigned char *str, *str_base;
@@ -387,8 +390,7 @@ static int resolveattributes(rel, recursions, state, key, init)
 	  type(NULL,0,NULL," Key: %d/%d/%s", key[0],key[1],key+2);
     } else
       if (debug)
-	type(NULL,0,NULL," Key: %u.%u.%u.%u", key[2] & 0xff, key[3] & 0xff, 
-	       key[4] & 0xff, key[5] & 0xff);
+	type(NULL,0,NULL," Key: %u.%u.%u.%u", key[2], key[3], key[4], key[5]);
 */
 
     str_base = str = (unsigned char *) dbquery(rel, &key[0], key[0], &rlen);
@@ -424,15 +426,15 @@ static int resolveattributes(rel, recursions, state, key, init)
 	      if (debug)
 		type(NULL,0,NULL," Max recursions reached.");
 	    } else {
-	      char pbuf[256];
+	      unsigned char pbuf[256];
 
 	      if (debug)
 		type(NULL,0,NULL," Alias-recursion: %d", recursions);
 
-	      strncpy(pbuf+2, (const char *) str+2, sizeof(pbuf)-3);
+	      strncpy((char*)pbuf+2, (const char *) str+2, sizeof(pbuf)-3);
 	      pbuf[ sizeof(pbuf)-1 ] = 0;
 
-	      strlower(pbuf+2);
+	      strlower((char*)pbuf+2);
 	      pbuf[0] = strlen((const char*) str+2) + 3;
 	      pbuf[1] = P_K_TAG;
 	      result = resolveattributes(rel, recursions, state, pbuf, 0);
@@ -543,7 +545,7 @@ static int resolveattributes(rel, recursions, state, key, init)
 /* Return 0, when found something */
 static int checkaddr(state, pbuf)
      struct policystate *state;
-     const char *pbuf;
+     const unsigned char *pbuf;
 {
     int result, count, countmax;
     int maxrecursions;
@@ -839,12 +841,52 @@ int policyinit(state, rel, whosonrc)
     return 0;
 }
 
+#ifdef Z_CHECK_SPF_DATA
+void initialize_spf(state)
+    struct policystate *state;
+{
+    if (state->spf_passed) return;
+    state->spf_passed=1;
 
-static int _addrtest_ __((struct policystate *state, const char *pbuf, int sourceaddr));
+    state->check_spf=1;
+
+    if ((state->spfcid=SPF_create_config()) == NULL) {
+        type(NULL,0,NULL," SPF_create_config() failed");
+        state->check_spf=0;
+        return;
+    }
+
+    if ((state->spfdcid=SPF_dns_create_config_resolv(NULL, 0)) == NULL) {
+	type(NULL,0,NULL," SPF_dns_create_config() failed");
+	state->check_spf=0;
+	return;
+    }
+
+    SPF_init_c_results(&state->local_policy);
+    if (SPF_compile_local_policy(state->spfcid,
+				 spf_localpolicy,
+				 spf_whitelist_use_default,
+				 &state->local_policy)) {
+	type(NULL,0,NULL," SPF_compile_local_policy() failed: %s",
+	     state->local_policy.err_msg);
+	free(spf_localpolicy);
+	state->check_spf=0;
+	return;
+    }
+    if (debug)
+	type(NULL,0,NULL," SPF local_policy: %s",spf_localpolicy);
+#warning "strange looking  free(spf_localpolicy)  call here!"
+    free(spf_localpolicy); /* FIXME??FIXME??FIXME?? */
+
+    SPF_set_local_policy(state->spfcid,state->local_policy);
+}
+#endif
+
+static int _addrtest_ __((struct policystate *state, const unsigned char *pbuf, int sourceaddr));
 
 static int _addrtest_(state, pbuf, sourceaddr)
      struct policystate *state;
-     const char *pbuf;
+     const unsigned char *pbuf;
      int sourceaddr;
 {
     u_char ipaddr[16];
@@ -1043,27 +1085,7 @@ static int _addrtest_(state, pbuf, sourceaddr)
 #ifdef Z_CHECK_SPF_DATA
       if (debug)
 	type(NULL,0,NULL," policytestaddr: 'spf +' found");
-      state->check_spf=1;
-/* must be in the policystate destructor
-      SPF_destroy_default_config();
-*/
-      if (state->spfcid) SPF_destroy_config(state->spfcid);
-      if ((state->spfcid=SPF_create_config()) == NULL) {
-	type(NULL,0,NULL," SPF_create_config() failed");
-	state->check_spf=0;
-      }
-      if (state->spfdcid) SPF_dns_destroy_config_resolv(state->spfdcid);
-      if ((state->spfdcid=SPF_dns_create_config_resolv(NULL, 0)) == NULL) {
-	type(NULL,0,NULL," SPF_dns_create_config() failed");
-	state->check_spf=0;
-      }
-      /* SPF_free_c_results(&state->local_policy); */
-      SPF_init_c_results(&state->local_policy);
-      if (SPF_compile_local_policy(state->spfcid,NULL,0,&state->local_policy)) {
-	type(NULL,0,NULL," SPF_compile_local_policy() failed: %s",
-						state->local_policy.err_msg);
-	state->check_spf=0;
-      }
+      initialize_spf(state);
 #else
       type(NULL,0,NULL," compiled without SPF support, 'spf +' ignored");
 #endif
@@ -1132,7 +1154,7 @@ int policytestaddr(state, what, raddr)
      PolicyTest what;
      Usockaddr *raddr;
 {
-    char pbuf[64]; /* Not THAT much space needed.. */
+    unsigned char pbuf[64]; /* Not THAT much space needed.. */
     int rc;
 
     struct sockaddr_in *si4;
@@ -1207,7 +1229,7 @@ int policytestaddr(state, what, raddr)
 	int i;
 
 	strcpy(state->ratelabelbuf, "4:");
-	p = (unsigned char *)(pbuf+2);
+	p = pbuf+2;
 	s = state->ratelabelbuf+2;
 	for (i = 0; i < 4; ++i) {
 	  sprintf(s, "%02x", *p);
@@ -1220,7 +1242,7 @@ int policytestaddr(state, what, raddr)
 
     rc = _addrtest_(state, pbuf, 1);
 
-#ifdef HAVE_SPF_ALT_SPF_H
+#if defined(HAVE_SPF_ALT_SPF_H) || defined(HAVE_SPF2_SPF_H)
     if (state->check_spf) {
       if (debug) {
 	char aaa[32];
@@ -1242,9 +1264,7 @@ int policytestaddr(state, what, raddr)
 	}
       }
     }
-#endif /* HAVE_SPF_ALT_SPF_H */
-
-
+#endif /* HAVE_SPF_ALT_SPF_H || HAVE_SPF2_SPF_H */
 
     if (debug) fflush(stdout);
     return rc;
@@ -1347,16 +1367,16 @@ static int call_rate_counter(state, incr, what, countp)
 
 static int check_domain(state, input, inlen)
      struct policystate *state;
-     const char *input;
+     const unsigned char *input;
      int inlen;
 {
-    char *ptr, *ptr2, pbuf[256];
+    unsigned char *ptr, *ptr2, pbuf[256];
     int addr_len, i, plen, result;
 
 
 #if 0
     /* Get address after @ */
-    ptr = strchr(input, '@');
+    ptr = strchr((const char *)input, '@');
     if (ptr == NULL) {
 	printf("Invalid address. @ not found!\n");
 	exit(0);
@@ -1364,16 +1384,16 @@ static int check_domain(state, input, inlen)
     ptr++;
     addr_len = inlen - (ptr - input);
 #else
-    ptr = (char*)input;
+    ptr = (unsigned char*)input;
     addr_len = inlen;
 #endif
 
     /* Convert to lower case. */
     if (addr_len > sizeof(pbuf)-3)
 	addr_len = sizeof(pbuf)-3;
-    strncpy(pbuf+2, ptr, addr_len);
+    memcpy(pbuf+2, ptr, addr_len);
     pbuf[2+addr_len] = 0;
-    strlower(pbuf+2);
+    strlower((char*)pbuf+2);
 
     if (pbuf[2] == '[') {
       /* IP address literal ??? */
@@ -1381,7 +1401,7 @@ static int check_domain(state, input, inlen)
 #if defined(AF_INET6) && defined(INET6)
 	char *s = strchr(pbuf+3,']');
 	if (s) *s = 0;
-	if (inet_pton(AF_INET6, pbuf+3+5, pbuf+2) < 1) {
+	if (inet_pton(AF_INET6, (const char*)pbuf+3+5, pbuf+2) < 1) {
 	  /* XX: Duh ?  Our input is syntax checked, so
 	     this ERROR should not happen.. */
 	}
@@ -1394,7 +1414,7 @@ static int check_domain(state, input, inlen)
       } else {
 	char *s = strchr(pbuf+3,']');
 	if (s) *s = 0;
-	if (inet_pton(AF_INET, pbuf+3, (u_char *)pbuf+2) < 1) {
+	if (inet_pton(AF_INET, (const char *)pbuf+3, (u_char *)pbuf+2) < 1) {
 	  /* XX: Duh ?  Our input is syntax checked, so
 	     this ERROR should not happen.. */
 	}
@@ -1449,16 +1469,16 @@ static int check_domain(state, input, inlen)
 		}
 		*ptr2++ = *ptr++;
 	    }
-	    pbuf[0] = strlen(&pbuf[2]) + 1 + 2;
+	    pbuf[0] = strlen((char*)&pbuf[2]) + 1 + 2;
 	}
     }
     return 0; /* Nothing found */
 }
 
-static const char * find_nonqchr __((const char *, int, int));
-static const char *
+static const unsigned char * find_nonqchr __((const unsigned char *, int, int));
+static const unsigned char *
 find_nonqchr(input, chr, inlen)
-     const char *input;
+     const unsigned char *input;
      int chr, inlen;
 {
   int quote = 0;
@@ -1479,11 +1499,11 @@ find_nonqchr(input, chr, inlen)
 /* Return 0, when found something */
 static int check_user(state, input, inlen)
      struct policystate *state;
-     const char *input;
+     const unsigned char *input;
      int inlen;
 {
-    char pbuf[512];
-    const char *at;
+    unsigned char pbuf[512];
+    const unsigned char *at;
     int result;
 
     if (inlen > (sizeof(pbuf) - 3))
@@ -1491,9 +1511,9 @@ static int check_user(state, input, inlen)
 
     /* Store the MAIL FROM:<user@domain> into a temporary buffer, and
        lowercasify it   */
-    strncpy(pbuf+2, input, inlen);
+    memcpy(pbuf+2, input, inlen);
     pbuf[2+inlen] = 0;
-    strlower(pbuf + 2);
+    strlower((char*)pbuf + 2);
 
     at = find_nonqchr(pbuf + 2, '@', inlen);
     if (!at) return 0;
@@ -1517,17 +1537,17 @@ static int check_user(state, input, inlen)
 }
 
 
-static int pt_heloname __((struct policystate *, const char *, const int));
+static int pt_heloname __((struct policystate *, const unsigned char *, const int));
 
-static int pt_mailfrom __((struct policystate *, const char *, const int));
+static int pt_mailfrom __((struct policystate *, const unsigned char *, const int));
 
-static int pt_rcptto __((struct policystate *, const char *, const int));
+static int pt_rcptto __((struct policystate *, const unsigned char *, const int));
 
-static int pt_rcptpostmaster __((struct policystate *, const char *, const int));
+static int pt_rcptpostmaster __((struct policystate *, const unsigned char *, const int));
 
 static int pt_heloname(state, str, len)
      struct policystate *state;
-     const char *str;
+     const unsigned char *str;
      const int len;
 {
     if (state->always_reject)
@@ -1559,7 +1579,7 @@ static int pt_heloname(state, str, len)
 #ifdef Z_CHECK_SPF_DATA
     if (state->check_spf) {
       if (debug) type(NULL,0,NULL,"doing SPF_set_helo_dom(\"%s\")",str);
-      if (SPF_set_helo_dom(state->spfcid, str)) {
+      if (SPF_set_helo_dom(state->spfcid, (const char *)str)) {
 	  type(NULL,0,NULL,"SPF_set_helo_dom() failed");
 	  state->check_spf=0;
       }
@@ -1597,7 +1617,7 @@ static int pt_heloname(state, str, len)
 
 static int pt_sourcedomain(state, str, len)
      struct policystate *state;
-     const char *str;
+     const unsigned char *str;
      const int len;
 {
     if (state->always_reject)
@@ -1670,10 +1690,10 @@ static int pt_sourcedomain(state, str, len)
 
 static int pt_mailfrom(state, str, len)
      struct policystate *state;
-     const char *str;
+     const unsigned char *str;
      const int len;
 {
-    const char *at;
+    const unsigned char *at;
     int requestmask = 0;
     int rc;
 
@@ -1705,7 +1725,7 @@ static int pt_mailfrom(state, str, len)
     {
       int i;
       rc = 0;
-      i = ZSMTP_hook_mailfrom(state, str, len, &rc);
+      i = ZSMTP_hook_mailfrom(state, (const char *)str, len, &rc);
       if (i) return rc;
     }
 #endif
@@ -1771,7 +1791,7 @@ static int pt_mailfrom(state, str, len)
 			 1 << P_A_SENDERNoRelay |
 			 1 << P_A_SENDERokWithDNS ) & (~ requestmask);
 
-      if (check_domain(state, ".", 1) != 0)
+      if (check_domain(state, (const unsigned char *)".", 1) != 0)
 	  return -1;
       at = str;
     }
@@ -1803,12 +1823,14 @@ static int pt_mailfrom(state, str, len)
       if (sscanf(state->ratelimitmsgsvalue, "%d", &limitval) == 1) {
 	/* Valid numeric value had.. */
 
+	int rc;
+
 	if (state->authuser)
 	  limitval *= 10; /* raise the limit considerably for
 			     authenticated user. */
 
-	int rc = call_rate_counter(state, 0, POLICY_MAILFROM,
-				   &count);
+	rc = call_rate_counter(state, 0, POLICY_MAILFROM,
+			       &count);
 
 	/* Non-zero value means that counter was not reachable, or
 	   that there was no data. */
@@ -1855,7 +1877,8 @@ static int pt_mailfrom(state, str, len)
        * Reject if not found in DNS (and not an address literal)
        */
       int test_c = state->values[P_A_SENDERokWithDNS][0];
-      int rc = sender_dns_verify(state, test_c, at+1, len - (1 + at - str));
+      int rc = sender_dns_verify( state, test_c, (const char *)at+1,
+				  len - (1 + at - str) );
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
       PICK_PA_MSG(P_A_SENDERokWithDNS);
@@ -1891,20 +1914,26 @@ static int pt_mailfrom(state, str, len)
     rc=0;
     if (state->check_spf) {
       int spf_level;
-      SPF_output_t spf_output = SPF_result(state->spfcid,state->spfdcid);
+      SPF_output_t spf_output;
+
+      spf_output = SPF_result(state->spfcid, state->spfdcid);
+
       if (debug) {
-	type(NULL,0,NULL," SPF_result=%d (%s) reason=%d  (%s) error=%d",
+	type(NULL,0,NULL," SPF_result=%d (%s) reason=%d (%s) error=%d (%s)",
 	     spf_output.result,
 	     SPF_strresult(spf_output.result),
 	     spf_output.reason,
 	     SPF_strreason(spf_output.reason),
-	     spf_output.err);
+	     spf_output.err,
+	     SPF_strerror(spf_output.err));
 	type(NULL,0,NULL,"%s",( spf_output.smtp_comment ?
 				spf_output.smtp_comment : "<null>") );
       }
+
       if (state->spf_received_hdr != NULL)
 	free(state->spf_received_hdr);
-      state->spf_received_hdr=strdup(spf_output.received_spf);
+      state->spf_received_hdr = strdup(spf_output.received_spf);
+
       if (debug)
 	type(NULL,0,NULL,"%s", (state->spf_received_hdr ?
 				state->spf_received_hdr : "<null>") );
@@ -1926,7 +1955,7 @@ static int pt_mailfrom(state, str, len)
 
       if (spf_level < spf_threshold) {
 	if (spf_output.smtp_comment) {
-	  state->message=strdup(spf_output.smtp_comment);
+	  state->message = strdup(spf_output.smtp_comment);
 	} else {
 	  PICK_PA_MSG(P_A_CheckSPF);
 	}
@@ -1946,10 +1975,10 @@ static int pt_mailfrom(state, str, len)
 
 static int pt_rcptto(state, str, len)
      struct policystate *state;
-     const char *str;
+     const unsigned char *str;
      const int len;
 {
-    const char *at;
+    const unsigned char *at;
     int localdom, relayable = 0;
 
     if (state->always_reject) return -1;
@@ -1965,7 +1994,7 @@ static int pt_rcptto(state, str, len)
     {
       int i;
       int rc = 0;
-      i = ZSMTP_hook_rcptto(state, str, len, &rc);
+      i = ZSMTP_hook_rcptto(state, (const char *)str, len, &rc);
       if (i) return rc;
     }
 #endif
@@ -2073,7 +2102,7 @@ static int pt_rcptto(state, str, len)
       /* Ok, local domain recognized, now see if it has
 	 '%'-hack at the local-part.. */
 
-      const char *phack, *phack2;
+      const unsigned char *phack, *phack2;
       int llen;
 
       llen = (at - str);
@@ -2185,7 +2214,8 @@ static int pt_rcptto(state, str, len)
       if (state->values[P_A_ACCEPTifMX]) {
 	c = state->values[P_A_ACCEPTifMX][0];
       }
-      rc = client_dns_verify(state, c, at+1, len - (1 + at - str));
+      rc = client_dns_verify( state, c, (const char *)at+1,
+			      len - (1 + at - str) );
       /* XX: state->message setup! */
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
@@ -2202,7 +2232,9 @@ static int pt_rcptto(state, str, len)
 	 and it is one of ours. */
       state->islocaldomain = 0;
 
-      rc = mx_client_verify(state, c, at+1, len - (1 + at - str)); 
+      rc = mx_client_verify( state, c, (const char *)at+1,
+			     len - (1 + at - str) ); 
+
       /* XX: state->message setup! */
       if (debug)
 	type(NULL,0,NULL,
@@ -2222,8 +2254,8 @@ static int pt_rcptto(state, str, len)
     }
 
     if (state->values[P_A_ACCEPTifDNS]) {
-      int rc = client_dns_verify(state, state->values[P_A_ACCEPTifDNS][0],
-				 at+1, len - (1 + at - str));
+      int rc = client_dns_verify( state, state->values[P_A_ACCEPTifDNS][0],
+				  (const char *)at+1, len - (1 + at - str));
       /* XX: state->message setup! */
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
@@ -2236,7 +2268,7 @@ static int pt_rcptto(state, str, len)
 
 static int pt_rcptpostmaster(state, str, len)
      struct policystate *state;
-     const char *str;
+     const unsigned char *str;
      const int len;
 {
     /* state->request initialization !! */
@@ -2276,19 +2308,19 @@ int policytest(state, what, str, len, authuser)
 
     switch(what) {
     case POLICY_SOURCEDOMAIN:
-	rc = pt_sourcedomain(state, str, len);
+	rc = pt_sourcedomain(state, (const unsigned char *)str, len);
 	break;
     case POLICY_HELONAME:
-	rc = pt_heloname(state, str, len);
+	rc = pt_heloname(state, (const unsigned char *)str, len);
 	break;
     case POLICY_MAILFROM:
-	rc = pt_mailfrom(state, str, len);
+	rc = pt_mailfrom(state, (const unsigned char *)str, len);
 	break;
     case POLICY_RCPTTO:
-	rc = pt_rcptto(state, str, len);
+	rc = pt_rcptto(state, (const unsigned char *)str, len);
 	break;
     case POLICY_RCPTPOSTMASTER:
-	rc = pt_rcptpostmaster(state, str, len);
+	rc = pt_rcptpostmaster(state, (const unsigned char *)str, len);
 	break;
     case POLICY_DATA:
     case POLICY_DATAOK:

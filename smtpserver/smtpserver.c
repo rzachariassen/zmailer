@@ -565,15 +565,17 @@ int main(argc, argv, envp)
      char **argv;
      const char **envp;
 {
-	int inetd, errflg, raddrlen, version, i = 0;
+	int inetd, errflg, version, i = 0;
 	const char *mailshare;
 	char path[1024];
 	int force_ipv4 = 0;
-	int localsocksize;
 	char *cfgpath = NULL;
 	char *pidfile = PID_SMTPSERVER;
 	int pidfile_set = 0;
 	const char *t, *syslogflg;
+	size_t localsocksize; /* Solaris: size_t, new BSD: socklen_t */
+	size_t raddrlen;
+
 	SmtpState SS;
 
 	progname = argv[0] ? argv[0] : "smtpserver";
