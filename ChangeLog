@@ -1,3 +1,10 @@
+2000-11-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* man/smtpserver.8, smtpserver/policytest.c:
+	    Lowercasify the lookup key for alias item lookups,
+	    and fill in the doc/guides/smtp-policy header into
+	    the manual page of the smtpserver.
+
 2000-11-17  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/threads.c, scheduler/mailq.c:

@@ -414,6 +414,7 @@ int init;
 		printf("000- Alias-recursion: %d\n", recursions);
 
 	      strcpy(pbuf+2,str+2);
+	      strlower(pbuf+2);
 	      pbuf[0] = strlen(str+2) + 3;
 	      pbuf[1] = P_K_TAG;
 	      result = resolveattributes(rel, recursions, state, pbuf, 0);

@@ -204,10 +204,11 @@ The
 .I scheduler
 configuration file consists of a set of clauses.  Each clause is selected by
 the pattern it starts with.  The patterns for the clauses are matched,
-in sequence, with the \fIchannel\fR/\fIhost\fR string for each recipient
-address.  When a clause pattern matches an address, the parameters set in
-the clause will be applied
-to the
+in sequence, with the
+.IR channel / host
+string for each recipient address.
+When a clause pattern matches an address, the parameters set in the clause
+will be applied to the
 .IR scheduler 's
 processing of that address.  If the clause specifies a command,
 the clause pattern matching sequence is terminated.
