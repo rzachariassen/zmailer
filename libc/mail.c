@@ -506,13 +506,16 @@ _mail_close_(fp,inop, mtimep)
 	  nmessage = alloca(strlen(postoffice)+strlen(inputdirs)+3+
 			    9+4+strlen(type));
 #else
-	  nmessage = mail_alloc(strlen(postoffice)+strlen(inputdirs)+3+
-				9+4+strlen(type));
+	  nmessage = mail_realloc(nmessage,
+				  strlen(postoffice)+strlen(inputdirs)+3+
+				  9+4+strlen(type));
 #endif
 	  /* There are some defined!   A ":" separated list of strings */
 
 	  /* mail_priority == 1 pics first, 2 pics second, ..
 	     if segments run out, last one is kept at  rd     */
+
+	  s = strchr(rd, ':');
 
 	  while (i-- && (s = strchr(rd,':'))) {
 	    *s = 0;
@@ -555,8 +558,9 @@ _mail_close_(fp,inop, mtimep)
 	    nmessage = alloca(strlen(postoffice)+strlen(routerdirs)+
 			      3+9+4+strlen(type));
 #else
-	    nmessage = mail_alloc(strlen(postoffice)+strlen(routerdirs)+
-				  3+9+4+strlen(type));
+	    nmessage = mail_realloc(nmessage,
+				    strlen(postoffice)+strlen(routerdirs)+
+				    3+9+4+strlen(type));
 #endif
 	    /* There are some defined!
 	       A ":" separated list of strings */
@@ -615,8 +619,9 @@ _mail_close_(fp,inop, mtimep)
 	  nmessage = alloca(strlen(postoffice)+strlen(routerdir)+
 			    9+4+2+1+strlen(type));
 #else
-	  nmessage = mail_alloc(strlen(postoffice)+strlen(routerdir)+
-				9+4+2+1+strlen(type));
+	  nmessage = mail_realloc(nmessage,
+				  strlen(postoffice)+strlen(routerdir)+
+				  9+4+2+1+strlen(type));
 #endif
 	  sprintf(nmessage, "%s/%s/%s%ld%s", postoffice, routerdir,
 		  subdirhash, ino ,type);
@@ -799,10 +804,11 @@ mail_close_alternate(fp,where,suffix)
 	else
 		++msgbase;
 
-	nmessage  = NULL;
 	/* Assert postoffice != NULL */
-	nmessage = mail_alloc(strlen(postoffice)+1+strlen(where)+1+
-			      20+strlen(suffix)+1+strlen(type));
+	nmessage = mail_realloc(nmessage,
+				strlen(postoffice)+1+strlen(where)+1+
+				20+strlen(suffix)+1+strlen(type));
+
 	sprintf(nmessage, "%s/%s/%ld%s%s",
 		postoffice, where, (long)stbuf.st_ino, suffix, type);
 
