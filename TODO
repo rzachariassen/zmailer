@@ -67,6 +67,11 @@ router:
 	  the harms way..  e.g. it leaks log-files..
 
 transports/smtp:
+	This is a tell-tale indication that total/header byte accounting
+	gets it wrong: (all goes into header..)
+		598 bytes, 598 in header, 1 recipients, 0 secs for envelope,
+			 1 secs for body xfer
+
 	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
 	(syncing for BDAT, for example.)
 

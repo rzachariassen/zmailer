@@ -1,3 +1,13 @@
+1999-09-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Seen a case where immediately successive EHLO + HELO
+	    both fail, and at *same* target that very same HELO
+	    also succeeds...  Most surprisingly, within same session
+	    which just rejected one message with an error, simply
+	    continuing with an open stream (sort of bug..) we do
+	    succesfully deliver email..
+
 1999-09-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/readconfig.c:

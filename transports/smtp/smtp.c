@@ -2382,12 +2382,12 @@ smtpopen(SS, host, noMX)
 	    else
 	      sprintf(SMTPbuf, "HELO %.200s", myhostname);
 	    i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
-	    if (i == EX_TEMPFAIL && SS->smtpfp) {
+	    if (i != EX_OK && SS->smtpfp) {
 	      smtpclose(SS);
 	      if (logfp)
 		fprintf(logfp, "%s#\t(closed SMTP channel - HELO failed ?)\n", logtag());
 	    }
-	    if (i == EX_TEMPFAIL) {
+	    if (i == EX_TEMPFAIL || !SS->smtpfp) {
 	      /* Ok, sometimes EHLO+HELO cause crash, open and do HELO only */
 	      i = makereconn(SS);
 	      if (i != EX_OK)
