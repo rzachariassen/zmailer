@@ -1,5 +1,10 @@
 2004-10-23  Matti Aarnio  <mea@zmailer.org>
 
+	* lib/zshmmibattach.c:
+	    Don't keep around the file descriptor associated with
+	    the opened memory segment.  It isn't needed, and uses up
+	    some resource space in the system, anyway.
+
 	* router/prototypes.h, router/rfc822.c, router/rtsyslog.c:
 	    Track and report process RUSAGE (user and system CPU times)
 	    if support for that is available.  Can be used to understand

@@ -50,7 +50,7 @@ static struct MIB_MtaEntry MIBMtaEntryLocal /* = {{0,},{0,}} */;
 struct MIB_MtaEntry *MIBMtaEntry = &MIBMtaEntryLocal;
 
 
-static int         SHM_storage_fd = -1;
+/* static int      SHM_storage_fd = -1; */
 static const char *SHM_SNMPSHAREDFILE_NAME;
 static int         SHM_storage_writable;
 static int         SHM_block_size;
@@ -61,9 +61,10 @@ int SHM_file_mode = 0664;
 
 void Z_SHM_MIB_Detach __((void))
 {
-	if (SHM_storage_fd >= 0) {
-	  int fd = SHM_storage_fd;
-	  SHM_storage_fd = -1;
+	if (/* SHM_storage_fd >= 0 && */
+	    SHM_block_size && SHM_block_ptr) {
+	  /* int fd = SHM_storage_fd;
+	     SHM_storage_fd = -1; */
 
 	  if (SHM_block_size &&  SHM_block_ptr) {
 #ifdef HAVE_MMAP
@@ -77,7 +78,7 @@ void Z_SHM_MIB_Detach __((void))
 	  SHM_block_size = 0;
 	  SHM_block_ptr  = NULL;
 
-	  close (fd);
+	  /* close (fd); */
 	}
 }
 
@@ -422,7 +423,10 @@ storage_fill_failure: ;
 	Z_SHM_unlock(rw, storage_fd);
 
 	SHM_block_size       = block_size;
-	SHM_storage_fd       = storage_fd;
+	/* SHM_storage_fd    = storage_fd; */
+	close(storage_fd);  /* This is no longer needed, we have
+			       the memory block... */
+
 	SHM_storage_writable = rw;
 	SHM_block_ptr        = p;
 
