@@ -152,10 +152,10 @@ struct router_child {
   int   linespace;
   int   linelen;
 
-  char  childline[64];
+  char  childline[512];
   int	childsize, childout;
 
-  char  readbuf[64];
+  char  readbuf[512];
   int   readsize, readout;
 
   int   statloc;
