@@ -1,13 +1,5 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
-- makedb -a (aliases) format:
-	Continuation line format checkout:
-		tag: value, value, value,
-			contvalue, value
-	The last value at the line to be continued MUST have trailing
-	comma.  If it does not, the file is in format error.
-	(Blind adding of " ,\n\t" is not ok in all cases!)
-
 - scheduler:
 	Sometimes will generate spurious successfull-delivery-
 	reports when the command is retried, and the tag selector
@@ -61,11 +53,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
     test activation based on:
 	- If policytest is in use, do it
 	- If "-sR" mode is on, do it
-
-- "makedb -a" (utils/makedb/makedb.c) does not do most compact
-  possible binary alias database.  Add code to skip RFC-822 comments,
-  and to detect unquoted white-space preceeded '#' as a start of a
-  comment.
 
 - "make install" does not handle manual-page installation properly,
   also alternate-root installation has a few odd ends (vacation
@@ -217,10 +204,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   can be multiple manager interfaces acting at the scheduler ``mailq''
   port issueing commands (queries), and receiving responces.
   With authentication, could do queue purges, rerouteing commands, etc.
-
-- Need to add the  sdbm ( support/sdbm/ )  in NDBM compability mode to
-  the system in case the system does not have  <ndbm.h>  in it, nor
-  libdbm.a -- low priotity..
 
 - 'channel error' detection is partial at places;
 	transporters: hold, errormail

@@ -12,7 +12,7 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
-	ZMailer-2.99.49p10(??):
+	ZMailer-2.99.49p10 (2.99.50)
 		The router script language no longer understands "sift"
 		contruction.  It has been replaced with two new ones:
 			- "ssift" / "tfiss": StringSIFT
