@@ -129,6 +129,10 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	- To support RFC-1830 SMTP extension: CHUNKING
 		[ 27-Feb-1998: code in place, and works against
 		               ZMailer's receiver code.. ]
+		TO VERIFY: that pipelining stuff and smtp_sync() stuff
+			   work all right in conjunktion with BDAT.
+	- To verify that PIPELINING work all right in all cases of
+	  MAIL FROM/RCPT TO return status conbinations.
 
 - IPv6 stuff:
 	- lib/selfaddrs.c: Don't properly do automatic IPv6 interface address
