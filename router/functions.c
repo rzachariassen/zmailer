@@ -366,10 +366,10 @@ run_dblookup(avl, il)
 	conscell *avl, *il; /* Inputs gc protected */
 {
 	conscell *l;
-	const char *argv20[20];
+	const char *argv30[30];
 	int i;
 
-	memset(argv20, 0, sizeof(argv20));
+	memset(argv30, 0, sizeof(argv30));
 
 	il = cdar(avl);
 	if (il == NULL || !STRING(il)) {
@@ -377,10 +377,10 @@ run_dblookup(avl, il)
 		return NULL;
 	}
 	i = 0;
-	for (; il && i < 19 && STRING(il); il = cdr(il))
-	  argv20[i++] = il->string;
+	for (; il && i < 30-1 && STRING(il); il = cdr(il))
+	  argv30[i++] = il->string;
 
-	l = db(car(avl)->string, i, argv20);
+	l = dblookup(car(avl)->string, i, argv30);
 	if (l == NULL)
 		return NULL;
 	return l;

@@ -50,8 +50,8 @@ close_btree(sip,comment)
 }
 
 
-static DB * open_btree __((search_info *, int, const char *));
-static DB *
+static ZSleepyPrivate * open_btree __((search_info *, int, const char *));
+static ZSleepyPrivate *
 open_btree(sip, roflag, comment)
 	search_info *sip;
 	int roflag;
@@ -78,17 +78,21 @@ open_btree(sip, roflag, comment)
 
 	if (db == NULL) {
 
+	    char *phase = "";
+	    /* Three attempts to open it.. */
 	    for (i = 0; i < 3; ++i) {
 
 		int err;
 
-		*prvp = zsleepyprivateinit(sip->file, sip->cfgfile, DB_BTREE);
+		*prvp = zsleepyprivateinit(sip->file, sip->cfgfile,
+					   DB_BTREE);
+
 		if (!*prvp) break; /* URGH!! Out of memory! */
 
-	        err = zsleepyprivateopen(*prvp, roflag, 0644);
+	        err = zsleepyprivateopen(*prvp, roflag, 0644, &phase);
 		db = (*prvp)->db;
 
-		if (db != NULL)  break;
+		if (db)  break;
 
 		if (*prvp)
 		  zsleepyprivatefree(*prvp);
@@ -96,14 +100,23 @@ open_btree(sip, roflag, comment)
 
 		sleep(1); /* Open failed, retry after a moment */
 	    }
+
+	    /* Still failed ?? */
 	    if (db == NULL) {
 		++deferit;
 		v_set(DEFER, DEFER_IO_ERROR);
-		fprintf(stderr, "%s: cannot open %s!\n",
-			comment, sip->file);
+		fprintf(stderr, "%s: cannot open%s %s!\n",
+			comment, phase, sip->file);
+
+		if (*prvp)
+		  zsleepyprivatefree(*prvp);
+
 		return NULL;
 	    }
 	}
+
+
+	/* Got it open ? */
 
 	if (db != NULL) {
 
@@ -118,14 +131,24 @@ open_btree(sip, roflag, comment)
 		fprintf(stderr, "open_btree: cannot fstat(\"%s\"(%d))!  err=%d/%s (%s/%s)\n",
 			sip->file, fd, err, errno,
 			db_strerror(err), strerror(errno));
-		return 0;
+
+		SLEEPYCATDBCLOSE(db);
+		if (*prvp)
+		  zsleepyprivatefree(*prvp);
+
+		return NULL;
 	    }
 #else
 	    fd = (db->fd)(db);
 	    if (fstat(fd, &stbuf) < 0) {
 		fprintf(stderr, "open_btree: cannot fstat(\"%s\"/%d))!  err=%d (%s)\n",
 			sip->file, fd, errno, strerror(errno));
-		return 0;
+
+		SLEEPYCATDBCLOSE(db);
+		if (*prvp)
+		  zsleepyprivatefree(*prvp);
+
+		return NULL;
 	    }
 #endif
 
@@ -133,7 +156,7 @@ open_btree(sip, roflag, comment)
 
 	}
 
-	return db;
+	return *prvp;
 }
 
 
@@ -145,6 +168,7 @@ conscell *
 search_btree(sip)
 	search_info *sip;
 {
+	ZSleepyPrivate *prv;
 	DB *db;
 	DBT val, key;
 	int retry, rc;
@@ -153,9 +177,11 @@ search_btree(sip)
 #if 0
 reopen:
 #endif
-	db = open_btree(sip, O_RDONLY, "search_btree");
-	if (db == NULL)
+	prv = open_btree(sip, O_RDONLY, "search_btree");
+	if (prv == NULL)
 	  return NULL; /* Huh! */
+
+	db = prv->db;
 
 	memset(&key, 0, sizeof(key));
 	memset(&val, 0, sizeof(val));
@@ -197,10 +223,12 @@ add_btree(sip, value)
 	DB *db;
 	DBT val, key;
 	int rc;
+	ZSleepyPrivate *prv;
 
-	db = open_btree(sip, O_RDWR, "add_btree");
-	if (db == NULL)
+	prv = open_btree(sip, O_RDWR, "add_btree");
+	if (prv == NULL)
 		return EOF;
+	db = prv->db;
 
 	memset(&key, 0, sizeof(key));
 	memset(&val, 0, sizeof(val));
@@ -239,10 +267,12 @@ remove_btree(sip)
 	DB *db;
 	DBT key;
 	int rc;
+	ZSleepyPrivate *prv;
 
-	db = open_btree(sip, O_RDWR, "remove_btree");
-	if (db == NULL)
+	prv = open_btree(sip, O_RDWR, "remove_btree");
+	if (prv == NULL)
 		return EOF;
+	db = prv->db;
 
 	memset(&key, 0, sizeof(key));
 
@@ -275,18 +305,21 @@ print_btree(sip, outfp)
 	DB *db;
 	DBT key, val;
 	int rc;
+	ZSleepyPrivate *prv;
 #if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
-	DBC *curs;
+	DBC *curs = NULL;
 
-	db = open_btree(sip, O_RDONLY, "print_btree");
-	if (db == NULL)
+	prv = open_btree(sip, O_RDONLY, "print_btree");
+	if (prv == NULL)
 		return;
+	db = prv->db;
 
 #ifdef HAVE_DB_CURSOR4
 	rc = (db->cursor)(db, NULL, &curs, 0);
 #else
 	rc = (db->cursor)(db, NULL, &curs);
 #endif
+	prv->cursor = curs;
 
 	memset(&val, 0, sizeof(val));
 	memset(&key, 0, sizeof(key));
@@ -307,11 +340,13 @@ print_btree(sip, outfp)
 		rc = (curs->c_get)(curs, &key, &val, DB_NEXT);
 	}
 	(curs->c_close)(curs);
+	prv->cursor = NULL;
 #else
 
-	db = open_btree(sip, O_RDONLY, "print_btree");
-	if (db == NULL)
+	prv = open_btree(sip, O_RDONLY, "print_btree");
+	if (prv == NULL)
 		return;
+	db = prv->db;
 
 	memset(&val, 0, sizeof(val));
 	memset(&key, 0, sizeof(key));
@@ -347,17 +382,22 @@ count_btree(sip, outfp)
 	DBT key, val;
 	int cnt = 0;
 	int rc;
+	ZSleepyPrivate * prv;
 #if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
 	DBC *curs;
 
-	db = open_btree(sip, O_RDONLY, "count_btree");
+	prv = open_btree(sip, O_RDONLY, "count_btree");
 
-	if (db != NULL) {
+	if (prv && prv->db) {
+	  db = prv->db;
+
+	  curs = NULL;
 #ifdef HAVE_DB_CURSOR4
 	  rc = (db->cursor)(db, NULL, &curs, 0);
 #else
 	  rc = (db->cursor)(db, NULL, &curs);
 #endif
+	  prv->cursor = curs;
 
 	  memset(&val, 0, sizeof(val));
 	  memset(&key, 0, sizeof(key));
@@ -376,9 +416,11 @@ count_btree(sip, outfp)
 	  }
 	}
 	(curs->c_close)(curs);
+	prv->cursor = NULL;
 #else
-	db = open_btree(sip, O_RDONLY, "count_btree");
-	if (db != NULL) {
+	prv = open_btree(sip, O_RDONLY, "count_btree");
+	if (prv != NULL) {
+	  db = prv->db;
 
 	  memset(&val, 0, sizeof(val));
 	  memset(&key, 0, sizeof(key));
@@ -409,11 +451,12 @@ owner_btree(sip, outfp)
 {
 	DB *db;
 	struct stat stbuf;
-	int fd;
+	int fd = -1;
 
-	db = open_btree(sip, O_RDONLY, "owner_btree");
-	if (db == NULL)
+	ZSleepyPrivate *prv = open_btree(sip, O_RDONLY, "owner_btree");
+	if (!prv || !prv->db)
 		return;
+	db = prv->db;
 
 	/* There are timing hazards, when the internal fd is not
 	   available for probing.. */
@@ -422,7 +465,7 @@ owner_btree(sip, outfp)
 #else
 	fd = (db->fd)(db);
 #endif
-	if (fstat(fd, &stbuf) < 0) {
+	if (fd < 0 || fstat(fd, &stbuf) < 0) {
 		fprintf(stderr, "owner_btree: cannot fstat(\"%s\")!\n",
 				sip->file);
 		return;
@@ -440,11 +483,13 @@ modp_btree(sip)
 	int rval, fd = -1, err = 0;
 	int roflag = O_RDONLY;
 
-	ZSleepyPrivate **prvp = (ZSleepyPrivate **)sip->dbprivate;
-	if (*prvp) roflag = (*prvp)->roflag;
+	ZSleepyPrivate *prv;
 
-	db = open_btree(sip, roflag, "owner_btree"); /* if it isn't open.. */
-	if (db == NULL) return 0;
+	prv = open_btree(sip, roflag, "owner_btree"); /* if it isn't open.. */
+	if (!prv || !prv->db) return 0;
+	
+	roflag = prv->roflag;
+	db     = prv->db;
 
 #if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
 	err = (db->fd)(db, &fd);
@@ -462,9 +507,9 @@ modp_btree(sip)
 	if (roflag != O_RDONLY) return 0; /* We are a WRITER ??
 					     Of course it changes.. */
 
-	rval = (stbuf.st_mtime != (*prvp)->mtime || stbuf.st_nlink != 1);
+	rval = (stbuf.st_mtime != prv->mtime || stbuf.st_nlink != 1);
 
-	(*prvp)->mtime = stbuf.st_mtime;
+	prv->mtime = stbuf.st_mtime;
 
 
 	return rval;

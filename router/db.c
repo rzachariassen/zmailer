@@ -745,8 +745,8 @@ run_db(argc, argv)
  */
 
 conscell *
-db(dbname, argc, argv20)
-	const char *dbname, *argv20[];
+dblookup(dbname, argc, argv30)
+	const char *dbname, *argv30[];
 	const int argc;
 {
 	register int keylen;
@@ -754,14 +754,14 @@ db(dbname, argc, argv20)
 	struct spblk *spl;
 	struct db_info *dbip;
 	char *realkey;
-	const char *key = argv20[0];
+	const char *key = argv30[0];
 	search_info si;
 	struct cache *cache;
 	unsigned long khash;
 	char kbuf[BUFSIZ];	/* XX: */
 	int slen;
 	GCVARS3;
-	int zoptind = 1;
+	int zoptind;
 	int defaultkeys;
 
 	now = time(NULL);
@@ -811,12 +811,12 @@ db(dbname, argc, argv20)
 	si.key       =   key;
 	si.subtype   =  dbip->subtype;
 	si.ttl       =  dbip->ttl;
-	si.argv20    =   argv20;
-	si.argv1     =   NULL;
-	si.defaultkey[0] = NULL;
+	si.argv20    =   argv30;
+	/* si.argv0  =   NULL; */
 	si.flags     =  dbip->flags;
 	si.dbprivate = &dbip->dbprivate;
 	defaultkeys = 0;
+	/* si.defaultkey[0] = NULL; */
 
 	zoptind = 1;
 	/* Recognize options:
@@ -824,21 +824,21 @@ db(dbname, argc, argv20)
 	   -- end of options
 	   Rest will be alike sendmail $@ "options"
 	*/
-	while (argv20[zoptind] && zoptind < argc && defaultkeys < 20-1) {
-	  if (STREQ("--",argv20[zoptind])) {
+	while (argv30[zoptind] && zoptind < argc && defaultkeys < 20-1) {
+	  if (STREQ("--",argv30[zoptind])) {
 	    ++zoptind;
 	    break;
 	  }
-	  if (STREQ("-:",argv20[zoptind])) {
+	  if (STREQ("-:",argv30[zoptind]) && argv30[zoptind+1]) {
 	    ++zoptind;
-	    si.defaultkey[defaultkeys++] = argv20[zoptind];
-	    si.defaultkey[defaultkeys] = NULL;
+	    si.defaultkey[defaultkeys++] = argv30[zoptind];
 	    ++zoptind;
 	    continue;
 	  }
 	  /* ?? Other options ?? */
 	  break;
 	}
+	si.defaultkey[defaultkeys] = NULL;
 
 	if ((dbip->flags & DB_MODCHECK) &&
 	    dbip->modcheckp  &&  (*dbip->modcheckp)(&si) &&
@@ -973,8 +973,8 @@ db(dbname, argc, argv20)
 				free(realkey);
 			}
 			UNGCPRO3;
-			if (si.argv1) free((void*)si.argv1);
-			si.argv1 = NULL;
+			if (si.argv0) free((void*)si.argv0);
+			si.argv0 = NULL;
 			return NULL;
 		}
 	}
@@ -1036,7 +1036,7 @@ db(dbname, argc, argv20)
  post_subst:
 
 	if (ll && (dbip->flags & DB_PERCENTSUBST)) {
-	  char *buf, *b;
+	  char *buf, *b, *e;
 	  const char *p, *s;
 	  int i;
 	  int do_subst = 0;
@@ -1053,26 +1053,20 @@ db(dbname, argc, argv20)
 	    if (*p == '%' && ('0' <= p[1] && p[1] <= '9')) {
 	      ++p;
 	      s = NULL;
-	      switch (*p) {
-	      case '0':
+	      i = (*p - '0');
+
+	      if (i == 0) {
 		s = si.key;
-		break;
-	      case '1':
-		s = si.argv1;
-		if (!s && zoptind < argc) s = si.argv20[zoptind];
-		break;
-	      default:
-		i = (*p - '0');
-		if (si.argv1)
-		  --i;
+		if (si.argv0) s = si.argv0;
+	      } else {
+		--i;
 		if (zoptind+i < argc)
 		  s = si.argv20[zoptind+i];
-		break;
 	      }
-	      if (s)
+	      if (s) {
 		slen += strlen(s);
-	      if (s)
 		do_subst = 1;
+	      }
 	      continue;
 	    }
 	    ++slen;
@@ -1085,31 +1079,43 @@ db(dbname, argc, argv20)
 	    l = tmp = NULL;
 	    GCPRO3(l, ll, tmp);
 
-	    b = buf = malloc(slen + 3); /* probably 1 extra is enough .. */
+	    slen += 3;
+	    b = buf = malloc(slen); /* probably 1 extra is enough .. */
+	    e = b + slen-2;
 
 	    for (p = ll->cstring; *p; ++p) {
 	      if (*p == '%' && ('0' <= p[1] && p[1] <= '9')) {
 		++p;
 		s = NULL;
-		switch (*p) {
-		case '0':
+		i = (*p - '0');
+		if (i == 0) {
 		  s = si.key;
-		  break;
-		case '1':
-		  s = si.argv1;
-		  if (!s && zoptind < argc) s = si.argv20[zoptind];
-		  break;
-		default:
-		  i = (*p - '1');
-		  if (si.argv1)
-		    --i;
+		  if (si.argv0) s = si.argv0;
+		} else {
+		  --i;
 		  if (zoptind+i < argc)
 		    s = si.argv20[zoptind+i];
-		  break;
 		}
-		if (s)
-		  while (*s) *b++ = *s++;
+		while (s && *s) {
+		  if (b >= e) {
+		    i = b - buf;
+		    slen += 8;
+		    buf = realloc(buf, slen);
+		    if (!buf) goto malloc_failure;
+		    e = buf + slen-2;
+		    b = buf + i;
+		  }
+		  *b++ = *s++;
+		}
 		continue;
+	      }
+	      if (b >= e) {
+		i = b - buf;
+		slen += 8;
+		buf = realloc(buf, slen);
+		if (!buf) goto malloc_failure;
+		e = buf + slen-2;
+		b = buf + i;
 	      }
 	      *b++ = *p;
 	    }
@@ -1118,9 +1124,10 @@ db(dbname, argc, argv20)
 	    l = newstring(dupnstr(buf, b-buf), b-buf);
 	    free(buf);
 
+	  malloc_failure:
 
-	    if (si.argv1) free((void*)si.argv1);
-	    si.argv1 = NULL;
+	    if (si.argv0) free((void*)si.argv0);
+	    si.argv0 = NULL;
 
 	    ll = l;
 
@@ -1164,7 +1171,12 @@ cacheflush(dbip)
 	
 	for (cache = dbip->cfirst; cache; cache = cnext) {
 		cnext = cache->next;
-		if (cache->key) free(cache->key);
+
+		if (cache->key)   free(cache->key);
+		cache->key   = NULL;
+		cache->value = NULL; /* conscell pointer; garbage
+					collector will free it.. */
+
 		cache->next = dbip->cfree;
 		dbip->cfree = cache;
 	}
@@ -1281,8 +1293,8 @@ find_domain(lookupfn, sip)
 			sip->key = cp-1;
 			l = (*lookupfn)(sip);
 			if (l) {
-				if (sip->argv1) free((void*)sip->argv1);
-				sip->argv1 = dupnstr(buf, sip->key - buf);
+				if (sip->argv0) free((void*)sip->argv0);
+				sip->argv0 = dupnstr(buf, sip->key - buf);
 #ifdef PREDOT_TEST
 #ifndef HAVE_ALLOCA
 				free(buf);
@@ -1326,8 +1338,8 @@ find_domain(lookupfn, sip)
 	}
 
 	if (l) {
-	    if (sip->argv1) free((void*)sip->argv1);
-	    sip->argv1 = dupnstr(realkey, keylen);
+	    if (sip->argv0) free((void*)sip->argv0);
+	    sip->argv0 = dupnstr(realkey, keylen);
 	    return l;
 	}
 
@@ -1360,8 +1372,8 @@ find_nodot_domain(lookupfn, sip)
 			sip->key = cp;
 			l = (*lookupfn)(sip);
 			if (l) {
-				if (sip->argv1) free((void*)sip->argv1);
-				sip->argv1 = dupnstr(realkey,
+				if (sip->argv0) free((void*)sip->argv0);
+				sip->argv0 = dupnstr(realkey,
 						     sip->key - realkey);
 				return l;
 			}
@@ -1452,8 +1464,8 @@ find_longest_match(lookupfn, sip)
 				sip->key = cp-1;
 				l = (*lookupfn)(sip);
 				if (l) {
-					if (sip->argv1) free((void*)sip->argv1);
-					sip->argv1 = dupnstr(realkey,
+					if (sip->argv0) free((void*)sip->argv0);
+					sip->argv0 = dupnstr(realkey,
 							     sip->key-realkey);
 					return l;
 				}
@@ -1475,8 +1487,8 @@ find_longest_match(lookupfn, sip)
 		}
 
 		if (l) {
-			if (sip->argv1) free((void*)sip->argv1);
-			sip->argv1 = dupnstr(realkey, strlen(realkey));
+			if (sip->argv0) free((void*)sip->argv0);
+			sip->argv0 = dupnstr(realkey, strlen(realkey));
 			return l;
 		}
 	}

@@ -1,3 +1,24 @@
+2002-07-05  Matti Aarnio  <mea@zmailer.org>
+
+	* lib/sleepycatdb.c, include/sleepycatdb.c, router/libdb/bsdbtree.c,
+	  router/libdb/bsdhash.c
+	    More rework on SleepyCat DB driver routines to better use
+	    the ZSleepyPrivate structure to carry relevant reference data.
+	
+	* router/libdb/gdbm.c:
+	    Similar code work to SleepyCat DB for GDBM.
+
+	* router/db.c, router/function.c, router/prototypes.h,
+	  router/libdb/search.h:
+	    - Renamed the low-level dblookup driver routine from
+	      'db()' to 'dblookup()' after having problems of finding
+	      the caller...
+	    - Reworked the %-substitution code radically; now %[1-9] will
+	      be a key of same index at every time.  The  %0 MAY change
+	      in case some driver routine (e.g. 'pathalias') is defined
+	      at the 'relation' statement.  The relation MUST have
+	      '-%' option for the %[0-9] substitutions to be active!
+
 2002-06-25  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:

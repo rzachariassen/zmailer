@@ -23,7 +23,7 @@ typedef struct _search_info {
 	const char	*subtype;
 	const char	*defaultkey[20];
 	const char	**argv20;
-	const char	*argv1;
+	const char	*argv0;
 	unsigned long	flags;
 	void		**dbprivate;
 } search_info;
