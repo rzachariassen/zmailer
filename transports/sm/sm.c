@@ -756,22 +756,18 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  }
 	}
 
- 	/* Add the "Return-Path:" is it is desired, but does not yet
-	   exist.. */
-	if (mp->flags & MO_RETURNPATH) {
-	  const char *uu = startrp->addr->link->user;
+	/* Snub the "Return-Path:" header, if it exists.. */
+	if (1) {
 	  char **hdrs;
 	  do {
 	    hdrs = has_header(startrp,"Return-Path:");
 	    if (hdrs) delete_header(startrp, hdrs);
 	  } while (hdrs);
-	  if (strcmp(startrp->addr->link->channel,"error")==0)
-	    uu = "";
-	  append_header(startrp,"Return-Path: <%.999s>", uu);
 	}
 
+	/* Snub stuff that we add latter below.. */
+
 	if (mp->flags & MO_XENVELOPES) {
-	  const char *uu;
 	  char **hdrs;
 
 	  do {
@@ -779,21 +775,13 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    if (hdrs) delete_header(startrp, hdrs);
 	  } while (hdrs);
 
-	  for (rp = startrp; rp != endrp; rp = rp->next) {
-	    uu = rp->addr->user;
-	    if (strcmp(rp->addr->link->channel,"error")==0)
-	      uu = "";
-	    append_header(rp,"X-Envelope-To: <%.999s> (uid %s)",
-			  uu, rp->addr->misc);
-	  }
-
 	  do {
-	    hdrs = has_header(rp,"X-Envid:");
+	    hdrs = has_header(startrp,"X-Envid:");
 	    if (hdrs) delete_header(rp,hdrs);
 	  } while (hdrs);
 
 	  do {
-	    hdrs = has_header(rp,"Envelope-Id:");
+	    hdrs = has_header(startrp,"Envelope-Id:");
 	    if (hdrs) delete_header(rp,hdrs);
 	  } while (hdrs);
 
@@ -804,6 +792,10 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  char **hdrs;
 	  do {
 	    hdrs = has_header(startrp,"X-Orcpt:");
+	    if (hdrs) delete_header(startrp, hdrs);
+	  } while (hdrs);
+	  do { /* RFC 2298 section  2.3 */
+	    hdrs = has_header(startrp,"Original-Recipient:");
 	    if (hdrs) delete_header(startrp, hdrs);
 	  } while (hdrs);
 	}
@@ -828,13 +820,32 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  }
 	}
 	if (mp->flags & (MO_XORCPT|MO_XENVELOPES)) {
-	  if (rp->orcpt) {
-	    /* RFC 2298: section 2.3 */
-	    fprintf(tafp, "Original-Recipient: ");
-	    decodeXtext(tafp, rp->orcpt);
-	    fputs(lineendseq, tafp);
+	  /* Put out a sequence of  X-Envelope-To: and
+	     Original-Recipient:  headers -- in order.. */
+	  for (rp = startrp; rp != endrp; rp = rp->next) {
+
+	    const char *uu = rp->addr->user;
+	    if (strcmp(rp->addr->link->channel,"error")==0)
+	      uu = "";
+	    fprintf(tafp, "X-Envelope-To: <%s> (uid %s)%s",
+		    uu, rp->addr->misc, lineendseq);
+	    if (rp->orcpt) {
+	      /* RFC 2298: section 2.3 */
+	      fprintf(tafp, "Original-Recipient: ");
+	      decodeXtext(tafp, rp->orcpt);
+	      fputs(lineendseq, tafp);
+	    }
 	  }
 	}
+
+	if (mp->flags & MO_RETURNPATH) {
+	  const char *uu = startrp->addr->link->user;
+	  if (strcmp(startrp->addr->link->channel,"error")==0)
+	    uu = "";
+
+	  fprintf(tafp, "Return-Path: <%s>%s", uu, lineendseq);
+	}
+
 
 	/* Header-Body separator: */
 

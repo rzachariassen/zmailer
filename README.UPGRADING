@@ -15,6 +15,11 @@
 
 
 	ZMailer-2.99.56pre3:
+		Change in   sm  program, now it produces (if wanted)
+		"Original-Recipient:", "Envelope-ID:", "X-Envelope-To:"
+		headers for each recipient. (Previously "X-Orcpt:",
+		"X-Envid:", and "X-Envelope-To:" respectively.)
+
 		Change in  smtpserver <-> content-policy interface
 		protocol!  Old protocol (scripts) are likely NOT to
 		work!  Relevant DIFF of the prototype filter is here:

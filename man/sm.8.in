@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SM 8 "15 Dec 2001"
+.TH SM 8 "2 Sep 2002"
 .SH NAME
 sm \- zmailer Sendmail compatible transport agent
 .SH SYNOPSIS
@@ -283,7 +283,18 @@ This mailer is expensive to connect, connections only from queuerun.
 (Meaningless in sm)
 .PP
 .I sm:
-Throw in a collection of ``X-Envelope-*:'' headers.
+Throw in a collection of ``X-Envelope-*:'' headers; specifically:
+.RS 1em
+.IP "\fBEnvelope-Id:\fR" 2em
+This is one for the message, if it has been defined in incoming message.
+.IP "\fBX-Envelope-To:\fR" 2em
+.IP "\fBOriginal-Recipient:\fR" 2em
+These two appear in sequence, and the first should exist for every
+message in the system.
+.RE
+.PP
+Frankly, it does not make much sense to use this in combination with
+e.g. 'm'-mode (multi-recipient processing).
 .RE
 .IP E
 .RS
@@ -443,6 +454,10 @@ can be driven.)
 Not used.
 .PP
 .I sm:
+Outputs the
+.B Original-Recipient:
+meta-header for each recipient of the message.
+This carries incoming SMTP protocol ORCPT= parameter, if any.
 .RE
 .IP p
 .RS

@@ -1,5 +1,13 @@
 2002-09-02  Matti Aarnio  <mea@zmailer.org>
 
+	* README.UPGRADING:
+	    Change in what  sm  outputs for envelope meta-data to
+	    be in line with other transport-agents... (mailbox,
+	    in particular.)
+
+	* transports/sm/sm.c:
+	    Testing reveals... NULL pointer referrals :-(
+
 	* libc/Makefile.in, libresolv/Makefile.in, router/Makefile.in,
 	  router/libdb/Makefile.in, scheduler/Makefile.in,
 	  smtpserver/Makefile.in, transports/hold/Makefile.in,
