@@ -43,9 +43,9 @@ int spf_received;
 int spf_threshold;
 
 static int resolveattributes __((struct policytest *, int, struct policystate *, const char *, int));
-static int  check_domain __((struct policytest *, struct policystate *, const char *, int));
-static int  check_user __((struct policytest *, struct policystate *, const char *, int));
-static int  checkaddr  __((struct policytest *, struct policystate *, const char *));
+static int  check_domain __((struct policystate *, const char *, int));
+static int  check_user __((struct policystate *, const char *, int));
+static int  checkaddr  __((struct policystate *, const char *));
 
 #if defined(AF_INET6) && defined(INET6)
 extern const u_char zv4mapprefix[16];
@@ -176,8 +176,8 @@ int width, maxwidth;
 
 
 void policydefine(relp, dbtype, dbpath)
-struct policytest **relp;
-const char *dbtype, *dbpath;
+     struct policytest **relp;
+     const char *dbtype, *dbpath;
 {
     struct policytest *rel = (void *) emalloc(sizeof(*rel));
     *relp = rel;
@@ -191,10 +191,10 @@ const char *dbtype, *dbpath;
 static void *dbquery __((struct policytest *, const void *, const int, int *));
 
 static void *dbquery(rel, qptr, qlen, rlenp)
-struct policytest *rel;
-const void *qptr;
-const int qlen;
-int *rlenp;			/* result length ptr ! */
+     struct policytest *rel;
+     const void *qptr;
+     const int qlen;
+     int *rlenp;			/* result length ptr ! */
 {
     char *buffer;
 #ifdef HAVE_NDBM
@@ -349,11 +349,11 @@ int *rlenp;			/* result length ptr ! */
  *****************************************************************************/
 
 static int resolveattributes(rel, recursions, state, key, init)
-struct policytest *rel;
-int recursions;
-struct policystate *state;
-const char *key;
-int init;
+     struct policytest *rel;
+     int recursions;
+     struct policystate *state;
+     const char *key;
+     int init;
 {
     unsigned char *str, *str_base;
     int rlen, result, interest;
@@ -536,14 +536,13 @@ int init;
 
 
 /* Return 0, when found something */
-static int checkaddr(rel, state, pbuf)
-struct policytest *rel;
-struct policystate *state;
-const char *pbuf;
+static int checkaddr(state, pbuf)
+     struct policystate *state;
+     const char *pbuf;
 {
     int result, count, countmax;
     int maxrecursions;
-
+    struct policytest *rel = state->PT;
 
     maxrecursions = 5;
 
@@ -616,14 +615,15 @@ const char *pbuf;
 }
 
 
-int policyinit(relp, state, whosonrc)
-struct policytest **relp;
-struct policystate *state;
-int whosonrc;
+int policyinit(state, rel, whosonrc)
+     struct policystate *state;
+     struct policytest  *rel;
+     int whosonrc;
 {
     int openok;
     char *dbname;
-    struct policytest *rel = *relp;
+
+    state->PT = rel;
 
     if (rel == NULL)
       return -1;  /* Not defined! */
@@ -650,8 +650,8 @@ int whosonrc;
 #endif
     if (rel->dbt == _dbt_none) {
 	/* XX: ERROR! Unknown/unsupported dbtype! */
-      *relp = NULL;
-	return 1;
+      state->PT = NULL;
+      return 1;
     }
     openok = 0;
 #ifdef HAVE_ALLOCA
@@ -808,7 +808,7 @@ int whosonrc;
 	       dbname, errno);
 	fflush(stdout);
       }
-      *relp = NULL;
+      state->PT = NULL;
 
 #ifndef HAVE_ALLOCA
       free(dbname);
@@ -835,13 +835,12 @@ int whosonrc;
 }
 
 
-static int _addrtest_ __((struct policytest *rel, struct policystate *state, const char *pbuf, int sourceaddr));
+static int _addrtest_ __((struct policystate *state, const char *pbuf, int sourceaddr));
 
-static int _addrtest_(rel, state, pbuf, sourceaddr)
-struct policytest *rel;
-struct policystate *state;
-const char *pbuf;
-int sourceaddr;
+static int _addrtest_(state, pbuf, sourceaddr)
+     struct policystate *state;
+     const char *pbuf;
+     int sourceaddr;
 {
     u_char ipaddr[16];
     int ipaf = pbuf[1];
@@ -893,7 +892,7 @@ int sourceaddr;
     state->maxinsize  = -1;
     state->maxoutsize = -1;
 
-    if (checkaddr(rel, state, pbuf) != 0)
+    if (checkaddr(state, pbuf) != 0)
       return 0; /* Nothing found */
 
 
@@ -1071,7 +1070,7 @@ int sourceaddr;
       if (debug)
 	type(NULL,0,NULL," policytestaddr: 'test-dns-rbl %s' found;",
 	       state->values[P_A_TestDnsRBL]);
-      rc = rbl_dns_test(ipaf, ipaddr, state->values[P_A_TestDnsRBL], &state->message);
+      rc = rbl_dns_test(state, ipaf, ipaddr, state->values[P_A_TestDnsRBL], &state->message);
       if (!state->message){ PICK_PA_MSG(P_A_TestDnsRBL); }
 
       if (debug)
@@ -1109,7 +1108,7 @@ int sourceaddr;
       if (debug)
 	type(NULL,0,NULL," policytestaddr: 'rcpt-dns-rbl %s' found;",
 	       state->values[P_A_RcptDnsRBL]);
-      rc = rbl_dns_test(ipaf, ipaddr, state->values[P_A_RcptDnsRBL], &state->rblmsg);
+      rc = rbl_dns_test(state, ipaf, ipaddr, state->values[P_A_RcptDnsRBL], &state->rblmsg);
 
       if (debug)
 	type(NULL, 0, NULL, "rcpt-dns-rbl test yields: rc=%d rblmsg='%s'", rc,
@@ -1123,11 +1122,10 @@ int sourceaddr;
     return 0;
 }
 
-int policytestaddr(rel, state, what, raddr)
-struct policytest *rel;
-struct policystate *state;
-PolicyTest what;
-Usockaddr *raddr;
+int policytestaddr(state, what, raddr)
+     struct policystate *state;
+     PolicyTest what;
+     Usockaddr *raddr;
 {
     char pbuf[64]; /* Not THAT much space needed.. */
     int rc;
@@ -1141,7 +1139,7 @@ Usockaddr *raddr;
     if (what != POLICY_SOURCEADDR)
       abort();		/* Urgle..! Code mismatch! */
 
-    if (rel == NULL)
+    if (state->PT == NULL)
       return 0;
 
     /* Find address match -- IPv4 mapped into IPv6 space too! */
@@ -1215,7 +1213,7 @@ Usockaddr *raddr;
     state->request = 0;
     state->content_filter = -1;
 
-    rc = _addrtest_(rel, state, pbuf, 1);
+    rc = _addrtest_(state, pbuf, 1);
 
 #ifdef HAVE_SPF_ALT_SPF_H
     if (state->check_spf) {
@@ -1247,8 +1245,7 @@ Usockaddr *raddr;
     return rc;
 }
 
-static int call_rate_counter(rel, state, incr, what, countp, limitval)
-     struct policytest *rel;
+static int call_rate_counter(state, incr, what, countp, limitval)
      struct policystate *state;
      int incr, *countp, limitval;
      PolicyTest what;
@@ -1256,6 +1253,8 @@ static int call_rate_counter(rel, state, incr, what, countp, limitval)
     int rc;
     char pbuf[2000]; /* Not THAT much space needed.. */
     const char *cmd = "RATE";
+    const char *whatp = "CONNECT";
+    int count = 0;
 
     if (debug)
       type(NULL,0,NULL,"call_rate_counter(incr=%d what=%d)",incr,what);
@@ -1273,19 +1272,45 @@ static int call_rate_counter(rel, state, incr, what, countp, limitval)
     state->did_query_rate = 1;
 
     switch (incr) {
+    case 0:
+      cmd   = "RATE";
+      count = 0;
+      break;
     case 1:
-      cmd = "INCR";
+      cmd   = "MSGS";
+      count = 1;
       break;
     case 2:
       cmd = "EXCESS";
+      count = 1;
       break;
     default:
       break;
     }
 
-    sprintf(pbuf, "%s %s %d %s", cmd, state->ratelabelbuf, limitval,
-	    ( (what == POLICY_SOURCEADDR) ? "CONNECT" :
-	      ( (what == POLICY_MAILFROM) ? "MAIL" : "xxx" )));
+    switch (what) {
+    case POLICY_SOURCEADDR:
+      break;
+    case POLICY_MAILFROM:
+      whatp = "MAIL";
+      break;
+    case POLICY_DATA:
+    case POLICY_DATAOK:
+      whatp = "DATA";
+      count = 1;
+      break;
+    case POLICY_RCPTTO:
+      whatp = "RCPT";
+      cmd   = "RCPT";
+      count = incr;
+      break;
+    default:
+      whatp = "xxxx";
+      break;
+    }
+
+    sprintf(pbuf, "%s %s %d %s %d",
+	    cmd, state->ratelabelbuf, limitval, whatp, count);
 
     if (debug)
       type(NULL,0,NULL,"call_rate_counter: sending: '%s'",pbuf);
@@ -1311,11 +1336,10 @@ static int call_rate_counter(rel, state, incr, what, countp, limitval)
 }
 
 
-static int check_domain(rel, state, input, inlen)
-struct policytest *rel;
-struct policystate *state;
-const char *input;
-int inlen;
+static int check_domain(state, input, inlen)
+     struct policystate *state;
+     const char *input;
+     int inlen;
 {
     char *ptr, *ptr2, pbuf[256];
     int addr_len, i, plen, result;
@@ -1370,7 +1394,7 @@ int inlen;
 	pbuf[1] = P_K_IPv4;
 	pbuf[6] = 32;
       }
-      return _addrtest_(rel,state,pbuf, 0);
+      return _addrtest_(state,pbuf, 0);
     }
 
     plen = addr_len;
@@ -1385,7 +1409,7 @@ int inlen;
     while (result != 0) {
 	if (debug)
 	  type(NULL,0,NULL," DEBUG: %s", showkey(pbuf));
-	result = checkaddr(rel, state, pbuf);
+	result = checkaddr(state, pbuf);
 
 	if (result == 0) /* Found! */
 	  return 0;
@@ -1425,8 +1449,8 @@ int inlen;
 static const char * find_nonqchr __((const char *, int, int));
 static const char *
 find_nonqchr(input, chr, inlen)
-const char *input;
-int chr, inlen;
+     const char *input;
+     int chr, inlen;
 {
   int quote = 0;
   /* Find first unquoted ``chr'' character, and return a pointer to it */
@@ -1444,11 +1468,10 @@ int chr, inlen;
 }
 
 /* Return 0, when found something */
-static int check_user(rel, state, input, inlen)
-struct policytest *rel;
-struct policystate *state;
-const char *input;
-int inlen;
+static int check_user(state, input, inlen)
+     struct policystate *state;
+     const char *input;
+     int inlen;
 {
     char pbuf[512];
     const char *at;
@@ -1470,7 +1493,7 @@ int inlen;
     pbuf[0] = inlen + 1 + 2;
     pbuf[1] = P_K_USER;
 
-    result = checkaddr(rel, state, pbuf);
+    result = checkaddr(state, pbuf);
     if (result == 0) /* Found! */
       return result;
 
@@ -1480,24 +1503,23 @@ int inlen;
     pbuf[0] = inlen + 1 + 2;
     pbuf[1] = P_K_USER;
 
-    result = checkaddr(rel, state, pbuf);
+    result = checkaddr(state, pbuf);
     return result;
 }
 
 
-static int pt_heloname __((struct policytest *, struct policystate *, const char *, const int));
+static int pt_heloname __((struct policystate *, const char *, const int));
 
-static int pt_mailfrom __((struct policytest *, struct policystate *, const char *, const int));
+static int pt_mailfrom __((struct policystate *, const char *, const int));
 
-static int pt_rcptto __((struct policytest *, struct policystate *, const char *, const int));
+static int pt_rcptto __((struct policystate *, const char *, const int));
 
-static int pt_rcptpostmaster __((struct policytest *, struct policystate *, const char *, const int));
+static int pt_rcptpostmaster __((struct policystate *, const char *, const int));
 
-static int pt_heloname(rel, state, str, len)
-struct policytest *rel;
-struct policystate *state;
-const char *str;
-const int len;
+static int pt_heloname(state, str, len)
+     struct policystate *state;
+     const char *str;
+     const int len;
 {
     if (state->always_reject)
 	return -1;
@@ -1541,7 +1563,7 @@ const int len;
       state->request = ( 1 << P_A_REJECTNET    |
 			 1 << P_A_FREEZENET  );
 
-      check_domain(rel, state, str, len);
+      check_domain(state, str, len);
 
 /*
    # if (name of SMTP client has 'rejectnet +' attribute) then
@@ -1564,11 +1586,10 @@ const int len;
     return 0;
 }
 
-static int pt_sourcedomain(rel, state, str, len)
-struct policytest *rel;
-struct policystate *state;
-const char *str;
-const int len;
+static int pt_sourcedomain(state, str, len)
+     struct policystate *state;
+     const char *str;
+     const int len;
 {
     if (state->always_reject)
 	return -1;
@@ -1585,7 +1606,7 @@ const int len;
 		       1 << P_A_OutboundSizeLimit  );
     state->request |= ( 1 << P_A_RcptDnsRBL );	/* bag */
 
-    check_domain(rel, state, str, len);
+    check_domain(state, str, len);
 
 /*
    # if (name of SMTP client has 'rejectnet +' attribute) then
@@ -1638,11 +1659,10 @@ const int len;
     return 0;
 }
 
-static int pt_mailfrom(rel, state, str, len)
-struct policytest *rel;
-struct policystate *state;
-const char *str;
-const int len;
+static int pt_mailfrom(state, str, len)
+     struct policystate *state;
+     const char *str;
+     const int len;
 {
     const char *at;
     int requestmask = 0;
@@ -1684,7 +1704,7 @@ const int len;
 	 don't have problems here */
 
       /* Check source user */
-      if (check_user(rel, state, str, len) == 0) {
+      if (check_user(state, str, len) == 0) {
 	if (valueeq(state->values[P_A_FREEZESOURCE], "+")) {
 	  if (debug)
 	    type(NULL,0,NULL," mailfrom: 'freezesource +'");
@@ -1717,7 +1737,7 @@ const int len;
       at = find_nonqchr(str, '@', len);
       if (at != NULL) {
 	/* @[1.2.3.4] ?? */
-	if (check_domain(rel, state, at+1, len - (1 + at - str)) != 0)
+	if (check_domain(state, at+1, len - (1 + at - str)) != 0)
 	  return -1;
       } else {
 	/* Doh ??  Not  <user@domain> ??? */
@@ -1734,7 +1754,7 @@ const int len;
 			 1 << P_A_SENDERNoRelay |
 			 1 << P_A_SENDERokWithDNS ) & (~ requestmask);
 
-      if (check_domain(rel, state, ".", 1) != 0)
+      if (check_domain(state, ".", 1) != 0)
 	  return -1;
       at = str;
     }
@@ -1766,7 +1786,7 @@ const int len;
       if (sscanf(state->ratelimitmsgsvalue, "%d", &limitval) == 1) {
 	/* Valid numeric value had.. */
 
-	int rc = call_rate_counter(rel, state, 0, POLICY_MAILFROM,
+	int rc = call_rate_counter(state, 0, POLICY_MAILFROM,
 				   &count,
 				   (limitval < 0 ? -limitval : limitval));
 
@@ -1786,7 +1806,7 @@ const int len;
 	    state->message = strdup("You are sending too much mail per time interval.  Try again latter.");
 	  if (rc != 0) {
 	    /* register the excess! */
-	    call_rate_counter(rel, state, 2, POLICY_MAILFROM, &count, -2);
+	    call_rate_counter(state, 2, POLICY_MAILFROM, &count, -2);
 	  }
 	  return rc;
 	}
@@ -1812,7 +1832,7 @@ const int len;
     if ((len > 0)  && (at[1] != '[') && state->always_accept ) {
       /* Accept if found in DNS, and not an address literal! */
       int rc;
-      rc = sender_dns_verify('-', at+1, len - (1 + at - str));
+      rc = sender_dns_verify(state, '-', at+1, len - (1 + at - str));
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
       return rc;
@@ -1821,7 +1841,7 @@ const int len;
     if ((len > 0)  && (at[1] != '[') && state->values[P_A_SENDERokWithDNS]) {
       /* Accept if found in DNS, and not an address literal! */
       int test_c = state->values[P_A_SENDERokWithDNS][0];
-      int rc = sender_dns_verify(test_c, at+1, len - (1 + at - str));
+      int rc = sender_dns_verify(state, test_c, at+1, len - (1 + at - str));
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
       PICK_PA_MSG(P_A_SENDERokWithDNS);
@@ -1889,11 +1909,10 @@ const int len;
     return rc;
 }
 
-static int pt_rcptto(rel, state, str, len)
-struct policytest *rel;
-struct policystate *state;
-const char *str;
-const int len;
+static int pt_rcptto(state, str, len)
+     struct policystate *state;
+     const char *str;
+     const int len;
 {
     const char *at;
     int localdom, relayable = 0;
@@ -1925,7 +1944,7 @@ const int len;
 		       1 << P_A_LocalDomain );
 
     /* Test first the full address */
-    if (check_user(rel, state, str, len) == 0) {
+    if (check_user(state, str, len) == 0) {
 #ifdef HAVE_WHOSON_H
       if (valueeq(state->values[P_A_TrustWhosOn], "+")) {
 	if (state->whoson_result == 0){
@@ -1977,13 +1996,14 @@ const int len;
 
     at = find_nonqchr(str, '@', len);
     if (at != NULL) {
-      if (check_domain(rel, state, at+1, len - (1 + at - str)) != 0) {
+      if (check_domain(state, at+1, len - (1 + at - str)) != 0) {
 	type(NULL,0,NULL,"rcptto checkdomain fails; -1");
 	return -1;
       }
     } else {
-      if (state->always_accept)
+      if (state->always_accept) {
 	return 0;
+      }
 
       /* Doh ??  Not  <user@domain> ??? */
       return -1;
@@ -2026,7 +2046,7 @@ const int len;
 			   1 << P_A_LocalDomain );
 
 	llen = (phack - str);
-	if (check_domain(rel, state, str, llen) != 0)
+	if (check_domain(state, str, llen) != 0)
 	  return -1;
 	
 	str = phack+1;
@@ -2058,7 +2078,7 @@ const int len;
 			   1 << P_A_LocalDomain );
 
 	llen = (at - phack)-1;
-	if (check_domain(rel, state, phack+1, llen) != 0)
+	if (check_domain(state, phack+1, llen) != 0)
 	  return -1;
 	at = phack;
 	*((int*)&len) = (1 + at - str) + llen;
@@ -2118,7 +2138,7 @@ const int len;
       if (state->values[P_A_ACCEPTifMX]) {
 	c = state->values[P_A_ACCEPTifMX][0];
       }
-      rc = client_dns_verify(c, at+1, len - (1 + at - str));
+      rc = client_dns_verify(state, c, at+1, len - (1 + at - str));
       /* XX: state->message setup! */
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
@@ -2128,7 +2148,7 @@ const int len;
 
     if (state->values[P_A_ACCEPTifMX] || state->sender_norelay != 0) {
       int c = state->values[P_A_ACCEPTifMX] ? state->values[P_A_ACCEPTifMX][0] : '.';
-      int rc = mx_client_verify(c, at+1, len - (1 + at - str)); 
+      int rc = mx_client_verify(state, c, at+1, len - (1 + at - str)); 
       /* XX: state->message setup! */
       if (debug)
 	type(NULL,0,NULL," ...(mx_client_verify('%.*s')) returns: %d",
@@ -2138,7 +2158,7 @@ const int len;
     }
 
     if (state->values[P_A_ACCEPTifDNS]) {
-      int rc = client_dns_verify(state->values[P_A_ACCEPTifDNS][0],
+      int rc = client_dns_verify(state, state->values[P_A_ACCEPTifDNS][0],
 				 at+1, len - (1 + at - str));
       /* XX: state->message setup! */
       if (debug)
@@ -2150,16 +2170,15 @@ const int len;
     return 0;
 }
 
-static int pt_rcptpostmaster(rel, state, str, len)
-struct policytest *rel;
-struct policystate *state;
-const char *str;
-const int len;
+static int pt_rcptpostmaster(state, str, len)
+     struct policystate *state;
+     const char *str;
+     const int len;
 {
     /* state->request initialization !! */
     state->request = ( 1 << P_A_RELAYTARGET );
 
-    if (check_user(rel, state, str, len) == 0) {
+    if (check_user(state, str, len) == 0) {
       if (valueeq(state->values[P_A_RELAYTARGET], "+")) {
 	PICK_PA_MSG(P_A_RELAYTARGET);
 	return  0;
@@ -2169,15 +2188,14 @@ const int len;
 }
 
 
-int policytest(rel, state, what, str, len, authuser)
-struct policytest *rel;
-struct policystate *state;
-PolicyTest what;
-const char *str, *authuser;
-const int len;
+int policytest(state, what, str, len, authuser)
+     struct policystate *state;
+     PolicyTest what;
+     const char *str, *authuser;
+     const int len;
 {
     int rc;
-    if (rel == NULL)
+    if (state == NULL || state->PT == NULL)
       return 0;
 
     if (state->authuser == NULL)
@@ -2194,23 +2212,24 @@ const int len;
 
     switch(what) {
     case POLICY_SOURCEDOMAIN:
-      rc = pt_sourcedomain(rel, state, str, len);
+      rc = pt_sourcedomain(state, str, len);
       break;
     case POLICY_HELONAME:
-      rc = pt_heloname(rel, state, str, len);
+      rc = pt_heloname(state, str, len);
       break;
     case POLICY_MAILFROM:
-      rc = pt_mailfrom(rel, state, str, len);
+      rc = pt_mailfrom(state, str, len);
       break;
     case POLICY_RCPTTO:
-      rc = pt_rcptto(rel, state, str, len);
+      rc = pt_rcptto(state, str, len);
       break;
     case POLICY_RCPTPOSTMASTER:
-      rc = pt_rcptpostmaster(rel, state, str, len);
+      rc = pt_rcptpostmaster(state, str, len);
       break;
     case POLICY_DATA:
     case POLICY_DATAOK:
-      rc = call_rate_counter(rel, state, 1, what, NULL, -2);
+      /* rc = call_rate_counter(state, 1, what, NULL, -2); */
+      rc = call_rate_counter(state, len, POLICY_RCPTTO, NULL, -2);
       break;
     default:
       abort();			/* Code error! Bad policy ! */
@@ -2221,35 +2240,31 @@ const int len;
 }
 
 char *
-policymsg(rel, state)
-struct policytest *rel;
-struct policystate *state;
+policymsg(state)
+     struct policystate *state;
 {
     return state->message;
 }
 
 #ifdef HAVE_SPF_ALT_SPF_H
 char *
-policyspfhdr(rel, state)
-struct policytest *rel;
-struct policystate *state;
+policyspfhdr(state)
+     struct policystate *state;
 {
     return state->spf_received_hdr;
 }
 #endif
 
 long
-policyinsizelimit(rel, state)
-struct policytest *rel;
-struct policystate *state;
+policyinsizelimit(state)
+     struct policystate *state;
 {
     return state->maxinsize;
 }
 
 long
-policysameiplimit(rel, state)
-struct policytest *rel;
-struct policystate *state;
+policysameiplimit(state)
+     struct policystate *state;
 {
     return state->maxsameiplimit;
 }

@@ -13,7 +13,10 @@
 
 #include "policy.h"
 
+struct policytest; /* forward declarator */
+
 struct policystate {		/* Part of SmtpState structure */
+    struct policytest *PT;
     /* States carried from one invocation to another */
     int always_reject;
     int always_freeze;
@@ -134,13 +137,13 @@ typedef enum {
    >0 : Accept into freeze area...
  */
 
-extern void policydefine __((struct policytest ** relp, const char *dbtype, const char *dbpath));
-extern int policyinit __((struct policytest ** relp, struct policystate * ps, int whoson_result));
-extern int policytest __((struct policytest * rel, struct policystate * ps, PolicyTest how, const char *str, const int len, const char *authuser));
-extern int policytestaddr __((struct policytest * rel, struct policystate * ps, PolicyTest how, Usockaddr * raddr));
-extern char *policymsg __((struct policytest *rel, struct policystate *ps));
-extern char *policyspfhdr __((struct policytest *rel, struct policystate *ps));
-extern long  policyinsizelimit __((struct policytest *rel, struct policystate *ps));
-extern long  policysameiplimit __((struct policytest *rel, struct policystate *ps));
+extern void policydefine __((struct policytest ** PTp, const char *dbtype, const char *dbpath));
+extern int policyinit __((struct policystate * PS, struct policytest *PT, int whoson_result));
+extern int policytest __((struct policystate * ps, PolicyTest how, const char *str, const int len, const char *authuser));
+extern int policytestaddr __((struct policystate * ps, PolicyTest how, Usockaddr * raddr));
+extern char *policymsg __((struct policystate *ps));
+extern char *policyspfhdr __((struct policystate *ps));
+extern long  policyinsizelimit __((struct policystate *ps));
+extern long  policysameiplimit __((struct policystate *ps));
 
 extern struct policytest *policydb;

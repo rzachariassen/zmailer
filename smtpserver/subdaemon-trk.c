@@ -72,8 +72,9 @@ struct ipv4_regs {
 	struct ipv4_regs *next;
 	int mails, slots;
 	int lastlimit;
-	time_t alloc_time, last_excess;
+	time_t alloc_time, last_excess, last_recipients;
 	int excesses, excesses2, excesses3;
+	int recipients, recipients2, recipients3;
 	int countset[SLOTCOUNT];
 };
 
@@ -272,6 +273,9 @@ static void new_ipv4_timeslot( state )
 	      r[i].excesses3 += r[i].excesses2;
 	      r[i].excesses2  = r[i].excesses;
 	      r[i].excesses   = 0;
+	      r[i].recipients3 += r[i].recipients2;
+	      r[i].recipients2  = r[i].recipients;
+	      r[i].recipients   = 0;
 	      r[i].slots = 0;
 	    }
 
@@ -300,6 +304,20 @@ static int count_excess_ipv4( state, ipv4addr )
 	reg->last_excess = now;
 
 	return reg->excesses;
+}
+
+static int count_rcpts_ipv4( state, ipv4addr, incr )
+     struct trk_state *state;
+     unsigned int ipv4addr;
+     int incr;
+{
+	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
+	if (!reg) return 0;    /*  not alloced!  */
+
+	reg->recipients += incr;
+	reg->last_recipients = now;
+
+	return reg->recipients;
 }
 
 
@@ -446,12 +464,14 @@ dump_trk(state, peerdata)
 		fprintf(fp, "%3d ", r[i].countset[tr[j]]);
 	      }
 	      fprintf(fp, "\t");
-	      fprintf(fp, "Lmt: %4d ", r[i].lastlimit);
-	      fprintf(fp, "AllocAge: %6.3fh ", (double)(now-r[i].alloc_time)/3600.0);
-	      fprintf(fp, "Mails: %6d ", r[i].mails);
-	      fprintf(fp, "Excesses: %d %d %d ",
+	      fprintf(fp, "Lmt: %4d", r[i].lastlimit);
+	      fprintf(fp, " AllocAge: %6.3fh", (double)(now-r[i].alloc_time)/3600.0);
+	      fprintf(fp, " Mails: %6d", r[i].mails);
+	      fprintf(fp, " Excesses: %d %d %d",
 		      r[i].excesses, r[i].excesses2, r[i].excesses3);
-	      fprintf(fp, "LastExcess: %ld", r[i].last_excess);
+	      fprintf(fp, " LastExcess: %ld", r[i].last_excess);
+	      fprintf(fp, " Rcpts: %d %d %d",
+		      r[i].recipients, r[i].recipients2, r[i].recipients3);
 	      fprintf(fp, "\n");
 	      fflush(fp);
 	    }
@@ -502,7 +522,7 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 	char *s = outbuf;
 
 	if (!reg) {
-	  strcpy(outbuf,"200 Slot-IPv4-data: 0 0 0 0  0 0 0 0  MAILs: 0 SLOTAGE: 0 Limit: 0\n");
+	  strcpy(outbuf,"200 Slot-IPv4-data: 0 0 0 0  0 0 0 0  MAILs: 0 SLOTAGE: 0 Limit: 0 Excesses: 0 0 0 Latest: 0 Rcpts: 0 0 0\n");
 	  s = strlen(outbuf)+outbuf;
 #if 0
 	  sprintf(s, "    [%d.%d.%d.%d]",
@@ -532,9 +552,14 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 	s += strlen(s);
 	sprintf(s, " Limit: %d", reg->lastlimit);
 	s += strlen(s);
-	sprintf(s, " Excesses: %d %d %d Latest: %ld\n",
+	sprintf(s, " Excesses: %d %d %d Latest: %ld",
 		reg->excesses, reg->excesses2, reg->excesses3,
 		reg->last_excess);
+	s += strlen(s);
+	sprintf(s, " Rcpts: %d %d %d",
+		reg->recipients, reg->recipients2, reg->recipients3);
+	s += strlen(s);
+	sprintf(s, "\n");
 }
 
 
@@ -585,8 +610,8 @@ subdaemon_handler_trk_input (statep, peerdata)
 {
 	struct trk_state *state = statep;
 	char actionlabel[8], iplabel[40], typelabel[10];
-	char lastlimits[12], *s1, *s2, *s3, *s4;
-	int i, incr, lastlimitval;
+	char lastlimits[12], countstr[10], *s1, *s2, *s3, *s4, *s5;
+	int i, lastlimitval, countval;
 	long ipv4addr;
 
 	subdaemon_trk_checksigusr1(state);
@@ -600,11 +625,11 @@ subdaemon_handler_trk_input (statep, peerdata)
 	/*
 	 * Protocol:
 	 *
-	 * C: <actionlabel> <ipaddrlabel> <lastlimit> <typelabel>
+	 * C: <actionlabel> <ipaddrlabel> <lastlimit> <typelabel> <count>
 	 * S: 200 <value>
 	 *
 	 * Where:
-	 *  <actionlabel>: "RATE", "INCR", "RATES", "AGES"
+	 *  <actionlabel>: "RATE", "MSGS", "RATES", "AGES"
 	 *  <ipaddrlabel>: "4:12345678", or "6:123456789abcdef0"
 	 *  <typelabel>:   "CONNECT" or "MAIL" ?   (ignored)
 	 *
@@ -612,40 +637,45 @@ subdaemon_handler_trk_input (statep, peerdata)
 
 
 	actionlabel[0] = iplabel[0] = lastlimits[0] = typelabel[0] = 0;
+	countstr[0] = 0;
 
 	s1 = strtok(peerdata->inpbuf, " \n");
 	s2 = strtok(NULL, " \n");
 	s3 = strtok(NULL, " \n");
 	s4 = strtok(NULL, " \n");
+	s5 = strtok(NULL, " \n");
 
 	if (s1) strncpy(actionlabel, s1, sizeof(actionlabel));
 	if (s2) strncpy(iplabel,     s2, sizeof(iplabel));
 	if (s3) strncpy(lastlimits,  s3, sizeof(lastlimits));
 	if (s4) strncpy(typelabel,   s4, sizeof(typelabel));
+	if (s5) strncpy(countstr,    s5, sizeof(countstr));
 
 	actionlabel[sizeof(actionlabel)-1] = 0;
 	lastlimits[sizeof(lastlimits)-1] = 0;
 	typelabel[sizeof(typelabel)-1] = 0;
+	countstr[sizeof(countstr)-1] = 0;
 	iplabel[sizeof(iplabel)-1] = 0;
 
 	lastlimitval = atoi(lastlimits);
+	countval     = atoi(countstr);
 
 	/* type(NULL,0,NULL,"Got: '%s' '%s' '%s'=%d '%s'", 
 	   actionlabel, iplabel, lastlimits,lastlimitval, typelabel); */
 
-	incr = -1;
-	if (STREQ(actionlabel,"INCR")) {
-	  incr = 1;
-	} else if (STREQ(actionlabel,"RATE")) {
-	  incr = 0;
+	i = -1;
+	if (STREQ(actionlabel,"MSGS")) {
+	  i = 1;
 	} else if (STREQ(actionlabel,"RATES")) {
-	  incr = -2;
+	  i = -2;
 	} else if (STREQ(actionlabel,"AGES")) {
-	  incr = -3;
+	  i = -3;
 	} else if (STREQ(actionlabel,"EXCESS")) {
-	  incr = -4;
+	  i = -4;
 	} else if (STREQ(actionlabel,"DUMP")) {
-	  incr = -5;
+	  i = -5;
+	} else if (STREQ(actionlabel,"RCPT")) {
+	  i = -6;
 	} else
 	  goto bad_input;
 
@@ -654,18 +684,22 @@ subdaemon_handler_trk_input (statep, peerdata)
 	  ipv4addr = strtoul( iplabel+2, NULL, 16);
 	  /* FIXME ? - htonl() ???  */
 
-	  if (incr >= 0) {
-	    i = count_ipv4( state, ipv4addr, lastlimitval, incr );
+	  if (i >= 0) {		/* "MSGS" data */
+	    i = count_ipv4( state, ipv4addr, lastlimitval, countval );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
-	  } else if (incr == -2) {
+	  } else if (i == -2) {	/* "RATES" report */
 	    slot_ipv4_data(statep, peerdata->outbuf, ipv4addr);
-	  } else if (incr == -3) {
+	  } else if (i == -3) {	/* "AGES" report */
 	    slot_ages(statep, peerdata->outbuf);
-	  } else if (incr == -4) {
-	    i = count_excess_ipv4( state, ipv4addr );
+	  } else if (i == -4) {	/* "EXCESS" data */
+	    i = count_excess_ipv4( state, ipv4addr, countval );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
-	  } else if (incr == -5) {
+	  } else if (i == -5) {	/* "DUMP" report */
 	    dump_trk( state, peerdata );
+	  } else if (i == -6) {	/* "RCPT" data */
+	    i = count_ipv4( state, ipv4addr, lastlimitval, 1 );
+	    i = count_rcpts_ipv4( state, ipv4addr, countval );
+	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  }
 	  peerdata->outlen = strlen(peerdata->outbuf);
 

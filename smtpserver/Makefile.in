@@ -57,13 +57,7 @@ all: $(PROGRAM)
 	$(CC) $(CFLAGS) -c $<
 
 $(OBJS): $(srcdir)/../include/shmmib.h ../include/mail.h
-$(OBJS): $(srcdir)/smtpserver.h
-
-
-smtpserver.o: $(srcdir)/policytest.h
-smtpcmds.o:   $(srcdir)/policytest.h
-policytest.o: $(srcdir)/policytest.h
-contentpolicy.o: $(srcdir)/policytest.h
+$(OBJS): $(srcdir)/smtpserver.h $(srcdir)/policytest.h
 
 zpwmatch.o:	$(srcdir)/$(privateauth)zpwmatch.c
 	$(CC) $(CFLAGS) -c $(srcdir)/$(privateauth)zpwmatch.c

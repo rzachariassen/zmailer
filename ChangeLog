@@ -1,3 +1,21 @@
+2004-04-28  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/Makefile.in, smtpserver/contentpolicy.c,
+	  smtpserver/mxverify.c, smtpserver/policytest.c,
+	  smtpserver/policytest.h, smtpserver/smtpcmds.c,
+	  smtpserver/smtpdata.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h, smtpserver/subdaemon-trk.c:
+	    - Reworked parameters of the policy related functions
+	      to use only one state variable pointer.
+	    - Add accounting of recipients of messages in
+	      addition to the counting of messages.
+	      Won't (yet) have _limit_ on number of recipients..
+	
+	* smtpserver/subdaemon-rtr.c:
+	    The interactive router complained in manual
+	    test mode.  Perhaps should develop a fallback
+	    interactive router mode for these test things.
+
 2004-04-27  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:

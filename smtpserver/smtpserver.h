@@ -463,7 +463,7 @@ extern int        bindaddrs_count;
 extern Usockaddr testaddr;
 
 extern const char *progname;
-extern int debug, skeptical, checkhelo, ident_flag, verbose;
+extern int debug, skeptical, checkhelo, ident_flag, verbose, daemon_flg;
 
 extern const char *style;
 
@@ -690,13 +690,13 @@ extern int  smtp_report_dump __((SmtpState *SS));
 
 
 /* contentpolicy.c */
-extern int contentpolicy __((struct policytest *rel, struct policystate *ps, const char *fname));
+extern int contentpolicy __((struct policystate *ps, const char *fname));
 /* subdaemon-ctf.c */
 extern int contentfilter_maxctfs;
 extern char *contentfilter_proc __((void **, const char *fname));
 extern void  smtpcontentfilter_kill __((void *));
 
-extern int mx_client_verify  __((int, const char *, int));
-extern int sender_dns_verify __((int, const char *, int));
-extern int client_dns_verify __((int, const char *, int));
-extern int rbl_dns_test __((const int, const u_char *, char *, char **));
+extern int mx_client_verify  __((struct policystate *, int, const char *, int));
+extern int sender_dns_verify __((struct policystate *, int, const char *, int));
+extern int client_dns_verify __((struct policystate *, int, const char *, int));
+extern int rbl_dns_test __((struct policystate *, const int, const u_char *, char *, char **));

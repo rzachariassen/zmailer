@@ -361,6 +361,9 @@ smtprouter_init ( statep )
 	int toserver[2];
 	int rc;
 
+	if (router_rdz_fd <0) return -1; /* The irouter is not available */
+
+
 	if (!state)
 	  state = *statep = malloc(sizeof(*state));
 	if (!state) return -1;
@@ -463,6 +466,10 @@ router(SS, function, holdlast, arg, len)
 	if (! state || !state->outfp) {
 	  smtprouter_init( &state );
 	  if (! state || !state->outfp || !state->sawhungry) {
+
+	    if (!daemon_flg)
+	      return strdup("200 No interactive router run;");
+
 	    type(SS, 440, "4.4.0", "Failed to init interactive router subsystem");
 	    smtprouter_kill( state );
 	    return NULL;

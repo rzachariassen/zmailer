@@ -1,7 +1,7 @@
 /*
  *   mx_client_verify() -- subroutine for ZMailer smtpserver
  *
- *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999,2002-2003
+ *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999,2002-2004
  */
 
 #include "smtpserver.h"
@@ -9,13 +9,14 @@
 
 extern int use_ipv6;
 
-static int dnsmxlookup __((const char*, int, int, int));
+static int dnsmxlookup __((struct policystate *, const char*, int, int, int));
 
 extern int debug;
 static char * txt_buf = NULL;
 
 static int
-dnsmxlookup(host, depth, mxmode, qtype)
+dnsmxlookup(state, host, depth, mxmode, qtype)
+	struct policystate *state;
 	const char *host;
 	int depth;
 	int mxmode;
@@ -192,14 +193,14 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  return -EX_SOFTWARE;
 	}
 
-
+#if 0
 	if (qtype == T_MX && !mxmode && had_mx_record) {
 	  /* Accept if found ANYTHING! */
 	  if (debug) printf("000-  ... accepted!\n");
 	  for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
 	  return 1;
 	}
-
+#endif
 
 	/* Now skip the AUTHORITY SECTION data */
 
@@ -277,10 +278,6 @@ dnsmxlookup(host, depth, mxmode, qtype)
 
 		/* build addrinfo block, pick addresses */
 
-		/* WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
-		   This assumes intimate knowledge of the system
-		   implementation of the  ``struct addrinfo'' !  */
-
 		memset(&usa, 0, sizeof(usa));
 
 		switch (type) {
@@ -322,6 +319,11 @@ dnsmxlookup(host, depth, mxmode, qtype)
 		    printf("000-   AR ADDRESS MATCH!\n");
 		  for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
 		  return 1; /* Found a match! */
+		} else if (i == 2) {
+		  if (debug)
+		    printf("000-   AR ADDRESS LOOPBACK MATCH!\n");
+		  for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
+		  return 2; /* Found a match! */
 		} else
 		  if (debug)
 		    printf("000-   AR matchmyaddress() yields: %d\n", i);
@@ -388,15 +390,6 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  if (i != 0)
 	    continue;		/* Well well.. spurious! */
 
-	  if (!mxmode) /* Accept if found ANYTHING! */ {
-	    if (debug) printf("000-  ... accepted!\n");
-	    freeaddrinfo(ai);
-	    for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
-
-	    return 1;
-	  }
-	  
-	    
 	  for ( ai2 = ai ; ai2 != NULL; ai2 = ai2->ai_next) {
 	    ++k;
 #if 1
@@ -426,6 +419,12 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	      freeaddrinfo(ai);
 	      for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
 	      return 1; /* Found a match! */
+	    } else if (rc == 2) {
+	      if (debug)
+		printf("000-   LOOPBACK ADDRESS MATCH!\n");
+	      freeaddrinfo(ai);
+	      for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
+	      return 2; /* Found a match! */
 	    } else
 	      if (debug)
 		printf("000-   matchmyaddress() yields: %d\n", rc);
@@ -434,6 +433,13 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	    printf("000-   No address match among %d address!\n", k);
 
 	  freeaddrinfo(ai);
+
+	  if (!mxmode) /* Accept if found ANYTHING! */ {
+	    if (debug) printf("000-  ... accepted!\n");
+	    for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
+	    return 1;
+	  }
+
 	}
 
 	for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
@@ -441,7 +447,7 @@ dnsmxlookup(host, depth, mxmode, qtype)
 
 	/* Didn't find any, but saw CNAME ? Recurse with the real name */
 	if (saw_cname)
-	  return dnsmxlookup((void *)realname, depth+1, mxmode, qtype);
+	  return dnsmxlookup(state, (void *)realname, depth+1, mxmode, qtype);
 
 	if (had_mx_record && mxmode)
 	    return 2; /* We have SOME date, but no match on ourselves! */
@@ -521,7 +527,7 @@ perhaps_address_record:
 	  if (i == 2) {
 	    /* Loopback ! */
 	    freeaddrinfo(ai);
-	    return 0;
+	    return 2;
 	  }
 #endif
 	  if (i == 0 && mxmode) {
@@ -546,7 +552,8 @@ perhaps_address_record:
    For (retmode == '+'), and without MX, return 1.
  */
 
-int mx_client_verify(retmode, domain, alen)
+int mx_client_verify(state, retmode, domain, alen)
+     struct policystate *state;
      int retmode, alen;
      const char *domain;
 {
@@ -559,7 +566,7 @@ int mx_client_verify(retmode, domain, alen)
 	strncpy(hbuf, domain, alen);
 	hbuf[alen] = 0; /* Chop off the trailers from the name */
 
-	rc = dnsmxlookup(hbuf, 0, 1, T_MX);
+	rc = dnsmxlookup(state, hbuf, 0, 1, T_MX);
 
 	if (rc == 1) return 0; /* Found! */
 
@@ -580,7 +587,8 @@ int mx_client_verify(retmode, domain, alen)
 	return -2;     /* Reject */
 }
 
-int sender_dns_verify(retmode, domain, alen)
+int sender_dns_verify(state, retmode, domain, alen)
+     struct policystate *state;
      int retmode, alen;
      const char *domain;
 {
@@ -593,7 +601,7 @@ int sender_dns_verify(retmode, domain, alen)
 	strncpy(hbuf, domain, alen);
 	hbuf[alen] = 0; /* Chop off the trailers from the name */
 
-	rc = dnsmxlookup(hbuf, 0, 0, T_MX);
+	rc = dnsmxlookup(state, hbuf, 0, 0, T_MX);
 
 	if (debug)
 	  printf("000- dnsmxlookup() did yield: %d, retmode='%c'\n",
@@ -620,14 +628,16 @@ int sender_dns_verify(retmode, domain, alen)
 	return -2;     /* Reject */
 }
 
-int client_dns_verify(retmode, domain, alen)
+int client_dns_verify(state, retmode, domain, alen)
+     struct policystate *state;
      int retmode, alen;
      const char *domain;
 {
-	return sender_dns_verify(retmode, domain, alen);
+	return sender_dns_verify(state,retmode, domain, alen);
 }
 
-int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
+int rbl_dns_test(state, ipaf, ipaddr, rbldomain, msgp)
+     struct policystate *state;
      const int ipaf;
      const u_char *ipaddr;
      char *rbldomain;
@@ -717,7 +727,7 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	    if (debug)
 	      printf("000- looking up DNS TXT object: %s\n", hbuf);
 
-	    if (dnsmxlookup(hbuf, 0, 0, T_TXT) == 1) {
+	    if (dnsmxlookup(state, hbuf, 0, 0, T_TXT) == 1) {
 	      if (*msgp != NULL)
 		free(*msgp);
 	      *msgp = strdup(txt_buf);
@@ -731,7 +741,8 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 		    *s = ' ';
 		}
 	      }
-	      type(NULL,0,NULL,"Found DNS TXT object: %s\n", *msgp ? *msgp : "<nil>");
+	      type(NULL,0,NULL,"Found DNS TXT object: %s\n",
+		   (*msgp ? *msgp : "<nil>"));
 	    }
 	    return -1;
 	  }

@@ -257,9 +257,9 @@ const char *buf, *cp;
 	/* Lets see what the content-policy will tell now ? */
 
 	if (debug) typeflush(SS);
-	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
+	SS->policyresult = contentpolicy(&SS->policystate, fname);
 
-	ss0 = ss  = policymsg(policydb, &SS->policystate);
+	ss0 = ss  = policymsg(&SS->policystate);
 
 	if (ss)
 	  type(NULL,0,NULL,
@@ -410,7 +410,7 @@ const char *buf, *cp;
 		       "%s: (%ldc) accepted from %s/%d", taspid, tell,
 		       SS->rhostname, SS->rport));
 		
-	    policytest(policydb, &SS->policystate, POLICY_DATAOK, NULL, 0, NULL);
+	    policytest(&SS->policystate, POLICY_DATAOK, NULL, SS->ok_rcpt_count, NULL);
 
 	    MIBMtaEntry->ss.IncomingSMTP_DATA_ok    += 1;
 
@@ -643,8 +643,8 @@ const char *buf, *cp;
 	/* Lets see what the content-policy will tell now ? */
 
 	if (debug) typeflush(SS);
-	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
-	ss0 = ss  = policymsg(policydb, &SS->policystate);
+	SS->policyresult = contentpolicy(&SS->policystate, fname);
+	ss0 = ss  = policymsg(&SS->policystate);
 
 	if (ss)
 	  type(NULL,0,NULL,
@@ -791,7 +791,7 @@ const char *buf, *cp;
 	  }
 #endif
 
-	  policytest(policydb, &SS->policystate, POLICY_DATAOK, NULL, 0, NULL);
+	  policytest(&SS->policystate, POLICY_DATAOK, NULL, SS->ok_rcpt_count, NULL);
 
 
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_ok    += 1;

@@ -187,7 +187,7 @@ const char *buf, *cp;
 
     if (debug) typeflush(SS);
     if (SS->netconnected_flg)
-      SS->policyresult = policytest(policydb, &SS->policystate,
+      SS->policyresult = policytest(&SS->policystate,
 				    POLICY_HELONAME, cp, strlen(cp),
 				    SS->authuser);
     else
@@ -196,7 +196,7 @@ const char *buf, *cp;
     if (logfp || logfp_to_syslog) time( & now );
 
     if (logfp) {
-      char *s = policymsg(policydb, &SS->policystate);
+      char *s = policymsg(&SS->policystate);
       if (SS->policyresult != 0 || s != NULL) {
 	fprintf(logfp, "%s%04d#\t-- policy result=%d, msg: %s\n", logtag,
 		(int)(now - logtagepoch),
@@ -205,7 +205,7 @@ const char *buf, *cp;
       }
     }
     if (logfp_to_syslog) {
-      char *s = policymsg(policydb, &SS->policystate);
+      char *s = policymsg(&SS->policystate);
       if (SS->policyresult != 0 || s != NULL) {
 	zsyslog((LOG_DEBUG, "%s%04d # policy result=%d, msg: %s", logtag,
 		(int)(now - logtagepoch),
@@ -322,7 +322,7 @@ const char *buf, *cp;
 
 	/* ESMTP -- RFC 1651,1652,1653,1428 thingies */
 	char sizebuf[20];
-	long policyinlimit = policyinsizelimit(policydb, &SS->policystate);
+	long policyinlimit = policyinsizelimit(&SS->policystate);
 	long maxinlimit = maxsize;
 	int multiline = multilinereplies;
 	multilinereplies = 1;
@@ -791,13 +791,13 @@ int insecure;
 
     if (debug) typeflush(SS);
     if (SS->netconnected_flg)
-      SS->policyresult = policytest(policydb, &SS->policystate,
+      SS->policyresult = policytest(&SS->policystate,
 				    POLICY_MAILFROM, cp, addrlen,
 				    SS->authuser);
     else
       SS->policyresult = 0;
     if (logfp || logfp_to_syslog) {
-      char *ss = policymsg(policydb, &SS->policystate);
+      char *ss = policymsg(&SS->policystate);
       if (SS->policyresult != 0 || ss != NULL) {
 	type(NULL,0,NULL,"-- policy result=%d, msg: %s",
 	     SS->policyresult, (ss ? ss : "<NONE!>"));
@@ -807,7 +807,7 @@ int insecure;
     }
 
     if (SS->policyresult < 0) {
-      char *ss = policymsg(policydb, &SS->policystate);
+      char *ss = policymsg(&SS->policystate);
       if (ss != NULL) {
 	int code = 450;
 	const char *mcode = m471;
@@ -830,7 +830,7 @@ int insecure;
 	  type(SS,450,m471, "Hello %s, for address <%.*s> access denied by the policy analysis functions.", SS->ihostaddr, addrlen, cp);
 	}
       } else {
-	char *ss = policymsg(policydb, &SS->policystate);
+	char *ss = policymsg(&SS->policystate);
 	smtp_tarpit(SS);
 	if (ss != NULL) {
 	  type(SS, 553, m571, "Hello %s, for your input address <%.*s> Policy analysis reported: %s", SS->ihostaddr, addrlen, cp, ss);
@@ -1346,13 +1346,13 @@ const char *buf, *cp;
 
     if (debug) typeflush(SS);
     if (SS->netconnected_flg)
-      SS->policyresult = policytest(policydb, &SS->policystate,
+      SS->policyresult = policytest(&SS->policystate,
 				    POLICY_RCPTTO, cp, addrlen,
 				    SS->authuser);
     else
       SS->policyresult = 0;
     if (logfp || logfp_to_syslog) {
-      char *ss = policymsg(policydb, &SS->policystate);
+      char *ss = policymsg(&SS->policystate);
       if (SS->policyresult != 0 || ss != NULL) {
 	type(NULL,0,NULL,"-- policy result=%d, msg: %s",
 	     SS->policyresult, (ss ? ss : "<NONE!>"));
@@ -1371,7 +1371,7 @@ const char *buf, *cp;
 	    int rc;
 	    if (debug) typeflush(SS);
 	    if (SS->netconnected_flg)
-	      rc = policytest(policydb, &SS->policystate,
+	      rc = policytest(&SS->policystate,
 			      POLICY_RCPTPOSTMASTER, cp, addrlen,
 			      SS->authuser);
 	    else
@@ -1380,7 +1380,7 @@ const char *buf, *cp;
 	      SS->policyresult = 0;
 
 	    if (logfp || logfp_to_syslog) {
-	      char *ss = policymsg(policydb, &SS->policystate);
+	      char *ss = policymsg(&SS->policystate);
 	      if (SS->policyresult != 0 || ss != NULL) {
 		type(NULL,0,NULL,"-- policy result=%d, msg: %s",
 		     SS->policyresult, (ss ? ss : "<NONE!>"));
@@ -1393,7 +1393,7 @@ const char *buf, *cp;
     }
 
     if (SS->policyresult < 0) {
-	char *ss = policymsg(policydb, &SS->policystate);
+	char *ss = policymsg(&SS->policystate);
 
 	fprintf(SS->mfp, "comment policytest() rejected rcptaddr: <");
 	fwrite(cp, 1, addrlen, SS->mfp);

@@ -37,10 +37,9 @@ extern int debug;
 int debug_content_filter;
 
 int
-contentpolicy(rel, state, fname)
-struct policytest *rel;
-struct policystate *state;
-const char *fname;
+contentpolicy(state, fname)
+     struct policystate *state;
+     const char *fname;
 {
 	int i, rc, neg, val;
 	char *s;

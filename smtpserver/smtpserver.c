@@ -2253,10 +2253,10 @@ int insecure;
 
 
 #ifdef HAVE_WHOSON_H
-      policystatus     = policyinit(&policydb, &SS->policystate,
-				  SS->whoson_result);
+      policystatus     = policyinit(&SS->policystate, policydb, 
+				    SS->whoson_result);
 #else
-      policystatus     = policyinit(&policydb, &SS->policystate, 0);
+      policystatus     = policyinit(&SS->policystate, policydb, 0);
 #endif
 
     if (!SS->netconnected_flg) {
@@ -2266,17 +2266,17 @@ int insecure;
       maxsameip = 0;
     } else {
       if (debug) typeflush(SS);
-      SS->policyresult = policytestaddr(policydb, &SS->policystate,
+      SS->policyresult = policytestaddr(&SS->policystate,
 					POLICY_SOURCEADDR,
 					(void *) &SS->raddr);
       SS->reject_net = (SS->policyresult < 0);
-      maxsameip = policysameiplimit(policydb, &SS->policystate);
+      maxsameip = policysameiplimit(&SS->policystate);
       if (maxsameip == 0 && SS->netconnected_flg)
 	SS->reject_net = 1; /* count=0 equivalent to reject */
       if (debug) typeflush(SS);
       if (SS->policyresult == 0) /* Alternates to this condition are:
 				    Always reject, or Always freeze.. */
-	SS->policyresult = policytest(policydb, &SS->policystate,
+	SS->policyresult = policytest(&SS->policystate,
 				      POLICY_SOURCEDOMAIN,
 				      SS->rhostname,strlen(SS->rhostname),
 				      SS->authuser);
@@ -2300,7 +2300,7 @@ int insecure;
 #endif
 
     if (SS->reject_net) {
-	char *msg = policymsg(policydb, &SS->policystate);
+	char *msg = policymsg(&SS->policystate);
 	smtp_tarpit(SS);
 	if (msg != NULL) {
 	  type(SS, -550, NULL, "%s", msg);
@@ -2346,7 +2346,7 @@ int insecure;
 
     cfinfo = NULL;
     {
-	char *s = policymsg(policydb, &SS->policystate);
+	char *s = policymsg(&SS->policystate);
 	if (SS->policyresult != 0 || s != NULL)
 	  type(NULL,0,NULL,"-- policyresult=%d initial policy msg: %s",
 	       SS->policyresult, (s ? s : "<NONE!>"));
