@@ -1,4 +1,4 @@
-v0.0/mea/19981120
+v0.1/mea/19990903
 
 
 		Using ETRN on SMTP server
@@ -22,7 +22,7 @@ designated as your "ETRN HUB":
 
 	$MAILVAR/db/routes:
 
-	client.dom	smtp-etrn!mail.client.dom
+	.client.dom	smtp-etrn!mail.client.dom
 
 
 The   $MAILSHARE/scheduler.conf  in the default setup has following

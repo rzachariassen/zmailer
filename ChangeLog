@@ -1,5 +1,8 @@
 1999-09-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* doc/guides/smtp-etrn:
+	    Spotted a typo error at the ISP side document.
+
 	* smtpserver/zpwmatch-pipe.c, smtpserver/smtpserver.h,
 	  smtpserver/smtpserver.c, smtpserver/smtpauth.c,
 	  smtpserver/cfgread.c, proto/smtpserver.conf.in,
