@@ -39,7 +39,7 @@ in figure \vref{fig:ref:smtpserver1}.
 
 \begin{figure*}
 \begin{alltt}\hrule\medskip
-$ {\bfseries{}telnet 127.1 smtp}
+\$ {\bfseries{}telnet 127.1 smtp}
 Connected to 127.1.
 Escape character is '^]'.
 220 localhost ZMailer ....
@@ -72,29 +72,29 @@ Escape character is '^]'.
 {\em Parameters}
 
 \begin{description}
-\item[\tt -4] \mbox{} \\
+\item[{\tt -4}] \mbox{} \\
 Explicitly use IPv4 type of socket even on machines that are capable to do
 IPv6 type of sockets.
 
-\item[\tt -6] \mbox{} \\
+\item[{\tt -6}] \mbox{} \\
 Explicitely (try to) use IPv6 type of socket even if the machine does not
 support it.
 By default the server will try to use IPv6, if it has been compiled in
 an environment where it is present, but will fall back to IPv4, if
 the runtime system does not have IPv6.
 
-\item[\tt -8] \mbox{} \\
+\item[{\tt -8}] \mbox{} \\
 This option is part of optional inbound translate processing;
 see ``-X'' option below.
 
-\item[\tt -a] \mbox{} \\
+\item[{\tt -a}] \mbox{} \\
 Turn on RFC931/RFC1413 identification protocol, and log the information
 acquired with it into the submitted file.
 
-\item[\tt -B] \mbox{} \\
+\item[{\tt -B}] \mbox{} \\
 Flags the email to arrive via BSMTP channel (via BITNET, for example).
 
-\item[\tt -C cfgfile] \mbox{} \\
+\item[{\tt -C cfgfile}] \mbox{} \\
 Specifies nonstandard configuration file location; the default is 
 {\tt \$MAILSHARE/smtpserver.conf}.
 
@@ -144,28 +144,29 @@ Specifies an alternate {\em router(8)} program to use for address verification.
 Specifies the style of address verification to be performed. There are four independent commands 
 that can invoke some kind of address verification, and four independent flags to control whether this should be done. 
 They are:
+
 \begin{description}
-\item[\tt f]\mbox{}\\
+\item[\tt f] \mbox{} \\
 Run ``MAIL FROM'' address through online router for analysis.
 
-\item[\tt t]\mbox{}\\
+\item[\tt t] \mbox{} \\
 Run ``RCPT TO'' address through online router for analysis.
 
-\item[\tt v]\mbox{}\\
+\item[\tt v] \mbox{} \\
 Enable ``VRFY'' command for this style selector
 (of configuration ``PARAM vrfycmd'' is in effect)
 
-\item[\tt e]\mbox{}\\
+\item[\tt e] \mbox{} \\
 Enable ``EXPN'' command for this style selector
 (of configuration ``PARAM expncmd'' is in effect)
 
-\item[\tt R]\mbox{}\\
+\item[\tt R] \mbox{} \\
 Require incoming addresses to be of fully-qualified domained form.
 
 Don't use this, if you want to allow non-domained addresses accepted
 into your server through SMTP.
 
-\item[\tt S]\mbox{}\\
+\item[\tt S] \mbox{} \\
 Allow ``Sloppy'' behaviour from the sending smtp clients; namely
 allow ``{\em MAIL FROM:foo@bar}'', that is, addresses without
 mandatory (RFC-821) angle braces.
@@ -538,7 +539,7 @@ File:  {\tt \$MAILVAR/db/smtp-policy.src}
 
 This file is compiled into an actual database using the command:
 \begin{alltt}\medskip\hrule\medskip
-  $MAILBIN/policy-builder.sh
+  \$MAILBIN/policy-builder.sh
 \medskip\hrule
 \end{alltt}\par
 
@@ -655,6 +656,18 @@ a massive feed for fanout servers might become slowed down/effectively
 killed, unless we use ``fulltrustnet +'' specification for the feeder
 host.  Then everything is taken in happily from that source address.
 
+\item[\tt trustrecipients +] \mbox{} \\
+This is a variant of ``relaycustnet,'' where  ``RCPT TO'' addresses are
+not checked at all, but ``MAIL FROM'' addresses are looked up from
+the DNS. (Unless some other test with the ``MAIL FROM'' domain name
+has matched before that.)
+
+\item[\tt trust-whoson +] \mbox{} \\
+If the system has been compiled with support to ``{\em whoson}'' services,
+see file ``{\em whoson-*.tar.gz}'' in the ``contrib/'' subdirectory.
+This facilitates indirectly authenticated (via POP/IMAP) SMTP message
+submission for dialup-type users.
+
 \item[\tt relaytarget +] \mbox{} \\
 With this attribute pair the current ``RCPT TO'' address is accepted in
 without further trouble. (Theory being, that keys where this attribute
@@ -762,220 +775,4 @@ The notation `= \_tag' means ``See also at `\_tag'". If {\tt server()} doesn't
 find the requested attribute of the object, it will replace object name 
 with `\_tag' and restart the search.
 
-Here is an example configuration, assuming the following decision 
-chains of {\tt smtpserver/policytest.c} routines:
-
-Connection establishment:  (IP address tested)
-
-\begin{verbatim}
-  if (IP address of SMTP client has 'REJECTNET +' attribute) then
-  any further conversation refused
-   [state->always_reject = 1; return REJECT;]
-  if (IP address of SMTP client has 'FREEZENET +' attribute) then
-  we present happy face, but always put the messages into a freezer...
-   [state->always_freeze = 1; return FREEZE;]
-  if (IP address of SMTP client has 'RELAYCUSTNET +' attribute) then
-   sender accepted, recipients not checked
-   [state->always_accept = 1; return ACCEPT;]
-  default: return ACCEPT
-\end{verbatim}
-
-
-{\bf HELO/EHLO} parameter string:
-
-\begin{verbatim}
-  if (state->always_reject == 1) return REJECT;
-  if (state->always_freeze == 1) return FREEZE;
-  if (state->always_accept == 1) return ACCEPT;
-  if (HELO-name of SMTP client has 'REJECTNET +' attribute) then
-   any further conversation refused
-   [state->always_reject = 1; return REJECT;]
-  if (HELO-name of SMTP client has 'FREEZENET +' attribute) then
-   we present happy face, but always put the messages into a freezer..
-   [state->always_freeze = 1; return FREEZE;]
-  default: return ACCEPT
-\end{verbatim}
-
-
-{\bf MAIL FROM} address:
-
-\begin{verbatim}
-  set state->rcpt_nocheck  = 0;
-  set state->sender_reject = 0;
-  set state->sender_freeze = 0;
-  if (state->always_reject == 1) return REJECT;
-  if (state->always_freeze == 1) return FREEZE;
-  if (state->always_accept == 1) return ACCEPT;
-  if (sender's address has 'REJECTSOURCE +' attribute) then
-   sender rejected, any further conversation refused
-   [state->always_reject = 1; return REJECT;]
-  if (sender's address has 'FREEZESOURCE +' attribute) then
-   we accept with the happy face, but place it into a freezer
-   [state->always_freeze = 1; return FREEZE;]
-  when (sender's address is not in policy-db, continue with sender's domain)
-  if (sender's domain is not in policy-db) then
-    return ACCEPT
-  if (sender's domain has 'REJECTSOURCE +' attribute) then
-   sender rejected, any further conversation refused
-   [state->sender_reject = 1; return REJECT;]
-  if (sender's domain has 'FREEZESOURCE +' attribute) then
-   we accept with the happy face, but place it into a freezer
-   [state->sender_freeze = 1; return FREEZE;]
-  if (sender's domain gas 'RELAYCUSTOMER +' attribute) then
-   DANGER ! DANGER !
-   We will accept all destination addresses for this MAIL FROM,
-   except those that are explicitely blocked, of course..
-   [state->rcpt_nocheck = 1; return ACCEPT;]
-  if (sender's domain has 'SENDEROKWITHDNS +' attribute) then
-    verify that is DNS data for the target domain.  If yes, return ACCEPT;
-    if not, return "-100" (soft reject)
-  if (sender's domain has 'SENDEROKWITHDNS -' attribute) then
-    verify that is DNS data for the target domain.  If yes, return ACCEPT;
-    if not, return REJECT
-  else
-    return ACCEPT
-\end{verbatim}
-
-
-{\bf RCPT TO} address:
-
-\begin{verbatim}
-  if (state->always_reject == 1) return REJECT;
-  if (state->sender_reject == 1) return REJECT;
-  if (state->always_freeze == 1) return FREEZE;
-  if (state->sender_freeze == 1) return FREEZE;
-  if (state->always_accept == 1) return ACCEPT;
-  if (recipient address has 'RELAYTARGET +' attribute) then
-    return ACCEPT
-  if (recipient address has 'RELAYTARGET -' attribute) then
-    return REJECT
-  if (recipient address has 'FREEZE +' attribute) then
-    we accept with the happy face, but place it into a freezer
-    [status->sender_freeze = 1; return FREEZE;]
-  if (recipient's domain has 'RELAYTARGET +' attribute) then
-    return ACCEPT
-  if (recipient's domain has 'RELAYTARGET -' attribute) then
-    return REJECT
-  if (recipient's domain has 'FREEZE +' attribute) then
-    we accept with the happy face, but place it into a freezer
-    [status->sender_freeze = 1; return FREEZE;]
-  If (state->rcpt_nocheck  == 1) return ACCEPT;
-  If (recipient's domain has 'ACCEPTIFMX +' attribute) then
-    Verify that we are MX for the target domain.  If yes, return ACCEPT;
-    If not, return "-100" (soft reject)
-  If (recipient's domain has 'ACCEPTIFMX -' attribute) then
-    Verify that we are MX for the target domain.  If yes, return ACCEPT;
-    If not, return REJECT
-  If (recipient's domain has 'ACCEPTIFDNS +' attribute) then
-    Verify that we are MX for the target domain.  If yes, return ACCEPT;
-    If not, return "-100" (soft reject)
-  If (recipient's domain has 'ACCEPTIFDNS -' attribute) then
-    Verify that we are MX for the target domain.  If yes, return ACCEPT;
-    If not, return REJECT
-  Else
-    return ACCEPT
-\end{verbatim}
-
-
-Default handling boilerplate. We are not relaying between off-site hosts, 
-except when:
-
-\begin{verbatim}
-  # -- 1st alternate: No MX target usage, no DNS existence verify
-  .                       relaycustomer - relaytarget -
-  [0.0.0.0]/0             relaycustomer - relaytarget -
-  # -- 2nd alternate: No MX target usage, DNS existence verify
-  .                       relaycustomer - relaytarget - senderokwithdns +
-  [0.0.0.0]/0             relaycustomer - relaytarget - senderokwithdns +
-  # -- 3rd alternate: MX relay trust, DNS existence verify
-  .                       relaycustomer - acceptifmx + senderokwithdns +
-  [0.0.0.0]/0             relaycustomer - acceptifmx + senderokwithdns +
-  # -- 4th alternate: Sender & recipient DNS existence verify
-  .                       senderokwithdns + acceptifdns +
-  [0.0.0.0]/0             senderokwithdns + acceptifdns +
-\end{verbatim}
-
-
-These rules mean that locally accepted hostnames MUST be listed in
-the database with the '{\tt relaytarget +}' attribute.
-
-Generally we refuse {\em SMTP} connections from host in private address space
-and refuse mails to or from {\tt user@[nn.nn.nn.nn]} if nn.nn.nn.nn is a
-private IP address...
-
-\begin{verbatim}
-  _private_address    rejectnet + rejectsource + relaycustomer - relaytarget -
-  [172.16.0.0]/12         = _private_address
-  [192.168.0.0]/16        = _private_address
-  [10.0.0.0]/8            = _private_address
-\end{verbatim}
-
-
-...but hosts in the address range 192.168.16.0-192.168.17.255 may be
-our {\em SMTP} clients.
-
-\begin{verbatim}
-  [192.168.16.0]/23       rejectnet - = _private_address
-\end{verbatim}
-
-
-Hosts of our organization can do anything...
-
-\begin{verbatim}
-  _our_network            = _full_rights
-  _full_rights    rejectnet - relaycustnet + relaycustomer + relaytarget +
-
-  sztaki.hu               = _full_rights
-  .sztaki.hu              = _full_rights
-  192.84.225.0/24 = _our_network
-  192.84.226.0/23 = _our_network
-  192.84.228.0/23 = _our_network
-\end{verbatim}
-
-
-...except that no use to relaying for dial-up hosts
-
-\begin{verbatim}
-  .dial.sztaki.hu         relaytarget - = _full_rights
-\end{verbatim}
-
-
-...and we have a misconfigured {\em SMTP} client somewhere
-
-\begin{verbatim}
-  [192.84.225.1]/32               rejectnet + = _our_network
-\end{verbatim}
-
-We are MX for some UUCP nodes;  The actual list of domains should
-be retrieved from some listing, and inserted here, or generated from
-a file into compatible format, and appended into the database.
-
-\begin{verbatim}
-  .uucp.iif.hu            relaytarget +
-\end{verbatim}
-
-
-Thanks, no bulk mails! Drop them when used as sources, also reject
-when asked to send for them.
-
-\begin{verbatim}
-  _bulk_mail              rejectsource + relaytarget -
-\end{verbatim}
-
-The actual list of domains, and perhaps user addresses should
-be retrieved from some active Anti-SPAM database
-
-\begin{verbatim}
-  nobody.com              = _bulk_mail
-  .nobody.com             = _bulk_mail
-  nodomain.com            = _bulk_mail
-  .nodomain.com           = _bulk_mail
-\end{verbatim}
-
-Some source users we reject always: (frequent spammers...)
-(see comment above about Anti-SPAM databases)
-
-\begin{verbatim}
-  friend@                 = _bulk_mail
-  friends@                = _bulk_mail
-\end{verbatim}
+{\Large SCRIPT REMOVED; SEE FILE  smtp-policy.src}

@@ -753,7 +753,7 @@ The owner of FILE gets FILE-owner, and FILE-request mails,
 {\em unless any of the above listed limitations are breached}.
 
 If FILE has protection 666 (for example), the ZMailer internal function
-``\tt \$(filepriv \$filepath)}''
+``{\tt \$(filepriv \$filepath)}''
 returns ``{\tt \$nobody}'' (userid of nobody), and  function
 ``{\tt \$(uid2login \$nobody)}'' fails, thus losing -owner, and 
 -request features.

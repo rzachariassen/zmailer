@@ -229,13 +229,33 @@ into the actual db file names.
 #
 # This merges following files from $MAILVAR/db/ directory:
 #       smtp-policy.src
-#       localnames        ('= _full_rights')
-#       smtp-policy.relay ('= _full_rights')
-#       smtp-policy.mx    ('relaytargets +')
-#       smtp-policy.spam  ('= _bulk_mail')
+#       localnames              ('= _localnames')
+#       smtp-policy.relay       ('= _full_rights')
+#       smtp-policy.mx          ('relaytargets +')
+#       smtp-policy.spam        ('= _bulk_mail')
+#       smtp-policy.spam.manual ('= _bulk_mail')
 #
 # These all together are used to produce files:  smtp-policy.$DBEXT
 # The produced database retains the first instance of any given key.
+#
+
+#FLAG=
+#while getopts n c; do
+#  case $c in
+#    n)       FLAG=$c;;
+#    ?)       exit 2;;
+#  esac
+#done
+#shift `expr $OPTIND - 1`
+
+if [ "x$1" = "x-n" ]; then
+    FLAG=n
+    shift
+fi
+if [ "x$1" = "x?" ]; then
+    exit 2
+fi
+
 
 ZCONFIG=@ZMAILERCFGFILE@
 . $ZCONFIG
@@ -249,8 +269,38 @@ if [ ! -f smtp-policy.src ] ; then
         exit 64 # EX_USAGE
 fi
 
-lynx -source http://www.webeasy.com:8080/spam/spam_download_table \verb/\/
-   > smtp-policy.spam.new && mv smtp-policy.spam.new smtp-policy.spam
+if [ f$FLAG != fn ]; then
+    if [ -x $MAILBIN/smtp-policy-retrieve.pl ] ; then
+        $MAILBIN/smtp-policy-retrieve.pl
+    else
+        if [ -x $MAILBIN/spamlist.py ] ; then
+            $MAILBIN/spamlist.py > smtp-policy.spam.new && \verb/\/
+                mv  smtp-policy.spam.new smtp-policy.spam
+        else
+            #
+            # Following IS NOT SAFE, if either produces errors, those
+            # go (usually) to the result file, and in the end the result
+            # OVERWRITES the "running"  smtp-policy.spam  file.
+            #
+            > smtp-policy.spam.new
+            lynx -source http://www.webeasy.com:8080/spam/spam_download_table \verb/\/
+                >> smtp-policy.spam.new
+            lynx -source http://www.sprocket.com/Security/SpamDomains | \verb/\/
+                awk '\{print $1\}' >> smtp-policy.spam.new
+            cat smtp-policy.spam.new | sed 's/^@//g' | tr "[A-Z]" "[a-z]" | \verb/\/
+                    sort | uniq > smtp-policy.spam.new2
+            if [ `grep -c cyberpromo smtp-policy.spam.new` -gt "0" ]; then
+                mv smtp-policy.spam smtp-policy.spam.old
+                mv smtp-policy.spam.new2 smtp-policy.spam
+                rm -f smtp-policy.spam.new
+            else
+                echo "Hmm....something went wrong while updating the spam policy."
+                echo "Please try again."
+                exit 1
+            fi
+        fi
+    fi
+fi
 
 # Fork off a subshell to do it all...
 (
@@ -259,13 +309,15 @@ lynx -source http://www.webeasy.com:8080/spam/spam_download_table \verb/\/
 
   # Localnames
   cat localnames | \verb/\/
-  awk '/^#/\{next;\} NF >= 1 \{printf "%s = _full_rights\verb/\/n",$1;\}'
+  awk '/^#/\{next;\} NF >= 1 \{printf "%s = _localnames\verb/\/n",$1;\}'
 
   # smtp-policy.relay
   # (Lists domains and networks that are allowed to use us as relay)
   if [ -f smtp-policy.relay ] ; then
     cat smtp-policy.relay | \verb/\/
-    awk '/^#/\{next;\} NF >= 1 \{printf "%s = _full_rights\verb/\/n",$1;\}'
+    awk '/^#/\{next;\}
+        \{printf "%s = _full_rights %s %s %s %s %s %s %s %s\verb/\/n",
+                    $1,$2,$3,$4,$5,$6,$7,$8,$9;next;\}'
   fi
 
   # smtp-policy.mx
@@ -279,11 +331,16 @@ lynx -source http://www.webeasy.com:8080/spam/spam_download_table \verb/\/
   # (Lists users, and domains that are known spam sources)
   # (We use file from "http://www.webeasy.com:8080/spam/spam_download_table"
   #  which is intended for QMAIL, and thus needs to be edited..)
-  if [ -f smtp-policy.spam ] ; then
-    cat smtp-policy.spam | tr "[A-Z]" "[a-z]" | sort | uniq | \verb/\/
-    awk '/^@/\{ # Domain, but ZMailer processes them without '@'
-          printf "%s = _bulk_mail\verb/\/n", substr($1,2);
-          next;
+  if [ -f smtp-policy.spam -o -f smtp-policy.spam.manual ] ; then
+    ( if [ -f smtp-policy.spam ] ; then
+        cat smtp-policy.spam
+      fi
+      if [ -f smtp-policy.spam.manual ] ; then
+        cat smtp-policy.spam.manual
+      fi ) | tr "[A-Z]" "[a-z]" | sed 's/^@//g' | sort | uniq | \verb/\/
+    awk '/^\verb/\/[/\{ # an address block to reject
+            printf "%s rejectnet +\verb/\/n", $1;
+            next;
         \}
         \{ # All other cases are usernames with their domains
           printf "%s = _bulk_mail\verb/\/n", $1;
@@ -291,8 +348,11 @@ lynx -source http://www.webeasy.com:8080/spam/spam_download_table \verb/\/
   fi
 
 # --------- end of subshell
-) | tee smtp-policy.dat | \verb/\/
-$MAILBIN/makendbm -p $DBTYPE smtp-policy-new -
+) > smtp-policy.dat
+
+umask 022 # Make sure the resulting db file(s) are readable by all
+
+$MAILBIN/makedb -p $DBTYPE smtp-policy-new smtp-policy.dat || exit $?
 
 case $DBTYPE in
 dbm)

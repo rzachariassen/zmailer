@@ -28,6 +28,10 @@ yield replies for repeated questions.}
 
 %\begin{multicols}{2}
 
+You may also choose to use ``{\em whoson}'' services provided by
+a utility package at ``{\em contrib/}'' subdirectory.  If you do,
+then do install that before configuring and installing the ZMailer.
+
 \section{Autoconfiguration}%
 \index{build!autoconfiguration}%
 \index{autoconfiguration!build}
@@ -76,7 +80,7 @@ to initialize several different environment paths (including
 Or an example from my development machine:\medskip
 \nopagebreak
 \begin{alltt}\hrule\medskip
-$ ./configure --prefix=/opt/mail
+\$ ./configure --prefix=/opt/mail
 creating cache ./config.cache
 ***
 *** You can set  ZCONFIG  environment variable to define
@@ -329,9 +333,9 @@ definitions:
   # Where am I?
   orgdomain=domain
   # Who am I?
-  hostname=host.subdomain.$orgdomain
+  hostname=host.subdomain.\$orgdomain
   # Who do I claim to be?
-  mydomain=subdomain.$orgdomain
+  mydomain=subdomain.\$orgdomain
 \medskip\hrule\medskip
 \end{alltt}
 
@@ -339,8 +343,8 @@ For example:
 \nopagebreak
 \begin{alltt}\medskip\hrule\medskip
   orgdomain=toronto.edu
-  hostname=relay.cs.$orgdomain
-  mydomain=cs.$orgdomain
+  hostname=relay.cs.\$orgdomain
+  mydomain=cs.\$orgdomain
 \medskip\hrule\medskip
 \end{alltt}
 
@@ -387,7 +391,7 @@ interactive mode.  Run:
 \nopagebreak\par
 \vbox{
 \begin{alltt}\medskip\hrule\medskip
-  $MAILBIN/router -i
+  \$MAILBIN/router -i
 \medskip\hrule\end{alltt}\medskip
 or
 \begin{alltt}\medskip\hrule\medskip
@@ -435,11 +439,11 @@ so you are reminded to change the contents.
 
 Choose one of the following methods to rebuild the database:
 \begin{alltt}\medskip\hrule\medskip
-# $MAILBIN/newaliases
-# $MAILBIN/zmailer newaliases
+# \$MAILBIN/newaliases
+# \$MAILBIN/zmailer newaliases
 # /usr/lib/sendmail -bi
 # /usr/bin/newaliases
-# $MAILBIN/zmailer newdb
+# \$MAILBIN/zmailer newdb
 \medskip\hrule\medskip\end{alltt}
 
 If there are errors, correct them in the ``{\tt aliases}'' file,
@@ -562,12 +566,12 @@ which combined with the ``{\tt fqdnalias}'' method will let
 
 Choose one of the following methods to rebuild the database:
 \begin{alltt}\medskip\hrule\medskip
-# $MAILBIN/newfqdnaliases
+# \$MAILBIN/newfqdnaliases
 \medskip\hrule\medskip\end{alltt}
 or either of:
 \begin{alltt}\medskip\hrule\medskip
-# $MAILBIN/zmailer newfqdnaliases
-# $MAILBIN/zmailer newdb
+# \$MAILBIN/zmailer newfqdnaliases
+# \$MAILBIN/zmailer newdb
 \medskip\hrule\medskip\end{alltt}
 
 If there are errors, correct them in the ``{\tt fqdnaliases}'' file,
@@ -640,9 +644,9 @@ local/*
     # conversion on flight!
     command="mailbox -8"
     # Or with PROCMAIL as the local delivery agent:
-    #command="sm -8c $channel procm"
+    #command="sm -8c \$channel procm"
     # Or with CYRUS server the following might do:
-    #command="sm -8c $channel cyrus"
+    #command="sm -8c \$channel cyrus"
 \medskip\hrule\medskip\end{alltt}
 \caption{\label{fig:inst:scheduler1}Sample of ``{\tt scheduler.conf}'' passage for ``{\tt local/*}'' selector}
 \end{figure*}
@@ -713,10 +717,10 @@ or {\tt /etc/rc2.d/S99local} or similar):
 if [ -r /etc/zmailer.conf ]; then
 (
   . /etc/zmailer.conf
-  if [ ${MAILSERVER-NONE} = NONE -a
-       -x $MAILBIN/zmailer ]; then
-    $MAILBIN/zmailer bootclean
-    $MAILBIN/zmailer & \verb/\/
+  if [ \${MAILSERVER-NONE} = NONE -a
+       -x \$MAILBIN/zmailer ]; then
+    \$MAILBIN/zmailer bootclean
+    \$MAILBIN/zmailer & \verb/\/
       (echo -n ' zmailer') >/dev/console
   fi
 )
@@ -733,7 +737,7 @@ if you have it to begin with.
 
 Start ZMailer:
 \begin{alltt}\medskip\hrule\medskip
-  $MAILBIN/zmailer
+  \$MAILBIN/zmailer
 \medskip\hrule\end{alltt}\medskip
 
 
@@ -746,10 +750,10 @@ and {\tt \$POSTOFFICE/deferred/} in case of resource problems.
 \begin{figure*}
 \begin{alltt}\hrule\medskip
 # Two ZMailer related root's CRONTAB entries:
-28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
-7  4      * * * . /etc/zmailer.conf ; $MAILBIN/zmailer cleanup
+28 0,8,16 * * * . /etc/zmailer.conf ; \$MAILBIN/zmailer resubmit
+7  4      * * * . /etc/zmailer.conf ; \$MAILBIN/zmailer cleanup
 # {\rm This third one will not per default be installed into your system}
-0  0      * * * . /etc/zmailer.conf ; $MAILBIN/rotate-logs.sh
+0  0      * * * . /etc/zmailer.conf ; \$MAILBIN/rotate-logs.sh
 \medskip\hrule\end{alltt}\medskip
 \caption{\label{fig:inst:crontab}ZMailer related crontab entries for root user}
 \end{figure*}
@@ -1030,12 +1034,12 @@ NNTP server into which you feed news with NNTP.
 \item[\tt --with-sendmailpath=/FILE/PATH] \mbox{}
 
 Overrider for default location(s) of sendmail program.
-ZENV variable \verb:$SENDMAILPATH: can be overridden with this.
+ZENV variable {\tt\$SENDMAILPATH} can be overridden with this.
 
 \item[\tt --with-rmailpath=/FILE/PATH] \mbox{}
 
 Overrider for default location(s) of rmail program.
-ZENV variable \verb:$RMAILPATH: can be overridden with this.
+ZENV variable {\tt\$RMAILPATH} can be overridden with this.
 
 \item[\tt --with-selfaddresses="NAME,NAME"] \mbox{}
 
@@ -1169,6 +1173,11 @@ for.
 This parameter allows ubiquitous ``{\em -I/...}'' options to be used
 in all program compilations throughout the package.
 
+\item[\tt --with-whoson]
+\item[\tt --with-whoson="/dir/prefix"] \mbox{} \\
+
+This does explicite integration with {\em whoson} server; see
+the ``whoson-*.tar.gz'' file in the ``contrib/'' subdirectory.
 
 For {\em ZMailer} needs the library must support userids:
 \begin{itemize}

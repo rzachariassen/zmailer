@@ -91,6 +91,7 @@ done
 \\begin{htmlonly}
 \\documentclass{article}
 \\usepackage{html,color,makeidx,graphicx}
+\\input{manhtml}
 \\input{${PTRNAME}}
 \\end{htmlonly}
 
