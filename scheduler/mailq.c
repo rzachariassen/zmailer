@@ -48,7 +48,9 @@
 
 #if	defined(HAVE_SOCKET) && (defined(HAVE_RESOLVER) || defined(HAVE_YP))
 #include <netdb.h>
-#include "netdb6.h"
+#ifndef EAI_AGAIN
+# include "netdb6.h"
+#endif
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
