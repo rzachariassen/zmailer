@@ -42,13 +42,13 @@ mm="<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>"
 for x in $bases; do
 
     if [ -f "$x.html" ]; then
-      hh="<TR><TD><A HREF=\"$x.html\">$x</A></TD>$mm"
+      hh="<TR><TD><A HREF=\"./$x.html\">$x</A></TD>$mm"
     else
       hh="<TR><TD>&nbsp;</TD>$mm"
     fi
 
     if [ -f "$x.pdf" ]; then
-      echo "$hh<TD><A HREF=\"$x.pdf\">$x</A></TD></TR>" >> $F
+      echo "$hh<TD><A HREF=\"./$x.pdf\">$x</A></TD></TR>" >> $F
     else
       echo "$hh<TD>&nbsp;</TD></TR>" >> $F
     fi

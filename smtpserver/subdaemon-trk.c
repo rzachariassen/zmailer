@@ -71,6 +71,7 @@ struct ipv4_regs {
 	struct spblk *spl;	/* == NULL  -> free */
 	struct ipv4_regs *next;
 	int mails;
+	int lastlimit;
 	time_t alloc_time;
 	int countset[SLOTCOUNT];
 };
@@ -209,10 +210,11 @@ static struct ipv4_regs * lookup_ipv4_reg( state, ipv4addr )
 	return reg;
 }
 
-static int count_ipv4( state, ipv4addr, incr /* , counterlistspecs ? */ )
+static int count_ipv4( state, ipv4addr, lastlimit,
+		       incr /* , counterlistspecs ? */ )
      struct trk_state *state;
      unsigned int ipv4addr;
-     int incr;
+     int incr, lastlimit;
 {
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
 	int i, sum;
@@ -226,6 +228,8 @@ static int count_ipv4( state, ipv4addr, incr /* , counterlistspecs ? */ )
 
 	if (incr == 0)  ++ reg->mails;
 
+	if (lastlimit >= 0)
+	  reg->lastlimit = lastlimit;
 	reg->countset[ state->slotindex ] += incr;
 
 	sum = 0;
@@ -379,7 +383,7 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 	char *s = outbuf;
 
 	if (!reg) {
-	  strcpy(outbuf,"200 Slot-IPv4-data: 0 0 0 0  0 0 0 0  MAILs: 0");
+	  strcpy(outbuf,"200 Slot-IPv4-data: 0 0 0 0  0 0 0 0  MAILs: 0 SLOTAGE: 0 Limit: 0\n");
 	  s = strlen(outbuf)+outbuf;
 #if 0
 	  sprintf(s, "    [%d.%d.%d.%d]",
@@ -404,7 +408,10 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 	  s += strlen(s);
 	}
 	sprintf(s, "  MAILs: %d", reg->mails);
-	sprintf(s, " ALLOC: %d\n", (int)(now - reg->alloc_time));
+	s += strlen(s);
+	sprintf(s, " SLOTAGE: %d", (int)(now - reg->alloc_time));
+	s += strlen(s);
+	sprintf(s, " Limit %d\n", reg->lastlimit);
 }
 
 
@@ -413,6 +420,21 @@ subdaemon_handler_trk_init (statep)
      void **statep;
 {
 	struct trk_state *state = calloc(1, sizeof(*state));
+
+#if 0
+	{
+	  extern int logstyle;
+	  extern char *logfile;
+	  extern void openlogfp __((SmtpState * SS, int insecure));
+
+	  logstyle = 0;
+	  if (logfp) fclose(logfp); logfp = NULL;
+	  logfile = "smtpserver-trk-subdaemons.log";
+	  openlogfp(NULL, 1);
+	  setlinebuf(logfp);
+	}
+#endif
+
 
 	*statep = state;
 
@@ -438,8 +460,9 @@ subdaemon_handler_trk_input (statep, peerdata)
      struct peerdata *peerdata;
 {
 	struct trk_state *state = statep;
-	char actionlabel[8], iplabel[40], typelabel[10], *s1, *s2, *s3;
-	int i, incr;
+	char actionlabel[8], iplabel[40], typelabel[10];
+	char lastlimits[12], *s1, *s2, *s3, *s4;
+	int i, incr, lastlimitval;
 	long ipv4addr;
 
 	subdaemon_trk_checksigusr1(state);
@@ -453,7 +476,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	/*
 	 * Protocol:
 	 *
-	 * C: <actionlabel> <ipaddrlabel> <typelabel>
+	 * C: <actionlabel> <ipaddrlabel> <lastlimit> <typelabel>
 	 * S: 200 <value>
 	 *
 	 * Where:
@@ -464,22 +487,27 @@ subdaemon_handler_trk_input (statep, peerdata)
 	 */
 
 
-	actionlabel[0] = iplabel[0] = typelabel[0] = 0;
+	actionlabel[0] = iplabel[0] = lastlimits[0] = typelabel[0] = 0;
 
 	s1 = strtok(peerdata->inpbuf, " \n");
 	s2 = strtok(NULL, " \n");
 	s3 = strtok(NULL, " \n");
+	s4 = strtok(NULL, " \n");
 
 	if (s1) strncpy(actionlabel, s1, sizeof(actionlabel));
 	if (s2) strncpy(iplabel,     s2, sizeof(iplabel));
-	if (s3) strncpy(typelabel,   s3, sizeof(typelabel));
+	if (s3) strncpy(lastlimits,  s3, sizeof(lastlimits));
+	if (s4) strncpy(typelabel,   s4, sizeof(typelabel));
 
 	actionlabel[sizeof(actionlabel)-1] = 0;
+	lastlimits[sizeof(lastlimits)-1] = 0;
 	typelabel[sizeof(typelabel)-1] = 0;
 	iplabel[sizeof(iplabel)-1] = 0;
 
-	/* type(NULL,0,NULL,"Got: '%s' '%s' '%s'", 
-	   actionlabel, iplabel, typelabel); */
+	lastlimitval = atoi(lastlimits);
+
+	/* type(NULL,0,NULL,"Got: '%s' '%s' '%s'=%d '%s'", 
+	   actionlabel, iplabel, lastlimits,lastlimitval, typelabel); */
 
 	incr = -1;
 	if (STREQ(actionlabel,"INCR")) {
@@ -499,7 +527,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	  /* FIXME ? - htonl() ???  */
 
 	  if (incr >= 0) {
-	    i = count_ipv4( state, ipv4addr, incr );
+	    i = count_ipv4( state, ipv4addr, lastlimitval, incr );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  } else if (incr == -2) {
 	    slot_ipv4_data(statep, peerdata->outbuf, ipv4addr);
@@ -666,7 +694,7 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 
 	if (!state->outfp) return -51;
 
-	/* type(NULL,0,NULL,"call_subdaemon_trk; 14"); */
+type(NULL,0,NULL,"call_subdaemon_trk; 14; cmd='%s'", cmd);
 
 	fprintf(state->outfp, "%s\n", cmd);
 	fflush(state->outfp);

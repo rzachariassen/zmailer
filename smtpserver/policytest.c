@@ -1247,10 +1247,10 @@ Usockaddr *raddr;
     return rc;
 }
 
-static int call_rate_counter(rel, state, incr, what, countp)
+static int call_rate_counter(rel, state, incr, what, countp, limitval)
      struct policytest *rel;
      struct policystate *state;
-     int incr, *countp;
+     int incr, *countp, limitval;
      PolicyTest what;
 {
     int rc;
@@ -1271,7 +1271,8 @@ static int call_rate_counter(rel, state, incr, what, countp)
 
     state->did_query_rate = 1;
 
-    sprintf(pbuf, "%s %s %s",  (incr ? "INCR": "RATE"), state->ratelabelbuf,
+    sprintf(pbuf, "%s %s %d %s",  (incr ? "INCR": "RATE"),
+	    state->ratelabelbuf, limitval,
 	    ( (what == POLICY_SOURCEADDR) ? "CONNECT" :
 	      ( (what == POLICY_MAILFROM) ? "MAIL" : "xxx" )));
 
@@ -1754,7 +1755,9 @@ const int len;
       if (sscanf(state->ratelimitmsgsvalue, "%d", &limitval) == 1) {
 	/* Valid numeric value had.. */
 
-	int rc = call_rate_counter(rel, state, 0, POLICY_MAILFROM, &count);
+	int rc = call_rate_counter(rel, state, 0, POLICY_MAILFROM,
+				   &count,
+				   (limitval < 0 ? -limitval : limitval));
 
 	/* Non-zero value means that counter was not reachable, or
 	   that there was no data. */
@@ -2192,7 +2195,7 @@ const int len;
       break;
     case POLICY_DATA:
     case POLICY_DATAOK:
-      rc = call_rate_counter(rel, state, 1, what, NULL);
+      rc = call_rate_counter(rel, state, 1, what, NULL, -2);
       break;
     default:
       abort();			/* Code error! Bad policy ! */

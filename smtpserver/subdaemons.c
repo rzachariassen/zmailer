@@ -63,26 +63,28 @@ int subdaemons_init __((void))
 	  fdpass_close_parent(to);
 	}
 
-	rc = fdpass_create(to);
-	if (rc == 0) {
-	  contentfilter_rdz_fd = to[1];
-	  contentfilter_server_pid = fork();
-	  if (contentfilter_server_pid == 0) { /* CHILD */
+	if (contentfilter) {
+	  rc = fdpass_create(to);
+	  if (rc == 0) {
+	    contentfilter_rdz_fd = to[1];
+	    contentfilter_server_pid = fork();
+	    if (contentfilter_server_pid == 0) { /* CHILD */
 
-	    if (logfp) fclose(logfp); logfp = NULL;
+	      if (logfp) fclose(logfp); logfp = NULL;
 
-	    report(NULL,"[smtpserver contentfilter subsystem]");
+	      report(NULL,"[smtpserver contentfilter subsystem]");
 
-	    close(ratetracker_rdz_fd); /* Our sister server's handle */
+	      close(ratetracker_rdz_fd); /* Our sister server's handle */
 
-	    close(to[1]); /* Close the parent (called) end */
-	    subdaemon_loop(to[0], & subdaemon_handler_contentfilter);
+	      close(to[1]); /* Close the parent (called) end */
+	      subdaemon_loop(to[0], & subdaemon_handler_contentfilter);
 
-	    sleep(10);
-	    exit(0);
+	      sleep(10);
+	      exit(0);
+	    }
+	    MIBMtaEntry->ss.SubsysContentfilterMasterPID = contentfilter_server_pid;
+	    fdpass_close_parent(to);
 	  }
-	  MIBMtaEntry->ss.SubsysContentfilterMasterPID = contentfilter_server_pid;
-	  fdpass_close_parent(to);
 	}
 
 	if (enable_router) {
@@ -96,8 +98,9 @@ int subdaemons_init __((void))
 	      
 	      report(NULL,"[smtpserver router subsystem]");
 	      
-	      close(ratetracker_rdz_fd);   /* Our sister server's handle */
-	      close(contentfilter_rdz_fd); /* Our sister server's handle */
+	      close(ratetracker_rdz_fd);     /* Our sister server's handle */
+	      if (contentfilter_rdz_fd >= 0)
+		close(contentfilter_rdz_fd); /* Our sister server's handle */
 	      
 	      close(to[1]); /* Close the parent (called) end */
 	      subdaemon_loop(to[0], & subdaemon_handler_router);

@@ -76,6 +76,8 @@ static int MaxCtfs = 2;
 int contentfilter_maxctfs;
 
 typedef struct state_ctf {
+	long proc_ino;
+	time_t proc_mtime, proc_ctime;
 	struct peerdata *replypeer[MAXCTFS];
 	int   contentfilterpid[MAXCTFS];
 	FILE *tofp[MAXCTFS];
@@ -93,7 +95,7 @@ subdaemon_killctf(CTF, idx)
      Ctfstate *CTF;
      int idx;
 {
-	if (CTF->tofp[idx] == NULL)
+	if (CTF->tofp[idx] != NULL)
 	  fclose(CTF->tofp[idx]);
 	CTF->tofp[idx] = NULL;
 
@@ -248,6 +250,11 @@ subdaemon_ctf_start __((CTF, idx))
 	       contentfilter, errno);
 	  return 0;
 	}
+
+	CTF->proc_ino   = stbuf.st_ino;
+	CTF->proc_ctime = stbuf.st_ctime;
+	CTF->proc_mtime = stbuf.st_mtime;
+
 	if (S_ISREG(stbuf.st_mode))
 	  return subdaemon_ctf_proc(CTF, idx);
 	else
@@ -332,8 +339,11 @@ subdaemon_handler_ctf_input (state, peerdata)
 	       However  CTF->tofp[idx]  is definitely in blocking! */
 	  }
 
+	  if (CTF->tofp[idx] == NULL)
+	    continue; /* Next! (recently killed, fromfd not yet EOFed ?) */
+
 	  if (!CTF->sawhungry[idx])
-	    continue; /* Next */
+	    continue; /* Next! (no liveness reply yet) */
 
 	  CTF->replypeer[idx] = peerdata;
 
@@ -364,6 +374,27 @@ subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
 
 	/* If we have contentfilter underneath us,
 	   check if it has something to say! */
+
+	memset(& stbuf, 0, sizeof(stbuf));
+
+	while (lstat(contentfilter, &stbuf) < 0) {
+	  if (errno == EINTR) continue;
+	  break;
+	}
+	if (stbuf.st_ino != CTF->proc_ino ||
+	    stbuf.st_ctime != CTF->proc_ctime ||
+	    stbuf.st_mtime != CTF->proc_mtime) {
+	  /* CHANGED SOMEHOW ! */
+	  CTF->proc_ino   = stbuf.st_ino;
+	  CTF->proc_ctime = stbuf.st_ctime;
+	  CTF->proc_mtime = stbuf.st_mtime;
+
+	  for (idx = 0; idx < MaxCtfs; ++idx) {
+	    if (CTF->tofp[idx])
+	      fclose(CTF->tofp[idx]);
+	    CTF->tofp[idx] = NULL;
+	  }
+	}
  
 	for (idx = 0; idx < MaxCtfs; ++idx) {
 	  if (CTF->fromfd[idx] >= 0) {
@@ -610,7 +641,7 @@ contentfilter_proc(ctfstatep, fname)
 		 ctfstate->buf, rc, (ctfstate->buf ? ctfstate->buf : "<NULL>"));
 
 	  if (rc <= 0) {
-	    /* TIMED OUT !  BRR... */
+	    /* TIMED OUT !  BRR... (or EOFed?) */
 	    smtpcontentfilter_kill( ctfstate );
 	    type(NULL, 0, NULL, "Interactive contentfilter %s!",
 		 (rc < 0) ? "timed out" : "EOFed" );

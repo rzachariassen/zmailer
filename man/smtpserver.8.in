@@ -7,26 +7,28 @@ smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
 .IP \fBsmtpserver\fR 11em
 .RS 11em
-[\fB\-46aBhigntVvw\fR]
-[\fB\-p\fR\ \fIport\fR]
-[\fB\-l\fR\ \fISYSLOG\fR]
-[\fB\-l\fR\ \fIlogfile\fR]
-[\fB\-s\fR[\fBftveRSDh\fR]]
-[\fB\-s\ \fCstrict\fR]
-[\fB\-s\ \fCsloppy\fR]
-[\fB\-I\fR\ \fIpidfile\fR]
-[\fB\-L\fR\ \fImaxloadaver\fR]
-[\fB\-M\fR\ \fISMTPmaxsize\fR]
-[\fB\-P\fR\ \fIpostoffice\fR]
-[\fB\-R\fR\ \fIrouter\fR]
-[\fB\-C\fR\ \fIcfgfile\fR]
-[\fB\-Z\fR\ \fIzenvfile\fR]
-[\fB\-T\ \fI'[1.2.3.4]'\fR]
+[\fB-46aBhigntVvw\fR]
+[\fB-p\fR\ \fIport\fR]
+[\fB-l\fR\ \fISYSLOG\fR]
+[\fB-l\fR\ \fIlogfile\fR]
+[\fB-s\fR[\fBftveRSDh\fR]]
+[\fB-s\ \fCstrict\fR]
+[\fB-s\ \fCsloppy\fR]
+[\fB-I\fR\ \fIpidfile\fR]
+[\fB-L\fR\ \fImaxloadaver\fR]
+[\fB-M\fR\ \fISMTPmaxsize\fR]
+[\fB-P\fR\ \fIpostoffice\fR]
+[\fB-R\fR\ \fIrouter\fR]
+[\fB-C\fR\ \fIcfgfile\fR]
+[\fB-Z\fR\ \fIzenvfile\fR]
+[\fB-T\ \fI'[1.2.3.4]'\fR]
 .RE
 .SH DESCRIPTION
 This program implements the server side of the SMTP protocol as described
 in RFC-2821, and knows about the common extensions to the protocol expected
-by Sendmail and BSMTP clients.
+by
+.I Sendmail
+and BSMTP clients.
 .PP
 By default the program will kill the previous
 .IR smtpserver (8zm)
@@ -44,12 +46,12 @@ well-known parameters for each request.
 .PP
 .SH OPTIONS
 .PP
-.IP \-4
+.IP -4
 .RS
 Explicitely to use IPv4 type of socket even on machines that is capable to
 do IPv6 type of sockets.
 .RE
-.IP \-6
+.IP -6
 .RS
 Explicitely to (try to) use IPv6 type of socket even if the machine does
 not support it.
@@ -57,37 +59,37 @@ For a default the server will try to use IPv6, if it has been compiled on
 an environment where it is present, but will do a fallback to IPv4 in case
 the runtime system does not have IPv6.
 .RE
-.IP \-a
+.IP -a
 .RS
 turn on RFC931/RFC1413 indentification protocol, and log the information
 acquired with it to the submitted file.
 .RE
-.IP \-w
+.IP -w
 .RS
 turn on usage of "whoson" protocol.  This option is available even if
 actual code is not available.
 .RE
-.IP \-g
+.IP -g
 .RS
 the gullible option will make the program believe any information it is
 told (such as origin of a connection) without checking.
 .RE
-.IP \-h
+.IP -h
 .RS
 check helo-parameter,  per default that is
 .B not
 checked in any way, with this option, syntax check is done on it.
 .RE
-.IP \-i
+.IP -i
 .RS
 runs the server interactively, which makes it usable for processing
 a batched SMTP stream (BSMTP) on stdin.
 With
-.I \-v
+.I -v
 option this echoes incoming BSMTP to create more accurate faximille
 of BITNET BSMTP mailers.
 .RE
-.IP "\-l \fISYSLOG\fR"
+.IP "-l \fISYSLOG\fR"
 .RS
 A magic value of "SYSLOG" for the
 .I logfile
@@ -98,69 +100,70 @@ require better syslogd, than your system
 has by default; see ``syslog-ng'' at a well indexed free software
 sites.
 .RE
-.IP "\-l \fIlogfile\fR"
+.IP "-l \fIlogfile\fR"
 .RS
 specifies a logfile and enables recording of incoming SMTP conversations.
 If you want both file based session log, and syslog() based, issue this
-option after ``\-l\ SYSLOG'' one.
+option after ``-l\ SYSLOG'' one.
 .RE
-.IP "\-n "
+.IP "-n "
 .RS
 indicates the program is being run from
 .IR inetd (8).
 .RE
-.IP "\-p "
+.IP "-p "
 .RS
 specifies the TCP port to listen on instead of the default SMTP port, 25.
 .RE
-.IP "\-B "
+.IP "-B "
 .RS
 flags the email to arrive via BSMTP channel (via BITNET, for example).
 .RE
-.IP "\-I \fIpidfile\fR"
+.IP "-I \fIpidfile\fR"
 .RS
 specifies an alternate PID file location.
 .RE
-.IP "\-L \fImaxloadaver\fR"
+.IP "-L \fImaxloadaver\fR"
 .RS
 tells the maximum load-average the system is under when we still accept
 email in.
 .RE
-.IP "\-M \fISMTPmaxsize\fR"
+.IP "-M \fISMTPmaxsize\fR"
 .RS
 Defines the asolute maximum size we accept from incoming email.
 (Default: infinite) (This is local policy issue.)
 .RE
-.IP "\-P \fIpostoffice\fR"
+.IP "-P \fIpostoffice\fR"
 .RS
 specifies an alternate
 .B POSTOFFICE
 directory.
 .RE
-.IP "\-R \fIrouter\fR"
+.IP "-R \fIrouter\fR"
 .RS
 specifies an alternate
 .I router (8zm)
 program to use for address verification.
 .RE
-.IP "\-C \fIcfgfile\fR"
+.IP "-C \fIcfgfile\fR"
 .RS
 specifies nonstandard configuration file location; the default is
-.IR $MAILSHARE/ smtpserver.conf .
+$\fIMAILSHARE\fR/smtpserver.conf
 .RE
-.IP "\-s strict"
+.IP "-s strict"
 .RS
 this turns on all kinds of
 .B strict
 smtp protocol adherence checks, which in normal life can be relaxed
 slightly.  Great for compliance testing ;)
 .RE
-.IP "\-s sloppy"
+.IP "-s sloppy"
 .RS
-This makes smtpserver even more alike sendmail(TM), with
-all of its sloppy protocol processing.
+This makes smtpserver even more alike
+.IR "sendmail\*(Tm" ,
+with all of its sloppy protocol processing.
 .RE
-.IP "\-s [ftvehRSD]"
+.IP "-s [ftvehRSD]"
 .RS
 specifies the style of address verification to be performed.  There are
 four independent commands that can invoke some kind of address verification,
@@ -194,17 +197,20 @@ This is debug-use flag, don't use in normal mode!
 Pass 'HELO'/'EHLO' parameter to the interactive router.
 There just to complement the setup, not really for active use!
 .PP
-The flags are concatenated to form the argument to the \-s option.  The
-default is \fBve\fR.
+The flags are concatenated to form the argument to the
+.I -s
+option.
+The default is:
+.BR ve .
 .RE
-.IP "\-T '[1.2.3.4]'"
-.IP "\-T '[ipv6.hhhh:hhhh:hhhh:hhhh:hhhh:hhhh:1.2.3.4]'"
+.IP "-T '[1.2.3.4]'"
+.IP "-T '[ipv6.hhhh:hhhh:hhhh:hhhh:hhhh:hhhh:1.2.3.4]'"
 .RS
 Supply (in interactive mode) test address for policy dataset address testing.
 The optionset recommended for that case is:
 .PP
 .nf
-   \-i \-d 1 \-T '[1.2.3.4]'
+   -i -d 1 -T '[1.2.3.4]'
 .fi
 .PP
 A notable detail is that to see what really is going on in
@@ -219,24 +225,24 @@ in the supplied IP address
 be present, otherwise illegal syntax will be reported.
 (Using RFC 821 address literal parser here.)
 .RE
-.IP \-t
+.IP -t
 .RS
 Set when running smtpserver under e.g. inetd, and using service port
 number 465; a "well-known" deprecated one of SSL/SMTP; (From the era
 before ``STARTTLS'' protocol verb.)
 .RE
-.IP "\-Z \fIzenvfile\fR"
+.IP "-Z \fIzenvfile\fR"
 .RS
 passes on explicite non-compiled-in-default located ZCONFIG environment file.
 .RE
-.IP \-V
+.IP -V
 .RS
 prints a version message and exits.
 .RE
 .PP
 .SH CONFIGURATION
 If the
-.IB $MAILSHARE/ smtpserver.conf
+$\fIMAILSHARE/\fRsmtpserver.conf
 exists it is read to configure two kinds of things:
 .PP
 .IP "PARAM \-entries"
@@ -255,7 +261,7 @@ various feature parametrizations
 On PARAM lines the system allows $-expansions of ZENV variables.
 (Special note: '$$' expands as '$', not shell-style process-id number!)
 .RE
-.IP "The style (\fI\-s\fR) option"
+.IP "The style (\fI-s\fR) option"
 .RS
 behaviour based on glob patterns matching the
 .BR HELO / EHLO
@@ -274,10 +280,10 @@ misbehaving client software or mailers.
 .IP "PARAM maxsize"
 .RS
 This is synonym to start-time
-.I \-M
+.I -M
 option.
 .RE
-.IP "PARAM min\-availspace 5000"
+.IP "PARAM min-availspace 5000"
 .RS
 This defines, in
 .BR kilobytes ,
@@ -285,7 +291,7 @@ the minimum available space in
 .B POSTOFFICE
 directory after the message has been accepted in.
 .RE
-.IP "PARAM max\-error\-recipients"
+.IP "PARAM max-error-recipients"
 .RS
 This defines how many recipients can be on a message whose source
 address is
@@ -389,7 +395,7 @@ SMTP verbs which have some uses in the debug mode.
 They are normally disabled, but running them enabled does not allow
 direct attacks with them.  (That we know of.)
 .RE
-.IP "PARAM enable\-router"
+.IP "PARAM enable-router"
 .RS
 This enables interactive router use where user inputs reach the router.
 As things turn out, while the canned scripts should be safe against any
@@ -406,18 +412,18 @@ when you do this.
 This is also required for interactive router processing
 of ``MAIL FROM'' and ``RCPT TO'' addresses.
 .RE
-.IP "PARAM smtp\-auth"
+.IP "PARAM smtp-auth"
 .RS
 This enables 'SMTP AUTH' facility (AUTH verb, plus optional parameter
 to MAIL verb).  With this the users who are able to 'login' successfully
 to this host, are then able to relay the email thru the server unlimited.
 .RE
-.IP "PARAM AUTH\-LOGIN\-also\-without\-TLS"
+.IP "PARAM AUTH-LOGIN-also-without-TLS"
 .RS
 This enables 'SMTP AUTH' facility usage also without running
 under SSL/TLS security envelope.
 .RE
-.IP "PARAM smtp\-auth\-sasl"
+.IP "PARAM smtp-auth-sasl"
 .RS
 If the system has been configured with
 .I SASL2
@@ -425,7 +431,7 @@ support, use that instead of built-in plain-text authenticator code.
 .PP
 .B "Presently experimental code!"
 .RE
-.IP "PARAM smtp\-mechanisms mech name list"
+.IP "PARAM smtp-mechanisms mech name list"
 .RS
 List only those mechanisms that are wanted to be supported in the
 running system.
@@ -436,17 +442,17 @@ Suggested list: "\fCPLAIN LOGIN\fR"
 Other ways might work, or might not.
 Experience is partial, and failed in several combinations.
 .RE
-.IP "PARAM MSA\-mode"
+.IP "PARAM MSA-mode"
 .RS
 Enable Message Submission Agent mode, where smtpserver
 .B requires
 successful user authentication during SMTP sessions initiated from
 outside of the trusted networks or the networks with relaying enabled
 (see "fulltrustnet" and "relaycustnet" at the sample
-.I proto/db/smtp\-policy.src
+.I proto/db/smtp-policy.src
 file).
 .RE
-.IP "PARAM SMTP\-auth\-pipe /path/to/program"
+.IP "PARAM SMTP-auth-pipe /path/to/program"
 .RS
 This is a path to the external authentication program.
 The authenticator should read a username from command line,
@@ -457,7 +463,7 @@ Exit status 0 means successful authentication.
 \fBprogram that follows the specification. Use this option only if
 \fByou know exactly what you do! BE CAREFULL!\fR
 .RE
-.IP "PARAM use\-tcp\-wrapper"
+.IP "PARAM use-tcp-wrapper"
 .RS
 If TCP-WRAPPER is configured in, uncommenting this
 will activate its use to look service name:  smtp-receiver
@@ -484,12 +490,12 @@ for it, as in general they work quite fine.
 Of these, 8BITMIME can not in reality be disabled, only its adverticement
 can be turned off.
 .RE
-.IP "PARAM no\-multiline\-replies"
+.IP "PARAM no-multiline-replies"
 .RS
 Turn off ZMailer's default multiline replies; many systems (especially
 from M$ breed) don't do RFC 821 Appendix E properly...
 .RE
-.IP "PARAM force\-rcpt\-notify\-never"
+.IP "PARAM force-rcpt-notify-never"
 .RS
 Whatever the incoming DNS NOTIFY= value is, we force it always
 to be NOTIFY=NEVER.   This is for those who won't like to let
@@ -518,7 +524,7 @@ See example in the sample configuration below.
 .RS
 This defines smtp input policy filtering/analysis database location.
 See the comments at the sample
-.I proto/db/smtp\-policy.src
+.I proto/db/smtp-policy.src
 file.
 .PP
 An error here will be reported with obscureish code;
@@ -536,12 +542,12 @@ The interface is desribed below at
 .I "CONTENTFILTER INTERFACE"
 section.
 .RE
-.IP "PARAM contentfilter\-maxpar 2"
+.IP "PARAM contentfilter-maxpar 2"
 .RS
 Max parallel contentfilter instances to be running.
 Default is 2, and internal hard limit is 20.
 .RE
-.IP "PARAM debug\-contentfilter"
+.IP "PARAM debug-contentfilter"
 .RS
 Sends some debug-data of the content-filter interface
 into the smtpserver protocol log file.
@@ -557,12 +563,12 @@ and ``exponent'' is multiplier for formula:
 .PP
 Finally, ``toplimit'' caps the delay value.
 .RE
-.IP "PARAM use\-tls"
-.IP "PARAM tls\-CAfile $MAILVAR/db/smtpserver\-CAcert.pem"
-.IP "PARAM tls\-cert\-file  $MAILVAR/db/smtpserver\-cert.pem"
-.IP "PARAM tls\-key\-file   $MAILVAR/db/smtpserver\-key.pem"
-.IP "PARAM tls\-dcert\-file  $MAILVAR/db/smtpserver\-dcert.pem"
-.IP "PARAM tls\-dkey\-file   $MAILVAR/db/smtpserver\-dkey.pem"
+.IP "PARAM use-tls"
+.IP "PARAM tls-CAfile $MAILVAR/db/smtpserver-CAcert.pem"
+.IP "PARAM tls-cert-file  $MAILVAR/db/smtpserver-cert.pem"
+.IP "PARAM tls-key-file   $MAILVAR/db/smtpserver-key.pem"
+.IP "PARAM tls-dcert-file  $MAILVAR/db/smtpserver-dcert.pem"
+.IP "PARAM tls-dkey-file   $MAILVAR/db/smtpserver-dkey.pem"
 .RS
 These are TLSv1 parameters, and all parts of this parameter cluster
 must be set for the facility to work!
@@ -576,19 +582,19 @@ Also see below section
 .PP
 The "dcert" and "dkey" are for DSA derived private key, and certificates.
 .RE
-.IP "PARAM tls\-dh512  $MAILVAR/db/smtpserver\-cert\-dh512.pem"
-.IP "PARAM tls\-dh1024 $MAILVAR/db/smtpserver\-cert\-dh1024.pem"
+.IP "PARAM tls-dh512  $MAILVAR/db/smtpserver-cert-dh512.pem"
+.IP "PARAM tls-dh1024 $MAILVAR/db/smtpserver-cert-dh1024.pem"
 .RS
 Optional file to supply auxiliary DH parameters for the DSA related
 key exchange, in case the certificate is so old, that it does not contain
 them.
 The system has built-in default values for these.
 .RE
-.IP "PARAM listen\-ssmtp"
+.IP "PARAM listen-ssmtp"
 .RS
 Listen on port TCP/465, which is deprecated SSL/SMTP listener port.
 .RE
-.IP "PARAM outlook\-tls\-bug"
+.IP "PARAM outlook-tls-bug"
 .RS
 Microsoft does it again...
 If TLS is set at Outlook, and server port is not 25, it bloody well
@@ -600,25 +606,25 @@ time, and it happens to be 0x80, then this server will initiate TLS
 negotiation.  If nothing happens (well-behaving client), normal
 SMTP greeting is presented.
 .RE
-.IP "PARAM tls\-loglevel   0"
-.IP "PARAM tls\-ccert\-vd   0"
-.IP "PARAM tls\-ask\-cert   0"
-.IP "PARAM tls\-require\-cert 0
-.IP "PARAM tls\-CApath ... (somewhen: verify client's certificates)"
-.IP "PARAM tls\-enforce\-tls 1"
+.IP "PARAM tls-loglevel   0"
+.IP "PARAM tls-ccert-vd   0"
+.IP "PARAM tls-ask-cert   0"
+.IP "PARAM tls-require-cert 0
+.IP "PARAM tls-CApath ... (somewhen: verify client's certificates)"
+.IP "PARAM tls-enforce-tls 1"
 .RS
 These are some futher thoughs that may materialize some time..
 .RE
-.IP "PARAM rcvd\-ident"
-.IP "PARAM rcvd\-whoson"
-.IP "PARAM rcvd\-auth\-user"
-.IP "PARAM rcvd\-tls\-mode"
-.IP "PARAM rcvd\-tls\-peer"
+.IP "PARAM rcvd-ident"
+.IP "PARAM rcvd-whoson"
+.IP "PARAM rcvd-auth-user"
+.IP "PARAM rcvd-tls-mode"
+.IP "PARAM rcvd-tls-peer"
 .RS
 This quintet controls what possibly collected data is shown at
 the published ``Received:'' header that this system generates.
 .RE
-.IP "PARAM etrn\-cluster node\-name\-or\-address mq2\-username mq2\-passwd"
+.IP "PARAM etrn-cluster node-name-or-address mq2-username mq2-passwd"
 .RS
 In load-balance clusters a network level load-balancer may distribute
 the incoming SMTP connections to multiple real machines, and by using
@@ -628,32 +634,36 @@ user initiated ETRN requests to all cluster nodes.
 .I "This method requires that the scheduler runs its mailq service"
 .I "in MAILQv2 mode!"
 .RE
-.IP "PARAM lmtp\-mode"
+.IP "PARAM lmtp-mode"
 .RS
 When desiring to test LMTP (RFC 2033), this parameter can be turned on,
 .I "however ZMailer is no real LMTP server, and this feature is"
 .I "only for debug purposes."
 .RE
-.IP "PARAM spf\-received"
+.IP "PARAM spf-received"
 .RS
-Create Received\-SPF header if SPF check is done and data is available.
+Create Received-SPF header if SPF check is done and data is available.
 .br
 See http://spf.pobox.com/ for explanation of SPF.
 .RE
-.IP "PARAM spf\-threshold keyword"
+.IP "PARAM spf-threshold keyword"
 .RS
 Accept incoming messages with level equal or higher than specified threshold.
 Levels are sorted as follows:
-.nf
-      fail:      1
-      softfail:  2
-      none:      3
-      neutral:   4
-      pass:      5
-.fi
+.RS 3em
+.TS
+l l
+.
+fail:	1
+softfail:	2
+none:	3
+neutral:	4
+pass:	5
+.TE
+.RE
 See http://spf.pobox.com/ for explanation of SPF.
 .RE
-.IP "PARAM report\-auth\-file ${MAILSHARE}/scheduler.auth"
+.IP "PARAM report-auth-file ${MAILSHARE}/scheduler.auth"
 .RS
 If exists, is used to authenticate a set of interactive report
 queries that can be done thru the
@@ -724,7 +734,7 @@ PARAM  enable-router
 #               # with the default code against system /etc/passwd
 #               # (or whatever source  getpwnam() uses for it..)
 #
-#PARAM  AUTH\-LOGIN\-also\-without\-TLS
+#PARAM  AUTH-LOGIN-also-without-TLS
 #               # Enable, if the "AUTH LOGIN" is to be allowed to
 #               # be used without running under SSL/TLS security
 #               # envelope.
@@ -735,7 +745,7 @@ PARAM  enable-router
 #               # sessions initiated from outside of the trusted
 #               # networks or the networks with relaying enabled
 #               # (see "fulltrustnet" and "relaycustnet" in
-#               # smtp\-policy.src file).
+#               # smtp-policy.src file).
 #
 #PARAM  SMTP-auth-pipe /path/to/program
 #               # External authentication program. The
@@ -789,7 +799,7 @@ PARAM help ------------------------------------------------------
 # The policy database:
 # (NOTE: See `makedb' for its default suffixes!)
 #
-PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
+PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 #
 # External program for received message content analysis:
 #PARAM  contentfilter  $MAILBIN/smtp-content-policy-analysis
@@ -978,9 +988,9 @@ produce multi-line replies to the message originator.
 Keep always in mind, that SMTP protocol (and thus the message texts here)
 are presumed to be plain 7-bit US-ASCII!
 However: You may (most of the time) get away with 8-bit chars in the texts...
-.SH TCP\-WRAPPER AND SMTPSERVER
+.SH TCP-WRAPPER AND SMTPSERVER
 If the ZMailer system is configured with \fItcp-wrapper\fR code,
-and ``PARAM use\-tcp\-wrapper'' is active in configuration,
+and ``PARAM use-tcp-wrapper'' is active in configuration,
 then service-id "\fCsmtp-receiver\fR" is looked for all those addresses
 that are allowed to feed SMTP email in.
 .PP
@@ -992,20 +1002,20 @@ contain following kind of entries:
 .PP
 .RS 3em
 .nf
-\fI/ETC/hosts.allow\fC
-mailq : ALL@1.2.3.0
-smtp\-receiver: ALL@ALL
+\fI/ETC/hosts.allow
+\fCmailq : ALL@1.2.3.0
+smtp-receiver: ALL@ALL
 
-\fI/ETC/hosts.deny\fC
-ALL : ALL@ALL\fR
+\fI/ETC/hosts.deny
+\fCALL : ALL@ALL\fR
 .fi
 .RE
 .PP
 Alternatively, all the functions which tcp-wrapper could supply are
 also available thru the policy database machinery.
 .PP
-.I "(Do note that scheduler(8zm) has also tcp\-wrapper support, which becomes"
-.I "active simultaneously with smtpserver's tcp\-wrapper code!)"
+.I "(Do note that scheduler(8zm) has also tcp-wrapper support, which becomes"
+.I "active simultaneously with smtpserver's tcp-wrapper code!)"
 .P
 .SH "SASL[2] AUTHENTICATION MECHANISMS"
 The
@@ -1014,10 +1024,10 @@ does contain
 .B experimental
 code supporting authentication interaction using SASL mechanisms
 as they are implemented in 
-.I "CMU Cyrus\-SASL\-2"
+.I "CMU Cyrus-SASL-2"
 library.
 .PP
-This will also necessitate adding SASL\-2 library related
+This will also necessitate adding SASL-2 library related
 configuration telling what backside systems are to be used.
 Possible configuration file is:
 .PP
@@ -1037,18 +1047,18 @@ setup.
 Some further notes on how to setup the TLS encryption on the
 .IR smtpserver (8zm).
 For the time being, see notes at "doc/guides/openssl"
-as well as what is written above at the "PARAM use\-tls", or
+as well as what is written above at the "PARAM use-tls", or
 there abouts.
 .PP
-.SH SMTP\-AUTH -- AUTHENTICATE (RELAY) USER
+.SH SMTP-AUTH \- AUTHENTICATE (RELAY) USER
 .PP
-The idea with "smtp\-auth" is to authenticate the user who wants
+The idea with "smtp-auth" is to authenticate the user who wants
 extra privileges from the SMTP service, namely if a user wants to
 send email to an address considered non-local at the system, this
 user needs special privilege.
 .PP
 In usual cases the privilege is granted based on IP address of the
-user (See "smtp\-policy.relay*" below in SMTP\-Policy Configuration).
+user (See "smtp-policy.relay*" below in SMTP-Policy Configuration).
 .PP
 The privilege can also be granted by doing a "login" procedure
 where the user gives some personal identifier, and related secret.
@@ -1061,7 +1071,7 @@ does not know how to detect the session being IPSEC protected!)
 You will likely need:
 .RS 2em
 .IP \(bu 3em
-"PARAM smtp\-auth"
+"PARAM smtp-auth"
 .IP \(bu 3em
 The TLS related notes above.
 .RE
@@ -1069,26 +1079,26 @@ The TLS related notes above.
 Possibly also:
 .RS 2em
 .IP \(bu 3em
-"PARAM AUTH\-LOGIN\-also\-without\-TLS"
+"PARAM AUTH-LOGIN-also-without-TLS"
 .IP \(bu 3em
-"PARAM SMTP\-auth\-pipe /path/to/program"
+"PARAM SMTP-auth-pipe /path/to/program"
 .IP \(bu 3em
-And possibly also PAM\-support for SMTP\-Auth, see below.
+And possibly also PAM-support for SMTP-Auth, see below.
 .RE
 .PP
-.SH PAM\-SUPPORT FOR SMTP\-AUTH
+.SH PAM-SUPPORT FOR SMTP-AUTH
 If the system has <security/pam_appl.h> file, following file will also
 be needed for the system:
 .PP
 .nf
-\fC
 ------- /etc/pam.d/smtpauth-login -----------
+\fC
 #%PAM-1.0
 auth     required  /lib/security/pam_pwdb.so shadow
 auth     required  /lib/security/pam_nologin.so
 account  required  /lib/security/pam_pwdb.so
 .fi
-.SH SMTP\-POLICY CONFIGURATION
+.SH SMTP-POLICY CONFIGURATION
 This subsystem of
 .IR smtpserver (8zm)
 does control acceptability of recipient envelope addresses per several
@@ -1105,38 +1115,50 @@ SMTP "RCPT TO:<..>" addresses
 "various control files"
 .RE
 .PP
-Specifically the
-.I $MAILBIN/policy-builder.sh
+Specifically the $\fIMAILBIN/policy-builder.sh\fR
 script uses following files:
 .PP
+.RS
 .TS
 l l.
-MAILVAR/db/smtp\-policy.src	The boilerplate
-MAILVAR/db/localnames	('= _local_names')
-MAILVAR/db/smtp\-policy.relay.manual	('= _full_rights')
-MAILVAR/db/smtp\-policy.relay	('= _full_rights')
-MAILVAR/db/smtp\-policy.mx.manual	('= _relaytarget')
-MAILVAR/db/smtp\-policy.mx	('= _relaytarget')
-MAILVAR/db/smtp\-policy.spam.manual	('= _bulk_mail')
-MAILVAR/db/smtp\-policy.spam	('= _bulk_mail')
+$MAILVAR/db/smtp-policy.src	The boilerplate
+$MAILVAR/db/localnames	('= _local_names')
+$MAILVAR/db/smtp-policy.relay.manual	('= _full_rights')
+$MAILVAR/db/smtp-policy.relay	('= _full_rights')
+$MAILVAR/db/smtp-policy.mx.manual	('= _relaytarget')
+$MAILVAR/db/smtp-policy.mx	('= _relaytarget')
+$MAILVAR/db/smtp-policy.spam.manual	('= _bulk_mail')
+$MAILVAR/db/smtp-policy.spam	('= _bulk_mail')
 .TE
+.RE
 .PP
-.B "If you want, you can modify your boiler plate,"
-.I "as well as your installed"
-.I policy\-builder.sh
+.B "You should review the"
+.I smtp-policy.src
+.B "file for things that apply to you, and then execute"
+.I policy-builder.sh
 .B script.
-(Doing 'make install' will overwrite
-.IR policy\-builder.sh ,
-but not
-.IR smtp\-policy.src )
+.PP
+You may roll your own
+.I policy-builder.sh
+script,
+.I but you must be extremely carefull
+to supply sufficient set of parameters and defaults on
+generated final
+.I smtp-policy.dat
+file, that will then be compiled into the binary
+policy database to be used by the
+.IR smtpserver (8zm)
+program
+.I "If you don't, the policy database will most likely fail to"
+.I "restrict access, and you end up having an open relay!"
 .PP
 Basically these various source files (when existing) are used to
 combine knowledge of valid users around us.  Some datasets have
 .I two
 input source files,
-.I smtp\-policy.NN
+.I smtp-policy.NN
 and
-.IR smtp\-policy.NN.manual ,
+.IR smtp-policy.NN.manual ,
 the ".manual" is intended to be overrider of of possibly autogenerated
 data at the "plain" version of files.
 .PP
@@ -1145,8 +1167,8 @@ data at the "plain" version of files.
 Who we are -- ok for receiving; does not
 grant outgoing relay capability.
 .RE
-.IP smtp\-policy.relay
-.IP smtp\-policy.relay.manual
+.IP smtp-policy.relay
+.IP smtp-policy.relay.manual
 .RS
 Who can use us as outbound relay.
 .PP
@@ -1214,8 +1236,8 @@ We can set the internal "always_accept" flag at
 the source IP test, and never after.
 .PP
 .RE
-.IP smtp\-policy.mx
-.IP smtp\-policy.mx.manual
+.IP smtp-policy.mx
+.IP smtp-policy.mx.manual
 .RS
 Domains, who really are our MX clients.
 .PP
@@ -1243,8 +1265,8 @@ to, even when everything else is blocked.
 at all...)
 .PP
 .RE
-.IP smtp\-policy.spam
-.IP smtp\-policy.spam.manual
+.IP smtp-policy.spam
+.IP smtp-policy.spam.manual
 .RS
 Those users & domains that are absolutely no-no
 for the senders, or the recipients, no matter what
@@ -1262,17 +1284,17 @@ Execute \fIMAILBIN/policy-builder.sh\fR script
 .RE
 .RE
 .PP
-.SH SMTP\-POLICY TESTING
+.SH SMTP-POLICY TESTING
 You can run the smtpserver in a mode where you can
 claim to be from any address in the outside world
 you wish:
 .PP
 .RS 4em
-$MAILBIN/smtpserver \-i \-d 1 \-T '[1.2.3.4]'
+$MAILBIN/smtpserver -i -d 1 -T '[1.2.3.4]'
 .RE
 .PP
-The mode must be interactive (\-i), and supplying
-debug mode (\-d 1) to it is good help.
+The mode must be interactive (-i), and supplying
+debug mode (-d 1) to it is good help.
 .PP
 Actual claimed connection source address is to be
 given inside square brackets as a SMTP IP address
@@ -1301,7 +1323,7 @@ Depending what kind of address you have supplied
 to the -T parameter, they get either accepted, or
 rejected.
 .PP
-.SH SMTP\-POLICY RBL\-TYPE BLOCKING LISTS
+.SH SMTP-POLICY RBL-TYPE BLOCKING LISTS
 .PP
 Per default the system
 .B does not
@@ -1322,7 +1344,7 @@ attempts.
 You can delay the rejections until RCPT addresses are given. 
 .RE
 .PP
-.SH SMTP\-POLICY; IMMEDIATE REJECTION BY RBL
+.SH SMTP-POLICY; IMMEDIATE REJECTION BY RBL
 .PP
 Like mentioned above, this method has a problem with many clients
 who don't believe that HELO can give 500-series response. 
@@ -1355,7 +1377,7 @@ An example for the resulting attribute pair: (RBL+DUL+RSS)
   _rbl1   # Nothing
 .fi
 .PP
-.SH SMTP\-POLICY; DELAYED REJECTION BY RBL
+.SH SMTP-POLICY; DELAYED REJECTION BY RBL
 .PP
 Delay the rejection report to ``\fCRCPT TO\fR'' verbs by using the
 ``Third RBL variant'': 
@@ -1370,7 +1392,7 @@ Delay the rejection report to ``\fCRCPT TO\fR'' verbs by using the
 The sample boilerplace will use these as defaults unless you choose
 to explicitely have ``\fCtest-rcpt-dns-rbl -\fR'' at some of
 the recipient domains you list at 
-.I smtp\-policy.mx
+.I smtp-policy.mx
 file: 
 .PP
 .nf
@@ -1393,8 +1415,8 @@ specific one, the document is fairly direct copy, too..
 .PP
 .RS 2em
 .nf
-PARAM tls\-cert\-file  /etc/postfix/server.pem
-PARAM tls\-key\-file   /etc/postfix/server.pem
+PARAM tls-cert-file  /etc/postfix/server.pem
+PARAM tls-key-file   /etc/postfix/server.pem
 .fi
 .RE
 .PP
@@ -1406,7 +1428,7 @@ PARAM tls\-key\-file   /etc/postfix/server.pem
 .PP
 .RS 2em
 .nf
-PARAM tls\-CAfile /etc/postfix/CAcert.pem
+PARAM tls-CAfile /etc/postfix/CAcert.pem
 .fi
 .RE
 .PP
@@ -1415,13 +1437,13 @@ PARAM tls\-CAfile /etc/postfix/CAcert.pem
 .I "These certificates in \"pem\" format are collected in a directory."
 .I "The same CAs are offered to clients for client verification."
 .I "Don't forget to create the necessary \"hash\" links with"
-.I "$OPENSSL_HOME/bin/c_rehash /etc/postfix/certs."
-.I "A typical place for the CA-certs may also be $OPENSSL_HOME/certs,"
+.I "\fR$\fIOPENSSL_HOME/bin/c_rehash /etc/postfix/certs."
+.I "A typical place for the CA-certs may also be \fR$\fIOPENSSL_HOME/certs,"
 .I "so there is no default and you explicitly have to set the value here!"
 .PP
 .RS 2em
 .nf
-PARAM tls\-CApath /etc/postfix/certs
+PARAM tls-CApath /etc/postfix/certs
 .fi
 .RE
 .PP
@@ -1445,7 +1467,7 @@ Printout startup and certificate information
 .PP
 .RS 2em
 .nf
-PARAM tls\-loglevel 0
+PARAM tls-loglevel 0
 .fi
 .RE
 .PP
@@ -1454,7 +1476,7 @@ PARAM tls\-loglevel 0
 .PP
 .RS 2em
 .nf
-PARAM use\-tls
+PARAM use-tls
 .fi
 .RE
 .PP
@@ -1470,7 +1492,7 @@ PARAM use\-tls
 .PP
 .RS 2em
 .nf
-PARAM tls\-random\-source /var/run/prngd\-socket
+PARAM tls-random-source /var/run/prngd-socket
 .fi
 .RE
 .PP
@@ -1533,7 +1555,7 @@ Mainly "AUTH LOGIN", see RFC 2554+Netscape...
 If enabled and configured, starts TLS enryption.
 See RFC 3207.
 .RE
-.IP "Z\-REPORT"
+.IP "Z-REPORT"
 .RS
 Special interactive authenticated and ACL controlled command
 for querying
@@ -1574,12 +1596,12 @@ policy processing did query the rate data.
 If access-control fails, command issuer receives "550 .. unknown command"
 reply.
 .RE
-.IP "Z\-IDENT"
+.IP "Z-IDENT"
 .RS
 Tool to see, what "ident" query results for
 the received SMTP session.
 .RE
-.IP "Z\-DEBUG"
+.IP "Z-DEBUG"
 .RS
 .B "If enabled!"
 .PP
@@ -1616,17 +1638,21 @@ library's
 et.al. functions use several environment variables.
 See that man-page.
 
-.SH Z\-ENV VARIABLES USED BY THE SMTPSERVER
+.SH Z-ENV VARIABLES USED BY THE SMTPSERVER
 A collection of system configuration things
 .PP
 .IP ALLOWSOURCEROUTE
+.RS
 Alternate way to tell the system the same thing as config does:
+.RS
 .nf
-   PARAM allowsourceroute
+\fC PARAM allowsourceroute
 .fi
+.RE
 .B "Preferrably this is not to be used!  Security dangers aplenty!"
-.PP
+.RE
 .IP BINDADDR
+.RS
 If exists (with valid content),
 .B BINDADDR
 specifies to which local interface to bind
@@ -1635,14 +1661,16 @@ specifies to which local interface to bind
 transport agent, and
 .IR scheduler .
 Possible specification formats are:
+.RS
 .nf
-  [0.0.0.0]
-  [IPv6.0::0]
-  iface:eth0:1
+[0.0.0.0]
+[IPv6.0::0]
+iface:eth0:1
 .fi
+.RE
 The last one is somewhat troublesome at least when the system has
 IPv6 in it.
-.PP
+.RE
 .IP INPUTDIRS
 See
 .IR zmailer (3zm).
@@ -1658,7 +1686,7 @@ program for interactive routing things.
 .PP
 .IP PATH
 Passed on authentication subprocess program, see:
-.I "PARAM SMTP\-auth\-pipe ..."
+.I "PARAM SMTP-auth-pipe ..."
 .PP
 .IP POSTOFFICE
 See also
@@ -1676,7 +1704,7 @@ See
 .PP
 .IP ZCONFIG
 Passed on authentication subprocess program, see:
-.I "PARAM SMTP\-auth\-pipe ..."
+.I "PARAM SMTP-auth-pipe ..."
 .PP
 .SH FILES
 .IP \fI@ZMAILERCFGFILE@\fR

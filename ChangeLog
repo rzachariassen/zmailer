@@ -1,5 +1,17 @@
 2004-04-22  Matti Aarnio  <mea@zmailer.org>
 
+	* SiteConfig.in, man/man-index.sh, man/smtpserver.8.in:
+	    More man-page style editing.  The result is nice to read..
+	    (and oddly a bit TeXish in feel...)
+
+	* smtpserver/policytest.c, smtpserver/subdaemon-trk.c,
+	  man/smtpserver.8.in:
+	    Improved  "Z-REPORT"  command verb processing.
+	    Document for it is in the man-page..
+
+	* smtpserver/subdaemon-ctf.c, smtpserver/subdaemons.c:
+	    Don't (conditionally) start any sort of content-filter.
+
 	* man/smtpserver.8.in, man/Makefile.in:
 	    Produce the PDF files via DVI file route.
 	    The resulting file is _a_lot_ nicer to look at!

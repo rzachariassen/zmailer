@@ -2,17 +2,17 @@
 #.PP
 #  ZMailer 'ZENV' Environment Variables:
 #.PP
-#  A config file for storing various SITE CONFIG parameters
+#  A config file for storing various \fIsite config\fR parameters
 #.PP
-#  These are generic material that DO NOT DEPEND UPON COMPILERS et.al!
+#  These are generic material that \fBdo not depend upon compilers et.al!\fR
 #.PP
-#  This is generated with autoconfiguration process from  SiteConfig.in
+#  This is generated with autoconfiguration process from  \fISiteConfig.in\fR
 #  file, and the configuration parameters.
 #.PP
 # Following paragraph appears to be outdated:
 #.PP
-#  The standard installation procedure \fBWILL NOT\fR overwrite
-#  the destination  \fBZCONFIG\fR  file with the new one.
+#  The standard installation procedure \fBwill not\fR overwrite
+#  the destination \fBZCONFIG\fR file with the new one.
 #  This file contains one parameter that is compiled in the binaries,
 #  and is not overridable with this file, namely the  ZCONFIG  variable,
 #  alias the final location of the processed result of this
@@ -27,7 +27,7 @@
 # assignments in an sh-compatible format.
 #.PP
 # Several top-level components of ZMailer do have runtime options
-# to choose some other path, than compiled-in default for this
+# to choose some other path, than compiled-in default for this:
 # (@ZMAILERCFGFILE@).
 #.PP
 # Some programs (notably '\fIsendmail\fR(8zm)', and transport agents)
@@ -111,7 +111,7 @@ INCLUDEDIR=	@includedir@
 #<VAR><NAME>INPUTDIRHASH</NAME><DESC>
 # When defined, INPUTDIRHASH submits messages immediately into the
 # 'A' thru 'Z' subdirectory of whatever directory (e.g. see INPUTDIRS).
-# IF NO SUCH "hash subdirs" EXIST, MESSAGE SUBMISSION WILL FAIL!
+# \fBIf no such "\fIhash subdirs\fB" exist, message submission will fail!\fR
 # (The value must be "1" for this to take effect!)
 #</DESC></VAR>
 #INPUTDIRHASH=1
@@ -140,8 +140,13 @@ ROUTEROPTIONS= @ROUTEROPTIONS@
 #<VAR><NAME>ROUTERDIRS</NAME><DESC>
 # Multiple LOWER priorities on message routing can be defined by creating
 # $POSTOFFICE/<component-of-$ROUTERDIRS> -directories.
+#.PP
 # Routers process first   $POSTOFFICE/router/ -directory, and once it is
-# empty, files from subsequent dirs.   See  mail(3)  mail_priority
+# empty, files from subsequent dirs.
+# See
+#.IR mail (3)
+#.I mail_priority
+#.PP
 # These can be only under the $POSTOFFICE.
 #</DESC></VAR>
 ROUTERDIRS=router1:router2:router3:router4
@@ -149,7 +154,7 @@ ROUTERDIRS=router1:router2:router3:router4
 #<VAR><NAME>ROUTERDIRHASH</NAME><DESC>
 # When defined, ROUTERDIRHASH submits messages immediately into the
 # 'A' thru 'Z' subdirectory of whatever directory (e.g. see ROUTERDIRS).
-# IF NO SUCH "hash subdirs" EXIST, MESSAGE SUBMISSION WILL FAIL!
+# \fBIf no such "\fIhash subdirs\fB" exist, message submission will fail!\fR
 # (The value must be "1" for this to take effect!)
 #</DESC></VAR>
 #ROUTERDIRHASH=1
@@ -184,8 +189,9 @@ SMTPOPTIONS=	@SMTPOPTIONS@
 #<VAR><NAME>SCHEDULEROPTIONS</NAME><DESC>
 # SCHEDULEROPTIONS are command line options given to the scheduler when
 # started from the zmailer shell script.  The intent is that if you want
-# non-default logging options, the can be specified here.  The default
-# value is ""
+# non-default logging options, the can be specified here.
+#.PP
+# The configured default value is: "@SCHEDULEROPTIONS@"
 #</DESC></VAR>
 #SCHEDULEROPTIONS=	"-l ${LOGDIR}/scheduler.perflog -S -H"
 SCHEDULEROPTIONS= @SCHEDULEROPTIONS@
@@ -197,8 +203,8 @@ SCHEDULEROPTIONS= @SCHEDULEROPTIONS@
 # Existence of this variable also overrides -H option(s) to
 # the scheduler.  Value is the number of -H options.
 # If these hash subdirectories don't exist, system failure happens!
-# SYSTEMS WITH LOW LOADS CAN DO WITH VALUE "1", WHILE
-# SYSTEMS WITH LARGE QUEUES SHOULD DEFINITELY USE VALUE "2" !
+# \fBSystems with low loads can do with value "1", while
+# \fBsystems with large queues should definitely use value "2" !\fR
 #</DESC></VAR>
 SCHEDULERDIRHASH=2
 
@@ -206,6 +212,8 @@ SCHEDULERDIRHASH=2
 # The SCHEDULERNOTIFY defines, where is a socket at which the scheduler
 # listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
 # The router(s) inform the scheduler of new jobs.
+#.PP
+#The configured default is: @POSTOFFICE@/.scheduler.notify
 #</DESC></VAR>
 SCHEDULERNOTIFY=@POSTOFFICE@/.scheduler.notify
 
@@ -255,11 +263,12 @@ SCHEDULERNOTIFY=@POSTOFFICE@/.scheduler.notify
 # This is absolutely necessary if setuid() will fail on your "nobody" account
 # uid (if it is -2, for example).  Make sure that whatever value you give
 # here will work with setuid().  Values between 1 and 29999 will usually work.
-# BE CAREFULL WITH THIS!  THE SYSTEM RELIES ON IT VERY MUCH IN DEED!
 #.PP
-#  (On SunOS 4.1.x, the value of "-2" works the best,  on Solaris the default
-#   for nobody is 60001!  If your system has "nobody" "account", use here the
-#   name instead of number -- it should (usually) work)
+# \fBBe carefull with this!  The system relies on it very much indeed!\fR
+#.PP
+#(On SunOS 4.1.x, the value of "-2" works the best,  on Solaris the default
+#for nobody is 60001!  If your system has "nobody" "account", use here the
+#name instead of number -- it should (usually) work)
 #.PP
 # -- Use a mapping via /etc/passwd, this is most generic..
 #</DESC></VAR>
@@ -284,11 +293,15 @@ INEWSBIN=	@INEWS@
 
 #<VAR><NAME>SENDMAILPATH</NAME><DESC>
 # Where the sendmail (compability one) shall be located ?
+#.PP
+#The configured default is: @SENDMAILPATH@
 #</DESC></VAR>
 SENDMAILPATH=	@SENDMAILPATH@
 
 #<VAR><NAME>RMAILPATH</NAME><DESC>
 # Where is the rmail to be located at ?
+#.PP
+#The configured default is: @RMAILPATH@
 #</DESC></VAR>
 RMAILPATH=	@RMAILPATH@
 
@@ -299,6 +312,8 @@ RMAILPATH=	@RMAILPATH@
 #.PP
 # This has no effect, if the system does not have functional
 # \fImmap\fR(2) system call.
+#.PP
+#The configured default is: @TA_USE_MMAP@
 #</DESC></VAR>
 TA_USE_MMAP=@TA_USE_MMAP@
 
@@ -344,16 +359,22 @@ SELFADDRESSES=@SELFADDRESSES@
 #<VAR><NAME>DBTYPE</NAME><DESC>
 # What kind of DB type we prefer to use ?  We can support several,
 # simultaneously, after all; btree/ndbm/gdbm ...
+#.PP
+#Configured default value: @DBTYPE@
 #</DESC></VAR>
 DBTYPE=@DBTYPE@
 #<VAR><NAME>DBEXT</NAME><DESC>
 # What extension that particular DB type wants for open operations ?
+#.PP
+#Configured default value: @DBEXT@
 #</DESC></VAR>
 DBEXT=@DBEXT@
 #<VAR><NAME>DBEXTtest</NAME><DESC>
 # What extension that particular DB type will actually have ?
 # This is used in
 # .IR "file age tests" .
+#.PP
+#Configured default value: @DBEXTtest@
 #</DESC></VAR>
 DBEXTtest=@DBEXTtest@
 
@@ -409,7 +430,7 @@ SYSLOGFLG=@SYSLOGFLG@
 # Per default,  ZMailer uses ``daemon'' userid when it wants to
 # operate in  ``runastrusteduser()''  mode.  Finding that userid
 # (or rather its numeric uid) can be a bit difficult, and if it
-# *fails*, apparently uid 65535 will be used.
+# \fIfails\fR, apparently uid 65535 will be used.
 #</DESC></VAR>
 #TRUSTEDUSER=daemon
 
