@@ -716,7 +716,7 @@ const char *pbuf;
 	pbuf[1] == P_K_IPv4) {
       int rc;
       if (debug)
-	printf("000- policytestaddr: 'test-dns-rbl +' (IPv4) found;");
+	printf("000- policytestaddr: 'test-dns-rbl +' (IPv4) found;\n");
       rc = rbl_dns_test(ipv4addr, &state->message);
       if (debug)
 	printf("000-  rc=%d\n", rc);
