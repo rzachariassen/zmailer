@@ -538,7 +538,12 @@ fi
 	    tfiss
 	fi
 
-	forward="$homedir/.forward"
+##	if [ -z "$ROUTEUSER_IN_ABNORMAL_UNIX" ] && [ "$hashomedir" ]; then
+	    forward="$homedir/.forward"
+##	else
+##	    # Clear the possible 'homedir' flag - don't want it here!
+##	    hashomedir=
+##	fi
 
 	case "$type" in
 	expandsender)	[ -f "$forward" ] && return (($quad))
@@ -602,36 +607,35 @@ fi
 #
 
 
-if [ -z "$ROUTEUSER_IN_ABNORMAL_UNIX" ] ; then
+	if [ -z "$ROUTEUSER_IN_ABNORMAL_UNIX" ] ; then
 
 # Ending case: If not POBOX, nor homedirectory defined, then
 #              fall to "error" case below.
 
-	case "${hashomedir}x$POBOX" in
-	1x)	db add expansions "$key" local
-		if [ -z "$localdoesdomain" ]; then
-			domain=""
-		fi
-		quad=($chan "$host" "$user$plustail$domain" $attr)
-		return (($quad))
-		;;
-	esac
+		case "${hashomedir}x$POBOX" in
+		1x)	db add expansions "$key" local
+			if [ -z "$localdoesdomain" ]; then
+				domain=""
+			fi
+			quad=($chan "$host" "$user$plustail$domain" $attr)
+			return (($quad))
+			;;
+		esac
 
-else
+	else
 
 # Ending case: If not POBOX, then fall to "error" case below.
 
-	case "x$POBOX" in
-	x)	db add expansions "$key" local
-		if [ -z "$localdoesdomain" ]; then
-			domain=""
-		fi
-		quad=($chan "$host" "$user$plustail$domain" $attr)
-		return (($quad))
-		;;
-	esac
-
-fi
+		case "x$POBOX" in
+		x)	db add expansions "$key" local
+			if [ -z "$localdoesdomain" ]; then
+				domain=""
+			fi
+			quad=($chan "$host" "$user$plustail$domain" $attr)
+			return (($quad))
+			;;
+		esac
+	fi
 
 	return (((error nosuchuser "$user$plustail$domain" $attr)))
 }
