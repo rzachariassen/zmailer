@@ -1,3 +1,35 @@
+1998-05-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/makedb/makedb.c:
+	    Fixes on policy parser error reports, and generic duplicate
+	    key error's key printing routine.
+
+	* proto/newaliases.in, proto/newdb.in, proto/zmailer.sh.in:
+	    As "makedb" got explicite "-l/-u" options, so did "newdb",
+	    and their callers.
+
+	* proto/cf/standard.cf:
+	    Relation parameters for db FILES need to have "m" in them,
+	    we learned.. (via the hard way, of course).  Now added it.
+
+	* utils/Makefile.in:
+	    Conditionalize installing of "policy-builder.sh" script so,
+	    that it is no longer overwritten blindly by "make install".
+
+	* smtpserver/smtpcmds.c, smtpserver/policytest.c,
+	  smtpserver/policytest.h, smtpserver/readpolicy.c,
+	  include/policy.h:
+	    Implemented smtp-policy attribute "maxinsize"
+	    which has numeric value, and can be used to limit
+	    (in source specific manner) incoming message sizes.
+	    Implemented also provision for "maxoutsize", which
+	    use remains to be seen.. (possibly for running inside
+	    smtp transport agent)
+
+	* utils/makedb/makedb.c:
+	    Runtime options '-l' and '-u' for explicite lower-/upper-
+	    casification of key strings before storing them into db.
+
 1998-05-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/mxverify.c, smtpserver/smtpcmds.c:

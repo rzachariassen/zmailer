@@ -1,11 +1,8 @@
 % \section{sm Configuration}
 
-{\em sm} is a ZMailer {\em sendmail} compatible transport agent
-which is usually only run by the {\tt scheduler(8)}, to deliver
-messages by invoking a program with  facilities  and  in a way 
+{\em sm} is a ZMailer's {\em sendmail} compatible transport agent to
+deliver messages by invoking a program with facilities and in a way 
 compatible with a {\em sendmail} mailer.
-The {\em sm} program must be run with the same current directory
-as the scheduler, namely {\tt \$POSTOFFICE/transport/}.
 
 The program scans the message control files named on stdin
 for addresses destined for the channel and/or the host
@@ -21,38 +18,39 @@ permanent failure.
 All other exit codes will be treated as a temporary failure
 and the delivery will be retried.
 
-Usage 
+
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+#mailer flags program        argument list
+#------ ----- -------------- --------------------------------
+local   mS    sm/localm      localm -r $g $u
+prog    -     /bin/sh        sh -c $u
+tty     rs    /usr/local/to  to $u
+uucp    U     /usr/bin/uux   uux - -r -a$g -gC $h!rmail ($u)
+usenet  m     sm/usenet      usenet $u
+test    n     sm/test        test $u
+\medskip\hrule\end{alltt}
+\caption{\label{fig:adm:sample_sm_conf}Sample {\tt sm.conf} file}
+\end{figure*}
+
+
+{\em Usage}
 
 {\tt sm [ -8HQV ] [ -f configfile ] -c channel -h host mailer}
 
 
-{\bf Configuration}
+{\em Configuration}
 
-The configuration file {\tt MAILSHARE/sm.conf } associates the 
-mailer keyword  from
-the command line with a specification of a delivery program.  
-This is very similar to the way the definition of a
-mailer in  {\em sendmail} requires flags, a program name, and a
-command line specification.  These are in fact the  fields
-of  the entries of the configuration file.  Lines starting
-with whitespace or a `{\tt \#}' are ignored, and all  
-others are assumed to follow this format:
-
-\begin{alltt}
-mailer flags program        argument list
-\end{alltt}
-
-For example:
-
-\begin{alltt}
-local  mS    sm/localm      localm -r $g $u
-prog   -     /bin/sh        sh -c $u
-tty    rs    /usr/local/to  to $u
-uucp   U     /usr/bin/uux   uux - -r -a$g -gC $h!rmail ($u)
-usenet m     sm/usenet      usenet $u
-test   n     sm/test        test $u
-\end{alltt}
-
+The configuration file {\tt \$MAILSHARE/sm.conf } associates
+the mailer keyword from the command line with a specification
+of a delivery program.
+This is very similar to the way the definition of a ``mailer'' in
+{\em sendmail}.
+It requires flags, a program name, and a command line specification.
+These are in fact the fields of the entries of the configuration file.
+Lines starting with whitespace or a `{\tt \#}' are ignored, and all
+others are assumed to follow format shown in figure
+\vref{fig:adm:sample_sm_conf}.
 
 The mailer field extends from the beginning of the line to
 the first whitespace.  It is used simply as a key index to
@@ -62,83 +60,63 @@ the field separator for all the fields.
 The flags field contains  a  concatenation  of  one-letter
 flags.  If no flags are desired, a ``{\tt -}'' character should be
 used to indicate presence of the field.
-All normal {\em sendmail} flags are recognized, but the ones that
+All normal {\em sendmail} ({\em of 5.x era..}) flags are recognized, but the ones that
 do not make sense in the context of ZMailer will produce an error.
 The flags that change the behaviour of {\em sm} are:
 
 \begin{description}
-\item[ {\tt b}] \mbox{}
-
+\item[ {\tt b}] \mbox{} \\
 will activate BSMTP-type wrapping with a ``hidden-dot''
 algorithm; e.g. quite ordinary SMTP stream, but in ``batch mode''.
 
-
-
-\item[ {\tt B}] \mbox{}
-
+\item[ {\tt B}] \mbox{} \\
 The  first `{\tt B}'  turns on similar BSMTP wrapping as
 `{\tt b}', but adds SIZE and, if the sm is  started  with
 option `{\tt -8}', also 8BITMIME options.  The second `{\tt B}'
 adds there also DSN (Delivery Status  Notification) parameters.
 
+\item[ {\tt E}] \mbox{} \\
+will prepend `\verb/>/' to any message body line starting
+with ``\verb*/From /''. (Read: ``From-space'')
 
-
-\item[ {\tt E}] \mbox{}
-
-will prepend `{\(>\)}' to any message body line starting
-with `{\tt From }'.
-
-
-
-\item[ {\tt f}] \mbox{}
-
+\item[ {\tt f}] \mbox{} \\
 adds ``{\tt -f sender}'' arguments to the delivery program.
 
-
-
-\item[ {\tt n}] \mbox{}
-
-will not prepend a From-space line (normal mailbox
+\item[ {\tt n}] \mbox{} \\
+will not prepend a \verb*/From /-line (normal mailbox
 separator line) to the message.
 
-
-
-\item[ {\tt r}] \mbox{}
-
+\item[ {\tt r}] \mbox{} \\
 adds ``{\tt -r sender}'' arguments to the delivery program.
 
-
-
-\item[ {\tt S}] \mbox{}
-
+\item[ {\tt S}] \mbox{} \\
 will run the delivery program with the same real
 and effective uid as the sm process.  If this  flag
 is  not  set, the delivery program will be run with
 the real uid of the sm process. This may be useful if sm is setuid.
 
-
-\item[ {\tt m}] \mbox{}
+\item[ {\tt m}] \mbox{} \\
 informs sm that each instance of the delivery program  
 can deliver to many destinations. This affects {\bf \$u} expansion 
 in the argument list, see below.
 
-\item[ {\tt P}] \mbox{}
+\item[ {\tt P}] \mbox{} \\
 prepends a Return-Path: header to the message.
 
-\item[ {\tt U}] \mbox{}
-will prepend a From-space line, with a ``remote from
+\item[ {\tt U}] \mbox{} \\
+will prepend a \verb*/From /-line, with a ``remote from
 myuucpname'' at the end, to the message. This is what is expected by remote 
 {\tt rmail(1)} programs for incoming UUCP mail.
 
-\item[ {\tt R}] \mbox{}
+\item[ {\tt R}] \mbox{} \\
 use CRLF sequence as end-of-line sequence. Without
 it, will use LF-only end-of-line sequence.
 
-\item[ {\tt X}] \mbox{}
+\item[ {\tt X}] \mbox{} \\
 does SMTP-like ``hidden-dot'' algorithm  of doubling
 all dots that are at the start of the line.
 
-\item[ {\tt 7}] \mbox{}
+\item[ {\tt 7}] \mbox{} \\
 will strip (set to 0) the 8th bit of every character in the 
 message.
 
@@ -153,13 +131,13 @@ contains  whitespace separated  argv  parameters which may
 contain one of the following sequences:
 
 \begin{description}
-\item[ {\tt \$g}] \mbox{}
+\item[ {\tt \$g}] \mbox{} \\
 which is replaced by the sender address.
 
-\item[ {\tt \$h}] \mbox{}
+\item[ {\tt \$h}] \mbox{} \\
 which is replaced by the destination host.
 
-\item[ {\tt \$u}] \mbox{}
+\item[ {\tt \$u}] \mbox{} \\
 which is replaced by the recipient address.  If the
 {\tt -m} mailer flag is set and there are several recipients for this 
 message, the argument containing  the {\tt \$u} will be replicated 

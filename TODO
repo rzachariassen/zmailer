@@ -1,5 +1,22 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- Somewhere ? (smtpserver, and perhaps smtp transport agent ?)
+	Implement OUTBOUND message size limit mechanism.
+	Possibly a multi-value system which works against
+	IP/reversed domain information, and adjust maximum
+	inbound message size at the smtpserver per that
+	given server.
+
+	A further complication is need to limit outbound
+	email's sizes when the inbound size is limited so
+	that our system will not send out anything to which
+	error report size is larger than out inbound limit.
+
+	Problem being, of course, that outbound channels
+	need to interrogate that same configuration mechanism
+	to do "Sorry, this is too large for sending" processing.
+
+
 - scheduler:
 	Sometimes will generate spurious successfull-delivery-
 	reports when the command is retried, and the tag selector

@@ -774,24 +774,32 @@ in utils/distribute and utils/mail2news).
 \subsubsection{aliases.cf Logic}
 
 \begin{itemize}
-\item If an aliases database exists and local-part is found in it, the list of
+\item
+If an aliases database exists and local-part is found in it, the list of
 addresses mapped to by the alias entry is substituted.
-\item If an mboxmap file exists and a mapping for the local-part is found in it,
-the mapping (a host!homedir!user value) determines the remote recipient
+\item
+If an mboxmap file exists and a mapping for the local-part is found in it,
+the mapping (a ``host!homedir!user'' value) determines the remote recipient
 (user@host) or recipient mailbox ({\tt homedir/../PObox/user}) if host 
 is local.
-\item If local-part is a login name and a readable {\tt .forward} file 
-exists in the home directory, the list of addresses it contains is substituted.
-\item If local-part is a file basename in the {\tt \$MAILVAR/lists} 
-directory, the   list of addresses contained in the file is substituted, and 
-the sender address set to local-part-owner.
-\item If local-part is of the form file-owner or file-request, where file is
+\item
+If local-part is a login name and a readable ``{\tt .forward}'' file 
+exists in the home directory, the list of addresses it contains is
+substituted.
+\item
+If local-part is a file basename in the {\tt \$MAILVAR/lists} 
+directory, the   list of addresses contained in the file is
+substituted, and the sender address set to local-part-owner.
+\item
+If local-part is of the form file-owner or file-request, where file is
 an entry in the {\tt \$MAILVAR/lists} directory, the account name 
 of the owner of the file is substituted.   (File-owner identity and correct 
 protections are important.)
-\item If the local-part is of format  ``user.name'',  it is actually mapped via
+\item
+If the local-part is of format  ``user.name'',  it is actually mapped via
 separate   fullnamemap, and NEVER via {\tt \$MAILVAR/db/aliases}.
-\item If PUNTHOST is defined (in {\tt /etc/zmailer.conf}) the address
+\item
+If PUNTHOST is defined (in {\tt /etc/zmailer.conf}) the address
 {\tt local-part@\$PUNTHOST} is substituted.  Note that in this case
 the mboxmap mechanism should be used to ensure local spool
 mailbox delivery for local users.
@@ -813,14 +821,16 @@ address-list, except for comments.  The header field name is the local-part
 being aliased to the address-list that is the header value.
 
 The fact that an alias definition follows the syntax for an RFC822 message
-header, introduces an incompatibility with {\em sendmail}.  The string
-{\tt :include:} at the start of a local-part (a legacy of RFC733) has special
-semantics. {\em Sendmail} would strip this prefix, and regard the rest of the
-local-part as a path to a file containing a list of addresses to be
-included in the alias expansion. Indeed, the {\em router} behaves in the same
-manner, but because some of the characters in the prefix are RFC822
-specials, the entire local-part must be quoted.  Thus, whereas {\em sendmail}
-allowed:
+header, introduces an incompatibility with {\em sendmail}.
+The string ``{\tt :include:}'' at the start of a local-part
+(a legacy of RFC733) has special semantics.
+{\em Sendmail} would strip this prefix, and regard the rest of the local-part
+as a path to a file containing a list of addresses to be included in the alias
+expansion.
+Indeed, the {\em router} behaves in the same manner, but because some of
+the characters in the prefix are RFC822 specials, the entire local-part
+must be quoted.
+Thus, whereas {\em sendmail} allowed:
 
 \begin{alltt}\medskip\small\hrule\medskip
 people: :include:/usr/lib/mail/lists/people
@@ -832,15 +842,16 @@ people: ":include:/usr/lib/mail/lists/people"
 \medskip\hrule\end{alltt}\medskip
 
 
-Like {\em sendmail}, if a local-part is not found in the aliases database, the
-{\em router} also checks {\tt \~{}local-part/.forward} (if such exists) for 
-any address expansion.  The {\tt .forward} file format is also an RFC822 
-address list, similar to what {\em sendmail} expects.
+Like {\em sendmail}, if a local-part is not found in the aliases database,
+the {\em router} also checks ``{\tt \~{}local-part/.forward}''
+(if such exists) for any address expansion.
+The {\tt .forward} file format is also an RFC822 address list, similar
+to what {\em sendmail} expects.
 
-As special cases, a local-part starting with a pipe character (`{\tt $\|$}') is
-treated as mail destined for a program (the rest of the local-part is any
-valid argument to a {\tt sh -c} command), and a local-part starting with a
-slash character (`{\tt /}') is treated as mail destined for the file named 
+As special cases, a local-part starting with a pipe character (`\verb/|/')
+is treated as mail destined for a program (the rest of the local-part is any
+valid argument to a ``{\tt sh -c}'' command), and a local-part starting with
+a slash character (`{\tt /}') is treated as mail destined for the file named
 by the local-part.
 
 General format:
@@ -862,28 +873,31 @@ The following processing is done for (replacement) local-parts
 
 
 
-If the local-part starts with ``{\tt $\|$}" assume it is a command specification:
-\begin{alltt}
- prog-pipe: "|/path/to/program -args"
-\end{alltt}
+If the local-part starts with ``\verb/|/'' assume it is a command
+specification:
+\begin{alltt}\medskip\hrule\medskip
+prog-pipe: "|/path/to/program -args"
+\medskip\hrule\end{alltt}\medskip
 
-If the local-part starts with ``/" assume it is a file pathname:
-\begin{alltt}
- file-path: "/path/to/file"
-\end{alltt}
+If the local-part starts with ``/'' assume it is a file pathname:
+\begin{alltt}\medskip\hrule\medskip
+file-path: "/path/to/file"
+\medskip\hrule\end{alltt}\medskip
 
-If the local-part starts with {\tt :include:} the rest should be a file
+If the local-part starts with ``{\tt :include:}'' the rest should be a file
 pathname of a list of mail addresses.  They are substituted:
-\begin{alltt}
- included-list: ":include:/path/to/address/file"
-\end{alltt}
+\begin{alltt}\medskip\hrule\small\medskip
+included-list: ":include:/path/to/address/file"
+\medskip\hrule\end{alltt}\medskip
+
 
 After this point, all matches are case-insensitive by means of translating
 the value to be looked up to lower-case, and then conducting a case-sensitive
-lookup. {\bf All keys in aliases et.al. must be in lower case}.
+lookup. {\em All keys in aliases et.al. must be in lower case -- you
+can achieve this with bundled ``{\tt newaliases}'' script, which calls
+``{\tt makedb}'' with ``-l'' option to lowercasify keys.}.
 (The hash functions inside  {\tt ndbm/gdbm/db/dbm}  are case sensitive, and 
 as such, there is no way to avoid this requirement.)
-
 
 
 \subsubsection{About Large Lists, and Memory Consumption}
