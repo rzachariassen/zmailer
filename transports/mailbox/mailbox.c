@@ -2245,7 +2245,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	   * The mtime will be set to now by the following write() calls.
 	   */
 	  err = errno;
-	  sfseek(fp, (Sfoff_t)-2LL, SEEK_END);
+	  sfseek(fp, (Sfoff_t)-2, SEEK_END);
 	  len = sfread(fp, buf, 2);
 	  sfseek(fp, (Sfoff_t)0,    SEEK_END);
 	  /* to end of file, again */

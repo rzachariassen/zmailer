@@ -916,7 +916,7 @@ extern ssize_t	write _ARG_((int, const void*, size_t));
 extern off_t	lseek _ARG_((int, off_t, int));
 extern int	dup _ARG_((int));
 extern int	isatty _ARG_((int));
-extern int	wait _ARG_((int*));
+extern pid_t	wait _ARG_((int*));
 extern int	pipe _ARG_((int*));
 extern int	access _ARG_((const char*, int));
 extern uint	sleep _ARG_((uint));
@@ -927,7 +927,7 @@ extern int	execl _ARG_((const char*, const char*,...));
 extern int	execv _ARG_((const char*, char**));
 #endif
 #if !defined(fork)
-extern int	fork _ARG_((void));
+extern pid_t	fork _ARG_((void));
 #endif
 #if _lib_unlink
 extern int	unlink _ARG_((const char*));
@@ -943,7 +943,7 @@ extern void	bzero _ARG_((void*, size_t));
 #endif
 
 extern time_t	time _ARG_((time_t*));
-extern int	waitpid _ARG_((int,int*,int));
+extern pid_t	waitpid _ARG_((pid_t,int*,int));
 extern void	_exit _ARG_((int));
 typedef int(*	Onexit_f)_ARG_((void));
 extern Onexit_f	onexit _ARG_((Onexit_f));

@@ -33,7 +33,7 @@
 #include "libsh.h"
 
 extern struct sptree *spt_funclist;
-extern int wait __((int *));
+/* extern int wait __((int *)); */
 extern int v_record, v_changed;
 
 int magic_number = 3;	/* check id for precompiled script files */

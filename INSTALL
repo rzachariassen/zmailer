@@ -125,6 +125,11 @@ Installation procedure:
 			--with-gcc
 		( Sun Solaris 2.5  at mailhost.utu.fi, gcc-2.7.2 )
 
+		./configure --prefix/opt/mail \
+			CC="cc -Xc -D__EXTENSIONS__" CFLAGS="-g -O"
+		( Sun Solaris 2.6 with Sun Workshop CC in "strict ANSI"
+		  mode... )
+
 		./configure --prefix=/l/mail
 		( Linux-2.0.x/libc-5.4.2 at mea.cc.utu.fi, gcc-2.7.2 )
 

@@ -9,7 +9,7 @@ all:
 	cd libta ; $(MAKE) $(MFLAGS)
 	for x in $(SUBDIRS); do					\
 	    if [ -f $$x/Makefile ]; then			\
-		( cd $$x; ${MAKE} ${MFLAGS} ) || exit 1 ;	\
+		( cd $$x; ${MAKE} ${MFLAGS} )  ;		\
 	    fi	;						\
 	done
 
@@ -20,8 +20,7 @@ depend:
 	cd libta; $(MAKE) $(MFLAGS) depend CPPDEP="${CPPDEP}"
 	for x in $(SUBDIRS); do				\
 	    if [ -f $$x/Makefile ]; then		\
-		( cd $$x; ${MAKE} ${MFLAGS} depend CPPDEP="${CPPDEP}" )	\
-		|| exit 1 ;				\
+		( cd $$x; ${MAKE} ${MFLAGS} depend CPPDEP="${CPPDEP}" ); \
 	    fi	;					\
 	done
 
@@ -29,8 +28,7 @@ clean mostlyclean:
 	cd libta ; $(MAKE) $(MFLAGS) clean
 	for x in $(SUBDIRS); do				\
 	    if [ -f $$x/Makefile ]; then		\
-		( cd $$x; ${MAKE} ${MFLAGS} clean )	\
-		|| exit 1 ;				\
+		( cd $$x; ${MAKE} ${MFLAGS} clean ) ;	\
 	    fi	;					\
 	done
 	-rm -f *~
@@ -39,8 +37,7 @@ distclean:
 	cd libta ; $(MAKE) $(MFLAGS) distclean
 	for x in $(SUBDIRS); do				\
 	    if [ -f $$x/Makefile ]; then		\
-		( cd $$x; ${MAKE} ${MFLAGS} distclean )	\
-		|| exit 1 ;				\
+		( cd $$x; ${MAKE} ${MFLAGS} distclean ) ; \
 	    fi	;					\
 	done
 	-rm -f *~
@@ -50,8 +47,7 @@ install:
 	@cd libta; $(MAKE) $(MFLAGS)
 	@for x in $(SUBDIRS); do			\
 	    if [ -f $$x/Makefile ]; then		\
-		( cd $$x; ${MAKE} ${MFLAGS} install )	\
-		|| exit 1 ;				\
+		( cd $$x; ${MAKE} ${MFLAGS} install ) ;	\
 	    fi	;					\
 	done
 
