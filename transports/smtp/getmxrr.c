@@ -194,13 +194,13 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    --ancount;
 	    continue;
 	  }
-	  if (cp + n /* dlen */ >= eom) { cp = eom; break; }
+	  if (cp + n /* dlen */ > eom) { cp = eom; break; }
 	  mx[nmx].pref = _getshort(cp);
 	  cp += 2; /* MX preference value */
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0) break;
 	  cp += n;
-	  if (cp >= eom) break;
+	  if (cp > eom) break;
 
 	  mx[nmx].ai   = NULL;
 	  mx[nmx].host = (msgdata *)strdup((void*)buf);
@@ -782,8 +782,7 @@ int main(argc, argv)
 	}
 
 
-	printf("getmxrr() rc=%d %s\n", rc, s);
-	printf("     mxcount=%d\n", SS.mxcount);
+	printf("getmxrr() rc=%d %s; mxcount=%d\n", rc, s, SS.mxcount);
 
 
 	if (SS.mxcount == 0 || SS.mxh[0].host == NULL) {
