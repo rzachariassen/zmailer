@@ -1,11 +1,12 @@
 
 
-          INTERNET DRAFT to be NEWS                    Expires 19981101
+
+          INTERNET DRAFT to be NEWS                    Expires 19990101
 
 
 
                              News Article Format
-                        draft-ietf-usefor-article-00
+                        draft-ietf-usefor-article-01
                             USEFOR Working Group
 
 
@@ -30,10 +31,10 @@ Status of this Memo
      (Pacific Rim), ftp.ietf.org (US East Coast), or ftp.isi.edu
      (US West Coast).
 
-          It is hoped that this Draft will obsolete RFC 1036 and will
+          It is hoped that this document will obsolete RFC 1036 and will
           become an Internet standard.
 
-          This Draft is a successor to Henry Spencer's "Son of 1036"
+          This document is a successor to Henry Spencer's "Son of 1036"
           Draft, and has been referred to as "Grandson of 1036".
 
           Distribution of this memo is unlimited.
@@ -68,16 +69,150 @@ Abstract
           is now in widespread use for other purposes, on the Internet
           and elsewhere.
 
-          This Draft is intended to provide a definitive guide to the
+          This document is intended to provide a definitive guide to the
           article format and interpretations thereof. Backward
-          compatibility is a major goal, but where this Draft and
-          earlier documents or practices collide, this Draft should be
+          compatibility is a major goal, but where this document and
+          earlier documents or practices collide, this document should be
           used.
 
 
 Table of Contents
 
-          needs TOC
+1. Introduction
+
+2. Definitions, Notations and Conventions
+2.1 Definitions.
+2.2. Textual Notations
+2.3. Syntax Notation
+2.4. Language
+
+3. Relation To [MAIL] (RFC 822 etc.)
+
+4. Basic Format
+4.1 Overall Syntax
+4.2. Syntax of News Articles
+4.3. Headers
+4.3.1. Names and Contents
+4.3.2 Header Classes
+4.3.3 Experimental Headers
+4.3.4 Persistent Headers
+4.3.5. Variant Headers
+4.3.6. Header Classes
+4.3.6.1 Experimental Headers
+4.3.6.2 Persistent Headers
+4.3.6.3 Examples
+4.3.6.4 Comment Headers
+4.3.6.5. Variant Headers
+4.3.7. White Space and Continuations
+4.3.8 Comments
+4.3.9. Undesirable Headers
+4.4. Body
+4.4.1. Body Format Issues
+4.4.2. Body Conventions
+4.5. Characters And Character Sets
+4.5.1. Character Sets within Article Headers
+4.5.2 Character Sets within Article Bodies
+4.6. Size Limits
+4.7. Example
+
+5. Mandatory Headers
+5.1. Date
+5.2. From
+5.2.1 Examples:
+5.3. Message-ID
+5.4. Subject
+5.4.1 Examples:
+5.5. Newsgroups
+5.5.1 Forbidden newsgroup names
+5.6 Path
+5.6.1 Format
+5.6.2 Adding an entry to the Path header.
+5.6.3 The tail Entry
+5.6.4 The Injecting Agent Entry
+5.6.5 Delimiter Summary
+5.6.6 Other formatting Issues
+5.6.6.1 Use of "!"
+5.6.7 Suggested Verification Methods
+5.6.8 Issues
+
+6. Optional Headers
+6.1 Followup-To
+6.2 Expires
+6.3. Reply-To
+6.3.1 Examples:
+6.4. References
+6.4.1 Examples:
+6.5. Control
+6.6. Control Messages
+6.6.1 The "newgroup" Control Message
+6.6.1.1 multipart/newsgroupinfo
+6.6.1.2 application/newsgroupinfo
+6.6.1.3 Initial Named Articles
+6.6.2 The "rmgroup" Control Message
+6.6.3 The "mvgroup" Control Message
+6.6.3.1 Single group
+6.6.3.2 Multiple Groups
+6.6.4 The "checkgroups" Control Message
+6.6.4.1 Example:
+6.6.5 application/newscheckgroups
+6.6.5.1 Examples
+6.6.6 Cancel
+6.6.7 ihave, sendme
+6.6.8 Obsolete control messages.
+6.7. Distribution
+6.8. Keywords
+6.9. Summary
+6.10. Approved
+6.11 Lines
+6.12. Xref
+6.13. Organization
+6.14. User-Agent
+6.14.1 Examples:
+6.15 MIME headers
+6.15.1 Syntax
+6.15.2 Content-Transfer-Encoding
+6.15.3 Content-Type
+6.15.3.1 Text
+6.15.3.2 Application
+6.15.3.4 Image, Audio and Video
+6.15.3.5 Multipart
+6.15.3.6 Message
+6.15.3.7 Character Sets
+6.15.4 MIME within headers
+6.15. Supersedes / Replaces
+6.15.1 Message-ID version numbers chain procedure.
+6.15.2 Implementation and Use Note
+6.15.3 Transition
+6.15.4 Replaced-by
+6.15.5.1 Examples
+6.15.5.2 Example
+6.15.6 Dates
+6.15.7 Issues
+6.16 Archive
+6.17. Obsolete Headers
+
+7. Duties of Various Agents
+7.1 Duties of an Injecting Agent.
+7.1.1 Proto-articles.
+7.1.2 Procedure followed by Injecting Agents.
+7.1.3 Headers added by Injecting Agents.
+7.2 Duties of a Relaying Agent
+7.2.1 Unwanted and Invalid articles
+7.3 Duties of a Serving Agent
+7.3.1 Unwanted articles
+7.4 Duties of a Posting Agent.
+7.5 Duties of a Followup Agent
+7.6 Duties of a Gateway
+
+8. Propagation and Processing
+
+9. Security And Related Issues
+9.1 Attacks
+
+10. Security Considerations
+
+11. References:
+
 
 1. Introduction
 
@@ -105,10 +240,10 @@ Table of Contents
 
           A Draft popularly referred to as "Son of 1036" was written in
           1992 by Henry Spencer. That document formed the original basis
-          for this Draft. Much is taken directly from Son of 1036, and
+          for this document. Much is taken directly from Son of 1036, and
           it is hoped that we have followed its spirit and intentions.
 
-          As  in  this  Draft's  predecessors, the exact means used to
+          As  in  this  document's  predecessors, the exact means used to
           transmit articles from one host to another is not specified.
           NNTP  [rrr]  is the most common transmission method on the
           Internet, but a number of others are in use,  including the
@@ -116,11 +251,11 @@ Table of Contents
           Usenet, FTP, tape archives, and physically delivered magnetic
           and optical media.
 
-          Several  of  the mechanisms described in this Draft may seem
+          Several  of  the mechanisms described in this document may seem
           somewhat strange or even bizarre at first reading.  As  with
           Internet  mail, there is no reasonable possibility of updating
           the entire installed base of news software promptly,  so
-          interoperability  with  old  software  is  crucial  and will
+          interoperability  with  old  software  is  critical  and will
           remain so.  Compatibility with existing practice and
           robustness in  an  imperfect world necessarily take priority
           over elegance. Elegance is left to the implementors.
@@ -139,10 +274,10 @@ Table of Contents
           A "posting agent" is software that assists posters to prepare
           articles, including adding required headers and determining
           whether the final article is compliant to this standard. If
-          the article is complient it passes the article on to an
+          the article is compliant it passes the article on to an
           injecting agent for final checking and injection into the news
-          stream.  If the article is not complient or rejected by the
-          injecting agent the the posting agent informs the poster with
+          stream.  If the article is not compliant or rejected by the
+          injecting agent then the posting agent informs the poster with
           an explanation of the error.
 
           An "injecting agent" takes the finished article from the
@@ -204,12 +339,12 @@ Table of Contents
           methods of message exchange.  The most common type of gateway
           connects newsgroup(s) to mailing list(s),  either
           unidirectionally  or  bidirectionally,  but  there are also
-          gateways between news networks using this  Draft's  news
+          gateways between news networks using this  document's  news
           format and those using other formats.
 
           A  "control  message"  is an article which is marked as
           containing control information; a relaying or serving agent
-          receiving such an article will (subject to permissions  etc.)
+          receiving such an article may (subject to permissions  etc.)
           take actions beyond just filing and passing on the article.
 
           An article's "reply address" is the address to which mailed
@@ -219,15 +354,15 @@ Table of Contents
 
 2.2. Textual Notations
 
-          Throughout this Draft, [MAIL] is short for "the current RFCs
+          Throughout this document, [MAIL] is short for "the current RFCs
           governing electronic mail formats, beginning with the
           historical RFC 822 and continuing to its modern successors.
 
           "ASCII"  is  short  for "the ANSI X3.4 character set" [rrr].
           While "ASCII" is often misused to refer to various character
-          sets  somewhat similar to X3.4, in this Draft, "ASCII" means
+          sets  somewhat similar to X3.4, in this document, "ASCII" means
           X3.4 and only X3.4. ASCII is a 7 bit character set. Please
-          note that this Draft requires that all agents be 8 bit clean;
+          note that this document requires that all agents be 8 bit clean;
           that is, they must accept and transmit data without changing
           or omitting the 8th bit.
 
@@ -236,7 +371,7 @@ Table of Contents
           the same words followed by "NOT" should be read as having the
           same meaning as in RFC 2119.
 
-          This Draft contains explanatory notes  using  the  following
+          This document contains explanatory notes  using  the  following
           format.   These  may be skipped by persons interested solely
           in the content of the specification.   The  purpose  of  the
           notes  is to explain why choices were made, to place them in
@@ -253,23 +388,32 @@ Table of Contents
 
           All numeric values are given  in  decimal  unless  otherwise
           indicated.   Octets  are  assumed  to be unsigned values for
-          this purpose.  Large numbers are  written  using  the  North
-          American  convention, in which "," separates groups of three
-          digits but otherwise has no significance.
+          this purpose. 
+
+          Through this document we will give examples of various
+          definitions, headers and other specifications. It MUST be
+          remembered that these samples are for the aid of the reader
+          only and do NOT define any specification themselves. In order
+          to prevent possible conflict with "Real World" entities and
+          people the top level domain of ".example" is used in all
+          sample domains and addresses. The hierarchy of example.* is
+          also used a sample hierarchy. Information on the ".example"
+          top level domain is in [TEST-TLDS] .
+
 
 2.3. Syntax Notation
 
-          This Draft uses the Augmented Backus Naur Form described in
+          This document uses the Augmented Backus Naur Form described in
           [ABNF]. A discussion of this is outside the bounds of this
-          Draft, but it is expected that implementors will be able to
+          document, but it is expected that implementors will be able to
           quickly understand it with reference to the defining document.
 
-          This Draft is intended  to  be  self-contained;  all  syntax
+          This document is intended  to  be  self-contained;  all  syntax
           rules  used in it are defined within it, and a rule with the
           same name as one found in [MAIL] does not have the same
           definition.   The lexical layer of [MAIL] is NOT, repeat NOT,
-          used in this  Draft,  and  its  presence  must  not  be
-          assumed;  notably,  this  Draft  spells out all places where
+          used in this  document,  and  its  presence  must  not  be
+          assumed;  notably,  this  document  spells out all places where
           white space is permitted/required and all places where
           constructs resembling [MAIL] comments can occur.
 
@@ -288,22 +432,22 @@ Table of Contents
 
 2.4. Language
 
-          Various constant strings in this Draft, such as header names
+          Various constant strings in this document, such as header names
           and  month  names,  are derived from English words.  Despite
           their derivation, these words do NOT change when the  poster
           or  reader employing them is interacting in a language other
           than English.  Posting and reading agents  MAY translate
           as  appropriate  in  their  interaction  with  the poster or
           reader, but the forms that actually appear in  articles 
-          MUST be the English-derived ones defined in this Draft.
+          MUST be the English-derived ones defined in this document.
 
 3. Relation To [MAIL] (RFC 822 etc.)
 
-          The  primary  intent of this Draft is to completely describe
+          The  primary  intent of this document is to completely describe
           the news article format. News articles were once considered as
           a subset of [MAIL]'s message format augmented by some new
           headers; this is no longer the case. News and [MAIL] have
-          diverged. It is the intention of this Draft that gateways
+          diverged. It is the intention of this document that gateways
           between [MAIL] and news still be capable of performing this
           function automatically.
 
@@ -327,24 +471,25 @@ Table of Contents
           The following syntactic forms supersede the corresponding
           rules given in [MESSFOR] and [RFC2045]:
 
-          text            = %d1-%d9 /        ; all octets except
-                            %d11-%d12 /      ; US-ASCII NUL, CR and LF
-                            %d14-%d255
+          text            = %d1-9 /           ; all octets except
+                            %d11-12 /         ; US-ASCII NUL, CR and LF
+                            %d14-255
           ctext           = NO-WS-CTL /       ; all of <text> except
-                            %d33-%d39 /      ; SP, HTAB, "(", ")"
-                            %d42-%d91 /      ; and "\"
-                            %d93-%d255
+                            %d33-39 /         ; SP, HTAB, "(", ")"
+                            %d42-91 /         ; and "\"
+                            %d93-255
           qtext           = NO-WS-CTL /       ; all of <text> except
                             %d33 /            ; SP, HTAB, "\" and <">
-                            %d35-%d91 /
-                            %d93-%d255
-          ftext           = %d33-%d57 /      ; all octets except
-                            %d59-%d126 /     ; CTL, SP and ":"
-                            %d128-%d255
+                            %d35-91 /
+                            %d93-255
+          ftext           = %d33-57 /         ; all octets except
+                            %d59-126 /        ; CTL, SP and ":"
+                            %d128-255
           token           = 1*<any ftext except tspecials>
           tspecials       = "(" / ")" / "<" / ">" / "@"
                             "," / ";" / ":" / "
                             "/" / "[" / "]" / "?" / "="
+
 
           Wherever in this standard the syntax is stated to be taken
           from [MESSFOR], it is to be understood as the syntax defined
@@ -359,18 +504,18 @@ Table of Contents
           The following syntactic forms, taken from [RFC2234] or from
           [MESSFOR], are repeated here for convenience only:
 
-          ALPHA           = %x41-%x5A /      ; A-Z
-                            %x61-%x7A        ; a-z
+          ALPHA           = %x41-5A /         ; A-Z
+                            %x61-7A           ; a-z
           CR              = %x0D              ; carriage return
           CRLF            = CR LF
-          DIGIT           = %x30-%x39        ; 0-9
+          DIGIT           = %x30-39           ; 0-9
           HTAB            = %x09              ; horizontal tab
           LF              = %x0A              ; line feed
           SP              = %x20              ; space
-          NO-WS-CTL       = %d1-%d8 /        ; US-ASCII control characters
+          NO-WS-CTL       = %d1-8 /           ; US-ASCII control characters
                             %d11 /            ; which do not include the
                             %d12 /            ; carriage return, line feed,
-                            %d14-%d41 /      ; and whitespace characters
+                            %d14-41 /         ; and whitespace characters
                             %d127
           WSP             = SP / HTAB          ; Whitespace characters
           FWS             = ([*WSP CRLF] 1*WSP)   ; Folding whitespace
@@ -458,7 +603,164 @@ Table of Contents
           reading agents MUST, however, tolerate articles not obeying
           this convention.
 
-4.3.2. White Space and Continuations
+4.3.2 Header Classes
+
+          There are four special classes of headers that may be present
+          in an article:  Experimental, Persistent, Comment, and
+          Variant.  All other headers are ephemeral.  These classes are
+          significant in how newsreaders and servers should treat them
+          when encountered.
+
+4.3.3 Experimental Headers
+
+          Experimental headers are headers which begin with "X-".  They
+          are to be used by newsreaders proposing new headers for some
+          utility or for comments to be propogated with the article.
+          There are no established headers that are considered
+          experimental headers; an established header cannot be
+          experimental.
+
+          Attempts to create new headers that are to be adopted as
+          standard headers MUST begin their lives as experimental
+          headers.
+
+
+4.3.4 Persistent Headers
+
+          Persistent headers are headers which begin with "P-" (or
+          "X-P-", hereafter referred to simply as "P- headers") which
+          persist across followups either identically or by simple
+          modification.  Headers with this behavior include:
+
+          Newsgroups
+          Content is carried over into all followups. Modified by
+          content of Followup-To header.
+
+          Subject
+          Content is carried over into all followups. Modified by
+          prefixing with "Re: " if not already present. Also modified by
+          user, often with a "(was: )" phrase preserving the previous
+          content.
+
+          References
+          Content is carried over into all followups. Modified by
+          appending content of Message-ID header.
+
+          NOTE: Though traditionally old newsreaders would treat
+          Keywords as a persistent header, it is not a persistent
+          header.  More modern newsreaders do not treat it as such.
+
+4.3.5. Variant Headers
+
+          Variant Headers are headers that are modified on articles when
+          they are propogated.  Variant headers have a "V-" prefix.
+          Variant headers may be experimental ("X-V-"), persistent
+          ("P-V-"), or both ("X-P-V-"). 
+
+4.3.6. Header Classes
+
+          There are four special classes of headers that may be present
+          in an article:  Experimental, Persistent, Comment, and
+          Variant.  All other headers are ephemeral.  These classes are
+          significant in how newsreaders and servers should treat them
+          when encountered.  
+
+4.3.6.1 Experimental Headers
+
+          Experimental headers are headers which begin with "X-".  They
+          are to be used by newsreaders proposing new headers for some
+          utility or for comments to be propogated with the article.
+          There are no established headers that are considered
+          experimental headers; an established header cannot be
+          experimental.
+
+          Attempts to create new headers that are to be adopted as
+          standard headers MUST begin their lives as experimental
+          headers.
+
+
+4.3.6.2 Persistent Headers
+
+          Persistent headers are headers which begin with "P-" (or
+          "X-P-", hereafter referred to simply as "P- headers") which
+          persist across followups either identically or by simple
+          modification. Headers with this behavior include:
+
+          Newsgroups
+
+          Content is carried over into all followups. Modified by
+          content of Followup-To header.
+
+
+          Subject
+         
+          Content is carried over into all followups. Modified by
+          prefixing with "Re: " if not already present. Also modified by
+          user, often with a "(was: )" phrase preserving the previous
+          content.
+
+
+          References
+
+          Content is carried over into all followups. Modified by
+          appending content of Message-ID header.
+
+          NOTE: Though traditionally old newsreaders would treat
+          Keywords as a persistent header, it is not a persistent
+          header.  More modern newsreaders do not treat it as such.
+
+4.3.6.3 Examples
+
+Newsgroups: alt.test
+Subject: Persistent Header Example
+Message-ID: <001@news.site.example>
+P-Author-IDs: <johnsmith-site.example-unique>
+User-Agent: experimental/0.1g (P-Author-ID Compliant)
+
+From: jane@site.invalid (Jane Smith)
+Newsgroups: alt.test
+Followup-To: misc.test
+Subject: Re: Persistent Header Example
+Message-ID: <002@news.site.example>
+References: <001@news.site.example>
+P-Author-IDs: <johnsmith-site.example-unique>
+User-Agent: modern/1.2 (Author-ID non-Compliant; P- header compliant)
+Keywords: persistance, good ideas
+
+From: andrew@isp.invalid
+Newsgroups: misc.test
+Subject: Further example (was: Re: Persistent Header Example)
+Message-ID: <001@news.isp.example>
+References: <001@news.site.example> <002@news.site.example>
+P-Author-IDs: <johnsmith-site.example-unique> <andrew@isp.example>
+User-Agent: codeveloper/2.0b (Author-ID Compliant)
+
+
+4.3.6.4 Comment Headers
+
+          Comment headers are headers that are strictly local and MUST
+          NOT be propogated outside of a restricted subnet for local
+          testing purposes.  Comment headers have a prefix of "C-".  Due
+          to their limited scope, they MUST NOT be combined with any
+          other prefix, such as "X-C-" headers.  Headers with this
+          behavior include:
+
+          Xref
+
+          Used by servers to keep track of crossposted articles' article
+          numbers in the crossposted-to news groups in the local news
+          spool as an aid to newsreaders marking such articles as read.
+
+
+4.3.6.5. Variant Headers
+
+          Variant Headers are headers that are modified on articles when
+          they are propogated.  Variant headers have a "V-" prefix.
+          Variant headers may be experimental ("X-V-"), persistent
+          ("P-V-"), or both ("X-P-V-").
+
+
+4.3.7. White Space and Continuations
 
           [The following text is taken from [MESSFOR], adapted to the
           different terminology used for this standard.]
@@ -517,7 +819,7 @@ Table of Contents
           multiple lines only at FWS or CFWS. Posting agents SHOULD not
           break headers unnecessarily (but see section 4.6).
 
-4.3.3 Comments
+4.3.8 Comments
 
           Strings of characters which are treated as comments may be
           included in header contents wherever the syntactic element
@@ -555,7 +857,7 @@ Table of Contents
           However, compliant software MUST accept them in all places
           where they are syntactically allowed.
 
-4.3.4. Undesirable Headers
+4.3.9. Undesirable Headers
 
           A header whose content is empty is said to be an empty header.
           Relaying and reading agents SHOULD NOT consider presence or
@@ -604,7 +906,7 @@ Table of Contents
 
           A body is by default an uninterpreted sequence of octets for
           most of the purposes of this standard. However, a MIME
-          Content-Type header may impose some srtucture or intended
+          Content-Type header may impose some structure or intended
           interpretation upon it, and may also specify the character set
           in accordance with which the octets are to be interpreted.
 
@@ -704,7 +1006,7 @@ Table of Contents
 4.5.1. Character Sets within Article Headers
 
           Within article headers, the CES is UTF-8 [ISO-10646 or
-          RFC-2044] and hence the CCS is the Universal Multiple-Octet
+          RFC-2279] and hence the CCS is the Universal Multiple-Octet
           Coded Character Set (UCS) [ISO-10646] (which is essentially a
           superset of Unicode [UNICODE] and expected to remain so).
           However, interpreting the octets directly as ASCII characters
@@ -716,7 +1018,7 @@ Table of Contents
           ensuring upwards compatibility with previous practice.
           Non-ASCII characters from UCS are represented by sequences of
           octets greater than 127. Only those octet sequences explicitly
-          permitted by [RFC 2044] shall be used. UCS includes all
+          permitted by [RFC 2079] shall be used. UCS includes all
           characters from the ISO-8859 series of characters sets
           [ISO-8859] (which includes all Greek and Arabic characters) as
           well as the more elaborate characters used in Japan and China.
@@ -850,15 +1152,14 @@ Table of Contents
 
           Here is a sample article:
 
--cut-here--
 Path: server.example,unknown.site2.example@site2.example,
   relay.site.example,site.example,injector.site.example%jsmith
 Newsgroups: example.announce,example.chat
 Message-ID: <9urrt98y53@site.example>
-From: Ann Example <a.example@site1.example>
+From: Ann Example <a.example@site1.invalid>
 Subject: Announcing a new sample article.
 Date: Fri, 27 Mar 1998 12:12:50 +1300
-Approved: example.announce moderator <jsmith@site.example>
+Approved: example.announce moderator <jsmith@site.invalid>
 Followup-To: example.chat
 Reply-To: Ann Example <a.example+replies@site1.example>
 Expires: Wed, 22 Apr 1998 12:12:50 -0700
@@ -873,7 +1174,10 @@ released; it is in the new USEFOR draft obtainable from ftp.ietf.org.
 
 Ann.
 
--cut-here--
+-- 
+Ann Example <a.example@site1.invalid>       Sample Poster to the Stars
+"The opinions in this article are bloody good ones" - from J Clarke.
+
 
 5. Mandatory Headers
 
@@ -900,6 +1204,8 @@ Ann.
           used is that the content of, for example, the Subject header
           is defined as <Subject-content>.
 
+          NOTE: see also Section 7.1.1 
+
 5.1. Date
 
           The Date header contains the date and time that the article
@@ -915,14 +1221,12 @@ Ann.
           format of the From header is defined in the Message Format
           Standard [MESSFOR].
 
-          All mailboxes in the "From: " field MUST either belong to the
+          All mailboxes in the From-content field MUST either belong to the
           posters(s) of the article ( or the poster(s) are authorized by
           the owners to use the mailboxes) or end in the top level
-          domain of ".invalid". Software MAY offer the option to users
-          of treating articles from ".invalid" addresses differently
-          from other articles (e.g. "killfiles").
+          domain of ".invalid". 
 
-               From-content = <address>
+               From-content = mailbox-list
 
 5.2.1 Examples:
 
@@ -930,9 +1234,11 @@ From: John Smith <jsmith@site.example>
 From: John Smith <jsmith@site.example>, dave@isp.example 
 From: John Smith <jsmith@site.example>, andrew@isp.example,
    fred@site2.example
+From: Jan Jones <jan@please_setup_your_software_correctly.invalid>
+From: Jan Jones <joe@anonymous.invalid>
 From: dave@isp.example (Dave Smith) 
-From: Joe Spamhater <joe@site.removethis.examplei.invalid>
-From: Joe Spamhater <joe@null.invalid>
+
+          NOTE: the last example is in an obsolete syntax.
 
 5.3. Message-ID
 
@@ -953,7 +1259,8 @@ From: Joe Spamhater <joe@null.invalid>
 
           subject-content = [ back-reference ] pure-subject CRLF
           pure-subject = nonblank-text 
-          back-reference = %x52.65 ": " ; "Re: " in case sensitive format
+          back-reference = %x52.65.3A.20        ; which is a case-sensitive
+                                                 "Re: "
 
           The pure-subject MUST NOT begin with "Re: ". The default
           subject-content of a followup is the string "Re: " followed by
@@ -980,8 +1287,9 @@ From: Joe Spamhater <joe@null.invalid>
 
           In the following examples, please note that only "Re: " is
           mandated by this DRAFT. "was: " is a convention used by many
-          humans to signal a change in subject matter. Software should
-          be able to deduce this information from References.
+          English-speaking posters to signal a change in subject matter.
+          Software should be able to deduce this information from
+          References.
 
 Subject: Film at 11.  
 Subject: Re: Film at 11 
@@ -1377,10 +1685,10 @@ Subject: Re: Godwin's law (was: Film at 11)
 
           The headers appearing in this section have established
           meanings. They MUST be interpreted according to the
-          definitions made in this Draft. None of them are required to
+          definitions made in this document. None of them are required to
           appear in every article. All of the headers appearing in this
-          Draft MUST NOT appear more than once in an article.  Headers
-          not appearing in this Draft (i.e. X-headers, headers defined
+          document MUST NOT appear more than once in an article.  Headers
+          not appearing in this document (i.e. X-headers, headers defined
           by cooperating subnets) are exempt from this requirement. See
           "Responsibilities of Agents" for a clear picture.
 
@@ -1513,8 +1821,8 @@ References: <i4g587y@site1.example> <kgb2231+ee@site2.example>
           configuration on a server be updated.
 
           All of the group control messages MUST have an Approved header
-          (section x.x.x). They SHOULD use one of the authentication
-          mechanisms defined in section x.x.x.
+          (section 6.10). They SHOULD use one of the authentication
+          mechanisms defined in section TBD.
 
           The execution of the actions requested by control messages is
           subject to local administrative restrictions, which MAY deny
@@ -1610,13 +1918,13 @@ References: <i4g587y@site1.example> <kgb2231+ee@site2.example>
           groupinfo-body     = descriptor-tag CRLF 1*( description-line CRLF )
           descriptor-tag     = %x46.6F.72 SP %x79.6F.75.72 SP 
                                %x6E.65.77.73.67.72.6F.75.70.73 SP 
-                               %x66.69.6C.6E ":"
+                               %x66.69.6C.6E.3A
                              ; case sensitive "For your newsgroups file:"    
          description-line    = newsgroup-name [ 1*WSP description
                              [ 1*SP group-flags ] ] 
          description         = nonblank-text / encoded-word 
          moderation-flags    = [ moderated-literal ]
-         moderated-literal   = "(" %x4D.6F.64.65.72.61.74.65.64 ")"
+         moderated-literal   = %x28.4D.6F.64.65.72.61.74.65.64.29
                                 ; case sensitive "(Moderated)"
     
          group-flags = [ "<" addr-spec ">" 1*SP ] "(Moderated)"
@@ -1840,13 +2148,13 @@ Control: checkgroups de !de.alt #248
 
          A "newgroup" with bilingual charter and policy information:
 
-From: admin@foonet.org (foo.all Administrator)
-Newsgroups: biling.admin.groups,biling.admin.announce
-Date: 27 Feb 1997 12:61:22 +14:00 (NST)
-Subject: Group foo.admin.info created.
-Approved: admin@biling.org
-Control: newgroup biling.admin.info moderated
-Message-ID: <newgroup-biling.admin.info-19970227@biling.org>
+From: admin@example.invalid (example.all Administrator)
+Newsgroups: example.admin.groups,example.admin.announce
+Date: 27 Feb 1997 12:50:22 +14:00 (EST)
+Subject: Group example.admin.info created.
+Approved: admin@example.invalid
+Control: newgroup example.admin.info moderated
+Message-ID: <newgroup-example.admin.info-19970227@example.invalid>
 Content-Type: multipart/newsgroupinfo; boundary="nxtprt"
 Content-Transfer-Encoding: 8bit
 
@@ -1855,96 +2163,96 @@ This is a MIME control message.
 Content-Type: application/newsgroupinfo
 
 For your newsgroups file:
-news.admin.info Information on the news.all hierarchy <info@news.org>
+example.admin.info Information on the example.* hierarchy <info@news.org>
 (Moderated)
 
 --nxtprt                   
 Content-Type: multipart/alternative ;
 differences = content-language ;
 boundary = nxtlang
-Article-Name: biling.admin.info: charter
+Article-Name: example.admin.info: charter
 
 --nxtlang
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Content-Language: en
 
-The group biling.admin.info contains regularly posted information on
-the biling.* hierarchy.
+The group example.admin.info contains regularly posted information on
+the example.* hierarchy.
 --nxtlang
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8bit
 Content-Language: de
 
-Die Gruppe biling.admin.info enthõlt regelmõ~Kig versandte
-Informationen ³ber die biling.*-Hierarchie.
+Die Gruppe example.admin.info enthõlt regelmõ~Kig versandte
+Informationen ³ber die example.*-Hierarchie.
 --nxtlang--
 --nxtprt--
 
 plain "rmgroup":
 
-From: admin@foonet.org (foo.all Administrator)
-Newsgroups: foo.admin.groups,foo.admin.announce
-Date: 30 Jul 1997 22:04 +02:00 (CEST)
-Subject: Deletion of foo.admin.obsolete
-Message-ID: <rmgroup-foo.admin.obsolete-19970730@foonet.org>
-Approved: admin@foonet.org
-Control: rmgroup foo.admin.obsolete
+From: admin@example.invalid (example.all Administrator)
+Newsgroups: example.admin.groups, example.admin.announce
+Date: 4 Jul 1997 22:04 +02:00 (PST)
+Subject: Deletion of example.admin.obsolete
+Message-ID: <rmgroup-example.admin.obsolete-19970730@example.invalid>
+Approved: admin@example.invalid
+Control: rmgroup example.admin.obsolete
 
-The group foo.admin.obsolete is obsolete. Please remove it from
+The group example.admin.obsolete is obsolete. Please remove it from
 your system.
 
 plain "mvgroup":
 
-From: admin@foonet.org (foo.all Administrator)
-Newsgroups: foo.admin.groups,foo.admin.announce
+From: admin@example.invalid (example.all Administrator)
+Newsgroups: example.admin.groups, example.admin.announce
 Date: 30 Jul 1997 22:04 +02:00 (CEST)
-Subject: Moving foo.oldgroup to newgroup
-Message-ID: <mvgroup-foo.oldgroup-19970730@foonet.org>
-Approved: admin@foonet.org
-Control: mvgroup foo.oldgroup foo.newgroup
+Subject: Moving example.oldgroup to example.newgroup
+Message-ID: <mvgroup-example.oldgroup-19970730@example.invalid>
+Approved: admin@example.invalid
+Control: mvgroup example.oldgroup example.newgroup
 Content-Type: multipart/newsgroupinfo; boundary=nxt
 
 --nxt
 Content-Type: application/newgroupinfo
 
 For your newsgroups file:
-foo.newgroup The new replacement group.
+example.newgroup The new replacement group.
 --nxt
 
-The group foo.oldgroup is replaced by foo.newgroup.
+The group example.oldgroup is replaced by example.newgroup.
 Please update your configuration.
 --nxt--
 
 more complex "mvgroup" for a whole hierarchy:
 
-The charter of  the group foo.talk.jokes contained a reference to
-foo.talk.jokes.d, which is also being moved. So the charter is
+The charter of  the group example.talk.jokes contained a reference to
+example.talk.jokes.d, which is also being moved. So the charter is
 updated.
 
-From: admin@foonet.org (foo.all Administrator)
-Newsgroups: foo.admin.groups,foo.admin.announce
-Date: 30 Jul 1997 22:04 +02:00 (CEST)
-Subject: Deletion of foo.admin.obsolete
-Message-ID: <mvgroup-foo.talk-19970730@foonet.org>
-Approved: admin@foonet.org
-Control: mvgroup foo.talk.* foo.conversation
+From: admin@example.invalid (example.all Administrator)
+Newsgroups: example.admin.groups, example.admin.announce
+Date: 30 Jul 1997 22:04 +02:00 (PST)
+Subject: Deletion of example.admin.obsolete
+Message-ID: <mvgroup-example.talk-19970730@example.invalid>
+Approved: admin@example.invalid
+Control: mvgroup example.talk.* example.conversation
 Content-Type: multipart/newsgroupinfo; boundary=nxt; chartas=1
 
 --nxt
 Content-Type: application/newgroupinfo
 
 For your newsgroups file:
-foo.conversation.boring Boring conversations.
-foo.conversation.interesting Interesting conversations.
-foo.conversation.jokes Jokes and funny stuff.
-foo.conversation.jokes.d Discussion about de.conversation.jokes.
+example.conversation.boring Boring conversations.
+example.conversation.interesting Interesting conversations.
+example.conversation.jokes Jokes and funny stuff.
+example.conversation.jokes.d Discussion about example.conversation.jokes.
 
-Article-Name: foo.conversation.jokes: charter
+Article-Name: example.conversation.jokes: charter
 
 This group is to publish jokes and other funny stuff.
 Discussions about the articles posted here should be redirected
-to foo.conversation.jokes.d; adding a Followup-to: header
+to example.conversation.jokes.d; adding a Followup-to: header
 is recommended.
 --nxt--
            
@@ -2148,9 +2456,9 @@ is recommended.
 
           An Approved header is also required in certain control
           messages, to reduce the probability of accidental posting of
-          same; see the relevant parts of section 6.
+          same; see the relevant parts of section 6.6.
 
-          Please see section [6.6] on how injecting agents should treat
+          Please see section 7.1 on how injecting agents should treat
           posts to moderated groups that do not contain this header.
 
 6.11 Lines
@@ -2167,9 +2475,9 @@ is recommended.
           here is the body as found in the posted article as transmitted
           by the posting agent.
 
-          Reading agents SHOULD not rely on the presence of this header,
+          Reading agents SHOULD NOT rely on the presence of this header,
           since it is optional (and some posting agents do not supply
-          it). They MUST not rely on it being precise, since it
+          it). They MUST NOT rely on it being precise, since it
           frequently is not.
 
 6.12. Xref
@@ -2214,12 +2522,12 @@ is recommended.
 
           organization-content = nonblank-text CRLF
 
-          NOTE: Posting and injection agents are discouraged from
+          NOTE: Posting and injection  agents are discouraged from
           providing a default value for this header unless it is
           acceptable to all posters using these agents. Unless this
           header contains useful information ( including some indication
-          of the authors physical location) it SHOULD not be included in
-          the article.
+          of the authors physical location) posters are discouraged from
+          including it.
 
 6.14. User-Agent
 
@@ -2257,13 +2565,12 @@ is recommended.
           product = token ["/" product-version] product-version = token
 
           Product tokens should be short and to the point -- they MUST
-          NOT be used for advertising beyond the canonical name of the
-          product or other non-essential information. Although any token
-          character MAY appear in a product-version, this token SHOULD
-          be used only for a version identifier (i.e., successive
-          versions of the same product SHOULD differ only in the
-          product-version portion of the product value). Product tokens
-          MUST identify products.
+          NOT be used for information beyond the canonical name of the
+          product and it's version. Although any token character MAY
+          appear in a product-version, this token SHOULD be used only
+          for a version identifier (i.e., successive versions of the
+          same product SHOULD differ only in the product-version portion
+          of the product value). Product tokens MUST identify products.
 
           NOTE: Variations from RFC 1945:
 
@@ -2281,8 +2588,8 @@ is recommended.
 
           NOTE: Comments should be restricted to information regarding
           the product named to their left such as platform information
-          and should be concise. It must not be used as an advertising
-          medium (in the mundane sense) by agents.
+          and should be concise. Use as an advertising medium (in the 
+          mundane sense) is discouraged.
 
           Recipients of header field TEXT containing octets outside the
           US-ASCII character set may assume that they represent UTF-8
@@ -2338,7 +2645,7 @@ User-Agent: telnet
 
           The following headers, as defined within [RFC 2045] and its
           extensions, may be used within articles conforming to this
-          Draft.
+          document.
 
           MIME-Version: 
           Content-Type:
@@ -2544,16 +2851,6 @@ User-Agent: telnet
           Supersedes with only one Message-ID, and cancel control
           messages SHOULD be issued if needed for other IDs.
 
-          The first message-id is called the immediate "predecessor" and
-          other IDs are predecessors to it, in a chain. The new article
-          is the "successor." Additional IDs beyond the immediate
-          predecessor SHOULD be added to the list if their successor was
-          posted less than 2 days after their own posting date. If older
-          than that their addition is optional.  These additional IDs
-          act as an advisory that these messages were replaced or
-          superseded, when their actual immediate successor may never
-          have arrived.
-
           If the header is "Replaces" the new successor article SHOULD
           effectively over-write the predecessor(s) so that any attempt
           to read them shows the successor. Newsreaders should not show
@@ -2564,11 +2861,9 @@ User-Agent: telnet
           Newsreaders and database systems MAY provide access to
           predecessors of articles if they wish, but this should not be
           part of the course of normal newsreading, and is in fact
-          discouraged. In addition, since articles MAY be updated to
-          comply with laws (copyright violation, libel etc.) there may
-          be legal implications in providing access to predecessors.
+          discouraged.
 
-          Systems MAY treate Replaces as a synonym for Supersedes, if
+          Systems MAY treat Replaces as a synonym for Supersedes, if
           they do not implement the semantics of Replaces.
 
           If the header is "Supersedes" then the old articles SHOULD
@@ -2589,20 +2884,14 @@ User-Agent: telnet
           used for periodic postings (possibly every N periodic
           postings) or updates that make major changes to an article.
 
-          Note that a Replaces or Supersedes MAY change any aspect of an
-          article, including the Newsgroups line. If a successor is not
-          in a newsgroup of its predecessor, then the predecessor should
-          simply be cancelled in that newsgroup, with no pointer to the
-          successor associated with it for any fetch by newsgroup and
-          article-number.  While a system MAY be smart about multiple
-          replacements that restore an article back to a group, this is
-          not a requirement.
-
           As with a cancel, systems MUST NOT delete or replace articles
           unless the poster of the successor is authorized to cancel the
           predecessor.
 
 6.15.1 Message-ID version numbers chain procedure.
+
+NOTE: Sections 6.15.1 - 6.15.4 may be published as a separate
+      recommendations document.
 
           Tools superseding or replacing messages should arrange so that
           the Message-ID of a replacement follows the following set of
@@ -2612,13 +2901,18 @@ User-Agent: telnet
            1. If the Local-Part of the predecessor's Message-ID ends in
            "%v=<n>", where <n> is an integer version number, the new
            message-ID should replace the <n> with the integer <n+1>.
-           Example: Message-ID <foo%v=3@site.com> is replaced by
-           <foo%v=4@site.com>.
+           
+Example: 
+Message-ID <foo%v=3@example.invalid> is replaced by
+<foo%v=4@example.invalid>.
 
            2. If the Local-Part of the predecessor's Message-ID does not
            end in "%v=<n>", then the string "%v=1" should be appended to
-           the Local-Part to generate the successor Message-ID. Example:
-           Message-ID <foo@site.com> is replaced by <foo%v=1@site.com>.
+           the Local-Part to generate the successor Message-ID.
+
+Example:
+Message-ID <foo@example.invalid> is replaced by
+<foo%v=1@example.invalid>.
 
 6.15.2 Implementation and Use Note
 
@@ -2667,21 +2961,23 @@ User-Agent: telnet
 6.15.5.1 Examples
 
           The first edition of an FAQ is posted with a Message-ID of the
-          form: <groupname-faq@faqsite.com>. The next version, a week
+          form: <examplegroup-faq@example.invalid>. The next version, a week
           later, has:
 
-Message-ID:     <groupname-faq%v=1@faqsite.com>
-Supersedes:     <groupname-faq@faqsite.com>
+Message-ID:     <examplegroup-faq%v=1@example.invalid>
+Supersedes:     <examplegroup-faq@example.invalid>
 
           The next one, another week later has:
 
-Message-ID:     <groupname-faq%v=2@faqsite.com>
-Supersedes:     <groupname-faq%v=1@faqsite.com> <groupname-faq@faqsite.com>
+Message-ID:     <examplegroup-faq%v=2@example.invalid>
+Supersedes:     <examplegroup-faq%v=1@example.invalid> 
+<examplegroup-faq@faqsite.com>
 
           The next one, another week later has:
 
-Message-ID:     <groupname-faq%v=3@faqsite.com>
-Supersedes:     <groupname-faq%v=2@faqsite.com> <groupname-faq@faqsite.com> 
+Message-ID:     <examplegroup-faq%v=3@example.invalid>
+Supersedes:     <examplegroup-faq%v=2@example.invalid>
+<examplegroup-faq@example.invalid> 
  
           Note that the long spacing between issues means the
           multi-entry Supersedes is there primarily to preserve pointer
@@ -2700,13 +2996,14 @@ Supersedes:     <groupname-faq%v=2@faqsite.com> <groupname-faq@faqsite.com>
           A user posts a message <myuniquepart@mysite.com> to the net.
           She notices a typo, and 2 minutes later, posts with:
 
-Message-ID:     <myuniquepart%v=1@mysite.com>
-Replaces:       <myuniquepart@mysite.com>
+Message-ID:     <myuniquepart%v=1@example.invalid>
+Replaces:       <myuniquepart@example.invalid>
 
           3 minutes later she sees another typo, and posts:
 
-Message-ID:     <myuniquepart%v=2@mysite.com>
-Replaces:       <myuniquepart%v=1@mysite.com> <myuniquepart@mysite.com>
+Message-ID:     <myuniquepart%v=2@example.invalid>
+Replaces:       <myuniquepart%v=1@example.invalid> 
+<myuniquepart@example.invalid>
 
           The two bad versions will be replaced with the 3rd, even if a
           site never sees the 2nd due to batching or feed problems, and
@@ -2716,8 +3013,8 @@ Replaces:       <myuniquepart%v=1@mysite.com> <myuniquepart@mysite.com>
           message, with the first (direct predecessor) ID. She issues a
           Cancel message as well:
 
-Control: cancel <myuniquepart@mysite.com> Replaced-by:
-<myuniquepart%v=2@mysite.com>
+Control: cancel <myuniquepart@example.invalid> Replaced-by:
+<myuniquepart%v=2@example.invalid>
 
 6.15.6 Dates
 
@@ -2743,8 +3040,17 @@ Control: cancel <myuniquepart@mysite.com> Replaced-by:
           Unfortunately, it will be some time until any new feature is
           widely deployed.
 
+6.16 Archive
 
-6.16. Obsolete Headers
+          This optional header is a signal to automatic archival agents
+          on whether this article is available for long-term storage.
+          Agents which see "Archive: no" MUST NOT keep the article past
+          the Expires date. Any other text indicates conditions that an
+          agent SHOULD follow in order to archive the article.
+
+          Archive-content = "no" | CFWS
+
+6.17. Obsolete Headers
 
           Persons writing new agents SHOULD ignore any former meanings
           of these headers.
@@ -2776,7 +3082,7 @@ Control: cancel <myuniquepart@mysite.com> Replaced-by:
           and rules of this document and any newsgroups that an article
           is posted to.
 
-          To this end injection agenst MAY cancel articles which they
+          To this end injection agents MAY cancel articles which they
           have previously injected.
 
 7.1.1 Proto-articles.
@@ -2984,6 +3290,9 @@ Control: cancel <myuniquepart@mysite.com> Replaced-by:
           when deciding which newsgroups a followup is posted to,
           however the poster MAY override the default if they wish.
 
+          Followup Agents MUST NOT attempt to send email to any address
+          ending in ".invalid".
+
           Followup Agents SHOULD NOT email copies of the followup to the
           author of the precursor (or any other person) unless this has
           been explicitly requested.
@@ -3063,7 +3372,6 @@ NOT DONE
           It is possible that legal penalties may apply to sending
           unsolicited commercial email and/or news articles. Check with
           your local legal authorities.
-          --
 
 
 10. Security Considerations
@@ -3073,9 +3381,10 @@ NOT DONE
 
 11. References:
 
-  Originator-Info Message Header:
-   draft-newman-msgheader-originfo-x.txt
-   chris.newman@innosoft.com
+ 
+  [TEST-TLDS] 
+   Eastlake, D. ; Panitz A. Reserved Top Level DNS Names, 
+   draft-ietf-dnsind-test-tlds-xx.txt, May 1998
 
  [ANSI-X3.4] US-ASCII
    American National Standard for Information Systems - Coded
@@ -3104,6 +3413,8 @@ NOT DONE
  [MESSFOR]
 
  [Originator-Info]
+   draft-newman-msgheader-originfo-x.txt
+   chris.newman@innosoft.com
 
  [RFC-822] e-mail message format
    Crocker, David H.: Standard for the format of ARPA
@@ -3171,186 +3482,100 @@ NOT DONE
 
           Author's Address
 
-          The Usenet Format Working Group usenet-format@clari.net
+          The Usenet Format Working Group (usenet-format@clari.net)
 
           Deliberations were archived at
           http://www.landfield.com/usefor/
 
-          Chair:      Simon Lyall,  simon@darkmere.gen.nz Editor:
-          Dan Ritter,  dsr@bbn.com
+          Chair:      Simon Lyall,  simon@darkmere.gen.nz
+          Editor:     Dan Ritter,   dsr@bbn.com
 
           Members (alphabetical):
 
 A. Deckers (Alain.Deckers@man.ac.uk)
-
 Ade Lovett (ade@demon.net)
-
 Andrew Gierth (andrew@erlenstar.demon.co.uk) 
- 
 Bill Davidsen (davidsen@prodigy.com)
-
 Bill McQuillan (mcquillan@mpa15ab.mv.unisys.com)
-
 Brad Templeton (brad@clari.net)
-
 Brian Hernacki (bhern@netscape.com)
-
 Brian Kelly (bkelly@sulaco.com)
-
 Bryan Ford (baford@sleepless.com)
-
 Buddha Buck (bmbuck@acsu.buffalo.edu) 
-
 Charles Lindsey (chl@clw.cs.man.ac.uk)
-
-Chris Newman (chris+ietf-usenet@innosoft.com)
-
+Chris Newman (chris+ietf-usenet@iosoft.com)
 Christian Weisgerber (naddy@mips.rhein-neckar.de)
-
 Christopher Sedore (cmsedore@maxwell.syr.edu)
-
 Claus Andre Farber (lists/usenet-format/clari.net@faerber.muc.de)
-
 Clive D.W.  Feather (clive@demon.net)
-
 Curt Welch (curt@kcwc.com)
-
 D. J.  Bernstein (djb@koobera.math.uic.edu)
-
 Dave Barr (barr@math.psu.edu)
-
 Dave Hayes (dave@kachina.jetcafe.org)
-
 Dave Mack (dmack@corp.webtv.net) 
-
 David C Lawrence (tale@isc.org)
-
 David desJardins (desj@rt.com)
-
 Denis McKeon (DMckeon@swcp.com)
-
 Dirk Nimmich (dirk@roxel.ms.sub.org)
-
 Doug Royer [N6AAW] (dougr@basilisk.Eng.Sun.COM)
-
 Egil Kvaleberg (egil@kvaleberg.no)
-
 Eivind Tagseth (eivindt@multinet.no)
-
 Erik van der Poel (erik@netscape.com)
-
 Erland Sommarskog (sommar@algonet.se)
-
 Evan Champion (evanc@synapse.net)
-
 Fergus Henderson (fjh@cs.mu.oz.au)
-
 Frederic SENIS (fs@caduceus.frmug.org)
-
-Fredric Lonngren (Fredric.Lonngren@uab.ericsson.se)
-
+Fredric Logren (Fredric.Lonngren@uab.ericsson.se)
 Greg Berigan (gberigan@cse.unl.edu)
-
 Harald Alvestrand (Harald.T.Alvestrand@uninett.no)
-
 Heiko Schlichting (heiko@cis.fu-berlin.de)
-
 Heiko W.Rupp (hwr@pilhuhn.de)
-
 Hrvoje Niksic (hniksic@srce.hr)
-
 Ian Davis (iand@fdc.co.uk)
-
 Ian G Batten (I.G.Batten@batten.eu.org)
-
-Jacob Palme (jpalme@dsv.su.se)
-
-Jamie Zawinski (jwz@netscape.com)
-
 John Moreno (phenix@interpath.com)
-
 John Stanley (stanley@oce.orst.edu)
-
 Jon Ribbens (jon@oaktree.co.uk)
-
 Jonathan Grobe (grobe@netins.net)
-
-Kai Henningsen (kai@khms.westfalen.de)
-
+Kai Heingsen (kai@khms.westfalen.de)
 Karl Kleinpaste (karl@jprc.com)
-
-Kenneth Herron (kherron@campus.mci.net)
-
+Keeth Herron (kherron@campus.mci.net)
 Kent Landfield (kent@landfield.com)
-
 Kristian =?ISO-8859-1?Q?K=F6hntopp?= (KRIS@koehntopp.de)
-
 Lars Magne Ingebrigtsen (lmi@gnus.org)
-
 Leonid Yegoshin (egoshin@genesyslab.com)
-
 Mark Hittinger (bugs@freebsd.netcom.com)
-
 Mark Sidell (Mark.Sidell@forteinc.com)
-
 Martin Forssen (maf@math.chalmers.se)
-
 Martin J. Duerst (mduerst@ifi.unizh.ch)
-
 Maurizio Codogno (mau@beatles.cselt.it)
-
 Mick Brown (Mick.Brown@worldnet.att.net)
-
 Mustafa Soysal MS57 (msoysal@mistik.express.net)
-
-Onno Hovers (onno@surfer.xs4all.nl)
-
+Oo Hovers (onno@surfer.xs4all.nl)
 Paul Eggert (eggert@twinsun.com)
-
 Paul Overell (richard@pillar.turnpike.com)
-
 Per Abrahamsen (abraham@dina.kvl.dk)
-
 Pete Resnick (presnick@qualcomm.com)
-
 Peter =?ISO-8859-1?Q?Br=FClls?= (pb@Ecce-Terram.DE)
-
 Peter Heirich (peter@heirich.in-berlin.de)
-
 Ralph Babel <rbabel@babylon.pfm-mainz.de>
-
 Richard Clayton (richard@pillar.turnpike.com) 
-
-Robert Elz (kre@munnari.OZ.AU)
-
+Robert Elz (kre@muari.OZ.AU)
 Russ Allbery (rra@stanford.edu)
-
+R. Kelley Cook (kcook@ibm.net)
 Seth Breidbart (sethb@panix.com)
-
 Shmuel Metz (shmuel@os2bbs.com)
-
 Simon Fraser (smfr@santafe.edu)
-
 Stan Barber (sob@academ.com)
-
 Sylvan Butler (SBUTLER@hpbs2024.boi.hp.com)
-
 Terje Bless (link@tss.no)
-
-Thomas Roessler (roessler+1036@sobolev.iam.uni-bonn.de)
-
+Thomas Roessler (roessler+1036@sobolev.iam.uni-bo.de)
 Tim Skirvin (tskirvin@math.uiuc.edu)
-
 Todd Michel McComb (mccomb@best.com)
-
 Tom Hughes (tom@compton.demon.co.uk)
-
 Vera Heinau (heinau@cis.fu-berlin.de)
-
 Wayne Davison (wayne@clari.net) 
-
 Wolfgang Schelongowski (skaranyi@xivic.ruhr.de)
 
 
-
-Expires 19981101
+Expires 19990101
