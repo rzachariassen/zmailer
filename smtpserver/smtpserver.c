@@ -474,7 +474,7 @@ char **argv;
       strcpy(SS.rhostname, "stdin");
       SS.rport = -1;
       SS.ihostaddr[0] = '\0';
-      sprintf(SS.ident_username, "uid#%d@localhost", getuid());
+      sprintf(SS.ident_username, "uid#%d@localhost", (int)getuid());
 
       s_setup(&SS, FILENO(stdin), stdout);
       smtpserver(&SS, 0);
@@ -1287,7 +1287,7 @@ int insecure;
 		    pid, SS->ihostaddr, SS->rport);
 	else
 	    fprintf(logfp, "%d#\tlocal from uid#%d\n",
-		    pid, getuid());
+		    pid, (int)getuid());
 	fprintf(logfp, "%d#\t-- policyresult=%d initial policy msg: %s\n",
 		pid, SS->policyresult, (s ? s : "<NONE!>"));
 	fflush(logfp);
@@ -1340,10 +1340,6 @@ int insecure;
 	    SS->mfp = NULL;
 	    break;
 	}
-	if (c != '\n') {
-	    type(SS, 500, m552, "Line too long/not terminated with CRLF..");
-	    continue;
-	}
 	/* Zap the possible trailing  \r */
 	if ((eobuf > buf) && (eobuf[-1] == '\r'))
 	    *--eobuf = '\0';
@@ -1365,6 +1361,13 @@ int insecure;
 			((buf[rc] & 0x80) ? "8-bit char on SMTP input" :
 			 "Control chars on SMTP input")));
 	    typeflush(SS);
+	    continue;
+	}
+	if (c != '\n') {
+	    if (i < (sizeof(buf)-1))
+	      type(SS, 500, m552, "Line not terminated with CRLF..");
+	    else
+	      type(SS, 500, m552, "Line too long (%d chars)", i);
 	    continue;
 	}
 	if (verbose && !daemon_flg)

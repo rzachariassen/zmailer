@@ -1,5 +1,11 @@
 1998-06-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/smtpserver.c:
+	    Some clients seem to send "QUIT\r", and then close the
+	    socket.  This caused indigestion and error logging.
+	    Now it will at least tell what the input was, and
+	    then have indigestion complaints..
+
 	* proto/zmailer.sh.in, proto/Makefile.in, proto/newdb.in:
 	    - Alterations on "zmailer" command, streamlining, adding
 	      a "zmailer makedb" function to compile all common database.
