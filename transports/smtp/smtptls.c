@@ -1958,7 +1958,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 		    close(sffileno(SS->smtpfp));
 		  } else
 #endif /* - HAVE_OPENSSL */
-		  shutdown(sffileno(SS->smtpfp), 1);
+		    shutdown(sffileno(SS->smtpfp), 1);
 		  /* Absolutely NO SFIO SYNC AT THIS POINT! */
 		  zsfsetfd(SS->smtpfp, -1);
 		  SS->writeclosed = 1;

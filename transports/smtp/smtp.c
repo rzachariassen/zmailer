@@ -410,9 +410,14 @@ static int task_count;
 const char *punthost; /* Besided of value, is also used as GLOBAL
 			 state variable! */
 
+static int net_socks_open_cnt;
+
 static void MIBcountCleanup __((void))
 {
 	MIBMtaEntry->tas.OutgoingSmtpTAprocCountG -= 1;
+
+	/* Clean this counter, just in case it is non-zero... */
+	MIBMtaEntry->tas.OutgoingSmtpConnectsCnt  -= net_socks_open_cnt;
 }
 
 
@@ -3193,6 +3198,7 @@ makeconn(SS, hostname, ai, ismx)
 	      }
 
 	      MIBMtaEntry->tas.OutgoingSmtpConnectsCnt += 1;
+	      ++ net_socks_open_cnt;
 
 	      deducemyifname(SS);
 
@@ -3655,6 +3661,7 @@ smtpclose(SS, failure)
 	if (SS->smtpfp != NULL) {
 
 	  MIBMtaEntry->tas.OutgoingSmtpConnectsCnt -= 1;
+	  -- net_socks_open_cnt;
 
 	  /* First close the socket so that no FILE buffered stuff
 	     can become flushed out anymore. */
