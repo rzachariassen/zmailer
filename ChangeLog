@@ -9,17 +9,18 @@
 	    When processing the authorization file, turn on root-powers
 	    to access the file, then return into trusted mode.
 
-	* include/libsh.h, include/splay.h, lib/splay.c, lib/symbol.c,
-	  libsh/interpret.c, libsh/zmsh.c, router/db.c,
-	  router/libdb/hreader.c, router/libdb/incore.c,
-	  scheduler/mailq.c, scheduler/msgerror.c, scheduler/prototules.c,
-	  scheduler/qprint.c, scheduler/readconfig.c, scheduler/scheduler.c,
+	* include/libsh.h, include/splay.h, lib/splay.c,
+	  lib/symbol.c,libsh/interpret.c, libsh/zmsh.c,
+	  router/db.c, router/libdb/hreader.c, router/libdb/incore.c,
+	  scheduler/mailq.c, scheduler/msgerror.c,
+	  scheduler/prototules.c, scheduler/qprint.c,
+	  scheduler/readconfig.c, scheduler/scheduler.c,
 	  scheduler/threads.c, transports/mailbox/mailbox.c:
-	    Changed the API of  sp_scan()  function, especially the API of
-	    the CALLED function f.  Now can supply  an opaque (to splay)
-	    parameter that is passed on to item processor.
-	    (Eliminated a bunch of static globals from various places
-	     of code...)
+	    Changed the API of  sp_scan()  function, especially
+	    the API of the CALLED function f.  Now can supply
+	    an opaque (to splay) parameter that is passed on to
+	    item processor.   (Eliminated a bunch of static globals
+	    from all over the code...)
 
 	* transports/mailbox/mailbox.c:
 	    Reworked the rwhois/rbiff related splay-code.
@@ -174,9 +175,10 @@
 
 2004-04-16  Matti Aarnio  <mea@zmailer.org>
 
-	* include/shmmib.h, smtpserver/smtpreport.c, smtpserver/smtpserver.h,
+	* include/shmmib.h, smtpserver/smtpreport.c,
+	  smtpserver/Makefile.in, smtpserver/smtpserver.h,
 	  smtpserver/policytest.h, smtpserver/policytest.c,
-	  smtpserver/Makefile.in, smtpserver/subdaemon-trk.c:
+	  smtpserver/subdaemon-trk.c:
 	    Created  "Z-REPORT <user> <password> IP 1.2.3.4" command
 	    into SMTP responder that will query the internal rate-tracker
 	    server for more details about rating counters.
@@ -211,7 +213,8 @@
 	    reused same code (AND SAME DATA FILE!) for ACLs of
 	    various things.
 
-	* scheduler/prototypes.h, scheduler/scheduler.c, scheduler/transport.c:
+	* scheduler/prototypes.h, scheduler/scheduler.c,
+	  scheduler/transport.c:
 	    Reworked the 'mailq' TCP socket binding somewhat.
 	    Depending on system modes, IPv6 binding may or may not
 	    support also IPv4 connections.  Handling that by creating
@@ -247,7 +250,8 @@
 	    for quite a while..  Damn typo.
 
 	* smtpserver/policytest.c, smtpserver/policytest.h:
-	    - Internal rcpt_nocheck variable is not set anywhere -> dead code
+	    - Internal rcpt_nocheck variable is not set
+	      anywhere -> dead code
 	    - Make SMTP AUTH, and 'full_trust' to be exactly equal
 	      (they were similar, now they are equal)
 	    - Make WHOSON equal to 'always_accept' processing
@@ -285,8 +289,9 @@
 	  transports/mailbox/mboxpath.c:
 	    Match prototypes of crc32() and pjwhash32() properly..
 
-	* router/daemonsub.c, router/functions.c, router/prototypes.h:
-	  router/router.c, include/libsh.h, libsh/builtins.c, router/db.c,
+	* router/daemonsub.c, router/functions.c, router/prototypes.h,
+	  router/router.c, include/libsh.h, libsh/builtins.c,
+	  router/db.c:
 	    Couple additional fixes on memory allocation/free strategies.
 	    Improved memory recycling, freeing objects no longer needed.
 	    (Also cleaning up a bit of extern declarations..)
@@ -302,15 +307,15 @@
 	    Allow selective io-redirection disabling
 
 	* router/router.c,  man/router.8.in, proto/cf/aliases.cf,
-	  proto/cf/fqdnaliases.cf, proto/cf/server.cf, router/functions.c,
-	  router/prototypes.c:
+	  proto/cf/fqdnaliases.cf, proto/cf/server.cf,
+	  router/functions.c, router/prototypes.c:
 	    Created  -Ismtpserver  function mode, that calls
 	    the router script interpreter's  "$(server ..)" function
 	    in definitely secure manner.  This is for use under
 	    new smtpserver's router interaction logic.
 	    Also created  $(isinteractive)  script function, that
-	    can be used in short-circuiting potentially lengthy expansions
-	    that are not really interesting in this mode.
+	    can be used in short-circuiting potentially lengthy
+	    expansions that are not really interesting in this mode.
 
 	* router/router.c, router/router.h, router/daemonsub.c,
 	  router/Makefile.in, router/dateparse.c, router/db.c,
@@ -332,15 +337,16 @@
 	    current SMTP interaction instance.
 
 	* smtpserver/smtpserver.h:
-	    Couple new prototypes, plus handling fd_set passed as a pointer.
+	    Couple new prototypes, plus handling fd_set passed as
+	    a pointer.
 
 	* smtpserver/subdaemon-rtr.c, smtpserver/subdaemons.c
-	    Running one interactive router sub-instance under the multiplexing
-	    server.  Possibly need to have more ???
+	    Running one interactive router sub-instance under the
+	    multiplexing server.  Possibly need to have more ???
 
 	* smtpserver/subdaemon-trk.c, smtpserver/subdaemons.c:
-	    Moved  fdgets()  function into subdaemons.c file (common use..)
-	    Added non-blocking operation mode for it.
+	    Moved  fdgets()  function into subdaemons.c file
+	    (common use..)  Added non-blocking operation mode for it.
 
 2004-04-09  Matti Aarnio  <mea@zmailer.org>
 
@@ -350,12 +356,13 @@
 	    listening sockets.
 
 	* smtpserver/subdaemon-ctf.c:
-	    Minor coding style edit (use calloc() instead of malloc+memset).
+	    Minor coding style edit (use calloc() instead of
+	    malloc+memset).
 
 	* smtpserver/subdaemon-trk.c:
-	    Add timeout handling into fdgets() code.  The intention being,
-	    that system not responding properly within user-supplied time-
-	    limit can be detected.
+	    Add timeout handling into fdgets() code.  The intention
+	    being, that system not responding properly within user-
+	    supplied time-limit can be detected.
 
 	* smtpserver/subdaemons.c:
 	    Rework subdaemon forking code to properly close client-end
@@ -449,8 +456,8 @@
 	  lib/resources.c, include/libz.h, scheduler/prototypes.h,
 	  router/daemonsub.c, lib/Makefile.in, scheduler/Makefile.in,
 	  router/Makefile.in:
-	    Moved the pipes.c, and resources.c files from scheduler/ to lib/,
-	    it has uses outside the scheduler, after all...
+	    Moved the pipes.c, and resources.c files from scheduler/ to
+	    lib/,  it has uses outside the scheduler, after all...
 
 2004-04-01  Matti Aarnio  <mea@zmailer.org>
 
@@ -546,8 +553,8 @@
 
 2004-03-11  Matti Aarnio  <mea@zmailer.org>
 
-	* utils/makedb/makedb.c, utils/makedb/dblook.c, lib/sleepycatdb.c,
-	  smtpserver/policytest.c:
+	* utils/makedb/makedb.c, utils/makedb/dblook.c,
+	  lib/sleepycatdb.c, smtpserver/policytest.c:
 	    Support for SleepyCat DB 4.2
 
 	* smtpserver/policytest.c:
@@ -575,11 +582,11 @@
 	    (Andrey Blochintsev <bag@iptelecom.net.ua>)
 
 	* include/zmclib.c, lib/zmclib.c:
-	    A work-in-progress of librarizing multicast communication setup
-	    things.  The darn thing is _very_ complex, when one must handle
-	    multiple interfaces, including talking MC somewhere, where
-	    system default MC routes don't point to... (e.g. some backend
-	    lan..)
+	    A work-in-progress of librarizing multicast communication
+	    setup things.  The darn thing is _very_ complex, when one
+	    must handle multiple interfaces, including talking MC
+	    somewhere, where system default MC routes don't point
+	    to... (e.g. some backend lan..)
 
 	* proto/cf/aliases.cf:
 	    Eugene Crosser found out that I had been wrong all along..
@@ -598,12 +605,13 @@
 
 2003-11-29  Matti Aarnio  <mea@zmailer.org>
 
-	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf, proto/db/dbases.conf,
-	  proto/cf/crossbar.cf, proto/db/userdb, proto/cf/crossbar.cf:
+	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf,
+	  proto/db/dbases.conf, proto/cf/crossbar.cf, proto/db/userdb,
+	  proto/cf/crossbar.cf:
 	    Went thru details about 'userdb' processing, and why the
 	    'user:mailname' things didn't produce public results.
-	    Support is present for mapping  user+foo  to  user.name+foo@domain
-	    thru %-substitution.
+	    Support is present for mapping  user+foo  to
+	    user.name+foo@domain  thru %-substitution.
 
 	* transports/smtp/appendlet.c:
 	    Slipped a brain-fart into this code during the earlier
@@ -750,10 +758,10 @@
 
 	* transports/mailbox/mailbox.c:
 	    If DOMAIN_AWARE_GETPWNAM=1, do not rfc822localize() the user,
-	    just strip off quotes in case they are present (no syntax    
-	    check here, just delete any double quote that is not backslash-
-	    escaped).  Thus further zgetpwnam() will be called on user     
-	    with domain.
+	    just strip off quotes in case they are present (no syntax 
+	    check here, just delete any double quote that is not
+	    backslash-escaped).  Thus further zgetpwnam() will be called
+	    on user with domain.
 
 2003-11-06  Matti Aarnio  <mea@zmailer.org>
 
@@ -814,8 +822,9 @@
 	    The   process   function may get scalled as:
 	      process B/123456
 	    which is now perfectly legal.
-	    NOTE: The daemon subsystem will do file locking on the original
-	    file for the duration of file staying in the processing!
+	    NOTE: The daemon subsystem will do file locking on the
+	    original file for the duration of file staying in the
+	    processing!
 
 2003-10-26  Matti Aarnio  <mea@zmailer.org>
 
