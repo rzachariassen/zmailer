@@ -17,6 +17,8 @@
 #define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t') ++Y
 #define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
 
+static int called_getbindaddr = 0;
+
 static void dollarexpand __((unsigned char *s0, int space));
 static void dollarexpand(s0, space)
      unsigned char *s0;
@@ -209,50 +211,8 @@ static void cfparam(str, size, cfgfilename, linenum)
       if (bindport != 0 && bindport != 0xFFFFU)
 	bindport_set = 1;
     } else if (cistrcmp(name, "BindAddress") == 0 && param1) {
-      memset(&bindaddr, 0, sizeof(bindaddr));
-      bindaddr_set = 1;
-#if defined(AF_INET6) && defined(INET6)
-      if (cistrncmp(param1,"[ipv6 ",6) == 0 ||
-	  cistrncmp(param1,"[ipv6:",6) == 0 ||
-	  cistrncmp(param1,"[ipv6.",6) == 0) {
-	char *s = strchr(param1,']');
-	if (s) *s = 0;
-	if (inet_pton(AF_INET6, param1+6, &bindaddr.v6.sin6_addr) < 1) {
-	  /* False IPv6 number literal */
-	  /* ... then we don't set the IP address... */
-	  bindaddr_set = 0;
-	}
-	bindaddr.v6.sin6_family = AF_INET6;
-      } else
-#endif
-	if (*param1 == '[') {
-	  char *s = strchr(param1,']');
-	  if (s) *s = 0;
-	  if (inet_pton(AF_INET, param1+1, &bindaddr.v4.sin_addr) < 1) {
-	    /* False IP(v4) number literal */
-	    /* ... then we don't set the IP address... */
-	    bindaddr_set = 0;
-	  }
-	  bindaddr.v4.sin_family = AF_INET;
-	} else {
-	  if (CISTREQN(param1,"iface:",6)) {
-#if defined(AF_INET6) && defined(INET6)
-	    bindaddr.v6.sin6_family = AF_INET6;
-	    if (zgetifaddress(AF_INET6, param1+6, &bindaddr))
-	      /* Didn't get IPv6 interface address of given name.. */
-#endif
-	      {
-		if (zgetifaddress(AF_INET, param1+6, &bindaddr)) {
-		  /* No recognized interface! */
-		  bindaddr_set = 0;
-		}
-	      }
-	  } else {
-	    /* XXX: TODO: Try to see if this is an interface name, and pick
-	       IPv4 and/or IPv6 addresses for that interface. */
-	    bindaddr_set = 0;
-	  }
-	}
+	called_getbindaddr=1;
+	bindaddr_set = !zgetbindaddr(param1,&bindaddr);
     }
 
     /* SMTP Protocol limit & policy tune options */
@@ -550,6 +510,8 @@ readcffile(name)
 	configuration_ok = 1; /* At least something! */
     }
     fclose(fp);
+    if (!called_getbindaddr)
+	bindaddr_set = !zgetbindaddr(NULL,&bindaddr);
     return head;
 }
 

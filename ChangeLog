@@ -1,5 +1,11 @@
 2003-05-05  Matti Aarnio  <mea@zmailer.org>
 
+	* SiteConfig.in, configure.in, include/libz.h, scheduler/transport.c,
+	  smtpserver/cfgread.c, transports/smtp/smtp.c, lib/Makefile.in,
+	  lib/zgetbindaddr.c:
+	    Patch cluster from Eugene Crosser to librarize common code, and
+	    to introduce 'BINDADDR' ZENV variable.
+
 	* compat/sendmail/sendmail.c:
 	    If process environment has ZCONFIG variable set, does read
 	    ZENV variables from that place.

@@ -297,3 +297,12 @@ ROUTEUSER_IN_ABNORMAL_UNIX="@ROUTEUSER_IN_ABNORMAL_UNIX@"
 # Some sites (well, one FUNET site), has LISTSERV, this is for
 # configuring that subpart of the  aliases.cf  scripts:
 #LISTSERV=/v/net/listserv.funet.fi
+
+# If defined, BINDADDR specifies to which local interface to bind
+# smtpserver, smtp transport agent and scheduler
+# Possible specification formats are:
+#    [0.0.0.0]
+#    [IPv6.0::0]
+#    iface:eth0:1
+#BINDADDR=iface:eth0:1
+BINDADDR=@BINDADDR@

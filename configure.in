@@ -440,6 +440,18 @@ else
 fi
 AC_MSG_RESULT([Using ZMailer SELFADDRESSES: $SELFADDRESSES])
 
+oldBINDADDR="$BINDADDR"
+AC_SUBST(BINDADDR)
+AC_ARG_WITH(bindaddr,   [  --with-bindaddr=SPEC    Bind to specific local interface
+                          possible format: [0.0.0.0], [IPv6.0::0], iface:eth0:1],
+        use_bindaddr=1)
+if test "x$use_bindaddr" != "x" ; then
+    BINDADDR="$withval"
+else
+    BINDADDR="$oldBINDADDR"
+fi
+AC_MSG_RESULT([Using ZMailer BINDADDR: $BINDADDR])
+
 sleep 2  # Sleep a bit here too
 
 AC_SUBST(LIBMALLOC)
