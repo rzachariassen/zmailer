@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Some functions Copyright 1991-1998 Matti Aarnio.
+ *	Some functions Copyright 1991-2000 Matti Aarnio.
  */
 
 /*

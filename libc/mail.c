@@ -63,10 +63,7 @@
 static char **mail_file = NULL;
 static char **mail_type = NULL;
 static int mail_nfiles  = 0;
-const char *postoffice;	/* may be extern or local */
-
-#define USE_RENAME
-#define USE_RENAME1
+extern const char *postoffice;	/* may be extern or local */
 
 static int eqrename __((const char *, const char *));
 static int
@@ -114,7 +111,7 @@ eqrename(from, to)
   Define sending mail priority.
 */
 
-int mail_priority;
+extern int mail_priority;
 
 /*
  * Makes a temporary file under the postoffice, based on a file name template.
@@ -154,7 +151,8 @@ _mail_fopen(filenamep)
 			strcpy(cp+1, post);
 		} else
 			strcpy(cp, post);
-		if ((fd = open(path, O_CREAT|O_EXCL|O_RDWR, 0600)) >= 0) {
+		fd = open(path, O_CREAT|O_EXCL|O_RDWR, 0600);
+		if (fd >= 0) {
 			fcntl(fd, F_SETFD,
 			      fcntl(fd, F_GETFD, 0) | FD_CLOEXEC);
 			fp = fdopen(fd, "w+");
@@ -230,9 +228,6 @@ mail_open(type)
 	const char *type;
 {
 	char *scratch;
-#ifndef USE_RENAME
-	char *message;
-#endif
 	const char *cp;
 	FILE *fp;
 	int eno, fn;
@@ -279,29 +274,6 @@ mail_open(type)
 	type = "";
 #endif
 
-#ifndef USE_RENAME1
-	/* Yes, do multi-phase linking around and file name changes.
-	   Alternate is to do single rename at the closing.. */
-
-	message = mail_alloc(strlen(PUBLICDIR)+strlen(type)+1+1+10);
-	sprintf(message, "%s/%d%%%s", PUBLICDIR, (int)stbuf.st_ino, type);
-
-	if (mail_link(scratch, &message) < 0) {
-		eno = errno;
-		fprintf(stderr, "mail_link(\"%s\", \"%s\"): errno %d\n",
-				scratch, message, errno);
-		unlink(scratch);
-		mail_free(scratch);
-		mail_free(message);
-		errno = eno;
-		return NULL;
-	}
-#ifndef USE_RENAME
-	unlink(scratch);
-#endif
-	mail_free(scratch);
-#endif /* !USE_RENAME1 */
-
 	/* Extend when need! */
 
 	if (fn >= mail_nfiles) {
@@ -321,12 +293,9 @@ mail_open(type)
 	    ++mail_nfiles;
 	  }
 	}
-#ifdef USE_RENAME1
+
 	mail_file[fn] = scratch;
 	mail_type[fn] = strdup(type);
-#else
-	mail_file[fn] = message;
-#endif
 
 	/* Grab preferences from the environment to initialize the envelope */
 
@@ -346,7 +315,7 @@ mail_open(type)
 	 * in the Received-from header, to aid in message tracing.
 	 */
 #if 0
-	host = whathost(message);
+	host = whathost(scratch);
 	if (getzenv("MAILSERVER") != NULL ||
 	    (host != NULL && strcmp(host,"localhost") != 0))
 #endif
@@ -570,28 +539,7 @@ _mail_close_(fp,inop, mtimep)
 	  if (s) *s = ':';
 	}
 
-#ifndef USE_RENAME
-	/*
-	 * Unfortunately, rename() doesn't guarantee the same inode will
-	 * be used if the two paths are on the same filesystem, so we do
-	 * it the hard way.
-	 */
-
-	if (link(message, nmessage) != 0) {
-	  int eno = errno;
-	  fprintf(stderr, "link(\"%s\", \"%s\"): errno %d\n",
-		  message, nmessage, errno);
-	  if (ftype) mail_free(ftype);
-	  mail_free(message);
-	  mail_free(nmessage);
-	  errno = eno;
-	  return -1;
-	}
-	unlink(message);
-#else
 	/* For performance reasons we optimize heavily.. */
-	/* Even if that comment above about rename is true,
-	   we won't trust it.. */
 
 	if (eqrename(message,nmessage) != 0) {
 	  int eno = errno;
@@ -603,7 +551,6 @@ _mail_close_(fp,inop, mtimep)
 	  errno = eno;
 	  return -1;
 	}
-#endif
 
 	stat(nmessage, &stb);
 
@@ -634,6 +581,7 @@ mail_close_alternate(fp,where,suffix)
 {
 	char *message, *nmessage, *msgbase;
 	char *type, *ftype;
+	struct stat stbuf;
 	int fn;
 
 	if (postoffice == NULL) {
@@ -646,6 +594,7 @@ mail_close_alternate(fp,where,suffix)
 		return -1;
 	}
 	fn = FILENO(fp);
+	fstat(fn, &stbuf);
 	if (fn >= mail_nfiles)
 		abort(); /* Usage error -- no such fileno in our use! */
 	message = mail_file[fn];
@@ -677,7 +626,6 @@ mail_close_alternate(fp,where,suffix)
 		return -1;
 	}
 
-
 	/* Find the base name (we know format is PUBLICDIR/basename) */
 	msgbase = strrchr(message, '/');
 	if (msgbase == NULL)
@@ -688,33 +636,9 @@ mail_close_alternate(fp,where,suffix)
 	nmessage  = NULL;
 	/* Assert postoffice != NULL */
 	nmessage = mail_alloc(strlen(postoffice)+1+strlen(where)+1+
-			      strlen(msgbase)+strlen(suffix)+1+strlen(type));
-	sprintf(nmessage, "%s/%s/%s%s%s",
-		postoffice, where, msgbase, suffix, type);
-
-#ifndef USE_RENAME
-	/*
-	 * Unfortunately, rename() doesn't guarantee the same inode will
-	 * be used if the two paths are on the same filesystem, so we do
-	 * it the hard way.
-	 */
-
-	if (link(message, nmessage) != 0) {
-		int eno = errno;
-		fprintf(stderr, "link(\"%s\", \"%s\"): errno %d\n",
-				message, nmessage, errno);
-		mail_free(nmessage);
-		unlink(message); /* Throw the file away */
-		mail_free(message);
-		if (ftype) mail_free(ftype);
-		errno = eno;
-		return -2;
-	}
-	unlink(message);
-#else
-	/* For performance reasons we optimize heavily.. */
-	/* Even if that comment above about rename is true,
-	   we won't trust it.. */
+			      20+strlen(suffix)+1+strlen(type));
+	sprintf(nmessage, "%s/%s/%ld%s%s",
+		postoffice, where, (long)stbuf.st_ino, suffix, type);
 
 	if (eqrename(message,nmessage) != 0) {
 	  int eno = errno;
@@ -726,7 +650,7 @@ mail_close_alternate(fp,where,suffix)
 	  errno = eno;
 	  return -1;
 	}
-#endif
+
 	mail_free(message);
 	mail_free(nmessage);
 	if (ftype) mail_free(ftype);

@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	SFIO version by Matti Aarnio, copyright 1999
+ *	SFIO version by Matti Aarnio, copyright 1999-2000
  */
 
 /*LINTLIBRARY*/
@@ -66,14 +66,57 @@
 
 /* array of message file name associated with a file descriptor */
 static char **mail_file = NULL;
+static char **mail_type = NULL;
 static int mail_nfiles  = 0;
-const char *postoffice;	/* may be extern or local */
+extern const char *postoffice;	/* may be extern or local */
+
+static int eqrename __((const char *, const char *));
+static int
+eqrename(from, to)
+	const char *from, *to;
+{
+#ifdef	HAVE_RENAME
+	while (rename(from, to) < 0) {
+	  int serrno = errno;
+	  if (errno == EBUSY || errno == EINTR) {
+	    /* Solaris says EBUSY, we clean up.. */
+	    while (unlink(to) < 0) {
+	      if (errno == EBUSY || errno == EINTR)
+		continue; /* Crazy Solaris 2.x (including 2.6!) */
+	      /* Actually Solaris reports only EBUSY, but .. */
+	      break;
+	    }
+	    /* Solaris says EBUSY, we retry.. */
+	    continue;
+	  }
+	  errno = serrno;
+	  return -1;
+	}
+
+#else	/* !HAVE_RENAME */
+	
+	if ((unlink(to) < 0 && errno != ENOENT) || (link(from, to) < 0)) {
+	  return -1;
+	}
+
+	if (unlink(from) < 0) {
+	  int serrno = errno;
+	  unlink(to);
+	  errno = serrno;
+	  return -1;
+	}
+#endif	/* !HAVE_RENAME */
+
+	return 0;
+}
+
+
 
 /*
   Define sending mail priority.
 */
 
-int mail_priority;
+extern int mail_priority;
 
 /*
  * Makes a temporary file under the postoffice, based on a file name template.
@@ -113,10 +156,14 @@ _sfmail_fopen(filenamep)
 			strcpy(cp+1, post);
 		} else
 			strcpy(cp, post);
-		if ((fd = open(path, O_CREAT|O_EXCL|O_RDWR, 0600)) >= 0) {
+		fd = open(path, O_CREAT|O_EXCL|O_RDWR, 0600);
+		if (fd >= 0) {
+			fcntl(fd, F_SETFD,
+			      fcntl(fd, F_GETFD, 0) | FD_CLOEXEC);
 			fp = sfnew(NULL, NULL, 8192, fd,
 				   SF_READ|SF_WRITE|SF_WHOLE);
 			if (fp) {
+			  sfsetbuf(fp, NULL, 8192);
 			  mail_free(*filenamep);
 			  *filenamep = path;
 			}
@@ -165,7 +212,7 @@ sfmail_link(from, tonamep)
 			strcpy(cp+1, post);
 		} else
 			strcpy(cp, post);
-		if (link(from, path) >= 0) {
+		if (eqrename(from, path) >= 0) {
 			mail_free(*tonamep);
 			*tonamep = path;
 			return 0;
@@ -186,10 +233,10 @@ Sfio_t *
 sfmail_open(type)
 	const char *type;
 {
-	char *scratch, *message;
+	char *scratch;
 	const char *cp;
 	Sfio_t *fp;
-	int eno;
+	int eno, fn;
 	struct stat stbuf;
 	char namebuf[BUFSIZ];
 	static const char *host = NULL;
@@ -215,7 +262,8 @@ sfmail_open(type)
 
 	/* Determine a unique id associated with the file (inode number) */
 
-	if (fstat(sffileno(fp), &stbuf) < 0) {
+	fn = sffileno(fp);
+	if (fstat(fn, &stbuf) < 0) {
 		eno = errno;
 		fprintf(stderr, "fstat(\"%s\"): errno %d\n", scratch, errno);
 		mail_free(scratch);
@@ -225,43 +273,35 @@ sfmail_open(type)
 
 	/* Rename the scratch file to the message file name based on the id */
 
-#ifdef	notype
-	message = mail_alloc(strlen(PUBLICDIR)+1+1+10);
-	sprintf(message, "%s/%d%%", PUBLICDIR, stbuf.st_ino);
-#else
 	if (type == NULL)
 		type = MSG_RFC822;
-	message = mail_alloc(strlen(PUBLICDIR)+strlen(type)+1+1+10);
-	sprintf(message, "%s/%d%%%s", PUBLICDIR, (int)stbuf.st_ino, type);
+
+#ifdef notype
+	type = "";
 #endif
-	if (sfmail_link(scratch, &message) < 0) {
-		eno = errno;
-		fprintf(stderr, "sfmail_link(\"%s\", \"%s\"): errno %d\n",
-				scratch, message, errno);
-		mail_free(scratch);
-		mail_free(message);
-		errno = eno;
-		return NULL;
-	}
-	unlink(scratch);
-	mail_free(scratch);
 
 	/* Extend when need! */
 
-	if (sffileno(fp) >= mail_nfiles) {
-	  int nfile = sffileno(fp)+1;
+	if (fn >= mail_nfiles) {
+	  int nfile = fn+1;
 	  if (mail_file == NULL) {
 	    mail_file = (char**)mail_alloc((u_int)(sizeof(char*) * nfile));
+	    mail_type = (char**)mail_alloc((u_int)(sizeof(char*) * nfile));
 	  } else {
 	    mail_file = (char**)mail_realloc((char*)mail_file,
+					     (sizeof(char*) * nfile));
+	    mail_type = (char**)mail_realloc((char*)mail_type,
 					     (sizeof(char*) * nfile));
 	  }
 	  while (mail_nfiles < nfile) {
 	    mail_file[mail_nfiles] = NULL;
+	    mail_type[mail_nfiles] = NULL;
 	    ++mail_nfiles;
 	  }
 	}
-	mail_file[sffileno(fp)] = message;
+
+	mail_file[fn] = scratch;
+	mail_type[fn] = strdup(type);
 
 	/* Grab preferences from the environment to initialize the envelope */
 
@@ -280,9 +320,11 @@ sfmail_open(type)
 	 * If the postoffice lives elsewhere, put our hostname
 	 * in the Received-from header, to aid in message tracing.
 	 */
-	host = whathost(message);
+#if 0
+	host = whathost(scratch);
 	if (getzenv("MAILSERVER") != NULL ||
 	    (host != NULL && strcmp(host,"localhost") != 0))
+#endif
 	  if (getmyhostname(namebuf, sizeof namebuf) == 0) {
 	    cp = getenv("LOGNAME");
 	    if (cp == NULL)
@@ -322,23 +364,25 @@ int
 sfmail_abort(fp)
 	Sfio_t *fp;
 {
-	register char **messagep, *message;
-	int r;
+	register char *message;
+	int r, fn;
 
 	if (fp == NULL) {
 		errno = EBADF;
 		return -1;
 	}
-	if (sffileno(fp) >= mail_nfiles)
+	fn = sffileno(fp);
+	if (fn >= mail_nfiles)
 		abort(); /* Usage error -- no such fileno in our use! */
-	messagep = &mail_file[sffileno(fp)];
-	if (*messagep == NULL) {
+	if (mail_type[ fn ]) mail_free(mail_type[fn]);
+	mail_type[ fn ] = NULL;
+	message = mail_file[ fn ];
+	if (message == NULL) {
 		errno = ENOENT;
 		return -1;
 	}
 	sfclose(fp);
-	message = *messagep;
-	*messagep = NULL;
+	mail_file[ fn ] = NULL;
 	r = unlink(message);
 	mail_free(message);
 	return r;
@@ -348,19 +392,42 @@ sfmail_abort(fp)
  * Close the message file on the indicated stream and submit it to the mailer.
  */
 
+int sfmail_close(fp)
+	Sfio_t *fp;
+{
+	int ino;
+	time_t mtime;
+
+	return _sfmail_close_(fp, &ino, &mtime);
+}
+
+
+static int routersubdirhash = -1;
+
 int
 _sfmail_close_(fp,inop, mtimep)
 	Sfio_t *fp;
 	int *inop;
 	time_t *mtimep;
 {
-	char **messagep, *message, *nmessage, *msgbase;
+	char *message, *nmessage, *type, *ftype;
 	const char *routerdir;
 	char *s = NULL;
 	struct stat stb;
+	int fn;
+	long ino;
+	char subdirhash[6];
+
+	if (routersubdirhash < 0) {
+	  char *ss = getzenv("ROUTERDIRHASH");
+	  if (ss && *ss == '1')
+	    routersubdirhash = 1;
+	  else
+	    routersubdirhash = 0;
+	}
 
 	if (postoffice == NULL) {
-		fprintf(stderr, "sfmail_close: called out of order!\n");
+		fprintf(stderr, "mail_close: called out of order!\n");
 		errno = EINVAL;
 		return -1;
 	}
@@ -368,40 +435,50 @@ _sfmail_close_(fp,inop, mtimep)
 		errno = EBADF;
 		return -1;
 	}
-	if (sffileno(fp) >= mail_nfiles)
+	fn = sffileno(fp);
+	if (fn >= mail_nfiles)
 		abort(); /* Usage error -- no such fileno in our use! */
-	messagep = &mail_file[sffileno(fp)];
-	if (*messagep == NULL) {
+	message = mail_file[fn];
+	if (message == NULL) {
 		errno = ENOENT;
 		return -1;
 	}
+	ftype = type = mail_type[fn];
+	if (type == NULL) {
+		type = "";
+	}
 
-	message = *messagep;
-	*messagep = NULL;
+	mail_type[fn] = NULL;
+	mail_file[fn] = NULL;
+
+	if (fstat(fn, &stb)) {
+	  /* XXX: error processing */
+	}
+	ino = stb.st_ino;
+
+	if (routersubdirhash > 0) {
+	  sprintf(subdirhash, "%c/", (int)('A' + (ino % 26)));
+	} else
+	  *subdirhash = 0;
 
 	/*
 	 * *** NFS users beware ***
-	 * the fsync() between sfsync() and sfclose() may be mandatory
+	 * the fsync() between fflush() and fclose() may be mandatory
 	 * on NFS mounted postoffices if you want to guarantee not losing
 	 * data without being told about it.
 	 */
 
 	if (sfsync(fp) != 0
 #ifdef HAVE_FSYNC
-	    || fsync(sffileno(fp)) < 0
+	    || fsync(fn) < 0
 #endif
 	    || sfclose(fp) != 0) {
+		if (ftype) mail_free(ftype);
 		mail_free(message);
 		errno = EIO;
 		return -1;
 	}
 
-
-	/* Find the base name (we know format is PUBLICDIR/basename) */
-	if ((msgbase = strrchr(message, '/')) == NULL)
-		msgbase = message;
-	else
-		++msgbase;
 
 	routerdir = ROUTERDIR;
 	nmessage  = NULL;
@@ -414,11 +491,11 @@ _sfmail_close_(fp,inop, mtimep)
 	    char *rd = routerdirs;
 	    const char *ord = routerdir;
 #ifdef HAVE_ALLOCA
-	    nmessage = alloca(strlen(postoffice)+
-			      strlen(routerdirs)+3+strlen(msgbase));
+	    nmessage = alloca(strlen(postoffice)+strlen(routerdirs)+3+
+			      9+4+strlen(type));
 #else
-	    nmessage = mail_alloc(strlen(postoffice)+
-				  strlen(routerdirs)+3+strlen(msgbase));
+	    nmessage = mail_alloc(strlen(postoffice)+strlen(routerdirs)+3+
+				  9+4+strlen(type));
 #endif
 	    /* There are some defined!   A ":" separated list of strings */
 
@@ -452,41 +529,42 @@ _sfmail_close_(fp,inop, mtimep)
 	/* Assert postoffice != NULL */
 	if (nmessage == NULL) {
 #ifdef HAVE_ALLOCA
-	  nmessage = alloca(strlen(postoffice)+
-			    strlen(routerdir)+strlen(msgbase)+2+1);
+	  nmessage = alloca(strlen(postoffice)+strlen(routerdir)+
+			    9+4+2+1+strlen(type));
 #else
-	  nmessage = mail_alloc(strlen(postoffice)+
-				strlen(routerdir)+strlen(msgbase)+2+1);
+	  nmessage = mail_alloc(strlen(postoffice)+strlen(routerdir)+
+				9+4+2+1+strlen(type));
 #endif
-	  sprintf(nmessage, "%s/%s/%s", postoffice, routerdir, msgbase);
+	  sprintf(nmessage, "%s/%s/%s%ld%s", postoffice, routerdir,
+		  subdirhash, ino ,type);
 	} else {
 	  s = strchr(routerdir,':');
 	  if (s) *s = 0;
-	  sprintf(nmessage, "%s/%s/%s", postoffice, routerdir, msgbase);
+	  sprintf(nmessage, "%s/%s/%s%ld%s", postoffice, routerdir,
+		  subdirhash, ino, type);
 	  if (s) *s = ':';
 	}
 
-	/*
-	 * Unfortunately, rename() doesn't guarantee the same inode will
-	 * be used if the two paths are on the same filesystem, so we do
-	 * it the hard way.
-	 */
+	/* For performance reasons we optimize heavily.. */
 
-	if (link(message, nmessage) != 0) {
+	if (eqrename(message,nmessage) != 0) {
 	  int eno = errno;
 	  fprintf(stderr, "link(\"%s\", \"%s\"): errno %d\n",
 		  message, nmessage, errno);
+	  if (ftype) mail_free(ftype);
 	  mail_free(message);
 	  mail_free(nmessage);
 	  errno = eno;
 	  return -1;
 	}
+
+	stat(nmessage, &stb);
+
 #ifndef HAVE_ALLOCA
 	mail_free(nmessage);
 #endif
-	stat(message, &stb);
-	unlink(message);
 	mail_free(message);
+	if (ftype) mail_free(ftype);
 
 	if (inop != NULL)
 	  *inop   = (int)    stb.st_ino;
@@ -507,8 +585,10 @@ sfmail_close_alternate(fp,where,suffix)
 	Sfio_t *fp;
 	const char *where, *suffix;
 {
-	char **messagep, *message, *nmessage, *msgbase;
-	int eno;
+	char *message, *nmessage, *msgbase;
+	char *type, *ftype;
+	struct stat stbuf;
+	int fn;
 
 	if (postoffice == NULL) {
 		fprintf(stderr, "sfmail_close_alternate: called out of order!\n");
@@ -519,36 +599,42 @@ sfmail_close_alternate(fp,where,suffix)
 		errno = EBADF;
 		return -1;
 	}
-	if (sffileno(fp) >= mail_nfiles)
+	fn = sffileno(fp);
+	fstat(fn, &stbuf);
+	if (fn >= mail_nfiles)
 		abort(); /* Usage error -- no such fileno in our use! */
-	messagep = &mail_file[sffileno(fp)];
-	if (*messagep == NULL) {
+	message = mail_file[fn];
+	if (message == NULL) {
 		errno = ENOENT;
 		return -1;
 	}
+	type = ftype = mail_type[fn];
+	if (type == NULL)
+	  type = "";
 
-	message = *messagep;
-	*messagep = NULL;
+	mail_file[fn] = NULL;
+	mail_type[fn] = NULL;
 
 	/*
 	 * *** NFS users beware ***
-	 * the fsync() between sfsync() and sfclose() may be mandatory
+	 * the fsync() between fflush() and fclose() may be mandatory
 	 * on NFS mounted postoffices if you want to guarantee not losing
 	 * data without being told about it.
 	 */
-	if (sfsync(fp) == EOF
+	if (sfsync(fp) < 0
 #ifdef HAVE_FSYNC
-	    || fsync(sffileno(fp)) < 0
+	    || fsync(fn) < 0
 #endif
 	    || sfclose(fp) == EOF) {
 		mail_free(message);
+		if (ftype) mail_free(ftype);
 		errno = EIO;
 		return -1;
 	}
 
-
 	/* Find the base name (we know format is PUBLICDIR/basename) */
-	if ((msgbase = strrchr(message, '/')) == NULL)
+	msgbase = strrchr(message, '/');
+	if (msgbase == NULL)
 		msgbase = message;
 	else
 		++msgbase;
@@ -556,37 +642,23 @@ sfmail_close_alternate(fp,where,suffix)
 	nmessage  = NULL;
 	/* Assert postoffice != NULL */
 	nmessage = mail_alloc(strlen(postoffice)+1+strlen(where)+1+
-			      strlen(msgbase)+strlen(suffix)+1);
-	sprintf(nmessage, "%s/%s/%s%s", postoffice, where, msgbase, suffix);
+			      20+strlen(suffix)+1+strlen(type));
+	sprintf(nmessage, "%s/%s/%ld%s%s",
+		postoffice, where, (long)stbuf.st_ino, suffix, type);
 
-	/*
-	 * Unfortunately, rename() doesn't guarantee the same inode will
-	 * be used if the two paths are on the same filesystem, so we do
-	 * it the hard way.
-	 */
-
-	if (link(message, nmessage) != 0) {
-		eno = errno;
-		fprintf(stderr, "link(\"%s\", \"%s\"): errno %d\n",
-				message, nmessage, errno);
-		mail_free(nmessage);
-		unlink(message); /* Throw the file away */
-		mail_free(message);
-		errno = eno;
-		return -2;
+	if (eqrename(message,nmessage) != 0) {
+	  int eno = errno;
+	  fprintf(stderr, "eqrename(\"%s\", \"%s\"): errno %d\n",
+		  message, nmessage, errno);
+	  mail_free(message);
+	  mail_free(nmessage);
+	  if (ftype) mail_free(ftype);
+	  errno = eno;
+	  return -1;
 	}
-	mail_free(nmessage);
-	unlink(message);
+
 	mail_free(message);
+	mail_free(nmessage);
+	if (ftype) mail_free(ftype);
 	return 0;
-}
-
-
-int sfmail_close(fp)
-	Sfio_t *fp;
-{
-	int ino;
-	time_t mtime;
-
-	return _sfmail_close_(fp, &ino, &mtime);
 }

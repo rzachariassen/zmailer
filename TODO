@@ -1,8 +1,5 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
-- The rewritten  libc/getaddrinfo.c  is propably leaking memory,
-  and/or yielding stuff in AI chain when it should not.
-
 - "Overview" -- revise at least the list subscription instructions;
 		verify also other document files
 
@@ -223,6 +220,10 @@ transports/smtp:
 	  living connection...
 
 - smtpserver
+
+    BUG:
+	Sometimes read timeouts on remote socket are not causing
+	EOF returns reliably..
 
     FEATURE:
 	Bind to named interface (pick its address with SIOCG(L)IFADDR)
