@@ -21,6 +21,8 @@
 
 select(STDOUT); $| = 1;
 
+printf "#hungry\n";
+
 while (<>) {
 	chomp;
 	$fname = $_;
@@ -29,6 +31,7 @@ while (<>) {
 
 	$rc = & filter( $fname );
 	printf "%s\n", $rc;
+	printf "#hungry\n";
 }
 exit 0;
 

@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8 "10 Dec 2001"
+.TH SMTPSERVER 8 "19 Aug 2002"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -657,6 +657,13 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 .fi
 .sp
 .SH CONTENTFILTER INTERFACE
+.PP
+The
+.I contentfilter
+interface has been modified a few times, see your
+.B README.UPGRADING
+file for details matching your running setup.
+.PP
 The
 .I contentfilter
 program is started without parameters running userid of
@@ -668,17 +675,35 @@ the message spool file, analyze it, and reply with exactly one
 line matching rule of: "%i " -- begin with signed integer, then
 have one or more whitespace, then whatever filter writer liked.
 .PP
+The protocol in between the
+.IR smtpserver (8),
+and the content-policy program is a clone from the scheduler to
+transport-agent one.
+Namely:
+.PP
+.RS 2em
+0) server: spawn a sub-process for the policy program
+.PP
+1) policy: \fC"#hungry\\n"\fR
+.PP
+2) server: \fC"jobfilepath\\n"\fR
+.PP
+3) policy: \fC"RESULT DATA\\n"\fR
+.PP
+The loop repeats from 1, unless either sees an EOF, when reading.
+.RE
+.PP
 General rule:
 .nf
 \fC
- -1 negatives are condemned into rejection
-  0 zero is ok! gladly accepted
-  1 positives are sent into the freezer
+ -1 550 5.7.1 negatives are condemned into rejection
+  0 250 2.6.0 zero is ok! gladly accepted
+  1 550 5.7.1 positives are sent into the freezer
 .fi
 .PP
 The program
 .I may
-produce also the numeric SMTP reply codes in its response text:
+choose to order rejection, and report acceptance, or which way ever:
 .nf
 \fC
  -1
@@ -692,7 +717,8 @@ produce also the numeric SMTP reply codes in its response text:
 If the message has no text, some defaults are supplied.
 If the message text starts with numbers, it is presumed
 that it contains both the SMTP reply code, and ENHANCEDSTATUSCODE
-before the text.  (If no ENHANCEDSTATUSCODE part is present,
+before the text.
+(If no ENHANCEDSTATUSCODE part is present,
 then some possibly senseless default is supplied.)
 .PP
 Interface message text lines beginning with anything except signed integer

@@ -9,19 +9,47 @@
  *
  *  The protocol in between the smtpserver, and the content
  *  policy analysis program is a simple one:
- *     to contentpolicy:   relfilepath \n  (relative to current dir)
- *     from contentpolicy: %i [%i ]comment text \n
+ *   0) Caller starts the policy program
+ *   1) When the policy program is ready to answer to questions,
+ *      it writes "#hungry\n" to its STDOUT.
+ *   2) This caller wrapper detects the state, and feeds it
+ *      a job-spec:   relfilepath \n
+ *   3) The policy-program will then respond with a line
+ *      matching format:
+ *           %i %i.%i.%i comment text \n
+ *   4) the interface collects that, and presents onwards.
+ *  Loop restart from phase 1), UNLESS the policy program
+ *  has yielded e.g. EOF, in which case the loop terminates.
+ *
+ *  If no answer is received (merely two consequtive #hungry
+ *  states, or non-conformant answers), a "ok" is returned,
+ *  and the situation is logged.
+ *
+ *  
+ *
+ *
  */
 
 #include "smtpserver.h"
 
 extern int debug;
 
-char *contentfilter = NULL;
+char *contentfilter; /* set at cfgread.c */
+
+/* Local data */
 
 int contentpolicypid      = -1;
-FILE *cpol_tofp   = NULL;
-FILE *cpol_fromfp = NULL;
+
+static FILE *cpol_tofp;
+static FILE *cpol_fromfp;
+static int contentphase;
+
+/* Phases:
+   0: started, expecting "#hungry"
+   1: seen "#hungry", ready for a job!
+   2: sent a task, expecting answer
+*/
+
 
 static int init_content_policy()
 {
@@ -34,6 +62,7 @@ static int init_content_policy()
   if (cpol_fromfp) fclose(cpol_fromfp);
 
   cpol_tofp = cpol_fromfp = NULL;
+  contentphase = 0;
 
   contentpolicypid = fork();
 
@@ -68,6 +97,40 @@ static int init_content_policy()
   return 1; /* Successfull start! (?) */
 }
 
+static int
+pickresponse(buf, bufsize, fp)
+     char *buf;
+     int bufsize;
+     FILE *fp;
+{
+    int c, i;
+
+    c = i = 0;
+    --bufsize;
+
+    if (feof(fp) || ferror(fp)) return -1;
+  
+    for (;;) {
+      if (ferror(fp) || feof(fp)) break;
+
+      c = fgetc(fp);
+      if (c == EOF)  break;
+      if (c == '\n') break;
+
+      if (i < bufsize)
+	buf[i++] = c;
+    }
+    buf[i] = 0;
+
+    while (c != '\n') {
+      if (ferror(fp) || feof(fp)) break;
+      c = fgetc(fp);
+    }
+
+    return i;
+}
+
+
 
 int
 contentpolicy(rel, state, fname)
@@ -76,8 +139,9 @@ struct policystate *state;
 const char *fname;
 {
   char responsebuf[8192];
-  int c, i, rc;
-
+  int i, rc, neg, val;
+  int seenhungry = 0;
+  
   if (state->always_reject)
     return -1;
   if (state->sender_reject)
@@ -105,60 +169,83 @@ const char *fname;
   type(NULL,0,NULL, "ContentPolicy program running with pid %d; input='%s'\n",
        contentpolicypid, fname);
 
-  fprintf(cpol_tofp, "%s\n", fname);
-  fflush(cpol_tofp);
-
  pick_reply:;
 
-  c = i = 0;
-  for (;;) {
-    if (ferror(cpol_fromfp) || feof(cpol_fromfp)) break;
-    c = fgetc(cpol_fromfp);
-    if (c == '\n') break;
-    if (i < sizeof(responsebuf)-1)
-      responsebuf[i++] = c;
-  }
-  responsebuf[i] = 0;
-  while (c != '\n') {
-    if (ferror(cpol_fromfp) || feof(cpol_fromfp)) break;
-    c = fgetc(cpol_fromfp);
+
+  i = pickresponse(responsebuf, sizeof(responsebuf), cpol_fromfp);
+  type(NULL,0,NULL, "policyprogram said: rc=%d  '%s'", i, responsebuf);
+  if (i <= 0) return 0; /* Urgh.. */
+
+  if (strcmp(responsebuf, "#hungry") == 0) {
+    ++seenhungry;
+    if (seenhungry == 1 && cpol_tofp) {
+      fprintf(cpol_tofp, "%s\n", fname);
+      fflush(cpol_tofp);
+      goto pick_reply;
+    }
+    /* Seen SECOND #hungry !!!
+       Abort the connection by closing the command socket..
+       Collect all replies, and log them.  */
+
+    if (cpol_tofp) fclose(cpol_tofp);
+    cpol_tofp = NULL;
+    sleep(1);
+    if (contentpolicypid > 1) kill(SIGKILL, contentpolicypid);
+
+    for (;;) {
+      i = pickresponse(responsebuf, sizeof(responsebuf), cpol_fromfp);
+      if (i <= 0) break;
+      type(NULL,0,NULL, "policyprogram said: %s", responsebuf);
+    }
+    /* Finally yield zero.. */
+    return 0;
   }
 
-  type(NULL,0,NULL, "policyprogram said: %s", responsebuf);
+  if (*responsebuf == '#' || *responsebuf == '\n') /* debug stuff ?? */
+    /* Debug-stuff... */
+    goto pick_reply;
 
-  /* on non-zero return, do set  state->message  on free()able storage ! */
+
+
+  i = 0;
+  val = neg = 0;
+  if (responsebuf[i] == '-') {
+    ++i;
+    neg = 1;
+  }
+  while ('0' <= responsebuf[i] && responsebuf[i] <= '9') {
+    val *= 10;
+    val += (responsebuf[i] - '0');
+    ++i;
+  }
+  if (neg) val = -val;
+
+  if (!(i >= neg) || responsebuf[i] != ' ') {
+
+    if (!seenhungry) goto pick_reply;
+
+    return 0; /* Bad result -> tool borken.. */
+  }
+
+  rc = val;
+
+  /* on non-void return, do set  state->message  on free()able storage ! */
 
   /* Pick at first the heading numeric value. */
 
-  i = sscanf(responsebuf, "%d", &rc);
-
-  if (i == 1) {
-    /* Scan until first space - or EOL */
-    for (i = 0; i < sizeof(responsebuf) && responsebuf[i] != 0; ++i)
-      if (responsebuf[i] == ' ') break;
-    /* Scan over spaces */
-    while (i < sizeof(responsebuf) && responsebuf[i] == ' ') ++i;
-  } else {
-
-    /* Hmm.. Bad!  Lets close the  cpol_tofp  and see what happens..
-       Will we ever get working reply ? */
-
-    if (cpol_tofp) {
-      fclose(cpol_tofp);
-      cpol_tofp = NULL;
-      goto pick_reply;
-    }
-
-    /* No working reply, ah well, push it into the freezer */
-
-    i = 0;
-    rc = 1;
+  /* Scan until first space - or EOL */
+  for (; i < sizeof(responsebuf) && responsebuf[i] != 0; ++i) {
+    if (responsebuf[i] == ' ') break;
   }
+  /* Scan over spaces */
+  while (i < sizeof(responsebuf) && responsebuf[i] == ' ') ++i;
+
 
   if (!cpol_tofp) {
     fclose(cpol_fromfp);
     cpol_fromfp = NULL;
-    kill(SIGKILL, contentpolicypid);
+    if (contentpolicypid > 1)
+      kill(SIGKILL, contentpolicypid);
     contentpolicypid = -1;
   }
 

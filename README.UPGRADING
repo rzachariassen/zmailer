@@ -12,6 +12,35 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+
+
+	ZMailer-2.99.56pre3:
+		Change in  smtpserver <-> content-policy interface
+		protocol!  Old protocol (scripts) are likely NOT to
+		work!  Relevant DIFF of the prototype filter is here:
+
+	diff -u -r1.4 smtp-contentfilter.in
+	--- utils/smtp-contentfilter.in 18 Jun 2002 10:22:31 -0000      1.4
+	+++ utils/smtp-contentfilter.in 17 Aug 2002 21:59:01 -0000
+	@@ -21,6 +21,8 @@
+	 
+	 select(STDOUT); $| = 1;
+	 
+	+printf "#hungry\n";
+	+
+	 while (<>) {
+	        chomp;
+	        $fname = $_;
+	@@ -29,6 +31,7 @@
+	 
+	        $rc = & filter( $fname );
+	        printf "%s\n", $rc;
+	+       printf "#hungry\n";
+	 }
+	 exit 0;
+ 
+
+
 	ZMailer-2.99.56
 		Support for SleepyCat's BSD DB 3.* database library.
 		While the db's are still called 'btree' and 'bhash',
