@@ -454,7 +454,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	    /* This resolves CNAME, it should not happen in case
 	       of MX server, though..    */
-#if !GETADDRINFODEBUG
+#ifdef HAVE_GETADDRINFO
 	    n = getaddrinfo(mx[i].host, "0", &req, &ai);
 #else
 	    n = _getaddrinfo_(mx[i].host, "0", &req, &ai, SS->verboselog);
@@ -481,7 +481,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	  /* This resolves CNAME, it should not happen in case
 	     of MX server, though..    */
-#if !GETADDRINFODEBUG
+#ifdef HAVE_GETADDRINFO
 	    n2 = getaddrinfo(mx[i].host, "0", &req, &ai2);
 #else
 	    n2 = _getaddrinfo_(mx[i].host, "0", &req, &ai2,
@@ -802,14 +802,14 @@ int main(argc, argv)
 	  errno = 0;
 	  /* Either forbidden MX usage, or does not have MX entries! */
 
-#if !GETADDRINFODEBUG
+#ifdef HAVE_GETADDRINFO
 	  r = getaddrinfo(host, "smtp", &req, &ai);
 #else
-	  r = _getaddrinfo_(host, "smtp", &req, &ai, SS->verboselog);
+	  r = _getaddrinfo_(host, "smtp", &req, &ai, SS.verboselog);
 #endif
 
-	  if (SS->verboselog)
-	    fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
+	  if (SS.verboselog)
+	    fprintf(SS.verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
 #if defined(AF_INET6) && defined(INET6)
 	  if (use_ipv6) {
 	    struct addrinfo *ai2 = NULL, *a;
@@ -823,13 +823,13 @@ int main(argc, argv)
 
 	    /* This resolves CNAME, it should not happen in case
 	       of MX server, though..    */
-#if !GETADDRINFODEBUG
+#ifdef HAVE_GETADDRINFO
 	    i2 = getaddrinfo(host, "0", &req, &ai2);
 #else
-	    i2 = _getaddrinfo_(host, "0", &req, &ai2, SS->verboselog);
+	    i2 = _getaddrinfo_(host, "0", &req, &ai2, SS.verboselog);
 #endif
-	    if (SS->verboselog)
-	      fprintf(SS->verboselog,
+	    if (SS.verboselog)
+	      fprintf(SS.verboselog,
 		      "  getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",
 		      host,i2,ai2);
 

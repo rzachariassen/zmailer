@@ -2009,7 +2009,7 @@ smtpconn(SS, host, noMX)
 	    /* We parse ONLY IPv6 form of address .. well, also
 	       the potential IPv4 compability addresses ... */
 	    req.ai_family = PF_INET6;
-#if !GETADDRINFODEBUG
+#ifdef HAVE_GETADDRINFO
 	    rc = getaddrinfo(buf+5, "smtp", &req, &ai);
 #else
 	    rc = _getaddrinfo_(buf+5, "smtp", &req, &ai, SS->verboselog);
@@ -2022,7 +2022,7 @@ smtpconn(SS, host, noMX)
 	    {
 	      /* Definitely only IPv4 address ... */
 	      req.ai_family = PF_INET;
-#if !GETADDRINFODEBUG
+#ifdef HAVE_GETADDRINFO
 	      rc = getaddrinfo(buf, "smtp", &req, &ai);
 #else
 	      rc = _getaddrinfo_(buf, "smtp", &req, &ai, SS->verboselog);
@@ -2137,7 +2137,7 @@ smtpconn(SS, host, noMX)
 	    errno = 0;
 	    /* Either forbidden MX usage, or does not have MX entries! */
 
-#if !GETADDRINFODEBUG
+#ifdef HAVE_GETADDRINFO
 	    r = getaddrinfo(host, "smtp", &req, &ai);
 #else
 	    r = _getaddrinfo_(host, "smtp", &req, &ai, SS->verboselog);
@@ -2158,7 +2158,7 @@ smtpconn(SS, host, noMX)
 
 	      /* This resolves CNAME, it should not happen in case
 		 of MX server, though..    */
-#if !GETADDRINFODEBUG
+#ifdef HAVE_GETADDRINFO
 	      i2 = getaddrinfo(host, "0", &req, &ai2);
 #else
 	      i2 = _getaddrinfo_(host, "0", &req, &ai2, SS->verboselog);
@@ -2662,7 +2662,7 @@ abort();
 	    req.ai_flags    = AI_CANONNAME;
 	    req.ai_family   = sa->sa_family; /* Same family, as our
 						destination address is */
-#if !GETADDRINFODEBUG
+#ifdef HAVE_GETADDRINFO
 	    r2 = getaddrinfo(localidentity, "smtp", &req, &ai);
 #else
 	    r2 = _getaddrinfo_(localidentity, "smtp", &req, &ai, SS->verboselog);
