@@ -1,0 +1,15 @@
+#|
+#| Sample root for  smtp-policy.mx  file
+#|
+#|
+#| List here domains/domain suffixes for which you want to
+#| serve as relayer, and/or want to have non-default value
+#| behaviour at destination domain at RBL tests, etc.
+#|
+#|    .domain.suffix
+#|    exact.domain
+#|
+#| You can replace exact knowledge with fuzzy feeling by using
+#| ``acceptofmx -'' at the boilerplate defaults and no need
+#| anything at this file.
+#|

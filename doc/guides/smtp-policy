@@ -1,6 +1,4 @@
-
-		SMTP-server policy filtering rules
-
+1. ZMailer SMTP-server policy filtering rules
 
 	At the end of this is actually the default boiler-plate file from
 	the distribution pretty much as is.
@@ -8,17 +6,12 @@
 	In addition to that, policy-builder.sh script adds a set of other
 	things before policy filter is ready for use:
 
-		DB/smtp-policy.src			The boilerplate
-		DB/localnames		('= _local_names')
-		DB/smtp-policy.relay	('= _full_rights')
-		DB/smtp-policy.mx	('relaytargets +')
-		DB/smtp-policy.spam	('= _bulk_mail')
-
-	At the moment, smtp-policy.spam  source is retrieved with LYNX from
-	URL:  http://www.webeasy.com:8080/spam/spam_download_table
-	however it seems there are sites out there that are spam-havens, and
-	that serve valid spam source/responce domains, which are not registered
-	at that database.
+		DB/smtp-policy.src		The boilerplate
+		DB/localnames		   ('= _local_names')
+		DB/smtp-policy.relay	   ('= _full_rights')
+		DB/smtp-policy.mx	   ('= _relaytarget')
+		DB/smtp-policy.spam	   ('= _bulk_mail')
+		DB/smtp-policy.spam.manual ('= _bulk_mail')
 
 	IF YOU WANT, YOU CAN MODIFY YOUR BOILER PLATE AS WELL AS YOUR
 	INSTALLED POLICY-BUILDER.SH SCRIPT.  (Doing 'make install' will
@@ -91,6 +84,70 @@
 		- execute  MAILBIN/policy-builder.sh  script
 
 
+
+
+
+2. RBL-type blocking lists
+
+	Per default the system DOES NOT use RBL-type blocking lists.
+	There are two ways how to take them into use: 
+
+	-  You can start rejecting at the connection setup and then at
+	   MAIL FROM (and RCPT TO). 
+
+	   However many (especially M$ environment) SMTP clients won't
+	   react on that properly, and will just keep repeating the delivery
+	   attempts. 
+
+	-  You can delay the rejections until RCPT addresses are given. 
+
+
+2.1 Immediate rejection by RBL
+
+	Like mentioned above, this method has a problem with many clients
+	who don't believe that HELO can give 500-series response. 
+
+	Method is as follows: 
+
+	Pick your choice of databases to the second variant ``_RBL0'' label
+	by joining your selection from various things exemplified here below
+	by using ``:'' character as glue in between: 
+
+	     ``+'' alias ``rbl.maps.vix.com'' 
+	     ``relays.mail-abuse.org'' 
+	     ``dul.maps.vix.com'' 
+	     ``relays.orbs.org'' 
+	     ``ok.orbs.org:relays.orbs.org'' <-- THIS IS A PAIR! 
+
+	For the ``ok.orbs.org:relays.orbs.org'' the ZMailer 2.99.52patch2
+	has special support, but it isn't entirely fool-proof thing...
+	(Due to false OKs in the OK zone while NETBLOCK type things
+	 exist at the RELAYS zone.)
+
+	An example for the resulting attribute pair: (RBL+DUL+RSS) 
+
+	  #| Second RBL variant: Early block with RBL+DUL+RSS
+	  _RBL0   test-dns-rbl  +:dul.maps.vix.com:relays.mail-abuse.org
+	  _RBL1   # Nothing
+
+2.2 Delayed rejection by RBL
+
+	Delay the rejection report to ``RCPT TO'' verbs by using the
+	``Third RBL variant'': 
+
+	  #| Third RBL variant: Late block with RBL+DUL+RSS
+	  _RBL0   rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+	  _RBL1   test-rcpt-dns-rbl +
+
+	The sample boilerplace will use these as defaults unless you choose
+	to explicitely have ``test-rcpt-dns-rbl -'' at some of the recipient
+	domains you list at ``smtp-policy.mx'' file: 
+
+	  #sample.domain.with.rbl
+	  sample.domain.no.rbl    test-rcpt-dns-rbl -
+
+3. smtp-policy.src boiler-plate
+
 #| File:  $MAILVAR/db/smtp-policy.src
 #|
 #|   Policy based filter database boilerplate for smtpserver
@@ -127,8 +184,19 @@
 #|	'acceptifmx'	{ '+', '-' }
 #|	'acceptifdns'	{ '+', '-' }
 #|	'sendernorelay' { '+', '-' }
-#|	'test-dns-rbl'	{ '+', '-' }
+#|	'test-dns-rbl'	{ '+', '-', "suffix.one:suffix.two" }
+#|	  Sample suffixes: rbl.maps.vix.com  relays.mail-abuse.org
+#|			   dul.maps.vix.com
+#|			   ok.orbs.org:relays.orbs.org  <-- that is a PAIR!
+#|	'rcpt-dns-rbl'	{ '+', '-', "suffix.one:suffix.two" }
+#|	'test-rcpt-dns-rbl' { '+', '-', "suffix.one:suffix.two" }
 #|	'message'	"quoted constant string message"
+#|	'localdomain'	{ '+', '-' }
+#|	'maxinsize'	nnn
+#|	'maxoutsize'	nnn
+#|	'fulltrustnet'	{ '+', '-' }
+#|	'trustrecipients' { '+', '-' }
+#|	'trust-whoson'	{ '+', '-' }
 #|
 #| Semantics:
 #|
@@ -310,9 +378,10 @@
 #| -- 2nd alternate: No MX target usage, DNS existence verify
 #|    Like the 1st alternate, except will verify the sender (mail from:<..>)
 #|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
+#|    If RBL parameters are set below, will use them.
 #
-# .			relaycustomer - relaytarget - senderokwithdns +
-# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns +
+# .			relaycustomer - relaytarget - senderokwithdns + = _RBL1
+# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _RBL0
 #
 #| -- 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
@@ -321,28 +390,54 @@
 #|    to go thru...  Substitutes accurate data to user's whimsical DNS
 #|    maintenance activities.  Vulnerable to unauthorized inbound MX
 #|    service abuse.
+#|    If RBL parameters are set below, will use them.
 
-.			relaycustomer - acceptifmx - senderokwithdns +
-[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns +
+.			relaycustomer - acceptifmx - senderokwithdns + = _RBL1
+[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _RBL0
 
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
 #|    the source and destination domains are DNS resolvable, but does not
-#|    block relaying
+#|    block relaying -- DANGER! DANGER! WILL ROBINSON! DANGER!
 #
 # .			senderokwithdns - acceptifdns -
 # [0.0.0.0]/0		senderokwithdns - acceptifdns -
 #
 #|
-#|  Also you may add   'test-dns-rbl +'  attribute pair to [0.0.0.0]/0
-#|  to use Paul Vixie's  http://maps.vix.com/ MAPS RBL system.
+#| -----------------------------------
+#|
+#| RBL type test rules:
+
+#| First RBL variant: NONE OF THE RBL TESTS
+_RBL0           # Nothing at early phase
+_RBL1           # Nothing at late phase
+
+#| Second RBL variant: Early block with RBL+DUL+RSS
+#_RBL0          test-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_RBL1          # Nothing at late phase
+
+#| Third RBL variant: Late block with RBL+DUL+RSS
+#_RBL0          rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_RBL1          test-rcpt-dns-rbl +
+
+#|  (The "+" at the DNS zone defines is treated as shorthand to
+#|   "rbl.maps.vix.com")
+#|
+#|  The Third RBL variant means that all target domains can all by themselves
+#|  choose if they use RBL to do source filtering.  The ``= _RBL1'' test
+#|  *must* be added to all domain instances where the check is wanted.
+#|  (Including the last-resort domain default of ".")
+#|  (Or inverting: If some recipient domain is *not* wanting RBL-type tests,
+#|   that domain shall have  ``test-rcpt-dns-rbl -'' attribute pair given for
+#|   it at the input datasets -- consider  smtp-policy.mx  file!)
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
-#| the database with  'relaytarget +' attribute.
+#| the database with  'relaytarget +' attribute.  ("acceptifmx *" allows
+#| reception if the local system is amonst the MXes.)
 #|
 #|-----------
 #|
-#| If your system has ``whoson'' server (see contrib/whoson-*.tar.gz),
+#| If your system has ``whoson'' server (see contrib/whoson-*.tgz),
 #| you can activate it by adding  'trust-whoson +' attribute pair to
 #| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
 #|
@@ -358,9 +453,9 @@
 #| private IP address...
 #|
 _private_address    message "We reject your network" rejectnet + message "We don't accept email from this source address" rejectsource + relaycustomer - relaytarget -
-[172.16.0.0]/12		= _private_address
-[192.168.0.0]/16	= _private_address
-[10.0.0.0]/8		= _private_address
+#[172.16.0.0]/12         = _private_address
+#[192.168.0.0]/16        = _private_address
+#[10.0.0.0]/8            = _private_address
 #|
 #| ...but hosts in the address range 192.168.16.0-192.168.17.255 may be
 #| our SMTP clients.
@@ -369,15 +464,21 @@ _private_address    message "We reject your network" rejectnet + message "We don
 
 #| Hosts of our organization can do anything...
 #|
-_our_network		= _full_rights
-_full_rights	rejectnet - relaycustnet + relaycustomer + relaytarget +
-_localnames	rejectnet - relaycustnet - localdomain + relaytarget +
+_our_network	= _full_rights
+
+#|    Boilerplate macroes for various things.
+#|    If RBL parameters are set above, will use them.
+
+_full_rights	rejectnet - relaycustnet + relaytarget +               = _RBL1
+_localnames	rejectnet - relaycustnet - localdomain + relaytarget + = _RBL1
+_relaytarget	relaytarget +                                          = _RBL1
+
 #
 #sztaki.hu		= _full_rights
 #.sztaki.hu		= _full_rights
-#192.84.225.0/24	= _our_network
-#192.84.226.0/23	= _our_network
-#192.84.228.0/23	= _our_network
+#[192.84.225.0]/24	= _our_network
+#[192.84.226.0]/23	= _our_network
+#[192.84.228.0]/23	= _our_network
 #|
 #| ... except that no use to relaying for dial-up hosts
 #|
@@ -397,7 +498,7 @@ _localnames	rejectnet - relaycustnet - localdomain + relaytarget +
 #| Thanks, no bulk mails! Drop them when used as sources, also reject
 #| when asked to send for them.
 #|
-_bulk_mail	message "You are not liked source for email" rejectsource + message "This is not accepted relay target" relaytarget -
+_bulk_mail	message "Your domain is not liked source for email" rejectsource + message "Your IP address is not liked source for email" rejectnet + message "This is not accepted relay target" relaytarget -
 #|
 #| The actual list of domains, and perhaps user addresses should
 #| be gotten from some active Anti-SPAM database

@@ -228,9 +228,10 @@
 #| -- 2nd alternate: No MX target usage, DNS existence verify
 #|    Like the 1st alternate, except will verify the sender (mail from:<..>)
 #|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
+#|    If RBL parameters are set below, will use them.
 #
-# .			relaycustomer - relaytarget - senderokwithdns +
-# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns +
+# .			relaycustomer - relaytarget - senderokwithdns + = _RBL1
+# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _RBL0
 #
 #| -- 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
@@ -239,33 +240,46 @@
 #|    to go thru...  Substitutes accurate data to user's whimsical DNS
 #|    maintenance activities.  Vulnerable to unauthorized inbound MX
 #|    service abuse.
+#|    If RBL parameters are set below, will use them.
 
-.			relaycustomer - acceptifmx - senderokwithdns +
-[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns +
+.			relaycustomer - acceptifmx - senderokwithdns + = _RBL1
+[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _RBL0
 
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
 #|    the source and destination domains are DNS resolvable, but does not
-#|    block relaying
+#|    block relaying -- DANGER! DANGER! WILL ROBINSON! DANGER!
 #
 # .			senderokwithdns - acceptifdns -
 # [0.0.0.0]/0		senderokwithdns - acceptifdns -
 #
 #|
-#|  Also you may add   'test-dns-rbl +'  attribute pair to [0.0.0.0]/0
-#|  or   'test-dns-rbl rbl.maps.vix.com' or maybe even this:
-#|  'test-dns-rbl rbl.maps.vix.com:dul.maps.vix.com'
-#|  to use Paul Vixie's  http://maps.vix.com/ MAPS RBL/DUL system.
-#|  (The "+" is treated as shorthand to  "rbl.maps.vix.com")
+#| -----------------------------------
 #|
-#|  You can also split this processing, which with above one aims at
-#|  MAIL FROM:<...> blocking, so that the blocking occurs at recipients:
-#|     [0.0.0.0]/0  rcpt-dns-rbl +:dul.maps.vix.com
-#|     .            test-rcpt-dns-rbl +
-#|  This split means that all target domains can all by themselves
-#|  choose if they use RBL to do source filtering.  The "test-rcpt-dns-rbl +"
-#|  test *must* be added to all domain instances where the check is wanted.
+#| RBL type test rules:
+
+#| First RBL variant: NONE OF THE RBL TESTS
+_RBL0           # Nothing at early phase
+_RBL1           # Nothing at late phase
+
+#| Second RBL variant: Early block with RBL+DUL+RSS
+#_RBL0          test-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_RBL1          # Nothing at late phase
+
+#| Third RBL variant: Late block with RBL+DUL+RSS
+#_RBL0          rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_RBL1          test-rcpt-dns-rbl +
+
+#|  (The "+" at the DNS zone defines is treated as shorthand to
+#|   "rbl.maps.vix.com")
+#|
+#|  The Third RBL variant means that all target domains can all by themselves
+#|  choose if they use RBL to do source filtering.  The ``= _RBL1'' test
+#|  *must* be added to all domain instances where the check is wanted.
 #|  (Including the last-resort domain default of ".")
+#|  (Or inverting: If some recipient domain is *not* wanting RBL-type tests,
+#|   that domain shall have  ``test-rcpt-dns-rbl -'' attribute pair given for
+#|   it at the input datasets -- consider  smtp-policy.mx  file!)
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
 #| the database with  'relaytarget +' attribute.  ("acceptifmx *" allows
@@ -300,17 +314,21 @@ _private_address    message "We reject your network" rejectnet + message "We don
 
 #| Hosts of our organization can do anything...
 #|
-_our_network		= _full_rights
-_full_rights	rejectnet - relaycustnet + relaytarget +
-_localnames	rejectnet - relaycustnet - localdomain + relaytarget +
-_relaytarget	relaytarget +
+_our_network	= _full_rights
+
+#|    Boilerplate macroes for various things.
+#|    If RBL parameters are set above, will use them.
+
+_full_rights	rejectnet - relaycustnet + relaytarget +               = _RBL1
+_localnames	rejectnet - relaycustnet - localdomain + relaytarget + = _RBL1
+_relaytarget	relaytarget +                                          = _RBL1
 
 #
 #sztaki.hu		= _full_rights
 #.sztaki.hu		= _full_rights
-#192.84.225.0/24	= _our_network
-#192.84.226.0/23	= _our_network
-#192.84.228.0/23	= _our_network
+#[192.84.225.0]/24	= _our_network
+#[192.84.226.0]/23	= _our_network
+#[192.84.228.0]/23	= _our_network
 #|
 #| ... except that no use to relaying for dial-up hosts
 #|
