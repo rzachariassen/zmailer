@@ -1,3 +1,12 @@
+1998-03-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Correction to EHLO SIZE processing, aborting message sending
+	    if the remote system presents a size limit, and current message
+	    size estimate exceeds that value.  Corrections to the way, how
+	    active smtp socket peer IP addresses are presented for diagnostic
+	    reports.
+
 1998-03-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
