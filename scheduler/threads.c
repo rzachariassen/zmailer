@@ -1466,7 +1466,7 @@ idle_cleanup()
 		/* The thread-group can be deleted before reclaim() runs! */
 		thg->transporters -= 1;
 #endif
-		/* zsyslog((LOG_EMERG,"ZMailer scheduler kludge shutdown of TA channel (info for debug only); HA=%ds",now - p->hungertime)); */
+		zsyslog((LOG_EMERG,"ZMailer scheduler kludge shutdown of TA channel (info for debug only); HA=%ds",now - p->hungertime));
 	      }
 	    }
 	    if (thg->thread == NULL && thg->idleproc == NULL) {
