@@ -1,3 +1,8 @@
+1998-06-22  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* doc/guides/smtp-policy:
+	    Updated the contents to match system a bit more
+
 1998-06-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

@@ -9,7 +9,7 @@
 	things before policy filter is ready for use:
 
 		DB/smtp-policy.src			The boilerplate
-		DB/localnames		('= _full_rights')
+		DB/localnames		('= _local_names')
 		DB/smtp-policy.relay	('= _full_rights')
 		DB/smtp-policy.mx	('relaytargets +')
 		DB/smtp-policy.spam	('= _bulk_mail')
@@ -28,19 +28,32 @@
 	Basically these various source files (when existing) are used to
 	combine knowledge of valid users around us:
 
-	- localnames	Who we are -- ok for receiving ('_full_rights'
-			is a bit too wide for that, though.. because
-			its value 'relaycustomer +' can allow anybody
-			to use us for relaying by claiming some local
-			identity at MAIL FROM:<..>.
+	- localnames	Who we are -- ok for receiving; does not
+			grant outgoing relay capability.
+
 
 	- smtp-policy.relay	Who can use us as outbound relay,
-			Use  [ip.number]/maskwidth  here for listing
-			those senders (networks) we absolutely trust.
-			You may also enter domains, but it is not
-			very wise -- domains are tested on "MAIL FROM",
-			and thus if somebody claims local origin for
-			the message, they can relay thru you...
+			Use here
+				[ip.number]/maskwidth
+			for listing those senders (networks) we
+			absolutely trust.  Additionally you may
+			enter some other attributes as parameters
+			for this key entry:
+				fulltrustnet +
+				trustrecipient +
+			First pair will accept any source address,
+			and any recipient addresses that are fed to
+			the server;  the second will verify the source
+			address, but after that it will accept any
+			recipient addresses.
+
+			You may also enter domains which are looked
+			up for the hostname of reversed IP address,
+			but it is not very wise; IP-reversal is not
+			trustworthy data.  It may also cause double-
+			entry/level descendance problems when two
+			domain-suffixes have same ending suffix (or
+			are the same)..  (Name/keyspace problem)
 
 			We can set the "always_accept" flag at the
 			source IP test, and never after.
@@ -283,27 +296,35 @@
 #|    Will accept for reception only those domains explicitely listed
 #|    in  'smtp-policy.mx'  and  'localnames'  files.  Will not do
 #|    verifications on validity/invalidity of source domains:  <foo@bar>
+#
 # .			relaycustomer - relaytarget -
 # [0.0.0.0]/0		relaycustomer - relaytarget -
+#
 #| -- 2nd alternate: No MX target usage, DNS existence verify
 #|    Like the 1st alternate, except will verify the sender (mail from:<..>)
 #|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
+#
 # .			relaycustomer - relaytarget - senderokwithdns +
 # [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns +
+#
 #| -- 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
 #|    reason have given open permissions for people to use their server
 #|    as MX backup for their clients, but don't know all domains valid
 #|    to go thru...  Substitutes accurate data to user's whimsical DNS
 #|    maintenance activities.  Vulnerable to inbound resource abuse.
+#
 .			relaycustomer - acceptifmx - senderokwithdns +
 [0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns +
+#
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
 #|    the source and destination domains are DNS resolvable, but does not
 #|    block relaying
-#.			senderokwithdns - acceptifdns -
-#[0.0.0.0]/0		senderokwithdns - acceptifdns -
+#
+# .			senderokwithdns - acceptifdns -
+# [0.0.0.0]/0		senderokwithdns - acceptifdns -
+#
 #|
 #|  Also you may add   'test-dns-rbl +'  attribute pair to [0.0.0.0]/0
 #|  to use Paul Vixie's  http://maps.vix.com/ MAPS RBL system.
@@ -331,6 +352,7 @@ _private_address    message "We reject your network" rejectnet + message "We don
 #|
 _our_network		= _full_rights
 _full_rights	rejectnet - relaycustnet + relaycustomer + relaytarget +
+_localnames	rejectnet - relaycustnet - localdomain + relaytarget +
 #
 #sztaki.hu		= _full_rights
 #.sztaki.hu		= _full_rights
