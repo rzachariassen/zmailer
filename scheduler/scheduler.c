@@ -1131,7 +1131,6 @@ static int sync_cfps(oldcfp, newcfp)
 {
 	struct vertex *ovp,  *nvp;
 	struct vertex *novp, *nnvp;
-	int oldkilled = 0;
 
 	/* Scan both files thru their   vp->next[L_CTLFILE]  vertex chains.
 	   If oldcfp has things that newcfp does not have, remove those from
@@ -1374,8 +1373,7 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 
 	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
 	  /* Put into the schedules */
-	  if (!reread)
-	    vtxdo(vp, cehead, file);
+	  vtxdo(vp, cehead, file);
 	}
 
 	/* Now we have no more need for the contents in core */
