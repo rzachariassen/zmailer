@@ -2071,7 +2071,7 @@ smtpconn(SS, host, noMX)
 	    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0);
 
 	    if (rc == EX_OK)
-	      mxsetsave(SS);
+	      mxsetsave(SS, host);
 
 	    if (SS->verboselog) {
 	      if (SS->mxcount == 0)
@@ -4579,6 +4579,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  }
 #endif
 
+	  mx[i].ai = ai; /* Save it (whatever it was..) */
 
 	  if (n != 0) {
 	    if (n == EAI_AGAIN) {
@@ -4589,7 +4590,6 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	      had_eai_again = 1;
 	    }
-	    continue;		/* Well well.. spurious! */
 	  }
 	} /* ... i < nmx ... */
 
@@ -4811,9 +4811,16 @@ rightmx(spec_host, addr_host, cbparam)
 	return 0;
 }
 
+
+/* Hook for possible future implementation of a tricky thing
+   to tell to the *scheduler*, what MXes each destination domain
+   has, so that the scheduler could combine alike looking
+   MX serviced destination domains together... */
+
 void
-mxsetsave(SS)
+mxsetsave(SS, host)
      SmtpState *SS;
+     const char *host;
 {
 }
 

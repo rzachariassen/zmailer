@@ -464,7 +464,7 @@ extern int res_mkquery(), res_send(), dn_skipname(), dn_expand();
 # ifdef RFC974
 extern int getmxrr __((SmtpState *, const char*, struct mxdata*, int, int));
 # endif /* RFC974 */
-extern void mxsetsave __((SmtpState *SS));
+extern void mxsetsave __((SmtpState *SS, const char *));
 #endif	/* BIND */
 extern int matchroutermxes __((const char*, struct taddress*, void*));
 extern RETSIGTYPE sig_pipe __((int));
