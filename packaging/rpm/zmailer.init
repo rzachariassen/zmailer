@@ -5,25 +5,25 @@
 # chkconfig: 2345 80 30
 # description: ZMailer is a Mail Transport Agent, which is the program \
 #              that moves mail from one machine to another.
-# processname: router scheduler smtpserver
-# pidfile: /var/spool/postoffice/.pid.scheduler .pid.smtpserver .pid.router
-# config: /etc/zmailer
+# processname: router
+# processname: scheduler
+# processname: smtpserver
 #
 
 # Source function library.
 if [ -f /etc/rc.d/init.d/functions ] ; then
 	. /etc/rc.d/init.d/functions
-		elif [ -f /etc/init.d/functions ] ; then
-			. /etc/init.d/functions
-			else
-				exit 0
+elif [ -f /etc/init.d/functions ] ; then
+	. /etc/init.d/functions
+else
+	exit 0
 fi
 
 # Source networking configuration.
 if  [ -f  /etc/sysconfig/network ] ; then
 	. /etc/sysconfig/network
-	else
-		exit 0
+else
+	exit 0
 fi
 
 # Check that networking is up.
@@ -36,19 +36,29 @@ else
 	exit 0
 fi
 
-# Check zmailer script and directories
+# Check zmailer script and work directories
 [ -f $MAILBIN/zmailer ] || exit 0
-[ -d $MAILSHARE ] || exit 0
-[ -d $MAILBOX ] || exit 0
-[ -d $POSTOFFICE ] || exit 0
 [ -d $LOGDIR ] || exit 0
+[ -d $MAILBOX ] || exit 0
+[ -d $MAILSHARE ] || exit 0
+[ -d $MAILVAR ] || exit 0
+[ -d $POSTOFFICE ] || exit 0
 
 # Here we go
 RETVAL=0
 
 start() {
 	# Start daemons.
-	if ( status scheduler || status router || status smtpserver ) | grep -v stop > /dev/null ; then
+	
+	# Is it frozen? then exit.
+	if [ -f $POSTOFFICE/.freeze ]; then
+		echo "Sorry, ZMailer is frozen, won't start anything until thawed !"
+		echo "* CHECK THAT THE FREEZE CONDITION ISN'T DUE TO E.G. MAINTENANCE *"
+		exit 0
+	fi
+
+	if ( status scheduler || status router || status smtpserver ) | 
+	   grep -v stop 2>/dev/null 1>&2 ; then
 		echo "Zmailer is running yet"
 	else
 		if [ "${SMTPSERVER}" ]; then
@@ -61,17 +71,18 @@ start() {
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/zmailer
 	echo
 	return $RETVAL
-
 	fi
 }
 
 stop() {
 	# Stop daemons.
-	if ( status scheduler || status router || status smtpserver ) | grep stop > /dev/null ; then
+	if ( status scheduler || status router || status smtpserver ) |
+	    grep stop 2>/dev/null 1>&2 ; then
 		echo "Zmailer is not running"
 	else
 		if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
 			$MAILBIN/zmailer kill && success || failure
+			sleep 1
 		fi
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/zmailer $POSTOFFICE/.pid.*
@@ -93,6 +104,9 @@ case "$1" in
   stop)
         stop
         ;;
+  restart)
+	restart
+	;;
   reload)
 	stop
 	start
@@ -111,7 +125,6 @@ case "$1" in
   *)
 	echo "Usage: $0 {start|stop|restart|reload|status|logsync|condrestart}"
 	exit 1
-	;;
 esac
 
 exit $?

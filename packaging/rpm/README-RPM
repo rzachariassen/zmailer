@@ -1,95 +1,97 @@
+
 		Howto make an RPM of ZMailer
 
 	originally by Xose Vazquez <xose@wanadoo.es>
 	updated by Rik van Riel <riel@conectiva.com>
 
 
-1. Get the zmailer source code, either CVS, from:
+1. Get the ZMailer source code, either CVS, from:
 
-   ftp://ftp.funet.fi/pub/unix/mail/zmailer/src or
-   http://ftp.funet.fi/pub/unix/mail/zmailer/src
+   ftp://ftp.funet.fi/pub/unix/mail/zmailer/src/ or
+   http://ftp.funet.fi/pub/unix/mail/zmailer/src/
+  
+   * Instructions how to get CVS ZMailer source tree:
+     http://zmailer.org/anoncvs.html
 
-2. Decompress the zmailer source.
+* ONLY FOR CVS *
 
-	# tar xvfz zmailer-{version}.tar.gz
-
-* ONLY FOR CVS
-
-A. Type, in the zmailer-{version} directory:
-
-	# ./configure	(the outcome of this isn't important)
+A. Type :
+	
+	# mv zmailer zmailer-{version}
+	# cd zmailer-{version}
+	# ./configure --prefix=/tmp (the outcome of this isn't important)
 	# make scrub
 	# make dist
 	# make dist	(yes, you need to type this twice)
 
 B. gzip the resulting zmailer-{version}.tar file
 
-* END _ONLY FOR CVS_
+* END 'ONLY FOR CVS' *
 
-3. Copy the zmailer zmailer-{version}.tar.gz to
-   /usr/src/redhat_or_rpm/SOURCES
+2. Copy the zmailer-{version}.tar.gz to /usr/src/redhat_or_rpm/SOURCES/
 
-4. Install the spec package :
+3. Install the spec and additional files:
+	
+	# tar xvfz zmailer-{version}.tar.gz
+	# cd zmailer-{version}/packaging/rpm/
+	# cp zmailer.spec /usr/src/redhat_or_rpm/SPECS/
+	# cp zmailer.* /usr/src/redhat_or_rpm/SOURCES/
 
-	# cd packaging/rpm/
-	# rpm -i zmailer-{version}.nosrc.rpm
+4. If your version of ZMailer is different of the number at
+   "Version: XX.YY.ZZ" in zmailer.spec, you will need replace
+    it with the new ZMailer version number.
 
-   or decompress it with:
+5. Let RPM create the source and binary packages for you.
 
-	# rpm2cpio zmailer-{version}.nosrc.rpm | cpio -i -d
-   and: 
-
-	# mv zmailer.spec /usr/src/redhat_or_rpm/SPECS 
-	# mv * /usr/src/redhat_or_rpm/SOURCES
-
-5. If your version of zmailer is different from the number of the
-   '%define zmailer_ver' in the zmailer.spec, you need to put there
-   the new version number.
-
-6. Let RPM create the source and binary package for you.
-
-	# rpm -ba /usr/src/redhat_or_rpm/SPECS/zmailer.spec
+	# rpmbuild -ba /usr/src/redhat_or_rpm/SPECS/zmailer.spec
   
-   If you need more features like ssl, ldap, sasl2, ipv6, tcp-w,
-   whoson or yp. It is necesary add --with <feature> at rpm 
-   command line build:  e.g. --with ssl --with ldap
+   If you need more features like ssl, ldap, sasl2, ipv6, tcpw,
+   whoson or yp. It is necesary to add "--with <feature>" at rpm 
+   command line build: e.g. --with ssl --with ldap --with ...
 
-   You can add the --target arch-vendor-os to get 
-   binary files more optimized.	Take a look to /usr/lib/rpm/ 
-   to know what put: e.g. --target i686-linux
+   You can add "--target arch-os" to get binary files more
+   optimized. Take a look to /usr/lib/rpm/ to know what put there:
+   e.g. --target i686-linux or --target athlon-linux or --target ...
 
    RPM packages will be created under /usr/src/redhat_or_rpm/SRPMS/
-   (src) and  /usr/src/XXX/RPMS/ (bin+doc)
+   (src) and /usr/src/redhat_or_rpm/RPMS/ (bin+devel+doc)
 
-7. Install the zmailer RPMs ;)
+6. Install the ZMailer RPMs ;)
 
-	# rpm -ivh /usr/src/redhat_or_rpm/RPMS/i386/zmailer-{version}.i386.rpm
-	# rpm -ivh /usr/src/redhat_or_rpm/RPMS/i386/zmailer-doc-{version}.i386.rpm
-	# rpm -ihv /usr/src/redhat_or_rpm/RPMS/i386/zmailer-devel-{version}.i386.rpm
+	# rpm -ivh /usr/src/redhat_or_rpm/RPMS/xxx/zmailer-{version}.xxx.rpm
+	# rpm -ivh /usr/src/redhat_or_rpm/RPMS/xxx/zmailer-doc-{version}.xxx.rpm
+	# rpm -ihv /usr/src/redhat_or_rpm/RPMS/xxx/zmailer-devel-{version}.xxx.rpm
 
-8. Finish the configuration by editing the following:
+7. Finish the configuration by editing the following:
 
 	o /etc/zmailer/*
 
-    For more information about the zmailer configuration, read
-    the documents in /usr/share/doc/zmailer-{version} ...
+    For more information about the ZMailer configuration, read
+    the documents in /usr/share/doc/zmailer-doc-{version}/...
 
 
 For more information about ZMailer just visit www.zmailer.org
 For more information about RPM visit www.rpm.org
 ------------------------------------------------------------------------
 
-Please e-mail me corrections about this package: xose@wanadoo.es
+Please e-mail me any corrections about this package: xose@wanadoo.es
 
 Changelog:
 
-Updated Tue Apr  8 01:53:47 CEST 2003 by <xose@wanadoo.es>
+Last updated: Mon Nov  3 02:13:25 CET 2003 by <xose@wanadoo.es>
+a little of cleaning and reorganization.
+
+Updated: Thu Sep 25 16:15:47 CEST 2003 by <xose@wanadoo.es>
+minor fixes.
+
+Updated: Tue Apr  8 01:53:47 CEST 2003 by <xose@wanadoo.es>
 new rpm command line build options, new package zmailer-devel.
 
-New update Thu Sep 27 12:03:24 CEST 2001 by <xose@wanadoo.es>
+New update: Thu Sep 27 12:03:24 CEST 2001 by <xose@wanadoo.es>
 rielversion+xoseversion=this file.
 
-Updated Dec 03 15:25:20 BRST by Rik van Riel <riel@conectiva.com.br>
+Updated: Dec 03 15:25:20 BRST by Rik van Riel <riel@conectiva.com.br>
 to also make things work with CVS source of zmailer and to reflect the
 new FHS directory namings. Overhauled the text while I was at it ;)
 
+# EOF
