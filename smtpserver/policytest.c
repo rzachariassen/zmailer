@@ -1260,7 +1260,7 @@ static int call_rate_counter(state, incr, what, countp)
 
     if (!limitp) limitp = "-1";
 
-    /* if (debug) */
+    if (debug)
       type(NULL,0,NULL,"call_rate_counter(incr=%d what=%d)",incr,what);
 
 
@@ -1284,6 +1284,7 @@ static int call_rate_counter(state, incr, what, countp)
 	break;
 
     case POLICY_DATAOK:
+	cmd   = "RCPT";
 	whatp = "DATA";
 	count = incr ? incr : 1;
 	if (incr  &&  !state->did_query_rate)
@@ -2226,15 +2227,15 @@ int policytest(state, what, str, len, authuser)
     case POLICY_DATA:
     case POLICY_DATAOK:
 	rc = call_rate_counter(state, len, POLICY_DATAOK, NULL);
-	type(NULL,0,NULL," call_rate_counter(): DATAOK: i=%d",len);
+	/* type(NULL,0,NULL," call_rate_counter(): DATAOK: i=%d",len); */
 	break;
     case POLICY_DATAABORT:
 	rc = call_rate_counter(state, len, POLICY_DATAABORT, NULL);
-	type(NULL,0,NULL," call_rate_counter(): DABORT: i=%d",len);
+	/* type(NULL,0,NULL," call_rate_counter(): DABORT: i=%d",len); */
 	break;
     case POLICY_AUTHFAIL:
 	rc = call_rate_counter(state, len, POLICY_AUTHFAIL, NULL);
-	type(NULL,0,NULL," call_rate_counter(): AUTHFAIL: i=%d",len);
+	/*type(NULL,0,NULL," call_rate_counter(): AUTHFAIL: i=%d",len);*/
 	break;
     default:
 	abort();		/* Code error! Bad policy !	*/

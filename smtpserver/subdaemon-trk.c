@@ -783,7 +783,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  } else if (i == -5) {	/* "DUMP" report */
 	    dump_trk( state, peerdata );
-	  } else if (i == -6) {	/* "RCPT" data */
+	  } else if (i == -6) {	/* "RCPT" data -- "DATAOK" */
 	    if (countval > 0)
 	      count_ipv4( state, ipv4addr, lastlimitval, 1 );
 	    i = count_rcpts_ipv4( state, ipv4addr, countval );
