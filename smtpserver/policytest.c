@@ -538,9 +538,10 @@ const char *pbuf;
 }
 
 
-int policyinit(relp, state)
+int policyinit(relp, state, whosonrc)
 struct policytest **relp;
 struct policystate *state;
+int whosonrc;
 {
     int openok;
     char *dbname;

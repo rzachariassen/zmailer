@@ -166,6 +166,9 @@ struct _tokenpair {
   { "maxoutsize",	P_A_OutboundSizeLimit	},
   { "fulltrustnet",	P_A_FullTrustNet	},
   { "trustrecipients",	P_A_TrustRecipients	},
+#ifdef HAVE_WHOSON_H
+  { "trust-whoson",	P_A_TrustWhosOn		},
+#endif
   { NULL, 0 },
 };
 

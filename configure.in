@@ -1032,8 +1032,7 @@ AC_MSG_RESULT([RFC-822 TABs setting: $use_rfc822_tabs])
 AC_SUBST(LIBWRAP)
 AC_SUBST(INCLWRAP)
 use_tcpwrappers=0
-AC_ARG_WITH(tcp-wrappers,   [
-  --with-tcp-wrappers=DIRPATH Where the TCP-WRAPPERS can be found],
+AC_ARG_WITH(tcp-wrappers,   [  --with-tcp-wrappers=DIRPATH Where the TCP-WRAPPERS can be found],
 	use_tcpwrappers=1)
 
 t_oldLibs="$LIBS"
@@ -1066,19 +1065,19 @@ if test "$use_tcpwrappers" = 0 ; then
 	else
 	    AC_CHECK_HEADERS(/local/include/tcpd.h /usr/local/include/tcpd.h \
 			     /opt/include/tcpd.h /opt/local/include/tcpd.h)
-	    if test -n "$ac_cv_header_local_include_tcpd_h"; then
+	    if test -n "$ac_cv_header__local_include_tcpd_h"; then
 		LIBWRAP="-L/local/lib -lwrap"
 		INCLWRAP="-I/local/include"
 		wraploc="-L/local/lib -I/local/include"
-	    elif test -n "$ac_cv_header_usr_local_include_tcpd_h"; then
+	    elif test -n "$ac_cv_header__usr_local_include_tcpd_h"; then
 		LIBWRAP="-L/usr/local/lib -lwrap"
 		INCLWRAP="-I/usr/local/include"
 		wraploc="-L/usr/local/lib -I/usr/local/include"
-	    elif test -n "$ac_cv_header_opt_include_tcpd_h"; then
+	    elif test -n "$ac_cv_header__opt_include_tcpd_h"; then
 		LIBWRAP="-L/opt/lib -lwrap"
 		INCLWRAP="-I/opt/include"
 		wraploc="-L/opt/lib -I/opt/include"
-	    elif test -n "$ac_cv_header_opt_local_include_tcpd_h"; then
+	    elif test -n "$ac_cv_header__opt_local_include_tcpd_h"; then
 		LIBWRAP="-L/opt/local/lib -lwrap"
 		INCLWRAP="-I/opt/local/include"
 		wraploc="-L/opt/local/lib -I/opt/local/include"
@@ -1109,6 +1108,158 @@ else
     unset ac_cv_lib_tcpwrap
     AC_DEFINE(HAVE_TCPD_H)
     AC_MSG_RESULT([Using tcp-wrappers at directory: $withval]);
+fi
+
+
+CPPFLAGS="$t_oldCpp"
+LIBS="$t_oldLibs"
+
+
+AC_SUBST(LIBWHOSON)
+AC_SUBST(INCLWHOSON)
+use_whoson=0
+AC_ARG_WITH(whoson,   [  --with-whoson=DIRPATH    Where the WHOSON libs can be found],
+	use_whoson=1)
+
+t_oldLibs="$LIBS"
+t_oldCpp="$CPPFLAGS"
+
+if test "$use_whoson" = 0 ; then
+#    if test "$ac_cv_lib_whoson" = yes; then
+#	LIBWHOSON="-lwhoson"
+#	INCLWHOSON=""
+#	AC_MSG_RESULT([Whoson libs available at system default: -lwhoson !]);
+#    else
+#-------------
+#	AC_TRY_LINK([#include <whoson.h>],[wso_version();],
+#			 ac_cv_lib_whoson=yes,ac_cv_lib_whoson=no)
+#	LIBWHOSON=""
+#	INCLWHOSON=""
+#	if test "$ac_cv_lib_whoson" = yes; then
+#	    AC_MSG_RESULT([Whoson libs available at $whosonloc: -lwhoson !]);
+#	else
+#	    AC_MSG_RESULT([No whoson libs available system at default location ?])
+#	fi
+#	: # "nop"	
+#-------------
+	AC_CHECK_HEADER(whoson.h)
+	if test "$ac_cv_header_whoson_h" = yes; then
+	    LIBWHOSON="-lwhoson"
+	    INCLWHOSON=""
+	    whosonloc="sysdefault"
+
+	    LIBS="$LIBS $LIBSOCKET $LIBWHOSON"
+	    CPPFLAGS="$CPPFLAGS $INCLWHOSON"
+	    AC_TRY_LINK([#include <whoson.h>
+			int deny_severity, allow_severity;],[wso_version();],
+			ac_cv_lib_whoson=yes,ac_cv_lib_whoson=no)
+dnl AC_MSG_RESULT([ ... link -lwhoson yields: $ac_cv_lib_whoson])
+	    if test "$ac_cv_lib_whoson" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/usr/local/lib $LIBWHOSON"
+		AC_TRY_LINK([#include <whoson.h>],[wso_version();],
+			ac_cv_lib_whoson=yes,ac_cv_lib_whoson=no)
+dnl AC_MSG_RESULT([ ... link -L/usr/local/lib -lwhoson yields: $ac_cv_lib_whoson])
+		if test  "$ac_cv_lib_whoson" = yes; then
+		    whosonloc="-L/usr/local/lib"
+		    LIBWHOSON="-L/usr/local/lib $LIBWHOSON"
+		fi
+	    fi
+	    if test "$ac_cv_lib_whoson" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/local/lib $LIBWHOSON"
+		AC_TRY_LINK([#include <whoson.h>],[wso_version();],
+			ac_cv_lib_whoson=yes,ac_cv_lib_whoson=no)
+dnl AC_MSG_RESULT([ ... link -L/local/lib -lwhoson yields: $ac_cv_lib_whoson])
+		if test  "$ac_cv_lib_whoson" = yes; then
+		    whosonloc="-L/local/lib"
+		    LIBWHOSON="-L/local/lib $LIBWHOSON"
+		fi
+	    fi
+	    if test "$ac_cv_lib_whoson" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/opt/lib $LIBWHOSON"
+		AC_TRY_LINK([#include <whoson.h>],[wso_version();],
+			ac_cv_lib_whoson=yes,ac_cv_lib_whoson=no)
+dnl AC_MSG_RESULT([ ... link -L/opt/lib -lwhoson yields: $ac_cv_lib_whoson])
+		if test  "$ac_cv_lib_whoson" = yes; then
+		    whosonloc="-L/opt/lib"
+		    LIBWHOSON="-L/opt/lib $LIBWHOSON"
+		fi
+	    fi
+	    if test "$ac_cv_lib_whoson" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/opt/local/lib $LIBWHOSON"
+		AC_TRY_LINK([#include <whoson.h>],[wso_version();],
+			ac_cv_lib_whoson=yes,ac_cv_lib_whoson=no)
+		if test  "$ac_cv_lib_whoson" = yes; then
+		    whosonloc="-L/opt/local/lib"
+		    LIBWHOSON="-L/opt/local/lib $LIBWHOSON"
+		fi
+	    fi
+	    if test "$ac_cv_lib_whoson" = no; then
+		unset ac_cv_lib_whoson
+	    fi
+
+	    CPPFLAGS="$t_oldCpp"
+	    LIBS="$t_oldLibs"
+
+	else
+	    AC_CHECK_HEADERS(/local/include/whoson.h /usr/local/include/whoson.h \
+			     /opt/include/whoson.h /opt/local/include/whoson.h)
+	    if test -n "$ac_cv_header__local_include_whoson_h"; then
+		LIBWHOSON="-L/local/lib -lwhoson"
+		INCLWHOSON="-I/local/include"
+		whosonloc="-L/local/lib -I/local/include"
+	    elif test -n "$ac_cv_header__usr_local_include_whoson_h"; then
+		LIBWHOSON="-L/usr/local/lib -lwhoson"
+		INCLWHOSON="-I/usr/local/include"
+		whosonloc="-L/usr/local/lib -I/usr/local/include"
+	    elif test -n "$ac_cv_header__opt_include_whoson_h"; then
+		LIBWHOSON="-L/opt/lib -lwhoson"
+		INCLWHOSON="-I/opt/include"
+		whosonloc="-L/opt/lib -I/opt/include"
+	    elif test -n "$ac_cv_header__opt_local_include_whoson_h"; then
+		LIBWHOSON="-L/opt/local/lib -lwhoson"
+		INCLWHOSON="-I/opt/local/include"
+		whosonloc="-L/opt/local/lib -I/opt/local/include"
+	    else
+		LIBWHOSON=""
+		INCLWHOSON=""
+		whosonloc="nowhere?"
+	    fi
+	fi
+	LIBS="$LIBS $LIBSOCKET $LIBWHOSON"
+	CPPFLAGS="$CPPFLAGS $INCLWHOSON"
+	AC_CACHE_VAL(ac_cv_lib_whoson,
+	  [AC_TRY_LINK([#include <whoson.h>],[wso_version();],
+			ac_cv_lib_whoson=yes,ac_cv_lib_whoson=no)
+	  ])
+	if test "$ac_cv_lib_whoson" = yes; then
+	    AC_MSG_RESULT([Whoson libs  available at $whosonloc: -lwhoson !]);
+	else
+	    AC_MSG_RESULT([No whoson libs available at system default locations ?])
+	    LIBWHOSON=""
+	    INCLWHOSON=""
+	fi
+#    fi
+else
+    if test -f "$withval"/lib/libwhoson.a ; then
+	LIBWHOSON="-L$withval/lib -lwhoson"
+	AC_MSG_RESULT([Using whoson libs at directory: $withval/lib]);
+    else
+	LIBWHOSON="-L$withval -lwhoson"
+	AC_MSG_RESULT([Using whoson libs at directory: $withval]);
+    fi
+    if test -f "$withval"/include/whoson.h ; then
+	INCLWHOSON="-I$withval/include"
+	AC_MSG_RESULT([Using whoson includes at directory: $withval]);
+    else
+	INCLWHOSON="-I$withval"
+	AC_MSG_RESULT([Using whoson includes at directory: $withval]);
+    fi
+    unset ac_cv_lib_whoson
+    AC_DEFINE(HAVE_WHOSON_H)
 fi
 
 CPPFLAGS="$t_oldCpp"

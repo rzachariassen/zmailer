@@ -24,6 +24,10 @@ const char *Copyright2 = "Copyright 1991-1997 Matti Aarnio";
 #include "libtrans.h"
 #endif				/* USE_TRANSLATION */
 
+#ifdef WHOSON
+#include <whoson.h>
+#endif
+
 /*
  * Early inetd's, which may be found on 4.2BSD based systems (e.g.
  * Sun OS 3.x), are incapable of passing a flag to indicate we are
@@ -452,11 +456,12 @@ char **argv;
     mailshare = getzenv("MAILSHARE");
     if (mailshare == NULL)
 	mailshare = MAILSHARE;
-    if (cfgpath == NULL)
+    if (cfgpath == NULL) {
       if (strchr(progname, '/') != NULL)
 	sprintf(path, "%s/%s.conf", mailshare, strrchr(progname, '/') + 1);
       else
 	sprintf(path, "%s/%s.conf", mailshare, progname);
+    }
 
     if (cfgpath == NULL)
       cfhead = readcffile(path);
@@ -533,15 +538,28 @@ char **argv;
 	sprintf(SS.ident_username + strlen(SS.ident_username),
 		" [port %d]", SS.rport);
 
-	if (smtp_syslog && ident_flag)
+	if (smtp_syslog && ident_flag) {
+#ifdef HAVE_WHOSON_H
+	    zsyslog((LOG_INFO, "connection from %s@%s (whoson: $s)\n",
+		     SS.ident_username, SS.rhostname, SS.whoson_data));
+#else
 	    zsyslog((LOG_INFO, "connection from %s@%s\n",
 		     SS.ident_username, SS.rhostname));
+#endif
+	}
 
 	pid = getpid();
 	openlogfp(&SS, daemon_flg);
-	if (logfp != NULL)
+	if (logfp != NULL) {
+#ifdef HAVE_WHOSON_H
+	    fprintf(logfp, "%d#\tconnection from %s:%d ident: %s whoson: %s\n",
+		    pid, SS.rhostname, SS.rport, SS.ident_username, SS.whoson_data);
+#else
 	    fprintf(logfp, "%d#\tconnection from %s:%d ident: %s\n",
 		    pid, SS.rhostname, SS.rport, SS.ident_username);
+#endif
+	}
+
 #if 0
 	SIGNAL_HANDLE(SIGCHLD, SIG_DFL);
 #else
@@ -864,18 +882,30 @@ char **argv;
 		else
 		    strcpy(SS.ident_username, "IDENT-NOT-QUERIED");
 
-		if (smtp_syslog && ident_flag)
+		if (smtp_syslog && ident_flag) {
+#ifdef HAVE_WHOSON_H
+		  zsyslog((LOG_INFO, "connection from %s@%s (whoson: %s)\n",
+			   SS.ident_username, SS.rhostname, SS.whoson_data));
+#else /* WHOSON */
 		  zsyslog((LOG_INFO, "connection from %s@%s\n",
 			   SS.ident_username, SS.rhostname));
-
+#endif
+		}
 		pid = getpid();
 
 		openlogfp(&SS, daemon_flg);
-		if (logfp != NULL)
+		if (logfp != NULL) {
+#ifdef HAVE_WHOSON_H
 		    fprintf(logfp,
-		    "%d#\tconnection from %s ipcnt %d ident: %s\n",
-		    pid, SS.rhostname, sameipcount, SS.ident_username);
-
+			    "%d#\tconnection from %s ipcnt %d ident: %s whoson: %s\n",
+			    pid, SS.rhostname, sameipcount, SS.ident_username,
+			    SS.whoson_data);
+#else
+		    fprintf(logfp,
+			    "%d#\tconnection from %s ipcnt %d ident: %s\n",
+			    pid, SS.rhostname, sameipcount, SS.ident_username);
+#endif
+		}
 /* if (logfp) fprintf(logfp,"%d#\tInput fd=%d\n",getpid(),msgfd); */
 
 		if (sameipcount > MaxSameIpSource && sameipcount > 1) {
@@ -1235,7 +1265,29 @@ int insecure;
 	exit(0);
 #endif				/* USE_TRANSLATION */
     }
-    policystatus     = policyinit(&policydb, &SS->policystate);
+#ifdef HAVE_WHOSON_H
+    {
+	char buf[64];
+	buf[0]='\0';
+	if (SS->raddr.v4.sin_family == AF_INET) {
+	  inet_ntop(AF_INET, (void *) &SS->raddr.v4.sin_addr,	/* IPv4 */
+		    buf, sizeof(buf) - 1);
+#if defined(AF_INET6) && defined(INET6)
+	} else if (SS->raddr.v6.sin6_family == AF_INET6) {
+	  inet_ntop(AF_INET6, (void *) &SS->raddr.v6.sin6_addr,  /* IPv6 */
+		    buf, sizeof(buf) - 1);
+#endif
+	}
+	if ((SS->whoson_result = wso_query(buf, SS->whoson_data,
+					 sizeof(SS->whoson_data)))) {
+	    strcpy(SS->whoson_data,"UNAVAILABLE");
+	}
+    }
+    policystatus     = policyinit(&policydb, &SS->policystate,
+				  SS->whoson_result);
+#else
+    policystatus     = policyinit(&policydb, &SS->policystate, 0);
+#endif
     SS->policyresult = policytestaddr(policydb, &SS->policystate,
 				      POLICY_SOURCEADDR,
 				      (void *) &SS->raddr);

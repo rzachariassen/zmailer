@@ -36,6 +36,9 @@ struct policystate {		/* Part of SmtpState structure */
     long maxinsize;
     long maxoutsize;
     int  islocaldomain;
+#ifdef HAVE_WHOSON_H
+    int whoson_result;
+#endif
 };
 
 
@@ -99,7 +102,7 @@ typedef enum {
  */
 
 extern void policydefine __((struct policytest ** relp, const char *dbtype, const char *dbpath));
-extern int policyinit __((struct policytest ** relp, struct policystate * ps));
+extern int policyinit __((struct policytest ** relp, struct policystate * ps, int whoson_result));
 extern int policytest __((struct policytest * rel, struct policystate * ps, PolicyTest how, const char *str, const int len));
 extern int policytestaddr __((struct policytest * rel, struct policystate * ps, PolicyTest how, Usockaddr * raddr));
 extern char *policymsg __((struct policytest *rel, struct policystate *ps));

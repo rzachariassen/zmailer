@@ -272,11 +272,12 @@ run_relation(argc, argv)
 		for (dbkp = &db_kinds[0];
 		     dbkp < &db_kinds[(sizeof db_kinds)/sizeof (struct db_kind)];
 		     ++dbkp) {
-		  if (dbkp->name != NULL)
+		  if (dbkp->name != NULL) {
 		    if (dbkp == &db_kinds[0])
 		      fprintf(stderr,"%s",dbkp->name);
 		    else
 		      fprintf(stderr,",%s",dbkp->name);
+		  }
 		}
 		fprintf(stderr,"\n");
 		return 1;

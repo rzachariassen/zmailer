@@ -631,6 +631,13 @@ int insecure;
 	fprintf(SS->mfp, " ident: ");
 	rfc822commentprint(SS->mfp, SS->ident_username);
       }
+#ifdef HAVE_WHOSON_H
+      fprintf(SS->mfp, " whoson: ");
+      rfc822commentprint(SS->mfp,
+			 ((SS->whoson_result == 0) ? SS->whoson_data :
+			  ((SS->whoson_result == 1) ? "-unregistered-" : 
+			   "-unavailable-")));
+#endif
       fprintf(SS->mfp, ")\n");
     }
 

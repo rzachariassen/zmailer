@@ -2830,6 +2830,7 @@ vcsetup(SS, sa, fdp, hostname)
 	int errnosave;
 	char *se;
 
+	& addrsiz;
 	time(&now);
 
 	af = sa->sa_family;

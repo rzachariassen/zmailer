@@ -170,6 +170,11 @@ typedef struct {
     char helobuf[SMTPLINESIZE];
     struct smtpconf *cfinfo;
 
+#ifdef HAVE_WHOSON_H
+    int whoson_result;
+    char whoson_data[128];
+#endif
+
 } SmtpState;
 
 #define STYLE(i,c)	(strchr(((i)==NULL ? style : (i)->flags), (c)) != NULL)

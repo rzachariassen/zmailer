@@ -6,8 +6,8 @@
 
 
 struct sieve {
-	int		state; /* 0: END */
-	int const		 uid;	 /* input */
+	int			 state; /* 0: END */
+	int			 uid;	 /* input */
 	const struct passwd	*pw;	 /* input */
 	const char		*username;  /* input */
 	int			command;

@@ -221,9 +221,6 @@ extern void warning __(());
 /* lib/skip821address.c */
 extern char *skip821address __((const char *s));
 
-/* lib/taspoolid.c */
-extern void taspoolid __((char *buf, int buflen, time_t mtime, const char *path));
-
 /* tasyslog.c */
 extern void tatimestr __((char *buf, int dt));
 extern void tasyslog __((struct rcpt *rp, int xdelay, const char *wtthost, const char *wttip, const char *stats, const char *msg));
