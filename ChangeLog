@@ -1,5 +1,10 @@
 2003-04-17  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/reroute/reroute.c, transports/reroute/Makefile.in,
+	  transports/reroute/manual-rerouter.in:
+	    Experimental version of reroute -- e.g. command some channel/host
+	    target queue back to the router.
+
 	* transports/libta/mimeheader.c:
 	    When outputting ORCPT value into "for clause", do
 	    decode the XTEXT encoded data into plain format.
