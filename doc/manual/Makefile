@@ -80,7 +80,7 @@ $(L2HGIFS):
 	cp -p /usr/lib/latex2html/icons.gif/* .
 	rm -f icons.html
 
-clean:
+distclean clean:
 	rm -f zmanual.*
 	rm -f *~ *.html *.ps *.eps *.gif *.bak *.dvi *.toc *.lof
 	rm -f *.css *.aux *.ptr *.old *.ilg *.gls *.cb *.glo *.log

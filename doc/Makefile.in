@@ -35,6 +35,8 @@ config.roff: FRC
 clean:
 	-rm -f config.roff *~
 	cd design ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean
+
 distclean: clean
 	cd design ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) distclean
+	cd manual ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) distclean
 	-rm -f Makefile

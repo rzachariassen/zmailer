@@ -195,7 +195,7 @@ dist:
 	@echo 'Did you run "make scrub" first?' ; sleep 2
 	chmod -R a+rX .
 	find . -type d -o -type f -print | \
-	  egrep -v -e '/(private[/$$]|config.cache|config.status|RCS[/$$]|ID$$|.*\.o$$|fc[/$$]|.*\.a$$)' | \
+	  egrep -v -e '/(private[/$$]|config.cache|config.status|CVS[/$$]|RCS[/$$]|ID$$|.*\.o$$|fc[/$$]|.*\.a$$)' | \
 	  CWD=`pwd` sed -e '/\.tar.*/d' -e "s/^\./`sh -c 'basename \`pwd\`'`/" | \
 	  sort -t/ > MANIFEST
 	cp MANIFEST /tmp
