@@ -4125,16 +4125,27 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	do {
 
-	  alarm(timeout);
-	  if (setjmp(alarmjmp) == 0) {
-	    gotalarm = 0;
+	  fd_set rdset;
+	  struct timeval tv;
+
+	  tv.tv_sec = timeout;
+	  tv.tv_usec = 0;
+
+	  _Z_FD_ZERO(rdset);
+	  _Z_FD_SET(infd,rdset);
+
+	  gotalarm = 0;
+	  r = select(infd+1, &rdset, NULL, NULL, &tv);
+	  if (r == 1) {
+	    int flg = fcntl(infd, F_GETFL, 0);
+	    fcntl(infd, F_SETFL, flg | O_NONBLOCK);
 	    r = read(infd, (char*)cp, sizeof(buf) - (cp - buf));
-	  } else
+	    fcntl(infd, F_SETFL, flg);
+	  } else {
+	    if (r == 0)
+	      gotalarm = 1;
 	    r = -1;
-
-	  alarm(0);
-	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
-
+	  }
 	  if (r > 0) {
 	    if (SS->verboselog)
 	      fwrite((char*)cp,r,1,SS->verboselog);
