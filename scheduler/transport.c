@@ -1302,11 +1302,12 @@ queryipccheck()
 	    n = accept(querysocket, (struct sockaddr *)&raddr, &raddrlen);
 	    if (n >= 0) {
 	      if (mailqmode == 1) {
+		int pid;
 
 		MIBMtaEntry->sc.MQ1sockConnects ++;
 		MIBMtaEntry->sc.MQ1sockParallel ++;
 
-		int pid = fork();
+		pid = fork();
 		if (pid == 0) {
 #if defined(F_SETFD)
 		  fcntl(n, F_SETFD, 1); /* close-on-exec */
