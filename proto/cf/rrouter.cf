@@ -143,14 +143,14 @@ rrouter (address, origaddr, A, plustail, domain) {
 	tfist
 
 #log "BITNET name=$bitnetname, address=$address"
-	case $bitnetname in
-	?*)	tsift "$address" in
-		(.*)<@(.*)\.(bitnet|netnorth|earn)>(.*)
-			address="\1<@\2>\4" ;;
-			# Strip off the (bitnet|netnorth|earn)
-		tfist
-		;;
-	esac
+#	case $bitnetname in
+#	?*)	tsift "$address" in
+#		(.*)<@(.*)\.(bitnet|netnorth|earn)>(.*)
+#			address="\1<@\2>\4" ;;
+#			# Strip off the (bitnet|netnorth|earn)
+#		tfist
+#		;;
+#	esac
 #log "BITNET name=$bitnetname, address=$address"
 
 	# resolve names to routes, get actual channel
