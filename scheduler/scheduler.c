@@ -766,19 +766,6 @@ main(argc, argv)
 	  /* NOTREACHED */
 	}
 
-	Z_SHM_MIB_Attach (1);
-
-	MIBMtaEntry->m.mtaSchedulerMasterPID  = getpid();
-
-	/* Zero the gauges at our startup.. */
-	MIBMtaEntry->m.mtaStoredMessagesSc		= 0;
-	MIBMtaEntry->m.mtaStoredRecipientsSc		= 0;
-	MIBMtaEntry->m.mtaStoredVolumeSc		= 0;
-	MIBMtaEntry->m.mtaStoredThreadsSc		= 0;
-	MIBMtaEntry->m.mtaTransportAgentsActiveSc	= 0;
-	MIBMtaEntry->m.mtaTransportAgentsIdleSc		= 0;
-
-
 
 	if (postoffice == NULL && (postoffice = getzenv("POSTOFFICE")) == NULL)
 	  postoffice = POSTOFFICE;
@@ -804,6 +791,24 @@ main(argc, argv)
 	  sfprintf(sfstdout, "%s: scheduler daemon (%s)\n\tpid %d started at %s\n",
 		   progname, Version, (int)getpid(), (char *)rfc822date(&now));
 	}
+
+
+	/* Now we are either interactive, or daemon, lets attach monitoring
+	   memory block.. and fill it in.  */
+
+	Z_SHM_MIB_Attach (1);
+
+	MIBMtaEntry->m.mtaSchedulerMasterPID  = getpid();
+
+	/* Zero the gauges at our startup.. */
+	MIBMtaEntry->m.mtaStoredMessagesSc		= 0;
+	MIBMtaEntry->m.mtaStoredRecipientsSc		= 0;
+	MIBMtaEntry->m.mtaStoredVolumeSc		= 0;
+	MIBMtaEntry->m.mtaStoredThreadsSc		= 0;
+	MIBMtaEntry->m.mtaTransportAgentsActiveSc	= 0;
+	MIBMtaEntry->m.mtaTransportAgentsIdleSc		= 0;
+
+
 	/* Actually we want this to act as daemon,
 	   even when not in daemon mode.. */
 	if (killprevious(SIGTERM, pidfile) != 0) {
