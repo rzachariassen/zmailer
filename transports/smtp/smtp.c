@@ -4076,7 +4076,7 @@ smtppipestowage(SS, strbuf, syncrp)
 	  }
 	}
 
-	SS->pipecmds  [SS->pipeindex] = strdup(strbuf);
+	SS->pipecmds  [SS->pipeindex] = strbuf ? strdup(strbuf) : NULL;
 	SS->pipercpts [SS->pipeindex] = syncrp; /* RCPT or NULL */
 	SS->pipestates[SS->pipeindex] = SS->cmdstate;
 	SS->pipeindex += 1;
