@@ -1120,8 +1120,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  
 	  openstatus = smtpopen(SS, host, noMX);
 	  if (openstatus != EX_OK && openstatus != EX_TEMPFAIL) {
-	    rp = startrp;
-	    for ( ; startrp != rp->next; startrp = startrp->next) {
+	    for ( rp = startrp; startrp != rp->next; startrp = startrp->next) {
 	      if (startrp->lockoffset) {
 		notaryreport(startrp->addr->user, FAILED, NULL, NULL);
 		diagnostic(SS->verboselog, startrp, openstatus, 60, "%s", SS->remotemsg);
@@ -1130,8 +1129,6 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    return openstatus;
 	  }
 	}
-
-
 
 
 	if (no_pipelining) pipelining = 0;
@@ -1596,12 +1593,15 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
 	    if (!SS->smtpfp)
 	      break;
-	  } else {
+
+	  } else { /* r == EX_OK */
+
 	    if (!pipelining)
 	      SS->rcptstates |= RCPTSTATE_OK;
 	    nrcpt       += 1;
 	    SS->rcptcnt += 1;
-	    /* Actually we DO NOT KNOW, we need to sync this latter on.. */
+	    /* Actually we DO NOT KNOW under PIPELINING,
+	       we will need to sync this latter on.. */
 	    rp->status = EX_OK;
 	  }
 
