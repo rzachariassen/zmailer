@@ -403,16 +403,16 @@ int insecure;
 	}
     if (*cp == '\0') {
 	smtp_tarpit(SS);
-	type(SS, 501, m517, "where is <...> in that?");
+	type(SS, 501, m517, "where is <...> in this: %s", cp);
 	return;
     } else if (*cp != '<' && !sloppy) {
 	smtp_tarpit(SS);
-	type(SS, 501, m517, "strangeness between : and <");
+	type(SS, 501, m517, "strangeness between ':' and '<': %s", cp);
 	return;
     }
     if (*(cp + 1) == '<') {
 	smtp_tarpit(SS);
-	type(SS, 501, m517, "there are too many <'s in that!");
+	type(SS, 501, m517, "there are too many <'s in this: %s", cp);
 	return;
     }
     /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
@@ -421,12 +421,13 @@ int insecure;
 	s = rfc821_path(cp, strict || strict_protocol);
 	if (s == cp) {
 	  /* Failure.. ? */
+	  type(SS, -501, m517, "For input: %s", cp);
 	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
 	  return;
 	}
 	if (*s == '>') {
 	  smtp_tarpit(SS);
-	  type(SS, 501, m517, "there are too many >'s in that!");
+	  type(SS, 501, m517, "there are too many >'s in this: %s", cp);
 	  return;
 	}
 	/* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
@@ -446,6 +447,7 @@ int insecure;
 	s = rfc821_path2(cp, 0);
 	if (s == cp && *s != '>') {
 	  /* Failure.. ? */
+	  type(SS, -501, m517, "For input: %s", cp);
 	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
 	  return;
 	}
@@ -463,6 +465,7 @@ int insecure;
 	while (*s == ' ' || *s == '\t') ++s;
 	if (*s != '>') {
 	  rfc821_error_ptr = s;
+	  type(SS, -501, m517, "For input: %s", cp);
 	  type821err(SS, 501, m517, buf, "Missing ending '>' bracket");
 	  return;
 	}
@@ -474,6 +477,7 @@ int insecure;
       s = rfc821_path2(cp, strict);
       if (s == cp) {
 	/* Failure.. */
+	type(SS, -501, m517, "For input: %s", cp);
 	type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
 	return;
       }
@@ -665,8 +669,10 @@ int insecure;
 	smtp_tarpit(SS);
 	if (SS->policyresult < -103) { /* -104 */
 	  if (!multilinereplies) {
+	    type(SS, -450, m443, "For input: %s", cp);
 	    type(SS,450,m443, "Policy analysis reports temporary DNS error with your source domain.");
 	  } else {
+	    type(SS, -450, m443, "For input: %s", cp);
 	    type(SS, -450, m443, "Policy analysis reports temporary DNS error");
 	    type(SS, -450, m443, "with your source domain.  Retrying may help,");
 	    type(SS, -450, m443, "or if the condition persists, you may need");
@@ -674,16 +680,20 @@ int insecure;
 	  }
 	} else if (SS->policyresult < -100) {
 	  if (!multilinereplies) {
+	    type(SS, -450, m443, "For input: %s", cp);
 	    type(SS,450,m443, "Policy analysis reports DNS error with your source domain.");
 	  } else {
+	    type(SS, -450, m443, "For input: %s", cp);
 	    type(SS, -450, m443, "Policy analysis reports DNS error with your");
 	    type(SS, -450, m443, "source domain.   Please correct your source");
 	    type(SS,  450, m443, "address and/or the info at the DNS.");
 	  }
 	} else {
 	  if (!multilinereplies) {
+	    type(SS, -450, m471, "For input: %s", cp);
 	    type(SS,450,m471, "Access denied by the policy analysis functions.");
 	  } else {
+	    type(SS, -450, m471, "For input: %s", cp);
 	    type(SS, -450, m471, "Access denied by the policy analysis functions.");
 	    type(SS, -450, m471, "This may be due to your source IP address,");
 	    type(SS, -450, m471, "the IP reversal domain, the data you gave for");
@@ -695,19 +705,24 @@ int insecure;
 	char *ss = policymsg(policydb, &SS->policystate);
 	smtp_tarpit(SS);
 	if (ss != NULL) {
+	  type(SS, -553, m571, "For input: %s", cp);
 	  type(SS, 553, m571, "Policy analysis reported: %s", ss);
 	} else if (SS->policyresult < -1) {
 	  if (!multilinereplies) {
+	    type(SS, -553, m543, "For input: %s", cp);
 	    type(SS,553,m543,"Policy analysis reports DNS error with your source domain.");
 	  } else {
+	    type(SS, -553, m543, "For input: %s", cp);
 	    type(SS, -553, m543, "Policy analysis reports DNS error with your");
 	    type(SS, -553, m543, "source domain.   Please correct your source");
 	    type(SS,  553, m543, "address and/or the info at the DNS.");
 	  }
 	} else {
 	  if (!multilinereplies) {
+	    type(SS, -553, m571, "For input: %s", cp);
 	    type(SS,553,m571,"Access denied by the policy analysis functions.");
 	  } else {
+	    type(SS, -553, m571, "For input: %s", cp);
 	    type(SS, -553, m571, "Access denied by the policy analysis functions.");
 	    type(SS, -553, m571, "This may be due to your source IP address,");
 	    type(SS, -553, m571, "the IP reversal domain, the data you gave for");
@@ -949,7 +964,7 @@ const char *buf, *cp;
 	 policydb != NULL && SS->policyresult < 0 ) {
       smtp_tarpit(SS);
       if (!multilinereplies)
-	type(SS, 553, m571, "Access denied by the policy analysis functions.");
+	type(SS, 553, m571, "Access denied by the policy analysis functions by earlier rejection");
       else {
 	type(SS, -553, m571, "Access denied by the policy analysis functions.");
 	type(SS, -553, m571, "This may be due to your source IP address,");
@@ -983,7 +998,7 @@ const char *buf, *cp;
 
     if (!CISTREQN(cp, "To:", 3)) {
 	smtp_tarpit(SS);
-	type(SS, 501, m552, "where is To: in that?");
+	type(SS, 501, m552, "where is To: in this: %s", cp);
 	return;
     }
     cp += 3;
@@ -992,27 +1007,27 @@ const char *buf, *cp;
 	if (!isspace(*cp)) {
 	  if (!sloppy) {
 	    smtp_tarpit(SS);
-	    type(SS, 501, m513, "where is <...> in that?");
+	    type(SS, 501, m513, "where is <...> in this: %s", cp);
 	    return;
 	  }
 	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
 	smtp_tarpit(SS);
-	type(SS, 501, m513, "where is <...> in that?");
+	type(SS, 501, m513, "where is <...> in this: %s", cp);
 	return;
     } else if (*cp != '<' && !sloppy) {
 	smtp_tarpit(SS);
-	type(SS, 501, m513, "strangeness between : and <");
+	type(SS, 501, m513, "strangeness between ':' and '<': %s", cp);
 	return;
     } else if (*(cp+1) == '>') {
 	smtp_tarpit(SS);
-	type(SS, 501, m513, "Null address valid only as source");
+	type(SS, 501, m513, "Null address valid only as source: %s", cp);
 	return;
     }
     if (*(cp + 1) == '<') {
 	smtp_tarpit(SS);
-	type(SS, 501, m513, "there are too many <'s in that!");
+	type(SS, 501, m513, "there are too many <'s in this: %s", cp);
 	return;
     }
     if (*cp == '<') {
@@ -1032,7 +1047,7 @@ const char *buf, *cp;
 	}
 	if (*s == '>') {
 	  smtp_tarpit(SS);
-	  type(SS, 501, m513, "there are too many >'s in that!");
+	  type(SS, 501, m513, "there are too many >'s in this: %s", cp);
 	  return;
 	}
 	/* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
@@ -1070,7 +1085,7 @@ const char *buf, *cp;
 	while (*s == ' ' || *s == '\t') ++s;
 	if (*s != '>') {
 	  rfc821_error_ptr = s;
-	  type821err(SS, 501, m517, buf, "Missing ending '>' bracket");
+	  type821err(SS, 501, m517, buf, "Missing ending '>' bracket: %s", cp);
 	  return;
 	}
 	++s;
@@ -1233,7 +1248,7 @@ const char *buf, *cp;
 	    type(SS, 450, m471, "Policy analysis reported: %s", ss);
 	  } else if (SS->policyresult < -103) { /* -104 */
 	    if (!multilinereplies)
-	      type(SS, 450, m443, "Policy analysis reports temporary DNS error with the target domain.");
+	      type(SS, 450, m443, "Policy analysis reports temporary DNS error with the target domain: %s", cp);
 	    else {
 	      type(SS, -450, m443, "Policy analysis reports temporary DNS error");
 	      type(SS, -450, m443, "with this target domain. Retrying may help,");
@@ -1245,7 +1260,7 @@ const char *buf, *cp;
 	  } else if (SS->policyresult < -102) {
 	    /* Code: -103 */
 	    if (!multilinereplies) {
-	      type(SS,450, m471, "This target address is not our MX service client.");
+	      type(SS,450, m471, "This target address is not our MX service client: %s", cp);
 	    } else {
 	      type(SS,-450, m471, "This target address is not our MX service");
 	      type(SS,-450, m471, "client, nor you are connecting from address");
@@ -1256,22 +1271,22 @@ const char *buf, *cp;
 	  } else if (SS->policyresult < -100) {
 	    /* Code: -102 */
 	    if (!multilinereplies)
-	      type(SS, 450, m443, "Policy analysis found DNS error on the target address");
+	      type(SS, 450, m443, "Policy analysis found DNS error on the target address: %s", cp);
 	    else {
 	      type(SS,-450, m443, "Policy analysis found DNS error on");
 	      type(SS,-450, m443, "the target address. This address is");
 	      type(SS, 450, m443, "not currently acceptable.");
 	    }
 	  } else {
-	    type(SS, 450, m443, "Policy rejection on the target address");
+	    type(SS, 450, m443, "Policy rejection on the target address: %s", cp);
 	  }
 	} else {
 	  if (ss != NULL) {
-	    type(SS, 553, m571, "Policy analysis reported: %s", ss);
+	    type(SS, 553, m571, "Policy analysis reported: %s rcpt=%s", ss, cp);
 	  } else if (SS->policyresult < -2) {
 	    /* Code: -3 */
 	    if (!multilinereplies)
-	      type(SS,553,m571, "This target address is not our MX service client.");
+	      type(SS,553,m571, "This target address is not our MX service client: %s", cp);
 	    else {
 	      type(SS,-553, m571, "This target address is not our MX service");
 	      type(SS,-553, m571, "client, nor you are connecting from address");
@@ -1283,14 +1298,14 @@ const char *buf, *cp;
 	  } else if (SS->policyresult < -1) {
 	    /* Code: -2 */
 	    if (!multilinereplies) {
-	      type(SS,553,m543, "Policy analysis found DNS error on the target domain.");
+	      type(SS,553,m543, "Policy analysis found DNS error on the target domain: %s", cp);
 	    } else {
 	      type(SS,-553, m543, "Policy analysis found DNS error on");
 	      type(SS,-553, m543, "the target address. This address is");
 	      type(SS, 553, m543, "not currently acceptable.");
 	    }
 	  } else {
-	    type(SS, 553, m571, "Policy rejection on the target address");
+	    type(SS, 553, m571, "Policy rejection on the target address: %s", cp);
 	  }
 	}
 	if (newcp)
