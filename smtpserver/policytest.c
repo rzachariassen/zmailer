@@ -1802,6 +1802,10 @@ static int pt_mailfrom(state, str, len)
       if (sscanf(state->ratelimitmsgsvalue, "%d", &limitval) == 1) {
 	/* Valid numeric value had.. */
 
+	if (state->authuser)
+	  limitval *= 10; /* raise the limit considerably for
+			     authenticated user. */
+
 	int rc = call_rate_counter(state, 0, POLICY_MAILFROM,
 				   &count);
 
