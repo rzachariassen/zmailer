@@ -22,6 +22,11 @@
 		(To be precise, "sift" is recognized, but reported with
 		 an error message...)
 
+		The router script language no longer has setf() either!
+		This requires a bit changes into the scripts, most of
+		which are simply changeing complex expressions with
+		setf() into simpler ones with lappend(), or lreplace()
+
 		The "mailbox" will not anymore do BLIND canonicalization
 		of destination username for internal uses; this is for
 		systems where getpwnam() can return data which has different

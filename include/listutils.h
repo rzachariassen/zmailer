@@ -25,7 +25,8 @@ typedef struct _conscell {
 		char		 *u_string;
 		const char	 *cu_string;
 	} u;
-#if 0
+#if 1 /* use this branch when you don't have setf(),
+	 and friends in use anymore... */
 	int		flags;
 #else
 #define CONSCELL_PREV
