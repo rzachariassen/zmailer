@@ -419,25 +419,34 @@ ta_hungry(proc)
 
 	  thr0 = proc->pthread;
 
-	  if (proc->pthread) {
-	    if (proc->pthread->proc == proc)
-	      proc->pthread->proc = proc->pnext;
+	  /* Disconnect the previous thread from the proc. */
 
-	    proc->pthread->thrkids -= 1;
-
-	    /* Possibly also reschedule the thread (if last thrkid!) */
-	    thread_reschedule(proc->pthread,0,-1);
-	  }
 	  proc->pthread = NULL;
 
-	  /* Disconnect the previous thread from the proc. */
+	  if (thr0 && thr0->proc == proc) /* Thread Process Chain Leader */
+	      thr0->proc = proc->pnext;
+
+	  /* Disconnect from process chain */
 	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
 	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
 	  proc->pnext = proc->pprev = NULL;
 
+	  if (thr0) {
+	    thr0->thrkids -= 1;
+
+	    /* Possibly also reschedule the thread (if last thrkid!) */
+	    if (!thread_reschedule(thr0, 0, -1)) {
+	      /* THR0 is now destroyed! */
+	      thr0 = NULL;
+	    }
+	  }
+
 	  /* Next: either the thread changes, or
 	     the process moves into IDLE state */
 
+	  proc->pthread = thr0; /* old thread for picker control info; will
+				   be NULLed at exit, if no successfull job
+				   pickup. */
 	  if (pick_next_thread(proc)) {
 	    struct thread *thr = proc->pthread;
 	    /* We have WORK !  We are reconnected to the new thread! */
@@ -931,11 +940,11 @@ if (verbose)
 	  if (proc->pthread->proc == proc)
 	    proc->pthread->proc = proc->pnext;
 
-	  /* Conditionally reschedule the thread */
-	  thread_reschedule(proc->pthread,0,-1);
-
 	  /* Disjoin the thread from the proc */
 	  proc->pthread->thrkids -= 1;
+
+	  /* Conditionally reschedule the thread */
+	  thread_reschedule(proc->pthread,0,-1);
 
 	  proc->pthread = NULL;
 

@@ -132,7 +132,7 @@ extern void  thread_detail_report __((Sfio_t *, int, char *, char *));
 extern int   idleprocs;
 extern void  web_detangle __((struct vertex *vp, int ok));
 extern void  reschedule __((struct vertex *vp, int factor, int index));
-extern void  thread_reschedule __((struct thread *, time_t, int index));
+extern int   thread_reschedule __((struct thread *, time_t, int index));
 
 /* transport.c */
 extern struct procinfo *cpids;

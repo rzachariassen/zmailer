@@ -289,6 +289,7 @@ struct config_entry *cep;
 
 /*
  * Pick next thread from the group which this process serves.
+ * At call the proc->pthread->proc does not contain us!
  *
  * Result is  proc->pthread and proc->pthread->nextfeed being updated to
  * new thread, and function returns 1.
@@ -304,11 +305,6 @@ pick_next_thread(proc)
 	struct thread       *thr0 = proc->pthread;
 	struct threadgroup  *thg  = proc->thg;
 	int once;
-
-	if (thr0 && thr0->proc) /* Anybody ? */
-	  thr0->proc = NULL; /* Remove it */
-	if (thr0 && thr0->nextfeed) /* This should be assertable as NULL.. */
-	  thr0->nextfeed = NULL;
 
 	proc->pthread = NULL;
 
@@ -1097,9 +1093,10 @@ pick_next_vertex(proc)
 /*
  * The  thread_reschedule()  updates threads time-chain to match the
  * new value of wakeup for the  doagenda()  to latter use.
+ * Return 0 for destroyed THREAD, 1 for existing thread.
  */
 
-void
+int
 thread_reschedule(thr, retrytime, index)
 struct thread *thr;
 int index;
@@ -1114,7 +1111,7 @@ time_t retrytime;
 		   thr->channel,thr->host,thr->jobs,thr,thr->proc);
 
 	/* If there are multiple kids working still, DON'T reschedule! */
-	if (thr->thrkids > 0 || !vtx) return;
+	if (thr->thrkids > 0 || !vtx) return 1;
 
 	/* find out when to retry */
 	mytime(&now);
@@ -1219,6 +1216,8 @@ time_t retrytime;
 	  _thread_timechain_unlink(thr);
 	  _thread_timechain_append(thr);
 	}
+
+	return (thr != NULL);
 }
 
 

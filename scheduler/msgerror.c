@@ -560,8 +560,6 @@ reporterrs(cfpi, delayreports)
 	      ++action;
 	      cp2 = strchr(action,'\001');
 
-	      sfprintf(sfstderr,"action='%.9s'\n", action);
-
 	      if (memcmp       (action,"delayed",  7)==0) {
 		thisaction = ACTSET_DELAYED;
 	      } else if (memcmp(action,"delivered",9)==0) {
