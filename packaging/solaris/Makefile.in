@@ -1,0 +1,25 @@
+#
+# Helpfull automation for installable package version of ZMailer at Solaris
+#
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+ZCONFIG = @ZMAILERCFGFILE@
+ZCONF   = ./zmailer.Config
+#ZDEPEND = Dependencies
+CPPDEP  =  @CPPDEP@
+MKDIR   =  @MKDIR@
+INSTALL	=  @INSTALL@
+TOPDIR  =  ../..
+
+SHELL = /bin/sh
+
+
+all:
+
+clean:
+
+distclean:
+	rm -f Makefile
