@@ -584,7 +584,7 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 The
 .I contentfilter
 program is started without parameters running userid of
-.IR daemon 
+.I daemon 
 in directory $POSTOFFICE.
 .PP
 The program must silently wait for input, which is full path to
@@ -614,7 +614,10 @@ produce also the numeric SMTP reply codes in its response text:
 .fi
 .PP
 If the message has no text, some defaults are supplied.
-If the message text starts 
+If the message text starts with numbers, it is presumed
+that it contains both the SMTP reply code, and ENHANCEDSTATUSCODE
+before the text.  (If no ENHANCEDSTATUSCODE part is present,
+then some possibly senseless default is supplied.)
 .PP
 Interface message text lines beginning with anything except signed integer
 are logged, and the communication channel from the smtpserver to the
@@ -639,6 +642,8 @@ account  required  /lib/security/pam_pwdb.so
 .I /var/spool/postoffice/.pid.smtpserver (POSTOFFICE/.pid.smtpserver)
 .br
 .I /local/share/mail/smtpserver.conf (MAILSHARE/smtpserver.conf)
+.br
+.I /etc/pam.d/smtpauth-login (if PAM mechanism is present and plain-password authentication is wanted)
 .SH SEE ALSO
 router(8)
 .PP

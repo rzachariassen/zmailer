@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.16
-%%CreationDate: Fri Oct 13 21:17:25 2000
+%%CreationDate: Tue Oct 17 14:11:14 2000
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
@@ -710,9 +710,9 @@ S(he policy database:)-6 E 6(#\()144 252 S
 (ttp://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html)-6
 E(#)144 444 Q 6(#PARAM use-tls)144 456 R(##PARAM listen-ssmtp)144 468 Q
 6(#Ad)24 G(eprecated TCP/465 port listener for SSL/SMTP)-6 E 6
-(#PARAM tls-CAfile)144 480 R(/opt/mail/db/smtpserver-CAcert.pem)36 E 6
-(#PARAM tls-cert-file)144 492 R(/opt/mail/db/smtpserver-cert.pem)18 E 6
-(#PARAM tls-key-file)144 504 R(/opt/mail/db/smtpserver-key.pem)24 E 12
+(#PARAM tls-CAfile)144 480 R($MAILVAR/db/smtpserver-CAcert.pem)36 E 6
+(#PARAM tls-cert-file)144 492 R($MAILVAR/db/smtpserver-cert.pem)18 E 6
+(#PARAM tls-key-file)144 504 R($MAILVAR/db/smtpserver-key.pem)24 E 12
 (##)144 516 S(Then some futher thoughs that may materialize some time..)
 -6 E(#PARAM tls-loglevel)144 528 Q(0)30 E(#PARAM tls-ccert-vd)144 540 Q
 (0)30 E(#PARAM tls-ask-cert)144 552 Q(0)30 E(#PARAM tls-require-cert 0)
@@ -777,18 +777,23 @@ S(99 veR)-114 E/F2 10.95/Times-Bold@0 SF(CONTENTFIL)72 400.8 Q
 -.15 E F1(-1)114 571.2 Q
 (-1 250 2.7.1 Glad to see some spam, immediately destroyed :\))114 583.2
 Q(0)120 595.2 Q 6(02)120 607.2 S(50 2.6.0 Message OK!)-6 E(1)120 619.2 Q
-6(15)120 631.2 S(50 5.7.1 That is spam, rejected!)-6 E F0
-(If the message has no te)108 648 Q(xt, some def)-.15 E
-(aults are supplied.)-.1 E(If the message te)5 E(xt starts)-.15 E
-(Interf)108 664.8 Q .23(ace message te)-.1 F .23(xt lines be)-.15 F .229
-(ginning with an)-.15 F .229(ything e)-.15 F .229(xcept signed inte)-.15
-F .229(ger are logged, and the communica-)-.15 F .617
-(tion channel from the smtpserv)108 676.8 R .617
+6(15)120 631.2 S(50 5.7.1 That is spam, rejected!)-6 E F0 .817
+(If the message has no te)108 648 R .817(xt, some def)-.15 F .817
+(aults are supplied.)-.1 F .817(If the message te)5.817 F .817
+(xt starts with numbers, it is pre-)-.15 F .43
+(sumed that it contains both the SMTP reply code, and ENHANCEDST)108 660
+R -1.11(AT)-.93 G .431(USCODE before the te)1.11 F 2.931(xt. \(If)-.15 F
+(no)2.931 E(ENHANCEDST)108 672 Q -1.11(AT)-.93 G
+(USCODE part is present, then some possibly senseless def)1.11 E
+(ault is supplied.\))-.1 E(Interf)108 688.8 Q .23(ace message te)-.1 F
+.23(xt lines be)-.15 F .229(ginning with an)-.15 F .229(ything e)-.15 F
+.229(xcept signed inte)-.15 F .229(ger are logged, and the communica-)
+-.15 F .617(tion channel from the smtpserv)108 700.8 R .617
 (er to the content\214lter program is closed.)-.15 F(Interf)5.618 E .618
 (ace continues to scan things)-.1 F .341(reported by the content\214lte\
-r program, and if no properly formatted line appears, def)108 688.8 R
+r program, and if no properly formatted line appears, def)108 712.8 R
 .34(ault is to send the mes-)-.1 F(sage into the freezer \("-1"\);)108
-700.8 Q(13 Oct 2000)281.28 768 Q(9)204.28 E EP
+724.8 Q(13 Oct 2000)281.28 768 Q(9)204.28 E EP
 %%Page: 10 10
 %%BeginPageSetup
 BP
@@ -807,30 +812,32 @@ SF(------- /etc/pam.d/smtpauth-login -----------)108 124.8 Q(#%PAM-1.0)
 (/var/spool/postof)108 213.6 Q(\214ce/.pid.smtpserver \(POST)-.18 E
 (OFFICE/.pid.smtpserver\))-.18 E(/local/shar)108 225.6 Q
 (e/mail/smtpserver)-.37 E(.conf \(MAILSHARE/smtpserver)-1.11 E(.conf\))
--1.11 E F1(SEE ALSO)72 242.4 Q F0(router\(8\))108 254.4 Q(RFC 821)108
-271.2 Q(The basic SMTP speci\214cation)146.1 E(RFC 1123)108 283.2 Q
--1.11(Va)141.1 G(rious 821 parameter clari\214cations)1.11 E(Se)108
-307.2 Q -.15(ve)-.25 G(ral e).15 E(xtended SMTP f)-.15 E
-(acilities are implemented:)-.1 E(RFC 1341/1521/2045)108 331.2 Q
-(MIME speci\214cation \(body)95.54 E 2.5(,f)-.65 G(ormats\))-2.5 E
-(RFC 1342/1522/2047)108 343.2 Q(MIME speci\214cation \(headers\))95.54 E
-(RFC 1425/1651/1869)108 355.2 Q(ESMTP EHLO frame)95.54 E -.1(wo)-.25 G
-(rk).1 E(RFC 1426/1652)108 367.2 Q(ESMTP 8BITMIME)118.32 E
-(RFC 1427/1653/1870)108 379.2 Q(ESMTP SIZE)95.54 E(RFC 1428)108 391.2 Q
-(Basic MIME con)141.1 E -.15(ve)-.4 G(rsion rules).15 E(RFC 1830)108
-403.2 Q(ESMTP CHUNKING)141.1 E(RFC 1854/2197)108 415.2 Q
-(ESMTP PIPELINING)118.32 E(RFC 1891)108 427.2 Q(ESMTP DSN)141.1 E
-(RFC 1985)108 439.2 Q(ESMTP ETRN)141.1 E(RFC 2033)108 451.2 Q(LMTP mode)
-141.1 E(RFC 2034)108 463.2 Q(ESMTP ENHANCEDST)141.1 E -1.11(AT)-.93 G
-(USCODES)1.11 E(RFC 2487)108 475.2 Q(ESMTP ST)141.1 E(AR)-.93 E(TTLS)-.6
-E(RFC 2554+M$ Exchange)108 487.2 Q(ESMTP A)79.64 E(UTH LOGIN)-.55 E
-(RFC 2554+NetScape)108 499.2 Q(ESMTP A)97.14 E(UTH=LOGIN)-.55 E
-(RFC 2852)108 511.2 Q(ESMTP DELIVERBY)141.1 E F1 -.548(AU)72 528 S(THOR)
-.548 E F0(This program authored and cop)108 540 Q(yright by:)-.1 E
-(Rayan Zachariassen \(w)108 552 Q(as at U of T)-.1 E(oronto\))-.8 E
-(Extended SMTP)108 564 Q 2.5(,p)-1.11 G(olic)-2.5 E 2.5(yf)-.15 G
-(acilities, etc. by)-2.6 E(Matti Aarnio)108 576 Q(<mea@nic.funet.\214>)5
-E(13 Oct 2000)281.28 768 Q(10)199.28 E EP
+-1.11 E(/etc/pam.d/smtpauth-lo)108 237.6 Q(gin \(if P)-.1 E(AM mec)-.9 E
+(hanism is pr)-.15 E(esent and plain-passwor)-.37 E 2.5(da)-.37 G
+(uthentication is wanted\))-2.5 E F1(SEE ALSO)72 254.4 Q F0(router\(8\))
+108 266.4 Q(RFC 821)108 283.2 Q(The basic SMTP speci\214cation)146.1 E
+(RFC 1123)108 295.2 Q -1.11(Va)141.1 G
+(rious 821 parameter clari\214cations)1.11 E(Se)108 319.2 Q -.15(ve)-.25
+G(ral e).15 E(xtended SMTP f)-.15 E(acilities are implemented:)-.1 E
+(RFC 1341/1521/2045)108 343.2 Q(MIME speci\214cation \(body)95.54 E 2.5
+(,f)-.65 G(ormats\))-2.5 E(RFC 1342/1522/2047)108 355.2 Q
+(MIME speci\214cation \(headers\))95.54 E(RFC 1425/1651/1869)108 367.2 Q
+(ESMTP EHLO frame)95.54 E -.1(wo)-.25 G(rk).1 E(RFC 1426/1652)108 379.2
+Q(ESMTP 8BITMIME)118.32 E(RFC 1427/1653/1870)108 391.2 Q(ESMTP SIZE)
+95.54 E(RFC 1428)108 403.2 Q(Basic MIME con)141.1 E -.15(ve)-.4 G
+(rsion rules).15 E(RFC 1830)108 415.2 Q(ESMTP CHUNKING)141.1 E
+(RFC 1854/2197)108 427.2 Q(ESMTP PIPELINING)118.32 E(RFC 1891)108 439.2
+Q(ESMTP DSN)141.1 E(RFC 1985)108 451.2 Q(ESMTP ETRN)141.1 E(RFC 2033)108
+463.2 Q(LMTP mode)141.1 E(RFC 2034)108 475.2 Q(ESMTP ENHANCEDST)141.1 E
+-1.11(AT)-.93 G(USCODES)1.11 E(RFC 2487)108 487.2 Q(ESMTP ST)141.1 E(AR)
+-.93 E(TTLS)-.6 E(RFC 2554+M$ Exchange)108 499.2 Q(ESMTP A)79.64 E
+(UTH LOGIN)-.55 E(RFC 2554+NetScape)108 511.2 Q(ESMTP A)97.14 E
+(UTH=LOGIN)-.55 E(RFC 2852)108 523.2 Q(ESMTP DELIVERBY)141.1 E F1 -.548
+(AU)72 540 S(THOR).548 E F0(This program authored and cop)108 552 Q
+(yright by:)-.1 E(Rayan Zachariassen \(w)108 564 Q(as at U of T)-.1 E
+(oronto\))-.8 E(Extended SMTP)108 576 Q 2.5(,p)-1.11 G(olic)-2.5 E 2.5
+(yf)-.15 G(acilities, etc. by)-2.6 E(Matti Aarnio)108 588 Q
+(<mea@nic.funet.\214>)5 E(13 Oct 2000)281.28 768 Q(10)199.28 E EP
 %%Trailer
 end
 %%EOF
