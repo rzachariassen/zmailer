@@ -4,7 +4,7 @@
  */
 /*
  *	A lot of changes all around over the years by Matti Aarnio
- *	<mea@nic.funet.fi> (and elsewere), copyright 1992-1999
+ *	<mea@nic.funet.fi> (and elsewere), copyright 1992-2000
  */
 
 #include "mailer.h"
@@ -12,7 +12,7 @@
 #include "libsh.h"
 
 static const char *Copyright = "Copyright 1992 Rayan S. Zachariassen\n\
-Copyright 1992-1999 Matti Aarnio";
+Copyright 1992-2000 Matti Aarnio";
 
 void
 prversion(prgname)

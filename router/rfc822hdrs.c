@@ -379,15 +379,12 @@ mkDate(isresent, unixtime)
 {
 	register struct header	*h;
 	char *cp, *s;
-	static struct headerinfo *dateDesc;
-	
+
 	/* There is really only one kind of dateDesc.. */
-	if (dateDesc == NULL) {
-		dateDesc = find_header(spt_headers,
-				       isresent ? "resent-date" : "date");
-		if (dateDesc == NULL)
-			return NULL;
-	}
+	static struct headerinfo dateDesc[] = {
+	  { "date",  DateTime,	nilUserType,  normal	}
+	};
+	
 	h = (struct header *)tmalloc(sizeof (struct header));
 	h->h_pname = isresent ? "Resent-Date" : "Date";
 	h->h_descriptor = dateDesc;

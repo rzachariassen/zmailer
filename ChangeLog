@@ -21,10 +21,11 @@
 	    Reworked the timeout parametrizations somewhat
 	    (per what a colleque of mine had asked for)
 
-	* router/libdb/header.c:
+	* router/libdb/header.c, router/rfc822hdrs.c:
 	    Remove the "Date" headers from specially recognized set.
 	    Will end PARSING of the headers completely - it is an UA
 	    problem, after all.
+	    --> WHOOPS! Must fix also  router/rfc822hdrs.c !
 
 	* scheduler/scheduler.c:
 	    Properly analyze how many FDs each bidirectional TA
