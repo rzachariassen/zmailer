@@ -46,6 +46,21 @@
 
 static PerlInterpreter *my_perl; /* = NULL */
 
+static void xs_init (pTHX);
+
+EXTERN_C void boot_DynaLoader (pTHX_ CV* cv);
+
+EXTERN_C void
+xs_init(pTHX)
+{
+	char *file = __FILE__;
+	dXSUB_SYS;
+
+	/* DynaLoader is a special case */
+	newXS("DynaLoader::boot_DynaLoader", boot_DynaLoader, file);
+}
+
+
 int ZSMTP_hook_init(argc, argv, env, filename)
      const int argc;
      const char **argv;
@@ -53,7 +68,7 @@ int ZSMTP_hook_init(argc, argv, env, filename)
      const char *filename;
 {
 	int exitstatus = 0;
-	char *embedding[2];
+	char * embedding[2];
 	STRLEN n_a;
 
 	PERL_SYS_INIT3(&argc, &argv, &env);
@@ -67,9 +82,12 @@ int ZSMTP_hook_init(argc, argv, env, filename)
 	embedding[0] = "";
 	embedding[1] = filename;
 
-	exitstatus = perl_parse( my_perl, NULL, 2, embedding, NULL);
+	exitstatus = perl_parse( my_perl, xs_init, 2, embedding, NULL);
 	PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
 
+
+
+	return 0;
 }
 
 

@@ -219,7 +219,7 @@ const char *buf, *cp;
     if (checkhelo && skeptical && partridge(SS, cp)) {
 	smtp_tarpit(SS);
 	type821err(SS, -501, "", buf, "Invalid `%.200s' parameter!", buf);
-	type(SS, 501, "", "Sorry %s, Err: %s", SS->rhostaddr, rfc821_error);
+	type(SS, 501, m571, "Sorry %s, Err: %s", SS->rhostaddr, rfc821_error);
 	strcpy(SS->helobuf, "Bad.Helo.Input");
 	return;
     }
@@ -228,16 +228,16 @@ const char *buf, *cp;
     if (!checkhelo && partridge(SS, cp)) {
 	if (SS->carp->cmd != Hello) {
 	    type821err(SS, -250, "", buf, "Invalid `%.200s' parameter!", buf);
-	    type(SS, -250, NULL, "Sorry %s, Err: %s", SS->rhostaddr, rfc821_error);
+	    type(SS, -250, m571, "Sorry %s, Err: %s", SS->rhostaddr, rfc821_error);
 	}
     }
     SS->cfinfo = findcf(cp);
     if (SS->cfinfo != NULL && *(SS->cfinfo->flags) == '!') {
 	smtp_tarpit(SS);
 	if (SS->cfinfo->flags[1] != '\0')
-	    type(SS, 501, NULL, "Sorry %s, %s", SS->rhostaddr, (SS->cfinfo->flags) + 1);
+	    type(SS, 501, m571, "Sorry %s, %s", SS->rhostaddr, (SS->cfinfo->flags) + 1);
 	else
-	    type(SS, 501, NULL, "Sorry %s, access denied.", SS->rhostaddr);
+	    type(SS, 501, m571, "Sorry %s, access denied.", SS->rhostaddr);
 	return;
     }
 
@@ -855,7 +855,7 @@ int insecure;
 
 	    if (('0' <= msg[0] && msg[0] <= '9') && msg[1] == '.') {
 	      esc = msg;
-	      while (('0' <= msg[0] && msg[0] <= '9') || msg[1] == '.')
+	      while (('0' <= msg[0] && msg[0] <= '9') || msg[0] == '.')
 		++msg;
 	      if (*msg == ' ') *msg++ = 0;
 	    }
@@ -1481,7 +1481,7 @@ const char *buf, *cp;
 
 	    if (('0' <= msg[0] && msg[0] <= '9') && msg[1] == '.') {
 	      esc = msg;
-	      while (('0' <= msg[0] && msg[0] <= '9') || msg[1] == '.')
+	      while (('0' <= msg[0] && msg[0] <= '9') || msg[0] == '.')
 		++msg;
 	      if (*msg == ' ') *msg++ = 0;
 	    }

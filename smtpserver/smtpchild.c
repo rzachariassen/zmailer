@@ -162,6 +162,13 @@ void childregister(cpid, addr, socktag)
 	}
 }
 
+/* Started children call this to disable this tracking code */
+void disable_childreap()
+{
+	childs = NULL;
+	child_top = 0;
+}
+
 void childreap(cpid)
 int cpid;
 {

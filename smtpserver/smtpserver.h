@@ -602,6 +602,7 @@ extern char *optarg;
 extern int  childsameip __((Usockaddr *addr, int *childcntp));
 extern void childregister __((int cpid, Usockaddr *addr, int tag));
 extern void childreap   __((int cpid));
+extern void disable_childreap __((void));
 
 extern void smtp_helo   __((SmtpState * SS, const char *buf, const char *cp));
 extern int  smtp_mail   __((SmtpState * SS, const char *buf, const char *cp, int insecure));
@@ -653,7 +654,11 @@ extern int  fd_blockingmode __((int fd));
 extern void fd_restoremode __((int fd, int mode));
 
 /* subdaemons.c */
-extern int subdaemons_init __((void));
+extern int subdaemons_init               __((void));
+extern int subdaemons_init_router        __((void));
+extern int subdaemons_init_ratetracker   __((void));
+extern int subdaemons_init_contentfilter __((void));
+
 struct fdgets_fdbuf {
 	int rdsize;
 	char rdbuf[100];

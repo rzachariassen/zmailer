@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-May-07"
+.TH SMTPSERVER 8zm "2004-Jul-10"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -89,7 +89,7 @@ multiplexer.
 (If "\fCPARAM enable-router\fR" is activated.)
 .IP \(bu 3em
 Message content-analyzer multiplexer.
-(If "\fCPARAM contentfilter\fR" is defined.)
+(If "\fCPARAM contentfilter\fR" is defined, and is not pointing to named socket)
 .IP \(bu 3em
 Rate-tracker server.
 (Always active.)
@@ -100,22 +100,20 @@ This server supports following variations of \fCSMTP\fR protocol:
 .IP \(bu 3em
 "SMTP" at TCP port 25
 .IP \(bu 3em
-.RS 3em
 "SUBMIT" at TCP port 587.
 Serves message submission protocol, which is SMTP with
 mandatory user authentication. (See RFC 2476)
-.PP
+
 Actually this mode has exactly same IP-ACL datasets, as
 the main mode, and isn't really at all different from
 the primary SMTP service, just running at different port.
-.RE
 .IP \(bu 3em
 "SMTPS" at TCP port 465.
 This is deprecated in favour of using "STARTTLS" command
 in normal SMTP.
 .IP \(bu 3em
 "LMTP" at TCP port 2525 (or whatever).
-This is merely a debug mode, not true LMTP server!
+This is merely a debug tool, not a true LMTP server!
 .RE
 .PP
 .SH OPTIONS
@@ -132,6 +130,14 @@ not support it.
 For a default the server will try to use IPv6, if it has been compiled on
 an environment where it is present, but will do a fallback to IPv4 in case
 the runtime system does not have IPv6.
+.PP
+Also by default the system will try to create IPv6 socket at first, and
+then IPv4 socket.
+.PP
+Some operating systems allow same TCP port to be bound at different
+protocol sockets, some don't.
+For systems that don't allow, the IPv6 socket will handle also v4-mapped
+addresses.
 .RE
 .IP -a
 .RS
@@ -623,6 +629,11 @@ For more info, see: \fBFIXME:FIXME:FIXME\fR
 .IP "PARAM contentfilter $MAILBIN/smtp-contentfilter"
 .RS
 An external program for received message content analysis.
+.PP
+Alternate possibility is to have this to point to a named socket,
+behind which e.g.
+.I zmscanner
+(by Eugene Crosser) is accepting connections.
 .PP
 The interface is desribed below at
 .I "CONTENTFILTER INTERFACE"

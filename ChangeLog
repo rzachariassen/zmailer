@@ -1,3 +1,25 @@
+2004-07-10  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.h, smtpserver/smtpchild.c,
+	  smtpserver/smtpserver.c, smtpserver/subdaemons.c:
+	    Child reaper/reap-tracker changes to manage
+	    detecting death of subdaemons, and to report it,
+	    and even restart them.
+
+	* smtpserver/smtpserver.c:
+	    logfile tagging logic changes to tag more stuff
+	    from master.
+
+	* smtpserver/smtpcmds.c:
+	    Reply message ENHANCEDSTATUSCODES massage.
+
+	* smtpserver/smtphook.c:
+	    A bit more of hook stuff..
+
+	* man/smtpserver.8.in:
+	    Add couple words about socket-type content-filter
+	    interface.
+
 2004-07-09  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/subdaemons.c, smtpserver/subdaemon-ctf.c:

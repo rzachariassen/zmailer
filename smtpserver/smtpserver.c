@@ -123,6 +123,7 @@ int gotalarm;
 int unknown_cmd_limit = 10;
 int sum_sizeoption_value = 0;
 int always_flush_replies = 0;
+int sawsigchld = 0;
 
 char   logtag[32];
 time_t logtagepoch, now;
@@ -296,7 +297,8 @@ static void setrhostname __((SmtpState *));
 extern int pipeauthchild_pid; /* zpwmatch-pipe.c */
 extern int pipeauthchild_status;
 
-static RETSIGTYPE reaper __((int sig));
+static RETSIGTYPE reaper   __((int sig));
+static RETSIGTYPE sigchld  __((int sig));
 static RETSIGTYPE timedout __((int sig));
 static RETSIGTYPE sigterminator __((int sig));
 static void smtpserver __((SmtpState *, int insecure));
@@ -325,14 +327,19 @@ int insecure;
 
     /* %M%D%h%m%s_pid_ */
 
-    sprintf( logtag, "%c%c%c%c%c%c%c",
-	     taspid_encodechars[ tt->tm_mday-1 ],
-	     taspid_encodechars[ tt->tm_hour   ],
-	     taspid_encodechars[ tt->tm_min    ],
-	     taspid_encodechars[ tt->tm_sec    ],
-	     taspid_encodechars[ (pid >> 12) & 63 ],
-	     taspid_encodechars[ (pid >>  6) & 63 ],
-	     taspid_encodechars[ (pid      ) & 63 ] );
+    if (SS) {
+      sprintf( logtag, "%c%c%c%c%c%c%c",
+	       taspid_encodechars[ tt->tm_mday-1 ],
+	       taspid_encodechars[ tt->tm_hour   ],
+	       taspid_encodechars[ tt->tm_min    ],
+	       taspid_encodechars[ tt->tm_sec    ],
+	       taspid_encodechars[ (pid >> 12) & 63 ],
+	       taspid_encodechars[ (pid >>  6) & 63 ],
+	       taspid_encodechars[ (pid      ) & 63 ] );
+    } else {
+      strcpy(logtag, "0000000");
+      logtagepoch = 0;
+    }
 
     if (logfp != NULL)
 	fclose(logfp);
@@ -343,10 +350,12 @@ int insecure;
 	int len1 = strlen(logfile);
 	int len2, fd;
 	const char *s = "";
-	if (logstyle == 1)
+	if (SS) {
+	  if (logstyle == 1)
 	    s = SS->myhostname;
-	if (logstyle == 2)
+	  if (logstyle == 2)
 	    s = SS->rhostname;
+	}
 	len2 = strlen(s);
 #ifdef HAVE_ALLOCA
 	fname = (char*)alloca(len1 + 1 + len2 + 1);
@@ -841,7 +850,7 @@ char **argv;
 	}
 	pid = getpid();
 	if (!logfp)
-	  openlogfp(&SS, daemon_flg);
+	  openlogfp(NULL, daemon_flg);
 	
 
 	/* The automatic "system can do ipv6" testing controls
@@ -1011,7 +1020,7 @@ char **argv;
 
 	  pid = getpid();
 	  settrusteduser();	/* dig out the trusted user ID */
-	  openlogfp(&SS, daemon_flg);
+	  openlogfp(NULL, daemon_flg);
 
 	  type(NULL,0,NULL,"connection from %s:%d pid %d ident: %s",
 	       SS.rhostname, SS.rport, pid, SS.ident_username);
@@ -1019,7 +1028,7 @@ char **argv;
 #if 0
 	  SIGNAL_HANDLE(SIGCHLD, SIG_DFL);
 #else
-	  SIGNAL_HANDLE(SIGCHLD, reaper);
+	  SIGNAL_HANDLE(SIGCHLD, sigchld);
 #endif
 	  SIGNAL_HANDLE(SIGALRM, timedout);
 	  SIGNAL_HANDLE(SIGHUP, SIG_IGN);
@@ -1259,7 +1268,7 @@ char **argv;
 
 #if 1
 	  pid = getpid();
-	  openlogfp(&SS, daemon_flg);
+	  openlogfp(NULL, daemon_flg);
 	  if (logfp != NULL) {
 	    char *cp;
 	    char *tt;
@@ -1267,8 +1276,7 @@ char **argv;
 	    time(&now);
 	    cp = rfc822date(&now);
 	    tt = strchr(cp, '\n'); if (tt) *tt = 0;
-	    zsyslog((LOG_INFO, "server started."));
-	    fprintf(logfp, "00000000000#\tstarted server pid %d at %s\n", pid, cp);
+	    type(NULL,0,NULL,"started server pid %d at %s", pid, cp);
 	    /*fprintf(logfp,"00000000000#\tfileno(logfp) = %d",fileno(logfp)); */
 	    fclose(logfp);
 	    logfp = NULL;
@@ -1278,16 +1286,22 @@ char **argv;
 #if 0
 	  SIGNAL_HANDLE(SIGCHLD, SIG_DFL);
 #else
-	  SIGNAL_HANDLE(SIGCHLD, reaper);
+	  SIGNAL_HANDLE(SIGCHLD, sigchld);
 #endif
 	  SIGNAL_HANDLE(SIGALRM, timedout);
 	  SIGNAL_HANDLE(SIGHUP, SIG_IGN);
 	  SIGNAL_HANDLE(SIGTERM, sigterminator);
+
 	  while (!mustexit) {
 	    fd_set rdset;
 	    int n;
 	    int socktag;
 	    
+	    if (sawsigchld) {
+	      reaper(0);
+	      continue;
+	    }
+
 	    _Z_FD_ZERO(rdset);
 
 	    n = 0;
@@ -1409,13 +1423,15 @@ char **argv;
 		  continue;
 		} else if (childpid > 0) {	/* Parent! */
 		  childregister(childpid, &SS.raddr, socktag);
-		  
-		  reaper(0);
 		  SIGNAL_RELEASE(SIGCHLD);
+		  reaper(0);
+
 		  close(msgfd); /* Child has it, close at parent */
 		} else {			/* Child */
 		  SIGNAL_RELEASE(SIGCHLD);
 		  
+		  disable_childreap(); /* Child does not do childreap.. */
+
 		  SS.netconnected_flg = 1;
 		  
 		  switch (socktag) {
@@ -1647,7 +1663,7 @@ char *arg;
  */
 
 static void setrhostname(SS)
-SmtpState *SS;
+     SmtpState *SS;
 {
     struct hostent *hp = NULL;
 
@@ -1697,8 +1713,8 @@ SmtpState *SS;
 }
 
 static RETSIGTYPE
- timedout(sig)
-int sig;
+timedout(sig)
+     int sig;
 {
     /* Return to the smtpserver's main-program.
        We are commiting a suicide, but we need
@@ -1711,45 +1727,96 @@ int sig;
 }
 
 static RETSIGTYPE
- sigterminator(sig)
-int sig;
+sigterminator(sig)
+     int sig;
 {
-  SIGNAL_HANDLE(sig, sigterminator);
-  mustexit = 1;
+	SIGNAL_HANDLE(sig, sigterminator);
+	mustexit = 1;
 }
 
+static RETSIGTYPE
+sigchld(sig)
+     int sig;
+{
+	SIGNAL_HANDLE(sig, sigchld);
+	sawsigchld = 1;
+}
 
 static RETSIGTYPE
- reaper(sig)
-int sig;
+reaper(sig)
+     int sig;
 {
     int status;
-    int lpid;
+    pid_t lpid;
 
+    SIGNAL_HOLD(SIGCHLD);
+
+    sawsigchld = 0;
+
+    openlogfp(NULL, 1);
+
+    for (;;) {
 #ifdef	HAVE_WAITPID
-    while ((lpid = waitpid(-1, &status, WNOHANG)) > 0)
+	lpid = waitpid(-1, &status, WNOHANG);
 #else
 #ifdef	HAVE_WAIT4
-    while ((lpid = wait4(0, &status, WNOHANG, (struct rusage *) NULL)) > 0)
+	lpid = wait4(0, &status, WNOHANG, (struct rusage *) NULL);
 #else
 #ifdef	HAVE_WAIT3
-    while ((lpid = wait3(&status, WNOHANG, (struct rusage *) NULL)) > 0)
+	lpid = wait3(&status, WNOHANG, (struct rusage *) NULL);
 #else				/* ... plain simple waiting wait() ... */
-    /* This can freeze at wait() ?  Who could test ?  A system
-       without wait3()/waitpid(), but with BSD networking ??? */
-    while ((lpid = wait(&status)) > 0)
+	/* This can freeze at wait() ?  Who could test ?  A system
+	   without wait3()/waitpid(), but with BSD networking ??? */
+	lpid = wait(&status);
 #endif				/* WNOHANG */
 #endif
 #endif
-    {
+	if (lpid <= 1) break; /* For whatever reason */
+
+	/* type(NULL,0,NULL,"REAPER: pid %ld  status 0x%04lx", lpid, status); */
+
 	if (lpid == pipeauthchild_pid && lpid > 0) {
-	  pipeauthchild_status = status;
-	  pipeauthchild_pid = -1;
+	    pipeauthchild_status = status;
+	    pipeauthchild_pid = -1;
+	}
+
+	if (lpid == ratetracker_server_pid) {
+	    ratetracker_server_pid = 0;
+	    if (ratetracker_rdz_fd >= 0)
+	      close(ratetracker_rdz_fd);
+	    ratetracker_rdz_fd = -1;
+	    type(NULL,0,NULL,"Ratetracker subdaemon had died, reiniting..");
+	    subdaemons_init_ratetracker();
+	    continue;
+	}
+	if (lpid == router_server_pid) {
+	    router_server_pid = 0;
+	    if (router_rdz_fd >= 0)
+	      close(router_rdz_fd);
+	    router_rdz_fd = -1;
+	    type(NULL,0,NULL,"Router subdaemon had died, reiniting..");
+	    subdaemons_init_router();
+	    continue;
+	}
+	if (lpid == contentfilter_server_pid) {
+	    contentfilter_server_pid = 0;
+	    if (contentfilter_rdz_fd >= 0)
+	      close(contentfilter_rdz_fd);
+	    contentfilter_rdz_fd = -1;
+	    type(NULL,0,NULL,"Contentfilter subdaemon had died, reiniting..");
+	    subdaemons_init_contentfilter();
+	    continue;
 	}
 
 	childreap(lpid);
     }
+
+    if (logfp)
+      fclose(logfp);
+    logfp = NULL;
+
     SIGNAL_HANDLE(SIGCHLD, reaper);
+    SIGNAL_RELEASE(SIGCHLD);
 }
 
 void reporterr(SS, tell, msg)
@@ -1757,11 +1824,16 @@ SmtpState *SS;
 const long tell;
 const char *msg;
 {
+    int dt;
     time( & now );
+    if (logtagepoch)
+      dt = (int)(now-logtagepoch);
+    else
+      dt = 0;
 
     zsyslog((LOG_ERR,
 	     "%s%04d - aborted (%ld bytes) from %s/%d: %s",
-	     logtag, (int)(now-logtagepoch), tell, SS->rhostname, SS->rport, msg));
+	     logtag, dt, tell, SS->rhostname, SS->rport, msg));
     if (logfp && (SS->tarpit > tarpit_initial)) {
         char *ts = rfc822date(&now);
 	char *n = strchr(ts, '\n');
@@ -2453,13 +2525,22 @@ int insecure;
 	     there are many varying input syntaxes... */
 	}
 
-	if (logfp_to_syslog)
-	  zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, (int)(now-logtagepoch), buf));
+	{
+	  int dt;
+	  if (logtagepoch)
+	    dt = (int)(now-logtagepoch);
+	  else
+	    dt = 0;
 
-	if (logfp) {
-	    fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now-logtagepoch), buf);
+	  if (logfp_to_syslog)
+	    zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, dt, buf));
+
+	  if (logfp) {
+	    fprintf(logfp, "%s%04dr\t%s\n", logtag, dt, buf);
 	    fflush(logfp);
+	  }
 	}
+
 	if (rc >= 0 && (strict_protocol < 1)) {
 	  if (CISTREQN(buf,"HELO",4) ||
 	      CISTREQN(buf,"EHLO",4))
@@ -3079,12 +3160,20 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 
     if (logfp_to_syslog || logfp) time( & now );
 
-    if (logfp_to_syslog)
-      zsyslog((LOG_DEBUG,"%s%04d %c %s", logtag, (int)(now - logtagepoch), (SS ? 'w' : '#'), buf));
+    {
+      int dt;
+      if (logtagepoch)
+	dt = (int)(now-logtagepoch);
+      else
+	dt = 0;
 
-    if (logfp != NULL) {
-      fprintf(logfp, "%s%04d%c\t%s\n", logtag, (int)(now - logtagepoch), (SS ? 'w' : '#'), buf);
-      fflush(logfp);
+      if (logfp_to_syslog)
+	zsyslog((LOG_DEBUG,"%s%04d %c %s", logtag, dt, (SS ? 'w' : '#'), buf));
+
+      if (logfp != NULL) {
+	fprintf(logfp, "%s%04d%c\t%s\n", logtag, dt, (SS ? 'w' : '#'), buf);
+	fflush(logfp);
+      }
     }
 
     if (debug && !SS) fprintf(stdout, "%s\n", buf);
@@ -3260,10 +3349,18 @@ va_dcl
 
       if (logfp_to_syslog || logfp) time( & now );
 
-      if (logfp_to_syslog)
-	zsyslog((LOG_DEBUG, "%s%04d w %s", logtag, (int)(now - logtagepoch), buf));
-      if (logfp)
-	fprintf(logfp, "%s%04dw\t%s\n", logtag, (int)(now - logtagepoch), buf);
+      {
+	int dt;
+	if (logtagepoch)
+	  dt = (int)(now-logtagepoch);
+	else
+	  dt = 0;
+
+	if (logfp_to_syslog)
+	  zsyslog((LOG_DEBUG, "%s%04d w %s", logtag, dt, buf));
+	if (logfp)
+	  fprintf(logfp, "%s%04dw\t%s\n", logtag, dt, buf);
+      }
 
       memcpy(bp, "\r\n",2);
       Z_write(SS, buf, buflen+2); /* XX: check return value */

@@ -39,7 +39,7 @@ void subdaemon_ratetracker(fd)
      int fd;
 {
   if (logfp) fclose(logfp); logfp = NULL;
-  report(NULL,"[smtpserver ratetracker subsystem]");
+  /* report(NULL,"[smtpserver ratetracker subsystem]"); */
 
   subdaemon_loop(fd, & subdaemon_handler_ratetracker);
   zsleep(10);
@@ -50,7 +50,7 @@ void subdaemon_contentfilter(fd)
      int fd;
 {
   if (logfp) fclose(logfp); logfp = NULL;
-  report(NULL,"[smtpserver contentfilter subsystem]");
+  /* report(NULL,"[smtpserver contentfilter subsystem]"); */
 
   subdaemon_loop(fd, & subdaemon_handler_contentfilter);
   zsleep(10);
@@ -61,18 +61,15 @@ void subdaemon_router(fd)
      int fd;
 {
   if (logfp) fclose(logfp); logfp = NULL;
-  report(NULL,"[smtpserver router subsystem]");
-	      
+  /* report(NULL,"[smtpserver router subsystem]"); */
+
   subdaemon_loop(fd, & subdaemon_handler_router);
   zsleep(10);
   exit(0);
 }
 
 
-
-
-
-int subdaemons_init __((void))
+int subdaemons_init_router __((void))
 {
 	int rc;
 	int to[2];
@@ -87,65 +84,6 @@ int subdaemons_init __((void))
 
 	resources_maximize_nofiles();
 
-	rc = fdpass_create(to);
-	if (rc == 0) {
-	  ratetracker_rdz_fd = to[1];
-	  ratetracker_server_pid = fork();
-	  if (ratetracker_server_pid == 0) { /* CHILD */
-
-	    close(to[1]); /* Close the parent (called) end */
-	    if (to[0]) {
-	      dup2(to[0], 0);
-	      close(to[0]);
-	    }
-	    /* exec here ??? */
-	    if (smtpserver)
-	      execl(smtpserver, "smtpserver", "-I", "sub-ratetracker",
-		    "-Z", zconf, NULL);
-	    subdaemon_ratetracker(0);
-	    /* never reached */
-	  }
-	  MIBMtaEntry->ss.SubsysRateTrackerPID = ratetracker_server_pid;
-	  fdpass_close_parent(to);
-	}
-
-	while (contentfilter) {
-	  struct stat stbuf;
-
-	  if (stat(contentfilter, &stbuf)) {
-	    type(NULL,0,NULL, "contentfilter stat(%s) error %d",
-		 contentfilter, errno);
-	    return 0;
-	  }
-
-	  if (!S_ISREG(stbuf.st_mode))
-	    break;  /* Do not start contentfilter subdaemon. */
-
-	  rc = fdpass_create(to);
-	  if (rc == 0) {
-	    contentfilter_rdz_fd = to[1];
-	    contentfilter_server_pid = fork();
-	    if (contentfilter_server_pid == 0) { /* CHILD */
-
-	      close(ratetracker_rdz_fd); /* Our sister server's handle */
-	      close(to[1]); /* Close the parent (called) end */
-	      if (to[0]) {
-		dup2(to[0], 0);
-		close(to[0]);
-	      }
-	      /* exec here ??? */
-	      if (smtpserver)
-		execl(smtpserver, "smtpserver", "-I", "sub-contentfilter",
-		      "-Z", zconf, NULL);
-	      subdaemon_contentfilter(0);
-	      /* never reached */
-	    }
-	    MIBMtaEntry->ss.SubsysContentfilterMasterPID = contentfilter_server_pid;
-	    fdpass_close_parent(to);
-	  }
-	  break;
-	}  /* .. while contentfilter */
-
 	if (enable_router) {
 	  rc = fdpass_create(to);
 	  if (rc == 0) {
@@ -153,9 +91,13 @@ int subdaemons_init __((void))
 	    router_server_pid = fork();
 	    if (router_server_pid == 0) { /* CHILD */
 	      
-	      close(ratetracker_rdz_fd);     /* Our sister server's handle */
+	      if (router_rdz_fd >= 0)
+		close(router_rdz_fd); /* Our sister server's handle */
+	      if (ratetracker_rdz_fd >= 0)
+		close(ratetracker_rdz_fd); /* Our sister server's handle */
 	      if (contentfilter_rdz_fd >= 0)
 		close(contentfilter_rdz_fd); /* Our sister server's handle */
+
 	      close(to[1]); /* Close the parent (called) end */
 	      if (to[0]) {
 		dup2(to[0], 0);
@@ -176,6 +118,118 @@ int subdaemons_init __((void))
 	  MIBMtaEntry->ss.SubsysRouterMasterPID = 0;
 	}
 
+
+	return 0;
+}
+
+int subdaemons_init_ratetracker __((void))
+{
+	int rc;
+	int to[2];
+	const char *zconf = getzenv("ZCONFIG");
+	const char *mailbin = getzenv("MAILBIN");
+	char *smtpserver = NULL;
+
+	if (mailbin) {
+	  smtpserver = malloc(strlen(mailbin) + 20);
+	  sprintf(smtpserver, "%s/smtpserver", mailbin);
+	}
+
+	resources_maximize_nofiles();
+
+	rc = fdpass_create(to);
+	if (rc == 0) {
+	  ratetracker_rdz_fd = to[1];
+	  ratetracker_server_pid = fork();
+	  if (ratetracker_server_pid == 0) { /* CHILD */
+
+	    if (router_rdz_fd >= 0)
+	      close(router_rdz_fd); /* Our sister server's handle */
+	    if (contentfilter_rdz_fd >= 0)
+	      close(contentfilter_rdz_fd); /* Our sister server's handle */
+
+	    close(to[1]); /* Close the parent (called) end */
+	    if (to[0]) {
+	      dup2(to[0], 0);
+	      close(to[0]);
+	    }
+	    /* exec here ??? */
+	    if (smtpserver)
+	      execl(smtpserver, "smtpserver", "-I", "sub-ratetracker",
+		    "-Z", zconf, NULL);
+	    subdaemon_ratetracker(0);
+	    /* never reached */
+	  }
+	  MIBMtaEntry->ss.SubsysRateTrackerPID = ratetracker_server_pid;
+	  fdpass_close_parent(to);
+	}
+	return 0;
+}
+
+int subdaemons_init_contentfilter __((void))
+{
+	int rc;
+	int to[2];
+	const char *zconf = getzenv("ZCONFIG");
+	const char *mailbin = getzenv("MAILBIN");
+	char *smtpserver = NULL;
+
+	if (mailbin) {
+	  smtpserver = malloc(strlen(mailbin) + 20);
+	  sprintf(smtpserver, "%s/smtpserver", mailbin);
+	}
+
+	resources_maximize_nofiles();
+
+	while (contentfilter) {
+	  struct stat stbuf;
+
+	  if (stat(contentfilter, &stbuf)) {
+	    type(NULL,0,NULL, "contentfilter stat(%s) error %d",
+		 contentfilter, errno);
+	    return 0;
+	  }
+
+	  if (!S_ISREG(stbuf.st_mode))
+	    break;  /* Do not start contentfilter subdaemon. */
+
+	  rc = fdpass_create(to);
+	  if (rc == 0) {
+	    contentfilter_rdz_fd = to[1];
+	    contentfilter_server_pid = fork();
+	    if (contentfilter_server_pid == 0) { /* CHILD */
+	      
+	      if (router_rdz_fd >= 0)
+		close(router_rdz_fd); /* Our sister server's handle */
+	      if (ratetracker_rdz_fd >= 0)
+		close(ratetracker_rdz_fd); /* Our sister server's handle */
+
+	      close(to[1]); /* Close the parent (called) end */
+	      if (to[0]) {
+		dup2(to[0], 0);
+		close(to[0]);
+	      }
+	      /* exec here ??? */
+	      if (smtpserver)
+		execl(smtpserver, "smtpserver", "-I", "sub-contentfilter",
+		      "-Z", zconf, NULL);
+	      subdaemon_contentfilter(0);
+	      /* never reached */
+	    }
+	    MIBMtaEntry->ss.SubsysContentfilterMasterPID = contentfilter_server_pid;
+	    fdpass_close_parent(to);
+	  }
+	  break;
+	}  /* .. while contentfilter */
+
+	return 0;
+}
+
+int subdaemons_init __((void))
+{
+	subdaemons_init_ratetracker();
+	subdaemons_init_contentfilter();
+	subdaemons_init_router();
 
 	return 0;
 }
