@@ -144,7 +144,7 @@ The default is 3 minutes.
 .IP tcpw=\fI3m\fR
 Timeout to wait at lowlevel TCP socket write() routines
 for the socket to accept some more input.
-The default is 3 minutes.
+The default is 5 minutes.
 .IP cmd=\fI5m\fR\ (or\ plain\ value)
 Waiting for command replies (e.g. MAIL FROM, et.al.)
 The default is 5 minutes.
@@ -154,7 +154,7 @@ The default is 2 minutes.
 .IP dot=\fI10m\fR
 From "DATA" phase ending "." issuance until "250 OK" report
 reception (this is \fBafter\fR the TCP write pipeline has completed).
-The default is 60 minutes. (RFC 1123 gives 10 minutes.)
+The default is 20 minutes. (RFC 1123 gives 10 minutes.)
 .RE
 .IP \-V
 prints a version message and exits.

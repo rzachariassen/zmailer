@@ -1,5 +1,13 @@
 2000-02-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    Lengthen the -Ttcpw= default to 5 minutes (RFC 1123: 3 minutes)
+
+	* router/parsedate.c:
+	    Armour  lilian()  function against bad MON or DAY inputs.
+	    (Especially zero month is deadly..)  However this code is
+	    currently completely dead -- not used, so...
+
 	* scheduler/mq2.c, transports/mailbox/mailbox.c, transports/sm/sm.c,
 	  transports/smtp/smtp.h, transports/smtp/smtptls.c,
 	  transports/smtp/smtp.c, transports/smtp/appendlet.c:
