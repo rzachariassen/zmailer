@@ -30,7 +30,7 @@ int		type;
 #endif
 {
 	int		base, fmt, flags, dot, width, precis;
-	ssize_t		n_str, size;
+	ssize_t		n_str, size = -1;
 	char		*t_str, *sp;
 	int		v, n, skip, dollar, decimal, thousand;
 	Sffmt_t		*ft, savft;

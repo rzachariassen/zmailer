@@ -29,7 +29,7 @@ int		type;
 #endif
 {
 	size_t	rw, done;
-	ssize_t	rv;
+	ssize_t	rv = -1;
 
 	done = 0;	/* amount processed by direct IO */
 
@@ -75,6 +75,7 @@ int		type;
 	return done ? done : rv;
 }
 
+#ifdef FDIRECT
 #if __STD_C
 static ssize_t dioread(Sfio_t* f, Void_t* buf, size_t n, Sfdisc_t* disc)
 #else
@@ -101,7 +102,6 @@ Sfdisc_t*	disc;
 	return diordwr(f, (Void_t*)buf, n, (Direct_t*)disc, SF_WRITE);
 }
 
-#ifdef FDIRECT
 #if __STD_C
 static int dioexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
 #else

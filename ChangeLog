@@ -1,5 +1,9 @@
 2003-05-21  Matti Aarnio  <mea@zmailer.org>
 
+	* sfio/src/lib/sfio/sfsetbuf.c, sfio/src/lib/sfio/sftable.c,
+	  sfio/src/lib/sfio/sfvprintf.c, sfio/src/lib/sfio/Sfio_dc/sfdcdio.c:
+	    Small fixes to silence the compilation warnings.
+
 	* scheduler/scheduler.c, scheduler/update.c:
 	    Moved  global_wrkcnt,  and  MIBMtaEntry->mtaStoredMessages
 	    counter managements around so that they are essentially

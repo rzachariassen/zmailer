@@ -22,7 +22,7 @@ char*	form;		/* format to use	*/
 va_list	args;		/* arg list if !argf	*/
 #endif
 {
-	reg int		v, n_s, base, fmt, flags;
+	reg int		v = 0, n_s, base, fmt, flags;
 	Sflong_t	lv;
 	reg char	*sp, *ssp, *endsp, *ep, *endep;
 	int		dot, width, precis, n, n_output;
