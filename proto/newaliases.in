@@ -13,7 +13,7 @@ ZCONFIG=@ZMAILERCFGFILE@
 PATH=/bin:/usr/bin:$PATH # ZMailer router paths are a bit restrictive..
 
 SOPT=""
-if [ "x$12" = "x-s" ]; then
+if [ "x$1" = "x-s" ]; then
  SOPT="-s"
  shift
 fi

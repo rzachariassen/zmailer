@@ -1,3 +1,13 @@
+1998-06-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/aliases.cf:
+	    Removing "sender" parameters from alias processing
+	    cases.  Copying them from other codes was a mistake
+	    with subtle results.
+	
+	* proto/newaliases.in:
+	    Parameter parsing error; didn't honour '-s' option.
+
 1998-06-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
