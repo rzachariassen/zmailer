@@ -669,6 +669,7 @@ int insecure;
 	    }
 	    if (neg) val = -val;
 	    if (*p != ';') goto invalid_by_data;
+	    ++p;
 	    neg = 0;
 	    while (*p && *p != ' ' && *p != '\t') {
 	      switch(*p) {
@@ -709,6 +710,8 @@ int insecure;
 	    }
 	    SS->deliverby_time  = time(NULL) + val;
 	    SS->deliverby_flags = neg;
+	    s = p;
+	    continue;
 	}
 
 	smtp_tarpit(SS);
