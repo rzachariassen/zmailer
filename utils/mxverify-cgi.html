@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--
+  --  MXVERIFY-CGI -- caller page for  mxverify-cgi.c  program.
+  --
+  --  By Matti Aarnio <mea@nic.funet.fi> 20-Jan-2000
+  --
+  --  The program does presume exactly the order and names of
+  --  things within the  <FORM ... >  thing below.
+  --
+  --  Method must stay "GET", ACTION you can change to your
+  --  local server, INPUT sequence must stay in that order;
+  --  the first one must be the userinput with TYPE="TEXT",
+  --  and NAME="DOMAIN".
+  --
+  --  As of current date, source of that program is in the CVS
+  --  development branch only; not yet in any release.
+  --
+  -->
+<HTML>
+<HEAD>
+<TITLE>
+Interactive DNS MX-verify CGI running at  nic.funet.fi
+</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" LINK="#CC6600" VLINK="#663333" TEXT="#000000">
+<H1>Interactive DNS MX-verify CGI running at  nic.funet.fi</H1>
+<P>
+Enter here the <I>domain name</I> of which email backup MX servers functionality you want to verify.
+<P>
+The domain name you give below <B>must</B> have MX records at it.
+If there are no MXes for given domain, email <I>might</I> get delivered
+by means of using traditional ``if there are no MXes, use A'' operational
+rule in the internet.  However this utility won't (naturally) have
+any usefull work in that case, and it reports an error.
+<P>
+This does not <I>send</I> any email to you, just does a series of
+connections, plus interactive reception address tests of following kind:
+<P>
+<PRE>
+  MAIL FROM:&lt;&gt;
+  RCPT TO:&lt;postmaster@that.domain&gt;
+</PRE>
+<P>
+The explanation:
+<P>
+<UL>
+<LI> The ``MAIL FROM:&lt;&gt;'' is RFC 821 defined error message transport,
+which many systems fault -- they must not do so.
+<LI> And every email receiving domain <B>must</B> have <B>postmaster</B>
+account, so says RFC 822 standard.
+</UL>
+<P>
+For each server, it is acceptable to yield:
+<P>
+<UL>
+<LI>``ERROR: Connection Timed Out'' -- server wasn't reachable within tester's short 20 second timeout period; this may be due to firewall blocking access to the primary servers with an intention that incoming email comes thru backup servers only. (Standard defined connection timeout is 5-10 minutes.)
+<LI>``ERROR: Connection Refused'' -- either the destination server does not have SMTP server running, <B>or</B> network firewall near the destination server blocks access to it with an intention of quicker move to backup MX entries.
+<LI>``Apparently OK'' -- the address tests gave an OK result.
+</UL>
+<P>
+Anything else means you have to figure out, what is going on.
+Especially if any backup server rejects the ``RCPT TO'' with 400- or 500-series
+codes.
+<P>
+<FORM METHOD="get"   ACTION="http://www.funet.fi/cgi-bin/mxverify-cgi">
+<INPUT TYPE="text"   VALUE="" NAME="DOMAIN" SIZE=80 MAXLENGTH=200>
+<BR>
+<INPUT TYPE="submit" NAME="SUBMIT" VALUE="SUBMIT">
+<INPUT TYPE="reset"  NAME="RESET"  VALUE="RESET">
+</FORM>
+<P>
+<I>All tests this CGI does must yield ``Apparently OK'' if you aspire
+to have any change at having reliably working incoming email.
+</I>
+<P>
+This CGI utility is one of <A HREF="http://www.zmailer.org/">ZMailer</A>
+auxiliary utilities, and it was written by
+<A HREF="mailto:mea@nic.funet.fi">Matti Aarnio</A>
+after he got sufficiently annoyed about failing
+backup-MX servers for lots of different domains gave reports of
+type:
+<P>
+<UL>
+<LI> ``not relaying to that domain''
+<LI> ``you are not allowed to relay to that domain''
+<LI> ``this is not our relaying customer''
+<LI> ``sorry, that domain isn't in my list of allowed rcpthosts''
+<LI> ``This target address is not our MX service client.''
+</UL>
+<P>
+most common of which are rather misleading wordings about what is going on;
+that the server administrator has not listed allowed relay destinations
+into some file...
+<P>
+</BODY>
+</HTML>

@@ -8,9 +8,11 @@
 	    it seems to barf..  Will now scan for IPv4 and IPv6
 	    separately :-/  So much for the great transparent API ...
 
-	* utils/mxverify-cgi.c:
+	* utils/mxverify-cgi.c, utils/mxverify-cgi.html:
 	    Detected the above problem while playing with this utility,
 	    and developed that change here..
+	    Reworked quite some things after initial deployment, added
+	    that page into CVS for supplementary info.
 
 2000-01-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
 

@@ -2,7 +2,11 @@
  *  mxverify-cgi  -- a ZMailer associated utility for doing web-based
  *                   analysis of ``is my incoming email working properly ?''
  *
- *  By Matti Aarnio <mea@nic.funet.fi> 19-Jan-2000
+ *  By Matti Aarnio <mea@nic.funet.fi> 20-Jan-2000
+ *
+ *  This program plays fast&loose with HTTP/CGI interface, and presumes
+ *  quite exactly the <FORM ... > stuff that is present in the file
+ *  mxverify-cgi.html
  *
  */
 
