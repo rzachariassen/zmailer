@@ -1936,7 +1936,7 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     }
     s = strlen(buf)+buf;
 
-    switch (code && SS) {
+    switch (code) {
     case 211:			/* System status */
 	text = "%s";
 	break;
@@ -1944,11 +1944,12 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 	text = "%s";
 	break;
     case 220:			/* Service ready */
-	sprintf(format, "%.200s %%s", SS->myhostname);
-	text = format;
-	break;
     case 221:			/* Service closing transmission channel */
-	sprintf(format, "%.200s %%s", SS->myhostname);
+    case 421:			/* Service not available, closing transmission channel */
+	if (SS)
+	  sprintf(format, "%.200s %%s", SS->myhostname);
+	else
+	  strcpy(format,"hostname-unavailable %s");
 	text = format;
 	break;
     case 250:			/* Requested mail action okay, completed */
@@ -1962,10 +1963,6 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 	break;
     case 354:			/* Start mail input; end with <CRLF>.<CRLF> */
 	text = "Start mail input; end with <CRLF>.<CRLF>";
-	break;
-    case 421:			/* Service not available, closing transmission channel */
-	sprintf(format, "%.200s %%s", SS->myhostname);
-	text = format;
 	break;
     case 450:			/* Requested mail action not taken: mailbox unavailable */
 	text = "Requested mail action not taken: mailbox unavailable";
@@ -2005,6 +2002,9 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 	break;
     case 554:			/* Transaction failed */
 	text = "Transaction failed";
+	break;
+    default:
+	text = "code unknown, program bug!";
 	break;
     }
 
