@@ -141,7 +141,7 @@ transports/smtp:
 
 
    BUG:	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
-	(syncing for BDAT, for example.)
+	(syncing for BDAT, for example.)  (not anymore ?)
 
    VERIFY: BDAT (and DATA) status processing in case the remote
 	yields disk-full temporary error.
@@ -214,11 +214,6 @@ transports/smtp:
 
 
 - scheduler:
-    BUG/NUISANCE:
-	The "SNMP counters" don't always count correctly the
-	number of messages in system processing. (Thought to have
-	been fixed, but alas, not...) (2003-May-5)
-
     FEATURE/BUG:
 	When a transport-agent dies due to e.g. SIGSEGV, simulate
 	a diagnostic message telling of this situation!

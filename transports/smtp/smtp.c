@@ -4836,24 +4836,31 @@ void getdaemon()
 
 
 
+#ifndef SOL_TCP 	/* Latter Linuxes have SOL_TCP,
+			   Solaris IPPROTO_TCP ..       */
+# define SOL_TCP IPPROTO_TCP
+#endif
+
 static void tcpstream_nagle(fd)
      int fd;
 {
+	int i, r;
 	if (fd < 0) return;
 
 #ifdef TCP_CORK
-	int i = 1, r;
+	i = 1;
 	r = setsockopt(fd, SOL_TCP, TCP_CORK, &i, sizeof(i));
 #else
-#ifdef TCP_NODELAY
-	int i = 0, r;
-	r = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &i, sizeof(i));
-#else
 #ifdef TCP_NOPUSH
-	int i = 1, r;
-	r = setsockopt(fd, IPPROTO_TCP, TCP_NOPUSH, &i, sizeof(i));
+	i = 1;
+	r = setsockopt(fd, SOL_TCP, TCP_NOPUSH, &i, sizeof(i));
+#else
+#ifdef TCP_NODELAY
+	i = 0;
+	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i));
 #else
 	/* No method at hand if neither of above.. */
+	i = r = 0;
 #endif
 #endif
 #endif
@@ -4862,26 +4869,28 @@ static void tcpstream_nagle(fd)
 static void tcpstream_denagle(fd)
      int fd;
 {
+	int i, r;
 	if (fd < 0) return;
 
 #ifdef TCP_CORK
-	int i = 0, r;
+	i = 0;
 	r = setsockopt(fd, SOL_TCP, TCP_CORK, &i, sizeof(i));
 	if (r < 0)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
 #else
-#ifdef TCP_NODELAY
-	int i = 1, r;
-	r = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &i, sizeof(i));
-	if (r < 0)
-	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
-#else
 #ifdef TCP_NOPUSH
-	int i = 0, r;
-	r = setsockopt(fd, IPPROTO_TCP, TCP_NOPUSH, &i, sizeof(i));
+	i = 0;
+	r = setsockopt(fd, SOL_TCP, TCP_NOPUSH, &i, sizeof(i));
 	if (r < 0)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
 #else
+#ifdef TCP_NODELAY
+	i = 1;
+	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i));
+	if (r < 0)
+	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
+#else
+	i = r = 0;
 	sleep(1); /* Fall back to classic timeout based anti-nagle.. */
 #endif
 #endif
