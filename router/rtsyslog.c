@@ -23,6 +23,8 @@
 #include "ta.h"
 #include "libz.h"
 
+static char linebuf[8000];	/* Should be aplenty..		*/
+
 void
 rtsyslog(msgmtime,msgino,from,smtprelay,size,nrcpts,msgid)
 time_t msgmtime;
@@ -30,7 +32,6 @@ long msgino;
 char *from, *smtprelay, *msgid;
 int size, nrcpts;
 {
-  char linebuf[8000];		/* Should be aplenty..		*/
   char spoolid[30];		/* Min. space: 6+8+1 chars	*/
   time_t now;
   static char *syslogflg = NULL;
