@@ -1203,6 +1203,11 @@ PRIVATEMBOX=""
 AC_ARG_WITH(privatembox,   [  --with-privatembox       Use 'private/' in a part of mailbox compilations],
 	PRIVATEMBOX="private/")
 
+AC_SUBST(PRIVATEAUTH)
+PRIVATEAUTH=""
+AC_ARG_WITH(privateauth,   [  --with-privateauth       Use 'private/' in a part of smtpserver compilations],
+	PRIVATEAUTH="private/")
+
 AC_SUBST(LIBWHOSON)
 AC_SUBST(INCLWHOSON)
 use_whoson=0
@@ -1422,6 +1427,23 @@ AC_ARG_WITH(getpwnam-library, [  --with-getpwnam-library=\"-L.. -l..\"
 if test "$use_getpwnam_lib" = 1; then
   GETPWLIB="$withval"
 fi
+
+AC_CHECK_FUNCS(crypt)
+
+if test "$ac_cv_func_crypt" != yes ; then
+    # Now why ???  Must have "-lcrypt" like Linuxes ???
+    t_oldLibs="$LIBS"
+    LIBS="$LIBS -lcrypt"
+    AC_TRY_LINK([], [char *s1, *s2, *s3; s3 = crypt(s1,s2);],
+		ac_cv_lib_crypt_lib=yes,ac_cv_lib_crypt_lib=no)
+    if test "$ac_cv_lib_crypt_lib" = yes; then
+	# Success with this flag..
+	GETPWLIB="$GETPWLIB -lcrypt"
+	AC_MSG_RESULT([crypt() was found by using -lcrypt  library!])
+    fi
+    LIBS="$t_oldLibs"
+fi
+
 
 AC_SUBST(GENINCL)
 AC_ARG_WITH(generic-include, [  --with-generic-include=\"-I/...\"

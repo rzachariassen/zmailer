@@ -27,6 +27,10 @@ PARAM	VRFYcmd
 #			# pervert input, if quotation rules are broken in
 #			# the scripts.
 #
+#PARAM	smtp-auth	# enable if you want to allow SMTP to autenticate
+#			# with the default code against system  /etc/passwd
+#			# (or whatever source  getpwnam() uses for it..)
+#
 # Disablers of some facility adverticements
 #PARAM  NoEHLO
 #PARAM	NoPIPELINING
@@ -34,7 +38,6 @@ PARAM	VRFYcmd
 #PARAM	NoCHUNKING
 #PARAM  NoDSN
 #PARAM  NoETRN
-#PARAM  NoAUTH
 #PARAM  no-multiline-replies # except to EHLO
 #
 # HDR220 metatags:
@@ -73,7 +76,7 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 
 #
 #
-# HELO/EHLO-pattern	style-flags
+# HELO/EHLO-pattern	style-flags (Remember: 'ftve' set needs enable-router!)
 #               [max loadavg]
 #
 localhost	    999	ftveR

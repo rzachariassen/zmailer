@@ -51,6 +51,29 @@ and receiving server (S:) would reply with:
 
 */
 
+extern int zpwmatch __((char *, char *));
+
+#if 0 /* DUMMY BEAST... */
+
+/* This is *NOT* universal password matcher!
+   Consider Shadow passwords, PAM systems, etc.. */
+
+#include <pwd.h>
+#include <unistd.h>
+
+int zpwmatch(uname,password)
+     char *uname, *password;
+{
+    struct passwd *pw = getpwnam(uname);
+    char *cr;
+
+    if (!pw) return 0; /* No such user */
+    cr = crypt(password, pw->pw_passwd);
+
+    return (strcmp(cr, pw->pw_passwd) == 0);
+}
+#endif
+
 void smtp_auth(SS,buf,cp)
      SmtpState * SS;
      const char *buf;
@@ -152,9 +175,11 @@ void smtp_auth(SS,buf,cp)
     if (debug)
       type(SS, 0, NULL, "-> %s", bbuf);
 
-    /* XXX: uname is set, bbuf contains plaintext password */
-    /* Now do authentication -- with zillion ways ... */
-
-    /* type(SS, 253, NULL, "Authentication successfull"); */
-    type(SS, 535, NULL, "Authentication failed");
+    if (zpwmatch(uname, bbuf)) {
+	SS->authuser = uname;
+	type(SS, 253, NULL, "Authentication successfull");
+    } else {
+	type(SS, 535, NULL, "Authentication failed");
+	if (uname) free(uname);
+    }
 }

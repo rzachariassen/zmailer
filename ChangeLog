@@ -1,3 +1,18 @@
+1999-05-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in, smtpserver/Makefile.in:
+	    Autoconfigure "-lcrypt" library for the use at  @GETPWLIB@
+	    cases.  Also have '--with-privateauth' option for the smtpserver
+	    in case some magic private things are desired (it is possible..)
+
+	* smtpserver/smtpauth.c, smtpserver/zpwmatch.c, smtpserver/cfgread.c,
+	  smtpserver/Makefile.in, man/smtpserver.8:
+	    Separate  zpwmatch()  function into its own file.
+	    Have 'PARAM smtp-auth' configuration parameter (and document it
+	    at the smtpserver man-page) which enables use of SMTP AUTH.
+	    The default system uses classical UNIX password analysis.
+	    (but see the comments at   zpwmatch.c!)
+
 1999-04-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

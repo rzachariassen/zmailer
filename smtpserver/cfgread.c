@@ -145,6 +145,10 @@ char *str;
       enable_router = 1;
       return;
     }
+    if (cistrcmp(name, "smtp-auth") == 0) {
+      auth_ok = 1;
+      return;
+    }
 
     /* Some Enhanced-SMTP facility disablers */
     if (cistrcmp(name, "nopipelining") == 0) {
@@ -177,10 +181,6 @@ char *str;
     }
     if (cistrcmp(name, "noetrn") == 0) {
       etrn_ok = 0;
-      return;
-    }
-    if (cistrcmp(name, "noauth") == 0) {
-      auth_ok = 0;
       return;
     }
     if (cistrcmp(name, "no-multiline-replies") == 0) {

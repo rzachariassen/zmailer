@@ -223,11 +223,32 @@ default is not suitable.
 .IP PARAM\ DEBUGcmd
 .IP PARAM\ EXPNcmd
 .IP PARAM\ VRFYcmd
-This trio (DEBUGcmd, EXPNcmd, VRFYcmd) are enablers of like named
+This trio (DEBUGcmd, EXPNcmd, VRFYcmd) are enablers of like named 
 SMTP verbs which have some uses in the debug mode.
 
 They are normally disabled, but running them enabled does not allow
 direct attacks with them.  (That we know of.)
+
+.IP PARAM\ ROUTER-ENABLE
+This enables interactive router use where user inputs reach the router.
+As things turn out, while the canned scripts should be safe against any
+and all inputs, a careless change in the router scripts may endanger
+this status.
+
+Per default this is
+.B disabled
+to protect your system.
+
+To enable EXPN and VRFY, this must be enabled, but be
+.B very carefull
+when you do this.
+This is also required for interactive router processing of
+'MAIL FROM' and 'RCPT TO' addresses.
+
+.IP PARAM\ SMTP-AUTH
+This enables 'SMTP AUTH' facility (AUTH verb, plus optional parameter
+to MAIL verb).  With this the users who are able to 'login' successfully
+to this host, are then able to relay the email thru the server unlimited.
 
 .IP PARAM\ No8BITMIME
 .IP PARAM\ NoCHUNKING
@@ -235,7 +256,6 @@ direct attacks with them.  (That we know of.)
 .IP PARAM\ NoEHLO
 .IP PARAM\ NoENCHANCEDSTATUS(CODES)
 .IP PARAM\ NoETRN
-.IP PARAM\ NoAUTH
 .IP PARAM\ NoPIPELINING
 This set are
 .B disablers
@@ -283,6 +303,19 @@ file.
 #PARAM  DEBUGcmd
 PARAM   EXPNcmd
 PARAM   VRFYcmd
+#PARAM  enable-router
+#               # This is a security decission for you.
+#               # This is needed for EXPN/VRFY and interactive
+#               # processing of MAIL FROM and RCPT TO addresses.
+#               # However it also may allow external user entrance
+#               # to ZMailer router shell environment with suitably
+#               # pervert input, if quotation rules are broken in
+#               # the scripts.
+#
+#PARAM  smtp-auth
+#               # enable if you want to allow SMTP to autenticate
+#               # with the default code against system  /etc/passwd
+#               # (or whatever source  getpwnam() uses for it..)
 #
 # Disablers of some facility adverticements
 #PARAM  NoEHLO
@@ -291,6 +324,7 @@ PARAM   VRFYcmd
 #PARAM	NoCHUNKING
 #PARAM  NoDSN
 #PARAM  NoETRN
+#PARAM  no-multiline-replies # except to EHLO
 #
 # HDR220 metatags:
 #  %% -- '%' character

@@ -31,13 +31,18 @@ LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/libident/llib-llibident.ln
 OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o fdstatfs.o wantconn.o \
 		policytest.o cfgread.o smtpdata.o smtpcmds.o smtphelp.o \
-		smtprouter.o smtpchild.o mxverify.o contentpolicy.o smtpauth.o
+		smtprouter.o smtpchild.o mxverify.o contentpolicy.o     \
+		smtpauth.o zpwmatch.o
 # loadaver.o
 
 SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c fdstatfs.c wantconn.c \
 		policytest.c  cfgread.c smtpdata.c smtpcmds.c smtphelp.c \
 		smtprouter.c smtpchild.c mxverify.c contentpolicy.c smtpauth.c
 # loadaver.c
+
+# Compile & install time: 'make privateauth="private/"'
+privateauth=	@PRIVATEAUTH@
+
 
 all: $(PROGRAM)-a
 
@@ -56,6 +61,8 @@ smtprouter.o: $(srcdir)/smtprouter.c $(srcdir)/smtpserver.h
 policytest.o:  $(srcdir)/policytest.c $(srcdir)/policytest.h # ignored: $(srcdir)/smtpserver.h
 contentpolicy.o: $(srcdir)/contentpolicy.c $(srcdir)/policytest.h # ignored: $(srcdir)/smtpserver.h
 
+zpwmatch.o:	$(srcdir)/$(privateauth)zpwmatch.c
+	$(CC) $(CFLAGS) -c $(srcdir)/$(privateauth)zpwmatch.c
 
 $(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)
 
