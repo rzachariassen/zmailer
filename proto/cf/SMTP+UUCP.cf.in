@@ -37,6 +37,13 @@ fi
 
 localdoesdomain=1
 
+
+# Set following to "1", if you want to do duplicate address
+# elimination at the message level instead of per address.
+
+loop_prev_per_message=0
+
+
 # We may want .forward and mailing list files to be private, i.e., we ignore
 # the current privileges when checking the privileges of such files.
 # Don't add 'include' to this list, since anyone can :include: any file.

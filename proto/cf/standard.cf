@@ -233,7 +233,9 @@ router (address, attributes) {
 	# instead of per-address, null the expansions list in the process()
 	# function instead of here.
 
-	db flush expansions
+	if [ "$loop_prev_per_message" != 1 ]; then
+		db flush expansions
+	fi
 
 	tmp=$(msgidfilter "$address" $attributes) || \
 		return ((( bitbucket - "$address" $attributes)))
