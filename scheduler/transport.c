@@ -1177,7 +1177,13 @@ time_t timeout;
 	  /*sfprintf(sfstderr, "got %d ready (%x)\n", n, rdmask.fds_bits[0]);*/
 
 	  /* In case we really should react.. */
-	  queryipccheck();
+	  if (querysocket >= 0 &&
+	      _Z_FD_ISSET(querysocket, rdmask))
+	    queryipccheck();
+	  
+	  if (notifysocket >= 0 &&
+	      _Z_FD_ISSET(notifysocket, rdmask))
+	    receive_notify(notifysocket);
 
 	  if (cpids != NULL) {
 

@@ -1,3 +1,10 @@
+2002-05-16  Matti Aarnio  <mea@zmailer.org>
+
+	* scheduler/transport.c:
+	    The code didn't consume the scheduler-notify input socket
+	    at the mux() code, although it was looked for by the
+	    select() in the code.
+
 2002-04-20  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
