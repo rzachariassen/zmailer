@@ -1190,6 +1190,16 @@ if (novp == (void*)0x55555555L) abort();
 	    /* Verify/adjust OVP so that OVP and NVP have same
 	       address indexes in them. */
 	    int i, j, k, id;
+	    if (verbose) {
+	      sfprintf(sfstdout, " OLD ngroup=%d {", ovp->ngroup);
+	      for(i = 0; i < ovp->ngroup; ++i)
+		sfprintf(sfstdout, " %d", ovp->index[i]);
+	      sfprintf(sfstdout, " }\n");
+	      sfprintf(sfstdout, " NEW ngroup=%d {", nvp->ngroup);
+	      for(i = 0; i < nvp->ngroup; ++i)
+		sfprintf(sfstdout, " %d", nvp->index[i]);
+	      sfprintf(sfstdout, " }\n");
+	    }
 	    for (i = ovp->ngroup; i >= 0; --i) {
 	      id = ovp->index[i];
 	      for (j = nvp->ngroup; j >= 0; --j) {
@@ -1343,7 +1353,7 @@ void resync_file(proc, file)
 	}
 
 
-	newcfp = schedule(fd, file, ino, 1);
+	newcfp = schedule(fd, file, ino, 1); /* rereading */
 
 	if (newcfp != NULL) {
 	  /* ????  What ever, it succeeds, or it fails, all will be well */
