@@ -805,7 +805,7 @@ main(argc, argv)
 
 	if (SS.verboselog != NULL)
 	  fclose(SS.verboselog);
-	if (logfp != NULL)
+	if (logfp)
 	  fclose(logfp);
 
 	return 0;
@@ -847,7 +847,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		|| rp->newmsgheader != rp->next->newmsgheader) {
 
 	      if (smtpstatus == EX_OK && openstatus == EX_OK) {
-		if (logfp != NULL && !loggedid) {
+		if (logfp && !loggedid) {
 		  loggedid = 1;
 		  fprintf(logfp, "%s#\t%s: %s\n", logtag(), dp->msgfile, dp->logident);
 		}
@@ -1404,7 +1404,8 @@ deliver(SS, dp, startrp, endrp)
 		 MAIL FROM/RCPT TO ones have failed, but DATA has succeeded !!
 		 This is SERIOUSLY weird, but some may work even that way.. */
 	      smtpclose(SS,1);
-	      fprintf(logfp, "%s#\t(closed SMTP channel - DATA ok, but MAIL FROM/RCPT TO failed!  rc=%d)\n", logtag(), rp ? rp->status : -999);
+	      if (logfp)
+		fprintf(logfp, "%s#\t(closed SMTP channel - DATA ok, but MAIL FROM/RCPT TO failed!  rc=%d)\n", logtag(), rp ? rp->status : -999);
 	      r = EX_TEMPFAIL;
 	    }
 	    if (SS->smtpfp &&
@@ -1412,7 +1413,8 @@ deliver(SS, dp, startrp, endrp)
 		(SS->rcptstates & FROMSTATE_OK)) {
 	      smtpwrite(SS, 0, "QUIT", -1, NULL);
 	      smtpclose(SS,1);
-	      fprintf(logfp, "%s#\t(closed SMTP channel - tempfails for RCPTs; 'too many recipients per session' ??  rc=%d)\n", logtag(), rp ? rp->status : -999);
+	      if (logfp)
+		fprintf(logfp, "%s#\t(closed SMTP channel - tempfails for RCPTs; 'too many recipients per session' ??  rc=%d)\n", logtag(), rp ? rp->status : -999);
 	      if (SS->rcptstates & RCPTSTATE_OK)
 		retryat_time = 0;
 

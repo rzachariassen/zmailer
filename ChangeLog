@@ -1,3 +1,9 @@
+2000-07-11  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Sometimes printing to logfp was done unconditionally -- when
+	    the logfp variable carries NULL :-/
+
 2000-06-22  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* transports/smtp/smtp.c, smtpserver/mxverify.c:
