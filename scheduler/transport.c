@@ -36,11 +36,11 @@ extern int freeze;
 extern int mailqmode;
 
 static int  scheduler_nofiles = -1; /* Will be filled below */
-static int  runcommand __((const char **, struct vertex *, struct web *, struct web*));
-static void stashprocess __((int, int, int, struct web*, struct web*, struct vertex *, const char *argv[]));
-static void reclaim __((int, int));
+static int  runcommand   __((char * const argv[], char * const env[], struct vertex *, struct web *, struct web*));
+static void stashprocess __((int, int, int, struct web*, struct web*, struct vertex *, char * const argv[]));
+static void reclaim      __((int, int));
 static void waitandclose __((int));
-static void readfrom __((int));
+static void readfrom     __((int));
 
 static struct mailq *mq2root  = NULL;
 static int           mq2count = 0;
@@ -274,8 +274,9 @@ start_child(vhead, chwp, howp)
 	struct vertex *vhead;
 	struct web *chwp, *howp;
 {
-	char	*av[30], *s, *os, *cp, *ocp, buf[MAXPATHLEN];
-	int	i;
+#define MAXARGC 40
+	char	*av[1+MAXARGC], *ev[1+MAXARGC], *s, *os, *cp, *ocp, buf[MAXPATHLEN];
+	int	 i, avi, evi;
 	static time_t prev_time = 0;
 	static int startcnt = 0; /* How many childs per second (time_t tick..) ? */
 	time_t this_time;
@@ -308,11 +309,12 @@ start_child(vhead, chwp, howp)
 	 * (also any ${ZENV} variable)
 	 */
 	os = buf;
+	avi = evi = 0;
 	for (i = 0; vhead->thgrp->ce.argv[i] != NULL; ++i) {
 	  if (strcmp(vhead->thgrp->ce.argv[i], replhost) == 0) {
-	    av[i] = howp->name;
+	    av[avi] = howp->name;
 	  } else if (strcmp(vhead->thgrp->ce.argv[i], replchannel) == 0) {
-	    av[i] = chwp->name;
+	    av[avi] = chwp->name;
 	  } else if (strchr(vhead->thgrp->ce.argv[i], '$') != NULL) {
 	    s = os;
 	    for (cp = vhead->thgrp->ce.argv[i]; *cp != '\0'; ++cp) {
@@ -337,25 +339,36 @@ start_child(vhead, chwp, howp)
 		*s++ = *cp;
 	    }
 	    *s = '\0';
-	    av[i] = os;
+	    av[avi] = os;
 	    os = s + 1;
 	  } else
-	    av[i] = vhead->thgrp->ce.argv[i];
+	    av[avi] = vhead->thgrp->ce.argv[i];
+	  if (avi == 0 && strchr(av[avi],'=') != NULL) {
+	    ev[evi] = av[avi];
+	    ++evi;
+	  } else
+	    ++avi;
+	  if (avi >= MAXARGC) avi = MAXARGC;
+	  if (evi >= MAXARGC) evi = MAXARGC;
 	}
-	av[i] = NULL;
+	av[avi] = NULL;
+	ev[evi] = NULL;
 
 	/* fork off the appropriate command with the appropriate stdin */
 	if (verbose) {
 	  printf("$");
-	  for (i = 0; av[i] != NULL; ++i)
+	  for (i = 0; ev[i] != NULL; ++i)
+	    printf(" %s", ev[i]);
+	  for (i = 0; ev[i] != NULL; ++i)
 	    printf(" %s", av[i]);
 	  printf("\n");
 	}
-	return runcommand((const char **)av, vhead, chwp, howp);
+	return runcommand(av, ev, vhead, chwp, howp);
 }
 
-static int runcommand(argv, vhead, chwp, howp)
-	const char *argv[];
+static int runcommand(argv, env, vhead, chwp, howp)
+	char * const argv[];
+	char * const env[];
 	struct vertex *vhead;
 	struct web *chwp, *howp;
 {
@@ -403,7 +416,7 @@ static int runcommand(argv, vhead, chwp, howp)
 	  resources_limit_nofiles(transportmaxnofiles);
 	  setgid(gid);	/* Do GID setup while still UID 0..   */
 	  setuid(uid);	/* Now discard all excessive powers.. */
-	  execv(cmd, (char**)argv);
+	  execve(cmd, argv, env);
 	  fprintf(stderr, "Exec of %s failed!\n", cmd);
 	  _exit(1);
 	} else if (pid < 0) {	/* fork failed - yell and forget it */
@@ -428,7 +441,7 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	int pid, fromfd, tofd;
 	struct web *chwp, *howp;
 	struct vertex *vhead;
-	const char *argv[];
+	char * const argv[];
 {
 	int i, l, j;
 	struct procinfo *proc;
