@@ -15,7 +15,7 @@ TOPDIR=		../..
 MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
-SMTP_LIB=	@LIBRESOLV@ @OPENSSLLIB@  @LIBSOCKET@
+SMTP_LIB=	@LIBRESOLV@ @OPENSSLLIB@  @LIBSOCKET@ $(LIBMALLOC)
 SMTP_INCL=	@GENINCL@   @OPENSSLINCL@ @INCLRESOLV@
 #
 SOURCE=		smtp.c appendlet.c smtptls.c
@@ -25,18 +25,18 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTP_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a
 #
-LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc -lsfio $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc -lsfio
 LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	../libta/llib-llibta.ln
 
-$(PROGRAM)-a:	$(PROGRAM) mprobe
+smtp-a:	smtp mprobe
 
-$(PROGRAM):	$(OBJS) version.o $(LIBDEB)
-	-rm -f $(PROGRAM)
+smtp:	$(OBJS) version.o $(LIBDEB)
+	-rm -f smtp
 	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(LIB) $(SMTP_LIB)
 
-$(PROGRAM).3rd: $(PROGRAM)
-	atom -tool 3rd -o $(PROGRAM).3rd $(PROGRAM)
+smtp.3rd: smtp
+	atom -tool 3rd -o smtp.3rd smtp
 
 mprobe:	mprobe.o version.o $(LIBDEB)
 	-rm -f mprobe
@@ -49,19 +49,19 @@ smtp.o:      $(srcdir)/smtp.c $(srcdir)/smtp.h
 smtptls.o:   $(srcdir)/smtptls.c $(srcdir)/smtp.h
 appendlet.o: $(srcdir)/appendlet.c $(srcdir)/smtp.h
 
-install:	$(PROGRAM) mprobe
-	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/ta/$(PROGRAM).x
-	mv $(MAILBIN)/ta/$(PROGRAM).x $(MAILBIN)/ta/$(PROGRAM)
+install:	smtp mprobe
+	$(INSTALL) -m 0755 smtp $(MAILBIN)/ta/smtp.x
+	mv $(MAILBIN)/ta/smtp.x $(MAILBIN)/ta/smtp
 	$(INSTALL) -m 0755 mprobe $(MAILBIN)/mprobe.x
 	mv $(MAILBIN)/mprobe.x $(MAILBIN)/mprobe
 
 clean:
-	-rm -f $(PROGRAM) mprobe *~ *.o *.out make.log *.third *.3rd
+	-rm -f smtp mprobe *~ *.o *.out make.log *.third *.3rd
 distclean: clean
 	-rm -f Makefile
 
 lint:	$(LINTLIB)
-	lint $(DEFS) $(INCL) $(LINTLIB) $(PROGRAM).c
+	lint $(DEFS) $(INCL) $(LINTLIB) smtp.c
 
 ../libta/llib-llibta.ln:
 	cd ../libta ; $(MAKE) $(MFLAGS) lintlib

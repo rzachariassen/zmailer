@@ -16,14 +16,14 @@ MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
 SM_INCL=	@GENINCL@
-SM_LIB=		@LIBRESOLV@ @LIBSOCKET@ -lsfio
+SM_LIB=		@LIBRESOLV@ @LIBSOCKET@ -lsfio $(LIBMALLOC)
 #
 SOURCE=		sm.c
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SM_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
-LIB=		-L$(TOPDIR)/libs -lta -lzc -lzm $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lta -lzc -lzm
 LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	../libta/llib-llibta.ln $(TOPDIR)/libc/llib-llibzc.ln
 

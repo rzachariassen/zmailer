@@ -16,7 +16,7 @@ MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
 MAILBOX_INCL=	@GENINCL@
-MAILBOX_LIB=	@GETPWLIB@ @LIBMAIL@ @LIBRESOLV@ @LIBSOCKET@ -lsfio
+MAILBOX_LIB=	@GETPWLIB@ @LIBMAIL@ @LIBRESOLV@ @LIBSOCKET@ $(LIBMALLOC)
 
 # Compile & install time: 'make privatembox="private/"'
 privatembox=	@PRIVATEMBOX@
@@ -27,7 +27,7 @@ INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(MAILBOX_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libs/libmalloc_d.a
-LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc $(LIBMALLOC)
+LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc -lsfio
 LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	../libta/llib-llibta.ln
 
@@ -41,20 +41,19 @@ MAILBOXDEFS=	-DBIFF -DRBIFF -DRBIFF_ALWAYS # -DUSE_NFSMBOX
 
 HDRS=		$(srcdir)/$(TOPDIR)/include/sieve.h
 
-all:	$(PROGRAM)-a mboxpath-a # in.rlockd
+all:	mailbox-a mboxpath-a # in.rlockd
 
-$(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)
+mailbox-a:	$(LIBDEB) mailbox
 mboxpath-a:	$(LIBDEB) mboxpath
 
-$(PROGRAM):	$(PROGRAM).o version.o lock.o sieve.o fmtmbox.o $(LIBDEB)
-	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o lock.o sieve.o fmtmbox.o $(LIB) $(MAILBOX_LIB)
-
+mailbox:	mailbox.o version.o lock.o sieve.o fmtmbox.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ mailbox.o version.o lock.o sieve.o fmtmbox.o $(LIB) $(MAILBOX_LIB)
 
 mboxpath:	mboxpath.o version.o fmtmbox.o $(LIBDEB)
 	$(CC) $(CFLAGS) -o $@ mboxpath.o version.o fmtmbox.o $(LIB) $(MAILBOX_LIB)
 
-$(PROGRAM).o: $(srcdir)/$(PROGRAM).c $(HDRS)
-	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/$(PROGRAM).c
+mailbox.o: $(srcdir)/mailbox.c $(HDRS)
+	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/mailbox.c
 
 sieve.o:	$(srcdir)/$(privatembox)sieve.c $(HDRS)
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/$(privatembox)sieve.c
@@ -65,25 +64,25 @@ fmtmbox.o:	$(srcdir)/fmtmbox.c $(HDRS)
 mboxpath.o:	$(srcdir)/mboxpath.c
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/mboxpath.c
 
-version.c:	$(PROGRAM).o $(TOPDIR)/Makefile
+version.c:	mailbox.o $(TOPDIR)/Makefile
 	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
 
 lock.o: $(srcdir)/lock.c
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/lock.c
 
-install:	$(PROGRAM) mboxpath
-	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/ta/$(PROGRAM).x
-	mv $(MAILBIN)/ta/$(PROGRAM).x $(MAILBIN)/ta/$(PROGRAM)
+install:	mailbox mboxpath
+	$(INSTALL) -m 0755 mailbox $(MAILBIN)/ta/mailbox.x
+	mv $(MAILBIN)/ta/mailbox.x $(MAILBIN)/ta/mailbox
 	$(INSTALL) -m 0755 mboxpath $(MAILBIN)/mboxpath.x
 	mv $(MAILBIN)/mboxpath.x $(MAILBIN)/mboxpath
 
 clean:
-	-rm -f $(PROGRAM) in.rlockd *.o *.out make.log *~ mboxpath
+	-rm -f mailbox in.rlockd *.o *.out make.log *~ mboxpath
 distclean: clean
 	-rm -f Makefile
 
 lint:	$(LINTLIB)
-	lint $(DEFS) $(MAILBOXDEFS) $(INCL) $(LINTLIB) $(PROGRAM).c lock.c
+	lint $(DEFS) $(MAILBOXDEFS) $(INCL) $(LINTLIB) mailbox.c lock.c
 
 ../libta/llib-llibta.ln:
 	cd ../libta ; $(MAKE) $(MFLAGS) lintlib
