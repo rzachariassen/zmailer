@@ -1,3 +1,29 @@
+1999-07-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.51-pre2
+
+	* transports/smtp/smtp.c:
+	    - Reworked even more that reconnect mechanism.
+	    - Noticed that 'No MX, no address' reports are coming
+	      out more and more regularly in cases where they should
+	      *not* occur.  As I don't seem to be able to coerce
+	      the system to do the *right* think, let it be TEMPFAIL
+	      once again...  Rather delayed erroring attempts, than
+	      rejections because of wrong reports.
+
+	* scheduler/threads.c:
+	    Made debugging zsyslog(()) call to use LOG_ERR instead
+	    of LOG_EMERG; latter one broadcasts to everybody in one
+	    of my test systems...
+
+	* include/libz.h, lib/rfc822scan.c, lib/token.c, libc/mail.c,
+	  router/prototypes.h, router/rfc822.c, router/rfc822.ssl,
+	  router/rfc822hdrs.c, router/libdb/header.c:
+	    Lots of experimenting with code to get proper RFC822
+	    tokenization, and proper folding at the output.
+	    Most difficult part seemed to be rfc822scan.c ...
+
 1999-07-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
