@@ -1,3 +1,9 @@
+2000-11-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
+	    Reusing variable caused wrong content at the pointer, and rare
+	    SIGSEGVs lurking ...
+
 2000-11-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/libta/mimeheaders.c:

@@ -61,6 +61,8 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	      char *p = strchr(s, '\n');
 	      int linelen = p ? (p - s) : strlen(s);
 
+	      p = hsize + (*chunkbufp);
+
 	      if (*WriteTabs == '0') {
 		/* Expand line TABs */
 		int col = 0;
