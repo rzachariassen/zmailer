@@ -129,12 +129,14 @@ struct procinfo *proc;
 	  proc->cmdbuf[0] = '\n';
 	  len = 1;
 	} else {
-	  memcpy(proc->cmdbuf,"#idle\n", 7);
 	  len = 6;
+	  memcpy(proc->cmdbuf,"#idle\n", len);
 	  /* Count this feed as one of normal inputs.
 	     At least we WILL get a "#hungry" message for this */
 	  proc->overfed = 1;
 	}
+	proc->cmdlen = len;
+
 	rc = write(proc->tofd, proc->cmdbuf, len);
 	if (rc < 0 &&
 	    (errno != EAGAIN && errno != EINTR &&
@@ -150,7 +152,8 @@ struct procinfo *proc;
 	  proc->cmdlen = 0;
 	  return;
 	}
-	proc->cmdlen = 0;
+	if (rc > 0)
+	  proc->cmdlen -= rc;
 }
 
 int
@@ -454,7 +457,7 @@ start_child(vhead, chwp, howp)
 
 	/* fork off the appropriate command with the appropriate stdin */
 	if (verbose) {
-	  sfprintf(sfstdout,"${ ");
+	  sfprintf(sfstdout,"${");
 	  for (i = 0; ev[i] != NULL; ++i)
 	    sfprintf(sfstdout," %s", ev[i]);
 	  sfprintf(sfstdout," }");
@@ -633,7 +636,9 @@ shutdown_kids()
 	    write(proc->tofd,"\n\n",2);
 	    pipes_shutdown_child(proc->tofd);
 	    proc->tofd = -1;
-	    kill(proc->pid, SIGQUIT);
+	    /* Signals may happen... */
+	    if (proc->pid > 1)
+	      kill(proc->pid, SIGQUIT);
 	  }
 }
 
@@ -825,19 +830,28 @@ time_t timeout;
 	  tv.tv_sec = 0;
 	tv.tv_usec = 0;
 
-	maxf = 0;
+	maxf = -1;
 	_Z_FD_ZERO(rdmask);
 	_Z_FD_ZERO(wrmask);
 	readsockcnt = 0;
 	if (cpids != NULL)
 	  for (proc = cpids,i = 0; i < scheduler_nofiles ; ++i,++proc)
 	    if (proc->pid != 0) {
+	      /* Something can be read ? */
 	      _Z_FD_SET(i, rdmask);
-	      maxf = i;
+	      if (maxf < i)
+		maxf = i;
+
 	      ++readsockcnt;
-	      if (proc->cmdlen != 0 && proc->tofd >= 0)
-		_Z_FD_SET(i, wrmask);
+	      /* Something to write ? */
+	      if (proc->cmdlen > 0 && proc->tofd >= 0) {
+		_Z_FD_SET(proc->tofd, wrmask);
+		if (maxf < proc->tofd)
+		  maxf = proc->tofd;
+	      }
+
 	    }
+
 	if (querysocket >= 0) {
 	  _Z_FD_SET(querysocket, rdmask);
 	  if (maxf < querysocket)
@@ -856,7 +870,8 @@ time_t timeout;
 
 	in_select = 1;
 
-	if ((n = select(maxf, &rdmask, &wrmask, NULL, &tv)) < 0) {
+	n = select(maxf, &rdmask, &wrmask, NULL, &tv);
+	if (n < 0) {
 	  int err = errno;
 	  /* sfprintf(sfstderr, "got an interrupt (%d)\n", errno); */
 	  in_select = 0;
@@ -921,8 +936,8 @@ time_t timeout;
 	    }
 	  }
 	  if (cpids != NULL) {
-	    struct procinfo *proc = &cpids[0];
-	    for (i = 0; i < maxf; ++i, ++proc) {
+
+	    for (proc = cpids, i = 0; i < maxf; ++i, ++proc) {
 
 	      if (proc->pid != 0 && _Z_FD_ISSET(i, rdmask)) {
 		_Z_FD_CLR(i, rdmask);
@@ -932,8 +947,8 @@ time_t timeout;
 	      }
 
 	      /* In case we have non-completed 'feeds', try feeding them */
-	      if (_Z_FD_ISSET(i, wrmask) && proc->pid > 0 &&
-		  proc->tofd >= 0        && proc->cmdlen > 0)
+	      if (proc->pid > 0    &&  proc->tofd >= 0   &&
+		  proc->cmdlen > 0 &&  _Z_FD_ISSET(proc->tofd, wrmask))
 		flush_child(proc);
 
 	      /* Because this loop might take a while ... */
@@ -1023,8 +1038,16 @@ queryipcinit()
 	  if (cistrncmp(mailqsock,"UNIX:",5)==0) {
 	    modedata = mailqsock+5;
 	    modecode = 2;
+	  } else if (*mailqsock == '/') {
+	    /* If it begins with '/', it is AF_UNIX socket */
+	    modedata = mailqsock;
+	    modecode = 2;
 	  } else if (cistrncmp(mailqsock,"TCP:",4)==0) {
 	    modedata = mailqsock+4;
+	    modecode = 1;
+	  } else {
+	    /* The default mode is TCP/IP socket */
+	    modedata = mailqsock;
 	    modecode = 1;
 	  }
 	}

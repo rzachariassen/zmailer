@@ -280,16 +280,24 @@ struct ctlfile *cfp;
 	  }
 	}
 
-	if (cfp->head != NULL) {
-	  for (vp = cfp->head; vp != NULL; vp = nvp) {
-	    nvp = vp->next[L_CTLFILE];
-	    MIBMtaEntry->mtaStoredRecipients     -= vp->ngroup;
-	    MIBMtaEntry->mtaReceivedRecipientsSc -= vp->ngroup;
-	    vp->ngroup = 0;
-	    unvertex(vp,1,1); /* Don't unlink()! Just free()! */
-	  }
+	/* Throw all way, if no vertices.. */
+	if (!cfp->head) {
+	  /* This should *not* be happening.. */
+	  unctlfile(cfp, 1);
+	  return;
 	}
-	free_cfp_memory(cfp);
+
+	for (vp = cfp->head; vp != NULL; vp = nvp) {
+	  /* Stash the next pointer, because the CFP content
+	     may become trashed at the end of the run. */
+	  nvp = cfp->head->next[L_CTLFILE];
+
+	  MIBMtaEntry->mtaStoredRecipients     -= vp->ngroup;
+	  MIBMtaEntry->mtaReceivedRecipientsSc -= vp->ngroup;
+	  vp->ngroup = 0;
+	  unvertex(vp,1,1); /* Don't unlink()! Just free()! */
+	}
+	/* CFP freeup happens at last vertex's unvertex() */
 }
 
 static void cfp_free(cfp, spl)
@@ -1126,7 +1134,7 @@ static int syncweb(dq)
 }
 
 
-static int sync_cfps __((struct ctlfile *, struct ctlfile *,struct procinfo*));
+static int sync_cfps __((struct ctlfile *,struct ctlfile *,struct procinfo*));
 static int sync_cfps(oldcfp, newcfp, proc)
      struct ctlfile *oldcfp, *newcfp;
      struct procinfo *proc;
@@ -1226,6 +1234,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	  MIBMtaEntry->mtaStoredRecipients -= ovp->ngroup;
 	  ovp->ngroup = 0;
 	  unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
+	  /* Leaves CFP unharmed */
 
 	  ovp = novp;
 	}
@@ -1303,7 +1312,7 @@ void resync_file(proc, file)
 
 	newcfp = schedule(fd, file, ino, 1);
 
-#if 0
+#if 0 /* XX: not usable before  sync_cfps()  works! */
 	if (newcfp != NULL) {
 	  /* ????  What ever, it succeeds, or it fails, all will be well */
 
@@ -1320,7 +1329,7 @@ void resync_file(proc, file)
 	  cfp_free0(newcfp);
 
 	  if (oldcfp->head == NULL) {
-	    cfp_free(oldcfp,NULL);
+	    cfp_free(oldcfp,spl);
 	    if (verbose)
 	      sfprintf(sfstdout," .. LOST in resync ??!\n");
 	  } else

@@ -91,7 +91,8 @@ update(fd, diagnostic)
 
 	if (*diagnostic == 0) {
 	  /* Lone newline.. old-style indications from the transporter */
-	  if (proc->tofd >= 0) {
+	  if (proc->tofd >= 0 &&
+	      proc->hungry == 0) {
 	    proc->hungry = 1;
 	    mytime(&now);
 	    proc->hungertime = now;
@@ -180,16 +181,21 @@ update(fd, diagnostic)
 	      /* It was overfed, decrement that counter first.. */
 	      proc->overfed -= 1;
 	    }
+
 	    if (!proc->overfed) {
+
 	      ++hungry_childs;
+
 	      /* Unless it is still overfed,
 		 Pick next, and feed it! */
 	      pick_next_vertex(proc, 1, 0);
+
 	      /* Feed *one* */
 	      if (proc->hungry)
 		feed_child(proc);
 	      if (proc->fed)
 		proc->overfed += 1;
+
 #if 1 /* YES OVERFEEDING! */
 	      /* While we have a thread, and things to feed.. */
 	      while (!proc->fed && proc->thread) {
@@ -297,7 +303,7 @@ unctlfile(cfp, no_unlink)
 	    }
 	  }
 	} else {
-#if 0
+#if 1
 	  /* We will LOOSE this from the schedules -- add info about
 	     it into the indirscanqueue -- at the tail... */
 	  dq_insert(NULL, cfp->id, path, 30);
@@ -398,10 +404,11 @@ void unvertex(vp, justfree, ok)
 	  }
 	}
 
-	if (vp->cfp->head == vp)
-	  if ((vp->cfp->head = vp->next[L_CTLFILE]) == NULL)
-	    if (justfree >= 0)
-	      unctlfile(vp->cfp, justfree);
+	if (vp->cfp->head == vp) {
+	  vp->cfp->head = vp->next[L_CTLFILE];
+	  if (vp->cfp->head == NULL && justfree >= 0)
+	    unctlfile(vp->cfp, justfree);
+	}
 
 	web_disentangle(vp, ok); /* does also unthread() */
 

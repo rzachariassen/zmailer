@@ -818,7 +818,6 @@ struct thread *thr;
 	  thr->proc     = proc;
 	  *ipp          = proc->next;
 	  proc->next    = NULL;
-	  proc->overfed = 0; /* Restart! */
 
 	  thg->idlecnt -= 1;
 	  --idleprocs;
@@ -857,7 +856,6 @@ struct thread *thr;
 	  /* Its idle process, feed it! */
 
 	  proc->hungry = 1;	/* Simulate hunger.. */
-	  proc->fed = 0;
 	  pick_next_vertex(proc, 1, 0);
 	  if (proc->fed != 0) {
 	    /* Duh! Nothing to feed! */
@@ -868,7 +866,7 @@ struct thread *thr;
 	  if (proc->fed)
 	    proc->overfed += 1;
 
-#if 0
+#if 1
 
 	  /* The initial thread-start will feed only
 	     one job-spec, latter OK will get burst of
@@ -993,21 +991,19 @@ int ok, justfree;
 	    proc->vertex->proc = NULL;
 	  proc->vertex = NULL;
 	  if (verbose) sfprintf(sfstdout," ... NONE, 'Jim, He is dead!'\n");
-	  proc->fed = 1;
 	  return;
 	}
 
 	if (thr == NULL) {
 	  if (verbose) sfprintf(sfstdout," ... NONE, we are idle.\n");
-	  proc->fed = 1;
 	  return; /* WE ARE IDLE! */
 	}
-#if 0 /* dead code ?? */
+/* dead code ?? */
 	if (!justfree && proc->fed == 0 && proc->vertex != NULL) {
 	  if (verbose) sfprintf(sfstdout," ... NONE, current one has not been fed..\n");
 	  return; /* Current one has not been (completely) fed..	*/
 	}
-#endif
+
 	thr0 = thr;
 	thg  = thr->thgrp;
 	/* proc->vertex->proc = NULL; */ /* Mark that we are busy.. */
@@ -1019,7 +1015,8 @@ int ok, justfree;
 	  while (vtx) {
 
 	    /* Is the current one in processing ? */
-	    if (vtx->proc == NULL && proc->vertex != vtx) {
+	    if (vtx->proc == NULL
+		/* && proc->vertex != vtx */ ) {
 	      proc->vertex = vtx;
 	      if (verbose) sfprintf(sfstdout," ... thr=same vtx=%p\n",vtx);
 	      proc->fed = 0;
@@ -1124,9 +1121,8 @@ int ok, justfree;
 	thg->idlecnt += 1;
 	idle_child(proc);
 	++idleprocs;
-#if 0
+
 	pick_next_thread(thg, thr, proc);
-#endif
 }
 
 /*
