@@ -268,8 +268,8 @@ subdaemon_handler_rtr_input (state, peerdata)
 	       However  RTR->tofp[idx]  is definitely in blocking! */
 	  }
 
-	  if (!RTR->sawhungry[idx])
-	    return EAGAIN; /* Do come again! */
+	  if (!RTR->sawhungry[idx]) /* Not yet ready for use */
+	    continue;
 
 	  RTR->replypeer[idx] = peerdata;
 
@@ -283,7 +283,7 @@ subdaemon_handler_rtr_input (state, peerdata)
 	  return 0; /* I _MAY_ be able to take more work! */
 	}
 
-	return EAGAIN;
+	return EAGAIN;  /* Do come again! */
 }
 
 

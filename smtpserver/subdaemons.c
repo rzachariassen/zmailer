@@ -490,24 +490,23 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    last_peer_index = top_peer -1;
 
 	  for (n = 0; n < top_peer; ++n) {
-	    int i = last_peer_index + n;
-	    if (i >= top_peer) i -= top_peer;
-	    peer = & peers[i];
+	    if (last_peer_index >= top_peer) last_peer_index = top_peer-1;
+	    peer = & peers[ last_peer_index ];
 	    if (peer->fd >= 0 && peer->inlen > 0) {
 
 	    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
 	      rc = (subdaemon_handler->input)( statep, peer );
 	      {
 		char pp[50];
-		sprintf(pp,"/tmp/-input-from-peer-%d-%d",peer->fd,i);
+		sprintf(pp,"/tmp/-input-from-peer-%d->%d",peer->fd,rc);
 		unlink(pp);
 	      }
 	      if (rc > 0) {
 		/* XOFF .. busy right now, come back again.. */
-		last_peer_index = i;
 		break;
 	      } else if (rc == 0) {
 		/* XON .. give me more jobs */
+		++last_peer_index;
 #if 1
 		continue; /* go and pick next task talker, if any */
 #else
