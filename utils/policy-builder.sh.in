@@ -13,14 +13,23 @@
 # The produced database retains the first instance of any given key.
 #
 
-FLAG=
-while getopts n c; do
-  case $c in
-    n)       FLAG=$c;;
-    ?)       exit 2;;
-  esac
-done
-shift `expr $OPTIND - 1`
+#FLAG=
+#while getopts n c; do
+#  case $c in
+#    n)       FLAG=$c;;
+#    ?)       exit 2;;
+#  esac
+#done
+#shift `expr $OPTIND - 1`
+
+if [ "x$1" = "x-n" ]; then
+    FLAG=n
+    shift
+fi
+if [ "x$1" = "x?" ]; then
+    exit 2
+fi
+
 
 ZCONFIG=@ZMAILERCFGFILE@
 . $ZCONFIG
