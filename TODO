@@ -254,17 +254,6 @@ transports/smtp:
 
 - smtpserver
 
-
-    BUG ??
-	ETRN xxxxx
-	250-2.0.0 Attempting ETRN on cluster node: mea.tmt.tele.fi
-	250-2.0.0 MQ2-AUTH failure occurred
-	250 2.0.0 An ETRN request is submitted - something may get sent.
-
-		This smells like something being wrong at MQ2
-		authentication code, or in what the smtpserver
-		has parsed from its conf file...  Weird..
-
     FEATURE:
 	Bind to named interface (pick its address with SIOCG(L)IFADDR)
     BUG:
