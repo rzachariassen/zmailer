@@ -61,6 +61,14 @@ router:
 
 
 transports/smtp:
+
+   FEATURE:
+	Use DNS reply contained "additional data" as much as possible.
+	(E.g. use all of arcount resource entries, if possible.)
+	Also handle lookup retries in case the DNS server answer is
+	truncated *and* the answer-data doesn't fit all in, then (try to)
+	retry with TCP connection.
+		Done 20000619
    CHECK:
 	When using DNS ADDITIONAL DATA response section contained data,
 	check for additional A data in case only AAAA data is available,
@@ -152,14 +160,6 @@ transports/smtp:
 	Worthwhileness of this is *not* unambiguous.
 	How many domains really are served by same system ?
 	At some places a lot, but elsewere perhaps not...
-
-   FEATURE:
-	Use DNS reply contained "additional data" as much as possible.
-	(E.g. use all of arcount resource entries, if possible.)
-	Also handle lookup retries in case the DNS server answer is
-	truncated *and* the answer-data doesn't fit all in, then (try to)
-	retry with TCP connection.
-		Done 20000619
 
    FEATURE:
 	BIND to INTERFACE's address -- assuming a set of servers
