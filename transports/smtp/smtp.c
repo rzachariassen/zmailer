@@ -4845,11 +4845,16 @@ static void tcpstream_nagle(fd)
 	int i = 1, r;
 	r = setsockopt(fd, SOL_TCP, TCP_CORK, &i, sizeof(i));
 #else
+#ifdef TCP_NODELAY
+	int i = 0, r;
+	r = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &i, sizeof(i));
+#else
 #ifdef TCP_NOPUSH
 	int i = 1, r;
 	r = setsockopt(fd, IPPROTO_TCP, TCP_NOPUSH, &i, sizeof(i));
 #else
 	/* No method at hand if neither of above.. */
+#endif
 #endif
 #endif
 }
@@ -4865,6 +4870,12 @@ static void tcpstream_denagle(fd)
 	if (r < 0)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
 #else
+#ifdef TCP_NODELAY
+	int i = 1, r;
+	r = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &i, sizeof(i));
+	if (r < 0)
+	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
+#else
 #ifdef TCP_NOPUSH
 	int i = 0, r;
 	r = setsockopt(fd, IPPROTO_TCP, TCP_NOPUSH, &i, sizeof(i));
@@ -4872,6 +4883,7 @@ static void tcpstream_denagle(fd)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
 #else
 	sleep(1); /* Fall back to classic timeout based anti-nagle.. */
+#endif
 #endif
 #endif
 }

@@ -321,6 +321,9 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
+/* Define to 1 if you have the <netinet/tcp.h> header file. */
+#undef HAVE_NETINET_TCP_H
+
 /* System has OpenSSL of some version, and want to use it. */
 #undef HAVE_OPENSSL
 

@@ -1,10 +1,18 @@
 2003-05-22  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in, transports/smtp/smtp.h, transports/smtp/smtp.c:
+	    Had a deeper look into "NAGLE" code, and realized that
+	    we didn't  #include  <netinet/tcp.h>,  which carries the
+	    necessary socket-option tokens,  thus no "NAGLE" control
+	    was ever done.
+
 	* sfio/bin/iffe, sfio/src/lib/sfio/Stdio_b/features/stdio,
 	  sfio/src/lib/sfio/features/common, sfio/src/lib/sfio/features/sfio:
-	    Picked the 'iffe' script from SFIO-2002, as well as 'features/sfio',
-	    and 'features/common', the 'features/stdio' did need a bit of manual
-	    fixing, as there is no equivalent in newer version.
+	    Picked the 'iffe' script from SFIO-2002, as well as
+	    'features/sfio', and 'features/common', the 'features/stdio'
+	    did need a bit of manual fixing, as there is no equivalent in
+	    newer version.  (SFIO-2002 usage is -- seriously in doubt
+	    due to its overflowing of thread stuff.)
 
 2003-05-21  Matti Aarnio  <mea@zmailer.org>
 

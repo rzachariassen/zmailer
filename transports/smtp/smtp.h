@@ -59,6 +59,10 @@
 
 #include <sys/time.h>
 
+#ifdef HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
+#endif
+
 #ifndef	NFDBITS
 /*
  * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
