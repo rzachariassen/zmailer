@@ -8614,6 +8614,10 @@ EOF
 
 eval MANDIR=${mandir}
 
+if test "$ac_cv_c_const" = no ; then
+  CFLAGS="$CFLAGS -Dconst"
+fi
+
 trap '' 1 2 15
 cat > confcache <<\EOF
 # This file is a shell script that caches the results of configure

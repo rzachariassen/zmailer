@@ -1398,6 +1398,10 @@ test -d /afs && AC_DEFINE(AFS)
 AC_SUBST(MANDIR)
 eval MANDIR=${mandir}
 
+if test "$ac_cv_c_const" = no ; then
+  CFLAGS="$CFLAGS -Dconst"
+fi
+
 AC_OUTPUT(Makefile
 	router/Makefile			router/libdb/Makefile		\
 	scheduler/Makefile		smtpserver/Makefile		\
