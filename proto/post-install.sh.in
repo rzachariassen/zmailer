@@ -1,4 +1,4 @@
-#!@PERL@          # -*- perl -*-
+#!@PERL@
 
 #
 #  Post-Installation script to complete the installation process.
