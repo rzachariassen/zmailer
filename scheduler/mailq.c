@@ -1904,23 +1904,32 @@ static void print_shm __((void))
   printf("ZMailer SHM segment dump; Magic=0x%08X\n", M.magic);
   printf("Time_now                      %lu\n", (unsigned long)time(NULL));
 
-  printf("SYS.mtaRouterMasterPID          %8u",M.mtaRouterMasterPID);
+  printf("SYS.mtaRouterMasterPID          %9u",M.mtaRouterMasterPID);
   if (kill(M.mtaRouterMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
   printf("\n");
 
-  printf("SYS.mtaSchedulerMasterPID       %8u",M.mtaSchedulerMasterPID);
+  printf("SYS.mtaSchedulerMasterPID       %9u",M.mtaSchedulerMasterPID);
   if (kill(M.mtaSchedulerMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
   printf("\n");
 
-  printf("SYS.mtaSmtpServerMasterPID         %8u",M.mtaSmtpServerMasterPID);
+  printf("SYS.mtaSmtpServerMasterPID      %9u",M.mtaSmtpServerMasterPID);
   if (kill(M.mtaSmtpServerMasterPID, 0) < 0 && errno == ESRCH) printf(" NOT PRESENT!");
   printf("\n");
 
-printf("SS.mtaIncomingProcesses             %4u\n",M.mtaIncomingSMTPSERVERprocesses);
 
-printf("SS.mtaIncomingParallelSMTPconnects  %4u\n",M.mtaIncomingParallelSMTPconnects);
-printf("SS.mtaIncomingParallelSMTPSconnects %4u\n",M.mtaIncomingParallelSMTPSconnects);
-printf("SS.mtaIncomingParallelSUBMITconnects%4u\n",M.mtaIncomingParallelSUBMITconnects);
+  printf("SYS.mtaSpoolFreeSpace           %9u\n", M.mtaSpoolFreeSpace);
+  printf("SYS.mtaLogFreeSpace             %9u\n", M.mtaLogFreeSpace);
+
+
+  printf("SS.mtaIncomingProcesses              %4u\n",
+	 M.mtaIncomingSMTPSERVERprocesses);
+
+  printf("SS.mtaIncomingParallelSMTPconnects   %4u\n",
+	 M.mtaIncomingParallelSMTPconnects);
+  printf("SS.mtaIncomingParallelSMTPSconnects  %4u\n",
+	 M.mtaIncomingParallelSMTPSconnects);
+  printf("SS.mtaIncomingParallelSUBMITconnects %4u\n",
+	 M.mtaIncomingParallelSUBMITconnects);
 
   printf("SS.mtaIncomingSMTPconnects      %9u\n", M.mtaIncomingSMTPconnects);
   printf("SS.mtaIncomingSMTPSconnects     %9u\n", M.mtaIncomingSMTPSconnects);
@@ -1995,13 +2004,11 @@ printf("SS.mtaIncomingParallelSUBMITconnects%4u\n",M.mtaIncomingParallelSUBMITco
   printf("TA.mtaOutgoingSmtpDATAvolumeOK  %9u\n", M.mtaOutgoingSmtpDATAvolumeOK);
   printf("TA.mtaOutgoingSmtpBDATvolumeOK  %9u\n", M.mtaOutgoingSmtpBDATvolumeOK);
 
-  printf("SYS.mtaSpoolFreeSpace           %9u\n", M.mtaSpoolFreeSpace);
-  printf("SYS.mtaLogFreeSpace             %9u\n", M.mtaLogFreeSpace);
-
+#if 0
   printf("mtaSuccessfulConvertedMessages %9u\n", M.mtaSuccessfulConvertedMessages);
   printf("mtaFailedConvertedMessages     %9u\n", M.mtaFailedConvertedMessages);
   printf("mtaLoopsDetected               %9u\n", M.mtaLoopsDetected);
-
+#endif
 
 	exit(0);
 }
