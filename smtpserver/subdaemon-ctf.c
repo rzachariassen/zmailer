@@ -215,7 +215,7 @@ static int subdaemon_ctf_proc (CTF, idx)
 	  rc = fdgets( & CTF->buf[idx], 0, & CTF->bufsize[idx], &CTF->fdb[idx], CTF->fromfd[idx], 10);
 	  if ( rc < 1 || ! CTF->buf[idx] ) {
 	    /* FIXME: ERROR PROCESSING ! */
-	    if (rc == 0) {
+	    if (rc == 0 || rc == -1) {
 	      /* EOF! */
 	      subdaemon_killctf(CTF, idx);
 	    }
@@ -432,12 +432,11 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 	    
 	    rc = fdgets( & CTF->buf[idx], CTF->inlen[idx],
 			 & CTF->bufsize[idx],
-			 &CTF->fdb[idx], CTF->fromfd[idx], -1);
-
+			 & CTF->fdb[idx], CTF->fromfd[idx], -1);
 #if 0 /* Let the loop to spin... */
 	    if (rc < 0 && errno == EAGAIN) return -EAGAIN;  /* */
 #endif
-	    if (rc == 0) { /* EOF */
+	    if (rc == 0 || rc == -1) { /* EOF */
 	      subdaemon_killctf(CTF, idx);
 	      continue;
 	    }

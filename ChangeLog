@@ -1,11 +1,20 @@
+2004-05-17  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpdata.c:
+	    Report the content-filter result message as single message,
+	    if at all possible.
+	
+	* smtpserver/subdaemon-ctf.c:
+	    Detect and process EOF from subdaemon subserver correctly.
+
 2004-05-11  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/vacation/vacation.c, man/vacation.1.in:
 	    Experiment a bit with attempting to reply with
 	    the address that the message came in with.
-	    (Pick: user, orcpt, inrcpt   in that order. Last found
-	     stays in effect.)
-	
+	    (Pick: user, orcpt, inrcpt   in that order.
+	     Last found stays in effect.)
+
 	* utils/vacation/vacation.c, man/vacation.1.in:
 	    Make the code to match the man page (-r option),
 	    then realized that -t option document matches

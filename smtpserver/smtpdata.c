@@ -325,10 +325,17 @@ const char *buf, *cp;
 	  if (!statcode)  statcode = m571;
 	  if (!code)      code = 552;
 
-	  type(SS, -code, statcode, "Content-Policy msg: %s; %s", ss, taspid);
-	  for (j= 1; j <= sslinecnt; ++j)
-	    type(SS, -code, statcode, "msg: %s", sslines[j]);
-	  type(SS, code, statcode, "Content-Policy analysis rejected this message");
+	  if (sslinecnt == 0) {
+	    type(SS, code, statcode,
+		 "Content-Policy reject msg: %s; %s", ss, taspid);
+	  } else {
+	    type(SS, -code, statcode,
+		 "Content-Policy msg: %s; %s", ss, taspid);
+	    for (j= 1; j <= sslinecnt; ++j)
+	      type(SS, -code, statcode, "msg: %s", sslines[j]);
+	    type(SS, code, statcode,
+		 "Content-Policy analysis rejected this message");
+	  }
 
 	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
 	    type(SS, -code, statcode, "Content-Policy msg: %s; %s", ss, taspid);
@@ -364,10 +371,19 @@ const char *buf, *cp;
 	    if (!statcode)  statcode = "2.7.1";
 	    if (!code)      code = 250;
 
-	    type(SS, -code, statcode, "%s; %s", ss, taspid);
-	    for (j= 1; j <= sslinecnt; ++j)
-	      type(SS, -code, statcode, "%s", sslines[j]);
-	    type(SS, code, statcode, "Content-Policy accepted this message into freezer-%d; %s", SS->policyresult, taspid);
+	    if (sslinecnt == 0) {
+	      type(SS, code, statcode,
+		   "Content-Policy accept-into-freezer-%d msg: %s; %s",
+		   SS->policyresult, ss, taspid);
+	    } else {
+	      type(SS, -code, statcode,
+		   "Content-Policy msg: %s; %s", ss, taspid);
+	      for (j= 1; j <= sslinecnt; ++j)
+		type(SS, -code, statcode, "msg: %s", sslines[j]);
+	      type(SS, code, statcode,
+		   "Content-Policy accepted this message into freezer-%d; %s",
+		   SS->policyresult, taspid);
+	    }
 	    
 	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
 	      type(SS, -code, statcode, "%s; %s", ss, taspid);
@@ -730,10 +746,17 @@ const char *buf, *cp;
 	  if (!statcode)  statcode = m571;
 	  if (!code)      code = 552;
 
-	  type(SS, -code, statcode, "Content-Policy msg: %s; %s", ss, taspid);
-	  for (j= 1; j <= sslinecnt; ++j)
-	    type(SS, -code, statcode, "msg: %s", sslines[j]);
-	  type(SS, code, statcode, "Content-Policy analysis rejected this message");
+	  if (sslinecnt == 0) {
+	    type(SS, code, statcode,
+		 "Content-Policy reject msg: %s; %s", ss, taspid);
+	  } else {
+	    type(SS, -code, statcode,
+		 "Content-Policy msg: %s; %s", ss, taspid);
+	    for (j= 1; j <= sslinecnt; ++j)
+	      type(SS, -code, statcode, "msg: %s", sslines[j]);
+	    type(SS, code, statcode,
+		 "Content-Policy analysis rejected this message");
+	  }
 
 	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
 	    type(SS, -code, statcode, "Content-Policy msg: %s; %s", ss, taspid);
@@ -771,10 +794,19 @@ const char *buf, *cp;
 	    if (!statcode)  statcode = "2.7.1";
 	    if (!code)      code = 250;
 
-	    type(SS, -code, statcode, "%s; %s", ss, taspid);
-	    for (j= 1; j <= sslinecnt; ++j)
-	      type(SS, -code, statcode, "%s", sslines[j]);
-	    type(SS, code, statcode, "Content-Policy accepted this message into freezer-%d; %s", SS->policyresult, taspid);
+	    if (sslinecnt == 0) {
+	      type(SS, code, statcode,
+		   "Content-Policy accept-into-freezer-%d msg: %s; %s",
+		   SS->policyresult, ss, taspid);
+	    } else {
+	      type(SS, -code, statcode,
+		   "Content-Policy msg: %s; %s", ss, taspid);
+	      for (j= 1; j <= sslinecnt; ++j)
+		type(SS, -code, statcode, "msg: %s", sslines[j]);
+	      type(SS, code, statcode,
+		   "Content-Policy accepted this message into freezer-%d; %s",
+		   SS->policyresult, taspid);
+	    }
 	    
 	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
 	      type(SS, -code, statcode, "%s; %s", ss, taspid);
