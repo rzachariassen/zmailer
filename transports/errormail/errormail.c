@@ -307,7 +307,10 @@ process(dp)
 	/* recipient host field is the error message file name in FORMSDIR */
 	/* recipient user field is the address causing the error */
 
-	if (dp->senders == NULL) {
+	rp = dp->recipients;
+
+	if ( dp->senders == NULL ||
+	     STREQ(rp->addr->link->channel,"error") ) {
 	  /*
 	   * If there was no error return address
 	   * it might be because this message was

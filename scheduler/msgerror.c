@@ -30,6 +30,8 @@ extern char *strnsave();
 #endif
 extern int errno;
 
+int store_error_on_error;
+
 extern int default_full_content; /* at conf.c */
 
 /*
@@ -1050,7 +1052,10 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	free_cfp_memory(cfp);
 
 	if (no_error_report > 0) {
-	  sfmail_close_alternate_async(errfp,POSTMANDIR,":error-on-error", msgwriteasync);
+	  if (store_error_on_error)
+	    sfmail_close_alternate_async(errfp,POSTMANDIR,":error-on-error", msgwriteasync);
+	  else
+	    sfmail_abort(errfp);
 	  sprintf(rptspoolid, "POSTMAN :error-on-error"); /* < 30 chr ! */
 	} else {
 	  _sfmail_close_async(errfp, &ino, &mtime, msgwriteasync);	/* XX: check for error */

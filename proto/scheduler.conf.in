@@ -140,6 +140,10 @@ PARAMauthfile = "${MAILSHARE}/scheduler.auth"
 # dangerously, enable this:
 #PARAMmsgwriteasync = 1
 
+# If you want to get error-on-error messages stored on POSTMAN
+# directory, enable this:
+#PARAMstore-error-on-error = 1
+
 #
 # ========================================================================
 #

@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ERRORMAIL 8zm "2003-Aug-23"
+.TH ERRORMAIL 8zm "2003-Nov-20"
 .SH NAME
 errormail \- zmailer error message transport agent
 .SH SYNOPSIS
@@ -38,18 +38,12 @@ the specific error, and
 the message file being processed.
 .RE
 .PP
-This program is used to report errors on behalf of the ZMailer
-.IR router (8zm)
-and
-.IR scheduler (8zm)
-programs, and by implication also report delivery failures for the
-various transport agents.  The primary exception is syntax errors during
-message parsing in the
-.IR router .
+This program will not report anything (except to syslog) if the original
+message is an error message ("channel error" kind, e.g. "MAIL FROM:<>").
 .SH OPTIONS
 .IP \-c\ \fIchannel\fR
-specifies which channel name should be keyed on.  The
-default is
+specifies which channel name should be keyed on.
+The default is
 .BR error .
 .IP \-V
 prints a version message and exits.

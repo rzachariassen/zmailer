@@ -1007,7 +1007,7 @@ static int paramparse(line)
 	}
 
 	if (cistrcmp(line,"msgwriteasync")==0 && a) {
-	  msgwriteasync = atoi(s);
+	  msgwriteasync = atoi(a);
 	  return 0;
 	}
 
@@ -1020,6 +1020,11 @@ static int paramparse(line)
 
 	if (cistrcmp(line,"global-report-interval")==0 && a) {
 	  global_report_interval = parse_interval(a, NULL);
+	  return 0;
+	}
+
+	if (cistrcmp(line,"store-error-on-error")==0 && a) {
+	  store_error_on_error = atoi(a);
 	  return 0;
 	}
 

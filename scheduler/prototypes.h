@@ -64,6 +64,7 @@ extern int   expiry2_sweepinterval;
 extern void msgerror __((struct vertex *vp, long offset, const char *message));
 extern void reporterrs __((struct ctlfile *cfpi, const int delayreport));
 extern void interim_report_run __((void));
+extern int store_error_on_error;
 
 /* pipes.c */
 extern int  pipes_create         __((int *tochild, int *fromchild));

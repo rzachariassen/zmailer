@@ -1,5 +1,13 @@
 2003-11-20  Matti Aarnio  <mea@zmailer.org>
 
+	* proto/scheduler.conf.in, scheduler/msgerror.c,
+	  scheduler/readconfig.c,  scheduler/prototypes.h,
+	  transports/errormail/errormail.c, man/scheduler.8.in,
+	  man/errormail.8.in:
+	    Added "PARAMstore-error-on-error = 1" parameter
+	    into the scheduler.  And added "discard error-on-error"
+	    cases into errormail.
+
 	* configure.in, router/daemonsub.c:
 	    Buggy (in Solaris et.al.) autoconf of  dirfd()  thing
 	    in they fchdir() callbacks.   Probably should redo

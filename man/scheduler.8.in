@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8zm "2003-Sep-26"
+.TH SCHEDULER 8zm "2003-Nov-20"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -626,7 +626,13 @@ has more than once recipient.
 .PP
 .IP "PARAMmsgwriteasync = 1"
 If you desire to speed up the system a bit, and run slightly
-dangerously, enable this parameter entry.
+dangerously, enable (any non-zero numeric value will do) this
+parameter entry.
+.PP
+.IP "PARAMstore-error-on-error = 1"
+Enabling this parameter (any non-zero numeric value will do) will
+store the error messages into $POSTOFFICE/postman/ directory
+with suffix: ":error-on-error".
 .PP
 .SH MESSAGE CONTROL FILE SYNTAX
 A message control file contains all the information needed by delivery
