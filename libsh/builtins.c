@@ -59,6 +59,7 @@ static conscell *sh_length	CSARGS2;
 static conscell *sh_last	CSARGS2;
 static conscell *sh_lappend     CSARGS2;
 static conscell *sh_lreplace    CSARGS2;
+extern conscell *sh_glob	CSARGS2; /* expand.c */
 
 #define CSARGV2 __((int argc, const char *argv[]))
 
@@ -124,6 +125,7 @@ struct shCmd builtins[] = {
 {	"false",	sh_false,	NULL,	NULL,	0		},
 {	"lappend",	NULL,	sh_lappend,	NULL,	SH_ARGV		},
 {	"lreplace",	NULL,	sh_lreplace,	NULL,	SH_ARGV		},
+{	"glob",		NULL,	sh_glob,	NULL,	SH_ARGV		},
 {	NULL,		NULL,		NULL,	NULL,	0		},
 };
 

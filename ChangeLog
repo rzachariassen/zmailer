@@ -1,3 +1,33 @@
+1999-06-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* include/libsh.h, libsh/builtins.c, libsh/expand.c,
+	  libsh/interpret.c:
+	    - Noticed that 'case' statements use  squish()  function,
+	      which has its glob-character matching effectively
+	      disabled if 'set -f' mode is active, thus 'case' breaks..
+	    - Reworked quite a bit on how the expand() handles input
+	      conscell chain contained strings, and splits them into
+	      white-space (per IFS) separated sequences.  Now the
+	      'toplevels' variable in the standard router scripts
+	      does not split into lots of *huge* strings of which
+	      only the initial few chars are used, and then rest
+	      are 'truncated' by means of resetting the 'slen' field;
+	      no, now only the initial segment of the string is treated
+	      that way (no need to copy it), but all of the subsequent
+	      ones are copied over into their separate size matched
+	      strings.
+
+	* utils/policy-builder.sh.in:
+	    Change a bit comments regarding 'smtp-policy.relay' file
+	    content treatment!
+
+1999-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/Makefile.in:
+	    Remove  @GETPWLIB@  from scheduler program linkage set.
+	    Users used by the scheduler are *only* those in the local
+	    system  getpwnam()  yields!
+
 1999-05-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in:

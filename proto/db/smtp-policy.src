@@ -274,7 +274,7 @@
 #|
 #|-----------
 #|
-#| If your system has ``whoson'' server (see contrib/whoson-*.tar.gz),
+#| If your system has ``whoson'' server (see contrib/whoson-*.tgz),
 #| you can activate it by adding  'trust-whoson +' attribute pair to
 #| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
 #|

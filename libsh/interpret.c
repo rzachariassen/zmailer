@@ -2105,7 +2105,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				break;
 			globchars['|'] = 1;
 			iname = NULL; name = NULL;
-			switch (squish(command->buffer,(char**)&name,&iname)) {
+			switch (squish(command->buffer,(char**)&name,&iname,-1)) {
 			case -1:
 				if (STRING(command->buffer)
 				    && strcmp(command->buffer->string,

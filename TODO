@@ -6,6 +6,10 @@ smtpserver:
 	TEST THEM! Also test 'message' attribute which should give
 	text message to attribute immediately following it..
 
+	- Implement the local address recognition for the IP-address
+	  literals [1.2.3.4]
+	- Do real %-hack processing
+
 router:
 	Input header:
 		Cc: "\"\\"\\\"\\\\"\\\\\"'\\\\\\"Prof. dr J. Wil Foppen\\\\\\" <wfoppen@rsm.nl>' \\\\\"

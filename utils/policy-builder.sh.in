@@ -88,7 +88,10 @@ fi
   awk '/^#/{next;} NF >= 1 {printf "%s = _localnames\n",$1;}'
 
   # smtp-policy.relay
-  # (Lists domains and networks that are allowed to use us as relay)
+  # (Lists NETWORKS (NO DOMAINS!) that are allowed to use us as relay)
+  # (well, actually it could also list e.g.: ".our.domain" if it would
+  #  be fine to allow relaying from anybody whose IP address reverses to
+  #  domain suffix ".our.domain")
   if [ -f smtp-policy.relay ] ; then
     cat smtp-policy.relay | \
     awk '/^#/{next;}

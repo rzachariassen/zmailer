@@ -22,7 +22,7 @@ extern int        glob_match __((int *pattern, int *eopattern, const char *s));
 extern char       globchars[];
 extern void       glob_init __((void));
 extern int        pathcmp __((const void *ap, const void *bp));
-extern int        squish  __((conscell *d, char **bufp, int **ibufp));
+extern int        squish  __((conscell *d, char **bufp, int **ibufp, int doglob));
 extern conscell * expand  __((conscell *d));
 
 /* libsh/interpret.c */
