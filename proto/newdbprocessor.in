@@ -219,8 +219,8 @@ foreach $rel (keys %rels) {
 	    local($fmask) = '644';
 
 	    if (defined $priv[1] && @dbfiles) {
-		local($pw0,$pw1,$pw2,$pw3)=getpwnam($priv[0]);
-		local($gr0,$gr1,$gr2,$gr3)=getgwnam($priv[1]);
+		local($pw0,$pw1,$pw2,$pw3) = getpwnam($priv[0]);
+		local($gr0,$gr1,$gr2,$gr3) = getgrnam($priv[1]);
 		$priv[0] = $pw2 if (defined $pw2);
 		$priv[1] = $gr2 if (defined $gr2);
 
