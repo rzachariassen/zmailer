@@ -318,9 +318,9 @@ static void cfparam(str, size, cfgfilename, linenum)
     }
 
     else if (cistrcmp(name, "tarpit") == 0 && param3 /* 3 params */) {
-	sscanf(param1,"%d",&tarpit_initial);
-	sscanf(param2,"%d",&tarpit_exponent);
-	sscanf(param3,"%d",&tarpit_toplimit);
+	tarpit_initial  = atof(param1);
+	tarpit_exponent = atof(param2);
+	tarpit_toplimit = atof(param3);
     }
 
     else if (cistrcmp(name, "deliverby") == 0) {

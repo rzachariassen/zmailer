@@ -306,8 +306,8 @@ typedef struct SmtpState {
     int  policyresult, reject_net;
     int  postmasteronly;
     int  netconnected_flg;
-    int  tarpit;
-    int  tarpit_cval;		/* current tarpit value */
+    double  tarpit;
+    double  tarpit_cval;		/* current tarpit value */
     char rhostaddr[sizeof("[ipv6.ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]") + 8];
     int  rport;
     Usockaddr raddr;
@@ -385,9 +385,9 @@ extern long availspace;
 extern long minimum_availspace;
 extern long maxsize;
 extern int use_ipv6;
-extern int tarpit_initial;
-extern int tarpit_exponent;
-extern int tarpit_toplimit;
+extern double tarpit_initial;
+extern double tarpit_exponent;
+extern double tarpit_toplimit;
 extern int MaxErrorRecipients;
 extern int TcpRcvBufferSize;
 extern int TcpXmitBufferSize;
@@ -574,6 +574,8 @@ extern int s_feof __((SmtpState * SS));
 extern int s_getc __((SmtpState * SS, int timeout_is_fatal));
 extern int s_hasinput __((SmtpState * SS));
 extern int s_gets __((SmtpState *SS, char *buf, int buflen, int *rcp, char *cop, char *cp));
+
+extern void zsleep __((int delay));
 
 extern int errno;
 extern int optind;

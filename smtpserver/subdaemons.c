@@ -56,7 +56,7 @@ int subdaemons_init __((void))
 	    close(to[1]); /* Close the parent (called) end */
 	    subdaemon_loop(to[0], & subdaemon_handler_ratetracker);
 
-	    sleep(10);
+	    zsleep(10);
 	    exit(0);
 	  }
 	  MIBMtaEntry->ss.SubsysRateTrackerPID = ratetracker_server_pid;
@@ -79,7 +79,7 @@ int subdaemons_init __((void))
 	      close(to[1]); /* Close the parent (called) end */
 	      subdaemon_loop(to[0], & subdaemon_handler_contentfilter);
 
-	      sleep(10);
+	      zsleep(10);
 	      exit(0);
 	    }
 	    MIBMtaEntry->ss.SubsysContentfilterMasterPID = contentfilter_server_pid;
@@ -105,7 +105,7 @@ int subdaemons_init __((void))
 	      close(to[1]); /* Close the parent (called) end */
 	      subdaemon_loop(to[0], & subdaemon_handler_router);
 	      
-	      sleep(10);
+	      zsleep(10);
 	      exit(0);
 	    }
 	    MIBMtaEntry->ss.SubsysRouterMasterPID = router_server_pid;

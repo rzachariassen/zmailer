@@ -158,7 +158,7 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 
 #
 #PARAM  tarpit 0 0 0   # No "tarpit" for 4XX/5XX reply codes (default)
-#PARAM  tarpit 20 2 300  # Initial delay: 20 secs, next = prev + (prev * 2)
+#PARAM  tarpit 20 0.1 300  # Initial delay: 20 secs, next = prev + (prev * 0.1)
 
 #
 # TLSv1/SSLv[23] parameters; all must be used for the system to work!

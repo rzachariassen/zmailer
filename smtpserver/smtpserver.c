@@ -260,10 +260,9 @@ int testaddr_set;
 u_short bindport;
 int bindport_set;
 int use_tcpwrapper;
-int tarpit_initial; /* TARPIT is DISABLED, by default */
-int tarpit_exponent;
-int tarpit_toplimit;
-int tarpit_cval;
+double tarpit_initial; /* TARPIT is DISABLED, by default */
+double tarpit_exponent;
+double tarpit_toplimit;
 
 int lmtp_mode;	/* A sort-of RFC 2033 LMTP mode ;
 		   this is MAINLY for debug purposes,
@@ -954,7 +953,7 @@ char **argv;
 	  if (maxloadavg != 999 &&
 	      maxloadavg < loadavg_current()) {
 	    write(1, msg_toohighload, strlen(msg_toohighload));
-	    sleep(2);
+	    zsleep(2);
 	    exit(1);
 	  }
 #endif
@@ -1096,7 +1095,7 @@ char **argv;
 	  dup(0);
 	  dup(0);			/* fd's 0, 1, 2 are in use again.. */
 
-	  sleep(3); /* Give a moment to possible previous server
+	  zsleep(3); /* Give a moment to possible previous server
 		       to die away... */
 	  killprevious(0, pidfile);	/* deposit pid */
 
@@ -1300,7 +1299,7 @@ char **argv;
 	    if (n < 0) {
 	      /* various interrupts can happen here.. */
 	      if (errno == EBADF || errno == EINVAL) break;
-	      if (errno == ENOMEM) sleep(1); /* Wait a moment, then try again */
+	      if (errno == ENOMEM) zsleep(1); /* Wait a moment, then try again */
 	      continue;
 	    }
 
@@ -1399,7 +1398,7 @@ char **argv;
 		  fprintf(stderr,
 			  "%s: fork(): %s\n",
 			  progname, strerror(errno));
-		  sleep(5);
+		  zsleep(5);
 		  continue;
 		} else if (childpid > 0) {	/* Parent! */
 		  childregister(childpid, &SS.raddr, socktag);
@@ -1447,7 +1446,7 @@ char **argv;
 		      maxloadavg < loadavg_current()) {
 		    write(msgfd, msg_toohighload,
 			  strlen(msg_toohighload));
-		    sleep(2);
+		    zsleep(2);
 		    exit(1);
 		  }
 #endif
@@ -1539,7 +1538,7 @@ char **argv;
 		    MIBMtaEntry->ss.MaxParallelConnections ++;
 		    close(0); close(1); close(2);
 #if 1
-		    sleep(2);	/* Not so fast!  We need to do this to
+		    zsleep(2);	/* Not so fast!  We need to do this to
 				   avoid (as much as possible) the child
 				   to exit before the parent has called
 				   childregister() -- not so easy to be
@@ -1555,7 +1554,7 @@ char **argv;
 		    MIBMtaEntry->ss.MaxSameIpSourceCloses ++;
 		    close(0); close(1); close(2);
 #if 1
-		    sleep(2);	/* Not so fast!  We need to do this to
+		    zsleep(2);	/* Not so fast!  We need to do this to
 				   avoid (as much as possible) the child
 				   to exit before the parent has called
 				   childregister() -- not so easy to be
@@ -1571,7 +1570,7 @@ char **argv;
 		  killcfilter(&SS);
 		    
 		  if (SS.netconnected_flg)
-		    sleep(2);
+		    zsleep(2);
 		  _exit(0);
 
 		} /* .. end of child code */
@@ -1597,7 +1596,7 @@ char **argv;
 
 	killcfilter(&SS);
 	if (SS.netconnected_flg)
-	  sleep(2);
+	  zsleep(2);
 	exit(0);
 	/* NOTREACHED */
 	return 0;
@@ -1756,14 +1755,16 @@ const char *msg;
     zsyslog((LOG_ERR,
 	     "%s%04d - aborted (%ld bytes) from %s/%d: %s",
 	     logtag, (int)(now-logtagepoch), tell, SS->rhostname, SS->rport, msg));
-    if (logfp != NULL && SS->tarpit > tarpit_initial ) {
+    if (logfp && (SS->tarpit > tarpit_initial)) {
         char *ts = rfc822date(&now);
+	char *n = strchr(ts, '\n');
+	if (n) *n = 0;
 
-        fprintf(logfp, "%s#\ttar_pit with delay %04d ends at %s", logtag, SS->tarpit_cval, ts );
+	type(NULL,0,NULL,"tarpit with delay %04d ends at %s", (int)(SS->tarpit_cval), ts );
         fflush(logfp);
     }
-    if (logfp != NULL) {
-	fprintf(logfp, "%s%04d-\taborted (%ld bytes): %s\n", logtag, (int)(now-logtagepoch), tell, msg);
+    if (logfp) {
+	type(NULL,0,NULL,"aborted (%ld bytes): %s\n", (int)(now-logtagepoch), tell, msg);
 	fflush(logfp);
     }
 
@@ -2122,8 +2123,8 @@ int insecure;
 
     SS->VerboseCommand = 0;
 
-    SS->tarpit = tarpit_initial;
-    SS->tarpit_cval = tarpit_cval;
+    SS->tarpit      = tarpit_initial;
+    SS->tarpit_cval = 0;
 
     stashmyaddresses(NULL);
 
@@ -2214,7 +2215,7 @@ int insecure;
 	type(SS, 451, NULL, "Server could not setup translation.", NULL);
 	typeflush(SS);
 #endif
-	sleep(2);
+	zsleep(2);
 	exit(0);
 #endif				/* USE_TRANSLATION */
     }
@@ -2299,7 +2300,7 @@ int insecure;
 	type(SS, 421, NULL, "%s ZMailer Server %s WILL NOT TALK TO YOU at %s",
 	     SS->myhostname, VersionNumb, cp);
 	typeflush(SS);
-	sleep(2);
+	zsleep(2);
 	exit(0);
     }
 #endif
@@ -2516,7 +2517,7 @@ int insecure;
 	  type(SS, -400, "4.7.0", "This SMTP server has not been configured!");
 	  typeflush(SS);
 	  zsyslog((LOG_EMERG, "smtpserver configuration missing!"));
-	  sleep(20);
+	  zsleep(20);
 	  continue;
 	}
 	if (policystatus != 0 &&
@@ -2526,7 +2527,7 @@ int insecure;
 	  type(SS,  400, "4.7.0", contact_pointer_message);
 	  typeflush(SS);
 	  zsyslog((LOG_EMERG, "smtpserver policy database problem, code: %d", policystatus));
-	  sleep(20);
+	  zsleep(20);
 	  continue;
 	}
 	if (SS->reject_net && SS->carp->cmd != Quit && SS->carp->cmd != Help) {
@@ -2728,10 +2729,11 @@ int insecure;
 	    type(SS, 221, m200, NULL, "Out");
 	    typeflush(SS);
 	    /* I want a log entry for when tarpit is complete - jmack Apr,2003 */
-	    if (logfp != NULL && SS->tarpit > tarpit_initial ) {
+	    if (SS->tarpit > tarpit_initial ) {
 		      char *ts = rfc822date(&now);
-	              fprintf(logfp, "%s#\ttar_pit with delay %04d ends at %s", logtag, SS->tarpit_cval, ts );
-	              fflush(logfp);
+		      char *n = strchr(ts,'\n');
+		      if (n) *n = 0;
+		      type(NULL,0,NULL,"tarpit with delay %04d ends at %s", (int)(SS->tarpit_cval), ts );
 	    }
 		    
 #ifdef HAVE_OPENSSL
@@ -2759,10 +2761,12 @@ int insecure;
       policytest(&SS->policystate, POLICY_DATAABORT,
 		 NULL, SS->rcpt_count, NULL);
 
-    if (logfp != NULL && SS->tarpit > tarpit_initial ) {
+    if (logfp && (SS->tarpit > tarpit_initial)) {
          char *ts = rfc822date(&now);
-         fprintf(logfp, "%s#\ttar_pit with delay %04d ends at %s", logtag, SS->tarpit_cval, ts );
-         fflush(logfp);
+	 char *n = strchr(ts, '\n');
+	 if (n) *n = 0;
+
+	 type(NULL,0,NULL,"tarpit with delay %04d ends at %s", (int)(SS->tarpit_cval), ts );
     }
 
 	    
@@ -3257,25 +3261,29 @@ SmtpState *SS;
 void smtp_tarpit(SS)
      SmtpState *SS;
 {
-    char *ts;
+    char *ts, *n;
 
-    if (SS->tarpit) {
+    if (SS->tarpit > 0.9999) {
 	/* add this so we know when tarpit is active */
         if (logfp != NULL && SS->tarpit != 0 ) {
 	  time(&now);
 	  ts = rfc822date(&now);
+	  n = strchr(ts, '\n');
+	  if (n) *n = 0;
 
-          fprintf(logfp, "%s#\ttarpit delay:%04d sec. at %s", logtag, SS->tarpit,ts );
+	  type(NULL,0,NULL,"tarpit delay:%04d sec. at %s",
+	       (int)(SS->tarpit + 0.500), ts);
           fflush(logfp);
         }
 	    
 	SS->tarpit_cval += SS->tarpit;
 
-	sleep(SS->tarpit);
+	zsleep((int)(SS->tarpit + 0.500));
+
 	/* adjust tarpit delay and limit here, "after!" the sleep */
 	SS->tarpit += (SS->tarpit * tarpit_exponent);
 	/* was 250 - set up to a config param in smtpserver.conf - jmack apr 2003 */
-        if (SS->tarpit < 0 || SS->tarpit > tarpit_toplimit )
+        if (SS->tarpit < 0.0 || SS->tarpit > tarpit_toplimit )
 		SS->tarpit = tarpit_toplimit;
 
 
@@ -3284,6 +3292,18 @@ void smtp_tarpit(SS)
     }
 }
 
+void
+zsleep(delay)
+     int delay;
+{
+	struct timeval tv;
+	int rc;
+
+	tv.tv_sec = delay;
+	tv.tv_usec = 0;
+
+	rc = select(0, NULL, NULL, NULL, &tv);
+}
 
 
 void header_to_mime(buf, lenptr, maxlen)

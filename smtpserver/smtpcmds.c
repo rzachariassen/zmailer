@@ -478,6 +478,7 @@ int insecure;
 	if (s == cp) {
 	  /* Failure.. ? */
 	  type821err(SS, -501, m517, buf, "Path data: %.200s", rfc821_error);
+	  smtp_tarpit(SS);
 	  type(SS, 501, m517, "Hi %s, that was for input: %s", SS->rhostaddr, cp);
 	  return -1;
 	}
@@ -504,6 +505,7 @@ int insecure;
 	if (s == cp && *s != '>') {
 	  /* Failure.. ? */
 	  type821err(SS, -501, m517, buf, "Path data: %.200s", rfc821_error);
+	  smtp_tarpit(SS);
 	  type(SS, 501, m517, "Hi %s, that was for input: %s", SS->rhostaddr, cp);
 	  return -1;
 	}
@@ -522,6 +524,7 @@ int insecure;
 	if (*s != '>') {
 	  rfc821_error_ptr = s;
 	  type821err(SS, -501, m517, buf, "Missing ending '>' bracket");
+	  smtp_tarpit(SS);
 	  type(SS, 501, m517, "Hi %s, that was for input: %s", SS->rhostaddr, cp);
 	  return -1;
 	}
@@ -534,6 +537,7 @@ int insecure;
       if (s == cp) {
 	/* Failure.. */
 	type821err(SS, -501, m517, buf, "Path data: %.200s", rfc821_error);
+	smtp_tarpit(SS);
 	type(SS, 501, m517, "Hi %s, that was for input: %s", SS->rhostaddr, cp);
 	return -1;
       }
@@ -680,8 +684,8 @@ int insecure;
 	    auth_param = s + 5;
 	    p = xtext_string(s + 5);
 	    if (p == (s + 5)) {
-		smtp_tarpit(SS);
 		type821err(SS, -501, m554, buf, "Invalid AUTH value '%.200s'", auth_param);
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "AUTH data contains illegal characters!");
 		rc = 1;
 		break;
@@ -745,6 +749,7 @@ int insecure;
 	    if ((neg & (DELIVERBY_N|DELIVERBY_R)) == 0)
 	      goto invalid_by_data; /* Neither N or R ?! */
 	    if ((neg & DELIVERBY_R) && val <= 0) {
+	      smtp_tarpit(SS);
 	      type(SS, 501, m554,
 		   "The strict delivery deadline is already past: BY=%d;R%s",
 		   val, (neg & DELIVERBY_T) ? "T":"");
@@ -753,6 +758,7 @@ int insecure;
 	    }
 	    if ((neg & DELIVERBY_R) &&
 		deliverby_ok > 0 && val < deliverby_ok) {
+	      smtp_tarpit(SS);
 	      type(SS, 553, m571, "Too small short delivery deadline value given: %d\n", val);
 	      rc = 1;
 	      break;
@@ -1324,8 +1330,8 @@ const char *buf, *cp;
 	    drpt_orcpt = s;
 	    s = orcpt_string(s + 6);
 	    if (s == NULL) {
-		smtp_tarpit(SS);
 		type821err(SS, -501, m454, buf, "Invalid ORCPT value '%s'", drpt_orcpt);
+		smtp_tarpit(SS);
 		type(SS, 501, m454, "ORCPT-param data error!");
 		return -1;
 	    }
@@ -1629,6 +1635,7 @@ const char *buf, *cp;
     MIBMtaEntry->ss.IncomingSMTP_VRFY ++;
 
     if (SS->state == Hello) {
+	smtp_tarpit(SS);
 	type(SS, 503, m551, "Waiting for HELO/EHLO command");
 	return;
     }
@@ -1649,6 +1656,7 @@ const char *buf, *cp;
     while (*s == ' ' || *s == '\t')
 	++s;
     if (*s != 0) {
+	smtp_tarpit(SS);
 	type(SS, 501, m552, "Growl! Extra junk after the VRFY argument!");
 	return;
     }
@@ -1664,10 +1672,13 @@ const char *buf, *cp;
 	if (s != NULL) {
 	    /* printf("%s\r\n", s); */
 	    free(s);
-	} else
+	} else {
+	    smtp_tarpit(SS);
 	    type(SS, 501, m540, "Unable to verify that address");
-    } else
+	}
+    } else {
 	type(SS, 252, "2.5.2", (char *) NULL);	/* Syntax ok */
+    }
 
     if (newcp)
 	free((void *)newcp);
@@ -1692,6 +1703,7 @@ const char *buf, *cp;
     MIBMtaEntry->ss.IncomingSMTP_EXPN ++;
 
     if (SS->state == Hello) {
+	smtp_tarpit(SS);
 	type(SS, 503, m551, "Waiting for HELO/EHLO command");
 	return;
     }
@@ -1712,6 +1724,7 @@ const char *buf, *cp;
 	while (*s == ' ' || *s == '\t')
 	    ++s;
 	if (*s != 0) {
+	    smtp_tarpit(SS);
 	    type(SS, 501, m552, "Growl! Extra junk after the EXPN argument!");
 	    return;
 	}
@@ -1726,10 +1739,14 @@ const char *buf, *cp;
 	if (s != NULL) {
 	    /* printf("%s\r\n", s); */
 	    free(s);
-	} else
+	} else {
+	    smtp_tarpit(SS);
 	    type(SS, 501, m540, "Unable to expand that address");
+	}
 	if (newcp)
 	    free((void *)newcp);
-    } else
+    } else {
+	smtp_tarpit(SS);
 	type(SS, 502, m540, (char *) NULL);
+    }
 }

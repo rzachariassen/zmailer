@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-May-03"
+.TH SMTPSERVER 8zm "2004-May-07"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -641,13 +641,17 @@ into the smtpserver protocol log file.
 .IP "PARAM tarpit initial exponent toplimit"
 .RS
 This defines a pre-reply slow-down factor, and next delay multiplier
-(both are integers).
-Default values are (0, 0).  Delay tops at 250 (seconds).
-The ``initial'' is used as the initial tarpit delay,
-and ``exponent'' is multiplier for formula:
+(All are floating points, not integrs.)
+.PP
+Default value for the tarpit is:
+.BR 0.0 ,
+which makes rest irrelevant.
+.PP
+The "initial" is used as the initial tarpit delay,
+and "exponent" is multiplier for formula:
 .I next = prev + (prev * exponent)
 .PP
-Finally, ``toplimit'' caps the delay value.
+Finally, "toplimit" caps the delay value.
 .RE
 .IP "PARAM use-tls"
 .IP "PARAM tls-CAfile $MAILVAR/db/smtpserver-CAcert.pem"
@@ -904,7 +908,7 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 #PARAM  debug-contentfilter # Debug the content-filter interface
 
 #PARAM  tarpit 0 0 0    # No "tarpit" for 4XX/5XX reply codes
-#PARAM  tarpit 20 2 300 # Initial delay: 20 secs, next = prev + (prev * 2)
+#PARAM  tarpit 20 0.1 300 # Initial delay: 20 secs, next = prev + (prev * 0.1)
 
 #
 # TLSv1/SSLv[23] parameters;
