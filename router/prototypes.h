@@ -5,8 +5,9 @@
 extern conscell *s_value;
 extern const char *postoffice; /* At libzmailer.a: mail.c */
 
-extern struct shCmd fnctns[];
 extern time_t time __((time_t *));
+
+extern void router_functions_init __((void));
 
 
 extern const char * const gs_name;

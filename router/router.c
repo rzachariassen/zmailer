@@ -474,13 +474,7 @@ initialize(configfile, argc, argv)
 	zshinit(ac, av);
 
 	/* add builtin router functions to list of builtin shell functions */
-	{
-		register struct shCmd *shcmdp;
-
-		for (shcmdp = &fnctns[0]; shcmdp->name != NULL; ++shcmdp)
-			sp_install(symbol(shcmdp->name),
-				   (void*)shcmdp, 0, spt_builtins);
-	}
+	router_functions_init();
 
 	/* initialize splay trees in router */
 	av[0] = "relation";

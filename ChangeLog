@@ -1,10 +1,19 @@
+2005-03-24  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c:
+	    Debugging some suspicuous EZMLM-mode behaviour
+
+	* router/router.c, router/functions.c, router/prototypes.h:
+	   Eliminate the need for 'struct shCmd' in prototypes.h
+	   by moving a bit of code from  router.c  to functions.c.
+
 2005-02-18  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c, transports/mailbox/mboxpath.c:
 	    Versatilize -DD..  -PP..  and  -XX..   options.
 
 	* man/mailbox.8.in, man/mboxpath.1.in, man/vacation.1.in:
-	    Document better existing machinery.
+	    Document better the existing machinery.
 
 	* doc/guides/smtpserver-spf:
 	    Email from Darryl L. Miles about usage of SPF.

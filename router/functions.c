@@ -151,6 +151,17 @@ static struct debugind {
 	{	NULL,			0		}
 };
 
+/* add builtin router functions to list of builtin shell functions */
+void router_functions_init()
+{
+	register struct shCmd *shcmdp;
+
+	for (shcmdp = &fnctns[0]; shcmdp->name != NULL; ++shcmdp)
+		sp_install(symbol(shcmdp->name),
+			   (void*)shcmdp, 0, spt_builtins);
+}
+
+
 /* The builtin trace function. This is also used by command line debug specs */
 
 int
