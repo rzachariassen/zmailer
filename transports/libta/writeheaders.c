@@ -37,36 +37,39 @@ writeheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	if (!msgheaders) return -1;
 
 	if (chunkbufp) {
-	    for ( ; *msgheaders; ++msgheaders ) {
-		int linelen = strlen(*msgheaders);
-		if (*chunkbufp == NULL) {
-		  /* Actually the SMTP has already malloced a block */
-		  *chunkbufp = emalloc(hsize+linelen+newlinelen);
-		} else {
-		  *chunkbufp = erealloc(*chunkbufp, hsize+linelen+newlinelen);
-		}
-		if (*chunkbufp == NULL)
-		  return -1;
-		memcpy( hsize + (*chunkbufp), *msgheaders, linelen );
-		hsize += linelen;
-		memcpy( hsize + (*chunkbufp), newline, newlinelen );
-		hsize += newlinelen;
+	  for ( ; *msgheaders; ++msgheaders ) {
+	    int linelen = strlen(*msgheaders);
+	    if (*chunkbufp == NULL) {
+	      /* Actually the SMTP has already malloced a block */
+	      *chunkbufp = emalloc(hsize+linelen+newlinelen);
+	    } else {
+	      *chunkbufp = erealloc(*chunkbufp, hsize+linelen+newlinelen);
 	    }
+	    if (*chunkbufp == NULL) {
+	      return -1;
+	    }
+	    memcpy( hsize + (*chunkbufp), *msgheaders, linelen );
+	    hsize += linelen;
+	    memcpy( hsize + (*chunkbufp), newline, newlinelen );
+	    hsize += newlinelen;
+	  }
 	} else {
-	    while (*msgheaders && !ferror(fp)) {
-		int linelen = strlen(*msgheaders);
-		if (**msgheaders == '.')
-		    putc('.',fp); /* ALWAYS double-quote the begining
-				     dot -- though it should NEVER occur
-				     in the headers, but better safe than
-				     sorry.. */
-		if (fwrite(*msgheaders,1,linelen,fp) != linelen)
-		  return -1;
-		hsize += linelen;
-		if (fwrite(newline,1,newlinelen,fp) != newlinelen)
-		  return -1;
-		++msgheaders;
+	  while (*msgheaders && !ferror(fp)) {
+	    int linelen = strlen(*msgheaders);
+	    if (**msgheaders == '.')
+	      putc('.',fp); /* ALWAYS double-quote the begining
+			       dot -- though it should NEVER occur
+			       in the headers, but better safe than
+			       sorry.. */
+	    if (fwrite(*msgheaders,1,linelen,fp) != linelen) {
+	      return -1;
 	    }
+	    hsize += linelen;
+	    if (fwrite(newline,1,newlinelen,fp) != newlinelen) {
+	      return -1;
+	    }
+	    ++msgheaders;
+	  }
 	}
 #if 0 /* CHANGE: All transport agents must now write the blank line
 	         separating headers, and the messagebody! */
