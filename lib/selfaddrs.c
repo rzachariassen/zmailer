@@ -182,11 +182,6 @@ struct sockaddr ***sockaddrp;
 	  char *interfacebuf = NULL;
 	  int s;
 
-	  if (!interfacebuf) {
-	    free(sap);
-	    return -2;
-	  }
-
 	  s = socket(PF_INET6, SOCK_DGRAM, 0);
 	  if (s < 0)
 	    goto done_this_ipv6;
@@ -286,7 +281,7 @@ struct sockaddr ***sockaddrp;
 
 	    if (! sap) {
 	      close(s);
-	      free(interfacebuf);
+	      if (interfacebuf) free(interfacebuf);
 	      return -5; /* UAARGH! */
 	    }
 
@@ -312,7 +307,7 @@ struct sockaddr ***sockaddrp;
 done_this_ipv6:
 
 	  if (s >= 0) close(s);
-	  free(interfacebuf);
+	  if (interfacebuf) free(interfacebuf);
 
 	}
 #else /* SIOCGLIFCONF && IPv6 */
@@ -324,15 +319,9 @@ done_this_ipv6:
 	  char *interfacebuf = NULL;
 	  int s;
 
-	  if (!interfacebuf) {
-	    free(sap);
-	    return -2;
-	  }
-
 	  s = socket(PF_INET, SOCK_DGRAM, 0);
 
 	  if (s < 0) {
-	    free(interfacebuf);
 	    free(sap);
 	    return -1;
 	  }
@@ -429,7 +418,7 @@ done_this_ipv6:
 	    }
 	    if (! sap) {
 	      close(s);
-	      free(interfacebuf);
+	      if (interfacebuf) free(interfacebuf);
 	      return -4; /* UAARGH! */
 	    }
 
@@ -443,7 +432,7 @@ done_this_ipv6:
 	    }
 	  }
 	  close(s);
-	  free(interfacebuf);
+	  if (interfacebuf) free(interfacebuf);
 	}
 #else
 
