@@ -434,7 +434,7 @@ static char *logtag()
  * assumption we are dealing with pre-4.3bsd select().
  */
 
-#error "FDSET macro susceptible"
+/* #error "FDSET macro susceptible" */
 
 typedef long	fd_mask;
 

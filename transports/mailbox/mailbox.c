@@ -2852,14 +2852,14 @@ writemimeline(WS, buf, len)
 	char *buf2;
 
 #ifdef	USE_ALLOCA
-	WS->buf2 = alloca(len+1);
+	WS->buf2 = (char*)alloca(len+1);
 #else
 	if (WS->buf2 == NULL) {
-	  WS->buf2 = emalloc(len+1);
+	  WS->buf2 = (char*)emalloc(len+1);
 	  WS->buf2len = len;
 	}
 	if (WS->buf2len < len) {
-	  WS->buf2 = realloc(WS->buf2, len+1);
+	  WS->buf2 = (char*)realloc(WS->buf2, len+1);
 	  WS->buf2len = len;
 	}
 #endif
@@ -3027,6 +3027,16 @@ decodeXtext(fp,xtext)
 	}
 }
 
+static const char *dfltform[7] = {
+	"Subject: Returned mail: Return receipt",
+	"MIME-Version: 1.0",
+	"Priority: junk",
+	"Content-Type: multipart/report; report-type=delivery-status;",
+	"",
+	"Your mail message has been delivered properly to the following recipients:",
+	NULL
+};
+
 static void
 return_receipt (dp, retrecptaddr, uidstr)
 	struct ctldesc *dp;
@@ -3043,16 +3053,6 @@ return_receipt (dp, retrecptaddr, uidstr)
 	int uid;
 	struct stat stb;
 	const char *username = "unknown";
-
-	const char *dfltform[] = {
-		"Subject: Returned mail: Return receipt",
-		"MIME-Version: 1.0",
-		"Priority: junk",
-		"Content-Type: multipart/report; report-type=delivery-status;",
-		"",
-		"Your mail message has been delivered properly to the following recipients:",
-		NULL
-	};
 
 	uid = atoi(uidstr);
 	pw = getpwuid(uid);

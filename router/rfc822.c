@@ -514,9 +514,9 @@ squirrel(e, keyw, text)
 	char *path;
 
 #ifndef	USE_ALLOCA
-	path = emalloc(5+sizeof(POSTMANDIR)+10+strlen(keyw));
+	path = (char*)emalloc(5+sizeof(POSTMANDIR)+10+strlen(keyw));
 #else
-	path = alloca(5+sizeof(POSTMANDIR)+10+strlen(keyw));
+	path = (char*)alloca(5+sizeof(POSTMANDIR)+10+strlen(keyw));
 #endif
 	sprintf(path, "../%s/%d.%s",
 		POSTMANDIR, (int)e->e_statbuf.st_ino, keyw);
@@ -647,9 +647,9 @@ reject(e, msgfile)
 	 * is pointing at, into recipient addresses.
 	 */
 #ifndef	USE_ALLOCA
-	path = emalloc(3+strlen(mailshare)+strlen(FORMSDIR)+strlen(msgfile));
+	path = (char*)emalloc(3+strlen(mailshare)+strlen(FORMSDIR)+strlen(msgfile));
 #else
-	path = alloca(3+strlen(mailshare)+strlen(FORMSDIR)+strlen(msgfile));
+	path = (char*)alloca(3+strlen(mailshare)+strlen(FORMSDIR)+strlen(msgfile));
 #endif
 	sprintf(path, "%s/%s/%s", mailshare, FORMSDIR, msgfile);
 	fp = fopen(path, "r");
@@ -760,16 +760,16 @@ defer(e, why)
 	}
 	if (stbuf.st_ino > 0) {
 #ifdef	USE_ALLOCA
-	  path = alloca(5+sizeof(DEFERREDDIR)+6+strlen(why));
+	  path = (char*)alloca(5+sizeof(DEFERREDDIR)+6+strlen(why));
 #else
-	  path = emalloc(5+sizeof(DEFERREDDIR)+6+strlen(why));
+	  path = (char*)emalloc(5+sizeof(DEFERREDDIR)+6+strlen(why));
 #endif
 	  sprintf(path,"../%s/%d.%s", DEFERREDDIR, (int)stbuf.st_ino, why);
 	} else {
 #ifdef	USE_ALLOCA
-	  path = alloca(5+sizeof(DEFERREDDIR)+strlen(e->e_file)+2+strlen(why));
+	  path = (char*)alloca(5+sizeof(DEFERREDDIR)+strlen(e->e_file)+2+strlen(why));
 #else
-	  path = emalloc(5+sizeof(DEFERREDDIR)+strlen(e->e_file)+2+strlen(why));
+	  path = (char*)emalloc(5+sizeof(DEFERREDDIR)+strlen(e->e_file)+2+strlen(why));
 #endif
 	  sprintf(path, "../%s/%s.%s", DEFERREDDIR, e->e_file, why);
 	}
@@ -2184,9 +2184,9 @@ sequencer(e, file)
 	}
 	/* all is nirvana -- link the input file to somewhere safe */
 #ifdef	USE_ALLOCA
-	qpath = alloca(5+strlen(QUEUEDIR)+strlen(file));
+	qpath = (char*)alloca(5+strlen(QUEUEDIR)+strlen(file));
 #else
-	qpath = emalloc(5+strlen(QUEUEDIR)+strlen(file));
+	qpath = (char*)emalloc(5+strlen(QUEUEDIR)+strlen(file));
 #endif
 	sprintf(qpath, "../%s/%s", QUEUEDIR, file);
 	fflush(ofp);
@@ -2206,11 +2206,11 @@ sequencer(e, file)
 	}
 
 #ifndef USE_ALLOCA
-	path = emalloc(5+strlen(TRANSPORTDIR)+strlen(file));
+	path = (char*)emalloc(5+strlen(TRANSPORTDIR)+strlen(file));
 #else
 	/* This actually reallocs more space from stack, but then it
 	   is just stack space and will disappear.. */
-	path = alloca(5+strlen(TRANSPORTDIR)+strlen(file));
+	path = (char*)alloca(5+strlen(TRANSPORTDIR)+strlen(file));
 #endif
 	sprintf(path, "../%s/%s", TRANSPORTDIR, file);
 	unlink(path);	/* Should actually always fail.. */

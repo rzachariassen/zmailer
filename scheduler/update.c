@@ -461,9 +461,9 @@ static int ctlowner(cfp)
 	if (cfp->mid == NULL)
 	  abort(); /* calling-convention error! */
 #ifdef USE_ALLOCA
-	path = alloca(5+strlen(cfp->mid)+sizeof QUEUEDIR+8);
+	path = (char*)alloca(5+strlen(cfp->mid)+sizeof QUEUEDIR+8);
 #else
-	path = emalloc(5+strlen(cfp->mid)+sizeof QUEUEDIR+8);
+	path = (char*)emalloc(5+strlen(cfp->mid)+sizeof QUEUEDIR+8);
 #endif
 	if (cfp->dirind > 0)
 	  sprintf(path, "../%s/%s/%s",

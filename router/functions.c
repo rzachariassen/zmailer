@@ -705,7 +705,7 @@ rd_doit(filename, dirs)
 	  /* If the pid did exist, we do not touch on that file,
 	     on the other hand, we need to rename the file now.. */
 #ifdef	USE_ALLOCA
-	  buf = alloca(len+16);
+	  buf = (char*)alloca(len+16);
 #else
 	  if (blen == 0) {
 	    blen = len+16;
@@ -1068,9 +1068,9 @@ run_process(argc, argv)
 		return PERR_USAGE;
 	}
 #ifdef	USE_ALLOCA
-	file = alloca(strlen(argv[1])+1);
+	file = (char*)alloca(strlen(argv[1])+1);
 #else
-	file = emalloc(strlen(argv[1])+1);
+	file = (char*)emalloc(strlen(argv[1])+1);
 #endif
 	strcpy(file, argv[1]);
 
@@ -2164,9 +2164,9 @@ run_filepriv(argc, argv)
 	} else if (cp == file)	/* root path */
 		++cp;
 #ifdef	USE_ALLOCA
-	dir = alloca(cp - file + 1);
+	dir = (char*)alloca(cp - file + 1);
 #else
-	dir = emalloc(cp - file + 1);
+	dir = (char*)emalloc(cp - file + 1);
 #endif
 	memcpy(dir, file, cp - file);
 	dir[cp - file] = '\0';
