@@ -161,12 +161,20 @@ dnsmxlookup(host, depth, mxmode, qtype)
 		      ones I mean ... */
 	  n = _getshort(cp); /* dlen */
 	  cp += 2;
+
+	  if (cp + n > eom) {
+	    /* BAD data.. */
+	    break;
+	  }
+
 	  if (type == T_CNAME) {
 	    cp += dn_expand((msgdata *)&answer, eom, cp,
 			    (void*)realname, sizeof realname);
 	    saw_cname = 1;
 	    continue;
-	  } else if (type != qtype)  {
+	  }
+
+	  if (type != qtype)  {
 	    /* Not looked for .. */
 	    cp += n;
 	    continue;
@@ -196,12 +204,22 @@ dnsmxlookup(host, depth, mxmode, qtype)
 
 	  if (type == T_TXT) {
 	    int len = (*cp++) & 0xFF; /* 0..255 chars */
+
+	    /* Mal-formed inputs are possible overflowing the buffer.. */
+	    if (len > (eom - cp))
+	      len = (eom - cp);
+	    if (len > cp + n - 2)
+	      len = cp + n - 2
+
 	    if (txt_buf != NULL)
 	      free(txt_buf);
 	    txt_buf = emalloc(len+1);
 	    memcpy(txt_buf, cp, len);
 	    txt_buf[len] = '\0';
-	    for (i = 0; i < mxcount; ++i) if (mx[i]) free(mx[i]);
+	    for (i = 0; i < mxcount; ++i) {
+	      if (mx[i]) free(mx[i]);
+	      mx[i] = NULL;
+	    }
 	    return 1; /* OK! */
 	  }
 
@@ -741,11 +759,12 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	      has_ok = 1;
 	      continue; /* Isn't  127.0.0.* */
 	    }
+#if 0
 	    if (strcmp("127.0.0.4",abuf) == 0) {
 	      /* ORBS NETBLOCK */
 	      if (has_ok) continue;
 	    }
-
+#endif
 	    /* Ok, then lookup for the TXT entry too! */
 	    if (debug)
 	      printf("000- looking up DNS TXT object: %s\n", hbuf);
@@ -754,6 +773,16 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	      if (*msgp != NULL)
 		free(*msgp);
 	      *msgp = strdup(txt_buf);
+	      s = *msep;
+	      if (s) {
+		for ( ;*s; ++s) {
+		  int c = ((*s) & 0xFF);
+		  /* Characters not printable in ISO-8859-*
+		     are masked with space. */
+		  if (c < ' ' || (c >= 127 && c < 128+32) || c == 255)
+		    *s = ' ';
+		}
+	      }
 	    }
 	    return -1;
 	  }

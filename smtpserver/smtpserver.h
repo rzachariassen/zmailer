@@ -173,6 +173,16 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #include <openssl/err.h>
 #endif /* - HAVE_OPENSSL */
 
+#ifdef HAVE_SASL2
+#ifdef HAVE_SASL_SASL_H
+#include <sasl/sasl.h>
+#include <sasl/saslutil.h>
+#else
+# error "No <sasl/sasl.h> available!"
+#endif
+#endif
+
+
 struct smtpconf {
     const char *pattern;
     int maxloadavg;
