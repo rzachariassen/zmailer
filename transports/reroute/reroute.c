@@ -41,6 +41,7 @@
 #include <pwd.h>
 #include <sysexits.h>
 #include <sys/param.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <errno.h>
 
@@ -49,6 +50,9 @@
 #include "zsyslog.h"
 
 #include "ta.h"
+#include "mail.h"
+#include "zmsignal.h"
+#include "zsyslog.h"
 
 #ifdef	HAVE_RESOLVER
 #include "netdb.h"
@@ -153,6 +157,8 @@ struct conshell *envarlist = NULL;
 #endif
 int	D_alloc = 0;
 
+FILE *verboselog = NULL;
+
 extern char *optarg;
 extern int optind;
 extern void process __((struct ctldesc *));
@@ -178,6 +184,7 @@ main(argc, argv)
 	const char *channel, *host;
 	int errflg, c, i;
 	struct ctldesc *dp;
+	int matchhost = 0;
 	RETSIGTYPE (*oldsig) __((int));
 
 	pid = getpid();
@@ -203,15 +210,21 @@ main(argc, argv)
 	  progname = argv[0];
 	else
 	  ++progname;
-	errflg = 0;
+	errflg  = 0;
 	channel = CHANNEL;
+	host    = NULL;
+
 	while (1) {
-	  c = getopt(argc, argv, "c:V");
+	  c = getopt(argc, argv, "c:h:V");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
 	  case 'c':		/* specify channel scanned for */
 	    channel = optarg;
+	    break;
+	  case 'h':
+	    host = strdup(optarg);
+	    matchhost = 1;
 	    break;
 	  case 'V':
 	    prversion(PROGNAME);
@@ -223,7 +236,7 @@ main(argc, argv)
 	  }
 	}
 	if (errflg || optind != argc) {
-	  fprintf(stderr, "Usage: %s [-V] [-c channel]\n",
+	  fprintf(stderr, "Usage: %s [-V] [-c channel] [-h host]\n",
 		  argv[0]);
 	  exit(EX_USAGE);
 	}
@@ -249,18 +262,42 @@ main(argc, argv)
 	    break;
 
 	  s = strchr(filename,'\t');
-	  host = NULL;
+
 	  if (s != NULL) {
-	    /* Ignore the host part */
-	    *s++ = 0;
-	    host = s;
+	    if (host) free((void*)host);
+	    host = strdup(s+1);
+	    *s = 0;
 	  }
 
+
+	  SETUID(0); /* We begin as roots..  process() may change us */
+	  SETEUID(0); /* We begin as roots..  process() may change us */
+
+	  notary_setxdelay(0); /* Our initial speed estimate is
+				  overtly optimistic.. */
+
 	  dp = ctlopen(filename, channel, host, &getout, NULL, NULL, NULL, NULL);
+	  if (verboselog) {
+	    fclose(verboselog);
+	    verboselog = NULL;
+	  }
+
 	  if (dp != NULL) {
+
+	    if (dp->verbose) {
+	      verboselog = fopen(dp->verbose,"a");
+	      if (verboselog) {
+		/* Buffering, and Close-On-Exec bit! */
+		setbuf(verboselog,NULL);
+		fcntl(FILENO(verboselog), F_SETFD, 1);
+	      }
+	    }
+
 	    process(dp);
 	    ctlclose(dp);
+
 	  } else {
+
 	    printf("#resync %s\n",filename);
 	    fflush(stdout);
 	  }
@@ -308,7 +345,7 @@ process(dp)
 	      notaryreport(rp->addr->user,"delayed",
 			   "4.3.1 (System spool full?)",
 			   "x-local; 400 (Cannot resubmit anything, out of spool space?)");
-	      diagnostic(rp, EX_TEMPFAIL, 0,
+	      diagnostic(verboselog, rp, EX_TEMPFAIL, 0,
 			 "cannot resubmit anything!");
 	    }
 	  }
@@ -362,7 +399,7 @@ process(dp)
 	  }
 	}
 
-	printf(mfp,"env-end\n");
+	fprintf(mfp,"env-end\n");
 
 	fwriteheaders(dp->recipients,mfp,"\n",0,0,NULL);
 	fprintf(mfp,"\n");
@@ -402,10 +439,10 @@ process(dp)
 
 	      /* Magic upon magic..  We have sent the message into
 		 rerouting, thus we shut up about it completely! */
-	      rp->notifyflags = _DNS_NOTIFY_NEVER;
+	      rp->notifyflgs = _DSN_NOTIFY_NEVER;
 
 	      notaryreport(rp->addr->user, "relayed",  msgbuf, msgbuf2);
-	      diagnostic(rp, code, 0, cp);
+	      diagnostic(verboselog, rp, code, 0, cp);
 	    }
 	  }
 	}

@@ -41,6 +41,8 @@ version.c:	$(PROGRAM).o $(TOPDIR)/Makefile
 install:	$(PROGRAM)
 	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/ta/$(PROGRAM).x
 	mv $(MAILBIN)/ta/$(PROGRAM).x $(MAILBIN)/ta/$(PROGRAM)
+	$(INSTALL) -m 0755 manual-rerouter $(MAILBIN)/manual-rerouter.x
+	mv $(MAILBIN)/manual-rerouter.x $(MAILBIN)/manual-rerouter
 
 clean:
 	-rm -f $(PROGRAM) *.o *.out make.log *~
