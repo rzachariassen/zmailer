@@ -317,6 +317,7 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 				   writing to the log! */
 
 	  ctlsize = lseek(rp->desc->ctlfd, 0, SEEK_END);
+
 	  rc2 = write(rp->desc->ctlfd, sbuf, len);
 	  if (rc2 != len || rc2 < 0 || len < 0) {
 	    /* UAARGH! -- write failed, must have disk full! */
@@ -345,15 +346,19 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	    *notarybuf = 0;
 	}
 
-	printf("%d/%d\t%s\t%s %s\n",
-	       rp->desc->ctlid, rp->id,
-	       (notarybuf && report_notary) ? notarybuf : "",
-	       statmsg, message);
+	if (rp->notifyflgs & _DSN__DIAGDELAYMODE) {
+	  /* XX: Delay the diagnostic reports */
+	} else {
+	  printf("%d/%d\t%s\t%s %s\n",
+		 rp->desc->ctlid, rp->id,
+		 (notarybuf && report_notary) ? notarybuf : "",
+		 statmsg, message);
 
-	if (!lockaddr(rp->desc->ctlfd, rp->desc->ctlmap,
-		      rp->lockoffset, _CFTAG_LOCK, mark,
-		      (char*)rp->desc->msgfile, "?host?", getpid())) {
-	  /* something went wrong in unlocking it, concurrency problem? */
+	  if (!lockaddr(rp->desc->ctlfd, rp->desc->ctlmap,
+			rp->lockoffset, _CFTAG_LOCK, mark,
+			(char*)rp->desc->msgfile, "?host?", getpid())) {
+	    /* something went wrong in unlocking it, concurrency problem? */
+	  }
 	}
 	rp->lockoffset = 0;	/* mark this recipient unlocked */
 	fflush(stdout);

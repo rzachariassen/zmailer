@@ -27,6 +27,8 @@ struct taddress {
 #define _DSN_NOTIFY_DELAY	0x004
 #define _DSN_NOTIFY_NEVER	0x008
 
+#define _DSN__DIAGDELAYMODE	0x800 /* Internal magic */
+
 /* `convertmode' controls the behaviour of the message conversion:
      _CONVERT_NONE (0): send as is
      _CONVERT_QP   (1): Convert 8-bit chars to QUOTED-PRINTABLE
@@ -61,6 +63,13 @@ struct rcpt {
 	int		status;		/* current delivery sysexit code */
 	struct ctldesc	*desc;		/* backpointer to descriptor */
 	/* XX: something needed for XOR address lists */
+
+#if 0 /* not yet ?? */
+	/* Delayed diagnostics */
+	char		*diagdelaybuf;
+	int		diagdelaysize;
+	int		diagdelayspace;
+#endif
 };
 
 struct ctldesc {

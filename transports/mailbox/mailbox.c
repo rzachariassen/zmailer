@@ -214,7 +214,6 @@ const char *maildirs[] = {
 					 && (R)->status != EX_OK \
 					 && (R)->status != EX_TEMPFAIL) ? \
 					      EX_UNAVAILABLE : (E), 0, (A1), (A2))
-
 #define	DIAGNOSTIC3(R,U,E,A1,A2,A3)   diagnostic((R), \
 					(*(U) == TO_PIPE \
 					 && (R)->status != EX_OK \
@@ -1309,6 +1308,8 @@ deliver(dp, rp, usernam, timestring)
 	  sv.username = usernam;
 	  sv.spoolfile = file;
 
+	  rp->notifyflgs |= _DSN__DIAGDELAYMODE;
+
 	  if (sieve_start(&sv) == 0) {
 	    for (;
 		 sv.state != 0;
@@ -1346,6 +1347,8 @@ deliver(dp, rp, usernam, timestring)
 	  /* Sieve-filter sets state mode -- keep_or_discard (<=>0) to
 	     tell what we should do to the message regarding its storage
 	     to the local message store. */
+
+	  rp->notifyflgs &= ~ _DSN__DIAGDELAYMODE;
 
 	  if (sv.keep_or_discard >= 0) {
 	    store_to_file(dp, rp, file, ismbox, usernam, &st, uid,
