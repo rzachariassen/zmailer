@@ -18,4 +18,10 @@
 	package is exportable out from USA.
 
 
+	UPDATE 28-May-2000:  US Crypto SOURCE export rules have been
+			     relaxed, but binary distributions are still
+			     fairly strict -- doesn't make much sense
+			     if one can simply collect together suitable
+			     sources and simply compile it...
+
 /Matti Aarnio - 1999-May-14

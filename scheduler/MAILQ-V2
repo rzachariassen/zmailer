@@ -29,6 +29,9 @@ that is, lowercase hex characters.
 	---------- ToBeWritten: commands ... -------------
 	(and multiline replies, and state things, and ...)
 
+ETRN etrn_string
+	- Single-line reply
+
 SHOW QUEUE SHORT
 	- Success/Failure indicating reply; "+ xxxx" = success, "- xxx" = fail
 	- On success a multiline appendix with SMTP DATA phase dot-duplication
@@ -44,13 +47,28 @@ SHOW SNMP
 	- On success a multiline appendix with SMTP DATA phase dot-duplication
 	  rules (same as with POP3)
 
-ETRN etrn_string
-	- Single-line reply
-
 SHOW THREAD channel host
+	- Multiline reply
+	- Each line containing following TAB separated fields
+		- Spoolfile name (1234-567 or X/1234-567 or X/Y/1234-567)
+		- "<"source-envelope-address">"
+		- Recipient entry offset within the file
+		- expiry time_t
+		- next wakeup time_t
+		- last feed time_t
+		- count of processing attempts
+		- If wakeup in future, "retry in #d#h#m#s"
+		  else reason for waiting: "channel"/"thread"/""
+		- Diagnostic message from transport agent
+	(Recipient addresses are not known to the scheduler, so it can't
+	 report those)
+
 
 KILL MSG spoolid           (expires the message -- all recipients)
+	- Not yet implemented
 
 KILL THREAD channel host   (expires the thread)
+	- Not yet implemented
 
 REQUEUE ROUTER spoolid     (?? - from a TODO item..)
+	- Not yet implemented

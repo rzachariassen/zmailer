@@ -3,7 +3,7 @@ This is the release 2.99mea (before 3.0) of ZMailer.
 All files in this distribution, unless explicitly marked otherwise, are:
 
 Copyright 1992 by Rayan S. Zachariassen, All Rights Reserved.
-Copyright 1992-1997 by Matti Aarnio <mea@utu.fi>; LOTS of modifications..
+Copyright 1992-2000 by Matti Aarnio <mea@utu.fi>; LOTS of modifications..
 
 This release is freely usable, but since the documentation is not
 finalized a subsequent release is planned.  Please do not redistribute
@@ -21,7 +21,7 @@ Current status of the various programs is:
 	rmail			release
 	smtpserver		release
 	router			release
-	scheduler		release (works well, though)
+	scheduler		release
 	zmsh			release
 	mailq			release
 	zmailer (script)	release
@@ -39,7 +39,7 @@ Legend:
 Any and all comments/critique will be appreciated, especially if constructive.
 
 rayan 920709
-mea   960203
+mea   960203,20000328
 
 
 private mail:  <mea@nic.funet.fi>

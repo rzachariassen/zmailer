@@ -2,7 +2,7 @@
 	MXVERIFY-CGI  is a WEB CGI utility to test target domain
 	reachability in SMTP sense.  See:
 
-		http://www.zmailer.org/mxverify-cgi.html
+		http://www.zmailer.org/mxverify.html
 
 	It can be compiled without compiling the *entire* other
 	ZMailer -- do just:
