@@ -146,7 +146,8 @@ static struct gaih_typeproto gaih_inet_typeproto[] = {
 struct gaih {
   int family;
   int (*gaih)__((const char *name, const struct gaih_service *service,
-		 const struct addrinfo *req, struct addrinfo **pai));
+		 const struct addrinfo *req, struct addrinfo **pai,
+		 FILE *));
 };
 
 static struct addrinfo default_hints =
@@ -154,14 +155,16 @@ static struct addrinfo default_hints =
 
 
 static int gaih_local __((const char *name, const struct gaih_service *service,
-			  const struct addrinfo *req, struct addrinfo **pai));
+			  const struct addrinfo *req, struct addrinfo **pai,
+			  FILE *vlog));
 
 static int
-gaih_local (name, service, req, pai)
+gaih_local (name, service, req, pai, vlog)
      const char *name;
      const struct gaih_service *service;
      const struct addrinfo *req;
      struct addrinfo **pai;
+     FILE *vlog;
 {
   struct utsname utsname;
 
@@ -171,7 +174,7 @@ gaih_local (name, service, req, pai)
   if ((name != NULL) || (req->ai_flags & AI_CANONNAME))
     if (uname (&utsname))
       return -EAI_SYSTEM;
-
+  
   if (name != NULL) {
     if (strcmp(name, "localhost") &&
 	strcmp(name, "local") &&
@@ -224,9 +227,9 @@ gaih_local (name, service, req, pai)
     struct sockaddr_un *sunp = (struct sockaddr_un *) (*pai)->ai_addr;
 
     if (strchr (service->name, '/') != NULL) {
-      if (strlen (service->name) >= sizeof (sunp->sun_path))
+      if (strlen (service->name) >= sizeof (sunp->sun_path)) {
 	return GAIH_OKIFUNSPEC | -EAI_SERVICE;
-
+      }
       strcpy (sunp->sun_path, service->name);
 
     } else {
@@ -244,16 +247,17 @@ gaih_local (name, service, req, pai)
 
     if (tmpnam (((struct sockaddr_un *) (*pai)->ai_addr)->sun_path) == NULL)
       return -EAI_SYSTEM;
-  }
+    }
 
-  if (req->ai_flags & AI_CANONNAME)
-    (*pai)->ai_canonname = strcpy ((char *) *pai + sizeof (struct addrinfo)
-				   + sizeof (struct sockaddr_un),
-				   utsname.nodename);
-  else
-    (*pai)->ai_canonname = NULL;
-  return 0;
+    if (req->ai_flags & AI_CANONNAME)
+      (*pai)->ai_canonname = strcpy ((char *) *pai + sizeof (struct addrinfo)
+				     + sizeof (struct sockaddr_un),
+				     utsname.nodename);
+    else
+      (*pai)->ai_canonname = NULL;
+    return 0;
 }
+
 
 static int
 gaih_inet_serv (const char *servicename, struct gaih_typeproto *tp,
@@ -277,7 +281,7 @@ gaih_inet_serv (const char *servicename, struct gaih_typeproto *tp,
 
 static int
 gaih_inet (const char *name, const struct gaih_service *service,
-	   const struct addrinfo *req, struct addrinfo **pai)
+	   const struct addrinfo *req, struct addrinfo **pai, FILE *vlog)
 {
   struct gaih_typeproto *tp = gaih_inet_typeproto;
   struct gaih_servtuple *st = &nullserv;
@@ -605,7 +609,10 @@ _getaddrinfo_ (name, service, hints, pai, vlog)
       j++;
       if (pg == NULL || pg->gaih != g->gaih) {
 	pg = g;
-	i = g->gaih (name, pservice, hints, end);
+	i = g->gaih (name, pservice, hints, end, vlog);
+	if (vlog)
+	  fprintf(vlog," g->gaih[%d]('%s',...) rc=%d\n",g->family,name,i);
+
 	if (i != 0) {
 	  /* EAI_NODATA is a more specific result as it says that
 	     we found a result but it is not usable.  */
