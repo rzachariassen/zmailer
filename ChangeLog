@@ -1,5 +1,10 @@
 2003-04-15  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/mxverify.c:
+	    Another error spotting by Eugene Crosser -- for a while
+	    CVS versions have not done any sort of DNS-BL lookups
+	    correctly.  (Since 2002-09-01.)
+
 	* transports/smtp/smtp.c:
 	    "RSET" processing didn't -- various MAIL FROM related
 	    state variables were reset before the optional "RSET"
