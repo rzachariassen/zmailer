@@ -863,6 +863,8 @@ struct thread *thr;
 	    return 0;
 	  }
 	  feed_child(proc);
+	  if (proc->fed)
+	    proc->overfed += 1;
 
 #if 1
 
@@ -875,7 +877,9 @@ struct thread *thr;
 	  while (!proc->fed && proc->thread) {
 	    if (proc->hungry)
 	      feed_child(proc);
-	    if (!proc->fed)
+	    if (proc->fed)
+	      proc->overfed += 1;
+	    else
 	      break; /* Huh! Didn't feed it! */
 	    /* See if we should, and can feed more! */
 	    if (proc->thg == NULL ||

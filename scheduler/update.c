@@ -189,8 +189,8 @@ update(fd, diagnostic)
 	      if (proc->hungry)
 		feed_child(proc);
 	      if (proc->fed)
-		++proc->overfed;
-#if 0 /* NO OVERFEEDING! */
+		proc->overfed += 1;
+#if 1 /* YES OVERFEEDING! */
 	      /* While we have a thread, and things to feed.. */
 	      while (!proc->fed && proc->thread) {
 
@@ -198,7 +198,7 @@ update(fd, diagnostic)
 		  feed_child(proc);
 
 		if (proc->fed)
-		  ++proc->overfed;
+		  proc->overfed += 1;
 		else
 		  break; /* Huh! Feed/flush failure! */
 
