@@ -261,6 +261,7 @@ typedef struct {
   int  within_ehlo;
   int  main_esmtp_on_banner;
   int  servport;
+  int  literalport;
   int  firstmx;			/* error in smtpwrite("HELO"..) */
 # ifdef RFC974
   int  mxcount;
@@ -2338,6 +2339,8 @@ smtpconn(SS, host, noMX)
 	req.ai_family   = PF_INET;
 	ai = NULL;
 
+	SS->literalport = -1;
+
 	if (SS->firstmx == 0)
 	  memset(SS->mxh, 0, sizeof(SS->mxh));
 
@@ -2352,6 +2355,8 @@ smtpconn(SS, host, noMX)
 	}
 	if (SS->verboselog)
 	  fprintf(SS->verboselog,"SMTP: Connecting to host: %.200s\n",host);
+	if (host[0] == '"' && host[1] == '[')
+	  ++host;
 	if (*host == '[') {	/* hostname is IP address domain literal */
 	  char *cp, buf[BUFSIZ];
 	  const char *hcp;
@@ -2362,9 +2367,16 @@ smtpconn(SS, host, noMX)
 	    *cp = *hcp;
 	  *cp = '\0';
 
+	  if (*hcp == ']' &&
+	      *++hcp == ':') {
+	    ++hcp;
+	    sscanf(hcp,"%d",&SS->literalport);
+	  }
+
 #if defined(AF_INET6) && defined(INET6)
-	  if (cistrncmp(buf,"IPv6:",5) == 0 /* ||
-	      cistrncmp(buf,"IPv6.",5) == 0  */  ) {
+	  if (cistrncmp(buf,"IPv6 ",5) == 0 ||
+	      cistrncmp(buf,"IPv6.",5) == 0 || 
+	      cistrncmp(buf,"IPv6:",5) == 0  ) {
 	    /* We parse ONLY IPv6 form of address .. well, also
 	       the potential IPv4 compability addresses ... */
 	    req.ai_family = PF_INET6;
@@ -2810,7 +2822,7 @@ vcsetup(SS, sa, fdp, hostname)
 	int *fdp;
 	char *hostname;
 {
-	int af, addrsiz;
+	int af, addrsiz, port;
 	register int sk;
 	struct sockaddr_in *sai = (struct sockaddr_in *)sa;
 	struct sockaddr_in sad;
@@ -2880,8 +2892,9 @@ abort();
 	     ... to bind some of our alternate IP addresses,
 	     for example.. */
 #if defined(AF_INET6) && defined(INET6)
-	  if (cistrncmp(localidentity,"[ipv6.",6) == 0 ||
-	      cistrncmp(localidentity,"[ipv6 ",6) == 0) {
+	  if (cistrncmp(localidentity,"[ipv6 ",6) == 0 ||
+	      cistrncmp(localidentity,"[ipv6:",6) == 0 ||
+	      cistrncmp(localidentity,"[ipv6.",6) == 0) {
 	    char *s = strchr(localidentity,']');
 	    if (s) *s = 0;
 	    if (inet_pton(AF_INET6, localidentity+6, &sad6.sin6_addr) < 1) {
@@ -2997,11 +3010,14 @@ if (SS->verboselog)
 	  /* If it fails, what could we do ? */
 	}
 
+	port = SS->servport;
+	if (SS->literalport > 0)
+	  port = SS->literalport;
 	if (af == AF_INET)
-	  sai->sin_port   = htons(SS->servport);
+	  sai->sin_port   = htons(port);
 #if defined(AF_INET6) && defined(INET6)
 	if (af == AF_INET6)
-	  sai6->sin6_port = htons(SS->servport);
+	  sai6->sin6_port = htons(port);
 #endif
 	/* setreuid(0,first_uid);
 	   if(SS->verboselog) fprintf(SS->verboselog,"setreuid: first_uid=%d, ruid=%d, euid=%d\n",first_uid,getuid(),geteuid()); */
