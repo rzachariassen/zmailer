@@ -52,9 +52,8 @@
 	   );
   sfprintf(fp,"SC.SchedulerTimeserverStarts    %10u\n",
 	   M.sc.schedulerTimeserverStarts);
-  sfprintf(fp,"SC.SchedulerTimeserverStarttime %10u\n",
-	   M.sc.schedulerTimeserverStarts);
-
+  sfprintf(fp,"SC.SchedulerTimeserverStartTime %10u\n",
+	   M.sc.schedulerTimeserverStartTime);
 
   PIDTEST(sys.SmtpServerMasterPID, sys.SmtpServerMasterStartTime)
   sfprintf(fp,"SYS.SmtpServerMasterPID         %10u",
