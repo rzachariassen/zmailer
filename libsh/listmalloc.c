@@ -601,22 +601,23 @@ conscell *
 #endif
 
     ++newcell_callcount;
-    if (++newcell_gc_callcount >= newcell_gc_interval) {
+    if (conscell_freechain == NULL) {
+
       cons_garbage_collect();
-      newcell_gc_callcount = 0;
-    }
+      /* if (++newcell_gc_callcount >= newcell_gc_interval)
+	 newcell_gc_callcount = 0; */
 
-    /* Ok, if we were lucky, we got free cells from GC,
-       or had them otherwise.. */
+      /* Ok, if we were lucky, we got free cells from GC,
+	 or had them otherwise.. */
 
-    if (conscell_freechain == NULL)
+      if (conscell_freechain == NULL)
 	if (new_consblock() == NULL)
-	    if (cons_garbage_collect() == 0) {
-		/* XX: Unable to allocate memory, nor any freeable!
-		   Print something, and abort ? */
-		return NULL;
-	    }
-
+	  if (cons_garbage_collect() == 0) {
+	    /* XX: Unable to allocate memory, nor any freeable!
+	       Print something, and abort ? */
+	    return NULL;
+	  }
+    }
     /* Ok, the devil is at loose now, if we don't have at least ONE cell
        in the free chain now..  We do NOT store anything into flags, or
        other fields of the structure -- to help memory access checkup
