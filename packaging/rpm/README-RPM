@@ -1,6 +1,6 @@
 
  This spec has been tested on a Red Hat Linux release 6.2 x86 (Zoot)
- plus all upgrades and LiNUX kernel 2.4.2-ac7
+ plus all upgrades and a LiNUX kernel 2.2.18pre11-va2.0
 --
 * Howto make a RPM of ZMailer MTA
 
@@ -61,3 +61,4 @@ Get it the last version from  http://perso.wanadoo.es/xose
 
 This document come out has been updated at Fri Mar  2 10:04:09 CET 2001
 by Xos….
+
