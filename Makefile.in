@@ -2,7 +2,7 @@
 
 MAJORVERSION =	2
 MINORVERSION =	99
-PATCHLEVEL =	53-pre2cvs
+PATCHLEVEL =	53
 
 srcdir = @srcdir@
 VPATH = @srcdir@
@@ -210,7 +210,7 @@ dist:
 	@echo 'Did you run "make scrub" first?' ; sleep 2
 	chmod -R a+rX .
 	find . -type l -o -type d -o -type f -print | \
-	  egrep -v -e '/(private[/$$]|config.cache|config.status|CVS[/$$]|RCS[/$$]|ID$$|.*\.o$$|fc[/$$]|.*\.a$$)' | \
+	  egrep -v -e '/(private[/$$]|config.cache|config.status|CVS[/$$]|RCS[/$$]|ID$$|.*\.o$$|fc[/$$]|.*\.a$$|stamp)' | \
 	  CWD=`pwd` sed -e '/\.tar.*/d' -e "s/^\./`sh -c 'basename \`pwd\`'`/" | \
 	  sort -t/ > MANIFEST
 	cp MANIFEST /tmp
@@ -221,7 +221,7 @@ distprivate:
 	@echo 'Did you run "make scrub" first?' ; sleep 2
 	chmod -R a+rX .
 	find . -type l -o -type d -o -type f -print | \
-	  egrep -v -e '/(config.cache|config.status|CVS[/$$]|RCS[/$$]|ID$$|.*\.o$$|fc[/$$]|.*\.a$$)' | \
+	  egrep -v -e '/(config.cache|config.status|CVS[/$$]|RCS[/$$]|ID$$|.*\.o$$|fc[/$$]|.*\.a$$|stamp)' | \
 	  CWD=`pwd` sed -e '/\.tar.*/d' -e "s/^\./`sh -c 'basename \`pwd\`'`/" | \
 	  sort -t/ > MANIFEST
 	cp MANIFEST /tmp
@@ -233,7 +233,7 @@ dist-usa:
 	chmod -R a+rX .
 	./bin/usa-itar-stripper.sh
 	find . -type d -o -type f -print | \
-	  egrep -v -e '/(private[/$$]|config.cache|crypto|config.status|CVS[/$$]|RCS[/$$]|ID$$|.*\.o$$|fc[/$$]|.*\.a$$)' | \
+	  egrep -v -e '/(private[/$$]|config.cache|crypto|config.status|CVS[/$$]|RCS[/$$]|ID$$|.*\.o$$|fc[/$$]|.*\.a$$|stamp)' | \
 	  CWD=`pwd` sed -e '/\.tar.*/d' -e "s/^\./`sh -c 'basename \`pwd\`'`/" | \
 	  sort -t/ > MANIFEST
 	cp MANIFEST /tmp

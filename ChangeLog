@@ -1,5 +1,8 @@
 2000-07-17  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* Makefile.in:
+	    Version 2.99.53
+
 	* smtpserver/smtpcmds.c:
 	    At MAIL FROM policy reporting we did always yield
 	    400-series reply even when actual code directed us
