@@ -194,7 +194,7 @@ int enhancedstatusok = 1;
 int multilinereplies = 1;
 int mime8bitok = 1;
 int dsn_ok = 1;
-int auth_ok = 1;
+int auth_ok = 0;
 int ehlo_ok = 1;
 int etrn_ok = 1;
 #ifndef	IDENT_TIMEOUT

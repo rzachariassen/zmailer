@@ -61,7 +61,7 @@ void smtp_auth(SS,buf,cp)
 				   to be only 1000 chars, not 8k.. */
     char bbuf[SMTPLINESIZE];
 
-    char *eobuf, c, co;
+    char c, co;
     int i, rc;
     char *uname;
 
@@ -82,29 +82,49 @@ void smtp_auth(SS,buf,cp)
       return;
     }
     cp += 5;
+    if (*cp == ' ') ++cp;
+    if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
+
     if (*cp != 0) {
-      type(SS, 501, m552, "unrecognized input/extra junk ??");
-      return;
-    }
+      const char *ccp;
+      rc = decodebase64string(cp, strlen(cp), bbuf, sizeof(bbuf), &ccp);
+      bbuf[sizeof(bbuf)-1] = 0;
+      if (debug)
+	type(SS, 0, NULL, "-> %s", bbuf);
+      uname = strdup(bbuf);
+      if (*ccp != 0) {
+	type(SS, 501, m552, "unrecognized input/extra junk ??");
+	return;
+      }
+    } else {
+      if (*cp != 0) {
+	type(SS, 501, m552, "unrecognized input/extra junk ??");
+	return;
+      }
 
-    i = encodebase64string("Username:", 9, abuf, sizeof(abuf));
-    if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
-    abuf[i] = 0;
-    type(SS, 334, NULL, "%s", abuf);
+      i = encodebase64string("Username:", 9, abuf, sizeof(abuf));
+      if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
+      abuf[i] = 0;
+      type(SS, 334, NULL, "%s", abuf);
 
-    i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
-    abuf[sizeof(abuf)-1] = 0;
-    if (i == 0)	/* EOF ??? */
-      return;
-    if (strcmp(abuf, "*") == 0) {
-      type(SS, 501, NULL, "AUTH command cancelled");
-      return;
+      i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
+      abuf[sizeof(abuf)-1] = 0;
+      if (logfp != NULL) {
+	fprintf(logfp, "%dr\t%s\n", pid, abuf);
+	fflush(logfp);
+      }
+      if (i == 0)	/* EOF ??? */
+	return;
+      if (strcmp(abuf, "*") == 0) {
+	type(SS, 501, NULL, "AUTH command cancelled");
+	return;
+      }
+      rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf), NULL);
+      bbuf[sizeof(bbuf)-1] = 0;
+      if (debug)
+	type(SS, 0, NULL, "-> %s", bbuf);
+      uname = strdup(bbuf);
     }
-    rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf));
-    bbuf[sizeof(bbuf)-1] = 0;
-    if (debug)
-      type(SS, 0, NULL, "-> %s", bbuf);
-    uname = strdup(bbuf);
 
     i = encodebase64string("Password:", 9, abuf, sizeof(abuf));
     if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
@@ -113,6 +133,10 @@ void smtp_auth(SS,buf,cp)
 
     i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
     abuf[sizeof(abuf)-1] = 0;
+    if (logfp != NULL) {
+      fprintf(logfp, "%dr\t%s\n", pid, abuf);
+      fflush(logfp);
+    }
     if (i == 0)	{ /* EOF ??? */
       if (uname) free(uname);
       return;
@@ -123,7 +147,7 @@ void smtp_auth(SS,buf,cp)
       return;
     }
 
-    rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf));
+    rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf), NULL);
     bbuf[sizeof(bbuf)-1] = 0;
     if (debug)
       type(SS, 0, NULL, "-> %s", bbuf);

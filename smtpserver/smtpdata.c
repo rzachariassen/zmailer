@@ -507,9 +507,10 @@ static int base64decode_index[128] = {
 
 static char base64encode_array[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-int decodebase64string(instr,inlen,outstr,outspc)
+int decodebase64string(instr,inlen,outstr,outspc,inleftover)
      const char * instr;
-     char *outstr;
+     char * outstr;
+     const char ** inleftover;
      int inlen, outspc;
 {
     int b64decoding = 1, outlen = 0;
@@ -545,6 +546,8 @@ int decodebase64string(instr,inlen,outstr,outspc)
     }
     if (outlen < outspc)
       outstr[outlen] = 0;
+    if (inleftover)
+      *inleftover = instr;
     return outlen;
 }
 

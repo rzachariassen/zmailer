@@ -373,4 +373,4 @@ extern char *rfc822date __((time_t *));
 #endif
 
 extern int encodebase64string __((const char *instr, int inlen, char *outstr, int outspc));
-extern int decodebase64string __((const char *instr, int inlen, char *outstr, int outspc));
+extern int decodebase64string __((const char *instr, int inlen, char *outstr, int outspc, const char **inleftover));
