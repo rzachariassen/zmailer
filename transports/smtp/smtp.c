@@ -3715,16 +3715,26 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    }
 	  } else if (r == -1) {
 	    if (gotalarm) {
-	      if (strbuf == NULL)
-		sprintf(SS->remotemsg,
-			"smtp; 466 (Timeout on initial SMTP response read)");
-	      else
-		sprintf(SS->remotemsg,
-			"smtp; 466 (Timeout on SMTP response read, Cmd: %s)",
-			strbuf);
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
-	      notaryreport(NULL,FAILED,"5.4.2 (smtp transaction read timeout)",SS->remotemsg);
+	      if (SS->smtpfp && sffileno(SS->smtpfp) < 0) {
+		sprintf(SS->remotemsg,
+			"smtp; 466 (Timeout on SMTP write, and response read)");
+		notaryreport(NULL,FAILED,
+			     "5.4.2 (smtp transaction write+read timeout)",
+			     SS->remotemsg);
+	      } else {
+		if (strbuf == NULL)
+		  sprintf(SS->remotemsg,
+			  "smtp; 466 (Timeout on initial SMTP response read)");
+		else
+		  sprintf(SS->remotemsg,
+			  "smtp; 466 (Timeout on SMTP response read, Cmd: %s)",
+			  strbuf);
+		notaryreport(NULL,FAILED,
+			     "5.4.2 (smtp transaction read timeout)",
+			     SS->remotemsg);
+	      }
 	    } else {
 	      se = strerror(errno);
 	      if (strbuf == NULL)
