@@ -1,5 +1,9 @@
 2003-05-30  Matti Aarnio  <mea@zmailer.org>
 
+	* scheduler/mailq.c:
+	    Just before closing the MAILQ-v2 command socket, do
+	    send there "QUIT\n" command too!
+
 	* scheduler/mq2.c, scheduler/mailq.pl, scheduler/update.c:
 	   Andrey Blochintsev <bag@iptelecom.net.ua>  sent patch
 	   to implement "KILL MSG" type functionality via the MAILQ-v2

@@ -1431,6 +1431,9 @@ void query2(fpi, fpo)
 
 	  }
 
+	  fprintf(fpo, "QUIT\n");
+	  fflush(fpo);
+
 	  close(FILENO(fpi));
 
 	} else {
@@ -1555,6 +1558,9 @@ void query2(fpi, fpo)
 	  threads[threadcnt].channel = NULL;
 	  threads[threadcnt].host    = NULL;
 	  threads[threadcnt].line    = NULL;
+
+	  fprintf(fpo, "QUIT\n");
+	  fflush(fpo);
 
 	  close(FILENO(fpi));
 
