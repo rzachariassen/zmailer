@@ -55,11 +55,12 @@ extern int  sweepinterval;
 extern char *mq2authfile;
 extern char *mailqsock;
 extern void *BADPTR;
-
+extern int   global_report_interval;
 
 /* msgerror.c */
 extern void msgerror __((struct vertex *vp, long offset, const char *message));
 extern void reporterrs __((struct ctlfile *cfpi, const int delayreport));
+extern void interim_report_run __((void));
 
 /* pipes.c */
 extern int  pipes_create         __((int *tochild, int *fromchild));

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "1 Mar 2000"
+.TH SCHEDULER 8 "3 Mar 2000"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -474,6 +474,11 @@ These define two different type of possible socket addresses for
 Default is "TCP:174".
 .IP PARAMautfile\ \=\ "/path/to/scheduler.auth"
 Location of MAILQv2 autentication control file
+.IP PARAMglobal-report-interval\ \=\ 15m
+Interval by which all permanent reports accumulated into a message
+are reported by; sends out early reports of delivery failures, and
+does not force to wait for maximum queue timeout in case the message
+has more than once recipient.
 .SH MESSAGE CONTROL FILE SYNTAX
 A message control file contains all the information needed by delivery
 programs like

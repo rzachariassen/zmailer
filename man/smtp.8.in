@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "2 Jan 2000"
+.TH SMTP 8 "2 Mar 2000"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
@@ -255,9 +255,31 @@ tls-CAfile      @MAILVAR@/db/smtpserver-CAcert.pem
 .I /var/spool/postoffice (POSTOFFICE)
 .SH SEE ALSO
 scheduler(8)
-.br
-RFC821, RFC1123, RFC1341, RFC1651, RFC1652, RFC1870, RFC1428, RFC1830,
-RFC1981, RFC2197, RFC2034, RFC2487
+.SH SEE ALSO
+router(8)
+.PP
+.ta 2.5i
+.nf
+RFC 821	 The basic SMTP specification
+RFC 1123	 Various 821 parameter clarifications
+
+Several extended SMTP facilities are implemented:
+
+RFC 1341/1521/2045	 MIME specification (body, formats)
+RFC 1342/1522/2047	 MIME specification (headers)
+RFC 1425/1651/1869	 ESMTP EHLO framework
+RFC 1426/1652	 ESMTP 8BITMIME
+RFC 1427/1653/1870	 ESMTP SIZE
+RFC 1428	 Basic MIME conversion rules
+RFC 1830	 ESMTP CHUNKING
+RFC 1854/2197	 ESMTP PIPELINING
+RFC 1891	 ESMTP DSN
+RFC 1985	 ESMTP ETRN
+RFC 2034	 ESMTP ENHANCEDSTATUSCODES
+RFC 2487	 ESMTP STARTTLS
+RFC 2554+M$ Exchange	 ESMTP AUTH LOGIN
+RFC 2554+NetScape	 ESMTP AUTH=LOGIN
+.fi
 .SH AUTHOR
 This program authored and copyright by:
 .br

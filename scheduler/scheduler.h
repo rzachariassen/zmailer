@@ -56,11 +56,13 @@ struct config_entry {
 	int	skew;		/* retry skew parameter			     */
 	int	mark;		/* non-0 if we started a TA the last time    */
 	int	priority;	/* Scheduling priority			     */
-	int	overfeed;	/* How much overfeeding instead of sync processing ? */
+	int	overfeed;	/* How much overfeeding instead of
+				   sync processing ? */
 	char	**argv;		/* execv parameters for the command	     */
 	int	nretries;	/* number of retry factors known	     */
 	int	*retries;	/* list of nretries retry factors	     */
 	char	*deliveryform;	/* name of delivery error form		     */
+	int	reporttimes[4]; /* Shall match  _CFTAG_RCPTDELAYSIZE         */
 };
 
 #define	L_CTLFILE	0
@@ -231,6 +233,9 @@ struct vertex {
 	int		retryindex;	/* cur index into ce->retries array  */
 	time_t		wakeup;		/* time to wake up and run this      */
 	time_t		lastfeed;	/* When the last feed was ?	     */
+	time_t		nextrprttime;	/* next time after which collected
+					   reports of this message will be
+					   produced.                         */
 	char		*sender;	/* Message Sender/error recipient    */
 	int		ngroup;		/* number of addresses in group      */
 	int		index[1];	/* index of cfp->offset for group    */

@@ -41,3 +41,7 @@ int	never_full_content = 0;
 /* If we use ZMailer malloc library in debug mode, BAD-PTR looks like
    following value.. */
 void *BADPTR = (void*) 0x5555555555555555L;
+
+/* Push reports regarding recipients out this often, unless
+   parametrized to do differently */
+int global_report_interval = 900; /* 15min */

@@ -39,6 +39,7 @@ static int rc_maxta		RCKEYARGS;
 static int rc_maxthr		RCKEYARGS;
 static int rc_idlemax		RCKEYARGS;
 static int rc_retries		RCKEYARGS;
+static int rc_reporttimes	RCKEYARGS;
 static int rc_user		RCKEYARGS;
 static int rc_skew		RCKEYARGS;
 static int rc_bychannel		RCKEYARGS;
@@ -77,6 +78,7 @@ static struct rckeyword {
 {	"expiryform",		rc_expform	},	/* string */
 {	"deliveryform",		rc_deliveryform	},	/* string */
 {	"retries",		rc_retries	},	/* array of numbers */
+{	"reporttimes",		rc_reporttimes	},	/* array of numbers */
 {	"maxring",		rc_maxring	},	/* number */
 {	"maxrings",		rc_maxring	},	/* number */
 {	"maxta",		rc_maxta	},	/* number */
@@ -126,6 +128,10 @@ defaultconfigentry(ce,defaults)
 	  ce->argv		= defaults->argv;
 	  ce->nretries		= defaults->nretries;
 	  ce->retries		= defaults->retries;
+	  ce->reporttimes[0]	= defaults->reporttimes[0];
+	  ce->reporttimes[1]	= defaults->reporttimes[1];
+	  ce->reporttimes[2]	= defaults->reporttimes[2];
+	  ce->reporttimes[3]	= defaults->reporttimes[3];
 	  ce->skew		= defaults->skew;
 	  ce->deliveryform	= defaults->deliveryform;
 	  ce->overfeed		= defaults->overfeed;
@@ -150,6 +156,10 @@ defaultconfigentry(ce,defaults)
 	  ce->argv	= NULL;
 	  ce->nretries	= 0;
 	  ce->retries	= NULL;
+	  ce->reporttimes[0] = 0;
+	  ce->reporttimes[1] = 0;
+	  ce->reporttimes[2] = 0;
+	  ce->reporttimes[3] = 0;
 	  ce->skew	= 5;
 	  ce->deliveryform = NULL;
 	  ce->overfeed	= 0;
@@ -204,6 +214,7 @@ vtxprint(vp)
 	  for (i = 0; ce->argv[i] != NULL; ++i)
 	    sfprintf(sfstdout,"\targv[%d] = %s\n", i, ce->argv[i]);
 	}
+
 	sfprintf(sfstdout,"\tnretries %d\n", ce->nretries);
 	if (ce->nretries > 0) {
 	  sfprintf(sfstdout,"\tretries = (");
@@ -215,6 +226,15 @@ vtxprint(vp)
 	  }
 	  sfprintf(sfstdout,")\n");
 	}
+
+	sfprintf(sfstdout,"\treporttimes = (");
+	for (i = 0; i < 4 ; ++i ) {
+	  sfprintf(sfstdout,"%d", ce->reporttimes[i]);
+	  if (i < 3)
+	    sfprintf(sfstdout," ");
+	}
+	sfprintf(sfstdout,")\n");
+
 	sfprintf(sfstdout,"\tskew %d\n", ce->skew);
 }
 
@@ -749,6 +769,48 @@ static int rc_retries(key, arg, ce)
 	return 0;
 }
 
+static int rc_reporttimes(key, arg, ce)
+	char *key, *arg;
+	struct config_entry *ce;
+{
+	int i, j, arr[_CFTAG_RCPTDELAYSIZE];
+	char c, *cp, *d;
+
+	for (j = 0; j < sizeof(arr)/(sizeof(arr[0])); ++j)  arr[j] = 0;
+
+	j = 0;
+	for (cp = arg; *cp != '\0'; ++cp) {
+	  while (*cp != '\0' && isspace(*cp))
+	    ++cp;
+	  if (*cp == '\0')
+	    break;
+	  d = cp++;
+	  while (*cp != '\0' && !isspace(*cp))
+	    ++cp;
+	  c = *cp;
+	  *cp = '\0';
+	  i = parse_interval(d, NULL);
+	  if (i > 0)
+	    arr[j++] = i;
+	  else {
+	    sfprintf(sfstderr,
+		    "%s: not a numeric factor: %s\n",
+		    progname, d);
+	    return 1;
+	  }
+	  if (j >= (sizeof arr)/(sizeof arr[0]))
+	    break;
+	  *cp = c;
+	  if (*cp == '\0')
+	    break;
+	}
+
+	for (j = 0; j < sizeof(arr)/(sizeof(arr[0])); ++j)
+	  ce->reporttimes[j] = arr[j];
+
+	return 0;
+}
+
 static int rc_user(key, arg, ce)
 	char *key, *arg;
 	struct config_entry *ce;
@@ -862,5 +924,11 @@ static int paramparse(line)
 	  mailqsock = strsave(a);
 	  return 0;
 	}
+
+	if (cistrcmp(line,"global-report-interval")==0 && a) {
+	  global_report_interval = parse_interval(a, NULL);
+	  return 0;
+	}
+
 	return 1;
 }

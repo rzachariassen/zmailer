@@ -494,6 +494,9 @@ reporterrs(cfpi, delayreports)
 	    continue;
 	  }
 
+	  /* FIXME: FIXME: DELAYED reporting must check entries:
+	     _CF_RECIPIENT && _CFTAG_NORMAL */
+
 	  if (!(*cp == _CF_DIAGNOSTIC && *++cp == _CFTAG_NORMAL))
 	    continue;
 
@@ -817,7 +820,6 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	} else {
 	  sfprintf(errfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
 	}
-	sfprintf(errfp, "X-Spool-ID: %s\n", spoolid);
 	if (envid != NULL) {
 	  sfprintf(errfp, "Original-Envelope-Id: ");
 	  decodeXtext(errfp,envid);
@@ -895,6 +897,51 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	cfp->mid = NULL; /* we don't want to loose the original one! */
 	free_cfp_memory(cfp);
 }
+
+/* FIXME: reporting subsystem needs tuning! */
+/*        ... implementing/tuning DELAYED reports! */
+
+static int ctl_report_1 __((struct spblk *spl));
+static int ctl_report_1(spl)
+struct spblk *spl;
+{
+	struct vertex *vp, *nvp;
+	struct ctlfile * cfp = (struct ctlfile *)spl->data;
+	int doreport = 0;
+
+	queryipccheck(); /* Sets 'now', among other things */
+
+	for (vp = cfp->head; vp != NULL; vp = nvp) {
+	  nvp = vp->next[L_CTLFILE];
+
+	  /* We essentially report accumulated reports every
+	     ``global_report_interval'' seconds (2h by default) */
+
+	  if (vp->nextrprttime <= now)
+	    doreport = 1;
+	}
+
+	if (doreport) {
+	  reporterrs(cfp, 0);
+
+	  for (vp = cfp->head; vp != NULL; vp = nvp) {
+
+	    nvp = vp->next[L_CTLFILE];
+	    vp->nextrprttime = now + global_report_interval;
+
+	  }
+	}
+
+	return 0;
+}
+
+
+void
+interim_report_run __((void))
+{
+	sp_scan(ctl_report_1, NULL, spt_mesh[L_CTLFILE]);
+}
+
 
 /*
 char *

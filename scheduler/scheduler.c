@@ -129,6 +129,7 @@ static int vtxprep_skip_any  = 0;
 static int vtxprep_skip_lock = 0;
 static time_t next_dirscan     = 0;
 static time_t next_idlecleanup = 0;
+static time_t next_interim_report_time = 0;
 static struct sptree *dirscan_mesh = NULL;
 static int newents_limit = 400;
 extern int never_full_content; /* on conf.c */
@@ -290,7 +291,7 @@ struct ctlfile *cfp;
 	for (vp = cfp->head; vp != NULL; vp = nvp) {
 	  /* Stash the next pointer, because the CFP content
 	     may become trashed at the end of the run. */
-	  nvp = cfp->head->next[L_CTLFILE];
+	  nvp = vp->next[L_CTLFILE];
 
 	  MIBMtaEntry->mtaStoredRecipients     -= vp->ngroup;
 	  MIBMtaEntry->mtaReceivedRecipientsSc -= vp->ngroup;
@@ -838,6 +839,11 @@ main(argc, argv)
 	  if (now >= next_idlecleanup) {
 	    next_idlecleanup = now + 20; /* 20 second interval */
 	    idle_cleanup();
+	  }
+
+	  if (now >= next_interim_report_time) {
+	    next_interim_report_time = now + 120; /* every 2 minutes */
+	    interim_report_run();
 	  }
 
 	  /* Submit one item from pre-scheduler-queue into the scheduler */
@@ -2442,6 +2448,11 @@ static void vtxdo(vp, cehdr, path)
 	  vp->ce_expiry = tp->expiry + vp->cfp->mtime;
 	else
 	  vp->ce_expiry = 0;
+
+	if (tp->reporttimes[0])
+	  vp->nextrprttime = now + tp->reporttimes[0];
+	else
+	  vp->nextrprttime = now + global_report_interval;
 
 	thread_linkin(vp,tp,cnt,ce_fillin);
 

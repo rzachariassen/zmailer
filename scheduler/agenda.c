@@ -16,37 +16,35 @@ int	/* return non-zero when there are some childs
 	   available for start				*/
 doagenda()
 {
-	int didsomething;
 	struct thread *ncuritem, *nncuritem;
+	int didsomething = 0;
 
 	mytime(&now);
 
 	ncuritem = thread_head;
-	didsomething = 0;
-	do {
-	  didsomething = 0;
-	  if (verbose)
-	    sfprintf(sfstdout,"curitem %p curitem->wakeup %lu now %d\n",
-		     ncuritem, ncuritem ? ncuritem->wakeup : 0, (int)now);
 
-	  /* thread_head -chain should be in time order, thus the while-loop
-	     should be traversed only once, because  thread_start kicks
-	     right away (or reschedules) */
+	if (verbose)
+	  sfprintf(sfstdout,"curitem %p curitem->wakeup %lu now %d\n",
+		   ncuritem, ncuritem ? ncuritem->wakeup : 0, (int)now);
 
-	  while (ncuritem  && ncuritem->wakeup <= now  ) {
-	    /* Object pointed by  ncuritem  may disappear due to
-	       expiration at thread_start() .. */
-	    nncuritem = ncuritem->nexttr;
-	    /* Not running, and wakeup in past ? */
-	    if (ncuritem->proc == NULL && ncuritem->wakeup <= now)
-	      /* Try to start it! */
-	      while (thread_start(ncuritem, 0))
-		++ didsomething;
+	/* thread_head -chain should be in time order, thus the while-loop
+	   should be traversed only once, because  thread_start kicks
+	   right away (or reschedules) */
 
-	    ncuritem = nncuritem;
-	  }
+	while (ncuritem  && ncuritem->wakeup <= now  ) {
+	  /* Object pointed by  ncuritem  may disappear due to
+	     expiration at thread_start() .. */
+	  nncuritem = ncuritem->nexttr;
+	  /* Not running, and wakeup in past ? */
+	  if (ncuritem->proc == NULL && ncuritem->wakeup <= now)
+	    /* Try to start it! */
+	    while (thread_start(ncuritem, 0))
+	      ++ didsomething;
+
+	  ncuritem = nncuritem;
+
 	  queryipccheck();
-	} while (didsomething && ncuritem);
+	}
 
 	mytime(&now);
 
