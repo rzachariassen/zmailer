@@ -29,6 +29,9 @@
 		Canonicalization happens when option -C is used in mailbox
 		channel.
 
+		The "sm" driven transport agens in BSMTP mode need now
+		explicite "H" flag to start the datasets with HELO/EHLO.
+
 	ZMailer-2.99.49p8:
 		There should not be anything that the system can't handle
 		since 2.99.49p6, the router cf/fc compiler checksums are

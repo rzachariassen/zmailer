@@ -1,5 +1,10 @@
 1998-06-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/sm/sm.c:
+	    Added "H" flag to the "sm" facility flags.
+	    Altered here the way the BSMTP mode has worked for
+	    ages.  Specifically 
+
 	* utils/rotate-logs.sh.in, configure.in, utils/Makefile.in:
 	    Made "rotate-logs" utility to be 1) autoconfig, and
 	    2) installed every time a "make install" is done.

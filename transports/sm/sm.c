@@ -121,6 +121,7 @@ extern int writemimeline __(( struct maildesc *mp, FILE *fp, const char *buf, in
 #define MO_BEDSMTP		0x04000 /* EBSMTP + DSN */
 #define MO_WANTSDATE		0x08000 /* Wants "Date:" -header */
 #define MO_WANTSFROM		0x10000 /* Wants "From:" -header */
+#define MO_BSMTPHELO		0x20000 /* Add HELO/EHLO to the BSMTP */
 
 struct exmapinfo {
 	int	origstatus;
@@ -529,12 +530,14 @@ deliver(dp, mp, startrp, endrp, verboselog)
 
 	if (mp->flags & MO_BSMTP) {
 
-	  if (mp->flags & MO_BESMTP)
-	    fprintf(tafp,"EHLO %s",myhostname);
-	  else
-	    fprintf(tafp,"HELO %s",myhostname);
-	  if (mp->flags & MO_CRLF) putc('\r',tafp);
-	  putc('\n',tafp);
+	  if (mp->flags & MO_BSMTPHELO) {
+	    if (mp->flags & MO_BESMTP)
+	      fprintf(tafp,"EHLO %s",myhostname);
+	    else
+	      fprintf(tafp,"HELO %s",myhostname);
+	    if (mp->flags & MO_CRLF) putc('\r',tafp);
+	    putc('\n',tafp);
+	  }
 
 	  if (strcmp(startrp->addr->link->channel,"error")==0)
 	    fprintf(tafp,"MAIL From:<>");
@@ -1182,6 +1185,7 @@ readsmcf(file, mailer)
 	  case 'n':	m.flags &= ~MO_UNIXFROM;	break;
 	  case 'r':	m.flags |= MO_RFROMFLAG;	break;
 	  case 's':	m.flags |= MO_STRIPQUOTES;	break;
+	  case 'H':     m.flags |= MO_BSMTPHELO;	break;
 	  case 'b':	m.flags |= (MO_BSMTP|MO_HIDDENDOT); break;
 	  case 'B':	if (m.flags & MO_BESMTP) /* -BB */
 			    m.flags |= MO_BEDSMTP;
