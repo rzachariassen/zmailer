@@ -1561,6 +1561,7 @@ void thread_report(fp,mqmode)
 
 	int width;
 	int cnt, procs;
+	int rcptsum = 0;
 	struct procinfo *p;
 	struct thread *thr;
 
@@ -1602,6 +1603,14 @@ void thread_report(fp,mqmode)
 
 	    if (thr->thgrp != thg) /* Not of this group ? */
 	      continue; /* Next! */
+
+	    {
+	      struct vertex *vp = thr->vertices;
+	      while (vp != NULL) {
+		rcptsum += vp->ngroup;
+		vp = vp->nextitem;
+	      }
+	    }
 
 	    if (mqmode & MQ2MODE_FULL) {
 	      width = sfprintf(fp,"    %s/%s/%d",
@@ -1711,10 +1720,15 @@ void thread_report(fp,mqmode)
 		   (u_long)MIBMtaEntry->mtaTransmittedMessagesSc,
 		   (u_long)MIBMtaEntry->mtaStoredMessages);
 
-	  sfprintf(fp, "Rcpnts in %lu out %lu stored %lu\n",
+	  sfprintf(fp, "Rcpnts in %lu out %lu stored %lu",
 		   (u_long)MIBMtaEntry->mtaReceivedRecipientsSc,
 		   (u_long)MIBMtaEntry->mtaTransmittedRecipientsSc,
 		   (u_long)MIBMtaEntry->mtaStoredRecipients);
+
+	  if (rcptsum != MIBMtaEntry->mtaStoredRecipients)
+	    sfprintf(fp, " (%d)", rcptsum);
+
+	  sfprintf(fp, "\n");
 	}
 	sfsync(fp);
 }
