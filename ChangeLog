@@ -1,5 +1,8 @@
 2001-02-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/smtp/getmxrr.c:
+	    Format printing of '%s' with NULL argument -> NULL referral -> ...
+
 	* scheduler/mailq.c:
 	    When doing some slow  'mailq -vv', and using MAILQv2, do
 	    query all data out of the scheduler before poking into

@@ -648,12 +648,15 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    mx[i].host = NULL;
 	    continue;
 	  }
-	  if ((mx[i].ai->ai_canonname &&
+	  if (CISTREQ(mx[i].host, myhostname) ||
+	      (mx[i].ai->ai_canonname &&
 	       CISTREQ(mx[i].ai->ai_canonname, myhostname)) ||
 	      matchmyaddresses(mx[i].ai) == 1) {
 
 	    rmsgappend(SS, 1, "\r-> Selfmatch '%s'(%s)[%d]",
-		       mx[i].host, mx[i].ai->ai_canonname, i);
+		       mx[i].host, ((mx[i].ai->ai_canonname) ?
+				    mx[i].ai->ai_canonname : "-"), i);
+
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", mx[i].ai->ai_canonname ? mx[i].ai->ai_canonname : "<NIL>", myhostname);
 	    if (maxpref > (int)mx[i].pref)
@@ -862,6 +865,7 @@ rmsgappend(va_alist)
 	    switch (c) {
 	    case 's':
 	      args = va_arg(ap, char *);
+	      if (!args) args = "(null)";
 	      while (*args && cp < cpend) *cp++ = *args ++;
 	      break;
 	    case 'd':
