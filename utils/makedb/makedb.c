@@ -72,30 +72,28 @@ int err;
 	  fprintf(stderr, "\n");
 	  exit(1);
 	}
-	fprintf(stderr, "\n\n"
-		"  If no infilename is defined, database.name is assumed.\n"
+	fprintf(stderr, "\n\n  If no infilename is defined, database.name is assumed.\n");
 #ifdef HAVE_NDBM_H
-	"  (NDBM appends  .pag, and .dir  into actual db file names..)\n"
+	fprintf(stderr, "  (NDBM appends  .pag, and .dir  into actual db file names..)\n");
 #endif
 #ifdef HAVE_GDBM_H
-	"  (GDBM appends .gdbm, to the actual db file name..)\n"
+	fprintf(stderr, "  (GDBM appends .gdbm, to the actual db file name..)\n");
 #endif
 #ifdef HAVE_DB_H
-	"  (BTREE appends .db, to the actual db file name..)\n"
-	"  (BHASH appends .pag, and .dir into actual db file names..)\n"
+	fprintf(stderr, "  (BTREE appends .db, to the actual db file name..)\n");
+	fprintf(stderr, "  (BHASH appends .pag, and .dir into actual db file names..)\n");
 #endif
-	"\n");
+	fprintf(stderr, "\n");
 
 	fprintf(stderr,
-
-"  The '-a' option is for parsing input that comes in\n"
-"  'aliases' format:  'key: data,in,long,line,'\n"
-"                     '  with,indented,extended,lines'\n"
-"  The '-p' option is for parsing smtpserver policy database.\n"
-"  The '-A' option APPENDS new data to existing keyed data.\n"
-"  The '-l' and '-u' will lower-/uppercasify key string before\n"
-"    storing it into the database.  This does not apply to '-p'.\n"
-"  The '-s' option orders 'silent running' -- report only errors.\n");
+"  The '-a' option is for parsing input that comes in\n\
+  'aliases' format:  'key: data,in,long,line,'\n\
+                     '  with,indented,extended,lines'\n\
+  The '-p' option is for parsing smtpserver policy database.\n\
+  The '-A' option APPENDS new data to existing keyed data.\n\
+  The '-l' and '-u' will lower-/uppercasify key string before\n\
+    storing it into the database.  This does not apply to '-p'.\n\
+  The '-s' option orders 'silent running' -- report only errors.\n");
 
 	exit(64);
 }

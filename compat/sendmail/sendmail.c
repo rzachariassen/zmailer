@@ -92,39 +92,39 @@ void usage()
 {
   
   fprintf(stderr, "Usage: %s [sendmail options] [recipient addresses]\n", progname);
-  fprintf(stderr, "  ZMailer's sendmail recognizes and implements following options:\n"
-"     -B bodytype  -  Valid values: 8BITMIME, 7BIT\n"
-"     -C conffile  -  specifies config file (meaningfull for -bt)\n"
-"     -E           -  flag 'external' source\n"
-"     -F 'full name'  sender's full name string\n"
-"     -N notifyopt -  Notify option(s): NEVER or a set of: SUCCESS,DELAY,FAILURE\n"
-"     -P priority# -  numeric priority for ZMailer router queue pre-selection\n"
-"     -R returnopt -  Error report return option, either of: FULL, HDRS\n"
-"     -U           -  Flag as 'user submission'\n"
-"     -V envidstring - XTEXT encoded ENVID string\n"
-"     -b?          -  operational mode flags\n"
-"     -bd          -  starts smtpserver in daemon mode\n"
-"     -bi          -  runs 'newaliases' command\n"
-"     -bm          -  deliver mail; always :-)\n"
-"     -bp          -  runs 'mailq' command\n"
-"     -bs          -  speak smtp; runs smtpserver in interactive mode\n"
-"     -bt          -  starts router in interactive test mode\n"
-"     -e*             (ignored)\n"
-"     -f fromaddr  -  sets envelope from address for the message\n"
-"     -i           -  on inputs from tty this will ignore SMTP-like dot-EOF\n"
-"     -m           -  send a copy of the message to the sender too (ignored)\n"
-"     -o*          -  multiple options; those not listed cause error\n"
-"     -oQ queuedir -  defines POSTOFFICE directory for message submission\n"
-"     -ob*            (ignored)\n"
-"     -od*            (ignored)\n"
-"     -oe*            (ignored)\n"
-"     -oi          -  alias of '-i' option\n"
-"     -or*            (ignored)\n"
-"     -p submitprotocol - value for 'with' label at 'Received:' header\n"
-"     -q*          -  queue processing commands (ignored)\n"
-"     -r fromaddr  -  (alternate for -f)\n"
-"     -t           -  scan message rfc822 headers for recipient addresses\n"
-"     -v           -  verbose trace of processing\n");
+  fprintf(stderr, "  ZMailer's sendmail recognizes and implements following options:\n\
+     -B bodytype  -  Valid values: 8BITMIME, 7BIT\n\
+     -C conffile  -  specifies config file (meaningfull for -bt)\n\
+     -E           -  flag 'external' source\n\
+     -F 'full name'  sender's full name string\n\
+     -N notifyopt -  Notify option(s): NEVER or a set of: SUCCESS,DELAY,FAILURE\n\
+     -P priority# -  numeric priority for ZMailer router queue pre-selection\n\
+     -R returnopt -  Error report return option, either of: FULL, HDRS\n\
+     -U           -  Flag as 'user submission'\n\
+     -V envidstring - XTEXT encoded ENVID string\n\
+     -b?          -  operational mode flags\n\
+     -bd          -  starts smtpserver in daemon mode\n\
+     -bi          -  runs 'newaliases' command\n\
+     -bm          -  deliver mail; always :-)\n\
+     -bp          -  runs 'mailq' command\n\
+     -bs          -  speak smtp; runs smtpserver in interactive mode\n\
+     -bt          -  starts router in interactive test mode\n\
+     -e*             (ignored)\n\
+     -f fromaddr  -  sets envelope from address for the message\n\
+     -i           -  on inputs from tty this will ignore SMTP-like dot-EOF\n\
+     -m           -  send a copy of the message to the sender too (ignored)\n\
+     -o*          -  multiple options; those not listed cause error\n\
+     -oQ queuedir -  defines POSTOFFICE directory for message submission\n\
+     -ob*            (ignored)\n\
+     -od*            (ignored)\n\
+     -oe*            (ignored)\n\
+     -oi          -  alias of '-i' option\n\
+     -or*            (ignored)\n\
+     -p submitprotocol - value for 'with' label at 'Received:' header\n\
+     -q*          -  queue processing commands (ignored)\n\
+     -r fromaddr  -  (alternate for -f)\n\
+     -t           -  scan message rfc822 headers for recipient addresses\n\
+     -v           -  verbose trace of processing\n");
   
 }
 
