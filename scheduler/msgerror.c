@@ -362,6 +362,9 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary)
 	  fprintf(errfp,"\tboundary=\"%s\"\n\n",boundary);
 	  fprintf(errfp, "--%s\n", boundary);
 	  fprintf(errfp, "Content-Type: text/plain\n\n");
+	  fprintf(errfp, "This report is classified as 'Multiple-fault', because\n");
+	  fprintf(errfp, "the error report template file (%s) was not found.\n\n",path);
+	  fprintf(errfp, "Please report this to this system's postmaster.\n\n");
 	  fprintf(errfp, "Here are report messages regarding email you (propably) sent:\n\n");
 	}
 }

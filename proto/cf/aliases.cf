@@ -390,6 +390,20 @@ routeuser (quad, plustail, domain) {
 	tfiss
 
 
+#|# listserv automatic list alias mapping support, the listserv home
+#|# probably should go to zmailer.conf or elsewhere at some time
+#|# but let's keep it simple during testing <hks@nic.funet.fi> 1998
+#|# We check first zmailer lists that can override listserv in an
+#|# emergency, for example.
+#|#
+#|	LISTSERV="/v/net/listserv.funet.fi"
+#|	a="$LISTSERV/home/$lcuser.list"
+#|  
+#|	if [ -f "$a" ] ; then
+#|		return (((local pipe.$lcuser "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $lcuser" $(newattribute $attr privilege "0" ))))
+#|	fi
+#|
+
 #	only allow .forward file reading if privs allow it
 
 	hashomedir=0

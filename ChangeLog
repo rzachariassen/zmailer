@@ -1,3 +1,16 @@
+1998-06-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/msgerror.c:
+	    When reporting "Multiple-fault:" type error, tell also
+	    which template file is not openable, and ask the recipient
+	    to report the case to the postmaster...
+
+	* router/functions.c:
+	    - rd_doit() -- don't rename "core*" file into normal
+			   spooled file name
+	    - run_listexpand():  Did complain when it got 5 arguments
+				 and refused to do the work :-(
+
 1998-06-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf:
@@ -13,7 +26,8 @@
 	* transports/smtp/smtp.c:
 	    A screwup in DBAT dot-processing algorithm.
 	    Basically BDAT phase did line-start dot-duplication,
-	    which is done all right in DATA phase :-/
+	    which is all right for DATA phase, but a no-no for
+	    the BDAT :-(
 
 1998-06-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
