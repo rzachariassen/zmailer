@@ -65,6 +65,7 @@ libsfio.a: ast_common.h FEATURE/sfio $(OBJS) mksfio_f mkstdio_s mksfio_dc
 	-(ranlib libsfio.a; exit 0) >/dev/null 2>&1
 
 FEATURE/sfio: $(srcdir)/features/sfio
+	-if [ ! -d FEATURE ]; then mkdir FEATURE; else exit 0; fi
 	$(BINDIR)/iffe set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/sfio
 ast_common.h: $(srcdir)/features/common
 	$(BINDIR)/iffe - set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/common > ast_common.h

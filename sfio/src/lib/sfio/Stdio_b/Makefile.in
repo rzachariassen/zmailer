@@ -45,7 +45,7 @@ libstdio.a: FEATURE/stdio must $(OBJS)
 	-(ranlib libstdio.a; rm sfstdio.h; exit 0) >/dev/null 2>&1
 
 FEATURE/stdio: $(srcdir)/features/stdio
-	-mkdir FEATURE
+	-if [ ! -d FEATURE ]; then mkdir FEATURE ; else exit 0; fi
 	$(BINDIR)/iffe set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/stdio
 
 must:	sfstdio.h sfstdgen

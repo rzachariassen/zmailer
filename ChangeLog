@@ -1,3 +1,10 @@
+2000-10-13  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* sfio/src/lib/sfio/makefile.in, sfio/src/lib/sfio/Stdio_b/Makefile.in:
+	    Noticed an omission in cross-directory compilations.
+	    Sometimes 'iffe' would fail when directory 'FEATURES' didn't
+	    exist at the running position.  Oops.
+
 2000-10-12  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* utils/makedb/dbdump.c:
