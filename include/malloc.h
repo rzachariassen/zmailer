@@ -58,18 +58,20 @@ extern void ___cfree __proto((univptr_t, const char *, int));
 
 #else /* MALLOC_TRACE */
 
+#ifndef HAVE_STDLIB_H
 extern univptr_t malloc   __proto((size_t));
 extern univptr_t calloc   __proto((size_t, size_t));
 extern univptr_t realloc  __proto((univptr_t, size_t));
+extern void free  __proto((univptr_t));
+extern char     *strdup   __proto((const char *));
+#endif
 extern univptr_t valloc   __proto((size_t));
 extern univptr_t memalign __proto((size_t, size_t));
 extern univptr_t emalloc  __proto((size_t));
 extern univptr_t ecalloc  __proto((size_t, size_t));
 extern univptr_t erealloc __proto((univptr_t, size_t));
-extern char * strdup   __proto((const char *));
 extern char * strsave  __proto((const char *));
 extern char * strnsave __proto((const char *, const size_t));
-extern void free  __proto((univptr_t));
 extern void cfree __proto((univptr_t));
 
 #endif /* MALLOC_TRACE */
