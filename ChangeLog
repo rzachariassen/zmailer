@@ -1,3 +1,12 @@
+2003-09-09  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, utils/perl/Makefile.in:
+	    have  --with-perl-includedirs="INCLUDEDIRS=vendor"
+	    option at configure time.  It seems to be usefull
+	    (or at least working) thing at RedHats, but the same
+	    doesn't hold true with all other perl environments
+	    that I use...
+
 2003-09-08  Matti Aarnio  <mea@zmailer.org>
 
 	* man/Makefile.in:

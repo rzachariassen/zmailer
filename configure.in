@@ -152,6 +152,16 @@ AC_CHECK_SIZEOF(double)
 
 OrigCPPFLAGS="$CPPFLAGS"
 
+AC_SUBST(PERLINSTALLDIRS)
+PERLINSTALLDIRS=""
+AC_ARG_WITH(perl-installdirs, [  --with-perl-installdirs=\"INSTALLDIRS=vendor\"
+                             Perl module installation thingie.]
+        use_perlinstalldirs=1, use_perlinstalldirs=0)
+if test "$use_perlinstalldirs" = 1; then
+  PERLINSTALLDIRS="$withval"
+fi
+
+
 AC_SUBST(GENINCL)
 AC_ARG_WITH(generic-include, [  --with-generic-include=\"-I/...\"
                             Include option for local overriders],
