@@ -546,7 +546,7 @@ run_doit(argc, argv)
 	  return 1;
 	}
 
-	filename = argv[0];
+	filename = argv[1];
 
 	/* Do one file, return value is 0 or 1,
 	   depending on actually doing something
