@@ -1,3 +1,11 @@
+2003-05-09  Matti Aarnio  <mea@zmailer.org>
+
+	* lib/sleepycatdb.c, smtpserver/policytest.c, utils/makedb/dblook.c,
+	  utils/makedb/makedb.c:
+	    Support compiling against SleepyCat DB 4.1
+	    (the C-API has again been changed;  db->open()  got additional
+	     parameters...)
+
 2003-05-08  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/builtins.c:
