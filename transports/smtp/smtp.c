@@ -3497,29 +3497,21 @@ smtp_sync(SS, r, nonblocking)
 	  } else { /* No newline.. Read more.. */
 	    int en;
 
-	  reread_line:
-
 	    infd = SS->smtpfd;
+	    err = 0;
+	    if (!nonblocking) {
 #ifdef HAVE_OPENSSL
-	    if (SS->sslmode) {
-	      err = 0;
-	      len = smtp_nbread(SS, buf, sizeof(buf));
-	      if (SS->wantreadwrite > 0)
-		infd = -infd;
-	      if (len < 0)
-		err = errno;
-	      else
-		goto have_some_data;
-	    } else
-#endif /* - HAVE_OPENSSL */
-	      {
+	      if (SS->sslmode) {
 		err = 0;
 		len = smtp_nbread(SS, buf, sizeof(buf));
+		if (SS->wantreadwrite > 0)
+		  infd = -infd;
 		if (len < 0)
 		  err = errno;
+		else
+		  goto have_some_data;
 	      }
-
-	    if (!nonblocking && len < 0) {
+#endif /* - HAVE_OPENSSL */
 
 	      err = select_sleep(infd, timeout);
 	      en = errno;
@@ -3536,9 +3528,13 @@ smtp_sync(SS, r, nonblocking)
 	      }
 	    }
 
-#ifdef HAVE_OPENSSL
-	  have_some_data:
-#endif
+	  reread_line:
+
+	    err = 0;
+	    len = smtp_nbread(SS, buf, sizeof(buf));
+	    if (len < 0)
+	      err = errno;
+
 	    if (len < 0) {
 	      /* Some error ?? How come ?
 		 We have select() confirmed input! */
@@ -3583,6 +3579,11 @@ smtp_sync(SS, r, nonblocking)
 	      err = EX_TEMPFAIL;
 	      break;
 	    } else {
+
+#ifdef HAVE_OPENSSL
+	  have_some_data:
+#endif
+
 	      /* more data for processing.. munch munch.. */
 	      if (s > SS->pipebuf) {
 		/* Compress the buffer at first */
