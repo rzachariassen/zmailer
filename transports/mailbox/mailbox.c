@@ -329,7 +329,7 @@ extern int writebuf __((struct writestate *, const char *buf, int len));
 extern int writemimeline __((struct writestate *, const char *buf, int len));
 
 
-extern void program __((struct ctldesc *dp, struct rcpt *rp, const char *cmdbuf, const char *usernam, const char *timestring, int pipeuid));
+extern int program __((struct ctldesc *dp, struct rcpt *rp, const char *cmdbuf, const char *usernam, const char *timestring, int pipeuid));
 
 static int do_return_receipt_to = 0;
 static void  return_receipt __((struct ctldesc *dp, const char *retrecpaddr, const char *uidstr));
@@ -1322,7 +1322,11 @@ deliver(dp, rp, usernam, timestring)
 		/* Absolutely NOTHING done with this label; end of iterator */
 		break;
 	      case SIEVE_RUNPIPE:
-		program(dp, rp, sv.pipecmdbuf, usernam, timestring, sv.pipeuid);
+		if (program(dp, rp, sv.pipecmdbuf, usernam, timestring, sv.pipeuid) != EX_OK) {
+		  /*  Possible FALSE negative ?? */
+		  /*  Tell also about SUCCESSES! */
+		  rp->notifyflgs |= _DSN_NOTIFY_SUCCESS;
+		}
 		break;
 	      case SIEVE_USERSTORE:
 		store_to_file(dp, rp, file, ismbox, usernam, &st, uid,
@@ -1926,7 +1930,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	return fp;
 }
 
-void
+int
 program(dp, rp, cmdbuf, user, timestring, uid)
 	struct ctldesc *dp;
 	struct rcpt *rp;
@@ -1974,7 +1978,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 		       buf);
 	  DIAGNOSTIC(rp, cmdbuf, EX_SOFTWARE,
 		     "Bad privilege for a pipe \"%s\"", rp->addr->misc);
-	  return;
+	  return EX_SOFTWARE;
 	} else {
 	  gid = pw->pw_gid;
 	  sprintf(cp, "HOME=%.500s", pw->pw_dir);
@@ -2039,7 +2043,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 		       "x-local; 500 (out of pipe resources)");
 	  DIAGNOSTIC(rp, cmdbuf, EX_OSERR,
 		     "cannot create pipe from \"%s\"", cmdbuf);
-	  return;
+	  return EX_OSERR;
 	}
 	if (pipe(out) < 0) {
 	  notaryreport(NULL,"failed",
@@ -2049,7 +2053,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 		     "cannot create pipe to \"%s\"", cmdbuf);
 	  close(in[0]);
 	  close(in[1]);
-	  return;
+	  return EX_OSERR;
 	}
 
 	pid = fork();
@@ -2074,7 +2078,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  SIGNAL_HANDLE(SIGTERM, SIG_DFL);
 
 #if 1 /* hmm.. must split the command line to inputs for  execve();
-	 I have uses for strict environment without  /bin/sh ... [mea] */
+	 I have uses for a strict environment without  /bin/sh ... [mea] */
 
 	  cp = cmdbuf+1;
 	  i = 0;
@@ -2118,7 +2122,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 		       "5.3.0 (fork failure)",
 		       "x-local; 500 (fork failure)");
 	  DIAGNOSTIC(rp, cmdbuf, EX_OSERR, "cannot fork", 0);
-	  return;
+	  return EX_OSERR;
 	} /* parent */
 	close(out[0]);
 	close(in[1]);
@@ -2133,7 +2137,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  close(out[1]);
 	  fclose(errfp);
 	  close(in[0]);
-	  return;
+	  return status;
 	}
 	fclose(fp);
 	/* read any messages from its stdout/err on in[0] */
@@ -2193,7 +2197,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	}
 	
 	DIAGNOSTIC(rp, cmdbuf, i, "%s", buf);
-	return;
+	return i;
 }
 
 static void mkhashpath __((char *, const char *));
