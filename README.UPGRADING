@@ -13,6 +13,10 @@
 	are important, naturally!
 
 	ZMailer-2.99.50
+		The router script language no longer has 'setf' function.
+		Script usage of 'setf' have been replaced with 'lappend',
+		and 'lreplace'.
+
 		The router script language no longer understands "sift"
 		contruction.  It has been replaced with two new ones:
 			- "ssift" / "tfiss": StringSIFT
