@@ -25,9 +25,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	int class;
 	u_short type;
 	int saw_cname = 0;
-	int ttl;
 	int had_eai_again = 0;
-	struct addrinfo req, *ai, **aip;
 	querybuf qbuf, answer;
 	msgdata buf[8192], realname[8192];
 	char mxtype[MAXFORWARDERS];
@@ -209,8 +207,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    exit(EX_OSERR);
 	  }
 	  if (SS->verboselog)
-	    fprintf(SS->verboselog, " -> MX[%d] pref=%d host=%s\n",
-		    nmx, mx[nmx].pref, buf);
+	    fprintf(SS->verboselog, " -> (%lds) MX[%d] pref=%d host=%s\n",
+		    mx[nmx].expiry - now, nmx, mx[nmx].pref, buf);
 	  mxtype[nmx] = 0;
 	  ++nmx;
 	  --ancount;
@@ -319,15 +317,16 @@ getmxrr(SS, host, mx, maxmx, depth)
 	/* BUT ONLY IF THE REPLY HAD 'AA' BIT SET! If it didn't,
 	   we must always ask A/AAAA separately.. */
 	while (hp->aa && arcount > 0 && cp < eom) {
+	  int ttl;
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0) { cp = eom; break; }
 	  cp += n;
 	  if (cp+10 > eom) { cp = eom; break; }
-	  type = _getshort(cp);
+	  type  = _getshort(cp);
 	  cp += 2;
 	  class = _getshort(cp);
 	  cp += 2;
-	  /* mx[nmx].expiry = now + _getlong(cp); */ /* TTL */
+	  ttl   = _getlong(cp);  /* TTL */
 	  cp += 4; /* "long" -- but keep in mind that some machines
 		      have "funny" ideas about "long" -- those 64-bit
 		      ones, I mean ... */
@@ -370,6 +369,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 		/* WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
 		   This assumes intimate knowledge of the system
 		   implementation of the  ``struct addrinfo'' !  */
+
+		if (SS->verboselog)
+		  fprintf(SS->verboselog,"  host='%s' AF=%s TTL=%d\n",
+			  buf, (type == T_A) ? "INET" : "INET6", ttl);
 
 		ai = (void*)malloc(sizeof(*ai) + sizeof(*usa) + nlen + 1);
 		if (ai == NULL) exit(EX_OSERR);
@@ -427,6 +430,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	   the ADDITIONAL SECTION data */
 
 	for (i = 0; i < nmx; ++i) {
+
+	  struct addrinfo req, *ai, **aip;
 
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog, "  mx[%d] mxtype=%s%s(%d) host='%s'\n",
@@ -557,7 +562,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	      matchmyaddresses(mx[i].ai) == 1) {
 
 	    if (SS->verboselog)
-	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", ai->ai_canonname, myhostname);
+	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", mx[i].ai->ai_canonname, myhostname);
 	    if (maxpref > (int)mx[nmx].pref)
 	      maxpref = mx[nmx].pref;
 	  }
@@ -589,6 +594,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	/* discard MX's that do not support SMTP service */
 	if (checkwks)
 	  for (n = 0; n < nmx; ++n) {
+	    int ttl;
 	    if (mx[n].host == NULL)
 	      continue;
 	    strncpy((char*)buf, (char*)mx[n].host, sizeof(buf));
