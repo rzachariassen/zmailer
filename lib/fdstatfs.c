@@ -57,7 +57,8 @@ int fd_statfs(fd, bavailp, busedp, iavailp, iusedp)
 
 #ifdef HAVE_STATVFS
       struct statvfs statbuf;	/* SysV and BSD definitions differ..    */
-      rc = fstatvfs(fd, &statbuf); /* appears in Linux as well as Solaris */
+      rc = fstatvfs(fd, &statbuf); /* Solaris, autoconfigures into use in
+				      Linux glibc 2.3+ as well... */
       if (rc == 0) {
 	/* Availability by 'non-super-user', usage per last drop.. */
 
