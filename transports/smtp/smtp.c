@@ -410,6 +410,12 @@ static int task_count;
 const char *punthost; /* Besided of value, is also used as GLOBAL
 			 state variable! */
 
+static void MIBcountCleanup __((void))
+{
+	MIBMtaEntry->tas.OutgoingSmtpTAprocCountG -= 1;
+}
+
+
 
 int
 main(argc, argv)
@@ -448,6 +454,12 @@ main(argc, argv)
 	fd_blockingmode(FILENO(stdout)); /* Just to make sure.. */
 
 	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
+
+	MIBMtaEntry->tas.OutgoingSmtpTAprocesses += 1;
+	MIBMtaEntry->tas.OutgoingSmtpTAprocCountG += 1;
+
+	atexit(MIBcountCleanup);
+
 
 	pid = getpid();
 	msgfile = "?";

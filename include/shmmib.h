@@ -247,7 +247,10 @@ struct MIB_MtaEntryTaS {
 
   double dummy99; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  uint		OutgoingSmtpTAprocesses;	/* counter */
+  uint		OutgoingSmtpTAprocCountG;	/* counter */
+
+  uint	space[30]; /* Add to tail without need to change MAGIC */
 
 };
 

@@ -197,6 +197,12 @@
 
   sfprintf(fp,"\n");
 
+  sfprintf(fp,"TA.OutgoingSmtpTAprocesses      %10u\n",
+	   M.tas.OutgoingSmtpTAprocesses);
+  sfprintf(fp,"TA.OutgoingSmtpTAprocCount-G    %10u\n",
+	   M.tas.OutgoingSmtpTAprocCountG);
+
+
   sfprintf(fp,"TA.OutgoingSmtpStarts           %10u\n",
 	   M.tas.OutgoingSmtpStarts);
   sfprintf(fp,"TA.OutgoingLmtpConnects         %10u\n",
