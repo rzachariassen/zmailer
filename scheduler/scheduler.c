@@ -1417,8 +1417,8 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	sp_install(cfp->id, (void *)cfp, 0, spt_mesh[L_CTLFILE]);
 	++MIBMtaEntry->mtaStoredMessages;
 	++global_wrkcnt;
-
-	/* if (!reread) */
+	
+	if (!reread)
 	  for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
 	    /* Put into the schedules */
 	    vtxdo(vp, cehead, file);
