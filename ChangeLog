@@ -1,3 +1,8 @@
+2003-04-28  Matti Aarnio  <mea@zmailer.org>
+
+	* scheduler/mailq.c, man/mailq.1:
+	    Added '-Z' option to mailq, alike at scheduler, et.al.
+
 2003-04-17  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/libta/ctlopen.c, transports/libta/mimeheaders.c:
