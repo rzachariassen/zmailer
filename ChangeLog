@@ -1,5 +1,12 @@
 1999-09-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/readconfig.c:
+	    If the  channel/host  selector clause contains wild-cards
+	    at the 'channel' part, AND the command= parameter contains
+	    '$channel' in it (once or more), set CFG_WITHHOST, because
+	    such transport agents can't switch over from one channel to
+	    another.
+
 	* transports/sm/sm.c:
 	    - If write to pipe fails (except with 'gotsigpipe'), cleanup
 	      PIPEs to the child process.
