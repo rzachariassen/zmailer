@@ -139,23 +139,38 @@ foreach $rel (keys %rels) {
 	eval {$fn = "$rdbfile"; };
 	printf "$oo$rn";
 	$oo=',';
+	local(@dbfiles) = ();
 	if ($rtype =~ m/.*DBTYPE/o) {
 		$rdbexttst = '$DBEXTtest';
 		$rdbext    = '$DBEXT';
 		$rdbtype   = '$DBTYPE';
 		system("newdb -s $rndbopt -t $DBTYPE $fn");
 		printf ":NEW";
+		if ($DBTYPE eq 'ndbm') {
+			@dbfiles = ($fn.".pag", $fn.".dir");
+		} elsif ($DBTYPE eq 'dbm') {
+			@dbfiles = ($fn.".pag", $fn.".dir");
+		} elsif ($DBTYPE eq 'gdbm') {
+			@dbfiles = ($fn.".gdbm");
+		} elsif ($DBTYPE eq 'bhash') {
+			@dbfiles = ($fn.".dbh");
+		} elsif ($DBTYPE eq 'btree') {
+			@dbfiles = ($fn.".db");
+		# } else {
+		}
 	} elsif ($rtype eq 'ndbm') {
 		$rdbexttst = '.pag';
 		$rdbtype   = $rtype;
 		system("newdb -s $rndbopt -t ndbm $fn");
 		printf ":NEW";
+		@dbfiles = ($fn.".pag", $fn.".dir");
 	} elsif ($rtype eq 'dbm') {
 		$rdbexttst = '.pag';
 		$rdbext    = '';
 		$rdbtype   = $rtype;
 		system("newdb -s $rndbopt -t  dbm $fn");
 		printf ":NEW";
+		@dbfiles = ($fn.".pag", $fn.".dir");
 	} elsif ($rtype eq 'sdbm') {
 		$rdbexttst = '.pag';
 		$rdbext    = '';
@@ -168,18 +183,21 @@ foreach $rel (keys %rels) {
 		$rdbtype   = $rtype;
 		system("newdb -s $rndbopt -t gdbm $fn");
 		printf ":NEW";
+		@dbfiles = ($fn.".sdbm");
 	} elsif ($rtype eq 'btree') {
 		$rdbexttst = '.db';
 		$rdbext    = '.db';
 		$rdbtype   = $rtype;
 		system("newdb -s $rndbopt -t btree $fn");
 		printf ":NEW";
+		@dbfiles = ($fn.".db");
 	} elsif ($rtype eq 'bhash') {
 		$rdbexttst = '.dbh';
 		$rdbext    = '.dbh';
 		$rdbtype   = $rtype;
 		system("newdb -s $rndbopt -t bhash $fn");
 		printf ":NEW";
+		@dbfiles = ($fn.".dbh");
 	} else {
 		$rdbexttst = '.dat';
 		$rdbext    = '.dat';
@@ -195,11 +213,27 @@ foreach $rel (keys %rels) {
 	} else {
 	    # ---- privilege things to collect ----
 	    # rpriv is a colon separated duplet/triplet:
-	    # ... FIXME! Implement in SH !?  Or change this to PERL ?
+	    # ... FIXME! Implement!
+
+	    local(@priv) = split(/:/,$rpriv);
+	    local($fmask) = '644';
+
+	    if (defined $priv[1] && @dbfiles) {
+		local($pw0,$pw1,$pw2,$pw3)=getpwnam($priv[0]);
+		local($gr0,$gr1,$gr2,$gr3)=getgwnam($priv[1]);
+		$priv[0] = $pw2 if (defined $pw2);
+		$priv[1] = $gr2 if (defined $gr2);
+
+		chown $priv[0],$priv[1], @dbfiles;
+	    }
+	    if (defined $priv[2] && @dbfiles) {
+		$fmask = $priv[2];
+		chmod oct($priv[2]), @dbfiles;
+	    }
 
 	    push(@tfn,
 "	if a=\"\$($rn \"\$key\")\"; then
-	    priv=\"\$(filepriv -M 644 $rdbfile$rdbexttst \\
+	    priv=\"\$(filepriv -M $fmask $rdbfile$rdbexttst \\
 			    \$(db owner $rn))\" &&
 	    return \"\$a\"
 	fi");

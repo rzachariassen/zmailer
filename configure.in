@@ -22,9 +22,9 @@ dnl Process this file with autoconf to produce a configure script.
 # Parts from other sources long forgotten, and many
 # new things invented by myself...
 #
-# ZMailer is almoast as versatile systems feature tester as
+# ZMailer is almost as a versatile systems feature tester as
 # the best (or worst) other beats, like  SSH ...   About the
-# only thing that ZMailer does not need are PTY allocation
+# only things that ZMailer does not need are PTY allocation
 # mechanisms ...
 #
 
@@ -1224,6 +1224,23 @@ else
     INCLRESOLV='-I$(TOPDIR)/libresolv'
     LIBRESOLVA="libresolv.a"
     AC_MSG_RESULT([Using bundled (bind 4.9.4-REL) libresolv])
+fi
+
+#
+# Test to see, if we have cd and ad fields in "struct HEADER"
+#
+AC_CACHE_CHECK(for cd and ad in HEADER struct (BIND 8),
+               zm_cv_struct_HEADER_cd_ac,
+               [AC_TRY_COMPILE(
+[#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/nameser.h>],
+[struct HEADER a; a.ad = a.cd = 0;],
+               zm_cv_struct_HEADER_cd_ac=yes,
+               zm_cv_struct_HEADER_cd_ac=no)])
+if test "$zm_cv_struct_HEADER_cd_ac" = yes; then
+    AC_DEFINE(HAVE_HEADER_CD_AD)
 fi
 
 #

@@ -88,10 +88,15 @@ getmxrr(SS, host, mx, maxmx, depth)
 	nscount = ntohs(hp->nscount);
 	arcount = ntohs(hp->arcount);
 
-	if (SS->verboselog)
-	  fprintf(SS->verboselog, "DNS lookup reply: len=%d rcode=%d qdcount=%d ancount=%d nscount=%d arcount=%d RD=%d TC=%d AA=%d QR=%d RA=%d\n",
+	if (SS->verboselog) {
+	  fprintf(SS->verboselog, "DNS lookup reply: len=%d rcode=%d qdcount=%d ancount=%d nscount=%d arcount=%d RD=%d TC=%d AA=%d QR=%d RA=%d",
 		  n, hp->rcode, qdcount, ancount, nscount, arcount,
 		  hp->rd, hp->tc, hp->aa, hp->qr, hp->ra);
+#ifdef HAS_HEADER_CD_AD
+	  fprintf(SS->verboselog, " CD=%d AD=%d", hp->cd, hp->ad);
+#endif
+	  fprintf(SS->verboselog, "\n");
+	}
 
 	if (hp->rcode != NOERROR || ancount == 0) {
 	  switch (hp->rcode) {

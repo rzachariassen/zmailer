@@ -172,3 +172,6 @@
 
 /* Charset translation on incming text messages */
 #undef USE_TRANSLATION
+
+/* Defined if resolver's  HEADER  structure has  cd  and  ad  fields */
+#undef HAVE_HEADER_CD_AD
