@@ -697,7 +697,7 @@ conscell *
 db(dbname, key)
 	const char *dbname, *key;
 {
-	register int i, j, k;
+	register int i, j, k, keylen;
 	memtypes oval = stickymem;
 	conscell *l, *ll, *tmp;
 	struct spblk *spl;
@@ -727,16 +727,17 @@ db(dbname, key)
 		fprintf(stderr, "%s(%s)\n", dbname, key);
 	/* apply flags */
 	realkey = NULL;
+	keylen = strlen(key); if (keylen > sizeof(kbuf)) keylen = sizeof(kbuf);
 	if (dbip->flags & DB_MAPTOLOWER) {
-		strncpy(kbuf, key, sizeof(kbuf));
-		kbuf[sizeof(kbuf)-1] = 0;
-		strlower(kbuf);
-		key = kbuf;
+	  memcpy(kbuf, key, keylen); /* was: strncpy */
+	  kbuf[sizeof(kbuf)-1] = 0;
+	  strlower(kbuf);
+	  key = kbuf;
 	} else if (dbip->flags & DB_MAPTOUPPER) {
-		strncpy(kbuf, key, sizeof(kbuf));
-		kbuf[sizeof(kbuf)-1] = 0;
-		strupper(kbuf);
-		key = kbuf;
+	  memcpy(kbuf, key, keylen); /* was: strncpy */
+	  kbuf[sizeof(kbuf)-1] = 0;
+	  strupper(kbuf);
+	  key = kbuf;
 	}
 	si.file = dbip->file;
 	si.key  = key;
