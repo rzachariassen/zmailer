@@ -305,8 +305,11 @@ main(argc, argv)
 		}
 		else
 		  router_id = getpid();
-		zopenlog("router", LOG_PID, LOG_MAIL);
 	}
+
+	/* Each (sub-)process does openlog() all by themselves */
+	zopenlog("router", LOG_PID, LOG_MAIL);
+
 	if (c < argc) {
 	  savefile = 1;
 	  /*
