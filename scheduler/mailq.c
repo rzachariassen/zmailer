@@ -702,9 +702,12 @@ static int _getline(buf, bufsize, bufspace, fp)
 
   if (c == EOF && *bufsize != 0) {
     fprintf(stderr, "%s: no input from scheduler\n", progname);
-    buf[0] = '\0';
+    (*buf)[0] = '\0';
     return -1;
   }
+
+  if (debug && *buf)
+    fprintf(stderr, "%s\n",*buf);
 
   return 0; /* Got something */
 }
