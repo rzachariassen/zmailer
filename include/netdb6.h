@@ -4,6 +4,14 @@
 	By Matti Aarnio <mea@nic.funet.fi> 1997,2004
  */
 
+#ifndef __
+# ifdef __STDC__
+#  define __(x) x
+# else
+#  define __(x) ()
+# endif
+#endif
+
 #ifndef HAVE_GETADDRINFO
 #ifndef AI_PASSIVE
 
