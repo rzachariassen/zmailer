@@ -424,8 +424,6 @@ docat(file, fd)
 	const char *file;
 	int fd;
 {
-	char buf[BUFSIZ];
-	int n;
 	FILE *fpi = NULL, *fpo = NULL;
 
 	if (fd < 0 && (fpi = fopen(file, "r")) == NULL) {
@@ -437,10 +435,12 @@ docat(file, fd)
 	  fpo = fdopen(fd, "w");
 	}
 #if 0
-	if (debug && fpi)
-	  while ((n = fread(buf, sizeof buf[0], sizeof buf, fpi)) > 0)
+	if (debug && fpi) {
+	  char buf[BUFSIZ];
+	  int n;
+	  while ((n = fread(buf, 1, sizeof buf, fpi)) > 0)
 	    fwrite(buf, sizeof buf[0], n, stdout);
-	else
+	} else
 #endif
 	  if (fpi && fpo)
 	    report(fpi, fpo);
@@ -818,6 +818,9 @@ parse(fp)
 	    while (isascii(*cp) && !isspace(*cp))
 	      ++cp;
 	    *cp++ = '\0';
+if (debug)
+  fprintf(stderr," - '%s'\n",ocp);
+
 	    spl = sp_lookup(symbol_db(ocp,spt_syms[L_CTLFILE]),
 			    spt_ids[L_CTLFILE]);
 	    if (spl == NULL || (cfp = (struct ctlfile *)spl->data) == NULL) {
@@ -841,6 +844,10 @@ parse(fp)
 	    while ('0' <= *cp && *cp <= '9')
 	      ++cp;
 	    *cp++ = '\0';
+
+if (debug)
+  fprintf(stderr," - '%s'\n",ocp);
+
 	    if ((i = atoi(ocp)) < 1) {
 	      fprintf(stderr, "%s: bad number of addresses: '%s'\n", progname, ocp);
 	      break;
@@ -857,6 +864,10 @@ parse(fp)
 		++cp;
 	      *cp = '\0';
 	      v->index[i++] = atol(ocp);
+
+if (debug)
+  fprintf(stderr," - '%s'\n",ocp);
+
 	    }
 	    while (*cp != '\0' && *cp != '\n' && *cp != '#')
 	      ++cp;
@@ -866,6 +877,10 @@ parse(fp)
 		++cp;
 	      *cp = '\0';
 	      v->message = strsave(ocp);
+
+if (debug)
+  fprintf(stderr," - '%s'\n",ocp);
+
 	    } else
 	      v->message = NULL;
 	    v->next[L_CTLFILE] = cfp->head;
@@ -905,6 +920,10 @@ parse(fp)
 	    }
 	    *cp++ = '\0';
 
+if (debug)
+  fprintf(stderr," - '%s'\n",buf);
+
+
 	    /* Look for channel/host identifier splay-tree */
 	    spl = sp_lookup(symbol_db(buf,spt_syms[list]), spt_ids[list]);
 	    if (spl == NULL || (w = (struct web *)spl->data) == NULL) {
@@ -927,6 +946,10 @@ parse(fp)
 	      while (isascii(*cp) && isdigit(*cp))
 		++cp;
 	      *cp++ = '\0';
+
+if (debug)
+  fprintf(stderr," - '%s'\n",ocp);
+
 	      spl = sp_lookup((u_long)atol(ocp), spt_ids[L_VERTEX]);
 	      if (spl == NULL || (v = (struct vertex *)spl->data)==NULL) {
 		fprintf(stderr, "%s: unknown key %s\n", progname, ocp);
