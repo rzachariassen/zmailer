@@ -5,7 +5,7 @@ dnl Process this file with autoconf to produce a configure script.
 #
 
 #PACKAGE=ZMailer
-#VERSION=2.99.49p10snap1
+#VERSION=2.99.51patch1
 #PACKAGE_VERSION="$PACKAGE-$VERSION"
 #AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
 #AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
@@ -939,7 +939,9 @@ if test "$ac_cv_header_security_pam_appl_h" = "yes"; then
     AUTHLIB="-lpam -ldl"
 else
     if test "$ac_cv_header_shadow_h" = "yes"; then
-	AUTHLIB="-lshadow"
+	AC_TRY_LINK([], [getspnam("foo");],
+			AUTHLIB="",
+			AUTHLIB="-lshadow")
     else
 	AUTHLIB=""
     fi
