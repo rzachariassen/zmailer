@@ -1,3 +1,8 @@
+1998-07-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version number: 2.99.50-s8
+
 1998-07-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/policytest.c, smtpserver/mxverify.c:
