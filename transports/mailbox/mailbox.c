@@ -302,7 +302,7 @@ long eofindex  = -1;		/* When negative, putmail() can't truncate() */
 int  dirhashes = 0;
 int  pjwhashes = 0;
 int  canonify_user = 0;
-int  do_xuidl = 1;		/* Store our own  X-UIDL: header to allow
+int  do_xuidl = 0;		/* Store our own  X-UIDL: header to allow
 				   POP3 server to have some unique id for
 				   the messages..  IMAP4 does require
 				   something different -- 32-bit unique
@@ -437,7 +437,7 @@ main(argc, argv)
 	logfile = NULL;
 	channel = CHANNEL;
 	while (1) {
-	  c = getopt(argc, (char*const*)argv, "abc:Cd:Dgh:Hl:PrRSMV8");
+	  c = getopt(argc, (char*const*)argv, "abc:Cd:Dgh:Hl:PrRSMVU8");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -462,6 +462,9 @@ main(argc, argv)
 				   (one or two) of modulo 26 ('A'..'Z') alike
 				   the scheduler does its directory hashes. */
 	    ++pjwhashes;
+	    break;
+	  case 'U':
+	    do_xuidl = 1;
 	    break;
 	  case 'M':
 	    mmdf_mode = 1;
@@ -1810,10 +1813,11 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	    if (hdrs) delete_header(rp,hdrs);
 	  } while (hdrs);
 
-	  do {
-	    hdrs = has_header(rp,"X-UIDL:");
-	    if (hdrs) delete_header(rp,hdrs);
-	  } while (hdrs);
+	  if (do_xuidl)
+	    do {
+	      hdrs = has_header(rp,"X-UIDL:");
+	      if (hdrs) delete_header(rp,hdrs);
+	    } while (hdrs);
 	}
 
 	/* Add the From_ line and print out the header */

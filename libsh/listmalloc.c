@@ -534,7 +534,8 @@ char *argv[];
 #endif
 
 #ifndef copycell
-conscell *copycell(conscell *X)
+conscell *copycell(X)
+     conscell *X;
 {
   conscell *tmp = newcell();
   *tmp = *X;
@@ -547,7 +548,8 @@ conscell *copycell(conscell *X)
 #endif
 #ifndef nconc
 /* nconc(list, list) -> old (,@list ,@list) */
-conscell *nconc(conscell *X, conscell *Y)
+conscell *nconc(X, Y)
+     conscell *X, *Y;
 {
   return ((car(X) != NULL) ?
 	  cdr(s_last(car(X))) = Y :
@@ -555,7 +557,8 @@ conscell *nconc(conscell *X, conscell *Y)
 }
 #endif
 #ifndef ncons
-conscell *ncons(conscell *X)
+conscell *ncons(X)
+     conscell *X;
 {
   conscell *tmp = newcell();
   car(tmp) = X;
@@ -566,7 +569,8 @@ conscell *ncons(conscell *X)
 #endif
 #ifndef cons
 /* cons(s-expr, list) -> new (s-expr ,@list) */
-conscell *cons(conscell *X, conscell* Y)
+conscell *cons(X, Y)
+     conscell *X, *Y;
 {
   conscell *tmp = ncons(X);
   cdar(tmp) = Y;
@@ -575,7 +579,8 @@ conscell *cons(conscell *X, conscell* Y)
 #endif
 #ifndef s_push
 /* s_push(s-expr, list) -> old (s-expr ,@list) */
-conscell *s_push(conscell *X, conscell* Y)
+conscell *s_push(X, Y)
+     conscell *X, *Y;
 {
   cdr(X) = car(Y);
   car(Y) = X;
@@ -583,7 +588,9 @@ conscell *s_push(conscell *X, conscell* Y)
 }
 #endif
 #ifndef newstring
-conscell *newstring(char *s, const int slen)
+conscell *newstring(s, slen)
+     char *s;
+     const int slen;
 {
   conscell *tmp = newcell();
   tmp->string = s;
@@ -594,7 +601,9 @@ conscell *newstring(char *s, const int slen)
 }
 #endif
 #ifndef conststring
-conscell *conststring(const char *s, const int slen)
+conscell *conststring(s, slen)
+     const char *s;
+     const int slen;
 {
   conscell *tmp = newcell();
   tmp->cstring = s;
