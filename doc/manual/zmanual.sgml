@@ -12,6 +12,8 @@
 <!ENTITY ZMAN-COVER   SYSTEM "zmanual-cover.sgml">
 <!ENTITY ZTUTORIAL    SYSTEM "ztutorial.sgml">
 <!ENTITY ZINSTALL     SYSTEM "zinstall.sgml">
+<!ENTITY ZADMIN       SYSTEM "zadministration.sgml">
+<!ENTITY ZREFERENCE   SYSTEM "zreference.sgml">
 ]>
 <BOOK STATUS="draft" ID="ZMANUAL"><?dbhtml filename="zmanual.html">
 <TITLE>ZMailer</TITLE>
@@ -42,19 +44,11 @@
 
 &ZTUTORIAL;
 &ZINSTALL;
+&ZADMIN;
+&ZREFERENCE;
 
 
 <!--  REST NOT UPDATED ------------------------------------------------ -->
-<!-- % \onecolumn							-->
-<!-- \afterpage{\clearpage}						-->
-<!-- 									-->
-<!-- 									-->
-<!-- \segment{zadministration}{chapter}{Administration}			-->
-<!-- %begin{latexonly}							-->
-<!-- \cleardoublepage							-->
-<!-- %end{latexonly}							-->
-<!-- 									-->
-<!-- \chead[{\sf TO-BE-REVISED}]{{\sf TO-BE-REVISED}}			-->
 <!-- 									-->
 <!-- \segment{zreference}{chapter}{Reference}				-->
 <!-- 									-->

@@ -554,8 +554,8 @@ FIXME! FIXME! (changed somewhen from itemized list to subsections, I think)
 
 <PARA>
 You may want to add a symbolic link from some directory in your path
-to {\tt \$MAILBIN/zmailer}, if you don't already have this.  I put this link
-in {\tt /usr/local/sbin}.
+to <FILENAME>$<ENVAR>MAILBIN</>/zmailer</>, if you don't already have this.
+I put this link in <FILENAME CLASS="DIRECTORY">/usr/local/sbin</>.
 </PARA>
 </SECT2>
 
@@ -578,7 +578,7 @@ Choose one of the following methods to rebuild the database:
 </PARA>
 
 <PARA>
-If there are errors, correct them in the ``{\tt aliases}'' file,
+If there are errors, correct them in the ``<FILENAME>aliases</>'' file,
 and repeat the command until the alias database has been initialized.
 The final message should look something like:
 <SCREEN>
@@ -589,8 +589,8 @@ exact numbers vary, of course...
 
 <PARA>
 See also IETF's RFC 2142: ``Mailbox Names for Common Services, Roles and
-Functions'' (file {\tt rfc2142.txt} in the {\tt doc/rfc} directory) 
-for other suggestable aliases you may need. 
+Functions'' (file <FILENAME>doc/rfc/rfc2142.txt</>)
+for other suggested aliases you may need. 
 </PARA>
 
 </SECT2>
@@ -602,29 +602,30 @@ for other suggestable aliases you may need.
 
 <PARA>
 Add the hostnames you want ZMailer to do local delivery for, to the
-{\tt \$MAILVAR/db/localnames} file.  Due to my own belief in Murphy,
-I usually add partially qualified domain names and nicknames in
-addition to canonicalized names.  If you want to do local delivery
-for mail clients, put their names in here too.  You may use pathalias 
-style {\tt.domain} names in this file, to indicate everything under some
-subdomain.
+<FILENAME>$<ENVAR>MAILVAR</>/db/localnames</> file.
+Due to my own belief in Murphy, I usually add partially qualified
+domain names and nicknames in addition to canonicalized names.
+If you want to do local delivery for mail clients, put their names
+in here too.
+You may use pathalias style ``<EMPHASIS ROLE="BOLD">.domain</>'' names
+in this file, to indicate everything under some subdomain.
 </PARA>
 
 <PARA>
 With the sample config files for Zmailer-2.98, and latter,
-this {\tt localnames} is actually a mapping of those various names to
-the desired forms of the canonic name, thus an example as seen
-in figure \vref{fig:inst:localnames}
+this <FILENAME>localnames</> is actually a mapping of those various
+names to the desired forms of the canonic name, thus an example as seen
+in figure <XREF LINKEND="fig.inst.localnames">.
 </PARA>
 
-<PARA>
-\begin{figure*}
+<FIGURE ID="fig.inst.localnames" PGWIDE="1" FLOAT="1">
+<TITLE>Sample of ``<FILENAME>localnames</>'' file</TITLE>
 <SCREEN>
 #
 # Left:  input name
 # Right: what is wanted to be shown out
 #
-# List here {\bf all} names for the system
+# List here <EMPHASIS ROLE="BOLD">all</> names for the system
 #
 astro.utu.fi         astro.utu.fi
 oj287                astro.utu.fi
@@ -634,18 +635,17 @@ sirius               sirius.utu.fi
 sirius.astro.utu.fi  sirius.utu.fi
 sirius.utu.fi        sirius.utu.fi
 </SCREEN>
-\caption{\label{fig:inst:localnames}Sample of ``{\tt localnames}'' file}
-\end{figure*}
-</PARA>
+</FIGURE>
 
 <PARA>
 In certain cases the router is able to deduce some of the names,
-{\em however smtpserver anti-relay policy compiler will not be able
- to do so, and needs this data!}
+<EMPHASIS>however smtpserver anti-relay policy compiler will not be able
+ to do so, and needs this data!</EMPHASIS>
 </PARA>
 
 <PARA>
-Thus: {\bf All names that the host may ever have are best listed in here!}
+<EMPHASIS ROLE="BOLD">THUS: All names that the host may ever have are
+ best listed in here!</EMPHASIS>
 It reminds you of them, and makes sure a message destined into the host
 really is accepted.
 </PARA>
@@ -653,29 +653,29 @@ really is accepted.
 <PARA>
 Compile this into runtime binary database with command:
 <SCREEN>
-  zmailer newdb
+  <PROMPT># </><USERINPUT>zmailer newdb</>
 </SCREEN>
 (fall-back method is sequential rescan of the text file)
 </PARA>
 
 </SECT2>
 
-<SECT2><TITLE><FILENAME>$MAILVAR/db/routes</> file</>
+<SECT2><TITLE><FILENAME>$<ENVAR>MAILVAR</>/db/routes</> file</>
 
 <PARA>
 Add any UUCP neighbours or other special cases to this file.
-For an example see figure \vref{fig:inst:routes}.
+For an example see figure <XREF LINKEND="fig.inst.routes">.
 </PARA>
 
 <PARA>
 You can compile the file into binary database with command:
 <SCREEN>
-  zmailer newdb
+  <PROMPT># </><USERINPUT>zmailer newdb</>
 </SCREEN>
 </PARA>
 
-<PARA>
-\begin{figure*}
+<FIGURE ID="fig.inst.routes" PGWIDE="1" FLOAT="1">
+<TITLE>Sample of ``<FILENAME>routes</>'' file</TITLE>
 <SCREEN>
 #
 # ``routes'' mapping file
@@ -687,22 +687,20 @@ atina            smtp![140.191.2.2]
 calgary          smtp!cs-sun-fsa.cpsc.ucalgary.ca
 icnucevm.bitnet  smtp!icnucevm.cnuce.cnr.it
 </SCREEN>
-\caption{\label{fig:inst:routes}Sample of ``{\tt routes}'' file}
-\end{figure*}
-</PARA>
+</FIGURE>
 </SECT2>
 
-<SECT2><TITLE><FILENAME>$MAILVAR/db/fqdnaliases</> file</>
+<SECT2><TITLE><FILENAME>$<ENVAR>MAILVAR</>/db/fqdnaliases</> file</>
 
 <PARA>
-The {\tt fqdnaliases} database is for mapping fully-qualified user
+The <FILENAME>fqdnaliases</> database is for mapping fully-qualified user
 addresses to others -- for example you machine has a set of
 domain-names for it to consider local, but you want to have
 separate people to be postmasters for each of them:
 <SCREEN>
-postmaster@domain1: person1
-postmaster@domain2: person2
-postmaster@domain3: person3, person4
+  postmaster@domain1: person1
+  postmaster@domain2: person2
+  postmaster@domain3: person3, person4
 </SCREEN>
 </PARA>
 
@@ -721,23 +719,24 @@ you have it.
 
 <PARA>
 You may even handle just a few users for each of those domains, and then
-have the ``{\tt routes}'' entry (see above) to declare something suitable:
+have the ``<FILENAME>routes</>'' entry (see above) to declare something
+suitable:
 <SCREEN>
   .domain1  error!nosuchuser
 </SCREEN>
-which combined with the ``{\tt fqdnalias}'' method will let
-``{\tt postmaster@domain1}'' to exist, and report error on all others.
+which combined with the ``<FILENAME>fqdnalias</>'' method will let
+``<FILENAME>postmaster@domain1</>'' to exist, and report error on all others.
 </PARA>
 
 <PARA>
 Choose one of the following methods to rebuild the database:
 <SCREEN>
-  <PROMPT># </><USERINPUT>$MAILBIN/newfqdnaliases</>
+  <PROMPT># </><USERINPUT>$<ENVAR>MAILBIN</>/newfqdnaliases</>
 </SCREEN>
 or either of:
 <SCREEN>
-  <PROMPT># </><USERINPUT>$MAILBIN/zmailer newfqdnaliases</>
-  <PROMPT># </><USERINPUT>$MAILBIN/zmailer newdb</>
+  <PROMPT># </><USERINPUT>$<ENVAR>MAILBIN</>/zmailer newfqdnaliases</>
+  <PROMPT># </><USERINPUT>$<ENVAR>MAILBIN</>/zmailer newdb</>
 </SCREEN>
 </PARA>
 
@@ -766,15 +765,15 @@ UUCP node name in the file <FILENAME>/etc/name.uucp</>
 At this point, you should be able to start the router again in
 interactive mode, and ask it to route addresses.  Try:
 <SCREEN>
-  /usr/lib/sendmail -bt
+  <PROMPT># </><USERINPUT>/usr/lib/sendmail -bt</>
 </SCREEN>
 at the prompt:
 <SCREEN>
-z# router you
+  <PROMPT>z# </><USERINPUT>router you</>
 </SCREEN>
 should print out:
 <SCREEN>
-(((local you you default_attributes)))
+  (((local you you default_attributes)))
 </SCREEN>
 </PARA>
 
@@ -784,33 +783,35 @@ Modify the configuration file if your setup requires it.
 </PARA>
 
 <PARA>
-To give more feeling of what goes on during the ``{\em route}''-command,
-you can give command ``{\em rtrace}'' before trying to use ``{\em route}.''
+To give more feeling of what goes on during the ``<COMMAND>route</>''-command,
+you can give command ``<COMMAND>rtrace</>'' before trying to use
+``<COMMAND>route</>.''
 </PARA>
 </SECT1>
 
 <SECT1><TITLE>Checking the Scheduler</>
 
 <PARA>
-The location of the {\tt scheduler.conf} on running system is
-{\tt \$MAILSHARE/scheduler.conf}
+The location of the <FILENAME>scheduler.conf</> on running system is
+<FILENAME>$<ENVAR>MAILSHARE</>/scheduler.conf</>
 </PARA>
 
 <PARA>
 For normal operations of the system the current sample
-of ``{\tt scheduler.conf}''\index{\tt scheduler.conf} file
+of ``<FILENAME>scheduler.conf</>''\index{\tt scheduler.conf} file
 is quite sufficient, but in case you want to do something
-unusual, like using {\tt procmail} for local delivery,
+unusual, like using <APPLICATION>procmail</> for local delivery,
 do read on.
 </PARA>
 
 <PARA>
-In the figure \vref{fig:inst:scheduler1} there are some salient
-points about tuning the ``{\tt local}'' channel behaviour.
+In the figure <XREF LINKEND="fig.inst.scheduler1"> there are some
+salient points about tuning the ``<FILENAME>local</>'' channel behaviour.
 </PARA>
 
-<PARA>
-\begin{figure*}
+<FIGURE ID="fig.inst.scheduler1">
+<TITLE>Sample of ``<FILENAME>scheduler.conf</>'' passage
+for ``<FILENAME>local/*</>'' selector</TITLE>
 <SCREEN>
 local/*
     interval=5m
@@ -823,61 +824,68 @@ local/*
     # conversion on flight!
     command="mailbox -8"
     # Or with PROCMAIL as the local delivery agent:
-    #command="sm -8c \$channel procm"
+    #command="sm -8c $channel procm"
     # Or with CYRUS server the following might do:
-    #command="sm -8c \$channel cyrus"
+    #command="sm -8c $channel cyrus"
 </SCREEN>
-\caption{\label{fig:inst:scheduler1}Sample of ``{\tt scheduler.conf}'' passage for ``{\tt local/*}'' selector}
-\end{figure*}
+</FIGURE>
+
+<PARA>
+There are three variants of the ``command='' entry:
+<VARIABLELIST>
+<VARLISTENTRY>
+<TERM>command="mailbox -8"</TERM>
+<LISTITEM><PARA>
+The normal ZMailer <COMMAND>mailbox</>(8) channel program.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM>command="sm -8c $channel procm"</TERM>
+<LISTITEM><PARA>
+Variant for running <APPLICATION>procmail</>.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM>command="sm -8c $channel cyrus"</TERM>
+<LISTITEM><PARA>
+Variant for using <APPLICATION>CMU Cyrus</> message store server.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 </PARA>
 
 <PARA>
-There are three variants of the ``{\tt command=}'' entry:
-\begin{description}
-\item[{\tt command="mailbox -8"}] \mbox{}
-
-The normal {\em ZMailer} {\tt mailbox}(8) channel program.
-
-\item[{\tt command="sm -8c \$channel procm"}] \mbox{}
-
-Variant for running {\em procmail}.
-
-\item[{\tt command="sm -8c \$channel cyrus"}] \mbox{}
-
-Variant for using {\em CMU Cyrus} message store server.
-\end{description}
+For more information regarding <EMPHASIS>scheduler</> configuration language,
+see chapter <XREF LINKEND="schedulerconfig">.
 </PARA>
 
-<PARA>
-For more information regarding {\em scheduler} configuration language,
-see chapter \vref{schedulerconfig}.
-</PARA>
-
-<SECT2><TITLE>Checking <FILENAME>sm.conf</> file</>
+<SECT2 ID="sm.conf"><TITLE>Checking <FILENAME>sm.conf</> file</>
 <!-- \index{{\tt sm.conf}-file} -->
 
 <PARA>
-For some uses the scheduler runs {\tt sm}(8) program -- called
+For some uses the scheduler runs <COMMAND>sm</>(8) program -- called
 ``sendmail-like mailer''.
 </PARA>
 
 <PARA>
-This supports {\em most} of {\em sendmail}'s {\tt M}-entry flags,
-at least flags with versions previous to 8.x
+This supports <EMPHASIS>most</> of <APPLICATION>sendmail</>'s
+<FILENAME>M</>-entry flags, at least flags with versions previous to 8.x
 </PARA>
 
 <PARA>
-The {\em ZMailer} {\tt sm}(8) channel program is used to create support
+The ZMailer <COMMAND>sm</>(8) channel program is used to create support
 for things like:
-\begin{itemize}
-\item {\em uucp} transmits
-\item {\em procmail} as local delivery agent
-\item supporting {\em CMU Cyrus message store} as local delivery agent
-\end{itemize}
+<ITEMIZEDLIST>
+<LISTITEM><PARA><EMPHASIS>uucp</> transmits
+</PARA></LISTITEM>
+<LISTITEM><PARA><APPLICATION>procmail</> as local delivery agent
+</PARA></LISTITEM>
+<LISTITEM><PARA>supporting <APPLICATION>CMU Cyrus message store</>
+as local delivery agent </PARA></LISTITEM>
+</ITEMIZEDLIST>
 </PARA>
 
 <PARA>
-For more information, see chapter \vref{smconfig}.
+For more information, see chapter <XREF LINKEND="smconfig">.
 </PARA>
 
 </SECT2>
@@ -892,12 +900,13 @@ of abuse of your system.
 
 <PARA>
 Basically you want to install the boilerplates and the tool scripts,
-edit them a bit, and run {\em policy-builder.sh} script.
-For further details on this, see chapter \vref{adm:smtp_policy_filtering}.
+edit them a bit, and run <COMMAND>policy-builder.sh</> script.
+For further details on this, see chapter
+<XREF LINKEND="adm.smtp-policy-filtering">.
 </PARA>
 
 <PARA>
-In {\em smtpserver} front you may need to lower the strict standards
+In <COMMAND>smtpserver</> front you may need to lower the strict standards
 of the basic RFC-821 SMTP protocol and allow acceptance of non-qualified
 addresses -- ones without any sort of domain name in them.
 </PARA>
@@ -909,7 +918,7 @@ their totally broken SMTP sending system.
 
 <PARA>
 Both of these things are handled by ``EHLO-style options'' described
-at chapter \vref{adm:smtpserver:ehlostyle}
+at chapter <XREF LINKEND="adm.smtpserver.ehlostyle">.
 </PARA>
 
 </SECT2>
@@ -919,8 +928,8 @@ at chapter \vref{adm:smtpserver:ehlostyle}
 <SECT1><TITLE>Bootup Scripts</TITLE>
 
 <PARA>
-Add something like the following lines to bootup scripts ({\tt /etc/rc.local}
-or {\tt /etc/rc2.d/S99local} or similar):
+Add something like the following lines to bootup scripts
+(<FILENAME>/etc/rc.local</> or <FILENAME>/etc/rc2.d/S99local</> or similar):
 <SCREEN>
   if [ -r /etc/zmailer.conf ]; then
     . /etc/zmailer.conf
@@ -952,9 +961,12 @@ Start ZMailer:
 </PARA>
 
 <PARA>
-Keep an eye on the log files ({\tt \$LOGDIR/router, \$LOGDIR/scheduler}),
-the {\tt \$POSTOFFICE/postman/} directory for malformed message files,
-and {\tt \$POSTOFFICE/deferred/} in case of resource problems.
+Keep an eye on the log files (<FILENAME>$<ENVAR>LOGDIR</>/router</>,
+<FILENAME>$<ENVAR>LOGDIR</>/scheduler</>), the
+<FILENAME CLASS="DIRECTORY">$<ENVAR>POSTOFFICE</>/postman/</> directory
+for malformed message files, and
+<FILENAME CLASS="DIRECTORY">$<ENVAR>POSTOFFICE</>/deferred/</> in case
+of resource problems.
 </PARA>
 
 </SECT1>
@@ -962,8 +974,8 @@ and {\tt \$POSTOFFICE/deferred/} in case of resource problems.
 <SECT1><TITLE>Crontab</TITLE>
 
 
-<PARA>
-\begin{figure*}
+<FIGURE ID="fig.inst.crontab">
+<TITLE>ZMailer related crontab entries for root user</>
 <SCREEN>
   # Two ZMailer related root's CRONTAB entries:
   28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
@@ -972,48 +984,69 @@ FIXME!FIXME!
   # This third one will not per default be installed into your system
   0  0      * * * . /etc/zmailer.conf ; $MAILBIN/rotate-logs.sh
 </SCREEN>
-\caption{\label{fig:inst:crontab}ZMailer related crontab entries for root user}
-\end{figure*}
-</PARA>
+</FIGURE>
 
 <PARA>
-See figure \vref{fig:inst:crontab} for two crontab entires for
+See figure <XREF LINKEND="fig.inst.crontab"> for two crontab entires for
 the root to run.  There are three entries:
-\begin{enumerate}
-\item
-This will ``{\tt resubmit}'' messages that have been deferred with
-no useful processing possible at time of deferral.  Adjust the
-resubmission interval to suit your environment.
-{\em Having files in ``deferred'' state is a sign of troubles!
-Always investigate!}
+<ORDEREDLIST NUMERATION="ARABIC">
+<LISTITEM><PARA>
+This will ``<COMMAND>resubmit</>'' messages that have been deferred
+with no useful processing possible at time of deferral.
+Adjust the resubmission interval to suit your environment.
+<EMPHASIS>Having files in ``deferred'' state is a sign of troubles!
+Always investigate!</>
+</PARA></LISTITEM>
 
-\item
-This ``{\tt cleanup}'' is to regularly clean out
-the ``{\tt \$POSTOFFICE/public}'', and ``{\tt \$POSTOFFICE/postman}''
+<LISTITEM><PARA>
+This ``<COMMAND>cleanup</>'' is to regularly clean out
+the ``<FILENAME CLASS="DIRECTORY">$<ENVAR>POSTOFFICE</>/public/</>'', and
+``<FILENAME CLASS="DIRECTORY">$<ENVAR>POSTOFFICE</>/postman/</>''
 directories.
+</PARA></LISTITEM>
 
-\item
+<LISTITEM><PARA>
 The automatic logfile trimmer/rotater is a good idea to have, but
 you need to customize it for your environment.  More of that below.
-\end{enumerate}
+</PARA></LISTITEM>
+</ORDEREDLIST>
 </PARA>
 
 <PARA>
 You may want to hardwire the location of the zmailer script.
 </PARA>
+</SECT1>
 
-<PARA>
-\subsection{Customizing ZMailer Messages}
-</PARA>
+<SECT1><TITLE>Customizing ZMailer Messages</TITLE>
 
 <PARA>
 Edit several of the canned error messages and programs (scripts)
-to reflect your local configuration: {\tt \$MAILSHARE/forms/} files and
-{\tt \$MAILBIN/ta/usenet} (injected message).
+to reflect your local configuration:
+<FILENAME CLASS="DIRECTORY">$<ENVAR>MAILSHARE</>/forms/</> files and
+<FILENAME>$<ENVAR>MAILBIN</>/ta/usenet</> (injected message).
 </PARA>
 
 <PARA>
-{\large\em XREF to Scheduler}
+Normally the boilerplate messages looks something like these:
+<SCREEN>
+HDR From:    The Post Office &lt;postmaster&gt;
+HDR Sender:  mailer-daemon
+SUB Subject: Errors: No such user(s)
+ADR Bcc:     &lt;postmaster&gt;
+
+This is a collection of reports about email delivery
+process concerning a message you originated:
+</SCREEN>
+In these, ``ADR'' lines define header lines which are to be analyzed
+for <EMPHASIS>recipient</> addresses, while ``HDR'' lines can carry
+anything which doesn't get output as <EMPHASIS>envelope</> address.
+The ``ADR'' line contained addresses <EMPHASIS ROLE="BOLD">must</> be in
+brackets, and there can be only one address per such header.  If there
+are more, only the first one is picked.
+</PARA>
+
+<PARA>
+<EMPHASIS>FIXME: FIXME: XREF to Scheduler</>
 </PARA>
 
 </SECT1>
@@ -1021,9 +1054,9 @@ to reflect your local configuration: {\tt \$MAILSHARE/forms/} files and
 <SECT1><TITLE>Alias expansion</TITLE>
 
 <PARA>
-Read the notes on alias expansion in the file {\tt doc/guides/aliases} and
-on mailing list maintenance in \vref{mailing_list_maintenance}, 
-{\em Mailing Lists and \tt\~{}/.forward}.
+Read the notes on alias expansion in the file <FILENAME>doc/guides/aliases</>
+and on mailing list maintenance in <XREF LINKEND="mailing-list-maintenance">, 
+<EMPHASIS>Mailing Lists and <FILENAME>~/.forward</>.</EMPHASIS>
 </PARA>
 
 </SECT1>
@@ -1034,46 +1067,54 @@ on mailing list maintenance in \vref{mailing_list_maintenance},
 <PARA>
 Once satisfied that things appear to work, you may want to trim down
 logging: there are four kinds of logging to deal with:
-\begin{itemize}
-\item Router logs:
-
-Usually kept in {\tt \$LOGDIR/router}.  This is the stdout
-and stderr output of the router daemon.  If you wish to turn it off,
+<ITEMIZEDLIST>
+<LISTITEM><PARA>Router logs:</PARA>
+<PARA>
+FIXME! FIXME!
+Usually kept in <FILENAME>$<ENVAR>LOGDIR</>/router</>.
+his is the stdout and stderr output of the router daemon.
+If you wish to turn it off,
 see {\tt\$MAILSHARE/cf/standard.cf} for routine  {\tt dribble()},
 and especially its invocations!
+</PARA></LISTITEM>
 
-\item Scheduler logs:
+<LISTITEM><PARA>Scheduler logs:</PARA>
+<PARA>
+Usually kept in <FILENAME>$<ENVAR>LOGDIR</>/scheduler</>.  Same as router.
+</PARA></LISTITEM>
 
-Usually kept in {\tt \$LOGDIR/scheduler}.  Same as router.
-
-\vspace{1pt}
-\item General Mail Logs:
-
+<LISTITEM><PARA>General Mail Logs:</PARA>
+<PARA>
 Usually kept in syslog files, depending on how you have configured
-the syslog utility ({\tt /etc/syslog.conf}).
-All ZMailer programs log using the LOG\_MAIL facility code for normal
-messages.  You can deal with this specifically in your {\tt syslog}
-configuration file on systems with a 4.3bsd-based syslog.  The
-following reflects the recommended configuration on SunOS 4.0:
+the syslog utility (<FILENAME>/etc/syslog.conf</FILENAME>).
+All ZMailer programs log using the <FILENAME>LOG_MAIL</> facility code
+for normal messages.  You can deal with this specifically in your
+<COMMAND>syslog</> configuration file on systems with a 4.3bsd-based syslog.
+The following reflects the recommended configuration on SunOS 4.0:
 <SCREEN>
-mail.crit   /var/log/syslog
-mail.debug  /var/log/mail/mail.syslog
+  mail.crit   /var/log/syslog
+  mail.debug  /var/log/mail/mail.syslog
 </SCREEN>
+</PARA>
 
+<PARA>
 For pre-4.3bsd-based syslogs, you may want the syslog log file
-to be just for important messages (e.g. LOG\_NOTICE and higher
+to be just for important messages (e.g. LOG_NOTICE and higher
 priority), and have a separate file for informational messages
-(LOG\_DEBUG and up).
+(LOG_DEBUG and up).
+</PARA></LISTITEM>
 
-\item By default, the postmaster will {\bf not} receive a copy
+<LISTITEM><PARA>
+By default, the postmaster will <EMPHASIS>not</> receive a copy
 of all bounced mail; this can be turned on selectively by simply
 editing the various canned forms used to create the error messages.
-These forms are located in the FORMSDIR ({\tt proto/forms} in
-the distribution, or {\tt \$MAILSHARE/forms} when installed).
+These forms are located in the <ENVAR>FORMSDIR</>
+(<FILENAME CLASS="DIRECTORY">proto/forms</> in the distribution,
+or <FILENAME CLASS="DIRECTORY">$<ENVAR>MAILSHARE</>/forms</> when installed).
 You should review these in any case to make sure the text is
 appropriate for your site.
-
-\end{itemize}
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
 </PARA>
 
 </SECT1>
@@ -1214,7 +1255,7 @@ is -- for possible use of `usenet' channel.
 </VARIABLELIST>
 
 <PARA>
-Recycled ZENV variables (from {\tt \$ZCONFIG} file):
+Recycled ZENV variables (from $<ENVAR>ZCONFIG</> file):
 <SCREEN>
   For these see  SiteConfig(.in)  file
 
@@ -1240,133 +1281,186 @@ Recycled ZENV variables (from {\tt \$ZCONFIG} file):
 
 <SECT1><TITLE>Options for various facilities</TITLE>
 
-<PARA>
-\begin{description}
-\item[\tt --prefix=/DIR/PATH] \mbox{}
-
+<VARIABLELIST><TITLE>Options for various facilities</TITLE>
+<VARLISTENTRY>
+<TERM>--prefix=/DIR/PATH</TERM>
+<LISTITEM><PARA>
 The only really mandatory option, gives actually
-defaults for \verb:MAILSHARE/MAILVAR/MAILBIN:.
+defaults for <FILENAME>$<ENVAR>MAILSHARE</>/$<ENVAR>MAILVAR</>/$<ENVAR>MAILBIN</></FILENAME>:.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-gcc] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-gcc</TERM>
+<LISTITEM><PARA>
 Compile with GCC even when you have "cc" around.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-zconfig=/FILE/PATH] \mbox{}
-
-Where the runtime   {\tt zmailer.conf}   file is located
-at (and with what name).  This is {\bf the only} hard-coded
-info within libraries and thus programs using them.
+<VARLISTENTRY>
+<TERM>--with-zconfig=/FILE/PATH</TERM>
+<LISTITEM><PARA>
+Where the runtime  <FILENAME>zmailer.conf</>   file is located
+at (and with what name).  This is <EMPHASIS>the only</>
+hard-coded info within libraries and thus programs using them.
 Everything else is runtime relocatable by means of using
 "variables" listed in this file.
+</PARA>
 
-Default: {\tt /etc/zmailer.conf}
+<PARA>
+Default: <FILENAME>/etc/zmailer.conf</>
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-mailbox=/DIR/PATH] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-mailbox=/DIR/PATH</TERM>
+<LISTITEM><PARA>
 Overrides system-dependent location of the user mail-boxes.
 Defaults are looked up thru list of directories:
-\begin{alltt}
+<SCREEN>
  /var/mail
  /var/spool/mail
  /usr/mail
  /usr/spool/mail
-\end{alltt}
+</SCREEN>
 First found directory will be the default -- or then
-system yields  {\tt /usr/spool/mail}
+system yields  <FILENAME CLASS="DIRECTORY">/usr/spool/mail</>.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-postoffice=/DIR/PATH] \mbox{}
 
-Overrides system-dependent location of the "{\tt \$POSTOFFICE}"
-directory under which system stores queued email.
-Will try directories \verb:/{usr,var}/spool/postoffice/: to
+<VARLISTENTRY>
+<TERM>--with-postoffice=/DIR/PATH</TERM>
+<LISTITEM><PARA>
+Overrides system-dependent location of
+the ``<FILENAME CLASS="DIRECTORY">$<ENVAR>POSTOFFICE</></>'' directory
+under which system stores queued email.
+Will try directories
+<FILENAME CLASS="DIRECTORY">/{usr,var}/spool/postoffice/</> to
 see, if previously installed directory tree exists.
-Default will be  \verb:/var/spool/postoffice/:
+Default will be  <FILENAME CLASS="DIRECTORY">/var/spool/postoffice/</>
 in case there is no previously created postoffice directory.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-mailshare=/DIR/PATH]
-\item[\tt --with-mailvar=/DIR/PATH]
-\item[\tt --with-mailbin=/DIR/PATH] \mbox{}
+<VARLISTENTRY>
+<TERM>--with-mailshare=/DIR/PATH</TERM>
+<TERM>--with-mailvar=/DIR/PATH</TERM>
+<TERM>--with-mailbin=/DIR/PATH</TERM>
+<LISTITEM><PARA>
+These are overrides for values derived from  <OPTION>--prefix=/DIR</>
+option.</PARA>
+<PARA><ENVAR>MAILSHARE</> = "$PREFIX", <ENVAR>MAILVAR</> = "$PREFIX",
+but the last is <FILENAME>MAILBIN</> = "$PREFIX/bin".
+</PARA></LISTITEM></VARLISTENTRY>
 
-These are overrides for values derived from  \verb:--prefix=/DIR:
-option.  {\tt MAILSHARE = "\$PREFIX"}, {\tt MAILVAR = "\$PREFIX"},
-but the last is {\tt MAILBIN = "\$PREFIX/bin"}
+<VARLISTENTRY>
+<TERM>--with-logdir=/DIR/PATH</TERM>
+<LISTITEM><PARA>
+Explicite value to replace $<ENVAR>LOGDIR</> ZENV value and/or to
+override default value of:  <FILENAME CLASS="DIRECTORY">/var/log/mail/</>
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-logdir=/DIR/PATH] \mbox{}
-
-Explicite value to replace {\tt \$LOGDIR} ZENV value and/or to
-override default value of:  {\tt /var/log/mail}
-
-\item[\tt --with-nntpserver=HOST] \mbox{}
-
-If you want to use `{tt usenet}' channel, you need to name
+<VARLISTENTRY>
+<TERM>--with-nntpserver=HOST</TERM>
+<LISTITEM><PARA>
+If you want to use ``<COMMAND>usenet</>'' channel, you need to name
 NNTP server into which you feed news with NNTP.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-sendmailpath=/FILE/PATH] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-sendmailpath=/FILE/PATH</TERM>
+<LISTITEM><PARA>
 Overrider for default location(s) of sendmail program.
-ZENV variable {\tt\$SENDMAILPATH} can be overridden with this.
+ZENV variable $<ENVAR>SENDMAILPATH</> can be overridden with this.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-rmailpath=/FILE/PATH] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-rmailpath=/FILE/PATH</TERM>
+<LISTITEM><PARA>
 Overrider for default location(s) of rmail program.
-ZENV variable {\tt\$RMAILPATH} can be overridden with this.
+ZENV variable $<ENVAR>RMAILPATH</> can be overridden with this.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-selfaddresses="NAME,NAME"] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-selfaddresses="NAME,NAME"</TERM>
+<LISTITEM><PARA>
 Obsolete option regarding providing into in ZENV variable
 to yield system internal names automagically for the SMTP
 transport channel uses, and also for the router to see,
 if destination IP address is local at the system.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-system-malloc] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-system-malloc</TERM>
+<LISTITEM><PARA>
 Use system malloc() library, don't compile own:
-Alternate for using: \verb:--with-libmalloc=system:
+Alternate for using: <OPTION>--with-libmalloc=system</>
 This is default.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-libmalloc=LIBNAME] \mbox{}
-
-Where "{\tt LIBNAME}" is one of:
-\begin{description}
-\item[\tt system] \mbox{} 
-
+<VARLISTENTRY>
+<TERM>--with-libmalloc=LIBNAME</TERM>
+<LISTITEM><PARA>
+Where ``LIBNAME'' is one of:
+</PARA>
+<VARIABLELIST>
+<VARLISTENTRY>
+<TERM>system</TERM>
+<LISTITEM><PARA>
 System malloc() as is.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt malloc] \mbox{}
-
+<VARLISTENTRY>
+<TERM>malloc</TERM>
+<LISTITEM><PARA>
 Bundled "libmalloc" without debugging things.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt malloc\_d] \mbox{}
+<VARLISTENTRY>
+<TERM>malloc_d</TERM>
+<LISTITEM><PARA>
+Bundled "libmalloc" <EMPHASIS>with</> debugging things.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
-Bundled "libmalloc" {\bf with} debugging things.
-\end{description}
+</LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-yp] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-yp</TERM>
+<LISTITEM><PARA>
 Want to use YP, and has it at default locations
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-yp-lib='-L... -lyp'] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-yp-lib='-L... -lyp'</TERM>
+<LISTITEM><PARA>
 If needed to define linking-time options to find the YP-library.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-ldap-prefix=DIRPREFIX] \mbox{}
+<VARLISTENTRY>
+<TERM>--with-ldap-prefix=DIRPREFIX</TERM>
+<LISTITEM><PARA>
+If UMich/NetScape <APPLICATION>LDAP</> are available thru
+<FILENAME CLASS="DIRECTORY">DIRPREFIX/include/</>
+and <FILENAME CLASS="DIRECTORY">DIRPREFIX/lib/</>
+locations, this is a short-hand to find the interface -- with files
+in the system primary include and lib locations,
+``<FILENAME CLASS="DIRECTORY">/usr</>'' is a special value which
+will be ignored.  There is no default value for
+<FILENAME CLASS="DIRECTORY">DIRPREFIX</>.
+</PARA></LISTITEM></VARLISTENTRY>
 
-If UMich/NetScape {\em LDAP} are available thru {\tt DIRPREFIX/include/}
-and {\tt DIRPREFIX/lib/} locations, this is a short-hand to find
-the interface -- with files in the system primary include
-and lib locations,  "{\tt /usr}" is a special value which will be
-ignored.  No default value for {\tt DIRPREFIX}.
-
-\item[\tt --with-ldap-include-dir=/DIR/PATH] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-ldap-include-dir=/DIR/PATH</TERM>
+<LISTITEM><PARA>
 Special overrider for compilation include directory of LDAP
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-ldap-library-dir=/DIR/PATH] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-ldap-library-dir=/DIR/PATH</TERM>
+<LISTITEM><PARA>
 Special overrider for linkage library directory of LDAP
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --without-fsync] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--without-fsync</TERM>
+<LISTITEM><PARA>
 At systems where the local filesystem is log-based/journaling,
 doing   fsync()  is wastefull.  This disables fsync() in
 cases where it is not needed.    (In others it may boost
@@ -1375,76 +1469,100 @@ On the other hand, recently a system disk(?) fault which
 hang mailer at spool directory access did cause severe
 damage all over, and propably use of this option would
 not have made any difference..  fsck was mighty unhappy..)
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-bundled-libresolv] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-bundled-libresolv</TERM>
+<LISTITEM><PARA>
 If your system is not very modern, you may consider using
 this option to compile in a resolver from bind-4.9.4-REL.
 On the other hand, if your system is modern, it may have
 even newer resolver in it.  At such time, don't use this!
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-ipv6] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-ipv6</TERM>
+<LISTITEM><PARA>
 Use IPv6 at things where it is supported.  This is often
 highly experimental, although many subsystems in ZMailer
 are built with   getnameinfo()  et.al. interfaces, which
 works both on IPv4 and IPv6.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-ipv6-replacement-libc] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-ipv6-replacement-libc</TERM>
+<LISTITEM><PARA>
 If the system needs more support for user-space IPv6
 things, this generates those.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --without-rfc822-tabs] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--without-rfc822-tabs</TERM>
+<LISTITEM><PARA>
 Some systems dislike getting RFC-822 headers with form of:
-\begin{alltt}
+<SCREEN>
    "Headername: &lt;HTAB&gt; value"
-\end{alltt}
+</SCREEN>
 With this option, no HTABs are used and instead "ordinary"
 space character is used.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-tcp-wrappers]
-\item[\tt --with-tcp-wrappers=/DIR/PATH] \mbox{}
+<VARLISTENTRY>
+<TERM>--with-tcp-wrappers</TERM>
+<TERM>--with-tcp-wrappers=/DIR/PATH</TERM>
+<LISTITEM><PARA>
 
 Optional  {\tt =/DIR/PATH}  value gives directory where there are
 {\tt tcpd.h}  and  {\tt libwrap.a}  files.
 Without value this option looks for several common locations
 for those files, and if finds them, yields compile and linking
 hooks,
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-ta-mmap] \mbox{}
-
+<VARLISTENTRY>
+<TERM>--with-ta-mmap</TERM>
+<LISTITEM><PARA>
 On some systems with good {\tt mmap()} with ``MAP\_FILE\verb/|/MAP\_SHARED,''
 and well behaving  {\tt munmap()}  it does make sense to replace
 read()/write() thru a file-descriptor to the file with
 mmap() -- however that requires munmap() {\bf not to} scrub
 away in-mapped blocks any more actively, than the buffer-cache
 works at read()/write() blocks.
+</PARA>
 
+<PARA>
 This was default for a while, however most systems don't
 have really well-behaved munmap()s :-/
 (Perhaps IBM AIX is the only exception ?)
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-getpwnam-library="-L... -l..."] \mbox{} \\
-
+<VARLISTENTRY>
+<TERM>--with-getpwnam-library="-L... -l..."</TERM>
+<LISTITEM><PARA>
 Certain sites have expressed wishes to use their own libraries
 to replace the standard {\tt getpwnam()} (and possibly {\tt getpwuid()}
 routines.
 These are used in router, scheduler, mailbox, hold, and vacation
 programs.
+</PARA>
 
+<PARA>
 These programs use {\tt getpwnam()} libary call to look up
 various customer usernames to whatever the system needs them
 for.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-generic-include="-I/..."] \mbox{}
-
-This parameter allows ubiquitous ``{\em -I/...}'' options to be used
+<VARLISTENTRY>
+<TERM>--with-generic-include="-I/..."</TERM>
+<LISTITEM><PARA>
+This parameter allows ubiquitous ``<OPTION>-I/...</>'' options to be used
 in all program compilations throughout the package.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt --with-whoson]
-\item[\tt --with-whoson="/dir/prefix"] \mbox{} \\
+<VARLISTENTRY>
+<TERM>--with-whoson</TERM>
+<TERM>--with-whoson="/dir/prefix"</TERM>
+<LISTITEM><PARA>
 
 This does explicite integration with {\em whoson} server; see
 the ``whoson-*.tar.gz'' file in the ``contrib/'' subdirectory.
@@ -1456,16 +1574,16 @@ For {\em ZMailer} needs the library must support userids:
 \item {\tt nobody}
 \end{itemize}
 and whatever others your local system magic needs.
-\end{description}
-</PARA>
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 </SECT1>
-<SECT1><TITLE>Verifying the System</TITLE>
+</CHAPTER>
+<CHAPTER><TITLE>Verifying the System</TITLE>
 
 <PARA>
-{\em\large TO BE WRITTEN}
+FIXME! FIXME! <EMPHASIS> TO BE WRITTEN !</>
 </PARA>
 
-</SECT1>
 </CHAPTER>
 </PART>
