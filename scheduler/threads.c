@@ -636,11 +636,9 @@ web_detangle(vp, ok)
 	/* If it was in processing, remove process node binding.
 	   We do this only when we have reaped the channel program. */
 
-	if (vp->proc != NULL) {
-	  if (vp->proc->pvertex == vp)
-	    pick_next_vertex(vp->proc);
-	  vp->proc = NULL;
-	}
+	if (vp->proc)
+	  pick_next_vertex(vp->proc);
+	vp->proc = NULL;
 
 	if (vp->thread != NULL)
 	  unthread(vp);
@@ -837,7 +835,6 @@ struct thread *thr;
 	     order of thread vertices  (or sort by spool file
 	     mtime, if in AGEORDER..) */
 	  thread_vertex_shuffle(thr);
-	  proc->pvertex = thr->vertices;
 
 	  thr->attempts += 1;
 
@@ -845,6 +842,10 @@ struct thread *thr;
 
 	  proc->state   = CFSTATE_LARVA;
 	  proc->overfed = 1;
+
+	  proc->pvertex = thr->vertices;
+	  proc->pthread = thr;
+
 	  ta_hungry(proc);
 
 	  return 1;
@@ -920,22 +921,24 @@ pick_next_vertex(proc)
      struct procinfo *proc;
 {
 	struct thread * thr = proc->pthread;
-#if 0
+
 	if (proc->pvertex)
 	  proc->pvertex->proc = NULL; /* Done with the previous one */
-#endif
+
 	if (verbose)
 	  sfprintf(sfstdout,"pick_next_vertex(proc->tofd=%d, thr=%p, vtx=%p, jobs=%d OF=%d)\n",
 		 proc->tofd, thr, proc->pvertex, thr ? thr->jobs : 0, proc->overfed);
 
 
 	if (proc->pid < 0 || proc->tofd < 0) {	/* "Jim, He is dead!"	*/
-	  if (proc->pthread != NULL)
+	  if (proc->pthread) {
 	    proc->pthread->proc = NULL;
-	  proc->pthread = NULL;
-	  if (proc->pvertex != NULL)
+	    proc->pthread       = NULL;
+	  }
+	  if (proc->pvertex) {
 	    proc->pvertex->proc = NULL;
-	  proc->pvertex = NULL;
+	    proc->pvertex       = NULL;
+	  }
 	  if (verbose) sfprintf(sfstdout," ... NONE, 'Jim, He is dead!'\n");
 	  return 0;
 	}

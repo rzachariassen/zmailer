@@ -136,8 +136,6 @@ extern void  thread_reschedule __((struct thread *, time_t, int index));
 extern struct procinfo *cpids;
 extern int  numkids;
 extern void ta_hungry       __((struct procinfo *cpidp));
-extern int  feed_child      __((struct procinfo *cpidp));
-extern int  flush_child     __((struct procinfo *cpidp));
 extern int  start_child     __((struct vertex *vhead, struct web *channel, struct web *host));
 extern void shutdown_kids   __(( void ));
 extern RETSIGTYPE sig_chld __((int sig));

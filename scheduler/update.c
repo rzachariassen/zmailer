@@ -268,9 +268,10 @@ void unvertex(vp, justfree, ok)
 		   "unvertex(vtx=%p (thr=%p proc=%p, ng=%d) ,%d,%d)\n",
 		   vp, vp->thread, vp->proc, vp->ngroup, justfree, ok);
 
-	if (vp->proc && vp->proc->pvertex == vp) {
-	  /* Its me, move it elsewere! */
+	if (vp->proc) {
+	  /* Somebody here, move it elsewere! */
 	  pick_next_vertex(vp->proc);
+	  vp->proc = NULL;
 	}
 
 	for (i = 0; i < SIZE_L; ++i) {
@@ -909,9 +910,11 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 	 */
 #if 0
 	/* ``vp'' might become expired by  thread_reschedule() .. */
-	if (vp->proc && vp->proc->vertex == vp)
+	if (vp->proc) {
 	  /* Pick next, but don't feed it (yet)! */
-	  pick_next_vertex(vp->proc, 0, 0);
+	  pick_next_vertex(vp->proc);
+	  vp->proc = NULL;
+	}
 #endif
 
 	if (vp->thread != NULL)

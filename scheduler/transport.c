@@ -104,7 +104,9 @@ extern int slow_shutdown;
  * Flush to child;
  * return -1 for failures and incomplete writes, 0 for success!
  */
-int
+static int  flush_child     __((struct procinfo *cpidp));
+
+static int
 flush_child(proc)
      struct procinfo *proc;
 {
@@ -171,7 +173,9 @@ flush_child(proc)
  * return -1 for failures and incomplete writes, 0 for success!
  */
 
-int
+static int  feed_child      __((struct procinfo *cpidp));
+
+static int
 feed_child(proc)
      struct procinfo *proc;
 {
