@@ -75,10 +75,6 @@ extern char *optarg;
 
 struct sptree *spt_mesh[SIZE_L];
 
-#ifdef	MALLOC_TRACE
-struct conshell *envarlist = NULL;
-#endif	/* MALLOC_TRACE */
-
 #define TRANSPORTMAXNOFILES 32 /* Number of files a transporter may
 				  need open -- or any of its children.. */
 int	transportmaxnofiles = TRANSPORTMAXNOFILES; /* Default value */

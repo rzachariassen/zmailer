@@ -76,11 +76,7 @@
 #include <sys/un.h>
 #endif
 
-#ifdef	MALLOC_TRACE
-struct conshell *envarlist = NULL;
-#endif	/* MALLOC_TRACE */
 int	D_alloc = 0;
-
 
 #include "prototypes.h"
 #include "memtypes.h"
