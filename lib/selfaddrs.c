@@ -685,7 +685,7 @@ matchmyaddresses(ai)
 
 #ifdef TESTMODE
 
-char *progname = "selfaddrstest";
+const char *progname = "selfaddrstest";
 
 int main(argc,argv)
 int argc;

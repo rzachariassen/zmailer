@@ -1281,8 +1281,6 @@ if test "$ac_cv_func_socketpair" = no -a "$LIBSOCKET" != ""; then
   LIBS="$t_oldLibs"
 fi
 
-AC_REPLACE_FUNCS(gai_strerror)
-
 ac_with_ipv6_replacement_libc=0
 AC_ARG_WITH(ipv6-replacement-libc, [  --with-ipv6-replacement-libc If system has broken  getaddrinfo() and friends],
 	ac_with_ipv6_replacement_libc=1)
@@ -1292,8 +1290,11 @@ if test "$ac_with_ipv6_replacement_libc" = 1 ; then
   AC_SUBST(LIBOBJS)
 else
 
+  t_oldLibs="$LIBS"
+  LIBS="$LIBS $LIBSOCKET"
+
   #  Following stuff may exist in our LIBC, or in separate -linet6
-  AC_CHECK_FUNCS(inet_ntop inet_pton getaddrinfo getnameinfo)
+  AC_CHECK_FUNCS(inet_ntop inet_pton getaddrinfo getnameinfo gai_strerror)
   #  If not found in LIBC, try to use  -linet6,  if it fails too,
   #  THEN call the AC_REPLACE_FUNCS()
   if test "$ac_cv_func_gai_strerror" = no ; then
@@ -1304,10 +1305,13 @@ else
       LIBSOCKET="$LIBSOCKET -linet6"
       AC_MSG_RESULT([Has IPv6 API  gai_strerror()  when using  $LIBSOCKET])
     else
-      LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o"
+      LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o gai_strerror.o"
       AC_SUBST(LIBOBJS)
     fi
   fi
+
+  LIBS="$t_oldLibs"
+
 fi
 
 AC_SUBST(RFC822TABS)
