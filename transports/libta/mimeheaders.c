@@ -78,14 +78,15 @@ static int mime_received_convert __((struct rcpt *rp, char *convertstr));
 /* strqcpy() -- store the string into buffer with quotes if it
    		is not entirely of alphanums+'-'+'_'.. */
 
-static int strqcpy __((char **buf, int startpos, int *buflenp, char *str));
+static int strqcpy __((char **buf, int startpos, int *buflenp, const char *str));
 
 static int
 strqcpy(bufp, startpos, buflenp, str)
-	char **bufp, *str;
+	char **bufp;
+	const char *str;
 	int *buflenp;
 {
-	char *s = str;
+	const char *s = str;
 	char *buf = *bufp;
 	int needquotes = 0;
 	int buflen = *buflenp -2;
@@ -488,29 +489,30 @@ output_content_type(rp,ct,old)
 	*basep = newmsgheaders;
 }
 
-static char * skip_822linearcomments __((char *p));
+static const char * skip_822linearcomments __((const char *p));
 
 #if 0 /* This code not needed */
-static char * skip_822dtext __((char *p));
-static char * skip_822dtext(p)
-     char *p;
+static const char * skip_822dtext __((const char *p));
+static const char * skip_822dtext(p)
+     const char *p;
 {
 	/* This shall do skipping of RFC 822:
 	   3.1.4: Structured Field Bodies  defined ATOMs */
 
-	char *s = p;
+	const char *s = p;
 
 #warning "skip_822dtext() code missing!"
 
 	return s;
 }
-static char * skip_822domainliteral __((char *p));
-static char * skip_822domainliteral(p)
-     char *p;
+
+static const char * skip_822domainliteral __((const char *p));
+static const char * skip_822domainliteral(p)
+     const char *p;
 {
 	/* This shall do skipping of RFC 822: DOMAIN LITERALs */
 
-	char *s = p;
+	const char *s = p;
 
 #warning " skip_822dliteral() missing code!"
 
@@ -518,26 +520,26 @@ static char * skip_822domainliteral(p)
 }
 #endif
 
-static char * skip_822qtext __((char *p));
-static char * skip_822qtext(p)
-     char *p;
+static const char * skip_822qtext __((const char *p));
+static const char * skip_822qtext(p)
+     const char *p;
 {
 	/* This shall do skipping of RFC 822:  qtext  items */
 
-	char *s = p;
+	const char *s = p;
 
 	while (*s && *s != '"' && *s != '\\') ++s;
 
 	return s;
 }
 
-static char * skip_822qpair __((char *p));
-static char * skip_822qpair(p)
-     char *p;
+static const char * skip_822qpair __((const char *p));
+static const char * skip_822qpair(p)
+     const char *p;
 {
 	/* This shall do skipping of RFC 822:  quoted-pair  items */
 
-	char *s = p;
+	const char *s = p;
 
 	++s; /* We come in with '\\' at *s */
 	/* End-of-header ?? */
@@ -547,13 +549,13 @@ static char * skip_822qpair(p)
 	return s;
 }
 
-static char * skip_822quotedstring __((char *p));
-static char * skip_822quotedstring(p)
-     char *p;
+static const char * skip_822quotedstring __((const char *p));
+static const char * skip_822quotedstring(p)
+     const char *p;
 {
 	/* This shall do skipping of RFC 822:  quoted-string  items */
 
-	char *s = p;
+	const char *s = p;
 
 	/* At arrival:  *s == '"' */
 	++s;
@@ -570,15 +572,15 @@ static char * skip_822quotedstring(p)
 	return s;
 }
 
-static char * skip_comment __((char *p));
-static char * skip_comment(p)
-     char *p;
+static const char * skip_comment __((const char *p));
+static const char * skip_comment(p)
+     const char *p;
 {
 	/* This shall do skipping of RFC 822:
 	   3.1.4: Structured Field Bodies
 	   defined COMMENTS */
 
-	char *s = p;
+	const char *s = p;
 
 	++s; /* We are called with *s == '(' */
 	while (*s && *s != ')') {
@@ -600,14 +602,14 @@ static char * skip_comment(p)
 	return s;
 }
 
-static char * skip_822linearcomments(p)
-     char *p;
+static const char * skip_822linearcomments(p)
+     const char *p;
 {
 	/* This shall do skipping of RFC 822:
 	   3.1.4: Structured Field Bodies
 	   defined LINEAR-WHITESPACES and COMMENTS */
 
-	char *s = p;
+	const char *s = p;
 
 	while (*s) {
 
@@ -625,15 +627,15 @@ static char * skip_822linearcomments(p)
 	return s;
 }
 
-static char * _skip_822atom __((char *p, int tspecial));
-static char * _skip_822atom(p, tspecial)
-     char *p;
+static const char * _skip_822atom __((const char *p, int tspecial));
+static const char * _skip_822atom(p, tspecial)
+     const char *p;
      int tspecial;
 {
 	/* This shall do skipping of RFC 822:
 	   3.1.4: Structured Field Bodies  defined ATOMs */
 
-	char *s = p;
+	const char *s = p;
 
 	while (*s) {
 	  int isdelim = 0;
@@ -675,18 +677,18 @@ static char * _skip_822atom(p, tspecial)
 	return s;
 }
 
-static char * skip_mimetoken __((char *p));
-static char * skip_mimetoken(p)
-     char *p;
+static const char * skip_mimetoken __((const char *p));
+static const char * skip_mimetoken(p)
+     const char *p;
 {
   return _skip_822atom(p, 1);
 }
 
 
-static char * foldmalloccopy __((char *start, char *end));
+static char * foldmalloccopy __((const char *start, const char *end));
 static char * foldmalloccopy (start, end)
-     char *start;
-     char *end;
+     const char *start;
+     const char *end;
 {
 	int len = end - start;
 	int space = len + 1;
@@ -710,9 +712,9 @@ static char * foldmalloccopy (start, end)
 
 struct ct_data *
 parse_content_type(ct_line)
-     char *ct_line;
+     const char *ct_line;
 {
-	char *s, *p;
+	const char *s, *p;
 	struct ct_data *ct = (struct ct_data*)malloc(sizeof(struct ct_data));
 	int unknowncount = 0;
 
@@ -826,9 +828,9 @@ parse_content_type(ct_line)
 
 struct cte_data *
 parse_content_encoding(cte_line)
-     char *cte_line;
+     const char *cte_line;
 {
-	char *s;
+	const char *s;
 	struct cte_data *cte = malloc(sizeof(struct cte_data));
 
 	if (!cte) return NULL;
@@ -837,12 +839,12 @@ parse_content_encoding(cte_line)
 	/* Skip over the 'Content-Transfer-Encoding:' */
 	s = skip_822linearcomments(s);
 	if (*s == '"') {
-	  char *p = skip_822quotedstring(s);
+	  const char *p = skip_822quotedstring(s);
 	  cte->encoder = foldmalloccopy(s, p);
 	  /* FIXME: malloc problem check ?? */
 	  s = p;
 	} else {
-	  char *p = skip_mimetoken(s);
+	  const char *p = skip_mimetoken(s);
 	  cte->encoder = foldmalloccopy(s, p);
 	  /* FIXME: malloc problem check ?? */
 	  s = p;
@@ -869,8 +871,8 @@ check_conv_prohibit(rp)
 
 	while (*hdrs) {
 	  if (CISTREQN(*hdrs,"Content-conversion:", 19)) {
-	    char *s = *hdrs + 19;
-	    char *p = skip_822linearcomments(s);
+	    const char *s = *hdrs + 19;
+	    const char *p = skip_822linearcomments(s);
 	    if (*p == '"') ++p;
 	    if (CISTREQN(p,"prohibited",10)) return -2;
 	    if (CISTREQN(p,"forced-qp",9)) return 7;
@@ -900,7 +902,7 @@ cte_check(rp)
 	if (!hdrs) return 0;
 
 	while (*hdrs && (!mime || !cte)) {
-	  char *buf = *hdrs;
+	  const char *buf = *hdrs;
 	  if (!cte && CISTREQN(buf,cCTE,26)) {
 	    buf += 26;
 	    buf = skip_822linearcomments(buf);
@@ -1206,7 +1208,8 @@ qp_to_8bit(rp)
 	struct rcpt *rp;
 {
 	char **inhdr;
-	char *hdr, *p;
+	const char *p;
+	char *hdr;
 	char **CTE, **CT;
 	struct ct_data *ct;
 
