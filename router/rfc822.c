@@ -864,10 +864,10 @@ mkSender(e, name, flag)
 				break;
 		}
 	} else {
-	  spkey_t spk = symbol_lookup_db(name,spt_fullnamemap->symbols);
+	  spkey_t spk = symbol_lookup_db(name, spt_fullnamemap->symbols);
 	  if (spk)
 	    spl = sp_lookup(spk, spt_fullnamemap);
-	  if (spk && spl != NULL) {
+	  if (spk && spl != NULL && (char*)(spl->data) != NULL) {
 		*ppp = (struct addr *)tmalloc(sizeof (struct addr));
 		pp = *ppp;
 		ppp = &pp->p_next;
