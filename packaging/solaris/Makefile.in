@@ -6,13 +6,14 @@ srcdir = @srcdir@
 VPATH = @srcdir@
 @SET_MAKE@
 
+VERSION = ZMailer-2.99.50-solaris
+
 TOPDIR  =  ../..
 ZCONFIG = @ZMAILERCFGFILE@
 ZCONF   = $(TOPDIR)/zmailer.Config
 #ZDEPEND = Dependencies
 CPPDEP  =  @CPPDEP@
 MKDIR   =  @MKDIR@
-INSTALL	=  @INSTALL@
 RMAILPATH=	@RMAILPATH@
 SENDMAILPATH=	@SENDMAILPATH@
 
@@ -25,7 +26,7 @@ all:
 	@echo "make pkgs prefix=/dir/prefix"
 
 clean:
-	rm -f *~ *.dirs
+	rm -f *~ proto pkginfo
 
 distclean:
 	rm -f Makefile
@@ -35,9 +36,9 @@ pkgs:	pkgs-01
 pkgs-01:
 	. $(ZCONF) ; \
 	(echo "i pkginfo"; \
-	 echo "s none /usr/bin/mailq=$$MAILBIN/sendmail" ; \
+	 echo "s none usr/bin/mailq=$$MAILBIN/sendmail" ; \
 	 cd $(prefix)/; ( \
-	 echo $$ZCONFIG ; \
+	 echo .$$ZCONFIG ; \
 	 po=`echo $$POSTOFFICE|sed -e 's!^/!!'`;find $$po -type d -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -type d -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf ! -name \*.fc -print ; \
@@ -54,9 +55,6 @@ pkgs-01:
 		awk '/^[^si] /{printf "%s %s /%s=$(prefix)/%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next} \
 		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next} \
 			{print}' \
-		> proto-01.dirs
-	rm -f pkginfo
-	cp pkginfo-01 pkginfo
-	pkgmk -o -f proto-01.dirs 
-
-#	 mb=`echo $$MAILBOX|sed -e 's!^/!!'`;find $$mb -type d -print ;
+		> proto
+	cat pkginfo.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
+	pkgmk -o -f proto

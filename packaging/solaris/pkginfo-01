@@ -1,6 +1,0 @@
-PKG=ZMailer01
-NAME=ZMailer directories
-ARCH=sparc
-VERSION=2.99.50-z.z
-CATEGORY=system
-CLASSES=none

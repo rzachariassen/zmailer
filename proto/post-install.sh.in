@@ -14,7 +14,6 @@
 
 
 ZCONFIG=@ZMAILERCFGFILE@
-INSTALL="@INSTALL@"
 MKDIR="@MKDIR@"
 
 . $ZCONFIG
@@ -25,7 +24,7 @@ do
 	shift
 done
 
-exit 99 # Sorry, not yet!
+# exit 99 # Sorry, not yet!
 
 pwd=`pwd`
 
@@ -82,18 +81,16 @@ for x in $MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf \
 do
     y=`echo $x | sed -e 's!/proto/!/!'`
     if [ -f $x ] ; then
-	cmp $x $y && echo "*** Verify  $y  file!"
+	cmp -s $x $y && echo "*** Verify  $y  file!"
     fi
 done
-  echo "*** Verify  $MAILVAR/db/smtp-policy.relay   file !"
-fi
-
 
 $MAILBIN/zmailer newdb
 
 $MAILBIN/policy-builder.sh -n
 
 cat <<EOF
+***
 *** Remember to verify input databases, and then execute commands:
 ***    $MAILBIN/zmailer newdb
 ***    $MAILBIN/policy-builder.sh (-n)

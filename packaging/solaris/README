@@ -14,5 +14,5 @@ You do:
 
 2)	Execute following commands:
 		cd packaging/solaris
-		make pkgs prefix=/tmp/zm-inst
+		make pkgs prefix=/tmp/zm-inst VERSION="ZMailer-Z.ZZ.ZZ"
 

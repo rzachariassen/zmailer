@@ -1,0 +1,6 @@
+PKG=ZMailer
+NAME=ZMailer base installation
+ARCH=sparc
+VERSION=%VERSION%
+CATEGORY=system
+CLASSES=none
