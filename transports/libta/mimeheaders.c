@@ -4,7 +4,7 @@
  */
 
 /*
- *	Copyright 1994-2000 by Matti Aarnio
+ *	Copyright 1994-2003 by Matti Aarnio
  *
  * To really understand how headers (and their converted versions)
  * are processed you do need to draw a diagram.
@@ -1216,47 +1216,59 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 {
 	int semicindex, receivedlen;
 	char *newreceived;
+	const char *newreceivedend;
 
-	char forclause[1024], *s;
-	int clauselen; /* Dual-use variable! */
+	char fchead[10], forclause[1024], fctail[20], *s;
+	int clauselen;
 	int col;
 
 	char **inhdr, *sc;
 
+	static int no_for_clause = -1;
+
+	if (no_for_clause < 0) {
+	  if (getzenv("NORECEIVEDFORCLAUSE"))
+	    no_for_clause = 1;
+	  else
+	    no_for_clause = 0;
+	}
+	if (no_for_clause) return 0; /* Forbidden.. */
+
 
 	/* Begin at the indented line start.. */
 	s = forclause;
-	strcpy(s, " \n\t"); s += 3;
+	/* strcpy(s, "\n\t"); s += 2; */
 
 	if (rp->orcpt) {
-	  /* Decode ORCPT XTEXT data ?  Why ? */
-	  sprintf(s, "(for <%.800s>", rp->orcpt);
-	  clauselen = 1; /* Will need ending ')'! */
-	} else {
-	  sprintf(s, "for <%.800s>", rp->addr->user);
-	  clauselen = 0;
+	  /* XXX: Do decode ORCPT XTEXT data ?  Why bother ? */
+	  strcpy(fchead, "(ORCPT");
+	  sprintf(s, "<%.800s>", rp->orcpt);
+
+	  /* ORCPT data tail, just ending closing parenthesis.. */
+	  if (rcptcnt > 2)
+	    sprintf(fctail, "+ %d others)", rcptcnt-1);
+	  else if (rcptcnt > 1)
+	    strcpy(fctail, "+ 1 other)");
+	  else {
+	    *fctail = 0;
+	    /* Close the comment on the ORCPT value! */
+	    strcat(s, ")");
+	  }
+
+	} else { /* No  ORCPT  tail,  just 'for'-clause */
+
+	  strcpy(fchead, "for");
+	  sprintf(s, "<%.800s>", rp->addr->user);
+
+	  if (rcptcnt > 2)
+	    sprintf(fctail, "(+ %d others)", rcptcnt-1);
+	  else if (rcptcnt > 1)
+	    strcpy(fctail, "(+ 1 other)");
+	  else
+	    *fctail = 0;
 	}
 
 	s += strlen(s);
-
-	if (!clauselen) {
-	  if (rcptcnt > 2)
-	    sprintf(s, " (+ %d others)", rcptcnt-1);
-	  else if (rcptcnt > 1)
-	    strcpy(s, " (+ 1 other)");
-	} else {
-	  if (rcptcnt > 2)
-	    sprintf(s, " + %d others", rcptcnt-1);
-	  else if (rcptcnt > 1)
-	    strcpy(s, " + 1 other");
-	}
-
-	s += strlen(s);
-
-	if (clauselen) {
-	  *s++ = ')';
-	  *s = 0;
-	}
 
 	clauselen = s - forclause;
 
@@ -1288,11 +1300,14 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	if (sc) {
 	  semicindex = sc - rp->top_received;
 	} else {
+	  /* No semicolon at all, last NEWLINE then ? */
 	  semicindex = strlen(rp->top_received);
 	  sc = rp->top_received + semicindex;
+	  if (sc[-1] == '\n') { --sc; --semicindex; }
 	}
 
 	{
+	  /* Find out the column of the cut-point.. */
 	  const char *p = rp->top_received;
 	  col = 0;
 	  for ( ; *p && (p <= sc) ; ++p) {
@@ -1305,34 +1320,82 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	}
 
 
-	/* the clause can fit in preceding line without
-	   doing any pre-folding.. */
-	if ( (col + clauselen) < 78 ) {
-	  col += clauselen;
-	  clauselen -= 2;
-	  memmove( forclause+1, forclause+3, clauselen );
-	} else {
-	  col = clauselen-3+8;
-	}
-
 	receivedlen = strlen(rp->top_received);
-	newreceived = malloc(receivedlen + clauselen + 1);
+	newreceived = malloc(receivedlen + clauselen + 20); /* fchead[] +
+							       fctail[] +
+							       various
+							       newlines.. */
+	newreceivedend = newreceived ? (newreceived + receivedlen + clauselen + 20) : newreceived;
 
 	if (!newreceived) return 0; /* Failed malloc.. */
 
 	/* Begin.. */
-	memcpy(newreceived, rp->top_received, semicindex);
+	s = newreceived;
+	memcpy(s, rp->top_received, semicindex);
+	s += semicindex;
+
+	if ((col + 1 + strlen(fchead)) >= 78) {
+	  *s++ = '\n';
+	  *s++ = '\t';
+	  col = 8;
+	} else {
+	  *s++ = ' ';
+	  ++col;
+	}
+
+	/* For clause head */
+	{
+	  int fcheadlen = strlen(fchead);
+	  memcpy(s, fchead, fcheadlen +1);
+	  s   += fcheadlen;
+	  col += fcheadlen;
+	}
+
+	if ((col + 1 + clauselen) < 78) {
+	  *s++ = ' ';
+	  ++col;
+	} else {
+	  *s++ = '\n';
+	  *s++ = '\t';
+	  col = 8;
+	}
+	*s = 0; /* this is not absolutely required... */
 
 	/* For clause */
-	memcpy(newreceived+semicindex, forclause, clauselen);
+	memcpy(s, forclause, clauselen+1);
+	s += clauselen;
+
+	col += clauselen;
 
 	/* Tail */
-	s = newreceived + semicindex + clauselen;
 
+	if (*fctail) {
+	  if ((col + 1 + strlen(fctail)) >= 78) {
+	    *s++ = '\n';
+	    *s++ = '\t';
+	    col = 8;
+	  } else {
+	    *s++ = ' ';
+	    ++col;
+	  }
+
+	  /* For clause tail */
+	  {
+	    int fctaillen = strlen(fctail);
+	    memcpy(s, fctail, fctaillen +1);
+	    s   += fctaillen;
+	    col += fctaillen;
+	  }
+	}
+
+
+	/* SEMIC + DATETIME tail */
 #if 1
 	if (verboselog) {
-	  fprintf(verboselog,"col=%d fc[] = '%s' ",col, forclause);
-	  fprintf(verboselog,"sc[] = '%s' (%d)\n", sc, strlen(sc));
+	  fprintf(verboselog,"col=%d fc[] = '%s'(%d) ",
+		  col, forclause, clauselen);
+	  fprintf(verboselog,"sc[] = '%s' (%d)\n",
+		  sc, strlen(sc));
 	}
 #endif
 
@@ -1340,19 +1403,21 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	  /* Shrink the tail a bit, unnecessary folding away. */
 	  *s++ = ';';
 	  *s++ = ' ';
-	  ++sc; /* Skip the semicolon */
-	  while (*sc && (*sc == '\n' || *sc == '\r' || *sc == ' ' || *sc == '\t')) ++sc;
-	  strcpy(s, sc);
+	} else {
+	  *s++ = ';';
+	  *s++ = '\n';
+	  *s++ = '\t';
+	}
+	*s = 0; /* this is not absolutely required... */
+
+	++sc; /* Skip the semicolon (or NEWLINE) .. and white-spaces */
+	while (*sc && (*sc == '\n' || *sc == '\r' || *sc == ' ' || *sc == '\t')) ++sc;
+	strcpy(s, sc);
 #if 0
-	  if (verboselog) fprintf(verboselog,"sc[] = '%s'\n", sc);
+	if (verboselog) fprintf(verboselog,"sc[] = '%s'\n", sc);
 #endif
-	  if (*sc == 0) strcat(s, "\n");
-	} else
-	  if (semicindex < receivedlen) {
-	    memcpy(newreceived+semicindex+clauselen, (rp->top_received) + semicindex,
-		   receivedlen - semicindex);
-	    newreceived[receivedlen + clauselen] = '\0';
-	  }
+	if (*sc == 0) strcat(s, "\n");
+
 
 	ctlfree(rp->desc,rp->top_received);
 	rp->top_received = newreceived;
