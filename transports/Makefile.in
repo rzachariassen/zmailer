@@ -9,7 +9,7 @@ all:
 	cd libta ; $(MAKE) $(MFLAGS)
 	for x in $(SUBDIRS); do					\
 	    if [ -f $$x/Makefile ]; then			\
-		( cd $$x; ${MAKE} ${MFLAGS} )  ;		\
+		( cd $$x; ${MAKE} ${MFLAGS} ) ;			\
 	    fi	;						\
 	done
 

@@ -2669,7 +2669,7 @@ smtpconn(SS, host, noMX)
 	      freeaddrinfo(SS->mxh[i].ai);
 	  }
 	  if (SS->verboselog)
-	    fprintf(SS->verboselog, "memset(SS->mxh, 0, %d)\n",sizeof(SS->mxh));
+	    fprintf(SS->verboselog, "memset(SS->mxh, 0, %d)\n",(int)sizeof(SS->mxh));
 	  memset(SS->mxh, 0, sizeof(SS->mxh));
 	}
 
@@ -3102,7 +3102,7 @@ deducemyifname(SS)
 	SmtpState *SS;
 {
 	Usockaddr laddr;
-	int laddrsize;
+	size_t laddrsize;
 	struct hostent *hp;
 
 	if (SS->myhostname != NULL)
@@ -3398,7 +3398,7 @@ vcsetup(SS, sa, fdp, hostname)
 	Usockaddr sad;
 	int wantbindaddr = 0;
 	Usockaddr upeername;
-	int upeernamelen = 0;
+	size_t upeernamelen = 0;
 
 	u_short p;
 	int errnosave, flg;
@@ -3630,7 +3630,7 @@ abort();
 #ifdef SO_ERROR
 	flg = 0;
 	if (errnosave == 0) {
-	  int flglen = sizeof(flg);
+	  size_t flglen = sizeof(flg);
 	  getsockopt(sk, SOL_SOCKET, SO_ERROR, (void*)&flg, &flglen);
 	}
 	if (flg != 0 && errnosave == 0)
