@@ -144,7 +144,7 @@ sub mkpostofficedir {
     $MOD = 02000 + oct($MOD);
 
     chdir($POSTOFFICE);
-    if ( ! -d $DIR ) {
+    if ( ! -d $DIR/. ) {
 
 	printf "Constructing dir: %s hash=%s\n",$DIR,$HASH;
 
@@ -263,9 +263,11 @@ system("$MAILBIN/zmailer newdb");
 
 system("$MAILBIN/policy-builder.sh -n");
 
-system("$MKDIR -p $POSTOFFICE");
-system("chmod 2755 $POSTOFFICE");
-system("chmod g+s $POSTOFFICE");
+if (! -d "$POSTOFFICE/.") {
+    system("$MKDIR -p $POSTOFFICE");
+}
+system("chmod 2755 $POSTOFFICE/.");
+system("chmod g+s $POSTOFFICE/.");
 
 #  subdir protchmod "no"/"HASH"/"HASH2" dirpreallocsize
 & mkpostofficedir('deferred',     '750', 'no',    6, 9999);

@@ -1,3 +1,12 @@
+2000-06-02  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* router/libdb/header.c:
+	    Allow just about *any* character to appear at headers
+	    database key fields..  old limits were too strict anyway.
+
+	* proto/post-install.sh.in:
+	    More minor tweaks.
+
 2000-05-28  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* proto/Makefilein, proto/post-install.sh.in:

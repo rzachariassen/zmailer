@@ -76,7 +76,7 @@ INCLUDEDIR=	@includedir@
 # SMTPOPTIONS are command line options given to the smtpserver when started
 # from the zmailer shell script.  The intent is that if you want non-default
 # address verification options they can be specified here.  The default
-# value is "-asve".   This is also used, when invoking  ``sendmail'' with
+# value is "-sve".   This is also used, when invoking  ``sendmail'' with
 # "-bs" option.
 #SMTPOPTIONS= "-l ${LOGDIR}/smtpserver"
 SMTPOPTIONS=	@SMTPOPTIONS@

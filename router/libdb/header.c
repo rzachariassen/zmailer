@@ -450,6 +450,7 @@ add_header(sip, cvalue)
 	memcpy(lcbuf, sip->key, keylen+1);
 	for (wcp = lcbuf; *wcp != '\0'; ++wcp) {
 	  int c = (*wcp) & 0xFF;
+#if 0
 	  if (c != '-' && (!isalpha(c) || isspace(c) || c == ':')) {
 	    fprintf(stderr,
 		    "add_header: bad character in key '%s'\n",
@@ -459,6 +460,7 @@ add_header(sip, cvalue)
 #endif
 	    return EOF;
 	  }
+#endif
 	  if (isupper(c))
 	    *wcp = tolower(c);
 	  else

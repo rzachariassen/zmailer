@@ -32,6 +32,10 @@ scheduler \- zmailer transport queue scheduler daemon
 .I postoffice
 ]
 [
+.B \-p
+.I channel/host-pair
+]
+[
 .B \-R
 .I maxforkfreq
 ]
