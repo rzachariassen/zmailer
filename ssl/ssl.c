@@ -605,7 +605,7 @@ OutputAddress outputPointer = 0;
 
 /* The Symbol Table */
 SymbolClass symClass[maxSymbols];
-const unsigned char *symText[maxSymbols];
+const char *symText[maxSymbols];
 int symHash[maxSymbols];
 int symValue[maxSymbols];
 SymbolClass symParmClass[maxSymbols];
@@ -1859,7 +1859,7 @@ xEnterNewSymbolValue()
 
 	symValue[symTop] = symNextValue[(int)symCurrentClass];
 
-	if (!isalpha(symText[symTop][0])) return;
+	if (!isalpha(255 & (symText[symTop][0]))) return;
 
 	if (symCurrentClass == cUpdateOp
 	    && machineOpNames[symNextValue[(int)symCurrentClass]] == NULL)
@@ -2387,7 +2387,7 @@ GenerateClass(class, name)
 				fprintf(headerfp, "typedef enum {\n");
 				flag = 0;
 			}
-			if (!isalpha(symText[s][0])) continue;
+			if (!isalpha(255 & (symText[s][0]))) continue;
 
 			if (symValue[s] != lastvalue + 1) {
 				sprintf(buf, "%s = %d",
