@@ -165,6 +165,7 @@ main(argc, argv)
 			break;
 		}
 	}
+
 	if (errflg || (interactiveflg && daemonflg)) {
 		fprintf(stderr,
 			"Usage: %s [ -dikV -n #routers -t traceflag -f configfile -L logfile -P postoffice]\n",

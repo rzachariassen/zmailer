@@ -62,7 +62,6 @@ struct sptree *spt_databases, *spt_files, *spt_modcheck;
 struct sptree *spt_goodguys, *spt_uidmap, *spt_loginmap;
 struct sptree *spt_fullnamemap, *spt_incoredbs, *spt_headers;
 struct sptree *spt_eheaders;
-extern struct sptree *spt_builtins;
 
 struct sptree_init splaytrees[] = {
   /* { &spt_incoredbs,	0 }, */		/* incore database name -> splay tree */
