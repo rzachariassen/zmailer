@@ -223,6 +223,11 @@ transports/smtp:
 
 
 - scheduler:
+    BUG/NUISANCE:
+	The "SNMP counters" don't always count correctly the
+	number of messages in system processing. (Thought to have
+	been fixed, but alas, not...) (2003-May-5)
+
     FEATURE/BUG:
 	When a transport-agent dies due to e.g. SIGSEGV, simulate
 	a diagnostic message telling of this situation!
