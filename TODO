@@ -85,6 +85,10 @@ INSTALL:
 router:
 
     FEATURE:
+	A way to generate new arbitrary headers (for e.g. router
+	integrated spamassassin..)
+
+    FEATURE:
 	router/rfc822.c:  sequencer()
 	Consider providing some data/function/whatever telling to
 	the configuration script how many "Received:" headers there
@@ -132,12 +136,6 @@ transports/smtp:
 	            in BDAT implementation.
         --> microsoft fixes their bugs ?
 	--> optionally disable BDAT when addressing some targets ?
-
-
-   VERIFY:
-	pass the address meta information also in environment
-	variables, and handle multirecipient cases as well!
-	(see what 'mailbox' does.)
 
    VERIFY:
 	That failed connection to site A won't lead to recipient
@@ -363,6 +361,12 @@ transports/smtp:
 	- "localize" the destination address properly.  That is, strip
 	  quotes from around a quoted destination address according to
 	  the RFC822 syntax. -- Is this always correct ?
+
+
+   VERIFY:
+	pass the address meta information also in environment
+	variables, and handle multirecipient cases as well!
+	(see what 'mailbox' does.)
 
 
 - post-install-check
