@@ -18,8 +18,8 @@ distclean:
 	cd sendmail ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) distclean
 
 install:
-	-cd rmail ; $(MAKE) $(MFLAGS) install
-	-cd sendmail ; $(MAKE) $(MFLAGS) install
+	-@cd rmail ; $(MAKE) $(MFLAGS) install
+	-@cd sendmail ; $(MAKE) $(MFLAGS) install
 
 depend:
 	cd rmail ; $(MAKE) $(MFLAGS) depend

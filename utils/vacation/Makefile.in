@@ -44,10 +44,10 @@ distclean: clean
 	rm -f Makefile vacation.sh $(TOPDIR)/man/vacation.1
 
 install: vacation
-	$(INSTALL) -m 755 vacation.sh $(MAILBIN)/vacation.sh
-	-rm -f $(MAILBIN)/vacation
-	cd $(MAILBIN) ; ln -s vacation.sh vacation
-	$(INSTALL) -m 755 vacation $(MAILBIN)/vacation.exe
+	@$(INSTALL) -m 755 vacation.sh $(MAILBIN)/vacation.sh
+	-@rm -f $(MAILBIN)/vacation
+	@cd $(MAILBIN) ; ln -s vacation.sh vacation
+	@$(INSTALL) -m 755 vacation $(MAILBIN)/vacation.exe
 	@if [ ! -f $(prefix)$(VMSGDEF) ] ; then				\
 		$(INSTALL) -m 644 $(srcdir)/vacation.msg $(prefix)$(VMSGDEF) ; \
 	else								\

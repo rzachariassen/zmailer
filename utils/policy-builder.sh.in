@@ -49,7 +49,7 @@ if [ f$FLAG != fn ]; then
 	$MAILBIN/smtp-policy-retrieve.pl
     else
 	if [ -x $MAILBIN/spamlist.py ] ; then
-	    $MAILBIN/spamlist.py > smtp-policy.spam.new && \
+	    $MAILBIN/spamlist.py spamlist_sources > smtp-policy.spam.new && \
 		mv  smtp-policy.spam.new smtp-policy.spam
 	else
 	    #

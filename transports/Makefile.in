@@ -39,8 +39,8 @@ distclean: clean
 	rm -f Makefile */Makefile
 
 install:
-	cd libta; $(MAKE) $(MFLAGS)
-	for x in $(SUBDIRS); do				\
+	@cd libta; $(MAKE) $(MFLAGS)
+	@for x in $(SUBDIRS); do			\
 	    if [ -f $$x/Makefile ]; then		\
 		( cd $$x; ${MAKE} ${MFLAGS} install )	\
 		|| exit 1 ;				\

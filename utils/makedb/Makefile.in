@@ -42,9 +42,10 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	for x in $(PROGS) ; do \
-	$(INSTALL) -m 0755 $$x $(MAILBIN)/$$x.x; \
-	mv $(MAILBIN)/$$x.x $(MAILBIN)/$$x; done
+	@for x in $(PROGS) ; do \
+	   $(INSTALL) -m 0755 $$x $(MAILBIN)/$$x.x; \
+	   mv $(MAILBIN)/$$x.x $(MAILBIN)/$$x; \
+	 done
 
 depend:
 	$(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)

@@ -24,8 +24,6 @@ if [ -z "$localprotocols" ]; then
 	localprotocols="include aliases mboxmap lists uid_trap punthost local"
 fi
 
-do_aliases=1
-
 #
 # These call functions with names:
 #	expand_include, expand_aliases, expand_mboxmap, expand_lists
@@ -82,6 +80,42 @@ fi
 
 trap "db flush aliases ; log flushed aliases" 16
 
+
+#
+# Safeguard if fullnamemapdb() is not yet created (as part of aliases()?)
+#
+case "$(type fullnamemapdb)" in
+*"not found")
+
+    # optional: Fullname database: <Full_Name>    <login>
+
+    if [ -f $MAILVAR/db/fullnames$DBEXTtest  ]; then
+	relation -lmt $DBTYPE -f $MAILVAR/db/fullnames$DBEXT fullnamemapdb
+	fullnamemap (key) {
+	    local a;
+	    if a="$(fullnamemapdb "$key")" ; then
+		# "priv" analysis ???
+		return "$a"
+	    fi
+	    return 1
+	}
+    else
+	fullnamemap () { return 1 }
+    fi
+
+    ;;
+
+*)  # Can be found!
+    case "$(type fullnamemap)" in
+    *"not found")
+	# The DB is there, but not this function, propably as a part of
+	# aliases() database call entry...
+	fullnamemap() { return 1 }
+	;;
+    esac
+    ;;
+esac
+
 # If an mboxmap file exists, only users specified in the mboxmap are
 # recognized, and we want to deliver to them on the host, home directory
 # filesystem, and filename, specified as the value in the mboxmap DB.
@@ -131,7 +165,7 @@ routeuser (quad, domain) {
 
 	# get rid of the attribute tag for alias loop prevention
 	a=$quad
-	#mxh=$(setf $(last $a) ())
+	##mxh=$(setf $(last $a) ())
 
 	# For the expansions control tag we can use only
 	# the 'channel',  and the 'username' strings, we CAN'T
@@ -223,26 +257,41 @@ routeuser (quad, domain) {
 
 	for func in $localprotocols; do
 	    if [ -z "$didexpand" ]; then
-		a=$(localexpand $func "$user" "$host" "$attr" "$key") &&
+		a=$(localexpand "$func" "$user" "$host" "$attr" "$key") &&
 			return $a
 	    fi
 	done
 
-	if [ $do_aliases -a -z "$didexpand" ]; then
+
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+#
+#           Below here are many partially unproceduralized tests
+#	    (work continues!), or just plain obsolete open-coded
+#           version of the loop above..
+#
+
+	# ``aliases''
+
+	if [ $do_aliases ]; then
 		a=$(expand_aliases "$user" "$host" "$attr" "$key") &&
 			return $a
 	fi
 
+	# ``expired''
 
 	# Listed in 'expired accounts' database ?
-	[ -z "$PUNTHOST" -a -z "$didexpand" ] &&
+	[ -z "$PUNTHOST" ] &&
 		a=$(expand_expired "$user" "$host" "$attr" "$key") &&
 			return $a
+
+	# ``pobox_host''
 
 # POBOX INTEGRATION MOVE UNFINISHED
 #	[ -z "$didexpand" ] &&
 #	a=$(expand_pobox_host "$user" "$host" "$attr" "$key") && return $a
 
+
+	# ``lists''
 
 	[ -z "$didexpand" ] &&
 	a=$(expand_lists "$user" "$host" "$attr" "$key") && return $a
@@ -377,6 +426,56 @@ routeuser (quad, domain) {
 
 	return (((error err.nosuchuser "$user$plustail$domain" $attr)))
 }
+
+# This is the main engine for expansion.  This will call
+# $(expand_$method $user $attr) for each method it's given, with a
+# guard against recursion, until it gets an answer.
+#
+# Note the difference between
+#	$(localexpand 'method1' "$user" "$host" "$attr" "$key")
+#	$(localexpand 'method2' "$user" "$host" "$attr" "$key")
+# and
+#	$(localexpand 'method1 method2' "$user" "$host" "$attr" "$key")
+#
+# In the first case, $(method2 foo) can get called recursively while
+# expanding $(method1 foo).  In the second case, $(method2 foo) will
+# not get called recursively while expanding $(method1 foo).
+# XXX Perhaps this distinction is a little too confusing; maybe
+# XXX there's a better way of doing it.
+
+localexpand (quad, origaddr) {	# method ...
+	local user attr expansion success result
+
+	user="$(user $quad)"
+	attr=$(attributes $quad)
+
+	# This is the key used as a guard.
+	expansion="$@ * $user"
+
+	# A second instance of the same name disappears.
+	# XXX This is not quite the right place to do this.
+	# XXX And expansions should be split into two tables.
+	expansions "finished $expansion" && return ()
+
+	# A recursive instance of the same name gets rejected.
+	expansions "pending $expansion" && return 99
+
+	db add expansions "pending $expansion" 1
+	success=''
+	for method in "$@"; do
+		if result=$(expand_$method "$user" $attr "$origaddr"); then
+			success=yes
+			break
+		fi
+	done
+	db remove expansions "pending $expansion"
+
+	[ $success ] || return 99
+
+	db add expansions "finished $expansion" 1
+	return $result
+}
+
 
 
 expand_pobox_host(user,host,attr,key) {
@@ -538,7 +637,7 @@ expand_include (file,host,attr,key) {
 #
 expand_aliases(user,host,attr,key) {
 	local a priv nattr
-
+	# aliases() updates 'priv' too..
 	a="$(aliases "$user")"		|| return 99
 	db add expansions "$key" alias	|| return 99
 	priv=$(filepriv -M 644 $MAILVAR/db/aliases \

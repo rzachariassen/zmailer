@@ -224,7 +224,7 @@ Installation procedure:
 		# make install-cf
 
 	which will install just the various cf files (MAILSHARE/cf/*.cf,
-	and MAILSHARE/*.conf)
+	and MAILSHARE/*.conf) BUT WILL NOT OVERWRITE EXISTING ONES!
 
 
 	If this is not a from-scratch installation, be aware that the

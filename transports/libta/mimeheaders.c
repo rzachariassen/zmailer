@@ -537,7 +537,6 @@ char **ct_linep;	/* Could be multiline! */
 	  }
 	}
 	/*NOTREACHABLE*/
-	abort();
 }
 
 struct cte_data *

@@ -2,7 +2,7 @@
 
 MAJORVERSION =	2
 MINORVERSION =	99
-PATCHLEVEL =	50-s8
+PATCHLEVEL =	50-s9
 
 srcdir = @srcdir@
 VPATH = @srcdir@
@@ -94,19 +94,19 @@ install-bin:	# all
 	fi
 
 dirs:
-	cd proto ; $(MAKE) $(MFLAGS) dirs PZCONFIG="../$(ZCONF)"
+	@cd proto ; $(MAKE) $(MFLAGS) dirs PZCONFIG="../$(ZCONF)"
 
 install:	dirs # all
-	. $(ZCONF) ; zdir=`echo $$ZCONFIG|sed -e 's!\(.*\)/\([^/]*\)!\1/!'`; $(MKDIR) $(prefix)$$zdir
-	. $(ZCONF) ; cp $(ZCONF) $(prefix)$$ZCONFIG ; chmod 644 $(prefix)$$ZCONFIG
-	cd proto ;      $(MAKE) $(MFLAGS) install  PZCONFIG="../$(ZCONF)"
-	cd compat ;     $(MAKE) $(MFLAGS) install
-	cd router ;     $(MAKE) $(MFLAGS) install
-	cd scheduler ;  $(MAKE) $(MFLAGS) install
-	cd smtpserver ; $(MAKE) $(MFLAGS) install
-	cd transports ; $(MAKE) $(MFLAGS) install
-	cd libc  ;      $(MAKE) $(MFLAGS) install
-	cd utils ;      $(MAKE) $(MFLAGS) install
+	@. $(ZCONF) ; zdir=`echo $$ZCONFIG|sed -e 's!\(.*\)/\([^/]*\)!\1/!'`; $(MKDIR) $(prefix)$$zdir
+	@. $(ZCONF) ; cp $(ZCONF) $(prefix)$$ZCONFIG ; chmod 644 $(prefix)$$ZCONFIG
+	@cd proto ;      $(MAKE) $(MFLAGS) install  PZCONFIG="../$(ZCONF)"
+	@cd compat ;     $(MAKE) $(MFLAGS) install
+	@cd router ;     $(MAKE) $(MFLAGS) install
+	@cd scheduler ;  $(MAKE) $(MFLAGS) install
+	@cd smtpserver ; $(MAKE) $(MFLAGS) install
+	@cd transports ; $(MAKE) $(MFLAGS) install
+	@cd libc  ;      $(MAKE) $(MFLAGS) install
+	@cd utils ;      $(MAKE) $(MFLAGS) install
 
 router/router:
 	cd router ; $(MAKE) $(MFLAGS) router-a

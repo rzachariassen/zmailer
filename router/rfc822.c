@@ -1166,8 +1166,11 @@ sequencer(e, file)
 	    dprintf("Message has 'rcvdfrom' envelope header, but we don't trust it!\n");
 	    s = uidpwnam(e->e_statbuf.st_uid);
 	    ps = "";
-	    if (h) ps = h->h_lines->t_pname;
-	    totlen = 10 + strlen(s) + 60 + (h ? strlen(ps) + 10 : 0);
+	    totlen = 10 + strlen(s) + 60;
+	    if (h) {
+	      ps = h->h_lines->t_pname;
+	      totlen += strlen(ps) + 10;
+	    }
 	    /* ts = strnsave("", totlen); */
 	    ts = tmalloc(totlen); /* Alloc the space */
 	    if (h) {

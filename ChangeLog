@@ -1,3 +1,31 @@
+1998-07-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in, compat/Makefile.in, compat/rmail/Makefile.in,
+	  compat/sendmail/Makefile.in, proto/Makefile.in,
+	  transports/Makefile.in, utils/Makefile.in, utils/makedb/Makefile.in,
+	  utils/vacation/Makefile.in:
+	    - Adding quite many "@" characters at critical places to
+	      SILENCE the "make install" process so that people can
+	      have it easier to SEE when something generates error
+	      reports, or otherwise wants attention
+	    - Those places which do rather unconditionally store new
+	      files into $MAILSHARE/ datasets use following new rule:
+		Don't overwrite existing files (scripts especially) if
+		they ``cmp'' the same as our current file.  If they are
+		different, move old to backup, and then write new one there
+
+	* smtpserver/mxverify.c:
+	    When compiling on SunOS 4 the T_TXT definition does not
+	    exist in system includes, define it ourselves.
+
+	* router/libdb/unordered.c: ("Matthias Urlichs" <smurf@noris.de>)
+	    An error in open routine caused lookup always to fail
+	    on the FIRST lookup.  Oops...
+
+	* include/libsh.h:
+	    Had ANSI prototype there, and a K&R compiler
+	    "barfed"...
+
 1998-07-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/Makefile.in: (Mark Visser)
@@ -32,7 +60,7 @@
 
 	* router/lib/db/ordered.c:
 	    Removed "reopen:" goto label errorneously in the
-	    previous 
+	    previous "compiler pleasing" round as "unused label"..
 
 Sat Jul 25 21:34:11 1998  Matti Aarnio  <mea@localhost.localdomain>
 

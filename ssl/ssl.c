@@ -99,8 +99,8 @@ extern int getopt();
 extern int strcmp();
 extern int strlen();
 /* extern int tolower(); */
-extern void abort();
-extern void exit();
+/* extern void abort(); */
+/* extern void exit(); */
 #endif
 
 #ifndef	SELFCONTAINED

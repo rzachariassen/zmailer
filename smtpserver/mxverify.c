@@ -70,6 +70,10 @@
 #endif	/* !BIND_VER */
 #endif	/* BIND */
 
+#ifndef	T_TXT
+# define T_TXT 16	/* Text strings */
+#endif
+
 extern int h_errno;
 extern int res_mkquery(), res_send(), dn_skipname(), dn_expand();
 

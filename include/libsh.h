@@ -108,7 +108,7 @@ extern int sh_test __((int argc, const char *argv[]));
 extern int  sprung;
 extern int  interrupted;
 extern const char * traps[];
-extern RETSIGTYPE (*orig_handler[])(int);
+extern RETSIGTYPE (*orig_handler[]) __((int));
 extern void trapsnap __((void));
 extern void trap_handler __((int));
 extern int eval __((const char *script, const char *scriptname, const char *savefil, const struct stat *));

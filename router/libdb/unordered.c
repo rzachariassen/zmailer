@@ -218,9 +218,10 @@ _open_seq(sip, mode)
 		fm->offsets = NULL;
 		fm->membuf = NULL;
 #endif
-		if (spl == NULL)
+		if (spl == NULL) {
 			sp_install(symid, (void *)fm, imode, spt_files);
-		else
+			spl = sp_lookup(symid, spt_files);
+		} else
 			spl->data = (void *)fm;
 	}
 	return spl;

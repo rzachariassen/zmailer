@@ -1,0 +1,518 @@
+To:	Cheryl Bien <bien@antares.aero.org>
+cc:	zmailer@cs.toronto.edu, mail-admin@aero.org
+Subject: Re: problem with alias expansion 
+Date:	Fri, 3 Jun 1994 18:43:28 +0300
+From:	Felix Lee <flee@guardian.cse.psu.edu>
+Message-Id: <94Jun3.114350edt.87560@guardian.cse.psu.edu>
+
+> The same thing happens for two aliases as in:
+> 	testa: bien
+> 	testb: bien
+> 	testall: testa, testb
+> 	bien: bien@antares.aero.org
+> "expn testall" gives the same results as above (one expanded alias and 
+> one it thinks is local).
+> 
+> Has anyone run into this problem before?  Does anyone have a fix?
+
+Yup.  I decided that the approach that aliases.cf took in pruning
+expansion was completely wrong.  So my fix was to write a new
+aliases.cf from scratch.  Appended below.  This was for 2.1, so I
+don't guarantee it will work for 2.2.1-mea-940322.
+
+The approach I took in rewriting aliases.cf still isn't quite right,
+but it's worked okay for us for, umm, years now.  Someday I'll have to
+look at it again.  One drawback: this may be slower than the original
+aliases.cf, though I haven't done any timings.
+
+You should probably read it through before using it for real.  I think
+there are a few quirks in it, which I don't remember offhand.
+
+-- cut here --
+# Expansion of the local-part of a locally delivered address is done here.
+
+# XXX "expand" is really a bad name; it's actually a combination of
+# XXX several things: name resolution, routing, etc.
+# XXX and why is this a separate level?  the main router does the
+# XXX same sort of things.  can this be unified?
+
+provide aliases
+
+# This is the switching station for local name expansion.
+
+routeuser (quad) {
+
+	local user attr a
+	user=$(user $quad)
+	attr=$(attributes $quad)
+
+	# Leave it alone if it's not a local recipient.
+	if [ "$(get $attr type)" != recipient ]
+	|| [ "$(channel $quad)" != local ]; then
+		return (($quad))
+	fi
+
+	# Try various methods until one succeeds.
+
+	# An ":include:$file" spec.
+	a=$(expand $quad include) && return $a
+
+	# The aliases database.
+	a=$(expand $quad alias) && return $a
+
+	# Host routing, via mboxmap.
+	a=$(expand $quad mboxmap_host) && return $a
+
+	# Host routing, via homemap.
+	# Doing this is a bad idea if users want to do host routing
+	# with their .forward files.  XXX This is a deep flaw.
+	# XXX but note cluster cut.
+#	a=$(expand $quad homemap) && return $a
+
+	# User's .forward file, xor host routing via homemap.
+	# Note, listing them together makes them exclusive.
+	a=$(expand $quad forward homemap) && return $a
+
+	# File location, via mboxmap.
+	a=$(expand $quad mboxmap_file) && return $a
+
+	# Mailing lists.
+	a=$(expand $quad list) && return $a
+	a=$(expand $quad list_owner) && return $a
+
+	# Trap "uid#999" messages.
+	a=$(expand $quad uid_error_trap) && return $a
+
+	# PUNTHOST, if defined.
+	a=$(expand $quad punthost) && return $a
+
+	# If mboxmap, trap users without entries.
+	a=$(expand $quad mboxmap_trap) && return $a
+
+	# A real live local delivery.
+	a=$(expand $quad local) && return $a
+
+	# Or fall through to error.
+	return (((error err.nosuchuser "$user" $attr)))
+}
+
+
+# This is the main engine for expansion.  This will call
+# $(expand_$method $user $attr) for each method it's given, with a
+# guard against recursion, until it gets an answer.
+#
+# Note the difference between
+#	$(expand $quad method1)
+#	$(expand $quad method2)
+# and
+#	$(expand $quad method1 method2)
+# In the first case, $(method2 foo) can get called recursively while
+# expanding $(method1 foo).  In the second case, $(method2 foo) will
+# not get called recursively while expanding $(method1 foo).
+# XXX Perhaps this distinction is a little too confusing; maybe
+# XXX there's a better way of doing it.
+
+expand (quad) {	# method ...
+	local user attr expansion success result
+
+	user=$(user $quad)
+	attr=$(attributes $quad)
+
+	# This is the key used as a guard.
+	expansion="$@ * $user"
+
+	# A second instance of the same name disappears.
+	# XXX This is not quite the right place to do this.
+	# XXX And expansions should be split into two tables.
+	expansions "finished $expansion" && return ()
+
+	# A recursive instance of the same name gets rejected.
+	expansions "pending $expansion" && return 99
+
+	db add expansions "pending $expansion" 1
+	success=''
+	for method in "$@"; do
+		if result=$(expand_$method "$user" $attr); then
+			success=yes
+			break
+		fi
+	done
+	db remove expansions "pending $expansion"
+
+	[ $success ] || return 99
+
+	db add expansions "finished $expansion" 1
+	return $result
+}
+
+
+### An ":include:$file" spec.
+
+expand_include (user, attr) {
+	local priv a
+
+	sift "$user" in
+	:include:(.*)
+		file="\1"
+		if [ ! -f "$file" ]; then
+			return (((error err.nosuchuser "$user" $attr)))
+		fi
+
+		priv=$(get $attr privilege)
+		priv=$(getpriv $priv "$file" include) || return 99
+		attr=$(newattribute $attr privilege $priv)
+
+		return $(listaddresses <"$file" -e root -c "include $user" |
+			 maprrouter $attr "$user")
+		;;
+	tfis
+	return 99
+}
+
+
+### The traditional aliases database.
+
+ALIASES=$MAILVAR/db/aliases
+
+if [ -f $ALIASES ]; then
+	[ -f $ALIASES.dat ] || $MAILBIN/zmailer newaliases
+	relation -limt ordered,$ALIASES.dat -f $ALIASES.idx aliases
+else
+	aliases () { return 99 }
+fi
+
+# If the 'm' option was NOT specified on the aliases relation,
+# presumably whatever creates new aliases will poke us (using SIGURG).
+
+trap "db flush aliases ; log flushed aliases" 16
+
+expand_alias (user, attr) {
+	local priv a
+
+	a=$(aliases "$user") || return 99
+
+	priv=$(filepriv $ALIASES $(db owner aliases))
+	attr=$(newattribute $attr privilege $priv)
+
+	return $(echo "$a" |
+		 listaddresses -e root -c "alias $user" |
+		 maprrouter $attr "$a")
+}
+
+
+### The homemap database.
+
+# This database looks like:
+#	/home/directory/prefix	$mailserver
+
+# This method removes the last component from the user's home
+# directory and looks it up in the homemap.  (Eg, if a user's home is
+# /nfs/red/sam, then /nfs/red is the key.)  If the lookup succeeds,
+# the mail gets routed to user@$mailserver.
+
+HOMEMAP=$MAILVAR/db/homemap
+
+if [ -f $HOMEMAP ]; then
+	relation -m -t ordered -f $HOMEMAP homemap
+else
+	homemap () { return 99 }
+fi
+
+expand_homemap (user, attr) {
+	local home a
+
+	home=$(homedirectory "$user") || return 99
+
+	a=$(/bin/expr "$home" : "\(/.*\)//*[^/]*/*") || return 99
+	a=$(homemap "$a") || return 99
+
+	return $(rrouter "$user@$a" $attr)
+}
+
+
+
+##### .forward files.
+
+# If the user's home directory doesn't exist (perhaps due to
+# automounter/NFS outage), then we defer routing, tossing the message
+# in the hold/SCRIPT:home queue.  This is so we can reliably read
+# .forward files.  If the home directory never exists, then the
+# message will eventually get bounced by the scheduler.
+
+# XXX (cluster cut)  If you deliver mail to a user's home directory (or
+# XXX the same file system), then a forward file that names a
+# XXX different machine in the same cluster should not get forwarded,
+# XXX and a mechanism like homemap should take over.  This is tricky
+# XXX to do unless router and route_user get collapsed together.
+
+expand_forward (user, attr) {
+	local home priv a
+
+	home=$(homedirectory "$user") || return 99
+
+	# If the home directory doesn't exist (perhaps due to
+	# automounter/NFS outage), then defer routing.  This is
+	# so we can reliably read forward files.  If the home
+	# directory never exists, the
+	if [ ! -d "$home" ]; then
+		#return (((hold "HOME:$user" "$user" $attr)))	#XXX
+		return (((hold "SCRIPT:home/$user" "$user" $attr)))
+	fi
+
+	a="$home/.forward"
+	[ -f "$a" ] || return 99
+
+	priv=$(get $attr privilege)
+	priv=$(getpriv $priv "$a" .forward) || return 99
+	attr=$(newattribute $attr privilege $priv)
+
+	return $(listaddresses <"$a" -e "$user" -c "forward $user" |
+		 maprrouter $attr "$a")
+}
+
+
+##### Mailing lists.
+
+# A mailing list is a file with the same name within the $MAILLISTS
+# directory (default is $MAILVAR/lists) that contains a list of
+# addresses.  $MAILLISTS can be a list of directories, in which case a
+# list is the union of all files in all the directories.  The owner of
+# the files are considered the owners of the mailing list.
+
+#MAILLISTS=${MAILLISTS:=$MAILVAR/lists}
+: ${MAILLISTS:=$MAILVAR/lists}
+
+expand_list (user, attr) {
+	local addrs file priv a zzz
+
+	attr=$(newattribute $attr sender "$user"-owner)
+	addrs=()
+	for dir in $MAILLISTS; do
+		file=$dir/$(recase -l "$user")
+		[ -f "$file" ] || continue
+
+		priv=$(getpriv $priv "$file" maillist) || continue
+		attr=$(newattribute $attr privilege $priv)
+
+		a=$(listaddresses <"$file" -e "$user"-owner -c "list $user" |
+			maprrouter $attr "$file")
+
+		# append $a to $addrs
+		case $#addrs in
+		0)	addrs=$a;;
+		*)	zzz=$(setf $(cdr $(last $addrs)) $a);;
+		esac
+	done
+
+	case $#addrs in
+	0)	return 99;;
+	*)	return $addrs;;
+	esac
+}
+
+# This redirects things like "*-request" to the mailing list owners.
+
+expand_list_owner (user, attr) {
+	local addrs list file a zzz
+
+	case "$user" in
+	*-request)	list=$(basename "$user" -request);;
+	*-owner)	list=$(basename "$user" -owner);;
+	owner-*)	list=$(/bin/expr "$user" : "owner-\(.*\)");;
+	*)		return 99;;
+	esac
+
+	addrs=()
+	for dir in $MAILLISTS; do
+		file=$dir/$(recase -l "$list")
+		[ -f "$file" ] || continue
+
+		a=$(rrouter $(uid2login $(filepriv "$file")) $attr)
+		case $#addrs in
+		0)	addrs=$a;;
+		*)	zzz=$(setf $(cdr $(last $addrs)) $a);;
+		esac
+	done
+
+	case $#addrs in
+	0)	return 99;;
+	*)	return $addrs;;
+	esac
+}
+
+
+### The mboxmap database.
+
+# This database looks like:
+#	$user	$host:$prefix:$suffix
+
+# In the end, a user's mail gets delivered to $host and dropped in the
+# file $prefix/PObox/$suffix.  This involves three different methods:
+
+# 0. mboxmap_host reroutes mail to $user to $user@$host.
+# 1. mboxmap_file deposits mail into the file $prefix/PObox/$suffix.
+# 2. mboxmap_trap rejects the mail if $user isn't in the database.
+
+# The idea is that each user's mailbox is on the same filesystem as
+# their home directory, and writing the mailbox is the responsibility
+# of the fileserver that owns that filesystem, thus avoiding a number
+# of awkward NFS issues.
+
+# XXX However, this is an awkward implementation.  There's a better
+# XXX way of doing this.
+
+MBOXMAP=$MAILSHARE/db/mboxmap
+
+if [ -f $MBOXMAP ]; then
+	POBOX=PObox
+	relation -lmt ordered -f $MBOXMAP mboxmap
+else
+	POBOX=''
+	mboxmap () { return 99 }
+fi
+
+expand_mboxmap_host (user, attr) {
+	local pobox
+
+	pobox=$(mboxmap "$user") || return 99
+
+	sift "$pobox" in
+	([^:]+):([^:]+):(.+)
+		return $(rrouter "$user@\1" $attr);;
+	.+
+		return (((error database "$user" $attr)));;
+	tfis
+}
+
+expand_mboxmap_file (user, attr) {
+	local pobox priv
+
+	pobox=$(mboxmap "$user") || return 99
+
+	sift "$pobox" in
+	([^:]+):([^:]+):(.+)
+		priv=$(login2uid "$user")
+		attr=$(newattribute $attr privilege $priv)
+		return (((local - "\2/$POBOX/\3" $attr)));;
+	.+
+		return (((error database "$user" $attr)));;
+	tfis
+}
+
+expand_mboxmap_trap (user, attr) {
+	case "$POBOX" in
+	'')	return 99;;
+	*)	return (((error err.nosuchuser "$user" $attr)));;
+	esac
+}
+
+
+### Redirect "uid#*" to postmaster.
+
+expand_uid_error_trap (user, attr) {
+	case "$user" in
+	uid#*)	return $(rrouter postmaster $attr);;
+	esac
+	return 99
+}
+
+
+### Real live local users get punted to $PUNTHOST.
+
+expand_punthost (user, attr) {
+	if [ "$PUNTHOST" ]; then
+		return $(rrouter "$user"@$PUNTHOST $attr)
+	fi
+	return 99
+}
+
+
+### A really real live local user.
+
+expand_local (user, attr) {
+	return (((local - "$user" $attr)))
+}
+
+
+
+
+
+# Usage: getpriv <present privilege> <filename> <filename type>
+#
+# Determine the privileges associated with addresses coming from the filename.
+# The type value is one of .forward, maillist, or include.  Setting
+# private='' ensures that noone can access (modulo a small window) information
+# through the mailer (e.g., by sending mail to addresses taken from a
+# protected file and waiting excitedly for the informative bounce messages)
+# that they couldn't access otherwise.  If private='.forward maillist' then
+# people stop complainig about the former behaviour...
+
+getpriv (priv, file, type) {
+	for ptype in $private; do
+		if [ $type = $ptype ]; then
+			filepriv "$file"
+			return $?
+		fi
+	done
+	runas $priv filepriv "$file"
+}
+
+# Usage: newattribute <oldattribute> <key1> <value1> [ <key2> <value2> ] ...
+#
+# Returns a new attribute list symbol with the <keyN> <valueN>
+# attributes added to the contents of the <oldattribute> list.
+
+newattribute (oldattribute) {
+	local a null value
+	a=$(gensym)
+	eval $a=\$$oldattribute
+	while [ "$#" != 0 ]; do
+		value=$(get $a "$1")
+		if [ x"$value" != x"$2" ]; then
+			null=$(setf $(get $a "$1") "$2")
+		fi
+		shift ; shift
+	done
+	echo $a
+}
+
+# Usage: maprrouter <newattributes> <what-is-being-expanded>
+#
+# This function applies the rrouter function to each address read from
+# stdin, passing the <newattributes> parameter.  In case of error, the
+# localpart parameter is used as appropriate descriptive text.  The
+# return value is the concatenation of the return values of the rrouter
+# invocations.
+
+maprrouter (attribute, localpart) {
+	local shh al
+
+	al=()
+	while read address
+	do
+		case "$address" in
+		'')	case $#al in
+			0)	al=(((error expansion "$localpart"))) ;;
+			*)	shh=(((error expansion "$localpart")))
+				shh=$(setf $(cdr $(last $al)) $shh)
+				;;
+			esac
+			continue
+			;;
+		esac
+
+		defer=''
+		case $#al in
+		0)	al=$(rrouter "$address" $attribute)
+			[ "$defer" ] &&
+			    shh=(((hold "$defer" "$address" $attribute)))
+			;;
+		*)	shh=$(rrouter "$address" $attribute)
+			[ "$defer" ] &&
+			    shh=(((hold "$defer" "$address" $attribute)))
+			shh=$(setf $(cdr $(last $al)) $shh)
+			;;
+		esac
+	done
+	return $al
+}
