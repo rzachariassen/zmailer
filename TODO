@@ -1,11 +1,5 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
-- smtpserver:
-	Report that if the router subprocess crashes, interactive
-	processing goes into mixed state -- it reports 2XX, and
-	yet claims to be in wrong state (MAIL FROM or RCPT TO ?
-	I have forgotten..)
-
 - scheduler:
 	Sometimes will generate spurious successfull-delivery-
 	reports when the command is retried, and the tag selector
@@ -17,6 +11,11 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 		(incomplete code skeleton written for this)
 
 - smtpserver
+  -	Report that if the router subprocess crashes, interactive
+	processing goes into mixed state -- it reports 2XX, and
+	yet claims to be in wrong state (MAIL FROM or RCPT TO ?
+	I have forgotten..)
+
   - accept email to postmaster(s), never mind what else policy testers
     have determined...
   - "-s" option processing is entirely wrong...
