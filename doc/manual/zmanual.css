@@ -1,0 +1,26 @@
+<STYLE TYPE="text/css"> <!--
+DIV.TIP {
+ background-color: #DFD;
+ border-style: solid;
+ border-width: thin;
+ border-color: green;
+}
+DIV.IMPORTANT {
+ background-color: #FDD;
+ border-style: solid;
+ border-width: medium;
+ border-color: red;
+}
+DIV.WARNING {
+ background-color: #FBB;
+ border-style: ridge;
+ border-width: thick;
+ border-color: red;
+}
+DIV.CAUTION {
+ background-color: #BBF;
+ border-style: ridge;
+ border-width: thick;
+ border-color: blue
+}
+--> </STYLE>

@@ -289,6 +289,74 @@
   "stylesheet-images/")
 
 
+;;Default extension for filenames?
+(define %html-ext% 
+  "shtml")
+
+(define %stylesheet%
+  ;; REFENTRY stylesheet
+  ;; PURP Name of the stylesheet to use
+  ;; DESC
+  ;; The name of the stylesheet to place in the HTML LINK TAG, or '#f' to
+  ;; suppress the stylesheet LINK.
+  ;; /DESC
+  ;; AUTHOR N/A
+  ;; /REFENTRY
+  "zmanual.css")
+
+(define %stylesheet-type%
+  ;; REFENTRY stylesheet-type
+  ;; PURP The type of the stylesheet to use
+  ;; DESC
+  ;; The type of the stylesheet to place in the HTML LINK TAG.
+  ;; /DESC
+  ;; AUTHOR N/A
+  ;; /REFENTRY
+  "text/css")
+
+(define %html40%
+  ;; REFENTRY html40
+  ;; PURP Generate HTML 4.0
+  ;; DESC
+  ;; If '%html40%' is true then the output more closely resembles HTML 4.0.
+  ;; In particular, the HTML table module includes COL, THEAD, TBODY, and TFOOT
+  ;; elements.
+  ;; /DESC
+  ;; AUTHOR N/A
+  ;; /REFENTRY
+  #t)
+
+(define %css-decoration%
+  ;; REFENTRY css-decoration
+  ;; PURP Enable CSS decoration of elements
+  ;; DESC
+  ;; If '%css-decoration%' is turned on then HTML elements produced by the
+  ;; stylesheet may be decorated with STYLE attributes.  For example, the
+  ;; LI tags produced for list items may include a fragment of CSS in the
+  ;; STYLE attribute which sets the CSS property "list-style-type".
+  ;; /DESC
+  ;; AUTHOR N/A
+  ;; /REFENTRY
+  #t)
+
+(define %css-liststyle-alist%
+  ;; REFENTRY css-liststyle-alist
+  ;; PURP Map DocBook OVERRIDE and MARK attributes to CSS
+  ;; DESC
+  ;; If '%css-decoration%' is turned on then the list-style-type property of
+  ;; list items will be set to reflect the list item style selected in the
+  ;; DocBook instance.  This associative list maps the style type names used
+  ;; in your instance to the appropriate CSS names.  If no mapping exists,
+  ;; the name from the instance will be used.
+  ;; /DESC
+  ;; AUTHOR N/A
+  ;; /REFENTRY
+  '(("bullet" "disc")
+    ("box" "square")))
+
+
+
+
 (define %indent-synopsis-lines% 
   ;; REFENTRY indent-synopsis-lines
   ;; PURP Indent lines in a 'Synopsis'?

@@ -180,10 +180,18 @@ do
 	-e 's/&PGBREAK;//g'		\
 	-e 's/&pgbreak;//g'		\
 			|		\
-	tidy -i -u -n -q	> $x.new
+	tidy -i -u -n -q |		\
+  perl -ne 's/<LINK rel="STYLESHEET" type="text\/css" href="zmanual.css">/<!--#include file="zmanual.css" -->/o; 
+       s/("[^.]*)\.html#/$1.shtml#/go;
+       s/("[^.]*)\.html"/$1.shtml"/go;
+       print;'				\
+					\
+	> $x.new
 
 	# mv $x $x.old
-	mv $x.new $x
+        rm -f $x
+  	y=`basename $x .html`.shtml
+	mv $x.new $y
 
 done
 

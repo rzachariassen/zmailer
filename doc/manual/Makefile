@@ -92,9 +92,16 @@ z-version.txt: ${PARTS} ${FIGS}
 	echo "${VERSION}.`TZ=UTC date +%Y%m%d%H%M`" > z-version.txt
 
 
-OJCAT = /usr/share/sgml/openjade-1.3.1/catalog
+OJCAT = /usr/share/sgml/openjade-1.3.2/catalog
 
-zmanual.html: gifs $(PARTS)
+publish: zmanual.pdf zmanual.html 
+	rm -rf /home/httpd/zmailer/html/zman/*
+	cp -a zmanual/. /home/httpd/zmailer/html/zman/
+	cp zmanual.pdf  /home/httpd/zmailer/html/zman/
+
+zmanual.html: zmanual/zmanual.shtml
+
+zmanual/zmanual.shtml: gifs $(PARTS)
 	rm -rf zmanual
 	TZ=UTC date > z-datetime.txt
 	echo "HTML" > z-what.txt
@@ -103,6 +110,7 @@ zmanual.html: gifs $(PARTS)
 	make index-html
 	./db2html -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#html' zmanual.sgml
 	cp -p *.gif zmanual/
+	cp zmanual.css zmanual/
 	cd zmanual; ../html-post-fixup.sh *.html
 
 HTML.index:
