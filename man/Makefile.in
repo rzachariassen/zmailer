@@ -7,7 +7,7 @@ srcdir = @srcdir@
 @SET_MAKE@
 
 #prefix=	@prefix@
-DESTDIR=
+#DESTDIR=
 MANDIR=		${DESTDIR}@mandir@
 TOPDIR=		..
 S=		$(srcdir)

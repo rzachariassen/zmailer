@@ -64,7 +64,7 @@
 srcdir=         @srcdir@
 VPATH=          @srcdir@
 
-DESTDIR =
+#DESTDIR =
 DESTLIB =	../libs
 CC= 		@CC@
 SHELL=		/bin/sh

@@ -5,7 +5,7 @@ LIBNAME=	libzc
 srcdir = @srcdir@
 VPATH = @srcdir@
 @SET_MAKE@
-DESTDIR=
+#DESTDIR=
 
 SHELL=		/bin/sh
 CC=		@CC@

@@ -2,7 +2,7 @@ SHELL=		/bin/sh
 TOPDIR=		../..
 PZCONFIG=	$(TOPDIR)/zmailer.Config
 INSTALL=	@INSTALL@
-DESTDIR=
+#DESTDIR=
 MAILBIN=	$(DESTDIR)@MAILBIN@
 
 srcdir=         @srcdir@
