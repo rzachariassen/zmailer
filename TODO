@@ -12,14 +12,6 @@ Wanted done for 3.0:
   - A work-over of the documentation
 
 
-sm:	pass the address meta information also in environment
-	variables, and handle multirecipient cases as well!
-	(see what 'mailbox' does.)
-
-mailbox:
-	When doing delivery into a pipe, give  MAIL  variable to
-	tell what would be this user's mailbox ?
-
 sfio:
 	feature-config to use simpler (s)ed facilities than GNU-stuff.
 
@@ -92,10 +84,6 @@ FEATURE:
    DNS lookups, connecting, protocol exchanges, ...)
   + tool(s) to read that segment
 
-- smtp TA to ETRN type destinations (usually not reachable) work
-  poorly ever since non-blocking connection was taken into use.
-    (cured at 2.99.52 ??)
-
 INSTALL:
 	Badly out of date!
 
@@ -161,6 +149,12 @@ transports/smtp:
 	            in BDAT implementation.
         --> microsoft fixes their bugs ?
 	--> optionally disable BDAT when addressing some targets ?
+
+
+   VERIFY:
+	pass the address meta information also in environment
+	variables, and handle multirecipient cases as well!
+	(see what 'mailbox' does.)
 
    VERIFY:
 	That failed connection to site A won't lead to recipient
@@ -230,6 +224,13 @@ transports/smtp:
 	We violate RFC 1123 part 5.2.2 which says that at MAIL FROM
 	and at RCPT TO the domain parts MUST be primary DNS objects,
 	*not* CNAMEs.  We never rewrite...
+
+
+   BUG?
+	smtp TA to ETRN type destinations (usually not reachable) work
+	poorly ever since non-blocking connection was taken into use.
+	(cured at 2.99.52 ??)
+
 
 - Somewhere ? (smtpserver, and perhaps smtp transport agent ?)
 	Implement OUTBOUND message size limit mechanism.
@@ -453,21 +454,21 @@ transports/smtp:
 	  we now (in not completely kosher manner) create, if we don't get
 	  it originally.  That is, similar entry for traversing unchanged
 	  thru the router to tell what address we got as input.
-	  (Thru some pseudo-alias..)
+	  (Thru some pseudo-alias..)  -- HAVE.
 	- Retain (in some TA-header object) the original "MAIL FROM:<..>"
 	  address, and be able to store it into the MAILBOX channel.
 	  (That is, don't let the routing process to alter this!)
 
 - transports/mailbox/mailbox.c:
-	- Store the ORCPT information into a "X-Orcpt-To: "-header
-	- Store the NRCPT information into a "X-InRcpt-To: "-header
-	- Store the ENVID information into a "X-Envid: "-header
-	- Store the original FROM:<..> into a "X-OrigFrom: "-header
-
-	- Provide aforementioned "headers" also as environment variables
-	  to the pipes
 	- At the router:run_rfc822(): if the message has these headers,
 	  purge them away.
+
+
+mailbox:
+	When doing delivery into a pipe, give  MAIL  variable to
+	tell what would be this user's mailbox ?
+
+
 
 - Autoconfig problems:
 	- System mailbox locking schemes are sometimes non-obvious..

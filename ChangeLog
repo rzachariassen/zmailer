@@ -1,3 +1,14 @@
+2003-02-28  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/standard.cf, router/libdb/header.c:
+	    Remove headers which we produce into e.g.
+	    messages stored in mailbox / processes run
+	    in pipes, etc.
+
+	* router/rfc822hdrs.c:
+	    When producing our  Received:  header, don't anymore
+	    put the spool-id inside angle-brackets.
+
 2003-02-20  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtptls.c, transports/smtp/smtptls.c:
