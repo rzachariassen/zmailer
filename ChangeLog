@@ -1,3 +1,12 @@
+2003-03-13  Matti Aarnio  <mea@zmailer.org>
+
+	* scheduler/update.c, scheduler/statuslog-ids-to-spoolids.pl,
+	  man/scheduler.8:
+	    Change in  statistics-log file format to have
+	    easier correlation with syslogged data.
+	    Also a tool to convert the statistics-log file
+	    to new format.
+
 2003-03-06  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/rfc821scn.c:
