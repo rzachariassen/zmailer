@@ -31,11 +31,6 @@ B)  ZMailer:
 
 http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/myownca.html
 
-   (That document had bug on 10-May-1999 where it told to use command
-	CA.pl -sign
-    to sign the certificate; it really needs command:
-	CA.pl -signcert
-    got me scratching my head for a few hours..)
 
     That generated certificate must be *SERVER* certificate!
     At  openssl.cnf  file following must be enabled when
@@ -44,8 +39,24 @@ http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/myownca.html
 		nsCertType			= server
     (you may need to do some searching to find that file)
 
-    If you use that document with above given corrections, running at
-    your home directory, and OpenSSL in default setup, you pick:
+    To summarize the command sequence:
+
+	0.0) Run CA.pl  at where-ever your CA subsystem resides
+	     (it uses *relative* paths -- the ``CA'' goes into
+	      ``demoCA'' subdirectory of that directory..)
+
+	0.1) Create your CA with ``CA.pl -newca'' command
+	     - Define CA password which you WILL remember.
+
+	1)   Create server certificate: ``CA.pl -newcert''
+	     (plus preceding comment about  openssl.cnf  file.)
+
+	2)   Sign the server certificate: ``CA.pl -signcert''
+	     Here you will need the CA password
+
+    If the run-location is your home directory, and OpenSSL is in
+    the default setup, you will now pick following files:
+
 	~/demoCA/cacert.pem	->  smtpserver-CAcert.pem
 	~/newreq.pem		->  smtpserver-key.pem
 	~/newcert.pem		->  smtpserver-cert.pem

@@ -497,6 +497,11 @@ main(argc, argv)
 #ifdef HAVE_OPENSSL
 	    /* -S /path/to/SmtpSSL.conf */
 	    tls_available = (tls_init_clientengine(&SS, optarg) == 0);
+
+    fprintf(stderr,
+	    "# -S %s  tls_init_client_engine() -> tls_available=%d\n",
+	    optarg, tls_available);
+
 #endif /* - HAVE_OPENSSL */
 	    break;
 	  default:
@@ -1595,6 +1600,9 @@ smtpopen(SS, host, noMX)
 	    i = smtp_ehlo(SS, SMTPbuf);
 
 #ifdef HAVE_OPENSSL
+
+	    if (logfp)
+	      fprintf(logfp, "%s#\tEHLO rc=%d demand_TLS_mode=%d tls_available=%d EHLOcapabilities&STARTTLS = %d\n", logtag(), i, demand_TLS_mode, tls_available, SS->ehlo_capabilities & ESMTP_STARTTLS);
 
 	    if ((i == EX_OK) && demand_TLS_mode && tls_available &&
 		!(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
