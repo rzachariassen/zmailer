@@ -1,10 +1,14 @@
 2003-05-09  Matti Aarnio  <mea@zmailer.org>
 
+	* scheduler/scheduler.c:
+	    Andrey Blochintsev reported typo in  setproctitle()
+	    call.  (***BSD specific thing.)
+
 	* proto/zmailer.sh.in:
 	    Eino Tuominen spotted that I still have sloppy style to
 	    write scripts without testing them before publishing..
 	    ( e.g. users test :-/ )  Missing double-quote in one
-	    embedded perl script.
+	    sh embedded perl script.
 
 	* proto/cf/fqdnalias.cf:
 	    Modification typo lurked in the FQDN aliasing script.
