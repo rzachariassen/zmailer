@@ -1,0 +1,43 @@
+--- src/osdep/unix/env_unix.c.orig	Sun Jun 28 21:22:53 1998
++++ src/osdep/unix/env_unix.c	Mon Jul  6 20:17:39 1998
+@@ -37,6 +37,10 @@
+ #include <sys/wait.h>
+ #include "write.c"		/* include safe writing routines */
+ 
++#ifdef WHOSON
++#include <whoson.h>
++#endif /* WHOSON */
++
+ /* Get all authenticators */
+ 
+ #include "auths.c"
+@@ -356,8 +360,15 @@
+ 			    (pw = getpwnam (lcase (usr)))) &&
+ 	   ((pw = checkpw (pw,pwd,argc,argv)) ||
+ 	    ((*pwd == ' ') && (pw = getpwnam (usr)) &&
+-	     (pw = checkpw (pw,pwd + 1,argc,argv)))))
++	     (pw = checkpw (pw,pwd + 1,argc,argv))))) {
++#ifdef WHOSON
++    struct sockaddr_in sin;
++    int sinlen = sizeof (struct sockaddr_in);
++    if (getpeername(0,(struct sockaddr *) &sin,&sinlen) == 0)
++      wso_login(tcp_clienthost(),user,NULL,0);
++#endif /* WHOSON */
+     return pw_login (pw,pw->pw_name,pw->pw_dir,argc,argv);
++  }
+   s = (logtry-- > 0) ? "Login failure" : "Excessive login attempts";
+ 				/* note the failure in the syslog */
+   syslog (LOG_INFO,"%s user=%.80s host=%.80s",s,user,tcp_clienthost ());
+--- src/osdep/unix/Makefile.orig	Tue Jun 30 03:40:49 1998
++++ src/osdep/unix/Makefile	Mon Jul  6 20:15:26 1998
+@@ -271,8 +271,8 @@
+ 	 MAILSPOOL=/var/mail NEWSSPOOL=/var/spool/news \
+ 	 ACTIVEFILE=/usr/share/news/active \
+ 	 RSHPATH=/usr/bin/rsh \
+-	 BASECFLAGS="-g -O2 -DNFSKLUDGE" \
+-	 BASELDFLAGS="-lsocket -lnsl -lgen" \
++	 BASECFLAGS="-g -O2 -DNFSKLUDGE -DWHOSON -I/usr/local/include" \
++	 BASELDFLAGS="-lsocket -lnsl -lgen -L/usr/local/lib -lwhoson" \
+ 	 RANLIB=true CC=gcc
+ 
+ gsu:	# GCC SUN-OS
