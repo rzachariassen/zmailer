@@ -3,13 +3,10 @@
  *	This will be free software, but only when it is finished.
  */
 
-#include "hostenv.h"
-#include "mailer.h"
+#include "router.h"
 
-#include "prototypes.h"
-
-conscell **return_valuep = NULL;
-conscell *s_value        = NULL;
+conscell **return_valuep;
+conscell *s_value;
 
 int
 l_apply(fname, l)

@@ -1,29 +1,13 @@
 /* Various prototypes for ROUTER of Zmailer */
 
-#ifndef	__
-# ifdef __STDC__
-#  define __(x) x
-# else
-#  define __(x) ()
-#  define const
-#  define volatile
-# endif
-#endif
-
-#include "libz.h"
-#include "libsh.h"
-#include "libc.h"
-
-#ifdef  USE_SETUIDX	/* IBM AIXism */
-# include <sys/id.h>
-# ifdef USE_SETREUID
-#  define  setreuid(x,y) setuidx(ID_REAL|ID_EFFECTIVE, y)
-# else /* !USE_SETREUID */
-#  define  setuid(y)     setuidx(ID_REAL|ID_EFFECTIVE, y)
-# endif
-#endif
-
 /* various libraries, standard libc included.. */
+
+extern conscell *s_value;
+extern const char *postoffice; /* At libzmailer.a: mail.c */
+
+extern struct shCmd fnctns[];
+extern time_t time __((time_t *));
+
 
 extern const char * const gs_name;
 extern const char * const monthname[];
@@ -125,6 +109,8 @@ extern conscell	*makequad __((void));
 extern int	sequencer __((struct envelope *e, const char *file));
 
 /* File: rfc822hdrs.c */
+extern int do_hdr_warning; /* If set, headers with errors in them are
+			      printed "as is" -- h_line */
 extern union misc	 hdr_scanparse __((struct envelope *e, struct header *h, int commentflag, int no_line_crossing));
 extern struct header	*makeHeader __((struct sptree *sb, const char *s, int len));
 extern struct headerinfo *senderDesc __((void));
@@ -164,6 +150,8 @@ extern int   deferit;
 extern int   router_id;
 extern int   savefile;
 extern int   do_hdr_warning;
+extern int   I_mode;
+extern int   isInteractive;
 
 /* File: rtsyslog.c */
 extern void rtsyslog __(( const char *spoolid, const time_t msgmtime, const char *from, const char *smtprelay, const int size, const int nrcpts, const char *msgid, const time_t starttime ));

@@ -9,36 +9,7 @@
  * are callable from the configuration file.
  */
 
-#include "mailer.h"
-#include <stdio.h>
-#include <sys/types.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#include <ctype.h>
-#include <fcntl.h>
-#include <sys/file.h>			/* O_RDONLY for run_praliases() */
-#include <pwd.h>			/* for run_homedir() */
-#include <grp.h>			/* for run_grpmems() */
-#include <errno.h>
-#include <sysexits.h>
-
-#include "zmsignal.h"
-#include "zsyslog.h"
-#include "mail.h"
-#include "interpret.h"
-#include "io.h"
-#include "libz.h"
-#include "libc.h"
-
-#include "prototypes.h"
-
-#ifndef	_IOFBF
-#define	_IOFBF	0
-#endif	/* !_IOFBF */
-
-extern conscell *s_value;
-
+#include "router.h"
 
 /* The builtin functions are declared and initialized here.  */
 
@@ -46,6 +17,7 @@ extern conscell *s_value;
 static int run_hostname    ARGCV;
 static int run_whataddress ARGCV;
 static int run_iserrormsg  ARGCV;
+static int run_isinteractive ARGCV;
 static int run_erraddrlog  ARGCV;
 
 static conscell *run_dblookup __((conscell *avl, conscell *il));
@@ -106,6 +78,7 @@ struct shCmd fnctns[] = {
 {	"untrace",	run_trace,	NULL,	NULL,	0	},
 {	"hostname",	run_hostname,	NULL,	NULL,	0	},
 {	"iserrormsg",	run_iserrormsg,	NULL,	NULL,	0	},
+{	"isinteractive",	run_isinteractive,	NULL,	NULL,	0	},
 {	"sender",	run_whataddress,NULL,	NULL,	0	},
 {	"recipient",	run_whataddress,NULL,	NULL,	0	},
 {	"erraddron",	run_erraddrlog,	NULL,	NULL,	0	},
@@ -325,6 +298,18 @@ run_iserrormsg(argc, argv)
 	const char *argv[];
 {
 	return !isErrorMsg;
+}
+
+/*
+ * $(isinteractive dummyargs)  returns a flag 
+ */
+
+static int
+run_isinteractive(argc, argv)
+	int argc;
+	const char *argv[];
+{
+	return !isInteractive;
 }
 
 /*

@@ -5,9 +5,12 @@
  *      Copyright Matti Aarnio <mea@nic.funet.fi> 1992-2000
  */
 
+/* DO NOT USE  #include "router.h" */
 #include "hostenv.h"
 #include "mailer.h"
+#include "libz.h"
 #include "prototypes.h"
+
 
 #undef STATIC
 #define STATIC	static

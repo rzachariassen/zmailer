@@ -249,3 +249,7 @@ extern int  resources_query_nofiles  __((void));
 extern void resources_maximize_nofiles __((void));
 extern void resources_limit_nofiles __((int nfiles));
 extern int  resources_query_pipesize __((int fildes));
+
+/* crc32.c */
+extern unsigned long crc32  __((const void *));
+extern unsigned long crc32n __((const void *, int));

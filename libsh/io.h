@@ -9,6 +9,7 @@
  * To use, include <stdio.h> then this file.
  */
 
+#ifndef NO_IO_H
 #ifndef	Z_IO_H
 #define	Z_IO_H
 
@@ -131,3 +132,5 @@ extern int	siofprintf __((FILE *fp, const char *fmt, ...));
 /* extern int siofscanf __(()); */
 extern int	siomore   __((struct siobuf *));
 #endif	/* Z_IO_H */
+#endif  /* NO_IO_H */
+

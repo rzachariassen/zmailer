@@ -17,23 +17,9 @@
  * needs or capabilities of each host.
  */
 
-#include "mailer.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#include <ctype.h>
-#include <sys/file.h>
-#ifdef HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
+#include "router.h"
 #include "libdb/search.h"
-#include "splay.h"
 #include "sleepycatdb.h"
-
-#include "prototypes.h"
-
-extern long crc32  __((const void *));
-extern long crc32n __((const void *, int));
 
 extern struct sptree *spt_databases; /* At conf.c */
 

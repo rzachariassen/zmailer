@@ -304,6 +304,8 @@ routeuser (quad, plustail, domain) {
 		     priv=$(getpriv "644" $priv "\1" include) ; then
 		    # sendmail-like :include: expansion
 		    db add expansions "$key.:include:" 1
+		    $(isinteractive) && returns $quad;
+
 		    nattr=$(newattribute $attr privilege $priv)
 		    $(zapDSNnotify $nattr expanded "$sender" "$user$domain")
 		    defer=''
@@ -345,6 +347,7 @@ routeuser (quad, plustail, domain) {
 	if $(didexpand aliases) ; then
 	  if a="$(aliases "$user")" ; then
 		db add expansions "$key.aliases" 1
+		$(isinteractive) && returns $quad;
 		nattr=$(newattribute $attr privilege $priv)
 		$(zapDSNnotify $nattr expanded "$sender" "$user$domain")
 
@@ -368,6 +371,7 @@ routeuser (quad, plustail, domain) {
 	if $(didexpand fullnamemap) ; then
 	  if a="$(fullnamemap "$user")" ; then
 		db add expansions "$key.fullnamemap" 1
+		$(isinteractive) && returns $quad;
 		nattr=$(newattribute $attr privilege $priv)
 		$(zapDSNnotify $nattr expanded "$sender" "$user$domain")
 
@@ -423,6 +427,7 @@ routeuser (quad, plustail, domain) {
 	if $(didexpand lists) ; then
 	  if [ -f "$a" ] ; then
 	    db add expansions "$key.lists" 1
+	    $(isinteractive) && returns $quad;
 	    if priv=$(getpriv "664" $priv "$a" maillist) &&
 	       nattr=$(newattribute $attr privilege $priv sender "$l") ; then
 		$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
@@ -445,6 +450,7 @@ routeuser (quad, plustail, domain) {
 	if $(didexpand modlists) ; then
 	  if [ -f "$a" ] ; then
 	    db add expansions "$key.modlists" 1
+	    $(isinteractive) && returns $quad;
 	    priv=$(getpriv "664" $priv "$a" maillist)
 	    case "$lcuser" in
 		*-mod)
@@ -474,6 +480,7 @@ routeuser (quad, plustail, domain) {
 	ssift "$lcuser" in
 	(.+)-owner
 		a="$MAILVAR/lists/\1"
+		$(isinteractive) && returns $quad;
 		if  $(didexpand listowner) ; then
 		  if [ -f "$a" ] ; then
 		    db add expansions "$key.listowner" 1
@@ -494,6 +501,7 @@ routeuser (quad, plustail, domain) {
 		a="$MAILVAR/lists/\1"
 		if  [ -f "$a" ] && $(didexpand ownerlist) ; then
 		    db add expansions "$key.ownerlist" 1
+		    $(isinteractive) && returns $quad;
 		    priv=$(filepriv -M 664 "$a")
 		    nattr=$(newattribute $attr privilege $priv)
 		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
@@ -508,6 +516,7 @@ routeuser (quad, plustail, domain) {
 		a="$MAILVAR/lists/\1"
 		if [ -f "$a" ] && $(didexpand listrequest) ; then
 		    db add expansions "$key.listrequest" 1
+		    $(isinteractive) && returns $quad;
 		    priv=$(filepriv -M 664 "$a")
 		    nattr=$(newattribute $attr privilege $priv)
 		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
@@ -521,6 +530,7 @@ routeuser (quad, plustail, domain) {
 	(.*)-group
 		if $(didexpand unixgroup) && a="$(groupmembers "\1")" ; then
 		    db add expansions "$key.unixgroup" 1
+		    $(isinteractive) && returns $quad;
 		    nattr=$(newattribute $attr privilege $nobodypriv )
 		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 		    if a=$(echo -- "$a" |
@@ -758,6 +768,7 @@ fi
 		key="\1+"
 		if $(didexpand 'aliases+') && a="$(aliases "\1+")"; then
 		  db add expansions "$key.aliases+" 1
+		    $(isinteractive) && returns $quad;
 		  nattr=$(newattribute $attr privilege $priv)
 		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
@@ -779,6 +790,7 @@ fi
 
 		if $(didexpand aliases+-) && a="$(aliases "\1")"; then
 		  db add expansions "$key.aliases+-" 1
+		    $(isinteractive) && returns $quad;
 		  nattr=$(newattribute $attr privilege $priv)
 		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
@@ -793,6 +805,7 @@ fi
 
 		if $(didexpand 'fullnamemap+-') && a="$(fullnamemap "\1")";then
 		  db add expansions "$key.fullnamemap+-" 1
+		    $(isinteractive) && returns $quad;
 		  nattr=$(newattribute $attr privilege $priv)
 		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
@@ -843,6 +856,7 @@ fi
 	   [ -f "$forward" ] ; then
 	    db add expansions "$key.forward" 1
 	    if priv=$(getpriv "644" $priv "$forward" .forward) ; then
+		$(isinteractive) && returns $quad;
 		nattr=$(newattribute $attr privilege $priv)
 		$(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 		a=$(runas $priv cat "$forward" | \

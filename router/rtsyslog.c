@@ -7,22 +7,8 @@
  *
  */
 
-#include "mailer.h"
-#include <stdio.h>
-#include <sysexits.h>
-#ifdef HAVE_STDARG_H
-# include <stdarg.h>
-#else
-# include <varargs.h>
-#endif
-#include <sys/types.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include "zsyslog.h"
-#include "mail.h"
-#include "ta.h"
-#include "libz.h"
-#include "libc.h"
+#include "router.h"
+#include "ta.h"  /* for  tatimestr() */
 
 static char lbuf[8000];	/* Should be aplenty..		*/
 

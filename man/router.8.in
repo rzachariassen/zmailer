@@ -1,12 +1,13 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ROUTER 8zm "2003-Aug-28"
+.TH ROUTER 8zm "2004-Apr-11"
 .SH NAME
 router \- zmailer message routing daemon
 .SH SYNOPSIS
 .IP \fBrouter\fR 7em
 [\fB\-diksSVW\fR]
+[\fB\-I\ smtpserver\fR]
 [\fB\-L\fR\ \fIlogfile\fR]
 [\fB\-P\fR\ \fIpostoffice\fR]
 [\fB\-f\fR\ \fIconfigfile\fR]
@@ -68,6 +69,9 @@ overrides the default configuration file \fIMAILSHARE\fB/router.cf\fR.
 run interactively, presenting a
 .IR zmsh (1zm)
 session with the configuration file preloaded.
+.IP \-I\ smtpserver
+Special operational mode while running under smtpserver.
+Implements interaction protocol in between router, and smtpserver.
 .IP \-k
 kill the currently running router by sending it a
 .B SIGTERM

@@ -40,6 +40,7 @@ static int subdaemon_handler_trk_init  __((void**));
 static int subdaemon_handler_trk_input __((void *, struct peerdata*));
 static int subdaemon_handler_trk_preselect  __((void*, fd_set *, fd_set *, int *));
 static int subdaemon_handler_trk_postselect __((void*, fd_set *, fd_set *));
+static int subdaemon_handler_trk_shutdown   __((void*));
 
 
 struct subdaemon_handler subdaemon_handler_ratetracker = {
@@ -47,6 +48,7 @@ struct subdaemon_handler subdaemon_handler_ratetracker = {
 	subdaemon_handler_trk_input,
 	subdaemon_handler_trk_preselect,
 	subdaemon_handler_trk_postselect,
+	subdaemon_handler_trk_shutdown
 };
 
 
@@ -209,10 +211,11 @@ static int count_ipv4( state, ipv4addr, incr /* , counterlistspecs ? */ )
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
 	int i, sum;
 
-	if (!reg) {
+	/* Don't allocate until an INCR is called for! */
+	if (!reg && incr) {
 	  reg = alloc_ipv4_reg( state, ipv4addr );
-	  if (!reg) return -1;    /*  D'UH!  */
 	}
+	if (!reg) return 0;    /*  not INCR, or alloc failed!  */
 
 	reg->countset[ state->slotindex ] += incr;
 
@@ -407,7 +410,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 
 	if (iplabel[0] == '4' && iplabel[1] == ':') {
 
-	  ipv4addr = strtol( iplabel+2, NULL, 16);
+	  ipv4addr = strtoul( iplabel+2, NULL, 16);
 	  /* FIXME ? - htonl() ???  */
 
 	  i = count_ipv4( state, ipv4addr, incr );
@@ -458,51 +461,13 @@ subdaemon_handler_trk_postselect (statep, rdset, wrset)
 }
 
 
-/* ------------------------------------------------------------------ */
 
-int
-fdgets (buf, buflen, fd, timeout)
-     char *buf;
-     int buflen, fd, timeout;
+
+static int
+subdaemon_handler_trk_shutdown (state)
+     void *state;
 {
-	int i, rc;
-	char c;
-
-	if (fd < 0) return -1;
-	fd_nonblockingmode(fd);
-
-	for (i = 0; i < buflen-1;) {
-	  for (;;) {
-	    rc = read(fd, &c, 1);
-	    if (rc >= 0) break;
-	    if (errno == EINTR) continue;
-	    if (errno == EWOULDBLOCK) {
-	      fd_set rdset;
-	      struct timeval tv;
-	      _Z_FD_ZERO(rdset);
-	      tv.tv_sec = timeout;
-	      tv.tv_usec = 0;
-	      _Z_FD_SET(fd, rdset);;
-	      rc = select(fd+1, &rdset, NULL, NULL, &tv);
-	      if (rc == 0) {
-		i = 0;
-		goto read_end; /* TIMEOUT!  D'UH! */
-	      }
-	    }
-	  }
-	  if (rc == 0) { /* EOF seen! */
-	    break;
-	  }
-	  buf[i++] = c;
-	  if (c == '\n') break;
-	}
- read_end:;
-	buf[i] = 0;
-
-	fd_blockingmode(fd);
-
-	if (i == 0) return -1;
-	return i;
+	return -1;
 }
 
 
@@ -512,6 +477,8 @@ fdgets (buf, buflen, fd, timeout)
 struct trk_client_state {
 	int fd_io;
 	FILE *outfp;
+	char *buf;
+	int buflen;
 };
 
 /* The 'cmd' buffer in this call shall not have a '\n' in it! */
@@ -525,7 +492,6 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 {
 	struct trk_client_state * state = *statep;
 	int rc;
-	char buf[2000];
 
 	if (ratetracker_rdz_fd < 0)  return -99; /* No can do.. */
 
@@ -533,6 +499,7 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 	  state = *statep = calloc(1, sizeof(struct trk_client_state));
 	  if (!state) return -1; /* alloc failure! */
 	  state->fd_io = -1;
+	  state->buf = calloc(1,10);
 	}
 
  retry_io_tests:
@@ -575,8 +542,9 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 	  /* type(NULL,0,NULL,"call_subdaemon_trk; 10"); */
 	  errno = 0;
 
-	  *buf = 0;
-	  if (fdgets( buf, sizeof(buf)-1, state->fd_io, 5 ) < 0) {
+	  if (state->buf) state->buf[0] = 0;
+	  state->buflen = 0;
+	  if (fdgets( & state->buf, & state->buflen, state->fd_io, 5 ) < 0) {
 	    /* something failed! */
 	    /* type(NULL,0,NULL,"call_subdaemon_trk; 10-B");*/
 	  }
@@ -584,7 +552,7 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 	  /* type(NULL,0,NULL,"call_subdaemon_trk; 11; errno=%s",
 	     strerror(errno)); */
 
-	  if ( strcmp(buf, "#hungry\n") != 0 )
+	  if ( !state->buf  || (strcmp(state->buf, "#hungry\n") != 0) )
 	    return -4; /* Miserable failure.. */
 
 	  /* type(NULL,0,NULL,"call_subdaemon_trk; 12"); */
@@ -608,16 +576,17 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 
 	/* type(NULL,0,NULL,"call_subdaemon_trk; 16"); */
 
-	*buf = 0;
-	fdgets( buf, sizeof(buf)-1, state->fd_io, 5 );
+	if (state->buf) state->buf[0] = 0;
+	state->buflen = 0;
+	fdgets( & state->buf, & state->buflen, state->fd_io, 5 );
 
-	if (state->outfp && ferror(state->outfp))
+	if (! state->buf || (state->outfp && ferror(state->outfp)))
 	  return -6; /* Uh ok.. */
 
 	/* type(NULL,0,NULL,"call_subdaemon_trk; 17"); */
 
 
-	strncpy( retbuf, buf, retbuflen );
+	strncpy( retbuf, state->buf, retbuflen );
 	retbuf[retbuflen-1] = 0;
 
 	/* type(NULL,0,NULL,"call_subdaemon_trk; -last-"); */

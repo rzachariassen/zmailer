@@ -79,6 +79,14 @@ server (key) {
 #| level should be appropriate.
 
 	case "$key" in
+	rtrace)
+		rtrace
+		return
+		;;
+	trace)
+		trace $1
+		return
+		;;
 	from)
 		if [ "$1" = "" ]; then
 			echo "250 2.0.0 Ok (sourcechannel 'error' accepted)"
@@ -124,7 +132,7 @@ server (key) {
 
 			done
 		done
-		echo "250 2.0.0 Ok (verified)"
+		echo "250 2.0.0 Ok (routing verified)"
 		;;
 	verify)
 		a="$(router "$a" $A)"
@@ -151,6 +159,9 @@ server (key) {
 			done
 		done
 		# echo "252 EXPN completed"
+		;;
+	*)
+		echo "550 SYSTEM ERROR; UNKNOWN KEY: '$key' ARG: '$1'"
 		;;
 	esac
 }

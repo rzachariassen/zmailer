@@ -1802,8 +1802,6 @@ const int len;
 
 	int rc = call_rate_counter(rel, state, 0, POLICY_MAILFROM, &count);
 
-	type(NULL,0,NULL,"call_rate_counter() rc=%d, count=%d", rc, count);
-
 	/* Non-zero value means that counter was not reachable, or
 	   that there was no data. */
 

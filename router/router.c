@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2004
  */
 
 
@@ -12,54 +12,38 @@
  * ZMailer router, main and miscellany routines.
  */
 
-#include "mailer.h"
-#include <grp.h>
-#include <pwd.h>
-#include <signal.h>
-#include <ctype.h>
-#include <fcntl.h>
-#include <sys/file.h>
-#include "mail.h"
-#include "zsyslog.h"
-#include "zmsignal.h"
-#include "interpret.h"
-#include "splay.h"
-
-#include "prototypes.h"
-
-extern const char *postoffice; /* At libzmailer.a: mail.c */
-
-extern struct shCmd fnctns[];
-extern time_t time __((time_t *));
+#define NO_IO_H
+#include "router.h"
 
 static void initialize __((const char *configfile, int argc, const char *argv[]));
 static void logit __((const char *file, const char *id, const char *from, const char *to));
+static void Imode_smtpserver __((void));
 
 
-extern const char *progname; /* At zmsh_init() et.friends */
 const char * mailshare;
-const char * myhostname = 0;
+const char * myhostname;
 const char * pidfile = PID_ROUTER;
 const char * logfn;
 time_t	now;
 
-extern memtypes stickymem;
-extern conscell *s_value;
-
-#include "shmmib.h"
-
-int	mustexit = 0;
-int	canexit = 0;
-int	router_id = 0;
+int	mustexit;
+int	canexit;
+int	router_id;
 int	deferit;
 int	deferuid;
-int	savefile = 0;
+int	savefile;
 const char * zshopts = "-O";
 int	nosyslog = 1;
-int	routerdirloops = 0;
-int	do_hdr_warning = 0;
-int	workermode = 0;
+int	routerdirloops;
+int	do_hdr_warning;
+int	workermode;
 int	nrouters = 1;
+int	isInteractive;
+
+#define IMODE_NONE 0
+#define IMODE_SMTPSERVER 1
+
+int	I_mode = IMODE_NONE;
 
 int
 main(argc, argv)
@@ -105,7 +89,7 @@ main(argc, argv)
 
 
 	while (1) {
-		c = zgetopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:r:sSVwWZ:");
+		c = zgetopt(argc, (char*const*)argv, "m:n:diI:kf:o:t:L:P:r:sSVwWZ:");
 		if (c == EOF)
 			break;
 	  
@@ -152,6 +136,12 @@ main(argc, argv)
 			break;
 		case 'i':	/* first read config file, then read from tty */
 			interactiveflg = 1;
+			break;
+		case 'I':
+			if (strcmp(zoptarg,"smtpserver") == 0)
+			  I_mode = IMODE_SMTPSERVER;
+			else
+			  ++errflg;
 			break;
 		case 'k':	/* kill the previous daemon upon startup */
 			killflg = 1;
@@ -311,8 +301,6 @@ main(argc, argv)
 	mal_leaktrace(1);
 #endif /* MALLOC_TRACE */
 
-
-
 	if (daemonflg) {
 		if (chdir(postoffice) < 0 || chdir(ROUTERDIR) < 0)
 		  fprintf(stderr, "%s: cannot chdir.\n", progname);
@@ -320,7 +308,7 @@ main(argc, argv)
 		if (offout < ftell(stdout) || offerr < ftell(stderr)) {
 		  fprintf(stderr, "%d %d %d %d\n",
 			  (int) offout, (int) ftell(stdout),
-			  (int) offerr, (int) ftell(stderr));
+			  (int) offerr, (int) ftell(stderr) );
 		  fprintf(stderr, "%s: daemon not started.\n", progname);
 		  die(1, "errors during startup");
 		}
@@ -377,12 +365,17 @@ write(30, "\n", 1);
 	  run_daemon(1, &av[0]);
 	  /* NOTREACHED */
 	} else if (interactiveflg) {
+
+	  if (I_mode == IMODE_SMTPSERVER) {
+	    Imode_smtpserver();
+	  } else {
 #ifdef	MALLOC_TRACE
-	  zshtoplevel(NULL);
+	    zshtoplevel(NULL);
 #else	/* !MALLOC_TRACE */
-	  trapexit(zshtoplevel(NULL));
+	    trapexit(zshtoplevel(NULL));
 #endif	/* MALLOC_TRACE */
-	  /* NOTREACHED */
+	    /* NOTREACHED */
+	  }
 	}
 #ifdef	MALLOC_TRACE
 	dbfree();
@@ -703,3 +696,59 @@ printfds()
 	fprintf(stderr,"\n");
 	fflush(stderr);
 }
+
+
+void
+Imode_smtpserver __((void))
+{
+	int n, c;
+	const char *key;
+	const char *data;
+	memtypes oval;
+	const char *av[4];
+	char *linebuf = malloc(20000);
+	int linespc = 19500;
+
+	oval = stickymem;
+	stickymem = MEM_TEMP;	/* per-message space */
+
+	setlinebuf(stdin);
+
+	isInteractive = 1;
+
+	for(;;) {
+
+	  fprintf(stdout, "#hungry\n");
+	  fflush(stdout);
+
+	  n = 0;
+	  while (( c = fgetc(stdin) ) != EOF) {
+	    if (n + 10  > linespc) {
+	      linespc += 2000;
+	      linebuf = realloc(linebuf, linespc);
+	    }
+	    linebuf[n++] = c;
+	    if (c == '\n') break;
+	  }
+	  linebuf[n] = 0;
+
+	  if (n <= 0) break;
+
+	  /* process!   linebuf[]  has input data.. */
+
+	  key  = strtok(linebuf, "\t");
+	  data = strtok(NULL, "\n");
+
+
+	  av[0] = "server";
+	  av[1] = key;
+	  av[2] = data;
+	  av[4] = NULL;
+
+	  s_apply(3, &av[0]); /* "server" key argument */
+	  
+	  fflush(stdout);
+	}
+	stickymem = oval;
+}
+

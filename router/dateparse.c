@@ -66,11 +66,7 @@
  * Seems to work pretty well, but I didn't lose the complexity, alas.
  */
 
-#include "hostenv.h"
-#include "mailer.h"
-#include <ctype.h>
-
-extern int cistrncmp();
+#include "router.h"
 
 /* The following table and binary search code originally by Rich Wales */
 

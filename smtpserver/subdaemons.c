@@ -31,6 +31,7 @@ int  contentfilter_server_pid = 0;
 
 
 static int subdaemon_loop __((int, struct subdaemon_handler *));
+static void subdaemon_pick_next_job __(( struct peerdata *peers, int top_peer, struct subdaemon_handler *subdaemon_handler, void *statep));
 
 
 
@@ -64,28 +65,6 @@ int subdaemons_init __((void))
 
 	rc = fdpass_create(to);
 	if (rc == 0) {
-	  router_rdz_fd = to[1];
-	  router_server_pid = fork();
-	  if (router_server_pid == 0) { /* CHILD */
-
-	    if (logfp) fclose(logfp); logfp = NULL;
-
-	    report(NULL," [smtpserver router subsystem]");
-
-	    close(ratetracker_rdz_fd); /* Our sister server's handle */
-
-	    close(to[1]); /* Close the parent (called) end */
-	    subdaemon_loop(to[0], & subdaemon_handler_router);
-
-	    sleep(10);
-	    exit(0);
-	  }
-	  MIBMtaEntry->ss.SubsysRouterMasterPID = router_server_pid;
-	  fdpass_close_parent(to);
-	}
-
-	rc = fdpass_create(to);
-	if (rc == 0) {
 	  contentfilter_rdz_fd = to[1];
 	  contentfilter_server_pid = fork();
 	  if (contentfilter_server_pid == 0) { /* CHILD */
@@ -95,7 +74,6 @@ int subdaemons_init __((void))
 	    report(NULL," [smtpserver contentfilter subsystem]");
 
 	    close(ratetracker_rdz_fd); /* Our sister server's handle */
-	    close(router_rdz_fd);      /* Our sister server's handle */
 
 	    close(to[1]); /* Close the parent (called) end */
 	    subdaemon_loop(to[0], & subdaemon_handler_contentfilter);
@@ -106,6 +84,35 @@ int subdaemons_init __((void))
 	  MIBMtaEntry->ss.SubsysContentfilterMasterPID = contentfilter_server_pid;
 	  fdpass_close_parent(to);
 	}
+
+	if (enable_router) {
+	  rc = fdpass_create(to);
+	  if (rc == 0) {
+	    router_rdz_fd = to[1];
+	    router_server_pid = fork();
+	    if (router_server_pid == 0) { /* CHILD */
+	      
+	      if (logfp) fclose(logfp); logfp = NULL;
+	      
+	      report(NULL," [smtpserver router subsystem]");
+	      
+	      close(ratetracker_rdz_fd);   /* Our sister server's handle */
+	      close(contentfilter_rdz_fd); /* Our sister server's handle */
+	      
+	      close(to[1]); /* Close the parent (called) end */
+	      subdaemon_loop(to[0], & subdaemon_handler_router);
+	      
+	      sleep(10);
+	      exit(0);
+	    }
+	    MIBMtaEntry->ss.SubsysRouterMasterPID = router_server_pid;
+	    fdpass_close_parent(to);
+	  }
+	} else {
+	  /* We may not be started, mark the situation! */
+	  MIBMtaEntry->ss.SubsysRouterMasterPID = 0;
+	}
+
 
 	return 0;
 }
@@ -203,12 +210,20 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	  if (rc == 0) {
 	    /* Select timeout.. */
 	    rc = (subdaemon_handler->postselect)( statep, & rdset, & wrset );
+	    if (rc > 0) {
+	      /* The subprocess became HUNGRY! */
+	      subdaemon_pick_next_job( peers, top_peer, subdaemon_handler, statep );
+	    }
 	    continue;
 	  }
 
 	  if (rc > 0) { /* Things have been read or written.. */
 
 	    rc = (subdaemon_handler->postselect)( statep, & rdset, & wrset );
+	    if (rc > 0) {
+	      /* The subprocess became HUNGRY! */
+	      subdaemon_pick_next_job( peers, top_peer, subdaemon_handler, statep );
+	    }
 
 
 	    /* The rendezvous socket ?? */
@@ -325,5 +340,224 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	} /* ... for(;;) ... */
 
+	if (subdaemon_handler->shutdown)
+	  (subdaemon_handler->shutdown)( statep );
+
 	return -1;
+}
+
+/* ------------------------------------------------------------------ */
+
+void
+subdaemon_kill_peer(peer)
+     struct peerdata *peer;
+{
+	close(peer->fd);
+	peer->fd = -1;
+}
+
+
+/* Send to peer, synchronously wait for buffer to clear,
+   if everything didn't fit into outbound buffer.
+ */
+
+int
+subdaemon_send_to_peer(peer, buf, len)
+     struct peerdata *peer;
+     const char *buf;
+     int len;
+{
+	int rc;
+
+	if (logfp) {
+	  fprintf(logfp, "subrtr\tsend_to_peer() peerfd=%d outlen=%d outptr=%d  len=%d\n",
+		  peer->fd, peer->outlen, peer->outptr, len);
+	}
+
+	/* If 'peer' is NULL, crash here, and study the core file
+	   to determine the bug.. */
+
+	while ((len + peer->outlen) > sizeof(peer->outbuf)) {
+
+	  int fit = sizeof(peer->outbuf) - peer->outlen + peer->outptr;
+
+	  if (peer->outptr > 0) {
+	    /* Compact the buffer a bit! */
+	    memmove( peer->outbuf,
+		     peer->outbuf + peer->outptr,
+		     peer->outlen - peer->outptr );
+	    peer->outlen -= peer->outptr;
+	    peer->outptr = 0;
+	  }
+	  if (fit > 0) {
+	    memcpy(peer->outbuf + peer->outlen, buf, fit);
+	    buf += fit;
+	    len -= fit;
+	  }
+
+	  /* SYNC writing to the FD... */
+	  for (;;) {
+	    rc = write( peer->fd,
+			peer->outbuf + peer->outptr,
+			peer->outlen - peer->outptr );
+	    if (rc > 0) {
+	      peer->outptr += rc;
+	      if (peer->outptr == peer->outlen)
+		peer->outlen = peer->outptr = 0;
+	    }
+	    if ((rc < 0) && (errno == EINTR))
+	      continue; /* try again */
+	    if ((rc < 0) && (errno == EPIPE)) {
+	      /* SIGPIPE from writing to the socket..  */
+	      peer->outlen =  peer->outptr = len = 0;
+	      break;  /* Lets ignore it, and reading from
+			 the same socket will be EOF - I hope.. */
+	    }
+
+	    if ((rc < 0) && (errno == EAGAIN)) {
+	      /* Select on it.. */
+
+	      struct timeval tv;
+	      fd_set wrset;
+	      _Z_FD_ZERO(wrset);
+	      _Z_FD_SET(peer->fd, wrset);
+	      tv.tv_sec = 10; /* 10 seconds ?? */
+	      tv.tv_usec = 0;
+	      rc = select ( peer->fd+1, NULL, &wrset, NULL, &tv );
+	      if ((rc < 0) && (errno == EINTR)) continue;
+	      if (rc < 0) {
+		/* ???? What ?????   FIXME:  */
+		subdaemon_kill_peer(peer);
+		return -1;
+	      }
+	      if (rc == 0) {
+		/* FIXME: TIMEOUT! */
+		subdaemon_kill_peer(peer);
+		return -1;
+	      }
+	      continue; /* Did successfully select for writing */
+	    }
+	    break;
+	  }
+
+	}
+
+	if (peer->outptr > 0) {
+	  /* Compact memory.. */
+	  memmove( peer->outbuf,
+		   peer->outbuf + peer->outptr,
+		   peer->outlen - peer->outptr );
+	  peer->outlen -= peer->outptr;
+	  peer->outptr = 0;
+	}
+
+	memcpy(peer->outbuf + peer->outlen, buf, len);
+	peer->outlen += len;
+
+	rc = write( peer->fd,
+		    peer->outbuf + peer->outptr,
+		    peer->outlen - peer->outptr);
+	if (rc > 0) {
+	  peer->outptr += rc;
+	  if (peer->outptr == peer->outlen)
+	    peer->outlen = peer->outptr = 0;
+	}
+
+	return 0; /* Stored successfully for outgoing traggic.. */
+}
+
+
+/* ------------------------------------------------------------------ */
+
+void subdaemon_pick_next_job( peers, top_peer, subdaemon_handler, statep )
+     struct peerdata *peers;
+     int top_peer;
+     struct subdaemon_handler *subdaemon_handler;
+     void *statep;
+{
+	int i, rc;
+	struct peerdata *peer;
+
+	for (i = 0; i < top_peer; ++i) {
+	  peer = & peers[i];
+	  if ((peer->fd >= 0) && (peer->inlen > 0) &&
+	      (peer->inpbuf[ peer->inlen -1 ] == '\n')) {
+
+	    rc = (subdaemon_handler->input)( statep, peer );
+	    return;
+	  }
+	}
+}
+
+
+/* ------------------------------------------------------------------ */
+
+/*
+ *  fdgets() -- allocate a buffer, read one chat at the time from
+ *              the fd, in non-blocking mode, 
+ *	Return number of characters read, -1 for errors, 0 for EOF!
+ */
+
+int
+fdgets (bufp, buflenp, fd, timeout)
+     char **bufp;
+     int *buflenp, fd, timeout;
+{
+	int i, rc;
+	char c;
+	char *buf  = *bufp;
+	int buflen = *buflenp;
+
+	if (fd < 0) return -1;
+	fd_nonblockingmode(fd);
+
+	i = buflen;
+	for (;;) { /* Accumulate a line */
+	  for (;;) {
+	    rc = read(fd, &c, 1);
+	    if (rc >= 0) break;
+	    if (errno == EINTR) continue;
+	    if (errno == EWOULDBLOCK) {
+	      fd_set rdset;
+	      struct timeval tv;
+
+	      if (timeout < 0) {
+		*bufp = buf;
+		*buflenp = buflen = i;
+		return -1; /* EWOULDBLOCK.. */
+	      }
+
+	      _Z_FD_ZERO(rdset);
+	      tv.tv_sec = timeout;
+	      tv.tv_usec = 0;
+	      _Z_FD_SET(fd, rdset);
+	      rc = select( fd+1, &rdset, NULL, NULL, &tv );
+	      if (rc == 0) {
+		i = -1;
+		goto read_end; /* TIMEOUT!  D'UH! */
+	      }
+	    }
+	  }
+	  if (rc == 0) { /* EOF seen! */
+	    break;
+	  }
+	  if ((i + 4 > buflen) || !buf) {
+	    buflen += 64;
+	    buf = realloc(buf, buflen);
+	  }
+
+	  buf[i++] = c;
+	  if (c == '\n') break;
+	}
+ read_end:;
+	if ((i >= 0) && buf)
+	  buf[i] = 0;
+
+	fd_blockingmode(fd);
+
+	*bufp = buf;
+	*buflenp = buflen;
+
+	/* if (i == 0) return -1; */
+	return i;
 }

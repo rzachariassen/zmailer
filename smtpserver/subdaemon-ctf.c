@@ -22,12 +22,14 @@ static int subdaemon_handler_ctf_init  __((void**));
 static int subdaemon_handler_ctf_input __((void *, struct peerdata *));
 static int subdaemon_handler_ctf_preselect  __((void*, fd_set *, fd_set *, int *));
 static int subdaemon_handler_ctf_postselect __((void*, fd_set *, fd_set *));
+static int subdaemon_handler_ctf_shutdown   __((void*));
 
 struct subdaemon_handler subdaemon_handler_contentfilter = {
 	subdaemon_handler_ctf_init,
 	subdaemon_handler_ctf_input,
 	subdaemon_handler_ctf_preselect,
 	subdaemon_handler_ctf_postselect,
+	subdaemon_handler_ctf_shutdown,
 };
 
 
@@ -133,8 +135,6 @@ subdaemon_handler_ctf_preselect (state, rdset, wrset, topfd)
      fd_set *rdset, *wrset;
      int *topfd;
 {
-	int i;
-
 	return -1;
 }
 
@@ -143,8 +143,6 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
      void *state;
      fd_set *rdset, *wrset;
 {
-	int i;
-
 	return -1;
 }
 
@@ -250,4 +248,12 @@ subdaemon_handler_ctf_input (statep, peerdata)
 	peerdata->outbuf[rc] = '\n';
 	
 	return 0; /* all fine */
+}
+
+
+static int
+subdaemon_handler_ctf_shutdown (state)
+     void *state;
+{
+	return -1;
 }

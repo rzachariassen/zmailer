@@ -173,6 +173,11 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
 #define _Z_FD_ZERO(var) FD_ZERO(&var)
 #define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
+
+#define _Z_FD_SETp(sock,var) FD_SET(sock,var)
+#define _Z_FD_CLRp(sock,var) FD_CLR(sock,var)
+#define _Z_FD_ZEROp(var) FD_ZERO(var)
+#define _Z_FD_ISSETp(i,var) FD_ISSET(i,var)
 #else
 /* #warning "_Z_FD_SET[3]" */
 #define _Z_FD_SET(sock,var) var |= (1 << sock)
@@ -356,6 +361,8 @@ typedef struct SmtpState {
     struct SmtpSASLState sasl;
 #endif
 
+    void *irouter_state;
+    void *content_state;
 } SmtpState;
 
 
@@ -522,7 +529,6 @@ extern int X_settrrc;
 extern void header_from_mime __((char *, int *, int));
 #endif				/* USE_TRANSLATION */
 
-extern void killr __((SmtpState * SS, int rpid));
 extern void killcfilter __((SmtpState * SS, int rpid));
 extern void typeflush __((SmtpState *));
 #if defined(HAVE_STDARG_H) && defined(HAVE_VPRINTF)
@@ -628,6 +634,7 @@ extern void fd_restoremode __((int fd, int mode));
 
 /* subdaemons.c */
 extern int subdaemons_init __((void));
+extern int fdgets __((char **bufp, int *buflenp, int fd, int timeout));
 
 extern int  ratetracker_rdz_fd;
 extern int  ratetracker_server_pid;
@@ -652,8 +659,15 @@ struct subdaemon_handler {
 	int (*input)     __((void *state, struct peerdata *));
 	int (*preselect) __((void *state, fd_set *rdset, fd_set *wrset, int *topfd));
 	int (*postselect)__((void *state, fd_set *rdset, fd_set *wrset));
+	int (*shutdown)  __((void *state));
 };
 
-extern struct subdaemon_handler subdaemon_handler_router;
+extern int subdaemon_send_to_peer __((struct peerdata *, const char *, int));
+
+
 extern struct subdaemon_handler subdaemon_handler_ratetracker;
 extern struct subdaemon_handler subdaemon_handler_contentfilter;
+
+/* subdaemon-rtr.c */
+extern char * call_subdaemon_rtr __((void **, const char*, const char *, int, int*));
+extern struct subdaemon_handler subdaemon_handler_router;

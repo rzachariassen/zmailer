@@ -4,59 +4,19 @@
  */
 /*
  *	Some modifications  by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2004
  */
 
 /*
  * This file contains most of the RFC822-specific message manipulation.
  */
 
-#include "mailer.h"
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/param.h>
-#include <fcntl.h>
-#include <sys/file.h>
-#include <errno.h>
-#include "mail.h"
-#include "libz.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#include "zsyslog.h"
+#include "router.h"
 
 #ifdef HAVE_SYS_UN_H
 #include <sys/socket.h>
 #include <sys/un.h>
 #endif
-
-#include "prototypes.h"
-#include "libsh.h"
-#include "zmsignal.h"
-#include "shmmib.h"
-
-#ifndef _IOFBF
-#define _IOFBF  0
-#endif  /* !_IOFBF */
-#ifndef _IOLBF
-#define _IOLBF  0200
-#endif  /* !_IOFBF */
-
-#ifdef	HAVE_LOCKF
-#ifdef	F_OK
-#undef	F_OK
-#endif	/* F_OK */
-#ifdef	X_OK
-#undef	X_OK
-#endif	/* X_OK */
-#ifdef	W_OK
-#undef	W_OK
-#endif	/* W_OK */
-#ifdef	R_OK
-#undef	R_OK
-#endif	/* R_OK */
-
-#endif	/* HAVE_LOCKF */
 
 static void	reject __((struct envelope *e, const char *msgfile));
 

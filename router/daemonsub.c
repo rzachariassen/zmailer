@@ -9,28 +9,11 @@
  *  script, along with its support facilities.
  */
 
-#include "mailer.h"
-#include <stdio.h>
-#include <sys/types.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#include <ctype.h>
-#include <fcntl.h>
-#include <sys/file.h>			/* O_RDONLY for run_praliases() */
-#include <pwd.h>			/* for run_homedir() */
-#include <grp.h>			/* for run_grpmems() */
-#include <errno.h>
+#include "router.h"
 #ifdef HAVE_SYS_UN_H
 #include <sys/socket.h>
 #include <sys/un.h>
 #endif
-
-#include "zsyslog.h"
-#include "shmmib.h"
-#include "sysexits.h"
-
-extern struct MIB_MtaEntry *MIBMtaEntry;
 
 #ifdef HAVE_DIRENT_H
 # include <dirent.h>
@@ -69,16 +52,8 @@ extern struct MIB_MtaEntry *MIBMtaEntry;
 #include <sys/resource.h>
 #endif
 
-#include "zmsignal.h"
-
-#include "zsyslog.h"
-#include "mail.h"
 #include "interpret.h"
 #include "io.h"
-#include "libz.h"
-#include "libc.h"
-
-#include "prototypes.h"
 
 #ifdef	HAVE_LOCKF
 #ifdef	F_OK

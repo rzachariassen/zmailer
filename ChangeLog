@@ -1,3 +1,52 @@
+2004-04-12  Matti Aarnio  <mea@zmailer.org>
+
+	* include/libz.h:
+	    Publish prototypes for crc32*() functions.
+
+	* include/io.h:
+	    Allow selective io-redirection disabling
+
+	* router/router.c,  man/router.8.in, proto/cf/aliases.cf,
+	  proto/cf/fqdnaliases.cf, proto/cf/server.cf, router/functions.c,
+	  router/prototypes.c:
+	    Created  -Ismtpserver  function mode, that calls
+	    the router script interpreter's  "$(server ..)" function
+	    in definitely secure manner.  This is for use under
+	    new smtpserver's router interaction logic.
+	    Also created  $(isinteractive)  script function, that
+	    can be used in short-circuiting potentially lengthy expansions
+	    that are not really interesting in this mode.
+
+	* router/router.c, router/router.h, router/daemonsub.c,
+	  router/Makefile.in, router/dateparse.c, router/db.c,
+	  router/functions.c, router/prototypes.c, router/rfc822.c,
+	  router/rfc822hdrs.c, router/rfc822walk.c, router/rtsyslog.c,
+	  router/shliaise.c:
+	    Created "router.h"  and used it as only include file
+	    for all source files.
+
+	* smtpserver/contentpolicy.c, smtpserver/policytest.c:
+	    Minor edits.
+
+	* smtpserver/smtprouter.c, smtpserver/Makefile.in:
+	    Killed the file.  All the functionality went into
+	    subdaemon-rtr.c  file.
+
+	* smtpserver/smtpserver.c:
+	    Removed vestiges of router running as a sub-process of
+	    current SMTP interaction instance.
+
+	* smtpserver/smtpserver.h:
+	    Couple new prototypes, plus handling fd_set passed as a pointer.
+
+	* smtpserver/subdaemon-rtr.c, smtpserver/subdaemons.c
+	    Running one interactive router sub-instance under the multiplexing
+	    server.  Possibly need to have more ???
+
+	* smtpserver/subdaemon-trk.c, smtpserver/subdaemons.c:
+	    Moved  fdgets()  function into subdaemons.c file (common use..)
+	    Added non-blocking operation mode for it.
+
 2004-04-09  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:

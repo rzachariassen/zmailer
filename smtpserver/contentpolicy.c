@@ -22,7 +22,7 @@
  *  has yielded e.g. EOF, in which case the loop terminates.
  *
  *  If no answer is received (merely two consequtive #hungry
- *  states, or non-conformant answers), a "ok" is returned,
+ *  states, or non-conformant answers), an "ok" is returned,
  *  and the situation is logged.
  *
  *  
@@ -129,7 +129,7 @@ static int init_content_policy()
 {
   struct stat stbuf;
 
-  if (stat(contentfilter,&stbuf)) {
+  if (stat(contentfilter, &stbuf)) {
     type(NULL,0,NULL, "contentfilter stat(%s) error %d",contentfilter,errno);
     return 0;
   }

@@ -104,7 +104,7 @@ int skeptical = 1;
 int checkhelo = 0;
 int verbose = 0;
 int daemon_flg = 1;
-int pid, routerpid = -1;
+int pid;
 extern int contentpolicypid;
 int router_status = 0;
 FILE *logfp = NULL;
@@ -1424,8 +1424,6 @@ char **argv;
 		     the mandatory sleep(2) below. */
 		  close(0); close(1); close(2);
 		  
-		  if (routerpid > 0)
-		    killr(&SS, routerpid);
 		  if (contentpolicypid > 1)
 		    killcfilter(&SS, contentpolicypid);
 		    
@@ -1454,8 +1452,6 @@ char **argv;
 
 	} /* stand-alone server */
 
-	if (routerpid > 0)
-	  killr(&SS, routerpid);
 	if (contentpolicypid > 1)
 	  killcfilter(&SS, contentpolicypid);
 	if (SS.netconnected_flg)
@@ -1598,10 +1594,6 @@ int sig;
 #endif
 #endif
     {
-	if (lpid == routerpid && routerpid > 0) {
-	  router_status = status;
-	  routerpid = -1;
-	}
 	if (lpid == contentpolicypid && contentpolicypid > 1) {
 	  contentpolicypid = -lpid;
 	}
@@ -2032,8 +2024,6 @@ int insecure;
 	}
 	SS->mfp = NULL;
 
-	if (routerpid > 0)
-	    killr(SS, routerpid);
 	if (contentpolicypid > 1)
 	  killcfilter(SS, contentpolicypid);
 	exit(0);

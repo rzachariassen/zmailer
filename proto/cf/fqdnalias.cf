@@ -276,8 +276,8 @@ fqdn_neighbour (domain, address, A) {
 	sender)
 		if $(didexpand "$key.userdbmailname.sender") && 
 		   a="$(userdb "$user$athost:mailname" -- "$user" "$plustail" "$athost")" ; then
-
 		  db add expansions "$key.userdbmailname.sender" 1
+		  $(isinteractive) && returns (((smtp foo foo $priv)))
 		  nattr=$(newattribute $A privilege $priv)
 		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		  if a=$(echo -- "$a" |				\
@@ -316,6 +316,7 @@ fqdn_neighbour (domain, address, A) {
 	if $(didexpand fqdnaliases) ; then
 	  if a="$(fqdnaliases "$lcaddress" -- "$user")" ; then
 		db add expansions "$key.fqdnaliases" 1
+		  $(isinteractive) && returns (((smtp foo foo $priv)))
 		nattr=$(newattribute $A privilege $priv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
@@ -337,6 +338,7 @@ fqdn_neighbour (domain, address, A) {
 	if $(didexpand fqdnaliasesldap); then
 	  if a="$(fqdnaliasesldap "$lcaddress" -- "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
+		  $(isinteractive) && returns (((smtp foo foo $priv)))
 		nattr=$(newattribute $A privilege $nobodypriv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
@@ -379,6 +381,7 @@ fqdn_neighbour (domain, address, A) {
 	    if $(didexpand fqdnaliases) ; then
 	      if a="$(fqdnaliases "$key")" ; then
 		db add expansions "$key.fqdnaliases" 1
+		  $(isinteractive) && returns (((smtp foo foo $priv)))
 		nattr=$(newattribute $A privilege $priv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
@@ -400,6 +403,7 @@ fqdn_neighbour (domain, address, A) {
 	    if $(didexpand fqdnaliasesldap) ; then
 	      if a="$(fqdnaliasesldap "$key" -- "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
+		  $(isinteractive) && returns (((smtp foo foo $priv)))
 		nattr=$(newattribute $A privilege $nobodypriv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
@@ -437,6 +441,7 @@ fqdn_neighbour (domain, address, A) {
 	    if $(didexpand fqlists); then
 		if [ -f "$a" ] ; then
 		    db add expansions "$key.fqlists" 1
+		      $(isinteractive) && returns (((smtp foo foo $priv)))
 		    priv=$(getpriv "644" $priv "$a" maillist)
 		    nattr=$(newattribute $A privilege $priv sender "$l")
 		    $(zapDSNnotify $nattr) ## FIXME!FIXME!
@@ -464,6 +469,7 @@ fqdn_neighbour (domain, address, A) {
 		if $(didexpand fqlistowner); then
 		  if [ -f "$a" ]; then
 		    db add expansions "$key.fqlistowner" 1
+		      $(isinteractive) && returns (((smtp foo foo $priv)))
 		    nattr=$(newattribute $A privilege $nobodypriv)
 		    $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		    a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
@@ -484,6 +490,7 @@ fqdn_neighbour (domain, address, A) {
 		if $(didexpand fqlistrequest); then
 		  if [ -f "$a" ] ; then
 		    db add expansions "$key.fqlistrequest" 1
+		      $(isinteractive) && returns (((smtp foo foo $priv)))
 		    nattr=$(newattribute $A privilege $nobodypriv)
 		    $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		    a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
@@ -503,6 +510,7 @@ fqdn_neighbour (domain, address, A) {
 		if $(didexpand ownerfqlists); then
 		  if [ -f "$a" ] ; then
 		    db add expansions "$key.ownerfqlists" 1
+		      $(isinteractive) && returns (((smtp foo foo $priv)))
 		    nattr=$(newattribute $A privilege $nobodypriv)
 		    $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		    a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
@@ -532,6 +540,7 @@ fqdn_neighbour (domain, address, A) {
 	if $(didexpand fqdnaliases) ; then
 	  if a="$(fqdnaliases "$key" -- "$user")" ; then
 		db add expansions "$key.fqdnaliases" 1
+		  $(isinteractive) && returns (((smtp foo foo $priv)))
 		nattr=$(newattribute $A privilege $priv) &&
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
@@ -552,6 +561,7 @@ fqdn_neighbour (domain, address, A) {
 	if $(didexpand fqdnaliasesldap) ; then
 	  if a="$(fqdnaliasesldap "$key" -- "$user")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
+		  $(isinteractive) && returns (((smtp foo foo $priv)))
 		nattr=$(newattribute $A privilege $nobodypriv) &&
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\

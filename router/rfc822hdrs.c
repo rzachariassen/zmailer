@@ -7,26 +7,10 @@
  * This file implements most of an RFC822/976 scanner/parser.
  */
 
-#include "mailer.h"
-#include <stdio.h>
-#include <sys/types.h>
-#include <ctype.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#include "io.h"
-#include "prototypes.h"
-
-#ifndef _IOFBF
-#define _IOFBF  0
-#endif  /* !_IOFBF */
-
+#include "router.h"
 
 struct headerinfo nullhdr = { 0, nilHeaderSemantics, nilUserType, normal };
 int D_rfc822 = 0; /* Debug traceing */
-
-extern int do_hdr_warning; /* If set, headers with errors in them are
-			      printed "as is" -- h_line */
 
 /*
  * Apply RFC822 scanner and parser to the list of Line tokens passed as args.
