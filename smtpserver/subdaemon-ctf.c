@@ -82,6 +82,7 @@ int contentfilter_maxctfs;
 typedef struct state_ctf {
 	long proc_ino;
 	time_t proc_mtime, proc_ctime;
+	time_t last_cmd_time[MAXCTFS];
 	struct peerdata *replypeer[MAXCTFS];
 	int   contentfilterpid[MAXCTFS];
 	FILE *tofp[MAXCTFS];
@@ -357,6 +358,8 @@ subdaemon_handler_ctf_input (state, peerdata)
 	  fwrite(peerdata->inpbuf, peerdata->inlen, 1, CTF->tofp[idx]);
 	  fflush(CTF->tofp[idx]);
 
+	  time( &CTF->last_cmd_time[idx] );
+
 	  CTF->bufsize[idx]    = 0;
 	  CTF->sawhungry[idx]  = 0;
 	  peerdata->inlen = 0;
@@ -488,6 +491,11 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 		CTF->replypeer[idx] = NULL;
 	      }
 	    }
+	  }
+
+	  if ((now - CTF->last_cmd_time[idx]) > SUBSERVER_IDLE_TIMEOUT) {
+	    subdaemon_killctf(CTF, idx);
+	    continue;
 	  }
 	}
 

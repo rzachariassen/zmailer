@@ -430,6 +430,11 @@ int insecure;
 	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, cp);
 	return -1;
     }
+    if (msa_mode && ! SS->authuser) {
+	smtp_tarpit(SS);
+	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode must authenticate first!");
+	return -1;
+    }
 
     SS->rcpt_count = 0;
     SS->ok_rcpt_count = 0;
@@ -1179,6 +1184,13 @@ const char *buf, *cp;
        type(NULL,0,NULL," rcpt_count=%d  mail is %sopen\n",
        SS->rcpt_count, SS->mfp ? "":"NOT ");
     */
+
+    /* Redundant for sure, but ... */
+    if (msa_mode && ! SS->authuser) {
+	smtp_tarpit(SS);
+	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, "In SUBMISSION mode must authenticate first!");
+	return -1;
+    }
 
     /* some smtp clients don't get the 503 right and try again, so
        tell the spammers exactly what's happening. */

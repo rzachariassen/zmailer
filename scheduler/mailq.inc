@@ -210,6 +210,29 @@ Process-id of smtpserver's interactive router processes group leader.
 Process-id of smtpserver's contentfilter subserver process group leader.
 </DESC></VAR>*/
 
+  sfprintf(fp,"SS.Irouter-reply-delay-G         %9d\n",
+	   M.ss.Irouter_reply_delay_G);
+/*<VAR><NAME>SS.Irouter-reply-delay-G</NAME><DESC>
+Delay (in secs) of lattest interactive router reply from arrival of
+the question.
+</DESC></VAR>*/
+  sfprintf(fp,"SS.Irouter-queue-G               %9d\n",
+	   M.ss.Irouter_queue_G);
+/*<VAR><NAME>SS.Irouter-queue-G</NAME><DESC>
+Number of requests in smtpserver's i-router interface queue.
+</DESC></VAR>*/
+
+  sfprintf(fp,"SS.Cfilter-reply-delay-G         %9d\n",
+	   M.ss.Cfilter_reply_delay_G);
+/*<VAR><NAME>SS.Irouter-reply-delay-G</NAME><DESC>
+Delay (in secs) of lattest interactive router reply from arrival of
+the question.
+</DESC></VAR>*/
+  sfprintf(fp,"SS.Cfilter-queue-G               %9d\n",
+	   M.ss.Cfilter_queue_G);
+/*<VAR><NAME>SS.Irouter-queue-G</NAME><DESC>
+Number of requests in the smtpserver's content-filter interface queue.
+</DESC></VAR>*/
 
   sfprintf(fp,"SYS.SpoolFreeSpace-kB-G          %9d\n",
 	   M.sys.SpoolFreeSpace);

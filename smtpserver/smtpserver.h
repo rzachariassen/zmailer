@@ -9,6 +9,8 @@
 #define SMTP_DATA_TIME_PER_LINE  600	/* 10 minutes of life.. */
 #define SMTP_REPLY_ALARM_IVAL    300	/*  5 minutes to write to socket.. */
 
+#define SUBSERVER_IDLE_TIMEOUT   600	/* 10 minutes of idle life.. */
+
 /*
  * The smtpserver connects to the router to ask it various questions, like,
  * is this a valid address?  What is the alias expansion of that? etc.
@@ -371,7 +373,7 @@ typedef struct SmtpState {
     struct smtpconf *cfinfo;
 
 #ifdef HAVE_WHOSON_H
-    int whoson_result;
+    int whoson_result
     char whoson_data[128];
 #endif
 
@@ -686,6 +688,9 @@ extern int  contentfilter_rdz_fd;
 extern int  contentfilter_server_pid;
 
 
+struct peerhead;           /* Forward declarator */
+struct subdaemon_handler;  /* Forward declarator */
+
 struct peerdata {
 	int  fd;
 	int  inlen;
@@ -693,6 +698,7 @@ struct peerdata {
 	int  inpspace;
 	int  outspace;
 	int  in_job;		/* A job ready to send to server.. */
+	time_t when_in;		/* Arrival time */
 	char *inpbuf;		/* Grown to fit in an input line..
 				   The input protocol shall be SINGLE
 				   text line with '\n' at the end! */
@@ -701,7 +707,18 @@ struct peerdata {
 				   About 200 chars should be enough.
 				   If not, adding automated buffer
 				   expansion codes is trivialish...  */
+	struct peerdata *prev, *next;	/* Job order.  Add to tail,
+					   process from head. */
+	struct peerhead *head;
+	struct subdaemon_handler *handler;
 };
+
+struct peerhead {
+	struct peerdata		* head;
+	struct peerdata		* tail;
+	int			  queuecount;
+};
+
 
 struct subdaemon_handler {
 	int (*init)      __((void **statepp));
@@ -710,6 +727,8 @@ struct subdaemon_handler {
 	int (*postselect)__((void *state, fd_set *rdset, fd_set *wrset));
 	int (*shutdown)  __((void *state));
         int (*killpeer)  __((void *state, struct peerdata *));
+	Vuint *reply_delay_G;	/* MIB variable pointer */
+	Vuint *reply_queue_G;   /* MIB variable pointer */
 };
 
 extern int subdaemon_send_to_peer __((struct peerdata *, const char *, int));

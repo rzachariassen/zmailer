@@ -52,6 +52,9 @@ void subdaemon_contentfilter(fd)
   if (logfp) fclose(logfp); logfp = NULL;
   /* report(NULL,"[smtpserver contentfilter subsystem]"); */
 
+  subdaemon_handler_contentfilter.reply_queue_G = & MIBMtaEntry->ss.Cfilter_queue_G;
+  subdaemon_handler_contentfilter.reply_delay_G = & MIBMtaEntry->ss.Cfilter_reply_delay_G;
+
   subdaemon_loop(fd, & subdaemon_handler_contentfilter);
   zsleep(10);
   exit(0);
@@ -62,6 +65,9 @@ void subdaemon_router(fd)
 {
   if (logfp) fclose(logfp); logfp = NULL;
   /* report(NULL,"[smtpserver router subsystem]"); */
+
+  subdaemon_handler_router.reply_queue_G = & MIBMtaEntry->ss.Irouter_queue_G;
+  subdaemon_handler_router.reply_delay_G = & MIBMtaEntry->ss.Irouter_reply_delay_G;
 
   subdaemon_loop(fd, & subdaemon_handler_router);
   zsleep(10);
@@ -234,6 +240,53 @@ int subdaemons_init __((void))
 	return 0;
 }
 
+
+void job_linkin( head, peer )
+     struct peerhead *head;
+     struct peerdata *peer;
+{
+	peer->head = head;
+	if (head->tail) {
+	  peer->prev = head->tail;
+	  head->tail->next = peer;
+	  peer->next = NULL;
+	  head->tail = peer;
+	} else {
+	  /* head->tail == NULL -- which means that also  head->head == NULL */
+	  head->tail = peer;
+	  head->head = peer;
+	  peer->next = NULL;
+	  peer->prev = NULL;
+	}
+	++ peer->head->queuecount;
+	*(peer->handler->reply_queue_G) = peer->head->queuecount;
+}
+
+void job_unlink( peer )
+     struct peerdata *peer;
+{
+	if (!peer || !peer->head) return;
+
+	if (peer->head->head == peer)
+	  peer->head->head = peer->next;
+	if (peer->head->tail == peer)
+	  peer->head->tail = peer->prev;
+
+	if (peer->next)
+	  peer->next->prev = peer->prev;
+	if (peer->prev)
+	  peer->prev->next = peer->next;
+
+	-- peer->head->queuecount;
+	*(peer->handler->reply_queue_G) = peer->head->queuecount;
+
+	peer->next = NULL;
+	peer->prev = NULL;
+	peer->head = NULL;
+
+}
+
+
 void
 subdaemon_kill_peer(peer)
      struct peerdata *peer;
@@ -241,6 +294,8 @@ subdaemon_kill_peer(peer)
 	close(peer->fd);
 	peer->fd = -1;
 	peer->in_job = 0;
+
+	job_unlink( peer );
 }
 
 
@@ -250,13 +305,16 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 {
 	int n, rc;
 	struct peerdata *peers, *peer;
+	struct peerhead job_head;
 	void *statep = NULL;
 	/* int ppid; */
 	int top_peer = 0, top_peer2, topfd, newfd;
-	int last_peer_index = 0;
+	/* int last_peer_index = 0; */
 
 	fd_set rdset, wrset;
 	struct timeval tv;
+
+	memset( & job_head, 0, sizeof(job_head) );
 
 	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
 
@@ -391,6 +449,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    peer->inpspace = sp;
 		    peer->outbuf   = o;
 		    peer->outspace = so;
+		    peer->handler  = subdaemon_handler;
 
 		    if (!peer->inpbuf) {
 		      peer->inpspace = 250;
@@ -486,6 +545,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		      peer->inlen += rc;
 		      if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
 			peer->in_job = 1;
+			peer->when_in = now;
+			job_linkin( &job_head, peer );
 			break; /* Stop here! */
 		      }
 		      continue; /* read more, if there is.. */
@@ -514,6 +575,25 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	  for (n = 0; n < top_peer; ++n) {
 
+#if 1
+	    peer = job_head.head;
+	    if (!peer) break;
+
+	    rc = (subdaemon_handler->input)( statep, peer );
+
+	    if (rc > 0) {
+	      /* XOFF .. busy right now, come back again.. */
+	      /* Do NOT advance the job pointer! */
+	      break;
+	    } else if (rc == 0) {
+	      /* XON .. give me more jobs */
+	      job_unlink( peer );
+	      peer->in_job = 0; /* Done that one.. */
+	      continue; /* go and pick next task talker, if any */
+	    } /* ELSE ??? */
+
+	    break; /* Err ??? */
+#else
 	    if (last_peer_index >= top_peer)
 	      last_peer_index = 0;             /* Wrap around */
 
@@ -579,8 +659,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	      ++last_peer_index;
 #endif
 	    }
+#endif
 	  }
-
 	} /* ... for(;;) ... */
 
 	if (subdaemon_handler->shutdown)
@@ -650,6 +730,7 @@ subdaemon_send_to_peer(peer, buf, len)
 	  rc = write( peer->fd,
 		      peer->outbuf + peer->outptr,
 		      peer->outlen - peer->outptr );
+
 	  if (rc > 0) {
 	    peer->outptr += rc;
 	    if (peer->outptr == peer->outlen)
@@ -716,6 +797,9 @@ subdaemon_send_to_peer(peer, buf, len)
 	  peer->outptr = 0;
 	}
 	peer->outbuf[ peer->outlen ] = 0; /* Debugging time buffer cleanup */
+
+	time(&now);
+	*(peer->handler->reply_delay_G) = now - peer->when_in;
 
 	return 0; /* Stored successfully for outgoing traffic.. */
 }

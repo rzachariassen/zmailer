@@ -1,3 +1,24 @@
+2004-10-19  Matti Aarnio  <mea@zmailer.org>
+
+	* include/shmmib.h, scheduler/mailq.inc:
+	    Added couple subserver task queue tracker variables,
+	    and their printouts.  These are debug stuff, but still..
+
+	* smtpserver/smtpserver.c:
+	    Note pipeline input along with lack of EHLO greeting!
+
+	* smtpserver/smtpcmds.c:
+	    Demand user to authenticate for SUBMISSION/MSA mode
+	    MAIL/RCPT commands.
+
+	* smtpserver/smtpserver.h, smtpserver/subdaemon-ctf.c,
+	  smtpserver/subdaemon-rtr.c, smtpserver/subdaemons.c:
+	    - Subdaemon ran sub-servers have idle-apoptosis
+	    - Arrived jobs are queued in strict order of arrival,
+	      and they can become revoked from the queue if the
+	      client has disconnected before the job goes into
+	      processing.
+
 2004-10-07  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/subdaemon-ctf.c:

@@ -52,6 +52,7 @@ typedef struct state_rtr {
 	int   inlen;
 	int   bufsize;
 	int   sawhungry;
+	time_t last_cmd_time;
 	struct fdgets_fdbuf fdb;
 } RtState;
 
@@ -190,6 +191,8 @@ static int subdaemon_callr (RTR)
 	}
 	fd_nonblockingmode(RTR->fromfd);
 
+	time( &RTR->last_cmd_time );
+
 	return rpid;
 }
 
@@ -285,6 +288,8 @@ subdaemon_handler_rtr_input (state, peerdata)
 
 	  fwrite(peerdata->inpbuf, peerdata->inlen, 1, RTR->tofp);
 	  fflush(RTR->tofp);
+
+	  time( &RTR->last_cmd_time );
 
 	  RTR->bufsize    = 0;
 	  RTR->sawhungry  = 0;
@@ -410,7 +415,8 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 	      if (RTR->buf[rc-1] == '\n') {
 		/* Whole line accumulated, send it out! */
 
-		subdaemon_send_to_peer(RTR->replypeer, RTR->buf, rc);
+		if (RTR->replypeer)
+		  subdaemon_send_to_peer(RTR->replypeer, RTR->buf, rc);
 		RTR->inlen = 0; /* Zap it.. */
 	      }
 
@@ -421,6 +427,12 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 	      }
 	    }
 	  }
+
+	  if ((now - RTR->last_cmd_time) > SUBSERVER_IDLE_TIMEOUT) {
+	    subdaemon_killr(RTR);
+	    continue;
+	  }
+
 	}
 
 	return sawhungry;

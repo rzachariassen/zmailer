@@ -158,8 +158,13 @@ struct MIB_MtaEntrySs {
 
   Vuint		IncomingSMTP_REPORT;
 
-  Vuint	space[28]; /* Add to tail without need to change MAGIC */
+  Vuint		Irouter_reply_delay_G;
+  Vuint		Cfilter_reply_delay_G;
+  Vuint		Irouter_queue_G;
+  Vuint		Cfilter_queue_G;
 
+
+  Vuint	space[24]; /* Add to tail without need to change MAGIC */
 };
 
 

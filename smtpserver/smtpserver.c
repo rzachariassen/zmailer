@@ -2544,8 +2544,17 @@ int insecure;
 
 	  if (s_seen_eof(SS) &&  (SS->tarpit > 0.9999)) {
 	    type(NULL,0,NULL,"BAILING OUT");
+	    /* Bail out! */
 	    break;
 	  }
+
+	  if ((SS->with_protocol_set & WITH_EHLO) != WITH_EHLO) {
+	    /* We have pipelining input, but greeted with EHLO.. */
+	    type(SS, 550, m571, "HELLO %s, YOU ARE SENDING PIPELINED INPUT, BUT DIDN'T GREET PROPERLY WITH EHLO", SS->rhostaddr);
+	    /* Bail out! */
+	    break;
+	  }
+
 	  if (!SS->s_seen_pipeline)
 	    MIBMtaEntry->ss.IncomingClientPipelines ++;
 	  SS->s_seen_pipeline = 1;
