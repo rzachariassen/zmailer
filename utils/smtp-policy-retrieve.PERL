@@ -91,15 +91,15 @@ sub urlget {
 
 undef $/;
 
-$_ = &urlget( "http://www.idot.aol.com/preferredmail/" ) ||
-    die "can't open PreferredMail list, stopped";
-
-s/^.*<multicol.*?>//si;
-s-</multicol.*$--si;
-
-foreach $domain ( split( /\s+/, $_ ) ) {
-    $reason{lc $domain} .= " PreferredMail";
-}
+#$_ = &urlget( "http://www.idot.aol.com/preferredmail/" ) ||
+#    die "can't open PreferredMail list, stopped";
+#
+#s/^.*<multicol.*?>//si;
+#s-</multicol.*$--si;
+#
+#foreach $domain ( split( /\s+/, $_ ) ) {
+#    $reason{lc $domain} .= " PreferredMail";
+#}
 
 $_ = &urlget( "http://www.webeasy.com:8080/spam/spam_download_table" ) ||
     die "can't open webeasy list, stopped";

@@ -52,8 +52,16 @@ if [ f$FLAG != fn ]; then
 	    $MAILBIN/spamlist.py > smtp-policy.spam.new && \
 		mv  smtp-policy.spam.new smtp-policy.spam
 	else
+	    #
+	    # Following IS NOT SAFE, if either produces errors, those
+	    # go (usually) to the result file, and in the end the result
+	    # OVERWRITES the "running"  smtp-policy.spam  file.
+	    #
+	    > smtp-policy.spam.new
 	    lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
-		> smtp-policy.spam.new && \
+		>> smtp-policy.spam.new
+	    lynx -source http://www.sprocket.com/Security/SpamDomains | \
+		awk '{print $1}' >> smtp-policy.spam.new
 	    mv smtp-policy.spam.new smtp-policy.spam
 	fi
     fi

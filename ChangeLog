@@ -1,5 +1,12 @@
 1998-06-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* utils/policy-builder.sh.in:
+	    Added another retrievable spam domain list
+
+	* proto/cf/aliases.cf:
+	    A fragment of script (in comment) which is specific for
+	    listserv.funet.fi  system.
+
 	* scheduler/msgerror.c:
 	    When reporting "Multiple-fault:" type error, tell also
 	    which template file is not openable, and ask the recipient
