@@ -1,3 +1,11 @@
+2001-02-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/mailq.c:
+	    When doing some slow  'mailq -vv', and using MAILQv2, do
+	    query all data out of the scheduler before poking into
+	    the files (which may be a lot).  Limit the time of inter-
+	    action with the scheduler to the minumum.
+
 2001-02-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/readconfig.c:

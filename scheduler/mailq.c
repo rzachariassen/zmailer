@@ -114,6 +114,13 @@ char	path[MAXPATHLEN];
 #define  ISSPACE(cc) (cc == ' ' || cc == '\t')
 
 
+typedef struct threadtype {
+  const char *channel;
+  const char *host;
+  char *line;
+} threadtype;
+
+
 const char *host = NULL;
 
 int
@@ -1385,13 +1392,20 @@ void query2(fpi, fpo)
 	    }
 
 	  }
+
+	  fclose(fpi);
+	  fclose(fpo);
 	} else {
 
 	  /* Non -Q* -mode processing */
 
 	  int linespace = 256;
-	  int linecnt = 0;
+	  int linecnt   = 0;
 	  char **lines = (char **) malloc(sizeof(char *) * linespace);
+	  int threadspace = 256;
+	  int threadcnt   = 0;
+	  threadtype *threads = (threadtype *) malloc(sizeof(threadtype) *
+						      threadspace);
 
 	  fprintf(fpo, "SHOW QUEUE THREADS2\n");
 	  fflush(fpo);
@@ -1450,20 +1464,15 @@ void query2(fpi, fpo)
 
 	    bufsize = 0;
 	    if (GETLINE(buf, bufsize, bufspace, fpi))
-	      return;
+	      break; /* Response */
 
 	    if (*buf != '+') {
 	      fprintf(stdout,"Scheduler response: '%s'\n",buf);
-	      return;
+	      break;
 	    }
 
-
-	    printf("%s/%s:\n",channel, host);
-
 	    for (;;) {
-	      int j;
-	      char *split[11], *s, *ocp;
-	      char timebuf[30];
+
 	      bufsize = 0;
 	      if (GETLINE(buf, bufsize, bufspace, fpi))
 		break;
@@ -1477,125 +1486,166 @@ void query2(fpi, fpo)
 		++b;
 	      }
 
-	      /* Array elts:
-		 0) filepath under $POSTOFFICE/transport/
-		 1) number WITHIN a group of recipients
-		 2) error address in brackets
-		 3) recipient line offset within the control file
-		 4) message expiry time (time_t)
-		 5) next wakeup time (time_t)
-		 6) last feed time (time_t)
-		 7) count of attempts at the delivery
-		 8) "retry in NNN" or a pending on "channel"/"thread"
-		 9) possible diagnostic message from previous delivery attempt
-	      */
-
-	      for (j = 0; b && j < 10; ++j) {
-		split[j] = b;
-		if (j == 1) {
-		  /* The 'number within group' got added here
-		     after the rest of the interface was working. */
-		  if (!('0' <= *b && *b <= '9')) {
-		    split[1] = "0";
-		    ++j;
-		    split[j] = b;
-		  }
-		}
-		b = strchr(b, '\t');
-		if (b) *b++ = 0;
-	      }
-	      
-	      if (j != 10) {
-		fprintf(stderr,"Communication error! Malformed data entry!\n");
-		continue;
+	      if (threadcnt+2 >= threadspace) {
+		threadspace *= 2;
+		threads = (threadtype *)realloc((void*)threads,
+						sizeof(threadtype) *
+						threadspace);
 	      }
 
-	      j = atoi(split[1]);
-
-	      if (j == 0) {
-
-		printf("\t%s: (", split[0]);
-
-		*timebuf = 0;
-		saytime((long)(atol(split[4]) - now), timebuf, 1);
-
-		printf("%s tries, expires in %s)", split[7], timebuf);
-
-		if (!verbose)
-		  printf(" %s", split[9]);
-
-		printf("\n");
-	      }
-
-	      if (verbose) {
-		if (j == 0) {
-		  if (cfp) free(cfp);
-		  cfp = readmq2cfp(split[0]);
-		}
-		if (cfp) {
-		  if (j == 0) {
-		    /* First recipient in the group */
-		    printf("\t ");
-		    if (cfp->logident) {
-		      printf(" id\t%s, ", cfp->logident);
-		    }
-		    if (verbose > 1) {
-		      printf(" bytes %ld", (long)cfp->nlines);
-		    }
-		    printf("\n");
-
-		    printf("\t  from\t%s\n", *split[2] ? split[2] : "<>");
-		  }
-
-		  s = cfp->contents + atoi(split[3]) +2;
-		  if (s > (cfp->contents + cfp->nlines)) {
-		    printf("\t\tto-ptr bad; split[3]='%s'\n",split[3]);
-		    continue; /* BAD! */
-		  }
-
-		  if (*s == ' ' || (*s >= '0' && *s <= '9'))
-		    s += _CFTAG_RCPTPIDSIZE;
-
-		  if ((cfp->format & _CF_FORMAT_DELAY1) || *s == ' ' ||
-		      (*s >= '0' && *s <= '9')) {
-		    /* Newer DELAY data slot - _CFTAG_RCPTDELAYSIZE bytes */
-		    s += _CFTAG_RCPTDELAYSIZE;
-		  }
-
-		  s = skip821address(s); /* skip channel */
-		  while (*s == ' ' || *s == '\t') ++s;
-		  s = skip821address(s); /* skip host */
-		  while (*s == ' ' || *s == '\t') ++s;
-
-		  ocp = s;
-		  s = skip821address(s); /* skip user */
-		  *s++ = 0;
-		  fprintf(stdout,"\t");
-		  if (j == 0)
-		    fprintf(stdout,"  to");
-		  fprintf(stdout,"\t%s\n",ocp);
-
-
-		} else /* not have cfp */ {
-		  /* Can't show 'message-id', nor 'to' addresses,
-		     but have 'from'! */
-		  if (j == 0) {
-		    /* First recipient in the group */
-		    printf("\t  from\t%s\n", *split[2] ? split[2] : "<>");
-		  }
-		}
-
-		/* remember to show the diagnostics */
-
-		if (*(split[9]))
-		  printf("\t\t%s\n", split[9]);
-
-	      } /* verbose */
-
-	    } /* all recipients towards each host */
+	      threads[threadcnt].channel = channel;
+	      threads[threadcnt].host    = host;
+	      threads[threadcnt].line    = malloc(bufsize + 2);
+	      memcpy(threads[threadcnt].line, b, bufsize+1);
+	      ++threadcnt;
+	      threads[threadcnt].channel = NULL;
+	      threads[threadcnt].host    = NULL;
+	      threads[threadcnt].line    = NULL;
+	    }
 	    
-	  } /* all channel/host pairs */
-	  
+	  }
+
+	  fclose(fpi); fclose(fpo);
+
+	  for (i = 0; threads[i].line != NULL; ++i) {
+	    static const char *channel = NULL;
+	    static const char *host    = NULL;
+
+	    int j;
+	    char *split[11], *s, *ocp, *b;
+	    char timebuf[30];
+
+	    if (channel != threads[i].channel ||
+		host    != threads[i].host) {
+
+	      channel = threads[i].channel;
+	      host    = threads[i].host;
+
+	      printf("%s/%s:\n",channel, host);
+
+	    }
+
+	    b = threads[i].line;
+
+
+	    /* Array elts:
+	       0) filepath under $POSTOFFICE/transport/
+	       1) number WITHIN a group of recipients
+	       2) error address in brackets
+	       3) recipient line offset within the control file
+	       4) message expiry time (time_t)
+	       5) next wakeup time (time_t)
+	       6) last feed time (time_t)
+	       7) count of attempts at the delivery
+	       8) "retry in NNN" or a pending on "channel"/"thread"
+	       9) possible diagnostic message from previous delivery attempt
+	    */
+
+	    for (j = 0; b && j < 10; ++j) {
+	      split[j] = b;
+	      if (j == 1) {
+		/* The 'number within group' got added here
+		   after the rest of the interface was working. */
+		if (!('0' <= *b && *b <= '9')) {
+		  split[1] = "0";
+		  ++j;
+		  split[j] = b;
+		}
+	      }
+	      b = strchr(b, '\t');
+	      if (b) *b++ = 0;
+	    }
+	      
+	    if (j != 10) {
+	      fprintf(stderr,"Communication error! Malformed data entry!\n");
+	      continue;
+	    }
+
+	    j = atoi(split[1]);
+
+	    if (j == 0) {
+
+	      printf("\t%s: (", split[0]);
+
+	      *timebuf = 0;
+	      saytime((long)(atol(split[4]) - now), timebuf, 1);
+
+	      printf("%s tries, expires in %s)", split[7], timebuf);
+
+	      if (!verbose)
+		printf(" %s", split[9]);
+
+	      printf("\n");
+	    }
+
+	    if (verbose) {
+	      if (j == 0) {
+		if (cfp) free(cfp);
+		cfp = readmq2cfp(split[0]);
+	      }
+	      if (cfp) {
+		if (j == 0) {
+		  /* First recipient in the group */
+		  printf("\t ");
+		  if (cfp->logident) {
+		    printf(" id\t%s, ", cfp->logident);
+		  }
+		  if (verbose > 1) {
+		    printf(" bytes %ld", (long)cfp->nlines);
+		  }
+		  printf("\n");
+
+		  printf("\t  from\t%s\n", *split[2] ? split[2] : "<>");
+		}
+
+		s = cfp->contents + atoi(split[3]) +2;
+		if (s > (cfp->contents + cfp->nlines)) {
+		  printf("\t\tto-ptr bad; split[3]='%s'\n",split[3]);
+		  continue; /* BAD! */
+		}
+
+		if (*s == ' ' || (*s >= '0' && *s <= '9'))
+		  s += _CFTAG_RCPTPIDSIZE;
+
+		if ((cfp->format & _CF_FORMAT_DELAY1) || *s == ' ' ||
+		    (*s >= '0' && *s <= '9')) {
+		  /* Newer DELAY data slot - _CFTAG_RCPTDELAYSIZE bytes */
+		  s += _CFTAG_RCPTDELAYSIZE;
+		}
+
+		s = skip821address(s); /* skip channel */
+		while (*s == ' ' || *s == '\t') ++s;
+		s = skip821address(s); /* skip host */
+		while (*s == ' ' || *s == '\t') ++s;
+
+		ocp = s;
+		s = skip821address(s); /* skip user */
+		*s++ = 0;
+		fprintf(stdout,"\t");
+		if (j == 0)
+		  fprintf(stdout,"  to");
+		fprintf(stdout,"\t%s\n",ocp);
+
+
+	      } else /* not have cfp */ {
+		/* Can't show 'message-id', nor 'to' addresses,
+		   but have 'from'! */
+		if (j == 0) {
+		  /* First recipient in the group */
+		  printf("\t  from\t%s\n", *split[2] ? split[2] : "<>");
+		}
+	      }
+
+	      /* remember to show the diagnostics */
+
+	      if (*(split[9]))
+		printf("\t\t%s\n", split[9]);
+
+	    } /* verbose */
+
+	  } /* all recipients towards each host */
+	  /* all channel/host pairs */	  
+
 	} /* No -Q processing */
 
 	free(cfp);
