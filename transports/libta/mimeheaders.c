@@ -1208,6 +1208,33 @@ NULL };
 }
 
 
+/* Returns the END of decoded string! */
+static char * decodeXtext __((const char *, char *, int));
+static char *
+decodeXtext(xtext, obuf, obuflen)
+	const char *xtext;
+	char *obuf;
+	int obuflen;
+{
+	char *s = obuf;
+	--obuflen;
+	for ( ; *xtext && obuflen > 0; ++xtext, --obuflen) {
+	  if (*xtext == '+') {
+	    int c = '?';
+	    sscanf(xtext+1,"%02X",&c);
+	    *s++ = c;
+	    if (*xtext) ++xtext;
+	    if (*xtext) ++xtext;
+	  } else {
+	    *s++ = *xtext;
+	  }
+	}
+	*s = '\0';
+	return s;
+}
+
+
+
 int
 header_received_for_clause(rp, rcptcnt, verboselog)
      struct rcpt *rp;
@@ -1236,13 +1263,19 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 
 
 	/* Begin at the indented line start.. */
-	s = forclause;
 	/* strcpy(s, "\n\t"); s += 2; */
 
 	if (rp->orcpt) {
 	  /* XXX: Do decode ORCPT XTEXT data ?  Why bother ? */
 	  strcpy(fchead, "(ORCPT");
-	  sprintf(s, "<%.800s>", rp->orcpt);
+	  s = forclause;
+	  *s++ = '<';
+	  s = decodeXtext(rp->orcpt, s,
+			  ((sizeof(forclause)-3) > 800 ?
+			   800 : (sizeof(forclause)-3)));
+	  *s++ = '>';
+	  *s = 0;
+	  clauselen = s - forclause;
 
 	  /* ORCPT data tail, just ending closing parenthesis.. */
 	  if (rcptcnt > 2)
@@ -1253,12 +1286,14 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	    *fctail = 0;
 	    /* Close the comment on the ORCPT value! */
 	    strcat(s, ")");
+	    ++clauselen;
 	  }
 
 	} else { /* No  ORCPT  tail,  just 'for'-clause */
 
 	  strcpy(fchead, "for");
-	  sprintf(s, "<%.800s>", rp->addr->user);
+	  sprintf(forclause, "<%.800s>", rp->addr->user);
+	  clauselen = strlen(forclause);
 
 	  if (rcptcnt > 2)
 	    sprintf(fctail, "(+ %d others)", rcptcnt-1);
@@ -1268,9 +1303,7 @@ header_received_for_clause(rp, rcptcnt, verboselog)
 	    *fctail = 0;
 	}
 
-	s += strlen(s);
 
-	clauselen = s - forclause;
 
 
 	if (*(rp->newmsgheadercvt) == NULL)
