@@ -21,12 +21,13 @@
 #define	DEFAULT_ROOT_PS1	"# "
 #define	DEFAULT_IFS		" \t\n"
 #define	DEFAULT_PATH		"/usr/ucb:/bin:/usr/bin:"
-#define	LOGIN_SCRIPT		"if [ -f /etc/profile ]; then\n" \
-				"	. /etc/profile;\n" \
-				"fi;\n" \
-				"if [ -f $HOME/.profile ]; then\n" \
-				"	. $HOME/.profile;\n" \
-				"fi\n"
+#define	LOGIN_SCRIPT \
+if [ -f /etc/profile ]; then\n\
+	. /etc/profile;\n\
+fi;\n\
+if [ -f $HOME/.profile ]; then\n\
+	. $HOME/.profile;\n\
+fi\n"
 
 /* standard variables */
 #define	CDPATH			"CDPATH"
