@@ -995,8 +995,6 @@ thread_start(thr, queue_only_too)
 
 	if (rc) { /* non-zero when child has started */
 	  thr->attempts += 1;
-	} else {
-	  thr->pending = "StartFailure";
 	}
 
 	if (thr->proc && verbose)
