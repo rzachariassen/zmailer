@@ -13,6 +13,19 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   something breaks, and wrong stuff gets sent out.  Data/Dot
   encoding fails in some combinations ??  At nic.funet.fi
   I see it every 1-3 days..
+	Cured around 25-Jan-2000 ??? (for 2.99.52patch2)
+
+  This is classical: "Oh no, 1 day after previous, this happened:"
+
+      Jan 27 01:06:04 nic smtp[29847]: S11234AbQAZW4o: to=<Marc@mutz.com>, delay=00:09:20, xdelay=00:00:03, mailer=smtp, relay=mm.mailbank.com ([208.49.167.53|25|193.166.0.145|49747]), stat=error2 <<- HELO nic.funet.fi->> 500 Command unrecognized: "xa46~p@$@"500 Command unrecognized: ""500 Command unrecognized: " i"500 Command unrecognized: "Pk"500 Command unrecognized: ""500 Command unrecognized: "P"500 Command unrecognized: ""500 Command unrecognized: ""500 Command unrecognized:""500 Command unrecognized: ""500 Command unrecognized: ""500 Command cvt=QPJan 27 01:06:04 nic smtp[29847]: S11298AbQAZW4y: to=<Marc@mutz.com>, delay=00:09:10, xdelay=00:00:00, mailer=smtp, relay=mm.mailbank.com ([208.49.167.53|25|193.166.0.145|49747]), stat=deferred smtp; 500 (Server hung up on us! Cmd: MAIL From:<owner-linux-newbie-outgoing@vger.rutgers.edu>) cvt=NONE
+
+      Which means that EHLO/HELO procedure -> smtpwrite() is sensitive
+      to write buffer breaks in form form.
+
+	220 s6.mailbank.com ESMTP Sendmail 8.9.3/8.9.1; Thu, 27 Jan 2000 15:32:16 -0800 
+
+      Eh ???  Hmm...
+
 
 - smtp TA (all TAs ??) leak memory in MIME header processing.
   (or something else ?)
@@ -66,6 +79,10 @@ router:
 	queue; E.g. at least one router per class, but if some
 	class is (momentrarily) empty, its router can work other
 	class jobs.
+		-> 2.99.52 has queueing / log collecting process
+		   (all that for easy log rotation), but priorization
+		   is not there yet
+
 
 transports/smtp:
 	This is a tell-tale indication that total/header byte accounting
@@ -75,11 +92,6 @@ transports/smtp:
 
 	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
 	(syncing for BDAT, for example.)
-
-	There is some memory leak (possibly in all ta programs?),
-	propably in MIME header rewrites.  It appears only in
-	very long living and hard working smtp-ta program as
-	slow size growth.
 
 	VERIFY: BDAT (and DATA) status processing in case the remote
 	yields disk-full temporary error.
