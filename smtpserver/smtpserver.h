@@ -730,6 +730,9 @@ extern int call_subdaemon_trk __((void **statep,const char *cmd, char *retbuf, i
 extern int call_subdaemon_trk_getmore __((void *statep,char *retbuf, int retbuflen));
 extern int  smtp_report_ip __((SmtpState *SS, const char *ip));
 extern int  smtp_report_dump __((SmtpState *SS));
+extern int  call_rate_counter __((struct policystate *state, int incr, PolicyTest what, int *countp, int *countp2));
+
+
 
 
 /* contentpolicy.c */

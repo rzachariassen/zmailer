@@ -773,6 +773,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	 *  <actionlabel>: "RATE", "MSGS", "RATES", "AGES"
 	 *  <ipaddrlabel>: "4:12345678", or "6:123456789abcdef0"
 	 *  <typelabel>:   "CONNECT" or "MAIL" ?   (ignored)
+	 *  <count>:       integer ( ',' integer )
 	 *
 	 */
 
@@ -807,59 +808,49 @@ subdaemon_handler_trk_input (statep, peerdata)
 	/* type(NULL,0,NULL,"Got: '%s' '%s' '%s'=%d '%s'", 
 	   actionlabel, iplabel, lastlimits,lastlimitval, typelabel); */
 
-	i = -1;
-	if (STREQ(actionlabel,"MSGS")) {
-	  i = 1;
-	} else if (STREQ(actionlabel,"RATES")) {
-	  i = -2;
-	} else if (STREQ(actionlabel,"AGES")) {
-	  i = -3;
-	} else if (STREQ(actionlabel,"EXCESS")) {
-	  i = -4;
-	} else if (STREQ(actionlabel,"DUMP")) {
-	  i = -5;
-	} else if (STREQ(actionlabel,"RCPT")) {
-	  i = -6;
-	} else if (STREQ(actionlabel,"AUTHF")) {
-	  i = -7;
-	} else if (STREQ(actionlabel,"DABORT")) {
-	  i = -8;
-	} else
-	  goto bad_input;
-
 	if (iplabel[0] == '4' && iplabel[1] == ':') {
 
 	  ipv4addr = strtoul( iplabel+2, NULL, 16);
 	  /* FIXME ? - htonl() ???  */
 
 
-	  if (i >= 0) {		/* "MSGS" data */
+	  if (STREQ(actionlabel,"MSGS")) {
 	    int sum1 = 0, sum2 = 0;
 	    count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, count1, count2, &sum1, &sum2 );
 	    sprintf(peerdata->outbuf, "200 %d %d\n", sum1, sum2);
-	  } else if (i == -2) {	/* "RATES" report */
+
+	  } else if (STREQ(actionlabel,"RATES")) {
 	    slot_ipv4_data(statep, peerdata->outbuf, ipv4addr);
-	  } else if (i == -3) {	/* "AGES" report */
+
+	  } else if (STREQ(actionlabel,"AGES")) {
 	    slot_ages(statep, peerdata->outbuf);
-	  } else if (i == -4) {	/* "EXCESS" data */
+
+	  } else if (STREQ(actionlabel,"EXCESS")) {
 	    i = count_excess_ipv4( state, ipv4addr );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
-	  } else if (i == -5) {	/* "DUMP" report */
+
+	  } else if (STREQ(actionlabel,"DUMP")) {
 	    dump_trk( state, peerdata );
-	  } else if (i == -6) {	/* "RCPT" data -- "DATAOK" */
+
+	  } else if (STREQ(actionlabel,"RCPT")) {
 	    int sum1 = 0, sum2 = 0;
 	    if (count1 > 0)
 	      count_ipv4( state, ipv4addr, llv1,llv2,llv3,llv4, count1, count2, &sum1, &sum2 );
 	    i = count_rcpts_ipv4( state, ipv4addr, count2 );
 	    sprintf(peerdata->outbuf, "200 %d %d\n", i, sum2);
-	  } else if (i == -7) {
+
+	  } else if (STREQ(actionlabel,"AUTHF")) {
 	    i = count_authfails_ipv4( state, ipv4addr, count1 );
 	    if (i > auth_failrate) i = -999;
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
-	  } else if (i == -8) {
+
+	  } else if (STREQ(actionlabel,"DABORT")) {
 	    i = count_daborts_ipv4( state, ipv4addr, count1 );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
-	  }
+
+	  } else
+	    goto bad_input;
+
 	  peerdata->outlen = strlen(peerdata->outbuf);
 
 	} else
@@ -1262,4 +1253,97 @@ smtp_report_dump(SS)
 	type(NULL,0,NULL, "Output %d lines", lines);
 
 	return 0;
+}
+
+int call_rate_counter(state, incr, what, countp, countp2)
+     struct policystate *state;
+     int incr, *countp, *countp2;
+     PolicyTest what;
+{
+    int rc, rc2;
+    char pbuf[2000]; /* Not THAT much space needed.. */
+    char wbuf[20], *p;
+    const char *cmd = "zz";
+    const char *whatp = "CONNECT";
+    int count = 0, count2 = 0;
+    const char *limitp = state->ratelimitmsgsvalue;
+
+    if (!limitp) limitp = "-1";
+
+    if (debug)
+      type(NULL,0,NULL,"call_rate_counter(incr=%d what=%d)",incr,what);
+
+
+    switch (what) {
+    case POLICY_MAILFROM:
+	cmd   = "MSGS";
+	whatp = "MAIL";
+	count = incr;
+
+	/* How to see, that we will have interest in these rate entries
+	   in the future ?  E.g. there is no point in spending time
+	   for externally incoming email... */
+
+	state->did_query_rate = 1;
+	break;
+
+    case POLICY_EXCESS:
+	cmd   = "EXCESS";
+	whatp = "MAIL";
+	count = 1;
+	break;
+
+    case POLICY_DATAOK:
+	cmd   = "RCPT";
+	whatp = "DATA";
+	count = incr ? incr : 1;
+	if (incr  &&  !state->did_query_rate)
+	  return 0; /* INCRed counters at DATA/BDAT, but hadn't
+		       shown interest at MAIL for this... */
+	break;
+
+    case POLICY_DATAABORT:
+	cmd   = whatp = "DABORT";
+	count = incr ? incr : 1;
+	break;
+
+    case POLICY_AUTHFAIL:
+	cmd   = whatp = "AUTHF";
+	count = 1;
+	break;
+
+    default:
+	sprintf(wbuf, "w=%d", what);
+	break;
+    }
+
+    sprintf(pbuf, "%s %s %s %s %d",
+	    cmd, state->ratelabelbuf, limitp, whatp, count);
+
+    if (debug)
+      type(NULL,0,NULL,"call_rate_counter: sending: '%s'",pbuf);
+
+    rc = call_subdaemon_trk(&state->rate_state, pbuf, pbuf, sizeof(pbuf));
+    p = strchr(pbuf, '\n');
+    if (p) *p = 0;
+
+    if (rc >= 0)
+      rc2 = sscanf(pbuf, "%*s %d %d", &count, &count2);
+    else
+      rc2 = -3;
+
+    if (debug)
+      type(NULL,0,NULL,"call_rate_counter: got rc=%d rc2=%d, buf='%s'",rc, rc2, pbuf);
+
+    if (rc < 0) return rc; 
+
+    /* RATE all MAIL FROM lines, apply limits
+     * INCR all accepted DATA/BDATs.
+     */
+
+    if (!countp) return 0; /* Don't actually care! */
+    *countp = count;
+    if (countp2) *countp2 = count2;
+
+    return 0;
 }

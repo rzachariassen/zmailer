@@ -1270,102 +1270,6 @@ int policytestaddr(state, what, raddr)
     return rc;
 }
 
-static int call_rate_counter(state, incr, what, countp, countp2)
-     struct policystate *state;
-     int incr, *countp, *countp2;
-     PolicyTest what;
-{
-    int rc, rc2;
-    char pbuf[2000]; /* Not THAT much space needed.. */
-    char wbuf[20], *p;
-    const char *cmd = "zz";
-    const char *whatp = "CONNECT";
-    int count = 0, count2 = 0;
-    const char *limitp = state->ratelimitmsgsvalue;
-
-    if (!limitp) limitp = "-1";
-
-    if (debug)
-      type(NULL,0,NULL,"call_rate_counter(incr=%d what=%d)",incr,what);
-
-
-    switch (what) {
-    case POLICY_MAILFROM:
-	cmd   = "MSGS";
-	whatp = "MAIL";
-	count = incr;
-
-	/* How to see, that we will have interest in these rate entries
-	   in the future ?  E.g. there is no point in spending time
-	   for externally incoming email... */
-
-	state->did_query_rate = 1;
-	break;
-
-    case POLICY_EXCESS:
-	cmd   = "EXCESS";
-	whatp = "MAIL";
-	count = 1;
-	break;
-
-    case POLICY_DATAOK:
-	cmd   = "RCPT";
-	whatp = "DATA";
-	count = incr ? incr : 1;
-	if (incr  &&  !state->did_query_rate)
-	  return 0; /* INCRed counters at DATA/BDAT, but hadn't
-		       shown interest at MAIL for this... */
-	break;
-
-    case POLICY_DATAABORT:
-	cmd   = whatp = "DABORT";
-	count = incr ? incr : 1;
-	break;
-
-    case POLICY_AUTHFAIL:
-	cmd   = whatp = "AUTHF";
-	count = 1;
-	break;
-
-    default:
-	sprintf(wbuf, "w=%d", what);
-	break;
-    }
-
-    sprintf(pbuf, "%s %s %s %s %d",
-	    cmd, state->ratelabelbuf, limitp, whatp, count);
-
-    if (debug)
-      type(NULL,0,NULL,"call_rate_counter: sending: '%s'",pbuf);
-
-    rc = call_subdaemon_trk(&state->rate_state, pbuf, pbuf, sizeof(pbuf));
-    p = strchr(pbuf, '\n');
-    if (p) *p = 0;
-
-    if (rc >= 0)
-      rc2 = sscanf(pbuf, "%*s %d %d", &count, &count2);
-    else
-      rc2 = -3;
-
-    if (debug)
-      type(NULL,0,NULL,"call_rate_counter: got rc=%d rc2=%d, buf='%s'",rc, rc2, pbuf);
-
-    if (rc < 0) return rc; 
-
-    /* RATE all MAIL FROM lines, apply limits
-     * INCR all accepted DATA/BDATs.
-     */
-
-    if (rc2 != 1) return -1;
-
-    if (!countp) return 0; /* Don't actually care! */
-    *countp = count;
-    if (countp2) *countp2 = count2;
-
-    return 0;
-}
-
-
 static int check_domain(state, input, inlen)
      struct policystate *state;
      const unsigned char *input;
@@ -1815,20 +1719,24 @@ static int pt_mailfrom(state, str, len)
 	 then we check to see rate-limits */
 
       int count, count2 = 0;
-      int limitval;
+      int limitval1, limitval2 = 0;
 
       if (debug)
 	type(NULL,0,NULL,"Checking 'RateLimitMsgs %s' attribute",
 	     state->ratelimitmsgsvalue);
 
-      if (sscanf(state->ratelimitmsgsvalue, "%d", &limitval) == 1) {
+      count = sscanf(state->ratelimitmsgsvalue, "%d,%d", &limitval1, &limitval2);
+      if (count == 1 || count == 2) {
 	/* Valid numeric value had.. */
 
 	int rc;
 
-	if (state->authuser)
-	  limitval *= 10; /* raise the limit considerably for
-			     authenticated user. */
+	if (state->authuser) {
+	  limitval1 *= 10; /* raise the limit considerably for
+			      authenticated user. */
+	  limitval2 *= 10; /* raise the limit considerably for
+			      authenticated user. */
+	}
 
 	rc = call_rate_counter(state, 0, POLICY_MAILFROM,
 			       &count, &count2);
@@ -1838,15 +1746,22 @@ static int pt_mailfrom(state, str, len)
 
 	if (rc == 0) {
 	  /* Got some rate limit data back,  now USE IT ! */
-	  if (limitval < 0 && count >= -limitval) {
+	  if (limitval1 < 0 && count >= -limitval1) {
 	    PICK_PA_MSG(P_A_RateLimitMsgs);
 	    rc = -1;  /* Hard, e.g. 500-series */
-	  } else if (limitval > 0 && count >= limitval) {
+	  } else if (limitval1 > 0 && count >= limitval1) {
+	    PICK_PA_MSG(P_A_RateLimitMsgs);
+	    rc = -100; /* Soft, e.g. 400-series */
+	  } else if (limitval2 < 0 && count >= -limitval2) {
+	    PICK_PA_MSG(P_A_RateLimitMsgs);
+	    rc = -1;  /* Hard, e.g. 500-series */
+	  } else if (limitval2 > 0 && count >= limitval2) {
 	    PICK_PA_MSG(P_A_RateLimitMsgs);
 	    rc = -100; /* Soft, e.g. 400-series */
 	  }
+
 	  if ((rc != 0)  && (! state->message))
-	    state->message = strdup("You are sending too much mail per time interval.  Try again latter.");
+	    state->message = strdup("You are sending too much mail/rcpts per time interval.  Try again latter.");
 	  if (rc != 0) {
 	    /* register the excess! */
 	    call_rate_counter(state, 1, POLICY_EXCESS, &count, NULL);

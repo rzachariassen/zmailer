@@ -1,3 +1,12 @@
+2004-09-27  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/policytest.c, smtpserver/smtpserver.h,
+	  smtpserver/subdaemon-trk.c:
+	    A bit more of rate-limitter updates to complete things.
+	    Rate-counters now return two values instead of one, recognize
+	    that in policytest.  Moved  call_rate_counter() code into
+	    subdaemon-trk.c, where it is a bit more "local" stuff.
+
 2004-09-23  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:
