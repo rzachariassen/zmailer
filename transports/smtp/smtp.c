@@ -986,7 +986,6 @@ deliver(SS, dp, startrp, endrp)
 	int pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
 	time_t env_start, body_start, body_end;
 	struct rcpt *more_rp = NULL;
-	char **chunkptr = NULL;
 	char *chunkblk = NULL;
 	int early_bdat_sync = 0;
 	struct ct_data  *CT  = NULL;
@@ -1351,7 +1350,6 @@ deliver(SS, dp, startrp, endrp)
 	if (!SS->smtpfp)
 	  return EX_TEMPFAIL;
 
-	chunkptr = NULL;
 	SS->chunksize = 0;
 	SS->chunkbuf  = NULL;
 
@@ -1363,8 +1361,8 @@ deliver(SS, dp, startrp, endrp)
 
 	if (SS->chunking) {
 
+	  if (chunkblk) free(chunkblk);
 	  chunkblk = NULL;
-	  chunkptr = & chunkblk;
 
 	  /* We do surprising things here, we construct
 	     at first the headers (and perhaps some of
@@ -1521,7 +1519,7 @@ deliver(SS, dp, startrp, endrp)
 	}
 
 	SS->hsize = swriteheaders(startrp, SS->smtpfp, "\r\n",
-				  convertmode, 0, chunkptr);
+				  convertmode, 0, &chunkblk);
 
 	if (SS->hsize >= 0 && chunkblk) {
 
@@ -1547,6 +1545,7 @@ deliver(SS, dp, startrp, endrp)
 	  SS->chunksize  = SS->hsize;
 	  SS->chunkspace = SS->hsize;
 	  SS->chunkbuf   = chunkblk;
+	  chunkblk = NULL;
 	}
 
 	if (SS->hsize < 0) {
@@ -1571,6 +1570,7 @@ deliver(SS, dp, startrp, endrp)
 	  }
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
+	  SS->chunkbuf = NULL;
 
 	  return r;
 	}
@@ -1610,6 +1610,7 @@ deliver(SS, dp, startrp, endrp)
 	  }
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
+	  SS->chunkbuf = NULL;
 
 	  return EX_TEMPFAIL;
 	}
@@ -1678,6 +1679,7 @@ deliver(SS, dp, startrp, endrp)
 	  }
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
+	  SS->chunkbuf = NULL;
 
 	  return r;
 	}
@@ -1748,6 +1750,7 @@ deliver(SS, dp, startrp, endrp)
 	}
 
 	if (SS->chunkbuf) free(SS->chunkbuf);
+	SS->chunkbuf = NULL;
 
 	return r;
 }

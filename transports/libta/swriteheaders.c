@@ -59,22 +59,21 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 		/* Expand line TABs */
 		int col = 0;
 		p = s;
-		for (; linelen > 0; --linelen, ++s) {
-		  if (*s == '\t')
+		for (; linelen > 0; --linelen, ++p) {
+		  if (*p == '\t')
 		    col += 8 - (col & 7);
 		  else
 		    ++col;
 		}
 		linelen = col;
-		s = p;
 	      }
 
 	      if (*chunkbufp == NULL)
 		/* Actually the SMTP has already malloced a block,
 		   thus this branch should not be needed ... */
-		*chunkbufp = malloc( hsize + linelen + newlinelen +2 );
+		*chunkbufp = malloc( hsize + linelen + newlinelen );
 	      else
-		*chunkbufp = realloc(*chunkbufp, hsize + linelen + newlinelen +2 );
+		*chunkbufp = realloc(*chunkbufp, hsize + linelen + newlinelen );
 	      if (*chunkbufp == NULL) return -1;
 
 	      p = hsize + (*chunkbufp);
