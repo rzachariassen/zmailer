@@ -1149,7 +1149,8 @@ static int sync_cfps(oldcfp, newcfp)
 	nvp = newcfp->head;
 
 
-	while (ovp != NULL) {
+	while (ovp != NULL && nvp != NULL) {
+
 	  /* Always prepare for removal of the ovp object..
 	     Pick the next-ovp pointer now */
 	  novp  = ovp->next[L_CTLFILE];
@@ -1209,6 +1210,18 @@ static int sync_cfps(oldcfp, newcfp)
 	  ovp = novp;
 	  nvp = nnvp;
 	}
+
+	/* Ok,  'ovp' might be non-NULL while 'nvp' is already NULL */
+	while (ovp) {
+	  novp = ovp->next[L_CTLFILE];
+
+	  MIBMtaEntry->mtaStoredRecipients -= vp->ngroup;
+	  ovp->ngroup = 0;
+	  unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
+
+	  ovp = novp;
+	}
+	
 
 	oldcfp->rcpnts_failed = newcfp->rcpnts_failed;
 	oldcfp->haderror |= newcfp->haderror;
