@@ -17,25 +17,25 @@ struct addrinfo {
   struct addrinfo *ai_next; /* next structure in linked list */
 };
 
-#define AI_PASSIVE	0x01
-#define AI_CANONNAME	0x02
-#endif
-#ifndef AI_NONAME
-#define AI_NONAME	0x04 /* (extension) Don't even try nameservice */
+#define AI_PASSIVE     1       /* Socket address is intended for `bind'.  */
+#define AI_CANONNAME   2       /* Request for canonical name.  */
+#ifndef AI_NUMERICHOST
+#define AI_NUMERICHOST 4       /* Don't use name resolution.  */
 #endif
 
 #ifndef EAI_ADDRFAMILY
-#define EAI_ADDRFAMILY	 -1
-#define EAI_AGAIN	 -2
-#define EAI_BADFLAGS	 -3
-#define EAI_FAIL	 -4
-#define EAI_FAMILY	 -5
-#define EAI_MEMORY	 -6
-#define EAI_NODATA	 -7
-#define EAI_NONAME	 -8
-#define EAI_SERVICE	 -9
-#define EAI_SOCKTYPE	-10
-#define EAI_SYSTEM	-11
+/* Error values for `getaddrinfo' function.  */
+#define EAI_BADFLAGS   -1      /* Invalid value for `ai_flags' field.  */
+#define EAI_NONAME     -2      /* NAME or SERVICE is unknown.  */
+#define EAI_AGAIN      -3      /* Temporary failure in name resolution.  */
+#define EAI_FAIL       -4      /* Non-recoverable failure in name res.  */
+#define EAI_NODATA     -5      /* No address associated with NAME.  */
+#define EAI_FAMILY     -6      /* `ai_family' not supported.  */
+#define EAI_SOCKTYPE   -7      /* `ai_socktype' not supported.  */
+#define EAI_SERVICE    -8      /* SERVICE not supported for `ai_socktype'.  */
+#define EAI_ADDRFAMILY -9      /* Address family for NAME not supported.  */
+#define EAI_MEMORY     -10     /* Memory allocation failure.  */
+#define EAI_SYSTEM     -11     /* System error returned in `errno'.  */
 #endif
 
 #ifndef NI_MAXHOST
@@ -47,4 +47,6 @@ struct addrinfo {
 #define NI_NAMEREQD	0x04
 #define NI_NOFQDN	0x08
 #define NI_DGRAM	0x10
+#endif
+
 #endif

@@ -623,7 +623,7 @@ FILE *vlog;
   }
 #endif /* INET6 */
 
-  if ((req->ai_flags & AI_NONAME) == 0) {
+  if ((req->ai_flags & AI_NUMERICHOST) == 0) {
     i = hosttable_lookup_addr(name, req, &at);
 if (vlog)
   fprintf(vlog,"hosttable_lookup_addr(name='%s') returns %d\n", name, i);
@@ -813,7 +813,7 @@ FILE *vlog;
   if (!req)
     req = &nullreq;
 
-  if (req->ai_flags & ~(AI_CANONNAME | AI_PASSIVE | AI_NONAME))
+  if (req->ai_flags & ~(AI_CANONNAME | AI_PASSIVE | AI_NUMERICHOST))
     return EAI_BADFLAGS;
 
 #ifdef BROKEN_LIKE_POSIX
