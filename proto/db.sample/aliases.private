@@ -1,0 +1,77 @@
+##
+#
+# aliases.private - ZMailer alias definition file for relay.cs.
+#
+#   Alias declarations take the form of an RFC822 address-list header.  Files
+#   containing lists of users can be included with ":include:filename" (the
+#   double quotes are required). Alias files consist of addresses, one to
+#   a line.
+#
+# NOTE: # NOTE@neat.cs.toronto.edu
+#       so the changes made take effect.
+# 	This file will then be merged with aliases.
+##
+
+# Error messages from the local mailer are mailed to postoffice, which someone
+# scans periodically.
+postoffice: "/var/mail/postoffice"
+
+# archival of news logs for jarvis.
+newslogs: news-stats
+
+# problem reporting, system change log
+local: local@neat.cs.toronto.edu
+gripe: gripe@neat.cs.toronto.edu
+
+# For sendsys message replies
+census: census@neat.cs.toronto.edu
+
+# writemsgs  is used to effect actual delivery (i.e. this must not invoke
+# other aliases that deal with msgs stuff for fear of loops)
+writemsgs: writemsgs@neat.cs.toronto.edu
+
+# neat.cs is the central hub which broadcasts calendar mail to everyone 
+# who needs it. NB: # who needs it. NB@neat.cs.toronto.edu
+localcalendar: localcalendar@neat.cs.toronto.edu
+
+# CSGSBS aliases
+#soccerfun: soccerfun@neat.cs.toronto.edu
+#soccerteam: soccerteam@neat.cs.toronto.edu
+
+# path database maintenance
+#
+# This mailbox is a backup mailbox -- if there is a serious error
+# in the mapdaemon, it throws the mail to this alias.  The .mbox
+# file just specifies a file to save the mail in.  We do it via
+# the alias to avoid the mapdaemon knowing about mail locking etc.
+#
+path-mbox: path-mbox@neat.cs.toronto.edu
+#
+# The address Mel sends map-coordinators mail.  This should forward
+# to pathadmin and save in some archive mbox.
+#
+path-coord: path-coord@neat.cs.toronto.edu
+
+# General purpose remote moderation stuff, presently an experiment.
+# Note that files used in remote moderation should be owned by root,
+# since that's how Zmailer runs aliases.  Otherwise, an extra layer
+# of indirection via a file owned by the person we want to run as.
+#
+# people who get the logs, errors, etc.
+nativenet-owner: moraes,gst@gnosys.svle.ma.us
+# people who maintain the list
+nativenet-request: moraes,gst@gnosys.svle.ma.us
+# address for remote moderator to mail to.  We need a separate shell script
+# instead of invoking rmoderate right here because Rayan's parser is
+# busted or RFC822 quoting is baroque or both.
+nativenet-update: "|$MAILBIN/bin/nativenet-moderate"
+
+info-bounce: "|$MAILBIN/bin/autoreply -d -m/local/share/adm/canned.replies/info-gone info"
+
+# technical report request alias for the connectionist research group
+crg-tech-reports: "|$MAILBIN/bin/autoreply -d -m/local/share/adm/canned.replies/crg-ack crg-tech-reports",carol
+crg-announce: "|$MAILBIN/bin/autoreply -d -m/local/share/mail/adm/canned.replies/no-replyall crg-announce"
+crg-tr-announce: "|$MAILBIN/bin/avoid-replyall crg-tech-reports crg-announce $MAILSHARE/lists/crg-tr-announce"
+
+# Since Rayan is kind of slow to respond sometimes...
+registry-ack: "|$MAILBIN/bin/autoreply -d -m/local/share/adm/canned.replies/registry-ack registry"

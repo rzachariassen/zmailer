@@ -1,0 +1,5 @@
+#a
+#b  Remap local names (and recognize them) to their "canonic" forms.
+#c  thus having multiple machines on the same mailer..
+#d
+#z nicname		canonic.name

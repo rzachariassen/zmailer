@@ -1,0 +1,116 @@
+PROGRAM=	smtpserver
+#
+# ZMailer SMTP server makefile
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+#
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		..
+MAILBIN=	$(prefix)@MAILBIN@
+DEFS=		@DEFS@
+INSTALL=	@INSTALL@
+SMTPSERVER_INCL= @INCLRESOLV@ @INCLWRAP@
+SMTPSERVER_LIB=	 @LIBDBMS@ @LIBWRAP@ @LIBLOADAVER@ @LIBRESOLV@ @LIBSOCKET@
+#   Above the  LIBSOCKET (for SysVR4) must be last
+#
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(SMTPSERVER_INCL)
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
+LIB=		-L$(TOPDIR)/libs -lz -lzc -lident -lta $(LIBMALLOC)
+LIBDEB=		$(TOPDIR)/libs/libtag
+LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/libident/llib-llibident.ln
+OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o loadaver.o \
+		fdstatfs.o wantconn.o policytest.o cfgread.o smtpdata.o \
+		smtpcmds.o smtphelp.o smtprouter.o smtpchild.o mxverify.o
+
+SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c loadaver.c fdstatfs.c \
+		wantconn.c policytest.c  cfgread.c smtpdata.c \
+		smtpcmds.c smtphelp.c smtprouter.c smtpchild.c mxverify.c
+
+all: $(PROGRAM)-a
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+smtpserver.o: $(srcdir)/smtpserver.c $(srcdir)/smtpserver.h	\
+		$(srcdir)/policytest.h
+cfgread.o:    $(srcdir)/cfgread.c $(srcdir)/smtpserver.h
+smtpcmds.o:   $(srcdir)/smtpcmds.c $(srcdir)/smtpserver.h	\
+		$(srcdir)/policytest.h
+smtpdata.o:   $(srcdir)/smtpdata.c $(srcdir)/smtpserver.h
+smtphelp.o:   $(srcdir)/smtphelp.c $(srcdir)/smtpserver.h
+smtprouter.o: $(srcdir)/smtprouter.c $(srcdir)/smtpserver.h
+policytest.o:  $(srcdir)/policytest.c $(srcdir)/policytest.h # ignored: $(srcdir)/smtpserver.h
+
+
+$(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)
+
+$(PROGRAM):	$(OBJS) $(LIBDEB) version.o
+	$(CC) $(CFLAGS) -o $@ $(OBJS) version.o $(LIB) $(SMTPSERVER_LIB)
+
+version.c:	$(OBJS) $(TOPDIR)/Makefile
+	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+
+install:	$(PROGRAM)
+	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/$(PROGRAM).x
+	mv $(MAILBIN)/$(PROGRAM).x $(MAILBIN)/$(PROGRAM)
+
+clean:
+	-rm -f $(PROGRAM) make.log *.o *.out *~ fdstatfs-test
+
+distclean: clean
+	-rm -f Makefile
+
+fdstatfs-test: fdstatfs-test.o fdstatfs.o
+	$(CC) $(CFLAGS) -o $@ fdstatfs-test.o fdstatfs.o
+
+lint:	$(LINTLIB)
+	lint $(DEFS) $(INCL) $(LINTLIB) $(PROGRAM).c
+
+depend:	$(SOURCE)
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep -f Makefile $(CFLAGS) $(SOURCE)
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
+
+$(TOPDIR)/libc/llib-llibzc.ln:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/lib/llib-llibz.ln:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libident/llib-llibident.ln:
+	cd $(TOPDIR)/libident ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libc/libzc.a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/lib/libz.a-a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/lib/libz.a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+
+
+$(TOPDIR)/libident/libident.a-a:
+	cd $(TOPDIR)/libident ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libident/libident.a:
+	cd $(TOPDIR)/libidentes ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libmalloc/libmalloc_d.a-a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libmalloc_d.a
+$(TOPDIR)/libmalloc/libmalloc_d.a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libmalloc_d.a
+
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

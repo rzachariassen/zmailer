@@ -1,0 +1,151 @@
+PROGRAM=	zmsh
+#
+# ZMailer Shell makefile
+#
+@SET_MAKE@
+srcdir=         @srcdir@
+VPATH=          @srcdir@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+DEFS=		@DEFS@
+TOPDIR=	..
+RANLIB=		@RANLIB@
+ZSH_INCL=	
+ZSH_LIB=	
+#
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I.
+ZSHDEFS=	-DMAILER
+SSL=		$(TOPDIR)/ssl/ssl
+LIBNAME=	libsh
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libs/libmalloc_d.a-a
+LIB=		-L$(TOPDIR)/libs -lsh -lz -lzc  $(LIBMALLOC)
+LIBDEB=		$(TOPDIR)/libs/libtag
+CFLAGS=		$(COPTS) $(ZSHDEFS) $(DEFS) $(INCL) $(ZSH_INCL)
+
+SSLRUN = $(SSL) -D short -h sh.sst.h -t sh.sst.c -e sh.entry -l sh.lst $(srcdir)/sh.ssl
+
+
+OBJS	= sslwalker.o optimizer.o interpret.o listutils.o builtins.o \
+	io.o expand.o mail.o path.o prompt.o test.o trap.o variables.o \
+	execute.o jobcontrol.o tregexp.o regex.o zmsh.o listtrees.o
+
+SOURCE	= sslwalker.c optimizer.c interpret.c listutils.c builtins.c \
+	io.c expand.c mail.c path.c prompt.c test.c trap.c variables.c \
+	execute.c jobcontrol.c tregexp.c regex.c zmsh.c listtrees.c
+
+
+# keeping zmsh.o after the library is important due to the 'rm -f *.o' below...
+$(PROGRAM)-a: $(LIBDEB) $(PROGRAM)
+
+listmalloc: listmalloc.c
+	$(CC) -S $(CFLAGS) -DDEBUG -o listmalloc.s listmalloc.c
+	$(CC) $(CFLAGS) -o listmalloc listmalloc.s
+
+$(PROGRAM): $(TOPDIR)/libs/$(LIBNAME).a version.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ main.o version.o $(LIB) $(ZSH_LIB)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+
+# On alphas this code blows up when optimized... Sigh, perhaps
+# this one has a bug in it, or perhaps the GCC 2.7.* is buggy
+# on Alpha ...
+optimizer.o: $(srcdir)/optimizer.c $(srcdir)/sh.h
+	$(CC) -g $(ZSHDEFS) $(DEFS) $(INCL) $(ZSH_INCL) -c $(srcdir)/optimizer.c
+
+.PRECIOUS: $(TOPDIR)/libs/$(LIBNAME).a
+
+$(TOPDIR)/include/rfc822.entry:
+	cd $(TOPDIR)/router; $(MAKE) MFLAGS=$(MFLAGS) rfc822.entry
+
+interpret.o: $(TOPDIR)/include/rfc822.entry $(TOPDIR)/include/mailer.h
+
+version.c: main.o $(TOPDIR)/libs/$(LIBNAME).a $(TOPDIR)/Makefile
+	$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+$(TOPDIR)/libs/libmalloc_d.a-a:
+	cd $(TOPDIR)/libmalloc; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
+
+$(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a
+
+$(TOPDIR)/libs/$(LIBNAME).a: $(OBJS)
+	ar rv $@ $(OBJS)
+	$(RANLIB) $@
+
+#$(OBJS): $(SOURCE) ../config.h
+
+lint:
+	lint $(CFLAGS) $(SOURCE)
+clean:
+	-rm -f $(PROGRAM) $(LIBNAME).a sh.sst.c sh.sst.h sh.entry sh.lst tags 
+	-rm -f *.o sh-*.i *~
+distclean: clean
+	-rm -f Makefile
+
+$(srcdir)/sh.h:		sh.sst.c sh.sst.h sh.entry
+sslwalker.o:	$(srcdir)/sslwalker.c $(srcdir)/sh.h sh-in.i sh-out.i sh-procs.i
+
+sh.sst.c: $(srcdir)/sh.ssl $(SSL)
+	$(SSLRUN)
+
+sh.sst.h: $(srcdir)/sh.ssl $(SSL)
+	$(SSLRUN)
+
+sh.entry: $(srcdir)/sh.ssl $(SSL)
+	$(SSLRUN)
+
+$(SSL):
+	cd $(TOPDIR)/ssl ; $(MAKE) $(MFLAGS)
+
+sh-out.i: sh.sst.h
+	awk 'BEGIN{delay=3;running=0;}			\
+		/Output Tokens/{running+=1;}	\
+		/lastOfOutputTokens/{running=-99;}\
+		{if (running > 0 && --delay < 0) {		\
+			 print;				\
+		 };}' < sh.sst.h |	\
+	sed	-e 's/^[	 ]*//'			\
+	   	-e 's/[, 	].*//'			\
+	   	-e 's/s\(.*\)/{	&,	"\1",	0},/'	> sh-out.i
+
+
+sh-in.i: sh.sst.h
+	awk 'BEGIN{running=0;}				\
+		/Input Tokens/{running+=1;}	\
+		/} InputTokens/{running=-99;}	\
+		{if (running>0) { print; }}' < sh.sst.h |	\
+	sed	-e '/[ 	]t/!d'					\
+		-e 's/[ ,].*$$//' -e 's/[ 	]//g'		\
+		-e 's/.*/case &: return "&";/'		> sh-in.i
+
+sh-procs.i: sh.entry
+	sed	-e '/^\//d' -e 's:#define.::'			\
+		-e 's:[ 	].*::' -e '/SSL/!d' \
+		-e 's/SSL_\(.*\)/case &: printf("\1"); break;/' \
+		< sh.entry > sh-procs.i
+
+$(TOPDIR)/lib/libz.a-a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/lib/libz.a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libc/libzc.a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+
+depend:	sh.entry sh-in.i sh-out.i sh-procs.i
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

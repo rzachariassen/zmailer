@@ -1,0 +1,286 @@
+
+	Some notes on upgrading to the newer ZMailer releases
+
+	On many cases the internal structures have changed a bit, while
+	the external interface has remained the same, however there are
+	cases when change is major rendering previous (spool-)files, and
+	subsystem programs incompatible.  (At least partially.)
+
+	These notes are to make you aware of things that have changed
+	since previous versions.   Especially INCOMPABILITIES !
+
+	If you upgrade several steps at once, all the notes in between
+	are important, naturally!
+
+	ZMailer-2.99.50(??):
+		The router script language no longer understands "sift"
+		contruction.  It has been replaced with two new ones:
+			- "ssift" / "tfiss": StringSIFT
+			- "tsift" / "tfist": TokenSIFT (RFC 822 tokens)
+		All router scripts need to be changed into "tsift"/"tfist"
+		format in order to have them working.
+		(To be precise, "sift" is recognized, but reported with
+		 an error message...)
+
+	ZMailer-2.99.49p8:
+		There should not be anything that the system can't handle
+		since 2.99.49p6, the router cf/fc compiler checksums are
+		now better at detecting alterations on files, and thus
+		the need for the recompile.
+
+	ZMailer-2.99.49p6:
+		The default config scripts now use binary hash/btree
+		database to access aliases et.al. instead of the earlier
+		'indirect indexed' mechanism.  Update your system by
+		issueing commands:
+			zmailer newaliases
+			zmailer newfqdnaliases
+			zmailer new-localnames
+			zmailer new-routes
+
+	ZMailer-2.99.49p5: (actually anti-incompability..)
+		Made "mailbox" channel tolerate write errors to pipes,
+		and only use sub-process return code as the basis of
+		error report -- This removed one big incompability in
+		between sendmail and ZMailer.
+
+
+	ZMailer-2.99.49p3:
+		Associated scripts use new builtin zmsh test function
+		operator:  -nt  ("newer than"), which require this
+		version of the router binary.
+
+	ZMailer-2.99.49:
+		The router input spool-files have a new envelope object,
+		which is not known by the older routers.  The smtpserver,
+		and the router should match!  (And if you want smtp-
+		input policy filtering, this is the version you want)
+
+	ZMailer-2.99.47:
+		If you have used  SiteConfig  -file, and/or the
+		"--with-selfaddresses=" -option for the configure,
+		and in it IP address literals, now there is a change:
+		Those addresses must be presented in the same format
+		as for RFC-822 'IP-address-literals':
+			[12.34.56.78]
+			[ipv6.::ffff:12.34.56.78]
+
+	ZMailer-2.99.46:
+		The router script language got a few internal changes,
+		and thus the new scripts (proto/cf/) demand at least
+		this level of the router program.
+
+		"Small" change into TA->Schedule back-report protocol.
+		When the TA's report back with "ok2", or "error2",
+		(and noteing DSN flags), the Scheduler will not log
+		status data back into the TA-spec file.  This is
+		especially important for getting diagnostics stored
+		while the scheduler is going down.
+
+		This new scheme works with old transport-agents too, but
+		to get the full benefits, you need to run TA's linked
+		with new libraries.
+
+	ZMailer-2.99.40:
+		Full-blown use of IETF DSN/NOTARY mechanism uncovered
+		several bugs at the earlier versions of the implementations,
+		and therefore one MUST NOT use older than 2.99.40 tools
+		if one wants to use DNS/NOTARY stuff!  (Bugs: loop forever
+		on something..)
+
+	ZMailer-2.99.37:
+		Mailbox locks are now runtime configurable, see the
+		manpage of  mailbox.8 and also  SiteConfig(.in)
+
+		The scheduler is capable to spread its working set into
+		subdirectories to shorten the system directory access
+		time, however the setup REQUIRES matching transporters.
+		The change is in the library function  ctlopen(), which
+		means that your custom transporters need just be relinked.
+
+	ZMailer-2.99.30:
+		Configuration is now done with GNU autoconf, see below
+		for the method (or read the 'INSTALL' -file)
+
+		Tested to work at:  DEC OSF/1 v3.2D, Sun Solaris 2.5,
+				Linux (gcc 2.7.2, kernel 2.0.4, libc 5.4.2)
+		Noted to need manual assistance at configuration:
+				Sun SunOS 4.1.x  (the resulting system works)
+
+		A new error form:  loopexceeded
+		to be added at the $MAILSHARE/form/ -directory
+
+
+	ZMailer-2.99.28:
+		CONFIGURING WITH GNU-AUTOCONFIGURE:
+		- Open the package
+		- cd zmailer-2.99.28   (well, you did it to read this..)
+		- ./configure --prefix=/opt/mail
+		  (more options:  ./configure --help )
+
+		*** THIS IS EXPERIMENTAL CODE WITH POSSIBLE LOOSE ENDS!
+
+
+	ZMailer-2.99.26:
+		Canned messages changes!  All addresses at the canned
+		message  ($MAILSHARE/forms/xxxxx) that are desired to
+		be active targets ("Cc:", for example) MUST from now
+		on be prefixed with magic key: "ADR "
+
+		Protocol change in between the scheduler, and transporters
+		has occurred (again), though this time also older transporters
+		should work.
+
+	ZMailer-2.99.24:
+		("Anti incompabilities" this time..)
+
+		The error reporting mechanism was augmented to cope with
+		older format errors.  Now it won't crash if you upgrade
+		without getting 2.99.21 or earlier queue flushed of all
+		errors..
+
+		There are couple documents about performance matters
+		in the scheduler directory, do read them!
+
+		Due to bug-fixes at several transport agents, do use the
+		lattest versions!
+
+	ZMailer-2.99.22:
+		The error reporting mechanism in between the transport
+		agents, and the scheduler is revised a bit.  You MUST:
+			- have same version of scheduler, and agents
+			- FLUSH ALL MESSAGES WITH ERRORS IN THEM
+			  BEFORE BEGINING TO USE THIS VERSION!
+			  (You WILL crash the new scheduler, if you
+			   feed it old error-reports...)
+
+	ZMailer-2.99.21:
+		THE NEW SCHEDULER IS NOW THE DEFAULT SCHEDULER!
+		Make sure you have correct  scheduler.conf !
+		Old and new ones are incompatible!
+
+	ZMailer-2.99.19:
+		Actually no changes since 2.99.17, the new scheduler
+		is now production state -- ok, lets be conservative,
+		and call it "Beta"
+
+	ZMailer-2.99.17:
+		The new scheduler is in the Alpha-qualification.
+		It works, but has logged rather little usage so far.
+
+		Its configuration is somewhat INCOMPATIBLE with the
+		former scheduler, DO READ the CONFIGURING -document
+		in the  scheduler-new/  -directory.
+
+	ZMailer-2.99.16:
+		Way to reference to the job-descriptor files in
+		$POSTOFFICE/transport/  is changed a bit.  Now
+		we just do   atol(filename)  and use that INTEGER
+		as identifier.  This changed things in the libta.a
+		(slightly, instead of using  fstat() and st_ino),
+		now uses atol().  In the  scheduler  the changes
+		are larger, mostly because we want to avoid usage
+		of rather expensive  lstat(),  while doing directory
+		pre-scan.
+
+		==> SCHEDULER AND TRANSPORTS MUST MATCH
+
+
+	ZMailer-2.99.15:
+		Changes in protocol talked in between the scheduler
+		and transporters is altered (slightly).
+		In theory the new transporters can be used with old
+		scheduler, but there is a loss of efficiency...
+		[ full implementation of bi-directional pipes are
+		  not yet in use, scheduler behaves mostly in old
+		  way in this respect ]
+
+		The scheduler changed its sub-directory scheme.
+		Namely the  $POSTOFFICE/scheduler/ -directory is
+		now gone, and all transporter runnings are done
+		from  $POSTOFFICE/transport/ -directory.
+		As it happens, there are no changes in transporter
+		programs to use this method.
+
+		Furthermore, now the scheduler doesn't need to keep a
+		tap on which of the linked in files are in active use.
+		(A task it didn't do successfully, anyway..)  When the
+		file has all of its recipients processed, the "transport"
+		descriptor file is unlinked, along with the "queue"d
+		original message body.
+
+		The new "zmailer.sh" (proto/zmailer.sh), does no
+		longer clean $POSTOFFICE/scheduler/ -directory.
+
+
+	ZMailer-2.99:
+		New ZMSH command primitives:  ssift, tsift
+		Actually the "tsift" is the old "sift", and the
+		old name is still valid, though depreciated.
+		(Now can do  sendmail-like regexprs as well!)
+
+		If the system has properly working mmap(), it can be
+		used on router, and transports to yield some additional
+		performance benefits by lowering syscalls (and mapping
+		things R/O allows simple sharing..)
+		The ROUTER should use switch "-m" on all its "relation"
+		definitions of "ordered" and "unordered" types when using
+		mmap()!
+
+		Changed the transporter locks.  The end result is, that
+		old-style locks will NOT become unlocked by the scheduler,
+		and that may cause problems in some cases.    It requires
+		MANUAL edition of such locks on  $POSTOFFICE/transport/* -
+		files.   ("^r~[a-z]" is a regexp to find them.)
+		Change the "~" to " " to unlock.   The Scheduler, and
+		transporter programs must be turned off.
+
+		It is perhaps better to live by the old rules until your
+		queue has flushed them all...
+
+		All binaries MUST be of the same version!
+
+
+	ZMailer-2.98:
+
+		Changes on the SAMPLE CONFIGS changed the way how "thishost"
+		relation ($MAILVAR/db/localnames -file) is used.
+
+		The  $MAILVAR/db/localnames is now actually a mapping of
+		those various names to the desired forms of the canonic
+		name, thus an example:
+
+			astro.utu.fi            astro.utu.fi
+			oj287                   astro.utu.fi
+			oj287.astro.utu.fi      oj287.astro.utu.fi
+			oj287.utu.fi            astro.utu.fi
+			sirius                  sirius.utu.fi
+			sirius.astro.utu.fi     sirius.utu.fi
+			sirius.utu.fi           sirius.utu.fi
+
+		The file is to be kept in  sort(1)  order !
+
+
+	ZMailer-2.96:
+		Introduced the DSN (Delivery Status Notification)
+		things on the transporter subsystem (well, everywhere),
+		and caused some non-backward compatible changes.
+		(You MUST have ZM-2.96 binaries all thru!)
+
+
+	ZMailer-2.94:
+		Introduced the IETF-NOTARY diagnostics in between
+		the transporters, and the scheduler -> must have
+		binaries of this version on the transports + scheduler.
+
+		The "canned" error messages MUST follow the model:
+			HDR From: <mailer-daemon>
+			SUB Subject: canned error message
+			HDR Cc: The Post Office <postoffice>
+			HDR Precedence: junk
+
+			message contents..
+
+		That is, for the error reporting to work, the old
+		$MAILSHARE/forms/* -messages MUST be edited to have
+		those HDR/SUB tokens in their front.

@@ -1,0 +1,53 @@
+#! /bin/sh
+mailer="/usr/lib/sendmail"
+grep=/local/bin/egrep
+editor=${EDITOR-'/usr/ucb/vi'}
+
+if test $# -lt 2; then
+	echo "Usage: `basename $0` listname listrequestaddress"
+	exit 1
+fi
+
+# Check for Suns running Yellow Pages
+#if ypwhich > /dev/null
+#then
+#	passwd='ypcat passwd'
+#else
+	passwd='cat /etc/passwd'
+#fi
+
+sender=`$passwd | $grep $USER | 
+	awk -F: '{print substr($5, 1, index($5, ",")-1)}'`
+listname=$1
+to=$2
+cat << EOHeader
+To: $to
+Subject: Please add ${listname}-distribution@cs.toronto.edu
+From: Mailing List Administrator <list-admin@cs.toronto.edu>
+Organization: Department of Computer Science, University of Toronto
+Cc: list-admin
+
+EOHeader
+cat << EOHeader
+
+Hi.    
+
+Please add ${listname}-distribution@cs.toronto.edu to the
+${listname} mailing list.
+
+We will be redistributing it locally both as a newsgroup and by mail,
+so please tell eventual subscribers from the University of Toronto, or people
+whose mail path goes through any University of Toronto site, that they can
+subscribe from our exploder by contacting list-request@cs.toronto.edu.
+
+Please use the address list-admin@cs.toronto.edu as a contact point for
+adminstrativia.
+
+Could you please send a test message to 
+${listname}-distribution@cs.toronto.edu just to make sure 
+everything works?
+
+Thanks,
+        ${sender}
+
+EOHeader

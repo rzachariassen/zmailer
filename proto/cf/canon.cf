@@ -1,0 +1,273 @@
+# Name Canonicalization
+#
+# This function is used to transform any RFC822/976 address into a
+# well-defined form, namely
+#
+#	something '@' '<' next-host '>' something
+#
+# which lets the caller know what the immediately relevant next-host in
+# the address is.  The address is first parsed and the appropriate
+# next-host focused on, and then that hostname is canonicalized.
+#
+# The return value is the focused (i.e. including <>) and canonicalized
+# (i.e. the focused-on hostname is in canonical form) address.
+
+provide canonicalize
+
+canonicalize (address) {
+	address="$(dequote \"$address\")"
+#
+# We need string shift to detect '|' because '|' is not RFC822 special
+#
+	ssift "$address" in
+	((\|.+)|(/.+)|(:include:.+))		# unqouted pipes and files
+		echo "$address"			# pass through
+		return
+		;;
+	tfiss
+
+	tsift "$address" in
+	((<>)|(:;))
+		address="@"			# special case
+		break
+		;;
+	(.*)<@(.*)>(.*)				# defocus
+		address="\1@\2\3"
+		continue
+		;;
+#
+# RFC822 source routing
+#
+# @host3,@host2,@host1:user@host
+#
+	(@.+),(.+)				# RFC822 source routing
+		address="\1:\2"			# change all "," to ":"
+		continue
+		;;
+	(@.+):(.+:.+)
+		address="\1,\2"			# undo all but the last one
+		continue
+		;;
+	@([^,:]+)([,:].+)			# route-addr
+		address="<@$(canonical \"\1\")>\2\3"
+		break
+		;;
+#
+# RFC822 addr-spec (localpart@domain) and variations
+#
+	(.*)::(.*)
+		address="\2@\1"			# turn into localpart@domain
+		continue
+		;;
+	(.*)@([^@]*.uucp)			# addr-spec host.uucp
+		address="\1<@\2>"		# comment out if you want
+		break				# canonical uucp names
+		;;
+	(.*)@([^@]*)				# addr-spec, rightmost '@'
+		address="\1<@$(canonical \"\2\")>"
+		break
+		;;
+#
+# By this time localpart only
+#
+# RFC976 processing: '!' and '%' kludges
+#
+# a!b!c -> b!c@a
+# a!b%c -> b%c@a
+# a%b!c -> a!c@b	leading "%" has more priority than "!"
+# a%b%c -> a%b@c
+#
+# We do not want people to start relying on this really weird routing.
+# Comment it out if you do.
+#
+##	([^!%]*)%([^!%]*)\.([^!%]*)!(.*)	# very unusual case
+##		canonicalize "\1!\4@\2.\3"
+##		return
+##		;;
+##	([^!%]*)%([^.!%]*)!(.*)			# very unusual case (uucp node)
+##		canonicalize "\1!\3@\2"
+##		return
+##		;;
+	\[(.*)\]!(.*)				# leftmost '!', domain-literal
+		canonicalize "\2@\[\1\]"
+		return
+		;;
+	([^!.]*)!(.*)				# leftmost '!', pure uucp
+		canonicalize "\2@\1.uucp"
+		return
+		;;
+	([^!]*)!(.*)				# leftmost '!', domain uucp
+		canonicalize "\2@\1"
+		return
+		;;
+	(.*)%([^%]*)				# rightmost '%', source routing
+		canonicalize "\1@\2"
+		return
+		;;
+	tfist
+
+	echo "$address"
+}
+
+
+#
+# Returns canonical name of the given host
+#
+canonical (host) {
+	local tmp
+	tmp="$(deliver \"$host\")" || tmp="$(canon \"$host\")" || tmp="$host"
+	echo "$tmp"
+}
+
+#
+# Safeguard if canon() is not there
+#
+case "$(type canon)" in
+*"not found")
+	canon () { echo "$@" } ;;
+esac
+#
+# Safeguard if deliver() is not there
+#
+case "$(type deliver)" in
+*"not found")
+	deliver () { return 1 } ;;
+esac
+
+
+#
+# the original (mea's) version
+#
+xx_canonicalize (address) {
+	# -- stringwise sift
+	ssift "$address" in
+	\|.+		echo "$address" ; return ;;	# pass through
+	tfiss
+
+	## -- tokenized sift
+
+	ssift "$address" in
+	# preliminaries
+	<>		echo @ ; return ;;		# turn into magic token
+	:include:.+	echo "$address" ; return ;;	# pass through
+	('"'.*'"')<(.*)>(.*)
+			address="\1\2\3" ;;		# defocus
+#	('"'.*'"')(.*)<(.*)	# Extra "<" with an address
+#			address="\1\2\3"; continue ;;	# defocus
+#	('"'.*'"')(.*)>(.*)	# Extra ">" within an address
+#			address="\1\2\3"; continue ;;	# defocus
+
+	(.*)<([^>]*)	# Extra "<" with an address
+			address="\1\2"; continue ;;	# defocus
+	(.*)>(.*)	# Extra ">" within an address
+			address="\1\2"; continue ;;	# defocus
+
+	(.*)<(.*)>(.*)	address="\1\2\3" ;;		# defocus
+
+	# Reversed JANET addresses...
+#	(.*)@uk.ac.(.*)	address="\1@$(revdomain uk.ac.\2)";
+#			address="$(canonicalize "$address")";
+#			echo "$address"; return;;
+#	(.*)@UK.AC.(.*)	address="\1@$(revdomain UK.AC.\2)";
+#			address="$(canonicalize "$address")";
+#			echo "$address"; return;;
+
+#	in%(.*)		echo "<in%>\1" ; return ;; # in%".." cludge
+#	IN%(.*)		echo "<in%>\1" ; return ;; # in%".." cludge
+#	In%(.*)		echo "<in%>\1" ; return ;; # in%".." cludge
+
+	# disambiguate strange route syntax
+	(.*)::(.*)	address="\2@\1" ; continue ;;	# decnet
+	# mail to uucpneighbour!...@notuucpneighbour gets sent to uucpneighbour
+	#([^!])!(.*)@([^@:!]+)
+	#		if [ $(ldotsys "\1") ]; then
+	#			address="@\1:\2@\3"
+	#		fi ;;
+
+	# canonicalize source routes
+	@(.+),(.+)	address="@\1:\2" ; continue ;;
+	@(.+):(.+:.+)	address="@\1,\2" ; continue ;;
+	# focus source routes
+	@([^,:]+)([,:].+)
+			focus "<@\1>\2" ; return ;;
+
+	# more miscellaneous cleanup
+	(.+)@(.+)	address="\1<@\2>" ;;		   # focus on domain
+	(.+)<(.+)@(.+)>	address="\1\2<@\3>" ; continue ;;  # move gaze right
+	(.+<@.+>)	focus "\1" ; return ;;		   # already canonical
+
+	# convert old-style addresses to a domain-based address,
+	# order determines prec.
+	([^!]+)!(.+)	focus "\2<@\1.uucp>" ; return ;;   # uucp syntax
+	(.+)%([^%]+)	focus "\1<@\2>" ; return ;;	   # official %-kludge
+	([^:]+):(.+)	focus "\2<@\1>" ; return ;;	   # berknet syntax
+#	(.)\=(.+)	focus "\2<@\1.bitnet>" ; return ;; # bitnet kludge
+	tfiss
+	echo "$address"
+}	# end of canonicalize
+
+focus (address) {
+	local domain tmp seenuucp
+
+	domain=''
+	seenuucp=false
+	tsift "$address" in
+	(.*)<@>(.*)
+			canonicalize "\1\2"
+			return
+			;; # degenerate case
+	(.+)<@(.+)%(.+)>(.*)
+			address="\1%\2<@\3>\4"
+			continue
+			 ;;	# ripple % to @
+	(.+)%(.+)<@($orgdomains)>(.*)
+			address="\1<@\2>\4"
+			continue
+			;;
+	(.*)<@\[(.)\]>(.*)
+			break
+			;;
+	(.*)<@(.+)\.uucp>(.*)
+			address="\1<@\2>\3"
+			seenuucp=true
+			continue
+			;;
+	(.*)<@(.)>([,:])?(.*)
+			if [ "\2" = "$uucpname" ]; then
+				canonicalize "\1\4" ; return
+			elif [ $seenuucp = false ]; then
+				domain=$(deliver "\2") ||
+				domain=$(canon "\2")
+			fi
+			;;
+	(.*)<@(.+)>(.*)	tmp="\2"
+			if [ -z "$domain" ]; then
+				ssift "$tmp" in
+				.+\.(.+).?
+					if [ $(istoplevel "\1") ] ; then
+						domain="$tmp"
+						break;
+					fi
+					;;
+				.*	if [ $seenuucp = false ]; then
+						domain=$(deliver "$tmp") ||
+						domain=$(canon "$tmp")
+					fi
+					;;
+				tfiss
+			fi
+			[ "$domain" ] && address="\1<@$domain>\3"
+			;;
+	(.*)<@(.)>(.*)	if [ $seenuucp = true ]; then
+				address="\1<@\2.uucp>\3"
+			fi ;;
+	tfist
+	echo "$address"
+}	# end of focus
+
+case "$(type canon)" in
+*"not found")
+	canon () {
+		echo $@
+	} ;;
+esac

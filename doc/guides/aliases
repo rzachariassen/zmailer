@@ -1,0 +1,60 @@
+	Here are some tips/tidbits about aliases:
+		( $MAILVAR/db/aliases )
+
+General format:
+
+	local-address-token:	"replacement address" ,
+				"extension line w/ another addr"
+	^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	  "The Key"                "The Data"
+
+Protection of the aliases database must be 0644, or stricter!
+Protection of the $MAILVAR/db/ directory must be 03755, or stricter!
+
+
+The following processing is done for (replacement) local-parts
+(local mail addresses):  Note that @'s are not allowed in any local-part.
+
+
+If the local-part starts with "|" assume it is a command specification:
+		prog-pipe: "|/path/to/program -args"
+
+If the local-part starts with "/" assume it is a file pathname:
+		file-path: "/path/to/file"
+
+If the local-part starts with ":include:" the rest should be a file
+pathname of a list of mail addresses.  They are substituted:
+		included-list: ":include:/path/to/address/file"
+
+After this point, all matches are case-insensitive by means of translating
+the value to be looked up to lower-case, and then conducting a case-sensitive
+lookup  ===>  ALL KEYS IN ALIASES ET.AL. MUST BE IN LOWER CASE!
+(The hash functions inside  ndbm/gdbm/db/dbm  are case sensitive, and as
+ such, there is no way to avoid this requirement.)
+
+- If an aliases database exists and local-part is found in it, the list of
+  addresses mapped to by the alias entry is substituted.
+
+- If an mboxmap file exists and a mapping for the local-part is found in it,
+  the mapping (a host!homedir!user value) determines the remote recipient
+  (user@host) or recipient mailbox (homedir/../PObox/user) if host is local.
+
+- If local-part is a login name and a readable .forward file exists in the
+  home directory, the list of addresses it contains is substituted.
+
+- If local-part is a file basename in the $MAILVAR/lists directory, the
+  list of addresses contained in the file is substituted, and the sender
+  address set to local-part-owner.
+
+- If local-part is of the form file-owner or file-request, where file is
+  an entry in the $MAILVAR/lists directory, the account name of the owner
+  of the file is substituted.
+  (File-owner identity and correct protections are important!)
+
+- If the local-part is of format  "user.name",  it is actually mapped via
+  separate   fullnamemap, and NEVER via $MAILVAR/db/aliases !
+
+- If PUNTHOST is defined (in /etc/zmailer.conf) the address
+  local-part@$PUNTHOST is substituted.  Note that in this case
+  the mboxmap mechanism should be used to ensure local spool
+  mailbox delivery for local users.

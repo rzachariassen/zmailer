@@ -1,0 +1,161 @@
+#!/local/lib/mail/router -dkf
+#
+# ZMailer 2 configuration file for gpu.utcs.utoronto.ca
+# (General Purpose Unix, University of Toronto Computing Services)
+#
+# The corresponding siteinfo.cf file is UToronto.cf
+#
+# The requirements for this configuration include:
+#
+#	- online (not remote) pathalias database
+#	- mailing list and .forward files may be private
+#	- ability to intercept mail to/from certain addresses
+#
+
+ZCONFIG=/etc/zmailer.conf
+
+. $ZCONFIG
+
+PATH=.:$MAILSHARE/cf:$MAILBIN/bin ; export PATH
+PS1=z$PS1
+
+# The transport preference order
+
+protocols='routes smtp bitnet uucp'
+
+# We want .forward and mailing list files to be private, i.e., we ignore
+# the current privileges when checking the privileges of such files.
+# Don't add 'include' to this list, since anyone can :include: any file.
+
+private='.forward maillist'
+
+# Save illegal-syntax addresses in a log file for later analysis
+
+erraddron $POSTOFFICE/postman/ERRADDRLOG
+
+# Set up the dependency checking
+
+. consist.cf
+require siteinfo router crossbar process server
+
+# The following are standard setup files and must be loaded in this order
+
+. standard.cf
+. trusted.cf
+
+# Load the databases so they and the variables defined (e.g. network-specific
+# node names for this host) can be used in the site specific configuration.
+
+for method in $protocols
+do
+	test -f $MAILSHARE/cf/i-${method}.cf && . i-${method}.cf
+done
+
+. UToronto.cf		# <===== customize this for your organization
+
+# The organizational 'world' subdomain may contain MX RRs that override
+# those available on the Internet at large.
+
+world=world.$orgdomain
+
+# At the University of Toronto, the pathalias database is accessible through
+# the nameserver.  This declares the magic domain it sits under.
+
+#paworld=world.$orgdomain
+
+# From here on you can pick the order
+
+. aliases.cf
+. canon.cf
+. rrouter.cf
+. crossbar.cf
+
+for method in $protocols
+do
+	. p-${method}.cf
+done
+
+. process.cf
+. server.cf
+
+# With everything now loaded, we can do host-specific function (re)definition.
+
+#intercept (address) {
+#	case "$(smtp_useratdomain "$address")" in
+#	*@host1*)	return (file /var/scr/host1) ;;
+#	*@host2*)	return (file /var/scr/host2) ;;
+#       *@host3*)	return (drop) ;;
+#	*@host4*)	return (file /var/scr/host4) ;;
+#	bitftp*@*)	return (error bounce) ;;
+#	esac
+#
+#	return 1
+#}
+
+# At this point we may redefine the dns_neighbour function
+
+#dns_neighbour (host) {
+#	local a
+#	#
+#	# A successful return indicates that this host can be delivered to
+#	# via the Internet DNS information.  This means we need to factor
+#	# out .CA subdomains that don't have an Internet forwarder.
+#	#
+#
+#	tsift "$host" in
+#	.+\.world\..+
+#		a=$(mxhosts $host || ipaddress $host)
+#		break ;;
+#	.+\.($toplevels).?
+#		# cover functional Internet toplevel domains
+#		return 0 ;;
+#	tfist
+#	# cover ISO Alpha-2 toplevel domains (can be done more precisely...)
+#	case "$host" in
+#	*.??|*.??.)	return 0 ;;
+#	esac
+#	return 1
+#}
+
+ean_useratdomain (address) {
+	address=$(smtp_useratdomain "$address")
+	tsift "$address" in
+	(.*)\.toronto\.edu	return "\1.utoronto.ca" ;;
+	tfist
+	return "$address"
+}	# end of ean_useratdomain
+
+# to disable pathalias stuff, define this:
+#uucp_neighbour (domain, address, A) { return 1 }
+
+if [ x$paworld != x ]; then
+	# This stuff is very specific to our setup at UofT
+
+	relation -t bind,mp mailpath		# T_MP pathalias lookup
+
+	uucp_neighbour (domain, address, A) {
+		local tmp
+		# FIX THIS! Beware of loops due to pathalias database
+		# and local neighbour knowledge being out of sync.
+		# Non-neighbours
+		tmp="$(mailpath "$domain".$paworld.)"
+		if [ "$tmp" ]; then
+			address=$(uucproute "$address")
+			# we cache, remember...
+			tmp=$(uucproute "$tmp")
+			tsift "$tmp" in
+			[^!]+	if [ $(deliver "$tmp") ]; then
+					return (((error database "$address" $A)))
+				fi
+				case "$domain" in
+				*$tmp)  return (((error database "$address" $A))) ;;
+				esac
+				;;
+			tfist
+			return $(rrouter "$tmp!$address" $A)
+		fi
+	}
+fi
+
+consist || exit 1
+

@@ -1,0 +1,13 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Invalid host/domain name
+ADR Cc: The Post Office <postoffice>
+
+In the following message, it appears from the format of certain
+addresses that you were trying to submit an article to a USENET
+newsgroup.
+Unfortunately, the newsgroup names could not be found in our list
+of active newsgroups, and therefore posting to it is not possible.
+
+Contact Postmaster for comments/questions about this facility.
+

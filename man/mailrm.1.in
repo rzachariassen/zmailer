@@ -1,0 +1,48 @@
+.\" $Header$
+.ds ]W ZMailer 2.0
+.TH MAILRM 1 "2 June 1990"
+.SH NAME
+mailrm \- zmailer mail queue message remover
+.SH SYNOPSIS
+.B mailrm
+[
+.I id
+\&...
+]
+.SH DESCRIPTION
+.I mailrm
+attempts to remove the locally queued mail messages named on its
+command line by submitting mail messages that cancel the queued messages.
+.PP
+The Obsoletes: message header is the mechanism used to accomplish this.
+The
+.I router
+turns it into a message control file directive that the
+.I scheduler
+implements.  The
+.I scheduler
+will of course do its best to ensure only the owner of a message can cancel it.
+Therefore this program is only useful to whomever originally sent the message
+to be cancelled.  The super user is not treated specially.
+.PP
+The
+.I id
+is the message file id of a to-be-cancelled message, as it is reported by
+.IR mailq .
+It is not the message id, although that is the information that is actually
+sought for the Obsoletes: header contents.
+.I mailrm
+will rummage through message control files in \fIPOSTOFFICE\fB/transport\fR
+to retrieve the message id for a given message file id.
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice/transport (POSTOFFICE/transport)
+.SH SEE ALSO
+router(8), scheduler(8), mailq(1)
+.br
+RFC987, RFC1138
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>

@@ -1,0 +1,67 @@
+#!/bin/sh
+# Check if zmailer is working properly
+# Limitations are to be configured in /etc/zmailer/zmailer.conf
+
+set -e
+
+. /etc/zmailer/zmailer.conf
+
+status()
+{
+    LOAD=`awk '{print $2*100}' /proc/loadavg`
+    if [ $LOAD -gt $MAX_LOAD ]; then
+		REASON="System Load"
+    fi
+    for i in router scheduler; do
+	if [ ! -f $POSTOFFICE/.pid.$i ]; then
+		REASON="$i dead. Pidfile $POSTOFFICE/.pid.$i missing"
+	else
+		X=`cat $POSTOFFICE/.pid.$i`
+		if [ ! -d /proc/$X ]; then
+			REASON="$i dead. Process $X not running"
+		fi
+	fi
+    done
+    ps ax >/tmp/$$
+    if ! grep -q smtpserver /tmp/$$; then
+		REASON="No smtpserver running"
+    fi
+    mailq -ss >/tmp/$$ 2>&1
+    if grep -q "Connection refused" /tmp/$$; then
+		REASON="Zmailer not responding to mail queue status request"
+		return
+    fi
+    if ! grep -q "router queue" /tmp/$$; then
+		REASON="Zmailer queue status request failed"
+		return
+    fi
+    NR=`awk '/in router/ {print $1}' /tmp/$$`
+    NT=`awk '/in transport/ {print $1}' /tmp/$$`
+    if [ $NR -gt $MAX_NR ]; then
+		REASON="Router Queue too high"
+    fi
+    if [ $NT -gt $MAX_NT ]; then
+		REASON="Transport Queue too high"
+    fi
+}
+
+report()
+{
+	echo -e "\nUnix Operational Status:"
+	echo "------------------------"
+	w
+	ps ax
+	echo -e "\nCurrent Zmailer Status:"
+	echo "------------------------"
+	mailq -sQ
+}
+
+status
+
+if [ "$REASON" ]; then
+	report 2>&1| mail postmaster -s"Zmailer Alert:$REASON"
+fi
+
+rm /tmp/$$
+
+exit 0

@@ -1,0 +1,13 @@
+#
+#  This is a sample makefile for $MAILVAR/db/ -directory that
+#  generates several database files from ASCII inputs, and utilizes
+#  utilities in $MAILBIN/ -directory.
+#
+
+@SET_MAKE@
+
+MAILVAR=	@MAILVAR@
+MAILBIN=	@MAILBIN@
+
+# btree/ndbm/gdbm ? Router/Smtpserver config files must match!
+DBTYPE=		@DBTYPE@

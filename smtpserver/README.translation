@@ -1,0 +1,34 @@
+It may be necessary in some cases (e.g. in Cyrillic-language countries)
+to translate charset on the messages coming from the clients with, e.g.
+old Eudora or other MUAs that do not correctly support koi8-r charset.
+
+Parts of code enclosed in #ifdef USE_TRANSLATION ... #endif" are for
+on-the-fly codetable translation on incoming messages.  To accomplish
+this, you need:
+
+  1. Mcs library: ftp://ftp.average.org/pub/mcs/
+
+  2. Several IP alias interfaces, backresolved to <chs>.something.dom
+     where <chs> is the name of the translation table.
+
+See http://www.average.org/mcs/ for the description.
+
+To compile smtpserver with on-the-fly translation, you sould add
+-DUSE_TRANSLATION=\"std-chs\" to the DEFS (where std-chs is standrad
+charset in your network, e.g. "koi8-r") in the Makefile, ensure that
+libtrans.h is in the include path, and add "-lmcs" to SMTPSERVER_LIB.
+
+Add -X -8 to smtpserver flags in /etc/zmailer.conf.  -X stands for
+"translate" ("Xlate"), and -8 stands for "convert to 8bit" because you
+cannot translate charset before decoding base64 or QP.
+
+Translation happens *only* if the IP alias used to connect the server
+has an assotiated translation table.  Otherwise, the message is left
+intact.
+
+The thing sometimes works *INCORRECTLY* on multipart messages, e.g.
+when a body part needs translation but is base64/QP encoded, it is not
+translated. Also, it may corrupt data if real binary data (.gif etc.)
+is transferred 8bit-encoded (almost never in real life).
+
+Eugene Crosser <crosser@average.org>

@@ -1,0 +1,16 @@
+#! /bin/sh
+#
+# The 'bitbucket' transport agent program.
+#
+# Either places messages into a log file,
+# or cats them into /dev/null...
+#
+# Person contributing these mechanisms didn't want
+# his name to be widely known -- which might lead
+# to retaliation from spammers...
+#
+if [ -f /var/log/bitbucket ]; then
+    cat >> /var/log/bitbucket
+else
+   cat >> /dev/null
+fi

@@ -1,0 +1,723 @@
+Original file: http://www.isoc.org/adopsec/domains.html
+
+
+           Table of Global and Country Top Level Internet Domains
+
+                                16 April 1995
+
+This table lists all 236 two-letter top-level domain codes assigned for
+countries and territories, plus 7 assigned global three-letter global domain
+codes. Of the two-letter domain codes, 145 have been assigned to responsible
+national institutions, plus 32 held in reserve by the Asia-Pacific NIC.
+
+ SYMBOL  TOP LEVEL DOMAIN      HANDLE        INSTITUTION        LOCATION
+
+ COM    Global-Commercial    (COM-DOM)   Network Solutions,   Herndon VA
+        top-level domain                 Inc.                 USA
+
+ EDU    Global-Education     (EDU-DOM)   Network Solutions,   Herndon VA
+        top-level domain                 Inc.                 USA
+
+ GOV    Global-Government    (GOV-DOM)   Network Solutions,   Herndon VA
+        top-level domain                 Inc.                 USA
+
+ INT    Global-International (INT-DOM)   ARPA/CSTO            Arlington VA
+        top-level domain                                      USA
+
+ MIL    Global-Military      (MIL-DOM)   DDN Network          Chantilly VA
+        top-level domain                 Information Center   USA
+
+ NET    Global-Network       (NET-DOM)   Network Solutions,   Herndon VA
+        top-level domain                 Inc.                 USA
+
+ ORG    Global-Organization  (ORG-DOM)   Network Solutions,   Herndon VA
+        top-level domain                 Inc.                 USA
+
+ AF     Afghanistan Network  (AFNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+                                         Universite de
+                                         Tirana, Faculte des
+ AL     Albania (Republic    (AL-DOM)    Sciences Naturelles, Tirana
+        of) top-level domain
+                                         Department
+                                         d'Informatique
+        Algeria (People's
+ DZ     Democratic Republic  (DZ-DOM)    Algerian Unix User   Cheraga
+        of) top-level domain             Group AlUUG          Tipasa
+        American Samoa
+ AS     Network Information  (ASNIC-DOM) Reserved by Asia
+        Center                           Pacific NIC
+ AD     Andorra                          [none]
+ AO     Angola                           [none]
+
+ AI     Anguilla Top-Level   (AI3-DOM)   The Valley           Anguilla
+        Domain
+
+ AQ     Antarctica top-level (AQ-DOM)    University of        Hamilton, New
+        domain                           Waikato              Zealand
+
+ AG     Antigua and Barbuda  (AG-DOM1)   University of Puerto San Juan
+        top-level domain                 Rico
+                                         Ministerio de
+        Argentina (Argentine             Relaciones
+ AR     Republic) top-level  (AR-DOM)    Exteriores y Culto,  Buenos Aires
+        domain                           Departamento de
+                                         Informatica
+
+ AM     Armenia (Republic    (AM2-DOM)   Armenian Internet    Yerevan
+        of) Top-level Domain             Users Group
+ AW     Aruba                            [none]
+                                         University of
+ AU     Australia top-level  (AU-DOM)    Melbourne, Computer  Parkville VIC
+        domain
+                                         Science, AARNET
+                                         ACONET Association,
+ AT     Austria (Republic    (AT-DOM)    Vienna University    Wien
+        of) top-level domain
+                                         Computer Center
+                                         InTrans
+ AZ     Azerbaijan top-level (AZ-DOM)    Telecommunication    Baku
+        domain
+                                         Center
+        Bahamas
+ BS     (Commonwealth of     (BS-DOM)    University of Puerto San Juan
+        the) top-level                   Rico
+        domain
+                                         University of
+ BH     Bahrain (State of)   (BH-DOM)    Bahrain, Computer    Manama
+                                         Centre
+
+ BD     Bangladesh Network   (BDNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+
+ BB     Barbados top-level   (BB-DOM)    University of Puerto San Juan
+        domain                           Rico
+
+ BY     Belarus top-level    (BY-DOM)    Open Contact Ltd.    Minsk
+        domain
+                                         Katholieke
+ BE     Belgium (Kingdom of) (BE-DOM)    Universiteit Leuven, Leuven
+        top-level domain                 Dept. of Computer
+                                         Science
+
+ BZ     Belize top-level     (BZ-DOM)    University of Puerto San Juan
+        domain                           Rico
+ BJ     Benin                            [none]
+
+ BM     Bermuda top-level    (BM-DOM)    Bermuda College      Devonshire
+        domain
+
+ BT     Bhutan Network       (BTNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+                                         Universidad Mayor de
+ BO     Bolivia (Republic    (BO-DOM)    San Andres, Facultad La Paz
+        of) top-level domain
+                                         de Ingenieria
+ BA     Bosnia Hercegovina               [none]
+
+ BW     Botswana (Republic   (BW-DOM)    University of        Gaberone
+        of) top-level domain             Botswana
+ BV     Bouvet Island                    [none]
+        Brazil (Federative               Fundacao de Amparo a
+ BR     Republic of)         (BR-DOM)    Pesquisa do Estado   Sao Paulo
+        top-level domain                 de Sao Paulo
+
+ IO     British Indian Ocean             [none]
+        Territory
+        Brunei Darussalam
+ BN     Network Information  (BNNIC-DOM) Reserved by Asia
+        Center                           Pacific NIC
+
+ BG     Bulgaria top level   (BG-DOM)    Digital Systems      Varna
+        domain
+
+ BF     Burkina Faso         (BF-DOM)    Universiti de        Ouagadougou
+        top-level domain                 Ouagadougou (ESI)
+ BI     Burundi                          [none]
+
+ KH     Cambodia Network     (KHNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+ CM     Cameroon                         [none]
+
+ CA     Canada top-level     (CA-DOM)    University of        Vancouver
+        domain                           British Columbia
+ CV     Cape Verde                       [none]
+ KY     Cayman Islands                   [none]
+
+ CF     Central African                  [none]
+        Republic
+ TD     Chad                             [none]
+                                         University of Chile,
+ CL     Chile (Republic of)  (CL-DOM)    Fac. de Ciencias     Santiago
+        top-level domain
+                                         Fis. y Matematicas
+
+        China (People's                  Chinese Academy of
+ CN     Republic of)         (CN-DOM)    Sciences, The        Beijing
+        top-level domain                 Computer Network
+                                         Center
+        Christmas Island
+ CX     Network Information  (CXNIC-DOM) Reserved by Asia
+        Center                           Pacific NIC
+        Cocos (Keeling)
+ CC     Islands Network      (CCNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+                                         University of Los
+ CO     Colombia (Republic   (CO1-DOM)   Andes, Computer      Bogota
+        of) top-level domain
+                                         Center
+ KM     Comoros                          [none]
+ CG     Congo                            [none]
+
+ CK     Cook Islands Network (CKNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+
+ CR     Costa Rica (Republic (CR-DOM)    Academia Nacional de San Jose
+        of) top-level domain             Ciencias
+        Cote d'Ivoire
+ CI     (Republic of)        (CI3-DOM)   INSET                Yamoussoukro
+        top-level domain
+        Croatia / Hrvatska               Croatian Academic
+ HR     (Republic of)        (HR-DOM)    and Research Network Zagreb
+        top-level domain                 (CARNet)
+                                         Palacio Central de
+ CU     Cuba (Republic of)   (CU-DOM)    Computacion y        La Habana
+        top-level domain
+                                         Electronica
+
+ CY     Cyprus (Republic of) (CY-DOM)    University of Cyprus Nicosia
+        top-level domain
+
+ CZ     Czech Republic       (CZ-DOM)    Prague Institute of  Prague
+        top-level domain                 Chemical Technology
+
+ DK     Denmark (Kingdom of) (DK-DOM)    DKnet (EUnet         Copenhagen Oe
+        top-level domain                 Denmark)
+ DJ     Djibouti                         [none]
+        Dominica
+ DM     (Commonwealth of)    (DM-DOM1)   University of Puerto San Juan
+        top-level domain                 Rico
+
+ DO     Dominican Republic   (DO-DOM)    University of Puerto San Juan
+        top-level domain                 Rico
+
+ TP     East Timor Network   (TPNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+                                         Corporacion
+                                         Interinstitucional
+                                         de Comunicacion
+ EC     Ecuador (Republic    (EC-DOM)    Electronica, Consejo Quito
+        of) top-level domain             Nacional de
+                                         Universidades y
+                                         Escuelas
+                                         Politecnicas
+                                         Cairo University,
+                                         Egyptian
+ EG     Egypt (Arab Republic (EG-DOM)    Universities and     Giza
+        of) top-level domain
+                                         Research Institutes
+                                         Network
+ SV     El Salvador                      [none]
+ GQ     Equatorial Guinea                [none]
+                                         Institute of
+ EE     Estonia (Republic    (EE-DOM)    Chemical Physics and Tallinn
+        of) top-level domain
+                                         Biophysics
+ ET     Ethopia                          [none]
+
+ FK     Falkland                         [none]
+        Islands/Malvinas
+                                         Danish Computer
+ FO     Faroe Islands        (FO-DOM)    Centre for Research  Lyngby
+        top-level domain
+                                         and Education, UNI-C
+
+ FJ     Fiji (Republic of)   (FJ-DOM)    The University of    Suva
+        top-level domain                 the South Pacific
+
+ FI     Finland (Republic    (FI-DOM)    Tampere University   Tampere
+        of) top-level domain             of Technology
+
+        France (French                   Institut National de
+ FR     Republic) top-level  (FR-DOM)    Recherche en         Le Chesnay
+        domain                           Informatique et en
+                                         Automatique
+ GF     French Guiana                    [none]
+ PF     French Polynesia                 [none]
+
+ TF     French Southern                  [none]
+        Territories
+                                         Temporarily
+ GA     Gabon (Republic of)  (GA3-DOM)   Administered by RIPE Amsterdam
+        top-level domain
+                                         NCC
+ GM     Gambia                           [none]
+
+ GE     Georgia (Republic    (GE1-DOM)   SASCO Ltd            Tbilisi
+        of) top-level domain
+        Germany (Federal                 Universitaet
+ DE     Republic of)         (DE-DOM)    Karlsruhe,           Karlsruhe
+        top-level domain                 Rechenzentrum
+
+ GH     Ghana top-level      (GH2-DOM)   Network Computer     Accra
+        domain                           Systems Limited
+ GI     Gibraltar                        [none]
+        Great Britain                    University College
+ GB     (United Kingdom of)  (GB-DOM)    London, Department   London
+        top-level domain                 of Computer Science
+        Great Britain                    University College
+ UK     (United Kingdom of)  (UK-DOM)    London, Department   London
+        top-level domain                 of Computer Science
+        Greece (Hellenic
+ GR     Republic) top-level  (GR-DOM)    Insitute of Computer Crete
+        domain                           Science
+
+ GL     Greenland top-level  (GL2-DOM)   Greenland Home Rule  Nuuk
+        domain
+
+ GD     Grenada (Republic    (GD1-DOM)   University of Puerto San Juan
+        of) top-level domain             Rico
+ GP     Guadeloupe                       [none]
+
+ GU     Guam top-level       (GU-DOM)    University of Guam,  Mangilao
+        domain                           Computer Center
+
+ GT     Guatemala (Republic  (GT-DOM)    Universidad del      Guatemala
+        of) top-level domain             Valle de Guatemala   City
+                                         Ministry of Higher
+ GN     Guinea (Republic of) (GN2-DOM)   Education and        Conakry
+                                         Scientific Research
+ GW     Guinea-Bissau                    [none]
+
+ GY     Guyana Top-level     (GY-DOM)    University of Guyana Georgetown
+        Domain
+ HT     Haiti                            [none]
+
+ HM     Heard and McDonald               [none]
+        Islands
+
+ HN     Honduras (Republic   (HN-DOM)    Proyecto RIDES       Tegucigalpa
+        of) top-level domain
+        Hong Kong
+                                         University of Hong
+ HK     (Hisiangkang,        (HK-DOM)    Kong, Computer       Hong Kong
+        Xianggang) top-level
+        domain                           Center
+                                         Hungarian Academy of
+ HU     Hungary (Republic    (HU-DOM)    Sciences, Computer   Budapest
+        of) top-level domain             and Automation
+                                         Institute
+                                         Association of
+ IS     Iceland (Republic    (IS-DOM)    Research Networks in Reykjavik
+        of) top-level domain             Iceland
+                                         (SURIS/ISnet)
+
+ IN     India (Republic of)  (IN-DOM)    National Centre for  Bombay
+        top-level domain                 Software Technology
+                                         University of
+ ID     Indonesia top-level  (ID1-DOM)   Indonesia, Dept of   Jakarta
+        domain
+                                         Computer Science
+
+        Iran (Islamic                    Institute for
+ IR     Republic of)         (IR2-DOM)   Studies in           Tehran
+        top-level domain                 Theoretical Physics
+                                         & Mathematics (IPM)
+ IQ     Iraq                             [none]
+                                         University College
+ IE     Ireland top-level    (IE-DOM)    Dublin, Computer     Dublin
+        domain
+                                         Centre
+                                         The Hebrew
+                                         University of
+ IL     Israel (State of)    (IL-DOM)    Jerusalem,           Jerusalem
+        top-level domain
+                                         Department of
+                                         Computer Science
+        Italy (Italian                   CNR-Istituto CNUCE,
+ IT     Republic) top-level  (IT-DOM)    GARR Network         Pisa
+        domain                           Information Service
+
+ JM     Jamaica top-level    (JM-DOM)    University of the    Kingston
+        domain                           West Indies
+
+ JP     Japan top-level      (JP-DOM)    University of Tokyo, Tokyo
+        domain                           Computer Center
+        Jordan (The
+ JO     Hashemite Kingdom    (JO2-DOM)   c/o National
+        of) top-level domain             Information Center
+
+ KZ     Kazakhstan Top-level (KZ-DOM)    RelcomSL Co          Semipalatinsk
+        Domain
+
+ KE     Kenya (Republic of)  (KE-DOM)    The Kenya Computer   Nairobi
+        top-level domain                 Institute (KCI)
+
+ KI     Kiribati Network     (KINIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+        Korea (DPR of)
+ KP     Network Information  (KPNIC-DOM) Reserved by Asia
+        Center                           Pacific NIC
+                                         National
+ KR     Korea (Republic of)  (KR-DOM)    Computerization      Seoul
+        top-level domain
+                                         Agency
+
+ KW     Kuwait (State of)    (KW-DOM)    Ministry of          Safat
+        top-level domain                 Communications
+
+ KG     Kyrgyzstan Network   (KGNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+
+ LA     Laos Network         (LANIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+
+ LV     Latvia (Republic of) (LV-DOM)    Academic Network of  Riga
+        top-level domain                 Latvian Universities
+        Lebanon (Lebanese                American University
+ LB     Republic) top-level  (LB-DOM)    of Beirut, Computer  Beirut
+        domain                           Center
+
+ LS     Lesotho (Kingdom of) (LS1-DOM)   National University  Meseru
+        top-level domain                 of Lesotho
+ LR     Liberia                          [none]
+
+ LY     Libyan Arab                      [none]
+        Jamahiriya
+        Liechtenstein
+ LI     (Principality of)    (LI-DOM)    Liechtensteinische   Vaduz
+        top-level domain                 Ingenieurschule
+                                         Kaunas University of
+ LT     Lithuania (Republic  (LT-DOM)    Technology, Computer Kaunas
+        of) top-level domain
+                                         Center, LITNET
+        Luxembourg (Grand
+ LU     Duchy of) top-level  (LU1-DOM)   Restena Ministry of  Luxembourg
+        domain                           Education
+                                         University of Macau,
+ MO     Macau (Ao-me'n)      (MO-DOM)    Computer Services    Taipa
+        top-level domain
+                                         Bureau
+ MG     Madagascar                       [none]
+ MW     Malawi                           [none]
+                                         Malaysian Institute
+ MY     Malaysia top level   (MY-DOM)    of Microelectronic   Kuala Lumpur
+        domain
+                                         Systems (MIMOS)
+
+ MV     Maldives Network     (MVNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+                                         Centre National de
+ ML     Mali (Republic of)   (ML2-DOM)   la Recherche         Bamako
+        top-level domain                 Scientifique et
+                                         Technologique
+                                         University of Malta,
+ MT     Malta (Republic of)  (MT1-DOM)   Dept. of Computer    Msida
+        top-level domain
+                                         Studies
+        Marshall Islands
+ MH     Network Information  (MHNIC-DOM) Reserved by Asia
+        Center                           Pacific NIC
+ MQ     Martinique                       [none]
+ MR     Mauritania                       [none]
+ MU     Mauritius                        [none]
+
+        Mexico (United                   Instituto
+ MX     Mexican States)      (MX-DOM)    Tecnologico y de     Monterrey
+        top-level domain                 Estudios Superiores
+                                         de Monterrey
+
+ FM     Micronesia Network   (FMNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+
+ MD     Moldova (Republic    (MD3-DOM)   Republican Centre    Kishinev
+        of) top-level domain             for Informatics
+
+ MC     Monaco (Principality (MC6-DOM)   TRANSPAC             Monaco
+        of) top-level domain
+
+ MN     Mongolia top-level   (MN3-DOM)   Datacom Co., Ltd.    Ulaanbaatar
+        domain
+ MS     Montserrat                       [none]
+
+ MA     Morocco (Kingdom of) (MA2-DOM)   Ecole Mohammadia     Rabat-Agdal
+        top-level domain                 d'Ingenieurs
+
+        Mozambique (People's             Centro de
+ MZ     Republic of)         (MZ-DOM)    Informatica da       Maputo
+        top-level domain                 Universidade Eduardo
+                                         Mondlane
+
+ MM     Myanmar Network      (MMNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+                                         Namibian Internet
+                                         Development
+ NA     Namibia (Republic    (NA-DOM)    Foundation,          Windhoek
+        of) top-level domain             University of
+                                         Namibia, Department
+                                         of Computer Science
+
+ NR     Nauru Network        (NRNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+
+ NP     Nepal top-level      (NP3-DOM)   Mercantile Office    Kathmandu
+        domain                           Systems
+ AN     Netherlands Antilles             [none]
+                                         CWI / Centrum voor
+ NL     Netherlands          (NL-DOM)    Wiskunde en          Amsterdam
+        top-level domain
+                                         Informatica
+ NT     Neutral Zone                     [none]
+        New Caledonia
+ NC     Network Information  (NCNIC-DOM) Reserved by Asia
+        Center                           Pacific NIC
+
+ NZ     New Zealand          (NZ-DOM)    Waikato University   Hamilton
+        top-level domain
+
+ NI     Nicaragua (Republic  (NI-DOM)    Universidad Nacional Managua
+        of) top-level domain             del Ingernieria
+ NE     Niger                            [none]
+                                         Yaba College of
+ NG     Nigeria top-level    (NG2-DOM)   Technology,          Yaba Lagos
+        domain                           Department of
+                                         Computer Technology
+
+ NU     Niue Network         (NUNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+ NF     Norfolk Island                   [none]
+
+ MP     Northern Mariana                 [none]
+        Islands
+                                         Norwegian
+ NO     Norway (Kingdom of)  (NO-DOM)    Telecommunications   Kjeller
+        top-level domain
+                                         Administration
+
+ OM     Oman Network         (OMNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+        Pakistan (Islamic
+ PK     Republic of)         (PK-DOM)    Ashar Research &     Lahore
+        top-level domain                 Imran Anwar Inc.
+
+ PW     Palau Network        (PWNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+                                         Universidad
+                                         Technologica de
+ PA     Panama (Republic of) (PA3-DOM)   Panama, Panamanian   Panama
+        top-level domain
+                                         Academic National
+                                         Network (PANNET)
+                                         The Papua New Guinea
+                                         University of
+                                         Technology (UNITECH)
+ PG     Papua New Guinea     (PG-DOM)    Department of        Lae
+        top-level domain
+                                         Electrical and
+                                         Communications
+                                         Engineering
+                                         Campus
+ PY     Paraguay (Republic   (PY-DOM)    Universitario,       Asuncion
+        of) top-level domain             Laboratorio de
+                                         Electronica Digital
+
+ PE     Peru (Republic of)   (PE-DOM)    Red Cientifica       Lima
+        top-level domain                 Peruana
+        Philippines
+ PH     (Republic of the)    (PH-DOM)    Disini Software      Manila
+        top-level domain                 International Inc.
+ PN     Pitcairn                         [none]
+                                         Research and
+ PL     Poland (Republic of) (PL-DOM)    Academic Computer    Warsaw
+        top-level domain
+                                         Network
+        Portugal (Portuguese             Fundacao Calculo
+ PT     Republic) top-level  (PT-DOM)    Cientifico Nacional  Lisboa
+        domain                           (FCCN)
+                                         University of Puerto
+ PR     Puerto Rico          (PR-DOM)    Rico, EPSCoR of      Rio Piedras
+        top-level domain
+                                         Puerto Rico
+
+ QA     Qatar Network        (QANIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+ RE     Reunion                          [none]
+                                         Romanian National
+ RO     Romainia top-level   (RO-DOM)    Commission for       Bucharest
+        domain
+                                         Informatics
+        Russia (Russian
+ RU     Federation)          (RU-DOM)    Russian Institute    Moscow
+        top-level domain                 for Public Networks
+ RW     Rwanda                           [none]
+
+ KN     Saint Kitts & Nevis  (KN-DOM)    University of Puerto San Juan
+        top-level domain                 Rico
+
+ LC     Saint Lucia          (LC-DOM)    University of Puerto San Juan
+        top-level domain                 Rico
+        Saint Vincent & the
+ VC     Grenadines top-level (VC-DOM)    University of Puerto San Juan
+        domain                           Rico
+ SM     San Marino                       [none]
+
+ ST     Sao Tome and                     [none]
+        Principe
+        Saudi Arabia                     King Abdulaziz City
+ SA     (Kingdom of)         (SA3-DOM)   for Science and      Riyadh
+        top-level domain                 Technology
+
+ SN     Senegal (Republic    (SN-DOM)    ENSUT                Dakar
+        of) top-level domain
+ SC     Seychelles                       [none]
+ SL     Sierra Leone                     [none]
+                                         National University
+ SG     Singapore (Republic  (SG-DOM)    of Singapore,        Singapore
+        of) top-level domain             Technet Unit,
+                                         Computer Centre
+                                         Comenius University,
+ SK     Slovakia top-level   (SK-DOM)    Computer Centre,     Bratislava
+        domain
+                                         EUnet Slovakia
+
+ SI     Slovenia top-level   (SI1-DOM)   ARNES                Ljubljana
+        domain
+
+ SB     Solomon Islands      (SB2-DOM)   Forum Fisheries      Honiara
+        top-level domain                 Agency
+ SO     Somalia                          [none]
+        South Africa                     Foundation for
+ ZA     (Republic of)        (ZA-DOM)    Research             Pretoria
+        top-level domain                 Development, UNINET
+
+ ES     Spain (Kingdom of)   (ES-DOM)    RedIRIS/CSIC         Madrid
+        top-level domain
+        Sri Lanka
+ LK     (Democratic          (LK-DOM)    University of        Moratuwa
+        Socialist Republic               Moratuwa
+        of) top-level domain
+ SH     St. Helena                       [none]
+
+ PM     St. Pierre and                   [none]
+        Miquelon
+ SD     Sudan                            [none]
+
+ SR     Suriname (Republic   (SR-DOM1)   University of Puerto San Juan
+        of) top-level domain             Rico
+
+ SJ     Svalbard and Jan                 [none]
+        Mayen Islands
+                                         University of
+ SZ     Swaziland (Kingdom   (SZ-DOM)    Swaziland,           Kwaluseni
+        of) top-level domain             Department of
+                                         Computer Science
+                                         Royal Institute of
+ SE     Sweden (Kingdom of)  (SE-DOM)    Technology,          Stockholm
+        top-level domain
+                                         SUNET-KTH
+        Switzerland (Swiss               SWITCH
+ CH     Confederation)       (CH-DOM)    Teleinformatics      Zurich
+        top-level domain                 Services
+
+ SY     Syria Network        (SYNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+                                         Ministry of
+ TW     Taiwan top-level     (TW-DOM)    Education Computer   Taipei
+        domain                           Center, Computer
+                                         Center
+
+ TJ     Tajikistan Network   (TJNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+ TZ     Tanzania                         [none]
+
+ TH     Thailand (Kingdom    (TH-DOM)    Asian Institute of   Bangkok
+        of) top-level domain             Technology
+ TG     Togo                             [none]
+ TK     Tokelau                          [none]
+
+ TO     Tonga Network        (TONIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+        Trinidad & Tobago
+ TT     (Republic of)        (TT-DOM)    University of Puerto San Juan
+        top-level domain                 Rico
+                                         Regional Institute
+ TN     Tunisia top-level    (TN-DOM)    for Informatics and  Tunis
+        domain                           Telecommunications
+                                         (IRSIT)
+
+ TR     Turkey (Republic of) (TR-DOM)    Orta Dogu Teknik     Ankra
+        top-level domain                 Universitesi
+
+ TM     Turkmenistan Network (TMNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+
+ TC     Turks and Caicos                 [none]
+        Islands
+
+ TV     Tuvalu Network       (TVNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+                                         Makerere University,
+ UG     Uganda (Republic of) (UG-DOM)    Institute of         Kampala
+        top-level domain
+                                         Computer Science
+
+ UA     Ukraine top-level    (UA1-DOM)   Communication        Kiev
+        domain                           Systems Ltd.
+
+ AE     United Arab Emirates (AE1-DOM)   United Arab Emirates Abu Dhabi
+        top-level domain                 University
+
+ UM     United States Minor              [none]
+        Outlying Islands
+
+        United States of                 Internet Assigned
+ US     America top-level    (US-DOM)    Numbers Authority,   Marina del
+        domain                           University of        Rey CA
+                                         Southern California
+        Uruguay (Eastern
+ UY     Republic of)         (UY-DOM)    Servicio Central de  Montevidea
+        top-level domain                 Informatica (SECIU)
+
+ UZ     Uzbekistan Network   (UZNIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+
+ VU     Vanuatu top-level    (VU-DOM)    Vanuatu Fisheries    Port Vila
+        domain                           Department
+ VA     Vatican City State               [none]
+                                         Consejo Nacional de
+                                         Investigaciones
+ VE     Venezuela (Republic  (VE-DOM)    Cientificas y        Caracas
+        of) top-level domain             Tecnologicas,
+                                         Oficina de
+                                         Informatica
+
+        Vietnam (Socialist               Ministry of Science,
+ VN     Republic of)         (VN-DOM)    Technology and       Hanoi
+        top-level domain                 Environment of
+                                         Vietnam
+
+ VG     Virgin Islands,                  [none]
+        British
+ VI     Virgin Islands, US               [none]
+
+ WF     Wallis and Futuna                [none]
+        Islands
+ EH     Western Sahara                   [none]
+        Western Samoa
+ WS     Network Information  (WSNIC-DOM) Reserved by Asia
+        Center                           Pacific NIC
+
+ YE     Yemen Network        (YENIC-DOM) Reserved by Asia
+        Information Center               Pacific NIC
+        Yugoslavia (Federal
+ YU     Republic of)         (YU2-DOM)   YUNET association    Beograd
+        top-level domain
+ ZR     Zaire                            [none]
+
+ ZM     Zambia (Republic of) (ZM-DOM)    University of Zambia Lusaka
+        top-level domain                 Computer Centre
+
+ ZW     Zimbabwe (Republic   (ZW-DOM)    University of        Harare
+        of) top-level domain             Zimbabwe
+
+          Copyright © 1995 Internet Society. All rights reserved.

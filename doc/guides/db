@@ -1,0 +1,43 @@
+================= file ./doc/guides/db ====================================
+Database manipilation command:  db
+
+SYNTAX:
+        db {a|c|d|f|i|n|o|p|t} [dbname [key [value]]]
+
+        dbname - name db creation from relation
+
+OPTIONS:
+        a[dd] dbname key value - add key and value to db file
+
+        d[elete] dbname key    - delete key (and key) from db
+        r[emove] . . .
+
+        f[lush] dbname         - flush data from cache to db
+        n[ull]  . . .
+ 
+        c[ount] dbname         - count key in db
+ 
+        p[rint] dbname         - print contents db
+ 
+        o[wner] dbname         - print owner db
+ 
+        i[ndex]                - print created db
+        t[oc]
+ 
+DBType        flush     add     remove  print   count   owner
+------        ------------------------------------------------
+incore        yes       yes     yes     yes     yes     yes
+header        yes       yes     yes     yes     yes     yes
+unordered     yes       yes     yes     yes     yes     yes
+ordered       yes       no      no      yes     yes     yes
+hostsfile     no        no      no      yes     no      no
+bind          no        no      no      no      no      no
+ndbm          yes       yes     yes     yes     yes     yes
+gdbm          yes       yes     yes     yes     yes     yes
+dbm           yes       yes     yes     yes     yes     yes
+btree         yes       yes     yes     yes     yes     yes
+yp            no        no      no      yes     no      yes
+
+====================== end file ===========================================
+-= Igor S Chencov system administrator    =-
+-= E-mail chs@sevmash.ru                  =-

@@ -1,0 +1,95 @@
+PROGRAM=	mailbox
+#
+# ZMailer local delivery Transport Agent makefile
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		../..
+MAILBIN=	$(prefix)@MAILBIN@
+DEFS=		@DEFS@
+INSTALL=	@INSTALL@
+MAILBOX_INCL=	
+MAILBOX_LIB=	@LIBMAIL@ @LIBRESOLV@ @LIBSOCKET@
+#
+SOURCE=		mailbox.c
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) $(MAILBOX_INCL)
+CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libs/libmalloc_d.a
+LIB=		-L$(TOPDIR)/libs -lta -lz -lzc $(LIBMALLOC)
+LIBDEB=		$(TOPDIR)/libs/libtag
+LINTLIB=	../libta/llib-llibta.ln
+
+# defines related to 'mailbox' and 'lock':
+# -DBIFF         - tell biff about mail
+# -DRBIFF        - tell remote comsats about mail
+# -DRBIFF_ALWAYS - tell even if user has no  "~/.rbiff" file
+# -DUSE_NFSMBOX  - do remote locking of mail spool files mounted via NFS
+#	see ../../support/{nfslock,rlockd} for more about this
+MAILBOXDEFS=	-DBIFF -DRBIFF -DRBIFF_ALWAYS # -DUSE_NFSMBOX
+
+all:	$(PROGRAM)-a # in.rlockd
+
+$(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)
+
+$(PROGRAM):	$(PROGRAM).o version.o lock.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o lock.o $(LIB) $(MAILBOX_LIB)
+
+$(PROGRAM).o: $(srcdir)/$(PROGRAM).c
+	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/$(PROGRAM).c
+
+version.c:	$(PROGRAM).o $(TOPDIR)/Makefile
+	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+lock.o: $(srcdir)/lock.c
+	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/lock.c
+
+install:	$(PROGRAM)
+	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/ta/$(PROGRAM).x
+	mv $(MAILBIN)/ta/$(PROGRAM).x $(MAILBIN)/ta/$(PROGRAM)
+
+clean:
+	-rm -f $(PROGRAM) in.rlockd *.o *.out make.log *~
+distclean: clean
+	-rm -f Makefile
+
+lint:	$(LINTLIB)
+	lint $(DEFS) $(MAILBOXDEFS) $(INCL) $(LINTLIB) $(PROGRAM).c lock.c
+
+../libta/llib-llibta.ln:
+	cd ../libta ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
+
+../libta/libta.a-a:
+	cd ../libta ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libs/libta.a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/lib/libz.a-a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libs/libz.a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libs/libzc.a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libs/libmalloc_d.a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+
+depend:
+	$(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

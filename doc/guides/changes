@@ -1,0 +1,155 @@
+Change Notes for things later than this file:
+
+	See file  ChangeLog
+
+Change Notes for 2.2:
+
+	Rayan didn't write them ?
+
+Change notes for 2.1:
+
+Configuration:
+
+The old "transport" method in the configuration is now called "routes".
+At the same time, the MAILSHARE/db/hosts.transport file was renamed
+MAILSHARE/db/routes.
+
+Renamed the MAILSHARE/db/localdelivery file to MAILSHARE/db/localnames.
+
+Added the MAILSHARE/db/otherservers file.  In a multi-MTA cluster, it is
+intended to hold the names of all the *other* MTA hosts.
+
+The BITNET handling was improved a bit.
+
+The login to uid and uid to login map caches are flushed after each message.
+
+The (now) "routes" file can take a new directive: delay!<seconds>.
+This will put the address in a hold queue with an appropriate timeout set.
+
+The logging was rationalized.  An awk script to process the router log
+(and produce something that can be turned into bills, for illustration only
+of course :-), is in utils/zmstats.
+
+The PUNTHOST and SMARTHOST variables can be set (e.g. in zmailer.conf) to
+declare a host to forward to if a local or remote (respectively) address
+is unresolvable.
+
+
+Router:
+
+Decreased threshold on Received: headers from 100 to 50
+
+Added new databases (actually, made them visible):
+
+	pwuid		maps uid to login name (mnemonic: getpwuid)
+	pwnam		maps login name to uid (mnemonic: getpwnam)
+	headers		maps header field name to descriptor
+
+Added new "header" database type, used for an internal database which
+configures the RFC822 header parser.  This type is unlikely to be used
+in any other context.  It is used to define/select/deselect the non-essential
+RFC822 headers to be parsed and interpreted by the router.
+
+Added new "squirrel" builtin function.  It sets the kinds of events that
+cause a message to be copied into the POSTOFFICE/postman directory.
+The list of events are: breakin, badheader, illheader, nochannel, nosender.
+The latter three almost never happen.  Usage is "squirrel { [-]<event> }"
+to enable/disable the flags associated with the events.
+
+Test-and-Lock each mail message before the router starts processing it, and
+unlock it after the router is done.  This allows concurrent routers.
+
+Added an "envelopeinfo" global variable in the configuration file, defined
+(by the builtin rfc822 function) as a property list of the following elements:
+
+	file		message file name
+	message-id	the message-id
+	uid		the user id of the owner of the message file
+	gid		the group id of the owner of the message file
+	size		the message size (header + body) in bytes
+	headersize	the message header size in bytes
+	bodysize	the message body size in bytes
+	now		the time the router started processing the message
+			(in seconds sinze epoch)
+	delay		the number of seconds the message had been queued
+	resent		"yes" or "no" indicating whether Resent- headers exist
+	trusted		"yes" or "no" indicating whether file owner is trusted
+
+furthermore every envelope header without address semantics will be added
+to the list, typically:
+
+	with		RFC822 Received header "with" value.
+	via		RFC822 Received header "via" value.
+	rcvdfrom	The host of the last MTA to touch the message.
+
+
+Scheduler:
+
+Fixed some systemic problems in the scheduler algorithms; it was possible
+to run into a situation where some set of messages would block another
+set of messages.  This was fixed by imposing a fair roundrobin scheme
+for randomly selected-for-retry messages that are deferred due to resource
+starvation.  In other words, the randomness is enforced.
+
+
+Transport Agents:
+
+The "mailbox" transport agent program takes a "-l file" command line argument.
+All its deliveries will be logged to that file.
+
+Improved the logging done by the SMTP client program.
+
+
+SMTP Server:
+
+The "smtpserver" program takes a "-l file" command line argument.
+All incoming SMTP conversations will be logged to that file.
+
+Added the 8-bit SMTP extension verbs as synonyms for the 7-bit ones.  I
+think this is sufficient for full conformance with the to-be-RFC proposal.
+No translation capability is provided, as yet.
+
+Dotted quads are recognized as a valid parameter type for the HELO command.
+
+Superfluous <'s and >'s on addresses are detected (synchronously) and
+the command refused.
+
+--
+Change notes for 2.0:
+
+"I threw away all the old bugs and created a whole new set"
+
+This implementation doesn't retain much code from the 1.4 release.
+The major changes are the router configuration language (1.5 years in
+development), improvements in the scheduler (1 week), and rationalization
+of transport agent code (2 days).  There is a new system configuration
+mechanism (the hostenv directory) and associated changes in the code.
+
+--
+Change notes for 1.4:
+
+The following differences will be apparent from the 1.3 release:
+
+- There are now three logical places for ZMailer files:
+
+	POSTOFFICE	spool
+	MAILBIN		binaries/programs
+	MAILSHARE	configurations/databases/text/zmailer
+
+  This is in response to the distinction between the architecture-dependent
+  and -independent files, being made in SunOS 4.0 and presumably future UCB,
+  DEC, Sun, and ATT releases.
+
+- The $POSTOFFICE/forms directory has been moved to $MAILSHARE/forms.
+  Remember to do this manually, using or merging in the contents of proto/forms.
+
+- The scheduler configuration file has been renamed "scheduler.cf" (it
+  was "scheduler.cntl").
+
+- The $POSTOFFICE/.{router,scheduler}.pid files are now .pid.{router,scheduler}
+  and a .pid.smtpserver has been added.
+
+- There are manual pages for the zmailer script and the mailq program.
+  The manual pages are not installed automatically, you may want to do it
+  yourself.
+

@@ -1,0 +1,69 @@
+.TH NFSLOCK 3 "7 December 1988"
+.SH NAME
+nfslock \- apply or remove an advisory lock on an open file (across
+remote mounted network file systems, if necessary)
+.SH SYNOPSIS
+.nf
+.ft B
+#include <sys/file.h>
+.LP
+.ft B
+.DT
+#define	\s-1LOCK_SH\s0	1	/* shared lock */
+#define	\s-1LOCK_EX\s0	2	/* exclusive lock */
+#define	\s-1LOCK_NB\s0	4	/* don't block when locking */
+#define	\s-1LOCK_UN\s0	8	/* unlock */
+.LP
+.ft B
+nfslock(file, operation)
+int file, operation;
+.fi
+.SH DESCRIPTION
+.B nfslock(\|)
+applies or removes an
+.I advisory
+lock on the named
+.B file
+in the same way as 
+.BR flock (2)
+does, but does it correctly on remote mounted filesystems
+across the network by communicating with the
+.B in.rlockd
+daemon running on the appropriate file server.
+.PP
+When using 
+.B nfslock(\|),
+link the calling program with -lnfslock.
+.SH "RETURN VALUE
+Zero is returned on success, \-1 on error,
+with an error code stored in
+.BR errno .
+.SH ERRORS
+The
+.B nfslock(\|)
+call fails with:
+.TP 20
+.SM EINVAL
+if the file cannot be accessed by the process requesting the lock, or is
+not writable by the process if the lock is remote, if the file is not
+a regular file, if the file is remote and the flock service (or TCP!) is not
+available, or if any of the system calls related to opening the network
+socket fail.
+.PP
+It returns the
+.I errno
+of flock() if the file is local.
+.SH AUTHOR
+Rayan Zachariassen, Dennis Ferguson, University of Toronto
+.SH "SEE ALSO"
+.BR in.rlockd (8)
+.BR flock (2),
+.BR fcntl (2V),
+.BR lockf (3),
+.BR lockd (8C)
+.SH "BUGS
+Locks obtained with this mechanism are not compatible with those obtained
+using
+.BR fcntl (2V)
+or
+.BR lockf (3).

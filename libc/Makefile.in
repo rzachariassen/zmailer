@@ -1,0 +1,90 @@
+LIBNAME=	libzc
+#
+# ZMailer routines destined for the system C library
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		..
+DEFS=		@DEFS@
+RANLIB=		@RANLIB@
+AR=		@AR@
+LIBC_INCL=	@INCLRESOLV@
+INCLUDEDIR=	@includedir@
+LIBRARYDIR=	$(prefix)@libdir@
+INSTALL=	@INSTALL@
+#
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(LIBC_INCL)
+#
+#  The LIBOBJS is autoconfigure generated macro which feeds in several
+#  usefull/important bits:
+#	setvbuf.o setreuid.o bcopy.o bzero.o ftruncate.o strerror.o
+#	rename.o mktime.o mkdir.o rmdir.o strcpy.o strdup.o strstr.o
+#	strchr.o strrchr.o strsignal.o
+#	inet_ntop.o inet_pton.o getaddrinfo.o (+ other IPv6 stuffs!)
+#
+LIBOBJS=  @LIBOBJS@
+#
+OBJS	= mail.o mail_alloc.o mail_host.o fullname.o getopt.o myhostname.o \
+	getzenv.o whathost.o getdtblsiz.o __fopen.o setreuid.o
+LIBMAILERobjs = mail.o mail_alloc.o getzenv.o mail_host.o myhostname.o	\
+	fullname.o whathost.o strerror.o
+SOURCE	= mail.c mail_alloc.c mail_host.c fullname.c getopt.c myhostname.c \
+	getzenv.c setvbuf.c strchr.c strrchr.c strsignal.c strerror.c \
+	whathost.c getdtblsiz.c setreuid.c __fopen.c setreuid.c
+
+$(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a $(TOPDIR)/libs/libzmailer.a
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+whathost-test: whathost.o whathost-test.o
+	$(CC) $(CFLAGS) -o whathost-test whathost.o whathost-test.o
+
+getzenv.o: getzenv.c $(TOPDIR)/include/mailer.h $(TOPDIR)/include/rfc822.entry
+
+$(TOPDIR)/include/rfc822.entry:
+	cd ../router; $(MAKE) MFLAGS=$(MFLAGS) rfc822.entry
+
+$(TOPDIR)/libs/$(LIBNAME).a:	$(OBJS) $(LIBOBJS)
+	$(AR) rv $@ $(OBJS) $(LIBOBJS)
+	$(RANLIB) $@
+
+$(TOPDIR)/libs/libzmailer.a: $(LIBMAILERobjs)
+	$(AR) rv $@ $(LIBMAILERobjs)
+	$(RANLIB) $@
+
+lintlib:	llib-l$(LIBNAME).ln
+
+llib-l$(LIBNAME).ln:	$(SOURCE)
+	lint $(INCL) -o $(LIBNAME) $(LIBC_INCL) *.c
+
+lint:
+	lint $(DEFS) $(INCL) $(LIBC_INCL) $(SOURCE)
+
+install:  $(TOPDIR)/libs/libzmailer.a
+	-if [ ! -d $(LIBRARYDIR) ] ; then mkdir $(LIBRARYDIR); fi
+	-$(INSTALL) -m 644 $(TOPDIR)/libs/libzmailer.a $(LIBRARYDIR)/libzmailer.a
+	-$(RANLIB) $(LIBRARYDIR)/libzmailer.a
+	-$(INSTALL) -m 644 $(TOPDIR)/include/mail.h $(INCLUDEDIR)/zmailer.h
+
+clean-recursive clean:
+	-rm -f $(TOPDIR)/libs/$(LIBNAME).a make.log whathost-test
+	-rm -f *.o *.out *.ln *~
+
+distclean-recursive distclean: clean
+	-rm -f Makefile
+
+depend:
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

@@ -1,0 +1,925 @@
+<appendix>
+<sect>Sample Router Configuration Scripts
+<p>Text to be inserted here.
+
+The following are examples of the router configuration scripts SMTP+UUCP.cf, crossbar.cf, process.cf, and rrouter.cf.
+
+<sect1>SMTP+UUCP.cf
+<p>
+ZMailer 2 configuration file for a generic SMTP host (with UUCP links)
+
+<tscreen><verb>
+ZCONFIG=@ZMAILERCFGFILE@
+
+. $ZCONFIG
+
+PATH=.:$MAILSHARE/cf:$MAILBIN/bin ; export PATH
+PS1=z$PS1
+</verb></tscreen>
+
+Configure error logging (squirrel)
+
+<tscreen><verb>
+squirrel -breakin
+squirrel badheader
+</verb></tscreen>
+
+Domains with these toplevels will not be canonicalized via DNS lookup.
+This list is from ISOC table of 16-April-95.
+
+The quoted string <tt>"ad...zw"</tt> should be on one line in the actual SMTP+UUCP.cf file.
+
+<tscreen><verb>
+toplevels="ad ae af ag ai al am an ao aq ar as at au aw az ba bb bd be bf bg bh bi bj bm bn 
+bo br bs bt bv bw by bz ca cc cf cg ch ci ck cl cm cn co com cr cu cv cx cy cz de dj dk dm 
+do dz ec edu ee eg eh es et fi fj fk fm fo fr ga gb gd ge gf gh gi gl gm gn gov gp gq gr gt 
+gu gw gy hk hm hn hr ht hu id ie il in int io iq ir is it jm jo jp ke kg kh ki km kn kp kr 
+kw ky kz la lb lc li lk lr ls lt lu lv ly ma mc md mg mh mil ml mm mn mo mp mq mr ms mt mu 
+mv mw mx my mz na nc ne net nf ng ni nl no np nr nt nu nz om org pa pe pf pg ph pk pl pm pn 
+pr pt pw py qa re ro ru rw sa sb sc sd se sg sh si sj sk sl sm sn so sr st sv sy sz tc td tf 
+tg th tj tk tm tn to tp tr tt tv tw tz ua ug uk um us uy uz va vc ve vg vi vn vu wf ws ye yu 
+za zm zr zw"
+</verb></tscreen>
+
+The transport preference order
+
+<tscreen><verb>
+protocols='routes smtp uucp'
+</verb></tscreen>
+
+Will the  MAILVAR/lists/listname  show out sender identity as
+either:  owner-listname, or:  listname-owner?
+
+<tscreen><verb>
+if true ; then # Change to "false" to get "pre-owner" mode
+	preowner=""
+	postowner="-owner"
+else
+	preowner="owner-"
+	postowner=""
+fi
+</verb></tscreen>
+
+Does our ``local'' channel accept domain (@) at the user part?
+ZMailer's mailbox does accept.  If you use something else, and
+it doesn't accept, comment this away.
+
+<tscreen><verb>
+localdoesdomain=1
+</verb></tscreen>
+
+We may want .forward and mailing list files to be private, i.e., we ignore
+the current privileges when checking the privileges of such files.
+Don't add `include' to this list, since anyone can :include: any file.
+
+<tscreen><verb>
+private='.forward maillist'
+</verb></tscreen>
+
+Set up dependency checking.
+
+<tscreen><verb>
+. consist.cf
+require siteinfo router crossbar process server
+</verb></tscreen>
+
+The following are standard setup files and must be loaded in this order
+
+<tscreen><verb>
+. standard.cf
+. trusted.cf
+</verb></tscreen>
+
+Load the databases so they and the variables defined (e.g. network-specific
+node names for this host) can be used in the site specific configuration.
+
+<tscreen><verb>
+for method in $protocols
+do
+	test -f $MAILSHARE/cf/i-${method}.cf && . i-${method}.cf
+done
+
+mailconf () {
+	local hname
+
+	# My official hostname
+	if [ -f /bin/hostname ]; then
+		rawhostname=$(/bin/hostname)
+	elif [ -f /etc/sys_id ]; then
+		read rawhostname < /etc/sys_id
+	else
+		rawhostname=$(/bin/uname -n)
+	fi
+
+	hname=$(canon $rawhostname)
+</verb></tscreen>
+
+Try to discover the organizational domain name.
+
+<tscreen><verb>
+	orgdomain=$hname
+	sift $hname in
+	$rawhostname\.(.+)
+		orgdomain=\1
+		;;
+	tfis
+	hostname=$hname
+
+	# This is what it will say on out mail
+	mydomain=$hostname
+}
+
+orgdomains=x
+: ${MAILCONF:=/etc/mail.conf}
+if [ ! -r $MAILCONF ]; then
+	echo "$0: missing $MAILCONF: using the following values:"
+	mailconf
+	echo orgdomain=$orgdomain
+	echo hostname=$hostname
+	echo mydomain=$mydomain
+	provide siteinfo
+else
+	. $MAILCONF && provide siteinfo
+fi
+[ "$orgdomains" = x ] && orgdomains=$orgdomain
+</verb></tscreen>
+
+Set hostname to enable message-id generation and checking.
+
+<tscreen><verb>
+hostname $hostname
+
+. aliases.cf
+. canon.cf
+. rrouter.cf
+. crossbar.cf
+
+for method in $protocols
+do
+	. p-${method}.cf
+done
+
+. process.cf
+. server.cf
+
+consist || exit 1
+</verb></tscreen>
+
+<sect1>Crossbar.cf
+<p>
+
+<tscreen><verb>
+provide crossbar
+</verb></tscreen>
+
+The crossbar function makes the policy decisions of how the instance of
+a message between a particular sender and recipient should be treated.
+The 'from' and 'to' parameters are quads, i.e., in the form
+
+	(channel host user attributes)
+
+The function may modify any of these elements of both the from and to
+addresses, and must select a message header address rewriting function
+to be applied to this message instance.  If the return value is nil or
+empty, the instance is completely ignored, to the point that if there are
+no other recipients specified a complaint will be generated saying there
+are <bf>no</bf> recipients specified.
+
+<tscreen><verb>
+crossbar (from, to) {
+	local rewrite destination tmp
+</verb></tscreen>
+
+Count them...  (in <tt>process.cf</tt>)
+(we could use this as an ultimate duplicate remover too...)
+
+<tscreen><verb>
+	db add recipients "$(user $to)" "$(user $from)"
+
+Intercept (drop, redirect, bounce, save) the message
+
+	tmp=$(intercept "$(user $from)") &&
+		case "$(car $tmp)" in
+</verb></tscreen>
+Dropping error types for from addresses is necessary to avoid mail loops.
+<tscreen><verb>
+		drop|error)
+			return ;;
+		file)	LOGMSG="$LOGMSG $(car $(cdr $tmp))" ;;
+		esac
+
+</verb></tscreen>
+
+Only intercept mail that is not from the local postmaster,
+so that error messages can find their way back.
+
+<tscreen><verb>
+	[ "$(channel $from)" = local -a "$(user $from)" = postmaster ] ||
+	tmp=$(intercept "$(user $to)") &&
+		case "$(car $tmp)" in
+		drop)	return ;;
+		error)	setf $(channel $to) error
+			setf $(host $to) $(car $(cdr $tmp))
+			;;
+		file)	LOGMSG="$LOGMSG $(car $(cdr $tmp))" ;;
+		esac
+</verb></tscreen>
+If we do any alias expansion from the crossbar, we should do this:
+<tscreen><verb>
+db flush expansions
+</verb></tscreen>
+Determine which rewrite function (for message header addresses) to use.
+<tscreen><verb>
+	case $(channel $to) in
+	smtp|smtpx)
+		#case "$(channel $from)" in
+		#smtp|smtpx)	# Address should be forwarded the way the arrive
+		#	rewrite=null ;;
+		#*)	rewrite=internet ;;
+		#esac
+		rewrite=internet
+		;;
+	error)	rewrite=null ;;
+	local)	case "$(channel $from)" in
+		local)	#rewrite=intramachine
+			rewrite=internet ;;
+		*)	# addresses should be saved the way they arrive
+			rewrite=null ;;
+		esac
+		;;
+	usenet)	rewrite=internet ;;
+	ean)	rewrite=ean_useratdomain ;;
+	*)	# This is usually UUCP or BITNET
+		# We want to determine the final destination host/domain
+		destination="$(uucproute "$(user $to)")"
+		if [ "$(host $to)" ]; then
+			destination="$(host $to)"!"$destination"
+		fi
+		sift "$destination" in
+		.*!([^!]+)![^!]+
+			destination="\1" ;;	# destination domain
+		.*\.(bitnet|netnorth|earn|cdn)
+			rewrite=smtp_useratdomain
+			break ;;			# reply to user@domain
+		.*	rewrite=internet ; break ;;	# default sensible thing
+		tfis
+		;;
+	esac
+</verb></tscreen>
+The alias expansion might want to modify the envelope sender
+of the message instance.  Here we cooperate in the scheme which
+is to set the 'sender' attribute of the destination address.
+<tscreen><verb>
+	tmp="$(get $(attributes $to) sender)" && [ x"$tmp" != x ] &&
+		from=(local "$tmp" "$tmp" $(attributes $from))
+
+
+	case "$(channel $from)" in
+	defrt1*)
+		setf "$(user $from)" "$(bitnetroute "$(user $from)")"
+		if [ $rewrite = internet ]; then
+			rewrite=bitnet2internet
+		fi
+		;;
+	esac
+</verb></tscreen>
+Rewrite the envelope addresses appropriately.
+<tscreen><verb>
+	case "$(channel $to)" in
+#	uucp|local)
+	uucp)
+</verb></tscreen>
+Local destination on a system that delivers in UCB Mail
+compatible mail spool files means that the From_ line
+must be in all-! form, which is the same as the UUCP
+transport requirement.
+<tscreen><verb>
+		setf "$(user $from)" "$(uucproute "$(user $from)")"
+		setf "$(user $to)" "$(uucproute "$(user $to)")"
+		sift "$(user $to)" in
+		(.)!(.*)	if [ \1 = $(host $to) ]; then
+					setf "$(user $to)" \2
+				fi
+				;;
+		tfis
+		sift "$(user $to)" in
+		(.)\.uucp!(.*)	setf "$(user $to)" \1!\2 ;;
+		tfis
+		;;
+#	smtp)
+	smtp|smtpx|local|bsmtp3*)
+		tmp="$(smtproute "$(user $from)")"
+		sift "$tmp" in
+		(@$hostname[:,].*)|([^@:,]+@$hostname)
+			break ;;
+		.*
+			# tmp="@$hostname:$tmp"  # <-- that creates RFC-822
+						 #     source-routing, AVOID!
+			tmp="$tmp"
+			;;
+		@(.+):(.+:.+)
+			tmp="@\1,\2" ; continue ;;
+		tfis
+		setf "$(user $from)" "$tmp"
+		sift "$(user $to)" in
+		(^/).*	setf "$(user $to)" "$(smtproute "$(user $to)")" ;;
+		tfis
+
+		;;
+	ean)	
+		setf $(user $from) "$(ean_useratdomain "$(user $from)")"
+		setf "$(user $to)" "$(ean_useratdomain "$(user $to)")"
+		;;
+	usenet)
+		setf $(user $from) "$(uucproute "$(user $from)")"
+		sift $(user $from) in
+		$hostname!.*	;;
+		.*	setf $(user $from) $hostname!$(user $from) ;;
+		tfis
+		# newsgroup name only
+		setf "$(user $to)" $(localpart "$(user $to)")
+		;;
+#	bsmtp3|bsmtp3nd)
+#		setf $(user $from) "$(bitnetroute "$(user $from)")"
+#		tmp="$(bitnetroute "$(user $to)")"
+#		sift "$tmp" in
+#		.*@([^.]).uucp
+#			tmp="$(bitnetShortroute "$(user $to)")" ;;
+#		tfis
+#		setf "$(user $to)" "$tmp"
+#		rewrite=bitnetShortroute
+#		;;
+
+	defrt1)
+		setf $(user $from) "$(bitnetroute "$(user $from)")"
+		setf $(user $to) "$(bitnetroute "$(user $to)")"
+		rewrite=bitnetroute
+		sift "$(user $to)" in
+		(.*)[!%](.+)@(.*)
+			to=(error bitnetgw "\3" $(attributes $to))
+			rewrite=null
+			;;
+		tfis
+		;;
+	esac
+
+	#log recipient: "$(channel $to)" "$(host $to)" "$(user $to)"
+	return ($rewrite $from $to)
+}	# end of crossbar
+</verb></tscreen>
+
+If you want to intercept specific mail messages, this function and the
+associated code in the crossbar and process functions will let you do it.  
+There are three possible actions:
+
+<itemize>
+<item>drop	- completely ignore this address
+<item>error	- return the specified error message
+<item>file	- append the message file to the specified file
+</itemize>
+
+Both the file and error actions require an argument, which necessitates
+the use of multiple-value return (i.e., return a list) in all cases.
+
+If you don't want to intercept anything, this function should return failure.
+The stub defined here is the usual case, you can override it in the host-
+specific cf file.
+
+<tscreen><verb>
+intercept (address) {
+#	case "$(smtp_useratdomain "$address")" in
+#	*@pdq*)		return (file /var/scr/pdq) ;;
+#	rayan@csri.*)	return (drop) ;;
+#	bitftp*@*)	return (error bounce) ;;
+#	esac
+
+	return 1
+}
+</verb></tscreen>
+
+On mail from one local user to another, we don't want to see all the
+long domain name extensions.  This can cause problems with silly UAs,
+if it does you can just redefine <tt>intramachine</tt> to call 
+<tt>null</tt> in your
+site or host-specific configuration files.
+
+<tscreen><verb>
+intramachine (address) {		# strip hostname if it came from here
+	sift "$address" in
+	(.*)@($hostname|$mydomain)
+		address="$(condquote "\1")" ;;
+	tfis
+	return "$address"
+}	# end of intramachine
+
+
+null (address) {
+	return "$address"		# surprise!
+}
+</verb></tscreen>
+
+This is usually the default message-header address rewriting function.
+It is responsible for hostname hiding and qualification.
+
+<tscreen><verb>
+internet (address) {
+	address="$(canonicalize "$address")"	# Canonicalize does local
+						# hostname hiding...
+	sift "$address" in
+	(.*)<@(.+)>(.*)
+			#if [ $(deliver \2) ]; then	# hostname hiding
+			#	address="\1@${mydomain}\3"
+			#	break
+			#fi
+			address="\1@\2\3" # No hostname hiding...
+			;;
+	(.*)<(.+)>(.*)	address="\1\2\3" ;;		# defocus
+	[^@]+		
+		# This is a local part address w/o any domains!
+		address="$(condquote "$address")"
+		address="$address@$mydomain"	# add our hostname
+		;;
+	tfis
+	return "$address"
+}	# end of internet
+</verb></tscreen>
+
+<sect1>Process.cf
+<p>
+This is the protocol switch function.  It keys off the form of the filename
+to determine how to process a particular class of messages.  It is expected
+that an internal function will be called to orchestrate the processing of
+the message and enforce proper semantics.
+
+The file argument is the name of a file in the <tt>&dollar;POSTOFFICE/router</tt>
+directory.
+<tscreen><verb>
+process (file) {
+
+	db flush pwuid
+	db flush pwnam
+	db flush fullname
+	db flush hostexpansions
+	db flush recipients
+</verb></tscreen>
+Since we cannot detect that the password database has been updated under
+our feet, we flush the cached information every once in a while (in this
+case, before every message).
+<tscreen><verb>
+	LOGMSG=''
+</verb></tscreen>
+The LOGMSG variable is used by the intercept facility (in <tt>crossbar.cf</tt>)
+to make sure only a single copy of a message is saved when required.
+Each sender - recipient address pair can cause an intercept which can
+specify a file to save the message to.  This variable is appended to
+elsewhere, and processed at the end of this function.
+<tscreen><verb>
+	case "$file" in
+#	[0-9]*.x400)	x400 "$file" ;;
+#	[0-9]*.uucp)	uucpfilter "$file" > /tmp/X.$$
+#			cat /tmp/X.$$ > "$file"
+#			rfc822 "$file" ;;
+	[0-9]*)		rfc822 "$file" ;;
+	core*)		/bin/mv "$file" ../$file.router.$$
+			return
+			;;
+	*)		/bin/mv "$file" ../postman/rtr."$file".$$
+			return
+			;;
+	esac
+
+	[ $? ] && return 0	# Leave when they returned failure..
+</verb></tscreen>
+The file names in the <tt>&dollar;POSTOFFICE/router</tt> directory are determined by
+the parameter to the mail_open() C library routine.  This case
+statement knows about the various message file types needed on your
+system, and arranges appropriate processing of each.  The internal
+function <tt>rfc822</tt> expects a file name as argument, and determines the
+semantics of the message and of the configuration code.  For example,
+the <tt>router</tt>, <tt>crossbar</tt>, and <tt>header_defer</tt> functions have semantics only
+because the <tt>rfc822</tt> function knows about them.  There are no other
+message formats supported in this distribution.
+<tscreen><verb>
+	log info: recipients $(db count recipients) $(elements $(cdr $(cdr $(cdr $(cdr $envelopeinfo))))) '
+'
+</verb></tscreen>
+For statistics gathering we print out the envelope information property
+list in its entirety, except for the file name, and the message id, both
+of which were logged earlier (in C code).
+<tscreen><verb>
+	for f in $LOGMSG
+	do
+		{ echo "==${file}==$(rfc822date)==" ;
+		  /bin/cat ../queue/"$file" } >> $f && log saved "$file" in $f
+	done
+}
+</verb></tscreen>
+This does the saving of intercepted messages into archive files.
+
+
+
+
+<sect1>Rrouter.cf
+<p>
+
+Most of the address routing processing is done here.
+
+
+<tscreen><verb>
+provide rrouter
+</verb></tscreen>
+
+<tscreen><verb>
+. fqdnalias.cf # Pick that set of tools into here!
+
+envelopeinfo=(message-id "<$USER.interactive@$hostname>" now 0)
+
+: ${UNRESOLVABLEACTION:='error unresolvable'}
+
+relation -bt selfmatch selfmatch
+
+rrouter (address, origaddr, A, plustail, domain) {
+	local tmp tee didhostexpand priv nattr a
+	# local seenuucp seenbitnet
+	# seenuucp=false
+	# seenbitnet=false
+	didhostexpand="";
+# echo "rrouter: address=$address, origaddr=$origaddr" >> /dev/tty
+
+	tmp=$(fqdn_neighbour "$origaddr" "$address" $A) &&
+		return $tmp
+
+	address="$(condquote "$address")"
+
+</verb></tscreen>
+We have troublesome addresses coming here...
+<tscreen><verb>
+	#	"|pipe-program"
+	#	"|quoted string"@domain
+	#	"foo > faa"@domain
+	#	"fii < fuu"@domain
+	#	"foo @ faa"@domain
+	#	"|foo @ faa"
+<verb><tscreen>
+and we want to do correct focusing...
+<tscreen><verb>
+
+	ssift "$address" in
+	# Now make canonical
+	'"'(.*)'"'<(.*)
+		address="\1\2"			# defocus
+		;;
+	'"'(.*)'"'>(.*)
+		address="\1\2"			# defocus
+		break ;;
+	([\'"'].*[\'"'])<(.*)
+		address="\1\2" ;;		# defocus
+	([\'"'].*[\'"'])>(.*)
+		address="\1\2" ;;		# defocus
+	# See that it does not start with a pipe ...
+#	\|.+	# Looks like a pipe... Don't mutilate it!
+#		break ;;
+#	'"'[|].+	# Quoted pipe??   What the ...??
+#		break ;;
+	tfiss
+
+	address=$(canonicalize "$address")
+
+	ssift "$address" in
+#	<in%>(.*)
+#		return (((error vms-in-pros "in%\1" $A))) ;;
+#	(.*)<@(.+)\.uucp>(.*)
+#		seenuucp=true
+#		address="\1$plustail<@\2>\3" ;;		# fix host.uucp!route
+#	(.*)<@(.+)\.(bitnet|earn|netnorth)>(.*)
+#		seenbitnet=true		# Strip off the (bitnet|netnorth|earn)
+#		address="\1<@\2>\4" ;;		# fix host.bitnet!route
+#	 handle special cases.....
+#	\\(.)	return (((local - "$address" $A))) ;;
+	@	# handle <> form???
+		tmp=(local user postmaster $A)
+		return $(routeuser $tmp "")
+		;;
+</verb></tscreen>
+
+The following two are two approaches to the same problem, generally
+speaking we should use the SECOND one, but your mileage may vary...
+(Problems exist when WE are the target..)
+
+<tscreen><verb>
+#	(.*)<@\[(.)\]>(.*)
+#		address="\1$plustail<@$(gethostbyaddr \2)>\3"
+#		;;
+	(.*)<@\[(.)\]>(.*)
+		# numeric internet spec
+		if [ $(selfmatch "\2") ]; then
+			address="\1$plustail<@>\3"
+			domain="@[\2]"
+			plustail=""
+		else
+			return (((smtp "[\2]" "\1$plustail@$(gethostbyaddr \2)\3" $A)))
+		fi
+		;;
+</verb></tscreen>
+
+This is the end of the [1.2.3.4] address case...
+
+<tscreen><verb>
+	(.*)<@(.*)\.>(.*)
+		address="\1$plustail<@\2>\3"
+		plustail=""
+		;;
+</verb></tscreen>
+
+Now massage the local info.
+
+<tscreen><verb>
+	(.*)<@(.*)($orgdomains)>(.*)
+		address="\1$plustail<@\2$orgdomain>\4"
+		domain="@\2$orgdomain"
+		plustail=""
+		;;
+	<@(.*)>[:,](.+)@(.+)
+		if [ $(deliver "\1") ]; then # Source routed to our name?
+			return $(rrouter "\2$plustail@\3" "$origaddr" $A "" "")
+		fi
+		;;
+	<@($orgdomains)>[:,](.+)@(.+)
+		return $(rrouter "\2$plustail@\3" "$origaddr" $A "" "")
+		;;	# strip organization
+	(.+)<@(.+)>(.*)
+		if [ $(deliver "\2") ]; then	# Do we handle this?
+			address="\1$plustail<@>\3"
+			domain="@\2"
+			plustail=""
+		elif [ "\2" = "$hostname" ]; then # Is it at local host?
+			address="\1$plustail<@>\3" # (this is a backup test)
+			domain="@\2"
+			plustail=""
+		fi ;;
+	<@>.(.+)	# This plustail is propably wrong...
+		return $(rrouter "\1$plustail" "$origaddr" $A "" "$domain") ;;	# try after route strip
+	(.+)<@>	
+		if [ -z "$domain" ]; then
+			domain="$mydomain"
+		fi
+		return $(rrouter "\1$plustail" "$origaddr" $A "" "$domain") ;;	# strip trash & retry
+	tfiss
+
+#log "BITNET name=$bitnetname, address=$address"
+	case $bitnetname in
+	?*)	tsift "$address" in
+		(.*)<@(.*)\.(bitnet|netnorth|earn)>(.*)
+			address="\1<@\2>\4" ;;
+			# Strip off the (bitnet|netnorth|earn)
+		tfist
+		;;
+	esac
+#log "BITNET name=$bitnetname, address=$address"
+
+</verb></tscreen>
+
+Resolve names to routes, get the actual channel name mostly from an external database.
+
+<tscreen><verb>
+
+	ssift "$address" in
+	(.*)<@(.+)>(.*)	
+#log "neighbourg test: domain: \2, addr: $address"
+		address="\1$plustail@\2\3"
+		plustail=""
+
+</verb></tscreen>
+
+If you want to have the SMARTHOST to pick the routing
+for all non-local stuff, enable the following test case..
+
+<tscreen><verb>
+
+		# if [ "$SMARTHOST" ]; then
+		#	return $(rrouter "$SMARTHOST!$(uucproute "$address")$plustail" "$origaddr" $A "" "$domain")
+		# else
+		#	return ((($UNRESOLVABLEACTION "$address" $A)))
+		# fi
+
+
+		#if [ x$seenbitnet = xtrue ]; then
+		#	address="\1@\2.bitnet"
+		#fi
+
+		didhostexpand=$(hostexpansions "\2")
+
+		for method in $protocols
+		do
+		   	tmp=$(${method}_neighbour "\2" "$address" $A) &&
+				return $tmp
+		done
+
+		#if [ x$seenuucp = xtrue ]; then
+		#	if [ "$UUCPACTION" != "" ]; then
+		#		return ((($UUCPACTION "\1@\2.uucp" $A)))
+		#	fi
+		#	tmp=$(routes_neighbour "\2.uucp" "$address" $A) &&
+		#		return $tmp
+		#fi
+
+		#if [ x$seenbitnet = xtrue ]; then
+		#	if [ "$BITNETACTION" != "" ]; then
+		#		return ((($BITNETACTION "\1@\2.BITNET" $A)))
+		#	fi
+		#fi
+
+
+		if [ "$SMARTHOST" ]; then
+			return $(rrouter "$SMARTHOST!$(uucproute "$address")" "$origaddr" $A "" "$domain")
+		else
+			return ((($UNRESOLVABLEACTION "$address" $A)))
+		fi
+		;;
+
+	\\(.+)	# A back-quote prefixed userid (most likely)
+		return $(rrouter "\1" "$origaddr" $A "$plustail" "")
+		;;
+
+	/.+	# file
+</verb></tscreen>
+
+Well, it could be a slash-notated X.400 address too..
+
+<tscreen><verb>
+		return (((local "file.$origaddr" "$address" $A)))
+		;;
+	\|.+	# pipe
+		return (((local "pipe.$origaddr" "$address" $A)))
+		;;
+	:include:.+ # ":include:" -alias
+</verb></tscreen>
+
+We must test this here, because the file-path after
+this prefix may have a dot.
+
+<tscreen><verb>
+		tmp=(local "$origaddr" "$address" $A)
+		return $(routeuser $tmp "")
+		;;
+</verb></tscreen>
+
+Ok, from now on if we don't have a domain set, we use <tt>&dollar;mydomain</tt>
+
+<tscreen><verb>
+	.*	if [ -z "$domain" ] ; then
+			domain="@$mydomain"
+		fi
+		;;
+	(.+\.[^+]+)(\+.+)  # Dotfull name with a plus!
+		plustail="\2"
+		address="\1"
+</verb></tscreen>
+
+Fall forward for the dotfull processing.
+
+<tscreen><verb>
+		;;
+	.+\..+	# A dotfull name
+		tmp="$(fullnamemap "$address")" && \
+			return $(rrouter "$tmp" "$origaddr" $A "$plustail" "$domain")
+		if [ $(newsgroup "$address") ]; then
+			return (((usenet - "$address" $A)))
+		fi
+</verb></tscreen>
+
+Okay... Not in our special fullname/newsgroup-files,
+lets see if it is in the traditional one?
+
+<tscreen><verb>
+		if [ $(aliases "$address") ]; then
+</verb></tscreen>
+
+It can be found from the normal aliases,
+run the alias processing.
+
+<tscreen><verb>
+			tmp=(local "$origaddr" "$address" $A)
+			return $(routeuser $tmp "$domain")
+		fi
+		return (((error norealname "$address" $A)))
+		return (((error nonewsgroup "$address" $A)))
+		;;
+
+	.*	# Now all the rest of the cases..
+		tmp=(local "$origaddr" "$address$plustail" $A)
+		return $(routeuser $tmp "$domain")
+		;;
+	tfiss
+}	# end of rrouter
+
+routes_spec (domain, address, A) {
+	local tmp channel rscshost
+
+	sift "$domain" in
+#	(bsmtp3nd|bsmtp3|bitnet2|bitnet2deliver2)!(.)!(.)
+	(bsmtp3nd|bsmtp3|bsmtp3nd|bsmtp3rfc|bsmtp3ndrfc)!(.)!(.)
+		return (((\1 "\2@\3" "$address" $A))) ;;
+	(defrt1)!(.)
+		channel=\1
+		rscshost=\2
+
+		tmp="$(uucproute "$address")"
+		sift "$tmp" in
+		.+!([^!]+)!([^!]+)
+</verb></tscreen>
+
+We are trying to gateway through a DEFRT1 domain(!)
+
+<tscreen><verb>
+			#return (((error bitnetgw "$address" $A))) ;;
+</verb></tscreen>
+
+This will usually work anyway, sigh...
+
+<tscreen><verb>
+			return (((bsmtp3 "mailer@$rscshost" "\2@\1" $A))) ;;
+		([^!]+)!([^!]+)
+</verb></tscreen>
+
+The destination domain is the next hop, so we're all happy.
+
+<tscreen><verb>
+			return ((($channel "\2@$rscshost" "\2@\1" $A))) ;;
+		tfis
+		;;
+	ignore!.*
+		break
+		;;
+	smtp!
+		ssift "$address" in
+		(.*)@(.+)
+			return (((smtp "\2" "$address" $A)))
+			;;
+		tfiss
+		;;
+	dns!
+		ssift "$address" in
+		(.*)@(.+)
+			return (((smtp "\2" "$address" $A)))
+			;;
+		tfiss
+		;;
+	(.?)!
+		return ((("\1" - "$address" $A)))
+		;;
+	delay!(.)
+</verb></tscreen>
+
+NB! envelope info must also be defined in interactive mode.
+
+<tscreen><verb>
+		tmp="$(/bin/expr $(get envelopeinfo now) + "\1")"
+		return (((hold "$tmp" "$address" $A))) ;;
+	(.?)!([^!]+)
+		return ((("\1" "\2" "$address" $A))) ;;
+	(.?)!(.+)
+		# BEWARE LOOPS
+		return $(rrouter "\2!$(uucproute "$address")" "$address" $A "" "$domain")
+		;;
+	tfis
+	return 1
+}
+
+uucproute (address) {
+</verb></tscreen>
+
+This function turns any address into a pure-! form.  It should not
+call any other functions, since random other functions call it.
+In particular it should not use rfc822route which itself uses
+uucproute.
+
+<tscreen><verb>
+	sift "$address" in
+	(.*)<(.*)>(.*)		address=\1\2\3 ;;		# defocus
+	(.+!)@(.+)		address=\1$(uucproute "@\2") ;;
+	(.+)([,:]@)(.+)		address=\1!\3 ; continue ;;
+	:include:[^!]+		return $address ;;
+	@(.+:)([^:]+)		address=\1$(uucproute "\2") ;;
+	(.+):(.+)		address=\1!\2 ; continue ;;
+</verb></tscreen>
+
+This won't work properly for e.g. utzoo!bar@gpu.utcs.toronto.edu
+because gpu.utcs also has an active uucp connection with utzoo.
+It will work properly in other cases though, so if we have to guess...
+
+<tscreen><verb>
+	#([^!])!(.+)@(.+)	if [ $(ldotsys \1) ]; then
+	#				address=\1!\3!\2
+	#			else
+	#				address=\3!\1!\2
+	#			fi ;;
+	(.+)!([^!]+)%([^!%]+)@(.+)	# route!a%b@c -> route!c!a@b
+				address=\1!\4!\2@\3 ; continue ;;
+	([^@]+)@(.+)		address=\2!\1 ;;
+	@(.+)			address=\1 ;;
+	(.+)!([^!]+)[%@](.+)	address=\1!\3!\2 ;;
+	tfis
+	return "$address"
+}	# end of uucproute
+</verb> </tscreen>  

@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# maillog -- see if mail has been processed. (see also mailto/mailfrom)
+#
+LOG=/var/log/mail
+	# Nexus.
+ProgName=`basename $0`
+Ext=""
+File="router"
+
+main() {
+	if [ $# -lt 1 ]; then
+		echo  "${ProgName} -- seach logs for mail mentioning \"person\"."
+		echo "Usage: $0 person@place"
+		exit 1
+	fi
+	while :; do
+		case "$1" in
+		-[0-9]) Ext=`expr "$1" : '-\(.*\)'`
+			Ext=".$Ext"
+			shift
+			;;
+		-s) 	File="smtp"
+			shift
+			;;
+		*) 	break
+			;;
+		esac
+	done
+	adressee=$*
+	
+	echo "${ProgName}: searching for mail to/from $adressee in $File$Ext log."
+	if [ ! -f $LOG/$File$Ext ]; then
+		echo "${ProgName}: no such logfile as $LOG/$File$Ext"
+		exit
+	fi
+
+	if [ "$File" = "router" ]; then
+		egrep -i "=>.*$adressee|$adressee.*=>" $LOG/$File$Ext
+	else
+		egrep -i "RCPT.*$adressee|MAIL.*$adressee" $LOG/$File$Ext
+	fi
+	if [ $? -eq 1 ]; then
+		echo "No mail message found."
+		exit
+	fi
+}
+	
+main $*

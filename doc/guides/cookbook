@@ -1,0 +1,268 @@
+Cookbook (original by Jean-Franc,ois Lamy <lamy@cs.utoronto.ca>)
+
+This short guide is meant to document procedures that are useful when running
+ZMailer.  It is obviously not meant as a substitute for the official ZMailer
+document.
+
+OVERVIEW:
+
+Zmailer has 2 main components: a program called the router parses the headers,
+consults name servers and configuration files and produces an "envelope" for
+each message.  For each recipient of the message, the envelope specifies which
+method is to be used to reach the next host along the way, and an address
+rewritten appropriately so that host can deal with it.
+
+The second component is a scheduler that takes the envelope and
+invokes the various transport agents required for delivery to the various
+destinations.
+
+Zmailer operates in a "postoffice" (its location is determined by the value
+of POSTOFFICE in /etc/zmailer.conf).  The state of the system at any given
+time is described by the location of messages and associated "envelopes"
+in the various subdirectories of the postoffice.  The structure of the
+postoffice directory is as follows:
+
+public 
+   This directory is used much like /tmp to construct messages.
+   Once the message is complete, the message is moved to router (this
+   only requires updating pointers in directories, since both directories
+   are in the same partition).  The replacement for /usr/lib/sendmail does
+   this work, as does the smtpserver program that accepts mail via the smtp
+   protocol.
+
+router 
+   A program called the "router" scans this directory; it consults name
+   servers and configurations files and creates an envelope that contains all
+   the addresses for all recipients, suitably rewritten to follow the
+   conventions required by each output channel.
+
+deferred 
+   If there is some problem which means a message cannot be processed at all
+   by the router, most often because of nameserver problems, then the message
+   goes to this directory.  The messages can be moved back to the router
+   directory using the "zmailer resubmit" command.  It is normally done
+   by cron every few hours.
+   
+queue 
+   Once the router has created the envelope, the original message is moved to
+   the queue directory, where it will remain until all recipients have been
+   processed. The original message is never touched (only the text of the
+   message will be used, from now on).
+
+transport 
+   The router also creates a link to the envelope in this directory.
+   
+transport
+   The envelope created by the router comes here.   Scheduler sits on
+   this directory, and starts channel transporters from here giving them
+   filenames relative to this directory.  Once the scheduler, and its
+   transporters have dealt with an envelope, it removes the envelope file
+   from here. 
+
+
+CONFIGURATION
+
+There are 4 sources of configuration data for zmailer
+
+- /etc/zmailer.conf: this file defines options and the location of the
+  directories used by Zmailer.  Important values are
+
+  MAILSHARE	   architecture and host-independent configuration files.
+  MAILVAR	   host-specific databases and mailing lists.
+  MAILBIN	   The binaries for all Zmailer programs
+  POSTOFFICE	   Where the postoffice directory (mail queues) is.
+
+- .conf and .cf files; they are normally found in the MAILSHARE directory.
+  They include the router.cf, scheduler.conf and sm.conf files.  Normally
+  there is no need to look at those files once the initial installation is
+  done.  A collection of .cf files may be kept in the MAILSHARE/cf directory,
+  where they will be used by MAILSHARE/router.cf.
+
+- Name server data; see the relevant section under "common procedures"
+
+- Databases; they are found in MAILVAR/db.  This is normally all you would
+  ever touch, and this is what makes your installation unique.   The databases
+  include the system-wide aliases files and the routing exceptions file.
+  See the relevant sections below for details.
+
+
+COMMON PROCEDURES
+
+* defining system-wide aliases
+     
+  This is done by editing MAILVAR/db/aliases.  This file is in the same
+  format as the sendmail alias file, namely entries of the form
+
+	somealias: address1, address2, ..., addressN
+
+  One difference from the sendmail format is that double quotes must be used
+  for including a list of addresses kept in a file, one line per address, as
+  in
+
+	somelist: ":include:/usr/some/list/file"
+
+  After modifying aliases you must run the program "newaliases".
+
+  THE KEY-PART AT THE ALIASES (as well as fullnamemap, et.al.) MUST BE
+  IN CANONIC FORMAT -- THAT IS, IN LOWER CASE.
+
+* looking at the mail queues
+
+	  mailq -sv | more
+
+  This gives you a summary of the state, followed by verbose output.  A
+  second v selects more verbosity.  See the man page for details.
+
+* figuring out what mail-related processes are running
+
+	  ps axw | egrep 'mail|smtp'
+
+  You should see a router and a scheduler. Depending on your installation,
+  smtpserver may be running as a daemon or get started on demand by inetd.
+  Children of the smtpserver (one per active incoming connection) change their
+  name to display who they are talking to.  smtp processes (for outgoing
+  connections) do similar substitutions to reflect their status.
+
+* stopping zmailer
+
+	  zmailer kill
+
+  is appropriate for most urgent problems.  You can also stop programs
+  individually by naming them, e.g. "zmailer kill router".
+
+* restarting zmailer
+
+	zmailer
+  or
+	zmailer program
+
+  where "program" is one of router, scheduler, or smtpserver.
+
+  If you are already running an smtpserver daemon and use the zmailer command
+  with no argument you will see "Bind: address already in use".  This means
+  that connections opened by the previous smtpserver are still open.  Ignore
+  the message.
+
+* making sure zmailer won't start at system startup
+
+  The ZMailer has a way to "freeze" it, that is block startup, because
+  the manager has decided that startup is bad thing to do:
+
+	zmailer freeze
+
+  To unblock the startup:
+
+	zmailer thaw
+	zmailer unfreeze	(synonym for "thaw")
+
+  You can do even:
+
+	zmailer thaw smtpserver freeze
+
+  on a frozen system to get it to receive SMTP email (which usually is
+  sensible thing to do, even when email routing and scheduling may be out
+  of order, but general setup is ok, and the POSTOFFICE directory exists.
+
+* testing the router
+
+  If you want to test your configuration or routing data, you can proceed
+  as follows:
+
+ 	MAILBIN/router -i		(select interactive mode)
+	trace on			(turn tracing on)
+	router user@broken.address	(the address that gave you trouble)
+	router another@address		(and so on)
+
+  Old salts can use /usr/lib/sendmail -bt instead of router -i, it also works.
+  Once satisfied that routing works,
+
+	zmailer router
+
+  will restart the router.
+
+  You can also run the router directly on a message.  Copy your message
+  to someplace other than the postoffice (/tmp is usually good), in a
+  numeric file name.  If the file name is 123, you run
+
+	MAILBIN/router 123
+
+  this will create the file .123 containing the control information produced
+  by the router.
+
+* forcing a stuck message to be rerouted
+
+  Find out the message file number using mailq.  Stop the scheduler
+  using
+
+	zmailer kill scheduler
+
+  Delete the message control file in POSTOFFICE/transport.
+
+  Move the original message file from POSTOFFICE/queue to POSTOFFICE/router.
+
+  Restart the scheduler using
+
+	zmailer scheduler
+
+  Note that this will effectively resend the message as it arrived.  You
+  may want to edit the message file to correct any problems or delete
+  destinations already processed.
+
+  On list-expansion cases you may edit the headers with new destination
+  definition, instead of kicking it thru the router.
+
+* deferred messages that won't go away
+
+  If you see a message of the form
+
+	N messages deferred
+
+  in the output of mailq -s that won't go away, you should look in
+  POSTOFFICE/deferred to see why the router is unable to process the messages.
+  You will need to interrogate the name servers, as described above.
+
+  After correcting name server data (or the address in the message) simply
+  move the file out of the deferred directory and move it back to the router
+  directory.
+
+  Deferrance may also be due to errors in configuration, and they are can
+  be rather difficult to find sometimes.  Ask long-time ZMailer gurus.
+
+* overriding normal routing
+
+  You can force messages to particular machines to travel using a particular
+  channel or via a particular host by editing MAILVAR/db/routes
+  The format is
+
+	     destination channel!where_to_send
+
+  THE FILE MUST BE KEPT SORTED.  Use sort -o hosts.transport
+
+  For example, you can force a particular internet address to be used for
+  SMTP connections, as follows:
+
+	     math.waterloo.edu smtp![129.97.128.1]
+
+  The smtp before the ! specifies which channel will be used.  
+
+  You can also use that to override the channel that would be used.  Neat
+  has an EAN connection (yet another network); the following line forces
+  ean to be used instead of smtp when speaking to iro.umontreal.ca and all
+  machines under that domain (the leading dot to indicate indicates this,
+  and can be used no matter what channel is used).
+
+	     .iro.umontreal.ca ean!
+
+  there is nothing after the !, because ean would ignore it anyway.
+
+* adding a UUCP neighbour
+
+  The simplest way is to use the hosts.transport file and add a line
+  of the form
+
+ 	neighbour uucp!neighbour
+
+  where neighbour is the UUCP node name of said neighbour.  The UUCP
+  transport channel is enabled by default.
+
+

@@ -1,0 +1,197 @@
+This directory contains the zmsh sources.  It is a Bourne shell clone with
+some extensions specific to ZMailer's needs.
+
+The motivation for this work is:
+- the first attempt at an sh clone using lex/yacc was dismal.
+- there was no free sh clone available at the time I started this (late '87).
+- the traditional implementation of sh does system calls (or even forks!) for
+  builtin functions in some contexts, which is unacceptable in a mailer that
+  calls builtins all day long.
+- no sh could have been able to handle builtins in the same way as unix commands
+  wrt pipes and such.
+- the major extensions necessary for the mailer didn't seem like much work given
+  a basic shell (hah!).
+- these extensions would introduce structured data (in the form of lists) to
+  the shell, and functions to manipulate such data, so the mailer could make
+  use of property lists for addresses.
+
+In retrospect a much more lispish shell would have been better, but many people
+hate all the parentheses so the most important reason for zmsh to exist is:
+
+- it will decrease the learning curve for mail admins who will be dealing
+  with a familiar environment with familiar rules.
+
+In other words, I think catering to the crowd is important enough to spend
+a year on the shell.
+
+
+The code was written from the SunOS 4 sh manual page (describing the
+System Vr3 sh) and conform to the functional behavior of that shell with
+the following differences:
+
+^ is not accepted as an alternative pipe character.
+
+A symbol may have both a function definition and a value.
+
+The shell is 8 bit transparent.
+
+All occurrences of "if any character in the word is quoted" should be read
+as "if the word or the first character of it is quoted".
+
+The -k option isn't supported.
+
+Inside backquotes, unix commands are executed in parallel (needed for deadlock
+avoidance).  If you need serial execution, use `(c1 ; c2)` instead of `c1 ; c2`.
+An alternative to this is to implement *all* `...` constructs as equivalent
+of `sh -c '...'` or `(...)`, the latter being relatively easy to do.
+
+(Builtin) commands that want to write more than a pipe buffer full, should
+detach themselves into a grandchild and run to completion independently.
+
+The "hash" command is not fully supported, in particular the fancy printing
+options are not implemented, however program location hashing is being done.
+
+If PS1 or PS2 are defined functions, then their function definition will
+be assumed to print an appropriate prompt and the function will be called
+instead of printing out the value of the PS1/PS2 shell variables.
+
+In IFS, NEWLINE is always ignored (i.e. it is always a separator) when
+reading commands.  This seems to match sh behaviour but not obviously
+so from the manual page.
+
+The SHELL envariable isn't special, since there is no restricted mode.
+
+SIGSEGV isn't special.
+
+The message printed for ${FOO?..} starts with "progname:" instead of "FOO:".
+
+The functions "login", "newgrp", "pwd", and "readonly", are not built in.
+
+Functions have named parameters.  If the argument list is exhausted on a
+function call, the remainder of the parameters are set to NULL.  If the
+parameter list is exhausted, the "@" variable is set to the remainder of
+the arguments (which means the behaviour is compatible with normal shells).
+
+The "local" builtin statement declares local variables within a function
+scope.
+
+Builtin commands in pipelines are run within the shell, so variable settings
+in that context will affect the shell process.
+
+The "type" function doesn't print shell function definition in text form.
+
+There is a "builtin" function to force args to be evaluated as builtin funcall.
+
+The termination string in here documents must be static: cat <<`echo EOF` is bad
+(although that particular case might work due to an accident of implementation).
+
+Control characters are printed as is, use stty ctlecho to do otherwise.
+
+
+Additions relative to the base shell:
+-------------------------------------
+
+The Korn shell backquote mechanism is supported (and preferred, by me).
+This means that `foo bar` is equivalent to $(foo bar) in all contexts.
+
+If you are used to an old-fashioned sh, the following are the ``unusual''
+builtin functions in this shell:
+
+	test (aka [), getopts, times, type, builtin, sleep
+
+The "type" and "builtin" functions are lifted from the Ninth Edition sh.
+The "test" function is in the shell because the mailer will use it very
+frequently.  Similarly for "sleep".
+
+The "sift" statement is a special-purpose construct for the mailer.  It
+is like a case statement, except the labels are regular expressions, are
+not terminated by a closing parenthesis, and exiting a sift label body
+will just cause a fall-through to the next sift label.
+
+The "local" statement can appear anywhere in a scope and declares
+variables that are created in the current scope and destroyed on exit from it.
+
+Functions may be defined with named parameters, which are scoped variables.
+
+The semantics of lists have been defined in various contexts:
+
+variable assignment:	recipient=(what ever)
+loops:			for i in (a b c); do; ...; done
+element counts:		$#variable or $(length $(expression))
+command line:		router $(list smtp neat.ai rayan) (...)
+associative lists:	$(get variable symbol)
+associative assignment:	setf $(get variable symbol) something
+
+Some new builtin functions (with a different type and behaviour than the
+normal builtins) have been defined to operate on lists.
+
+The following all do the obvious things:
+
+	car (aka first), cdr (aka rest), last, length, list
+
+The "grind" function is the echo for lists.  Use it to print a list value,
+e.g. "grind $recipient".
+
+The "elements" function is used to explode a list, e.g. for use in a loop
+or to concatenate the list elements together (yes, this looks context-
+dependent, but really is internally consistent although perhaps nonintuitive).
+For example:
+
+	hostlist=(neat.cs smoke.cs)
+	for hosts in $(elements hostlist)
+	do
+		...
+	done
+
+The "get" function is a property list lookup function.  Property lists are
+lists of alternating property/value pairs.  For example:
+
+	jane=(hair brown eyes blue)
+	get $jane eyes
+
+The "setf" function is usually a macro in modern lisps, but this language
+doesn't have macros so I have to jump through hoops instead.  It takes
+a retrieval command and a new value as arguments.  At present it works with
+(combinations of) car, cdr, get and last.  For example:
+
+	setf $(get $jane eyes) azur
+
+
+Lists are ignored in any context where they aren't expected, e.g. giving a
+list value as an argument to "echo" would behave just like a null argument.
+Builtin functions either know about lists (which subsumes normal strings),
+or about string values.  Defined functions are flexible, whatever you pass
+them will show up in their argument list.
+
+On a command line, the first argument can never be written as a list
+(since the parser won't be able to tell that from a function definition).
+However, the following arguments may be written as lists.  This leads to
+constructs like:
+
+	aliasexpand $(list local - rayan) plist
+
+The one exception to this is in the return statement, which may be given
+a list (or string) as its argument.  If so, the return value from the
+defined function become list-valued, and the status code is set to 0.
+If the argument to the return statement is numeric, it is assumed to be
+the desired status code.
+
+Be forewarned of strange effects if you print to stdout in a list-valued
+function that is called within a backquote (i.e. where the 'return value'
+is desired) and you expect a list back.
+
+
+-------------------------------------------------------------------
+BUGS:
+
+Nested here documents don't work with optimization off, and terminator
+string isn't stacked.
+
+It dumps core if you do something I didn't expect.
+
+Hitting interrupt during I/O stuff is a bad thing.
+
+The file descriptor prediction doesn't always work, specifically in
+(nested) multi-pipe command lines.
+
+Normal variable assignment does not update the status code ($? variable).

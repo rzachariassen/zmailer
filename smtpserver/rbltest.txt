@@ -1,0 +1,115 @@
+Message 5959/5962 Arnt Gulbrandsen                 Nov 12, 97 06:18:12 pm +0100
+
+Sender: mea@nic.funet.fi
+To:     mea@nic.funet.fi
+Subject: Re: Zmailer RBL support
+Date:   12 Nov 1997 18:18:12 +0100
+Lines: 105
+Return-Path: <mea@nic.funet.fi>
+X-Orcpt: rfc822;mea@mea.tmt.tele.fi
+
+mea@nic.funet.fi
+>       Send it to me too.
+
+Sure.  It's rotten, though.  Good for a test, to see if the concept
+works and is worth doing properly, but not anywhere near good enough
+to go into the zmailer distribution.
+
+Comments:
+
+ - the message char* is good.  When the rejection is set, it's good to
+   have a "reason" string.  If you agree, I will go through the source
+   and create "mail from %s is rejected due to spam" etc. in all the
+   right places.
+ - It would be neat to have blackholed sites be a category like the
+   domain and ip categories, so I could reject or accept mail based on
+   recipient.  (In my case, I'd accept mail to postmaster and one of
+   the sites I secondary for and deny mail to all other destinations.)
+
+ - The test checks for the existence of an A record.  It should really
+   check for the existence of an A record pointing to 127.0.0.2.
+
+--Arnt
+
+diff -ubr zmailer-2.99.49p8/smtpserver/smtpserver.c /home/agulbra/build/zmailer-2.99.49p8/smtpserver/smtpserver.c
+--- zmailer-2.99.49p8/smtpserver/smtpserver.c   Tue Oct 14 01:21:56 1997
++++ /home/agulbra/build/zmailer-2.99.49p8/smtpserver/smtpserver.c       Tue Nov
+11 22:19:22 1997
+@@ -47,8 +47,6 @@
+     {"DATA", Data},
+     {"BDAT", BData,},
+     {"RSET", Reset},
+-    {"VRFY", Verify},
+-    {"EXPN", Expand},
+     {"HELP", Help},
+     {"NOOP", NoOp},
+     {"QUIT", Quit},
+@@ -1201,15 +1199,30 @@
+             SS->myhostname);
+        type(SS, -553, NULL, "If you feel we mistreat you, do contact us.");
+        type(SS, 553, NULL, "Ask HELP for our contact information.");
+-    } else
++    } else {
++       char rblname[100];
++       unsigned char * cp = (unsigned char *)(&(SS->raddr.v4.sin_addr));
++       SS->blackholeurl = 0;
++       sprintf( rblname, "%d.%d.%d.%d.rbl.maps.vix.com.",
++                *(cp+3), *(cp+2), *(cp+1), *(cp) );
++       type(SS, -220, NULL, "Checking %s..", rblname );
++       typeflush(SS);
++       if ( gethostbyname( rblname ) ) {
++           sprintf( rblname, "http://maps.vix com/cgi-bin/lookup?%d.%d.%d.%d",
++                    *(cp), *(cp+1), *(cp+2), *(cp+3) );
++           type(SS, -220, NULL, "Mail will be rejected - see %s", rblname );
++           SS->reject_net = 1;
++           SS->blackholeurl = strdup( rblname );
++       }
+ #ifdef USE_TRANSLATION
+        type(SS, 220, NULL, "%s ZMailer Server %s ESMTP%s (%s) ready at %s",
+             SS->myhostname, VersionNumb, ident_flag ? "+IDENT" : "",
+             X_settrrc ? "nulltrans" : lang, cp);
+ #else                          /* USE_TRANSLATION */
+-       type(SS, 220, NULL, "%s ZMailer Server %s ESMTP%s ready at %s",
+-            SS->myhostname, VersionNumb, ident_flag ? "+IDENT" : "", cp);
++       type(SS, 220, NULL, "%s ESMTP.  No spam please.",
++            SS->myhostname);
+ #endif                         /* USE_TRANSLATION */
++    }
+     typeflush(SS);
+
+     SS->state = Hello;
+@@ -1341,9 +1354,20 @@
+          continue;
+        }
+        if (SS->reject_net && SS->carp->cmd != Quit && SS->carp->cmd != Help) {
+-           type(SS, -553, NULL, "You are on our reject-IP-address -list, GO AWAY!");
+-           type(SS, -553, NULL, "If you feel we mistreat you, do contact us.");-           type(SS, 553, NULL, "With 'HELP' command you can get out contact information.");
++           if ( SS->blackholeurl ) {
++               type(SS, -553, NULL,
++                    "This IP address is blacklisted because of spamming.");
++               type(SS, -553, NULL, "See %s for info.", SS->blackholeurl);
++               typeflush(SS);
++               continue;
++           }
++
++           type(SS, -553, NULL,
++                "You are on our reject-IP-address -list, GO AWAY!");
++           type(SS, -553, NULL,
++                "If you feel we mistreat you, do contact us.");
++           type(SS, 553, NULL,
++                "With 'HELP' command you can get out contact information.");
+            typeflush(SS);
+            continue;
+        }
+diff -ubr zmailer-2.99.49p8/smtpserver/smtpserver.h /home/agulbra/build/zmailer-2.99.49p8/smtpserver/smtpserver.h
+--- zmailer-2.99.49p8/smtpserver/smtpserver.h   Thu Sep 11 02:26:19 1997
++++ /home/agulbra/build/zmailer-2.99.49p8/smtpserver/smtpserver.h       Tue Nov
+11 22:08:52 1997
+@@ -146,6 +146,7 @@
+     struct command *carp;
+     struct policystate policystate;
+     int  policyresult, reject_net;
++    char * blackholeurl;
+     int  postmasteronly;
+     int  rport;
+     char ihostaddr[sizeof("[ipv6.ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]") + 8];

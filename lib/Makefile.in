@@ -1,0 +1,81 @@
+LIBNAME=	libz
+#
+# ZMailer routines destined for the system C library
+#
+srcdir=		@srcdir@
+VPATH=		@srcdir@
+
+@SET_MAKE@
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+DEFS=		@DEFS@
+TOPDIR=	..
+RANLIB=		@RANLIB@
+LIBZ_INCL=
+#
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(TOPDIR)/router
+
+CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(LIBZ_INCL)
+#
+OBJS=	esyslib.o stringlib.o rfc822date.o detach.o \
+	killprev.o linebuffer.o loginit.o die.o \
+	ranny.o trusted.o allocate.o prversion.o \
+	cleanenv.o splay.o rfc822scan.o token.o symbol.o \
+	strmatch.o nobody.o pwdgrp.o dottedquad.o hostent.o \
+	emalloc.o cfgets.o selfaddrs.o skip821address.o \
+	taspoolid.o strlower.o strupper.o
+SOURCE=	esyslib.c stringlib.c rfc822date.c detach.c \
+	killprev.c linebuffer.c loginit.c die.c \
+	ranny.c trusted.c allocate.c prversion.c \
+	cleanenv.c splay.c rfc822scan.c token.c symbol.c \
+	strmatch.c nobody.c pwdgrp.c dottedquad.c hostent.c \
+	emalloc.c cfgets.c selfaddrs.c skip821address.c \
+	taspoolid.c strlower.c strupper.c
+
+all $(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+rfc822date-test: rfc822date-test.o rfc822date.o
+	$(CC) $(CFLAGS) -o rfc822date-test rfc822date-test.o rfc822date.o
+
+selfaddrs-test: $(srcdir)/selfaddrs.c
+	$(CC) $(CFLAGS) -o selfaddrs-test -DTESTMODE  $(srcdir)/selfaddrs.c -L../libs -lzc -lresolv -lz
+
+$(TOPDIR)/libs/$(LIBNAME).a:	$(OBJS)
+	ar rv $@ $(OBJS)
+	$(RANLIB) $@
+
+# In addition to their respective sources, OBJS depend also of  rfc822.entry!
+$(OBJS): $(TOPDIR)/include/rfc822.entry
+
+$(TOPDIR)/include/rfc822.entry:
+	cd $(TOPDIR)/router; $(MAKE) MFLAGS=$(MFLAGS) rfc822.entry
+
+.PRECIOUS: $(TOPDIR)/libs/$(LIBNAME).a
+
+lintlib:	llib-l$(LIBNAME).ln
+
+llib-l$(LIBNAME).ln:	$(SOURCE)
+	lint -o $(LIBNAME) $(INCL) *.c
+
+lint:
+	lint -u $(DEFS) $(INCL) $(SOURCE)
+
+clean-recursive clean:
+	-rm -f $(TOPDIR)/libs/$(LIBNAME).a make.log rfc822date-test
+	-rm -f *.o *.out *.ln *~ selfaddrs-test
+
+distclean-recursive distclean: clean
+	-rm -f Makefile
+
+depend:
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

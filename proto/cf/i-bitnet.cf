@@ -1,0 +1,38 @@
+# BITNET initialization
+#
+# Variables: bitnetname
+# Relations: bitnetdb
+
+provide bitnetdb
+
+# /etc/name.bitnet might be a symlink to /local/lib/urep/BITNETNAME
+
+if [ -s /etc/name.bitnet ]; then
+
+#| It is not predictable where the BITNET node name file will be located
+#| on a particular host, since it strongly depends on local conventions.
+#| If it is a UREP host, /etc/name.bitnet should be a symbolic link to
+#| the BITNETNAME file.  The node name is case-independent.
+
+	bitnetname=`/bin/cat /etc/name.bitnet`
+fi
+
+#| If the BITNET node name is empty we cannot default to the local domain
+#| name since that is not defined yet.
+
+case "x$bitnetname" in
+x)	echo "i-bitnet: BITNET node name not defined (e.g. in /etc/name.bitnet)!"
+	exit 1
+	;;
+esac
+
+# The BITNET mailer tables are translated to a routes format database
+if [ -f $MAILVAR/db/routes.bitnet ]; then
+
+#| To avoid merging an automatically created database (see support/bitnet/)
+#| with the manually maintained routes file, a separate relation
+#| is created for a separate file in the same format as routes.
+
+	relation -lmt ordered -f $MAILVAR/db/routes.bitnet -d pathalias bitnetdb
+fi
+

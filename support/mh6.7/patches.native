@@ -1,0 +1,346 @@
+Return-Path: relay.cs.toronto.edu!cs.toronto.edu!zmailer-owner
+Received: from relay.cs.toronto.edu ([128.100.3.6]) by smoke.cs.toronto.edu with SMTP id <211>; Tue, 10 Mar 1992 23:04:36 -0500
+Received: from wiretap ([130.43.3.3]) by relay.cs.toronto.edu with SMTP id <150180>; Tue, 10 Mar 1992 23:01:10 -0500
+Received: from localhost by wiretap.Spies.COM with SMTP id <436287>; Tue, 10 Mar 1992 19:58:57 -0800
+To:	zmailer@cs.toronto.edu, mh-workers@ics.uci.edu
+cc:	ejo@kaja.gi.alaska.edu
+Subject: ZMailer support for MH 6.7.2
+Date:	Tue, 10 Mar 1992 22:58:48 -0500
+Message-ID: <4044.700286328@wiretap>
+From:	Bill Wisner <wisner@wiretap.Spies.COM>
+
+This patch adds support for the ZMailer transport agent to MH 6.7.2.
+This is "true" ZMailer support in that it causes post to call the
+ZMailer message submission routines rather than connecting to the
+SMTP port.  The small size of this patch is a testimony to the
+effectiveness of ZMailer's calling interface, I suppose.
+
+Be sure to re-format conf/mh-gen.8 to get up-to-date installation
+instructions (do not use READ-ME).  There are a couple of caveats in
+mh-gen.8 that ZMailer users will need to be aware of.
+
+If anyone has any problems using this patch please let me know; I'd like
+to make sure it works well (ie, outside my site) before I pound on the MH
+maintainers to include it in the next release.
+
+Bill Wisner <wisner@Spies.COM>
+
+------------------------------------------------------------------------------
+
+*** conf/makefiles/uip.orig	Fri Jan 24 15:19:02 1992
+--- conf/makefiles/uip	Tue Mar 10 13:11:30 1992
+***************
+*** 114,129 ****
+  CFLAGS	=	     $(OPTIONS)
+  @END: DEBUG
+  LDFLAGS	=	$(LDOPTIONS)
+  @BEGIN: STDLIB
+! LIBES	=	../config/config.o ../sbr/libmh.a ../mts/libmts.a \
+  		../zotnet/libzot.a
+  LDLIBS	=	$(LIBES) ../config/version.o $(LDOPTLIB)
+  @END: STDLIB
+  @BEGIN: SHAREDLIB
+! LIBES	=	../config/config.o ../sbr/libmh.so ../mts/libmts.a \
+  		../zotnet/libzot.a
+  LDLIBES	=	../config/config.o -Bdynamic @(SLDFLAG) -lmh \
+! 		../mts/libmts.a  ../zotnet/libzot.a
+  LDLIBS	=	$(LDLIBES) ../config/version.o $(LDOPTLIB)
+  @END: SHAREDLIB
+  LINT	=	lint
+--- 114,138 ----
+  CFLAGS	=	     $(OPTIONS)
+  @END: DEBUG
+  LDFLAGS	=	$(LDOPTIONS)
++ @BEGIN: MHMTS
++ MTSLIB	=	../mts/libmts.a
++ @END: MHMTS
++ @BEGIN: MMDFMTS
++ MTSLIB	=	../mts/libmts.a
++ @END: MMDFMTS
++ @BEGIN: SENDMTS
++ MTSLIB	=	../mts/libmts.a
++ @END: SENDMTS
+  @BEGIN: STDLIB
+! LIBES	=	../config/config.o ../sbr/libmh.a $(MTSLIB) \
+  		../zotnet/libzot.a
+  LDLIBS	=	$(LIBES) ../config/version.o $(LDOPTLIB)
+  @END: STDLIB
+  @BEGIN: SHAREDLIB
+! LIBES	=	../config/config.o ../sbr/libmh.so $(MTSLIB) \
+  		../zotnet/libzot.a
+  LDLIBES	=	../config/config.o -Bdynamic @(SLDFLAG) -lmh \
+! 		$(MTSLIB) ../zotnet/libzot.a
+  LDLIBS	=	$(LDLIBES) ../config/version.o $(LDOPTLIB)
+  @END: SHAREDLIB
+  LINT	=	lint
+*** conf/makefiles/MH-Makefile.orig	Sun Apr  8 19:55:57 1990
+--- conf/makefiles/MH-Makefile	Tue Mar 10 13:08:12 1992
+***************
+*** 45,51 ****
+  #	Generate MH system
+  ##############################################################################
+  
+! ALL	=	config sbr mts zotnet uip support doc
+  
+  all:;		for d in $(ALL); do (cd $$d; $(MAKE) all); done
+  
+--- 45,61 ----
+  #	Generate MH system
+  ##############################################################################
+  
+! @BEGIN: MHMTS
+! MTS	=	mts
+! @END: MHMTS
+! @BEGIN: MMDFMTS
+! MTS	=	mts
+! @END: MMDFMTS
+! @BEGIN: SENDMTS
+! MTS	=	mts
+! @END: SENDMTS
+! 
+! ALL	=	config sbr $(MTS) zotnet uip support doc
+  
+  all:;		for d in $(ALL); do (cd $$d; $(MAKE) all); done
+  
+*** conf/mhconfig.c.orig	Mon Jan 27 09:34:35 1992
+--- conf/mhconfig.c	Tue Mar 10 13:08:13 1992
+***************
+*** 94,99 ****
+--- 94,100 ----
+  #define	mmdf2		2
+  #define	mh		3
+  #define	sendmail	4
++ #define zmailer		5
+  static int mtsnum = unknown;
+  
+  static struct mtsopt {
+***************
+*** 112,117 ****
+--- 113,119 ----
+      "mh", "MHMTS", mh, NOFLAGS,
+      "sendmail", "SENDMTS", sendmail, NOMF,
+      "sendmail/smtp", "SENDMTS SMTP", sendmail, NOMF,
++     "zmailer", "ZMTS", zmailer, NOMF,
+      NULL, NULL, unknown, NOFLAGS
+  };
+  
+***************
+*** 420,429 ****
+--- 422,435 ----
+      else
+  	fprintf (fp, "/^@BEGIN: SENDMTS$/,/^@END: SENDMTS$/d\n");
+  
++     if (!flag && (mtsnum == zmailer))
++ 	fprintf (fp, "/^@BEGIN: ZMTS$/d\n/^@END: ZMTS$/d\n");
++ 
+      switch (mtsnum) {
+  	case mh:
+  	case sendmail:
+  	case mmdf:
++ 	case zmailer:
+  	    fprintf (fp, "/^@BEGIN: SENDMTSHACK$/d\n/^@END: SENDMTSHACK$/d\n");
+  	    break;
+  
+*** conf/mh-gen.8.orig	Thu Jan 30 08:41:44 1992
+--- conf/mh-gen.8	Tue Mar 10 13:08:15 1992
+***************
+*** 221,228 ****
+--- 221,235 ----
+  Either \*(lqmmdf\*(rq to use \fIMMDF\fR as the transport system,
+  \*(lqmmdf2\*(rq to use \fIMMDF\-II\fR as the transport system,
+  \*(lqsendmail\*(rq to have \fISendMail\fR as the transport system,
++ \*lq(zmailer\*(rq to have \fIZMailer\fR as the transport system,
+  or, \*(lqmh\*(rq to have \fIMH\fR as the transport system.
+  
++ If you're using the \*(lqzmailer\*(rq mts setting and the \fIZMailer\fR
++ mail submission routines have not been installed in your system's C library,
++ you will need to add the path to \*(lqlibc/libc.a\*(rq in you \fIZMailer\fR
++ source tree to the \*(lqldoptlibs\*(rq line in the \fIMH\fR configuration
++ file.
++ 
+  On UNIX systems supporting TCP/IP networking via sockets
+  you can add the suffix \*(lq/smtp\*(rq to the mts setting.
+  This often yields a superior interface as \fIMH\fR will post mail with the
+***************
+*** 969,974 ****
+--- 976,984 ----
+  .SS MMDF2/SMTP
+  If you are using \*(lqmmdf2/smtp\*(rq as your mts setting,
+  then no futher MTS\-specific action is required on your part!
++ .SS ZMAILER
++ If you are using \*(lqzmailer\*(rq as your mts setting,
++ then no further MTS\-specific action is required on your part!
+  .SS "STAND\-ALONE DELIVERY"
+  If, instead, you want \fIMH\fR to handle its own mail delivery,
+  then no futher MTS\-specific action is required on your part!
+*** uip/post.c.orig	Thu Jan 30 14:40:01 1992
+--- uip/post.c	Tue Mar 10 13:08:16 1992
+***************
+*** 29,34 ****
+--- 29,38 ----
+  #include "../mts/sendmail/smail.h"
+  #undef	MF
+  #endif	SENDMTS
++ #ifdef	ZMTS
++ #include <mail.h>
++ #undef	MF
++ #endif	ZMTS
+  #include <signal.h>
+  
+  
+***************
+*** 275,280 ****
+--- 279,289 ----
+  extern struct smtp  sm_reply;
+  #endif	SENDMTS
+  
++ #ifdef	ZMTS
++ static FILE *mfp;
++ char *progname = NULL;
++ #endif	ZMTS
++ 
+  #ifdef	TMA
+  #define	post(a,b,c) \
+      if (encryptsw) postcipher ((a), (b), (c)); else postplain ((a), (b), (c))
+***************
+*** 319,324 ****
+--- 328,337 ----
+      FILE   *in,
+  	   *out;
+  
++ #ifdef	ZMTS
++     progname = argv[0];
++ #endif	ZMTS
++ 
+      invo_name = r1bindex (argv[0], '/');
+      m_foil (NULLCP);
+      mts_init (invo_name);
+***************
+*** 1354,1359 ****
+--- 1367,1376 ----
+  	    || rp_isbad (retval = sm_winit (smtpmode, from)))
+  	die (NULLCP, "problem initializing server; %s", rp_string (retval));
+  #endif	SENDMTS
++ #ifdef	ZMTS
++     if ((mfp = mail_open(MSG_RFC822)) == (FILE *)NULL)
++ 	die(NULLCP, "problem initializing mail submission");
++ #endif ZMTS
+  
+  #ifndef	MHMTS
+      do_addresses (bccque, talk && verbose);
+***************
+*** 1382,1387 ****
+--- 1399,1408 ----
+  #ifdef	SENDMTS
+      (void) sm_end (!(msgflags & MINV) || bccque ? OK : DONE);
+  #endif	SENDMTS
++ #ifdef	ZMTS
++     if (mail_close(mfp) == EOF)
++ 	die (NULLCP, "message close failed\n");
++ #endif	ZMTS
+  
+      sigoff ();
+  
+***************
+*** 1683,1688 ****
+--- 1704,1716 ----
+  	if (rp_isbad (retval = sm_wtxt (buf, state)))
+  	    die (NULLCP, "problem writing text; %s\n", rp_string (retval));
+  #endif	SENDMTS
++ #ifdef	ZMTS
++ 	if (!fwrite(buf, state, 1, mfp))
++ 	    if (mail_abort(mfp) == EOF)
++ 		die (NULLCP, "problem writing text; abort failed\n");
++ 	    else
++ 	        die (NULLCP, "problem writing message text\n");
++ #endif	ZMTS
+  
+      if (state == NOTOK)
+  	die (file, "problem reading from");
+***************
+*** 2053,2058 ****
+--- 2081,2164 ----
+      (void) fflush (stdout);
+  }
+  #endif	SENDMTS
++ 
++ /*  */
++ 
++ #ifdef	ZMTS
++ 
++ #ifndef	TMA
++ /* ARGSUSED */
++ #endif	TMA
++ 
++ static do_an_address (lp, talk, tma)
++ register struct mailname *lp;
++ int     talk,
++ 	tma;
++ {
++     int     retval;
++     register char  *mbox,
++                    *host;
++     char    addr[BUFSIZ];
++ #ifdef	TMA
++     char    reason[BUFSIZ];
++ #endif	TMA
++ 
++     switch (lp -> m_type) {
++ 	case LOCALHOST: 
++ 	    mbox = lp -> m_mbox;
++ 	    host = lp -> m_host;
++ 	    (void) strcpy (addr, mbox);
++ 	    break;
++ 
++ 	case UUCPHOST: 
++ 	    mbox = auxformat (lp, 0);
++ 	    host = NULL;
++ 	    (void) sprintf (addr, "%s!%s", lp -> m_host, lp -> m_mbox);
++ 	    break;
++ 
++ 	default: 		/* let SendMail decide if the host is bad  */
++ 	    mbox = lp -> m_mbox;
++ 	    host = lp -> m_host;
++ 	    (void) sprintf (addr, "%s at %s", mbox, host);
++ 	    break;
++     }
++ 
++ #ifdef	TMA
++     if ((!whomsw || checksw)
++ 	    && tma
++ 	    && seekaddr (mbox, host, reason) == NOTOK) {
++ 	fprintf (talk ? stdout : stderr, "  %s%s: %s\n",
++ 		addr, "[TMA]", reason);
++ 	unkadr++;
++     }
++ #endif	TMA
++ 
++     if (talk)
++ 	printf ("  %s%s", addr, whomsw && lp -> m_bcc ? "[BCC]" : "");
++ 
++     if (whomsw && !checksw) {
++ 	(void) putchar ('\n');
++ 	return;
++     }
++     if (talk)
++ 	printf (": ");
++     (void) fflush (stdout);
++ 
++ /*  */
++ 
++ #ifndef	BERK
++     fprintf(mfp, "to %s@%s\n", mbox, host);
++ #else	BERK
++     fprintf(mfp, "to %s\n", mbox);
++ #endif	BERK
++ 
++     if (talk)
++ 	printf("queued\n");
++ 
++     (void) fflush (stdout);
++     (void) fflush (mfp);
++ }
++ #endif	ZMTS
+  
+  /*    SIGNAL HANDLING */
+  

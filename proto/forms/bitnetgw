@@ -1,0 +1,16 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Invalid mail gateway specification
+ADR Cc: The Post Office <postoffice>
+
+A copy of your message is being returned to you because one or more of
+the addresses you specified in the message refer to a host which cannot
+process your message as specified.  You should find an alternative path
+to your correspondent's address, or have the mailer on this host determine
+the proper route by specifying the final address relative to this host.
+
+You may send a query to the Postmaster at this gateway if you require
+further assistance.
+
+Your message is being returned unprocessed.
+

@@ -1,0 +1,446 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH ZMSH 1 "24 Dec 1994"
+.SH NAME
+zmsh \- zmailer shell
+.SH SYNOPSIS
+.B zmsh
+[
+.B \-CILOPRSYisaefhntuvx
+]
+[
+.B \-c 
+.I command
+]
+[
+.I script
+\&... ]
+.SH DESCRIPTION
+.I zmsh
+is an implementation of the Bourne shell suitable for use with the ZMailer
+.IR router (8)
+as its configuration file language interpreter.
+It contains extensions that allow structured data
+(in the form of lists) to be manipulated.
+.PP
+The shell supports three basic kinds of functions:
+Unix commands, user-defined functions, and builtin commands.  The latter
+comes in two variations: normal functions which take string arguments and
+return a status code (much as an embedded Unix command would work), and
+list-manipulation functions which understand list arguments and can return
+list arguments.  The defined functions can take any form of argument and
+return any form of value (a status code, a string, or a list).
+.PP
+Shell operations (pipes, backquote evaluation and substitution)
+will work between combinations of builtin functions, defined functions,
+and Unix commands.
+.PP
+The shell precompiles its input to a (possibly optimized) byte-code form,
+which is then interpreted as required.  This means that the original form
+of the input is not kept around in-core for future reference.
+If the input is an included file, the shell will try to save the byte-code
+form in a
+.B .fc
+file associated with the input file.  For example, if input is from
+.BR file.cf ,
+the shell will try to create
+.B fc/file.fc
+and then
+.BR file.fc .
+These files will in turn be searched for and loaded (after a consistency
+check) whenever a
+.B .cf
+file is included.
+.PP
+The effects of input and output redirections are predicted prior to
+the execution of a command and its I/O setup.
+.SH INCOMPATIBILITIES
+.I zmsh
+is based on the System V release 3 shell as described in a SunOS 4.0
+manual page.  It conforms to the behaviour of that shell, with the following
+differences:
+.IP
+^ is not accepted as an alternative pipe character.
+
+A symbol may have both a function definition and a value.
+
+The shell is 8 bit transparent.
+
+All occurrences in the
+.IR sh (1)
+manual page of "if any character in the word is quoted" should be read
+as "if the word or the first character of it is quoted".
+
+The \-k option is not supported.
+
+Inside backquotes, for efficient deadlock avoidance, Unix commands are
+executed in parallel.
+If you need serial execution, use
+\fB`(\fIc1\fB ; \fIc2\fB)`\fR instead of
+\fB`\fIc1\fB ; \fIc2\fB`\fR.
+
+Builtin commands that want to write more than one pipe buffer full should
+detach themselves into a grandchild and run to completion independently.
+
+The
+.B hash
+builtin is not fully supported.  The fancy printing
+options are not implemented, but program locations are hashed.
+
+If
+.B PS1
+or
+.B PS2
+are defined functions, then their function definition will
+be assumed to print an appropriate prompt and the function will be called
+instead of printing out the value of the
+.BR PS1 /\fBPS2\fR
+shell variables.
+
+In
+.BR IFS ,
+.I newline
+is always ignored (it is always a separator) when
+reading commands.  This seems to match normal shell behaviour but not
+obviously so from the manual page.
+
+The
+.B SHELL
+environment variable is not special, since there is no restricted mode.
+
+.B SIGSEGV
+is not special.
+
+The message printed for \fB${FOO?\fI...\fB}\fR starts with
+.IR progname \fB:\fR
+instead of 
+.BR FOO: .
+
+The functions
+.BR login ,
+.BR newgrp ,
+.BR pwd ,
+and
+.BR readonly ,
+are not built in.
+
+Functions can have a comma-separated list of named parameters.
+If the argument list is exhausted on a
+function call, the remainder of the parameters are set to the empty string.
+If the parameter list is exhausted, the 
+.B @
+variable is set to the remainder of
+the arguments.  This behaviour is backward compatible with normal shell
+functions.
+
+The 
+.B local
+builtin statement declares local variables within a function scope.
+
+Builtin commands in pipelines are run within the shell, so variable settings
+in that context will affect the shell process.
+
+The 
+.B type
+function does not print a shell function definition in text form.
+
+There is a 
+.B builtin
+function to force its arguments to be evaluated as builtin function call.
+
+The termination string in here documents must be static.  Something like
+\fBcat << `echo EOF`\fR will not work.
+.SH EXTENSIONS
+The following additions and extensions have been made relative to the
+base shell:
+.PP
+The Korn shell backquote mechanism is supported.  This means that
+\fB`foo bar`\fR is equivalent to \fB$(foo bar)\fR in all contexts, although
+the latter form is preferred for clarity.
+.PP
+If you are used to an old Bourne shell, the following are the unusual
+builtin functions in this shell:
+.sp
+.ta 0.5i
+	\&
+.B test
+(or
+.BR [ ),
+.BR getopts ,
+.BR times ,
+.BR type ,
+.BR builtin ,
+.BR sleep .
+.sp
+The 
+.B type
+and
+.B builtin
+functions are lifted from the Ninth Edition Bourne shell.
+The 
+.B test
+and
+.B sleep
+functions are in the shell because the mailer will use them very frequently.
+.PP
+The 
+.BR ssift / tsift
+statements are special-purpose constructs for the mailer.
+They act like a
+.B case
+statement, except the labels are regular expressions, are
+separated from the label body by whitespace instead of being
+terminated by a closing parenthesis, and exiting a
+.BR ssift / tsift
+label body will just cause a fall-through to the next
+.B ssift / tsift
+label.  This is similar to the production-rule semantics of Sendmail.
+.PP
+The
+.B tsift
+structure has (for compability reasons) alias:
+.BR sift .
+The difference in between
+.B ssift
+and
+.BR tsift ( sift )
+is on what is being matched:
+The
+.B tsift
+matches
+.B TOKENS
+in RFC-822 sense, while
+.B ssift
+at first expands the token sequence into a string, and then
+does the regexpr matching.
+.PP
+The
+.B local
+statement can appear anywhere in a scope (a \fB{\fI...\fB}\fR grouping) and
+declares
+variables that are created in the current scope and destroyed on exit from it.
+Such variables are initialized to refer to a null string.
+.PP
+Functions may be defined with named parameters, which are scoped variables and
+destroyed on return from the function.
+.SH LIST SEMANTICS
+The semantics of lists have been defined in various contexts:
+.PP
+List:
+.sp
+	\fB(a b (c (d e) f (g)))\fR
+.IP
+A list may contain strings and other lists as elements.  It is printed and
+usually entered using traditional Lisp syntax.
+.PP
+Variable assignment:
+.sp
+.nf
+	\fBrecipient=(what ever)\fR
+	\fBnil=()\fR
+.fi
+.IP
+A shell variable value may be either a string or a list.  A list value can
+be entered directly.
+.PP
+Element counts:
+.sp
+.nf
+	\fB$#variable\fR
+	\fB$(length $(expression))\fR
+.fi
+.IP
+Every list-valued variable has a length accessed using the
+.B $#
+prefix, as in
+.I csh (1)
+syntax.  The
+.B length
+builtin function can also be used to count the number of toplevel elements
+of a list.  Empty lists have length 0.  Strings have no length.
+.PP
+Command line:
+.sp
+	\fBrouter $(list smtp neat.cs rayan) (\fI...\fB)\fR
+.IP
+Command-line arguments to builtin or defined functions may be lists.  The
+first argument cannot be entered directly as a list, but later arguments
+may be.  The restriction is due to a syntax clash with function definitions.
+.PP
+Loops:
+.sp
+	\fBfor i in yes (a b c) no; do; \fI...\fB; done\fR
+.IP
+A list in a loop list is treated as a single element.  The loop variable
+will be bound to it.
+.PP
+Associative (property) lists:
+.sp
+	\fB$(get variable symbol)\fR
+.IP
+The value of
+.B variable
+should be a list of even length, with alternating attributes and values.  The
+given symbol is matched with an attribute, and the following value is returned.
+.PP
+Associative (property) assignment:
+.sp
+	\fBsetf $(get variable symbol) value\fR
+.IP
+The
+.B setf
+function is used to change the value that would be returned by an expression,
+typically this is done by pointer manipulation.
+.PP
+Some new builtin functions have been defined to operate on lists:
+.IP \fBcar\fR
+(or
+.BR first ),
+returns the first element of the list which is its argument.
+.IP \fBcdr\fR
+(or
+.BR rest ),
+returns the list after the first element of the list which is its argument.
+.IP \fBelements\fR
+is used to explode a list, for use in a loop or to concatenate
+the list elements together.  For example:
+.sp
+.ta 0.5i 1i
+.nf
+	\fBhostlist=(neat.cs smoke.cs)
+	for hosts in $(elements hostlist)
+	do
+		\fI...\fB
+	done\fR
+.fi
+.sp
+.IP \fBget\fR
+is a property list lookup function.  Property lists are lists of alternating
+keywords (properties or attributes) and values.  For example:
+.sp
+.nf
+	\fBjane=(hair brown eyes blue)
+	get $jane eyes\fR
+.fi
+.sp
+.IP \fBgrind\fR
+is used for lists instead of
+.BR echo ,
+use it to print a list value.
+.IP \fBlast\fR
+returns the last element of the list which is its argument.
+.IP \fBlength\fR
+returns the count of elements of the list which is its argument.
+.IP \fBlist\fR
+returns the list containing its arguments as elements.
+.IP \fBsetf\fR
+takes a retrieval command and a new value as arguments.
+At present it works with (combinations of) \fBcar\fR, \fBcdr\fR,
+\fBget\fR and \fBlast\fR.  For example:
+.sp
+.nf
+	\fBsetf $(get $jane eyes) azur\fR
+.fi
+.sp
+.PP
+Lists are ignored in any context where they aren't expected.  For example,
+a list value as an argument to
+.B echo
+would behave just like a null argument.
+Builtin functions either know about lists (which subsumes normal strings),
+or about string values.  Defined functions are flexible, whatever you pass
+them will show up in their argument list.
+.PP
+On a command line, the first argument can never be written as a list
+(since the parser won't be able to tell that from a function definition).
+However, the following arguments may be written as lists.  This leads to
+constructs like:
+.sp
+.nf
+	\fBaliasexpand $(list local - rayan) plist\fR
+.fi
+.sp
+.PP
+The one exception to this is in the
+.B return
+statement, which may be given a list (or string) as its argument.  If so,
+the return value from the defined function becomes list-valued, and the
+status code is set to 0.  If the argument to the
+.B return
+statement is numeric, it is assumed to be the desired status code.
+.PP
+Be forewarned of strange effects if you print to stdout in a list-valued
+function that is called within a backquote (i.e. where the return value,
+not the status, is desired) and you expect a list back.
+.SH OPTIONS
+The following debugging options are specific to the internal function of
+.IR zmsh :
+.IP \-C
+print code generation output onto stdout.  If this option is doubled,
+the non-optimized code is printed out instead.
+.IP \-I
+print runtime interpreter activity onto /dev/tty.
+.IP \-L
+print lexer output onto stdout.
+.IP \-O
+optimize the compiled script.  If this option is doubled, the optimized code
+is also printed out.
+.IP \-P
+print parser output (S/SL trace output) onto stdout.
+.IP \-R
+print I/O actions onto /dev/tty.
+.IP \-S
+print scanner output (token assembly) onto stdout.
+.IP \-Y
+open /dev/tty for internal debugging use.
+.PP
+These are the normal shell options that are supported by
+.IR zmsh :
+.IP \-c
+run the given argument as a shell command script.
+.IP \-i
+this shell is interactive, meaning prompts are printed when ready for more
+input,
+.B SIGTERM
+is ignored, and the shell doesn't exit easily.  This flag
+is automatically set if stdin and stderr are both attached to a tty.
+.IP \-s
+read commands from stdin.  If there are non-option arguments to the shell,
+the first of these will be interpreted as a shell script to open on stdin,
+and the rest as arguments to the script.
+.IP \-a
+automatically export new or changed shell variables.
+.IP \-e
+exit on non-zero status return of any command.
+.IP \-f
+disables filename generation (a.k.a. "globbing").
+.IP \-h
+hash and cache the location of Unix commands.  This option is set by default.
+.IP \-n
+read commands but do not execute them.
+.IP \-t
+exit after running one command.
+.IP \-u
+unset variables produce an error on substitution.
+.IP \-v
+print shell input as it is read.
+.IP \-x
+print commands as they are executed.
+.SH BUGS
+Nested here documents don't work with optimization off, and terminator
+string isn't stacked.
+.PP
+Hitting interrupt during I/O stuff is a bad thing.
+.PP
+The file descriptor prediction doesn't always work, especially in
+(nested) multi-pipe command lines.
+.SH SEE ALSO
+sh(1), router(8)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>
+.br
+Some "small" tweaks by:
+.br
+Matti Aarnio <mea@utu.fi>

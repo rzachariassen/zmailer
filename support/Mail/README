@@ -1,0 +1,13 @@
+All versions of UCB Mail, and derivatives (mailx), have a nasty habit
+of not depositing proper RFC822 mail when they should be.  This is most
+apparent in the frequent lack of comma-separated addresses.  Sendmail
+compensates for this, but that is not a good approach.  The code
+already exists in UCB Mail to insert commas, except someone decided
+this only needed to be done if there is an '@' sign anywhere on the
+header line.  The included patch to the names.c file will hotwire the
+insert-commas flag to always be set.  The patch shows the first few
+lines of the detract() routine.  Binary sites with unstripped binaries
+might be able to patch the object code correspondingly.
+
+ZMailer doesn't do the necessary compensation, because it is extremely
+ambiguous to parse such header values.

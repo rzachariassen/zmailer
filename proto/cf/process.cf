@@ -1,0 +1,71 @@
+# This is the protocol switch function.  It keys off the form of the filename
+# to determine how to process a particular class of messages.  It is expected
+# that an internal function will be called to orchestrate the processing of
+# the message and enforce proper semantics.
+
+process (file) {
+
+#| The file argument is the name of a file in the $POSTOFFICE/router
+#| directory.
+
+	db flush pwuid
+	db flush pwnam
+	db flush fullname
+	db flush hostexpansions
+	db flush recipients
+
+#| Since we cannot detect that the password database has been updated under
+#| our feet, we flush the cached information every once in a while (in this
+#| case, before every message).
+
+	LOGMSG=''
+
+#| The LOGMSG variable is used by the intercept facility (in crossbar.cf)
+#| to make sure only a single copy of a message is saved when required.
+#| Each sender - recipient address pair can cause an intercept which can
+#| specify a file to save the message to.  This variable is appended to
+#| elsewhere, and processed at the end of this function.
+
+	case "$file" in
+#	[0-9]*.x400)	x400 "$file" ;;
+#	[0-9]*.uucp)	uucpfilter "$file" > /tmp/X.$$
+#			cat /tmp/X.$$ > "$file"
+#			rfc822 "$file" ;;
+	[0-9]*)		rfc822 "$file" ;;
+	core*)		/bin/mv "$file" ../$file.router.$$
+			return
+			;;
+	*)		/bin/mv "$file" ../postman/rtr."$file".$$
+			return
+			;;
+	esac
+
+	[ $? ] && return 0	# Leave when they returned failure..
+
+#| The file names in the $POSTOFFICE/router directory are determined by
+#| the parameter to the mail_open() C library routine.  This case
+#| statement knows about the various message file types needed on your
+#| system, and arranges appropriate processing of each.  The internal
+#| function "rfc822" expects a file name as argument, and determines the
+#| semantics of the message and of the configuration code.  For example,
+#| the router, crossbar, and header_defer functions have semantics only
+#| because the rfc822 function knows about them.  There are no other
+#| message formats supported in this distribution.
+
+	log info: recipients $(db count recipients) $(elements $(cdr $(cdr $(cdr $(cdr $envelopeinfo))))) '
+'
+
+#| For statistics gathering we print out the envelope information property
+#| list in its entirety, except for the file name, and the message id, both
+#| of which were logged earlier (in C code).
+
+	for f in $LOGMSG
+	do
+		{ echo "==${file}==$(rfc822date)==" ;
+		  /bin/cat ../queue/"$file" } >> $f && log saved "$file" in $f
+	done
+
+#| This does the saving of intercepted messages into archive files.
+
+}
+

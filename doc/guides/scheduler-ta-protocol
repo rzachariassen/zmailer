@@ -1,0 +1,106 @@
+		Scheduler-TA-protocol
+
+Notes on the protocol between the scheduler, and the transport agents
+
+
+	Basic interaction model of scheduler controlled transporters
+	is following:
+
+	The scheduler decides to need a new transporter, taking
+	"command=" parameter from  scheduler.conf entry matching
+	on the recipient address, and gives it appropriate ARGV.
+	When the child is created, it is given two pipes, one for
+	scheduler->ta, and other for reverse.  (If system has such
+	facility, may also use a full-duplex pipe.)
+
+
+	In old systems the scheduler proceeded to feed as many
+	job specifications as possible to the transporter, and
+	then closed the feed pipe.
+
+	The scheduler then continued by reading (when there was input)
+	the report-back pipe, until it returned EOF when the pipe was
+	closed, and the (zombified) child was reaped..
+
+
+	In the new systems the scheduler goes to wait for initial
+	worker->arbiter task signal, and then start interaction:
+
+	- TA sends "#hungry\n" to the scheduler, and awaits
+
+	- Scheduler sees "#hungry\n", and picks a task from the thread,
+	  (scheduling details omitted) and feeds selector info to the
+	  transporter in either of the two formats:
+	    1)	1234-321 \n
+	    2)  1234-321 \t host.name \n
+	  The first format is in case when the transporter was started
+	  with  $host  at its ARGV (and expanded to some  "host.name").
+	  The second format is used, when no explicite "host.name" is
+	  preset, and the transporter is thus free to jump from one host
+	  to another under the guidance from the scheduler.
+
+	  The scheduler may also send "#idle\n", in which case the
+	  scheduler did not have more work to be done, and signals
+	  the transporter, that it has been placed into idle queue.
+	  (The idleness signal is used at the smtp transporter to
+	   close the smtp connection in case no traffic occurs within
+	   3 minutes.)
+
+	  If the scheduler input to TA ends without a newline, there
+	  must have been some error -- like scheduler died without
+	  completing the pipe feed -- and such input must be discarded.
+
+	- Scheduler MAY have an option to ``overfeed'', that is, not to
+	  stay in lock-step with the transporters.  In such case the
+	  scheduler feeds all messages for particular host-selector at
+	  once, or until some limit is reached (pipe full, or count limit)
+	  (The scheduler may take considerable time to run around all of
+	   its child processes before it can return to same one again.)
+
+	- TA receives the input a line at the time, and picks the host-
+	  selector, if present.  It then proceeds to open the file 1234-321,
+	  but if it gets NULL from the opening routine, it will report
+	  "#resync 1234-321\n" back to the scheduler, and await a new task.
+	  (Upon reception of the #resync info, the scheduler discards all
+	   knowledge about the file from its memory, and lets it to be
+	   rescanned in at some latter time -- effectively refreshing the
+	   internal databases concerning its status.)
+
+	- Upon normal operation the TA reports back a bit more complex
+	  dataset syntax in one of following four formats:
+		18453/3527\tIETF-NOTARY\tok Quick SMTP connection!
+		18453/3527\tIETF-NOTARY\tdeferred Unable to contact host!
+		18453/3527\tIETF-NOTARY\terror Unknown user name "fred".
+		18453/3527\tIETF-NOTARY\tretryat [+]NNNN circuit unavailable.
+
+	  All reports are arbitary long character strings, which terminate
+	  at a newline ('\n'), thus no part of the diagnostics may contain
+	  newline in them, however CR ('\r') are interpreted at the diag-
+	  nostics printout as special form of a newline.
+
+	  The '\t' means TAB character,  "IETF-NOTARY" is diagnostic info
+	  thru TA-library  notaryreport(), and notary_setwrr() routines.
+
+	  Also within the IETF-NOTARY-data there may not be any TABs, nor
+	  Control-A's ('\001'), which are used as field separators.
+
+
+Transport-agent writer needs to setup notary report information before
+calling  diagnostic():
+
+	void notaryreport(char *rcpt_addr, char *action,
+			  char *status, char *diagnostic);
+	void notary_setwtt(char *while_talking_to);
+
+Giving non-NULL values to the parameters of  notaryreport()  sets
+respective internal parameter, and thus action/status/diagnostic
+can be set once, and recipient address changed in between reports,
+for example.
+
+Doing  ``notary_setwtt(NULL);''  resets possible value given to
+the ``while_talking_to'' parameter producing no ``wtt'' data at
+the diagnostic().
+
+What these all mean is best described by the RFCs 1894, and 1893,
+and other closely related ones: 1891, 1892
+(The implementation of 1891 is still partial)

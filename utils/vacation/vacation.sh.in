@@ -1,0 +1,54 @@
+#! /bin/sh
+realprog=@MAILBIN@/vacation.exe
+case "$HOME" in
+'')	echo "$0: HOME environment variable not set. Something is wrong." >&2
+	exit 1;;
+esac
+case "$1" in
+start)
+	if test -f $HOME/.forward; then
+		echo "$0: You already have a $HOME/.forward file." >&2
+		echo "        Move it somewhere else first." >&2
+		exit 1;
+	fi
+	if test ! -f $HOME/.vacation.msg; then
+		echo "You don't have a $HOME/.vacation.msg file.  Copying"
+		echo "the default one for you -- edit it if you want to"
+		echo "say when you return, or tell people whom to contact"
+		echo "in your absence"
+		cp @MAILSHARE@/vacation.msg $HOME/.vacation.msg
+	else
+		echo "$HOME/.vacation.msg already exists.  Using it."
+	fi
+	user=${LOGNAME-`whoami`}
+	case "$user" in
+	'')	echo "$0: don't know who you are.  Something is wrong." >&2
+		exit 1;;
+	esac
+#	if test -f $HOME/.vacforward; then
+#		echo $HOME/.vacforward exists.  Using it.
+#	else
+		echo "$user, \"|$realprog $user\"" > \
+			$HOME/.vacforward
+#	fi
+	ln $HOME/.vacforward $HOME/.forward
+	$realprog -I
+	echo "Remember to run"
+	echo "    vacation stop"
+	echo "when you return."
+	;;
+stop)
+	if test ! -f $HOME/.forward; then
+		echo "$0: No $HOME/.forward file. Something is wrong." >&2
+		exit 1
+	fi
+	rm $HOME/.forward
+	;;
+*)
+	exec $realprog $@
+	echo "$0: Wrong usage!"
+	echo "  $0 $@"
+	echo "Parameter is either: start  or  stop!"
+	exit 64
+	;;
+esac

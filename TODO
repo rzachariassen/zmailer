@@ -1,0 +1,307 @@
+Known/suspected bugs/Missing Features on current Zmailer sources
+
+- smtpserver:
+	Report that if the router subprocess crashes, interactive
+	processing goes into mixed state -- it reports 2XX, and
+	yet claims to be in wrong state (MAIL FROM or RCPT TO ?
+	I have forgotten..)
+
+- scheduler:
+	Sometimes will generate spurious successfull-delivery-
+	reports when the command is retried, and the tag selector
+	is unable to start the real processor.
+
+- scheduler:
+	does not always treat host-parts case-insensitively,
+	namely keeps "caipfs.rutgers.edu" and "caipfs.Rutgers.EDU"
+	as separate entities
+
+- router / lib/splay.c:
+  At some systems I see serious memory leakage on router, and the
+  question is naturally: WHERE ?  Some SPLAYs may be the cause;
+  the  spt_symbol  had 190 Million splays done on it when the router
+  had grown to 130 MB at nic.funet.fi ...  Debug continues. [20Oct1997]
+  It seems to be in rfc822/crossbar leaking one conscell per recipient
+  address.. [10Nov1997]
+
+- smtpserver
+  - accept email to postmaster(s), never mind what else policy testers
+    have determined...
+  - "-s" option processing is entirely wrong...
+  - The connection source IP reversal is not verified paranoidly, we
+    may accept people who claim dishonest reversals..  (But then we
+    can test against their IP address..)
+  - Have some flag passing mechanism from the initial policy db
+    back to the smtpserver proper so that it can:
+	- give more meaningfull explanations of rejection reason
+	- run more verification subroutines on addresses per policy
+	  driver control; namely  "this domain can be valid source only
+				   when it is coming from this IP address"
+	  type of checkup...
+  - more complete address processing into policytest() routines
+  - Complete the fqdn address top-level domain existence verification
+    test activation based on:
+	- If policytest is in use, do it
+	- If "-sR" mode is on, do it
+
+- "makedb -a" (utils/makedb/makedb.c) does not do most compact
+  possible binary alias database.  Add code to skip RFC-822 comments,
+  and to detect unquoted white-space preceeded '#' as a start of a
+  comment.
+
+- "make install" does not handle manual-page installation properly,
+  also alternate-root installation has a few odd ends (vacation
+  man-page, libc/libzmailer.a, (libc)include/zmailer.h )
+
+- Integrate transports/fuzzyalias/ into the configuration system
+
+- Manuals leave a lot to desire.. Especially a good users/administrators
+  manual is in need
+	[July 1997: technical writers are hard at work on this one]
+
+- scheduler:
+	- "Remote-MTA:" field needs info about the remote host IP
+	  we had connection with. (When some MX target has multiple
+	  IP addresses -- for multiple hosts, for example.)  However
+	  the delivery report format does not allow differentiation..
+	- Delivery messages plain-text part needs easier human
+	  understandable format on the messages.
+
+- transports/sm/sm.c:
+	- what UID it runs programs like procmail with ?
+	  What uid it should run them ?
+	  I don't think the current (up to 2.99.49p*) way of running
+	  procmail/cyrus is entirely safe.
+	- I have gotten comments that they are suid/sgid root/root
+	  at most installations, and indeed so procmail is at my
+	  workstation too...
+	- DSN handling flags ?
+	- "localize" the destination address properly.  That is, strip
+	  quotes from around a quoted destination address according to
+	  the RFC822 syntax. -- Is this always correct ?
+
+- scheduler/ta:
+	- Does the NOTIFY=SUCCESS work ok ?
+		[2.99.49b2 - now it should ("ok3" status code)]
+
+- router:
+	- Log-file option does not set (reliably) the logfile
+	  to be something else, than the default.
+	** Well...  See  $MAILSHARE/cf/standard.cf:  dribble routine, and
+	** especially its calls!  Not so easy to configure externally...
+
+- post-install-check
+	- check existence of mailq/tcp in /etc/services
+	- check MAILVAR/MAILSHARE/POSTOFFICE protections
+	- check "nobody" and "daemon" accounts
+
+- systemwide .forward checker
+	- iterate all users in the system
+	- check peoples directory ownerships and permissions
+	- check peoples .forward ownerships and permissions
+
+- Need a program to verify that given configuration is ok, checks
+  for things like:
+	- "nobody" userid
+	- scheduler's resource control working to the maximum
+	  extend that system supports
+	- mmap() correct operation  (GNU autoconf does this)
+	- sprintf() return type is autoconfigured correctly
+
+- Need a program to run thru various file permission checks:
+	- $MAILVAR/db/ -dir, and files in it
+	- $MAILVAR/lists/ -dir, and files in it
+	- ~/.forward -files (and home directories)
+
+- scheduler:
+	Have two waiting threads (one message each):
+	- start both of them with ETRN
+	- both issue report of "retryat +nn"
+	- both are rescheduled about immediately..
+	- system spins (FAST) on those two...
+
+- transports/smtp/smtp.c:
+	- pipelined mode needs a recheck to the status analysis of the
+	  MAIL FROM:<>, RCPT TO:<>, DATA -phase.  If the MAIL/RCPT cmds
+	  gave non-ok (no RCPT gave OK), the reception of false from
+	  the DATA is no surprise, and SHOULD NOT be treated as permanent
+	  error even though it may present a 5XX code..
+		[done? need to verify!]
+	- To rewrite the MX processing in streamlined flashion (see next)
+	- In case two domains have common (sub-)set of MX servers, and
+	  we have been feeding mail to domain A thru MX-server B, and
+	  now we change to deliver domain C which too has MX-server B.
+	  We are to reuse the already open channel to server B to feed
+	  the message out even though the domain C might have had server
+	  D with lower preferrence..
+	  (Noteing that all MX-hosts with same or larger privilege,
+	   than ourselves are to be pre-removed from the list!)
+	- To support RFC-1830 SMTP extension: CHUNKING
+
+- IPv6 stuff:
+	- lib/selfaddrs.c: Don't properly do automatic IPv6 interface address
+			   picking (IPv4 is ok)
+	- libc/myhostname.c: don't do automatic IPv6
+	- scheduler/mailq.c: don't do IPv6 connect
+	- transports/hold/hold.c: incomplete NS/AAAA, no IPv6 PTR
+	- transports/mailbox/mailbox.c: BIFF gethostbyname() ?
+
+- scheduler:
+	- New cfg param:  maxha -- max age that a child-process can be
+	  active, and the scheduler will wait for that much after the
+	  feed for any "#hungry" message from (to detect hung-up processes)
+	- Another:  maxlife  -- maximum lifetime for a transport agent
+	  for limiting the time a smtp-channel stays open for a long-
+	  living connection...
+
+- whole chain (smtpserver/router/mailbox+hold):
+	- Have a NEW pseudoheader (NRCPT) in addition to the ORCPT, which
+	  we now (in not completely kosher manner) create, if we don't get
+	  it originally.  That is, similar entry for traversing unchanged
+	  thru the router to tell what address we got as input.
+	  (Thru some pseudo-alias..)
+	- Retain (in some TA-header object) the original "MAIL FROM:<..>"
+	  address, and be able to store it into the MAILBOX channel.
+	  (That is, don't let the routing process to alter this!)
+
+- transports/mailbox/mailbox.c:
+	- Store the ORCPT information into a "X-Orcpt-To: "-header
+	- Store the NRCPT information into a "X-InRcpt-To: "-header
+	- Store the ENVID information into a "X-Envid: "-header
+	- Store the original FROM:<..> into a "X-OrigFrom: "-header
+
+	- Provide aforementioned "headers" also as environment variables
+	  to the pipes
+	- At the router:run_rfc822(): if the message has these headers,
+	  purge them away.
+
+- Autoconfig problems:
+	- System mailbox locking schemes are sometimes non-obvious..
+	- For the last PERHAPS must back introduce the host-configuring
+	  for describing host-system dependencies like mailbox-lock schemes
+
+- Scheduler eats way too much memory, when some huge lists
+  flow thru it -- all recipient channels/hosts PLUS the whole
+  transport specifications file.  With TA's doing statistics
+  logging, the scheduler should not need to keep those copies
+  of the file's full TA-spec files in scheduler's core.
+	4-Feb-97: Now it won't...  It is up to the transport-agents to
+				   do the verbose logging on a file
+
+- Got mail with a suggestion: (via zmailer-list)
+
+ I suggest you to improve the 'crossbar' function of 'router'.
+ It might return a list of header rewrite functions as well
+ as a single function like now. So different rewrite methods
+ could be applied for sender and recipient addresses.
+ The crossbar() C function contains some comment that refers
+ to some similar thing, but I found it unimplemented.
+         /*    
+          * We expect to see something like
+          * (rewrite (fc fh fu) (tc th tu)) or
+          * ((address-rewrite header-rewrite) (fc fh fu) (tc th tu))
+          * back from the crossbar function.
+          */
+
+- When killing previous routers/scheduler/smtpserver, should wait
+  the previous process group leader to die before writing over
+  the  $POSTOFFICE/.pid.KIND -file.
+
+- Co-ordinated shutdown for the scheduler -- send a signal to it
+  (SIGQUIT), and it sends out newlines to all processes still
+  receiving anything from the scheduler, and shuts the feed channels
+  down from the scheduler to the transporters.  Then it will spend
+  some time (infinity?) to get responces from the transporters.
+  When all childs are dead, it can exit.
+	20-Jan-97: Sort of facility exists now..
+
+- DSN (Delivery Status Notification) mechanism does not (yet) report
+  on "DELAY".
+
+- BUG! mailbox has a file creation failure window:
+        - mailbox1 tests to see if the mailbox exists, and it does not
+        - mailbox2 tests to see if the mailbox exists, and it does not
+        - mailbox1 tries to do exclusive file creation (and succeeds)
+        - mailbox2 tries to do exclusive file creation (and fails)
+  Time in between test, and creation is milliseconds, but if system
+  process scheduling hits in between, both believe to be acting in void.
+  This can propably be triggered by NOT having the target file in existence,
+  and sending a message with two addresses, one straight to the recipient
+  mailbox, and another via some alias.  System starts TWO mailbox programs
+  to feed the messages.  Try it enough times, and it will occur.
+	(18 Aug 1996 -- Fixed ? By allowing 'EEXIST' return from file
+	 creation, and understanding it as a result from a race above.))
+
+- Want to have more interactivity at the scheduler status and control
+  mechanisms.  Especially thinking a new two-way system where there
+  can be multiple manager interfaces acting at the scheduler ``mailq''
+  port issueing commands (queries), and receiving responces.
+  With authentication, could do queue purges, rerouteing commands, etc.
+
+- Need to add the  sdbm ( support/sdbm/ )  in NDBM compability mode to
+  the system in case the system does not have  <ndbm.h>  in it, nor
+  libdbm.a -- low priotity..
+
+- 'channel error' detection is partial at places;
+	transporters: hold, errormail
+
+- router/rfc822.c:  sequencer()
+	Consider providing some data/function/whatever telling to
+	the configuration script how many "Received:" headers there
+	are so that the message can be trapped for a loop-prevention
+	in the script, and not hardwired in the sequencer() code.
+	(Now has a global variable that gets the count of "Received:"
+	 headers, but the loop-count exceeded trap is done in the
+	 same C-code without calling the scripts...)
+
+- transporters: Truly full-scale MIME-conversion facilities are in need!
+
+- transporters: When decoding MIME-QP the final line MAY be of
+		".....=", which means there is no final NEWLINE.
+	Fixed on SMTP, must fix on MAILBOX, and SM!  (4-Jan-95)
+	(Prepared to do it, however only on SMTP it is fatal -- I think..)
+
+- Configuration files, esp.   cf/aliases.cf   has controversy in it.
+  Many people think it is broken (I tend to agree) - 940614/mea
+
+- Canned error messages are abysmal -- they need more complete ways to
+  configure what is told and how, whole error facility needs an overhaul
+  in fact..  (See mention above about: IETF NOTARY)
+
+- Sometimes incoming SMTP can be a hellish load, need to introduce
+  a load-limited incoming SMTP acceptor (smtpserver/smtpserver.c)
+  (Rayan wrote it, but never released it..)
+	13-Dec-94:  It exists for Linux ....
+	23-Dec-94:  Pulled bits from "top" -program.  Now it
+		    exists also for Suns..
+
+  A discussion on the ZMailer -list revealed that the acceptance blocking
+  is a BIG can of worms, and that even the  BSD-sendmail has had a long
+  journey along the rocky path to "get it right"...  (5-Jan-95)
+
+  Hmm.. Perhaps we could do a `single process doing multi-stream reception ?'
+  it would require fairly large rewrite of the SMTP-server..
+
+  Also: What to do when there are more incoming SMTP sessions than the
+  process can have open file descriptors ?  Two for each way of SMTP (for
+  stdio library!) channel, one for each spool file in active use at the
+  input phase, and one for log. (The stdio is used only for SMTP responses,
+  and for spooling out the accumulated message.  Thus there SHOULD be enough
+  resources for all uses -- except when the system runs out of FDs per any
+  individual process..)
+
+- Processing of several headers is questionable/lack of:
+	From: <>  -- should be valid! --- now is (940626/mea)
+	Return-Path: <> -- ANYTHING ACCEPTED -- header removed! (961114/mea)
+		
+	Generic: header wrapping within N chars (like to 80-chars
+		 space of BITNET) and also infinite wide systems,
+		 like News.. (transports/libta/writeheaders.c ?)
+
+	Generic: RFC-1342 aka. non-US-ASCII chars in the headers..
+		 Auto-conversion and wrapping
+
+- On the zmailer@nic.funet.fi -list there has been also talk about
+  a desire to replace the zmsh with some other language, like Scheme..
+  I am not sure a lispish language is good one -- should postmasters
+  be Lisp-Hackers to configure the ZMailer ?

@@ -1,0 +1,113 @@
+
+	This text is in finnish, and is internal to manual writing
+	project.
+
+		-----------------
+
+
+Projektin osapuuhat:
+
+1.	Materiaalimappi
+
+	Mapista k‰y ilmi tehty tyˆ, ja mit‰ tarvitaan lis‰‰
+
+	- PAPERIKOPIO KAIKESTA
+	- Mappi rakennetaan sis‰llysluettelon rakenteen mukaan
+	- Materiaaliluettelo paperille ja fileen‰
+	- mit‰ puuttuu/pit‰‰ t‰ydent‰‰
+
+
+2.	Vaiheistussuunnitelma
+
+
+L‰hteet:
+	<mea>:  Matti.Aarnio@tele.fi
+	<karu>:	Valtteri.Karu@tele.fi
+	zmog:	ZMailer Operations Guide:  doc/design/zmog.ps
+	INSTALL: Asennusohjetiedosto:      INSTALL
+	cookbooks: Pikkutiedostoja hakemistossa: doc/guides/
+
+
+Plans for ZMailer manual content:       |     First phase	|
+(with guesses on counts of pages)       |  Material sources	|
+
+I   A Tutorial ( 20 )
+
+    1.    Introduction to Email		|  (latter)
+    2.    ZMailer's features and	|  zmog
+          facilities			|
+    3.    Running Zmailer (short)	|  zmog, <karu>, cookbooks
+    4.    Comparison with other		|  zmog
+          popular MTAs			|
+
+II    Build and Install ( 20 )
+
+    1.    Autoconfiguration		|  INSTALL
+    2.    Compilation			|  INSTALL
+    3.    Installation / Upgradeing	|  INSTALL
+    4.    Configuring (short)		|  INSTALL
+    5.    Verifying the system		|  INSTALL
+
+III    Administration ( 50 )
+
+    1.    DNS and ZMailer		|  INSTALL, zmog
+    2.    Security issues		|  zmog + <mea>
+    3.    The Queue			|  (latter)
+    4.    Logging and Statistics	|  (latter)
+    5.    SMTP-server configuration	|  man/smtpserver.8.ps, zmog
+          - Policy based filtering	|  proto/db/smtp-policy.src
+    6.    Router configuration		|  zmog
+          -    Databases		|  zmog, doc/guides/
+          -    Mailinglists and		|  zmog, doc/guides/
+	       ~/.forward		|
+    7.    Scheduler configuration	|  zmog, proto/scheduler.conf, <mea>
+          (and transport agents?)	|   + scheduler/CONFIGURING
+    8.    sm configuration		|  zmog, man/sm.8.ps
+    9.    vacation			|  man/vacation.1.ps
+
+IV    Reference ( 150 )
+
+    1.    SMTP-server			|  (latter - now copy the
+          - Policy filtering		|   same presentation as at
+	    language			|   Administration chapter..)
+    2.    'sendmail', 'rmail'		|  man/sendmail.8.ps, man/rmail.1.ps
+    3.    zmailer(3)			|  man/zmailer.3.ps
+    4.    Router
+          - Internal functions		|  doc/routercommands/, zmog
+	    ( ~ 100 functions )
+          - ZMSH script language	|  zmog
+          - configuration script	|  zmog
+	    writing rules
+          - debugging			|  zmog
+          - security issues		|  zmog
+    5.    Scheduler
+          - Configuration "language"	|  zmog, man/scheduler.8.ps
+          - Resource management		|  scheduler/CONFIGURING + man
+          - mailq			|  zmog, man/mailq.1.ps
+          - security issues
+    6.    Delivery agents
+          - mailbox			|  zmog, man
+          - hold			|  zmog, man
+          - smtp			|  zmog, man
+          - sm				|  zmog, man
+          - libta -- transport agent	|  zmog ?
+	    support library
+          - security issues		|  zmog ?
+    7.    Utilities
+          - vacation			|  man/vacation.1.ps
+          - makendbm (to rename)	|  utils/makendbm/makendbm.c (source)
+          - ndbmlook (to rename)	|  utils/makendbm/ndbmlook.c (source)
+	  - policy-builder.sh		|  utils/policybuilder.sh(.in) (script)
+          - autoanswer			|  utils/autoanswer.pl(.in)    (script)
+
+A.1     Sample router configuration	|  proto/cf/*.cf
+	scripts     ( 20 )
+A.2     Using ZMailer with Mailinglist	|  (latter)
+	Managers ( 20 )
+A.3    Adding new transport agents  ( 10 )   | (latter)
+       (mail delivery via procmail/cyrus/..) |
+
+A.4    Internal file dataformats    ( 30 )   | man/zmailer.3.ps, zmog, + ?
+
+A.nn   SSL language                 ( 10 )   | ssl/ssl-tr118.txt
+

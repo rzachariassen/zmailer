@@ -1,0 +1,35 @@
+SHELL=		/bin/sh
+TOPDIR=		..
+PZCONFIG=	$(TOPDIR)/zmailer.Config
+INSTALL=	@INSTALL@
+MAILBIN=	$(prefix)@MAILBIN@
+
+srcdir=         @srcdir@
+VPATH=          @srcdir@
+
+all:
+	cd makedb ; $(MAKE) $(MFLAGS)
+	cd vacation ; $(MAKE) $(MFLAGS)
+
+install:
+	cd makedb ; $(MAKE) $(MFLAGS) install
+	cd vacation ; $(MAKE) $(MFLAGS) install
+	$(INSTALL) -m 755 autoanswer.pl     $(MAILBIN)
+	$(INSTALL) -m 755 policy-builder.sh $(MAILBIN)
+	$(INSTALL) -m 755 $(srcdir)/make-incore.sh $(MAILBIN)
+	$(INSTALL) -m 755 $(srcdir)/bitbucket $(MAILBIN)/ta
+
+FRC:
+
+
+clean:	FRC
+	rm -f ./+* *~
+	cd vacation ; $(MAKE) $(MFLAGS) clean
+	cd makedb ; $(MAKE) $(MFLAGS) clean
+
+distclean: clean
+	rm -f Makefile autoanswer.pl policy-builder.sh zmailer.init.sh
+	cd vacation ; $(MAKE) $(MFLAGS) distclean
+	cd makedb ; $(MAKE) $(MFLAGS) distclean
+
+depend:

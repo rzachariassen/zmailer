@@ -1,0 +1,107 @@
+/*
+ *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
+ *	This will be free software, but only when it is finished.
+ */
+
+#define ZMAILER_ENV_FILE	"@ZMAILERCFGFILE@"
+
+#define	POSTMASTER	"postmaster"
+
+#define POSTOFFICE	"@POSTOFFICE@"	/* overridable at runtime */
+#define	DEFERREDDIR	"deferred"
+#define	FREEZERDIR	"freezer"
+#define	POSTMANDIR	"postman"
+#define	PUBLICDIR	"public"
+#define	QUEUEDIR	"queue"
+#define	ROUTERDIR	"router"
+/* #define SCHEDULERDIR	"scheduler" */ /* historical.. */
+#define	TRANSPORTDIR	"transport"
+
+#define	MAILBIN		"@MAILBIN@"		/* overridable at runtime */
+
+#define	MAILSHARE	"@MAILSHARE@"	/* overridable at runtime */
+#define	FORMSDIR	"forms"
+
+#define	SUFFIXCHARS	" abcdefghijklmnopqrstuvwxyz"	/* for _mail_fopen() */
+
+/* Process ids for the daemons are kept under the postoffice in these files */
+#define	PID_ROUTER		".pid.router"
+#define	PID_SCHEDULER		".pid.scheduler"
+#define	PID_SMTPSERVER		".pid.smtpserver"
+
+/* Magic cookies passed to mail_open() to indicate message type */
+#define	MSG_DEFAULT		((char *)0)/* becomes MSG_RFC822 in the code */
+#define	MSG_FAX			".fax"
+#define	MSG_PP			".pp"
+#define	MSG_RFC822		""
+#define	MSG_UUCP		".uucp"
+#define	MSG_X400		".x400"
+
+/* The following characters may appear in the first column of a control file */
+#define _CF_MESSAGEID	'i'	/* inode number of file containing message */
+#define _CF_BODYOFFSET	'o'	/* byte offset into message file of body */
+#define _CF_BODYFILE	'b'	/* alternate message file for new body */
+#define _CF_SENDER	's'	/* sender triple (channel, host, user) */
+#define _CF_RECIPIENT	'r'	/* recipient n-tuple, n >= 3 */
+#define _CF_DSNRETMODE  'R'	/* DSN message body return control */
+#define _CF_XORECIPIENT	'X'	/* one of XOR set of recipient n-tuples */
+#define _CF_RCPTNOTARY	'N'	/* DSN parameters for previous recipient */
+#define _CF_DSNENVID	'n'	/* DSN 'MAIL FROM<> ENVID=XXXX' data */
+#define _CF_ERRORADDR	'e'	/* return address for error messages */
+#define _CF_DIAGNOSTIC	'd'	/* diagnostic message for ctlfile offset */
+#define _CF_MSGHEADERS	'm'	/* message header for preceeding recipients */
+#define _CF_LOGIDENT	'l'	/* identification string for log entries */
+#define _CF_OBSOLETES	'x'	/* message id of message obsoleted by this */
+#define _CF_VERBOSE	'v'	/* log file name for verbose log (mail -v) */
+#define	_CF_TURNME	'T'	/* trigger scheduler to attempt delivery now */
+#define _CF_RCVFROM	'F'	/* Where-from we are coming ? */
+
+/* The following characters may appear in the second column after most _CF_* */
+#define	_CFTAG_NORMAL	' '	/* what the router sets it to be */
+#define _CFTAG_LOCK	'~'	/* that line is being processed, lock it */
+#define _CFTAG_OK	'+'	/* positive outcome of processing */
+#define _CFTAG_NOTOK	'-'	/* something went wrong */
+#define _CFTAG_DEFER	_CFTAG_NORMAL	/* try again later */
+#define _CFTAG_RCPTPIDSIZE 6	/* 6 chars for PID of the active transporter. */
+
+
+#ifndef __
+# ifdef __STDC__
+#  define __(x) x
+# else
+#  define __(x) ()
+# endif
+#endif
+
+/* These following are declared in order they are in prespective files */
+
+/* getzenv.c */
+extern int   readzenv __((const char *file));
+extern char *getzenv  __((const char *variable));
+
+/* mail.c */
+extern const char * postoffice;
+extern int    mail_priority;
+extern FILE * _mail_fopen __((char **filenamep));
+extern int    mail_link __((const char *from, char **tonamep));
+extern FILE * mail_open __((const char *type));
+extern int    mail_abort __((FILE *fp));
+extern int    mail_close_alternate __((FILE *fp, const char *where, const char *suffix));
+extern int   _mail_close_ __((FILE *fp, int *inop, time_t *mtimep));
+extern int    mail_close __((FILE *fp));
+
+#define _MAILPRIO_NORMAL 0
+#define _MAILPRIO_BULK   1
+#define _MAILPRIO_JUNK   9
+
+/* mail_alloc.c */
+extern void *mail_alloc __((unsigned int nbytes));
+extern void *mail_realloc __((void *s, unsigned int nbytes));
+extern void  mail_free __((void *s));
+
+/* mail_host.c */
+extern const char *mail_host __((void));
+
+/* myhostname.c */
+extern int getmyhostname __((char *namebuf, int len));
+

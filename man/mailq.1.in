@@ -1,0 +1,190 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH MAILQ 1 "20 May 1997"
+.SH NAME
+mailq \- zmailer mail queue printer
+.SH SYNOPSIS
+.B mailq
+[
+.B \-i
+]
+[
+.B \-p
+.I port
+]
+[
+.BR \-s [\fBs\fR]
+]
+[
+.B \-t
+]
+[
+.B \-u
+.I user
+]
+[
+.BR \-v [\fBv\fR]
+]
+[
+.B \-d
+]
+[
+.B \-S
+]
+[
+.B \-Q
+]
+[
+.I host
+]
+.SH DESCRIPTION
+.I mailq
+queries a running
+.I scheduler
+process on a specified host for its current
+internal model of the mail transport queues and presents this information
+to the user.  By default, the
+.I scheduler
+process queried is the one relevant to the local host, i.e. either a
+local process or a
+.I scheduler
+on a mail server host.  If the optional
+.I host
+argument is specified, the scheduler running on that host will be queried
+instead.
+.PP
+If the scheduler has used
+.B \-Q
+option to shrink the amount of output, the
+.I mailq
+.B must
+also use
+.B \-Q
+option to report about the queue status at the server in ``queue-summary''
+format.
+.PP
+The information printed for each queued message is labelled by its
+message file id, which is the name of the original message file in the
+\fIPOSTOFFICE\fB/queue\fR directory and of the message control file in
+the \fIPOSTOFFICE\fB/transport\fR directory.  The information may be
+different for different \fIchannel\fR/\fIhost\fR combinations in destination
+addresses in a single message, so the status information is grouped
+in clusters labelled by the channel and host for addresses in the group.
+.PP
+The text associated with a particular deferred destination in a message
+originates in a transport agent.  The
+.I scheduler
+annotates the transport agent messages with retry information when an
+address has been scheduled for later delivery attempts, or with text
+stating why a retry that should have happened was delayed.  A lack of
+annotations indicates a delivery attempt is in progress.
+.SH OPTIONS
+The normal action is to print the transport queue.
+.IP \-v
+will produce verbose transport queue output in that message id's,
+and sender and recipient addresses, will be listed in addition to the normal
+status line.  Doubling this option asks for extra verbose output, presently
+this adds the message size in bytes after the message id.  This option is
+only useful if
+.I mailq
+can read the message control files in the postoffice.
+Most users can only see the data for their own messages.
+.IP \-s
+asks for a status of the
+.IR router ,
+.IR scheduler ,
+and transport queues.  The first two are determined by scanning the
+appropriate directories and counting files, whereas the status of the
+transport queue is retrieved from the running
+.I scheduler
+process. Doubling this option will cause
+.I mailq
+to exit after printing this summary.
+.IP \-S
+shows summary of files queued to the channel/destination.
+Listed info tells the number of files, and if available, also
+total- and mean-size of those files.
+.IP \-t
+disables any previous verbose flags to produce the normal terse output.
+.IP \-i
+prints a verbose transport queue output (see the \-v flag) for your own
+messages only.
+.IP \-u\ \fIuser\fR
+selects messages sent by the specified user id.  This option is usually
+only useful to the Postmaster on the system.
+.IP \-d
+prints the information received from the scheduler as is.  This will
+override the verbose option.
+.IP \-p\ \fIport\fR
+specifies an alternate TCP/IP port to connect to a
+.I scheduler
+at.
+.IP \-Q
+.IP \-QQ
+Two Q:s produces an abbreviated summary, while one Q gives full
+report of all threads.
+.SH mailq -Q output codes
+Examples of ``mailq -Q'' output:
+.sp
+.nf
+  smtp/aol.com/0  R=1 A=147 P=19598 HA=571s FA=571s OF=1 QA=1d18h
+  smtp/some.com/0 R=1 A=58 W=1860s QA=11h11m28s
+.fi
+.sp
+The codes mean following:
+.TP
+.B R=
+Number of
+.B messages
+on this  ``channel/host''  thread; this does count individual
+target users separately!
+.TP
+.B A=
+Count of attempts to deliver this message.
+.TP
+.B P=
+Process number of the transport agent actively handling this thread.
+.TP
+.B W=
+Delay time until next time the transport-agent may try to send this
+thread.
+.TP
+.B HA=
+``#hunger age'' -- time since the scheduler saw last ``#hungry'' message from
+the transport agent.
+.TP
+.B FA=
+``Feed age'' -- time since the scheduler did last time feed something to the
+transport agent.
+.TP
+.B QA=
+Age of oldest message in the queue at this thread.
+.TP
+.B OF=
+``OverFeed count'' -- how many unacknowledged tasks are still in
+the transport agent for this thread.
+The ``OverFeed'' was created to handle sluggish scheduler in hard pressed
+system to get jobs scheduled around, when the transport agents were
+in practice running dry as they did their jobs fast, but the scheduler
+didn't get around to feed them...
+Thus the way for the scheduler to ``overfeed'' as many of the jobs in
+active thread to the transport agent as possible, and then just wait
+them to complete, and be acknowledged.
+With it this a lot more becomes done even with a sluggish scheduler.
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice/transport (POSTOFFICE/transport)
+.br
+.I /var/spool/postoffice/queue (POSTOFFICE/queue)
+.br
+.SH SEE ALSO
+zmailer(1), router(8), scheduler(8)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>
+.br
+Partial rewrite for ZMailer 2.99/3.0 by:
+.br
+Matti Aarnio <mea@nic.funet.fi>

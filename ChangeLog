@@ -1,0 +1,5194 @@
+1998-02-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* include/libc.h:
+	    Prototypes of  inet_ntop()  and  inet_pton()  changed to
+	    match the world view -- Solaris 2.6 is now happy with us..
+
+	* proto/cf/p-smtp.cf:
+	    Patch by Alexis Yushin for UUCP route handling
+
+	* compat/rmail/rmail.c:
+	    Patch by Alexis Yushin for proper use of <sysexits.h> values
+
+	* transports/errormail/errormail.c:
+	    An off-by-one fix by Alexis..
+
+Wed Feb  4 19:52:36 1998  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    More modifications to support RedHat 5.0 systems, and
+	    at same time to support Solaris 2.5.1.
+	
+	* lib/esyslib.c:
+	    erename()/eqrename() tricks to handle Solaris returning
+	    EBUSY at inconvinient moments..  Now will retry the thing
+	    until successfull (or failed with errno != EBUSY/EINTR)
+
+	* libident/identuser.c:
+	    Added setjmp()/longjmp() along with alarm() handling to
+	    make sure we have shortish timeout
+
+	* smtpserver/smtpcmds.c:
+	    Cosmetic fixes on verbose log file
+
+	* smtpserver/smtpdata.c:
+	    Recognize a couple of headers that exist on spam email
+
+	* smtpserver/smtprouter.c:
+	    Recognize router subprocess death, and report it with
+	    "400 Help...!" message, not silent "250 All fine."
+
+	* smtpserver/smtpserver.c:
+	    Report RBL TXT data to the connecting user
+
+	* transports/libta/diagnostic.c:
+	    Trunc-back the transport-spec file if its appending
+	    fails.
+
+	* transports/smtp/smtp.c:
+	    In EHLO/HELO/reconnect/HELO/... connection test attempts
+	    do retry all MXes -- but only once each.
+
+Sun Dec 21 14:59:04 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libc/setreuid.c:
+	    AIX code missed "return 0;" at the end.
+	    (From: pakrat@raleigh.ibm.com)
+	    And also SysVr4 emulation code had missing "return rc;"
+	    at its end..
+
+Sat Dec 20 01:05:00 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpchild.c:
+	    Altered the child registration and detection mechanism
+	    to test for "sneaky" disappearances of subprocesses
+	    before getting them registered into the server childs[]
+	    table.  Has "tunable" interval on how to monitor on
+	    the existence of subprocesses.
+	
+ 	* smtpserver/cfgread.c:
+	    Removed "PARAM toplevels", a stillborn thought.
+
+	* libsh/sh.ssl, libsh/sslwalter.c, proto/cf/*.cf{|,.in}:
+	    Codified error report on use of  'sift' / 'tfis'
+	    syntax in place of 'tsift' / 'tfist' names.  Report
+	    mismatching keywords -- like 'ssift' ending with 'tfist'..
+	    Fixed all prototype *.cf and *.cf.in files in this regard.
+
+	* libsh/test.c:
+	    Don't complain always at failing *stat() calls -- allows
+	    things like this without spurious junk at the screen:
+	    	if [ ! -f $MAILVAR/db/aliases$DBEXTtest -o \
+	          $MAILVAR/db/aliases -nt $MAILVAR/db/aliases$DBEXTtest ]; then
+		    # Yes, so update!
+		    $MAILBIN/zmailer newaliases
+		fi
+	
+Wed Dec  3 00:39:45 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/libdb/gdbm.c, router/libdb/ndbm.c:
+	    GDBM sets  gdbm_errno  with value  GDBM_EMPTY_DATABASE
+	    if the DB is empty; NDBM does not complain of the situation.
+	    GDBM and NDBM had poorly (nee, pathologically) functioning
+	    search ( = fetch ) retry routines, rewrote them slightly.
+
+	* smtpserver/smtpserver.c:
+	    Lacked  stashmyaddresses(NULL)  call to prime the interface
+	    address data.
+
+	* smtpserver/mxverify.c:
+	    Considered only the first MX record arriving;  Duh :-(
+
+Sat Nov 29 16:02:48 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libsh/interpret.c:
+	    Finally!  Found the place(s) of leaking memory
+	    (conscell + string) in the router.  Now nic.funet.fi
+	    does not have infinitely growing router :-)
+
+Mon Nov 24 20:44:27 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    Re-organize the --with-ipv6-replacement-libc option
+	    processing -- now it finally works.
+
+	* router/libdb/unordered.c, router/libdb/ordered.c:
+	    The incore database of filenames (spt_files)
+	    reorganization, and code reuse on the open_seq()...
+
+Fri Nov 21 19:48:06 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/makedb/makedb.c:
+	    - "-A" option to APPEND more data to same key.
+	      This behaves slightly differently for aliases, and
+	      for policy -- former being ascii, latter being binary.
+	    - Process alias entries in similar manner as the
+	      sendmail does them
+
+	* router/libdb/ndbm.c, router/libdb/bsdbtree.c, router/libdb/gdbm.c,
+	  router/libdb/bsdhash.c, router/libdb/dbm.c, router/libdb/ordered.c,
+	  router/libdb/unordered.c:
+	    Retry the DB file open three times with 1 second sleep in
+	    between; this to allow certain small window of db file
+	    unavailability during  mv  operation of the installation
+	    of a new version.
+
+	* libsh/interpret.c:
+	    Fix errorneously added  s_free_tree() -- it really is
+	    ok to free() only the top cell. Freeing more blows things
+	    up..
+
+Tue Nov 11 04:16:41 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Extensive revisioning of MX processing in order to eliminate
+	    spurious "DNS inconsistensy detected, no MX, no Address" reports.
+	    Now it seems the things are under control.
+
+	* smtpserver/smtpserver.c, smtpserver/policytest.c,
+	  smtpserver/policytest.h, smtpserver/smtpcmds.c,
+	  smtpserver/smtpdata.c,   smtpserver/readpolicy.c,
+	  smtpserver/mxverify.c,   include/policy.h:
+	    - Initial implementation on  http://maps.vix.com/rbl/
+	    - mechanisms to pass some data back from policytest to
+	      the smtpserver proper, and to add some logs..
+
+	* transports/mailbox/mailbox.c:
+	    Support "-d" option for defining MAILBOX directory at
+	    runtime.
+	
+	* transports/expirer/expirer.c, transports/expirer/manual-expirer.in,
+	  transports/expirer/Makefile.in, configure.in:
+	    Manual interface for the transport-agent level entity;
+	    providing also easier usage for the expirer in case
+	    of wanting to expire something from the queues.
+
+	* transports/mailbox/mailbox.c:
+	    Non-zero exit codes from pipe subprocesses were considered
+	    all bad.  Now things have been altered to treat most of
+	    them as EX_TEMPFAIL, and only very few as permanent.
+	    Found this problem out by a procmail using collegue, when
+	    his home disk filled up, and deliveries bounced with code
+	    EX_TEMPFAIL :-O
+
+	* scheduler/scheduler.h, scheduler/transports.c:
+	    Store approximation of the argv[] into a per-process array
+	    of subprocess states, and in case the transport sub-process
+	    exits with EX_SOFTWARE status code, send syslog() message
+	    of  MAIL_EMERG, and more verbose stuff to  stderr log file.
+	    At syslog config you might consider directing MAIL_EMERG to
+	    some people directly, and in realtime..
+
+	* scheduler/msgerror.c:
+	    When reporting errors, use correct pointer to the "plain
+	    ascii" error report.
+
+	* smtpserver/smtpserver.c, smtpserver/policytest.h,
+	  smtpserver/readpolicy.c, smtpserver/policytest.c,
+	  include/policy.h:
+	    - If the policydatabase can't be opened, delay a bit at
+	      the connect formation, but always send syslog MAIL_EMERG
+	      in hope of it becoming handled in realtime...
+	    - Add new policytest attribute: sendernorelay
+
+	* libsh/interpret.c:
+	    In preparation for more debugging, separate things in between
+	    sAssign, and sTempAssign executions.
+
+	* router/libdb/yp.c:
+	    "struct search_info *" was old style, declaration, new one is
+	    "search_info *"
+
+	* smtpserver/policytest.c:
+	    Search for the first unquoted at-character in the input
+	    address -- for things like:  <"foo@bar.foo"@bar.foo>
+	    (Not that I particularly like the idea of supporting this
+	     kind of addresses -- people using them are prone for
+	     nasty surprises.   And frankly I am afraid they might
+	     get past relay-hijack blocking methods too...)
+
+	* smtpserver/smtpserver.c:
+	    The same-ip-connect-source registration, and trapping
+	    needs a bit of rearrangements -- namely the subprocess
+	    must wait enough for it to become registered for sure..
+	    Now in front of nearly all exit() calls is sleep(2),
+	    which tries to ensure that the subprocess will exist
+	    long enough for the main server to be able to register
+	    it before subprocess' death.
+
+	* utils/makedb/makedb.c:
+	    - policy compilation shall reject all inputs with
+	      invalid contents
+	    - alias compilation shall treat extended input lines
+	      as such where the previous line is has appended ","
+	      at the end.
+
+	* router/rfc822.c:
+	    Set trace header ("Received:" header) date to be that
+	    of the input spool file mtime.
+	
+Mon Oct 27 09:51:02 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* doc/guides/procmail:
+	    Condensed wisdom on how to use procmail in place of the
+	    "mailbox" local delivery channel for user deliveries.
+
+	* doc/guides/cyrus-imap:
+	    Edit version the "procmail" guide with relevant info regarding
+	    CMU Cyrus message store.
+
+	* scheduler/readconfig.c:
+	    Match documents about parameterless clauses.
+
+	* compat/sendmail/sendmail.c:
+	    Ignore (silently) all '-oXXXX' options we don't recognize.
+
+	* router/libdb/selfmatch.c, proto/cf/rrouter.cf:
+	    Corrections for selfmatch routines from
+		Darryl Miles <dlm@g7led.demon.co.uk>
+
+	* scheduler/scheduler.c, scheduler/threads.c, scheduler/agenda.c:
+	    Use controlled per facility symbol splaytrees, and shrink
+	    them when the symbol is no longer needed. (i.e. channel,
+	    and hostnames come and go..)
+
+Sun Oct 26 03:30:08 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* include/splay.h, lib/splay.c, lib/symbol.c, router/db.c,
+	  router/conf.c, router/prototypes.h, router/router.c,
+	  router/libdb/incore.c:
+	    Seriously limit the amount of memory needed to handle
+	    operative symbols.  Perhaps there is (after all) no
+	    need to have infinite memory capacities.
+	    (Each object cache has its own namespaces, and when
+	     the need for some named object disappears, it is
+	     removed from the namespace.)
+
+Wed Oct 22 22:38:10 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Releasing 2.99.49p8 to public after series of compilation,
+	  and running tests at various platforms.  These include:
+	  Linux/ELF/libc5, Linux/AXP/glibc2, Solaris 2.5, DEC UNIX 4.0
+
+	* libsh/io.c:
+	    glibc loader complained about the use of 'gets()', removed
+	    the unused code block.
+
+	* utils/vacation/vacation.c:
+	    #include <limits.h>
+
+	* utils/vacation/Makefile.in, libc/myhostname.c:
+	    Revised the routine not to use  gethostbyname(), and
+	    finally realized that all it missed was -lresolv library..
+
+	* libc/getnameinfo.c, libc/getaddrinfo.c, include/netdb6.h,
+	  configure.in:
+	    Corrected and completed the --with-ipv6-replacement-libc
+	    configuration parameter functionality
+
+	* smtpserver/rfc821scn.c:
+	    Corrected  <v6dotnum> object scanning
+
+	* proto/db/localnames:
+	    Default content of the file is EMPTY, not nic.funet.fi's
+	    hostname listing...
+
+	* proto/Makefile.in:
+	    Per default install also files:
+		$MAILSHARE/smtpserver.conf
+		$MAILSHARE/router.cf
+	    if they are not present at the system
+
+	* compat/sendmail/sendmail.c, man/sendmail.8:
+	    Sync "-t" option with sendmail, and especially so with
+	    the manual page!
+	
+Mon Oct 20 09:46:04 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p8  (way too many p6* versions around..)
+
+	* Makefile.in, configure.in, utils/Makefile.in,
+	  utils/makedb/Makefile.in, proto/fullnamealiasmaker.pl,
+	  proto/newaliases.in, proto/newdb.in, proto/smtpserver.conf.in,
+	  utils/makedb/makedb.c, utils/makedb/dblook.c,
+	  utils/policy-builder.sh.in:
+	    Renamed 'makendbm' to 'makedb', and 'ndbmlook' to 'dblook'.
+
+	* smtpserver/policytest.c, smtpserver/policytest.h,
+	  utils/makedb/makedb.c, utils/makedb/dblook.c, router/db.c,
+	  router/libdb/search.h, router/libdb/bsdhash.c:
+	    Created 'BHASH' type database which is BSD DB_HASH
+
+	* configure.in:
+	    - Fix  --without-fsync  option
+	    - Fix test on  malloc_d
+	    - Add option:  --with-ipv6-replacement-libc
+
+	* include/splay.h, lib/splay.c:
+	    Keep track of elements on the splay tree for debug porposes
+	    (who is leaking memory at the router..)
+
+	* libc/getaddrinfo.c, libc/getnameinfo.c:
+	    Sync with Craig Metz's versions 1.26 and 1.32 respectively.
+
+	* proto/db/smtp-policy.src, smtpserver/policytest.c,
+	  smtpserver/policytest.h:
+	    Do testing on connection source IP reversal domain too.
+	    This allows us to detect certain set of dial-in users who
+	    abuse dial-in series to post spams...
+
+	* smtpserver/mxverify.c:
+
+	* transports/smtp/smtp.c:
+	    More armour on host connection retry, and giveup on scheduler
+	    shutdown.
+
+	* utils/vacation/vacation.c:
+	    Do message production without invoking  /usr/lib/sendmail
+	
+Fri Aug  8 18:04:06 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p6  (could it be ?)
+
+	* proto/db/smtp-policy.src, doc/guide/smtp-policy, include/policy.h,
+	  smtpserver/policytest.c, smtpserver/readpolicy.c, README.SPAM:
+	    Updated documentation to match code, added policy parameters:
+		'acceptifdns {+|-}'
+	    which accepts recipient address when it has MX or A (or AAAA)
+	    record in the DNS.
+
+Thu Aug  7 23:00:52 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p6a3
+
+	* SiteConfig.in, scheduler/scheduler.c, scheduler/update.c:
+	    Eugene Crosser's SYSLOGFLGs for the scheduler.
+
+	* scheduler/threads.c, scheduler/update.c:
+	    A weird null-pointer derefferrence problem with gcc 2.7.2.1
+	    at DEC UNIX 4.0 -- perhaps it is about gcc bug...
+
+	* include/policy.h, proto/db/smtp-policy.src,
+	  smtpserver/Makefile.in, smtpserver/mxverify.c,
+ 	  smtpserver/policytest.c, smtpserver/readpolicy.c,
+	  smtpserver/policytest.h, utils/makendbm/makendbm.c:
+	    Understand new policy parameters:
+		'senderokwithdns {+|-}'
+		'acceptifmx {+|-}'
+	    of which the first (when existing) uses DNS lookup to
+	    verify that the source address is acceptable, and the
+	    second uses DNS to check that we are MX for the given
+	    target domain. '+' means 'yield SOFT (4XX) error', and
+	    '-' means 'yield HARD (5XX) error'...
+
+	* smtpserver/smtpserver.c:
+	    Eugene Crosser's syslog fix
+
+	* smtpserver/smtpserver.c, util/policy-builder.sh:
+	    If policy database is defined, but can't be opened,
+	    smtp-server responds "400 Policy database problem, code=NN"
+	    to every command (except 'help' and 'quit').
+	    The codes mean: 1: Unknown db format, 2: db open failed
+
+	* smtpserver/smtpcmds.c:
+	    A mistake in character counting in RFC821_822QUOTE macro.
+
+	* router/rfc822.c:
+	    Detect if scheduler job-description file writing has
+	    a fault, and give up.  The job will go into deferred
+	    directory, from whence it should be (via cron?) moved
+	    back into the router.
+
+	* proto/Makefile.in:
+	    Removed various  +XXXX  targets, and touches of them..
+
+	* transports/smtp/smtp.c:
+	    When the transport-agent receives 'SIGTERM', it sees if
+	    it can die immediately, or if it should take a delayed
+	    action on the death issue.  The delayed action is done
+	    when the smtp transport is doing '.' write operation,
+	    and waiting for the acknowledgement, plus doing diagnostics.
+
+	* utils/vacation/vacation.c:
+	    At Alpha, storing LONG_MAX into time_t doesn't work, use INT_MAX.
+
+Mon Aug  4 17:29:26 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p6a2
+
+	* INSTALL, Makefile.in, proto/Makefile.in:
+	    "make install-cf"
+
+	* configure.in, proto/Makefile.in:
+	    Make (for installation) proto/scheduler.conf,
+	    and its "distclean" removal..
+
+	* router/libdb/bsdtree.c:
+	    print_btree() had wrong test in db printout iteration
+	    (found while wondering other thing..)
+
+	* utils/makendbm/Makefile.in:
+	    Corrected for architecture-subdir compile
+
+	* utils/vacation/vacation.sh.in:
+	    Sigh... Give up, and execute the correct binary in case
+	    we called user-callable (= wrong) script.
+
+	* router/Makefile.in:
+	    Architecture-subdir compile for  rfc822.ssl, and its
+	    related use.
+
+	* include/libsh.h, libsh/builtins.c, libsh/trap.c, router/functions.c:
+	    Altered  eval()  routine call parameters.
+	    Also altered  ZMSH.fc  header format a bit.
+
+Sat Aug  2 19:57:57 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p6a1
+
+	* router/libdb/ldap.c, router/db.c, router/libdb/search.h,
+	  configure.in, config.h.in, router/libdb/Makefile.in.
+	  doc/guides/ldap.doc:
+	    LDAP db driver by  Lai Yiu Fai <ccyflai@ust.hk>, plus
+	    integration, and autoconfig support by yours truly.
+
+	* utils/makendbm/makendbm.c, utils/makendbm/Makefile.in:
+	    Massive code rearrange, now "-a" (alias) system does
+	    proper continuation line handling too.
+
+	* utils/makendbm/ndbmlook.c:
+	    Concise data output dumper code
+
+	* proto/newdb.in, configure.in, SiteConfig.in, proto/cf/*.cf,
+	  INSTALL, proto/zmailer.sh.in:
+	    Build default database format binary db with command:
+	      $MAILBIN/newdb $MAILVAR/db/dbase-basename
+	    also have two short-circuit commands:
+	      zmailer new-localnames
+	      zmailer new-routes
+
+	* libsh/interpret.c:
+	    Found, and corrected a bug in ZMSH expression:
+	       variable=${1:-defvalue}
+	    The mechanism mistreated ARGV values
+
+	* router/db.c:
+	    "btree" dbase entry was missing a call to  modp_btree()
+	    routine which does exist, but just was never called..
+
+	* router/libdb/selfmatch.c, smtpserver/rfc821scn.c,
+	  transports/smtp/smtp.c
+	    IETF DRUMS smtpupd draft for IPv6 address literal
+	    says:  "[IPv6" SP <rfc-1884-encoded-address> "]"
+	    That is, there is SPACE instead of "." after the
+	    magic prefix.   Huh!  Quite magic...
+
+	* smtpserver/smtpcmds.c:
+	    Handle correctly zero size addresses in MAIL FROM:<>, and
+	    (heaven forbid!) RCPT TO:<>.
+
+Fri Jul 25 01:48:13 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p5
+
+	* All Makefile.in files, configure.in:
+	    mechanics to compile in VPATH environment, and to install
+	    with  "prefix=/my/tmp/root make install"
+
+	* config.h.in, configure.in, router/db.c, router/libdb/hostsfile.c:
+	    Tests for  gethostent() sethostent() and endhostent()
+
+	* include/ta.h, transports/libta/ctlopen.c:
+	    New "DSN" object parsing: INPTR=
+
+	* libsh/interpret.c:
+	    ssift attribute string dequotation mechanics rewrite
+	    (correcting operation, avoiding core-drops..)
+
+	* man/smtpserver.8, smtpserver/cfgread.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h:
+	    Syncing man-pages with the reality, new
+	        PARAM ListenQueueSize nnn
+	    runtime parameter with default value of 20 000.
+
+	* proto/cf/i-smtp.cf, proto/cf/map.cf
+
+	* proto/scheduler.conf, scheduler/scheduler.c:
+	    channel/host selector:  chan/*.{fii,foo}
+
+	* proto/scheduler.conf, proto/sm.conf.in, proto/cf/standard.cf
+	    'bitbucket' channel
+
+	* scheduler/scheduler.h, scheduler/readconfig.c, scheduler/threads.c:
+	    "queueonly" flag by Alexis Yushin <alexis@NL.net>
+
+	* smtpserver/policytest.c:
+	    Ascii-mode debug printing routines by
+	    Eugene Crosser <crosser@online.ru>
+
+	* moved: support/vacation/ -> utils/vacation/
+
+	* transports/expirer/expirer.c, transport/expirer/Makefile.in:
+	    New transport agent with thought of it becoming a tool
+	    for the scheduler, but apparently it is also well suited
+	    for manual operation.  Docs are missing..
+
+	* transports/libta/writeheaders.c, transports/hold/hold.c,
+	  transports/mailbox/mailbox.c, transports/smtp/smtp.c,
+	  transports/sm/sm.c:
+	    Moved implicite newline after header write out of the
+	    writeheaders() routine into each caller.  Thus became
+	    able to do smart things with mailbox; ORCPT XTEXT decoding,
+	    for example.
+
+	* transports/mailbox/mailbox.c:
+	    When writing to a pipe, don't care if the write stops
+	    due to some error, but if the pipe end-point process
+	    exists with non-zero status, THEN become upset!
+	    (Still something mysterious with pipe reports -- I see
+	     positive reports even when I don't ask for them..)
+
+	* transports/smtp/smtp.c:
+	    Error reporting correction in one rare case, and
+	    general streamlining.
+
+Fri Jul  4 14:54:02 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p4
+
+	* router/rfc822.c:
+	    Nuke headers: "Bcc:", "Return-Path:", "X-Orcpt:", "X-Envid:",
+	                  and respective "Resent-*:" variants
+
+	* router/libdb/bsdbtree.c:
+	    If the db can not be opened ( open_btree() returns NULL ),
+	    don't crash on it..
+
+	* scheduler/msgerror.c:
+	    In case the report we are composing does have "NOTIFY=NEVER"
+	    in effect, but no valid recipients exist, ignore any such
+	    NOTIFY value, and return the message in full -- to the system
+	    postmaster...
+
+	* transports/mailbox/mailbox.c:
+	    Found a bug in let_buffer[] reuse -- it was an "automatic"
+	    variable, that is, stack reclaimed it in between message
+	    deliveries, and of course were able to corrupt it!
+	    I also enlarged the  let_buffer[]  size to be of reasonable
+	    size -- 16k to 64k depending on your BUFSIZ value.
+
+	* transports/mailbox/mailbox.c:
+	    Add headers "X-Orcpt:" and "X-Envid:" to the message when
+	    storing it into a file.  For a pipe the data is passed in
+	    envelope variables.  (I got rather fed up with spams this
+	    morning, and decided to add a bit more trace as to whom
+	    the message has been sent originally..)
+
+	* transports/smtp/smtp.c:
+	    Accept non rfc-821 behaviour of the remote server by treating
+	    non-conformant reply of form:  "NNN<CRLF>" the same as
+	    conformant reply of form: "NNN<SP><CRLF>".
+
+Sun Jun 29 21:36:43 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p3
+
+	* configure.in, config.h.in, transports/libta/ctlopen.c,
+	  transports/mailbox/mailbox.c, transports/sm/sm.c,
+	  transports/smtp/smtp.c:
+	    Configuration option:  --with-ta-mmap   which uses  mmap()
+	    facility to map in pages of the message data.
+	    At least at Solaris 2.x it is not advisable to use if you
+	    want to have highest possible performance, because the
+	    munmap() throws away ALL pages of the file from the system
+	    memory, even when other users have those pages in use!
+	    For that reason it is much better to rely on plain simple
+	    read()/write()  behaviour that let buffer cache to exist.
+
+	* configure.in:
+	    Configuration option:  --without-fsync
+	    Option that turns off (globally) the use  fsync()  anywhere
+	    in the ZMailer.   System configurers can decide what is best
+	    for their systems.  It does give definite edge at buffered
+	    IO by not forceing every file modification to be commited
+	    up to the disk.
+
+	* smtpserver/rfc821scn.c:
+	    Alteration at the treatment of "!" and "%" characters. Now
+	    they are special, and are analyzed in more profound manner
+	    within localpart analysis.
+
+
+	* smtpserver/smtpchild.c:
+	    Register, and analyze properly how many SMTP sessions are
+	    currently active (non-reaped) from any given source IP
+	    address.
+	
+	* transports/smtp/smtp.c:
+	    Correction into notary-status-code pickup for ENHANCEDSTATUSCODES
+	    mode.
+	
+	* libsh/testeval.c:  (+ several of  proto/cf/*.cf files)
+	    New operators into the builtin 'test' function:  -nt, -ot, -ef
+	    (file age comparators, and file equality comparator)
+
+	* SiteConfig.in, router/rtsyslog.c, smtpserver/smtpserver.c,
+	  transports/libta/tasyslog.c:
+	    New ZENV entry:  SYSLOGFLG=
+	    which can be used to turn off syslog() logging activity
+	    at the  smtp-server/router/transport-agents
+
+	* config.h.in, configure.in, router/router.c, scheduler/scheduler.c:
+	    Check of  setgroups()  routine, and at both the router, and
+	    the scheduler, use both to clean out the set of supplementary
+	    groups the processes have.
+
+	* include/hostenv.h:
+	    Concise USE_ALLOCA/HAVE_ALLOCA defines
+
+	* libident/identuser.c:
+	    Be a bit more tolerant at what comes back as response
+	    for the ident query.
+
+	* libsh/interpret.c, router/functions.c:
+	    A bit more smarts into quote containing string processing;
+	    Especially when dequoteing string that contains only one
+	    char: ' or " ...
+
+	* proto/cf/i-routes.cf:
+	    Accept incore database of form:   $MAILVAR/db/routes.zmsh
+	
+	* router/libdb/headers.c:
+	    Allow   "Reply-To:" and "Resent-Reply-To:" to have value: "<>"
+	    (sigh...  It is against RFC-822, but I see such usage few times
+	     each day...)
+
+	* scheduler/msgerror.c, transports/errormail/errormail.c,
+	  transports/fuzzyalias/fuzzyalias.c, transports/mailbox/mailbox.c:
+	    Stronger MIME-report boundary generator which isn't merely
+	    stocastic, but very likely unique at the creation time.
+
+	* smtpserver/policytest.c, smtpserver/policytest.h:
+	    Move policy-database open out from database define
+	    routine.
+
+	* smtpserver/policytest.c:
+	    - Study "rejectsource" at HELO/EHLO parameter check
+	    - For the RCPT TO:<..> study also the full addresses
+	      in addition to the domain part
+
+	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c:
+	    - Print out the incoming HELO/EHLO parameter as is
+	      into comment at  "rcvdfrom"  envelope header along
+	      with many other bits of info.
+	    - Change policy-rejection responses from:
+	        553 5.1.8 ...
+	      to:
+		553 5.7.1 ...
+
+	* ssl/ssl.c:
+	    Conflicting routine name within the ssl.c program: basename()
+	    ( Linux libc6 a.k.a. glibc-2.0.4 .. )
+
+	* support/vacation/vacation.sh.in:
+	    Modifications into 'vacation start' command behaviour.
+
+	* transports/mailbox/mailbox.c:
+	    Found a couple off odd situations where creation of files
+	    into non-kosher location was allowed; partly corrected with
+	    the purge of supplementary groups at the scheduler, partly
+	    with a bit of new code.
+
+	* transports/smtp/smtp.c:
+	    Recognize (unknown) smtp response value 571 to be a sign of
+	    policy based refusal.
+
+	* utils/makendbm/ndbmlook.c:
+	    At Debian systems including <errno.h> causes surprises at
+	    parameters called 'errno' ... rename such parameters.
+
+Sun Jun 22 04:57:02 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49p2
+
+	* configure.in:
+	    sprintf() return type testing fix
+ 	
+	* include/hostenv.h:
+	    Too many files need to include  <string.h>,  thus
+	    we added it into  "hostenv.h"... (for SunOS 4.1.x)
+
+	* libc/getaddrinfo.c, libc/getnameinfo.c:
+	    "extern int h_errno;" added
+
+	* proto/cf/SMTP+UUCP.cf.in
+	    More suitable, and more generic version
+
+	* smtpserver/smtpcmds.c:
+	    A fix in ORCPT pseudo-formation in case the original
+	    sending system did not use the option..
+
+	* support/vacarion/vacation.c:
+	    Properly placed  'extern char * strerror();'
+
+	* transports/libta/diagnostic.c:
+	   Again optimize int returning sprintf better, than
+	   the old char * returning...
+
+Thu Jun 19 19:41:47 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in
+	    Version 2.99.49p1
+	
+	* configure.in:
+	    Reordered (and changed default) of  --with-libmalloc=
+	    option parameters
+
+	* lib/selfaddrs.c:
+	    Detected that SunSoft SunPro C 3.0 didn't define
+	    '__svr4__', but does '__SVR4' -- automatic Solaris
+	    support failed due to that..
+
+	* libsh/listmalloc.c:
+	    Debugged, and got it finally working..  (something for
+	    Zmailer 3.0 ...)
+
+	* smtpserver/smtpcmds.c:
+	    Freed memory blocks that were not malloc()ed at all..
+
+	* transports/libta/diagnostic.c:
+	    'notarybuf' can be a NULL pointer, prepare for it!
+
+	* utils/makendbm/makendbm.c:
+	    Just some casts to please SunOS 4.1.x compilation
+
+Fri Jun 13 22:41:04 1997  Matti Aarnio  <mea@mea-koti.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.49
+
+	* README.PERFORMANCE:
+	    Added some notes about what performance figures we have achieved
+	    with this beast
+
+	* ALL SOURCE FILES (more or less):
+	    - Threw in 'const' before 'char *', and got a LOT of changes all
+	      around
+	    - Converted lots and lots of places of 'unsigned char' into
+	      'char' -- in very few cases also chopped off extra-high
+	      bits loading unsigned chars from strings when needed.
+	    - Added function prototypes all around, and fixed a couple
+	      real bugs in rarely used parts of the system
+	    - changed all instances of 'struct conscell' into 'conscell'
+	      (typedefed object) for a latter jump in altering the
+	      conscell object handling sometime latter in the developement.
+
+	* lib/strlower.c, lib/strupper.c:
+	    New library routines
+
+	* smtpserver/readpolicy.h, smtpserver/policytest.c,
+	  smtpserver/policytest.h, README.SPAM, man/smtpserver.8:
+	    Integrated policytest()/policytestaddr() routines with
+	    compiled in logics of earlier Gabor Kissigs interactive
+	    router subprocess based system without the need to run
+	    the router as a subprocess...
+
+	* utils/makendbm/makendbm.c, utils/makendbm/ndbmlook.c:
+	    Integrated support for policy-db compilation
+
+	* proto/db/smtp-policy.src, utils/policy-builder.sh:
+	    Sample policy database (header), and sample policy-db
+	    builder
+
+	* scheduler/update.c, transports/libta/diagnostic.c:
+	    "ok3" status message for cases where transporter was
+	    able to relay the DSN into to the next link, thus we
+	    have no mandate to report successfull relaying, like
+	    "ok2" and "ok" would do.
+
+Fri Jun 13 22:41:04 1997  Matti Aarnio  <mea@mea-koti.tmt.tele.fi>
+
+	* Makefile.in:
+	    - Version 2.99.48p4
+
+	* doc/design/zmog.tex:
+	    - Corrected two typos, and were able to compile it
+	      with command "tex zmog"
+
+	* lib/selfaddrs.c, libc/inet_ntop.c, libc/inet_pton.c,
+	  libident/identuser.c, router/libdb/bind.c,
+	  router/libdb/selfmatch.c, smtpserver/smtpserver.c,
+	  transports/smtp/smtp.c:
+	    Modified plain '#ifdef AF_INET6' into more complex:
+	    '#if defined(AF_INET6) && defined(INET6)'
+
+	* transports/libta/diagnostic.c:
+	    Under some obscure reasons, autoconfig of the sprintf()
+	    return value did get it wrong at SunOS 4.1.4..
+	    Coded the diagnostic without conditional optimization
+	    based on the return value type.
+
+	* libc/getaddrinfo.c, libc/getnameinfo.c, include/netdb6.h:
+	    Pulled from 2.99.49beta10 -- with seriously rewritten
+	    DNS code.
+
+	* transports/smtp/smtp.c:
+	    Allow talking to self host in case the destination port is
+	    a non-standard port -- not port 25, that is.
+
+Wed May 28 11:03:42 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    - Version 2.99.48p3
+
+	* config.h.in, configure.in, configure:
+	    Pulled these from 2.99.49beta7:
+	    - timezone autoconfiguration
+	    - IPv6 in use with ONLY an explicite  --with-ipv6  option!
+
+	* transports/sm/sm.c, transports/smtp/smtp.c,
+	  transports/mailbox/mailbox.c:
+	    "readalready" cache handling in case the MMAP is not
+	    recognized properly (IBM AIX has problems at the auto-
+	    detection of that feature..)
+
+	* smtpserver/smtpserver.c, smtpserver/smtpcmds.c,
+	  smtpserver/smtpdata.c:
+	    - Wrong parameters in one logging call at the  BDAT  processing,
+	    - Rearranged typeflush() calls, and pipeline status reporting.
+
+Fri May  2 16:10:28 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    - Version 2.99.48p2
+	
+	* BUGS
+	    Noticed problem at scheduler ETRN -> results in
+	    busy spin...
+
+	* man/aliases.5:
+	    A new man-page...
+
+	* proto/cf/fqdnaliases.c:
+	    Missing quotes from the script
+
+	* proto/scheduler.conf:
+	    Sample scheduler.conf file with tags for three
+	    different channel = local  -cases:
+	      - local/file*
+	      - local/pipe*
+	      - local/*
+	    The "local/*" may be run with "sm" to use procmail,
+	    or cyrus (for example) for deliveries to users.
+	    The "sm" (procmail in particular?) is unable to do
+	    pipe-feeds, nor storing to files, it seems.
+	    (Also gave an example of 'punt' on smtp..)
+
+	* smtpserver/smtpcmds.c:
+	    Removed obsolete special case ESMTP token: X-TURNME
+
+	* transports/errormail/errormail.c, transports/sm/sm.c,
+	  transports/mailbox/mailbox.c, transports/hold/hold.c,
+	  transports/fuzzyalias/fuzzyaliases.c, transports/libta/lockaddr.c,
+	  transports/smtp/smtp.c:
+	     "Make sure we are properly positioned at the start
+	      of the message body"  (lseek() things)
+
+	* transports/mailbox/mailbox.c:
+	    Save  errno  before doing library calls -- did yield wrong
+	    error in case the 'dotlock' was busy.
+	
+Thu Apr 24 21:00:28 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    - Version 2.99.48
+	    - SiteConfig->zmailer.Config processing  sed  script
+	      modifications so that even HP-UX sed does it right..
+
+	* proto/cf/rrouter.cf:
+	    Test for a "|.+" was coded wrong, and it never
+	    matched for pipes causing stripping of possible
+	    ">" from within the pipes..
+
+	* router/router.c:
+	    - logit() routine written with different armouring
+	      against overlong input, which causes overlong
+	      syslog() output, which causes some syslogs to
+	      blow up..
+
+	* transports/libta/mime2headers.c:
+	    Properly flexible way to do DEFCHARSET definition
+	    in runtime also for "MIME-2" (e.g. headers) part.
+
+	* transports/libta/mimeheaders.c:
+	    Missing "," from the canned "X-Warning" messages
+
+	* transports/mailbox/dotlock.c:
+	    HP-UX has 'long gethostid()' defined in its includes.
+
+	* transports/mailbox/mailbox.c:
+	    - Correction on long-term problem on PIPE running,
+	      where the pipes practically did not work at all :-/
+	    - Expanded diagnostics (while debugging that previous
+	      bug...)
+	
+	* transports/smtp/smtp.c:
+	    - ssfgets() got a bit more state into  SmtpState  block
+	    - Most (nearly all) sprintf()s are output length limited
+	      with "%.200s" -type of format strings
+
+Wed Apr 23 17:58:19 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.48-970423
+
+	* configure.in:
+	    - Rearranged libresolv autoconfiguration
+	    - Test for possible need of -lresolv to satisfy the
+	      access to the structure:  _res
+	    - Corrected the  RFC822TABS (--without-rfc822-tabs) option
+	    - Do GCC optimizer resistant test on existence of
+	      external objects, e.g. char *sys_siglist[];
+	
+	* include/ta.h, transports/libta/tasyslog.c:
+	    New parameter (msg) to the  tasyslog()  routine
+
+	* include/zsyslog.h:
+	    Yield an error if the system does not have proper
+	    <syslog.h>  (TODO: Have acceptable substitutes for
+	    that case..)
+
+	* libc/mail.c, smtpserver/smtpdata.c:
+	    The  mail_close()  routine is a wrapper for an internal
+	    routine that returns information regarding the last status
+	    of the spool file for the  smtpserver  to be able to report
+	    that at the message reception.
+
+	* router/libdb/header.c, man/zmailer.3:
+	    Define the  "rcvdfrom" to require a  "user@address" type of
+	    parameter
+
+	* smtpserver/smtpcmds.c:
+	    Store the "rcvdfrom" information from the IDENT information.
+
+	* router/rfc822.c, router/router.c:
+	    If the system can't resolve internal uname->uid/uid->uname
+	    mappings (getpwnam() fails ?), then defer the message.
+
+	    If the message has a "rcvdfrom" header, and the message is
+	    not submitted by any of the "trusted" UIDs, replace the "rcvdfrom"
+	    information with a new one we fabricate
+
+	* router/rfc822.c, router/rtsyslog.c:
+	    router's syslog (rtsyslog()) has a new parameter
+
+	* smtpserver/smtpserver.c:
+	    - Don't syslog() anything, unless indicating an error!
+	    - Recognize IN6_IS_ADDR_V4MAPPED() type of addresses, and
+	      do reversal lookup in proper IPv4 manner.
+
+	* transports/libta/diagnostics.c, transports/libta/tasyslog():
+	    - notary_setwttip() to behave in similar manner to notary_setwtt(),
+	      but to define the IP address that the host has, and we have made
+	      a connection with.
+	    - tasyslog() takes that information as a parameter
+	    - tasyslog() has new sprintf() format strings with output width
+	      limitations
+
+	* transports/libta/mimeheaders.c:
+	    Rewrote (somewhat) the text of the "X-Warning:" -lines
+
+	* transports/mailbox/mailbox.c:
+	    - The recipient address is properly dequoted, and localized
+	      for feeding to the local processing (to a file, pipe, or
+	      to store at somebodys mailbox)
+	    - HP-UX 9.x oriented: 'fflush() returns an error in case
+	      the FP points to a PIPE, but lets hope it won't set ferror()
+	      unless it really is an error!'
+
+	* transports/sm/sm.c:
+	    - Process bigger let_buffer[]s than before
+	    - If the system reads more than one bufferfull, always remember
+	      to zero the  'readalready'.
+
+	* transports/smtp/smtp.c:
+	    - Report the  notary_setwttip()  along with  notary_setwtt() data
+	      for the diagnostics
+	    - smtp pipelining code rearrangement completion
+
+	* transports/libta/tasyslog.c:
+	    Don't be shy about telling what the return message of the
+	    transporter was when tasyslog()ing it, and the code was OK.
+
+Mon Apr 13 19:15:31 1997  Matti Aarnio  <mea@mea-koti.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.48
+
+	* BUGS:
+	    More TODO notes (and a few removed)
+
+	* Makefile.in:
+	    More DISTCLEANFILES entries, 
+
+	* SiteConfig.in:
+	    New entry:  DEFCHARSET=XXX
+
+	* compat/sendmail/sendmail.c, include/zsyslog.h, ...
+	    Replaced all syslog() related things with our own
+	    include header, and z** -macroes.
+
+	* config.h.in:
+	    IPv6 header tests, RFC822TABS definition.
+
+	* configure.in:
+	    - PERL path test
+	    - Tests for several different (N|G)DB(M) formats
+	    - IPv6 related header tests
+	    - Test for the need of resolver library
+	    - Configure time option to say wether ot not to use
+	      TABs in the RFC-822 headers -- At tele.fi we have
+	      customers that CAN'T handle TABs :-(  (The makers
+	      of the software with problems agree they made a
+	      mistake, but it has quite a bit of installations...)
+	    - Attempt to auto-detect  TCP-Wrapper's  tcpd.h, and
+	      libwrap.a from several possible locations.
+	    - Auto-generate several new files...
+
+	* include/ta.h, transports/libta/lockaddr.c:
+	    New parameter: 'int mypid'
+
+	* include/zmsignal.h:
+	    - SIGNAL_RELEASE() rewrite for BSD
+	    - SIGNAL_HANDLE*() with SA_NODEFER active!
+
+	* lib/esyslib.c:
+	    erename() did miss ending 'return 0;'
+
+	* lib/selfaddrs.c:
+	    - Better IPv4 self-address detection (IPv6 still partial..)
+
+	* lib/taspoolid.c:
+	    - When presented a path, pick only the last part, not "/path"..
+
+	* libc/getaddrinfo.c, libc/getnameinfo.c:
+	    - first stabs at the integration of these new ways to
+	      pick addresses..
+
+	* libident/identuser.c:
+	    - more and more adaptations for our smtpserver use (and
+	      to be generic IPv4/IPv6 ident query interface..)
+
+	* smtpserver/*.c, smtpserver/Makefile.in:
+	    - Split the server in "zillion" bits from the original
+	      monolithic file
+	    - Integrated reception time character translation routines
+	      as implemented by: Eugene Crosser <crosser@average.org>
+
+	* router/Makefile.in:
+	    - New source module:  rtsyslog.c
+
+	* router/rtsyslog.c:
+	    Sendmail-like syslog messages
+ 	
+	* router/conf.c:
+	    Configure-time option to be able to control the presentation
+	    of TABs in the message headers.
+
+	* router/db.c, router/libdb/selfmatch.c, router/libdb/Makefile.in,
+	  router/libdb/search.h:
+	    - New relation, which can be used to match local addresses
+	      in destination addresses of form:   <foo@[1.2.3.4]>
+	    - The "relation" command presents lists of available
+	      database routines when it is called without arguments
+
+	* router/rfc822.c, router/rtsyslog.c:
+	    - Present the addresses in properly quoted format in
+	      the transport-specification file
+	    - rtsyslog() -- sendmail-like syslog report (still partial)
+
+	* scheduler/msgerror.c:
+	    New diagnostic scalar variable: time-of-last-attempt
+
+	* scheduler/threads.c:
+	    Change in age-order comparison code, some systems had
+	    the qsort() to SIGSEGV..
+
+	* scheduler/transport.c:
+	    - Count '#idle' as a command.
+	    - FD_* -> _Z_FD_* macro renameing
+
+	* transports/libta/Makefile.in:
+	    Missing semicolons
+
+	* transports/hold/hold.c:
+	    - Process according to the HOST parameter too, if present!
+	    - Understand: NS/AAAA
+
+	* transports/libta/ctlopen.c:
+	    - close-on-exec flag set on
+	    - Recoded the size estimate -- don't present the incoming
+	      message transport envelope size -- at nic.funet.fi it
+	      can be well over 100 kB, and the message itself is often
+	      mere 1kB or so..  Some systems choke on such a "large"
+	      messages..
+
+	* transports/libta/diagnostic.c:
+	    - Log the time of the diagnostics write to the TA-spec file
+	      into the diagnostics string
+
+	* transports/libta/dnsgetrr.c:
+	    IPv6 things
+
+	* transports/libta/mimeheaders.c:
+	    Runtime option on what the default character set is at the
+	    system (so that everybody need not to use UNKNOWN-8BIT, or
+	    ISO-8859-1, or ...)
+
+	* transports/mailbox/mailbox.c:
+	    - Runtime option on default charset, when forcibly MIMEfying
+	    - Basis for properly localized "user" identity
+
+	* transports/sm/sm.c:
+	    - charset system option processing
+
+	* transports/smtp/smtp.c:
+	    - charset system option processing
+	    - smtp-pipelining processing with explicite flags on when
+	      the parameter is really a recipient address, and when
+	      the errors are severe, and when not..
+	    - ssfgets() -- a timeouting version of  fgets(), which when
+	      timeouting, sends a NOOP (or QUIT+close()) to the possibly
+	      open SMTP session
+	    - Various timeouts are processed with  setjmp()/longjmp(),
+	      however NOT with POSIX  sigsetjmp()/siglongjmp(), which
+	      in fact doesn't much help, unless you know for sure that
+	      you can accept the signal mask that the sigsetjmp() has
+	      saved for you...
+	    - Use my interface-derived name for the HELO/EHLO parameter
+	    - smtp_sync() internal logic refurnished
+	    - calling error of  ranny()  on the randomization of the MX-
+	      entries of same preferrence
+
+	* proto/db/aliases.in, utils/autoanswer.pl.in:
+	    - Alias of 'autoanswer: "|$MAILBIN/autoanswer.pl"'
+	    - Autoconfiguring the runtime path of PERL
+	    - New routine to do automatic replying to whoever
+	      sent the original query
+
+Sat Mar 15 02:54:06 1997  Matti Aarnio  <mea@mea-koti.tmt.tele.fi>
+
+	* Makefile.in
+	    Version 2.99.47
+	
+	* BUGS:
+	    Notes on what is missing on IPv6 front yet..
+
+	* config.h.in, configure.in:
+	    HAVE_SA_LEN -- BSD 4.4 sockaddr sa_len -field
+
+	* configure.in:x
+	    - Some rearrangements to try to autodetect  tcpwrapper
+	      library in the system
+	    - Detect (and possibly provide replacements) of IPv6
+	      basic API functions:  inet_ntop(), inet_pton(), getaddrinfo(),
+	      getnameinfo(), gai_strerror(), freeaddrinfo()
+
+	* include/libc.h, include/netdb6.h, libc/gai_strerror.c,
+	  libc/getaddrinfo.c, libc/getnameinfo.c, libc/inet_ntop.c,
+	  libc/inet_pton.c:
+	    Spare-copies of these routines in case a  -linet6, or
+	    libc containing them is not in use...
+
+	* compat/sendmail/sendmail.c:
+	    Ignore sendmail option -odb (as well as -obd)...
+
+	* include/ta.h, include/dnsgetrr.h:
+	    Separate DNS query routine protos into their own file
+
+	* libresolv/gethnamaddr.c:
+	    Modified entrypoints to provide parameter on which to return
+	    the TTL value of the queried data.
+
+	* router/conf.c:
+	    Add 4th default name for possible "daemon" --> "daemons" on
+	    some newest SGIs..
+
+	* scheduler/msgerror.c:
+	    Moved repeated (big!) codesegment into separate procedure,
+	    and schrunk the error reporter a bit with that...
+
+	* scheduler/transports.c:
+	    Oh my...  _FD_SET et.al. are defined on some systems! Renamed them.
+
+	* scheduler/update.c:
+	    Cosmetic changes actually..  (while debugging msgerror.c)
+
+	* smtpserver/rfc821.c:
+	    New  rfc821_v6dotnum() -routine.
+
+	* smtpserver/smtpserver.c:
+	    - Bug in 2.99.46psomething, which broke ENVID= parameter
+	      parsing routine..
+	    - Initial cut on IPv6 things
+
+	* transports/hold/hold.c, transports/smtp/smtp.c,
+	  transports/libta/dnsgetrr.c:
+	    - First partial stabs at IPv6
+	
+Mon Feb 17 22:30:06 1997  Matti Aarnio  <mea@mea-home.tmt.tele.fi>
+
+	* transports/mailbox/dotlock.c:
+	    A HPUX `gethostid()' routine from <dd@mv.us.adobe.com>
+	    (David DiGiacomo) via Sven Goldt <goldt@informatik.tu-muenchen.de>
+	    who found out why the mailbox program keeps crashing on
+	    the HPUX.
+
+Fri Feb 14 20:29:25 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* lib/esyslib.c: erename(), eqrename()
+	    Rewrote  eqrename()  cleanly in model of Andy Poling's
+	    ideas -- he observed surprising amounts of duplicate
+	    delivery while using  rename(2) instead of link(2)/unlink(2)
+	    systemcalls for acquiring a lock on the messages.
+
+	* transports/smtp/smtp.c:
+	    Classify "DNS inconsistency, No MX, no A" message
+	    a bit better.  There are four main categories, and
+	    the "we are the best mx" could be divided still..
+
+	* libsh/interpret.c:
+	    Count on how many recursions we have done, and if exceed
+	    some limit (like 100), we are highly likely doing something
+	    seriously wrong.  Abort before getting a SIGSEGV from stack
+	    overflow error. (All is rotten, but the diagnostics of the
+	    death is a lot easier...)
+
+	* proto/cf/aliases.cf:
+	    Loop-cut 'expansions' testing keying was flawed, and
+	    a person with a '.forward' was able to cause a serious
+	    loop that lead to memory exhaustion in pretty short order..
+
+Sat Feb  8 00:19:06 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* compat/sendmail/sendmail.c, configure.in, lib/esyslib.c,
+	  libs/Makefile.in, router/rfc822.c, smtpserver/relaytest.c,
+	  smtpserver/relaytest.h, smtpserver/smtpserver.c,
+	  utils/makendbm/makendbm.c, proto/scheduler.conf, ChangeLog:
+	    A heap of "minor" fixes to all around to improve this
+	    compilability in various systems besides my RedHat Linuxes.
+
+Thu Feb  6 19:00:24 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    patchlevel 46 -- time for a release..
+
+	* router/functions.c, proto/aliases.cf, proto/crossbar.cf, proto/canon.cf:
+	    New router-zmsh routines:  $(dequote .. ) $(condquote .. )
+	    To provide support for having an alias entry like this:
+		"The Space Head": st-tng
+	    (And simplify the scripts to remove special patterns tried
+	     for space-processing...)
+
+Wed Feb  5 10:02:20 1997  Matti Aarnio  <mea@mea-koti.tmt.tele.fi>
+
+	* utils/makendbm/makendbm.c:
+	    Runtime option (switch)  -a  to process alias-like input
+	    (keys are RFC-821-quoted strings) that follows format:
+	       keyname: LWSP value,value2,value3
+	    Thus allowing feeding the output of  printaliases  routine
+	    to  makendbm for creating some real dbase, instead of indirectly
+	    indexed ordered flat ascii file..
+
+	* libsh/sh.ssl:
+	    A new way to code white-space into '*sift' patterns by using
+	    paired quotes:  'text with " dbl quote'"' and single quote"
+	           Strings: -111111111111111111111--222222222222222222-
+	    There '-' are ignored, and chars of '1', and '2' are taken in.
+	
+	* proto/cf/aliases.cf, proto/cf/crossbar.cf:
+	    Recognize (with special pattern) that the local address contains
+	    spaces, and do add quotes to it! (Similarly for 'internet' rewrite
+	    rule..)
+	
+	* INSTALL, proto/cf/fqdnalias.cf, proto/newfqdnaliases.in,
+	  proto/db/fqdnaliases:
+	    A new routeing mechanism:  fqdnalias
+
+	* Overview:
+	    Added one new performance benchmark result
+
+	* README.UPGRADING, scheduler/update.c, transports/libta/ctlopen.c,
+	  transport/libta/diagnostic.c:
+	    Due to a change at  transports/libta/diagnostic.c, and its
+	    counterpart within  scheduler/update.c, new transport agents
+	    might not work with old scheduler -- it is a matter of linking
+	    the TA with the new library.
+
+	* compat/sendmail/sendmail.c, smtpserver/smtpserver.c:
+	    Do proper RFC821->RFC822 syntax quoting of possible backslashfull
+	    addresses:  \rfc821@domain --> "\rfc822"@domain
+
+	* config.h.in, include/syslog.h, libc/syslog.c
+	    HAVE_SYSLOG_H -- mark also if (or if not) we have <syslog.h>
+	    in the system.
+
+	* libident/identuser.c, include/identuser.h:
+	    A thorough rewamp of things -- to make sure no buffer overflows
+	    will occur due to a hostile data..
+
+	* include/libz.h, lib/rfc822scan.c, router/functions.c,
+	  router/rfc822.c, router/rfc822hdrs.c:
+	    When doing address list expansions, process each LINE of the
+	    input as a sole container of the address -- if there is some
+	    address like:  "@foo.domain" in a line, previously this became
+	    catenated with the next line as: "@foo.domain:faa@fii"
+
+	* include/ta.h, transports/libta/tasyslog.c:
+	    New generic tasyslog() to log out transport-agent
+	    report in similar manner to that of the  sendmail(8).
+
+	* proto/Makefile.in:
+	    Build/don't build some new/old dirs.
+	    Especially builds the hash-subdirs for the scheduler!
+
+	* lib/Makefile.in, lib/taspoolid.c:
+	    New generic tasyslog() support routine to build unique
+	    spoolids by catenating a base-64 encoded mtime of the
+	    email contents file, and the inode number of that file.
+
+	* lib/prversion.c:
+	    Year change -- Copyright 1992-1997
+
+	* proto/cf/aliases.cf:
+	    Handle all variants of list  owner-, -owner, and -request
+	    address injections neatly.  Does not set list outbound
+	    sender to be  owner-listname, though!  (See aliases-vger.cf)
+
+	* proto/cf/rrouter.cf:
+	    - recognize addresses that start with a pipe character, and
+	      DON'T mess with them with the focus testings!
+	    - Handle backquote-prefix properly (i.e. strip it..)
+	    - Detect feed to files (or X.400 address..)
+	    - If the `fullnames' database, nor `newsgroup' database
+	      found anything, try handling it in aliases database.
+
+	* router/libdb/headers.c:
+	    Moved two headers into "unknown" category, where we won't be
+	    checking on them:  keywords, references
+
+	* router/libdb/ordered.c, router/libdb/unordered.c:
+	    scan over the first token with  skip821address() -- now I can
+	    do aliases with quotes on the left-side, and spaces in them!
+
+	* router/rfc822.c:
+	    Bugfix: wrong pointer picked for recipient attribute causing
+	    more or less mysterious crash..
+
+	* router/rfc822hdrs.c:
+	    New form of the generated Message-Id:
+	      <yyyymmddhhmmssZspoolid+seq@mydomain>
+	    It is slightly shorter than the previous one, and definitely
+	    a lot more sortable..
+
+	* scheduler/msgerror.c:
+	    - Slight improvement on handling spacefull 'host' object
+	      (and 'user' object too..)
+	    - Threw away a 'dnsrecipient' information pointer, and
+	      updated error log writers/parsers for it.
+
+	* scheduler/scheduler.c, scheduler/scheduler.h, scheduler/update.c:
+	    Will not keep 'contents' of the TA-spec file in memory for very
+	    long -- only up to the initial scheduling input of the message.
+
+	* smtpserver/relaytest.h smtpserver/relaytest.c:
+	    Some more code -- "flesh on the bones", but not yet usable..
+
+	* smtpserver/smtpserver.c:
+	    Tried to alter the code to carry around a 'content' package
+	    so that perhaps someday the smtp-server can be threaded (or
+	    some such), and each thread runs with its own content.
+
+	* transports/libta/diagnostic.c, transports/mailbox/mailbox.c,
+	  transports/smtp/smtp.c:
+	    Doing 'sendmail(8)' like syslog data preparation
+	
+Sat Jan 25 15:18:08 1997  Matti Aarnio  <mea@mea-home.tmt.tele.fi>
+
+	* libsh/interpret.c, libsh/tregexp.c:
+	    Trace  SSIFT/TSIFT statements with clearly differentiated
+	    "trace compare/trace match" statements -- namely report
+	    "tcomparing 'pattern' and 'string'" for the  TSIFT, and
+	    "scomparing 'pattern' and 'string'" for the  SSIFT
+	    (and "smatched"/"tmatched" for matches likewise..)
+
+	* proto/cf/rrouter.cf:
+	    Where that trace change was motivated... was something
+	    that I had implemented sloppily in a ssift statement...
+	    Namely I noticed, that the "fullname expansion traps
+	    ':include:/path/to.file' into itself, and fails".  Then
+	    I had decided to implement a test for RE "^[^.:]+\.[^.]+$"
+	    (where the starting/ending limiters are implicite in ssift!)
+	    but that RE has a fault of matching only ONE dot -- so no
+	    "foo.bar.bat" is matched with it, while it correctly does
+	    not match cases where the part before that dot has a colon
+	    (from ":include:").
+
+	    Now I test at first for explicite case of ":include:", and
+	    only then test for dotfull names.
+
+	    I am still uncertain if we should not rewrite it entirely
+	    differently -- to move also fullname/newsgroup map tests
+	    inside the $(routeruser ..) routine, and thus be able to
+	    allow  sendmail -like aliases where dotfull names can be
+	    in the standard aliases as well.
+
+	* smtpserver/smtpserver.c, proto/smtpserver.conf,
+	  smtpserver/Makefile.in, smtpserver/relaytest.h,
+	  smtpserver/relaytest.c:
+	    Some more coding of multi-db-format query lookups of
+	    service limitation mechanisms.
+
+	* utils/makendbm/ndbmlook.c:
+	    Yet another parametrization error in the DB code..
+	    (A non-fatal one, I presume.. affected only GDBM)
+
+Sat Jan 18 07:11:07 1997  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Patchlevel 45
+
+	* Makefile.in:
+	    Command: "make install-bin" will not overwrite existing ZCONFIG
+		     file!
+
+	* compat/sendmail/sendmail.c:
+	    Accept (and silently ignore)  "-ob*" -options.
+
+	* configure.in, config.h.in:
+	    - Have  --with-yp  -option
+	    - Test for  res_init()  instead of  gethostbyname()  to see
+	      if the system provided libraries are enough, or if more are
+	      needed (like  -lresolv)
+	
+	* libsh/interpret.c:
+	    - fapply() to accept up to 30 parameters in a linked list
+
+	* proto/Makefile.in:
+	    Remove the creation of "MAILBIN/bin/", which is about same
+	    as creating   "MAILSHARE/bin/bin/", which is stupid...
+
+	* router/libdb/ordered.c:
+	    - test mmap() error return in a bit more generic way
+	    - scan the buffer for the number of lines by executing
+	      a bit better constrained scan - than the previous one was..
+
+	* router/shliaise.c:
+	    - Got rid of  svstack[]  arrays in  l_apply(), and  s_apply()
+	      routines
+
+	* scheduler/Makefile.in:
+	    - If using TCP-Wrapper stuff, have related INCLWRAP, and LIBWRAP
+	      definitions in use -- for the mailq access control
+	
+Tue Dec 24 00:23:32 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* all transporters:
+	    Process  SIGQUIT as marker for desire of termination.
+	    That is, equal to earlier SIGTERM behaviour, but with
+	    a bit less urgent death.
+
+	* scheduler/scheduler.c, scheduler/threads.c, scheduler/transport.c:
+	    An attempt to create an orderly shutdown; send the
+	    scheduler signal SIGQUIT will activate this behaviour.
+
+	* Makefile.in:
+	    When "make dist", at first do  "chmod -R a+rX" to turn on
+	    all read-, and some x-bits.
+
+	* SiteConfig.in, configure.in:
+	   Autoconfigure preferred DBTYPE, and default extension for it.
+	   From  SiteConfig.in  it will propagate to  /etc/zmailer.conf
+	   (or where ever that one is..)
+
+	* compat/rmail/Makefile.in, compat/sendmail/Makefile.in,
+	  router/Makefile.in, scheduler/Makefile.in, smtpserver/Makefile.in,
+	  transports/mailbox/Makefile.in, transports/sm/Makefile.in,
+	  transports/smtp/Makefile.in, utils/makendbm/Makefile.in,
+	  support/utils/Makefile.in:
+	    Autoconfigure  MAILBIN= -entry (for installing)
+
+	* utils/makendbm/makendbm.c:
+	    Corrections for BSD DB B-tree database parametrization.
+
+	* proto/cf/aliases.c:
+	    Instead of using memory-hog script of (listaddresses ...),
+	    do use the builtin (listexpand ...) routine.
+
+	* proto/cf/rrouter.cf:
+	    Do "ssift/in/tfiss" test on $address.
+
+	* proto/smtpserver.conf, smtpserver/smtpserver.c,
+	  smtpserver/Makefile.in, smtpserver/relaytest.c,
+	  smtpserver/relaytest.h:
+	    - On STREAMs machines accept several rather mystic error
+	      states for  accept() -- with a shrug.. No need to exit(1)
+	      on such things as ENOSR, or EPROTO (No STREAMS Resources,
+	      Error on STREAMS PROTOcol, ...)
+	    - Don't log to console ( openlog( ... LOG_CONS ... ) )
+	    - Accept any input - any at all - for the HELO parameter.
+	      Be a bit more picky with EHLO...
+	    - Relay-control facility -- to whom we accept email to
+	      (must be out customer, or the sender is our customer)
+	    - Introduce new "PARAM" tokens -- several of them:
+		- "help" - string for the HELP-response main-text,
+			   up to 20 lines
+		- "maxsize"		- max-size we accept
+		- "reject-percent-kludge"  - flag
+		- "accept-percent-kludge"  - ditto
+		- "relaytargets"	- db-file definition
+		- "relaycustnets"	- ditto the rest
+		- "rejectnets"
+		- "rejectsource"
+		- "rejecttarget"
+
+	* router/libdb/bsdtree.c, router/libdb/gdbm.c, router/libdb/ndbm.c,
+	  router/libdb/unordered.c:
+	    Modification test trips when the open file has link-count of
+	    ZERO -- somebody mv(1)ed a new database on top of the old one!
+
+	* scheduler/msgerror.c:
+	    - An armour against WTT being NUL (upgradeing something?)
+	    - Recognizing a situation where we are sending an error
+	      report on error report -- marking that with altered subject
+
+	* scheduler/scheduler.c, scheduler/threads.c:
+	    Improve the freeze-out mode, it was able to spawn kids
+	    in the freeze-out mode, though it did not feed them.
+
+	* scheduler/transport.c:
+	    Alter mailq() printout fork ending to be _exit(0)
+
+	* transports/errormail/errormail.c:
+	    Use the 'host' parameter if one is supplied. Always
+	    pass it to the diagnostics subroutines.
+
+	* transports/mailbox/mailbox.c:
+	    - Fix processing the "lastchar" things.
+	    - append_header() without extra "\n"
+
+	* transports/sm/sm.c:
+	    - append_header() without extra "\n"
+
+	* transports/smtp/smtp.c:
+	    New options:
+		-F punthost  -- Send all mail to denoted host
+		-L localname -- At multi-homed machine, bind() to named
+				interface before doing connect()
+	
+
+Tue Dec  3 19:17:28 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c:
+	    Missing a couple of fflush()es -- moved the EXPN and
+	    VRFY routines into separate subroutines.  Now have
+	    ONE fflush() after each of the calls.
+
+Mon Dec  2 18:38:09 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/makendbm/makendbm.c:
+	    Yet another parameter error in case the system can do
+	    both NDBM and BTREE -- autch!
+
+	* smtpserver/smtpserver.c:
+	    Be silent about log-files when started up as
+	    "/usr/lib/sendmail -bs" by somebody who can not
+	    write into the default log files.
+
+	* Makefile.in:
+	    Version 2.99.43
+
+	* router/libdb/bind.c, transports/libta/dnsgetrr.c,
+	  transports/smtp/smtp.c, transports/hold/hold.c:
+	    Uses of "sizeof(u_long)" have been eliminated (as well
+	    as "sizeof(u_short)" in favour of numeric constants:
+	    4 and 2 respectively.
+
+	* transports/libta/mime2headers.c:
+	    Disabled the new MIME2 code.  Nothing but grief... :-(
+
+	* transports/libta/mimeheader.c:
+	    One missing setting of a variable.
+
+	* transports/smtp/smtp.c:
+	    Missing space at DNS RET= parameter writing.
+
+Wed Nov 27 21:23:12 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Once more (SmtpState -block).. Clear it with memset(),
+	    then init those few non-zeroes.
+
+	* smtpserver/smtpserver.c:
+	    Finally fixed the VRFY and EXPN behaviours; now
+	    they work as they should.
+
+Tue Nov 26 15:17:03 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    SmtpState -block needed some more initializations.
+	    Missing one: verboselog
+
+Mon Nov 25 16:21:15 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/hold/hold.c:
+	    Calling convention of  getrrtype() was changed (a bit),
+	    and I forgot to update it here too.
+
+Thu Nov 21 20:37:19 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Version 2.99.42
+
+	* transports/smtp/smtp.c:
+	    Massive rewrite of calling conventions within the SMTP
+	    client -- passing around a state-variable containing
+	    state of the smtp session (though not the message..)
+	    Corrected one bug at PIPELINING code.
+
+	* transports/mailbox/mailbox.c, transports/sm/sm.c,
+	  transports/smtp/smtp.c, include/ta.h,
+	  transports/libta/mime2headers.c:
+	    Routine  headers_to_mime2()  got new parameter.
+
+	* proto/cf/aliases.cf:
+	    Yet couple more fixes -- when processing  .forward
+	    an empty (addressless) file needs to expand to the
+	    original user, NOT to "\$user" -> $user ...
+
+	* scheduler/mailq.c:
+	    Explanation on "Transport queue is empty" condition.
+
+	* scheduler/readconfig.c:
+	    Now configuration file can have spaces around parts of
+	    attribute tokens:  'name=value'  'name = value'
+	    Unquoted '#' causes end of line to be comment, and thus
+	    ignored.
+
+	* scheduler/scheduler.c, scheduler/threads.c, scheduler/update.c:
+	    A "-p" (procselect) option to run only selected threads,
+	    but not to log in possible error reports (debug stuff)
+
+	* scheduler/scheduler.c:
+	    If a "TURNME"-request is processed, and the request
+	    does not have acompanying entry in "queue" (cfp->mid
+	    is not set), process it gracefully, and unlink().
+
+	* smtpserver/debugreport.c:
+	    Corrections on  type()  parameters.
+
+	* smtpserver/smtpserver.c:
+	    More informative reports on message exceeding fixed limit
+
+	* transports/errormail/errormail.c:
+	    Builtin error message fix
+
+	* transports/libta/mimeheaders.c:
+	    Make sure the Content-Transfer-Encoding is converted
+	    from Q-P to 8BIT when it is in that value..
+
+	* transports/mailbox/mailbox.c:
+	    - Support 'dirhashes' (runtime command-line option: -D)
+	    - If the message has no 'To:' header, add sendmailish
+	      'Apparently-To:' -header.
+	    - The sendmailish "Return-Receipt-To:" processing produces
+	      now proper and up to date  MULTIPART/REPORT
+
+	* transports/sm/sm.c:
+	    Produce proper DSN return values for various subprogram
+	    error messages.
+
+	* utils/makendbm/makendbm.c:
+	    Correction on 'dbasename' variable specification
+
+Thu Nov 14 22:37:18 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/rfc822.c, router/libdb/headers.c, BUGS:
+	    Treat "Return-Path:" -header with respect -- and
+	    DELETE it when sending it thru the system.  It is
+	    stored into the user's mailbox by the FINAL DELIVERY
+	    AGENT, it does not exist outside user's mailbox!
+
+Wed Nov 13 16:48:00 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/aliases.cf:
+	    Aargh... quotation-rules on ZMSH are "a bit" different
+	    from SH, and I keep forgetting it.  Everything broke
+	    when I added some newlines here & there...  Now added
+	    '\' (back-slashes) to cover them.
+
+	* utils/makendbm/makendbm.c, utils/makendbm/ndbmlook.c:
+	    Got rid of the need for some referred things, uses
+	    strerror() instead.
+
+	* transports/mailbox/mailbox.c, libc/mail.c, scheduler/msgerror.c:
+	    Use  fsync()  when finishing off the write to the mailbox/file.
+
+	* transports/libta/ctlopen.c:
+	    Initialize  notifyflgs  properly for the case that no
+	    NOTIFY parameter is present (assume: FAILURE)
+
+	* transports/errormail/errormail.c:
+	    If no reports sent, generate still OKs for each non-
+	    generated report..
+
+	* transports/sm/sm.c:
+	    Handle "channel error" at the sender..
+
+Tue Nov 12 17:47:34 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* config.h.in, configure.in:
+	    Test for  fsync()  at the system.
+
+Mon Nov 11 18:56:21 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Released version 2.99.41
+
+	* SiteConfig.in:
+	    Some new default values; FORCEPUNT, SCHEDULEROPTIONS
+
+	* compat/rmail/rmail.c, compat/sendmail/sendmail.c:
+	    Re-coded "to " and "todsn " -envelope generation,
+	    added "env-end" -envelope header.
+
+	* libc/strsignal.c:
+	    Using AC test  SYS_SIGLIST_DECLARED
+
+	* include/ta.h, transports/libta/skip821address.c,
+	  scheduler/scheduler.c, transports/libta/ctlopen.c:
+	    Declare and use  skip821address() -routine.
+	    Enables to have embedded spaces in 'host', and in 'user'
+	    parts of the parameter line.
+
+	* lib/loginit.c, router/router.c, scheduler/scheduler.c:
+	    "Name-space pollution" -- "log" is reserved name,
+	    and cannot be used as a name of a global variable..
+
+	* libc/mail.c:
+	    Final corrections for automatic filename index array
+	    reallocing -- off-by-one, and 32/64 bit troubles..
+
+	* libc/syslog.c:
+	    Compile it always in -- somewhat difficult at SunOS 4.1.4,
+	    but it seems to work even when debugging fails..
+	    Also uses  *sNprintf -routine, that is one with explicite
+	    way to tell the max space at the buffer.
+
+	* libsh/io.c:
+	    #define NO_FLOAT_CONVERSION -- don't do FP conversions,
+	    can get rid of the need to use "-lm" at the router at
+	    DEC UNIX 4.0 ...
+
+	* proto/cf/TELE-FI.cf:
+	    Sample of "router.cf" we use at Telecom Finland
+
+	* proto/cf/aliases.cf:
+	    Renoved  aliases.cf  that can do PUNTHOST AFTER checking
+	    at system aliases, but it will NEVER look at user home
+	    directories...
+
+	* proto/forms/delivery:
+	    Changes at the message text (and subject).  Now it is
+	    more generic to apply also for positive acks.
+
+	* proto/scheduler.conf, proto/sm.conf:
+	    Sample entries for using CYRUS IMAP-server injector as
+	    local server (Tom Samplonius <tom@sdf.com>)
+
+	* router/db.c, router/libdb/bsdbtree.c, router/libdb/search.h:
+	    Additional DB engine: BSD LIBDB B-Tree
+
+	* router/db.c:
+	    At "pathalias" -driver one can have (at $MAILSHARE/db/routes)
+	    "." to denote "match everything on this", and thus to make
+	    outgoing routes with single entry at routes db:
+			.  smtp!firewall
+
+	* router/functions.c:
+	    A glitch-fix for run_expandlist() -routine generating
+	    NOTARY ORCPT data
+
+	* router/libdb/ndbm.c:
+	    "extern int errno" (SunOS 4.1.4)
+
+	* router/rfc822.c:
+	    Fix on detecting ERRTO pointer value change, and moving
+	    "eVerbose" envelope header detection a bit up, plus adding
+	    several "verbose-log" printouts.
+
+	* scheduler/msgerror.c:
+	    - New routine  decodeXtext() to decode XTEXT objects coming
+	      as DSN parameters.
+	    - Some sanity-checks added for error report address picking.
+	      (core-drops at vger.rutgers.edu)
+
+	* scheduler/scheduler.c:
+	    - Lowercase the whole input string with "channel host",
+	      then latter sort those lines with  strcmp()  instead
+	      of  cistrcmp() ...
+	    - Fix parsing the NOTIFY= parameter -- wrong index..
+
+	* scheduler/update.c, scheduler/scheduler.c:
+	    Unconditionalize the syslog()
+
+	* smtpserver/smtpserver.c:
+	    - Moved code around to have definitions before uses.
+	    - Fix one call-variant of "type()" definition.
+
+	* transports/errormail/errormail.c:
+	    - Decode XTEXT
+	    - Produce DSN definitions on the reports with NOTIFY=NEVER..
+
+	* transports/libta/writeheaders.c:
+	    Always double-dot-quote the headers, though it should never
+	    be needed...
+
+	* transports/mailbox/mailbox.c:
+	    Present POSITIVE DSN reports!
+
+	* transports/sm/sm.c:
+	    - Unless using option "H", convert headers to "MIME-2"
+	    - Generate several possible variants of BSMTP, which one
+	      can thus feed via UUCP to remote system
+
+	* transports/smtp/smtp.c:
+	    Write out in a bit larger chunks than 1 k to the network..
+
+	* utils/makendbm/makendbm.c:
+	    Support 3 different DB-formats: NDBM, GDBM and B-tree
+	    ALL POSSIBLY AT THE SAME TIME
+
+	* transports/libta/mime2headers.c:
+	    Debugged the REAL MIME-2 header producer to produce
+	    some real MIME-2 format headers..
+
+Mon Nov  4 22:45:37 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Released version 2.99.40
+
+	* compat/sendmail/sendmail.c, include/mailer.h, router/rfc822.c,
+	  router/router.c, scheduler/msgerror.c, scheduler/scheduler.c,
+	  smtpserver/smtpserver.c, support/vacation/vacation.c,
+	  transports/libta/warning.h
+	    Unconditionalized  syslog() -- we have one bundled in
+	    from BSD sources.
+
+	* configure.in, config.h.in, and several sprintf()s all over:
+	    We test for possible   snprintf(),  and will use it!
+
+	* configure.in, libc/setreuid.c, libc/Makefile.in:
+	    Build setreuid() unconditionally, because at AIX
+	    the libc has one, but it is rather broken..
+
+	* transports/Mailbox.in, transports/fuzzyalias/
+	    A fuzzy-match transporter for creating suitable error
+	    reports.  Made by Thomas Knott.
+
+	* include/ta.h, router/rfc822.c, router/shliaise.c,
+	  scheduler/msgerror.c, scheduler/scheduler.c,
+	  scheduler/scheduler.h, scheduler/update.c,
+	  transports/libta/ctlopen.c, transports/libta/diagnostic.c:
+	    DSN notary parameter processing in smarter ways
+
+	* lib/token.c:
+	    - copyToken(): If the token size is over 50k chars, copy the first
+			   50k of it.
+	    - printdToken(): "print" the token into limited size buffer,
+			     but will expand the buffer if needed.
+
+	* libc/mail.c, libc/mail_alloc.c:
+	    Have dynamically allocated list of mail-files associated with
+	    the mailbox files being created.
+
+	* libsh/io.c:
+	    Initialization of  std_printf  variable a bit difficult.
+
+	* libsh/listutil.c:
+	    s_equal1() -routine.  Matches only one conscell at any time.
+
+	* libsh/tregexp.c, router/shliaise.c:
+	    Prepared to use  printdToken() into limited size buffer.
+	    Will expand the buffer if needed.
+
+	* router/functions.c:
+	    DSN parameter processing at  run_listexpand()  routine.
+
+	* router/libdb/yp.c:
+	    Fix -- has to strsave() a string returning from YP.
+
+	* smtpserver/loadaver.c:
+	    - "-lkvm" using systems (Solaris 2.5 on report) do not
+	      compile without it.
+	    - Usage of kvm_open() et.al. does actually need closure
+	      of /dev/kvm for not to overflow scant memory reading
+	      resources.
+
+	* smtpserver/smtpserver.c:
+	    Error in  type821err()  routine -- forgot to report
+	    without "\r\n" at the channel output.
+
+	* transports/mailbox/mailbox.c:
+	    Support "Return-Receipt-To:" -header when running mailbox
+	    with option switch "-S" (a.k.a: Sendmailism)
+
+	* transports/smtp/smtp.c:
+	    - revise return status codes
+	    - recognize relaying of DSN armoured SMTP message to
+	      systems without DSN facility
+	    - recognize remote declaring ENHANCEDSTATUSCODES, and
+	      use them in our own report
+
+Tue Oct 22 18:51:07 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile:
+	    Version 2.99.39
+
+	* transports/libta/ctlopen.c:
+	    Parser bugfixes, and DSN data parsing
+
+	* transports/mailbox/mailbox.c, transports/sm/sm.c:
+	    DSN stuff, diagnostic response fixes
+
+	* transports/smtp/smtp.c:
+	    DSN stuff for sending, and for receiving.
+	
+	* transports/errormail/errormail.c:
+	    Use DSN parameters to the fullest we can.
+
+	* transports/hold/hold.c:
+	    DSN parameters, fixes on returned diagnostics
+
+	* scheduler/msgerror.c, scheduler/scheduler.c, scheduler/scheduler.h,
+	  scheduler/update.c:
+
+	* router/libdb/header.c:
+	    "notaryret" envelope entry
+
+	* router/shliaise.c:
+	    Generic ``build_gensym()'' routine to bring together
+	    stuff previously duplicated all over.
+
+	* router/functions.c, router/prototypes.h, router/rfc822.c:
+	    The ``listexpand''-function got more DSN flags, and
+	    builtin MANDATORY ORCPT data generation.
+	    Basic rfc822() processor got more NOTARY stuff
+
+	* include/mail.h.in, include/mailer.h, include/ta.h:
+	    NOTARY DSN stuff
+
+	* libc/mail.c:
+	    Changed name (and params) of mail_close_scheduler() to
+	    be more generic  mail_close_alternate()
+
+	* compat/sendmail/sendmail.c, man/sendmail.8:
+	    More options to match with  sendmail-8.8:  -N -R -B -U -V
+	    (NOTARY DSN stuff)
+	
+	* INSTALL:
+	    A bit more verbose explanation on  /etc/group,  and
+	    "zmailer"-group, and purpose of "nobody" -account.
+
+	* smtpserver/smtpserver.c:
+	    Fixes to:
+	      - ident processing
+	      - IETF NOTARY DSN mechanisms -- will ALWAYS create  ORCPT= entry!
+	        Does an in-depth syntax analysis of DSN parameters
+
+	* libident/identuser.c:
+	    Changes at the return values at various error conditions
+
+	* transports/libta/ctlopen.c:
+	    Fix on DSN NOTARY parameter scanning
+	
+Thu Sep 12 22:19:58 1996  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in, Makefile.in, utils/makendbm/makendbm.c,
+	  utils/makendbm/ndbmlook.c, support/vacation/vacation.SH:
+	    A RedHat 3.0.3 Linux with some additions from more
+	    recent "Rembrandt" release caused several changes
+	    into the autoconfig, and makendbm system.
+
+Fri Aug 23 11:32:43 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/mailbox/mailbox.c:
+	    Solaris mailloc() became tested (and fixed) when
+	    I was teaching utu.fi UNIX admin to handle the
+	    ZMailer..
+
+	* configure.in, configure:
+	    Forgot to move certain resolver related defines into
+	    a bit more generic place (Solaris test results)
+
+	* lib/selfaddrs.c, lib/Makefile.in:
+	    Moved  stachmyaddresses(), and  matchmyaddresses()  from
+	    smtp.c into a bit more generic location -- library, and
+	    uses ZENV variable  SELFADDRESSES to list COMMA SEPARATED
+	    the names (or IP address literals: 1.2.3.4) of the local
+	    host.  The goal is to get a list of all interfaces at the
+	    current host so that, SMTP knows them, and at MX selection
+	    recognizes local system.
+
+Mon Aug 19 19:02:19 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* (all over the place):
+	    lseek() offset parameter changed from  long  to off_t.
+	    This affects especially BSD/OS.
+
+	* compat/sendmail/sendmail.c:
+	    Sometimes the "-v" option processing does not stop at all,
+	    because some transport agents (?) write more to the verbose
+	    logfile AFTER the scheduler has written its own "scheduler done"
+	    line so that it is not the last line read from the file.
+
+Sun Aug 18 19:10:44 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* INSTALL, README, README.PERFORMANCE, README.UPGRADEING,
+	  SiteConfig.in, man/*.[138]:
+	    Documentation update
+
+	* Makefile.in:
+	    Version 2.99.37 for release
+
+	* compat/sendmail/sendmail.c, libc/mail.c, smtpserver/smtpserver.c,
+	  router/libdb/ndbm.h, scheduler/transport.c, router/db.c,
+	  transports/libta/ctlopen.c
+	    <fcntl.h> testing check
+
+	* router/functions.c, router/rfc822.c:
+	    Add "env-end\n" into the boundary of envelope, and
+	    message body.
+
+	* router/rfc822.c:
+	    Add a bit more smarts (copied from the scheduler) at
+	    reading recipient addresses from canned messages.
+
+	* include/ta.h, transports/libta/lockaddr.c,
+	  transports/libta/ctlopen.c, transports/libta/diagnostics.c:
+	    Parameter changes at  lockaddr()
+	
+	* libc/whathost.c:
+	    More fixes at more systems  (and less memory leakage)
+
+	* libmalloc/externs.h, libmalloc/getmem.c, libmalloc/malloc.h,
+	  libsh/io.c:
+	    (back)porting to SunOS 4.1.4 with oddly configured gcc-2.6.3
+	    It did indeed spew error messages at some files...
+
+	* scheduler/mailq.c:
+	    Initial preparations for two-way interactive querying of system
+	    status
+
+	* scheduler/mailq.c, scheduler/msgerror.c, scheduler/prototypes.h,
+	  scheduler/scheduler.c, scheduler/scheduler.h, scheduler/threads.c,
+	  scheduler/transport.c, scheduler/update.c:
+	    Scheduler work-spool can now be hashed into one, or two levels
+	    of indirect hashesh.  See ``-H'' option at man-page.
+
+	* smtpserver/smtpserver.c:
+	    ENCHANGEDSTATUSCODES -facility.
+
+	* transports/mailbox/mailbox.c:
+	    - Runtime configurable selection of locking methods.
+	    - Corrected a file creation race condition
+
+	* transports/smtp/smtp.c:
+	    When doing PIPELINING, use some additional smarts as to when
+	    there is any need to do system calls -- SMTP commands are sent
+	    in larger chunks, and replies are not to be expected before
+	    they are sent, nor forever after..
+	    (Just reducing the number of syscalls when using PIPELINING.)
+
+Fri Aug  9 15:13:25 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile.in:
+	    Version 2.99.36 for release
+	    (pre-release installed at: Linux/ELF, DEC OSF/1, Solaris 2.5)
+	
+	* router/libdb/ndbm.c, utils/makendbm/makendbm.c,
+	  config.h.in, configure.in:
+	    Macro/function  dbm_error() is not available at BSD DB <ndbm.h>
+	    compability package.  Have to use  errno  in that case.
+	
+	* libs/Makefile.in, router/Makefile.in, router/libdb/Makefile.in:
+	    Changed the name of the router libdb to be  libzmdb.c,
+	    because BSD DB library name is  'libdb.a', and linking
+	    with '-ldb' causes a name-space collision...
+
+	* scheduler/qprint.c, transports/mailbox/mailbox.c:
+	    Changed the precedence of 'HAVE_UTIME' to preceed
+	    test of 'HAVE_UTIMES' -- or rather, if system has
+	    both, just using the 'HAVE_UTIME' variant.
+
+	* libc/whathost.c:
+	    Completed the rewrite with minimized memory leakage.
+
+	* smtpserver/fdstatfs.c:
+	    Completed the autoconfig sensing of the system
+
+	* configure.in, config.h.in, router/libdb/ndbm.c:
+	    More tests at variations of different DB libraries.
+	    Especially supporting systems with BSD DB in disguise
+	    of NDBM ( RedHat Linux 3.0.3 )
+
+Thu Aug  8 17:27:00 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* all over the place:
+	     #ifndef strchr
+	      extern char *strchr()   ((and friends))
+	     #endif
+	    IBM AIX (compilers) are ``different'' again...
+
+	* libresolv/*.[ch]:
+	    Done 4.9.4-patch1  things to the resolver.
+
+	* Makefile.in:
+	    - Version 2.99.35
+	    - When makeing 'all', at first removed 'libs/libtag',
+	      and then proceeds with system creation, thus ensuring
+	      that libraries are remade -- ONCE -- if needed.
+	    - compiles  support/vacation/vacation  too
+
+	* libc/whathost.c:
+	    AIX  mntctl() things (modelled after GNU fileutils 3.13
+	    code for similar use..)
+
+	* libc/Makefile.in, libc/whathost-test.c:
+	    Now have easier to use test to see, if the NFS-server
+	    recognition works at various platforms.
+
+	* support/vacation/*:
+	    Autoconfiguration support for the bundled vacation.
+	    Installation (make install) is not really mature.
+
+	* configure.in config.h.in:
+	    - Sense 'timezone' variable with  'altzone' variable
+	      at system libc
+	    - Sense sizes of (void*) and (long)
+	    - Sense gethostbyname() at system libc without any other
+	      libraries
+	    - Corrected the sense of NDBM at -ldbm -library
+
+	* lib/allocate.c:
+	    Alignments per system native parameters:
+		- SPARCs always 8 bytes (double floats)
+		- other 32-bit machines in 4 bytes
+		- 64-bit machines in 8 bytes
+
+	* lib/rfc822date.c:
+	    Timezone recognition when there is ``timezone'' variable,
+	    but not ``altzone'' (POSIX said some people.. Linux has this)
+
+	* libmalloc/align.h:
+	    Recognize in a bit more generic way 64-bit machines (SGIs)
+
+	* libsh/Makefile.in:
+	    LIBDEB fixup
+
+	* libsh/builtins.c, libsh/execute.c, libsh/expand.c,
+	  libsh/interpret.c, libsh/listutils.c, libsh/regex.c,
+	  libsh/sslwalker.c, libsh/variables.c, libsh/zmsh.c,
+	  router/db.c, router/functions.c, router/libdb/bind.c,
+	  router/libdb/dbm.c, router/libdb/header.c,
+	  router/libdb/ndbm.c, router/libdb/gdbm.c, router/prototypes.h,
+	  router/rfc822.c, router/rfc822walk.c, router/router.c,
+	  scheduler/scheduler.c, scheduler/transport.c,
+	  smtpserver/rfc821scn.c, smtpserver/smtpserver.c, ssl/ssl.c:
+	    IRIX 6.1 compiler was rather picky...  Minor cosmetics
+	    actually (like mismatch of enumerated variable vs. ints)
+
+	* bin/mkdep.in, bin/mklibdep.in:
+	    Autoconfig stuff (CPPDEP substitution)
+
+Fri Aug  2 11:29:39 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* libresolv/portability.h:
+	    One test to add SVR4 sensing at Solaris 2.4
+	    (with GCC 2.7.0)
+
+	* Makefile.in:
+	    Version 2.99.34 -- compilation tested at:
+		- Solaris 2.4 (without bundled libresolv!)
+		- DEC OSF/1
+
+	* (many files):  bzero() changed to memset()
+	  for SysVR4 port issues (Solaris 2.4) EXCEPT
+	  AT LIBRESOLV!
+
+	* libc/getdtblsiz.c, libc/setreuid.c:
+	    Portability things for Solaris 2.4 without UCBLIB!
+
+	* configure.in, config.h.in lib/rfc822date.c:
+	    Testing for variable 'altzone', and tm_gmtoff
+	    field at struct tm.  Made also small test program
+	    into lib -directory (make rfc822date-test)
+
+Thu Aug  1 15:05:53 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile.in
+	    Version 2.99.33a2 (and good night folks..)
+
+	* compat/sendmail/sendmail.c:
+	    Removed "Boptcount = 0", which was accidental artefact
+	    from one earlier version of "-B" -option processing.
+	    (compabilities with Alman's sendmail)
+
+	    Processing of  SMTPOPTIONS zenv-variable needs to remove
+	    the quotes from the parameter -- but it is a bit dangerous
+	    in case there is something like:
+		SMTPTOPTIONS="-l '/some/path/with space'"
+	    lets hope not...
+
+	* configure.in:
+	    The dup2() -test appears to act as compilation environment
+	    checkup :-)  Great, added comments of that effect at the error
+	    message.
+
+	* smtpserver/smtpserver.c:
+	    Tested the built-in tcp-wrapper at nic.funet.fi, now
+	    it works as expected. (daemon name:  smtp-input)
+	    FYI: The  allow/deny rules are as follows:
+	       1) does it match at allow ?  Yes, return allow.
+	          not ? proceed to second test
+	       2) does it match at deny ?  Yes, return deny.
+	          not ? return allow.
+
+	* router/rfc822.c: sequencer()
+	  transports/mailbox/mailbox.c, scheduler/msgerror.c,
+	  scheduler/scheduler.c, scheduler/scheduler.h:
+	    One particular weird mail file was able to cause
+	    100% mortality rate at the router -- NULL pointer
+	    dereference..  (Andy Poling <andy@realbig.com>)
+	    That prompted a larger go-around and checking at
+	    what happens when SMTP input arrives as  MAIL FROM:<>
+	    and is destined somewhere.   Fixes made at:
+	      - router
+	      - scheduler
+	      - mailbox
+	    In need of checking/fixing:
+	      - sm
+	      - errormail
+	      - hold
+	    (ok, perhaps only the 'sm')
+
+	* Makefile.in
+	    Version 2.99.33a1
+
+	* config.h.in, configure.in:
+	    Created  --with-tcp-wrappers=DIRPATH  option,
+	    changed names of two others to:
+			--with-sendmailpath=PATH
+			--with-rmailpath=PATH
+
+	* smtpserver/smtpserver.c, smtpserver/wantconn.c:
+	    Wietse Venema's  wantconn.c  for builtin tcp-
+	    wrapper behaviour -- suboptimal in efficiency,
+	    though... (but better than: inetd -> tcpd -> sendmail
+	    -> smtpserver, which is 1 fork + 3 execs..)
+	    The magic name at hosts.deny/hosts.allow files
+	    is:  smtp-input
+
+	* smtpserver/smtpserver.c:
+	    Fixes to file-descriptor usage so that things should
+	    work just fine with all options.. (*should*..)
+
+	* router/libdb/header.c:
+	    Made "Keywords:" -header unknown per regards of the
+	    router -- it need not to touch, not comment on it.
+	
+	* compat/sendmail/sendmail.c, include/mailer.h,
+	  router/libdb/header.c, smtpserver/smtpserver.c:
+	    Process properly the -Bbodytype parameter, and store
+	    it into the message envelope. It is known to the router,
+	    though nothing is done with it.  Also the SMTP-server
+	    does store that info into the message envelope.
+
+	    Also for "sendmail -bs", when invokeing  smtpserver,
+	    feed it the arguments from  SMTPOPTIONS  environment
+	    variable ( via  getzenv() )
+
+Wed Jul 31 12:03:01 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/smtp/smtp.c:
+	    Minor fixes at how the   smtp_sync()  works with the
+	    PIPELINING server -- now the reports do make sense to
+	    the ordinary message sender. (well, not exactly)
+
+	* Makefile.in:
+	    Version 2.99.32 -- and releasing it
+	
+	* *Makefile.in (practically them all)
+	    Adjusted dependency processing, now can do 'make depend'
+	    any time, though needs GCC-based  CPPDEP="gcc -MM"  to
+	    work properly...
+
+	* scheduler/resources.c:
+	    Autoconfigured various resource update mechanisms.
+
+Tue Jul 30 11:36:24 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile.in:
+	    Releasing 2.99.31 -- let others to have the experience too..
+
+	* INSTALL:
+	    Giving some additional tips at the initial configuration
+	
+	* lib/linebuffer.c, router/rfc822.c:
+	    Improved the error detection, and recovery so that now
+	    non-conformant input is a reason to stop the parse of
+	    headers (or envelope), and everything after it goes to
+	    the message body without looseing anything of it.
+
+	    The envelope header "env-end" has special meaning:
+	    It ends parse of envelope, and after it,  makeLetter()
+	    routine expects to get RFC-822 headers.  If it does not,
+	    the input goes to the body.
+	
+	* libsh/io.c, smtpserver/smtpserver.c, libc/syslog.c, 
+	  transports/libta/diagnostics.c, config.h.in, configure.in,
+	  transports/smtp/smtp.c, transports/libta/mimeheaders.c:
+	    HAVE_STDARG_H, and all related stuff, in case the
+	    varargs is not supported..
+
+Mon Jul 29 01:15:13 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* configure.in libs/Makefile.in (and most other)Makefile.in
+	    Made several new  --with-*  -configuration options:
+		--with-system-malloc
+		--with-bundled-resolver
+	    Neither are defaults.
+
+	    Test for existence of  <varargs.h>/<stdarg.h>,
+	    to do yet: converting sources to use the knowledge..
+
+Fri Jul 26 10:06:30 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile.in:
+	    Version number 2.99.31
+
+	    The package has now compiled smoothly at:
+	      - Solaris 2.5 with Sun unbundled cc, and gcc-2.7.2
+	      - Sun Sunos 4.1 with cc
+	      - DEC OSF/1 v3.2D with 'cc', and 'cc -migrate'
+	      - i486 Linux 2.0.4/libc-5.4.2 with gcc 2.7.2
+
+	* libident/Makefile.in, libident/identuser.c:
+	    Canonized the parameter defines for that library module
+
+	* configure.in, libresolv/Makefile.in, libresolv/inet_ntoa.c
+	    Added that routine into resolver library package, as it
+	    is not always present in the system, and we might need
+	    it -- especially in format where it is guaranteed to be
+	    structure passing convention compatible with our other
+	    code...
+
+	* libresolv/Makefile.in:
+	    Sun Solaris 2.5 does not like 'ld -x -r'..
+	    Me neither, actually.  Commented it away.
+
+	* libresolv/herror.c:
+	    One missing forward declaration.
+
+Thu Jul 25 02:59:13 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile.in, configure.in, and related autoconfig stuff:
+	    Fixes to get autoconfiguration to work at Sun Solaris,
+	    DEC OSF/1 v3.2D, Linux (kernel 2.0), and SunOS 4.1.
+
+	    Running this in production mode at  nic.funet.fi
+	
+	    Released version 2.99.30  for public 
+
+	* router/rfc822.c:
+	    Revised the  run_rfc822(), makeLetter(), and sequencer()
+	    way to handling  squirrel()/defer()/reject()
+
+	    Created a new standard error form:  loopexceeded
+	    which is given when there are way too many "Received:"
+	    lines at the message (50 is our limit;  router/conf.c)
+	
+
+	* libresolv/
+	    Copied pretty much as is the   bind-4.9.4-REL/res/
+	    (resolver) subdirectory, and relevant headers into
+	    our local "include/" -tree.  Then edited those
+	    C-files a bit, and got system independent resolver,
+	    which will be loaded statically, of course.
+	
+Wed Jul 17 16:49:02 1996  Matti Aarnio <mea@mea2.pp.utu.fi>
+
+	* (all over the place..) Makefile.in:
+	    Releasing version 2.99.29 with a bit less warnings,
+	    and more usability -- it very nearly works at my
+	    Laptop now...
+
+Mon Jul 15 21:42:40 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile.in:
+	    Releasing version 2.99.28 with dire warnings!
+	
+	* configure.in, configure, Makefile.in, ...
+	  (nearly all files got touched!)
+	    Using GNU-Autoconfig system
+
+Wed Jun 19 15:18:03 1996  Ken Pizzini <ken@spry.com>
+
+	* smtpserver/smtpserver.c, smtpserver/rfc821scn.c,
+	  router/rfc822.c:
+	    - SMTP-server dying with SIGALRM without cleanup
+	    - Accept braindead SMTP-input, and correct it
+	        "<foo@foo   >" (trailing white-space cleanup)
+	    - bug in  router/rfc822.c  at recognizing the end of
+	      the envelope headers, and begin of rfc822 headers
+	      in case the line-end was  CR LF  instead of plain LF ..
+
+Tue Jun 11 14:34:05 1996  Jerzy Sobczyk  <J.Sobczyk@ia.pw.edu.pl>
+
+	* libsh/execute.c:
+	    Change at the ENDGRANDCHILD() -macro to clean (reap) up
+	    the intermediate child process from becoming a zombie.
+
+Mon Jun 10 11:35:41 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* INSTALL:
+	    Some additional documentation details as suggested by
+	    Arnt Gulbrandsen.
+
+	* smtpserver/smtpserver.c:
+	    Revised a bit of message logging, and other things.
+	    There were difficulties that manifested at Sun Solaris,
+	    while same code worked at DEC OSF/1 :-(    (At Solaris
+	    the server process simply died a horrible death..)
+
+Tue Jun  4 18:52:08 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* libsh/interpret.c:
+	    Removed one  setlevel(MEM_SHCMD,...)  that caused memory
+	    to be freed too agressively in some cases, and which in
+	    turn was able to corrupt memory, when it was taken into
+	    use a bit latter:  for x in $(/bin/cat /etc/group); do ... ; done
+
+Fri May 31 15:30:01 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* smtpserver/smtpserver.c:
+	    Re-implemented the "TURNME"-command.  Apparently I have
+	    misplaced the previous version source..  well, this is
+	    cleaner code anyway.
+
+	    Added an alias "ETRN" for the "TURNME".
+
+	* lib/mail.c: mail_close_scheduler()
+	    A variant of  mail_close()  routine, which sends the file
+	    straight to the scheduler.  (For "TURNME")
+
+Tue Apr 23 14:14:55 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* compat/sendmail/sendmail.c:
+	    Add ignorance of "-B8BITMIME" into option processing...
+	    (We do it always, no need to tell it at the call..)
+	    (sendmail 8.7)
+
+Mon Apr 22 08:15:20 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* scheduler/scheduler.c:
+	    Got the  ``mytime()'' -server running also with Linux,
+	    and all other systems that have at least an ability to
+	    mmap() a file.
+
+	    Implemented a ``_CF_TURNME'' primitive parsing.
+
+	* smtpserver/smtpserver.c:
+	    Implemented a "TURNME"-command, which produces ``_CF_TURNME''
+	    primitive for the scheduler -- and sends it straight to there
+	    without going via the router..
+
+Fri Apr 19 16:13:34 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/mailbox/mailbox.c:
+	    At  putmail(), move the newline addition testing AFTER
+	    the  appendlet()  processing.  That way the message is
+	    always added at the end of the file, and only 0-2 newlines
+	    are added after that at the end of the message -- if needed.
+
+	    At least ELM got mystified with the earlier processing,
+	    where the newlines were added at the front of the message.
+
+	* scheduler/scheduler.c: (the "time server")
+	    A bit more generic approach, works at at bit more platforms,
+	    than only at OSF/1, and SunOS 4.1.x ...
+
+Tue Apr  9 11:39:12 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile:
+	    Released version 2.99.27
+
+	* Makefile:
+	    Add a ".PRECIOUS:" -tag for produced Makefiles, thus
+	    avoiding destruction of them at some awkward moments,
+	    when pressing "Ctrl-C" would delete one of them..
+
+	* compat/sendmail/sendmail.c:
+	    Option "-q" to take options (discarded anyway)
+
+	* hostenv/AIX4.1:
+	    Add "WAITPID=", and "ANSI_TYPES="
+
+	* hostenv/Linux:
+	    Added a warning about mmap() being broken in 1.2.x -kernels
+	    (well, propably broken...)
+
+	* hostenv/OSF1v3.2-Alpha:
+	    Added "STDC_HEADERS=" -- for ANSI-C-headers
+
+	* hostenv/SunOS4.1:
+	    Added  "BZERO="
+
+	* include/listutils.h, libsh/listutils.c:
+	    newcell() is now a routine, and not a macro..
+	    (In preparation of LISP-like guts rewrite..)
+
+	* router/rfc822.c:
+	    If the returned address reference has no protection info
+	    (a NULL-pointed object), print out "-".
+
+	* scheduler/scheduler.c: (and all others)
+	    Changed all "time(&now)" to be "mytime(&now)",
+	    and created a shared-memory server on which there is
+	    a redularly running server at the other side updateing
+	    system time into given variable, and the real scheduler()
+	    can read that data.  Makes a lot less syscalls at the
+	    scheduler (At SunOS 4.1 the  gettimeofday()  syscall
+	    does take some 80 usec...)
+
+	* scheduler/transport.c, scheduler/conf.c:
+	    Implemented a "forkrate-limit", which blocks the fork
+	    from happening, if over N fork()s have been done during
+	    the same second.  The count does reset at the next second
+	    for N more childs..  Default for the N is 10.
+
+	    Create  flush_child()  routine to handle some of the awkward
+	    non-completed outputs from the scheduler to the childs.
+
+	* scheduler/qprint.c:
+	    "Q-mode" at the reporting -- no reports in the traditional way.
+	    Also avoid a null-pointer deferrence.
+
+	* scheduler/scheduler.c:
+	    Parse scheduler 'Q'-mode argument, handle gracefully the
+	    main scheduler inner loop exit.
+
+	* transports/mailbox/mailbox.c:
+	    Move the mailbox-file time-stamp reset into after the write
+	    of the time. (Linux has peculiar read-time stamping due to
+	    unified-buffer-cache system.)
+
+	* transports/libta/lockaddr.c:
+	    FCNTL-locking -- for systems starved by the IO-capacity..
+	    (INCOMPLETE!)
+
+	* transports/smtp/smtp.c
+	    Added "-P"-option to turn off the PIPELINING use.
+
+	    Do unusual, and overwrite also the environment variables, when
+	    updateing info-area at the memory image for the benefit of
+	    BSD-derived systems where such data update is possible for
+	    reporting program state outside.
+
+	    Detect "#idle", and report it outside.
+
+	    Working implementation of PIPELINING full-duplex mode for
+	    the SMTP-protocol.
+
+	* utils/makendbm/makendbm.c:
+	    Support also the GDBM, if it is available, and no NDBM is.
+
+
+Fri Feb  9 02:32:01 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile:
+	    Releasing 2.99.26
+
+	* README.UPGRADING:
+	    Noted change in canned error message headers
+
+	* smtpserver/rfc821scn.c:
+	    Give a bit more meaningfull report for case of "<foo@foo.foo.>",
+	    which is "spurious dot at the end of the address"..
+
+Tue Feb  6 00:54:37 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* proto/forms/*, scheduler/msgerror.c,
+	  transports/errormail/errormail.c:
+	    Added third header tag:  "ADR" which expects to find
+	    recipient address (to be placed into "to " envelope line)
+	    in there
+
+	* smtpserver/smtpserver.c, smtpserver/rfc821scn.c:
+	    If the input to HELO/EHLO was syntactically incorrect,
+	    always trap it!  Although don't always cause full abort..
+	    Actually giving meaningfull report at each input, and
+	    storing "Bad.HELO.Input" into "rcvdfrom" entry..
+
+	* include/hostenv.h:
+	    Macro  FILENO(x)  was revised a bit to work properly
+	    on SunOS 4.1, which has the problem, need to revise
+	    it for other systems, if need be..  (IF the STDIO file
+	    descriptor is stored on a signed char, the default
+	    propagation of an fd over 127 makes it NEGATIVE, which
+	    causes some real trouble..)
+
+	* lib/rfc822date.c: (Tom Samplonius)
+		- gettimeofday() does not return timezone information on
+		  most BSD systems as "...time zone information does not
+		  belong in the kernel..".  Also, this call is redundant,
+		  since timezone information is the already retrieved
+		  struct tm
+
+		- I removed the
+			"if (prettyname) sprintf(cp+5, " (%s)", ts->tm_zone);" 
+		  statement because it is contained in the else part of a
+		  "if (prettyname) .." block and can never be executed.
+
+		- I removed the NO_TM_ZONE stuff in the USE_BSDTIMEZONE
+		  section.  This seems like a bad thing, however it seems
+		  to be required by AIX 3.2 though.  I don't know whether
+		  AIX 3.2 is actually still used, or whether newer versions
+		  of Zmailer actually build on it.  AIX 3.2 may be able to 
+		  use the tzname[] global variable to get the name instead. 
+
+
+	* include/mailer.h, router/libdb/header.c,
+	  smtpserver/smtpserver.c, scheduler/msgerror.c,
+	  transports/errormail/errormail.c:
+	    Added new  HeaderClass  object:  env-eof / end-end
+	    (two spellings) which is intended to be the last
+	    entry of the transport envelope headers.
+
+	* include/ta.h, transports/libta/lockaddr.c,
+	  transports/libta/ctlopen.c, scheduler/msgerror.c:
+	    Routine  lockaddr()  uses now MMAP()ed memory
+	    on systems where it is available.  Less syscalls
+	    on low-power machines..
+
+	* include/zmsignal.h:
+	    Ah well... truly portable signal processing appears
+	    to be rather elusive target.. Now Solaris, and some
+	    versions of BSD work again.
+
+	* libc/__fopen.c, libc/siglist.c:
+	    Couple FreeBSD related patches from Tom Samplonius
+
+	* libsh/builtins.c:
+	    Don't remember what system it was, but got a report
+	    of failing signal processing/wait()ing.  Altered
+	    feature testing into hostenv/* -feature USE_UNIONWAIT ..
+
+	* router/db.c, router/libdb/dbm.c, router/libdb/gdbm.c,
+	  router/libdb/header.c, router/libdb/core.c,
+	  router/libdb/ndbm.c, router/libdb/ordered.c,
+	  router/libdb/search.h, router/libdb/unordered.c,
+	  router/libdb/yp.c:
+	    "db -c database-file" --> outputs the number of
+	    elements in the database.
+
+	    Also incorporated a bunch of Nicholas Briggs patches
+	    (NIS -- USE_YP) for his environment.
+
+	* router/functions.c:
+	    Rewrote (minimized) the  rd_stability() related data
+	    amount used at sorting..
+
+	* scheduler/msgerror.c:
+	    Small changes to get it better online with IETF NOTARY-WG's
+	    report format..
+
+	* scheduler/update.c, scheduler/scheduler.c:
+	    Understands "#resync .." reqests, drops the
+	    info pertained to the jobspec, and returns
+	    to the problem sometime latter (via normal
+	    job scan..)
+	    
+	* transports/smtp/smtp.c, smtpserver/smtpserver.c:
+	    Implemented RFC XXXX of PIPELINING, which gives us
+	    radical speed-increase on case the sourcing system
+	    can do PIPELINING, and we have a need to transfer
+	    a large number of recipients in envelope.
+
+
+Tue Jan 23 11:49:58 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/libta/lockaddr.c:
+	    Reduce the number of systemcalls by one -- write
+	    whole lock info in one go.. (instead of two)
+
+Mon Jan 22 09:34:35 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* scheduler/transport.c:
+	    Moved a piece of code to ``nonblocking.c''
+
+	* transports/libta/nonblocking.c:
+	    New file containing fcntl()s to turn file blocking
+	    on and off..  ( fd_nonblockingmode() / fd_blockingmode() )
+
+	* smtpserver/smtpserver.c:
+	    - Added EHLO responce "PIPELINING"
+	      (server-side was easy..)
+	    - Made sure that if no RCPT TO:<> -addresses
+	      are given, will issue an "550"-error at the
+	      "DATA"-phase.
+
+	* transports/libta/diagnostic.c:
+	    Minimize the "ok"-case report size, as filling
+	    pipe of the report-back channel does not help
+	    at all to keep the system running at full blast..
+	    (average report size has been 110-120 chars, and
+	     the pipe-size is usually 4096..  It doesn't fit
+	     as many reports as it fits jobs.)
+
+	* include/zmsignal.h:
+	    SIGACTION does not always have the luxury of
+	    SA_INTERRUPT defined at the system includes
+	    (odd at that.. but Solaris is odd anyway..)
+
+Fri Jan 19 19:42:16 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile:
+	    Release 2.99.25
+
+	* include/zmsignal.h:
+	    Changed the order of tested alternates, now:
+		- BSDish SIGVEC stuff
+		- POSIXy SIGACTION stuff
+		- ... when all else fails.. (SVR3)
+	    (BSD and POSIX interchanged -- because OSF/1 3.2 didn't
+	     like SIGACTION stuff with SA_INTERRUPT, while Linux is
+	     happy -- and SunOS 4.1 needs SA_INTERRUPTs..)
+
+	* router/functions.c: rd_doit()
+	    Made a mistake at pid-renaming scheme, which caused
+	    errorneous results to flood systems, and even to kill
+	    the scheduler, when filename length became obscenely
+	    large -- overflowling a stack-allocated buffer, and ...
+
+	* scheduler/update.c, scheduler/threads.c:
+	    Use, and bookkeeping of  feed_child() had a ``one off''
+	    error in them causing occasional scheduler/ta deadlocks.
+	    (both waiting each other to tell more..)
+
+	* scheduler/transport.c: feed_child()
+	    Feed the child only when the  "proc->fed == 0", that
+	    is, as we set the flag, (and thread_start() clears it),
+	    we won't feed same message twice, and cause potentially
+	    excessive "#DBGdiag " loggings..
+	    (Messages are not lost, it just disturbs postmaster's
+	     peace of mind..)
+
+	* hostenv/SunOS4.1, hostenv/OSF1v3.2-Alpha:
+	    Turn back on the "MMAP=" settings, lack of them
+	    does hurt more, than they did themselves..
+
+Thu Jan 18 11:25:50 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* include/zmsignal.h:
+	    SunOS 4.1 uses sigaction() in posixy style (sometimes
+	    at least), and thus the programs jammed in weird ways.
+	    Autch...   Added  SA_INTERRUPT into sa_flags..
+
+	* Releasing 2.99.24 to the public
+
+	* libsh/interpret.c: findfreefd()
+	    It did `fstat()' in a loop, which is a bit heavy to my
+	    liking..  changed it to use  fcntl(fd, F_GETFL), which
+	    at most platforms is quite light-weight indeed..
+
+	* scheduler/transport.c: stashprocess()
+	    Clear the procinfo structure when preparing to store process
+	    info to it.  Had forgotten to zero one new variable in it,
+	    and caused mysterious halt gridlocks at scheduling..
+
+	* scheduler/transport.c: mux()
+	    Because the select-loop can take ages at slower machines,
+	    added  queryipccheck()  calls after each  readfrom()  call..
+	    Now the responsivity to the management interface should
+	    improve..
+
+	* transports/mailbox/mailbox.c:
+	    When delivering to a file, errors at the storing (filesystem
+	    full, for example!) did ZERO-TRUNCATED the target file.. Oops..
+	    (Existing file-size was looked up at lseek(fd,0,SEEK_SET)
+	     position, which happened to be at zero, of course..)
+
+	* transports/libta/warning.c, transports/libta/lockfile.c,
+	  transports/libta/ctlopen.c:
+	    Changes at error reporting to get rid of "Misformed diagnostics"
+	    entries at the scheduler log..
+
+	* transports/smtp/smtp.c:
+	    Altered the log-file writing a bit, now each line
+	    gets prefix of format:
+		("%05d%c%05d",getpid(),randchar,seqnum++)
+	    and the log should be  sort(1)able  to see all sessions
+	    in happening order -- and sessions with reused pids should
+	    have differing randchar anyway --> no two SMTP-sessions
+	    should be intermixed within each other.
+
+	* scheduler/scheduler.c:
+	    The new ``-S'' option causes startup to be all synchronous,
+	    and will not start scheduling before all of the queue is
+	    read in.
+
+	* scheduler/qprint.c, scheduler/threads.c, scheduler/mailq.c:
+	    New queue report -- old one is suppressed per default.
+
+	    ----------- sample -----------
+bash# mailq -sQQ
+0 entries in router queue: idle
+70 messages in transport queue: working
+smtp/*.de/0
+                Threads: 6 Procs: 19/6 Plim: 19 Flim: 150 Rcpts: 47 Idle: 13
+smtp/*.net/0
+                Threads: 1 Procs: 1 Plim: 10 Flim: 150 Rcpts: 1 Idle: 0
+hold/*/0
+                Threads: 1 Procs: 1 Plim: 20 Flim: 150 Rcpts: 2 Idle: 0
+...
+Kids: 64   Idle: 48   Msgs: 67   Thrds: 20   Rcpnts: 128   Uptime: 1m16s
+	    -------- end sample ----------
+
+Tue Jan 16 13:04:08 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/smtp/smtp.c: getmxrr()
+	    Wrong analysis of MXes causing occasional core, and
+	    deliveries to wrong machines..
+
+	* router/rfc822.c: makeLetter()
+	    After a  ``getline()'' do see if the input has a terminating
+	    CRLF character pair. If it has, convert it to LF-only..
+	    This makes system to process peacefully messages which have
+	    CRLF at their line change, which certainly is not UNIX style..
+
+	* scheduler/msgerror.c:
+	    Minor case improvement into ``delivery expired without
+	    diagnostics having been returned to the scheduler''
+	    (caused most likely by an overfed transport-agent..)
+
+	* scheduler/*:
+	    Still more performance related tuning, and bug hunting
+	    at vger.rutgers.edu -- now that small machine appears
+	    to be able to push some 200 000 messages in a day (1..n
+	    recipients of same message at same remote host count as
+	    one message), and linux-related lists are flowing out at
+	    furious rate..  :-)
+
+	    Profiling does tell weird things :-)  Most of the time was
+	    spent at   thread_linkin(), which took 2.3 ms/call, but
+	    was called some 200 000 times..  Small change there speeded
+	    it up to 0.3 ms/call, and it made cistrcmp() to top..
+
+	* router/functions.c:
+	   Altered multi-router locking mechanism a bit.
+	   Now it will use format:  inode-pid
+	   which should be unique within one machine.
+
+Thu Jan 11 13:52:06 1996  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile:
+	    Release 2.99.24 -- into testing at vger at first..
+
+	* hostenv/SunOS4.1, hostenv/OSF1v3.2:
+	    Commented OFF the "MMAP" feature -- the systems can do it
+	    just fine, but we need to see, if systems perform better,
+	    when not using it... (low-memory machine problems)
+
+	* transports/hold/hold.c, transports/errormail/errormail.c,
+	  transports/smtp/smtp.c, transports/mailbox/mailbox.c,
+	  transports/sm/sm.c:
+	    Accept input of queued up multiple job descriptors, which
+	    MIGHT meet an fatal input error so that the last entry does
+	    not end with a '\n'.  Reject such an entry silently.
+
+	* transports/smtp/smtp.c:
+	    When getting a bunch of job-descriptors with host selector
+	    on the input, and if the last reported diagnostic was a
+	    "retryat" failure, do silently drop them, until the given
+	    retry-time is reached.
+
+	* transports/hold/hold.c:
+	    Understand hold-definition: "ns:host.name.there/any" right..
+
+	* scheduler/readconfig.c, scheduler/scheduler.c, scheduler/mailq.c,
+	  scheduler/qprint.c, scheduler/scheduler.h, scheduler/threads.c,
+	  scheduler/transport.c, scheduler/update.c
+	    Radical changes at the scheduling algorithms..
+	      - "ageorder" config flag: makes vertices within the thread
+		to be kept, and processed in the order of spool-file ctime.
+	      - "overfeed=NN" config flag: tells how many entries are fed
+	        to the transport client in one go so that it may "eat from
+		the pipe" for the job definitions.
+
+	* scheduler/msgerror.c:
+	    Make it to tolerate old (pre 2.99.22) errors, and thus allow
+	    smooth upgrade from old system to the new one.
+
+	* lib/prversion.c:
+	    Year has changed, updateing copyright statements a bit.
+
+	* include/hostenv.h, lib/loginit.c, libc/mail.c, libsh/interpret.c,
+	  libsh/io.c, libsh/trap.c, router/functions.c, router/libdb/ordered.c,
+	  router/libdb/unordered.c, router/rfc822.c, router/rfc822hdrs.c,
+	  router/shliaise.c, scheduler/mailq.c, smtpserver/smtpserver.c,
+	  transports/mailbox/mailbox.c, transports/smtp/smtp.c:
+	    On some machines exceeding 128 FDs on the scheduler (or elsewere)
+	    causes some rather fatal things to occur, namely the variable
+	    storing the fd in the STDIO descriptor is signed char, while it
+	    should be at least ``unsigned char'', or preferrably ``short''
+	    ( SunOS 4.x .. )
+
+Wed Jan  3 10:24:59 1996  Matti Aarnio  <mea@utu.fi>
+
+	* proto/cf/rrouter.cf, proto/cf/canon.cf:
+	    Got rid of ``UUCPACTION'' and ``BITNETACTION'', let them
+	    be resolved via  $MAILSHARE/db/routes:
+			.bitnet	smtp!some.old.relict
+			.uucp	smtp!uunet.uu.net
+	    (And if you REALLY have BITNET routing database, it can
+	     handle  <foo@node.bitnet> just fine..)
+
+	    Also commented away the  IN% -matching, which after all
+	    was my local hack to handle VMS users coming to UNIX..
+	    .. but as we are killing the VMS, there is no need for
+	    that hack anymore ..
+
+	* proto/cf/server.cf:
+	    The quadprint() -routine needed a bit of an addition to
+	    handle non-found user->fullname mappings -- using same
+	    method as the mailbox uses when delivering:  If given
+	    "UsEr" does not match, lowercase it, and try again.
+	    (If lowercased version doesn't match, yield an error..)
+
+	* scheduler/update.c:
+	    Hunting up and down for accesses to invalidated memory
+	    blocks, found one at the end of the  u_retryat()..
+
+	* scheduler/msgerror.c:
+	    Plugged memory leakage (strdup()ed string)
+
+Sat Dec 30 02:33:23 EET 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile:
+	    Releasing 2.99.23
+
+	* router/router.c:
+	    Added "nosyslog" variable, and "-S" option, which
+	    together disable (per default) router from syslog()ing
+	    everything to syslog in addition to some logfile used
+	    per default...
+
+	* transports/smtp/smtp.c:
+	    Rearranged diagnostics reporting, now it will correctly
+	    report the status of the connection problems in addition
+	    to the interactive transaction problems.
+
+	* scheduler/threads.c, scheduler/transport.c:
+	    When feeding a task, clear "vtx->ce.pending" -flag,
+	    thus having the queue-reports not to show spurious
+	    "thread-/channelwaits"...
+
+	* transports/libta/mime2headers.c, transports/libta/mimeheaders.c
+	    Split it into two, and took friend's MIME-2 encoder into
+	    it... not yet truly in use.
+
+	* routers/, and scheduler/
+	    Several fixes to get it to compile again at OSF/1
+	    (well, I didn't compile EVERYTHING before releasing
+	     2.99.22 ..)
+
+	* Makefile:
+	    Releasing 2.99.22
+
+	* Large changes to  scheduler -- trying to make it
+	  a bit smarter at the retry (whole thread retries)
+
+	* Some IETF-NOTARY-changes to the scheduler, and transporters
+
+	* router, scheduler, and smtpserver will now abort, if
+	  they fail to write any content to their respective
+	  ``pidfile''.
+
+Fri Dec 15 15:54:44 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/mailbox/mailbox.c:
+	    Add a "setpwent()" just before looking up named user,
+	    at least on SunOS4.1 (vis NIS) this apparently makes
+	    difference ??
+
+Sat Dec  2 03:05:36 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/smtp/smtp.c:
+	    Fixed the treatment of maxpref picking at the MX handling.
+	    (Darren Kinley <darrenk@nds.fonorola.net>)
+
+	* router/shliases.c, proto/cf/aliases.cf, proto/cf/standard.cf:
+	    Looked into ways of making the duplicate removal once
+	    again setting a global XXXX
+
+Sat Nov 25 18:39:56 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* lib/rfc822scan.c, router/rfc822.ssl, router/rfc822walk.c:
+	    Teached the syntaxes a new special token: "::" like
+	    exists in the DECNET addresses..
+
+Thu Nov 23 16:34:50 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* scheduler/msgerror.c, scheduler/update.c, scheduler/scheduler.c,
+	  scheduler/scheduler.h, include/ta.h include/mail.h, all TAs,
+	  transports/libta/diagnostic.c:
+	    Altered error messages (and a couple other things) to match
+	    more evenly with IETF NOTARY-WG's error report format, including
+	    status codes, etc.  If old errors are fed to the scheduler, it
+	    WILL crash!  See  README.UPGRADING  about 2.99.22 ...
+
+Fri Nov 17 13:22:18 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* router/rfc822.c:
+	    Changed rules on when to add "To:"/"Resent-To:" headers
+	    at all...  If any "To:" or "Resent-To:" header exists,
+	    DO NOT add "(Resent-)To:" -header.  Makes list expansion
+	    a much more forgiving to humans..
+
+	* transports/smtp/smtp.c, transports/libta/dnsgetrr.c,
+	  lib/hostent.c:
+	    - Randomize the order of MXes with same preferrence
+	    - Randomize the order of A-records before connecting
+	      to anywhere (multiple addresses on same host)
+	    The goal is to distribute the load to all servers of
+	    the target domain, when it lists multiple servers..
+
+Fri Nov 10 12:54:30 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile:
+	    Release 2.99.21
+
+	* Updated: README.UPGRADE, INSTALL, Overview, README,
+	           README.solaris, Config.osf1-funet, Config.solaris
+	* Switched:  scheduler -> scheduler-old, scheduler-new -> scheduler
+
+	* hostenv/FreeBSD-2.0:
+	    Some minor tweaks by Tom Samplonius, we shall see how they
+	    blend in..
+
+	* include/hostenv.h:
+	    Unconditionally include <sys/param.h>, to be used
+	    elsewere to detect some system dependent things.
+
+	* Config, Config.osf1-funet:
+	    Using best C-compiler on AXP platform with hardest
+	    optimization switches...  It makes compiler apparently
+	    to halt sometimes, but after 3-4 CPU MINUTES, those
+	    larger modules are compiled -- the result is truly
+	    magnificent :-)
+	    (That compiler does need substantial amounts of memory
+	     to run, at least 200M to "ulimit -m" -- max memory size!)
+	    A bit latter: Decreased optimization demands by small
+	                  amounts -> smaller code (less inlining),
+			  and faster compile..  A LOT faster..
+
+	* lib/rfc822scan.c:
+	    Tolerate a case where "\" ends the line on which we are
+	    scanning tokens.  (PINE originates such sometimes?)
+
+	* scheduler-new/threads.c:
+	    Last (?) of the thread bugs fixed -- this one occurred
+	    rarely at UTU.FI SPARC server.  Some sort of timing
+	    thing, which turned out to happen very infrequently..
+
+Mon Nov  6 12:09:28 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* smtpserver/smtpserver.c:
+	    - Wrong code on "HELP" responces: 241, changed to  214
+	    - EXPN and VRFY changed to demand HELO/EHLO before
+	      being usable
+
+	* hostenv/SunOS5.*:
+	    Added the forgotten  "SVR4MNTENT=" -entry.
+
+	* scheduler-new/
+	    Still more hacking on all fronts (eh, source modules)
+
+	* transports/libta/ctlopen.c:
+	    Reset the ctlsticky's internal state in the begin of its use..
+
+	* transports/mailbox/mailbox.c:
+	    Do something with the  SIGALRM -- don't just SIG_DFLT it
+	    (which means program aborting itself), rather use it to
+	    break infinite wait on where you were (NFS lockf() )
+
+	    Also reset the [re]uid to zero (root) before opening a
+	    control file -- things work better that way..
+
+	    Moved BIFF into the delivery loop, we shall see...
+
+	* transports/smtp/smtp.c:
+	    Still leaked SMTP connection file-descriptors, last one
+	    plugged now ?  (on target host change..)
+
+Mon Oct 30 11:52:34 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/libta/mimeheaders.c:
+	    Small change to MIME-2 processing (it is imperfect,
+	    actually "broken", but lets not be too purists..)
+	    Now a quoted token will not contain enclosing parents,
+	    that is, "QUOTABLE)" -> "=?xxxx?Q?QUOTABLE?=)", and
+	    not like it was:        "=?xxxx?Q?QUOTABLE)?=", which
+	    breaks the headers really badly..
+
+	* scheduler-new/transports.c:
+	    Put  pipes_shutdown_child(tofd)  into suitable places
+	    instead of  close(tofd),  because  socketpair() "pipe"
+	    does break at normal close()...
+
+Tue Oct 24 22:30:50 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Released 2.99.20
+
+	* include/ta.h, transports/*/*.c
+	    Changed the way the  diagnostic() call works,
+	    now the SMTP transporter can send a "retryat +NNN "
+	    request.  It is used for rescheduling entire thread
+	    for a bit latter time -- now fixed at 60 seconds.
+
+	* scheduler-new/
+	    Revised somewhat the internal logics, introduced
+	    active use of "retryat" comminication primitive
+	    from the transport agents to the scheduler.
+
+	    Fixed (?) the timeout problem reported from Hongkong,
+	    also fixed another "PROC NOT IN IDLE CHAIN", which was
+	    caused by childs dying prematurely for some reason.
+
+Wed Oct 18 09:10:07 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Released 2.99.19
+
+	* hostenv/*, scheduler-new/pipes.c, scheduler-new/transport.c,
+	  scheduler-new/threads.c, scheduler-new/Makefile.in:
+	    If the system can do a bi-directional pipe, at least
+	    a socketpair(), we need only ONE fd per child.  Enable
+	    by hostenv define  SOCKETPAIR=
+	    (TODO: SysV has STREAMS-pipes, add support for them into
+	           the  scheduler-new/pipes.c, then all three existing
+		   methods are covered... )
+	    ( scheduler-new/pipes.c  is a new module.. )
+
+	* scheduler-new/threads.c, scheduler-new/transports.c:
+	    Finally found (?) the reason, why running childs are lost,
+	    and mis-calculated occasionally.  (It turned out to occur
+	    most frequent with  error-channel, but had nothing to do
+	    with any channels per se..)
+
+	    Anyway, sometimes a child is killed, and the recovery
+	    was mis-treated, but the reporting-fd still had data!
+	    Thus every now and then, while a process was gone, but fd
+	    (and thus a pid-slot) was still in use, and the process
+	    was thought to be valid for "feeding a child", for example..
+
+	* transports/smtp/smtp.c:
+	    When doing close() due to change of host, or a final close, don't
+	    just close(), do "QUIT" + close()!
+
+Fri Oct 13 17:21:27 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* hostenv/IRIX53, router/prototypes.h, scheduler*/mailq.c:
+	    IRIX-5.3 diffs from  Darryl Miles <dlm@r-net.u-net.com>
+
+	* scheduler-new/
+	    - Still more hammering at it with DEC ATOM-tools Third Degree :)
+	      Now only memory leakages around are in the system libc! (Brr...)
+	    [ well, new leaks introduced latter, but that is another story.. ]
+
+Thu Oct 12 20:23:26 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* smtpserver/smtpserver.c:
+	    Fixed an error in SMTP EXPN, and VRFY.
+
+	* scheduler-new/
+	    - fixed expiry processing (when multiple recipients exist for
+	      the message)
+	    - fixed process counters -- idle_cleanup() leaked pids..
+
+Mon Oct  9 11:07:25 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* scheduler{,-new}/transport.c:
+	    Improved (?) support for IBM AIX systems
+	    (select() system call.)
+
+	* include/hostenv.h, hostenv/*:
+	    STDLIB= -> USE_STDLIB -> include <stdlib.h> in  hostenv.h
+	    UNISTD= -> USE_UNISTD -> include <unistd.h> in  hostenv.h
+
+	* router/rfc822.c, router/rfc822hdr.c:
+	    Hide away (effectively removed) "resent"-processing, so that
+	    if there are headers in there, no new "Resent-" headers are
+	    added just because some "Resent-Message-Id:" -exists, but no
+	    "Resent-To:"...
+
+Wed Oct  4 15:15:03 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Released 2.99.18
+
+	* transports/smtp/smtp.c:
+	    Two fixes to a case where system doesn't have working mmap()
+
+	    One change so that report() routine tells more meaningfull info.
+
+	* router/router.c:
+	    Rid the USE_BSDGETPGRP, and use USE_BSDSETPGRP instead.
+	    It is too much hassle to change all hostenv files to
+	    handle this othervice..
+
+	* scheduler-new/:
+	    Hacking continues at all fronts, still there is some
+	    discrepancy in between data-structure counters, and
+	    values counted, when chains are traversed!
+
+	    Now the scheduler has an option to create performace
+	    monitor log:  -l logfile.name
+
+	    The file looks like this:
+		812819196 167223-3 0 12 ok smtp/ugcs.caltech.edu
+		812819197 167227-1 0 11 ok smtp/udcf.gla.ac.uk
+		812819212 167231-3 0 7 ok smtp/sci.fi
+	    Columns are: - spool-file creation time (ctime)
+			 - spool-id (filename)
+			 - time difference from creation of spool file
+			   to route file creation (secs)
+			 - time difference from creation of route file
+			   to delivery of the message (secs)
+			 - what happened (ok/error/expiry)
+			 - recipient channel/host
+
+	* Makefile:
+	    Better integration into the whole, I hope.
+	    Someday soon the "scheduler-new" will be changed
+	    to be "scheduler", and current "scheduler" becomes
+	    "scheduler-old" ...
+
+Sun Oct  1 15:57:39 1995  Matti Aarnio  (mea@oh1mqk)
+
+	* Dumped 2.99.17 -- and a bit latter revised scheduler-new..
+
+	* libsh/Makefile{.in,}: (Michael Thompson <mickey@diva.com>)
+	    Fix to an awk script embedded into the Makefile.
+
+	* scheduler-new/
+	    It works !    Old configuration information is out of date.
+	    There are still open issues, see associated commentary files..
+
+Fri Sep 29 09:22:50 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/smtp/smtp.c:
+	    Odd, SMTP responce "552 permanent resource limitation"
+	    did trigger ONLY an EX_TEMPFAIL, which caused retry..
+	    Does now EX_UNAVAIL, which causes snappy reject.
+
+Wed Sep 27 22:00:28 1995  Matti Aarnio  <mea@notebook.mea.utu.fi>
+
+	* Makefile:
+	    Changed subdirectory makefile re-generation method slightly.
+	    Now if the production fails, it won't (I hope) scramble the
+	    original file...
+
+	* compat/rmail/Makefile, compat/sendmail/Makefile:
+	    Install "rmail", and "sendmail" into $MAILBIN !
+	    Let sysadm to add symlinks from where-ever the
+	    original locations are to the $MAILBIN/ ..
+
+	* proto/zmailer.sh:
+	    The script will check that   $MAILBOX  points to a directory
+	    so that the ZMailer can't be started on a mis-configured
+	    system... (.. at least of that part.)
+
+	* transports/libta/mimeheaders.c:
+	    Recognize "KOI8*" -fonts as alias to US-ASCII, when content is
+	    7-bit only..
+
+	    Recognize also when HEADERS need MIME-2, that is, coding 8-bit
+	    chars in headers (subject et.al.) into MIME-2 format..
+
+	* transports/libta/writeheaders.c:
+	    If converted headers exist, write them ALWAYS!
+
+	* transports/mailbox/mailbox.c, transports/sm/sm.c,
+	  transports/smtp/smtp.c:
+	    Use  strdup()  instead of  strsave().  Makes difference,
+	    when it occurs on a transporter waiting for next work..
+
+	* transports/smtp/Makefile*:
+	    For "install"-target, make sure also "mprobe" exists.
+
+	* transports/smtp/smtp.c:
+	    If headers have 8-bit chars, we may need to convert them to
+	    MIME-2 (RFC-xxxx) "coded words"
+
+	    If EHLO+HELO fails, open same machine again, and do HELO
+	    only, if THAT too fails, try next MX...
+
+	    Report (into log-file) about connection making, and
+	    possible errors therein..
+
+	* scheduler/
+	    Lots of small changes - prototypes for functions.
+
+	* scheduler/mailq.c,     scheduler/qprint.c,
+	  scheduler-new/mailq.c, scheduler-new/qprint.c,
+	  scheduler/scheduler.h, scheduler-new/scheduler.h:
+	    Noticed that qprint on Linux didn't like at all the reported
+	    vertices from AXP machine, where vertex storage address was
+	    well ABOVE 4 G (max value for unsigned 32-bit long at i486..)
+
+	    Now the vertex structure has a field where qprint() can
+	    store incrementing SMALL integer unique one for each
+	    vertex.  The vertex identifiers start now from 1 each
+	    time the mailq is run...
+
+	* scheduler-new/
+	   The face-lift project continues, it CAN do most of the things
+	   already, but it is somewhat sloppy at process scheduling, and
+	   tracking.
+
+Tue Sep 19 11:00:52 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/smtp/smtp.c:
+	    A set of options that change their values during the
+	    runtime are reset before  smtpconn().
+
+	    If  "EHLO"+"HELO"-pair crashes (like it does with some
+	    SMTP-servers), open a new connection, and do "HELO" only.
+
+Mon Sep 18 10:42:37 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Makefile:
+	    Dumped version 2.99.16 after public demand..
+
+	* smtpserver/smtpserver.c:
+	    Extended the trappings of errno's from  accept().
+	    On Linux we have seen (among others)  ECONNRESET,
+	    which earlier did cause swift exit(1), because
+	    only EINTR was tolerated...  ( .. and incidentally
+	    the EINTR didn't happen at all, because the signals
+	    are of syscall-restarting nature..)
+
+	* transports/smtp/smtp.c:
+	    When writing to a log-file, write also info regarding
+	    connection attempts so we can look when remote systems
+	    are unreachable...
+
+	    Fix the '-8' -flag when the message content isn't
+	    MIME, but we want to be 8-bit transparent..
+
+Sat Sep  9 01:13:20 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* scheduler-new/ :
+	    The scheduler will have complete ``face-lift'',
+	    before this is over...  Now made separate work
+	    copy, and left 2.99.15 version with old name..
+
+Sat Sep  9 01:04:55 1995  Eugene Crosser <crosser@online.ru>
+
+	* transports/mailbox/mailbox.c:
+	    More generic (?) approach of UID/GID handling, we hope.
+
+	* router/libdb/search.h:
+	    Changed one "void *" to "char *", because Sun Solaris
+	    C-compiler (SparcWorks ?) didn't like to do pointer
+	    arithmetics with void pointer..
+
+Fri Sep  1 11:37:09 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/smtp/smtp.c:
+	    Thomas Knott spotted (and fixed) a bug on email processing
+	    when sending 8-bit mail over an ESMTP connection, and the
+	    system does not support MMAP service..
+
+	* include/mailer.h:
+	    Added macroes:  STREQ() and STREQN() (case SENSITIVE string equal)
+
+	* router/rfc822.c:
+	    The ``FindHeader()''-macro uses now case SENSITIVE lookup
+	    of the header lines. Thus "From "-lines will not match those
+	    of "from "..  (Nothing breaks, I hope..)
+
+	* libsh/io.c: PUTC(), vsiodoprnt()
+	    Two subtle one-off errors which DEC OSF/1 ATOM-tool
+	    "Third Degree" detected. These caused actually buffer
+	    overflows :-( (by one byte), which in turn caused
+	    far latter errors, which looked rather weird..
+
+	* scheduler/ - all files :)
+	    Made prototype functions for all inter-twined routines
+	    used in the scheduler, cleaned out several unused ones.
+	    (Not yet doing things quite like I want, but better..)
+
+	* hostenv/FreeBSD-2.0:
+	    Contributed by Tom Samplonious.
+
+
+Fri Aug 25 13:24:30 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* Release of code version 2.99.15
+	  A big pile of changes all around, summary below:
+
+	* Incorporated (finally!) Lehigh's AIX-port into the main source.
+	  I don't know how clean it is, but...
+
+	* hostenv/Linux, hostenv/OSF1v3.0-Alpha, hostenv/OSF1v3.2-Alpha:
+	    Added "MMAP=", and "STRERRNO=" for Alphas, "STRERRNO="
+	    only for Linux (on which the mmap() is a bit troublesome..)
+	    Added also "RESOLV_LIB=-lresolv" to Alphas.
+
+	* doc/zmdirs.{fig,ps}, doc/zmsched1.{fig,ps}:
+	    Couple pictures telling about directory, and file relations
+	    within the ZMailer.
+
+	* include/sysprotos.h:
+	    DEBUG_FOPEN -things for debugging FILE * leakage..
+
+	* libauth/authuser.c:
+	    Fixed variable declarations.
+
+	* libc/__fopen.c:
+	    Compile the library always, just the USE of it is left to user
+	    applications compilation.
+
+	* libc/strerror.c:
+	    Verify that error number is in valid range -- detected
+	    a case of errors where the returned errno was 8800+, and
+	    got most peculiar error results...
+
+	* libsh/execute.c:
+	    Small changes to ensure compilability with multiple compilers;
+	    apparently somehow the optimizers (gcc-2.7.0, and DEC's
+	    "cc -migrate" both on Alpha) generated skewed code, which
+	    produced wrong result.
+
+	* libsh/tregexp.c:
+	    The "trace regexp", and "trace matched" (I think) regexp
+	    TRACE routines produced parts of their output to wrong place
+	    (to stdout via  putchar() -routine) thus causing trouble when
+	    trying to trace large-scale processing.  Now all output from
+	    this file goes to some "char *" -buffers, or to stderr.
+
+	* proto/cf/aliases.cf:
+	    Had one split line, and other minor changes.
+
+	* proto/cf/aliases3.cf:
+	    Yet another slightly edited version of the default "aliases.cf"
+	    (untested!)
+
+	* proto/zmailer.sh:
+	    The prototype of the "zmailer" -command got rid of vestiges
+	    related to "$POSTOFFICE/scheduler/" -directory.
+
+	* router/functions.c run_listexpand():
+	    New option "-p", tried to use  "router()" -entrypoint, but
+	    apparently it wasn't very successfull.  Hmm..
+
+	* router/libdb/bind.c:
+	    Problems related to 64 bit machine, where "u_long" is rather
+	    much larger, than expected "u_int"'s size...
+
+	* router/rfc822.c:
+	    Changed directory scheme to match that of the scheduler by
+	    getting rid of "$POSTOFFICE/scheduler/" -directory
+
+	* scheduler/agenda.c:
+	    Fixes on time-stamp processing, adding up-to-date code
+	    into time handling -- setting all variables that are latter
+	    read from.
+
+	* scheduler/mailq.c:
+	    Got rid of "$POSTOFFICE/scheduler/", and to some extend
+	    replaced it with "$POSTOFFICE/transport/".
+
+	* scheduler/msgerror.c:
+	    Use new directory/file-paths.
+
+	* scheduler/scheduler.c:
+	    Use new directory/file-paths
+
+	    Read files from the directory into time-stampted queue
+	    (with file's st_ctime), and accept into it only those
+	    that are not already in processing.
+
+	    Parse _CF_SENDER -entries from the scheduled job, and
+	    use that address (well, last one of them) as an address
+	    for sending error replies to.
+
+	* scheduler/scheduler.h:
+	    Replaced "int rptwait" with "int hungry", though neither
+	    are in use...
+
+	* scheduler/transport.c:
+	    Use new directory/file-paths.
+
+	    Prepare for using bi-directional communication in between
+	    scheduler, and transporters -- so that scheduler starts
+	    a transporter, and gives it synchronously one job at the
+	    time, and waits for "#hungry\n" -message before feeding
+	    another...
+
+	* scheduler/update.c:
+	    Use new directories/file-paths.
+
+	    Support "#hungry\n" -messages
+
+	* smtpserver/rfc821scn.c:
+	    Accept domain name components.
+
+	    Increase the  listen()  queue size.
+
+	* smtpserver/smtpserver.c:
+	    Voice complaint, when user tries to feed us:
+		MAIL FROM: someone@somewhere
+	    that is, when the input is against the RFC-821 syntax..
+
+	* transports/errormail/errormail.c, transports/hold/hold.c,
+	  transports/mailbox/mailbox.c, transports/sm/sm.c,
+	  transports/smtp/smtp.c
+	    Support the new "#hungry\n" -style "feed me" messages.
+
+	    Fixed a couple "if (foo = faa)" vs. "if (foo == faa)"
+	    errors in the source.
+
+
+Tue Jun  6 23:35:34 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/sm/sm.c, transports/smtp/smtp.c,
+	  transports/hold/hold.c, transports/mailbox/mailbox.c,
+	  transports/errormail/errormail.c:
+	    Amended acceptable command-entry format to be:
+		spool/file/name [ \t host.data ] \n
+	    This in preparation to alter scheduler to keep
+	    TWO pipes open for each running transporter,
+	    and to feed them ONE JOB at the time.
+
+	    To achieve syncronization the report-back format
+	    is amended with a blank line after the last responce
+	    from entries in a file. (That is, an extra "\n".)
+
+Sat Apr 15 02:05:18 1995  Matti Aarnio  <mea@nic.funet.fi>
+
+	* transports/sm/sm.c:
+	    Fixes on MIME QP-decode conversion mode.
+	    Now QP-decode works right.
+
+	    (Somewhat earlier..)
+	    Added also couple lseek()s to that the message
+	    is now processed with correct headers..
+
+Sun Mar 26 20:56:22 1995  Matti Aarnio  <mea@hamsterix.funet.fi>
+
+	* (almoast all files..)
+	    "A bit" more of 64-bit stuff.
+	    A change on  splay-tree symbol format caused severe
+	    repercussions to occur, namely a widely-held assumtion
+	    that "sizeof(void*) == sizeof(int)" caused serious trouble :-(
+
+Thu Mar 23 00:56:05 1995  Matti Aarnio  <mea@hamsterix.funet.fi>
+
+	* transports/libta/ctlopen.c ctladdr():
+	    A bit more generic way to scan for control addresses...
+	    a way which does not miss the beat when there is 8-bit
+	    chars on tokens...
+
+	* router/functions.c:
+	    Re-arranged the usage/setting of  errors_to -variable.
+	    Now it should not cause spurious errors on free()-time!
+
+	* transports/mailbox/mailbox.c putmail():
+	    Parametrize putmail() with "w" (for pipes) and "a+"
+	    (for files).  OSF/1 3.2 had problems when pipe was
+	    fdopen()ed with "a+"... :-/
+
+	    Instead of using  getservbyname("biff","udp"), do hard-wire
+	    the BIFF-port to the client -- sometimes (SunOS 4.1.3 w/ NIS)
+	    that library call is extremely SLOW to return...
+
+	    A SCO-user reported, that MMDF-format is:
+		C-A C-A C-A C-A
+		message1
+		C-A C-A C-A C-A
+		C-A C-A C-A C-A
+		message2
+		C-A C-A C-A C-A
+		...
+	    Instead of (like it was coded here):
+		C-A C-A C-A C-A
+		message1
+		C-A C-A C-A C-A
+		message2
+		C-A C-A C-A C-A
+		...
+	    Oops about that...
+
+Thu Feb  9 20:28:22 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Dump 2.99.13
+
+	* router/rfc822.c makeLetter():
+	    Process all headers, don't just SQUIRREL() away
+	    when there is mal-formed envelope information.
+	    This way the messages will not just disappear
+	    into $POSTOFFICE/postman -directory.
+
+	    One particular bogon format is perhaps detectable..
+	    ">From ..." as the FIRST line.  Such case is possible,
+	    when a faultly configured  sendmail/smail  feeds
+	    our system via SMTP, but is configured to feed UUCP..
+
+	* scheduler/transport.c:
+	    Changed all references to number of open files in
+	    the system to use common reference platform from
+	    library call  resources_query_nofiles().
+
+	    This mattered especially when the  cpids[]-array was
+	    allocated by using   resources_query_nofiles(), and
+	    other references to it were limited by  FD_SETSIZE
+	    (for example), but THAT happened to be larger (like
+	    2 or 4 times) than the allocation size...
+
+Wed Feb  8 00:51:59 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/smtp/smtp.c:
+	    Yet one more loose thread on the SMTP connection closure
+	    survivability.  (Detected by an SIGSEGV on NULL ptr..)
+
+	* transports/mailbox/mailbox.c main():
+	    New option: "-h 'hostname'"
+	    Assists the success with scheduler configuration containing
+	    "byhost", when scheduling this piece of email.
+	    (Such scheduling may be used to run "Zillions" of parallel
+	     mailboxes -- "maxchan=20, maxhost=1, byhost", and thus
+	     have each email recipient processed individually.
+	     This REQUIRES that the router stores something personal
+	     to each recipients "host"-field, not just "-"...)
+
+	    When this option is not used, it defaults to the original
+	    behaviour, where "mailbox" delivers ALL "local/*" -channel
+	    emails of the file during one invocation.
+
+	* transports/libta/ctlopen.c ctlopen():
+	    Revised a bit the "Cannot open control file..." -message
+	    by removing a potential `printf("%s",NULL);' -case..
+
+	* libc/myhostname.c:
+	    An extra indirection causing  getmyhostname() to yield
+	    wrong data in place of FQDN hostname...
+	    Hmm..  Wrestling it to be more commonly available,
+	    (various platforms) was a bit difficult -- even inbetween
+	    SunOS and Solaris-2..
+
+	* transports/smtp/smtp.c:
+	    Rewamped the connection tear-down code.  Now it SHOULD
+	    happily use same connection for multiple emails.
+
+Tue Feb  7 00:47:26 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Dump 2.99.12
+
+	* scheduler/scheduler.h, scheduler/scheduler.c, scheduler/agenda.c,
+	  scheduler/transport.c:
+	    Actual long-standing (ever since 1.0 ?) problem was the usage
+	    of wrong filepath in the transport.c:tscan(), but without
+	    some external help, the right one was not available..
+	    (Scrambled especially the "-s" option!)
+
+	    For fixing it was necessary to realize, that
+		1) Each file is scheduled only once for each thread
+		2) thus can be created a pointer into CTLFILE-block
+		   which points to the CURRENT thread-vertex
+		   (a companion for "mark" used for tscan() )
+		3) the current vertex pointer can now contain an entry
+		   to the path where the file is linked to
+	    With these pointers in places,  transport.c:tscan()  and
+	    after it, the client scheduling, can finally be done reliably.
+
+
+	* scheduler/scheduler.c, scheduler/transport.c:
+	    Once more, re-wamped the SIGCHLD processing, as
+	    2.99.11 generated scheduler zombies on SunOS 4.1.x
+
+Mon Feb  6 03:33:03 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Dump 2.99.11
+
+	* scheduler/transport.c:
+	   The  waitandclose() is called when the file-descriptor
+	   is closed, or the read causes an error.  (EINTR is no
+	   error..)
+
+	* libc/getopt.c:
+	    Wrong system-wide definition file -- must be "hostenv.h"
+	    instead of "libsupport.h"..
+
+Sun Feb  5 03:12:02 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* scheduler/resources.c:
+	    sysconf()-calls appear to be problematic -- on Solaris
+	    it yields wrong data :-/
+
+	    Wow, must check if scheduler uses stdio anywhere,
+	    if not, it can run (On Solaris) 1024 fds..
+
+	* scheduler/{transport.c,scheduler.c,scheduler.h}:
+	    Defined "USE_SIGREAPER" in the  scheduler.h, and
+	    when it is defined (no reason to take it off ?)
+	    uses wait() immediately on the childs, and if
+	    it matches to actual transporter child, marks
+	    it as reaped on  cpids[] -array.
+	    End of "Scheduler Zombies" ?
+
+Sat Feb  4 17:34:14 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* hostenv/00README, include/libz.h, include/mailer.h, lib/pwdgrp.c:
+	    Inverted the test, and changed the variable name..  Now if we
+	    ever DO need to use our own version of  getpw{nam,uid}() and
+	    getgrnam(), we can define  ZGETPWNAM on the host environment.
+	    I doubt we ever do.  (This change removed one COMMON problem
+	    on porting to other platforms..)
+
+	* transports/smtp/smtp.c:
+	    Revised the timeouts.  Now output will abort if it can't
+	    write at the rate of 1kB/5 minutes, rearm after every kilobyte.
+	    If commands don't respond within 5 minutes (earlier was 10 minutes)
+	    it also timeouts -- except with "." to "250 OK", which is 10 mins.
+	    ( RFC 1123 )
+
+	* smtpserver/smtpserver.c:
+	    Timeout parameters, now it dies out pretty fast if the
+	    remote end does not feed data in fast enough...
+		20 minutes for in between SMTP commands
+		10 minutes for a kilobyte of SMTP DATA.
+
+	* smtpserver/smtpserver.c mgets():
+	    Something funny with responce buffer realloc(); It did scramble
+	    the pointer to the chars in the buffer (GCC 2.5.8 on SPARC),
+	    and eventually caused a SIGSEGV..  Amazingly small change
+	    fixed it :-/
+
+	* A LOT changes right and left, NATIVE port to OSF/1v3.0 on Alpha.
+	  Files affected:
+		Config.osf1, hostenv/OSF1v3.0-Alpha, lib/rfc822date.c,
+		compat/sendmail/sendmail.c, libc/getopt.c,
+		include/authuser.h, nclude/limits.h, include/mailer.h,
+		libauth/authuser.c, libauth/authuser.h, libmalloc/assert.h,
+		livmalloc/externs.h, libsh/execute.c, libsh/interpret.c,
+		libsh/sslwalter.c, libsh/trap.c, router/libdb/bind.c,
+		router/db.c, router/functions.c, router/prototypes.h,
+		router/rfc822.c, router/rfc822hdrs.c, router/router.c,
+		scheduler/mailq.c, scheduler/msgerror.c, scheduler/update.c,
+		scheduler/scheduler.c, scheduler/transport.c,
+		smtpserver/smtpserver.c, transports/mailbox/mailbox.c,
+		transports/smtp/smtp.c
+
+	* (no file):
+	    Noticed that Rayan Zachariasen no longer has an account on
+	    U of Toronto.
+
+Thu Jan 19 02:34:02 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Makefile:
+	    Patchlevel=10, DUMP
+
+	* transports/smtp/smtp.c main(): 
+	    Fixup of parameters of the  getopt() call.
+
+Wed Jan 18 13:29:50 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/functions.c run_listexpand():
+	    When "rrouter" evaluation meets a duplicate removal,
+	    it returns a list of "()" -- so, an object without
+	    contents.  (Again SIGSEGV..)
+
+	* libc/mail.c mail_close():
+	    When ZENV-variable  ROUTERDIRS does have invalid elements,
+	    use the last valid element (or the default of "router")
+	    as the directory name.
+	    ( "sendmail", and "smtpserver" are affected by this! )
+	    ( Sure, nobody enters invalid elts into the dirlist ? Heh.. )
+
+	* transports/smtp/smtp.c writemimeline():
+	    Did wrong thing, when outputing QP coding, had a one-off
+	    with "column" variable, when it was a question about
+	    line prefixing "."...  (Auch!)
+
+Tue Jan 17 10:53:02 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* hostenv/Linux, hostenv/SunOS5.3:
+	    "GETPWNAM=" -- MUST BE DEFINED, as the otherwise default
+	    of iterating with  getpwent() is BAD MEDICINE!
+	    This has been the reason for several odd problems on POSIX,
+	    and alike, systems!
+	    ( "include/mailer.h"  has "#define getpwname zgetpwnam" to
+	      map the normal library call to ZMailer wrapper.. )
+
+	* scheduler/scheduler.c:
+	    A missing "int wrkcnt;" variable declaration..
+	    (How on earth it did slip into the dump ?)
+
+Fri Jan 13 13:59:07 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Makefile:
+	    PATCHLEVEL=9, dump for public tests.
+
+Thu Jan 12 12:31:02 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/functions.c:
+	    When the  $ROUTERDIRS  is defined, but not all dirs
+	    in it do exist, skip the nonexistent ones.
+	    (It was FAST core-drop time at nic.funet.fi ..)
+
+	* Makefile:
+	    When cleaning, DO NOT delete libmalloc/version.c !
+	    That file is separate from all other version.c's !
+
+	* router/router.c main():
+	    Altered XMEM-compile-option related usage of "fileno()" macro.
+	    Actually got rid of it...
+
+Wed Jan 11 14:22:14 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/rfc822.c run_rfc822():
+	    Open the mail-file as O_RDONLY ( fopen(file,"r") ) instead of
+	    "r+" (O_RDWR), thus under no circumstances allow our internal
+	    bugs to cause leakage of logs (!) into the mail-body !
+	    (Original code claimed the "r+" is needed for locks to succeed,
+	     however  link()/rename() -"lock" works quite well without...)
+
+	* scheduler/scheduler.c, scheduler/transport.c, man/scheduler.8:
+	    A runtime option "-N ##" to set how many file-handles
+	    are to be left open when a client is started.  On most
+	    systems that number is low -- under 10 or so, however
+	    on Solaris it must be far higher..   Default value (32)
+	    works for me (on Solaris), however I have had comments
+	    that it isn't enough (on Solaris) :-/
+
+	* router/functions.c run_listexpand():
+	    Changed somewhat the address parser -- finally (?) got it right!
+
+	* router/rfc822hdrs.c pureAddressBuf(): (NEW)
+	    Outputs pure address into a buffer for usage as router argument.
+
+	* router/libdb/ordered.c, router/libdb/unordered.c, router/db.c:
+	    - Moved  readchunk()  to the end of the  .../unordered.c from
+	      router/db.c
+	    - Teached "db" to flag a case of using "Indirect" post-
+	      processor for things other than ordered/unordered relations.
+
+	* libmalloc/, (libmalloc-o/)
+	    Mark Moraes'  malloc-1.17.
+	    The previous one is in  libmalloc-o, until deleted..
+
+	* transports/smtp/smtp.c, transports/sm/sm.c:
+	    When translating to QP, always translate
+	    the last SPACE/TAB on the line.
+
+	* transports/libta/mimeheaders.c  check_conv_prohibit():
+	    Added another KLUDGE meaning to the "Content-conversion:"
+	    header... "forced-qp", which forces QP output.
+	    (Applied only into SMTP so far..)
+
+Tue Jan 10 13:46:33 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* smtpserver/smtpserver.c:
+	    Analyze headers a bit more.  Now complain immediately,
+	    if subjected to 8-bit characters in any header aside of
+	    "Subject:".  (Because for example PP will choke on us,
+	    when we forward such a message and there is no MIME-HDRS
+	    encoding on them..)
+
+	    We can't (easily/portably) do the MIME-HDRS encoding for
+	    the user, because we don't know his/her character-set.
+	    (We can assume, of course, but it would not be universally
+	     usable..  Hmm..  UNKNOWN-8BIT ?)
+
+	* transports/sm/sm.c:
+	    New option: -Q to create "narrow-QP-encoding", that is,
+	    to encode TABs and SPACEs in QP.  Without this the QP-encoding
+	    is created leaving them untouched..
+
+Mon Jan  9 16:16:36 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transporter/mailbox/mailbox.c:
+	    If the host does not have  /var/spool/rwho/ -directory,
+	    DO NOT complain about it (with exit()!) Failing to RBIFF
+	    is NO fault!
+
+	* scheduler/transport.c:
+	    Before bind()ing  querysocket, do set  SO_REUSEADDR, so
+	    it won't complain just because of old lingering connection
+	    trails...
+
+Sun Jan  8 22:26:35 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/functions.c, router/rfc822.c:
+	    Restore my old (and cumbersome)  "errors_to"  trick
+	    on list expansion.  Even though it causes the error
+	    address for ALL messages cascading from one source
+	    to expand into the LAST expansion's owner, it is better,
+	    than no trap at all..  (the rfc822.c:sequencer() needs
+	    a serious rewrite with those attributes..)
+
+Fri Jan  6 01:59:09 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Makefile:
+	    Patchlevel: 8
+
+	* router/functions.c: rd_{in,}stability(), run_daemon():
+	    Revised a bit when it became evident, that the
+	    multi-directory picking did not work anymore.
+
+	* smtpserver/smtpserver.c:
+	    Process the incoming message for headers.
+	    Set "mail_priority" according to what you find
+	    on the (possibly) existing "Precedence:" -header:
+		- (nothing)	0
+		"bulk"		1
+		"junk"		9
+
+	* doc/draft-*:
+	    Pulled in new IETF SMTP related drafts (and some other)
+
+	* README.UPGRADING:
+	    Noted a change on 2.98 when the   proto/cf/*.cf -files
+	    were altered to have a new way of processing the
+	    "thishost" relation from $MAILVAR/db/localnames -file.
+
+	* smtpserver/smtpserver.c:
+	    "-M ###" -option: Absolute maximum (size) ever accepted
+	    Code reorganize (a bit), load-aver blocked-access code
+	    "421" instead of "400".
+
+	* hostenv/*, libsh/execute.c, scheduler/transport.c,
+	  smtpserver/smtpserver.c:
+	     WAITPID coding for POSIX.1 waitpid() with WNOHANG ..
+
+Thu Jan  5 00:28:45 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* libc/getzenv.c, libc/mail.c, libc/whathost.c, router/functions.c,
+	  router/rfc822.c, router/router.c, scheduler/mailq.c,
+	  scheduler/msgerror.c, scheduler/update.c, smtpserver/smtpserver.c,
+	  utils/listexpand.c, compat/rmail/rmail.c, compat/sendmail/sendmail.c,
+	  transports/errormail/errormail.c, transports/libta/ctlopen.c, 
+	  transports/smtp/smtp.c, transports/libta/diagnostic.c,
+	  transports/libta/lockaddr.c, transports/libta/markoff.c,
+	  transports/mailbox/mailbox.c, transports/sm/sm.c, 
+	  transports/hold/hold.c:
+	    Converted to use   #include "mail.h"  instead of
+	    the previous  #include <mail.h>
+
+	* smtpserver/smtpserver.c, lib/detach.c, lib/loginit.c,
+	  libauth/authuser.c, libsh/execute.c, libsh/trap.c,
+	  libsh/zmsh.c, router/functionc.c, scheduler/scheduler.c,
+	  compat/sendmail/sendmail.c, transports/hold/hold.c,
+	  transports/errormail/errormail.c, transports/sm/sm.c,
+	  transports/mailbox/mailbox.c:
+	    Converted to use the new  "zmsignal.h"
+
+	* include/zmsignal.h: NEW FILE
+	    Created a file with all the signal handling that
+	    various programs appear to need:
+		SIGNAL_HANDLE(SIG,HANDLER)
+		SIGNAL_HANDLESAVE(SIG,HANDLER,SAVEVAR)
+		SIGNAL_HOLD(SIG)
+		SIGNAL_RELEASE(SIG)
+		SIGNAL_IGNORE(SIG)
+	    (..	and  "#define SIGNAL_TYPE void" if it is not defined
+		when using this header file --  libauth/authuser.c ! )
+
+	* transports/smtp/smtp.c appendlet(): 
+	    When decoding MIME QP on flight we MUST prepare to
+	    meet pathologic input, namely a last line with
+	    trailing "=" (so, no trailing "\n" ...)
+	    When that occurs, we must inject the "\n"..
+
+	* router/functions.c: run_listaddrs(), run_listexpand():
+	    Changed (a bit) of the error message those two
+	    can mail out.  "From: Error Channel  <MAILER-DAEMON>",
+	    and "Precedence: junk".
+
+	* scheduler/msgerror.c scnotaryreport(): 
+	    Changed the function name -- clashed with libta.a ..
+	    Made sure it becomes called only when there is real
+	    NOTARY-DATA available, not in a case when the NOTARY-
+	    DATA is "" ...
+
+	* lib/rfc822scan.c, router/shliase.c:
+	    Been wrestling with proper procedures for handling
+	    one particular errorneous address ("From:" -line)
+	    which used to cause router coredump..
+
+	* transports/mailbox/mailbox.c:
+	    Got a report that the new MAILVAR-misconfig-reporter
+	    misses a case of valid  MAILVAR when the user does not
+	    (yet) have a mailbox file in the mail-spool.  Hmm..
+	    (Have not been able to reproduce this SunOS 4.1.3U1
+	     reported error on my Solaris, have to try SunOS yet..)
+
+	* libsh/interpret.c fapply():
+	    When analyzing argument list (lisp-list), used wrong
+	    data source for the for-loop continuation..
+	    (Affected  "runas"  facility running "filepriv"...)
+
+Mon Jan  2 00:03:33 1995  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/hold/hold.c:
+	    From way back in history a "hold/home" -condition,
+	    though I am not sure it really is that usefull.
+
+	* Makefile:
+	    Patchlevel: 7
+
+	* README.UPGRADING: (new file)
+	    Made some notes on what changes the ZMailer has had
+	    during its evolution, and thus what things users should
+	    be aware when upgrading from the previous versions.
+
+	* router/libdb/ordered.c:
+	    Removed the "seq_remap()" from here too.
+
+Fri Dec 30 23:36:03 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Makefile:
+	    Patchlevel: 6
+
+	* Dependencies:
+	    Changed the order of *dbm -entries.  The lattest GDBM (1.7.3)
+	    has compability functions with DBM and NDBM.  Thus their
+	    linkage-order can be used to chooce which *DBM is really used.
+	    (And especially if there is a wish to use genuine NDBM in
+	     parallel with GDBM!)
+
+	* router/libdb/gdbm.c, man/router.8:
+	    Updated it truly to GDBM 1.7.3, and sent wishfull thoughts
+	    to the bug-gnu-utils@prep.ai.mit.edu  for a real  gdbm_filefno()
+	    function...  The present one is, well, err...
+	    Added a few words of advice to the man-page of the router.
+
+	    Using GDBM from a non-standard include/library location is
+	    a bit painfull, having following kind defines on hostenv/XXX
+	    may help:
+		GDBM_INCL=	-I/opt/gnu/include
+		GDBM_LIB=	-L/opt/gnu/lib -lgdbm
+	    (The example assumes your GNU-things are on  /opt/gnu/ ..)
+
+
+	* hostenv/Ultrix*, libmalloc/getmem.c:
+	    Defined a  NO_MADVICE  cpp-define to have USE_MMAP usable on
+	    Ultrix 4.3A (well, I am guessing, I don't have the machine).
+	    On a case I got a report about, the system does not have
+	    madvice(2) while <sys/mman.h> has defined MADV_RANDOM, why ???
+	    Some odd library to be included ?
+
+	    I DO NOT KNOW IF Ultrix3.* HAS MMAP() AT ALL!
+	    It is historic stuff anyway, which nobody uses anymore, right ?
+
+	* router/libdb/unordered.c, man/router.8:
+	    Disabled/removed  seq_remap() and its associated  fstat()
+	    call.  It is better to use "-m" on the relation definition.
+	    (Documented it, as if it would be enough to teach people..)
+
+	* libsh/trap.c:
+	    Changed the message of pre-compiled FC-file magic mismatch
+	    into something which is clearer - I hope.  It reports about
+	    automatically recompiling the CF files to FC files, nothing
+	    else.
+
+	* smtpserver/smtpserver.c, smtpserver/Makefile, smtpserver/fdstatfs.c:
+	    Localized all  *stat*fs()  versions into one file, which now
+	    returns valid (?) data for the most systems that are around.
+	    (Prompted by "Yet Another Special Case" -- Ultrix..)
+
+Thu Dec 29 08:31:42 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Makefile:
+	   Patchlevel: 5
+
+	* smtpserver/smtpserver.c:
+	    Gives "a bit" mystic result-codes when the EHLO
+	    responce generation procedure is unable to create
+	    a mail-spool-file  -- it was used earlier to
+	    determine available free storage, but when I became
+	    informed that using it in the "SIZE" code would mean:
+	    "this server will never accept more than this size.."
+	    which for such a dynamic quantity is clearly wrong..
+
+	* transports/smtp/smtp.c:
+	    Leaked file-descriptors -- the SMTP channel connections..
+	    ( smtpopen() leaked them, to be precise.. )
+
+	* Makefile:
+	    Patchlevel: 4
+
+	* transports/smtp/smtp.c, transports/sm/sm.c,
+	  transports/mailbox/mailbox.c, router/libdb/unordered.c:
+	    The case of NOT having  USE_MMAP  had things missing
+	    (being non-tested, but one Ultrix version was done with it..)
+
+Wed Dec 28 01:51:49 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/functions.c run_listexpand():
+	    Fixed (again) an uninitialized "al" variable.
+	    Odd that I THOUGHT of having it fixed at the master source...
+	    (I thought this was a bug in ssift/tsift, but no.)
+
+	* Makefile:
+	    Set version to be: 2.99.3
+
+	* transports/mailbox/Makefile:
+	    Remove the reference to  dotlock.o -- it is INCLUDED into
+	    the  mailbox.c, thus no separate compilation!
+
+	* router/rfc822.c, router/rfc822hdrs.c:
+	    Gave a deep look to the analysis of "Sender:" -header.
+	    In a case when the provided "Sender:" is junk, like:
+		to demo
+		From: demo2
+		Sender: demo3-[12]
+	    it used to pick up the mal-formed "Sender:" header, which
+	    is stamped as  BadHeader ! .. and used that junk on a call
+	    to the router() -- amazingly the router() didn't crash on it..
+
+	    Now it is a bit more persistent on picking up only valid
+	    headers (so headers which are not stamped as "BadHeader"),
+	    and use them.  If no valid sender header is found, one
+	    mkSender() was added for creating a valid sender-header
+	    as a last-ditch measure..
+
+	* scheduler/transports.c:
+	    Upped the number of FDs for a child-processes from 10 to 32.
+	    Solaris childs were unable to mmap() all the necessary dynamic
+	    libraries :-/
+
+	* libsh/builtins.c: sh_elements()
+	    Replaced it with the new Toronto (22e4) version.
+
+	* libsh/{interpret.c,sh.ssl,sslwalker.c,optimizer.c,zmsh.c}:
+	    Found out that  tsift DID NOT work :-/  A lot of wrestling
+	    and spotting of tiny details got it finally running...
+
+Sat Dec 24 00:46:15 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Makefile:
+	    Did set version number to be  2.99mea
+
+	* Overview, INSTALL, README, README.solaris, README.HP-UX,
+	  SiteConfig*, Config*, hostenv/00README, doc/guides/*, man/*:
+	    Updates, but no real DOCUMENTING!
+	    (that is, no new ZMOG...)
+
+	* lib/nobody.c:
+	    A bit of SVR4 features -- will automagically be able to
+	    use correct value for "nobody" uid, if no ZENV variable
+	    NOBODY is set -- or if it is set to "NOBODY=nobody"
+
+Fri Dec 23 08:50:14 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Dependencies:
+	    Added "kvm" to the "smtpserver", and "gdbm" to several
+	    others.  ALSO DOCUMENTED THE FILE!
+
+	* smtpserver/loadaver.c:
+	    Made some TRUE load-average extracters:
+		- __linux__
+		- SunOS 4.x
+		- SunOS 5.x
+
+	* scheduler/resources.c:
+	    Made some TRUE resource codes for various platforms:
+		- _POSIX_SOURCE
+		- __linux__
+		- SUNs (SunOS & Solaris)
+
+	* transports/smtp/smtp.c smtpopen():
+	    Trevor Paquette  spotted a missing execution path on
+	    case when '-E' parameter is used for the smtp transporter,
+	    and there is no "ESMTP" on the remote host initial banner.
+	    (But my fix is different with less code duplication..)
+
+	* libsh/execute.c, libsh/interpret.c, libsh/io.c,
+	  scheduler/msgerror.c, smtpserver/smtpserver.c,
+	  transports/sm/sm.c, transports/smtp/smtp.c,
+	  router/functions.c, compat/sendmail/Makefile.in
+	    Several changes by Byron Rakitzis to suit BSDI
+	    (and propably most of the current BSD 4.4)
+
+	    Added also new variable for the  Config:
+		SENDMAILLIB=/usr/lib
+	    becase for BSDI, BSD4.4, etc. it is desired to be:
+		SENDMAILLIB=/usr/sbin
+
+Thu Dec 22 10:38:26 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/smtp/smtp.c, transports/mailbox/mailbox.c:
+	    Pulled some more bits from Edwin Allum's Zmailer-2.2e4
+
+	* router/libdb/bind.c:
+	    From  Edwin Allum's  Zmailer-2.2e4  a resolved
+	    retry tuneup -- to speed the resolver to give up
+	    when there is no data coming up..
+
+Thu Dec 15 23:29:59 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* scheduler/mailq.c:
+	    Altered a bit the style of "nonlocal" settings.
+	    Now the thing should not jam on "localhost" being
+	    unavailable, because DNS says so...
+
+	* hostenv/*:
+	    Copied in  Edwin Allum's configs for IRIXes, and
+	    Guy Middleton's AIX3.2 -- and added DOTLOCK scheme
+	    ( + some comments )  to SunOS4.1
+
+	* sendmail/sendmail.c:
+	    fchown() call was missing GROUP parameter.
+	    Added there "-1"
+
+	* transports/mailbox/mailbox.c:
+	    Created   propably_x400()  -function, and altered error
+	    reports on anonymous delivery to a file ("/...") to reflect
+	    possible X.400 addresses, when such is likely.
+	    ("/X=XXXX/Y=YYYY/...")
+
+	    Merged in Ken Lalonde's/Edwin Allum's  DOTLOCK facility.
+
+	* proto/zmailer.sh:
+	    Small change on the parameters of the router startup:
+		was:	... router -dkn$NROUTERS
+		new:	... router -dkn $NROUTERS
+	    Now it should start more than 9 routers...
+	    (On some platforms there is a behaviour where former
+	     would not start 10 routers, only one, while the latter
+	     would start all 10.. -- On Solaris 2.3 it works with
+	     both ways, SunOS 4.1.3 (I think) had problems. )
+
+	* libsh/interpreter.c, libsh/sh.ssl, ....
+	    Altered   sift/in/tfis  construction to do STRINGWISE
+	    regexpr matches with GNU regex engine, and converted
+	    the old behaviour to name:  tsift/in/tfist
+
+	    -- a bit latter altered the names to be:
+		sift/in/tfis	-- Tokens - compability alias
+		tsift/in/tfist	-- Tokens  (new PRIMARY name)
+		ssift/in/tfiss	-- Strings (new name)
+
+Wed Dec 14 09:12:16 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/smtp/smtp.c:
+	    When doing verbose trace to a host without any MX-records,
+	    Solaris 2.3 crashed the smtp transport -- printf() doesn't
+	    like NULLs as string pointers...
+
+	* transports/libta/lockaddr.c, transports/libta/ctlopen.c,
+	  include/mail.h, scheduler/scheduler.c, scheduler/mailq.c,
+	  router/rfc822.c:
+	    In attempt to create a state-preserving safe multi-invocation
+	    transaction locking:
+
+	    A PID based locking -- THIS ALTERS THE SCHEDULER FILE FORMAT
+	    AND THUS OLDER  TRANSPORTERS  MUST NOT BE USED IF THE ROUTER
+	    IS NEW!  (The scheduler must also match!)
+	    Recipient-definition line (lock location) was altered:
+		Old:  "r~...."
+		New:  "r~PPPPPP...."
+	    where "~" is lock-flag, and "PPPPPP" is space for storing
+	    transport-client PID -- or 6 spaces, when there is no lock.
+
+	    From now-on, if there is a lock-state on some recipient, the
+	    scheduler tests to see if there is a process (pid) processing
+	    it, and continues with next job, dropping the locked one for
+	    a moment.
+
+	    All NEW jobs arrive both to the $POSTOFFICE/scheduler/,
+	    and the $POSTOFFICE/transport/, collecting them happens
+	    from the $POSTOFFICE/scheduler (so the current queue need
+	    not to be touched), however while there are locked files
+	    running, the scheduler will re-scan the $POSTOFFICE/transport/
+	    directory every 5 minutes.  If a file from that scan has
+	    its i-node number in  spt_mesh[L_CTLFILE] -database, it
+	    is skipped (it is an active file, not some previously locked
+	    one).
+
+	* transports/smtp/smtp.c: deliver()
+	    Oops on parameter processing, the forced 8-bitness didn't
+	    happen..
+
+	* router/libdb/bind.c, transports/smtp/smtp.c, transports/hold/hold.c:
+	    resolver usage got a little change -- to avoid screwing up
+	    request size parameter when doing retry.. (size storage variable
+	    was also used as a return value storage -> query screwed up on
+	    the retry..)
+
+	* proto/cf/*.cf:
+	    Many files, minor changes...  (And a couple major ones)
+
+Tue Dec 13 13:26:05 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* smtpserver/loadaver.c:  NEW
+	    A stub for getting the system load-average
+
+	* smtpserver/smtpserver.c:
+	    Respond with a
+	  "400 Sorry, system is too loaded for email reception at the moment"
+	    when the system load-average (from  loadavg_current())
+	    is over a given threshold value
+	    (XX: that message is most likely wrong.. )
+	    (Yes, correct one: "421")
+
+	* router/functions.c: run_listexpand()
+	    The pseudo-lisp is tough stuff to get right...
+	    Finally it does any arbitary expansion with very
+	    little memory consumption :-)
+
+	    => Rendered the  util/listexpand.c  obsolete...
+
+Mon Dec 12 20:42:59 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/libdb/ordered.c, router/libdb/unordered.c,
+	  router/libdb/search.h:
+	    Use  USE_MMAP  capability and map the textual database
+	    file into memory for latter use -- will need less syscalls
+	    for the lookup...
+
+	* transports/smtp/smtp.c: writemimeline()
+	    Counter each byte twice on the output when producing Q-P
+	    encoded output -> output was circa 35 chars wide...  Oops..
+
+Fri Dec  9 08:15:15 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transporters/smtp/smtp.c:
+	    One missing "break;" on  getopt() processing.  Oops..
+	    Thanks to Terry Combs <combstm@appstate.edu> for the fix
+	    (and I guess he uses the "-E" option..)
+
+	* scheduler/
+	    The Scheduler got some revampings into the  mux()/ipcpause()
+	    routines, and their invocations so that inter-reaper delay
+	    should shorten -- should do it via signal handler ?
+
+	* router/libdb/header.c:
+	    Re-defined the envelope environment entry "authinfo"
+	    to be of  nilUserSemantics -> it will accept any input
+
+	* router/rfc822hdrs.c: hdr_print()
+	    Changed the printout of  DateTime -header so that
+	    when a previously existing header is available, use
+	    it as is, but skip the leading white space -> no
+	    more EXTRA SPACE/TAB every time a message goes thru
+	    the Zmailer.
+
+	* util/listexpand.c:
+	    Add envelope environment entry "via listexpand" to the
+	    produced (new) file, thus the output will be like this:
+
+	    Received: by nic.funet.fi via listexpand id <92706-1>;
+		Fri, 9 Dec 1994 08:01:41 +0200
+	    Received: by nic.funet.fi id <92690-3>; Fri, 9 Dec 1994
+		08:01:37 +0200
+
+	* transports/sm/sm.c:
+	* transports/smtp/smtp.c:
+	    "USE_MMAP"-version had problems at scanning for/advancing/
+	    pointing to proper  location in the input file.
+	    The net result was a loop in sm, and wrong contents in smtp.
+
+	* smtpserver/smtpserver.c:
+	    *Sigh* Solaris signal handling is more complex than "just"
+	    "signal(SIGCHLD,reaper)" in the BSD... (a generic problem)
+	    Luckily it is enough to handle it with  signal(SIGCHLD,SIG_IGN)
+	    which works pretty much everywhere.
+
+
+Fri Nov 25 09:41:24 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/smtp/smtp.c:
+	    One NULL passage to the  sprintf()  caused crash on Solaris,
+	    same one prints "(null)" on SunOS...
+
+	* lib/cfgets.c:
+	    Forgot to keep an eye on counted length, and thus were
+	    able to overflow the buffer...  Uargh..  ("--n;" missing..)
+
+Wed Nov 16 22:57:22 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/functions.c: run_daemon()
+	    Use  rewinddir()  instead of seekdir().
+	    The rewinddir() works better on BSDI systems very least,
+	    and apparently works on a major part of the systems
+	    (I have yet to come by a system where it doesn't work..)
+
+Fri Nov 11 11:44:28 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* hostenv/README  -- some documenting things (barely begun..)
+
+	* transports/libta/ctlopen.c, include/ta.h, transports/smtp/smtp.c,
+	  transports/mailbox/mailbox.c, transports/sm/sm.c:
+	    Made a case of using  mmap()  to map into memory the
+	    sharable (R/O) parts of the mail-file..
+
+	* router/rfc822hdrs.c: mkMessageId()
+	    Altered the created message-id format a bit, previous
+	    timezone name "(ett)" will now be presented as "ett", and
+	    the file will get a unique sequential number on it as well
+	    (unique within each instance of the routing process.)
+
+Thu Nov 10 10:01:55 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Implemented  "Content-Conversion: prohibited" -header
+	  to the transporters:
+		transports/sm/sm.c
+		transports/smtp/smtp.c
+		transports/libta/mimeheaders.c
+		transports/mailbox/mailbox.c
+	  (follow the suite of the Sendmail+Emil..)
+
+	* Eradicted  bcopy()  from the sources.  We can use  memcpy()
+	  (possibly inline, possibly optimized library stuff) easily.
+	  Files:
+		lib/linebuffer.c	lib/token.c
+		libc/bcopy.c		libc/whathost.c
+		libsh/expand.c		libsh/io.c
+		libsh/zsh.c		router/functions.c
+		router/rfc822hdrs.c	scheduler/transport.c
+		scheduler/readconfig.c	scheduler/mailq.c
+		router/libdb/bind.c	transports/smtp/smtp.c
+		transports/mailbox/mailbox.c
+		support/nfslock/nfslock.c
+	  Didn't eradict  bcopy() from  support/vacation/vacation.c !
+	  It is a bit sensitive issue in there...
+
+	* Incorporating patches for OSF1v2.0 by 
+	  Franz Fischer <fischer@lpr.e-technik.tu-muenchen.de>
+	     lib/allocate.c,		libc/getdtblsiz.c
+	     libsh/io.c,		router/libdb/bind.c
+	     router/prototypes.h,	router/router.c
+	     scheduler/msgerror.c,	smtpserver/smtpserver.c
+	     transports/smtp/smtp.c,	utils/makendbm/makendbm.c
+	     utils/makendbm/ndbmlook.c
+	  Those were some ALPHA related problems on the DNS handling,
+	  and related declarations...  Also a couple "beauty points"
+	  at the makendbm tools.
+
+	* router/libdb/gdbm.c, hostenv/Linux
+	    Finally re-tried compiling Zmailer on Linux, and caught
+	    problems...  GDBM has changed since my previous touch
+	    with it.
+
+Mon Oct 10 01:07:24 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/functions.c  run_expandlist():
+	    New "lisp-like" function to combine the functions of
+	    the  listaddresses, and  zsh-script routine  maprrouter().
+	    With this the router core expansion should minimize.
+
+Fri Oct  7 16:21:53 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* lib/allocate.c:
+	    Replaced one reference to  bcopy()  with  memcpy()..
+
+	* transports/sm/sm.c:
+	    Edited in the same routine as is in the  transports/smtp/smtp.c
+	    to handle MIME conversions -- some details do vary..
+
+	* transports/libta/mimeheaders.c, include/ta.h,
+	  transports/smtp/smtp.c:
+	    Still more restructuring, now clean (?) way to make
+	    all the TEXT/PLAIN conversions on transfer:
+	      -- 8BIT -> QP
+	      -- 7BIT -- no change
+	      -- QP   -> 8BIT (if the target is "force_8bit" ...)
+
+Thu Oct  6 09:10:09 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/smtp/smtp.c:
+	    Restructured header pre-processing, now it can
+	    downgrade "TEXT/PLAIN; CHARSET=ISO-8859-*"+"C-T-E: 8BIT"
+	    into "TEXT/PLAIN; CHARSET=US-ASCII"+"C-T-E: 7BIT", when
+	    it notices that message body is all in 7-bits..
+
+	* transports/libta/mimeheaders.c downgrade_charset():
+	    A new procedure
+
+	* man/*
+	    Some updates to man-pages..
+
+	* SiteConfig*, Makefile{,.in}, libc/Makefile{,.in}:
+	    "make install" so that it installs also  libzmailer.a
+	    into user-defined  LIBRARYDIR, and  zmailer.h  into
+	    user-defined INCLUDEDIR..
+
+Thu Sep 29 09:55:40 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/mailbox/mailbox.c:
+	    Mailbox access-time preservation test was the wrong way :-(
+
+Wed Sep 28 16:22:40 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/mailbox/mailbox.c:
+	    Nasty rewrite bug, which nobody had found for ages..
+	    (Nobody but myself uses the MIME-rewritters ?)
+
+Mon Sep 26 09:09:15 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Dump 2.97mea
+
+	* transports/mailbox/mailbox.c:
+	    - MMDF-style mailbox separators with '-M' option!
+	    - MIME-processing is now line oriented to facilitate
+	      easier improving of it into handling beasts like
+	      "message/alternate"  with multiple bodies..
+
+Thu Sep 22 18:55:47 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/smtp/smtp.c, transports/sm/sm.c, transports/hold/hold.c,
+	  transports/mailbox/mailbox.c, transports/errormail/errormail.c,
+	  scheduler/msgerror.c, scheduler/update.c, scheduler/transport.c,
+	  scheduler/scheduler.c, smtpserver/smtpserver.c, libc/whathost.c,
+	  lib/detach.c, transports/libta/warning.c, libmalloc/malloc.c,
+	  libmalloc/getsize.c, libc/getdtblsiz.c, libsh/regexp.c,
+	  libsh/execute.c, libsh/interpret.c, lib/rfc822date.c, router/db.c,
+	  router/functions.c, transports/libta/ctlopen.c, hostenv/Linux:
+	    Did port to Linux
+	    (Various POSIX.1 problems..
+	     Usually solved by "#include NDIR_H" ..)
+
+	* transports/libta/buildbndry.c:
+	    Added sequence "=_" into the boundary, thus rendering
+	    it such which most likely will not be generated by any
+	    MIME-compliant system in their message texts.
+
+	* Makefile, libsh/Makefile, proto/Makefile:
+	    Got rid of  /bin/ed  on file editing.
+	    Instead uses AWK and SED. (Portability problems
+	    to Linux caused this..)
+
+	* Config, SiteConfig, bin/mklibsupport, ...
+	    Configuring changed somewhat:
+		- Compiler/compilation dependent things are on
+		  file  Config
+		- Site policy things (location of directories) are
+		  on file  SiteConfig
+
+	* transports/mailbox/mailbox.c ( putmail() ):
+	    When CREATING a (mailbox) file, create it with ATIME of 0,
+	    that is, "NEVER READ"...
+
+Fri Sep 16 12:04:25 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/functions.c ( run_filepriv() ):
+	    Added option  -M maxfilepriv  to the  $(filepriv XXX) to
+	    get rid of a need to have system-wide compiled value for it.
+	    Now I think we can create a system with  644 for ~user/.forward
+	    and 664 for $MAILSHARE/lists/...  My users did ask for it..
+
+Thu Sep 15 17:03:58 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/mailbox/mailbox.c ( putmail() ):
+	    Added ONE space to the FROM_ line:
+
+	      From SPC from@addr SPC SPC date
+				     ^^^ NEW
+	    (To be compatible with competition -- err..  sendmail..)
+
+Sat Sep 10 02:37:31 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* After a few days of testing at MAILHOST.UTU.FI, dumped 2.96..
+
+	* smtpserver/smtpserver.c:
+	    More fixes to the complex SMTP-option handling..
+
+	* scheduler/readconfig.c:
+	    SIGUSR1 -- rereadconfig() -- did crash on memory
+	    corruption due to double-freeing a buffer.
+
+	* scheduler/*.c:
+	* transports/libta/ctlopen.c:
+	    More fixes on the DSN, and related topics.
+
+	* transports/mailbox/mailbox.c:
+	    A message from  "channel error" (SMTP MAIL FROM:<>, or alike)
+	    got bad UNIX mailbox header.  Now the "From_"-address is
+	    always "postmaster" under such circumstances.
+
+	* transports/smtp/smtp.c:
+	    Do recognize the "DSN" (and "XDSN") magic tokens of NOTARY-DSN
+	    capability on the remote system.
+	    (Missing: actual DSN interaction..)
+
+	* router/rfc822.c: ( sequencer() )
+	* router/libdb/header.c:
+	    Will accept DSN parameters, and carry them as attributes
+	    to the router tasks, and in the end will output them to
+	    the channels.  The scripts need to address problems on the
+	    DSN data alteration, when it comes to list-expansions.
+	    (Specs are developing..)
+
+	    Thought: Internal list-expansion needs to be expanded into
+		     a full-scale C-code which invokes router for the
+		     recipients, and feeds them all the necessary attributes.
+		     That way it will (perhaps) be SMALLER with its memory
+		     usage as compared to the present   maprrouter()
+		     script function.
+
+	* router/rfc822hdrs.c, router/rfc822.c:
+	    rfc822date() returns delivered UNIX-time in RFC822
+	    format INCLUDING TIMEZONE CORRECTION, but we actually
+	    want to create it only when it doesn't already exist,
+	    otherwise it shall be left alone.
+	    Trouble on translating to the local TZ is on several
+	    mismatches in the time-zones, and frankly it is too
+	    painfull to be really usefull.  When the full header-
+	    string is there already, off we go and use it.
+
+	* router/rfc822.ssl, router/rfc822walk.c, router/rfc822hdrs.c:
+	    Parse and "understand" "Received: ... convert XXX;" -token!
+
+Fri Sep  2 11:35:53 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* scheduler/scheduler.c:
+	* scheduler/scheduler.h:
+	    Initial code for parsing DSN related transporter header
+	    entries.
+
+	* scheduler/msgerror.c:
+	* scheduler/scheduler.h:
+	    Print out  "Original-Envelope-Id:", and "Original-Rcpt:",
+	    if data is available (if not, be quiet about them.)
+
+	* smtpserver/smtpserver.c:
+	    Accepts (and syntax-checks!) IETF-NOTARY-DRPT parameters,
+	    and checks upon illegal characters on the input line, like
+	    feed of control/8-bit chars on the SMTP protocol line..
+	    (ASCII 0:es are also flagged!)
+
+	* include/mail.h:
+	    _CF_RCPTNOTARY-tag -- "DSN parameters for preceeding recipient"
+	    _CF_DSNENVID-tag   -- "DSN ENVID data"
+
+	* include/mailer.h:
+	    enum HeaderClass got new elts:
+		eToDSN, eEnvid
+
+	* router/libdb/header.c:
+	    Learned to recognize new transport envelope headers:
+		todsn, envid
+
+	* include/ta.h:
+	* transports/libta/ctlopen.c:
+	    "struct ctldesc" has now "envid" field, and it
+	    gets filled in on the  ctlopen()  parser..
+	    There is also "dsnflags", which also gets filled..
+
+Thu Sep  1 11:13:03 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* libsh/optimizer.c:
+	    Bad interaction with  USE_ALLOCA() -- the  ncode[]
+	    array MUST be returnable to the callers scope, thus
+	    it can't be alloca() buffer...
+
+Mon Aug 29 22:45:09 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Dump 2.95mea, and put it running at NIC.
+	  Public release tomorrow ?
+
+	* transports/smtp/smtp.c:
+	    EHLO-processing had parameter bug on  smtpwrite()...
+
+	* scheduler/msgerror.c:
+	* scheduler/scheduler.c:
+	   Still more wrestling with NOTARY error reporting..
+	   Now it prints REWRITTEN headers also from within
+	   scheduler's error reporter...
+
+Sun Aug 28 22:26:26 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/mailbox/mailbox.c:
+	* transports/smtp/smtp.c:
+	* transports/libta/diagnostics.c:
+	    More wrestling with NOTARY error reporting..
+
+	* transports/errormail/errormail.c:
+	    More wrestling with NOTARY error reporting..
+	    Will write out REWRITTEN headers -- so that there
+	    is local "Received:" entry as well!
+
+	* scheduler/msgerror.c:
+	    Still more wrestling with NOTARY error reporting..
+
+Wed Aug 24 02:00:17 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Dumped 2.94mea
+
+	* smtpserver/rfc821scn.c:
+	    Address like:  <test@test_vms.domain>  is to be accepted,
+	    even though it is illegal, if you have a strict look at
+	    the standards..
+
+	* transports/mailbox/mailbox.c:
+	* transports/smtp/smpt.c:
+	    Testing NOTARY message production.
+
+	* transports/libta/diagnostics.c:
+	    Produce the NOTARY diagnostics ( notaryreport() )
+
+	* scheduler/transport.c:
+	    Had a peek as to why some machines (SunOS 4.1.3 most notably)
+	    can't run more than about 50 (!) channel programs at a time!
+	    (Marco Hernandez @ CREN.ORG reported this problem..)
+	    At the moment:  NO IDEA  :-/
+	    (20 hours latter:
+			Each scheduler file is kept open when it is in
+			active processing, each active transporter has
+			a diagnostics pipe back to the scheduler, and some
+			systems have SIGNED CHARs as FD storage in FILE-
+			structures..
+
+			If transporters run with GANG-SCHEDULER, that is
+			multiple files are spooled to same transporter,
+			all those files must be kept open by the scheduler
+			until the transporter acks them back..	)
+	    (1-Jan-95: Most likely it is Open-Files resource limitation..)
+
+	* scheduler/msgerror.c, scheduler/update.c,
+	  transports/libta/diagnostic.c:
+	    Revised report-back format, as well as error
+	    reporting procedure fairly completely.
+
+	    Now the transporters CAN report IETF-NOTARY data, and the
+	    scheduler will then use it to report on the return email.
+	    (Exact format evolves still, but one thing is sure:
+	     it shall not contain \n's, nor \t's!)
+
+	    Transporter main error reporter is  scheduler/msgerror.c,
+	    NOT the  transports/errormsg/errormsg.c !
+	    The latter can be used for some trivialities, though..
+	    (How the heck it can get NOTARY data ? -- solved three
+	     days latter..)
+
+Tue Aug 23 21:52:18 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/smtp/smtp.c:
+	    An error in EHLO responce analysis did omit the
+	    final responce line, which in one case did have
+	    effect:
+		250-XXXXX
+		250 8BITMIME
+	    Thus SMTP didn't learn that the receiver is 8-bit
+	    capable..
+
+	    Added an option to  smtp:  -E   -- try EHLO only if
+	    the remote system has "EHLO" on one of its initial
+	    message lines...  If not, don't do it.
+	    Default case is to do  EHLO  ALWAYS, and if it fails
+	    ("500 Unknown command", or hangup.., use HELO..)
+
+	* transports/errormail/errormail.c:
+	* scheduler/msgerror.c:
+	    Skip over the Zmailer envelope lines in the original
+	    email so that the file to be written out does not
+	    contain anything but RFC-822 (+MIME) headers..
+
+Wed Aug 17 14:12:06 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* utils/listexpand.c:
+	    Wrote this to test how much 650 email recipients
+	    will really expand the memory of the router.
+	    Instead of running a built-in expansion within
+	    the aliases.cf, this is to be called externally to
+	    produce similar remapping and resubmitting the file
+	    back to the router. (Via a trip thru scheduler, that is)
+	    	    Internal expansion: 32 MB
+	    	    External expansion: 3.5 MB (yes, only about 10 %!)
+
+	* libsh/trap.c (eval): 
+	    Carelessness on referring to the "savefile" buffer.
+	    It can be NULL ptr under some occasions.
+	    ( -> newaliases  crashed )
+
+Tue Aug 16 17:04:43 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Freezing and dumping 2.93mea
+
+	* *.cf -files:
+	    Processing of addresses which turn to be LOCAL to the
+	    machine will with sample files (proto/cf/) produce
+	    results like:
+	    	(local nobody /dev/null 123)
+		(local postmaster root 0)
+		(local somealias "|/path/to/program args" 1234)
+	    instead of the old style:
+	        (local - /dev/null 123)
+		(local - root 0)
+		(local - "|/path/to/program args" 1234)
+	    (These DO NOT contain my earlier quote additions, which
+	     were for helping on expansions of esoteric addresses.
+	     Oh well..  'Wrong' set of source scripts..)
+
+
+	* many files..
+	    FINALLY the mystic crashes on "router recipient" got
+	    explained.  Stdio uses its own file descriptors, and
+	    it takes only so many (resource: filehandles) leaked
+	    (non closed) stdio buffers to use them all up, and even
+	    though there are lotsa free fd's, there is no free
+	    stdiobuf..  Mainly  router/functions.c: run_listaddrs()
+
+	    Now the beast is written in portable manner, which only
+	    assumes UNIX fd semantics (and that  dup() and dup2() work)
+
+	    Mystic  libc/__fopen.c -file becomes used, if you define
+	    -DDEBUG_FOPEN, Then it traces the usage of stdio files..
+
+	* router/functions.c: run_daemon()
+	    Fixed the memory allocation/freeup.  Memory that gets
+	    freed explicitely is to be picked up from  MEM_MALLOC
+	    space, not from anywhere else (did cause some cores..)
+
+	* libs/ -- all libraries, most Makefile's, ..
+	    All library files (*.a) get collected into one directory,
+	    the "libs/"-directory.
+
+	* transports/libta/mimeheaders.c:
+	    Occasionally a transported file had:
+	    	Content-Type: text
+	    which caused carelessly written code to crash when
+	    subtype (as in "text/plain") was not present at all..
+
+	* hostenv/SunOS4.1:
+	    Define  GETDTABLESIZE so that  libc/getdtblsiz.c won't
+	    get compiled into a code and thus override system library
+	    routine..
+
+	* hostenv/SunOS5.2:
+	    Use only  "MAILLOCK"  on Solaris, not the LOCKF at all!
+
+	* transports/mailbox/mailbox.c:
+	    On Solaris the file locking shall not be used on
+	    "/dev/null"..
+	    Incorporated  Edwin Allum's Solaris patches into
+	    the code -- maillock() et.al.
+
+	* transports/smtp/smtp.c:
+	    Some minor tuneups on detecting when to downgrade headers,
+	    and when not to.
+
+	* libsh/interpret.c:
+	    Under some conditions under-read varstack.  PURIFY test
+	    use did help me to detect that at all..
+
+      ( * At some non-defined point in history did dump
+          zmailer-2.92 --- 940802 it appears to be.	)
+
+Wed Jul 27 02:31:28 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Freeze and dump zmailer-2.91mea-940727.tar.gz
+
+	* many files..
+	    Converting   emalloc(strlen(buf)+1) + strcpy()
+	    to  strsave()  did cause amazing amount of problems.
+	    They aren't all gone (don't know for sure, though),
+	    and some others may have surfaced.
+
+	* transports/errormail/errormail.c, scheduler/msgerror.c:
+	    Alter error reporting towards that of the IETF NOTARY
+	    working group draft -- not yet there by million miles,
+	    I am afraid..
+	    THIS ALTERED ALSO THE SYSTEM ERROR MESSAGE FILES!
+
+	* */Makefile{,.in}:
+	    Lotsa things..  Mainly on getting things to compile
+	    ALL the related libraries before linking them in.
+
+	* transports/libta/ctlopen.c, transports/libta/mimeheaders.c,
+	  transports/libta/writeheaders.c, ...
+	    Improve email header conversion facilities.
+	    Proper email BODY conversion is still missing..
+	    (text/plain gets processed, but  other formats
+	     call for improvements..)
+
+Mon Jun 27 07:24:44 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* transports/libta/mimeheaders.c :
+	    Improved processing of "Content-Type:", and
+	    added "Received: .... convert rfc822-to-XXXX;..."
+	    clauses.  ( to "quoted-printable" and to "8bit")
+
+	* BUGS, ChangeLog, README, README.solaris, INSTALL :
+	    Updated documentation, worklist, ....
+
+
+Sun Jun 26 01:31:54 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Freeze and dump   zmailer-2.90-940626.tar.gz
+
+	* router/functions.c (run_listaddrs):
+	    An empty "include" file (empty .forward, as was the case)
+	    caused SIGSEGV due to a NULL-ptr dereference.
+	    Created smarter error handling.
+
+	* router/rfc822.ssl:
+	    Teached "AMailboxList" to understand '<>' as a valid
+	    address ("channel error" source..) as is often case
+	    with error-messages from mailers..  Now it accepts:
+			From: <>
+
+	    That unearthed a lot of problems elsewere with NULL-pointer
+	    dereferrence and now don't even remember where everywhere...
+	    ( s_copy_tree() at least )
+
+Sat Jun 25 01:31:54 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* libsh/builtins.c, libsh/path.c, libsh/vcall.c,
+	  router/functions.c, router/rfc822.c:
+	    USE_ALLOCA -- use alloca() for some local buffer allocations
+	                  which don't need to be preserved over the scope
+			  of stack-frame existance.
+
+	* hostenv/ :
+	    Don't select on own  getopt() vs. system supplied one.
+	    Use the own one always.
+
+	* libsh/interpret.c:
+	    Improve interaction with the  getopt()
+
+	* libmalloc/ :
+	    Improved the integration with the Zmailer -- this is a new
+	    version of the "Toronto Malloc", and quite a headache to
+	    integrate..
+
+Tue Jun 21 09:52:21 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* router/rfc822.c (run_rfc822): 
+	    Argument processing bombed -- possibly due to usage of
+	    the GCC, possibly due to something else.
+
+
+Tue Jun 21 09:52:21 1994  Matti E. Aarnio  (mea@oj287.astro.utu.fi)
+
+	* Created this file to track changes
+
+	  Building Zmailer 2.90xxx -- that is, alphas/betas of 3.0
+
+	* Pre-ChangeLog transcript follows:
+
+
+Various features/fixes done at Univ of Turku by Matti Aarnio <mea@utu.fi>
+
+
+Compiling with  GCC 2.3.3, and 2.4.5 with -Wall  -- generated a lot of
+warnings, which one after another have been eradicted..  Found also some
+real bugs with that.  (BUT NOT ALL!)
+
+I am compiling it on SunOS 4.1.3 with  GCC 2.5.6, and "-traditional"
+option..
+
+
+Referred <Emil> is IDA's big-brother (IDA-sendmail's MIME processing toolbox)
+
+
+Multilevel incoming mail priorizing into router:
+	- zmailer(3) has  mail_priority  variable, which must be set
+	  to desired value before  mail_close() is called.
+	  Value 0 means normal behaviour (and is the default).
+	  Any positive value means picking further down into
+	  ROUTERDIRS Z-environment variable.  (See zmailer(3), and router(8))
+
+	- compat/sendmail/sendmail accepts  -Pnn, which is feed to
+	  mail_priority (see above)  As an alternate, it also honours
+	  environment variable   MAILPRIORITY which has numeric value.
+	<Maybe "Precedence:" header should be processed ?>
+
+	- Router processes at first all files from the  POSTOFFICE/router/
+	  directory, and once it is empty, it looks into alternates.
+	  If alternate had anything to work upon, directory scanning returns
+	  to the first level dir.
+	  As an end result, the further messages are into the alternate
+	  directories, that less frequently they get processed.
+
+router/functions.c:
+router/conf.c:
+router/dateparse.c:
+router/rfc822.c:
+router/router.c:
+	- Implemented first real multi-router system with working locks.
+	- Extended it with ROUTERDIRS - multiple priority levels.
+	- Added some {}'s into dateparse.c
+	- Added configurability of  $(filepriv ...) into conf.c
+	- Accepted and inserted a patch on RFC header processing which
+	  blew on "header"-line like:  ": some text"
+	  (Some programs inserted such junk into HEADERS - tin among them.)
+	  Source: "Michael S. Shappe" <mss1@cornell.edu>
+	- Added option  -E  into $(listaddresses ...) creating
+	  an "Errors-To:" header, and making sure the SMTP
+	  'MAIL FROM:<>' contains that address.
+	<Should use Emil ?>
+
+router/libdb/bind.c:
+	- added query-type 'any' to be used in place of '-t cname' on
+	  DNS canonization. (In manner of  BSD sendmail.)
+
+smtpserver/smtpserver.c:
+	- SMTP-server does check syntax of RFC821 inputs, specifically
+	  it checks "MAIL FROM:< .... >" and "RCPT TO:< .... >" syntaxes,
+	  and is adamant with them.  -- many misconfigured PC-mail programs
+	  have been found with it...   --  rfc821scn.c  does most of it.
+	- Uses  Remote Authentication Service (RFC 1413) to (try to)
+	  see who is it, who contacts us.  (See also: "libauth/*")
+
+	- SMTP-server supports RFC 1425-1428   EHLO greeting (in place of
+	  HELO command), and related  8BITMIME, and SIZE extensions.
+	  Summa summarum:  Now we advertice that we can accept 8-bit SMTP,
+	  not just blindly accept it..
+	- SMTP-server fully uses RFC 1427 SIZE feature (if user defines it),
+	  and thus can report "insufficient storage space at the moment",
+	  if sender tries to send email which is far too big..
+	<Should check MIME-compiance of the message, if it has 8-bit stuff
+	 in it, and not give   250 Ok  if check fails.  Also maybe should
+	 check syntax of RFC822 headers, and complain at the "." time, if
+	 that check fails..  Precedence can be found from PP.>
+	<Should use Emil ?>
+
+
+transports/libta/routermxes.c (new)
+	- router can feed target "mx" information, same as it got when
+	  analyzing routing, to the actual transporter program.
+	  In place of a  hostname,  it codes:  ((mxer)(mxer mxer)(mxer))
+	  (This is into the router results!)
+
+transports/libta/ctlopen.c
+transports/libta/mimeheaders.c (new)
+	- new way to read in the headers, and to handle them when
+	  rewriting them.  Original was to get them in as single
+	  multiline string.  This splits them to individual lines
+	  and keeps track of them in that way..
+
+
+transports/smtp/smtp.c:
+	- Better support for local sender verbose trace
+	- If connection setup fails (channel open timeout, or remote
+	  closes the channel upon our face -- whatever before HELO),
+	  we try to talk to next assigned MX target.
+	- Support of RFC 1425-1428  8BITMIME transport
+	- Uses RFC 1427 SIZE=, if receiving system knows it (EHLO protocol)
+	- Downgrades message to "Content-Transfer-Encoding: QUOTED-PRINTABLE",
+	  1) "Content-Transfer-Encoding: 8BIT" is present
+	     in the primary headers,
+	  2) remote system has no  8BITMIME capability,
+	  3) message contains 8-bit characters.
+	- Downgrades message header to "Content-Transfer-Encoding: 7BIT",
+	  if message data is 7-bit, and said header is present.
+	- If "C-T-E:" was turned to "7BIT", and "Content-Type:" was
+	  "text/plain; charset=ISO-*", then update "C-T:" to have
+	  "charset=US-ASCII" -- simplifies things (?)
+	- Doesn't do full job of analyzing things like "Content-Type:",
+	  rather assumes that "C-T-E:" is present on "C-T: text/plain"
+	  messages, and any complex things are built properly.
+	- setsockopt() arguments corrected.
+	<Should use Emil>
+
+transports/sm/sm.c:
+	- Support for local sender verbose trace
+	- Downgrades messages in same manner as smtp does, if "sm"
+	  doesn't have "-8" in its options when running some subchannel.
+	<Should use Emil>
+
+
+transports/mailbox/mailbox.c:
+	- Allow local addresses to be   user@domain, and use that kind
+	  of addresses on storing mails to mailboxes.
+	<Really should only do header rewrites into FQDN format, and
+	 have local users feed to via scheduler as   `username' (non FQDN)>
+	- Use proper NFS locking  ( lockf() )
+	<Should use Emil>
+	- Partial MIME converter:
+		A  text/plain; Quoted-Printable  message will be converted
+		into  8BIT  format, IF the "mailbox" program is called with
+		argument: "-8"!  (If that argument is not present, nothing
+		new is done.)
+
+libc/libc.a:
+	- mail_open() does a  whathost() to figure out NFS-mounted
+	  postoffices.  <Guy Middleton>
+	- using free()d storage -- Matthias Urlichs, et.al. in   mail.c
+	- whathost.c  generalizes NFS mountpoint figuring system.
+	- mail_close() is affected by  mail_priority variable, as well
+	  as  ROUTERDIRS  Z-environment.  See  zmailer(3)
+
+libauth/*:
+	- RFC 1413 using identd protocol using library.
+	  (Host configuration option  USE_AUTH)
+
+
+compat/sendmail/sendmail:
+	- Accept (and ignore) options:  -oem, -J, -em
+	- Accept option -Pnn, see above about  mail_priority (zmailer(3))
+	- Making sure "to <address>" -lines contain only valid
+	  characters -- well, don't contain newlines!
+	- Accept "From " (FROM-SPACE) input (sendmailism), and
+	  drop such line away, if next line looks like a real header.
+	- Do binary (-t option) processing buffer at a time, instead of
+	  a character at a time..
+	<Check MIME-headers, and correct 8-bit handling ???>
+	<Check submitted headers (syntactically), and barf if fail ???>
+
+compat/rmail/rmail:
+	- Bill Wisner's rmail patch applied.
+
+
+lib/rfc822scan.c:
+	- Nested comments fix -- don't remember who
+	- Kicked out bit-stripping -- headers are 7-bit stuff!
+
+lib/linebuffer.c:
+	- Explicit exits with  ferror() amd feof() conditions!
+	  Suggested by  haa@cs.hut.fi
+	- Made a serious mistake, and two weeks later found it..
+	- accepted a patch from  Ken Lalonde <ken@cs.toronto.edu>,
+	  finally did it corrently !
+
+ssl/ssl.c:
+	- array space reservation one-off, fix by 	Matthias Urlichs
+
+utils/makendbm/
+	- wrote whole package
+
+utils/zmstats.perl
+	- wrote this small piece
+
+utils/fullnamealiasmaker.perl
+	- wrote this (larger) piece
+
+support/vacation/
+	- extended to behave somewhat like SunOS  vacation(1), only better :)
+
+scheduler/mailq.c:
+	- Moved function   getmntpt()  to  (new file) libc/whathost.c

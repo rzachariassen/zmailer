@@ -1,0 +1,54 @@
+{Thanks to Matti Aarnio who wrote this file}
+
+Database creation command:  relation
+
+SYNTAX:
+	relation -t dbtype [-f file -e# -s# -blnu -d driver] name
+
+    Options are listed below. "name" is name of the relation
+    that is wanted to be created.  Examples:
+
+	relation -t bind,mx  mxhost
+	relation -t ordered -f $MAILVAR/db/routes routes
+	relation -t ordered -b -f /usr/lib/news/active.sorted newsgroups
+
+
+OPTIONS:
+Key handling:
+	-l			Map all keys to lower case
+	-u			Map all keys to upper case
+Post processing
+	-b			Boolean postprocessor
+	-i			Indirect reference post-processor
+	-n			Ensure non-null return value postprocessor
+	-p			Pathalias postprocessor
+Others:
+	-d driver-routine	Knows driver routines:
+					pathalias
+					pathalias.nodot
+	-f file.name		Defines file name
+	-m			Do modification check on database every
+				time it is accessed.
+	-s cache_size		Numeric for cache size (entries)
+	-t database-type[,subtype]
+				It knows about following database types:
+		incore
+		header		Message headers.
+		ordered		File must be sorted into ascending ASCII order.
+				(Does binary search.)
+		unordered	File can be in any order (Does linear search).
+		bind		DNS query interface
+		ndbm		When the BSD NDBM is available
+		gdbm		When the GNU GDBM is available
+		dbm		When only old SysV DB is available
+		btree		When the BSD B-Tree database is available
+		bhash		When the BSD HASH database is available
+		yp		When Sun YP (a.k.a. NIS) is available
+		ldap		When LDAP is available
+	-e time-to-live		Default cache data expiration time (seconds)
+
+NOTES:
+	On systems with USE_MMAP the  ordered and unordered databases
+	are r/o mapped into memory, and for ordered case, a special
+	line-index is generated for speeding up the binary search.
+	(Makes less system calls that way..)

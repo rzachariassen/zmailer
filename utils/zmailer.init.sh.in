@@ -1,0 +1,27 @@
+#! /bin/sh
+
+ZCONFIG=@ZMAILERCFGFILE@
+
+if [ -r $ZCONFIG ]; then
+	. $ZCONFIG
+else
+	exit 0
+fi
+
+case "$1" in
+start)
+	if [ "${SMTPSERVER}" ]; then
+		$MAILBIN/zmailer smtp
+	elif [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
+		$MAILBIN/zmailer bootclean
+		$MAILBIN/zmailer
+	fi
+	;;
+
+stop)
+	if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
+		$MAILBIN/zmailer kill
+	fi
+	;;
+
+esac

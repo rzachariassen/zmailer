@@ -1,0 +1,114 @@
+1995-Sep-08/mea			-*- text -*-
+
+
+	Some notes on the new guts of the ZMailer Scheduler
+
+
+The new way to handle queueing in ZMailer is by dividing the recipient
+address vertices into threads with similar properties, that is, all
+recipients that could be queued to transporter at the same time are
+placed to same thread.
+
+Old style is to keep all threads in wakeup-time-order in "curitem"-
+based queue, and link them with  nextitem/previtem -double-chain there.
+
+When it came a time to start off new vertices, those addresses in the
+queue that had their "wakeup <= now" were fed to unravel(), which tore
+the queue into threads, and started each thread in synchronous manner.
+
+To have some idea of these new pointer meshes, see  "zmnewsched*.{fig|ps}"
+pictures about pointers..
+
+New way is to do following:
+
+	When message arrives, and becomes parsed for processing, routines
+	slurp()+vtxprep()+vtxdo()  prepare vertices for each recipient,
+	and if no matching vertex is found, the vtxdo() creates a new one.
+
+	New vertices are matched into existing thread-rings, and threads.
+	If no matching thread(-ring) is found, a new one is created.
+
+	Vertices have arrays of next/prev pointers, of which the one with
+	L_CTLFILE-index are used to link in all vertices of same file into
+	one chain. That chain is used by  findvertex() (update.c) to locate
+	the vertex reported by the transport client by a message of style:
+	"inum/offset (+other msgs) \n".  With "inum" the system identifies
+	job descriptor, and from there the chains are followed until matching
+	offset is found.
+
+	Vertices within threads are kept in time-order, and first vertex
+	has its time-stamp copied into thread "wakeup" time.
+
+	Threads are also grouped into thread-rings, where there are such
+	threads, that can be processed with same transporter process.
+
+	When a vertex is scanned in, it is looked up from configurations
+	(sequential match - first to match is the match), and if there
+	is no thread with same set of triplet: config/channel/thread,
+	a new thread is created, else the new vertex is appended into
+	the existing thread.
+
+	Also, when a vertex is added into the thread structures, the thread
+	is attempted to start right away.  (Except when the configuration
+	is equiped with 'queueonly' option -- then only SMTP originated
+	"ETRN hostpart" will start the thread.)
+
+	All threads are grouped into thread-rings, which contain such threads
+	that can be processed with same transport agent. Especially, if the
+	config-entry argv has "$host", the thread-ring can only have one
+	thread in it, else the thread-ring will contain all that have matching
+	pair: config/channel
+
+
+	Scheduling of vertices is done by  reschedule(), which is responsible
+	of keeping vertices within thread in time-order, and timestamp at the
+	thread-head same as that of the first vertex.  The "proc"-pointer is
+	used as a flag to tell that the re-scheduled vertex is not eligible
+	for a startup with current thread processing agents (if it was
+	re-scheduled because of something that transport agent reported)
+
+	Timed thread processing initiation is done in doagenda() by trying
+	to start all threads that have their "wakeup <= now". If there are
+	no resource limits (like too many transporters running), transport
+	agent is started with suitable parameters, and the thread is moved
+	into "running queue" (at its head).  All vertices within the thread
+	are "marked" by clearing the "proc" pointer.  (As an alternate to
+	start of an agent, agents that have earlier completed their jobs
+	can be found from thread-group idle pool.)
+
+	Order of vertices within the thread is randomized at the initiation
+	time  (same code that old  unravel()  did in the old scheduler before
+	it tore the timewise "curitem"  vertex-chain into threads.)
+	(Here use of 'ageorder' will make sure the order is kept in strict
+	 ascending age order.)
+
+	All vertices within a thread are attempted to deliver at the same run.
+	Only one transport agent is to be running on any given thread at any
+	given moment, but there can be multiple agents in the thread-ring.
+
+	All attempted threads that met resource limits, are re-scheduled.
+
+	Vertices are processed by  update()+feed_child(); of which the
+	update() detects the child reporting "#hungry", and flags it.
+	When the flag is set,  readfrom() ( mux()'s subroutine ) calls
+	feed_child() that feeds the processing program its next job,
+	and sets vertex "proc"-pointer into current process record.
+	(By means of calling  pick_next_vertex()  routine.)
+
+	When update() gets an ack from the transporter for a message, it
+	calls  unvertex()  to remove it, and unvertex() must take care of
+	things when the thread it is part of, becomes empty.
+
+	If the unvertex() notices the thread to be empty, it will delete
+	the thread block, and update the thread-group ring. (By calling
+	delete_thread(struct thread*) )
+
+	When feed_child() runs out of the thread, it pics another from
+	the same thread-group.
+
+	When the transport programs run out of jobs (or rather: scheduler
+	runs out of jobs to feed them; pick_next_vertex() does the detection),
+	the programs are moved into thread-ring idle pool, from which they
+	can be taken into active use, in case a new job appears. If no jobs
+	appear within some time (configurable with 'idlemax=' entry in config
+	file), the transporter programs from idle pool are killed.

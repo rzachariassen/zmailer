@@ -1,0 +1,22 @@
+# Routes override
+#
+# This is the simple interface to the db/routes file.  The function that
+# interprets the value returned is routes_spec, provided there because it
+# is of general use.
+
+require routesdb crossbar
+provide routes
+
+routes_neighbour (domain, address, A) {
+	local tmp
+
+	tmp=$(routesdb "$domain") &&
+		tmp=$(routes_spec "$tmp" "$address" $A) &&
+			return $tmp
+
+#| The routes_spec function interprets the return value from the
+#| routesdb lookup.
+
+	return 1
+}
+

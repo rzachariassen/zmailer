@@ -1,0 +1,97 @@
+#
+# ZMailer compatible programs that replace standard UNIX distribution programs
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+DEFS=		@DEFS@
+SENDMAIL_INCL=
+SENDMAIL_LIB=	@LIBRESOLV@ @LIBSOCKET@
+TOPDIR=		../..
+MAILBIN=	@MAILBIN@
+INSTALL=	@INSTALL@
+LN_S=		"@LN_S@"
+#
+INCL=           -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+LIB=            -L$(TOPDIR)/libs -lz -lzc
+LIBDEB=         $(TOPDIR)/libs/libtag
+CFLAGS=         $(COPTS) $(DEFS) $(INCL) $(SENDMAIL_INCL)
+SENDMAILPATH=	$(prefix)@SENDMAILPATH@
+USRLIB=         $(prefix)$(SENDMAILLIB)
+
+SOURCE=		sendmail.c
+
+sendmail-a:	$(LIBDEB) sendmail
+
+sendmail:	sendmail.o version.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ sendmail.o version.o $(LIB) $(SENDMAIL_LIB)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+sendmail.o: $(srcdir)/sendmail.c
+
+version.c: $(srcdir)/sendmail.c $(TOPDIR)/Makefile
+	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+# At install we assume:  IF we can do symlinks, then if
+# the target location has a symlink, we replace it.  If
+# the target location has something else, we rename it,
+# and place a symlink there.  If the target location has
+# nothing, we place a symlink (if we can).. else we just
+# comment (loudly!) to the user --- who on earth can have
+# any modern system without symlinks ?
+install: $(LIBDEB) sendmail
+	$(INSTALL) -m 0755 sendmail $(prefix)$(MAILBIN)/sendmail.x ; \
+	mv $(prefix)$(MAILBIN)/sendmail.x $(prefix)$(MAILBIN)/sendmail
+	@if [ $(LN_S) = "ln -s" ]; then				\
+	    if [ -h $(SENDMAILPATH) ]; then			\
+		rm -f $(SENDMAILPATH) ;				\
+		ln -s $(MAILBIN)/sendmail $(SENDMAILPATH) ;	\
+	    else						\
+		mv -f $(SENDMAILPATH) $(SENDMAILPATH).orig ;	\
+		ln -s $(MAILBIN)/sendmail $(SENDMAILPATH) ;	\
+	    fi ;						\
+	else							\
+	    echo "********************************************************" ; \
+	    echo "** $(SENDMAILPATH) needs to be updated to be" ;	  \
+	    echo "**   a symlink (if possible) to $(MAILBIN)/sendmail" ;  \
+	    echo "********************************************************" ; \
+	fi
+
+clean:
+	-rm -f sendmail make.log *.o *.out *~
+distclean: clean
+	-rm -f Makefile
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs; $(MAKE) $(MFLAGS) libtag
+
+lint:	$(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/lib/llib-llibz.ln
+	lint $(INCL) $(SENDMAIL_INCL) $(TOPDIR)/libc/llib-llibzc.ln sendmail.c
+
+$(TOPDIR)/libc/llib-llibzc.ln:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/lib/llib-llibz.ln:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libc/libzc.a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/lib/libz.a-a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/lib/libz.a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+
+
+depend:
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

@@ -1,0 +1,39 @@
+#! /bin/sh -
+# using the home directories in the passwd file, check the symlinks in
+# /var/mail.
+# Related scripts: checkpobox, mkmboxmap
+# Mark Moraes, University of Toronto
+PATH=/local/share/adm:/local/bin:/usr/ucb:/usr/bin:/bin
+export PATH
+verb=:
+case "$1" in
+-v)	verb=echo; shift;;
+esac
+mailspool=/var/mail
+passwd=/etc/passwd
+links=/tmp/upo1.$$
+homes=/tmp/upo2.$$
+err=/tmp/upo3.$$
+hname=${HOST-`hostname`}
+hname=`expr "$hname" : "\([^\.]*\).*"`
+$verb hostname $hname
+cd $mailspool
+ls -l | awk '/^l/ {print $8, $10}' > $links
+awk -F: '$6 ~ /^\/homes\// {print $1, $6}' $passwd |
+	sed 's,/\([^/]*\)$,/PObox/\1,' | sort > $homes
+$verb Removing links for people who arent in the passwd file
+comm -13 $homes $links | sed 's/ .*//' | 
+	case "$verb" in
+	:|'')	xargs rm;;
+	*)	tee $err | xargs rm
+		cat $err
+		rm $err
+		;;
+	esac
+$verb Creating links for new users
+comm -23 $homes $links | sed 's/^\([^ ]*\) \(.*\)$/ln -s \2 \1/' |
+	case "$verb" in
+	:|'')	sh;;
+	*)	sh -x;;
+	esac
+rm -f $links $homes

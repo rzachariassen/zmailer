@@ -1,0 +1,14 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Invalid message header (Warning)
+
+A copy of your message is being returned to you because it arrived with
+an illegal header according to the RFC822/976 protocol specification.
+If you do not recognize the source of the bad header, perhaps you should
+ask a postmaster at your site.
+
+Your message had separate information about its recipients, so it has
+been transmitted properly with a warning replacing the bad addresses.
+
+The following annotated header(s) illustrate where the error(s) occurred:
+

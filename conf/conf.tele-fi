@@ -1,0 +1,4 @@
+#!/bin/sh
+set -x
+./configure --prefix=/opt/mail --with-logdir=/logs/mail --with-postoffice=/postoffice  --with-zconfig=/opt/mail/zmailer.conf --without-rfc822-tabs --with-gcc
+#--with-tcp-wrappers=/usr/local/tcpd

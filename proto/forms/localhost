@@ -1,0 +1,13 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: You can't use "localhost" as a hostname
+
+The valid addresses for users on this machine are:
+
+	{ai,cs,na,theory}.{toronto.edu,utoronto.ca},
+	utai.uucp
+	utorant.bitnet
+
+You might try one of those instead of just "localhost".  Your message is
+being returned unprocessed.
+

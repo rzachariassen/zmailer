@@ -1,0 +1,12 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Too many "Received:" lines, looping message ?
+
+The following message was decided to exceed the sensible limit
+on the number of "Received:" headers, which number is usually
+fairly small for any average email, but can become rather large,
+if the message loops somewhere.
+
+Our limit is 50 rounds, usually systems set it way lower, like
+at 15-17...
+

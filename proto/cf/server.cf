@@ -1,0 +1,136 @@
+# These functions are used by the smtpserver to do synchronous address checking.
+
+quadprint (quad) {
+
+#| This is a prettyprinter for address quads.  What it prints is what someone
+#| doing a VRFY or EXPN query to the SMTP server will see.
+
+	local text user user2
+
+	user="$(user $quad)"
+	case $(channel $quad) in
+	local)	ssift "$user" in
+		[|/].*	text="local delivery for"
+			break
+			;;
+		.*
+			user2="$user"
+			ssift "$user2" in
+			(.*)@([^@]+)	# FQDN format address ?
+				user2="\1" ;;
+			.*	;;
+			tfiss
+			ssift "$user2" in
+			(.*)\+(.*)	# A "+" in the name ?
+				user2="\1" ;;
+			.*	;;
+			tfiss
+			
+			text="$(login2uid "$user2")"	# ignore return value
+			if text="$(fullname "$user2")"; then
+				text="$text"
+			else
+				if text="$(fullname "$(recase -l "$user2")")"; then
+					text="$text"
+				else
+					text="550 no such user:"
+				fi
+			fi
+			;;
+		tfiss
+		;;
+	usenet)	text="newsgroup:" ;;
+	*)	text="$(channel $quad) delivery"
+		case "$(host $quad)" in
+		-|'')	text="$text for" ;;
+		*)	text="$text to $(host $quad) for" ;;
+		esac
+		;;
+	esac
+	echo "$text <$user>"
+}
+
+server (key) {
+
+#| The smtpserver program starts the router in interactive mode and runs this
+#| function to interface with the rest of the configuration code.  The key
+#| specifies the semantics of the additional arguments provided by the
+#| smtpserver.  The key values are: init, to, from, verify, and expand.
+
+	local a A B
+
+	A=$(newattribute default_attributes type sender)
+	B=$(newattribute default_attributes type expandsender)
+
+#| In doing a VRFY operation, it is not desired to do any alias expansion.
+#| This can be avoided by modifying the attributes of default_attributes to
+#| shortcircuit alias expansion.  It is assumed that default_attributes is
+#| otherwise proper for the purpose.  The value specified for the privilege
+#| level should be appropriate.
+
+	case $key in
+	to|from|verify|expand)
+		a="$1"
+		tsift "$a" in
+		<(.+)>	a="\1" ;;
+		tfist
+		if rfc822syntax "$a"; then ; else
+			echo "554 illegal address syntax: <$a>"
+			return
+		fi
+		;;
+	esac
+
+	case $key in
+	init)	# If you want to log incoming connections, it can be done here
+		#echo server $@ >> /tmp/server
+		# redefine the log function
+		log () {
+		}
+		;;
+	to|from)
+		a="$(router "$1" default_attributes)"
+		for i in $(elements $a)
+		do
+			for j in $(elements $i)
+			do
+				case $(channel $j) in
+				error)	echo "554 unresolvable address: <$1>"
+					return ;;
+				esac
+
+#| If any of the addresses in the expansion gave errors, we reject the
+#| original address.  The lack of distinction between different kinds of errors
+#| may be inadequate in some situations.
+
+			done
+		done
+		echo "250 Ok (verified)"
+		;;
+	verify)
+		a="$(router "$1" $A)"
+#| Invoke the router function with alias expansion turned off.
+		for i in $(elements $a)
+		do
+			for j in $(elements $i)
+			do
+				quadprint $j
+			done
+		done
+		;;
+	expand)
+		a="$(router "$1" $B)"
+
+#| Invoke the router function with alias expansion enabled.
+
+		for i in $(elements $a)
+		do
+			for j in $(elements $i)
+			do
+				quadprint $j
+			done
+		done
+		;;
+	esac
+}
+

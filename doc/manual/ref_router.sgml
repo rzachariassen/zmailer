@@ -1,0 +1,1427 @@
+<sect1>Router
+<p>
+
+The <em>router</em> daemon makes all decisions affecting 
+the processing of messages in ZMailer.
+
+A mail message is submitted by placing it in a file in the
+<tt>&dollar;POSTOFFICE/router/</tt> directory. The 
+<em>router</em> frequently scans this directory for new 
+files and will lock and process them as it finds them. 
+The result is a message control file that gets linked into 
+the <tt>&dollar;POSTOFFICE/scheduler/</tt> and 
+<tt>&dollar;POSTOFFICE/transport/</tt> directories for use 
+by the <em>scheduler(8)</em> in the next step of message 
+processing. The original message file is then moved to the 
+<tt>&dollar;POSTOFFICE/queue/</tt> directory. 
+
+The <em>router</em>'s behaviour is controlled by a 
+configuration file read at startup. It is really a 
+<em>zmsh(1)</em> script that uses facilities provided 
+builtin to the <em>router</em>. 
+
+<bf>Usage</bf>
+
+Invoking router without	any arguments will do nothing
+(except	make it read its configuration file and promptly
+exit). The normal startup method is to run the <em>zmailer(1)</em> 
+script,	as in <tt>zmailer router</tt>. This will start the 
+<em>router</em> as a daemon and	kill the previous 
+incarnation of the <em>router</em>. 
+
+<tscreen><verb>
+router [ -diksSV ] [ -f configfile ] [ -n #routers ] [ -o 
+zmshoptions ] [ -t traceflag ] [ -L logfile ] [ -P postof-
+fice ] 
+</verb></tscreen> 
+
+<bf>Parameters</bf>
+
+<descrip>
+<tag/<tt>-d</tt>/ Detach and run as a daemon. 
+<tag/<tt>-f configfile</tt>/ Overrides the default configuration 
+file <tt>MAILSHARE/router.cf</tt>. 
+<tag/<tt>-i</tt>/ Run interactively, presenting a <em>zmsh</em>  
+session with the configuration file preloaded. 
+<tag/<tt>-k</tt>/ Kill the currently running router by 
+sending it a <tt>SIGTERM</tt> signal. 
+<tag/<tt>-L logfile</tt>/ Overrides the default	log file location 
+<tt>&dollar;LOGDIR/router/</tt>. 
+<tag/<tt>-n &num;routers</tt>/ Starts the specified number of 
+parallel router processes. The default is a single router process. 
+<tag/<tt>-o zmshoptions</tt>/ Sets the option string passed on the 
+internal <em>zmsh</em> invocation. The default is <tt>-O</tt>. 
+Note that the leading `-' is mandatory. See <em>zmsh(1)</em> 
+for the available options. 
+<tag/<tt>-P postoffice</tt>/ Specifies an alternate 
+<tt>&dollar;POSTOFFICE/</tt> directory. 
+<tag/<tt>-S</tt>/ Can be used to turn off non-serious syslogging. 
+<tag/<tt>-s</tt>/ Turns stability-flag off and on. Without this
+flag, the search of new jobs will be done with (sometimes) 
+timeconsuming care of organizing the job files into time order. 
+<tag/<tt>-t traceflag</tt>/ Sets trace options, one per -t switch, 
+even before the configuration file is loaded. This is otherwise 
+equivalent to the builtin <tt>trace</tt> command. The currently 
+known options are: <tt>assign, bind, compare, db, final, functions, 
+matched, memory, on, regexp, resolv, rewrite, router, and sequencer</tt>. 
+<tag/<tt>-V</tt>/ Print version message and run interactively. 
+</descrip> 
+
+To restart a <em>router</em> daemon: 
+<tscreen><verb>
+	 router -dk
+</verb></tscreen>
+
+To test an address, start up an interactive session: 
+<tscreen><verb>
+	 router -i
+</verb></tscreen>
+
+or if the ZMailer <em>sendmail(8)</em> is installed: 
+<tscreen><verb>
+	 sendmail -bt
+</verb></tscreen>
+
+Then just use the pre-defined functions.
+
+<sect2>ZMSH Script Language
+<p>
+
+<em>zmsh</em> is an implementation of the Bourne shell 
+suitable for use with the ZMailer <em>router(8)</em> as 
+its configuration file language interpreter. It contains 
+extensions that allow structured data (in the form of lists) 
+to be manipulated. 
+
+The shell supports three basic kinds of functions: Unix 
+commands, user-defined functions, and builtin commands. 
+The latter comes in two variations: normal functions which 
+take string arguments and return a status code (much as an 
+embedded Unix command would work), and list-manipulation 
+functions which understand list arguments and can return 
+list arguments.	The defined functions can take any form 
+of argument and return any form of value (a status code, 
+a string, or a list). 
+
+Shell operations (pipes, backquote evaluation and substitution)	
+will work between combinations of builtin functions, 
+defined functions, and Unix commands.
+
+The shell precompiles its input to a (possibly optimized) 
+byte-code form, which is then interpreted as required. 
+This means that the original form of the input is not kept 
+around <tt>in-core</tt> for future reference. If the input 
+is an included file, the shell will try to save the byte-code 
+form in a <tt>.fc</tt> file associated with the input file. 
+For example, if input is from <tt>file.cf</tt>, the shell 
+will try to create <tt>fc/file.fc</tt> and then <tt>file.fc</tt>. 
+These files will in turn be searched for and loaded 
+(after a consistency check) whenever a <tt>.cf</tt> file is included. 
+
+The effects of input and output redirections are predicted 
+prior to the execution of a command and its I/O setup.
+
+<bf>Usage</bf>
+
+<tscreen><verb>
+zmsh [ -CILOPRSYaefhinstuvx ] [ -c command ] [ script ...] 
+</verb></tscreen>
+
+<bf>Parameters</bf>
+
+See the Debugging section for &lsqb;-CILOPRSY&rsqb; 
+debugging options. 
+
+<descrip>
+<tag/<tt>-c command</tt>/ Run the given argument as a shell 
+command script. 
+<tag/<tt>-a</tt>/ Automatically export new or changed shell 
+variables.  
+<tag/<tt>-e</tt>/ Exit on non-zero status return of any command. 
+<tag/<tt>-f</tt>/ Disables filename generation. 
+<tag/<tt>-h</tt>/ Hash and cache the location of Unix commands. 
+The option is set by default. 
+<tag/<tt>-i</tt>/ This shell is interactive, meaning prompts 
+are printed when ready for more input, <tt>SIGTERM</tt> signal 
+is ignored, and the shell does not exit easily. This flag is 
+automatically set if <tt>stdin</tt> and <tt>stderr</tt> are 
+both attached to a <tt>tty</tt>. 
+<tag/<tt>-n</tt>/ Read commands but do not execute them. 
+<tag/<tt>-s</tt>/ Read commands from <tt>stdin</tt>. If there 
+are non-option arguments to the shell, the first of these will 
+be interpreted as a shell script to open on <tt>stdin</tt>, 
+and the rest as arguments to the script. 
+<tag/<tt>-t</tt>/ Exit after running one command. 
+<tag/<tt>-u</tt>/ Unset variables produce an error on 
+substitution. 
+<tag/<tt>-v</tt>/ Print shell input as it is read. 
+<tag/<tt>-x</tt>/ Print commands as they are executed. 
+</descrip>
+
+<sect2>Configuration Script Writing Rules
+<p>Text to be inserted here.
+
+<sect2>Debugging
+<p>
+
+The following debugging options are specific to the internal 
+function of <em>zmsh</em>: 
+<descrip>
+<tag/<tt>-C</tt>/ Print code generation output onto 
+<tt>stdout</tt>. If this option is doubled, the non-optimized 
+code is printed out instead. 
+<tag/<tt>-I</tt>/ Print runtime interpreter activity onto 
+<tt>/dev/tty</tt>. 
+<tag/<tt>-L</tt>/ Print lexer output onto <tt>stdout</tt>. 
+<tag/<tt>-O</tt>/ Optimize the compiled script. If this 
+option is doubled, the optimized code is also printed out. 
+<tag/<tt>-P</tt>/ Print parser output (S/SL trace output) 
+onto <tt>stdout</tt>. 
+<tag/<tt>-R</tt>/ Print I/O actions onto <tt>/dev/tty</tt>. 
+<tag/<tt>-S</tt>/ Print scanner output (token assembly) 
+onto <tt>stdout</tt>. 
+<tag/<tt>-Y</tt>/ Open <tt>/dev/tty</tt> for internal 
+debugging use. 
+</descrip>
+
+<sect2>Security Issues
+<p>Text to be inserted here.
+
+<sect2>Internal Functions
+<p>
+This section describes the router internal functions.
+
+<x>\vspace {2pt}</x>
+<sect3>``colon''
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt><bf>:</bf></tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>``include''
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt><bf>.</bf> script</tt>
+<tag/<bf>Return Values:</bf>/ status
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>``test''
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt><bf>&lsqb;</bf> &lcub;many 
+parameters&rcub; &lsqb; 
+&lcub;many parameters&rcub; &rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>1</tt>/ True.
+<tag/<tt>0</tt>/ False.
+<tag/<tt>-1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<itemize><item>File testing unary prefix functions:
+<descrip><tag/<tt>-b file</tt>/ True if file exists and is block special.
+<tag/<tt>-c file</tt>/ True if file exists and is character special.
+<tag/<tt>-d file</tt>/ True if file exists and is a directory.
+<tag/<tt>-f file</tt>/ True if file exists and is a regular file.
+<tag/<tt>-g file</tt>/ True if file exists and is set-group-id.
+<tag/<tt>-k file</tt>/ True if file has its ``sticky'' bit set.
+<tag/<tt>-p file</tt>/ True if file exists and is a named pipe.
+<tag/<tt>-r file</tt>/ True if file exists and is readable.
+<tag/<tt>-s file</tt>/ True if file exists and has a size greater than zero.
+<tag/<tt>-t &lsqb;fd&rsqb;</tt>/ True if <tt>fd</tt> is opened on a terminal. 
+If <tt>fd</tt> is omitted, it defaults to 1 (standard output).
+<tag/<tt>-u file</tt>/ True if file exists and its set-user-id bit is set.
+<tag/<tt>-w file</tt>/ True if file exists and is writable.
+<tag/<tt>-x file</tt>/ True if file exists and is executable.
+</descrip>
+
+<item>String testing binary functions:
+<descrip><tag/<tt>str1 = str2</tt>/ True if the strings are equal.
+<tag/<tt>str1 != str2</tt>/ True if the strings are not equal.
+</descrip>
+
+<item>Interget value testing binary functions:
+<descrip>
+<tag/<tt>iexpr -eq iexpr</tt>/ True if values are equal.
+<tag/<tt>iexpr -ne iexpr</tt>/ True if values are not equal.
+<tag/<tt>iexpr -gt iexpr</tt>/ True if value1 is greater than value2.
+<tag/<tt>iexpr -ge iexpr</tt>/ True if value1 is greater or equal than value2.
+<tag/<tt>iexpr -lt iexpr</tt>/ True if value1 is less than value2.
+<tag/<tt>iexpr -le iexpr</tt>/ True if value1 is less or equal than value2.
+</descrip>
+
+<item>File comparison binary functions:
+<descrip><tag/<tt>file1 -nt file2</tt>/ True if	file1's mtime is newer than file2's.
+<tag/<tt>file1 -ot file2</tt>/ True if	file1's mtime is older than file2's.
+<tag/<tt>file1 -ef file2</tt>/ True if both files have same inode, and device.
+</descrip>
+
+<item>Logical functions:
+<descrip><tag/<tt>! expr</tt>/ Unary NOT
+<tag/<tt>expr -a expr</tt>/ Binary AND
+<tag/<tt>expr -o expr</tt>/ Binary OR
+<tag/<tt>( expr )</tt>/ Parenthesis
+</descrip>
+</itemize>
+
+<tag/<bf>Notes:</bf>/ This is basically the shell <tt>&lsqb;</tt> a.k.a. 
+<tt>test</tt> program.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>attributes
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>attributes object-reference</tt>
+<tag/<bf>Return Values:</bf>/ The property list symbol (4th) component 
+of an address quad.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>basename
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>basename pathname &lsqb; suffix &rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ If a suffix is given and matches the filename, 
+the suffix too is stripped from the filename.
+<tag/<bf>Notes:</bf>/ Prints the base filename of the pathname.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>break
+<p>
+<x>\hrule</x>
+<descrip>
+<tag/<bf>Syntax:</bf>/ <tt>break</tt>
+<tag/<bf>Return Values:</bf>/ <descrip><tag/<tt>1</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>builtin
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>builtin</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ 	<p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>builtins
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>builtins</tt>
+<tag/<bf>Return Values:</bf>/ none  
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ List builtin functions.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>car
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>car object-reference</tt>
+<tag/<bf>Return Values:</bf>/ Pointer to copied lisp-object of 
+object-reference's <tt>car</tt> operation.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ This command is synonymous to the <tt>channel</tt> 
+and <tt>first</tt> commands.  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>cd
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>cd &lsqb;directory&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <tt>cd</tt> successful.
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>cdr
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>cdr object-reference</tt>
+<tag/<bf>Return Values:</bf>/ Pointer to copied lisp-object of 
+object-reference's <tt>cdr</tt> operation.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ This command is synonymous to the <tt>rest</tt>
+command.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>channel
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>channel object-reference</tt>
+<tag/<bf>Return Values:</bf>/ The channel (1st) component of an address
+quad.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ The <tt>car</tt> and <tt>first</tt> commands are 
+synonymous to this command. 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>continue
+<p>
+<x>\hrule</x>
+<descrip>
+<tag/<bf>Syntax:</bf>/ <tt>continue</tt>
+<tag/<bf>Return Values:</bf>/ <descrip><tag/<tt>1</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>daemon
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>daemon</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Starts the <em>router</em> running in daemon mode, 
+scanning the <tt>&dollar;POSTOFFICE/router/</tt> directory every few 
+seconds for message files to process. This function is invoked 
+automatically by other code in the <em>router</em> program and has no 
+other purpose.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>db
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>db &lcub; add|flush|owner|print|remove|toc &rcub; 
+&lsqb;database &lsqb;key &lsqb;value&rsqb;&rsqb;&rsqb;</tt>
+
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<descrip><tag/<tt>a&lsqb;dd&rsqb;</tt>/ Add a <tt>key,value</tt> 
+entry to the database, if possible.
+<tag/<tt>f&lsqb;lush&rsqb;</tt>/ Remove all entries from the database, 
+if possible.
+<tag/<tt>o&lsqb;wner&rsqb;</tt>/ Print the account name of the owner 
+of the database, if possible. This is usually determined by the 
+files associated with the database.
+<tag/<tt>p&lsqb;rint&rsqb;</tt>/ Print all entries of the database, 
+if possible. 
+<tag/<tt>r&lsqb;emove&rsqb;</tt>/ Remove a <tt>key</tt> entry 
+from the database, if possible.
+<tag/<tt>t&lsqb;oc&rsqb;</tt>/ Print a table of defined relations 
+and their associated information. This table has five columns, 
+in order: the name of the relation, its type and subtype, cache 
+entries and maximum size, flags, and associated files. See the 
+<tt>relation</tt> function for more information.
+</descrip>
+<tag/<bf>Notes:</bf>/  
+<tscreen><verb>
+	DBType        add    flush   owner   print   remove
+	------        -------------------------------------
+	incore        yes    yes     yes     yes     yes
+	header        yes    yes     yes     yes     yes
+	ordered       no     yes     yes     yes     no
+	unordered     yes    yes     yes     yes     yes
+	hostsfile     no     no      no      yes     no
+	bind          no     no      no      no      no
+	ndbm          yes    yes     yes     yes     yes
+	gdbm          yes    yes     yes     yes     yes
+	dbm           yes    yes     yes     yes     yes
+	yp            no     no      yes     yes     no
+	btree         yes    yes     yes     yes     yes
+</verb></tscreen>
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>dblookup
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>dblookup key</tt>
+<tag/<bf>Return Values:</bf>/
+<descrip>
+<tag/<tt>cell</tt>/ <p>
+<tag/<tt>NULL</tt>/ Error.	
+</descrip>
+<tag/<bf>Options:</bf>/ none
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>echo
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>echo &lsqb;string-expressions&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>	
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<descrip><tag/<tt>-n</tt>/ Don't print newline at end of string.
+</descrip>
+<tag/<bf>Notes:</bf>/ The access function to the database facilities in the 
+<em>router</em>.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>elements
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>elements lisp-object</tt>
+<tag/<bf>Return Values:</bf>/ <tt>lisp-object</tt>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>envars
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>envars</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Print internal variable tree.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>erraddron
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>erraddron &lsqb;file&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Specifies a filename to append all address 
+parsing error messages to. If there is no argument given, the 
+logging is stopped. This is primarily for curious postmasters 
+or other collectors of address trivia.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>eval
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>eval expression</tt>
+<tag/<bf>Return Values:</bf>/ status
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>exit
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>exit</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ 	<p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf> /	Exit from the shell with exit code.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>export
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>export &lsqb;variable-name ...&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Exports variable name(s). If no variables are given, 
+export prints a list of which variables have been exported.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>filepriv
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>filepriv file &lsqb;uid&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none
+<tag/<bf>Notes:</bf>/ Prints the numeric user id of the least 
+privileged account that can modify the specified file. This is 
+determined by an approximation that pessimistically assumes that 
+any file or directory writable by group or others is insecure, 
+and optimistically assumes that it is enough to check a file and 
+its parent directory instead of all the way to the filesystem root. 
+The reason for the latter is that if grandparent directories are 
+insecure, the system is likely to have just as bad potential 
+problems as can be created by using mail to run processes with
+forged powers (besides, doing the full check would be quite expensive).
+
+If a second argument is given, it is the numeric user id to assume 
+for the file. This means only the parent directory will be checked 
+for nonwritability and for having the same (or a 0) uid.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>first
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>first object-reference</tt>
+<tag/<bf>Return Values:</bf>/ Pointer to copied lisp-object of 
+object-reference's <tt>car</tt> operation.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ This command is synonymous to the <tt>car</tt> 
+and <tt>channel</tt> commands.  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>gensym
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>gensym</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Generates and prints a new symbol name in the 
+sequence <tt>g0</tt> to <tt>gN</tt> every time it is called. The 
+sequence is reset and any symbol values destroyed after the <em>router</em> 
+has processed a message. This function is used to generate new symbols, to 
+hold attached address property lists, during alias expansion.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>get
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>get property-list key</tt>
+<tag/<bf>Return Values:</bf>/ <tt>property-list</tt>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Returns a property list corresponding to key string.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>getopts
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>getopts optstring-name &lsqb;arguments 
+...&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>grind
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>grind lisp-object</tt>
+<tag/<bf>Return Values:</bf>/ Pointer to list of <tt>varcell</tt>.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>groupmembers
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>groupmembers groupname</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Prints the accounts that are listed as 
+members of a group in the system groups file, one per line.
+Note that accounts with the same login group id, but that are 
+not listed in the groups file, will not appear in this list.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>hash
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>hash &lsqb;-r&rsqb; &lsqb;command 
+names&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<descrip><tag/<tt>-r</tt>/ Path is flushed.
+</descrip>
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>homedirectory
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>homedirectory user</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Prints the home directory of the specified 
+user account.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>host
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>host object-reference</tt>
+<tag/<bf>Return Values:</bf>/ The host (2nd) component of an 
+address quad.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>hostname
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>hostname &lsqb;name&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ <p>
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Sets the <em>router</em>'s idea of the
+system hostname. Without an argument the name is retrieved from
+the system and printed. The <em>router</em> has no preconceived 
+notion of what the hostname is, so Message-Id and Received headers 
+will only be generated if a hostname has been set using this function.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>last
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>last lisp-object</tt>
+<tag/<bf>Return Values:</bf>/ Return a pointer to last cell of 
+<tt>varcell</tt>'s list.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>length
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>length lisp-object</tt>
+<tag/<bf>Return Values:</bf>/ String of length of <tt>varcell</tt>'s 
+parameter list.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>list
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>list lisp-object</tt>
+<tag/<bf>Return Values:</bf>/ <tt>lisp-object</tt>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>listaddresses
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>listaddresses &lsqb;-e error-address&rsqb; 
+&lsqb;-E errors-to-address&rsqb; &lsqb;-c comment&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<descrip><tag/<tt>-e</tt>/ Any syntax errors at list parsing will cause a 
+report to be mailed to the given address.
+<tag/<tt>-E</tt>/ If an error occurs while messages are being delivered, 
+the `errors-to-address' can be used to force error message destination 
+elsewhere than to the default `sender' of the message.
+<tag/<tt>-c</tt>/ A comment will be inserted in the error report.
+</descrip>
+<tag/<bf>Notes:</bf>/ Filters an RFC822 address list on standard input 
+to produce one normal form (no non-address tokens) address per line on 
+its output. This function can be used to parse the alias file or .forward 
+files or similar.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>listexpand
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>listexpand &lsqb;-c comment&rsqb; 
+&lsqb;-e error-address&rsqb; &lsqb;-E errors-to-address&rsqb; 
+&dollar;attribute &dollar;localpart &dollar;origaddr &lt; listfile</tt>
+<tag/<bf>Return Values:</bf>/ <tt>lisp-object</tt>
+<tag/<bf>Options:</bf>/ 
+<descrip><tag/<tt>-e error-address</tt>/ Any syntax errors at list 
+parsing will cause a report to be mailed to the given address.
+<tag/<tt>-E errors-to-address</tt>/ If an error occurs while messages 
+are being delivered, the `errors-to-address' can be used to force error 
+message destination elsewhere than to the default `sender' of the message.
+<tag/<tt>-c comment</tt>/ A comment will be inserted in the error report.
+</descrip>
+<tag/<bf>Notes:</bf>/ Implements the most common pipeline where 
+<tt>listaddresses</tt> was used with more efficient memory consumption 
+handling. (That is, without variable duplicating <tt>setf</tt>'s.)
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>login2uid
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>login2uid username</tt>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Notes:</bf>/ Prints the uid associated with the specified
+account name, if any. A side-effect is to add the GECOS name field of 
+the account to the <tt>fullname</tt> in-core database, to add the login 
+name to uid mapping to the <tt>pwnam</tt> in-core database, and to add 
+the uid to login name mapping to the <tt>pwuid</tt> in-core database.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>malcontents
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>malcontents</tt>
+<tag/<bf>Return Values:</bf>/ none  
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>printaliases
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>printaliases &lsqb;-v&rsqb; &lsqb;-o 
+indexoutputfile&rsqb; file</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<descrip><tag/<tt>-v</tt>/ Verbose.
+<tag/<tt>-o indexoutputfile</tt>/ Each header line will also generate 
+a <tt>header TAB byteoffset</tt> line in the indexfile.
+<tag/<bf>Notes:</bf>/ Reads RFC822 syntax header lines from the specified
+file, parses them assuming contents must be an address list, and sorts 
+and prints the header lines with all addresses in normal form. Comments 
+are allowed; they extend from the character `&num;' at the beginning of 
+a line, or after an address, to the end of line. This function is used 
+by the <em>newaliases(1)</em> program to generate the aliases database 
+from a source file.
+</descrip>
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>process
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>process messagefile</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ The protocol switch function. It is called by
+the <tt>daemon</tt> function to process a message found in the 
+<tt>&dollar;POSTOFFICE/router/</tt> directory. This function will 
+in turn call an internal protocol-specific function which knows the 
+syntax and semantics of the message file. The current version knows 
+about messages submitted using the <tt>MSG_RFC822</tt> parameter to 
+<tt>mail_open(3)</tt>. For that case, the protocol function is called 
+<tt>rfc822</tt>. <em>router</em> has a bit more complex directory 
+semantics, than is stated above. See <tt>zmailer(3)</tt> for details. 
+Although the <tt>process</tt> function is provided built in, it is 
+usually overridden by a defined function in the <em>router</em> 
+configuration file.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>read
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>read &lsqb;variable&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ Successful read.
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>recase
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>recase &lsqb;-u | -l | -p&rsqb; 
+string</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<descrip><tag/<tt>-u</tt>/ Convert into uppercase.
+<tag/<tt>-l</tt>/ Convert into lowercase.
+<tag/<tt>-p</tt>/ Prettify.
+</descrip>
+<tag/<bf>Notes:</bf>/ A case-mapping function that prints the parameter 
+string in either all-uppercase, all-lowercase, or capitalized (pretty).
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>recipient
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>recipient</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>1</tt>/ Is a recipient address.
+<tag/<tt>0</tt>/ Is not.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ A boolean function that returns the value of 
+the statement ``executing a header rewriting function and the address 
+is a recipient address in a message header''.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>relation
+<p>
+<x>\hrule</x>
+<descrip>
+<tag/<bf>Syntax:</bf>/ <tt>relation -t dbtype&lsqb;,subtype&rsqb; 
+&lsqb;-f file -e&num; -s&num; -bilmnu -d driver&rsqb; name</tt>
+
+Options are listed below. <tt>name</tt> is the name of the relation
+that is wanted to be created. Examples:
+<tscreen><verb>
+relation -t bind,mx mxhost
+relation -t ordered -f $MAILVAR/db/routes routes
+relation -t ordered -b -f /usr/lib/news/active.sorted newsgroups
+</verb></tscreen>
+
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1..7</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<descrip>
+<tag/<tt>-t dbtype&lsqb;,subtype&rsqb;</tt>/ One of the known types 
+of databases, currently: 
+<descrip>
+<tag/<tt>incore</tt>/ A database maintained in virtual memeory (using 
+splay trees). This type should not be used for any database that must 
+periodically be flushed, since all occupied memory can be freed.
+<tag/<tt>header</tt>/ A database type used to store RFC822 header 
+semantics information. It is unlikely to be used for anything else.
+<tag/<tt>ordered</tt>/ A file with key-value pairs on every line, 
+separated by whitespace, sorted by key. 
+<tag/<tt>unordered</tt>/ A file with key-value pairs on every line, 
+separated by whitespace. 
+<tag/<tt>hostsfile</tt>/ <em>hosts(5)</em> file.
+<tag/<tt>bind</tt>/ The BIND implementation of a Domain Name System 
+resolver. The subtype for this type is the name of a Resource Record 
+type in the <tt>IN</tt> class.
+<tag/<tt>ndbm</tt>/ The new DBM library. The BSD4.4 has a thing called 
+<tt>db</tt>, which is a different thing, but it can be used in place 
+of <tt>ndbm</tt> via its interface library. (The <tt>BSD4.4-db</tt> 
+does have only one database file, not two, like <tt>ndbm</tt> does.)
+<tag/<tt>gdbm</tt>/ The GNU implementation of the new DBM library. 
+<bf>Note:</bf> GDBM uses one file, which is named exactly as you 
+parametrize it. This is unlike NDBM, which appends .dir and .pag to 
+the supplied name!
+<tag/<tt>dbm </tt>/ The old DBM library. There can be only one DBM 
+open at the time, and this system keeps them all open all the time. 
+Avoid if you can.
+<tag/<tt>yp</tt>/ The Network Information Service from Sun Microsystems 
+Inc. (Later renamed to be NIS, the still newer NIS+ is not supported).
+<tag/<tt>btree</tt>/ <p>
+</descrip>
+<tag/<tt>-f file</tt>/ A file associated with the database, typically 
+the file containing the data, or the basename of DBM files or something 
+similarly relevant to the database access routine. 
+<tag/<tt>-e&num;</tt>/ The default time-to-live on cached information. 
+When the information has been in the cache for this many seconds, it 
+is discarded. The default is 0. 
+<tag/<tt>-s&num;</tt>/ Sets the cache size to the specified number. 
+The default is usually 10, depending on the database type. 
+<tag/<tt>-b</tt>/ If the key exists in the database, return the key 
+as the value. 
+<tag/<tt>-i</tt>/ If the key exists, its value is a byte offset into 
+a file named by the subtype for this database. The value then becomes 
+the concatenation of the data on the lines following that offset which 
+start with whitespace. This is used for the aliases file. 
+<tag/<tt>-l</tt>/ Map all keys to lowercase before searching.
+<tag/<tt>-m</tt>/ Check for file content modification before every 
+access. Reopen the file when a change is detected. This option is 
+used when the <em>router</em> should discover changes to a database
+underfoot so it need not be restarted to use new data. This is 
+recommended on relations which use unordered, or ordered datasets 
+(aliases, routes, ...), and especially if the system is configured 
+to use <tt>mmap(2)</tt> facility. Updating such databases should 
+preferably use <tt>mv</tt> command to move a new version of the 
+database in place of the old one. 
+<tag/<tt>-n</tt>/ If the key exists in the database and the value is 
+null or list, return the key as value. Otherwise return the value 
+retrieved, if any. 
+<tag/<tt>-u</tt>/ Map all keys to uppercase before searching. 
+<tag/<tt>-d driver</tt>/ Specifies a search driver that allows
+searching for structured keys using special knowledge. The 
+argument to this option must be a known driver. Currently the 
+only known driver is <tt>pathalias</tt> which will search a
+pathalias format database for an entry matching a domain name 
+using the pathalias rules.
+</descrip>
+<tag/<bf>Notes:</bf>/ On systems with <tt>USE_MMAP</tt> the ordered 
+and unordered databases are r/o mapped into memory, and for ordered 
+case, a special line-index is generated for speeding up the binary 
+search. (Makes less system calls that way.)
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>rest
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>rest object-reference</tt>
+<tag/<bf>Return Values:</bf>/ Pointer to copied lisp-object of 
+object-reference's <tt>cdr</tt> operation.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ This command is synonymous to the <tt>cdr</tt>
+command.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>return
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>return lisp-object</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip>
+<tag/<tt>lisp-object</tt>/ String contains a not ASCII digit character.	
+(Returns a pointer to <tt>varcell</tt>'s string.)
+<tag/<tt>statusp</tt>/ ASCII digit character. (Returns numeric value.)
+<tag/<tt>NULL</tt>/ Invalid lisp-object.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>returns
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>returns lisp-object</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip>
+<tag/<tt>string</tt>/ <p>
+<tag/<tt>lisp-object</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>rfc822
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>rfc822 messagefile</tt>
+<tag/<bf>Return Values:</bf>/ <tt>status</tt>
+<tag/<bf>Options:</bf>/ none
+<tag/<bf>Notes:</bf>/ This function controls the parsing and 
+processing of the message file in RFC822/976 format. It is 
+called by the <tt>process</tt> function. 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>rfc822date
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>rfc822date</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none
+<tag/<bf>Notes:</bf>/ Prints the current time in RFC822 format. 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>rfc822syntax
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>rfc822syntax address</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ This is a simple interface to the address 
+parser. If the command line argument is a syntactically valid 
+RFC822 address, this command is silent and returns 0 as exit 
+status. If there is a parse error, a verbose error message is 
+printed to <tt>stdout</tt> and the function returns a non-0 
+exit status. 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>runas
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>runas user function 
+&lsqb;arguments...&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Changes the current effective user id 
+of the <em>router</em> process to that given (which may be 
+numeric or an account name), then runs the specified function 
+with the specified arguments, then switches the effective 
+user id of the process back (to root). 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>sender
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>sender</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>1</tt>/ Is a sender address.
+<tag/<tt>0</tt>/ Is not.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ A boolean function that returns the value of 
+the statement ``executing a header rewriting function and the address 
+is a sender address in a message header''. 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>set
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>set &lsqb;-a -e -f -h -n -t -u -v -x 
+-L -C -P -S -k -&rsqb; variable</tt>
+
+Without parameters <tt>set</tt> prints variable values.
+
+<tag/<bf>Return Values:</bf>/ Pointer to copied structure of <tt>car</tt> 
+operation.
+<tag/<bf>Options:</bf>/ 
+<descrip>
+<tag/<tt>-a</tt>/ Automatically export changed variables.
+<tag/<tt>-e</tt>/ Exit on error exit status of any command.
+<tag/<tt>-f</tt>/ Disable filename generation (no globbing).
+<tag/<tt>-h</tt>/ Hash program locations.
+<tag/<tt>-n</tt>/ Read commands but do not execute them.
+<tag/<tt>-t</tt>/ Read and execute one command only.
+<tag/<tt>-u</tt>/ Unset variables are error on substitution.
+<tag/<tt>-v</tt>/ Print shell input lines as they are read.
+<tag/<tt>-x</tt>/ Print commands as they are executed.
+<tag/<tt>-L</tt>/ Trace LEXER processing (sslWalker).
+<tag/<tt>-C</tt>/ Print branch and emit inputs (sslWalker).
+<tag/<tt>-P</tt>/ Trace execution (sslWalker).
+<tag/<tt>-S</tt>/ Print input buffers when used (sslWalker). 
+<tag/<tt>-k</tt>/ Not supported option.
+<tag/<tt>-</tt>/ Do nothing.
+</descrip>
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>setf
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>setf variable-reference 
+&lsqb;new-value&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ Pointer to original variable reference.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Replaces variable reference within a <tt>varcell</tt>.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>shift
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>shift &lsqb;number&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Modifies caller's argument vector.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>sleep
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>sleep number</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/  none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>squirrel
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>squirrel &lsqb;-&rsqb;event</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<descrip>
+<tag/<tt>-</tt>/ Set flag value to 0.
+<tag/<tt>&lt;none></tt>/ Set flag value to 1. 
+
+The events are: 
+<itemize>
+<item><tt>breakin</tt>
+<item><tt>badheader</tt>
+<item><tt>illheader</tt>
+<item><tt>nochannel</tt>
+<item><tt>nosender</tt>
+</itemize>
+</descrip>
+<tag/<bf>Notes:</bf>/ Sets the kinds of events that cause a message 
+to be copied into the <tt>&dollar;POSTOFFICE/postman/</tt> directory. 
+Whether or not a `<tt>-</tt>' is necessary for an event depends on 
+the current state of the event's flag. The usage message will 
+indicate what to do to toggle the event flag. 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>stability
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>stability &lsqb;on | off&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Determines whether the <em>router</em> will 
+process incoming messages in arrival order (when on), or in random 
+order determined by position in the router directory. The <em>router</em> 
+will by default do the first queue scan in stable mode, and subsequent 
+scans in unstable mode. The name of this command is the name for a 
+similar characteristic of sorting algorithms. 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>test
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>test &lcub;many parameters&rcub; &lsqb; 
+&lcub;many parameters&rcub; &rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>1</tt>/ True.
+<tag/<tt>0</tt>/ False.
+<tag/<tt>-1</tt>/ Error.
+</descrip>
+<tag/<bf>Notes:</bf>/ This is basically the shell <tt>&lsqb;</tt> a.k.a. 
+<tt>test</tt> program. See ``test'' command for the options.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>times
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>times </tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>trace
+<p>
+<x>\hrule</x>
+<descrip>
+<tag/<bf>Syntax:</bf>/ <tt>trace key1 ... keyN</tt>
+
+Enables tracing of the specified items. The valid keywords 
+are listed in the options below. 
+<tag/<bf>Return Values:</bf>/ 
+<descrip>
+<tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ 
+<descrip>
+<tag/<tt>all</tt>/ Turns on all tracing options. You only 
+do this to test the I/O capabilities of your system. 
+<tag/<tt>assign</tt>/ Prints shell variable assignments. 
+<tag/<tt>bind</tt>/ Prints various information from the 
+code that calls the DNS resolver. 
+<tag/<tt>compare</tt>/ Prints <tt>sift</tt> statement 
+pattern-selector comparisons. 
+<tag/<tt>db</tt>/ Prints database lookups, including cache 
+search and update information. 
+<tag/<tt>final</tt>/ Prints the message envelope information 
+after processing each message. 
+<tag/<tt>functions</tt>/ Prints shell function calls and 
+return values, with nesting indicated by indentation. 
+<tag/<tt>matched</tt>/ Prints <tt>sift</tt> statement 
+pattern-selector matches. 
+<tag/<tt>on</tt>/ Same as <tt>functions</tt>. 
+<tag/<tt>regexp</tt>/ Prints regular expression matching execution. 
+<tag/<tt>resolv</tt>/ Turns on the <tt>RES_DEBUG</tt> flag in the 
+<tt>BIND</tt> resolver library, and prints various information 
+from the code that calls the DNS resolver. 
+<tag/<tt>rewrite</tt>/ Prints the tokenized addresses sent through 
+the message header address rewriting functions. 
+<tag/<tt>router</tt>/ Prints the tokenized addresses sent through 
+the <tt>router</tt> function. 
+<tag/<tt>sequencer</tt>/ Prints the procedural steps taken during 
+message processing. 
+<tag/<tt>memory</tt>/ Prints memory allocation information after 
+each message. 
+</descrip>
+<tag/<bf>Notes:</bf>/ <p> 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>trap
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>trap &lsqb;&lsqb;script trap_nro&rsqb; 
+...&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ If no parameters are given, <tt>trap</tt> prints all 
+known traps.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>type
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>type &lsqb;command ...&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>uid2login
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>uid2login uid</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Prints the first account name associated with 
+a specified user id, if any, or <tt>uid&num;uid</tt> if no account 
+exists with that user id. It has the same side-effects as the 
+<tt>login2uid</tt> function. 
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>umask
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>umask &lsqb;octal-number-mask&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ Pointer to copied structure of <tt>car</tt> 
+operation.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ Without parameters default mask is 077.
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>unset
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>unset &lsqb;variable ...&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ 
+<descrip><tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>untrace
+<p>
+<x>\hrule</x>
+<descrip>
+<tag/<bf>Syntax:</bf>/ <tt>untrace key1 ... keyN</tt>
+
+Disables tracing of the specified items. 
+<tag/<bf>Return Values:</bf>/ 
+<descrip>
+<tag/<tt>0</tt>/ <p>
+<tag/<tt>1</tt>/ Error.
+</descrip>
+<tag/<bf>Options:</bf>/ See the <tt>trace</tt> function for 
+valid keywords. 
+<tag/<bf>Notes:</bf>/ <p>  
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>user
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>user object-reference</tt>
+<tag/<bf>Return Values:</bf>/ The next-address (3rd) component of 
+and address quad.
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+
+<x>\vspace {2pt}</x>
+<sect3>wait
+<p>
+<x>\hrule</x>
+<descrip><tag/<bf>Syntax:</bf>/ <tt>wait &lsqb;pid&rsqb;</tt>
+<tag/<bf>Return Values:</bf>/ <tt>retcode</tt>
+<tag/<bf>Options:</bf>/ none  
+<tag/<bf>Notes:</bf>/ none
+</descrip>
+

@@ -1,0 +1,94 @@
+:nick.AWIBOK01 :net.EARN :netsoft.HASP :mailer. :alias.
+:nick.BARUCH :alias.BB003 :net.BITNET :netsoft.RSCS :mailer.MAILER
+:nick.BM002 :net.BITNET :netsoft.RSCS :mailer. :alias.
+:nick.BOBCAT :net.BITNET :netsoft.JNET :mailer.VM1MAIL@WSUVM1 :alias.
+:nick.BX001 :net.BITNET :netsoft.RSCS :mailer.MAILER :alias.
+:nick.CFA1 :net.BITNET :netsoft.JNET :mailer. :alias.
+:nick.CMR001 :net.NETNORTH :netsoft.HOMEBREW :mailer.MAILER@CMR001 BSMTP 3 :alias.
+:nick.CRUXNHD3 :net.EARN :netsoft.JNET 2.0 :mailer. :alias.
+:nick.DBNUZR1A :net.EARN :netsoft.RSCS V1.3 :mailer. :alias.
+:nick.DHHUNI4 :net.EARN :netsoft.JES2 :mailer. :alias.
+:nick.DOLUNI1 :net.EARN :netsoft.RSCS V2.2 :mailer.MAILER BSMTP 3 :alias.
+:nick.D00DEMO :net.EARN :netsoft.any :mailer. :alias.
+:nick.EMRCAN :net.NETNORTH :netsoft.JNET :mailer.?@EMRCAN DEFRT 1 TRUNCATE :alias.
+:nick.FNAL05 :net.BITNET :netsoft.JNET :mailer. :alias.
+:nick.FRILL :net.EARN :netsoft.JNET :mailer. :alias.
+:nick.FRILL51 :net.EARN :netsoft.JNET :mailer. :alias.
+:nick.FRILL52 :net.EARN :netsoft.JNET :mailer. :alias.
+:nick.FRIMFT11 :net.EARN :netsoft.RSCS :mailer.MAILER :alias.
+:nick.FRINA11 :net.EARN :netsoft.RSCS V2 :mailer. :alias.
+:nick.FRINED51 :net.EARN :netsoft.NJE :mailer. :alias.
+:nick.FRINRA11 :net.EARN :netsoft.RSCS V2 :mailer. :alias.
+:nick.FRINRA72 :net.EARN :netsoft.Multics :mailer. :alias.
+:nick.FRINT51 :net.EARN :netsoft.NJE :mailer. :alias.
+:nick.FRIPN51 :net.EARN :netsoft.NJE Argonne :mailer. :alias.
+:nick.GENESEO :net.BITNET :netsoft.jnet :mailer. :alias.
+:nick.HLERUL5X :net.EARN :netsoft.JNET :mailer.SMTPUSER BSMTP 3 :alias.
+:nick.ICECIRA :net.EARN :netsoft.NJEF :mailer.MAILER :alias.
+:nick.IPIINFN :net.EARN :netsoft.RSCS V1 R3 :mailer.MAILER :alias.
+:nick.IRMFAO00 :net.EARN :netsoft.JES2 1.3.5 :mailer. :alias.
+:nick.JILA :net.BITNET :netsoft.JNET :mailer. :alias.
+:nick.JPNRKY00 :net.BITNET :netsoft.NETDATA-K :mailer. :alias.
+:nick.JPNSUT00 :net.BITNET :netsoft.RSCS :mailer.MAILER :alias.
+:nick.JPNUNU00 :net.BITNET :netsoft.RSCS :mailer.MAILER :alias.
+:nick.JPNUTINS :net.BITNET :netsoft.NJE :mailer. :alias.
+:nick.JPNWAS00 :net.BITNET :netsoft.RSCS :mailer.MAILER BSMTP 3 :alias.
+:nick.KB001 :net.BITNET :netsoft.RSCS :mailer.MAILER :alias.
+:nick.KUIKSC00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.KUKISR00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.KUKUN00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.MCGILLC :net.NETNORTH :netsoft.RSCS :mailer.?@MCGILLC DEFRT 1 TRUNCATE :alias.
+:nick.MDTF00 :net.BITNET :netsoft.JNET :mailer.SYSTEM :alias.
+:nick.MVSNRC00 :net.NETNORTH :netsoft.JES2 :mailer.?@MVSNRC00 DEFRT 1 TRUNCATE :alias.
+:nick.NCSUCE :net.BITNET :netsoft.JNET :mailer. :alias.
+:nick.NRCHEM :net.NETNORTH :netsoft.RSCS :mailer.MAILER@NRCVM01 BSMTP 3 :alias.
+:nick.NY001 :net.BITNET :netsoft.RSCS :mailer.MAILER :alias.
+:nick.PCCCP6 :net.BITNET :netsoft.CP-6 E00 :mailer.MAILER@PCCCP6 BSMTP 3 :alias.
+:nick.POLYTEC1 :net.NETNORTH :netsoft.RSCS :mailer.?@POLYTEC1 DEFRT 1 TRUNCATE :alias.
+:nick.POLYTEC2 :net.NETNORTH :netsoft.RSCS :mailer.?@POLYTEC2 DEFRT 1 TRUNCATE :alias.
+:nick.POLYTEC3 :net.NETNORTH :netsoft.RSCS :mailer.?@POLYTEC3 DEFRT 1 TRUNCATE :alias.
+:nick.POLYVM :net.BITNET :netsoft.RSCS V2 :mailer.MAILER :alias.
+:nick.POMONA :net.BITNET :netsoft.JNET V3.4 :mailer.SMTPUSER :alias.
+:nick.PORTAL :net.BITNET :mailer. :netsoft. :alias.
+:nick.PORTLAND :net.BITNET :netsoft.RSCS :mailer.MAILER :alias.
+:nick.PPLCATS :net.BITNET :netsoft.RSCS :mailer.VMMAIL BSMTP 3 :alias.
+:nick.PRATT :net.BITNET :netsoft.RNET :mailer. :alias.
+:nick.PSC :net.BITNET :netsoft.JNET :mailer. :alias.
+:nick.PSUCP6 :net.BITNET :netsoft.CP-6 E00 :mailer.MAILER@PSULIAS BSMTP 3 :alias.
+:nick.PSULIAS :net.BITNET :netsoft.CP-6 E00 :mailer.MAILER@PSULIAS BSMTP 3 :alias.
+:nick.QB001 :net.BITNET :netsoft.RSCS :mailer.MAILER :alias.
+:nick.REED :net.BITNET :netsoft.UREP :mailer.MAILER BSMTP 3 :alias.
+:nick.SAIPA00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.SAIRTI00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.SAKACS00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.SAKFU00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.SAKSU00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.SAUPM00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.SAUQU00 :net.GULFNET :netsoft.RSCS :mailer. :alias.
+:nick.SEQZ21 :net.EARN :netsoft.JES2 :mailer. :alias.
+:nick.SER :net.BITNET :netsoft.NJE 1100 :mailer. :alias.
+:nick.SFAUSTIN :net.BITNET :netsoft.CP-6 D00/PSU LIAS :mailer.MAILER BSMTP 3 :alias.
+:nick.SI001 :net.BITNET :netsoft.RSCS :mailer. :alias.
+:nick.SPC11D :net.BITNET :netsoft.HOMEBREW :mailer.SMTPUSER@SPCVXB BSMTP 3 :alias.
+:nick.TRBILUN :net.EARN :netsoft.UREP :mailer. :alias.
+:nick.TULSA :net.BITNET :netsoft.CP-6 D00/PSU LIAS :mailer. :alias.
+:nick.UCBCSM :alias.UCBSRC :net.BITNET :netsoft.TCP/IP :mailer.
+:nick.UCSCF :net.BITNET :netsoft.BERK :mailer. :alias.
+:nick.UKMA :net.BITNET :netsoft.UREP :mailer.MAILER BSMTP 3 :alias.
+:nick.UMD2 :net.BITNET :netsoft.RTP/1100 :mailer.?@UMD2 DEFRT 1 TRUNCATE :alias.
+:nick.UNCCVM :net.BITNET :netsoft.RSCS :mailer.MAILER :alias.
+:nick.USMCP6 :net.BITNET :netsoft.CP-6 D00/PSU LIAS :mailer.MAILER@USMCP6 BSMTP 3 :alias.
+:nick.UTAHCCA :net.BITNET :netsoft.JNET :mailer.SMTPUSER BSMTP 3 :alias.
+:nick.UWAJANUS :net.BITNET :netsoft.JNET :mailer. :alias.
+:nick.UWALOCKE :net.BITNET :netsoft.JNET :alias.LOCKE :mailer.SMTPUSER BSMTP 3
+:nick.UWAMVS1 :net.BITNET :netsoft.JES2 :mailer.MAILER :alias.
+:nick.UWAPA2 :net.BITNET :netsoft.JNET :mailer. :alias.
+:nick.UWAPHAST :net.BITNET :netsoft.JNET :mailer.SMTPUSER :alias.
+:nick.UWASH :alias.CAC :net.BITNET :netsoft.RSCS :mailer.
+:nick.UWAVM :alias.OLY :net.BITNET :netsoft.RSCS :mailer.MAILER
+:nick.UWAVMXA :net.BITNET :netsoft.RSCS :mailer.MAILER :alias.
+:nick.UWAV1 :alias.TOBY :net.BITNET :netsoft.JNET :mailer.
+:nick.UWCHEME :net.BITNET :netsoft.HUJI-NJE (HUYNJE) :mailer. :alias.
+:nick.UWEC :net.BITNET :netsoft.CP-6 D00 :mailer. :alias.
+:nick.WCUVAX1 :net.BITNET :netsoft.JNET :mailer. :alias.
+:nick.YKTVMV :net.BITNET :netsoft.RSCS :mailer. :alias.

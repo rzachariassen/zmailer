@@ -1,0 +1,12 @@
+bin	/usr/new/mh6.5
+bboards	off
+etc	/usr/new/lib/mh6.5
+mail	/usr/spool/mail
+manuals	new
+mts	zmailer
+options	BSD42 TTYD OVERHEAD
+options	MHE RPATHS
+options	SBACKUP='"\\043"'
+pop	off
+ccoptions -O -mc68010
+ldoptions -n -O -mc68010 -I/usr.MC68010/include -L/pub.MC68010/lib -L/usr.MC68010/lib

@@ -1,0 +1,61 @@
+.TH MAILLOG 1
+.SH NAME
+maillog \- seach logs for mail to/from particular people.
+.SH SYNOPSIS
+.B maillog
+.I [-0-9 -s] person 
+
+.SH DESCRIPTION 
+.I maillog 
+searches the machines' current mail logs for mail to or from the user.
+It is used to see if one's mail was sent (actually ``was processed by
+the router or smtp programs''), and when.  
+.PP
+ The ``-0'' through ``-9'' options cause older copies of the logs to
+be searched.  
+.PP
+The ``-s'' option causes smtp logs to be searched.
+
+.SH EXAMPLE
+.PP 
+The log router entry for each message consists of the mailer's internal
+file number, the sender, the string ``=>'' and all recipients.  This
+is illustrated just below.
+.nf
+.nj
+
+%  maillog info@uunet.ca
+maillog: searching for mail to/from info@uunet.ca in router log.
+<91Oct8.132745edt.9237@nexus.yorku.ca>: file: 9237 David Collier-Brown 
+<davecb> => <davecb@nexus.yorku.ca>, <info@uunet.ca>
+
+.fi
+.ju
+.PP
+The smtp logs entries are different: they contain an internal
+file number, the string ``MAIL From:'' or ``RCPT To:'' and the
+person's name, thusly:
+.nf
+.ju
+
+% maillog -s davecb
+maillog: searching for mail to/from davecb in smtp log.
+858w    MAIL From:<davecb@nexus.yorku.ca>
+1971w   MAIL From:<@VM1.YorkU.CA:davecb@nexus.yorku.ca>
+4321w   RCPT To:<davecb@carr.yorku.ca>
+
+.fi
+.ju
+.SH SEE ALSO
+mailpath(1), mailq(1), zmailer(1).
+
+.SH AUTHORS
+Dave Collier-Brown (davecb@nexus.yorku.ca)
+
+.SH BUGS
+The current log may be for as little as one day or as long as
+several weeks, depending on your site's configuration. Most include
+only the current day's messages. The -0 through -9 options may
+give you older logs, depending on site policy.
+
+

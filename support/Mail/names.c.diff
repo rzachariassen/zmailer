@@ -1,0 +1,24 @@
+*** /tmp/,RCSt1017018	Thu Jan 28 12:58:58 1988
+--- /tmp/,RCSt2017018	Thu Jan 28 12:58:59 1988
+***************
+*** 107,113
+  	register struct name *p;
+  	register int comma;
+  
+! 	comma = ntype & GCOMMA;
+  	if (np == NIL)
+  		return(NOSTR);
+  	ntype &= ~GCOMMA;
+
+--- 107,113 -----
+  	register struct name *p;
+  	register int comma;
+  
+! 	comma = 1;
+  	if (np == NIL)
+  		return(NOSTR);
+  	ntype &= ~GCOMMA;
+RCS file: RCS/names.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -b -c -r1.1 -r1.2

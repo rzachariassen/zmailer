@@ -1,0 +1,344 @@
+#
+#  rrouter.cf -- most of the address routing processing is done here..
+#
+
+
+provide rrouter
+
+. fqdnalias.cf # Pick that set of tools into here!
+
+envelopeinfo=(message-id "<$USER.interactive@$hostname>" now 0)
+
+: ${UNRESOLVABLEACTION:='error unresolvable'}
+
+relation -bt selfmatch selfmatch
+
+rrouter (address, origaddr, A, plustail, domain) {
+	local tmp tee didhostexpand priv nattr a
+	# local seenuucp seenbitnet
+	# seenuucp=false
+	# seenbitnet=false
+	didhostexpand="";
+# echo "rrouter: address=$address, origaddr=$origaddr" >> /dev/tty
+
+	tmp=$(fqdn_neighbour "$origaddr" "$address" $A) &&
+		return $tmp
+
+	address="$(condquote "$address")"
+
+	#
+	# We have troublesome addresses coming here...
+	#	"|pipe-program"
+	#	"|quoted string"@domain
+	#	"foo > faa"@domain
+	#	"fii < fuu"@domain
+	#	"foo @ faa"@domain
+	#	"|foo @ faa"
+	# and we want to do correct focusing..
+	#
+
+	ssift "$address" in
+	# Now make canonical
+	'"'(.*)'"'<(.*)
+		address="\1\2"			# defocus
+		;;
+	'"'(.*)'"'>(.*)
+		address="\1\2"			# defocus
+		break ;;
+	([\'"'].*[\'"'])<(.*)
+		address="\1\2" ;;		# defocus
+	([\'"'].*[\'"'])>(.*)
+		address="\1\2" ;;		# defocus
+	# See that it does not start with a pipe ...
+#	\|.+	# Looks like a pipe... Don't mutilate it!
+#		break ;;
+#	'"'[|].+	# Quoted pipe ??   What the ... ??
+#		break ;;
+	tfiss
+
+	address=$(canonicalize "$address")
+
+	ssift "$address" in
+#	<in%>(.*)
+#		return (((error vms-in-pros "in%\1" $A))) ;;
+#	(.*)<@(.+)\.uucp>(.*)
+#		seenuucp=true
+#		address="\1$plustail<@\2>\3" ;;		# fix host.uucp!route
+#	(.*)<@(.+)\.(bitnet|earn|netnorth)>(.*)
+#		seenbitnet=true		# Strip off the (bitnet|netnorth|earn)
+#		address="\1<@\2>\4" ;;		# fix host.bitnet!route
+#	 handle special cases.....
+#	\\(.+)	return (((local - "$address" $A))) ;;
+	@	# handle <> form ???
+		tmp=(local user postmaster $A)
+		return $(routeuser $tmp "")
+		;;
+
+## -----------------------------------------------------------------
+## Following two are two approaces to the same problem, generally
+## speaking we should use the SECOND one, but your mileage may vary..
+## (Problems exist when WE are the target, and also a part of some
+##  high reliability set of hosts, any of which can take the roles
+##  of any other host -- all fine if also local email processing is
+##  symmetric, else catching peer's IP address may accept email that
+##  is not really destined to ourself..)
+#
+#	(.*)<@\[(.+)\]>(.*)
+#		address="\1$plustail<@$(gethostbyaddr \2)>\3"
+#		;;
+	(.*)<@\[(.+)\]>(.*)
+		# numeric internet spec
+		if [ $(selfmatch "\2") ]; then
+			address="\1$plustail<@>\3"
+			domain="@[\2]"
+			plustail=""
+		else
+			return (((smtp "[\2]" "\1$plustail@$(gethostbyaddr \2)\3" $A)))
+		fi
+		;;
+## end of [1.2.3.4] address case..
+## -----------------------------------------------------------------
+
+	(.*)<@(.*)\.>(.*)
+		address="\1$plustail<@\2>\3"
+		plustail=""
+		;;
+
+	# now massage the local info
+	(.*)<@(.*)($orgdomains)>(.*)
+		address="\1$plustail<@\2$orgdomain>\4"
+		domain="@\2$orgdomain"
+		plustail=""
+		;;
+	<@(.*)>[:,](.+)@(.+)
+		if [ $(deliver "\1") ]; then # Source routed to our name ?
+			return $(rrouter "\2$plustail@\3" "$origaddr" $A "" "")
+		fi
+		;;
+	<@($orgdomains)>[:,](.+)@(.+)
+		return $(rrouter "\2$plustail@\3" "$origaddr" $A "" "")
+		;;	# strip organization
+	(.+)<@(.+)>(.*)
+		if [ $(deliver "\2") ]; then	# Do we handle this ?
+			address="\1$plustail<@>\3"
+			domain="@\2"
+			plustail=""
+		elif [ "\2" = "$hostname" ]; then # Is it at local host ?
+			address="\1$plustail<@>\3" # (this is a backup test)
+			domain="@\2"
+			plustail=""
+		fi ;;
+	<@>.(.+)	# This plustail is propably wrong...
+		return $(rrouter "\1$plustail" "$origaddr" $A "" "$domain") ;;	# try after route strip
+	(.+)<@>	
+		if [ -z "$domain" ]; then
+			domain="$mydomain"
+		fi
+		return $(rrouter "\1$plustail" "$origaddr" $A "" "$domain") ;;	# strip trash & retry
+	tfiss
+
+#log "BITNET name=$bitnetname, address=$address"
+	case $bitnetname in
+	?*)	tsift "$address" in
+		(.*)<@(.*)\.(bitnet|netnorth|earn)>(.*)
+			address="\1<@\2>\4" ;;
+			# Strip off the (bitnet|netnorth|earn)
+		tfist
+		;;
+	esac
+#log "BITNET name=$bitnetname, address=$address"
+
+	# resolve names to routes, get actual channel
+	# name mostly from external database
+
+	ssift "$address" in
+	(.*)<@(.+)>(.*)	
+#log "neighbourg test: domain: \2, addr: $address"
+		address="\1$plustail@\2\3"
+		plustail=""
+
+		#
+		#  If you want to have the SMARTHOST to pick the routing
+		#  for all non-local stuff, enable following test case..
+		#
+
+		# if [ "$SMARTHOST" ]; then
+		#	return $(rrouter "$SMARTHOST!$(uucproute "$address")$plustail" "$origaddr" $A "" "$domain")
+		# else
+		#	return ((($UNRESOLVABLEACTION "$address" $A)))
+		# fi
+
+
+		#if [ x$seenbitnet = xtrue ]; then
+		#	address="\1@\2.bitnet"
+		#fi
+
+		didhostexpand=$(hostexpansions "\2")
+
+		for method in $protocols
+		do
+		   	tmp=$(${method}_neighbour "\2" "$address" $A) &&
+				return $tmp
+		done
+
+		#if [ x$seenuucp = xtrue ]; then
+		#	if [ "$UUCPACTION" != "" ]; then
+		#		return ((($UUCPACTION "\1@\2.uucp" $A)))
+		#	fi
+		#	tmp=$(routes_neighbour "\2.uucp" "$address" $A) &&
+		#		return $tmp
+		#fi
+
+		#if [ x$seenbitnet = xtrue ]; then
+		#	if [ "$BITNETACTION" != "" ]; then
+		#		return ((($BITNETACTION "\1@\2.BITNET" $A)))
+		#	fi
+		#fi
+
+
+		if [ "$SMARTHOST" ]; then
+			return $(rrouter "$SMARTHOST!$(uucproute "$address")" "$origaddr" $A "" "$domain")
+		else
+			return ((($UNRESOLVABLEACTION "$address" $A)))
+		fi
+		;;
+
+	\\(.+)	# A back-quote prefixed userid (most likely)
+		return $(rrouter "\1" "$origaddr" $A "$plustail" "")
+		;;
+
+	/.+	# file
+		# -- well, it could be a slash-notated X.400 address too..
+		return (((local "file.$origaddr" "$address" $A)))
+		;;
+	\|.+	# pipe
+		return (((local "pipe.$origaddr" "$address" $A)))
+		;;
+	:include:.+ # ":include:" -alias
+		# We must test this here, because the file-path after
+		# this prefix may have a dot!
+		tmp=(local "$origaddr" "$address" $A)
+		return $(routeuser $tmp "")
+		;;
+	# Ok, from now on if we don't have a domain set, we use $mydomain
+	.*	if [ -z "$domain" ] ; then
+			domain="@$mydomain"
+		fi
+		;;
+	(.+\.[^+]+)(\+.+)  # Dotfull name with a plus!
+		plustail="\2"
+		address="\1"
+		# Fall forward for the dotfull processing
+		;;
+	.+\..+	# A dotfull name
+		tmp="$(fullnamemap "$address")" && \
+			return $(rrouter "$tmp" "$origaddr" $A "$plustail" "$domain")
+		if [ $(newsgroup "$address") ]; then
+			return (((usenet - "$address" $A)))
+		fi
+		# Okay... Not in our special fullname/newsgroup-files,
+		#         lets see if it is in the traditional one ?
+		if [ $(aliases "$address") ]; then
+			# It can be found from the normal aliases,
+			# run the alias processing!
+			tmp=(local "$origaddr" "$address" $A)
+			return $(routeuser $tmp "$domain")
+		fi
+		return (((error norealname "$address" $A)))
+		return (((error nonewsgroup "$address" $A)))
+		;;
+
+	.*	# Now all the rest of the cases..
+		tmp=(local "$origaddr" "$address$plustail" $A)
+		return $(routeuser $tmp "$domain")
+		;;
+	tfiss
+}	# end of rrouter
+
+routes_spec (domain, address, A) {
+	local tmp channel rscshost
+
+	tsift "$domain" in
+#	(bsmtp3nd|bsmtp3|bitnet2|bitnet2deliver2)!(.)!(.)
+	(bsmtp3nd|bsmtp3|bsmtp3nd|bsmtp3rfc|bsmtp3ndrfc)!(.)!(.)
+		return (((\1 "\2@\3" "$address" $A))) ;;
+	(defrt1)!(.)
+		channel=\1
+		rscshost=\2
+
+		tmp="$(uucproute "$address")"
+		tsift "$tmp" in
+		.+!([^!]+)!([^!]+)
+			# we are trying to gateway through a DEFRT1 domain(!)
+			#return (((error bitnetgw "$address" $A))) ;;
+			# usually this will work anyway, sigh...
+			return (((bsmtp3 "mailer@$rscshost" "\2@\1" $A))) ;;
+		([^!]+)!([^!]+)
+			# destination domain is next hop, so we're all happy
+			return ((($channel "\2@$rscshost" "\2@\1" $A))) ;;
+		tfist
+		;;
+	ignore!.*
+		break
+		;;
+	smtp!
+		ssift "$address" in
+		(.*)@(.+)
+			return (((smtp "\2" "$address" $A)))
+			;;
+		tfiss
+		;;
+	dns!
+		ssift "$address" in
+		(.*)@(.+)
+			return (((smtp "\2" "$address" $A)))
+			;;
+		tfiss
+		;;
+	(.?)!
+		return ((("\1" - "$address" $A)))
+		;;
+	delay!(.)
+		# NB! envelopeinfo *must* also be defined in interactive mode
+		tmp="$(/bin/expr $(get envelopeinfo now) + "\1")"
+		return (((hold "$tmp" "$address" $A))) ;;
+	(.?)!([^!]+)
+		return ((("\1" "\2" "$address" $A))) ;;
+	(.?)!(.+)
+		# BEWARE LOOPS
+		return $(rrouter "\2!$(uucproute "$address")" "$address" $A "" "$domain")
+		;;
+	tfist
+	return 1
+}
+
+uucproute (address) {
+
+#| This function turns any address into a pure-! form.  It should not
+#| call any other functions, since random other functions call it.
+#| In particular it should not use rfc822route which itself uses
+#| uucproute.
+
+	tsift "$address" in
+	(.*)<(.*)>(.*)		address=\1\2\3 ;;		# defocus
+	(.+!)@(.+)		address=\1$(uucproute "@\2") ;;
+	(.+)([,:]@)(.+)		address=\1!\3 ; continue ;;
+	:include:[^!]+		return $address ;;
+	@(.+:)([^:]+)		address=\1$(uucproute "\2") ;;
+	(.+):(.+)		address=\1!\2 ; continue ;;
+	# This won't work properly for e.g. utzoo!bar@gpu.utcs.toronto.edu
+	# because gpu.utcs also has an active uucp connection with utzoo. Argh.
+	# It will work properly in other cases though, so if we have to guess...
+	#([^!])!(.+)@(.+)	if [ $(ldotsys \1) ]; then
+	#				address=\1!\3!\2
+	#			else
+	#				address=\3!\1!\2
+	#			fi ;;
+	(.+)!([^!]+)%([^!%]+)@(.+)	# route!a%b@c -> route!c!a@b
+				address=\1!\4!\2@\3 ; continue ;;
+	([^@]+)@(.+)		address=\2!\1 ;;
+	@(.+)			address=\1 ;;
+	(.+)!([^!]+)[%@](.+)	address=\1!\3!\2 ;;
+	tfist
+	return "$address"
+}	# end of uucproute

@@ -1,0 +1,329 @@
+From zmailer-owner@nic.funet.fi Mon Dec 15 23:42:56 1997
+Received: from fwns1d.raleigh.ibm.com ([204.146.167.235]:7433 "EHLO fwns1.raleigh.ibm.com" ident: "NO-IDENT-SERVICE") by nic.funet.fi with ESMTP id <14237-6240>; Mon, 15 Dec 1997 23:35:02 +0200
+Received: from rtpmail03.raleigh.ibm.com (rtpmail03.raleigh.ibm.com [9.37.172.47]) by fwns1.raleigh.ibm.com (AIX4.2/UCB 8.7/8.7RTP-FW1.1) with ESMTP id QAA04806 for <zmailer@nic.funet.fi>; Mon, 15 Dec 1997 16:34:51 -0500 (EST)
+From:	pakrat@raleigh.ibm.com
+Received: from pakrat.raleigh.ibm.com (pakrat.raleigh.ibm.com [9.67.161.212])
+	by rtpmail03.raleigh.ibm.com (8.8.5/8.8.5/RTP-ral-1.1) with ESMTP id QAA27272
+	for <zmailer@nic.funet.fi>; Mon, 15 Dec 1997 16:34:54 -0500
+Received: from pakrat@localhost by pakrat.pakrat.raleigh.ibm.com id <1098-33974>; Mon, 15 Dec 1997 16:04:31 -0500
+Subject: Oddball routing begats longestname and iproutes.  Here are the patches
+To:	zmailer@nic.funet.fi
+Date:	Mon, 15 Dec 1997 16:04:31 -0500 (EST)
+X-Mailer: ELM [version 2.4 PL20]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Message-Id: <19971215213440Z1098-33974+1@pakrat.pakrat.raleigh.ibm.com>
+Return-Path: <zmailer-owner@nic.funet.fi>
+X-Orcpt: rfc822;mea
+Status: RO
+
+Here are my patches to 
+    * get the longestname driver into the router/db.c subsystem
+    * fix newaliases and newdb to support bhash
+    * through the longestname driver, support routing based on IP.
+
+I will graciously accept tips on cleaning up the code and getting
+a little more speed out of it.
+
+One note, since I created the patch I felt that the following replacement
+p-iproutes.cf was needed for reasons of SPEED.
+
+#        a=$(lookup_list mx_records $domain);
+#        a=$(lookup_list cname_records $a);
+#        a=$(lookup_list a_records $a);
+	a=$(first $(mx_records $domain || echo $domain))
+	a=$(first $(cname_records $a || echo $a))
+	a=$(first $(a_records $a || echo $a))
+
+Enjoy
+
+Chris Dukes
+
+Only in zmailer-2.99.49p9/doc/guides: smtp-policy~
+diff -ur zmailer-2.99.49p9/proto/cf/i-iproutes.cf zmailer-2.99.49p9-b2/proto/cf/i-iproutes.cf
+--- zmailer-2.99.49p9/proto/cf/i-iproutes.cf	Mon Dec 15 11:06:08 1997
++++ zmailer-2.99.49p9-b2/proto/cf/i-iproutes.cf	Mon Dec 15 11:05:34 1997
+@@ -0,0 +1,56 @@
++# Routes override initializations
++#
++# Relations: iproutesdb
++
++provide iproutesdb
++
++if [ -f $MAILVAR/db/iproutes ]; then
++    if [ -f $MAILVAR/db/iproutes.zmsh ]; then
++        # With zmailer utility:  make-incore.sh
++        # you can create a static routing database (of reasonable size!)
++        # which is loaded incore of the routing processes.
++	if [ $MAILVAR/db/iproutes -nt $MAILVAR/db/iproutes.zmsh ]; then
++	    local cmd
++	    cmd="$MAILBIN/make-incore.sh"
++	    "$cmd" iproutesdb "$MAILVAR/db/iproutes" "$MAILVAR/db/iproutes.zmsh"
++	fi
++        . $MAILVAR/db/iproutes.zmsh
++    elif [ -f $MAILVAR/db/iproutes$DBEXTtest ]; then
++        if [ $MAILVAR/db/iproutes -nt $MAILVAR/db/iproutes$DBEXTtest ]; then
++	    $MAILBIN/newdb $MAILVAR/db/iproutes
++	fi
++        relation -lmt $DBTYPE -f $MAILVAR/db/iproutes$DBEXT -d longestmatch iproutesdb
++    else
++        relation -lmt unordered -f $MAILVAR/db/iproutes -d longestmatch iproutesdb
++    fi
++else
++    iproutesdb () { return 1 }
++fi
++
++#| The "iproutes" database is the file $MAILVAR/db/iproutes.
++#| It contains routing exceptions for hosts or domains that would
++#| otherwise be routed by the normal database lookups for a particular
++#| network or protocol.  The value is expected to be in the following
++#| form:
++
++#|      channel "!" host [ { "!" host } ]
++
++#| The channel is a well-known channel from the set: local, error, ignore,
++#| smtp, uucp, ean, usenet, bsmtp3, bitnet2, bitnet2truncate, defrt1, and
++#| defrt1truncate.  The exact set depends on which protocols are
++#| supported by the loaded configuration.
++
++#| For example, the line:
++
++#|      .domain         uucp!host1!host2
++
++#| would send all mail for domain or its subdomains to host1 via UUCP,
++#| with a request to remail to host2!address.  This is pathalias output
++#| semantics.
++
++#| The line
++
++#|      host            smtp![192.12.180.4]
++
++#| would send all mail for host to the SMTP server on the host at IP
++#| address 192.12.180.4.
+diff -ur zmailer-2.99.49p9/proto/cf/p-iproutes.cf zmailer-2.99.49p9-b2/proto/cf/p-iproutes.cf
+--- zmailer-2.99.49p9/proto/cf/p-iproutes.cf	Mon Dec 15 11:06:12 1997
++++ zmailer-2.99.49p9-b2/proto/cf/p-iproutes.cf	Mon Dec 15 12:26:45 1997
+@@ -0,0 +1,51 @@
++# Routes override
++#
++# This is the simple interface to the db/iproutes file.  The function that
++# interprets the value returned is routes_spec, provided there because it
++# is of general use.
++
++require iproutesdb crossbar
++provide iproutes
++
++relation -t bind,mx mx_records
++relation -t bind,cname cname_records
++relation -t bind,a a_records
++
++
++lookup_list (lu_type, list) {
++    local tmp res scr
++    res=""
++    for tmp in $(elements $list); do
++        for scr in $(elements $($lu_type $tmp ||$(list $tmp))); do
++            res="$res $scr"
++        done
++    done
++    return $(list $res)
++}
++
++
++iproutes_neighbour (domain, address, A) {
++	local tmp a b
++
++        a=$(lookup_list mx_records $domain);
++        a=$(lookup_list cname_records $a);
++        a=$(lookup_list a_records $a);
++        
++        for b in $(elements $a); do
++# We look for the deprecated channel! route.  If we find it, toss it through.
++# elsewise take the last one we found.
++            tmp=$(iproutesdb "$b") &&
++                sift "$tmp" in
++		.*!		tmp=$(routes_spec "$tmp" "$address" $A) &&
++				    return $tmp ;;
++                tfis
++        done
++	tmp=$(routes_spec "$tmp" "$address" $A) &&
++	    return $tmp
++
++#| The routes_spec function interprets the return value from the
++#| iproutesdb lookup.
++
++	return 1
++}
++
+diff -ur zmailer-2.99.49p9/proto/newaliases.in zmailer-2.99.49p9-b2/proto/newaliases.in
+--- zmailer-2.99.49p9/proto/newaliases.in	Thu Oct 16 09:21:19 1997
++++ zmailer-2.99.49p9-b2/proto/newaliases.in	Mon Dec 15 11:02:51 1997
+@@ -56,6 +56,9 @@
+ # Now install the files
+ 
+ case "$DBTYPE" in
++bhash)
++	mv $ALIASFILE.$$ $ALIASFILE.dbh
++	;;
+ btree)
+ 	mv $ALIASFILE.$$.db $ALIASFILE.db
+ 	;;
+Only in zmailer-2.99.49p9-b2/proto: newaliases.in.orig
+diff -ur zmailer-2.99.49p9/proto/newdb.in zmailer-2.99.49p9-b2/proto/newdb.in
+--- zmailer-2.99.49p9/proto/newdb.in	Thu Oct 16 09:21:28 1997
++++ zmailer-2.99.49p9-b2/proto/newdb.in	Mon Dec 15 11:01:49 1997
+@@ -34,6 +34,9 @@
+ # Now install the files
+ 
+ case "$DBTYPE" in
++bhash)
++	mv $BASENAME.$$ $BASENAME.dbh
++	;;
+ btree)
+ 	mv $BASENAME.$$.db $BASENAME.db
+ 	;;
+Only in zmailer-2.99.49p9-b2/proto: newdb.in.orig
+diff -ur zmailer-2.99.49p9/router/db.c zmailer-2.99.49p9-b2/router/db.c
+--- zmailer-2.99.49p9/router/db.c	Fri Oct 24 19:26:17 1997
++++ zmailer-2.99.49p9-b2/router/db.c	Mon Dec 15 11:04:28 1997
+@@ -1,6 +1,8 @@
+ /*
+  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
+  *	This will be free software, but only when it is finished.
++ *
++ *	'longestmatch' driver kissg@sztaki.hu 970209
+  */
+ 
+ /*
+@@ -150,6 +152,7 @@
+ /* drivers */
+ static conscell	*find_domain       __((conscell *DBFUNC(lookupfn), search_info *sip));
+ static conscell	*find_nodot_domain __((conscell *DBFUNC(lookupfn), search_info *sip));
++static conscell *find_longest_match __((conscell *DBFUNC(lookupfn), search_info *sip));
+ /* others.. */
+ static void      cacheflush __((struct db_info *dbip));
+ extern conscell	*readchunk  __((const char *file, long offset));
+@@ -194,6 +197,8 @@
+ 				proto_config.driver = find_nodot_domain;
+ 			else if (strcmp(optarg, "pathalias") == 0)
+ 				proto_config.driver = find_domain;
++			else if (strcmp(optarg, "longestmatch") == 0)
++				proto_config.driver = find_longest_match;
+ 			else
+ 				++errflg;
+ 			break;
+@@ -952,6 +957,86 @@
+ 		if (dbkp->config.lookup == dbip->lookup)
+ 			return dbkp->name;
+ 	}
++	return NULL;
++}
++
++/*
++ * Searching the longest match.
++ *
++ * The lookup sequence for foo.bar.edu is:
++ *
++ *	foo.bar.edu
++ *	.bar.edu
++ *	.edu
++ *	.
++ *
++ * The lookup sequence for 1.2.3.13 is:
++ *
++ *	1.2.3.13/32
++ *	1.2.3.12/31
++ *	1.2.3.12/30
++ *	1.2.3.8/29
++ *	1.2.3.0/28
++ *      ...
++ *	1.0.0.0/8
++ *	...
++ *	0.0.0.0/1
++ *	0.0.0.0/0
++ */
++
++static conscell *
++find_longest_match(lookupfn, sip)
++	conscell *DBFUNC(lookupfn);
++	search_info *sip;
++{
++	register char *cp;
++	conscell *l;
++	char buf[BUFSIZ]; 
++	char *realkey;
++	unsigned int oct1,oct2,oct3,oct4;
++
++	if (sscanf((char*)(sip->key[0]=='[' ? sip->key+1 : sip->key),
++	    "%3u.%3u.%3u.%3u",
++	    &oct1,&oct2,&oct3,&oct4) == 4) { /* IP address with optional [] */
++		unsigned int h_addr,h_mask;
++		int prefix;
++		h_addr=(((oct1&255)<<8|oct2&255)<<8|oct3&255)<<8|oct4&255;
++		sip->key=buf;
++		for (prefix=32, h_mask=0xffffffffL;
++		    prefix>=0;  --prefix, h_mask<<=1) {
++			sprintf((char*)buf,"%u.%u.%u.%u/%d",
++			    (h_addr&h_mask) >> 24 & 255,
++			    (h_addr&h_mask) >> 16 & 255,
++			    (h_addr&h_mask) >>  8 & 255,
++			    (h_addr&h_mask)       & 255,
++			    prefix);
++			if ((l = (*lookupfn)(sip)) != NULL)
++				return l;
++		}
++	}
++	else {	/* domain name */
++		/* check the key as given */
++		if ((l = (*lookupfn)(sip)) != NULL)
++			return l;
++		realkey = (char *) sip->key;
++		/* iterate over the superdomains of the key */
++		for (cp = realkey; *cp;) {
++			while (*cp && *cp != '.')
++				++cp;
++			while (*cp == '.')
++				++cp;
++			if (*(cp-1) == '.') {
++				sip->key = cp-1;
++				if ((l = (*lookupfn)(sip)) != NULL)
++					return l;
++			}
++		}
++		/* Still failed ?  Try to look for "." */
++		sip->key = ".";
++		if ((l = (*lookupfn)(sip)) != NULL)
++			return l;
++	}
++	
+ 	return NULL;
+ }
+ 
+Only in zmailer-2.99.49p9-b2/router: db.c.orig
+diff -ur zmailer-2.99.49p9/utils/socks4conf_2_iproutes.pl zmailer-2.99.49p9-b2/utils/socks4conf_2_iproutes.pl
+--- zmailer-2.99.49p9/utils/socks4conf_2_iproutes.pl	Mon Dec 15 13:01:00 1997
++++ zmailer-2.99.49p9-b2/utils/socks4conf_2_iproutes.pl	Mon Dec 15 13:03:01 1997
+@@ -0,0 +1,22 @@
++#!/usr/bin/perl -awnl
++BEGIN {
++    my($i,$j,$num,@octets);
++    for($i=32,$j=0;$i>=0;$i--,$j++) {
++	$num=((-1)<<$j);
++	@octets=unpack("C4",pack("L",$num));
++	$convert{join(".",@octets)}=$i;
++    }
++}
++/^direct/ && do {$offset=0;};
++/^sockd/ && do {$offset=1;};
++(/^direct/ || /^sockd/) && do {
++    $a=pack("C4",split(/\./,$F[$offset+1]));
++    $al=unpack("L",$a);
++    $b=pack("C4",split(/\./,$F[$offset+2]));
++    $bl=unpack("L",$b);
++#    print("$al $bl");
++    $c=join(".",unpack("C4",pack("L",$al&$bl)));
++    $d=$convert{$F[$offset+2]};
++    print("$c/$d	smtp!");
++}
++

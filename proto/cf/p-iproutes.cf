@@ -1,0 +1,50 @@
+# Routes override
+#
+# This is the simple interface to the db/iproutes file.  The function that
+# interprets the value returned is routes_spec, provided there because it
+# is of general use.
+
+require iproutesdb crossbar
+provide iproutes
+
+relation -t bind,mx mx_records
+relation -t bind,cname cname_records
+relation -t bind,a a_records
+
+
+lookup_list (lu_type, list) {
+    local tmp res scr
+    res=""
+    for tmp in $(elements $list); do
+        for scr in $(elements $($lu_type $tmp ||$(list $tmp))); do
+            res="$res $scr"
+        done
+    done
+    return $(list $res)
+}
+
+
+iproutes_neighbour (domain, address, A) {
+	local tmp a b
+
+        a=$(lookup_list mx_records $domain);
+        a=$(lookup_list cname_records $a);
+        a=$(lookup_list a_records $a);
+        
+        for b in $(elements $a); do
+# We look for the deprecated channel! route.  If we find it, toss it through.
+# elsewise take the last one we found.
+            tmp=$(iproutesdb "$b") &&
+                sift "$tmp" in
+		.*!		tmp=$(routes_spec "$tmp" "$address" $A) &&
+				    return $tmp ;;
+                tfis
+        done
+	tmp=$(routes_spec "$tmp" "$address" $A) &&
+	    return $tmp
+
+#| The routes_spec function interprets the return value from the
+#| iproutesdb lookup.
+
+	return 1
+}

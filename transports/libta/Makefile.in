@@ -1,0 +1,61 @@
+LIBNAME=	libta
+#
+# ZMailer routines destined for the system C library
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		../..
+DEFS=		@DEFS@
+RANLIB=		@RANLIB@
+#
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) @INCLRESOLV@
+CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+#
+OBJS=	markoff.o warning.o lockaddr.o myuucpname.o wantout.o \
+	stringlib.o diagnostic.o emptyline.o \
+	ctlopen.o routermxes.o writeheaders.o mimeheaders.o \
+	buildbndry.o dnsgetrr.o mime2headers.o nonblocking.o \
+	tasyslog.o tatimestr.o
+SOURCE=	markoff.c warning.c lockaddr.c myuucpname.c wantout.c \
+	stringlib.c diagnostic.c emptyline.c \
+	ctlopen.c routermxes.c writeheaders.c mimeheaders.c \
+	buildbndry.c dnsgetrr.c mime2headers.c nonblocking.c \
+	tasyslog.c tatimestr.c
+
+$(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a
+
+.PRECIOUS: $(TOPDIR)/libs/$(LIBNAME).a
+
+$(TOPDIR)/libs/$(LIBNAME).a:  $(OBJS)
+	ar rv $@ *.o
+	$(RANLIB) $@
+
+#$(OBJS): $(SOURCE)
+
+lintlib:	llib-l$(LIBNAME).ln
+
+llib-l$(LIBNAME).ln:	$(SOURCE)
+	lint -o $(LIBNAME) $(INCL) *.c
+
+lint:
+	lint -u $(DEFS) $(INCL) $(SOURCE)
+
+clean:
+	-rm -f $(LIBNAME).a make.log
+	-rm -f *.o *.out *.ln *~
+distclean: clean
+	-rm -f Makefile
+
+depend:
+	$(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

@@ -1,0 +1,52 @@
+#!/bin/sh
+section=$1
+file=`basename $2`
+echo '.de He
+.ev 1
+.sp .5i
+.ft 3
+.tl %'"$section"'%%'"$file"'%
+.ps 10
+.sp .5i
+.ev
+.ns
+..
+.de Fo
+.ev 1
+.bp
+.ev
+..
+.wh 0 He
+.wh -1i Fo
+.sp 4
+.ft 3
+\s+6'"$file"'\s-6
+.sp 3
+.nf
+.ft 2
+.ta 4n,12n,20n,28n,36n,44n,52n,60n,68n,76n'
+
+awk '
+BEGIN	{	flag=0		}
+/^#\|/	{	if (flag == 0) {
+			flag=1
+			print ".fi"
+			print ".ft 1"
+		}
+		print substr($0, 4)
+		next
+	}
+	{
+		if (flag == 1) {
+			flag=0
+			print ".nf"
+			print ".ft 2"
+		}
+		printf "\t%s\n", $0
+		next
+	}
+END	{
+		print ".fi"
+		print ".ft 1"
+		print ".bp"
+	}' "$2" | sed -e 's:\\:\\\\:g'

@@ -1,0 +1,16 @@
+#a This file must be kept sorted!
+#b It should contain all ANT mail servers except for the machine it is on.
+knowbel.ai.toronto.edu
+knowbel.ai.utoronto.ca
+neat.cs.toronto.edu
+neat.cs.utoronto.ca
+neuron.ai.toronto.edu
+neuron.ai.utoronto.ca
+orasis.vis.toronto.edu
+orasis.vis.utoronto.ca
+smoke.cs.toronto.edu
+smoke.cs.utoronto.ca
+telos.ai.toronto.edu
+telos.ai.utoronto.ca
+wotan.ai.toronto.edu
+wotan.ai.utoronto.ca

@@ -1,0 +1,58 @@
+LIBNAME=	libident
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+DEFS=		@DEFS@
+TOPDIR=		..
+RANLIB=		@RANLIB@
+INSTALL=	@INSTALL@
+#
+# /usr/5include is so we get the right declaration for malloc in <stdlib.h>
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+#
+OBJS=	identuser.o
+
+SOURCE=	identuser.c
+
+all $(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+$(TOPDIR)/libs/$(LIBNAME).a:	$(SOURCE)
+	$(CC) $(CFLAGS) -c $?
+	ar rv $@ *.o
+	-rm -f *.o
+	$(RANLIB) $@
+
+lintlib:	llib-l$(LIBNAME).ln
+
+llib-l$(LIBNAME).ln:	$(SOURCE)
+	lint -o $(LIBNAME) $(INCL) *.c
+
+lint:
+	lint -u $(DEFS) $(INCL) $(SOURCE)
+
+clean:
+	-rm -f $(TOPDIR)/libs/$(LIBNAME).a make.log
+	-rm -f *.o *.out *.ln *~
+
+distclean: clean
+	-rm -f Makefile
+
+depend:
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+identuser.c: identuser.h
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

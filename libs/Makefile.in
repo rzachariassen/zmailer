@@ -1,0 +1,61 @@
+#
+# Makefile for Zmailer's libs/
+#
+@SET_MAKE@
+
+srcdir=         @srcdir@
+VPATH=          @srcdir@
+
+LIBRESOLVA= @LIBRESOLVA@
+LIBMALLOC=  @LIBMALLOC@
+
+all:	libident.a libzmdb.a libsh.a libta.a libz.a libzc.a	\
+	$(LIBRESOLVA) lib@MALLOC@.a
+
+libtag: all
+	touch libtag
+
+depend:  # Eh ?
+
+clean:
+	rm -f *.a *~ *.o libtag
+
+distclean clean-recursive: clean
+	rm -f Makefile
+
+libident.a:	force
+	cd ../libident; $(MAKE) $(MFLAGS) $@
+
+libzmdb.a:	force
+	cd ../router/libdb;  $(MAKE) $(MFLAGS) $@
+
+libsh.a:	force
+	cd ../libsh; $(MAKE) $(MFLAGS) $@
+
+libta.a:	force
+	cd ../transports/libta; $(MAKE) $(MFLAGS) $@
+
+libz.a:	force
+	cd ../lib; $(MAKE) $(MFLAGS) $@
+
+libzc.a:	force
+	cd ../libc; $(MAKE) $(MFLAGS) $@
+
+libmalloc.a libmalloc_d.a:	force
+	if [ "x$(LIBMALLOC)" != "x" ] ; then	  \
+	  cd ../libmalloc; $(MAKE) $(MFLAGS) $@ ; \
+	fi
+
+libsystem.a:
+	: # Dummy...
+
+#
+#  Usage of this resolver depends on if the configurer
+#  has issued configuration option:  --with-bundled-libresolv
+#
+libresolv.a:	force
+	if [ "x$(LIBRESOLVA)" != "x" ] ; then	   \
+	  cd ../libresolv; $(MAKE) $(MFLAGS) $@	;  \
+	fi
+
+force:

@@ -1,0 +1,54 @@
+#! @MAILBIN@/router -f
+#
+#  Generate default (DBTYPE) type database with 'namendbm'
+#  utility with following args:
+#     1  base file name
+#     2  Optional input name
+#
+
+if [ -z "$1" ]; then
+  echo "newdb dbfilenamebase [inputfile]"
+  exit 64
+fi
+
+BASENAME="$1"
+INPUTNAME=${2:-$BASENAME}
+
+ZCONFIG=@ZMAILERCFGFILE@
+. $ZCONFIG
+
+PATH=/bin:/usr/bin:$PATH # ZMailer router paths are a bit restrictive..
+
+trap "rm -f $BASENAME.$$*" 0
+
+$MAILBIN/makedb $DBTYPE $BASENAME.$$ < $BASENAME
+
+case $? in
+0)	;;
+*)	x=$? ; echo '"'$BASENAME'" rebuilding aborted'
+	rm -f $BASENAME.$$.*
+	exit $x
+	;;
+esac
+
+# Now install the files
+
+case "$DBTYPE" in
+btree)
+	mv $BASENAME.$$.db $BASENAME.db
+	;;
+bhash)
+	mv $BASENAME.$$.dbh $BASENAME.dbh
+	;;
+ndbm)
+	mv $BASENAME.$$.dir $BASENAME.dir
+	mv $BASENAME.$$.pag $BASENAME.pag
+	;;
+dbm)
+	mv $BASENAME.$$.dir $BASENAME.dir
+	mv $BASENAME.$$.pag $BASENAME.pag
+	;;
+gdbm)
+	mv $BASENAME.$$.gdbm $BASENAME.gdbm
+	;;
+esac

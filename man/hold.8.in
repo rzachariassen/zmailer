@@ -1,0 +1,111 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH HOLD 8 "18 Aug 1996"
+.SH NAME
+hold \- zmailer deferred processing transport agent
+.SH SYNOPSIS
+.B hold
+[
+.B \-c
+.I channel
+]
+[
+.B \-V
+]
+.SH DESCRIPTION
+.I hold
+is a ZMailer transport agent which is usually only run by the
+.IR scheduler (8)
+program to test conditions for reprocessing of previously deferred
+message addresses.  The
+.I hold
+program must be run with the same
+current directory as the
+.IR scheduler ,
+namely \fIPOSTOFFICE\fB/transport\fR.
+.PP
+The program will interpret the host part of an address destined for its channel
+as a condition that must be met before the original address (in the user part)
+can be reprocessed by the router.  The condition specification contains
+a general condition class name followed by colon followed by a parameter string.
+The currently supported condition classes are:
+.IP \fBns\fR
+succeeds when the nameserver lookup indicated by the parameter does
+not produce a temporary nameserver error.  The parameter is a domain
+name followed by a slash followed by a standard Internet nameserver
+Resource Record type name.
+.IP \fBtimeout\fR
+succeeds when the time given by the parameter (in normal seconds-since-epoch
+format) has passed.
+.IP \fBio\fR
+succeeds 10% of the time, to allow retry of temporary I/O failures.
+.IP \fBscript\fR
+runs the named shell script with the optional given argument.  The parameter
+is a simple name, the shell script name within the \fIMAILBIN\fB/bin\fR
+directory, optionally followed by a slash followed by an argument to
+be passed to the shell script.
+.PP
+For example:
+.sp
+.nf
+	NS:nic.ddn.mil/cname
+	TIMEOUT:649901432
+	IO:error
+	SCRIPT:homedir/joe
+.fi
+.sp
+The condition class name is case-insensitive but is capitalized by convention.
+The parameter strings are case-preserved for condition class-specific
+interpretation.  Whitespace is not permitted.
+.PP
+The envelope of the resubmitted message is created from the sender and
+(no longer deferred) recipient addresses, and a "via suspension" header.
+.SH OPTIONS
+Options are:
+.IP \-c\ \fIchannel\fR
+specifies which channel name should be keyed on.  The default is
+.BR hold .
+.IP \-V
+prints a version message and exits.
+.SH INTERFACE
+As all transport agents, the program reads relative pathnames of message
+control files from standard input (terminated with two linefeeds), and
+produces diagnostic output on the standard output.  Normal diagnostic output
+is of the form:
+.sp
+.nf
+	\fIid\fR/\fIoffset\fR/\fIstatus\fR \fImessage\fR
+.fi
+.sp
+where 
+.I id
+is the inode number of the message file,
+.I offset
+is a byte offset within its control file where the address being reported
+on is kept,
+.I status
+is one of
+.BR ok ,
+.BR error ,
+or
+.BR deferred ,
+and the
+.I message
+is descriptive text associated with the report.  The text is terminated by
+a linefeed.  Any other format (as might be produced by subprocesses)
+is passed to standard output for logging in the
+.B scheduler
+log.
+.PP
+The exit status is a code from
+.BR <sysexits.h> .
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice (POSTOFFICE)
+.SH SEE ALSO
+scheduler(8)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>

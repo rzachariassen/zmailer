@@ -1,0 +1,126 @@
+97-May-20/mea@nic.funet.fi
+
+	Some comments on things affecting ZMailer performance
+
+	These tidbits have been learned at various systems, when
+	trying to get an undersized machine to do amazing feats.
+
+
+"BENCHMARKS":
+	Umm...  Ok, several imprecise reports follow:
+
+	On an Sun SS-10/50 MHz/Solaris 2.4, with scheduler from
+	zmailer-2.99.15, scheduling the messages took a bit under
+	two minutes (1:55), which indicates speed of roughly 750 000
+	messages per day.  Very likely it can exceed million messages
+	per day (not million recipients, like when expanding lists,
+	but million individual messages!) [ Aug-1995 ]
+
+	With rewritten scheduler (zmailer-2.99.19: scheduler-new) the speed
+	improved still:
+		- 1000 messages to same /dev/null:
+			84 seconds -> 1.0 Million messages per day
+		- 1000 messages to 10 different /dev/nulls:
+			84 seconds ...
+	The speed is actually dominated by the speed the scheduler can
+	assimilate information from new entries.
+
+	Newer versions tested for burst performance on my workstation
+	with  Linux-2.1.7 kernel, AHA2940 controller, PPro-200, 64 M RAM,
+	and multiple partitions on Seagate ST15230N disk (suboptimal for
+	performance) gives following numbers:
+	- Submitting  1000  messages into router without anything
+	  else running in the system: 70 seconds (SH script forking
+	  off for each submission)
+	- Routeing those messages from cold-started router: 42 secs
+	  (with ONE router)
+	- Getting them scanned into the scheduler: 8 seconds
+	- Running deliveries with fsync() at every possible occasion
+	  into my own mailbox: 30 seconds ( ==> 2-3 M deliveries
+	  per 24h )
+	Running it with all subsystems active goes in about 90 seconds
+	thru submitting, routeing and delivering with system load-average
+	raising only to 1.1 ...   The speed was (acoustically) dominated
+	by disk-IO along with IPC thru a socketpair().
+
+	A colleque of mine ran a recent ZMailer (2.99.44 I presume) between
+	two PPro-200 Linux machines over a dedicated 10base-T ethernet.
+	He submitted messages at host-A into router as fast as he could,
+	and routed them all to host-B over SMTP to /dev/null there.
+	The transfer-rate at the Host-A was about 500 000 per hour;
+	or 10-12 million per day...  The test was run for two hours to
+	measure true throughput figures, not only bursts!
+	(Heard about this on 3-Feb-97.)
+
+
+NFS:
+
+	If you for some obscure reason are mounting MAILBOXes
+	and/or POSTOFFICE hierarchies via NFS, do it with
+	options to disable various attribute caches:
+
+			actimeo=0
+	alias:		noac
+
+	The best advice is to NOT to mount anything over NFS,
+	but some people can't be persuaded...
+	Lots of things are done where file attributes play important
+	role, and they are extremely important to be in sync!
+	(Sure, the 'noac' slows down the system, but avoids errors
+	 caused by bad caches..)
+
+	If you are mounting people's home directories ( .forward et.al. )
+	via NFS, consider the same rule!
+
+Router:
+
+	- DNS, and other database lookups (primarily the DNS!)
+	- If possible, do not do DNS lookups at the router at all.
+	  Handle the DNS queries at the SMTP transporters
+	- Use of keyed databased (ndbm, gdbm) is way faster,
+	  than unordered linear search, or even ordered binary
+	  search as is used at some databases (aliases, for example.)
+	  For small databases, an incore database is faster,
+	  especially if its altered rarely. (Like a list of the
+	  top-level domains)
+	- DNS server must have large caches, and be able to cache
+	  negative answers / timeouts too! ( bind 4.8+/8.1+ )
+	- System speed on directory access (filesystem speed)
+	  (scanning the directory, and doing   stat()  is SLOW
+	   on some platforms!  Especially if trying to have files
+	   sorted into time-order before processing them...)
+
+Scheduler:
+
+	- System speed on directory access (filesystem speed)
+	  (scanning the directory, and doing   stat()  is SLOW
+	   on some platforms!  ==> Can cause very slow startup
+	   if queue is long..)
+	- Usage of hashed spool-areas ($POSTOFFICE/queue/X/file,
+	  $POSTOFFICE/transport/X/file) shrinks the average size
+	  of the directory, and thus access will be faster
+	- Speed to do inter-process communication via PIPEs
+	  ( on platforms that can do it: socketpair() )
+	- Speed of filesystem access for message control file
+	  parsing  (on some systems apparently equally "costly"
+	  as simply doing a stat() on the file -- amazing ..
+	  .. that is, the stat() is amazingly costly...)
+	- Speed of scheduler's  mux() scanning thru all
+	  transporter's reporting channels
+	  (This can be alleviated by use of ``overfeed=nnn''
+	   configuration option, and thus feeding the pipe
+	   full of jobs..)
+
+Transporters:
+
+	- Speed to do IPC via PIPEs with the scheduler
+	- System speed on opening files
+	- DNS lookup for SMTP connection setups
+	  (Have at least cacheing forwarding name server very near..)
+	- Remote IPC over TCP/IP; ability to do PIPELINING over SMTP
+	  does help tremendously on long round-trip times of some
+	  SMTP connections...
+	- Local filesystem access speed (read spool files, write mailboxes..)
+	- Idleness in between scheduler passes at our report channel,
+	  and before the scheduler feeds more jobs (but again, "overfeed"
+	  method in the scheduler helps..)

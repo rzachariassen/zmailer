@@ -1,0 +1,99 @@
+zmailer for DEBIAN
+------------------
+
+This product is not yet finalized as the authors claim.
+
+Also there is no nice configuration tools available like for the other
+Debian Mailers (exim, smail, sendmail, qmail). This is a rough edged high
+performance mailer. For experts only. If you do not know what you are
+getting into then please use one of the other mailers.
+
+The initial setup is always for a central hub site.
+
+zmailer can also be used as a client but that is a rather sophisticated
+setup only useful in situations of extreme demands on e-mail performance.
+
+Road Map
+--------
+
+/etc/mailname		Configures the Mail Name (default FQDN).
+/etc/aliases		Mail aliasing (The usual)
+/etc/zmailer		Zmailer Configuration
+/etc/init.d/zmailer	Zmailer start/stop/reload script
+/usr/doc/zmailer	Zmailer Documentation (Well, you got that far..)
+/usr/lib/zmailer	Zmailer Binaries
+/var/spool/postoffice	Zmailer Messages
+/var/log/mail		Zmailer Log files
+
+Important Configuration files in /etc/zmailer:
+----------------------------------------------
+
+zmailer.conf	Sets overall working parameters especially of the
+		Scheduler and the SMTP Server and the number of
+		routers active at the same time. Beware: Some of
+		those parameters are compiled in and cannot be changed!
+
+router.cf	You better not touch this
+
+scheduler.conf	Important setup for controlling deliveries
+
+cf/*		I would not mess around with these ...
+db/fqdnaliases	Fully Qualified Domain Name Aliases (Ahhh!)
+		Remember to run newfqdnaliases after editing
+localnames	All the hostnames that Zmailer will deliver locally.
+routes		SMTP Routing
+forms/*		Errormessages to be customized
+lists/*		Native Zmailer Mailing lists
+fqlists/*	Lists with filenames of form:  name@domain
+
+/usr/doc/zmailer/examples has some interesting scripts....
+
+Important manpages to read
+
+mailq
+zmailer
+scheduler
+router
+
+Building the package from Source
+--------------------------------
+
+Beware: The package uses autoconf but does not implement the installation
+time prefix functions. The package will erase an eventually installed
+zmailer when it is build!
+
+With Kernel 2.0.29/30 there is also a problem when running configure but
+configure will tell you how to proceed.
+
+I have made some changes to zmailer.conf in order to be able to configure
+parameters for the ROUTER. The package is also compiled with -O5 in oder to
+take advantage of maximum code speed.
+
+Optimization for Speed
+----------------------
+The first thing you should do is switch off the extensive logging since this
+can cause enormous amounts of disk activity. This logging is very useful for
+debugging in the beginning though. That is why its enabled by default.
+
+Edit /etc/zmailer/zmailer.conf
+
+- Remove -l <log> from SMTPOPTIOS
+- Remove -l <log> from SCHEDULEROPTIONS
+
+and restart Zmailer
+
+/etc/init.d/zmailer reload
+
+The smtp TA is still doing log entries for each message coming in via
+syslogd and similar smtpserver for all incoming messages. That should be
+sufficient for most purposes. It would be good to be able to remove those
+log functions as well since they cause quite a load on syslogd.
+
+Dont forget to run at least Kernel 2.0.30 which seems to have been
+especially optimized for Mail delivery using Zmailer by David S. Miller.
+vger.rutgers.edu is running Zmailer for Linux Mail delivery after all.
+
+Then you can tweak all those configuration options that are everywhere to
+increase routers / ta's etc etc. Endless possibilities...
+
+Christoph Lameter <clameter@debian.org>, Fri, 16 May 1997 09:19:04 -0700

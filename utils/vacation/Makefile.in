@@ -1,0 +1,60 @@
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+MAILBIN=	$(prefix)@MAILBIN@
+MAILSHARE=	$(prefix)@MAILSHARE@
+MANDIR=		$(prefix)@MANDIR@
+INSTALL=	@INSTALL@
+TOPDIR=		../..
+LIBS=		-L$(TOPDIR)/libs -lzc @LIBRESOLV@ @LIBSOCKET@
+
+VMSGDEF=	@MAILSHARE@/vacation.msg
+DEFS=		@DEFS@ -DVMSGDEF='"$(VMSGDEF)"'
+
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+DBMLIB=		@LIBDBMS@
+CONVTIME= convtime.o
+MANEXT=1
+
+COPTS=		@CFLAGS@
+CFLAGS=		$(COPTS) $(DEFS) -DZMAILER $(INCL)
+
+SOURCE=		vacation.c convtime.c
+
+all: vacation
+
+vacation: vacation.o $(CONVTIME)
+	rm -f $@
+	$(CC) $(CFLAGS) -o $@ vacation.o $(CONVTIME) $(DBMLIB) $(LIBS)
+
+vacation.o: $(srcdir)/vacation.c
+	rm -f $@
+	$(CC) $(CFLAGS) $(CCONFIG) -c $(srcdir)/vacation.c
+
+clean:
+	rm -f *.o *~ \#* vacation
+
+distclean: clean
+	rm -f Makefile vacation.sh $(TOPDIR)/man/vacation.1
+
+install: vacation
+	$(INSTALL) -m 755 vacation.sh $(MAILBIN)/vacation.sh
+	-rm -f $(MAILBIN)/vacation
+	cd $(MAILBIN) ; ln -s vacation.sh vacation
+	$(INSTALL) -m 755 vacation $(MAILBIN)/vacation.exe
+	@if [ ! -f $(prefix)$(VMSGDEF) ] ; then				\
+		$(INSTALL) -m 644 $(srcdir)/vacation.msg $(prefix)$(VMSGDEF) ; \
+	else								\
+		echo "** File $(prefix)$(VMSGDEF) already installed" ;	\
+	fi
+	@echo "** Add a symlink from somewhere in user paths to $(MAILBIN)/vacation"
+	@echo "** to finish off the installation;  Also the location of the man-page"
+	@echo "** might need reconsideration (now at $(prefix)$(MANDIR)/man$(MANEXT))"
+
+depend:
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)

@@ -1,0 +1,8 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Unresolvable mail address
+
+A copy of your message is being returned to you because one or more of
+the addresses you specified could not be recognized as addresses that are
+understood by, or reachable from, this system.
+

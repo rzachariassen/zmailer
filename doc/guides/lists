@@ -1,0 +1,93 @@
+	Important details:
+
+The lists are implemented as files in  $MAILSHARE/lists/ -directory
+(or symlinks in there to files residing elsewere, though for system
+ reliability standpoint it is better to have them in that directory,
+ and let user have a symlink to those files -- consider NFS system
+ with user home directories at other machines...)
+
+Alternate mechanism is to implement lists in traditional sendmail
+manner, however it means feeding the message to the scheduler, and
+external program ( /usr/lib/sendmail ) before it comes back to
+router.
+
+List FILE must have protection 0664 or stricter, 0700 has invalid bits!
+(ok, so "x"-bit is not used, but illegal it is, all the same.)
+Preferrable protection is: 0600
+
+The $MAILSHARE/lists directory must be owned by root.
+Directory containing "aliases" -file  ($MAILSHARE/db/) must be owned by
+root, and aliases file must comply with above mentioned protections.
+
+Owner of FILE gets   FILE-owner, and  FILE-request  mails, UNLESS ANY
+OF THE LIMITATIONS ARE BREACHED.
+
+If FILE has protection 666 (for example), the Zmailer internal function
+"$(filepriv $filepath)" returns "$nobody" (userid of nobody), and  function
+"$(uid2login $nobody)" fails, thus loosing -owner, and -request features.
+
+Also lists with filepriv "nobody" can not be archived!
+
+
+
+A mailing list is set up by creating a file in $MAILVAR/lists.
+The file name is the lists' name (LIST) in all-lowercase (case-
+insensitive matching is done by converting to lowercase before
+comparison).
+
+The file contains a list of mail addresses (typically one per line)
+which are parsed to pull out the destination addresses.  This means
+the users' full names can be given just as in any valid RFC822 address.
+
+The local account which owns the file will by default receive messages
+sent to LIST-owner and LIST-request.  This can be explicitly overridden
+in the aliases file.  Mail to the list will go out with LIST-owner as
+the sender, so list bounce messages will return to the LIST-owner
+address.  Archives of the list can be created by adding a file name
+address (a local pathname starting with "/") to the LIST file.  The
+archive file is written with the ownership of the owner of the LIST
+file (NB!! see below).  Forwarding the mailing list into a newsgroup
+can be done using a mail to news script (two generations are provided
+in utils/distribute and utils/mail2news).
+
+See the guides/aliases file for further information on aliasing.
+
+Security considerations:
+
+A LIST file must not be world writable, while most likely it can be
+group-writable.  The MAILVAR/lists/ -directory must also not be group
+or world writable and must be owned by root or by the owner of the
+LIST file.  Otherwise the file is declared insecure and all addresses
+in the file get the least possible privilege associated (the "nobody"
+uid).  This can cause various things to break, for example mailing
+list archival, or the -owner and -request features if "nobody" is
+not a valid account.
+
+There is a mechanism to override using the modes on a file/directory
+as an indicator of its safeness.  Turning on the sticky bit on a file
+or directory tells the mailer to treat it as if it was only owner-
+writable independent of its actual modes.  This allows MAILVAR/lists/
+to be group or world-writable and sticky-bitted if you want your general
+user population to be able to create mailing lists.
+
+
+About large lists, and memory consumption:
+
+With old configuration scripts there used to be problems with list
+expansion causing serious memory bloat.  Zmailer-2.98-mea did introduce
+a working solution via builtin  $(listexpand ..) -function.
+
+Rest of these notes apply to older config files using old style pipe
+of $(listaddresses  < file | maprrouter ...)  where the  maprrouter
+did the actual memory bloat...
+
+Internal list expansion (thru the  $MAILVAR/lists/LISTNAME -mechanism)
+is a sure way to expand router process memory usage.
+
+You can decrease the memory requirement dramatically, if you can
+feed all the addresses in the envelope, or via   utils/listexpand.c
+utility (alpha-test tool on 1-Sep-94)..
+
+You don't need to worry about it, unless your list is 100+ recipients,
+only then the memory usage starts to bloat seriously with the old-style
+in-core $(listaddress ...) -expander.

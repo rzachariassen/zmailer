@@ -1,0 +1,18 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Invalid host/domain name
+ADR Cc: The Post Office <postoffice>
+
+One or more of the addresses you specified in the following message
+were not recognized as addresses that can be reached from this system.
+
+The message refers to a host or domain name which is not known at this
+gateway, yet which should be known here if it exists.  It is therefore
+likely that said host or domain name does NOT exist.  Most times people
+think they are part of our domain when they really are not, and some
+times the mailer configuration really isn't consistent with reality.
+If you care either way, a query to the Postmaster at this host should
+give a definitive response.
+
+Your message is being returned unprocessed.
+

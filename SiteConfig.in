@@ -1,0 +1,203 @@
+#
+#  A config file for storing various SITE CONFIG parameters
+#
+#  These are generic material that DO NOT DEPEND UPON COMPILERS et.al!
+#
+#  This is generated with autoconfiguration process from  SiteConfig.in
+#  file, and the configuration parameters.  The standard installation
+#  procedure WILL NOT overwrite the destination  ZCONFIG  file with
+#  the new one.    This file contains one parameter that is compiled
+#  in the binaries, and is not overridable with this file, namely
+#  the  ZCONFIG  variable, alias the final location of the processed
+#  result of this SiteConfig file.
+#
+
+# ZCONFIG is the pathname of the configuration file specifying all the other
+# host-dependent information needed by ZMailer programs.  This file is
+# created from the Config file in the distribution (the file you are reading
+# right now), and contains variable assignments in an sh-compatible format.
+ZCONFIG=	@ZMAILERCFGFILE@
+
+# MAILBIN is the directory hierarchy containing all ZMailer binaries.
+# Usually /usr/lib/mail/bin or /local/lib/mail.
+MAILBIN=	@MAILBIN@
+
+# MAILSHARE is the directory hierarchy containing site-wide configuration
+# files and databases.  Usually /usr/lib/mail or /local/share/mail.
+MAILSHARE=	@MAILSHARE@
+
+# MAILVAR is the directory that will contain machine-specific configuration
+# files and databases.  Usually /usr/lib/mail or /var/db/mail or
+# /local/share/mail.
+MAILVAR=	@MAILVAR@
+
+# MAILBOX is the directory containing all the user mailboxes.  This is
+# defaulted inside the mailbox.c program (currently /var/mail) and may
+# be overridden here.  Usually /usr/spool/mail or /var/mail.
+MAILBOX=	@MAILBOX@
+
+# POSTOFFICE is the directory hierarchy used to manipulate message files,
+# where runtime activity takes places.  Usually /usr/spool/postoffice or
+# /var/spool/postoffice.
+POSTOFFICE=	@POSTOFFICE@
+
+# Multiple LOWER priorities on message routing can be defined by creating
+# $POSTOFFICE/<component-of-$ROUTERDIRS> -directories.
+# Routers process first   $POSTOFFICE/router/ -directory, and once it is
+# empty, files from subsequent dirs.   See  mail(3)  mail_priority
+# These can be only under the $POSTOFFICE.
+ROUTERDIRS=router1:router2:router3:router4
+
+# LOGDIR is the directory where log files will appear.  Usually /usr/spool/log
+# or /var/log.
+LOGDIR=		@LOGDIR@
+
+# prefix per autoconfig:
+prefix=		@prefix@
+
+# MANDIR is the top of the manual directory hierarchy where manual pages
+# for the ZMailer programs are installed.  Usually /usr/man or /local/man.
+MANDIR=		@MANDIR@
+
+# LIBRARYDIR is the place for storing  libzmailer.a, which can be used to
+# create programs which use Zmailer's  zmailer(3) (aka: mail(3)) -library.
+LIBRARYDIR=	@libdir@
+
+# INCLUDEDIR is the place for storing   zmailer.h -- a copy of include/mail.h
+# and it is used in conjunction with the  libzmailer.a ..
+INCLUDEDIR=	@includedir@
+
+# SMTPOPTIONS are command line options given to the smtpserver when started
+# from the zmailer shell script.  The intent is that if you want non-default
+# address verification options they can be specified here.  The default
+# value is "-asve".   This is also used, when invoking  ``sendmail'' with
+# "-bs" option.
+#SMTPOPTIONS= "-a -sve -l ${LOGDIR}/smtpserver"
+SMTPOPTIONS=	@SMTPOPTIONS@
+
+# ALLOWSOURCEROUTE (when present) stops the system from ignoring
+# the old RFC821/822 source routes of type:  @a,@b:c@d;  By "ignoring"
+# we mean here that system chops away "@a,@b:" and uses only:  c@d
+# This is done at all input portals; smtpserver, and at sendmail/rmail.
+#ALLOWSOURCEROUTE=
+
+# SCHEDULEROPTIONS are command line options given to the scheduler when
+# started from the zmailer shell script.  The intent is that if you want
+# non-default logging options, the can be specified here.  The default
+# value is ""
+#
+#SCHEDULEROPTIONS=	"-l ${LOGDIR}/scheduler.perflog -S -H"
+SCHEDULEROPTIONS= @SCHEDULEROPTIONS@
+
+# ROUTEROPTIONS are command line options given to the router when started
+# from the zmailer shell script. The default values are "-dkn 4"
+#ROUTEROPTIONS= "-dkn 4"
+ROUTEROPTIONS= @ROUTEROPTIONS@
+
+# Here you can put any ZM ``environment'' variables you want to place in
+# the system-wide configuration file (/etc/zmailer.conf).  Typically this
+# would be information used by the router configuration at your site.
+
+# MAILSERVER is the hostname of the remote machine where the postoffice is
+# located.  This value is only needed in an environment with distributed file
+# systems, and if it exists will be used by the mail queue querying program
+# as the default name of the host to query.  It is a way of overriding the
+# algorithm used by mailq in an NFS environment, or when you are running a
+# different kind of DFS.  Usually undefined or a hostname.
+#MAILSERVER=	neat.cs
+
+# PUNTHOST is where mail that is supposed to go to a local address, but
+# no such address exists, is punted to.
+#PUNTHOST=	relay.cs
+
+# FORCEPUNT is for cases when the local machine under no circumstances
+# is to store any email locally, but send all such to this given address
+#FORCEPUNT=	mailhost
+
+# SMARTHOST is where mail that cannot be resolved or routed is punted to.
+#SMARTHOST=	relay.cs
+
+
+# NOBODY is the unprivileged UID value.
+# This is absolutely necessary if setuid() will fail on your "nobody" account
+# uid (if it is -2, for example).  Make sure that whatever value you give
+# here will work with setuid().  Values between 1 and 29999 will usually work.
+# BE CAREFULL WITH THIS!  THE SYSTEM RELIES ON IT VERY MUCH IN DEED!
+#  (On SunOS 4.1.x, the value of "-2" works the best,  on Solaris the default
+#   for nobody is 60001!  If your system has "nobody" "account", use here the
+#   name instead of number -- it should (usually) work)
+# -- Use a mapping via /etc/passwd, this is most generic..
+NOBODY=nobody
+
+
+# LOGLEVEL may be set to restrict the log output of the router to entries
+# whose tags are found in the specified string value.  The currently known
+# tags are:
+#	address: deferred: file: header_defer: info: recipient:
+#LOGLEVEL=	"file: recipient:"
+LOGLEVEL=	"deferred: file: header_defer:"
+
+# Builtin USENET channel uses  NNTPSERVER variable (depending upon your
+# inews ..) to send the artickle to..
+NNTPSERVER=	@NNTPSERVER@
+INEWSBIN=	@INEWS@
+
+# Where the sendmail (compability one) shall be located ?
+SENDMAILPATH=	@SENDMAILPATH@
+# Where is the rmail to be located at ?
+RMAILPATH=	@RMAILPATH@
+
+# MAILBOX locking scheme -- no configuration option (yet)
+# See man-page of  mailbox.8  for details; the order of key-chars
+# is meaningfull:
+#	`.'	Dotlock scheme for mailboxes at $MAILBOX/ directory
+#	`F'	flock() locking of files (and perhaps mailboxes)
+#	`L'	lockf() locking of files (and perhaps mailboxes)
+#	`:'	Separates the two parts of the parameter; left part
+#		is for the mailbox locking, and right part is for
+#		all other kinds of files.
+#
+# We use compiled-in defaults at the mailbox program!
+# Following examples are for  flock(), and lockf() systems with their
+# respective defaults.  ( Systems capable to use both will use lockf() )
+#MBOXLOCKS=".F:F"
+#MBOXLOCKS=".L:L"
+
+# The SELFADDRESSES is a comma separated list of IP address literals
+# listing all of our acceptable IP addresses (Comma because IPv6 uses
+# colon for short-hand notation..):
+# This really should be done with some system ioctl(), but those are
+# damn varying, and often still do kmem reads...
+#SELFADDRESSES=[1.2.3.4],[2.3.4.5],[ipv6.::1.2.3.4]
+SELFADDRESSES=@SELFADDRESSES@
+
+# What kind of DB type we prefer to use ?  We can support several,
+# after all...  btree/ndbm/gdbm ... (DBEXT: pag/db/dat)
+DBTYPE=@DBTYPE@
+DBEXT=@DBEXT@
+DBEXTtest=@DBEXTtest@
+
+# The characterset to be used as a default when turning 8-bit containing
+# headers to MIME-2 headers -- and what to say at the default generated
+# "Content-Type: text/plain; charset=XXXX" -header in case the original
+# message was not of MIME, and still had 8-bit chars...
+DEFCHARSET=ISO-8859-1
+
+# If the following limitations are exceeded then zmailcheck
+# will sent an alert.
+# Limit on the Router Queue
+MAX_NR=1000
+# Limit on Transport Queue
+MAX_NT=1000
+# Load times 100
+MAX_LOAD=300
+
+# SYSLOGFLG tells which systems use syslog to log things:
+# Set of chars which are as follows:
+#   S  smtpserver and @SENDMAILPATH@
+#   R  router
+#   T  transport agents
+#   C  scheduler completion of a message
+#
+#SYSLOGFLG=SRT
+SYSLOGFLG=RT

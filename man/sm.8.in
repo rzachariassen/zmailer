@@ -1,0 +1,226 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH SM 8 "21 Nov 1996"
+.SH NAME
+sm \- zmailer Sendmail compatible transport agent
+.SH SYNOPSIS
+.B sm
+[
+.B \-8HQV
+]
+[
+.B \-f
+.I configfile
+]
+.B \-c
+.I channel
+.B \-h
+.I host
+.I mailer
+.SH DESCRIPTION
+.I sm
+is a ZMailer transport agent which is usually only run by the
+.IR scheduler (8),
+to deliver messages by invoking a program with facilities and in a way
+compatible with a Sendmail mailer.  The
+.I sm
+program must be run with the same
+current directory as the
+.IR scheduler ,
+namely \fIPOSTOFFICE\fB/transport\fR.
+.PP
+The program scans the message control files named on stdin for addresses
+destined for the channel and/or the host given on the command line.  If any
+are found, all matching addresses and messages are processed according to
+the specifications for the
+.I mailer
+in the configuration file.
+.PP
+The exit status of a
+.I mailer
+should be one of the standard values specified in \fB<sysexits.h>\fR.
+Of these, \fBEX_OK\fR indicates successful deliver, and
+\fBEX_DATAERR\fR, \fBEX_NOUSER\fR, \fBEX_NOHOST\fR, \fBEX_UNAVAILABLE\fR,
+and \fBEX_NOPERM\fR indicate permanent failure.  All other exit codes
+will be treated as a temporary failure and the delivery will be retried.
+.SH OPTIONS
+.IP \-8
+tells that the output is 8-bit clean, and for any MIME message with
+\fIQUOTED-PRINTABLE\fR encoding the coding can be decoded.
+.IP \-Q
+tells that the transport channel will likely treat poorly control
+characters like TAB, and possibly SPACE too..  This encodes them all
+by using \fIQUOTED-PRINTABLE\fR encoding.
+.IP \-f\ \fIconfigfile\fR
+specifies the name of a configuration file containing specifications of
+the various known Sendmail compatible mailer programs: how to invoke them
+and how to process messages for them.  The default is \fIMAILSHARE\fB/sm.cf\fR.
+.IP \-c\ \fIchannel\fR
+specifies which channel name should be keyed on.  There is no default.
+If this option is not specified, the \-h option must be.
+.IP \-h\ \fIhost\fR
+specifies which host name should be keyed on.  There is no default.
+If this option is not specified, the \-c option must be.
+.IP \-V
+prints a version message and exits.
+.SH CONFIGURATION
+The configuration file associates the
+.I mailer
+keyword from the command line with a specification of a delivery program.
+This is very similar to the way the definition of a mailer in Sendmail
+requires flags, a program name, and a command line specification.
+These are in fact the fields of the entries of the configuration file.
+Lines starting with whitespace or a '#' are ignored, and all others are
+assumed to follow this format:
+.sp
+.ta 1i 1.7i 4.3i
+.nf
+\fImailer	flags	program	argument list\fR
+.fi
+.sp
+For example:
+.sp
+.nf
+local	mS	sm/localm	localm -r $g $u
+prog	-	/bin/sh	sh -c $u
+tty	rs	/usr/local/to	to $u
+uucp	U	/usr/bin/uux	uux - -r -a$g -gC $h!rmail ($u)
+usenet	m	sm/usenet	usenet $u
+ean	mn	/local/lib/ean/gwsmean	gwsmean -d $u
+test	n	sm/test	test $u
+.fi
+.PP
+The
+.I mailer
+field extends from the beginning of the line to the first whitespace.  It
+is used simply as a key index to the configuration file contents.  Whitespace
+is used as the field separator for all the fields.
+.PP
+The
+.I flags
+field contains a concatenation of one-letter flags.  If no flags are desired,
+a '-' character should be used to indicate presense of the field.  All normal
+Sendmail flags are recognized, but the ones that do not make sense in the
+context of ZMailer will produce an error.  The flags that change the behaviour
+of
+.I sm
+are:
+.IP b
+will activate BSMTP-type wrapping with "hidden-dot" algorithm; e.g.
+quite ordinary SMTP stream, but in "batch mode".
+.IP B
+The first '\fIB\fR' turns on similar BSMTP wrapping as '\fIb\fR', but
+adds SIZE and, if the
+.I sm
+is started with option
+.RI ' \-8 ',
+also 8BITMIME options.
+The second '\fIB\fR' adds there also DSN (Delivery Status Notification)
+parameters.
+.IP E
+will prepend '>' to any message body line starting with 'From '.
+.IP f
+adds "-f \fIsender\fR" arguments to the delivery program.
+.IP n
+will
+.B not
+prepend a From-space line (normal mailbox separator line) to the message.
+.IP r
+adds "-r \fIsender\fR" arguments to the delivery program.
+.IP S
+will run the delivery program with the same real and effective uid as the
+.I sm
+process.  If this flag is not set, the delivery program will be run with
+the real uid of the
+.I sm
+process.  This may be useful if
+.I sm
+is setuid.
+.IP m
+informs
+.I sm
+that each instance of the delivery program can deliver to many destinations.
+This affects $u expansion in the argument list, see below.
+.IP P
+prepends a Return-Path: header to the message.
+.IP U
+will prepend a From-space line, with a "remote from \fImyuucpname\fR" at the
+end, to the message.  This is what is expected by remote
+.IR rmail (1)
+programs for incoming UUCP mail.
+.IP R
+use CRLF sequence as end-of-line sequence. Without it, will use LF-only
+end-of-line sequence.
+.IP X
+does SMTP-like 'hidden-dot' algorithm of doubling all dots that are at
+the start of the line.
+.IP 7
+will strip (set to 0) the 8th bit of every character in the message.
+.PP
+The
+.I path
+field specifies the location of the delivery program.  Relative pathnames
+are allowed and are relative to the
+.I MAILBIN
+directory.
+.PP
+The
+.I arguments
+field extends to the end of the line.  It contains whitespace-separated
+argv parameters which may contain one of the following sequences:
+.IP $g
+which is replaced by the sender address.
+.IP $h
+which is replaced by the destination host.
+.IP $u
+which is replaced by the recipient address.  If the \-m mailer flag
+is set and there are several recipients for this message, the argument
+containing the $u will be replicated as necessary for each recipient.
+.SH INTERFACE
+As all transport agents, the program reads relative pathnames of message
+control files from standard input (terminated with two linefeeds), and
+produces diagnostic output on the standard output.  Normal diagnostic output
+is of the form:
+.sp
+.nf
+	\fIid\fR/\fIoffset\fR<TAB>\fInotify-data\fR<TAB>\fIstatus\fR \fImessage\fR
+.fi
+.sp
+where 
+.I id
+is the inode number of the message file,
+.I offset
+is a byte offset within its control file where the address being reported
+on is kept,
+.I status
+is one of
+.BR ok ,
+.BR error ,
+or
+.BR deferred ,
+and the
+.I message
+is descriptive text associated with the report.  The text is terminated by
+a linefeed.  Any other format (as might be produced by subprocesses)
+is passed to standard output for logging in the
+.B scheduler
+log.
+.PP
+The exit status is a code from
+.BR <sysexits.h> .
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice (POSTOFFICE)
+.br
+.I /local/share/mail/sm.cf (MAILSHARE/sm.cf)
+.SH SEE ALSO
+scheduler(8)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>
+.br
+Several extensions by:
+.br
+Matti Aarnio <mea@nic.funet.fi>

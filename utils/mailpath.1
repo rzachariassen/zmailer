@@ -1,0 +1,106 @@
+.TH MAILPATH 1 "19 July 1988"
+.SH NAME
+mailpath \- show what the mailer thinks of an address
+.SH SYNOPSIS
+mailpath domainname
+
+.SH DESCRIPTION
+
+This program takes an address and shows how the mailer would interpret it.
+This is useful to determine if a strange domain is actually recognized by the
+local software.  Some routing information is also given when available (most
+of the time a direct connection to a gateway is used and it is the gateway's
+responsibility to do further routing).
+
+By contrast, uupath(1) returns data from only one of the databases queried
+by the mailer.  mailpath output reflects the actual decision the
+mailer would take based on all available databases and conflict-resolution
+rules.
+
+.SH PARAMETERS
+
+.IP "domainname"
+This is normally the right hand side of a user@domain address.  Examples of
+such domains include jazz.db, ibm.com, uunet.uu.net, ubc.ca, utoronto.bitnet,
+or mcvax.cwi.nl.  You should try those names to see what mailpath produces as
+output.
+
+As a convenience, mailpath will try to do something sensible with user@domain
+and sitea!siteb!user.
+
+.SH EXAMPLES
+
+Some possible outputs from mailpath are illustrated below:
+
+.RS
+% mailpath yahoo.uucp
+.br
+.nf
+Error: Unresolvable address: user@yahoo.uucp
+.fi
+.RE
+
+In this particular case, the mailer knows for sure that it can't deal with
+the address; a message sent to that destination would bounce right away.
+
+.RS
+.br
+.nf
+% mailpath yahoo.bitnet
+Ok: SMTP connection to one of (ugw.utcs.utoronto.ca gpu.utcs.utoronto.ca)
+.fi
+.RE
+Note that in this case there is no such machine as yahoo.bitnet, but that
+the mailer can't actually tell.  All it knows is that any mail for a site
+claimed to be under BITNET will be handled by one of the two campus gateways
+listed.  A message sent to yahoo.bitnet would be sent to whichever is
+available, and would bounce there when they look up yahoo in their official
+BITNET tables and don't find it.  In other words, the fact that mailpath
+returns an "Ok" indication is no guarantee that a site later on won't find
+something wrong with the address.
+
+.RS
+.br
+.nf
+% mailpath csri
+Ok: SMTP connection to yonge.csri.toronto.edu
+.fi
+.RE
+In this case, one can see that the local mailer considers csri to be
+synonymous with yonge.csri.toronto.edu, as far as mail delivery is concerned.
+
+Some indication of the route taken can often be gleaned from the output of
+mailpath:
+.RS
+.br
+.nf
+% mailpath felix.uucp
+Ok: UUCP path selected: uunet!spsd!felix!user
+.fi
+.RE
+The current UUCP database contains the only data about felix, and the
+route last advertized for that site is the one returned.
+
+.SH NOTES
+
+The fact that mailpath returns something is not an indication that the machine
+actually exists, but merely that the mailer has found a way to deal with the
+message (often by punting it to someone else).  Therefore the main use of
+mailpath is to check that, say, user@mcvax.cwi.nl makes some sense and that
+the message go somewhere else.
+
+.SH LIMITATIONS
+
+Garbage in, garbage out.  The routing data for UUCP is updated monthly, but
+sites are under no obligation to keep up-to-date.  Therefore the route
+computed by mailpath or uupath(1) may in reality not be usable.
+
+It would be nice if the gateway selected for delegation could be shown, but
+this information is not available in the router output output.
+
+.SH "SEE ALSO"
+sendmail(8), uupath(1), uushow(1)
+
+.SH "AUTHORS"
+Cooked up iteratively by Jean-Francois Lamy and Rayan Zachariassen,
+Computer Science, University of Toronto.

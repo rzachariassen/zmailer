@@ -1,0 +1,159 @@
+# FQDN-alias override
+#
+# This is the simple interface to the db/fqdnalias file in classical
+# aliasing style.
+#
+# We check in order following:
+#   - address existing (in lower-case) in the  fqdnaliases  database
+#   - address domain-part existing (@domain) in the  fqdnaliases  database
+#   - address existing (in lower-case) in the MAILVAR/fqlists/ -directory
+#     in similar manner to those in  MAILVAR/lists/  at the  aliases.cf
+#   - owner-*, *-owner, and *-request -relation of the MAILVAR/fqlists/
+#     likewise
+#
+# We do not support '+'-selectors in similar manner to those that aliases
+# processing does!
+#
+
+# FQDN-aliases initializations
+#
+# Relations: fqdnalias
+
+provide fqdnaliasdb
+
+#
+#  FQDN-aliases, in autoconfigured dbase type
+#
+
+if [ -f $MAILVAR/db/fqdnaliases ]; then
+	# Need to be updated at boot ?
+	if [ ! -f $MAILVAR/db/fqdnaliases$DBEXTtest -o \
+	     $MAILVAR/db/fqdnaliases -nt $MAILVAR/db/fqdnaliases$DBEXTtest ]; then
+		# Yes, so update!
+		$MAILBIN/zmailer newfqdnaliases
+	fi
+	relation -lmt $DBTYPE -f $MAILVAR/db/fqdnaliases$DBEXT fqdnaliases
+else
+	fqdnaliases () { return 1 }
+fi
+
+require fqdnaliasdb
+provide fqdnalias
+
+fqdn_neighbour (domain, address, A) {
+	# "domain" is dummy..
+	local lcaddress l a priv nattr user host
+
+	# It may not be a "sender" address!
+
+	case "$(get $A type)" in
+	sender)	return 1
+		;;
+	esac
+
+	lcaddress="$(recase -l "$address")"
+
+	ssift "$lcaddress" in
+	(.+)@(.+)
+		user="\1"
+		host="\2"
+		break
+		;;
+	.*
+		return 1 # Not in  uu@hh  form!
+		;;
+	tfiss
+
+	# For a recipient address we may do a FQDN-aliasing
+	# We are better NOT to have aliasing loops here, though
+	# we do expansion recursion pruning by falling thru to
+	# normal target address locality testing, and such...
+
+	# Already expanded ?  If yes, go away!
+	$(expansions "$lcaddress") && return 1
+
+	#   Yes, add to the expansions.  Success ?
+	#     Yes, Any success with filepriv from the alias db ?
+	#       Yes, generate new privilege attribute for it. Success ?
+	#         Yes, do the expansion! (echo .. | listexpand ...)
+	#
+	a="$(fqdnaliases "$lcaddress")" &&
+	  db add expansions "$lcaddress" fqdnaliases &&
+	    priv=$(filepriv -M 644 $MAILVAR/db/fqdnaliases \
+				$(db owner fqdnaliases)) &&
+	      nattr=$(newattribute $A privilege $priv) &&
+		return $(echo "$a" |				  \
+			 listexpand	-e root 		  \
+					-c 'fqdn-alias expansion' \
+					-N -			  \
+					"$nattr" "$a" "$address")
+
+	# Didn't match,
+
+
+
+	# We may also match for:  "@domain.name"
+
+	# Already expanded ?  If yes, go away!
+	$(expansions "@$host") && return 1
+
+	#   Yes, add to the expansions.  Success ?
+	#     Yes, Any success with filepriv from the alias db ?
+	#       Yes, generate new privilege attribute for it. Success ?
+	#         Yes, do the expansion! (echo .. | listexpand ...)
+	#
+	a="$(fqdnaliases "@$host")" &&
+	  db add expansions "@$host" fqdnaliases &&
+	    priv=$(filepriv -M 644 $MAILVAR/db/fqdnaliases \
+				$(db owner fqdnaliases)) &&
+	      nattr=$(newattribute $A privilege $priv) &&
+		return $(echo "$a" |				   \
+			 listexpand	-e root 		   \
+					-c 'fqdn-@alias expansion' \
+					-N -			   \
+					"$nattr" "$a" "$address")
+
+	# Didn't match,
+
+	priv=$(get $A privilege)
+
+	# Do we have a file with that name ?
+	a="$MAILVAR/fqlists/$lcaddress"
+	l="$preowner$user$postowner@$host"
+	nattr=()
+	[ -f "$a" ] &&
+	  db add expansions "$lcaddress" fqlist &&
+	    priv=$(getpriv "644" $priv "$a" maillist) &&
+	      nattr=$(newattribute $A privilege $priv sender "$l") &&
+		return $(listexpand	-E "$l" -e "$l" -p $priv	\
+					-c "$a file expansion"		\
+					"$nattr" "$a" "$user@$host" < "$a")
+	# Ok, if the list (MAILVAR/fqlists/user@host) did exist, we did
+	# process it's expansion above.  See if we are looking for *-owner,
+	# owner-*, or *-request of same lists.
+
+	ssift "$user" in
+	(.+)-owner
+		a="$MAILVAR/fqlists/\1@$host"
+		[ -f "$a" ] &&
+		  return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
+				   "$address" $A "")
+		break
+		;;
+	(.+)-request
+		a="$MAILVAR/fqlists/\1@$host"
+		[ -f "$a" ] &&
+		  return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
+				   "$address" $A "")
+		break
+		;;
+	owner-(.+)
+		a="$MAILVAR/fqlists/\1@$host"
+		[ -f "$a" ] &&
+		  return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
+				   "$address" $A "")
+		;;
+	tfiss
+
+	return 1
+}

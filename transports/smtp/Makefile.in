@@ -1,0 +1,95 @@
+PROGRAM=	smtp
+#
+# ZMailer SMTP client Transport Agent makefile
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		../..
+MAILBIN=	$(prefix)@MAILBIN@
+DEFS=		@DEFS@
+INSTALL=	@INSTALL@
+SMTP_LIB=	@LIBRESOLV@ @LIBSOCKET@
+SMTP_INCL=	@INCLRESOLV@
+#
+SOURCE=		smtp.c
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) $(SMTP_INCL)
+CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a
+#
+LIB=		-L$(TOPDIR)/libs -lta -lz -lzc $(LIBMALLOC)
+LIBDEB=		$(TOPDIR)/libs/libtag
+LINTLIB=	../libta/llib-llibta.ln
+
+$(PROGRAM)-a:	$(PROGRAM) mprobe
+
+$(PROGRAM):	$(PROGRAM).o version.o $(LIBDEB)
+	-rm -f $(PROGRAM)
+	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o $(LIB) $(SMTP_LIB)
+
+$(PROGRAM).3rd: $(PROGRAM)
+	atom -tool 3rd -o $(PROGRAM).3rd $(PROGRAM)
+
+mprobe:	mprobe.o version.o $(LIBDEB)
+	-rm -f mprobe
+	$(CC) $(CFLAGS) -o $@ mprobe.o version.o $(LIB) $(SMTP_LIB)
+
+version.c:	$(PROGRAM).o $(TOPDIR)/Makefile
+	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+$(PROGRAM).o: $(srcdir)/$(PROGRAM).c
+
+install:	$(PROGRAM) mprobe
+	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/ta/$(PROGRAM).x
+	mv $(MAILBIN)/ta/$(PROGRAM).x $(MAILBIN)/ta/$(PROGRAM)
+	$(INSTALL) -m 0755 mprobe $(MAILBIN)/mprobe.x
+	mv $(MAILBIN)/mprobe.x $(MAILBIN)/mprobe
+
+clean:
+	-rm -f $(PROGRAM) mprobe *~ *.o *.out make.log *.third *.3rd
+distclean: clean
+	-rm -f Makefile
+
+lint:	$(LINTLIB)
+	lint $(DEFS) $(INCL) $(LINTLIB) $(PROGRAM).c
+
+../libta/llib-llibta.ln:
+	cd ../libta ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
+
+../libta/libta.a-a:
+	cd ../libta ; $(MAKE) $(MFLAGS)
+../libta/libta.a:
+	cd ../libta ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/lib/libz.a-a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/lib/libz.a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libc/libzc.a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+
+
+$(TOPDIR)/libmalloc/libmalloc_d.a-a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libmalloc/libmalloc_d.a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+
+depend:
+	$(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

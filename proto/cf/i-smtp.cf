@@ -1,0 +1,89 @@
+# SMTP initialization
+#
+# Relations: canon host_neighbour
+# BIND additions: gethostbyaddr (used in rrouter)
+
+provide smtpdb
+
+# Set up the SMTP neighbour hosts databases depending on our environment
+
+#| There are two ways of getting information about SMTP hosts: 1. look it
+#| up in a nameserver, and 2. look it up in the hosts file.  We try to
+#| figure out which one is appropriate for this host.
+
+if [ -f /etc/resolv.conf -o -f /usr/etc/resolv.conf ]; then
+	# Define BIND databases
+	#relation -t bind,cname -n -s 200 canon # T_CNAME canonicalize hostname
+	relation -t bind,any -n -s 200 canon    # T_ANY canonicalize hostname
+	relation -t bind,mx -s 200 mxhosts	# T_MX
+
+#| The mxhosts relation returns a list of values.
+
+	relation -t bind,a -s 200 ipaddress	# T_A
+	relation -t bind,ptr -s 200 revaddress	# T_PTR (in-addr.arpa)
+
+#| The revaddress relation does not know about the magic domain
+#| IN-ADDR.ARPA.  This knowledge must be provided in an encapsulation of
+#| calls to revaddress.
+
+	host_neighbour (host) {
+		local a
+
+#| A host is reachable via the IP network if it has a forwarder (an MX
+#| resource record exists for it), or if it is directly on the network.
+
+		#a="$(mxhosts "$host" || ipaddress "$host")"
+		#return $?
+	# We short-circuit a bit.. if it was canonicalized, that is all
+	# we will care at this point.
+		return 0
+	}
+
+	revdomain (domain) {
+
+#| This function is used by the IP address to host name mapping function
+#| below, but can also be used to convert between DNS (DARPA) and NRS
+#| (UK) orderings.
+
+	# reverse the order of the subdomain levels in the domain name
+		tsift $domain in
+		([^.]).(.+)	domain=$(revdomain \2).\1 ;;
+		tfist
+		echo $domain
+	}
+
+	gethostbyaddr (ipaddrliteral) {
+		local reversed
+
+		reversed=$(revdomain $ipaddrliteral)
+		tsift $(revaddress $reversed.in-addr.arpa) in
+		.*\.in-addr\.arpa echo "[$ipaddrliteral]" ; return ;;
+		.\..*		echo \0 ; return ;;
+		.*		echo "[$ipaddrliteral]" ; return ;;
+		tfist
+	}
+elif [ x$world != x ]; then
+	echo p-smtp.cf: '$world' is defined but BIND is not available!
+	exit 1
+else
+	# Define /etc/hosts databases
+	relation -lt hostsfile -n -s 50 canon	# canonicalize hostname
+	relation -lt hostsfile -b hosts
+
+	host_neighbour (host) {
+		local a
+
+		tsift "$host" in
+		(.*)\.	a=$(hosts \1) ; break ;;
+
+#| We have to take care of the case of an anchored host name.  This is
+#| valid in DNS lookups and is used elsewhere for efficiency.
+
+		.+	a=$(hosts "$host") ;;
+		tfist
+		[ "x$a" != x ]
+
+#| The function return value is the status of this statement.
+
+	}
+fi

@@ -1,0 +1,191 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH SENDMAIL 8 "26 Oct 1996"
+.SH NAME
+sendmail \- zmailer sendmail emulation and mail submission interface
+.SH SYNOPSIS
+.B sendmail
+[
+.B \-C
+.I configfile
+]
+[
+.B \-EimqtUv
+]
+[
+.BR \-b [\fBmsdtip\fR]
+]
+[
+.BR \-B bodytype
+]
+[
+.BR \-N notify
+]
+[
+.BR \-R hdr-ret
+]
+[
+.BR \-V enVid
+]
+[
+.B \-f
+.I address
+]
+[
+.B \-F
+.I fullname
+]
+[
+.B \-r
+.I address
+]
+[
+.B \-o
+[
+.B i
+|
+.BR Q \fIpostoffice\fR
+] ]
+[
+.I address
+\&... ]
+.SH DESCRIPTION
+This
+.I sendmail
+program is an emulation of the original Sendmail interface.  It provides all
+the original options that it makes sense to support in the context of ZMailer.
+This is not intended to be the normal user interface to mail, rather it is
+used by old User Agent programs, e.g.,
+.IR Mail (1),
+to submit mail.  This mechanism has been superseded by the
+.IR zmailer (3)
+library routines as the native submission interface
+(Application Program Interface) for ZMailer.
+.PP
+The default action is to submit the RFC822 format mail message expected
+on stdin to the mailer, with the addresses listed on the command line
+as recipients.  If there are no recipient addresses specified on the
+command line, the mailer will infer them from the message header.  The
+sender is the account of the current userid, except for root where the
+preferred sender is the account of the current login session.  The message
+terminates when a period is seen by itself on a line, or at end of file on
+the input stream.
+.PP
+If the message submission fails immediately on the
+.IR mail_open (3),
+the data on stdin will be appended to a
+.B dead.letter
+file in the submitters home directory.
+.SH OPTIONS
+.IP \-bm
+asks
+.I sendmail
+to deliver mail, which it does anyway.  This option has no effect.
+.IP \-bs
+will start an SMTP server reading from stdin.  This causes the
+.IR smtpserver (8)
+program to be executed.
+.IP \-bd
+starts the
+.IR router (8)
+and
+.IR scheduler (8)
+programs to emulate Sendmail's daemon mode.
+This is \fBnot\fR a recommended method
+to start these programs, instead use
+.IR zmailer (1).
+.IP \-bt
+runs the
+.IR router (8)
+in interactive mode for testing.
+.IP \-bi
+runs
+.IR newaliases (8)
+to rebuild the alias file database.
+.IP \-bp
+runs
+.IR mailq (1)
+to print the mail transport queue status.
+.IP \-C\ \fIconfigfile\fR
+specify the
+.IR router (8)
+configuration file.
+.IP \-E
+indicates the origin of this message is an insecure channel.  This should
+be used when
+.I sendmail
+is used to submit messages coming in from outside the local machine, to avoid
+security problems during message processing.  This flag ensures the message
+will have no privileges even if the current userid is "trusted".
+.IP \-f\ \fIaddress\fR
+specify the sender address.  This is the default originator address if
+there is no
+.B From:
+header in the message.  It becomes the
+.B Sender:
+address otherwise.  In either case if the current userid is not "trusted"
+by the mailer, it is free to ignore both this option and any header information
+to ensure properly authenticated originator information.
+.IP \-F\ \fIfullname\fR
+specify the full name of the (local) sender.
+.IP \-i
+tells
+.I sendmail
+to not use a period ('.') on a line by itself as a message terminator, only
+the end of file will terminate the message.
+.IP \-m
+asks the mailer not to ignore the originator in the addressee list.  This is
+default behaviour, so this option has no effect.
+.IP \-oi
+is like \-i.
+.IP \-oQ\ \fIpostoffice\fR
+specifies an alternate
+.B POSTOFFICE
+directory.
+.IP \-q
+asks for queue processing.  This option has no effect.
+.IP \-r\ \fIaddress\fR
+is like \-f.
+.IP \-t
+scan the RFC-822 headers for recipient addresses in "To:", "Cc:",
+and "Bcc:" headers.  The "Bcc:" header will be deleted before
+processing continues.   Any addresses in the argument list will be
+ignored.
+
+In case no addresses are given in the argument list, this is the
+default operation mode.
+.IP \-v
+will report the progress of the message after it has been submitted.  The
+.I sendmail
+process will write verbose log information to the stderr stream until
+the
+.I scheduler
+deletes the message.
+.IP \-V\ \fIenvid\fR
+sets Delivery-Status-Notification parameter
+.I ENVID
+to be any arbitary [xtext] string. (Format verified!)
+.IP \-N\ \fInotify\fR
+sets Delivery-Status-Notification notify parameter to be:
+.I NEVER,
+or any combination of:
+.I SUCCESS, FAILURE, DELAY.
+.IP \-R\ \fIretmode\fR
+sets Delivery-Status-Notification parameter to be either of:
+.I FULL, HDRS.
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice (POSTOFFICE)
+.SH SEE ALSO
+zmailer(1), router(8), scheduler(8), mailq(1), newaliases(8), zmailer(3)
+.br
+RFC822
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>
+.br
+Continued maintance by:
+.br
+Matti Aarnio <mea@utu.fi>

@@ -1,0 +1,161 @@
+<sect1>zmailer(3)
+<p>
+
+<bf>Usage</bf>
+<tscreen><verb>
+#include <stdio.h>
+#include <zmailer.h>
+
+FILE *mail_open(char *);
+
+int mail_priority;
+
+int mail_abort(FILE *);
+
+int mail_close(FILE *);
+
+int mail_close_alternate(FILE *mfp, char *where, char *suffix);
+
+char *mail_alloc(unsigned int);
+
+int mail_free(char *);
+
+char *mail_host();
+
+</verb></tscreen>
+
+At linkage time use <tt>-lzmailer</tt>.
+
+<tt>mail_open()</tt> will return a <tt>FILE *</tt> to a message
+file that should be written to by the application. This
+message file contains three parts: the message envelope,
+the message header, and the message body. The exact format of
+these components depend on the message protocol,
+which must be specified as the parameter to <tt>mail_open()</tt>.
+The choices are predetermined by the capabilities of the
+mailer,	and are defined in the header file. The known
+possibilities are:
+
+<descrip>
+<tag/ <tt>MSG_RFC822</tt>/ this is the only format supported 
+by default by the mailer. The message headers and body in this format
+are defined by the DARPA Request For Comments 822 and 1123. 
+The message envelope syntax is similar to the message header syntax.
+
+<tag/ <tt>MSG_FAX</tt>/ intended for fax transmissions.
+
+<tag/ <tt>MSG_UUCP</tt>/ intended for old style UUCP format message headers
+
+<tag/ <tt>MSG_X400</tt>/ intended for X.400(88) messages.
+</descrip>
+
+The <tt>mail_open()</tt> routine will look for <tt>&dollar;FULLNAME</tt> 
+and <tt>&dollar;PRETTYLOGIN</tt> environment variables and translate 
+them into message envelope data for use by the mailer if it generates 
+a sender address header for the message.
+
+Note that the return value from the <tt>mail_open()</tt> routine
+corresponds to the return value of an <tt>fopen(3)</tt>, and similarly
+the return values from <tt>mail_abort()</tt> and <tt>mail_close()</tt> 
+correspond to the return value of <tt>fclose(3)</tt>.
+
+The <tt>mail_priority</tt> variable has a default value of 0, 
+and is used on scanning Zmailer configuration variable 
+<tt>&dollar;ROUTERDIRS</tt>, which tells alternate router directories 
+under the <tt>&dollar;POSTOFFICE</tt> directory. At value 0, 
+<tt>&dollar;ROUTERDIRS</tt> variable is not used. At higher values, 
+successive directory from <tt>&dollar;ROUTERDIRS</tt> is taken. 
+See below about Z-Environment.
+
+The <tt>mail_close_alternate(3)</tt> can be used to send currently
+open message file to some alternate destination, and is
+used at <em>smtpserver(8)</em> to send some quick-action requests
+directly to the <em>scheduler(8)</em>.
+
+The <tt>mail_alloc()</tt> and <tt>mail_free()</tt> routines are used 
+to provide memory space for internal data structures. The versions
+of these routines in the library simply call <tt>malloc(3)</tt> and
+<tt>free(3)</tt> but an application may override them if desired.
+
+Similarly the <tt>mail_host()</tt> routine is intended to return a
+unique string for each host, by default the hostname, and
+this too is intended to be overridden by an application
+that may already have this information available in some form.
+
+<bf>Envelope header lines</bf>
+
+The message envelope headers are used to carry meta-information
+about the message.  The goal is to carry transport-envelope 
+information separate from message (RFC-822) headers, and body.
+At first the message starts with a set of envelope headers 
+(*-prefix denotes optional):
+
+<tscreen><verb>
+ *external \n
+ *rcvdfrom %s@%s (%s) \n
+ *bodytype %s \n
+ *with %s \n
+ *identinfo %s \n
+</verb></tscreen>
+ Either: <tt>from %lt;&percnt;s&gt; &bsol;n</tt> Or: <tt>channel error &bsol;n</tt>
+<tscreen><verb>
+ *envid %s \n
+ *notaryret %s \n
+</verb></tscreen>
+
+Then for each recipient pairs of:
+<tscreen><verb>
+ *todsn [NOTIFY=...] [ORCPT=...] \n
+ to <%s> \n
+</verb></tscreen>
+
+Just before the data starts, a magic entry:
+<tscreen><verb>
+ env-end \n
+</verb></tscreen>
+
+Then starts the message RFC-822 headers, and below it, the body.
+
+<bf>Example</bf>
+
+<tscreen><verb>
+ ... set up signal handlers ...
+ FILE *mfp = mail_open(MSG_RFC822,0);
+ if (mfp != NULL) {
+      ... output the mail message to mfp ...
+ } else
+      ... error handling for not being able to open the file ...
+ if (some application processing went wrong
+	   || we took an interrupt)
+      (void) mail_abort(mfp);
+ else if (mail_close(mfp) == EOF)
+      ... error handling if something went wrong ...
+</verb></tscreen>
+
+<bf>Environment variables</bf>
+
+<descrip>
+
+<tag/ <tt>&dollar;FULLNAME</tt>/ variable defines textual fullname, 
+for example: ``Sample User''
+
+<tag/ <tt>&dollar;PRETTYLOGIN</tt>/ variable defines 
+<tt>user&commat;node</tt> format of what user wants to claim as 
+his/her own address (it must match those of mail router accepts.)
+</descrip>
+
+<bf>Z-environment variables</bf
+
+<descrip>
+
+<tag/ <tt>&dollar;POSTOFFICE</tt>/ defines the directory where all 
+&dollar;POSTOFFICE functions are. 
+Example: <tt>&dollar;POSTOFFICE=/var/spool/postoffice/</tt>
+
+<tag/ <tt>&dollar;ROUTERDIRS</tt>/ defines a `:' separated list of alternate 
+router directories. If these are defined at all, they must exist, 
+if alternate queueing priority mechanism is desired to be used. 
+
+Example: <tt>&dollar;ROUTERDIRS=router1:router2:router3:router4</tt>
+</descrip>
+

@@ -1,0 +1,489 @@
+# Expansion of the local-part of a locally delivered address is done here.
+#
+# We check (in order):
+#
+#	$FORCEPUNT -- if defined, route to: user@$FORCEPUNT
+#	":include:" or "|" or "/" prefix
+#	aliases file entry (mapping to a list of addresses)
+#	mboxmap file entry (mapping to a host!homedir!user value)
+#	$MAILVAR/lists directory entry (mapping to a list of addresses)
+#	-request or -owner suffix (mapping to owner of mailing list file)
+#	$PUNTHOST (mapping to user@$PUNTHOST)
+#	$forward  file entry (mapping to a list of addresses)
+#
+# If we get all the way through, we give up.  Note that if PUNTHOST is
+# defined, then the mboxmap mechanism should be used to ensure local delivery
+# for local users.
+
+#
+#  I kept typing in this trace command so frequently, that eventually
+#  I just had to make for it into a single command... /Matti Aarnio
+#
+
+rtrace () {
+	trace all except rfc822 regexp
+}
+
+provide aliases
+
+#
+# Define the 'Sendmail-like' aliases database
+# 
+
+if [ -f $MAILVAR/db/aliases ]; then
+	# Need to be updated at boot ?
+	if [ ! -f $MAILVAR/db/aliases$DBEXTtest -o \
+	     $MAILVAR/db/aliases -nt $MAILVAR/db/aliases$DBEXTtest ]; then
+		# Yes, so update!
+		$MAILBIN/zmailer newaliases
+	fi
+	relation -lmt $DBTYPE -f $MAILVAR/db/aliases$DBEXT aliases
+else
+	aliases () { return 1 }
+fi
+
+# If the 'm' option was NOT specified on the aliases relation,
+# presumably whatever creates new aliases will poke us (using SIGURG).
+
+trap "db flush aliases ; log flushed aliases" 16
+
+# If an mboxmap file exists, only users specified in the mboxmap are
+# recognized, and we want to deliver to them on the host, home directory
+# filesystem, and filename, specified as the value in the mboxmap DB.
+# The key->value mapping looks like this:
+#	<name> <$hostname:$MAILBOX:$name>
+# The mboxmap file is in MAILSHARE because it is identical for all machines
+# in the cluster.
+
+if [ -f $MAILSHARE/db/mboxmap ]; then
+	relation -lmt ordered -f $MAILSHARE/db/mboxmap mboxmap
+	POBOX=PObox	# becomes $HOME/../PObox/$USER
+else
+	mboxmap () { return 1 }
+	POBOX=''
+fi
+
+#
+# Map containing accounts that have expired, we return
+# a special error report on them.
+#
+if [ -f $MAILVAR/db/expiredaccts.pag ]; then
+       relation -lmt ndbm -f $MAILVAR/db/expiredaccts expired
+else
+       expired () { return 1 }
+fi
+
+
+
+# Usage: routeuser (channel host user attributes)
+#
+# This is where local alias expansion is controlled.
+
+routeuser (quad, domain) {
+	local chan user host lcuser mxh al a l
+	local key attr pobox didexpand nattr homedir
+	local plustail plustail2 forward
+
+
+	plustail=""
+	plustail2=""
+	attr="$(attributes $quad)"
+	chan="$(channel $quad)"
+	
+	case "$(get $attr type)" in
+	sender)	return (($quad)) ;;
+	esac
+
+	# get rid of the attribute tag for alias loop prevention
+	a=$quad
+	#mxh=$(setf $(last $a) ())
+
+	# For the expansions control tag we can use only
+	# the 'channel',  and the 'username' strings, we CAN'T
+	# use 'attributes' element, because .forward recursion
+	# will have subsequently DIFFERENT values for it.
+
+	key="$(channel $quad)$(user $quad)"
+	didexpand=$(expansions "$key")
+
+	al=()
+
+	case "$(channel $quad)" in
+	#smtp)	mxh=$(mxhosts $(host $quad).)
+	#	user="$(user $quad)"
+	#	attr="$(attributes $quad)"
+	#	case $#mxh in
+	#	[1-9]*)	# make the XOR list
+	#		for host in $(elements $mxh)
+	#		do
+	#			case $#al in
+	#			0)	al=$(rrouter "$address" "$address" $attr) ;;
+	#			*)	set $(cdr $(last $al)) \
+	#				    (((smtp "$host" "$user" $attr))) ;;
+	#			esac
+	#		done
+	#		return $al
+	#		#a=((x) (smtp '$x' "$(user $quad)" $attr))
+	#		#mapcar $a $mxhosts
+	#		;;
+	#	esac
+	#	;;
+	local)	;;	# this is the normal case, below
+	*)	return (($quad))
+		;;
+	esac
+
+	user="$(condquote "$(user $quad)")"
+	host="$(condquote "$(host $quad)")"
+
+# echo "routeuser: host=$host, user=$user" >> /dev/tty
+
+	[ -n "$FORCEPUNT" ] &&
+		return $(rrouter "$user@$FORCEPUNT" "$host" $attr)
+
+	[ -z "$didexpand" ] &&
+	ssift "$user" in
+	:include:(.+)
+		db add expansions "$key" file
+		priv=$(get $attr privilege)
+		[ -f "\1" ] &&
+		 priv=$(getpriv "644" $priv "\1" include) &&
+		  nattr=$(newattribute $attr privilege $priv) &&
+		   defer=''
+		return $(listexpand -E "postmaster" -e root -p $priv	\
+				    -c ":include:\1 file expansion"	\
+				    "$nattr" "\1" "$host" < "\1")
+		;;
+
+#	# This following requires ZM 2.99.46+ shell language!
+#	# The single/double quotes are paired, and ignored while
+#	# scanning the selector pattern.  If a quote is needed,
+#	# try following mapping:
+#	# left is input, right is result:  '"pat'"'" -> "pat'
+#	# That is, to produce a double quote, code: '"',
+#	# and for single quote, code: "'"
+#	# Here we have SPACE and TAB in this pattern!
+#	'[^"]*[ 	][^"]*'
+#		# If the $user had no quotes on it, we add them here!
+#		if [ "$(dequote "$user")" = "$user" ]; then
+#			user="\"$user\""
+#		fi
+#		;;
+	[|/].*	return (($quad))
+		;;
+	tfiss
+
+#	alias expansion
+	[ -z "$didexpand" ] &&
+	     a="$(aliases "$user")" &&
+		db add expansions "$key" alias &&
+		priv=$(filepriv -M 644 $MAILVAR/db/aliases \
+					$(db owner aliases)) &&
+		nattr=$(newattribute $attr privilege $priv) &&
+		return $(echo "$a" | listexpand -e root \
+						-c 'alias expansion' \
+						-N - \
+						"$nattr" "$a" "$host")
+
+	# Listed in 'expired accounts' database ?
+	[ -z "$PUNTHOST" ] && [ -z "$didexpand" ] &&
+	    a=$(expired "$user") &&
+		db add expansions "$key" expired &&
+		return (((error acctexpired "$user" $attr)))
+
+	pobox="$(mboxmap "$user")" &&
+	tsift "$pobox" in
+	([^:]+):([^:]+):(.+)
+			if [ "\1" != $hostname ]; then
+				db add expansions "$key" mboxmap
+				return (((smtp "\1" "$user@\1" $attr)))
+			fi
+			user="\3"	# this is also good for .forward stuff
+			pobox="\2/$POBOX/\3"
+			break
+			;;
+	.+		return (((error database "$user" $attr)))
+			;;
+	tfist
+
+	priv=$(get $attr privilege)
+
+	# check in the mailing list directory
+	lcuser="$(recase -l "$user")"
+
+	l="$preowner$lcuser$postowner@$mydomain"
+#	a="$MAILVAR/listrun/$lcuser"
+#	[ -z "$didexpand" ] && [ -f "$a" ] &&
+#	    db add expansions "$key" list &&
+#	      priv=$(getpriv "644" $priv "$a" maillist) &&
+#	        return $(listaddresses	-E "$l" -e "$l"	\
+#					-c "$a file expansion" < "$a" |
+#		         maprrouter $(newattribute $attr privilege $priv \
+#					sender "$l") "$a" "$host")
+
+	a="$MAILVAR/lists/$lcuser"
+	nattr=()
+	#l="$preowner$lcuser$postowner@$mydomain"
+	[ -z "$didexpand" ] && [ -f "$a" ] &&
+	  db add expansions "$key" list &&
+	    priv=$(getpriv "664" $priv "$a" maillist) &&
+	      nattr=$(newattribute $attr privilege $priv sender "$l") &&
+		return $(listexpand -E "$l" -e "$l" -p $priv		\
+				    -c "$a file expansion"		\
+				    "$nattr"  "$a" "$host" < "$a")
+
+	a="$MAILVAR/modlists/$lcuser"
+# /bin/ls -lL "$a"
+	# WARNING: THIS SHOULD USE  $(listexpand ...) FACILITY !
+	if [ -n "$didexpand" ] && [ -f "$a" ] &&
+	   db add expansions "$key" list ; then
+		priv=$(getpriv "664" $priv "$a" maillist)
+		case "$lcuser" in
+		*-mod)
+			l="$preowner$(basename "$lcuser" -mod)$postowner"
+			# echo "$l exists!" >> /dev/tty
+			return $(listaddresses	-E "$l@$mydomain"	\
+						-e "$l"			\
+						-c "$a file expansion" < "$a" |
+				maprrouter $(newattribute $attr		\
+					      privilege $priv		\
+					      sender "$l") "$a" "$host")
+			;;
+		esac
+	fi
+
+	# turn *-owner and *-request into the owner of a mailing list file
+	# turn *-group into members listed in /etc/groups
+	ssift "$lcuser" in
+	(.+)-owner
+		a="$MAILVAR/lists/\1"
+		[ -f "$a" ] &&
+		 return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
+					 "$host" $attr)
+		break
+		;;
+	owner-(.+)
+		a="$MAILVAR/lists/\1"
+		[ -f "$a" ] &&
+		 return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
+					 "$host" $attr)
+		break
+		;;
+	(.+)-request
+		a="$MAILVAR/lists/\1"
+		[ -f "$a" ] &&
+		 return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
+					 "$host" $attr)
+		break
+		;;
+	(.*)-group
+		[ -z "$didexpand" ] &&
+		  a="$(groupmembers "\1")" &&
+		  db add expansions "$key" list &&
+		  return $(echo $a |
+			   listaddresses -e postmaster -c "$lcuser expansion" |
+			   maprrouter $(newattribute $attr sender postmaster) \
+					"$lcuser" "$host")
+		;;
+	tfiss
+
+
+#	only allow .forward file reading if privs allow it
+
+	homedir="$(homedirectory "$user")" || [ -z "$didexpand" ] &&
+	ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
+	(.+)\+.+
+		# Try expanding 'user+', and then plain 'user'
+		didexpand=$(expansions "$(channel $quad)\1+") &&
+			return () # Return empty -- plusfull was expanded!
+		a="$(aliases "\1+")" &&
+		  db add expansions "$key" alias &&
+		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
+					  $(db owner aliases)) &&
+		  nattr=$(newattribute $attr privilege $priv) &&
+		  return $(echo "$a" | listexpand -e root \
+						  -c 'alias expansion' \
+						  -N - \
+						  "$nattr" "$a" "$host")
+		# For a "user+" there is no homedirectory, try plusless below
+		;;
+	(.+)\+(.*)
+		# It was 'user+', try now plain 'user' for
+		# aliases, and .forward
+		didexpand=$(expansions "$(channel $quad)\1") &&
+			return () # Return empty -- plusless was expanded!
+		a="$(aliases "\1")" &&
+		  db add expansions "$key" alias &&
+		  priv=$(filepriv -M 644 $MAILVAR/db/aliases \
+					  $(db owner aliases)) &&
+		  nattr=$(newattribute $attr privilege $priv) &&
+		  return $(echo "$a" | listexpand -e root \
+						  -c 'alias expansion' \
+						  -N - \
+						  "$nattr" "$a" "$host")
+		plustail2="+\2"
+		pobox="$(mboxmap "\1")" &&
+		  tsift "$pobox" in
+		  ([^:]+):([^:]+):(.+)
+			if [ "\1" != $hostname ]; then
+				db add expansions "$key" mboxmap
+				return (((smtp "\1" "$user@\1" $attr)))
+			fi
+			plustail="$plustail2"
+			user="\3"	# this is also good for .forward stuff
+			pobox="\2/$POBOX/\3"
+			break
+			;;
+		  .+	return (((error database "$user" $attr)))
+			;;
+		  tfist
+
+		homedir="$(homedirectory "\1")"
+		;;
+	tfiss
+
+	forward="$homedir/.forward"
+
+	case "$(get $attr type)" in
+	expandsender)	[ -f "$forward" ] && return (($quad))
+			;;
+	esac
+
+	priv=$(get $attr privilege)
+
+	[ -z "$PUNTHOST" ] && [ -z "$didexpand" ] && [ -n "$homedir" ] &&
+	[ -f "$forward" ] &&
+		db add expansions "$key" user &&
+		priv=$(getpriv "644" $priv "$forward" .forward) &&
+		return $(listaddresses -e "$user" -c "$forward .forward expansion" < "$forward" | \
+			 maprrouter $(newattribute $attr privilege $priv) \
+					"$forward" "$host")
+
+	# local user with no alias and no .forward file
+
+	if [ -n "$pobox" ]; then
+		db add expansions "$key" pobox
+		priv=$(login2uid "$user")
+		return (((local "pob:$user" "$pobox$plustail$domain" $(newattribute $attr privilege $priv))))
+	fi
+
+
+	# oh well... give up, and sent to the PUNTHOST
+	if [ -n "$PUNTHOST" ]; then
+		return $(rrouter "$user$plustail"@$PUNTHOST "$host" $attr "$domain")
+	elif [ -n "$didexpand" ]; then
+		case $(expansions "$key") in
+		user|alias)
+			db add expansions "$key" other ;;
+		*)	# the address just disappears... we've got it already
+			#log expansion "$(expansions "$key"):"
+			#return ()
+			return (((bitbucket - - -)))
+			;;
+		esac
+	fi
+
+	case "$user" in
+	uid#*)	return $(rrouter postmaster "$host" $attr "$domain")
+		;;
+	esac
+
+
+	case x$POBOX in
+	x)	db add expansions "$key" local
+		if [ -z "$localdoesdomain" ]; then
+			domain=""
+		fi
+		quad=($chan $host "$user$plustail$domain" $attr)
+		return (($quad))
+		;;
+	esac
+
+	return (((error err.nosuchuser "$user$plustail$domain" $attr)))
+}
+
+# Usage: getpriv <maxperm> <present privilege> <filename> <filename type>
+#
+# Determine the privileges associated with addresses coming from the filename.
+# The type value is one of .forward, maillist, or include.  Setting
+# private='' ensures that noone can access (modulo a small window) information
+# through the mailer (e.g., by sending mail to addresses taken from a
+# protected file and waiting excitedly for the informative bounce messages)
+# that they couldn't access otherwise.  If private='.forward maillist' then
+# people stop complainig about the former behaviour...
+
+getpriv (maxperm, priv, file, type) {
+#echo "getpriv($maxperm, $priv, $file, $type)" > /dev/tty
+	for ptype in $private
+	do
+		if [ $type = $ptype ]; then
+			filepriv -M $maxperm "$file"
+			return $?
+		fi
+	done
+	runas $priv filepriv -M $maxperm "$file"
+}
+
+# Usage: newattribute <oldattribute> <key1> <value1> [ <key2> <value2> ] ...
+#
+# Returns a new attribute list symbol with the <keyN> <valueN>
+# attributes added to the contents of the <oldattribute> list.
+
+newattribute (oldattribute) {
+	local a null value
+#echo "newattribute(old=$oldattribute,args=$*)" > /dev/tty
+	a=$(gensym)
+	eval $a=\$$oldattribute
+	while [ "$#" != 0 ];
+	do
+		value=$(get $a "$1")
+		if [ x"$value" != x"$2" ]; then
+			null=$(setf $(get $a "$1") "$2")
+		fi
+		shift ; shift
+	done
+	echo "$a"
+}
+
+# Usage: maprrouter <newattributes> <what-is-being-expanded> <what-it-was>
+#
+# This function applies the rrouter function to each address read from
+# stdin, passing the <newattributes> parameter.  In case of error, the
+# localpart parameter is used as appropriate descriptive text.  The
+# return value is the concatenation of the return values of the rrouter
+# invocations.
+
+maprrouter (attribute, localpart, origaddr) {
+	local shh al
+
+	al=()
+	while read address
+	do
+		case "$address" in
+		'')	case $#al in
+			0)	al=(((error expansion "$localpart"))) ;;
+			*)	shh=(((error expansion "$localpart")))
+				shh=$(setf $(cdr $(last $al)) $shh)
+				;;
+			esac
+			continue
+			;;
+		esac
+
+		defer=''
+		case $#al in
+		0)	al=$(rrouter "$address" "$origaddr" $attribute)
+			[ "$defer" ] &&
+			    shh=(((hold "$defer" "$address" $attribute)))
+			defer=''
+			;;
+		*)	shh=$(rrouter "$address" "$origaddr" $attribute)
+			[ "$defer" ] &&
+			    shh=(((hold "$defer" "$address" $attribute)))
+			defer=''
+			shh=$(setf $(cdr $(last $al)) $shh)
+			;;
+		esac
+	done
+	return $al
+}

@@ -1,0 +1,39 @@
+================= file doc/guides/zmsh ====================================
+Internal functions
+ 
+relation                - create db
+db                      - db manipulation
+trace
+untrace
+hostname
+sender
+recipient
+erraddron
+channel
+host
+user
+attributes
+stability
+daemon
+process
+rfc822
+groupmembers
+printaliases
+listaddresses
+listexpand
+homedirectory
+rfc822date
+filepriv
+runas
+gensym
+uid2login
+login2uid
+basename
+recase
+squirrel
+rfc822syntax
+malcontents             - if defined(XMEM) && defined(CSRIMALLOC)
+
+====================== end file ===========================================
+-= Igor S Chencov system administrator    =-
+-= E-mail chs@sevmash.ru                  =-

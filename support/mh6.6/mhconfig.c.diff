@@ -1,0 +1,13 @@
+*** mhconfig.c.orig	Wed Sep 23 21:58:36 1987
+--- mhconfig.c	Mon Jan 25 02:49:01 1988
+***************
+*** 86,91 ****
+--- 86,93 ----
+      "mh", "MHMTS", mh, NOFLAGS,
+      "sendmail", "SENDMTS", sendmail, NOMF,
+      "sendmail/smtp", "SENDMTS SMTP", sendmail, NOMF,
++     "zmailer", "ZMAILER SENDMTS", sendmail, NOMF,
++     "zmailer/smtp", "ZMAILER SENDMTS SMTP", sendmail, NOMF,
+      NULL, NULL, unknown, NOFLAGS
+  };
+  

@@ -1,0 +1,43 @@
+##
+##  Sample aliases -file for the ZMailer
+##
+
+postmaster: root
+postoffice: root
+MAILER-DAEMON: root
+mailer:     postmaster
+postmast:   postmaster
+
+proto:	postmaster
+sync:	postmaster
+sys:	postmaster
+daemon: postmaster
+bin:	postmaster
+uucp:	postmaster
+ingress: postmaster
+audit:	postmaster
+
+autoanswer: "|@MAILBIN@/autoanswer.pl"
+
+nobody: /dev/null
+no-one: /dev/null
+junk-trap: /dev/null
+
+#test-gw: "|/..."
+#test.gw: "|/..."
+
+##
+##  Doing expansion lists in sendmail -style is NOT suggested, although
+##  we certainly can do it!  There is a better mechanism in the ZMailer
+##  to handle simple feats like these that sendmail -systems do by placeing
+##  the file containing recipient addresses into directory  $MAILVAR/lists/
+##  (directory must have protection of 2775 or stricter, and the listfile
+##   must have protection of 664 or stricter for *-request/owner-*/*-owner
+##   auto-aliases to work!) -- but to sendmail style lists:
+##
+
+listname: "/usr/lib/sendmail -fowner-listname listname-dist"
+owner-listname: root # Well, what would you suggest for a sample ?
+listname-owner: owner-listname
+listname-request: root
+listname-dist: ":include:/dev/null"

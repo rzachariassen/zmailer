@@ -1,0 +1,39 @@
+
+# Makefile for Texinfo to nroff/troff translator (texi2roff)
+
+CC = cc
+
+# Flags:
+# -DBSD controls use of string(s).h and strchr/index only (not needed for Sun)
+# use -Dvoid=int for System III and V7
+
+# problems have been reported for -O with Sun4's, SunOS 4.0.1
+CFLAGS = -g
+
+OBJECTS = texi2roff.o table.o translate.o items.o
+
+texi2roff: $(OBJECTS)
+	$(CC) -o $@ $(CFLAGS) $(OBJECTS)
+
+texi2roff.o : texi2roff.h
+
+translate.o : texi2roff.h 
+
+table.o : texi2roff.h tablems.h tablemm.h tableme.h 
+
+items.o: texi2roff.h
+
+lint:
+	lint -ha *.c
+clean:
+	-rm -f *.o core errs
+
+bundle:
+	bundle texi2roff.1 Readme copyright Makefile texi2index *.c >bundled.01
+	ls -l bundled.01
+	bundle *.h >bundled.02
+	ls -l bundled.02
+
+shar:
+	bundle texi2roff.1 Readme copyright Makefile texi2index *.[ch] \
+		| compress >texi2roff.shar.Z

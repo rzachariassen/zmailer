@@ -1,0 +1,27 @@
+#! /bin/sh -
+
+ZCONFIG=@ZMAILERCFGFILE@
+. $ZCONFIG
+
+cd $POSTOFFICE/transport || exit 1
+trap "rm -f /tmp/cancel$$" 0 1 2 15
+for msgid
+do
+	if [ ! -f $msgid ]; then
+		echo $0: message $msgid is not queued
+		continue
+	fi
+	awk '/^l / { print substr($0,3) ; exit }' < $msgid >> /tmp/cancel$$
+done
+if [ -s /tmp/cancel$$ ]; then
+	( echo "To: /dev/null
+Subject: cancel message(s) $@
+Cc: postmaster" ; sed -e 's/^/Obsoletes: /' < /tmp/cancel$$ ; echo '
+
+') | $SENDMAILPATH -t
+	echo "Submitted cancel message for:
+"
+	sed -e 's/^/	/' < /tmp/cancel$$
+else
+	echo "No messages cancelled"
+fi

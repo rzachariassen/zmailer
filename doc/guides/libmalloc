@@ -1,0 +1,25 @@
+Compiling with libmalloc:
+
+Make sure 'malloc' is in the dependency list for router, scheduler, and zmsh
+in the Dependencies file.
+
+Go into the libmalloc directory and run 'make' to create libmalloc_d.a.
+Then run 'make' in the toplevel directory.
+
+In SunOS 4.1[.1], there is a bug in the localtime.o file in the C library;
+it stomps on a byte beyond what has been allocated.  If you have source,
+a patch is to change line 202 of localtime.c to:
+
+	sp->chars = (char *)calloc((unsigned)sp->charcnt + 1,
+
+If you don't fix this somehow (e.g. in the source, by leaning on vendor,
+or by redefining calloc() to always return an extra byte), the debugging
+malloc will complain.
+
+The XFER define (in DEFS in the Config file) will enable the 'm' option in
+the router.  It takes a filename argument, and writes a trace of malloc
+activity to the named file.
+
+The MALLOC_TRACE define enables code in the malloc library to stash the
+location of various function calls (which indirectly affect the heap).
+This information will appear on stderr (for router, the log file).

@@ -1,0 +1,93 @@
+.\" $Header$
+.ds ]W ZMailer 2.0
+.TH RMAIL 1 "2 June 1990"
+.SH NAME
+rmail \- zmailer program to process incoming uucp mail
+.SH SYNOPSIS
+.B rmail
+[
+.B \-d
+]
+[
+.B \-h
+.I somewhere
+]
+.I recipient...
+.SH DESCRIPTION
+.I rmail
+is usually invoked by a remote UUCP neighbour host's mailer using a command line
+like:
+.sp
+.ta 0.5i
+.nf
+	uux - -r -a\fIsender\fR -gC \fIthishost\fR!rmail (\fIrecipient1\fR) (\fIrecipient2\fR) ...
+.fi
+.sp
+The end result is the remote neighbour's
+.IR uuxqt (8)
+runs
+.I rmail
+on
+.I thishost
+with this command line:
+.sp
+.nf
+	rmail \fIrecipient1\fR \fIrecipient2\fR ...
+.fi
+.sp
+In both cases, a UUCP format mail message is on the standard input.
+.PP
+The task of
+.I rmail
+is to transform the trace information in the UUCP format message to the
+equivalent RFC822 trace information, and to submit the message to the
+.IR zmailer (1)
+router with the appropriate envelope information.
+.PP
+The expected input format looks like:
+.sp
+.nf
+	\fBFrom\fR \fIaddress3\fR  \fIdate3\fR \fBremote from\fR \fIhost3\fR
+	\fB>From\fR \fIaddress2\fR  \fIdate2\fR \fBremote from\fR \fIhost2\fR
+	\fB>From\fR \fIaddress1\fR  \fIdate1\fR \fBremote from\fR \fIhost1\fR
+.fi
+.sp
+followed by the rest of the message.  This is considered equivalent to
+the following (as it might appear in a mailbox):
+.sp
+.nf
+	\fBFrom\fR \fIhost3\fR!\fIhost2\fR!\fIhost1\fR!\fIaddress1\fR \fIdate\fR
+	\fBReceived: by \fIhost3\fR ... ; \fIdate3\fR
+	\fBReceived: by \fIhost2\fR ... ; \fIdate2\fR
+	\fBReceived: by \fIhost1\fR ... ; \fIdate1\fR
+.fi
+.sp
+.PP
+In order for the mailer to process the incoming message properly,
+.I rmail
+must be run by a userid which the
+.IR router (1)
+will accept forged mail from.  This is normally the
+.B uucp
+account id.
+.SH OPTIONS
+.IP \-d
+turns on debugging output.
+.IP \-h\ \fIsomewhere\fR
+will use the argument as the default remote UUCP host name to use if there is
+no "\fBremote from\fR \fIhost\fR" tag in the first From-space line in the
+message.  The default value for this is usually
+.B somewhere
+or
+.B uunet
+(since uunet was a frequent purveyor of this protocol violation).
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice (POSTOFFICE)
+.SH SEE ALSO
+zmailer(1), router(1)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>

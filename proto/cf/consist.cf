@@ -1,0 +1,40 @@
+# A simple module dependancy system used to partially check the consistency
+# of the loaded router configuration.  Any other .cf file should contain
+# a call to 'require' and/or 'provide', as appropriate.  At the end of the
+# load phase, the 'consist' function should be called with no arguments.
+# If any cf facility (module, file, whatever) required hasn't been provided,
+# the router will exit with an appropriate message.  This file should be
+# the first to be loaded.
+
+unset require
+unset provide
+
+declare (plist, modules) {
+	local a
+	for m in $modules
+	do
+		a=$(setf $(get $plist $m) $m)
+	done
+}
+
+require (modules) { declare require $modules }
+provide (module) { declare provide $module }
+
+consist () {
+	local rval
+
+	rval=0
+	while [ $#require -gt 0 ];
+	do
+		want=$(car $require)
+		if [ -n "$(get provide $want)" ]; then
+			:
+		else
+			echo $0: $want not provided
+			rval=1
+		fi
+		require=$(cdr $(cdr $require))
+	done
+	return $rval
+}
+

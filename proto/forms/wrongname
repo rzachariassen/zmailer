@@ -1,0 +1,15 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Invalid domain name
+
+Your message arrived with an address that made reference to a domain
+called "utoronto" or "utoronto.edu" or "toronto.ca", which does not exist.
+All domains within the University of Toronto are registered officially
+within both:
+
+	utoronto.ca
+and
+	toronto.edu
+
+You may try restating the offending addresses using one of these domains.
+

@@ -1,0 +1,13 @@
+#
+# FQDN-aliases -file
+#
+# Left side: FQDN-form of some address, Right side: rewritten form
+#
+# This map tried BEFORE the address is fed even to tests wether or not
+# the address is local or not!
+#
+# Refreshing this mapping is done with program  MAILBIN/newfqdnaliases
+# (no way to call it via some non-MAILBIN program..)
+#
+
+#matti.aarnio@utu.fi: matti.aarnio@tele.fi

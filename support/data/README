@@ -1,0 +1,8 @@
+This directory contains Data files that may be of some help to people writing
+mailer configurations.  They are:
+
+
+iso.8859		ISO 8859 Latin 1 codes
+iso.alpha2		ISO 3166 Alpha 2 codes and corresponding countries
+iso.alpha3		ISO 3166 Alpha 3 codes and corresponding countries
+iso.numeric		ISO 3166 Numeric codes and corresponding countries

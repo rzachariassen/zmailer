@@ -1,0 +1,98 @@
+*** smtpserver.c.orig	Thu Feb  6 12:58:38 1997
+--- smtpserver.c	Wed Feb 19 11:19:23 1997
+***************
+*** 30,35 ****
+--- 30,36 ----
+  #define	ROUTER_SERVER	"server"	/* name of portal function */
+  
+  #define	RKEY_INIT	"init"		/* initialize state of server */
++ #define	RKEY_HELLO	"hello"		/* connection from a client */
+  #define	RKEY_FROM	"from"		/* mail from address verification */
+  #define	RKEY_TO		"to"		/* recipient to address verification */
+  #define	RKEY_VERIFY	"verify"	/* verify this address */
+***************
+*** 739,745 ****
+  	      } else
+  		close(msgfd);
+  	    }
+! 	  }
+  #else	/* !USE_INET */
+  
+  	fprintf(stderr,
+--- 740,746 ----
+  	      } else
+  		close(msgfd);
+  	    }
+! 	  } /* if (inetd) */
+  #else	/* !USE_INET */
+  
+  	fprintf(stderr,
+***************
+*** 1075,1080 ****
+--- 1076,1101 ----
+  	    type(501, NULL, "Sorry, access denied.");
+  	  return;
+  	}
++ 	{ char *s=NULL;
++ 	if (STYLE(cfinfo, 'h')) {
++ 	  char argbuf[MAXHOSTNAMELEN+30];
++ 	  sprintf(argbuf,"%s %s",rhostname,
++ 		ihostaddr&&(ihostaddr[0]!='\0')?ihostaddr:"[0.0.0.0]");
++ 	  if ((s = router(RKEY_HELLO, 1, argbuf)) == NULL)
++ 	    /* the error was printed in router() */
++ 	    return;
++ 	  if (atoi(s) / 100 != 2) {
++ 	    /* verification failed */
++ 	    type(atoi(s), s+4, "Failed", "Failed");
++ 	    free(s);
++ 	    return;
++ 	  }
++ 	  else {
++ 	    type(-atoi(s), s+4, "Ok", "Ok");
++ 	    free(s);
++ 	  }
++ 	}
++ 	}
+  	/* Check helobuf corresponds to the reverse address */
+  	if (skeptical && ihostaddr[0] != '\0'
+  	    && rhostname[0] != '\0' && rhostname[0] != '['
+***************
+*** 2207,2214 ****
+  		return;
+  	    default:
+  		break;
+! 	  }
+! 	}
+  	if (mfp != NULL)
+  	  mail_abort(mfp);
+  	reporterr(lseek(0,(off_t)0,SEEK_CUR), "session terminated");
+--- 2228,2235 ----
+  		return;
+  	    default:
+  		break;
+! 	  } /* case */
+! 	} /* while (1) */
+  	if (mfp != NULL)
+  	  mail_abort(mfp);
+  	reporterr(lseek(0,(off_t)0,SEEK_CUR), "session terminated");
+***************
+*** 2690,2698 ****
+  	    free(prevb);
+  	  }
+  	  prevb = bufp;
+! 	}
+  
+! 	if (!holdlast) {
+  	  /* -------- Print the last line too -------- */
+  	  if (strlen(prevb) > 4 &&
+  	      isdigit(prevb[0]) && isdigit(prevb[1]) && isdigit(prevb[2])
+--- 2711,2719 ----
+  	    free(prevb);
+  	  }
+  	  prevb = bufp;
+! 	} /* for (;;) */
+  
+! 	if (!holdlast && prevb) {
+  	  /* -------- Print the last line too -------- */
+  	  if (strlen(prevb) > 4 &&
+  	      isdigit(prevb[0]) && isdigit(prevb[1]) && isdigit(prevb[2])

@@ -1,0 +1,10 @@
+LIBS=../../libc/libc.a -llocal
+INC = -I../../include
+CFLAGS=$(INC) -g
+LINTFLAGS = $(INC)
+
+mhsend:	mhsend.o
+	cc $(CFLAGS) -o $@ $? $(LIBS)
+
+lint:	mhsend.c
+	lint $(LINTFLAGS) $?

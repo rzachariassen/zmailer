@@ -1,0 +1,20 @@
+A simple network locking daemon that uses flock. The client code to
+communicate with the daemon is in the nfslock(3) routine.
+
+We install it in /local/etc -- if you wish to change that, change
+the Makefiles and the following instructions suitably.
+
+You should add the following line to /etc/services so nfslock
+can get the service port by name.
+
+flock		3876/tcp			# NFS flock
+
+If you have a BSD4.3/SunOS4.0/Ultrix system with an /etc/inetd.conf file,
+then add the following line to that file on the machines that run in.rlockd:
+
+flock	stream	tcp	nowait	root	/local/etc/in.rlockd	in.rlockd
+
+If you have a BSD4.2/SunOS3.5 system, with an /etc/servers file, then
+add the following line to that file on the machines that run in.rlockd
+
+flock   tcp     /local/etc/in.rlockd

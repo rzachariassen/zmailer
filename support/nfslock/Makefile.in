@@ -1,0 +1,19 @@
+DESTDIR=/local/lib
+CFLAGS=-O -I../../include
+MANEXT=3
+MANDIR=		/usr/local/man
+INSTALL=	/usr/ucb/install
+
+all: libnfslock.a
+
+libnfslock.a: nfslock.o hostent.o
+	ar cr libnfslock.a nfslock.o hostent.o
+	ranlib libnfslock.a
+
+install: all
+	$(INSTALL) -m 755 libnfslock.a $(DESTDIR)/
+	ranlib -t $(DESTDIR)/libnfslock.a
+	$(INSTALL) -c -m 0444 nfslock.man $(MANDIR)/nfslock.$(MANEXT)
+
+clean:
+	rm -f *.[ao] make.log *~ \#*

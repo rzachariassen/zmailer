@@ -1,0 +1,14 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Invalid local real name - or invalid newsgroup
+
+In the following message, it appears from the format of certain
+addresses that you have attempted to send a message to somebodys
+"Real.Name", or alternatively to an USENET newsgroup.
+
+Unfortunately both lookups have failed.  fullnames -database didn't
+contain attempted  Real.Name, nor our copy of active newsgroups 
+database did have such a newsgroup.
+
+It is a common mistake to write address alike:   user.host.domain
+when you REALLY wanted it to be:                 user@host.domain

@@ -1,0 +1,583 @@
+/*
+ *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
+ *	This will be free software, but only when it is finished.
+ */
+
+#include "hostenv.h"
+#include "mailer.h"
+
+#include "prototypes.h"
+
+conscell **return_valuep = NULL;
+conscell *s_value        = NULL ;
+
+int
+l_apply(fname, l)
+	const char *fname;
+	conscell *l;
+{
+	int retval;
+	conscell *retvp = NULL;
+	conscell **oretvp = return_valuep;
+
+	return_valuep = &retvp;
+
+	retval = lapply(fname, l);
+	s_value = retvp;
+
+	return_valuep = oretvp;
+	return retval;
+}
+
+
+int
+s_apply(argc, argv)
+	int argc;
+	const char *argv[];
+{
+	int retval;
+	conscell *retvp = NULL;
+	conscell **oretvp = return_valuep;
+
+	return_valuep = &retvp;
+
+	retval = apply(argc, argv);
+	s_value = retvp;
+	return_valuep = oretvp;
+	return retval;
+}
+
+int
+n_apply(cpp, argc, argv)
+	int argc;
+	char **cpp;
+	const char *argv[];
+{
+	int retval;
+
+	sb_external(FILENO(stdout));	/* set up for retrieval of stdout */
+	retval = apply(argc, argv);
+	*cpp = sb_retrieve(FILENO(stdout));	/* safe alloc'ed memory */
+	return retval;
+}
+
+/*
+ * Call func with tokenlist t as the argument.
+ * This is used to rewrite an address.
+ */
+
+static int s_rewrite __((const char *func, token822 *t,
+			 const char *sender, const char *argx));
+
+static int
+s_rewrite(func, t, sender, argx)
+	const char *func, *sender, *argx;
+	token822 *t;
+{
+	register char *cp, *bp;
+	const char *av[4];
+	char *buf = malloc(4000);
+	int bufspc = 4000;
+	int rc;
+
+	if (t == NULL)
+		return 0;
+	cp = buf;
+	cp += printdToken(&buf, &bufspc, t, (token822 *)NULL, 0);
+	/* Was it a quote-containing string ?  If so, strip the quotes,
+	   and undo back-slash quoting */
+	if (t->t_next == NULL && t->t_type == String && buf[0] == '"') {
+		*(cp-1) = '\0';
+		cp = buf + 1;
+		bp = buf;
+		for (bp = buf, cp = buf + 1 ; *cp != '\0' ; ++cp) {
+			if (*cp == '\\' && *(cp+1) != '\0')
+				*bp++ = *++cp;
+			else
+				*bp++ = *cp;
+		}
+		*bp = '\0';
+	}
+
+	/* shell interface - we want stdout to show up here */
+	av[0] = func;
+	av[1] = buf;
+	av[2] = argx;
+	av[3] = NULL;
+	rc = s_apply(argx == NULL ? 2 : 3, av);
+	free(buf);
+	return rc;
+}
+
+
+/*
+ * The transformed message header addresses must be merged with their
+ * original format (including comments, etc). We want to change the 'look'
+ * of a message header address as little as possible, so we merge the new
+ * pure address with the old version. RFC822 mumbles something about all
+ * addresses being transmitted in a canonical format (without comments
+ * embedded in route-addr's for example), but since we aren't generating
+ * anything the original UA wouldn't generate, that requirement is blithely
+ * ignored.
+ */
+
+static struct addr *mergeAddress __((struct addr *pp, token822 *t));
+
+static struct addr *
+mergeAddress(pp, t)
+	struct addr *pp;
+	token822 *t;
+{
+	struct addr *ppp, *npp, *fpp;
+	token822 *nt, *pt;
+
+	pt = NULL;
+	for (ppp = fpp = NULL; pp != NULL; pp = pp->p_next, ppp = npp) {
+		npp = (struct addr *)tmalloc(sizeof (struct addr));
+		if (ppp != NULL)
+			ppp->p_next = npp;
+		else
+			fpp = npp;
+		if (pp->p_type != anAddress) {
+			/* copy non-address portions unchanged */
+			*npp = *pp;
+		} else if (t != NULL) {
+			/* copy the same number of tokens as was there */
+			/* ... this is not terribly sophisticated ... */
+			npp->p_type = anAddress;
+			npp->p_tokens = t;
+			for (nt = pp->p_tokens; nt != NULL && t != NULL;
+						nt = nt->t_next, t = t->t_next)
+				pt = t;
+			if (t != NULL)
+				pt->t_next = NULL;
+		}
+		npp->p_next = NULL;
+	}
+	if (t != NULL && pt != NULL)
+		pt->t_next = t;
+	return fpp;
+}
+
+/*
+ * Rewrite a header nicely...
+ */
+
+struct header *
+hdr_rewrite(name, h)
+	const char *name;
+	struct header *h;
+{
+	register struct address *ap;
+	register struct addr *pp;
+	register token822 *t;
+	struct address *nap = NULL, *pap;
+	token822 *nt, *pt, *addrtokens;
+	struct header *nh;
+	conscell *l;
+	const char *cp, *eocp;
+	char *s, buf[4096], *eobuf; 	/* XX */
+
+	if (D_hdr_rewrite) {
+		printf("---------------------------\n");
+		printf("Sending this through %s:\n", name);
+		dumpHeader(h);
+	}
+	nh = (struct header *)tmalloc(sizeof (struct header));
+	*nh = *h;
+	nh->h_contents.a = NULL;
+	nh->h_next = NULL;
+	pap = NULL;	/* shut up lint */
+	for (ap = h->h_contents.a; ap != NULL; ap = ap->a_next) {
+		addrtokens = NULL;
+		pt = NULL;
+		for (pp = ap->a_tokens; pp != NULL; pp = pp->p_next) {
+			if (pp->p_type != anAddress)
+				continue;
+			for (t = pp->p_tokens; t != NULL; t = t->t_next) {
+				nt = copyToken(t);
+				if (pt != NULL)
+					pt->t_next = nt;
+				pt = nt;
+				if (addrtokens == NULL)
+					addrtokens = nt;
+			}
+		}
+		if (addrtokens != NULL
+		    && addrtokens->t_next == NULL
+		    && addrtokens->t_type == String) {
+			eocp = addrtokens->t_pname + TOKENLEN(addrtokens);
+			for (cp = addrtokens->t_pname, s=buf; cp < eocp; ++cp) {
+				if (*cp == '\\' && cp < eocp - 1 && *(cp+1) == '"')
+					continue;
+				*s++ = *cp;
+			}
+			*s = 0;
+			addrtokens->t_pname = strsave(buf);
+		}
+		nap = (struct address *)tmalloc(sizeof (struct address));
+		nap->a_pname = NULL;
+		nap->a_stamp = newAddress;
+		nap->a_tokens = NULL;
+		/* don't bother initializing a_uid/a_mode here, no use */
+		nap->a_next = NULL;
+		nap->a_dsn  = NULL;
+		deferit = 0;
+		v_set(DEFER, "");
+		/*
+		 * Header rewrite routines "intramachine", "null", and
+		 * "internet" in script  crossbar.cf  can take header
+		 * name (for debug purposes).
+		 */
+		if (addrtokens == NULL)
+			s_value = NULL;
+		else if (s_rewrite(name, addrtokens, NULL, h->h_pname) != 0) {
+			if (s_value != NULL) {
+				s_free_tree(s_value);
+				s_value = NULL;
+			}
+			if (deferit
+			    && s_rewrite(DEFERHDR, addrtokens, NULL, h->h_pname)
+			    && s_value != NULL) {
+				s_free_tree(s_value);
+				s_value = NULL;
+			}
+		}
+		if (s_value != NULL
+		    && (LIST(s_value) || *(s_value->string) == '\0')) {
+			s_free_tree(s_value);
+			s_value = NULL;
+		}
+		if (s_value == NULL) {
+			/* copy this address unchanged */
+			nap->a_tokens = ap->a_tokens;
+		} else {
+			/* integrate result with original address form */
+			l = s_copy_tree(s_value);
+			s_free_tree(s_value);
+			s_value = NULL;
+			/* t = HDR_SCANNER(l->cstring); */
+			t = scan822(&l->cstring, strlen(l->cstring),
+				    '!', '%', 0, &ap->a_tokens->p_tokens);
+			/* X: check for errors! */
+			nap->a_tokens = mergeAddress(ap->a_tokens, t);
+		}
+		if (nh->h_contents.a == NULL)
+			nh->h_contents.a = nap;
+		else
+			pap->a_next = nap;
+		pap = nap;
+	}
+	if (D_hdr_rewrite) {
+		printf("Resulting in this header:\n");
+		dumpHeader(nh);
+		hdr_print(nh, stdout);
+	}
+	return nh;
+}
+
+void
+setenvinfo(e)
+	struct envelope *e;
+{
+	struct header *h;
+	conscell *pl, *plhead, *tmp;
+	char buf[20];
+
+	/* include header size ("headersize"), message size ("size"),
+	   message body size ("bodysize"), now ("now"), resent ("resent")
+	   trusted ("trusted"), message file name ("file"), message id
+	   ("message-id") */
+
+#define	CONSTSTR(s)	cdr(pl) = conststring(s); pl = cdr(pl)
+#define	NEWSTR(s)	cdr(pl) = newstring(s); pl = cdr(pl)
+#define	NEWSTRD(d)	sprintf(buf, "%ld", (long)(d)); \
+			cdr(pl) = newstring(strsave(buf)); \
+			pl = cdr(pl)
+
+	pl = plhead = conststring("file");
+	CONSTSTR(e->e_file);
+
+	if (e->e_messageid != NULL) {
+		CONSTSTR("message-id");
+		CONSTSTR(e->e_messageid);
+	}
+
+	CONSTSTR("uid");
+	NEWSTRD(e->e_statbuf.st_uid);
+
+	CONSTSTR("gid");
+	NEWSTRD(e->e_statbuf.st_gid);
+
+	CONSTSTR("size");
+	NEWSTRD(e->e_statbuf.st_size - e->e_hdrOffset);
+
+	CONSTSTR("headersize");
+	NEWSTRD(e->e_msgOffset - e->e_hdrOffset);
+
+	CONSTSTR("bodysize");
+	NEWSTRD(e->e_statbuf.st_size - e->e_msgOffset);
+
+	CONSTSTR("now");
+	NEWSTRD(e->e_nowtime);
+
+	CONSTSTR("delay");
+	NEWSTRD(e->e_nowtime - e->e_statbuf.st_mtime);
+
+	CONSTSTR("resent");
+	CONSTSTR(e->e_resent ? "yes" : "no");
+
+	CONSTSTR("trusted");
+	CONSTSTR(e->e_trusted ? "yes" : "no");
+
+	/* for every non-address envelope header, include
+	   header-name header-value pair in property list */
+
+	for (h = e->e_eHeaders; h != NULL; h = h->h_next) {
+		if (h->h_descriptor->user_type != nilUserType)
+			continue;
+		CONSTSTR(h->h_descriptor->hdr_name);
+		if (h->h_lines == NULL || *h->h_lines->t_pname == '\0') {
+			CONSTSTR(h->h_descriptor->hdr_name);
+		} else {
+			CONSTSTR(h->h_lines->t_pname);
+		}
+	}
+	cdr(pl) = NULL;
+	plhead = ncons(plhead);
+	v_setl("envelopeinfo", plhead);
+}
+
+static char gsbuf[30];
+/*
+ *  newattribute_2()
+ */
+char *newattribute_2(onam,nam,val)
+const char *onam, *nam, *val;
+{
+	conscell *l, *lc, *tmp, **pl;
+	conscell	*l1;
+
+	l1 = v_find(onam);
+	if (!l1)
+	  return NULL;
+	l = copycell(cdr(l1));
+	cdr(l) = NULL;
+	car(l) = s_copy_tree(car(l));
+	pl = &car(l);
+	l1 = *pl;
+	for (lc = l1; lc && cdr(lc); pl = &cddr(lc),lc = *pl) {
+	  if (!STRING(lc))
+	    return NULL; /* ?? */
+	  if (strcmp(nam,lc->string)==0) {
+	    if (!cdr(lc))
+	      return NULL;
+	    *pl = cddr(lc) /* Skip this in chain */;
+	  }
+	}
+
+	/* Prepend in reverse order */
+	tmp = newstring(strsave(val));
+	cdr(tmp) = car(l);
+	car(l) = tmp;
+	tmp = newstring(strsave(nam));
+	cdr(tmp) = car(l);
+	car(l) = tmp;
+
+	sprintf(gsbuf, gs_name, gensym++);
+	/* gX (name in gsbuf) will be freed by free_gensym() later */
+	v_setl(gsbuf, l);
+	return gsbuf;
+}
+
+/*
+ * Build gensym
+ */
+char *
+build_gensym(uid,type,DSNstr,errorsto,sender)
+int uid;
+const char *type, *DSNstr, *errorsto, *sender;
+{
+	char buf[20];
+	conscell *l, *lc, *tmp;
+
+	/* assemble the default attribute list: (privilege <uid>) */
+	l = conststring("privilege");
+	sprintf(buf, "%d", uid);
+	cdr(l) = newstring(strsave(buf));
+	lc = cdr(l);
+	if (type != NULL) {
+		cdr(lc) = conststring("type");
+		lc = cdr(lc);
+		cdr(lc) = newstring(strsave(type));
+		lc = cdr(lc);
+	}
+	if (DSNstr != NULL) {
+		cdr(lc) = conststring("DSN");
+		lc = cdr(lc);
+		cdr(lc) = newstring(strsave(DSNstr));
+		lc = cdr(lc);
+	}
+	/* See if some "errorsto" definition is available.. */
+	if (errorsto != NULL) {
+		cdr(lc) = conststring("ERR");
+		lc = cdr(lc);
+		cdr(lc) = newstring(strsave(errorsto));
+		lc = cdr(lc);
+	}
+	/* See if some "sender" definition is available.. */
+	if (sender != NULL) {
+		cdr(lc) = conststring("sender");
+		lc = cdr(lc);
+		cdr(lc) = newstring(strsave(sender));
+		lc = cdr(lc);
+	}
+	cdr(lc) = NULL;
+	l = ncons(l);
+	sprintf(gsbuf, gs_name, gensym++);
+	/* gX (name in gsbuf) will be freed by free_gensym() later */
+	v_setl(gsbuf, l);
+	return gsbuf;
+}
+
+/*
+ * The router function must return three values,
+ *	a (channel, host, user) triple.
+ *
+ * If we get a deferral while routing, call a deferral
+ * function to deal with it.
+ */
+
+conscell *
+router(a, uid, type)
+	struct address *a;
+	int uid;
+	const char *type;
+{
+	register token822 *t, *tt;
+	int r;
+	token822 *last;
+	struct addr *p;
+	conscell *l, *tmp;
+	const char *gsym;
+	struct notary *DSN = NULL;
+	const char *DSNstr;
+
+	if (a == NULL)
+		return NULL;
+	t = last = NULL;
+	DSN = a->a_dsn;
+	DSNstr = NULL;
+	if (DSN) DSNstr = DSN->dsn;
+	for (p = a->a_tokens; p != NULL; p = p->p_next)
+		if (p->p_type == anAddress) {
+			/* link up all address tokens together */
+			for (tt = p->p_tokens; tt != NULL; tt = tt->t_next) {
+				if (t == NULL) {
+					t = copyToken(tt);
+					last = t;
+				} else {
+					last->t_next = copyToken(tt);
+					last = last->t_next;
+				}
+			}
+		}
+	if (D_router) {
+		printf("Routing:\n");
+		for (tt = t; tt != NULL; tt = tt->t_next)
+			printf("\t\t%s\n", formatToken(tt));
+	}
+	if (t == NULL)
+		return NULL;
+	if (t->t_pname[0] == '<' && TOKENLEN(t) == 1 && t->t_next == NULL)
+		abort();
+
+	gsym = build_gensym(uid,type,DSNstr,errors_to,NULL);
+
+	deferit = 0;
+	v_set(DEFER, "");
+	r = s_rewrite(ROUTER, t, NULL, gsym);
+#if 0
+	if (deferit) {
+		s_free_tree(s_value);
+		s_value = NULL;
+		r = s_rewrite(DEFERENV, t, NULL, gsym);
+	}
+#endif
+	if (r != 0 || s_value == NULL || !LIST(s_value)) {
+		/* router returned something invalid */
+		s_free_tree(s_value);
+		s_value = NULL;
+		return NULL;
+	}
+
+	/*
+	 * We expect router to either return
+	 * (local - user attributes) or (((local - user attributes)))
+	 */
+	if (car(s_value) && LIST(car(s_value))) {
+		if (!LIST(caar(s_value)) || !STRING(caaar(s_value))) {
+			fprintf(stderr,
+				"%s: '%s' returned invalid 2-level list: ",
+				progname, ROUTER);
+			s_grind(s_value, stderr);
+			s_free_tree(s_value);
+			s_value = NULL;
+			return NULL;
+		}
+		l = s_copy_tree(s_value);
+	} else {
+		l = s_copy_tree(s_value);
+		l = ncons(l);
+		l = ncons(l);
+	}
+
+	s_free_tree(s_value);
+	s_value = NULL;
+
+	return l;
+}
+
+/*
+ * Crossbar switch. That's the closest metaphor I can think of that describes
+ * what this function actually does --- which is looking at the sender and
+ * recipient addresses, or more precisely the (channel, host, user) triples,
+ * and munging them both appropriately using whatever criteria it wishes.
+ *
+ * The crossbar configuration file function should return 7 values, as
+ * shown below. The first six are its munged calling parameters, the
+ * seventh if non-null is the name of another configuration file function
+ * which will be called for munging the message header addresses.
+ * The munged parameters will eventually find their way onto the envelopes.
+ */
+
+conscell *
+crossbar(from, to)
+	conscell *from, *to;
+{
+	conscell *l, *tmp;
+
+	l = ncons(from);
+	cdar(l) = to;
+	s_set_prev(l, car(l));
+
+	if (l_apply(CROSSBAR, l) != 0 || s_value == NULL) {
+		if (s_value != NULL)
+			s_free_tree(s_value);	/* superfluous? */
+		s_value = NULL;
+		return NULL;
+	}
+
+	/*
+	 * We expect to see something like
+	 * (rewrite (fc fh fu) (tc th tu)) or
+	 * ((address-rewrite header-rewrite) (fc fh fu) (tc th tu))
+	 * back from the crossbar function.
+	 */
+
+	l = s_copy_tree(s_value);
+	s_free_tree(s_value);
+	s_value = NULL;
+
+	return l;
+}

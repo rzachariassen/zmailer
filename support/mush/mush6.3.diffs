@@ -1,0 +1,73 @@
+(Message inbox:193)
+Return-Path: church.csri.toronto.edu!moraes
+Received: from church.csri.toronto.edu by neat.ai.toronto.edu with SMTP id 38113; Tue, 11 Apr 89 19:25:45 EDT
+Received: from localhost (stdin) by church.csri.toronto.edu with SMTP id 955; Tue, 11 Apr 89 19:28:02 EDT
+To:	oz@yunexus
+Subject: mush/zmailer diffs
+Cc:	rayan@ai.toronto.edu
+Date:	Tue, 11 Apr 89 19:27:58 EDT
+From:	Mark Moraes <moraes@csri.toronto.edu>
+Message-Id: <89Apr11.192802edt.955@church.csri.toronto.edu>
+
+The following fix to mush version 6.3 should get it to work with
+zmailer, mostly. No guarantees, because there's still some address
+munging that mush does. All the fix does is let mush build the sendmail
+command line, and then quietly undoes that, putting a -t in place.
+Thus leaving address parsing to the mailer.
+
+The patch applied to mush 6.4 as well - I haven't tried mush6.4 yet, so
+no promises there.
+
+Let me know how it goes.
+
+*** /tmp/,RCSt1a23756	Tue Apr 11 19:01:33 1989
+--- /tmp/,RCSt2a23756	Tue Apr 11 19:01:34 1989
+***************
+*** 1009,1014
+  	b += strlen(sprintf(b, " %s", METOO_ARG));
+  #endif /* METOO_ARG */
+      *b++ = ' ', *b = 0; /* strcat(b, " "); */
+      addr_list = b; /* save this position to check for addresses later */
+  
+      /*
+
+--- 1009,1017 -----
+  	b += strlen(sprintf(b, " %s", METOO_ARG));
+  #endif /* METOO_ARG */
+      *b++ = ' ', *b = 0; /* strcat(b, " "); */
++ #ifdef TORONTO
++     b += strlen(strcat(b, "-t"));
++ #endif /* TORONTO */
+      addr_list = b; /* save this position to check for addresses later */
+  
+      /*
+***************
+*** 1092,1097
+      for (p = buf; p = index(p, ','); p++)
+  	*p = ' ';
+  #endif /* NO_COMMAS */
+  
+      Debug("mail command: %s\n", buf);
+  
+
+--- 1095,1114 -----
+      for (p = buf; p = index(p, ','); p++)
+  	*p = ' ';
+  #endif /* NO_COMMAS */
++ 
++ #ifdef TORONTO
++     /* 
++      *  We run Sendmail and Zmailer - the latter objects to some of the
++      *  things mush passes it after putting together a command line.
++      *  So we clobber all the addresses that mush has parsed and put on the
++      *  command line and use the ones in the To, Cc etc lines. Note that
++      *  mush has already done some parsing on those, which seems acceptable
++      *  but unnecessary, since we'd prefer giving the whole RFC822 mess to
++      *  Zmailer/sendmail.
++      */
++     *addr_list = '\0';
++ #endif
++ 
+  
+      Debug("mail command: %s\n", buf);
+  

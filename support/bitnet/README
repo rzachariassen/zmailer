@@ -1,0 +1,22 @@
+** There is a better set of tools available than this,
+** see  ftp://ftp.funet.fi/pub/unix/networking/bitnet/funetnje/
+
+The programs here may be of help if you are trying to make your host a
+native BITNET mail host.  The basic idea is to transform XMAILER NAMES
+into something similar to hosts.transport (in the default configuration
+I call it bitnet.transport), which has entries like:
+
+.ccrit.doc.ca			bsmtp3!mailer!qucdn
+anlpns				defrt1!anlpns
+atgbox				defrt1truncate!atgbox
+dk0rrzk2			bsmtp3!vmmail!dk0rrzk2
+sfu				bitnet2!mailer!sfu
+sfu.ca				bitnet2deliver2!mailer!sfu
+
+If you don't know what these things mean, do some research before you
+continue.
+
+The default configuration knows about these channel names, and will invoke
+either the bsmtp-send or note-send program to start the message transport.
+
+Those programs are provided in this directory.

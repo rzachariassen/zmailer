@@ -1,0 +1,76 @@
+#!/bin/sh -
+# create mboxmap file so ZMailer knows which machines to punt to for
+# localdelivery.
+# Related scripts: checkpobox, updpobox
+PWDDIR=/var/spool/aliases
+
+case "$1" in
+-v)	verb=echo; shift;;
+esac
+. /etc/zmailer.conf || exit 1
+case "$MAILSHARE" in
+'')	echo $0: MAILSHARE not defined
+	exit 1
+	;;
+esac
+
+cp $MAILSHARE/db/mboxmap $MAILSHARE/db/mboxmap-
+awk -F: '
+BEGIN	{ fullname["neat"] = "neat.cs.toronto.edu" 
+	  fullname["smoke"] = "smoke.cs.toronto.edu"
+	  fullname["neuron"] = "neuron.ai.toronto.edu"
+	  fullname["knowbel"] = "knowbel.ai.toronto.edu"
+	  fullname["telos"] = "telos.ai.toronto.edu"
+	  fullname["wotan"] = "wotan.ai.toronto.edu"
+	  fullname["orasis"] = "orasis.vis.toronto.edu"
+	}
+/homes/ { nf = split($6,foo,"/") ;
+	  if (fullname[foo[3]] == "")
+		fullname[foo[3]] = "??"
+	  mboxdir = ""
+	  for (i=2 ; i < nf; ++i) {
+		mboxdir = mboxdir "/" foo[i]
+	  }
+	  printf "%s\t%s:%s:%s\n", $1, fullname[foo[3]], mboxdir, $1
+}' /etc/passwd > $MAILSHARE/db/mboxmap+ || exit 1
+
+#
+# Now collect the information for the other local sites whose people want
+# to be reachable as user@cs.
+#
+
+if [ -d $PWDDIR ]; then
+	cd $PWDDIR
+
+	init="`sed -e 's/\([^ 	]*\)[ 	][ 	]*\([^ 	]*\)/priority["\1"] = \2/' < PRIORITIES`"
+
+	for pwfile in *.*
+	do
+		awk -F: 'BEGIN { '"$init"' }
+		{
+			printf "%d %s\t%s:%s:%s\n", priority["'$pwfile'"], \
+				$1, "'$pwfile'", "-" , $1 ;
+		}' $pwfile
+	done |
+	sort -n | sed 's/^[0-9]* //' >> $MAILSHARE/db/mboxmap+ || exit 1
+fi
+
+#
+# Sort all entries giving priority (because they are first) to our own accounts
+#
+awk '{
+	if (users[$1] == "") {
+		print $0;
+		users[$1] = "x";
+	}
+}' $MAILSHARE/db/mboxmap+ |
+sort -o $MAILSHARE/db/mboxmap+ &&
+rm -f $MAILSHARE/db/mboxmap &&
+mv $MAILSHARE/db/mboxmap+ $MAILSHARE/db/mboxmap &&
+case "$verb" in
+:|'')	;;
+*)	
+	echo "New     Old"
+	comm -3 $MAILSHARE/db/mboxmap $MAILSHARE/db/mboxmap-;;
+esac
+

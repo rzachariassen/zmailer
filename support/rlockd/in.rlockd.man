@@ -1,0 +1,36 @@
+.TH IN.RLOCKD 8 "7 December 1988"
+.SH NAME
+in.rlockd \- network lock daemon used by nfslock(3).
+.SH SYNOPSIS
+.B /local/etc/in.lockd
+[
+.B \-d
+]
+.SH DESCRIPTION
+.B in.rlockd
+processes lock requests that are
+sent remotely from programs using the
+.BR nfslock (3)
+function.
+.PP
+It uses
+.BR flock (2)
+to lock files and release the locks.
+.SH AUTHOR
+Dennis Ferguson, Rayan Zachariassen, University of Toronto
+.SH "SEE ALSO"
+.BR nfslock(3),
+.BR flock(2),
+.BR fcntl (2V),
+.BR lockf (3),
+.BR lockd (8C).
+.SH "BUGS
+Locks obtained with 
+.BR nfslock (3)
+are not compatible with those obtained
+using
+.BR fcntl (2V)
+or
+.BR lockf (3).
+.br
+Like all other network services, needs much better authentication.

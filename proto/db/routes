@@ -1,0 +1,5 @@
+#a Routing Configuration File
+#b This *entire* file must be kept sorted (comments included!)
+#c entries in this file are checked first by router.cf. they have the form
+#d	name	channel!next_destination
+#e A leading . on the name indicates that all subdomains match as well

@@ -1,0 +1,253 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH SMTPSERVER 8 "4 Jul 1997"
+.SH NAME
+smtpserver \- zmailer SMTP server
+.SH SYNOPSIS
+.B smtpserver
+[
+.B \-46aignvBV
+]
+[
+.B \-p
+.I port
+]
+[
+.B \-l
+.I logfile
+]
+[
+.BR \-s [\fBftveR\fR]
+]
+[
+.B \-L
+.I maxloadaver
+]
+[
+.B \-M
+.I SMTPmaxsize
+]
+[
+.B \-P
+.I postoffice
+]
+[
+.B \-R
+.I router
+]
+[
+.B \-C
+.I cfgfile
+]
+.SH DESCRIPTION
+This program implements the server side of the SMTP protocol as described
+in RFC821, and knows about the common extensions to the protocol expected by
+Sendmail and BSMTP clients.
+.PP
+By default the program will kill the previous
+.I smtpserver
+daemon, if any, then detach and listen for SMTP connections.  Incoming
+messages will be submitted for processing using the
+.IR zmailer (3)
+interface to ZMailer.  Nontrivial address checking is done
+asynchronously, although this behaviour can be changed by a command line
+option if you cannot afford to transfer data just to bounce it back.  All
+checking is done by executing the
+.IR router (8)
+program in interactive mode, and executing a well-known shell function with
+well-known parameters for each request.
+.SH OPTIONS
+.IP \-4
+Explicitely to use IPv4 type of socket even on machines that is capable to
+do IPv6 type of sockets.
+.IP \-6
+Explicitely to (try to) use IPv6 type of socket even if the machine does
+not support it.
+For a default the server will try to use IPv6, if it has been compiled on
+an environment where it is present, but will do a fallback to IPv4 in case
+the runtime system does not have IPv6.
+.IP \-a
+turn on RFC931/RFC1413 indentification protocol, and log the information
+acquired with it to the submitted file.
+.IP \-g
+the gullible option will make the program believe any information it is
+told (such as origin of a connection) without checking.
+.IP \-i
+runs the server interactively, which makes it usable for processing
+a batched SMTP stream (BSMTP) on stdin.
+With
+.I \-v
+option this echoes incoming BSMTP to create more accurate faximille
+of BITNET BSMTP mailers.
+.IP \-l\ \fIlogfile\fR
+specifies a logfile and enables recording of incoming SMTP conversations.
+.IP \-n
+indicates the program is being run from
+.IR inetd (8).
+.IP \-p
+specifies the TCP port to listen on instead of the default SMTP port, 25.
+.IP \-B
+flags the email to arrive via BSMTP channel (via BITNET, for example).
+.IP \-L\ \fImaxloadaver\fR
+tells the maximum load-average the system is under when we still accept
+email in.
+.IP \-M\ \fISMTPmaxsize\fR
+Defines the asolute maximum size we accept from incoming email.
+(Default: infinite) (This is local policy issue.)
+.IP \-P\ \fIpostoffice\fR
+specifies an alternate
+.B POSTOFFICE
+directory.
+.IP \-R\ \fIrouter\fR
+specifies an alternate
+.I router (8)
+program to use for address verification.
+.IP \-C\ \fIcfgfile\fR
+specifies nonstandard configuration file location; the default is
+.IR $MAILSHARE/smtpserver.conf .
+.IP \-s
+specifies the style of address verification to be performed.  There are
+four independent commands that can invoke some kind of address verification,
+and four independent flags to control whether this should be done.  They are:
+.ta 1i
+.sp
+.nf
+f	check MAIL FROM addresses
+t	check RCPT TO addresses
+v	check VRFY command argument
+e	check EXPN command argument
+R	require addresses to be of syntax: local@remote (strict 821)
+.fi
+.sp
+The flags are concatenated to form the argument to the \-s option.  The
+default is \fBve\fR.
+.IP \-V
+prints a version message and exits.
+.SH EHLO AND 8BITMIME
+On
+.B RFC 1651/1652/1653+1428
+there are extended SMTP specifications, which contain mechanism for declaring
+8-bit transparent SMTP capability, as well as so called SIZE extension.
+When sending SMTP does \fBEHLO\fR instead of \fBHELO\fR
+it gets a set of responces which indicate that this system is capable on
+multiple things, and one of them is so called \fB8BITMIME\fR.
+.SH CONFIGURATION
+If the \fIMAILSHARE/\fBsmtpserver.conf\fR exists it is read
+to configure two kinds of things:
+
+.IP PARAM\ \-entries
+allow server start-time parametrization of several things, including:
+.I \-\ help-texts
+.I \-\ acceptance/rejection\ database\ definitions
+
+.IP The\ style\ (\fI\-s\fR)\ option
+behaviour based on glob patterns matching the
+.BR HELO / EHLO
+name given by a remote client.  Lines beginning with a
+.I #
+or whitespace are ignored in the file, and all other lines must consist
+of two tokens: a shell-style (glob) pattern starting at the beginning of
+the line, whitespace, and a sequence of style flags.  The first matching
+line is used.  As a special case, the flags section may start with a
+.I !
+character in which case the remainder of the line is a failure comment
+message to print at the client.  This configuration capability is intended
+as a way to control misbehaving client software or mailers.
+
+.IP PARAM\ maxsize
+This is synonym to start-time
+.I \-M
+option.
+
+.IP PARAM\ max-error-recipients
+This defines how many recipients can be on a message whose source
+address is
+.B MAIL FROM:<>\fR.
+That is, is an error message.
+
+.IP PARAM\ MaxSameIpSource
+This sets the maximum number of active connections from any given
+single IP address.  When the limit is reached, system tells the
+remote end:
+.B "450\-Too many simultaneous connections..."
+When the limit is exceeded by factor of four, the server just closes
+the connection.
+
+.IP PARAM\ ListenQueueSize
+This sets the listen queue size parameter for
+.IR listen (2)
+call at the server.
+
+.IP PARAM\ TcpRcvBufferSize
+This sets  setsockopt(SO_RCVBUF)  value, in case the system
+default is not suitable.
+
+.IP PARAM\ TcpXmitBufferSize
+This sets  setsockopt(SO_SNDBUF)  value, in case the system
+default is not suitable.
+
+.IP PARAM\ policydb
+This defines smtp input policy filtering/analysis database location.
+See the comments at the sample
+.I proto/db/smtp-policy.src
+file.
+
+.IP Here\ is\ a\ possible\ configuration\ file:
+.sp
+.ta 0.0i 0.5i
+.nf
+\fC
+#PARAM maxsize          10000000  # Same as -M -option
+#PARAM max-error-recipients    3  # More than this is propably SPAM!
+#PARAM MaxSameIpSource	      10  # Max simultaneous connections from
+#PARAM ListenQueueSize     20000  # Usual system high limit is: 5 ..
+#PARAM TcpRcvBufferSize    32000  # Should not need to set!
+#PARAM TcpXmitBufferSize   32000  # Should not need to set!
+
+# Our company contact info:
+PARAM help ----------------------------------------------------
+PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
+PARAM help  Our telephone number is: +1-234-567-8900, and
+PARAM help  telefax number is: +1-234-567-8999
+PARAM help  Our business-hours are Mon-Fri: 0800-1700 (Timezone: -0700)
+PARAM help
+PARAM help  Questions regarding our email service should be sent via
+PARAM help  email to address  <postmaster@OURDOMAIN>
+PARAM help  Reports about abuse are to be sent to: <abuse@OURDOMAIN>
+PARAM help ----------------------------------------------------
+# 
+PARAM   accept-percent-kludge # "localpart" can contain '%' and '!'
+#PARAM  reject-percent-kludge # "localpart" can't contain  --"--
+#
+# The policy database:
+#     (NOTE: See  'makedb'  for its default suffixes!)
+#
+PARAM  policydb   btree  /opt/mail/db/smtp-policy
+#
+# HELO pattern          style flags
+#
+*.mgmt.utoronto.ca      ftve
+*.mgmt.toronto.edu      ftve
+badguy.org              !Sorry, try later.
+localhost               ve
+*                       -
+.fi
+.sp
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice/.pid.smtpserver (POSTOFFICE/.pid.smtpserver)
+.br
+.I /local/share/mail/smtpserver.conf (MAILSHARE/smtpserver.conf)
+.SH SEE ALSO
+router(8)
+.br
+RFC821, RFC1123, RFC1651, RFC1652, RFC1653, RFC1428
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen (was at U of Toronto)
+.br
+RFC165* (and several other) extensions by
+.br
+Matti Aarnio  <mea@nic.funet.fi>

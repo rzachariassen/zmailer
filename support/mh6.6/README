@@ -1,0 +1,18 @@
+Patches to MH6.5:
+
+This is necessary due to bugs in MH's SMTP client code.  It is just as bad
+a problem with Sendmail, except Sendmail's SMTP server is correspondingly
+buggy, cancelling out MH's bugs (!).  You probably want to install the
+included smail.c file in any case.
+
+- install the included smail.c in the mts/sendmail directory
+- apply the patch to conf/mhconfig.c
+- configure MH to use zmailer instead of (say) sendmail/smtp (see the MH file)
+  This requires the sendmail compatibility program installed in /usr/lib.
+  MH's post program will invoke it with the '-bs' options to speak SMTP to it.
+
+From the MH toplevel directory, do:
+
+	make clean
+	( cd conf ; make mhconfig ; mhconfig MH )
+	make

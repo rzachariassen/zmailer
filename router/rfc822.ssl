@@ -1,0 +1,911 @@
+input:
+	tSyntaxError = -1
+	tIdent		'ident'
+	tString		'string'
+	tInteger	'integer'
+	tSemicolon	';'
+	tComma		','
+	tPeriod		'.'
+	tDoubleColon	'::'
+	tColon		':'
+	tDollar		'$'
+	tLeftAngle	'<'
+	tRightAngle	'>'
+	tAtSign		'@'
+	tOtherSpecial		% things like '!', '%', etc.
+	tAtom		'atom'
+	tBy		'by'
+	tDomainLiteral	'domain-literal'
+	tFor		'for'
+	tFrom		'from'
+	tId		'id'
+	tQuotedString	'quoted-string'
+	tVia		'via'
+	tWith		'with'
+	tConvert	'convert'
+	tNewLine	'<NL>'
+	tEndOfHeader	'<EOH>'
+	;
+
+output:
+	aOutputToken;
+
+error:
+	eExtraneousTokensInAddress = 10
+	eExtraneousTokensInMailbox
+	eMissingSemicolonToEndGroup
+	eMissingSemicolonInReceived
+	eMissingEndOfAddress
+	eMissingEndOfMailbox
+	eIllegalWordInPhrase
+	eIllegalSpecialInPhrase
+	eIllegalPeriodInPhrase
+	eIllegalPhraseMustBeQuoted
+	eIllegalSubdomainInDomain
+	eIllegalTokenInRoute
+	eIllegalWordInLocalPart
+	eIllegalStartOfMessageId
+	eIllegalEndOfMessageId
+	eIllegalEncryptionIdentifier
+	eIllegalAddressSeparator
+	eIllegalMailboxSeparator
+	eIllegalMessageIDSeparator
+	eIllegalStartOfRouteAddress
+	eIllegalEndOfRouteAddress
+	eIllegalSpecialInValue
+	eIllegalReferencesSeparator
+	eExpectedWord
+	eSslStackOverflow = 40
+	;
+
+type ComponentClass:
+	cPhrase
+	cComment
+	cSpecial
+	cGroup
+	cAddress
+	cDomain
+	cWord
+	cResync
+	cError
+	;
+
+type ReturnValue:
+	rAddress
+	rDate
+	rReceived
+	;
+
+type ReceivedComponent:
+	rcFrom
+	rcBy
+	rcVia
+	rcWith
+	rcId
+	rcFor
+	rcConvert
+	rcDate
+	;
+
+type Outcome:
+	Failure
+	Success
+	;
+
+mechanism Emission:
+	oSetComponentType(ComponentClass)	% set current component type
+	oEmitToken(ComponentClass)		% emit token of specified type
+	oEmitTokenCurType			% emit token of current type
+	oDeferEmitToken				% defer emission of tokens
+	oReleaseEmitToken(ComponentClass)	% all deferred tokens are output
+	;
+
+mechanism AddressWrapper:
+	oOpenAddress	% the following emitted tokens will be an address
+	oAppendAddress	% the following tokens will add to the last address
+	oCloseAddress	% wrap up the preceeding address and add it to list
+	;
+
+mechanism DateParser:
+	oDateTime	% send remaining tokens through the date parser
+	;
+
+mechanism ReceivedControl:
+	oEnterReceived	% start recognizing tFrom, tBy, tWith, tVia, tId, tFor
+	oExitReceived	% stop recognizing "
+	oSaveReceivedComponent(ReceivedComponent)
+	;
+
+mechanism ReturnControl:
+	oSetReturnType(ReturnValue)
+	;
+
+mechanism SendmailKluge:
+	oRewind >> Outcome
+	;
+
+rules
+
+AddressList:					% 1#address
+	@Address
+	{[*
+		| ',':
+			','
+			@Address
+		| tEndOfHeader:
+			>
+		| tSyntaxError:
+			#eIllegalAddressSeparator
+			?
+		| *:
+			#eIllegalAddressSeparator
+			?
+			oEmitToken(cResync)
+	]}
+	;
+
+Addresses:					% #address
+	[
+		| tEndOfHeader:
+			>>
+		| *:
+			@AddressList
+	]
+	;
+
+Address:					% address
+	% what's in an address?
+	oOpenAddress
+	oSetComponentType(cAddress)
+	{[		% null elements are valid, so skip any leading commas
+		| ',':
+		| *:
+			>
+	]}
+	[*
+		| '<':			% route-addr without phrase
+			@RouteAddressInAngles	% warning!
+		| '@':			% route-addr without phrase or angles!
+			@Route		% warning!
+			@UserAtDomain
+		| *:
+			oDeferEmitToken
+			@AnyWord	% how do we deal with phrase or error?
+			[*
+				| '::', '.', '$', tOtherSpecial:
+					% saw first Word of LocalPart
+					oReleaseEmitToken(cAddress)
+					?
+					oEmitTokenCurType
+					@UserAtDomain
+				| '@':	% saw LocalPart
+					oReleaseEmitToken(cAddress)
+					?
+					oEmitTokenCurType
+					@DomainName
+				| ':':	% saw Word(s) of a group Phrase
+					oReleaseEmitToken(cPhrase)
+					?
+					oEmitToken(cSpecial)
+					@GroupBody
+				| ',', tEndOfHeader:
+					oReleaseEmitToken(cAddress)
+				| *:	% saw first Word of a route-addr Phrase
+				    {[*
+					| 'atom', 'quoted-string':
+					    ?
+					    oEmitToken(cPhrase)
+					| ':':	% group
+					    oReleaseEmitToken(cPhrase)
+					    ?
+					    oEmitToken(cSpecial)
+					    @GroupBody
+					    >
+					| '<':
+					    oReleaseEmitToken(cPhrase)
+					    @RouteAddressInAngles
+					    >
+					| tEndOfHeader:
+					    [ oRewind
+						| Success:
+						    @NoCommasGrumble
+						| Failure:
+						    #eExtraneousTokensInAddress
+						    oReleaseEmitToken(cResync)
+					    ]
+					    >
+					| *:
+					    #eExtraneousTokensInAddress
+					    oReleaseEmitToken(cResync)
+					    >
+				    ]}
+			]
+	]
+	% make sure we see a comma or end of header, if not do error recovery
+	[*
+		| ',', tEndOfHeader:
+		| *:
+			#eMissingEndOfAddress
+			{[*
+				| ',', tEndOfHeader:
+					>
+				| tSyntaxError:
+					?
+				| *:
+					?	% gobble it up
+					oEmitToken(cResync)
+			]}
+	]
+	oCloseAddress
+	;
+
+MailboxList:					% 1#mailbox
+	@Mailbox
+	{[*
+		| ',':
+			','
+			@Mailbox
+		| tEndOfHeader, ';':
+			>
+		| tSyntaxError:
+			#eIllegalMailboxSeparator
+			?
+		| *:
+			#eIllegalMailboxSeparator
+			?
+			oEmitToken(cResync)
+	]}
+	;
+
+Mailboxes:					% #mailbox
+	[
+		| tEndOfHeader:
+			>>
+		| *:
+			@MailboxList
+	]
+	;
+
+Mailbox:					% mailbox
+	% what's in an address?
+	oOpenAddress
+	oSetComponentType(cAddress)
+	{[		% null elements are valid, so skip any leading commas
+		| ',':
+		| *:
+			>
+	]}
+	[*
+		| '<':			% route-addr without phrase
+			@RouteAddressInAngles
+		| '@':
+			@Route		% route-addr without phrase or angles!
+			@UserAtDomain
+		| *:
+			oDeferEmitToken
+			@AnyWord
+			[*
+				| '.', '::', '$', tOtherSpecial:
+					% saw first Word of LocalPart
+					oReleaseEmitToken(cAddress)
+					?
+					oEmitTokenCurType
+					@UserAtDomain
+				| '@':	% saw LocalPart
+					oReleaseEmitToken(cAddress)
+					?
+					oEmitTokenCurType
+					@DomainName
+				| ',', ';', tEndOfHeader:
+					oReleaseEmitToken(cAddress)
+				| *:	% saw first Word of a route-addr Phrase
+					{[*
+						| 'atom', 'quoted-string':
+						    ?
+						    oEmitToken(cPhrase)
+						| '<':
+						    oReleaseEmitToken(cPhrase)
+						    @RouteAddressInAngles
+						    >
+						| tEndOfHeader:
+						    [ oRewind
+							| Success:
+							    @NoCommasGrumble
+							| Failure:
+							    #eExtraneousTokensInAddress
+							    oReleaseEmitToken(cResync)
+						    ]
+						    >
+						| '.':
+						    #eIllegalPhraseMustBeQuoted
+						    oReleaseEmitToken(cResync)
+						    >
+						| *:
+						    #eExtraneousTokensInMailbox
+						    oReleaseEmitToken(cResync)
+						    >
+					]}
+			]
+	]
+	% make sure we see a comma or end of header, if not do error recovery
+	[*
+		| ',', ';', tEndOfHeader:
+		| ':','@','>',tOtherSpecial:
+			#eIllegalSpecialInPhrase
+			@MailBoxRecover
+		| '.':
+			#eIllegalPeriodInPhrase
+			@MailBoxRecover
+		| *:
+			#eMissingEndOfMailbox
+			@MailBoxRecover
+	]
+	oCloseAddress
+	;
+
+AMailbox:					% mailbox -- for "From:"
+	% what's in an address?
+	oOpenAddress
+	oSetComponentType(cAddress)
+	{[		% null elements are valid, so skip any leading commas
+		| ',':
+		| *:
+			>
+	]}
+	[*
+		| '<':			% route-addr without phrase
+			@ARouteAddressInAngles
+		| '@':
+			@Route		% route-addr without phrase or angles!
+			@UserAtDomain
+		| *:
+			oDeferEmitToken
+			@AnyWord
+			[*
+				| '::', '.', tOtherSpecial:
+					% saw first Word of LocalPart
+					oReleaseEmitToken(cAddress)
+					?
+					oEmitTokenCurType
+					@UserAtDomain
+				| '@':	% saw LocalPart
+					oReleaseEmitToken(cAddress)
+					?
+					oEmitTokenCurType
+					@DomainName
+				| ',', ';', tEndOfHeader:
+					oReleaseEmitToken(cAddress)
+				| *:	% saw first Word of a route-addr Phrase
+					{[*
+						| 'atom', 'quoted-string':
+						    ?
+						    oEmitToken(cPhrase)
+						| '<':
+						    oReleaseEmitToken(cPhrase)
+						    @ARouteAddressInAngles
+						    >
+						| tEndOfHeader:
+						    [ oRewind
+							| Success:
+							    @NoCommasGrumble
+							| Failure:
+							    #eExtraneousTokensInAddress
+							    oReleaseEmitToken(cResync)
+						    ]
+						    >
+						| '.':
+						    #eIllegalPhraseMustBeQuoted
+						    oReleaseEmitToken(cResync)
+						    >
+						| *:
+						    #eExtraneousTokensInMailbox
+						    oReleaseEmitToken(cResync)
+						    >
+					]}
+			]
+	]
+	% make sure we see a comma or end of header, if not do error recovery
+	[*
+		| ',', ';', tEndOfHeader:
+		| ':','@','>',tOtherSpecial:
+			#eIllegalSpecialInPhrase
+			@MailBoxRecover
+		| '.':
+			#eIllegalPeriodInPhrase
+			@MailBoxRecover
+		| *:
+			#eMissingEndOfMailbox
+			@MailBoxRecover
+	]
+	oCloseAddress
+	;
+
+MailBoxRecover:
+	{[*
+		| ',', tEndOfHeader:
+			>
+		| tSyntaxError:
+			?
+		| *:
+			?	% gobble it up
+			oEmitToken(cResync)
+	]}
+	;
+
+AMailboxList:	% one or more mailboxen, for the From: line (i.e. not in group)
+	@AMailbox
+	{[*
+		| ',':
+			','
+			@AMailbox
+		| tEndOfHeader:
+			>
+		| ';':
+			oAppendAddress
+			#eExtraneousTokensInMailbox
+			?
+			oEmitToken(cResync)
+			{[
+				| tEndOfHeader:
+					>
+				| *:
+					?
+					oEmitToken(cResync)
+			]}
+			oCloseAddress
+			>
+		| tSyntaxError:
+			oAppendAddress
+			#eIllegalMailboxSeparator
+			oCloseAddress
+			?
+		| *:
+			oAppendAddress
+			#eIllegalMailboxSeparator
+			?
+			oEmitToken(cResync)
+			oCloseAddress
+	]}
+	;
+
+NoCommasGrumble:	% kluge "mail joe jane jim jack"
+	?
+	oEmitToken(cAddress)
+	oCloseAddress
+	{[
+		| tEndOfHeader:
+			>
+		| *:
+			?
+			oOpenAddress
+			oEmitToken(cAddress)
+			oCloseAddress
+	]}
+	;
+
+References:					% *(phrase / msg-id)
+	{[*
+		| tEndOfHeader:
+			>
+		| '<':
+			@MsgIdAux
+		| tAtom, tQuotedString:
+			@Phrase
+		| *:
+			#eIllegalReferencesSeparator
+			?
+			oEmitToken(cResync)
+	]}
+	;
+				
+Encrypted:					% 1#2word
+	oOpenAddress
+	@AnyWord
+	[
+		| tSyntaxError:
+			#eIllegalEncryptionIdentifier
+		| *:
+	]
+	[
+		| 'atom', 'quoted-string':
+			oEmitTokenCurType
+		| *:
+	]
+	oCloseAddress
+	tEndOfHeader
+	;
+
+MessageID:					% msg-id
+	oOpenAddress
+	@MsgIdAux
+	oCloseAddress
+	tEndOfHeader
+	;
+
+MessageIDList:
+	oOpenAddress
+	@MsgIdAux
+	oCloseAddress
+	{[*
+		| ',':
+			','
+			@MsgIdAux
+		| tEndOfHeader:
+			>
+		| tSyntaxError:
+			#eIllegalMessageIDSeparator
+			?
+		| *:
+			#eIllegalMessageIDSeparator
+			?
+			oEmitToken(cResync)
+	]}
+	;
+
+MsgIdAux:
+	'<'
+	[
+		| tSyntaxError:
+			#eIllegalStartOfMessageId
+		| *:
+			oEmitToken(cSpecial)
+	]
+	@UserAtDomain
+	'>'
+	[
+		| tSyntaxError:
+			#eIllegalEndOfMessageId
+			{[*
+				| '>':
+					?
+					oEmitToken(cResync)
+					>
+				| ',',tEndOfHeader:
+					>
+				| *:
+					?
+					oEmitToken(cResync)
+			]}
+		| *:
+			oEmitToken(cSpecial)
+	]
+	;
+
+UserAtDomain:					% addr-spec
+	@LocalPart
+	[
+		| '@':
+			oEmitTokenCurType
+			@DomainName
+		| *:
+	]
+	;
+
+DomainName:					% domain
+	@SubDomain
+	[
+		| tSyntaxError:
+			#eIllegalSubdomainInDomain
+		| *:
+	]
+	{[
+		| '.':
+			oEmitTokenCurType
+			@SubDomain
+			[
+				| tSyntaxError:
+					#eIllegalSubdomainInDomain
+				| *:
+			]
+		| *:
+			>
+	]}
+	;
+
+Phrases:					% #phrase
+	{[
+		| tEndOfHeader:
+			>
+		| ',':
+		| *:
+			oOpenAddress
+			@Phrase
+			oCloseAddress
+	]}
+	;
+
+PhraseList:					% 1#phrase
+	oOpenAddress
+	@Phrase
+	oCloseAddress
+	@Phrases
+	;
+
+Phrase:						% phrase
+	oSetComponentType(cPhrase)
+	[
+		| tAtom, tQuotedString:
+			oEmitTokenCurType
+		| *:
+			#eIllegalWordInPhrase
+			?
+			oEmitToken(cResync)
+	]
+	{[
+		| tAtom, tQuotedString:
+			oEmitTokenCurType
+		| *:
+			>
+	]}
+	;
+
+AnyWord:					% word
+	[
+		| tAtom, tQuotedString, tDomainLiteral:
+			oEmitTokenCurType
+		| *:
+			tAtom	% yes it will fail
+	]
+	;
+
+SubDomain:
+	[
+		| 'atom', 'domain-literal':
+			oEmitTokenCurType
+		| *:
+			'atom'	% yes it will fail
+	]
+	;
+
+ARouteAddressInAngles:				% <route-addr> , <>
+	'<'
+	[
+		| tSyntaxError:
+			#eIllegalStartOfRouteAddress
+		| *:
+			oEmitToken(cSpecial)
+	]
+	[		% accept <> as a valid one!
+		| '>':
+			oEmitToken(cSpecial)
+			>>
+		| *:
+	]
+	@RouteAddress
+	'>'
+	[
+		| tSyntaxError:
+			#eIllegalEndOfRouteAddress
+		| *:
+			oEmitToken(cSpecial)
+	] ;
+
+RouteAddressInAngles:				% <route-addr>
+	'<'
+	[
+		| tSyntaxError:
+			#eIllegalStartOfRouteAddress
+		| *:
+			oEmitToken(cSpecial)
+	]
+	@RouteAddress
+	'>'
+	[
+		| tSyntaxError:
+			#eIllegalEndOfRouteAddress
+		| *:
+			oEmitToken(cSpecial)
+	] ;
+	
+RouteAddress:					% route-addr
+	oSetComponentType(cAddress)
+	[*
+		| '@':
+			@Route
+			@LocalPart
+			[
+				| '@':
+					oEmitTokenCurType
+					@DomainName
+				| *:
+					#eIllegalEndOfRouteAddress
+			]
+		| *:
+			@UserAtDomain
+	] ;
+
+Route:
+	'@'
+	oEmitTokenCurType
+	@DomainName
+	{[
+		| ',':
+			oEmitTokenCurType
+		| '@':
+			oEmitTokenCurType
+			@DomainName
+		| ':':
+			oEmitTokenCurType
+			>
+		| tOtherSpecial:
+			#eIllegalTokenInRoute
+		| *:
+			#eIllegalTokenInRoute
+			>
+	]}
+	;
+
+LocalPart:					% local-part
+	@AnyWord
+	[
+		| tSyntaxError:
+			#eExpectedWord
+		| *:
+	]
+	{[
+		| '::', '.', tOtherSpecial:
+			oEmitTokenCurType
+			@AnyWord
+			[
+				| tSyntaxError:
+					#eIllegalWordInLocalPart
+				| *:
+			]
+		| *:
+			>
+	]}
+	;
+
+Received:					% received
+	oEnterReceived
+	oSetComponentType(cDomain)
+	[
+		| 'from':
+			@DomainName
+			oSaveReceivedComponent(rcFrom)
+			{[*
+				| 'by','via','with','id','for','convert',';',tEndOfHeader:
+					>
+				| *:
+					?
+			]}
+		| *:
+	]
+	[
+		| 'by':
+			@DomainName
+			oSaveReceivedComponent(rcBy)
+			{[*
+				| 'via','with','id','for','convert',';',tEndOfHeader:
+					>
+				| *:
+					?
+			]}
+		| *:
+	]
+	oSetComponentType(cWord)
+	[
+		| 'via':
+			[
+				| 'atom','quoted-string':
+					oEmitTokenCurType
+					oSaveReceivedComponent(rcVia)
+				| *:
+			]
+			[
+				| ',','.',':','<','>','@',tOtherSpecial:
+					#eIllegalSpecialInValue
+				| *:
+			]
+			{[*
+				| 'with','id','for','convert',';',tEndOfHeader:
+					>
+				| *:
+					?
+			]}
+		| *:
+	]
+	{[
+		| 'with':
+			[
+				| 'atom','quoted-string':
+					oEmitTokenCurType
+					oSaveReceivedComponent(rcWith)
+				| *:
+			]
+			[
+				| ',','.',':','<','>','@',tOtherSpecial:
+					#eIllegalSpecialInValue
+				| *:
+			]
+			{[*
+				| 'with','id','for','convert',';',tEndOfHeader:
+					>
+				| *:
+					?
+			]}
+		| *:
+			>
+	]}
+	{[
+		| 'convert':
+			[
+				| 'atom','quoted-string':
+					oEmitTokenCurType
+					oSaveReceivedComponent(rcConvert)
+				| *:
+			]
+			[
+				| ',','.',':','<','>','@',tOtherSpecial:
+					#eIllegalSpecialInValue
+				| *:
+			]
+			{[*
+				| 'with','id','for','convert',';',tEndOfHeader:
+					>
+				| *:
+					?
+			]}
+		| *:
+			>
+	]}
+	oSetComponentType(cAddress)
+	[
+		| 'id':
+			@UserAtDomain
+			oSaveReceivedComponent(rcId)
+			{[*
+				| 'for',';',tEndOfHeader:
+					>
+				| *:
+					?
+			]}
+		| *:
+	]
+	[
+		| 'for':
+			@UserAtDomain
+			oSaveReceivedComponent(rcFor)
+		| *:
+	]
+	oExitReceived
+	';'
+	[
+		| tSyntaxError:
+			#eMissingSemicolonInReceived
+		| *:
+	]
+	[
+		| tEndOfHeader:
+			oSetReturnType(rReceived)
+		| *:
+			@DateTime
+			oSaveReceivedComponent(rcDate)
+			oSetReturnType(rReceived)
+	]
+	;
+
+DateTime:					% date-time
+	oDateTime	% invoke date-time parser
+	oSetReturnType(rDate)
+	;
+
+GroupBody:
+	[
+		| ';':
+			oEmitToken(cSpecial)
+		| *:
+			oCloseAddress
+			@MailboxList
+			[
+				| ';':
+					oOpenAddress
+					oEmitToken(cSpecial)
+					oCloseAddress
+				| *:
+					#eMissingSemicolonToEndGroup
+			]
+	]
+	;
+
+end

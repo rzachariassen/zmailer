@@ -1,0 +1,49 @@
+#!/usr/local/bin/router -f
+#
+# $Id$
+#
+# Testing canonicalize routine
+#
+# Alexis Yushin, NLnet Development, 1997
+#
+#
+
+ZCONFIG=/etc/zmailer.conf
+. $ZCONFIG
+
+PATH=.:$MAILSHARE/cf:$MAILBIN/bin ; export PATH
+PS1=z$PS1
+
+if [ $# = 0 ]; then
+    set	\''user@host.domain'\' \
+	'operator@nic.nl.net' \
+	'host2!host1!user' \
+	'host2!user%host1' \
+	'host1%host2!user' \
+	'user%host1%host2' \
+	'host2.domain!host1!user' \
+	'host2.domain!user%host1' \
+	'host1%host2.domain!user' \
+	'user%host1%host2.domain' \
+	'"<>"@nowhere.at.all' \
+	'"<user>"@host.domain' \
+	'\[smtp:user@host.domain\]' \
+	'smtp:user@host.domain' \
+	'<user@host.domain>' \
+	'<user@host.domain' \
+	'user@host.domain>' \
+	'user@[10.10.10.10]' \
+	'[10.10.10.10]!user' \
+	'user%[10.10.10.10]'
+fi
+
+. consist.cf
+. standard.cf
+. i-smtp.cf
+. canonicalize.cf
+
+
+for i in $*
+do
+	echo "Address: $i	Canonical: " "$(canonicalize \"$i\")"
+done

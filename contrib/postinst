@@ -1,0 +1,39 @@
+#!/bin/sh -e
+
+if [ ! -e /etc/mailname ]; then
+	hostname --fqdn >/etc/mailname
+	echo "System configured to receive mail for `hostname --fqdn` (in /etc/mailname)."
+fi
+
+# Gymnastics to convice zmailer to use /etc/aliases
+# or provide /etc/aliases it if not found.
+if [ ! -L /etc/zmailer/db/aliases ]; then
+	if [ -f /etc/aliases ]; then
+		echo "Generating Symlink to use /etc/aliases for aliasing"
+		rm /etc/zmailer/db/aliases
+	else
+		echo "Installing new /etc/aliases from zmailer sample"
+		mv /etc/zmailer/db/aliases /etc/aliases
+	fi
+	ln -s ../../aliases /etc/zmailer/db/aliases
+fi
+
+# We need the Zmailer group to signify trusted users (for mailing lists etc)
+# Provisionally we do it this way until the day comes that "addgroup" will
+# support this functionality.
+
+if ! grep -q "^zmailer:" /etc/group; then
+	echo "zmailer:*:47:root,list,uucp,daemon" >>/etc/group
+fi
+
+# Scan for Mandatory entries in /etc/aliases
+# postoffice MAILER-DAEMON postmast nobody
+# otherwise bad things (tm) result.
+
+for i in postmaster postoffice MAILER-DAEMON postmast nobody; do
+	if ! grep -q "^$i:" /etc/aliases; then
+		echo "Adding Entry for $i in /etc/aliases"
+		echo -e "\n$i: root" >>/etc/aliases
+	fi
+done
+

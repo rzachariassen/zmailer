@@ -1,0 +1,25 @@
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+DEFS=		@DEFS@
+CFLAGS=		$(DEFS)
+CC=		@CC@
+ZCONFIG=	@ZMAILERCFGFILE@
+INSTALL=	@INSTALL@
+
+all:	bsmtp-send note-send
+
+bsmtp-send: bsmtp-send.o wrapper.o bitnetname.c
+	$(CC) $(CFLAGS) -o $@ bsmtp-send.o wrapper.o bitnetname.c
+
+note-send: note-send.o wrapper.o
+	$(CC) $(CFLAGS) -o $@ note-send.o wrapper.o
+
+install:
+	. $(ZCONFIG) ; $(INSTALL) -m 0755 bsmtp-send $$MAILBIN/bin/.
+	. $(ZCONFIG) ; $(INSTALL) -m 0755 note-send $$MAILBIN/bin/.
+
+clean:
+	rm -f bsmtp-send note-send *.o make.log *~
+distclean: clean
+	rm -f Makefile

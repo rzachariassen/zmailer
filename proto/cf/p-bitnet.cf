@@ -1,0 +1,131 @@
+# BITNET
+#
+# The configuration supports native BITNET hosts communicating directly
+# with the various types of BITNET mail hosts.  These are defined by
+# the :servers1. -tag in the BITEARN NODES -file.  The understood tags are:
+#
+#	bsmtp3			- send BSMTP to mailer  (with node addresses)
+#	bsmtp3rfc		- BSMTP with RFC addresses
+#	bsmtp3nd		- NETDATA but BSMTP (with node addresses)
+#	bsmtp3ndrfc		- As above, but RFC addresses
+#
+#	defrt1			- send a NOTE file to the recipient directly
+#
+# The local RSCS (BITNET) node name should be the only contents of the
+# file /etc/name.bitnet.  A specialized version of the routes
+# database is also defined (called routes.bitnet), mostly to make it
+# easy to generate and update automatically from the BITNET tables.
+
+require bitnetdb canonicalize smtp standard
+provide bitnet
+
+bitnet_neighbour (domain, address, A) {
+	local tmp
+
+	tsift "$domain" in
+	(.+)\.(bitnet|netnorth|earn)
+		domain="\1" ;;
+	tfist
+	tmp=$(bitnetdb "$domain") &&
+	tmp=$(routes_spec "$tmp" "$address" $A) &&
+		return $tmp
+
+#| The routes_spec function interprets the values in the bitnet.routes database.
+
+	return 1
+}
+
+bitnetroute (address) {
+	local tmp
+
+	tsift "$address" in
+#	.*@.*		address="$(canonicalize "$address")" ;;
+#	(.*)<(.*)>(.*)	address="\1\2\3" ;;
+#	.*		address="$(rfc822route "$address")" ;;
+
+	.*:([^:]+)	address="\1" ;;
+	[^@]+		return "$address@$bitnetname.bitnet" ;;# add our name
+	(.)@(.)\.(bitnet|netnorth|earn)
+			address="\1@\2" ;;
+	(.+)@($hostname|$bitnetname)
+			return "\1@$bitnetname.bitnet" ;; # hostname hiding
+	(.+)@(([^@\.]\.)+$mydomain)
+			tmp=$(deliver "\2") && return "\1@$bitnetname.bitnet" ;;
+	.@.		address="${address}.bitnet" ;;
+### FIX THIS>...
+### need to change heuristic here ... look up the chanel instead
+### of just the db of bitnet (look up both host and bitnet and check
+### which channel it returns.
+#	(.+)@([^\.])+	if [ "\2" = $bitnetname ]; then
+#				break
+#			else
+#				sift "$(bitnetdb \2)" in
+#				(.?)!(.)!(.)	break;;
+#				(.?)!(.*)	break;;
+#				.*		address="$address.uucp"; break;;
+#				tfis
+#			fi
+#			;;
+	tfist
+	return "$address"
+}	# end of bitnetroute
+
+# A version of bitnetroute that truncates addresses enough so it'll all fit
+# in a 79-column card image...
+
+bitnetShortroute (address) {
+	local tmp
+
+	tsift "$address" in
+#	.*@.*		address="$(canonicalize "$address")" ;;
+#	(.*)<(.*)>(.*)	address="\1\2\3" ;;
+#	.*		address="$(rfc822route "$address")" ;;
+
+# check that the source route is < 70-some characters long...
+#	@(gpu.utcs.utoronto.ca|ugw.utcs.utoronto.ca)[,:](.+@.+)
+#			address="\2" ;;
+#	@([^@,]+):([^:]+)@([^:]+)
+#			return $address;;
+#			#address = $2%$3@$1;; # most machines handle this
+#					      # vm.utcs does not
+#	@([^@,]+),@([^@,]+):([^:]+)@([^:]+)
+#			return $address;; # source for now (CHECK THIS)
+#					  # need to handle others?
+#					  # long lines?
+#					  # at least vm.utcs can handle source route
+#			#return $1!$2!$4!$3;; # at least vm.utcs cannot eat this
+
+	.*:([^:]+)	address="\1" ;;
+	[^@]+		return "$address@$bitnetname.bitnet" ;; # add our name
+	(.)@(.)\.(bitnet|netnorth|earn)
+			address="\1@\2" ;;
+	(.+)@($hostname|$bitnetname)
+			return "\1@$bitnetname.bitnet" ;; # hostname hiding
+	(.+)@(([^@\.]\.)+$mydomain)
+			tmp=$(deliver "\2") && return "\1@$bitnetname.bitnet" ;;
+	.@.		address="${address}.bitnet" ;;
+### FIX THIS>...
+### need to change heuristic here ... look up the chanel instead
+### of just the db of bitnet (look up both host and bitnet and check
+### which channel it returns.
+#	(.+)@([^\.])+	if [ "\2" = $bitnetname ]; then
+#				break
+#			else
+#				sift "$(bitnetdb \2)" in
+#				(.?)!(.)!(.)	break;;
+#				(.?)!(.*)	break;;
+#				.*		address="$address.uucp"; break;;
+#				tfis
+#			fi
+#			;;
+	tfist
+	return "$address"
+}	# end of bitnetShortroute
+
+bitnet2internet (address) {
+	tsift "$address" in
+	(.)@(.)		address="$(recase -l "\1%\2").bitnet@${mydomain}" ;;
+	tfist
+	return $(internet "$address")
+}	# end of bitnet2internet
+

@@ -1,0 +1,282 @@
+provide crossbar
+
+# The crossbar function makes the policy decisions of how the instance of
+# a message between a particular sender and recipient should be treated.
+# The 'from' and 'to' parameters are quads, i.e., in the form
+#
+#	(channel host user attributes)
+#
+# The function may modify any of these elements of both the from and to
+# addresses, and must select a message header address rewriting function
+# to be applied to this message instance.  If the return value is nil or
+# empty, the instance is completely ignored, to the point that if there are
+# no other recipients specified a complaint will be generated saying there
+# are *no* recipients specified.
+
+crossbar (from, to) {
+	local rewrite destination tmp
+
+	# Count them..  (at process.cf !)
+	# (we could use this as an ultimate duplicate remover too..)
+	db add recipients "$(user $to)" "$(user $from)"
+
+	# Intercept (drop, redirect, bounce, save) the message
+
+	tmp=$(intercept "$(user $from)") &&
+		case "$(car $tmp)" in
+		# dropping error types for from addresses is necessary to
+		# avoid mail loops
+		drop|error)
+			return ;;
+		file)	LOGMSG="$LOGMSG $(car $(cdr $tmp))" ;;
+		esac
+
+	# Only intercept mail that is not from the local postmaster,
+	# so that error messages can find their way back.
+
+	[ "$(channel $from)" = local -a "$(user $from)" = postmaster ] ||
+	tmp=$(intercept "$(user $to)") &&
+		case "$(car $tmp)" in
+		drop)	return ;;
+		error)	setf $(channel $to) error
+			setf $(host $to) $(car $(cdr $tmp))
+			;;
+		file)	LOGMSG="$LOGMSG $(car $(cdr $tmp))" ;;
+		esac
+
+	# If we do any alias expansion from the crossbar, we should do this:
+	#db flush expansions
+
+	# Determine which rewrite function (for message header addresses) to use
+
+	case $(channel $to) in
+	smtp|smtpx)
+		#case "$(channel $from)" in
+		#smtp|smtpx)	# Address should be forwarded the way the arrive
+		#	rewrite=null ;;
+		#*)	rewrite=internet ;;
+		#esac
+		rewrite=internet
+		;;
+	error)	rewrite=null ;;
+	local)	case "$(channel $from)" in
+		local)	#rewrite=intramachine
+			rewrite=internet ;;
+		*)	# addresses should be saved the way they arrive
+			rewrite=null ;;
+		esac
+		;;
+	usenet)	rewrite=internet ;;
+	ean)	rewrite=ean_useratdomain ;;
+	*)	# This is usually UUCP or BITNET
+		# We want to determine the final destination host/domain
+		destination="$(uucproute "$(user $to)")"
+		if [ "$(host $to)" ]; then
+			destination="$(host $to)"!"$destination"
+		fi
+		tsift "$destination" in
+		.*!([^!]+)![^!]+
+			destination="\1" ;;	# destination domain
+		.*\.(bitnet|netnorth|earn|cdn)
+			rewrite=smtp_useratdomain
+			break ;;			# reply to user@domain
+		.*	rewrite=internet ; break ;;	# default sensible thing
+		tfist
+		;;
+	esac
+
+	# The alias expansion might want to modify the envelope sender
+	# of the message instance.  Here we cooperate in the scheme which
+	# is to set the 'sender' attribute of the destination address.
+
+	tmp="$(get $(attributes $to) sender)" && [ x"$tmp" != x ] &&
+		from=(local "$tmp" "$tmp" $(attributes $from))
+
+
+	case "$(channel $from)" in
+	defrt1*)
+		setf "$(user $from)" "$(bitnetroute "$(user $from)")"
+		if [ $rewrite = internet ]; then
+			rewrite=bitnet2internet
+		fi
+		;;
+	esac
+
+	# Rewrite the envelope addresses appropriately
+
+	case "$(channel $to)" in
+#	uucp|local)
+	uucp)
+		# Local destination on a system that delivers in UCB Mail
+		# compatible mail spool files means that the From_ line
+		# must be in all-! form, which is the same as the UUCP
+		# transport requirement.
+
+		setf "$(user $from)" "$(uucproute "$(user $from)")"
+		setf "$(user $to)" "$(uucproute "$(user $to)")"
+		tsift "$(user $to)" in
+		(.)!(.*)	if [ \1 = $(host $to) ]; then
+					setf "$(user $to)" \2
+				fi
+				;;
+		tfist
+		tsift "$(user $to)" in
+		(.)\.uucp!(.*)	setf "$(user $to)" \1!\2 ;;
+		tfist
+		;;
+#	smtp)
+	smtp|smtpx|local|bsmtp3*)
+		tmp="$(smtproute "$(user $from)")"
+		tsift "$tmp" in
+		(@$hostname[:,].*)|([^@:,]+@$hostname)
+			break ;;
+		.*
+			# tmp="@$hostname:$tmp"  # <-- that creates RFC-822
+						 #     source-routing, AVOID!
+			tmp="$tmp"
+			;;
+		@(.+):(.+:.+)
+			tmp="@\1,\2" ; continue ;;
+		tfist
+		setf "$(user $from)" "$tmp"
+		tsift "$(user $to)" in
+		(^/).*	setf "$(user $to)" "$(smtproute "$(user $to)")" ;;
+		tfist
+
+		;;
+	ean)	
+		setf $(user $from) "$(ean_useratdomain "$(user $from)")"
+		setf "$(user $to)" "$(ean_useratdomain "$(user $to)")"
+		;;
+	usenet)
+		setf $(user $from) "$(uucproute "$(user $from)")"
+		tsift $(user $from) in
+		$hostname!.*	;;
+		.*	setf $(user $from) $hostname!$(user $from) ;;
+		tfist
+		# newsgroup name only
+		setf "$(user $to)" $(localpart "$(user $to)")
+		;;
+#	bsmtp3|bsmtp3nd)
+#		setf $(user $from) "$(bitnetroute "$(user $from)")"
+#		tmp="$(bitnetroute "$(user $to)")"
+#		tsift "$tmp" in
+#		.*@([^.]).uucp
+#			tmp="$(bitnetShortroute "$(user $to)")" ;;
+#		tfist
+#		setf "$(user $to)" "$tmp"
+#		rewrite=bitnetShortroute
+#		;;
+	defrt1)
+		setf $(user $from) "$(bitnetroute "$(user $from)")"
+		setf $(user $to) "$(bitnetroute "$(user $to)")"
+		rewrite=bitnetroute
+		tsift "$(user $to)" in
+		(.*)[!%](.+)@(.*)
+			to=(error bitnetgw "\3" $(attributes $to))
+			rewrite=null
+			;;
+		tfist
+		;;
+	esac
+
+	#log recipient: "$(channel $to)" "$(host $to)" "$(user $to)"
+
+	return ($rewrite $from $to)
+
+}	# end of crossbar
+
+# If you want to intercept specific mail messages, this function and the
+# associated code in the crossbar and process functions will let you do it.  
+# There are three possible actions:
+#
+#	drop		- completely ignore this address
+#	error		- return the specified error message
+#	file		- append the message file to the specified file
+#
+# Both the file and error actions require an argument, which necessitates
+# the use of multiple-value return (i.e., return a list) in all cases.
+#
+# If you don't want to intercept anything, this function should return failure.
+# The stub defined here is the usual case, you can override it in the host-
+# specific cf file.
+
+intercept (address) {
+#	case "$(smtp_useratdomain "$address")" in
+#	*@pdq*)		return (file /var/scr/pdq) ;;
+#	rayan@csri.*)	return (drop) ;;
+#	bitftp*@*)	return (error bounce) ;;
+#	esac
+
+	return 1
+}
+
+# On mail from one local user to another, we don't want to see all the
+# long domain name extensions.  This *can* cause problems with silly UAs,
+# if it does you can just redefine 'intramachine' to call 'null' in your
+# site or host-specific configuration files.
+
+#
+# These rewriters can find out if the address they are processing
+# is of sender, or recipient type by executing following functions:
+#	$(sender)    && { ... sender only things    ; }
+#	$(recipient) && { ... recipient only things ; }
+#
+
+
+intramachine (address, hname) {		# strip hostname if it came from here
+	# 'address' is the address we are rewriting
+	# 'hname'   is the header whose address(es) we are rewriting;
+	#           value here is usually: 'From', 'To', etc.
+
+	tsift "$address" in
+	(.*)@($hostname|$mydomain)
+		address="$(condquote "\1")" ;;
+	tfist
+	return "$address"
+}	# end of intramachine
+
+
+null (address, hname) {
+	# 'address' is the address we are rewriting
+	# 'hname'   is the header whose address(es) we are rewriting;
+	#           value here is usually: 'From', 'To', etc.
+
+	return "$address"		# surprise!
+}
+
+# This is usually the default message-header address rewriting function.
+# It is responsible for hostname hiding and qualification.
+
+internet (address, hname) {
+	# 'address' is the address we are rewriting
+	# 'hname'   is the header whose address(es) we are rewriting;
+	#           value here is usually: 'From', 'To', etc.
+
+#	# Alexis Yushin <alexis@NL.net> mentioned that he does following:
+#	$(sender) && {
+#		local tmp
+#		tmp=$(masquerades $address) && address=$tmp
+#	}
+
+	address="$(canonicalize "$address")"	# Canonicalize does local
+						# hostname hiding...
+	tsift "$address" in
+	(.*)<@(.+)>(.*)
+			#if [ $(deliver \2) ]; then	# hostname hiding
+			#	address="\1@${mydomain}\3"
+			#	break
+			#fi
+			address="\1@\2\3" # No hostname hiding...
+			;;
+	(.*)<(.+)>(.*)	address="\1\2\3" ;;		# defocus
+	[^@]+		
+		# This is a local part address w/o any domains!
+		address="$(condquote "$address")"
+		address="$address@$mydomain"	# add our hostname
+		;;
+	tfist
+
+	return "$address"
+}	# end of internet
+

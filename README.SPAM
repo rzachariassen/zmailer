@@ -1,0 +1,24 @@
+19970808/mea@nic.funet.fi
+
+	SPAM is an increasing problem, and one aspect of it is
+	unauthorized email relaying thru various smtp servers.
+
+
+	Our initial mechanisms work well for systems that are not
+	used for outbound relaying, but may be acting as inbound
+	MX backup relays.
+
+	Even the outbound relays are supported, but the sender
+	domain/address validities are not currently verifiable.
+
+
+	For the in-depth document of the mechanism, see file
+
+		doc/guides/smtp-policy
+
+
+		-----------------------------------
+
+	Alternate behavioral models can be built; for some ideas
+	see	http://www.sendmail.org/antispam.html
+	and	http://spam.abuse.net/spam/tools/mailblock.html

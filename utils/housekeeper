@@ -1,0 +1,132 @@
+#!/bin/sh -
+#
+# housekeeper
+#
+# zmailer clean-up script
+# Jean-Francois Lamy <lamy@ai.utoronto.ca> 88-06-03
+#
+# Removes stale messages from router,deferred,queue,transport.  Mail message
+# back to error return address, except if that address is the mail daemon.
+# The scheduler is stopped while removing from queue, so the transport and
+# message files can be removed without confusing it.
+maildaemon=mailer-daemon
+
+if [ -f /etc/zmailer.conf ]; then
+	. /etc/zmailer.conf
+else
+	MAILBIN="/usr/lib/zmail"
+	POSTOFFICE="/spool/postoffice"
+fi
+case $POSTOFFICE in
+/*)	;;
+*)	echo "$0: panic!! can't initialize from /etc/zmailer.conf"
+	exit 1
+	;;
+esac
+
+# set this to one less than the number of full days a message must have
+# spent in the queue before being considered stale.
+days=2	# message will leave after 3 full days in queue.
+zmailer=$MAILSHARE/zmailer
+sendmail="/usr/lib/sendmail -t -fmailer-daemon"
+rm="/bin/rm -f"
+mv="/bin/mv"
+
+# debug
+#days=0
+#sendmail="head -24"
+#mv="echo"
+
+cd $POSTOFFICE
+dayselapsed=`expr $days + 1`
+for old in `find router deferred -type f -mtime +$days -print` ; do
+
+	# extract "from " header (error return address)
+	return=`sed -n					 		\
+	-e '/^[ 	]*$/q'						\
+	-e '/^[Ff][Rr][Oo][Mm][ 	]</s/.*\(<.*>\).*/Error Return Address \1/p'	\
+	-e '/^[Ff][Rr][Oo][Mm][ 	]/s/.* \(.*\)$/\1/p'		\
+	    	<$old`
+
+	# no "from " header; local mail then. use file ownership.
+	if [ -z "$return" ] ; then
+		return=`ls -l $old | awk '{print $3}'`
+	fi
+
+	if [ "$return" != "$maildaemon" ] ; then
+	# mail it.
+	( cat <<EOF ; 							\
+	  echo; echo "---- Unsent message ----"; cat $old )  |  $sendmail
+To: $return
+From: The Post Office <postmaster>
+Subject: Unable to process message for $dayselapsed days.
+
+For the last $dayselapsed days, it has been impossible to process your message.
+
+This generally happens when name server failures or network connectivity
+problems prevent the mailer from looking up one or more of the addresses
+mentioned in the message headers (i.e. your message is likely correct and
+would have been processed had it not been for these problems over which
+we have no control).  Note that the mailer currently examines *all* addresses
+(including From:, To:, Cc:, etc).
+
+Because a delay of $dayselapsed days is usually long enough for minor problems
+with name servers and network connectivity to get resolved, we are returning
+your message unprocessed so you can try an alternate route if one is available
+to you.
+
+EOF
+	fi
+	if [ "$?" -eq 0 ] ; then
+#		$rm $old
+		$mv $old $POSTOFFICE/housekeeper/deferred
+	fi
+	return=""
+done
+
+cd $POSTOFFICE/queue
+$zmailer kill scheduler 2>&1 >/dev/null
+for old in `find . -mtime +$days -print` ; do
+
+	# extract "from " header (error return address)
+	return=`sed -n					 		\
+	-e '/^[ 	]*$/q'						\
+	-e '/^[Ff][Rr][Oo][Mm][ 	]</s/.*\(<.*>\).*/Error Return Address \1/p'	\
+	-e '/^[Ff][Rr][Oo][Mm][ 	]/s/.* \(.*\)$/\1/p'		\
+	    	<$old`
+
+	# no "from " header; local mail then. use file ownership.
+	if [ -z "$return" ] ; then
+		return=`ls -l $old | awk '{print $3}'`
+	fi
+	if [ "$return" != "$maildaemon" ] ; then
+
+	# extract list of unreachable recipients from control file.
+	# "r " starts lines for undelivered recipients.
+	# "r~" means delivery being attempted.  If it failed for the last
+	#      n days, it likely would have this time too.
+	( cat <<EOF ; 							\
+	 (egrep '^r ' ../transport/$old | awk '{print $4}') ;		\
+	 (egrep '^r~' ../transport/$old | awk '{print $3}') ;		\
+	  echo; echo "---- Unsent message ----"; cat $old )  |  $sendmail
+To: $return
+From: The Post Office <postmaster>
+Subject: Unable to send mail message for $dayselapsed days.
+
+Delivery attempts for the recipient(s) listed below have been failing for the
+last $dayselapsed days, and we are now giving up.  Network failures or
+problems at the remote end are the usual cause for such problems.  Delivery
+was normal for the other recipients.
+
+Delivery did not take place for:
+
+EOF
+	fi
+	if [ "$?" -eq 0 ] ; then
+#		$rm $old ../transport/$old
+		$mv $old $POSTOFFICE/housekeeper/queue
+		$mv ../transport/$old $POSTOFFICE/housekeeper/transport
+	fi
+	return=""
+done
+$zmailer scheduler 2>&1 >/dev/null

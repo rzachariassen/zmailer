@@ -1,0 +1,142 @@
+From relay.cs.toronto.edu!cs.toronto.edu!zmailer-owner Sun Jun  2 18:22:52 1991
+Received: from relay.cs.toronto.edu ([128.100.3.6]) by smoke.cs.toronto.edu with SMTP id <438>; Sun, 2 Jun 1991 18:22:44 -0400
+Received: from crdgw1.ge.com ([192.35.44.4]) by relay.cs.toronto.edu with SMTP id <150185>; Sun, 2 Jun 1991 18:18:35 -0400
+Received:  by crdgw1.ge.com (5.57/GE 1.99)
+	 id AA07042; Sun, 2 Jun 91 18:18:25 EDT
+Received: from localhost by tardis.dab.ge.com with SMTP id <2593>; Sun, 2 Jun 1991 18:18:52 -0400
+To:	zmailer@cs.toronto.edu
+Subject: Patches for MH 6.7[.1]
+In-Reply-To: Your message of "Wed, 29 May 91 18:47:38 EDT."
+             <91May29.184751edt.506@smoke.cs.toronto.edu> 
+Date:	Sun, 2 Jun 1991 18:18:33 -0400
+From:	barry@tardis.dab.ge.com
+Message-Id: <91Jun2.181852edt.2593@tardis.dab.ge.com>
+
+The following patches should work on MH6.7 and MH6.7.1
+It think this is small enough to just post to the list.
+
+The following patches adds ZMAILER as a transport option for MH and
+updates the mts/sendmail interface to work correctly with the zmailer.
+  .../conf/MH must still be edited by hand.
+
+This patch requires the sendmail compatibility program installed in /usr/lib.
+MH's post program will invoke it with the '-bs' options to speak SMTP to it.
+
+The files affected are:
+	.../conf/mhconfig.c
+	.../mts/sendmail/smail.c
+
+ 1- From the top level MH directory run:
+
+	patch -p -N <this-file
+
+ 2- You must still modify by hand .../conf/MH to specify
+
+	mts zmailer
+
+    instead of "mts sendmail" or "mts sendmail/smtp".
+
+ 3- Then from the MH toplevel directory, do:
+
+	make clean
+	( cd conf ; make mhconfig ; mhconfig MH )
+	make
+
+Comments from the MH6.5 incarnation of this fix:
+
+ This is necessary due to bugs in MH's SMTP client code.  It is just as bad
+ a problem with Sendmail, except Sendmail's SMTP server is correspondingly
+ buggy, cancelling out MH's bugs (!).  You probably want to install the
+ included smail.c file in any case.
+
+*** conf/mhconfig.c-dist	Wed May 22 19:33:55 1991
+--- conf/mhconfig.c	Wed May 22 19:27:51 1991
+***************
+*** 107,112 ****
+--- 107,114 ----
+      "mh", "MHMTS", mh, NOFLAGS,
+      "sendmail", "SENDMTS", sendmail, NOMF,
+      "sendmail/smtp", "SENDMTS SMTP", sendmail, NOMF,
++     "zmailer", "ZMAILER SENDMTS", sendmail, NOMF,
++     "zmailer/smtp", "ZMAILER SENDMTS SMTP", sendmail, NOMF,
+      NULL, NULL, unknown, NOFLAGS
+  };
+  
+*** mts/sendmail/smail.c-dist	Thu Apr 12 16:28:15 1990
+--- mts/sendmail/smail.c	Sat Apr  6 17:30:16 1991
+***************
+*** 125,130 ****
+--- 125,134 ----
+      sm_debug = debug;
+      if (sm_rfp != NULL && sm_wfp != NULL)
+  	return RP_OK;
++ #ifdef ZMAILER
++     if (client == NULL || *client == '\0')
++ 	client = "localhost";
++ #endif
+  
+      if (pipe (pdi) == NOTOK)
+  	return sm_ierror ("no pipes");
+***************
+*** 157,162 ****
+--- 161,167 ----
+  	    vecp = 0;
+  	    vec[vecp++] = r1bindex (sendmail, '/');
+  	    vec[vecp++] = "-bs";
++ #ifndef ZMAILER
+  	    vec[vecp++] = watch ? "-odi" : "-odb";
+  	    vec[vecp++] = "-oem";
+  	    vec[vecp++] = "-om";
+***************
+*** 164,169 ****
+--- 169,175 ----
+  	    if (verbose)
+  		vec[vecp++] = "-ov";
+  #endif	not RAND
++ #endif	not ZMAILER
+  	    vec[vecp++] = NULL;
+  
+  	    (void) setgid (getegid ());
+***************
+*** 198,203 ****
+--- 204,214 ----
+  		    (void) sm_end (NOTOK);
+  		    return RP_RPLY;
+  	    }
++ #ifndef ZMAILER
++ 	    (void) smtalk(SM_HELO, "ONEX");
++ #endif not ZMAILER
++ 	    if (verbose)
++ 		(void) smtalk(SM_HELO, "VERB on");
+  	    if (client && *client)
+  		switch (smtalk (SM_HELO, "HELO %s", client)) {
+  		    case 250: 
+***************
+*** 234,239 ****
+--- 245,255 ----
+  #if	!defined(SENDMTS) || defined(MMDFII)
+      if (client == NULL || *client == NULL)
+  	client = LocalName ();
++ #else
++ #ifdef ZMAILER
++     if (client == NULL || *client == '\0')
++ 	client = "localhost";
++ #endif ZMAILER
+  #endif
+  
+      if ((sd1 = rclient (server, "tcp", "smtp")) == NOTOK)
+***************
+*** 265,270 ****
+--- 281,291 ----
+  	    (void) sm_end (NOTOK);
+  	    return RP_RPLY;
+      }
++ #ifndef ZMAILER
++     (void) smtalk(SM_HELO, "ONEX");
++ #endif not ZMAILER
++     if (verbose)
++ 	(void) smtalk(SM_HELO, "VERB on");
+      if (client && *client)
+  	switch (smtalk (SM_HELO, "HELO %s", client)) {
+  	    case 250: 
+

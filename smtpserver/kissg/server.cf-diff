@@ -1,0 +1,137 @@
+--- proto/cf/server.cf	Wed Jan  3 10:14:16 1996
++++ kissg/server.cf	Wed Mar 19 00:35:24 1997
+@@ -60,7 +60,7 @@
+ 		<(.+)>	a="\1" ;;
+ 		tfis
+ 		if rfc822syntax "$a"; then ; else
+-			echo "554 illegal address syntax: <$a>"
++			echo "501 illegal address syntax: <$a>"
+ 			return
+ 		fi
+ 		;;
+@@ -68,11 +68,32 @@
+ 
+ 	case $key in
+ 	init)	# If you want to log incoming connections, it can be done here
+-		#echo server $@ >> /tmp/server
++		#echo server "$@" >> /tmp/server
++		# turn off fliename globbing
++		set -f
+ 		# redefine the log function
+ 		log () {
+ 		}
+ 		;;
++	hello)
++		rejected=
++		accepted=
++		set none $@ ; shift
++		# $1=rhostname $2=ihostaddr
++		if [ $(getattrib rejectnet "$2") = "+" -o \
++		     $(getattrib rejectnet "$1") = "+" ]; then
++			rejected=true
++			echo "501 5.7.1 You are not authorized to send mail."
++			return
++		fi
++		if [ $(getattrib relaycustnet "$2") = "+" -o \
++		     $(getattrib relaycustnet "$1") = "+" ]; then
++			accepted=true
++			echo "250 We accept your mails."
++			return
++		fi
++		echo "250 Seems to be"
++		;;
+ 	to|from)
+ 		a="$(router "$1" default_attributes)"
+ 		for i in $(elements $a)
+@@ -80,7 +101,7 @@
+ 			for j in $(elements $i)
+ 			do
+ 				case $(channel $j) in
+-				error)	echo "554 unresolvable address: <$1>"
++				error)	echo "550 unresolvable address: <$1>"
+ 					return ;;
+ 				esac
+ 
+@@ -90,6 +111,49 @@
+ 
+ 			done
+ 		done
++
++		domain=
++		tsift "$1" in
++		.*@([^@]*)
++			domain="\1"
++			break ;;
++		.*
++			echo "250 Ok"
++			return
++			;;
++		tfist
++
++		case $key in
++		from)
++			if [ X"$rejected" = Xtrue -o \
++			    $(getattrib rejectsource $domain) = "+" ]; then
++				rejected=true
++				echo "501 5.7.1 You are not authorized to send mail."
++				return
++			fi
++			if [ X"$accepted" = Xtrue -o \
++			    $(getattrib relaycustomer $domain) = "+" ]; then
++				accepted=true
++				echo "250 2.7.1 Sender accepted."
++				return
++			fi
++			;;
++		to)
++			if [ X"$rejected" = Xtrue ]; then
++				echo "501 5.7.1 You are not authorized to send mail."
++				return
++			fi
++			if [ $(getattrib relaytarget $domain) = "+" -o \
++			    X"$accepted" = Xtrue ]; then
++				echo "250 2.7.1 Recipent accepted."
++				return
++			else
++				echo "501 5.7.1 This host is not relaying for '$domain'. Recipient rejected."
++				return
++			fi
++			;;
++		esac
++
+ 		echo "250 Ok (verified)"
+ 		;;
+ 	verify)
+@@ -119,3 +183,32 @@
+ 	esac
+ }
+ 
++# initializing policy database
++if [ -f $MAILSHARE/db/policy.dir ]; then
++	relation -lt ndbm -d longestmatch -f $MAILSHARE/db/policy policy
++else
++	policy () { return 1 }
++fi
++
++getattrib (attrib,object) {
++	if [ X"$object" = X ]; then
++		echo 'empty_object'
++		return 1
++	fi
++	for loopcnt in 0 1 2 3 4 5 6 7 8 9 	# to prevent endless =tag loops
++	do
++		attributelist=$(list $(policy "$object") )
++		value=$(get attributelist "$attrib")
++		if [ X$value != X ]; then
++			echo $value		# attribute specified
++			return 0
++		fi
++		object=$(get attributelist =)	# "See at $object"
++		if [ X$object = X ]; then
++			echo .			# unspecified
++			return 0
++		fi
++	done
++	echo 'too_many_indirection'
++	return 1
++}

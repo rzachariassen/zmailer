@@ -1,0 +1,126 @@
+# SMTP
+#
+# This is the standard Internet message transfer protocol.  MX expansion
+# is done both in the router and (by default) in the transport agent.
+# We use a nameserver or /etc/hosts as per whether a resolv.conf file exists.
+
+require smtpdb crossbar canonicalize
+provide smtp
+
+if [ x$world != x ]; then
+
+#| In this case there is a magic domain that contains DNS resource
+#| records intended to override the network-wide published information.
+#| This is useful if the organization has better ways of getting to some
+#| domain than through the official routes.  In this case the test for
+#| neighbourship is done in two contexts.
+
+	smtp_neighbour (domain, address, A) {
+		if host_neighbour "$domain".$world. ; then
+			return (((smtp "$domain".$world "$address" $A)))
+		fi
+		if host_neighbour "$domain". ; then
+			return (((smtp "$domain" "$address" $A)))
+		fi
+		return 1
+	}
+else
+	smtp_neighbour (domain, address, A) {
+		if host_neighbour "$domain". ; then
+			return (((smtp "$domain" "$address" $A)))
+		fi
+		return 1
+	}
+fi
+
+
+# This function is used for SMTP envelope address rewriting.  It tries
+# to promote Internet domains hidden inside a !-path to the encompassing
+# RFC822 route.
+
+#| This is because that is the format that maximizes the chances of a
+#| remote mailer understanding what is being requested.
+
+smtproute (address) {
+	address="$(canonicalize "$address")"
+	# a.b!u@c -> @c:u@a.b
+	# @a,...:a.b!u@c -> @a,...,@c:u@a.b
+	tsift "$address" in
+	(.*)<@(.+)>(.*)
+		address="\1@\2\3" ;;
+	(.*)@(.+).uucp
+		address="$(uucproute \1@\2)@$mydomain" ;;
+	[^@]+	address="$address@$mydomain" ; break ;;
+	,?((@[^:]+):)?(([^!%@]\.)+(.))!(.+)@(.+)
+		if [ "$(istoplevel "\3")" ]; then
+			address="\2,@\7:\6@\3"
+			continue
+		fi ;;
+	,(@.+)	address="\1" ;;
+	tfist
+	return "$address"
+}
+
+smtp_useratdomain (address) {
+
+#| Some networks or protocols require addresses in a strict user@domain
+#| form.  This function throws away the entire route leading to the final
+#| host and recipient.
+
+	tsift "$address" in
+	[^<>]+	address="$(canonicalize $address)" ;;
+	(.*)<(.*)>(.*)
+		address="\1\2\3" ;;
+	.*	address="$(rfc822route $address)" ;;
+	.*:([^:]+)
+		address="\1" ;;
+	(.*)@(([^@\.]\.)+.)
+		if [ $(deliver \2) ]; then	# hostname hiding
+			address="\1@$mydomain"
+		fi
+		;;
+	tfist
+	return $address
+}	# end of smtp_useratdomain
+
+# Turn any address into RFC822 source address form, ignoring domain name
+# semantics... it is the all-@ equivalent of the all-! format produces by
+# uucproute.
+
+rfc822route (address) {
+	local localpart
+
+	tsift "$address" in
+	(.+):([^:]+)
+		localpart="\2"
+		address="$(uucproute \1)"
+		break ;;
+	.+	localpart=
+		address="$(uucproute "$address")"
+		tsift "$address" in
+		[^!]+	address="$hostname!$address" ;;
+		tfist
+		break ;;
+	tfist
+
+	tsift "$address" in
+	(.+)!(.+)
+		address="\1,@\2" ; continue ;;
+	[^,]+	if [ "$localpart" ]; then
+			address="@$address:$localpart"
+		fi ;;
+	(.*),@([^,]+)
+		if [ -z "$localpart" ]; then
+			address="\1:\2"
+		else
+			address="$address:$localpart"
+		fi ;;
+	([^,]+):([^@]+)
+		address="\2@\1" ; break ;;
+	(.*),@([^,]+):([^@]+)
+		address="\1:\3@\2" ;;
+	[^@][^:]*:[^@]+@[^@]+
+		address="@$address" ; break ;;
+	tfist
+	return "$address"
+}	# end of rfc822route

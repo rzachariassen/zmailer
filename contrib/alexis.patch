@@ -1,0 +1,168 @@
+From zmailer-owner@nic.funet.fi Wed Dec 17 16:06:14 1997
+Received: from eekholt.NL.net ([193.78.241.1]:56586 "EHLO eekholt.NL.net" ident: "TIMEDOUT") by nic.funet.fi with ESMTP id <15618-15644>; Wed, 17 Dec 1997 16:03:37 +0200
+Received: (from alexis@localhost)
+	by eekholt.NL.net (8.8.7/8.8.7) id PAA27120
+	for zmailer@nic.funet.fi; Wed, 17 Dec 1997 15:03:29 +0100 (MET)
+From:	Alexis Yushin <alexis@NL.net>
+Message-Id: <199712171403.PAA27120@eekholt.NL.net>
+Subject: new canonicalize()
+To:	zmailer@nic.funet.fi
+Date:	Wed, 17 Dec 1997 15:03:29 +0100 (MET)
+X-Office-Phone: +31 (20) 495-2795
+X-NIC-Handle: AY23
+X-RIPE-Handle: AY6-RIPE
+X-Mailer: ELM [version 2.4 PL21]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: 8bit
+Return-Path: <zmailer-owner@nic.funet.fi>
+X-Orcpt: rfc822;mea
+Status: O
+
+Hi,
+
+	I made an attempt to rewrite/simplify/purify canonicalize()
+I run it in parallel with old canonicalize() on two of our loaded
+machines and havent seen any difference yet. Maybe it will be of
+any use to someone on this list. Regards,
+							alexis
+
+PS And of course because of sift instead of ssift it has no problem
+   with quoted local parts.
+
+#
+# $Id$
+#
+# Alexis Yushin, NLnet Development, 1997
+#
+# Name Canonicalization
+#
+provide canonicalize
+
+#
+# Canonicalizes an RFC822/RFC976 ``route-addr'' address.
+#
+canonicalize (address) {
+	local localpart domain route
+
+	sift "$address" in
+
+	# Zmailer internal special cases
+
+	((\|.+)|(>.+)|(:include:.+))
+		echo "$address"			# pass through unqouted
+		return				# pipes and files
+		;;
+	((<>)|(:;))
+		echo @				# special case
+		return
+		;;
+	(.*)<@(.*)>(.*)				# defocus
+		address="\1@\2\3"
+		continue
+		;;
+	# RFC822 source routing
+	(@.+),(.+)
+		address="\1:\2"			# change all "," to ":"
+		continue
+		;;
+	(@.+):(.+:.+)
+		address="\1,\2"			# undo all but the last one
+		continue
+		;;
+	(@[^,:]+)(.+:)(.+)
+		echo "<\1>\2\3"			# focus
+		return
+		;;
+
+	(.*)::(.*)
+		address="\2@\1"			# turn into localpart@domain
+		continue
+		;;
+
+	# Pure ``localpart@domain''
+	(.*)(@[^@]*)
+		echo "\1<\2>"
+		return
+		;;
+
+	# localpart only
+	# RFC976 processing: '!' and '%' kludges
+	([^!]*)\.([^!]*)!(.*)			# domain uucp
+		canonicalize "\3@\1.\2"
+		return
+		;;
+	([^!.]*)!(.*)				# pure uucp
+		canonicalize "\2@\1.uucp"
+		return
+		;;
+	(.*)%([^%]*)
+		canonicalize "\1@\2"
+		return
+		;;
+	tfis
+
+	echo "$address"
+}
+
+-- 
+			Where the wild horses run
+
+From zmailer-owner@nic.funet.fi Wed Dec 17 17:36:56 1997
+Received: from eekholt.NL.net ([193.78.241.1]:63245 "EHLO eekholt.NL.net" ident: "TIMEDOUT") by nic.funet.fi with ESMTP id <4851-6240>; Wed, 17 Dec 1997 17:19:58 +0200
+Received: (from alexis@localhost)
+	by eekholt.NL.net (8.8.7/8.8.7) id QAA02240;
+	Wed, 17 Dec 1997 16:19:46 +0100 (MET)
+From:	Alexis Yushin <alexis@NL.net>
+Message-Id: <199712171519.QAA02240@eekholt.NL.net>
+Subject: Re: new canonicalize()
+To:	alexis@NL.net (Alexis Yushin)
+Date:	Wed, 17 Dec 1997 16:19:45 +0100 (MET)
+Cc:	zmailer@nic.funet.fi
+In-Reply-To: <199712171403.PAA27120@eekholt.NL.net> from "Alexis Yushin" at Dec 17, 97 03:03:29 pm
+X-Office-Phone: +31 (20) 495-2795
+X-NIC-Handle: AY23
+X-RIPE-Handle: AY6-RIPE
+X-Mailer: ELM [version 2.4 PL21]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: 8bit
+Return-Path: <zmailer-owner@nic.funet.fi>
+X-Orcpt: rfc822;mea
+Status: O
+
+Once Alexis Yushin wrote:
+>	I made an attempt to rewrite/simplify/purify canonicalize()
+>I run it in parallel with old canonicalize() on two of our loaded
+>machines and havent seen any difference yet. Maybe it will be of
+>any use to someone on this list. Regards,
+>							alexis
+>
+>PS And of course because of sift instead of ssift it has no problem
+>   with quoted local parts.
+
+	And immediately a patch :)
+*** canonicalize.cf     1997/12/17 14:01:28     1.1
+--- canonicalize.cf     1997/12/17 15:16:17
+***************
+*** 38,44 ****
+                address="\1,\2"                 # undo all but the last one
+                continue
+                ;;
+!       (@[^,:]+)(.+:)(.+)
+                echo "<\1>\2\3"                 # focus
+                return
+                ;;
+--- 38,44 ----
+                address="\1,\2"                 # undo all but the last one
+                continue
+                ;;
+!       (@[^,:]+)([,:].+)
+                echo "<\1>\2\3"                 # focus
+                return
+                ;;
+
+								alexis
+-- 
+			Where the wild horses run
+

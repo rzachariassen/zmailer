@@ -1,0 +1,86 @@
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+prefix=		@prefix@
+MANDIR=		@MANDIR@
+TOPDIR=		..
+INSTALL=	@INSTALL@
+
+MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1
+MAN3=	zmailer.3
+MAN5=	aliases.5
+MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8
+
+MAN1ps=	mailq.1.ps mailrm.1.ps newaliases.1.ps rmail.1.ps ssl.1.ps vacation.1.ps zmailer.1.ps zmsh.1.ps
+MAN3ps=	zmailer.3.ps
+MAN5ps= aliases.5.ps
+MAN8ps=	errormail.8.ps hold.8.ps router.8.ps scheduler.8.ps sendmail.8.ps sm.8.ps smtp.8.ps smtpserver.8.ps
+
+FRC:
+	@echo "make install MANDIR=XXXX"
+	@echo "make groff"
+	@echo "make clean"
+
+clean distclean:
+	rm -rf *~
+
+install:
+	$(INSTALL) -m 644 aliases.5	${MANDIR}/man5
+	$(INSTALL) -m 644 errormail.8	${MANDIR}/man8
+	$(INSTALL) -m 644 hold.8	${MANDIR}/man8
+	$(INSTALL) -m 644 mailbox.8	${MANDIR}/man8
+	$(INSTALL) -m 644 mailq.1	${MANDIR}/man1
+	$(INSTALL) -m 644 mailrm.1	${MANDIR}/man1
+	$(INSTALL) -m 644 newaliases.1	${MANDIR}/man1
+	$(INSTALL) -m 644 rmail.1	${MANDIR}/man1
+	$(INSTALL) -m 644 router.8	${MANDIR}/man8
+	$(INSTALL) -m 644 scheduler.8	${MANDIR}/man8
+	$(INSTALL) -m 644 sendmail.8	${MANDIR}/man8
+	$(INSTALL) -m 644 sm.8		${MANDIR}/man8
+	$(INSTALL) -m 644 smtp.8	${MANDIR}/man8
+	$(INSTALL) -m 644 smtpserver.8	${MANDIR}/man8
+	$(INSTALL) -m 644 ssl.1		${MANDIR}/man1
+	$(INSTALL) -m 644 vacation.1	${MANDIR}/man1
+	$(INSTALL) -m 644 zmailer.1	${MANDIR}/man1
+	$(INSTALL) -m 644 zmailer.3	${MANDIR}/man3
+	$(INSTALL) -m 644 zmsh.1	${MANDIR}/man1
+
+groff: $(MAN1ps) $(MAN3ps) $(MAN5ps) $(MAN8ps)
+
+aliases.5.ps: aliases.5
+	groff -man aliases.5 > aliases.5.ps
+mailq.1.ps: mailq.1
+	groff -man mailq.1 > mailq.1.ps
+mailrm.1.ps: mailrm.1
+	groff -man mailrm.1 > mailrm.1.ps
+newaliases.1.ps: newaliases.1
+	groff -man newaliases.1 > newaliases.1.ps
+rmail.1.ps: rmail.1
+	groff -man rmail.1 > rmail.1.ps
+ssl.1.ps: ssl.1
+	groff -man ssl.1 > ssl.1.ps
+vacation.1.ps: vacation.1
+	groff -man vacation.1 > vacation.1.ps
+zmailer.1.ps: zmailer.1
+	groff -man zmailer.1 > zmailer.1.ps
+zmsh.1.ps: zmsh.1
+	groff -man zmsh.1 > zmsh.1.ps
+zmailer.3.ps: zmailer.3
+	groff -man zmailer.3 > zmailer.3.ps
+errormail.8.ps: errormail.8
+	groff -man errormail.8 > errormail.8.ps
+hold.8.ps: hold.8
+	groff -man hold.8 > hold.8.ps
+router.8.ps: router.8
+	groff -man router.8 > router.8.ps
+scheduler.8.ps: scheduler.8
+	groff -man scheduler.8 > scheduler.8.ps
+sendmail.8.ps: sendmail.8
+	groff -man sendmail.8 > sendmail.8.ps
+sm.8.ps: sm.8
+	groff -man sm.8 > sm.8.ps
+smtp.8.ps: smtp.8
+	groff -man smtp.8 > smtp.8.ps
+smtpserver.8.ps: smtpserver.8
+	groff -man smtpserver.8 > smtpserver.8.ps

@@ -1,0 +1,44 @@
+#
+# $Id$
+#
+# Generic database facilities.
+#
+
+#
+# Checks whether target exists and older than the source. Does
+# not check if the source exists.
+#
+uptodate (source, target) {
+    if [ ! -f $target ]; then
+        return 1
+    fi
+    if [ $source -nt $target ]; then
+        return 1
+    fi
+    return 0
+}
+
+# Generic database initialization. Establish $map relation with the
+# file $file of type $type using $options In case of any error defines
+# false lookup function.
+#
+map (type, name, file, options) {
+    if [ -f $file ]; then
+        case $type in
+            incore)
+                uptodate $file $file.zmsh || /usr/bin/awk '/^[^#]/{
+                    printf "db add '$name' '\''%s'\'' '\''%s'\''\\n",tolower($1),$2;
+                }' < $file > $file.zmsh || break
+                relation -lt incore $options $name && . $file.zmsh &&
+                    return 0
+            ;;
+            btree)
+                uptodate $file $file.db || /usr/sbin/makemap btree \
+                    $file < $file || break
+                relation -lt btree -f $file.db $options $name && return 0
+            ;;
+        esac
+    fi
+    $name () { return 1 }
+    return 1
+}

@@ -1,0 +1,9 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Address expansion problem
+
+A copy of your message is being returned to you because one or more of
+the addresses you specified could not be expanded properly.  This usually
+indicates an error in a .forward file, the system aliases file, or
+a mailing list address list.
+

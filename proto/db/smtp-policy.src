@@ -1,0 +1,303 @@
+#| File:  $MAILVAR/db/smtp-policy.src
+#|
+#|   Policy based filter database boilerplate for smtpserver
+#|   This file is compiled into actual database by command:
+#|         $MAILBIN/policy-builder.sh
+#|
+#| Syntax:
+#|
+#| key	[attribute value]... [= _tag]
+#| 
+#| Where:
+#|
+#| 'key' is 
+#|   - a domain name optionally preceded by a dot (.)
+#|   - "user@" / "user@domain" names.
+#|   - an IP address expression in canonical [nn.nn.nn.nn]/prefix form.
+#|	Unspecified bits must be 0. (Network IPv6 addresses containing
+#|       IPv4-mapped addresses are translated into plain IPv4.)
+#|   - any arbitrary word referred as '_tag' at the right side
+#|     '_tag' may be any key of this database
+#| 'attribute' and 'value' are tokens. They are used by policytest() to
+#|     make decisions.  Attribute names, and understood value tokens are:
+#|
+#|	'='		'_any_token_with_starting_underscore' (aliasing)
+#|	'rejectnet'	{ '+', '-' }
+#|	'freezenet'	{ '+', '-' }
+#|	'rejectsource'	{ '+', '-' }
+#|	'freezesource'	{ '+', '-' }
+#|	'relaycustomer'	{ '+', '-' }
+#|	'relaycustnet'	{ '+', '-' }
+#|	'relaytarget'	{ '+', '-' }
+#|	'freeze'	{ '+', '-' }
+#|	'senderokwithdns' { '+', '-' }
+#|	'acceptifmx'	{ '+', '-' }
+#|	'acceptifdns'	{ '+', '-' }
+#|	'sendernorelay' { '+', '-' }
+#|	'test-dns-rbl'	{ '+', '-' }
+#|	'message'	"quoted constant string message"
+#|
+#| Semantics:
+#|
+#| The policytest() functions called by smtpserver to check the client host,
+#| the sender's and recipients' addresses.  policytest() looks for name, and
+#| address of client host as well as full and partial user address, and domain
+#| part of sender and recipient addresses in this database.  The retrieved
+#| attributes are used to make decissions on acepting or rejecting the incoming
+#| mail.
+#|
+#| If looking for 'foo.bar.edu' and exact match failed, the database looks keys
+#| in sequence:  '.foo.bar.edu', '.bar.edu', '.edu', and '.'.
+#|
+#| The order of entries in this file is indifferent.
+#|
+#| When searching an IP address the entry with the most common (leftside) bits
+#| is returned. So you can have a [0.0.0.0]/0 entry what specifies the default
+#| addributes for all unlisted IP addresses. (Both IPv4 and IPv6)
+#|
+#| '=' is a special attribute.
+#| The notation '= _tag' means "See also at '_tag'". If server() doesn't
+#| find the requested attribute of the object, it will replace object name
+#| with '_tag' and restarts search.
+#| 
+
+#| Here is an example configuration, assumed the following decision
+#| chains of smtpserver/policytest.c routines:
+#|
+#| Connection establishment:  (IP address tested)
+#|
+#|  if (IP address of SMTP client has 'REJECTNET +' attribute) then
+#|   any further conversation refused
+#|   [state->always_reject = 1; return REJECT;]
+#|  if (IP address of SMTP client has 'FREEZENET +' attribute) then
+#|   we present happy face, but always put the messages into a freezer..
+#|   [state->always_freeze = 1; return FREEZE;]
+#|  if (IP address of SMTP client has 'RELAYCUSTNET +' attribute) then
+#|   sender accepted, recipients not checked
+#|   [state->always_accept = 1; return ACCEPT;]
+#|  if (IP address of SMTP client has 'TEST-DNS-RBL +' attribute) then
+#|   we use RealtimeBlockingList DNS database.  If we get match from
+#|   there, we do: [state->always_reject = 1; return REJECT;]
+#|  else
+#|   return ACCEPT
+#|
+#| Connection extablishment; connection source DOMAIN test
+#| (This is done on the reverser information of the IP address
+#|  of the session source.)
+#|
+#|  if (state->always_reject == 1) return REJECT;
+#|  if (state->always_freeze == 1) return FREEZE;
+#|  if (state->always_accept == 1) return ACCEPT;
+#|
+#|  if (IP address of SMTP client has 'REJECTNET +' attribute) then
+#|   any further conversation refused
+#|   [state->always_reject = 1; return REJECT;]
+#|  if (IP address of SMTP client has 'FREEZENET +' attribute) then
+#|   we present happy face, but always put the messages into a freezer..
+#|   [state->always_freeze = 1; return FREEZE;]
+#|  else
+#|   return ACCEPT
+#|
+#| HELO/EHLO parameter string:
+#|
+#|  if (state->always_reject == 1) return REJECT;
+#|  if (state->always_freeze == 1) return FREEZE;
+#|  if (state->always_accept == 1) return ACCEPT;
+#|
+#|  if (HELO-name of SMTP client has 'REJECTNET +' attribute) then
+#|   any further conversation refused
+#|   [state->always_reject = 1; return REJECT;]
+#|  if (HELO-name of SMTP client has 'FREEZENET +' attribute) then
+#|   we present happy face, but always put the messages into a freezer..
+#|   [state->always_freeze = 1; return FREEZE;]
+#|  default: return ACCEPT
+#|
+#| MAIL FROM address:
+#|
+#|  set state->rcpt_nocheck  = 0;
+#|  set state->sender_reject = 0;
+#|  set state->sender_freeze = 0;
+#|
+#|  if (state->always_reject == 1) return REJECT;
+#|  if (state->always_freeze == 1) return FREEZE;
+#|  if (state->always_accept == 1) return ACCEPT;
+#|
+#|  if (sender's address has 'REJECTSOURCE +' attribute) then
+#|   sender rejected, any further conversation refused
+#|   [state->always_reject = 1; return REJECT;]
+#|  if (sender's address has 'FREEZESOURCE +' attribute) then
+#|   we accept with the happy face, but place it into a freezer
+#|   [state->always_freeze = 1; return FREEZE;]
+#|  when (sender's address is not in policy-db, continue with sender's domain)
+#|
+#|  if (sender's domain is not in policy-db) then
+#|    return ACCEPT
+#|
+#|  if (sender's domain has 'REJECTSOURCE +' attribute) then
+#|   sender rejected, any further conversation refused
+#|   [state->sender_reject = 1; return REJECT;]
+#|  if (sender's domain has 'FREEZESOURCE +' attribute) then
+#|   we accept with the happy face, but place it into a freezer
+#|   [state->sender_freeze = 1; return FREEZE;]
+#|  if (sender's domain has 'RELAYCUSTOMER +' attribute) then
+#|   DANGER ! DANGER !
+#|   We will accept all destination addresses for this MAIL FROM,
+#|   except those that are explicitely blocked, of course..
+#|   [state->rcpt_nocheck = 1; return ACCEPT;]
+#|  if (sender's domain has 'SENDEROKWITHDNS +' attribute) then
+#|    verify that is DNS data for the target domain.  If yes, return ACCEPT;
+#|    if not, return SOFTREJECT
+#|  if (sender's domain has 'SENDEROKWITHDNS -' attribute) then
+#|    verify that is DNS data for the target domain.  If yes, return ACCEPT;
+#|    if not, return REJECT
+#|  else
+#|    return ACCEPT
+#|
+#| RCPT TO address:
+#|
+#|  if (state->always_reject == 1) return REJECT;
+#|  if (state->sender_reject == 1) return REJECT;
+#|  if (state->always_freeze == 1) return FREEZE;
+#|  if (state->sender_freeze == 1) return FREEZE;
+#|  if (state->always_accept == 1) return ACCEPT;
+#|
+#|  if (recipient address has 'RELAYTARGET +' attribute) then
+#|    return ACCEPT
+#|  if (recipient address has 'RELAYTARGET -' attribute) then
+#|    return REJECT
+#|  if (recipient address has 'FREEZE +' attribute) then
+#|    we accept with the happy face, but place it into a freezer
+#|    [status->sender_freeze = 1; return FREEZE;]
+#|
+#|  if (recipient's domain has 'RELAYTARGET +' attribute) then
+#|    return ACCEPT
+#|  if (recipient's domain has 'RELAYTARGET -' attribute) then
+#|    return REJECT
+#|  if (recipient's domain has 'FREEZE +' attribute) then
+#|    we accept with the happy face, but place it into a freezer
+#|    [status->sender_freeze = 1; return FREEZE;]
+#|
+#|  If (state->rcpt_nocheck  == 1) return ACCEPT;
+#|
+#|  If (recipient's domain has 'ACCEPTIFMX +' attribute) then
+#|    Verify that we are MX for the target domain.  If yes, return ACCEPT;
+#|    If not, return SOFTREJECT
+#|  If (recipient's domain has 'ACCEPTIFMX -' attribute) then
+#|    Verify that we are MX for the target domain.  If yes, return ACCEPT;
+#|    If not, return REJECT
+#|  If (recipient's domain has 'ACCEPTIFDNS +' attribute) then
+#|    Verify that we are MX for the target domain.  If yes, return ACCEPT;
+#|    If not, return SOFTREJECT
+#|  If (recipient's domain has 'ACCEPTIFDNS -' attribute) then
+#|    Verify that we are MX for the target domain.  If yes, return ACCEPT;
+#|    If not, return REJECT
+#|  Else
+#|    return ACCEPT
+#| 
+#| ------
+#|
+
+#|-----------
+#|
+#| Default handling boilerplates:
+#|
+#|   "We are not relaying between off-site hosts, except when ..."
+#|
+#| You MUST uncomment one of these default-defining pairs, or the blocking
+#| of relay hijack will not work at all !
+#|
+#| -- 1st alternate: No MX target usage, no DNS existence verify
+#|    Will accept for reception only those domains explicitely listed
+#|    in  'smtp-policy.mx'  and  'localnames'  files.  Will not do
+#|    verifications on validity/invalidity of source domains:  <foo@bar>
+# .			relaycustomer - relaytarget -
+# [0.0.0.0]/0		relaycustomer - relaytarget -
+#| -- 2nd alternate: No MX target usage, DNS existence verify
+#|    Like the 1st alternate, except will verify the sender (mail from:<..>)
+#|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
+# .			relaycustomer - relaytarget - senderokwithdns +
+# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns +
+#| -- 3rd alternate: MX relay trust, DNS existence verify
+#|    For the people who are in deep s*...  That is, those who for some
+#|    reason have given open permissions for people to use their server
+#|    as MX backup for their clients, but don't know all domains valid
+#|    to go thru...  Substitutes accurate data to user's whimsical DNS
+#|    maintenance activities.  Vulnerable to inbound resource abuse.
+.			relaycustomer - acceptifmx - senderokwithdns +
+[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns +
+#| -- 4th alternate: Sender & recipient DNS existence verify
+#|    This is more of an example for the symmetry's sake, verifies that
+#|    the source and destination domains are DNS resolvable, but does not
+#|    block relaying
+#.			senderokwithdns - acceptifdns -
+#[0.0.0.0]/0		senderokwithdns - acceptifdns -
+#|
+#|  Also you may add   'test-dns-rbl +'  attribute pair to [0.0.0.0]/0
+#|  to use Paul Vixie's  http://maps.vix.com/ MAPS RBL system.
+#|
+#| These rules mean that locally accepted hostnames MUST be listed in
+#| the database with  'relaytarget +' attribute.
+#|
+#|-----------
+#|
+#| Generally we refuse SMTP connections from host in private address space
+#| and refuse mails to or from <user@[nn.nn.nn.nn]> if nn.nn.nn.nn is a
+#| private IP address...
+#|
+_private_address    message "We reject your network" rejectnet + message "We don't accept email from this source address" rejectsource + relaycustomer - relaytarget -
+[172.16.0.0]/12		= _private_address
+[192.168.0.0]/16	= _private_address
+[10.0.0.0]/8		= _private_address
+#|
+#| ...but hosts in the address range 192.168.16.0-192.168.17.255 may be
+#| our SMTP clients.
+#|
+#[192.168.16.0]/23	rejectnet - = _private_address
+
+#| Hosts of our organization can do anything...
+#|
+_our_network		= _full_rights
+_full_rights	rejectnet - relaycustnet + relaycustomer + relaytarget +
+#
+#sztaki.hu		= _full_rights
+#.sztaki.hu		= _full_rights
+#192.84.225.0/24	= _our_network
+#192.84.226.0/23	= _our_network
+#192.84.228.0/23	= _our_network
+#|
+#| ... except that no use to relaying for dial-up hosts
+#|
+#.dial.sztaki.hu		relaytarget - = _full_rights
+#|
+#| ... and we have a misconfigured SMTP client somewhere
+#|
+#[192.84.225.1]/32	message "Your network is not liked message source" rejectnet + = _our_network
+#|
+#|
+#| We are MX for some UUCP nodes;  The actual list of domains should
+#| be gotten from some listing, and inserted here, or generated from
+#| a file into compatible format, and appended into the database
+#|
+#.uucp.iif.hu		relaytarget +
+#|
+#| Thanks, no bulk mails! Drop them when used as sources, also reject
+#| when asked to send for them.
+#|
+_bulk_mail	message "You are not liked source for email" rejectsource + message "This is not accepted relay target" relaytarget -
+#|
+#| The actual list of domains, and perhaps user addresses should
+#| be gotten from some active Anti-SPAM database
+#|
+#nobody.com		= _bulk_mail
+#.nobody.com		= _bulk_mail
+#nodomain.com		= _bulk_mail
+#.nodomain.com		= _bulk_mail
+#|
+#| Some source users we reject always: (frequent spammers..)
+#| (see comment above about Anti-SPAM databases)
+#| (Do note that these are SMTP ENVELOPE items, not RFC-822 items!)
+#|
+#friend@		= _bulk_mail
+#friends@		= _bulk_mail
+
+#----------------------------------

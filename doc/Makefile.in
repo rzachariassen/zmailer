@@ -1,0 +1,40 @@
+CF2TROFF=	../bin/cf2troff
+CFDIR=		../proto/cf
+
+all:
+	@echo $(MAKE): the only known target is config.roff
+
+FRC:
+
+# Create a troff'able document with annotated configuration files.
+
+config.roff: FRC
+	@echo "*** Pick a CONSTANT-WIDTH font for position 2."
+	@echo "*** Typical font choices are C, CW, or L."
+	echo '.fp 2 C' > $@
+	$(CF2TROFF) Setup $(CFDIR)/UTAI.cf >> $@
+	$(CF2TROFF) Setup $(CFDIR)/UofToronto.cf >>$@
+	$(CF2TROFF) Setup $(CFDIR)/consist.cf >>$@
+	$(CF2TROFF) Setup $(CFDIR)/standard.cf >>$@
+	$(CF2TROFF) Setup $(CFDIR)/trustedgroup.cf >>$@
+	$(CF2TROFF) Daemons $(CFDIR)/process.cf >>$@
+	$(CF2TROFF) Daemons $(CFDIR)/server.cf >>$@
+	for file in $(CFDIR)/db-*.cf ; \
+	do \
+		$(CF2TROFF) Databases $$file >>$@ ; \
+	done
+	for file in $(CFDIR)/proto-*.cf ; \
+	do \
+		$(CF2TROFF) Protocols $$file >>$@ ; \
+	done
+	$(CF2TROFF) Routing $(CFDIR)/rrouter.cf >>$@
+	$(CF2TROFF) Routing $(CFDIR)/canonicalize.cf >>$@
+	$(CF2TROFF) Aliasing $(CFDIR)/aliases.cf >>$@
+	$(CF2TROFF) Policy $(CFDIR)/crossbar.cf >>$@
+
+clean:
+	-rm -f config.roff *~
+	cd design ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean
+distclean: clean
+	cd design ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) distclean
+	-rm -f Makefile

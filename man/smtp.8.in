@@ -1,0 +1,203 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH SMTP 8 "25 Dec 1996"
+.SH NAME
+smtp \- zmailer SMTP client transport agent
+.SH SYNOPSIS
+.B smtp
+[
+.B \-78deEHrPsVxW
+]
+[
+.B \-c
+.I channel
+]
+[
+.B \-h
+.I heloname
+]
+[
+.B \-l
+.I logfile
+]
+[
+.B \-p
+.I remote-port
+]
+[
+.B \-T
+.I timeout
+]
+[
+.B \-F
+.I forcedest
+]
+[
+.B \-L
+.I localidentity
+]
+.I host
+.SH DESCRIPTION
+.I smtp
+is a ZMailer transport agent which is usually only run by the
+.IR scheduler (8)
+to transfer messages to a remote Internet host using the SMTP
+protocol. The
+.I smtp
+program must be run with the same
+current directory as the
+.IR scheduler ,
+namely \fIPOSTOFFICE\fB/transport\fR.
+.PP
+The program scans the message control files named on stdin for addresses
+destined for its channel and the host given on the command line.  If any
+are found, all matching addresses and messages are transferred in a single
+SMTP conversation.  The destination host might in fact be served by any
+available mail exchanger for that host.
+.SH OPTIONS
+.IP \-7
+forces SMTP channel to be 7-bit, and thus forcing all 8-bit texts to be
+MIME-QP-encoded for the transport.
+.IP \-8
+forces SMTP channel to be 8-bit-clean, and as such, to decode the message
+while transporting it (is it is MIME QP encoded).
+.IP \-c\ \fIchannel\fR
+specifies which channel name should be keyed on.  The default is
+.BR smtp .
+.IP \-d
+turns on debugging output.
+.IP \-e
+asks that for every destination address specification with a matching channel
+name, an MX lookup is done on the hostname to see whether the currently
+connected host can provide service for that destination.  The default is
+to just do a textual name comparison with the destination hostname as
+given on the command line.
+.IP \-E
+use the "EHLO"-greeting
+.B only
+if the remote server initial banner reports "ESMTP" on it.
+.IP \-h\ \fIhost\fR
+specifies the hostname for the SMTP \fBHELO\fR greeting.  The default
+is the hostname of the local system, as returned by
+.IR gethostname (2)
+or
+.IR uname (2).
+.IP \-F\ \fIforcedest\fR
+overrides delivery destination by forceing
+.B all
+email to be sent to given
+.I forcedest
+IP-number/hostname.
+.IP \-H
+Disable the per default active forced 8-bit headers conversion into
+.IR MIME-2 -format.
+.IP \-L\ \fIlocalident\fR
+specifies (for multi-homed machines) that they should use specified
+identity when connecting to the destination.  Think of server with
+multiple IP numbers due to virtual hosting, for example.  At such
+systems there may be situation when virtual identity needs to be
+used for reaching the destination system.
+.IP \-l\ \fIlogfile\fR
+specifies a log file where the complete SMTP command transaction will be
+copied.  Each line in the log will be prefixed with the process id of
+the transport agent process, so the same log file can be used by all SMTP
+clients.
+.IP \-r
+asks to set up SMTP connections using a source TCP port number under 1024.
+This is in the range of port numbers only available to a privileged process
+on some UNIX systems, which has led to some misguided attempts at mail security
+based on this mechanism.
+.IP \-s
+asks to report the progress of the SMTP conversation and data transfer on
+the command line in a way that will be visible to
+.IR ps (1).
+.IP \-x
+turns off MX lookups on delivery connections.  This may be used ignore
+public MX knowledge and do exactly what the router says in cases where
+delivering to an explicit IP address is inappropriate.
+.IP \-P
+disable SMTP-PIPELINING usage (ESMTP keyword: PIPELINING)
+.IP \-T\ \fItimeout\fR
+specifies the timeout, in seconds, when waiting for a response to an SMTP
+command.  The timeout applies to all SMTP command\-response exchanges except
+for the acknowledgement after terminating the
+.B DATA
+portion of a message transaction (after sending the "." CRLF sequence).
+The default timeout is 10 minutes, the minimum acceptable value is 5 seconds.
+The timeout on the
+.B DATA
+acknowledgement is very large, at least 24 hours.
+.IP \-V
+prints a version message and exits.
+.IP \-W
+turns on the DNS WKS checking, and if the remote system does not
+have SMTP in its WKS-bits, email delivery to such address is aborted
+with an error message.
+.SH INTERFACE
+As all transport agents, the program reads relative pathnames of message
+control files from standard input (terminated with two linefeeds), and
+produces diagnostic output on the standard output.  Normal diagnostic output
+is of the form:
+.sp
+.nf
+	\fIid\fR/\fIoffset\fR<TAB>\fInotify-data\fR<TAB>\fIstatus\fR \fImessage\fR
+.fi
+.sp
+where 
+.I id
+is the inode number of the message file,
+.I offset
+is a byte offset within its control file where the address being reported
+on is kept,
+.I status
+is one of
+.BR ok ,
+.BR error ,
+or
+.BR deferred ,
+and the
+.I message
+is descriptive text associated with the report.  The text is terminated by
+a linefeed.  Any other format (as might be produced by subprocesses)
+is passed to standard output for logging in the
+.B scheduler
+log.
+.PP
+The exit status is a code from
+.BR <sysexits.h> .
+.SH EXTENDED SMTP
+When user sends out 8-bit mail with proper headers, this module can
+send it out to conforming servers either in 8-bit transparent manner,
+or down-converting
+.I Content-Transfer-Encoding: 8BIT
+to
+.I Content-Transfer-Encoding: 7BIT
+or
+.I Content-Transfer-Encoding: QUOTED-PRINTABLE
+depending on what is the mail contents.
+.br
+.B This works only with
+.I Content-Type: text/plain
+.B thus no fancy multipart/alternate et.al. schemes..
+.br
+When
+.I Content-Transfer-Encoding:
+\-header is not present in the headers, and recipient has not declared
+8-bit SMTP capability, mail contents are treated with old 7-bit stripping
+method.
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice (POSTOFFICE)
+.SH SEE ALSO
+scheduler(8)
+.br
+RFC821, RFC1123, RFC1341, RFC1651, RFC1652, RFC1653, RFC1428
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>
+.br
+MIME downconverting feature (RFC1428) by:
+.br
+Matti Aarnio <mea@utu.fi>

@@ -1,0 +1,289 @@
+##
+#
+# aliases - ZMailer system-wide alias definition file
+#
+#   Alias declarations take the form of an RFC822 address-list header.  Files
+#   containing lists of users can be included with ":include:filename" (the
+#   double quotes are required). Alias files consist of addresses, one to
+#   a line.
+#
+# NOTE: "newaliases" or "router -i" must be run after modifying this file
+#       so the changes made take effect.
+# 	This file will then be merged with aliases.private.
+##
+
+# The postmaster address is required to exist according to the RFC822 protocol.
+# Point it at the address of a mailbox read by a PERSON who looks after mail
+# problems or other system-related queries from remote sites.
+postmaster: rayan,moraes
+postmast: postmaster
+
+# Things to ignore
+MAILER-DAEMON: devnull
+devnull: /dev/null
+nevdull: /dev/null
+# for all the people who type "q" and "." when /usr/ucb/mail prompts with
+# "Cc:", and for MH users confused when using same.
+q: /dev/null
+.: /dev/null
+s: /dev/null
+send: /dev/null
+test-zmailer-env: "|$MAILBIN/bin/printenv"
+
+# People who deal with day-to-day system problems
+root: ken,rayan,moraes,gene
+readers: ken,moraes,gene
+dumphacks: readers,dumphacks@csri
+# People empowered to install/fix things.  Discussions/Questions about
+# system set-up go there.
+hacks: rayan,ken,moraes,lamy,gene
+lab: rayan,ken,moraes
+request: ken
+requests: request
+adm: readers
+xhacks: xhacks@csri
+archivist: moraes,rayan
+accounting: ken
+switch: bernie@csri,mike@csri
+pathadmin: moraes
+path-admin: pathadmin
+# people looking after nsdata/ut from gpu to bay/relay
+nstrack: moraes,rayan
+
+# these should be on CSRI, but we seem to do all the news reorgs...
+nntp-news-neighbours: news-cdn-neighbours,news-usa-neighbours
+news-neighbours: news-campus-neighbours,news-nntp-neighbours,news-uucp-neighbours
+
+# ATheNa aliases
+dcs-chair: kcs
+na-hacks: tff
+ai-hacks: /dev/null
+theory-hacks: /dev/null
+athena-minutes: athena,dcs-chair
+
+# System aliases
+beer: readers
+bin: readers
+csritrack: track,track@csri
+daemon: readers
+sys: readers
+nobody: devnull
+pathtrack: rayan
+shadows: rayan
+track: readers,rayan
+usenet: moraes
+uucp: readers
+uucplist: rayan
+# mailing list at SRI-NIC
+root-update-notify: rayan
+shadow: devnull
+craystn: readers
+ftp: readers
+# postinsg from ut.test on news-server.csri, to make sure the news2mail
+# gateway works.
+test-news: moraes
+
+#==============================================================================
+# Requests for updates to databases we maintain.
+#
+# /etc/hosts, /etc/networks
+hostmaster: rayan,netmaster@utcs
+# .ca domain applications.
+registry: rayan,registry-ack
+
+#==============================================================================
+#
+# Personal aliases.
+#
+# local aliases (last name -> login).
+borodin: bor
+boutilier: cebly
+cook: sacook
+mcarthur: gewurz
+gruninger: mudcat
+hirst: gh
+karchmer: mauricio
+kwlalonde: ken
+lakemeyer: gerhard
+lalonde: ken
+levesque: hector
+mathon: combin
+meghini: carlo
+mendelzon: mendel
+milios: eem
+mm: moraes
+mylopoulos: jm
+plate: tap
+selman: bart
+stewart: lorna
+vonzurgathen: gathen
+zongaro: hznine
+terzop: dt
+terzopoulos: dt
+regoczei: stephen
+tonnesen: davet
+wahl: michelle
+# Manfred used to have login mstede, clashed with login ms on CSRI.
+ms: mstede
+
+# more local aliases (common mistakes, renamed accounts, etc.)
+jfl: lamy
+graeme: gh
+ray: reiter
+vince: canale
+whq102: wang
+middleis: kim
+fang: wang
+borgida: alexb
+# Account sponsor, has no known e-mail addr.
+kawaji: ken
+iizuka: ken
+# Till Carol's successor arrives...
+carol: hinton
+
+# people on campus
+corneil: dgc@csri
+dgc: dgc@csri
+sevcik: kcs@csri
+wortman: dw@csri
+semlyen: semlyen@ecf
+
+# aliases for distant friends
+cpe: elkan@cs.ucsd.edu
+henderso: 378-4996@mcimail.com
+ihartman: ihartman@israearn.bitnet
+luby: luby@icsi.berkeley.edu
+msb: msb@sq.com
+orponen: orponen@cs.helsinki.fi
+przytyck: przytyck@cs.ubc.ca
+rudich: rudich@theory.cs.cmu.edu
+sherk: msherk@watdragon.waterloo.edu
+stevec: burton@unixg.ubc.ca
+suew: sue@cs.mcgill.ca
+verbert: karsten@quebec.drev.dnd.ca
+watrous: watrous@cortex.siemens.com
+wmeberly: eberly@cpsc.ucalgary.ca
+yann: yann@neural.att.com
+lbertoss: lbertoss@juncal.puc.cl
+barnes: greg@cs.washington.edu
+turner: q2dt@jupiter.Sun.CSD.unb.ca
+
+#==============================================================================
+#
+# News, system messages, etc.
+#
+
+aanonymous: "|$MAILBIN/bin/anonymous-gripe"
+anonymous: "|$MAILBIN/bin/anonymous-gripe"
+fix: fix@csri
+bug: gripe
+gripes: gripe
+
+# msgs stuff (system messages).
+#
+# localmsgs  sent only to ANT (ai/na/theory)
+# msgs       will be broadcast all over ANT, CSRI and affiliates.  yonge.csri
+#	     is the central hub, and sends the message back to localmsgs.
+localmsgs: writemsgs, cressy!foreignmsgs
+msgs: msgs@yonge.csri.toronto.edu,ut.dcs.general
+
+# Posting news via mail
+#
+# aliases for one word newsgroups (usenet a fake host defined in
+# hosts.transport to force posting to Usenet news).  These aliases
+# would not be necessary if those newsgroups had been put under "local",
+# e.g. local.gradnews
+#
+tex: tex@usenet
+general: general@usenet
+
+# messages with a Newsgroups: header line can be mailed to the next address
+# and will get posted.
+postnews: postnews@usenet
+
+# seminar program
+seminar-general: ut.dcs.general,seminar-formal
+seminar-formal: ont.events,ut.dcs.seminars
+seminar-general: ut.dcs.general
+seminar-theory: ut.dcs.theory,ut.dcs.seminars
+seminar-ai: ut.dcs.ai,ut.dcs.seminars
+seminar-graphics: ut.dcs.graphics,ut.dcs.seminars
+seminar-na: ut.dcs.na,ut.dcs.seminars
+seminar-db: ut.dcs.db,ut.dcs.seminars
+seminar-systems: ut.dcs.systems,ut.dcs.seminars
+seminar-vision: ut.dcs.vision,ut.dcs.seminars
+seminar-cscw: ut.dcs.cscw,ut.dcs.seminars
+seminar-hci: ut.dcs.hci,ut.dcs.seminars
+seminar-other: ut.dcs.seminars
+seminar-calendar: localcalendar@cs
+
+#==============================================================================
+#
+# Local mailing lists.
+#
+
+# Faculty members
+aiprofs:tsotsos,jm,hector,jepson,gh,reiter,greiner,eem,hinton,dt
+theoryprofs:bor,fich,gathen,rackoff,sacook
+naprofs:enright,tehull,jepson,combin,sharp,krj,ccc,djh
+antprofs:aiprofs,naprofs,theoryprofs
+cmprofs:cmprofs@csri
+dbprofs:dbprofs@csri
+dcsprofs:dcsprofs@csri
+eeprofs:eeprofs@csri
+grfprofs:grfprofs@csri
+othprofs:othprofs@csri
+profs:profs@csri
+sysprofs:sysprofs@csri
+
+# Artificial Intelligence Aliases
+ijcai: kim
+
+# Theory Aliases
+theorynews: ut-dcs-theory 
+
+
+# really on Vision
+vislib-events: real-vislib-events@vis
+
+#
+cancon-requests: cancon-request
+
+#==============================================================================
+#
+# Mailing lists we maintain.
+#
+#
+# UofT Mailing lists
+#
+hosts-dist: hosts-dist@utcs
+ean-admin: ean-admin-distribution
+ean-invoice: rayan, orr@vesta.physics.toronto.edu, norman@vm.utcs.utoronto.ca
+
+#
+# Mailing lists we are responsible for to the world at large
+#
+can-inet-admin: can-inet-admins
+can-inet-admin-request: can-inet-admins-request
+
+zcookbook: lamy,moraes
+
+#==============================================================================
+#
+# Mailing lists we are on
+#
+# this is the guy who receives notices from people sending out the lists
+# and error messages from sites we forward to.
+list-admin: rayan,moraes
+list-request: list-admin
+
+#
+# Things we push through distribute for archiving, mail redistribution
+# and news injection.  For news injection, see
+# /news/share/bin/local/makenewsgroup (as of Oct 2, 1990)
+#
+BeEF-lovers-distribution: bsd-math-distribution
+#
+info-1100-distribution: info-1100
+mta-l-distribution: mail-l-distribution
+foo: real-foo@smoke.cs

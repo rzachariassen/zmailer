@@ -1,0 +1,22 @@
+# set up trusted user list; by default it is root,daemon,uucp
+#
+zmgroup=no
+for g in $(groupmembers zmailer)
+
+#| By convention, the UNIX group "zmailer" is used to specify the trusted
+#| users.
+
+do
+      case "$zmgroup" in
+      yes)    ;;
+      no)     zmgroup=yes
+              db flush trusted
+              ;;
+      esac
+
+#| This case statement exists to avoid flushing the default list of
+#| trusted users if no "zmailer" group exists.
+
+      db add trusted $g ''
+done 2> /dev/null
+

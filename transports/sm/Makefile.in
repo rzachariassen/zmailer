@@ -1,0 +1,81 @@
+PROGRAM=	sm
+#
+# ZMailer Sendmail compatible Transport Agent
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		../..
+MAILBIN=	$(prefix)@MAILBIN@
+DEFS=		@DEFS@
+INSTALL=	@INSTALL@
+SM_INCL=	
+SM_LIB=		@LIBRESOLV@ @LIBSOCKET@
+#
+SOURCE=		sm.c
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
+LIB=		-L$(TOPDIR)/libs -lta -lzc -lz $(LIBMALLOC)
+LIBDEB=		$(TOPDIR)/libs/libtag
+LINTLIB=	../libta/llib-llibta.ln $(TOPDIR)/libc/llib-llibzc.ln
+
+$(PROGRAM)-a: $(PROGRAM)
+
+$(PROGRAM):	$(PROGRAM).o version.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o $(LIB) $(SM_LIB)
+
+version.c:	$(PROGRAM).o $(TOPDIR)/Makefile
+	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+$(PROGRAM).o: $(srcdir)/$(PROGRAM).c
+
+install:	$(PROGRAM)
+	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/ta/$(PROGRAM).x
+	mv $(MAILBIN)/ta/$(PROGRAM).x $(MAILBIN)/ta/$(PROGRAM)
+
+clean:
+	-rm -f $(PROGRAM) *.o *.out make.log *~
+distclean: clean
+	-rm -f Makefile
+
+lint:	$(LINTLIB)
+	lint $(DEFS) $(INCL) $(LINTLIB) $(PROGRAM).c
+
+../libta/llib-llibta.ln:
+	cd ../libta ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
+
+$(TOPDIR)/libc/llib-llibzc.ln:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS) lintlib
+
+../libta/libta.a-a:
+	cd ../libta ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libs/libta.a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libs/libzc.a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libmalloc/libmalloc_d.a-a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libmalloc/libmalloc_d.a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+
+depend:
+	$(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

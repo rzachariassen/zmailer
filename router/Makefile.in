@@ -1,0 +1,144 @@
+PROGRAM=	router
+#
+# ZMailer Router makefile
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		..
+MAILBIN=	$(prefix)@MAILBIN@
+DEFS=		@DEFS@
+INSTALL=	@INSTALL@
+ROUTER_INCL=	@INCLRESOLV@
+ROUTER_LIB=	@LIBDBMS@ @LIBNIS@ @LIBRESOLV@ @LIBSOCKET@
+#   Above the  LIBSOCKET (for SysVR4) must be last
+#
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(srcdir)/$(TOPDIR)/libsh -I$(TOPDIR)/libsh -I.
+CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(ROUTER_INCL)
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
+#
+LIB=		-L$(TOPDIR)/libs -lzmdb -lsh -lz -lzc $(LIBMALLOC)
+LIBDEB=		$(TOPDIR)/libs/libtag
+LINTLIB=	libdb/llib-llibdb.ln $(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln
+SSL=		$(TOPDIR)/ssl/ssl
+RUNSSL=	rm -f $(TOPDIR)/include/rfc822.entry rfc822.sst.? ; \
+	${SSL} -E HeaderSemantics -D short -h rfc822.sst.h -t rfc822.sst.c \
+		-e $(TOPDIR)/include/rfc822.entry $(srcdir)/rfc822.ssl
+
+OBJS=	router.o dateparse.o conf.o functions.o db.o \
+	shliaise.o rfc822.o rfc822hdrs.o rfc822walk.o \
+	rtsyslog.o
+
+SOURCE=	router.c dateparse.c conf.c functions.c db.c \
+	shliaise.c rfc822.c rfc822hdrs.c rfc822walk.c \
+	rtsyslog.c
+
+RFC822OBJS= rfc822walk.o rfc822test.o dateparse.o
+
+
+all $(PROGRAM)-a:	$(TOPDIR)/include/rfc822.entry $(LIBDEB) $(PROGRAM)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+$(PROGRAM): $(TOPDIR)/include/rfc822.entry $(LIBDEB) version.o $(OBJS)
+	$(CC) $(CFLAGS) -o $@.x $(OBJS) version.o $(LIB) $(ROUTER_LIB)
+	mv $@.x $@
+
+$(PROGRAM).third: $(TOPDIR)/include/rfc822.entry $(LIBDEB) version.o $(OBJS)
+	-rm -f $(PROGRAM)
+	make $(PROGRAM) LIBMALLOC= CFLAGS="${CFLAGS} -non_shared"
+	atom -tool third -o $(PROGRAM).third $(PROGRAM)
+
+version.c: $(OBJS) $(TOPDIR)/Makefile
+	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+rfc822test: $(RFC822OBJS) $(TOPDIR)/libs/libz.a
+	$(CC) $(CFLAGS) $(RFC822OBJS) -o $@ $(TOPDIR)/libs/libz.a $(LIB)
+
+rfc822.entry:  $(TOPDIR)/include/rfc822.entry
+$(TOPDIR)/include/rfc822.entry rfc822.sst.c rfc822.sst.h:  rfc822.ssl ${SSL}
+	$(RUNSSL)
+
+rfc822walk.o: rfc822walk.c rfc822.sst.c rfc822.sst.h
+
+${SSL}:	$(srcdir)/${SSL}.c
+	cd $(TOPDIR)/ssl ; $(MAKE) $(MFLAGS)
+
+install:	$(PROGRAM)-a $(PROGRAM)
+	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/$(PROGRAM).x
+	mv $(MAILBIN)/$(PROGRAM).x $(MAILBIN)/$(PROGRAM)
+
+tags:
+	ctags *.c *.h
+
+clean:
+	-rm -f $(PROGRAM) rfc822test tags make.log *~
+	-rm -f *.o *.out *.ln *.sst.? *.lst *.3rd *.3log
+	cd libdb ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean
+
+distclean: clean
+	rm -f Makefile libdb/Makefile
+
+lintlib: y.tab.c lex.yy.c llib-l$(PROGRAM).ln
+
+llib-l$(PROGRAM).ln:	$(SOURCE)
+	lint -C$(PROGRAM) $(DEFS) $(INCL) $(SOURCE)
+
+lint:	$(LINTLIB) rfc822.sst.h rfc822.sst.c
+	lint -hc $(DEFS) $(INCL) $(LINTLIB) $(SOURCE)
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
+
+$(TOPDIR)/libc/llib-llibc.ln:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/lib/llib-llibz.ln:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS) lintlib
+
+libdb/llib-llibdb.ln:
+	cd libdb ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libc/libzc.a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/lib/libz.a-a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/lib/libz.a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+
+libdb/libzmdb.a-a:
+	cd libdb ; $(MAKE) $(MFLAGS)
+libdb/libzmdb.a:
+	cd libdb ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libsh/libsh.a-a:
+	cd $(TOPDIR)/libsh ; $(MAKE) $(MFLAGS) libsh.a
+$(TOPDIR)/libsh/libsh.a:
+	cd $(TOPDIR)/libsh ; $(MAKE) $(MFLAGS) libsh.a
+
+$(TOPDIR)/libs/libmalloc_d.a-a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS) $(TOPDIR)/libs/libmalloc_d.a
+$(TOPDIR)/libs/libmalloc_d.a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS) $(TOPDIR)/libs/libmalloc_d.a
+
+../libsh/sh.sst.h:
+	cd ../libsh; $(MAKE) $(MFLAGS) sh.h
+
+depend: rfc822.sst.c rfc822.sst.h $(TOPDIR)/include/rfc822.entry ../libsh/sh.sst.h
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)
+
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+

@@ -1,0 +1,58 @@
+LIBNAME=	libzmdb
+#
+# ZMailer Router database search routine library
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		../..
+DEFS=		@DEFS@
+RANLIB=		@RANLIB@
+LIBDB_INCL=	@INCLRESOLV@ @INCLLDAP@
+#
+INCL=		-I$(TOPDIR) -I$(TOPDIR)/include -I$(srcdir)/$(TOPDIR)/include -I$(srcdir)/$(TOPDIR)/libsh
+CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(LIBDB_INCL)
+#
+OBJS	= bind.o dbm.o gdbm.o header.o hostsfile.o incore.o ndbm.o \
+	ordered.o unordered.o yp.o bsdbtree.o bsdhash.o selfmatch.o ldap.o
+SOURCE	= bind.c dbm.c gdbm.c header.c hostsfile.c incore.c ndbm.c \
+	ordered.c unordered.c yp.c bsdbtree.c bsdhash.c selfmatch.c ldap.c
+
+$(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a $(TOPDIR)/include/rfc822.entry
+
+$(TOPDIR)/libs/$(LIBNAME).a:	$(OBJS)
+	ar rv $@ *.o
+	$(RANLIB) $@
+	#-rm -f *.o
+
+$(OBJS):: $(TOPDIR)/include/rfc822.entry
+
+$(TOPDIR)/include/rfc822.entry:
+	cd .. ; $(MAKE) $(MFLAGS) ../include/rfc822.entry
+
+lintlib:	llib-l$(LIBNAME).ln
+
+llib-l$(LIBNAME).ln:	$(SOURCE)
+	lint $(INCL) -C$(LIBNAME) *.c
+
+lint:
+	lint $(DEFS) $(INCL) ../llib-l*.ln $(SOURCE)
+
+clean:
+	-rm -f $(LIBNAME).a make.log
+	-rm -f *.o *.out *.ln *~
+distclean: clean
+	-rm -f Makefile
+
+depend:
+	CPPDEP="$CPPDEP" $(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)
+
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+

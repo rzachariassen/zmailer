@@ -1,0 +1,1207 @@
+dnl Process this file with autoconf to produce a configure script.
+#
+# This autoconfigure input was modelled after GNU fileutils  configure.in,
+# and modified by hand by <matti.aarnio@nic.funet.fi>  for the ZMailer
+#
+
+#PACKAGE=ZMailer
+#VERSION=2.99.49p10snap1
+#PACKAGE_VERSION="$PACKAGE-$VERSION"
+#AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
+#AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
+#AC_DEFINE_UNQUOTED(PACKAGE_VERSION, "$PACKAGE_VERSION")
+#AC_SUBST(PACKAGE)
+#AC_SUBST(VERSION)
+#AC_SUBST(PACKAGE_VERSION)
+
+#
+# This autoconfigure input was taken from  GNU fileutils  configure.in,
+# and modified by hand by <matti.aarnio@nic.funet.fi>  for the ZMailer
+#
+# Parts are also from scotty-2.0.2 configuration
+# Parts from other sources long forgotten, and many
+# new things invented by myself...
+#
+# ZMailer is almoast as versatile systems feature tester as
+# the best (or worst) other beats, like  SSH ...   About the
+# only thing that ZMailer does not need are PTY allocation
+# mechanisms ...
+#
+
+AC_INIT(router/router.c)
+
+AC_LANG_C
+#----------------------------------------------------------------------------
+#       Check if we should use gcc if available on this machine.
+#----------------------------------------------------------------------------
+AC_ARG_WITH(gcc, [  --with-gcc              use gcc for compilation],
+	use_gcc=1)
+if test -z "$use_gcc" ; then
+    CC=${CC-cc}
+else
+    AC_PROG_CC
+    if test "$CC" = "gcc" ; then
+	CC="gcc -Wall"
+    fi
+fi
+AC_PROG_CPP
+
+AC_AIX
+AC_MINIX
+AC_ISC_POSIX
+
+# AC_PROG_GCC_TRADITIONAL
+AC_PROG_MAKE_SET
+
+defROUTEROPTIONS="-dkn 4"
+defSMTPOPTIONS="-a -sve -l ${LOGDIR}/smtpserver"
+defSCHEDULEROPTIONS="-l ${LOGDIR}/scheduler.perflog -S -H"
+defNNTPSERVER="nntp"
+ac_default_zmconfig="${ZCONFIG-/etc/zmailer.conf}"
+
+AC_CONFIG_HEADER(config.h)
+
+if test "x$prefix" = "xNONE" ; then
+  AC_MSG_RESULT([!!!])
+  AC_MSG_RESULT([!!! You did not define  --prefix=DIR  -parameter !!!])
+  AC_MSG_RESULT([!!!])
+  AC_MSG_RESULT([!!! Define the  --prefix=DIR -parameter to tell the subtree,])
+  AC_MSG_RESULT([!!! where the ZMailer system is to be installed.])
+  AC_MSG_RESULT([!!!])
+  exit 1
+fi
+
+AC_MSG_RESULT([***])
+AC_MSG_RESULT([*** You can set  ZCONFIG  environment variable to define])
+AC_MSG_RESULT([*** the location of the (default) /etc/zmailer.conf -file])
+AC_MSG_RESULT([*** (You can use also   --with-zconfig=  -parameter)])
+AC_MSG_RESULT([***])
+AC_MSG_RESULT([*** Consider also setting following parameters:])
+AC_MSG_RESULT([***   --mandir=DIR     -- for man-pages])
+AC_MSG_RESULT([***   --libdir=DIR     -- for libzmailer(3)])
+AC_MSG_RESULT([***   --includedir=DIR -- for libzmailer(3)])
+AC_MSG_RESULT([*** (They can be outside the --prefix=DIR -tree)])
+AC_MSG_RESULT([***])
+AC_MSG_RESULT([*** You can set CC, and CFLAGS  environment variables to])
+AC_MSG_RESULT([*** choose the C-compiler, and its options, especially at])
+AC_MSG_RESULT([*** systems where there are multiple choices to use...])
+AC_MSG_RESULT([***])
+
+sleep 3  # delay a bit, then continue..
+
+AC_SUBST(PROGS)dnl
+
+AC_PATH_PROG(LN, ln, ln)dnl
+AC_PATH_PROG(MV, mv, mv)dnl
+AC_PATH_PROG(RM, rm, rm)dnl
+AC_PATH_PROG(PERL, perl, perl)dnl
+AC_SUBST(LIBPROGS)dnl
+
+AC_SUBST(CPPDEP)
+CPPDEP=${CPPDEP-"gcc -MM"}
+
+AC_MSG_RESULT([** Using C compiler: $CC])
+AC_MSG_RESULT([** Using CFLAGS:     $CFLAGS])
+AC_MSG_RESULT([** Using CPPDEP:     $CPPDEP])
+
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+AC_PATH_PROG(AR, ar, ar)dnl
+AC_PATH_PROG(LD, ld, ld)dnl
+AC_PROG_YACC
+AC_PROG_LN_S
+AC_HEADER_MAJOR
+
+AC_C_BIGENDIAN
+AC_C_INLINE
+AC_CHECK_SIZEOF(void *)
+AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(double)
+
+AC_SUBST(ZMAILERCFGFILE)
+use_zcfg=0
+AC_ARG_WITH(zconfig, 
+[  --with-zconfig=PATH     define the path and name of the zmailer.conf -file
+                          Set ZCONFIG environment, and then use --with-zconfig=no
+                          to disable usage of existing zmailer.conf -file to
+                          load existing defaults. ],
+	use_zcfg=1)
+if test "$use_zcfg" = "0" ; then
+	ZMAILERCFGFILE="${ZMAILERCFGFILE-$ac_default_zmconfig}"
+	use_zcfg=1
+else
+    if test "$withval" != "no" ; then
+	use_zcfg=1
+	ZMAILERCFGFILE="$withval"
+    else
+	use_zcfg=0
+	ZMAILERCFGFILE="${ZMAILERCFGFILE-$ac_default_zmconfig}"
+    fi
+fi
+AC_MSG_RESULT([Using ZMailer parametrization file path: $ZMAILERCFGFILE])
+
+if test -r $ZMAILERCFGFILE -a "$use_zcfg" != "0" ; then
+  # Source the previous configuration values for various environment parameters
+  . $ZMAILERCFGFILE
+  AC_MSG_RESULT([   The file exists, we use its values as defaults])
+fi
+
+AC_SUBST(MAILBOX)
+AC_ARG_WITH(mailbox,      [  --with-mailbox=DIR      define the path of the mailbox directory],
+	use_mailbox=1)
+if test -z "$use_mailbox" ; then
+    # No explicite value given, make some guesses as to where it might be..
+    for DEFMAILBOX in /var/mail /var/spool/mail /usr/mail /usr/spool/mail
+    do
+	if test -d $DEFMAILBOX ; then
+	    break
+	fi
+    done
+    MAILBOX="${MAILBOX-$DEFMAILBOX}"
+else
+    MAILBOX="$withval"
+fi
+AC_MSG_RESULT([Using ZMailer MAILBOX directory path: $MAILBOX])
+
+AC_SUBST(POSTOFFICE)
+AC_ARG_WITH(postoffice,   [  --with-postoffice=DIR   define the path of the postoffice directory],
+	use_postoffice=1)
+if test -z "$use_postoffice" ; then
+    # No explicite value given, make some guesses as to where it might be..
+    # XX: Should see what the MAILBOX value is, and then default between
+    # XX: the /usr, and the /var -trees.
+    for DEFPOSTOFFICE  in /usr/spool/postoffice /var/spool/postoffice
+    do
+	if test -d $DEFPOSTOFFICE ; then
+	    break
+	fi
+    done
+    POSTOFFICE="${POSTOFFICE-$DEFPOSTOFFICE}"
+else
+    POSTOFFICE="$withval"
+fi
+AC_MSG_RESULT([Using ZMailer POSTOFFICE path: $POSTOFFICE])
+
+
+AC_SUBST(MAILSHARE)
+AC_ARG_WITH(mailshare,    [  --with-mailshare=DIR    define the path of the mailshare directory],
+	use_mailshare=1)
+if test -z "$use_mailshare" ; then
+    eval MAILSHARE="${MAILSHARE-$prefix}"
+else
+    MAILSHARE="$withval"
+fi
+AC_MSG_RESULT([Using ZMailer MAILSHARE directory path: $MAILSHARE])
+
+AC_SUBST(MAILVAR)
+AC_ARG_WITH(mailvar,      [  --with-mailvar=DIR      define the path of the mailvar directory],
+	use_mailvar=1)
+if test -z "$use_mailvar" ; then
+    eval MAILVAR="${MAILVAR-$prefix}"
+else
+    MAILVAR="$withval"
+fi
+AC_MSG_RESULT([Using ZMailer MAILVAR directory path: $MAILVAR])
+
+AC_SUBST(MAILBIN)
+AC_ARG_WITH(mailbin,      [  --with-mailbin=DIR      define the path of the mailbin directory],
+	use_mailbin=1)
+if test -z "$use_mailbin" ; then
+    eval MAILBIN="${MAILBIN-${MAILSHARE}/bin}"
+else
+    MAILBIN="$withval"
+fi
+AC_MSG_RESULT([Using ZMailer MAILBIN directory path: $MAILBIN])
+
+AC_SUBST(LOGDIR)
+AC_ARG_WITH(logdir,       [  --with-logdir=DIR       define the path of the log directory],
+	use_logdir=1)
+if test -z "$use_logdir" ; then
+    LOGDIR=${LOGDIR-/var/log/mail}
+else
+    LOGDIR="$withval"
+fi
+AC_MSG_RESULT([Using ZMailer LOGDIR directory path: $LOGDIR])
+
+AC_SUBST(NNTPSERVER)
+AC_ARG_WITH(nntpserver,   [  --with-nntpserver=HOST  define the domain name of the nntp server],
+	use_nntpserver=1)
+if test -z "$use_nntpserver" ; then
+    NNTPSERVER="${NNTPSERVER-$defNNTPSERVER}"
+else
+    NNTPSERVER="$withval"
+fi
+AC_MSG_RESULT([Using ZMailer NNTPSERVER host name: $NNTPSERVER])
+
+if test -z "$INEWSBIN" ; then
+  AC_PATH_PROG(INEWS, inews, inews)
+else
+  AC_SUBST(INEWS)
+  INEWS="$INEWSBIN"
+fi
+AC_MSG_RESULT([Using ZMailer INEWS program path: $INEWS])
+
+AC_SUBST(SCHEDULEROPTIONS)
+SCHEDULEROPTIONS="${SCHEDULEROPTIONS-$defSCHEDULEROPTIONS}"
+AC_MSG_RESULT([Using ZMailer SCHEDULEROPTIONS='$SCHEDULEROPTIONS'])
+AC_SUBST(ROUTEROPTIONS)
+ROUTEROPTIONS="${ROUTEROPTIONS-$defROUTEROPTIONS}"
+AC_MSG_RESULT([Using ZMailer ROUTEROPTIONS='$ROUTEROPTIONS'])
+AC_SUBST(SMTPOPTIONS)
+SMTPOPTIONS="${SMTPOPTIONS-$defSMTPOPTIONS}"
+AC_MSG_RESULT([Using ZMailer SMTPOPTIONS='$SMTPOPTIONS'])
+
+AC_SUBST(SENDMAILPATH)
+AC_ARG_WITH(sendmailpath,   [  --with-sendmailpath=PATH The location of the 'sendmail'],
+	use_sendmailpath=1)
+if test -z "$use_sendmailpath" ; then
+  # Ok, no value given, make some guesses; /usr/sbin ??
+  for SENDMAILDEF in /usr/sbin/sendmail /usr/lib/sendmail ; do
+    if test -x $SENDMAILDEF ; then
+	break
+    fi
+  done
+  SENDMAILPATH="${SENDMAILPATH-$SENDMAILDEF}"
+else
+    if test -d "$withval" ; then
+        SENDMAILPATH="$withval/sendmail"
+    else
+        SENDMAILPATH="$withval"
+    fi
+fi
+AC_MSG_RESULT([Using ZMailer SENDMAILPATH: $SENDMAILPATH])
+
+oldRMAILPATH="$RMAILPATH"
+AC_SUBST(RMAILPATH)
+AC_ARG_WITH(rmailpath,   [  --with-rmailpath=PATH    The location of 'rmail'],
+	use_rmailpath=1)
+if test -z "$use_rmailpath" ; then
+  # Ok, no value given, make some guesses; /usr/bin ?? (last is default)
+  for RMAILDEF in /sbin/rmail /usr/sbin/rmail /usr/bin/rmail /bin/rmail; do
+    if test -x $RMAILDEF ; then
+	break
+    fi
+  done
+  if test -z "$oldRMAILPATH" ; then
+    RMAILPATH="$RMAILDEF"
+  else
+    RMAILPATH="$oldRMAILPATH"
+  fi
+else
+  RMAILPATH="$withval"
+fi
+AC_MSG_RESULT([Using ZMailer RMAILPATH: $RMAILPATH])
+
+oldSELFADDRESSES="$SELFADDRESSES"
+AC_SUBST(SELFADDRESSES)
+AC_ARG_WITH(selfaddresses,   [  --with-selfaddresses=NAME,NAME  Comma separated list of names],
+	use_selfaddresses=1)
+if test "x$use_selfaddresses" != "x" ; then
+    SELFADDRESSES="$withval"
+else
+    SELFADDRESSES="$oldSELFADDRESSES"
+fi
+AC_MSG_RESULT([Using ZMailer SELFADDRESSES: $SELFADDRESSES])
+
+sleep 2  # Sleep a bit here too
+
+AC_SUBST(LIBMALLOC)
+AC_SUBST(MALLOC)
+AC_SUBST(MALLOCEXT)
+MALLOCEXT=""
+AC_ARG_WITH(system-malloc,[  --with-system-malloc    use system malloc instead of our own],
+	use_system_malloc=1)
+AC_ARG_WITH(libmalloc,
+[  --with-libmalloc=LIBNAME define the name of the malloc library
+                           possible values: malloc, malloc_d, system (default)],
+	use_libmalloc=1)
+if test "x$use_system_malloc" = x1 ; then
+  LIBMALLOC=""
+  MALLOC="system"
+else
+  if test "x$withval" = xmalloc_d -o "x$withval" = xmalloc ; then
+    LIBMALLOC="-l$withval"
+    MALLOC="$withval"
+    if test "$withval" = "malloc_d" ; then
+      MALLOCEXT="_d"
+    fi
+  else
+    if test "x$withval" = xsystem -o "x$use_libmalloc" != x1; then
+      LIBMALLOC=""; MALLOCEXT=""
+      MALLOC="system"
+    else
+      eval LIBMALLOC="-l${MALLOC-malloc}"
+      if test "x$LIBMALLOC" = "x-lmalloc_d"; then
+	MALLOC="malloc_d"; MALLOCEXT="_d"
+      else
+	if test "x$LIBMALLOC" = "x-lmalloc"; then
+	  MALLOC="malloc"
+	fi
+      fi
+    fi
+  fi
+fi
+AC_MSG_RESULT([Using ZMailer malloc library of type: $MALLOC])
+
+#
+# Following is rather painfull to do fully automatic, thus I choose
+# to do it in dumb way -- explicitely, INCLUDING LINKER STUFF !
+#
+
+AC_SUBST(HAVE_YP)
+AC_ARG_WITH(yp, [  --with-yp                Have YP/NIS in system, and want to use it],
+	AC_DEFINE(HAVE_YP))
+
+AC_SUBST(LIBNIS)
+LIBNIS=""
+AC_ARG_WITH(yp, [  --with-yp-lib='-L... -lyp'  Linker arguments for the YP/NIS in the router],
+	LIBNIS="$withval")
+
+#AC_CHECK_HEADERS(rpc/rpc.h rpcsvc/yp_prot.h rpcsvc/ypclnt.h)
+#if test "$ac_cv_header_rpc_rpc.h" = yes			\
+#	-a "$ac_cv_header_rpcsvc_yp_prot_h" = yes	\
+#	-a "$ac_cv_header_rpcsvc_ypclnt_h" = yes ; then
+#    # Ok, we have the headers, do we have the libs ?
+#    # Asch....  Lets just presume that headers match with libs
+#    # (and for Solaris the needed  -lnsl  comes with  connect() )
+#    AC_DEFINE(HAVE_YP)
+#fi
+
+AC_HEADER_SYS_WAIT
+AC_FUNC_WAIT3
+AC_CHECK_FUNCS(waitpid wait4)
+
+
+# things get pretty tought, if the dup2() is not available ...
+AC_CHECK_FUNC(dup2,
+	AC_DEFINE(HAVE_DUP2),
+	AC_MSG_ERROR([Bizzare -- the system does not have dup2()!  Is your C-compiler working ? (See config.log)])
+	)
+
+#
+#  Study shared library generation
+#
+AC_SUBST(SHLIB_CFLAGS)
+AC_SUBST(SHLIB_LD)
+AC_SUBST(SHLIB_SUFFIX)
+AC_SUBST(DL_LIBS)
+AC_SUBST(LD_FLAGS)
+
+
+AC_HEADER_DIRENT
+AC_FUNC_CLOSEDIR_VOID
+
+AC_TYPE_GETGROUPS
+AC_TYPE_MODE_T
+AC_TYPE_OFF_T
+AC_TYPE_SIGNAL
+AC_TYPE_SIZE_T
+AC_TYPE_UID_T
+AC_CHECK_TYPE(ino_t, unsigned long)
+
+AC_C_CONST
+AC_HEADER_STDC
+
+# Timezones are always a pain in... everybody has their own ways :-(
+AC_CHECK_HEADER(sys/time.h)
+AC_HEADER_TIME
+AC_STRUCT_TIMEZONE
+AC_STRUCT_TM
+AC_STRUCT_TM_GMTOFF
+
+AC_STRUCT_ST_BLOCKS
+AC_STRUCT_ST_BLKSIZE
+
+DEFDBTYPE="$DBTYPE" # From possible entry in  zmailer.conf above...
+AC_SUBST(DBTYPE) # Default db-type, unless we figure out something.
+AC_SUBST(DBEXT)  # Default db-extension (pag/db) for FILE OPEN
+AC_SUBST(DBEXTtest) # Default db-extension (pag/db) for FILE AGE TESTS
+AC_CHECK_HEADERS(gdbm.h ndbm.h sdbm.h db.h)
+LIBGDBM=""
+# Sometimes it is in libc, sometimes at separate lib...
+# Umm...
+dblocation=""
+if test "$ac_cv_header_gdbm_h" = yes ; then
+  t_found_at="nowhere"
+  if test "$ac_cv_lib_c_gdbm_open" = yes ; then
+    LIBGDBM=""
+    t_found_at="libc"
+  else
+    if test "$ac_cv_lib_gdbm_gdbm_open" = yes ; then
+      LIBGDBM="-lgdbm"
+      t_found_at="gdbm library"
+      DBTYPE="gdbm"
+    else
+      AC_TRY_LINK([], [gdbm_open();], ac_cv_lib_c_gdbm_open=yes,
+				      ac_cv_lib_c_gdbm_open=no)
+      if test "$ac_cv_lib_c_gdbm_open" = no; then
+	if test "x$ac_cv_lib_gdbm_gdbm_open" = x; then # not set
+	  t_oldLibs="$LIBS"
+	  LIBS="$LIBS -lgdbm"
+	  AC_TRY_LINK([], [gdbm_open();], ac_cv_lib_gdbm_gdbm_open=yes,
+					  ac_cv_lib_gdbm_gdbm_open=no)
+	  if test "$ac_cv_lib_gdbm_gdbm_open" = yes; then
+	    LIBGDBM="-lgdbm"
+	    t_found_at="gdbm library"
+	    DBTYPE="gdbm"
+	  else
+	    AC_MSG_RESULT([Has <gdbm.h>, but gdbm_open() is not at libc, nor at libgdbm ??])
+	    
+	  fi
+	  LIBS="$t_oldLibs"
+	else
+	  AC_MSG_ERROR([config.cache inconsistency! (gdbm) Delete it, and redo!])
+	fi
+      else # Has it in the libc!
+	LIBGDBM=""
+	t_found_at="libc"
+	DBTYPE="gdbm"
+      fi
+    fi
+  fi
+  AC_MSG_RESULT([Located GNU GDBM's  gdbm_open()  routine at $t_found_at])
+  if test "$t_found_at" != nowhere; then
+    dblocation="$dblocation;$t_found_at"
+  fi
+fi
+
+LIBNDBM=""
+if test "$ac_cv_header_ndbm_h" = yes ; then
+  t_found_at="nowhere"
+  if test "$ac_cv_lib_c_dbm_open" = yes ; then
+    LIBNDBM=""
+    t_found_at="libc"
+    DBTYPE="ndbm"
+  else
+    if test "$ac_cv_lib_dbm_dbm_open" = yes ; then
+      LIBNDBM="-ldbm"
+      t_found_at="dbm library"
+      DBTYPE="ndbm"
+    else
+      if test "$ac_cv_lib_dbm_dbm_open" = no ; then
+	if test "$ac_cv_lib_db_dbm_open" = yes ; then
+	  LIBNDBM="-ldb"
+	  t_found_at="db library"
+	  DBTYPE="ndbm"
+	fi
+      else
+	AC_TRY_LINK([], [dbm_open();],	ac_cv_lib_c_dbm_open=yes,
+					ac_cv_lib_c_dbm_open=no)
+	if test "$ac_cv_lib_c_dbm_open" = no; then
+	  if test "x$ac_cv_lib_dbm_dbm_open" = x; then # not set
+	    t_oldLibs="$LIBS"
+	    LIBS="$LIBS -ldbm"
+	    AC_TRY_LINK([], [dbm_open();], ac_cv_lib_dbm_dbm_open=yes,
+					   ac_cv_lib_dbm_dbm_open=no)
+	    if test "$ac_cv_lib_dbm_dbm_open" = yes; then
+	      LIBNDBM="-ldbm"
+	      t_found_at="dbm library"
+	      DBTYPE="ndbm"
+	    else
+	      LIBS="$t_oldLibs -ldb"
+	      AC_TRY_LINK([],[dbm_open();], ac_cv_lib_db_dbm_open=yes,
+					    ac_cv_lib_db_dbm_open=no)
+	      if test "$ac_cv_lib_db_dbm_open" = yes ; then
+		  LIBNDBM="-ldb"
+		  t_found_at="db library"
+		  DBTYPE="ndbm"
+	      else
+		  AC_MSG_RESULT([Has <ndbm.h>, but dbm_open() is not at libc, libndbm, nor at libdb ??])
+	      fi
+	    fi
+	    LIBS="$t_oldLibs"
+	  else
+	    AC_MSG_ERROR([config.cache inconsistency! (ndbm) Delete it, and redo!])
+	  fi
+	else # Has it in the libc!
+	  LIBNDBM=""
+	  t_found_at="libc"
+	  DBTYPE="ndbm"
+	fi
+      fi
+    fi
+  fi
+  if test "$t_found_at" != nowhere ; then
+    # If we have BSD DB's compability mode in use, it does not have
+    # dbm_error() function.  Check at it!
+    LIBS="$LIBS $LIBNDBM"
+    AC_TRY_LINK([#include <ndbm.h>], [DBM *db;int i = dbm_error(db);], AC_DEFINE(HAVE_DBM_ERROR))
+    LIBS="$t_oldLibs"
+  fi
+  AC_MSG_RESULT([Located NDBM's  dbm_open()  routine at $t_found_at])
+  if test "$t_found_at" != nowhere; then
+    dblocation="$dblocation;$t_found_at"
+  fi
+fi
+
+
+LIBSDBM=""
+# Sometimes it is in libc, sometimes at separate lib...
+# Umm...
+if test "$ac_cv_header_sdbm_h" = yes ; then
+  AC_MSG_RESULT([Note:  SDBM  support is not really integrated!])
+  AC_MSG_RESULT([Note2: Usually the <sdbm.h> is installed as  <ndbm.h> and the library])
+  AC_MSG_RESULT([       is installed as  libdbm.a, and it is indistinguishable])
+  AC_MSG_RESULT([       (at source level) from a real NDBM.])
+  t_found_at="nowhere"
+  if test "$ac_cv_lib_c_sdbm_open" = yes ; then
+    LIBSDBM=""
+    t_found_at="libc"
+    DBTYPE="ndbm"
+  else
+    if test "$ac_cv_lib_sdbm_dbm_open" = yes ; then
+      LIBSDBM="-lsdbm"
+      t_found_at="sdbm library"
+      DBTYPE="ndbm"
+    else
+      AC_TRY_LINK([], [dbm_open();], ac_cv_lib_c_dbm_open=yes,
+				     ac_cv_lib_c_dbm_open=no)
+      if test "$ac_cv_lib_c_dbm_open" = no; then
+	if test "x$ac_cv_lib_sdbm_dbm_open" = x; then # not set
+	  t_oldLibs="$LIBS"
+	  LIBS="$LIBS -lsdbm"
+	  AC_TRY_LINK([], [dbm_open();], ac_cv_lib_sdbm_dbm_open=yes,
+					 ac_cv_lib_sdbm_dbm_open=no)
+	  if test "$ac_cv_lib_sdbm_dbm_open" = yes; then
+	    LIBSDBM="-lsdbm"
+	    t_found_at="sdbm library"
+	    DBTYPE="ndbm"
+	  else
+	    AC_MSG_RESULT([Has <sdbm.h>, but dbm_open() is not at libc, nor at libsdbm ??])
+	  fi
+	  LIBS="$t_oldLibs"
+	else
+	  AC_MSG_ERROR([config.cache inconsistency! (sdbm) Delete it, and redo!])
+	fi
+      else # Has it in the libc!
+	LIBSDBM=""
+	t_found_at="libc"
+	DBTYPE="ndbm"
+      fi
+    fi
+  fi
+  AC_MSG_RESULT([Located SDBM's  dbm_open()  routine at $t_found_at])
+  if test "$t_found_at" != nowhere; then
+    dblocation="$dblocation;$t_found_at"
+  fi
+fi
+
+LIBDB=""
+# Sometimes it is in libc, sometimes at separate lib...
+# Umm...
+if test "$ac_cv_header_db_h" = yes ; then
+  t_found_at="nowhere"
+  if test "$ac_cv_lib_c_dbopen" = yes ; then
+    LIBDB=""
+    t_found_at="libc"
+    DBTYPE="btree"
+  else
+    if test "$ac_cv_lib_db_dbopen" = yes ; then
+      LIBDB="-ldb"
+      t_found_at="db library"
+      DBTYPE="btree"
+    else
+      AC_TRY_LINK([], [dbopen();], ac_cv_lib_c_dbopen=yes,
+				   ac_cv_lib_c_dbopen=no)
+      if test "$ac_cv_lib_c_dbopen" = no; then
+	if test "x$ac_cv_lib_db_dbopen" = x; then # not set
+	  t_oldLibs="$LIBS"
+	  LIBS="$LIBS -ldb"
+	  AC_TRY_LINK([], [dbopen();],	ac_cv_lib_db_dbopen=yes,
+					ac_cv_lib_db_dbopen=no)
+	  if test "$ac_cv_lib_db_dbopen" = yes; then
+	    LIBDB="-ldb"
+	    t_found_at="db library"
+	    DBTYPE="btree"
+	  else
+	    AC_MSG_RESULT([Has <db.h>, but dbopen() is not at libc, nor at libdb ??])
+	  fi
+	  LIBS="$t_oldLibs"
+	else
+	  AC_MSG_ERROR([config.cache inconsistency! (db) Delete it, and redo!])
+	fi
+      else # Has it in the libc!
+	LIBDB=""
+	t_found_at="libc"
+	DBTYPE="btree"
+      fi
+    fi
+  fi
+  AC_MSG_RESULT([Located BSD DB  dbopen()  routine at $t_found_at])
+  if test "x$LIBDB" != "x" -a "x$LIBDB" = "x$LIBNDBM" ; then
+	# Well, both at the same library ( -ldb ), which propably
+	# means that  <ndbm.h>  is just an emulation mode at BSD DB.
+	LIBNDBM=""
+    AC_MSG_RESULT([Note: It looks like your NDBM is actually BSD DB compability wrapper at])
+    AC_MSG_RESULT([      libdb -library. If so, your NDBM databases are actually BSD DB_HASH ones..])
+  fi
+  if test "$t_found_at" != nowhere; then
+    dblocation="$dblocation;$t_found_at"
+  fi
+fi
+
+AC_SUBST(INCLLDAP)
+LIBLDAP=""
+INCLLDAP=""
+AC_ARG_WITH(ldap-prefix,[  --with-ldap-prefix       Prefix of UMich/NetScape LDAP includes, and library
+                           the directories are  PREFIX/include/ and PREFIX/lib/],
+	use_ldap=1)
+if test "$use_ldap" = 1 ; then
+    AC_DEFINE(HAVE_LDAP)
+    LIBLDAP="-lldap -llber"
+    if test "$withval" != "/usr" ; then
+	LIBLDAP="-L$withval/lib $LIBLDAP"
+	INCLLDAP="-I$withval/include"
+    fi
+fi
+use_ldap=0
+AC_ARG_WITH(ldap-include-dir,[  --with-ldap-include-dir  Directory of UMich/NetScape LDAP includes],
+	use_ldap=1)
+if test "$use_ldap" = 1 ; then
+    AC_DEFINE(HAVE_LDAP)
+    LIBLDAP="-lldap -llber"
+    if test "$withval" != "/usr/include" ; then
+	INCLLDAP="-I$withval/include"
+    fi
+fi
+use_ldap=0
+AC_ARG_WITH(ldap-library-dir,[  --with-ldap-library-dir  Directory of UMich/NetScape LDAP libraries],
+	use_ldap=1)
+if test "$use_ldap" = 1 ; then
+    AC_DEFINE(HAVE_LDAP)
+    LIBLDAP="-lldap -llber"
+    if test "$withval" != "/usr/lib" -a "$withval" != "/lib" ; then
+	LIBLDAP="-L$withval/lib $LIBLDAP"
+    fi
+fi
+
+# Lets build a nice single substitute variable
+AC_SUBST(LIBDBMS)
+# GDBM must be last as if we have LIBDB at the system instead of real
+# LIBNDBM, we still have ndbm routines, but want to use (likely)
+# ones from LIBDB instead of LIBGDBM...
+sep=""
+if test "x$LIBNDBM" != "x" ; then
+  LIBDBMS="$LIBDBMS$sep$LIBNDBM"
+  sep=" "
+fi
+if test "x$LIBSDBM" != "x" ; then
+  LIBDBMS="$LIBDBMS$sep$LIBSDBM"
+  sep=" "
+fi
+if test "x$LIBDB" != "x" ; then
+  LIBDBMS="$LIBDBMS$sep$LIBDB"
+  sep=" "
+fi
+if test "x$LIBGDBM" != "x" ; then
+  LIBDBMS="$LIBDBMS$sep$LIBGDBM"
+  sep=" "
+fi
+if test "x$LIBLDAP" != "x" ; then
+  LIBDBMS="$LIBDBMS$sep$LIBLDAP"
+  sep=" "
+fi
+
+if test "$dblocation" = "" ; then
+  AC_MSG_RESULT([>>> OOPS!  You don't have any kind of modern DBMs in your])
+  AC_MSG_RESULT([>>>        system!  We will not use ancient single-db using])
+  AC_MSG_RESULT([>>>        <dbm.h> even if you had it.  Now you have only])
+  AC_MSG_RESULT([>>>        relation (external) db types: ordered, unordered])
+fi
+
+# ... this is pointless test ...
+#if test "$DBTYPE" = "" -a "$DEFDBTYPE" != "" ; then
+#  DBTYPE="$DEFDBTYPE" # Use old value as a default..
+#fi
+
+case "$DBTYPE" in
+ dbm)   DBEXT=""
+	DBEXTtest=".pag"
+	;;
+ ndbm)  DBEXT=""
+	DBEXTtest=".pag"
+	;;
+ sdbm)  DBEXT=""
+	DBEXTtest=".pag"
+	;;
+ gdbm)  DBEXT=".gdbm"
+	DBEXTtest=".gdbm"
+	;;
+ btree) DBEXT=".db"
+	DBEXTtest=".db"
+	;;
+ *)	DBEXT=".dat"
+	DBEXTtest=".dat"
+	;;
+esac
+
+AC_CHECK_HEADERS(string.h fcntl.h limits.h errno.h unistd.h stdlib.h \
+    sys/param.h sys/statfs.h sys/fstyp.h mnttab.h mntent.h utime.h \
+    sys/statvfs.h sys/vfs.h sys/mount.h sys/filsys.h sys/fs_types.h)
+AC_CHECK_HEADERS(sys/utsname.h maillock.h)
+
+#
+# Following set of tests is rather weird... Some people don't agree on
+# where to place these IPv6 related headers :-(
+# The API specs say: <netinet/in.h>,  but some people disagree...
+#
+
+AC_CHECK_HEADERS(netinet/in.h sys/socket.h)
+if test "$ac_cv_header_netinet_in_h" = no ; then
+  AC_MSG_RESULT([%%% AIEEE!  NO  <netinet/in.h>  HEADER ?!])
+fi
+
+AC_ARG_WITH(ipv6,[  --with-ipv6              Have IPv6 in system, and want to use it],
+	AC_DEFINE(INET6)
+	ac_with_ipv6=yes
+	)
+
+if test "$ac_with_ipv6" = yes; then
+  if test "x$ac_cv_af_inet6" = "x"; then
+    AC_TRY_LINK([#include <sys/socket.h>],
+		[int af = AF_INET6;],
+		ac_cv_af_inet6=yes, ac_cv_af_inet6=no)
+    if test "$ac_cv_af_inet6" = yes; then
+	AC_TRY_LINK([#include <sys/socket.h>
+		     #include <netinet/in.h>],
+		    [/* Has AF_INET6, but does one have all related things ? */
+		     struct in6_addr sin6;],
+		    ac_cv_struct_in6_addr=yes, ac_cv_struct_in6_addr=no)
+	AC_MSG_RESULT([We have <sys/socket.h> defining  AF_INET6, but do we have properly ..])
+	AC_MSG_RESULT([.. structured <netinet/in.h> headers with 'struct in6_addr' ? $ac_cv_struct_in6_addr])
+	if test "$ac_cv_struct_in6_addr" != yes; then
+
+	    AC_CHECK_HEADERS(netinet/in6.h)
+	    if test "$ac_cv_header_netinet_in6_h" != "yes" ; then
+		AC_CHECK_HEADERS(netinet6/in6.h)
+		if test "$ac_cv_header_netinet6_in6_h" != "yes" ; then
+
+		    AC_CHECK_HEADERS(linux/in6.h)
+		    if test "$ac_cv_header_linux_in6_h" != "yes" ; then
+			AC_MSG_RESULT([***  You have a SOME system with  <sys/socket.h>  defining AF_INET6, however])
+			AC_MSG_RESULT([***  the system does not have all required includes ])
+			AC_MSG_RESULT([***  for the compilation to succeed. ])
+			AC_MSG_RESULT([***  I know of some releases of Linux 2.0.* systems doing this.])
+			AC_MSG_RESULT([***  If you have one, edit the  <linux/socket.h>,  and])
+			AC_MSG_RESULT([***  remove the define of   AF_INET6 ])
+			AC_MSG_ERROR([AF_INET6 feature error])
+		    fi
+		fi
+	    fi
+	fi
+    fi
+  else
+    if test "$ac_cv_af_inet6" = yes; then
+	# We were successfull at creating these cached variables above,
+	# thus we can (with confidence) do following, and only one is
+	# defined as an end result..
+	if test "$ac_cv_header_netinet_in6_h" = yes; then
+	    AC_DEFINE(HAVE_NETINET_IN6_H)
+	fi
+	if test "$ac_cv_header_netinet6_in6_h" = yes; then
+	    AC_DEFINE(HAVE_NETINET6_IN6_H)
+	fi
+	if test "$ac_cv_header_linux_in6_h" = yes; then
+	    AC_DEFINE(HAVE_LINUX_IN6_H)
+	fi
+    fi
+  fi
+fi # End of:  --with-ipv6
+
+
+AC_CHECK_HEADERS(varargs.h stdarg.h)
+AC_CHECK_FUNCS(flock lockf lstat)
+
+without_fsync=0
+AC_ARG_WITH(fsync,[  --without-fsync          Do not use fsync() even if you have it],
+	without_fsync=1)
+if test $without_fsync = 0; then
+	AC_CHECK_FUNCS(fsync)
+fi
+
+AC_FUNC_SVR4_MAILLOCK
+
+AC_CHECK_FUNCS(mkdir mktime rename rmdir strcpy strdup strstr \
+		strchr strrchr setvbuf strerror strsignal setreuid)
+# If the system does not have the following (library) calls,
+# we use emulations (replacements):
+AC_REPLACE_FUNCS(mkdir mktime rename rmdir strcpy strdup strstr \
+		 strchr strrchr setvbuf strerror strsignal)
+
+AC_DECL_SYS_SIGLIST
+
+AC_CACHE_CHECK([existence of char **sys_siglist], ac_cv_arr_sys_siglist, [
+AC_TRY_LINK([extern char *sys_siglist[]; static char *s;], [s = sys_siglist[2]; ],
+		[AC_DEFINE(HAVE_SYS_SIGLIST)
+		 ac_cv_arr_sys_siglist=yes])
+])
+
+
+# Additional tests for the emulations..
+AC_CHECK_FUNCS(index rindex)
+# more tests..
+AC_CHECK_FUNCS(endgrent fchdir ftime getcwd getgroups setgroups \
+		getmntinfo gettimeofday isascii memcpy mkfifo   \
+		getpgrp setsid seteuid setuid)
+AC_CHECK_FUNCS(setrlimit fchown utimes utime sysconf fpathconf)
+# Networking stuff is in deep trouble, if sockets are not found..
+AC_CHECK_HEADERS(netdb.h syslog.h sys/resource.h \
+		protocols/rwhod.h select.h sys/select.h utime.h)
+AC_CHECK_FUNCS(select syslog getdtablesize)
+
+#
+# Test to see, if we have BSD4.4  sa_len -field in the "struct sockaddr*"
+#
+AC_STRUCT_SA_LEN
+
+AC_CHECK_FUNC(res_init)  # Can be found without any libs ?  Or needs BIND libresolv ?
+
+AC_SUBST(LIBRESOLV)
+AC_SUBST(INCLRESOLV)
+AC_SUBST(LIBRESOLVA)
+AC_ARG_WITH(bundled-libresolv,   [  --with-bundled-libresolv Use bundled libresolv source],
+	use_resolvopt=1)
+if test -z "$use_resolvopt" ; then
+    if test $ac_cv_func_res_init = yes ; then
+	LIBRESOLV="" #  res_init() is at system libc
+    else
+	LIBRESOLV="-lresolv"
+    fi
+    AC_DEFINE(HAVE_GETHOSTBYNAME)
+    AC_DEFINE(HAVE_RESOLVER)
+    INCLRESOLV=""
+    LIBRESOLVA=""
+    AC_MSG_RESULT([Using system supplied libresolv -- hope it works..])
+else
+    # We have bundled BIND 4.9.4 resolver, which can make things
+    # so much simpler to ourselves (except at BSD machines..)
+    AC_DEFINE(HAVE_GETHOSTBYNAME)
+    AC_DEFINE(HAVE_RESOLVER)
+    LIBRESOLV="-lresolv"
+    INCLRESOLV='-I$(TOPDIR)/libresolv'
+    LIBRESOLVA="libresolv.a"
+    AC_MSG_RESULT([Using bundled (bind 4.9.4-REL) libresolv])
+fi
+
+#
+#  We check for various libraries
+#  - SysVr4 style of "-lsocket" at first (unless in libc)
+#    The hallmark is  connect()  routine (we presume)
+#
+AC_SUBST(LIBSOCKET)dnl
+ac_cv_libsocket_both=1
+AC_CHECK_FUNC(connect, ac_cv_libsocket_both=0)
+AC_CHECK_FUNC(gethostbyname, ac_cv_libsocket_both=0)
+if test "$ac_cv_libsocket_both" = 1 ; then
+  # Check cache
+  if test "$ac_cv_func_socket_lsocket" = yes ; then
+    AC_MSG_RESULT([need -lsocket library (cached)])
+    LIBSOCKET="-lsocket"
+    if test "$ac_cv_func_gethostbyname_lnsl" = yes ; then
+	LIBSOCKET="-lsocket -lnsl"
+    fi
+  else
+    # Well, will this work ?  SysVR4, but not Sun Solaris ?
+    AC_CHECK_LIB(socket, connect, [LIBSOCKET="-lsocket"
+				   ac_cv_func_socket_lsocket=yes],
+				   ac_cv_func_socket_lsocket=no)
+    if test "$ac_cv_func_socket_lsocket" = yes ; then
+      t_oldLibs="$LIBS"
+      LIBS="$LIBS -lsocket $LIBRESOLV"
+      AC_TRY_LINK([],[gethostbyname();], ,[
+	  LIBS="$LIBS -lnsl" # Add this Solaris library..
+	  AC_TRY_LINK([],[gethostbyname();],[
+			LIBSOCKET="-lsocket -lnsl"
+			ac_cv_func_gethostbyname_lnsl=yes
+		], [
+		   AC_MSG_ERROR([Weird, '$LIBS' not enough to find  gethostnyname() ?!])
+		])
+	])
+      LIBS="$t_oldLibs"
+    fi
+  fi
+fi
+
+if test "$LIBRESOLV" = ""; then
+  # Ok, No  -lresolv,  is this enough for the  _res  to appear ?
+  t_oldLibs="$LIBS"
+  LIBS="$LIBS $LIBSOCKET"
+  AC_TRY_LINK([#include <resolv.h>],
+	      [_res.options = RES_INIT;],
+		ac_cv_var__res_options=yes);
+  if test "$ac_cv_var__res_options" != "yes"; then
+    AC_MSG_RESULT([Can't do without  -lresolv  to link resolver's  _res.options])
+    LIBRESOLV="-lresolv"
+  fi
+  LIBS="$t_oldLibs"
+fi
+
+# See about the routines that possibly exist at the libraries..
+LIBS="$t_oldLibs $LIBSOCKET"
+AC_CHECK_FUNCS(socket socketpair)
+LIBS="$t_oldLibs"
+
+if test "$ac_cv_func_socket" = no -a "$LIBSOCKET" != ""; then
+  LIBS="$LIBS $LIBSOCKET"
+  AC_TRY_LINK([],[socket();], ac_cv_func_socket=yes)
+  if test $ac_cv_func_socket = yes; then
+    AC_DEFINE(HAVE_SOCKET)
+    AC_MSG_RESULT([Has  socket()  when using  $LIBSOCKET])
+  fi
+  LIBS="$t_oldLibs"
+fi
+if test "$ac_cv_func_socketpair" = no -a "$LIBSOCKET" != ""; then
+  LIBS="$LIBS $LIBSOCKET"
+  AC_TRY_LINK([],[socketpair();], ac_cv_func_socketpair=yes)
+  if test $ac_cv_func_socketpair = yes; then
+    AC_DEFINE(HAVE_SOCKETPAIR)
+    AC_MSG_RESULT([Has  socketpair()  when using  $LIBSOCKET])
+  fi
+  LIBS="$t_oldLibs"
+fi
+
+AC_REPLACE_FUNCS(gai_strerror)
+
+ac_with_ipv6_replacement_libc=0
+AC_ARG_WITH(ipv6-replacement-libc, [  --with-ipv6-replacement-libc If system has broken  getaddrinfo() and friends],
+	ac_with_ipv6_replacement_libc=1)
+
+if test "$ac_with_ipv6_replacement_libc" = 1 ; then
+  LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o"
+  AC_SUBST(LIBOBJS)
+else
+
+  #  Following stuff may exist in our LIBC, or in separate -linet6
+  AC_CHECK_FUNCS(inet_ntop inet_pton getaddrinfo getnameinfo)
+  #  If not found in LIBC, try to use  -linet6,  if it fails too,
+  #  THEN call the AC_REPLACE_FUNCS()
+  if test "$ac_cv_func_gai_strerror" = no ; then
+    LIBS="$LIBS $LIBSOCKET -linet6"
+    AC_TRY_LINK([],[gai_strerror();], ac_cv_func_gai_strerror=yes)
+    if test "$ac_cv_func_gai_strerror" = yes; then
+      LIBSOCKET="$LIBSOCKET -linet6"
+      AC_MSG_RESULT([Has IPv6 API  gai_strerror()  when using  $LIBSOCKET])
+    else
+      LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o"
+      AC_SUBST(LIBOBJS)
+    fi
+    LIBS="$t_oldLibs"
+  fi
+fi
+
+AC_ARG_WITH(rfc822-tabs,   [  --without-rfc822-tabs    Turn off the TABs from the rewritten headers ],
+	[if test "$withval" = no; then
+	   use_rfc822_tabs=0
+	 else
+	   use_rfc822_tabs=1
+	 fi], [use_rfc822_tabs=1])
+AC_DEFINE_UNQUOTED(RFC822TABS,$use_rfc822_tabs)
+AC_MSG_RESULT([RFC-822 TABs setting: $use_rfc822_tabs])
+
+AC_SUBST(LIBWRAP)
+AC_SUBST(INCLWRAP)
+AC_ARG_WITH(tcp-wrappers,   [  --with-tcp-wrappers=DIRPATH Where the TCP-WRAPPERS can be found],
+	use_tcpwrappers=1)
+
+t_oldLibs="$LIBS"
+t_oldCpp="$CPPFLAGS"
+
+if test -z "$use_tcpwrappers" ; then
+#    if test "$ac_cv_lib_tcpwrap" = yes; then
+#	LIBWRAP="-lwrap"
+#	INCLWRAP=""
+#	AC_MSG_RESULT([Tcp-wrapper available at system default: -lwrap !]);
+#    else
+#-------------
+#	AC_TRY_LINK([#include <tcpd.h>
+#		     int deny_severity, allow_severity;],[hosts_access();],
+#			 ac_cv_lib_tcpwrap=yes,ac_cv_lib_tcpwrap=no)
+#	LIBWRAP=""
+#	INCLWRAP=""
+#	if test "$ac_cv_lib_tcpwrap" = yes; then
+#	    AC_MSG_RESULT([Tcp-wrapper available at $wraploc: -lwrap !]);
+#	else
+#	    AC_MSG_RESULT([No tcp-wrapper available system at default location ?])
+#	fi
+#	: # "nop"	
+#-------------
+	AC_CHECK_HEADER(tcpd.h)
+	if test "$ac_cv_header_tcpd_h" = yes; then
+	    LIBWRAP="-lwrap"
+	    INCLWRAP=""
+	    wraploc="sysdefault"
+	else
+	    AC_CHECK_HEADERS(/local/include/tcpd.h /usr/local/include/tcpd.h \
+			     /opt/include/tcpd.h /opt/local/include/tcpd.h)
+	    if test -n "$ac_cv_header_local_include_tcpd_h"; then
+		LIBWRAP="-L/local/lib -lwrap"
+		INCLWRAP="-I/local/include"
+		wraploc="-L/local/lib -I/local/include"
+	    elif test -n "$ac_cv_header_usr_local_include_tcpd_h"; then
+		LIBWRAP="-L/usr/local/lib -lwrap"
+		INCLWRAP="-I/usr/local/include"
+		wraploc="-L/usr/local/lib -I/usr/local/include"
+	    elif test -n "$ac_cv_header_opt_include_tcpd_h"; then
+		LIBWRAP="-L/opt/lib -lwrap"
+		INCLWRAP="-I/opt/include"
+		wraploc="-L/opt/lib -I/opt/include"
+	    elif test -n "$ac_cv_header_opt_local_include_tcpd_h"; then
+		LIBWRAP="-L/opt/local/lib -lwrap"
+		INCLWRAP="-I/opt/local/include"
+		wraploc="-L/opt/local/lib -I/opt/local/include"
+	    else
+		LIBWRAP=""
+		INCLWRAP=""
+		wraploc="nowhere?"
+	    fi
+	fi
+	LIBS="$LIBS $LIBSOCKET $LIBWRAP"
+	CPPFLAGS="$CPPFLAGS $INCLWRAP"
+	AC_CACHE_VAL(ac_cv_lib_tcpwrap,
+	  [AC_TRY_LINK([#include <tcpd.h>
+			int deny_severity, allow_severity;],[hosts_access();],
+			ac_cv_lib_tcpwrap=yes,ac_cv_lib_tcpwrap=no)
+	  ])
+	if test "$ac_cv_lib_tcpwrap" = yes; then
+	    AC_MSG_RESULT([Tcp-wrapper available at $wraploc: -lwrap !]);
+	else
+	    AC_MSG_RESULT([No tcp-wrapper available at system default locations ?])
+	    LIBWRAP=""
+	    INCLWRAP=""
+	fi
+#    fi
+else
+    LIBWRAP="-L$withval -lwrap"
+    INCLWRAP="-I$withval"
+    unset ac_cv_lib_tcpwrap
+    AC_DEFINE(HAVE_TCPD_H)
+    AC_MSG_RESULT([Using tcp-wrappers at directory: $withval]);
+fi
+
+CPPFLAGS="$t_oldCpp"
+LIBS="$t_oldLibs"
+
+
+#
+#  At some systems the load-average can be gotten with these routines..
+#
+AC_SUBST(LIBLOADAVER)dnl
+AC_CHECK_HEADER(kvm.h)
+if test "$ac_cv_header_kvm_h" = yes; then
+  AC_DEFINE(SVR4_kvm)
+  LIBLOADAVER="-lkvm"
+  AC_MSG_RESULT([Presuming the need of -lkvm for load-average library])
+fi
+AC_CHECK_HEADER(elf.h, [
+elf_LIBS="$LIBS"
+LIBS="$LIBS -lelf"
+AC_TRY_LINK([#include <nlist.h>],[nlist((char*)0,(char*)0);],
+	    [AC_DEFINE(SVR4_elf)
+	     LIBLOADAVER="$LIBLOADAVER -lelf"
+	     AC_MSG_RESULT([Presuming the need of '$LIBLOADAVER' for load-average library])])
+LIBS="$elf_LIBS"
+])
+
+AC_FUNC_STRFTIME
+AC_FUNC_SPRINTF
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS(vsprintf vsnprintf snprintf)
+AC_FUNC_ALLOCA
+AC_FUNC_GETPGRP
+AC_FUNC_MMAP
+AC_FUNC_UTIME_NULL
+
+AC_ARG_WITH(ta-mmap,   [  --with-ta-mmap           TA's to use MMAP for reading the message bodies],
+	use_ta_mmap=1, use_ta_mmap=0)
+if test "$use_ta_mmap" = "1"; then
+  AC_DEFINE(TA_USE_MMAP)
+fi
+
+AC_STRUCT_DIRENT_D_INO
+
+# Determine how to get the list of mounted filesystems.
+
+AC_FUNC_GETMNTENT
+AC_FUNC_GETMNTENT_MORE
+
+# Test how to find out the filesystem space usage:
+AC_FUNC_STATVFS
+
+#if test -n "$list_mounted_fs" && test $space != no; then
+#  PROGS="$PROGS df" LIBOBJS="$LIBOBJS"
+#fi
+
+AC_CHECK_FUNCS(ftruncate, , [ftruncate_missing=yes])
+
+if test "$ftruncate_missing" = yes; then
+  AC_MSG_CHECKING([fcntl emulation of ftruncate])
+  AC_CACHE_VAL(fu_cv_sys_ftruncate_emulation,
+  [AC_TRY_LINK([
+#include <sys/types.h>
+#include <fcntl.h>], [
+#if !defined(F_CHSIZE) && !defined(F_FREESP)
+chsize();
+#endif
+],
+    fu_cv_sys_ftruncate_emulation=yes,
+    fu_cv_sys_ftruncate_emulation=no)])
+  AC_MSG_RESULT($fu_cv_sys_ftruncate_emulation)
+  if test $fu_cv_sys_ftruncate_emulation = yes; then
+    LIBOBJS="$LIBOBJS ftruncate.o"
+  fi
+fi
+
+# If we don't yet have getgroups, see if it's in -lbsd.
+# This is reported to be necessary on an ITOS 3000WS running SEIUX 3.1.
+AC_CHECK_FUNC(getgroups, , AC_CHECK_LIB(bsd, getgroups))
+
+AC_CHECK_HEADERS(sys/ipc.h sys/msg.h)
+AC_CHECK_FUNCS(msgsnd msgrcv msgctl)
+
+# Check for libypsec.a on Dolphin M88K machines.
+AC_CHECK_LIB(ypsec, main)
+
+# m88k running dgux 5.4 needs this
+AC_CHECK_LIB(ldgc, main)
+
+AC_CHECKING(for AFS)
+test -d /afs && AC_DEFINE(AFS)
+
+AC_SUBST(MANDIR)
+eval MANDIR=${mandir}
+
+AC_OUTPUT(Makefile
+	router/Makefile			router/libdb/Makefile		\
+	scheduler/Makefile		smtpserver/Makefile		\
+	transports/Makefile		transports/smtp/Makefile	\
+	transports/mailbox/Makefile	transports/hold/Makefile	\
+	transports/libta/Makefile	transports/sm/Makefile		\
+	transports/errormail/Makefile	transports/fuzzyalias/Makefile	\
+	transports/expirer/Makefile	transports/expirer/manual-expirer \
+	compat/Makefile			compat/rmail/Makefile		\
+	compat/sendmail/Makefile					\
+	lib/Makefile			libc/Makefile			\
+	libident/Makefile		libs/Makefile			\
+	libsh/Makefile			libmalloc/Makefile		\
+	libmalloc/splay/Makefile	libresolv/Makefile		\
+	ssl/Makefile							\
+	doc/Makefile			doc/design/Makefile		\
+	include/mail.h			man/Makefile			\
+	utils/policy-builder.sh		utils/Makefile			\
+	utils/zmailer.init.sh		utils/autoanswer.pl		\
+	utils/vacation/Makefile		man/vacation.1			\
+	utils/vacation/vacation.sh	utils/makedb/Makefile		\
+	proto/Makefile			proto/zmailer.sh		\
+	proto/newaliases		proto/newfqdnaliases		\
+	proto/newdb			proto/scheduler.conf		\
+	proto/mailrm.sh			proto/db/Makefile		\
+	proto/smtpserver.conf		proto/cf/TELE-FI.cf		\
+	proto/cf/SMTP+UUCP.cf		proto/cf/UTdefault.cf		\
+	proto/db/aliases		proto/sm.conf			\
+	bin/mkdep			bin/mklibdep			\
+	SiteConfig	,
+[chmod 755 bin/*
+ echo > stamp-h])dnl
+AC_MSG_RESULT([Remember to check  SiteConfig  for possible option changes])

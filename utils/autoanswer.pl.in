@@ -1,0 +1,105 @@
+#!@PERL@
+
+##########################################################################
+#
+# Autoanswer.pl 1.0 for ZMailer 2.99.48+
+# (C) 1997 Telecom Finland
+#          Valtteri Karu <valtteri.karu@tele.fi>
+# 
+# This program sends autoreply and the original headers to the originator 
+# of the message. Version 2.99.48+ of the Zmailer is required for detecting
+# possible false addresses.
+#
+# USAGE:
+#
+# Create an alias for the address want to use:
+# autoreply: "|/path/to/autoanswer.pl"
+#
+##########################################################################
+
+$nosend = 0;
+$double = 0;
+$address = $ENV{'SENDER'};
+
+if( ! -r "$ENV{'ZCONFIG'}") {
+    LOG("zmailer.conf missing");
+    exit 2;
+}
+
+open(ZMAILER,"< $ENV{'ZCONFIG'}" );
+while(<ZMAILER>) {
+    chomp;
+    split(/=/);
+    $ZMAILER{$_[0]}=$_[1];
+}
+
+close ZMAILER;
+
+$logfile = $ZMAILER{'LOGDIR'} . "/autoanswer";
+
+while (<STDIN>) {
+
+    $text = $_;
+
+    if (($text eq "\n") && ( $double = 1)) {
+	last;
+    }
+
+    if (($text eq "\n") && ( $double = 0)) {
+	$double = 1;
+	next;
+    }
+    
+    if ($text =~ "X-autoanswer-loop: ") {
+	$nosend = 1;
+	LOG("Looping message, sender=$address");
+    }
+
+    $double = 0;
+
+    push(@header,$text);
+}
+
+if (($address eq '<>') || ($nosend = 0)) {
+    LOG("SENDER invalid");
+    exit 1;
+}
+
+
+$outfile = $ZMAILER{'POSTOFFICE'} . "/public/autoanswer.$$";
+#$outfile = "/tmp/aa.$$";
+$now = time;
+$txttime = localtime(time);
+
+open(OUT,">$outfile");
+select(OUT);
+print "channel error\n";
+print "to $address\n";
+print "env-end\n"; 
+print "From: Autoreply service <postmaster>\n";
+print "To: $address\n";
+print "Subject: Autoreply\n";
+print "X-autoanswer-loop: Megaloop \n\n";
+print "      This is autoreply answer message by your request.\n\n";
+print "      Original message was received at UNIX time $now;\n";
+print "      which means '$txttime' in cleartext.\n\n";
+print "      Headers were:\n\n";
+print "------------------------------------------------------------------------------\n";
+print @header;
+print "------------------------------------------------------------------------------\n";
+print "\n      Have a nice day.\n";
+select(STDOUT);
+close OUT;
+$inode=(stat($outfile))[1];
+$newfile=$ZMAILER{'POSTOFFICE'} . "/router/$inode";
+rename($outfile, $newfile);
+LOG("Sent to $address");
+exit 0;
+
+sub LOG {
+
+	open(LOGf, ">>$logfile");
+	$ttime = localtime(time);
+	printf (LOGf "$ttime autoanswer: @_\n");
+	close LOGf;
+}

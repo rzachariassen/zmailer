@@ -1,0 +1,50 @@
+This is the release 2.99mea (before 3.0) of ZMailer.
+
+All files in this distribution, unless explicitly marked otherwise, are:
+
+Copyright 1992 by Rayan S. Zachariassen, All Rights Reserved.
+Copyright 1992-1997 by Matti Aarnio <mea@utu.fi>; LOTS of modifications..
+
+This release is freely usable, but since the documentation is not
+finalized a subsequent release is planned.  Please do not redistribute
+this version unless you will make the final release similarly available.
+
+Read the "Overview" file for information.
+More documentation is in  doc/design/, and doc/guides/ directories.
+
+See  README.UPGRADING  for possible important changes since the
+previous versions (and the details on the  ChangeLog ..)
+
+Current status of the various programs is:
+
+	sendmail		release
+	rmail			release
+	smtpserver		release
+	router			release
+	scheduler		release (works well, though)
+	zmsh			release
+	mailq			release
+	zmailer (script)	release
+	transport agents	alpha/beta -- better MIME support needed
+	manual pages		alpha -- need update
+	other documentation	alpha -- need update
+	configuration files	beta
+
+Legend:
+	alpha			functionality change expected
+	beta			functionality frozen
+	release			implementation frozen except for maintenance
+
+
+Any and all comments/critique will be appreciated, especially if constructive.
+
+rayan 920709
+mea   960203
+
+
+private mail:  <mea@nic.funet.fi>
+public list:  <zmailer@nic.funet.fi>
+mail  <zmailer-request@nic.funet.fi>  to be added to the mailing list.
+or preferrably use <mailserver@nic.funet.fi> to subscribe yourself to
+the list by sending it a message with body content:
+	subscribe zmailer Your Name

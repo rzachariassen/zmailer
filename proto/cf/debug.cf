@@ -1,0 +1,13 @@
+# This file is usually NOT loaded by any configuration.  It is provided to
+# illustrate possible debugging actions.
+
+trap "dumpdbs > /tmp/dbstate" 7
+dumpdbs () {
+	db toc
+	echo Trusted: ; db print trusted
+	echo Fullname: ; db print fullname
+	echo Expansions: ; db print expansions
+}
+
+erraddron $POSTOFFICE/postman/ERRADDRLOG
+

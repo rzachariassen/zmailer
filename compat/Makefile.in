@@ -1,0 +1,26 @@
+SHELL=		/bin/sh
+
+all:	rmail/rmail-always sendmail/sendmail-always
+
+rmail/rmail-always:
+	cd rmail ; $(MAKE) $(MFLAGS)
+
+sendmail/sendmail-always:
+	cd sendmail ; $(MAKE) $(MFLAGS)
+
+clean:
+	cd rmail ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean
+	cd sendmail ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean
+
+distclean:
+	-rm -f Makefile
+	cd rmail ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) distclean
+	cd sendmail ; $(MAKE) $(MFLAGS) MAKE=$(MAKE) distclean
+
+install:
+	-cd rmail ; $(MAKE) $(MFLAGS) install
+	-cd sendmail ; $(MAKE) $(MFLAGS) install
+
+depend:
+	cd rmail ; $(MAKE) $(MFLAGS) depend
+	cd sendmail ; $(MAKE) $(MFLAGS) depend

@@ -1,0 +1,97 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH ERRORMAIL 8 "18 Aug 1996"
+.SH NAME
+errormail \- zmailer error message transport agent
+.SH SYNOPSIS
+.B errormail
+[
+.B \-c
+.I channel
+]
+[
+.B \-V
+]
+.SH DESCRIPTION
+.I errormail
+is a ZMailer transport agent which is usually only run by the
+.IR scheduler (8)
+program to produce error messages from canned forms.  The
+.I errormail
+program must be invoked with the same
+current directory as the
+.IR scheduler ,
+namely \fIPOSTOFFICE\fB/transport\fR.
+.PP
+The program will interpret the host part of an address destined for its channel
+as a file name in the \fIMAILSHARE\fB/forms\fR directory.  It will submit a
+new mail message consisting of the concatenation of:
+.IP
+\- a To: header containing the sender address (original error return address),
+.IP
+\- the file contents of the specified form,
+.IP
+\- the user name of each recipient address with some descriptive text indicating
+the specific error, and
+.IP
+\- the message file being processed.
+.PP
+This program is used to report errors on behalf of the ZMailer
+.IR router (8)
+and
+.IR scheduler (8)
+programs, and by implication also report delivery failures for the
+various transport agents.  The primary exception is syntax errors during
+message parsing in the
+.IR router .
+.SH OPTIONS
+.IP \-c\ \fIchannel\fR
+specifies which channel name should be keyed on.  The
+default is
+.BR error .
+.IP \-V
+prints a version message and exits.
+.SH INTERFACE
+As all transport agents, the program reads relative pathnames of message
+control files from standard input (terminated with two linefeeds), and
+produces diagnostic output on the standard output.  Normal diagnostic output
+is of the form:
+.sp
+.nf
+	\fIid\fR/\fIoffset\fR<TAB>\fInotify-data\fR<TAB>\fIstatus\fR \fImessage\fR
+.fi
+.sp
+where 
+.I id
+is the inode number of the message file,
+.I offset
+is a byte offset within its control file where the address being reported
+on is kept,
+.I status
+is one of
+.BR ok ,
+.BR error ,
+or
+.BR deferred ,
+and the
+.I message
+is descriptive text associated with the report.  The text is terminated by
+a linefeed.  Any other format (as might be produced by subprocesses)
+is passed to standard output for logging in the
+.B scheduler
+log.
+.PP
+The exit status is a code from
+.BR <sysexits.h> .
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice (POSTOFFICE)
+.br
+.I /local/share/mail/forms (MAILSHARE/forms)
+.SH SEE ALSO
+scheduler(8), router(8)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>

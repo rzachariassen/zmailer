@@ -1,0 +1,120 @@
+PROGRAM=	scheduler
+#
+# ZMailer Scheduler makefile
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		..
+MAILBIN=	$(prefix)@MAILBIN@
+DEFS=		@DEFS@
+INSTALL=	@INSTALL@
+SCHEDULER_INCL=	@INCLRESOLV@ @INCLWRAP@
+SCHEDULER_LIB=	@LIBWRAP@ @LIBRESOLV@ @LIBSOCKET@
+MAILQ_INCL=	@INCLRESOLV@
+MAILQ_LIB=	@LIBRESOLV@ @LIBSOCKET@
+#   Above the  LIBSOCKET (for SysVR4) must be last
+#
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(DEFS) $(INCL) $(SCHEDULER_INCL)
+MQCFLAGS=	$(COPTS) $(DEFS) $(INCL) $(MAILQ_INCL)
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
+LIB=		-L$(TOPDIR)/libs -lz -lzc  -lta $(LIBMALLOC)
+LIBDEB=		$(TOPDIR)/libs/libtag
+LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/transports/libta/llib-llibta.ln
+#
+OBJS=	scheduler.o readconfig.o conf.o agenda.o transport.o pipes.o \
+	update.o qprint.o msgerror.o resources.o threads.o wantconn.o
+SOURCE=	scheduler.c readconfig.c conf.c agenda.c transport.c pipes.c \
+	update.c qprint.c msgerror.c resources.c threads.c wantconn.c
+
+all:	$(LIBDEB) $(PROGRAM) mailq
+
+$(PROGRAM): $(LIBDEB) $(OBJS) version.o
+	$(CC) $(CFLAGS) -o $@.x $(OBJS) version.o $(LIB) $(SCHEDULER_LIB)
+	mv $@.x $@
+
+$(PROGRAM).third: $(PROGRAM)
+	-rm -f $(PROGRAM)
+	make $(PROGRAM) LIBMALLOC=
+	atom -tool third -o $(PROGRAM).third $(PROGRAM)
+
+version.c: $(OBJS) $(TOPDIR)/Makefile
+	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+mailq:	mailq.o conf.o version.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ mailq.o conf.o version.o $(LIB) $(MAILQ_LIB)
+
+mailq.o: $(srcdir)/mailq.c
+	$(CC) $(MQCFLAGS) -c $(srcdir)/mailq.c
+
+install:	$(PROGRAM) install-mailq
+	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/$(PROGRAM).x
+	-mv $(MAILBIN)/$(PROGRAM).x $(MAILBIN)/$(PROGRAM)
+
+install-mailq: mailq
+	$(INSTALL) -m 0755 mailq $(MAILBIN)/mailq.x
+	-mv $(MAILBIN)/mailq.x $(MAILBIN)/mailq
+
+tags:
+	ctags *.c *.h
+
+clean:
+	-rm -f $(PROGRAM) mailq *.o *.out tags make.log *~
+	-rm -f *.log *.3rd *.3log
+distclean: clean
+	-rm -f Makefile
+
+lint:	$(LINTLIB)
+	lint $(DEFS) $(INCL) $(SCHEDULER_INCL) $(LINTLIB) $(SOURCE)
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs; $(MAKE) $(MFLAGS) libtag
+
+$(TOPDIR)/transports/libta/llib-llibta.ln:
+	cd $(TOPDIR)/transports/libta ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libc/llib-llibzc.ln:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/lib/llib-llibz.ln:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/transports/libta/libta.a-a:
+	cd $(TOPDIR)/transports/libta ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/transports/libta/libta.a:
+	cd $(TOPDIR)/transports/libta ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libc/libzc.a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/lib/libz.a-a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/lib/libz.a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libsh/libsh.a-a:
+	cd $(TOPDIR)/libsh ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libsh/libsh.a:
+	cd $(TOPDIR)/libsh ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libmalloc/libmalloc.a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libmalloc/libmalloc_d.a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libmalloc/libmalloc_d.a-a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+
+depend:
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+

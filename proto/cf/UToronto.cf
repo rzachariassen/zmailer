@@ -1,0 +1,105 @@
+# UToronto.cf
+#
+# University of Toronto siteinfo.cf file
+#
+provide siteinfo
+
+# If hostnames aren't fully qualified around here, define default net.
+orgdomain=toronto.edu
+
+#| Specify your primary organizational domain name.
+
+# If your organization is known under multiple (pseudo-)domain names, list here:
+orgdomains='toronto.edu|utoronto.ca|toronto.cdn|toronto.csnet'
+
+#| If $orgdomain is the only name your organization is known under,
+#| specify it: orgdomains=$orgdomain
+
+# My official hostname
+if [ -f /bin/hostname ]; then
+	rawhostname=$(/bin/hostname)
+elif [ -f /etc/sys_id ]; then
+	read rawhostname < /etc/sys_id
+else
+	rawhostname=$(/bin/uname -n)
+fi
+
+#| There are several ways of obtaining the host's own idea of what its
+#| hostname is.  They depend on the variant of UNIX running on the
+#| machine.  The choices here cover all operating systems to which the
+#| mailer has been ported.
+
+hostname=$(canon $rawhostname)	# in case you don't like $orgdomain baggage
+
+#| If the hostname is not a fully qualified name, we need to canonicalize
+#| it.  This means we look up the host's idea of the name in the
+#| nameserver or the /etc/hosts file, and use the primary name found.
+
+tsift $hostname in
+.+\.(edu|gov|mil|oth|org|net|ca|dk|uk)		# add toplevels as you please
+	break ;;				# do nothing
+.*	hostname=$hostname.$orgdomain ;;	# default domain
+tfist
+
+#| This is a sanity check on the hostname we have determined so far.
+
+# set hostname to enable message-id generation and checking
+hostname $hostname
+
+#| We enable message-ids because we want to be able to trace messages
+#| when something goes wrong.  Besides, it is required by RFC822.
+
+
+# For a hostname of 'ephemeral.ai.toronto.edu', this is what should happen:
+
+#| We need to do some more sanity checking.  In case the nameserver is
+#| broken, for example, it may not return a fully qualified name.  We
+#| also need to make sure $orgdomains contains $orgdomain, to avoid
+#| potential problems.
+
+tsift $hostname in
+(.*\.)?([^.]+)\.((ca|edu|gov|mil|oth|org|net|us|uucp)|(ac|co|re)\...)
+
+#| This pattern will work for organizational domains in Canada, the DARPA
+#| namespace, the United States, and countries using AC, CO, and RE
+#| second-level subdomains, like the United Kingdom.  If you are not
+#| covered by these, you will need to change this pattern or section of
+#| code.
+
+	orgdomain=\2.\3			# toronto.edu or utoronto.ca
+	case "$orgdomain" in
+	$orgdomains)
+		break ;;
+	*)	if [ x$orgdomains = x ]; then
+			orgdomains=$orgdomain
+		else
+			echo warning: $orgdomain is not matched by ${orgdomains}!
+			orgdomains="$orgdomain|$orgdomains"
+		fi ;;
+	esac
+	break ;;
+.*	echo mailer: config: cannot interpret $hostname properly
+	exit 1 ;;
+tfist
+
+#| Change this for whatever conventions are in place at your organization.
+
+# If we are a subdomain of an organizational domain, we may wish to do
+# hostname hiding. Figure out what name we should masquerade as within
+# our organizational domain. If not, disable the first case label.
+
+tsift $hostname in
+(.*\.)?([^.]+)\.$orgdomain
+	subdomain=\2				# ai
+	break ;;
+(.*)?\.$orgdomain
+	subdomain=\1				# ephemeral.ai
+	break ;;
+tfist
+
+
+# This is what it will say on out mail
+mydomain=$subdomain.$orgdomain
+
+# Any domain name with these toplevels will not be canonicalized
+toplevels='ca|edu|com|net|mil|int|gov|org'

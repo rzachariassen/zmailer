@@ -1,0 +1,301 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH MAILBOX 8 "21 Nov 1996"
+.SH NAME
+mailbox \- zmailer local delivery transport agent
+.SH SYNOPSIS
+.B mailbox
+[
+.B \-8
+]
+[
+.B \-M
+]
+[
+.B \-c
+.I channel
+]
+[
+.B \-h
+.I "localpart"
+]
+[
+.B \-l
+.I logfile
+]
+[
+.B \-VabrH
+]
+.SH DESCRIPTION
+.I mailbox
+is a ZMailer transport agent which is usually only run by the
+.IR scheduler (8)
+program to deliver mail to local user mailbox files.  The
+.I mailbox
+program must be run with root privileges and invoked with the same
+current directory as the
+.IR scheduler ,
+namely \fIPOSTOFFICE\fB/transport\fR.
+.PP
+Recipient addresses are processed as follows:
+.IP
+\- Strip doublequotes around the address, if any.
+.IP
+\- Strip prefixing backslashes, if any.
+.IP
+\- If the address starts with a '|', the rest of the recipient
+address string is interpreted as a shell command to be run.
+.IP
+\- If the address starts with a '/', the recipient address
+is a filename to append the message to.
+.IP
+\- Otherwise the recipient address must be a local user id.
+.IP
+\- If user is not found, and the first character of the address is
+a capital letter, the entire address is folded to lowercase and
+the user lookup is retried.
+.PP
+If delivering to a user mailbox (\fBMAILBOX\fR/\fIuserid\fR) which
+doesn't exist,
+.I mailbox
+will try to create it.  If the \fBMAILBOX\fR directory is mounted
+from a remote system this will succeed if the directory is group-writable.
+.PP
+Some sanity checks are done on deliveries to files and mailboxes:
+.IP
+\- The file being delivered to must have 1 link only, and must be either
+/dev/null or a regular file.
+.IP
+\- The file lock must be held.
+(See below for a chapter about locks.)
+.PP
+There is a further sanity check on mailbox deliveries, namely if the
+mailbox is not empty the
+.I mailbox
+program will enforce 2 newlines as a separator before the message to
+be delivered.  This guarantees that User Agents, like
+.IR Mail (1),
+can find the about-to-be delivered message even if the current contents of
+the mailbox is corrupt.
+.PP
+When delivering to a process (by starting a Bourne shell to execute
+a specified command line), the environment is set up to contain \fBPATH\fR,
+\fBSHELL\fR, \fBHOME\fR, \fBUSER\fR, \fBSENDER\fR, and \fBUID\fR environment
+variables.  The \fBHOME\fR and \fBUSER\fR values are the recipient user's
+home directory and login id respectively.  The \fBSENDER\fR value is the
+sender address for the message (as it would appear in a From_ line), and
+the \fBUID\fR value is the owner id of the process.  The \fBSIGINT\fR and
+\fBSIGHUP\fR signals are ignored, but \fBSIGTERM\fR is treated normally.
+If the process dumps core, it will be retried later.  Otherwise any non-zero
+exit status is taken as a permanent failure and will result in an error
+message back to the sender.
+.PP
+The actual data delivered to a file, mailbox, or process, is identical.
+It consists of the concationation of a UUCP style separator line,
+the message header specified in the message control file, and the
+message body from the original message file.
+The separator line starts with "From " and is followed by the sender
+address and a timestamp.
+.PP
+After all deliveries and just before exiting, the
+.I mailbox
+process will poke
+.IR comsat (8C)
+in case recipients have turned on
+.IR biff (1).
+The program may be compiled to look in the rwho files on the system
+for recipient names logged onto neighbouring hosts, in which case the
+.I comsat
+on the remote host will be poked.  Even if this compile-time option is
+enabled, this will only be done for users that
+have a \fB.rbiff\fR file in their home directory.
+(Unless an '-DRBIFF_ALWAYS' compile option is used.)
+.SH OPTIONS
+.IP \-c\ \fIchannel\fR
+specifies which channel name should be keyed on.  The default is
+.BR local .
+.IP \-h\ \fI"localpart"\fR
+specifies which of the possible multiple recipients is to be picked
+this time. Default is "none", which selects all local channel
+recipients, however when the routing is done with scripts storing
+some tokens (other than "\-") into the "host"-part, it is possible
+to process "host-wise", i.e. so that each
+.B user
+has his/her own lock-state, and not just everybody hang on the same lock(s)..
+.IP \-l\ \fIlogfile\fR
+specifies a logfile.  Each entry is a line containing message id, pre-existing
+mailbox size in bytes, number of bytes appended, and the file name or command
+line delivered to.
+.IP \-V
+prints a version message and exits.
+.IP \-a
+the access time on mailbox files is, by default, preserved across delivery,
+so that programs such as
+.IR login (1)
+can determine if new mail has arrived.
+This option disables the above action.
+.IP \-b
+disables biff notification.
+.IP \-r
+disables remote biff notification (if supported).
+.IP \-8
+enables MIME-QP-decoder to decode incoming MIME-email with Quoted-Printable
+encoded characters.
+.IP \-M
+enables the creation of MMDF-style mail-folder in the incoming mail folder.
+The default is "classic" UNIX-style folder.
+.SH INTERFACE
+As all transport agents, the program reads relative pathnames of message
+control files from standard input (terminated with two linefeeds), and
+produces diagnostic output on the standard output.  Normal diagnostic output
+is of the form:
+.sp
+.nf
+	\fIid\fR/\fIoffset\fR<TAB>\fInotify-data\fR<TAB>\fIstatus\fR \fImessage\fR
+.fi
+.sp
+where 
+.I id
+is the inode number of the message file,
+.I offset
+is a byte offset within its control file where the address being reported
+on is kept,
+.I status
+is one of
+.BR ok ,
+.BR error ,
+or
+.BR deferred ,
+and the
+.I message
+is descriptive text associated with the report.  The text is terminated by
+a linefeed.  Any other format (as might be produced by subprocesses)
+is passed to standard output for logging in the
+.B scheduler
+log.
+.PP
+The exit status is a code from
+.BR <sysexits.h> .
+
+.SH LOCKS
+Locking scheme used at the system is configurable at the runtime,
+and has separate parameters for mailboxes, and files.
+The data is configurable with zenv variable
+.B MBOXLOCKS
+at which following characters have meanins:
+.PP
+.IP `:'
+Separates mailbox locks, and file-locks at the string.
+The left side has mailbox locks, and the right side has
+locks for other regular files. (Files with explicite paths
+defined.)
+.IP `.'
+For mailboxes only:
+Does ``dotlock'' (userid.lock), or (at Sun Solaris)
+maillock() mechanism.
+.IP `F'
+If the system has
+.I flock()
+system call, uses it to lock the entire file.
+.I (Ignored at systems without flock()!)
+.IP `L'
+If the system has
+.I lockf()
+system call, uses it to lock the entire file.
+.I (Ignored at systems without lockf()!)
+.PP
+Locks are acquired in the same order as the key characters are listed.
+.PP
+Default for the lockf() capable systems is:
+.PP
+\f3MBOXLOCKS=".L:L"\fR
+.PP
+You can choose insane combinations of lock mechanisms, which at some
+systems cause locks to fail always, like at Linux-2.0 series where
+program must not use both lockf() and flock() locks.
+.PP
+.I It is extremely important, that selected locking methods are same
+.I throughout the system at all programs trying to acquire locks on
+.I mail spools.
+.SH ENVIRONMENT
+The default location for user mailbox files is currently
+.BR /var/mail .
+This may be modified by setting the variable
+.B MAILBOX
+in
+.B /etc/zmailer.conf
+to the directory containing user mailbox files, for example
+.BR /usr/spool/mail .
+This is best done in the ZMailer Config file.
+.PP
+Variable
+.B MBOXLOCKS
+is used to define locking schemes used for mailbox spool files,
+and separately for other regular files.
+.SH SECURITY
+Like all parts of the
+.IR ZMailer ,
+the
+.I mailbox
+chooses to err into overtly cautious side.
+In case of pipes being run under the
+.IR mailbox ,
+the program in pipe is started thru
+.I /bin/sh
+with severely sanitized environment variables, and with only
+file descriptors STDIN, STDOUT, and STDERR.
+Programs are refused from running, if address analysis has found
+suspicuous data; external messages can't directly run programs,
+nor those addresses that have had a security breach detected during
+.forward- or other aliasing analysis.
+(Same applies also with writing into explicitely named files.)
+.PP
+The pipe subprogram is run with user-id it gets thru the address
+privilege analysis during message routing, and it gets the
+group-id thru lookup of:  getpwuid(uid).
+That is, if you have multiple usernames with same uid, there
+are no guarantees as to which of them is used for the gid entry.
+.SH SUBPROGRAM ENVIRONMENT VARIABLES
+The
+.I mailbox
+sets following environment variables for the subprograms it runs
+in the pipes:
+.IP HOME
+The homedirectory path is taken from abovementioned
+.IR getpwuid()
+lookup.
+.IP USER
+Likewise the textual username.
+.IP SENDER
+is the incoming "MAIL FROM:<..>" address without brackets.
+For an incoming error message, value "<>" is used.
+.IP ORCPT
+when present, is the XTEXT encoded ORCPT value received at
+the message injection into this system.
+See RFC 1891 for details.
+.IP ENVID
+when present, is the XTEXT encoded ENVID value received at
+the message injection into this system.
+See RFC 1891 for details.
+.IP ZCONFIG
+is the location of the ZMailer ZENV file.
+.IP MAILBIN
+is the value from ZENV.
+.IP MAILSHARE
+is the value from ZENV.
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice (POSTOFFICE)
+.br
+.I /var/mail (MAILBOX)
+.SH SEE ALSO
+scheduler(8), comsat(8C), biff(1), flock(2), Mail(1)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>
+.br
+Extensive modifications by:
+.br
+Matti Aarnio <mea@nic.funet.fi>

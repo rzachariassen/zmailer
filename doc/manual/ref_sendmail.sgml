@@ -1,0 +1,172 @@
+<sect1>sendmail
+<p>
+
+This <em>sendmail</em> program is an emulation of the original
+<em>sendmail</em> interface. It provides all the original options
+that make sense to support in the context of ZMailer.
+This is not intended to be the normal user interface to
+<em>mail</em>, rather it is used by the old User Agent programs, e.g.,
+<tt>mail(1)</tt>, to submit mail. This mechanism has been superseded
+by the <tt>zmailer(3)</tt> library routines as the native
+submission interface (Application Program Interface) for ZMailer.
+
+The default action is to submit the RFC822 format mail
+message	expected on <tt>stdin</tt> to the mailer, with the
+addresses listed on the command line as recipients. If
+there are no recipient addresses specified on the command
+line, the mailer will infer them from the message header.
+The sender is the account of the current <tt>userid</tt>, 
+except for <tt>root</tt> where the preferred sender is the 
+account of the current login session. The message terminates 
+when a period is seen by itself on a line, or at end of file on
+the input stream.
+
+If the message submission fails immediately on the
+<tt>mail_open(3)</tt>, the data on <tt>stdin</tt> will be 
+appended to a <tt>dead.letter</tt> file in the submitters home directory.
+
+<bf>Usage</bf>
+
+<tt>
+sendmail [-C configfile] [-EimqtUv] [-b[msdtip]]
+[-Bbodytype] [-Nnotify] [-Rretmode]
+[-Venvid] [-f address] [-F fullname]
+[-r address] [-o[i|Qpostoffice]] [address ...]
+</tt>
+
+<bf>Parameters</bf>
+
+<descrip>
+<tag/ <tt>-bm</tt>/ asks <em>sendmail</em> to deliver mail, which it does anyway. 
+This option has no effect.
+
+<tag/ <tt>-bs</tt>/ will start an <em>SMTP</em> server reading from <tt>stdin</tt>. 
+This causes the <em>smtpserver(8)</em> program to be executed.
+
+<tag/ <tt>-bd</tt>/ starts the <em>router(8)</em> and <em>scheduler(8)</em> 
+programs to emulate <em>sendmail</em>'s daemon mode. This is <bf>not</bf> a 
+recommended method to start these programs, instead use <em>zmailer(1)</em>.
+
+<tag/ <tt>-bt</tt>/ runs the <em>router(8)</em> in interactive mode for testing.
+
+<tag/ <tt>-bi</tt>/ runs <em>newaliases(8)</em> to rebuild the alias file database.
+
+<tag/ <tt>-bp</tt>/ runs <em>mailq(1)</em> to print the mail transport queue status.
+
+<tag/ <tt>-C configfile</tt>/ specifies the <em>router(8)</em> configuration file.
+
+<tag/ <tt>-E</tt>/ indicates the origin of this message is an insecure 
+channel. This should be used when <em>sendmail</em> is used to submit 
+messages coming in from outside the local machine, to avoid security 
+problems during message processing. This flag ensures the message will 
+have no privileges even if the current <tt>userid</tt> is ``trusted''.
+
+<tag/ <tt>-f address</tt>/ specifies the sender address. This is the default 
+originator address if there is no <tt>From:</tt> header in the message. 
+It becomes the <tt>Sender:</tt> address otherwise. In either case if the 
+current <tt>userid</tt> is not ``trusted'' by the mailer, it is free to 
+ignore both this option and any header information to ensure properly 
+authenticated originator information.
+
+<tag/ <tt>-F fullname</tt>/ specifies the full name of the (local) sender.
+
+<tag/ <tt>-i</tt>/ tells <em>sendmail</em> to not use a period (`.') on a line 
+by itself as a message terminator, only the end of file will terminate the message.
+
+<tag/ <tt>-m</tt>/ asks the mailer not to ignore the originator in the 
+addressee list. This is default behaviour, so this option has no effect.
+
+<tag/ <tt>-N notify</tt>/ sets Delivery-Status-Notification notify parameter 
+to be: <tt>NEVER</tt>, or any combination of: <tt>SUCCESS</tt>, 
+<tt>FAILURE</tt>, <tt>DELAY</tt>.
+
+<tag/ <tt>-oi</tt>/ is like <tt>-i</tt>.
+
+<tag/ <tt>-oQ postoffice</tt>/ specifies an alternate <tt>&dollar;POSTOFFICE/</tt> 
+directory.
+
+<tag/ <tt>-q</tt>/ asks for queue processing. This option has no effect.
+
+<tag/ <tt>-R retmode</tt>/ sets Delivery-Status-Notification parameter to be 
+either of: <tt>FULL</tt>, <tt>HDRS</tt>.
+
+<tag/ <tt>-r address</tt>/ is like <tt>-f</tt>.
+
+<tag/ <tt>-t</tt>/ scans header for recipient addresses if none are specified 
+on the command line. This is also the default behaviour, so this option has no effect.
+
+<tag/ <tt>-v</tt>/ will report the progress of the message after it has been 
+submitted. The <em>sendmail</em> process will write verbose log information 
+to the <tt>stderr</tt> stream until the <em>scheduler</em> deletes the message.
+
+<tag/ <tt>-V envid</tt>/ sets Delivery-Status-Notification parameter <tt>ENVID</tt> 
+to be any arbitrary &lsqb;<tt>xtext</tt>&rsqb; string.
+</descrip>
+
+<sect1>rmail
+<p>
+
+<em>rmail</em> is a program to process incoming UUCP mail.
+<em>rmail</em> is usually invoked by a remote UUCP neighbour host's
+mailer using a command line like:
+
+<tscreen><verb>
+uux - -r -asender -gC thishost!rmail (recipient1) (recipient2) ...
+</verb></tscreen>
+
+The end result is that the remote neighbour's <em>uuxqt(8)</em> runs
+<em>rmail</em> on <tt>thishost</tt> with this command line:
+
+<tscreen><verb>
+rmail recipient1 recipient2 ...
+</verb></tscreen>
+
+In both cases, a UUCP format mail message is on the standard input.
+
+The task of <em>rmail</em> is to transform the trace information in
+the UUCP format message to the equivalent RFC822 trace
+information, and to submit the message to the <em>zmailer(1)</em>
+router with the appropriate envelope information.
+
+The expected input format looks like:
+
+<tscreen><verb>
+From address3  date3 remote from host3
+>From address2  date2 remote from host2
+>From address1  date1 remote from host1
+</verb></tscreen>
+
+followed by the rest of the message. This is considered
+equivalent to the following (as it might appear in a mailbox):
+
+<tscreen><verb>
+From host3!host2!host1!address1 date
+Received: by host3 ... ; date3
+Received: by host2 ... ; date2
+Received: by host1 ... ; date1
+</verb></tscreen>
+
+In order for the mailer to process the incoming message
+properly, <em>rmail</em> must be run by a <tt>userid</tt> which the
+<em>router(1)</em> will accept forged mail from. This is normally
+the UUCP account id.
+
+<bf>Usage</bf>
+
+<tt>
+rmail [-d] [-h somewhere] recipient...
+</tt>
+
+<bf>Parameters</bf>
+
+<descrip>
+<tag/ <tt>-d</tt>/ turns on debugging output.
+
+<tag/ <tt>-h somewhere</tt>/ will use the argument as the 
+default remote UUCP host name to use if there is no <tt>remote from host</tt>
+tag in the first From-space line in  the message.
+The  default value for this is usually <tt>somewhere</tt> or
+<tt>uunet</tt> (since uunet was a frequent purveyor of this
+protocol violation).
+</descrip>
+

@@ -1,0 +1,74 @@
+Collection of FAQ answers I seem to be repeating...
+Last update: 20-Nov-1997,  <mea@nic.funet.fi>
+
+Q:	- My database lookups start to become erratic until I restart
+	  the router processes
+
+A:	Most likely you have copied/modified data in place to existing
+	database file(s).  A definite no-no!
+
+	The correct way is to create the new edition of the database
+	on a temporary file in the same directory as the active one
+	resides, but with different name (Shell '$$' expression helps
+	here).  Then move (unix mv command, or rename() system call)
+	the file(s) to the old name.
+
+	In case of dual-file databases, move first the DIR file, and
+	then the PAG file. (DBM/NDBM databases)
+
+	The system has utility script "newdb" to facilitate this, but
+	it does certain set of assumptions on filenames and database
+	types -- something you might not want to do in quite the same way.
+
+
+	The reason there is no explicite file interlocking is that
+	1) carefull file handling can get by without it,  2) it is
+	extra complicated code that can go wrong.
+
+	There could be ways with at least GDBM and BSD DB to have
+	multiple modifiers on the same database, but it is rather
+	complex code with several system calls per database access...
+
+Q:	- "EHLO greeting does not send FQDN";
+	- My SMTP transport agent says "EHLO host", when it should say
+	  "EHLO host.domain", what is wrong ?
+
+A:	The way the smtp transporter finds out what it should tell
+	at the HELO/EHLO is to do IP reversal lookup on the address
+	that the local socket has.  (For example for hosts with
+	multiple network interfaces each may have different name..)
+
+	Sometimes people configure things so that their system does
+	IP reversal lookup initially from /etc/hosts file, and in it
+	they have written something like this:
+		1.2.3.4 host host.domain
+
+	The first white space separated field is IP address, the second
+	is the canonic (FQDN) address, and possible others are aliases.
+
+	This line should read:
+		1.2.3.4 host.domain host
+
+
+Q:	- The system scrambles headers like this:
+		From daemon@mail.siol.net Thu Jan  2 09:55:21 1997
+		Sender:  <daemon@mail.siol.net>
+		From:   Tomaz Borstnar <tomaz.test@siol.net>
+		X-Sender: Tomaz Borstnar <tomaz.test@siol.net>
+		Return-Path: <daemon@mail.siol.net>
+	  what is going on ?
+
+A:	It is about ZMailer's "trusted" group -- or lack of it.
+	The INSTALL file speaks of  /etc/group: zmailer -group entry
+	The usual members of that ("zmailer") group are:
+		root,daemon,uucp
+
+	With Majordomo in the system and running at its own userid,
+	you must add it to the trusted set as well:
+		root,daemon,uucp,majordom
+
+	Bear in mind that some systems pull the "/etc/groups" from
+	external databases (NIS/NIS+), and your local host may or
+	may not use the data at the /etc/groups file before pulling
+	things (or nor pulling) from the NIS/NIS+...
+	In other words: Your Mileage May Vary

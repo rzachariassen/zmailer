@@ -1,0 +1,221 @@
+.TH identuser 3
+.SH NAME
+identuser \- remote identification library using the Identification Server
+.SH SYNTAX
+.B #include <identuser.h>
+
+unsigned short \fBident_tcpport\fR;
+
+char *\fBident_xline(\fIuser,fd,&inremote\fB)\fR;
+
+int \fBident_fd(\fIfd,&inremote,&local,&remote\fB)\fR;
+.br
+int \fBident_fd2(\fIfd,&inlocal,&inremote,&local,&remote\fB)\fR;
+
+int \fBident_tcpsock(\fIfd,inlocal,inremote\fB)\fR;
+
+char *\fBident_tcpuser(\fIinremote,local,remote\fB)\fR;
+.br
+char *\fBident_tcpuser2(\fIinlocal,inremote,local,remote\fB)\fR;
+.br
+char *\fBident_tcpuser3(\fIinlocal,inremote,local,remote,timeout\fB)\fR;
+
+char *\fBident_sockuser(\fIs,local,remote\fB)\fR;
+
+char *\fIuser\fP;
+.br
+int \fIfd\fP;
+.br
+int \fIs\fP;
+.br
+unsigned long \fIinlocal\fP;
+.br
+unsigned long \fIinremote\fP;
+.br
+unsigned short \fIlocal\fP;
+.br
+unsigned short \fIremote\fP;
+.br
+int \fItimeout\fP;
+.SH DESCRIPTION
+The
+.B identuser
+library provides a simple interface for
+finding out the remote identity
+of a connection through the
+Identification Server
+as specified by RFC 931/1413.
+Use the -lidentuser loader option
+to compile a program with this library.
+
+.B ident_xline(\fIuser,fd,&inremote\fB)
+returns a line of the form X-Ident-User: user or X-Forgery-By: username,
+depending upon what the host on the other side of
+.I fd
+thinks of the user.
+This is particularly appropriate for
+mail and news headers.
+.PP
+If the remote host reports that
+.I user
+owns the connection on that side,
+.B ident_xline
+will return X-Ident-User: user.
+If the remote host reports that a different
+username
+owns the connection,
+.B ident_xline
+will return X-Forgery-By: username.
+If user is NULL,
+it returns X-Ident-User: username
+with the username reported by the remote host.
+If 
+.I fd
+is not a TCP connection
+or identification is impossible,
+.B ident_xline
+returns NULL, setting errno appropriately.
+
+The line is not cr-lf terminated.
+It is stored in a static area
+which is overwritten on each call to
+.B ident_xline.
+.B ident_xline
+places the Internet address of the other host into
+.I inremote.
+
+.B ident_fd2(\fIfd,&inlocal,&inremote,&local,&remote\fB)
+retrieves address information from the connection in socket
+.I fd.
+It places the
+Internet addresses of the connection into
+.I inlocal
+and
+.I inremote
+and the local and remote
+TCP ports into 
+.I local
+and 
+.I remote.
+.B ident_fd2
+returns -1 upon error, setting errno appropriately.
+
+.B ident_tcpuser2(\fIinlocal,inremote,local,remote\fB)
+returns the name of the user on the other end of the TCP connection
+between
+.I remote@inremote
+and
+.I local@inlocal.
+If identification is impossible,
+.B ident_tcpuser2
+returns
+NULL, setting errno appropriately.
+The user name is stored in a static area
+which is overwritten on each call to
+.B ident_tcpuser2,
+.B ident_tcpuser,
+.B ident_sockuser,
+and
+.B ident_xline.
+
+.B \fIs\fB = ident_tcpsock(\fIfd,inlocal,inremote\fB)
+sets
+.I s
+to a non-blocking socket which is connecting to the Identification
+Server at
+.I inremote.
+It returns -1 on error, setting errno appropriately.
+.B ident_sockuser(\fIs,local,remote\fB)
+makes sure that the socket has connected and
+then does the same job as
+.B ident_tcpuser2,
+returning the name of the user on the other end of the TCP connection
+between
+.I remote@inremote
+and
+.I local@inlocal,
+or NULL (with errno set) if identification is not possible.
+.I s
+is closed by
+.B ident_sockuser.
+The advantage of
+using
+.B ident_tcpsock
+and
+.B ident_sockuser
+instead of
+.B ident_tcpuser2
+is that you can perform other actions while waiting for the
+identification request to complete.
+You can select
+.I s
+for writing
+to see if it is ready for
+.B ident_sockuser
+yet.
+
+.B ident_tcpuser3(\fIinlocal,inremote,local,remote,timeout\fB)
+is like
+.B ident_tcpuser2
+but
+returns
+NULL with errno set to ETIMEDOUT
+if the identification request has not been accepted or refused after
+.I timeout
+seconds.
+
+.B ident_fd(\fIfd,&inremote,&local,&remote\fB)
+is the same as
+.B ident_fd2
+but throws away the
+.I inlocal
+information.
+.B ident_tcpuser(\fIinremote,local,remote\fB)
+is the same as
+.B ident_tcpuser2
+but may not bind to the proper local address on
+hosts with multiple IP addresses.
+These functions do not perform properly on multihomed
+hosts and should not be used.
+They are provided only for backwards compatibility.
+
+The identification routines check with the
+remote Identification Server on port
+.B ident_tcpport,
+which defaults to 113
+as specified by RFC 931/1413.
+You can set
+.B ident_tcpport
+to other values
+for nonstandard implementations.
+.SH RESTRICTIONS
+.B identuser
+does no backslash interpretation
+upon the remote user name.
+This is conformance with the proposed revision to
+RFC 931/1413.
+
+.B identuser
+does not use the operating system type
+information provided by the Identification Server.
+.SH VERSION
+identuser version 4.0, February 9, 1992.
+.SH AUTHOR
+Placed into the public domain by Daniel J. Bernstein.
+.SH REFERENCES
+The identification server is more secure than passwords
+in some ways, but less secure than passwords in many ways.
+(It's certainly better than no password at all---e.g., for
+mail or news.)
+It is not the final solution.
+For an excellent discussion of security problems within
+the TCP/IP protocol suite, see
+Steve Bellovin's article
+``Security Problems in the TCP/IP Protocol Suite.''
+.SH "SEE ALSO"
+tcpclient(1),
+tcpserver(1),
+getpeername(3),
+getsockname(3),
+tcp(4),
+identd(8)

@@ -1,0 +1,2050 @@
+input:
+	tSyntaxError = -1
+	tAmpersand '&'
+	tAnd '&&'
+	tAngleLeft '<'
+	tAngleRight '>'
+	tAppendLeft '<<'
+	tAppendRight '>>'
+	tAt '@'
+	tBackQuote
+	tBackQuoteLeft
+	tBackSlash
+	tBraceLeft '{'
+	tBraceRight '}'
+	tCaret '^'
+	tComma ','
+	tColon ':'
+	tDash '-'
+	tDigit
+	tDollar '$'
+	tDoubleQuote
+	tEndOfFile
+	tEqual '='
+	tExclamation '!'
+	tLabelEnd ';;'
+	tLetter
+	tNewLine
+	tOr '||'
+	tParenLeft '('
+	tParenRight ')'
+	tPercent '%'
+	tPeriod '.'
+	tPlus '+'
+	tPipe '|'
+	tSemicolon ';'
+	tSharp '#'
+	tSingleQuote
+	tSlash '/'
+	tSquareLeft '['
+	tSquareRight ']'
+	tStar '*'
+	tTilde '~'
+	tQuestionMark '?'
+	tUnderscore '_'
+	tWhiteSpace
+	;
+
+% TOV == top of variable stack
+
+output:
+	sBufferSet		% set the buffer contents to following string
+	sBufferAppend		% append following string to buffer contents
+	sBufferExpand		% dollar-expand the contents of the buffer
+	sBufferQuote		% quote the next string and future expansions
+	sBufferSetFromArgV	% set the buffer contents from "$@", for loop
+	sArgVpush		% push buffer onto ArgV stack, then null buffer
+	sArgList		% turn ArgV stack into real argument list
+	sVariablePush		% push buffer contents onto variable stack
+	sVariablePop		% pop variable stack
+	sVariableCdr		% set TOV to (cdr TOV)
+	sVariableBuffer		% set the buffer contents to TOV
+	sVariableAppend		% expand operand and append to TOV
+	sVariableLoopAttach	% loop variable in inner scope points at car TOV
+	sCommandPush		% push command info structure onto command stack
+	sCommandPop		% pop ditto (execute command, return from func)
+	sCommandCarryBuffer	% don't null buffer/bufferp at next runcommand()
+	sIOopen			% open file named in buffer
+	sIOopenString		% open string operand for reading
+	sIOopenPortal		% open named pipe named in buffer
+	sIOopenPipe		% open pipe between processes on input/output
+	sIOintoBuffer		% write stdout into buffer (for `...`)
+	sIOclose		% close fd operand
+	sIOdup			% dup fd operands (dup2(op2,op1))
+	sIOsetIn		% open operations are for input
+	sIOsetInOut		% open operations are for input/output
+	sIOsetOut		% open operations are for output
+	sIOsetAppend		% open operations are for output appending
+	sIOsetDesc		% open operations are for given file descriptor
+	sIObufIn		% read from string buffer
+	sIObufOut		% write to string buffer
+	sIObufFree		% free string buffer
+	sIObufString		% copy string buffer to command buffer
+	sAssign			% assign argv[top] to sh var. argv[top-1], pop
+	sAssignTemporary	% like sAssign but only for next command
+	sFunction		% define function operand starting here
+	sParameter		% LocalVariable op SetBuffer op Push Swap Assign
+	sJump			% unconditional jump to operand
+	sBranchOrigin		% placeholder for backpatching
+	sJumpFork		% fork
+	sJumpIfFailure		% if last exit status is != 0 jump
+	sJumpIfSuccess		% if last exit status is == 0 jump
+	sJumpIfNilVariable	% if variable on TOV is nil, jump
+	sJumpIfMatch		% if !(map #'(lambda (a) (match TOV-1 a)) TOV)
+	sJumpIfFindVarNil	% if findvar(buffer) == NULL, jump
+	sJumpIfOrValueNil	% if findvar(buffer) and value is ""/0, jump
+	sJumpLoopBreak		% where to go on a break for this loop
+	sJumpLoopContinue	% where to go on a continue for this loop
+	sLoopEnter		% push the JumpLoops on
+	sLoopExit		% pop the JumpLoops off
+	sLocalVariable		% make operand refer to local variable in scope
+	sScopePush		% push scope
+	sScopePop		% pop scope
+	sDollarExpand		% expand most recently emitted buffer
+	sNoOp			% null operation, used by optimizer
+	sPrintAndExit		% print contents of buffer, then exit
+	sBackground		% command must be backgrounded
+%ifdef	MAILER
+	% String RegExprs
+	sSiftPush		% do whatever is needed before sift expression
+	sSiftBody		% ditto after sift expression before body
+	sSiftCompileRegexp	% compile the regular expression in buffer
+	sSiftReevaluate		% if expression variables changed, reevaluate it
+	sSiftPop		% all done, pheew
+	sSiftBufferAppend	% the buffer is [0-9]
+	sJumpIfRegmatch		% if current regexp matches token buffer, jump
+
+	% Token RegExprs
+	sTSiftPush		% do whatever is needed before sift expression
+	sTSiftBody		% ditto after sift expression before body
+	sTSiftCompileRegexp	% compile the regular expression in buffer
+	sTSiftReevaluate	% if expression variables changed, reevaluate it
+	sTSiftPop		% all done, pheew
+%	sTSiftBufferAppend	%  ---  REUSE sSiftBufferAppend !!
+	sTJumpIfRegmatch	% if current regexp matches token buffer, jump
+%endif	/* MAILER */
+	;
+
+error:
+	eFirstUserError = 10
+	eIllegalArgumentSeparator = 10
+	eMissingDo
+	eMissingDoOrIn
+	eMissingDone
+	eMissingEndOfPattern
+	eMissingEsac
+	eMissingFi
+	eMissingIOopTarget
+	eMissingKeywordIn
+	eMissingThen
+	eMissingRightBrace
+	eUnknownDollarOperand
+	eUnmatchedEndOfGroup
+	eIllegalLeftParen
+	eIllegalConnector
+	eIllegalTokenUnbalancedList
+	eObsoleteSift
+	eObsoleteTfis
+	eTfissMisparity
+	eTfistMisparity
+	eSslStackOverflow = 40
+	;
+	
+type StringTerminator:
+	sDoubleQuote
+	sSingleQuote
+	sBackQuote
+	;
+
+type WordKind:
+	sName
+	sWord
+	;
+
+type Keyword:
+	kCase
+	kDo
+	kDone
+	kElif
+	kElse
+	kEsac
+	kFi
+	kFor
+	kIf
+	kIn
+	kLocalVariable
+	kNull
+%ifdef	MAILER
+	kTSift
+	kTfisT
+	kSSift
+	kTfisS
+	kSift
+	kTfis
+%endif	/* MAILER */
+	kThen
+	kUntil
+	kWhile
+	;
+
+type Flag:
+	off
+	on
+	;
+
+type FlagBit:
+	bitHereData
+	bitQuotingHereData
+	bitStripTabs
+	bitTwoJumps
+	bitInQuotes
+	bitEmittedBuffer
+	;
+
+type Counter:
+	countDoubleQuoteNestingLevel = 0
+	countBackQuoteNestingLevel = 1
+	countDollarInSiftLabel = 2
+	% countDollarInTSiftLabel = 3
+	;
+
+type HereCompare:
+	same
+	different
+	;
+
+type BufferState:
+	empty
+	used
+	;
+
+type IOop:
+	noIO
+	yesIO
+	;
+
+mechanism Identify:
+	oIdentWord >> WordKind
+	oIdentifyKeyword >> Keyword
+	;
+
+mechanism Backup:
+	oUngetKeyword
+	;
+
+mechanism Buffer:
+	oBufferClear
+	oBufferAppend
+	oBufferAppendCaret	% appends ^ to buffer
+	oBufferAppendDollar	% appends $ to buffer
+	oBufferTerminate
+	oBufferEmit		% emit string from buffer
+	oBufferEmitPattern	% this emits ^buffer$
+	oBufferUsed >> BufferState	% empty or used ?
+	;
+
+mechanism BranchStack:
+	oBranchPushNullOrigin	% push 0 onto stack
+	oBranchPushOrigin	% push current output position onto stack
+	oBranchPatch		% stack[top] = current position (patch target)
+	oBranchPatchBack	% stack[top] = stack[top-1] (patch target)
+	oBranchPopOrigin	% pop stack
+	oBranchSwapTop		% swap top two stack entries
+	;
+
+mechanism Emit:
+	oEmitBranchOrigin	% emit value on top of BranchStack
+	;
+
+mechanism HereDocuments:
+	oHereSaveStop		% save stuff in buffer into HereSave buffer
+	oHereCompareStop >> HereCompare	% have we reached the stop line?
+	oHereCutBuffer		% remove last partial line in buffer
+	;
+
+mechanism Flags:
+	oFlagsPush			% push flag scope
+	oFlagsPop			% pop flag scope
+	oFlagsSet(FlagBit)		% set the specified flag
+	oFlagsTest(FlagBit) >> Flag	% test the specified flag
+	;
+
+mechanism Counters:
+	oCounterIncrement(Counter)	% increment the specified counter
+	oCounterDecrement(Counter)	% decrement the specified counter
+	oCounterClear(Counter)		% reset the specified counter to 0
+	oCounterTest(Counter) >> Flag	% is the specified counter positive?
+	%oCounterSave(Counter)		% remember this counter value
+	%oCounterCopy(Counter)		% copy the remembered value to counter
+	;
+
+rules
+
+Script:
+	oCounterClear(countDoubleQuoteNestingLevel)
+	oCounterClear(countBackQuoteNestingLevel)
+	@WhiteSpace
+	{[*
+		| tEndOfFile:
+			>
+		| tNewLine,tWhiteSpace,';;':
+			?
+		| '#':
+			?
+			{[
+				| tNewLine:
+					>
+				| *:
+					?
+			]}
+		| '}',')':
+			#eUnmatchedEndOfGroup
+			?
+		| *:
+			@CommandList
+	]}
+	;
+
+Command:
+	[*
+		| tEndOfFile:
+			>>
+		| *:
+	]
+	[*
+		| '{':
+			?
+			.sScopePush
+			.sCommandPush
+			oFlagsPush
+			@SimpleCommandIOprep
+			@CommandList
+			'}'
+			@SimpleCommandIO
+			.sCommandPop
+			.sScopePop
+			[ oFlagsTest(bitHereData)
+				| off:
+					oFlagsPop
+				| *:
+			]
+		| '(':
+			?
+			.sJumpFork
+			oBranchPushOrigin
+			.sBranchOrigin
+			.sCommandPush
+			oFlagsPush
+			@SimpleCommandIOprep
+			@CommandList
+			')'
+			@SimpleCommandIO
+			.sCommandPop
+			oBranchPatch
+			oBranchPopOrigin
+			[ oFlagsTest(bitHereData)
+				| off:
+					oFlagsPop
+				| *:
+			]
+		%| '=',':','+','-','?','[',']','^','~','/':
+		%	@SimpleCommand
+		| *:
+			@NamePrelim
+			[ oIdentifyKeyword
+%ifdef	MAILER
+				| kSSift:
+					@WhiteSpace
+					@SimpleCommandIOprep
+					@SSiftStatement
+					@SimpleCommandIO
+				| kTSift:
+					@WhiteSpace
+					@SimpleCommandIOprep
+					@TSiftStatement
+					@SimpleCommandIO
+				| kSift:
+					#eObsoleteSift
+%endif	/* MAILER */
+				| kCase:
+					@WhiteSpace
+					@SimpleCommandIOprep
+					@CaseStatement
+					@SimpleCommandIO
+				| kIf:
+					@WhiteSpace
+					@SimpleCommandIOprep
+					@IfStatement
+					@SimpleCommandIO
+				| kFor:
+					@WhiteSpace
+					@SimpleCommandIOprep
+					@ForStatement
+					@SimpleCommandIO
+				| kWhile:
+					@WhiteSpace
+					@SimpleCommandIOprep
+					@WhileStatement
+					@SimpleCommandIO
+				| kUntil:
+					@WhiteSpace
+					@SimpleCommandIOprep
+					@UntilStatement
+					@SimpleCommandIO
+				| kLocalVariable:
+					@WhiteSpace
+					@LocalDeclaration
+				| *:
+					oUngetKeyword
+					@SimpleCommand
+			]
+	]
+	@WhiteSpace
+	;
+
+LocalDeclaration:
+	{[*
+		| tLetter:
+			@NamePrelim
+			.sLocalVariable
+			oBufferEmit
+			@WhiteSpace
+		| *:
+			>
+	]}
+	;
+	
+%ifdef	MAILER
+SingleQuotePattern:
+	{[*
+		| tNewLine:
+			>	% Always breaks
+		| tSingleQuote:
+			?	% Eat it away!
+			>
+		| *:
+			?	% Accept it
+			oBufferAppend			
+	]}
+	;
+DoubleQuotePattern:
+	{[*
+		| tNewLine:
+			>	% Always breaks
+		| tDoubleQuote:
+			?	% Eat it away!
+			>
+		| *:
+			?	% Accept it
+			oBufferAppend			
+	]}
+	;
+
+SSiftStatement:
+	.sSiftPush
+	@Word
+	.sSiftBody
+	@IgnoreComments
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kIn:
+		| *:
+			#eMissingKeywordIn
+	]
+	@IgnoreComments
+	.sLoopEnter
+	.sJumpLoopBreak
+	oBranchPushOrigin
+	.sBranchOrigin
+	{
+		% get the pattern
+		oCounterClear(countDollarInSiftLabel)
+		oBufferClear
+		{[*
+			| tSingleQuote:
+				?
+				@SingleQuotePattern
+			| tDoubleQuote:
+				?
+				@DoubleQuotePattern
+			| tWhiteSpace,tNewLine:
+				>
+			| tDollar:
+				oCounterIncrement(countDollarInSiftLabel)
+				?
+				oBufferAppend
+			| *:
+				?
+				oBufferAppend
+		]}
+		oBufferTerminate
+		[ oIdentifyKeyword
+			| kDone, kElif, kElse, kEsac, kFi, kIn:
+				% to get error position right
+				oUngetKeyword
+				#eSyntaxError
+			| kTfisT:
+				#eTfistMisparity
+			| kTfisS:
+				>
+			| *:
+				.sJumpLoopContinue
+				oBranchPushOrigin
+				.sBranchOrigin
+				oBranchPatch
+				oBranchPopOrigin
+				.sSiftReevaluate
+				[ oCounterTest(countDollarInSiftLabel)
+					| on:
+						oUngetKeyword
+						oBufferClear
+						oBufferTerminate
+						.sBufferSet
+						oBufferEmit
+						oBufferClear
+						oBufferAppendCaret
+						{[*
+							| tWhiteSpace,tNewLine:
+								>
+							| tDollar:
+								@FlushBuffer
+								? @Dollar
+							| *:
+								?
+								oBufferAppend
+						]}
+						oBufferAppendDollar
+						oBufferTerminate
+						@FlushBuffer
+					| off:
+						.sBufferSet
+						% emit the pattern
+						oBufferEmitPattern
+				]
+				.sSiftCompileRegexp
+				oBranchPushNullOrigin
+				oEmitBranchOrigin
+				oBranchPopOrigin
+				.sJumpIfRegmatch
+				oBranchPushOrigin
+				.sBranchOrigin
+				@CommandList
+				';;'
+				oBranchPatch
+				oBranchPopOrigin
+				@IgnoreComments
+		]
+	}
+	oBranchPatch
+	oBranchPopOrigin
+	.sLoopExit
+	.sSiftPop
+	;
+
+TSiftStatement:
+	.sTSiftPush
+	@Word
+	.sTSiftBody
+	@IgnoreComments
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kIn:
+		| *:
+			#eMissingKeywordIn
+	]
+	@IgnoreComments
+	.sLoopEnter
+	.sJumpLoopBreak
+	oBranchPushOrigin
+	.sBranchOrigin
+	{
+		% get the pattern
+		oCounterClear(countDollarInSiftLabel)
+		oBufferClear
+		{[*
+			| tSingleQuote:
+				?
+				@SingleQuotePattern
+			| tDoubleQuote:
+				?
+				@DoubleQuotePattern
+			| tWhiteSpace,tNewLine:
+				>
+			| tDollar:
+				oCounterIncrement(countDollarInSiftLabel)
+				?
+				oBufferAppend
+			| *:
+				?
+				oBufferAppend
+		]}
+		oBufferTerminate
+		[ oIdentifyKeyword
+			| kDone, kElif, kElse, kEsac, kFi, kIn:
+				% to get error position right
+				oUngetKeyword
+				#eSyntaxError
+			| kTfis:
+				% to get error position right
+				oUngetKeyword
+				#eObsoleteTfis
+			| kTfisS:
+				#eTfissMisparity
+			| kTfisT:
+				>
+			| *:
+				.sJumpLoopContinue
+				oBranchPushOrigin
+				.sBranchOrigin
+				oBranchPatch
+				oBranchPopOrigin
+				.sTSiftReevaluate
+				[ oCounterTest(countDollarInSiftLabel)
+					| on:
+						oUngetKeyword
+						oBufferClear
+						oBufferTerminate
+						.sBufferSet
+						oBufferEmit
+						oBufferClear
+						oBufferAppendCaret
+						{[*
+							| tWhiteSpace,tNewLine:
+								>
+							| tDollar:
+								@FlushBuffer
+								? @Dollar
+							| *:
+								?
+								oBufferAppend
+						]}
+						oBufferAppendDollar
+						oBufferTerminate
+						@FlushBuffer
+					| off:
+						.sBufferSet
+						% emit the pattern
+						oBufferEmitPattern
+				]
+				.sTSiftCompileRegexp
+				oBranchPushNullOrigin
+				oEmitBranchOrigin
+				oBranchPopOrigin
+				.sTJumpIfRegmatch
+				oBranchPushOrigin
+				.sBranchOrigin
+				@CommandList
+				';;'
+				oBranchPatch
+				oBranchPopOrigin
+				@IgnoreComments
+		]
+	}
+	oBranchPatch
+	oBranchPopOrigin
+	.sLoopExit
+	.sTSiftPop
+	;
+%endif	/* MAILER */
+
+CaseStatement:
+	@Word
+	.sVariablePush
+	@IgnoreComments
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kIn:
+		| *:
+			#eMissingKeywordIn
+	]
+	@IgnoreComments
+	@CaseStatementAux
+	.sVariablePop
+	;
+
+CaseStatementAux:
+	@Word
+	[ oIdentifyKeyword
+		| kDone, kElif, kElse, kFi, kIn, kTfisS, kTfisT:
+			% to get error position right
+			oUngetKeyword
+			#eSyntaxError
+		| kEsac:
+		| *:
+			@WhiteSpace
+			@CasePart	% will leave an oBranchPushOrigin
+			@IgnoreComments
+			@CaseStatementAux	% tail recusion on purpose!
+			oBranchPatch	% patch jump from taken label body (3)
+			oBranchPopOrigin
+	]
+	;
+
+CasePart:
+	oBranchPushOrigin		% jumped to by (4)
+	.sJumpIfMatch			% to the case body (1)
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchSwapTop
+	{[
+		| '|':
+			@WhiteSpace
+			@Word
+			@WhiteSpace
+			.sJumpIfMatch		% to case body (4)
+			oEmitBranchOrigin	% jump back up
+		| ')':
+			oBranchPopOrigin
+			>
+	% ------ Should recognize there, but..  Doing so would need call
+	% ------ for  oIdentifyKeyword
+	%	| kCase, kDo, kDone, kElif, kElse, kEsac, kFi, kFor, kIf,
+	%	  kIn, kLocalVariable, kTSift, kTfisT, kSSift, kTfisS,
+	%	  kSift, kTfis, kThen, kUntil, kWhile:
+	%		#eSyntaxError
+		| *:
+			#eMissingEndOfPattern
+			?
+	]}
+	.sJump				% around case-part body (2)
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchSwapTop
+	oBranchPatch
+	oBranchPopOrigin		% to here (1)
+	@CommandList
+	@IgnoreComments
+	.sJump				% to end of case statement (3)
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchSwapTop
+	oBranchPatch
+	oBranchPopOrigin		% to here (2)
+	[*
+		| ';;':
+			?
+		| tLetter:		% this is the 'e' in esac...
+			@NamePrelim
+			[ oIdentifyKeyword
+				| kEsac:
+				| *:
+					#eMissingEsac
+			]
+			oUngetKeyword
+	]
+	;
+
+IfStatement:
+	@CommandList
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kThen:
+		| *:
+			#eMissingThen
+	]
+	.sJumpIfFailure
+	oBranchPushOrigin
+	.sBranchOrigin
+	@CommandList
+	@ElsePart
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kFi:
+		| *:
+			#eMissingFi
+	]
+	;
+
+ElsePart:
+	@IgnoreComments
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kElif:
+			.sJump
+			oBranchPushOrigin
+			.sBranchOrigin
+			oBranchSwapTop
+			oBranchPatch
+			oBranchPopOrigin
+			@CommandList
+			@NamePrelim
+			[ oIdentifyKeyword
+				| kThen:
+			]
+			.sJumpIfFailure
+			oBranchPushOrigin
+			.sBranchOrigin
+			@CommandList
+			@ElsePart
+			oBranchPatch
+			oBranchPopOrigin
+		| kElse:
+			.sJump
+			oBranchPushOrigin
+			.sBranchOrigin
+			oBranchSwapTop
+			oBranchPatch
+			oBranchPopOrigin
+			@CommandList
+			oBranchPatch
+			oBranchPopOrigin
+		| *:
+			oBranchPatch
+			oBranchPopOrigin
+			oUngetKeyword
+	]
+	;
+
+ForStatement:
+	@Name
+	.sScopePush
+	.sLocalVariable
+	oBufferEmit
+	@IgnoreComments
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kDo:	% argument list is $@
+			.sBufferSetFromArgV
+			.sVariablePush
+			.sVariableLoopAttach
+			.sLoopEnter
+		| kIn:
+			@WhiteSpace
+			@Word
+			.sVariablePush
+			.sVariableLoopAttach
+			.sLoopEnter
+			@WhiteSpace
+			{[*
+				| ';':
+					?
+					>
+				| tNewLine, '#':
+					>
+				| *:
+					@Word
+					.sVariableAppend
+					@WhiteSpace
+			]}
+			@IgnoreComments
+			@NamePrelim
+			[ oIdentifyKeyword
+				| kDo:
+				| *:
+					% to get error position right
+					oUngetKeyword
+					#eMissingDoOrIn
+			]
+			@IgnoreComments
+		| *:
+			oUngetKeyword	% to get error position right
+			#eMissingDoOrIn
+	]
+	oBranchPushOrigin	% loop top
+	.sJumpIfNilVariable	% loop exit
+	oBranchPushOrigin
+	oBranchSwapTop
+	.sBranchOrigin
+	.sJumpLoopBreak
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchSwapTop
+	.sJumpLoopContinue
+	oBranchPushOrigin
+	.sBranchOrigin
+	@CommandList
+	oBranchPatch		% loop continue
+	oBranchPopOrigin
+	.sVariableCdr
+	.sJump			% back to top of loop
+	oEmitBranchOrigin
+	oBranchPopOrigin
+	oBranchPatch		% backpatch exit from loop
+	oBranchPopOrigin
+	oBranchPatch		% loop break
+	oBranchPopOrigin
+	.sLoopExit
+	.sVariablePop
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kDone:
+		| *:
+			#eMissingDone
+	]
+	.sScopePop
+	;
+
+WhileStatement:
+	@WhileUntilPrelude
+	@CommandList
+	.sJumpIfFailure		% loop exit
+	@WhileUntilCommon
+	;
+
+UntilStatement:
+	@WhileUntilPrelude
+	@CommandList
+	.sJumpIfSuccess		% loop exit
+	@WhileUntilCommon
+	;
+
+WhileUntilPrelude:
+	.sLoopEnter
+	.sJumpLoopBreak
+	oBranchPushOrigin
+	.sBranchOrigin
+	.sJumpLoopContinue
+	oBranchPushOrigin	% loop top
+	.sBranchOrigin
+	oBranchPushOrigin	% loop top
+	oBranchSwapTop
+	oBranchPatch
+	oBranchPopOrigin
+	;
+
+WhileUntilCommon:
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchSwapTop
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kDo:
+		| *:
+			#eMissingDo
+	]
+	@CommandList
+	@NamePrelim
+	[ oIdentifyKeyword
+		| kDone:
+		| *:
+			#eMissingDone
+	]
+	.sJump			% back to top of loop
+	oEmitBranchOrigin
+	oBranchPopOrigin
+	oBranchPatch		% backpatch loop exit
+	oBranchPopOrigin
+	oBranchPatch		% loop break
+	oBranchPopOrigin
+	.sLoopExit
+	;
+
+CommandList:
+	@IgnoreComments
+	[*
+		| tEndOfFile:
+			>>
+		| *:
+	]
+	@AndOr
+	{
+		[
+			| tNewLine:
+				[ oFlagsTest(bitHereData)
+					| on:
+						@HereData
+					| *:
+				]
+				% do the stuff below
+			| ';':
+				% do the stuff below
+			| *:
+				>
+		]
+		@IgnoreComments
+		[*
+			| tEndOfFile, ';;', '}', ')', tBackQuote,tBackQuoteLeft:
+				>
+			| tLetter:
+				@NamePrelim
+				[ oIdentifyKeyword
+					| kThen,kFi,kElse,kElif,kDo,kDone,kEsac:
+						oUngetKeyword
+						>
+					| *:
+						oUngetKeyword
+						@SkipComment
+						@AndOr
+				]
+			| *:
+				@SkipComment
+				@AndOr
+		]
+	}
+	;
+
+AndOr:
+	@PipeLine
+	[
+		| '&&':
+			.sJumpIfFailure		% of previous command
+			oBranchPushOrigin
+			.sBranchOrigin
+			@IgnoreComments
+			@AndOr			% tail recursion on purpose!
+			oBranchPatch
+			oBranchPopOrigin
+		| '||':
+			.sJumpIfSuccess
+			oBranchPushOrigin
+			.sBranchOrigin
+			@IgnoreComments
+			@AndOr
+			oBranchPatch
+			oBranchPopOrigin
+		| *:
+	]
+	;
+
+PipeLine:
+	.sCommandPush
+	oFlagsPush
+	.sJump			% jump to background indication (a)
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchPushOrigin	% jump back here after backgrounding known (b)
+	oBranchSwapTop
+	.sJump			% jump to pipe setup (1)
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchPushOrigin	% jump back to here after pipe setup (2)
+	oBranchSwapTop
+	@Command
+	{[
+		| '|':
+			@IgnoreComments
+			.sJump			% jump over the pipe setup (3)
+			oBranchPushOrigin
+			.sBranchOrigin
+			oBranchSwapTop
+			oBranchPatch		% jump to here from (1)
+			oBranchPopOrigin
+			oBranchSwapTop
+			.sIOsetOut
+			.sIOopenPipe
+			.sJump
+			oEmitBranchOrigin	% jump from here to (2)
+			oBranchPopOrigin
+			oBranchPatch		% jump to here from (3)
+			oBranchPopOrigin
+			.sCommandPop
+			[ oFlagsTest(bitHereData)
+				| off:
+					oFlagsPop
+				| *:
+			]
+			.sCommandPush
+			.sIOsetIn
+			.sIOopenPipe
+			oFlagsPush
+			.sJump			% jump to pipe setup (1)
+			oBranchPushOrigin
+			.sBranchOrigin
+			oBranchPushOrigin	% jump back here afterwards (2)
+			oBranchSwapTop
+			@Command
+		| *:
+			>
+	]}
+	oBranchPatchBack	% patch previous jump (1) to continue at (2)
+	oBranchPopOrigin
+	oBranchPopOrigin
+	[
+		| '&':
+			.sCommandPop
+			.sJump			% jump over the setup (c)
+			oBranchPushOrigin
+			.sBranchOrigin
+			oBranchSwapTop
+			oBranchPatch		% jump to here from (a)
+			oBranchPopOrigin
+			oBranchSwapTop
+			.sBackground
+			.sCommandPush
+			.sJump			% jump back to (b)
+			oEmitBranchOrigin
+			oBranchPopOrigin
+			oBranchPatch		% jump to here from (c)
+			oBranchPopOrigin
+			@WhiteSpace
+			[
+				| '&&','||':
+					#eIllegalConnector
+				| *:
+			]
+		| *:
+			oBranchPatchBack	% patch (a) to go to (b)
+			oBranchPopOrigin
+			oBranchPopOrigin
+	]
+	.sCommandPop
+	[ oFlagsTest(bitHereData)
+		| off:
+			oFlagsPop
+		| *:
+	]
+	;
+
+SimpleCommand:
+	@SkipComment
+	[*
+		| tLetter,tBackQuoteLeft:	% efficiency hack
+		| tNewLine,';',';;','&','|','&&','||',tParenRight,tBraceRight:
+			>>
+		| tBackQuote:
+			[ oCounterTest(countBackQuoteNestingLevel)
+				| on:
+					% if we are waiting for end of backquote
+					% then we abort back to @BackQuote
+					>>
+				| *:
+					% otherwise the first word in our
+					% command is a backquote...
+			]
+		| *:
+	]
+	[ @IOoperation
+		| noIO:
+			@SimpleItem
+		| *:
+	]
+	{
+		{
+			@WhiteSpace
+			@SkipComment
+			[*
+				| tBackSlash:
+					oBufferClear
+					oBufferTerminate
+					?
+					oBufferAppend
+					[*
+						| tNewLine:
+							?
+							oBufferClear
+							% repeat the loop
+						| *:
+							oBufferTerminate
+							oUngetKeyword
+							>
+					]
+				| *:
+					>
+			]
+		}
+		[*
+			| tLetter,tBackQuoteLeft:	% efficiency hack
+			| tNewLine,';',';;','&','|','&&','||',tParenRight,tBraceRight:
+				>
+			| tBackQuote:
+				[ oCounterTest(countBackQuoteNestingLevel)
+					| on:
+						% this is the end of the command
+						>
+					| *:
+						% the next word is a backquote
+				]
+			%| tParenLeft:
+			%	#eIllegalLeftParen
+			%	>
+			| *:
+		]
+		[ @IOoperation
+			| noIO:
+				% whatever we see here, it isn't a separator
+				@Word
+				.sArgVpush
+			| *:
+		]
+	}
+	;
+
+SimpleCommandIOprep:
+	.sJump			% jump to I/O setup
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchPushOrigin
+	oBranchSwapTop
+	% followed by @some-command
+	% then @SimpleCommandIO
+	;
+
+SimpleCommandIO:
+	.sJump			% after command code, jump to after I/O setup
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchSwapTop
+	oBranchPatch		% I/O setup
+	oBranchPopOrigin
+	oBranchSwapTop
+	{
+		@WhiteSpace
+		[ @IOoperation
+			| noIO:
+				>
+			| *:
+		]
+	}
+	.sJump			% jump back to the command code
+	oEmitBranchOrigin
+	oBranchPopOrigin
+	oBranchPatch		% resume here after command code
+	oBranchPopOrigin
+	;
+
+SimpleItem:
+	[*
+		| '=',':','+','-','?':
+			@Word
+			.sArgVpush
+			>>
+		| *:
+	]
+	@FirstWord
+	[ oIdentWord
+		| sName:
+			@WhiteSpace
+			[
+				| '=':	% no whitespace allowed here
+					[*
+						| tWhiteSpace,tNewLine:
+							% assign null
+							.sArgVpush
+							oBufferClear
+							oBufferTerminate
+							.sBufferSet
+							oBufferEmit
+						| *:
+							.sArgVpush
+							@Word
+					]
+					%.sArgVpush
+					@WhiteSpace
+					@SkipComment
+					[*
+						| tNewLine,';',';;','&','|','&&','||',tParenRight,tBraceRight:
+							% permanent assign
+							.sAssign
+						| *:	% heavy recursion!
+							.sAssignTemporary
+							@Command
+					]
+				| '(':
+					.sFunction
+					oBranchPushOrigin
+					.sBranchOrigin
+					% most functions have local variables...
+					.sScopePush
+					@Function
+					.sScopePop
+					oBranchPatch
+					oBranchPopOrigin
+				| *:
+					.sArgVpush
+			]
+		| sWord:
+			.sArgVpush
+	]
+	;
+
+IOoperation >> IOop:
+	oBufferClear
+	{[*
+		| tDigit:
+			?
+			oBufferAppend
+		| '<','>','<<','>>':
+			oBufferTerminate
+			>
+		| *:
+			oBufferTerminate
+			[ oBufferUsed
+				| used:
+					oUngetKeyword
+				| *:
+			]
+			>> noIO
+	]}
+	[
+		| '>':
+			.sIOsetOut
+			@File
+		| '<':
+			[
+				| '>':
+					.sIOsetInOut
+				| *:
+					.sIOsetIn
+			]
+			@File
+		| '>>':
+			.sIOsetAppend
+			@File
+		| '<<':
+			[
+				| '-':
+					oFlagsSet(bitStripTabs)
+				| *:
+			]
+			@WhiteSpace
+			@HereDocument
+		| *:
+			>> noIO
+	]
+	>> yesIO
+	;
+
+File:
+	[ oBufferUsed
+		| used:
+			.sIOsetDesc
+			oBufferEmit
+		| *:
+	]
+	[
+		| '&':
+			[
+				| '-':
+					.sIOclose
+				| tDigit:
+					% interestingly, this code is
+					% identical for n<&m and n>&m
+					.sIOdup		% dup2(op2, op1)
+					oBufferClear
+					oBufferAppend
+					{[
+						| tDigit:
+							oBufferAppend
+						| *:
+							>
+					]}
+					oBufferTerminate
+					oBufferEmit
+				| *:
+					#eMissingIOopTarget
+			]
+		| *:
+			@Whitespace
+			[
+				| '@':
+					@Word
+					.sIOopenPortal
+				| *:
+					@Word
+					.sIOopen
+			]
+	]
+	;
+
+Function:
+	@ParameterList
+	@WhiteSpace
+	%@Command
+	@PipeLine
+	;
+
+ParameterList:
+	@WhiteSpace
+	[
+		| ')':
+			.sArgList
+			>>
+		| *:
+	]
+	@NamePrelim
+	.sParameter
+	oBufferEmit
+	@IgnoreComments
+	{[
+		| ',':
+			@IgnoreComments
+			@NamePrelim
+			.sParameter
+			oBufferEmit
+			@IgnoreComments
+		| ')':
+			>
+		| *:
+			#eIllegalArgumentSeparator
+			?
+	]}
+	.sArgList
+	;
+
+NamePrelim:
+	oBufferClear
+	[
+		| tLetter:
+			oBufferAppend
+			{[
+				| tLetter, tDigit, '_':
+					oBufferAppend
+				| *:
+					>
+			]}
+		| *:
+			% must be a word...
+	]
+	oBufferTerminate
+	;
+
+Name:
+	@NamePrelim
+	.sBufferSet
+	oBufferEmit
+	;
+
+FlushQBuffer:
+	[ oFlagsTest(bitInQuotes)
+		| on:
+			[ oFlagsTest(bitEmittedBuffer)
+				| on:
+					@FlushBuffer
+					>>
+				| *:
+					.sBufferQuote
+					oFlagsSet(bitEmittedBuffer)
+			]
+		| *:
+	]
+	oBufferTerminate
+	.sBufferAppend
+	oBufferEmit
+	oBufferClear
+	;
+
+FlushBuffer:
+	[ oBufferUsed
+		| used:
+			oBufferTerminate
+			[ oFlagsTest(bitInQuotes)
+				| on:
+					.sBufferQuote
+					oFlagsSet(bitEmittedBuffer)
+				| *:
+			]
+			.sBufferAppend
+			oBufferEmit
+			oBufferClear
+		| *:
+	]
+	;
+
+Word:	% not deep recursive, alas... our buffer should really be stack of do..
+	oBufferClear
+	oBufferTerminate
+	.sBufferSet
+	oBufferEmit
+	{[*
+		| tLetter:
+			{[
+				| tLetter:
+					oBufferAppend
+				| *:
+					>
+			]}
+		| tWhiteSpace,tNewLine,'|','&',';','&&','||','<','>':
+			>
+		| ';;',')','}':
+			>
+		| '(':
+			[ oBufferUsed
+				| empty:
+					@List
+					oBufferClear
+				| *:
+			]
+			>
+		| tDoubleQuote:
+			@FlushBuffer
+			? @DoubleQuote
+		| tSingleQuote:
+			@FlushBuffer
+			? @SingleQuote
+		| tBackQuoteLeft:
+			@FlushBuffer
+			? @BackQuote
+			% we don't want another sBufferAppend
+			oBufferClear
+		| tBackQuote:
+			[ oCounterTest(countBackQuoteNestingLevel)
+				| on:
+					>
+				| off:
+					@FlushBuffer
+					? @BackQuote
+					% we don't want another sBufferAppend
+					oBufferClear
+			]
+		| tBackSlash:	% this is the magic regsubst character
+			?
+%ifdef	MAILER
+			[*
+				| tDigit:
+					@FlushBuffer
+					?
+					oBufferAppend
+					oBufferTerminate
+					.sSiftBufferAppend
+					oBufferEmit
+					oBufferClear
+				| *:
+					@BackSlash
+			]
+%else	/* !MAILER */
+%			@BackSlash
+%endif	/* MAILER */
+		| tDollar:
+			@FlushBuffer
+			? @Dollar
+		| *:
+			?
+			oBufferAppend
+	]}
+	% not quite a FlushBuffer, so the buffer can be re-emitted later
+	[ oBufferUsed
+		| used:
+			oBufferTerminate
+			.sBufferAppend
+			oBufferEmit
+		| *:
+	]
+	;
+
+FirstWord:	% like word, except =, :, +, -, and ? are delimiters
+	oBufferClear
+	oBufferTerminate
+	[ oFlagsTest(bitInQuotes)
+		| on:
+			.sBufferQuote
+			oFlagsSet(bitEmittedBuffer)
+		| *:
+	]
+	.sBufferSet
+	oBufferEmit
+	{[*
+		| tLetter:
+			{[
+				| tLetter:
+					oBufferAppend
+				| *:
+					>
+			]}
+		| tWhiteSpace,tNewLine,'|','&',';','&&','||','<','>','(':
+			>
+		| ';;',')','}','=',':','+','-','?':
+			>
+		| tDoubleQuote:
+			@FlushBuffer
+			? @DoubleQuote
+		| tSingleQuote:
+			@FlushBuffer
+			? @SingleQuote
+		| tBackQuoteLeft:
+			@FlushBuffer
+			? @BackQuote
+			% we don't want another sBufferAppend
+			oBufferClear
+		| tBackQuote:
+			[ oCounterTest(countBackQuoteNestingLevel)
+				| on:
+					>
+				| off:
+					@FlushBuffer
+					? @BackQuote
+					% we don't want another sBufferAppend
+					oBufferClear
+			]
+		| tBackSlash:
+			?
+			@BackSlash
+		| tDollar:
+			@FlushBuffer
+			? @Dollar
+		| *:
+			?
+			oBufferAppend
+	]}
+	% not quite a FlushBuffer, so the buffer can be re-emitted later
+	[ oBufferUsed
+		| used:
+			oBufferTerminate
+			[ oFlagsTest(bitInQuotes)
+				| on:
+					.sBufferQuote
+					oFlagsSet(bitEmittedBuffer)
+				| *:
+			]
+			.sBufferAppend
+			oBufferEmit
+		| *:
+	]
+	;
+
+List:
+	'('	% we know we're getting this
+	oBufferClear
+	oBufferTerminate
+	.sBufferSet
+	oBufferEmit
+	.sVariablePush
+	.sVariableCdr
+	{
+		@WhiteSpace
+		[*
+			| '(':
+				@List
+				.sVariableAppend
+			| ')':
+				>
+			| tNewLine:
+				?
+			| '|','&',';','&&','||','<','>',';;','}':
+				#eIllegalTokenUnbalancedList
+				?
+			| *:
+				@Word
+				.sVariableAppend
+		]
+	}
+	')'
+	.sVariableBuffer
+	.sVariablePop
+	;
+
+WhiteSpace:
+	[*
+		| tEndOfFile:	% required by EOF-detection algorithm
+			>>
+		| *:
+	]
+	{[
+		| tWhiteSpace:
+		| *:
+			>
+	]}
+	;
+
+SkipComment:
+	[
+		| '#':
+			{[*
+				| tNewLine:
+					>
+				| *:
+					?
+			]}
+		| *:
+	]
+	;
+
+IgnoreComments:
+	{[*
+		| tEndOfFile:
+			>
+		| '#':
+			?
+			{[*
+				| tNewLine:
+					>
+				| *:
+					?
+			]}
+		| tNewLine:
+			?
+			[ oFlagsTest(bitHereData)
+				| on:
+					@HereData
+				| *:
+			]
+		| tWhiteSpace:
+			?
+		| *:
+			>
+	]}
+	;
+
+DoubleQuote:	% we have seen a double-quote, accept till its matching symbol
+	% buffer is cleared when we enter here
+	oCounterIncrement(countDoubleQuoteNestingLevel)
+	oFlagsPush
+	oFlagsSet(bitInQuotes)
+	{[
+		| tLetter,tWhiteSpace:	% efficiency hack
+			oBufferAppend
+		| tDollar:
+			@FlushBuffer
+			@Dollar
+		| tBackQuote,tBackQuoteLeft:
+			@FlushBuffer
+			@BackQuote
+			oBufferClear
+		| tBackSlash:	% this is the magic regsubst character
+%ifdef	MAILER
+			[*
+				| tDigit:
+					@FlushBuffer
+					?
+					oBufferAppend
+					oBufferTerminate
+					.sSiftBufferAppend
+					oBufferEmit
+					oBufferClear
+				| *:
+					@BackSlash
+			]
+%else	/* !MAILER */
+%			@BackSlash
+%endif	/* MAILER */
+		| tDoubleQuote:
+			>
+		| *:
+			?
+			oBufferAppend
+	]}
+	@FlushQBuffer	% needed before the FlagsPop below
+	oCounterDecrement(countDoubleQuoteNestingLevel)
+	oFlagsPop
+	;
+
+SingleQuote:	% we have seen a single-quote, accept till its matching symbol
+	oFlagsPush
+	oFlagsSet(bitInQuotes)
+	{[
+		| tSingleQuote:
+			>
+		| *:
+			?
+			oBufferAppend
+	]}
+	@FlushQBuffer	% needed before the FlagsPop below
+	oFlagsPop
+	;
+
+BackQuotePre:
+	oCounterIncrement(countBackQuoteNestingLevel)
+	.sCommandPush
+	[ oFlagsTest(bitInQuotes)
+		| on:
+			.sBufferQuote
+		| *:
+	]
+	oFlagsPush
+	.sIOsetOut
+	.sIOintoBuffer
+	@CommandList
+	;
+
+BackQuotePost:
+	.sCommandPop
+	oCounterDecrement(countBackQuoteNestingLevel)
+	[ oFlagsTest(bitHereData)
+		| off:
+			oFlagsPop
+		| *:
+	]
+	% still no need to do .sBufferAppend since parent will do so
+	;
+
+BackQuote:	% we have seen a back-quote, accept till its matching symbol
+	@BackQuotePre
+	tBackQuote
+	@BackQuotePost
+	;
+
+KshBackQuote:	% we have seen a $(, accept till its matching symbol
+	@BackQuotePre
+	tParenRight
+	@BackQuotePost
+	;
+
+Dollar:		% we have seen a $, deal with it...
+	% buffer is clear at this point
+	[
+		| tDigit:
+			oBufferAppend
+		| tLetter:
+			oBufferAppend
+			{[
+				| tLetter, tDigit, tUnderScore:
+					oBufferAppend
+				| *:
+					>
+			]}
+		| tParenLeft:
+			@FlushBuffer
+			@KshBackQuote
+			oBufferClear
+			>>
+		| tBraceLeft:
+			@VariableInBrace
+			>>
+		| tSharp:
+			oBufferAppend
+			[
+				| tLetter:
+					oBufferAppend
+					{[
+						| tLetter, tDigit, tUnderScore:
+							oBufferAppend
+						| *:
+							>
+					]}
+				| *:
+			]
+		| tStar,tAt,tDollar,tDash,tQuestionMark:
+			oBufferAppend
+		| *:	% just emit the dollar sign
+			oBufferAppend
+			@FlushBuffer
+			>>
+			%#eUnknownDollarOperand
+	]
+	oBufferTerminate
+	.sDollarExpand
+	[ oFlagsTest(bitInQuotes)
+		| on:
+			.sBufferQuote
+			oFlagsSet(bitEmittedBuffer)
+		| *:
+	]
+	.sBufferAppend
+	oBufferEmit
+	oBufferClear
+	;
+
+VariableJumpLtwoLabelLone:
+	.sJump
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchSwapTop
+	[ oFlagsTest(bitTwoJumps)
+		| on:
+			oBranchPatch
+			oBranchPopOrigin
+			oBranchSwapTop
+		| off:
+	]
+	oBranchPatch
+	oBranchPopOrigin
+	;
+
+VariableInBrace:
+	% we need to save the current list of buffers so we don't stomp on it
+	.sCommandPush		% happens to do exactly what we want, here
+	@FirstWord
+	[
+		| tBraceRight:
+			.sBufferExpand
+		| *:
+			oFlagsPush
+			% branch to L1
+			.sJumpIfFindVarNil
+			oBranchPushOrigin
+			.sBranchOrigin
+			[
+				| tColon:
+					oFlagsSet(bitTwoJumps)
+					% branch to L1
+					.sJumpIfOrValueNil
+					oBranchPushOrigin
+					.sBranchOrigin
+				| *:
+			]
+			[
+				| '-':
+					.sBufferExpand
+					@VariableJumpLtwoLabelLone
+					@Word
+				| '=':
+					% want to return null string
+					oBufferClear
+					.sBufferExpand
+					@VariableJumpLtwoLabelLone
+					.sArgVpush
+					@Word
+					%.sArgVpush
+					.sAssign
+					% there is code in the interpreter to
+					% automatically stuff this value into
+					% the buffer list.  No easy other way
+					% to do it w/o another command or two.
+				| '?':
+					.sBufferExpand
+					@VariableJumpLtwoLabelLone
+					@Word
+					.sPrintAndExit
+				| '+':
+					@Word
+					@VariableJumpLtwoLabelLone
+					oBufferClear
+					oBufferTerminate
+					[ oFlagsTest(bitInQuotes)
+						| on:
+							.sBufferQuote
+							oFlagsSet(bitEmittedBuffer)
+						| *:
+					]
+					.sBufferSet
+					oBufferEmit
+			]
+			oFlagsPop
+			% Label 2
+			oBranchPatch
+			oBranchPopOrigin
+			[
+				| tBraceRight:
+				| *:
+					#eMissingRightBrace
+			]
+	]
+	% here we restore the old list of buffers and append ourselves.
+	.sCommandCarryBuffer	% so buffers won't be stomped by runcommand()
+	.sCommandPop
+	oBufferClear
+	;
+
+BackSlash:
+	[*
+		| tBackSlash, tBackQuote, tDollar:
+			% quote this character (below)
+		| tDoubleQuote:
+			% if we are inside doublequote *and* backquote,
+			% do nothing.  otherwise we do as above.
+			[ oCounterTest(countDoubleQuoteNestingLevel)
+				| on:
+					[ oCounterTest(countBackQuoteNestingLevel)
+						| on:	% ignore backslash.
+							% don't read quote so it
+							% interpreted normally
+							>>
+						| off:
+					]
+				| off:
+			]
+		| tNewLine:
+			?		% ignore this combo completely
+			>>
+		| *:
+			[ oCounterTest(countDoubleQuoteNestingLevel)
+				| on:
+					oBufferAppend	% include the backslash
+				| off:
+			]
+	]
+	?
+	oBufferAppend
+	;
+
+HereDocument:	% called after reading a '<<', sets things up for later HereData
+	[*
+		| tSingleQuote:
+			oFlagsSet(bitQuotingHereData)
+		| tBackSlash:
+			?
+			% sh semantics says if *any* character is quoted. sigh.
+			oFlagsSet(bitQuotingHereData)
+		| *:
+	]
+	@Word
+	oHereSaveStop
+	oFlagsSet(bitHereData)
+	.sJump
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchPushOrigin
+	oBranchSwapTop
+	;
+
+HereData:	% called due to previous HereDocument spec in this command
+	.sJump			% jump to after the heredocument stuff
+	oBranchPushOrigin
+	.sBranchOrigin
+	oBranchSwapTop
+	% jump to here from the main body of the command
+	oBranchPatch
+	oBranchPopOrigin
+	oBufferClear
+	oBufferTerminate
+	.sBufferSet
+	oBufferEmit
+	[ oFlagsTest(bitStripTabs)
+		| on:
+			@WhiteSpace
+		| *:
+	]
+	{[*
+		| tLetter,tWhiteSpace:	% efficiency hack
+			?
+			oBufferAppend
+		| tNewLine:
+			[ oHereCompareStop
+				| same:
+					oHereCutBuffer
+					>
+				| different:
+					?
+					oBufferAppend
+					[ oFlagsTest(bitStripTabs)
+						| on:
+							@WhiteSpace
+						| *:
+					]
+			]
+		| tBackSlash:
+			?
+			[ oFlagsTest(bitQuotingHereData)
+				| on:
+					oBufferAppend
+				| off:
+					@BackSlash
+			]
+		| tBackQuote:
+			?
+			[ oFlagsTest(bitQuotingHereData)
+				| on:
+					oBufferAppend
+				| off:
+					oBufferTerminate
+					.sBufferAppend
+					oBufferEmit
+					oBufferClear
+					@BackQuote
+					oBufferClear
+			]
+		| tDollar:
+			?
+			[ oFlagsTest(bitQuotingHereData)
+				| on:
+					oBufferAppend
+				| off:
+					oBufferTerminate
+					.sBufferAppend
+					oBufferEmit
+					oBufferClear
+					@Dollar
+			]
+		| *:
+			?
+			oBufferAppend
+	]}
+	oBufferTerminate
+	[ oBufferUsed
+		| used:
+			.sBufferAppend
+			oBufferEmit
+		| *:
+	]
+	.sIOsetIn
+	.sIOopenString
+	oFlagsPop
+	oBranchSwapTop
+	.sJump
+	oEmitBranchOrigin	% back to continue with the command
+	oBranchPopOrigin
+	oBranchPatch		% jump to here from before heredocument stuff
+	oBranchPopOrigin
+	;
+	
+end
+

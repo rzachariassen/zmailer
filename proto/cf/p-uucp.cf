@@ -1,0 +1,28 @@
+# UUCP
+#
+
+require uucpdb rrouter standard
+provide uucp
+
+uucp_neighbour (domain, address, A) {
+	local tmp
+	# FIX THIS! Beware of loops due to pathalias database
+	# and local neighbour knowledge being out of sync.
+
+#| If the pathalias database claims a host is known locally, but in fact
+#| it isn't, the configuration code could get into recursive loops.  This
+#| is hard to guard against.  An external consistency checker would be
+#| useful.
+
+	tmp=$(pathalias "$domain") || return 1
+	tsift "$tmp" in
+	[^!]+	if [ $(deliver "$tmp") ]; then
+			return (((error database "$address" $A)))
+
+#| In case the pathalias database claims local delivery for the
+#| destination host, and the local delivery database contradicts this.
+
+		fi ;;
+	tfist
+	return $(rrouter "$tmp!$(uucproute "$address")" "$address@$domain" $A)
+}

@@ -1,0 +1,55 @@
+#
+#  makedb -- make NDBM database file for later lookups
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+MAILBIN=	$(prefix)@MAILBIN@
+DEFS=		@DEFS@
+INSTALL=	@INSTALL@
+CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+TOPDIR=		../..
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+
+PROGS=		makedb dblook
+SOURCE=		makedb.c dblook.c
+LIBS=		-L$(TOPDIR)/libs -lz -lzc @LIBDBMS@
+
+all: $(PROGS)
+
+makedb: makedb.o readpolicy.o
+	$(CC) $(CFLAGS) -o makedb makedb.o readpolicy.o $(LIBS)
+
+dblook: dblook.o
+	$(CC) $(CFLAGS) -o dblook dblook.o $(LIBS)
+
+makedb.o: $(srcdir)/makedb.c $(srcdir)/$(TOPDIR)/lib/linebuffer.c
+	$(CC) -c $(CFLAGS) -I$(TOPDIR) $(srcdir)/makedb.c
+
+readpolicy.o: $(srcdir)/$(TOPDIR)/smtpserver/readpolicy.c $(srcdir)/$(TOPDIR)/include/policy.h
+	$(CC) -c $(CFLAGS) $(srcdir)/$(TOPDIR)/smtpserver/readpolicy.c
+
+clean:
+	-rm -f *.o $(PROGS) *~
+
+distclean: clean
+	-rm -f Makefile
+
+install:
+	for x in $(PROGS) ; do \
+	$(INSTALL) -m 0755 $$x $(MAILBIN)/$$x.x; \
+	mv $(MAILBIN)/$$x.x $(MAILBIN)/$$x; done
+
+depend:
+	$(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
+
+
+# IF YOU PUT ANYTHING HERE IT WILL GO AWAY

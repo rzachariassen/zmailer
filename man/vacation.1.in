@@ -1,0 +1,163 @@
+.\" @(#)vacation.1 1.4 87/02/12 SMI
+.TH VACATION 1 "30 Dec 1996"
+.SH NAME
+vacation \- reply to mail automatically 
+.SH SYNOPSIS
+.B vacation
+.B start
+.br
+.B vacation
+.B stop
+.br
+.B vacation
+.B \-I
+.br
+.B vacation
+[
+.BI \-t N
+]
+[
+.BI \-m Msgfile
+]
+[
+.B \-d
+]
+.I [user]
+.SH DESCRIPTION
+.IX vacation "" "\fLvacation\fR \(em automatic mail replies"
+.I vacation
+automatically replies to incoming mail.  The canned reply is
+contained in the file
+.IR .vacation.msg ,
+that you should create in your home directory (or the file 
+.I Msgfile
+specifiedby in the -m option).
+.LP
+This file should include a header with at least a ``Subject:'' line (it
+should not include a ``To:'' line -- if you want, you may include a From:
+line, especially if you use the -m option).
+For example:
+.IP
+.nf
+Subject: I am on vacation
+
+I am on vacation until July 22.  If you have something urgent,
+please contact Joe Jones (joe@blah.utoronto.ca).
+	--john
+.fi
+.LP
+No message is sent if the "user" specified in the vacation command (if
+nothing is specified, it uses your username) does not appear explicitly in
+the To: or Cc: lines of the message, which prevents messages from being sent
+back to mailing lists and causing loops.
+.LP
+.SH USAGE
+.LP
+To start
+.IR vacation ,
+run the command
+.br
+	vacation start
+.br
+It will create a 
+.I \&.vacation.msg
+file (if you don't already have one) in your home directory containing the
+message you want to send people who send you mail, and a 
+.I \&.forward
+file in your home directory containing a line of the form:
+.IP
+\fL\fI"\\name\fL", "|@MAILBIN@/vacation \fIname\fL"\fR
+.LP
+where 
+.I name
+is your login name. Make sure these files and your home directory are
+readable by everyone.  Also make sure that no one else can write to them,
+and that no one can write to your home directory.  (chmod og-w $HOME
+$HOME/.forward)
+.LP
+To stop
+.IR vacation ,
+run the command
+.br
+	vacation stop
+.br
+It will move the
+.I \&.forward
+file to
+.I \&.vacforward, and the automatic replies will stop.
+.SH OPTIONS
+.TP
+.BR \-I ", " \-i
+initialize the 
+.I \&.vacation.pag
+and
+.I \&.vacation.dir
+files and start 
+.IR vacation .
+.IP
+If the
+.BR \-I "( or " \-i" )
+flag is not specified,
+.I vacation
+tries to reply to the sender.
+.TP
+.BI \-t N
+Change the interval between repeat replies to the same sender.
+The default is 1 week.
+A trailing
+.BR s ,
+.BR m ,
+.BR h ,
+.BR d ,
+or
+.B w
+scales 
+.I N
+to seconds, minutes, hours, days, or weeks respectively.
+.TP
+.BI \-m Msgfile
+specifies the file in which the message to be sent is kept. The default
+is $HOME/.vacation.msg.
+.TP
+.B \-r interval
+defines interval in days when not to answer again to the same sender.
+(Default is 1 day.)
+.TP
+.B \-d
+disables the list of senders kept in the 
+.I \&.vacation.pag
+and
+.I \&.vacation.dir
+files.
+.SH FILES
+A list of senders is kept in the files
+.I \&.vacation.pag
+and
+.I \&.vacation.dir
+in your home directory.  These are 
+.I dbm
+database files.
+(Note: not all database systems have two files, either may be missing.)
+The vacation message is in
+.I \&.vacation.msg
+and the automatic reply is activated by the
+.I \&.forward
+(and saved in 
+.IR \&.vacforward )
+The default vacation message is stored in
+.I @MAILSHARE@/vacation.msg
+.SH ZMAILER NOTES
+On machines running ZMailer, the
+.I name
+argument to vacation is optional, and the USER environment variable is used
+to determine where to look for the message and the list of previous
+recipients. 
+.PP
+The SENDER variable is checked first to determine the reply destination.
+It is normally set to the SMTP ``MAIL FROM'' address or equivalent. This
+is an additional safeguard against sending replies to mailing lists, the
+PostMaster or the mailer daemon, since standards and common sense dictate
+that it never points back to an address that could cause a loop.
+The From_ line is used only as a last resort.
+.SH SEE\ ALSO
+sendmail(8), Zmailer Operation Guide.

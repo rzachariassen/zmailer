@@ -1,0 +1,90 @@
+# UUCP initializations
+#
+# Variables: uucpname
+# Relations: pathalias
+
+provide uucpdb
+
+# Our local host name as we wish it to appear if not domainist mail
+
+if [ -s /etc/name.uucp ]; then
+	read uucpname < /etc/name.uucp
+elif [ -s /etc/uucpname ]; then
+	read uucpname < /etc/uucpname
+fi
+
+#| There are two known ways to set the UUCP node name.  The 4.3BSD UUCP
+#| will look in /etc/uucpname for the node name, as will this.  For
+#| consistency in finding network names, the file /etc/name.<network> may
+#| contain the node name for a particular network.  This convention is
+#| known by the UUCP and BITNET configuration code.
+
+# if uucp node name empty, assume domain name
+uucpname=${uucpname:=$hostname}
+
+# Interface to the UUCP map database
+
+if [ -f $MAILVAR/db/pathdb.dir -o -f $MAILVAR/db/pathdb ]; then
+	if [ -f $MAILVAR/db/pathdb.dir ]; then
+		uucpdbtype=ndbm
+	else
+		uucpdbtype=ordered
+	fi
+	relation -lt $uucpdbtype -f $MAILVAR/db/pathdb -d pathalias pathdb
+
+#| A pathalias database, if any, should be provided either in an NDBM format
+#| database in $MAILVAR/db/pathdb.{dir,pag} or as a sorted output of
+#| pathalias.  If the database is NDBM, then the $MAILVAR/db/pathdb
+#| file itself is ignored by the router.  It may be useful for
+#| documenting the contents of the database.  Since makedb takes
+#| forever and produces large files, a plain ordered text db is probably
+#| a better choice.
+
+	pathalias (host) {
+		local path tmp
+
+		path=$(pathdb "$host") || return 1
+		tsift "$path" in
+		((.+)!)?([^!]+)!%s
+			if [ \3 = "$host" ]; then
+				path=\2
+			else
+				path=\1\3
+			fi
+
+#| If the host name being looked up is the last component of the returned
+#| path, it is ignored because the calling code will append it again.
+
+			;;
+		.*%s.*	log Pathalias database contains illegal route: $path
+			;;
+		tfist
+		echo $path
+	}
+else
+
+	for uucpsysfile in /usr/lib/uucp/L.sys \
+				/usr/lib/uucp/Systems /etc/uucp/Systems
+	do
+		if [ -f $uucpsysfile ]; then
+			relation -t unordered -f $uucpsysfile -b ldotsys
+
+#| If no pathalias database exists, we simulate a tiny one containing
+#| only the local uucp neighbours.  This means an empty routes
+#| database will still let us get to direct UUCP neighbours.  Note that
+#| not all UUCP neighbours are necessarily intended to be mail neighbours.
+
+			pathalias (host) {
+				if [ "$(ldotsys $host)" ]; then
+					echo $hostname
+				fi
+			}
+			break
+		fi
+	done
+
+	case "$(type pathalias)" in
+	*"not found")
+		pathalias (host) { return 1; } ;;
+	esac
+fi

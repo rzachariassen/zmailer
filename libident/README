@@ -1,0 +1,6 @@
+This is version 4.0 of Dans authuser library with a patch applied to
+catch the SIGPIPE signal that can occur when writing to a remote
+non-existant auth daemon. There is also a patch applied that fixes
+the (previously) incorrect argument declaration to clearsa().
+
+/Peter Eriksson (pen@lysator.liu.se)

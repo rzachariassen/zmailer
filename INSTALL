@@ -1,0 +1,589 @@
+Installation procedure:
+
+0.	Consider joining ZMailer user-community email list.
+	The place to meet the Gurus, in case you have problems..
+	See the "Overview"-file.
+
+
+1.	Cornerstone of everything in busy Internet email routing
+	is a well-working DNS server, and modern resolver library.
+
+	If you use the BIND nameserver, you should be using (or install)
+	a recent version, at least BIND 4.8.
+
+	At this package there is also bundled resolver from  bind-4.9.4,
+	however it is a bit difficult at BSD systems ('cause those
+	developers use BSD themselves, and make an assumption that
+	everybody has their version of things...  On the other hand,
+	those systems have reasonably modern resolvers, so no need to
+	worry about it -- I hope.)
+
+	A local cacheing (very least) nameserver does make A LOT of sense,
+	and speeds things up considerably (trust me ;-) )
+	For  /etc/resolv.conf,  place  'nameserver 127.0.0.1' before other
+	addresses (if you have named/bind process running).
+
+
+2.	If you are on an Ultrix system, replace the mkdep and mklibdep
+	scripts in the bin directory with the versions provided in bin/Ultrix.
+
+3.	This system uses several preferrably separate partitions for
+	different things:
+		Software binaries, and databases; MAILVAR MAILSHARE MAILBIN..
+		The mailbox spool: MAILBOX ( /var/mail )
+		The postoffice spool: POSTOFFICE ( /var/spool/postoffice )
+		The log directory: LOGDIR ( /var/log/mail )
+
+	We use GNU-autoconfig mechanism, however you still may need to
+	touch on some files after that system has run thru:
+
+	You MUST define   --prefix=  so that ZMailer components end up
+	in reasonable places.  The MAILBIN (and MAILSHARE, and MAILVAR)
+	variable values are derived from the  --prefix=, which can cause
+	surprises if you do 'make install' with GNU autoconfig defaults...
+
+	Also, if the   /etc/zmailer.conf   -file exists, it is read
+	to initialize several different environment paths (including
+	MAILBIN, et.al.!)
+
+	# ./configure --prefix=/opt/mail	\
+		--with-postoffice=/var/spool/postoffice		\
+		--with-mailbox=/var/mail			\
+		--with-logdir=/var/log/mail			\
+		--with-zmailer-conf=/etc/zmailer.conf
+
+	Or an example from my development machine:
+
+	$ ./configure --prefix=/opt/mail
+	creating cache ./config.cache
+	***
+	*** You can set  ZCONFIG  environment variable to define
+	*** the location of the (default) /etc/zmailer.conf -file
+	*** (You can use also   --with-zconfig=  -parameter)
+	***
+	*** Consider also setting following parameters:
+	***   --mandir=DIR     -- for man-pages
+	***   --libdir=DIR     -- for libzmailer(3)
+	***   --includedir=DIR -- for libzmailer(3)
+	*** (They can be outside the --prefix=DIR -tree)
+	***
+	*** You can set CC, and CFLAGS  environment variables to
+	*** choose the C-compiler, and its options, especially at
+	*** systems where there are multiple choices to use...
+	***
+	...
+
+	You can also go into a subdirectory, and configure and
+	compile there: (But it may need GNU-make as system 'make'!)
+		mkdir myhost ; cd myhost
+		../configure ...
+		make ...
+
+	See if  SiteConfig  -file makes sense now, if not, you can tune
+	most of the values with various "--with-*=" -keywords:
+		./configure --help
+	and those that you can't tune, you can edit at the   SiteConfig.in
+	file.  (Redo the configure with new parameters, if it looks to be
+	necessary.)
+
+	Additional examples:
+
+		CFLAGS="-O -g3 -std1" CC="cc -migrate" ./configure   \
+			--prefix=/l/mail  --with-bundled-libresolv   \
+			--with-system-malloc
+		( DEC OSF/1 at nic.funet.fi  with DECs best compiler.. )
+
+		CC="cc -O" ./configure --prefix=/opt/mail	\
+			--with-bundled-libresolv
+		( Sun Solaris 2.5  at mailhost.utu.fi, SunSoft CC )
+
+		./configure --prefix=/opt/mail --with-bundled-libresolv \
+			--with-gcc
+		( Sun Solaris 2.5  at mailhost.utu.fi, gcc-2.7.2 )
+
+		./configure --prefix=/l/mail
+		( Linux-2.0.x/libc-5.4.2 at mea.cc.utu.fi, gcc-2.7.2 )
+
+		./configure --prefix=/opt/mail --with-ipv6 \
+				--with-ipv6-replacement-libc
+		( DEC Alpha Linux 2.1.59 with glibc-2.0.5c;
+		  RedHat/Alpha developement 22-Oct-1997 )
+
+
+4.	At the toplevel, run
+
+		make
+
+	or perhaps:
+
+		make clean all
+
+	which at first cleans everything, and then makes -- great if you
+	changed some configuration parameters.
+
+	This should compile everything, and leave a zmailer.Config file in
+	the toplevel directory.  Nothing outside the source area will be
+	touched at this point.
+
+	(If your system ``make'' lets your shell ``SHELL''-environment
+	 affect its own execution environment, it may be that non sh/ksh/zsh
+	 users detect weird phenomena, and failures..  Beware!)
+
+
+5.	If you are currently running a zmailer, kill off all mailer processes
+	using
+
+		zmailer kill
+
+	and save the state of your system.  This includes any active
+	contents of the postoffice, as well as database files and
+	anything else in the installation areas you want to be sure
+	to keep.  This is just paranoia, the installation should not
+	overwrite precious files, and will save old versions of
+	distribution files in "bak" subdirectories.
+
+	The interface in between the commonly used sendmail, and ZMailer
+	is a "compability program", which is to replace the /usr/lib/sendmail
+	(aka /usr/sbin/sendmail on some systems).
+	The system attempts to automate the replacement, but it MAY present
+	a cry for help, if your system does not have functioning symlinks.
+	Also if ``test -h $(SENDMAILPATH)'' does fault in mysterious ways,
+	the reason may be that your system does not have symlinks...
+
+	If you are currently running Sendmail, kill your SMTP server
+	and drain the Sendmail queue.  There is no automatic method
+	to requeue Sendmail messages under ZMailer.  If you later want
+	to back out to Sendmail, all you need to do is move the former
+	version of the sendmail (on /usr/lib/sendmail.bak, for example)
+	binary back to /usr/lib/sendmail.
+	(You may also need to do some magics with system startup scripts
+	 in case you are running SysV-style init..  BSD /etc/rc.local
+	 does need its own gymnastics too..)
+
+	A sort of method to quickly handle your sendmail queue is to
+	start ZMailer's smtp server, reconfigure the old sendmail to
+	use smarthost, which happens to be at the same machine.
+	(Or at an adjacent machine if you moved the queue, or ...)
+	Anyway the point is to get the sendmail to send its queue
+	via SMTP to the ZMailer.
+
+6.	Once you are safe, run either:
+
+		# make install
+
+	(this installs all binaries and the default database files, which
+	 still need editing! See below.)
+
+	... or if you just want to have the new BINARIES without touching
+	at your configurations (MAILSHARE/cf/*.cf) and reply forms
+	(MAILSHARE/forms/*) files:
+
+		# make install-bin
+
+	All programs are stored into  $MAILBIN/, and $MAILBIN/ta/, and
+	possible older binaries are saved into "bak" subdirectories.
+
+	This step should be non-destructive (anything replaced will be
+	saved in a 'bak' directory, and for some customizable files, if
+	they exist new versions won't replace them).
+
+	Final variant of "install" commands is:
+
+		# make install-cf
+
+	which will install just the various cf files (MAILSHARE/cf/*.cf,
+	and MAILSHARE/*.conf)
+
+
+	If this is not a from-scratch installation, be aware that the
+	install procedure will NOT replace some of the files in MAILSHARE
+	with the equivalents from the distribution.  Specifically, the
+	$MAILSHARE/cf/*, $MAILVAR/db/aliases, $MAILVAR/db/routes, and
+	$MAILVAR/db/localnames files are never replaced if they already
+	exist.  The $MAILSHARE/forms/* files are always replaced, but the
+	old files will be saved in a 'bak' directory.
+
+
+    ==> $MAILSHARE/router.cf
+
+	You must now pick a toplevel router configuration file.  The
+	default is provided in proto/cf/SMTP+UUCP.cf (by now copied to
+	$MAILSHARE/cf/SMTP+UUCP.cf).  You need to create $MAILSHARE/router.cf.
+	The simplest method is to make it symbolic link to, or copy of,
+	the cf/SMTP+UUCP.cf file.
+	Some real-life samples of ``router.cf'' are at the proto/ directory.
+
+
+	Go into the man directory, and install the manual pages by hand:
+
+		cd man ; make install
+
+	or in case the default guessing didn't get it right:
+
+		cd man ; make install MANDIR=/our/manpages
+
+
+	You can also install into alternate tree (this to assist package
+	builders), although you need to prepare the directory tree at first.
+	For example:
+
+		prefix=/var/tmp/build make install
+
+	However this does not create the intermediate directories leading
+	from $prefix to various trees, like $POSTOFFICE, $MAILVAR, $MAILBIN,
+	$MAILSHARE, $MAILLOG, etc.
+
+
+7.	If you are using the default configuration setup, the router.cf file
+	expects to find a /etc/mail.conf file containing three variable
+	definitions;
+
+    ==> /etc/mail.conf
+
+		# Where am I?
+		orgdomain=domain
+		# Who am I?
+		hostname=host.subdomain.$orgdomain
+		# Who do I claim to be?
+		mydomain=subdomain.$orgdomain
+
+	For example:
+
+		orgdomain=toronto.edu
+		hostname=relay.cs.$orgdomain
+		mydomain=cs.$orgdomain
+
+	Create /etc/mail.conf with appropriate contents.  If you are a
+	multi-host site, determining these things can be automated according
+	to your local policies and conventions.  See the files specific to
+	the University of Toronto (UT*.cf) for examples of this.
+
+	Location of this file is written in  $MAILSHARE/router.cf,  at which
+	you can alter it..  Into $MAILSHARE/mail.conf -- for example.
+
+
+    ==> /etc/group : zmailer -group
+
+	The default configuration also expects to find names of trusted users
+	listed at  /etc/group -entry:  zmailer.  Users (unames) listed there
+	will be able to claim any addresses at the message headers, etc.
+	(See $MAILSHARE/cf/trusted.cf  for its usage there.)
+	Usual set is:  root,daemon,uucp
+	(Note: At some machines 'daemon' is called 'daemons' ... it is
+	       the one with UID=1)
+
+    ==>	SECURITY ITEM: Those users at zmailer-group MUST NOT contain 'nobody' !
+	(The 'nobody' is used to prevent externally given inputs from being
+	 able to execute arbitary programs at the system, or from writing to
+	 arbitary files..)
+
+
+	At this point, you should be able to start the router process in
+	interactive mode.  Run:
+
+		$MAILBIN/router -i
+
+	or
+
+		/usr/lib/sendmail -bt
+
+	You should see something like:
+
+		ZMailer router (2.99.49p5 #4: Wed Jul 23 01:24:37 EET DST 1997)
+		  mea@mea:/home/mea/src/zmailer-2.99.49p5/router
+		Copyright 1992 Rayan S. Zachariassen
+		Copyright 1992-1997 Matti Aarnio
+
+		z#
+
+	If there are errors in the configuration file, you will be told here.
+
+	The 'z#' is the interactive prompt for root.
+
+	It is unlikely you can do anything useful before setting up the
+	data files, so get out of this by hitting EOF, or type 'exit'.
+
+
+8.	Now you should merge, replace, or check the default database and
+	forms files with your previous setup.
+
+	Pay particular attention to the following items:
+
+   ==>	You may want to add a symbolic link from some directory in your path
+	to $MAILBIN/zmailer, if you don't already have this.  I put this link
+	into /usr/local/sbin.
+
+   ==>	$MAILVAR/db/aliases file:
+
+	The provided skeleton aliases file on purpose contains syntax errors,
+	so you are reminded to change the contents.
+
+	The aliases database is rebuilt using the $MAILBIN/newaliases script.
+	This can be invoked in several ways: directly as a command if you
+	have /usr/ucb/newaliases symlinked properly, or by "zmailer newaliases"
+	or "sendmail -bi" if the ZMailer sendmail replacement is installed.
+
+	Choose one of the following methods to rebuild the database:
+
+	# $MAILBIN/newaliases
+	# $MAILBIN/zmailer newaliases
+	# /usr/lib/sendmail -bi
+	# ln -s /usr/lib/sendmail /usr/ucb/newaliases ; /usr/ucb/newaliases
+
+	If there are errors, correct them in the $MAILVAR/db/aliases file
+	and repeat the command until the alias database has been initialized.
+	The final message should look something like:
+
+		319 aliases, longest 209 bytes, 16695 bytes total
+
+	See also IETF's RFC 2142: "Mailbox Names for Common Services, Roles and
+	Functions", for other suggestable aliases you may need.
+
+
+   ==>	$MAILVAR/db/localnames file:
+
+	Add the hostnames you want ZMailer to do local delivery for, to the
+	$MAILVAR/db/localnames file.  Due to my own belief in Murphy,
+	I usually add partially qualified domain names and nicknames in
+	addition to canonicalized names.  If you want to do local delivery
+	for mail clients, put their names in here too.  You may use pathalias-
+	style .domain names in this file, to indicate everything under some
+	subdomain.  Remember to sort the file.
+
+	With the sample config files for mea's Zmailer-2.98, and latter
+	this "localnames" is actually a mapping of those various names to
+	the desired forms of the canonic name, thus an example:
+
+	astro.utu.fi		astro.utu.fi
+	oj287			astro.utu.fi
+	oj287.astro.utu.fi	oj287.astro.utu.fi
+	oj287.utu.fi		astro.utu.fi
+	sirius			sirius.utu.fi
+	sirius.astro.utu.fi	sirius.utu.fi
+	sirius.utu.fi		sirius.utu.fi
+
+	REMEMBER: ALL NAMES THAT THE HOST MAY EVER HAVE ARE BEST LISTED
+		  IN HERE!  It reminds you of them, and makes sure a message
+		  destined into the host really is accepted.
+
+	Compile this into runtime binary database with command:
+		zmailer new-localnames
+	(fall-back method is sequential rescan of the text file)
+
+  ==>	$MAILVAR/db/routes file:
+
+	Add any UUCP neighbours or other special cases to this file.  For
+	example (remember to keep the entries sorted):
+
+	.toronto.ca			error!err.wrongname
+	.toronto.cdn			error!err.wrongname
+	alberta				uucp!alberta
+	atina				smtp![140.191.2.2]
+	calgary				smtp!cs-sun-fsa.cpsc.ucalgary.ca
+	icnucevm.bitnet			smtp!icnucevm.cnuce.cnr.it
+
+	Compile this into runtime binary database with command:
+		zmailer new-routes
+	(fall-back method is sequential rescan of the text file)
+
+   ==>	$MAILVAR/db/fqdnaliases file:
+
+	The fqdnaliases database is for mapping fully-qualified user
+	addresses to others -- for example you machine has a set of
+	domain-names for it to consider local, but you want to have
+	separate people to be postmasters for each of them:
+		postmaster@domain1: person1
+		postmaster@domain2: person2
+		postmaster@domain3: person3
+
+	This facility is always in stand-by -- just add the file, and
+	you have it.
+
+	You may even handle just a few users for each of those domains, and
+	then have routes entry (see above) to declare something suitable:
+		.domain1	error!nosuchuser
+	which combined with the fqdnalias-method will let <postmaster@domain1>
+	to exist, and report error on all others...
+
+	The fqdnaliases database is rebuilt using the $MAILBIN/newfqdnaliases
+	script.  This can be invoked in several ways: directly as a command
+	by executing  $MAILBIN/newfqdnaliases, or by "zmailer newfqdnaliases".
+
+	Choose one of the following methods to rebuild the database:
+
+	# $MAILBIN/newfqdnaliases
+	# $MAILBIN/zmailer newfqdnaliases
+
+	If there are errors, correct them in the $MAILVAR/db/fqdnaliases file
+	and repeat the command until the alias database has been initialized.
+	The final message looks similar to that of the ordinary aliases case.
+
+9.	If your hostname and UUCP node name are not identical, put your
+	UUCP node name in the file /etc/name.uucp (or /etc/uucpname).
+
+	If you are on BITNET, put your BITNET node name in /etc/name.bitnet
+	(or /usr/lib/urep/BITNETNAME).
+	(And if you really need BITNET stuff, have a look at:
+		ftp://ftp.funet.fi/pub/unix/networking/bitnet/ )
+
+
+10.	At this point, you should be able to start the router again in
+	interactive mode, and ask it to route addresses.  Try:
+
+		/usr/lib/sendmail -bt
+
+	at the prompt:
+
+		z# router you
+
+	should print out:
+
+		(((local you you default_attributes)))
+
+	Keep playing around with various addresses until you get a feel for it.
+
+	Modify the configuration file if your setup requires it.
+
+
+11.	Add the following line to /etc/services in the section for
+	host-specific services:
+
+	mailq		174/tcp			# Mailer transport queue
+
+
+12.	Add something like the following lines to bootup scripts (/etc/rc.local
+	or /etc/rc2.d/S99local or similar):
+
+	if [ -r /etc/zmailer.conf ]; then
+	(
+		. /etc/zmailer.conf
+		if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
+			$MAILBIN/zmailer bootclean
+			$MAILBIN/zmailer & (echo -n ' zmailer')	>/dev/console
+		fi
+	)
+	fi
+
+	For SysV-init environments, see:  utils/zmailer.init.sh
+
+	You may want to comment out startup of the Sendmail daemon.
+
+
+13.	Start ZMailer:
+
+		$MAILBIN/zmailer
+
+
+14.	Keep an eye on the log files ($LOGDIR/{router,scheduler}),
+	the $POSTOFFICE/postman directory for malformed message files,
+	and $POSTOFFICE/deferred in case of resource problems.
+
+
+15.	Add the following entry (or equivalent) to your crontab:
+
+		28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
+
+	This will resubmit messages that have been deferred with no
+	useful processing possible at time of deferral.  Adjust the
+	resubmission interval to suit your environment.
+
+	You may also want to regularly clean out the $POSTOFFICE/public
+	and $POSTOFFICE/postman directories:
+
+		7 4 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer cleanup
+
+	You may want to hardwire the location of the zmailer script.
+
+
+16.	Edit several of the canned error messages and programs (scripts)
+	to reflect your local configuration:
+		- $MAILSHARE/forms/ -files
+		- $MAILBIN/ta/usenet  (injected message..)
+
+
+17.	Read the notes on alias expansion in the file doc/guides/aliases and
+	on mailing list maintenance in doc/guides/lists.
+
+
+18.	Once satisfied that things appear to work, you may want to trim down
+	logging: there are 4 kinds of logging to deal with:
+
+	- router logs, usually kept in $LOGDIR/router.  This is the stdout
+	  and stderr output of the router daemon.  If you wish to turn it off,
+	  invoke router with a "-L/dev/null" option, i.e. change the zmailer
+	  script.  Alternatively, modify the log() function in the
+	  configuration file, or its invocations.
+	*** NOTE, THIS IS INCORRECT INFO, see  $MAILSHARE/cf/standard.cf for
+	*** routine   dribble(),  and especially its invocations!
+
+	- scheduler logs, usually kept in $LOGDIR/scheduler.  Same as router.
+
+	- general mail logs, usually kept in syslog files, depending on how
+	  you have configured the syslog utility (/etc/syslog.conf).  All
+	  ZMailer programs log using the LOG_MAIL facility code for normal
+	  messages.  You can deal with this specifically in your syslog
+	  configuration file on systems with a 4.3bsd-based syslog.  The
+	  following reflects the recommended configuration on SunOS 4.0:
+
+		mail.crit		/var/log/syslog
+		mail.debug		/var/log/mail
+
+	  For pre-4.3bsd-based syslogs, you may want the syslog log file
+	  to be just for important messages (e.g. LOG_NOTICE and higher
+	  priority), and have a separate file for informational messages
+	  (LOG_DEBUG and up).
+
+	- By default, the postmaster will receive a copy of all bounced
+	  mail; this can be turned off selectively by simply editing the
+	  various canned forms used to create the error messages.  These
+	  forms are located in the FORMSDIR (proto/forms in the distribution,
+	  or $MAILSHARE/forms when installed).  You should review these
+	  in any case to make sure the text is appropriate for your site.
+
+
+Installation on clients:
+
+The following files/programs are needed on clients:
+
+	/etc/zmailer.conf	- the MAILSERVER variable may be set to the
+				  mail server host's name.  This is not
+				  required as 'mailq' will usually be able
+				  to discover this by itself.
+
+	/usr/lib/sendmail	- to submit mail
+
+	mailq			- should be installed in the site's local
+				  bin so people can query the mail server.
+				  (remember to update /etc/services)
+
+	$POSTOFFICE		- this directory from the server should 
+				  be mounted and writable.
+
+NFS:	(Mostly at client machines, but also at servers..)
+
+	If you for some obscure reason are mounting MAILBOXes
+	and/or POSTOFFICE hierarchies via NFS, do it with
+	options to disable various attribute caches:
+
+			actimeo=0
+	alias:		noac
+
+	The best advice is to NOT to mount anything over NFS,
+	but some people can't be persuaded...
+	Lots of things are done where file attributes play important
+	role, and they are extremely important to be in sync!
+	(Sure, the 'noac' slows down the system, but avoids errors
+	 caused by bad caches..)
+
+	If you are mounting people's home directories ( .forward et.al. )
+	via NFS, consider the same rule!
+
+
+Often if the mail-folder directory is shared, also (depending upon the system):
+	/usr/mail
+	/usr/spool/mail
+	/var/mail
+	/var/spool/mail
+
+
+(Rayan Zachariasen 1988-1990, Matti Aarnio 1993-1997)

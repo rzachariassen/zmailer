@@ -1,0 +1,110 @@
+#! /bin/sh -
+# check for missing symlinks in /var/mail.
+# check for files in /homes/MACHINE/*/PObox that haven't got symlinks to them.
+# check old or oversized POboxes
+# Related scripts: updpobox, mkmboxmap
+# Mark Moraes, University of Toronto
+PATH=/local/share/adm:/local/bin:/usr/ucb:/usr/bin:/bin
+export PATH
+verb=:
+case "$1" in
+-v)	verb=echo; shift;;
+esac
+mailspool=/var/mail
+passwd=/etc/passwd
+sizethresh=2000000
+timethresh=366
+links=/tmp/cpo1.$$
+poboxes=/tmp/cpo2.$$
+err=/tmp/cpo3.$$
+hname=${HOST-`hostname`}
+hname=`expr "$hname" : "\([^\.]*\).*"`
+$verb hostname $hname
+umask 077
+
+# how do we test if something is NOT a symlink?
+if test -f /local/bin/arch; then
+	arch=`/local/bin/arch`
+elif test -f /bin/arch; then
+	arch=`/bin/arch`
+else
+	echo $0: cannot find arch >&2
+	exit 1
+fi
+case "$arch" in
+4d)	testlink="test ! -l";;
+sun*)	testlink="test ! -h";;
+*)	echo $0: no idea how you test for ! symlink. >&2
+	exit 1
+	;;
+esac
+
+$verb Checking for missing links
+cd $mailspool
+awk -F: '$6 ~ /^\/homes\// {print $1, $6}' $passwd |
+	sed 's,/\([^/]*\)$,/PObox/\1,' |
+	fgrep " /homes/$hname/" |
+	while read user pobox
+	do
+		if $testlink $user; then
+			case "`ls -d 2> /dev/null`" in
+			'')	echo $0: $user not a symlink, creating it. >&2
+				if ln -s $pobox $user; then
+					echo $0: cannot create symlink for $user >&2
+					ls -l $user >&2
+				fi
+				;;
+			*)	echo $0: $user is not a symlink
+				ls -l $user >&2
+				;;
+			esac
+		fi
+	done
+
+checkperms () {
+        # make sure the directory is secure
+	$verb $dir
+        (cd $dir
+	 ls -ldg . | 
+	     awk '/^drw[sx]r-[sx]r-[sx] *[0-9]* root / {next} {print}'  > $err
+        )
+        if test -s $err; then
+                echo $0: Bad permissions on $dir
+                cat $err
+                rm $err
+                exit 1
+        fi
+        rm $err
+        # recursively check our parents
+        case "$dir" in
+        /|'')   ;;
+        *)      dir=`(cd $dir/..; pwd)`
+                checkperms
+                ;;
+        esac
+}
+
+$verb Sweep POboxes
+dir=$mailspool
+checkperms
+find . ! -type l -a \( ! -user root -o \
+	-size +${sizethresh}c -o -atime +$timethresh \) -exec ls -ldg {} \;
+
+for i in /homes/$hname/*/PObox
+do
+	dir=$i
+	checkperms
+	find $i -type f -print | sort > $poboxes
+	(cd /var/mail;
+	 ls -l | awk '/^l/ {print $10}' | grep "^$i/" > $links
+	)
+	comm -23 $poboxes $links > $err
+	if test -s $err; then
+		echo $0: POboxes without corresponding links in /var/mail
+		cat $err
+	fi
+	rm $err
+	find $i -type f -a \( -size +${sizethresh}c -o -atime +$timethresh \) \
+		-exec ls -ldg {} \;
+done
+rm -f $links $poboxes $err

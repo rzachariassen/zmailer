@@ -1,0 +1,99 @@
+#
+# ZMailer compatible programs that replace standard UNIX distribution programs
+#
+@SET_MAKE@
+srcdir=		@srcdir@
+VPATH=		@srcdir@
+
+CC=		@CC@
+DEFS=		@DEFS@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+MAILBIN=	@MAILBIN@
+RMAIL_INCL=	
+RMAIL_LIB=	@LIBRESOLV@ @LIBSOCKET@
+INSTALL=	@INSTALL@
+TOPDIR=		../..
+RMAILPATH=	$(prefix)@RMAILPATH@
+LN_S=		"@LN_S@"
+#
+INCL=   -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+LIB=    -L$(TOPDIR)/libs -lz -lzc
+LIBDEB= $(TOPDIR)/libs/libtag
+CFLAGS= $(COPTS) $(DEFS) $(INCL) $(RMAIL_INCL)
+#BIN=    /bin
+SOURCE=	$(srcdir)/rmail.c $(srcdir)/$(TOPDIR)/lib/linebuffer.c
+
+rmail-a: $(LIBDEB) rmail
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+rmail:	rmail.o linebuffer.o version.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ rmail.o linebuffer.o version.o $(LIB) $(RMAIL_LIB)
+
+rmail.o: $(srcdir)/rmail.c
+
+version.c: $(srcdir)/rmail.c $(TOPDIR)/Makefile
+	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+linebuffer.o: $(srcdir)/$(TOPDIR)/lib/linebuffer.c
+	$(CC) $(CFLAGS) -DZ_IO_H -c $(srcdir)/$(TOPDIR)/lib/linebuffer.c
+
+# At install we assume:  IF we can do symlinks, then if
+# the target location has a symlink, we replace it.  If
+# the target location has something else, we rename it,
+# and place a symlink there.  If the target location has
+# nothing, we place a symlink (if we can).. else we just
+# comment (loudly!) to the user --- who on earth can have
+# any modern system without symlinks ?
+install: $(LIBDEB) rmail
+	$(INSTALL) -m 0755 rmail $(prefix)$(MAILBIN)/rmail.x ; \
+	mv $(prefix)$(MAILBIN)/rmail.x $(prefix)$(MAILBIN)/rmail
+	@if [ $(LN_S) = "ln -s" ]; then				\
+	    if [ -h $(RMAILPATH) ]; then			\
+		rm -f $(RMAILPATH) ;				\
+		ln -s $(MAILBIN)/rmail $(RMAILPATH) ;		\
+	    else						\
+		mv -f $(RMAILPATH) $(RMAILPATH).orig ;		\
+		ln -s $(MAILBIN)/rmail $(RMAILPATH) ;		\
+	    fi ;						\
+	else							\
+	    echo "********************************************************" ; \
+	    echo "** $(RMAILPATH) needs to be updated to be" ;	  \
+	    echo "**   a symlink (if possible) to $(MAILBIN)/rmail" ;  \
+	    echo "********************************************************" ; \
+	fi
+
+clean:
+	-rm -f rmail *.o *.out make.log *~
+distclean: clean
+	-rm -f Makefile
+
+lint:	$(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/lib/llib-llibz.ln
+	lint -u $(INCL) $(RMAIL_INCL) $(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln rmail.c
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
+
+$(TOPDIR)/libc/llib-llibzc.ln:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/lib/llib-llibz.ln:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libc/libzc.a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/lib/libz.a-a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/lib/libz.a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+
+depend:
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

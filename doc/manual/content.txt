@@ -1,0 +1,75 @@
+Plans for ZMailer manual content:
+(with guesses on counts of pages)
+
+
+I	A Tutorial ( 20 )
+
+	1.	Introduction to Email
+	2.	ZMailer's features and facilities
+	3.	Running Zmailer (short)
+	4.	Comparison with other popular MTAs
+
+II	Build and Install ( 20 )
+
+	1.	Autoconfiguration
+	2.	Compilation
+	3.	Installation / Upgradeing
+	4.	Configuring (short)
+	5.	Verifying the system
+
+III	Administration ( 50 )
+
+	1.	DNS and ZMailer
+	2.	Security issues
+	3.	The Queue
+	4.	Logging and Statistics
+	5.	SMTP-server configuration
+		- Policy based filtering
+	6.	Router configuration
+		-	Databases
+		-	Mailinglists and ~/.forward
+	7.	Scheduler configuration
+		(and transport agents?)
+	8.	sm configuration
+	9.	vacation
+
+IV	Reference ( 150 )
+
+	1.	SMTP-server
+		- Policy filtering language
+	2.	'sendmail', 'rmail'
+	3.	zmailer(3)
+	4.	Router
+		- Internal functions ( ~ 100 functions )
+		- ZMSH script language
+		- configuration script writing rules
+		- debugging
+		- database interface API
+		- databases
+		- security issues
+	5.	Scheduler
+		- Configuration "language"
+		- Resource management
+		- mailq
+		- security issues
+	6.	Delivery agents
+		- mailbox
+		- hold
+		- smtp
+		- sm
+		- libta -- transport agent support library
+		- security issues
+	7.	Utilities
+		- vacation
+		- makendbm (to rename)
+		- ndbmlook (to rename)
+		- ...
+
+A.1	Sample router configuration scripts	( 20 )
+A.2	Using ZMailer with Mailinglist Managers ( 20 )
+A.3	Adding new transport agents		( 10 )
+	(mail delivery via procmail/cyrus/..)
+
+A.4	Internal file dataformats		( 30 )
+
+A.nn	SSL language				( 10 )

@@ -1,0 +1,84 @@
+.\" $Header$
+.ds ]W ZMailer 2.0
+.TH SSL 1 "2 June 1990"
+.SH NAME
+ssl - syntax/semantic language preprocessor, for parser description/generation
+.SH SYNOPSIS
+.B ssl
+[
+.B \-TLs
+] [
+.B \-E
+.I Name
+] [
+.B \-D
+.I type
+] [
+.B \-h
+.I file.sst.h
+] [
+.B \-t
+.I file.sst.c
+] [
+.B \-l
+.I file.lst
+] [
+.B \-e
+.I file.entry
+] [
+.B \-i
+.I file.ssl
+]
+.SH DESCRIPTION
+.I Ssl
+reads the input S/SL file, and produces C code. It accepts the
+following options: 
+.IP \-T
+Trace S/SL processor execution
+.IP \-L
+Produce a listing of the S/SL source program with table coordinates in
+the left margin.
+.IP \-s
+Summarize usage of symbol and output tables.
+.IP \-D\ \fIType\fR
+Sets type of the S/SL table to Type. The default is \fIint\fP.
+.IP \-E\ \fIEnumName\fR
+Sets name of the enumerated type list to EnumName, which will have
+nilEnumName as the first item in the enumeration (with a value of -1).
+The default is no name.
+.IP \-i\ \fIfile.ssl\fR
+Input S/SL program file. The default is stdin.
+.IP \-h\ \fIfile.sst.h\fR
+Output C header file with the constant definitions for the program.
+The default is 
+.br
+\fI`basename inputfile.ssl`.sst.h\fP.
+.IP \-t\ \fIfile.sst.c\fR
+Output C S/SL program table file. The
+default is 
+.br
+\fI`basename inputfile.ssl`.sst.c\fP.
+.IP \-l\ \fIfile.lst\fR
+Output listing of the S/SL program with table coordinates in the left
+margin, if requested with the \fI-L\fP option.
+The default is 
+.br
+\fI`basename inputfile.ssl`.lst\fP.
+.IP \-e\ \fIfile.entry\fR
+Entry points file. The default is 
+.br
+\fI`basename inputfile.ssl`.entry\fP.
+.SH "SEE ALSO"
+\fIAn Introduction to S/SL: Syntax/Semantic Language\fP
+by R.C. Holt, J.R. Cordy, and D.B. Wortman,
+in ACM Transactions on Programming Languages and Systems (TOPLAS),
+Vol 4, No. 2, April 1982, Pages 149-178.
+(The authors may be contacted through the Computer Systems Research Institute
+at the University of Toronto.)
+.SH AUTHOR
+Translated from Turing S/SL Processor V3.01
+by Rayan Zachariassen, Department of Computer Science,
+University of Toronto, February 1988.
+.br
+Original code by James R. Cordy, CSRI, University of Toronto, 14
+January 1980 (Revised 2 March 1983)

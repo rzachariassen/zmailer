@@ -1,0 +1,17 @@
+bin	/local/bin/mh
+bboards	off
+etc	/local/lib/mh
+mandir	/local/man
+mail	/usr/spool/mail
+manuals	standard
+mts	zmailer
+options	DUMB REALDUMB
+options	BSD42 BSD43 TTYD OVERHEAD
+options	MHE BIND RPATHS
+options	SBACKUP='"\\043"'
+pop	off
+ccoptions -O 
+options NFSLOCK
+ldoptlibs -lnfslock -lresolv
+sharedlibs on
+slibdir /local/lib

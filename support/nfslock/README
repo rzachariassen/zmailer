@@ -1,0 +1,12 @@
+nfslock does either a flock if the file is on a local disk, or contacts
+in.rlockd for a remote lock across nfs -- nfslock is the library for the
+client. in.rlockd is the daemon.
+
+You should add the following line to /etc/services so nfslock
+can get the service port by name.
+
+flock		3876/tcp			# NFS flock
+
+
+Run in.rlockd on machines from which you import network filesystems that you
+wish to be able to lock files on.

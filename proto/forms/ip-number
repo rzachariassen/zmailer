@@ -1,0 +1,18 @@
+HDR From: The Post Office <postmaster>
+HDR Sender:	mailer-daemon
+SUB Subject: Usage of IP-number as an address (error)
+
+The following message arrived with illegal envelope data, typically a
+mangled address that doesn't obey the RFC822/976 protocol specification.
+
+Some  BSD sendmail  systems allow users to use IP-addresses as address
+for delivering mail.   Such kludge format should NEVER be used.
+Furthermore proper format for it is not:
+	foo@12.34.56.78
+but:	foo@[12.34.56.78]
+
+Again: THIS KLUDGE SHOULD NEVER BE USED!
+
+Your message is being returned unprocessed.
+
+The following annotated envelope headers illustrate the error(s):

@@ -1,0 +1,270 @@
+List of ZMailer existing documents.
+27.06.1997
+
+
+/
+BUGS			"to do -list"
+ChangeLog		Log of changes in the source.
+INSTALL			Installation procedure instructions.
+INSTALL.sgml		- " - in sgml.
+MANIFEST		All files and their paths.
+Overview		ZMailer overview.
+README			Current release information.
+README.PERFORMANCE	Performance information.
+README.SPAM		ZMailer anti spam features.
+README.UPGRADING	Notes on upgrading to newer releases.
+
+
+/man
+aliases.5		'aliases' and '.forward' -file man page.
+authuser.3		Man page.
+errormail.8		Man page.
+hold.8			Man page.
+mailbox.8		Man page.
+mailq.1			Man page.
+mailrm.1		Man page.
+newaliases.1		Man page.
+rmail.1			Man page.
+router.8		Man page.
+scheduler.8		Man page.
+sendmail.8		Man page.
+sm.8			Man page.
+smtp.8			Man page.
+smtpserver.8		Man page.
+ssl.1			Man page.
+vacation.1		Man page.
+zmailer.1		Man page.
+zmailer.3		Man page.
+zmsh.1			Man page.
+
+
+/doc
+toplevel-domains	Table of global and country top level domains.
+toplevel-domains.dat	Suffixes only.
+zmdirs.ps		Figure of ZMailer directories.
+zmnewsched1.fig		Figure of scheduler datastructures.
+zmnewsched1.ps		-"-
+zmsched1.fig		Figure of scheduler files.
+zmsched1.ps		-"-
+
+/doc/design
+zmog			The ZMailer operations guide.
+
+/doc/drafts
+draft-freed-smtp-pipeline-01.txt
+draft-hoffman-smtp-ssl-00.txt
+draft-ietf-drums-MHRegistry-00.txt
+draft-ietf-drums-abnf-02.txt
+draft-ietf-drums-msg-fmt-00.txt
+draft-ietf-drums-smtpupd-04.txt
+draft-ietf-drums-smtpupd-05.txt
+draft-ietf-mailext-lang-char-00.txt
+draft-ietf-mailext-lang-tag-01.txt
+draft-ietf-mailext-lang-tag-02.txt
+draft-myers-smtp-auth-05.txt
+draft-onions-822-mailproblems-01.txt
+draft-rare-msg-a-bombs-01.txt
+draft-rare-msg-c-bombs-02.txt
+draft-vaudreuil-mime-voice-02.txt
+
+/doc/guides
+aliases			Some tips/tidbits about aliases.
+changes			Change notes.
+cookbook		Procedures that are useful when running ZMailer.
+db			Syntax of database manipilation command: db.
+libmalloc		Notes about compiling with libmalloc.
+lists			Important details about lists.
+porting			Porting notes.
+relations		Syntax of database creation command:  relation
+scheduler-ta-protocol	Notes on the protocol between the scheduler,
+			and the transport agents.
+zmsh			List of zmsh internal functions.
+
+
+/doc/html
+index.html
+install.html		Installation procedure instructions.
+overview.html		ZMailer overview.
+readme-performance.html	Performance information.
+readme.html		Current release information.
+
+/doc/manual
+content.txt		Plans for ZMailer manual content.
+
+/doc/rfc
+rfc1123.txt		Requirements for Internet Hosts.
+rfc1341.txt		MIME:  Mechanisms for Specifying and Describing
+			the Format of Internet Message Bodies.
+rfc1342.txt		Representation of Non-ASCII Text in Internet Message
+			Headers
+rfc1425.txt		.
+rfc1426.txt		.
+rfc1428.txt		.
+rfc1651.txt
+rfc1652.txt
+rfc1653.txt
+rfc1845.txt
+rfc1846.txt
+rfc1854.txt
+rfc1869.txt
+rfc1870.txt
+rfc1891.txt
+rfc1892.txt
+rfc1893.txt
+rfc1894.txt
+rfc1936.txt
+rfc1985.txt
+rfc2034.txt
+rfc821.txt
+rfc822.txt
+rfc974.txt
+
+/doc/ssl
+ssl-tr118.me		S/SL: Syntax / semantic language introduction and
+			specification.
+
+/deb
+README.debian		ZMailer for Debian.
+copyright		Copyright notes + .
+zmailstats.8		ZMailer mail statistics.
+
+
+/routercommands/builtins
+sh_bce			Syntax of built in shell commands.
+sh_builtin		.
+sh_builtins		.
+sh_car			.
+sh_cd
+sh_cdr
+sh_colon
+sh_echo
+sh_elements
+sh_envars
+sh_eval
+sh_export
+sh_get
+sh_getopts
+sh_grind
+sh_hash
+sh_include
+sh_last
+sh_length
+sh_list
+sh_read
+sh_return
+sh_returns
+sh_set
+sh_setf
+sh_shift
+sh_sleep
+sh_times
+sh_trap
+sh_type
+sh_umask
+sh_unset
+sh_wait
+
+/routercommands/dbcommands
+run_db			Syntax of built in router command 'db'.
+run_relation		Syntax of built in router command 'relation'.
+
+/routercommands/functions
+run_822date		Syntax of built in router commands.
+run_822syntax		.
+run_basename		.
+run_cadddr		.
+run_caddr
+run_cadr
+run_daemon
+run_dblookup
+run_erraddrlog
+run_filepriv
+run_gensym
+run_grpmems
+run_homedir
+run_hostname
+run_listaddrs
+run_listexpand
+run_login2uid
+run_malcontents
+run_praliases
+run_process
+run_recase
+run_runas
+run_squirrel
+run_stability
+run_trace
+run_uid2login
+run_whataddress
+
+/routercommands/rfc822
+run_rfc822
+
+/routercommands/test
+testeval
+testparse
+
+
+/libident
+identuser.3		Remote identification library using the Identification
+			Server.
+
+/scheduler
+BUGS			Scheduler "bugs" and/or "open issues".
+CONFIGURING		Some notes on configuring scheduler.
+INTERNALS		Some notes on the new guts of the scheduler.
+zmdirs.fig		Same as in /doc.
+zmdirs.ps		.
+zmnewsched1.fig		.
+zmnewsched1.ps		.
+zmsched1.fig
+zmsched1.ps
+
+
+/smtpserver
+821.ref			The syntax of the 821.ref argument fields.
+README.translation	Charset translation info.
+
+
+/smtpserver/kissg
+README			Howto use policy based SMTP filtering.
+
+
+/support/Mail
+README			Proper RFC822 mail or not...
+
+/support/bitnet
+README			Bitnet info.
+
+/support/data
+README			Data files listed.
+domains			Domain list.
+iso-codes		Current list of ISO country codes.
+iso.8859		ISO 8859 Latin 1 codes
+iso.alpha2		ISO 3166 Alpha 2 codes and corresponding countries.
+iso.alpha3		ISO 3166 Alpha 3 codes and corresponding countries.
+iso.numeric		ISO 3166 Numeric codes and corresponding countries.
+
+/support/mh6.6/
+README			Patches to MH6.5.
+
+/support/nfslock/
+README			Notes about nfslock.
+
+/support/rlockd/
+README			Notes about rlockd.
+
+/support/sdbm
+CHANGES			Changes from the earlier BETA releases.
+README			A The Clone of the ndbm library - overview.
+dbe.1			dbe man page.
+readme.ms		
+
+/support/texi2roff
+Readme			Notes about texinfo to nroff/troff translator.
+texiroff.1
+
+
+/utils
+maillog.1		Seach logs for mail to/from particular people.
+mailpath.1		Show what the mailer thinks of an address.

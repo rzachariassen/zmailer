@@ -1,0 +1,42 @@
+ZMOG=		zmog
+ROFFMACROS=	ms
+TEXI2ROFFDIR=	../../support/texi2roff
+
+VPATH  = @srcdir@
+srcdir = @srcdir@
+
+all:
+	@echo $(MAKE): specify troff or tex or plain
+
+plain:	$(ZMOG)
+	@echo zmog.doc is the plaintext version of zmog.tex
+
+troff:	$(TEXI2ROFFDIR)/texi2roff
+	$(TEXI2ROFFDIR)/texi2roff -$(ROFFMACROS) $(srcdir)/$(ZMOG).tex > $(ZMOG).$(ROFFMACROS)
+
+tex:	$(ZMOG).dvi
+
+$(ZMOG).dvi:	$(srcdir)/$(ZMOG).tex $(ZMOG).xrf
+
+$(ZMOG).xrf:	$(ZMOG).aux
+	if cmp -s $(ZMOG).aux $(ZMOG).xrf; \
+	then : ; \
+	else cp $(ZMOG).aux $(ZMOG).xrf ; \
+		tex $(srcdir)/$(ZMOG).tex ; \
+	fi
+
+$(ZMOG).aux:	$(srcdir)/$(ZMOG).tex
+	tex $(srcdir)/$(ZMOG).tex
+
+$(ZMOG):	$(srcdir)/$(ZMOG).tex
+	emacs -batch $(srcdir)/$(ZMOG).tex -f texinfo-format-buffer -f save-buffer
+
+$(TEXI2ROFFDIR)/texi2roff:
+	cd $(TEXI2ROFFDIR) && $(MAKE) $(MFLAGS)
+
+clean:
+	-cd $(TEXI2ROFFDIR) && $(MAKE) $(MFLAGS) MAKE=$(MAKE) clean
+	-rm -f $(ZMOG).$(ROFFMACROS) $(TEXI2ROFFDIR)/texi2roff
+	-rm -f *~ *.out *.aux *.cp *.dvi *.fn *.ky *.log *.pg *.toc *.tp *.vr *.xrf
+distclean: clean
+	-rm -f Makefile

@@ -1,0 +1,1676 @@
+<sect>Administration
+<p>
+
+<sect1>DNS and ZMailer
+<p>
+
+The cornerstone of everything in busy Internet email routing is a properly
+working DNS server, and a modern resolver library. If you use the BIND 
+nameserver, you should be using a recent version, at least BIND 4.8.
+(As of this writing, bind is on version 8.1.1)
+
+You can get improved DNS performance by installing local <tt>named</tt>,
+which does cache replies, including <bf>negative</bf> replies.
+
+For the file <tt>/etc/resolv.conf</tt>:
+<tscreen><verb>
+domain  your.domain
+nameserver 127.0.0.1
+nameserver  (some other server)
+</verb></tscreen>
+
+For the local nameserver daemon (<em>named</em>) you should have
+at least following type of configuration:
+<tscreen><verb>
+forwarders 10.12.34.56  10.45.67.89
+options forward-only
+</verb></tscreen>
+which means that all the queries are attempted to be resolved
+by the servers at IP addresses <em>10.12.34.56</em> and
+<em>10.45.67.89</em>, and both the local server, and remote
+servers will cache DNS responses.
+
+<sect1>Security Issues
+<p>
+
+Having local-parts that allow delivery to arbitary files, or which can trigger
+execution of arbitrary programs, can clearly lead to a huge security
+problem.  <em>sendmail</em> does address this problem, but in a restrictive and
+unintuitive manner.  This aspect of ZMailer security has been designed to
+allow the privileges expected by common sense.
+
+The responsibility for implementing this kind of security is split between
+the <em>router</em> and the transport agent that delivers a message to
+an address.
+Since it is the Transport Agent that must enforce the security, it needs
+some information to guide it.  Specifically, for each address it delivers
+to, some information about the ``trustworthyness'' of that address is
+necessary so the transport agent can determine which privileges it can
+assume when delivering for that destination.  This information is
+determined by the <em>router</em>, and passed to the transport agent in the message
+control file.  The specific measure of trustworthyness chosen by ZMailer, 
+is simply a user id (uid) value representing the source of the address.
+
+When a message comes in from a non-local host, the destination addresses
+should obviously have no privileges on the local host (when mailing to a
+file or a program).  Similarly, common sense would indicate that locally
+originated mail should have the same privileges as the originator.  Based
+on an initial user id assigned from such considerations, the privilege
+attached to each address is modified by the attributes of the various alias
+files that contain expansions of it.  The algorithm to determine the
+appropriate privilege is to use the user id of the owner of the alias file
+if and only if that file is not group or world writable, and the directory
+containing the file is owned by the same user and is likewise neither group
+nor world writable.  If any of these conditions do not hold, an
+unprivileged user id will be assigned as the privilege level of the
+address.
+
+
+It is entirely up to the transport agent whether it will honour the
+privilege assignment of an address, and indeed in many cases it might not
+make sense (for example for outbound mail).  However, it is strongly
+recommended that appropriate measures are taken when a transport agent has
+no control over some action that may affect local files, security, or
+resources.
+
+
+The described algorithm is far from perfect. The obvious dangers are:
+
+<itemize>
+<item>The grandparent directories, to the Nth degree, are ignored, and may
+not be secure. In that case all security is lost.
+<item>There is a window of vulnerability between when the permissions are
+checked, and the delivery is actually made. This is the best argument
+I have heard so far for embedding the local delivery program
+(currently a separate transport agent) in the <em>router</em>.
+</itemize>
+
+There is also another kind of security that must be addressed.  That is the
+mechanism by which the <em>router</em> is told about the origin of a message.  This
+is something that must be possible for the message receiving programs
+(<tt>/bin/rmail</tt> and the SMTP server are examples of these) to specify to
+ZMailer.  The <em>router</em> knows of a list of trusted accounts on the system.  If
+a message file is owned by one of these user id's, any sender specification
+within the message file will be believed by ZMailer.  If the message file
+is not owned by such a trusted account, the <em>router</em> will cross-check the
+message file owner with any stated <tt>From:</tt> or <tt>Sender:</tt> address 
+in the message header, or any origin specified in the envelope.  If a 
+discrepancy is discovered, appropriate action will be taken.  This means 
+that there is no way to forge the origin of a message without access to a 
+trusted account.
+
+Trusted accounts are those listed in the ZMailer group or the ``trusted'' 
+variable in the system configuration (<em>router.cf</em>) file.
+
+<sect1>The Queue
+<p>
+There are multiple queues in ZMailer. Messages exist in
+in one of five locations:
+
+<itemize>
+<item>Submission temporary directory (<tt>&dollar;POSTOFFICE/public/</tt>)
+<item>Freezer directory (<tt>&dollar;POSTOFFICE/freezer/</tt>)
+<item>Router directory (<tt>&dollar;POSTOFFICE/router/</tt>)
+<item>Deferred directory (<tt>&dollar;POSTOFFICE/deferred/</tt>)
+<item>Scheduler directories (<tt>&dollar;POSTOFFICE/transport/</tt>, 
+<tt>&dollar;POSTOFFICE/queue/</tt>)
+</itemize>
+and sometimes is also copied into the 
+<itemize>
+<item>Postmaster analysis area (<tt>&dollar;POSTOFFICE/postman/</tt>)
+</itemize>
+
+<sect2>Message Submission Areas
+<p>
+
+Message submission is done by writing a temporary file
+into the directory (<tt>&dollar;POSTOFFICE/public/</tt>), the 
+actual format of the submitted message is described in Appendix D.1.
+
+Insert xref!
+
+When the temporary file is completely written, it is renamed into one 
+of the <em>router</em> input directories, usually into 
+<tt>&dollar;POSTOFFICE/router/</tt> with a name that is a decimal representation
+of the file i-node number. This is a way to ensure that the
+name of the file in the <tt>&dollar;POSTOFFICE/router/</tt> directory is unique.
+
+The message may also be renamed into alternate router directories, 
+which give lower priorities on which messages to process when.
+
+Sometimes, especially <em>smtpserver</em> built files may be moved
+into alternate directories. The smtpserver <tt>ETRN</tt>
+command is implemented by moving the built special file to the 
+directory <tt>&dollar;POSTOFFICE/transport/</tt> without going through the
+<em>router</em>.  The smtpserver may also move newly arrived
+files into the <tt>&dollar;POSTOFFICE/freezer/</tt> directory.
+
+<sect2>Router Behaviour on Queues
+<p>
+
+The <em>router</em> processes have a few different behaviours when
+they go over their input directories.
+
+First of all, if there are <tt>ROUTERDIRS</tt> entries, those
+are scanned for processing after the primary 
+<tt>&dollar;POSTOFFICE/router/</tt> directory is found empty.
+
+Within each directory, the <em>router</em> will sort files at first into 
+mod-time order, and then process the oldest message first. (Unless the 
+<em>router</em> has been started with the `-s' option.)
+
+The <em>router</em> acquires a lock on the message (spool file) by means
+of renaming the file from its previous name to a name with the format: 
+<tt>concat(file_ino_number,"-",progpid)</tt>
+
+Once the <em>router</em> has been able to acquire a new name
+for the file, it starts off by creating a temporary file of
+<em>router</em> routing decisions.  The file has a name with the format:
+<tt>concat("..",file_ino_number,"-",progpid)</tt>
+
+Once the processing has completed successfully, the original
+input file is moved into the directory <tt>&dollar;POSTOFFICE/queue/</tt>, and
+the <em>router</em> produced scheduler work-specification file is moved
+to the <tt>&dollar;POSTOFFICE/transports/</tt> directory with the <bf>same</bf>
+name that the original file has.
+
+If the routing analysis encountered problems, the message
+may end up moved into the directory <tt>&dollar;POSTOFFICE/deferred/</tt>, from
+which the command <tt>zmailer resubmit</tt> is needed to return 
+the messages to processing. (The <em>router</em> logs should be consulted 
+for the reason why the message ended up in the <em>/deferred/</em> area,
+especially if the command <tt>zmailer resubmit</tt> is not able
+to get the messages processed successfully and
+the files end up back in the <em>/deferred/</em> area.)
+
+If the original message had errors in its RFC-822 compliance,
+or some other detail, a copy of the message may end up in the 
+directory <tt>&dollar;POSTOFFICE/postman/</tt>.  
+
+See 
+<x>section</x>
+<ref id="postmaster_analysis_area" name="Postmaster Analysis Area">
+<x>, Postmaster Analysis Area, page </x>
+<pageref id="postmaster_analysis_area">.
+
+<sect2>Scheduler and Transport Agents
+<p>
+
+The scheduler work specification files are in the directory
+<tt>&dollar;POSTOFFICE/transport/</tt>, under which there can be (optionally)
+one or two levels of subdirectories into which the actual
+work files will be scattered to lessen the sizes of individual
+directories in which files reside, and thus to speed up the
+system implied directory lookups at the transport agents, when
+they open files, (and also in the scheduler).
+
+When the <em>router</em> has completed message file processing, it places the
+resulting files into the top level directory of the scheduler; 
+<tt>&dollar;POSTOFFICE/transport/</tt>, and <tt>&dollar;POSTOFFICE/queue/</tt>.
+
+The scheduler (if so configured) will move the messages into 
+``hashed subdirectories,'' when it finds the work specification files, 
+and then start processing addresses in them.
+
+The transport agents are run with their CWD in directory 
+<tt>&dollar;POSTOFFICE/transport/</tt>, 
+and they open files relative to that location. Actual message bodies, when 
+needed, are opened with the path prefix ``<tt>../queue/</tt>'' to the work 
+specification file name.
+
+Usually it is the transport agent's duty to log different permanent status reports 
+(failures, successes) into the end of the work-specification file.  
+Sometimes the scheduler also logs something at the end of this file.  
+All such operations are attempted <bf>without</bf> any sort 
+of explicit locking, instead trusting the <em>write(2)</em> system call to 
+behave in an atomic manner while writing to the disk file, and 
+having a single buffer of data to write.
+
+Once the scheduler has had all message recipient addresses 
+processed by the transport agents, it will handle possible
+diagnostics on the message, and finally it will remove the
+original spool-file from the <tt>&dollar;POSTOFFICE/queue/</tt>, and 
+the work-specification file from <tt>&dollar;POSTOFFICE/transport/</tt>.
+
+<sect2><label id="postmaster_analysis_area">Postmaster Analysis Area
+<p>
+
+If the filename in the <tt>&dollar;POSTOFFICE/postman/</tt> directory has an 
+underscore in it, the reason for the copy is <bf>soft</bf>, that is, the 
+message has been sent through successfully in spite of being copied into
+the <tt>&dollar;POSTOFFICE/postman/</tt> directory.
+
+If the filename in the <tt>&dollar;POSTOFFICE/postman/</tt> <em>does not have an
+underscrore in it, that file has not been processed
+successfully, and the</em> <bf>only</bf> <em>copy of the message
+is now in <tt>&dollar;POSTOFFICE/postman/</tt></em>
+
+If the  smtpserver  receives a message with content that the policy filtering
+system decides to be dubious, it can move the message into
+<tt>&dollar;POSTOFFICE/freezer/</tt> directory with a bit explanatory name of type:
+<tt>concat(file_ino_number,"explanatory-text")</tt>.
+
+The files in that area are such that they are input to the router, and
+as of this wiring, there are no tools to automatically process them for
+obvious spams, and just those were falsely triggered.
+
+<sect1><label id="Logging_and_Statistics">Logging and Statistics 
+<p>
+This text has been copied from other sections and will change...
+
+<sect2>Logging
+<p>
+<sect2>Checking the Log Files
+<p>Start ZMailer:
+<tscreen><verb>$MAILBIN/zmailer</verb></tscreen>
+
+Keep an eye on the log files (<tt>&dollar;LOGDIR/{router,scheduler}</tt>),
+the <tt>&dollar;POSTOFFICE/postman</tt> directory for malformed message files,
+and <tt>&dollar;POSTOFFICE/deferred</tt> in case of resource problems.
+
+<sect2>Trimdown of Logging
+<p>Once satisfied that things appear to work, you may want to trim down
+logging: there are 4 kinds of logging to deal with:
+<itemize><item>router logs, usually kept in <tt>&dollar;LOGDIR/router</tt>.  This is the stdout
+and stderr output of the router daemon.  If you wish to turn it off,
+invoke router with a <tt>-L/dev/null</tt> option, i.e. change the zmailer
+script.  Alternatively, modify the <tt>log()</tt> function in the
+configuration file, or its invocations.
+
+*** NOTE, THIS IS INCORRECT INFO, see  &dollar;MAILSHARE/cf/standard.cf for
+*** routine   dribble(),  and especially its invocations!
+<item>scheduler logs, usually kept in <tt>&dollar;LOGDIR/scheduler</tt>.  Same as router.
+<item>general mail logs, usually kept in syslog files, depending on how
+you have configured the syslog utility (<tt>/etc/syslog.conf</tt>).  All
+ZMailer programs log using the LOG_MAIL facility code for normal
+messages.  You can deal with this specifically in your <tt>syslog</tt>
+configuration file on systems with a 4.3bsd-based syslog.  The
+following reflects the recommended configuration on SunOS 4.0:
+<tscreen><verb>
+mail.crit		/var/log/syslog
+mail.debug		/var/log/mail
+</verb></tscreen>
+For pre-4.3bsd-based syslogs, you may want the syslog log file
+to be just for important messages (e.g. LOG_NOTICE and higher
+priority), and have a separate file for informational messages
+(LOG_DEBUG and up).
+<item>By default, the postmaster will receive a copy of all bounced
+mail; this can be turned off selectively by simply editing the
+various canned forms used to create the error messages.  These
+forms are located in the FORMSDIR (<tt>proto/forms</tt> in the distribution,
+or <tt>&dollar;MAILSHARE/forms</tt> when installed).  You should review these
+in any case to make sure the text is appropriate for your site.
+</itemize>
+
+
+<sect2>Scheduler Statistics log
+<p>
+The  statistics log reports condenced performance oriented
+information in following format:
+<tscreen><verb>
+timestamp fileid      dt1  dt2 state $channel/$host
+812876190 90401-2	0    5	  ok usenet/-
+812876228 90401-1	0    7	  ok usenet/-
+812876244 90401-1	0    1	  ok local/gopher-admin
+812876244 90401-1	0    5	  ok smtp/funet.fi
+812876559 90401-1	0   21	  ok smtp/utu.fi
+</verb></tscreen>
+       where the fields are:
+<descrip>
+<tag/timestamp/ The original spoolfile <tt>ctime</tt> (creation time)  stamp
+in decimal.
+
+<tag/fileid/ Spoolfile name after the router has processed it.
+
+<tag/dt1/ The time difference from spoolfile ctime to 
+scheduler control file creation by the router.
+
+<tag/dt2/ The time difference from scheduler file <tt>ctime</tt> to
+the delivery that is logged on.
+
+<tag/state/ What happened?  Values: <tt>ok</tt>, <tt>error</tt>, <tt>expiry</tt>
+
+<tag/&dollar;channel-&dollar;host/ Where/how it was processed.
+</descrip>
+
+
+
+<sect1>SMTP-Server Configuration
+<p>
+<tt>MAILSHARE/smtpserver.conf</tt>
+
+The <em>smtpserver</em> program actually has several operational modes.
+It can operate as a stand-alone internet service socket listener, which
+forks off childs that do the actual SMTP-protocol service.
+
+It can be started from under the control of the inetd server, and it can
+there fulfill the same role as it does stand-alone mode.
+
+It can even be used to accept Batch-SMTP from incoming files (UUCP,
+and BITNET uses, for example).
+
+Usage
+
+<tt>smtpserver &lsqb; -46aignvBV &rsqb; &lsqb; -p port &rsqb; &lsqb; -l logfile 
+&rsqb; &lsqb; -s &lsqb;ftveR&rsqb; &rsqb; &lsqb; -L maxloadaver &rsqb; &lsqb; 
+-M SMTPmaxsize &rsqb; &lsqb; -P postoffice &rsqb; &lsqb; -R router &rsqb; 
+&lsqb; -C cfgfile &rsqb;</tt>
+
+The commonly used command line options are:
+
+<tt>smtpserver &lsqb;-aBivn&rsqb; &lsqb;-s ehlo-styles&rsqb; &lsqb;-l 
+logfile&rsqb; &lsqb;-C cfgpath&rsqb;</tt>
+
+Without any arguments the  smtpserver  will start as a daemon
+listening on TCP port 25 (SMTP).
+
+The options are:
+
+<descrip>
+<tag/<tt>-a</tt>/ Query IDENT information about the incoming connection. This information (if available at all) may, or may not tell who is forming a connection.
+<tag/<tt>-B</tt>/ The session is Batch-SMTP a.k.a. BSMTP type of session. Use of "-i" option is needed, when feeding the input batch file.
+<tag/<tt>-i</tt>/ This is interactive session.  IO is done thru stdin/stdout.
+<tag/<tt>-v</tt>/ Verbose trace written to stdout for use in conjunktion with "-i", and "-B".
+<tag/<tt>-n</tt>/ This tells that the smtpserver is running under inetd, and that the stdin/stdout file handles are actually network sockets on which we can do peer identity lookups, for example.
+<tag/<tt>-s ehlo-style</tt>/ Default value for various checks done at MAIL FROM, RCPT TO, VRFY, and EXPN commands. These are overridden with the value from EHLO-patterns, if they are available (more below)
+<tag/<tt>-l logfilepath</tt>/ Filename for the smtpserver input protocol log. This logs about everything, except actual message data...
+<tag/<tt>-C configfilepath</tt>/ Full path for the smtpserver configuration in case the default location can not be used for some reason.
+<tag/<tt>-M</tt>/ SMTPmaxsize Defines the asolute maximum size we accept from incoming email. (Default: infinite) (This is a local policy issue.)
+</descrip>
+
+<bf>Configuration</bf>
+
+If the system has file  <tt>&dollar;MAILSHARE/smtpserver.conf</tt> (by default),
+that file is read for various parameters, which can override a few
+of those possibly issued at the command line.
+
+Example (shortened) configuration is:
+
+<tscreen><verb>
+#PARAM maxsize              10000000	# Same as -M -option
+#PARAM max-error-recipients        3	# More than this is propably SPAM!
+#PARAM MaxSameIpSource		  10    # Max simultaneous connections from
+#					# any IP source address
+#PARAM ListenQueueSize		   5	# The  listen(2)  parameter
+#
+PARAM help -------------------------------------------------------------
+PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
+PARAM help  Our telephone number is: +1-234-567-8900, and
+...
+PARAM help -------------------------------------------------------------
+#
+PARAM	accept-percent-kludge # "localpart" can contain '%' and '!'
+#PARAM	reject-percent-kludge # "localpart" can't contain  --"--
+#
+#  Uncomment this for not to strip source routes from:  <@a,@b:c@d>
+#PARAM AllowSourceRoute
+#
+# The policy database:  (NOTE: See  'makendbm'  for its default suffixes!)
+PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
+#
+# HELO/EHLO-pattern	style-flags
+#               [max loadavg]
+#
+localhost	    999	ftveR
+some.host.domain    999	!NO EMAIL ACCEPTED FROM YOUR MACHINE
+\[*\]		    999	ve
+*		    999	veR
+</verb></tscreen>
+
+
+The PARAM keywords and values are:
+
+<descrip>
+<tag/<tt>maxsize nn</tt>/
+	Maximum size in the number of bytes of the entire spool message
+	containing both the transport envelope, and the actual message.
+	That is, if the max-size is too low, and there are a lot of
+	addresses, the message may entirely become undeliverable..
+
+<tag/<tt>max-error-recipients nn</tt>/
+	In case the message envelope is an error envelope (MAIL FROM:&lt;&gt;),
+	the don't accept more than this many separate recipient addresses
+	for it. The default value is 3, which should be enough for most cases.
+	(Some SPAMs claim to be error messages, and then provide a huge
+	 number of recipient addresses...)
+
+<tag/<tt>MaxSameIpSource nn</tt>/
+	(Effective only on daemon-mode server -- not on "-i", nor "-n" modes.)
+	Sometimes some systems set up multiple parallel connections to same
+	host  (qmail ones especially, not that ZMailer has entirely clean
+	papers on this - at least up to 2.99.X series), we won't accept
+	more than this many connections from the same IP source address
+	open in parallel.  The default value for this limit is 10.
+
+	The principal reason for this has been authors experience at nic.funet.fi,
+	where some MS-Windows users have caused <bf>huge</bf> numbers
+	of parallel connections to some services.  So huge, that the system
+	did in fact run out of swap due to that, and caused all manner of
+	other nasty things to occur too...  All this simply because some
+	windows client had opened 800+ parallel sessions, and each server
+	process consumed separate blocks of swap space...  To avoid the
+	system to succumb under such an accidental denial-of-service attack
+	at the overall system, this parallel limit was created.
+
+<tag/<tt>ListenQueueSize nn</tt>/
+	This relates on some newer systems where the <tt>listen(2)</tt> system call
+	can define higher limits, than the traditional/original 5.  This
+	limit tells how many nascent TCP streams we can have in SYN_RCVD
+	state before we stop answering to incoming SYN packets requesting
+	opening of a connection.
+
+	There are entirely deliberate denial-of-service attacks based on
+	flooding to some server many SYNS on which it can't send replies
+	back (because the target machines don't have network connectivity,
+	for example), and thus filling the back-queue of nascent sockets.
+	This can also happen accidentally, as the connectivity in between
+	the client host, and the server host may have a black hole into
+	which the SYN-ACK packets disappear, and the client thus will not
+	be able to get the TCP startup three-way handshake completed.
+
+	Some newer systems can have this value upped to thousands to
+	improve systems resiliency against malicious attacks, and most
+	likely to provide complete immunity against the accidental
+	"attack" by the failing network routing.
+
+<tag/<tt>help 'string'</tt>/
+	This one adds yet another string (no quotes are used) into those
+	that are presented to the client when it asks for "HELP" in the
+	SMTP session.
+
+<tag/<tt>AllowSourceRoute</tt>/
+	When this is present, possible incoming  &lt;&commat;aa,&commat;bb:cc&commat;dd&gt;  type of
+	address is accepted in entirety without stripping it into &lt;cc&commat;dd&gt;.
+	The default is that this is not present, and the RFC-821 source-
+	route address is stripped into its basic form.
+
+<tag/<tt>PolicyDB dbtype dbpath</tt>/
+	This defines the database type, and file path prefix to the binary
+	database containing policy processing information.  More of this
+	below.  Actual binary database file names are formed by appending
+	type specific suffixes to the path prefix.  For example NDBM
+	database appends ".pag" and ".dir", while BSD-Btree appends only
+	".db".  (And the latter has only one file, while the first has two.)
+</descrip>
+
+All lines that are not comments, nor start with uppercase keyword
+"POLICY" are "EHLO-style patterns".
+
+
+
+Delete to end of section?
+
+If the <tt>MAILSHARE/<bf>smtpserver.conf</bf></tt> file exists it is read 
+to configure two kinds of things:
+
+<itemize>
+<item> PARAM -entries
+</itemize>
+
+Allow server start-time parametrization of several things, including:
+
+<itemize>
+<item> system parameters
+<item> help texts
+<item> acceptance/rejection database definitions
+<item>The style (<tt>-s</tt>) option
+</itemize>
+
+Behaviour is based on glob patterns matching the 
+<bf>HELO/EHLO</bf> name given by a remote client. Lines 
+beginning with a &num; or whitespace are ignored in the file, and 
+all other lines must consist of two tokens: a shell-style (glob) 
+pattern starting at the beginning of the line, whitespace, and a 
+sequence of style flags. The first matching line is used. As a 
+special case, the flags section may start with a ! character in 
+which case the remainder of the line is a failure comment message 
+to print at the client. This configuration capability is intended 
+as a way to control misbehaving client software or mailers.
+
+
+<sect2>Policy Based Filtering
+<p>
+
+The <tt>policy-builder.sh</tt> script bundles together a set of other
+things before policy filter is ready for use:
+
+<tscreen><verb>
+		DB/smtp-policy.src			The boilerplate
+		DB/localnames		('= _full_rights')
+		DB/smtp-policy.relay	('= _full_rights')
+		DB/smtp-policy.mx	('relaytargets +')
+		DB/smtp-policy.spam	('= _bulk_mail')
+</verb></tscreen>
+
+At the moment, <tt>smtp-policy.spam</tt> source is retrieved with LYNX from
+the URL: <tt>http://www.webeasy.com:8080/spam/spam_download_table</tt>
+however it seems there are sites out there that are spam havens, and
+that serve valid spam source/responce domains, which are not registered
+at that database.
+
+If you want, you can modify your boilerplate as well as your
+installed <tt>policy-builder.sh</tt> script. Doing <tt>make install</tt> will
+overwrite <tt>policy-builder.sh</tt>, but not <tt>smtp-policy.src</tt>.
+
+
+Basically these various source files (if they exist) are used to
+combine knowledge of valid users around us:
+
+<descrip>
+<tag/localnames/ Who we are -- ok for receiving ('_full_rights'
+   is a bit too broad for that, though... because
+   its value 'relaycustomer +' can allow anybody
+   to use us for relaying by claiming some local
+   identity at MAIL FROM:&lt;..&gt;.
+
+<tag/smtp-policy.relay/ Who can use us as outbound relay,
+   Use  [ip.number]/maskwidth  here for listing
+   those senders (networks) we absolutely trust.
+   We can set the "always_accept" flag at the
+   source IP test, and never after.
+
+<tag/smtp-policy.mx/ Who really are our MX clients.
+   Use this when you really know them, and don't
+   want just to trust that if recipient has MX
+   to you, it would be ok...
+   You can substitute this knowledge with a fuzzy
+   feeling by using the `acceptifmx +' attribute in
+   the generic boilerplate.
+
+<tag/smtp-policy.spam/ Those users and domains that are
+   absolutely a no-no for senders, or recipients
+   no matter what earlier analysis has shown.
+   (Except for those that we absolutely trust..)
+</descrip>
+
+<sect1>Router Configuration
+<p>
+
+The names (determined at compile-time) and interface specifications for the
+routing and crossbar functions, are the only crucial ``magical'' things one
+needs to contend with in a proper <em>router</em> configuration.  The syntax and
+semantics of the configuration file's contents are dealt with in the
+following subsection. The details of the two functions introduced here are
+specified after that, once the necessary background information has been
+given.
+
+<em>Router</em> behavior is controlled by a configuration file read at 
+startup. It is a <tt>zmsh(1)</tt> script that uses facilities provided 
+built into the <em>router</em>. 
+
+The configuration file looks like a Bourne Shell script at first glance.
+There are minor syntax changes from standard <tt>sh</tt>, but the aim is to be as
+close to the Bourne Shell language as is practical. The contents of the
+file are compiled into a parse tree, which can then be interpreted by the
+<em>router</em>.  The configuration file is usually self-contained, although an easy
+mechanism exists to make use of external UNIX programs when so desired.
+Together with a very flexible database lookup mechanism, functions, and
+address manipulation based on token-matching regular expressions, the
+configuration file language is an extremely flexible substrate to
+accomplish its purpose. When the language is inadequate, or if speed
+becomes an issue, it is possible to call built in (C coded) functions. The
+interface to these functions is mostly identical to what a standalone
+program would expect (modulo symbol name clashes and return values), to
+ease migration of external programs to inclusion in the <em>router</em> process.
+
+<sect2>Configuration File Programming Language
+<p>
+
+Whenever the <em>router</em> process starts, its first action is to read its
+configuration file.  The configuration file is a text file which contains
+statements interpreted immediately when the file is read.  Some statements
+are functions, in which case the function is defined at that point in
+reading the configuration file.  The purpose of the configuration file is
+to provide a simple way to customize the behavior of the mailer, and this
+is primarily achieved by defining the <tt>router</tt> and <tt>crossbar</tt> 
+functions. For these to work properly, some initialization code and auxiliary
+functions will usually be needed.
+
+At first sight, a configuration file looks like a Bourne shell script.
+The ideal is to duplicate the functionality, syntax, and to a large
+degree the semantics, of a shell script.  Therefore, the configuration file
+programming language is defined in terms of its deviation from standard
+Bourne shell syntax and semantics.  The present differences are:
+
+<itemize>
+<item> No <tt>repeat</tt> statement.
+
+<item> Functions are allowed, parameter lists are allowed. If not enough
+ arguments are present in a function call to exhaust the parameter
+ list, the so-far unbound parameter variables are bound to `' (the
+ empty string) as local variables. For example, this is the identity
+ address rewriting function:
+     
+<tscreen><verb>
+          null (address) {
+	  return $address         # surprise!
+          }
+</verb></tscreen>
+<item> Multiple-value returns are allowed.  The <tt>return</tt> statement can be
+ used to return a non-`' value from a function.  The following are all
+ legal <tt>return</tt> statements:
+     
+<tscreen><verb>
+          return
+          return $address
+          return $channel ${next_host} ${next_address}
+</verb></tscreen>
+
+<item> Variables are dynamically scoped, local variables are the 
+ones in a function's parameter list and those declared with the 
+``<tt>local</tt>'' statement. Only the first value of a multiple-value return may 
+be assigned to a variable.  All values are strings, so no type information, 
+checking, or declaration, is  necessary.
+<item> Quoting is a bit stilted. All quotes (double-, single-, back-), must 
+appear in matching pairs at the beginning and end of a word.  Single 
+quotes are not stripped, double quotes cause the enclosed character 
+sequence to be collected into a quoted-string RFC822 token.  For 
+example, the statement:
+
+<tscreen><verb>     
+          foo `bar "`baz`"`
+</verb></tscreen>
+     
+     is evaluated as <tt>(apply 'foo (apply 'bar (baz)))</tt>.
+<item> The forms <tt>&dollar;{variable:=value}</tt>, 
+<tt>&dollar;{variable:-value}</tt>, and
+     <tt>&dollar;{variable:+value}</tt> are supported.  
+<item> Patterns (in case labels) are evaluated once, the first time they are
+     encountered.
+<item> At the end of a case label, the sequentially next case labels of the
+     same case statement will be tried for successful pattern matching (and
+     the corresponding case label body executed). The only exceptions
+     (apart from encountering a return statement) are:
+
+     <tt>again</tt>     
+
+          a function which retries the current case label for a match.
+
+     <tt>break</tt>     
+
+          continues execution after the current case statement.
+<item> Various standard Bourne shell functions do not exist built in.
+
+<item> The general form of function calls in the system is:
+&dollar;(funcname arguments)
+It returns a scalar or list object, and the result can be stored
+into variables at will.
+
+<item> Relations, and other database lookups are contructed as function calls
+   where the relation name is the function name.  More about this later.
+</itemize>
+
+There are currently only three entry points (i.e. magic names known to the
+<em>router</em> code) in the configuration file, namely the <tt>process</tt>, <tt>router</tt> and 
+<tt>crossbar</tt> functions.
+
+The <tt>process</tt> function is called with a file name as argument. 
+The file is typically located in the <tt>&dollar;POSTOFFICE/router/</tt> 
+directory. <tt>Process</tt> is a protocol switch function which uses the 
+form of the file name to determine how to process different types of 
+messages.
+
+The <tt>router</tt> function is called with an address as argument, and returns a
+triple of (channel, host, user) as three separate values, corresponding to
+the channel the message should be sent out on (or, the router function can
+also be called to check on who sent a message), the host or node name for
+that channel (null if local delivery), and the address the receiving agent
+should transmit to.
+
+The <tt>crossbar</tt> function is in charge of rewriting envelope addresses,
+selecting message header address munging type (a function to be called with
+each message header address), and possibly doing per-message logging or
+enforcing restrictions deemed necessary. It takes a sender-triple and a
+receiver-triple as arguments (six parameters altogether). It returns the
+new values for each element of the two triples, and in addition a function
+name corresponding to the function to be used to rewrite header addresses
+for the specific destination.  If the destination is to be ignored,
+returning a null function name will accomplish this.
+
+The <em>router</em> has several built in (C coded) functions.  Their calling
+sequence and interface specification is exactly the same as for the
+functions defined in the configuration file.  Some of these functions have
+special semantics, and they fall into three classes, as follows:
+
+Functions that are critical to the proper functioning of the configuration
+file interpreter:
+
+<descrip>
+<tag/<tt>return</tt>/ returns its argument(s) as the value of a function call
+<tag/<tt>again</tt>/ repeats the current case label
+<tag/<tt>break</tt>/ exits a case statement
+</descrip>
+
+Functions that are necessary to complete the capabilities of the
+interpreter:
+
+<descrip>
+<tag/<tt>relation</tt>/ defines a database to the database lookup mechanism
+<tag/<tt>sh</tt>/ an internal function which runs its arguments as <tt>/bin/sh</tt> would
+</descrip>
+
+Non-critical but recommended functions:
+
+<descrip>
+<tag/<tt>getzenv</tt>/ retrieves global ZMailer configuration values     
+<tag/<tt>echo</tt>/ emulates <tt>/bin/echo</tt>     
+<tag/<tt>exit</tt>/ aborts the <em>router</em> with the specified status code    
+<tag/<tt>hostname</tt>/ internal function to get and set the system name    
+<tag/<tt>trace</tt>/ turns on selected debugging output    
+<tag/<tt>untrace</tt>/ turns off selected debugging output    
+<tag/<tt>[</tt>/ emulates a subset of <tt>/bin/test</tt> (a.k.a. <tt>/bin/&lsqb;</tt>) functionality    
+</descrip>
+
+The <tt>relation</tt> function is described in section <ref id="Databases">, 
+Databases, page <pageref id="Databases">, and the <tt>trace</tt> 
+and <tt>untrace</tt> functions are described in connection with debugging. 
+See section <ref id="Logging_and_Statistics">, Logging and Statistics, page 
+<pageref id="Logging_and_Statistics">. (This will probably change to Reference, 
+Router, Debugging)
+
+The <tt>hostname</tt> function requires some further explanation.  It is intended
+to emulate the BSD UNIX <tt>/bin/hostname</tt> functionality, except that setting
+the hostname will only set the <em>router's</em> idea of the hostname, not the
+system's.  Doing so will enable generation of `Message-Id' and `Received'
+``trace'' headers on all messages processed by the <em>router</em>.  It is done this
+way since the <em>router</em> needs to know the official domain name of the local
+host in order to properly generate these headers, and this method is
+cleaner than reserving a magic variable for the purpose.  The <em>router</em> cannot
+assume the hostname reported by the system is a properly qualified domain
+name, so the configuration file may generate it using whichever method it
+chooses.  If the hostname indeed is a fully qualified domain name, then:
+
+<tscreen>hostname "hostname"</tscreen>
+
+will enable generation of trace headers.
+
+Finally, note that a symbol can have both a function-value and a
+string-value.  The string value is of course accessed using the &dollar; prefix
+convention of the Bourne shell language.
+
+To test the configuration or routing data, proceed as follows:
+
+<tscreen><verb>
+MAILBIN/router -i		(select interactive mode)
+trace on			(turn tracing on)
+router user@broken.address	(the address that gave you trouble)
+router another@address		(and so on)
+</verb></tscreen>
+
+Old salts can use <tt>/usr/lib/sendmail -bt</tt> instead of <tt>router -i</tt>. Once satisfied that routing works,
+
+<tscreen><verb>zmailer router</verb></tscreen>
+
+will restart the <em>router</em>.
+
+You can also run the <em>router</em> directly on a message.  Copy your message
+to someplace other than the postoffice (<tt>/tmp</tt> is usually good), in a
+numeric file name.  If the file name is <tt>123</tt>, you run
+
+<tscreen><verb>MAILBIN/router 123</verb></tscreen>
+
+this will create the file <tt>.123</tt> containing the control information produced
+by the <em>router</em>.
+
+
+<sect2><label id="Databases">Databases
+<p>
+
+Many of the decisions and actions taken by configuration file code depend
+on the specifics of the environment the MTA finds itself in.  So, not just
+the facts that the local host is attached to (say) the UUCP network and a
+Local Area Network are important, but it is also essential to know the specific
+hosts that are reachable by this method.  Hardcoding large amounts of such
+information into the configuration file is not practical.  It is also
+undesirable to change what is really a program (the configuration file),
+when the information (the data) changes.
+
+The desirable solution to this data abstraction problem is to provide a way
+for the configuration file programmer to manage such information externally
+to ZMailer, and access it from within the <em>router</em>.  The logical way to do
+this is to have an interface to externally maintained databases.  These
+databases need not be terribly complicated; after all the simplest kind of
+information needed is that a string is a member of some collection.  This
+could simply correspond to finding that string as a word in a list of
+words.
+
+However, there are many ways to organize databases, and the necessary
+interfaces cannot be known in advance.  The <em>router</em> therefore implements a
+framework that allows flexible interfacing to databases, and easy extension
+to cover new types of databases.
+
+To use a database, two things are needed: the name of the database, and a
+way of retrieving the data associated with a particular key from that
+database.  In addition to this knowledge, the needs of an MTA do include
+some special processing pertinent to its activities and the kind of keys to
+be looked up.
+
+Specifically, the result of the data lookup can take different forms: one
+may be interested only in the existence of a datum, not its value, or one
+may be looking up paths in a pathalias database and need to substitute the
+proper thing in place of `<tt>%s</tt>' in the string returned from the database
+lookup.  It should be possible to specify that this kind of postprocessing
+should be carried out in association with a specific data access.
+Similarly, there may be a need for search routines that depend on the
+semantics of keys or the retrieved data.  These possibilities have all been
+taken into consideration in the definition of a relation.  A relation maps
+a key to a value obtained by applying the appropriate lookup and search
+routines, and perhaps a postprocessing step, applied to a specified
+database that has a specified access method.
+
+The various attributes that define a relation are largely independent.
+There will of course be dependencies due to the contents or other semantics
+of a database.  In addition to the features mentioned, each relation may
+optionally have associated with it a subtype, which is a string value used
+to tell the lookup routine which table of several in a database
+one is interested in.
+
+There are no predefined relations in the <em>router</em>.  They must all be
+specified in the configuration file, before first use.  This is done by
+calling the special function <tt>relation</tt> with various options, as indicated
+by the usage string printed by the <tt>relation</tt> function when called the wrong
+way:
+
+<tscreen><verb>
+     Usage: relation -t dbtype [-f file -e# -s# -blnu -d driver] name
+</verb></tscreen>
+
+The `<tt>t</tt>' option specifies one of several predefined database types, each
+with their specific lookup routine.  It determines a template for the set
+of attributes associated with a particular relation.  The predefined
+database types are:
+
+
+<descrip>
+<tag/<tt>bhash</tt>/ the database is in BSD DB HASH format.
+<tag/<tt>bind</tt>/ the database is the BIND nameserver, accessed through the standard resolver routines.
+<tag/<tt>btree</tt>/ the database is in BSD DB BTREE format.
+<tag/<tt>dbm</tt>/ the database is in DBM format (strongly discouraged).
+<tag/<tt>gdbm</tt>/ the database is in GNU GDBM format.
+<tag/<tt>headers</tt>/ router internal database of various headers, and how they are
+	to be treated.
+<tag/<tt>hostsfile</tt>/ <tt>/etc/hosts</tt> lookup using <tt>gethostbyname()</tt>.
+<tag/<tt>incore</tt>/ the database is a high-speed bundle of data kept entirely in the router process core memory.  This is for a short-term data storage, like handling duplicate detection.
+<tag/<tt>ldap</tt>/ Mechanism for X.500 Directory access lookup with the "light-weight
+	directory access protocol."
+<tag/<tt>ndbm</tt>/ the database is in NDBM (new DBM) format.
+<tag/<tt>ordered</tt>/ the database is a text file with key-datum pairs on each line, keys are looked up using a binary search in the sorted file.
+<tag/<tt>selfmatch</tt>/ a special type that does translate the numerical address of format:
+		12.34.56.78
+	into binary form, and checks that it is (or is not) actually
+	our own local IP addresses. This is used in address literal
+	testing of addresses of type:
+		localpart@[12.34.56.78]
+<tag/<tt>unordered</tt>/ the database is a text file with key-datum pairs on each line, keys are looked up using a sequential search.
+<tag/<tt>yp</tt>/ Sun SunOS 4.x YP (these days "NIS") interface library.
+</descrip>
+
+A subtype is specified by appending it to the database type name separated
+by a slash.  For example, specifying <tt>bind/mx</tt> as the argument to the 
+`<tt>t</tt>' option will store `<tt>mx</tt>' for reference by the access 
+routines whenever a query to that relation is processed. The subtypes must 
+therefore be recognized by either the database-specific access routines 
+(for translation into some other form), or by the database interface itself.
+
+For <tt>unordered</tt> and <tt>ordered</tt> database types, the datum 
+corresponding to a particular key may be null.  This situation arises if 
+the database is a simple list, with one key per line and nothing else.  
+In this situation, the use of an appropriate post-processor option 
+(e.g. `<tt>b</tt>') is recommended to be able to detect whether or not 
+the lookup succeeded.
+
+The `<tt>f</tt>' option specifies the name of the database.  This is typically a
+path that either names the actual (and single) database file, or gives the
+root path for a number of files comprising the database (e.g. <tt>foo</tt> may
+refer to the NDBM files `<tt>foo.pag</tt>' and `<tt>foo.dir</tt>').  For the 
+<tt>hostsfile</tt> type of database, the <tt>/etc/hosts</tt> file is the one 
+used (and since the normal hosts file access routines do not allow specifying 
+a different file, this cannot be overridden). The use of the <tt>dbm</tt> format 
+is strongly discouraged, since a portable program can only have a single DBM 
+database associated with it.
+
+The `<tt>s</tt>' option specifies the size of the cache.  If this value 
+is non-zero (by default it is 10), then an LRU cache of this size is 
+maintained for previous queries to this relation, including both positive 
+and negative results.
+
+The `<tt>e</tt>' option specifies the cache data expiration time in seconds.
+
+The `<tt>b</tt>' option asks that a postprocessor is applied to the database 
+lookup result, so the empty string is returned from the relation query if the
+database search failed, and the key itself it returned if the search
+succeeded.  In the latter case, any retrieved data is discarded.  The
+option letter is short for Boolean.
+
+The `<tt>n</tt>' option asks that a postprocessor is applied to the database 
+lookup result, so the key string is returned from the relation query if the
+database search failed, and the retrieved datum string is returned if the
+search succeeded.  The option letter is short for Non-Null.
+
+The `<tt>l</tt>' option asks that all keys are converted to lowercase before 
+lookup in the database.  This is mutually exclusive with the `<tt>u</tt>' 
+option.
+
+The `<tt>u</tt>' option asks that all keys are converted to uppercase before 
+lookup in the database.  This is mutually exclusive with the `<tt>l</tt>' 
+option.
+
+The `<tt>d</tt>' option specifies a search routine.  Currently the only legal
+argument to this option is <tt>pathalias</tt>, specifying a driver that searches
+for the key using domain name lookup rules.
+
+The final argument is not preceeded by an option letter.  It specifies the
+name the relation is known under.  Note that it is quite possible for
+different relations to use the same database.
+
+Some sample relation definitions follow:
+
+<tscreen><verb>
+     if [ -f /etc/named.boot ]; then
+         relation -nt bind/cname -s 100 canon  # T_CNAME canonicalize hostname
+         relation -nt bind/uname uname         # T_UNAME UUCP name
+         relation -bt bind/mx neighbour        # T_MX/T_WKS/T_A reachability
+         relation -t bind/mp pathalias         # T_MP pathalias lookup
+     else
+         relation -nt hostsfile -s 100 canon   # canonicalize hostname
+         relation -t unordered -f $MAILBIN/db/hosts.uucp uname
+         relation -bt hostsfile neighbour
+         relation -t unordered -f /dev/null pathalias
+     fi
+</verb></tscreen>
+
+The above fragment defines a set of relations that can be accessed in the
+same way, using the same names, independent of their actual definition.
+
+<tscreen><verb>
+     # We maintain an aliases database in the following format. Note: the
+     # 'aliases' db name is magic to the internal alias expansion routines.
+     if [ -f $MAILBIN/db/aliases.dat ]; then
+         relation -t ndbm -f $MAILBIN/db/aliases aliases
+     else
+         relation -t ordered -f $MAILBIN/db/aliases.idx aliases
+     fi
+</verb></tscreen>
+
+As the comment says, the relation name <tt>aliases</tt> has special significance
+to the <em>router</em>.  Although the relation is not special in any other way (i.e.
+it can be used in the normal fashion), the semantics of the data retrieved
+are bound by assumptions in the aliasing mechanism.  These assumptions are
+that key strings are local-name's, and the corresponding datum gives a byte
+offset into another file (the root name of the aliases file, with a <tt>.dat</tt>
+extention), which contains the actual addresses associated with that alias.
+The reason for this indirection is that the number of addresses associated
+with a particular alias can be very large, and this makes the traditional
+simple database formats inadequate.  For example, quick lookup in a text
+file is only practical if it is sorted and has a regular structure.  A
+large number of addresses associated with an alias makes structuring a
+problem.  The situation for DBM files and variations have problems too, due
+to the intrinsic limits of the storage method.  The chosen indirection
+scheme avoids such problems without loss of efficiency.
+
+Finally, some miscellaneous definitions that illustrate various
+possibilities:
+
+<tscreen><verb>
+     relation -t unordered -f /usr/lib/news/active -b newsgroup
+     relation -t unordered -f /usr/lib/uucp/L.sys -b ldotsys
+     relation -t ordered -f $MAILBIN/db/hosts.transport -d pathalias transport
+</verb></tscreen>
+
+Here, the first two illustrate convenient coincidences of format, and the
+last definition shows what might be used if outgoing channel information is
+maintained in a pathalias-format database (e.g. <tt>bar smtp!bar</tt> means to
+send mail to <tt>bar</tt> via the SMTP channel).
+
+
+<sect3>Using a Pathalias Database
+<p>
+
+
+Accessing route databases is a rather essential capability for a mailer.
+At the University of Toronto, all hosts access a centrally stored database
+through a slightly modified nameserver program.  If such a setup is not
+practical at your site, other methods are available.  The most widespread
+kind of route database is produced by the <tt>pathalias</tt> program.  It
+generates key-value pairs of the forms:
+
+<tscreen><verb>
+     uunet                ai.toronto.edu!uunet!%s
+     .css.gov             ai.toronto.edu!uunet!seismo!%s
+</verb></tscreen>
+
+which when queried about <tt>uunet</tt> and <tt>beno.css.gov</tt> correspond to 
+the routes:
+
+<tscreen><verb>
+     ai.toronto.edu!uunet
+     ai.toronto.edu!uunet!seismo!beno.css.gov
+</verb></tscreen>
+
+Notice that there are two basic forms of routes listed: routes to UUCP node
+names and routes to subdomain gateways.  Depending on the type of route
+query, the value returned from a pathalias database lookup needs to be
+treated differently.  For now, this may be accomplished by a configuration
+file relation definition and interface function as shown:
+
+<tscreen><verb>
+     relation -t ndbm -f $MAILBIN/uuDB -d pathalias padb
+     
+     # pathalias database lookup function
+     padblookup (name, path) {             # path is a local variable
+             path = ${$name:padb}
+             case "$path" in
+             ((.+)!)?([^!]+)!%s
+                     if [ $3 == $name ]; then
+                             path = $2!$3
+                     else
+                             path = $2!$3!$name
+                     fi
+                     ;;
+             .*%s.*  echo illegal route in pathalias db: $path
+                     ;;
+             esac
+             return $path
+     }
+</verb></tscreen>
+
+This is actually a simplistic algorithm, but it does illustrate the method.
+The lookup algorithm used when the `<tt>-d</tt>' flag is specified in the
+relation definition command is rather simple; it doesn't test various case
+combinations for the keys it tries.  Therefore, the keys in the pathalias
+output data should probably be converted to a single case, and the `<tt>-l</tt>'
+or `<tt>-u</tt>' flag given in the relation definition.
+
+
+<sect2>Mailing Lists and &tilde;/.forward <label id="mailing_list_maintenance">
+<p>
+
+Mailing lists are implemented as files in the <tt>&dollar;MAILSHARE/lists/</tt> 
+directory (or symlinks in there to files residing elsewere, though from a system
+reliability standpoint it is better to have them in that directory,
+and let users have symlinks to those files -- consider the NFS
+with the user home directories in other machines...)
+
+An alternate mechanism is to implement lists in the traditional <em>sendmail</em>
+manner, however it means feeding the message to the scheduler, and
+external program (<tt>/usr/lib/sendmail</tt>) before it comes back to the
+<em>router</em>.
+
+The list FILE must have protection 0664 or stricter, 0700 has invalid bits.
+(ok, so the ``x"-bit is not used, but illegal it is, all the same.)
+Preferrable protection is: 0600
+
+The <tt>&dollar;MAILSHARE/lists/</tt> directory must be owned by root.
+The directory containing the "aliases" file  (<tt>&dollar;MAILSHARE/db/</tt>) 
+must be owned by root, and the aliases file must comply with above mentioned 
+protections.
+
+The owner of FILE gets FILE-owner, and FILE-request mails, <bf>unless any
+of the limitations are breached</bf>.
+
+If FILE has protection 666 (for example), the ZMailer internal function
+"<tt>&dollar;(filepriv &dollar;filepath)</tt>" 
+returns "<tt>&dollar;nobody</tt>" (userid of nobody), and  function
+"<tt>&dollar;(uid2login &dollar;nobody)</tt>" fails, thus losing -owner, and 
+-request features.
+
+Also lists with filepriv ``nobody'' cannot be archived.
+
+A mailing list is set up by creating a file in the 
+<tt>&dollar;MAILVAR/lists/</tt> directory.
+The file name is the lists' name (LIST) in all lowercase (case-
+insensitive matching is done by converting to lowercase before
+comparison).
+
+The file contains a list of mail addresses (typically one per line)
+which are parsed to pull out the destination addresses.  This means
+the users' full names can be given just as in any valid RFC822 address.
+
+The local account which owns the file will by default receive messages
+sent to LIST-owner and LIST-request.  This can be explicitly overridden
+in the aliases file.  Mail to the list will go out with LIST-owner as
+the sender, so list bounce messages will return to the LIST-owner
+address.  Archives of the list can be created by adding a file name
+address (a local pathname starting with "/") to the LIST file.  The
+archive file is written with the ownership of the owner of the LIST
+file.  Forwarding the mailing list into a newsgroup
+can be done using a mail to news script (two generations are provided
+in utils/distribute and utils/mail2news).
+
+<sect3>Security Considerations
+<p>
+
+A LIST file must not be world writable, while most likely it can be
+group-writable.  The <tt>MAILVAR/lists/</tt> directory must also not be group
+or world writable and must be owned by root or by the owner of the
+LIST file.  Otherwise the file is declared insecure and all addresses
+in the file get the least possible privilege associated (the ``nobody''
+uid).  This can cause various things to break, for example mailing
+list archival, or the -owner and -request features if ``nobody'' is
+not a valid account.
+
+There is a mechanism to override using the modes on a <tt>file/directory</tt>
+as an indicator of its safeness.  Turning on the sticky bit on a file
+or directory tells the mailer to treat it as if it was only owner
+writable independent of its actual modes.  This allows <tt>MAILVAR/lists/</tt>
+to be group or world writable and sticky-bitted if you want your general
+user population to be able to create mailing lists.
+
+<sect3>About Large Lists, and Memory Consumption
+<p>
+
+With old configuration scripts there used to be problems with list
+expansion causing serious memory bloat.  <em>ZMailer-2.98-mea</em> did introduce
+a working solution via the builtin  <tt>&dollar;(listexpand ..)</tt> function.
+
+The rest of these notes apply to older config files using old style pipe
+of <tt>&dollar;(listaddresses  < file | maprrouter ...)</tt>  where the  
+maprrouter caused the actual memory bloat...
+
+Internal list expansion (through the  <tt>&dollar;MAILVAR/lists/LISTNAME</tt> 
+mechanism) is a sure way to expand <em>router</em> process memory usage.
+
+You can decrease the memory requirement dramatically, if you can
+feed all the addresses in the envelope, or via <tt>utils/listexpand.c</tt>
+utility (alpha-test tool on 1-Sep-94) You don't need to worry about 
+it unless your list is 100+ recipients, only then the memory usage starts 
+to bloat seriously with the old-style in-core <tt>&dollar;(listaddress ...)</tt> 
+expander.
+
+Although more interesting and useful models exist, the mail forwarding
+functionality of ZMailer has been designed to generally emulate the
+interface and behaviour of <em>sendmail</em>.  The mechanisms that accomplish this
+are likely to be generalized in a future version.
+
+The file containing the actual aliasing data is automatically created by
+the <em>router</em> when asked to reconstruct the aliases database.  It does this
+based on a text file containing the alias definitions.  This text file,
+which corresponds to the <em>sendmail</em> aliases file, consists of individual
+alias definitions, possibly separated by blank lines or commentary.
+Comments are introduced by a sharp sign (octothorp: `&num;') at any point where
+a token might start (for example the beginning of a line, but not in the
+middle of an address), and extend to the end of the line.  Each alias
+definition has the exact syntax of an RFC822 message header, containing an
+address-list, except for comments.  The header field name is the local-part
+being aliased to the address-list that is the header value.
+
+The fact that an alias definition follows the syntax for an RFC822 message
+header, introduces an incompatibility with <em>sendmail</em>.  The string
+<tt>:include:</tt> at the start of a local-part (a legacy of RFC733) has special
+semantics. <em>Sendmail</em> would strip this prefix, and regard the rest of the
+local-part as a path to a file containing a list of addresses to be
+included in the alias expansion. Indeed, the <em>router</em> behaves in the same
+manner, but because some of the characters in the prefix are RFC822
+specials, the entire local-part must be quoted.  Thus, whereas <em>sendmail</em>
+allowed:
+
+<tscreen><verb>
+     people: :include:/usr/lib/mail/lists/people
+</verb></tscreen>
+the proper syntax with ZMailer is:
+<tscreen><verb>
+     people: ":include:/usr/lib/mail/lists/people"
+</verb></tscreen>
+
+Like <em>sendmail</em>, if a local-part is not found in the aliases database, the
+<em>router</em> also checks <tt>&tilde;local-part/.forward</tt> (if such exists) for 
+any address expansion.  The <tt>.forward</tt> file format is also an RFC822 
+address list, similar to what <em>sendmail</em> expects.
+
+As special cases, a local-part starting with a pipe character (`<tt>|</tt>') is
+treated as mail destined for a program (the rest of the local-part is any
+valid argument to a <tt>sh -c</tt> command), and a local-part starting with a
+slash character (`<tt>/</tt>') is treated as mail destined for the file named 
+by the local-part.
+
+General format:
+
+<tscreen><verb>
+	local-address-token:	"replacement address" ,
+				"extension line w/ another addr"
+	^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	  "The Key"                "The Data"
+</verb></tscreen>
+Protection of the aliases database must be at least 0644.
+Protection of the <tt>&dollar;MAILVAR/db/</tt> directory must be at least 03755.
+
+
+The following processing is done for (replacement) local-parts
+(local mail addresses):  Note that @'s are not allowed in any local-part.
+
+
+If the local-part starts with ``|" assume it is a command specification:
+<tscreen><verb>
+		prog-pipe: "|/path/to/program -args"
+</verb></tscreen>
+If the local-part starts with ``/" assume it is a file pathname:
+<tscreen><verb>
+		file-path: "/path/to/file"
+</verb></tscreen>
+If the local-part starts with <tt>:include:</tt> the rest should be a file
+pathname of a list of mail addresses.  They are substituted:
+<tscreen><verb>
+		included-list: ":include:/path/to/address/file"
+</verb></tscreen>
+After this point, all matches are case-insensitive by means of translating
+the value to be looked up to lower-case, and then conducting a case-sensitive
+lookup. <bf>All keys in aliases et.al. must be in lower case</bf>.
+(The hash functions inside  <tt>ndbm/gdbm/db/dbm</tt>  are case sensitive, and 
+as such, there is no way to avoid this requirement.)
+
+<sect3>aliases.cf Logic
+<p>
+
+<itemize>
+<item>If an aliases database exists and local-part is found in it, the list of
+  addresses mapped to by the alias entry is substituted.
+
+<item>If an mboxmap file exists and a mapping for the local-part is found in it,
+  the mapping (a host!homedir!user value) determines the remote recipient
+  (user@host) or recipient mailbox (<tt>homedir/../PObox/user</tt>) if host 
+is local.
+
+<item>If local-part is a login name and a readable <tt>.forward</tt> file 
+exists in the home directory, the list of addresses it contains is substituted.
+
+<item>If local-part is a file basename in the <tt>&dollar;MAILVAR/lists</tt> 
+directory, the   list of addresses contained in the file is substituted, and 
+the sender address set to local-part-owner.
+
+<item>If local-part is of the form file-owner or file-request, where file is
+ an entry in the <tt>&dollar;MAILVAR/lists</tt> directory, the account name 
+of the owner of the file is substituted.   (File-owner identity and correct 
+protections are important.)
+
+<item>If the local-part is of format  ``user.name'',  it is actually mapped via
+  separate   fullnamemap, and NEVER via <tt>&dollar;MAILVAR/db/aliases</tt>.
+
+<item>If PUNTHOST is defined (in <tt>/etc/zmailer.conf</tt>) the address
+  <tt>local-part@&dollar;PUNTHOST</tt> is substituted.  Note that in this case
+  the mboxmap mechanism should be used to ensure local spool
+  mailbox delivery for local users.
+</itemize>
+
+<sect1>Scheduler Configuration
+<p>
+
+
+The major action of the Scheduler is to periodically start up Transport
+Agents and tell them what to do.  This is controlled by a table in a
+configuration file that is read by the Scheduler when it starts.  
+
+Any line starting with a `<tt>#</tt>' character is assumed to be a comment 
+line, and is ignored, as are empty lines.  All other lines must follow a rigid
+format. 
+
+The scheduler configuration file consists of a set  of
+clauses. Each clause is selected by the pattern it starts
+with. The patterns  for  the  clauses	are  matched,  in
+sequence, with the channel/host string for each recipient
+address. When a clause pattern matches	an  address,  the
+parameters set in the clause will be applied to the scheduler's 
+processing of that address. If the clause specifies a command,  
+the clause pattern matching sequence is terminated. This is a clause:
+
+<tscreen><verb>
+	    local/*   interval=10s
+		      expiry=3h
+		      # want 20 channel slots in case of blockage on one
+		      maxchannel=20
+		      # want 20 thread-ring slots
+		      maxring=20
+		      command="mailbox -8"
+</verb></tscreen>
+
+       A clause consists of:
+
+<itemize>
+<item>A selection pattern  (in  shell style) that  is
+	      matched  against	the  channel/host  string  for an
+	      address.
+
+<item>0  or more  variable assignments or keywords
+	      (described below).
+</itemize>
+
+If the selection pattern does not contain a '/', it is
+assumed to be a channel pattern and the	host  pattern  is
+assumed to be the wildcard '*'.
+
+The components of a clause are separated by whitespace.
+The pattern introducing a clause must start in the first
+column of a line, and the variable assignments or keywords
+inside a clause must not start in the first  column of a
+line. This means a clause may be written both compactly
+all on one line, or spread out with an assignment or keyword per line.
+
+If the clause is empty (i.e., consists only of a pattern),
+then the contents of the next non-empty	clause will be used.
+
+The typical configuration file will contain the following clauses:
+<itemize>
+<item>a clause matching all addresses (using the pattern */*) that sets 
+up default values.
+
+<item>a  clause  matching  the  local delivery channel
+	      (usually local).
+
+<item>a clause matching the deferred	delivery  channel
+	      (usually hold).
+
+<item>a  clause  matching  the error reporting channel
+	      (usually error).
+
+<item>clauses specific to the other channels	known  by
+	      the <em>router</em>, for example, smtp and uucp.
+</itemize>
+
+The  actual  names  of  these channels are completely 
+controlled by the <em>router</em> configuration file.
+
+Empty  lines,  and  lines   whose   first   non-whitespace
+character is '&num;', are ignored.
+
+Variable values may be unquoted words or values or double 
+quoted strings.	 Intervals  (delta  time)  are	specified
+using  a concatenation of: numbers suffixed with 's', 'm',
+'h', or 'd' modifiers designating the number as a  second,
+minute, hour, or day value.  For example: 1h5m20s.
+
+The known variables and keywords, and their typical values
+and semantics are:
+
+<tt>interval (1m)</tt>
+specifies the primary retry interval, which determines how frequently a 
+transport agent should be scheduled for an address. The value is a delta
+time specification. This value, and the retries value mentioned below, 
+are combined to	determine the interval between each retry attempt.
+
+<tt>idlemax</tt>
+   When a transport agent runs out of jobs, they are moved
+   to ``idle pool'', and if a transport agent spends more than idlemax
+   time in there, it is terminated.
+
+<tt>expiry (3d)</tt>
+   specifies  the  maximum age of an address in the scheduler 
+queue before  a repeatedly  deferred  address  is
+   bounced with an expiration error.  The actual report is
+   produced when all addresses have been processed.
+
+<tt>retries (1 1 2 3 5 8 13 21 34)</tt> 
+specifies the retry interval policy  of the scheduler 
+for an address. The value must be a sequence of positive integers, these 
+being multiples of the primary interval  before  a  retry is scheduled. 
+The scheduler starts by going through the sequence as an  address  is 
+repeatedly deferred. When the end of the sequence is reached, the scheduler 
+will jump into the sequence at a random  spot and continue towards the end.  
+This allows various retry strategies to be specified easily:
+
+brute force (or "jackhammer"): <tt> retries=0 </tt>
+
+constant primary interval: <tt> retries=1 </tt>
+
+instant backoff: <tt> retries="1 50 50 50 50 50 50 50 50 50 50 50 50" </tt>
+
+slow increasing (fibonacci) sequence: <tt> retries="1 1 2 3 5 8 13 21 34" </tt>
+
+s-curve sequence: <tt> retries="1 1 2 3 5 10 20 25 28 29 30" </tt>
+
+exponential sequence: <tt> retries="1 2 4 8 16 32 64 128 256" </tt>
+
+        etc.
+
+<tt>maxta (0)</tt> 
+if retrying an address would cause the number of simultaneously 
+active transport agents to exceed the specified  value, the retry is  
+postponed. The check is repeated  frequently so  the address may be retried as
+soon as possible after the  scheduled  retry interval. If the value is 0, 
+a value of 1000 is used instead. Keep in mind that all  running  
+transport  agents  will  keep open two <tt>pipe(2)</tt> file-handles, and thus 
+system-wide  limits may force a lower maximum than 1000. On a system
+with a maximum of 256 open files, this would most likely succeed at 120.
+
+<tt>maxchannel (0)</tt>
+   if retrying an address would cause the number of 
+simultaneously  active  transport agents processing mail for
+   the same channel to exceed  the  specified  value,  the
+   retry  is  postponed.  The check is repeated frequently
+   so the address may be retried as soon as possible after
+   the  scheduled  retry  interval.   If the value is 0, a
+   value of 1000 is used instead.
+
+<tt>maxring (0)</tt>
+   Recipients are groupped into ``threads'',  and  similar
+   threads  are groupped into ``thread-rings'', where the same
+   transport agent can be switched over from one recipient
+   to another.  This defines how many transport agents can
+   be running at any time at the ring.
+
+<tt>skew (5)</tt>
+   is the maximum number of retries before the retry  time
+   is aligned to a standard boundary (seconds since epoch,
+   modulo primary interval).  The lower this number (1  is
+   lowest), the faster the alignment is done.  The purpose
+   of this alignment is to ensure that eventually a single
+   transport agent invokation will be able to process 
+destination addresses that arrived randomly at the  scheduler.
+
+<tt>user (root)</tt>
+   is  the  user  id  of  a transport agent processing the
+   address.  The value is either numeric  (a  uid)  or  an
+   account name.
+
+<tt>group (daemon)</tt>
+   is  the  group  id  of a transport agent processing the
+   address.  The value is either  numeric  (a  gid)  or a
+   group name.
+
+<tt>command (smtp -srl &dollar;LOGDIR/smtp &dollar;host)</tt>
+   is  the command line used to start a transport agent to
+   process the address. The program pathname is specified
+   relative  to the  <tt>MAILBIN/ta</tt>  directory.   The  string
+   "&dollar;channel" is replaced by the current matched  channel,
+   and  "&dollar;host" is  replaced by the current matched host,
+   from the destination address, and "&dollar;LOGDIR" substitutes
+   ZENV variable LOGDIR value there.  It is strongly 
+recommended that the &dollar;host is not to be used on a  command
+   definition, as it limits the usability of the idled transporter.
+
+<tt>bychannel</tt>
+   is a keyword (with no associated value) that tells  the
+   scheduler  that  the transport  agent specified in the
+   command will only process  destination  addresses  that
+   match  the  first  destination  channel  it encounters.
+   This is automatically set when  the  string  "&dollar;channel"
+   occurs  in the command, but may also be specified manu-
+   ally by this keyword.  This is rarely used.
+
+<tt>queueonly</tt>
+   a clause with queueonly flag does not auto-start at the
+   arrival  of  a  message,  instead it must be started by
+   means of <tt>smtpserver(8)</tt> command ETRN thru an  SMTP  connection.
+
+       For example, this is a complete configuration file:
+
+<tscreen><verb>
+	    # Default values
+	    */*	      interval=1m expiry=3d retries="1 1 2 3 5 8 13 21 34"
+		      maxring=0 maxta=0 skew=5 user=root group=daemon
+	    # Boilerplate parameters for local delivery and service channels
+	    local/*   interval=10s expiry=3h maxchannel=2 command=mailbox
+	    error     interval=5m maxchannel=10 command=errormail
+	    hold/*    interval=5m maxchannel=1 command=hold
+
+	    # Miscellaneous channels supported by router configuration
+	    smtp/*.toronto.edu
+	    smtp/*.utoronto.ca maxchannel=10 maxring=2
+		      command="smtp -srl $LOGDIR/smtp"
+	    smtp      maxchannel=10 maxring=5
+		      command="smtp -esrl $LOGDIR/smtp"
+
+	    uucp/*    maxchannel=5 command="sm -c $channel uucp"
+</verb></tscreen>
+
+       The  first  clause  (*/*)  sets up default values for all
+       addresses.  There is no command specification,  so  clause
+       matching  will  continue  after address have picked up the
+       parameters set here.
+
+       The third clause (error) has an implicit host wildcard  of
+       '*',  so  it  would  match  the same as specifying error/*
+       would have.
+
+The fifth clause (<tt>smtp/*.toronto.edu</tt>) has no further  
+components so it selects the components of the following nonempty 
+clause (the sixth).
+
+Both the fifth and sixth clauses are specific  to  address
+destinations  within the TORONTO.EDU and UTORONTO.CA 
+organization (the two  are  parallel  domains).   At  most  10
+deliveries to the smtp channel may be concurrently active,
+and at most 2 for all possible hosts  within  TORONTO.EDU.
+If &dollar;host  is  mentioned in the command specification, the
+transport agent will only be told about the  message  control  
+files that indicate SMTP delivery to a particular
+host. The actual host is picked at random from the  current  
+choices, to avoid systematic errors leading to a deadlock of any queue.
+
+
+
+
+
+
+
+<sect1>sm Configuration
+<p>
+
+sm  is a ZMailer <em>sendmail</em> compatible transport agent which is usually only run
+by the <tt>scheduler(8)</tt>, to deliver messages  by  invoking a
+program with  facilities  and  in a way compatible with a
+<em>sendmail</em> mailer. The sm program must be run with the same
+current directory as the scheduler, namely <tt>POSTOFFICE/transport</tt>.
+
+The program scans the message control files named on stdin
+for addresses destined for the channel and/or the host
+given on the command line. If any are found, all matching
+addresses and messages are processed according to the
+specifications for the mailer in the configuration file.
+
+The exit status of a mailer should be one of the standard
+values specified in <tt>&lt;sysexits.h&gt</tt>;. Of these, 
+EX_OK indicates  successful  deliver,  and  EX_DATAERR,   EX_NOUSER,
+EX_NOHOST,  EX_UNAVAILABLE,  and EX_NOPERM indicate permanent failure.  
+All other exit codes will be treated  as a
+temporary failure and the delivery will be retried.
+
+Usage 
+
+<tt>sm &lsqb; -8HQV &rsqb; &lsqb; -f configfile &rsqb; 
+-c channel -h host mailer</tt>
+
+
+
+<bf>Configuration</bf>
+
+The configuration file <tt>MAILSHARE/sm.conf </tt> associates the 
+mailer keyword  from
+the command line with a specification of a delivery program.  
+This is very similar to the way the definition of a
+mailer in  <em>sendmail</em> requires flags, a program name, and a
+command line specification.  These are in fact the  fields
+of  the entries of the configuration file.  Lines starting
+with whitespace or a `<tt>&num;</tt>' are ignored, and all  
+others are assumed to follow this format:
+
+<tscreen><verb>
+       mailer	 flags	program			  argument list
+</verb></tscreen>
+
+       For example:
+
+<tscreen><verb>
+       local	 mS	sm/localm		  localm -r $g $u
+       prog	 -	/bin/sh			  sh -c $u
+       tty	 rs	/usr/local/to		  to $u
+       uucp	 U	/usr/bin/uux		  uux - -r -a$g -gC $h!rmail ($u)
+       usenet	 m	sm/usenet		  usenet $u
+       ean	 mn	/local/lib/ean/gwsmean	  gwsmean -d $u
+       test	 n	sm/test			  test $u
+</verb></tscreen>
+
+The mailer field extends from the beginning of the line to
+the first whitespace.  It is used simply as a key index to
+the configuration  file  contents.  Whitespace is used as
+the field separator for all the fields.
+
+The flags field contains  a  concatenation  of  one-letter
+flags.  If no flags are desired, a `<tt>-</tt>' character should be
+used to indicate presence of the field. All normal  <em>sendmail</em>  flags  are recognized, but the ones that do not make
+sense in the context of ZMailer will  produce  an  error.
+The flags that change the behaviour of sm are:
+
+<descrip>
+<tag/ <tt>b</tt>/ will activate BSMTP-type wrapping with a ``hidden-dot''
+algorithm; e.g. quite ordinary SMTP stream, but in ``batch mode''.
+
+<tag/ <tt>B</tt>/ The  first `<tt>B</tt>'  turns on similar BSMTP wrapping as
+`<tt>b</tt>', but adds SIZE and, if the sm is  started  with
+option `<tt>-8</tt>', also 8BITMIME options.  The second `<tt>B</tt>'
+adds there also DSN (Delivery Status  Notification) parameters.
+
+<tag/ <tt>E</tt>/ will prepend `&gt' to any message body line starting
+       with `<tt>From </tt>'.
+
+<tag/ <tt>f</tt>/ adds ``<tt>-f sender</tt>'' arguments to the delivery program.
+
+<tag/ <tt>n</tt>/ will not prepend a From-space line (normal mailbox
+separator line) to the message.
+
+<tag/ <tt>r</tt>/ adds ``<tt>-r sender</tt>'' arguments to the delivery program.
+
+<tag/ <tt>S</tt>/ will run the delivery program with the same real
+and effective uid as the sm process.  If this  flag
+is  not  set, the delivery program will be run with
+the real uid of the sm process. This may be useful if sm is setuid.
+
+<tag/ <tt>m</tt>/ informs sm that each instance of the delivery program  
+can deliver to many destinations. This affects <bf>&dollar;u</bf> expansion 
+in the argument list, see below.
+
+<tag/ <tt>P</tt>/ prepends a Return-Path: header to the message.
+
+<tag/ <tt>U</tt>/ will prepend a From-space line, with a ``remote from
+myuucpname'' at the end, to the message. This is what is expected by remote 
+<tt>rmail(1)</tt> programs for incoming UUCP mail.
+
+<tag/ <tt>R</tt>/ use CRLF sequence as end-of-line sequence. Without
+it, will use LF-only end-of-line sequence.
+
+<tag/ <tt>X</tt>/ does SMTP-like ``hidden-dot'' algorithm  of doubling
+all dots that are at the start of the line.
+
+<tag/ <tt>7</tt>/ will strip (set to 0) the 8th bit of every character in the 
+message.
+</descrip>
+
+The path field specifies the location of the delivery program. Relative 
+pathnames are allowed and are relative to the <tt>MAILBIN/</tt> directory.
+
+The arguments field extends to the end of the line. It
+contains  whitespace separated  argv  parameters which may
+contain one of the following sequences:
+
+<descrip>
+<tag/ <tt>&dollar;g</tt>/ which is replaced by the sender address.
+
+<tag/ <tt>&dollar;h</tt>/ which is replaced by the destination host.
+
+<tag/ <tt>&dollar;u</tt>/ which is replaced by the recipient address.  If the
+<tt>-m</tt> mailer flag is set and there are several recipients for this 
+message, the argument containing  the <tt>&dollar;u</tt> will be replicated 
+as necessary for each recipient.
+</descrip>
+
+
+
+

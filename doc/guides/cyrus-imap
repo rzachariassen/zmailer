@@ -1,0 +1,73 @@
+971029/mea
+
+	For running CYRUS IMAP server as your local message store
+
+
+You need to modify/verify three (3) files:
+
+	$MAILSHARE/router.cf:
+	$MAILSHARE/scheduler.conf:
+	$MAILSHARE/sm.conf:
+
+
+In the router configuration there is a parameter, which controls on
+how the local addresses look when rewritten:
+
+------ $MAILSHARE/router.cf:
+  # Does our "local" channel accept domain (@) at the user part ?
+  # ZMailer's mailbox does accept.  If you use something else, and
+  # it doesn't accept, comment this away!
+  
+< localdoesdomain=1
+> #localdoesdomain=1
+------
+
+
+In the scheduler configuration we must leave clauses for "local/file*",
+and "local/pipe*" in front of "local/*" intact, as they handle things
+that CYRUS can not do by itself.  Then we continue by modifying the
+"local/*" clause to choose proper command:
+
+------ $MAILSHARE/scheduler.conf:
+  local/*
+	interval=5m
+	idlemax=9m
+	# Originally we had 3 hour expiry, but if your local system goes to
+	# a fizz (freezes, that is), your local mail may start to bounce
+	# before anybody notices anything...
+	expiry=3d
+	# want 20 channel slots, but only one HOST
+	maxchannel=15
+	maxring=5
+	#
+	# Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
+	# conversion on flight!
+<	command="mailbox -8"
+>	#command="mailbox -8"
+	# Or with CYRUS server the following might do:
+<	#command="sm -8c $channel cyrus"
+>	command="sm -8c $channel cyrus"
+	# Or with PROCMAIL as the local delivery agent:
+	#command="sm -8c $channel procm"
+-------
+
+And lastly, the sm configuration needs to be made sure it has specfication
+for "cyrus" so that "sm" knows what it needs to do, and where your CYRUS
+program is:
+
+------- $MAILSHARE/sm.conf:
+cyrus	Pn	/usr/cyrus/bin/deliver		deliver -e -m $h -- $u
+#		# CYRUS example from: Tom Samplonius <tom@sdf.com>
+-------
+
+
+These work with earlier versions of ZMailer too, provided that the router
+scripts recognize messages destined to files/pipes, and provides special
+versions for the "host" part of the address quad; namely "file." and "pipe."
+prefixes.
+
+Success reports with this guide have been received for:
+
+ZMailer:   -
+CMU CYRUS: -
+

@@ -1,0 +1,17 @@
+DESTDIR=/local/lib
+CFLAGS=-I/usr/include/bsd -I/usr/include/sun -g
+MANEXT=3
+MANDIR=/local/man/man$(MANEXT)
+
+all: libnfslock.a
+libnfslock.a: nfslock.o
+	ar cr libnfslock.a nfslock.o
+	ranlib libnfslock.a
+
+install: all
+	install -m 755 libnfslock.a $(DESTDIR)/
+#	ranlib -t $(DESTDIR)/libnfslock.a
+	install -c -m 0444 nfslock.man $(MANDIR)/nfslock.(MANEXT)
+
+clean:
+	rm -f *.[ao]

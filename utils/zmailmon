@@ -1,0 +1,51 @@
+#! /bin/sh
+#
+# Monitor zmailer activity and try to buzz people when something goes wrong.
+# Written by cks@utcs.utoronto.ca
+#
+PATH=/local/bin:/local/etc:$PATH; export PATH
+
+# people to send frantic plaintive whines to about the brokenness.
+PEOPLE="cks@hawkwind.utcs cks rayan pkern molnar glenn"
+# limits for how high the queues can reasonably be
+RQUEUE=2000
+SQUEUE=500;     # the scheduler is fast; the bottleneck is the router
+DQUEUE=1000;    # pretty high.
+TQUEUE=1000;    # also pretty high
+
+# save the report; we'll be checking for a lot of things.
+mailq -ss >/tmp/rep.$$ 2>&1
+
+# everything is aokay ... we think.
+host=`hostname`
+OK=1; MESSAGE="Zmailer is dead on $host"
+
+# Start checking:
+if fgrep -s "no daemon" /tmp/rep.$$; then OK=0; fi
+if fgrep -s "core dumped" /tmp/rep.$$; then OK=0; fi
+if fgrep -s "Connection refused" /tmp/rep.$$; then OK=0; fi
+
+# The above are all confirmed things. Now we'll get into the
+# intangibles.
+case "$OK" in
+        0) : no point in further checking;;
+        *)
+rmsgs=0`fgrep "in router queue" /tmp/rep.$$ | awk '{print $1}'`
+smsgs=0`fgrep "in scheduler queue" /tmp/rep.$$ | awk '{print $1}'`
+tmsgs=0`fgrep "in transport queue" /tmp/rep.$$ | awk '{print $1}'`
+dmsgs=0`fgrep "messages deferred" /tmp/rep.$$ | awk '{print $1}'`
+if [ "$rmsgs" -gt $RQUEUE ] ; then OK=0; fi
+if [ "$smsgs" -gt $SQUEUE ] ; then OK=0; fi
+if [ "$tmsgs" -gt $TQUEUE ] ; then OK=0; fi
+if [ "$dmsgs" -gt $DQUEUE ] ; then OK=0; fi
+case $OK in
+        0) MESSAGE="Zmailer queue(s) on $host are high -- check.";;
+esac
+esac
+
+# Now we actually buzz people.
+case $OK in
+        1) ;;
+        0) msg -m "$MESSAGE" $PEOPLE 2>/dev/null;;
+esac
+rm -f /tmp/rep.$$

@@ -1,0 +1,166 @@
+#!/bin/sh
+#
+# mailverify -- see where mail has come from, verifying host names as 
+#	we go.
+# [Check for bogons in Received headers -- davecb@nexus.yorku.ca]
+#
+ProgName=`basename $0`
+
+main() {
+	if [ $# -lt 1 ]; then
+		echo  "${ProgName} -- verify where mail has come from."
+		echo "Usage: $0 message"
+		exit 1
+	fi
+	for i in $*; do
+		echo "Traceback/verification of message $i:"
+		headers $i >/tmp/$$  
+		egrep -i 'From:|Sender:|Reply-to:' /tmp/$$ | \
+		egrep -vi '^In' | \
+		while read Keyword FirstToken SecondToken ThirdToken Rest; do
+			echo "    $Keyword $FirstToken $SecondToken $ThirdToken $Rest"
+		done
+		egrep 'Received' /tmp/$$ | \
+		while read Keyword FirstToken SecondToken ThirdToken Rest; do
+			parseReceived
+		done
+	done
+	rm /tmp/$$
+}
+
+#
+# parseReceived -- describe semantics of a received line
+#
+parseReceived() {
+	# Deal with run-together hostname/address.
+	if echo $SecondToken | grep -s '[[(]' ; then
+		ThirdToken=`expr "$SecondToken" : '^[^[(]*\(.*\)'`
+		SecondToken=`expr "$SecondToken" : '^\([^[(]*\).*'`
+	fi
+
+	# Strip off person@ from hostnames if present (I put
+	# these on pop mail --dave)
+	if echo $SecondToken | grep -s '@' ; then
+		HostName=`expr "$SecondToken" : '^.*@\(.*\)'`
+	else
+		HostName=$SecondToken
+	fi
+
+	# See if we have an address to verify.
+	HostAddr=`echo $ThirdToken | tr -d "()[]"`
+	# echo "    HostName=$HostName HostAddr=$HostAddr"
+	case "$HostAddr" in
+	[0-9]*.[0-9]*.[0-9]*.[0-9]*)
+		if verified $HostName $HostAddr; then
+			echo "    Received from: $HostName at $HostAddr [verified]"
+		else
+			echo "    BOGUS received from: `realName $HostAddr` at $HostAddr claiming to be $HostName"
+		fi
+		;;
+	*)	
+		echo "    Probably received from: $HostName $ThirdToken $Rest [unverifiable]";;
+	esac
+}
+
+#
+# realName -- look up a name for this address
+#
+realName() {
+	addr=$1
+
+	a=`expr "$addr" : '^[0-9]*\.[0-9]*\.[0-9]*\.\([0-9]*\)'`
+	b=`expr "$addr" : '^[0-9]*\.[0-9]*\.\([0-9]*\)\.[0-9]*'`
+	c=`expr "$addr" : '^[0-9]*\.\([0-9]*\)\.[0-9]*\.[0-9]*'`
+	d=`expr "$addr" : '^\([0-9]*\)\.[0-9]*\.[0-9]*\.[0-9]*'`
+	echo "set q=ptr
+$a.$b.$c.$d.in-addr.arpa " | nslookup 2>&1 | awk '
+	/host name/ {
+		print $5
+	}
+'
+}
+
+#
+# verified  -- see if this really was who it claimed
+#
+verified() {
+	name=$1
+	addr=$2
+
+	# Do an nslookup on name and see if it matches addr or mx.
+	arecord=`nslookup_a $name | tr -d " "`
+	mxrecord=`nslookup_mx $name | tr -d " "`
+	if [ "$addr" = "$arecord" ]; then
+		return 0
+	elif [ "$addr" = "$mxrecord" ]; then
+		return 0
+	else
+		# echo "name=$name, addr=$addr, A=$arecord MX=$mxrecord"
+		return 1;
+	fi
+}
+
+#
+# nslookup_a -- do an a-record ns lookup
+#
+nslookup_a() {
+	echo "$name" | nslookup 2>&1 | awk  '
+	BEGIN { 
+		FS = ":"
+		on = 0
+	}
+	/'$name'/ {
+		on = 1
+	}
+	/Address/ {
+		if (on) {
+			print $2
+		}
+	}
+'
+}
+
+
+#
+# nslookup_mx -- do an mx-record ns lookup
+#
+nslookup_mx() {
+	echo "set q=mx 
+$name" | nslookup 2>&1 | awk '
+	BEGIN { 
+		on = 0
+	}
+	/'$name'/ {
+		on = 1
+	}
+	/inet address/ {
+		if (on) {
+			print $5
+		}
+	}
+'
+}
+
+#
+# headers -- select out just the headers from a message
+#
+headers() {
+	name=$1
+
+	awk <$name '
+	BEGIN {
+		on = 1
+	}
+	/.*/ {
+		if (length == 0) {
+			on = 0
+		}
+		if (on) {
+			print $0
+		}
+	}
+'
+}
+
+
+main $*

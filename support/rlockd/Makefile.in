@@ -1,0 +1,37 @@
+#
+# makefile for in.rlockd
+#
+
+#
+# -DSTRICT=0	let anyone lock (default)
+#	  =1	read /etc/lock.equiv for permitted hosts
+# -DTIMEOUT=n	n is time out on reading requests in seconds, default 600
+# -DLOCKTIME=n	n in the time out time on waiting for a lock, default 120
+# -DINETD=0	run as standalone daemon
+#	 =1	run from INETD (default)
+#
+DEFS=	-DSTDC_HEADERS -DHAVE_STRING_H -DHAVE_ALLOCA_H #-DXMEM -DMALLOC_TRACE
+BINDIR=/local/etc
+MANEXT=8
+MANDIR=		/usr/local/man
+INSTALL=	/usr/ucb/install
+
+CFLAGS= -O $(DEFS)
+
+all:	in.rlockd
+
+in.rlockd: in.rlockd.o ../../lib/libz.a
+	$(CC) $(CFLAGS) -o $@ in.rlockd.o ../../lib/libz.a
+
+../../lib/libz.a:
+	cd ../../lib ; $(MAKE) $(MFLAGS)
+
+install: in.rlockd
+	$(INSTALL) -c -s -m 755 in.rlockd $(BINDIR)
+	$(INSTALL) -c -m 444 in.rlockd.man $(MANDIR)/in.rlockd.$(MANEXT)
+
+dlint: in.rlockd.c
+	lint $(DEFS) in.rlockd.c
+
+clean:
+	rm -f *.o in.rlockd make.out

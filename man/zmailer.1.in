@@ -1,0 +1,176 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH ZMAILER 1 "6 Oct 1994"
+.SH NAME
+zmailer \- zmailer control script
+.SH SYNOPSIS
+.B zmailer
+[
+.B kill
+|
+.B nuke
+]
+[
+.B router
+]
+[
+.B scheduler
+]
+[
+.B smtpserver
+]
+[
+.B newaliases
+]
+[
+.B resubmit
+]
+[
+.B bootclean
+]
+[
+.B cleanup
+]
+[
+.B freeze
+]
+[
+.B thaw|unfreeze
+]
+.SH DESCRIPTION
+.I zmailer
+is the quick interface to starting and stopping the local mail daemons.
+There are three daemons, called the
+.IR router ,
+the
+.IR scheduler ,
+and the
+.IR smtpserver .
+.PP
+The
+.IR router 's
+home directory is \fIPOSTOFFICE\fB/router\fR, which it scans
+every 15 idle seconds for newly submitted message files.  The
+.I router
+determines what to do with a message.  It will typically send it on to
+the
+.I scheduler
+queue.  This is maintained in the \fIPOSTOFFICE\fB/scheduler\fR directory,
+which is also the working directory of the
+.I scheduler
+and its transport agents.  The
+.I scheduler
+process is what listens to the
+.B mailq
+TCP port for queries from the
+.I mailq
+program used to examine the state of the transport queues.
+.SH OPTIONS
+Invoking
+.I zmailer
+without any argument is equivalent to giving the three arguments:
+.B router
+.B scheduler
+.BR smtpserver .
+Invoking
+.I zmailer
+with only one argument,
+.BR kill ,
+is equivalent to invoking it with the four arguments:
+.B kill
+.B router
+.B scheduler
+.BR smtpserver .
+The arguments specify actions to take in sequence:
+.IP \fBfreeze\fR
+sets a flag so that latter options/executions of the
+.I zmailer
+script need at first an
+.B unfreeze
+to allow restart of various subprograms.
+The goal is to keep automatically restarting systems from
+starting up a mailer when there is a maintance going on.
+.IP \fBunfreeze\fR
+clears the flag that
+.B freeze
+did set.
+Has an alias:
+.BR thaw .
+.IP \fBkill\fR
+sets a flag so that when the following arguments are executed, the
+relevant process will be shut down gracefully, as opposed to restarted.  If
+.B kill
+is the last (or only) argument, it will terminate all three daemons.
+.IP \fBnuke\fR
+is like
+.B kill
+except the processes are shut down with the KILL signal.
+.IP \fBrouter\fR
+will start up (or shut down if after a
+.BR kill )
+a new
+.I router
+daemon.
+.IP \fBscheduler\fR
+will start up (or shut down if after a
+.BR kill )
+a new
+.I scheduler
+daemon.
+.IP \fBsmtpserver\fR
+will start up (or shut down if after a
+.BR kill )
+a new SMTP server daemon.
+.IP \fBnewaliases\fR
+will run the script to recreate the alias database from the
+\fIMAILSHARE\fB/db/aliases\fR file.
+.IP \fBresubmit\fR
+moves messages from the \fIPOSTOFFICE\fB/deferred\fR directory to the
+\fIPOSTOFFICE\fB/router\fR directory.  This should be run regularly by cron.
+.IP \fBbootclean\fR
+does any necessary boot-time cleanup.
+.IP \fBcleanup\fR
+gets rid of old files from the \fIPOSTOFFICE\fB/postman\fR and 
+\fIPOSTOFFICE\fB/public\fR directories.  This should be run once a day
+or week or month.
+.SH EXAMPLES
+To stop the currently running daemons:
+.sp
+.nf
+	zmailer kill
+.fi
+.sp
+At boot time, typically the following script fragment will be run
+to start up all the daemons:
+.sp
+.ta 0.5i 1i 1.5i 2.0i 2.5i
+.nf
+	. /etc/zmailer.conf
+	if [ -f $MAILSHARE/zmailer ]; then
+		$MAILSHARE/zmailer &
+			(echo -n ' zmailer')     >/dev/console
+	fi
+.fi
+.sp
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice (POSTOFFICE)
+.br
+.I /local/lib/mail/router (MAILBIN/router)
+.br
+.I /local/lib/mail/scheduler (MAILBIN/scheduler)
+.br
+.I /local/lib/mail/smtpserver (MAILBIN/smtpserver)
+.br
+.I /local/share/mail/newaliases (MAILSHARE/newaliases)
+.SH SEE ALSO
+router(8), scheduler(8), smtpserver(8), mailq(1), newaliases(1)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>
+.br
+Some extensions by:
+.br
+Matti Aarnio <mea@nic.funet.fi>

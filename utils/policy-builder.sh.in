@@ -1,0 +1,108 @@
+#! /bin/sh
+#
+# Sample smtp-policy-db builder script.
+#
+# This merges following files from $MAILVAR/db/ directory:
+#	smtp-policy.src
+#	localnames	  ('= _full_rights')
+#	smtp-policy.relay ('= _full_rights')
+#	smtp-policy.mx	  ('relaytargets +')
+#	smtp-policy.spam  ('= _bulk_mail')
+#
+# These all together are used to produce files:  smtp-policy.$DBEXT
+# The produced database retains the first instance of any given key.
+#
+
+FLAG=
+while getopts n c; do
+  case $c in
+    n)       FLAG=$c;;
+    ?)       exit 2;;
+  esac
+done
+shift `expr $OPTIND - 1`
+
+ZCONFIG=@ZMAILERCFGFILE@
+. $ZCONFIG
+
+umask 022
+
+cd $MAILVAR/db
+
+if [ ! -f smtp-policy.src ] ; then
+	echo "No $MAILVAR/db/smtp-policy.src input file"
+	exit 64 # EX_USAGE
+fi
+
+if [ f$FLAG != fn ]; then
+ if [ -x $MAILBIN/smtp-policy-retrieve.pl ] ; then
+   $MAILBIN/smtp-policy-retrieve.pl
+ else
+   lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
+     > smtp-policy.spam.new && mv smtp-policy.spam.new smtp-policy.spam
+ fi
+fi
+
+# Fork off a subshell to do it all...
+(
+  # The basic boilerplate
+  cat smtp-policy.src
+
+  # Localnames
+  cat localnames | \
+  awk '/^#/{next;} NF >= 1 {printf "%s = _full_rights\n",$1;}'
+
+  # smtp-policy.relay
+  # (Lists domains and networks that are allowed to use us as relay)
+  if [ -f smtp-policy.relay ] ; then
+    cat smtp-policy.relay | \
+    awk '/^#/{next;} NF >= 1 {printf "%s = _full_rights\n",$1;}'
+  fi
+
+  # smtp-policy.mx
+  # (Lists domains that are allowed to use us as inbound MX relay for them)
+  if [ -f smtp-policy.mx ] ; then
+    cat smtp-policy.mx | \
+    awk '/^#/{next;} NF >= 1 {printf "%s relaytarget +\n",$1;}'
+  fi
+
+  # smtp-policy.spam
+  # (Lists users, and domains that are known spam sources)
+  # (We use file from "http://www.webeasy.com:8080/spam/spam_download_table"
+  #  which is intended for QMAIL, and thus needs to be edited..)
+  if [ -f smtp-policy.spam ] ; then
+    cat smtp-policy.spam | tr "[A-Z]" "[a-z]" | sort | uniq | \
+    awk '/^@/{ # Domain, but ZMailer processes them without '@'
+	  printf "%s = _bulk_mail\n", substr($1,2);
+	  next;
+	}
+	{ # All other cases are usernames with their domains
+	  printf "%s = _bulk_mail\n", $1;
+	}'
+  fi
+
+# --------- end of subshell
+) > smtp-policy.dat
+
+umask 022 # Make sure the resulting db file(s) are readable by all
+
+$MAILBIN/makedb -p $DBTYPE smtp-policy-new smtp-policy.dat || exit $?
+
+case $DBTYPE in
+dbm)
+	mv smtp-policy-new.dir  smtp-policy.dir
+	mv smtp-policy-new.pag  smtp-policy.pag
+	;;
+ndbm)
+	mv smtp-policy-new.dir  smtp-policy.dir
+	mv smtp-policy-new.pag  smtp-policy.pag
+	;;
+gdbm)
+	mv smtp-policy-new.gdbm smtp-policy.gdbm
+	;;
+btree)
+	mv smtp-policy-new.db   smtp-policy.db
+	;;
+esac
+
+exit 0

@@ -1,0 +1,294 @@
+#!/local/lib/mail/router -dkf
+#
+# ZMailer 2 configuration file for cs.toronto.edu
+# (Computer Science,  ANT Research Computing Facility)
+#
+# The corresponding siteinfo.cf file is UToronto.cf
+#
+# The requirements for this configuration include:
+#
+#	- online (not remote) pathalias database
+#	- mailing list and .forward files may be private
+#	- ability to intercept mail to/from certain addresses
+#
+
+ZCONFIG=/etc/zmailer.conf
+
+#| The location of the program configuration information for ZMailer
+#| programs cannot be discovered or parameterized.  This defines the
+#| location.
+
+. $ZCONFIG
+
+#| Then immediately load the ``environment variables'' from that file.
+
+PATH=.:$MAILSHARE/cf:$MAILBIN/bin ; export PATH
+
+#| The MAILSHARE/cf directory is in the PATH so we can include
+#| configuration files without specifying an absolute pathname.
+#| The MAILBIN/bin directory is the conventional location for auxiliary
+#| programs.
+
+PS1=z$PS1
+
+#| Lets interactive users know this is not exactly a /bin/sh.
+
+# The transport preference order
+
+protocols='routes smtp ean uucp usenet'
+
+#| The list of protocols given here are exactly the list that will be
+#| supported in the configuration being loaded, and in the specified
+#| priority sequence.  These names are used to find and load the
+#| appropriate i-<name>.cf and p-<name>.cf files.  Routing will be
+#| checked using <name>_neighbour functions called in sequence.  The
+#| valid names are: routes, smtp, uucp, bitnet, ean, usenet.
+
+# We want .forward and mailing list files to be private, i.e., we ignore
+# the current privileges when checking the privileges of such files.
+# Don't add 'include' to this list, since anyone can :include: any file.
+
+#private='.forward maillist'
+
+#| This variable is used in the alias expansion (in the routeuser
+#| function) to determine how to use the privilege level associated with
+#| an address.  By default, any file read due to processing of an address
+#| must be readable by the privilege (a user id) associated with the
+#| address.  This means, for example, that $HOME/.forward files and
+#| mailing list files must be world readable (and home directories world
+#| executable) to be used by mail coming in from outside the machine.
+#| Circumventing this is a decrease in the information ``security'' of
+#| your mail setup, but may by some be considered an increase in the
+#| ``privacy'' of files on your system.  If you want files to be private
+#| and secure, the only way is to authenticate the query originator (who
+#| is asking) before you release any information, including expanding a
+#| private mail alias.
+
+# Save illegal-syntax addresses in a log file for later analysis
+
+erraddron $POSTOFFICE/postman/ERRADDRLOG
+
+#| We collect bad address forms.  You are unlikely to want to do this.
+
+# Set up the dependency checking
+
+. consist.cf
+
+#| The consist.cf file defines two functions, provide and require, that
+#| can be used to declare and check dependencies between modules
+#| (configuration files).
+
+require siteinfo router crossbar process server
+
+#| The modules we require here are the configuration files whose contents
+#| are essential to the proper functioning of the router.
+
+# The following are standard setup files and must be loaded in this order
+
+. standard.cf
+
+#| This file sets up logging, some standard databases, and defines the
+#| router shell function.  See the description of standard.cf for more
+#| information.
+
+. trusted.cf
+
+#| The default set of user ids trusted to forge mail is defined in the
+#| router C code configuration file.  This set is kept in the "trusted"
+#| incore database, and can be modified at runtime.  Any desired
+#| modifications to the list of trusted ids are done now when including
+#| trusted.cf.
+
+# Load the databases so they and the variables defined (e.g. network-specific
+# node names for this host) can be used in the site specific configuration.
+
+for method in $protocols
+do
+	test -f $MAILSHARE/cf/i-${method}.cf && . i-${method}.cf
+done
+
+#| Having a i-<name>.cf file is optional for any particular <name> from
+#| the list in the "protocols" variable.  If one exists it will be loaded
+#| here.  By convention, these files should only contain relation
+#| (database) definitions or definitions of functions that are used like
+#| a relation would be.  This is to avoid introducing cross-dependencies
+#| between the various files that make it necessary to load them in a
+#| particular order.  It is likely that the organizational setup, loaded
+#| next, will use some of the databases referred to in the i-<name>.cf
+#| files.
+
+. UToronto.cf		# <===== customize this for your organization
+
+#| At this point we must define variables containing our hostname, domain
+#| name, etc.  These, or derived values, may be needed by configuration
+#| code in the files yet to be loaded or core that we will put inline at
+#| the bottom of this file.  The file loaded here should be a modified
+#| copy of the SITEINFO.CF file.  The name you see is the name used at
+#| the University of Toronto.
+
+#| In addition to the definitions in zmailer.conf, the variables defined
+#| by here must be:
+
+#|     orgdomain        default domain name for unqualified host names
+#|              e.g., toronto.edu
+#|     orgdomains       the organizational domains this host is in
+#|              e.g., toronto.edu|toronto.csnet
+#|     hostname the official primary hostname of this host
+#|              e.g., relay.cs.toronto.edu
+#|     mydomain the domain name used for locally originated mail
+#|              e.g., cs.toronto.edu
+#|     toplevels        a list of top level domains we will not canonicalize
+#|              e.g., - (to disable), or edu|gov|mil|net
+
+# The organizational 'world' subdomain may contain MX RRs that override
+# those available on the Internet at large.
+
+# world=world.$orgdomain
+
+#| This, if enabled, provides an organization-wide shared database of
+#| domains for which we have alternate routes than those advertised on
+#| the Internet.  Typically the MX values would point at an internal
+#| gateway machine that will forward mail for such a domain through a
+#| non-Internet link.  The algorithm for a particular domain a.b.c is to
+#| first look up a.b.c.world.$orgdomain and use any MX values found
+#| there, and then if none are found to look up a.b.c directly.
+
+# At the University of Toronto, the pathalias database is accessible through
+# the nameserver.  This declares the magic domain it sits under.
+
+if [ ! -f $MAILVAR/db/pathdb.dir ]; then
+	paworld=world.$orgdomain
+fi
+
+#| A shared pathalias database is available to all internal hosts at the
+#| University of Toronto.  This enables some redefinitions of how to
+#| access the pathalias database.  We are trying to move away from this
+#| mechanism.
+
+# From here on you can pick the order
+
+. aliases.cf
+. canon.cf
+. rrouter.cf
+. crossbar.cf
+
+#| These included configuration files define how to route, alias expand,
+#| and rewrite addresses.  They use other manipulation functions that are
+#| specific to the varius message transfer protocols.
+
+for method in $protocols
+do
+	. p-${method}.cf
+done
+
+#| Such functions are usually defined in the p-*.cf files.
+
+. process.cf
+
+#| The process.cf file contains the toplevel protocol multiplexor
+#| function.  It defines that numeric file names in the router directory
+#| should be parsed and processed as RFC822 format messages.
+
+. server.cf
+
+#| The server.cf file contains the functions used by the smtpserver
+#| program to do synchronous address verification, if enabled.
+
+# With everything now loaded, we can do host-specific function (re)definition.
+
+#intercept (address) {
+#	case "$(smtp_useratdomain "$address")" in
+#	*@host1*)	return (file /var/scr/host1) ;;
+#	*@host2*)	return (file /var/scr/host2) ;;
+#       *@host3*)	return (drop) ;;
+#	*@host4*)	return (file /var/scr/host4) ;;
+#	bitftp*@*)	return (error bounce) ;;
+#	esac
+#
+#	return 1
+#}
+
+#| This illustrates how to set up general access controls.  If an
+#| instance (a sender - recipient pair) should be intercepted, a list is
+#| returned containing a predefined function and an appropriate
+#| parameter.  Otherwise this function should fail.  This is a simple way
+#| of providing various forms of access control.
+
+# At this point we may redefine the dns_neighbour function
+
+#dns_neighbour (host) {
+#	local a
+#	#
+#	# A successful return indicates that this host can be delivered to
+#	# via the Internet DNS information.  This means we need to factor
+#	# out .CA subdomains that don't have an Internet forwarder.
+#	#
+#
+#	tsift "$host" in
+#	.+\.world\..+
+#		a=$(mxhosts $host || ipaddress $host)
+#		break ;;
+#	.+\.($toplevels).?
+#		# cover functional Internet toplevel domains
+#		return 0 ;;
+#	tfist
+#	# cover ISO Alpha-2 toplevel domains (can be done more precisely...)
+#	case "$host" in
+#	*.??|*.??.)	return 0 ;;
+#	esac
+#	return 1
+#}
+
+#| Sometimes busy gateways may redefine this function to avoid the
+#| real-time overhead of nameserver lookups.  In this configuration, any
+#| serious domain name mistakes will be caught by the SMTP transport
+#| agent, so doing this is relatively innocuous.  Not recommended.
+
+ean_useratdomain (address) {
+	address=$(smtp_useratdomain "$address")
+	tsift "$address" in
+	(.*)\.toronto\.edu	return "\1.utoronto.ca" ;;
+	tfist
+	return "$address"
+}	# end of ean_useratdomain
+
+#| We wish to use a particular form of our organizational domain name on
+#| mail to the CDNnet network.
+
+# to disable pathalias stuff, define this:
+#uucp_neighbour (domain, address, A) { return 1 }
+
+#if [ x$paworld != x ]; then
+#	# This stuff is very specific to our setup at UofT
+#
+#	relation -t bind,mp mailpath		# T_MP pathalias lookup
+#
+#	uucp_neighbour (domain, address, A) {
+#		local tmp
+#		# FIX THIS! Beware of loops due to pathalias database
+#		# and local neighbour knowledge being out of sync.
+#		# Non-neighbours
+#		tmp="$(mailpath "$domain".$paworld.)"
+#		if [ "$tmp" ]; then
+#			address=$(uucproute "$address")
+#			# we cache, remember...
+#			tmp=$(uucproute "$tmp")
+#			tsift "$tmp" in
+#			[^!]+	if [ $(deliver "$tmp") ]; then
+#					return (((error database "$address" $A)))
+#				fi ;;
+#			tfist
+#			return $(rrouter "$tmp!$address" $A)
+#		fi
+#	}
+#fi
+
+#| This is where the paworld variable controls how to access the
+#| pathalias database.  It illustrates the extent of host-specific
+#| modifications that are possible without changing any other
+#| configuration files.
+
+consist || exit 1
+
+#| The final command checks that we have "provide"d everything that has
+#| been "require"d.

@@ -1,0 +1,5979 @@
+%!PS-Adobe-3.0
+%%Creator: A2ps version 4.3
+%%CreationDate: Fri Jun 27 13:52:59 1997
+%%Pages: (atend)
+%%DocumentFonts: Courier Courier-Bold Helvetica Helvetica-Bold
+%%EndComments
+% Copyright (c) 1993, 1994, Miguel Santana, M.Santana@frgu.bull.fr
+
+/$a2psdict 100 dict def
+$a2psdict begin
+
+% General macros.
+/xdef {exch def} bind def
+/getfont {exch findfont exch scalefont} bind def
+
+% Set up ISO Latin 1 character encoding
+/reencodeISO {
+	dup dup findfont dup length dict begin
+	{ 1 index /FID ne { def }{ pop pop } ifelse
+	} forall
+	/Encoding ISOLatin1Encoding def
+	currentdict end definefont
+} def
+/Helvetica-Bold reencodeISO def
+/Helvetica reencodeISO def
+/Courier reencodeISO def
+/Courier-Bold reencodeISO def
+
+% Create Courier backspace font
+/backspacefont {
+    /Courier findfont dup length dict begin
+	{ % forall
+	    1 index /FID eq { pop pop } { def } ifelse
+	} forall
+	currentdict /UniqueID known { % if
+	    /UniqueID UniqueID 16#800000 xor def
+	} if
+	CharStrings length 1 add dict begin
+	    CharStrings { def } forall
+	    /backspace { -600 0 0 0 0 0 setcachedevice } bind def
+	    currentdict
+	end
+	/CharStrings exch def
+	/Encoding Encoding 256 array copy def
+	Encoding 8 /backspace put
+	currentdict
+    end
+    definefont pop
+} bind def
+
+% FUNCTIONS
+
+% Function filename: Initialize file printing.
+/fn
+{ /filenm xdef
+  /filenmwidth filenm stringwidth pop def
+  /filenmfont
+       filenmwidth fns gt
+       {
+	       filenmfontname
+	       fnfs fns mul filenmwidth div
+	     getfont
+       }
+       { sfnf }
+     ifelse
+  def
+} bind def
+
+% Function header: prints page header. no page
+% is passed as argument.
+/hp
+  { x sd get  y sd get hs sub 1 add  moveto
+    df setfont
+    gsave
+      x sd get y sd get moveto
+      0 hs 2 div neg rmoveto 
+      hs setlinewidth
+      0.95 setgray
+      pw 0 rlineto stroke
+    grestore
+    gsave
+      dfs hm rmoveto
+      d show				% date/hour
+    grestore
+    gsave
+      pnum cvs pop				% page pop up
+        pw (Page 999) stringwidth pop sub
+        hm
+	  rmoveto
+      (Page ) show pnum show		% page number
+    grestore
+    empty pnum copy pop
+    gsave
+      filenmfont setfont
+         fns filenm stringwidth pop sub 2 div dw add
+          bm 2 mul 
+        add 
+        hm
+      rmoveto
+        filenm show			% file name
+      grestore
+    } bind def
+
+% Function border: prints border page
+/border 
+{ x sd get y sd get moveto
+  gsave				% print four sides
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function hborder: completes border of the header.
+/hborder 
+{ gsave
+	0.7 setlinewidth
+	0 hs neg rmoveto
+	pw 0 rlineto
+	stroke
+  grestore
+} bind def
+
+% Function sheetnumber: prints the sheet number.
+/sn
+    { snx sny moveto
+      df setfont
+      pnum cvs
+	  dup stringwidth pop (0) stringwidth pop sub neg 0 rmoveto show
+      empty pnum copy pop
+    } bind def
+
+% Function loginprint: prints the login id of the requestor.
+/lgp
+    { lx ly moveto
+      df setfont
+      dup stringwidth pop neg 0 rmoveto show
+    } bind def
+
+% Function currentdate: prints the current date.
+/cd
+    { dx dy moveto
+      df setfont
+      (Printed: ) show
+      td show
+    } bind def
+
+% Function filename_footer: prints the file name at bottom of page.
+/fnf
+    { fnx fny moveto
+      df setfont
+      filenm center show
+    } bind def
+
+% Function center: centers text.
+/center
+    { dup stringwidth pop
+      2 div neg 0 rmoveto
+    } bind def
+
+% Function s: print a source line
+/s  { show
+      /y0 y0 bfs sub def
+      x0 y0 moveto
+    } bind def
+
+% Functions b and st: change to bold or standard font
+/b  { show
+      bdf setfont
+    } bind def
+/st { show
+      bf setfont
+    } bind def
+
+% Strings used to make easy printing numbers
+/pnum 12 string def
+/empty 12 string def
+
+% Global initializations
+
+/CourierBack backspacefont
+/filenmfontname /Helvetica-Bold def
+/inch {72 mul} bind def
+
+%
+% Meaning of some variables and functions (coded names)
+%
+%	twp:		twinpages?
+%	sd:		sheet side
+%	l:		line counter
+%	c:		column counter
+%	d:		date
+%	td:		current date (for today)
+%	lg:		login name
+%	fn:		filename printing function
+%	sn:		sheetnumber printing function
+%	cd:		current date printing function
+%	fnf:		filename footer printing function
+%	lgp:		login printing function
+%	hp:		header printing function
+%	y:		y coordinate for the logical page
+%	x:		x coordinate for the logical page
+%	sny:		y coordinate for the sheet number
+%	snx:		x coordinate for the sheet number
+%	dy:		y coordinate for the date
+%	dx:		x coordinate for the date
+%	ly:		y coordinate for the login
+%	lx:		x coordinate for the login
+%	scx:		x coordinate for the sheet center
+%	fny:		y coordinate for the filename (footer)
+%	fnx:		x coordinate for the filename (footer)
+%	fnfs:		filename font size
+%	bfs:		body font size
+%	dfs:		date font size
+%	bfs:		body font size
+%	df:		date font
+%	bf:		body font
+%	bdf:		bold font
+%	sfnf:		standard filename font
+%	dw:		date width
+%	pw:		page width
+%	sw:		sheet width
+%	ph:		page height
+%	sh:		sheet height
+%	hm:		header margin
+%	tm:		top margin
+%	bm:		body margin
+%	rm:		right margin
+%	lm:		left margin
+%	hs:		header size
+%	fns:		filename size
+
+% Initialize page description variables.
+/x0 0 def
+/y0 0 def
+/sh 11.64 inch def
+/sw 8.27 inch def
+/margin 1.4 inch def
+/rm margin 3 div def
+/lm margin 2 mul 3 div def
+/d () def
+/td (Jun 27 1997 13:52) def
+/lg (Printed by mea from mea) def
+%%EndProlog
+
+/docsave save def
+%%Page: 1 1
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+1 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                S/SL: SYNTAX/SEMANTIC LANGUAGE) s
+( ) s
+(                INTRODUCTION AND SPECIFICATION) s
+( ) s
+(                       Richard C. Holt) s
+(                        James R. Cordy) s
+(                       David B. Wortman) s
+( ) s
+(                  Technical Report CSRG-118) s
+(                        September 1980) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(               Computer Systems Research Group) s
+(                    University of Toronto) s
+(                       Toronto, Canada) s
+(                           M5S 1A1) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( The Computer Systems Research Group \(CSRG\) is an interdisci-) s
+( plinary group formed to  conduct  research  and  development) s
+( relevant  to  computer systems and their application.  It is) s
+( jointly administered by the Department of  Electrical  Engi-) s
+( neering  and  the  Department  of  Computer  Science  of the) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+2 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( University of Toronto, and is supported in part by the Natu-) s
+( ral Sciences and Engineering Research Council of Canada.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+1 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 2 2
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+3 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                           FOREWORD) s
+( ) s
+(    This  report on S/SL represents several years of research) s
+( at CSRG on compiler development techniques.  S/SL  has  been) s
+( tried  under  considerable stress, in the development of the) s
+( Toronto Euclid compiler, and has been found  to  be  a  very) s
+( effective software tool.) s
+( ) s
+(    An  accompanying  technical report by Rosselet, CSRG-119,) s
+( presents a Pascal subset \(PT\) compiler developed using S/SL.) s
+( Persons  interested  in  using  S/SL for production work are) s
+( encouraged to study Rosselet's report and his compiler.  His) s
+( compiler  is  written  in  a highly readable style in the PT) s
+( subset of standard Pascal, using S/SL as  the  technique  to) s
+( drive each of three passes.) s
+( ) s
+(    This  report  consists of two separate papers.  The first) s
+( is an introduction to the S/SL language and technique.   The) s
+( second is a detailed specification of the S/SL language.) s
+( ) s
+(                                                   R.C. Holt) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+4 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                      AN INTRODUCTION TO) s
+( ) s
+(                S/SL: SYNTAX/SEMANTIC LANGUAGE) s
+( ) s
+( ) s
+(            R.C. Holt, J.R. Cordy and D.B. Wortman) s
+(                        December 1979) s
+(                     \(Revised June 1980\)) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(               Computer Systems Research Group) s
+(                    University of Toronto) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(    Copyright  \(C\)  1979,  1980 by the University of Toronto.) s
+( This work was supported in part by the Natural Sciences  and) s
+( Engineering  Research Council of Canada and by Bell-Northern) s
+( Research Limited.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+2 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 3 3
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+5 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                           ABSTRACT) s
+( ) s
+(    S/SL \(Syntax/Semantic Language\) is a  language  that  was) s
+( developed  for  implementing  compilers.  A subset called SL) s
+( \(Syntax Language\) has the same recognition  power  as  LR\(k\)) s
+( parsers.   Complete  S/SL  includes  invocation  of semantic) s
+( operations implemented in another language such as Pascal.) s
+( ) s
+(    S/SL implies a topdown programming methodology.  First, a) s
+( data-free  algorithm  is  developed  in S/SL.  The algorithm) s
+( invokes operations on  "semantic  mechanisms".   A  semantic) s
+( mechanism  is  an abstract object, specified, from the point) s
+( of view of the S/SL, only by the effect of  operations  upon) s
+( the  object.   Later,  the  mechanisms are implemented apart) s
+( from the S/SL program.  The separation of the algorithm from) s
+( the  data,  and the division of data into mechanisms simpli-) s
+( fies the  effort  needed  to  understand  and  maintain  the) s
+( resulting software.) s
+( ) s
+(    S/SL  has been used to construct compilers for Speckle \(a) s
+( PL/1 subset\), PT \(a Pascal subset\) and Toronto  Euclid.   It) s
+( has  been used to implement scanners, parsers, semantic ana-) s
+( lyzers and code generators.) s
+( ) s
+(    S/SL programs are  implemented  by  translating  them  to) s
+( tables  of  integers.  A "table walker" program executes the) s
+( S/SL program by interpreting this table.  The translation of) s
+( S/SL programs to tables is performed by a program called the) s
+( S/SL processor.  This processor serves a function  analogous) s
+( to an LR\(k\) parser generator.) s
+( ) s
+(    The  implementation  of  S/SL  is quite simple and highly) s
+( portable.  It is available in a very small subset of  Pascal) s
+( that can easily be transliterated into other high level lan-) s
+( guages.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 2\b2 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+6 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                         INTRODUCTION) s
+( ) s
+(    S/SL is a programming language developed at  the  Univer-) s
+( sity of Toronto as a tool for constructing compilers.  It is) s
+( a very modest language,  incorporating  only  the  following) s
+( features:  sequences,  repetitions and selections of actions) s
+( \(statements\); input, matching and output of  tokens;  output) s
+( of error signals; subprograms \(called rules\); and invocation) s
+( of semantic operations implemented in a base  language  such) s
+( as  Pascal.   S/SL is a language without data or assignment;) s
+( it is a pure control language [Cordy  1980].   Data  can  be) s
+( manipulated only via semantic operations.) s
+( ) s
+(    This  paper  is organized as follows.  We give a computa-) s
+( tional model for S/SL and a summary  of  features  of  S/SL.) s
+( Then,  example S/SL programs are given to illustrate the use) s
+( of S/SL in writing scanners, parsers, semantic analyzers and) s
+( code  generators.   We  discuss  the methodology of software) s
+( development used with S/SL.  Next, we give the  relation  of) s
+( S/SL  to  the theory of formal languages and automata.  This) s
+( is followed by a discussion of the implementation  of  S/SL.) s
+( Finally, we give observations concerning the use of S/SL.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 3\b3 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+3 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 4 4
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+7 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                   I. A COMPUTATIONAL MODEL) s
+( ) s
+( ) s
+(    S/SL  assumes  the computational model illustrated in the) s
+( following diagram.  There is an input stream  that  consists) s
+( of  tokens.  Each token is a member of a finite set, such as) s
+( the set of ASCII characters or the set of lexical constructs) s
+( in  Pascal  \(including  identifiers,  integers, keywords and) s
+( operators\).  The S/SL program reads \(accepts\) tokens one-by-) s
+( one  from  the  input  stream  and emits tokens to an output) s
+( stream.  It can also emit error signals to an error  stream.) s
+( Error  signals  are  analogous to tokens, but we do not call) s
+( them tokens to avoid confusion with  the  input  and  output) s
+( streams.   In  most applications of S/SL, each emitted error) s
+( signal is transformed into an error message.) s
+( ) s
+(               ___________________________________) s
+(               |                                 |) s
+(               |    |  | Return Stack            |) s
+(               |    |  |                         |     Output) s
+(               |    |__|   ______________        |     Stream) s
+(               |           |            | -----> | -------------->) s
+( ------------> | --------> |    S/SL    |        |) s
+(    Input      |           |  Program   | -----> | -------------->) s
+(    Stream     |           |____________|        |     Error) s
+(               |               A    |            |     Stream) s
+(               |               |    V            |) s
+(               |           ______________        |) s
+(               |           |            |        |) s
+(               |           |  Semantic  |        |) s
+(               |           | Mechanisms |        |) s
+(               |           |____________|        |) s
+(               |_________________________________|) s
+( ) s
+(                 Computational Model for S/SL) s
+( ) s
+( ) s
+(    The S/SL program transduces \(translates\) its input stream) s
+( into  an  output  stream.   For example, a parser written in) s
+( S/SL reads a stream of tokens produced by a scanner and gen-) s
+( erates an output stream to be consumed by the semantic anal-) s
+( ysis pass of the compiler.  Likewise, a scanner  written  in) s
+( S/SL  reads  a  stream  of characters \(its input tokens\) and) s
+( emits a stream of tokens to be consumed by the parser.) s
+( ) s
+(    An S/SL program is a  set  of  possibly  recursive  rules) s
+( \(subprograms\).   To  support this recursion, the implementa-) s
+( tion uses an implicit stack of return addresses, to allow  a) s
+( called rule to return to the appropriate calling point.  The) s
+( return stack is of little interest except that in  terms  of) s
+( automata  theory  it  corresponds to the stack of a pushdown) s
+( automaton.) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 4\b4 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+8 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(    Besides controlling the input  and  output  streams,  the) s
+( S/SL  program  can manipulate data using semantic operations) s
+( that are organized into modules called _\bs_\be_\bm_\ba_\bn_\bt_\bi_\bc  _\bm_\be_\bc_\bh_\ba_\bn_\bi_\bs_\bm_\bs.) s
+( The interface to each semantic mechanism is defined in S/SL,) s
+( but the implementation is  hidden.   The  implementation  is) s
+( done separately in a base language such as Pascal.  The S/SL) s
+( program invokes semantic operations to inspect or manipulate) s
+( data,  but  has  no  other access to data.  It has no direct) s
+( data handling capabilities such as assignment or comparison.) s
+( ) s
+(    The symbol table is the most important semantic mechanism) s
+( in a typical compiler.   In  building  a  semantic  analysis) s
+( pass, one would define this semantic mechanism by specifying) s
+( operations such as the following:) s
+( ) s
+(           Enter a symbol into the symbol table) s
+(           Look up a symbol in the symbol table) s
+(           Start a new scope in the symbol table) s
+(           Finish a scope in the symbol table) s
+( ) s
+( The S/SL programmer need not be directly concerned with  the) s
+( implementation  of the operations.  In writing his S/SL pro-) s
+( gram he needs to know only  their  meaning  \(specification\).) s
+( This  is  analogous  to specifying an abstract data type and) s
+( using it without being concerned with its implementation.) s
+( ) s
+(    In certain instances a semantic mechanism  \(or  at  least) s
+( its  data\) may be preserved beyond the termination of a par-) s
+( ticular S/SL  execution.   For  example,  one  pass  of  the) s
+( Toronto  Euclid  compiler  [Holt  1978, CSRG 1980] creates a) s
+( symbol/type table that is used by successive passes.) s
+( ) s
+(    A parser pass of a  compiler  may  not  require  semantic) s
+( mechanisms, because S/SL without semantic mechanisms is pow-) s
+( erful enough to do syntax checking.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 5\b5 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+4 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 5 5
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+9 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                     II. FEATURES OF S/SL) s
+( ) s
+( ) s
+(    First we will describe the features of SL, which is  S/SL) s
+( without  semantic mechanisms.  Each SL program consists of a) s
+( list of executable rules.  Each rule consists of a name,  an) s
+( optional return type and a sequence of actions \(statements\).) s
+( Each rule has one of these two forms:) s
+( ) s
+(           name: actions;) s
+( ) s
+(           name >> type: actions;) s
+( ) s
+( A rule with the first form is called  a  _\bp_\br_\bo_\bc_\be_\bd_\bu_\br_\be  rule;  a) s
+( rule  with  the  second form is called a _\bc_\bh_\bo_\bi_\bc_\be rule.  These) s
+( two forms are analogous to procedures and functions in  Pas-) s
+( cal.   Execution begins with the first rule of the S/SL pro-) s
+( gram, which must be a procedure rule.  A rule  returns  when) s
+( it  reaches  its  end  \(;\)  or it encounters a return action) s
+( \(written >>\).  A choice rule returns a value in  its  speci-) s
+( fied type \(a range\), which is tested in a choice action \(see) s
+( below\).) s
+( ) s
+( ) s
+(                    Summary of SL Actions) s
+( ) s
+(    There are only eight different  actions  \(statements\)  in) s
+( SL. These are now described.) s
+( ) s
+( 1.  The _\bi_\bn_\bp_\bu_\bt \(or _\bm_\ba_\bt_\bc_\bh\) action.  The appearance of an input) s
+( token in a rule signifies that the next input should be read) s
+( and  must  match the specified token.  For example, the fol-) s
+( lowing specifies that the next item in the input  stream  is) s
+( to be read and it must be an integer token:) s
+( ) s
+(           integer) s
+( ) s
+( The  appearance  of a question mark in a rule signifies that) s
+( the next token \(whatever it  is\)  is  to  be  read.   The  ?) s
+( matches any token.) s
+( ) s
+( 2. The _\be_\bm_\bi_\bt action.  The appearance of a dot \(a period\) fol-) s
+( lowed by an output token signifies that the token is  to  be) s
+( emitted to the output stream, for example:) s
+( ) s
+(           .add) s
+( ) s
+( causes an add token to be emitted to the stream.) s
+( ) s
+( 3.  The  _\be_\br_\br_\bo_\br  action.  The appearance of the symbol # fol-) s
+( lowed by an error signal signifies that the error signal  is) s
+( to be emitted to a special error stream, for example:) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 6\b6 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+10 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(           #missingSemicolon) s
+( ) s
+( The  signal  called  missingSemicolon is output to the error) s
+( stream; presumably this stream is used to print  error  mes-) s
+( sages.) s
+( ) s
+( 4. The _\bc_\by_\bc_\bl_\be action.  Each cycle is of the form:) s
+( ) s
+(      {) s
+(         actions) s
+(      }) s
+( ) s
+( The enclosed actions are repeated until a return \(>>\) or one) s
+( of the cycle's exits \(>\) is encountered.) s
+( ) s
+( 5. The _\be_\bx_\bi_\bt construct.  The appearance of the symbol >  sig-) s
+( nifies exit from the most tightly enclosing cycle.) s
+( ) s
+( 6. The _\bc_\bh_\bo_\bi_\bc_\be action.  The _\bc_\bh_\bo_\bi_\bc_\be action is of the form:) s
+( ) s
+(      [ selector) s
+(         | labels:) s
+(            actions) s
+(         | labels:) s
+(            actions) s
+(            ...) s
+(         | *:) s
+(            actions) s
+(      ]) s
+( ) s
+( The  selector  is  optional.   If  it is omitted, we have an) s
+( _\bi_\bn_\bp_\bu_\bt _\bc_\bh_\bo_\bi_\bc_\be, which tries to match the next input  token  to) s
+( one  of  the  labels.   The selector can also be of the form) s
+( @identifier where "identifier" is the name of a choice rule;) s
+( this  gives  us a _\br_\bu_\bl_\be _\bc_\bh_\bo_\bi_\bc_\be.  In a rule choice, the speci-) s
+( fied rule is called and then the choice tries to  match  the) s
+( returned  value  to  one  of  the  labels.   There is also a) s
+( _\bs_\be_\bm_\ba_\bn_\bt_\bi_\bc _\bc_\bh_\bo_\bi_\bc_\be, in which the selector  is  the  name  of  a) s
+( semantic operation; semantic choices are in S/SL, but not in) s
+( SL.  The actions associated with the matched label are  exe-) s
+( cuted;  if  no  label  is  matched,  the  final alternative,) s
+( labelled by the star \(*\), is executed.) s
+( ) s
+(    The otherwise clause:) s
+( ) s
+(      | *:) s
+(         actions) s
+( ) s
+( is optional.  If omitted, the selector _\bm_\bu_\bs_\bt match one of the) s
+( choice's  labels \(otherwise there is an error\).  In an input) s
+( choice, the matching of the input token to a label  has  the) s
+( side-effect  of  reading  another token; if the token is not) s
+( matched and the otherwise clause is selected,  then  reading) s
+( ) s
+( ) s
+(                             -\b- 7\b7 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+5 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 6 6
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+11 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( is _\bn_\bo_\bt done.) s
+( ) s
+(    Each  alternative  in  a  choice can have several labels,) s
+( separated by commas; for example, this  alternative  has  as) s
+( labels the tokens plus and minus:) s
+( ) s
+(      | '+', '-':) s
+(         integer) s
+( ) s
+(    Each  label  in  a  given choice construct must be of the) s
+( same type as the selector, and each label of the choice must) s
+( be  a distinct value.  For input choices, the labels must be) s
+( input tokens.  For rule choices, the labels must be  of  the) s
+( type returned by the rule, for example) s
+( ) s
+(      [ @OptionalExpression) s
+(         | true:) s
+(            actions) s
+(         | false:) s
+(            actions) s
+(      ]) s
+( ) s
+( where the range of OptionalExpression is Boolean.) s
+( ) s
+(    When writing a parser it is common to use an input choice) s
+( that accepts a particular limited set  of  tokens,  with  no) s
+( otherwise  clause.   We  do this in spite of the fact that a) s
+( syntax error may cause the next input token to fall  outside) s
+( this set.  When the next token is not acceptable, we rely on) s
+( error handling logic to either abort the SL  program  or  to) s
+( repair  the  input  stream  to  be  acceptable  by the input) s
+( choice.  The usual repair strategy  is  to  take  the  first) s
+( choice  in  case  of  such an error, and to modify the input) s
+( stream accordingly.) s
+( ) s
+( 7. The _\bc_\ba_\bl_\bl action.  The appearance of the symbol @ followed) s
+( by  the  name of a procedure rule signifies that the rule is) s
+( to be called. For example, here is a call to the  Expression) s
+( rule:) s
+( ) s
+(      @Expression) s
+( ) s
+( 8.  The  _\br_\be_\bt_\bu_\br_\bn  action.   The symbol >> in a rule signifies) s
+( return before reaching the  end  of  the  rule.   In  choice) s
+( rules,  the  >>  must  be  followed by a value in the rule's) s
+( specified return type, and implicit  return  via  the  final) s
+( semicolon is not allowed.  In procedure rules, the return >>) s
+( cannot be followed by a value.  Usually >> is  not  used  in) s
+( procedures  because  return  is  implicit  at the end of the) s
+( rule.  Here  is  a  choice  rule,  OptionalExpression,  that) s
+( returns true if the next token is the end-of-file; otherwise) s
+( it parses an expression and returns false.) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 8\b8 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+12 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(      OptionalExpression >> Boolean:) s
+(         [) s
+(            | eof:) s
+(               >> true) s
+(            | *:) s
+(               @Expression) s
+(               >> false) s
+(         ];) s
+( ) s
+(    This completes a summary  of  the  actions  in  SL.   The) s
+( actions  in  S/SL are the same with the addition of calls to) s
+( semantic operations.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 9\b9 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+6 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 7 7
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+13 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                      Definitions in SL) s
+( ) s
+(    We need to make certain definitions that are used  by  SL) s
+( rules.   In  particular  we need to specify the set of input) s
+( tokens, the set of output tokens, the set of  error  signals) s
+( and  the  set of values returned by each choice rule \(and by) s
+( each semantic operation\).  Each of these sets is defined  by) s
+( enumerating  the  names of their members; this is similar to) s
+( defining enumerated types in Pascal.  For example:) s
+( ) s
+(           input:              % Input tokens) s
+(              integer) s
+(              plus   '+') s
+(              minus  '-') s
+(              assign ':=') s
+(              ...etc...;) s
+(           output:             % Output tokens) s
+(              Int) s
+(              Add) s
+(              Subt) s
+(              ...etc...;) s
+(           error:              % Error signals) s
+(              missingSemicolon) s
+(              ...etc...;) s
+(           type Boolean:       % User defined set of values) s
+(              false) s
+(              true;) s
+( ) s
+( Here we have also shown the convention for comments in  S/SL) s
+( programs,  namely, anything to the right of a % on a line is) s
+( ignored.) s
+( ) s
+(    Each token and error signal must be given a name, such as) s
+( integer  or  Subt.   The input and output tokens can also be) s
+( given a string name, for example, the plus  token  also  has) s
+( the name '+'.  Both names can be used in the S/SL program.) s
+( ) s
+(    In  the  case of '+' the name "plus" seems to be useless,) s
+( as it is defined but need not be used in the S/SL.  The rea-) s
+( son  that identifiers such as plus are required is that they) s
+( are used in the implementation of S/SL.  For example, if the) s
+( implementation  is  done  using  Pascal,  the "plus" will be) s
+( declared as a Pascal  named  constant  whose  value  is  the) s
+( token's number.) s
+( ) s
+(    The  S/SL  programmer  can  specify the internal value of) s
+( each token, in order  to  be  compatible  with  an  external) s
+( interface, for example,) s
+( ) s
+(                        plus '+' = 21) s
+( ) s
+( This assigns the internal token number 21 to "plus".) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 1\b10\b0 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+14 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(    Sometimes  it  is convenient to emit the same tokens that) s
+( are read.  To allow this, a special class called "input out-) s
+( put" is allowed, for example:) s
+( ) s
+( ) s
+(      input output:            % Used for both input and output) s
+(         integer) s
+(         plus  '+') s
+(         minus '-') s
+(         ..etc...;) s
+( ) s
+( Any  token  listed  under "input output" is included in both) s
+( the input and output types.) s
+( ) s
+( ) s
+(                     Semantic Mechanisms) s
+( ) s
+(    SL is sufficient for implementing parsers  for  languages) s
+( having  LR\(k\)  grammars,  such as Pascal and Algol-60.  How-) s
+( ever, SL by itself is not sufficient for  implementing  more) s
+( complex phases of a compiler, such as semantic analysis.  It) s
+( does not provide for data structures, such as symbol tables,) s
+( which  are  required  by  these  phases.  SL as augmented by) s
+( semantic  operations  becomes  S/SL.   The  S/SL  programmer) s
+( groups  the  operations that access a particular data struc-) s
+( ture; these operations together with the data structure  are) s
+( called a _\bs_\be_\bm_\ba_\bn_\bt_\bi_\bc _\bm_\be_\bc_\bh_\ba_\bn_\bi_\bs_\bm.) s
+( ) s
+(    As  a simple example of a semantic mechanism, let us con-) s
+( sider a stack of counters.  As is shown in the next section,) s
+( this mechanism can be used for checking the number of actual) s
+( parameters of a Pascal procedure call.  The operations  that) s
+( modify  and  update  the  stack are defined in S/SL, but the) s
+( implementation is carried out  later  in  another  language.) s
+( Here is the definition in S/SL of a stack of counters:) s
+( ) s
+(    mechanism Count:) s
+(      CountPush\(number\)        % New counter gets specified value) s
+(      CountPushSymbolDimension % New counter gets value from symbol) s
+(                               %    table) s
+(      CountPop                 % Delete counter) s
+(      CountIncrement           % Add 1 to top counter) s
+(      CountDecrement           % Subtract 1 from top counter) s
+(      CountChoose >> number;   % Inspect top counter) s
+( ) s
+( Following  the keyword "mechanism" is the name of the mecha-) s
+( nism \(Count\).  This name has no significance except for doc-) s
+( umentation.   After  the  colon  comes  the list of semantic) s
+( operations for the mechanism.) s
+( ) s
+(    By convention, the name of each operation on  a  semantic) s
+( mechanism  begins  with  the mechanism's name.  For example,) s
+( BufferSave is an operation on the  Buffer  mechanism,  while) s
+( ) s
+( ) s
+(                            -\b- 1\b11\b1 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+7 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 8 8
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+15 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( CountPop is an operation on the Count mechanism.) s
+( ) s
+(    We  have  defined  six  semantic operations for the count) s
+( stack.  the first  five  are  _\bu_\bp_\bd_\ba_\bt_\be  operations;  they  are) s
+( defined  without  a return type \(without >>\).  Their purpose) s
+( is to modify the semantic mechanism.   The  last  operation,) s
+( CountChoose,  is  a  _\bc_\bh_\bo_\bi_\bc_\be  operation.   A choice operation) s
+( returns a value that is used in an S/SL choice action.) s
+( ) s
+(    By convention  a  choice  operation  returns  information) s
+( about  its  semantic mechanism but does not modify it.  Also) s
+( by convention, operations  on  one  semantic  mechanism  may) s
+( inspect  but  not  modify  other semantic mechanisms.  These) s
+( conventions depend on  programmer  discipline  and  are  not) s
+( enforced automatically.) s
+( ) s
+(    The  first  operation, CountPush, puts a new value on the) s
+( count stack; for example, CountPush\(zero\) pushes  zero  onto) s
+( the  stack.  Since CountPush takes a parameter, it is called) s
+( a _\bp_\ba_\br_\ba_\bm_\be_\bt_\be_\br_\bi_\bz_\be_\bd operation.  A parameter of  a  parameterized) s
+( operation  must be a constant in a previously defined set of) s
+( values in the S/SL  program.   Essentially  a  parameterized) s
+( operation is a class of nonparameterized operations, one for) s
+( each constant in the type.) s
+( ) s
+(    The last semantic operation, CountChoose,  is  called  to) s
+( find  the  top  value  on the count stack.  The notation ">>) s
+( number" means it returns a value from the type  named  "num-) s
+( ber".   A  choice  operation can be used only in S/SL choice) s
+( actions, for example, see line 12 of the  following  example) s
+( rule.) s
+( ) s
+( ) s
+(               An Example Using the Count Stack) s
+( ) s
+(    We  now  give  an  example  S/SL rule that uses the count) s
+( stack.  This example rule handles a list of  actual  parame-) s
+( ters for a procedure call in a language such as Pascal.) s
+( ) s
+(  1   ActualParameterList:) s
+(  2      CountPushSymbolDimension   % Number of formal parameters) s
+(  3      {) s
+(  4         @HandleActualParameter) s
+(  5         CountDecrement) s
+(  6         [) s
+(  7            | '\)':) s
+(  8               >) s
+(  9            | ',':) s
+( 10         ]) s
+( 11      }) s
+( 12      [ CountChoose) s
+( 13         | zero:) s
+( 14         | *:) s
+( ) s
+( ) s
+(                            -\b- 1\b12\b2 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+16 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( 15            #WrongNumberParameters) s
+( 16      ]) s
+( 17      CountPop;) s
+( ) s
+(    Suppose the Pascal procedure call is) s
+( ) s
+(                        P\(exp1,exp2\);) s
+( ) s
+( The  procedure's  name P is accepted by the S/SL program and) s
+( becomes the current  symbol  of  interest.   Then  the  left) s
+( parenthesis  is accepted and finally the ActualParameterList) s
+( rule is called.  Line 2 finds the declared number of parame-) s
+( ters of P and pushes this number onto the count stack.  Then) s
+( the loop \(lines 3 through 11\) processes the list of actuals,) s
+( decrementing the count for each actual.  HandleActualParame-) s
+( ter will accept "exp1" the first time through the  loop  and) s
+( "exp2"  the  second time.  Then lines 12 through 16 print an) s
+( error message if the wrong number of actual  parameters  was) s
+( supplied.   Line 17 pops the counter that was pushed on line) s
+( 2.) s
+( ) s
+(    In Pascal an actual parameter may contain function calls,) s
+( so  the  ActualParameterList  rule  may be re-entered recur-) s
+( sively.  Each recursion needs a new counter, and  the  count) s
+( stack is used to store these counters.) s
+( ) s
+(    This example has illustrated how to define and use seman-) s
+( tic operations.  Each operation  performs  an  update  or  a) s
+( choice  and  may be parameterized.  We have given an example) s
+( of a parameterless choice operation \(CountChoose\) but not  a) s
+( parameterized  choice operation, which is defined using this) s
+( form:) s
+( ) s
+(              name\(parameterType\) >> returnType) s
+( ) s
+( A parameterized choice operation is similar to a  parameter-) s
+( less  choice  operation  except  it receives a constant as a) s
+( parameter.) s
+( ) s
+(    We have shown how to define the names of semantic  opera-) s
+( tions  as  well  as their parameter and return types, but we) s
+( have not shown how to give  their  implementations.   Before) s
+( going  into  the details of these, we will give several more) s
+( example S/SL programs.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 1\b13\b3 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+8 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 9 9
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+17 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                  III. EXAMPLES OF S/SL USE) s
+( ) s
+( ) s
+(    The following examples illustrate  the  use  of  S/SL  in) s
+( implementing a compiler.  We start with scanning and proceed) s
+( eventually to code generation for a PDP-11.) s
+( ) s
+( ) s
+(                           Scanning) s
+( ) s
+(    The purpose of our example  scanner  is  to  collect  the) s
+( characters  of a source program into syntax tokens.  Leading) s
+( blanks are skipped and the characters of  the  syntax  token) s
+( are  collected by a semantic operation named BufferSave.  We) s
+( will assume that an input filter for our scanner has  mapped) s
+( the characters A through Z to a _\bs_\bu_\bp_\be_\br _\bc_\bh_\ba_\br_\ba_\bc_\bt_\be_\br called "let-) s
+( ter" and the characters 0 through 9 to "digit".) s
+( ) s
+(    This example is a complete S/SL program that can be  sub-) s
+( mitted  to  an  S/SL  processor.  The first part consists of) s
+( definitions.  The second part, between the words "rules" and) s
+( "end", gives the S/SL rules.) s
+( ) s
+(      % A scanner for identifiers, integers, ';', '+' and '-') s
+( ) s
+(      input:) s
+(         letter) s
+(         digit) s
+(         blank) s
+(         illegalChar;) s
+( ) s
+(      output:) s
+(         identifier) s
+(         integer;) s
+( ) s
+(      input output:) s
+(         semicolon  ';') s
+(         plus       '+') s
+(         minus      '-';) s
+( ) s
+(      error:) s
+(         badChar;) s
+( ) s
+(      mechanism Buffer:) s
+(         BufferSave;  % Save last accepted character) s
+( ) s
+(      rules) s
+( ) s
+(      Scanner:) s
+(         @SkipNoise) s
+(         [) s
+(            | letter:) s
+(               BufferSave) s
+( ) s
+( ) s
+(                            -\b- 1\b14\b4 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+18 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(               {[) s
+(                  | letter,digit:) s
+(                     BufferSave) s
+(                  | *:) s
+(                     .identifier) s
+(                     >) s
+(               ]}) s
+(            | digit:) s
+(               BufferSave) s
+(               {[) s
+(                  | digit:) s
+(                     BufferSave) s
+(                  | *:) s
+(                     .integer) s
+(                     >) s
+(               ]}) s
+(            | ';':) s
+(               .semicolon) s
+(            | '+':) s
+(               .plus) s
+(            | '-':) s
+(               .minus) s
+(         ];) s
+( ) s
+(      SkipNoise:) s
+(         {[) s
+(            | blank:) s
+(            | illegalChar:) s
+(               #badChar) s
+(            | *:) s
+(               >) s
+(         ]};) s
+( ) s
+(      end) s
+( ) s
+( This  scanner is a simplified version of the one used in the) s
+( PT Pascal compiler [Rosselet 1980].  This example  uses  the) s
+( notation {[ and ]}.  This is not a new construct, but simply) s
+( a choice action nested directly inside a cycle.) s
+( ) s
+( ) s
+(                           Parsing) s
+( ) s
+(    It is straightforward to write a parser  for  a  language) s
+( such  as  Pascal  in  S/SL.  The Pascal report [Jensen 1974]) s
+( contains a specification of the grammar  of  Pascal  in  the) s
+( form  of syntax charts.  These charts are easily transliter-) s
+( ated to S/SL, to produce a grammar for Pascal in  S/SL.   We) s
+( call this an _\ba_\bl_\bg_\bo_\br_\bi_\bt_\bh_\bm_\bi_\bc _\bg_\br_\ba_\bm_\bm_\ba_\br, because it can be directly) s
+( executed to accept a string in the specified  language.   We) s
+( will  give  three  examples of parsing: recognizing a state-) s
+( ment, handling an "if" statement and producing  postfix  for) s
+( expressions.) s
+( ) s
+( ) s
+(                            -\b- 1\b15\b5 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+9 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 10 10
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+19 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(    _\bR_\be_\bc_\bo_\bg_\bn_\bi_\bz_\bi_\bn_\bg _\bs_\bt_\ba_\bt_\be_\bm_\be_\bn_\bt_\bs.  A Pascal statement can be recog-) s
+( nized by the following rule.) s
+( ) s
+(      Statement:) s
+(         [) s
+(            | identifier:) s
+(               @AssignmentOrCallStatement) s
+(            | 'if':) s
+(               @IfStatement) s
+(            | 'case':) s
+(               @CaseStatement) s
+(            | 'while':) s
+(               @WhileStatement) s
+(            | 'repeat':) s
+(               @RepeatStatement) s
+(            | 'for':) s
+(               @ForStatement) s
+(            | 'with':) s
+(               @WithStatement) s
+(            | 'begin':) s
+(               @BeginStatement) s
+(            | 'goto':) s
+(               @GotoStatement) s
+(            | *:) s
+(               % null statement) s
+(         ];) s
+( ) s
+( Each individual statement such as 'if' is handled by its own) s
+( rule.   Unfortunately for the parser, there is a local ambi-) s
+( guity in Pascal in that a statement beginning with an  iden-) s
+( tifier  can  be either an assignment or a procedure call, so) s
+( one rule must handle both.) s
+( ) s
+(    _\bH_\ba_\bn_\bd_\bl_\bi_\bn_\bg "_\bi_\bf" _\bs_\bt_\ba_\bt_\be_\bm_\be_\bn_\bt_\bs.  As an example of a  rules  for) s
+( individual statements, we will give a rule to handle "if".) s
+( ) s
+(      IfStatement:    % Just accepted 'if' token) s
+(         @Expression 'then' @Statement) s
+(         [) s
+(            | 'else':) s
+(               @Statement) s
+(            | *:) s
+(         ];) s
+( ) s
+( This  rule  recursively  calls  the Statement rule to handle) s
+( 'then' and 'else' clauses.  The "dangling else"  problem  is) s
+( easily  solved,  as the choice construct immediately accepts) s
+( the adjacent else clause if present.  We have not shown out-) s
+( put operations or calls to semantic operations; these can be) s
+( inserted to make this example rule useful in a compiler.) s
+( ) s
+(    _\bE_\bx_\bp_\br_\be_\bs_\bs_\bi_\bo_\bn_\bs _\ba_\bn_\bd _\bp_\bo_\bs_\bt_\bf_\bi_\bx.  We now show how expressions can) s
+( be  parsed.   To  keep  the  example simple, we restrict our) s
+( ) s
+( ) s
+(                            -\b- 1\b16\b6 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+20 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( attention to expressions that consist  of  identifiers,  the) s
+( binary operators +, -, * and /, and nesting via parentheses.) s
+( We assume that  expressions  are  evaluated  left  to  right) s
+( except  that * and / have higher precedence than + and - and) s
+( parenthesized subexpressions are evaluated before use.   The) s
+( example  S/SL  will transduce infix to postfix, for example,) s
+( the input stream) s
+( ) s
+(                          A + B * C) s
+( ) s
+( is output as) s
+( ) s
+(                          A B C multiply add) s
+( ) s
+( Here are rules that handle expressions:) s
+( ) s
+(      Expression:) s
+(         @Factor) s
+(         {[) s
+(            | '+':) s
+(               @Factor .add) s
+(            | '-':) s
+(               @Factor .subtract) s
+(            | *:) s
+(               >) s
+(         ]};) s
+( ) s
+(      Factor:) s
+(         @Primary) s
+(         {[) s
+(            | '*':) s
+(               @Primary .multiply) s
+(            | '/':) s
+(               @Primary .divide) s
+(            | *:) s
+(               >) s
+(         ]};) s
+( ) s
+(      Primary:) s
+(         [) s
+(            | '\(':) s
+(               @Expression '\)') s
+(            | identifier:) s
+(               .identifier EmitIdentifierText) s
+(         ];) s
+( ) s
+( The Expresson rule calls the Factor rule to handle all  high) s
+( precedence  operations  and  subexpressions  before handling) s
+( addition and subtraction.  Similarly, Factor  calls  Primary) s
+( before  handling multiplication and division.  Primary calls) s
+( Expression recursively to handle nested expressions.   Since) s
+( each  identifier  token has a value \(such as "A" or "B"\), we) s
+( have used the semantic operation EmitIdentifierText to place) s
+( ) s
+( ) s
+(                            -\b- 1\b17\b7 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+10 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 11 11
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+21 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( this value in the output stream.) s
+( ) s
+( ) s
+(                      Semantic Analysis) s
+( ) s
+(    We  take  as a typical semantic analysis task the problem) s
+( of checking types in expressions.  We can do  this  using  a) s
+( semantic  mechanism  called  the  _\bt_\by_\bp_\be _\bs_\bt_\ba_\bc_\bk.  It mimics the) s
+( action of a runtime stack used  in  evaluating  expressions.) s
+( Each  entry  in  the type stack gives the type of the corre-) s
+( sponding operand in the runtime stack.   The  definition  in) s
+( S/SL of this semantic mechanism would be similar to the def-) s
+( inition we gave for the stack of counters.  We  will  assume) s
+( that the input to our semantic analysis pass has its expres-) s
+( sions in syntactically correct postfix.  This rule  is  used) s
+( to accept expressions:) s
+( ) s
+(      PostfixExpression:) s
+(         {) s
+(            @Primaries @Operators) s
+(            [) s
+(               | exprEnd:) s
+(                 >) s
+(               | *:) s
+(            ]) s
+(         };) s
+( ) s
+( We have assumed that the token exprEnd marks the end of each) s
+( expression.  To simplify our example, we consider only these) s
+( operators: addition, equality and intersection \(and\).  As in) s
+( Pascal, we assume that  only  numbers  can  be  added,  only) s
+( Booleans can be intersected, numbers can be compared to num-) s
+( bers only and Booleans to Booleans only.  We assume that all) s
+( numbers are integers.) s
+( ) s
+(    As  each primary is accepted, its type is pushed onto the) s
+( type stack.  As each operator is accepted, the types of  its) s
+( operands  are  checked and their types on the type stack are) s
+( replaced by the operator's result type.) s
+( ) s
+(      Primaries:) s
+(         {[) s
+(            | constant: TypePushConstant) s
+(            ...other primaries...) s
+(            | *:) s
+(               >) s
+(         ]};) s
+( ) s
+(      Operators:) s
+(         {[) s
+(            | add:) s
+(               @CheckInteger @CheckInteger TypePush\(int\)) s
+(            | and:) s
+( ) s
+( ) s
+(                            -\b- 1\b18\b8 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+22 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(               @CheckBoolean @CheckBoolean TypePush\(bool\)) s
+(            | equal:) s
+(               @CheckEquality TypePush\(bool\)) s
+(            | *:) s
+(               >) s
+(         ]};) s
+( ) s
+(      CheckInteger:) s
+(         [ TypeChoose) s
+(            | int:) s
+(            | *:) s
+(               #integerRequired) s
+(         ]) s
+(         TypePop;) s
+( ) s
+(      CheckBoolean:) s
+(         [ TypeChoose) s
+(            | bool:) s
+(            | *:) s
+(               #booleanRequired) s
+(         ]) s
+(         TypePop;) s
+( ) s
+(      CheckEquality:) s
+(         [ TypeChoose) s
+(            | int:) s
+(               TypePop @CheckInteger) s
+(            | bool:) s
+(               TypePop @CheckBoolean) s
+(         ];) s
+( ) s
+( We could easily  enhance  these  rules  to  produce  pseudo-) s
+( machine  code  \(P-code\)  while  they are checking types.  We) s
+( could incorporate this type checking into the pass that does) s
+( syntax checking \(the parser\).) s
+( ) s
+( ) s
+(                       Code Generation) s
+( ) s
+(    The  code  generator  pass of the Toronto Euclid compiler) s
+( accepts expressions in postfix and generates PDP-11 assembly) s
+( language.   It  does  extensive  local optimization, to take) s
+( advantage of the PDP-11 order code.  To illustrate, we  show) s
+( a  simplified version of the rule that generates code to add) s
+( the right operand to the left.  We will assume that previous) s
+( analysis by S/SL in this pass has discovered that the source) s
+( statement is of the form) s
+( ) s
+(                          x := x + y) s
+( ) s
+( and now y is the right operand and x is the left.  A  seman-) s
+( tic  mechanism called the _\bs_\by_\bm_\bb_\bo_\bl _\bs_\bt_\ba_\bc_\bk holds these operands,) s
+( with the right operand as  its  top  element  and  the  left) s
+( ) s
+( ) s
+(                            -\b- 1\b19\b9 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+11 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 12 12
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+23 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( operand  as  its  second  element.   The  rule  pops the top) s
+( \(right\) element from the symbol stack, leaving the left \(new) s
+( top\) element to represent the result.) s
+( ) s
+(      AddRightToLeft:) s
+(         [ SymbolIsManifestValue  % Is right operand a constant?) s
+(            | yes:) s
+(               [ SymbolChooseManifestValue) s
+(                  | one:) s
+(                     SymbolPop GenerateSingle\(inc\)) s
+(                  | zero:) s
+(                     SymbolPop % Generate nothing) s
+(                  | minusOne:) s
+(                     SymbolPop GenerateSingle\(dec\)) s
+(                  | *:) s
+(                     GenerateDouble\(add\) SymbolPop) s
+(               ]) s
+(            | no:) s
+(               [ SymbolIsLeftSameRight  % Adding x to x?) s
+(                  | yes:) s
+(                     SymbolPop GenerateSingle\(asl\)) s
+(                  | no:) s
+(                     GenerateDouble\(add\) SymbolPop) s
+(               ]) s
+(         ];) s
+( ) s
+( This  S/SL  rule  selectively generates the following PDP-11) s
+( code:) s
+( ) s
+(           _\bR_\bi_\bg_\bh_\bt _\bO_\bp_\be_\br_\ba_\bn_\bd            _\bP_\bD_\bP_\b-_\b1_\b1 _\bc_\bo_\bd_\be _\bg_\be_\bn_\be_\br_\ba_\bt_\be_\bd) s
+(             1                        inc left) s
+(             0                        \(no code\)) s
+(             -1                       dec left) s
+(             same as left operand     asl left) s
+(             otherwise                add right,left) s
+( ) s
+( The parameterized semantic operation GenerateSingle emits  a) s
+( PDP-11  single  operand instruction such as inc \(increment\),) s
+( dec \(decrement\) or asl \(arithmetic shift left\).   Similarly,) s
+( GenerateDouble generates double operand instructions such as) s
+( add.) s
+( ) s
+( ) s
+(              Readability and Special Characters) s
+( ) s
+(    The preceding set of examples is intended to  demonstrate) s
+( the power, convenience and expressiveness of S/SL.  In prac-) s
+( tice, S/SL has been found to be quite readable and maintain-) s
+( able.   A  question  that  arises  is why special characters) s
+( rather than keywords are used to denote control  constructs.) s
+( People  who are used to programming in Pascal-like languages) s
+( are surprised to find, for example, that a choice action  is) s
+( written  as [...|...|...] instead of case...of...end.  While) s
+( ) s
+( ) s
+(                            -\b- 2\b20\b0 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+24 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( no objective explanation is possible, the following observa-) s
+( tions are put forth.) s
+( ) s
+(    Before  developing  S/SL,  the  authors  used  syntax and) s
+( semantic charts [Barnard  1975,  Cordy  1976,  Cordy  1979];) s
+( these  charts  were  hand  translated  into an assembly-like) s
+( notation that used keywords.  It was observed that this lat-) s
+( ter  notation was considerably bulkier and clumsier than the) s
+( charts.  This led to experimentation with various notations,) s
+( especially those used for regular expressions.) s
+( ) s
+(    It was discovered that essentially all the readability of) s
+( charts could be maintained using S/SL, and besides, S/SL can) s
+( be  directly  processed by a computer.  This degree of read-) s
+( ability depends on \(1\) consistent indentation of choices and) s
+( cycles so these constructs are visually obvious and \(2\) suf-) s
+( ficient exposure of the reader to the S/SL notation, so that) s
+( he  immediately  associates  [...]  with selection and {...}) s
+( with repetition.) s
+( ) s
+(    In hindsight, it  appears  that  special  characters  are) s
+( suitable  for S/SL because it is such a small language.  The) s
+( fact is, S/SL contains only eight  actions,  plus  calls  to) s
+( semantic  operations.   It  has  no arithmetic or addressing) s
+( operators.  Thus it is natural to  use  a  concise  notation) s
+( \(special characters\) to represent the few existing features.) s
+( Conversely, it is not necessary to introduce the  relatively) s
+( bulky  framework implied by keywords such as "case", "loop",) s
+( and "exit".  For analogous reasons, notations  such  as  BNF) s
+( and  regular  expressions use special characters such as "*") s
+( and "|" rather than bulkier symbols such as  "repeated"  and) s
+( "or".  \(See also Hoare's defense of his use of special char-) s
+( acters in Communicating Sequential Processes [Hoare  1978].\)) s
+( ) s
+(    Unfortunately,  some computer systems do not support spe-) s
+( cial characters such as { and [.  As a concession to  porta-) s
+( bility,  our S/SL implementation allows _\bd_\bo and _\bo_\bd as substi-) s
+( tutes for { and }, _\bi_\bf and _\bf_\bi for [ and ], and ! for  |.   We) s
+( have  chosen very short keywords, such as _\bd_\bo and _\bi_\bf, to pre-) s
+( serve most of the concise readability of S/SL.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 2\b21\b1 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+12 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 13 13
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+25 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                 IV. PROGRAMMING METHODOLOGY) s
+( ) s
+( ) s
+(    The programming methodology associated with S/SL is  per-) s
+( haps  as  important  as  the notation itself.  Briefly, this) s
+( methodology consists of breaking the problem  solution  into) s
+( two  distinct  parts: the abstract algorithm \(implemented in) s
+( S/SL\) and the abstract data \(written in a base language such) s
+( as  Pascal\).   The  abstract  data  is  further divided into) s
+( largely  independent  semantic  mechanisms.   Each  semantic) s
+( mechanism  is an abstract machine that can carry out a well-) s
+( defined set of instructions \(its semantic operations\).) s
+( ) s
+(    Since the abstract algorithm is written  in  a  different) s
+( language  from  that  used  to implement the semantic mecha-) s
+( nisms, it is inevitable that  we  maintain  the  distinction) s
+( between  the two.  By comparison, if we did not use S/SL and) s
+( we wrote both in a language such as Pascal, these  divisions) s
+( would be easily overlooked, especially during maintenance.) s
+( ) s
+(    The definition in S/SL of the name of each semantic mech-) s
+( anism along with its operations serves as a  concise,  read-) s
+( able  summary  of  the  underlying data of the program.  The) s
+( programmer is expected to include comments with these  defi-) s
+( nitions that give the meaning \(specification\) of each opera-) s
+( tion.  These comments could use a notation such as  that  of) s
+( abstract  data types, and could serve as a formal specifica-) s
+( tion of the semantic mechanism.  However, thus far  we  have) s
+( been content to use English prose for this purpose.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 2\b22\b2 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+26 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(     V. RELATION TO FORMAL LANGUAGES AND AUTOMATA THEORY) s
+( ) s
+(    We  will  relate  SL  to  the following theoretic models:) s
+( pushdown automata, BNF, finite automata and regular  expres-) s
+( sions.) s
+( ) s
+(    Those  lacking  an affection for theory can consider that) s
+( SL \(and S/SL\) is a programming language particularly  suited) s
+( to  certain  tasks.  But the more theoretically inclined may) s
+( choose to consider that SL is a notation for defining deter-) s
+( ministic  pushdown automata.  One of our purposes here is to) s
+( show that SL is equivalent in formal  descriptive  power  to) s
+( the  LR\(k\)  technique.  \(See Aho and Ullman [1977] for theo-) s
+( retic background\).) s
+( ) s
+(    A push down automaton \(PDA\) is a  machine  that  reads  a) s
+( stream  of  tokens \(an input tape\).  The PDA has an internal) s
+( configuration that consists of  two  parts:  \(1\)  one  of  a) s
+( finite  number  of control states together with \(2\) a stack.) s
+( Each entry on the stack has one of a finite number  of  val-) s
+( ues.   The  PDA  can read the next input, change its control) s
+( state and push or pop its stack depending on the  values  of) s
+( the  next  input,  the present control state and the present) s
+( top of stack.) s
+( ) s
+( ) s
+(                        __________________________) s
+(                        |          ___________   |) s
+(                        |          |         |   |) s
+(                        |          | Finite  |   |) s
+(      ---------------> |   |  |   | Control |   | ---------------->) s
+(           Input        |   |  |   |_________|   |       Output) s
+(           Stream       |   |  |                 |       Stream) s
+(                        |   |__| Stack           |) s
+(                        |________________________|) s
+( ) s
+(                            Pushdown Automaton) s
+( ) s
+( ) s
+( If the PDA has \(at most\) one possible change  of  configura-) s
+( tion  for each given input, control state and stack top com-) s
+( bination, it is called a  _\bd_\be_\bt_\be_\br_\bm_\bi_\bn_\bi_\bs_\bt_\bi_\bc  pushdown  automaton) s
+( \(DPDA\).  If there can be more than one such possible changes) s
+( then the PDA is called _\bn_\bo_\bn_\bd_\be_\bt_\be_\br_\bm_\bi_\bn_\bi_\bs_\bt_\bi_\bc; it is a NPDA.) s
+( ) s
+(    The significance of the DPDA and NPDA models are the fol-) s
+( lowing:) s
+( ) s
+( \(1\)  Most  practical  parsers are similar to the DPDA.  They) s
+(    are _\bn_\bo_\bt similar to the NPDA, which would require a  heavy) s
+(    overhead  to  keep track of various possible sequences of) s
+(    configurations \(various possible parsing sequences\).) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 2\b23\b3 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+13 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 14 14
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+27 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( \(2\) The NPDA is equivalent to BNF.  This  means  a  language) s
+(    can  be  described by BNF if and only if it can be parsed) s
+(    by a NPDA.) s
+( ) s
+( In brief, the DPDA is a model of practical parsers while the) s
+( NPDA is a model of parsers for arbitrary BNF grammars.) s
+( ) s
+(    If  we  limit  ourselves  to those languages which can be) s
+( accepted by a DPDA, then we  have  _\bd_\be_\bt_\be_\br_\bm_\bi_\bn_\bi_\bs_\bt_\bi_\bc  _\bl_\ba_\bn_\bg_\bu_\ba_\bg_\be_\bs.) s
+( It  turns  out that this is the same class of languages that) s
+( can  be described by LR\(k\) grammars.  LR\(k\) is  the  largest) s
+( subset  of  BNF grammars for which deterministic parsers can) s
+( be automatically generated.  A subset of the LR\(k\) grammars,) s
+( called  LALR\(1\),  seems  to  be  the  best present basis for) s
+( parsers generated from BNF grammars.) s
+( ) s
+(    What is the connection between SL and DPDA?   The  answer) s
+( is  that  each SL program defines a DPDA.  The control state) s
+( is given by the present point of execution in  an  SL  rule.) s
+( The stack gives the return points of the presently active SL) s
+( rules.  It is easy to show that an SL program can do no more) s
+( than  a  DPDA,  because the SL program is effectively a spe-) s
+( cial-purpose DPDA.  We can also show that any  DPDA  can  be) s
+( simulated by an SL program, so we get this result:) s
+( ) s
+(           _\bT_\bh_\be_\bo_\br_\be_\bm. A language is LR\(k\) iff it is accepted by an SL) s
+(                     program.) s
+( ) s
+( The  simulation  of a DPDA by an SL program depends on using) s
+( SL choice rules and is not entirely obvious [Lomet 1973,  Wu) s
+( et al 1980].) s
+( ) s
+(    Persons familiar with LR\(k\) parsers may be surprised that) s
+( SL can recognize any language described by an LR\(k\) grammar.) s
+( They  might  argue  that  the k in LR\(k\) implies k tokens of) s
+( look-ahead and SL clearly uses  only  one  symbol  of  look-) s
+( ahead.   The  flaw  in  this  argument is exposed by Knuth's) s
+( proof [Hopcroft 1969] that any LR\(k\) language \(not  grammar\)) s
+( is  also  an  LR\(0\)  language, given an end-marker.  So, any) s
+( LR\(k\) language can be recognized with no look-ahead at  all.) s
+( This does not mean that every LR\(k\) grammar is also an LR\(0\)) s
+( grammar; rather, it means that  any  LR\(k\)  grammar  can  be) s
+( rewritten to be an LR\(0\) grammar, given an end-marker.) s
+( ) s
+(    Our  theorem means that if a parser for a particular lan-) s
+( guage can be developed using LR\(k\) methods,  then  a  parser) s
+( can  be developed using SL, and vice versa.  This is a theo-) s
+( retic result and implies nothing about a host  of  important) s
+( practical issues.  It says nothing about the relative diffi-) s
+( culty of writing appropriate  BNF  versus  SL,  and  nothing) s
+( about  the  relative  efficiencies of the resulting parsers.) s
+( It does not imply anything about  error  handling.   Neither) s
+( does  it  imply  anything  about  methods of transduction or) s
+( ) s
+( ) s
+(                            -\b- 2\b24\b4 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+28 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( convenience of attaching semantic operations to the  parsing) s
+( process.) s
+( ) s
+(    Let  us  return  to the DPDA model and consider its stack) s
+( more closely.  If the stack is  eliminated  then  we  get  a) s
+( _\bf_\bi_\bn_\bi_\bt_\be  _\ba_\bu_\bt_\bo_\bm_\ba_\bt_\bo_\bn \(FA\).  A finite automaton is equivalent to) s
+( _\br_\be_\bg_\bu_\bl_\ba_\br _\be_\bx_\bp_\br_\be_\bs_\bs_\bi_\bo_\bn_\bs.  If we limit the  stack  depth  to  any) s
+( finite  maximum,  then  the DPDA has only the power of a FA.) s
+( In terms of SL, this means that any non-recursive SL program) s
+( necessarily  recognizes  a regular language, because without) s
+( recursion the stack can only get so deep.  Our example scan-) s
+( ner clearly fits this pattern.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 2\b25\b5 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+14 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 15 15
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+29 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                    VI. IMPLEMENTING S/SL) s
+( ) s
+(    Up  to  now we have discussed S/SL without worrying about) s
+( its implementation.  We have been content to  consider  that) s
+( S/SL is a well-defined abstraction supported perhaps by some) s
+( special computer.  This idea of an abstraction supported  by) s
+( underlying  software  is  one  of  the  most important tools) s
+( available for structuring programs and is used constantly in) s
+( software engineering.) s
+( ) s
+(    In  this section we will face the implementation problem.) s
+( The implementation is interesting because it is  simple  and) s
+( efficient. Once the implementation of S/SL is understood, it) s
+( becomes clear how to implement semantic operations.) s
+( ) s
+(    There are a number of possible ways  to  implement  S/SL.) s
+( We  could transliterate S/SL programs to Pascal, producing a) s
+( sequence of procedure calls that implement the  S/SL  opera-) s
+( tions for input, output, etc.  The result would be a "recur-) s
+( sive descent" compiler.  While the result would be  correct,) s
+( it  would be considerably larger than necessary, and this is) s
+( not the method we favor.) s
+( ) s
+(    We could translate S/SL directly to machine language for,) s
+( say,  the PDP-11.  This too would work, and the machine lan-) s
+( guage would be very fast.  But it is relatively difficult to) s
+( write  code  generators,  and we would need to write one for) s
+( each computer that is to support S/SL.) s
+( ) s
+(    Rather than generate code for an existing computer archi-) s
+( tecture,  we will invent an "S/SL machine" which is designed) s
+( to make S/SL implementation easy, efficient and portable.) s
+( ) s
+( ) s
+(                       An S/SL Machine) s
+( ) s
+(    Since S/SL is such a small language, our machine will  be) s
+( very  simple.  To support the SL subset of S/SL it will need) s
+( only these 12 instructions:) s
+( ) s
+(       1 jumpForward label) s
+(       2 jumpBack    label) s
+(       3 input       token) s
+(       4 inputAny) s
+(       5 emit        token) s
+(       6 error       signal) s
+(       7 inputChoice table) s
+(       8 call        label) s
+(       9 return) s
+(      10 setResult   value) s
+(      11 choice      table) s
+(      12 endChoice) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 2\b26\b6 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+30 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( Instructions 1 and 2 transfer control to  the  given  label;) s
+( instruction 1 jumps forward to its label while instruction 2) s
+( jumps backward to its label.  Instruction 3 checks that  its) s
+( operand matches the next input and then reads another input.) s
+( Instruction 4 \(inputAny\) implements the "?" action by  read-) s
+( ing  an  input without checking for a match.  Instructions 5) s
+( and 6 implement the output \(.\) and error \(#\) actions,  caus-) s
+( ing  output  tokens  and  error signals to be emitted to the) s
+( appropriate streams.) s
+( ) s
+(    Instruction 7, inputChoice, implements the  input  choice) s
+( action.  Its operand locates a table of this form:) s
+( ) s
+(      n  \(number of choices\)) s
+(      token  label) s
+(      token  label) s
+(      ...) s
+(      token  label) s
+(      default) s
+( ) s
+( First  comes  a  number n giving the number of alternatives.) s
+( Then  come  n  token/label  table  entries.   The  table  is) s
+( searched  from  top  to  bottom, trying to match the present) s
+( input token.  If a match is found, then  control  is  trans-) s
+( ferred to the label corresponding to the token.  If no match) s
+( is found in the n entries, then  control  is  given  to  the) s
+( default instruction following the table.  If the S/SL choice) s
+( has an otherwise alternative \(*\) then  the  default  is  the) s
+( code for otherwise.) s
+( ) s
+(    If  there is no otherwise alternative then the default is) s
+( reached only when there is  a  syntax  error  in  the  input) s
+( stream.   The  default  in this case is an input instruction) s
+( whose token is the first label of the choice, followed by  a) s
+( jumpBack  instruction  which transfers to the first alterna-) s
+( tive.  This default forces a mismatch in the input  instruc-) s
+( tion;  the  mismatch is handled by the strategy for handling) s
+( syntax errors in input instructions.  This default is simple) s
+( and effective for most error situations, but can be special-) s
+( ized if  desired  to  improve  the  handling  of  particular) s
+( errors.) s
+( ) s
+(    Instruction  8 calls an S/SL rule; the rule is located by) s
+( the call's label.  Instruction 9 returns from a rule to  the) s
+( instruction  just  beyond the call.  A stack is used to hold) s
+( the return addresses of rules that have been called but have) s
+( not yet returned.) s
+( ) s
+(    Instructions 10, 11 and 12 are used to implement calls to) s
+( choice rules.  The call to a choice rule is translated to:) s
+( ) s
+(      call   label) s
+(      choice table) s
+( ) s
+( ) s
+(                            -\b- 2\b27\b7 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+15 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 16 16
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+31 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( The call causes the choice rule to execute; the rule  leaves) s
+( its  return value in a variable called "result".  The choice) s
+( instruction  searches  its  table  for  "result",  just   as) s
+( inputChoice  searches its table for the current token value.) s
+( A choice rule always returns by executing ">>  value"  which) s
+( is translated to:) s
+( ) s
+(      setResult  value) s
+(      return) s
+( ) s
+( This assigns the value to the "result" variable so it can be) s
+( used by the "choice" instruction.) s
+( ) s
+(    The choice table is followed by a default action.  If the) s
+( S/SL  choice  had  an  otherwise  alternative  \(*\)  then the) s
+( default is the code for otherwise.  But if there was no oth-) s
+( erwise  alternative,  then  the  default  is  the  endChoice) s
+( instruction.  This  instruction  is  reached  only  when  no) s
+( labels of alternatives can be matched and there is no other-) s
+( wise alternative; so endChoice aborts the S/SL program.) s
+( ) s
+(    Our twelve instructions are sufficient to  implement  all) s
+( of  S/SL  except  for  semantic operations.  We will support) s
+( each semantic operation by inventing a  new  instruction  to) s
+( implement  that  particular  operation.   Before  discussing) s
+( these new instructions, we will give an example S/SL program) s
+( translated into S/SL machine instructions.) s
+( ) s
+( ) s
+(           Translating S/SL to Machine Instructions) s
+( ) s
+(    The  mapping from an S/SL program to instructions for our) s
+( S/SL machine is straightforward as we will now  show.   Here) s
+( is  our  SkipNoise  S/SL  rule  translated  to a sequence of) s
+( instructions.) s
+( ) s
+( ) s
+( S/SL Source              Assembly Language Location: Machine Code) s
+( ) s
+( SkipNoise:) s
+(    {                       L1: inputChoice        51: 7) s
+(      [                           Table            52: 7) s
+(        |blank:             L2: jumpForward        53: 1) s
+(                                  L4               54:12) s
+(        |illegalChar:       L3: error              55: 6) s
+(          #badChar                badChar          56:10) s
+(                                jumpForward        57: 1) s
+(                                  L4               58: 8) s
+(                            Table: 2               59: 2) s
+(                                blank              60: 2) s
+(                                  L2               61: 8) s
+(                                illegalChar        62: 3) s
+(                                  L3               63: 8) s
+( ) s
+( ) s
+(                            -\b- 2\b28\b8 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+32 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(        |*:                     jumpForward        64: 1) s
+(          >                       L5               65: 3) s
+(      ]                     L4: jumpBack           66: 2) s
+(    }                             L1               67:16) s
+(    ;                       L5: return             68: 8) s
+( ) s
+( ) s
+( The numbers representing the S/SL program  in  machine  lan-) s
+( guage  are  given on the right.  We have arbitrarily started) s
+( the code for SkipNoise at location 51.  The  first  instruc-) s
+( tion is an inputChoice \(7\) so location 51 contains 7.  Loca-) s
+( tion 52 holds the relative location \(7\) of the choice table;) s
+( this  7  is  added to 52 to find the table \(at location 59\).) s
+( The next instruction is "jumpForward L4" which goes  to  the) s
+( end  of  the input choice.  This appears in locations 53 and) s
+( 54 as 1 \(jumpForward\) and 12; 12 is a relative  address  \(12) s
+( added  to 54 gives 66 which is L4's location\).  We have used) s
+( relative addressing throughout to make the encoding of  tar-) s
+( get labels more compact.) s
+( ) s
+(    It  is  straightforward to design a microprocessor [Lazar) s
+( 1980] or to write a Pascal  program  to  execute  this  S/SL) s
+( machine  language.   We  are  not  planning  to build such a) s
+( microprocessor in the near future, but we have  written  the) s
+( Pascal program, which we will now describe.) s
+( ) s
+( ) s
+(                     An S/SL Table Walker) s
+( ) s
+(    We call the sequence of numbers representing an S/SL pro-) s
+( gram an _\bS_\b/_\bS_\bL _\bt_\ba_\bb_\bl_\be.  These numbers can be stored in a Pascal) s
+( array.  A Pascal program which accesses this table and simu-) s
+( lates an S/SL machine is called a _\bt_\ba_\bb_\bl_\be _\bw_\ba_\bl_\bk_\be_\br.  It  "walks") s
+( through  the  table executing instructions and thus carrying) s
+( out the actions of the S/SL program.) s
+( ) s
+(    We assume that the following procedures have been written) s
+( in Pascal.) s
+( ) s
+( AcceptInputToken  -  this  reads the next token in the input) s
+(    stream into the "token" variable, which is global to  the) s
+(    table walker.) s
+( ) s
+( EmitOutputToken - this emits the token that is its parameter) s
+(    to the output stream.) s
+( ) s
+( SignalError - this generates the error message specified  by) s
+(    its  parameter.  For certain values of its parameter \(for) s
+(    "fatal" errors\), SignalError sets "processing" to  false,) s
+(    thereby causing the table walker to terminate.) s
+( ) s
+( HandleSyntaxError  -  takes  some appropriate error handling) s
+(    action; it is called when  the  present  input  token  is) s
+( ) s
+( ) s
+(                            -\b- 2\b29\b9 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+16 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 17 17
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+33 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(    syntactically  illegal.  Its parameter gives the expected) s
+(    input token.) s
+( ) s
+( We have put a small letter "o" as the first letter  of  each) s
+( instruction  name,  for example "return" becomes oReturn, to) s
+( avoid clashes with other names in the  Pascal  program.   We) s
+( have defined oJumpForward to be 1, oJumpBack to be 2, oInput) s
+( to be 3, and so on.) s
+( ) s
+(    We have factored out the logic that  searches  tables  in) s
+( choice  actions.   This  logic,  contained  in the procedure) s
+( named Choose, is used by input  choices,  rule  choices  and) s
+( semantic  choices.   This  version of the table walker omits) s
+( the implementation of semantic operations. It is  sufficient) s
+( for  implementing  a  compiler  pass without semantic opera-) s
+( tions, such as a parser.  The next section shows how  seman-) s
+( tic operations are supported.  Here is the table walker:) s
+( ) s
+( ) s
+( ) s
+( tablePointer := 1;   {Locates instruction to execute}) s
+( returnTop := 0;      {Locates top of return Stack}) s
+( processing := true;  {Is set to false to stop the table walker}) s
+( ) s
+( while processing do) s
+(    begin) s
+(       operation := sslTable[tablePointer];) s
+(       tablePointer := tablePointer + 1;) s
+( ) s
+(       case operation of) s
+( ) s
+(          oJumpForward:) s
+(             tablePointer := tablePointer + sslTable[tablePointer];) s
+( ) s
+(          oJumpBack:) s
+(             tablePointer := tablePointer - sslTable[tablePointer];) s
+( ) s
+(          oInput:) s
+(             begin) s
+(                if token = sslTable[tablePointer] then) s
+(                   AcceptInputToken) s
+(                else) s
+(                   HandleSyntaxError\(sslTable[tablePointer]\);) s
+(                tablePointer := tablePointer + 1) s
+(             end;) s
+( ) s
+(          oInputAny:) s
+(             AcceptInputToken;) s
+( ) s
+(          oEmit:) s
+(             begin) s
+(                EmitOutputToken\(sslTable[tablePointer]\);) s
+(                tablePointer := tablePointer + 1) s
+( ) s
+( ) s
+(                            -\b- 3\b30\b0 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+34 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(             end;) s
+( ) s
+(          oError:  ...similar to oEmit...) s
+( ) s
+(          oInputChoice:) s
+(             begin) s
+(                choiceTable := tablePointer +) s
+(                   sslTable[tablePointer];) s
+(                result := token;) s
+(                Choose;) s
+(                if choiceMatch then) s
+(                   AcceptInputToken) s
+(             end;) s
+( ) s
+(          oCall:) s
+(             if returnTop < returnSize then) s
+(                begin) s
+(                   returnTop := returnTop + 1;) s
+(                   returnStack[returnTop] := tablePointer + 1;) s
+(                   tablePointer := sslTable[tablePointer]) s
+(                end) s
+(             else  ...abort, setting processing to false...) s
+( ) s
+(          oReturn:) s
+(             if returnTop > 0 then) s
+(                begin) s
+(                   tablePointer := returnStack[returnTop];) s
+(                   returnTop := returnTop - 1) s
+(                end) s
+(             else) s
+(                processing := false;   {Return from main rule}) s
+( ) s
+(          oSetResult:) s
+(             begin) s
+(                result := sslTable[tablePointer];) s
+(                tablePointer := tablePointer + 1) s
+(             end;) s
+( ) s
+(          oChoice:) s
+(             begin) s
+(                choiceTable := tablePointer +) s
+(                   sslTable[tablePointer];) s
+(                Choose) s
+(             end;) s
+( ) s
+(          oEndChoice:  ...abort, setting processing to false...) s
+( ) s
+(          ...alternatives to implement semantic operations...) s
+( ) s
+(       end   { case }) s
+(    end { while }) s
+( ) s
+( As  can  be  seen by reading this program, it is a simulator) s
+( ) s
+( ) s
+(                            -\b- 3\b31\b1 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+17 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 18 18
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+35 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( for an S/SL machine.) s
+( ) s
+(    The instructions jumpForward and jumpBack are implemented) s
+( as  jumps  relative  to  the  current value of tablePointer.) s
+( Similarly, in the inputChoice and choice  instructions,  the) s
+( choice  tables  are  located  relative to the current table-) s
+( Pointer.  This use of relative addressing together with sep-) s
+( arate forward and backward jumps makes it relatively easy to) s
+( compact the sslTable to use byte  entries.   For  this  com-) s
+( paction  to  be practical, we would need to encode the label) s
+( in a call instruction into two bytes, but  we  will  not  go) s
+( into these optimizations here.) s
+( ) s
+( ) s
+(                Supporting Semantic Operations) s
+( ) s
+(    Our  table  walker  supports SL but not S/SL.  To support) s
+( S/SL it must be enhanced with new instructions.   We  add  a) s
+( new  alternative  to  the  table walker's case statement for) s
+( each semantic operation.  For example, the CountPop semantic) s
+( operation can be implemented by) s
+( ) s
+(    oCountPop:) s
+(       countTop := countTop - 1;) s
+( ) s
+( where  countTop  is  a  variable  pointing to the top of the) s
+( count stack.) s
+( ) s
+(    We also invent the following special instruction to  help) s
+( implement parameterized semantic operations:) s
+( ) s
+(    13 setParameter value) s
+( ) s
+( This instruction \(number 13\) assigns its value to a variable) s
+( called "parameter".  Before invoking a parameterized  seman-) s
+( tic operation, such as CountPush, a setParameter instruction) s
+( is executed to give the appropriate  value  to  "parameter".) s
+( For  example, PushCount\(zero\) in S/SL is translated into the) s
+( instructions:) s
+( ) s
+(    setParameter zero) s
+(    CountPush) s
+( ) s
+(    We translate a semantic choice operation into an instruc-) s
+( tion  to  invoke the operation followed by a choice instruc-) s
+( tion.  For example, CountChoose in S/SL is translated to the) s
+( instructions:) s
+( ) s
+(    CountChoose) s
+(    choice     table) s
+( ) s
+( The  CountChoose  instruction  assigns to the variable named) s
+( "result", and the choice instruction searches its table  for) s
+( ) s
+( ) s
+(                            -\b- 3\b32\b2 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+36 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( this value.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 3\b33\b3 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+18 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 19 19
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+37 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(               VII. EXPERIENCE AND OBSERVATIONS) s
+( ) s
+(                    Experience using S/SL) s
+( ) s
+(    S/SL  has  been  used  in  implementing  three compilers:) s
+( Speckle \(a PL/1 subset [Miceli 1977], Toronto  Euclid  [Holt) s
+( 1978], and PT \(a Pascal subset\) [Rosselet 1980]; it has also) s
+( been used to implement an S/SL processor.  Previous to S/SL,) s
+( syntax and semantic charts [Cordy 1979] had been used by the) s
+( authors, most notably for implementing SP/k \(a PL/1  subset\)) s
+( [Holt  1977].   These charts are highly readable and have an) s
+( efficient implementation.   Their  primary  disadvantage  is) s
+( that they are not machine readable and, like flowcharts, are) s
+( difficult to maintain.) s
+( ) s
+(    When designing the Euclid compiler, we contemplated using) s
+( charts,  but decided to use S/SL instead.  This turns out to) s
+( have been a fortuitous decision, as we now believe that  the) s
+( job  would not have been possible using charts.  What we had) s
+( not predicted was the sheer bulk of programs in S/SL  needed) s
+( to  compile  a  language  like  Euclid.   Five passes of the) s
+( Euclid compiler \(parser,  table  builder,  type  conformance) s
+( checking, storage allocation and code generation\) were writ-) s
+( ten in S/SL, with a total of  about  24,000  lines  of  S/SL) s
+( code.   It  would  probably  not  have been possible to keep) s
+( track of the equivalent volume of hand-drawn charts.) s
+( ) s
+(    The technique of software development used in the  Euclid) s
+( compiler  was  based on S/SL pass skeletons in the following) s
+( manner.  First a parser was developed for the Euclid  source) s
+( language;  this  parser  produced an output stream, which we) s
+( will call I-code \(intermediate code\).  I-code is essentially) s
+( the  complete  syntax-checked  Euclid  program, encoded as a) s
+( sequence of tokens.  About the only interesting  transforma-) s
+( tion  from the source is that most operators have been moved) s
+( into postfix positions.) s
+( ) s
+(    Once the parser was  implemented,  an  S/SL  program  was) s
+( written  to  accept  an I-code stream and reproduce the same) s
+( stream as output.  This seemingly useless program served two) s
+( key  purposes.  First, it formally specified the stream com-) s
+( ing out of the parser.  Second, it served as a skeleton  for) s
+( each of the following passes of the compiler.  Each of these) s
+( passes makes only minor modifications on  the  stream;  most) s
+( information  is relayed to the following passes via the sym-) s
+( bol/type table.  Each pass was constructed by modifying  the) s
+( skeleton  S/SL  program,  most  commonly  by adding calls to) s
+( semantic operations.  As a result, all of these  passes  are) s
+( similar  in  structure, and the whole compiler is relatively) s
+( easy to understand.) s
+( ) s
+(    As each pass executes, its S/SL parses the  pass's  input) s
+( stream.   This  parsing  provides  an important check on the) s
+( ) s
+( ) s
+(                            -\b- 3\b34\b4 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+38 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( interface between passes, verifying that  the  input  I-code) s
+( stream is syntactically correct.) s
+( ) s
+(    In  general  the  experience of writing several compilers) s
+( using S/SL has been a happy one.   The  S/SL  programs  have) s
+( been  relatively  easy  to write and maintain.  The computer) s
+( time spent executing code written in  S/SL  has  been  small) s
+( compared   to  time  spent  in  other  activities,  such  as) s
+( input/output.  The tables produced by S/SL together with the) s
+( table  walker are observed to be quite small, better than or) s
+( comparable to other techniques such as  writing  in  a  high) s
+( level language or using LR\(k\).) s
+( ) s
+( ) s
+(           Using S/SL for Non-Compiler Applications) s
+( ) s
+(    Although  S/SL evolved as a tool for constructing compil-) s
+( ers, it appears to be useful for  a  much  larger  class  of) s
+( problems.   The  concept  of  a  pure  control  language and) s
+( abstract data \(semantic mechanisms\)  are  not  intrinsically) s
+( tied  to  compiler  writing.   In non-compiler applications,) s
+( these concepts become the center of focus while  stream-ori-) s
+( ented  features  \(input  and  output  of tokens\) become more) s
+( peripheral, although still widely useful.) s
+( ) s
+(    In the future we expect to  experiment  with  S/SL  as  a) s
+( software  specification  language.   As such an S/SL program) s
+( will serve as the top level, executable design for a system,) s
+( which is to be implemented later by programming its semantic) s
+( mechanisms.  For large systems, these implementations may in) s
+( turn be designed using S/SL, the result being several levels) s
+( of S/SL implementing increasing levels of detail of the sys-) s
+( tem.) s
+( ) s
+( ) s
+(                     A Synthesis of Ideas) s
+( ) s
+(    The  S/SL  language is a synthesis of several programming) s
+( concepts.   The  following  related  notations   have   been) s
+( directly influential.) s
+( ) s
+(         \(a\) BNF and regular expressions.) s
+(         \(b\) Syntax charts and semantic charts.) s
+(         \(c\) Recursive descent compilers \(written in Pascal-like) s
+(             languages\).) s
+(         \(d\) Separable transition diagrams [Conway 1963].) s
+(         \(e\) Table-driven coding, such as the scheme used in the) s
+(             PL/C compiler [Wilcox 1971].) s
+(         \(f\) Data encapsulation techniques, such as those in Simula) s
+(             and Euclid.) s
+( ) s
+( What seems encouraging about S/SL is that it captures such a) s
+( large fraction of the power of these notations, while itself) s
+( ) s
+( ) s
+(                            -\b- 3\b35\b5 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+19 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 20 20
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+39 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( remaining so simple.) s
+( ) s
+(    There  are  many  possibilities for expansion.  One could) s
+( make S/SL into a Pascal-like language by introducing  decla-) s
+( rations,  expressions  and assignments.  The result might be) s
+( particularly attractive as an interactive language,  due  to) s
+( the  conciseness  of programs.  Another possibility would be) s
+( to allow several input streams and output  streams.   If  we) s
+( also allow several processes then the language becomes simi-) s
+( lar in form and concept to  Hoare's  cooperating  sequential) s
+( processes.) s
+( ) s
+(    Generally  we  have  resisted the urge to expand S/SL, on) s
+( the principle that "small  is  beautiful".   Its  simplicity) s
+( results  in  readability, a great deal of flexibility and an) s
+( easy, efficient implementation.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 3\b36\b6 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+40 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                       ACKNOWLEDGMENTS) s
+( ) s
+(    The development of S/SL was aided  and  influenced  by  a) s
+( number  of  people; Prof. Rudy Marty was especially helpful.) s
+( We are happy to acknowledge the  support  from  the  Natural) s
+( Sciences and Engineering Research Council of Canada and from) s
+( Bell-Northern Research Limited.) s
+( ) s
+( ) s
+(                          REFERENCES) s
+( ) s
+( ) s
+( Aho, A.V. and Ullman, J.D.  [1977]  _\bP_\br_\bi_\bn_\bc_\bi_\bp_\bl_\be_\bs  _\bo_\bf  _\bC_\bo_\bm_\bp_\bi_\bl_\be_\br) s
+(    _\bD_\be_\bs_\bi_\bg_\bn, Addison-Wesley Publishing Company, 1977.) s
+( ) s
+( Barnard,  D.T. [1975] Automatic Generation of Syntax-Repair-) s
+(    ing and Paragraphing Parsers, Computer  Systems  Research) s
+(    Group,  University  of Toronto, Technical Report CSRG-52,) s
+(    March 1975.) s
+( ) s
+( Conway, M.E. [1963] "Design of a separable  transition  dia-) s
+(    gram compiler", _\bC_\bo_\bm_\bm. _\bA_\bC_\bM Vol.6, No.7, 396-408.) s
+( ) s
+( Cordy,  J.R.  [1976]  A Diagrammatic Approach to Programming) s
+(    Language Semantics, Computer Systems Research Group, Uni-) s
+(    versity of Toronto, Technical Report CSRG-67, 1976.) s
+( ) s
+( Cordy,  J.R., Holt, R.C., and Wortman, D.B. [1979] "Semantic) s
+(    Charts: A Diagrammatic Approach to Semantic  Processing",) s
+(    Proceedings  of  SIGPLAN  Symposium on Compiler Construc-) s
+(    tion,  SIGPLAN  Notices  Vol.14,  No.8   \(August   1979\),) s
+(    pp.39-49.) s
+( ) s
+( Cordy,  J.R.  and  Holt,  R.C. [1980] Specification of S/SL:) s
+(    Syntax/Semantic  Language,  Computer   Systems   Research) s
+(    Group, University of Toronto.) s
+( ) s
+( CSRG   [1980]  Toronto  Euclid  Compiler,  Computer  Systems) s
+(    Research Group, University of Toronto, January 1980.) s
+( ) s
+( Hoare, C.A.R. [1978] "Communicating  Sequential  Processes",) s
+(    _\bC_\bo_\bm_\bm. _\bA_\bC_\bM, Vol.21, No.8, \(August 1978\), pp.666-677.) s
+( ) s
+( Holt, R.C., Wortman, D.B., Barnard, D.T., Cordy, J.R. [1977]) s
+(    "SP/k: A System for Teaching Computer Programming", _\bC_\bo_\bm_\bm.) s
+(    _\bA_\bC_\bM, Vol.20, No.5 \(May 1977\), pp.301-309.) s
+( ) s
+( Holt,  R.C.,  Wortman, D.B., Cordy, J.R., Crowe, D.R. [1978]) s
+(    "The Euclid Language: A Progress Report", Proceedings  of) s
+(    the ACM National Conference, December 1978.) s
+( ) s
+( Hopcroft,  J.E. and Ullman, J.D. [1969] Formal Languages and) s
+(    their  Relation  to  Automata,  Addison-Wesley,  Reading,) s
+( ) s
+( ) s
+(                            -\b- 3\b37\b7 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+20 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 21 21
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+41 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(    Mass, 1969.) s
+( ) s
+( Jensen,  K.  and  Wirth,  N.  [1974]  PASCAL User manual and) s
+(    report, Springer-Verlag, Berlin, 1974.) s
+( ) s
+( Lazar, Dov S. [1980] The Design of a  Hardware  Compiler:  A) s
+(    Compiling  Dedicated Machine, M.Sc. thesis, Department of) s
+(    Computer Science, University of Toronto, 1980.) s
+( ) s
+( Lomet, D.B. [1973] "A Formalization  of  Transition  Diagram) s
+(    Systems",   _\bJ_\bo_\bu_\br_\bn_\ba_\bl   _\bA_\bC_\bM,  Vol.20,  No.2,  \(April  1973\)) s
+(    pp.235-257.) s
+( ) s
+( Wu, T., McKenzie, P. and Spinney, B. [1980] S/SL Parses  the) s
+(    LR\(k\) Languages, Computer Systems Research Group, Univer-) s
+(    sity of Toronto, September 1980.) s
+( ) s
+( Miceli, J. [1977] Some experiences with a One-Man  Language,) s
+(    Computer  Systems  Research Group, University of Toronto,) s
+(    Technical Note 13, December 1977.) s
+( ) s
+( Rosselet, J.A. [1980] PT: A  Pascal  Subset,  M.Sc.  Thesis,) s
+(    University of Toronto, January 1980.) s
+( ) s
+( Wilcox,  T.R.  [1971]  Generating Machine Language for High-) s
+(    Level Programming Languages, Ph.D. Thesis,  Cornell  Uni-) s
+(    versity, Ithaca, N.Y., 1971.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 3\b38\b8 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+42 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                       SPECIFICATION OF) s
+( ) s
+(                S/SL: SYNTAX/SEMANTIC LANGUAGE) s
+( ) s
+( ) s
+(                   J.R. Cordy and R.C. Holt) s
+(                        December 1979) s
+(                     \(Revised March 1980\)) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                           ABSTRACT) s
+( ) s
+(    This  document  defines "new" S/SL, the second generation) s
+( of the Syntax/Semantic Language.  S/SL is a programming lan-) s
+( guage developed at the Computer Systems Research Group, Uni-) s
+( versity of Toronto as a tool for constructing compilers.  It) s
+( has  been used to implement scanners, parsers, semantic ana-) s
+( lyzers, storage  allocators  and  machine  code  generators.) s
+( S/SL  has  been  used  to implement compilers for Euclid, PT) s
+( Pascal and Speckle, a PL/1 subset.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 1\b1 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+21 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 22 22
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+43 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(    Copyright \(C\) 1979, 1980 by the  University  of  Toronto.) s
+( This  work was supported in part by the Natural Sciences and) s
+( Engineering Research Council of Canada and by  Bell-Northern) s
+( Research Limited.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 2\b2 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+44 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                         INTRODUCTION) s
+( ) s
+(    S/SL  is a procedure-based variable-free programming lan-) s
+( guage in which the program logic is  stated  using  a  small) s
+( number  of  simple  control constructs.  It accesses data in) s
+( terms of a set of operations organized into  data-management) s
+( modules  called  mechanisms.   The interface to these mecha-) s
+( nisms is defined in S/SL but their implementation is  hidden) s
+( from the S/SL program.) s
+( ) s
+(    S/SL  has one input stream and one output stream, each of) s
+( which is strictly sequential.  These streams  are  organized) s
+( into  "tokens"  each of which is read and written as a unit.) s
+( An auxiliary output stream for  error  diagnostics  is  also) s
+( provided.) s
+( ) s
+( ) s
+(              IDENTIFIERS, STRINGS AND INTEGERS) s
+( ) s
+(    An  S/SL identifier may consist of any string of up to 50) s
+( letters, digits and underscores \(_\) beginning with a letter.) s
+( Upper  and  lower  case  letters are considered identical in) s
+( S/SL, hence aa, aA, Aa and AA all represent the same identi-) s
+( fier.  INPUT, OUTPUT, ERROR, TYPE, MECHANISM, RULES, DO, OD,) s
+( IF, FI, END and their various lower case forms are  keywords) s
+( of  S/SL and must not be used as identifiers in an S/SL pro-) s
+( gram.) s
+( ) s
+(    An S/SL string is any sequence of characters not  includ-) s
+( ing a quote surrounded by quotes \('\).) s
+( ) s
+(    Integers  may be signed or unsigned and must lie within a) s
+( range defined by  the  implementation.   For  example,  this) s
+( range could be -32767 to 32767 on the PDP-11.) s
+( ) s
+(    Identifiers,  keywords,  strings  and  integers  must not) s
+( cross line boundaries.  Identifiers, keywords  and  integers) s
+( must not contain embedded blanks.) s
+( ) s
+( ) s
+(                           COMMENTS) s
+( ) s
+(    A  comment consists of the character "%" \(which is not in) s
+( a string\) and the characters to the right of it on a  source) s
+( line.) s
+( ) s
+( ) s
+(                        CHARACTER SET) s
+( ) s
+(    Since  not all of the special characters used in S/SL are) s
+( available on all machines,  the  following  alternatives  to) s
+( special characters are allowed.) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 3\b3 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+22 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 23 23
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+45 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                 "!"     for     "|") s
+(                 "DO"    for     "{") s
+(                 "OD"    for     "}") s
+(                 "IF"    for     "[") s
+(                 "FI"    for     "]") s
+( ) s
+( ) s
+(                    SOURCE PROGRAM FORMAT) s
+( ) s
+(    S/SL  programs are free format; that is, the identifiers,) s
+( keywords, strings, integers  and  special  characters  which) s
+( make  up  an  S/SL program may be separated by any number of) s
+( blanks, tab characters, form feeds and  source  line  bound-) s
+( aries.) s
+( ) s
+( ) s
+(                           NOTATION) s
+( ) s
+(    The   following  sections  define  the  syntax  of  S/SL.) s
+( Throughout the following, {item} means zero or more  of  the) s
+( item,  and [item] means the item is optional.  The abbrevia-) s
+( tion "id" is used for identifier.) s
+( ) s
+( ) s
+(                           PROGRAMS) s
+( ) s
+(    An S/SL program consists of a set of definitions followed) s
+( by a set of rules.) s
+( ) s
+( A _\bp_\br_\bo_\bg_\br_\ba_\bm is:) s
+( ) s
+(                  [inputDefinition]                  [output-) s
+( Definition]                          [inputOutputDefinition]) s
+(                  [errorDefinition]                    {type-) s
+( OrMechanismDefinition}                                 RULES) s
+(                    {rule}                  END) s
+( ) s
+( ) s
+(                 INPUT AND OUTPUT DEFINITIONS) s
+( ) s
+( An _\bi_\bn_\bp_\bu_\bt_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  INPUT  ":"                      {tokenDefi-) s
+( nition} ";") s
+( ) s
+( ) s
+( An _\bo_\bu_\bt_\bp_\bu_\bt_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  OUTPUT ":"                      {tokenDefi-) s
+( nition} ";") s
+( ) s
+( ) s
+( An _\bi_\bn_\bp_\bu_\bt_\bO_\bu_\bt_\bp_\bu_\bt_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+( ) s
+(                             -\b- 4\b4 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+46 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                  INPUT OUTPUT ":"                      {tok-) s
+( enDefinition} ";") s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 5\b5 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+23 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 24 24
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+47 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( A _\bt_\bo_\bk_\be_\bn_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  id [string] ["=" tokenValue]) s
+( ) s
+( ) s
+(    The inputDefinition section defines the input  tokens  to) s
+( the  S/SL program.  The outputDefinition section defines the) s
+( output tokens of  the  program.   The  inputOutputDefinition) s
+( section defines those tokens which are both input tokens and) s
+( output tokens of the program.  Tokens already defined in the) s
+( inputDefinition  or  outputDefinition  sections  must not be) s
+( redefined in the inputOutputDefinition section.) s
+( ) s
+(    The optional string which may be given in a  tokenDefini-) s
+( tion  is  a synonym for the token identifier and can be used) s
+( in place of the identifier anywhere in the S/SL program.) s
+( ) s
+(    Each input and output token is assigned an integer  value) s
+( for  use  in  the  implementation of the S/SL program.  This) s
+( value may be optionally specified in  each  tokenDefinition.) s
+( The  tokenValue  may  be  specified  as an integer or as the) s
+( value of any previously defined identifier  or  string.   If) s
+( omitted,  the value assigned to the token is the value asso-) s
+( ciated with the previous token in the class plus  one.   The) s
+( default  value associated with the first input token and the) s
+( first output token is zero.  The  default  value  associated) s
+( with the first input-output token is the maximum of the last) s
+( token defined in the inputDefinition section  and  the  last) s
+( token  defined in the outputDefinition section.  In this way) s
+( the  default  input-output  token  values  are  unique  with) s
+( respect to both input tokens and output tokens.) s
+( ) s
+( ) s
+(                        ERROR SIGNALS) s
+( ) s
+( An _\be_\br_\br_\bo_\br_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  ERROR  ":"                       {errorSig-) s
+( nalDefinition} ";") s
+( ) s
+( ) s
+( An _\be_\br_\br_\bo_\br_\bS_\bi_\bg_\bn_\ba_\bl_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  id ["=" errorValue]) s
+( ) s
+( ) s
+(    Each errorSignalDefinition defines an error signal  which) s
+( can be signalled by the S/SL program.  An integer error code) s
+( value is associated with each errorId for use in the  imple-) s
+( mentation of the S/SL program.  This value may be optionally) s
+( specified in each errorSignalDefinition.  The errorValue may) s
+( be specified as an integer or as the value of any previously) s
+( defined identifier or string.  The default value  associated) s
+( ) s
+( ) s
+(                             -\b- 6\b6 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+48 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( with an error signal is the value associated with the previ-) s
+( ous error signal plus one.  The default value for the  first) s
+( error signal is 10 \(errors 0 to 9 are reserved for S/SL sys-) s
+( tem use\).) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                             -\b- 7\b7 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+24 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 25 25
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+49 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                TYPE AND MECHANISM DEFINITIONS) s
+( ) s
+(    Type and mechanism definitions may be grouped and  inter-) s
+( mixed  to reflect the association of types and the operation) s
+( definitions which use them.) s
+( ) s
+( A _\bt_\by_\bp_\be_\bO_\br_\bM_\be_\bc_\bh_\ba_\bn_\bi_\bs_\bm_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is one of:) s
+( ) s
+(                  a.    typeDefinition                     b.) s
+( mechanismDefinition) s
+( ) s
+( ) s
+(                            TYPES) s
+( ) s
+( A _\bt_\by_\bp_\be_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  TYPE id ":"                      {valueDef-) s
+( inition} ";") s
+( ) s
+( ) s
+( A _\bv_\ba_\bl_\bu_\be_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  id ["=" value]) s
+( ) s
+( ) s
+(    Each typeDefinition defines a type of values for  use  as) s
+( the  parameter  or result type of a semantic operation or as) s
+( the result type of a rule.) s
+( ) s
+(    Each valueDefinition defines a valueId in the  type.   An) s
+( integer value is associated with each valueId for use in the) s
+( implementation of the  S/SL  program.   This  value  may  be) s
+( optionally specified in each valueDefinition.  The value may) s
+( be specified as an integer or as the value of any previously) s
+( defined identifier or string.  The default value assigned to) s
+( a value identifier is the value associated with the previous) s
+( value  identifier  plus  one.   The default value associated) s
+( with the first valueDefinition in a type is zero.) s
+( ) s
+( ) s
+(                          MECHANISMS) s
+( ) s
+( A _\bm_\be_\bc_\bh_\ba_\bn_\bi_\bs_\bm_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  MECHANISM    id    ":") s
+( {operationDefinition} ";") s
+( ) s
+( ) s
+(    Each  mechanismDefinition  defines  the  set  of semantic) s
+( operations associated with a semantic mechanism.  The mecha-) s
+( nismId itself is unused in the S/SL program.  However, oper-) s
+( ation identifiers associated with a mechanism are by conven-) s
+( tion expected to begin with the mechanism identifier.) s
+( ) s
+( ) s
+(                             -\b- 8\b8 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+50 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( An _\bo_\bp_\be_\br_\ba_\bt_\bi_\bo_\bn_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is one of:) s
+( ) s
+(                  a.   id                   b.  id "\(" typeId) s
+( "\)"                  c.  id ">>" typeId                   d.) s
+( id "\(" typeId "\)" ">>" typeId) s
+( ) s
+( ) s
+(    Each  operationDefinition  defines  a  semantic operation) s
+( associated with the mechanism.) s
+( ) s
+(    Form \(a\) defines  an  update  semantic  operation,  which) s
+( causes an update to the semantic data structure.) s
+( ) s
+(    Form  \(b\) defines a parameterized update operation, which) s
+( uses the parameter value to update the semantic data  struc-) s
+( ture.  The typeId gives the type of the parameter and can be) s
+( any previously defined type.) s
+( ) s
+(    Form \(c\)  defines  a  choice  semantic  operation,  which) s
+( returns  a  result  value obtained from the current state of) s
+( the semantic mechanism, which is used as the selector  in  a) s
+( semantic  choice.   The  typeId gives the type of the result) s
+( and can be any previously defined type.) s
+( ) s
+(    Form \(d\) defines a parameterized choice  operation.   The) s
+( first typeId gives the parameter type, the second the result) s
+( type.  Each can be any previously defined type.) s
+( ) s
+(    Choice operations  \(forms  \(c\)  and  \(d\)  above\)  may  be) s
+( invoked only as the selector in a semantic choice.) s
+( ) s
+( ) s
+(                            RULES) s
+( ) s
+( A _\br_\bu_\bl_\be is one of:) s
+( ) s
+(                  a.       id      ":") s
+( {action} ";") s
+( ) s
+(                  b.  id ">>"  typeId  ":") s
+( {action} ";") s
+( ) s
+( ) s
+(    The  rules  define  the  subroutines and functions of the) s
+( S/SL program.  Rules may call one  another  recursively.   A) s
+( rule  need  not  be defined before it is used.  Execution of) s
+( the program begins with the first rule.) s
+( ) s
+(    Form \(a\) defines a _\bp_\br_\bo_\bc_\be_\bd_\bu_\br_\be rule which  can  be  invoked) s
+( using a call action.) s
+( ) s
+(    Form  \(b\)  defines  a  _\bc_\bh_\bo_\bi_\bc_\be rule which returns a result) s
+( value  of  the  specified  type.   The  typeId  can  be  any) s
+( ) s
+( ) s
+(                             -\b- 9\b9 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+25 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 26 26
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+51 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( previously  defined  type.  Choice rules may only be invoked) s
+( as the selector in a rule choice.) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 1\b10\b0 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+52 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                           ACTIONS) s
+( ) s
+( An _\ba_\bc_\bt_\bi_\bo_\bn is one of the following:) s
+( ) s
+(                  a.   inputToken                   b.    ".") s
+( outputToken                        c.       "#"      errorId) s
+(                  d.  "{"                            {action}) s
+(                          "}"                      e.     ">") s
+(                  f.    "["                              {"|") s
+( inputToken    {","    inputToken}    ":") s
+( {action}   }                              ["|"    "*"    ":") s
+(                               {action}  ]) s
+( "]"                       g.       "@"       procedureRuleId) s
+(                  h.    ">>"                    i.   "["  "@") s
+( choiceRuleId                          {"|" valueId {"," val-) s
+( ueId}    ":"                                    {action}   }) s
+(                           ["|"  "*"  ":") s
+( {action}   ]                        "]"                   j.) s
+( ">>"      valueId                       k.        updateOpId) s
+(                  l.  parameterizedUpdateOpId "\(" valueId "\)") s
+(                  m.    "["   choiceOpId) s
+( {"|"    valueId    {","   valueId}   ":") s
+( {action}   }                              ["|"    "*"    ":") s
+(                               {action}  ]) s
+( "]"                   n.   "["  parameterizedChoiceOpId  "\(") s
+( valueId  "\)"                          {"|" valueId {"," val-) s
+( ueId}   ":"                                    {action}    }) s
+(                            ["|"  "*"  ":") s
+( {action} ]                      "]") s
+( ) s
+( ) s
+(    Form \(a\) is an input action.  The next input token is  to) s
+( be  accepted  from  the  input stream.  If it is not the one) s
+( specified, a syntax error is flagged.  The inputToken may be) s
+( an inputTokenId, an inputOutputTokenId, an inputTokenString,) s
+( an inputOutputTokenString, or  a  question  mark  \(?\).   The) s
+( question  mark  is  a  special token which matches any input) s
+( token.) s
+( ) s
+(    Form \(b\) denotes emission of an output token to the  out-) s
+( put  stream.   The  outputToken  may be an outputTokenId, an) s
+( inputOutputTokenId, an outputTokenString or an  inputOutput-) s
+( TokenString.) s
+( ) s
+(    Form \(c\) denotes the emission of the specified error sig-) s
+( nal to the error stream.) s
+( ) s
+(    Form \(d\) is a cycle or loop.  Execution  of  the  actions) s
+( inside  the  cycle  is repeated until one of its cycle exits) s
+( \(form \(e\)\) or a return \(forms \(h\) and \(j\)\)  is  encountered.) s
+( A  cycle  exit  causes  execution  to continue following the) s
+( nearest enclosing cycle.   The  cycle  exit  action  is  not) s
+( allowed outside of a cycle.) s
+( ) s
+( ) s
+(                            -\b- 1\b11\b1 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+26 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 27 27
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+53 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(    Form \(f\) is an input token choice.  The next token in the) s
+( input stream is examined and execution  continues  with  the) s
+( first  action  in  the  alternative labelled with that input) s
+( token.  The matched input token is accepted from  the  input) s
+( stream.) s
+( ) s
+(    Each   inputToken   label  can  be  an  inputTokenId,  an) s
+( inputOutputTokenId, an inputTokenString or an inputOutputTo-) s
+( kenString.   A  label can not be repeated nor appear on more) s
+( than one alternative.) s
+( ) s
+(    The alternative labelled with an  "*"  is  the  otherwise) s
+( alternative.   If the next input token does not match any of) s
+( the alternative labels of the  choice,  execution  continues) s
+( with  the first action in the otherwise alternative.  If the) s
+( otherwise alternative is  taken,  the  input  token  is  not) s
+( accepted  from  the  input  stream,  but remains as the next) s
+( input token.  After execution  of  the  last  action  in  an) s
+( alternative of the choice, execution continues following the) s
+( choice.) s
+( ) s
+(    If the next input token does not match any of the  alter-) s
+( native  labels  and  no  otherwise alternative is present, a) s
+( syntax error is flagged.  For parsers written in  S/SL,  the) s
+( default  error  handling  strategy  is  to repeat the choice) s
+( after modifying the input stream such that  the  next  input) s
+( token  matches  the  first alternative.  For compiler phases) s
+( other than parsers, continued execution  is  undefined  \(the) s
+( implementation aborts\).) s
+( ) s
+(    Form  \(g\)  is a call to a procedure rule.  Execution con-) s
+( tinues at the first action in the specified rule.  When exe-) s
+( cution  of the called rule is completed, either by executing) s
+( the last action in the rule  or  by  encountering  a  return) s
+( action  \(form \(h\)\), execution is resumed following the call.) s
+( ) s
+(    Form \(h\) is a return action.  It causes a return from the) s
+( procedure  rule  in  which it appears.  A procedure rule may) s
+( return explicitly by executing a return action or implicitly) s
+( by  reaching the end of the rule.  A procedure rule must not) s
+( contain a valued return \(form \(j\)\).) s
+( ) s
+(    Form \(i\) is a rule choice.  The specified choice rule  is) s
+( called  and  returns  a  value  by executing a valued return) s
+( action \(form \(j\)\).  The returned value is  used  to  make  a) s
+( choice  similar  to  an input token choice \(form \(f\) above\).) s
+( Execution continues with the first action of the alternative) s
+( whose  label  matches  the  returned  value.  If none of the) s
+( alternative labels matches the value, the otherwise alterna-) s
+( tive  is  taken.   Following execution of the last action in) s
+( the chosen alternative, execution  continues  following  the) s
+( choice.) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 1\b12\b2 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+54 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(    Each  alternative  label in a rule choice must be a value) s
+( of the result type of the choice rule.  A label can  not  be) s
+( repeated nor appear on more than one alternative.) s
+( ) s
+(    Form  \(j\) is a valued return action.  The specified value) s
+( is returned as the result of the choice rule  in  which  the) s
+( action appears.  The value must be of the result type of the) s
+( choice rule.  A choice rule may return only by  executing  a) s
+( valued return action.  A choice rule must not return implic-) s
+( itly by reaching the end of the rule.  It must not contain a) s
+( non-valued return \(form \(h\)\).) s
+( ) s
+(    Form  \(k\)  is the invocation of an update semantic opera-) s
+( tion.  Similarly, form \(l\) is the invocation of a parameter-) s
+( ized  update  operation.  The parameter value, which must be) s
+( of the operation's parameter type, is supplied to the  invo-) s
+( cation of the operation.) s
+( ) s
+(    Form  \(m\)  is  a  semantic  choice.  The specified choice) s
+( semantic operation is invoked and the returned value used to) s
+( make  a  choice  similar  to an input token choice \(form \(f\)) s
+( above\).  Execution continues with the first  action  of  the) s
+( alternative whose label matches the returned value.  If none) s
+( of the alternative labels matches the value,  the  otherwise) s
+( alternative  is  taken.   Following  execution  of  the last) s
+( action in the chosen alternative, execution  continues  fol-) s
+( lowing  the  choice.  Similarly, form \(n\) is a parameterized) s
+( semantic choice.  The parameter value, which must be of  the) s
+( operation's parameter type, is provided to the invocation of) s
+( the choice operation.) s
+( ) s
+(    Each alternative label in a semantic  choice  must  be  a) s
+( value  of  the result type of the choice operation.  A label) s
+( can not be repeated nor appear on more than one alternative.) s
+( ) s
+(    If the returned value in a rule choice or semantic choice) s
+( does not match any of the alternative labels and  no  other-) s
+( wise  alternative  is  present, continued execution is unde-) s
+( fined \(the implementation aborts\).) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 1\b13\b3 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+27 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 28 28
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+55 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                      THE SYNTAX OF S/SL) s
+( ) s
+( ) s
+( A _\bp_\br_\bo_\bg_\br_\ba_\bm is:) s
+( ) s
+(                  [inputDefinition]                  [output-) s
+( Definition]                          [inputOutputDefinition]) s
+(                  [errorDefinition]                    {type-) s
+( OrMechanismDefinition}                                 RULES) s
+(                    {rule}                  END) s
+( ) s
+( ) s
+( An _\bi_\bn_\bp_\bu_\bt_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  INPUT ":"                       {tokenDefi-) s
+( nition} ";") s
+( ) s
+( ) s
+( An _\bo_\bu_\bt_\bp_\bu_\bt_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  OUTPUT ":"                      {tokenDefi-) s
+( nition} ";") s
+( ) s
+( ) s
+( An _\bi_\bn_\bp_\bu_\bt_\bO_\bu_\bt_\bp_\bu_\bt_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  INPUT OUTPUT ":"                      {tok-) s
+( enDefinition} ";") s
+( ) s
+( ) s
+( A _\bt_\bo_\bk_\be_\bn_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  id [string] ["=" tokenValue]) s
+( ) s
+( ) s
+( An _\be_\br_\br_\bo_\br_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  ERROR  ":"                       {errorSig-) s
+( nalDefinition} ";") s
+( ) s
+( ) s
+( An _\be_\br_\br_\bo_\br_\bS_\bi_\bg_\bn_\ba_\bl_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  id ["=" errorValue]) s
+( ) s
+( ) s
+( A _\bt_\by_\bp_\be_\bO_\br_\bM_\be_\bc_\bh_\ba_\bn_\bi_\bs_\bm_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is one of:) s
+( ) s
+(                  a.    typeDefinition                     b.) s
+( mechanismDefinition) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 1\b14\b4 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+56 hp
+border
+hborder
+/x0 x 1 get bm add def
+/y0 y 1 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( A _\bt_\by_\bp_\be_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  TYPE id ":"                      {valueDef-) s
+( inition} ";") s
+( ) s
+( ) s
+( A _\bv_\ba_\bl_\bu_\be_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  id ["=" value]) s
+( ) s
+( ) s
+( A _\bm_\be_\bc_\bh_\ba_\bn_\bi_\bs_\bm_\bD_\be_\bf_\bi_\bn_\bi_\bt_\bi_\bo_\bn is:) s
+( ) s
+(                  MECHANISM    id    ":") s
+( {operationDefinition} ";") s
+( ) s
+( ) s
+( A _\br_\bu_\bl_\be is one of:) s
+( ) s
+(                  a.       id      ":") s
+( {action} ";") s
+( ) s
+(                  b.  id ">>"  typeId  ":") s
+( {action} ";") s
+( ) s
+( ) s
+( An _\ba_\bc_\bt_\bi_\bo_\bn is one of the following:) s
+( ) s
+(                  a.    inputToken                   b.   ".") s
+( outputToken                       c.       "#"       errorId) s
+(                  d.   "{"                           {action}) s
+(                         "}"                      e.      ">") s
+(                  f.    "["                              {"|") s
+( inputToken   {","    inputToken}    ":") s
+( {action}    }                               ["|"   "*"   ":") s
+(                               {action}  ]) s
+( "]"                        g.       "@"      procedureRuleId) s
+(                  h.   ">>"                   i.    "["   "@") s
+( choiceRuleId                          {"|" valueId {"," val-) s
+( ueId}   ":"                                    {action}    }) s
+(                            ["|"  "*"  ":") s
+( {action}  ]                        "]"                    j.) s
+( ">>"       valueId                       k.       updateOpId) s
+(                  l.  parameterizedUpdateOpId "\(" valueId "\)") s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 1\b15\b5 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 0 def
+28 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+%%Page: 29 29
+/pagesave save def
+/twp true def
+/fnfs 11 def
+/dfs fnfs 0.8 mul def
+/df /Helvetica dfs getfont def
+/dw df setfont td stringwidth pop def
+/sfnf filenmfontname fnfs getfont def
+/hm fnfs 0.25 mul def
+/hs 0.22 inch def
+/bfs 7.10909 def
+/bdf /Courier-Bold bfs getfont def
+/bm bfs 0.7 mul def
+/bf /CourierBack bfs getfont def
+/l 66 def
+/c 85 def
+/pw
+   bf setfont (0) stringwidth pop c mul bm dup add add
+   def
+/ph
+   bfs l mul bm dup add add hs add
+   def
+/fns
+      pw
+      fnfs 4 mul dw add (Page 999) stringwidth pop add
+    sub
+  def
+/tm margin twp {3} {2} ifelse div def
+/sd 0 def
+/y [ rm ph add bm add
+          dup ] def
+/sny dfs dfs add def
+/snx sh tm dfs add sub def
+/dy sny def
+/dx tm dfs add def
+/x [ tm			% left page
+          dup 2 mul pw add	% right page
+        ] def
+/scx sh 2 div def
+/fny dy def
+/fnx scx def
+/ly fnfs 2 div y sd get add def
+/lx snx def
+/d (Jun 27 1997 13:51) def
+( ssl-tr118.txt ) fn
+sw 0 translate
+90 rotate
+57 hp
+border
+hborder
+/x0 x 0 get bm add def
+/y0 y 0 get bm bfs add hs add sub def
+x0 y0 moveto
+bf setfont
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                  m.     "["   choiceOpId) s
+( {"|"   valueId   {","   valueId}    ":") s
+( {action}    }                               ["|"   "*"   ":") s
+(                               {action}  ]) s
+( "]"                   n.   "["  parameterizedChoiceOpId  "\(") s
+( valueId "\)"                          {"|" valueId {","  val-) s
+( ueId}    ":"                                    {action}   }) s
+(                           ["|"  "*"  ":") s
+( {action} ]                      "]") s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+( ) s
+(                            -\b- 1\b16\b6 -\b-) s
+( ) s
+( ) s
+( ) s
+/sd 1 def
+/sd 0 def
+29 sn
+fnf
+lg lgp
+pagesave restore
+showpage
+
+%%Trailer
+%%Pages: 29
+docsave restore end

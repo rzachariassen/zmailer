@@ -1,0 +1,118 @@
+#!/bin/sh -
+tmpfile=/tmp/zmstat$$
+awk '
+BEGIN	{
+		key["uid"] = "uid"
+		key["gid"] = "gid"
+		key["size"] = "size"
+		key["headersize"] = "headersize"
+		key["bodysize"] = "bodysize"
+		key["delay"] = "delay"
+		key["resent"] = "resent"
+		key["trusted"] = "trusted"
+		key["external"] = "external"
+		key["rcvdfrom"] = "rcvdfrom"
+		key["with"] = "with"
+		value["size"] = 0
+		for (i in value)
+			value[i] = 0
+}
+/ file: / {
+		s = substr($0,index($0," file: ")+7)
+		i = index(s, " ")+1
+		s = substr(s,i,index(s, " =>")-i)
+		i = index(s, "<")
+		if (i > 0)
+			s = substr(s, i+1)
+		i = index(s, ":")
+		if (i > 0)
+			s = substr(s, i+1)
+		i = index(s, ">")
+		if (i > 0)
+			s = substr(s, 1, i-1)
+		sender = s
+}
+/ info: / {
+		count += 1
+		for (i=1; i < NF ; ++i) {
+			if (key[$i]) {
+				value[key[$i]] = $(i+1)
+				if (key[$i] == "external")
+					++i;
+			}
+		}
+		uid[value["uid"]] += 1
+		gid[value["gid"]] += 1
+		size += value["size"]
+		bytes[value["uid"]] += value["size"]
+		grbytes[value["gid"]] += value["size"]
+		headersize += value["headersize"]
+		bodysize += value["bodysize"]
+		delay += value["delay"]
+		resent[value["resent"]] += 1
+		trusted[value["trusted"]] += 1
+		if (value["rcvdfrom"] != 0)
+			rcvdfrom[value["rcvdfrom"]] += 1
+	# If the message was local
+		price = 0.40
+		if (value["size"] > 10000)
+			price += 0.10*(value["size"]-10000)/1000
+		if (value["external"] == 0) {
+			cost[value["uid"]] += price
+			grcost[value["gid"]] += price
+		} else if (value["rcvdfrom"] != 0) {
+			external += 1
+			cost[value["rcvdfrom"]] += price
+			rbytes[value["rcvdfrom"]] += value["size"]
+		} else
+			external += 1
+		postage[sender] += price
+		pcount[sender] += 1
+		pbytes[sender] += value["size"]
+		if (value["with"] != 0) {
+			with[value["with"]] += 1
+			wbytes[value["with"]] += value["size"]
+			wcost[value["with"]] += price
+		}
+		for (i in value)
+			value[i] = 0
+}
+END {
+	print "size = " size " avg = " size / count
+	print "headersize = " headersize " avg = " headersize / count
+	print "bodysize = " bodysize " avg = " bodysize / count
+	print "avg delay = " delay / count
+	print "resent yes = " resent["yes"] " no = " resent["no"]
+	print "trusted yes = " trusted["yes"] " no = " trusted["no"]
+	print "external = " external
+	print
+	for (i in uid)
+		printf "%d\t%d\t%d\t%8.2f\n", \
+			i, uid[i], bytes[i], cost[i] > "'$tmpfile.uid'"
+	for (i in gid)
+		printf "%d\t%d\t%d\t%8.2f\n", \
+			i, gid[i], grbytes[i], grcost[i] > "'$tmpfile.gid'"
+	for (i in with)
+		printf "%s\t%d\t%d\t%8.2f\n", \
+			i, with[i], wbytes[i], wcost[i] > "'$tmpfile.with'"
+	for (i in rcvdfrom)
+		printf "%s\t%d\t%d\t%8.2f\n", \
+			i, rcvdfrom[i], rbytes[i], cost[i] > "'$tmpfile.rcvd'"
+	for (i in postage)
+		printf "%s\t%d\t%d\t%8.2f\n", \
+			i,pcount[i], pbytes[i], postage[i] > "'$tmpfile.sender'"
+}'
+echo "UID"
+sort +3nr $tmpfile.uid
+echo
+echo "GID"
+sort +3nr $tmpfile.gid
+echo
+echo "WITH"
+sort +3nr $tmpfile.with
+echo
+echo "Received From"
+sort +3nr $tmpfile.rcvd
+echo
+echo "Postage"
+sort +3nr $tmpfile.sender

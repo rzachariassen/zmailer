@@ -1,0 +1,411 @@
+<sect1>Utilities
+<p>
+
+There is considerable collection of various utilities in the
+ZMailer package. Not all of them even become installed into
+your system in all situations.
+
+<sect2>vacation
+<p>
+
+<em>vacation</em> automatically replies to incoming mail. The canned 
+reply is contained in the file <tt>.vacation.msg</tt>, that you should 
+create in your home directory (or the file <tt>Msgfile</tt> specified by 
+the <tt>-m</tt> option).
+
+This file should include a header with at least a <tt>Subject:</tt> line 
+(it should not include a <tt>To:</tt> line -- if you want, you may include 
+a <tt>From:</tt> line, especially if you use the <tt>-m</tt> option). 
+For example:
+
+<bf>Usage</bf>
+
+To start <em>vacation</em>, run the command <tt>vacation start</tt>. 
+It will create a <tt>.vacation.msg</tt> file (if you don't already 
+have one) in your home directory containing the message you want to send 
+people who send you mail, and a <tt>.forward</tt> file in your home 
+directory containing a line of the form:
+
+<tscreen><verb>
+"\name", "|/opt/mail/bin/vacation name"
+</verb></tscreen>
+
+where name is your login name. Make sure these files and your home 
+directory are readable by everyone. Also  make sure  that  no  one  
+else  can  write  to  them,  and  that  no  one  can  write  to  your  
+home  directory. (<tt>chmod og-w &dollar;HOME &dollar;HOME/.forward</tt>)
+
+To stop vacation, run the command <tt>vacation stop</tt> It will move the 
+<tt>.forward</tt> file to <tt>.vacforward</tt>, and the automatic 
+replies will stop.
+
+<tt>vacation start vacation stop vacation -I vacation &lsqb; -tN &rsqb; 
+&lsqb; -mMsgfile &rsqb; &lsqb; -d &rsqb; &lsqb;user&rsqb;</tt>
+
+<bf>Parameters</bf>
+
+<descrip>
+<tag/<tt>-I</tt>, <tt>-i</tt>/ initialize the <tt>.vacation.pag</tt> 
+and <tt>.vacation.dir</tt> files and start vacation.
+
+If the <tt>-I</tt> (or <tt>-i</tt>) flag is not specified, vacation 
+tries to reply to the sender.
+
+<tag/<tt>-tN</tt>/ Change the interval between repeat replies to the same 
+sender. The default is one week. A trailing <tt>s</tt>, <tt>m</tt>, 
+<tt>h</tt>, <tt>d</tt>, or <tt>w</tt> scales N to seconds, minutes, 
+hours, days, or weeks respectively.
+
+<tag/<tt>-mMsgfile</tt>/ specifies the file in which the message to be 
+sent is kept. 
+The default is <tt>&dollar;HOME/.vacation.msg</tt>.
+
+<tag/<tt>-r</tt>/ interval defines interval in days when not to answer 
+again to the same sender. (Default is 1 day.)
+
+<tag/<tt>-d</tt>/ disables the list of senders kept in the 
+<tt>.vacation.pag</tt> and <tt>.vacation.dir</tt> files.
+</descrip>
+
+<bf>Example</bf>
+
+<tscreen><verb>
+Subject: I am on vacation
+
+I am on vacation until July 22. If you have something urgent, please 
+contact Joe Jones (joe@blah.utoronto.ca). --john
+</verb></tscreen>
+
+No message is sent if the ``user'' specified in the vacation  
+command (if nothing is specified, it uses your username) does 
+not appear explicitly in the <tt>To:</tt> or <tt>Cc:</tt> lines of the 
+message, which prevents messages from being sent back to mailing lists 
+and causing loops.
+
+A list of senders is kept in the files <tt>.vacation.pag</tt> and 
+<tt>.vacation.dir</tt> in your home directory. These are dbm database 
+files. (Note: not all database systems have two files, either may be 
+missing.) The vacation message is in <tt>.vacation.msg</tt> and 
+the automatic reply is activated by the <tt>.forward</tt> (and 
+saved in <tt>.vacforward</tt>) The default vacation message is 
+stored in <tt>/opt/mail/vacation.msg</tt>
+
+On machines running ZMailer, the <tt>name</tt> argument 
+to <em>vacation</em> is optional, and the <tt>&dollar;USER</tt> 
+environment variable is used to determine where to look for the 
+message and the list of previous recipients.
+
+The <tt>&dollar;SENDER</tt> variable is checked first to determine 
+the reply destination. It is normally set to the <bf>SMTP</bf> 
+<bf>MAIL FROM</bf> address or equivalent. This is an additional 
+safeguard against sending replies to mailing lists, the PostMaster 
+or the mailer daemon, since standards and common sense dictate that 
+it never points back to an address that could cause a loop. The 
+<tt>From_</tt> line is used only as a last resort.
+
+<sect2>makedb
+<p>
+
+The way the ZMailer uses DBM entries is by using strings with 
+their terminating <tt>NULL</tt> as keys, and as data.. Thus 
+the length is <tt>strlen(string)+1</tt>, not <tt>strlen(string)</tt> !
+
+WARNING: Policy data parsing does use unchecked buffers!
+
+<tscreen><verb>
+Usage: makedb [-a|-p] dbtype database.name [infilename|-]
+</verb></tscreen>
+
+Dbtypes are: <tt>ndbm gdbm btree bhash</tt>
+
+If no <tt>infilename</tt> is defined, <tt>database.name</tt> is assumed.
+
+<descrip>
+<tag/<tt>NDBM</tt>/ appends <tt>.pag</tt>, and <tt>.dir</tt>
+into the actual db file names.
+<tag/<tt>GDBM</tt>/ <bf>does not</bf> append <tt>.gdbm</tt>
+into the actual db file name.
+<tag/<tt>BTREE</tt>/ <bf>does not</bf> append <tt>.db</tt>
+into the actual db file name.
+<tag/<tt>BHASH</tt>/ appends <tt>.pag</tt>, and <tt>.dir</tt>
+into the actual db file names.
+</descrip>
+
+The <tt>-a</tt> option is for parsing input that comes in 
+<tt>aliases</tt> format: <tt>key: data,in,single,long,line</tt>
+
+<sect2>dblook
+<p>
+
+The way the ZMailer uses DBM entries is by using strings with 
+their terminating <tt>NULL</tt> as keys, and as data.. Thus the 
+length is <tt>strlen(string)+1</tt>, not <tt>strlen(string)</tt> !
+
+<tscreen><verb>
+Usage: dblook [-dump] dbtype database.name [key]
+</verb></tscreen>
+
+Dbtypes are: <tt>ndbm gdbm btree bhash</tt>
+
+<descrip>
+<tag/<tt>NDBM</tt>/ appends <tt>.pag</tt>, and <tt>.dir</tt> 
+into the actual db file names.
+<tag/<tt>GDBM</tt>/ <bf>does not</bf> append <tt>.gdbm</tt> 
+into the actual db file name.
+<tag/<tt>BTREE</tt>/ <bf>does not</bf> append <tt>.db</tt> 
+into the actual db file name.
+<tag/<tt>BHASH</tt>/ appends <tt>.pag</tt>, and <tt>.dir</tt> 
+into the actual db file names.
+</descrip>
+
+<sect2>policy-builder.sh
+<p>
+
+<tscreen><verb>
+#! /bin/sh
+#
+# Sample smtp-policy-db builder script.
+#
+# This merges following files from $MAILVAR/db/ directory:
+#	smtp-policy.src
+#	localnames	  ('= _full_rights')
+#	smtp-policy.relay ('= _full_rights')
+#	smtp-policy.mx	  ('relaytargets +')
+#	smtp-policy.spam  ('= _bulk_mail')
+#
+# These all together are used to produce files:  smtp-policy.$DBEXT
+# The produced database retains the first instance of any given key.
+
+ZCONFIG=@ZMAILERCFGFILE@
+. $ZCONFIG
+
+umask 022
+
+cd $MAILVAR/db
+
+if [ ! -f smtp-policy.src ] ; then
+	echo "No $MAILVAR/db/smtp-policy.src input file"
+	exit 64 # EX_USAGE
+fi
+
+lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
+   > smtp-policy.spam.new &ero;&ero; mv smtp-policy.spam.new smtp-policy.spam
+
+# Fork off a subshell to do it all...
+(
+  # The basic boilerplate
+  cat smtp-policy.src
+
+  # Localnames
+  cat localnames | \
+  awk '/^#/{next;} NF >= 1 {printf "%s = _full_rights\n",$1;}'
+
+  # smtp-policy.relay
+  # (Lists domains and networks that are allowed to use us as relay)
+  if [ -f smtp-policy.relay ] ; then
+    cat smtp-policy.relay | \
+    awk '/^#/{next;} NF >= 1 {printf "%s = _full_rights\n",$1;}'
+  fi
+
+  # smtp-policy.mx
+  # (Lists domains that are allowed to use us as inbound MX relay for them)
+  if [ -f smtp-policy.mx ] ; then
+    cat smtp-policy.mx | \
+    awk '/^#/{next;} NF >= 1 {printf "%s relaytarget +\n",$1;}'
+  fi
+
+  # smtp-policy.spam
+  # (Lists users, and domains that are known spam sources)
+  # (We use file from "http://www.webeasy.com:8080/spam/spam_download_table"
+  #  which is intended for QMAIL, and thus needs to be edited..)
+  if [ -f smtp-policy.spam ] ; then
+    cat smtp-policy.spam | tr "[A-Z]" "[a-z]" | sort | uniq | \
+    awk '/^@/{ # Domain, but ZMailer processes them without '@'
+	  printf "%s = _bulk_mail\n", substr($1,2);
+	  next;
+	}
+	{ # All other cases are usernames with their domains
+	  printf "%s = _bulk_mail\n", $1;
+	}'
+  fi
+
+# --------- end of subshell
+) | tee smtp-policy.dat | \
+$MAILBIN/makendbm -p $DBTYPE smtp-policy-new -
+
+case $DBTYPE in
+dbm)
+	mv smtp-policy-new.dir  smtp-policy.dir
+	mv smtp-policy-new.pag  smtp-policy.pag
+	;;
+ndbm)
+	mv smtp-policy-new.dir  smtp-policy.dir
+	mv smtp-policy-new.pag  smtp-policy.pag
+	;;
+gdbm)
+	mv smtp-policy-new.gdbm smtp-policy.gdbm
+	;;
+btree)
+	mv smtp-policy-new.db   smtp-policy.db
+	;;
+esac
+
+exit 0
+</verb></tscreen>
+
+<sect2>autoanswer
+<p>
+
+The <em>autoanswer</em> program is intended to be placed into
+system global aliases database as following entry:
+
+<tscreen><verb>
+autoanswer:  "| /path/to/MAILBIN/autoanswer"
+</verb></tscreen>
+
+It yields a reply message for all, except the error messages, nor
+to those with <tt>X-autoanswer-loop:</tt> header in them.
+
+The reply sends back the original incoming message headers in the
+message body along with some commentary texts.
+
+The program is, in reality, a perl script which can easily be tuned
+to local needs.
+
+<tscreen><verb>
+#!@PERL@
+
+##########################################################################
+#
+# Autoanswer.pl 1.0 for ZMailer 2.99.48+
+# (C) 1997 Telecom Finland
+#          Valtteri Karu <valtteri.karu@tele.fi>
+# 
+# This program sends autoreply and the original headers to the originator 
+# of the message. Version 2.99.48+ of the Zmailer is required for detecting
+# possible false addresses.
+#
+# USAGE:
+#
+# Create an alias for the address to use:
+# autoreply: "|/path/to/autoanswer.pl"
+#
+##########################################################################
+
+$nosend = 0;
+$double = 0;
+$address = $ENV{'SENDER'};
+
+if( ! -r "$ENV{'ZCONFIG'}") {
+    LOG("zmailer.conf missing");
+    exit 2;
+}
+
+open(ZMAILER,"< $ENV{'ZCONFIG'}" );
+while(<ZMAILER>) {
+    chomp;
+    split(/=/);
+    $ZMAILER{$_[0]}=$_[1];
+}
+
+close ZMAILER;
+
+$logfile = $ZMAILER{'LOGDIR'} . "/autoanswer";
+
+while (<STDIN>) {
+
+    $text = $_;
+
+    if (($text eq "\n") &ero;&ero; ( $double = 1)) {
+	last;
+    }
+
+    if (($text eq "\n") &ero;&ero; ( $double = 0)) {
+	$double = 1;
+	next;
+    }
+    
+    if ($text =~ "X-autoanswer-loop: ") {
+	$nosend = 1;
+	LOG("Looping message, sender=$address");
+    }
+
+    $double = 0;
+
+    push(@header,$text);
+}
+
+if (($address eq '<>') || ($nosend = 0)) {
+    LOG("SENDER invalid");
+    exit 1;
+}
+
+$outfile = $ZMAILER{'POSTOFFICE'} . "/public/autoanswer.$$";
+#$outfile = "/tmp/aa.$$";
+$now = time;
+$txttime = localtime(time);
+
+open(OUT,">$outfile");
+select(OUT);
+print "channel error\n";
+print "to $address\n";
+print "env-end\n"; 
+print "From: Autoreply service <postmaster>\n";
+print "To: $address\n";
+print "Subject: Autoreply\n";
+print "X-autoanswer-loop: Megaloop \n\n";
+print "      This is autoreply answer message by your request.\n\n";
+print "      Original message was received at UNIX time $now;\n";
+print "      which means '$txttime' in cleartext.\n\n";
+print "      Headers were:\n\n";
+print "------------------------------------------------------------------------------\n";
+print @header;
+print "------------------------------------------------------------------------------\n";
+print "\n      Have a nice day.\n";
+select(STDOUT);
+close OUT;
+$inode=(stat($outfile))[1];
+$newfile=$ZMAILER{'POSTOFFICE'} . "/router/$inode";
+rename($outfile, $newfile);
+LOG("Sent to $address");
+exit 0;
+
+sub LOG {
+
+	open(LOGf, ">>$logfile");
+	$ttime = localtime(time);
+	printf (LOGf "$ttime autoanswer: @_\n");
+	close LOGf;
+}
+</verb></tscreen>
+
+<sect2>newdb
+<p>
+
+This is elementary wrapper script building binary databases
+with <tt>makedb</tt> utility into a temporary file, and replacing
+the old files with the new ones in proper order for the 
+<bf>router</bf>'s automatic source change detecting relation 
+parameter <tt>-m</tt> to work correctly.
+
+<bf>Usage</bf>
+
+<tscreen><verb>
+newdb /db/path/name [input-file-name]
+</verb></tscreen>
+
+This script uses system <tt>ZCONFIG</tt> file to find out the desired
+database type, and derives the actual database file names from the 
+variable.
+
+Suffix selection rules are:
+
+<tscreen><verb>
+dbm     .pag and .dir
+ndbm    .pag and .dir
+gdbm    .gdbm
+btree   .db   
+</verb></tscreen>
+
+
+

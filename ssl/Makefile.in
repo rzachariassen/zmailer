@@ -1,0 +1,39 @@
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+#
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPDEP=		@CPPDEP@
+DEFS=		@DEFS@
+TOPDIR=		..
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(DEFS) $(INCL)
+TOPDIR=		..
+INSTALL=	@INSTALL@
+
+ssl:	ssl.o
+	$(CC) -o ssl ssl.o
+
+ssl.o: $(srcdir)/ssl.c
+	$(CC) $(CFLAGS) -c $(srcdir)/ssl.c
+
+depend:	# Err...
+
+test:	ssl
+	./ssl ssl.ssl
+	diff ssl.sst.c ssl:sst.c
+	diff ssl.sst.h ssl:sst.h
+
+# Actually this isn't usually installed at all, rather it is used from
+# its own place while compiling Zmailer..
+install:	ssl
+	$(INSTALL) -s -m 755 ssl $(BIN)
+
+clean:
+	-rm -f ssl ssl.sst.c ssl.sst.h ssl.o ssl.entry
+	-rm -f *~
+distclean: clean
+	-rm -f Makefile

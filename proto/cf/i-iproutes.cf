@@ -1,0 +1,56 @@
+# Routes override initializations
+#
+# Relations: iproutesdb
+
+provide iproutesdb
+
+if [ -f $MAILVAR/db/iproutes ]; then
+    if [ -f $MAILVAR/db/iproutes.zmsh ]; then
+        # With zmailer utility:  make-incore.sh
+        # you can create a static routing database (of reasonable size!)
+        # which is loaded incore of the routing processes.
+	if [ $MAILVAR/db/iproutes -nt $MAILVAR/db/iproutes.zmsh ]; then
+	    local cmd
+	    cmd="$MAILBIN/make-incore.sh"
+	    "$cmd" iproutesdb "$MAILVAR/db/iproutes" "$MAILVAR/db/iproutes.zmsh"
+	fi
+        . $MAILVAR/db/iproutes.zmsh
+    elif [ -f $MAILVAR/db/iproutes$DBEXTtest ]; then
+        if [ $MAILVAR/db/iproutes -nt $MAILVAR/db/iproutes$DBEXTtest ]; then
+	    $MAILBIN/newdb $MAILVAR/db/iproutes
+	fi
+        relation -lmt $DBTYPE -f $MAILVAR/db/iproutes$DBEXT -d longestmatch iproutesdb
+    else
+        relation -lmt unordered -f $MAILVAR/db/iproutes -d longestmatch iproutesdb
+    fi
+else
+    iproutesdb () { return 1 }
+fi
+
+#| The "iproutes" database is the file $MAILVAR/db/iproutes.
+#| It contains routing exceptions for hosts or domains that would
+#| otherwise be routed by the normal database lookups for a particular
+#| network or protocol.  The value is expected to be in the following
+#| form:
+
+#|      channel "!" host [ { "!" host } ]
+
+#| The channel is a well-known channel from the set: local, error, ignore,
+#| smtp, uucp, ean, usenet, bsmtp3, bitnet2, bitnet2truncate, defrt1, and
+#| defrt1truncate.  The exact set depends on which protocols are
+#| supported by the loaded configuration.
+
+#| For example, the line:
+
+#|      .domain         uucp!host1!host2
+
+#| would send all mail for domain or its subdomains to host1 via UUCP,
+#| with a request to remail to host2!address.  This is pathalias output
+#| semantics.
+
+#| The line
+
+#|      host            smtp![192.12.180.4]
+
+#| would send all mail for host to the SMTP server on the host at IP
+#| address 192.12.180.4.

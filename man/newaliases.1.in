@@ -1,0 +1,36 @@
+.\" $Header$
+.ds ]W ZMailer 2.0
+.TH NEWALIASES 1 "2 June 1990"
+.SH NAME
+newaliases \- zmailer aliases database rebuilder
+.SH SYNOPSIS
+.B newaliases
+.SH DESCRIPTION
+.I newaliases
+rebuilds the aliases database used by the
+.IR router (8)
+configuration at most sites.  The database is a sorted list of
+(alias,byteoffset) values, with the byteoffset referring to a digested
+file containing the raw data from the normal aliases file.  The indirection
+allows the alias entries to be arbitrarily large without running into
+representational limits.
+.PP
+The
+.I router
+must be available to interpret this script, as it provides the address
+digestification functionality.  By convention, signal 16 is sent to
+the
+.I router
+when it should flush and reopen the aliases database.
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /local/share/mail/db/aliases (MAILSHARE/db/aliases)
+.br
+.I /var/spool/postoffice/.pid.router (POSTOFFICE/.pid.router)
+.SH SEE ALSO
+router(8)
+.SH AUTHOR
+This program authored and copyright by:
+.br
+Rayan Zachariassen <rayan@cs.toronto.edu>

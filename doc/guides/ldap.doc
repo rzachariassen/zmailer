@@ -1,0 +1,47 @@
+Hi all,
+
+Finally, I wrote my LDAP router db module.  It tested with 2.99.48 and I
+think it shouldn't have any problem with latest version if no API is changed.
+
+With the module compiled, you can define your LDAP search query in a config
+file.   Here's one that I am currently testing.
+
+---- $MAILSHARE/db/fullnames.ldap ------------------------------------------
+#
+# You must at least define "base", "ldaphost", "filter" & "attr".
+#
+base		o=HKUST,c=HK
+ldaphost	ldap.ust.hk
+ldapport	389
+binddn		cn=Directory Manager,o=HKUST,c=HK
+passwd		secret
+filter		(&(objectclass=person)(mailAlternateAddress=%s))
+attr		uid
+scope		sub
+----------------------------------------------------------------------------
+
+And then defined your relation DB in .cf file.
+
+relation -mt ldap -f $MAILSHARE/db/fullnames.ldap fullnamemap
+
+It supports the -m flag such that it will re-read the configuration if the
+config file changed.  Also, the search filter is a "sprintf" style
+string that defines how the key is.  It MUST be of the form "(attribute=%s)".
+It should define a search that return AT MOST one entry & single attribute
+value.  If not, the map will only use the first entry and first attribute it
+received.
+
+In case of server or network error that the map failed to lookup,  the mail
+message will be deferred and hold with DEFER_IO_ERROR.
+
+Mea,  I haven't integrated this module into autoconfig as I don't know 
+enough how to do it :(  Can you or anyone help to put it altogether?   It 
+should compile well either with UM ldap 3.3 or Netscape Directory SDK 1.0. 
+
+=======================================================================
+Lai Yiu Fai                       |  Tel.:       (852) 2358-6202
+Centre of Computing Services      |  Fax.:       (852) 2358-0967
+ & Telecommunications             |  E-mail:     ccyflai@ust.hk
+                                  |
+The Hong Kong University of       |  Clear Water Bay,
+Science & Technology              |  Kowloon, Hong Kong.

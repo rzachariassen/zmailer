@@ -1,0 +1,303 @@
+# Expansion of the local-part of a locally delivered address is done here.
+#
+# We check (in order):
+#
+#	":include:" or "|" or "/" prefix
+#	aliases entry (mapping to a list of addresses)
+#	$HOME/.forward file entry (mapping to a list of addresses)
+#	$MAILVAR/lists directory entry (mapping to a list of addresses)
+#	-request or -owner suffix (mapping to owner of mailing list file)
+#   -group (mapping to a group of people specified in file /etc/group)
+#
+# If we get all the way through, we give up.
+
+provide aliases
+
+# Define the YP mail.aliases database
+if [ -x /usr/bin/ypwhich ] && /usr/bin/ypwhich>/dev/null 2>&1; then
+	relation -lt yp,mail.aliases ypaliases
+else
+	ypaliases () { return 1 }
+fi
+
+# Define the netaliases database (xaliases)
+if [ -f $MAILSHARE/db/netaliases.dir ]; then
+	case "$DBTYPE" in
+	ndbm|dbm)
+		relation -lmt $DBTYPE -f $MAILSHARE/db/netaliases xaliases ;;
+	*)
+		xaliases () { return 1 } ;;
+	esac
+else
+	xaliases () { return 1 }
+fi
+
+# Define the Sendmail aliases database
+if [ -f $MAILVAR/db/aliases ]; then
+	case "$DBTYPE" in
+	ndbm|dbm)
+		[ -f $MAILSHARE/db/aliases.dir ] || $MAILBIN/zmailer newaliases
+		relation -lmt $DBTYPE -f $MAILSHARE/db/aliases aliases
+		;;
+	*)
+		[ -f $MAILVAR/db/aliases.idx ] || $MAILBIN/zmailer newaliases
+		relation -limt ordered,$MAILVAR/db/aliases.dat \
+			-f $MAILVAR/db/aliases.idx aliases
+		;;
+	esac
+else
+	aliases () { return 1 }
+fi
+
+# define a function to look up aliases in the following order:
+#   1. netaliases
+#   2. Sendmail aliases
+#   3. YP aliases
+lookupaliases (user) {
+	local a
+
+	a=$(xaliases "$user") ||
+		a=$(aliases "$user") ||
+		a=$(ypaliases "$user") ||
+		return 1
+
+	echo "$a"
+	return 0
+}
+
+# if the file $MAILVAR/db/filter exists, it contains a list of programms
+# which are allowed to pipe to in a user's .forward file
+if [ -f $MAILVAR/db/filter ]; then
+	relation -mt unordered -f $MAILVAR/db/filter filterdb
+else
+	filterdb () { return 1 }
+fi
+
+# If the 'm' option was NOT specified on the aliases relation,
+# presumably whatever creates new aliases will poke us (using SIGURG).
+trap "db flush aliases ; log flushed aliases" 16
+
+
+# Usage: routeuser (channel host user attributes)
+#
+# This is where local alias expansion is controlled.
+routeuser (quad) {
+	local attr user lcuser host priv a mxh key
+
+	attr=$(attributes $quad)
+	user="$(user $quad)"
+    lcuser="$(recase -l "$user")"
+	host="$(host $quad)"
+    priv=$(get $attr privilege)
+
+	case "$(get $attr type)" in
+	sender)
+        return (($quad))
+        ;;
+    expandsender)
+        a=$(homedirectory "$user")/.forward && [ -f $a ] &&
+        return (($quad))
+        ;;
+    esac
+
+	# get rid of the attribute tag for alias loop prevention
+	a=$quad
+	mxh=$(setf $(last $a) ())
+	key="$(elements $a)"
+
+	case "$(channel $quad)" in
+	local)	;;	# this is the normal case, below
+	*)	return (($quad))
+		;;
+	esac
+
+    $(expansions "$key"-file) ||
+    ssift "$user" in
+    :include:(.*)
+        db add expansions "$key"-file ""
+        [ -f "\1" ] && priv=$(getpriv $priv "\1" include) &&
+        defer='' &&
+        return $(listaddresses -e root -c 'file expansion' < "\1" |
+             maprrouter $(newattribute $attr privilege $priv) "\1" fileincl "")
+            ;;
+    [|/].*	return (($quad)) ;;
+    tfiss
+
+    # alias expansion
+    $(expansions "$key"-alias) ||
+    a=$(lookupaliases "$user") &&
+        db add expansions "$key"-alias "" &&
+        priv=$(filepriv $MAILVAR/db/aliases $(db owner aliases)) &&
+        return $(echo $a | listaddresses -e root -c 'alias expansion' |
+              maprrouter $(newattribute $attr privilege $priv) "$user" "$user" "")
+
+    # expand the  user's .forward file
+    $(expansions "$key"-user) ||
+    [ "$(recase -l "$DOT_FORWARD_FILE")" != "ignore" ] &&
+        a="$(homedirectory "$user")/.forward" && [ -f "$a" ] &&
+        db add expansions "$key"-user "" &&
+        priv=$(getpriv $priv "$a" .forward) &&
+        return $(listaddresses -e "$user" -c "$a file expansion" < "$a" |
+             maprrouter $(newattribute $attr privilege $priv) "$a" "$user" "$DOT_FORWARD_FILE")
+
+    # check in the mailing list directory
+    $(expansions "$key"-list) ||
+    a="$MAILVAR/lists/$lcuser" &&
+    [ -f "$a" ] && db add expansions "$key"-list "" &&
+    priv=$(getpriv $priv "$a" maillist) &&
+    return $(listaddresses -E "$user-owner" -e "$lcuser"-owner -c "$a file expansion" < "$a" |
+         maprrouter $(newattribute $attr privilege $priv sender "$lcuser"-owner) "$a" "$user" "")
+
+    # local user with no alias and no .forward file
+
+    # turn *-owner and *-request into the owner of a mailing list file
+    # turn *-group into members listed in /etc/group
+    case "$lcuser" in
+    *-owner)
+        a="$MAILVAR/lists/$(basename "$lcuser" -owner)" &&
+            [ -f "$a" ] &&
+            return $(rrouter "$(uid2login $(filepriv "$a"))" "$user" $attr)
+        ;;
+    *-request)
+        a="$MAILVAR/lists/$(basename "$lcuser" -request)" &&
+            [ -f "$a" ] &&
+            return $(rrouter "$(uid2login $(filepriv "$a"))" "$user" $attr)
+        ;;
+    *-group)
+        a="$(groupmembers $(basename "$lcuser" -group))" &&
+            db add expansions "$key" group &&
+            return $(echo $a |
+                listaddresses -e postmaster -c "$lcuser expansion" |
+                maprrouter $(newattribute $attr sender postmaster) "$lcuser" "$user" "")
+        ;;
+    esac
+
+	case "$user" in
+	uid#*)	return $(rrouter postmaster "$user" $attr)
+		;;
+	esac
+
+	# give users with mixed case letters a chance...
+	if [ x$(login2uid "$user") != x$NOBODY -o x$(login2uid "$lcuser") != x$NOBODY ]
+	then
+		return (($quad))
+	fi
+
+	[ "$FUZZYMATCH" = "yes" ] && return (((fuzzy nosuchuser "$user" $attr)))
+
+	return (((error nosuchuser "$user" $attr)))
+}
+
+# Usage: getpriv <present privilege> <filename> <filename type>
+#
+# Determine the privileges associated with addresses coming from the filename.
+# The type value is one of .forward, maillist, or include.  Setting
+# private='' ensures that noone can access (modulo a small window) information
+# through the mailer (e.g., by sending mail to addresses taken from a
+# protected file and waiting excitedly for the informative bounce messages)
+# that they couldn't access otherwise.  If private='.forward maillist' then
+# people stop complainig about the former behaviour...
+getpriv (priv, file, type) {
+	for ptype in $private
+	do
+		if [ $type = $ptype ]; then
+			filepriv "$file"
+			return $?
+		fi
+	done
+	runas $priv filepriv "$file"
+}
+
+# Usage: newattribute <oldattribute> <key1> <value1> [ <key2> <value2> ] ...
+#
+# Returns a new attribute list symbol with the <keyN> <valueN>
+# attributes added to the contents of the <oldattribute> list.
+newattribute (oldattribute) {
+	local a null value
+	a=$(gensym)
+	eval $a=\$$oldattribute
+	while [ "$#" != 0 ];
+	do
+		value=$(get $a "$1")
+		if [ x"$value" != x"$2" ]; then
+			null=$(setf $(get $a "$1") "$2")
+		fi
+		shift ; shift
+	done
+	echo $a
+}
+
+# Usage: maprrouter <newattributes> <what-is-being-expanded>
+#
+# This function applies the rrouter function to each address read from
+# stdin, passing the <newattributes> parameter.  In case of error, the
+# localpart parameter is used as appropriate descriptive text.  The
+# return value is the concatenation of the return values of the rrouter
+# invocations.
+#
+# If fwdchk = "yes" then do some security checks for a user's .forward file:
+#	- only allow mail to programs listed in $MAILVAR/db/filter
+#	- allow mail forwarding to max. one nonlocal user
+# Returns user's local mailbox if security check fails.
+maprrouter (attribute, localpart, origaddr, fwdchk) {
+	local shh al fwdnonlocal tmp a
+
+	al=()
+	fwdnonlocal=''
+	while read address
+	do
+		case "$address" in
+		'')	case $#al in
+			0)	al=(((error expansion "$localpart"))) ;;
+			*)	shh=(((error expansion "$localpart")))
+				shh=$(setf $(cdr $(last $al)) $shh)
+				;;
+			esac
+			continue
+			;;
+		esac
+
+		defer=''
+		shh=$(rrouter "$address" "$origaddr" $attribute)
+		[ "$defer" ] &&
+			shh=(((hold "$defer" "$address" $attribute)))
+		defer=''
+
+		if [ "$(recase -l "$fwdchk")" = "restricted" ]; then
+			tmp=$(car $(car $shh))
+			case "$(channel $tmp)" in
+			local)
+				ssift "$(user $tmp)" in
+				\|(.+)
+					a="\1"
+					set $a
+					if $(filterdb "$1"); then
+						: mail to program allowed
+					else
+						echo "$origaddr: Mail to program $1 not allowed" >> $LOGDIR/forwards
+						return (((local - "$origaddr" "$attribute")))
+					fi
+					;;
+				tfiss
+				;;
+			smtp)
+				if [ "$fwdnonlocal" ]; then
+					echo "$origaddr: Too many forwards to nonlocal users" >> $LOGDIR/forwards
+					return (((local - "$origaddr" "$attribute")))
+				fi
+
+				fwdnonlocal=true
+				;;
+			esac
+		fi
+
+		case $#al in
+		0)	al=$shh
+			;;
+		*)	shh=$(setf $(cdr $(last $al)) $shh)
+			;;
+		esac
+	done
+
+	return $al
+}

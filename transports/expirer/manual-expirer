@@ -1,0 +1,14 @@
+#! /bin/sh -
+
+ZCONFIG=/etc/zmailer.conf
+. $ZCONFIG
+
+if [ "$1" = "" ]; then
+	$MAILBIN/ta/expirer "-?"
+	exit 0
+fi
+
+cd $POSTOFFICE/transport || exit 1
+
+find * -name "[1-9]*" -type f -print |  \
+	$MAILBIN/ta/expirer "$*"

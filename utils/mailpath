@@ -1,0 +1,100 @@
+#!/usr/lib/zmailer/bin/router -f
+# Note:  should use $0 instead of mailpath in the "echo Try running mailpath"
+# but at present, the router has a bug that results in all zsh scripts
+# getting $0 == "router".
+
+. /etc/zmailer/zmailer.conf
+
+cd $POSTOFFICE/router
+
+v=`df . | awk 'NR == 2 && /^.*:\/.*/ { split($1,a,":") ; print a[1] }'`
+case x$v in
+x?*)	echo Mail from this host will be processed on $v.
+	echo Try running mailpath there if you want more information.
+	exit 0
+	;;
+esac
+
+. $MAILSHARE/router.cf
+
+
+#ok="Ok:"
+#bad="Error:"
+#
+#quadprint (quad) {
+#	local routes
+#
+#	case $(channel $quad) in
+#	error)	echo "$bad Unresolvable address: $(user $quad)"
+#		;;
+#	smtp)	routes=$(mxhosts $(host $quad))
+#		case $#routes in
+#		0|'')	echo "$ok SMTP connection to $nexthop";;
+#		1)	echo "$ok SMTP connection to $(car $routes)";;
+#		*)	echo -n "$ok SMTP connection to one of "
+#			grind $routes
+#			;;
+#		esac
+#		;;
+#	local)
+#		echo "$ok Local mail."
+#		;;
+#	usenet)
+#		echo "$ok Submission to Usenet newsgroup."
+#		;;
+#	uucp)	echo -n "$ok UUCP Path selected: "
+#		uucproute "$(user $quad)"
+#		;;
+#	*)
+#		echo "Help!"
+#		;;
+#	esac
+#}
+
+quadprint (quad) {
+	local text
+
+	case $(channel $quad) in
+	local)	text=$(login2uid $(user $quad))	# ignore return value
+		if text="$(fullname $(user $quad))"; then
+			text="local delivery for $text"
+		else
+			text="local delivery for"
+		fi
+		;;
+	usenet)	text="local delivery to newsgroup" ;;
+	smtp)	text="smtp delivery to"
+		routes=$(mxhosts $(host $quad))
+		case $#routes in
+		0|'')	text="$text $(host $quad) for" ;;
+		1)	text="$text $(car $routes) for";;
+		*)	text="$text one of"
+			pref=" ("
+			for host in $(elements $routes)
+			do
+				text="$text$pref$host"
+				pref=", "
+			done
+			text="$text) for"
+			;;
+		esac
+		;;
+	*)	text="$(channel $quad) delivery"
+		case "$(host $quad)" in
+		-|'')	text="$text for" ;;
+		*)	text="$text to $(host $quad) for" ;;
+		esac
+		;;
+	esac
+	echo "$text <$(user $quad)>"
+}
+
+server init
+case $1 in
+*@*|*!*)
+	server verify "$1"
+	;;
+*)	server verify user@"$1"
+	;;
+esac
+exit 0

@@ -1,0 +1,78 @@
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+CPPDEP=	@CPPDEP@
+
+SUBDIRS = errormail mailbox hold sm smtp expirer #fuzzyalias
+
+all:
+	cd libta ; $(MAKE) $(MFLAGS)
+	for x in $(SUBDIRS); do					\
+	    if [ -f $$x/Makefile ]; then			\
+		( cd $$x; ${MAKE} ${MFLAGS} ) || exit 1 ;	\
+	    fi	;						\
+	done
+
+# all:	libta/libta.a-a errormail/errormail-a mailbox/mailbox-a \
+# 	hold/hold-a sm/sm-a smtp/smtp-a
+
+depend:
+	cd libta; $(MAKE) $(MFLAGS) depend CPPDEP="${CPPDEP}"
+	for x in $(SUBDIRS); do				\
+	    if [ -f $$x/Makefile ]; then		\
+		( cd $$x; ${MAKE} ${MFLAGS} depend CPPDEP="${CPPDEP}" )	\
+		|| exit 1 ;				\
+	    fi	;					\
+	done
+
+clean:
+	cd libta ; $(MAKE) $(MFLAGS) clean
+	for x in $(SUBDIRS); do				\
+	    if [ -f $$x/Makefile ]; then		\
+		( cd $$x; ${MAKE} ${MFLAGS} clean )	\
+		|| exit 1 ;				\
+	    fi	;					\
+	done
+	-rm -f *~
+
+distclean: clean
+	rm -f Makefile */Makefile
+
+install:
+	cd libta; $(MAKE) $(MFLAGS)
+	for x in $(SUBDIRS); do				\
+	    if [ -f $$x/Makefile ]; then		\
+		( cd $$x; ${MAKE} ${MFLAGS} install )	\
+		|| exit 1 ;				\
+	    fi	;					\
+	done
+
+# errormail/errormail:	libta/libta.a
+# 	cd errormail ; $(MAKE) $(MFLAGS)
+# errormail/errormail-a:
+# 	cd errormail ; $(MAKE) $(MFLAGS)
+# 
+# mailbox/mailbox:	libta/libta.a
+# 	cd mailbox ; $(MAKE) $(MFLAGS)
+# mailbox/mailbox-a:
+# 	cd mailbox ; $(MAKE) $(MFLAGS)
+# 
+# sm/sm:	libta/libta.a
+# 	cd sm ; $(MAKE) $(MFLAGS)
+# sm/sm-a:
+# 	cd sm ; $(MAKE) $(MFLAGS)
+# 
+# smtp/smtp:	libta/libta.a
+# 	cd smtp ; $(MAKE) $(MFLAGS)
+# smtp/smtp-a:
+# 	cd smtp ; $(MAKE) $(MFLAGS)
+# 
+# hold/hold:	libta/libta.a
+# 	cd hold ; $(MAKE) $(MFLAGS)
+# hold/hold-a:
+# 	cd hold ; $(MAKE) $(MFLAGS)
+# 
+# libta/libta.a:	libta/*.c
+# 	cd libta ; $(MAKE) $(MFLAGS)
+# libta/libta.a-a:
+# 	cd libta ; $(MAKE) $(MFLAGS)

@@ -1,0 +1,56 @@
+# Routes override initializations
+#
+# Relations: routesdb
+
+provide routesdb
+
+if [ -f $MAILVAR/db/routes ]; then
+    if [ -f $MAILVAR/db/routes.zmsh ]; then
+        # With zmailer utility:  make-incore.sh
+        # you can create a static routing database (of reasonable size!)
+        # which is loaded incore of the routing processes.
+	if [ $MAILVAR/db/routes -nt $MAILVAR/db/routes.zmsh ]; then
+	    local cmd
+	    cmd="$MAILBIN/make-incore.sh"
+	    "$cmd" routesdb "$MAILVAR/db/routes" "$MAILVAR/db/routes.zmsh"
+	fi
+        . $MAILVAR/db/routes.zmsh
+    elif [ -f $MAILVAR/db/routes$DBEXTtest ]; then
+        if [ $MAILVAR/db/routes -nt $MAILVAR/db/routes$DBEXTtest ]; then
+	    $MAILBIN/newdb $MAILVAR/db/routes
+	fi
+        relation -lmt $DBTYPE -f $MAILVAR/db/routes$DBEXT -d pathalias routesdb
+    else
+        relation -lmt unordered -f $MAILVAR/db/routes -d pathalias routesdb
+    fi
+else
+    routesdb () { return 1 }
+fi
+
+#| The "routes" database is the file $MAILVAR/db/routes.
+#| It contains routing exceptions for hosts or domains that would
+#| otherwise be routed by the normal database lookups for a particular
+#| network or protocol.  The value is expected to be in the following
+#| form:
+
+#|      channel "!" host [ { "!" host } ]
+
+#| The channel is a well-known channel from the set: local, error, ignore,
+#| smtp, uucp, ean, usenet, bsmtp3, bitnet2, bitnet2truncate, defrt1, and
+#| defrt1truncate.  The exact set depends on which protocols are
+#| supported by the loaded configuration.
+
+#| For example, the line:
+
+#|      .domain         uucp!host1!host2
+
+#| would send all mail for domain or its subdomains to host1 via UUCP,
+#| with a request to remail to host2!address.  This is pathalias output
+#| semantics.
+
+#| The line
+
+#|      host            smtp![192.12.180.4]
+
+#| would send all mail for host to the SMTP server on the host at IP
+#| address 192.12.180.4.

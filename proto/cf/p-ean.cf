@@ -1,0 +1,19 @@
+# EAN is the CDNNet X.400 mailer.  It requires user@domain format addresses.
+
+require smtp
+provide ean
+
+ean_neighbour () {
+
+#| Routing through EAN is determined only by entries in the routes database.
+
+	return 1
+}
+
+ean_useratdomain (address) {
+
+#| EAN requires all addresses to be in strict user@domain form.
+
+	return $(smtp_useratdomain "$address")
+}	# end of ean_useratdomain
+
