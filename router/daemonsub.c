@@ -240,6 +240,7 @@ static int  start_child (i)
 
 	  int idx;
 
+#if 0
 #if	defined(SA_NOCLDSTOP)||defined(SA_ONSTACK)||defined(SA_RESTART)
 	/* ================ POSIX.1 STUFF ================ */
 	  extern void sigact_segv __((int, siginfo_t *, void *));
@@ -248,7 +249,9 @@ static int  start_child (i)
 	  SIGNAL_ACTION(SIGSEGV, sigact_segv);
 	  SIGNAL_ACTION(SIGBUS,  sigact_bus);
 #endif
+#endif
 
+	  /* Run the profiler itimer, if it was on before a fork... */
 	  setitimer(ITIMER_PROF, &  profiler_itimer_at_start, NULL);
 
 

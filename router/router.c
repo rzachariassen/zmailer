@@ -53,6 +53,7 @@ struct itimerval profiler_itimer_at_start;
 #if	defined(SA_NOCLDSTOP)||defined(SA_ONSTACK)||defined(SA_RESTART)
 	/* ================ POSIX.1 STUFF ================ */
 
+#if 0
 void sigact_segv(sig, info, data)
      int sig;
      siginfo_t *info;
@@ -83,7 +84,7 @@ void sigact_bus(sig, info, data)
   fflush(stdout);
   exit(SIGBUS);
 }
-
+#endif
 #endif
 
 
@@ -336,9 +337,10 @@ main(argc, argv)
 
 	/* We (and our children) run with SIGPIPE ignored.. */
 	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
+#if 0
 	SIGNAL_ACTION(SIGSEGV, sigact_segv);
 	SIGNAL_ACTION(SIGBUS,  sigact_bus);
-
+#endif
 
 	initialize(config, argc - c, &argv[c]);
 

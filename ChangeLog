@@ -1,5 +1,9 @@
 2004-11-28  Matti Aarnio  <mea@zmailer.org>
 
+	* router/daemonsub.c, router/router.c:
+	    Disable an attempt at handling the router SEGV fault
+	    reporting in a gracefull manner printing to log...
+
 	* router/daemonsub.c, router/rfc822.c:
 	    Improve router queue tracking so that it won't leak messages
 	    in queue counts (or no that much) - and will reset itself
