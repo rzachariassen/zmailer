@@ -120,7 +120,7 @@ lockaddr(fd, map, offset, was, new, file, host, mypid)
 	      /* Using FCNTL region locking */
 #else
 	      /* Clear the lock location */
-	      sprintf(lockbuf+1,"%*s", _CFTAG_RCPTPIDSIZE, "");
+	      memset(lockbuf+1, ' ', _CFTAG_RCPTPIDSIZE);
 	      if (map && *ta_lockmode == 'M')
 		memcpy(map+offset, lockbuf, _CFTAG_RCPTPIDSIZE+1);
 	      else if (write(fd,lockbuf,
@@ -132,7 +132,7 @@ lockaddr(fd, map, offset, was, new, file, host, mypid)
 	      if (!(was == _CFTAG_NORMAL && new == _CFTAG_OK))
 		/* ... but not when the scheduler calls this to mark off
 		   the diagnostics lines. */
-		sprintf(lockbuf+1, "%*s", _CFTAG_RCPTPIDSIZE, "");
+		memset(lockbuf+1, ' ', _CFTAG_RCPTPIDSIZE);
 
 	      if (map && *ta_lockmode == 'M')
 		memcpy(map+offset, lockbuf, _CFTAG_RCPTPIDSIZE+1);

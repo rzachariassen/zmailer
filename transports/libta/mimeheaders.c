@@ -314,6 +314,8 @@ output_content_type(rp,ct,old)
 	  if (siz2 > bufsiz) bufsiz = siz2;
 	}
 
+	buf = malloc(bufsiz);
+
 	sprintf(buf,"Content-Type:\t%s",ct->basetype);
 	bp = buf + strlen(buf);
 

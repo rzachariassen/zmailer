@@ -1,5 +1,9 @@
 2000-11-17  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/libta/mimeheaders.c:
+	    Missing initialization of one buffer -> result is
+	    memory scrible and utter chaos..
+
 	* proto/scheduler.conf.in, proto/db/routes:
 	    Define channel   smtp-log  which (obviously) logs
 	    the SMTP protocol into log-file.  See "-l" option
