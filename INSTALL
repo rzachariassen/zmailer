@@ -126,6 +126,22 @@ Installation procedure:
 	in file  doc/guides/configure
 
 
+	DO NOTE:  In the  contrib/ directory there is ``whoson-*.tar.gz''
+	server package which may be of interest to you in case you need
+	to allow easy (to users) access for relaying to your users from
+	where-ever they are traveling.  When that daemon is installed,
+	and the pop/imap servers are patched to use it, a successfull
+	message-store retrieve operation (login to do it) can open otherwise
+	restricted relaying to user's IP address for a configurable time.
+
+	When that package is installed into the system into one of several
+	possible default locations, the ./configure of ZMailer will
+	detect it, and add hooks for it into smtpserver's facilities.
+	There exists also  --with-whoson=  option to tell the script
+	about unusual locations..  (Like "/l" which means directories:
+	"/l/include/", and "/l/lib/" for the header, and the client
+	library respectively.)
+
 4.	At the toplevel, run
 
 		make

@@ -190,3 +190,18 @@ Options:
 		This was default for a while, however most systems don't
 		have really well-behaved munmap()s :-/
 		(Perhaps IBM AIX is the only exception ?)
+
+	--with-whoson[=/DIR/PATH]
+		In the  contrib/ directory there is ``whoson-*.tar.gz''
+		server package which may be of interest to you in case
+		you need to allow easy (to users) access for relaying
+		to your users from where-ever they are traveling.  When
+		that daemon is installed, and the pop/imap servers are
+		patched to use it, a successfull message-store retrieve
+		operation (login to do it) can open otherwise restricted
+		relaying to user's IP address for a configurable time.
+
+		This option may be needed to tell the directory, or a
+		prefix to "include" and "lib" subdirectories, at which
+		the ``whoson-*.tar.gz'' client include and library files
+		are stored at.
