@@ -1,5 +1,12 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- makedb -a (aliases) format:
+	Continuation line format checkout:
+		tag: value, value, value,
+			contvalue, value
+	The last value at the line to be continued MUST have trailing
+	comma.  If it does not, the file is in format error.
+	(Blind adding of " ,\n\t" is not ok in all cases!)
 
 - scheduler:
 	Sometimes will generate spurious successfull-delivery-
