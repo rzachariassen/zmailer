@@ -228,6 +228,14 @@ rrouter (address, origaddr, A, plustail, domain) {
 	# ssift "$tmp" in
 	ssift "$address" in
 	\\(.+)
+		# A back-quote prefixed userid (most likely)
+		##tmp=$(rrouter "\1" "$origaddr" $A "$plustail" "") &&
+		##   returns $tmp
+		##return $tmp  # error code return
+		tmp=(local "$origaddr" "\1" $A)
+		tmp=$(routeuser $tmp "$plustail" "") && returns $tmp
+		return $tmp # error code return
+		;;
 	'"\\(.+)"'
 		# A back-quote prefixed userid (most likely)
 		##tmp=$(rrouter "\1" "$origaddr" $A "$plustail" "") &&
@@ -243,10 +251,18 @@ rrouter (address, origaddr, A, plustail, domain) {
 		returns (((local "file.$origaddr" "$address" $A)))
 		;;
 	'"\|.+"'  # pipe
+		returns (((local "pipe.$origaddr" "$address" $A)))
+		;;
 	\|.+	  # pipe
 		returns (((local "pipe.$origaddr" "$address" $A)))
 		;;
 	'":include:.+"'
+		# We must test this here, because the file-path after
+		# this prefix may have a dot!
+		tmp=(local "$origaddr" "$address" $A)
+		tmp=$(routeuser $tmp "$plustail" "") && returns $tmp
+		return $tmp # error code return
+		;;
 	:include:.+ # ":include:" -alias
 		# We must test this here, because the file-path after
 		# this prefix may have a dot!

@@ -307,6 +307,31 @@ routeuser (quad, plustail, domain) {
 		return (((local $host "\1$plustail$domain" $attr)))
 		;;
 	'"'':include:[\ \t]*(.+)[\ \t]*"[\ \t]*''"'
+		# Weird format to do explicite white-space stripping...
+		priv=$(get $attr privilege)
+		if $(didexpand ':include:') ; then
+		  if [ -f "\1" ] &&
+		     priv=$(getpriv "644" $priv "\1" include) ; then
+		    # sendmail-like :include: expansion
+		    db add expansions "$key.:include:" 1
+		    $(isinteractive) && returns $quad;
+
+		    nattr=$(newattribute $attr privilege $priv)
+		    $(zapDSNnotify $nattr expanded "$sender" "$user$domain")
+		    defer=''
+		    if a=$(runas $priv cat "\1" | \
+			   listexpand -E "postmaster" -e root -p $priv	\
+					-c ":include:\1 file expansion"	\
+					"$nattr" "\1" "$host" "" "$domain" )
+		    then
+		      postzapDSNnotify a
+		      returns $a
+		    fi
+		  fi
+		else
+		  returns (((bitbucket "duplicate-$key-:include:" "$user" $attr)))
+		fi
+		;;
 	':include:[\ \t]*(.+)[\ \t]*'
 		# Weird format to do explicite white-space stripping...
 		priv=$(get $attr privilege)
