@@ -76,7 +76,7 @@
 # include "netdb6.h"
 #endif
 
-#include "malloc.h"
+#include "zmalloc.h"
 #include "libz.h"
 #include "libc.h"
 

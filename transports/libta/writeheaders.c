@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "malloc.h"
+#include "zmalloc.h"
 #include "ta.h"
 
 int

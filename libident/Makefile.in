@@ -15,7 +15,7 @@ RANLIB=		@RANLIB@
 INSTALL=	@INSTALL@
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) @GENINCL@ $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) @GENINCL@
 #
 OBJS=	identuser.o
 

@@ -17,7 +17,7 @@ RANLIB=		@RANLIB@
 INCL_TA=	@GENINCL@ @INCLRESOLV@
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL_TA) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(INCL_TA)
 #
 OBJS=	markoff.o warning.o lockaddr.o myuucpname.o wantout.o \
 	stringlib.o diagnostic.o emptyline.o \

@@ -48,7 +48,7 @@
 #include "zsyslog.h"
 #include "zmsignal.h"
 
-#include "malloc.h"
+#include "zmalloc.h"
 #include "libz.h"
 #include "ta.h"
 #include "splay.h"

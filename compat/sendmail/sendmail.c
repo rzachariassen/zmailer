@@ -24,7 +24,7 @@
 #include <sys/file.h>
 #include "zsyslog.h"
 
-#include "malloc.h"
+#include "zmalloc.h"
 #include "libz.h"
 #include "libc.h"
 

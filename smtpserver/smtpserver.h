@@ -33,7 +33,7 @@
 
 #include "hostenv.h"
 #include <stdio.h>
-#include "malloc.h"
+#include "zmalloc.h"
 #include <sys/types.h>
 #include <ctype.h>
 #include <sys/time.h>

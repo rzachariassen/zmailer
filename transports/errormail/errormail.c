@@ -6,7 +6,7 @@
 #include "hostenv.h"
 #include <stdio.h>
 #include <ctype.h>
-#include "malloc.h"
+#include "zmalloc.h"
 #include <pwd.h>
 #include <sysexits.h>
 #include <fcntl.h>

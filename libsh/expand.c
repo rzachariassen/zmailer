@@ -32,7 +32,7 @@
 
 #include "sh.h"
 #include "flags.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "listutils.h"
 #include "io.h"			/* redefines stdio routines */
 #include "shconfig.h"

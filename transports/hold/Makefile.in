@@ -20,7 +20,7 @@ HOLD_LIB=	@GETPWLIB@ @LIBRESOLV@ @LIBSOCKET@
 #
 SOURCE=		hold.c
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(HOLD_INCL) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(HOLD_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a
 LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc $(LIBMALLOC)

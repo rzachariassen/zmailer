@@ -42,7 +42,7 @@
 #endif
 #endif
 
-#include "malloc.h"
+#include "zmalloc.h"
 #include "libz.h"
 #include "ta.h"
 

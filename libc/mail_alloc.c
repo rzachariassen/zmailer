@@ -11,7 +11,7 @@
 #include <sys/types.h>
 
 #include "hostenv.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "libc.h"
 
 void *

@@ -20,7 +20,7 @@ ROUTER_LIB=	@GENLIB@ @GETPWLIB@ @LIBDBMS@ @LIBNIS@ @LIBRESOLV@ @LIBSOCKET@
 #   Above the  LIBSOCKET (for SysVR4) must be last
 #
 INCL=		@GENINCL@ -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(srcdir)/$(TOPDIR)/libsh -I$(TOPDIR)/libsh -I.
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(ROUTER_INCL) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(ROUTER_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 #

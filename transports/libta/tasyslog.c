@@ -18,7 +18,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include "malloc.h"
+#include "zmalloc.h"
 #include "zsyslog.h"
 #include "mail.h"
 #include "ta.h"

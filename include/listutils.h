@@ -9,7 +9,7 @@
 
 /* #define CELLDEBUG */
 
-#include "malloc.h"
+#include "zmalloc.h"
 #ifndef	_LISTUTILS_H
 #define	_LISTUTILS_H
 

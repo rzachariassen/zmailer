@@ -20,7 +20,7 @@ MKDIR=		@MKDIR@
 INCL=           -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 LIB=            -L$(TOPDIR)/libs -lzm -lzc
 LIBDEB=         $(TOPDIR)/libs/libtag
-CFLAGS=         $(COPTS) $(CPPFLAGS) $(DEFS) $(SENDMAIL_INCL) $(INCL)
+CFLAGS=         $(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SENDMAIL_INCL)
 SENDMAILPATH=	$(prefix)@SENDMAILPATH@
 
 SOURCE=		sendmail.c

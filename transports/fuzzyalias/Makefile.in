@@ -19,8 +19,8 @@ FUZZYALIAS_INCL=
 FUZZYALIAS_LIB=	@LIBDBMS@ @LIBRESOLV@ @LIBSOCKET@
 #
 SOURCE=		fuzzyalias.c db.c fuzzy.c simil.c
-INCL=		-I$(TOPDIR) -I$(TOPDIR)/include $(FUZZYALIAS_INCL)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(FUZZYALIAS_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc $(LIBMALLOC)

@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #endif	/* S_IFMT */
 
-/* #include "malloc.h" -- included also in begin of "listutils.h" */
+/* #include "zmalloc.h" -- included also in begin of "listutils.h" */
 #include "listutils.h"
 #include "token.h"
 #include "splay.h"

@@ -23,7 +23,7 @@ static char rcsid[] = "$Id$";
 # include <unistd.h>
 #endif
 
-#include "malloc.h"
+#include "zmalloc.h"
 
 char *progname;
 /* For getopt() */

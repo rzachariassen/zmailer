@@ -13,7 +13,7 @@
 #include <sysexits.h>
 
 #include "mail.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "ta.h"
 
 

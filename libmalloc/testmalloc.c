@@ -12,7 +12,7 @@ extern char *memset();
 #define uint unsigned int
 
 #include <stdio.h>
-#include "malloc.h"
+#include "zmalloc.h"
 
 /* 
  *  Things to test.  1. first malloc.  2. couple of ordinary mallocs 3.

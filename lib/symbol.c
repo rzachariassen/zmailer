@@ -13,7 +13,7 @@
 #include <sys/types.h>
 
 #include "splay.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "libz.h"
 
 #ifdef	symbol

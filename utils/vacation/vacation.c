@@ -49,7 +49,7 @@
 /* #include "userdbm.h" */
 
 #include "mail.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "libz.h"
 #include "libc.h"
 

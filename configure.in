@@ -1303,7 +1303,7 @@ AC_ARG_WITH(privatembox,   [  --with-privatembox       Use 'private/' in a part 
 
 AC_ARG_WITH(mboxquotacheck,[  --with-mboxquotacheck    Use 'CHECK_MB_SIZE' define in mailbox program.
                            Linking is presumed to use  --with-generic-lib=DIR],
-	AC_DEFINE(CHECK_MB_SIZE));
+	AC_DEFINE(CHECK_MB_SIZE))
 
 AC_SUBST(PRIVATEAUTH)
 PRIVATEAUTH=""
@@ -1539,7 +1539,16 @@ AC_ARG_WITH(openssl-prefix, [  --with-openssl-prefix=/dir/path (defines both inc
 AC_ARG_WITH(openssl-include, [  --with-openssl-include=/dir/incl/path],
 	OPENSSLINCL="-I$withval")
 AC_ARG_WITH(openssl-lib, [  --with-openssl-lib=/dir/lib/path],
-	OPENSSLLIB="$withval/libssl.a $withval/libcrypto.a")
+	[if test -f "$withval/libssl.so" ; then
+	  OPENSSLLIB="$withval/libssl.so $withval/libcrypto.so"
+	else
+	  OPENSSLLIB="$withval/libssl.a $withval/libcrypto.a"
+	fi
+#	if test "$withval" != "/usr" -a "$withval" != "/usr/lib"; then
+#	  # Operating system dependent runtime path definition :-/
+#	  OPENSSLLIB="-R$withval $OPENSSLLIB"
+#	fi
+])
 if test -n "$OPENSSLPREFIX" -a -z "$OPENSSLINCL" ; then
   if test -f "$OPENSSLPREFIX/include/openssl/ssl.h" ; then
     OPENSSLINCL="-I$OPENSSLPREFIX/include/"
@@ -1549,7 +1558,13 @@ if test -n "$OPENSSLPREFIX" -a -z "$OPENSSLINCL" ; then
   fi
 fi
 if test -n "$OPENSSLPREFIX" -a -z "$OPENSSLLIB" ; then
-  if test -n "$OPENSSLPREFIX" -a -f "$OPENSSLPREFIX/lib/libssl.a" ; then
+  if test -n "$OPENSSLPREFIX" -a -f "$OPENSSLPREFIX/lib/libssl.so" ; then
+    OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.so $OPENSSLPREFIX/lib/libcrypto.so"
+#   if test "$withval" != "/usr" -a "$withval" != "/usr/lib"; then
+#	# Operating system dependent runtime path definition :-/
+#	OPENSSLLIB="-R$withval $OPENSSLLIB"
+#   fi
+  elif test -n "$OPENSSLPREFIX" -a -f "$OPENSSLPREFIX/lib/libssl.a" ; then
     OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.a $OPENSSLPREFIX/lib/libcrypto.a"
   else
     AC_MSG_RESULT([!!! You defined  --with-openssl-prefix=$OPENSSLPREFIX,  BUT])
@@ -1567,7 +1582,11 @@ if test -z "$OPENSSLINCL" ; then
     AC_DEFINE(HAVE_OPENSSL)
     OPENSSLPREFIX="/usr/local/ssl"
     OPENSSLINCL="-I$OPENSSLPREFIX/include"
-    OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.a $OPENSSLPREFIX/lib/libcrypto.a"
+    if test -f "$OPENSSLPREFIX/lib/libssl.so" ; then
+      OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.so $OPENSSLPREFIX/lib/libcrypto.so"
+    else
+      OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.a $OPENSSLPREFIX/lib/libcrypto.a"
+    fi
     AC_MSG_RESULT([You have OpenSSL version 0.9.3a (or newer) at default location])
   fi
   if test -f /usr/include/openssl/ssl.h ; then
@@ -1575,7 +1594,11 @@ if test -z "$OPENSSLINCL" ; then
     AC_DEFINE(HAVE_OPENSSL)
     OPENSSLPREFIX="/usr"
     OPENSSLINCL=""
-    OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.a $OPENSSLPREFIX/lib/libcrypto.a"
+    if test -f "$OPENSSLPREFIX/lib/libssl.so" ; then
+      OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.so $OPENSSLPREFIX/lib/libcrypto.so"
+    else
+      OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.a $OPENSSLPREFIX/lib/libcrypto.a"
+    fi
     AC_MSG_RESULT([You have OpenSSL version 0.9.3a (or newer) at system root!])
   fi
 fi

@@ -1,3 +1,41 @@
+1999-06-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in, ChangeLog, compat/rmail/Makefile.in,
+	  compat/rmail/rmail.c, compat/sendmail/Makefile.in,
+	  compat/sendmail/sendmail.c, include/listutils.h,
+	  include/mailer.h, include/malloc.h, include/zmalloc.h,
+	  lib/Makefile.in, lib/splay.c, lib/symbol.c, libc/Makefile.in,
+	  libc/mail_alloc.c, libident/Makefile.in, libmalloc/maltrace.c,
+	  libmalloc/simumalloc.c, libmalloc/testmalloc.c,
+	  libmalloc/teststomp.c, libsh/Makefile.in, libsh/expand.c,
+	  libsh/shconfig.h, libsh/trap.c, router/Makefile.in,
+	  scheduler/Makefile.in, scheduler/mailq.c, scheduler/scheduler.h,
+	  smtpserver/Makefile.in, smtpserver/mxverify.c,
+	  smtpserver/smtpserver.h, transports/errormail/Makefile.in,
+	  transports/errormail/errormail.c, transports/expirer/Makefile.in,
+	  transports/expirer/expirer.c, transports/fuzzyalias/Makefile.in,
+	  transports/fuzzyalias/fuzzyalias.c, transports/hold/Makefile.in,
+	  transports/hold/hold.c, transports/libta/Makefile.in,
+	  transports/libta/ctlopen.c, transports/libta/diagnostic.c,
+	  transports/libta/dnsgetrr.c, transports/libta/mimeheaders.c,
+	  transports/libta/routermxes.c, transports/libta/tasyslog.c,
+	  transports/libta/writeheaders.c, transports/mailbox/Makefile.in,
+	  transports/mailbox/mailbox.c, transports/mailbox/mboxpath.c,
+	  transports/sm/Makefile.in, transports/sm/sm.c,
+	  transports/smtp/Makefile.in, transports/smtp/smtp.c,
+	  utils/makedb/Makefile.in, utils/vacation/Makefile.in,
+	  utils/vacation/vacation.c:
+	    Arkadiusz Mi?kiewicz <misiek@pld.org.pl> reported
+	    compilation problems in his environment.
+	    - About all Makefile.in template files did need changes
+	      so that ZMailer's own include paths preceed ALL other
+	    - Changed all include instances of "malloc.h" to "zmalloc.h",
+	      although that propably is unnecessary... (and renamed
+	      the file, although CVS will show deletion and adding..)
+	    - Manage to autodetect OpenSSL shared objects, although does
+	      not do full blown shared-library runtime load path define,
+	      as that details tends to vary from system to system :-(
+	
 1999-06-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/mailbox/mailbox.c, configure.in, acconfig.h:

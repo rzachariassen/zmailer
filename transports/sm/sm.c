@@ -16,7 +16,7 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 #include "mail.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "zsyslog.h"
 #include "ta.h"
 #ifdef HAVE_UNISTD_H

@@ -45,7 +45,7 @@
 #include "mail.h"
 #include "zsyslog.h"
 #include "ta.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "libz.h"
 #include "libc.h"
 

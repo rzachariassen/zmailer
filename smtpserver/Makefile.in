@@ -23,7 +23,7 @@ SMTPSERVER_LIB=	 @GENLIB@ @GETPWLIB@ @LIBLOCALDBMS@ @LIBWRAP@ @LIBWHOSON@ @LIBRE
 #   Above the  LIBSOCKET (for SysVR4) must be last
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(SMTPSERVER_INCL) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTPSERVER_INCL) 
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lzm -lzc -lident -lta $(LIBMALLOC)

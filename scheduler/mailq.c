@@ -24,7 +24,7 @@
 #include <pwd.h>
 #include "mail.h"
 #include "scheduler.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "mailer.h"
 
 #ifdef HAVE_DIRENT_H

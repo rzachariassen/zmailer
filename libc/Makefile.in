@@ -24,7 +24,7 @@ INSTALL=	@INSTALL@
 MKDIR=		@MKDIR@
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(LIBC_INCL) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(LIBC_INCL)
 #
 #  The LIBOBJS is autoconfigure generated macro which feeds in several
 #  usefull/important bits:

@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "mail.h"
 
-#include "malloc.h"
+#include "zmalloc.h"
 #include "libc.h"
 #include "libz.h"
 #include <sysexits.h>

@@ -19,7 +19,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include "zmsignal.h"
-#include "malloc.h"
+#include "zmalloc.h"
 
 #if	defined(HAVE_RESOLVER)
 #include <netdb.h>

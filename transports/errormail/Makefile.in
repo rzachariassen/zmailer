@@ -20,7 +20,7 @@ ERRORMAIL_LIB=	@LIBRESOLV@ @LIBSOCKET@
 #
 SOURCE=		errormail.c
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(ERRORMAIL_INCL) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(ERRORMAIL_INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc $(LIBMALLOC)

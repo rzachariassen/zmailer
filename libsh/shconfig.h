@@ -3,7 +3,7 @@
  *	This will be free software, but only when it is finished.
  */
 
-#include "malloc.h"
+#include "zmalloc.h"
 #define	STATIC static
 
 /* configurable language-independent stuff */

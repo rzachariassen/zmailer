@@ -27,7 +27,7 @@
 #include	<stdio.h>
 #include	"hostenv.h"
 #include	"splay.h"
-#include	"malloc.h"
+#include	"zmalloc.h"
 
 #ifdef	MALLOC_TRACE
 #undef	sp_install

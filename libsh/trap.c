@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #include "zmsignal.h"
 #include "flags.h"
-#include "malloc.h"
+#include "zmalloc.h"
 /* #include "listutils.h" */
 #include "sh.h"
 #include "io.h"			/* redefines stdio routines */

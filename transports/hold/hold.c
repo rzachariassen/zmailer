@@ -14,7 +14,7 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 #include "zmsignal.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "zsyslog.h"
 
 #ifdef	HAVE_RESOLVER

@@ -10,7 +10,7 @@ extern char *memset();
 #endif
 
 #include <stdio.h>
-#include "malloc.h"
+#include "zmalloc.h"
 
 int
 main(argc, argv)

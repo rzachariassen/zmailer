@@ -11,7 +11,7 @@
 #define USE_SIGREAPER /* DO Use SIGCLD-driven reaper.. */
 
 #include "hostenv.h"
-#include "malloc.h"
+#include "zmalloc.h"
 #include "splay.h"
 #include "shmmib.h"
 #include "servauth.h"
