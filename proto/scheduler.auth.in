@@ -25,8 +25,8 @@
 #	ETRN	"START THREAD channel host"
 #	KILL	"KILL THREAD channel host", "KILL MSG spoolid"
 #
-# -- "nobody" via loopback gets different treatment from
-#    "nobody" from anywhere else.
+# - "nobody" via loopback gets different treatment from
+#   "nobody" from anywhere else.
 #
 nobody:nobody:SNMP QQ TT ETRN:  [127.0.0.0]/8 [ipv6.0::1]/128
 nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0

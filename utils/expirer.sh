@@ -2,7 +2,7 @@
 #
 #  Expirer -- a crude script to alter "r     XXXXX YYYYYY..." into
 #                                     "r+    XXXXX YYYYYY..."
-#  Stop the scheduler, have system to quinche, then:
+#  Stop the scheduler, have system to quiet down (all , then:
 #
 #	cd $POSTOFFICE/transport
 #	...../expirer.sh "smtp xyz.fii.foo.faa"

@@ -70,34 +70,34 @@ static struct rckeyword {
 	const char	*name;
 	int		(*parsef)();
 } rckeys[] = {
-{	"interval",		rc_interval	},	/* time */
+{	"ageorder",		rc_ageorder	},	/* boolean */
+{	"bychannel",		rc_bychannel	},	/* boolean */
+{	"command",		rc_command	},	/* array of strings */
+{	"deliveryform",		rc_deliveryform	},	/* string */
+{	"expiry",		rc_expiry	},	/* time */
+{	"expiryform",		rc_expform	},	/* string */
+{	"group",		rc_group	},	/* number */
 {	"idlemax",		rc_idlemax	},	/* time */
+{	"interval",		rc_interval	},	/* time */
 {	"maxchannel",		rc_maxchannel	},	/* number */
 {	"maxchannels",		rc_maxchannel	},	/* number */
-{	"expiry",		rc_expiry	},	/* time */
-{	"command",		rc_command	},	/* array of strings */
-{	"expiryform",		rc_expform	},	/* string */
-{	"deliveryform",		rc_deliveryform	},	/* string */
-{	"retries",		rc_retries	},	/* array of numbers */
-{	"reporttimes",		rc_reporttimes	},	/* array of numbers */
 {	"maxring",		rc_maxring	},	/* number */
 {	"maxrings",		rc_maxring	},	/* number */
 {	"maxta",		rc_maxta	},	/* number */
 {	"maxthr",		rc_maxthr	},	/* number */
 {	"maxtransport",		rc_maxta	},	/* number */
 {	"maxtransports",	rc_maxta	},	/* number */
-{	"user",			rc_user		},	/* number */
-{	"group",		rc_group	},	/* number */
-{	"skew",			rc_skew		},	/* number */
-{	"bychannel",		rc_bychannel	},	/* boolean */
-{	"ageorder",		rc_ageorder	},	/* boolean */
-{	"queueonly",		rc_queueonly	},	/* boolean */
-{	"wakeuprestartonly",	rc_wakeuprestartonly },	/* boolean */
+{	"nice",			rc_nice		},	/* number */
 {	"overfeed",		rc_overfeed	},	/* number */
 {	"priority",		rc_priority	},	/* number */
-{	"nice",			rc_nice		},	/* number */
-{	"syspriority",		rc_syspriority	},	/* number */
+{	"queueonly",		rc_queueonly	},	/* boolean */
+{	"reporttimes",		rc_reporttimes	},	/* array of numbers */
+{	"retries",		rc_retries	},	/* array of numbers */
+{	"skew",			rc_skew		},	/* number */
 {	"sysnice",		rc_sysnice	},	/* number */
+{	"syspriority",		rc_syspriority	},	/* number */
+{	"user",			rc_user		},	/* number */
+{	"wakeuprestartonly",	rc_wakeuprestartonly },	/* boolean */
 {	NULL,			0		}
 };
 
@@ -874,6 +874,59 @@ static int rc_wakeuprestartonly(key, arg, ce)
 
 extern int mailqmode;
 
+static char *zenvexpand(line)
+     char *line;
+{
+	char *s = line;
+	char *v;
+	const char *e;
+	char end_c;
+	int spotlen;
+	int e_len;
+
+	if (!line) return NULL;
+
+	for (;*s;++s) {
+	  if (*s == '$') {
+	    if (s[1] == '{') {
+	      v = s;
+	      for (;*s && *s != '}'; ++s) ;
+	      end_c = *s;
+	      *s = 0;
+	      spotlen = s - v;
+	      e = getzenv(v+2);
+	      *s = end_c;
+	      if (!e) continue; /* No such zenv-variable :-/ */
+	      e_len = strlen(e);
+	      if (e_len > spotlen) {
+		/* Must expand a bit */
+		char *n = malloc(strlen(line)+e_len-spotlen+2);
+		int p = v - line;
+		if (!n) continue; /* alloc failure */
+		if (p > 0)
+		  memcpy(n, line, p);
+		s = n + p;
+		memcpy(s, e, e_len);
+		s += e_len;
+		p += spotlen;
+		strcpy(s, line + p); /* Tail */
+		free(line);
+		line = n;
+	      } else {
+		/* New data has same or smaller size */
+		memcpy(v, e, e_len);
+		if (e_len < spotlen) /* Smaller size */
+		  strcpy(v + e_len, v + spotlen);
+		v += e_len;
+		s = v;
+	      }
+	    }
+	  }
+	}
+	return line;
+}
+
+
 static int paramparse(line)
 	char *line;
 {
@@ -902,7 +955,7 @@ static int paramparse(line)
 	if (cistrcmp(line,"authfile")==0 && a) {
 	  if (mq2authfile)
 	    free((void*)mq2authfile);
-	  mq2authfile = strsave(a);
+	  mq2authfile = zenvexpand(strsave(a));
 
 	  if (mq2authfile && access(mq2authfile,R_OK)==0)
 	    mailqmode = 2;
@@ -913,7 +966,7 @@ static int paramparse(line)
 	if (cistrcmp(line,"mailqsock")==0 && a) {
 	  if (mailqsock)
 	    free((void*)mailqsock);
-	  mailqsock = strsave(a);
+	  mailqsock = zenvexpand(strsave(a));
 	  return 0;
 	}
 

@@ -8,8 +8,21 @@
  */
 
 /*
- * This program must be installed suid to the uid the scheduler runs as
- * (usually root).  Unfortunately.
+ * Rayan 1988:
+ *  This program must be installed suid to the uid the scheduler runs as
+ *  (usually root).  Unfortunately.
+ *
+ * mea 1990:
+ *  This program can be run without suid-root -- depending on what one
+ *  needs of special features, e.g. if one aspires to see the verbose
+ *  queue printout along with exact message source and destination
+ *  addresses, message-ids, sizes, ...  Either run as root, or suid-root.
+ *
+ * mea 2001:
+ *  What has been true for 10+ years is still true, several things can
+ *  now be done without any sort of suid-privileges, others may need access
+ *  to the actual message files and need e.g. root powers.
+ *  Autentication for using 'MAILQv2' is orthogonal from suid:ing this.
  */
 
 
@@ -712,7 +725,7 @@ checkrouter()
 	sprintf(path, "%s/%s", postoffice, DEFERREDDIR);
 	dirp = opendir(path);
 	if (dirp == NULL) {
-	  fprintf(stderr, "%s: opendir(%s): %s",
+	  fprintf(stderr, "%s: opendir(%s): %s\n",
 		  progname, path, strerror(errno));
 	  return;
 	}

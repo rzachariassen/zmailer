@@ -111,8 +111,8 @@
 #
 
 #
-# -------- Some external parameters - name starts from column 0, and -----
-# -------- always begins with "PARAM" ------------------------------------
+# ======== Some external parameters - name starts from column 0, and =====
+# ======== always begins with "PARAM" ====================================
 
 #
 # MAILQv2 authentication database file reference:
@@ -122,7 +122,7 @@
 #  interface along with its security problems.)
 #
 
-PARAMauthfile = "@MAILSHARE@/scheduler.auth"
+PARAMauthfile = "${MAILSHARE}/scheduler.auth"
 
 
 #PARAMmailqsock = "UNIX:/path/to/mailq.sock"
@@ -134,7 +134,7 @@ PARAMauthfile = "@MAILSHARE@/scheduler.auth"
 #PARAMglobal-report-interval = 15m
 
 #
-# ------------------------------------------------------------------------
+# ========================================================================
 #
 
 #

@@ -72,7 +72,7 @@ extern long	dateParse __((struct tm *localtmptr, token822 *t));
 extern int	run_relation __((int argc, const char *argv[]));
 extern struct sptree *icdbspltree __((const char *name));
 extern int	run_db __((int argc, const char *argv[]));
-extern conscell	  *db    __((const char *dbname, const char *key));
+extern conscell	  *db     __((const char *dbname, const char *argv10[]));
 extern const char *dbfile __((const char *dbname));
 extern void	   dbfree __((void));
 extern const char *dbtype __((const char *dbname));

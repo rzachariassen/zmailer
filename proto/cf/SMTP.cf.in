@@ -3,7 +3,7 @@
 # ZMailer 2 configuration file for a generic SMTP host (with UUCP links)
 #
 
-ZCONFIG=@ZMAILERCFGFILE@
+#ZCONFIG=@ZMAILERCFGFILE@
 
 . $ZCONFIG
 
@@ -103,7 +103,7 @@ mailconf () {
 }
 
 orgdomains=x
-: ${MAILCONF:=/etc/mail.conf}
+: ${MAILCONF:=$MAILVAR/mail.conf}
 if [ ! -r $MAILCONF ]; then
 	echo "$0: missing $MAILCONF: using the following values:"
 	mailconf

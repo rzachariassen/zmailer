@@ -9,6 +9,8 @@
 
 /* #define CELLDEBUG */
 
+/* #undef __GNUC__ // -- DEBUG STUFF! */
+
 #include "zmalloc.h"
 #ifndef	_LISTUTILS_H
 #define	_LISTUTILS_H

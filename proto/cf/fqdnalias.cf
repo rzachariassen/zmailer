@@ -76,27 +76,6 @@ fqdn_neighbour (domain, address, A) {
 	lcaddress="$(recase -l "$address")"
 	key="$lcaddress"
 
-	# It may be a "sender" address!
-
-	case "$(get $A type)" in
-	sender)
-		if $(didexpand userdbmailname) && 
-		   a="$(userdb "$lcaddress:mailname")" ; then
-
-		  db add expansions "$key.userdbmailname" 1
-		  nattr=$(newattribute $A privilege $priv)
-		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
-		  a=$(echo "$a" |				\
-		      listaddresses -c "$a sender fqdn userdb mailname" \
-				    -e root			 |	\
-		      maprrouter $nattr "sender-fqdn-userdb-mailname"	\
-					"$address" "$plustail" "$athost")
-		  return $a
-		fi
-		return 1
-		;;
-	esac
-
 	plustail=""
 
 	tsift "$lcaddress" in
@@ -112,6 +91,28 @@ fqdn_neighbour (domain, address, A) {
 		return 1 # Not in  uu@hh  form!
 		;;
 	tfist
+
+	# It may be a "sender" address!
+
+	case "$(get $A type)" in
+	sender)
+		if $(didexpand userdbmailname) && 
+		   a="$(userdb "$lcaddress:mailname")" ; then
+
+		  db add expansions "$key.userdbmailname" 1
+		  nattr=$(newattribute $A privilege $priv)
+		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
+		  a=$(echo "$a" |				\
+		      listaddresses -c "$a sender fqdn userdb mailname" \
+				    -e root -l "$user"		 |	\
+		      maprrouter $nattr "sender-fqdn-userdb-mailname"	\
+					"$address" "$plustail" "$athost")
+		  return $a
+		fi
+		return 1
+		;;
+	esac
+
 
 	# For a recipient address we may do a FQDN-aliasing
 	# We are better NOT to have aliasing loops here, though
@@ -136,7 +137,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 		    listaddresses	-c "$a fqdn alias expansion" 	\
-					-e root			 |	\
+					-e root  -l "$user"	 |	\
 		    maprrouter $nattr "fqdnalias" "$address"	\
 				"$plustail" "$athost")
 		return $a
@@ -149,7 +150,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 		    listaddresses	-c "$a fqdn ldap expansion" 	\
-					-e root			 |	\
+					-e root  -l "$user"	 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		return $a
@@ -171,7 +172,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 		    listaddresses	-c "$a fqdn+ alias expansion" 	\
-					-e root			 |	\
+					-e root -l "$user"	 |	\
 		    maprrouter $nattr "fqdnalias" "$address"	\
 				"$pl2" "$athost")
 		return $a
@@ -184,7 +185,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 			 listaddresses	-c "$a fqdn+ ldap expansion" 	\
-					-e root			 |	\
+					-e root -l "$user"	 |	\
 			 maprrouter $nattr "fqdnalias" "$address"	\
 				"$plustail" "$athost")
 		return $a
@@ -193,13 +194,6 @@ fqdn_neighbour (domain, address, A) {
 	tfiss
 
 	# Didn't match,
-
-# TODO: *@any.domain  which maps  somebody@any.domain via
-#	replacement pattern(s): %s@other.domain or other.uucp!%s, or ..
-#	to:  somebody@other.domain, or other.uucp!somebody
-# Problem: Supporting ONE target replacement is easy, supporting more
-#          will need major coding work at ``listexpand'' [mea]
-
 
 	priv=$(get $A privilege)
 
@@ -214,10 +208,9 @@ fqdn_neighbour (domain, address, A) {
 		nattr=$(newattribute $A privilege $priv sender "$l")
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(runas $priv cat "$a" |				\
-		    listexpand	-E "$l" -e "$l" -p $priv	\
-				-c "$a file expansion"		\
-				$nattr "$a" "$user$athost"	\
-				"$plustail" "$athost")
+		    listexpand	-E "$l" -e "$l" -p $priv		\
+				-c "$a file expansion" $nattr "$a"	\
+				"$user$athost" "$plustail" "$athost")
 		return $a
 	fi
 
@@ -281,7 +274,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |						\
 		    listaddresses	-c "$a fqdn alias expansion" 	\
-					-e root			 |	\
+					-e root -l "$user"	 |	\
 		    maprrouter	$nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		return $a
@@ -293,7 +286,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 		    listaddresses	-c "$a fqdn ldap expansion" 	\
-					-e root			 |	\
+					-e root -l "$user"	 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		return $a

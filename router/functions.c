@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Some functions Copyright 1991-2000 Matti Aarnio.
+ *	Some functions Copyright 1991-2001 Matti Aarnio.
  */
 
 /*
@@ -348,13 +348,21 @@ run_dblookup(avl, il)
 	conscell *avl, *il; /* Inputs gc protected */
 {
 	conscell *l;
+	const char *argv10[10];
+	int i;
 
 	il = cdar(avl);
 	if (il == NULL || !STRING(il) || cdr(il) != NULL) {
-		fprintf(stderr, "Usage: %s key\n", car(avl)->string);
+		fprintf(stderr, "Usage: %s key [up_to_8_substitution_elements]\n", car(avl)->string);
 		return NULL;
 	}
-	if ((l = db(car(avl)->string, il->string)) == NULL)
+	i = 0;
+	argv10[i++] = il->string;
+	for (; il && i < 9 && STRING(il); il = cdr(il))
+	  argv10[i++] = il->string;
+	argv10[i] = NULL;
+	l = db(car(avl)->string, argv10);
+	if (l == NULL)
 		return NULL;
 	return l;
 }
@@ -1003,22 +1011,24 @@ run_listexpand(avl, il)
 	conscell *plustail = NULL, *domain = NULL;
 	conscell *l, *lrc;
 	char *localpart = NULL, *origaddr = NULL, *attributenam = NULL;
-	int c, n, errflag, stuff;
+	int   c, n, errflag, stuff;
 	volatile int cnt;
 	const char *comment, *erroraddress;
 	char *s, *s_end;
-	int privilege = -1;
+	int   privilege = -1;
 	struct siobuf *osiop = NULL;
 	FILE *mfp = NULL, *fp;
-	char buf[4096];
-	char DSNbuf[4096+200];
-	int fd2;
+	char  buf[4096];
+	char  DSNbuf[4096+200];
+	int   fd2;
 	char *olderrors = errors_to;
 	char *notary = NULL;
-	int no_dsn = 0;
-	int okaddresses = 0;
-	int errcount = 0;
-	int linecnt = 0;
+	int   no_dsn = 0;
+	int   okaddresses = 0;
+	int   errcount = 0;
+	int   linecnt = 0;
+	char *localaddr = NULL;
+	int   locallen  = 0;
 	GCVARS3;
 
 	il = cdar(avl); /* The CDR (next) of the arg list.. */
@@ -1062,6 +1072,10 @@ run_listexpand(avl, il)
 	      if (strcmp(notary,"-")==0)
 		no_dsn = 1;
 	      break;
+	    case 'l':
+	      localaddr = cdr(il)->string;
+	      locallen  = strlen(localaddr);
+	      break;
 	    default:
 	      errflag = 1;
 	      break;
@@ -1078,7 +1092,7 @@ run_listexpand(avl, il)
 	if (errflag || cnt < 3 || cnt > 5 ||
 	    !STRING(il) || !STRING(cdr(il)) || !STRING(cddr(il)) ) {
 		fprintf(stderr,
-			"Usage: %s [ -e error-address ] [ -E errors-to-address ] [-p privilege] [ -c comment ] [ -N notarystring ] $attribute $localpart $origaddr [$plustail [$domain]]< /file/path \n",
+			"Usage: %s [ -e error-address ] [ -E errors-to-address ] [-p privilege] [ -c comment ] [ -N notarystring ] [ -l localaddr_for_%l@_pattern ] $attribute $localpart $origaddr [$plustail [$domain]]< /file/path \n",
 		car(avl)->string);
 		if (errors_to != olderrors)
 		  free(errors_to);
@@ -1315,9 +1329,49 @@ run_listexpand(avl, il)
 		int rc, slen;
 		memtypes omem;
 		char *s2, *se;
+		struct addr *pp, pp0;
+		token822 t2;
+
+		for (pp = ap->a_tokens; pp != NULL; pp = pp->p_next)
+			if (pp->p_type == anAddress)
+				break;
+		if (pp == NULL)
+			continue;
+
+		/* Check if we have "%s"(String) "@"(Special) pair leading,
+		   and have -l option data */
+
+		if (localaddr && (t = pp->p_tokens)) {
+		  if (t->t_type         == String  && t->t_next &&
+		      t->t_next->t_type == Special &&
+		      t->t_next->t_len  == 1       && t->t_len == 2 &&
+		      memcmp(t->t_pname,"%1",2) == 0  &&
+		      t->t_next->t_pname[0]     == '@') {
+
+		    /*
+		       This yields the localaddr as a STRING in quotes,
+		       not as a token-chain (atom+special+atom+..)
+
+		       ... but STRINGS needing quotes come with those
+		       quotes here, so we can actually typefy them as
+		       "Atom" -- while it isn't exactly true, the result
+		       is printed out correctly.
+		    */
+
+		    t2.t_pname = localaddr;
+		    t2.t_len   = locallen;
+		    t2.t_type  = Atom;
+		    t2.t_next  = t->t_next;
+
+		    pp0 = *pp;
+		    pp  = &pp0;
+		    pp->p_tokens = &t2;
+		  }
+		}
+
 
 		buf[0] = 0;
-		pureAddressBuf(buf,sizeof(buf),ap->a_tokens);
+		pureAddressBuf(buf,sizeof(buf),pp);
 
 		if (buf[0] == 0) continue; /* Burp ??? */
 
@@ -1517,7 +1571,7 @@ run_listaddresses(argc, argv)
 	struct envelope *e;
 	struct address *ap, *aroot = NULL, **atail = &aroot;
 	token822 *t;
-	struct addr *pp;
+	struct addr *pp, pp0;
 	int c, n, errflag, stuff;
 	const char *comment, *erroraddress;
 	char *s, *s_end;
@@ -1528,6 +1582,8 @@ run_listaddresses(argc, argv)
 	int okaddresses = 0;
 	int errcount = 0, linecnt = 0;
 	char *old_errorsto = errors_to;
+	char *localaddr = NULL;
+	int locallen = 0;
 
 	errflag = 0;
 	erroraddress = NULL;
@@ -1535,7 +1591,7 @@ run_listaddresses(argc, argv)
 	optind = 1;
 
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "c:e:E:");
+		c = getopt(argc, (char*const*)argv, "c:e:E:l:");
 		if (c == EOF)
 			break;
 		switch (c) {
@@ -1550,6 +1606,10 @@ run_listaddresses(argc, argv)
 			  free(errors_to);
 			errors_to = (void*)strdup(optarg);
 			break;
+		case 'l':
+			localaddr = optarg;
+			locallen  = strlen(localaddr);
+			break;
 		default:
 			++errflag;
 			break;
@@ -1557,7 +1617,7 @@ run_listaddresses(argc, argv)
 	}
 	if (errflag) {
 	  fprintf(stderr,
-		  "Usage: %s [ -e error-address ] [ -E errors-to-address ] [ -c comment ]\n",
+		  "Usage: %s [ -e error-address ] [ -E errors-to-address ] [ -c comment ] [ -l localaddr_for_%l@_pattern ]\n",
 		  argv[0]);
 	  if (errors_to != old_errorsto)
 	    free(errors_to);
@@ -1771,13 +1831,48 @@ run_listaddresses(argc, argv)
 	}
 
 	for (ap = aroot; ap != NULL; ap = ap->a_next) {
+		token822 t2;
+
 		for (pp = ap->a_tokens; pp != NULL; pp = pp->p_next)
 			if (pp->p_type == anAddress)
 				break;
 		if (pp == NULL)
 			continue;
-		pureAddress(stdout, ap->a_tokens);
-		/* printAddress(stdout, ap->a_tokens, 0); */
+
+		/* Check if we have "%s"(String) "@"(Special) pair leading,
+		   and have -l option data */
+
+		if (localaddr && (t = pp->p_tokens)) {
+		  if (t->t_type         == String  && t->t_next &&
+		      t->t_next->t_type == Special &&
+		      t->t_next->t_len  == 1       && t->t_len == 2 &&
+		      memcmp(t->t_pname,"%1",2) == 0  &&
+		      t->t_next->t_pname[0]     == '@') {
+
+		    /*
+		       This yields the localaddr as a STRING in quotes,
+		       not as a token-chain (atom+special+atom+..)
+
+		       ... but STRINGS needing quotes come with those
+		       quotes here, so we can actually typefy them as
+		       "Atom" -- while it isn't exactly true, the result
+		       is printed out correctly.
+		    */
+
+
+		    t2.t_pname = localaddr;
+		    t2.t_len   = locallen;
+		    t2.t_type  = Atom;
+		    t2.t_next  = t->t_next;
+
+		    pp0 = *pp;
+		    pp  = &pp0;
+		    pp->p_tokens = &t2;
+		  }
+		}
+
+		pureAddress(stdout, pp);
+		/* printAddress(stdout, pp, 0); */
 		putc('\n', stdout);
 	}
 	/*

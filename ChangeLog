@@ -1,3 +1,43 @@
+2001-02-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* proto/cf/fqdnaliases.cf:
+	    Moved the local-part (user) extraction up a bit so that
+	    it can be given to the listaddresses as expansion parameter.
+
+	* router/functions.c:
+	    At  $(listaddresses ..) and $(listexpand ..)  functions,
+	    support "%1@.." type substitutions with '-l' option.
+	    I am now considering this *wrong* approach, and am doing
+	    more sendmailish approach to %N substitutions.
+
+	* router/functions.c, router/db.c, router/libsh/search.h:
+	    Support up to 8-9 additional substitution options at the
+	    database lookups.  At the moment is lacking the actual %N
+	    substitution code!
+
+	* scheduler/mailq.c:
+	    a bit of comments & one missing newline on error printouts.
+
+2001-02-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* router/router.c:
+	    Cut down logging/log printing a bit -- duplicated data
+	    actually.
+
+2001-02-13  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* proto/scheduler.conf.in, scheduler/readconfig.c:
+	    Allow ${ZENV} substitutions in PARAM lines.
+	    ("PARAMauthfile" and "PARAMmailqsock", to be exact.)
+
+	* smtpserver/policytest.c:
+	    Do Test-Rcpt-DNS-RBL also based on FULL userid lookup.
+	    Allows some users to want the lookup, others not.
+
+	* proto/cf/SMTP.cf.in, proto/cf/SMTP+UUCP.cf.in:
+	    Search for the 'mail.conf' from  $MAILSHARE/mail.conf,
+	    and not from  /etc/.
+
 2001-02-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* router/functions.c:
@@ -8,7 +48,7 @@
 
 	* proto/cf/canon.cf, proto/cf/rrouter.cf:
 	    More issues at DECNET-IV type address analysis.
-	    Now we support a bit of beging DECNET-IV gateway, although
+	    Now we support a bit of being DECNET-IV gateway, although
 	    we propably need to rewrite headers major way to be able to
 	    route to and from DECNET-IV domains.
 

@@ -1,5 +1,7 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+check: scheduler.conf: command=  $channel  expansion ??
+	2.99.52-pre3  has apparently some problems!
 
 Wanted done for 3.0:
   - router  aliases.cf  to have similar 'protocols' feature as
@@ -64,6 +66,18 @@ INSTALL:
 	Badly out of date!
 
 router:
+
+    FEATURE:
+	run_listexpand() and run_listaddresses() (latter with part of code)
+	to support expanding '"%1"@domainpart'  type patterns with
+	original address *local* part (a.k.a. "user" part).
+	Problem being that the place where this replacing can run is
+	definitely doing it in TOKEN822 objects, not on strings.
+
+	THAT IS WRONG APPROACH!
+
+	Better one: At DB lookups support substituting %0 (the key) thru
+	%1 thru %9 (optional parameters) 
 
     FEATURE:
 	router/rfc822.c:  sequencer()
@@ -283,6 +297,15 @@ transports/smtp:
 	processing goes into mixed state -- it reports 2XX, and
 	yet claims to be in wrong state (MAIL FROM or RCPT TO ?
 	I have forgotten..)
+
+    FEATURE:
+        Script-controlled policy-testing -- without having ROUTER around ?
+	Suggestion: If some *users* need RBL testing, do it for them, not
+	for *all* addresses.
+	(Script to do test order, choices, and reactions.)
+
+	Counter suggestion: Delay the lookup until the somebody uses the data
+	Refutation:         Needs storing connecting IP address somewhere
 
     FEATURE:
 	accept email to postmaster(s), never mind what else policy testers

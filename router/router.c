@@ -361,6 +361,7 @@ initialize(configfile, argc, argv)
 	int ac;
 	const char **cpp;
 	const char **av;
+	char *zconfig;
 
 	av = (const char **)emalloc((5+argc)*(sizeof (char *)));
 	/* initialize shell */
@@ -414,6 +415,10 @@ initialize(configfile, argc, argv)
 		else
 			files_gid = grp->gr_gid;
 	}
+
+	zconfig = getzenv("ZCONFIG");
+	if (zconfig)
+	  v_set("ZCONFIG", zconfig);
 
 	/* source the router config file */
 	ac = 0;
@@ -602,10 +607,6 @@ logit(file, id, from, to)
 	if (id == NULL)
 		id = file;
 	baselen = strlen(file) + strlen(id) + 4;
-	printf("%.200s: file: %s %s...\n", id, file, from);
-	if (!nosyslog)
-	  zsyslog((LOG_INFO, "%.200s: file: %.150s %.250s...",
-		   id, file, from));
 	flen = strlen(from);
 	if (flen > 0)
 	  printf("%.200s: file: %s %s => %s\n", id, file, from, to);

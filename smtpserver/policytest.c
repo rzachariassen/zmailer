@@ -1394,6 +1394,7 @@ const int len;
     /* state->request initialization !! */
     state->request = ( 1 << P_A_RELAYTARGET     |
 		       1 << P_A_ACCEPTbutFREEZE |
+		       1 << P_A_TestRcptDnsRBL  |
 		       1 << P_A_LocalDomain );
 
     /* Test first the full address */
@@ -1410,6 +1411,23 @@ const int len;
 	state->sender_freeze = 1;
 	PICK_PA_MSG(P_A_ACCEPTbutFREEZE);
 	return  1;
+      }
+      if (valueeq(state->values[P_A_TestRcptDnsRBL], "+")) {
+
+	type(NULL, 0, NULL, "test-rcpt-dns-rbl test; rblmsg='%s'",
+	     state->rblmsg ? state->rblmsg : "<none>");
+
+	if (state->rblmsg != NULL) {
+	  /* Now this is cute... the source address had RBL entry,
+	     and the recipient domain had a request to honour the
+	     RBL data. */
+	  if (state->message != NULL) free(state->message);
+	  state->message = strdup(state->rblmsg);
+	  if (debug)
+	    printf("000- ... TestRcptDnsRBL has a message: '%s'\n",
+		   state->rblmsg);
+	  return -1;
+	}
       }
     }
 

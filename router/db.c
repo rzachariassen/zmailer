@@ -703,14 +703,15 @@ run_db(argc, argv)
  */
 
 conscell *
-db(dbname, key)
-	const char *dbname, *key;
+db(dbname, argv10)
+	const char *dbname, *argv10[];
 {
 	register int keylen;
 	conscell *l, *ll, *tmp;
 	struct spblk *spl;
 	struct db_info *dbip;
 	char *realkey;
+	const char *key = argv10[0];
 	search_info si;
 	struct cache *cache;
 	unsigned long khash;
@@ -759,10 +760,13 @@ db(dbname, key)
 	} else
 	  khash = crc32(key);
 
-	si.file = dbip->file;
-	si.key  = key;
+	si.file    = dbip->file;
+	si.key     = key;
 	si.subtype = dbip->subtype;
-	si.ttl  = dbip->ttl;
+	si.ttl     = dbip->ttl;
+	si.argv10  = argv10;
+	si.argv1   = NULL;
+
 	if ((dbip->flags & DB_MODCHECK)
 	    && dbip->modcheckp != NULL && (*dbip->modcheckp)(&si)) {
 		if (dbip->close != NULL) {
@@ -827,8 +831,8 @@ db(dbname, key)
 				if (D_db)
 					fprintf(stderr, "... found in cache\n");
 				/* return a scratch value */
-				tmp = s_copy_chain(cache->value);
-				return tmp;
+				ll = s_copy_chain(cache->value);
+				goto post_subst;
 			}
 			pcache = &cache->next;
 		}
@@ -898,6 +902,8 @@ db(dbname, key)
 				free(realkey);
 			}
 			UNGCPRO3;
+			if (si.argv1) free(si.argv1);
+			si.argv1 = NULL;
 			return NULL;
 		}
 	}
@@ -956,6 +962,13 @@ db(dbname, key)
 		ll = l;
 
 	UNGCPRO3;
+ post_subst:
+
+	/* TODO: %0 .. %9 substitutions ? */
+
+	if (si.argv1) free(si.argv1);
+	si.argv1 = NULL;
+
 	return ll;
 }
 
@@ -1103,14 +1116,14 @@ find_domain(lookupfn, sip)
 #endif
 	/* iterate over the subdomains of the key */
 	for (cp = buf; *cp;) {
-		while (*cp && *cp != '.')
-			++cp;
-		while (*cp == '.')
-			++cp;
+		while (*cp && *cp != '.') ++cp;
+		while (*cp == '.')        ++cp;
 		if (*(cp-1) == '.') {
 			sip->key = cp-1;
 			l = (*lookupfn)(sip);
-			if (l != NULL) {
+			if (l) {
+				if (sip->argv1) free(sip->argv1);
+				sip->argv1 = dupnstr(buf, sip->key - buf);
 #ifdef PREDOT_TEST
 #ifndef HAVE_ALLOCA
 				free(buf);
@@ -1142,8 +1155,11 @@ find_domain(lookupfn, sip)
 	/* Still failed ?  Try to look for "." */
 	sip->key = ".";
 	l = (*lookupfn)(sip);
-	if (l != NULL)
+	if (l) {
+		if (sip->argv1) free(sip->argv1);
+		sip->argv1 = dupnstr(realkey, keylen);
 		return l;
+	}
 
 	return NULL;
 }
@@ -1161,6 +1177,7 @@ find_nodot_domain(lookupfn, sip)
 	search_info *sip;
 {
 	register const char *cp;
+	const char *realkey = sip->key;
 	conscell *l = NULL;
 
 	/* iterate over the subdomains of the key */
@@ -1172,8 +1189,12 @@ find_nodot_domain(lookupfn, sip)
 		if (*(cp-1) == '.') {
 			sip->key = cp;
 			l = (*lookupfn)(sip);
-			if (l != NULL)
+			if (l) {
+				if (sip->argv1) free(sip->argv1);
+				sip->argv1 = dupnstr(realkey,
+						     sip->key - realkey);
 				return l;
+			}
 		}
 	}
 #if 0
@@ -1239,14 +1260,17 @@ find_longest_match(lookupfn, sip)
 				((h_addr&h_mask) >>  8) & 255,
 				((h_addr&h_mask)      ) & 255,
 				prefix);
-			if ((l = (*lookupfn)(sip)) != NULL)
+			l = (*lookupfn)(sip);
+			if (l)
 				return l;
 		}
-	}
-	else {	/* domain name */
+
+	} else {  /* domain name */
+
 		/* check the key as given */
 		if ((l = (*lookupfn)(sip)) != NULL)
 			return l;
+
 		realkey = (char *) sip->key;
 		/* iterate over the superdomains of the key */
 		for (cp = realkey; *cp;) {
@@ -1256,14 +1280,23 @@ find_longest_match(lookupfn, sip)
 				++cp;
 			if (*(cp-1) == '.') {
 				sip->key = cp-1;
-				if ((l = (*lookupfn)(sip)) != NULL)
+				l = (*lookupfn)(sip);
+				if (l) {
+					if (sip->argv1) free(sip->argv1);
+					sip->argv1 = dupnstr(realkey,
+							     sip->key-realkey);
 					return l;
+				}
 			}
 		}
 		/* Still failed ?  Try to look for "." */
 		sip->key = ".";
-		if ((l = (*lookupfn)(sip)) != NULL)
+		l = (*lookupfn)(sip);
+		if (l) {
+			if (sip->argv1) free(sip->argv1);
+			sip->argv1 = dupnstr(realkey, strlen(realkey));
 			return l;
+		}
 	}
 	
 	return NULL;

@@ -18,7 +18,8 @@ MAN5=	aliases.5
 MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8 mailbox.8
 
 FRC:
-	@echo "make install MANDIR=/usr/man"
+	@echo "make install MANDIR=/your/choice"
+	@echo "   default for MANDIR=${MANDIR}"
 	@echo "make groff"
 	@echo "make html"
 	@echo "make clean"

@@ -3,7 +3,7 @@
  *	This will be free software, but only when it is finished.
  *
  *	New database mechanism added by Matti Aarnio <mea@nic.funet.fi>
- *	over years 1992-1997
+ *	over years 1992-2001
  */
 
 /* Information needed by the database search routines */
@@ -20,6 +20,8 @@ typedef struct _search_info {
 	const char	*key;
 	time_t		 ttl;
 	const char	*subtype;
+	const char	**argv10;
+	const char	*argv1;
 } search_info;
 
 struct file_map {
