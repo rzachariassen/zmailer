@@ -294,6 +294,7 @@
 	  scheduler/scheduler.c, scheduler/prototypes.h:
 	    Debugging the long living thing where "mailq -Q" mode reports
 	    negative counts for stored messages.  Apparently fixed it!
+	    ( Didn't :-(  )
 
 2003-05-01  Matti Aarnio  <mea@zmailer.org>
 
