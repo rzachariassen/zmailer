@@ -1041,7 +1041,7 @@ int
 mux(timeout)
 time_t timeout;
 {
-	int	i, n, rc, maxf;
+	int	i, n, maxf;
 	fd_set	rdmask;
 	fd_set	wrmask;
 	struct timeval tv;
@@ -1052,7 +1052,7 @@ time_t timeout;
 	  return 0;
 	}
 
-	mytime(&now);
+	queryipccheck();
 
 	tv.tv_sec = timeout - now; /* Timeout in seconds */
 	if (timeout < now)
@@ -1086,6 +1086,10 @@ time_t timeout;
 	  if (maxf < querysocket)
 	    maxf = querysocket;
 	}
+
+	/* Although we don't react on the results of these MQ2 fd's,
+	   getting them to break timeouts is important for MAILQv2
+	   responsiveness. ! */
 
 	if (mailqmode == 2)
 	  maxf = mq2add_to_mask(&rdmask, &wrmask, maxf);
@@ -1128,42 +1132,10 @@ time_t timeout;
 	  return 1;
 	} else {
 	  /*sfprintf(sfstderr, "got %d ready (%x)\n", n, rdmask.fds_bits[0]);*/
-	  if (querysocket >= 0 && _Z_FD_ISSET(querysocket, rdmask)) {
-	    struct sockaddr_in raddr;
-	    int	raddrlen;
 
-	    _Z_FD_CLR(querysocket, rdmask);
-	    raddrlen = sizeof raddr;
-	    i = accept(querysocket, (struct sockaddr *)&raddr, &raddrlen);
-	    if (i < 0) {
-	      perror("accept");
-	    } else if (mailqmode == 1) {
-	      rc = fork();
-	      if (rc == 0) { /* Child! */
-		close(querysocket);
-#ifdef HAVE_TCPD_H /* TCP-Wrapper code */
-		if (raddr.sin_family == AF_INET &&
-		    wantconn(i, "mailq") == 0) {
-		  char *msg = "refusing 'mailq' query from your whereabouts\r\n";
-		  int   len = strlen(msg);
-		  write(i,msg,len);
-		  _exit(0);
-		}
-#endif
-		qprint(i);
-		/* Silence memory debuggers about this child's
-		   activities by doing exec() on the process.. */
-		/* execl("/bin/false","false",NULL); */
-		_exit(0); /* _exit() should be silent too.. */
-	      }
-	      /* if (rc > 0)
-		 ++numkids; */
-	      close(i);
-	    } else {
-	      /* mailqmode == 2 */
-	      mq2_register(i);
-	    }
-	  }
+	  /* In case we really should react.. */
+	  queryipccheck();
+
 	  if (cpids != NULL) {
 
 	    for (proc = cpids, i = 0; i < maxf; ++i, ++proc) {
@@ -1184,7 +1156,6 @@ time_t timeout;
 	      queryipccheck();
 	    }
 	  }
-	  mq2_areinsets(&rdmask, &wrmask);
 
 	  in_select = 0;
 	}
@@ -1192,15 +1163,35 @@ time_t timeout;
 	return 0;
 }
 
+/* Call it how often you wish, but act it only once a second, or so.. */
+static time_t lastqueryipccheck;
+static time_t qipcretry;
+
 void
 queryipccheck()
 {
+	int	n;
+	fd_set	rdmask;
+	fd_set	wrmask;
+	struct timeval tv;
+	int maxfd;
+
+	mytime(&now);
+	if (!mq2_active() && (lastqueryipccheck == now)) return;
+	lastqueryipccheck = now;
+
+	if (qipcretry > 0 && qipcretry <= now) {
+	  qipcretry = 0;
+	  queryipcinit();
+	  /*
+	   * If qipcretry is set here, the value will be ignored, but
+	   * that's ok since sweepretry is active by now
+	   */
+	}
+
 	if (querysocket >= 0) {
-	  int	n;
-	  fd_set	rdmask;
-	  fd_set	wrmask;
-	  struct timeval tv;
-	  int maxfd = querysocket;
+
+	  maxfd = querysocket;
 
 	  tv.tv_sec = 0;
 	  tv.tv_usec = 0;
@@ -1209,13 +1200,14 @@ queryipccheck()
 	  _Z_FD_ZERO(wrmask);
 	  _Z_FD_SET(querysocket, rdmask);
 
-	  if (mailqmode == 2)
+	  if (mailqmode == 2) {
 	    maxfd = mq2add_to_mask(&rdmask, &wrmask, maxfd);
+	    n = select(maxfd+1, &rdmask, &wrmask, NULL, &tv);
+	    if (n > 0)
+	      mq2_areinsets(&rdmask, &wrmask);
+	  } else 
+	    n = select(maxfd+1, &rdmask, &wrmask, NULL, &tv);
 
-	  n = select(maxfd+1, &rdmask, &wrmask, NULL, &tv);
-
-	  if (n > 0)
-	    mq2_areinsets(&rdmask, &wrmask);
 
 	  if (n > 0 &&
 	      _Z_FD_ISSET(querysocket, rdmask)) {
@@ -1242,7 +1234,7 @@ queryipccheck()
 		  /* Silence memory debuggers about this child's
 		     activities by doing exec() on the process.. */
 		  /* execl("/bin/false","false",NULL); */
-		  _exit(0); /* _exit() should be silent too.. */
+		  _exit(0); /* _exit() should be silent, too.. */
 		}
 		close(n);
 	      } else {

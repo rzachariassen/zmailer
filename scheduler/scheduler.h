@@ -246,6 +246,8 @@ struct mailq {
 	int		auth;		/* what can do */
 	int		fd;		/* FD for I/O (nonblocking-IO) */
 
+	time_t		apopteosis;
+
 	char		*challenge;
 
 	int		inbufspace;	/* Raw input buffer stuff */

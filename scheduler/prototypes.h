@@ -41,7 +41,7 @@ extern u_int ranny __((u_int m));
 /* agenda.c */
 extern time_t qipcretry;
 extern int doagenda __((void));
-extern void turnme __((const char *));
+extern int turnme __((const char *));
 
 /* conf.c */
 extern char *qlogdir;
@@ -174,6 +174,7 @@ extern void mq2_register __((int fd));
 extern void mq2_areinsets __((fd_set *rdmaskp, fd_set *wrmaskp));
 extern int  mq2_puts __((struct mailq *, char *s));
 extern int  mq2_putc __((struct mailq *, int c));
+extern int  mq2_active __((void));
 
 /* mq2auth.c */
 extern void mq2auth __((struct mailq *, char *));

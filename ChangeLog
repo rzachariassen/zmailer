@@ -1,3 +1,15 @@
+2000-02-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/agenda.c, scheduler/mq2.c, scheduler/prototypes.h,
+	  scheduler/scheduler.c, scheduler/scheduler.h, scheduler/threads.c,
+	  scheduler/transport.c, man/scheduler.8, scheduler/MAILQv2:
+	    - Streamlined MAILQv2 processing -- it should now be as low
+	      latency service as possible, even with long-lasting operations
+	      blocking at things like input queue scanner.
+	    - Implemented a 30 second self-apopteosis for MAILQv2 sockets.
+	    - Implemented MAILQv2 action ETRN -- exactly alike the SMTP-
+	      server one.
+
 2000-02-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* lib/selfaddrs.c:

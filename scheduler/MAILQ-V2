@@ -32,3 +32,8 @@ that is, lowercase hex characters.
 SHOW QUEUE CONDENCED
 SHOW QUEUE THREADS
 SHOW SNMP
+SHOW THREAD channel host
+START THREAD channel host
+ETRN etrn_string
+KILL MSG spoolid
+KILL THREAD channel host

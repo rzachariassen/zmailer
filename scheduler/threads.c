@@ -828,6 +828,8 @@ thread_start(thr, queueonly_too)
 	struct web         *ch  = vp->orig[L_CHANNEL];
 
 
+	queryipccheck();
+
 	if (syncstart || (freeze && !slow_shutdown)) return 0;
 	if (!queueonly_too && (ce->flags & CFG_QUEUEONLY)) return 0;
 

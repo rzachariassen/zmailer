@@ -76,7 +76,13 @@ static void mq2interpret __((struct mailq *, char *));
 
 static struct mailq *mq2root  = NULL;
 static int           mq2count = 0;
-static int	     mq2max   = 10; /* How many can live simultaneously */
+static int	     mq2max   = 20; /* How many can live simultaneously */
+static int           max_mq_life = 30; /* 30 seconds for an action */
+
+int mq2_active __((void))
+{
+  return (mq2root != NULL);
+}
 
 /* INTERNAL */
 static void mq2_discard(mq)
@@ -295,6 +301,7 @@ static void mq2_read(mq)
 
   if (mq->fd < 0) {
     mq2_discard(mq);
+    return;
     /* Zap! */
   }
 
@@ -365,6 +372,7 @@ void mq2_register(fd)
   memset(mq, 0, sizeof(*mq));
   
   mq->fd = fd;
+  mq->apopteosis = now + max_mq_life;
 
   mq->nextmailq = mq2root;
   mq2root = mq;
@@ -434,6 +442,11 @@ void mq2_areinsets(rdmaskp, wrmaskp)
       if (mq->fd >= 0 && _Z_FD_ISSET(mq->fd, *wrmaskp)) {
 	mq2_wflush(mq);
       }
+
+      /* Time of forced death ? */
+      if (now > mq->apopteosis)
+	mq2_discard(mq);
+
       mq = mq2;
     }
 
@@ -514,6 +527,34 @@ static void mq2_thread_report(mq, mode)
 
 
 /* INTERNAL */
+static int mq2cmd_etrn(mq,s)
+     struct mailq *mq;
+     char *s;
+{
+  char *t = s;
+  int rc;
+
+  if (!(mq->auth & MQ2MODE_ETRN)) {
+    mq2_puts(mq, "-No ETRN allowed for you.\n");
+    return 0;
+  }
+
+  while (*t && (*t != ' ') && (*t != '\t')) ++t;
+  if (*t) *t++ = '\000';
+  while (*t == ' ' || *t == '\t') ++t;
+
+  /* 's' points to the first arg, 't' points to string after
+     separating white-space has been skipped. */
+  rc = turnme(s);
+  if (rc)
+    mq2_puts(mq, "+OK; an ETRN started something.\n");
+  else
+    mq2_puts(mq, "+OK; an ETRN didn't start anything.\n");
+
+  return 0;
+}
+
+/* INTERNAL */
 static int mq2cmd_show(mq,s)
      struct mailq *mq;
      char *s;
@@ -589,6 +630,10 @@ static void mq2interpret(mq,s)
   if (strcmp(s,"SHOW") == 0) {
     if (mq2cmd_show(mq,t) == 0)
       return;
+  }
+  if (strcmp(s,"ETRN") == 0) {
+    mq2cmd_etrn(mq,t);
+    return;
   }
 
   mq2_puts(mq, "-MAILQ2 No such command; VERB='");

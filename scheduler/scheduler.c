@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
  */
 
 /*
@@ -515,10 +515,11 @@ main(argc, argv)
 
 	resources_maximize_nofiles();
 
-	/* The theory is, that scheduler needs circa 10 fd's for its own uses,
+	/* The theory is, that scheduler needs circa 30 fd's for its own uses,
 	   and it will use all others on child-process communication fifos. */
+	/* Of these, 20 are for MQ2 sockets */
 
-	global_maxkids = resources_query_nofiles()-10;
+	global_maxkids = resources_query_nofiles()-30;
 
 	/* Probe how many FDs each TA needs! */
 
@@ -1113,6 +1114,10 @@ static int dirqueuescan(dir, dq, subdirs)
 	for (dp = readdir(dirp); dp != NULL; dp = readdir(dirp)) {
 	  /* Scan filenames into memory */
 
+	  /* Here we are presuming the time retrieval is essentially
+	     _free_ in form of shared memory segment.. */
+	  queryipccheck();
+
 	  if (!syncstart && newents > newents_limit)
 	    break; /* At most NNN per one go */
 
@@ -1522,7 +1527,7 @@ void resync_file(proc, file)
 	  if (oldcfp->head == NULL) {
 	    cfp_free(oldcfp,spl);
 	    if (verbose)
-	      sfprintf(sfstdout," .. LOST in resync ??!\n");
+	      sfprintf(sfstdout," .. LOST in resync ?!\n");
 	  } else
 	    if (verbose)
 	      sfprintf(sfstdout," .. resynced!\n");

@@ -12,8 +12,6 @@
 #include "scheduler.h"
 #include "prototypes.h"
 
-time_t qipcretry = 0;
-
 int	/* return non-zero when there are some childs
 	   available for start				*/
 doagenda()
@@ -55,19 +53,11 @@ doagenda()
 	/* if (verbose)
 	   printf("alarmed %d\n", now);  */
 
-	if (qipcretry > 0 && qipcretry <= now) {
-	  qipcretry = 0;
-	  queryipcinit();
-	  /*
-	   * If qipcretry is set here, the value will be ignored, but
-	   * that's ok since sweepretry is active by now
-	   */
-	}
 	return (didsomething);
 }
 
 /* Do immediate scheduling of given host-indentifier. */
-void
+int
 turnme(turnarg)
 const char *turnarg;
 {
@@ -76,6 +66,7 @@ const char *turnarg;
 	char *cp = strchr(turnarg,' ');
 	struct thread *ncuritem, *nncuritem;
 	spkey_t spk;
+	int rc = 0;
 
 	/* caller has done 'strlower()' to our input.. */
 	if (cp) *cp++ = 0;
@@ -85,7 +76,7 @@ const char *turnarg;
 	spl = sp_lookup(spk, spt_mesh[L_HOST]);
 	if (spl == NULL || spl->data == NULL) {
 	  /* Not found, nothing to do.. */
-	  return;
+	  return 0;
 	}
 	wp = (struct web *)spl->data;
 	
@@ -97,9 +88,10 @@ const char *turnarg;
 
 	  if (wp == ncuritem->whost && ncuritem->proc == NULL) {
 	    ncuritem->wakeup = 0; /* Force its starttime! */
-	    thread_start(ncuritem, 1);
+	    rc += thread_start(ncuritem, 1);
 	    /* We MAY get multiple matches, though it is unlikely.. */
 	  }
 	  ncuritem = nncuritem;
 	}
+	return rc;
 }   

@@ -798,7 +798,7 @@ Implements 'mailq -QQ'.
 Implements 'mailq -Q'.
 .IP SHOW\ THREAD\ channel\ host
 Unimplemented.
-.IP START\ THREAD\ channel\ host
+.IP ETRN etrn_string
 Unimplemented.
 .IP KILL\ MSG\ spoolid
 Unimplemented.
@@ -857,7 +857,7 @@ thru the MAILQv2 port.
 #	SNMP	"SHOW SNMP"
 #	QQ	"SHOW QUEUE SHORT"
 #	TT	"SHOW QUEUE THREADS", "SHOW THREAD channel host"
-#	ETRN	"START THREAD channel host"
+#	ETRN	"ETRN etrn_string"
 #	KILL	"KILL THREAD channel host", "KILL MSG spoolid"
 #
 nobody:nobody:SNMP ETRN
