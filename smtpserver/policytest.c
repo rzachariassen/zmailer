@@ -1341,7 +1341,7 @@ const char *str;
 const int len;
 {
     const char *at;
-    int localdom;
+    int localdom, relayable = 0;
 
     if (state->always_reject) return -1;
     if (state->sender_reject) return -2;
@@ -1407,7 +1407,8 @@ const int len;
    #      [return -1;]
  */
 
-    while ((localdom = valueeq(state->values[P_A_LocalDomain], "+")) &&
+    while (((localdom = valueeq(state->values[P_A_LocalDomain], "+")) ||
+	    (relayable = valueeq(state->values[P_A_RELAYTARGET], "+"))) &&
 	   (percent_accept < 0)) {
 
       /* Ok, local domain recognized, now see if it has

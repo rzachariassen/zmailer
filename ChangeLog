@@ -1,5 +1,9 @@
 1999-06-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/policytest.c:
+	    More from Eugene Crosser; process %-hack also for those
+	    domains we are a relay-target for...
+	
 	* router/libdb/ndbm.c, router/libdb/ldap.c, router/libdb/dbm.c:
 	    Eugene Crosser spotted that I had forgotten to change
 	    some close_*() parameters to match new prototypes, which
@@ -9,7 +13,7 @@
 
 	* configure.in, smtpserver/Makefile.in, utils/makedb/Makefile.in,
 	  utils/vacation/Makefile.in:
-	    Introduce new '@LIBLOCALDBMD@' substitution which does not
+	    Introduce new '@LIBLOCALDBMS@' substitution which does not
 	    include possible LDAP for applications which *don't* use
 	    LDAP in themselves.  (Eugene Crosser report about missing
 	    @LIBSOCKET@ substitution because of ldap things at makedb..)
