@@ -229,6 +229,8 @@ int bindaddr_set    = 0;
 u_short bindport = 0;
 int bindport_set = 0;
 int use_tcpwrapper = 0;
+int tarpit_initial = 0;
+int tarpit_exponent = 0;
 
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5
@@ -1447,6 +1449,8 @@ int insecure;
 #endif
     SS->VerboseCommand = 0;
 
+    SS->tarpit = tarpit_initial;
+
     stashmyaddresses(NULL);
 
     pid = getpid();
@@ -1576,6 +1580,7 @@ int insecure;
 
     if (SS->reject_net) {
 	char *msg = policymsg(policydb, &SS->policystate);
+	smtp_tarpit(SS);
 	if (msg != NULL) {
 	  type(SS, -553, NULL, "%s", msg);
 	} else {
@@ -1699,6 +1704,7 @@ int insecure;
 	for (cp = buf; isascii(*cp) && isalpha(*cp); ++cp)
 	    continue;
 	if (cp > buf + 8) {	/* "DEBUG" is longest of them.. */
+	    smtp_tarpit(SS);
 	    type(SS, 550, m552, "Syntax error");
 	    typeflush(SS);
 	    continue;
@@ -1715,6 +1721,8 @@ int insecure;
 	if (SS->carp->verb == NULL) {
 
 	unknown_command:
+
+	    smtp_tarpit(SS);
 
 	    type(SS, 550, m552, "Unknown command '%s'", buf);
 	    zsyslog((LOG_WARNING,
@@ -1743,6 +1751,7 @@ int insecure;
 
 	if (policystatus != 0 &&
 	    SS->carp->cmd != Quit && SS->carp->cmd != Help) {
+	  smtp_tarpit(SS);
 	  type(SS, -400, "4.7.0", "Policy database problem, code=%d", policystatus);
 	  type(SS,  400, "4.7.0", "With 'HELP' command you can get our contact information.");
 	  typeflush(SS);
@@ -1751,6 +1760,7 @@ int insecure;
 	  continue;
 	}
 	if (SS->reject_net && SS->carp->cmd != Quit && SS->carp->cmd != Help) {
+	    smtp_tarpit(SS);
 	    type(SS, -553, NULL, "You are on our reject-IP-address -list, GO AWAY!");
 	    type(SS, -553, NULL, "If you feel we mistreat you, do contact us.");
 	    type(SS, 553, NULL, "With 'HELP' command you can get out contact information.");
@@ -2348,6 +2358,20 @@ SmtpState *SS;
     else
 	strncpy(SS->ident_username, "IDENT-CALL-FAULT", MAXHOSTNAMELEN);
 }
+
+
+void smtp_tarpit(SS)
+     SmtpState *SS;
+{
+    if (SS->tarpit) {
+	if (SS->tarpit < 0 || SS->tarpit > 250)
+	    SS->tarpit = 250;
+	sleep(SS->tarpit);
+	SS->tarpit += (SS->tarpit * tarpit_exponent);
+    }
+}
+
+
 
 void header_to_mime(buf, lenptr, maxlen)
 char *buf;

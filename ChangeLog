@@ -1,3 +1,13 @@
+1999-10-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* man/smtpserver.8, proto/smtpserver.conf.in, smtpserver/cfgread.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/smtpcmds.c:
+	    A "tarpit" feature implementation per an idea from
+	    Arjan van de Ven <arjan@NL.UU.NET>, plus
+	    Mark Visser <mark@cal026031.student.utwente.nl>.
+	    (Who reported of what postfix/vmail can do.)
+
 1999-10-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in:

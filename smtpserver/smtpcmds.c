@@ -191,6 +191,7 @@ const char *buf, *cp;
      * We need it for proper handling of ESMTP anyway
      */
     if (checkhelo && skeptical && partridge(SS, cp)) {
+	smtp_tarpit(SS);
 	type821err(SS, -501, "", buf, "Invalid `%.200s' parameter!", buf);
 	if (msg != NULL)
 	  type(SS, -501, "", "%s", msg);
@@ -210,6 +211,7 @@ const char *buf, *cp;
     }
     SS->cfinfo = findcf(cp);
     if (SS->cfinfo != NULL && *(SS->cfinfo->flags) == '!') {
+	smtp_tarpit(SS);
 	if (SS->cfinfo->flags[1] != '\0')
 	    type(SS, 501, NULL, "%s", (SS->cfinfo->flags) + 1);
 	else
@@ -231,6 +233,7 @@ const char *buf, *cp;
 	return;
       if (atoi(s) / 100 != 2) {
 	/* verification failed */
+	smtp_tarpit(SS);
 	type(SS, atoi(s), s+4, "Failed", "Failed");
 	free(s);
 	return;
@@ -374,6 +377,7 @@ int insecure;
 	    cp = NULL;
 	    break;
 	}
+	smtp_tarpit(SS);
 	type(SS, 503, m551, cp);
 	return;
     }
@@ -381,6 +385,7 @@ int insecure;
     if (*cp == ' ') ++cp;
     if (!strict_protocol || sloppy) while (*cp == ' ' || *cp == '\t') ++cp;
     if (!CISTREQN(cp, "From:", 5)) {
+	smtp_tarpit(SS);
 	type(SS, 501, m552, "where is From: in that?");
 	return;
     }
@@ -390,19 +395,23 @@ int insecure;
 	/* Skip white-space */
 	if (!isascii(*cp) || !isspace(*cp)) {
 	  if (!sloppy) {
+	    smtp_tarpit(SS);
 	    type(SS, 501, m517, "where is <...> in that?");
 	    return;
 	  }
 	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
+	smtp_tarpit(SS);
 	type(SS, 501, m517, "where is <...> in that?");
 	return;
     } else if (*cp != '<' && !sloppy) {
+	smtp_tarpit(SS);
 	type(SS, 501, m517, "strangeness between : and <");
 	return;
     }
     if (*(cp + 1) == '<') {
+	smtp_tarpit(SS);
 	type(SS, 501, m517, "there are too many <'s in that!");
 	return;
     }
@@ -416,6 +425,7 @@ int insecure;
 	  return;
 	}
 	if (*s == '>') {
+	  smtp_tarpit(SS);
 	  type(SS, 501, m517, "there are too many >'s in that!");
 	  return;
 	}
@@ -469,6 +479,7 @@ int insecure;
       }
 
       if (*s == '>') {
+	smtp_tarpit(SS);
 	type(SS, 501, m517, "there are too many >'s in that!");
 	return;
       }
@@ -500,6 +511,7 @@ int insecure;
 	}
 	if (dsn_ok && CISTREQN("RET=", s, 4)) {
 	    if (drpt_ret) {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "RET-param double defined!");
 		return;
 	    }
@@ -509,6 +521,7 @@ int insecure;
 		CISTREQN("HDRS", s, 4))
 		s += 4;
 	    if (*s && *s != ' ' && *s == '\t') {
+		smtp_tarpit(SS);
 		type(SS, 501, m454, "RET-param data error");
 		return;
 	    }
@@ -519,6 +532,7 @@ int insecure;
 	    /* Actually we do not use this data... */
 	    s += 5;
 	    if (bodytype != NULL) {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "BODY= double definition!");
 		rc = 1;
 		break;
@@ -534,6 +548,7 @@ int insecure;
 		s += 4;
 	    }
 	    if (*s && *s != ' ' && *s != '\t') {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "BODY-param data error, must be one of: 8BITMIME/BINARYMIME/7BIT");
 		rc = 1;
 		break;
@@ -543,6 +558,7 @@ int insecure;
 	if (CISTREQN("SIZE=", s, 5)) {
 	    s += 5;
 	    if (SS->sizeoptval != -1) {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "SIZE-param double definition!");
 		rc = 1;
 		break;
@@ -558,6 +574,7 @@ int insecure;
 	    }
 	    if ((*s && *s != ' ' && *s != '\t') ||
 		(SS->sizeoptval > 999999999) /* 1GB */ ) {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "SIZE-param data error");
 		rc = 1;
 		break;
@@ -567,6 +584,7 @@ int insecure;
 	/* IETF-NOTARY  SMTP-DSN extensions */
 	if (dsn_ok && CISTREQN("ENVID=", s, 6)) {
 	    if (drpt_envid != NULL) {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "ENVID double definition!");
 		rc = 1;
 		break;
@@ -574,6 +592,7 @@ int insecure;
 	    drpt_envid = s + 6;
 	    p = xtext_string(s + 6);
 	    if (p == (s + 6)) {
+		smtp_tarpit(SS);
 		type821err(SS, -501, m554, buf, "Invalid ENVID value '%.200s'", drpt_envid);
 		type(SS, 501, m554, "ENVID data contains illegal characters!");
 		rc = 1;
@@ -583,6 +602,7 @@ int insecure;
 	    drptenvid_len = s - drpt_envid;
 	    ++s;
 	    if (drptenvid_len == 0) {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "ENVID= without data!");
 		rc = 1;
 		break;
@@ -594,6 +614,7 @@ int insecure;
 	    auth_param = s + 5;
 	    p = xtext_string(s + 5);
 	    if (p == (s + 5)) {
+		smtp_tarpit(SS);
 		type821err(SS, -501, m554, buf, "Invalid AUTH value '%.200s'", auth_param);
 		type(SS, 501, m554, "AUTH data contains illegal characters!");
 		rc = 1;
@@ -603,6 +624,7 @@ int insecure;
 	    authparam_len = s - auth_param;
 	    ++s;
 	    if (authparam_len == 0) {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "AUTH= without data!");
 		rc = 1;
 		break;
@@ -610,6 +632,7 @@ int insecure;
 	    continue;
 	}
 
+	smtp_tarpit(SS);
 	type(SS, 501, m554, "Unknown MAIL FROM:<> parameter: %s", s);
 	rc = 1;
 	break;
@@ -636,8 +659,10 @@ int insecure;
     if (SS->policyresult < 0) {
       char *ss = policymsg(policydb, &SS->policystate);
       if (ss != NULL) {
+	smtp_tarpit(SS);
 	type(SS, 453, m471, "Policy analysis reported: %s", ss);
       } else if (SS->policyresult < -99) {
+	smtp_tarpit(SS);
 	if (SS->policyresult < -103) { /* -104 */
 	  if (!multilinereplies) {
 	    type(SS,453,m443, "Policy analysis reports temporary DNS error with your source domain.");
@@ -668,6 +693,7 @@ int insecure;
 	}
       } else {
 	char *ss = policymsg(policydb, &SS->policystate);
+	smtp_tarpit(SS);
 	if (ss != NULL) {
 	  type(SS, 553, m571, "Policy analysis reported: %s", ss);
 	} else if (SS->policyresult < -1) {
@@ -705,6 +731,7 @@ int insecure;
 	}
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
+	    smtp_tarpit(SS);
 	    type(SS, atoi(s), s + 4, "Failed", "Failed");
 	    free((void *) s);
 	    if (newcp)
@@ -717,6 +744,7 @@ int insecure;
 	(SS->mfp = mail_open(MSG_RFC822)) == NULL) {
 	if (s)
 	    free((void *) s);
+	smtp_tarpit(SS);
 	type(SS, 452, m430, (char *) NULL);
 	if (newcp)
 	    free((void *) newcp);
@@ -862,25 +890,29 @@ int insecure;
     availspace -= minimum_availspace;
 
     if (ferror(SS->mfp)) {
+	smtp_tarpit(SS);
 	type(SS, 452, m430, (char *) NULL);
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
     } else if (SS->sizeoptval > maxsize && maxsize > 0) {
+	smtp_tarpit(SS);
 	type(SS, 552, m534, "This message is larger, than our maximum acceptable incoming message size of  %d  chars.", maxsize);
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
     } else if (SS->sizeoptval > availspace) {
+	smtp_tarpit(SS);
 	type(SS, 452, m431, "Try again later, insufficient storage available at the moment");
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
     } else {
 	if (s) {
 	    int rrc = atoi(s);
-	    type(SS, rrc, s + 4, "Ok");
-	    if (rc >= 400) {
+	    if (rrc >= 400) {
+	      smtp_tarpit(SS);
 	      mail_abort(SS->mfp);
 	      SS->mfp = NULL;
 	    }
+	    type(SS, rrc, s + 4, "Ok");
 	} else
 	    type(SS, 250, "2.1.0", "Sender syntax Ok%s", srcrtestatus);
 	SS->sender_ok = 1;
@@ -915,6 +947,7 @@ const char *buf, *cp;
        tell the spammers exactly what's happening. */
     if ( (SS->state == MailOrHello || SS->state == Mail) &&
 	 policydb != NULL && SS->policyresult < 0 ) {
+      smtp_tarpit(SS);
       if (!multilinereplies)
 	type(SS, 553, m571, "Access denied by the policy analysis functions.");
       else {
@@ -940,6 +973,7 @@ const char *buf, *cp;
 	    cp = NULL;
 	    break;
 	}
+	smtp_tarpit(SS);
 	type(SS, 503, m551, cp);
 	return;
     }
@@ -948,6 +982,7 @@ const char *buf, *cp;
     if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
 
     if (!CISTREQN(cp, "To:", 3)) {
+	smtp_tarpit(SS);
 	type(SS, 501, m552, "where is To: in that?");
 	return;
     }
@@ -956,22 +991,27 @@ const char *buf, *cp;
       for (; *cp != '\0' && *cp != '<'; ++cp)
 	if (!isspace(*cp)) {
 	  if (!sloppy) {
+	    smtp_tarpit(SS);
 	    type(SS, 501, m513, "where is <...> in that?");
 	    return;
 	  }
 	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
+	smtp_tarpit(SS);
 	type(SS, 501, m513, "where is <...> in that?");
 	return;
     } else if (*cp != '<' && !sloppy) {
+	smtp_tarpit(SS);
 	type(SS, 501, m513, "strangeness between : and <");
 	return;
     } else if (*(cp+1) == '>') {
+	smtp_tarpit(SS);
 	type(SS, 501, m513, "Null address valid only as source");
 	return;
     }
     if (*(cp + 1) == '<') {
+	smtp_tarpit(SS);
 	type(SS, 501, m513, "there are too many <'s in that!");
 	return;
     }
@@ -991,6 +1031,7 @@ const char *buf, *cp;
 	  }
 	}
 	if (*s == '>') {
+	  smtp_tarpit(SS);
 	  type(SS, 501, m513, "there are too many >'s in that!");
 	  return;
 	}
@@ -1045,6 +1086,7 @@ const char *buf, *cp;
       }
 
       if (*s == '>') {
+	smtp_tarpit(SS);
 	type(SS, 501, m513, "there are too many >'s in that!");
 	return;
       }
@@ -1067,6 +1109,7 @@ const char *buf, *cp;
 #endif
 
     if (addrlen < 1) {
+	smtp_tarpit(SS);
 	type(SS, 501, m513, "What is an empty recipient?");
 	return;
     }
@@ -1082,6 +1125,7 @@ const char *buf, *cp;
 	/* IETF-NOTARY  SMTP-DSN extensions */
 	if (dsn_ok && CISTREQN("NOTIFY=", s, 7)) {
 	    if (drpt_notify) {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "NOTIFY-param double defined!");
 		return;
 	    }
@@ -1101,6 +1145,7 @@ const char *buf, *cp;
 		++s;
 	    }
 	    if (*s && *s != ' ' && *s != '\t') {
+		smtp_tarpit(SS);
 		type(SS, 455, m454, "NOTIFY-param data error");
 		return;
 	    }
@@ -1109,12 +1154,14 @@ const char *buf, *cp;
 	}
 	if (dsn_ok && CISTREQN("ORCPT=", s, 6)) {
 	    if (drpt_orcpt) {
+		smtp_tarpit(SS);
 		type(SS, 501, m554, "ORCPT-param double defined!");
 		return;
 	    }
 	    drpt_orcpt = s;
 	    s = orcpt_string(s + 6);
 	    if (s == NULL) {
+		smtp_tarpit(SS);
 		type821err(SS, -501, m454, buf, "Invalid ORCPT value '%s'", drpt_orcpt);
 		type(SS, 501, m454, "ORCPT-param data error!");
 		return;
@@ -1122,11 +1169,13 @@ const char *buf, *cp;
 	    orcptlen = s - drpt_orcpt;
 	    continue;
 	}
+	smtp_tarpit(SS);
 	type(SS, 555, m554, "Unknown RCPT TO:<> parameter: %s", s);
 	return;
     }
 
     if (SS->rcpt_count >= rcptlimitcnt) {
+      smtp_tarpit(SS);
       type(SS, 452, "4.5.2", "Too many recipients in one go!");
       return;
     }
@@ -1176,6 +1225,8 @@ const char *buf, *cp;
 	fprintf(SS->mfp, "comment policytest() rejected rcptaddr: <");
 	fwrite(cp, 1, addrlen, SS->mfp);
 	fprintf(SS->mfp,">\n");
+
+	smtp_tarpit(SS);
 
 	if (SS->policyresult < -99) { /* "soft error, 4XX code */
 	  if (ss != NULL) {
@@ -1255,6 +1306,7 @@ const char *buf, *cp;
 	    return;
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
+	    smtp_tarpit(SS);
 	    type(SS, atoi(s), s + 4, "Failed", "Failed");
 	    free((void *) s);
 	    if (newcp)
@@ -1308,19 +1360,24 @@ const char *buf, *cp;
     SS->sizeoptsum = SS->sizeoptval;
 
     if (ferror(SS->mfp)) {
+	smtp_tarpit(SS);
 	type(SS, 452, m430, (char *) NULL);
     } else if (maxsize > 0 && SS->sizeoptsum > maxsize) {
+	smtp_tarpit(SS);
 	type(SS, 552, m534, "Message size exceeds fixed maximum size of %ld chars for acceptable email", maxsize);
     } else if (SS->sizeoptsum > availspace) {
+	smtp_tarpit(SS);
 	type(SS, 452, m431, "insufficient storage space, try again later");
     } else if (s) {
 	if (SS->from_box && SS->rcpt_count > MaxErrorRecipients) {
+	    smtp_tarpit(SS);
 	    type(SS, 552, m571, "SPAM trap -- too many recipients for an empty source address!");
 	} else
 	    type(SS, atoi(s), s + 4, "Ok");
 	SS->rcpt_count += 1;
     } else {
 	if (SS->from_box && SS->rcpt_count > MaxErrorRecipients) {
+	    smtp_tarpit(SS);
 	    type(SS, 552, m571, "SPAM trap -- too many recipients for an empty source address!");
 	} else if (SS->sizeoptval)
 	    type(SS, 250, "2.1.5", "Ok; can accomodate %d byte message%s",

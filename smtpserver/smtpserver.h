@@ -164,6 +164,7 @@ typedef struct {
     struct policystate policystate;
     int  policyresult, reject_net;
     int  postmasteronly;
+    int  tarpit;
     int  rport;
     char ihostaddr[sizeof("[ipv6.ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]") + 8];
     Usockaddr raddr;
@@ -220,6 +221,8 @@ extern char logtag[];
 extern long availspace;
 extern long minimum_availspace;
 extern long maxsize;
+extern int tarpit_initial;
+extern int tarpit_exponent;
 extern int MaxErrorRecipients;
 extern int TcpRcvBufferSize;
 extern int TcpXmitBufferSize;
@@ -396,6 +399,7 @@ extern void smtp_expand __((SmtpState * SS, const char *buf, const char *cp));
 extern int  smtp_data   __((SmtpState * SS, const char *buf, const char *cp));
 extern int  smtp_bdata  __((SmtpState * SS, const char *buf, const char *cp));
 extern void add_to_toplevels __((char *str));
+extern void smtp_tarpit __((SmtpState * SS));
 
 extern void smtp_auth __((SmtpState * SS, const char *buf, const char *cp));
 

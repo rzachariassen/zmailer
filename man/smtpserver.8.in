@@ -336,6 +336,14 @@ See the comments at the sample
 .I proto/db/smtp-policy.src
 file.
 
+.IP PARAM\ tarpit\ n1\ n2
+This defines a pre-reply slow-down factor, and next delay multiplier
+(both are integers).
+Default values are (0, 0).  Delay tops at 250 (seconds).
+The ``n1'' is used as the initial tarpit delay, and ``n2'' is
+multiplier for formula:
+.I next = prev + (prev * n2)
+
 .IP Here\ is\ a\ possible\ configuration\ file:
 .sp
 .ta 0.0i 0.5i
@@ -440,13 +448,13 @@ PARAM help ------------------------------------------------------
 #
 #PARAM allowsourceroute
 #
-#PARAM accept-percent-kludge # "localpart" can contain '%' and '!'
-PARAM  reject-percent-kludge # "localpart" can't contain  --"--
-#
 # The policy database:
 # (NOTE: See `makedb' for its default suffixes!)
 #
 PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
+
+#PARAM  tarpit 0 0   # No "tarpit" for 4XX/5XX reply codes
+#PARAM  tarpit 20 2  # Initial delay: 20 secs, next = prev + (prev * 2)
 
 #
 # TLSv1/SSLv[23] parameters;

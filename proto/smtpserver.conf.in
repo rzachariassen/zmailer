@@ -100,12 +100,13 @@ PARAM help -------------------------------------------------------------
 #PARAM	allowsourceroute # DON'T ENABLE UNLESS YOU USE ROUTER BASED
 #                        # POLICY ANALYSIS!
 #
-#PARAM	accept-percent-kludge # "localpart" can contain '%' and '!'
-PARAM	reject-percent-kludge # "localpart" can't contain  --"--
-#
 # The policy database:  (NOTE: See  'makedb'  for its default suffixes!)
 #
 PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
+
+#
+#PARAM  tarpit 0 0   # No "tarpit" for 4XX/5XX reply codes
+#PARAM  tarpit 20 2  # Initial delay: 20 secs, next = prev + (prev * 2)
 
 #
 # TLSv1/SSLv[23] parameters; all must be used for the system to work!

@@ -1,5 +1,8 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- smtp TA to ETRN type destinations (usually not reachable) work
+  poorly ever since non-blocking connection was taken into use.
+
 - header rewriter has still problems; at least when "Received:"
   gets a conversion note added, some pointers get confused..
 	(maybe not ?  perhaps it was far delayed report ?)

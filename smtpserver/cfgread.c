@@ -159,6 +159,11 @@ static void cfparam(str)
 	use_tcpwrapper = 1;
     }
 
+    else if (cistrcmp(name, "tarpit") == 0 && param1 && param2) {
+	sscanf(param1,"%d",&tarpit_initial);
+	sscanf(param2,"%d",&tarpit_exponent);
+    }
+
     /* Two parameter policydb option: DBTYPE and DBPATH */
 
     else if (cistrcmp(name, "policydb") == 0 && param1 && param2) {
