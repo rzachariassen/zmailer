@@ -465,7 +465,7 @@ Installation procedure:
 	For more details see file:  doc/guides/smtp-policy
 
 
-12.	Add something like the following lines to bootup scripts (/etc/rc.local
+13.	Add something like the following lines to bootup scripts (/etc/rc.local
 	or /etc/rc2.d/S99local or similar):
 
 	if [ -r /etc/zmailer.conf ]; then
@@ -483,27 +483,27 @@ Installation procedure:
 	You may want to comment out startup of the Sendmail daemon.
 
 
-13.	Edit several of the canned error messages and programs (scripts)
+14.	Edit several of the canned error messages and programs (scripts)
 	to reflect your local configuration:
 		- $MAILSHARE/forms/ -files
 		- $MAILBIN/ta/usenet  (injected message..)
 
 
-14.	Read the notes on alias expansion in the file doc/guides/aliases and
+15.	Read the notes on alias expansion in the file doc/guides/aliases and
 	on mailing list maintenance in doc/guides/lists.
 
 
-15.	Start ZMailer:
+16.	Start ZMailer:
 
 		$MAILBIN/zmailer
 
 
-16.	Keep an eye on the log files ($LOGDIR/{router,scheduler}),
+17.	Keep an eye on the log files ($LOGDIR/{router,scheduler}),
 	the $POSTOFFICE/postman directory for malformed message files,
 	and $POSTOFFICE/deferred in case of resource problems.
 
 
-17.	Add the following entry (or equivalent) to your crontab:
+18.	Add the following entry (or equivalent) to your crontab:
 
 		28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
 
@@ -519,7 +519,7 @@ Installation procedure:
 	You may want to hardwire the location of the zmailer script.
 
 
-18.	Once satisfied that things appear to work, you may want to trim down
+19.	Once satisfied that things appear to work, you may want to trim down
 	logging: there are 4 kinds of logging to deal with:
 
 	- router logs, usually kept in $LOGDIR/router.  This is the stdout
