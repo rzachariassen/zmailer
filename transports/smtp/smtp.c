@@ -4513,7 +4513,10 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  }
 	  if (logfp)
 	    fprintf(logfp, "%sw\t%s\n", logtag(), strbuf);
-	  r = EX_TEMPFAIL;
+	  if (err)
+	    r = EX_TEMPFAIL;
+	  else
+	    r = EX_OK;
 	}
 
 	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
