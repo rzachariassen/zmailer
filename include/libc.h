@@ -70,6 +70,7 @@ extern       int   getaddrinfo __((const char *, const char *, const struct addr
 #endif
 #ifndef HAVE_SOCKLEN_T
 typedef unsigned int socklen_t;
+#define HAVE_SOCKLEN_T 1
 #endif
 #ifndef HAVE_GETNAMEINFO
 /* This is NASTY, GLIBC has changed the type after instroducing
