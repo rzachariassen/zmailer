@@ -334,13 +334,8 @@ const char *buf, *cp;
 	if (rcptlimitcnt > 100)
 	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
 
-	if (auth_login_without_tls || SS->sslmode) {
-	  if (auth_ok)
-	    type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/
-						   Sun Solstice/ ? */
-	  if (auth_ok)
-	    type(SS, -250, NULL, "AUTH LOGIN"); /* RFC 2554, M$ Exchange ? */
-	}
+	smtpauth_ehloresponse(SS);
+
 #ifdef HAVE_OPENSSL
 	/* NOTE: This seems to require TLS and STARTTLS facilities,
 	   better known as SSL..  TLS: RFC 2246, STARTTLS: RFC 2487 */

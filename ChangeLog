@@ -1,5 +1,17 @@
 2002-09-03  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpserver.c, smtpserver/zpwmatch-pipe.c:
+	    Running the legacy application authentication against
+	    SASL via an external program..  Turns out the old
+	    pipe-matcher code fails when we have active child
+	    exit reaper...  Oops.
+
+	* smtpserver/smtpauth-sasl.c:
+	    The external program mentioned above.  This program is NOT
+	    to be considered as official part of ZMailer MTA, the
+	    goal is to provide an official version in the smtpauth.c
+	    at some point...  I just needed a QUICK and working thing.
+
 	* smtpserver/smtpcmds.c:
 	    From user feedback (helpdesk manager report to developers,
 	    wow...): The "rejection due to MX rule" report needs

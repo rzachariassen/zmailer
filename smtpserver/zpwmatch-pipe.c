@@ -28,6 +28,9 @@
 #define OK      0
 #define NBITS   ((sizeof (int)) * 8)
 
+int pipeauthchild_pid = -1;
+int pipeauthchild_status = 0;
+
 
 static int run __(( FILE **rfp, FILE **wfp,
 		    const char *path, char *const argv[], char *const envp[]));
@@ -40,27 +43,27 @@ static int run(rfp, wfp, path, argv, envp)
 {
     int pdi[2], pdo[2], i, pid;
 
-    fflush( stdout ); fflush( stderr );
+    fflush( stdout );
+    fflush( stderr );
 
     if( pipe( pdi ) == NOTOK ) return NOTOK;
-    if( pipe( pdo ) == NOTOK )
-    {
+    if( pipe( pdo ) == NOTOK ) {
         (void)close( pdi[0] );
         (void)close( pdi[1] );
         return NOTOK;
     }
 
-    switch( pid = fork() )
-    {
-      case NOTOK:
-        (void)close( pdo[0] );
-        (void)close( pdo[1] );
-        (void)close( pdi[0] );
-        (void)close( pdi[1] );
+    pid = fork();
+    switch (pid) {
+    case -1: /* Various failures */
+        close( pdo[0] );
+        close( pdo[1] );
+        close( pdi[0] );
+        close( pdi[1] );
         *rfp = *wfp = NULL;
         break;
 
-      case OK:
+    case 0: /* Child */
         if( pdo[0] != fileno(stdin)  ) (void) dup2( pdo[0], fileno(stdin)  );
         if( pdi[1] != fileno(stdout) ) (void) dup2( pdi[1], fileno(stdout) );
         if( pdi[1] != fileno(stderr) ) (void) dup2( pdi[1], fileno(stderr) );
@@ -69,14 +72,16 @@ static int run(rfp, wfp, path, argv, envp)
         _exit( NOTOK );
         break;
 
-      default:
-        (void)close( pdi[1] );
-        (void)close( pdo[0] );
+    default: /* Parent */
+
+        pipeauthchild_pid = pid;
+
+        close( pdi[1] );
+        close( pdo[0] );
         if( ( *rfp = fdopen( pdi[0],"r" ) ) == NULL ||
-            ( *wfp = fdopen( pdo[1],"w" ) ) == NULL    )
-        {
-            (void)close( pdi[0] );
-            (void)close( pdo[1] );
+            ( *wfp = fdopen( pdo[1],"w" ) ) == NULL    ) {
+            close( pdi[0] );
+            close( pdo[1] );
             return NOTOK;
         }
     }
@@ -99,7 +104,7 @@ pipeauth(cmd, msg, msgsize, uname, password)
     char *envp[9]; int envc = 0;
     char buf[2048]; char *cp;
     const char *s;
-    int status;
+    int status = -1;
 
     cp = buf;
     *cp = 0;
@@ -115,34 +120,47 @@ pipeauth(cmd, msg, msgsize, uname, password)
     if (envp[envc] != NULL) /* Pass on the TZ environment .. */
       ++envc;
 
-    if( (s = getzenv("PATH")) == NULL )
+    s = getzenv("PATH");
+    if (!s) {
         envp[envc++] = "PATH=/usr/bin:/bin:/usr/ucb";
-    else
-    {
+    } else {
         sprintf( cp, "PATH=%.999s", s );
         envp[envc++] = cp;
         cp += strlen(cp) + 1;
     }
-    if( (s = getzenv("ZCONFIG")) == NULL )
-        s = ZMAILER_ENV_FILE;
+
+    s = getzenv("ZCONFIG");
+    if (!s) s = ZMAILER_ENV_FILE;
+
     cp += strlen(cp) + 1;
     sprintf( cp, "ZCONFIG=%.200s", s );
     envp[envc++] = cp;
     envp[envc] = NULL;
     
-    if( ( pid = run( &rfp, &wfp, argv[0], argv, envp ) ) != NOTOK )
-    {
+    pid = run( &rfp, &wfp, argv[0], argv, envp );
+    if (pid > 1) {
         fprintf( wfp, "%s\n", password );
+	fflush(wfp);
         fclose( wfp );
-        while( wait( &status ) != pid );
-        if( msg != NULL )
-        {
+	/* Following weird thing is because we have top-level
+	   child-death reaper code at the main part of this
+	   program... */
+	do {
+	    int rc = wait( &status );
+	    if (rc < 0 && errno == EINTR) continue;
+	    if (rc < 0) break;
+	    if (rc != pid) continue; /* Eh... should not.. */
+	    pipeauthchild_status = status;
+	    break;
+	} while(1);
+
+        if ( msg ) {
             msg[ msgsize-1 ] = 0;
             fgets( msg, msgsize, rfp );
         }
     }
 
-    return status;
+    return pipeauthchild_status;
 }
 
 

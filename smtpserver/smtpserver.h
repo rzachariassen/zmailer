@@ -271,6 +271,19 @@ typedef struct {
 
     int unknown_cmd_count;
 
+#ifdef HAVE_SASL2
+    char  *volatile auth_type;
+    char *mechlist;
+    sasl_conn_t *conn;
+    volatile bool sasl_ok;
+    volatile unsigned int n_auth = 0;	/* count of AUTH commands */
+    volatile unsigned int n_mechs;
+    unsigned int len;
+    sasl_security_properties_t ssp;
+  /* sasl_external_properties_t ext_ssf; */ /* not at SASL 2.x ? */
+    sasl_ssf_t *ssf;
+#endif
+
 } SmtpState;
 
 #define STYLE(i,c)	(strchr(((i)==NULL ? style : (i)->flags), (c)) != NULL)
@@ -337,6 +350,9 @@ extern int configuration_ok;
 extern int unknown_cmd_limit;
 extern int sum_sizeoption_value;
 extern int lmtp_mode;
+extern int do_sasl;
+extern int MaxSLBits;
+extern char *AuthMechanisms;
 extern int detect_incorrect_tls_use;
 extern int force_rcpt_notify_never;
 
@@ -489,6 +505,8 @@ extern void add_to_toplevels __((char *str));
 extern void smtp_tarpit __((SmtpState * SS));
 
 extern void smtp_auth __((SmtpState * SS, const char *buf, const char *cp));
+extern void smtpauth_init __((SmtpState * SS));
+extern void smtpauth_ehloresponse __((SmtpState * SS));
 
 #ifdef HAVE_OPENSSL
 extern int tls_start_servertls __((SmtpState *SS));

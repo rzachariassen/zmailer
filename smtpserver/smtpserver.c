@@ -216,6 +216,9 @@ int chunkingok = 1;
 int enhancedstatusok = 1;
 int multilinereplies = 1;
 int enable_router = 0;		/* Off by default -- security */
+int do_sasl = 0;
+int MaxSLBits = 1000000;	/* a HIGH value */
+int SASLOpts;
 int mime8bitok = 1;
 int dsn_ok = 1;
 int auth_ok = 0;
@@ -273,6 +276,10 @@ const u_char zv4mapprefix[16] =
 
 static void setrfc1413ident __((SmtpState * SS));
 static void setrhostname __((SmtpState *));
+
+extern int pipeauthchild_pid; /* zpwmatch-pipe.c */
+extern int pipeauthchild_status;
+
 static RETSIGTYPE reaper __((int sig));
 static RETSIGTYPE timedout __((int sig));
 static RETSIGTYPE sigterminator __((int sig));
@@ -1475,6 +1482,10 @@ int sig;
 	if (lpid == contentpolicypid && contentpolicypid > 1) {
 	  contentpolicypid = -lpid;
 	}
+	if (lpid == pipeauthchild_pid && lpid > 0) {
+	  pipeauthchild_status = status;
+	  pipeauthchild_pid = -1;
+	}
 
 	childreap(lpid);
     }
@@ -1933,6 +1944,8 @@ int insecure;
 	exit(0);
 #endif				/* USE_TRANSLATION */
     }
+
+    smtpauth_init(SS);
 
     if (localport != 25 && detect_incorrect_tls_use) {
       int c;

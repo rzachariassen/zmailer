@@ -253,31 +253,150 @@ void smtp_auth(SS,buf,cp)
       /* Here we support CMU Cyrus-SASL-2 server side code.
 	 Unlike sendmail, we keep state here by spinning around
 	 where necessary.. */
-
-
-    
-    
+      
+      
+      
+      
     }
 #endif /* HAVE_SASL2 */
 
 }
 
-
-
+void
 smtpauth_init(SS)
      SmtpState *SS;
 {
-#ifdef HAVE_SASL2 */
+#ifdef HAVE_SASL2
+      int result;
 
+      if (do_sasl) {
+
+	SS->n_mechs = 0;
+
+	/* SASL server new connection */
+
+	result = sasl_server_init(NULL, "smtpserver");
+	SS->sasl_ok = (result == SASL_OK);
+	if (result != SASL_OK)
+	  type(NULL,0,NULL, "sasl_server_init() failed; result=%d", result);
+
+
+	if (SS->sasl_ok) {
+	  /* use empty realm: only works in SASL > 1.5.5 */
+	  /* Will it works with SASL 2.x ? */
+
+	  result = sasl_server_new("smtpserver",   /* service    */
+				   SS->myhostname, /* serverFQDN */
+				   "",   /* user_realm           */
+				   NULL, /* iplocalport literal  */
+				   NULL, /* ipremoteport literal */
+				   NULL, /* callbacks            */
+				   0,	 /* flags                */
+				   &SS->conn);
+
+	  SS->sasl_ok = (result == SASL_OK);
+	  if (result != SASL_OK)
+	    type(NULL,0,NULL, "sasl_server_new() failed; result=%d", result);
+	}
+
+#ifdef SASL_IP_REMOTE  /* Not at Cyrus Sasl 2.x ? */
+	if (SS->sasl_ok) {
+
+	  /*
+	  **  SASL set properties for sasl
+	  **  set local/remote IP
+	  **  XXX only IPv4: Cyrus SASL doesn't support anything else
+	  **
+	  **  XXX where exactly are these used/required?
+	  **  Kerberos_v4
+	  */
+
+	  sasl_setprop(SS->conn, SASL_IP_REMOTE, &SS->raddr);
+	  sasl_setprop(SS->conn, SASL_IP_LOCAL,  &SS->localsock);
+
+	}
+#endif
+	SS->auth_type = NULL;
+	SS->mechlist = NULL;
+
+	/* clear sasl security properties */
+	(void) memset(&SS->ssp, 0, sizeof(SS->ssp));
+
+	/* XXX should these be options settable via .cf ? */
+	/* ssp.min_ssf = 0; is default due to memset() */
+# if STARTTLS
+# endif /* STARTTLS */
+	{
+	  SS->ssp.max_ssf    = MaxSLBits;
+	  SS->ssp.maxbufsize = 1024; /* MAGIC! */
+	}
+
+	SS->ssp.security_flags = (SASLOpts & SASL_SEC_MASK);
+
+	result = sasl_setprop(SS->conn, SASL_SEC_PROPS, &SS->ssp);
+	SS->sasl_ok = (result == SASL_OK);
+
+#if 0 /* Not at SASL 2.x ? */
+	if (sasl_ok) {
+	  /*
+	  **  external security strength factor;
+	  **	currently we have none so zero
+	  */
+
+	  SS->ext_ssf.ssf = 0;
+	  SS->ext_ssf.auth_id = NULL;
+	  result = sasl_setprop(conn, SASL_SSF_EXTERNAL, &SS->ext_ssf);
+	  SS->sasl_ok = (result == SASL_OK);
+	}
+#endif
+
+	if (SS->sasl_ok) {
+	  int len, num;
+
+	  /* "user" is currently unused */
+	  result = sasl_listmech(conn, "user", /* XXX */
+				 "", " ", "", &SS->mechlist,
+				 (unsigned int *)&len, (unsigned int *)&num);
+	  if (result != SASL_OK) {
+	    type(NULL,0,NULL, "AUTH error: listmech=%d, num=%d", result, num);
+	    num = 0;
+	  }
+	  if (num > 0) {
+	    type(NULL,0,NULL, "AUTH: available mech=%s, allowed mech=%s",
+		 SS->mechlist, AuthMechanisms);
+	    /* XXX: intersect the mechlist with AuthMechanisms ??? */
+	  } else {
+	    *mechlist = NULL;	/* be paranoid... */
+	    type(NULL,0,NULL, "AUTH warning: no mechanisms");
+	  }
+	  SS->n_mech = num;
+	}
+      }
 #endif
 }
 
+void
 smtpauth_ehloresponse(SS)
      SmtpState *SS;
 {
-#ifdef HAVE_SASL2 */
+#ifdef HAVE_SASL2
 
+      x;
+
+      if (do_sasl) {
+	if (SS->sasl_ok && SS->mechlist && SS->mechlist[0])
+	  type(SS, -250, NULL "AUTH %s", SS->mechlist);
+	else
+	  type(NULL,0,NULL, "AUTH -- no mechlist!");
+      } else
 #endif
+	if (auth_ok) {
+	  if (auth_login_without_tls || SS->sslmode) {
+	    type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/
+						   Sun Solstice/ ? */
+	    type(SS, -250, NULL, "AUTH LOGIN"); /* RFC 2554, M$ Exchange ? */
+	  }
+	}
 }
 
 
@@ -313,53 +432,6 @@ static sasl_callback_t srvcallbacks[] =
 
 #if SASL
 /*
-**  SASLMECHS -- get list of possible AUTH mechanisms
-**
-**	Parameters:
-**		conn -- SASL connection info.
-**		mechlist -- output parameter for list of mechanisms.
-**
-**	Returns:
-**		number of mechs.
-*/
-
-static int
-saslmechs(conn, mechlist)
-	sasl_conn_t *conn;
-	char **mechlist;
-{
-	int len, num, result;
-
-	/* "user" is currently unused */
-	result = sasl_listmech(conn, "user", /* XXX */
-			       "", " ", "", mechlist,
-			       (unsigned int *)&len, (unsigned int *)&num);
-	if (result != SASL_OK)
-	{
-		if (LogLevel > 9)
-			sm_syslog(LOG_WARNING, NOQID,
-				  "AUTH error: listmech=%d, num=%d",
-				  result, num);
-		num = 0;
-	}
-	if (num > 0)
-	{
-		if (LogLevel > 11)
-			sm_syslog(LOG_INFO, NOQID,
-				  "AUTH: available mech=%s, allowed mech=%s",
-				  *mechlist, AuthMechanisms);
-		*mechlist = intersect(AuthMechanisms, *mechlist, NULL);
-	}
-	else
-	{
-		*mechlist = NULL;	/* be paranoid... */
-		if (result == SASL_OK && LogLevel > 9)
-			sm_syslog(LOG_WARNING, NOQID,
-				  "AUTH warning: no mechanisms");
-	}
-	return num;
-}
-/*
 **  PROXY_POLICY -- define proxy policy for AUTH
 **
 **	Parameters:
@@ -389,9 +461,6 @@ proxy_policy(context, auth_identity, requested_user, user, errstr)
 #endif /* SASL */
  ---------------------------------------------
 #if SASL
-	sasl_conn_t *conn;
-	volatile bool sasl_ok;
-	volatile unsigned int n_auth = 0;	/* count of AUTH commands */
 	bool ismore;
 	int result;
 	volatile int authenticating;
@@ -402,116 +471,15 @@ proxy_policy(context, auth_identity, requested_user, user, errstr)
 	unsigned int outlen;
 	char *volatile auth_type;
 	char *mechlist;
+	sasl_conn_t *conn;
+	volatile bool sasl_ok;
+	volatile unsigned int n_auth = 0;	/* count of AUTH commands */
 	volatile unsigned int n_mechs;
 	unsigned int len;
 	sasl_security_properties_t ssp;
 	sasl_external_properties_t ext_ssf;
 	sasl_ssf_t *ssf;
 #endif /* SASL */
- ---------------------------------------------
-
-#if SASL
-	sasl_ok = bitset(SRV_OFFER_AUTH, features);
-	n_mechs = 0;
-	authenticating = SASL_NOT_AUTH;
-
-	/* SASL server new connection */
-	if (sasl_ok)
-	{
-# if SASL > 10505
-		/* use empty realm: only works in SASL > 1.5.5 */
-		result = sasl_server_new("smtp", hostname, "", NULL, 0, &conn);
-# else /* SASL > 10505 */
-		/* use no realm -> realm is set to hostname by SASL lib */
-		result = sasl_server_new("smtp", hostname, NULL, NULL, 0,
-					 &conn);
-# endif /* SASL > 10505 */
-		sasl_ok = result == SASL_OK;
-		if (!sasl_ok)
-		{
-			if (LogLevel > 9)
-				sm_syslog(LOG_WARNING, NOQID,
-					  "AUTH error: sasl_server_new failed=%d",
-					  result);
-		}
-	}
-	if (sasl_ok)
-	{
-		/*
-		**  SASL set properties for sasl
-		**  set local/remote IP
-		**  XXX only IPv4: Cyrus SASL doesn't support anything else
-		**
-		**  XXX where exactly are these used/required?
-		**  Kerberos_v4
-		*/
-
-# if NETINET
-		in = macvalue(macid("{daemon_family}"), e);
-		if (in != NULL && strcmp(in, "inet") == 0)
-		{
-			SOCKADDR_LEN_T addrsize;
-			struct sockaddr_in saddr_l;
-			struct sockaddr_in saddr_r;
-
-			addrsize = sizeof(struct sockaddr_in);
-			if (getpeername(sm_io_getinfo(InChannel, SM_IO_WHAT_FD,
-						      NULL),
-					(struct sockaddr *)&saddr_r,
-					&addrsize) == 0)
-			{
-				sasl_setprop(conn, SASL_IP_REMOTE, &saddr_r);
-				addrsize = sizeof(struct sockaddr_in);
-				if (getsockname(sm_io_getinfo(InChannel,
-							      SM_IO_WHAT_FD,
-							      NULL),
-						(struct sockaddr *)&saddr_l,
-						&addrsize) == 0)
-					sasl_setprop(conn, SASL_IP_LOCAL,
-						     &saddr_l);
-			}
-		}
-# endif /* NETINET */
-
-		auth_type = NULL;
-		mechlist = NULL;
-		user = NULL;
-# if 0
-		macdefine(&BlankEnvelope.e_macro, A_PERM,
-			macid("{auth_author}"), NULL);
-# endif /* 0 */
-
-		/* set properties */
-		(void) memset(&ssp, '\0', sizeof ssp);
-
-		/* XXX should these be options settable via .cf ? */
-		/* ssp.min_ssf = 0; is default due to memset() */
-# if STARTTLS
-# endif /* STARTTLS */
-		{
-			ssp.max_ssf = MaxSLBits;
-			ssp.maxbufsize = MAXOUTLEN;
-		}
-		ssp.security_flags = SASLOpts & SASL_SEC_MASK;
-		sasl_ok = sasl_setprop(conn, SASL_SEC_PROPS, &ssp) == SASL_OK;
-
-		if (sasl_ok)
-		{
-			/*
-			**  external security strength factor;
-			**	currently we have none so zero
-			*/
-
-			ext_ssf.ssf = 0;
-			ext_ssf.auth_id = NULL;
-			sasl_ok = sasl_setprop(conn, SASL_SSF_EXTERNAL,
-					       &ext_ssf) == SASL_OK;
-		}
-		if (sasl_ok)
-			n_mechs = saslmechs(conn, &mechlist);
-	}
-#endif /* SASL */
-
  ---------------------------------------------
 
 #if SASL
