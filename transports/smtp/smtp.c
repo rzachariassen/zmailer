@@ -192,7 +192,7 @@ outbuf_fillup:
 	  if (now > tmout && SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
 	    /* Timed out, and have a writable SMTP connection active.. */
 	    /* Lets write a NOOP there. */
-	    SS->rcptstates = 0;
+	    smtp_flush(SS); /* Flush in every case */
 	    i = smtpwrite(SS, 0, "NOOP", 0, NULL);
 	    if (i != EX_OK && SS->smtpfp != NULL) {
 	      /* No success ?  QUIT + close! (if haven't closed yet..) */
@@ -720,6 +720,7 @@ main(argc, argv)
 	    /* If different target host, close the old connection.
 	       In theory we could use same host via MX, but...     */
 	    if (host && !STREQ(s,(char*)host)) {
+	      smtp_flush(&SS); /* Flush in every case */
 	      if (SS.smtpfp) {
 		if (!getout && !zmalloc_failure) {
 		  SS.rcptstates = 0;
@@ -819,7 +820,7 @@ main(argc, argv)
 	} /* while (!getout) ... */
 
 	if (SS.smtpfp && !getout) {
-	  SS.rcptstates = 0;
+	  smtp_flush(&SS); /* Flush in every case */
 	  smtpstatus = smtpwrite(&SS, 0, "QUIT", -1, NULL);
 	}
 
@@ -1473,6 +1474,7 @@ deliver(SS, dp, startrp, endrp)
 		(SS->rcptstates & RCPTSTATE_400) &&
 		(SS->rcptstates & FROMSTATE_OK)) {
 	      SS->rcptstates = 0;
+	      smtp_flush(SS); /* Flush in every case */
 	      smtpwrite(SS, 0, "QUIT", -1, NULL);
 	      smtpclose(SS,1);
 	      if (logfp)
@@ -2066,6 +2068,7 @@ smtpconn(SS, host, noMX)
 	  }
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog, "memset(SS->mxh, 0, %d)\n",sizeof(SS->mxh));
+	  memset(SS->mxh, 0, sizeof(SS->mxh));
 	}
 
 #ifdef	BIND
@@ -2705,6 +2708,8 @@ vcsetup(SS, sa, fdp, hostname)
 	if (statusreport) {
 	  report(SS,"connecting to [%s]",SS->ipaddress);
 	}
+
+	smtp_flush(SS); /* Flush in every case */
 
 	sk = socket(af, SOCK_STREAM, 0);
 	if (sk < 0) {
@@ -3943,7 +3948,7 @@ smtppipestowage(SS, strbuf, syncrp)
 	const char *strbuf;
 	struct rcpt *syncrp;
 {
-	if (SS->pipespace <= SS->pipeindex) {
+	if (SS->pipespace <= SS->pipeindex + 2) {
 	  SS->pipespace += 8;
 	  if (SS->pipecmds == NULL) {
 	    SS->pipecmds  = (char**)malloc(SS->pipespace * sizeof(char*));

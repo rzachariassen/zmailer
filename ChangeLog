@@ -1,5 +1,9 @@
 2000-11-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 	
+	* transports/smtp/smtp.c:
+	    sprinkled  smtp_flush() around places while hunting one
+	    nasty memory corruption.
+
 	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
 	    Some leftover counter adjustments in places where it now harmed...
 
