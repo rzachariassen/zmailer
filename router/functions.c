@@ -434,7 +434,7 @@ run_grpmems(argc, argv)
 	int argc;
 	const char *argv[];
 {
-	char **cpp;
+	const char **cpp;
 	struct Zgroup *grp;
 
 	if (argc != 2) {
@@ -1140,6 +1140,9 @@ run_listexpand(avl, il)
 		 */
 		if (zlinebuf[n-1] == '\n')
 			--n;
+		if (zlinebuf[0] == '#')
+			continue;
+
 		stuff = 0;
 		s_end = & zlinebuf[n];
 		for (s = zlinebuf; s < s_end; ++s) {
@@ -1288,9 +1291,13 @@ run_listexpand(avl, il)
 		    fprintf(mfp, "Precedence: junk\n\n");
 		    /* Print the report: */
 		    fprintf(mfp,"NO valid recipient addresses!\n");
+		    fprintf(mfp,"Verify source file protection/ownership/access-path\n");
+		    fprintf(mfp,"Current effective UID = %d\n", geteuid());
 		  }
 		} else { /* mfp != NULL */
 		  fprintf(mfp,"\nNO valid recipient addresses!\n");
+		  fprintf(mfp,"Verify source file protection/ownership/access-path\n");
+		  fprintf(mfp,"Current effective UID = %d\n", geteuid());
 		}
 	}
 
@@ -1600,6 +1607,9 @@ run_listaddresses(argc, argv)
 		 */
 		if (zlinebuf[n-1] == '\n')
 			--n;
+		if (zlinebuf[0] == '#')
+			continue;
+
 		stuff = 0;
 		s_end = &zlinebuf[n];
 		for (s = zlinebuf; s < s_end; ++s) {
@@ -1744,9 +1754,13 @@ run_listaddresses(argc, argv)
 		    fprintf(mfp, "Precedence: junk\n\n");
 		    /* Print the report: */
 		    fprintf(mfp,"NO valid recipient addresses!\n");
+		    fprintf(mfp,"Verify source file protection/ownership/access-path\n");
+		    fprintf(mfp,"Current effective UID = %d\n", geteuid());
 		  }
 		} else { /* mfp != NULL */
 		  fprintf(mfp,"\nNO valid recipient addresses!\n");
+		  fprintf(mfp,"Verify source file protection/ownership/access-path\n");
+		  fprintf(mfp,"Current effective UID = %d\n", geteuid());
 		}
 
 	}
@@ -1836,6 +1850,8 @@ run_filepriv(argc, argv)
 	const char *argv0 = argv[0];
 	int id;
 	struct stat stbuf;
+	long fmode = -1;
+	long dmode = -1;
 	const char *file, *cp;
 	char *dir;
 	int maxperm = 0666 ^ filepriv_mask_reg; /* XOR.. */
@@ -1872,16 +1888,8 @@ run_filepriv(argc, argv)
 			close(fd);
 			return 3;
 		}
+		fmode = stbuf.st_mode;
 		close(fd);
-		if (!S_ISREG(stbuf.st_mode)
-		    || ((stbuf.st_mode & 07777) & ~maxperm) != 0) {
-			/*
-			 * If it is a  special or directory or writable
-			 * by non-owner (modulo permission), don't trust it!
-			 */
-			printf("%d\n", nobody);
-			return 0;
-		}
 		id = stbuf.st_uid;
 	}
 	cp = strrchr(file, '/');
@@ -1898,7 +1906,7 @@ run_filepriv(argc, argv)
 	memcpy(dir, file, cp - file);
 	dir[cp - file] = '\0';
 
-	/* Use stat(2), we fold symlinks to their final files */
+	/* Use stat(2), we fold symlinks to their final dirs(whatever) */
 	if (stat(dir, &stbuf) < 0 || !S_ISDIR(stbuf.st_mode)) {
 		fprintf(stderr, "%s: not a directory: \"%s\"!\n",
 			argv0, dir);
@@ -1910,10 +1918,54 @@ run_filepriv(argc, argv)
 #ifndef	USE_ALLOCA
 	free(dir);
 #endif
-	if (((stbuf.st_mode & filepriv_mask_dir) && /*If world/group writable*/
-	     !(stbuf.st_mode & S_ISVTX))	/* and not sticky, OR */
-	    || (stbuf.st_uid != 0 && stbuf.st_uid != id))/*owned by root/user*/
-		id = nobody;				 /* Don't trust */
+
+	dmode = stbuf.st_mode;
+
+	if (!S_ISDIR(dmode)) {
+	  /* Directory is not directory ?? */
+	  id = nobody;
+	}
+
+	if (id != nobody) {
+	  if (!S_ISREG(fmode))
+	    /* File is not a regular file ?? */
+	    id = nobody;
+	}
+
+	/*
+	 * If it is a  special or directory or writable
+	 * by non-owner (modulo permission), don't trust it!
+	 * BUT ONLY if the directory where it is has X bits
+	 * for group or others!
+	 */
+
+	/* Group and World accessibility of the residence directory
+	   defines what bits to analyze.
+	*/
+
+	switch (dmode & 00011) {
+	case 0000:	/* No Group access, no World access */
+	  if ((fmode & 07700) & ~maxperm) /* Verify only User bits */
+	    id = nobody;
+	  break;
+	case 0010:	/* Group access, no World access */
+	  if ((fmode & 07770) & ~maxperm) /* Verify User and Group bits */
+	    id = nobody;
+	  break;
+	case 0001:	/* No Group access, but yes World ?! */
+	case 0011:	/* Group and World accesses */
+	  if ((fmode & 07777) & ~maxperm) /* Verify all bits */
+	    id = nobody;
+	  break;
+	}
+
+	if ((dmode & filepriv_mask_dir) && /*If world/group writable*/
+	    !(dmode & S_ISVTX))	/* and not sticky, OR */
+	  id = nobody;				/* Don't trust */
+	if (id != nobody &&
+	    stbuf.st_uid != 0 && stbuf.st_uid != id)/*dir owned by root/user*/
+	  id = nobody;				/* Don't trust */
+
 	printf("%d\n", id);
 	return 0;
 }

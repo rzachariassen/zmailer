@@ -47,8 +47,8 @@ int	maxReceived = 50;
    022 for usual        644 or more strict,
    002 for more relaxed 664 view of things
    But see  filepriv "-M"   option!					*/
-int filepriv_mask_dir = 022;	/* Directory */
-int filepriv_mask_reg = 022;	/* File      */
+int filepriv_mask_dir = 022;	/* Directory (w-bits) */
+int filepriv_mask_reg = 022;	/* File      (w-bits) */
 
 
 struct sptree *spt_databases, *spt_files, *spt_modcheck;

@@ -45,7 +45,7 @@ private=(.forward maillist)
 # Set up the dependency checking
 
 . consist.cf
-require siteinfo router crossbar process server
+require siteinfo rrouter crossbar process server
 
 # The following are standard setup files and must be loaded in this order
 
@@ -59,6 +59,21 @@ for method in $(elements $protocols)
 do
 	test -f $MAILSHARE/cf/i-${method}.cf && . i-${method}.cf
 done
+
+
+. aliases.cf
+. canon.cf
+. rrouter.cf
+. crossbar.cf
+
+for method in $(elements $protocols)
+do
+	. p-${method}.cf
+done
+
+. process.cf
+. server.cf
+
 
 mailconf () {
 	local hname
@@ -103,19 +118,6 @@ fi
 
 # set hostname to enable message-id generation and checking
 hostname $hostname
-
-. aliases.cf
-. canon.cf
-. rrouter.cf
-. crossbar.cf
-
-for method in $(elements $protocols)
-do
-	. p-${method}.cf
-done
-
-. process.cf
-. server.cf
 
 consist || exit 1
 

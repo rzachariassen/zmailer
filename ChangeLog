@@ -1,5 +1,27 @@
 2001-01-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/smtp/smtp.c:
+	    Change all instances of  getaddrinfo()  parameters of
+	    service name "smtp" to port-number "0".  Give also
+	    some detail on what the getaddrinfo() diagnostics gave.
+
+	* router/functions.c:
+	    - In  $(listaddresses ..)  and  $(listexpand ..)  functions,
+	      explicitely support receiving lines with '#'- starting them
+	      (comments, you see).  Also when found no addresses, explicitely
+	      do mention A) what EUID the expansion was running, and B) that
+	      user should check the file/directory protections of the original
+	      file.
+	    - Also, the $(filepriv ...)  function will from now on allow wider
+	      opening privileges in some cases -- if residence directory does
+	      not have X-bits in group and/or world, then related bits in the
+	      file are not checked -- i.e. if the directory is not world-
+	      accessible, it is irrelevant if file has w-bit in world set.
+
+	* proto/cf/SMTP+UUCP.cf.in, proto/cf/SMTP.cf.in:
+	    Couple of fixes, and code rearrangements into the sample boiler
+	    plate.
+
 	* transports/smtp/getmxrr.c:
 	    Play a bit more with  rmsgappend()  calls here.
 	    Specifically report if  getaddrinfo()  calls report

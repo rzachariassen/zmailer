@@ -2138,26 +2138,26 @@ smtpconn(SS, host, noMX)
 	       the potential IPv4 compability addresses ... */
 	    req.ai_family = PF_INET6;
 #ifdef HAVE_GETADDRINFO
-	    rc = getaddrinfo(buf+5, "smtp", &req, &ai);
+	    rc = getaddrinfo(buf+5, "0", &req, &ai);
 #else
-	    rc = _getaddrinfo_(buf+5, "smtp", &req, &ai, SS->verboselog);
+	    rc = _getaddrinfo_(buf+5, "0", &req, &ai, SS->verboselog);
 #endif
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,
-		      "getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",buf+5,rc,ai);
+		      "getaddrinfo(INET6,'%s') -> r=%d, ai=%p\n",buf+5,rc,ai);
 	  } else
 #endif
 	    {
 	      /* Definitely only IPv4 address ... */
 	      req.ai_family = PF_INET;
 #ifdef HAVE_GETADDRINFO
-	      rc = getaddrinfo(buf, "smtp", &req, &ai);
+	      rc = getaddrinfo(buf, "0", &req, &ai);
 #else
-	      rc = _getaddrinfo_(buf, "smtp", &req, &ai, SS->verboselog);
+	      rc = _getaddrinfo_(buf, "0", &req, &ai, SS->verboselog);
 #endif
 	      if (SS->verboselog)
 		fprintf(SS->verboselog,
-			"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",buf,rc,ai);
+			"getaddrinfo(INET,'%s') -> r=%d, ai=%p\n",buf,rc,ai);
 	    }
 	  {
 	    char nbuf[100];
@@ -2268,12 +2268,12 @@ smtpconn(SS, host, noMX)
 	    /* Either forbidden MX usage, or does not have MX entries! */
 
 #ifdef HAVE_GETADDRINFO
-	    r = getaddrinfo(host, "smtp", &req, &ai);
+	    r = getaddrinfo(host, "0", &req, &ai);
 #else
-	    r = _getaddrinfo_(host, "smtp", &req, &ai, SS->verboselog);
+	    r = _getaddrinfo_(host, "0", &req, &ai, SS->verboselog);
 #endif
 	    if (SS->verboselog)
-	      fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
+	      fprintf(SS->verboselog,"getaddrinfo(INET,'%s') -> r=%d, ai=%p\n",host,r,ai);
 
 #if defined(AF_INET6) && defined(INET6)
 	    if (use_ipv6) {
@@ -2295,7 +2295,7 @@ smtpconn(SS, host, noMX)
 #endif
 	      if (SS->verboselog)
 		fprintf(SS->verboselog,
-			"  getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",
+			"  getaddrinfo(INET6,'%s') -> r=%d, ai=%p\n",
 			host,i2,ai2);
 
 	      if (r != 0 && i2 == 0) {
@@ -2793,12 +2793,14 @@ abort();
 	    req.ai_family   = sa->sa_family; /* Same family, as our
 						destination address is */
 #ifdef HAVE_GETADDRINFO
-	    r2 = getaddrinfo(localidentity, "smtp", &req, &ai);
+	    r2 = getaddrinfo(localidentity, "0", &req, &ai);
 #else
-	    r2 = _getaddrinfo_(localidentity, "smtp", &req, &ai, SS->verboselog);
+	    r2 = _getaddrinfo_(localidentity, "0", &req, &ai, SS->verboselog);
 #endif
 	    if (SS->verboselog)
-	      fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",localidentity,r2,ai);
+	      fprintf(SS->verboselog,"getaddrinfo(%s,'%s') -> r=%d, ai=%p\n",
+		      sa->sa_family == PF_INET ? "INET":"INET6",
+		      localidentity,r2,ai);
 	    if (r2 == 0 && ai != NULL) /* We try ONLY the first address. */ {
 	      if (ai->ai_family == AF_INET) {
 		memcpy((void*)&sad.sin_addr,
