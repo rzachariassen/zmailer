@@ -2349,7 +2349,8 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			break;
 		case sSiftBufferAppend:
 			if (sift[nsift].kind == 0) { /* StringSift.. */
-			  if (arg1 == NULL || re == NULL || !isdigit(*arg1))
+			  if (arg1 == NULL || re == NULL ||
+			      !isdigit((*arg1)&0xFF))
 			    break;
 			  if (nsift > 0 && sift[nsift].subexps == NULL)
 			    setsubexps(&sift[nsift-1].subexps, re);
@@ -2364,7 +2365,8 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			    command->bufferp = &cdr(tmp);
 			  }
 			} else { /* TokenSift */
-			  if (arg1 == NULL || tre == NULL || !isdigit(*arg1))
+			  if (arg1 == NULL || tre == NULL ||
+			      !isdigit((*arg1)&0xFF))
 			    break;
 			  if (nsift > 0 && sift[nsift].subexps == NULL)
 			    tsetsubexps(&sift[nsift-1].subexps, tre);
