@@ -7,6 +7,9 @@ MAILBIN=	$(prefix)@MAILBIN@
 srcdir=         @srcdir@
 VPATH=          @srcdir@
 
+BINS=	autoanswer.pl policy-builder.sh \
+	$(srcdir)/make-incore.sh $(srcdir)/bitbucket
+
 all:
 	cd makedb ; $(MAKE) $(MFLAGS)
 	cd vacation ; $(MAKE) $(MFLAGS)
@@ -14,9 +17,11 @@ all:
 install:
 	cd makedb ; $(MAKE) $(MFLAGS) install
 	cd vacation ; $(MAKE) $(MFLAGS) install
-	$(INSTALL) -m 755 autoanswer.pl     $(MAILBIN)
-	$(INSTALL) -m 755 policy-builder.sh $(MAILBIN)
-	$(INSTALL) -m 755 $(srcdir)/make-incore.sh $(MAILBIN)
+	for BIN in $(BINS); do \
+		if [ ! -f $$BIN ] ; then \
+			$(INSTALL) -m 755 $$BIN  $(MAILBIN) ; \
+		fi ; \
+	done
 	$(INSTALL) -m 755 $(srcdir)/bitbucket $(MAILBIN)/ta
 
 FRC:
