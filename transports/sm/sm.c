@@ -106,6 +106,15 @@ extern time_t time();
 extern char *strchr(), *strrchr();
 #endif
 
+static int zsfsetfd(fp, fd)
+     Sfio_t *fp;
+     int fd;
+{
+  /* This is *NOT* the SFIO's sfsetfd() -- we do no sfsync() at any point.. */
+  fp->file = fd;
+  return fd;
+}
+
 extern int check_7bit_cleanness __((struct ctldesc *dp));
 
 struct maildesc {
@@ -887,7 +896,7 @@ appendlet(dp, mp, fp, verboselog, convertmode)
 	  Sfio_t *mfp = sfnew(NULL, NULL, 64*1024, mfd, SF_READ|SF_WHOLE);
 	  sfseek(mfp, dp->msgbodyoffset, SEEK_SET);
 
-#define MFPCLOSE sfsetfd(mfp, -1); sfclose(mfp);
+#define MFPCLOSE zsfsetfd(mfp, -1); sfclose(mfp);
 
 	  readalready = 0;
 #else

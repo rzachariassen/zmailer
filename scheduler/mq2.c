@@ -454,6 +454,15 @@ void mq2_areinsets(rdmaskp, wrmaskp)
  *
  */
 
+int zsfsetfd(fp, fd)
+     Sfio_t *fp;
+     int fd;
+{
+  /* This is *NOT* the SFIO's sfsetfd() -- we do no sfsync() at any point.. */
+  fp->file = fd;
+  return fd;
+}
+
 struct mq2discipline {
   Sfdisc_t D;
   struct mailq *mq;
@@ -499,7 +508,7 @@ static void mq2_thread_report(mq, mode)
 
   thread_report(fp, mode);
 
-  sfsetfd(fp, -1);
+  zsfsetfd(fp, -1);
   sfclose(fp);
 }
 

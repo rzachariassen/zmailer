@@ -371,6 +371,16 @@ struct conshell *envarlist = NULL;
 extern int stickymem;	/* for strsave() */
 int	D_alloc = 0;
 
+static int zsfsetfd(fp, fd)
+     Sfio_t *fp;
+     int fd;
+{
+  /* This is *NOT* the SFIO's sfsetfd() -- we do no sfsync() at any point.. */
+  fp->file = fd;
+  return fd;
+}
+
+
 static void decodeXtext __((Sfio_t *, const char *));
 
 #if defined(HAVE_SOCKET) && defined(HAVE_PROTOCOLS_RWHOD_H)
@@ -2140,7 +2150,7 @@ if (verboselog)
 	}
 
 
-	sfsetfd(fp, -1);
+	zsfsetfd(fp, -1);
 	sfclose(fp);
 
 	return fp; /* Dummy marker! */
@@ -2857,7 +2867,7 @@ appendlet(dp, rp, WS, file, ismime)
 	  lseek(mfd, (off_t)dp->msgbodyoffset, SEEK_SET);
 	  mfp = sfnew(NULL, NULL, 16*1024, mfd, SF_READ|SF_WHOLE);
 
-#define MFPCLOSE sfsetfd(mfp,-1); sfclose(mfp);
+#define MFPCLOSE zsfsetfd(mfp,-1); sfclose(mfp);
 
 	  /* we are assuming to be positioned properly
 	     at the start of the message body */

@@ -1225,7 +1225,8 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 		     FORBIDDEN!  We do a write direction shutdown on
 		     the socket, and only listen for replies from now on... */
 		  shutdown(sffileno(SS->smtpfp), 1);
-		  sfsetfd(SS->smtpfp, -1);
+		  /* Absolutely NO SFIO SYNC AT THIS POINT! */
+		  zsfsetfd(SS->smtpfp, -1);
 		}
 
 		e = ETIMEDOUT;
@@ -1282,4 +1283,13 @@ int smtp_nbread(SS, buf, spc)
 	  r = read(infd, buf, spc);
   
 	return r;
+}
+
+int zsfsetfd(fp, fd)
+     Sfio_t *fp;
+     int fd;
+{
+  /* This is *NOT* the SFIO's sfsetfd() -- we do no sfsync() at any point.. */
+  fp->file = fd;
+  return fd;
 }

@@ -1,5 +1,12 @@
 2000-02-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/mq2.c, transports/mailbox/mailbox.c, transports/sm/sm.c,
+	  transports/smtp/smtp.h, transports/smtp/smtptls.c,
+	  transports/smtp/smtp.c, transports/smtp/appendlet.c:
+	    Turns out the  sfsetfd()  has a undesirable side-effect,
+	    which might be turnable off, but...  Namely it does sfsync()
+	    on the stream before setting the fd -- we don't want that.
+
 	* libsh/io.c, router/functions.c, router/prototypes.h,
 	  router/rtsyslog.c, smtpserver/smtprouter.c,
 	  transports/libta/diagnostic.c:

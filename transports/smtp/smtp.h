@@ -460,7 +460,8 @@ extern int  bdat_flush __((SmtpState *SS, int lastflg));
 extern void smtpclose __((SmtpState *SS, int failure));
 extern void pipeblockread __((SmtpState *SS));
 extern ssize_t smtp_sfwrite __((Sfio_t *, const void *, size_t, Sfdisc_t *));
-extern int smtp_nbread      __((SmtpState *, void *, int));
+extern int     zsfsetfd     __((Sfio_t *, int));
+extern int     smtp_nbread  __((SmtpState *, void *, int));
 
 #if defined(HAVE_STDARG_H) && defined(__STDC__)
 extern void report __((SmtpState *SS, char *fmt, ...));

@@ -54,7 +54,7 @@ appendlet(SS, dp, convertmode)
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 #define MFPCLOSE	if (mfp != NULL) {				\
-			  sfsetfd(mfp,-1);	/* keep the fd      */	\
+			  zsfsetfd(mfp,-1);	/* keep the fd      */	\
 			  sfclose(mfp);		/* close the stream */	\
 			}
 #else

@@ -2864,7 +2864,8 @@ smtpclose(SS, failure)
 	  if (SS->smtpfd >= 0)
 	    close(SS->smtpfd);
 	  SS->smtpfd = -1;
-	  sfsetfd(SS->smtpfp, -1);
+	  /* Absolutely NO SFIO SYNC AT THIS POINT! */
+	  zsfsetfd(SS->smtpfp, -1);
 
 	  /* Now do all normal SFIO close things -- including
 	     buffer flushes... */
@@ -3156,7 +3157,8 @@ smtp_sync(SS, r, nonblocking)
 	       We do a write direction shutdown on the socket, and only
 	       listen for replies from now on... */
 	    shutdown(sffileno(SS->smtpfp), 1);
-	    sfsetfd(SS->smtpfp, -1);
+	    /* Absolutely NO SFIO SYNC AT THIS POINT! */
+	    zsfsetfd(SS->smtpfp, -1);
 	  }
 
 	  eof = SS->pipebuf + SS->pipebufsize;
@@ -3582,7 +3584,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	       We do a write direction shutdown on the socket, and only
 	       listen for replies from now on... */
 	    shutdown(sffileno(SS->smtpfp), 1);
-	    sfsetfd(SS->smtpfp, -1);
+	    /* Absolutely NO SFIO SYNC AT THIS POINT! */
+	    zsfsetfd(SS->smtpfp, -1);
 	  }
   
 	  if (err) {
