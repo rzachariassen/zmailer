@@ -566,9 +566,12 @@ rd_doit(filename, dirs)
 	if (p != NULL) {
 	  /* message file is "inode-pid" */
 	  thatpid = atoi(p+1);
+
+#if 0 /* very old thing, may harm at Solaris 2.6 ! */
 	  if (thatpid < 10) {	/* old-style locking.. */
 	    thatpid = 0;
 	  }
+#endif
 	  /* Probe it!
 	     Does the process exist ? */
 	  if (thatpid && kill(thatpid,0)==0 && thatpid != router_id) {

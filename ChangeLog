@@ -2,6 +2,18 @@
 
 	* VERSION 2.99.50s18
 
+	* smtpserver/smtpauth.c:
+	    BASE64 encoding of 7 chars long name yields a BASE64 string
+	    with two '=' chars, that was considered bad by the decoder..
+	    ( I think there should be only one '=' char, but Netscape
+	      Communicator 4.51 does it that way :-(  )
+
+	* router/functions.c:
+	    Old (very old!) 'old-vs-new' scheduler locking scheme
+	    causes problem at Solaris 2.6. Peter IP (Toronto) got
+	    ZMailer router process pids 6/7/8/9, which the router
+	    treated somewhat poorly..
+
 	* configure.in:
 	    Autosense OpenSSL at default location, if not otherwise defines.
 
