@@ -55,7 +55,7 @@ FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig \
 		zmdirs.fig zmprocs.fig zmprocs-smtps.fig \
 		zmprocs-router.fig zmprocs-scheduler.fig \
 		zmprocs-tragents.fig zadm-sch-threads.fig \
-		zmsched1.fig
+		zmsched1.fig smtpserver-processes.fig
 
 .SUFFIXES: .eps .pdf .ps .gif .fig .gif-green .png
 
