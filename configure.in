@@ -512,7 +512,9 @@ if test "$ac_cv_header_gdbm_h" = yes ; then
 	  fi
 	  LIBS="$t_oldLibs"
 	else
-	  AC_MSG_ERROR([config.cache inconsistency! (gdbm) Delete it, and redo!])
+	  if test "$ac_cv_lib_gdbm_gdbm_open" = yes ; then
+	    AC_MSG_ERROR([config.cache inconsistency! (gdbm) Delete it, and redo!])
+	  fi
 	fi
       else # Has it in the libc!
 	LIBGDBM=""
@@ -573,7 +575,9 @@ if test "$ac_cv_header_ndbm_h" = yes ; then
 	    fi
 	    LIBS="$t_oldLibs"
 	  else
-	    AC_MSG_ERROR([config.cache inconsistency! (ndbm) Delete it, and redo!])
+	    if test "$ac_cv_lib_dbm_dbm_open" = yes ; then
+	      AC_MSG_ERROR([config.cache inconsistency! (ndbm) Delete it, and redo!])
+	    fi
 	  fi
 	else # Has it in the libc!
 	  LIBNDBM=""
@@ -633,7 +637,9 @@ if test "$ac_cv_header_sdbm_h" = yes ; then
 	  fi
 	  LIBS="$t_oldLibs"
 	else
-	  AC_MSG_ERROR([config.cache inconsistency! (sdbm) Delete it, and redo!])
+	  if test "$ac_cv_lib_sdbm_dbm_open" = yes ; then
+	    AC_MSG_ERROR([config.cache inconsistency! (sdbm) Delete it, and redo!])
+	  fi
 	fi
       else # Has it in the libc!
 	LIBSDBM=""
@@ -682,7 +688,9 @@ if test "$ac_cv_header_db_185_h" = yes ; then
 	  fi
 	  LIBS="$t_oldLibs"
 	else
-	  AC_MSG_ERROR([config.cache inconsistency! (db1) Delete it, and redo!])
+	  if test "$ac_cv_lib_db1_dbopen1" = yes ; then
+	    AC_MSG_ERROR([config.cache inconsistency! (db1) Delete it, and redo!])
+	  fi
 	fi
       else # Has it in the libc!
 	LIBDB=""
@@ -741,7 +749,9 @@ if test "$ac_cv_header_db_h" = yes ; then
 	  fi
 	  LIBS="$t_oldLibs"
 	else
-	  AC_MSG_ERROR([config.cache inconsistency! (db) Delete it, and redo!])
+	  if test "$ac_cv_lib_db_dbopen" = yes ; then
+	    AC_MSG_ERROR([config.cache inconsistency! (db) Delete it, and redo!])
+	  fi
 	fi
       else # Has it in the libc!
 	LIBDB=""
@@ -806,7 +816,9 @@ if test "$ac_cv_header_db_h" = yes ; then
 	  fi
 	  LIBS="$t_oldLibs"
 	else
-	  AC_MSG_ERROR([config.cache inconsistency! (db2) Delete it, and redo!])
+	  if test "$ac_cv_lib_db_db_open2" = yes ; then
+	    AC_MSG_ERROR([config.cache inconsistency! (db2) Delete it, and redo!])
+	  fi
 	fi
       else # Has it in the libc!
 	LIBDB=""
