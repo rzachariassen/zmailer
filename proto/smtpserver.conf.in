@@ -104,6 +104,9 @@ PARAM help -------------------------------------------------------------
 # The policy database:  (NOTE: See  'makedb'  for its default suffixes!)
 #
 PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
+#
+# External program for received message content analysis:
+#PARAM  contentfilter	@MAILBIN@/smtp-contentfilter
 
 #
 #PARAM  tarpit 0 0   # No "tarpit" for 4XX/5XX reply codes

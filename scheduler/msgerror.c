@@ -30,7 +30,7 @@ extern char *strnsave();
 #endif
 extern int errno;
 
-extern int never_full_content; /* at conf.c */
+extern int default_full_content; /* at conf.c */
 
 /*
  * There has to be some way of collecting the error messages produced during
@@ -925,8 +925,8 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	  }
 	  if (has_errors &&
 	      ((no_error_report < 0) ||
-	       (!never_full_content &&
-		(!cfp->dsnretmode || CISTREQN(cfp->dsnretmode,"FULL",4))))) {
+	       (default_full_content && !cfp->dsnretmode) ||
+	       (cfp->dsnretmode && CISTREQN(cfp->dsnretmode,"FULL",4)))) {
 	    /* Copy out the rest (=body) with somewhat more efficient method */
 
 	    while ((n = sfread(fp, buf, sizeof buf)) > 0)

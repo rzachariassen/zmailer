@@ -48,6 +48,10 @@ INSTALL:
 	Badly out of date!
 
 router:
+	List expansions should not relay DSN data thru as is, but rather
+	handle NOTIFY=SUCCESS locally ("expanded"), and then continue
+	with whatever fancy the thing may want..
+
 	BUG?  router/functions.c: $(homedirectory ..) function does
 		getpwnam() from somewhere WITHOUT checking at the
 		possible errno telling that there is e.g. temporary

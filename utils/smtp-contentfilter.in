@@ -1,0 +1,112 @@
+#! @PERL@
+#
+# A prototype version of smtpserver content policy filter
+#
+# This is *not* a fast one, but shows the interface
+#
+# - smtpserver tells this program relative pathname of the spoolfile to check
+# - this reports by telling numeric return value, plus commentary string:
+#    negative values:  instant rejections
+#               zero:  normal acceptance
+#    positive values:  the message is to be placed into the freezer
+#
+
+%UNIQSET = ('from' => 1, 'message-id' => 1, 'mime-version' => 1,
+	    'content-type' => 1, 'content-transfer-encoding' => 1,
+	    'subject' => 1, 'date' => 1, 'reply-to' => 1,
+	    'in-reply-to' => 1, 'errors-to' => 1);
+@MANDATORYSET = ('from', 'message-id', 'date');
+
+%RFC822 = ();
+
+while (<>) {
+	chomp;
+
+	%RFC822 = ();
+
+	$rc = & filter( $_ );
+	printf "%s\n", $rc;
+}
+exit 0;
+
+sub filter {
+	local($fname) = @_;
+
+	open(SP, "< ".$fname) ||
+		return "0 Oops.. filter can't open file $fname";
+
+	# Scan the envelope thru to spot the magic "env-end" line
+	while (<SP>) {
+		chomp;
+		last unless ($_ eq 'env-end');
+	}
+	# Ok, either EOF, or got that "env-end" token.
+
+	my(@RFC822) = ();
+	undef $HDR822;
+
+	# Collect RFC 822 headers
+	while (<SP>) {
+		chomp;
+		last if ($_ eq '');
+		if ($_ =~ m/^[^ \t]+/o) {
+			if (defined ($HDR822)) {
+				push(@RFC822, $HDR822);
+				my($HDR,$REST)    = split(/:/, $HDR822, 2);
+				$RFC822{lc($HDR)} = $REST;
+				$RFC822{$HDR}     = $REST;
+
+				# Analyze the 822 header
+				$rc = &rfc822syntax($HDR,$REST) && goto DONEIT;
+			}
+			$HDR822  = $_;
+		} else {
+			$HDR822 .= $_;
+		}
+	}
+	if (defined $HDR822) {
+		push(@RFC822, $HDR822);
+		my($HDR,$REST)    = split(/:/, $HDR822, 2);
+
+		# Analyze the 822 header
+		$rc = &rfc822syntax($HDR,$REST) && goto DONEIT;
+	}
+
+	# stand-alone RFC 822 (et.al.) piecemal syntax analysis is done,
+	# now do multi-header dependent things, and check for MISSING
+	# headers...
+
+	# XXXX: TODO!
+
+
+	# Scan the body ...
+	while (<SP>) {
+		chomp;
+		# XXXX: TODO!
+	}
+
+	$rc = '0 nothing wrong.';
+
+DONEIT:
+	close(SP);
+
+	return $rc;
+}
+
+
+sub rfc822syntax {
+	local($inphdr,$inprest) = @_;
+	local($lchdr) = lc($inphdr);
+
+	# XXX: Uniqueness tests ???
+
+	if (defined $UNIQSET{$lchdr} &&
+	    defined $RFC822{$lchdr}) {
+		return "-3 Multiple occurrances of unique RFC822 header: '$inphdr'";
+	}
+
+	$RFC822{$lchdr}  = $inprest;
+	$RFC822{$inphdr} = $inprest;
+
+	return undef;
+}

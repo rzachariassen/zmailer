@@ -132,7 +132,7 @@ static time_t next_idlecleanup = 0;
 static time_t next_interim_report_time = 0;
 static struct sptree *dirscan_mesh = NULL;
 static int newents_limit = 400;
-extern int never_full_content; /* on conf.c */
+extern int default_full_content; /* on conf.c */
 
 #include "memtypes.h"
 extern memtypes stickymem;
@@ -595,7 +595,7 @@ main(argc, argv)
 			}
 			break;
 		case 'n':
-			never_full_content = !never_full_content;
+			default_full_content = !default_full_content;
 			break;
 		case 'N':
 			if ((transportmaxnofiles = atoi(optarg)) < 10)

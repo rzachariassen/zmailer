@@ -230,8 +230,8 @@
 #|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
 #|    If RBL parameters are set below, will use them.
 #
-# .			relaycustomer - relaytarget - senderokwithdns + = _RBL1
-# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _RBL0
+# .			relaycustomer - relaytarget - senderokwithdns + = _rbl1
+# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _rbl0
 #
 #| -- 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
@@ -242,8 +242,8 @@
 #|    service abuse.
 #|    If RBL parameters are set below, will use them.
 
-.			relaycustomer - acceptifmx - senderokwithdns + = _RBL1
-[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _RBL0
+.			relaycustomer - acceptifmx - senderokwithdns + = _rbl1
+[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _rbl0
 
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
@@ -259,16 +259,16 @@
 #| RBL type test rules:
 
 #| First RBL variant: NONE OF THE RBL TESTS
-_RBL0           # Nothing at early phase
-_RBL1           # Nothing at late phase
+_rbl0           # Nothing at early phase
+_rbl1           # Nothing at late phase
 
 #| Second RBL variant: Early block with RBL+DUL+RSS
-#_RBL0          test-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
-#_RBL1          # Nothing at late phase
+#_rbl0          test-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_rbl1          # Nothing at late phase
 
 #| Third RBL variant: Late block with RBL+DUL+RSS
-#_RBL0          rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
-#_RBL1          test-rcpt-dns-rbl +
+#_rbl0          rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_rbl1          test-rcpt-dns-rbl +
 
 #|  (The "+" at the DNS zone defines is treated as shorthand to
 #|   "rbl.maps.vix.com")
@@ -319,9 +319,9 @@ _our_network	= _full_rights
 #|    Boilerplate macroes for various things.
 #|    If RBL parameters are set above, will use them.
 
-_full_rights	rejectnet - relaycustnet + relaytarget +               = _RBL1
-_localnames	rejectnet - relaycustnet - localdomain + relaytarget + = _RBL1
-_relaytarget	relaytarget +                                          = _RBL1
+_full_rights	rejectnet - relaycustnet + relaytarget +               = _rbl1
+_localnames	rejectnet - relaycustnet - localdomain + relaytarget + = _rbl1
+_relaytarget	relaytarget +                                          = _rbl1
 
 #
 #sztaki.hu		= _full_rights

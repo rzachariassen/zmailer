@@ -108,6 +108,7 @@ int verbose = 0;
 int daemon_flg = 1;
 int netconnected_flg = 0;
 int pid, routerpid = -1;
+extern int contentpolicypid;
 int router_status = 0;
 FILE *logfp = NULL;
 int   logfp_to_syslog = 0;
@@ -1166,6 +1167,8 @@ char **argv;
 
 	    if (routerpid > 0)
 	      killr(&SS, routerpid);
+	    if (contentpolicypid > 0)
+	      killr(&SS, contentpolicypid);
 
 	    if (netconnected_flg)
 	      sleep(2);
@@ -1187,6 +1190,8 @@ char **argv;
       }
     if (routerpid > 0)
 	killr(&SS, routerpid);
+    if (contentpolicypid > 0)
+      killr(&SS, contentpolicypid);
     if (netconnected_flg)
       sleep(2);
     exit(0);
@@ -1301,6 +1306,7 @@ int sig;
   mustexit = 1;
 }
 
+
 static RETSIGTYPE
  reaper(sig)
 int sig;
@@ -1324,6 +1330,10 @@ int sig;
 	  router_status = status;
 	  routerpid = -1;
 	}
+	if (lpid == contentpolicypid && contentpolicypid > 0) {
+	  contentpolicypid = -1;
+	}
+
 	childreap(lpid);
     }
     SIGNAL_HANDLE(SIGCHLD, reaper);
@@ -1581,6 +1591,8 @@ int insecure;
 
 	if (routerpid > 0)
 	    killr(SS, routerpid);
+	if (contentpolicypid > 0)
+	  killr(SS, contentpolicypid);
 	exit(0);
     }
     report(SS, "(connected)");

@@ -272,6 +272,7 @@ extern int log_rcvd_whoson, log_rcvd_ident, log_rcvd_authuser;
 extern int log_rcvd_tls_mode, log_rcvd_tls_peer;
 extern int auth_login_without_tls;
 extern char *smtpauth_via_pipe;
+extern char *contentfilter;
 extern int strict_protocol;
 extern int rcptlimitcnt;
 extern int enable_router;

@@ -184,6 +184,11 @@ static void cfparam(str)
 	policydefine(&policydb, param1, param2);
     }
 
+    else if (cistrcmp(name, "contentfilter") == 0 && param1) {
+      if (access(param1, X_OK) == 0)
+	contentfilter = strdup(param1);
+    }
+
     /* A few facility enablers: (default: off) */
 
     else if (cistrcmp(name, "debugcmd") == 0) {

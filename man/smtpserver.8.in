@@ -361,6 +361,15 @@ See the comments at the sample
 .I proto/db/smtp-policy.src
 file.
 
+
+.IP PARAM\ contentfilter\ @MAILBIN@/smtp-contentfilter
+An external program for received message content analysis.
+
+The interface to the program is simple, smtpserver writes relative
+filepath of the programs stdin, ending it with a newline.
+The reply begins with a signed integer, then if an additional message
+follows, a space separates the integer from the message.
+
 .IP PARAM\ tarpit\ n1\ n2
 This defines a pre-reply slow-down factor, and next delay multiplier
 (both are integers).
@@ -493,6 +502,9 @@ PARAM help ------------------------------------------------------
 # (NOTE: See `makedb' for its default suffixes!)
 #
 PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
+#
+# External program for received message content analysis:
+#PARAM  contentfilter	@MAILBIN@/smtp-content-policy-analysis
 
 #PARAM  tarpit 0 0   # No "tarpit" for 4XX/5XX reply codes
 #PARAM  tarpit 20 2  # Initial delay: 20 secs, next = prev + (prev * 2)

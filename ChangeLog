@@ -1,3 +1,26 @@
+2000-06-07  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* transports/libta/ctlopen.c:
+	    If ctlopen() contained open() of message body file fails,
+	    send a warning() up to the scheduler log WITH errno of
+	    that open() call..
+
+	* proto/db/smtp-policy.src:
+	    _RBL* alias labels are turned to LOWER CASE -- those keys
+	    are lowercased during encoding, but data attributes are
+	    not modified while compiling the database, nor when looking
+	    up tags..
+
+	* smtpserver/smtpserver.h, smtpserver/smtpdata.c,
+	  smtpserver/cfgread.c,    smtpserver/contentpolicy.c,
+	  utils/smtp-contentfilter.in:
+	    CONTENT policy interface, and sample filter implementation..
+
+	* scheduler/scheduler.c, scheduler/conf.c, scheduler/msgerror.c,
+	  man/scheduler.8:
+	    Modify the '-n' option semantics to control how DSN RET
+	    option value is set in absense of originator supplied value.
+
 2000-06-02  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* scheduler/mailq.c:
@@ -9439,7 +9462,7 @@ lib/linebuffer.c:
 	  Suggested by  haa@cs.hut.fi
 	- Made a serious mistake, and two weeks later found it..
 	- accepted a patch from  Ken Lalonde <ken@cs.toronto.edu>,
-	  finally did it corrently !
+	  finally did it correctly !
 
 ssl/ssl.c:
 	- array space reservation one-off, fix by 	Matthias Urlichs

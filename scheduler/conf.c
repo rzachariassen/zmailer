@@ -35,8 +35,8 @@ int	sweepinterval = 10;
 /* At most 30 new childs per second -- The 'R'-option can be used to increase this */
 int	forkrate_limit = 30;
 
-/* Set if you don't want to return full content with error report! */
-int	never_full_content = 0;
+/* Set to what you want RET=xxx default to be when no RET is given. 0="HDRS" */
+int	default_full_content = 1;
 
 /* If we use ZMailer malloc library in debug mode, BAD-PTR looks like
    following value.. */

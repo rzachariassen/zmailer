@@ -172,9 +172,11 @@ const char *buf, *cp;
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
 	if (SS->policyresult < 0) {
+	  char *ss = policymsg(policydb, &SS->policystate);
 	  type(NULL,0,NULL,
 	       "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
-	  type(SS, 552, m571, "Content-policy analysis rejected this message");
+	  type(SS, -552,m571, "Content-Policy analysis rejected this message");
+	  type(SS, 552, m571, "Content-Policy msg: %s", ss ? ss : "rejected");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	}
@@ -182,6 +184,7 @@ const char *buf, *cp;
 	if (SS->policyresult > 0) {
 	    char polbuf[20];
 	    struct stat stbuf;
+	    char *ss = policymsg(policydb, &SS->policystate);
 
 	    fflush(SS->mfp);
 	    fstat(FILENO(SS->mfp), &stbuf);
@@ -199,7 +202,7 @@ const char *buf, *cp;
 	      static int freezecnt = 1;
 	      freezecnt <<= 1;
 	      sleep(freezecnt);
-	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area...",SS->policyresult);
+	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
 	      typeflush(SS);
 	      SS->mfp = NULL;
 	      zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze[%d]",
@@ -381,15 +384,18 @@ const char *buf, *cp;
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
 	if (SS->policyresult < 0) {
+	  char *ss = policymsg(policydb, &SS->policystate);
 type(NULL,0,NULL,
   "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
-	  type(SS, 552, m571, "Content-policy analysis rejected this message");
+	  type(SS, -552,m571, "Content-Policy analysis rejected this message");
+	  type(SS, 552, m571, "Content-Policy msg: %s", ss ? ss : "rejected");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	}
 
 	if (SS->policyresult > 0) {
 	  struct stat stbuf;
+	  char *ss = policymsg(policydb, &SS->policystate);
 	  fflush(SS->mfp);
 	  fstat(FILENO(SS->mfp), &stbuf);
 	  runasrootuser();
@@ -403,7 +409,7 @@ type(NULL,0,NULL,
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
 	  } else {
-	    type(SS, 250, "2.6.0", "message accepted; into freezer area...");
+	    type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
 	    SS->mfp = NULL;
 	    zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze",
 		     (int) stbuf.st_ino, (int) stbuf.st_size,

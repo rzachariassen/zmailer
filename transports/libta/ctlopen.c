@@ -655,7 +655,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		       "message file is missing(!) -- possibly due to delivery scheduler restart.  Consider resending your message");
 	  }
 	  errno = e;
-	  warning("Cannot open message file \"%s\"! (%m)", mfpath);
+	  warning("Cannot open message file \"%s\"! (errno=%d)", mfpath, errno);
 #ifndef USE_ALLOCA
 	  free(mfpath);
 #endif

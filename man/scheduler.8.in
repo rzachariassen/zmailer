@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "9 May 2000"
+.TH SCHEDULER 8 "7 Jun 2000"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -138,6 +138,10 @@ This will efficiently reduce the lengths of the scans at the directories
 to find some arbitary file in them.
 One `H' means "single level hashing", two `HH's mean "dual level hashing".
 ``Hash'' is directory which name is single upper case alphabet (A-Z).
+
+When existing, ZENV variable
+.I SCHEDULERDIRHASH
+overrides the `H' option.
 .IP \-i
 run interactively, i.e., not as a daemon.
 .IP \-L\ \fIlogfile\fR
@@ -158,10 +162,19 @@ file turns the protocol into version 2.
 sets how many filehandles are allocated for the scheduler's started
 children (if the system has adjustable resources.)
 .IP \-n
-Toggles configuration flag 'never_full_content', which defines wether
-the returned delivery reports shall contain original message body as
-well as its headers.  Per default the original message body is sent,
-unless the message sender has used DSN facility to define RET=HDRS.
+Toggles configuration flag `default_full_content', which defines what
+will be DSN RET parameter assumed value in case the originator didn't
+supply that parameter.
+
+Default behaviour is similar to RET=FULL, while usage of this option
+is equivalent of RET=HDRS.  This option does not override originator
+supplied DSN RET parameter value.
+.IP \-p\ \fIchannel/host\fR
+A debug-type option for running selectively some thread under a single
+instance of the
+.IR scheduler .
+
+Use this with options: \-v
 .IP \-P\ \fIpostoffice\fR
 specifies an alternate \fIPOSTOFFICE\fR directory.
 .IP \-q\ \fIrendezvous\fR
@@ -178,14 +191,6 @@ only the new-style one.
 .IP \-S
 Synchronous startup mode, scans all jobs at the directory before starting
 even the first transporter.
-.IP \-v
-Verbose logging in interactive mode -- for debug uses.
-.IP \-V
-Print version, and exit
-.IP \-W
-Another option for debugging, delay the start of the verbose logging
-until after all jobs have been scanned in, and it is time to start the
-transporters.
 .IP \-v
 be verbose about activity, and do not detach as a daemon.
 .IP \-W
@@ -864,6 +869,7 @@ thru the MAILQv2 port.
 #   - Username
 #   - PLAINTEXT PASSWORD (which must not have double-colon in it!)
 #   - Enabled attributes (tokens, space separated)
+#   - IP ACLs
 #
 # Default-account for 'mailq' is 'nobody' with password 'nobody'.
 # Third field is at the moment a WORK IN PROGRESS!
@@ -880,33 +886,12 @@ thru the MAILQv2 port.
 #	ETRN	"ETRN etrn_string"
 #	KILL	"KILL THREAD channel host", "KILL MSG spoolid"
 #
-nobody:nobody:SNMP ETRN
-#watcher:zzzzz:SNMP QQ TT ETRN
-#root:zzzzzzz:ALL
+nobody:nobody:SNMP ETRN:[0.0.0.0]/0
+#watcher:zzzzz:SNMP QQ TT ETRN:[127.0.0.1]/32
+#root:zzzzzzz:ALL:[127.0.0.1]/32
 .fi
 .sp
 .PP
-.SH TCP-WRAPPER AND MAILQ
-If the ZMailer system is configured with tcp-wrapper code, then service-id
-"mailq" is looked for all those addresses that are allowed to do
-queries.
-.P
-Usually files
-.IR hosts.allow ,
-and
-.I hosts.deny
-contain following kind of entries:
-.P
-.nf
- .../hosts.allow
- mailq : ALL@1.2.3.0
-
- .../hosts.deny
- ALL : ALL@ALL
-.fi
-.P
-.I (Do note that smtpserver(8) has also tcp-wrapper support, which becomes
-.I active simultaneously with scheduler's tcp-wrapper code!)
 .SH Z-ENVIRONMENT VARIABLES
 .IP LOGDIR
 defines location of log files. Example:
@@ -978,9 +963,12 @@ RFC 1341/1521/2045	 MIME specification (body, formats)
 RFC 1342/1522/2047	 MIME specification (headers)
 RFC 1425/1651/1869	 ESMTP EHLO framework
 RFC 1428	 Basic MIME conversion rules
+RFC 1891	 ESMTP DSN
 RFC 1892	 The Multipart/Report Content Type
 RFC 1893	 Enhanced Mail System Status Codes
 RFC 1894	 Extensible Message format for DSNs
+RFC 1985	 ESMTP ETRN
+RFC 2034	 ESMTP ENHANCEDSTATUSCODES
 .fi
 .SH AUTHOR
 This program authored and copyright by:
