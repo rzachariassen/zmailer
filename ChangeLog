@@ -1,3 +1,16 @@
+2001-11-07  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/smtp.c, transports/smtp/smtptls.c,
+	  man/smtp.8:
+	    Trying to figure out what to do with problematic
+	    case on a Solaris 2.6 system speaking to some Win-NT
+	    SMTP server application which looses all but the
+	    first two TCP frames it receives.  The Solaris goes
+	    to retransmit backoff from which it never really
+	    recovers, and the write connection times out.
+	    Implemented thus a '-w 1000' option to define the
+	    value of the socket option SO_SNDBUF.
+	
 2001-10-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
@@ -11,9 +24,9 @@
 	  transports/libta/tasyslog.c, include/ta.h:
 	    Move the "taspoolid()" invokation into ctlopen()
 	    processing from within  tasyslog()  call.
-	    At  smtp  copy also the "->taspoolid" pointer
+	    At  smtp,  copy also the "->taspoolid" pointer
 	    field into the SmtpState structure.
-	
+
 2001-10-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/msgerror.c, scheduler/scheduler.c,

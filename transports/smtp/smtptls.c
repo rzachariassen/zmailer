@@ -1268,6 +1268,9 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 		  shutdown(sffileno(SS->smtpfp), 1);
 		  /* Absolutely NO SFIO SYNC AT THIS POINT! */
 		  zsfsetfd(SS->smtpfp, -1);
+		  if (SS->verboselog)
+		    fprintf(SS->verboselog,
+			    "   ...  TIMEOUT! Shut-down of write direction!\n");
 		}
 
 		e = ETIMEDOUT;

@@ -23,6 +23,8 @@ int timeout_tcpw =  5*60;	/* All tcp writes ?? */
 int timeout_dot  = 20*60;
 int timeout_conn =  3*60;	/* connect() timeout */
 
+int sockwbufsize =  0;
+
 const char *defcharset;
 char myhostname[512];
 int myhostnameopt;
@@ -439,7 +441,7 @@ main(argc, argv)
 	SS.remotemsg[0] = '\0';
 	SS.remotehost[0] = '\0';
 	while (1) {
-	  c = getopt(argc, argv, "c:deh:l:p:rsvxDEF:L:HMPS:T:VWZ:678");
+	  c = getopt(argc, argv, "c:deh:l:p:rsvw:xDEF:L:HMPS:T:VWZ:678");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -551,6 +553,9 @@ main(argc, argv)
 	  case 'V':
 	    prversion("smtp");
 	    exit(0);
+	    break;
+	  case 'w':
+	    sockwbufsize = atoi(optarg);
 	    break;
 	  case 'W':		/* Enable RFC974 WKS checks */
 	    checkwks = 1;
@@ -1268,6 +1273,7 @@ deliver(SS, dp, startrp, endrp)
 	    sleep(10); /* After a sleep of 10 seconds, if we find that
 			  we have some new input, do close the connection */
 	    if (has_readable(SS->smtpfd)) {
+	      SS->cmdstate = SMTPSTATE_RCPTTO; /* Well, sort of .. */
 	      /* Drain the input, and then close the channel */
 	      (void) smtpwrite(SS, 0, NULL, 0, NULL);
 	      smtpclose(SS, 1);
@@ -3073,6 +3079,7 @@ abort();
 	  /* setreuid(0,0); */
 	  *fdp = sk;
 
+#ifdef SO_KEEPALIVE
 #if 1
 	  setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
 #else
@@ -3081,6 +3088,22 @@ abort();
 #else  /* BSD < 43 */
 	  setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
 #endif /* BSD >= 43 */
+#endif
+#endif
+
+#ifdef SO_SNDBUF
+	  if (sockwbufsize > 0) {
+	    on = sockwbufsize;
+#if 1
+	    setsockopt(sk, SOL_SOCKET, SO_SNDBUF, (void*)&on, sizeof on);
+#else
+#if	defined(__svr4__) || defined(BSD) && (BSD-0) >= 43
+	    setsockopt(sk, SOL_SOCKET, SO_SNDBUF, (void*)&on, sizeof on);
+#else  /* BSD < 43 */
+	    setsockopt(sk, SOL_SOCKET, SO_SNDBUF, 0, 0);
+#endif /* BSD >= 43 */
+#endif
+	  }
 #endif
 
 	  if (conndebug)
