@@ -215,6 +215,7 @@
 #|  This file is compiled into actual database by command:
 #|         $MAILBIN/policy-builder.sh
 #|
+#|  File syntax and semantics are explained towards the _end_ of this file.
 #|
 #|  Further documentation about related files, see file:
 #|       doc/guides/smtp-policy
@@ -234,16 +235,16 @@
 #|    in  'smtp-policy.mx'  and  'localnames'  files.  Will not do
 #|    verifications on validity/invalidity of source domains:  <foo@bar>
 #
-# .			relaycustomer - relaytarget -
-# [0.0.0.0]/0		relaycustomer - relaytarget -
+# _default_dot		relaycustomer - relaytarget -
+# _default_ipaddr	relaycustomer - relaytarget -
 #
 #| -- 2nd alternate: No MX target usage, DNS existence verify
 #|    Like the 1st alternate, except will verify the sender (mail from:<..>)
 #|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
 #|    If RBL parameters are set below, will use them.
 #
-# .			relaycustomer - relaytarget - senderokwithdns + = _rbl1
-# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _rbl0
+# _default_dot		relaycustomer - relaytarget - senderokwithdns + = _rbl1
+# _default_ipaddr	relaycustomer - relaytarget - senderokwithdns + = _rbl0
 #
 #| -- 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
@@ -254,18 +255,24 @@
 #|    service abuse.
 #|    If RBL parameters are set below, will use them.
 
-.			relaycustomer - acceptifmx - senderokwithdns + = _rbl1
-[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _rbl0
+_default_dot		relaycustomer - acceptifmx - senderokwithdns + = _rbl1
+_default_ipaddr		relaycustomer - acceptifmx - senderokwithdns + = _rbl0
 
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
 #|    the source and destination domains are DNS resolvable, but does not
 #|    block relaying -- DANGER! DANGER! WILL ROBINSON! DANGER!
 #
-# .			senderokwithdns - acceptifdns -
-# [0.0.0.0]/0		senderokwithdns - acceptifdns -
+# _default_dot		senderokwithdns - acceptifdns -
+# _default_ipaddr	senderokwithdns - acceptifdns -
 #
-#|
+
+
+#| -----------------------------------
+#|  Now use above defined macroes at these default labels:
+.		= _default_dot
+[0.0.0.0]/0	= _default_ipaddr
+
 #| -----------------------------------
 #|
 #| RBL type test rules:
@@ -353,7 +360,7 @@ _relaytarget	relaytarget +                                          = _rbl1
 #| Thanks, no bulk mails! Drop them when used as sources, also reject
 #| when asked to send for them.
 #|
-_bulk_mail	message "Your domain is not liked source for email" rejectsource + message "Your IP address is not liked source for email" rejectnet + message "This is not accepted relay target" relaytarget -
+_bulk_mail	message "Your address is not liked source for email" rejectsource + message "Your IP address is not liked source for email" rejectnet + message "This is not accepted relay target" relaytarget -
 #|
 #| The actual list of domains, and perhaps user addresses should
 #| be gotten from some active Anti-SPAM database
@@ -374,6 +381,9 @@ _bulk_mail	message "Your domain is not liked source for email" rejectsource + me
 #| Syntax:
 #|
 #| key	[attribute value]... [= _tag]
+#|
+#|  The db compiler  does not accept completely empty value-set input,
+#|  therefore there are comments in all  _ZZZ  entries if nothing else!
 #| 
 #| Where:
 #|
@@ -385,6 +395,7 @@ _bulk_mail	message "Your domain is not liked source for email" rejectsource + me
 #|       IPv4-mapped addresses are translated into plain IPv4.)
 #|   - any arbitrary word referred as '_tag' at the right side
 #|     '_tag' may be any key of this database
+#|
 #| 'attribute' and 'value' are tokens. They are used by policytest() to
 #|     make decisions.  Attribute names, and understood value tokens are:
 #|

@@ -4,6 +4,7 @@
 #|  This file is compiled into actual database by command:
 #|         $MAILBIN/policy-builder.sh
 #|
+#|  File syntax and semantics are explained towards the _end_ of this file.
 #|
 #|  Further documentation about related files, see file:
 #|       doc/guides/smtp-policy
@@ -169,6 +170,9 @@ _bulk_mail	message "Your address is not liked source for email" rejectsource + m
 #| Syntax:
 #|
 #| key	[attribute value]... [= _tag]
+#|
+#|  The db compiler  does not accept completely empty value-set input,
+#|  therefore there are comments in all  _ZZZ  entries if nothing else!
 #| 
 #| Where:
 #|
@@ -180,6 +184,7 @@ _bulk_mail	message "Your address is not liked source for email" rejectsource + m
 #|       IPv4-mapped addresses are translated into plain IPv4.)
 #|   - any arbitrary word referred as '_tag' at the right side
 #|     '_tag' may be any key of this database
+#|
 #| 'attribute' and 'value' are tokens. They are used by policytest() to
 #|     make decisions.  Attribute names, and understood value tokens are:
 #|

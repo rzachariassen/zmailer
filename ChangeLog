@@ -1,5 +1,8 @@
 2003-08-22  Matti Aarnio  <mea@zmailer.org>
 
+	* proto/db/smtp-policy.src:
+	    Couple comments on input syntax.
+
 	* utils/policy-builder.sh.in, utils/makedb/makedb.c:
 	    "makedb -p" crashed in some situations, fixed
 	    NULL referral.  Also report about exit code of
