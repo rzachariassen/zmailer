@@ -1,3 +1,18 @@
+1998-06-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/mailbox/mailbox.c:
+	    Mistakes after code movements in  program()  function :-(
+
+	* smtpserver/smtpdata.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpcmds.c:
+	    Make the verbose debug log more readable -- guaranteed
+	    session end-points to be findable:
+	       ######w \t 221 ...
+	       ######- \t ...
+
+	* smtpserver/smtpcmds.c:
+	    Change ETRN reply texts a bit; don't anymore speak of TURNME..
+
 1998-06-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf, proto/cf/p-usenet.cf,

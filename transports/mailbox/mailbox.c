@@ -1946,7 +1946,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  notaryreport(NULL,"failed",
 		       "5.3.0 (User address recipient privilege code invalid)",
 		       buf);
-	  DIAGNOSTIC(rp, user, EX_SOFTWARE,
+	  DIAGNOSTIC(rp, cmdbuf, EX_SOFTWARE,
 		     "Bad privilege for a pipe \"%s\"", rp->addr->misc);
 	  return;
 	} else {
@@ -2011,7 +2011,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  notaryreport(NULL,"failed",
 		       "5.3.0 (out of pipe resources)",
 		       "x-local; 500 (out of pipe resources)");
-	  DIAGNOSTIC(rp, user, EX_OSERR,
+	  DIAGNOSTIC(rp, cmdbuf, EX_OSERR,
 		     "cannot create pipe from \"%s\"", cmdbuf);
 	  return;
 	}
@@ -2019,7 +2019,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  notaryreport(NULL,"failed",
 		       "5.3.0 (out of pipe resources)",
 		       "x-local; 500 (out of pipe resources)");
-	  DIAGNOSTIC(rp, user, EX_OSERR,
+	  DIAGNOSTIC(rp, cmdbuf, EX_OSERR,
 		     "cannot create pipe to \"%s\"", cmdbuf);
 	  close(in[0]);
 	  close(in[1]);
@@ -2060,7 +2060,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  notaryreport(NULL,"failed",
 		       "5.3.0 (fork failure)",
 		       "x-local; 500 (fork failure)");
-	  DIAGNOSTIC(rp, user, EX_OSERR, "cannot fork", 0);
+	  DIAGNOSTIC(rp, cmdbuf, EX_OSERR, "cannot fork", 0);
 	  return;
 	} /* parent */
 	close(out[0]);
@@ -2135,7 +2135,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 		       buf2);
 	}
 	
-	DIAGNOSTIC(rp, user, i, "%s", buf);
+	DIAGNOSTIC(rp, cmdbuf, i, "%s", buf);
 	return;
 }
 

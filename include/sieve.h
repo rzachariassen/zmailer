@@ -10,8 +10,12 @@ struct sieve {
 	int const		 uid;	 /* input */
 	const struct passwd	*pw;	 /* input */
 	const char		*username;  /* input */
+	int			command;
+	struct ctldesc		*dp;
+	struct rcpt		*rp;
 	int	pipeuid;
 	char	pipecmdbuf[2048];
+	void	*opaqueblock;
 };
 
 
@@ -20,6 +24,7 @@ extern void sieve_iterate __((struct sieve *svp));
 extern void sieve_end     __((struct sieve *svp));
 extern int  sieve_command __((struct sieve *svp));
 
+#define SIEVE_NOOP      0
 #define SIEVE_USERSTORE 1
 #define SIEVE_RUNPIPE	2
 #define SIEVE_DISCARD   3

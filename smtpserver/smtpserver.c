@@ -886,7 +886,7 @@ char **argv;
 		    len = strlen(msg);
 		    write(msgfd, msg, len);
 		    close(0); close(1);
-#if 0
+#if 1
 		    sleep(2);	/* Not so fast!  We need to do this to
 				   avoid (as much as possible) the child
 				   to exit before the parent has called
@@ -1060,7 +1060,7 @@ const char *msg;
     zsyslog((LOG_ERR,
 	     "aborted (%ld bytes) from %s/%d: %s", tell, SS->rhostname, SS->rport, msg));
     if (logfp != NULL) {
-	fprintf(logfp, "%d#\taborted (%ld bytes): %s\n", pid, tell, msg);
+	fprintf(logfp, "%d-\taborted (%ld bytes): %s\n", pid, tell, msg);
 	fflush(logfp);
     }
 }
@@ -1085,6 +1085,7 @@ SmtpState *SS;
     redo:
 	rc = read(SS->inputfd, SS->s_buffer, sizeof(SS->s_buffer));
 	if (rc < 0) {
+	  goto redo;
 	    if (errno == EINTR || errno == EAGAIN)
 		goto redo;
 	    /* Other results are serious errors -- maybe */
@@ -1180,8 +1181,13 @@ int insecure;
 	reporterr(SS, tell, "SMTP protocol timed out");
 
 	/* If there is something going on, kill the file.. */
-	if (SS->mfp != NULL)
+	if (SS->mfp != NULL) {
+	  if (STYLE(SS->cfinfo,'D')) {
+	    /* Says: DON'T DISCARD -- aka DEBUG ERRORS! */
+	    mail_close_alternate(SS->mfp,"public",".SMTP-TIMEOUT");
+	  } else
 	    mail_abort(SS->mfp);
+	}
 	SS->mfp = NULL;
 
 	if (routerpid > 0)
@@ -1288,8 +1294,9 @@ int insecure;
 	else
 	    fprintf(logfp, "%d#\tlocal from uid#%d\n",
 		    pid, (int)getuid());
-	fprintf(logfp, "%d#\t-- policyresult=%d initial policy msg: %s\n",
-		pid, SS->policyresult, (s ? s : "<NONE!>"));
+	if (SS->policyresult != 0 || s != NULL)
+	  fprintf(logfp, "%d#\t-- policyresult=%d initial policy msg: %s\n",
+		  pid, SS->policyresult, (s ? s : "<NONE!>"));
 	fflush(logfp);
     }
     while (1) {
@@ -1369,6 +1376,12 @@ int insecure;
 			 "Control chars on SMTP input")));
 	    typeflush(SS);
 	    continue;
+	}
+	if (c != '\n' && i > 3) {
+	  /* Some bloody systems send:  "QUIT\r",
+	     and then close the socket... */
+	  if (cistrcmp(buf,"QUIT") == 0)
+	    c = '\n'; /* Be happy... */
 	}
 	if (c != '\n') {
 	    if (i < (sizeof(buf)-1))
@@ -1540,7 +1553,7 @@ int insecure;
 	tell = lseek(0, 0, SEEK_CUR);
 	reporterr(SS, tell, "session terminated");
     } else if (logfp != NULL) {
-	fprintf(logfp, "%d#\tSession closed w/o QUIT\n", pid);
+	fprintf(logfp, "%d-\tSession closed w/o QUIT\n", pid);
 	fflush(logfp);
     }
 }

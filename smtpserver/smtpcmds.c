@@ -328,16 +328,6 @@ int insecure;
        and each recipient will use the claimed
        size, thus marking up its reception..        */
 
-    if (SS->mfp == NULL
-	&& (SS->mfp = mail_open(MSG_RFC822)) == NULL) {
-	type(SS, 452, m430, "mail_open() failed with errno %d: %s", errno, strerror(errno));
-	return;
-    }
-    availspace = fd_statfs(FILENO(SS->mfp));
-    if (availspace < 0)
-	availspace = 2000000000;	/* Over 2G ? */
-    availspace >>= 1;
-
     if (SS->carp->cmd == Mail2 || SS->carp->cmd == Send2) {
 	SS->with_protocol = WITH_ESMTP;
     }
@@ -620,7 +610,11 @@ int insecure;
 	    free((void *) newcp);
 	return;
     }
+    fflush(SS->mfp);
     rewind(SS->mfp);
+#ifdef HAVE_FTRUNCATE
+    ftruncate(FILENO(SS->mfp), 0);
+#endif
     if (insecure)
 	fprintf(SS->mfp, "external\n");
 
@@ -669,17 +663,34 @@ int insecure;
 	fwrite(drpt_ret, 1, drptret_len, SS->mfp);
 	fputs("\n", SS->mfp);
     }
+
+    availspace = fd_statfs(FILENO(SS->mfp));
+    if (availspace < 0)
+	availspace = 2000000000;	/* Over 2G ? */
+    availspace >>= 1;
+
     if (ferror(SS->mfp)) {
 	type(SS, 452, m430, (char *) NULL);
+	mail_abort(SS->mfp);
+	SS->mfp = NULL;
     } else if (SS->sizeoptval > maxsize && maxsize > 0) {
 	type(SS, -552, "5.3.4", "This message is larger, than our maximum acceptable");
 	type(SS,  552, "5.3.4", "incoming message size of  %d  chars.", maxsize);
+	mail_abort(SS->mfp);
+	SS->mfp = NULL;
     } else if (SS->sizeoptval > availspace) {
 	type(SS, 452, "4.3.1", "Try again later, insufficient storage available at the moment");
+	mail_abort(SS->mfp);
+	SS->mfp = NULL;
     } else {
-	if (s)
-	    type(SS, atoi(s), s + 4, "Ok");
-	else
+	if (s) {
+	    int rc = atoi(s);
+	    type(SS, rc, s + 4, "Ok");
+	    if (rc >= 400) {
+	      mail_abort(SS->mfp);
+	      SS->mfp = NULL;
+	    }
+	} else
 	    type(SS, 250, "2.1.0", "Sender syntax Ok%s", srcrtestatus);
 	SS->sender_ok = 1;
     }
@@ -1061,7 +1072,7 @@ const char *name, *cp;
 {
     FILE *mfp = mail_open(MSG_RFC822);
     if (!mfp) {
-	type(SS, 452, m400, "Failed to initiate TURNME request;  Disk full?");
+	type(SS, 452, m400, "Failed to initiate ETRN request;  Disk full?");
 	typeflush(SS);
 	return;
     }
@@ -1069,9 +1080,9 @@ const char *name, *cp;
     /* printf("050-My uid=%d/%d\r\n",getuid(),geteuid()); */
     runasrootuser();
     if (mail_close_alternate(mfp, TRANSPORTDIR, "")) {
-	type(SS, 452, m400, "Failed to initiate TURNME request;  Permission denied?");
+	type(SS, 452, m400, "Failed to initiate ETRN request;  Permission denied?");
     } else {
-	type(SS, -250, m200, "A TURNME request is initiated - lets hope the system");
+	type(SS, -250, m200, "An ETRN request is initiated - lets hope the system");
 	type(SS, -250, m200, "has resources to honour it.   We call the remote, if");
 	type(SS, 250, m200, "we have anything to send there.");
     }

@@ -3,6 +3,9 @@ router/functions:
 	To get rid of 'setf' -- 3.0 thing, as is conscell 'prev'
 	component removal, too.
 
+smtpserver/policy:
+	<foo@[nn.nn.nn.nn]> policy acceptance ???
+
 Known/suspected bugs/Missing Features on current Zmailer sources
 
 - Somewhere ? (smtpserver, and perhaps smtp transport agent ?)

@@ -123,7 +123,11 @@ const char *buf, *cp;
 	typeflush(SS);
     } else if (s_feof(SS)) {
 	/* [mea@utu.fi] says this can happen */
-	mail_abort(SS->mfp);
+	if (STYLE(SS->cfinfo,'D')) {
+	  /* Says: DON'T DISCARD -- aka DEBUG ERRORS! */
+	  mail_close_alternate(SS->mfp,"public",".DATA-EOF");
+	} else
+	  mail_abort(SS->mfp);
 	SS->mfp = NULL;
 	reporterr(SS, tell, "premature EOF on DATA input");
 	typeflush(SS);
@@ -320,7 +324,11 @@ const char *buf, *cp;
 	type(SS, 452, "%s", msg);
     } else if (s_feof(SS)) {
 	/* [mea@utu.fi] says this can happen */
-	mail_abort(SS->mfp);
+	if (STYLE(SS->cfinfo,'D')) {
+	  /* Says: DON'T DISCARD -- aka DEBUG ERRORS! */
+	  mail_close_alternate(SS->mfp,"public",".BDAT-EOF");
+	} else
+	  mail_abort(SS->mfp);
 	SS->mfp = NULL;
 	reporterr(SS, tell, "premature EOF on BDAT input");
 	typeflush(SS);
