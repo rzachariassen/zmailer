@@ -345,7 +345,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    --nscount;
 	}
 
-#if 0 /* Bloody Linux vs. FreeBSD implementation differences... */
+#if 0 /* Bloody Linux vs. FreeBSD implementation differences... (addrinfo internal handling) */
 
 	/* If nscount isn't zero here, then (cp >= eom) is true ... */
 
