@@ -276,7 +276,7 @@ const int holdlast, len;
 	       Lets find out what the subprocess status was */
 	    bufp = emalloc(80 + strlen(args0) + strlen(function) +
 			   sizeof(ROUTER_SERVER));
-	    sprintf(bufp, "400 Huh! Router server EOFed (crashed?) on us! Help! Last cmd was: %s %s \"%*s\"", ROUTER_SERVER, function, len, args0);
+	    sprintf(bufp, "400 Huh! Router server EOFed (crashed?) on us! Help! Last cmd was: %s %s \"%.*s\"", ROUTER_SERVER, function, len, args0);
 	    break;
 	}
 

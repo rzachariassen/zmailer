@@ -1,5 +1,8 @@
 2000-03-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/smtpcmds.c, smtpserver/smtprouter.c:
+	    Instead of using printf format:  %*s  we need to use  %.*s
+
 	* transports/libta/swriteheaders.c:
 	    Eugene Crosser spotted CHUNKING mode problem with
 	    message header TAB expansion.  Outch!
