@@ -273,7 +273,7 @@ char **sout;
 	return start;
 }
 
-void create_policy_dbase(infile, dbf, typ)
+int create_policy_dbase(infile, dbf, typ)
 FILE *infile;
 void *dbf;
 const int typ;
@@ -282,6 +282,7 @@ const int typ;
 	char policydata[16*1024];
 	char *s, *t, *str1, *str2;
 	int rc, tlen, slen, llen;
+	int errflag = 0;
 
 	int policydatalen = 0;
 	int linenum = 0;
@@ -299,6 +300,7 @@ const int typ;
 			   of space after the read block. */
 			++llen;
 			fprintf(stderr, "input line of len %d lacking trailing newline, corrupted file ?\n", llen-1);
+			errflag = 1;
 		}
 		linebuf[llen-1] = '\0';
 
@@ -336,6 +338,7 @@ const int typ;
 			fprintf(stderr,
 				"Error: line %d: bad policykey, rc = %d\n",
 				linenum, rc);
+			errflag = 1;
 			continue;
 		}
 		/* Skip LWSP */
@@ -349,6 +352,7 @@ const int typ;
 			fprintf(stderr,
 				"Error: No attribute pair on line %d.\n",
 				linenum);
+			errflag = 1;
 			continue;
 		} else {
 			int err = 0;
@@ -358,6 +362,8 @@ const int typ;
 					fprintf(stderr,
 						"Error: Invalid attribute pair on line %d.\n",
 						linenum);
+					errflag = 1;
+					err = 1;
 					break;
 				}
 				rc = parseattributepair((void *) &policydata[policydatalen],
@@ -366,6 +372,7 @@ const int typ;
 					fprintf(stderr,
 						"Error: Invalid attribute pair on line %d.\n",
 						linenum);
+					errflag = 1;
 					err = 1;
 					break;
 				}
@@ -391,7 +398,7 @@ const int typ;
 			int tl = tlen;
 			fprintf(stderr, "Error: Duplicate key at line %d: \"",
 				linenum);
-			for (;tlen > 0; --tlen,++t) {
+			for (;tlen > 0; --tl,++t) {
 				unsigned char c = *t;
 				if (c < ' ' || c > 126 || c == '\\')
 					fprintf(stderr, "\\0%03o", c);
@@ -401,7 +408,7 @@ const int typ;
 			fprintf(stderr, "\"\n");
 		}
 	}
-	return;
+	return errflag;
 }
     
 
@@ -444,7 +451,7 @@ skipaliastoken(s)
 }
 
 
-void create_aliases_dbase(infile, dbf, typ)
+int create_aliases_dbase(infile, dbf, typ)
 FILE *infile;
 void *dbf;
 const int typ;
@@ -453,6 +460,7 @@ const int typ;
 	char *s, *t;
 	char *t0 = NULL, *s0 = NULL;
 	int linenum = 0;
+	int errflag = 0;
 
 	while ((llen = getline(infile)) != 0) {
 		++linenum;
@@ -497,15 +505,28 @@ const int typ;
 			/* Continuation line */
 			while (*t == '\t' || *t == ' ') ++t;
 			slen = strlen(s0);
-			tlen = strlen(t) + 2;
-			s0   = erealloc(s0, slen + tlen + 4);
-			memcpy(s0 + slen + 0, " ,\n\t", 4);
-			memcpy(s0 + slen + 4, t, tlen-1);
+			tlen = strlen(t);
+			for (llen = slen; llen > 0; --llen) {
+			  /* Chop trailing white-space, if any */
+			  if (s0[llen-1] == ' ' || s0[llen-1] == '\t') {
+			    s0[llen-1] = '\0';
+			  } else
+			    break;
+			}
+			slen = llen; /* Shortened, possibly.. */
+			if (s0[llen-1] != ',') {
+			  fprintf(stderr, "Line %d: Continuation line on alias without preceeding line ending with comma (',')\n", linenum);
+			  errflag = 1;
+			  continue;
+			}
+			s0   = erealloc(s0, slen + tlen + 1);
+			memcpy(s0 + slen, t, tlen + 1); /* end NIL included */
 			continue;
 		}
 		if (*t == '\t' || *t == ' ') {
 			/* Continuaton line without previous key line */
 			fprintf(stderr,"Line %d: Continuation line without initial keying line\n", linenum);
+			errflag = 1;
 			continue;
 		}
 
@@ -531,6 +552,7 @@ const int typ;
 			/* This alias-token is invalid */
 			fprintf(stderr,"Line %d: Invalid alias key token; missing colon ?\n",
 				linenum);
+			errflag = 1;
 			continue;
 		}
 
@@ -554,10 +576,10 @@ const int typ;
 		if (t0) free(t0);  t0 = NULL;
 		if (s0) free(s0);  s0 = NULL;
 	}
-	return;
+	return errflag;
 }
 
-void create_keyed_dbase(infile, dbf, typ)
+int create_keyed_dbase(infile, dbf, typ)
 FILE *infile;
 void *dbf;
 const int typ;
@@ -565,6 +587,7 @@ const int typ;
 	int tlen, slen, llen;
 	char *s, *t;
 	int linenum = 0;
+	int errflag = 0;
 
 	while ((llen = getline(infile)) != 0) {
 		++linenum;
@@ -610,10 +633,12 @@ const int typ;
 		tlen = strlen(t) + 1;
 		slen = strlen(s) + 1;
 		if (store_db(dbf, typ, 0, linenum,
-			     t, tlen, s, slen) < 0)
-			break;
+			     t, tlen, s, slen) < 0) {
+		  errflag = 1; /* Duplicate ?? */
+		  break;
+		}
 	}
-	return;
+	return errflag;
 }
 
 
@@ -623,7 +648,7 @@ char *argv[];
 {
     char *dbasename = NULL;
     FILE *infile = NULL;
-    int c;
+    int c, rc;
     int typ = 0;
 #ifdef HAVE_NDBM_H
     DBM *ndbmfile = NULL;
@@ -742,11 +767,11 @@ char *argv[];
     initline(BUFSIZ);
 
     if (policyinput)
-	    create_policy_dbase(infile, dbf, typ);
+	    rc = create_policy_dbase(infile, dbf, typ);
     else if (aliasinput)
-	    create_aliases_dbase(infile, dbf, typ);
+	    rc = create_aliases_dbase(infile, dbf, typ);
     else
-	    create_keyed_dbase(infile, dbf, typ);
+	    rc = create_keyed_dbase(infile, dbf, typ);
 
 #ifdef HAVE_NDBM_H
     if (typ == 1)
@@ -763,5 +788,5 @@ char *argv[];
     }
 #endif
 
-    return 0;
+    return (rc ? 1 : 0);
 }
