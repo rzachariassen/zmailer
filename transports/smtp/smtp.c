@@ -3100,7 +3100,7 @@ abort();
 	/* wonder how Sendmail missed this one... */
 	case EINTR:
 		close(sk);
-		return EX_TEMPFAIL;
+		return EX_DEFERALL;
 	}
 	close(sk);
 	return EX_UNAVAILABLE;
