@@ -1479,7 +1479,7 @@ int insecure;
     if (!netconnected_flg)
       strict_protocol = 0;
 
-    rc = sigsetjmp(jmpalarm);
+    rc = sigsetjmp(jmpalarm,1);
     if (rc != 0) {
 	/* Oooo...  We are returning here via  longjmp(),
 	   which means we just got a timeout (SIGALRM),
