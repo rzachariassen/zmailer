@@ -1,3 +1,12 @@
+1998-03-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/aliases.cf:
+	    Backed off some changes; pushed too much into bitbucket :-(
+
+	* transports/smtp/smtp.c:
+	    Alexis Yushin reported that BDAT didn't work in non-pipelined
+	    mode :-(  Corrected that.
+
 1998-03-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/cf/aliases.cf, proto/cf/rrouter.cf, proto/cf/fqdnaliases.cf:
