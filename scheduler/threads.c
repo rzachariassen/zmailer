@@ -793,9 +793,9 @@ thread_start(thr, queue_only_too)
 	}
 
 	if (verbose)
-	  sfprintf(sfstderr,"thread_start(thr=%s/%d/%s) (dt=%d, thr=%p jobs=%d)\n",
-		  ch->name, thg->withhost, ho->name, (int)(thr->wakeup-now),
-		  thr, thr->jobs);
+	  sfprintf(sfstderr,"thread_start(thr=%s/%d/%s) (dt=%d thr=%p jobs=%d)\n",
+		   ch->name, thg->withhost, ho->name, (int)(thr->wakeup-now),
+		   thr, thr->jobs);
 
 	if (thr->proc) {
 	  if (verbose)
@@ -832,8 +832,14 @@ thread_start(thr, queue_only_too)
 	  --idleprocs;
 	  
 	  /* It may be that while we idled it, it died at the idle queue.. */
-	  if (proc->pid <= 0 || proc->tofd < 0)
+	  if (proc->pid <= 0 || proc->tofd < 0) {
+
+	    sfprintf(sfstderr,"%% thread_start(thr=%s/%d/%s) (proc=%p ->pid=%d ->tofd=%d)\n",
+		     ch->name, thg->withhost, ho->name, proc,
+		     proc->pid, proc->tofd);
+
 	    goto re_pick;
+	  }
 
 	  proc->pthread  = thr;
 	  proc->pvertex  = thr->thvertices;
@@ -875,6 +881,11 @@ thread_start(thr, queue_only_too)
 	  proc->pthread = thr;
 
 	  thr->proc             = proc;
+
+	  sfprintf(sfstderr,"%% thread_start(thr=%s/%d/%s) (proc=%p dt=%d thr=%p jobs=%d)\n",
+		   ch->name, thg->withhost, ho->name, thr->proc,
+		   (int)(thr->wakeup-now), thr, thr->jobs);
+
 
 	  ta_hungry(proc);
 
@@ -931,6 +942,12 @@ thread_start(thr, queue_only_too)
 
 	if (rc) /* non-zero when child has started */
 	  thr->attempts += 1;
+
+	if (thr->proc)
+	  sfprintf(sfstderr,"%% thread_start(thr=%s/%d/%s) (proc=%p dt=%d thr=%p jobs=%d)\n",
+		   ch->name, thg->withhost, ho->name, thr->proc,
+		   (int)(thr->wakeup-now), thr, thr->jobs);
+
 
 	return rc;
 }
