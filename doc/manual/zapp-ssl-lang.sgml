@@ -124,6 +124,7 @@ Throughout the following, <EMPHASIS>{item}</> means zero or more  of the
 item,  and <EMPHASIS>[item]</> means the item is optional.
 The abbreviation  ``<EMPHASIS>id</>'' is used for identifier.
 </PARA>
+</SECT2>
 
 <SECT2><TITLE>S/SL: Programs</TITLE>
 
