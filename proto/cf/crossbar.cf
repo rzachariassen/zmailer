@@ -132,6 +132,8 @@ crossbar (from, to) {
 			# also in the 'user' part.
 			tmp="$(smtproute "$(host $from)")"
 			;;
+		error)
+			;;
 		*)
 			tmp="$(smtproute "$(user $from)")"
 			;;

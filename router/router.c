@@ -439,7 +439,7 @@ login_to_uid(name)
 		addd_incoresp(name, (void*)((long)uid), spt_loginmap);
 		stickymem = oval;
 	} else
-		uid = (int)(spl->data);
+		uid = (long)(spl->data);
 	return uid;
 }
 

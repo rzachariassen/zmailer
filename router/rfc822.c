@@ -1109,7 +1109,7 @@ sequencer(e, file)
 	struct envelope *e;
 	const char *file;
 {
-	struct header  *h, *ph, *nh, *oh, *msgidh, **hp;
+	struct header  *h, *ph, *nh = NULL, *oh, *msgidh, **hp;
 	struct address *a, *ap;
 	struct addr    *p = NULL;
 	char	       *ofpname, *path, *qpath;
@@ -1295,7 +1295,7 @@ sequencer(e, file)
 			    && p->p_tokens != NULL) {
 				t = p->p_tokens;
 				QCHANNEL(e->e_from_trusted) =
-				  strnsave(t->t_pname, TOKENLEN(t));
+					strnsave(t->t_pname, TOKENLEN(t));
 			} else {
 				/*
 				 * No origination channel, or channel
@@ -1586,38 +1586,36 @@ sequencer(e, file)
 			dprintf(" none available!\n");
 			optsave(FYI_NOSENDER, e);
 		} else {
-			ph = h;
 			FindEnvelope(eChannel);
 			if (h != NULL) {
-			  if ((ap = ph->h_contents.a) != NULL
+			  if ((ap = h->h_contents.a) != NULL
 			      && (p = ap->a_tokens) != NULL
 			      && (p->p_tokens != NULL)) {
 			    t = p->p_tokens;
 			    if (TOKENLEN(t) == 5 &&
 				strncmp(t->t_pname,"error",5)==0) {
-			      /* Ok, "channel error", we turn this
-				 stuff over to "<>" address.. */
-			      t = makeToken("<>", 2);
-			      t->t_type = Atom;
-			      p->p_tokens = t;
+
+			      char *ss = (char*)tmalloc(10);
+			      strcpy(ss, "From: <>");
+
+			      nh = makeHeader(spt_headers, ss, 4);
+			      nh->h_lines = makeToken(ss+5,3);
+			      nh->h_lines->t_type = Line;
+			      nh->h_contents = hdr_scanparse(e, nh, 0, 0);
+			      nh->h_stamp = hdr_type(nh);
+			      FindHeader("to",e->e_resent);
+			      if (h == NULL) {
+				for (h = e->e_headers; h != NULL; h = h->h_next)
+				  if (CISTREQ(h->h_pname, "subject"))
+				    break;
+			      }
+			      InsertHeader(h, nh);
+			      dprintf(" nope (added)!\n");
 			    }
 			  }
-			  h = ph;
 			} else {
-			  h = ph;
+			  dprintf(" HUH! Nothing set!\n");
 			}
-			/* assume we only care about local users */
-			nh = (struct header *)tmalloc(sizeof (struct header));
-			*nh = *h;
-			set_pname(e, nh, "From");
-			FindHeader("to",e->e_resent);
-			if (h == NULL) {
-			  for (h = e->e_headers; h != NULL; h = h->h_next)
-			    if (CISTREQ(h->h_pname, "subject"))
-			      break;
-			}
-			InsertHeader(h, nh);
-			dprintf(" nope (added)!\n");
 		}
 	} else
 		dprintf(" yup!\n");
