@@ -72,7 +72,9 @@ fqdn_neighbour (domain, address, A) {
 	# normal target address locality testing, and such...
 
 	# Already expanded ?  If yes, go away!
-	$(expansions "$lcaddress") && return 1
+	if [ -n "$(expansions "$lcaddress")" ] ; then
+		return 1
+	fi
 
 	#   Yes, add to the expansions.  Success ?
 	#     Yes, Any success with filepriv from the alias db ?
@@ -121,7 +123,9 @@ fqdn_neighbour (domain, address, A) {
 	# We may also match for:  "@domain.name"
 
 	# Already expanded ?  If yes, go away!
-	$(expansions "$athost") && return 1
+	if [ -n "$(expansions "$athost")" ; then
+		return 1
+	fi
 
 	#   Yes, add to the expansions.  Success ?
 	#     Yes, Any success with filepriv from the alias db ?

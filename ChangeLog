@@ -1,5 +1,14 @@
 1999-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/cf/fqdnaliases.cf:
+	    Create fqdnalias:
+		foo@bar: foo@bar
+	    resolve it..  Without this change, the router
+	    will recurse infinitely and crash.  With this,
+	    the router will break the loop, but the result
+	    will still be stupid:
+		smtp bar foo@bar ...
+
 	* smtpserver/mxverify.c:
 	    Fatal RBL lookup error -- caused effectively all
 	    instances to try for IPv6 lookups which failed
