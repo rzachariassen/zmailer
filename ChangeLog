@@ -1,5 +1,16 @@
 2003-05-25  Matti Aarnio  <mea@zmailer.org>
 
+	* lib/zshmmibattach.c:
+	    Fixes around the file locking mechanisms.
+	    flock/fcntl/lockf supported.
+
+	* scheduler/scheduler.c:
+	    Fixed the StoredReceipients and ReceivedRecipients accounting
+	    counters.  Primarily that gauge, secondarily moved the
+	    received counter next to the gauge.  (The gauge was incrementing
+	    twice for each received recipient, and decremented once for each
+	    sent ...)
+
 	* router/rfc822.c:
 	    Track the number of recipient addresses before routing
 	    those addresses (and possibly expanding them).

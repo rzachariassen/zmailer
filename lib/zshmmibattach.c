@@ -11,10 +11,6 @@
 #include "hostenv.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-
-#include <time.h>
 
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
@@ -26,6 +22,10 @@
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif
+
+#include <fcntl.h>
+#include <errno.h>
+#include <time.h>
 
 
 #include "libc.h"
@@ -113,17 +113,100 @@ int Z_SHM_MIB_is_attached __((void)) {
    - After attachment is verified successfully, lock is released
 */
 
+static void Z_SHM_lock(rw, storage_fd)
+     int rw, storage_fd;
+{
+	int r = errno;
+	if (rw) {
+	  while (lseek(storage_fd, 0, 0) < 0) {
+	    if (errno == EINTR || errno == EAGAIN) continue;
+	    perror("Z_SHM_lock lseek(storage_fd,0,0)");
+	    errno = r;
+	    return;
+	  }
+#ifdef HAVE_FLOCK
+	  while (flock(storage_fd, LOCK_EX) < 0) {
+	    if (errno == EINTR || errno == EAGAIN) continue;
+	    perror("Z_SHM_lock flock(storage_fd,LOCK_EX)");
+	    break;
+	  }
+#else
+#ifdef F_SETLKW
+	  for (;;) {
+	    int i;
+	    struct flock f;
+	    f.l_type = F_WRLCK;
+	    f.l_whence = 0;
+	    f.l_start  = 0;
+	    f.l_len    = 0;
+	    f.l_pid    = getpid();
+	    i = fcntl( storage_fd, SETLKW, &f );
+	    if (i == 0) break; /* Ok! */
+	    if (i < 0 &&  (errno == EINTR || errno == EAGAIN))
+	      continue;
+	    perror("Z_SHM_lock fcntl(storage_fd,F_SETLKW,&f)");
+	    break;
+	  }
+#else
+#ifdef HAVE_LOCKF
+	  while (lockf(storage_fd, F_LOCK, 0) < 0) {
+	    if (errno == EINTR || errno == EAGAIN) continue;
+	    perror("Z_SHM_lock lockf(storage_fd,F_LOCK,0)");
+	    break;
+	  }
+#else
+# warning "No suitable locking code available ??  (LOCKF/FCNTL-SETLKW/LOCKF tried)"
+#endif
+#endif
+#endif
+	}
+	errno = r;
+}
+
 static void Z_SHM_unlock(rw, storage_fd)
      int rw, storage_fd;
 {
 	int r = errno;
 	if (rw) {
+	  while (lseek(storage_fd, 0, 0) < 0) {
+	    if (errno == EINTR || errno == EAGAIN) continue;
+	    perror("Z_SHM_unlock lseek(storage_fd,0,0)");
+	    errno = r;
+	    return;
+	  }
 #ifdef HAVE_FLOCK
-	  flock(storage_fd, LOCK_UN);
+	  while (flock(storage_fd, LOCK_UN) < 0) {
+	    if (errno == EINTR || errno == EAGAIN)
+	      continue;
+	    perror("Z_SHM_unlock flock(storage_fd, LOCK_UN)");
+	    break;
+	  }
+#else
+#ifdef F_SETLKW
+	  for (;;) {
+	    int i;
+	    struct flock f;
+	    f.l_type = F_UNLCK;
+	    f.l_whence = 0;
+	    f.l_start  = 0;
+	    f.l_len    = 0;
+	    f.l_pid    = getpid();
+	    i = fcntl( storage_fd, F_SETLKW, &f );
+	    if (i == 0) break; /* Ok! */
+	    if (i < 0 &&  (errno == EINTR || errno == EAGAIN))
+	      continue;
+	    perror("Z_SHM_lock fcntl(storage_fd,F_SETLKW,&f)");
+	    break;
+	  }
 #else
 #ifdef HAVE_LOCKF
-	  lseek(storage_fd, 0, 0);
-	  lockf(storage_fd, F_ULOCK, 0);
+	  while (lockf(storage_fd, F_ULOCK, 0) < 0) {
+	    if (errno == EINTR || errno == EAGAIN)
+	      continue;
+	    
+	    break;
+	  }
+#endif
 #endif
 #endif
 	}
@@ -176,16 +259,7 @@ int Z_SHM_MIB_Attach(rw)
 	  if (storage_fd >= 0) {
 	    /* GOT IT!  Now lock.. */
 
-	    if (rw) {
-#ifdef HAVE_FLOCK
-	      flock(storage_fd, LOCK_EX);
-#else
-#ifdef HAVE_LOCKF
-	      lseek(storage_fd, 0, 0);
-	      lockf(storage_fd, F_LOCK, 0);
-#endif
-#endif
-	    }
+	    Z_SHM_lock(rw, storage_fd);
 
 	    break;
 	  }
@@ -221,15 +295,7 @@ int Z_SHM_MIB_Attach(rw)
 	    }
 
 	    /* if (rw) ... (we do!) */
-#ifdef HAVE_FLOCK
-	    flock(storage_fd, LOCK_EX);
-#else
-#ifdef HAVE_LOCKF
-	    lseek(storage_fd, 0, 0);
-	    lockf(storage_fd, F_LOCK, 0);
-#endif
-#endif
-
+	    Z_SHM_lock(rw, storage_fd);
 
 	    p = calloc(1, block_size);
 	    if (!p) {

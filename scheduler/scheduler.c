@@ -2235,10 +2235,6 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      prevrcpt = opcnt;
 	      ++opcnt;
 
-	      /* Account for all yet to be delivered recipients */
-	      ++MIBMtaEntry->m.mtaStoredRecipientsSc;
-	      ++MIBMtaEntry->m.mtaReceivedRecipientsSc;
-
 	      break;
 	    case _CF_RCPTNOTARY:
 	      /* IETF-NOTARY-DRPT+NOTIFY DATA! */
@@ -2538,7 +2534,8 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      vp->notary          = NULL;
 #endif
 	      vp->ngroup       = i - svn;
-	      MIBMtaEntry->m.mtaStoredRecipientsSc += (i - svn);
+	      MIBMtaEntry->m.mtaStoredRecipientsSc   += (i - svn);
+	      MIBMtaEntry->m.mtaReceivedRecipientsSc += (i - svn);
 
 	      /* vp->sender       = strsave(offarr[svn].sender); */
 	      vp->wakeup       = offarr[svn].wakeup;
@@ -2598,7 +2595,8 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  vp->notary       = NULL;
 #endif
 	  vp->ngroup = i - svn;
-	  MIBMtaEntry->m.mtaStoredRecipientsSc += (i - svn);
+	  MIBMtaEntry->m.mtaStoredRecipientsSc   += (i - svn);
+	  MIBMtaEntry->m.mtaReceivedRecipientsSc += (i - svn);
 
 	  /* vp->sender = strsave(offarr[snv].sender); */
 	  vp->wakeup       = offarr[svn].wakeup;
