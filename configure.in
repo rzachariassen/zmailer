@@ -70,7 +70,7 @@ AC_PROG_MAKE_SET
 
 # things get pretty tought, if the dup2() is not available ...
 AC_CHECK_FUNC(dup2,
-        AC_DEFINE(HAVE_DUP2),
+        AC_DEFINE(HAVE_DUP2,1,[Checking that our compiler works; the dup2() exists at all UNIXes..]),
         AC_MSG_ERROR([Bizzare -- the system does not have dup2()!  Is your C-compiler working ? (See config.log)])
 )
 
@@ -132,7 +132,8 @@ AC_MSG_RESULT([** Using CPPDEP:     $CPPDEP])
 
 dnl AC_DEFINE_UNQUOTED(CONFIGURE_CMD,"$0 $ac_configure_args")
 AC_DEFINE_UNQUOTED(CONFIGURE_CMD,
-                   "CC='$CC' CFLAGS='$CFLAGS' $0 $ac_configure_args")
+                   "CC='$CC' CFLAGS='$CFLAGS' $0 $ac_configure_args",
+		   [Configuration command line])
 
 
 AC_PROG_INSTALL
@@ -478,7 +479,7 @@ AC_MSG_RESULT([Using ZMailer malloc library of type: $MALLOC])
 
 AC_SUBST(HAVE_YP)
 AC_ARG_WITH(yp, [  --with-yp                Have YP/NIS in system, and want to use it],
-        AC_DEFINE(HAVE_YP))
+        AC_DEFINE(HAVE_YP,1,[Have YP/NIS in the system, and want to use it]))
 
 AC_SUBST(LIBNIS)
 LIBNIS=""
@@ -679,9 +680,9 @@ if test -n "$LIBNDBM" ; then
   if test "$ac_cv_ndbm_dbm_pagfno" = no ; then
      AC_MSG_RESULT([<ndbm.h> sighted, but linkage of dbm_pagfno() function fails.  ndbm will not be used])
   else
-    AC_DEFINE(HAVE_NDBM)
+    AC_DEFINE(HAVE_NDBM,1,[Have old BSD NDBM in the system, and want to use it])
     if test "$t_have_dbm_error" = yes; then
-      AC_DEFINE(HAVE_DBM_ERROR)
+      AC_DEFINE(HAVE_DBM_ERROR,1,[Function  dbm_error()  exists in the system])
     fi
   fi
 fi
@@ -736,7 +737,7 @@ if test "$ac_cv_header_sdbm_h" = yes ; then
   AC_MSG_RESULT([Located SDBM's  dbm_open()  routine at $t_found_at])
   if test "$t_found_at" != nowhere; then
     dblocation="$dblocation;$t_found_at"
-    AC_DEFINE(HAVE_SDBM)
+    AC_DEFINE(HAVE_SDBM,1,[System has dbm_open()  in -lsdbm, and want to use it.])
   fi
 fi
 
@@ -763,7 +764,7 @@ if test "$ac_cv_header_gdbm_h" = yes ; then
           AC_TRY_LINK([], [gdbm_open();], ac_cv_lib_gdbm_gdbm_open=yes,
                                           ac_cv_lib_gdbm_gdbm_open=no)
           LIBS="$t_oldLibs"
-          if test "$ac_cv_lib_gdbm_gdbm_open" = yes; then
+	  if test "$ac_cv_lib_gdbm_gdbm_open" = yes; then
             LIBGDBM="-lgdbm"
             t_found_at="gdbm library"
             DBTYPE="gdbm"
@@ -784,9 +785,19 @@ if test "$ac_cv_header_gdbm_h" = yes ; then
     fi
   fi
   AC_MSG_RESULT([Located GNU GDBM's  gdbm_open()  routine at $t_found_at])
+  if test -z "$ac_cv_gdbm_fdesc" ; then
+    t_oldLibs="$LIBS"
+    LIBS="$LIBS -lgdbm"
+    AC_TRY_LINK([], [gdbm_fdesc();], ac_cv_gdbm_fdesc=yes, ac_cv_gdbm_fdesc=no)
+    LIBS="$t_oldLibs"
+  fi
+  if test "$ac_cv_gdbm_fdesc" = yes ; then
+    AC_DEFINE(HAVE_GDBM_FDESC,1,[New thing in GDBM 1.8.0: gdbm_fdesk()])
+    AC_MSG_RESULT([The GDBM has  gdbm_fdesc()  function!])
+  fi
   if test "$t_found_at" != nowhere; then
     dblocation="$dblocation;$t_found_at"
-    AC_DEFINE(HAVE_GDBM)
+    AC_DEFINE(HAVE_GDBM,1,[Have GNU DBM, and want to use it])
   fi
 fi
 
@@ -844,7 +855,7 @@ if test "$ac_cv_header_db_185_h" = yes ; then
     fi
     if test "$t_found_at" != nowhere; then
       dblocation="$dblocation;$t_found_at"
-      AC_DEFINE(HAVE_DB1)
+      AC_DEFINE(HAVE_DB1,1,[Has BSD DB 1.x, and want to support it])
     fi
   fi
 fi
@@ -921,7 +932,7 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db1_db_h" = yes ; then
     fi
     if test "$t_found_at" != nowhere; then
       dblocation="$dblocation;$t_found_at"
-      AC_DEFINE(HAVE_DB1)
+      AC_DEFINE(HAVE_DB1,1,[Have BSD DB 1.x at alternate location])
     fi
   fi
 fi
@@ -995,10 +1006,10 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
     AC_MSG_RESULT([Located SleepyCat DB 2.x  db_open()  routine at $t_found_at])
 
     dblocation="$dblocation;$t_found_at"
-    AC_DEFINE(HAVE_DB2)
+    AC_DEFINE(HAVE_DB2,1,[Have SleepyCat DB 2.x, and want to support it])
 
-    AC_DEFINE(HAVE_DB_OPEN2)
-    AC_DEFINE(HAVE_DB_CLOSE2)
+    AC_DEFINE(HAVE_DB_OPEN2,1,[2 parameter ->open() method])
+    AC_DEFINE(HAVE_DB_CLOSE2,1,[2 parameter ->close() method])
 
 
     # Does (db->cursor)(...) have 3 or 4 args ?
@@ -1017,7 +1028,7 @@ int err = (db->cursor)(db, NULL, &curs, 0);],
     fi
     if test "$ac_cv_db_cursor_4" = yes ; then
       AC_MSG_RESULT([  (db->cursor)() method function seems to want 4 args.])
-      AC_DEFINE(HAVE_DB_CURSOR4)
+      AC_DEFINE(HAVE_DB_CURSOR4,1,[Has 4 parameter db->cursor() method])
     else
       AC_MSG_RESULT([  (db->cursor)() method function seems to want 3 args.])
     fi
@@ -1099,10 +1110,10 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db3_db_h" = yes ; then
   else
     AC_MSG_RESULT([Located SleepyCat DB 3.x  db_create()  routine at $t_found_at])
     dblocation="$dblocation;$t_found_at"
-    AC_DEFINE(HAVE_DB3)
-    AC_DEFINE(HAVE_DB_CREATE)
-    AC_DEFINE(HAVE_DB_CLOSE2)
-    AC_DEFINE(HAVE_DB_CURSOR4)
+    AC_DEFINE(HAVE_DB3,1,[Have SleepyCat DB 3.x, and want to support it])
+    AC_DEFINE(HAVE_DB_CREATE,1,[SleepyCat DB 3.x/4.x db_create() function exists])
+    AC_DEFINE(HAVE_DB_CLOSE2,1,[2 parameter db->close() method])
+    AC_DEFINE(HAVE_DB_CURSOR4,1,[4 parameter db->cursor() method])
   fi
   if test -n "$LIBDB3" -a "$LIBDB3" = "$LIBNDBM" ; then
         # Well, both at the same library ( -ldb3 ), which propably
@@ -1181,10 +1192,10 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db4_db_h" = yes ; then
   else
     AC_MSG_RESULT([Located SleepyCat DB 4.x  db_create()  routine at $t_found_at])
     dblocation="$dblocation;$t_found_at"
-    AC_DEFINE(HAVE_DB4)
-    AC_DEFINE(HAVE_DB_CREATE)
-    AC_DEFINE(HAVE_DB_CLOSE2)
-    AC_DEFINE(HAVE_DB_CURSOR4)
+    AC_DEFINE(HAVE_DB4,1,[Have SleepyCat DB 4.x database, and want to support it])
+    AC_DEFINE(HAVE_DB_CREATE,1,[SleepyCat DB 3.x/4.x db_create() function exists])
+    AC_DEFINE(HAVE_DB_CLOSE2,1,[2 parameter db->close() method])
+    AC_DEFINE(HAVE_DB_CURSOR4,1,[4 parameter db->cursor() method])
   fi
   if test -n "$LIBDB4" -a "$LIBDB4" = "$LIBNDBM" ; then
         # Well, both at the same library ( -ldb4 ), which propably
@@ -1203,7 +1214,7 @@ AC_ARG_WITH(ldap-prefix,[  --with-ldap-prefix=/usr  Prefix of UMich/NetScape LDA
                            the directories are  PREFIX/include/ and PREFIX/lib/],
         use_ldap=1)
 if test "$use_ldap" = 1 ; then
-    AC_DEFINE(HAVE_LDAP)
+    AC_DEFINE(HAVE_LDAP,1,[HAVE_LDAP, 1])
     LIBLDAP="-lldap -llber"
     if test "$withval" != "/usr" ; then
         LIBLDAP="-L$withval/lib $LIBLDAP"
@@ -1214,7 +1225,7 @@ use_ldap=0
 AC_ARG_WITH(ldap-include-dir,[  --with-ldap-include-dir=/.. Directory of UMich/NetScape LDAP includes],
         use_ldap=1)
 if test "$use_ldap" = 1 ; then
-    AC_DEFINE(HAVE_LDAP)
+    AC_DEFINE(HAVE_LDAP,1,[HAVE_LDAP, 2])
     LIBLDAP="-lldap -llber"
     if test "$withval" != "/usr/include" ; then
         INCLLDAP="-I$withval/include"
@@ -1224,7 +1235,7 @@ use_ldap=0
 AC_ARG_WITH(ldap-library-dir,[  --with-ldap-library-dir=/... Directory of UMich/NetScape LDAP libraries],
         use_ldap=1)
 if test "$use_ldap" = 1 ; then
-    AC_DEFINE(HAVE_LDAP)
+    AC_DEFINE(HAVE_LDAP,1,[HAVE_LDAP, 3])
     LIBLDAP="-lldap -llber"
     if test "$withval" != "/usr/lib" -a "$withval" != "/lib" ; then
         LIBLDAP="-L$withval/lib $LIBLDAP"
@@ -1370,10 +1381,10 @@ fi
 
 AC_TRY_COMPILE([#include <sys/types.h>
 #include <sys/socket.h>],[socklen_t sl = 2;],
-        AC_DEFINE(HAVE_SOCKLEN_T))
+        AC_DEFINE(HAVE_SOCKLEN_T,1,[System has  soclken_t  type]))
 
 AC_ARG_WITH(ipv6,[  --with-ipv6              Have IPv6 in system, and want to use it],
-        AC_DEFINE(INET6)
+        AC_DEFINE(INET6,1,[Want to use IPv6, in case it is supported in the system])
         ac_with_ipv6=yes
         )
 
@@ -1448,7 +1459,7 @@ AC_ARG_WITH(maillock,[  --without-maillock       Do not use maillock() even if y
 if test without_maillock = 0; then
         AC_FUNC_SVR4_MAILLOCK  
 else
-        AC_DEFINE(HAVE_DOTLOCK)
+        AC_DEFINE(HAVE_DOTLOCK,1,[The mailbox access is based on traditional "dot-locking" protocol])
 fi
               
 
@@ -1467,7 +1478,7 @@ AC_TRY_LINK([extern char *sys_siglist[]; static char *s;], [s = sys_siglist[2]; 
                 [ac_cv_arr_sys_siglist=yes])
 ])
 if test "$ac_cv_arr_sys_siglist" = yes ; then
-    AC_DEFINE(HAVE_SYS_SIGLIST)
+    AC_DEFINE(HAVE_SYS_SIGLIST,1,(Linkage against extern char *sys_siglist[] works))
 fi
 
 
@@ -1507,15 +1518,15 @@ if test "$use_resolvopt" = 0 ; then
         LIBRESOLV="-lresolv"
         AC_MSG_RESULT([Using system supplied -lresolv -- hope it works..])
     fi
-    AC_DEFINE(HAVE_GETHOSTBYNAME)
-    AC_DEFINE(HAVE_RESOLVER)
+    AC_DEFINE(HAVE_GETHOSTBYNAME,1,[gethostbyname() function exists])
+    AC_DEFINE(HAVE_RESOLVER,1,[System has (bundled) resolver library])
     INCLRESOLV=""
     LIBRESOLVA=""
 else
     # We have bundled BIND 4.9.4 resolver, which can make things
     # so much simpler to ourselves (except at BSD machines..)
-    AC_DEFINE(HAVE_GETHOSTBYNAME)
-    AC_DEFINE(HAVE_RESOLVER)
+    AC_DEFINE(HAVE_GETHOSTBYNAME,1,[])
+    AC_DEFINE(HAVE_RESOLVER,1,[])
     LIBRESOLV="-lresolv"
     INCLRESOLV='-I$(TOPDIR)/libresolv'
     LIBRESOLVA="libresolv.a"
@@ -1536,7 +1547,7 @@ AC_CACHE_CHECK(for cd and ad in HEADER struct (BIND 8),
                zm_cv_struct_HEADER_cd_ac=yes,
                zm_cv_struct_HEADER_cd_ac=no)])
 if test "$zm_cv_struct_HEADER_cd_ac" = yes; then
-    AC_DEFINE(HAVE_HEADER_CD_AD)
+    AC_DEFINE(HAVE_HEADER_CD_AD,1,[The resolver library header has BIND 8 CD and AC bitfields defined.])
 fi
 
 #
@@ -1644,9 +1655,9 @@ if test "$ac_with_ipv6_replacement_libc" = 1 ; then
   AC_SUBST(LIBOBJS)
   AC_DEFINE(HAVE_GETNAMEINFO)
   AC_DEFINE(HAVE_GETADDRINFO)
-  AC_DEFINE(HAVE__GETADDRINFO_)
-  AC_DEFINE(HAVE_INET_NTOP)
-  AC_DEFINE(HAVE_INET_PTON)
+  AC_DEFINE(HAVE__GETADDRINFO_,1,[Using our own special replacement library for IPv6 support])
+  AC_DEFINE(HAVE_INET_NTOP,1,[Have  inet_ntop()  function.])
+  AC_DEFINE(HAVE_INET_PTON,1,[Have  inet_pton()  function.])
 else
 
   t_oldLibs="$LIBS"
@@ -1771,13 +1782,13 @@ int deny_severity, allow_severity;],[hosts_access(&request);],
       LIBWRAP="-L$withval -lwrap"
       INCLWRAP="-I$withval"
       unset ac_cv_lib_tcpwrap
-      AC_DEFINE(HAVE_TCPD_H)
+      AC_DEFINE(HAVE_TCPD_H,1,[Have found TCP-Wrapper  tcpd.h  header file.])
       AC_MSG_RESULT([Using tcp-wrappers at directory: $withval]);
     fi
 fi
 
 if test -n "$LIBWRAP"; then
-  AC_DEFINE(USE_TCPWRAPPER)
+  AC_DEFINE(USE_TCPWRAPPER,1,[Want to use TCP-Wrapper code])
 fi
 
 CPPFLAGS="$t_oldCpp"
@@ -1791,7 +1802,7 @@ AC_ARG_WITH(privatembox,   [  --with-privatembox       Use 'private/' in a part 
 
 AC_ARG_WITH(mboxquotacheck,[  --with-mboxquotacheck    Use 'CHECK_MB_SIZE' define in mailbox program.
                            Linking is presumed to use  --with-generic-lib=DIR],
-        AC_DEFINE(CHECK_MB_SIZE))
+        AC_DEFINE(CHECK_MB_SIZE,1,[Wants to do mboxquotacheck code]))
 
 AC_SUBST(PRIVATEAUTH)
 PRIVATEAUTH=""
@@ -2014,7 +2025,7 @@ dnl AC_FUNC_UTIME_NULL
 AC_ARG_WITH(ta-mmap,   [  --with-ta-mmap           TA's to use MMAP for reading the message bodies],
         use_ta_mmap=1, use_ta_mmap=0)
 if test "$use_ta_mmap" = "1"; then
-  AC_DEFINE(TA_USE_MMAP)
+  AC_DEFINE(TA_USE_MMAP,1,[Want the Transport Agents to use mmap() for reading the message bodies.])
 fi
 
 AC_SUBST(GETPWLIB)
@@ -2067,7 +2078,7 @@ if test -n "$OPENSSLPREFIX" -a -z "$OPENSSLLIB" ; then
   fi
 fi
 if test -n "$OPENSSLINCL" -a -n "$OPENSSLLIB" ; then
-  AC_DEFINE(HAVE_OPENSSL)
+  AC_DEFINE(HAVE_OPENSSL,1,[System has OpenSSL of some version, and want to use it.])
 fi
 
 AC_ARG_WITH(openssl, [  --with-openssl           Search for, and use OpenSSL, if it can be found],
@@ -2075,7 +2086,7 @@ AC_ARG_WITH(openssl, [  --with-openssl           Search for, and use OpenSSL, if
   # No Explicite setup, lets do some auto-tests
   if test -f /usr/local/ssl/include/openssl/ssl.h ; then
     # Gee, OpenSSL 0.9.3a at default prefix!
-    AC_DEFINE(HAVE_OPENSSL)
+    AC_DEFINE(HAVE_OPENSSL,1,[System has OpenSSL of some version, and want to use it.])
     OPENSSLPREFIX="/usr/local/ssl"
     OPENSSLINCL="-I$OPENSSLPREFIX/include"
     if test -f "$OPENSSLPREFIX/lib/libssl.so" ; then
@@ -2087,7 +2098,7 @@ AC_ARG_WITH(openssl, [  --with-openssl           Search for, and use OpenSSL, if
   fi
   if test -f /usr/include/openssl/ssl.h ; then
     # Gee, OpenSSL 0.9.3a at  "--prefix=/usr" !!!
-    AC_DEFINE(HAVE_OPENSSL)
+    AC_DEFINE(HAVE_OPENSSL,1,[System has OpenSSL of some version, and want to use it.])
     OPENSSLPREFIX="/usr"
     OPENSSLINCL=""
     if test -f "$OPENSSLPREFIX/lib/libssl.so" ; then
@@ -2105,7 +2116,7 @@ ncoming text messages.
                            proper --generic-include.
                            (See smtpserver/README.translation)],
 [
-       AC_DEFINE_UNQUOTED(USE_TRANSLATION,"$enableval") 
+       AC_DEFINE_UNQUOTED(USE_TRANSLATION,"$enableval",[Do use incoming phase character set translator library]) 
 ])
 
 AC_CHECK_FUNCS(crypt)
@@ -2174,7 +2185,7 @@ AC_CHECK_LIB(ypsec, main)
 AC_CHECK_LIB(ldgc, main)
 
 AC_CHECKING(for AFS)
-test -d /afs && AC_DEFINE(AFS)
+test -d /afs && AC_DEFINE(AFS,1,[Has /afs  directory, possibly AFS filesystem])
 
 if test "$ac_cv_c_const" = no ; then
   CFLAGS="$CFLAGS -Dconst=''"

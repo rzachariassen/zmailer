@@ -13,7 +13,7 @@ AC_CACHE_CHECK([for tm_gmtoff in struct tm], ac_cv_struct_tm_gmtoff,
 #include <$ac_cv_struct_tm>], [struct tm tm; tm.tm_gmtoff;],
   ac_cv_struct_tm_gmtoff=yes, ac_cv_struct_tm_gmtoff=no)])
 if test "$ac_cv_struct_tm_gmtoff" = yes; then
-  AC_DEFINE(HAVE_TM_GMTOFF)
+  AC_DEFINE(HAVE_TM_GMTOFF,1,[The  struct tm  has field  tm_gmtoff])
 else
   AC_CACHE_CHECK(for altzone, ac_cv_var_altzone,
 [AC_TRY_LINK([#include <time.h>
@@ -24,10 +24,10 @@ static int tt;],
 static int tt;],
 [tt = (int)timezone;], ac_cv_var_timezone=yes, ac_cv_var_timezone=no)])
   if test "$ac_cv_var_altzone" = yes; then
-    AC_DEFINE(HAVE_ALTZONE)
+    AC_DEFINE(HAVE_ALTZONE,1,[Timezone offset variable 'altzone' exists])
   fi
   if test "$ac_cv_var_timezone" = yes; then
-    AC_DEFINE(HAVE_TIMEZONE)
+    AC_DEFINE(HAVE_TIMEZONE,1,[Timezone offset variable 'timezone' exists])
   fi
 fi
 if test "x$ac_cv_var_altzone" = xno -a x$ac_cv_struct_tm_gmtoff = xno -a \
@@ -46,7 +46,7 @@ AC_CACHE_CHECK([for 'sa_len' in 'struct sockaddr'], ac_cv_struct_sa_len,
 #include <sys/socket.h>], [struct sockaddr sa; sa.sa_len = 0; ],
         ac_cv_struct_sa_len=yes, ac_cv_struct_sa_len=no)])
 if test "$ac_cv_struct_sa_len" = yes; then
-  AC_DEFINE(HAVE_SA_LEN)
+  AC_DEFINE(HAVE_SA_LEN,1,[The  struct sockaddr  has field  sa_len])
 fi
 ])
 
@@ -75,7 +75,7 @@ AC_CACHE_VAL(ac_cv_func_char_sprintf,
 AC_MSG_RESULT([$ac_cv_func_char_sprintf])
 AC_SUBST(DSPRINTF_TYPE)
 if test $ac_cv_func_char_sprintf = yes; then
-  AC_DEFINE(SPRINTF_CHAR)
+  AC_DEFINE(SPRINTF_CHAR,1,[The sprinf() function returns a char*])
   DSPRINTF_TYPE="-DSPRINTF_CHAR"
 else
   DSPRINTF_TYPE=""
@@ -112,7 +112,7 @@ AC_CACHE_VAL(fu_cv_sys_d_ino_in_dirent,
     fu_cv_sys_d_ino_in_dirent=no)])
 AC_MSG_RESULT($fu_cv_sys_d_ino_in_dirent)
 if test $fu_cv_sys_d_ino_in_dirent = yes; then
-  AC_DEFINE(D_INO_IN_DIRENT)
+  AC_DEFINE(D_INO_IN_DIRENT,1,[The dirent structure has d_ino field.])
 fi])
 
 AC_DEFUN(AC_FUNC_SVR4_MAILLOCK,
@@ -143,16 +143,16 @@ if test "x$ac_cv_func_maillock_lmail" = "x"; then
   fi
 fi
 if test "$ac_cv_func_maillock_lmail" = "yes"; then
-	AC_DEFINE(HAVE_MAILLOCK)
+	AC_DEFINE(HAVE_MAILLOCK,1,[Have maillock() in -lmail])
 	LIBMAIL="-lmail"
 	AC_MSG_RESULT([System has  maillock()  with -lmail])
 else
   if test "$ac_cv_func_maillock_llockfile" = "yes"; then
-	AC_DEFINE(HAVE_MAILLOCK)
+	AC_DEFINE(HAVE_MAILLOCK,1,[Have maillock() in -llockfile])
 	LIBMAIL="-llockfile"
 	AC_MSG_RESULT([System has  maillock()  with -llockfile])
   else
-	AC_DEFINE(HAVE_DOTLOCK)
+	AC_DEFINE(HAVE_DOTLOCK,1,[Using traditional UNIX 'dot-lock' mailbox locks])
 	AC_MSG_RESULT([Using traditional UNIX 'dot-lock' mailbox locks])
   fi
 fi])
@@ -199,7 +199,9 @@ if test $ac_cv_func_getmntent = yes; then
     AC_MSG_RESULT($fu_cv_sys_mounted_getmntent1)
     if test $fu_cv_sys_mounted_getmntent1 = yes; then
       list_mounted_fs=found
-      AC_DEFINE(MOUNTED_GETMNTENT1)
+      AC_DEFINE(MOUNTED_GETMNTENT1,1,[Define if there is a function named getmntent for reading the list
+   of mounted filesystems, and that function takes a single argument.
+   [4.3BSD, SunOS, HP-UX, Dynix, Irix]])
     fi
   fi
 
@@ -213,7 +215,8 @@ if test $ac_cv_func_getmntent = yes; then
     AC_MSG_RESULT($fu_cv_sys_mounted_getmntent2)
     if test $fu_cv_sys_mounted_getmntent2 = yes; then
       list_mounted_fs=found
-      AC_DEFINE(MOUNTED_GETMNTENT2)
+      AC_DEFINE(MOUNTED_GETMNTENT2,1,[Define if there is a function named getmntent for reading the list of
+   mounted filesystems, and that function takes two arguments.  [SVR4]])
     fi
   fi
 
@@ -238,7 +241,8 @@ if test -z "$list_mounted_fs"; then
   AC_MSG_RESULT($fu_cv_sys_mounted_getsstat)
   if test $fu_cv_sys_mounted_getsstat = yes; then
     list_mounted_fs=found
-    AC_DEFINE(MOUNTED_GETFSSTAT)
+    AC_DEFINE(MOUNTED_GETFSSTAT,1,[Define if there is a function named getfsstat for reading the list
+   of mounted filesystems.  [DEC Alpha running OSF/1]])
   fi
 fi
 
@@ -252,7 +256,9 @@ if test -z "$list_mounted_fs"; then
   AC_MSG_RESULT($fu_cv_sys_mounted_vmount)
   if test $fu_cv_sys_mounted_vmount = yes; then
     list_mounted_fs=found
-    AC_DEFINE(MOUNTED_VMOUNT)
+    AC_DEFINE(MOUNTED_VMOUNT,1,[Define if there is a function named mntctl that can be used to read
+   the list of mounted filesystems, and there is a system header file
+   that declares `struct vmount.'  [AIX]])
   fi
 fi
 
@@ -269,7 +275,9 @@ if test -z "$list_mounted_fs"; then
   AC_MSG_RESULT($fu_cv_sys_mounted_fread_fstyp)
   if test $fu_cv_sys_mounted_fread_fstyp = yes; then
     list_mounted_fs=found
-    AC_DEFINE(MOUNTED_FREAD_FSTYP)
+    AC_DEFINE(MOUNTED_FREAD_FSTYP,1,[Define if (like SVR2) there is no specific function for reading the
+   list of mounted filesystems, and your system has these header files:
+   <sys/fstyp.h> and <sys/statfs.h>.  [SVR3]])
   fi
 fi
 
@@ -290,7 +298,8 @@ if test -z "$list_mounted_fs"; then
   AC_MSG_RESULT($fu_cv_sys_mounted_getmntinfo)
   if test $fu_cv_sys_mounted_getmntinfo = yes; then
     list_mounted_fs=found
-    AC_DEFINE(MOUNTED_GETMNTINFO)
+    AC_DEFINE(MOUNTED_GETMNTINFO,1,[Define if there is a function named getmntinfo for reading the list
+   of mounted filesystems.  [4.4BSD]])
   fi
 fi
 
@@ -308,7 +317,8 @@ if test -z "$list_mounted_fs"; then
   AC_MSG_RESULT($fu_cv_sys_mounted_getmnt)
   if test $fu_cv_sys_mounted_getmnt = yes; then
     list_mounted_fs=found
-    AC_DEFINE(MOUNTED_GETMNT)
+    AC_DEFINE(MOUNTED_GETMNT,1,[Define if there is a function named getmnt for reading the list of
+   mounted filesystems.  [Ultrix]])
   fi
 fi
 
@@ -322,7 +332,8 @@ if test -z "$list_mounted_fs"; then
   AC_MSG_RESULT($fu_cv_sys_mounted_fread)
   if test $fu_cv_sys_mounted_fread = yes; then
     list_mounted_fs=found
-    AC_DEFINE(MOUNTED_FREAD)
+    AC_DEFINE(MOUNTED_FREAD,1,[Define if there is no specific function for reading the list of
+   mounted filesystems.  fread will be used to read /etc/mnttab.  [SVR2]])
   fi
 fi
 
@@ -353,7 +364,7 @@ if test $space = no; then
   AC_CHECK_FUNCS(statvfs)
   if test $ac_cv_func_statvfs = yes; then
     space=yes
-    AC_DEFINE(STAT_STATVFS)
+    AC_DEFINE(STAT_STATVFS,1,[Define if there is a function named statvfs.  [SVR4]])
   fi
 fi
 
@@ -377,7 +388,7 @@ if test $space = no; then
   AC_MSG_RESULT($fu_cv_sys_stat_statfs3_osf1)
   if test $fu_cv_sys_stat_statfs3_osf1 = yes; then
     space=yes
-    AC_DEFINE(STAT_STATFS3_OSF1)
+    AC_DEFINE(STAT_STATFS3_OSF1,1,[Define if  statfs takes 3 args.  [DEC Alpha running OSF/1]])
   fi
 fi
 
@@ -408,7 +419,8 @@ member (AIX, 4.3BSD)])
   AC_MSG_RESULT($fu_cv_sys_stat_statfs2_bsize)
   if test $fu_cv_sys_stat_statfs2_bsize = yes; then
     space=yes
-    AC_DEFINE(STAT_STATFS2_BSIZE)
+    AC_DEFINE(STAT_STATFS2_BSIZE,1,[Define if statfs takes 2 args and struct statfs has a field named f_bsize.
+   [4.3BSD, SunOS 4, HP-UX, AIX PS/2]])
   fi
 fi
 
@@ -429,7 +441,7 @@ if test $space = no; then
   AC_MSG_RESULT($fu_cv_sys_stat_statfs4)
   if test $fu_cv_sys_stat_statfs4 = yes; then
     space=yes
-    AC_DEFINE(STAT_STATFS4)
+    AC_DEFINE(STAT_STATFS4,1,[Define if statfs takes 4 args.  [SVR3, Dynix, Irix, Dolphin]])
   fi
 fi
 
@@ -457,7 +469,8 @@ member (4.4BSD and NetBSD)])
   AC_MSG_RESULT($fu_cv_sys_stat_statfs2_fsize)
   if test $fu_cv_sys_stat_statfs2_fsize = yes; then
     space=yes
-    AC_DEFINE(STAT_STATFS2_FSIZE)
+    AC_DEFINE(STAT_STATFS2_FSIZE,1,[Define if statfs takes 2 args and struct statfs has a field named f_fsize.
+   [4.4BSD, NetBSD]])
   fi
 fi
 
@@ -488,13 +501,16 @@ if test $space = no; then
   AC_MSG_RESULT($fu_cv_sys_stat_fs_data)
   if test $fu_cv_sys_stat_fs_data = yes; then
     space=yes
-    AC_DEFINE(STAT_STATFS2_FS_DATA)
+    AC_DEFINE(STAT_STATFS2_FS_DATA,1,[Define if statfs takes 2 args and the second argument has
+   type struct fs_data.  [Ultrix]])
   fi
 fi
 
 if test $space = no; then
 # SVR2
 AC_TRY_CPP([#include <sys/filsys.h>],
-  AC_DEFINE(STAT_READ_FILSYS) space=yes)
+  AC_DEFINE(STAT_READ_FILSYS,1,[Define if there is no specific function for reading filesystems usage
+   information and you have the <sys/filsys.h> header file.  [SVR2]])
+  space=yes)
 fi
 ])
