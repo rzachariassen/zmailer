@@ -20,6 +20,9 @@
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
+/* We do embed perl into system */
+#undef DO_PERL_EMBED
+
 /* The dirent structure has d_ino field. */
 #undef D_INO_IN_DIRENT
 
