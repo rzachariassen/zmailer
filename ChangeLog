@@ -31,7 +31,7 @@
 	    Move "test with user-suppled address" before the
 	    "test with postmaster" case.  In case the Postmaster
 	    doesn't exist (which is an error in itself, though..),
-	    the user supplied address is tested very least.
+	    the user supplied address was tested very least.
 
 2000-01-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
