@@ -1818,6 +1818,11 @@ fi
 AC_PATH_PROG(PROCMAIL, procmail, procmail)dnl
 AC_PATH_PROG(MD5SUM, md5sum, $MAILBIN/md5sum)dnl
 
+for x in sfio sfio/src sfio/src/lib sfio/src/lib/sfio sfio/include sfio/lib
+do
+  if [ ! -d $x ]; then mkdir $x; fi
+done
+
 AC_OUTPUT(Makefile
 	router/Makefile			router/libdb/Makefile		\
 	scheduler/Makefile		smtpserver/Makefile		\

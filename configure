@@ -9666,6 +9666,11 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
+for x in sfio sfio/src sfio/src/lib sfio/src/lib/sfio sfio/include sfio/lib
+do
+  if  ! -d $x ; then mkdir $x; fi
+done
+
 trap '' 1 2 15
 cat > confcache <<\EOF
 # This file is a shell script that caches the results of configure

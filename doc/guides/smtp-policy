@@ -83,8 +83,40 @@
 		- Fill in/modify related files
 		- execute  MAILBIN/policy-builder.sh  script
 
+	Testing instructions:
 
+		You can run the smtpserver in a mode where you can
+		claim to be from any address in the outside world
+		you wish:
 
+			$MAILBIN/smtpserver -i -d 1 -T '[1.2.3.4]'
+
+		The mode must be interactive (-i), and supplying
+		debug mode (-d 1) to it is good help.
+
+		Actual claimed connection source address is to be
+		given inside square brackets as a SMTP IP address
+		literal.
+
+		Now you can try things like:
+
+			220 ...
+			EHLO foo
+			...
+			MAIL FROM:<>
+			...
+			RCPT TO:<address@local.domain>
+			...
+			RCPT TO:<address@elsewere.domain>
+			...
+
+		(Substitute some real domains into those RCPT TO
+		 lines -- "local.domain" is a hint about what to
+		 pick for it..)
+
+		Depending what kind of address you have supplied
+		to the -T parameter, they get either accepted, or
+		rejected.
 
 
 2. RBL-type blocking lists
