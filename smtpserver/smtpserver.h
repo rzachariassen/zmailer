@@ -203,6 +203,7 @@ extern int allow_source_route;
 extern int debugcmdok;
 extern int expncmdok;
 extern int vrfycmdok;
+extern int strict_protocol;
 
 extern const char *progname;
 extern int debug, skeptical, checkhelo, ident_flag, verbose;

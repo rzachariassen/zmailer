@@ -75,7 +75,8 @@ const char *s;
     const char *p = rfc821_domain(s, STYLE(SS->cfinfo, 'R'));
     if (p == s)
 	return 1;
-    while (*p == ' ' || *p == '\n')
+    if (!strict_protocol)
+      while (*p == ' ' || *p == '\n')
 	++p;
     if (*p == 0)
 	return 0;
@@ -157,8 +158,10 @@ const char *buf, *cp;
     strncpy(SS->helobuf, buf, sizeof(SS->helobuf));
     SS->helobuf[sizeof(SS->helobuf)-1] = 0;
 
-    while (*cp == ' ' || *cp == '\t')
-	++cp;
+    if (strict_protocol && *cp == ' ')
+      ++cp;
+    else
+      while (*cp == ' ' || *cp == '\t') ++cp;
 
     SS->policyresult = policytest(policydb, &SS->policystate,
 				  POLICY_HELONAME, cp, strlen(cp));
@@ -346,11 +349,15 @@ int insecure;
 	type(SS, 503, m551, cp);
 	return;
     }
+    if (*cp == ' ') ++cp;
+    if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
     if (!CISTREQN(cp, "From:", 5)) {
 	type(SS, 501, m552, "where is From: in that?");
 	return;
     }
-    for (cp = cp + 5; *cp != '\0' && *cp != '<'; ++cp)
+    cp += 5;
+    if (!strict_protocol)
+      for (cp = cp + 5; *cp != '\0' && *cp != '<'; ++cp)
 	/* Skip white-space */
 	if (!isascii(*cp) || !isspace(*cp)) {
 	  if (!sloppy) {
@@ -372,7 +379,7 @@ int insecure;
     }
     /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
     if (*cp == '<') {
-      s = rfc821_path(cp, strict);
+      s = rfc821_path(cp, strict || strict_protocol);
       if (s == cp) {
 	/* Failure.. */
 	type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
@@ -427,8 +434,11 @@ int insecure;
     drpt_ret = NULL;
     rc = 0;
     while (*s) {
-	while (*s && (*s == ' ' || *s == '\t'))
+	while (*s == ' ' || (sloppy && *s == '\t')) {
 	    ++s;
+	    if (strict_protocol) break;
+	    if (strict && !sloppy) break;
+	}
 	if (CISTREQN("RET=", s, 4)) {
 	    if (drpt_ret) {
 		type(SS, 501, m554, "RET-param double defined!");
@@ -439,7 +449,7 @@ int insecure;
 	    if (CISTREQN("FULL", s, 4) ||
 		CISTREQN("HDRS", s, 4))
 		s += 4;
-	    if (*s && *s != ' ' && *s != '\t') {
+	    if (*s && *s != ' ' && *s == '\t') {
 		type(SS, 501, m454, "RET-param data error");
 		return;
 	    }
@@ -484,8 +494,11 @@ int insecure;
 		SS->sizeoptval *= 10;
 		SS->sizeoptval += (*s - '0');
 		++s;
+		if (SS->sizeoptval > 999999999) /* 1GB or more? */
+		  break;
 	    }
-	    if (*s && *s != ' ' && *s != '\t') {
+	    if ((*s && *s != ' ' && *s != '\t') ||
+		(SS->sizeoptval > 999999999) /* 1GB */ ) {
 		type(SS, 501, m554, "SIZE-param data error");
 		rc = 1;
 		break;
@@ -749,11 +762,17 @@ const char *buf, *cp;
 	type(SS, 503, m551, cp);
 	return;
     }
+
+    if (*cp == ' ') ++cp;
+    if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
+
     if (!CISTREQN(cp, "To:", 3)) {
 	type(SS, 501, m552, "where is To: in that?");
 	return;
     }
-    for (cp = cp + 3; *cp != '\0' && *cp != '<'; ++cp)
+    cp += 3;
+    if (!strict_protocol)
+      for (; *cp != '\0' && *cp != '<'; ++cp)
 	if (!isspace(*cp)) {
 	  if (!sloppy) {
 	    type(SS, 501, m513, "where is <...> in that?");
@@ -844,8 +863,11 @@ const char *buf, *cp;
     drpt_orcpt = NULL;
 
     while (*s) {
-	while (isascii(*s) && isspace(*s))
+	while (*s == ' ' || (sloppy && *s == '\t')) {
 	    ++s;
+	    if (strict_protocol) break;
+	    if (strict && !sloppy) break;
+	}
 	/* IETF-NOTARY  SMTP-RCPT-DRPT extensions */
 	if (CISTREQN("NOTIFY=", s, 7)) {
 	    if (drpt_notify) {
@@ -1078,7 +1100,15 @@ void smtp_turnme(SS, name, cp)
 SmtpState *SS;
 const char *name, *cp;
 {
-    FILE *mfp = mail_open(MSG_RFC822);
+    FILE *mfp;
+    while (*cp == ' ' || *cp == '\t') ++cp;
+    if (*cp == 0) {
+	type(SS, 552, "5.0.0", "ETRN needs target domain name parameter.");
+	typeflush(SS);
+	return;
+    }
+
+    mfp = mail_open(MSG_RFC822);
     if (!mfp) {
 	type(SS, 452, m400, "Failed to initiate ETRN request;  Disk full?");
 	typeflush(SS);

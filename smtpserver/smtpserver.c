@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-1997.
+ *      Copyright 1991-1998.
  */
 
 /*
@@ -106,6 +106,7 @@ int X_translation = 0;
 int X_8bit = 0;
 int X_settrrc = 9;
 #endif				/* USE_TRANSLATION */
+int strict_protocol = 0;
 
 jmp_buf jmpalarm;		/* Return-frame for breaking smtpserver
 				   when timeout hits.. */
@@ -390,7 +391,10 @@ char **argv;
 	    inetd = 1;
 	    break;
 	case 's':		/* checking style */
-	    style = strdup(optarg);
+	    if (strcmp(optarg,"strict")==0)
+	      strict_protocol = 1;
+	    else
+	      style = strdup(optarg);
 	    break;
 	case 'L':		/* Max LoadAverage */
 	    maxloadavg = atoi(optarg);
@@ -1365,6 +1369,7 @@ int insecure;
 	int c, co = -1;
 	int i;
 	char *eobuf;
+
 	rc = -1;
 
 	if (!s_hasinput(SS))
@@ -1394,6 +1399,7 @@ int insecure;
 		(c < 32 || c == 127) && rc < 0)
 		rc = i;
 	    buf[i++] = c;
+	    co = c;
 	}
 	buf[i] = '\0';
 	eobuf = &buf[i];	/* Buf end ptr.. */
@@ -1410,15 +1416,24 @@ int insecure;
 	    *--eobuf = '\0';
 
 	/* Chop the trailing spaces */
-	while ((eobuf > buf) && (eobuf[-1] == ' ' ||
-				 eobuf[-1] == '\t'))
+	if (!strict_protocol) {
+	  while ((eobuf > buf) && (eobuf[-1] == ' ' ||
+				   eobuf[-1] == '\t'))
 	    *--eobuf = '\0';
+	} else if (strict_protocol &&
+		   eobuf > buf && (eobuf[-1] == ' ' ||
+				   eobuf[-1] == '\t')) {
+	  /* XX: Warn about trailing whitespaces on inputs!
+	     ... except that this is likely *wrong* place, as
+	     there are many varying input syntaxes... */
+	}
+				   
 
 	if (logfp != NULL) {
 	    fprintf(logfp, "%dr\t%s\n", pid, buf);
 	    fflush(logfp);
 	}
-	if (rc >= 0) {
+	if (rc >= 0 && !strict_protocol) {
 	  if (cistrncmp(buf,"HELO",4) == 0 ||
 	      cistrncmp(buf,"EHLO",4) == 0)
 	    rc = -1; /* Sigh... Bloody windows users naming their
@@ -1435,13 +1450,15 @@ int insecure;
 	    typeflush(SS);
 	    continue;
 	}
-	if (c != '\n' && i > 3) {
+	if (!strict_protocol && c != '\n' && i > 3) {
 	  /* Some bloody systems send:  "QUIT\r",
 	     and then close the socket... */
-	  if (cistrcmp(buf,"QUIT") == 0)
+	  if (cistrcmp(buf,"QUIT") == 0) {
+	    co = '\r';
 	    c = '\n'; /* Be happy... */
+	  }
 	}
-	if (c != '\n') {
+	if ((strict_protocol && (c != '\n' || co != '\r')) || (c != '\n')) {
 	    if (i < (sizeof(buf)-1))
 	      type(SS, 500, m552, "Line not terminated with CRLF..");
 	    else
@@ -1467,7 +1484,7 @@ int insecure;
 	    if (CISTREQ(SS->carp->verb, buf))
 		break;
 	}
-	*cp++ = c;
+	*cp = c;
 	if (SS->carp->verb == NULL) {
 
 	unknown_command:
@@ -1537,8 +1554,7 @@ int insecure;
 		return;
 	    break;
 	case Reset:
-	    while (*cp == ' ' || *cp == '\t') ++cp;
-	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
+	    if (*cp != 0 && strict_protocol) {
 	      type(SS, 501, m554, "Extra junk after 'RSET' verb");
 	      break;
 	    }
@@ -1570,7 +1586,6 @@ int insecure;
 	    typeflush(SS);
 	    break;
 	case Turn:
-	    while (*cp == ' ' || *cp == '\t') ++cp;
 	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
 	      type(SS, -502, m554, "Extra junk after 'TURN' verb");
 	    }
@@ -1578,7 +1593,6 @@ int insecure;
 	    typeflush(SS);
 	    break;
 	case NoOp:
-	    while (*cp == ' ' || *cp == '\t') ++cp;
 	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
 	      type(SS, 501, m554, "Extra junk after 'NOOP' verb");
 	      break;
@@ -1609,7 +1623,6 @@ int insecure;
 	    SS->with_protocol = WITH_BSMTP;
 	    break;
 	case Quit:
-	    while (*cp == ' ' || *cp == '\t') ++cp;
 	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
 	      type(SS, -221, m554, "Extra junk after 'QUIT' verb");
 	    }

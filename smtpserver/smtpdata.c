@@ -11,8 +11,8 @@
  *
  * The basic commands:
  *
- *  - DATA
- *  - BDAT
+ *  - DATA (RFC 821)
+ *  - BDAT (RFC 1830)
  *
  */
 
@@ -45,7 +45,6 @@ const char *buf, *cp;
     int ino;
     char msg[2048];
 
-    while (*cp == ' ' || *cp == '\t') ++cp;
     if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
       type(SS, 501, m554, "Extra junk after 'DATA' verb");
       return 0;
@@ -250,7 +249,7 @@ const char *buf, *cp;
 	SS->mvbstate = -1;
     }
     *msg = 0;
-    rc = sscanf(cp, "%ld %7s %7s", &bdata_chunksize, msg, msg + 8);
+    rc = sscanf(cp, "%ld %7s %7s", &bdata_chunksize, msg, msg + 20);
     SS->bdata_blocknum += 1;
     bdata_last = CISTREQ(msg, "LAST");
     if (!(bdata_chunksize > 0L

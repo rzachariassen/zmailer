@@ -1270,9 +1270,6 @@ const int len;
     if (state->values[P_A_RELAYTARGET] == '+') {
 	return  0;
     }
-    if (state->values[P_A_RELAYTARGET] == '-') {
-	return -1;
-    }
     if (state->values[P_A_ACCEPTbutFREEZE] == '+') {
 	state->sender_freeze = 1;
 	return  1;
@@ -1326,6 +1323,11 @@ const int len;
 	printf("000- ... returns: %d\n", rc);
       return rc;
     }
+
+    if (state->values[P_A_RELAYTARGET] == '-') {
+	return -1;
+    }
+
     return 0;
 }
 
