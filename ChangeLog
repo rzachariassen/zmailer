@@ -3,7 +3,7 @@
 	* smtpserver/cfgread.c, man/smtpserver.8:
 	    Recognize "PARAM bindaddr iface:...." syntax to define
 	    named interface on which SOME address you want to bind.
-	    (Preferred IPv6 is exists, otherwise IPv4.)
+	    (Prefers IPv6 if such exists, otherwise IPv4.)
 
 	* smtpserver/smtpdata.c:
 	    During DATA and BDAT processing, if the feeder
