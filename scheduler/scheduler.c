@@ -1335,8 +1335,8 @@ void resync_file(proc, file)
 	  sp_delete(spl, spt_mesh[L_CTLFILE]);
 	spl = NULL;
 
-	sfprintf(sfstdout, "Resyncing file \"%s\" (ino=%d) (of=%d ho='%s')\n",
-		 file, (int) ino, proc->overfed,
+	sfprintf(sfstdout, "Resyncing file \"%s\" (ino=%d pid=%d of=%d ho='%s')\n",
+		 file, (int) ino, proc->pid, proc->overfed,
 		 (proc->ho ? proc->ho->name : "<NULL>"));
 	/* sfprintf(sfstdout, " .. in processing db\n"); */
 
