@@ -87,6 +87,49 @@ FILE	*mfp = NULL;
 	  cp = newcp;						\
 	}
 
+
+void usage()
+{
+  
+  fprintf(stderr, "Usage: %s [sendmail options] [recipient addresses]\n", progname);
+  fprintf(stderr, "  ZMailer's sendmail recognizes and implements following options:
+     -B bodytype  -  Valid values: 8BITMIME, 7BIT
+     -C conffile  -  specifies config file (meaningfull for -bt)
+     -E           -  flag 'external' source
+     -F 'full name'  sender's full name string
+     -N notifyopt -  Notify option(s): NEVER or a set of: SUCCESS,DELAY,FAILURE
+     -P priority# -  numeric priority for ZMailer router queue pre-selection
+     -R returnopt -  Error report return option, either of: FULL, HDRS
+     -U           -  Flag as 'user submission'
+     -V envidstring - XTEXT encoded ENVID string
+     -b?          -  operational mode flags
+     -bd          -  starts smtpserver in daemon mode
+     -bi          -  runs 'newaliases' command
+     -bm          -  deliver mail; always :-)
+     -bp          -  runs 'mailq' command
+     -bs          -  speak smtp; runs smtpserver in interactive mode
+     -bt          -  starts router in interactive test mode
+     -e*             (ignored)
+     -f fromaddr  -  sets envelope from address for the message
+     -i           -  on inputs from tty this will ignore SMTP-like dot-EOF
+     -m           -  send a copy of the message to the sender too (ignored)
+     -o*          -  multiple options; those not listed cause error
+     -oQ queuedir -  defines POSTOFFICE directory for message submission
+     -ob*            (ignored)
+     -od*            (ignored)
+     -oe*            (ignored)
+     -oi          -  alias of '-i' option
+     -or*            (ignored)
+     -p submitprotocol - value for 'with' label at 'Received:' header
+     -q*          -  queue processing commands (ignored)
+     -r fromaddr  -  (alternate for -f)
+     -t           -  scan message rfc822 headers for recipient addresses
+     -v           -  verbose trace of processing
+");
+  
+}
+
+
 extern int main __((int argc, const char *argv[]));
 int
 main(argc, argv)
@@ -113,6 +156,7 @@ main(argc, argv)
 	char	*returnopt = NULL;
 	char	*envidstr = NULL;
 	const char * newcp = NULL;
+	int	save_from = 0;
 
 	cp = strrchr(argv[0], '/');
 	if (cp != NULL)
@@ -150,6 +194,12 @@ main(argc, argv)
 			/* Sendmail 8.7 compability:
 			   -B8BITMIME */
 			bodytype = optarg;
+			if (strcasecmp(bodytype,"8BITMIME") != 0 &&
+			    strcasecmp(bodytype,"7BIT") != 0 &&
+			    strcasecmp(bodytype,"BINARYMIME") != 0) {
+			  fprintf(stderr,"sendmail: unrecognized -B option parameter value: '%s'\n",bodytype);
+			  exit(EX_USAGE);
+			}
 			break;
 		case 'J': break; /* Sony NEWS OS  JIS-conversion option,
 				    ignore */
@@ -288,11 +338,18 @@ main(argc, argv)
 			verbose = 1;
 			break;
 		case 's':	/* save From_ lines */
-			sprintf(ebp, " -%c", c);
-			ebp += strlen(ebp);
+			save_from = 1;
 			break;
 		case 'p':
 			submitprotocol = optarg;
+			for (;*optarg;++optarg) {
+			  int c = (*optarg) & 0xFF;
+			  if ('0' <= c && c <= '9') continue;
+			  if ('A' <= c && c <= 'Z') continue;
+			  if ('z' <= c && c <= 'z') continue;
+			  fprintf(stderr,"sendmail: only alphanumeric characters accepted for -p option parameter: '%s'\n",submitprotocol);
+			  exit(EX_USAGE);
+			}
 			break;
 		case 'P':
 			mail_priority = atoi(optarg);
@@ -324,8 +381,7 @@ otherprog:
 				zmailer);
 	}
 	if (errflg) {
-		fprintf(stderr, "Usage: %s [sendmail options]\n",
-				       progname);
+		usage();
 		exit(EX_USAGE);
 	}
 	n = 0;
@@ -573,7 +629,7 @@ otherprog:
 			s[0] = '\n';
 			s[1] = 0;
 		      }
-		      if (strncmp(buf,"From ",5)==0) {
+		      if (!save_from && strncmp(buf,"From ",5)==0) {
 			/* [mea@utu.fi] I vote for
 			   removing this line if next
 			   is a RFC-header */
@@ -582,7 +638,7 @@ otherprog:
 			strcpy(buf2,buf);
 			continue;
 		      }
-		      if (strncmp(buf,">From ",6)==0) {
+		      if (!save_from && strncmp(buf,">From ",6)==0) {
 			/* [mea@utu.fi] I vote for
 			   removing this line if next
 			   is a RFC-header */
