@@ -379,6 +379,7 @@ typedef struct { /* SmtpState */
 # ifdef RFC974
   int  mxcount;
   struct mxdata mxh[MAXFORWARDERS];
+  char *realname;		/* If have CNAME data for target domain */
 # endif /* RFC974 */
   int  smtp_bufsize;		/* Size of the buffer; this should be large
 				   enough to contain MOST cases of pipelined
@@ -514,7 +515,7 @@ extern int  rightmx  __((const char*, const char*, void*));
 extern int  h_errno;
 extern int  res_mkquery(), res_send(), dn_skipname(), dn_expand();
 # ifdef RFC974
-extern int  getmxrr __((SmtpState *, const char*, struct mxdata*, int, int));
+extern int  getmxrr __((SmtpState *SS, const char *host, struct mxdata mx[], int maxmx, int depth, char *realname, const int realnamesize));
 # endif /* RFC974 */
 extern void mxsetsave __((SmtpState *SS, const char *));
 #endif	/* BIND */
@@ -531,7 +532,6 @@ extern ssize_t smtp_sfwrite __((Sfio_t *, const void *, size_t, Sfdisc_t *));
 extern int  zsfsetfd     __((Sfio_t *, int));
 extern int  smtp_nbread  __((SmtpState *, void *, int));
 
-extern int  getmxrr __((SmtpState *SS, const char *host, struct mxdata mx[], int maxmx, int depth));
 
 extern void rmsgappend __((SmtpState *, int, const char *, ...));
 

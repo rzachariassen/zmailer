@@ -276,7 +276,7 @@ static int  start_child (i)
 
     child_server(0, 1);
 
-    exit(1);
+    exit(0);
 
   } else if (pid < 0) { /* fork failed - yell and forget it! */
     close(tofd[0]);  close(tofd[1]);

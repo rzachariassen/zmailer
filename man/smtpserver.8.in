@@ -646,6 +646,12 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
 #PARAM rcvd-tls-mode    # Cipher or not
 #PARAM rcvd-tls-ccert   # Client Certificate reference
 
+# EGD/PRNGD type entropy source for OpenSSL in case your
+# system does not have  /dev/*random  devices:
+#
+#PARAM tls-random-source /var/run/prngd-socket
+
+
 # A load-balanced server cluster may want to communicate
 # the ETRN request to cluster components, here is how:
 # See also:  doc/guides/etrn-cluster
@@ -1163,6 +1169,22 @@ PARAM tls-loglevel 0
 .RS 2em
 .nf
 PARAM use-tls
+.fi
+.RE
+.PP
+.I "If the operating system isn't equipped with  /dev/*random  devices,"
+.I "OpenSSL's"
+.IR RAND_bytes (3)
+.I "function will use compilation time defaults to locate EGD compatible"
+.I "entropy source.  See dokumentation at:"
+.IR RAND_egd (3)
+.I "man-page.  If you have something similar in your system, but in"
+.I "non-default location (see the man-page above), you can set its"
+.I "location with this:"
+.PP
+.RS 2em
+.nf
+PARAM tls-random-source /var/run/prngd-socket
 .fi
 .RE
 .PP

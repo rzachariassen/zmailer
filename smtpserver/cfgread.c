@@ -116,10 +116,11 @@ static void dollarexpand(s0, space)
 }
        
 
-static void cfparam __((char *, int));
-static void cfparam(str,size)
+static void cfparam __((char *, int, const char *, int));
+static void cfparam(str, size, cfgfilename, linenum)
      char *str;
-     int size;
+     int size, linenum;
+     const char *cfgfilename;
 {
     char *name, *param1, *param2, *param3;
     char *str0 = str;
@@ -374,6 +375,8 @@ static void cfparam(str,size)
       force_rcpt_notify_never = 1;
     }
 
+#ifdef HAVE_OPENSSL
+
     /* TLSv1/SSLv* options */
 
     else if (cistrcmp(name, "use-tls") == 0)
@@ -449,17 +452,16 @@ static void cfparam(str,size)
       sscanf(param1,"%d", & tls_req_cert);
 
     } else if (cistrcmp(name, "tls-use-scache") == 0) {
-#ifdef HAVE_OPENSSL
       tls_use_scache = 1;
-#endif /* - HAVE_OPENSSL */
 
     } else if (cistrcmp(name, "tls-scache-timeout") == 0 && param1) {
-#ifdef HAVE_OPENSSL
       sscanf(param1,"%d", & tls_scache_timeout);
-#endif /* - HAVE_OPENSSL */
+
     } else if (cistrcmp(name, "lmtp-mode") == 0) {
       lmtp_mode = 1;
     }
+#endif /* - HAVE_OPENSSL */
+
 
     /* Cluster-wide ETRN support for load-balanced smtp relay use */
     else if (cistrcmp(name, "etrn-cluster") == 0 && param3 /* 3 params */) {
@@ -474,6 +476,7 @@ static void cfparam(str,size)
 
     else {
       /* XX: report error for unrecognized PARAM keyword ?? */
+      type(NULL,0,NULL, "Cfgfile '%s' line %d has bad PARAM keyword/missing parameters: '%s'", cfgfilename, linenum, name);
     }
 }
 
@@ -484,12 +487,14 @@ readcffile(name)
     FILE *fp;
     struct smtpconf scf, *head, *tail = NULL;
     char c, *cp, buf[1024], *s, *s0;
+    int linenum = 0;
 
     if ((fp = fopen(name, "r")) == NULL)
 	return NULL;
     head = NULL;
     buf[sizeof(buf) - 1] = 0;
     while (fgets(buf, sizeof buf, fp) != NULL) {
+	++linenum;
 	c = buf[0];
 	if (c == '#' || (isascii(c) && isspace(c)))
 	    continue;
@@ -504,7 +509,7 @@ readcffile(name)
 	cp = buf;
 	SKIPSPACE(cp);
 	if (strncmp(cp, "PARAM", 5) == 0) {
-	    cfparam(cp, sizeof(buf) -(cp-buf));
+	    cfparam(cp, sizeof(buf) -(cp-buf), name, linenum);
 	    continue;
 	}
 	scf.flags = "";

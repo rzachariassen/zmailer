@@ -1991,6 +1991,9 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	/* Add the From_ line and print out the header */
 
 	sfprintf(fp, "%s%s %s", FROM_, fromuser, timestring);
+
+	header_received_for_clause(rp, 0, verboselog);
+
 	swriteheaders(rp, fp, "\n", convert_qp, 0, NULL);
 
 	sfprintf(fp, "X-Envelope-To: <%s> (uid %d)\n", rp->addr->user, uid);

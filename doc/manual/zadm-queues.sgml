@@ -48,8 +48,8 @@ been lost.
 How exactly you can combat the problem is yours to choose.
 Most filesystems for UNIX have lots of different options at mount-time,
 and also by-directory attributes can be set to control these things.
-Check yours after your decide on what kind of data loss treat you can
-tolerate at expence of what speed reduction.
+Check yours after your decide on what kind of data loss threat you can
+tolerate at the expence of what speed reduction.
 (E.g. 300+ day straight uptime with power surges during a thunderstorm at
  the end of it toasting your machine along with its disks and filesystems,
  but trouble-free running until then ?)

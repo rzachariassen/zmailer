@@ -1440,10 +1440,30 @@ deliver(SS, dp, startrp, endrp)
 
 	  SS->cmdstate = SMTPSTATE_RCPTTO;
 
-	  sprintf(SMTPbuf, "RCPT To:<%.800s>", rp->addr->user);
-	  s = SMTPbuf + strlen(SMTPbuf);
+	  if (SS->realname) { /* Urgh CNAME canonication ... */
+	    const char *p = rp->addr->user;
+	    s = SMTPbuf;
+	    const char *e = s + 810;
+
+	    strcpy(s, "RCPT TO:<"); s += strlen(s);
+
+	    while (*p && (*p != '@') && (s < e)) { *s = *p; ++s; ++p; }
+
+	    if ('@' == *p) { /* Has "@-full" address, will rewrite.. */
+	      *s++ = *p++;
+	      p = SS->realname;
+	      while (*p && s < e) *s++ = *p++;
+	      *s++ = '>';
+	    }
+	    *s = 0;
+
+	  } else { /* No CNAME jumbogumbo.. */
+	    sprintf(SMTPbuf, "RCPT To:<%.800s>", rp->addr->user);
+	    s = SMTPbuf + strlen(SMTPbuf);
+	  }
 
 	  if (SS->ehlo_capabilities & ESMTP_DSN) {
+
 	    if (rp->notifyflgs) {
 	      const char *t = "";
 	      strcat(s, " NOTIFY=");
@@ -1464,10 +1484,26 @@ deliver(SS, dp, startrp, endrp)
 		strcat(s, t);
 		strcat(s, "DELAY");
 	      }
-	      s += strlen(s);
-	    }
+	    } else
+	      strcat(s, " NOTIFY=FAILURE,DELAY"); /* Default value.. */
+
+	    s += strlen(s);
+
+
 	    if (rp->orcpt != NULL) {
 	      sprintf(s, " ORCPT=%.800s", rp->orcpt);
+	    } else {
+	      const char *p = rp->addr->user;
+	      strcpy(s, " ORCPT=rfc822;"); s += strlen(s);
+	      while (*p) {
+		u_char c = *p;
+		if ('!' <= c && c <= '~' && c != '+' && c != '=')
+		  *s = c;
+		else
+		  sprintf(s,"+%02X",c), s += 2;
+		++s;
+	      }
+	      *s = 0;
 	    }
 	  }
 	  
@@ -1670,6 +1706,8 @@ deliver(SS, dp, startrp, endrp)
 #endif /* - HAVE_OPENSSL */
 	    tcpstream_nagle(sffileno(SS->smtpfp));
 	}
+
+	header_received_for_clause(startrp, rcpt_cnt, SS->verboselog);
 
 	SS->hsize = swriteheaders(startrp, SS->smtpfp, "\r\n",
 				  convertmode, 0, chunkblkptr);
@@ -2264,7 +2302,11 @@ smtpconn(SS, host, noMX)
 {
 	int	i, r, retval;
 	char	hbuf[MAXHOSTNAMELEN+1];
+	char    realname[1024];
 	volatile int	rc;
+
+	if (SS->realname) free(SS->realname);
+	SS->realname = NULL;
 
 	SS->literalport = -1;
 
@@ -2458,20 +2500,25 @@ smtpconn(SS, host, noMX)
 	    SS->mxcount = 0;
 	    memset(SS->mxh, 0, sizeof(SS->mxh));
 
-	    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0);
+	    realname[0] = 0;
+	    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0,
+			 realname, sizeof(realname));
 
-	    if (rc == EX_OK)
+	    if (rc == EX_OK) {
 	      mxsetsave(SS, host);
+	      if (realname[0] != 0)
+		SS->realname = strdup(realname);
+	    }
 
 	    if (SS->verboselog) {
 	      if (SS->mxcount == 0)
 		fprintf(SS->verboselog,
-			" rc=%d, no MXes (host=%.200s)\n", rc, host);
+			" rc=%d, no MXes (host='%.200s'; realname='%.200s')\n", rc, host, realname);
 	      else
 		fprintf(SS->verboselog,
-			" rc=%d, mxh[0].host=%.200s (host=%.200s) mxcnt=%d\n",
+			" rc=%d, mxh[0].host=%.200s (host='%.200s', realname='%.200s') mxcnt=%d\n",
 			rc, (SS->mxh[0].host) ? (char*)SS->mxh[0].host : "<NUL>",
-			host, SS->mxcount);
+			host, realname, SS->mxcount);
 	    }
 
 	    /* Some error from getmxrr(), bail out immediately */
@@ -4513,6 +4560,7 @@ rightmx(spec_host, addr_host, cbparam)
 {
 	SmtpState *SS = cbparam;
 	int	i, rc;
+	char realname[1024];
 
 	if (CISTREQ(spec_host, addr_host))
 	  return 1;
@@ -4527,7 +4575,8 @@ rightmx(spec_host, addr_host, cbparam)
 	if (statusreport)
 	  report(SS,"MX-lookup: %s", addr_host);
 
-	switch (getmxrr(SS, addr_host, SS->mxh, MAXFORWARDERS, 0)) {
+	realname[0] = 0;
+	switch (getmxrr(SS, addr_host, SS->mxh, MAXFORWARDERS, 0, realname, sizeof(realname))) {
 	case EX_OK:
 	  if (SS->mxh[0].host == NULL)
 	    return CISTREQ(addr_host, SS->remotehost);

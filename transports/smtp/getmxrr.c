@@ -13,11 +13,13 @@ typedef union {
 } querybuf;
 
 int
-getmxrr(SS, host, mx, maxmx, depth)
+getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize)
 	SmtpState *SS;
 	const char *host;
 	struct mxdata mx[];
 	int maxmx, depth;
+	char realname[1024];
+	const int realnamesize;
 {
 	HEADER *hp;
 	msgdata *eom, *cp;
@@ -28,7 +30,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	int saw_cname = 0;
 	int had_eai_again = 0;
 	querybuf qbuf, answer;
-	msgdata buf[8192], realname[8192];
+	msgdata buf[8192];
 	char mxtype[MAXFORWARDERS];
 
 	h_errno = 0;
@@ -207,7 +209,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  }
 	  if (type == T_CNAME) {
 	    cp += dn_expand((msgdata *)&answer, eom, cp,
-			    (void*)realname, sizeof realname);
+			    (void*)realname, realnamesize);
 	    if (cp > eom) break;
 	    saw_cname = 1;
 	    --ancount;
@@ -306,7 +308,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	if (nmx == 0 && realname[0] != 0) {
 	  /* do it recursively for the real name */
-	  n = getmxrr(SS, (char *)realname, mx, maxmx, depth+1);
+	  n = getmxrr(SS, (char *)realname, mx, maxmx, depth+1,
+		      realname, realnamesize);
+
 	  if (had_eai_again)
 	    return EX_DEFERALL;
 	  return n;
@@ -923,6 +927,7 @@ int main(argc, argv)
 	int rc;
 	SmtpState SS;
 	char *host, *s;
+	char realname[1024];
 
 	progname = argv[0];
 
@@ -951,7 +956,7 @@ int main(argc, argv)
 
 	printf("ZMAILER GETMXRR() TEST HARNESS\n");
 
-	rc = getmxrr(&SS, host, SS.mxh, MAXFORWARDERS, 0);
+	rc = getmxrr(&SS, host, SS.mxh, MAXFORWARDERS, 0, realname, sizeof(realname));
 
 	switch (rc) {
 	case EX_OK:

@@ -1208,6 +1208,125 @@ NULL };
 }
 
 
+int
+header_received_for_clause(rp, rcptcnt, verboselog)
+     struct rcpt *rp;
+     int rcptcnt;
+     FILE *verboselog;
+{
+	int semicindex, receivedlen;
+	char *newreceived;
+
+	char forclause[1024], *s = forclause;
+	int clauselen = 0; /* Dual-use variable! */
+
+	char **inhdr, *sc;
+
+
+	/* Begin at the indented line start.. */
+	strcpy(s, " \n\t"); s += 3;
+
+	if (rp->orcpt) {
+	  /* Decode ORCPT XTEXT data ?  Why ? */
+	  sprintf(s, "(for <%.800s>", rp->orcpt);
+	  clauselen = 1; /* Will need ending ')'! */
+	} else {
+	  sprintf(s, "for <%.800s>", rp->addr->user);
+	}
+
+	s += strlen(s);
+
+	if (rcptcnt > 2)
+	  sprintf(s, "(+ %d others)", rcptcnt-1);
+	else if (rcptcnt > 1)
+	  strcpy(s, "(+ 1 other)");
+
+	s += strlen(s);
+
+	if (clauselen) { *s++ = ')'; }
+
+	clauselen = s - forclause;
+
+
+
+	if (*(rp->newmsgheadercvt) == NULL)
+	  if (!cvtspace_copy(rp)) return 0; /* XX: auch! */
+
+	inhdr = *(rp->newmsgheadercvt);
+
+
+	/* We have one advantage: The "Received:" header we
+	   want to fiddle with is the first one of them. */
+
+	if (!inhdr || !CISTREQN(*inhdr,"Received:",9)) {
+	  /* if (verboselog)fprintf(verboselog, "first *inhdr = '%s'\n",*inhdr ? *inhdr:"<NUL>"); */
+	  return 0; /* D'uh ??  Not 'Received:' ??? */
+	}
+
+	/* Look for the LAST semicolon in this Received: header.. */
+
+	sc = strrchr(*inhdr, ';');
+	if (sc) {
+	  semicindex = sc - *inhdr;
+	} else {
+	  semicindex = strlen(*inhdr);
+	  sc = *inhdr + semicindex;
+	}
+
+	receivedlen = strlen(*inhdr);
+	newreceived = malloc(receivedlen + clauselen + 1);
+
+	if (!newreceived) return 0; /* Failed malloc.. */
+
+	/* Begin.. */
+	memcpy(newreceived, *inhdr, semicindex);
+
+	/* For clause */
+	memcpy(newreceived+semicindex, forclause, clauselen);
+
+	/* Tail */
+	s = newreceived + semicindex + clauselen;
+
+
+#if 0
+	if (verboselog) {
+	  fprintf(verboselog,"receivedlen=%d, clauselen=%d, taillen=%d\n", receivedlen, clauselen, receivedlen-semicindex);
+	  fprintf(verboselog,"sc[] = '%s'\n", sc);
+	}
+#endif
+
+	if ( ((clauselen + (receivedlen-semicindex)) < 78)) {
+	  /* Shrink the tail a bit, unnecessary folding away. */
+	  *s++ = ';';
+	  *s++ = ' ';
+	  ++sc; /* Skip the semicolon */
+	  while (*sc && (*sc == '\n' || *sc == '\r' || *sc == ' ' || *sc == '\t')) ++sc;
+	  strcpy(s, sc);
+#if 0
+	  if (verboselog) fprintf(verboselog,"sc[] = '%s'\n", sc);
+#endif
+	  if (*sc == 0) strcat(s, "\n");
+	} else
+	  if (semicindex < receivedlen) {
+	    memcpy(newreceived+semicindex+clauselen, (*inhdr) + semicindex,
+		   receivedlen - semicindex);
+	    newreceived[receivedlen + clauselen] = '\0';
+	  }
+
+	ctlfree(rp->desc,*inhdr);
+	*inhdr = newreceived;
+#if 0
+	if (verboselog) {
+	  fprintf(verboselog,"Rewriting 'Received:' headers.\n");
+	  fprintf(verboselog,"The new line is: '%s'\n",*inhdr);
+	}
+#endif
+
+	return 1;
+}
+
+
+
 static int /* Return non-zero for success */
 mime_received_convert(rp, convertstr)
 	struct rcpt *rp;

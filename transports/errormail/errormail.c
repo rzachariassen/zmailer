@@ -431,6 +431,9 @@ process(dp)
 	lseek(dp->msgfd, (off_t)(dp->msgbodyoffset), SEEK_SET);
 
 	/* write the (new) headers with local "Received:"-line.. */
+
+	header_received_for_clause(rp, 0, verboselog);
+
 	swriteheaders(rp, mfp, "\n", 0, 0, NULL);
 	sfprintf(mfp,"\n");
 
