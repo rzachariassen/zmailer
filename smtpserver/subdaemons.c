@@ -18,7 +18,7 @@
 
 #include "smtpserver.h"
 
-static int subdaemon_nofiles = 32;
+static int subdaemon_nofiles = 256;
 
 int  ratetracker_rdz_fd = -1;
 int  ratetracker_server_pid  = 0;
@@ -85,8 +85,7 @@ int subdaemons_init __((void))
 	  sprintf(smtpserver, "%s/smtpserver", mailbin);
 	}
 
-	subdaemon_nofiles = resources_query_nofiles();
-	if (subdaemon_nofiles < 32) subdaemon_nofiles = 32; /* failsafe */
+	resources_maximize_nofiles();
 
 	rc = fdpass_create(to);
 	if (rc == 0) {
@@ -183,8 +182,10 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	fd_set rdset, wrset;
 	struct timeval tv;
 
-
 	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
+
+	subdaemon_nofiles = resources_query_nofiles();
+	if (subdaemon_nofiles < 32) subdaemon_nofiles = 32; /* failsafe */
 
 	/* Don't close files/handles, the system shuts down
 	   without it just fine */
