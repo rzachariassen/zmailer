@@ -1728,10 +1728,8 @@ void thread_detail_report(fp,mqmode,channel,host)
 	    struct ctlfile *cfp = vp->cfp;
 	    for (i = 0; i < vp->ngroup; ++i) {
 	      /* Spoolfile */
-	      if (vp->cfp->dirind >= 0)
-		sfprintf(fp, "%s/%s", cfpdirname(cfp->dirind), cfp->mid);
-	      else
-		sfprintf(fp, "%s", cfp->mid);
+	      sfprintf(fp, "%s%s", cfpdirname(cfp->dirind), cfp->mid);
+
 	      /* How manyth in a group ? */
 	      sfprintf(fp, "\t%d", i);
 	      /* Sender index -- or sender address */

@@ -1,3 +1,12 @@
+2001-05-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/scheduler.c, scheduler/msgerror.c, scheduler/qprint.c,
+	  scheduler/threads.c, scheduler/transport.c, scheduler/update.c:
+	    I suspect that in certain cases the scheduler should do
+	    "resync" on message file instead of just logging a complaint
+	    into stderr like it now does at the end of  findvertex().
+	    Adding some debugging data so that I can verify the thing.
+
 2001-05-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* README.UPGRADING:

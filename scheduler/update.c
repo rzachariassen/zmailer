@@ -198,10 +198,7 @@ unctlfile(cfp, no_unlink)
 	if (!no_unlink && !procselect) {
 	  char	path[MAXPATHLEN+1];
 
-	  if (cfp->dirind > 0)
-	    sprintf(path, "%s/%s", cfpdirname(cfp->dirind), cfp->mid);
-	  else
-	    strcpy(path, cfp->mid);
+	  sprintf(path, "%s%s", cfpdirname(cfp->dirind), cfp->mid);
 
 	  reporterrs(cfp, 0);
 
@@ -218,12 +215,8 @@ unctlfile(cfp, no_unlink)
 	    sfprintf(sfstdout,"%s: unlink %s (mid=%p)",
 		     cfp->logident, path, cfp->mid);
 
-	  if (cfp->dirind > 0)
-	    sprintf(path, "../%s/%s/%s",
-		    QUEUEDIR, cfpdirname(cfp->dirind), cfp->mid);
-	  else
-	    sprintf(path, "../%s/%s",
-		    QUEUEDIR, cfp->mid);
+	  sprintf(path, "../%s/%s%s",
+		  QUEUEDIR, cfpdirname(cfp->dirind), cfp->mid);
 
 	  eunlink(path,"sch-unctl-2");
 	  if (verbose)
@@ -355,9 +348,11 @@ static struct vertex *findvertex(inum, offset, idx)
 	  for (i = 0; i < vp->ngroup; ++i)
 	    if (vp->index[i] == *idx)
 	      return vp;
+
 	sfprintf(sfstderr,
-		 "%s: multiple processing of address at %ld in control file %ld!\n",
-		 progname, offset, inum);
+		 "%s: multiple processing of address at %ld in control file %s%s!\n",
+		 progname, offset, cfpdirname(cfp->dirind), cfp->mid);
+
 	return NULL;
 }
 
@@ -384,12 +379,10 @@ static int ctlowner(cfp)
 #else
 	path = (char*)emalloc(5+strlen(cfp->mid)+sizeof QUEUEDIR+8);
 #endif
-	if (cfp->dirind > 0)
-	  sprintf(path, "../%s/%s/%s",
-		  QUEUEDIR, cfpdirname(cfp->dirind), cfp->mid);
-	else
-	  sprintf(path, "../%s/%s",
-		  QUEUEDIR, cfp->mid);
+
+	sprintf(path, "../%s/%s%s",
+		QUEUEDIR, cfpdirname(cfp->dirind), cfp->mid);
+
 	if (stat(path, &stbuf) == 0)
 	  rc = stbuf.st_uid;
 #ifndef USE_ALLOCA

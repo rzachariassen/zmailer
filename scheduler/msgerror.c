@@ -203,13 +203,8 @@ msgerror(vp, offset, message)
 
 	if (vp->notary) notary = vp->notary;
 
-	if (vp->cfp->dirind > 0) {
-	  sprintf(path, "%.300s/%.100s",
-		  cfpdirname(vp->cfp->dirind), vp->cfp->mid);
-	} else {
-	  strncpy(path,vp->cfp->mid,400);
-	  path[400] = 0;
-	}
+	sprintf(path, "%.300s%.100s",
+		cfpdirname(vp->cfp->dirind), vp->cfp->mid);
 
 	/* exclusive access required, but we're the only scheduler... */
 	fp = sfopen(NULL, path, "a");
@@ -479,10 +474,7 @@ reporterrs(cfpi, delayreports)
 	envid        = cfpi->envid;
 
 	/* exclusive access required, but we're the only scheduler... */
-	if (cfpi->dirind > 0)
-	  sprintf(mpath,"%s/%s", cfpdirname(cfpi->dirind), cfpi->mid);
-	else
-	  strcpy(mpath,cfpi->mid);
+	sprintf(mpath,"%s%s", cfpdirname(cfpi->dirind), cfpi->mid);
 
 	fd = open(mpath, O_RDWR, 0);
 	if (fd < 0 ||
@@ -874,12 +866,8 @@ Following is copy of the message headers. Original message content may\n\
 be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 
 	/* path to the message body */
-	if (cfpi->dirind > 0)
-	  sprintf(path, "../%s/%s/%s",
-		  QUEUEDIR, cfpdirname(cfpi->dirind), cfpi->mid);
-	else
-	  sprintf(path, "../%s/%s",
-		  QUEUEDIR, cfpi->mid);
+	sprintf(path, "../%s/%s%s",
+		QUEUEDIR, cfpdirname(cfpi->dirind), cfpi->mid);
 
 	fp = sfopen(NULL, path, "r");
 	if (fp != NULL) {
@@ -1025,13 +1013,8 @@ msgdelayed(vp, offset, notary, message)
 	  if (s) *s++ = 0;
 	}
 
-	if (vp->cfp->dirind > 0) {
-	  sprintf(path, "%.300s/%.100s",
-		  cfpdirname(vp->cfp->dirind), vp->cfp->mid);
-	} else {
-	  strncpy(path,vp->cfp->mid,400);
-	  path[400] = 0;
-	}
+	sprintf(path, "%.300s%.100s",
+		cfpdirname(vp->cfp->dirind), vp->cfp->mid);
 
 	/* exclusive access required, but we're the only scheduler... */
 	fp = sfopen(NULL, path, "a");

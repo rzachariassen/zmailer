@@ -146,7 +146,6 @@ static int  globmatch   __((const char *, const char*));
 static void vtxdo   __((struct vertex *, struct config_entry *, const char *));
 
 extern void  cfp_mksubdirs __((const char *, const char*));
-extern const char *cfpdirname __((int));
 
 static RETSIGTYPE sig_exit   __((int sig));
 static RETSIGTYPE sig_quit   __((int sig));
@@ -2129,7 +2128,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	    cfp->dirind = hash;
 	    /* Ok, we have the hash values, now move the file
 	       to match with our hashes.. */
-	    sprintf(path, "%s/%s", cfpdirname(hash), fpath);
+	    sprintf(path, "%s%s", cfpdirname(hash), fpath);
 	    if (rename(fpath, path) != 0) {
 	      /* Failed, why ? */
 	      if (errno != ENOENT) {
@@ -2149,7 +2148,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      /* Successfully renamed the transport file to a subdir,
 		 now do the same to the queue directory! */
 	      sprintf(path,  "../%s/%s", QUEUEDIR, cfp->mid);
-	      sprintf(path2, "../%s/%s/%s",
+	      sprintf(path2, "../%s/%s%s",
 		      QUEUEDIR, cfpdirname(cfp->dirind), cfp->mid);
 
 	      if (rename(path,path2) != 0) {
@@ -2167,7 +2166,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 
 	if (cfp->mid != NULL) {
 	  if (cfp->dirind >= 0)
-	    sprintf(mfpath, "../%s/%s/%s",
+	    sprintf(mfpath, "../%s/%s%s",
 		    QUEUEDIR, cfpdirname(cfp->dirind), cfp->mid);
 	  else
 	    sprintf(mfpath, "../%s/%s", QUEUEDIR, cfp->mid);
@@ -2860,11 +2859,11 @@ int hash;
 	static char dirbuf[8];
 
 	if (hash < 0)
-	  return ".";
+	  return "";
 	if (hash < 256) {
-	  sprintf(dirbuf, "%c", hash);
+	  sprintf(dirbuf, "%c/", hash);
 	} else {
-	  sprintf(dirbuf, "%c/%c", (hash >> 8) & 0xff, hash & 0xff);
+	  sprintf(dirbuf, "%c/%c/", (hash >> 8) & 0xff, hash & 0xff);
 	}
 	return dirbuf;
 }
@@ -2878,18 +2877,22 @@ const char *topdir, *newpath;
 {
 	char path[256];
 	int omask = umask(022);
+	char *s;
 
 	if (*topdir != 0)
 	  sprintf(path, "../%s/%s", topdir, newpath);
 	else
 	  strcpy(path, newpath);
 
-	if (mkdir(path,0755) != 0) {
+	s = strrchr(path,'/');
+	if (s[1] == 0) *s = 0; /* Trailing slash elimination */
+
+	if (mkdir(path,02755) != 0) {
 	  char *s = strrchr(path,'/');
 	  if (s) *s = 0;
-	  mkdir(path,0755);
+	  mkdir(path,02755);
 	  if (s) *s = '/';
-	  mkdir(path,0755);
+	  mkdir(path,02755);
 	}
 	umask(omask);
 }

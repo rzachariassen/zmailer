@@ -254,17 +254,17 @@ feed_child(proc)
 	  cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
 	  strcpy(cmdbuf,"\n");
 
-	} else if (vtx->cfp->dirind > 0) {
+	} else if (vtx->cfp->dirind >= 0) {
 
 	  const char *d = cfpdirname(vtx->cfp->dirind);
 	  if (proc->thg->withhost) { /* cmd-line was with host */
 	    cmdlen = 2 + strlen(d) + strlen(vtx->cfp->mid);
 	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
-	    sprintf(cmdbuf, "%s/%s\n", d, vtx->cfp->mid);
+	    sprintf(cmdbuf, "%s%s\n", d, vtx->cfp->mid);
 	  } else {
 	    cmdlen = 3+strlen(d)+strlen(vtx->cfp->mid)+strlen(proc->ho->name);
 	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
-	    sprintf(cmdbuf, "%s/%s\t%s\n", d, vtx->cfp->mid, proc->ho->name);
+	    sprintf(cmdbuf, "%s%s\t%s\n", d, vtx->cfp->mid, proc->ho->name);
 	  }
 	} else {
 
