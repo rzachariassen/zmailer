@@ -1082,9 +1082,10 @@ deliver(SS, dp, startrp, endrp)
 	CONVERTMODE convertmode;
 	int ascii_clean = 0;
 	struct stat stbuf;
-	const char *cname;
-	char *s, *se,  *rcpthost;
+	const char *cname, *u = NULL;
+	char *s;
 	char SMTPbuf[2000];
+	char const * const se = SMTPbuf+sizeof(SMTPbuf)-40;
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
 	int pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
@@ -1096,8 +1097,6 @@ deliver(SS, dp, startrp, endrp)
 	struct ct_data  *CT  = NULL;
 	struct cte_data *CTE = NULL;
 	char **hdr;
-
-	se = SMTPbuf+sizeof(SMTPbuf)-40;
 
 	hdr = has_header(startrp,"Content-Type:");
 	if (hdr)
@@ -1289,11 +1288,12 @@ deliver(SS, dp, startrp, endrp)
 	s = SMTPbuf + 11;
 
 	if (!STREQ(startrp->addr->link->channel,"error")) {
-	  const char *u = startrp->addr->link->user;
-	  const char *se = s + 800;
 
 	  /* Copy the (possibly quoted) local part */
 	  int quote = 0;
+
+	  u = startrp->addr->link->user;
+
 	  for ( ; *u && s < se; ++u) {
 	    char c = *u;
 	    if (c == '\\') {
@@ -1331,6 +1331,8 @@ deliver(SS, dp, startrp, endrp)
 	    /* Copy the domain (original/cname). */
 	    while ((s < se) && *u) *s++ = *u++;
 	  }
+
+	  u = NULL;
 
 	} /* non-error source address mode */
 
@@ -1458,16 +1460,12 @@ deliver(SS, dp, startrp, endrp)
 
 	  SS->cmdstate = SMTPSTATE_RCPTTO;
 
-	  rcpthost = strchr(rp->addr->user, '@');
-	  if (rcpthost) ++rcpthost;
-
 	  {
-	    const char *u = rp->addr->user;
-	    const char *se = SMTPbuf + 810;
 	    int quote = 0;
-	    s = SMTPbuf;
+	    u = rp->addr->user;
 
-	    strcpy(s, "RCPT TO:<"); s += strlen(s);
+	    strcpy(SMTPbuf, "RCPT To:<");
+	    s = SMTPbuf + 9;
 
 	    /* Copy the (possibly quoted) local part */
 	    quote = 0;
