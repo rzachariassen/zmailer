@@ -56,7 +56,7 @@ struct itimerval profiler_itimer_at_start;
 void sigact_segv(sig, info, data)
      int sig;
      siginfo_t *info;
-     ucontext_t *data;
+     void *data;
 {
   printf("SEGV: signo=%d errno=%d code=%d pid=%d uid=%d status=%x utime=%ld stime=%ld value=%p (int=%d ptr=%p) addr=%p band=%ld fd=%d\n",
 	 info->si_signo, info->si_errno, info->si_code,
@@ -72,7 +72,7 @@ void sigact_segv(sig, info, data)
 void sigact_bus(sig, info, data)
      int sig;
      siginfo_t *info;
-     ucontext_t *data;
+     void *data;
 {
   printf("BUS: signo=%d errno=%d code=%d pid=%d uid=%d status=%x utime=%ld stime=%ld value=%p (int=%d ptr=%p) addr=%p band=%ld fd=%d\n",
 	 info->si_signo, info->si_errno, info->si_code,
