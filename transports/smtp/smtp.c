@@ -3848,12 +3848,12 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	}
 
 	rc = EX_OK;
-	if (err != 0)
-	  rc = EX_TEMPFAIL; /* Some timeout happened at the response read */
-	else if (rc == EX_OK && (SS->rcptstates & FROMSTATE_400))
-	  rc = EX_TEMPFAIL; /* MAIL FROM was a 4** code */
-	else if (rc == EX_OK && (SS->rcptstates & FROMSTATE_500))
+	if (rc == EX_OK && (SS->rcptstates & FROMSTATE_500))
 	  rc = EX_UNAVAILABLE; /* MAIL FROM was a 5** code */
+	if (rc == EX_OK && (SS->rcptstates & FROMSTATE_400))
+	  rc = EX_TEMPFAIL; /* MAIL FROM was a 4** code */
+	if (rc == EX_OK && err != 0)
+	  rc = EX_TEMPFAIL; /* Some timeout happened at the response read */
 	if (rc == EX_OK) {
 	  /* Study the RCPT STATES! */
 	  if (SS->rcptstates & RCPTSTATE_OK) {

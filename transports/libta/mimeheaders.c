@@ -87,14 +87,20 @@ strqcpy(bufp, startpos, buflenp, str)
 {
 	char *s = str;
 	char *buf = *bufp;
-	char *p = buf + startpos;
 	int needquotes = 0;
-	int buflen = *buflenp - startpos;
-	int cnt = buflen;
+	int buflen = *buflenp -2;
+	int pos = startpos;
 
 	/* Copy while scanning -- redo if need quotes.. */
-	while (*s) {
+	for (; *s; ++s) {
 	  char c = *s;
+
+	  if (pos >= buflen) {
+	    *buflenp += 32;
+	    buflen = *buflenp -2;
+	    buf = realloc(buf, *buflenp + 5);
+	  }
+
 	  if (!(('0' <= c && c <= '9') ||
 		('A' <= c && c <= 'Z') ||
 		('a' <= c && c <= 'z') ||
@@ -102,50 +108,60 @@ strqcpy(bufp, startpos, buflenp, str)
 	    needquotes = 1;
 	    break;
 	  }
-	  if (cnt) {
-	    *p++ = c;
-	    --cnt;
-	  }
-	  if (cnt == 0) {
-	    cnt = 32;
-	    *buflenp += cnt;
-	    buflen = *buflenp;
-	    buf = realloc(buf, *buflenp + 5);
-	  }
-	  ++s;
+	  buf[pos] = c;
+	  ++pos;
 	}
-	if (cnt && !needquotes) { /* Space left, not need quotes */
-	  *p = 0;
+	if (!needquotes) { /* Space left, not need quotes */
+	  buf[pos] = 0;
 	  *bufp = buf;
-	  return (buflen - cnt);
+	  return (pos);
 	}
 
 	/* Ok, need quotes.. */
-	p = buf + startpos;
-	cnt = buflen -3;
+	pos = startpos;
 	s = str;
-	*p++ = '"';
-	while (*s) {
-	  if (cnt < 2) {
-	    cnt += 32;
-	    *buflenp += cnt;
-	    buflen = *buflenp;
-	    startpos = p - buf;
-	    buf = realloc(buf, *buflenp + 5);
-	    p = buf + startpos;
-	  }
-	  if (*s == '"' || *s == '\\')
-	    *p++ = '\\', --cnt;
-	  if (cnt>0)
-	    *p++ = *s, --cnt;
-	  ++s;
-	}
-	if (cnt<0) cnt = 0;
 
-	*p++ = '"';
-	*p   = 0;
+	if (pos+5 >= buflen) {
+	  *buflenp = pos + 32;
+	  buflen = *buflenp -2;
+	  buf = realloc(buf, *buflenp);
+	}
+
+	buf[pos] = '"';
+	++pos;
+
+	for (; *s; ++s) {
+	  char c = *s;
+
+	  if (pos >= buflen) {
+	    *buflenp = pos + 32;
+	    buflen = *buflenp - 4;
+	    buf = realloc(buf, *buflenp);
+	  }
+
+	  if (c == '"' || c == '\\') {
+	    buf[pos] = '\\';
+	    ++pos;
+	  }
+
+	  buf[pos] = c;
+	  ++pos;
+
+	}
+
+	if (pos+3 >= buflen) {
+	  *buflenp += pos+3;
+	  buflen = *buflenp;
+	  buf = realloc(buf, *buflenp);
+	}
+
+	buf[pos] = '"';
+	++pos;
+	buf[pos] = 0;
+
 	*bufp = buf;
-	return (buflen - cnt);
+
+	return (pos);
 }
 
 
@@ -286,9 +302,10 @@ output_content_type(rp,ct,old)
 			attr_2="ajdsh 8327ead"
 	 */
 
-	char *lines[400]; /* XX: Hopefully enough.. */
-	int  linelens[400];
+	char **lines;
+	int  *linelens;
 	int  linecnt = 0, i;
+	int  linespace = 0;
 	char **newmsgheaders;
 	char **h1, **o2, ***basep;
 	int  hdrlines;
@@ -315,6 +332,10 @@ output_content_type(rp,ct,old)
 	}
 
 	buf = malloc(bufsiz);
+
+	linespace = 6;
+	lines    = malloc(sizeof(lines[0]   ) * (linespace+2));
+	linelens = malloc(sizeof(linelens[0]) * (linespace+2));
 
 	sprintf(buf,"Content-Type:\t%s",ct->basetype);
 	bp = buf + strlen(buf);
@@ -375,20 +396,33 @@ output_content_type(rp,ct,old)
 
 	while (unk && *unk) {
 	  int ulen = strlen(*unk);
-	  if (bufsiz < ((bp - buf) + 2 + ulen)) {
-	    bufsiz = (bp - buf) + 2 + ulen + 8;
+	  int pos = bp - buf;
+	  if (bufsiz < (pos + 2 + ulen)) {
+	    bufsiz = pos + 2 + ulen + 8;
 	    buf = realloc(buf, bufsiz);
+	    bp = buf + pos;
 	  }
-	  if (((bp - buf) + 2 + ulen) >= 78 && *buf) {
+	  if ((pos + 2 + ulen) >= 78 && *buf) {
 	    /* There is something already, and more wants to push in,
 	       but would overflow the 78 column marker! */
 	    memcpy(bp, ";", 2);
 /*if (verboselog) fprintf(verboselog,"CT_out: '%s'\n",buf);*/
 	    len = strlen(buf);
+	    if (linecnt >= linespace) {
+	      linespace <<= 1;
+	      lines    = realloc(lines,
+				 sizeof(lines[0]   ) * (linespace+2));
+	      linelens = realloc(linelens,
+				 sizeof(linelens[0]) * (linespace+2));
+	    }
 	    linelens[linecnt] = len;
-	    lines[linecnt++] = dupnstr(buf, len);
+	    lines   [linecnt] = dupnstr(buf, len);
+	    ++linecnt;
+
 	    totlen += len +1;
-	    *buf = 0; bp = buf;
+	    *buf = 0;
+	    bp = buf;
+	    pos = 0;
 	  }
 	  *bp++ = '\t';
 	  memcpy(bp, *unk, ulen);
@@ -440,6 +474,9 @@ output_content_type(rp,ct,old)
 	}
 	*bp = 0;
 	*o2++ = buf; /* DO NOT FREE buf HERE! */
+
+	free(lines);
+	free(linelens);
 
 	while (*h1)
 	  *o2++ = *h1++;
@@ -657,6 +694,8 @@ static char * foldmalloccopy (start, end)
 
 	if (*start == '"') {
 	  /* QUOTED-STRING, which we UNQUOTE here */
+	  /* Our caller allows only quoted-strings, not
+	     quoted-localparts! */
 	  memcpy(b, start+1, len -2);
 	  len -= 2;
 	} else

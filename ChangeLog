@@ -1,5 +1,16 @@
 2000-11-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/smtp/smtp.c:
+	    A bit different handling on pipelined response collection.
+	    If MAIL FROM yields error, report it, never mind what socket
+	    read did latter..
+
+	* transports/libta/mimeheaders.c:
+	    Simplify!  Don't try to be smart when playing with malloced
+	    buffers -- it doesn't pay, quite contrary...  Found a number
+	    of cases where a buffer got reallocated, but a pointer into
+	    it wasn't adjusted into the new area.
+
 	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
 	    Changed the code from "scan the input to determine future
 	    space needs" to "(re)expand as more space is needed" to
