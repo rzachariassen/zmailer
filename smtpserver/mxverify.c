@@ -1,7 +1,7 @@
 /*
  *   mx_client_verify() -- subroutine for ZMailer smtpserver
  *
- *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999,2002
+ *   By Matti Aarnio <mea@nic.funet.fi> 1997-1999,2002-2003
  */
 
 #include "smtpserver.h"
@@ -686,7 +686,7 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
      char **msgp;
 {
 	char hbuf[2000], *s, *suf;
-	/* int hspc; */
+	int hspc;
 	struct hostent *hp;
 	int has_ok = 0;
 
@@ -705,7 +705,7 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	}
 
 	suf = hbuf + strlen(hbuf);
-	/* hspc = sizeof(hbuf)-strlen(hbuf)-1; */
+	hspc = sizeof(hbuf) - strlen(hbuf) - 2;
 
 	while (*rbldomain) {
 	  /* "rbldomain" is possibly a COLON-demarked set of
@@ -718,9 +718,10 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	  s = strchr(rbldomain, ':');
 	  if (s) *s = 0;
 	  if (strcmp(rbldomain,"+") == 0)
-	    strcpy (suf, "rbl.maps.vix.com");
+	    strncpy (suf, "rbl.maps.vix.com", hspc);
 	  else
-	    strcpy (suf, rbldomain);
+	    strncpy (suf, rbldomain, hspc);
+	  suf[hspc] = '\0';
 
 	  if (s) {
 	    *s = ':';
@@ -733,11 +734,10 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	     That way the lookup should never use resolver's  SEARCH
 	     suffix set. */
 
-	  s = suf + strlen(suf);
-	  if (s > hbuf) --s;
+	  s = suf + strlen(suf) - 1;
 	  if (*s != '.') {
-	    *suf++ = '.';
-	    *suf = 0;
+	    *(++s) = '.';
+	    *(++s) = 0;
 	  }
 
 
