@@ -1,10 +1,18 @@
+2004-07-01  Matti Aarnio  <mea@zmailer.org>
+
+	* router/db.c:
+	    In some situations we leaked db lookup keys into memory.
+	    Plugged that leakage hole.
+
 2004-06-23  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:
 	    Found a long-lurked bug in reporterr().
 	    It did refer to wrong data in Solaris -> SEGV.
 	    Oops..  Corrected printf()-like parameters, and
-	    now it should not fault.
+	    now it should not fault.  This happened in
+	    the tail of failing SMTP session, so it didn't
+	    matter for message reception.
 
 2004-06-22  Matti Aarnio  <mea@zmailer.org>
 

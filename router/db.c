@@ -1002,9 +1002,7 @@ dblookup(dbname, argc, argv30)
 		if (D_db)
 			fprintf(stderr, "NIL\n");
 		if (!(DB_NEG_CACHE & dbip->flags)) {
-			if (dbip->cache_size > 0) {
-				free(realkey);
-			}
+			if (realkey) free(realkey);
 			UNGCPRO3;
 			if (si.argv0) free((void*)si.argv0);
 			si.argv0 = NULL;
@@ -1046,6 +1044,9 @@ dblookup(dbname, argc, argv30)
 		cache->value   = l;
 		if (D_db)
 			fprintf(stderr, "... added '%s' to cache", realkey);
+		/* The "realkey" went into cache. */
+		realkey = NULL;
+
 		if (si.ttl > 0) {
 			cache->expiry = now + si.ttl;
 			if (D_db)
@@ -1056,14 +1057,14 @@ dblookup(dbname, argc, argv30)
 				fprintf(stderr, "\n");
 		}
 		ll = l;
-		/* The "realkey" went into cache. */
 
 	} else {
 
 		ll = l;
-		if (realkey) free(realkey);
-
 	}
+
+	if (realkey) free(realkey);
+	realkey = NULL;
 
 	UNGCPRO3;
  post_subst:
@@ -1159,15 +1160,16 @@ dblookup(dbname, argc, argv30)
 
 	  malloc_failure:
 
-	    if (si.argv0) free((void*)si.argv0);
-	    si.argv0 = NULL;
-
 	    ll = l;
 
 	    UNGCPRO3;
 	  }
 
 	}
+
+	if (si.argv0) free((void*)si.argv0);
+	si.argv0 = NULL;
+
 	return ll;
 }
 
@@ -1351,6 +1353,10 @@ find_domain(lookupfn, sip)
 		buf[0] = '.';
 		memcpy(buf + 1, realkey, keylen+1);
 		sip->key = buf;
+
+		if (sip->argv0) free((void*)sip->argv0);
+		sip->argv0 = dupnstr(realkey, keylen);
+
 		l = (*lookupfn)(sip);
 #ifndef HAVE_ALLOCA
 		free(buf);
@@ -1374,12 +1380,11 @@ find_domain(lookupfn, sip)
 	}
 
 	if (l) {
-	    if (sip->argv0) free((void*)sip->argv0);
-	    sip->argv0 = dupnstr(realkey, keylen);
-	    return l;
+	  if (sip->argv0) free((void*)sip->argv0);
+	  sip->argv0 = dupnstr(realkey, keylen);
 	}
 
-	return NULL;
+	return l;
 }
 
 /*
