@@ -121,6 +121,7 @@ AC_PATH_PROG(RM, rm, rm)dnl
 AC_PATH_PROG(TRUE, true, true)dnl
 AC_PATH_PROG(PERL, perl, perl)dnl
 AC_PATH_PROG(GZIP, gzip, gzip)dnl
+AC_PATH_PROG(PKGCONFIG, pkg-config)dnl
 AC_SUBST(LIBPROGS)dnl
 
 AC_SUBST(CPPDEP)
@@ -538,7 +539,7 @@ AC_STRUCT_TM_GMTOFF
 # AC_STRUCT_ST_BLKSIZE
 
 AC_MSG_RESULT([Scanning possible database libraries in preferrence order:])
-AC_MSG_RESULT([   NDBM, SDBM, GDBM, BSD DB 1.x, SleepyCat DB 2.x])
+AC_MSG_RESULT([   NDBM, SDBM, GDBM, BSD DB 1.x, SleepyCat DB 2.x/3.x/4.x])
 AC_MSG_RESULT([ ( Hash, Hash, Hash, BTree,      BTree )])
 AC_MSG_RESULT([Last one of them found will be system default DB format.])
 
@@ -1653,8 +1654,11 @@ AC_ARG_WITH(ipv6-replacement-libc, [  --with-ipv6-replacement-libc If system has
 
 AC_CHECK_FUNCS(inet_ntop inet_pton getaddrinfo getnameinfo gai_strerror)
 if test "$ac_with_ipv6_replacement_libc" = 1 ; then
-  LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o gai_strerror.o"
-  AC_SUBST(LIBOBJS)
+  AC_LIBOBJ([inet_ntop])
+  AC_LIBOBJ([inet_pton])
+  AC_LIBOBJ([getaddrinfo])
+  AC_LIBOBJ([getnameinfo])
+  AC_LIBOBJ([gai_strerror])
   AC_DEFINE(HAVE_GETNAMEINFO)
   AC_DEFINE(HAVE_GETADDRINFO)
   AC_DEFINE(HAVE__GETADDRINFO_,1,[Using our own special replacement library for IPv6 support])
@@ -1677,8 +1681,11 @@ else
       LIBSOCKET="$LIBSOCKET -linet6"
       AC_MSG_RESULT([Has IPv6 API  gai_strerror()  when using  $LIBSOCKET])
     else
-      LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o gai_strerror.o"
-      AC_SUBST(LIBOBJS)
+      AC_LIBOBJ([inet_ntop])
+      AC_LIBOBJ([inet_pton])
+      AC_LIBOBJ([getaddrinfo])
+      AC_LIBOBJ([getnameinfo])
+      AC_LIBOBJ([gai_strerror])
     fi
   fi
 
@@ -2084,11 +2091,21 @@ if test -n "$OPENSSLINCL" -a -n "$OPENSSLLIB" ; then
 fi
 
 AC_ARG_WITH(openssl, [  --with-openssl           Search for, and use OpenSSL, if it can be found],
-[if test -z "$OPENSSLINCL" ; then
-  # No Explicite setup, lets do some auto-tests
+[
+ if test -z "$OPENSSLINCL" ; then
+   # No Explicite setup, lets do some auto-tests
+   if test -n "$PKGCONFIG" ; then # RedHat 8.0 with OpenSSL 0.9.7!
+     OPENSSLINCL="`$PKGCONFIG --cflags-only-I openssl`"
+     OPENSSLLIB="`$PKGCONFIG --libs openssl`"
+   fi
+   if test -n "$OPENSSLINCL" -o -n "$OPENSSLLIB" ; then
+     WHEREOPENSSL="version unknown  via  pkg-config data"
+   fi
+ fi
+ if test -z "$OPENSSLINCL" ; then
+  # No Explicite setup, lets do some more auto-tests
   if test -f /usr/local/ssl/include/openssl/ssl.h ; then
     # Gee, OpenSSL 0.9.3a at default prefix!
-    AC_DEFINE(HAVE_OPENSSL,1,[System has OpenSSL of some version, and want to use it.])
     OPENSSLPREFIX="/usr/local/ssl"
     OPENSSLINCL="-I$OPENSSLPREFIX/include"
     if test -f "$OPENSSLPREFIX/lib/libssl.so" ; then
@@ -2096,11 +2113,10 @@ AC_ARG_WITH(openssl, [  --with-openssl           Search for, and use OpenSSL, if
     else
       OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.a $OPENSSLPREFIX/lib/libcrypto.a"
     fi
-    AC_MSG_RESULT([You have OpenSSL version 0.9.3a (or newer) at default location])
+    WHEREOPENSSL="version 0.9.3a (or newer) at default location"
   fi
   if test -f /usr/include/openssl/ssl.h ; then
     # Gee, OpenSSL 0.9.3a at  "--prefix=/usr" !!!
-    AC_DEFINE(HAVE_OPENSSL,1,[System has OpenSSL of some version, and want to use it.])
     OPENSSLPREFIX="/usr"
     OPENSSLINCL=""
     if test -f "$OPENSSLPREFIX/lib/libssl.so" ; then
@@ -2108,9 +2124,17 @@ AC_ARG_WITH(openssl, [  --with-openssl           Search for, and use OpenSSL, if
     else
       OPENSSLLIB="$OPENSSLPREFIX/lib/libssl.a $OPENSSLPREFIX/lib/libcrypto.a"
     fi
-    AC_MSG_RESULT([You have OpenSSL version 0.9.3a (or newer) at system root!])
+    WHEREOPENSSL="version 0.9.3a (or newer) at system root"
   fi
-fi])
+fi
+if test -n "$OPENSSLINCL" -o -n "$OPENSSLLIB" ; then
+  AC_MSG_RESULT([Found OpenSSL  $WHEREOPENSSL])
+  AC_MSG_RESULT([   OPENSSLINCL=${OPENSSLINCL}])
+  AC_MSG_RESULT([   OPENSSLLIB =${OPENSSLLIB}])
+  AC_DEFINE(HAVE_OPENSSL,1,[System has OpenSSL of some version, and want to use it.])
+fi
+
+])
 
 AC_SUBST(SASL2PREFIX)
 AC_SUBST(SASL2INCL)
@@ -2242,10 +2266,6 @@ AC_FUNC_GETMNTENT_MORE
 # Test how to find out the filesystem space usage:
 AC_FUNC_STATVFS
 
-#if test -n "$list_mounted_fs" && test $space != no; then
-#  PROGS="$PROGS df" LIBOBJS="$LIBOBJS"
-#fi
-
 AC_CHECK_FUNCS(ftruncate, , [ftruncate_missing=yes])
 
 if test "$ftruncate_missing" = yes; then
@@ -2262,7 +2282,7 @@ chsize();
     fu_cv_sys_ftruncate_emulation=no)])
   AC_MSG_RESULT($fu_cv_sys_ftruncate_emulation)
   if test $fu_cv_sys_ftruncate_emulation = yes; then
-    LIBOBJS="$LIBOBJS ftruncate.o"
+    AC_LIBOBJ([ftruncate])
   fi
 fi
 

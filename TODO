@@ -11,13 +11,6 @@ Wanted done for 3.0:
   - LICENSE state cleanup.
   - A work-over of the documentation
 
-smtp:
-	In EZMLM mode: if some recipient is bounced, ones following it
-	seem to be getting rather spurious looking errors. (case hotmail.com
-	giving occasional 'transaction failed').   Possibly semi-generic
-	problemas the EZMLM-rcpt-splitting is a subcase in larger code.
-	Possibly also old code running...  Updated the system, and begun
-	to watch for the phenomena...
 
 sm:	pass the address meta information also in environment
 	variables, and handle multirecipient cases as well!
@@ -156,6 +149,18 @@ router:
 
 
 transports/smtp:
+
+   NUISANCE:
+	In EZMLM mode: if some recipient is bounced, ones following it
+	seem to be getting rather spurious looking errors. (case hotmail.com
+	giving occasional 'transaction failed').   Possibly semi-generic
+	problemas the EZMLM-rcpt-splitting is a subcase in larger code.
+	Possibly also old code running...  Updated the system, and begun
+	to watch for the phenomena...
+	2003-02-18: Actually this is MS Exchange 2000 bug
+	            in BDAT implementation.
+        --> microsoft fixes their bugs ?
+	--> optionally disable BDAT when addressing some targets ?
 
    VERIFY:
 	That failed connection to site A won't lead to recipient
@@ -342,6 +347,9 @@ transports/smtp:
 
 
 - smtpserver
+
+    FEATURE(?): Verify that MAIL FROM MX data resolves to valid
+	IP addresses, and does not contain loopback.
 
     BUG:
 	Control somehow if lack of configuration and/or PolicyDB is
