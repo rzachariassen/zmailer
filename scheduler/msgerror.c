@@ -308,7 +308,7 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 	if (!*no_error_reportp)
 	  printenvaddr(errfp, eaddr);
 	sprintf(path, "%s/%s/%s", mailshare, FORMSDIR,
-		deliveryform ? deliveryform : "delivered");
+		deliveryform ? deliveryform : "delivery");
 	fp = sfopen(NULL, path, "r");
 	if (fp != NULL) {
 	  int inhdr = 1, hadsubj =0;
