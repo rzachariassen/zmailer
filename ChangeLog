@@ -1,3 +1,12 @@
+1999-08-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Detect better, when the STDIO fwrite() and friends
+	    fail -- bdat_sync() was running wild loop in odd
+	    situation when the recipient system died from under-
+	    neath, and when coming back up, it rejected the pre-
+	    existing connections...
+
 1999-08-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.c, smtpserver/smtpcmds.c,

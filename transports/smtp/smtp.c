@@ -3469,14 +3469,14 @@ int bdat_flush(SS, lastflg)
 
 	if (setjmp(alarmjmp) == 0) {
 #if 1
-	  for ( pos = 0; pos < SS->chunksize; ) {
+	  for ( pos = 0; pos < SS->chunksize && !ferror(SS->smtpfp); ) {
 	    wrlen = SS->chunksize - pos;
 	    alarm(timeout);
 	    i = fwrite(SS->chunkbuf + pos, 1, wrlen, SS->smtpfp);
 	    pos += i;
 	  }
 #else
-	  for (pos = 0; pos < SS->chunksize;) {
+	  for (pos = 0; pos < SS->chunksize && !ferror(SS->smtpfp);) {
 	    wrlen = SS->chunksize - pos;
 	    if (wrlen > ALARM_BLOCKSIZE) wrlen = ALARM_BLOCKSIZE;
 	    alarm(timeout);
@@ -3501,7 +3501,7 @@ int bdat_flush(SS, lastflg)
 	  alarm(0);
 	  SS->chunksize = 0;
 
-	  if (SS->smtpfp) {
+	  if (SS->smtpfp && !ferror(SS->smtpfp)) {
 	    if (lastflg || ! SS->pipelining)
 	      r = smtp_sync(SS, r, 0);
 	    else
@@ -4135,7 +4135,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 		fwrite(buf, 1, len, SS->verboselog);
 
 	      r = fwrite(buf, 1, len, SS->smtpfp);
-	      err = (r != len);
+	      err = (r != len) || ferror(SS->smtpfp);
 
 	      if (SS->smtp_outcount > SS->smtp_bufsize) {
 		SS->smtp_outcount -= SS->smtp_bufsize;
@@ -4152,7 +4152,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 		fwrite(buf, 1, len, SS->verboselog);
 
 	      r = fwrite(buf, 1, len, SS->smtpfp);
-	      err = (r != len);
+	      err = (r != len) || ferror(SS->smtpfp);
 	      if (fflush(SS->smtpfp))
 		err = 1;
 	    }
