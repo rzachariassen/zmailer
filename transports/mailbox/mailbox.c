@@ -301,6 +301,7 @@ int mmdf_mode = 0;		/* Write out MMDF-style mail folder
 long eofindex  = -1;		/* When negative, putmail() can't truncate() */
 int  dirhashes = 0;
 int  pjwhashes = 0;
+int  canonify_user = 0;
 
 extern RETSIGTYPE wantout __((int));
 extern int optind;
@@ -432,12 +433,15 @@ main(argc, argv)
 	logfile = NULL;
 	channel = CHANNEL;
 	while (1) {
-	  c = getopt(argc, (char*const*)argv, "abc:d:Dgh:Hl:PrRSMV8");
+	  c = getopt(argc, (char*const*)argv, "abc:Cd:Dgh:Hl:PrRSMV8");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
 	  case 'c':		/* specify channel scanned for */
 	    channel = optarg;
+	    break;
+	  case 'C':
+	    canonify_user = 1;
 	    break;
 	  case 'd':             /* mail directory */
 	    maildirs[0] = strdup(optarg);
@@ -962,6 +966,7 @@ deliver(dp, rp, usernam, timestring)
 	char *path;
 #endif
 #endif
+	const char *unam = usernam;
 	struct passwd *pw = NULL;
 	const char *mboxlocks = getzenv("MBOXLOCKS");
 	const char *filelocks = NULL;
@@ -1061,6 +1066,7 @@ deliver(dp, rp, usernam, timestring)
 	  setpwent(); /* Effectively rewind the database,
 			 needed for multi-recipient processing ? */
 #endif
+	  unam = usernam;
 	  pw = getpwnam(usernam);
 	  if (pw == NULL) {
 
@@ -1097,6 +1103,10 @@ deliver(dp, rp, usernam, timestring)
 	      return;
 	    }
 	  }
+
+	  if (canonify_user)
+	    unam = pw->pw_name;
+
 	  hasdir = 0;
 	  for (maild = maildirs; *maild != 0; maild++) {
 	    if (stat(*maild,&st) < 0 ||
@@ -1104,7 +1114,7 @@ deliver(dp, rp, usernam, timestring)
 	      /* Does not exist, or is not a directory */
 	      continue;
 	    hasdir = 1;
-	    file = exists(*maild, pw->pw_name, rp);
+	    file = exists(*maild, unam, rp);
 	    if (file != NULL)
 	      break;		/* found it */
 	    if (rp->status != EX_OK)
@@ -1112,7 +1122,7 @@ deliver(dp, rp, usernam, timestring)
 	  }
 
 	  if (hasdir && *maild == 0 &&
-	      !creatembox(rp, pw->pw_name, (char**)&file,
+	      !creatembox(rp, unam, (char**)&file,
 			  &st.st_uid, &st.st_gid, pw))
 	    return; /* creatembox() sets status */
 	  
@@ -3056,4 +3066,4 @@ return_receipt (dp, retrecptaddr, uidstr)
 	  n = EX_OK;
 	for (rp = dp->recipients; rp != NULL; rp = rp->next)
 	  DIAGNOSTIC(rp, "", n, (char *)NULL, 0);
-  }
+}

@@ -22,6 +22,13 @@
 		(To be precise, "sift" is recognized, but reported with
 		 an error message...)
 
+		The "mailbox" will not anymore do BLIND canonicalization
+		of destination username for internal uses; this is for
+		systems where getpwnam() can return data which has different
+		value in pw_name field, than that used for looking it up.
+		Canonicalization happens when option -C is used in mailbox
+		channel.
+
 	ZMailer-2.99.49p8:
 		There should not be anything that the system can't handle
 		since 2.99.49p6, the router cf/fc compiler checksums are

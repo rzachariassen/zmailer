@@ -860,6 +860,7 @@ AC_CHECK_FUNCS(select syslog getdtablesize)
 AC_STRUCT_SA_LEN
 
 AC_CHECK_FUNC(res_init)  # Can be found without any libs ?  Or needs BIND libresolv ?
+AC_CHECK_FUNC(res_mkquery)
 
 AC_SUBST(LIBRESOLV)
 AC_SUBST(INCLRESOLV)
@@ -867,16 +868,17 @@ AC_SUBST(LIBRESOLVA)
 AC_ARG_WITH(bundled-libresolv,   [  --with-bundled-libresolv Use bundled libresolv source],
 	use_resolvopt=1)
 if test -z "$use_resolvopt" ; then
-    if test $ac_cv_func_res_init = yes ; then
-	LIBRESOLV="" #  res_init() is at system libc
+    if test $ac_cv_func_res_mkquery = yes ; then
+	LIBRESOLV="" #  res_mkquery() is at system libc
+	AC_MSG_RESULT([Using no -lresolv; res_mkquery() in libc ?])
     else
 	LIBRESOLV="-lresolv"
+	AC_MSG_RESULT([Using system supplied -lresolv -- hope it works..])
     fi
     AC_DEFINE(HAVE_GETHOSTBYNAME)
     AC_DEFINE(HAVE_RESOLVER)
     INCLRESOLV=""
     LIBRESOLVA=""
-    AC_MSG_RESULT([Using system supplied libresolv -- hope it works..])
 else
     # We have bundled BIND 4.9.4 resolver, which can make things
     # so much simpler to ourselves (except at BSD machines..)

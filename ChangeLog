@@ -1,3 +1,17 @@
+1998-04-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    RedHat 5.0/glibc-2.0.7-6: found   res_init()  in libc, but
+	    not others, like  res_mkquery().
+
+	* transports/mailbox/mailbox.c, man/mailbox.8, README.UPGRADING:
+	    New option: "-C" to canonify username to what pw_name
+	    from  getpwnam()  call yields.  Previously this canonification
+	    was done blindly -- does not affect most people, but there are
+	    a few weird fellas whose  getpwnam() uses key A, and yields
+	    string B in pw_name field..  (This is not only Telecom Finland
+	    weirdos..)
+
 1998-04-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

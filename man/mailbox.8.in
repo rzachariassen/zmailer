@@ -1,16 +1,10 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILBOX 8 "8 Apr 1998"
+.TH MAILBOX 8 "9 Apr 1998"
 .SH NAME
 mailbox \- zmailer local delivery transport agent
 .SH SYNOPSIS
 .B mailbox
-[
-.B \-8
-]
-[
-.B \-M
-]
 [
 .B \-c
 .I channel
@@ -24,7 +18,7 @@ mailbox \- zmailer local delivery transport agent
 .I logfile
 ]
 [
-.B \-VabrHDP
+.B \-8abCDHPrV
 ]
 .SH DESCRIPTION
 .I mailbox
@@ -144,6 +138,12 @@ encoded characters.
 .IP \-M
 enables the creation of MMDF-style mail-folder in the incoming mail folder.
 The default is "classic" UNIX-style folder.
+.IP \-C
+Canonify username by using internally version of username received in
+.I pw_name
+field of the
+.I getpwnam()
+call result.
 .IP \-D[D]
 For a user with is
 .IR abcdef ,
