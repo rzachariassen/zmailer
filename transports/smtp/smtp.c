@@ -3091,28 +3091,33 @@ abort();
 		fprintf(SS->verboselog,"%s\n",SS->remotemsg);
 	if (logfp)
 	  fprintf(logfp,"%s#\t%s\n", logtag(), SS->remotemsg+4);
+	close(sk);
 	switch (errnosave) {	/* from sendmail... */
-	case EISCONN:
-	case ETIMEDOUT:
-	case EINPROGRESS:
-	case EALREADY:
-	case EADDRINUSE:
-	case EHOSTDOWN:
-	case ENETDOWN:
-	case ENETRESET:
-	case ENOBUFS:
-	case ECONNREFUSED:
-	case ECONNRESET:
-	case EHOSTUNREACH:
-	case ENETUNREACH:
-	case EPERM:
+	case EBADF:
+	case EFAULT:
+	case ENOSYS:
+	case ENOMSG:
+	case ENOSTR:
+	case ENOTSOCK:
+	case EDESTADDRREQ:
+	case EMSGSIZE:
+	case EPROTOTYPE:
+	case ENOPROTOOPT:
+	case EPROTONOSUPPORT:
+	case ESOCKTNOSUPPORT:
+	case EOPNOTSUPP:
+	case EPFNOSUPPORT:
+	case EAFNOSUPPORT:
+		return EX_SOFTWARE;
+	case EACCES:
+	case ENONET:
+		return EX_UNAVAILABLE;
 	/* wonder how Sendmail missed this one... */
 	case EINTR:
-		close(sk);
-		return EX_DEFERALL;
+	case ENOMEM:
+		return EX_TEMPFAIL;
 	}
-	close(sk);
-	return EX_UNAVAILABLE;
+	return EX_DEFERALL;
 }
 
 
