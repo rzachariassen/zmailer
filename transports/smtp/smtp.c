@@ -1266,9 +1266,7 @@ deliver(SS, dp, startrp, endrp)
 	  notary_setxdelay((int)(endtime-starttime));
 	  if (SS->smtpfp) {
 	    if (pipelining)
-	      r = smtp_sync(SS, r, 0);
-	    else
-	      r = smtp_sync(SS, r, 1); /* non-blocking */
+	      r = smtp_sync(SS, r, 0); /* Collect reports in blocking mode */
 	  } else {
 	    r = EX_TEMPFAIL; /* XXX: ??? */
 	  }
@@ -1309,21 +1307,21 @@ deliver(SS, dp, startrp, endrp)
 	  /* RCPT TO:<...> -- pipelineable */
  	  r = smtpwrite(SS, 1, SMTPbuf, pipelining, rp);
 	  if (r != EX_OK) {
-	    if (!pipelining)
+	    if (!pipelining) {
 	      if (r == EX_TEMPFAIL)
 		SS->rcptstates |= RCPTSTATE_400;
 	      else
 		SS->rcptstates |= RCPTSTATE_500;
+	      rp->status = r;
+	    }
 	    time(&endtime);
 	    notary_setxdelay((int)(endtime-starttime));
 	    if (SS->smtpfp) {
 	      if (pipelining)
-		r = smtp_sync(SS, r, 0);
-	      else
-		r = smtp_sync(SS, r, 1); /* non-blocking */
-	    } else {
-	      r = EX_TEMPFAIL; /* XXX: ??? */
-	    }
+		r = smtp_sync(SS, r, 0); /* Collect reports -- by blocking */
+	    } else
+	      r = EX_TEMPFAIL;
+
 	    /* NOTARY: address / action / status / diagnostic / wtt */
 	    notaryreport(NULL, FAILED, NULL, NULL);
 	    diagnostic(rp, r, 0, "%s", SS->remotemsg);

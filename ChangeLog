@@ -1,3 +1,11 @@
+1998-07-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    An error report from  Serge Lozovsky <serge@helios.intes.odessa.ua>
+	    did show that the smtp in non-pipeline mode the smtp-ta did
+	    errorneously consider successfull a delivery to remote system
+	    that has rejected the only recipient address.
+
 1998-07-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/mailbox/mailbox.c:
