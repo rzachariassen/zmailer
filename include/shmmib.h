@@ -9,7 +9,7 @@
  *
  */
 
-#define ZM_MIB_MAGIC 0x33120001
+#define ZM_MIB_MAGIC 0x33120002
 
 
 struct timeserver {
@@ -26,6 +26,10 @@ struct timeserver {
 struct MIB_MtaEntryMain {
   uint	magic;
 
+  pid_t		mtaRouterMasterPID;
+  pid_t		mtaSchedulerMasterPID;
+  pid_t		mtaSmtpServerMasterPID;
+
   double dummy0; /* cache-line alignment, etc.. */
 
 
@@ -39,6 +43,7 @@ struct MIB_MtaEntryMain {
   uint		mtaIncomingSMTPconnects;	/* Incoming SMTP sessions */
   uint		mtaIncomingSMTPSconnects;	/* Incoming SMTPS sessions */
   uint		mtaIncomingSUBMITconnects;	/* Incoming SUBMIT sessions */
+
   uint		mtaIncomingSMTPTLSes;		/* Number of STARTTLSes */
 
   uint		mtaIncomingCommands;		/* counters */
@@ -87,19 +92,20 @@ struct MIB_MtaEntryMain {
   uint		mtaTransmittedMessagesRt;	/* counter, router	*/
   uint		mtaTransmittedRecipientsRt;	/* counter, router	*/
 
-  /* Subsystem queue size - router and scheduler respectively */
+  uint		mtaReceivedVolumeRt;		/* counter,	in kB	*/
+  uint		mtaTransmittedVolumeRt;		/* counter,	in kB	*/
+  uint		mtaTransmittedVolume2Rt;	/* counter,	in kB	*/
+
+  /* Subsystem queue size  */
   uint		mtaStoredMessagesRt;		/* gauge, router	*/
   uint		mtaStoredRecipientsRt;		/* gauge, router - not!	*/
 
-  uint		mtaReceivedVolumeRt;		/* counter,	in kB	*/
   uint		mtaStoredVolumeRt;		/* gauge,	in kB	*/
-  uint		mtaTransmittedVolumeRt;		/* counter,	in kB	*/
 
 
   double dummy3; /* Alignment, etc.. */
 
   /* SCHEDULER subsystem counters */
-
 
   uint		mtaReceivedMessagesSc;		/* counter, scheduler	*/
   uint		mtaReceivedRecipientsSc;	/* counter, scheduler	*/

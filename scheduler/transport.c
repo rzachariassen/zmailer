@@ -544,8 +544,12 @@ ta_hungry(proc)
 	  proc->thg->idleproc = proc;
 
 	  proc->thg->idlecnt += 1;
+
 	  ++idleprocs;
-	  
+	  MIBMtaEntry->m.mtaTransportAgentsActiveSc -= 1;
+	  MIBMtaEntry->m.mtaTransportAgentsIdleSc   += 1;
+
+
 	  /* Failed to pick anything, reschedule the old thread.
 	     Possibly killed the thread.. */
 	  if (thr0) thread_reschedule(thr0, 0, -1);
@@ -844,7 +848,11 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->thg           = vhead->thread->thgrp;
 	proc->thg->transporters += 1;
 	proc->pthread->thrkids  += 1;
+
 	++numkids;
+	MIBMtaEntry->m.mtaTransportAgentsActiveSc += 1;
+
+
 	proc->tofd          = tofd;
 	proc->pnext         = proc->pthread->proc;
 	proc->pthread->proc = proc;
@@ -991,6 +999,10 @@ static void reclaim(fromfd, tofd)
 	    proc->thg->idlecnt -= 1;
 	    --idleprocs;
 
+	    /* Virtually move to ACTIVE state for count off below */
+	    MIBMtaEntry->m.mtaTransportAgentsActiveSc += 1;
+	    MIBMtaEntry->m.mtaTransportAgentsIdleSc   -= 1;
+
 	    /* Remove this entry from the chains */
 	    if (proc == proc->thg->idleproc)
 	      proc->thg->idleproc = proc->pnext;
@@ -1008,6 +1020,8 @@ static void reclaim(fromfd, tofd)
 	  delete_threadgroup(proc->thg);
 	  proc->thg    = NULL;
 	}
+
+	MIBMtaEntry->m.mtaTransportAgentsActiveSc -= 1;
 	--numkids;
 	proc->thg    = NULL;
 }

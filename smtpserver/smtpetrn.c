@@ -349,6 +349,9 @@ void smtp_turnme(SS, name, cp)
 SmtpState *SS;
 const char *name, *cp;
 {
+
+    MIBMtaEntry->m.mtaIncomingSMTP_ETRN += 1;
+
     while (*cp == ' ' || *cp == '\t') ++cp;
     if (*cp == 0) {
 	type(SS, 552, "5.0.0", "ETRN needs target domain name parameter.");

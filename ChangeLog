@@ -1,3 +1,21 @@
+2003-05-24  Matti Aarnio  <mea@zmailer.org>
+
+	* include/shmmib.h, router/daemonsub.c, router/rfc822.c,
+	  scheduler/scheduler.c, scheduler/transport.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c,
+	  smtpserver/smtpetrn.c, smtpserver/smtptls.c:
+	    - New counter variables, changed the magic version
+	      (mapping will be rejected if there is old persistent file
+	       in the system!) 
+	    - More code to do SHM counting/tracking
+
+	* utils/webtools/mailq-m.php,  utils/webtools/mailq-q.php,
+	  utils/webtools/mailq-v.php:
+	    An experimental set of web-tools to do ZMailer status
+	    display in web..  Developed for friends to look into
+	    a busy system without using command-line tools..
+	    Also as concepts for doing some advanced tinkering.
+
 2003-05-23  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/zshmmibattach.c, include/libz.h, include/shmmib.h,

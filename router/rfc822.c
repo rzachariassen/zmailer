@@ -33,6 +33,7 @@
 #include "prototypes.h"
 #include "libsh.h"
 #include "zmsignal.h"
+#include "shmmib.h"
 
 #ifndef _IOFBF
 #define _IOFBF  0
@@ -1419,6 +1420,8 @@ sequencer(e, file)
 	char subdirhash[8];
 	struct notary *DSN;
 	time_t start_now;
+	struct stat stbuf;
+	long infilesize_kb, taskfilesize_kb;
 	GCVARS5;
 
 	time(&start_now);
@@ -2605,6 +2608,26 @@ sequencer(e, file)
 #endif
 	ofperrors |= ferror(ofp);
 
+	taskfilesize_kb = 0;
+	if (!ofperrors) {
+	  memset(&stbuf, 0, sizeof(stbuf));
+	  fstat(FILENO(ofp), &stbuf); /* will always succeed.. */
+
+	  if (stbuf.st_blksize == 0) stbuf.st_blksize = 1024;
+	  taskfilesize_kb = (stbuf.st_size + stbuf.st_blksize -1) / 1024;
+	}
+
+
+	infilesize_kb = 0;
+	if (!ofperrors) {
+	  memset(&stbuf, 0, sizeof(stbuf));
+	  lstat(file, &stbuf); /* will always succeed.. */
+
+	  if (stbuf.st_blksize == 0) stbuf.st_blksize = 1024;
+	  infilesize_kb = (stbuf.st_size + stbuf.st_blksize -1) / 1024;
+	}
+
+
 	if ((fclose(ofp) != 0) || ofperrors || (erename(file, qpath) != 0)) {
 	  zunlink(qpath);
 	  zunlink(ofpname);
@@ -2653,6 +2676,17 @@ sequencer(e, file)
 	rtsyslog(e->e_spoolid, e->e_statbuf.st_mtime,
 		 fromaddr, smtprelay, (int) e->e_statbuf.st_size,
 		 nrcpts, msgidstr, start_now);
+
+	MIBMtaEntry->m.mtaTransmittedMessagesRt   += 1;
+	MIBMtaEntry->m.mtaTransmittedRecipientsRt += nrcpts;
+
+	MIBMtaEntry->m.mtaTransmittedVolumeRt     += infilesize_kb;
+	MIBMtaEntry->m.mtaTransmittedVolume2Rt    += taskfilesize_kb;
+
+	MIBMtaEntry->m.mtaStoredMessagesRt        -= 1;
+	MIBMtaEntry->m.mtaStoredVolumeRt          -= infilesize_kb;
+
+
 #ifdef AF_UNIX
 	do {
 

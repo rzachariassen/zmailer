@@ -135,6 +135,17 @@ const char *buf, *cp;
 {
     const char *msg = NULL;
 
+    switch (SS->carp->cmd) {
+    case Hello2:
+      MIBMtaEntry->m.mtaIncomingSMTP_EHLO += 1;
+      break;
+    case Hello:
+      MIBMtaEntry->m.mtaIncomingSMTP_HELO += 1;
+      break;
+    default: /* Should not happen... */
+      break;
+    }
+
     if (SS->state != Hello && SS->state != MailOrHello) {
 	switch (SS->state) {
 	case Mail:
@@ -368,6 +379,9 @@ int insecure;
     int addrlen, drptret_len, drptenvid_len, authparam_len;
     int strict = STYLE(SS->cfinfo, 'R');
     int sloppy = STYLE(SS->cfinfo, 'S');
+
+    MIBMtaEntry->m.mtaIncomingSMTP_MAIL += 1;
+
 
     if (strict && sloppy) /* If misconfigured, SLOPPY takes precedence! */
       strict = 0;
@@ -1063,6 +1077,9 @@ const char *buf, *cp;
     int strict = STYLE(SS->cfinfo, 'R');
     int sloppy = STYLE(SS->cfinfo, 'S');
     int err;
+
+
+    MIBMtaEntry->m.mtaIncomingSMTP_RCPT += 1;
 
     if (strict && sloppy) /* If misconfigured, SLOPPY takes precedence! */
       strict = 0;

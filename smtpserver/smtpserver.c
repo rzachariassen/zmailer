@@ -1051,6 +1051,8 @@ char **argv;
 
 	Z_SHM_MIB_Attach (1); /* Attach in R/W mode */
 
+	MIBMtaEntry->m.mtaSmtpServerMasterPID  =  getpid();
+
 	MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses = 1; /* myself at first */
 
 #if 1

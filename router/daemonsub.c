@@ -251,53 +251,56 @@ static int  start_child   __((int idx));
 static int  start_child (i)
      const int i;
 {
-  int pid;
-  int tofd[2], frmfd[2];
+	int pid;
+	int tofd[2], frmfd[2];
 
-  if (pipes_create(tofd, frmfd) < 0)
-    return -1; /* D'uh :-( */
+	if (pipes_create(tofd, frmfd) < 0)
+	  return -1; /* D'uh :-( */
 
-  pid = fork();
-  if (pid == 0) { /* child */
+	pid = fork();
+	if (pid == 0) { /* child */
 
-    int idx;
+	  int idx;
 
-    pipes_to_child_fds(tofd,frmfd);
-    for (idx = resources_query_nofiles(); idx >= 3; --idx)
-	close(idx);
+	  pipes_to_child_fds(tofd,frmfd);
+	  for (idx = resources_query_nofiles(); idx >= 3; --idx)
+	    close(idx);
 
 #if 0
-    resources_maximize_nofiles();
+	  resources_maximize_nofiles();
 #endif
 
-    zcloselog();
-    /* Each (sub-)process does openlog() all by themselves */
-    zopenlog("router", LOG_PID, LOG_MAIL);
+	  zcloselog();
+	  /* Each (sub-)process does openlog() all by themselves */
+	  zopenlog("router", LOG_PID, LOG_MAIL);
 
-    child_server(0, 1);
+	  child_server(0, 1);
 
-    exit(0);
+	  exit(0);
 
-  } else if (pid < 0) { /* fork failed - yell and forget it! */
-    close(tofd[0]);  close(tofd[1]);
-    close(frmfd[0]); close(frmfd[1]);
-    fprintf(stderr, "router: start_child(): Fork failed!\n");
-    return -1;
-  }
-  /* Parent */
+	} else if (pid < 0) { /* fork failed - yell and forget it! */
+	  close(tofd[0]);  close(tofd[1]);
+	  close(frmfd[0]); close(frmfd[1]);
+	  fprintf(stderr, "router: start_child(): Fork failed!\n");
+	  return -1;
+	}
+	/* Parent */
 
-  pipes_close_parent(tofd,frmfd);
+	MIBMtaEntry->m.mtaRouterProcesses += 1;
 
-  fd_nonblockingmode(tofd[1]);
-  fd_nonblockingmode(frmfd[0]);
+	pipes_close_parent(tofd,frmfd);
 
-  routerchilds[i].tochild   = tofd[1];
-  routerchilds[i].fromchild = frmfd[0];
-  routerchilds[i].childpid  = pid;
-  routerchilds[i].hungry    = 0;
-  routerchilds[i].childsize = 0;
-  routerchilds[i].childout  = 0;
-  return 0;
+	fd_nonblockingmode(tofd[1]);
+	fd_nonblockingmode(frmfd[0]);
+	
+	routerchilds[i].tochild   = tofd[1];
+	routerchilds[i].fromchild = frmfd[0];
+	routerchilds[i].childpid  = pid;
+	routerchilds[i].hungry    = 0;
+	routerchilds[i].childsize = 0;
+	routerchilds[i].childout  = 0;
+
+	return 0;
 }
 
 /*
@@ -349,6 +352,7 @@ int signum;
 #if defined(HAVE_SYS_RESOURCE_H)
 	      routerchilds[i].r = r;
 #endif
+	      MIBMtaEntry->m.mtaRouterProcesses -= 1;
 	    }
 	}
 
@@ -958,7 +962,17 @@ dq_insert(DQ, ino, file, dir)
 	dq->wrksum   += 1;
 	dq->sorted    = 0;
 
-	++MIBMtaEntry->m.mtaReceivedMessagesRt;
+	/* Account these into router job queue,
+	   counting them OUT of that queue is job for
+	   rfc822.c::sequencer()  ! 
+	*/
+
+	MIBMtaEntry->m.mtaReceivedMessagesRt += 1;
+	MIBMtaEntry->m.mtaStoredMessagesRt   += 1;
+
+	i = (stbuf.st_size + stbuf.st_blksize -1)/1024;
+	MIBMtaEntry->m.mtaReceivedVolumeRt += i;
+	MIBMtaEntry->m.mtaStoredVolumeRt   += i;
 
 	return 0;
 }
@@ -1447,6 +1461,8 @@ run_daemon(argc, argv)
 
 
 	Z_SHM_MIB_Attach (1); /* Read/write attach (attempt) */
+
+	MIBMtaEntry->m.mtaRouterMasterPID  =  getpid();
 
 	/* Zero the gauges at our startup.. */
 	MIBMtaEntry->m.mtaStoredMessagesRt	= 0; /* in input queue */
