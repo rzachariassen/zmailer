@@ -1233,36 +1233,37 @@ deliver(SS, dp, startrp, endrp)
 	SS->msize = size;
 
 	strcpy(SMTPbuf, "MAIL From:<");
-	if (STREQ(startrp->addr->link->channel,"error"))
-	  strcpy(SMTPbuf+11, ">");
-	else if (startrp->ezmlm) {
-	  char *p = SMTPbuf+11;
-	  const char *u;
-	  int quote = 0;
-	  u = startrp->addr->link->user;
-	  for ( ; *u; ++u) {
-	    char c = *u;
-	    if (c == '\\') {
-	      *p++ = c; ++u;
-	      if (*u == 0) break;
-	      *p++ = *u;
-	      continue;
+	if (!STREQ(startrp->addr->link->channel,"error")) {
+	  if (!startrp->ezmlm) {
+	    sprintf(SMTPbuf+11, "%.1000s", startrp->addr->link->user);
+	  } else {
+	    char *p = SMTPbuf+11;
+	    const char *u;
+	    int quote = 0;
+	    u = startrp->addr->link->user;
+	    for ( ; *u; ++u) {
+	      char c = *u;
+	      if (c == '\\') {
+		*p++ = c; ++u;
+		if (*u == 0) break;
+		*p++ = *u;
+		continue;
+	      }
+	      if (c == quote) /* 'c' is non-zero here */
+		quote = 0;
+	      else if (c == '"')
+		quote = '"';
+	      else if (!quote && (c == '@'))
+		break;
+	      *p++ = c;
 	    }
-	    if (c == quote) /* 'c' is non-zero here */
-	      quote = 0;
-	    else if (c == '"')
-	      quote = '"';
-	    else if (!quote && (c == '@'))
-	      break;
-	    *p++ = c;
+	    if (*u == '@') {
+	      strcpy(p, startrp->ezmlm);
+	      p += strlen(p);
+	    }
+	    strcpy(p, u);
 	  }
-	  if (*u == '@') {
-	    strcpy(p, startrp->ezmlm);
-	    p += strlen(p);
-	  }
-	  strcpy(p, u);
-	} else
-	  sprintf(SMTPbuf+11, "%.1000s", startrp->addr->link->user);
+	}
 
 	s = SMTPbuf + strlen(SMTPbuf);
 	*s++ = '>';
