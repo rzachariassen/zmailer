@@ -1,5 +1,8 @@
 2003-04-17  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/hold/hold.c:
+	    Long time bug in produced envelope metadata entry.
+
 	* transports/reroute/reroute.c, transports/reroute/Makefile.in,
 	  transports/reroute/manual-rerouter.in:
 	    Experimental version of reroute -- e.g. command some channel/host
