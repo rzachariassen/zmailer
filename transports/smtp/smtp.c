@@ -3862,12 +3862,14 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	  }
 	}
 
-	if (some_ok)
-	  rc = EX_OK;
+	/* if (some_ok) */
+	rc = EX_OK;
 	if (datafail != EX_OK)
 	  rc = datafail;
 	if (rc == EX_OK && err != 0)
 	  rc = EX_TEMPFAIL; /* Some timeout happened at the response read */
+	if (SS->rcptstates & FROMSTATE_400)
+	  rc = EX_TEMPFAIL; /* MAIL FROM was a 4** code */
 
 	return rc;
 }
