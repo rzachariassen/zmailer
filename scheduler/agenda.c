@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  */
 
 #include "hostenv.h"
@@ -19,7 +19,8 @@ doagenda()
 	struct thread *thr, *nthr;
 	int didsomething = 0;
 
-	mytime(&now);
+	timed_log_reinit(); /* 	internal: mytime(&now); */
+
 
 	thr = thread_head;
 
@@ -65,7 +66,7 @@ doexpiry2()
 	int didsomething = 0, rc;
 	time_t timelimit;
 
-	mytime(&now);
+	timed_log_reinit(); /* 	internal: mytime(&now); */
 
 	timelimit = now + expiry2_timelimit;
 

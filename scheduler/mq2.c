@@ -463,6 +463,8 @@ void mq2_areinsets(rdmaskp, wrmaskp)
 {
     struct mailq *mq;
 
+    timed_log_reinit();
+
     /* The mq-queue may change while we are going it over,
        thus we *must not* try to do write and read things
        at the same time! and be *very* carefull at following

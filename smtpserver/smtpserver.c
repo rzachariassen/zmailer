@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2002.
+ *      Copyright 1991-2003.
  */
 
 /*
@@ -434,15 +434,15 @@ char **argv;
 #ifndef __STDC__
 #if defined(AF_INET6) && defined(INET6)
 #ifdef USE_TRANSLATION
-		       "?46aBC:d:ighl:np:tI:L:M:P:R:s:S:T:VvwX8"
+		       "?46aBC:d:ighl:np:tI:L:M:P:R:s:S:T:VvwZ:X8"
 #else /* xlate */
-		       "?46aBC:d:ighl:np:tI:L:M:P:R:s:S:T:Vvw"
+		       "?46aBC:d:ighl:np:tI:L:M:P:R:s:S:T:VvwZ:"
 #endif /* xlate */
 #else /* INET6 */
 #ifdef USE_TRANSLATION
-		       "?4aBC:d:ighl:np:tI:L:M:P:R:s:S:T:VvwX8"
+		       "?4aBC:d:ighl:np:tI:L:M:P:R:s:S:T:VvwZ:X8"
 #else
-		       "?4aBC:d:ighl:np:tI:L:M:P:R:s:S:T:Vvw"
+		       "?4aBC:d:ighl:np:tI:L:M:P:R:s:S:T:VvwZ:"
 #endif /* xlate */
 #endif /* INET6 */
 #else /* __STDC__ */
@@ -453,7 +453,7 @@ char **argv;
 #endif
 		       "aBC:d:ighl:n"
 		       "p:t"
-		       "I:L:M:P:R:s:S:T:Vvw"
+		       "I:L:M:P:R:s:S:T:VvwZ:"
 #ifdef USE_TRANSLATION
 		       "X8"
 #endif /* USE_TRANSLATION */
@@ -608,6 +608,9 @@ char **argv;
 	    X_8bit = 1;
 	    break;
 #endif				/* USE_TRANSLATION */
+	case 'Z':
+	    if (readzenv(optarg) == 0)
+	      ++errflg;
 	default:
 	    fprintf(stderr,
 		    "%s: Unknown option, c=%d ('%c')\n", progname, c, c);
@@ -634,7 +637,7 @@ char **argv;
  [-C cfgfile] [-s xx] [-L maxLoadAvg]\
  [-M SMTPmaxsize] [-R rtrprog] [-p port#]\
  [-P postoffice] [-l SYSLOG] [-l logfile] [-S 'local'|'remote']\
- [-I pidfile] [-T test-net-addr]\n"
+ [-I pidfile] [-T test-net-addr] [-Z zenvfile]\n"
 #else /* __STDC__ */
 		"Usage: %s [-4"
 #if defined(AF_INET6) && defined(INET6)
@@ -647,7 +650,7 @@ char **argv;
 		"] [-C cfgfile] [-s xx] [-L maxLoadAvg]"
 		" [-M SMTPmaxsize] [-R rtrprog] [-p port#]"
 		" [-P postoffice] [-l logfile] [-S 'local'|'remote']"
-		" [-I pidfile] [-T test-net-addr]\n"
+		" [-I pidfile] [-T test-net-addr] [-Z zenvfile]\n"
 #endif /* __STDC__ */
 		, progname);
 	exit(1);

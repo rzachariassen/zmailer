@@ -123,6 +123,8 @@ main(argc, argv)
 
 	SIGNAL_IGNORE(SIGPIPE);
 
+	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
 	progname = strrchr(argv[0], '/');
 	if (progname == NULL)
 	  progname = argv[0];

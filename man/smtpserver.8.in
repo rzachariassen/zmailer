@@ -18,6 +18,7 @@ smtpserver \- zmailer SMTP server
 [\fB\-P\fR\ \fIpostoffice\fR]
 [\fB\-R\fR\ \fIrouter\fR]
 [\fB\-C\fR\ \fIcfgfile\fR]
+[\fB\-Z\fR\ \fIzenvfile\fR]
 [\fB\-T\ \fI'[1.2.3.4]'\fR]
 .SH DESCRIPTION
 This program implements the server side of the SMTP protocol as described
@@ -188,6 +189,9 @@ be present, otherwise illegal syntax will be reported.
 Set when running smtpserver under e.g. inetd, and using service port
 number 465; a "well-known" deprecated one of SSL/SMTP; (From the era
 before ``STARTTLS'' protocol verb.)
+
+.IP "\-Z\ \fIzenvfile\fR"
+passes on explicite non-compiled-in-default located ZCONFIG environment file.
 
 .IP \-V
 prints a version message and exits.

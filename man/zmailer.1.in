@@ -1,12 +1,14 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 1 "10 Dec 2001"
+.TH ZMAILER 1 "2003-Apr-17"
 .SH NAME
 zmailer \- zmailer control script
 .SH SYNOPSIS
 .IP \fBzmailer\fR 8em
-[\fB\-q\fR]
-[\fBkill\fR|\fBnuke\fR]
+[\fB\-\-zconfig\ \fI/mail/zmailer\-x.conf\fR]
+[[\fB\-q\fR]
+[\fBkill\fR|\fBnuke\fR|\fBstop\fR]
+[\fBstart\fR]
 [\fBrouter\fR]
 [\fBscheduler\fR]
 [\fBsmtpserver\fR]
@@ -15,8 +17,9 @@ zmailer \- zmailer control script
 [\fBresubmit\fR]
 [\fBbootclean\fR]
 [\fBcleanup\fR]
+[\fBlogsync\fR]
 [\fBfreeze\fR]
-[\fBthaw\fR|\fBunfreeze\fR]
+[\fBthaw\fR|\fBunfreeze\fR]]
 
 .SH DESCRIPTION
 The
@@ -70,6 +73,12 @@ it with the four arguments:
 .RE
 .PP
 The arguments specify actions to take in sequence:
+.IP "\fB\-\-zconfig \fI/path/to/zconfig\fR"
+accepted only as the
+.I first
+parameter, and can be used to override the hardcoded system-wide value
+of ZCONFIG ZENV variable.
+This value will also be propagated to all daemons started by this script.
 .IP \fB\-q\fR
 shuts up this script wrapper from muttering anything.
 .IP \fBfreeze\fR
@@ -95,6 +104,9 @@ is the last (or only) argument, it will terminate all three daemons.
 is like
 .B kill
 except the processes are shut down with the KILL signal.
+.IP \fBstart\fR
+clears the nuke/kill flag, and all daemons explicitely named after
+this (or if this the last in the command line, then all) will be started.
 .IP \fBrouter\fR
 will start up (or shut down if after a
 .BR kill )
@@ -127,6 +139,12 @@ does any necessary boot-time cleanup.
 gets rid of old files from the \fIPOSTOFFICE\fB/postman\fR and 
 \fIPOSTOFFICE\fB/public\fR directories.  This should be run once a day
 or week or month.
+.IP \fBlogsync\fR
+A "post-logfile-movement" call hook to do things needed in
+various subsystems to get their logfiles reopened, or some such.
+Most subsystems have automated "reopen everything within 30 seconds
+of previous reopen" logic inside them.
+Some may have other requirements.
 .SH EXAMPLES
 To stop the currently running daemons:
 .PP
@@ -169,7 +187,7 @@ This program authored and copyright by:
 .RS 3em
 Rayan Zachariassen <no address>
 .RE
-Modifications over the years 1990-2001 by:
+Modifications over the years 1990-2003 by:
 .RS 3em
 Matti Aarnio <mea@nic.funet.fi>
 .RE

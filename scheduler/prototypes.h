@@ -119,6 +119,7 @@ extern time_t mytime __((time_t *));
 extern int dq_insert __((void*, long, const char*, int));
 extern int in_dirscanqueue __((void *, long));
 extern const char *cfpdirname __((int));
+extern void timed_log_reinit __((void));
 
 extern struct MIB_MtaEntry *MIBMtaEntry;
 

@@ -80,6 +80,8 @@ main(argc, argv)
 	  SIGNAL_HANDLE(SIGQUIT, wantout);
 	SIGNAL_IGNORE(SIGPIPE);
 
+	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
 	if ((progname = strrchr(argv[0], '/')) == NULL)
 	  progname = argv[0];
 	else

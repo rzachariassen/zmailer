@@ -234,6 +234,8 @@ main(argc, argv)
 
 	SIGNAL_HANDLE(SIGPIPE, sigpipe);
 
+	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
 	if ((progname = strrchr(argv[0], '/')) == NULL)
 	  progname = argv[0];
 	else

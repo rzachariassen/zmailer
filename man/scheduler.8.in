@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "2002-Sep-08"
+.TH SCHEDULER 8 "2003-Apr-17"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -16,6 +16,7 @@ scheduler \- zmailer transport queue scheduler daemon
 [\fB\-p\fR\ \fIchannel/host-pair\fR]
 [\fB\-R\fR\ \fImaxforkfreq\fR]
 [\fB\-q\fR\ \fIrendezvous\fR
+[\fB\-Z\fR\ \fIzenvfile\fR]
 .PP
 .SH DESCRIPTION
 The \fIscheduler\fR daemon manages the delivery processing of messages
@@ -199,6 +200,9 @@ be verbose about activity, and do not detach as a daemon.
 be used in conjunction with \-v to delay verbose logging
 start until after all the files have been parsed in, and
 it is a time for doing scheduling.
+.PP
+.IP "\-Z\ \fIzenvfile\fR"
+passes on explicite non-compiled-in-default located ZCONFIG environment file.
 .PP
 .IP "\-V"
 print version message and run interactively.

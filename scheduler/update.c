@@ -5,7 +5,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  */
 
 #include "hostenv.h"
@@ -85,6 +85,8 @@ update(fd, diagnostic)
 	struct vertex *vp;
 	struct diagcodes *dcp;
 	struct procinfo *proc = &cpids[fd];
+
+	timed_log_reinit();
 
 	if (*diagnostic == 0) {
 #if 0
@@ -555,7 +557,8 @@ static void logstat(vp,reason)
 {
 	if (!statuslog) return;
 
-	mytime(&now);
+	timed_log_reinit();
+
 	sfprintf(statuslog, "%s %ld %ld %s %s/%s\n",
 		 vp->cfp->spoolid,
 		 (long)(vp->cfp->envctime - vp->cfp->mtime),

@@ -432,6 +432,8 @@ main(argc, argv)
 	__free_hook = my_free_hook;
 #endif
 
+	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
 	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
 	fd_blockingmode(FILENO(stdout)); /* Just to make sure.. */
 

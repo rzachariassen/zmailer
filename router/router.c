@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  */
 
 
@@ -108,7 +108,7 @@ main(argc, argv)
 
 
 	while (1) {
-		c = zgetopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:r:sSVwW");
+		c = zgetopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:r:sSVwWZ:");
 		if (c == EOF)
 			break;
 	  
@@ -186,16 +186,20 @@ main(argc, argv)
 			if (routerdirloops < 0)
 				routerdirloops = 0;
 			break;
+		case 'Z':
+			if (readzenv(zoptarg) == 0)
+			  ++errflg;
+			break;
 		case '?':
 		default:
-			errflg++;
+			++errflg;
 			break;
 		}
 	}
 
 	if (errflg || (interactiveflg && daemonflg)) {
 		fprintf(stderr,
-			"Usage: %s [ -dikV -n #routers -t traceflag -f configfile -L logfile -P postoffice]\n",
+			"Usage: %s [ -dikV -n #routers -t traceflag -f configfile -L logfile -P postoffice -Z zenvfile]\n",
 			progname);
 		exit(128+errflg);
 	}

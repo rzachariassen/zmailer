@@ -206,6 +206,8 @@ main(argc, argv)
 	if (oldsig != SIG_IGN)
 	  SIGNAL_HANDLE(SIGHUP, wantout);
 
+	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
+
 	if ((progname = strrchr(argv[0], '/')) == NULL)
 	  progname = argv[0];
 	else

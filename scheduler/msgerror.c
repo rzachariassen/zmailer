@@ -232,6 +232,9 @@ msgerror(vp, offset, message)
 	/* exclusive access required, but we're the only scheduler... */
 	fp = sfopen(NULL, path, "a");
 	if (fp == NULL) {
+
+	  timed_log_reinit();
+
 	  sfprintf(sfstderr,
 		   "Cannot open control file %s to deposit", vp->cfp->mid);
 	  sfprintf(sfstderr,

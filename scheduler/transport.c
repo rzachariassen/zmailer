@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  */
 
 
@@ -126,6 +126,7 @@ static int
 flush_child(proc)
      struct procinfo *proc;
 {
+
 	if (proc->pid < 0 && proc->tofd >= 0) {
 	  pipes_shutdown_child(proc->tofd);
 	  proc->tofd = -1;
@@ -1085,6 +1086,8 @@ time_t timeout;
 	struct timeval tv;
 	struct procinfo *proc = cpids;
 
+	timed_log_reinit();
+
 	if (in_select) {
 	  sfprintf(sfstderr,"**** recursed into mux()! ***\n");
 	  return 0;
@@ -1141,14 +1144,18 @@ time_t timeout;
 	  return -1;
 
 	++maxf;
-	/*sfprintf(sfstderr, "about to select on %x [%d]\n",
-			  mask.fds_bits[0], maxf); */
+	/* sfprintf(sfstderr, "about to select on %x [%d]\n",
+	   mask.fds_bits[0], maxf); */
 
 	in_select = 1;
 
 	n = select(maxf, &rdmask, &wrmask, NULL, &tv);
+
 	if (n < 0) {
 	  int err = errno;
+
+	  timed_log_reinit();
+
 	  /* sfprintf(sfstderr, "got an interrupt (%d)\n", errno); */
 	  in_select = 0;
 	  if (errno == EINTR || errno == EAGAIN)
@@ -1171,6 +1178,7 @@ time_t timeout;
 	} else if (n == 0) {
 	  /* sfprintf(sfstderr, "abnormal 0 return from select!\n"); */
 	  /* -- just a timeout -- fast or long */
+	  timed_log_reinit();
 	  in_select = 0;
 	  return 1;
 	} else {
@@ -1188,6 +1196,8 @@ time_t timeout;
 	  if (cpids != NULL) {
 
 	    for (proc = cpids, i = 0; i < maxf; ++i, ++proc) {
+	      
+	      timed_log_reinit();
 
 	      if (proc->pid < 0 ||
 		  (proc->pid > 0 && _Z_FD_ISSET(i, rdmask))) {
@@ -1229,7 +1239,8 @@ queryipccheck()
 	struct timeval tv;
 	int maxfd;
 
-	mytime(&now);
+	timed_log_reinit(); /* internal: mytime(&now); */
+
 	if (!mq2_active() && (lastqueryipccheck == now)) return;
 	lastqueryipccheck = now;
 

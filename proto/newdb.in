@@ -44,7 +44,10 @@ $BASENAME  = $ARGV[0];
 $INPUTNAME = $BASENAME;
 $INPUTNAME = $ARGV[1] if ($ARGV[1]);
 
-& pick_zenv();
+$ZCONFIG = '@ZMAILERCFGFILE@';
+$ZCONFIG = $ENV{'ZCONFIG'} if (defined $ENV{'ZCONFIG'});
+
+& pick_zenv( $ZCONFIG );
 
 $MAILBIN = $ZENV{'MAILBIN'};
 
@@ -89,7 +92,7 @@ exit 0;
 
 sub pick_zenv {
 
-    my ($ZCONFIG) = '@ZMAILERCFGFILE@';
+    my ($ZCONFIG) = @_;
 
     open(ZZ, "< ".$ZCONFIG) || die "No ZCONFIG file at '$ZCONFIG'";
     while (<ZZ>) {

@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  */
 
 /*
@@ -217,6 +217,29 @@ int sig;
 	SIGNAL_HANDLE(SIGHUP, (RETSIGTYPE(*)__((int))) loginitsched);
 	return 0;
 }
+
+/*
+ *  A self-timed log re-init caller to make sure, that
+ *  no log file is kept open for more than 30 seconds
+ *  in one go.  This allows (within 30 seconds) the files
+ *  to be rotates at first to new names, then after that
+ *  30 second delay, to be further processed - e.g. compressed.
+ *
+ */
+
+void timed_log_reinit()
+{
+  static time_t next_log_reinit;
+
+  mytime(&now);
+
+  if (next_log_reinit < now) {
+    next_log_reinit = now + 25;
+    loginitsched(SIGHUP);
+  }
+}
+
+
 
 struct dirstatname {
 	struct stat st;
@@ -561,7 +584,7 @@ main(argc, argv)
 	verbose = errflg = version = 0;
 	for (;;) {
 		c = getopt(argc, (char*const*)argv,
-			   "divE:f:Fl:HL:M:nN:p:P:q:QR:SVW");
+			   "divE:f:Fl:HL:M:nN:p:P:q:QR:SVWZ:");
 		if (c == EOF)
 		  break;
 		switch (c) {
@@ -657,6 +680,10 @@ main(argc, argv)
 		case 'S':
 			syncstart = 1;
 			break;
+		case 'Z':
+			if (readzenv(optarg) == 0)
+			  ++errflg;
+			break;
 		case '?':
 		default:
 			errflg++;
@@ -666,7 +693,7 @@ main(argc, argv)
 
 	if (errflg) {
 	  sfprintf(sfstderr,
-		   "Usage: %s [-dHisvV -M (1|2) -f configfile -L logfile -P postoffice -Q rendezvous]\n",
+		   "Usage: %s [-dHisvV -M (1|2) -f configfile -L logfile -P postoffice -Q rendezvous -Z zenvfile]\n",
 		   progname);
 	  exit(128+errflg);
 	}
