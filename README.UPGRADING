@@ -13,6 +13,14 @@
 	are important, naturally!
 
 
+	ZMailer-2.99.50-s17
+		The SMTPSERVER no longer per default runs interactive
+		router underneath of itself.  This is due to several
+		potential security problems such mode contains.  This
+		means that without explicite enable at   smtpserver.conf,
+		commands  EXPN, VRFY, and router-assisted address processing
+		will not work ("style" param chars: f t v e )
+
 	ZMailer-2.99.50-s14
 		Policy database has evolved quite a bit, very least you
 		should recompile possible pre-existing policy dataset
