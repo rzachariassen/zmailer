@@ -15,7 +15,7 @@
 
 const char *VerbID = "ZMailer SMTP server %s";
 const char *Copyright = "Copyright 1990 Rayan S. Zachariassen";
-const char *Copyright2 = "Copyright 1991-2000 Matti Aarnio";
+const char *Copyright2 = "Copyright 1991-2003 Matti Aarnio";
 
 /* Timing parameters -- when expired, session is killed ... */
 
