@@ -853,7 +853,7 @@ AC_CHECK_FUNCS(setrlimit fchown utimes sysconf fpathconf)
 # Networking stuff is in deep trouble, if sockets are not found..
 AC_CHECK_HEADERS(netdb.h syslog.h sys/resource.h \
 		protocols/rwhod.h select.h sys/select.h utime.h)
-AC_CHECK_FUNCS(select syslog getdtablesize)
+AC_CHECK_FUNCS(select syslog getdtablesize setpriority)
 
 #
 # Test to see, if we have BSD4.4  sa_len -field in the "struct sockaddr*"

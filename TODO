@@ -21,6 +21,7 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	- both issue report of "retryat +nn"
 	- both are rescheduled about immediately..
 	- system spins (FAST) on those two...
+		(Fixed ?  Haven't seen this for a while)
 
 	- New cfg param:  maxha -- max age that a child-process can be
 	  active, and the scheduler will wait for that much after the
@@ -63,6 +64,15 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 - Manuals leave a lot to desire.. Especially a good users/administrators
   manual is in need
 	[July 1997: technical writers are hard at work on this one]
+	[April 1998: Completing the work is at Matti's hands..]
+
+
+- All transport agents:
+	- Unify the content MIME processing routines;  Construct them
+	  to be a common sub-layer ?
+	- Do not decode Q-P or Base-64 if the resulting material exceeds
+	  RFC-821/RFC-822 line length limits (or whatever limits have
+	  been set).
 
 - transports/sm/sm.c:
 	- what UID it runs programs like procmail with ?
@@ -110,7 +120,7 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	- $MAILVAR/lists/ -dir, and files in it
 	- ~/.forward -files (and home directories)
 
-- transports/smtp/smtp.c:
+- transports/smtp/smtp.c: (and scheduler)
 	- To rewrite the MX processing in streamlined flashion (see next)
 	- In case two domains have common (sub-)set of MX servers, and
 	  we have been feeding mail to domain A thru MX-server B, and

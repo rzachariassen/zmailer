@@ -1,4 +1,25 @@
+1998-05-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    A few cases of calls to  smtp_sync() while SS->smtpfp
+	    was already NULLed are now protected.  One can't do
+	    any remote syncing when there is no remote...
+
 1998-04-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libc/Makefile.in:
+	    Fixes for installation of  zmailer.h, and libzmailer.a
+	    (Noted by Eugene Crosser)
+
+	* compat/sendmail/sendmail.c:
+	    Usage of "-f<>" option (source as the 'box') creates
+	    message with "channel error" for the reported envelope
+	    source.  This was for easier debugging of 'channel error'
+	    things, but YMMV as the saying goes...
+
+	* proto/Makefile.in:
+	    Weird problems in "make mailshare" installing *.conf
+	    files.  Perhaps fixed now. (Noted by Eugene Crosser)
 
 	* router/rfc822.c:
 	    Alternate scheme for dealing with SMTP MAIL FROM:<>, and
