@@ -110,7 +110,7 @@ zmanual/zmanual.shtml: gifs $(PARTS)
 	make index-html
 	./db2html -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#html' zmanual.sgml
 	cp -p *.gif zmanual/
-	cp zmanual.css zmanual/
+	cp zmanual.css2 zmanual/zmanual.css
 	cd zmanual; ../html-post-fixup.sh *.html
 
 HTML.index:
@@ -142,7 +142,7 @@ zmanual.pdf: $(PARTS) $(FIGPDF) zmanual.sgml
 
 distclean clean:
 	# Leave "zmanual.ps" in place, if it exists
-	rm -f *~ *.html *.eps *.gif *.bak *.dvi *.toc *.lof *.pdf
+	rm -f *~ *.html *.eps *.gif *.bak *.dvi *.toc *.lof *.pdf *.ps
 	rm -f *.css *.aux *.ptr *.old *.ilg *.gls *.cb *.glo *.log
 	rm -rf l2h[1-9][0-9]* *sections.pl *internals.pl #*index.pl
 	rm -f *contents.pl *.ind *.idx *images.pl *table.pl
