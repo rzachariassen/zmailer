@@ -4,26 +4,6 @@ libc: "make install" is "crazy"
 proto:	"make install" -- nothing goes in ???
 		--> MAILSHARE/proto/ !!
 
-router/libdb/ldap.c:
-	Reorganize things:
-		Do connect+bind to DB at  ldap_open() !
-		Do ONLY queries at ldap_search() !
-		Do dissociation at ldap_close() !
-
-router/functions.c: (or libsh/???.c ?)
-	lappend() and lreplace():
-		COPY the linear baseline before modifying it !
-
-smtpserver:
-	Implement policy analysis of %-hack addresses..
-	(And !-paths too ?)
-	TEST THEM! Also test 'message' attribute which should give
-	text message to attribute immediately following it..
-
-	- Implement the local address recognition for the IP-address
-	  literals [1.2.3.4] (fairly well done now)
-	- Do real %-hack processing (well, not *quite* real one..)
-
 router:
 	Input header:
 		Cc: "\"\\"\\\"\\\\"\\\\\"'\\\\\\"Prof. dr J. Wil Foppen\\\\\\" <wfoppen@rsm.nl>' \\\\\"

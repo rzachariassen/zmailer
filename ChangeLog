@@ -1,5 +1,11 @@
 1999-07-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/libdb/ldap.c:
+	    Reorganized things:
+		Do connect+bind to DB at  ldap_open()
+		Do ONLY queries at ldap_search()
+		Do dissociation at ldap_close()
+	
 	* libsh/builtin.c:
 	    A bug in handling of  $(lreplace ... )  internal conscell
 	    chains polluted wrong objects with call parameters.  Adding
@@ -51,7 +57,7 @@
 	    Patch from <zack@bitmover.com> for RFC822 comment
 	    nesting.  In the end result the comments disappear
 	    entirely (not so great) but now properly nested
-	    omments are not flagged as an error!
+	    comments are not flagged as an error!
 
 1999-06-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
