@@ -219,7 +219,7 @@
 #|   [state->rcpt_nocheck = 1; return ACCEPT;]
 #|  if (sender's domain has 'SENDEROKWITHDNS +' attribute) then
 #|    verify that is DNS data for the target domain.  If yes, return ACCEPT;
-#|    if not, return "-100" (soft reject)
+#|    if not, return SOFTREJECT
 #|  if (sender's domain has 'SENDEROKWITHDNS -' attribute) then
 #|    verify that is DNS data for the target domain.  If yes, return ACCEPT;
 #|    if not, return REJECT
@@ -254,13 +254,13 @@
 #|
 #|  If (recipient's domain has 'ACCEPTIFMX +' attribute) then
 #|    Verify that we are MX for the target domain.  If yes, return ACCEPT;
-#|    If not, return "-100" (soft reject)
+#|    If not, return SOFTREJECT
 #|  If (recipient's domain has 'ACCEPTIFMX -' attribute) then
 #|    Verify that we are MX for the target domain.  If yes, return ACCEPT;
 #|    If not, return REJECT
 #|  If (recipient's domain has 'ACCEPTIFDNS +' attribute) then
 #|    Verify that we are MX for the target domain.  If yes, return ACCEPT;
-#|    If not, return "-100" (soft reject)
+#|    If not, return SOFTREJECT
 #|  If (recipient's domain has 'ACCEPTIFDNS -' attribute) then
 #|    Verify that we are MX for the target domain.  If yes, return ACCEPT;
 #|    If not, return REJECT
@@ -276,18 +276,37 @@
 #|
 #|   "We are not relaying between off-site hosts, except when ..."
 #|
-# -- 1st alternate: No MX target usage, no DNS existence verify
+#| You MUST uncomment one of these default-defining pairs, or the blocking
+#| of relay hijack will not work at all !
+#|
+#| -- 1st alternate: No MX target usage, no DNS existence verify
+#|    Will accept for reception only those domains explicitely listed
+#|    in  'smtp-policy.mx'  and  'localnames'  files.  Will not do
+#|    verifications on validity/invalidity of source domains:  <foo@bar>
 # .			relaycustomer - relaytarget -
 # [0.0.0.0]/0		relaycustomer - relaytarget -
-# -- 2nd alternate: No MX target usage, DNS existence verify
+#| -- 2nd alternate: No MX target usage, DNS existence verify
+#|    Like the 1st alternate, except will verify the sender (mail from:<..>)
+#|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
 # .			relaycustomer - relaytarget - senderokwithdns +
 # [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns +
-# -- 3rd alternate: MX relay trust, DNS existence verify
-.			relaycustomer - acceptifmx + senderokwithdns +
-[0.0.0.0]/0		relaycustomer - acceptifmx + senderokwithdns +
-# -- 4th alternate: Sender & recipient DNS existence verify
-#.			senderokwithdns + acceptifdns +
-#[0.0.0.0]/0		senderokwithdns + acceptifdns +
+#| -- 3rd alternate: MX relay trust, DNS existence verify
+#|    For the people who are in deep s*...  That is, those who for some
+#|    reason have given open permissions for people to use their server
+#|    as MX backup for their clients, but don't know all domains valid
+#|    to go thru...  Substitutes accurate data to user's whimsical DNS
+#|    maintenance activities.  Vulnerable to inbound resource abuse.
+.			relaycustomer - acceptifmx - senderokwithdns +
+[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns +
+#| -- 4th alternate: Sender & recipient DNS existence verify
+#|    This is more of an example for the symmetry's sake, verifies that
+#|    the source and destination domains are DNS resolvable, but does not
+#|    block relaying
+#.			senderokwithdns - acceptifdns -
+#[0.0.0.0]/0		senderokwithdns - acceptifdns -
+#|
+#|  Also you may add   'test-dns-rbl +'  attribute pair to [0.0.0.0]/0
+#|  to use Paul Vixie's  http://maps.vix.com/ MAPS RBL system.
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
 #| the database with  'relaytarget +' attribute.
@@ -342,13 +361,14 @@ _bulk_mail	message "You are not liked source for email" rejectsource + message "
 #| The actual list of domains, and perhaps user addresses should
 #| be gotten from some active Anti-SPAM database
 #|
-nobody.com		= _bulk_mail
-.nobody.com		= _bulk_mail
-nodomain.com		= _bulk_mail
-.nodomain.com		= _bulk_mail
+#nobody.com		= _bulk_mail
+#.nobody.com		= _bulk_mail
+#nodomain.com		= _bulk_mail
+#.nodomain.com		= _bulk_mail
 #|
 #| Some source users we reject always: (frequent spammers..)
 #| (see comment above about Anti-SPAM databases)
+#| (Do note that these are SMTP ENVELOPE items, not RFC-822 items!)
 #|
 #friend@		= _bulk_mail
 #friends@		= _bulk_mail

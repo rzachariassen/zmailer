@@ -26,6 +26,7 @@ Installation procedure:
 
 2.	If you are on an Ultrix system, replace the mkdep and mklibdep
 	scripts in the bin directory with the versions provided in bin/Ultrix.
+	(although you propably will not do dependency generation)
 
 3.	This system uses several preferrably separate partitions for
 	different things:
@@ -34,7 +35,7 @@ Installation procedure:
 		The postoffice spool: POSTOFFICE ( /var/spool/postoffice )
 		The log directory: LOGDIR ( /var/log/mail )
 
-	We use GNU-autoconfig mechanism, however you still may need to
+	We use GNU-autoconfig mechanism, however you may still need to
 	touch on some files after that system has run thru:
 
 	You MUST define   --prefix=  so that ZMailer components end up
@@ -108,6 +109,10 @@ Installation procedure:
 				--with-ipv6-replacement-libc
 		( DEC Alpha Linux 2.1.59 with glibc-2.0.5c;
 		  RedHat/Alpha developement 22-Oct-1997 )
+
+
+	Explanations about these configuration options are listed
+	in file  doc/guides/configure
 
 
 4.	At the toplevel, run
@@ -269,8 +274,7 @@ Installation procedure:
 	will be able to claim any addresses at the message headers, etc.
 	(See $MAILSHARE/cf/trusted.cf  for its usage there.)
 	Usual set is:  root,daemon,uucp
-	(Note: At some machines 'daemon' is called 'daemons' ... it is
-	       the one with UID=1)
+	(Note: At some machines 'daemon' is called 'daemons')
 
     ==>	SECURITY ITEM: Those users at zmailer-group MUST NOT contain 'nobody' !
 	(The 'nobody' is used to prevent externally given inputs from being
@@ -289,7 +293,7 @@ Installation procedure:
 
 	You should see something like:
 
-		ZMailer router (2.99.49p5 #4: Wed Jul 23 01:24:37 EET DST 1997)
+		ZMailer router (2.99.49p9 #4: Wed Jul 23 01:24:37 EET DST 1997)
 		  mea@mea:/home/mea/src/zmailer-2.99.49p5/router
 		Copyright 1992 Rayan S. Zachariassen
 		Copyright 1992-1997 Matti Aarnio
@@ -362,13 +366,17 @@ Installation procedure:
 	sirius.astro.utu.fi	sirius.utu.fi
 	sirius.utu.fi		sirius.utu.fi
 
-	REMEMBER: ALL NAMES THAT THE HOST MAY EVER HAVE ARE BEST LISTED
+	REMEMBER: ALL NAMES THAT THE HOST MAY EVER HAVE NEED TO BE LISTED
 		  IN HERE!  It reminds you of them, and makes sure a message
 		  destined into the host really is accepted.
 
 	Compile this into runtime binary database with command:
 		zmailer new-localnames
 	(fall-back method is sequential rescan of the text file)
+
+	Actually in certain cases the router is able to deduce some of
+	the names, however smtpserver anti-relay policy compiler will
+	not be able to do so, and needs this data badly!
 
   ==>	$MAILVAR/db/routes file:
 
@@ -409,10 +417,8 @@ Installation procedure:
 	script.  This can be invoked in several ways: directly as a command
 	by executing  $MAILBIN/newfqdnaliases, or by "zmailer newfqdnaliases".
 
-	Choose one of the following methods to rebuild the database:
-
-	# $MAILBIN/newfqdnaliases
-	# $MAILBIN/zmailer newfqdnaliases
+	Compile this into runtime binary database with command:
+		zmailer newfqdnaliases
 
 	If there are errors, correct them in the $MAILVAR/db/fqdnaliases file
 	and repeat the command until the alias database has been initialized.
@@ -451,6 +457,14 @@ Installation procedure:
 	mailq		174/tcp			# Mailer transport queue
 
 
+12.	The smtpserver can be configured to behave smartly in regards of
+	relay-hijacks and (to some extent) spam email.
+
+	To get it to work needs  $MAILSHARE/smtpserver.conf  file with
+	proper values in it PLUS use of policy-builder.sh script.
+	For more details see file:  doc/guides/smtp-policy
+
+
 12.	Add something like the following lines to bootup scripts (/etc/rc.local
 	or /etc/rc2.d/S99local or similar):
 
@@ -469,17 +483,27 @@ Installation procedure:
 	You may want to comment out startup of the Sendmail daemon.
 
 
-13.	Start ZMailer:
+13.	Edit several of the canned error messages and programs (scripts)
+	to reflect your local configuration:
+		- $MAILSHARE/forms/ -files
+		- $MAILBIN/ta/usenet  (injected message..)
+
+
+14.	Read the notes on alias expansion in the file doc/guides/aliases and
+	on mailing list maintenance in doc/guides/lists.
+
+
+15.	Start ZMailer:
 
 		$MAILBIN/zmailer
 
 
-14.	Keep an eye on the log files ($LOGDIR/{router,scheduler}),
+16.	Keep an eye on the log files ($LOGDIR/{router,scheduler}),
 	the $POSTOFFICE/postman directory for malformed message files,
 	and $POSTOFFICE/deferred in case of resource problems.
 
 
-15.	Add the following entry (or equivalent) to your crontab:
+17.	Add the following entry (or equivalent) to your crontab:
 
 		28 0,8,16 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer resubmit
 
@@ -493,16 +517,6 @@ Installation procedure:
 		7 4 * * * . /etc/zmailer.conf ; $MAILBIN/zmailer cleanup
 
 	You may want to hardwire the location of the zmailer script.
-
-
-16.	Edit several of the canned error messages and programs (scripts)
-	to reflect your local configuration:
-		- $MAILSHARE/forms/ -files
-		- $MAILBIN/ta/usenet  (injected message..)
-
-
-17.	Read the notes on alias expansion in the file doc/guides/aliases and
-	on mailing list maintenance in doc/guides/lists.
 
 
 18.	Once satisfied that things appear to work, you may want to trim down

@@ -1,0 +1,192 @@
+	configure  options of ZMailer package, per version 2.99.49p10
+
+
+The  configure  script has three kinds of parameters for it:
+	- (optional) environment variables for CC="..." et.al.
+	- ZENV data pulled in from $ZCONFIG file (if it exists)
+	- various  --with-*  et.al. options
+
+
+Used environment variables:
+
+	ZCONFIG="/file/path"
+		Using this is alternate for using "--with-zconfig=.."
+		option.  Not needed if the default of /etc/zmailer.conf
+		is used.
+	CC="command"
+	CFLAGS="options"
+		Obvious ones, compiler, and possible "-g -O" flags...
+	CPPDEP="command"
+		Not normally needed -- builds dependencies
+	INEWSBIN=/file/path
+		If you want to pre-define where your 'inews' program
+		is -- for possible use of 'usenet' channel.
+
+Recycled ZENV variables (from $ZCONFIG file):
+
+	For these see  SiteConfig(.in)  file
+
+	ZCONFIG=
+	MAILBOX=
+	POSTOFFICE=
+	MAILSHARE=
+	MAILVAR=
+	MAILBIN=
+	LOGDIR=
+	NNTPSERVER=
+	SCHEDULEROPTIONS=
+	ROUTEROPTIONS=
+	SMTPOPTIONS=
+	LOGDIR=
+	SENDMAILPATH=
+	RMAILPATH=
+	SELFADDRESSES=
+
+Options:
+
+	Options for various facilities:
+
+	--prefix=/DIR/PATH
+		The only really mandatory option, gives actually
+		defaults for MAILSHARE/MAILVAR/MAILBIN.
+
+	--with-gcc
+		Compile with GCC even when you have "cc" around.
+
+	--with-zconfig=/FILE/PATH
+		Where the runtime   zmailer.conf   file is located
+		at (and with what name).  This is ONLY hard-coded
+		info within libraries and thus programs using them.
+		Everything else is runtime relocatable by means of
+		using "variables" listed in this file.
+
+		Default: /etc/zmailer.conf
+
+	--with-mailbox=/DIR/PATH
+		Overrides system-dependent location of the user mail-
+		boxes.  Defaults are looked up thru list of directories:
+		   /var/mail /var/spool/mail /usr/mail /usr/spool/mail
+		First found directory will be the default -- or then
+		system yields  /usr/spool/mail
+
+	--with-postoffice=/DIR/PATH
+		Overrides system-dependent location of the "postoffice"
+		directory under which system stores queued email.
+		Will try directories /{usr,var}/spool/postoffice/ to
+		see, if previously installed directory tree exists.
+		Default will be  /var/spool/postoffice/ in case there
+		is no previously created postoffice directory.
+
+	--with-mailshare=/DIR/PATH
+	--with-mailvar=/DIR/PATH
+	--with-mailbin=/DIR/PATH
+		These are overrides for values derived from  --prefix=/DIR
+		option.  MAILSHARE = "$PREFIX", MAILVAR = "$PREFIX", but
+		the last is MAILBIN = "$PREFIX/bin"
+
+	--with-logdir=/DIR/PATH
+		Explicite value to replace $LOGDIR ZENV value and/or to
+		override default value of:  /var/log/mail
+
+	--with-nntpserver=HOST
+		If you want to use 'usenet' channel, you need to name
+		NNTP server into which you feed news with NNTP.
+
+	--with-sendmailpath=/FILE/PATH
+		Overrider for default location(s) of sendmail program.
+		ZENV variable SENDMAILPATH can be overridden with this.
+
+	--with-rmailpath=/FILE/PATH
+		Overrider for default location(s) of rmail program.
+		ZENV variable RMAILPATH can be overridden with this.
+
+	--with-selfaddresses="NAME,NAME"
+		Obsolete option regarding providing into in ZENV variable
+		to yield system internal names automagically for the SMTP
+		transport channel uses, and also for the router to see,
+		if destination IP address is local at the system.
+
+	--with-system-malloc
+		Use system malloc() library, don't compile own!
+		Alternate for using: --with-libmalloc=system
+		This is default.
+
+	--with-libmalloc=LIBNAME
+		"LIBNAME" is one of:
+		- "system"
+			System malloc() as is.
+		- "malloc"
+			Bundled "libmalloc" without debugging things.
+		- "malloc_d"
+			Bundled "libmalloc" WITH debugging things.
+
+	--with-yp
+		Want to use YP, has it at default locations
+
+	--with-yp-lib='-L... -lyp'
+		If needed to define linking-time options to find the YP-
+		library.
+
+	--with-ldap-prefix=DIRPREFIX
+		If UMich/NetScape LDAP are available thru DIRPREFIX/include/
+		and DIRPREFIX/lib/ locations, this is a short-hand to find
+		the interface -- with files in the system primary include
+		and lib locations,  "/usr" is a special value which will be
+		ignored.  No default value for DIRPREFIX.
+
+	--with-ldap-include-dir=/DIR/PATH
+		Special overrider for compilation include directory of LDAP
+
+	--with-ldap-library-dir=/DIR/PATH
+		Special overrider for linkage library directory of LDAP
+
+	--without-fsync
+		At systems where the local filesystem is log-based/journaling,
+		doing   fsync()  is wastefull.  This disables fsync() in
+		cases where it is not needed.    (In others it may boost
+		your system performance by about 20% -- with dangers..
+		On the other hand, recently a system disk(?) fault which
+		hang mailer at spool directory access did cause severe
+		damage all over, and propably use of this option would
+		not have made any difference..  fsck was mighty unhappy..)
+
+	--with-bundled-libresolv
+		If your system is not very modern, you may consider using
+		this option to compile in a resolver from bind-4.9.4-REL.
+		On the other hand, if your system is modern, it may have
+		even newer resolver in it.  At such time, don't use this!
+
+	--with-ipv6
+		Use IPv6 at things where it is supported.  This is often
+		highly experimental, although many subsystems in ZMailer
+		are built with   getnameinfo()  et.al. interfaces, which
+		works both on IPv4 and IPv6.
+
+	--with-ipv6-replacement-libc
+		If the system needs more support for user-space IPv6
+		things, this generates those.
+
+	--without-rfc822-tabs
+		Some systems dislike getting RFC-822 headers with form of:
+			"Headername: <TAB> value"
+		With this option, no TABs are used and instead "ordinary"
+		space character is used.
+
+	--with-tcp-wrappers[=/DIR/PATH]
+		Optional  =/DIR/PATH  value gives directory where there are
+		<tcpd.h>  and  libwrap.a  files.
+		Without value this option looks for several common locations
+		for those files, and if finds them, yields compile and linking
+		hooks,
+
+	--with-ta-mmap
+		Some systems with good mmap() with MAP_FILE|MAP_SHARED,
+		and well behaving  munmap()  it does make sense to replace
+		read()/write() thru a file-descriptor to the file with
+		mmap() -- however that requires munmap() NOT TO scrub
+		away in-mapped any more actively, than the buffer-cache
+		works at read()/write() blocks.
+
+		This was default for a while, however most systems don't
+		have really well-behaved munmap()s :-/
+		(Perhaps IBM AIX is the only exception ?)

@@ -1,5 +1,9 @@
 1998-03-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* INSTALL, doc/guides/configure, doc/guides/smtp-policy:
+	    A bit of rewriting on INSTALL file, new guide file,
+	    and update of  smtp-policy  guide.
+
 	* ChangeLog, Makefile.in:
 	    Pushing out version 2.99.49p10-s11
 
