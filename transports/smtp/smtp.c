@@ -3675,6 +3675,7 @@ smtp_sync(SS, r, nonblocking)
 	      if (SS->verboselog)
 		fprintf(SS->verboselog,"Remote hung up on us while %d responses missing\n",
 			SS->pipeindex - idx);
+	      err = EX_TEMPFAIL;
 	      break;
 	    } else {
 	      /* more data for processing.. munch munch.. */
