@@ -82,19 +82,18 @@ void msg_info(SS, fmt)
 #else
 /* VARARGS */
 void
-msg_info(va_alist)
+msg_info(SS, va_alist)
+	SmtpState *SS;
 	va_dcl
 #endif
 {
 	va_list	ap;
 	FILE *fp;
 #ifdef HAVE_STDARG_H
-	va_start(ap,fmt);
+	va_start(ap, fmt);
 #else
-	SmtpState *SS;
 	char *fmt;
 	va_start(ap);
-	SS  = va_arg(ap, SmtpState *);
 	fmt = va_arg(ap, char *);
 #endif
 
@@ -553,7 +552,7 @@ static void apps_ssl_info_callback(const SSL * s, int where, int ret)
 #define TRUNCATE
 #define DUMP_WIDTH	16
 
-int tls_dump(const char *s, int len)
+int tls_dump(SmtpState *SS, const char *s, int len)
 {
     int     ret = 0;
     char    buf[160 + 1];
@@ -563,7 +562,6 @@ int tls_dump(const char *s, int len)
     int     rows;
     int     trunc;
     unsigned char ch;
-    SmtpState *SS = NULL; /* FIXME ?? */
 
     trunc = 0;
 
@@ -633,12 +631,12 @@ static long bio_dump_cb(BIO * bio, int cmd, const char *argp, int argi,
     if (cmd == (BIO_CB_READ | BIO_CB_RETURN)) {
 	msg_info(SS, "read from %08X [%08lX] (%d bytes => %ld (0x%X))",
 		 bio, argp, argi, ret, ret);
-	tls_dump(argp, (int) ret);
+	tls_dump(NULL, argp, (int) ret);
 	return (ret);
     } else if (cmd == (BIO_CB_WRITE | BIO_CB_RETURN)) {
 	msg_info(SS, "write to %08X [%08lX] (%d bytes => %ld (0x%X))",
 		 bio, argp, argi, ret, ret);
-	tls_dump(argp, (int) ret);
+	tls_dump(NULL, argp, (int) ret);
     }
     return (ret);
 }
@@ -2007,6 +2005,13 @@ int smtp_nbread(SS, buf, spc)
 	int r, e;
 	int infd = SS->smtpfd;
 
+
+#if 0
+	/* Flush outputs just in case the remote is stuck waiting
+	   for us.. */
+	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0) sfsync(SS->smtpfp);
+#endif
+
 #ifdef HAVE_OPENSSL
 	vlog = SS->verboselog;
 
@@ -2028,7 +2033,7 @@ int smtp_nbread(SS, buf, spc)
 	  }
 	  if (tls_loglevel >= 3) {
 	    msg_info(SS,"smtp_nbread() rc=%d errno=%d", r, e);
-	    if (r > 0) tls_dump(buf, r);
+	    if (r > 0) tls_dump(SS, buf, r);
 	  }
 	} else
 #endif /* - HAVE_OPENSSL */
@@ -2036,6 +2041,10 @@ int smtp_nbread(SS, buf, spc)
 	    /* Normal read(2) */
 	    r = read(infd, buf, spc);
 	    e = errno;
+	    msg_info(SS,"smtp_nbread() rc=%d errno=%d", r, e);
+#if 0
+	    if (r > 0) tls_dump(SS, buf, r);
+#endif
 	  }
   
 	errno = e;

@@ -3816,6 +3816,11 @@ smtp_sync(SS, r, nonblocking)
 
 	eol = SS->pipebuf;
 
+#if 0
+	if (SS->verboselog)
+	  fprintf(SS->verboselog, "smtp_sync(SS, r=%d, nonblocking=%d)  idx=%d\n", r, nonblocking, SS->pipereplies);
+#endif
+
 	if (SS->pipereplies == 0) {
 	  SS->continuation_line = 0;
 	  SS->first_line = 1;
