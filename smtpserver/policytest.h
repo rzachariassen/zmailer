@@ -28,7 +28,7 @@ struct policystate {		/* Part of SmtpState structure */
     int request;
     int origrequest;
     /* Attribute values are stored here. */
-    char values[P_A_LastAttr+1];
+    char * values[P_A_LastAttr+1];
 
     /* The lattest result message (line) */
     char *message;
@@ -43,15 +43,17 @@ struct policystate {		/* Part of SmtpState structure */
 };
 
 
-#ifdef _POLICYTEST_INTERNAL_
-
+#ifndef __Usockaddr__  /* Match the same one in  smtpserver.h */
 typedef union {
     struct sockaddr_in v4;
 #ifdef INET6
     struct sockaddr_in6 v6;
 #endif
 } Usockaddr;
+#define __Usockaddr__
+#endif
 
+#ifdef _POLICYTEST_INTERNAL_
 
 typedef enum {
     _dbt_none, _dbt_btree, _dbt_bhash, _dbt_ndbm, _dbt_gdbm
@@ -114,9 +116,7 @@ extern struct policytest *policydb;
 /* contentpolicy.c */
 extern int contentpolicy __((struct policytest *rel, struct policystate *ps, const char *fname));
 
-#ifdef _POLICYTEST_INTERNAL_
 extern int mx_client_verify  __((int, const char *, int));
 extern int sender_dns_verify __((int, const char *, int));
 extern int client_dns_verify __((int, const char *, int));
-extern int rbl_dns_test __((u_char *, char **));
-#endif
+extern int rbl_dns_test __((const u_char *, char *, char **));

@@ -91,6 +91,8 @@ typedef union {
 } querybuf;
 
 
+#include "policytest.h"
+
 extern int debug;
 static char * txt_buf = NULL;
 
@@ -440,32 +442,52 @@ int client_dns_verify(retmode, domain, alen)
 	return sender_dns_verify(retmode, domain, alen);
 }
 
-int rbl_dns_test(ipv4addr, msgp)
-     u_char *ipv4addr;
+int rbl_dns_test(ipv4addr, rbldomain, msgp)
+     const u_char *ipv4addr;
+     char *rbldomain;
      char **msgp;
 {
 	char hbuf[2000], *s;
 	int rc;
 
-	sprintf (hbuf, "%d.%d.%d.%d.rbl.maps.vix.com",
-		 ipv4addr[3], ipv4addr[2], ipv4addr[1], ipv4addr[0]);
-
-	if (debug)
-	  printf("000- looking up DNS A object: %s\n", hbuf);
-
-	if (gethostbyname(hbuf) != NULL) {
-	  /* XX: Should verify that the named object has A record: 127.0.0.2 */
-
-	  /* Ok, then lookup for the TXT entry too! */
-	  if (debug)
-	    printf("000- looking up DNS TXT object: %s\n", hbuf);
-
-	  if (dnsmxlookup(hbuf, 0, 0, T_TXT) == 1) {
-	    if (*msgp != NULL)
-	      free(*msgp);
-	    *msgp = strdup(txt_buf);
+	while (*rbldomain) {
+	  /* "rbldomain" is possibly a COLON-demarked set of
+	     domain names:  rbl.maps.vix.com:dul.maps.vix.com
+	     which isn't so easy to read, but ... */
+	  s = strchr(rbldomain, ':');
+	  if (s) *s = 0;
+	  if (strcmp(rbldomain,"+") == 0)
+	    sprintf (hbuf, "%d.%d.%d.%d.rbl.maps.vix.com",
+		     ipv4addr[3], ipv4addr[2], ipv4addr[1], ipv4addr[0]);
+	  else
+	    sprintf (hbuf, "%d.%d.%d.%d.%s",
+		     ipv4addr[3], ipv4addr[2], ipv4addr[1], ipv4addr[0],
+		     rbldomain);
+	  if (s) {
+	    *s = ':';
+	    rbldomain = s+1;
+	  } else {
+	    rbldomain += strlen(rbldomain);
 	  }
-	  return -1;
+
+	  if (debug)
+	    printf("000- looking up DNS A object: %s\n", hbuf);
+
+	  if (gethostbyname(hbuf) != NULL) {
+	    /* XX: Should verify that the named object has A record: 127.0.0.2
+	       D'uh.. alternate dataset has A record: 127.0.0.3 */
+
+	    /* Ok, then lookup for the TXT entry too! */
+	    if (debug)
+	      printf("000- looking up DNS TXT object: %s\n", hbuf);
+
+	    if (dnsmxlookup(hbuf, 0, 0, T_TXT) == 1) {
+	      if (*msgp != NULL)
+		free(*msgp);
+	      *msgp = strdup(txt_buf);
+	    }
+	    return -1;
+	  }
 	}
 
 	return 0;

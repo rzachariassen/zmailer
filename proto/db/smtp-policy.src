@@ -34,10 +34,10 @@
 #|	'acceptifmx'	{ '+', '-' }
 #|	'acceptifdns'	{ '+', '-' }
 #|	'sendernorelay' { '+', '-' }
-#|	'test-dns-rbl'	{ '+', '-' }
+#|	'test-dns-rbl'	{ '+', '-', "suffix.one:suffix.two" }
 #|  ------------- document update for following items needed!
-#|	'rply-dns-rbl'	{ '+', '-' }
-#|	'test-rply-dns-rbl' { '+', '-' }
+#|	'rcpt-dns-rbl'	{ '+', '-', "suffix.one:suffix.two" }
+#|	'test-rcpt-dns-rbl' { '+', '-', "suffix.one:suffix.two" }
 #|	'message'	"quoted constant string message"
 #|	'localdomain'	{ '+', '-' }
 #|	'maxinsize'	nnn
@@ -251,10 +251,23 @@
 #
 #|
 #|  Also you may add   'test-dns-rbl +'  attribute pair to [0.0.0.0]/0
-#|  to use Paul Vixie's  http://maps.vix.com/ MAPS RBL system.
+#|  or   'test-dns-rbl rbl.maps.vix.com' or maybe even this:
+#|  'test-dns-rbl rbl.maps.vix.com:dul.maps.vix.com'
+#|  to use Paul Vixie's  http://maps.vix.com/ MAPS RBL/DUL system.
+#|  (The "+" in treated as shorthand to  "rbl.maps.vix.com")
+#|
+#|  You can also split this processing, which with above one aims at
+#|  MAIL FROM:<...> blocking, so that the blocking occurs at recipients:
+#|     [0.0.0.0]/0  rcpt-dns-rbl +:dul.maps.vix.com
+#|     .            test-rcpt-dns-rbl +
+#|  This split means that all target domains can all by themselves
+#|  choose if they use RBL to do source filtering.  The "test-rcpt-dns-rbl +"
+#|  test *must* be added to all domain instances where the check is wanted.
+#|  (Including the last-resort domain default of ".")
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
-#| the database with  'relaytarget +' attribute.
+#| the database with  'relaytarget +' attribute.  ("acceptifmx *" allows
+#| reception if the local system is amonst the MXes.)
 #|
 #|-----------
 #|
