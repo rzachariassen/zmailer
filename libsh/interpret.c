@@ -2555,6 +2555,7 @@ std_printf("set %x at %d\n", tre, cdp->trearray_idx);
 			/* see comment above about freeing tokens */
 			if (sift[nsift].tlist)
 				freeTokens(sift[nsift].tlist, MEM_SHCMD);
+			sift[nsift].tlist = NULL;
 			for (v_accessed = sift[nsift].accessed;
 			     v_accessed != NULL;
 			     v_accessed = sift[nsift].accessed) {
@@ -2637,6 +2638,14 @@ getout:
 		  free((void*)sift[nsift].str);
 #endif
 		sift[nsift].str = NULL;
+
+		/* we don't *need* to free tokens because they are
+		   allocated off our MEM_SHCMD memory stack */
+		if (sift[nsift].tlist)
+		  freeTokens(sift[nsift].tlist, MEM_SHCMD);
+
+		sift[nsift].tlist = NULL;
+
 		for (v_accessed = sift[nsift].accessed;
 		     v_accessed != NULL;
 		     v_accessed = sift[nsift].accessed) {
