@@ -95,11 +95,7 @@
 
 extern char	*linebuf;
 
-#define	CISTREQ(x, y)		(cistrcmp((const char *)(x), (const char *)(y)) == 0)
-#define	CISTREQN(x, y, n)	(cistrncmp((const char *)(x), (const char *)(y), n) == 0)
-#define	STREQ(x, y)		(strcmp((const char *)(x), (const char *)(y)) == 0)
-#define	STREQN(x, y, n)		(strncmp((const char *)(x), (const char *)(y), n) == 0)
-#define TOKENLEN(t) ((t)->t_len > 0 ? (int) (t)->t_len : strlen((const char *)(t)->t_pname))
+#define  TOKENLEN(t) ((t)->t_len > 0 ? (int) (t)->t_len : strlen((const char *)(t)->t_pname))
 
 #if	defined(lint) && defined(putc)
 #undef	putc
@@ -122,6 +118,7 @@ typedef enum { newAddress, BadAddress } AddressStamp;
 
 struct notary {
 	const char	*envid;
+	const char	*ret;
 	const char	*dsn;
 };
 

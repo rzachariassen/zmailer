@@ -11,6 +11,13 @@
 # endif
 #endif
 
+#ifndef CISTREQ
+#define  CISTREQ(x,y)	 (cistrcmp ((const char*)(x), (const char*)(y)  )==0)
+#define  CISTREQN(x,y,n) (cistrncmp((const char*)(x), (const char*)(y),n)==0)
+#define  STREQ(x,y)      (strcmp   ((const char*)(x), (const char*)(y)  )==0)
+#define  STREQN(x,y,n)   (strncmp  ((const char*)(x), (const char*)(y),n)==0)
+#endif
+
 /* allocate.c */
 #ifdef MEMTYPES
 extern memtypes	 stickymem;

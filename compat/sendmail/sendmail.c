@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Feature maintenance by  Matti Aarnio <mea@nic.funet.fi> 1991-1999
+ *	Feature maintenance by  Matti Aarnio <mea@nic.funet.fi> 1991-2000
  *
  */
 
@@ -170,8 +170,9 @@ main(argc, argv)
 	/* Pick up the sender's idea about C-chartype.. */
 	LC_ctype = getenv("LC_CTYPE");
 
-	printq = strcmp(progname, MAILQ) == 0;
-	aliases = strcmp(progname, NEWALIASES) == 0;
+	printq  = STREQ(progname, MAILQ);
+	aliases = STREQ(progname, NEWALIASES);
+
 	from = fullname = NULL;
 	speaksmtp = daemon_flg = interactive = 0;
 	bpflag = external = verbose = rfc822recipients = 0;
@@ -302,14 +303,17 @@ main(argc, argv)
 			{
 			  s = optarg;
 			  while (*s) {
-			    if (cistrncmp(s,"never",5)==0)
+			    if (CISTREQN(s,"NEVER",5))
 			      s += 5;
-			    else if (cistrncmp(s,"success",7)==0)
+			    else if (CISTREQN(s,"SUCCESS",7))
 			      s += 7;
-			    else if (cistrncmp(s,"failure",7)==0)
+			    else if (CISTREQN(s,"FAILURE",7))
 			      s += 7;
-			    else if (cistrncmp(s,"delay",5)==0)
+			    else if (CISTREQN(s,"DELAY",5))
 			      s += 5;
+			    else if (CISTREQN(s,"TRACE",5))
+			      s += 5; /* This is NOT even RFC 2852 derived
+					 thing, although helps to debug it.. */
 			    if (*s == ',') {
 			      ++s;
 			      continue;
@@ -323,8 +327,8 @@ main(argc, argv)
 			break;
 		case 'R':
 			returnopt = optarg;
-			if (cistrcmp(returnopt,"full") != 0 &&
-			    cistrcmp(returnopt,"hdrs") != 0) {
+			if (!CISTREQ(returnopt,"FULL") &&
+			    !CISTREQ(returnopt,"HDRS")) {
 			  fprintf(stderr,"sendmail: illegal -R -option parameter: '%s'\n",optarg);
 			  exit(EX_USAGE);
 			}
@@ -372,13 +376,13 @@ main(argc, argv)
 	  mail_priority = atoi(mailpriority);
 	  if (mail_priority < 0) {
 	    /* Some word ?? */
-	    if (cistrcmp(mailpriority,"high")==0)
+	    if (CISTREQ(mailpriority,"high"))
 	      mail_priority = _MAILPRIO_HIGH;
-	    else if (cistrcmp(mailpriority,"normal")==0)
+	    else if (CISTREQ(mailpriority,"NORMAL"))
 	      mail_priority = _MAILPRIO_NORMAL;
-	    else if (cistrcmp(mailpriority,"bulk")==0)
+	    else if (CISTREQ(mailpriority,"BULK"))
 	      mail_priority = _MAILPRIO_BULK;
-	    else if (cistrcmp(mailpriority,"junk")==0)
+	    else if (CISTREQ(mailpriority,"JUNK"))
 	      mail_priority = _MAILPRIO_JUNK;
 	    else
 	      mail_priority = _MAILPRIO_NORMAL;
@@ -582,7 +586,7 @@ otherprog:
 
 		RFC821_822QUOTE(newcp,from);
 
-		if (from != NULL && strcmp(from,"<>") == 0)
+		if (from != NULL && STREQ(from,"<>"))
 		  fprintf(mfp, "channel error\n");
 		else if (from != NULL && *from != '\0')
 		  fprintf(mfp, "from %s\n", from);
@@ -654,7 +658,7 @@ otherprog:
 			s[0] = '\n';
 			s[1] = 0;
 		      }
-		      if (!save_from && strncmp(buf,"From ",5)==0) {
+		      if (!save_from && STREQN(buf,"From ",5)) {
 			/* [mea@utu.fi] I vote for
 			   removing this line if next
 			   is a RFC-header */
@@ -663,7 +667,7 @@ otherprog:
 			strcpy(buf2,buf);
 			continue;
 		      }
-		      if (!save_from && strncmp(buf,">From ",6)==0) {
+		      if (!save_from && STREQN(buf,">From ",6)) {
 			/* [mea@utu.fi] I vote for
 			   removing this line if next
 			   is a RFC-header */
@@ -733,7 +737,7 @@ otherprog:
 		  while (vfp != NULL) {
 		    while (fgets(buf, sizeof buf, vfp) != NULL) {
 		      fprintf(stderr, "%s", buf);
-		      if (strncmp(buf, "scheduler done", 14) == 0)
+		      if (STREQN(buf, "scheduler done", 14))
 			sleeplimit = 20; /* 20 seconds to death */
 		    }
 		    clearerr(vfp);

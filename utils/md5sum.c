@@ -4,7 +4,8 @@
  *
  *  Added to ZMailer on 3-Nov-1999 to help "make install" to work nicely,
  *  and to detect when system supplied scripts have been altered, and
- *  when not -- to safely 
+ *  when not -- to safely be able to replace unaltered ones with newer
+ *  baseline versions.
  *
  */
 
@@ -20,6 +21,13 @@
 #endif
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
+#endif
+#ifdef HAVE_STRING_H
+# include <string.h>
+#else
+# ifdef HAVE_STRINGS_H
+#  include <strings.h>
+# endif
 #endif
 #include <fcntl.h>
 #include <errno.h>
@@ -80,6 +88,12 @@ int md5file(filename, md5result)
 
 static void usage()
 {
+  fprintf(stderr,"Usage: md5sum [-b] [filename|-|<stdin>]\n");
+  fprintf(stderr,"  A SUBSET of e.g. GNU 'md5sum' program to do\n");
+  fprintf(stderr,"  binary transparent MD5 sum of given input file.\n");
+  fprintf(stderr,"  This is for ZMailer's installation/upgrade routines\n");
+  fprintf(stderr,"  and applicability anywhere else is not guaranteed.\n");
+  exit(64);
 }
 
 
