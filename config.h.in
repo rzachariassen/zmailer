@@ -248,7 +248,7 @@
 /* Define to 1 if you have the `isascii' function. */
 #undef HAVE_ISASCII
 
-/* HAVE_LDAP_H, 4 */
+/* HAVE_LDAP_H, 5 */
 #undef HAVE_LDAP_H
 
 /* Define to 1 if you have the `bsd' library (-lbsd). */

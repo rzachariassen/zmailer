@@ -1265,62 +1265,72 @@ if test "$ac_cv_header_ldap_h" = yes ; then
     INCLLDAP=""
     LIBLDAP="-lldap -llber"
 fi
+use_ldap=0
 AC_ARG_WITH(ldap-prefix,[  --with-ldap-prefix=/usr  Prefix of UMich/NetScape LDAP includes, and library
                            the directories are  PREFIX/include/ and PREFIX/lib/],
-        use_ldap=1)
-if test "$use_ldap" = 1 ; then
+        [ use_ldap=1
     AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 1])
     LIBLDAP="-lldap -llber"
     if test "$withval" != "/usr" ; then
         LIBLDAP="-L$withval/lib $LIBLDAP"
         INCLLDAP="-I$withval/include"
     fi
-fi
-use_ldap=0
+])
 AC_ARG_WITH(ldap-include-dir,[  --with-ldap-include-dir=/.. Directory of UMich/NetScape LDAP includes],
-        use_ldap=1)
-if test "$use_ldap" = 1 ; then
+        [ use_ldap=1
     AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 2])
     LIBLDAP="-lldap -llber"
     if test "$withval" != "/usr/include" ; then
         INCLLDAP="-I$withval/include"
     fi
-fi
-use_ldap=0
+])
 AC_ARG_WITH(ldap-library-dir,[  --with-ldap-library-dir=/... Directory of UMich/NetScape LDAP libraries],
-        use_ldap=1)
-if test "$use_ldap" = 1 ; then
+        [ use_ldap=1
     AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 3])
     LIBLDAP="-lldap -llber"
     if test "$withval" != "/usr/lib" -a "$withval" != "/lib" ; then
         LIBLDAP="-L$withval/lib $LIBLDAP"
     fi
+])
+
+if test -z "$INCLLDAP" -a -z "$LIBLDAP" ; then
+   # No Explicite setup, lets do some auto-tests
+   if test -n "$PKGCONFIG" ; then # RedHat ??
+     INCLLDAP="`$PKGCONFIG --cflags-only-I openldap`"
+     LIBLDAP="`$PKGCONFIG --libs openldap`"
+   fi
 fi
 
 if test -z "$INCLLDAP" ; then
   # No Explicite setup, lets do some auto-tests
-  SaslH=/usr/local/include/ldap.h
-  if test -r $SaslH ; then
+  LDAPH=/usr/local/include/ldap.h
+  if test -r $LDAPH ; then
     AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 4])
     LIBLDAP="-L /usr/local/lib -lldap -llber"
     INCLLDAP="-I/usr/local/include"
   fi
-  SaslH=/usr/include/ldap.h
-  if test -r $SaslH ; then
+  LDAPH=/usr/include/ldap.h
+  if test -r $LDAPH ; then
     AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 5])
     LIBLDAP="-lldap -llber"
     INCLLDAP=""
   fi
 fi
 
-without_ldap=0
-AC_ARG_WITH(ldap,  [  --without-ldap           Disable search for, and use of LDAP, even if it can be found],
-		   without_ldap=1)
-if test $without_ldap = 1 ; then
-    AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 4])
-    LIBLDAP=""
-    INCLLDAP=""
-    AC_MSG_RESULT([*** Disabling LDAP, even if automated tests found it.])
+AC_ARG_WITH(ldap,  [  --with-ldap              Enable search for, and use of LDAP],
+		   use_ldap=1)
+if test $use_ldap = 0 ; then
+    # AC_DEFINE(HAVE_LDAP_H,1,[HAVE_LDAP_H, 4])
+    if test -n "$LIBLDAP" -o -n "$INCLLDAP" ; then
+      LIBLDAP=""
+      INCLLDAP=""
+#     AC_MSG_RESULT([*** Automatic tests found some LDAP, but no --with-ldap  option is given.])
+    fi
+else
+    if test -z "$LIBLDAP" -a -z "$INCLLDAP" ; then
+	AC_MSG_RESULT([*** Automated tests didn't find LDAP libraries])
+	AC_MSG_ERROR([*** THE  --with-ldap  IS CONSIDERED FAILED])
+    fi
 fi
 if test -n "$LIBLDAP" -o -n "$INCLLDAP" ; then
     # LDAP related INCL or LIB references aren't completely empty.
