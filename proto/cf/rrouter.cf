@@ -261,10 +261,10 @@ routes_spec (domain, address, A) {
 	tsift "$domain" in
 #	(bsmtp3nd|bsmtp3|bitnet2|bitnet2deliver2)!(.)!(.)
 	(bsmtp3nd|bsmtp3|bsmtp3nd|bsmtp3rfc|bsmtp3ndrfc)!(.)!(.)
-		return (((\1 "\2@\3" "$address" $A))) ;;
+		return ((("\1" "\2@\3" "$address" $A))) ;;
 	(defrt1)!(.)
-		channel=\1
-		rscshost=\2
+		channel="\1"
+		rscshost="\2"
 
 		tmp="$(uucproute "$address")"
 		tsift "$tmp" in
@@ -282,21 +282,30 @@ routes_spec (domain, address, A) {
 		break
 		;;
 	smtp!
-		ssift "$address" in
+		tsift "$address" in
 		(.*)@(.+)
 			return (((smtp "\2" "$address" $A)))
 			;;
-		tfiss
+		tfist
 		;;
 	dns!
-		ssift "$address" in
+		tsift "$address" in
 		(.*)@(.+)
 			return (((smtp "\2" "$address" $A)))
 			;;
-		tfiss
+		tfist
 		;;
 	(.?)!
 		return ((("\1" - "$address" $A)))
+		;;
+	lotusgw!(.)!(.)
+		# Map user@domain to user%gwdom@gateway
+		tmp="\1"; channel="\2" # Variable name reuse..
+		tsift "$address" in
+		(.+)@(.+)
+			return (((smtp "$channel" "\1%$tmp@$channel" $A)))
+			;;
+		tfist
 		;;
 	delay!(.)
 		# NB! envelopeinfo *must* also be defined in interactive mode
