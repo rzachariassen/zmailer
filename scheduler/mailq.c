@@ -1256,6 +1256,7 @@ static struct ctlfile *readmq2cfp(fname)
 	    s = p;
 	    break;
 	  case _CF_MSGHEADERS:
+	  case _CF_MIMESTRUCT:
 	    for (;i > 1; ++s, --i) {
 	      if (s[0] == '\n' && s[1] == '\n') {
 		*s = 0;
