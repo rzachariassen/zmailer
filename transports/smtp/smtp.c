@@ -34,7 +34,7 @@
 
 #include "hostenv.h"
 #include <stdio.h>
-#ifdef linux
+#ifdef linux_xx
 #define __USE_BSD 1
 #endif
 #include <ctype.h>
@@ -322,9 +322,14 @@ typedef struct {
   char *mailfrommsg;
   char ipaddress[200];
 
-  struct addrinfo *ai;		/* Lattest active connection */
+  struct addrinfo ai;		/* Lattest active connection */
+  union {
+    struct sockaddr_in  v4;
+#if defined(AF_INET6) && defined(INET6)
+    struct sockaddr_in6 v6;
+#endif
+  } ai_addr;
   int ismx;
-  struct addrinfo *ai_root;	/* All lattest addresses */
 
   char stdinbuf[8192];
   int  stdinsize; /* Available */
@@ -2519,7 +2524,6 @@ smtpconn(SS, host, noMX)
 
 	  SS->mxcount = 0;
 	  retval = makeconn(SS, ai, -2);
-	  ai = NULL; /* Don't free -- now */
 
 	} else {
 
@@ -2699,8 +2703,7 @@ if (SS->verboselog)
 	      notary_setwtt(buf);
 	    }
 	    retval = makeconn(SS, ai, -1);
-	    /* freeaddrinfo(ai); -- stored into the SS */
-	    ai = NULL; /* Make sure we don't free the 'ai' chain below */
+
 	  } else {
 
 	    /* Has valid MX records, they have been suitably randomized
@@ -2717,8 +2720,6 @@ if (SS->verboselog)
 
 	      r = makeconn(SS, SS->mxh[i].ai, i);
 	      SS->firstmx = i+1;
-	      SS->mxh[i].ai = NULL; /* Save this chain into
-				       internal SS context! */
 	      if (r == EX_OK) {
 		retval = EX_OK;
 		break;
@@ -2733,9 +2734,8 @@ if (SS->verboselog)
 		  "%s#\tsmtpconn: retval = %d\n", logtag(), retval);
 	}
 
-	if (retval != EX_OK)
-	  if (ai != NULL)
-	    freeaddrinfo(ai);
+	if (ai != NULL)
+	  freeaddrinfo(ai);
 
 	return retval;
 }
@@ -2831,15 +2831,6 @@ makeconn(SS, ai, ismx)
 	}
 #endif
 
-	/* discard old reconnect state */
-
-	if (SS->ai_root)
-	  freeaddrinfo(SS->ai_root);
-
-	/* Save new reconnect state */
-
-	SS->ai_root = ai;
-
 	for ( ; ai && !getout ; ai = ai->ai_next ) {
 
 	  int i = 0;
@@ -2848,8 +2839,14 @@ makeconn(SS, ai, ismx)
 	  struct sockaddr_in6 *si6;
 #endif
 
+	  if (SS->ai.ai_canonname) free(SS->ai.ai_canonname);
+
 	  /* For possible reconnect */
-	  SS->ai   = ai;
+	  SS->ai   = *ai;
+	  memcpy(&SS->ai_addr, ai->ai_addr, sizeof(SS->ai_addr));
+	  SS->ai.ai_addr = (struct sockaddr *) & SS->ai_addr;
+	  if (ai->ai_canonname)
+	    SS->ai.ai_canonname = strdup(ai->ai_canonname);
 	  SS->ismx = ismx;
 
 	  if (ai->ai_family == AF_INET) {
@@ -2958,7 +2955,7 @@ makereconn(SS)
      SmtpState *SS;
 {
   smtpclose(SS);
-  return makeconn(SS, SS->ai, SS->ismx);
+  return makeconn(SS, & SS->ai, SS->ismx);
 }
 
 int
@@ -4272,8 +4269,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 		if (logfp != NULL) {
 		  if (debug)
 		    putc('\n',logfp);
-		  fprintf(logfp,
-			  "%sr\t%s\n", logtag(), buf);
+		  fprintf(logfp, "%sr\t%s\n", logtag(), buf);
 		}
 
 		if (s + 1 < cp)	/* Compress the buffer */
@@ -4285,8 +4281,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      case 2:		/* saw \n, 1st char on line */
 	      case 3:		/* 2nd char on line */
 	      case 4:		/* 3rd char on line */
-		if (i == 1
-		    || ('0' <= *s && *s <= '9'))
+		if ((i == 1) || ('0' <= *s && *s <= '9'))
 		  ++i;
 		else
 		  /* silently look for num. code lines */
@@ -4400,6 +4395,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  ehlo_check(SS,&buf[4]);
 	if (!strbuf && !SS->esmtp_on_banner)
 	  esmtp_banner_check(SS,&buf[4]);
+
+	rmsgappend(SS,"\r->> %s",buf);
 
 	dflag = 0;
 
