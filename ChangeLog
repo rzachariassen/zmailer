@@ -1,3 +1,77 @@
+1998-11-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in:
+	    Upped version number into  2.99.50-s11
+
+	* utils/vacation/vacation.c:
+	    Fixes for DB(M) handling in the utility, also automated
+	    the installation procedure into userspace a bit.
+
+	* configure.in, router/libdb/bsdbtree.c:
+	    A bit of experimenting with BSD DB 2.*, which apparently
+	    needs major rework to operate properly.  Using <db_185.h>
+	    if it is available in place of <db.h>..
+
+	* libc/strsignal.c:
+	    FreeBSD 3.0 portability problem fix
+
+	* transports/smtp/smtp.c:
+	    - reworked on how much of the message has been transported
+	      over the connection at the time of the timeout/whatever
+	      failure in the DATA-phase.
+	    - report MX-lookups at 'ps' too
+	    - setjmp() nesting fixes
+
+	* configure.in, proto/newdb.in proto/Makefile.in:
+	    - Autoconfigure the path of 'true' into newdb script
+	    - FreeBSD reported problems about shell variable substitution
+	      during the install phase
+
+	* smtpserver/smtpdata.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpcmds.c:
+	    - Extra-vigorous protocol syntax checking mode
+
+	* smtpserver/policytest.c:
+	    Policytesting failed with 'case 2' of the boilerplate config.
+
+	* man/mailbox.8, transports/mailbox/mailbox.c:
+	    - Automatic /bin/sh-less execve() for pipe subprograms
+	      which falls back to /bin/sh-full in case some parts of
+	      the input string prevent the use of the pure mode.
+	      (like '>' and '$' characters in the cmdline.)
+	    - pass our locally generated recipient-specific
+	      environment into the  execve()  every time..
+	    - updated man-page about the subprogram execution environment
+
+	* smtpserver/cfgread.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h, proto/smtpserver.conf.in:
+	    The example tells more (in smtpserver.conf)
+		#
+		# HDR220 metatags:
+		#  %% -- '%' character
+		#  %H -- SS->myhostname
+		#  %I -- '+IDENT' if 'identflg' is set
+		#  %V -- VersionNumb
+		#  %T -- curtime string
+		#  %X -- xlatelang parameter
+		#
+		PARAM hdr220 %H ZMailer ESMTP-server %V running at ...
+		PARAM hdr220 %H (NO UCE)(NO UBE) local time is now %T
+		#
+	    Also did a bit of cleanup
+
+	* SiteConfig.in:
+	    Added a couple of previously undocumented ZENV variables,
+	    which are used in the binary code in some places.
+
+	* lib/nobody.c, lib/selfaddrs.c, lib/trusted.c:
+	    Some  setreuid() code changes pulled back from way back.
+	    SunOS 4.* didn't consider  "(uid_t)-1"  to be the same
+	    as "-1" ...
+
+	* smtpserver/smtpserver.c:
+	    Missed the call of  settrusteduser()  in one codepath.
+
 1998-10-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in (and configure), utils/vacation/Makefile.in:
