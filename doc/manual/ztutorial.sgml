@@ -469,7 +469,14 @@ allow you to log is the message body content.)
 Keeping watchful eye on  <FILENAME>$<ENVAR>POSTOFFICE</>/freezer/</FILENAME>,
 and  <FILENAME>$<ENVAR>POSTOFFICE</>/postman/</FILENAME>
 directories.  Former for processing SPAM email, latter for
-pathological problem cases.  (FIXME:: More at  3.3.4)
+pathological problem cases.
+
+</PARA><PARA>
+<QUOTE>Logging and Statistic for the Administrator:</> <XREF LINKEND="ZADM-LOGGING">,
+<QUOTE>Checking the Log Files:</> <XREF LINKEND="zins.checking.log.files">,
+<QUOTE>Trim-down of Logging:</> <XREF LINKEND="zins.trim-down.of.logging">,
+<QUOTE>Postmaster Analysis Area:</> <XREF LINKEND="zadm-queue-postmaster-analysis-area">.
+
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
 </PARA>
@@ -560,6 +567,37 @@ other sendmail/system utilities:
 </PARA>
 
 </SECT1>
+
+<SECT1 ID=ztut-performance-factors>
+<TITLE>Factors Affecting Overall System Performance</TITLE>
+
+<PARA>
+
+<ITEMIZEDLIST>
+  <LISTITEM><PARA>
+    Speed of <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>
+    directory filesystem.   Specifically directory metadata operation
+    speed (e.g. fully synchronous directory metadata update is way
+    slower, and safer, than fully asynchronous.)
+  </PARA></LISTITEM>
+  <LISTITEM><PARA>
+    Amount of memory, and thus filesystem buffering, and
+    (lack of) swapping by component processes.
+  </PARA></LISTITEM>
+  <LISTITEM><PARA>
+    DNS server quality
+  </PARA></LISTITEM>
+  <LISTITEM><PARA>
+    <QUOTE>Staticness</> of routing data, e.g. the less there is
+    DNS lookups involved for email delivery, the better it works.
+  </PARA></LISTITEM>
+</ITEMIZEDLIST>
+
+
+</PARA>
+</SECT1>
+
+
 </CHAPTER>
 
 
