@@ -1,5 +1,10 @@
 2002-02-11  Matti Aarnio  <mea@zmailer.org>
 
+	* scheduler/transport.c:
+	    Match the mailq socket tcp-wrapper behaviour to that of
+	    what the man-page says -- "tcp-wrapper is not used for
+	    MAILQ-v2 type sockets".
+
 	* SiteConfig.in:
 	    By default publish  SCHEDULERDIRHASH=1  value.
 	    Publish also  SCHEDULERNOTIFY=  and ROUTERNOTIFY=

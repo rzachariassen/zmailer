@@ -1298,6 +1298,7 @@ queryipccheck()
 		close(n);
 	      } else {
 		/* mailqmode == 2 */
+#if 0  /* NOT IN MAILQ-V2 MODE ! */
 #ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H /* TCP-Wrapper code */
 		if (wantconn(n, "mailq") == 0) {
@@ -1307,6 +1308,7 @@ queryipccheck()
 		  close(n);
 		}
 		else
+#endif
 #endif
 #endif
 		  mq2_register(n, &raddr);
