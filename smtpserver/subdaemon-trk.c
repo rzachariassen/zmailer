@@ -1303,7 +1303,7 @@ int call_rate_counter(state, incr, what, countp, countp2)
 	cmd    = "RCPT";
 	whatp  = "DATA";
 	count  = 1;        /* We register used counts */
-	count2 = incr ? incr : 1;
+	count2 = incr;
 	if (incr  &&  !state->did_query_rate)
 	  return 0; /* INCRed counters at DATA/BDAT, but hadn't
 		       shown interest at MAIL for this... */
@@ -1324,8 +1324,8 @@ int call_rate_counter(state, incr, what, countp, countp2)
 	break;
     }
 
-    sprintf(pbuf, "%s %s %s %s %d",
-	    cmd, state->ratelabelbuf, limitp, whatp, count);
+    sprintf(pbuf, "%s %s %s %s %d,%d",
+	    cmd, state->ratelabelbuf, limitp, whatp, count, count2);
 
     if (debug)
       type(NULL,0,NULL,"call_rate_counter: sending: '%s'",pbuf);
