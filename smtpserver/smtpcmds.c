@@ -570,6 +570,7 @@ int insecure;
 		return -1;
 	    }
 	    drptret_len = (s - drpt_ret);
+	    MIBMtaEntry->ss.IncomingSMTP_OPT_RET ++;
 	    continue;
 	}
 	if (mime8bitok && CISTREQN("BODY=", s, 5)) {
@@ -584,12 +585,15 @@ int insecure;
 	    if (CISTREQN(s, "8BITMIME", 8)) {
 		bodytype = "8BITMIME";
 		s += 8;
+		MIBMtaEntry->ss.IncomingSMTP_OPT_BODY_8BITMIME ++;
 	    } else if (CISTREQN(s, "BINARYMIME", 10)) {
 		bodytype = "BINARYMIME";
 		s += 10;
+		MIBMtaEntry->ss.IncomingSMTP_OPT_BODY_BINARYMIME ++;
 	    } else if (CISTREQN(s, "7BIT", 4)) {
 		bodytype = "7BIT";
 		s += 4;
+		MIBMtaEntry->ss.IncomingSMTP_OPT_BODY_7BIT ++;
 	    }
 	    if (*s && *s != ' ' && *s != '\t') {
 		smtp_tarpit(SS);
@@ -623,6 +627,7 @@ int insecure;
 		rc = 1;
 		break;
 	    }
+	    MIBMtaEntry->ss.IncomingSMTP_OPT_SIZE ++;
 	    continue;
 	}
 	/* IETF-NOTARY  SMTP-DSN extensions */
@@ -651,6 +656,7 @@ int insecure;
 		rc = 1;
 		break;
 	    }
+	    MIBMtaEntry->ss.IncomingSMTP_OPT_ENVID ++;
 	    continue;
 	}
 	if (auth_ok && CISTREQN("AUTH=", s, 5)) {
@@ -673,6 +679,7 @@ int insecure;
 		rc = 1;
 		break;
 	    }
+	    MIBMtaEntry->ss.IncomingSMTP_OPT_AUTH ++;
 	    continue;
 	}
 	if (deliverby_ok >= 0 && CISTREQN("BY=", s, 3)) {
@@ -737,6 +744,7 @@ int insecure;
 	    SS->deliverby_time  = time(NULL) + val;
 	    SS->deliverby_flags = neg;
 	    s = p;
+	    MIBMtaEntry->ss.IncomingSMTP_OPT_BY ++;
 	    continue;
 	}
 
@@ -1300,6 +1308,7 @@ const char *buf, *cp;
 		return -1;
 	    }
 	    notifylen = s - drpt_notify;
+	    MIBMtaEntry->ss.IncomingSMTP_OPT_NOTIFY ++;
 	    continue;
 	}
 	if (dsn_ok && CISTREQN("ORCPT=", s, 6)) {
@@ -1317,6 +1326,7 @@ const char *buf, *cp;
 		return -1;
 	    }
 	    orcptlen = s - drpt_orcpt;
+	    MIBMtaEntry->ss.IncomingSMTP_OPT_ORCPT ++;
 	    continue;
 	}
 	smtp_tarpit(SS);

@@ -1459,6 +1459,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	if (SS->ehlo_capabilities & ESMTP_SIZEOPT) {
 	  sprintf(s, " SIZE=%ld", startrp->desc->msgsizeestimate);
 	  s += strlen(s);
+	  MIBMtaEntry->tasmtp.SmtpOPT_SIZE ++;
 	}
 
 	/* DSN parameters ... */
@@ -1466,9 +1467,12 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  if (startrp->desc->envid != NULL) {
 	    sprintf(s," ENVID=%.800s",startrp->desc->envid);
 	    s += strlen(s);
+	    MIBMtaEntry->tasmtp.SmtpOPT_ENVID ++;
 	  }
-	  if (startrp->desc->dsnretmode != NULL)
+	  if (startrp->desc->dsnretmode != NULL) {
 	    sprintf(s, " RET=%.20s", startrp->desc->dsnretmode);
+	    MIBMtaEntry->tasmtp.SmtpOPT_RET ++;
+	  }
 	}
 
 	time(&env_start); /* Mark the timestamp */
@@ -1632,6 +1636,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      }
 	    } else
 	      strcat(s, " NOTIFY=FAILURE,DELAY"); /* Default value.. */
+
+	    MIBMtaEntry->tasmtp.SmtpOPT_NOTIFY ++;
+	    MIBMtaEntry->tasmtp.SmtpOPT_ORCPT  ++;
+
 
 	    s += strlen(s);
 
@@ -2203,33 +2211,40 @@ const char *buf;
 	if (r != NULL) *r = 0;
 	if (STREQ(buf,"8BITMIME")) {
 	  SS->ehlo_capabilities |= ESMTP_8BITMIME;
+	  MIBMtaEntry->tasmtp.EHLOcapability8BITMIME ++;
 	} else if (STREQ(buf,"DSN")) {
 	  SS->ehlo_capabilities |= ESMTP_DSN;
+	  MIBMtaEntry->tasmtp.EHLOcapabilityDSN ++;
 	} else if (STREQ(buf,"ENHANCEDSTATUSCODES")) {
 	  SS->ehlo_capabilities |= ESMTP_ENHSTATUS;
+	  MIBMtaEntry->tasmtp.EHLOcapabilityENHANCEDSTATUSCODES ++;
 	} else if (STREQ(buf,"CHUNKING")) {
 	  SS->ehlo_capabilities |= ESMTP_CHUNKING;
+	  MIBMtaEntry->tasmtp.EHLOcapabilityCHUNKING ++;
 	} else if (STREQ(buf,"PIPELINING")) {
 	  SS->ehlo_capabilities |= ESMTP_PIPELINING;
-#ifdef HAVE_OPENSSL
+	  MIBMtaEntry->tasmtp.EHLOcapabilityPIPELINING ++;
 	} else if (STREQ(buf,"STARTTLS")) {
 	  SS->ehlo_capabilities |= ESMTP_STARTTLS;
-#endif /* - HAVE_OPENSSL */
+	  MIBMtaEntry->tasmtp.EHLOcapabilitySTARTTLS ++;
 	} else if (STREQN(buf,"SIZE ",5) ||
 		   STREQ (buf,"SIZE")   ) {
 	  SS->ehlo_capabilities |= ESMTP_SIZEOPT;
 	  SS->ehlo_sizeval = -1;
 	  if (buf[4] == ' ')
 	    sscanf(buf+5,"%ld",&SS->ehlo_sizeval);
+	  MIBMtaEntry->tasmtp.EHLOcapabilitySIZE ++;
 	} else if (STREQN(buf,"AUTH ",5) ||
 		   STREQN(buf,"AUTH=",5)      ) {
 	  SS->ehlo_capabilities |= ESMTP_AUTH;
+	  MIBMtaEntry->tasmtp.EHLOcapabilityAUTH ++;
 	} else if (STREQN(buf,"DELIVERBY ",10) ||
 		   STREQ (buf,"DELIVERBY")    ) {
 	  SS->ehlo_capabilities |= ESMTP_DELIVERBY;
 	  SS->ehlo_deliverbyval = -1;
 	  if (buf[9] == ' ')
 	    sscanf(buf+10,"%ld;",&SS->ehlo_deliverbyval);
+	  MIBMtaEntry->tasmtp.EHLOcapabilityDELIVERBY ++;
 	} else if (STREQN(buf,"X-RCPTLIMIT ",12)) {
 	  int nn = atoi(buf+12);
 	  if (nn < 10)

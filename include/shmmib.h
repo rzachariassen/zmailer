@@ -117,7 +117,19 @@ struct MIB_MtaEntrySs {
 
   double dummy3; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  uint		IncomingSMTP_OPT_ENVID;
+  uint		IncomingSMTP_OPT_SIZE;
+  uint		IncomingSMTP_OPT_AUTH;
+  uint		IncomingSMTP_OPT_BY;
+  uint		IncomingSMTP_OPT_BODY_8BITMIME;
+  uint		IncomingSMTP_OPT_BODY_BINARYMIME;
+  uint		IncomingSMTP_OPT_BODY_7BIT;
+  uint		IncomingSMTP_OPT_RET;
+
+  uint		IncomingSMTP_OPT_NOTIFY;
+  uint		IncomingSMTP_OPT_ORCPT;
+
+  uint	space[22]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -265,7 +277,23 @@ struct MIB_MtaEntryTaS {
 
   double dummy99; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  uint		EHLOcapability8BITMIME;
+  uint		EHLOcapabilityAUTH;
+  uint		EHLOcapabilityCHUNKING;
+  uint		EHLOcapabilityDELIVERBY;
+  uint		EHLOcapabilityDSN;
+  uint		EHLOcapabilityENHANCEDSTATUSCODES;
+  uint		EHLOcapabilityPIPELINING;
+  uint		EHLOcapabilitySIZE;
+  uint		EHLOcapabilitySTARTTLS;
+
+  uint		SmtpOPT_ENVID;
+  uint		SmtpOPT_SIZE;
+  uint		SmtpOPT_RET;
+  uint		SmtpOPT_NOTIFY;
+  uint		SmtpOPT_ORCPT;
+
+  uint	space[18]; /* Add to tail without need to change MAGIC */
 
 };
 

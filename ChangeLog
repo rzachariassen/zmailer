@@ -1,5 +1,9 @@
 2003-06-04  Matti Aarnio  <mea@zmailer.org>
 
+	* include/shmmib.h, smtpserver/smtpcmds.c, transports/smtp/smtp.c:
+	    Count several ESMTP options seen, (and used) by the smtp-ta,
+	    and used by the smtp clients.
+
 	* include/shmmib.h, scheduler/mailq.inc, smtpserver/smtptls.c,
 	  transports/mailbox/mailbox.c, transports/smtp/smtp.c,
 	  transports/hold/hold.c, transports/errormail/errormail.c,
