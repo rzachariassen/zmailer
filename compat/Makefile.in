@@ -1,3 +1,5 @@
+@SET_MAKE@
+
 SHELL=		/bin/sh
 
 all:	rmail/rmail-always sendmail/sendmail-always

@@ -1895,6 +1895,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 
 	  /* Hmm..  Write bounced for some reason */
 	  switch (e) {
+	  case EINTR:
 	  case EAGAIN:
 #ifdef EWOULDBLOCK
 #if EWOULDBLOCK != EAGAIN

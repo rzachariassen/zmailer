@@ -14,6 +14,8 @@ base		o=HKUST,c=HK
 ldaphost	ldap.ust.hk
 ldapport	389
 binddn		cn=Directory Manager,o=HKUST,c=HK
+protocol	2
+#protocol	3
 passwd		secret
 filter		(&(objectclass=person)(mailAlternateAddress=%s))
 attr		uid

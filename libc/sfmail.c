@@ -703,7 +703,10 @@ _sfmail_close__(fp,inop, mtimep, async)
 #ifdef MSG_NOSIGNAL
 		 MSG_NOSIGNAL|
 #endif
-		 MSG_DONTWAIT ,
+#ifdef MSG_DONTWAIT
+		 MSG_DONTWAIT
+#endif
+		 ,
 		 (struct sockaddr *)&sad, sizeof(sad));
 
 	  close(notifysocket);

@@ -1,5 +1,6 @@
 srcdir=         @srcdir@
 VPATH=          @srcdir@
+@SET_MAKE@
 
 SHELL=		/bin/sh
 TOPDIR=		..

@@ -1239,6 +1239,7 @@ sequencer(e, file)
 	struct address *a, *ap;
 	struct addr    *p = NULL;
 	char	       *ofpname, *path, *qpath;
+	const char     *pfile;
 	conscell       *l, *routed_addresses, *sender, *to;
 	conscell       *rwmchain;
 	struct rwmatrix *rwhead, *nsp, *rwp = NULL, *rcp = NULL;
@@ -1273,6 +1274,13 @@ sequencer(e, file)
 	    schedulersubdirhash = 0;
 	}
 
+	pfile = file;
+	if ('A' <= *pfile && *pfile <= 'Z') {
+	  ++pfile;
+	  if (*pfile == '/') ++pfile;
+	  if ('A' <= *pfile && *pfile <= 'Z') ++pfile;
+	  if (*pfile == '/') ++pfile;
+	}
 
 	if (schedulersubdirhash) {
 	  long ino = e->e_statbuf.st_ino;
@@ -2155,13 +2163,14 @@ sequencer(e, file)
 
 	dprintf("Emit specification to the transport system\n");
 #ifdef	USE_ALLOCA
-	ofpname = (char *)alloca((u_int)(strlen(file)+9));
+	ofpname = (char *)alloca(30);
 #else
-	ofpname = (char *)emalloc((u_int)(strlen(file)+9));
+	ofpname = (char *)emalloc(30);
 #endif
 	/* Guaranteed unique within this machine */
-	sprintf(ofpname,".%s.%d", file, (int)getpid());
-	if ((ofp = fopen(ofpname, "w+")) == NULL) {
+	sprintf(ofpname,".%ld.%d", (long)time(NULL), (int)getpid());
+	ofp = fopen(ofpname, "w+");
+	if (ofp == NULL) {
 #ifndef USE_ALLOCA
 		free(ofpname);
 #endif
@@ -2207,7 +2216,7 @@ sequencer(e, file)
 		vfp = NULL;
 
 	fprintf(ofp, "%c%c%s\n",
-		_CF_MESSAGEID, _CFTAG_NORMAL, file);
+		_CF_MESSAGEID, _CFTAG_NORMAL, pfile);
 	fprintf(ofp, "%c%c%d\n",
 		_CF_BODYOFFSET, _CFTAG_NORMAL, (int)(e->e_msgOffset));
 	if (e->e_messageid) {
@@ -2433,11 +2442,11 @@ sequencer(e, file)
 	}
 	/* all is nirvana -- link the input file to somewhere safe */
 #ifdef	USE_ALLOCA
-	qpath = (char*)alloca(12+strlen(QUEUEDIR)+strlen(file));
+	qpath = (char*)alloca(12+strlen(QUEUEDIR)+strlen(pfile));
 #else
-	qpath = (char*)emalloc(12+strlen(QUEUEDIR)+strlen(file));
+	qpath = (char*)emalloc(12+strlen(QUEUEDIR)+strlen(pfile));
 #endif
-	sprintf(qpath, "../%s/%s%s", QUEUEDIR, subdirhash, file);
+	sprintf(qpath, "../%s/%s%s", QUEUEDIR, subdirhash, pfile);
 	fflush(ofp);
 #ifdef HAVE_FSYNC
 	while (fsync(FILENO(ofp)) < 0) {
@@ -2468,7 +2477,8 @@ sequencer(e, file)
 	}
 
 
-	if ((fclose(ofp) != 0) || ofperrors || (erename(file, qpath) != 0)) {
+	if ((fclose(ofp) != 0) || ofperrors ||
+	    (erename(file, qpath) != 0)) { /* ORIGINAL FILE PATH! */
 	  zunlink(qpath);
 	  zunlink(ofpname);
 #ifndef	USE_ALLOCA
@@ -2479,13 +2489,13 @@ sequencer(e, file)
 	}
 
 #ifndef USE_ALLOCA
-	path = (char*)emalloc(14+strlen(TRANSPORTDIR)+strlen(file));
+	path = (char*)emalloc(14+strlen(TRANSPORTDIR)+strlen(pfile));
 #else
 	/* This actually reallocs more space from stack, but then it
 	   is just stack space and will disappear.. */
-	path = (char*)alloca(14+strlen(TRANSPORTDIR)+strlen(file));
+	path = (char*)alloca(14+strlen(TRANSPORTDIR)+strlen(pfile));
 #endif
-	sprintf(path, "../%s/%s%s", TRANSPORTDIR, subdirhash, file);
+	sprintf(path, "../%s/%s%s", TRANSPORTDIR, subdirhash, pfile);
 #ifndef HAVE_RENAME
 	zunlink(path);	/* Should actually always fail.. */
 #endif
@@ -2554,7 +2564,7 @@ sequencer(e, file)
 	  }
 	  fd_nonblockingmode(notifysocket);
 
-	  sprintf(buf, "NEW %s%.300s", subdirhash, file);
+	  sprintf(buf, "NEW %s%.300s", subdirhash, pfile);
 
 	  /* We are running with SIGPIPE ignored.. */
 

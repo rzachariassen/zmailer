@@ -403,7 +403,7 @@ MAX_LOAD=300
 #     scheduler completion of a message
 #</DESC></VAR>
 #SYSLOGFLG=SRT
-SYSLOGFLG=RT
+SYSLOGFLG=@SYSLOGFLG@
 
 #<VAR><NAME>TRUSTEDUSER</NAME><DESC>
 # Per default,  ZMailer uses ``daemon'' userid when it wants to
@@ -464,4 +464,14 @@ BINDADDR=@BINDADDR@
 # this file are NEVER reset.  Gauges are managed as shadows
 # of subsystem internal state.
 #</DESC></VAR>
-SNMPSHAREDFILE=@POSTOFFICE@/.zmailer.SNMP.block
+SNMPSHAREDFILE=@SNMPSHAREDFILE@
+
+#<VAR><NAME>DOMAIN_AWARE_GETPWNAM</NAME><DESC>
+# Define this to "1" if you use (replacement) getpwnam()
+# that handles username together with domain.           
+# This is a convenient way to support virtual domains: users
+# in different domains automatically have different userids,
+# different homes etc.  Actually, this often can be arranged
+# even within standard /etc/passwd model, at least on Linux.
+#</DESC></VAR>
+DOMAIN_AWARE_GETPWNAM=@DOMAIN_AWARE_GETPWNAM@

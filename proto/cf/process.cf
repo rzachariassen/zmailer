@@ -32,6 +32,7 @@ process (file) {
 #	[0-9]*.uucp)	uucpfilter "$file" > /tmp/X.$$
 #			cat /tmp/X.$$ > "$file"
 #			rfc822 "$file" ;;
+	[A-Z]/[0-9]*)	rfc822 "$file" ;;
 	[0-9]*)		rfc822 "$file" ;;
 	core*)		/bin/mv "$file" ../$file.router.$$
 			return
@@ -60,11 +61,11 @@ process (file) {
 #| list in its entirety, except for the file name, and the message id, both
 #| of which were logged earlier (in C code).
 
-	for f in $(elements $LOGMSG)
-	do
-		{ echo "==${file}==$(rfc822date)==" ;
-		  /bin/cat ../queue/"$file" } >> $f && log saved "$file" in $f
-	done
+#	for f in $(elements $LOGMSG)
+#	do
+#		{ echo "==${file}==$(rfc822date)==" ;
+#		  /bin/cat ../queue/"$file" } >> $f && log saved "$file" in $f
+#	done
 
 #| This does the saving of intercepted messages into archive files.
 

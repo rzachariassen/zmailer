@@ -1,3 +1,39 @@
+2003-11-04  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, SiteConfig.in:
+	    From Eugene Crosser:  Configure system-wide  SYSLOGFLG=,
+	    SNMPSHAREDFILE=, and  DOMAIN_AWARE_GETPWNAM= ZENV variables.
+
+	* configure.in:
+	    Test and determine, how one can find out the FD associated
+	    with  opendir() target object. To be used in  router process,
+	    when a   fchdir()  is needed.
+
+	* libc/mail.c, libc/sfmail.c, ...
+
+	* proto/cf/process.cf, router/daemonsub.c, router/rfc822.c:
+	    Support input files going into ROUTERDIRHASH= sublevel,
+	    and don't do unnecessary rename()s if the original file
+	    has proper name ( = i-node number in decimal ) already.
+	    The   process   function may get scalled as:
+	      process B/123456
+	    which is now perfectly legal.
+	    NOTE: The daemon subsystem will do file locking on the original
+	    file for the duration of file staying in the processing!
+
+2003-10-26  Matti Aarnio  <mea@zmailer.org>
+
+	* router/libdb/ldap.c:
+	    Patches to support LDAPv3 (via option setting)
+	    thru a  "protocol 3" line in the configuration file.
+
+2003-10-07  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtptls.c:
+	    In some rare occasions the discipline processor loops
+	    forever in errno processing, when it has received an
+	    EINTR during a syscall.
+
 2003-10-03  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:

@@ -47,6 +47,18 @@ extern struct MIB_MtaEntry *MIBMtaEntry;
 # endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
 
+#ifdef HAVE_DIRFD
+#   define Z_DIRFD(dir) dirfd(dir)
+#else
+# ifdef USE_DIRFD_DD_FD
+#   define Z_DIRFD(dir) ((dir).dd_fd)
+# else
+#  ifdef USE_DIRFD_D_FD
+#   define Z_DIRFD(dir) ((dir).dd_fd)
+#  endif
+# endif
+#endif
+
 
 #ifdef HAVE_SYS_RESOURCE_H
 #ifdef linux
@@ -65,6 +77,22 @@ extern struct MIB_MtaEntry *MIBMtaEntry;
 #include "libc.h"
 
 #include "prototypes.h"
+
+#ifdef	HAVE_LOCKF
+#ifdef	F_OK
+#undef	F_OK
+#endif	/* F_OK */
+#ifdef	X_OK
+#undef	X_OK
+#endif	/* X_OK */
+#ifdef	W_OK
+#undef	W_OK
+#endif	/* W_OK */
+#ifdef	R_OK
+#undef	R_OK
+#endif	/* R_OK */
+#endif	/* HAVE_LOCKF */
+
 
 #ifndef	_IOFBF
 #define	_IOFBF	0
@@ -1320,6 +1348,13 @@ rd_doit(filename, dirs)
 	   depending on actually doing something
 	   on a file */
 
+	int dir_fd_ = -1;
+	DIR *dp = NULL;
+
+	/* The 'filename' is always directoryless, whereas
+	   'dirs' points to the directory where it resides */
+
+
 #ifdef	USE_ALLOCA
 	char *buf;
 #else
@@ -1328,18 +1363,43 @@ rd_doit(filename, dirs)
 #endif
 	const char *av[3];
 	char *p;
-	int len;
+	int len, rc;
+	int lockfd = -1;
 	char pathbuf[512];
+	char dirhash[5];
 	char *sh_memlevel = getlevel(MEM_SHCMD);
 	int thatpid;
 	struct stat stbuf;
 
 	router_id = getpid();
+	dirhash[0] = 0;
 
 	*pathbuf = 0;
-	if (*dirs) {	/* If it is in alternate dir, move to primary one,
-			   and process there! */
-	  strcpy(pathbuf,dirs);
+#if defined(Z_DIRFD) && defined(HAVE_FCHDIR)
+	if (*dirs) {
+	  dp = opendir(".");
+	  if (dp) dir_fd_ = Z_DIRFD(dp);
+	  if (*dirs && dirs[0]  == '.' && dirs[1] == '.' && dirs[2] == '/') {
+	    char *p = pathbuf + 3;
+	    strcpy(pathbuf, dirs);
+	    while (*p && *p != '/') ++p;
+	    if (*p) *p++ = 0;
+	    chdir(pathbuf);
+	    strncpy(dirhash, p, sizeof(dirhash)-1);
+	    dirhash[sizeof(dirhash)-1] = 0;
+
+	    *pathbuf = 0;
+	    if (dirhash[0]) {
+	      strcpy(pathbuf,dirhash);
+	      strcat(pathbuf,"/");
+	    }
+	  }
+	}
+#endif
+	if (dirhash[0] && dir_fd_ < 0) {  /* If it is in alternate dir,
+					     move to primary one,
+					     and process there! */
+	  strcpy(pathbuf,dirhash);
 	  strcat(pathbuf,"/");
 	}
 	strcat(pathbuf,filename);
@@ -1368,6 +1428,11 @@ rd_doit(filename, dirs)
 		      "** BUG **: %s%s not in primary router directory!\n",
 		      dirs,filename);
 	    }
+
+#if defined(HAVE_FCHDIR)
+	    if (dir_fd_ >= 0) fchdir(dir_fd_);
+#endif
+	    if (dp) closedir(dp);
 	    return 0;
 	    /*
 	     * This should not happen anywhere but at
@@ -1377,6 +1442,32 @@ rd_doit(filename, dirs)
 	     */
 	  }
 	}
+
+	lockfd = open(pathbuf, O_RDWR, 0);
+	if (lockfd >= 0) {
+#if defined(HAVE_LOCKF) && defined(F_LOCK)
+	  lseek(lockfd, (off_t)0, SEEK_SET); /* To the end of the file */
+	  if (lockf(lockfd, F_LOCK, 0) < 0) {
+	    /* return 0; FIXME: ??? ERRORS ?? HOW ???  */
+	  }
+#else
+#ifdef	HAVE_FLOCK
+	  if (flock(lockfd, LOCK_EX) < 0) {
+	    /* return 0; FIXME: ??? ERRORS ?? HOW ???  */
+	  }
+#else
+	  /* FCNTL() locking */
+	  struct flock ft; 
+	  memset( & ft, 0, sizeof(ft) );
+	  ft.l_type   = F_WRLCK;
+	  ft.l_whence = SEEK_SET;
+	  ft.l_start  = 0;
+	  ft.l_len    = 0;
+	  fcntl(lockfd, F_GETLK, &ft); /* XXX: ERROR PROCESSING! */
+#endif	/* HAVE_FLOCK */
+#endif	/* HAVE_LOCKF */
+	}
+
 	if (strncmp(filename,"core",4) != 0 &&
 	    ((p == NULL) || (thatpid != router_id))) {
 	  /* Not a core file, and ...
@@ -1384,29 +1475,50 @@ rd_doit(filename, dirs)
 	  /* If the pid did exist, we do not touch on that file,
 	     on the other hand, we need to rename the file now.. */
 #ifdef	USE_ALLOCA
-	  buf = (char*)alloca(len+16);
+	  buf = (char*)alloca(len+20);
 #else
 	  if (blen == 0) {
-	    blen = len+16;
-	    buf = (char *)malloc(len+16);
+	    blen = len+20;
+	    buf = (char *)malloc(len+20);
 	  }
-	  while (len + 12 > blen) {
+	  while (len + 18 > blen) {
 	    blen = 2 * blen;
 	    buf = (char *)realloc(buf, blen);
 	  }
 #endif
-	  /* Figure out its inode number */
-	  if (lstat(pathbuf,&stbuf) != 0) return 0; /* Failed ?  Well, skip it */
-	  if (!S_ISREG(stbuf.st_mode))   return 0; /* Not a regular file ??   */
+	  /* Figure out its inode number */	
+	  rc = lstat(pathbuf,&stbuf);
+	  if (rc != 0) {
+	    if (lockfd >= 0) close(lockfd);
+#if defined(HAVE_FCHDIR)
+	    if (dir_fd_ >= 0) fchdir(dir_fd_);
+#endif
+	    if (dp) closedir(dp);
+	    return 0; /* Failed ?  Well, skip it */
+	  }
 
-	  sprintf(buf, "%ld-%d", (long)stbuf.st_ino, router_id);
+	  if (!S_ISREG(stbuf.st_mode)) return 0; /* Not a regular file ?? */
 
-	  if (eqrename(pathbuf, buf) < 0)
+	  if (dirhash[0]) {
+	    sprintf(buf, "%s/%ld", dirhash, (long)stbuf.st_ino);
+	  } else {
+	    sprintf(buf, "%ld", (long)stbuf.st_ino);
+	  }
+
+	  if (strcmp(pathbuf, buf) != 0  &&
+	      eqrename(pathbuf, buf) < 0) {
+	    if (lockfd >= 0) close(lockfd);
+#if defined(HAVE_FCHDIR)
+	    if (dir_fd_ >= 0) fchdir(dir_fd_);
+#endif
+	    if (dp) closedir(dp);
 	    return 0;		/* something is wrong, erename() complains.
 				   (some other process picked it ?) */
+	  }
 	  filename = buf;
 	  /* message file is now "file-#" and belongs to this process */
 	}
+
 
 #ifdef	MALLOC_TRACE
 	mal_contents(stdout);
@@ -1418,6 +1530,12 @@ rd_doit(filename, dirs)
 	av[2] = NULL;
 	s_apply(2, av); /* "process" filename (within  rd_doit() ) */
 	free_gensym();
+
+	if (lockfd >= 0) close(lockfd);
+#if defined(HAVE_FCHDIR)
+	if (dir_fd_ >= 0) fchdir(dir_fd_);
+#endif
+	if (dp) closedir(dp);
 
 	setlevel(MEM_SHCMD,sh_memlevel);
 
@@ -1567,7 +1685,7 @@ run_daemon(argc, argv)
 	}
 
 	sleep(5); /* Wait a bit before continuting so that
-		     child processes have change to boot */
+		     child processes have a change to start */
 
 	/* Collect start reports (initial "#hungry\n" lines) */
 	parent_reader(0);

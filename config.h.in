@@ -116,6 +116,9 @@
    */
 #undef HAVE_DIRENT_H
 
+/* Define to 1 if you have the `dirfd' function. */
+#undef HAVE_DIRFD
+
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 
@@ -790,6 +793,12 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
+
+/* Can do dirfd() by referring to dd_fd */
+#undef USE_DIRFD_DD_FD
+
+/* Can do dirfd() by referring to d_fd */
+#undef USE_DIRFD_D_FD
 
 /* Support of LDAP isn't explicitely disabled */
 #undef USE_LDAP

@@ -4,6 +4,10 @@
  *	Merge to standard ZMailer distribution with autoconfiguration by
  *	Matti Aarnio <mea@nic.funet.fi> 1997; Code reorganization 1999
  *	to do db bind at open_ldap(), *only* searches at  search_ldap()..
+ *
+ *	Support code for LDAPv3, and report about need to handle server
+ *	going away (e.g. restart LDAP lookups) by:
+ *	   Jeff Warnica <jeffw@chebucto.ns.ca>
  */
 
 /* LINTLIBRARY */
@@ -30,7 +34,8 @@ typedef struct ldapmap_struct {
 	int  scope;
 	char *filter;
 	char *attr;
-	int  wildcards;
+	int   wildcards;
+	int   protocol;
 	  /* Bound state */
 	LDAP *ld;
 	int simple_bind_result;
@@ -38,6 +43,32 @@ typedef struct ldapmap_struct {
 
 extern int deferit;
 extern void v_set();
+
+static void open_lmap_ __((LDAPMAP *lmap));
+static void
+open_lmap_ (lmap)
+     LDAPMAP *lmap;
+{
+	if (lmap->ld)
+		ldap_unbind_s(lmap->ld);
+	lmap->ld = NULL;
+
+	if (lmap->ldaphost)
+		lmap->ld = ldap_open(lmap->ldaphost, lmap->ldapport);
+
+	if (lmap->ld != NULL) {
+
+		if (lmap->protocol > 0 &&
+		    ldap_set_option( ldap->ld,
+				     LDAP_OPT_PROTOCOL_VERSION,
+				     &lmap->protocol ) != LDAP_OPT_SUCCESS ) {
+		  fprintf( stderr, "Could not set LDAP_OPT_PROTOCOL_VERSION %d\n", lmap->protocol );
+		}
+
+		lmap->simple_bind_result =
+		  ldap_simple_bind_s(lmap->ld, lmap->binddn, lmap->passwd);
+	}
+}
 
 
 static LDAPMAP *
@@ -134,6 +165,15 @@ open_ldap(sip, caller)
 					continue;
 				lmap->filter = strdup(p);
 			}
+			else if (strncasecmp(p, "protocol", 8) == 0) {
+				p += 8; 
+				while (isascii(*++p) && isspace(*p))
+					continue;
+				if (strncasecmp(p, "3", 1) == 0)
+					lmap->protocol = LDAP_VERSION3;
+				else if (strncasecmp(p, "2", 1) == 0)
+					lmap->protocol = LDAP_VERSION2;
+			}
 			else if (strncasecmp(p, "scope", 5) == 0) {
 				p += 5;
 				while (isascii(*++p) && isspace(*p))
@@ -155,13 +195,7 @@ open_ldap(sip, caller)
 		}
 		fclose(fp);
 
-		if (lmap->ldaphost)
-		  lmap->ld = ldap_open(lmap->ldaphost, lmap->ldapport);
-
-		if (lmap->ld != NULL) {
-		  lmap->simple_bind_result =
-		    ldap_simple_bind_s(lmap->ld, lmap->binddn, lmap->passwd);
-		}
+		open_lmap_(lmap);
 	}
 
 	return lmap;
@@ -185,6 +219,7 @@ search_ldap(sip)
 	int filterlength = 0;
 	int counter = 0;
 	int filterpos = 0;
+	int rc;
 
 	conscell *tmp = NULL;
 
@@ -237,8 +272,9 @@ search_ldap(sip)
 	}
 
 	attrs[0] = lmap->attr;
-	if (ldap_search_s(lmap->ld, lmap->base, lmap->scope, filter,
-			  attrs, 0, &msg) != LDAP_SUCCESS) {
+	rc = ldap_search_s(lmap->ld, lmap->base, lmap->scope, filter,
+			   attrs, 0, &msg);
+	if (rc != LDAP_SUCCESS) {
 		++deferit;
 		v_set(DEFER, DEFER_IO_ERROR);
 		fprintf(stderr, "search_ldap: ldap_search_s error!\n");
