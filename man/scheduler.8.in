@@ -6,7 +6,7 @@ scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
 .B scheduler
 [
-.B \-divFHQSVW
+.B \-divFHnQSVW
 ]
 [
 .B \-f
@@ -144,6 +144,11 @@ into given file.  No default value.
 .IP \-N\ \fItransmaxfno\fR
 sets how many filehandles are allocated for the scheduler's started
 children (if the system has adjustable resources.)
+.IP \-n
+Toggles configuration flag 'never_full_content', which defines wether
+the returned delivery reports shall contain original message body as
+well as its headers.  Per default the original message body is sent,
+unless the message sender has used DSN facility to define RET=HDRS.
 .IP \-P\ \fIpostoffice\fR
 specifies an alternate \fIPOSTOFFICE\fR directory.
 .IP \-q\ \fIrendezvous\fR

@@ -126,6 +126,7 @@ static time_t next_dirscan     = 0;
 static time_t next_idlecleanup = 0;
 static struct sptree *dirscan_mesh = NULL;
 static int newents_limit = 200;
+extern int never_full_content; /* on conf.c */
 
 #include "memtypes.h"
 extern memtypes stickymem;
@@ -388,7 +389,7 @@ main(argc, argv)
 	verbose = errflg = version = 0;
 	for (;;) {
 		c = getopt(argc, (char*const*)argv,
-			   "divE:f:Fl:HL:N:p:P:q:QR:SVW");
+			   "divE:f:Fl:HL:nN:p:P:q:QR:SVW");
 		if (c == EOF)
 		  break;
 		switch (c) {
@@ -422,6 +423,9 @@ main(argc, argv)
 			break;
 		case 'L':	/* override default log file */
 			logfn = optarg;
+			break;
+		case 'n':
+			never_full_content = !never_full_content;
 			break;
 		case 'N':
 			if ((transportmaxnofiles = atoi(optarg)) < 10)

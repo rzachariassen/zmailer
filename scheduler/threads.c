@@ -436,8 +436,9 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 
 	mytime(&now);
 
-if (verbose) printf("thread_linkin([%s/%s],%s/%d/%s,%d)\n",wc->name,wh->name,
-		    cep->channel,cep->flags & CFG_WITHHOST,cep->host,cfgid);
+	if (verbose)
+	  printf("thread_linkin([%s/%s],%s/%d/%s,%d)\n",wc->name,wh->name,
+		 cep->channel,cep->flags & CFG_WITHHOST,cep->host,cfgid);
 
 	/* char const *vp_chan = wc->name; */
 	/* char const *vp_host = wh->name; */
@@ -491,9 +492,10 @@ if (verbose) printf("thread_linkin([%s/%s],%s/%d/%s,%d)\n",wc->name,wh->name,
 
 	    /* Link the vertex into this thread! */
 
-if (verbose) printf("thread_linkin() to thg=0x%p[%s/%d/%s]; added into existing thread [%s/%s] thr->jobs=%d\n",
-		    thg,cep->channel,thg->withhost,cep->host,
-		    wc->name,wh->name,thr->jobs+1);
+	    if (verbose)
+	      printf("thread_linkin() to thg=0x%p[%s/%d/%s]; added into existing thread [%s/%s] thr->jobs=%d\n",
+		     thg,cep->channel,thg->withhost,cep->host,
+		     wc->name,wh->name,thr->jobs+1);
 
 	    _thread_linktail(thr,vp);
 	    vp->thgrp = thg;
@@ -511,9 +513,10 @@ if (verbose) printf("thread_linkin() to thg=0x%p[%s/%d/%s]; added into existing 
 	  thr = create_thread(thg,vp,cep);
 	  vp->thgrp = thg;
 
-if (verbose) printf("thread_linkin() to thg=0x%p[%s/%d/%s]; created a new thread 0x%p [%s/%s]\n",
-		    thg,cep->channel,thg->withhost,cep->host,
-		    thr,wc->name,wh->name);
+	  if (verbose)
+	    printf("thread_linkin() to thg=0x%p[%s/%d/%s]; created a new thread 0x%p [%s/%s]\n",
+		   thg,cep->channel,thg->withhost,cep->host,
+		   thr,wc->name,wh->name);
 
 
 	  /* Try to start it too */
@@ -528,9 +531,10 @@ if (verbose) printf("thread_linkin() to thg=0x%p[%s/%d/%s]; created a new thread
 	thr = create_thread(thg,vp,cep);
 	vp->thgrp = thg;
 
-if (verbose) printf("thread_linkin() to thg=0x%p[%s/%d/%s]; created a new thread group, and thread [%s/%s]\n",
-		    thg,cep->channel,thg->withhost,cep->host,
-		    wc->name,wh->name);
+	if (verbose)
+	  printf("thread_linkin() to thg=0x%p[%s/%d/%s]; created a new thread group, and thread [%s/%s]\n",
+		 thg,cep->channel,thg->withhost,cep->host,
+		 wc->name,wh->name);
 	/* Try to start it too */
 	if(!(thg->cep->flags & CFG_QUEUEONLY)) {
 		thread_start(thr);
