@@ -237,8 +237,9 @@ dist-usa:
 	  CWD=`pwd` sed -e '/\.tar.*/d' -e "s/^\./`sh -c 'basename \`pwd\`'`/" | \
 	  sort -t/ > MANIFEST
 	cp MANIFEST /tmp
-	(cd .. ; tar cvf - `cat /tmp/MANIFEST` ) > `basename \`pwd\``.tar
+	(cd .. ; tar cvf - `cat /tmp/MANIFEST` ) > `basename \`pwd\``-usa.tar
 	./bin/usa-itar-stripper.sh reverse
+	mv crypto.diff crypto-`basename \`pwd\``.diff
 	rm -f /tmp/MANIFEST #MANIFEST
 
 

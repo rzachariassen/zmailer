@@ -1,5 +1,10 @@
 2000-01-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in, bin/usa-itar-stripper.sh:
+	    'make dist-usa' creates now
+	       - DIRNAME-usa.tar  package (vs. DIRNAME.tar of 'make dist')
+	       - crypto-DIRNAME.diff  file
+
 	* transports/smtp/smtp.h, transports/smtp/smtp.c:
 	    Seen strange junk commands fed out to the remote
 	    systems, trying to determine what is going on..

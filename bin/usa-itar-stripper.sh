@@ -16,9 +16,11 @@
 
 if [ "$1" = "reverse" ]; then
     files=`find * -name '*.crypto'`
+    > crypto.diff
     for f in $files
     do
 	y=`echo $f | sed -e 's!\.crypto$!!'`
+	diff -u $y $f >> crypto.diff
 	mv $f $y
     done
     exit
