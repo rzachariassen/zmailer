@@ -384,8 +384,8 @@ Hosts:\n
 </verb></tscreen>
 Where:
 <descrip>
-<tag/&bsol;n/ is an ASCII linefeed
-<tag/&bsol;t/ is an ASCII tab
+<tag/<verb>\n</verb>/ is an ASCII linefeed
+<tag/<verb>\t</verb>/ is an ASCII tab
 <tag/key/ is an unsigned decimal number
 <tag/msg-file/ is a contiguous string (it is the message file name relative 
 to a known directory)

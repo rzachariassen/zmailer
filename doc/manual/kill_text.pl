@@ -25,7 +25,7 @@ sub kill_text ($file, $start_tag, $end_tag) {
 
 open (INFILE, "< $file") or die "Open of file $file failed.";
 
-    print "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+#    print "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 #    print $_;
 
 #    while (<INFILE>) {

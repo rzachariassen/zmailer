@@ -646,10 +646,12 @@ This is the library that all transport agents use, and several of its
 functions are intended to aid message processing.
 
 <sect3>Function groupings
+<p>
+Transport agent support library function groups are:
 
 <itemize>
-<item>
-<item>
+<item>Message file manipulation routines.
+<item>Diagnostics routines.
 </itemize>
 
 <sect3>Function listings 

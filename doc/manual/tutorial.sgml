@@ -82,8 +82,8 @@ A graphical example of the messaging model is shown in figure
 shows the relationships between different elements of the model.
 
 <figure>
-        <eps file="msg_modl">
-        <caption><label id="msg_modl">A graphical example of the messaging model.
+    <eps file="msg_modl">
+    <caption><label id="msg_modl">A graphical example of the messaging model.
 </figure>
 </no_html>
 
