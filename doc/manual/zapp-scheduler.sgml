@@ -1,0 +1,534 @@
+<APPENDIX ID="zapp-schedulercfg"><?dbhtml filename="zapp-schedulercfg.html">
+<TITLE>Scheduler's Configuration File Samples</TITLE>
+
+<PARA>
+Here are sample scheduler configuration files pulled
+straight out of the sources.
+</PARA>
+
+<SECT1 ID=zapp-schedulercfg-scheduler.conf>
+<TITLE><FILENAME>scheduler.conf</></TITLE>
+<PARA>
+<PROGRAMLISTING>
+<![CDATA[
+#
+# Scheduler configuration file
+#
+# The scheduler reads this file on startup or when it receives a SIGUSR1 signal
+#
+# Every channel/host combination in recipient addresses will be sifted through
+# the clauses matched in this file, picking up parameters until a clause that
+# specifies a command.  Everything is free-form with three requirements:
+# - Clauses (i.e. the channel/host pattern) start at the beginning of a line.
+# - Clause contents (i.e. the parameters) start after some whitespace
+# - Clause content keywords are matched case INSENSITIVE
+# - Components are separated by whitespace.
+# 
+# Within command=" ... " strings, following "variables" are known:
+#  $host	message's host
+#  $channel	message's channel
+#  ${LOGDIR}	ZENV variable LOGDIR (all ZENV variables supported)
+#
+# NB! For command paths, the $PATH is:  $MAILBIN/ta
+# (Unless an absolute path is given for a command)
+# for *running* things, the CWD is: $POSTOFFICE/transport/
+#
+
+#
+# Note, there are three kinds of resource-pool limitation parameters
+# which control when a given channel+host pair (thread) is NOT taken
+# into processing:
+#
+#  MaxTA:  (Set in "*/*" clause)
+#       GLOBAL parameter limiting the number of transport-agent processes
+#       that the scheduler can have running at the same time.
+#
+#	With this you can limit the number of TA processes running at the
+#	same time lower than maximum allowed by your OS setup.
+#
+#	The scheduler detects the max number of FDs allowed for a process,
+#	and analyzing how many FDs each TA interface will need  -  plus
+#	reserving 10 FDs for the itself, result is ``probed maxkids''.
+#
+#  MaxChannel: (default: ``probed maxkids'')
+#       Selector clause specific value limiting how many transport-agent
+#       processes can be running on which the ``channel'' part is the same.
+#       You may specify dis-similar values for these as well.  For example
+#       you may use value '50' for all your 'smtp' channel entries, except
+#       that you want always to guarantee at least five more for your own
+#       domain deliveries, and thus have:
+#               smtp/*your.domain
+#                       maxchannel=55
+#       If the sum of all ``maxchannel'' values in different channels exceeds
+#       that of ``maxta'', then ``maxta'' value will limit the amount of work
+#       done in extreme load situations.
+#
+#  MaxRing:  ( default: ``probed maxkids'' )
+#       This limits the number of parallel transport agents within each
+#       selector definition.    This defined the size of the POOL of
+#       transport agent processes available for processing the threads
+#       matching the selector clause.
+#
+#  MaxTHR:   ( max processes per thread; default: 1 )
+#       This limits the number of parallel transport agents within each
+#       thread; that is, using higher value than default ``1'' will allow
+#       running more than one TA for the jobs at the thread.
+#
+#	Do note that running more than one TA in parallel may also require
+#	lowering OVERFEED value.  (E.g. having a queue of 30 messages will
+#	not benefit from more TAs, unless they all get something to process.
+#	Having OVERFEED per default at 150 will essentially feed whole queue
+#	to one TA, others are not getting any.)
+#
+#  OverFeed:
+#	This tells how many job specifiers to feed to the TA when
+#	the TA process state is ``STUFFING''  Because the scheduler
+#	is a bit sluggish to spin around to spot active TAs, it does
+#	make sense to feed more than one task to a TA, and then wait
+#	for the results.
+#
+
+#
+# There are also a few flags directing various things
+#
+#  QueueOnly:
+#	Existence directs threads created under this clause *NEVER* to
+#	auto-start with any timeout mechanism.  Usage of ETRN methods
+#	is required for the thread to start!
+#
+#  WakeupRestartOnly:
+#	Existence directs threads created under this clause to start
+#	at the arrival of the first message to the thread, but in case
+#	the thread exists, and is in ``WAKEUP DELAY'' state, new arrival
+#	does not start the thread.
+#
+#  AgeOrder:
+#	This directs the queue *always* to run in strict arrival time
+#	order.  It might not make sense in all situations, though..
+#	Originally the system ran always by permuting the thread order
+#	before running TAs so that if some message causes the thread to
+#	hang, others will get processed past it.
+#
+#  ByHost:
+#	The command-line of the clause has ``$host'' expansion in it, OR
+#	the channel-part of the clause selector has wild-cards in it, (or
+#	the user decided to have ``byhost'' directive just for the fun of it.)
+#	Switching TAs in between threads might not be advised..
+#	(well, use of  ``$host''  isn't advisable in general..)
+#	(also, having wild-cards at the channel-part is not advised..)
+#
+#  ByChannel:
+#	The command-line of the clause has  ``$channel'' expansion in it, (or
+#	the user decided to have ``byhost'' directive just for the fun of it.)
+#	This flag is not really used anywhere.
+#
+
+#
+# ======== Some external parameters - name starts from column 0, and =====
+# ======== always begins with "PARAM" ====================================
+
+#
+# MAILQv2 authentication database file reference:
+# If you define this (like the default is), and the file exists,
+# scheduler mailq interface goes to v2 mode.
+# (Nonexistence of this file  A) leaves system running, B) uses MAILQv1
+#  interface along with its security problems.)
+#
+
+PARAMauthfile = "${MAILSHARE}/scheduler.auth"
+
+
+#PARAMmailqsock = "UNIX:/path/to/mailq.sock"
+#PARAMmailqsock = "TCP:174"
+
+# Time for accumulating diagnostic reports for a given message, before
+# all said diagnostics are reported -- so that reports would carry more
+# than one diagnostic in case of multi-recipient messages.
+#PARAMglobal-report-interval = 15m
+
+#
+# ========================================================================
+#
+
+#
+# Default parameter boilerplate, following values are in use in
+# all operational channel/host clauses, unless overridden in them..
+#
+*/*	interval=1m
+	idlemax=4m # Max lifetime of idled TA before it is killed
+	# expire messages after 3 days without full delivery
+	expiry=3d
+	# when the scheduler gets to the end of the retry sequence,
+	# it starts over at some random point in the middle.  The
+	# numbers are factors of the scheduling interval.
+	retries="1 1 2 3 5 8 13 21 34"
+	# no default limits on simultaneous transport agents or
+	# connections to a particular host
+	maxchannel=0
+	maxring=20
+	#
+	maxta=0 # Let it be automagically determined
+	#
+	# default uid/gid of transport agents
+	user=root
+	group=daemon
+	#
+	# A flag telling about queue-order..
+	#
+	ageorder
+	overfeed=150
+	#
+	# Possible nice/setpriority values in case one wants to run
+	# the scheduler at higher scheduling priority, than TA programs:
+	#
+	# "priority" sets ABSOLUTE value, and requires setpriority(2)
+	# system call.  "nice" is -- well: nice(2)
+	#
+	# nice=2
+	##priority=0
+	#
+	# "syspriority"/"sysnice" set the value for the scheduler process
+	# itself, and are not inherited from the default boilerplate to
+	# other parameter blocks.
+	#
+	# sysnice=-2
+	# syspriority=-2
+
+# Deferred delivery is handled by this transport agent.  Deferrals are low
+# priority, but they tend to bunch up.  The 1 channel slot means there will
+# be lots of contention, and typical checking intervals will be a bit higher
+# than what is specified (due to waiting for a free slot).
+hold/*
+	interval=5m
+	maxchannel=1
+	command=hold
+
+# BITNET delivery methods
+
+defrt1/*
+	maxchannel=3
+	command="sm -c $channel defrt1"
+
+bsmtp3/*
+	maxchannel=3
+	command="sm -c $channel bsmtp3"
+
+bsmtp3nd/*
+	maxchannel=3
+	command="sm -c $channel bsmtp3nd"
+bsmtp3rfc/*
+	maxchannel=3
+	command="sm -c $channel bsmtp3"
+
+bsmtp3ndrfc/*
+	maxchannel=3
+	command="sm -c $channel bsmtp3nd"
+
+#
+# Local delivery: files, processes, user mail
+#
+# Parameterless "local/file*" will get same values, as
+# "local/pipe*" immediately following it has !
+#
+local/file*
+local/pipe*
+	interval=5m
+	idlemax=9m
+	# Originally we had 3 hour expiry, but if your local system goes to
+	# a fizz (freezes, that is), your local mail may start to bounce
+	# before anybody notices anything...
+	expiry=3d
+	# want 20 channel slots, but only one HOST
+	maxchannel=15
+	maxring=5
+	#
+	# Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
+	# conversion on flight!  (Can't use CYRUS, nor PROCMAIL here!)
+	command="mailbox -8"
+
+#
+# This fallback "local/*" can be used to yield different local
+# delivery mechanism -- mailbox / CMU cyrus IMAP server / procmail
+#
+# The latter two can not do deliveries to explicite files / pipes,
+# thus you need the  "local/file*" and "local/pipe*" above.
+#
+
+local/*
+	interval=5m
+	idlemax=9m
+	# Originally we had 3 hour expiry, but if your local system goes to
+	# a fizz (freezes, that is), your local mail may start to bounce
+	# before anybody notices anything...
+	expiry=3d
+	# want 20 channel slots, but only one HOST
+	maxchannel=15
+	maxring=5
+	#
+	# Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
+	# conversion on flight!
+	command="mailbox -8"
+	# Or with CYRUS server the following might do:
+	#command="sm -8c $channel cyrus"
+	# Or with PROCMAIL as the local delivery agent:
+	#command="sm -8c $channel procm"
+
+
+# Sometimes we may want to PUNT all out to somewhere without regarding
+# on what the routing said:
+#
+# smtp/*
+#	maxchannel=199
+#	maxring=5
+#	command="smtp -F [192.89.123.25] -l ${LOGDIR}/smtp.punt"
+
+# This is a FAST EXPIRY test case.. Will always cause bounce, btw.
+# (those machines are cisco routers, which don't have smtp-servers..)
+smtp/*-gw.funet.fi
+	maxchannel=0
+	maxring=5
+	expiry=1m
+	interval=15s
+	retries="1"
+	skew=1
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+
+smtp/*.rutgers.edu
+	maxchannel=199
+	maxring=10
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.edu
+	maxchannel=199
+	maxring=20
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.com
+	maxchannel=199
+	maxring=30
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.uk
+	maxchannel=199
+	maxring=8
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.ca
+	maxchannel=199
+	maxring=10
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.{se,dk,is,no}
+	maxchannel=199
+	maxring=20
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.de
+	maxchannel=199
+	maxring=10
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.gov
+	maxchannel=199
+	maxring=5
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.mil
+	maxchannel=199
+	maxring=5
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.net
+	maxchannel=199
+	maxring=10
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+smtp/*.org
+	maxchannel=199
+	maxring=10
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+
+# Within FUNET we have a bit longer expiry..
+smtp/*funet.fi
+	maxchannel=199
+	maxring=9
+	# maxta=2
+	interval=10m
+	retries="1 1 2 3 5 8 13 21 34"
+	skew=1
+	# Do FORCED MIME-decoding into C-T-E: 8BIT
+	command="smtp -8sl ${LOGDIR}/smtp"
+
+# Within our organization we care more about speed and capacity than connections
+# The maxchannel value should be larger than the value used by smtp/*, to avoid
+# some potential state and phase problems in the queues.
+smtp/*.fi
+	maxchannel=199
+	maxring=20
+	interval=10m
+	retries="1 1 2 3 5 8 13 21 34"
+	skew=1
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+
+#
+# Connections to the outside shouldn't duplicate effort so we only allow one
+# per destination.
+#
+smtp/*
+	maxchannel=199
+	maxring=50
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+
+#
+# Special channel which LOGS all outgoing protocol sessions, so that
+# admin can divert any domain to this channel in case logging is desired.
+#
+smtp-log/*
+	maxchannel=199
+	maxring=50
+	command="smtp -c $channel -s -l ${LOGDIR}/smtp-log"
+
+#
+#  LMTP (RFC 2033) protocol driver with presumed "standard" port of 2525.
+#
+
+smtp-lmtp/*
+	maxchannel=199
+	maxring=20
+	interval=1m
+	retries="1 3 7 15"
+	command="smtp -c $channel -M -x -p 2525 -s -l ${LOGDIR}/smtp-lmtp"
+
+#
+# These messages will go only into the queue, and need explicite
+# SMTP mediated ETRN request, before they become flushed out.
+#
+
+smtp-etrn/*
+	maxchannel=199
+	maxring=20
+	interval=1h
+	retries="12"
+	queueonly
+	command="smtp -c $channel -s" # -l ${LOGDIR}/smtp-etrn"
+
+#
+# Destinations desired to use TLS (a.k.a. SSL) encryption can be
+# run like this example shows.  There are two possibilities about
+# REQUIRING the TLS encapsulation; that detail is configured inside
+# the  ``smtp-tls.conf'' file.
+#
+smtp-tls/*
+	maxchannel=199
+	maxring=20
+	interval=1h
+	retries="12"
+	queueonly
+	command="smtp -c $channel -s -S ${MAILSHARE}/smtp-tls.conf" # -l ${LOGDIR}/smtp-tls"
+
+# smtpx is a channel where the delivery is done without checking at MXes;
+# rather only on A/AAAA (address) entries:
+smtpx/*
+	maxchannel=90
+	maxring=10
+	command="smtp -c $channel -x -s" # -l ${LOGDIR}/smtpx"
+
+# Connections to places which sit behind broken firewalls, e.g. Cisco PIX
+# versions with allowing EHLO to go thru with feature reply, but then
+# rejecting all ESMTP protocol features listed at that reply...
+smtp77/*
+	maxchannel=199
+	maxring=50
+	command="smtp -c $channel -77 -s" # -l ${LOGDIR}/smtp77"
+
+# Combination of smtp77 and smtpx
+smtp77x/*
+	maxchannel=199
+	maxring=50
+	command="smtp -c $channel -77 -x -s" # -l ${LOGDIR}/smtp77x"
+
+# Connections to places we want to drive 8-bit-clean channel to
+# independent of what EHLO tells (or does not tell)
+smtp8/*
+	maxchannel=199
+	maxring=50
+	command="smtp -c $channel -8 -s" # -l ${LOGDIR}/smtp8"
+
+# Combination of smtp8 and smtpx
+smtp8x/*
+	maxchannel=199
+	maxring=50
+	command="smtp -c $channel -8 -x -s" # -l ${LOGDIR}/smtp8x"
+
+# Error messages.  Delivery can be retried at leisure.
+error/*
+	interval=5m
+	idlemax=2m
+	maxchannel=5
+	command=errormail
+
+# UUCP delivery.  The "sm" transport agent picks the first host it sees and
+# will select further recipient addresses with that host only.  We tell
+# the scheduler this with the "byhost" boolean, to avoid a staggered delivery
+# effect if the scheduler has to discover this on its own.
+uucp/*		maxchannel=5
+		command="sm -8c $channel uucp"
+
+# News delivery.  Hostname is always the same here.
+usenet/*	maxchannel=2
+		command="sm -8c $channel usenet"
+
+# UBC EAN X.400 gateway.  See comment at UUCP.
+ean/*		maxchannel=1
+		command="sm -c $channel ean"
+
+# BitBucket channel
+bitbucket/*
+		maxchannel=1
+		command="sm -c $channel bitbucket"
+
+smtpgw-*/*
+		maxchannel=30
+		maxring=30
+		command="sm -8c $channel $channel"
+
+]]>
+</PROGRAMLISTING>
+</PARA>
+</SECT1>
+
+<SECT1 ID=zapp-schedulercfg-scheduler.auth>
+<TITLE><FILENAME>scheduler.auth</></TITLE>
+<PARA>
+<PROGRAMLISTING>
+<![CDATA[
+#
+# APOP-like authentication control file for the ZMailer scheduler.
+#
+# Fields are double-colon (':') separated, and are:
+#   - Username
+#   - PLAINTEXT PASSWORD (which must not have double-colon in it!)
+#   - Enabled attributes (tokens, space separated)
+#   - Addresses in brackets plus netmask widths:  [1.2.3.4]/32
+#
+# Same userid CAN appear multiple times, parsing will pick the first
+# instance of it which has matching IP address set
+#
+# The default-account for 'mailq' is 'nobody' with password 'nobody'.
+# Third field is at the moment a WORK IN PROGRESS!
+#
+# SECURITY NOTE:
+#   OWNER:      root
+#   PROTECTION: 0600
+#
+# Attribute tokens:
+#	ALL	well, a wild-card enabling everything
+#	SNMP	"SHOW SNMP"
+#	QQ	"SHOW QUEUE SHORT"
+#	TT	"SHOW QUEUE THREADS", "SHOW THREAD channel/host"
+#	ETRN	"START THREAD channel host"
+#	KILL	"KILL THREAD channel host", "KILL MSG spoolid"
+#
+# - "nobody" via loopback gets different treatment from
+#   "nobody" from anywhere else.
+#
+nobody:nobody:SNMP QQ TT ETRN:  [127.0.0.0]/8 [ipv6.0::1]/128
+nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0
+#watcher:zzzzz:SNMP QQ TT ETRN: [127.0.0.0]/8 [192.168.0.1]/32
+#root:zzzzzzz:ALL:              [127.0.0.0]/8 [192.168.0.2]/32
+]]>
+</PROGRAMLISTING>
+</PARA>
+</SECT1>
+
+</APPENDIX>
