@@ -217,7 +217,8 @@ int *rlenp;			/* result length ptr ! */
 	*rlenp = Nresult.dsize;
 	return buffer;
 
-	break;
+	break; /* some compilers complain, some produce bad code
+		  without this... */
 #endif
 #ifdef HAVE_GDBM_H
     case _dbt_gdbm:
@@ -233,7 +234,8 @@ int *rlenp;			/* result length ptr ! */
 	*rlenp = Gresult.dsize;
 	return Gresult.dptr;
 
-	break;
+	break; /* some compilers complain, some produce bad code
+		  without this... */
 #endif
 #ifdef HAVE_DB_H
     case _dbt_btree:
@@ -252,7 +254,8 @@ int *rlenp;			/* result length ptr ! */
 	*rlenp = Bresult.size;
 	return buffer;
 
-	break;
+	break; /* some compilers complain, some produce bad code
+		  without this... */
 
     case _dbt_bhash:
 
@@ -269,7 +272,8 @@ int *rlenp;			/* result length ptr ! */
 	*rlenp = Bresult.size;
 	return buffer;
 
-	break;
+	break; /* some compilers complain, some produce bad code
+		  without this... */
 #endif
     default:
 	break;
