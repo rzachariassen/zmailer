@@ -2092,8 +2092,12 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	     I have uses for a strict environment without  /bin/sh ... [mea] */
 
 	  cp = cmdbuf+1;
-	  if (*cp == '/') {
+	  s = strchr(cp,'$');
+	  if (!s)
+	    s = strchr(cp,'>');
+	  if (*cp == '/' && s == NULL) {
 	    /* Starts with an ABSOLUTE PATH -- at least "/" */
+	    /* ... and does *NOT* contain '$', nor '>' */
 	    i = 0;
 	    while (*cp != 0) {
 	      while (*cp == ' ') ++cp;
@@ -2129,10 +2133,15 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	     * stuff to run contains an 'r'. XX: investigate.
 	     */
 
-	    argv[0] = "/bin/sh";
-	    execle(argv[0],  cmdbuf+1, "-c", cmdbuf+1, (char *)NULL, env);
-	    argv[0] = "/sbin/sh";
-	    execle(argv[0], cmdbuf+1, "-c", cmdbuf+1, (char *)NULL, env);
+	    argv[0] = cmdbuf+1;
+	    argv[1] = "-c";
+	    argv[2] = cmdbuf+1;
+	    argv[3] = NULL;
+
+	    execve("/bin/sh", argv, env);
+	    /* execle(argv[0], cmdbuf+1,"-c",cmdbuf+1,(char*)NULL,env);*/
+	    execve("/sbin/sh", argv, env);
+	    /* execle(argv[0], cmdbuf+1, "-c", cmdbuf+1, (char *)NULL, env); */
 
 	  }
 
