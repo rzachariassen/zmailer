@@ -2,6 +2,7 @@
 
 	* transports/smtp/smtp.h, transports/smtp/smtp.c:
 	    Debugging oddball 'yield OK when DEFER is correct' problems..
+	    .. and fixed the blunder in the call of  smtpopen().
 
 	* transports/libta/ctlopen.c:
 	    The RP data block is not initialized completely in all cases,

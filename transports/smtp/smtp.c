@@ -956,6 +956,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		  if (openstatus == EX_OK)
 		    smtpstatus = deliver(SS, dp, rphead, rp->next);
 		  else
+		    /* Ok, open failed, we need to signal this onwards.. */
 		    smtpstatus = openstatus;
 
 		  /* Only for EX_TEMPFAIL, or for any non EX_OK ? */
