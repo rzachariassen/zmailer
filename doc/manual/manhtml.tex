@@ -5,9 +5,9 @@
 
 \begin{htmlonly}
  \usepackage[dvips]{graphicx}
- \usepackage[dvips]{color}
- \usepackage[dvips,leftbars]{changebar}
- \newcommand{\FoilTeX}{\env{FoilTeX}}
+% \usepackage[dvips]{color}
+% \usepackage[dvips,leftbars]{changebar}
+% \newcommand{\FoilTeX}{\env{FoilTeX}}
 %
  \def\url#1{\htmladdnormallink{#1}{#1}}
  \def\Email#1{\htmladdnormallink{<#1>}{mailto:#1}}
@@ -17,13 +17,13 @@
  \def\Glossary#1#2{\index{#1@{#2} \label{III#1}\htmlref{(G)}{GGG#1}}}
 %
 % hack to suppress changebar entries read from .aux file  !!! bug in changebar.perl !!! 
- \makeatletter
- \def\cb@barpoint#1#2#3{}
- \makeatother
+%% \makeatletter
+%% \def\cb@barpoint#1#2#3{}
+%% \makeatother
 %
 \newcommand{\sameas}[1]{\textcolor{red}{Same as setting: #1}}
-\newcommand{\onlinedocRM}{\url{http://www-math.mpce.mq.edu.au/\~{}ross/latex/manual/manual.html}}
-\newcommand{\EXcolors}{\url{http://www-math.mpce.mq.edu.au/\~{}ross/latex/crayola/crayola.html}}
+%\newcommand{\onlinedocRM}{\url{http://www-math.mpce.mq.edu.au/\~{}ross/latex/manual/manual.html}}
+%\newcommand{\EXcolors}{\url{http://www-math.mpce.mq.edu.au/\~{}ross/latex/crayola/crayola.html}}
 %
 \newcommand{\Lc}[1]{\texttt{\char92#1}} % LaTeX command
 \newcommand{\Tc}[1]{\texttt{\char92#1}} % TeX command

@@ -115,6 +115,9 @@ all-html: manual.aux $(PARTS) $(FIGGIF)
 	$(L2H) $(L2HCOMMON) -split 0 -unsegmented manual.tex
 
 manual.html: manual.aux $(PARTS) $(FIGGIF)
+	for x in "" T A R AP; do \
+		for y in contents index images internals labels sections; \
+			do echo "1;" > $$(x)$$(y).pl ; done; done
 	$(L2H) $(L2HLTOP)
 	$(L2H) $(L2HLSEC1)
 	$(L2H) $(L2HLSEC2)

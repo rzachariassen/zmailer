@@ -10,7 +10,8 @@
 \newenvironment{tscreen}%
  {\begin{quote}\bgroup\small\tt}%
  {\egroup\end{quote}}
-\newcommand{\verbar}{{\ifmmode{|}\else{\tt|}\fi}}
+%% \newcommand{\verbar}{{\ifmmode{|}\else{\tt|}\fi}}
+\newcommand{\verbar}{\tt|}
 
 
 %
@@ -76,14 +77,14 @@
 \setcounter{footnote}{0}
 %end{latexonly}
 
-\begin{imagesonly}
+%\begin{imagesonly}
 % \usepackage{l2hman}
-\end{imagesonly}
+%\end{imagesonly}
 %
-\begin{htmlonly}
- \def\makeglossary{}
- \pagecolor[named]{White}
-\end{htmlonly}
+%\begin{htmlonly}
+% \def\makeglossary{}
+% \pagecolor[named]{White}
+%\end{htmlonly}
 
 % use %sort -f -u manual.idx > manual.index for a primitive index
 %
