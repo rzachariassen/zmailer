@@ -26,22 +26,26 @@ especially if you use the <OPTION>-m</> option), for example.
 </PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>Usage:</><LISTITEM><PARA>
+<VARLISTENTRY><TERM>Usage:</><LISTITEM>
 
+<PARA>
 To start <EMPHASIS>vacation</>, run the command <USERINPUT>vacation start</>.
 It will create a <FILENAME>~/.vacation.msg</> file (if you don't already 
 have one) in your home directory containing the message you want to send 
 people who send you mail, and a <FILENAME>~/.forward</> file in your home 
 directory containing a line of the form:
-<SCREEN>
+<SYNOPSIS>
   "\name", "|/opt/mail/bin/vacation name"
-</SCREEN>
+</SYNOPSIS>
 
 where name is your login name. Make sure these files and your home 
 directory are readable by everyone.
-Also make sure that no one else can write to  them,  and  that  no
-one can write to your home  directory.
- (<SYNOPSIS>chmod og-w $HOME $HOME/.forward</>)
+Also make sure that no one else can write to them, and that no one can
+write to your home directory.
+Like this:
+<SYNOPSIS>
+  chmod og-w $HOME $HOME/.forward
+</SYNOPSIS>)
 </PARA>
 
 <PARA>
@@ -52,10 +56,13 @@ and the automatic replies will stop.
 
 <SYNOPSIS>
 vacation start vacation stop vacation -I vacation [ -tN ] [ -mMsgfile ] [ -d ] [user]
+</SYNOPSIS>
 
-{\bf Parameters}
+</LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM>
 
-\begin{description}
+<!-- VARIABLELIST -->
+<SCREEN>
 \item[{\tt -I}, {\tt -i}] \mbox{}
 
 initialize the {\tt .vacation.pag} 
@@ -64,7 +71,6 @@ and {\tt .vacation.dir} files and start vacation.
 If the {\tt -I} (or {\tt -i}) flag is not specified, vacation 
 tries to reply to the sender.
 
-
 \item[{\tt -tN}] \mbox{}
 
 Change the interval between repeat replies to the same 
@@ -72,19 +78,16 @@ sender. The default is one week. A trailing {\tt s}, {\tt m},
 {\tt h}, {\tt d}, or {\tt w} scales N to seconds, minutes, 
 hours, days, or weeks respectively.
 
-
 \item[{\tt -mMsgfile}] \mbox{}
 
 specifies the file in which the message to be 
 sent is kept. 
 The default is {\tt \$HOME/.vacation.msg}.
 
-
 \item[{\tt -r}] \mbox{}
 
 interval defines interval in days when not to answer 
 again to the same sender. (Default is 1 day.)
-
 
 \item[{\tt -d}] \mbox{}
 
@@ -92,46 +95,52 @@ disables the list of senders kept in the
 {\tt .vacation.pag} and {\tt .vacation.dir} files.
 
 \end{description}
-
-
-{\bf Example}
-
-\begin{verbatim}
-Subject: I am on vacation
-
-I am on vacation until July 22. If you have something urgent, please 
-contact Joe Jones (joe@blah.utoronto.ca). --john
-\end{verbatim}
-
-
-No message is sent if the ``user'' specified in the vacation  
-command (if nothing is specified, it uses your username) does 
-not appear explicitly in the {\tt To:} or {\tt Cc:} lines of the 
-message, which prevents messages from being sent back to mailing lists 
-and causing loops.
-
-A list of senders is kept in the files {\tt .vacation.pag} and 
-{\tt .vacation.dir} in your home directory. These are dbm database 
-files. (Note: not all database systems have two files, either may be 
-missing.) The vacation message is in {\tt .vacation.msg} and 
-the automatic reply is activated by the {\tt .forward} (and 
-saved in {\tt .vacforward}) The default vacation message is 
-stored in {\tt /opt/mail/vacation.msg}
-
-On machines running ZMailer, the {\tt name} argument 
-to {\em vacation\/} is optional, and the {\tt \$USER} 
-environment variable is used to determine where to look for the 
-message and the list of previous recipients.
-
-The {\tt \$SENDER} variable is checked first to determine 
-the reply destination. It is normally set to the {\bf SMTP} 
-{\bf MAIL FROM} address or equivalent. This is an additional 
-safeguard against sending replies to mailing lists, the PostMaster 
-or the mailer daemon, since standards and common sense dictate that 
-it never points back to an address that could cause a loop. The 
-{\tt From\_} line is used only as a last resort.
 </SCREEN>
 
+</LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Example:</TERM><LISTITEM>
+
+<SCREEN>
+  Subject: I am on vacation
+
+  I am on vacation until July 22. If you have something urgent, please 
+  contact Joe Jones (joe@blah.utoronto.ca). --john
+</SCREEN>
+
+<PARA>
+No message is sent if the ``user'' specified in the vacation command
+(if nothing is specified, it uses your username) does not appear explicitly
+in the ``To:'' or ``Cc:'' lines of the message, which prevents messages from
+being sent back to mailing lists and causing loops.
+</PARA>
+
+<PARA>
+A list of senders is kept in the files <FILENAME>~/.vacation.pag</> and 
+<FILENAME>~/.vacation.dir</> in your home directory.
+These are dbm database files.
+(Note: not all database systems have two files, either may be missing.)
+The vacation message is in <FILENAME>~/.vacation.msg</> and the automatic
+reply is activated by the <FILENAME>~/.forward</> (and saved in
+<FILENAME>~/.vacforward</>)
+The default vacation message is stored in <FILENAME>/opt/mail/vacation.msg</>
+</PARA>
+
+<PARA>
+On machines running ZMailer, the ``name'' argument to <EMPHASIS>vacation</>
+is optional, and the $USER environment variable is used to determine where
+to look for the message and the list of previous recipients.
+</PARA>
+
+<PARA>
+The $SENDER} variable is checked first to determine the reply destination.
+It is normally set to the SMTP ``MAIL FROM:'' address or equivalent.
+This is an additional safeguard against sending replies to mailing lists,
+the PostMaster or the mailer daemon, since standards and common sense dictate
+that it never points back to an address that could cause a loop.
+The ``From '' line is used only as a last resort.
+</PARA>
+</LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 </SECT1>
 
 <SECT1 ID="zref.util.makedb">

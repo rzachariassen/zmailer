@@ -86,7 +86,7 @@ Escape character is '^]'.
 <ARG>-p <REPLACEABLE>port</></>
 <ARG>-l <REPLACEABLE>logfile</></>
 <ARG>-s <OPTION><CONSTANT>'strict'</></></>
-<ARG>-s <GROUP><ARG>f</><ARG>t</><ARG>v</><ARG>e</><ARG>R</></GROUP></ARG>
+<ARG>-s <REPLACEABLE>[ftveRS]</></ARG>
 <ARG>-L <REPLACEABLE>maxloadaver</></ARG>
 <ARG>-M <REPLACEABLE>SMTPmaxsize</></ARG>
 <ARG>-P <REPLACEABLE>postoffice</></ARG>

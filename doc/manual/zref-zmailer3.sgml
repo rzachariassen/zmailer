@@ -3,7 +3,7 @@
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Usage:</><LISTITEM>
-<SCREEN>
+<SYNOPSIS>
 #include &lt;stdio.h&gt;
 #include &lt;zmailer.h&gt;
 
@@ -22,7 +22,7 @@ char *mail_alloc(unsigned int);
 int mail_free(char *);
 
 char *mail_host();
-</SCREEN>
+</SYNOPSIS>
 
 <PARA>
 At linkage time use <USERINPUT>-lzmailer</>.
@@ -129,7 +129,7 @@ about the message.
 information separate from message (RFC-822) headers, and body.
 At first the message starts with a set of envelope headers 
 (*-prefix denotes optional):
-<SCREEN>
+<SYNOPSIS>
  *external \n
  *rcvdfrom %s@%s (%s) \n
  *bodytype %s \n
@@ -152,7 +152,7 @@ Then for each recipient pairs of:
 Just before the data starts, a magic entry:
 
  env-end \n
-</SCREEN>
+</SYNOPSIS>
 </PARA>
 
 <PARA>
@@ -161,7 +161,7 @@ Then starts the message RFC-822 headers, and below it, the body.
 
 <VARLISTENTRY><TERM>Example:</TERM><LISTITEM><PARA>
 
-<SCREEN>
+<SYNOPSIS>
  ... set up signal handlers ...
  FILE *mfp = mail_open(MSG_RFC822,0);
  if (mfp != NULL) {
@@ -173,7 +173,7 @@ Then starts the message RFC-822 headers, and below it, the body.
       (void) mail_abort(mfp);
  else if (mail_close(mfp) == EOF)
       ... error handling if something went wrong ...
-</SCREEN>
+</SYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -203,9 +203,9 @@ his/her own address (it must match those of mail router accepts.)
 defines the directory where all
  <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</> functions are. 
 Example:
-<SCREEN>
+<SYNOPSIS>
   POSTOFFICE=/var/spool/postoffice/
-</SCREEN>
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><VARNAME>ROUTERDIRS</></><LISTITEM><PARA>
@@ -213,9 +213,9 @@ defines a `:' separated list of alternate router directories.
 If these are defined at all, they must exist,  if alternate
 queueing priority mechanism is desired to be used. 
 Example:
-<SCREEN>
+<SYNOPSIS>
   ROUTERDIRS=router1:router2:router3:router4
-</SCREEN>
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
