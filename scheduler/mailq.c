@@ -1322,6 +1322,6 @@ printaddrs(v)
 	  fprintf(stdout,"\t");
 	  if (i == 0)
 	    fprintf(stdout,"  to");
-	  fprintf(stdout,"\t%s",ocp);
+	  fprintf(stdout,"\t%s\n",ocp);
 	}
 }
