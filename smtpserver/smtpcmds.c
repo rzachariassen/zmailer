@@ -427,7 +427,7 @@ int insecure;
 	s = rfc821_path(cp, strict || strict_protocol);
 	if (s == cp) {
 	  /* Failure.. ? */
-	  type(SS, -501, m517, "For input: <%s", cp);
+	  type(SS, -501, m517, "For input: %s", cp);
 	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
 	  return;
 	}
@@ -453,7 +453,7 @@ int insecure;
 	s = rfc821_path2(cp, 0);
 	if (s == cp && *s != '>') {
 	  /* Failure.. ? */
-	  type(SS, -501, m517, "For input: <%s", cp);
+	  type(SS, -501, m517, "For input: %s", cp);
 	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
 	  return;
 	}
@@ -471,7 +471,7 @@ int insecure;
 	while (*s == ' ' || *s == '\t') ++s;
 	if (*s != '>') {
 	  rfc821_error_ptr = s;
-	  type(SS, -501, m517, "For input: <%s", cp);
+	  type(SS, -501, m517, "For input: %s", cp);
 	  type821err(SS, 501, m517, buf, "Missing ending '>' bracket");
 	  return;
 	}
@@ -483,7 +483,7 @@ int insecure;
       s = rfc821_path2(cp, strict);
       if (s == cp) {
 	/* Failure.. */
-	type(SS, -501, m517, "For input: <%s", cp);
+	type(SS, -501, m517, "For input: %s", cp);
 	type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
 	return;
       }

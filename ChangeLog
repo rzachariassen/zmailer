@@ -1,6 +1,25 @@
+2000-05-24  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* smtpserver/rfc821scn.c, smtpserver/smtpcmds.c:
+	    Eugene Crosser wanted to have:  <foo!_bar@some.dom>,
+	    our scanner demanded an alphanum starter character for
+	    the sub-fields of the local-part.  Now allowing also
+	    the underscore as starter there -- for a username..
+	    (smtpcmds.c has some diagnostics report beauty warts.)
+
+2000-05-18  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* proto/newdb.in, router/libdb/ndbm.c, router/libdb/dbm.c:
+	    At NewDBM (ndbm) the dbm_dirfno() does not always yield
+	    success at the dbm_open().  It *may* yield some scrap data
+	    for a while -- especially if the db is *very* small.
+	    The  dbm_pagfno()  yields always ok filehandle number,
+	    and thus we use it -- and change file moving order to
+	    .DIR .PAG to match which is tested latter.
+
 2000-05-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
-	* proto/Makefilein, proto/post-install.sh.in:
+	* proto/Makefile.in, proto/post-install.sh.in:
 	    Moved POSTOFFICE directory subdir generation into
 	    the  post-install.sh  script.  Execution of that
 	    script before system becomes ready for running is

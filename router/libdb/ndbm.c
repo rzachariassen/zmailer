@@ -25,7 +25,7 @@ open_ndbm(sip, flag, comment)
 	int flag;
 	const char *comment;
 {
-	DBM *db;
+	DBM *db = NULL;
 	struct spblk *spl;
 	spkey_t symid;
 	int i;

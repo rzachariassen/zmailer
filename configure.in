@@ -109,6 +109,7 @@ AC_PATH_PROG(MV, mv, mv)dnl
 AC_PATH_PROG(RM, rm, rm)dnl
 AC_PATH_PROG(TRUE, true, true)dnl
 AC_PATH_PROG(PERL, perl, perl)dnl
+AC_PATH_PROG(GZIP, gzip, gzip)dnl
 AC_SUBST(LIBPROGS)dnl
 
 AC_SUBST(CPPDEP)
@@ -1852,7 +1853,8 @@ AC_OUTPUT(Makefile
 	utils/rotate-logs.sh		utils/smtpserver-log-parser.pl	\
 	proto/Makefile			proto/zmailer.sh		\
 	proto/newaliases		proto/newfqdnaliases		\
-	proto/newdb			proto/scheduler.conf		\
+	proto/newdb			proto/newdbprocessor		\
+	proto/scheduler.conf						\
 	proto/mailrm.sh			proto/db/Makefile		\
 	proto/smtpserver.conf		proto/cf/TELE-FI.cf		\
 	proto/cf/SMTP+UUCP.cf		proto/cf/UTdefault.cf		\

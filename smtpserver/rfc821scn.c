@@ -48,7 +48,13 @@ static const char *no_input = "No input";
 
 /* Could use 'unsigned short' here, but the Alpha machines dislike
    anything smaller than int (32 bit) */
-static int char_array[] =
+static
+#if defined(__alpha)||defined(__alpha__)
+ int
+#else
+ short
+#endif
+ char_array[] =
 {
 		       /* /------------------------------ CHAR_ALPHA
 			  |  /--------------------------- CHAR_ALNUM
@@ -944,6 +950,7 @@ char *s;			/* Stretched RFC821 a bit here.. !%-hacks */
 int strict;
 {
     char *p = s, *q;
+    int _ok = 0;
 
     if (!s || !*s)
 	return s;		/* Pathological termination */
@@ -954,7 +961,8 @@ int strict;
 		return s;	/* Uh... */
 	    if (*q == '%' || *q == '!') {
 		p = q + 1;
-		if (!is_821_alnum(*p) && *p != '"') {
+		_ok = (*q == '!' && *p == '_');
+		if (!is_821_alnum(*p) && !_ok && *p != '"') {
 		  rfc821_error_ptr = q;
 		  if (*q == '%') {
 		    rfc821_error = "After a '%', a non alphanumeric element";
@@ -972,7 +980,8 @@ int strict;
 	    return s;		/* Uh... */
 	if (*q == '%' || *q == '!') {
 	    p = q + 1;
-	    if (!is_821_alnum(*p) && *p != '"') {
+	    _ok = (*q == '!' && *p == '_');
+	    if (!is_821_alnum(*p) && !_ok && *p != '"') {
 	      rfc821_error_ptr = q;
 	      if (*q == '%') {
 		rfc821_error = "After a '%', a non alphanumeric element";

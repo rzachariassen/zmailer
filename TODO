@@ -1,5 +1,7 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+- Solaris 2.6 native make --> no VPATH ?? (sfio fails)
+
 - BUG(security sensitivity):
   - "zmailer newdb" script will run "newdb" database compilations
     without becoming same uid+gid as the source file is (and with
@@ -11,15 +13,6 @@ Known/suspected bugs/Missing Features on current ZMailer sources
   - Add to  dbases.conf  a triplet: user:group:maxperm
     (either with doublecolon separation, or whitespace separation ?)
 
-- BUG? PIPELINING but no CHUNKING under TLS wrapper jams against
-  CommuniGate Pro 3.2 ... Suspect CommuniGate.  Or perhaps OpenSSL ?
-	--> OpenSSL with read-ahead set doesn't always read all input
-	    from the read ahead buffer before wanting more input..
-	    (2000/Apr/6)
-	--> Propably ZMailer sending code deadlock in some cases,
-	    now rewritten so that no deadlock appears when remote
-	    ends sends small bits of stuff out. (2000/Apr/13)
-
 - router+scheduler+TA status MIB areas in an SHM segment
   (Solaris et.al. which don't allow ARGV overwrite..
    DNS lookups, connecting, protocol exchanges, ...)
@@ -27,8 +20,6 @@ Known/suspected bugs/Missing Features on current ZMailer sources
 
 - scheduler + mailq: Complete the V2 protocol authentication,
   and turn it into mandated default mode.
-  IP-ACL controls (tcp-wrapper-like) integrated into this
-  authentication somehow ?
 
 - scheduler: BUG? (2000/3/29)
   BUG: Scheduler running with  "maxthr>1"  seem to loose sync about
