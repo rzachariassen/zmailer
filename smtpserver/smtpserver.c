@@ -1354,6 +1354,13 @@ int insecure;
 	    fflush(logfp);
 	}
 	if (rc >= 0) {
+	  if (cistrncmp(buf,"HELO",4) == 0 ||
+	      cistrncmp(buf,"EHLO",4) == 0)
+	    rc = -1; /* Sigh... Bloody windows users naming their
+			machines with junky names, and M$ being
+			its normal incompetent protocol cleaner... */
+	}
+	if (rc >= 0) {
 	    rfc821_error_ptr = buf + rc;
 	    type821err(SS, 500, m552, buf,
 		       "Illegal input characters: %s",
