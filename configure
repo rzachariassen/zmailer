@@ -17834,7 +17834,7 @@ do
   if test ! -d $x ; then mkdir $x; fi
 done
 
-ac_config_files="$ac_config_files Makefile router/Makefile router/libdb/Makefile scheduler/Makefile smtpserver/Makefile transports/Makefile transports/smtp/Makefile transports/mailbox/Makefile transports/hold/Makefile transports/libta/Makefile transports/sm/Makefile transports/errormail/Makefile transports/fuzzyalias/Makefile transports/expirer/Makefile transports/expirer/manual-expirer compat/Makefile compat/rmail/Makefile compat/sendmail/Makefile sfio/Makefile sfio/src/lib/sfio/makefile sfio/src/lib/sfio/Stdio_b/Makefile sfio/src/lib/sfio/Stdio_s/Makefile sfio/src/lib/sfio/Sfio_f/Makefile sfio/src/lib/sfio/Sfio_dc/Makefile lib/Makefile libc/Makefile libident/Makefile libs/Makefile libsh/Makefile libmalloc/Makefile libmalloc/splay/Makefile libresolv/Makefile ssl/Makefile doc/Makefile doc/design/Makefile include/mail.h man/Makefile utils/policy-builder.sh utils/Makefile utils/zmailer.init.sh utils/autoanswer.pl utils/vacation/Makefile man/vacation.1 utils/vacation/vacation.sh utils/makedb/Makefile utils/rotate-logs.sh utils/smtpserver-log-parser.pl proto/Makefile proto/zmailer.sh proto/newaliases proto/newfqdnaliases proto/newdb proto/newdbprocessor proto/scheduler.conf proto/scheduler.auth proto/mailrm.sh proto/db/Makefile proto/cf/TELE-FI.cf proto/smtpserver.conf proto/cf/SMTP+UUCP.cf proto/cf/UTdefault.cf proto/cf/SMTP.cf proto/smtp-tls.conf proto/db/aliases proto/sm.conf bin/mkdep bin/mklibdep proto/post-install.sh utils/mxverify/Makefile packaging/Makefile packaging/solaris/Makefile SiteConfig"
+ac_config_files="$ac_config_files Makefile router/Makefile router/libdb/Makefile scheduler/Makefile smtpserver/Makefile transports/Makefile transports/smtp/Makefile transports/mailbox/Makefile transports/hold/Makefile transports/libta/Makefile transports/sm/Makefile transports/errormail/Makefile transports/fuzzyalias/Makefile transports/expirer/Makefile transports/expirer/manual-expirer compat/Makefile compat/rmail/Makefile compat/sendmail/Makefile sfio/Makefile sfio/src/lib/sfio/makefile sfio/src/lib/sfio/Stdio_b/Makefile sfio/src/lib/sfio/Stdio_s/Makefile sfio/src/lib/sfio/Sfio_f/Makefile sfio/src/lib/sfio/Sfio_dc/Makefile lib/Makefile libc/Makefile libident/Makefile libs/Makefile libsh/Makefile libmalloc/Makefile libmalloc/splay/Makefile libresolv/Makefile ssl/Makefile doc/Makefile doc/design/Makefile include/mail.h man/Makefile utils/policy-builder.sh utils/Makefile utils/zmailer.init.sh utils/autoanswer.pl utils/vacation/Makefile man/vacation.1 utils/vacation/vacation.sh utils/makedb/Makefile utils/rotate-logs.sh utils/smtpserver-log-parser.pl proto/Makefile proto/zmailer.sh proto/newaliases proto/newfqdnaliases proto/newdb proto/newdbprocessor proto/scheduler.conf proto/scheduler.auth proto/mailrm.sh proto/db/Makefile proto/cf/TELE-FI.cf proto/smtpserver.conf proto/cf/SMTP+UUCP.cf proto/cf/UTdefault.cf proto/cf/SMTP.cf proto/smtp-tls.conf proto/db/aliases proto/sm.conf bin/mkdep bin/mklibdep proto/post-install.sh utils/mxverify/Makefile utils/smtp-contentfilter packaging/Makefile packaging/solaris/Makefile SiteConfig"
 ac_config_commands="$ac_config_commands default"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -18225,12 +18225,13 @@ do
   "bin/mklibdep" ) CONFIG_FILES="$CONFIG_FILES bin/mklibdep" ;;
   "proto/post-install.sh" ) CONFIG_FILES="$CONFIG_FILES proto/post-install.sh" ;;
   "utils/mxverify/Makefile" ) CONFIG_FILES="$CONFIG_FILES utils/mxverify/Makefile" ;;
+  "utils/smtp-contentfilter" ) CONFIG_FILES="$CONFIG_FILES utils/smtp-contentfilter" ;;
   "packaging/Makefile" ) CONFIG_FILES="$CONFIG_FILES packaging/Makefile" ;;
   "packaging/solaris/Makefile" ) CONFIG_FILES="$CONFIG_FILES packaging/solaris/Makefile" ;;
   "SiteConfig" ) CONFIG_FILES="$CONFIG_FILES SiteConfig" ;;
   "default" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
-  *) { { echo "$as_me:18233: error: invalid argument: $ac_config_target" >&5
+  *) { { echo "$as_me:18234: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -18479,7 +18480,7 @@ for as_mkdir_dir in `IFS='/\\'; set X $as_dummy; shift; echo "$@"`; do
       as_incr_dir=$as_incr_dir/$as_mkdir_dir
       test -d "$as_incr_dir" ||
         mkdir "$as_incr_dir" ||
-	{ { echo "$as_me:18482: error: cannot create \"$ac_dir\"" >&5
+	{ { echo "$as_me:18483: error: cannot create \"$ac_dir\"" >&5
 echo "$as_me: error: cannot create \"$ac_dir\"" >&2;}
    { (exit 1); exit 1; }; }
     ;;
@@ -18516,7 +18517,7 @@ esac
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:18519: creating $ac_file" >&5
+    { echo "$as_me:18520: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -18534,7 +18535,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:18537: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:18538: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -18547,7 +18548,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:18550: error: cannot find input file: $f" >&5
+           { { echo "$as_me:18551: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -18608,7 +18609,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:18611: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:18612: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -18619,7 +18620,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:18622: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:18623: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -18632,7 +18633,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:18635: error: cannot find input file: $f" >&5
+           { { echo "$as_me:18636: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -18749,7 +18750,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:18752: $ac_file is unchanged" >&5
+      { echo "$as_me:18753: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
@@ -18776,7 +18777,7 @@ for as_mkdir_dir in `IFS='/\\'; set X $as_dummy; shift; echo "$@"`; do
       as_incr_dir=$as_incr_dir/$as_mkdir_dir
       test -d "$as_incr_dir" ||
         mkdir "$as_incr_dir" ||
-	{ { echo "$as_me:18779: error: cannot create \"$ac_dir\"" >&5
+	{ { echo "$as_me:18780: error: cannot create \"$ac_dir\"" >&5
 echo "$as_me: error: cannot create \"$ac_dir\"" >&2;}
    { (exit 1); exit 1; }; }
     ;;
@@ -18835,7 +18836,7 @@ case $srcdir in
     ac_top_srcdir=$ac_top_builddir$srcdir ;;
 esac
 
-  { echo "$as_me:18838: executing $ac_dest commands" >&5
+  { echo "$as_me:18839: executing $ac_dest commands" >&5
 echo "$as_me: executing $ac_dest commands" >&6;}
   case $ac_dest in
     default ) chmod 755 bin/*
@@ -18868,5 +18869,5 @@ if test "$no_create" != yes; then
   # would make configure fail if this is the last instruction.
   $ac_cs_success || { (exit 1); exit 1; }
 fi
-echo "$as_me:18871: result: Remember to check  SiteConfig  for possible option changes" >&5
+echo "$as_me:18872: result: Remember to check  SiteConfig  for possible option changes" >&5
 echo "${ECHO_T}Remember to check  SiteConfig  for possible option changes" >&6

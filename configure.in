@@ -2237,6 +2237,7 @@ AC_OUTPUT(Makefile
         proto/db/aliases                proto/sm.conf                   \
         bin/mkdep                       bin/mklibdep                    \
         proto/post-install.sh           utils/mxverify/Makefile         \
+	utils/smtp-contentfilter					\
         packaging/Makefile              packaging/solaris/Makefile      \
         SiteConfig      ,
 [chmod 755 bin/*

@@ -1,5 +1,9 @@
 2002-08-23  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in:
+	    Added missing   utils/smtp-contentfilter  into
+	    generated files list.
+
 	* utils/makedb/dblook.c:
 	    Use  db_strerror() to report error strings properly.
 	    Usage of  strerror()  does not work at DB3/DB4 ..
