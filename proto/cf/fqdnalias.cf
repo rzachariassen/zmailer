@@ -123,6 +123,8 @@ fqdn_neighbour (domain, address, A) {
 	#       Yes, generate new privilege attribute for it. Success ?
 	#         Yes, do the expansion! (echo .. | listexpand ...)
 	#
+
+	# key="$lcaddress"
 	if $(didexpand fqdnaliases) &&  a="$(fqdnaliases "$lcaddress")" ; then
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv) &&
@@ -211,6 +213,7 @@ fqdn_neighbour (domain, address, A) {
 	ssift "$user" in
 	(.+)-owner
 		a="$MAILVAR/fqlists/\1$athost"
+		key="\1$athost"
 		if [ -f "$a" ] && $(didexpand fqlistowner); then
 		  db add expansions "$key.fqlistowner" 1
 		  return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
@@ -220,6 +223,7 @@ fqdn_neighbour (domain, address, A) {
 		;;
 	(.+)-request
 		a="$MAILVAR/fqlists/\1$athost"
+		key="\1$athost"
 		if [ -f "$a" ] && $(didexpand fqlistrequest); then
 		  db add expansions "$key.fqlistrequest" 1
 		  return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
@@ -229,6 +233,7 @@ fqdn_neighbour (domain, address, A) {
 		;;
 	owner-(.+)
 		a="$MAILVAR/fqlists/\1$athost"
+		key="\1$athost"
 		if [ -f "$a" ] && $(didexpand ownerfqlists); then
 		  db add expansions "$key.ownerfqlists" 1
 		  return $(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
