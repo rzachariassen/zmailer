@@ -125,13 +125,15 @@ ctlclose(dp)
 	  close(dp->msgfd);
 	if (dp->contents != NULL)
 	  free((void*)dp->contents);
+	dp->contents = NULL;
 	if (dp->offset != NULL)
-	  free((char *)dp->offset);
+	  free((void*)dp->offset);
+	dp->offset = NULL;
 	for (ap = dp->senders; ap != NULL; ap = nextap) {
 	  nextap = ap->link;
 	  free((char *)ap);
 	}
-	dp->senders = NULL; /* XX: Excessive caution.. */
+	dp->senders = NULL;
 	for (rp = dp->recipients; rp != NULL; rp = nextrp) {
 	  nextrp = rp->next;
 	  ap = rp->addr;
@@ -140,7 +142,7 @@ ctlclose(dp)
 	  }
 	  free((char *)rp);
 	}
-	dp->recipients = NULL; /* XX: Excessive caution.. */
+	dp->recipients = NULL;
 	/* Free ALL dp->msgheader's, if they have been reallocated.
 	   Don't free on individual recipients, only on this global set.. */
 	for (msghpp = dp->msgheaders; msghpp &&  *msghpp; ++msghpp) {
@@ -319,7 +321,9 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  warning("Wrong size read from control file \"%s\"! (%m)",
 		  file);
 	  free((void*)d.contents);
+	  d.contents = NULL;
 	  free((void*)d.offset);
+	  d.offset = NULL;
 	  close(d.ctlfd);
 	  return NULL;
 	}
@@ -329,8 +333,10 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	   * If it is less than the minimum possible number of control
 	   * lines, then there is something wrong...
 	   */
-	  free(contents);
-	  free((char *)d.offset);
+	  free((void*)d.contents);
+	  d.contents = NULL;
+	  free((void*)d.offset);
+	  d.offset = NULL;
 	  close(d.ctlfd);
 #if defined(HAVE_MMAP) && defined(TA_USE_MMAP)
 	  if (d.ctlmap != NULL)
@@ -547,20 +553,19 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		 individual lines.. [mea] */
 	      while (*s) {
 		if (headerlines == 0) {
-		  msgheader = (char **)malloc(sizeof(char**)*8);
+		  msgheader = (char **)malloc(sizeof(char**) * 8);
 		  headerspace = 7;
 		}
-		if (headerlines+1 >= headerspace) {
+		if (headerlines >= headerspace) {
 		  headerspace += 8;
-		  msgheader =
-		    (char**)realloc(msgheader,
-				    sizeof(char**)*headerspace);
+		  msgheader = (char**)realloc((void*) msgheader,
+					      sizeof(void*) * (headerspace+1));
 		}
 		ss = s;
 		while (*ss && *ss != '\n') ++ss;
 		if (*ss == '\n') *ss++ = '\0';
 		msgheader[headerlines++] = s;
-		msgheader[headerlines] = NULL;
+		msgheader[headerlines  ] = NULL;
 		s = ss;
 	      }
 
