@@ -291,6 +291,10 @@ ta_hungry(proc)
 
 	mytime(&proc->hungertime);
 
+	if (verbose)
+	  sfprintf(sfstdout,"ta_hungry(%p) OF=%d S=%d tofd=%d\n",
+		   proc, proc->overfed, (int)proc->state, proc->tofd);
+
 	if (proc->tofd < 0) {
 	  --proc->overfed;
 	  return;
