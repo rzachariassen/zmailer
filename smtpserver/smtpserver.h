@@ -708,6 +708,7 @@ struct subdaemon_handler {
 	int (*preselect) __((void *state, fd_set *rdset, fd_set *wrset, int *topfd));
 	int (*postselect)__((void *state, fd_set *rdset, fd_set *wrset));
 	int (*shutdown)  __((void *state));
+        int (*killpeer)  __((void *state, struct peerdata *));
 };
 
 extern int subdaemon_send_to_peer __((struct peerdata *, const char *, int));

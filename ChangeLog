@@ -1,5 +1,10 @@
 2004-09-03  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/subdaemons.c, smtpserver/smtpserver.h,
+	  smtpserver/subdaemon-ctf.c, smtpserver/subdaemon-rtr.c:
+	    Always watch for subdaemon client connection readability,
+	    and do read it.  If it yields EOF, kill the peer..
+
 	* router/router.c, router/router.h, router/rfc822.c:
 	    Slight alteration in router's unremovable console
 	    logging..  now it can be removed with '-l' option.

@@ -234,6 +234,14 @@ int subdaemons_init __((void))
 	return 0;
 }
 
+void
+subdaemon_kill_peer(peer)
+     struct peerdata *peer;
+{
+	close(peer->fd);
+	peer->fd = -1;
+}
+
 
 int subdaemon_loop(rendezvous_socket, subdaemon_handler)
      int rendezvous_socket;
@@ -314,8 +322,10 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	      top_peer2 = n+1;
 	      if (topfd < peers[n].fd)
 		topfd = peers[n].fd;
-	      if (peers[n].inlen == 0)
-		_Z_FD_SET(peers[n].fd, rdset);
+	      /* if (peers[n].inlen == 0) */
+	      /* Always check for readability:
+		 There might have been timeout and connection close! */
+	      _Z_FD_SET(peers[n].fd, rdset);
 	      if (peers[n].outlen > 0)
 		_Z_FD_SET(peers[n].fd, wrset);
 	    }
@@ -419,11 +429,13 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		/* If we have things to output, and write is doable ? */
 		if (peer->outlen > 0 && _Z_FD_ISSET(peer->fd, wrset)) {
 		  for (;;) {
+#ifdef DEBUG_WITH_UNLINK
 		    {
 		      char pp[50];
 		      sprintf(pp,"/tmp/-write-to-peer-%d",peer->fd);
 		      unlink(pp);
 		    }
+#endif
 		    rc = write(peer->fd,
 			       peer->outbuf + peer->outptr,
 			       peer->outlen - peer->outptr);
@@ -432,8 +444,9 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    if ((rc < 0) && (errno == EPIPE)) {
 		      /* SIGPIPE from writing to the socket..
 			 Abort it completely! */
-		      close(peer->fd);
-		      peer->fd = -1;
+		      subdaemon_kill_peer(peer);
+		      if (subdaemon_handler->killpeer)
+			(subdaemon_handler->killpeer)( statep, peer );
 		      break;
 		    }
 		    break;
@@ -470,8 +483,9 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    break;
 		  }
 		  if (rc == 0) { /* EOF! */
-		    close(peer->fd);
-		    peer->fd = -1;
+		    subdaemon_kill_peer(peer);
+		    if (subdaemon_handler->killpeer)
+		      (subdaemon_handler->killpeer)( statep, peer );
 		    continue;
 		  }
 		} /* ... read things */
@@ -491,20 +505,30 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	  for (n = 0; n < top_peer; ++n) {
 	    if (last_peer_index >= top_peer) last_peer_index = 0;
-#if 1
-	    peer = & peers[ last_peer_index ]; /* Round-robin */
+#if 0
+	    peer = & peers[ last_peer_index ]; /* Round-robin;
+						  in abominal overload
+						  this means that nobody
+						  gets service.
+					       */
 #else
-	    peer = & peers[ n ];     /* Low slots get service */
+	    peer = & peers[ n ];     /* Low slots get service;
+					in abominal overload this means
+					that some get service, while
+					some others don't get it.
+				     */
 #endif
 	    if (peer->fd >= 0 && peer->inlen > 0) {
 
 	    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
 	      rc = (subdaemon_handler->input)( statep, peer );
+#ifdef DEBUG_WITH_UNLINK
 	      {
 		char pp[50];
 		sprintf(pp,"/tmp/-input-from-peer-%d->%d",peer->fd,rc);
 		unlink(pp);
 	      }
+#endif
 	      if (rc > 0) {
 		/* XOFF .. busy right now, come back again.. */
 		break;
@@ -537,17 +561,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 /* ------------------------------------------------------------------ */
 
-void
-subdaemon_kill_peer(peer)
-     struct peerdata *peer;
-{
-	close(peer->fd);
-	peer->fd = -1;
-}
-
-
 /* Send to peer, synchronously wait for buffer to clear,
-   if everything didn't fit into outbound buffer.
+   IF EVERYTHING DIDN'T FIT INTO OUTBOUND BUFFER.
  */
 
 int
@@ -565,11 +580,15 @@ subdaemon_send_to_peer(peer, buf, len)
 	}
 #endif
 
+	if (!peer) return -1; /* No peer! possibly killed at some point.. */
+
+#ifdef DEBUG_WITH_UNLINK
 	{
 	  char pp[50];
 	  sprintf(pp,"/tmp/-send-to-peer-%d",peer->fd);
 	  unlink(pp);
 	}
+#endif
 
 
 	/* If 'peer' is NULL, crash here, and study the core file
@@ -620,8 +639,7 @@ subdaemon_send_to_peer(peer, buf, len)
 
 	  if ((rc < 0) && (errno == EPIPE)) {
 	    /* SIGPIPE from writing to the socket..  */
-	    close(peer->fd);
-	    peer->fd = -1;
+	    subdaemon_kill_peer(peer);
 	    break;  /* Lets ignore it, and reading from
 		       the same socket will be EOF - I hope.. */
 	  }

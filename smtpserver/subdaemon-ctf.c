@@ -63,13 +63,15 @@ static int subdaemon_handler_ctf_input __((void *, struct peerdata*));
 static int subdaemon_handler_ctf_preselect  __((void*, fd_set *, fd_set *, int *));
 static int subdaemon_handler_ctf_postselect __((void*, fd_set *, fd_set *));
 static int subdaemon_handler_ctf_shutdown   __((void*));
+static int subdaemon_handler_ctf_killpeer __((void *, struct peerdata*));
 
 struct subdaemon_handler subdaemon_handler_contentfilter = {
 	subdaemon_handler_ctf_init,
 	subdaemon_handler_ctf_input,
 	subdaemon_handler_ctf_preselect,
 	subdaemon_handler_ctf_postselect,
-	subdaemon_handler_ctf_shutdown
+	subdaemon_handler_ctf_shutdown,
+	subdaemon_handler_ctf_killpeer
 };
 
 #define MAXCTFS 20
@@ -362,6 +364,32 @@ subdaemon_handler_ctf_input (state, peerdata)
 	  break;
 	}
 	return EAGAIN;
+}
+
+static int
+subdaemon_handler_ctf_killpeer (state, peerdata)
+     void *state;
+     struct peerdata *peerdata;
+{
+	Ctfstate *CTF = state;
+	int idx;
+
+	/* FIXME:FIXME: don't start more than necessary! */
+
+	for (idx = 0; idx < MaxCtfs; ++idx) {
+
+	  if (CTF->replypeer[idx] != peerdata)
+	    continue;
+
+	  CTF->replypeer[idx] = NULL;
+
+	  CTF->bufsize[idx]    = 0;
+	  CTF->sawhungry[idx]  = 0;
+	  peerdata->inlen = 0;
+
+	  break;
+	}
+	return 0;
 }
 
 

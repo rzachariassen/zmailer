@@ -27,13 +27,15 @@ static int subdaemon_handler_rtr_input __((void *, struct peerdata*));
 static int subdaemon_handler_rtr_preselect  __((void*, fd_set *, fd_set *, int *));
 static int subdaemon_handler_rtr_postselect __((void*, fd_set *, fd_set *));
 static int subdaemon_handler_rtr_shutdown   __((void*));
+static int subdaemon_handler_rtr_killpeer __((void *, struct peerdata*));
 
 struct subdaemon_handler subdaemon_handler_router = {
 	subdaemon_handler_rtr_init,
 	subdaemon_handler_rtr_input,
 	subdaemon_handler_rtr_preselect,
 	subdaemon_handler_rtr_postselect,
-	subdaemon_handler_rtr_shutdown
+	subdaemon_handler_rtr_shutdown,
+	subdaemon_handler_rtr_killpeer
 };
 
 #define MAXRTRS 20
@@ -284,6 +286,32 @@ subdaemon_handler_rtr_input (state, peerdata)
 	}
 
 	return EAGAIN;  /* Do come again! */
+}
+
+
+static int
+subdaemon_handler_rtr_killpeer (state, peerdata)
+     void *state;
+     struct peerdata *peerdata;
+{
+	RtState *RTR = state;
+	int idx;
+
+	for (idx = 0; idx < MaxRtrs; ++idx) {
+
+	  if (RTR->replypeer[idx] != peerdata)
+	    continue; /* not me */
+
+	  RTR->replypeer[idx] = NULL;
+
+	  RTR->bufsize[idx]    = 0;
+	  RTR->sawhungry[idx]  = 0;
+	  peerdata->inlen      = 0;
+
+	  break;
+	}
+
+	return 0;
 }
 
 
