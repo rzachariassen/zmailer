@@ -322,6 +322,7 @@ process(dp)
 	char buf[BUFSIZ];
 	long ino;
 	time_t mtime;
+	int rcpt_cnt = 0;
 
 	sawok = 0;
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
@@ -367,9 +368,11 @@ process(dp)
 
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
 	  if (rp->status == EX_OK) {
-	    fprintf(mfp, "to <%s>\n", rp->addr->user);
-	    if (rp->notify || rp->orcpt) {
-
+	    ++rcpt_cnt;
+	    if ( rp->notify || rp->orcpt  ||
+		 rp->inrcpt || rp->infrom ||
+		 rp->deliverby                 ) {
+	      
 	      fputs("todsn",mfp);
 
 	      if (rp->orcpt != NULL)
@@ -396,10 +399,14 @@ process(dp)
 
 	      putc('\n',mfp);
 	    }
+	    fprintf(mfp, "to <%s>\n", rp->addr->user);
 	  }
 	}
 
 	fprintf(mfp,"env-end\n");
+
+	header_received_for_clause(dp->recipients, rcpt_cnt, verboselog);
+
 
 	fwriteheaders(dp->recipients,mfp,"\n",0,0,NULL);
 	fprintf(mfp,"\n");
