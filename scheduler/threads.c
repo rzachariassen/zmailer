@@ -107,7 +107,7 @@ struct threadgroup *thgp;
 	   still non-zero... */
 	if (thgp->transporters || thgp->threads) return;
 
-if (verbose) sfprintf(sfstdout,"delete_threadgroup(%s/%d/%s)\n",
+if (verbose) sfprintf(sfstderr,"delete_threadgroup(%s/%d/%s)\n",
 		      thgp->wchan->name,thgp->withhost,thgp->whost->name);
 
 	if (thgp->idleproc != NULL || thgp->thread != NULL)
@@ -278,7 +278,7 @@ struct config_entry *cep;
 	thr->channel    = strsave(vtx->orig[L_CHANNEL]->name);
 	thr->host       = strsave(vtx->orig[L_HOST   ]->name);
 
-	if (verbose) sfprintf(sfstdout,"create_thread(%s/%d/%s) -> %p\n",
+	if (verbose) sfprintf(sfstderr,"create_thread(%s/%d/%s) -> %p\n",
 			      thr->channel,thgrp->withhost,thr->host,thr);
 
 	_thread_timechain_append(thr);
@@ -399,15 +399,19 @@ delete_thread(thr, ok)
 
 	struct threadgroup *thg = thr->thgrp;
 
+	if (thr->thrkids > 0)
+	  sfprintf(sfstderr,"delete_thread(thr=%p) thrkids=%d\n",
+		   thr, thr->thrkids);
+
 	if (verbose)
-	  sfprintf(sfstdout,"delete_thread(%p:%s/%s) (thg=%p) jobs=%d\n",
+	  sfprintf(sfstderr,"delete_thread(%p:%s/%s) (thg=%p) jobs=%d\n",
 		   thr,thr->channel,thr->host,thg, thr->jobs);
 
 	free(thr->channel);
 	free(thr->host);
 
 	if (thr->jobs != 0) {
-	  sfprintf(sfstdout," DELETE_THREAD() WITH JOBS=%d\n",thr->jobs);
+	  sfprintf(sfstderr," DELETE_THREAD() WITH JOBS=%d\n",thr->jobs);
 	  abort(); /* Delete only when no vertices */
 	}
 
@@ -420,8 +424,10 @@ delete_thread(thr, ok)
 	  struct procinfo *proc = thr->proc;
 
 	  for (;proc; proc = proc->pnext) {
+#if 0
 	    sfprintf(sfstderr,"delete_thread() thr->proc=%p pid=%d\n",
 		     proc, proc->pid);
+#endif
 	    proc->pthread = NULL;
 	  }
 
@@ -498,7 +504,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	mytime(&now);
 
 	if (verbose)
-	  sfprintf(sfstdout,"thread_linkin([%s/%s],%s/%d/%s,%d)\n",
+	  sfprintf(sfstderr,"thread_linkin([%s/%s],%s/%d/%s,%d)\n",
 		   wc->name, wh->name, cep->channel,
 		   cep->flags & CFG_WITHHOST, cep->host, cfgid);
 
@@ -551,7 +557,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	    /* Link the vertex into this thread! */
 
 	    if (verbose)
-	      sfprintf(sfstdout,"thread_linkin() to thg=%p[%s/%d/%s]; added into existing thread [%s/%s] thr->jobs=%d\n",
+	      sfprintf(sfstderr,"thread_linkin() to thg=%p[%s/%d/%s]; added into existing thread [%s/%s] thr->jobs=%d\n",
 		       thg,cep->channel,thg->withhost,cep->host,
 		       wc->name,wh->name,thr->jobs+1);
 
@@ -582,7 +588,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	  vp->thgrp = thg;
 
 	  if (verbose)
-	    sfprintf(sfstdout,"thread_linkin() to thg=%p[%s/%d/%s]; created a new thread %p [%s/%s]\n",
+	    sfprintf(sfstderr,"thread_linkin() to thg=%p[%s/%d/%s]; created a new thread %p [%s/%s]\n",
 		     thg,cep->channel,thg->withhost,cep->host,
 		     thr,wc->name,wh->name);
 
@@ -1002,7 +1008,7 @@ thread_start(thr, queueonly_too)
 
 	if (vp->ce_pending) {
 	  if (verbose)
-	    sfprintf(sfstdout,"%s: (%d %dC %dT %dTh) >= (%d %dC %dT %dTh)\n",
+	    sfprintf(sfstderr,"%s: (%d %dC %dT %dTh) >= (%d %dC %dT %dTh)\n",
 		     ce->command,
 		     numkids,
 		     vp->orig[L_CHANNEL]->kids,
@@ -1078,12 +1084,12 @@ pick_next_vertex(proc)
 	if (thr) vtx = thr->nextfeed;
 
 	if (verbose)
-	  sfprintf(sfstdout,"pick_next_vertex(proc=%p) proc->tofd=%d, thr=%p, pvtx=%p, jobs=%d OF=%d S=%s\n",
+	  sfprintf(sfstderr,"pick_next_vertex(proc=%p) proc->tofd=%d, thr=%p, pvtx=%p, jobs=%d OF=%d S=%s\n",
 		   proc, proc->tofd, thr, vtx, thr ? thr->jobs : 0,
 		   proc->overfed, proc_state_names[proc->state]);
 
 	if (proc->pid < 0 || proc->tofd < 0) {	/* "He is dead, Jim!"	*/
-	  if (verbose) sfprintf(sfstdout," ... NONE, 'He is dead, Jim!'\n");
+	  if (verbose) sfprintf(sfstderr," ... NONE, 'He is dead, Jim!'\n");
 	  return 0;
 	}
 
@@ -1110,7 +1116,7 @@ time_t retrytime;
 	int skew;
 
 	if (verbose)
-	  sfprintf(sfstdout,"thread_reschedule() ch=%s ho=%s jobs=%d thr=%p proc=%p\n",
+	  sfprintf(sfstderr,"thread_reschedule() ch=%s ho=%s jobs=%d thr=%p proc=%p\n",
 		   thr->channel,thr->host,thr->jobs,thr,thr->proc);
 
 	/* If there are multiple kids working still, DON'T reschedule! */
@@ -1123,14 +1129,14 @@ time_t retrytime;
 	if (vtx->wakeup > now) {
 	  thr->wakeup = vtx->wakeup;
 	  if (verbose)
-	    sfprintf(sfstdout,"...prescheduled\n");
+	    sfprintf(sfstderr,"...prescheduled\n");
 	  goto timechain_handling;
 	} else if (vtx->wakeup < now-7200 /* more than 2h in history .. */ )
 	  vtx->wakeup = now;
 
 	if (vtx->thgrp->ce.nretries <= 0) {
 	  if (verbose)
-	    sfprintf(sfstdout,"...ce->retries = %d\n", vtx->thgrp->ce.nretries);
+	    sfprintf(sfstderr,"...ce->retries = %d\n", vtx->thgrp->ce.nretries);
 	  goto timechain_handling;
 	}
 
@@ -1246,7 +1252,7 @@ reschedule(vp, factor, index)
 	mytime(&now);
 
 	if (verbose)
-	  sfprintf(sfstdout,"reschedule %p now %d expiry in %d attempts %d factor %d inum %d (%s/%s: %s)\n",
+	  sfprintf(sfstderr,"reschedule %p now %d expiry in %d attempts %d factor %d inum %d (%s/%s: %s)\n",
 		   vp, (int)now,
 		   (int)((vp->ce_expiry > 0) ? (vp->ce_expiry - now) : -999),
 		   vp->attempts,
@@ -1257,14 +1263,14 @@ reschedule(vp, factor, index)
 	/* if we are already scheduled for the future, don't reschedule */
 	if (vp->wakeup > now) {
 	  if (verbose)
-	    sfprintf(sfstdout,"prescheduled\n");
+	    sfprintf(sfstderr,"prescheduled\n");
 	  return;
 	} else if (vp->wakeup < now-7200 /* more than 2h .. */ )
 	  vp->wakeup = now;
 
 	if (ce->nretries <= 0) {
 	  if (verbose)
-	    sfprintf(sfstdout,"ce->retries = %d\n", ce->nretries);
+	    sfprintf(sfstderr,"ce->retries = %d\n", ce->nretries);
 	  return;
 	}
 	if (factor == -1 && vp->attempts) {
@@ -1306,7 +1312,7 @@ reschedule(vp, factor, index)
 	    && vp->ce_expiry <= vp->wakeup
 	    && vp->attempts > 0) {
 	  if (verbose)
-	    sfprintf(sfstdout,"ce_expiry = %d, %d attempts\n",
+	    sfprintf(sfstderr,"ce_expiry = %d, %d attempts\n",
 		     (int)(vp->ce_expiry), vp->attempts);
 
 	  /* expire() will delete this vertex in due time */
@@ -1334,7 +1340,7 @@ idle_cleanup()
 
 	mytime(&now);
 
-	if (verbose) sfprintf(sfstdout,"idle_cleanup()\n");
+	if (verbose) sfprintf(sfstderr,"idle_cleanup()\n");
 
 	if (!thrg_root) return 0; /* No thread group! */
 
@@ -1368,7 +1374,7 @@ idle_cleanup()
 		/* Close the command channel, let it die itself.
 		   Rest of the cleanup happens via mux() service. */
 		if (verbose)
-		  sfprintf(sfstdout,"idle_cleanup() killing TA on tofd=%d pid=%d\n",
+		  sfprintf(sfstderr,"idle_cleanup() killing TA on tofd=%d pid=%d\n",
 			 p->tofd, (int)p->pid);
 
 		thr->wakeup = now-1; /* reschedule immediately! */
@@ -1403,7 +1409,7 @@ idle_cleanup()
 		/* Close the command channel, let it die itself.
 		   Rest of the cleanup happens via mux() service. */
 		if (verbose)
-		  sfprintf(sfstdout,"idle_cleanup() killing TA on tofd=%d pid=%d\n",
+		  sfprintf(sfstderr,"idle_cleanup() killing TA on tofd=%d pid=%d\n",
 			   p->tofd, (int)p->pid);
 		write(p->tofd,"\n",1);
 		pipes_shutdown_child(p->tofd);
