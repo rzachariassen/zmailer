@@ -61,9 +61,9 @@ pkgs-01:	# DIRECTORIES, BINARIES
 		sed -e "s/%VERSION%/$(VERSION)/g" \
 		    -e "s/%SUFF%/${SUFF}/g" \
 		> pkginfo01
-	rm -rf ZMailer01${SUFF}
+	rm -rf ZMTA1${SUFF}
 	pkgmk -o -f proto01 -b $(prefix) -d `/bin/pwd`
-	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer01${SUFF}.pkg ZMailer01${SUFF}
+	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMTA1${SUFF}.pkg ZMTA1${SUFF}
 
 pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	. $(ZCONF) ; \
@@ -81,7 +81,6 @@ pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 		sed -e "s/%VERSION%/$(VERSION)/g" \
 		    -e "s/%SUFF%/${SUFF}/g" \
 		> pkginfo02
-	rm -rf ZMailer02${SUFF}
+	rm -rf ZMTA2${SUFF}
 	pkgmk -o -f proto2 -b $(prefix) -d `/bin/pwd`
-	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer02${SUFF}.pkg ZMailer02${SUFF}
-
+	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMTA2${SUFF}.pkg ZMTA2${SUFF}
