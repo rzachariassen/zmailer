@@ -1,5 +1,9 @@
 2004-04-30  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/subdaemons.c: subdaemons_send_to_peer()
+	    Internal code was .. not my best writing.
+	    Rewrote it to be somewhat more sane..
+
 	* smtpserver/subdaemon-trk.c:
 	    When outputing the "Z-REPORT DUMP", start it with datetime,
 	    and end it with data line count..  Similar with SIGUSR1

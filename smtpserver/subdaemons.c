@@ -372,7 +372,7 @@ subdaemon_send_to_peer(peer, buf, len)
      const char *buf;
      int len;
 {
-	int rc;
+	int rc, fit;
 
 #if 0
 	if (logfp) {
@@ -384,9 +384,7 @@ subdaemon_send_to_peer(peer, buf, len)
 	/* If 'peer' is NULL, crash here, and study the core file
 	   to determine the bug.. */
 
-	while ((len + peer->outlen) > sizeof(peer->outbuf)) {
-
-	  int fit = sizeof(peer->outbuf) - peer->outlen + peer->outptr;
+	while (len > 0) {
 
 	  if (peer->outptr > 0) {
 	    /* Compact the buffer a bit! */
@@ -396,57 +394,72 @@ subdaemon_send_to_peer(peer, buf, len)
 	    peer->outlen -= peer->outptr;
 	    peer->outptr = 0;
 	  }
+
+	  fit = sizeof(peer->outbuf) - peer->outlen; /* outptr == 0 */
+	  if (fit > len) fit = len; /* But no more than what we have.. */
+
 	  if (fit > 0) {
 	    memcpy(peer->outbuf + peer->outlen, buf, fit);
 	    buf += fit;
 	    len -= fit;
 	  }
 
-	  /* SYNC writing to the FD... */
-	  for (;;) {
-	    rc = write( peer->fd,
-			peer->outbuf + peer->outptr,
-			peer->outlen - peer->outptr );
-	    if (rc > 0) {
-	      peer->outptr += rc;
-	      if (peer->outptr == peer->outlen)
-		peer->outlen = peer->outptr = 0;
-	    }
-	    if ((rc < 0) && (errno == EINTR))
-	      continue; /* try again */
-	    if ((rc < 0) && (errno == EPIPE)) {
-	      /* SIGPIPE from writing to the socket..  */
-	      peer->outlen =  peer->outptr = len = 0;
-	      break;  /* Lets ignore it, and reading from
-			 the same socket will be EOF - I hope.. */
-	    }
+	  /* "SYNC" writing to the FD... */
 
-	    if ((rc < 0) && (errno == EAGAIN)) {
-	      /* Select on it.. */
+	  rc = write( peer->fd,
+		      peer->outbuf + peer->outptr,
+		      peer->outlen - peer->outptr );
+	  if (rc > 0) {
+	    peer->outptr += rc;
+	    if (peer->outptr == peer->outlen)
+	      peer->outlen = peer->outptr = 0;
+	    continue; /* Written all.. */
+	  }
+	  if ((rc < 0) && (errno == EBADFD)) {
+	    subdaemon_kill_peer(peer);
+	    return -1;
+	  }
+	  if ((rc < 0) && (errno == EINTR))
+	    continue; /* try again */
 
-	      struct timeval tv;
-	      fd_set wrset;
-	      _Z_FD_ZERO(wrset);
-	      _Z_FD_SET(peer->fd, wrset);
-	      tv.tv_sec = 10; /* 10 seconds ?? */
-	      tv.tv_usec = 0;
-	      rc = select ( peer->fd+1, NULL, &wrset, NULL, &tv );
-	      if ((rc < 0) && (errno == EINTR)) continue;
-	      if (rc < 0) {
-		/* ???? What ?????   FIXME:  */
-		subdaemon_kill_peer(peer);
-		return -1;
-	      }
-	      if (rc == 0) {
-		/* FIXME: TIMEOUT! */
-		subdaemon_kill_peer(peer);
-		return -1;
-	      }
-	      continue; /* Did successfully select for writing */
-	    }
-	    break;
+	  if ((rc < 0) && (errno == EPIPE)) {
+	    /* SIGPIPE from writing to the socket..  */
+	    peer->outlen =  peer->outptr = len = 0;
+	    break;  /* Lets ignore it, and reading from
+		       the same socket will be EOF - I hope.. */
 	  }
 
+	  if ((len > 0) && (rc < 0) && (errno == EAGAIN)) {
+	    /* Select on it, if there is still unprocessed input left! */
+
+	    struct timeval tv;
+	    fd_set wrset;
+	    _Z_FD_ZERO(wrset);
+	    _Z_FD_SET(peer->fd, wrset);
+	    tv.tv_sec = 10; /* FIXME: 10 seconds ?? */
+	    tv.tv_usec = 0;
+	    rc = select ( peer->fd+1, NULL, &wrset, NULL, &tv );
+	    if ((rc < 0) && (errno == EINTR)) continue;
+	    if (rc < 0) {
+	      /* ???? What ?????   FIXME:  */
+	      subdaemon_kill_peer(peer);
+	      return -1;
+	    }
+	    if (rc == 0) {
+	      /* FIXME: TIMEOUT! */
+	      subdaemon_kill_peer(peer);
+	      return -1;
+	    }
+	    continue; /* Did successfully select for writing */
+	  }
+	  /* If  len > 0  in here, we have something BROKEN! */
+	  if ((len > 0) && (rc < 0)) {
+	    /* Mainly we should have no wowwies...
+	       but all kinds of surprising error modes
+	       do creep up..*/
+	      subdaemon_kill_peer(peer);
+	      return -1;
+	  }
 	}
 
 	if (peer->outptr > 0) {
@@ -458,19 +471,7 @@ subdaemon_send_to_peer(peer, buf, len)
 	  peer->outptr = 0;
 	}
 
-	memcpy(peer->outbuf + peer->outlen, buf, len);
-	peer->outlen += len;
-
-	rc = write( peer->fd,
-		    peer->outbuf + peer->outptr,
-		    peer->outlen - peer->outptr);
-	if (rc > 0) {
-	  peer->outptr += rc;
-	  if (peer->outptr == peer->outlen)
-	    peer->outlen = peer->outptr = 0;
-	}
-
-	return 0; /* Stored successfully for outgoing traggic.. */
+	return 0; /* Stored successfully for outgoing traffic.. */
 }
 
 
