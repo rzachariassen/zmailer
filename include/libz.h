@@ -149,7 +149,13 @@ struct addrinfo; /* a "forward" declaration */
 
 extern void stashmyaddresses  __((const char *host));
 #ifdef SOCK_STREAM
+
+#ifdef TESTMODE
+extern int  loadifaddresses   __((Usockaddr ***, void ***));
+#else
 extern int  loadifaddresses   __((Usockaddr ***));
+#endif
+
 extern int  matchmyaddress    __((Usockaddr *));
 #endif
 #ifdef EAI_AGAIN   /* have 'struct addrinfo' */
