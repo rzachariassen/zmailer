@@ -684,15 +684,17 @@ static int _getline(buf, bufsize, bufspace, fp)
      FILE *fp;
 {
   int c;
+
+  if (!*buf) {
+    *bufsize = 0;
+    *bufspace = 110;
+    *buf = malloc(*bufspace+3);
+  }
+
   while ((c = fgetc(fp)) != EOF) {
     if (c == '\n')
       break;
 
-    if (!*buf) {
-      *bufsize = 0;
-      *bufspace = 110;
-      *buf = malloc(*bufspace+3);
-    }
     if (*bufsize >= *bufspace) {
       *bufspace *= 2;
       *buf = realloc(*buf, *bufspace+3);
