@@ -37,13 +37,17 @@ Details about it are in their respective manual pages, but this is what they
 are about roughly:
  zmailer.conf	Sets overall working parameters especially of the Scheduler
 		and the SMTP Server and the number of routers active at the
-		same time. Beware: Some of those parameters are compiled in
-		and cannot be changed!
+		same time. Beware: ZCONFIG= parameter is compiled in into
+		most binaries, but can be overrideen with runtime options,
+		or in some cases with environment variable.
+		See  zmailer.conf(5) -manual page.
  router.cf	Main configuration file of the ZMailer Router. In most cases
 		you don't need to change this one.
  scheduler.conf	Important setup for controlling deliveries. Checkout its
 		manual page for information on syntax and synopsis.
+		See  scheduler(8)  manual page.
  smtpserver.co*	The file that defines the SMTP Server configuration.
+		See  smtpserver(8)  manual page.
  db/fqdnaliases Fully Qualified Domain Name Aliases: when an email addressed
 		to xxx@your.domain.com should be delivered to
 		yyy@anotger.domain.com, it should be listed in this file.
@@ -72,9 +76,11 @@ the manual pages and on the website mentioned above to get the best
 performance possible. The configuration supplied with this Debian package is
 the more or less 'default' configuration. After a good optimization process,
 you can tranfers loads of email through a simple machine; for instance,
-vger.rutgers.edu, handling quite a few lists, among them is linux-kernel, is
-just a simple SparcClassic running the ZMailer :) 
+vger.rutgers.edu, handling quite a few lists, among them is linux-kernel, was
+just a simple SparcClassic running the ZMailer :)  (Now  vger.kernel.org
+is a PC, but that is another story - 2003.)
 
 
 Remco van de Meent <remco@debian.org>, Tue, 22 Dec 1998 13:50:48 +0100
 (with thanks to Christopher Lameter for some of the text)
+(some small editing: Matti Aarnio, 2003-Aug-29)
