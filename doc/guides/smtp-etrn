@@ -1,0 +1,90 @@
+v0.0/mea/19981120
+
+
+		Using ETRN on SMTP server
+
+
+The ETRN mechanics was originally created to support ISP's with lots
+of fixed-IP address users who wanted to get email via MX methods.
+
+It turns out to work also for such a dialup user, who wants to hold
+the outbound traffic for a while.
+
+This does *not* solve the case for a dynamic IP-address dialin clients.
+(In fact you could with complicated machinery to do dynamic DNS updates
+ per dialin user authentication, etc, but that is beside the point here..)
+
+
+	* At the ISP side *
+
+At the ISP's side you need following things at the server which is
+designated as your "ETRN HUB":
+
+	$MAILVAR/db/routes:
+
+	client.dom	smtp-etrn!mail.client.dom
+
+
+The   $MAILSHARE/scheduler.conf  in the default setup has following
+tag in it:
+
+#
+# These messages will go only into the queue, and need explicite
+# SMTP mediated ETRN request, before they become flushed out.
+#
+
+smtp-etrn/*
+	maxchannel=199
+	maxring=20
+	interval=1h
+	retries="12"
+	queueonly
+	command="smtp -s -c $channel -l ${LOGDIR}/smtp-etrn"
+
+In there the "maxring=20" means you can have at most 20 clients
+in parallel active download phase.
+
+To activate the message downloads the client must be able to
+issue following command to the SMTP-server at this host:
+
+	ETRN mail.client.dom
+
+Do note that in the boiler-plate form this will resolve MXes,
+and determine of the "mail.client.dom" is proper target, or
+if the email should be directed elsewere.  If the primary MX
+points to the local host, the A record is used for the delivery.
+You could (perhaps) consider adding "-x" (see  "smtpx/*" selector
+in the   scheduler.conf) into the command line.
+
+
+
+	* At the client side *
+
+At the client side the way to use ZMailer to *hold* all outbound
+email until explicitely pushed is to use  smtp-etrn much in the
+same way as at the ISP side:
+
+
+	$MAILVAR/db/routes:
+
+	.client.dom	error!database
+	.		smtp-etrn!mail.isp.dom
+
+Also at the client's  router.cf  you propably want the protocols
+setting to be purely:
+	protocols='routes'
+specifically *no* 'smtp' in there!
+
+This way all email destined within  client.dom will either be
+routed locally (by entries not shown above), or be recognized
+via 'localnames' database to be local, OR they are deemed to
+be destined into invalid locations -- thus 'error!database'.
+
+All other addresses are routed to 'smtp-etrn' channel, and are
+targetted to ISP's relay server.
+
+
+Once the connection to the ISP has been formed, the local system
+needs to be triggered to flush the ETRN queue:
+	ETRN mail.isp.dom
+
