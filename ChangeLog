@@ -1,3 +1,10 @@
+1998-06-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpdata.c:
+	    Oops: At DATA processing the content-policy was tested
+	    only if the last RCPT policy analysis yielded All-OK (0)
+	    status.
+
 1998-05-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/newdb.in:

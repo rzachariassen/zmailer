@@ -217,12 +217,12 @@ cf:	FRC
 		mkdir $(prefix)$$MAILSHARE/cf ; \
 		mkdir $(prefix)$$MAILSHARE/cf/fc ; \
 		cp -p $(srcdir)/cf/*.cf $(prefix)$$MAILSHARE/cf ; \
-		: cp $(srcdir)/cf/SMTP+UUCP.cf $(prefix)$$MAILSHARE/router.cf ; \
+		: cp $(srcdir)/cf/SMTP.cf $(prefix)$$MAILSHARE/router.cf ; \
 		/bin/rm -f `find $(prefix)$$MAILSHARE/. -name "*.fc" -print` \
 			foo-file ; \
 	fi ; \
 	if [ ! -f $(prefix)$$MAILSHARE/router.cf ]; then \
-		cp -p $(srcdir)/cf/SMTP+UUCP.cf $(prefix)$$MAILSHARE/router.cf ; \
+		cp -p $(srcdir)/cf/SMTP.cf $(prefix)$$MAILSHARE/router.cf ; \
 	fi
 
 clean:	FRC

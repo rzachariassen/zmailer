@@ -147,20 +147,14 @@ const char *buf, *cp;
 	   the resulting file into router spool area;
 	   pending a few things we do at first.. */
 
-	if (SS->policyresult == 0) {
-
-	    /* No rejection from earlier sources, lets see what we
-	       will do now ? */
-
-	    char *fname = mail_fname(SS->mfp);
-
-	    SS->policyresult = contentpolicy(policydb,&SS->policystate,fname);
-	}
+	/* Lets see what the content-policy will tell now ? */
+	char *fname = mail_fname(SS->mfp);
+	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
 	if (SS->policyresult < 0) {
 	  if (logfp != NULL)
-	    fprintf(logfp, "%d#\t(Content)-policy-analysis ordered message rejection. (code=%d)\n", pid, SS->policyresult);
-	  type(SS, 552, m571, "Policy-analysis rejected this message");
+	    fprintf(logfp, "%d#\tContent-policy analysis ordered message rejection. (code=%d)\n", pid, SS->policyresult);
+	  type(SS, 552, m571, "Content-policy analysis rejected this message");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	}
@@ -349,20 +343,14 @@ const char *buf, *cp;
 	   the resulting file into router spool area;
 	   pending a few things we do at first.. */
 
-	if (SS->policyresult == 0) {
-
-	    /* No rejection from earlier sources, lets see what we
-	       will do now ? */
-
-	    char *fname = mail_fname(SS->mfp);
-
-	    SS->policyresult = contentpolicy(policydb,&SS->policystate,fname);
-	}
+	/* Lets see what the content-policy will tell now ? */
+	char *fname = mail_fname(SS->mfp);
+	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
 	if (SS->policyresult < 0) {
 	  if (logfp != NULL)
-	    fprintf(logfp, "%d#\t(Content)-policy-analysis ordered message rejection. (code=%d)\n", pid, SS->policyresult);
-	  type(SS, 552, m571, "Policy-analysis rejected this message");
+	    fprintf(logfp, "%d#\tContent-policy analysis ordered message rejection. (code=%d)\n", pid, SS->policyresult);
+	  type(SS, 552, m571, "Content-policy analysis rejected this message");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	}
