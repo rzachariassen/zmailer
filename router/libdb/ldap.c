@@ -168,8 +168,9 @@ search_ldap(sip)
 					     lmap->passwd) != LDAP_SUCCESS) {
 		++deferit;
 		v_set(DEFER, DEFER_IO_ERROR);
-		fprintf(stderr, "search_ldap: cannot connect %s!\n",
-				lmap->ldaphost);
+		fprintf(stderr, "search_ldap: cannot connect '%s'/'%s'!\n",
+			lmap->ldaphost ? lmap->ldaphost : "",
+			lmap->binddn   ? lmap->binddn : "");
 		goto ldap_exit;
 	}
 
