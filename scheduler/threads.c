@@ -246,7 +246,8 @@ struct config_entry *cep;
 	++threadid;
 	thr->threadid = threadid;
 
-	/* thr->nextthg = NULL;
+	/* thr->attempts = 0;
+	   thr->nextthg = NULL;
 	   thr->prevthg = NULL; */
 
 	thr->thgrp   = thgrp;
@@ -255,7 +256,6 @@ struct config_entry *cep;
 
 	if (thgrp->cep->flags & CFG_QUEUEONLY) {
 		/* Start with the first retry */
-		thr->attempts = 0;
 		if(thgrp->cep->nretries) {
 			mytime(&now);
 			thr->wakeup = now + thgrp->cep->retries[0];
@@ -942,7 +942,7 @@ struct thread *thr;
 			 thr->thvertices->orig[L_CHANNEL],
 			 thr->thvertices->orig[L_HOST]);
 
-	if (!rc)
+	if (rc) /* non-zero when child has started */
 	  thr->attempts += 1;
 
 	return rc;
@@ -1188,15 +1188,6 @@ reschedule(vp, factor, index)
 	    sfprintf(sfstdout,"ce->retries = %d\n", ce->nretries);
 	  return;
 	}
-#if 0
-	if (vp->ce_expiry > 0 && vp->ce_expiry <= now && vp->attempts > 0) {
-	  if (verbose)
-	    sfprintf(sfstdout,"ce_expiry = %d, %d attempts\n",
-		   (int)(vp->ce_expiry), vp->attempts);
-	  expire(vp, index);
-	  return;
-	}
-#endif
 	if (factor == -1 && vp->attempts) {
 	  if (thr->retryindex >= ce->nretries) {
 	    if (ce->nretries > 1)
@@ -1244,59 +1235,6 @@ reschedule(vp, factor, index)
 
 	  return;
 	}
-
-#if 0
-	/* unlink from the list of scheduled vertices */
-	unthread(vp);
-	/* NOW THE THREAD CAN BE WITHOUT ANY VERTEX ! (thr->jobs == 0 !)
-	   WE MUST LINK IT BACK!                      */
-
-	if (verbose)
-	  sfprintf(sfstdout,"wakeup %d pending %d\n", (int)(vp->wakeup), vp->ce_pending);
-
-	/* link it back in at the right spot */
-	for (ap = thr->vertices, pap = NULL ; ap != NULL; ap = ap->nextitem) {
-	  if (thr->thgrp->ce.flags & CFG_AGEORDER) {
-	    /* compare expiry times .. */
-	    if (ap->ce_expiry > vp->ce_expiry) {
-	      /* Link the VP in front of AP */
-	      _thread_linkfront(thr,ap,vp);
-	      thr->jobs += 1;
-
-	      break;
-	    }
-	  } else {
-	    /* Compare wakeup timestamps.. */
-	    if (ap->wakeup > vp->wakeup) {
-
-	      /* Link the VP in front of AP */
-	      _thread_linkfront(thr,ap,vp);
-	      thr->jobs += 1;
-
-	      break;
-	    }
-	  }
-	  pap = ap;
-	}
-	if (verbose)
-	  sfprintf(sfstdout,"ap %p pap %p curitem %p\n", ap, pap, thr->vertices);
-
-	if (ap == NULL) {
-	  /* append to list */
-	  _thread_linktail(thr,vp);
-	  thr->jobs += 1;
-	}
-
-	/* Now set thread wakeup value same as first vertex wakeup */
-	thr->wakeup = thr->vertices->wakeup;
-#if 0
-	if (thr->wakeup > now  && (thr->wakeup - sweepinterval) <= now)
-	  SALARM((u_int)(thr->wakeup - now));
-	else
-	  SALARM(sweepinterval/2);
-#endif
-
-#endif
 }
 
 
@@ -1513,7 +1451,7 @@ void thread_report(fp,mqmode)
 	    jobsum += thr->jobs;
 
 	    if (mqmode & MQ2MODE_FULL)
-	      sfprintf(fp,"R=%-2d A=%-2d", thr->jobs, thr->attempts);
+	      sfprintf(fp,"R=%-3d A=%-2d", thr->jobs, thr->attempts);
 
 	    ++cnt;
 	    if (thr->proc != NULL &&
