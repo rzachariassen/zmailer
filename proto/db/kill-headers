@@ -5,10 +5,12 @@
 #
 # Just some (built-in) examples, add your own ones!
 #
-#return-path
-#resent-return-path
-#x-orcpt
-#resent-x-orcpt
-#x-envid
-#resent-x-envid
+# THIS FILE CONTAINS ZMSH SCRIPT COMMANDS TO ADD KEYS TO THE headers DB!
+#
 
+#db add headers return-path		-:kill:-
+#db add headers resent-return-path	-:kill:-
+#db add headers x-orcpt			-:kill:-
+#db add headers resent-x-orcpt		-:kill:-
+#db add headers x-envid			-:kill:-
+#db add headers resent-x-envid		-:kill:-

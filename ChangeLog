@@ -1,5 +1,12 @@
 2000-03-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/cf/aliases.cf, proto/cf/crossbar.cf, proto/cf/standard.cf,
+	  proto/db/dbases.conf, proto/db/kill-headers, proto/db/userdb:
+	    Created a way (always on when DB is defined, and rewrite
+	    (at crossbar.cf) happens via 'internet') to do ``username''
+	    mapping to given FQDN address, e.g.  ``user.name@here.domain''
+	    Reworked kill-headers initialization.
+
 	* include/mailer.h, proto/Makefile.in, proto/cf/standard.cf,
 	  proto/db/kill-headers, router/rfc822.c, router/libdb/header.c:
 	    Runtime configuration mechanism for killing named headers.

@@ -1,0 +1,19 @@
+#
+#  UserDB per sendmail's approach
+#
+#  This can be used to map local names into outgoing fqdn addresses.
+#  There are white-space separated key and data fields.  Essentially
+#  the result set is processed as an Alias set, e.g.:
+#     root:maildrop    sysadmin@here.dom,bill@three.dom
+#  The keys are unqualified userids which will be mapped thru either
+#     user:mailname  ->  user.name@here.dom
+#     user.name:maildrop -> user
+#
+#  Sendmail has also mapping key  :default:mailname  however ZMailer
+#  doesn't support that one.
+#
+#  CURRENTLY ZMAILER SUPPORTS ONLY "user:mailname" MAPPINGS
+#  (2000-March-28)  Use standard aliases for maildrop mapping.
+#
+
+#user:mailname		user.name@here.dom

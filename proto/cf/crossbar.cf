@@ -289,6 +289,8 @@ internet (address, hname) {
 	# 'hname'   is the header whose address(es) we are rewriting;
 	#           value here is usually: 'From', 'To', etc.
 
+	local a
+
 #	# Alexis Yushin <alexis@NL.net> mentioned that he does following:
 #	$(sender) && {
 #		local tmp
@@ -297,6 +299,20 @@ internet (address, hname) {
 
 	address="$(canonicalize "$address")"	# Canonicalize does local
 						# hostname hiding...
+
+	$(sender) && {
+		tsift "$address" in
+		(.*)<@(.+)>(.*)
+			a="$(deliver "\2")" && a="$(userdb "\1:mailname")" &&
+			  address="$a<@\2>\3"
+			;;
+		(.*)
+			a="$(userdb "$address:mailname")" &&
+			  address="$a<@\2>\3"
+			;;
+		tfist
+	}
+
 	tsift "$address" in
 	(.*)<@(.+)>(.*)
 			#if [ $(deliver \2) ]; then	# hostname hiding

@@ -326,19 +326,5 @@ unset toplevels # No need for that variable anymore..
 
 if [ -r $MAILVAR/db/kill-headers ]
 then
-
-# As normal SH read thing is forbidden (too simple redirection stuff):
-#    while read header dummy < $MAILVAR/db/kill-headers
-# we need to do something a bit strange looking:
-
-  cat  $MAILVAR/db/kill-headers | 
-  while read header dummy 
-  do
-	ssift "$header" in
-	[a-zA-Z0-9].*
-		db add headers "$header" -:kill:-
-		;;
-	tfiss
-  done
-
+  . $MAILVAR/db/kill-headers
 fi
