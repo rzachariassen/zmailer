@@ -22,6 +22,7 @@
 #
 #	.bar  smtp-etrn!
 #	.bar  smtp-tls!
+#	.bar  smtp-log!
 #	.bar  smtp77!
 #	.bar  smtp77x!
 #	.bar  smtp8!

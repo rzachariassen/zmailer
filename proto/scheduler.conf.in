@@ -357,6 +357,15 @@ smtp/*
 	command="smtp -s" # -l ${LOGDIR}/smtp"
 
 #
+# Special channel which LOGS all outgoing protocol sessions, so that
+# admin can divert any domain to this channel in case logging is desired.
+#
+smtp-log/*
+	maxchannel=199
+	maxring=50
+	command="smtp -c $channel -s -l ${LOGDIR}/smtp-log"
+
+#
 #  LMTP (RFC 2033) protocol driver with presumed "standard" port of 2525.
 #
 

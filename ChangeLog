@@ -1,3 +1,10 @@
+2000-11-17  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* proto/scheduler.conf.in, proto/db/routes:
+	    Define channel   smtp-log  which (obviously) logs
+	    the SMTP protocol into log-file.  See "-l" option
+	    at  smtp(8) man-page.
+
 2000-11-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* configure.in:
