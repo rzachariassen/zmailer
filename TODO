@@ -10,6 +10,11 @@ VERIFY: router/daemonsub:
 	around due to e.g. router crashing, which puts the thing at the tail
 	of the queue --> some messages go thru, but some keep crashing the
 	system...)
+VERIFY: router/daemonsub.c around line 1470 the routerchilds[]
+	dirq[] allocation compared with  nrouters  setting..
+	What happens, when   nrouters  is smaller, than the
+	number of processes needed for ROUTERDIRS ?
+	How will  NOTIFY  messages affect the job pickup ?
 
 DOCUMENT: - ratelimiting in smtpserver!
 
@@ -25,13 +30,8 @@ smtp-ta: TLS mode demands a bit too much of remote server's certificates..
 
 VERIFY:  router/rfc822hdrs.c line 720 onwards "NillHeaderSemantics"
 	processing.  Can it break headers sometimes ?
-	What abour line 655 onwards ?  Earlier in that routine ?
+	What about line 655 onwards ?  Earlier in that routine ?
 
-VERIFY: router/daemonsub.c around line 1470 the routerchilds[]
-	dirq[] allocation compared with  nrouters  setting..
-	What happens, when   nrouters  is smaller, than the
-	number of processes needed for ROUTERDIRS ?
-	How will  NOTIFY  messages affect the job pickup ?
 
 Wanted done for 3.0:
 
