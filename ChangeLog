@@ -5,8 +5,8 @@
 	  smtpserver/cfgread.c, proto/smtpserver.conf.in,
 	  man/smtpserver.8, smtpserver/Makefile.in:
 	    Integrated Artur Urbanowicz's "use external program
-	    for authentication" approach to the baseline system.
-	    (Documents could use some additional word about the
+	    for authentication" approach into the baseline system.
+	    (Documents could use some additional words about the
 	     topic..)
 	
 	* smtpserver/zpwmatch.c:
