@@ -164,7 +164,7 @@ struct gaih_addrtuple **pat;
     *c2 = 0;
 
     if (*pat == NULL) {
-      *pat = malloc(sizeof(struct gaih_addrtuple));
+      *pat = (void*)malloc(sizeof(struct gaih_addrtuple));
       if (*pat == NULL)
 	return -(EAI_MEMORY);
     }
@@ -347,7 +347,7 @@ FILE *vlog;
 	    return -(EAI_FAIL);
 	  }
 
-	  *pat = malloc(sizeof(struct gaih_addrtuple));
+	  *pat = (void*)malloc(sizeof(struct gaih_addrtuple));
 	  if (*pat == NULL)
 	    return -(EAI_MEMORY);
 	  memset(*pat, 0, sizeof(struct gaih_addrtuple));
@@ -362,7 +362,7 @@ FILE *vlog;
 	    return -(EAI_FAIL);
 	  }
 
-	  *pat = malloc(sizeof(struct gaih_addrtuple));
+	  *pat = (void*)malloc(sizeof(struct gaih_addrtuple));
 	  if (*pat == NULL)
 	    return -(EAI_MEMORY);
 	  memset(*pat, 0, sizeof(struct gaih_addrtuple));
@@ -425,7 +425,7 @@ FILE *vlog;
   newsize  = sizeof(struct addrinfo) + sizeof(struct sockaddr_un);
   newsize += ((req->ai_flags & AI_CANONNAME) ?
 	      (strlen(utsname.nodename) + 1): 0);
-  *pai = malloc(newsize);
+  *pai = (void*)malloc(newsize);
   if (*pai == NULL)
     return -(EAI_MEMORY);
 
@@ -490,7 +490,7 @@ struct gaih_servtuple **st;
   if (s == NULL)
     return (GAIH_OKIFUNSPEC | -(EAI_SERVICE));
 
-  *st = malloc(sizeof(struct gaih_servtuple));
+  *st = (void*)malloc(sizeof(struct gaih_servtuple));
   if (*st == NULL)
     return -(EAI_MEMORY);
 
@@ -554,7 +554,7 @@ FILE *vlog;
 	}
       }
     } else {
-      st = malloc(sizeof(struct gaih_servtuple));
+      st = (void*)malloc(sizeof(struct gaih_servtuple));
       if (st == NULL)
 	return -(EAI_MEMORY);
 
@@ -566,7 +566,7 @@ FILE *vlog;
   }
 
   if (!name) {
-    at = malloc(sizeof(struct gaih_addrtuple));
+    at = (void*)malloc(sizeof(struct gaih_addrtuple));
     if (at == NULL) {
       i = -(EAI_MEMORY);
       goto ret;
@@ -575,7 +575,7 @@ FILE *vlog;
     memset(at, 0, sizeof(struct gaih_addrtuple));
 
 #if defined(INET6) && defined(AF_INET6)
-    at->next = malloc(sizeof(struct gaih_addrtuple));
+    at->next = (void*)malloc(sizeof(struct gaih_addrtuple));
     if (at->next == NULL) {
       i = -(EAI_MEMORY);
       goto ret;
@@ -595,7 +595,7 @@ FILE *vlog;
   if (!req->ai_family || (req->ai_family == AF_INET)) {
     struct in_addr in_addr;
     if (inet_pton(AF_INET, name, (void*)&in_addr) > 0) {
-      at = malloc(sizeof(struct gaih_addrtuple));
+      at = (void*)malloc(sizeof(struct gaih_addrtuple));
       if (at == NULL)
 	return -(EAI_MEMORY);
       
@@ -611,7 +611,7 @@ FILE *vlog;
   if (!req->ai_family || (req->ai_family == AF_INET6)) {
     struct in6_addr in6_addr;
     if (inet_pton(AF_INET6, name, (void*)&in6_addr) > 0) {
-      if (!(at = malloc(sizeof(struct gaih_addrtuple))))
+      if (!(at = (void*)malloc(sizeof(struct gaih_addrtuple))))
 	return -(EAI_MEMORY);
       
       memset(at, 0, sizeof(struct gaih_addrtuple));
@@ -686,7 +686,7 @@ build:
       st2 = st;
       while (st2) {
 
-	*pai = malloc(sizeof(struct addrinfo) + i + j);
+	*pai = (void*)malloc(sizeof(struct addrinfo) + i + j);
 	if (*pai == NULL) {
 	  i = -(EAI_MEMORY);
 	  goto ret;
