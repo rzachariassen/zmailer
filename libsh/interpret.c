@@ -964,30 +964,31 @@ functype(fname, shcmdpp, sfdpp)
 	struct sslfuncdef **sfdpp;
 {
 	spkey_t symid;
-	struct sslfuncdef *sfdp;
 	struct spblk *spl;
 
 	symid = symbol_lookup(fname);
 	/* is it a defined function? */
-	if (!symid)
-	  spl = NULL;
-	else
+	spl = NULL;
+	if (symid)
 	  spl = sp_lookup(symid, spt_funclist);
-	if (spl == NULL)
-	  sfdp = NULL;
-	else
-	  sfdp = (struct sslfuncdef *)spl->data;
-	if (sfdpp != NULL)
-	  *sfdpp = sfdp;
+	if (sfdpp) {
+	  if (spl != NULL)
+	    *sfdpp = (struct sslfuncdef *)spl->data;
+	  else
+	    *sfdpp = NULL;
+	}
+
 	/* behaviour in execute() requires we continue, not return */
 
 	/* is it a builtin command? */
-	if (shcmdpp)
-	  *shcmdpp = NULL;
-	if (shcmdpp != NULL && symid) {
+	spl = NULL;
+	if (symid)
 	  spl = sp_lookup(symid, spt_builtins);
+	if (shcmdpp != NULL) {
 	  if (spl != NULL)
 	    *shcmdpp = (struct shCmd *)spl->data;
+	  else
+	    *shcmdpp = NULL;
 	}
 	/* it must be a unix program */
 }
@@ -2630,10 +2631,8 @@ getout:
 		--commandIndex;
 	}
 
-/* #define RETVAL_FREEUP */ /* yes or no.. undefine if problems.. */
-
-#ifndef	RETVAL_FREEUP	/* The original way ... */
 	setlevel(MEM_SHCMD, origlevel);
+
 #ifdef	MAILER
 	/*
 	 * This is pretty dicey; we rely on setlevel() not changing the
@@ -2645,43 +2644,6 @@ getout:
 		caller->rval = command->rval;
 	}
 #endif
-#else /* defined: RETVAL_FREEUP */
-#ifdef	MAILER
-	/*
-	 * This is pretty dicey; we rely on setlevel() not changing the
-	 * stuff that was just freed.  We need to do this to avoid
-	 * malloc'ing stuff unnecessarily.  For example we usually just
-	 * want to access the return value in the context of the caller.
-	 */
-/* mea: I will do some extra work just in case it would solve the dilemma.. */
-
-	if ((command->rval != NULL) &&
-	    (caller != NULL)) {
-
-		conscell *rval;
-		char *tmplevel;
-
-		stickytmp = stickymem;
-		stickymem = MEM_SHRET;
-		tmplevel  = getlevel(MEM_SHRET);
-
-		rval = s_copy_tree(command->rval);
-		stickymem = stickytmp;
-
-		/* Release the level, caller's copy is in MEM_SHRET */
-		setlevel(MEM_SHCMD, origlevel);
-
-		/* Re-copy into MEM_SHCMD, or whatever..  */
-		caller->rval = s_copy_tree(rval);
-
-		/* And release that temp space */
-		setlevel(MEM_SHRET, tmplevel);
-	} else
-#endif	/* MAILER */
-
-	    /* Release the level, caller's copy is in MEM_TEMP */
-	    setlevel(MEM_SHCMD, origlevel);
-#endif /* RETVAL_FREEUP */
 
 	while (margin != car(envarlist)) {
 		d = car(envarlist);

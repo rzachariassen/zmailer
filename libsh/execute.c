@@ -183,7 +183,7 @@ execute(c, caller, oretcode, name)
 		if (car(c->argv) == NULL || LIST(car(c->argv)))
 			c->argv = NULL;
 		else
-			functype(car(c->argv)->string, &c->shcmdp, NULL);
+			functype(car(c->argv)->cstring, &c->shcmdp, NULL);
 	}
 	if (c->argv && LIST(c->argv) && STRING(car(c->argv))) {
 		/* there are string arguments */
@@ -192,7 +192,7 @@ execute(c, caller, oretcode, name)
 			fprintf(runiofp, "Run:");
 		}
 		if (c->shcmdp == NULL) {
-			functype((car(c->argv))->string, NULL, &sfdp);
+			functype((car(c->argv))->cstring, NULL, &sfdp);
 			if (sfdp == NULL)
 				path_hash((car(c->argv))->string);
 		}

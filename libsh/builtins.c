@@ -194,12 +194,11 @@ sh_elements(avl, il)
 	if ((p = cdar(avl)) == NULL || !LIST(p))
 		return p;
 	il = cadar(avl);
-#if 0
-	/* This copy does not work :-O */
-	p = il = s_copy_tree(il); /* creates new cells, but this is
-				     also last call to the creator here */
-#endif
-	for (; p != NULL; p = cdr(p))
+
+	il = s_copy_tree(il); /* Creates new cells, but this is
+				 also last call to the creator here. */
+
+	for (p = il; p != NULL; p = cdr(p))
 		p->flags |= ELEMENT;
 	return il;
 }

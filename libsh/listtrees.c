@@ -95,6 +95,8 @@ _s_copy_tree(list)
 	if (STRING(list)) {
 		/* malloc new string and conscell to store it in */
 		new = copycell(list);
+		/* copycell() generates always just NEWSTRING, we preserve
+		   some more flags... */
 		new->flags = (list->flags & ~CONSTSTRING) | NEWSTRING;
 		cdr(new) = NULL;
 
