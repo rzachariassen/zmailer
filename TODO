@@ -345,6 +345,7 @@ transports/smtp:
 
 
 - transports/sm/sm.c:
+	- What environment variables are set, and how ? (+ man-page!)
 	- Support ESMTP + DELIVERBY (RFC 2852)
 	- what UID it runs programs like procmail with ?
 	  What uid it should run them ?
