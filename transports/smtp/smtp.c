@@ -1036,6 +1036,15 @@ process(SS, dp, smtpstatus, host, noMX)
 		    first_uid = daemon_uid;
 
 		  openstatus = smtpopen(SS, host, noMX);
+		  if (openstatus != EX_OK && openstatus != EX_TEMPFAIL) {
+		    for (;rphead && rphead != rp->next; rphead = rphead->next){
+		      if (rphead->lockoffset != 0) {
+			notaryreport(NULL, FAILED, NULL, NULL);
+			diagnostic(rphead, openstatus, 0, "%s", SS->remotemsg);
+		      }
+		    }
+		    break;
+		  }
 		}
 
 		if (openstatus == EX_OK)
@@ -2634,13 +2643,13 @@ if (SS->verboselog)
 			  "smtp; 500 (nameserver data inconsistency. All MXes rejected [we are the best?], no address: '%.200s')", host);
 #if 1
 		  zsyslog((LOG_ERR, "%s", SS->remotemsg));
-		  r = EX_TEMPFAIL; /* This gives delayed rejection (after a timeout) */
+		  r = EX_NOHOST;
 #endif
 		} else if (gai_err == EAI_NONAME || gai_err == EAI_NODATA) {
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s')",
 			  host);
-		  r = EX_UNAVAILABLE; /* Can do instant reject */
+		  r = EX_NOHOST; /* Can do instant reject */
 		} else {
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s', errno=%s, gai_errno='%s')",

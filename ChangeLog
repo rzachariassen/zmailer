@@ -1,3 +1,13 @@
+1999-06-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/transport.c:
+	    To sub-process (Transport Agent) pass environment variables:
+	       TZ, PATH, ZCONFIG
+
+	* transports/smtp/smtp.c:
+	    Treat "No MX, no A" as a serious error worth discarding the
+	    recipient address.
+
 1999-06-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/libdb/bsdbtree.c (and others during debug):

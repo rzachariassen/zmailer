@@ -413,6 +413,9 @@ start_child(vhead, chwp, howp)
 	  if (evi >= MAXARGC) evi = MAXARGC;
 	}
 	av[avi] = NULL;
+	if ((s = getenv("TZ")))       ev[evi++] = s; /* Pass the TZ      */
+	if ((s = getzenv("PATH")))    ev[evi++] = s; /* Pass the PATH    */
+	if ((s = getzenv("ZCONFIG"))) ev[evi++] = s; /* Pass the ZCONFIG */
 	ev[evi] = NULL;
 
 	/* fork off the appropriate command with the appropriate stdin */
