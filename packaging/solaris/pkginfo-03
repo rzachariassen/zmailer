@@ -1,0 +1,6 @@
+PKG=ZMailer03
+NAME=ZMailer router cf files
+ARCH=sparc
+VERSION=2.99.50-z.z
+CATEGORY=system
+CLASSES=none

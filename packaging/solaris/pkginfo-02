@@ -1,5 +1,5 @@
-PKG=ZMailer-01
-NAME=ZMailer
+PKG=ZMailer02
+NAME=ZMailer binaries
 ARCH=sparc
 VERSION=2.99.50-z.z
 CATEGORY=system
