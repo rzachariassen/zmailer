@@ -78,6 +78,7 @@ struct rcpt {
 					   Thus enabling rewrite of the
 					   header on the transport. */
 	char		***newmsgheadercvt; /* the rewrite results */
+	char		*top_received;
 	int		id;		/* the index of this address */
 	int		lockoffset;	/* the index of the address lock */
 	int		headeroffset;

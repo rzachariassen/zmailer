@@ -75,7 +75,7 @@ ctlfree(dp,anyp)
 	fprintf(stderr,"# ctlfree(%p) (%p,%p] @%p\n", anyp,
 		lowlim, highlim, __builtin_return_address(0));
 #endif
-	if (anyp < lowlim || anyp >= highlim)
+	if (anyp && (anyp < lowlim || anyp >= highlim))
 	  free(anyp);	/* It isn't within DP->CONTENTS data.. */
 }
 
@@ -141,6 +141,8 @@ ctlclose(dp)
 	  if (ap->routermxes) {
 	    free((char *)ap->routermxes);
 	  }
+	  if (rp->top_received) ctlfree(dp, rp->top_received);
+	
 	  free((char *)rp);
 	}
 	dp->recipients = NULL;

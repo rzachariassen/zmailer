@@ -34,6 +34,7 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	char ** chunkbufp;
 {
 	char **msgheaders = *(rp->newmsgheader);
+	char *top_received;
 	int newlinelen = strlen(newline);
 	int hsize = 0;
 
@@ -48,6 +49,8 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 
 	if (!msgheaders) return -1;
 
+	top_received = rp->top_received;
+
 	if (chunkbufp) {
 
 	  int allocsize = -1;
@@ -57,6 +60,10 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 
 	  for ( ; *msgheaders; ++msgheaders ) {
 	    char *s = *msgheaders;
+	    if (top_received) {
+	      s = top_received;
+	      top_received = NULL;
+	    }
 	    while (*s) {
 	      char *p = strchr(s, '\n');
 	      int linelen = p ? (p - s) : strlen(s);
@@ -123,6 +130,10 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 
 	  for (;*msgheaders && !sferror(fp); ++msgheaders) {
 	    char *s = *msgheaders;
+	    if (top_received) {
+	      s = top_received;
+	      top_received = NULL;
+	    }
 	    while (*s) {
 	      char *p = strchr(s, '\n');
 	      int linelen = p ? (p - s) : strlen(s);
