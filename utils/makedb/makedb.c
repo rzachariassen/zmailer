@@ -50,6 +50,9 @@ int   append_mode = 0;
 int   lc_key	  = 0;
 int   uc_key      = 0;
 int   silent      = 0;
+int   aliasinput  = 0;
+int   policyinput = 0;
+
 
 /* extern char *strchr(); */
 
@@ -106,6 +109,37 @@ int err;
 }
 
 
+/* KK() and KA() macroes are at "policy.h" */
+
+static char *showkey __((const char *key));
+static char *showkey(key)
+const char *key;
+{
+    static char buf[256];
+
+    if (key[1] != P_K_IPv4 && key[1] != P_K_IPv6) {
+	if (strlen(key+2) > (sizeof(buf) - 200))
+	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), "<too long name>");
+	else
+	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), key+2);
+    } else
+      if (key[1] == P_K_IPv4)
+	sprintf(buf,"%d/%s/%u.%u.%u.%u/%d",
+		key[0], KK(key[1]),
+		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
+		key[6] & 0xff);
+      else
+	sprintf(buf,"%d/%s/%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x/%d",
+		key[0], KK(key[1]),
+		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
+		key[6] & 0xff, key[7] & 0xff, key[8] & 0xff, key[9] & 0xff,
+		key[10] & 0xff, key[11] & 0xff, key[12] & 0xff, key[13] & 0xff,
+		key[14] & 0xff, key[15] & 0xff, key[16] & 0xff, key[17] & 0xff,
+		key[18] & 0xff);
+    return buf;
+}
+
+
 static int store_db __((void *, const int, const int, const int, const void *, const int, const void *, const int));
 
 static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
@@ -125,9 +159,14 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 #endif
 	int rc = -2;
 
-	if (verbose)
-	  fprintf(stderr, "Storing key='%s' data='%s'\n",
-		  (const char*)t, (const char *)s);
+	if (verbose) {
+	  if (policyinput) {
+	    const char *k = (const char *)t;
+	    fprintf(stderr, "Storing key='%s' data=...\n", showkey(k));
+	  } else
+	    fprintf(stderr, "Storing key='%s' data='%s'\n",
+		    (const char*)t, (const char *)s);
+	}
 
 #ifdef HAVE_NDBM_H
 	if (typ == 1) {
@@ -271,36 +310,6 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 
 extern int parsepolicykey __((void *, char *));
 extern int parseattributepair __((void *, char *, char *));
-
-/* KK() and KA() macroes are at "policy.h" */
-
-static char *showkey __((const char *key));
-static char *showkey(key)
-const char *key;
-{
-    static char buf[256];
-
-    if (key[1] != P_K_IPv4 && key[1] != P_K_IPv6) {
-	if (strlen(key+2) > (sizeof(buf) - 200))
-	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), "<too long name>");
-	else
-	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), key+2);
-    } else
-      if (key[1] == P_K_IPv4)
-	sprintf(buf,"%d/%s/%u.%u.%u.%u/%d",
-		key[0], KK(key[1]),
-		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
-		key[6] & 0xff);
-      else
-	sprintf(buf,"%d/%s/%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x/%d",
-		key[0], KK(key[1]),
-		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
-		key[6] & 0xff, key[7] & 0xff, key[8] & 0xff, key[9] & 0xff,
-		key[10] & 0xff, key[11] & 0xff, key[12] & 0xff, key[13] & 0xff,
-		key[14] & 0xff, key[15] & 0xff, key[16] & 0xff, key[17] & 0xff,
-		key[18] & 0xff);
-    return buf;
-}
 
 /* Scan over quoted string with embedded white spaces, or
    in case the object does not start with a double quote,
@@ -775,9 +784,6 @@ char *argv[];
     char *dbtype = NULL;
     void *dbf = NULL;
     char *argv0 = argv[0];
-
-    int aliasinput = 0;
-    int policyinput = 0;
 
     progname = argv[0];
 
