@@ -465,6 +465,13 @@ main(argc, argv)
 	setlocale(LC_ALL, "C");
 #endif
 
+	/* This assignment MUST precede readzenv() ! */
+	progname = strrchr(argv[0], '/');
+	if (progname == NULL)
+	  progname = argv[0];
+	else
+	  ++progname;
+
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
 
 	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
@@ -521,8 +528,6 @@ main(argc, argv)
 	}
 #endif
 	
-
-	progname = PROGNAME;
 	errflg = 0;
 	channel = CHANNEL;
 	wantreserved = debug = statusreport = 0;

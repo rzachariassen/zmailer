@@ -508,6 +508,13 @@ main(argc, argv)
 #endif
 
 
+	/* This assignment MUST precede readzenv() ! */
+	progname = strrchr(argv[0], '/');
+	if (progname == NULL)
+	  progname = argv[0];
+	else
+	  ++progname;
+
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
 
 	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
@@ -517,12 +524,6 @@ main(argc, argv)
 
 	atexit(MIBcountCleanup);
 
-
-	progname = strrchr(argv[0], '/');
-	if (progname == NULL)
-	  progname = argv[0];
-	else
-	  ++progname;
 
 	cs = getzenv("MAILBOX");
 	if (cs != NULL) {

@@ -275,6 +275,13 @@ main(argc, argv)
 	setlocale(LC_ALL, "C");
 #endif
 
+	/* This assignment MUST precede readzenv() ! */
+	progname = strrchr(argv[0], '/');
+	if (progname == NULL)
+	  progname = argv[0];
+	else
+	  ++progname;
+
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
 
 	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
@@ -285,10 +292,7 @@ main(argc, argv)
 	atexit(MIBcountCleanup);
 
 
-	if ((progname = strrchr(argv[0], '/')) == NULL)
-	  progname = argv[0];
-	else
-	  ++progname;
+
 	errflg = 0;
 	host = channel = NULL;
 	myhostname[0] = 0;

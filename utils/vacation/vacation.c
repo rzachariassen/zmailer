@@ -195,6 +195,8 @@ main(argc, argv)
 	/* ZMailer thingies.. */
 	char *zenv = getenv("ZCONFIG");
 
+	progname = argv[0];
+
 	if (zenv  ) readzenv(zenv);
 	zenv_vinterval = getzenv("VACATIONINTERVAL");
 
@@ -206,8 +208,6 @@ main(argc, argv)
 	inrcpt = getenv("INRCPT");
 	if (getenv("MSGSPOOLID"))
 	  msgspoolid = getenv("MSGSPOOLID");
-
-	progname = argv[0];
 
 	/* process arguments */
 	opterr = iflag = 0;

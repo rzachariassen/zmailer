@@ -162,6 +162,13 @@ main(argc, argv)
 
 	SIGNAL_IGNORE(SIGPIPE);
 
+	/* This assignment MUST precede readzenv() ! */
+	progname = strrchr(argv[0], '/');
+	if (progname == NULL)
+	  progname = argv[0];
+	else
+	  ++progname;
+
 	if (getenv("ZCONFIG")) readzenv(getenv("ZCONFIG"));
 
 
@@ -171,13 +178,6 @@ main(argc, argv)
 	MIBMtaEntry->taexpi.TaProcCountG    += 1;
 
 	atexit(MIBcountCleanup);
-
-
-	progname = strrchr(argv[0], '/');
-	if (progname == NULL)
-	  progname = argv[0];
-	else
-	  ++progname;
 
 	errflg = 0;
 	logfile = NULL;
