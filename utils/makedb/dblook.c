@@ -98,19 +98,17 @@ const char *key;
     static char buf[256];
 
     if (key[1] != P_K_IPv4 && key[1] != P_K_IPv6) {
-	if (strlen(key+2) > (sizeof(buf) - 200))
-	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), "<too long name>");
+	if (strlen(key+2) > (sizeof(buf) - 20))
+	    sprintf(buf,"%s", "<too long name>");
 	else
-	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), key+2);
+	    sprintf(buf,"%s", key+2);
     } else
       if (key[1] == P_K_IPv4)
-	sprintf(buf,"%d/%s/%u.%u.%u.%u/%d",
-		key[0], KK(key[1]),
+	sprintf(buf,"[%u.%u.%u.%u]/%d",
 		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
 		key[6] & 0xff);
       else
-	sprintf(buf,"%d/%s/%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x/%d",
-		key[0], KK(key[1]),
+	sprintf(buf,"[ipv6.%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]/%d",
 		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
 		key[6] & 0xff, key[7] & 0xff, key[8] & 0xff, key[9] & 0xff,
 		key[10] & 0xff, key[11] & 0xff, key[12] & 0xff, key[13] & 0xff,
@@ -126,7 +124,9 @@ static char *showattr(key)
 const char *key;
 {
     static char buf[500];
-    sprintf(buf,"%d/%s/'%s'", key[0], KA(key[1]), key+2);
+    char *name = KA(key[1]);
+    if (key[1] == P_A_ALIAS) name = "=";
+    sprintf(buf,"%s %s",  name, key+2);
     return buf;
 }
 
