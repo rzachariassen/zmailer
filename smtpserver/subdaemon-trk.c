@@ -316,7 +316,11 @@ static int count_excess_ipv4( state, ipv4addr )
      unsigned int ipv4addr;
 {
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
-	if (!reg) return 0;    /*  not alloced!  */
+	if (!reg) {
+	  reg = alloc_ipv4_reg( state, ipv4addr );
+	  if (reg) reg->mails = 0;
+	}
+	if (!reg) return 0;    /*  alloc failed!  */
 
 	++ reg->excesses;
 	++ reg->mails;
@@ -332,7 +336,11 @@ static int count_authfails_ipv4( state, ipv4addr, incr )
      int incr;
 {
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
-	if (!reg) return 0;    /*  not alloced!  */
+	if (!reg) {
+	  reg = alloc_ipv4_reg( state, ipv4addr );
+	  if (reg) reg->mails = 0;
+	}
+	if (!reg) return 0;    /*  alloc failed!  */
 
 	reg->afails += incr;
 
@@ -345,7 +353,11 @@ static int count_daborts_ipv4( state, ipv4addr, incr )
      int incr;
 {
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
-	if (!reg) return 0;    /*  not alloced!  */
+	if (!reg) {
+	  reg = alloc_ipv4_reg( state, ipv4addr );
+	  if (reg) reg->mails = 0;
+	}
+	if (!reg) return 0;    /*  alloc failed!  */
 
 	reg->aborts += 1;
 	reg->recipients += incr;
