@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "12 Oct 2000"
+.TH SCHEDULER 8 "17 Nov 2000"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -1015,14 +1015,15 @@ Fields are:
 .ta 0.5i
 .nf
 	1) filepath under $POSTOFFICE/transport/
-	2) error address in brackets
-	3) recipient line offset within the control file
-	4) message expiry time (time_t)
-	5) next wakeup time (time_t)
-	6) last feed time (time_t)
-	7) count of attempts at the delivery
-	8) "retry in NNN" or a pending on "channel"/"thread"
-	9) possible diagnostic message from previous delivery attempt
+	2) line number within a group, 0 starts a group
+	3) error address in brackets
+	4) recipient line offset within the control file
+	5) message expiry time (time_t)
+	6) next wakeup time (time_t)
+	7) last feed time (time_t)
+	8) count of attempts at the delivery
+	9) "retry in NNN" or a pending on "channel"/"thread"
+	10) possible diagnostic message from previous delivery attempt
 .fi
 .sp
 .IP ETRN\ etrn\_string

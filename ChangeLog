@@ -1,5 +1,10 @@
 2000-11-17  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* scheduler/threads.c, scheduler/mailq.c:
+	    Some experiments of making the  mailq-v2  mode mailq
+	    to show same things as the old version was able with
+	    'verbose' mode turned on.
+
 	* **/Makefile.in:
 	    Changes on what we refer at LIBDEB= definitions.
 

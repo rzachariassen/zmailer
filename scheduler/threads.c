@@ -1731,6 +1731,8 @@ void thread_detail_report(fp,mqmode,channel,host)
 		sfprintf(fp, "%s/%s", cfpdirname(cfp->dirind), cfp->mid);
 	      else
 		sfprintf(fp, "%s", cfp->mid);
+	      /* How manyth in a group ? */
+	      sfprintf(fp, "\t%d", i);
 	      /* Sender index -- or sender address */
 	      sfprintf(fp, "\t%s", cfp->erroraddr);
 	      /* Recipient offset */

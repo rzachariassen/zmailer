@@ -73,6 +73,8 @@ int	D_alloc = 0;
 #include "libz.h"
 #include "libc.h"
 
+#include "ta.h"
+
 extern char *qoutputfile;
 extern int errno, pokedaemon();
 
@@ -1182,6 +1184,94 @@ repscan(spl)
 	return 0;
 }
 
+static struct ctlfile *readmq2cfp __((const char *fname));
+static struct ctlfile *readmq2cfp(fname)
+     const char *fname;
+{
+	struct ctlfile *cfp;
+	int i, fd;
+	struct stat stbuf;
+	char *s, *s0;
+
+	sprintf(path, "%s/transport/%s", postoffice, fname);
+	if (lstat(path, &stbuf) != 0) return NULL;
+
+	cfp = malloc(sizeof(*cfp) + stbuf.st_size + 20);
+	if (!cfp) return NULL;
+
+	fd = open(path,O_RDONLY,0);
+	if (fd < 0) {
+	  /* whatever reason */
+	  free(cfp);
+	  return NULL;
+	}
+
+	s0 = s = (char *)cfp+1;
+	memset(cfp, 0, sizeof(*cfp));
+	cfp->contents = s0;
+
+	i = read(fd, s0, stbuf.st_size);
+	close(fd);
+	if (i != stbuf.st_size) {
+	  /* whatever reason.. */
+	  free(cfp);
+	  return NULL;
+	}
+
+	s0[i] = 0;
+
+	cfp->nlines = stbuf.st_size; /* reuse the variable .. */
+
+	for (;i > 0;++s, --i) {
+	  if (*s == '\n') {
+	    char c;
+	    char *p;
+	    --i; ++s;
+	    c = *s;
+	    --i; ++s;
+	    --i; ++s;
+	    if (i > 0)
+	      p = memchr(s, '\n', i);
+	    else
+	      break;
+	    switch(c) {
+	    case _CF_FORMAT:
+	      *p = 0;
+	      cfp->format = 0;
+	      sscanf(s, "%i", &cfp->format);
+	      s = p;
+	      break;
+	    case _CF_LOGIDENT:
+	      cfp->logident = s;
+	      *p = 0;
+	      s = p;
+	      break;
+	    case _CF_SENDER:
+	      *p = 0;
+	      s = p;
+	      break;
+	    case _CF_RECIPIENT:
+	      *p = 0;
+	      s = p;
+	      break;
+	    case _CF_MSGHEADERS:
+	      for (;i > 1; ++s, --i) {
+		if (s[0] == '\n' && s[1] == '\n') {
+		  *s = 0;
+		  break;
+		}
+	      }
+	      break;
+	    default:
+	      break;
+	    }
+	  }
+	}
+
+	return cfp;
+}
+
+
 void query2 __((FILE *, FILE*));
 void query2(fpi, fpo)
 	FILE *fpi, *fpo;
@@ -1193,6 +1283,7 @@ void query2(fpi, fpo)
 	char *buf = NULL;
 	MD5_CTX CTX;
 	unsigned char digbuf[16];
+	struct ctlfile *cfp = NULL;
 
 	/* Authenticate the query - get challenge */
 	bufsize = 0;
@@ -1336,7 +1427,7 @@ void query2(fpi, fpo)
 
 	    for (;;) {
 	      int j;
-	      char *split[10];
+	      char *split[11], *s, *ocp;
 	      char timebuf[30];
 	      bufsize = 0;
 	      if (GETLINE(buf, bufsize, bufspace, fpi))
@@ -1353,55 +1444,122 @@ void query2(fpi, fpo)
 
 	      /* Array elts:
 		 0) filepath under $POSTOFFICE/transport/
-		 1) error address in brackets
-		 2) recipient line offset within the control file
-		 3) message expiry time (time_t)
-		 4) next wakeup time (time_t)
-		 5) last feed time (time_t)
-		 6) count of attempts at the delivery
-		 7) "retry in NNN" or a pending on "channel"/"thread"
-		 8) possible diagnostic message from previous delivery attempt
+		 1) number WITHIN a group of recipients
+		 2) error address in brackets
+		 3) recipient line offset within the control file
+		 4) message expiry time (time_t)
+		 5) next wakeup time (time_t)
+		 6) last feed time (time_t)
+		 7) count of attempts at the delivery
+		 8) "retry in NNN" or a pending on "channel"/"thread"
+		 9) possible diagnostic message from previous delivery attempt
 	      */
 
-	      for (j = 0; b && j < 9; ++j) {
+	      for (j = 0; b && j < 10; ++j) {
 		split[j] = b;
+		if (j == 1) {
+		  /* The 'number within group' got added here
+		     after the rest of the interface was working. */
+		  if (!('0' <= *b && *b <= '9')) {
+		    split[1] = "0";
+		    ++j;
+		    split[j] = b;
+		  }
+		}
 		b = strchr(b ? b : "", '\t');
 		if (b) *b++ = 0;
 	      }
 	      
-	      if (j != 9) {
+	      if (j != 10) {
 		fprintf(stderr,"Communication error! Malformed data entry!\n");
 		continue;
 	      }
 
-	      printf("\t%s: (", split[0]);
+	      j = atoi(split[1]);
 
-	      *timebuf = 0;
-	      saytime((long)(atol(split[3]) - now), timebuf, 1);
+	      if (j == 0) {
 
-	      printf("%s tries, expires in %s", split[6], timebuf);
+		printf("\t%s: (", split[0]);
 
-	      printf(") %s\n", split[8]);
+		*timebuf = 0;
+		saytime((long)(atol(split[4]) - now), timebuf, 1);
 
-	      if (verbose) {
-		/* XXX: Pick message file control data to present old-style
-		   verbose report */
-		/* XXX: printf("\t  id\t%s", ... );
-		   XXX: printf("...\n"); */
-		printf("\t  from\t%s\n", *split[1] ? split[1] : "<>");
-		/* XXX: TO line ... */
+		printf("%s tries, expires in %s)", split[7], timebuf);
+
+		if (!verbose)
+		  printf(" %s", split[9]);
+
+		printf("\n");
 	      }
 
-	    }
+	      if (verbose) {
+		if (j == 0) {
+		  if (cfp) free(cfp);
+		  cfp = readmq2cfp(split[0]);
+		}
+		if (cfp) {
+		  if (j == 0) {
+		    /* First recipient in the group */
 
-	  }
+		    if (cfp->logident) {
+		      printf("\t  id\t%s, ", cfp->logident);
+		    } else if (verbose > 1) {
+		      printf("\t\t");
+		    }
+		    if (verbose > 1) {
+		      printf("%ld bytes", (long)cfp->nlines);
+		    }
+		    printf("\n");
 
-	}
+		    printf("\t  from\t%s\n", *split[1] ? split[1] : "<>");
+		  }
+
+		  /* XXX: TO line ... */
+
+		  s = cfp->contents + atoi(split[3]);
+		  if (s < cfp->contents || s > (cfp->contents + cfp->nlines))
+		    continue; /* BAD! */
+		  s += 2;
+
+		  if (*s == ' ' || (*s >= '0' && *s <= '9'))
+		    s += _CFTAG_RCPTPIDSIZE;
+
+		  if ((cfp->format & _CF_FORMAT_DELAY1) || *s == ' ' ||
+		      (*s >= '0' && *s <= '9')) {
+		    /* Newer DELAY data slot - _CFTAG_RCPTDELAYSIZE bytes */
+		    s += _CFTAG_RCPTDELAYSIZE;
+		  }
+
+		  s = skip821address(s); /* skip channel */
+		  while (*s == ' ' || *s == '\t') ++s;
+		  s = skip821address(s); /* skip host */
+		  while (*s == ' ' || *s == '\t') ++s;
+
+		  ocp = s;
+		  s = skip821address(s); /* skip user */
+		  *s++ = 0;
+		  fprintf(stdout,"\t");
+		  if (i == 0)
+		    fprintf(stdout,"  to");
+		  fprintf(stdout,"\t%s\n",ocp);
+
+
+		} /* have cfp */
+
+	      } /* verbose */
+
+	    } /* all recipients towards each host */
+	    
+	  } /* all channel/host pairs */
+	  
+	} /* No -Q processing */
+
+	free(cfp);
 }
 
 void
 report(fpi,fpo)
-	FILE *fpi, *fpo;
+     FILE *fpi, *fpo;
 {
 	int rc = parse(fpi);
 	if (rc == 0)
@@ -1447,7 +1605,7 @@ report(fpi,fpo)
 
 void
 printaddrs(v)
-	struct vertex *v;
+     struct vertex *v;
 {
 	register char *cp;
 	int	i, fd;
@@ -1476,7 +1634,7 @@ printaddrs(v)
 	  errno = 0;
 	  if (read(fd, v->cfp->contents, stbuf.st_size) < stbuf.st_size){
 	    fprintf(stdout,"\t\tread(%d): %s\n", (int)stbuf.st_size,
-		   errno == 0 ? "failed" : strerror(errno));
+		    errno == 0 ? "failed" : strerror(errno));
 	    close(fd);
 	    return;
 	  }
@@ -1488,6 +1646,14 @@ printaddrs(v)
 	      if (*++cp == _CF_SENDER)
 		break;
 	      switch (*cp) {
+	      case _CF_FORMAT:
+		++cp;
+		v->cfp->format = 0;
+		sscanf(cp,"%i",&v->cfp->format);
+		if (v->cfp->format & (~_CF_FORMAT_KNOWN_SET))
+		  fprintf(stdout, "Unsupported SCHEDULER file format flags seen: 0x%x at file '%s'",
+			  v->cfp->format, path);
+		break;
 	      case _CF_LOGIDENT:
 		v->cfp->logident = cp + 2;
 		break;
@@ -1545,25 +1711,21 @@ printaddrs(v)
 	  cp = v->cfp->contents + v->index[i] + 2;
 	  if (*cp == ' ' || (*cp >= '0' && *cp <= '9'))
 	    cp += _CFTAG_RCPTPIDSIZE;
-	  while (!ISSPACE(*cp)) ++cp;
-	  while ( ISSPACE(*cp)) ++cp;
-	  while (!ISSPACE(*cp)) ++cp;
-	  while ( ISSPACE(*cp)) ++cp;
-	  ocp = cp;
-	  while (*cp != '\0' && *cp != '\n')
-	    ++cp;
-	  if (*cp-- == '\n') {
-	    while (!ISSPACE(*cp)) --cp;
-	    while ( ISSPACE(*cp)) --cp;
-	    if (cp >= ocp)
-	      *++cp = '\0';
-	    else {
-	      cp = ocp;
-	      while (*cp != '\0' && *cp != '\n')
-		++cp;
-	      *cp = '\0';
-	    }
+
+	  if ((v->cfp->format & _CF_FORMAT_DELAY1) || *cp == ' ' ||
+	      (*cp >= '0' && *cp <= '9')) {
+	    /* Newer DELAY data slot - _CFTAG_RCPTDELAYSIZE bytes */
+	    cp += _CFTAG_RCPTDELAYSIZE;
 	  }
+
+	  cp = skip821address(cp); /* skip channel */
+	  while (*cp == ' ' || *cp == '\t') ++cp;
+	  cp = skip821address(cp); /* skip host */
+	  while (*cp == ' ' || *cp == '\t') ++cp;
+
+	  ocp = cp;
+	  cp = skip821address(cp); /* skip user */
+	  *cp++ = 0;
 	  fprintf(stdout,"\t");
 	  if (i == 0)
 	    fprintf(stdout,"  to");
