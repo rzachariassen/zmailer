@@ -2744,16 +2744,20 @@ int insecure;
     }
     if (SS->mfp != NULL) {
 	mail_abort(SS->mfp);
-	policytest(&SS->policystate, POLICY_DATAABORT,
-		   NULL, SS->rcpt_count, NULL);
 	SS->mfp = NULL;
 	tell = lseek(0, 0, SEEK_CUR);
 	reporterr(SS, tell, "session terminated");
-    } else if (logfp != NULL) {
+    }
+    if (logfp != NULL) {
 	type(NULL,0,NULL,"Session closed w/o QUIT; read() errno=%d",
 	     SS->s_readerrno);
 	fflush(logfp);
     }
+
+    /* Report failed RCPT counts. */
+    policytest(&SS->policystate, POLICY_DATAABORT,
+	       NULL, SS->rcpt_count, NULL);
+
     if (logfp != NULL && SS->tarpit > tarpit_initial ) {
          char *ts = rfc822date(&now);
          fprintf(logfp, "%s#\ttar_pit with delay %04d ends at %s", logtag, SS->tarpit_cval, ts );
