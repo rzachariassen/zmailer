@@ -461,7 +461,7 @@ hdr_print(h, fp)
 
 		  fprintf(fp, "%s:", h->h_pname);
 		  for (t = h->h_lines; t != NULL; t = t->t_next) {
-		    char *p = t->t_pname;
+		    const char *p = t->t_pname;
 		    while (*p == ' ' || *p == '\t' ||
 			   *p == '\n' || *p == '\r') {
 		      putc(*p, fp);
