@@ -462,7 +462,7 @@ run_grpmems(argc, argv)
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s groupname\n", argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 	grp = zgetgrnam(argv[1]);
 	if (grp == NULL) {
@@ -1828,7 +1828,7 @@ run_homedir(argc, argv)
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s name\n", argv[0]);
-		return 1;
+		return EX_USAGE;
 	}
 
 	pw = zgetpwnam(argv[1]);
