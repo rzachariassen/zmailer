@@ -1155,6 +1155,39 @@ deliver(SS, dp, startrp, endrp)
 	}
 
 
+	if (SS->ehlo_capabilities & ESMTP_SIZEOPT) {
+
+	  /* We can do this SIZE option analysis without trying to
+	     feed this in the MAIL command */
+
+	  if (SS->ehlo_sizeval > 0 &&
+	      startrp->desc->msgsizeestimate > SS->ehlo_sizeval) {
+
+	    /* Reuse SMTPbuf for writing an error report
+	       explaining things a bit.. */
+
+	    sprintf(SMTPbuf, "smtp; 552 (Current message size %d exceeds limit given by the remote system: %d)",
+		    (int)startrp->desc->msgsizeestimate,
+		    (int)SS->ehlo_sizeval);
+
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog, "%s\n", SMTPbuf+6);
+	    
+	    time(&endtime);
+	    notary_setxdelay((int)(endtime-starttime));
+	    for (rp = startrp; rp && rp != endrp; rp = rp->next)
+	      if (rp->status == EX_OK) {
+		/* NOTARY: address / action / status / diagnostic / wtt */
+		notaryreport(rp->addr->user, FAILED,
+			     "5.3.4 (Message size exceeds limit given by remote system)", SMTPbuf);
+		diagnostic(rp, EX_UNAVAILABLE, 0, "\r\r%s", SMTPbuf+6);
+	      }
+
+	    return EX_UNAVAILABLE;
+	  }
+	}
+
+
     more_recipients:
 	if (more_rp != NULL) {
 	  startrp = more_rp;
@@ -1183,7 +1216,7 @@ deliver(SS, dp, startrp, endrp)
 	   adding msg-body size to the largest known header size,
 	   though excluding possible header and body rewrites.. */
 	if (SS->ehlo_capabilities & ESMTP_SIZEOPT) {
-	  sprintf(s," SIZE=%ld",startrp->desc->msgsizeestimate);
+	  sprintf(s, " SIZE=%ld", startrp->desc->msgsizeestimate);
 	  s += strlen(s);
 	}
 	/* DSN parameters ... */
@@ -1628,7 +1661,7 @@ appendlet(SS, dp, convertmode)
 	int lastwasnl = 0;
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-	int bufferfull;
+	int bufferfull = 0;
 	char iobuf[BUFSIZ];
 	FILE *mfp = NULL;
 #endif
@@ -2144,7 +2177,7 @@ const char *buf;
 		   strcmp(buf,"SIZE") == 0) {
 	  SS->ehlo_capabilities |= ESMTP_SIZEOPT;
 	  SS->ehlo_sizeval = -1;
-	  if (buf[5] == ' ')
+	  if (buf[4] == ' ')
 	    sscanf(buf+5,"%ld",&SS->ehlo_sizeval);
 	} else if (strncmp(buf,"X-RCPTLIMIT ",12)==0) {
 	  int nn = atoi(buf+12);
@@ -2221,8 +2254,9 @@ smtpopen(SS, host, noMX)
 	  if (SS->esmtp_on_banner && i == EX_OK ) {
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,
-		      "  EHLO response flags = 0x%02x, rcptlimit=%d\n",
-		      SS->ehlo_capabilities, SS->rcpt_limit);
+		      "  EHLO response flags = 0x%02x, rcptlimit=%d, sizeopt=%d\n",
+		      SS->ehlo_capabilities, SS->rcpt_limit,
+		      SS->ehlo_sizeval);
 	  } else {
 	    if (SS->myhostname)
 	      sprintf(SMTPbuf, "HELO %.200s", SS->myhostname);
@@ -2944,7 +2978,7 @@ if (SS->verboselog)
 	gotalarm = 0;
 
 	if (setjmp(alarmjmp) == 0) {
-	  if (connect(s, sa, addrsiz) >= 0) {
+	  if (connect(s, sa, addrsiz) == 0) {
 	    int on = 1;
 	    /* setreuid(0,0); */
 	    *fdp = s;
@@ -2971,24 +3005,25 @@ if (SS->verboselog)
 #if defined(AF_INET6) && defined(INET6)
 	    if (upeername.sai6.sin6_family == AF_INET6) {
 	      int len = strlen(SS->ipaddress);
-	      strcat(SS->ipaddress, "|");
+	      char *s = SS->ipaddress + len;
+	      strcat(s++, "|");
 	      inet_ntop(AF_INET6, &upeername.sai6.sin6_addr,
-			SS->ipaddress+1+len, sizeof(SS->ipaddress)-len-9);
-	      sprintf(SS->ipaddress + strlen(SS->ipaddress+len), "|%d",
-		      ntohs(upeername.sai6.sin6_port));
+			s, sizeof(SS->ipaddress)-len-9);
+		s = s + strlen(s);
+	      sprintf(s, "|%d", ntohs(upeername.sai6.sin6_port));
 	    } else
 #endif
 	      if (upeername.sai.sin_family == AF_INET) {
 		int len = strlen(SS->ipaddress);
-		strcat(SS->ipaddress, "|");
+		char *s = SS->ipaddress + len;
+		strcat(s++, "|");
 		inet_ntop(AF_INET, &upeername.sai.sin_addr,
-			  SS->ipaddress+1+len, sizeof(SS->ipaddress)-len-9);
-		sprintf(SS->ipaddress + strlen(SS->ipaddress+len), "|%d",
-			ntohs(upeername.sai.sin_port));
-	      } else
-		{
-		  strcat(SS->ipaddress, "|UNKNOWN-LOCAL-ADDRESS");
-		}
+			  s, sizeof(SS->ipaddress)-len-9);
+		s = s + strlen(s);
+		sprintf(s, "|%d", ntohs(upeername.sai.sin_port));
+	      } else {
+		strcat(SS->ipaddress, "|UNKNOWN-LOCAL-ADDRESS");
+	      }
 
 	    notary_setwttip(SS->ipaddress);
 
