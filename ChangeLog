@@ -1,5 +1,9 @@
 2002-07-11  Matti Aarnio  <mea@zmailer.org>
 
+	* sfio2002/*
+	    Entire subtree -- SFIO version 2002.1
+	    Basic injection, no adaptations yet.
+
 	* include/libz.h, lib/selfaddrs.c, lib/zgetifaddress.c,
 	  router/libdb/selfmatch.c, smtpserver/mxverify.c, 
 	  smtpserver/policytest.c, smtpserver/smtpserver.h,
