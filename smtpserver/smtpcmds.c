@@ -281,20 +281,29 @@ const char *buf, *cp;
 						     in force, else:
 						     The FIXED maximum */
 	type(SS, -250, NULL, sizebuf);
-	type(SS, -250, NULL, "8BITMIME");
-	type(SS, -250, NULL, "PIPELINING");
-	type(SS, -250, NULL, "CHUNKING");	/* RFC 1830: BDAT */
+	if (mime8bitok)
+	  type(SS, -250, NULL, "8BITMIME");
+	if (pipeliningok)
+	  type(SS, -250, NULL, "PIPELINING");
+	if (chunkingok)
+	  type(SS, -250, NULL, "CHUNKING");	/* RFC 1830: BDAT */
 	type(SS, -250, NULL, "ENHANCEDSTATUSCODES");
 	if (expncmdok && STYLE(SS->cfinfo, 'e'))
 	  type(SS, -250, NULL, "EXPN");
 	if (vrfycmdok && STYLE(SS->cfinfo, 'v'))
 	  type(SS, -250, NULL, "VRFY");
-	type(SS, -250, NULL, "DSN");
-#if 1 /* This causes problems for the router, will fix router
+	if (dsn_ok)
+	  type(SS, -250, NULL, "DSN");
+
+#if 1 /* This may cause problems for the router, will fix router
 	 performance first, then enable this again.. */
-	type(SS, -250, NULL, "X-RCPTLIMIT 10000");	/* VERY HIGH figure, normal is 100 */
+
+	if (rcptlimitcnt > 100)
+	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
 #endif
-	type(SS, -250, NULL, "ETRN");
+
+	if (etrn_ok)
+	  type(SS, -250, NULL, "ETRN");
 	type(SS, 250, NULL, "HELP");
 	SS->with_protocol = WITH_ESMTP;
     }
@@ -439,7 +448,7 @@ int insecure;
 	    if (strict_protocol) break;
 	    if (strict && !sloppy) break;
 	}
-	if (CISTREQN("RET=", s, 4)) {
+	if (dsn_ok && CISTREQN("RET=", s, 4)) {
 	    if (drpt_ret) {
 		type(SS, 501, m554, "RET-param double defined!");
 		return;
@@ -456,7 +465,7 @@ int insecure;
 	    drptret_len = (s - drpt_ret);
 	    continue;
 	}
-	if (CISTREQN("BODY=", s, 5)) {
+	if (mime8bitok && CISTREQN("BODY=", s, 5)) {
 	    /* Actually we do not use this data... */
 	    s += 5;
 	    if (bodytype != NULL) {
@@ -505,8 +514,8 @@ int insecure;
 	    }
 	    continue;
 	}
-	/* IETF-NOTARY  SMTP-DRPT extensions */
-	if (CISTREQN("ENVID=", s, 6)) {
+	/* IETF-NOTARY  SMTP-DSN extensions */
+	if (dsn_ok && CISTREQN("ENVID=", s, 6)) {
 	    if (drpt_envid != NULL) {
 		type(SS, 501, m554, "ENVID double definition!");
 		rc = 1;
@@ -868,8 +877,8 @@ const char *buf, *cp;
 	    if (strict_protocol) break;
 	    if (strict && !sloppy) break;
 	}
-	/* IETF-NOTARY  SMTP-RCPT-DRPT extensions */
-	if (CISTREQN("NOTIFY=", s, 7)) {
+	/* IETF-NOTARY  SMTP-DSN extensions */
+	if (dsn_ok && CISTREQN("NOTIFY=", s, 7)) {
 	    if (drpt_notify) {
 		type(SS, 501, m554, "NOTIFY-param double defined!");
 		return;
@@ -896,7 +905,7 @@ const char *buf, *cp;
 	    notifylen = s - drpt_notify;
 	    continue;
 	}
-	if (CISTREQN("ORCPT=", s, 6)) {
+	if (dsn_ok && CISTREQN("ORCPT=", s, 6)) {
 	    if (drpt_orcpt) {
 		type(SS, 501, m554, "ORCPT-param double defined!");
 		return;
@@ -911,10 +920,14 @@ const char *buf, *cp;
 	    orcptlen = s - drpt_orcpt;
 	    continue;
 	}
-	type(SS, 555, "Unknown RCPT TO:<> parameter: %s", s);
+	type(SS, 555, "5.5.4", "Unknown RCPT TO:<> parameter: %s", s);
 	return;
     }
 
+    if (SS->rcpt_count >= rcptlimitcnt) {
+      type(SS, 450, "4.5.0", "Too many recipients in one go!");
+      return;
+    }
 
     RFC821_822QUOTE(cp, newcp, addrlen);
 

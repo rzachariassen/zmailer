@@ -22,10 +22,12 @@ static int child_poll_interval = 30;
 static time_t child_now = 0;
 
 
-int childsameip(addr)
+int childsameip(addr, childcntp)
 Usockaddr *addr;
+int *childcntp;
 {
     int i, cnt = 1; /* Ourself */
+    int childcnt = 1; /* Ourself */
 
     time(&child_now);
 
@@ -47,7 +49,7 @@ Usockaddr *addr;
       }
       if (childs[i].pid != 0 &&
 	  /* PID non zero */
-	  addr->v4.sin_family == childs[i].addr.v4.sin_family)
+	  addr->v4.sin_family == childs[i].addr.v4.sin_family) {
 	    /* Same AddressFamily */
 	if ((addr->v4.sin_family == AF_INET &&
 	     /* Address is IPv4 one */
@@ -60,8 +62,11 @@ Usockaddr *addr;
 #endif
 	     )
 	  ++cnt;
+      }
+      ++childcnt;
     }
-  
+
+    *childcntp = childcnt;
     return cnt;
 }
 

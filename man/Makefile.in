@@ -5,7 +5,7 @@ VPATH = @srcdir@
 #prefix=		@prefix@
 MANDIR=		$(prefix)@MANDIR@
 TOPDIR=		..
-S=		$(srcdir)/man
+S=		$(TOPDIR)/$(srcdir)/man
 INSTALL=	@INSTALL@
 
 MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
@@ -19,7 +19,7 @@ MAN5ps= aliases.5.ps
 MAN8ps=	errormail.8.ps hold.8.ps router.8.ps scheduler.8.ps sendmail.8.ps sm.8.ps smtp.8.ps smtpserver.8.ps manual-expirer.8.ps expirer.8.ps mprobe.8.ps mailbox.8.ps
 
 FRC:
-	@echo "make install MANDIR=XXXX"
+	@echo "make install MANDIR=/usr/man"
 	@echo "make groff"
 	@echo "make clean"
 

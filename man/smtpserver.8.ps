@@ -1,12 +1,12 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.11
-%%CreationDate: Thu Aug  6 23:38:43 1998
+%%CreationDate: Fri Mar 19 17:10:00 1999
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
 %%+ font Courier
 %%DocumentSuppliedResources: procset grops 1.11 0
-%%Pages: 4
+%%Pages: 6
 %%PageOrder: Ascend
 %%Orientation: Portrait
 %%EndComments
@@ -210,15 +210,15 @@ BP
 (VER\(8\))-.8 E/F1 9/Times-Bold@0 SF -.18(NA)72 84 S(ME).18 E F0
 (smtpserv)108 96 Q(er \255 zmailer SMTP serv)-.15 E(er)-.15 E F1
 (SYNOPSIS)72 112.8 Q/F2 10/Times-Bold@0 SF(smtpser)108 124.8 Q -.1(ve)
--.1 G(r).1 E F0([)2.768 E F2(\25546aign)2.768 E(vBV)-.4 E F0 2.768(][)
-2.768 G F2<ad70>A/F3 10/Times-Italic@0 SF(port)2.768 E F0 2.768(][)2.768
-G F2<ad6c>A F3(lo)2.768 E(g\214le)-.1 E F0 2.768(][)2.768 G F2<ad73>A F0
-([)A F2(ftv)A(eR)-.1 E F0 2.767(]][)C F2<ad4c>A F3(maxloadaver)2.767 E
-F0 2.767(][)2.767 G F2<ad4d>A F3(SMTPmaxsize)2.767 E F0 2.5(][)108 136.8
-S F2<ad50>A F3(postof)2.5 E(\214ce)-.18 E F0 2.5(][)2.5 G F2<ad52>A F3
--.45(ro)2.5 G(uter).45 E F0 2.5(][)2.5 G F2<ad43>A F3(cfg\214le)2.5 E F0
-(])2.5 E F1(DESCRIPTION)72 153.6 Q F0 .481
-(This program implements the serv)108 165.6 R .482
+-.1 G(r).1 E F0([)3.18 E F2(\25546aign)3.18 E(vBV)-.4 E F0 3.18(][)3.18
+G F2<ad70>A/F3 10/Times-Italic@0 SF(port)3.18 E F0 3.18(][)3.18 G F2
+<ad6c>A F3(lo)3.18 E(g\214le)-.1 E F0 3.18(][)3.18 G F2<ad73>A F0([)A F2
+(ftv)A(eR)-.1 E F0 3.18(]][)C F2 .68(\255s strict)B F0 3.18(][)3.18 G F2
+<ad4c>A F3(maxloadaver)3.18 E F0 3.18(][)3.18 G F2<ad4d>A F3
+(SMTPmaxsize)108 136.8 Q F0 2.5(][)2.5 G F2<ad50>A F3(postof)2.5 E
+(\214ce)-.18 E F0 2.5(][)2.5 G F2<ad52>A F3 -.45(ro)2.5 G(uter).45 E F0
+2.5(][)2.5 G F2<ad43>A F3(cfg\214le)2.5 E F0(])2.5 E F1(DESCRIPTION)72
+153.6 Q F0 .481(This program implements the serv)108 165.6 R .482
 (er side of the SMTP protocol as described in RFC821, and kno)-.15 F
 .482(ws about)-.25 F(the common e)108 177.6 Q
 (xtensions to the protocol e)-.15 E
@@ -284,157 +284,264 @@ F3 -.45(ro)2.5 G(uter).45 E F0(speci\214es an alternate)144 628.8 Q F3
 (eri\214cation.)-.15 E<ad43>108 645.6 Q F3(cfg\214le)2.5 E F0
 (speci\214es nonstandard con\214guration \214le location; the def)144
 657.6 Q(ault is)-.1 E F3($MAILSHARE/smtpserver)2.5 E(.conf)-1.11 E F0(.)
-1.96 E 23.97(\255s speci\214es)108 674.4 R .458(the style of address v)
-2.958 F .458(eri\214cation to be performed.)-.15 F .459
-(There are four independent commands)5.459 F .95(that can in)144 686.4 R
--.2(vo)-.4 G 1.15 -.1(ke s).2 H .95(ome kind of address v).1 F .95
-(eri\214cation, and four independent \215ags to control whether)-.15 F
-(this should be done.)144 698.4 Q(The)5 E 2.5(ya)-.15 G(re:)-2.5 E 68.67
-(fc)144 722.4 S(heck MAIL FR)-68.67 E(OM addresses)-.4 E(20 Feb 1998)281
-768 Q(1)204 E EP
+1.96 E(\255s strict)108 674.4 Q 1.82(this turns on all kinds of)144
+686.4 R F2(strict)4.32 E F0 1.82
+(smtp protocol adherence checks, which in normal life can be)4.32 F
+(relax)144 698.4 Q(ed slightly)-.15 E 5(.G)-.65 G
+(reat for compliance testing ;\))-5 E(20 Feb 1998)281 768 Q(1)204 E EP
 %%Page: 2 2
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF(SMTPSER)72 48 Q 314.86(VER\(8\) SMTPSER)-.8 F
-(VER\(8\))-.8 E 69.22(tc)144 84 S(heck RCPT T)-69.22 E 2.5(Oa)-.18 G
-(ddresses)-2.5 E 67(vc)144 96 S(heck VRFY command ar)-67 E(gument)-.18 E
-67.56(ec)144 108 S(heck EXPN command ar)-67.56 E(gument)-.18 E 65.33(Rr)
-144 120 S(equire addresses to be of syntax: local@remote \(strict 821\))
--65.33 E 66.44(Sa)144 132 S(llo)-66.44 E 2.5(ws)-.25 G(lopp)-2.5 E 2.5
-(yi)-.1 G(nput for systems incapable to respect RFC 821)-2.5 E
-(properly; W)216 144 Q(inCE1.0 does: "MAIL FR)-.4 E
-(OM:user@domain" :-\()-.4 E(The \215ags are concatenated to form the ar)
-144 168 Q(gument to the \255s option.)-.18 E(The def)5 E(ault is)-.1 E
-/F1 10/Times-Bold@0 SF -.1(ve)2.5 G F0(.).1 E 20.64(\255V prints)108
-184.8 R 2.5(av)2.5 G(ersion message and e)-2.65 E(xits.)-.15 E/F2 9
-/Times-Bold@0 SF(EHLO AND 8BITMIME)72 201.6 Q F0(On)108 213.6 Q F1 1.651
-(RFC 1651/1652/1653+1428)4.151 F F0 1.652(there are e)4.152 F 1.652
+(VER\(8\))-.8 E(\255s [ftv)108 84 Q(eRS])-.15 E .459
+(speci\214es the style of address v)144 96 R .458
+(eri\214cation to be performed.)-.15 F .458
+(There are four independent commands)5.458 F .95(that can in)144 108 R
+-.2(vo)-.4 G 1.15 -.1(ke s).2 H .95(ome kind of address v).1 F .95
+(eri\214cation, and four independent \215ags to control whether)-.15 F
+(this should be done.)144 120 Q(The)5 E 2.5(ya)-.15 G(re:)-2.5 E 68.67
+(fc)144 144 S(heck MAIL FR)-68.67 E(OM addresses)-.4 E 69.22(tc)144 156
+S(heck RCPT T)-69.22 E 2.5(Oa)-.18 G(ddresses)-2.5 E 67(vc)144 168 S
+(heck VRFY command ar)-67 E(gument)-.18 E 67.56(ec)144 180 S
+(heck EXPN command ar)-67.56 E(gument)-.18 E 65.33(Rr)144 192 S
+(equire addresses to be of syntax:)-65.33 E(local@remote \(strict 821\))
+252 204 Q 66.44(Sa)144 216 S(llo)-66.44 E 2.5(ws)-.25 G(lopp)-2.5 E 2.5
+(yi)-.1 G(nput for systems incapable to)-2.5 E
+(respect RFC 821 properly; W)216 228 Q(inCE1.0 \(and 2.0\))-.4 E(does:)
+216 240 Q("MAIL FR)252 252 Q(OM:user@domain" :-\()-.4 E
+(The \215ags are concatenated to form the ar)144 276 Q
+(gument to the \255s option.)-.18 E(The def)5 E(ault is)-.1 E/F1 10
+/Times-Bold@0 SF -.1(ve)2.5 G F0(.).1 E 20.64(\255V prints)108 292.8 R
+2.5(av)2.5 G(ersion message and e)-2.65 E(xits.)-.15 E/F2 9/Times-Bold@0
+SF(EHLO AND 8BITMIME)72 309.6 Q F0(On)108 321.6 Q F1 1.652
+(RFC 1651/1652/1653+1428)4.152 F F0 1.652(there are e)4.152 F 1.652
 (xtended SMTP speci\214cations, which contain mechanism for)-.15 F 1.215
-(declaring 8-bit transparent SMTP capability)108 225.6 R 3.715(,a)-.65 G
+(declaring 8-bit transparent SMTP capability)108 333.6 R 3.715(,a)-.65 G
 3.715(sw)-3.715 G 1.215(ell as so called SIZE e)-3.715 F 3.715
-(xtension. When)-.15 F 1.215(sending SMTP)3.715 F(does)108 237.6 Q F1
-(EHLO)2.591 E F0 .091(instead of)2.591 F F1(HELO)2.591 E F0 .092(it get\
+(xtension. When)-.15 F 1.215(sending SMTP)3.715 F(does)108 345.6 Q F1
+(EHLO)2.592 E F0 .092(instead of)2.592 F F1(HELO)2.592 E F0 .091(it get\
 s a set of responces which indicate that this system is capable on mult\
-i-)2.591 F(ple things, and one of them is so called)108 249.6 Q F1
-(8BITMIME)2.5 E F0(.)A F2(CONFIGURA)72 266.4 Q(TION)-.855 E F0(If the)
-108 278.4 Q/F3 10/Times-Italic@0 SF(MAILSHARE/)2.5 E F1(smtpser)A -.1
+i-)2.592 F(ple things, and one of them is so called)108 357.6 Q F1
+(8BITMIME)2.5 E F0(.)A F2(CONFIGURA)72 374.4 Q(TION)-.855 E F0(If the)
+108 386.4 Q/F3 10/Times-Italic@0 SF(MAILSHARE/)2.5 E F1(smtpser)A -.1
 (ve)-.1 G -1(r.).1 G(conf)1 E F0 -.15(ex)2.5 G
 (ists it is read to con\214gure tw).15 E 2.5(ok)-.1 G(inds of things:)
--2.5 E -.92(PA)108 307.2 S(RAM \255entries).92 E(allo)144 319.2 Q 2.5
+-2.5 E -.92(PA)108 415.2 S(RAM \255entries).92 E(allo)144 427.2 Q 2.5
 (ws)-.25 G(erv)-2.5 E(er start-time parametrization of se)-.15 E -.15
-(ve)-.25 G(ral things, including:).15 E F3 2.5<ad68>144 331.2 S(elp-te)
--2.5 E(xts)-.2 E 2.5<ad61>144 343.2 S(cceptance/r)-2.5 E
-(ejection database de\214nitions)-.37 E F0(The style \()108 360 Q F3
-<ad73>A F0 2.5(\)o)C(ption)-2.5 E(beha)144 372 Q 1.621
+(ve)-.25 G(ral things, including:).15 E F3 2.5<ad68>144 439.2 S(elp-te)
+-2.5 E(xts)-.2 E 2.5<ad61>144 451.2 S(cceptance/r)-2.5 E
+(ejection database de\214nitions)-.37 E F0(The style \()108 468 Q F3
+<ad73>A F0 2.5(\)o)C(ption)-2.5 E(beha)144 480 Q 1.62
 (viour based on glob patterns matching the)-.2 F F1(HELO)4.121 E F0(/)A
-F1(EHLO)A F0 1.621(name gi)4.121 F -.15(ve)-.25 G 4.121(nb).15 G 4.12
-(yar)-4.121 G 1.62(emote client.)-4.12 F .637(Lines be)144 384 R .637
-(ginning with a)-.15 F F3(#)3.137 E F0 .637(or whitespace are ignored i\
-n the \214le, and all other lines must consist of)3.137 F(tw)144 396 Q
-4.094(ot)-.1 G(ok)-4.094 E 1.594
-(ens: a shell-style \(glob\) pattern starting at the be)-.1 F 1.593
-(ginning of the line, whitespace, and a)-.15 F .748
-(sequence of style \215ags.)144 408 R .748
-(The \214rst matching line is used.)5.748 F .749
-(As a special case, the \215ags section may)5.748 F .854(start with a)
-144 420 R F3(!)3.354 E F0 .853
-(character in which case the remainder of the line is a f)5.854 F .853
-(ailure comment message to)-.1 F .181(print at the client.)144 432 R
-.181(This con\214guration capability is intended as a w)5.181 F .182
-(ay to control misbeha)-.1 F .182(ving client)-.2 F(softw)144 444 Q
-(are or mailers.)-.1 E -.92(PA)108 472.8 S(RAM maxsize).92 E
-(This is synon)144 484.8 Q(ym to start-time)-.15 E F3<ad4d>2.5 E F0
-(option.)2.5 E -.92(PA)108 513.6 S(RAM max-error).92 E(-recipients)-.2 E
-3.558(This de\214nes ho)144 525.6 R 6.057(wm)-.25 G(an)-6.057 E 6.057
+F1(EHLO)A F0 1.621(name gi)4.121 F -.15(ve)-.25 G 4.121(nb).15 G 4.121
+(yar)-4.121 G 1.621(emote client.)-4.121 F .638(Lines be)144 492 R .638
+(ginning with a)-.15 F F3(#)3.138 E F0 .637(or whitespace are ignored i\
+n the \214le, and all other lines must consist of)3.137 F(tw)144 504 Q
+4.093(ot)-.1 G(ok)-4.093 E 1.593
+(ens: a shell-style \(glob\) pattern starting at the be)-.1 F 1.594
+(ginning of the line, whitespace, and a)-.15 F .749
+(sequence of style \215ags.)144 516 R .748
+(The \214rst matching line is used.)5.749 F .748
+(As a special case, the \215ags section may)5.748 F .853(start with a)
+144 528 R F3(!)3.353 E F0 .853
+(character in which case the remainder of the line is a f)5.853 F .854
+(ailure comment message to)-.1 F .182(print at the client.)144 540 R
+.181(This con\214guration capability is intended as a w)5.182 F .181
+(ay to control misbeha)-.1 F .181(ving client)-.2 F(softw)144 552 Q
+(are or mailers.)-.1 E -.92(PA)108 580.8 S(RAM maxsize).92 E
+(This is synon)144 592.8 Q(ym to start-time)-.15 E F3<ad4d>2.5 E F0
+(option.)2.5 E -.92(PA)108 621.6 S(RAM max-error).92 E(-recipients)-.2 E
+3.557(This de\214nes ho)144 633.6 R 6.057(wm)-.25 G(an)-6.057 E 6.057
 (yr)-.15 G 3.557(ecipients can be on a message whose source address is)
--6.057 F F1(MAIL)6.057 E(FR)144 537.6 Q(OM:<>)-.3 E F0 5(.T)C
-(hat is, is an error message.)-5 E -.92(PA)108 566.4 S
-(RAM MaxSameIpSource).92 E .226(This sets the maximum number of acti)144
-578.4 R .526 -.15(ve c)-.25 H .226(onnections from an).15 F 2.726(yg)
--.15 G -2.15 -.25(iv e)-2.726 H 2.726(ns).25 G .226(ingle IP address.)
--2.726 F .226(When the)5.226 F .404
-(limit is reached, system tells the remote end:)144 590.4 R F1(450\255T)
-2.903 E .403(oo many simultaneous connections...)-.92 F F0(When)5.403 E
-(the limit is e)144 602.4 Q(xceeded by f)-.15 E(actor of four)-.1 E 2.5
-(,t)-.4 G(he serv)-2.5 E(er just closes the connection.)-.15 E -.92(PA)
-108 631.2 S(RAM ListenQueueSize).92 E
-(This sets the listen queue size parameter for)144 643.2 Q F3(listen)2.5
-E F0(\(2\) call at the serv).24 E(er)-.15 E(.)-.55 E -.92(PA)108 672 S
-(RAM TcpRcvBuf).92 E(ferSize)-.25 E(This sets)144 684 Q(setsock)5 E
-(opt\(SO_RCVB)-.1 E 2.5(UF\) v)-.1 F(alue, in case the system def)-.25 E
-(ault is not suitable.)-.1 E(20 Feb 1998)281 768 Q(2)204 E EP
+-6.057 F F1(MAIL)6.058 E(FR)144 645.6 Q(OM:<>)-.3 E F0 5(.T)C
+(hat is, is an error message.)-5 E(\(Sometimes SP)5 E
+(AMs are tried to inject in that form...\))-.92 E -.92(PA)108 674.4 S
+(RAM MaxSameIpSource).92 E(This sets the maximum number of acti)144
+686.4 Q .3 -.15(ve c)-.25 H(onnections from an).15 E 2.5(yg)-.15 G -2.15
+-.25(iv e)-2.5 H 2.5(ns).25 G(ingle IP address.)-2.5 E 1.037
+(When the limit is reached, system tells the remote end:)144 710.4 R F1
+-.63(``)3.537 G 1.037(450 T).63 F 1.037(oo many simultaneous connec-)
+-.92 F(tions...)144 722.4 Q -.63('')-.55 G F0
+(\(and then closes the connection.\))5.63 E(20 Feb 1998)281 768 Q(2)204
+E EP
 %%Page: 3 3
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF(SMTPSER)72 48 Q 314.86(VER\(8\) SMTPSER)-.8 F
-(VER\(8\))-.8 E -.92(PA)108 84 S(RAM TcpXmitBuf).92 E(ferSize)-.25 E
-(This sets)144 96 Q(setsock)5 E(opt\(SO_SNDB)-.1 E 2.5(UF\) v)-.1 F
+(VER\(8\))-.8 E .585(When the limit is e)144 84 R .585(xceeded by f)-.15
+F .585(actor of four)-.1 F 3.085(,t)-.4 G .585(he serv)-3.085 F .585
+(er just closes the connection without telling)-.15 F(an)144 96 Q
+(ything.)-.15 E/F1 10/Times-Bold@0 SF .869(Do note that this w)144 120 R
+.868(orks only when the smtpser)-.1 F -.1(ve)-.1 G 3.368(ri).1 G 3.368
+(sr)-3.368 G .868(unning as its o)-3.368 F .868(wn daemon, not while)-.1
+F(run fr)144 132 Q(om under inetd!)-.18 E F0 -.92(PA)108 160.8 S
+(RAM MaxP).92 E(arallelConnections)-.15 E 1.002(This limits ho)144 172.8
+R 3.502(wm)-.25 G(an)-3.502 E 3.502(ys)-.15 G 1.003
+(imultaneous connections the serv)-3.502 F 1.003
+(er will accept in total -- e.g. ho)-.15 F 3.503(wm)-.25 G(an)-3.503 E
+(y)-.15 E(childs a master serv)144 184.8 Q(er can ha)-.15 E .3 -.15
+(ve r)-.2 H 2.5(unning. Def).15 F(ault v)-.1 E(alue: 800.)-.25 E .82
+(Exceeding the limit by less than 100 will get a message)144 208.8 R F1
+-.63(``)3.319 G .819(450 T).63 F .819(oo many simultaneous connec-)-.92
+F(tions...)144 220.8 Q -.63('')-.55 G F0 .491
+(printed to the connection.)6.121 F .491(In e)5.491 F -.15(ve)-.25 G
+.492(ry case the connection is closed right after the possible).15 F
+(message.)144 232.8 Q F1 .869(Do note that this w)144 256.8 R .868
+(orks only when the smtpser)-.1 F -.1(ve)-.1 G 3.368(ri).1 G 3.368(sr)
+-3.368 G .868(unning as its o)-3.368 F .868(wn daemon, not while)-.1 F
+(run fr)144 268.8 Q(om under inetd!)-.18 E F0 -.92(PA)108 297.6 S
+(RAM ListenQueueSize).92 E
+(This sets the listen queue size parameter for)144 309.6 Q/F2 10
+/Times-Italic@0 SF(listen)2.5 E F0(\(2\) call at the serv).24 E(er)-.15
+E(.)-.55 E -.92(PA)108 338.4 S(RAM TcpRcvBuf).92 E(ferSize)-.25 E
+(This sets)144 350.4 Q(setsock)5 E(opt\(SO_RCVB)-.1 E 2.5(UF\) v)-.1 F
 (alue, in case the system def)-.25 E(ault is not suitable.)-.1 E -.92
-(PA)108 124.8 S(RAM polic).92 E(ydb)-.15 E .581
-(This de\214nes smtp input polic)144 136.8 R 3.081<798c>-.15 G .581
-(ltering/analysis database location.)-3.081 F .582
-(See the comments at the sam-)5.582 F(ple)144 148.8 Q/F1 10
-/Times-Italic@0 SF(pr)2.5 E(oto/db/smtp-policy)-.45 E(.sr)-.55 E(c)-.37
-E F0(\214le.)2.5 E(Here is a possible con\214guration \214le:)108 177.6
-Q/F2 10/Courier@0 SF(#PARAM maxsize)144 213.6 Q 6(10000000 #)60 F
-(Same as -M -option)6 E(#PARAM max-error-recipients)144 225.6 Q 12(3#)24
-G(More than this is propably SPAM!)-6 E(#PARAM MaxSameIpSource)144 237.6
-Q 6(10 #)36 F(Max simultaneous connections from)6 E
-(#PARAM ListenQueueSize)144 249.6 Q 6(20000 #)30 F
-(Usual system high limit is: 5 ..)6 E(#PARAM TcpRcvBufferSize)144 261.6
-Q 6(32000 #)24 F(Should not need to set!)6 E(#PARAM TcpXmitBufferSize)
-144 273.6 Q 6(32000 #)18 F(Should not need to set!)6 E 6(#O)144 297.6 S
-(ur company contact info:)-6 E
-(PARAM help ----------------------------------------------------)144
-309.6 Q(PARAM help)144 321.6 Q
-(This mail-server is at Yoyodyne Propulsion Inc.)12 E(PARAM help)144
-333.6 Q(Our telephone number is: +1-234-567-8900, and)12 E(PARAM help)
-144 345.6 Q(telefax number is: +1-234-567-8999)12 E(PARAM help)144 357.6
-Q(Our business-hours are Mon-Fri: 0800-1700 \(Timezone: -0700\))12 E
-(PARAM help)144 369.6 Q(PARAM help)144 381.6 Q
-(Questions regarding our email service should be sent via)12 E
-(PARAM help)144 393.6 Q(email to address)12 E(<postmaster@OURDOMAIN>)12
-E(PARAM help)144 405.6 Q
-(Reports about abuse are to be sent to: <abuse@OURDOMAIN>)12 E
-(PARAM help ----------------------------------------------------)144
-417.6 Q(#)144 429.6 Q 12(PARAM accept-percent-kludge)144 441.6 R 6(#")6
-G(localpart" can contain '%' and '!')-6 E 6
-(#PARAM reject-percent-kludge)144 453.6 R 6(#")6 G
-(localpart" can't contain)-6 E(--"--)12 E(#)144 465.6 Q 6(#T)144 477.6 S
-(he policy database:)-6 E 30(#\()144 489.6 S(NOTE: See)-30 E 6
-('makedb' for)12 F(its default suffixes!\))6 E(#)144 501.6 Q 6
-(PARAM policydb)144 513.6 R 6(btree /opt/mail/db/smtp-policy)18 F(#)144
-525.6 Q 6(#H)144 537.6 S(ELO pattern)-6 E(style flags)60 E(#)144 549.6 Q
-30(*.mgmt.utoronto.ca ftveR)144 561.6 R 30(*.mgmt.toronto.edu ftveR)144
-573.6 R 78(badguy.org !Sorry,)144 585.6 R(try later.)6 E 84
-(localhost ve)144 597.6 R(sloppyS)144 609.6 Q 138(*R)144 621.6 S/F3 9
-/Times-Bold@0 SF(TCP-WRAPPER AND SMTPSER)72 650.4 Q(VER)-.495 E F0 .443
-(If the ZMailer system is con\214gured with tcp-wrapper code, then serv\
-ice-id "smtp-recei)108 662.4 R -.15(ve)-.25 G 2.943("i).15 G 2.943(sl)
--2.943 G(ook)-2.943 E .443(ed for all)-.1 F
-(those addresses that are allo)108 674.4 Q(wed to feed smtp email in.)
--.25 E(Usually this mode of operation is not used, and "hosts.allo)108
-691.2 Q(w" \214le contains entry:)-.25 E(smtp-recei)113 708 Q .3 -.15
-(ve : A)-.25 H(LL@ALL).15 E(20 Feb 1998)281 768 Q(3)204 E EP
+(PA)108 379.2 S(RAM TcpXmitBuf).92 E(ferSize)-.25 E(This sets)144 391.2
+Q(setsock)5 E(opt\(SO_SNDB)-.1 E 2.5(UF\) v)-.1 F
+(alue, in case the system def)-.25 E(ault is not suitable.)-.1 E -.92
+(PA)108 420 S(RAM DEB).92 E(UGcmd)-.1 E -.92(PA)108 436.8 S(RAM EXPNcmd)
+.92 E -.92(PA)108 453.6 S(RAM VRFYcmd).92 E 1.366(This trio \(DEB)144
+465.6 R 1.367(UGcmd, EXPNcmd, VRFYcmd\) are enablers of lik)-.1 F 3.867
+(en)-.1 G 1.367(amed SMTP v)-3.867 F 1.367(erbs which)-.15 F(ha)144
+477.6 Q .3 -.15(ve s)-.2 H(ome uses in the deb).15 E(ug mode.)-.2 E(The)
+144 501.6 Q 3.769(ya)-.15 G 1.269(re normally disabled, b)-3.769 F 1.269
+(ut running them enabled does not allo)-.2 F 3.768(wd)-.25 G 1.268
+(irect attacks with them.)-3.768 F(\(That we kno)144 513.6 Q 2.5(wo)-.25
+G(f.\))-2.5 E -.92(PA)108 542.4 S(RAM NoPIPELINING).92 E -.92(PA)108
+559.2 S(RAM No8BITMIME).92 E -.92(PA)108 576 S(RAM NoCHUNKING).92 E -.92
+(PA)108 592.8 S(RAM NoDSN).92 E -.92(PA)108 609.6 S(RAM NoETRN).92 E
+-.92(PA)108 626.4 S(RAM NoEHLO).92 E 1.163(This set are)144 638.4 R F1
+(disablers)3.663 E F0 1.163(of lik)3.663 F 3.663(en)-.1 G 1.164
+(amed Extended SMTP EHLO responses, plus EHLO v)-3.663 F 1.164
+(erb itself,)-.15 F 2.289(e.g. using these will turn of)144 650.4 R
+4.789(fg)-.25 G -2.15 -.25(iv e)-4.789 H 4.788(n\().25 G 2.288(for e)
+-4.788 F 2.288(xample `)-.15 F(`PIPELINING')-.74 E 2.288
+('\) response from the EHLO)-.74 F .879(replies, and then a client poss\
+ibly capable to feed PIPELINING will not do it -- unless it breaks)144
+662.4 R(rules, and does it e)144 674.4 Q -.15(ve)-.25 G 2.5(nw).15 G
+(hen the serv)-2.5 E(er does not report f)-.15 E(acility being a)-.1 E
+-.25(va)-.2 G(ilable.).25 E .68(If you w)144 698.4 R .68
+(ant to disable an)-.1 F 3.18(yo)-.15 G 3.18(ft)-3.18 G .68
+(hese, you better ha)-3.18 F .98 -.15(ve a g)-.2 H .68
+(ood reason for it, as in general the).15 F 3.18(yw)-.15 G(ork)-3.28 E
+(quite \214ne.)144 710.4 Q(20 Feb 1998)281 768 Q(3)204 E EP
 %%Page: 4 4
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF(SMTPSER)72 48 Q 314.86(VER\(8\) SMTPSER)-.8 F
-(VER\(8\))-.8 E/F1 9/Times-Bold@0 SF(FILES)72 84 Q/F2 10/Times-Italic@0
-SF(/etc/zmailer)108 96 Q(.conf)-1.11 E(/var/spool/postof)108 108 Q
-(\214ce/.pid.smtpserver \(POST)-.18 E(OFFICE/.pid.smtpserver\))-.18 E
-(/local/shar)108 120 Q(e/mail/smtpserver)-.37 E
-(.conf \(MAILSHARE/smtpserver)-1.11 E(.conf\))-1.11 E F1(SEE ALSO)72
-136.8 Q F0(router\(8\))108 148.8 Q
-(RFC821, RFC1123, RFC1651, RFC1652, RFC1653, RFC1428)108 160.8 Q F1 -.45
-(AU)72 177.6 S(THOR).45 E F0(This program authored and cop)108 189.6 Q
-(yright by:)-.1 E(Rayan Zachariassen \(w)108 201.6 Q(as at U of T)-.1 E
-(oronto\))-.8 E(RFC165* \(and se)108 213.6 Q -.15(ve)-.25 G
-(ral other\) e).15 E(xtensions by)-.15 E(Matti Aarnio)108 225.6 Q
-(<mea@nic.funet.\214>)5 E(20 Feb 1998)281 768 Q(4)204 E EP
+(VER\(8\))-.8 E
+(Of these, 8BITMIME can not in reality be disabled, only its adv)144 84
+Q(erticement can be turned of)-.15 E(f.)-.25 E -.92(PA)108 112.8 S
+(RAM polic).92 E(ydb)-.15 E .581(This de\214nes smtp input polic)144
+124.8 R 3.081<798c>-.15 G .581(ltering/analysis database location.)
+-3.081 F .582(See the comments at the sam-)5.582 F(ple)144 136.8 Q/F1 10
+/Times-Italic@0 SF(pr)2.5 E(oto/db/smtp-policy)-.45 E(.sr)-.55 E(c)-.37
+E F0(\214le.)2.5 E(Here is a possible con\214guration \214le:)108 165.6
+Q/F2 10/Courier@0 SF(#)144 201.6 Q 6(#s)144 213.6 S
+(mtpserver.conf - autogenerated edition)-6 E(#)144 225.6 Q
+(#PARAM maxsize)144 237.6 Q(10000000 # Same as -M -option)48 E
+(#PARAM max-error-recipients)144 249.6 Q 6(3#M)12 G
+(ore than this is propably SPAM!)-6 E(#PARAM MaxSameIpSource)144 261.6 Q
+(10 # Max simultaneous connections)36 E 180(##)144 273.6 S
+(from any IP source address)-174 E
+(#PARAM MaxParallelConnections 800 # Max simultaneous connections)144
+285.6 Q 180(##)144 297.6 S(in total to the server)-174 E
+(#PARAM TcpRcvBufferSize)144 309.6 Q(32000 # Should not need to set!)12
+E(#PARAM TcpXmitBufferSize 32000 # Should not need to set!)144 321.6 Q
+(#)144 333.6 Q(#PARAM ListenQueueSize)144 345.6 Q
+(10 # listen\(2\) parameter)36 E(#)144 357.6 Q(#PARAM RcptLimitCount)144
+369.6 Q(10000 # Max number of recipients for one)24 E 180(##)144 381.6 S
+(MAIL FROM session. Minimum: 100)-174 E(#)144 393.6 Q 6(#E)144 405.6 S
+(nables of some commands:)-6 E 6(#PARAM DEBUGcmd)144 417.6 R 12
+(PARAM EXPNcmd)144 429.6 R 12(PARAM VRFYcmd)144 441.6 R(#)144 453.6 Q 6
+(#D)144 465.6 S(isablers of some facility adverticements)-6 E 6
+(#PARAM NoEHLO)144 477.6 R(#PARAMNoPIPELINING)144 489.6 Q
+(#PARAMNo8BITMIME)144 501.6 Q(#PARAMNoCHUNKING)144 513.6 Q 6
+(#PARAM NoDSN)144 525.6 R 6(#PARAM NoETRN)144 537.6 R(#)144 549.6 Q 6
+(#H)144 561.6 S(DR220 metatags:)-6 E 12(#%)144 573.6 S 6(%-)-12 G 6(-')
+-6 G(%' character)-6 E 12(#%)144 585.6 S 6(H-)-12 G 6(-S)-6 G
+(S->myhostname)-6 E 12(#%)144 597.6 S 6(I-)-12 G 6(-')-6 G
+(+IDENT' if 'identflg' is set)-6 E 12(#%)144 609.6 S 6(V-)-12 G 6(-V)-6
+G(ersionNumb)-6 E 12(#%)144 621.6 S 6(T-)-12 G 6(-c)-6 G(urtime string)
+-6 E 12(#%)144 633.6 S 6(X-)-12 G 6(-x)-6 G(latelang parameter)-6 E(#)
+144 645.6 Q
+(#PARAM hdr220 %H ZMailer ESMTP-server %V running at Yoyodyne Inc.)144
+657.6 Q(#PARAM hdr220 %H \(NO UCE\)\(NO UBE\) our local time is now %T)
+144 669.6 Q(#)144 681.6 Q
+(PARAM help ------------------------------------------------------)144
+693.6 Q(PARAM help)144 705.6 Q
+(This mail-server is at Yoyodyne Propulsion Inc.)12 E(PARAM help)144
+717.6 Q(Our telephone number is: +1-234-567-8900, and)12 E(PARAM help)
+144 729.6 Q(telefax number is: +1-234-567-8999)12 E F0(20 Feb 1998)281
+768 Q(4)204 E EP
+%%Page: 5 5
+%%BeginPageSetup
+BP
+%%EndPageSetup
+/F0 10/Times-Roman@0 SF(SMTPSER)72 48 Q 314.86(VER\(8\) SMTPSER)-.8 F
+(VER\(8\))-.8 E/F1 10/Courier@0 SF(PARAM help)144 84 Q
+(Our business-hours are Mon-Fri: 0800-1700 \(TZ: -0700\))12 E
+(PARAM help)144 96 Q(PARAM help)144 108 Q
+(Questions regarding our email service should be sent)12 E(PARAM help)
+144 120 Q(via email to address)12 E(<postmaster@OURDOMAIN>)12 E
+(PARAM help)144 132 Q
+(Reports about abuse are to be sent to: <abuse@OURDOMAIN>)12 E
+(PARAM help ------------------------------------------------------)144
+144 Q(#)144 156 Q 6(#U)144 168 S
+(ncomment following for not to strip incoming addresses of)-6 E 6(#f)144
+180 S(orm: <@aa,@bb:cc@dd> into non-source-routed base form: <cc@dd>)-6
+E(#)144 192 Q 6(#PARAM allowsourceroute)144 204 R(#)144 216 Q 12
+(PARAM accept-percent-kludge)144 228 R 6(#")6 G
+(localpart" can contain '%' and '!')-6 E 6(#PARAM reject-percent-kludge)
+144 240 R 6(#")6 G(localpart" can't contain)-6 E(--"--)12 E(#)144 252 Q
+6(#T)144 264 S
+(he policy database: \(NOTE: See `makedb' for its default suffixes!\))-6
+E(#)144 276 Q 6(PARAM policydb)144 288 R 6
+(@DBTYPE@ @MAILVAR@/db/smtp-policy)18 F(#)144 312 Q(#)144 324 Q 6(#H)144
+336 S 24(ELO/EHLO-pattern style-flags)-6 F 90(#[)144 348 S(max loadavg])
+-90 E(#)144 360 Q 60(localhost 999)144 372 R(ftveR)6 E 18
+(some.host.domain 999)144 384 R(!NO EMAIL ACCEPTED FROM YOUR MACHINE)6 E
+6(#I)144 396 S 6(ft)-6 G(he host presents itself as:)-6 E
+(HELO [1.2.3.4])12 E(be lenient to)12 E 6(#i)144 408 S 6(t.. The)-6 F
+(syntax below is due to these patterns being SH-GLOB)6 E 6(#s)144 420 S
+(tyle patterns where the brackets are special characters.)-6 E 72
+(\\[*\\] 999)144 432 R(ve)6 E 6(#P)144 444 S
+(er default demant strict syntactic adherence, including fully)-6 E 6
+(#q)144 456 S(ualified addresses for)-6 E(MAIL FROM, and RCPT TO.)12 E
+(To be lenient)12 E 6(#o)144 468 S 6(nt)-6 G
+(hat detail, remove the "R" from "veR" string below:)-6 E 114(*9)144 480
+S(99 veR)-114 E/F2 9/Times-Bold@0 SF(TCP-WRAPPER AND SMTPSER)72 508.8 Q
+(VER)-.495 E F0 .443(If the ZMailer system is con\214gured with tcp-wra\
+pper code, then service-id "smtp-recei)108 520.8 R -.15(ve)-.25 G 2.943
+("i).15 G 2.943(sl)-2.943 G(ook)-2.943 E .443(ed for all)-.1 F
+(those addresses that are allo)108 532.8 Q(wed to feed smtp email in.)
+-.25 E(Usually this mode of operation is not used, and "hosts.allo)108
+549.6 Q(w" \214le contains entry:)-.25 E(smtp-recei)113 566.4 Q .3 -.15
+(ve : A)-.25 H(LL@ALL).15 E(Alternati)108 583.2 Q -.15(ve)-.25 G(ly).15
+E 3.222(,a)-.65 G .723
+(ll the functions which tcp-wrapper could supply are also a)-3.222 F
+-.25(va)-.2 G .723(ilable thru the polic).25 F 3.223(yd)-.15 G(atabase)
+-3.223 E(machinery)108 595.2 Q(.)-.65 E F2(FILES)72 612 Q/F3 10
+/Times-Italic@0 SF(/etc/zmailer)108 624 Q(.conf)-1.11 E
+(/var/spool/postof)108 636 Q(\214ce/.pid.smtpserver \(POST)-.18 E
+(OFFICE/.pid.smtpserver\))-.18 E(/local/shar)108 648 Q
+(e/mail/smtpserver)-.37 E(.conf \(MAILSHARE/smtpserver)-1.11 E(.conf\))
+-1.11 E F2(SEE ALSO)72 664.8 Q F0(router\(8\))108 676.8 Q
+(RFC821, RFC1123, RFC1651, RFC1652, RFC1653, RFC1428)108 688.8 Q F2 -.45
+(AU)72 705.6 S(THOR).45 E F0(This program authored and cop)108 717.6 Q
+(yright by:)-.1 E(Rayan Zachariassen \(w)108 729.6 Q(as at U of T)-.1 E
+(oronto\))-.8 E(20 Feb 1998)281 768 Q(5)204 E EP
+%%Page: 6 6
+%%BeginPageSetup
+BP
+%%EndPageSetup
+/F0 10/Times-Roman@0 SF(SMTPSER)72 48 Q 314.86(VER\(8\) SMTPSER)-.8 F
+(VER\(8\))-.8 E(RFC165* \(and se)108 84 Q -.15(ve)-.25 G(ral other\) e)
+.15 E(xtensions by)-.15 E(Matti Aarnio)108 96 Q(<mea@nic.funet.\214>)5 E
+(20 Feb 1998)281 768 Q(6)204 E EP
 %%Trailer
 end
 %%EOF
