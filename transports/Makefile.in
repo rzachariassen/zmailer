@@ -35,8 +35,16 @@ clean:
 	done
 	-rm -f *~
 
-distclean: clean
-	rm -f Makefile */Makefile
+distclean:
+	cd libta ; $(MAKE) $(MFLAGS) distclean
+	for x in $(SUBDIRS); do				\
+	    if [ -f $$x/Makefile ]; then		\
+		( cd $$x; ${MAKE} ${MFLAGS} distclean )	\
+		|| exit 1 ;				\
+	    fi	;					\
+	done
+	-rm -f *~
+	rm -f Makefile
 
 install:
 	@cd libta; $(MAKE) $(MFLAGS)

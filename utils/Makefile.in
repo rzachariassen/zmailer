@@ -61,13 +61,13 @@ md5sum: md5sum.o $(LIBDEB)
 FRC:
 
 clean:	FRC
-	rm -f ./+* *~ *.o listexpand
+	rm -f ./+* *~ *.o listexpand md5sum
 	cd vacation ; $(MAKE) $(MFLAGS) clean
 	cd makedb ; $(MAKE) $(MFLAGS) clean
 
 distclean: clean
 	rm -f Makefile autoanswer.pl policy-builder.sh zmailer.init.sh
-	rm -f rotate-logs.sh
+	rm -f rotate-logs.sh smtpserver-log-parser.pl
 	cd vacation ; $(MAKE) $(MFLAGS) distclean
 	cd makedb ; $(MAKE) $(MFLAGS) distclean
 

@@ -21,7 +21,10 @@ all:
 	ln include/ast_common.h  ../include/
 	ln include/sfio.h        ../include/
 
-clean distclean:
+clean:
 	cd src/lib/sfio; $(MAKE) -f makefile  clean
 	rm -f ../libs/libsfio.a ../libs/libstdio.a
 	rm -f ../include/ast_common.h ../include/sfio.h
+
+distclean: clean
+	rm -f Makefile include/ast_common.h src/lib/sfio/makefile
