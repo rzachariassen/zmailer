@@ -191,12 +191,15 @@ main(argc, argv)
 
 	/* ZMailer thingies.. */
 	char *zenv = getenv("ZCONFIG");
-	if (zenv) readzenv(getenv("ZCONFIG"));
+
+	if (zenv  ) readzenv(zenv);
 	zenv_vinterval = getzenv("VACATIONINTERVAL");
+
+	zopenlog("vacation", LOG_PID, LOG_MAIL);
 
 	atexit(vacation_exit_handler);
 
-	orcpt = getenv("ORCPT");
+	orcpt  = getenv("ORCPT");
 	inrcpt = getenv("INRCPT");
 
 	progname = argv[0];
@@ -263,31 +266,31 @@ main(argc, argv)
 	  pw = zgetpwuid(getuid());
 	  if (!pw) {
 	    fprintf(stderr, "vacation: no such user uid %ld.\n", (long)getuid());
+	    zsyslog((LOG_NOTICE, "vacation: no such user uid: %ld", (long)getuid()));
 	    exit(EX_NOUSER);
 	  }
 	} else if (!(pw = zgetpwnam(*argv))) {
 	  fprintf(stderr, "vacation: no such user %s.\n", *argv);
+	  zsyslog((LOG_NOTICE, "vacation: no such user: '%s'", *argv));
 	  exit(EX_NOUSER);
 	}
 	if (chdir(pw->pw_dir)) {
 	  fprintf(stderr, "vacation: no such directory %s.\n", pw->pw_dir);
+	  zsyslog((LOG_NOTICE, "vacation: no such directory '%s'", pw->pw_dir));
 	  exit(EX_NOUSER);
 	}
 
+	if (dblog) {
 #ifdef	HAVE_NDBM
-	if (dblog)
 	  db = dbm_open(VDB, O_RDWR | (iflag ? O_TRUNC|O_CREAT : 0),
 			S_IRUSR|S_IWUSR);
 #else	/* !NDBM */
 #ifdef HAVE_GDBM
-	if (dblog)
 	  db = gdbm_open(VDB ".pag" /* Catenates these strings */, 8192,
 			 iflag ? GDBM_NEWDB : GDBM_WRITER,
 			 S_IRUSR|S_IWUSR, NULL );
 #else
-	db = NULL;
 #ifdef HAVE_DB_CREATE
-	if (dblog) {
 	  ret = db_create(&db, NULL, 0);
 #ifndef DB_UPGRADE
 #define DB_UPGRADE 0
@@ -295,27 +298,32 @@ main(argc, argv)
 	  if (ret == 0)
 	    ret = db->open(db, VDB ".db", NULL, DB_BTREE,
 			   DB_CREATE|DB_UPGRADE, S_IRUSR|S_IWUSR);
-	  if (ret)
+	  if (ret) {
+#ifdef HAVE_DB_CLOSE2
+	    db->close(db, 0);
+#else
+	    db->close(db);
+#endif
 	    db = NULL;
-	}
-	
+	  }
 #elif defined(HAVE_DB_OPEN2)
-	if (dblog)
 	  db_open(VDB ".db", DB_BTREE, DB_CREATE, S_IRUSR|S_IWUSR,
 		  NULL, NULL, &db);
 #else
-	if (dblog)
 	  db = dbopen(VDB ".db", iflag ? (O_RDWR|O_CREAT) : O_RDWR,
 		      S_IRUSR|S_IWUSR, DB_BTREE, NULL);
 #endif
 #endif
 #endif
-
+	}
 	ret = EX_OK;
 
 	if (dblog && !db) {
+	  int e = errno;
 	  fprintf(stderr, "vacation: %s.* database file(s): %s\n", 
-		  VDB, strerror(errno));
+		  VDB, strerror(e));
+	  zsyslog((LOG_NOTICE, "vacation: %s.* database file(s): %s",
+		   VDB, strerror(e)));
 	  exit(EX_CANTCREAT);
 	}
 
@@ -441,7 +449,8 @@ void
 usrerr(msg)
 	char *msg;
 {
-	fprintf(stderr, "vacation: %s\n",msg);
+	fprintf(stderr, "vacation: usrerr: %s\n",msg);
+	zsyslog((LOG_NOTICE, "vacation: %s", msg));
 }
 /*
 **  SYSERR -- print system error
@@ -463,6 +472,7 @@ syserr(msg)
 	char *msg;
 {
 	fprintf(stderr, "vacation: %s\n", msg);
+	zsyslog((LOG_NOTICE, "vacation: syserr: %s", msg));
 	exit(EX_USAGE+103);
 }
 /*
@@ -592,7 +602,6 @@ findme:			for (cur = names; !tome && cur; cur = cur->next)
 		exit(EX_OK);
 	}
 	if (!*from) {
-	  zopenlog("vacation", LOG_PID, LOG_MAIL);
 	  zsyslog((LOG_NOTICE, "vacation: no initial \"From\" line.\n"));
 	  exit(EX_USAGE+105);
 	}
