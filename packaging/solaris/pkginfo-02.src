@@ -4,3 +4,4 @@ ARCH=sparc
 VERSION=%VERSION%
 CATEGORY=system
 CLASSES=none
+BASEDIR=/

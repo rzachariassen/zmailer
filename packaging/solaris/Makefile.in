@@ -19,7 +19,7 @@ SENDMAILPATH=	@SENDMAILPATH@
 
 SHELL = /bin/sh
 
-prefix =
+prefix = /
 
 all:
 	@echo "make clean | distclean"
@@ -51,13 +51,10 @@ pkgs-01:	# DIRECTORIES, BINARIES
 	 echo $(RMAILPATH)|sed -e 's!^/!!' ; \
 	 echo $(SENDMAILPATH)|sed -e 's!^/!!' ; \
 	  ) \
-		| sort | uniq | pkgproto ) | \
-		awk '/^[^si] /{printf "%s %s /%s=$(prefix)/%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next} \
-		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next} \
-			{print}' \
+		| sort | uniq | pkgproto )  \
 		> proto
 	cat ${srcdir}/pkginfo-01.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
-	pkgmk -o -f proto
+	pkgmk -o -f proto -b $(prefix)
 
 pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	. $(ZCONF) ; \
@@ -70,10 +67,7 @@ pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/proto -print ; \
 	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -print ; \
 	  ) \
-		| sort | uniq | pkgproto ) | \
-		awk '/^[^si] /{printf "%s %s /%s=$(prefix)/%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next} \
-		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next} \
-			{print}' \
+		| sort | uniq | pkgproto )  \
 		> proto
 	cat ${srcdir}/pkginfo-02.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
-	pkgmk -o -f proto
+	pkgmk -o -f proto -b $(prefix)
