@@ -109,7 +109,7 @@ reopen:
 		}
 	}
 	if (!retry && ferror(fp)) {
-		close_seq(sip);
+		close_seq(sip,"search_seq");
 		++retry;
 		goto reopen;
 	}
@@ -122,8 +122,9 @@ reopen:
  */
 
 void
-close_seq(sip)
+close_seq(sip,comment)
 	search_info *sip;
+	const char *comment;
 {
 	struct file_map *fm;
 	struct spblk *spl;
@@ -175,7 +176,7 @@ _open_seq(sip, mode)
 	    && (*mode == 'w' || *mode == 'a'
 		|| (*mode == 'r' && *(mode+1) == '+'))
 	    && spl->mark != O_RDWR) {
-		close_seq(sip);
+		close_seq(sip,"_open_seq");
 		imode = O_RDWR;
 	} else
 		imode = O_RDONLY;
@@ -269,7 +270,7 @@ add_seq(sip, value)
 	else
 		fprintf(fp, "%s\t%s\n", sip->key, value);
 	rc = fflush(fp);
-	close_seq(sip);
+	close_seq(sip,"add_seq");
 	return rc;
 }
 

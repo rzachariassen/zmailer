@@ -33,8 +33,9 @@ extern int deferit;
  */
 
 void
-close_bhash(sip)
+close_bhash(sip,comment)
 	search_info *sip;
+	const char *comment;
 {
 	DB *db;
 	struct spblk *spl = NULL;
@@ -77,14 +78,15 @@ open_bhash(sip, flag, comment)
 
 	symid = symbol_db(sip->file, spt_files->symbols);
 	spl = sp_lookup(symid, spt_files);
-	if (spl != NULL && flag == O_RDWR && spl->mark != O_RDWR)
-		close_bhash(sip);
+	if (spl != NULL && flag != spl->mark)
+		close_bhash(sip,"open_bhash");
 	if (spl == NULL || (db = (DB *)spl->data) == NULL) {
 		for (i = 0; i < 3; ++i) {
 #ifdef HAVE_DB_OPEN2
 		  int err;
+		  db = NULL;
 		  err = db_open(sip->file, DB_HASH,
-				DB_CREATE |((flag == O_RDONLY) ? DB_RDONLY:0),
+				DB_NOMMAP|DB_CREATE |((flag == O_RDONLY) ? DB_RDONLY:0),
 				0644, NULL, NULL, &db);
 #else
 		  db = dbopen(sip->file, flag, 0, DB_HASH, NULL);
@@ -102,8 +104,10 @@ open_bhash(sip, flag, comment)
 		}
 		if (spl == NULL)
 			sp_install(symid, (void *)db, flag, spt_files);
-		else
+		else {
 			spl->data = (void *)db;
+			spl->mark = flag;
+		}
 	}
 	return db;
 }
@@ -122,7 +126,9 @@ search_bhash(sip)
 	int retry, rc;
 
 	retry = 0;
+#if 0
 reopen:
+#endif
 	db = open_bhash(sip, O_RDONLY, "search_bhash");
 	if (db == NULL)
 	  return NULL; /* Huh! */
@@ -138,11 +144,16 @@ reopen:
 	rc = (db->get)(db, &key, &val, 0);
 #endif
 	if (rc != 0) {
+
+#if 0 /* SleepyCat's DB 2.x leaks memory mappings when opening...
+	 at least the version at glibc 2.1.1 */
+
 		if (!retry && rc < 0) {
-			close_bhash(sip);
+			close_bhash(sip,"search_bhash");
 			++retry;
 			goto reopen;
 		}
+#endif
 		return NULL;
 	}
 	return newstring(dupnstr(val.data, val.size), val.size);
@@ -427,7 +438,7 @@ modp_bhash(sip)
 	spl = sp_lookup(symid, spt_modcheck);
 	if (spl != NULL) {
 		rval = ((long)stbuf.st_mtime != (long)spl->data ||
-			(long)stbuf.st_nlink != (long)spl->mark);
+			(long)stbuf.st_nlink != 1);
 	} else
 		rval = 0;
 	sp_install(symid, (void *)((long)stbuf.st_mtime),

@@ -284,8 +284,9 @@ hdfreedata(spl)
 }
 
 void
-close_header(sip)
+close_header(sip,comment)
 	search_info *sip;
+	const char *comment;
 {
 	struct sptree *hdb;
 

@@ -58,15 +58,15 @@ extern conscell	*search_yp	__((search_info	*sip));
 extern conscell	*search_selfmatch __((search_info *sip));
 extern conscell	*search_ldap    __((search_info *sip));
 /* closes	*/
-extern void	close_core	__((search_info	*sip));
-extern void	close_seq	__((search_info	*sip));
-extern void	close_ndbm	__((search_info	*sip));
-extern void	close_btree	__((search_info	*sip));
-extern void	close_bhash	__((search_info	*sip));
-extern void	close_dbm	__((search_info	*sip));
-extern void	close_gdbm	__((search_info	*sip));
-extern void	close_header	__((search_info	*sip));
-extern void	close_ldap	__((search_info	*sip));
+extern void	close_core	__((search_info	*sip, const char *cmt));
+extern void	close_seq	__((search_info	*sip, const char *cmt));
+extern void	close_ndbm	__((search_info	*sip, const char *cmt));
+extern void	close_btree	__((search_info	*sip, const char *cmt));
+extern void	close_bhash	__((search_info	*sip, const char *cmt));
+extern void	close_dbm	__((search_info	*sip, const char *cmt));
+extern void	close_gdbm	__((search_info	*sip, const char *cmt));
+extern void	close_header	__((search_info	*sip, const char *cmt));
+extern void	close_ldap	__((search_info	*sip, const char *cmt));
 /* adds	*/
 extern int	add_core	__((search_info *sip, const char *value));
 extern int	add_seq		__((search_info *sip, const char *value));

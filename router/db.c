@@ -58,7 +58,7 @@ struct db_info {
 	time_t		ttl;			/* default time to live */
 	conscell	*DBFUNCD(driver);	/* completion routine */
 	conscell	*DBFUNC(lookup);	/* low-level lookup routine */
-	void		DBFUNC(close);		/* flush buffered data, close*/
+	void		DBFUNCV(close);		/* flush buffered data, close*/
 	int		DBFUNCV(add);		/* add key/value pair */
 	int		DBFUNC(remove);		/* remove key */
 	void		DBFUNCF(print);		/* print database */
@@ -642,7 +642,7 @@ run_db(argc, argv)
 		 * file/db name entry from the splay tree, because there may
 		 * be multple references to it.  For example: /dev/null.
 		 */
-		(*dbip->close)(&si);
+		(*dbip->close)(&si,"db flush");
 
 		/*
 		 * Close auxiliary (indirect) data file as well (aliases.dat).
@@ -651,7 +651,7 @@ run_db(argc, argv)
 		 */
 		if (dbip->postproc == Indirect) {
 			si.file = dbip->subtype;
-			(*dbip->close)(&si);
+			(*dbip->close)(&si,"db flush indirect");
 		}
 		break;
 	case 'o':	/* owner */
@@ -752,10 +752,10 @@ db(dbname, key)
 	    && dbip->modcheckp != NULL && (*dbip->modcheckp)(&si)) {
 		if (dbip->close != NULL) {
 			cacheflush(dbip);
-			(*dbip->close)(&si);
+			(*dbip->close)(&si,"db modcheck");
 			if (dbip->postproc == Indirect) {
 				si.file = dbip->subtype;
-				(*dbip->close)(&si);
+				(*dbip->close)(&si,"db modcheck indirect");
 				si.file = dbip->file;
 			}
 		}

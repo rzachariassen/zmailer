@@ -36,8 +36,9 @@ static BTREEINFO BINFO = { 0, 2560, 0, 0, 0, NULL,  NULL, 0 };
  */
 
 void
-close_btree(sip)
+close_btree(sip,comment)
 	search_info *sip;
+	const char *comment;
 {
 	DB *db;
 	struct spblk *spl = NULL;
@@ -51,6 +52,13 @@ close_btree(sip)
 	if (spl != NULL)
 	  sp_delete(spl, spt_modcheck);
 	spl = sp_lookup(symid, spt_files);
+#if 0
+{
+  char bb[2000];
+  sprintf(bb,"/tmp/-mark2- file='%s' symid=%lx spl=%p db=%p cmt=%s",sip->file,symid,spl, (spl) ? spl->data : NULL, comment );
+  unlink(bb);
+}
+#endif
 	if (spl == NULL || (db = (DB *)spl->data) == NULL)
 		return;
 #ifdef HAVE_DB_OPEN2
@@ -80,15 +88,25 @@ open_btree(sip, flag, comment)
 
 	symid = symbol_db(sip->file, spt_files->symbols);
 	spl = sp_lookup(symid, spt_files);
-	if (spl != NULL && flag == O_RDWR && spl->mark != O_RDWR)
-		close_btree(sip);
+#if 0
+{
+  char bb[2000];
+  sprintf(bb,"/tmp/-mark1- file='%s' symid=%lx spl=%p cmt=%s spl->mark=%lx flag=%x",sip->file,symid,spl,comment,spl?spl->mark:0,flag);
+  unlink(bb);
+}
+#endif
+	if (spl != NULL && flag != spl->mark)
+		close_btree(sip,"open_btree");
 	if (spl == NULL || (db = (DB *)spl->data) == NULL) {
 		for (i = 0; i < 3; ++i) {
 #ifdef HAVE_DB_OPEN2
 		  int err;
+		  db = NULL;
+unlink("/tmp/ -mark1- ");
 		  err = db_open(sip->file, DB_BTREE,
-				DB_CREATE |((flag == O_RDONLY) ? DB_RDONLY:0),
+				DB_NOMMAP|DB_CREATE |((flag == O_RDONLY) ? DB_RDONLY:0),
 				0644, NULL, NULL, &db);
+unlink("/tmp/ -mark2- ");
 #else
 		  db = dbopen(sip->file, flag, 0, DB_BTREE, &BINFO);
 #endif
@@ -104,9 +122,9 @@ open_btree(sip, flag, comment)
 			return NULL;
 		}
 		if (spl == NULL)
-			sp_install(symid, (void *)db, flag, spt_files);
-		else
-			spl->data = (void *)db;
+			spl = sp_install(symid, (void *)db, flag, spt_files);
+		spl->data = (void *)db;
+		spl->mark = flag;
 	}
 	return db;
 }
@@ -125,7 +143,9 @@ search_btree(sip)
 	int retry, rc;
 
 	retry = 0;
+#if 0
 reopen:
+#endif
 	db = open_btree(sip, O_RDONLY, "search_btree");
 	if (db == NULL)
 	  return NULL; /* Huh! */
@@ -142,11 +162,16 @@ reopen:
 	rc = (db->get)(db, &key, &val, 0);
 #endif
 	if (rc != 0) {
+
+#if 0 /* SleepyCat's DB 2.x leaks memory mappings when opening...
+	 at least the version at glibc 2.1.1 */
+
 		if (!retry && rc < 0) {
-			close_btree(sip);
+			close_btree(sip,"search_btree");
 			++retry;
 			goto reopen;
 		}
+#endif
 		return NULL;
 	}
 	return newstring(dupnstr(val.data, val.size), val.size);
@@ -423,11 +448,12 @@ modp_btree(sip)
 	spl = sp_lookup(symid, spt_modcheck);
 	if (spl != NULL) {
 		rval = ((long)stbuf.st_mtime != (long)spl->data ||
-			(long)stbuf.st_nlink != (long)spl->mark);
+			(long)stbuf.st_nlink != 1);
 	} else
 		rval = 0;
 	sp_install(symid, (void *)((long)stbuf.st_mtime),
 		   stbuf.st_nlink, spt_modcheck);
+
 	return rval;
 }
 #endif	/* HAVE_DB */

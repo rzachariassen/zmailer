@@ -1,3 +1,16 @@
+1999-06-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* router/libdb/bsdbtree.c (and others during debug):
+	    Spotted strange leakage of 'file' objects in the Linux
+	    kernel.  Turns out that the BSD DB 2.x at Linux/Alpha
+	    glibc-2.1.1 leaks one mmap() page at every db open.
+	    Turns out also that every  search_btree()  which
+	    misses, did a retry *after* close_btree() call.
+	    As a result, routing did need terrible things.
+	    Now won't do that db-reopen at search miss with
+	    bsd-btree and bsd-hash codes.
+	
+
 1999-06-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* libsh/interpret.c, router/functions.c, router/rfc822.c,

@@ -102,8 +102,9 @@ icfreedata(spl)
 }
 
 void
-close_core(sip)
+close_core(sip,comment)
 	search_info *sip;
+	const char *comment;
 {
 	struct sptree *db;
 
