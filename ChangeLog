@@ -1,3 +1,14 @@
+2001-10-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* proto/cf/p-smtp.cf, proto/cf/standard.cf, proto/cf/trusted.cf:
+	    Add a bit of 'provide nnn' things.
+
+	* scheduler/mq2.c, scheduler/mq2auth.c, scheduler/prototypes.h,
+	  scheduler/transport.c, scheduler/update.c:
+	    Track the number of open mailq2 sockets.  Track also
+	    memory usage, and abort the connection of MQ2 socket if
+	    the buffer size needed for the input line exceeds 16k.
+
 2001-10-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/readconfig.c:
@@ -5,10 +16,11 @@
 	         AAAA/*
 		 BBBB/*
 		 CCCC/*
-		 DDDD/=
+		 DDDD/*
 		    params
 	    channel/host selector pairs preceding common
-	    parameter sets.  Original was just one.
+	    parameter sets.  Original was just AAAA+BBBB,
+	    adding third did fail the first dataset...
 
 	* proto/cf/crossbar.cf, proto/cf/fqdnalias.cf,
 	  proto/cf/p-uucp.cf, proto/cf/rrouter.cf,

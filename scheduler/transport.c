@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2001
  */
 
 
@@ -1278,7 +1278,18 @@ queryipccheck()
 		close(n);
 	      } else {
 		/* mailqmode == 2 */
-		mq2_register(n, &raddr);
+#ifdef USE_TCPWRAPPER
+#ifdef HAVE_TCPD_H /* TCP-Wrapper code */
+		if (wantconn(n, "mailq") == 0) {
+		  char *msg = "refusing 'mailq' query from your whereabouts\r\n";
+		  int   len = strlen(msg);
+		  write(n,msg,len);
+		  close(n);
+		}
+		else
+#endif
+#endif
+		  mq2_register(n, &raddr);
 	      }
 	    }
 	  }

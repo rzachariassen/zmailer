@@ -20,3 +20,4 @@ do
       db add trusted $g ''
 done 2> /dev/null
 
+provide trusted

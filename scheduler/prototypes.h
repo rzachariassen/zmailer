@@ -181,3 +181,6 @@ extern int  mq2_active __((void));
 
 /* mq2auth.c */
 extern void mq2auth __((struct mailq *, char *));
+struct mq2pw; /* forward definition */
+extern struct mq2pw * mq2_authuser __((struct mailq *mq, char *user));
+

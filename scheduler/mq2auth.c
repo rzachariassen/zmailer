@@ -234,7 +234,7 @@ static int mq2amaskverify(mq, s)
 }
 
 
-static struct mq2pw * authuser(mq, user)
+struct mq2pw * mq2_authuser(mq, user)
      struct mailq *mq;
      char *user;
 {
@@ -242,7 +242,7 @@ static struct mq2pw * authuser(mq, user)
   static struct mq2pw mpw;
   char *s;
   Sfio_t *fp;
-  int ulen = strlen(user)+1;
+  int ulen = user ? strlen(user)+1 : 0;
 
   if (!mq2authfile) return NULL; /* D'uh! */
 
@@ -258,7 +258,7 @@ static struct mq2pw * authuser(mq, user)
     s = strchr(linebuf,':');
     if (!s) continue; /* Bad syntax! */
     *s++ = '\000';
-    if (memcmp(linebuf,user,ulen) == 0) {
+    if (!user || memcmp(linebuf,user,ulen) == 0) {
       /* FOUND! */
       mpw.plain = s;
       s = strchr(s, ':');
@@ -302,7 +302,7 @@ void mq2auth(mq,str)
   /* Now 'str' points to username, and from 'p' onwards
      there is the HEX-encoded MD5 authenticator.. */
 
-  pw = authuser(mq, str);
+  pw = mq2_authuser(mq, str);
 
   if (!pw) {
     mq2_puts(mq,"-BAD USER OR AUTHENTICATOR OR CONTACT ADDRESS\n");

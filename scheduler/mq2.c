@@ -109,6 +109,7 @@ static void mq2_discard(mq)
     free(mq->challenge);
 
   free(mq);
+  --mq2count;
 }
 
 /* EXTERNAL */
@@ -313,7 +314,12 @@ static void mq2_read(mq)
 
   if (mq->inbufsize+80 >= mq->inbufspace) {
     mq->inbufspace *= 2;
-    mq->inbuf = erealloc(mq->inbuf, mq->inbufspace);
+    /* Abort if line size is too large.. */
+    if (mq->inbufspace > 17000) {
+      free(mq->inbuf);
+      mq->inbuf = NULL;
+    } else
+      mq->inbuf = erealloc(mq->inbuf, mq->inbufspace);
   }
 
   if (mq->inbuf == NULL) {
@@ -347,7 +353,8 @@ static void mq2_read(mq)
   }
 
   mq2_wflush(mq);
-}
+}  ++mq2count;
+
 
 
 /* EXTERNAL */
@@ -356,6 +363,7 @@ void mq2_register(fd, addr)
      Usockaddr *addr;
 {
   struct mailq *mq;
+  void *mq2test;
 
   static int cnt = 0;
   char buf[200];
@@ -372,6 +380,7 @@ void mq2_register(fd, addr)
     return;
   }
   memset(mq, 0, sizeof(*mq));
+  ++mq2count;
   
   mq->fd = fd;
   mq->apopteosis = now + max_mq_life;
@@ -379,8 +388,6 @@ void mq2_register(fd, addr)
 
   mq->nextmailq = mq2root;
   mq2root = mq;
-
-  fd_nonblockingmode(fd);
 
   /* 
      Scheduler writes following to the interface socket:
@@ -390,19 +397,34 @@ void mq2_register(fd, addr)
   */
 
   mq2_puts(mq,"version zmailer 2.0\n");
+
+  mq2test = mq2_authuser(mq, NULL);
+
+  if (! mq2test) {
+
+    fd_blockingmode(fd);
+
+    mq2_puts(mq, "550 NO ACCESS FOR YOU\n");
+    mq2_wflush(mq);
+    mq2_discard(mq);
+
+  } else {
   
-  gettimeofday(&tv,NULL);
+    fd_nonblockingmode(fd);
 
-  sprintf(buf,"MAILQ-V2-CHALLENGE: %ld.%ld.%d",
-	  (long)tv.tv_sec, (long)tv.tv_usec, ++cnt);
+    gettimeofday(&tv,NULL);
 
-  mq->challenge = strdup(buf);
+    sprintf(buf,"220 MAILQ-V2-CHALLENGE: %ld.%ld.%d",
+	    (long)tv.tv_sec, (long)tv.tv_usec, ++cnt);
 
-  mq2_puts(mq, buf);
-  mq2_puts(mq, "\n");
-  mq2_wflush(mq);
+    mq->challenge = strdup(buf);
 
-  mq->auth = 0;
+    mq2_puts(mq, buf);
+    mq2_puts(mq, "\n");
+    mq2_wflush(mq);
+
+    mq->auth = 0;
+  }
 }
 
 /* EXTERNAL */

@@ -4,7 +4,7 @@
 # is done both in the router and (by default) in the transport agent.
 # We use a nameserver or /etc/hosts as per whether a resolv.conf file exists.
 
-require smtpdb crossbar canonicalize
+require smtpdb crossbar canonicalize standard
 provide smtp
 
 if [ x$world != x ]; then

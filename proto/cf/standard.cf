@@ -343,3 +343,5 @@ if nobodypriv=$(login2uid nobody) ; then
 else
   echo "nobodypriv (uid)  IS BAD ??  No 'nobody' user ???"
 fi
+
+provide standard

@@ -5,7 +5,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2001
  */
 
 #include "hostenv.h"
