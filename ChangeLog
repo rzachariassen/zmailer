@@ -1,9 +1,21 @@
+1998-03-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/rrouter.cf, INSTALL:
+	    Match $hostname also with non-lowercase domain
+	    address.
+
+1998-03-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/msgerror.c:
+	    In case boiler-plate template was not found,  writeheader()
+	    would produce bad error report message which router would
+	    not accept for processing.
+
 1998-03-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/qprint.c:
 	    A patch from Andrey Blochintsev to restore the functionality
 	    of "mailq -v" with scheduler running with "-H[H]" mode.
-
 
 	* proto/cf/rrouter.cf, proto/cf/aliases.cf:
 	    When user has  .forward  but it is empty, aliasing pushed

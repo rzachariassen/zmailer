@@ -348,7 +348,7 @@ Installation procedure:
 	addition to canonicalized names.  If you want to do local delivery
 	for mail clients, put their names in here too.  You may use pathalias-
 	style .domain names in this file, to indicate everything under some
-	subdomain.  Remember to sort the file.
+	subdomain.
 
 	With the sample config files for mea's Zmailer-2.98, and latter
 	this "localnames" is actually a mapping of those various names to

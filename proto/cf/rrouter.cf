@@ -119,11 +119,16 @@ rrouter (address, origaddr, A, plustail, domain) {
 		return $(rrouter "\2$plustail@\3" "$origaddr" $A "" "")
 		;;	# strip organization
 	(.+)<@(.+)>(.*)
-		if [ $(deliver "\2") ]; then	# Do we handle this ?
+		# Ok, lets see if it is LOCAL hostname.
+		# This recase is needed to handle testing against
+		# $hostname variable content, which is supposedly
+		# lowercase name.
+		tmp="$(recase -l "\2")"
+		if [ $(deliver "$tmp") ]; then	# Do we handle this ?
 			address="\1$plustail<@>\3"
 			domain="@\2"
 			plustail=""
-		elif [ "\2" = "$hostname" ]; then # Is it at local host ?
+		elif [ "$tmp" = "$hostname" ]; then # Is it at local host ?
 			address="\1$plustail<@>\3" # (this is a backup test)
 			domain="@\2"
 			plustail=""
