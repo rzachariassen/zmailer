@@ -1279,7 +1279,7 @@ run_listexpand(avl, il)
 	dup2(fd2,0);	/* Return the fd to descriptor 0..		*/
 	close(fd2);	/* .. and discard the backup copy..		*/
 
-	if (okaddresses == 0 && !isErrorMsg) {
+	if (okaddresses == 0 && !isErrChannel && !isErrorMsg) {
 		/* If the file is empty, use error address ...
 		   Except when this is already an error mesage, say nothing! */
 
@@ -1755,7 +1755,7 @@ run_listaddresses(argc, argv)
 	dup2(fd2,0);	/* Return the fd to descriptor 0..		*/
 	close(fd2);	/* .. and discard the backup copy..		*/
 
-	if (okaddresses == 0 && !isErrorMsg) {
+	if (okaddresses == 0 && !isErrChannel && !isErrorMsg) {
 		/* If the file is empty, use error address ...
 		   Except when this is already an error mesage, say nothing! */
 
