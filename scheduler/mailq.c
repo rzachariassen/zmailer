@@ -448,6 +448,59 @@ docat(file, fd)
 	if (fpo) fclose(fpo);
 }
 
+int countfiles __((const char *));
+int countfiles(dirpath)
+const char *dirpath;
+{
+	char dpath[512];
+
+	struct dirent *dp;
+	DIR *dirp;
+	int n = 0;
+
+	dirp = opendir(dirpath);
+	if (dirp == NULL) {
+	  fprintf(stderr, "%s: opendir(%s): %s\n",
+		  progname, dpath, strerror(errno));
+	  return -1;
+	}
+	for (dp = readdir(dirp); dp != NULL; dp = readdir(dirp)) {
+	  if (dp->d_name[0] == '.' &&
+	      (dp->d_name[1] == 0 || (dp->d_name[1] == '.' &&
+				      dp->d_name[2] == 0)))
+	    continue; /* . and .. */
+	  if (isascii(dp->d_name[0]) && isdigit(dp->d_name[0]))
+	    ++n;
+	  else if (strcmp("core",dp->d_name)==0)
+	    sawcore = 1, ++othern;
+	  else {
+	    if (dp->d_name[0] >= 'A' && dp->d_name[0] <= 'Z' &&
+		dp->d_name[1] == 0) {
+	      struct stat stbuf;
+	      sprintf(dpath, "%s/%s", dirpath, dp->d_name);
+	      if (lstat(dpath,&stbuf) != 0 ||
+		  !S_ISDIR(stbuf.st_mode)) {
+		++othern;
+	      } else {
+		n += countfiles(dpath);
+	      }
+	    } else {
+	      ++othern;
+	    }
+	  }
+	}
+#ifdef	BUGGY_CLOSEDIR
+	/*
+	 * Major serious bug time here;  some closedir()'s
+	 * free dirp before referring to dirp->dd_fd. GRRR.
+	 * XX: remove this when bug is eradicated from System V's.
+	 */
+	close(dirp->dd_fd);
+#endif
+	closedir(dirp);
+	return n;
+}
+
 /*
  * Determine if the Router is alive, how many entries are in the queue,
  * and whether the router dumped core last time it died.
@@ -465,25 +518,9 @@ checkrouter()
 	if (postoffice == NULL)
 	  return;
 	sprintf(path, "%s/%s", postoffice, ROUTERDIR);
-	dirp = opendir(path);
-	if (dirp == NULL) {
-	  fprintf(stderr, "%s: opendir(%s): %s\n",
-		  progname, path, strerror(errno));
-	  return;
-	}
-	for (dp = readdir(dirp), n = 0; dp != NULL; dp = readdir(dirp)) {
-	  if (isascii(dp->d_name[0]) && isdigit(dp->d_name[0]))
-	    ++n;
-	}
-#ifdef	BUGGY_CLOSEDIR
-	/*
-	 * Major serious bug time here;  some closedir()'s
-	 * free dirp before referring to dirp->dd_fd. GRRR.
-	 * XX: remove this when bug is eradicated from System V's.
-	 */
-	close(dirp->dd_fd);
-#endif
-	closedir(dirp);
+
+	n = countfiles(path);
+
 	fprintf(stdout,"%d entr%s in router queue: ", n, n != 1 ? "ies" : "y");
 
 	if (nonlocal)
@@ -540,59 +577,6 @@ checkrouter()
 	closedir(dirp);
 	if (n)
 	  fprintf(stdout,"%d message%s deferred\n", n, n != 1 ? "s" : "");
-}
-
-int countfiles __((const char *));
-int countfiles(dirpath)
-const char *dirpath;
-{
-	char dpath[512];
-
-	struct dirent *dp;
-	DIR *dirp;
-	int n = 0;
-
-	dirp = opendir(dirpath);
-	if (dirp == NULL) {
-	  fprintf(stderr, "%s: opendir(%s): %s\n",
-		  progname, dpath, strerror(errno));
-	  return -1;
-	}
-	for (dp = readdir(dirp); dp != NULL; dp = readdir(dirp)) {
-	  if (dp->d_name[0] == '.' &&
-	      (dp->d_name[1] == 0 || (dp->d_name[1] == '.' &&
-				      dp->d_name[2] == 0)))
-	    continue; /* . and .. */
-	  if (isascii(dp->d_name[0]) && isdigit(dp->d_name[0]))
-	    ++n;
-	  else if (strcmp("core",dp->d_name)==0)
-	    sawcore = 1, ++othern;
-	  else {
-	    if (dp->d_name[0] >= 'A' && dp->d_name[0] <= 'Z' &&
-		dp->d_name[1] == 0) {
-	      struct stat stbuf;
-	      sprintf(dpath, "%s/%s", dirpath, dp->d_name);
-	      if (lstat(dpath,&stbuf) != 0 ||
-		  !S_ISDIR(stbuf.st_mode)) {
-		++othern;
-	      } else {
-		n += countfiles(dpath);
-	      }
-	    } else {
-	      ++othern;
-	    }
-	  }
-	}
-#ifdef	BUGGY_CLOSEDIR
-	/*
-	 * Major serious bug time here;  some closedir()'s
-	 * free dirp before referring to dirp->dd_fd. GRRR.
-	 * XX: remove this when bug is eradicated from System V's.
-	 */
-	close(dirp->dd_fd);
-#endif
-	closedir(dirp);
-	return n;
 }
 
 
