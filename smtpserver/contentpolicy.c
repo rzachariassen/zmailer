@@ -13,54 +13,7 @@
  *     from contentpolicy: %i comment text \n
  */
 
-#include "hostenv.h"
-#include "mailer.h"
-
-#include <stdio.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#ifdef HAVE_DB_H
-#ifdef HAVE_DB_185_H
-# include <db_185.h>
-#else
-# include <db.h>
-#endif
-#endif
-#ifdef HAVE_NDBM_H
-#define datum Ndatum
-#include <ndbm.h>
-#undef datum
-#endif
-#ifdef HAVE_GDBM_H
-#define datum Gdatum
-#include <gdbm.h>
-#undef datum
-#endif
-
-#ifdef	HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-
-#include <netdb.h>
-
-#include <netinet/in.h>
-#ifdef HAVE_NETINET_IN6_H
-#include <netinet/in6.h>
-#endif
-#ifdef HAVE_NETINET6_IN6_H
-#include <netinet6/in6.h>
-#endif
-#ifdef HAVE_LINUX_IN6_H
-#include <linux/in6.h>
-#endif
-
-#endif
-
-#include "libc.h"
-#include "libz.h"
-
-#define _POLICYTEST_INTERNAL_
-#include "policytest.h"
+#include "smtpserver.h"
 
 extern int debug;
 
@@ -91,6 +44,9 @@ static int init_content_policy()
     dup2(piperd[1], 1);
     dup2(piperd[1], 2);
     dup2(pipewr[0], 0);
+
+    close(piperd[1]);
+    close(pipewr[0]);
 
     execl(contentfilter, contentfilter, NULL);
     _exit(255); /* EXEC failure! */
@@ -148,6 +104,7 @@ const char *fname;
   /* Ok, we seem to have content-filter program configured... */
 
   fprintf(cpol_tofp, "%s\n", fname);
+  fflush(cpol_tofp);
 
   for (c = i = 0; c != '\n' && i < sizeof(responsebuf)-1; ++i) {
     if (ferror(cpol_fromfp) || feof(cpol_fromfp)) break;

@@ -155,6 +155,8 @@ _mail_fopen(filenamep)
 		} else
 			strcpy(cp, post);
 		if ((fd = open(path, O_CREAT|O_EXCL|O_RDWR, 0600)) >= 0) {
+			fcntl(fd, F_SETFD,
+			      fcntl(fd, F_GETFD, 0) | FD_CLOEXEC);
 			fp = fdopen(fd, "w+");
 			if (fp) {
 			  setvbuf(fp, NULL, _IOFBF, 8192);

@@ -324,6 +324,7 @@ int insecure;
 			"%s: cannot open logfile \"%s\": %s\n",
 			progname, fname, strerror(errno));
 	} else {
+	    fcntl(fd, F_SETFD, fcntl(fd, F_GETFD, 0) | FD_CLOEXEC);
 	    logfp = fdopen(fd, "a");
 	    setvbuf(logfp, NULL, _IOFBF, BUFSIZ);
 	    /* Line-buffered */

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "22 Mar 2000"
+.TH SMTPSERVER 8 "8 Jun 2000"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -504,7 +504,7 @@ PARAM help ------------------------------------------------------
 PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 #
 # External program for received message content analysis:
-#PARAM  contentfilter	@MAILBIN@/smtp-content-policy-analysis
+#PARAM  contentfilter  @MAILBIN@/smtp-content-policy-analysis
 
 #PARAM  tarpit 0 0   # No "tarpit" for 4XX/5XX reply codes
 #PARAM  tarpit 20 2  # Initial delay: 20 secs, next = prev + (prev * 2)

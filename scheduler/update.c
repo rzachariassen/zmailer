@@ -26,12 +26,6 @@ static int ctlowner __((struct ctlfile *));
 static void vtxupdate __((struct vertex *, int, int));
 static void expaux __((struct vertex *, int, const char *));
 
-#if 0
-extern int ermdir();
-extern int rmdir();
-extern int eunlink();
-extern struct spblk *sp_fhead(), *sp_fnext();
-#endif
 extern time_t now;
 extern int global_wrkcnt;
 extern char *procselect;

@@ -6,10 +6,10 @@ srcdir = @srcdir@
 # VPATH = @srcdir@ ## NO VPATH HERE!
 @SET_MAKE@
 
-#prefix=		@prefix@
-MANDIR=		$(prefix)@MANDIR@
+#prefix=	@prefix@
+MANDIR=		@MANDIR@
 TOPDIR=		..
-S=		$(TOPDIR)/$(srcdir)/man
+S=		$(srcdir)
 INSTALL=	@INSTALL@
 
 MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
