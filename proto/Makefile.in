@@ -234,9 +234,9 @@ db:	FRC
 	-@( . $(PZCONFIG) ; \
 	MAILVAR=$(prefix)$$MAILVAR ; \
 	echo "Don't forget to set up MAILVAR/db by hand -- if there is nothing, we seed it now" ; \
-	cd $(srcdir)/db; \
-	for x in aliases fqdnaliases dbases.conf localnames routes \
-		 smtp-policy.* kill-headers ;	\
+	P=$(srcdir)/db; \
+	for x in $$P/aliases $$P/fqdnaliases $$P/dbases.conf $$P/localnames \
+		 $$P/routes $$P/smtp-policy.* $$P/kill-headers ;	\
 	do		\
 		$(INSTALL) -m 644 $$x $$MAILVAR/db/proto/$$x ; \
 	done ; )

@@ -1,5 +1,12 @@
 2000-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/Makefile.in:
+	    Fix db subdir installation to work on a system without
+	    GNU/BSD install (using locally supplied script).
+
+	* compat/rmail/Makefile.in:
+	    Allow  "mkdir -p ..." to fail on Solaris. (Anywhere actually)
+
 	* libc/whathost.c:
 	    Improved error handling by adding posixy redo of things
 	    in case stat()s yield an error.. (Solaris 2.6 is complaining
