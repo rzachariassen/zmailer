@@ -44,6 +44,8 @@
 #include "libz.h"
 #include "libc.h"
 
+#include "shmmib.h"
+
 #include <sys/socket.h>
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>

@@ -49,6 +49,11 @@ $(PROGRAM).third: $(PROGRAM)
 	make $(PROGRAM) LIBMALLOC=
 	atom -tool third -o $(PROGRAM).third $(PROGRAM)
 
+mq2.o: $(srcdir)/mq2.c $(srcdir)/mailq.inc
+mailq.o: $(srcdir)/mailq.c $(srcdir)/mailq.inc
+$(OBJS): $(srcdir)/../include/shmmib.h ../include/mail.h
+$(OBJS): $(srcdir)/prototypes.h $(srcdir)/scheduler.h
+
 version.c: $(OBJS) $(TOPDIR)/Makefile
 	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
 
@@ -118,22 +123,7 @@ $(TOPDIR)/libmalloc/libmalloc_d.a-a:
 	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
 
 depend:
-	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)
-
-scheduler.o: scheduler.c   scheduler.h prototypes.h
-readconfig.o: readconfig.c scheduler.h prototypes.h
-conf.o:      conf.c
-agenda.o:    agenda.c    scheduler.h prototypes.h
-transport.o: transport.c scheduler.h prototypes.h
-pipes.o:     pipes.c     scheduler.h prototypes.h
-update.o:    update.c    scheduler.h prototypes.h
-qprint.o:    qprint.c    scheduler.h prototypes.h
-msgerror.o:  msgerror.c  scheduler.h prototypes.h
-resources.o: resources.c 
-threads.o:   threads.c   scheduler.h prototypes.h
-wantconn.o:  wantconn.c
-mq2.o:       mq2.c       scheduler.h prototypes.h
-mq2auth.o:   mq2auth.c   scheduler.h prototypes.h
+	CPPDEP="${CPPDEP}" CPPOPT="$(CFLAGS)" $(TOPDIR)/bin/mkdep -s $(srcdir) $(SOURCE)
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

@@ -20,6 +20,8 @@ MAKE=Makefile			# default makefile name is "Makefile"
 
 : ${CPPDEP:="@CPPDEP@"}
 
+SRCDIR=
+
 while :
 	do case "$1" in
 		# -f allows you to select a makefile name
@@ -32,18 +34,21 @@ while :
 		-p)
 			SED='-e s;\.o;;'
 			shift ;;
+		-s)
+			SRCDIR=$2/
+			shift ; shift  ;;
 		*)
 			break ;;
 	esac
 done
 
 if [ $# = 0 ] ; then
-	echo 'usage: mkdep [-p] [-f makefile] [flags] file ...'
+	echo 'usage: mklibdep [-p] [-s srcdir] [-f makefile] [flags] file ...'
 	exit 1
 fi
 
 if [ ! -w $MAKE ]; then
-	echo "mkdep: no writeable file \"$MAKE\""
+	echo "mklibdep: no writeable file \"$MAKE\""
 	exit 1
 fi
 
@@ -61,7 +66,12 @@ cat << _EOF_ >> $TMP
 
 _EOF_
 
-$CPPDEP $* >> $TMP
+for x in $*
+do
+
+	$CPPDEP $CPPOPT $SRCDIR$x >> $TMP
+
+done
 
 #$CC $CPPOPT $* | /bin/sed -e "/\/usr\/include\//d" -e "s; \./; ;g" -e "s;\.o:;\.c:;" $SED | \
 #	awk ' { \

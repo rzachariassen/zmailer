@@ -24,6 +24,8 @@
 #include <sys/vfs.h>
 #endif
 
+#include "libz.h"
+
 /* Saturative calculation, will not matter as 2 GB is likely sufficient
    space for *any* email at *any* system (and I have been proven wrong...)
    Algorithm suggested by  Artur Urbanowicz <Artur.Urbanowicz@man.lublin.pl>,

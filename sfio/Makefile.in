@@ -58,3 +58,6 @@ distclean: clean
 	rm -f src/lib/sfio/Stdio_s/Makefile
 	rm -f src/lib/sfio/Sfio_f/Makefile
 	rm -f src/lib/sfio/Sfio_dc/Makefile
+
+depend:
+	# No 'make depend' in SFIO library!

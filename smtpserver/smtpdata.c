@@ -86,12 +86,12 @@ const char *buf, *cp;
     char taspid[30];
 
 
-    MIBMtaEntry->m.mtaReceivedMessagesSs  += 1;
-    MIBMtaEntry->m.mtaIncomingSMTP_DATA   += 1;
+    MIBMtaEntry->ss.ReceivedMessagesSs  += 1;
+    MIBMtaEntry->ss.IncomingSMTP_DATA   += 1;
 
     while (!strict_protocol && (*cp == ' ' || *cp == '\t')) ++cp;
     if (strict_protocol && *cp != 0) {
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	type(SS, 501, m554, "Extra junk after 'DATA' verb");
 	return 0;
     }
@@ -115,7 +115,7 @@ const char *buf, *cp;
 	    cp = NULL;
 	    break;
 	}
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	type(SS, 503, m552, cp);
 	typeflush(SS);
 	return 0;
@@ -126,7 +126,7 @@ const char *buf, *cp;
 	typeflush(SS);
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	reporterr(SS, tell, "message file error");
 	return 0;
@@ -137,7 +137,7 @@ const char *buf, *cp;
 	SS->state = MailOrHello;
 	if (SS->mfp)
 	  mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	return 0;
     }
@@ -147,7 +147,7 @@ const char *buf, *cp;
 	typeflush(SS);
 	SS->state = MailOrHello;
 	mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	return 0;
     }
@@ -157,7 +157,7 @@ const char *buf, *cp;
 	typeflush(SS);
 	SS->state = MailOrHello;
 	mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	return 0;
     }
@@ -173,6 +173,7 @@ const char *buf, *cp;
     /* We set alarm()s inside the mvdata() */
     *msg = 0;
     filsiz = mvdata(SS, msg);
+    SS->messagesize = filsiz;
 
     fflush(SS->mfp);
     fname = mail_fname(SS->mfp);
@@ -188,13 +189,13 @@ const char *buf, *cp;
 	availspace = 2000000000;	/* Over 2G ? */
 
     if (availspace >= 0)
-      MIBMtaEntry->m.mtaSpoolFreeSpace = availspace / 1024;
+      MIBMtaEntry->sys.SpoolFreeSpace = availspace / 1024;
 
     availspace -= minimum_availspace;
 
     if (*msg != 0) {
 	mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	type(SS, 452, m430, "%s", msg);
 	if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
@@ -206,7 +207,7 @@ const char *buf, *cp;
 	  mail_close_alternate(SS->mfp,"public",".DATA-EOF");
 	} else
 	  mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	reporterr(SS, tell, "premature EOF on DATA input");
 	if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
@@ -221,11 +222,11 @@ const char *buf, *cp;
 	reporterr(SS, tell, ferror(SS->mfp) ? "write to spool file failed" : "system free storage under limit");
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
     } else if (maxsize > 0 && filsiz > maxsize) {
 	mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
 	if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
@@ -268,7 +269,7 @@ const char *buf, *cp;
 	  }
 
 	  mail_abort(SS->mfp);
-	  MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	  MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	  SS->mfp = NULL;
 	} else if (SS->policyresult > 0) {
 	  char polbuf[20];
@@ -308,7 +309,7 @@ const char *buf, *cp;
 	    zsyslog((LOG_INFO, "accepted  %s (%ldc) from %s/%d into freeze[%d]",
 		     taspid, tell, SS->rhostname, SS->rport, SS->policyresult));
 	  }
-	  MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	  MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 
 	  runastrusteduser();
 	} else {
@@ -323,7 +324,7 @@ const char *buf, *cp;
 	    typeflush(SS);
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
-	    MIBMtaEntry->m.mtaIncomingSMTP_DATA_bad += 1;
+	    MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 
 	  } else {
 	    /* Ok, build response with proper "spoolid" */
@@ -347,10 +348,13 @@ const char *buf, *cp;
 		       "%s: (%ldc) accepted from %s/%d", taspid, tell,
 		       SS->rhostname, SS->rport));
 		
-	    MIBMtaEntry->m.mtaIncomingSMTP_DATA_ok    += 1;
+	    MIBMtaEntry->ss.IncomingSMTP_DATA_ok    += 1;
 
-	    MIBMtaEntry->m.mtaTransmittedMessagesSs   += 1;
-	    MIBMtaEntry->m.mtaTransmittedRecipientsSs += SS->ok_rcpt_count;
+	    MIBMtaEntry->ss.TransmittedMessagesSs   += 1;
+	    MIBMtaEntry->ss.TransmittedRecipientsSs += SS->ok_rcpt_count;
+
+	    MIBMtaEntry->ss.IncomingSMTP_DATA_KBYTES  += (SS->messagesize+1023)/1024;
+	    MIBMtaEntry->ss.IncomingSMTP_spool_KBYTES += (tell + 1023)/1024;
 
 	    type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
 	    if (logfp)
@@ -379,8 +383,8 @@ const char *buf, *cp;
     char taspid[30];
 
     
-    MIBMtaEntry->m.mtaReceivedMessagesSs  += 1;
-    MIBMtaEntry->m.mtaIncomingSMTP_BDAT   += 1;
+    MIBMtaEntry->ss.ReceivedMessagesSs  += 1;
+    MIBMtaEntry->ss.IncomingSMTP_BDAT   += 1;
 
     if (SS->state == RecipientOrData) {
 	SS->state = BData;
@@ -395,7 +399,7 @@ const char *buf, *cp;
 	  && (rc == 1 || (rc == 2 && bdata_last)))) {
 	type(SS, 501, m552, NULL);
 	typeflush(SS);
-	MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	return 0;
     }
     if (SS->bdata_blocknum == 1 && SS->mfp) {
@@ -407,6 +411,7 @@ const char *buf, *cp;
     /* We set alarm()s inside the mvbdata() */
     *msg = 0;
     filsiz = mvbdata(SS, msg, bdata_chunksize);
+    SS->messagesize += filsiz;
 
     tell = 0;
 
@@ -453,7 +458,7 @@ const char *buf, *cp;
 	typeflush(SS);
 	if (SS->mfp)
 	    mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
 	return 0;
     }
@@ -470,7 +475,7 @@ const char *buf, *cp;
 	    SS->state = MailOrHello;
 	    if (SS->mfp)
 	      mail_abort(SS->mfp);
-	    MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	    MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	    SS->mfp = NULL;
 	    return 0;
 	}
@@ -483,7 +488,7 @@ const char *buf, *cp;
 	  typeflush(SS);
 	  SS->state = MailOrHello;
 	  mail_abort(SS->mfp);
-	  MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	  SS->mfp = NULL;
 	  return 0;
 	}
@@ -496,7 +501,7 @@ const char *buf, *cp;
 	availspace = 2000000000;	/* Over 2G ? */
 
     if (availspace >= 0)
-      MIBMtaEntry->m.mtaSpoolFreeSpace = availspace / 1024;
+      MIBMtaEntry->sys.SpoolFreeSpace = availspace / 1024;
 
 
     availspace -= minimum_availspace;
@@ -507,7 +512,7 @@ const char *buf, *cp;
 	  type(SS, 452, m430, "BDAT block discarded due to earlier error");
 	else
 	  type(SS, 452, m430, "BDAT block discarded due to earlier error");
-	MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
     } else if (*msg != 0) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
@@ -515,7 +520,7 @@ const char *buf, *cp;
 	  type(SS, 452, "%s", msg);
 	else
 	  type(SS, 452, "%s", msg);
-	MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
     } else if (s_feof(SS)) {
 	/* [mea@utu.fi] says this can happen */
 	if (STYLE(SS->cfinfo,'D')) {
@@ -523,7 +528,7 @@ const char *buf, *cp;
 	  mail_close_alternate(SS->mfp,"public",".BDAT-EOF");
 	} else
 	  mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
 	reporterr(SS, tell, "premature EOF on BDAT input");
 	typeflush(SS); /* Pointless ?? */
@@ -536,11 +541,11 @@ const char *buf, *cp;
 	reporterr(SS, tell, ferror(SS->mfp) ? "write to spool file failed" : "system free storage under limit");
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
     } else if (maxsize > 0 && tell > maxsize) {
 	mail_abort(SS->mfp);
-	MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
 	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
 	  type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
@@ -582,7 +587,7 @@ const char *buf, *cp;
 		 ss ? ss : "rejected", taspid);
 	  }
 	  mail_abort(SS->mfp);
-	  MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	  SS->mfp = NULL;
 	} else if (SS->policyresult > 0) {
 	  char *ss = policymsg(policydb, &SS->policystate);
@@ -624,7 +629,7 @@ const char *buf, *cp;
 	    zsyslog((LOG_INFO, "accepted  %s (%ldc) from %s/%d into freeze[%d]",
 		     taspid, tell, SS->rhostname, SS->rport, SS->policyresult));
 	  }
-	  MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	  runastrusteduser();
 	} else if (mail_close(SS->mfp) == EOF) {
 	  if (lmtp_mode && bdata_last) {
@@ -634,7 +639,7 @@ const char *buf, *cp;
 	    type(SS, 452, m400, (char *) NULL);
 	  SS->mfp = NULL;
 	  reporterr(SS, tell, "message file close failed");
-	  MIBMtaEntry->m.mtaIncomingSMTP_BDAT_bad += 1;
+	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	} else {
 	  /* Ok, build response with proper "spoolid" */
 
@@ -648,10 +653,13 @@ const char *buf, *cp;
 	       taspid, bdata_chunksize, (long) tell);
 	  type(NULL,0,NULL,"-- pipeline input: %d bytes",s_hasinput(SS));
 
-	  MIBMtaEntry->m.mtaIncomingSMTP_BDAT_ok    += 1;
+	  MIBMtaEntry->ss.IncomingSMTP_BDAT_ok    += 1;
 
-	  MIBMtaEntry->m.mtaTransmittedMessagesSs   += 1;
-	  MIBMtaEntry->m.mtaTransmittedRecipientsSs += SS->ok_rcpt_count;
+	  MIBMtaEntry->ss.TransmittedMessagesSs   += 1;
+	  MIBMtaEntry->ss.TransmittedRecipientsSs += SS->ok_rcpt_count;
+
+	  MIBMtaEntry->ss.IncomingSMTP_BDAT_KBYTES  += (SS->messagesize+1023)/1024;
+	  MIBMtaEntry->ss.IncomingSMTP_spool_KBYTES += (tell + 1023)/1024;
 
 	  if (smtp_syslog)
 	    zsyslog((LOG_INFO,
@@ -853,6 +861,7 @@ int encodebase64string(instr,inlen,outstr,outspc)
  * Rayan back in 1988:
  *  "If you can improve on this heavily optimized routine, I'd like to see it.
  *   This version goes at better than 100kB/cpu-sec on a Sun 3/180."
+ *   (with 68030 CPU running at 33 MHz -- about 10-15 MIPS)
  */
 
 static int /* count of bytes */ mvdata(SS, msg)

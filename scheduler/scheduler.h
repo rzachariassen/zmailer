@@ -308,3 +308,4 @@ struct mailq {
 #define MQ2MODE_FULL2	0x0008
 #define MQ2MODE_ETRN	0x0010
 #define MQ2MODE_KILL	0x0020
+#define MQ2MODE_REROUTE 0x0040

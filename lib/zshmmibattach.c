@@ -59,8 +59,6 @@ static void *      SHM_block_ptr;
 int SHM_file_mode = 0664;
 
 
-extern long fd_statfs __((int));
-
 long Z_SHM_FileSysFreeSpace __((void))
 {
 	if (SHM_storage_fd >= 0) {
@@ -398,12 +396,12 @@ storage_fill_failure: ;
 
 	MIBMtaEntry = (struct MIB_MtaEntry *)p;
 
-	if (MIBMtaEntry->m.magic == 0) {
-	  MIBMtaEntry->m.magic = ZM_MIB_MAGIC;
-	  MIBMtaEntry->m.BlockCreationTimestamp = time(NULL);
+	if (MIBMtaEntry->magic == 0) {
+	  MIBMtaEntry->magic = ZM_MIB_MAGIC;
+	  MIBMtaEntry->BlockCreationTimestamp = time(NULL);
 	}
 
-	if (MIBMtaEntry->m.magic != ZM_MIB_MAGIC) {
+	if (MIBMtaEntry->magic != ZM_MIB_MAGIC) {
 	  /* AAARRRRGGHHH!!!!  Version disagree! */
 
 	  r = errno;

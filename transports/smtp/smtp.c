@@ -93,6 +93,7 @@ time_t starttime, endtime;
 static const char *add_cname_cache __((SmtpState *SS, const char *host, const char *realname, time_t realnamettl));
 static int  cname_lookup    __((SmtpState *SS, const char *host, const char ** cnamep));
 
+static void SMTP_MIB_diag __((const int smtpstatus));
 
 
 const char *
@@ -445,6 +446,8 @@ main(argc, argv)
 
 	setvbuf(stdout, NULL, _IOFBF, 8096*4 /* 32k */);
 	fd_blockingmode(FILENO(stdout)); /* Just to make sure.. */
+
+	Z_SHM_MIB_Attach(1); /* we don't care if it succeeds or fails.. */
 
 	pid = getpid();
 	msgfile = "?";
@@ -983,6 +986,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		    diagnostic(SS->verboselog, rphead, smtpstatus,
 			       smtpstatus == EX_TEMPFAIL ? 60 : 0,
 			       "%s", SS->remotemsg);
+		    SMTP_MIB_diag(smtpstatus);
 		    if (logfp) {
 		      fprintf(logfp, "%s#\t", logtag());
 		      diagnostic(logfp, rphead, smtpstatus,
@@ -1010,6 +1014,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		    diagnostic(SS->verboselog, rphead, EX_TEMPFAIL,
 			       smtpstatus == EX_TEMPFAIL ? 60 : 0,
 			       "%s", SS->remotemsg);
+		    SMTP_MIB_diag(smtpstatus);
 		    if (logfp) {
 		      fprintf(logfp, "%s#\t", logtag());
 		      diagnostic(logfp, rphead, EX_TEMPFAIL,
@@ -1131,6 +1136,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      if (startrp->lockoffset) {
 		notaryreport(startrp->addr->user, FAILED, NULL, NULL);
 		diagnostic(SS->verboselog, startrp, openstatus, 60, "%s", SS->remotemsg);
+		SMTP_MIB_diag(openstatus);
 		if (logfp) {
 		  fprintf(logfp, "%s#\t", logtag());
 		  diagnostic(logfp, startrp, openstatus, 60, "%s", SS->remotemsg);
@@ -1259,6 +1265,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		notaryreport(rp->addr->user, FAILED,
 			     "5.3.4 (Message size exceeds limit given by remote system)", SMTPbuf);
 		diagnostic(SS->verboselog, rp, EX_UNAVAILABLE, 0, "\r\r%s", SMTPbuf+6);
+		SMTP_MIB_diag(EX_UNAVAILABLE);
 		if (logfp) {
 		  fprintf(logfp, "%s#\t", logtag());
 		  diagnostic(logfp, rp, EX_UNAVAILABLE, 0, "\r\r%s", SMTPbuf+6);
@@ -1348,6 +1355,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	SS->do_rset = 1; /* Unless completed successfully,
 			    we must do RSET later... */
+
+	MIBMtaEntry->tas.OutgoingSmtpMAIL ++;
 
 	strcpy(SMTPbuf, "MAIL From:<");
 	s = SMTPbuf + 11;
@@ -1480,6 +1489,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		notaryreport(rp->addr->user, FAILED,
 			     "5.5.0 (Undetermined protocol error)",NULL);
 		diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+		SMTP_MIB_diag(r);
 		if (logfp) {
 		  fprintf(logfp, "%s#\t", logtag());
 		  diagnostic(logfp, rp, r, 0, "%s", SS->remotemsg);
@@ -1633,6 +1643,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    /* NOTARY: address / action / status / diagnostic / wtt */
 	    notaryreport(rp->addr->user, FAILED, NULL, NULL);
 	    diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+	    SMTP_MIB_diag(r);
 	    if (logfp) {
 	      fprintf(logfp, "%s#\t", logtag());
 	      diagnostic(logfp, rp, r, 0, "%s", SS->remotemsg);
@@ -1730,6 +1741,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		if (rp->status == EX_OK) rp->status = r;
 		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+		SMTP_MIB_diag(rp->status);
 		if (logfp) {
 		  fprintf(logfp, "%s#\t", logtag());
 		  diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
@@ -1807,6 +1819,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		if (rp->status == EX_OK) rp->status = r;
 		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+		SMTP_MIB_diag(rp->status);
 		if (logfp) {
 		  fprintf(logfp, "%s#\t", logtag());
 		  diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
@@ -1896,6 +1909,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 			   "smtp; 566 (Message header write failure)");
 	      if (rp->status == EX_OK) rp->status = r;
 	      diagnostic(SS->verboselog, rp, rp->status, 0, "%s", "header write error");
+	      SMTP_MIB_diag(rp->status);
 	      if (logfp) {
 		fprintf(logfp, "%s#\t", logtag());
 		diagnostic(logfp, rp, rp->status, 0, "%s", "header write error");
@@ -1940,6 +1954,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 			   "smtp; 566 (Message write timed out;2)"); /* XX: FIX THE STATUS? */
 	      if (rp->status == EX_OK) rp->status = r;
 	      diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+	      SMTP_MIB_diag(rp->status);
 	      if (logfp) {
 		fprintf(logfp, "%s#\t", logtag());
 		diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
@@ -2045,6 +2060,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      if (rp->status == EX_OK) rp->status = r;
 	      if (r != EX_TEMPFAIL) {
 		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+		SMTP_MIB_diag(rp->status);
 		if (logfp) {
 		  fprintf(logfp, "%s#\t", logtag());
 		  diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
@@ -2099,7 +2115,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      reldel = "relayed";
 	    rp->status = r;
 	    notaryreport(rp->addr->user, reldel, NULL, NULL);
-	    diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+	    diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+	    SMTP_MIB_diag(rp->status);
 	    if (logfp) {
 	      fprintf(logfp, "%s#\t", logtag());
 	      diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
@@ -2240,9 +2257,27 @@ smtpopen(SS, host, noMX)
 	    else
 	      sprintf(SMTPbuf, "EHLO %.200s", myhostname);
 
-	    if (lmtp_mode) SMTPbuf[0] = 'L';
+	    if (lmtp_mode) {
+	      SMTPbuf[0] = 'L';
+	      MIBMtaEntry->tas.OutgoingSmtpLHLO ++;
+	    } else {
+	      MIBMtaEntry->tas.OutgoingSmtpEHLO ++;
+	    }
 
 	    i = smtp_ehlo(SS, SMTPbuf);
+
+	    if (i == EX_OK) {
+	      if (lmtp_mode)
+		MIBMtaEntry->tas.OutgoingSmtpLHLOok ++;
+	      else
+		MIBMtaEntry->tas.OutgoingSmtpEHLOok ++;
+	    } else {
+	      if (lmtp_mode)
+		MIBMtaEntry->tas.OutgoingSmtpLHLOfail ++;
+	      else
+		MIBMtaEntry->tas.OutgoingSmtpEHLOfail ++;
+	    }
+
 
 #ifdef HAVE_OPENSSL
 
@@ -2262,17 +2297,29 @@ smtpopen(SS, host, noMX)
 			   "local; 500 (Remote system doesn't support mandated TLS mode)");
 	      strcpy(SS->remotemsg,"500 (Remote system doesn't support mandated TLS mode)");
 
+	      if (lmtp_mode) /* really sort of TLS failure... */
+		MIBMtaEntry->tas.OutgoingSmtpLHLOfail ++;
+	      else
+		MIBMtaEntry->tas.OutgoingSmtpEHLOfail ++;
+
 	      continue;
 	    }
 
 	    if ((i == EX_OK) && tls_available &&
 		(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
 
+	      MIBMtaEntry->tas.OutgoingSmtpSTARTTLS += 1;
+
 	      SS->rcptstates = 0;
 	      i = smtpwrite(SS, 0, "STARTTLS", 0, NULL);
 	      if (i == EX_OK) {
 		/* Wow, "STARTTLS" command started successfully! */
 		i = tls_start_clienttls(SS, host);
+		if (i)
+		  MIBMtaEntry->tas.OutgoingSmtpSTARTTLSfail += 1;
+		else
+		  MIBMtaEntry->tas.OutgoingSmtpSTARTTLSok += 1;
+
 		if (i != 0) {
 		  /* TLS startup failed :-( */
 		  smtpclose(SS, 1);
@@ -2364,6 +2411,8 @@ smtpopen(SS, host, noMX)
 
 	      } else {
 		smtpclose(SS, 1); /* D'uh.. STARTTLS verb failed! */
+		
+		MIBMtaEntry->tas.OutgoingSmtpSTARTTLSfail += 1;
 
 		SS->esmtp_on_banner = SS->main_esmtp_on_banner;
 		SS->ehlo_capabilities = 0;
@@ -2401,7 +2450,15 @@ smtpopen(SS, host, noMX)
 	      sprintf(SMTPbuf, "HELO %.200s", SS->myhostname);
 	    else
 	      sprintf(SMTPbuf, "HELO %.200s", myhostname);
+	    MIBMtaEntry->tas.OutgoingSmtpHELO ++;
+
 	    i = smtp_ehlo(SS, SMTPbuf);
+
+	    if (i == EX_OK)
+	      MIBMtaEntry->tas.OutgoingSmtpHELOok ++;
+	    else
+	      MIBMtaEntry->tas.OutgoingSmtpHELOfail ++;
+
 	    if (i != EX_OK && SS->smtpfp) {
 	      smtpclose(SS, 1);
 	      if (logfp)
@@ -2931,6 +2988,8 @@ makeconn(SS, hostname, ai, ismx)
 	int mfd;
 	int isreconnect = (ai == &SS->ai);
 
+	MIBMtaEntry->tas.OutgoingSmtpStarts += 1;
+
 #ifdef	BIND
 #ifdef	RFC974
 	char	hostbuf[MAXHOSTNAMELEN+1];
@@ -3084,6 +3143,11 @@ makeconn(SS, hostname, ai, ismx)
 	  switch (i) {
 	  case EX_OK:
 
+	      if (lmtp_mode)
+		MIBMtaEntry->tas.OutgoingLmtpConnects  += 1;
+	      else
+		MIBMtaEntry->tas.OutgoingSmtpConnects  += 1;
+
 	      SS->smtpfd = mfd;
 	      SS->smtpfp = sfnew(NULL, NULL, SS->smtp_bufsize, mfd, SF_WRITE);
 
@@ -3103,6 +3167,8 @@ makeconn(SS, hostname, ai, ismx)
 		fflush(stdout);
 		abort(); /* sock-stream fdopen() failure! */
 	      }
+
+	      MIBMtaEntry->tas.OutgoingSmtpConnectsCnt += 1;
 
 	      deducemyifname(SS);
 
@@ -3132,6 +3198,7 @@ makeconn(SS, hostname, ai, ismx)
 		fprintf(SS->verboselog,"Connection attempt did yield code %d / %s\n", retval, sysexitstr(retval));
 	      return EX_OK;
 	  default:
+	      MIBMtaEntry->tas.OutgoingSmtpConnectFails  += 1;
 	      if (logfp)
 		fprintf(logfp,"%s#\t(vcsetup() did yield %d )\n",logtag(), i);
 	      break;
@@ -3562,6 +3629,8 @@ smtpclose(SS, failure)
      int failure;
 {
 	if (SS->smtpfp != NULL) {
+
+	  MIBMtaEntry->tas.OutgoingSmtpConnectsCnt -= 1;
 
 	  /* First close the socket so that no FILE buffered stuff
 	     can become flushed out anymore. */
@@ -4203,6 +4272,7 @@ smtp_sync(SS, r, nonblocking)
 	      notaryreport(SS->pipercpts[idx]->addr->user,FAILED,NULL,NULL);
 
 	      diagnostic(SS->verboselog, SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
+	      SMTP_MIB_diag(rc);
 	      if (logfp) {
 		fprintf(logfp, "%s#\t", logtag());
 		diagnostic(logfp, SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
@@ -4244,6 +4314,7 @@ smtp_sync(SS, r, nonblocking)
 		  notary_setxdelay((int)(endtime-starttime));
 		  notaryreport(datarp->addr->user, FAILED, NULL, NULL);
 		  diagnostic(SS->verboselog, datarp, rc, 0, "%s", SS->remotemsg);
+		  SMTP_MIB_diag(rc);
 		  if (logfp) {
 		    fprintf(logfp, "%s#\t", logtag());
 		    diagnostic(logfp, datarp, rc, 0, "%s", SS->remotemsg);
@@ -4305,6 +4376,7 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 		notary_setxdelay((int)(endtime-starttime));
 		notaryreport(datarp->addr->user, "delivered", NULL, NULL);
 		diagnostic(SS->verboselog, datarp, rc, 0, "%s", SS->remotemsg);
+		SMTP_MIB_diag(rc);
 		if (logfp) {
 		  fprintf(logfp, "%s#\t", logtag());
 		  diagnostic(logfp, datarp, rc, 0, "%s", SS->remotemsg);
@@ -4845,6 +4917,9 @@ void getdaemon()
 }
 
 
+/*  
+ .. */
+
 
 #ifndef SOL_TCP 	/* Latter Linuxes have SOL_TCP,
 			   Solaris IPPROTO_TCP ..       */
@@ -4869,8 +4944,8 @@ static void tcpstream_nagle(fd)
 	i = 0;
 	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i));
 #else
-	/* No method at hand if neither of above.. */
-	i = r = 0;
+	/* No method at hand if none of above.. */
+	i = r = 0; /* silense the compiler */
 #endif
 #endif
 #endif
@@ -4891,20 +4966,35 @@ static void tcpstream_denagle(fd)
 #ifdef TCP_NOPUSH
 	i = 0;
 	r = setsockopt(fd, SOL_TCP, TCP_NOPUSH, &i, sizeof(i));
+#if 0	/* original sendmail didn't have any code for this, actually */
 	if (r < 0)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
+#endif
 #else
 #ifdef TCP_NODELAY
 	i = 1;		/* Turning this on DOES NOT FLUSH accumulated
 			   data immediately!  Unlike TCP_CORK at Linux.. */
 	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i));
+#if 0	/* original sendmail didn't have any code for this, actually */
 	if (r < 0)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
+#endif
 #else
 	i = r = 0;
+#if 0	/* original sendmail didn't have any code for this, actually */
 	sleep(1); /* Fall back to classic timeout based anti-nagle.. */
 #endif
 #endif
+#endif
+#endif
+#if 0	/* In BSD (and Linux) systems we can ask what the outgoing
+	   queue size is -- not so at Solaris ? */
+	while (ioctl(fd, SIOCOUTQ, &count) == 0 && count != 0) {
+	  if (poll(1, {fd, POLLIN}, 200))
+	    abort_on_protocol_violation;
+	  if ((tmo += 200) > long_timeo)
+	    abort_on_stuck_connection;
+	}                                                                 
 #endif
 }
 
@@ -5110,4 +5200,34 @@ static const char *add_cname_cache(SS, host, cname, ttl)
   /*  if (SS->verboselog)fprintf(SS->verboselog," ... inserted into idx=%d\n",idx); */
 
   return ci->cname;
+}
+
+static void SMTP_MIB_diag(rc)
+     const int rc;
+{
+  switch (rc) {
+  case EX_OK:
+    /* OK */
+    MIBMtaEntry->tas.OutgoingSmtpRcptsOk ++;
+    break;
+  case EX_TEMPFAIL:
+  case EX_IOERR:
+  case EX_OSERR:
+  case EX_CANTCREAT:
+  case EX_SOFTWARE:
+  case EX_DEFERALL:
+    /* DEFER */
+    MIBMtaEntry->tas.OutgoingSmtpRcptsRetry ++;
+    break;
+  case EX_NOPERM:
+  case EX_PROTOCOL:
+  case EX_USAGE:
+  case EX_NOUSER:
+  case EX_NOHOST:
+  case EX_UNAVAILABLE:
+  default:
+    /* FAIL */
+    MIBMtaEntry->tas.OutgoingSmtpRcptsFail ++;
+    break;
+  }
 }

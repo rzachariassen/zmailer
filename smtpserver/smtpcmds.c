@@ -137,10 +137,10 @@ const char *buf, *cp;
 
     switch (SS->carp->cmd) {
     case Hello2:
-      MIBMtaEntry->m.mtaIncomingSMTP_EHLO += 1;
+      MIBMtaEntry->ss.IncomingSMTP_EHLO += 1;
       break;
     case Hello:
-      MIBMtaEntry->m.mtaIncomingSMTP_HELO += 1;
+      MIBMtaEntry->ss.IncomingSMTP_HELO += 1;
       break;
     default: /* Should not happen... */
       break;
@@ -363,7 +363,7 @@ const char *buf, *cp;
     SS->state = MailOrHello;
 }
 
-void smtp_mail(SS, buf, cp, insecure)
+int smtp_mail(SS, buf, cp, insecure)
 SmtpState *SS;
 const char *buf, *cp;
 int insecure;
@@ -379,8 +379,6 @@ int insecure;
     int addrlen, drptret_len, drptenvid_len, authparam_len;
     int strict = STYLE(SS->cfinfo, 'R');
     int sloppy = STYLE(SS->cfinfo, 'S');
-
-    MIBMtaEntry->m.mtaIncomingSMTP_MAIL += 1;
 
 
     if (strict && sloppy) /* If misconfigured, SLOPPY takes precedence! */
@@ -421,7 +419,7 @@ int insecure;
 	}
 	smtp_tarpit(SS);
 	type(SS, 503, m551, cp);
-	return;
+	return -1;
     }
 
     if (*cp == ' ') ++cp;
@@ -429,7 +427,7 @@ int insecure;
     if (!CISTREQN(cp, "From:", 5)) {
 	smtp_tarpit(SS);
 	type(SS, 501, m552, "where is From: in that?");
-	return;
+	return -1;
     }
     cp += 5;
     if (!strict_protocol || sloppy)
@@ -439,23 +437,23 @@ int insecure;
 	  if (!sloppy) {
 	    smtp_tarpit(SS);
 	    type(SS, 501, m517, "where is <...> in that?");
-	    return;
+	    return -1;
 	  }
 	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
 	smtp_tarpit(SS);
 	type(SS, 501, m517, "where is <...> in this: %s", cp);
-	return;
+	return -1;
     } else if (*cp != '<' && !sloppy) {
 	smtp_tarpit(SS);
 	type(SS, 501, m517, "strangeness between ':' and '<': %s", cp);
-	return;
+	return -1;
     }
     if (*(cp + 1) == '<') {
 	smtp_tarpit(SS);
 	type(SS, 501, m517, "there are too many <'s in this: %s", cp);
-	return;
+	return -1;
     }
     /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
     if (*cp == '<') {
@@ -465,12 +463,12 @@ int insecure;
 	  /* Failure.. ? */
 	  type(SS, -501, m517, "For input: %s", cp);
 	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
-	  return;
+	  return -1;
 	}
 	if (*s == '>') {
 	  smtp_tarpit(SS);
 	  type(SS, 501, m517, "there are too many >'s in this: <%s", cp);
-	  return;
+	  return -1;
 	}
 	/* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
 	if (cp[1] == '@') {
@@ -491,7 +489,7 @@ int insecure;
 	  /* Failure.. ? */
 	  type(SS, -501, m517, "For input: %s", cp);
 	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
-	  return;
+	  return -1;
 	}
 	/* Now it is a moment to see, if we have source routes: @a,@b:c@d */
 	if (*cp == '@') {
@@ -509,7 +507,7 @@ int insecure;
 	  rfc821_error_ptr = s;
 	  type(SS, -501, m517, "For input: %s", cp);
 	  type821err(SS, 501, m517, buf, "Missing ending '>' bracket");
-	  return;
+	  return -1;
 	}
 	++s;
       }
@@ -521,13 +519,13 @@ int insecure;
 	/* Failure.. */
 	type(SS, -501, m517, "For input: %s", cp);
 	type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
-	return;
+	return -1;
       }
 
       if (*s == '>') {
 	smtp_tarpit(SS);
 	type(SS, 501, m517, "there are too many >'s in that!");
-	return;
+	return -1;
       }
 
       /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
@@ -559,7 +557,7 @@ int insecure;
 	    if (drpt_ret) {
 		smtp_tarpit(SS);
 		type(SS, 501, m554, "RET-param double defined!");
-		return;
+		return -1;
 	    }
 	    s += 4;
 	    drpt_ret = s;
@@ -569,7 +567,7 @@ int insecure;
 	    if (*s && *s != ' ' && *s == '\t') {
 		smtp_tarpit(SS);
 		type(SS, 501, m454, "RET-param data error");
-		return;
+		return -1;
 	    }
 	    drptret_len = (s - drpt_ret);
 	    continue;
@@ -748,7 +746,7 @@ int insecure;
 	break;
     }
     if (rc != 0)
-	return;			/* Error(s) in previous loop.. */
+	return -1;		/* Error(s) in previous loop.. */
 
     /*printf("  <path>: len=%d \"%s\"\n",cp-s,cp); */
 
@@ -842,7 +840,7 @@ int insecure;
       }
       if (newcp)
 	free((void*)newcp);
-      return;
+      return -1;
     }
     s = NULL;
     if (/* addrlen > 0 && */ STYLE(SS->cfinfo, 'f')) {
@@ -851,7 +849,7 @@ int insecure;
 	    /* the error was printed in router() */
 	    if (newcp)
 		free((void*)newcp);
-	    return;
+	    return -1;
 	}
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
@@ -860,7 +858,7 @@ int insecure;
 	    free((void *) s);
 	    if (newcp)
 		free((void *) newcp);
-	    return;
+	    return -1;
 	}
 	/* The 's' goes to use below */
     }
@@ -873,8 +871,9 @@ int insecure;
 	type(SS, 452, m430, (char *) NULL);
 	if (newcp)
 	    free((void *) newcp);
-	return;
+	return -1;
     }
+    SS->messagesize = 0;
     fflush(SS->mfp);
     rewind(SS->mfp);
 #ifdef HAVE_FTRUNCATE
@@ -1025,7 +1024,7 @@ int insecure;
 	availspace = 2000000000;	/* Over 2G ? */
 
     if (availspace >= 0)
-      MIBMtaEntry->m.mtaSpoolFreeSpace = availspace / 1024;
+      MIBMtaEntry->sys.SpoolFreeSpace = availspace / 1024;
 
     availspace -= minimum_availspace;
 
@@ -1066,10 +1065,12 @@ int insecure;
     SS->rcpt_count = 0;
     SS->ok_rcpt_count = 0;
     SS->from_box = (addrlen == 0);
+
+    return 0; /* Is ok */
 }
 
 
-void smtp_rcpt(SS, buf, cp)
+int smtp_rcpt(SS, buf, cp)
 SmtpState *SS;
 const char *buf, *cp;
 {
@@ -1081,9 +1082,6 @@ const char *buf, *cp;
     int strict = STYLE(SS->cfinfo, 'R');
     int sloppy = STYLE(SS->cfinfo, 'S');
     int err;
-
-
-    MIBMtaEntry->m.mtaIncomingSMTP_RCPT += 1;
 
     if (strict && sloppy) /* If misconfigured, SLOPPY takes precedence! */
       strict = 0;
@@ -1102,7 +1100,7 @@ const char *buf, *cp;
 	type(SS, -550, m571, "the HELO/EHLO parameter, or address/domain");
 	type(SS,  550, m571, "you gave at the MAIL FROM:<...> address.");
       }
-      return;
+      return -1;
     }
 
     if (SS->state != Recipient && SS->state != RecipientOrData) {
@@ -1120,7 +1118,7 @@ const char *buf, *cp;
 	}
 	smtp_tarpit(SS);
 	type(SS, 503, m551, cp);
-	return;
+	return -1;
     }
 
     if (*cp == ' ') ++cp;
@@ -1129,7 +1127,7 @@ const char *buf, *cp;
     if (!CISTREQN(cp, "To:", 3)) {
 	smtp_tarpit(SS);
 	type(SS, 501, m552, "where is To: in this?  %s", cp);
-	return;
+	return -1;
     }
     cp += 3;
     if (!strict_protocol || sloppy)
@@ -1138,27 +1136,27 @@ const char *buf, *cp;
 	  if (!sloppy) {
 	    smtp_tarpit(SS);
 	    type(SS, 501, m513, "where is <...> in this?  %s", cp);
-	    return;
+	    return -1;
 	  }
 	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
 	smtp_tarpit(SS);
 	type(SS, 501, m513, "where is <...> in this?  %s", cp);
-	return;
+	return -1;
     } else if (*cp != '<' && !sloppy) {
 	smtp_tarpit(SS);
 	type(SS, 501, m513, "strangeness between ':' and '<': %s", cp);
-	return;
+	return -1;
     } else if (*(cp+1) == '>') {
 	smtp_tarpit(SS);
 	type(SS, 501, m513, "Null address valid only as source: %s", cp);
-	return;
+	return -1;
     }
     if (*(cp + 1) == '<') {
 	smtp_tarpit(SS);
 	type(SS, 501, m513, "there are too many <'s in this: %s", cp);
-	return;
+	return -1;
     }
     if (*cp == '<') {
       /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
@@ -1172,13 +1170,13 @@ const char *buf, *cp;
 	  } else {
 	    /* Genuine failure.. */
 	    type821err(SS, 501, m513, buf, "Path data: %s", rfc821_error);
-	    return;
+	    return -1;
 	  }
 	}
 	if (*s == '>') {
 	  smtp_tarpit(SS);
 	  type(SS, 501, m513, "there are too many >'s in this: %s", cp);
-	  return;
+	  return -1;
 	}
 	/* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
 	if (cp[1] == '@') {
@@ -1199,7 +1197,7 @@ const char *buf, *cp;
 	if (s == cp) {
 	  /* Failure.. ? */
 	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
-	  return;
+	  return -1;
 	}
 	/* Now it is a moment to see, if we have source routes: @a,@b:c@d */
 	if (*cp == '@') {
@@ -1216,7 +1214,7 @@ const char *buf, *cp;
 	if (*s != '>') {
 	  rfc821_error_ptr = s;
 	  type821err(SS, 501, m517, buf, "Missing ending '>' bracket: %s", cp);
-	  return;
+	  return -1;
 	}
 	++s;
       }
@@ -1227,13 +1225,13 @@ const char *buf, *cp;
       if (s == cp) {
 	/* Failure.. */
 	type821err(SS, 501, m513, buf, "Path data: %.200s", rfc821_error);
-	return;
+	return -1;
       }
 
       if (*s == '>') {
 	smtp_tarpit(SS);
 	type(SS, 501, m513, "there are too many >'s in that!");
-	return;
+	return -1;
       }
 
       /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
@@ -1256,7 +1254,7 @@ const char *buf, *cp;
     if (addrlen < 1) {
 	smtp_tarpit(SS);
 	type(SS, 501, m513, "What is an empty recipient?");
-	return;
+	return -1;
     }
     drpt_notify = NULL;
     notifyflgs  = 0;
@@ -1279,7 +1277,7 @@ const char *buf, *cp;
 	    if (drpt_notify) {
 		smtp_tarpit(SS);
 		type(SS, 501, m554, "NOTIFY-param double defined!");
-		return;
+		return -1;
 	    }
 	    drpt_notify = s;
 	    s += 7;
@@ -1299,7 +1297,7 @@ const char *buf, *cp;
 	    if (*s && *s != ' ' && *s != '\t') {
 		smtp_tarpit(SS);
 		type(SS, 455, m454, "NOTIFY-param data error");
-		return;
+		return -1;
 	    }
 	    notifylen = s - drpt_notify;
 	    continue;
@@ -1308,7 +1306,7 @@ const char *buf, *cp;
 	    if (drpt_orcpt) {
 		smtp_tarpit(SS);
 		type(SS, 501, m554, "ORCPT-param double defined!");
-		return;
+		return -1;
 	    }
 	    drpt_orcpt = s;
 	    s = orcpt_string(s + 6);
@@ -1316,20 +1314,20 @@ const char *buf, *cp;
 		smtp_tarpit(SS);
 		type821err(SS, -501, m454, buf, "Invalid ORCPT value '%s'", drpt_orcpt);
 		type(SS, 501, m454, "ORCPT-param data error!");
-		return;
+		return -1;
 	    }
 	    orcptlen = s - drpt_orcpt;
 	    continue;
 	}
 	smtp_tarpit(SS);
 	type(SS, 555, m554, "Unknown RCPT TO:<> parameter: %s", s);
-	return;
+	return -1;
     }
 
     if (SS->rcpt_count >= rcptlimitcnt) {
       smtp_tarpit(SS);
       type(SS, 452, "4.5.2", "Too many recipients in one go!");
-      return;
+      return -1;
     }
 
     RFC821_822QUOTE(cp, newcp, addrlen);
@@ -1463,7 +1461,7 @@ const char *buf, *cp;
 	}
 	if (newcp)
 	    free((void *) newcp);
-	return;
+	return -1;
     }
 
     s = NULL;
@@ -1473,7 +1471,7 @@ const char *buf, *cp;
 	    /* the error was printed in router() */
 	    if (newcp)
 		free((void *) newcp);
-	    return;
+	    return -1;
 	}
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
@@ -1482,7 +1480,7 @@ const char *buf, *cp;
 	    free((void *) s);
 	    if (newcp)
 		free((void *) newcp);
-	    return;
+	    return -1;
 	}
 	/* The 's' goes to use below */
     }
@@ -1624,6 +1622,7 @@ const char *buf, *cp;
       SS->ok_rcpt_count += 1;
       SS->state = RecipientOrData;
     }
+    return err;
 }
 
 

@@ -286,8 +286,8 @@ static int  start_child (i)
 	}
 	/* Parent */
 
-	MIBMtaEntry->m.mtaRouterProcessesRt     += 1;
-	MIBMtaEntry->m.mtaRouterProcessForksRt  += 1;
+	MIBMtaEntry->rt.RouterProcessesRt     += 1;
+	MIBMtaEntry->rt.RouterProcessForksRt  += 1;
 
 	pipes_close_parent(tofd,frmfd);
 
@@ -353,7 +353,7 @@ int signum;
 #if defined(HAVE_SYS_RESOURCE_H)
 	      routerchilds[i].r = r;
 #endif
-	      MIBMtaEntry->m.mtaRouterProcessesRt -= 1;
+	      MIBMtaEntry->rt.RouterProcessesRt -= 1;
 	    }
 	}
 
@@ -968,12 +968,12 @@ dq_insert(DQ, ino, file, dir)
 	   rfc822.c::sequencer()  ! 
 	*/
 
-	MIBMtaEntry->m.mtaReceivedMessagesRt += 1;
-	MIBMtaEntry->m.mtaStoredMessagesRt   += 1;
+	MIBMtaEntry->rt.ReceivedMessagesRt += 1;
+	MIBMtaEntry->rt.StoredMessagesRt   += 1;
 
 	i = (stbuf.st_size + stbuf.st_blksize -1)/1024;
-	MIBMtaEntry->m.mtaReceivedVolumeRt += i;
-	MIBMtaEntry->m.mtaStoredVolumeRt   += i;
+	MIBMtaEntry->rt.ReceivedVolumeRt += i;
+	MIBMtaEntry->rt.StoredVolumeRt   += i;
 
 	return 0;
 }
@@ -1461,17 +1461,17 @@ run_daemon(argc, argv)
 	time_t nextdirscan = 0;
 
 
-	MIBMtaEntry->m.mtaRouterMasterPID        =  getpid();
-	MIBMtaEntry->m.mtaRouterMasterStartTime  = time(NULL);
-	MIBMtaEntry->m.mtaRouterMasterStarts    += 1;
+	MIBMtaEntry->sys.RouterMasterPID        =  getpid();
+	MIBMtaEntry->sys.RouterMasterStartTime  = time(NULL);
+	MIBMtaEntry->sys.RouterMasterStarts    += 1;
 
 
 	/* Zero the gauges at our startup.. */
-	MIBMtaEntry->m.mtaStoredMessagesRt	= 0; /* in input queue */
-	MIBMtaEntry->m.mtaStoredRecipientsRt	= 0; /* can count at all ? */
-	MIBMtaEntry->m.mtaStoredVolumeRt	= 0; /* in input queue */
-	MIBMtaEntry->m.mtaRouterProcessesRt     = 1; /* myself = 1 */
-	MIBMtaEntry->m.mtaRouterProcessForksRt  = 0;
+	MIBMtaEntry->rt.StoredMessagesRt	= 0; /* in input queue */
+	MIBMtaEntry->rt.StoredRecipientsRt	= 0; /* can count at all ? */
+	MIBMtaEntry->rt.StoredVolumeRt	= 0; /* in input queue */
+	MIBMtaEntry->rt.RouterProcessesRt     = 1; /* myself = 1 */
+	MIBMtaEntry->rt.RouterProcessForksRt  = 0;
 
 	if (nrouters > MAXROUTERCHILDS)
 	  nrouters = MAXROUTERCHILDS;

@@ -232,8 +232,18 @@ void timed_log_reinit()
   mytime(&now);
 
   if (next_log_reinit < now) {
+    struct stat stbuf;
+
     next_log_reinit = now + 25;
     loginitsched(SIGHUP);
+
+    if (logfn != NULL &&
+	lstat(logfn,&stbuf) == 0 &&
+	S_ISREG(stbuf.st_mode)) {
+
+      long fsspace = fd_statfs(sffileno(sfstdout));
+      MIBMtaEntry->sys.SpoolFreeSpace = fsspace / 1024;
+    }
   }
 }
 
@@ -322,7 +332,7 @@ struct ctlfile *cfp;
 	     WILL become trashed at the end of the loop. */
 	  nvp = vp->next[L_CTLFILE];
 
-	  MIBMtaEntry->m.mtaStoredRecipientsSc   -= vp->ngroup;
+	  MIBMtaEntry->sc.StoredRecipientsSc   -= vp->ngroup;
 	  vp->ngroup = 0;
 	  unvertex(vp,1,1); /* Don't unlink()! Just free()! */
 	}
@@ -376,7 +386,7 @@ struct ctlfile *cfp;
 	free((char *)cfp);
 
 	--global_wrkcnt;
-	--MIBMtaEntry->m.mtaStoredMessagesSc;
+	--MIBMtaEntry->sc.StoredMessagesSc;
 }
 
 
@@ -835,19 +845,19 @@ main(argc, argv)
 	/* Now we are either interactive, or daemon, lets attach monitoring
 	   memory block.. and fill it in.  */
 
-	MIBMtaEntry->m.mtaSchedulerMasterPID        = getpid();
-	MIBMtaEntry->m.mtaSchedulerMasterStartTime  = time(NULL);
-	MIBMtaEntry->m.mtaSchedulerMasterStarts    += 1;
+	MIBMtaEntry->sys.SchedulerMasterPID        = getpid();
+	MIBMtaEntry->sys.SchedulerMasterStartTime  = time(NULL);
+	MIBMtaEntry->sys.SchedulerMasterStarts    += 1;
 
 	/* Zero the gauges at our startup.. */
-	MIBMtaEntry->m.mtaStoredMessagesSc		= 0;
-	MIBMtaEntry->m.mtaStoredThreadsSc		= 0;
-	MIBMtaEntry->m.mtaStoredVerticesSc		= 0;
-	MIBMtaEntry->m.mtaStoredRecipientsSc		= 0;
-	MIBMtaEntry->m.mtaStoredVolumeSc		= 0;
-	MIBMtaEntry->m.mtaTransportAgentProcessesSc	= 0;
-	MIBMtaEntry->m.mtaTransportAgentsActiveSc	= 0;
-	MIBMtaEntry->m.mtaTransportAgentsIdleSc		= 0;
+	MIBMtaEntry->sc.StoredMessagesSc		= 0;
+	MIBMtaEntry->sc.StoredThreadsSc		= 0;
+	MIBMtaEntry->sc.StoredVerticesSc		= 0;
+	MIBMtaEntry->sc.StoredRecipientsSc		= 0;
+	MIBMtaEntry->sc.StoredVolumeSc		= 0;
+	MIBMtaEntry->sc.TransportAgentProcessesSc	= 0;
+	MIBMtaEntry->sc.TransportAgentsActiveSc	= 0;
+	MIBMtaEntry->sc.TransportAgentsIdleSc		= 0;
 
 
 	/* Actually we want this to act as daemon,
@@ -1173,7 +1183,7 @@ dq_insert(DQ, ino, file, delay)
 	  dq->wrkcount2 += 1;
 	  dq->wrksum    += 1;
 	}
-	++MIBMtaEntry->m.mtaReceivedMessagesSc;
+	++MIBMtaEntry->sc.ReceivedMessagesSc;
 	return 0;
 }
 
@@ -1521,7 +1531,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	      for (j = i+1; j < ovp->ngroup; ++j)
 		ovp->index[j-1] = ovp->index[j];
 	      ovp->ngroup -= 1;
-	      MIBMtaEntry->m.mtaStoredRecipientsSc -= 1;
+	      MIBMtaEntry->sc.StoredRecipientsSc -= 1;
 	    next_i:;
 	    }
 	    if (ovp->ngroup <= 0)
@@ -1559,7 +1569,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	    while (ovp && ovp != vp) {
 	      novp = ovp->next[L_CTLFILE];
 
-	      MIBMtaEntry->m.mtaStoredRecipientsSc -= vp->ngroup;
+	      MIBMtaEntry->sc.StoredRecipientsSc -= vp->ngroup;
 	      ovp->ngroup = 0;
 	      unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
 
@@ -1583,7 +1593,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	while (ovp) {
 	  novp = ovp->next[L_CTLFILE];
 
-	  MIBMtaEntry->m.mtaStoredRecipientsSc -= ovp->ngroup;
+	  MIBMtaEntry->sc.StoredRecipientsSc -= ovp->ngroup;
 	  ovp->ngroup = 0;
 	  unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
 	  /* Leaves CFP unharmed */
@@ -1957,7 +1967,7 @@ slurp(fd, ino)
 
 	  /* INC there in every case! */
 	  ++global_wrkcnt;
-	  ++MIBMtaEntry->m.mtaStoredMessagesSc;
+	  ++MIBMtaEntry->sc.StoredMessagesSc;
 
 	} else {
 	  /* realloc() failed.. */
@@ -2147,16 +2157,16 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	    if (*cp == _CFTAG_NOTOK) {
 #if 0
 	      ++cfp->rcpnts_failed;
-	      ++MIBMtaEntry->m.mtaReceivedRecipientsSc,
-	      ++MIBMtaEntry->m.mtaTransmittedRecipientsSc;
+	      ++MIBMtaEntry->sc.ReceivedRecipientsSc,
+	      ++MIBMtaEntry->sc.TransmittedRecipientsSc;
 #endif
 	      prevrcpt = -1;
 	    } else if (*cp != _CFTAG_OK) {
 	      ++cfp->rcpnts_work;
 	    } else { /* _CFTAG_OK */
 #if 0
-	      ++MIBMtaEntry->m.mtaReceivedRecipientsSc,
-	      ++MIBMtaEntry->m.mtaTransmittedRecipientsSc;
+	      ++MIBMtaEntry->sc.ReceivedRecipientsSc,
+	      ++MIBMtaEntry->sc.TransmittedRecipientsSc;
 #endif
 	    }
 	  }
@@ -2516,7 +2526,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 		free(offarr);
 		return NULL;
 	      }
-	      MIBMtaEntry->m.mtaStoredVerticesSc += 1;
+	      MIBMtaEntry->sc.StoredVerticesSc += 1;
 
 	      memset((char*)vp, 0, alloc_size);
 	      vp->cfp             = cfp;
@@ -2534,8 +2544,8 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      vp->notary          = NULL;
 #endif
 	      vp->ngroup       = i - svn;
-	      MIBMtaEntry->m.mtaStoredRecipientsSc   += (i - svn);
-	      MIBMtaEntry->m.mtaReceivedRecipientsSc += (i - svn);
+	      MIBMtaEntry->sc.StoredRecipientsSc   += (i - svn);
+	      MIBMtaEntry->sc.ReceivedRecipientsSc += (i - svn);
 
 	      /* vp->sender       = strsave(offarr[svn].sender); */
 	      vp->wakeup       = offarr[svn].wakeup;
@@ -2579,7 +2589,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	    free(offarr);
 	    return NULL;
 	  }
-	  MIBMtaEntry->m.mtaStoredVerticesSc += 1;
+	  MIBMtaEntry->sc.StoredVerticesSc += 1;
 
 	  memset((void*)vp, 0, alloc_size);
 	  vp->cfp = cfp;
@@ -2595,8 +2605,8 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  vp->notary       = NULL;
 #endif
 	  vp->ngroup = i - svn;
-	  MIBMtaEntry->m.mtaStoredRecipientsSc   += (i - svn);
-	  MIBMtaEntry->m.mtaReceivedRecipientsSc += (i - svn);
+	  MIBMtaEntry->sc.StoredRecipientsSc   += (i - svn);
+	  MIBMtaEntry->sc.ReceivedRecipientsSc += (i - svn);
 
 	  /* vp->sender = strsave(offarr[snv].sender); */
 	  vp->wakeup       = offarr[svn].wakeup;
@@ -3003,6 +3013,9 @@ static void init_timeserver()
 
 	} else { /* SHARED MIB MEMORY BLOCK IS NOT ATTACHED */
 
+#define MAPSIZE 16*1024 /* Just in case other methods didn't work.. e.g.
+			   that MIB-block.. */
+
 #if !defined(MAP_ANONYMOUS) || defined(__linux__)
 	  /* must have a file ? (SunOS 4.1, et.al.) */
 	  int fd = -1;
@@ -3084,7 +3097,7 @@ static void init_timeserver()
 
 	{
 
-	  int space_check_count = 10;
+	  int space_check_count = 0;
 
 #ifdef HAVE_SETPROCTITLE
 	  setproctitle("[TimeServer]");
@@ -3124,16 +3137,17 @@ static void init_timeserver()
 
 	    /* Now check and fill in the filesystem free space
 	       gauges */
-	    if (--space_check_count) {
+	    if (--space_check_count  < 0) {
 	      long spc = Z_SHM_FileSysFreeSpace();
 
-	      MIBMtaEntry->m.mtaSpoolFreeSpace = spc;
-	      /* XXXX: TODO: similar for  mtaLogFreeSpace ??? */
+	      MIBMtaEntry->sys.SpoolFreeSpace = spc;
+	      /* Log FS space is monitored by the self-timed
+		 log reinit code. */
 
 #ifdef HAVE_SELECT
-	      space_check_count = 100; /* About 3 times a second */
+	      space_check_count = 100; /* ticks about 3 times a second */
 #else
-	      space_check_count =  30; /* Once a second.. */
+	      space_check_count =  30; /* ticks once a second.. */
 #endif
 	    }
 

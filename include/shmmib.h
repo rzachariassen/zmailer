@@ -9,8 +9,7 @@
  *
  */
 
-#define ZM_MIB_MAGIC 0x33120003
-
+#define ZM_MIB_MAGIC 0x33120004
 
 struct timeserver {
 	int	pid;
@@ -19,219 +18,305 @@ struct timeserver {
 #else
 	time_t	time_sec;
 #endif
-#define MAPSIZE 16*1024 /* Should work at all systems ? */
 };
 
 
-struct MIB_MtaEntryMain {
-  uint	magic;
-  time_t	BlockCreationTimestamp;
+struct MIB_MtaEntrySys {
 
-  double dummy0; /* cache-line alignment, etc.. */
+  pid_t		RouterMasterPID;
+  time_t	RouterMasterStartTime;
+  uint		RouterMasterStarts;
 
+  pid_t		SchedulerMasterPID;
+  time_t	SchedulerMasterStartTime;
+  uint		SchedulerMasterStarts;
 
-  pid_t		mtaRouterMasterPID;
-  time_t	mtaRouterMasterStartTime;
-  uint		mtaRouterMasterStarts;
-
-  pid_t		mtaSchedulerMasterPID;
-  time_t	mtaSchedulerMasterStartTime;
-  uint		mtaSchedulerMasterStarts;
-
-  pid_t		mtaSmtpServerMasterPID;
-  time_t	mtaSmtpServerMasterStartTime;
-  uint		mtaSmtpServerMasterStarts;
-
+  pid_t		SmtpServerMasterPID;
+  time_t	SmtpServerMasterStartTime;
+  uint		SmtpServerMasterStarts;
 
   double dummy1; /* cache-line alignment, etc.. */
 
   /* SpoolFree  is monitored and stored by _XX_ subsystem ?  
      Router and scheduler ?  Smtpserver ?  All three ? */
 
-  uint		mtaSpoolFreeSpace;		/* gauge,	in MB	*/
-  uint		mtaLogFreeSpace;		/* gauge,	in MB  ?? */
+  uint		SpoolFreeSpace;		/* gauge,	in MB	*/
+  uint		LogFreeSpace;		/* gauge,	in MB  ?? */
+};
 
-  double dummy2; /* cache-line alignment, etc.. */
-
+struct MIB_MtaEntrySs {
 
   /* SMTPSERVER substystem counters */
 
-  uint		mtaIncomingSMTPSERVERprocesses;  /* gauges */
-  uint		mtaIncomingParallelSMTPconnects;
-  uint		mtaIncomingParallelSMTPSconnects;
-  uint		mtaIncomingParallelSUBMITconnects;
+  uint		IncomingSMTPSERVERprocesses;  /* gauges */
+  uint		IncomingParallelSMTPconnects;
+  uint		IncomingParallelSMTPSconnects;
+  uint		IncomingParallelSUBMITconnects;
 
-  uint		mtaIncomingSMTPSERVERforks;
+  uint		IncomingSMTPSERVERforks;
 
-  uint		mtaIncomingSMTPconnects;	/* Incoming SMTP sessions */
-  uint		mtaIncomingSMTPSconnects;	/* Incoming SMTPS sessions */
-  uint		mtaIncomingSUBMITconnects;	/* Incoming SUBMIT sessions */
+  uint		IncomingSMTPconnects;	/* Incoming SMTP sessions */
+  uint		IncomingSMTPSconnects;	/* Incoming SMTPS sessions */
+  uint		IncomingSUBMITconnects;	/* Incoming SUBMIT sessions */
 
-  uint		mtaIncomingSMTPTLSes;		/* Number of STARTTLSes */
+  uint		IncomingSMTPTLSes;	/* Number of STARTTLSes */
 
-  uint		mtaIncomingCommands;		/* counters */
-  uint		mtaIncomingCommands_unknown;
+  uint		IncomingCommands;	/* counters */
+  uint		IncomingCommands_unknown;
 
-  uint		mtaIncomingSMTP_MAIL;
-  uint		mtaIncomingSMTP_MAIL_ok;
-  uint		mtaIncomingSMTP_MAIL_bad;
+  uint		IncomingSMTP_HELO;
+  uint		IncomingSMTP_HELO_ok;
+  uint		IncomingSMTP_HELO_bad;
 
-  uint		mtaIncomingSMTP_RCPT;
-  uint		mtaIncomingSMTP_RCPT_ok;
-  uint		mtaIncomingSMTP_RCPT_bad;
+  uint		IncomingSMTP_EHLO;
+  uint		IncomingSMTP_EHLO_ok;
+  uint		IncomingSMTP_EHLO_bad;
 
-  uint		mtaIncomingSMTP_HELO;
-  uint		mtaIncomingSMTP_EHLO;
-  uint		mtaIncomingSMTP_ETRN;
-  uint		mtaIncomingSMTP_HELP;
+  uint		IncomingSMTP_ETRN;
+  uint		IncomingSMTP_ETRN_ok;
+  uint		IncomingSMTP_ETRN_bad;
 
-  uint		mtaIncomingSMTP_DATA;
-  uint		mtaIncomingSMTP_DATA_ok;
-  uint		mtaIncomingSMTP_DATA_bad;
-  uint		mtaIncomingSMTP_BDAT;
-  uint		mtaIncomingSMTP_BDAT_ok;
-  uint		mtaIncomingSMTP_BDAT_bad;
+  uint		IncomingSMTP_HELP;
 
-  uint		mtaIncomingSMTP_DATA_KBYTES;
-  uint		mtaIncomingSMTP_BDAT_KBYTES;
-  uint		mtaIncomingSMTP_spool_KBYTES;
+  uint		IncomingSMTP_EXPN;
+  uint		IncomingSMTP_VRFY;
+  uint		IncomingSMTP_RSET;
+
+  uint		IncomingSMTP_MAIL;
+  uint		IncomingSMTP_MAIL_ok;
+  uint		IncomingSMTP_MAIL_bad;
+
+  uint		IncomingSMTP_RCPT;
+  uint		IncomingSMTP_RCPT_ok;
+  uint		IncomingSMTP_RCPT_bad;
+
+  uint		IncomingSMTP_DATA;
+  uint		IncomingSMTP_DATA_ok;
+  uint		IncomingSMTP_DATA_bad;
+  uint		IncomingSMTP_BDAT;
+  uint		IncomingSMTP_BDAT_ok;
+  uint		IncomingSMTP_BDAT_bad;
+
+  uint		IncomingSMTP_DATA_KBYTES;
+  uint		IncomingSMTP_BDAT_KBYTES;
+  uint		IncomingSMTP_spool_KBYTES;
 
 
   double dummy3; /* Alignment, etc.. */
 
-  uint		mtaReceivedMessagesSs;		/* counter, smtpserver	*/
-  uint		mtaReceivedRecipientsSs;	/* counter, smtpserver	*/
-  uint		mtaTransmittedMessagesSs;	/* counter, smtpserver	*/
-  uint		mtaTransmittedRecipientsSs;	/* counter, smtpserver	*/
+  uint		ReceivedMessagesSs;	/* counter, smtpserver	*/
+  uint		ReceivedRecipientsSs;	/* counter, smtpserver	*/
+  uint		TransmittedMessagesSs;	/* counter, smtpserver	*/
+  uint		TransmittedRecipientsSs;/* counter, smtpserver	*/
 
-  double dummy4; /* Alignment, etc.. */
+  uint	space[32]; /* Add to tail without need to change MAGIC */
 
+};
+
+
+struct MIB_MtaEntryRt {
   /* ROUTER subsystem counters */
 
-  uint		mtaRouterProcessesRt;		/* gauge */
-  uint		mtaRouterProcessForksRt;	/* counter, cleared at start */
+  uint		RouterProcessesRt;	/* gauge */
+  uint		RouterProcessForksRt;	/* counter, cleared at start */
 
-  uint		mtaReceivedMessagesRt;		/* counter, router	*/
-  uint		mtaReceivedRecipientsRt;	/* counter, router - not! */
-  uint		mtaTransmittedMessagesRt;	/* counter, router	*/
-  uint		mtaTransmittedRecipientsRt;	/* counter, router	*/
+  uint		ReceivedMessagesRt;	/* counter, router	*/
+  uint		ReceivedRecipientsRt;	/* counter, router - not! */
+  uint		TransmittedMessagesRt;	/* counter, router	*/
+  uint		TransmittedRecipientsRt;/* counter, router	*/
 
-  uint		mtaReceivedVolumeRt;		/* counter,	in kB	*/
-  uint		mtaTransmittedVolumeRt;		/* counter,	in kB	*/
-  uint		mtaTransmittedVolume2Rt;	/* counter,	in kB	*/
+  uint		ReceivedVolumeRt;	/* counter,	in kB	*/
+  uint		TransmittedVolumeRt;	/* counter,	in kB	*/
+  uint		TransmittedVolume2Rt;	/* counter,	in kB	*/
 
   /* Subsystem queue size  */
-  uint		mtaStoredMessagesRt;		/* gauge, router	*/
-  uint		mtaStoredRecipientsRt;		/* gauge, router - not!	*/
+  uint		StoredMessagesRt;	/* gauge, router	*/
+  uint		StoredRecipientsRt;	/* gauge, router - not!	*/
 
-  uint		mtaStoredVolumeRt;		/* gauge,	in kB	*/
+  uint		StoredVolumeRt;		/* gauge,	in kB	*/
+
+  uint	space[32]; /* Add to tail without need to change MAGIC */
+
+};
 
 
-  double dummy5; /* Alignment, etc.. */
-
+struct MIB_MtaEntrySc {
   /* SCHEDULER subsystem counters */
 
-  uint		mtaReceivedMessagesSc;		/* counter, scheduler	*/
-  uint		mtaReceivedRecipientsSc;	/* counter, scheduler	*/
-  uint		mtaTransmittedMessagesSc;	/* counter, scheduler	*/
-  uint		mtaTransmittedRecipientsSc;	/* counter, scheduler	*/
+  uint		ReceivedMessagesSc;	/* counter, scheduler	*/
+  uint		ReceivedRecipientsSc;	/* counter, scheduler	*/
+  uint		TransmittedMessagesSc;	/* counter, scheduler	*/
+  uint		TransmittedRecipientsSc;/* counter, scheduler	*/
 
-  uint		mtaStoredMessagesSc;		/* gauge, scheduler	*/
-  uint		mtaStoredThreadsSc;		/* gauge, scheduler	*/
-  uint		mtaStoredVerticesSc;		/* gauge, scheduler	*/
-  uint		mtaStoredRecipientsSc;		/* gauge, scheduler	*/
+  uint		StoredMessagesSc;	/* gauge, scheduler	*/
+  uint		StoredThreadsSc;	/* gauge, scheduler	*/
+  uint		StoredVerticesSc;	/* gauge, scheduler	*/
+  uint		StoredRecipientsSc;	/* gauge, scheduler	*/
 
-  uint		mtaReceivedVolumeSc;		/* counter,	in kB	*/
-  uint		mtaStoredVolumeSc;		/* gauge,	in kB	*/
-  uint		mtaTransmittedVolumeSc;		/* counter, ??	in kB	*/
+  uint		ReceivedVolumeSc;	/* counter,	in kB	*/
+  uint		StoredVolumeSc;		/* gauge,	in kB	*/
+  uint		TransmittedVolumeSc;	/* counter, ??	in kB	*/
 
-  uint		mtaTransportAgentForksSc;	/* counter		*/
-  uint		mtaTransportAgentProcessesSc;	/* gauge		*/
-  uint		mtaTransportAgentsActiveSc;	/* gauge		*/
-  uint		mtaTransportAgentsIdleSc;	/* gauge		*/
+  uint		TransportAgentForksSc;	/* counter		*/
+  uint		TransportAgentProcessesSc;/* gauge		*/
+  uint		TransportAgentsActiveSc;/* gauge		*/
+  uint		TransportAgentsIdleSc;	/* gauge		*/
 
+  /* MQ1 socket */
+  uint		MQ1sockConnects;	/* counter */
+  uint		MQ1sockParallel;	/* gauge */
+  uint		MQ1sockTcpWrapRej;	/* counter */
+  
+  /* MQ2 socket */
 
-  double dummy6; /* Alignment, etc.. */
+  uint		MQ2sockConnects;	/* counter */
+  uint		MQ2sockParallel;	/* gauge   */
+  uint		MQ2sockTcpWrapRej;
+  uint		MQ2sockAuthRej;
+  uint		MQ2sockTimedOut;
+  uint		MQ2sockReadEOF;
+  uint		MQ2sockReadFails;
+  uint		MQ2sockWriteFails;
+  uint		MQ2sockCommands;
+  uint		MQ2sockCommandsRej;
+  uint		MQ2sockCommandAUTH;
+  uint		MQ2sockCommandQUIT;
+  uint		MQ2sockCommandETRN;
+  uint		MQ2sockCommandKillThr;
+  uint		MQ2sockCommandKillMsg;
+  uint		MQ2sockCommandKillProcess;
+  uint		MQ2sockCommandRerouteThr;
+  uint		MQ2sockCommandRerouteMsg;
+  uint		MQ2sockCommandShowQueueThreads;
+  uint		MQ2sockCommandShowQueueThreads2;
+  uint		MQ2sockCommandShowQueueShort;
+  uint		MQ2sockCommandShowQueueVeryShort;
+  uint		MQ2sockCommandShowThread;
+  uint		MQ2sockCommandShowCounters;
+  uint		MQ2sockCommandShow7;	/* spares.. */
+  uint		MQ2sockCommandShow8;
 
+  uint	space[32]; /* Add to tail without need to change MAGIC */
+
+};
+
+struct MIB_MtaEntryTaS {
 
   /* SMTP TRANSPORT AGENT generic counters  */
 
-  uint		mtaOutgoingSmtpConnects;	/* counter */
-  uint		mtaOutgoingSmtpConnectFails;	/* counter ?? */
-  uint		mtaOutgoingSmtpSTARTTLS;	/* counter */
-  uint		mtaOutgoingSmtpMAIL;		/* counter */
-  uint		mtaOutgoingSmtpRCPT;		/* counter */
-  uint		mtaOutgoingSmtpDATA;		/* counter */
-  uint		mtaOutgoingSmtpBDAT;		/* counter */
-  uint		mtaOutgoingSmtpDATAvolume;	/* counter, in kB	*/
-  uint		mtaOutgoingSmtpBDATvolume;	/* counter, in kB	*/
+  uint		OutgoingSmtpStarts;	/* counter */
+  uint		OutgoingSmtpConnects;	/* counter */
+  uint		OutgoingLmtpConnects;	/* counter */
+  uint		OutgoingSmtpConnectFails; /* counter ?? */
+  uint		OutgoingSmtpConnectsCnt;/* gauge */
+  uint		OutgoingSmtpSTARTTLS;	/* counter */
+  uint		OutgoingSmtpSTARTTLSok;	/* counter */
+  uint		OutgoingSmtpSTARTTLSfail; /* counter */
+  uint		OutgoingSmtpEHLO;	/* counter */
+  uint		OutgoingSmtpEHLOok;	/* counter */
+  uint		OutgoingSmtpEHLOfail;	/* counter */
+  uint		OutgoingSmtpHELO;	/* counter */
+  uint		OutgoingSmtpHELOok;	/* counter */
+  uint		OutgoingSmtpHELOfail;	/* counter */
+  uint		OutgoingSmtpLHLO;	/* counter */
+  uint		OutgoingSmtpLHLOok;	/* counter */
+  uint		OutgoingSmtpLHLOfail;	/* counter */
+  uint		OutgoingSmtpMAIL;	/* counter, all tried */
+  uint		OutgoingSmtpMAILok;	/* counter, successfull */
+  uint		OutgoingSmtpRCPT;	/* counter, all tried */
+  uint		OutgoingSmtpRCPTok;	/* counter, successfull */
+  uint		OutgoingSmtpDATA;	/* counter, all tried */
+  uint		OutgoingSmtpDATAok;	/* counter, successfull */
+  uint		OutgoingSmtpBDAT;	/* counter, all tried */
+  uint		OutgoingSmtpBDATok;	/* counter, successfull */
+  uint		OutgoingSmtpDATAvolume;	/* counter, in kB, successfull	*/
+  uint		OutgoingSmtpBDATvolume;	/* counter, in kB, successfull	*/
 
-
-  uint		mtaOutgoingSmtpMAILok;		/* counter - successes only */
-  uint		mtaOutgoingSmtpRCPTok;		/* counter - successes only */
-  uint		mtaOutgoingSmtpDATAok;		/* counter - successes only */
-  uint		mtaOutgoingSmtpBDATok;		/* counter - successes only */
-  uint		mtaOutgoingSmtpDATAvolumeOK;	/* counter, in kB	*/
-  uint		mtaOutgoingSmtpBDATvolumeOK;	/* counter, in kB	*/
-
+  uint		OutgoingSmtpRcptsOk;	/* counter, delivered recipients */
+  uint		OutgoingSmtpRcptsRetry;	/* counter, issued a retry */
+  uint		OutgoingSmtpRcptsFail;	/* counter, resulted in a failure */
 
   double dummy7; /* Alignment, etc.. */
 
 
   /* Hmm...  actually we have never encountered these ... */
 
-  uint		mtaSuccessfulConvertedMessages;	/* counter */
-  uint		mtaFailedConvertedMessages;	/* counter */
-  uint		mtaLoopsDetected;		/* counter */
+  uint		SuccessfulConvertedMessages;	/* counter */
+  uint		FailedConvertedMessages;	/* counter */
+  uint		LoopsDetected;		/* counter */
 
   double dummy99; /* Alignment, etc.. */
+
+  uint	space[32]; /* Add to tail without need to change MAGIC */
+
 };
 
 
 
 
-
+#if 0
 struct MIB_mtaGroupEntry {
-  uint		mtaGroupIndex;			/* int */
-  uint		mtaGroupReceivedMessages;	/* counter */
-  uint		mtaGroupRejectedMessages;	/* counter */
-  uint		mtaGroupStoredMessages;		/* gauge   */
-  uint		mtaGroupTransmittedMessages;	/* counter */
-  uint		mtaGroupReceivedVolume;		/* counter */
-  uint		mtaGroupStoredVolume;		/* gauge   */
-  uint		mtaGroupTransmittedVolume;	/* counter */
-  uint		mtaGroupReceivedRecipients;	/* counter */
-  uint		mtaGroupStoredRecipients;	/* gauge   */
-  uint		mtaGroupTransmittedReceipients; /* counter */
-  uint		mtaGroupOldestMessageStored;	/* time_t */
-  uint		mtaGroupInboundAssociations;	/* gauge   */
-  uint		mtaGroupOutboundAssociations;	/* gauge   */
-  uint		mtaGroupAccumulatedInboundAssociations;  /* counter */
-  uint		mtaGroupAccumulatedOutboundAssociations; /* counter */
-  uint		mtaGroupLastInboundActivity;	/* time_t */
-  uint		mtaGroupLastOutboundActivity;	/* time_t */
-  uint		mtaGroupLastOutboundAssociationAttempt; /* time_t */
-  uint		mtaGroupRejectedInboundAssociations; /* counter */
-  uint		mtaGroupFailedOutboundAssociations;  /* counter */
-  char		mtaGroupInboundRejectionReason[80]; /* display-string ?? */
-  char		mtaGroupOutboundConnectFailureReason[80];
-  uint		mtaGroupScheduledRetry;		/* time_t */
-  uint		mtaGroupMailProtocol;		/* ??? */
-  char		mtaGroupName[80];		/* display-string ? */
-  uint		mtaGroupSuccessfulConvertedMessages; /* counter */
-  uint		mtaGroupFailedConvertedMessages; /* counter */
-  char		mtaGroupDescription[80];	/* ??? */
-  char		mtaGroupURL[80];		/* ??? */
-  uint		mtaGroupCreationTime;		/* time_t */
-  uint		mtaGroupHierarchy;		/* int */
-  char		mtaGroupOldestMessageId[80];
-  uint		mtaGroupLoopsDetected;		/* counter */
+  uint		GroupIndex;			/* int */
+  uint		GroupReceivedMessages;		/* counter */
+  uint		GroupRejectedMessages;		/* counter */
+  uint		GroupStoredMessages;		/* gauge   */
+  uint		GroupTransmittedMessages;	/* counter */
+  uint		GroupReceivedVolume;		/* counter */
+  uint		GroupStoredVolume;		/* gauge   */
+  uint		GroupTransmittedVolume;		/* counter */
+  uint		GroupReceivedRecipients;	/* counter */
+  uint		GroupStoredRecipients;		/* gauge   */
+  uint		GroupTransmittedReceipients;	/* counter */
+  uint		GroupOldestMessageStored;	/* time_t */
+  uint		GroupInboundAssociations;	/* gauge   */
+  uint		GroupOutboundAssociations;	/* gauge   */
+  uint		GroupAccumulatedInboundAssociations;  /* counter */
+  uint		GroupAccumulatedOutboundAssociations; /* counter */
+  uint		GroupLastInboundActivity;	/* time_t */
+  uint		GroupLastOutboundActivity;	/* time_t */
+  uint		GroupLastOutboundAssociationAttempt; /* time_t */
+  uint		GroupRejectedInboundAssociations; /* counter */
+  uint		GroupFailedOutboundAssociations;  /* counter */
+  char		GroupInboundRejectionReason[80]; /* display-string ?? */
+  char		GroupOutboundConnectFailureReason[80];
+  uint		GroupScheduledRetry;		/* time_t */
+  uint		GroupMailProtocol;		/* ??? */
+  char		GroupName[80];			/* display-string ? */
+  uint		GroupSuccessfulConvertedMessages; /* counter */
+  uint		GroupFailedConvertedMessages;	/* counter */
+  char		GroupDescription[80];		/* ??? */
+  char		GroupURL[80];			/* ??? */
+  uint		GroupCreationTime;		/* time_t */
+  uint		GroupHierarchy;			/* int */
+  char		GroupOldestMessageId[80];
+  uint		GroupLoopsDetected;		/* counter */
 };
+#endif
 
 
 struct MIB_MtaEntry {
+	uint	magic;
+	time_t	BlockCreationTimestamp;
 
-	struct MIB_MtaEntryMain	m;
 	struct timeserver	ts;
 
+	double dummy0; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntrySys	sys;
+
+	double dummy1; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntrySs	ss;
+
+	double dummy2; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntryRt	rt;
+
+	double dummy3; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntrySc	sc;
+
+	double dummy4; /* Alignment / spacer .. */
+
+	struct MIB_MtaEntryTaS	tas;
 };

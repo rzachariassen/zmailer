@@ -546,8 +546,8 @@ ta_hungry(proc)
 	  proc->thg->idlecnt += 1;
 
 	  ++idleprocs;
-	  MIBMtaEntry->m.mtaTransportAgentsActiveSc -= 1;
-	  MIBMtaEntry->m.mtaTransportAgentsIdleSc   += 1;
+	  MIBMtaEntry->sc.TransportAgentsActiveSc -= 1;
+	  MIBMtaEntry->sc.TransportAgentsIdleSc   += 1;
 
 
 	  /* Failed to pick anything, reschedule the old thread.
@@ -850,9 +850,9 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->pthread->thrkids  += 1;
 
 	++numkids;
-	MIBMtaEntry->m.mtaTransportAgentProcessesSc += 1;
-	MIBMtaEntry->m.mtaTransportAgentForksSc     += 1;
-	MIBMtaEntry->m.mtaTransportAgentsActiveSc   += 1;
+	MIBMtaEntry->sc.TransportAgentProcessesSc += 1;
+	MIBMtaEntry->sc.TransportAgentForksSc     += 1;
+	MIBMtaEntry->sc.TransportAgentsActiveSc   += 1;
 
 
 	proc->tofd          = tofd;
@@ -1002,8 +1002,8 @@ static void reclaim(fromfd, tofd)
 	    --idleprocs;
 
 	    /* Virtually move to ACTIVE state for count off below */
-	    MIBMtaEntry->m.mtaTransportAgentsActiveSc += 1;
-	    MIBMtaEntry->m.mtaTransportAgentsIdleSc   -= 1;
+	    MIBMtaEntry->sc.TransportAgentsActiveSc += 1;
+	    MIBMtaEntry->sc.TransportAgentsIdleSc   -= 1;
 
 	    /* Remove this entry from the chains */
 	    if (proc == proc->thg->idleproc)
@@ -1023,8 +1023,8 @@ static void reclaim(fromfd, tofd)
 	  proc->thg    = NULL;
 	}
 
-	MIBMtaEntry->m.mtaTransportAgentsActiveSc   -= 1;
-	MIBMtaEntry->m.mtaTransportAgentProcessesSc -= 1;
+	MIBMtaEntry->sc.TransportAgentsActiveSc   -= 1;
+	MIBMtaEntry->sc.TransportAgentProcessesSc -= 1;
 	--numkids;
 	proc->thg    = NULL;
 }
@@ -1302,6 +1302,10 @@ queryipccheck()
 	    n = accept(querysocket, (struct sockaddr *)&raddr, &raddrlen);
 	    if (n >= 0) {
 	      if (mailqmode == 1) {
+
+		MIBMtaEntry->sc.MQ1sockConnects ++;
+		MIBMtaEntry->sc.MQ1sockParallel ++;
+
 		int pid = fork();
 		if (pid == 0) {
 #if defined(F_SETFD)
@@ -1313,19 +1317,28 @@ queryipccheck()
 		    char *msg = "500 TCP-WRAPPER refusing 'mailq' query from your whereabouts\r\n";
 		    int   len = strlen(msg);
 		    write(n,msg,len);
+		    MIBMtaEntry->sc.MQ1sockParallel --;
+		    MIBMtaEntry->sc.MQ1sockTcpWrapRej ++;
 		    _exit(0);
 		  }
 #endif
 #endif
 		  qprint(n);
+		  close(n);
+		  MIBMtaEntry->sc.MQ1sockParallel --;
 		  /* Silence memory debuggers about this child's
 		     activities by doing exec() on the process.. */
 		  /* execl("/bin/false","false",NULL); */
 		  _exit(0); /* _exit() should be silent, too.. */
 		}
+		if (pid < 0)
+		  MIBMtaEntry->sc.MQ1sockParallel --;
 		close(n);
 	      } else {
 		/* mailqmode == 2 */
+
+		MIBMtaEntry->sc.MQ2sockConnects ++;
+
 #if 0  /* NOT IN MAILQ-V2 MODE ! */
 #ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H /* TCP-Wrapper code */
@@ -1333,6 +1346,7 @@ queryipccheck()
 		  char *msg = "500 TCP-WRAPPER refusing 'mailq' query from your whereabouts\r\n";
 		  int   len = strlen(msg);
 		  write(n,msg,len);
+		  MIBMtaEntry->sc.MQ2sockTcpWrapRej ++;
 		  close(n);
 		}
 		else

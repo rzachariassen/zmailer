@@ -51,6 +51,9 @@ all $(PROGRAM)-a:	$(TOPDIR)/include/rfc822.entry $(LIBDEB) $(PROGRAM)
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
+$(OBJS): $(srcdir)/../include/shmmib.h ../include/mail.h
+$(OBJS): $(srcdir)/prototypes.h
+
 $(PROGRAM): $(TOPDIR)/include/rfc822.entry $(LIBDEB) version.o $(OBJS)
 	$(CC) $(CFLAGS) -o $@.x $(OBJS) version.o $(LIB) $(ROUTER_LIB)
 	mv $@.x $@
@@ -125,10 +128,8 @@ libdb/libzmdb.a:
 	cd ../libsh; $(MAKE) $(MFLAGS) sh.h
 
 depend: rfc822.sst.c rfc822.sst.h $(TOPDIR)/include/rfc822.entry ../libsh/sh.sst.h
-	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)
+	CPPDEP="${CPPDEP}" CPPOPT="$(CFLAGS)" $(TOPDIR)/bin/mkdep -s $(srcdir) $(SOURCE)
 
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
-
-

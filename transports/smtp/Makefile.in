@@ -54,9 +54,9 @@ mprobe:	mprobe.o version.o $(LIBDEB)
 version.c:	$(OBJS) $(TOPDIR)/Makefile
 	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
 
-smtp.o:      $(srcdir)/smtp.c $(srcdir)/smtp.h
-smtptls.o:   $(srcdir)/smtptls.c $(srcdir)/smtp.h
-appendlet.o: $(srcdir)/appendlet.c $(srcdir)/smtp.h
+smtp.o:      $(srcdir)/smtp.h $(srcdir)/$(TOPDIR)/include/shmmib.h
+smtptls.o:   $(srcdir)/smtp.h $(srcdir)/$(TOPDIR)/include/shmmib.h
+appendlet.o: $(srcdir)/smtp.h
 
 install:	smtp mprobe getmxrr-test
 	$(INSTALL) -m 0755 smtp $(MAILBIN)/ta/smtp.x
@@ -104,7 +104,7 @@ $(TOPDIR)/libmalloc/libmalloc_d.a:
 	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
 
 depend:
-	$(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+	CPPDEP="${CPPDEP}" CPPOPT="$(CFLAGS)" $(TOPDIR)/bin/mkdep -s $(srcdir) $(SOURCE)
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

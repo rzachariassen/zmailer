@@ -118,7 +118,7 @@ distclean: clean
 	rm -f Makefile
 
 depend: FRC
-	CPPDEP="${CPPDEP}" ../bin/mkdep -f Makefile ${CPPFLAGS} ${INCL} -I. ${DEFS} ${SRCS}
+	CPPDEP="${CPPDEP}" CPPOPT="$(CPPFLAGS) $(INCL) -I. $(DEFS)" $(TOPDIR)/bin/mkdep -s $(srcdir) $(SRCS)
 
 FRC:
 

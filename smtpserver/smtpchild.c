@@ -92,18 +92,18 @@ void childregister(cpid, addr, socktag)
 
 	/* Now count those processes.. */
 
-	MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses += 1;
-	MIBMtaEntry->m.mtaIncomingSMTPSERVERforks     += 1;
+	MIBMtaEntry->ss.IncomingSMTPSERVERprocesses += 1;
+	MIBMtaEntry->ss.IncomingSMTPSERVERforks     += 1;
 
 	switch (socktag) {
 	case 0:
-	  MIBMtaEntry->m.mtaIncomingParallelSMTPconnects   += 1;
+	  MIBMtaEntry->ss.IncomingParallelSMTPconnects   += 1;
 	  break;
 	case 1:
-	  MIBMtaEntry->m.mtaIncomingParallelSMTPSconnects  += 1;
+	  MIBMtaEntry->ss.IncomingParallelSMTPSconnects  += 1;
 	  break;
 	case 2:
-	  MIBMtaEntry->m.mtaIncomingParallelSUBMITconnects += 1;
+	  MIBMtaEntry->ss.IncomingParallelSUBMITconnects += 1;
 	  break;
 	default:
 	  break;
@@ -172,17 +172,17 @@ int cpid;
 	for (i = 0; i < child_top; ++i)
 	  if (childs[i].pid == cpid) {
 
-	    MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses -= 1;
+	    MIBMtaEntry->ss.IncomingSMTPSERVERprocesses -= 1;
 
 	    switch (childs[i].tag) {
 	    case 0:
-	      MIBMtaEntry->m.mtaIncomingParallelSMTPconnects   -= 1;
+	      MIBMtaEntry->ss.IncomingParallelSMTPconnects   -= 1;
 	      break;
 	    case 1:
-	      MIBMtaEntry->m.mtaIncomingParallelSMTPSconnects  -= 1;
+	      MIBMtaEntry->ss.IncomingParallelSMTPSconnects  -= 1;
 	      break;
 	    case 2:
-	      MIBMtaEntry->m.mtaIncomingParallelSUBMITconnects -= 1;
+	      MIBMtaEntry->ss.IncomingParallelSUBMITconnects -= 1;
 	      break;
 	    default:
 	      break;

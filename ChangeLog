@@ -1,3 +1,30 @@
+2003-05-26  Matti Aarnio  <mea@zmailer.org>
+
+	* bin/mkdep.in, bin/mklibdep.in, compat/rmail/Makefile.in,
+	  compat/sendmail/Makefile.in, lib/Makefile.in, libc/Makefile.in,
+	  libident/Makefile.in, libresolv/Makefile.in, libsh/Makefile.in,
+	  router/Makefile.in, router/libdb/Makefile.in, scheduler/Makefile.in,
+	  sfio/Makefile.in, smtpserver/Makefile.in,
+	  transports/errormail/Makefile.in, transports/expirer/Makefile.in,
+	  transports/fuzzyalias/Makefile.in, transports/hold/Makefile.in,
+	  transports/libta/Makefile.in, transports/mailbox/Makefile.in,
+	  transports/reroute/Makefile.in, transports/sm/Makefile.in,
+	  transports/smtp/Makefile.in, utils/makedb/Makefile.in,
+	  utils/vacation/Makefile.in:
+	    Fixed the "make depend" processing, now it works also when
+	    compiling in "adjacent directory" (tested only in that, though..)
+
+	* include/libz.h, include/shmmib.h, lib/fdstatfs.c, router/daemonsub.c,
+	  lib/zshmmibattach.c, router/rfc822.c, scheduler/mailq.c,
+	  scheduler/mq2.c, scheduler/scheduler.c, scheduler/threads.c,
+	  scheduler/transport.c, scheduler/update.c, smtpserver/smtpchild.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c, smtpserver/smtpetrn.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/smtptls.c, transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    Reworked a bit more of the monitor counters and gauges.
+	    (Actually a lot..  Added first glimmers even to SMTP-ta.)
+
+
 2003-05-25  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:

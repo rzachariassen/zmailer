@@ -37,7 +37,7 @@ SOURCE=	esyslib.c stringlib.c rfc822date.c detach.c \
 	emalloc.c cfgets.c selfaddrs.c skip821address.c \
 	taspoolid.c strlower.c strupper.c pjwhash32.c crc32.c \
 	parseintv.c zgetifaddress.c zgetbindaddr.c sleepycatdb.c \
-	zshmmibattach.o  fdstatfs.c 
+	zshmmibattach.c  fdstatfs.c 
 
 all $(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a
 
@@ -61,6 +61,10 @@ fdstatfs-test: fdstatfs-test.o fdstatfs.o
 $(TOPDIR)/libs/$(LIBNAME).a:	$(OBJS)
 	ar rv $@ $(OBJS)
 	$(RANLIB) $@
+
+
+# Additional dependency rule */
+zshmmibattach.o: $(srcdir)/../include/shmmib.h
 
 # In addition to their respective sources, OBJS depend also of  rfc822.entry!
 $(OBJS): $(TOPDIR)/include/rfc822.entry
@@ -86,7 +90,7 @@ distclean-recursive distclean: clean
 	-rm -f Makefile
 
 depend:
-	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+	CPPDEP="${CPPDEP}" CPPOPT="$(CFLAGS)" $(TOPDIR)/bin/mklibdep -s $(srcdir) $(SOURCE)
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

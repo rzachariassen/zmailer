@@ -2679,15 +2679,15 @@ sequencer(e, file)
 		 fromaddr, smtprelay, (int) e->e_statbuf.st_size,
 		 onrcpts, msgidstr, start_now);
 
-	MIBMtaEntry->m.mtaTransmittedMessagesRt   += 1;
-	MIBMtaEntry->m.mtaReceivedRecipientsRt    += inrcpts;
-	MIBMtaEntry->m.mtaTransmittedRecipientsRt += onrcpts;
+	MIBMtaEntry->rt.TransmittedMessagesRt   += 1;
+	MIBMtaEntry->rt.ReceivedRecipientsRt    += inrcpts;
+	MIBMtaEntry->rt.TransmittedRecipientsRt += onrcpts;
 
-	MIBMtaEntry->m.mtaTransmittedVolumeRt     += infilesize_kb;
-	MIBMtaEntry->m.mtaTransmittedVolume2Rt    += taskfilesize_kb;
+	MIBMtaEntry->rt.TransmittedVolumeRt     += infilesize_kb;
+	MIBMtaEntry->rt.TransmittedVolume2Rt    += taskfilesize_kb;
 
-	MIBMtaEntry->m.mtaStoredMessagesRt        -= 1;
-	MIBMtaEntry->m.mtaStoredVolumeRt          -= infilesize_kb;
+	MIBMtaEntry->rt.StoredMessagesRt        -= 1;
+	MIBMtaEntry->rt.StoredVolumeRt          -= infilesize_kb;
 
 
 #ifdef AF_UNIX

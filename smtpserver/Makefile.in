@@ -54,18 +54,14 @@ all: $(PROGRAM)
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-smtpserver.o: $(srcdir)/smtpserver.c $(srcdir)/smtpserver.h	\
-		$(srcdir)/policytest.h
-cfgread.o:    $(srcdir)/cfgread.c $(srcdir)/smtpserver.h
-smtpcmds.o:   $(srcdir)/smtpcmds.c $(srcdir)/smtpserver.h	\
-		$(srcdir)/policytest.h
-smtpauth.o:   $(srcdir)/smtpauth.c $(srcdir)/smtpserver.h
-smtpdata.o:   $(srcdir)/smtpdata.c $(srcdir)/smtpserver.h
-smtpetrn.o:   $(srcdir)/smtpetrn.c $(srcdir)/smtpserver.h
-smtphelp.o:   $(srcdir)/smtphelp.c $(srcdir)/smtpserver.h
-smtprouter.o: $(srcdir)/smtprouter.c $(srcdir)/smtpserver.h
-policytest.o:  $(srcdir)/policytest.c $(srcdir)/policytest.h # ignored: $(srcdir)/smtpserver.h
-contentpolicy.o: $(srcdir)/contentpolicy.c $(srcdir)/policytest.h # ignored: $(srcdir)/smtpserver.h
+$(OBJS): $(srcdir)/../include/shmmib.h ../include/mail.h
+$(OBJS): $(srcdir)/smtpserver.h
+
+
+smtpserver.o: $(srcdir)/policytest.h
+smtpcmds.o:   $(srcdir)/policytest.h
+policytest.o: $(srcdir)/policytest.h
+contentpolicy.o: $(srcdir)/policytest.h
 
 zpwmatch.o:	$(srcdir)/$(privateauth)zpwmatch.c
 	$(CC) $(CFLAGS) -c $(srcdir)/$(privateauth)zpwmatch.c
@@ -92,7 +88,7 @@ lint:	$(LINTLIB)
 	lint $(DEFS) $(INCL) $(LINTLIB) $(PROGRAM).c
 
 depend:	$(SOURCE)
-	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep -f Makefile $(CFLAGS) $(SOURCE)
+	CPPDEP="${CPPDEP}" CPPOPT="$(CFLAGS)" $(TOPDIR)/bin/mkdep -s $(srcdir) $(SOURCE)
 
 $(LIBDEB):
 	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag

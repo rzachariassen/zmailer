@@ -169,7 +169,7 @@ struct thread *thr;
 	thr->nextthg->prevthg = thr->prevthg;
 
 	thg->threads                      -= 1;
-	MIBMtaEntry->m.mtaStoredThreadsSc -= 1;
+	MIBMtaEntry->sc.StoredThreadsSc -= 1;
 
 	if (thg->thread == thr)
 	  thg->thread = thr->nextthg;	/* pick other */
@@ -230,7 +230,7 @@ struct thread *thr;
 	}
 
 	thg->threads += 1;
-	MIBMtaEntry->m.mtaStoredThreadsSc += 1;
+	MIBMtaEntry->sc.StoredThreadsSc += 1;
 }
 
 
@@ -896,8 +896,8 @@ thread_start(thr, queueonly_too)
 	  --idleprocs;
 
 	  /* Move to ACTIVE state */
-	  MIBMtaEntry->m.mtaTransportAgentsActiveSc += 1;
-	  MIBMtaEntry->m.mtaTransportAgentsIdleSc   -= 1;
+	  MIBMtaEntry->sc.TransportAgentsActiveSc += 1;
+	  MIBMtaEntry->sc.TransportAgentsIdleSc   -= 1;
 
 	  
 	  /* It may be that while we idled it, it died at the idle queue.. */
@@ -1736,20 +1736,20 @@ void thread_report(fp,mqmode)
 	    sfprintf(fp, "%s\n",timebuf);
 
 	  sfprintf(fp, "Msgs in %lu out %lu stored %ld ",
-		   (u_long)MIBMtaEntry->m.mtaReceivedMessagesSc,
-		   (u_long)MIBMtaEntry->m.mtaTransmittedMessagesSc,
-		   (long)MIBMtaEntry->m.mtaStoredMessagesSc);
+		   (u_long)MIBMtaEntry->sc.ReceivedMessagesSc,
+		   (u_long)MIBMtaEntry->sc.TransmittedMessagesSc,
+		   (long)MIBMtaEntry->sc.StoredMessagesSc);
 
 	  files = thread_count_files();
-	  if ((long)MIBMtaEntry->m.mtaStoredMessagesSc != files)
+	  if ((long)MIBMtaEntry->sc.StoredMessagesSc != files)
 	    sfprintf(fp, "(%ld) ", files);
 
 	  sfprintf(fp, "Rcpnts in %lu out %lu stored %ld",
-		   (u_long)MIBMtaEntry->m.mtaReceivedRecipientsSc,
-		   (u_long)MIBMtaEntry->m.mtaTransmittedRecipientsSc,
-		   (long)MIBMtaEntry->m.mtaStoredRecipientsSc);
+		   (u_long)MIBMtaEntry->sc.ReceivedRecipientsSc,
+		   (u_long)MIBMtaEntry->sc.TransmittedRecipientsSc,
+		   (long)MIBMtaEntry->sc.StoredRecipientsSc);
 
-	  if (rcptsum != MIBMtaEntry->m.mtaStoredRecipientsSc)
+	  if (rcptsum != MIBMtaEntry->sc.StoredRecipientsSc)
 	    sfprintf(fp, " (%d)", rcptsum);
 
 	  sfprintf(fp, "\n");

@@ -54,7 +54,7 @@ distclean: clean
 	-rm -f Makefile
 
 depend:
-	CPPDEP="$CPPDEP" $(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)
+	CPPDEP="${CPPDEP}" CPPOPT="$(CFLAGS)" $(TOPDIR)/bin/mklibdep -s $(srcdir) $(SOURCE)
 
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.

@@ -1088,11 +1088,11 @@ char **argv;
 	}
 
 
-	MIBMtaEntry->m.mtaSmtpServerMasterPID         = getpid();
-	MIBMtaEntry->m.mtaSmtpServerMasterStartTime   = time(NULL);
-	MIBMtaEntry->m.mtaSmtpServerMasterStarts     += 1;
+	MIBMtaEntry->sys.SmtpServerMasterPID         = getpid();
+	MIBMtaEntry->sys.SmtpServerMasterStartTime   = time(NULL);
+	MIBMtaEntry->sys.SmtpServerMasterStarts     += 1;
 
-	MIBMtaEntry->m.mtaIncomingSMTPSERVERprocesses = 1; /* myself at first */
+	MIBMtaEntry->ss.IncomingSMTPSERVERprocesses = 1; /* myself at first */
 
 #if 1
 	pid = getpid();
@@ -1207,13 +1207,13 @@ char **argv;
 
 	  switch (socktag) {
 	  case 0:
-	    MIBMtaEntry->m.mtaIncomingSMTPconnects += 1;
+	    MIBMtaEntry->ss.IncomingSMTPconnects += 1;
 	    break;
 	  case 1:
-	    MIBMtaEntry->m.mtaIncomingSMTPSconnects += 1;
+	    MIBMtaEntry->ss.IncomingSMTPSconnects += 1;
 	    break;
 	  case 2:
-	    MIBMtaEntry->m.mtaIncomingSUBMITconnects += 1;
+	    MIBMtaEntry->ss.IncomingSUBMITconnects += 1;
 	    break;
 	  default:
 	    break;
@@ -2217,7 +2217,7 @@ int insecure;
 	if (i <= 0)	/* EOF ??? */
 	  break;
 
-	MIBMtaEntry->m.mtaIncomingCommands ++;
+	MIBMtaEntry->ss.IncomingCommands ++;
 
 				   
 	time( & now );
@@ -2265,7 +2265,7 @@ int insecure;
 			((buf[rc] & 0x80) ? "8-bit char on SMTP input" :
 			 "Control chars on SMTP input")));
 	    typeflush(SS);
-	    MIBMtaEntry->m.mtaIncomingCommands_unknown ++;
+	    MIBMtaEntry->ss.IncomingCommands_unknown ++;
 	    continue;
 	}
 	if (!strict_protocol && c != '\n' && i > 3) {
@@ -2281,7 +2281,7 @@ int insecure;
 		type(SS, 500, m552, "Line not terminated with CRLF..");
 	    else
 		type(SS, 500, m552, "Line too long (%d chars)", i);
-	    MIBMtaEntry->m.mtaIncomingCommands_unknown ++;
+	    MIBMtaEntry->ss.IncomingCommands_unknown ++;
 	    continue;
 	}
 	if (verbose && !daemon_flg)
@@ -2307,7 +2307,7 @@ int insecure;
 
 	unknown_command:
 
-	    MIBMtaEntry->m.mtaIncomingCommands_unknown ++;
+	    MIBMtaEntry->ss.IncomingCommands_unknown ++;
 	    ++SS->unknown_cmd_count;
 
 	    if (SS->unknown_cmd_count >= unknown_cmd_limit) {
@@ -2432,11 +2432,19 @@ int insecure;
 	case SendOrMail:
 	case SendAndMail:
 	    /* This code is LONG.. */
-	    smtp_mail(SS, buf, cp, insecure);
+	    MIBMtaEntry->ss.IncomingSMTP_MAIL += 1;
+	    if (smtp_mail(SS, buf, cp, insecure) != 0 || SS->mfp == NULL)
+	      MIBMtaEntry->ss.IncomingSMTP_MAIL_bad += 1;
+	    else
+	      MIBMtaEntry->ss.IncomingSMTP_MAIL_ok += 1;
 	    break;
 	case Recipient:
 	    /* This code is LONG.. */
-	    smtp_rcpt(SS, buf, cp);
+	    MIBMtaEntry->ss.IncomingSMTP_RCPT += 1;
+	    if (smtp_rcpt(SS, buf, cp) != 0 || SS->mfp == NULL)
+	      MIBMtaEntry->ss.IncomingSMTP_RCPT_bad += 1;
+	    else
+	      MIBMtaEntry->ss.IncomingSMTP_RCPT_ok += 1;
 	    break;
 	case Data:
 

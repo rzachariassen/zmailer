@@ -350,7 +350,7 @@ SmtpState *SS;
 const char *name, *cp;
 {
 
-    MIBMtaEntry->m.mtaIncomingSMTP_ETRN += 1;
+    MIBMtaEntry->ss.IncomingSMTP_ETRN += 1;
 
     while (*cp == ' ' || *cp == '\t') ++cp;
     if (*cp == 0) {

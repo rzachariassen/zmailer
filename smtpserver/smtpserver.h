@@ -254,6 +254,7 @@ typedef struct {
     int  outputfd;		/* stdout */
     int  inputfd;		/* stdin  */
     FILE *mfp;			/* Storage-bound mail-file fp */
+    long messagesize;		/* Reset at MAIL, add at BDATs / DATA */
     long sizeoptval;		/* "MAIL FROM:<xxx> SIZE=nnn" -value    */
     long sizeoptsum;
     char myhostname[MAXHOSTNAMELEN + 1];
@@ -547,8 +548,8 @@ extern void childregister __((int cpid, Usockaddr *addr, int tag));
 extern void childreap   __((int cpid));
 
 extern void smtp_helo   __((SmtpState * SS, const char *buf, const char *cp));
-extern void smtp_mail   __((SmtpState * SS, const char *buf, const char *cp, int insecure));
-extern void smtp_rcpt   __((SmtpState * SS, const char *buf, const char *cp));
+extern int  smtp_mail   __((SmtpState * SS, const char *buf, const char *cp, int insecure));
+extern int  smtp_rcpt   __((SmtpState * SS, const char *buf, const char *cp));
 extern void smtp_turnme __((SmtpState * SS, const char *name, const char *cp));
 extern void smtp_verify __((SmtpState * SS, const char *buf, const char *cp));
 extern void smtp_expand __((SmtpState * SS, const char *buf, const char *cp));

@@ -61,8 +61,8 @@ extern char *dottedquad __((struct in_addr *inp));
 extern int eopen __((const char *s, int f, int m));
 extern int eread __((int fd, char *buf, int len));
 extern int epipe __((int fdarr[2]));
-extern univptr_t emalloc  __((size_t len));
-extern univptr_t erealloc __((univptr_t buf, size_t len));
+extern void *emalloc  __((size_t len));
+extern void *erealloc __((void *buf, size_t len));
 #ifdef S_IFMT
 extern int efstat __((int fd, struct stat *stbuf));
 extern int estat  __((const char *path, struct stat *stbuf));
@@ -224,3 +224,7 @@ extern struct MIB_MtaEntry *MIBMtaEntry; /* public MIB block pointer, either
 					    or possibly shared data after the
 					    call... */
 extern long Z_SHM_FileSysFreeSpace __((void)); /* in KILOBYTES */
+
+/* fdstatfs.c */
+extern long fd_statfs __((int)); /* Used in this routine.. */
+

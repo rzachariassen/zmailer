@@ -32,7 +32,7 @@ PROGS	= router/router scheduler/scheduler			\
 	utils/vacation/vacation utils/makedb/makedb
 
 # Subdirectories to run make in for the primary targets.
-SUBDIRS =   smtpserver router scheduler transports compat utils
+SUBDIRS =  smtpserver router scheduler transports compat utils
 # Subdirectories where to run 'make clean'
 MOREDIRS = libs lib libc libsh libident libmalloc libresolv ssl \
 	   proto doc man sfio

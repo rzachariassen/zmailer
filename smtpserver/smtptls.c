@@ -69,7 +69,7 @@ smtp_starttls(SS, buf, cp)
     }
 
 
-    MIBMtaEntry->m.mtaIncomingSMTPTLSes += 1;
+    MIBMtaEntry->ss.IncomingSMTPTLSes += 1;
 
     if (SS->sslmode) {
       type(SS, 554, m540, "TLS already active, restart not allowed!");
