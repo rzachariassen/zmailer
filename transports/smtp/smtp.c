@@ -2902,7 +2902,7 @@ rmsgappend(va_alist)
 	cp    = SS->remotemsg + strlen(SS->remotemsg);
 	cpend = SS->remotemsg + sizeof(SS->remotemsg) -1;
 
-	if (SS->cmdstate < SS->prevcmdstate)
+	if (SS->prevcmdstate >= 99) /* magic limit.. */
 	  SS->remotemsgs[SS->cmdstate] = SS->remotemsg;
 	if (SS->cmdstate > SS->prevcmdstate)
 	  SS->remotemsgs[SS->cmdstate] = cp;
@@ -3395,7 +3395,7 @@ smtp_sync(SS, r, nonblocking)
 
 	  first_line = !continuation_line;
 
-	  rmsgappend(SS, 1, "\r->> %s",s);
+	  rmsgappend(SS, 1, "\r->> %s", s);
 
 	  if (continuation_line)
 	    goto rescan_line_0;
@@ -3809,7 +3809,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 		  break;
 		*s = '\0';
 
-		rmsgappend(SS, 1, "\r->> %s",buf);
+		rmsgappend(SS, 1, "\r->> %s", buf);
 
 		if (SS->within_ehlo)
 		  ehlo_check(SS,&buf[4]);
@@ -3954,7 +3954,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	if (!strbuf && !SS->esmtp_on_banner)
 	  esmtp_banner_check(SS,&buf[4]);
 
-	rmsgappend(SS, 1, "\r->> %s",buf);
+	rmsgappend(SS, 1, "\r->> %s", buf);
 
 	dflag = 0;
 
