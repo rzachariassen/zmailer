@@ -62,6 +62,24 @@ LIBRARYDIR=	@libdir@
 INCLUDEDIR=	@includedir@
 
 
+
+# INPUTDIRS  are alternate directories to receive files INSTEAD of standard
+# "router" and $ROUTERDIRS set.
+#INPUTDIRS=input:input2
+
+# When defined, INPUTDIRHASH submits messages immediately into the
+# 'A' thru 'Z' subdirectory of whatever directory (e.g. see INPUTDIRS).
+# IF NO SUCH "hash subdirs" EXIST, MESSAGE SUBMISSION WILL FAIL!
+# (The value must be "1" for this to take effect!)
+#INPUTDIRHASH=1
+
+# The INPUTNOTIFY defines, where is a socket at which some pre-router queue
+# processor listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
+# The injection library informs the router queuing subsystem of new jobs.
+#INPUTNOTIFY=@POSTOFFICE@/.input.notify
+
+
+
 # ROUTEROPTIONS are command line options given to the router when started
 # from the zmailer shell script. The default values are "-dWkn 4"
 #ROUTEROPTIONS= "-dWkn 4"

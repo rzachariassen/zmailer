@@ -1,3 +1,23 @@
+2003-04-14  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/errormail/errormail.c:
+	    - If the source address is 'channel error', send
+	      the message back to domainless "postmaster" in
+	      our own machine.
+	    - If the message is to be discarded ("NOTIFY=NEVER"
+	      at all recipients, or some such), indicate that
+	      at the syslogged string.
+
+	* libc/mail.c, libc/sfmail.c, SiteConfig.in:
+	    Add  INPUTDIRS=  ZENV variable processing,
+	    also  INPUTDIRHASH=  and  INPUTNOTIFY= !
+	    Presently just testing!
+
+	* router/db.c, router/rfc822.c:
+	    Been doing a bit of debugging of one odd system
+	    built a while ago, with reports "this isn't working.."
+	    (definitely it wasn't, wrong configs running...)
+
 2003-04-11  Matti Aarnio  <mea@zmailer.org>
 
 	* SiteConfig.in, configure.in:
