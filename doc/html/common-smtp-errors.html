@@ -1,0 +1,242 @@
+<HTML>
+<HEAD>
+<TITLE>Common email addressing errors</TITLE>
+<BODY>
+<HR>
+<P>
+<H1>Common Email Addressing Errors</H1>
+<P>
+<HR>
+<P>
+Following is a potpourri of common errors we see in ZMailer smtpserver's
+logs.  We are trying also to explain them a bit.
+<P>
+Samples carry SMTP-server log fragments, and the first character on
+each line describes what kind of event this is:
+<OL>
+<LI><CODE>r</CODE>
+Something which the smtpserver <B>r</B>eceived from the client
+<LI><CODE>w</CODE>
+Something what the smtpserver <B>w</B>rote to the client
+<LI><CODE>#</CODE>
+Smtpserver's processing comments, not shown to the user.
+</OL>
+
+Because these are SMTP-server logs, the things shown here are
+what the participating programs (client's software, and the server)
+are speaking in between them.
+<P>
+In case of errors the client systems may show to the user the diagnostic
+messages that the server issues.  If user sees such messages, it can be
+in form of:<P>
+<PRE>
+450-Mumblemumbe...
+450 More mumbe
+</PRE>
+of it may appear in form of:
+<PRE>
+ Mumblemumbe...
+ More mumbe
+</PRE>
+
+<P>
+<HR>
+<P>
+<H2>1: Address syntax errors</H2>
+
+<UL>
+<LI> ``Incomplete addresses''
+<P>
+<PRE>
+r  MAIL FROM:&lt;unknown&gt;
+w  501-5.5.2         ^
+w  501 5.5.2 Path data: Missing "@" from mailbox definition
+...
+r  RCPT TO:&lt;cad&gt;
+w  501-5.5.2   ^
+w  501 5.5.2 Path data: Missing "@" from mailbox definition
+...
+r  RCPT TO: &lt;User Name&gt;
+w  501-5.5.2      ^
+w  501 5.5.2 Path data: Missing "@" from mailbox definition
+      <I>(This one is missing a dot in between name components,</I>
+      <I> and the domain name.)</I>
+</PRE>
+<P>
+The address entered to the system is not complete.
+This system is configured so that it <I>demands</I> getting
+addresses which have also attached domain name.
+(Domain name means here mandatory inclusion of "@" character,
+ and a certain way formatted text on the right side of it.)
+<P>
+The demand for domain-name is because while unqualified username
+might have meaning within <B>one</B> machine, we have multiple
+systems, along with virtual hosting, etc.
+We can have 
+<P>
+A few other examples of invalid addresses:
+<P>
+<PRE>
+r  RCPT TO:&lt;www.something.com/foo/bar/index.htm&gt;
+</PRE>
+<P>
+Well, this is <B>email, and not WEB!</B>
+<P>
+
+<PRE>
+r  RCPT TO:&lt;@our-client.com&gt;
+</PRE>
+<P>
+This one is missing username; it has only the ``@'', and domain name..
+<P>
+
+<LI> ``Syntactically invalid addresses''
+This is a large category of possible errors.
+<P>
+<PRE>
+r  RCPT TO:&lt;radionova@.fi&gt;
+w  501-5.5.2           ^
+w  501 5.5.2 Path data: Should this be of &lt;dotnum&gt; format ? ( [nn.nn.nn.nn] )
+</PRE>
+<P> 
+The address syntax is wrong; the part: ``@.fi'' is not correct.
+<BR>
+(Dots appear only in between alphanumeric character sequences,
+ <B>never</B> leading or trailing such sequences!)
+<P>
+<PRE>
+r  RCPT TO: &lt;user.name.@client.domain&gt;
+w  501-5.5.2            ^
+w  501 5.5.2 Path data: Expected an rfc821_string
+</PRE>
+<P>
+The address syntax is wrong; there is extra dot in between
+<CODE>user.name</CODE>, and <CODE>@</CODE>.
+<BR>
+(Dots appear only in between alphanumeric character sequences,
+ <B>never</B> leading or trailing such sequences!)
+<P>
+
+<PRE>
+r  RCPT TO:&lt;Trainerakademie K&ouml;ln@T-online.de&gt;
+w  500-5.5.2                 ^
+w  500 5.5.2 Illegal input characters: 8-bit char on SMTP input
+</PRE>
+Here are actually TWO problems:
+<OL>
+<LI>8-bit characters on address -- always a NO-NO!</LI>
+<LI>Unquoted white-space in the address -- also always a NO-NO!</LI>
+</OL>
+</UL>
+
+<P>
+<HR>
+<P>
+<H2>2: Anti-relay policy violation</H2>
+<P>
+
+The anti-relay policy violation means complex set of rules
+which are aimed at stopping serious server abuse by people
+who think they are entitled to send junk (also known as SPAM)
+to third parties through our servers, even though they are
+not our customers.
+<P>
+
+<UL>
+<LI>
+<H3>Third-party trying to relay through our servers</H3>
+<PRE>
+#  connection from mail.spammer.com ipcnt 1 ident: IDENT-NOT-QUERIED
+w  220 smtp.inet.fi ZMailer Server 2.99.50-SONERA-V1.1 #5 ESMTP ready ...
+r  HELO 
+w  250 smtp.inet.fi expected "HELO mail.spammer.com"
+r  MAIL FROM: &lt;user.name@spammer.com&gt;
+w  250 2.1.0 Sender syntax Ok
+r  RCPT TO: &lt;user.name@elsewere.com&gt;
+w  553-5.7.1 This target address is not our MX service
+w  553-5.7.1 client, nor you are connecting from address
+w  553-5.7.1 that is allowed to openly use us to relay
+w  553-5.7.1 to any arbitary address thru us.
+w  553 5.7.1 We don't accept this recipient.
+</PRE>
+<P>
+Ok, this is fairly obvious case.
+That third party (<I>*.spammer.com</I>) has no business to
+use our servers to distribute their messages around.
+<P>
+<LI>
+<H3>Our clients using competitor's dialin series</H3>
+<PRE>
+#  connection from dial1234.competitor.net ipcnt 1 ident: IDENT-NOT-QUERIED
+w  220 smtp.inet.fi ZMailer Server 2.99.50-SONERA-V1.1 #5 ESMTP ready ...
+r  HELO 
+w  250 smtp.inet.fi expected "HELO dial1234.competitor.net"
+r  MAIL FROM: &lt;user.name@our-client.com&gt;
+w  250 2.1.0 Sender syntax Ok
+r  RCPT TO: &lt;user.name@our-client.com&gt;
+w  553-5.7.1 This target address is not our MX service
+w  553-5.7.1 client, nor you are connecting from address
+w  553-5.7.1 that is allowed to openly use us to relay
+w  553-5.7.1 to any arbitary address thru us.
+w  553 5.7.1 We don't accept this recipient.
+</PRE>
+<P>
+This looks <I>exactly</I> alike the third-party relaying
+blocked above.  In fact we have no technical way of knowing,
+which really is the case.
+<P>
+Had the client contacted our dialin series, or been using
+networks which are known to be our clients, the message would
+have been successfully relayed.
+<P>
+This is especially a problem for people who are using Internet
+Roaming (like GRIC system), where the users dials to the nearest
+ISP providing dialin services to the Internet, however the system
+does not (yet, mid-june, 1998) supply outgoing email server
+information per ISP.
+<P>
+</UL>
+
+<P>
+<HR>
+<P>
+<H2>3: SMTP protocol errors</H2>
+<UL>
+<LI> ``DATA-dot-algorithm error''
+<P>
+These are client software errors:
+<PRE>
+r  MAIL FROM:&lt;somebody@somewhere&gt;
+w  250 2.1.0 Sender syntax Ok
+r  RCPT TO:&lt;otherbody@elsewere&gt;
+w  250 2.1.5 Recipient address syntax Ok
+r  DATA
+w  354 Start mail input; end with &lt;CRLF&gt;.&lt;CRLF&gt;
+w  250 2.6.0 S.pRugw17588 message accepted
+#  S.pRugw17588: 664 bytes
+#  -- pipeline input exists 993 bytes
+r  
+w  550 5.5.2 Unknown command ''
+#  -- pipeline input exists 991 bytes
+r  ----------
+w  550 5.5.2 Unknown command '----------'
+#  -- pipeline input exists 979 bytes
+r  more text...
+</PRE>
+In this case the sending system is possibly not doing DATA-phase
+encoding correctly, and sometimes a lone dot (.) gets into
+begining of a line (is immediately preceeded with CRLF character pair),
+and is immediately followed by CRLF character pair.
+<P>
+</LI>
+</OL>
+
+
+</UL>
+<P>
+<HR>
+<P>
+<ADDRESS>
+<A HREF="MAILTO:matti.aarnio@sonera.fi">&lt;Matti.Aarnio@sonera.fi&gt;</A>
+</ADDRESS>
+</HTML>
