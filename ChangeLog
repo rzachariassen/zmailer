@@ -1,3 +1,8 @@
+2000-05-28  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* proto/Makefilein, proto/post-install.sh.in:
+	    Small fixes that disjoint installation test shows up..
+
 2000-05-26  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* transports/smtp/smtp.c, transports/smtp/smtp.h:

@@ -181,8 +181,16 @@ forms:	FRC $(MD5SUM)
 db:	FRC
 	-@( . $(PZCONFIG) ;					\
 	MAILVAR=$(prefix)$$MAILVAR ;				\
+	MAILSHARE=$(prefix)$$MAILSHARE;				\
+	if [ ! -d $$MAILVAR/db ]; then				\
+		$(MKDIR) $$MAILVAR/db ;				\
+	fi ;							\
+	if [ ! -d $$MAILVAR/db/proto ]; then			\
+		$(MKDIR) $$MAILVAR/db/proto ;			\
+	fi ;							\
 	echo "Don't forget to set up MAILVAR/db by hand -- if there is nothing, we seed it now" ; \
-	for x in aliases fqdnaliases   dbases.conf  localnames	\
+	$(INSTALL) -m 644 db/aliases $$MAILVAR/db/proto/aliases ; \
+	for x in fqdnaliases   dbases.conf  localnames	\
 		 routes  smtp-policy.* kill-headers ;		\
 	do							\
 		$(INSTALL) -m 644 $(srcdir)/db/$$x $$MAILVAR/db/proto/$$x ; \
@@ -203,11 +211,11 @@ cf:	FRC  $(MD5SUM)
 	if [ ! -d $$MAILSHARE/cf/fc ]; then	\
 		$(MKDIR) $$MAILSHARE/cf/fc ;	\
 	fi ;					\
-	cp -p $(srcdir)/cf/*.cf $$MAILSHARE/cf/proto ;		 \
-	cp -p $(srcdir)/cf/SMTP.cf $$MAILSHARE/proto/router.cf ; \
-	/bin/rm -f `find $$MAILSHARE/. -name "*.fc" -print`	 \
-		foo-file ;					 \
-	cp -p $(srcdir)/cf/SMTP.cf $$MAILSHARE/proto/router.cf ; \
+	cp -p $(srcdir)/cf/*.cf $$MAILSHARE/cf/proto ;		\
+	cp -p cf/*.cf $$MAILSHARE/cf/proto/ ;			\
+	cp -p cf/SMTP.cf $$MAILSHARE/proto/router.cf ;		\
+	/bin/rm -f `find $$MAILSHARE/. -name "*.fc" -print`	\
+		foo-file ;					\
 	)
 
 clean:	FRC

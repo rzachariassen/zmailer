@@ -35,6 +35,7 @@ sub compare_files {
 
     foreach $x (@files) {
 	next if ($x =~ m/.*\.md5\$/o);
+	next if ($x eq '.' || $x eq '..');
 
 	& compare_file($x);
     }
@@ -230,17 +231,18 @@ if ( ! -d "$MAILSHARE/bak" ) {
 }
 
 foreach $x ("$MAILSHARE", "$MAILSHARE/forms", "$MAILSHARE/cf", "$MAILVAR/db") {
-    & compare_files($xx);
+    & compare_files($x);
 }
 
 # ----------------------------
 #    Database prototypes ???
 
 foreach $x (qw("$MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf
-	 $MAILSHARE/proto/smtpserver.conf  $MAILSHARE/proto/sm.conf	  
-	 $MAILSHARE/proto/smtp-tls.conf					  
-	 $MAILVAR/db/proto/aliases         $MAILVAR/db/proto/localnames   
-	 $MAILVAR/db/proto/fqdnaliases     $MAILVAR/db/proto/routes	  
+	 $MAILSHARE/proto/smtpserver.conf  $MAILSHARE/proto/sm.conf
+	 $MAILSHARE/proto/smtp-tls.conf
+	 $MAILVAR/db/proto/dbases.conf
+	 $MAILVAR/db/proto/aliases         $MAILVAR/db/proto/localnames
+	 $MAILVAR/db/proto/fqdnaliases     $MAILVAR/db/proto/routes
 	 $MAILVAR/db/proto/smtp-policy.src $MAILVAR/db/proto/smtp-policy.mx
 	 $MAILVAR/db/proto/smtp-policy.relay")) {
 
