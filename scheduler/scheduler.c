@@ -177,6 +177,8 @@ static void   init_timeserver __((void));
 extern time_t time __((time_t *));
 #endif
 
+struct itimerval profiler_itimer_at_start;
+
 static int loginitsched __((int));
 static int loginitsched(sig)
 int sig;
@@ -527,6 +529,9 @@ main(argc, argv)
 
 	const char *t, *syslogflg;
 
+	getitimer(ITIMER_PROF, & profiler_itimer_at_start);
+
+
 #ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
 	old_malloc_hook = __malloc_hook;
 	__malloc_hook = my_malloc_hook;
@@ -850,8 +855,11 @@ main(argc, argv)
 	  }
 	  detach();		/* leave worldy matters behind */
 
+	  setitimer(ITIMER_PROF, &  profiler_itimer_at_start, NULL);
+
 	  close(0);
 	  open("/dev/null",O_RDONLY,0); /* This is good for fd0 reading.. */
+
 
 	  time(&now);
 	  sfprintf(sfstdout, "%s: scheduler daemon (%s)\n\tpid %d started at %s\n",
