@@ -9,16 +9,16 @@
 
 use Getopt::Std;
 
-$LUOPT='';
-$AOPT='';
-$SOPT='';
-$TOPT='';
-$err=0;
+$LUOPT = '';
+$AOPT  = '';
+$SOPT  = '';
+$TOPT  = '';
+$err   = 0;
 
 %opts = {};
 %ZENV = {};
 
-if (getopts('alsut:', \%opts) || !defined($ARGV[0])) {
+if (!getopts('alsut:', \%opts) || !defined($ARGV[0])) {
 
     printf(STDERR "
 newdb [-l|-u][-a][-s][-t dbtype] dbfilenamebase [inputfile]
@@ -37,7 +37,7 @@ newdb [-l|-u][-a][-s][-t dbtype] dbfilenamebase [inputfile]
 $AOPT  = '-a' if (defined $opts{'a'});
 $LUOPT = '-l' if (defined $opts{'l'});
 $LUOPT = '-u' if (defined $opts{'u'});
-$SOPT  = '-t' if (defined $opts{'t'});
+$SOPT  = '-s' if (defined $opts{'s'});
 $TOPT  = $opts{'t'} if (defined $opts{'t'});
 
 $BASENAME  = $ARGV[0];
@@ -68,17 +68,17 @@ if (system("$MAILBIN/makedb $LUOPT $AOPT $SOPT $DBTYPE $BASENAME.$$ < $INPUTNAME
 # Now install the files
 
 
-if ($DBTYPE = 'btree') {
+if ($DBTYPE eq 'btree') {
 	system("mv $BASENAME.$$.db $BASENAME.db");
-} elsif ($DBTYPE = 'bhash') {
+} elsif ($DBTYPE eq 'bhash') {
 	system("mv $BASENAME.$$.dbh $BASENAME.dbh");
-} elsif ($DBTYPE = 'ndbm') {
+} elsif ($DBTYPE eq 'ndbm') {
 	system("mv $BASENAME.$$.pag $BASENAME.pag"); # First PAG, then DIR
 	system("mv $BASENAME.$$.dir $BASENAME.dir");
-} elsif ($DBTYPE = 'dbm') {
+} elsif ($DBTYPE eq 'dbm') {
 	system("mv $BASENAME.$$.pag $BASENAME.pag"); # First PAG, then DIR
 	system("mv $BASENAME.$$.dir $BASENAME.dir");
-} elsif ($DBTYPE = 'gdbm') {
+} elsif ($DBTYPE eq 'gdbm') {
 	system("mv $BASENAME.$$.gdbm $BASENAME.gdbm");
 }
 

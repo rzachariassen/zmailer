@@ -1,5 +1,8 @@
 #!/bin/sh
 
+exit 99 ## FIXME FIXME!!!  REWRITE IN PERL!
+
+
 #
 #  Post-Installation script to complete the installation process.
 #

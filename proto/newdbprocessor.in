@@ -2,10 +2,7 @@
 
 #  NEWDB processor in all wraps..
 #
-
-
-exit 99
-
+# FIXME: rpriv subfield processing!
 
 # -----------------------------------------------------------------------
 #    newdbprocessor()  -- converts DB configuration to ZMSH scripts
@@ -51,155 +48,196 @@ exit 99
 #
 #
 
-newdbprocessor() {
-    infn=$1
+# --------------------
 
-    relnames=`cat $infn | awk '/^[0-9a-zA-Z]/{print $1;}' | sort | uniq`
+sub pick_zenv {
 
-    cd $MAILVAR/db
+    my ($ZCONFIG) = '@ZMAILERCFGFILE@';
 
-    echoo "( "
-
-    for rel in $relnames
-    do
-	echoo "${rel}{"
-	ofn="$rel.zmsh"
-	tfn="/tmp/newdb.$$"
-	rnum=1
-	> $tfn # Trunc the file
-	cat > $ofn <<EOF
-# ZMSH init script for relation: $rel
-
-# ---boilerplate head
-EOF
-	# --- construct each relation, and binding at lookup, generate the db
-	cat $infn | ( 
-	oo=''
-	while read rname rtype rpriv rndbopt rdbfile rdbflags
-	do
-	    if [ "$rel" = "$rname" ]; then
-		rn="${rel}_$rnum"
-		rnum=`expr $rnum + 1`
-
-		rdbext=''
-		rdbtype=''
-		rdbexttst=''
-		# Process options into what the newdb really likes to get..
-		case "$rndbopt" in
-		-)
-		    rndbopt=''
-		    ;;
-		-l)
-		    rndbopt='-l'
-		    ;;
-		-la)
-		    rndbopt='-l -a'
-		    ;;
-		esac
-		eval fn=$rdbfile
-		echoo "$oo$rn"
-		oo=','
-		case "$rtype" in
-		    *DBTYPE)
-			rdbexttst='$DBEXTtest'
-			rdbext='$DBEXT'
-			rdbtype='$DBTYPE'
-			newdb -s $rndbopt -t $DBTYPE $fn
-			echoo ":NEW"
-			;;
-		    ndbm)
-			rdbexttst='.pag'
-			rdbtype=$rtype
-			newdb -s $rndbopt -t ndbm $fn
-			echoo ":NEW"
-			;;
-		    dbm)
-			rdbexttst='.pag'
-			rdbext=''
-			rdbtype=$rtype
-			newdb -s $rndbopt -t dbm $fn
-			echoo ":NEW"
-			;;
-		    sdbm)
-			rdbexttst='.pag'
-			rdbext=''
-			rdbtype=$rtype
-			newdb -s $rndbopt -t sdbm $fn
-			echoo ":NEW"
-			;;
-		    gdbm)
-			rdbexttst='.gdbm'
-			rdbext='.gdbm'
-			rdbtype=$rtype
-			newdb -s $rndbopt -t gdbm $fn
-			echoo ":NEW"
-			;;
-		    btree)
-			rdbexttst='.db'
-			rdbext='.db'
-			rdbtype=$rtype
-			newdb -s $rndbopt -t btree $fn
-			echoo ":NEW"
-			;;
-		    bhash)
-			rdbexttst='.dbh'
-			rdbext='.dbh'
-			rdbtype=$rtype
-			newdb -s $rndbopt -t btree $fn
-			echoo ":NEW"
-			;;
-		    *)
-			rdbexttst='.dat'
-			rdbext='.dat'
-			
-			;;
-		    esac
-		if [ "$rpriv" = "-" ]; then
-		    # ---- No privilege things collected -----
-		    cat >> $tfn <<EOF
-	if a="\$($rn "\$key")"; then
-	    return "\$a"
-	fi
-EOF
-		else
-		    # ---- privilege things to collect ----
-		    # rpriv is a colon separated duplet/triplet:
-		    # ... FIXME! Implement in SH !?  Or change this to PERL ?
-		    cat >> $tfn <<EOF
-	if a="\$($rn "\$key")"; then
-	    priv="\$(filepriv -M 644 $rdbfile$rdbexttst \\
-			    \$(db owner $rn))" &&
-	    return "\$a"
-	fi
-EOF
-		fi
-		if [ "$rdbfile" = "-" ]; then
-		    cat >> $ofn <<EOF
-	relation $rdbflags -t $rtype $rn
-EOF
-		else
-		    cat >> $ofn <<EOF
-	relation $rdbflags -t $rtype -f $rdbfile$rdbext $rn
-EOF
-		fi
-	    fi
-	done )
-	# --- put out tails, and complete..
-	cat >> $ofn <<EOF
-# boilerplate tail---
-
-$rel(key) {
-    local a
-EOF
-	cat $tfn >> $ofn
-	cat >> $ofn <<EOF
-    return 1
-}
-EOF
-	rm -f $tfn
-	echoo "} "
-    done
-
-    echoo ") "
+    open(ZZ, "< ".$ZCONFIG) || die "No ZCONFIG file at '$ZCONFIG'";
+    while (<ZZ>) {
+	chomp;
+	local($n,$l) = split(/=/,$_,2);
+	$ZENV{$n} = $l  if ($n =~ m/^[A-Z0-9a-z]/);
+    }
+    close(ZZ);
 }
 
+# ---------------------
+
+$infn = $ARGV[0];
+
+%ZENV = ();
+%rels = ();
+@inps = ();
+
+select STDOUT; $| = 1;
+
+& pick_zenv();
+
+$ENV{'PATH'} = "$ZENV{'MAILBIN'}:$ENV{'PATH'}";
+$ENV{'MAILVAR'} = $ZENV{'MAILVAR'};
+$ENV{'MAILBIN'} = $ZENV{'MAILBIN'};
+$ENV{'MAILSHARE'} = $ZENV{'MAILSHARE'};
+
+$DBTYPE = $ZENV{'DBTYPE'};
+
+
+open(INFN, "< $infn") || die "Can't open file '$infn' for reading";
+
+while (<INFN>) {
+
+	next unless(m/^[0-9a-zA-Z]/);
+	chomp;
+	($rname,$rest) = split(' ',$_);
+	$rels{$rname} = 1;
+	push @inps, $_;
+
+}
+close(INFN);
+
+
+chdir ($ZENV{'MAILVAR'}.'/db') || die "Can't chdir($ZENV{'MAILVAR'}/db) ??";
+
+printf("( ");
+
+foreach $rel (keys %rels) {
+
+    printf "${rel}{";
+
+    $ofn="${rel}.zmsh";
+    @ofn=();
+    $rnum=1;
+    @tnf=(); # trunc the "file"
+
+    push(@ofn,  "# ZMSH init script for relation: ${rel}",
+		"",
+		"# ---boilerplate head" );
+
+    $oo='';
+    # --- construct each relation, and binding at lookup, generate the db
+    foreach $inp (@inps) {
+	($rname,$rtype,$rpriv,$rndbopt, $rdbfile, $rdbflags) = split(' ',$inp);
+	next unless ( $rel eq $rname );
+
+	$rn="${rel}_$rnum";
+	$rnum = $rnum +1;
+
+	$rdbext    = '';
+	$rdbtype   = '';
+	$rdbexttst = '';
+
+	# Process options into what the newdb really likes to get..
+	if ($rndbopt eq '-') {
+	    $rndbopt = '';
+	} elsif ($rndbopt eq '-l') {
+	    $rndbopt = '-l';
+	} elsif ($rndbopt eq '-la') {
+	    $rndbopt = '-l -a';
+	}
+
+	eval {$fn = "$rdbfile"; };
+	printf "$oo$rn";
+	$oo=',';
+	if ($rtype =~ m/.*DBTYPE/o) {
+		$rdbexttst = '$DBEXTtest';
+		$rdbext    = '$DBEXT';
+		$rdbtype   = '$DBTYPE';
+		system("newdb -s $rndbopt -t $DBTYPE $fn");
+		printf ":NEW";
+	} elsif ($rtype eq 'ndbm') {
+		$rdbexttst = '.pag';
+		$rdbtype   = $rtype;
+		system("newdb -s $rndbopt -t ndbm $fn");
+		printf ":NEW";
+	} elsif ($rtype eq 'dbm') {
+		$rdbexttst = '.pag';
+		$rdbext    = '';
+		$rdbtype   = $rtype;
+		system("newdb -s $rndbopt -t  dbm $fn");
+		printf ":NEW";
+	} elsif ($rtype eq 'sdbm') {
+		$rdbexttst = '.pag';
+		$rdbext    = '';
+		$rdbtype   = $rtype;
+		system("newdb -s $rndbopt -t sdbm $fn");
+		printf ":NEW";
+	} elsif ($rtype eq 'gdbm') {
+		$rdbexttst = '.gdbm';
+		$rdbext    = '.gdbm';
+		$rdbtype   = $rtype;
+		system("newdb -s $rndbopt -t gdbm $fn");
+		printf ":NEW";
+	} elsif ($rtype eq 'btree') {
+		$rdbexttst = '.db';
+		$rdbext    = '.db';
+		$rdbtype   = $rtype;
+		system("newdb -s $rndbopt -t btree $fn");
+		printf ":NEW";
+	} elsif ($rtype eq 'bhash') {
+		$rdbexttst = '.dbh';
+		$rdbext    = '.dbh';
+		$rdbtype   = $rtype;
+		system("newdb -s $rndbopt -t btree $fn");
+		printf ":NEW";
+	} else {
+		$rdbexttst = '.dat';
+		$rdbext    = '.dat';
+	}
+
+	if ($rpriv eq '-') {
+	    # ---- No privilege things collected -----
+	    push(@tfn,
+"	if a=\"\$($rn \"\$key\")\"; then
+	    return \"\$a\"
+	fi");
+
+	} else {
+	    # ---- privilege things to collect ----
+	    # rpriv is a colon separated duplet/triplet:
+	    # ... FIXME! Implement in SH !?  Or change this to PERL ?
+
+	    push(@tfn,
+"	if a=\"\$($rn \"\$key\")\"; then
+	    priv=\"\$(filepriv -M 644 $rdbfile$rdbexttst \\
+			    \$(db owner $rn))\" &&
+	    return \"\$a\"
+	fi");
+	}
+
+	if ($rdbfile eq '-') {
+	    push(@ofn, "	relation $rdbflags -t $rtype $rn");
+	} else {
+	    push(@ofn, "	relation $rdbflags -t $rtype -f $rdbfile$rdbext $rn");
+	}
+    } # --- foreach $inp (@inps) ....
+
+    # --- put out tails, and complete..
+    push(@ofn, "# boilerplate tail---
+
+${rel}(key) {
+    local a");
+
+    push(@ofn, @tfn);
+    @tfn = ();
+
+    push(@ofn, "    return 1
+}");
+
+    open(OFN, "> $ofn") || die "Can't open '$ofn' for writing!";
+
+    foreach $inp (@ofn) {
+	printf OFN "%s\n", $inp;
+    }
+
+    close (OFN);
+
+    printf "} ";
+
+} # -- foreach $rel (keys %rels) ...
+
+printf ") ";
+
+exit (0);
+
+1;
