@@ -210,27 +210,35 @@
 #|    Will accept for reception only those domains explicitely listed
 #|    in  'smtp-policy.mx'  and  'localnames'  files.  Will not do
 #|    verifications on validity/invalidity of source domains:  <foo@bar>
+#
 # .			relaycustomer - relaytarget -
 # [0.0.0.0]/0		relaycustomer - relaytarget -
+#
 #| -- 2nd alternate: No MX target usage, DNS existence verify
 #|    Like the 1st alternate, except will verify the sender (mail from:<..>)
 #|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
+#
 # .			relaycustomer - relaytarget - senderokwithdns +
 # [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns +
+#
 #| -- 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
 #|    reason have given open permissions for people to use their server
 #|    as MX backup for their clients, but don't know all domains valid
 #|    to go thru...  Substitutes accurate data to user's whimsical DNS
 #|    maintenance activities.  Vulnerable to inbound resource abuse.
+#
 .			relaycustomer - acceptifmx - senderokwithdns +
 [0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns +
+#
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
 #|    the source and destination domains are DNS resolvable, but does not
 #|    block relaying
-#.			senderokwithdns - acceptifdns -
-#[0.0.0.0]/0		senderokwithdns - acceptifdns -
+#
+# .			senderokwithdns - acceptifdns -
+# [0.0.0.0]/0		senderokwithdns - acceptifdns -
+#
 #|
 #|  Also you may add   'test-dns-rbl +'  attribute pair to [0.0.0.0]/0
 #|  to use Paul Vixie's  http://maps.vix.com/ MAPS RBL system.
