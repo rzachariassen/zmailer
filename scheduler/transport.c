@@ -334,8 +334,8 @@ ta_hungry(proc)
 
 	mytime(&proc->hungertime);
 
-	if (verbose)
-	  sfprintf(sfstdout,"ta_hungry(%p) OF=%d S=%s tofd=%d\n",
+	/* if (verbose) */
+	sfprintf(sfstdout,"%% ta_hungry(%p) OF=%d S=%s tofd=%d\n",
 		   proc, proc->overfed, proc_state_names[proc->state],
 		   proc->tofd);
 
