@@ -389,9 +389,9 @@ void smtp_auth(SS,buf,cp)
 	      type(SS, 0, NULL, "-> %s", bbuf);
 
 	    if (tls_loglevel > 3)
-	      type(NULL,0,NULL,"zpwmatch: user ´%s' password '%s'", uname, bbuf);
+	      type(NULL,0,NULL,"zpwmatch: user '%s' password '%s'", uname, bbuf);
 	    else if (tls_loglevel > 0)
-	      type(NULL,0,NULL,"zpwmatch: user ´%s' (password: *not so easy*!)", uname);
+	      type(NULL,0,NULL,"zpwmatch: user '%s' (password: *not so easy*!)", uname);
 	    
 	    if (smtpauth_via_pipe)
 	      zpw = pipezpwmatch(smtpauth_via_pipe, uname, bbuf, &uid);

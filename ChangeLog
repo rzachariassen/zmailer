@@ -1,3 +1,10 @@
+2004-11-18  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpauth.c:
+	    Darryl L. Miles  found a \0xB4 character in logfile
+	    debug output data.  I didn't notice it myself, as my
+	    display shows it nearly the same as "'".
+
 2004-11-04  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/newdbprocessor.in:
