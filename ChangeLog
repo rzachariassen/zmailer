@@ -1,5 +1,17 @@
 1999-06-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/policytest.c:
+	    - Ignore possible 'relaycustomer +' attribute
+	    - Autodetect locally active IP interfaces so
+	      that a recipient address of  <foo@[1.2.3.4]>  will
+	      be successfully matched without having that entry
+	      in the  smtp-policy.mx  file..
+	    - Do <bar%foo.fi%mea.tmt.tele.fi@[127.0.0.1]> processing
+	      fully, and detect that  "foo.fi"  is not acceptable
+	      target domain...
+	    - Does NOT handle !-paths.  (Except rejects addresses
+	      with them...)
+
 	* include/libsh.h, libsh/builtins.c, libsh/expand.c,
 	  libsh/interpret.c:
 	    - Noticed that 'case' statements use  squish()  function,

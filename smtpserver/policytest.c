@@ -667,11 +667,26 @@ int sourceaddr;
 {
     u_char ipaddr[16];
     int ipaf = pbuf[1];
+    int myaddress = 0;
+    Usockaddr saddr;
 
-    if (pbuf[1] == P_K_IPv4)
+    /* Prepare for automatic match of the address */
+
+    if (pbuf[1] == P_K_IPv4) {
       memcpy(ipaddr, pbuf+2, 4);
-    if (pbuf[1] == P_K_IPv6)
+      memcpy(& saddr.v4.sin_addr, pbuf+2, 4);
+      saddr.v4.sin_family = AF_INET;
+    }
+    if (pbuf[1] == P_K_IPv6) {
       memcpy(ipaddr, pbuf+2, 16);
+#if defined(AF_INET6) && defined(INET6)
+      memcpy(& saddr.v6.sin6_addr, pbuf+2, 4);
+      saddr.v6.sin6_family = AF_INET6;
+#endif
+    }
+
+    if (state->request & (1 << P_A_LocalDomain))
+      myaddress = matchmyaddress((struct sockaddr*)&saddr);
 
     /* state->request initialization !! */
 
@@ -696,8 +711,20 @@ int sourceaddr;
     if (checkaddr(rel, state, pbuf) != 0)
       return 0; /* Nothing found */
 
+    if (myaddress) {
+      if (state->values[P_A_LocalDomain]) free(state->values[P_A_LocalDomain]);
+      state->values[P_A_LocalDomain] = strdup("+");
+      if (state->values[P_A_RELAYTARGET]) free(state->values[P_A_RELAYTARGET]);
+      state->values[P_A_RELAYTARGET] = strdup("+");
+      if (state->values[P_A_TestDnsRBL]) free(state->values[P_A_TestDnsRBL]);
+      state->values[P_A_TestDnsRBL] = NULL;
+      if (state->values[P_A_RcptDnsRBL]) free(state->values[P_A_RcptDnsRBL]);
+      state->values[P_A_RcptDnsRBL] = NULL;
+    }
+
     if (!sourceaddr)
       goto just_rbl_checks;
+
 
 #if 0
 /* if (IP address of SMTP client has 'rejectnet +' attribute) then
@@ -1202,7 +1229,9 @@ const int len;
 
     state->request = ( 1 << P_A_REJECTSOURCE  |
 		       1 << P_A_FREEZESOURCE  |
+#if 0
 		       1 << P_A_RELAYCUSTOMER |
+#endif
 		       1 << P_A_SENDERNoRelay |
 		       1 << P_A_SENDERokWithDNS );
 
@@ -1252,7 +1281,7 @@ const int len;
 	printf("000- ... returns: %d\n", rc);
       return rc;
     }
-
+#if 0 /* Eh..., NOT! */
     if (valueeq(state->values[P_A_RELAYCUSTOMER], "+")) {
 	if (debug)
 	  printf("000- mailfrom: 'relaycustomer +'\n");
@@ -1260,6 +1289,7 @@ const int len;
 	PICK_PA_MSG(P_A_RELAYCUSTOMER);
 	return  0;
     }
+#endif
     return 0;
 }
 
@@ -1335,18 +1365,56 @@ const int len;
    #      [return -1;]
  */
 
-    if (valueeq(state->values[P_A_LocalDomain], "+")) {
-	/* Ok, local domain recognized, now see if it has
-	   '%'-hack at the local-part.. */
-	int llen = (at - str);
-	const char *phack = find_nonqchr(str, '%', llen);
-	if (phack != NULL && percent_accept < 0)
-	  return -1; /* Reject the percent kludge */
-	/* How about '!' ??? */
-	phack = find_nonqchr(str, '!', llen);
-	if (phack != NULL && percent_accept < 0)
-	  return -1; /* Reject the percent kludge */
-	return  0;
+    while (valueeq(state->values[P_A_LocalDomain], "+") &&
+	   (percent_accept < 0)) {
+
+      /* Ok, local domain recognized, now see if it has
+	 '%'-hack at the local-part.. */
+
+      const char *phack, *phack2;
+      int llen = (at - str);
+
+      /* How about '!' ??? */
+      phack = find_nonqchr(str, '!', llen);
+      if (phack != NULL && percent_accept < 0) {
+	return -2; /* Reject the percent kludge */
+      }
+
+      /* Find the LAST of unquoted '%' characters! */
+      phack = find_nonqchr(str, '%', llen);
+      phack2 = NULL;
+      while (phack && !phack2) {
+	int ll2 = at - phack -1;
+	phack2 = find_nonqchr(phack+1, '%', ll2);
+	if (phack2) {
+	  phack = phack2;
+	  phack2 = NULL;
+	} else
+	  break; /* Not found */
+      }
+      /* Now do test of the domain in there, is it ok
+	 for relaying to ? */
+      if (phack) {
+	/* state->request initialization !! */
+	state->request = ( 1 << P_A_RELAYTARGET     |
+			   1 << P_A_ACCEPTbutFREEZE |
+			   1 << P_A_ACCEPTifMX      |
+			   1 << P_A_ACCEPTifDNS     |
+			   1 << P_A_TestRcptDnsRBL  |
+			   1 << P_A_LocalDomain );
+
+	llen = (at - phack)-1;
+	if (check_domain(rel, state, phack+1, llen) != 0)
+	  return -1;
+	at = phack;
+	continue;
+      }
+
+      if (phack != NULL && percent_accept < 0) {
+	return -2; /* Reject the percent kludge */
+      }
+
+      return  0;
     }
     if (valueeq(state->values[P_A_RELAYTARGET], "+")) {
 	PICK_PA_MSG(P_A_RELAYTARGET);
