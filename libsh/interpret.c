@@ -2212,7 +2212,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 #if 0
 			  tmp = newstring(dupnstr(arg1,slen),slen); /* must allocate a fresh! */
 #else
-			  tmp = constcell(arg1, slen);
+			  tmp = conststring(arg1, slen);
 #endif
 			}
 			cdr(d) = caar(envarlist);
