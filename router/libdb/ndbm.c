@@ -44,7 +44,7 @@ open_ndbm(sip, roflag, comment)
 	if (sip->file == NULL)
 		return NULL;
 
-	prv = (ZNdbmPrivate*) sip->dbprivate;
+	prv = /*(ZNdbmPrivate*)*/ *sip->dbprivate;
 
 	if (prv && roflag == O_RDWR && roflag != prv->roflag)
 	  close_ndbm(sip,"open_ndbm");
@@ -52,7 +52,7 @@ open_ndbm(sip, roflag, comment)
 	if (roflag == O_RDWR)	flag = O_RDWR;
 	else			flag = O_RDONLY;
 
-	prv = (ZNdbmPrivate*) sip->dbprivate;
+	prv = /*(ZNdbmPrivate*)*/ *sip->dbprivate;
 
 	if (!prv || !prv->db) {
 
@@ -100,7 +100,7 @@ close_ndbm(sip,comment)
 {
 	ZNdbmPrivate *prv;
 
-	prv = (ZNdbmPrivate*) sip->dbprivate;
+	prv = /*(ZNdbmPrivate*)*/ *sip->dbprivate;
 
 	if (prv == NULL) return;
 

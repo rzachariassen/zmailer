@@ -72,13 +72,16 @@ open_gdbm(sip, roflag, comment)
 	if (sip->file == NULL)
 		return NULL;
 
-	prv = (ZGdbmPrivate*) sip->dbprivate;
+	prv = /*(ZGdbmPrivate*)*/ *sip->dbprivate;
 
 	if (prv && roflag == O_RDWR && roflag != prv->roflag)
 	  close_gdbm(sip,"open_gdbm");
 
 	if (roflag == O_RDWR)	flag = GDBM_WRITER;
 	else			flag = GDBM_READER;
+
+	prv = /*(ZGdbmPrivate*)*/ *sip->dbprivate;
+
 
 	if (!prv || !prv->db) {
 
@@ -88,7 +91,7 @@ open_gdbm(sip, roflag, comment)
 		  prv = malloc(sizeof(*prv));
 		  if (!prv) return NULL;
 		  memset(prv, 0, sizeof(*prv));
-		  sip->dbprivate = (void*)prv;
+		  *sip->dbprivate = (void*)prv;
 		}
 
 		for (i = 0; i < 3; ++i) {
@@ -128,7 +131,7 @@ close_gdbm(sip,comment)
 {
 	ZGdbmPrivate *prv;
 
-	prv = (ZGdbmPrivate*) sip->dbprivate;
+	prv = /*(ZGdbmPrivate*)*/ *sip->dbprivate;
 
 	if (!sip->file || !prv)
 		return;

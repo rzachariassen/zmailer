@@ -372,6 +372,20 @@ smtp/*
 	command="smtp -s" # -l ${LOGDIR}/smtp"
 
 #
+# In some cases we definitely want to run parallel smtp sessions
+# to given destination:
+#
+smtp-par/*
+	maxchannel=999
+	maxring=50
+	maxthr=10
+	overfeed=2
+	interval=1m
+	retries="1 1"
+	skew=1
+	command="smtp -c smtp-par -s" #- l ${LOGDIR}/smtp-par"
+
+#
 # Special channel which LOGS all outgoing protocol sessions, so that
 # admin can divert any domain to this channel in case logging is desired.
 #

@@ -1,5 +1,14 @@
 2004-03-31  Matti Aarnio  <mea@zmailer.org>
 
+	* router/libdb/gdbm.c, router/libdb/ndbm.c, router/db.c:
+	    Hunting strange memory corruptions, which turned out to
+	    be my own mistakes from about 20 hours ago...  Damn.
+
+	* proto/scheduler.conf.in:
+	    Add  "smtp-par/*"  clause, explicite parallellism
+	    to be used, if postmaster so desires (to some target
+	    where there is lots of traffic...)
+
 	* router/libdb/gdbm.c:
 	    Eugene Crosser reports odd gdbm database opening problems
 	    in, and I see the same in Solaris, but not in Linux...

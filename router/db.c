@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Modifications/maintance, Matti Aarnio, over years 1990-2003
+ *	Modifications/maintance, Matti Aarnio, over years 1990-2004
  *
  *	'longestmatch' driver kissg@sztaki.hu 970209
  */
@@ -739,6 +739,7 @@ run_db(argc, argv)
 		if (dbip->postproc == Indirect) {
 			si.file = dbip->subtype;
 			(*dbip->close)(&si,"db flush indirect");
+			si.file = dbip->file;
 		}
 		break;
 	case 'o':	/* owner */
@@ -840,6 +841,9 @@ dblookup(dbname, argc, argv30)
 	  khash = crc32n(key, keylen);
 	} else
 	  khash = crc32(key);
+
+	/* if (!dbip->file || !*dbip->file)
+	   fprintf(stderr,"relation: '%s' has void file\n",dbname); */
 
 	memset(&si, 0, sizeof(si));
 	si.file      =  dbip->file;
@@ -1181,6 +1185,7 @@ dblookup(dbname, argc, argv30)
 	return ll;
 }
 
+#if 0
 const char *
 dbfile(dbname)
 	const char *dbname;
@@ -1196,6 +1201,7 @@ dbfile(dbname)
 	}
 	return dbip->file;
 }
+#endif
 
 /*
  * Flush all cache entries from a database definition.
