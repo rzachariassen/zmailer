@@ -278,7 +278,7 @@ volatile const char *ident_tcpuser9(af,len,inlocal,inremote,local,remote,timeout
   int saveerrno;
   void (*old_sig)__((int));
   void (*old_alrm)__((int));
-  unsigned int oldival = 0;
+  volatile unsigned int oldival = 0;
   volatile const char *retval;
   
   SIGNAL_HANDLESAVE(SIGPIPE, SIG_IGN, old_sig);
