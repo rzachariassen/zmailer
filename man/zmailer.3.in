@@ -186,6 +186,11 @@ Example:
 Value ``1'' at this variable means that all router directories
 .B must
 have subdirectories with names ``A'' thru ``Z'', alike 
+.IP ROUTERNOTIFY
+defines an \fIAF_UNIX/DGRAM\fR type local notification socket into
+which a receiving client \fImay\fR inform the
+.IR router (8)
+that there is some new job available.
 .SH FILES
 .IP \fI/var/spool/postoffice/public/\fR
 $POSTOFFICE/public/
@@ -193,6 +198,8 @@ $POSTOFFICE/public/
 $POSTOFFICE/router/
 .IP \fI/var/spool/postoffice/{ROUTERDIRS}/\fR
 $POSTOFFICE/{ROUTERDIRS}/
+.IP \fI/var/spool/postoffice/.router.notify\fR
+$POSTOFFICE/.router.notify
 .SH SEE ALSO
 .IR zmailer (1),
 .IR sendmail (8).

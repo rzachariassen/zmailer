@@ -1000,6 +1000,18 @@ queueing priority mechanism is desired to be used.
 .br
 Example:
 .B ROUTERDIRS=router1:router2:router3:router4
+.IP ROUTERNOTIFY
+defines an \fIAF_UNIX/DGRAM\fR type local notification socket into
+which a receiving client \fImay\fR inform the
+.IR router (8)
+that there is some new job available.
+.IP SCHEDULERNOTIFY
+defines an \fIAF_UNIX/DGRAM\fR type local notification socket into
+which the
+.IR router (8)
+sends a message for the
+.IR scheduler (8)
+that there is a new job available.
 .IP SCHEDULERDIRHASH
 Carries a numeric value of ``1'' or ``2'' (if defined at all),
 which will then override possible ``-H'' option at the
@@ -1017,6 +1029,8 @@ files.
 l l.
 \fI/etc/zmailer.conf\fR	
 \fI/var/spool/postoffice/.pid.router\fR	(POSTOFFICE/.pid.router)
+\fI/var/spool/postoffice/.router.notify\fR	(POSTOFFICE/.router.notify)
+\fI/var/spool/postoffice/.scheduler.notify\fR	(POSTOFFICE/.scheduler.notify)
 \fI/var/spool/postoffice/router\fR	(POSTOFFICE/router)
 \fI/var/spool/postoffice/{ROUTERDIRS}\fR	(POSTOFFICE/{ROUTERDIRS})
 .TE

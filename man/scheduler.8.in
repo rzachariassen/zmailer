@@ -1211,9 +1211,24 @@ defines directory where all POSTOFFICE functions are under.
 Example:
 .B POSTOFFICE=/var/spool/postoffice
 
+.IP SCHEDULERNOTIFY
+defines an \fIAF_UNIX/DGRAM\fR type local notification socket into
+which the
+.IR router (8)
+sends a message for the
+.IR scheduler (8)
+that there is a new job available.
+
 .IP SCHEDULERDIRHASH
 Carries a numeric value of ``1'' or ``2'' (if defined at all),
-which will then override possible ``-H'' option.
+which will then override possible ``-H'' option at the
+.IR scheduler (8) .
+Existence of this ZENV-variable tells the
+.IR router (8)
+to send messages directly to the scheduler's hash subdirectories,
+thus eliminating a few directory operations which the scheduler would
+otherwise do, and at the same time limiting the size of the directory
+files.
 
 .IP SYSLOGFLG
 Existence of ``c'' or ``C'' character in value string enables
@@ -1284,6 +1299,7 @@ file.
 l l.
 \fI/etc/zmailer.conf\fR	
 \fI/var/spool/postoffice/.pid.scheduler\fR	(POSTOFFICE/.pid.scheduler)
+\fI/var/spool/postoffice/.scheduler.notify\fR	(POSTOFFICE/.scheduler.notify)
 \fI/var/spool/postoffice/scheduler\fR	(POSTOFFICE/scheduler)
 \fI/var/spool/postoffice/transport\fR	(POSTOFFICE/transport)
 \fI/var/spool/postoffice/queue\fR	(POSTOFFICE/queue)
