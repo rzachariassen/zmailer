@@ -1,0 +1,94 @@
+%
+% File picked from (and somewhat modified afterwards) LaTeX2HTML package
+% version  98.1 -- from the start of the  manual.tex
+%
+
+
+%% the tscreen environment automatically goes into typewriter type,
+%%  but is otherwise like the screen environment
+
+\newenvironment{tscreen}%
+ {\begin{quote}\bgroup\small\tt}%
+ {\egroup\end{quote}}
+\newcommand{\verbar}{{\ifmmode{|}\else{\tt|}\fi}}
+
+
+%
+% use the url.sty package, by  Donald Arseneau <asnd@triumf.ca>
+% to typeset email-addresses, URLs and directory paths in LaTeX ...
+%
+%begin{latexonly}
+ \usepackage[dvips,rightbars]{changebar}
+% \usepackage{l2hman}
+ \usepackage{url}
+ \usepackage{longtable}
+ \def\email{\begingroup \urlstyle{tt}\Url}
+ \def\Email#1{\email{<#1>}}
+% \urldef\onlinedoc\url{http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/}
+% \urldef\onlinedocRM\url{http://www-texdev.mpce.mq.edu.au/l2h/docs/manual/}
+% \urldef\EXcolors\url{http://www-texdev.mpce.mq.edu.au/l2h/crayola/}
+% \urldef\CVSrepos\url{http://cdc-server.cdc.informatik.tu-darmstadt.de/~latex2html/user/}
+% \urldef\CVSsite\url{http://cdc-server.cdc.informatik.tu-darmstadt.de/~latex2html/}
+% \urldef\CVSlatest\url{http://cdc-server.cdc.informatik.tu-darmstadt.de/~latex2html/l2h-latest.tar.gz}
+% \urldef\patches\url{http://www-dsed.llnl.gov/files/programs/unix/latex2html/}
+% \urldef\sourceA\url{http://www-dsed.llnl.gov/files/programs/unix/latex2html/sources/}
+%% \urldef\sourceB\url{ftp://ftp.mpn.com/pub/nikos/latex2html-98.1.tar.gz}
+% \def\sourceB{\CTANtug\CTANA}
+% \urldef\sourceC\url{http://ftp.rzg.mpg.de/pub/software/latex2html/sources/}
+% \urldef\CTANtug\url{http://ctan.tug.org/ctan/}
+% \urldef\CTANA\path{tex-archive/support/latex2html}
+% \urldef\tugURL\url{http://www.tug.org/}
+% \urldef\danteURL\url{http://www.dante.de/}
+% \urldef\ListURL\url{http://www.rosat.mpe-garching.mpg.de/mailing-lists/LaTeX2HTML/}
+
+%
+%  a little hack, needed since a footnote occurs in a figure-caption
+%
+%\def\adjustfootnote{\setcounter{footnote}{6}\footnotetext{http://csep1.phy.ornl.gov/csep.html}}
+
+%
+% These are needed for the Glossary and Index. 
+%
+\newenvironment{theglossary}{\begin{list}{}{\setlength{\labelwidth}{20pt}%
+ \setlength{\leftmargin}{\labelwidth}\setlength\itemindent{-\labelwidth}%
+ \setlength\itemsep{0pt}\setlength\parsep{0pt}\rmfamily}}{\end{list}}
+\def\dotfill{\leaders\hbox to.6em{\hss .\hss}\hskip 0pt plus  1fill}%
+\def\dotfil{\leaders\hbox to.6em{\hss .\hss}\hfil}%
+\def\pfill{\unskip~\dotfill\penalty500\strut\nobreak\dotfil~\ignorespaces}%
+
+\newcommand\Glossary[2]{\glossary{#1@#2}}
+\newcommand{\gsl}{\textsl}
+\newcommand{\indexentry}[2]{\item #1 #2}
+
+%\newcommand{\latextohtml}{\textup{\LaTeX 2\texttt{HTML}}}%
+
+\DeclareRobustCommand\FoilTeX{{\normalfont{\sffamily Foil}\kern-.03em{\rmfamily\TeX}}}
+%
+% These macros are built-in to LaTeX2HTML:
+%
+\newcommand{\Xy}{\leavevmode
+ \hbox{\kern-.1em X\kern-.3em\lower.4ex\hbox{Y\kern-.15em}}}
+\newcommand{\AmSTeX}{\protect\AmS-\protect\TeX{}}
+\newcommand{\AmS}{{\protect\AmSfont A\kern-.1667em\lower.5ex\hbox{M}\kern-.125emS}}
+\gdef\AmSfont{\usefont{OMS}{cmsy}{m}{n}}
+
+\newcommand{\sameas}[1]{\ (Same as setting: #1)}
+\setcounter{footnote}{0}
+%end{latexonly}
+
+\begin{imagesonly}
+% \usepackage{l2hman}
+\end{imagesonly}
+%
+\begin{htmlonly}
+ \def\makeglossary{}
+ \pagecolor[named]{White}
+\end{htmlonly}
+
+% use %sort -f -u manual.idx > manual.index for a primitive index
+%
+%  NOTE:  You must use LaTeX2e in order to process this document
+%       If you do not have LaTeX2e, a PostScript version
+%       (manual.ps) is included with this distribution.
+%
+%%%%%%%%%%%%%%%%%%% No changes beyond this point %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
