@@ -504,7 +504,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET) -> r=%d (%s), ai=%p\n",
 		      mx[i].host, n, gai_strerror(n), ai);
 	    if (n != 0)
-	      rmsgappend(SS, 1, "\r-> getaddrinfo('%s','0') (PF_INET) -> r=%d (%s); ai=%p",
+	      rmsgappend(SS, 1, "\r-> getaddrinfo(INET, '%s','0') -> r=%d (%s); ai=%p",
 			 mx[i].host, n, gai_strerror(n), ai);
 #if 0
 	    if (n) {
@@ -557,7 +557,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 		      mx[i].host, n2, gai_strerror(n2), ai2);
 
 	    if (n2 != 0)
-	      rmsgappend(SS, 1, "\r-> getaddrinfo('%s','0') (PF_INET) -> r=%d (%s); ai=%p",
+	      rmsgappend(SS, 1, "\r-> getaddrinfo(INET6,'%s') -> r=%d (%s); ai=%p",
 			 mx[i].host, n2, gai_strerror(n2), ai2);
 #if 0
 	    if (n) {
