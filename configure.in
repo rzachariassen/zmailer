@@ -1286,7 +1286,7 @@ AC_ARG_WITH(ipv6-replacement-libc, [  --with-ipv6-replacement-libc If system has
 	ac_with_ipv6_replacement_libc=1)
 
 if test "$ac_with_ipv6_replacement_libc" = 1 ; then
-  LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o"
+  LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o gai_strerror.o"
   AC_SUBST(LIBOBJS)
 else
 
@@ -1298,7 +1298,7 @@ else
   #  If not found in LIBC, try to use  -linet6,  if it fails too,
   #  THEN call the AC_REPLACE_FUNCS()
   if test "$ac_cv_func_gai_strerror" = no ; then
-    LIBS="$LIBS $LIBSOCKET -linet6"
+    LIBS="$LIBS -linet6"
     AC_TRY_LINK([],[gai_strerror();], ac_cv_func_gai_strerror=yes)
     LIBS="$t_oldLibs"
     if test "$ac_cv_func_gai_strerror" = yes; then

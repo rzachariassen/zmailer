@@ -6552,7 +6552,7 @@ fi
 
 
 if test "$ac_with_ipv6_replacement_libc" = 1 ; then
-  LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o"
+  LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o gai_strerror.o"
   
 else
 
@@ -6618,7 +6618,7 @@ done
   #  If not found in LIBC, try to use  -linet6,  if it fails too,
   #  THEN call the AC_REPLACE_FUNCS()
   if test "$ac_cv_func_gai_strerror" = no ; then
-    LIBS="$LIBS $LIBSOCKET -linet6"
+    LIBS="$LIBS -linet6"
     cat > conftest.$ac_ext <<EOF
 #line 6624 "configure"
 #include "confdefs.h"
