@@ -1,0 +1,70 @@
+
+
+A new Request for Comments is now available in online RFC libraries.
+
+
+        RFC 2234
+
+	Title:      Augmented BNF for Syntax Specifications: ABNF
+	Author(s):  D. Crocker, Ed., P. Overell
+        Status:     Proposed Standard
+	Date:       November 1997
+        Mailbox:    dcrocker@imc.org, paulo@turnpike.com
+        Pages:      14
+        Characters: 24265
+        Updates/Obsoletes:  None
+
+        URL:        ftp://ds.internic.net/rfc/rfc2234.txt
+
+Internet technical specifications often need to define a format syntax
+and are free to employ whatever notation their authors deem useful.
+Over the years, a modified version of Backus-Naur Form (BNF), called
+Augmented BNF (ABNF), has been popular among many Internet
+specifications.  It balances compactness and simplicity, with
+reasonable representational power.  In the early days of the Arpanet,
+each specification contained its own definition of ABNF.  This
+included the email specifications, RFC733 and then RFC822 which have
+come to be the common citations for defining ABNF.  The current
+document separates out that definition, to permit selective reference.
+
+This document is a product of the Detailed Revision/Update of Message
+Standards Working Group.
+
+This is now a Proposed Standard Protocol.
+
+This document specifies an Internet standards track protocol for
+the Internet community, and requests discussion and suggestions
+for improvements.  Please refer to the current edition of the
+"Internet Official Protocol Standards" (STD 1) for the
+standardization state and status of this protocol.  Distribution
+of this memo is unlimited.
+
+This announcement is sent to the IETF list and the RFC-DIST list.
+Requests to be added to or deleted from the IETF distribution list
+should be sent to IETF-REQUEST@IETF.ORG.  Requests to be
+added to or deleted from the RFC-DIST distribution list should
+be sent to RFC-DIST-REQUEST@ISI.EDU.
+
+Details on obtaining RFCs via FTP or EMAIL may be obtained by sending
+an EMAIL message to rfc-info@ISI.EDU with the message body 
+help: ways_to_get_rfcs.  For example:
+
+        To: rfc-info@ISI.EDU
+        Subject: getting rfcs
+
+        help: ways_to_get_rfcs
+
+Requests for special distribution should be addressed to either the
+author of the RFC in question, or to admin@DS.INTERNIC.NET.  Unless
+specifically noted otherwise on the RFC itself, all RFCs are for
+unlimited distribution.
+
+Submissions for Requests for Comments should be sent to
+RFC-EDITOR@ISI.EDU.  Please consult RFC 1543, Instructions to RFC
+Authors, for further information.
+
+
+Joyce K. Reynolds and Alegre Ramos
+USC/Information Sciences Institute
+
+
