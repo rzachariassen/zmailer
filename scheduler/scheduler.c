@@ -2528,7 +2528,8 @@ time_t *timep;
 	{
 	  struct timeval tv;
 	  gettimeofday(&tv,NULL);
-	  *timep = tv.tv_sec;
+	  if (timep)
+	    *timep = tv.tv_sec;
 	  return tv.tv_sec;
 	}
 #else
