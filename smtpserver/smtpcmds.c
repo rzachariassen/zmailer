@@ -12,7 +12,7 @@
  * The basic commands:
  *
  *  - HELO/EHLO
- *  - MAIL
+ *  - MAIL 
  *  - RCPT
  *  - ETRN/TURNME
  *  - VRFY
@@ -272,6 +272,8 @@ int insecure;
     const char *newcp = NULL;
     const char *srcrtestatus = "";
     int addrlen, drptret_len, drptenvid_len;
+    int strict = STYLE(SS->cfinfo, 'R');
+    int sloppy = STYLE(SS->cfinfo, 'S');
 
     addrlen = 0;
     drptret_len = 0;
@@ -320,14 +322,18 @@ int insecure;
 	return;
     }
     for (cp = cp + 5; *cp != '\0' && *cp != '<'; ++cp)
+	/* Skip white-space */
 	if (!isascii(*cp) || !isspace(*cp)) {
+	  if (!sloppy) {
 	    type(SS, 501, m552, "where is <...> in that?");
 	    return;
+	  }
+	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
 	type(SS, 501, m552, "where is <...> in that?");
 	return;
-    } else if (*cp != '<') {
+    } else if (*cp != '<' && !sloppy) {
 	type(SS, 501, m552, "strangeness between : and <");
 	return;
     }
@@ -336,27 +342,54 @@ int insecure;
 	return;
     }
     /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
-    s = rfc821_path(cp, STYLE(SS->cfinfo, 'R'));
-    if (s == cp) {
+    if (*cp == '<') {
+      s = rfc821_path(cp, strict);
+      if (s == cp) {
 	/* Failure.. */
 	type821err(SS, 501, m552, buf, "Path data: %.200s", rfc821_error);
 	return;
-    }
-    if (*s == '>') {
+      }
+      if (*s == '>') {
 	type(SS, 501, m552, "there are too many >'s in that!");
 	return;
-    }
-    /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
-    if (cp[1] == '@') {
-      /* Yup, Starting with an "@" ..  scan until ":", which must be
-	 in there as this is valid RFC-821 object. */
-      if (!allow_source_route) {
-	while (*cp != ':') ++cp; 
-	srcrtestatus = ", source route ignored";
       }
+      /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
+      if (cp[1] == '@') {
+	/* Yup, Starting with an "@" ..  scan until ":", which must be
+	   in there as this is valid RFC-821 object. */
+	if (!allow_source_route) {
+	  while (*cp != ':') ++cp; 
+	  srcrtestatus = ", source route ignored";
+	}
+      }
+      ++cp;			/* Skip the initial '<' */
+      addrlen = s - 1 - cp;	/* Length until final  '>' */
+    } else {
+      /* We can be here only with non-strict mode (i.e. Sloppy..) */
+
+      s = rfc821_path2(cp, strict);
+      if (s == cp) {
+	/* Failure.. */
+	type821err(SS, 501, m552, buf, "Path data: %.200s", rfc821_error);
+	return;
+      }
+
+      if (*s == '>') {
+	type(SS, 501, m552, "there are too many >'s in that!");
+	return;
+      }
+
+      /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
+      if (cp[0] == '@') {
+	/* Yup, Starting with an "@" ..  scan until ":", which must be
+	   in there as this is valid RFC-821 object. */
+	if (!allow_source_route) {
+	  while (*cp != ':') ++cp; 
+	  srcrtestatus = ", source route ignored";
+	}
+      }
+      addrlen = s - cp;	/* Length */
     }
-    ++cp;			/* Skip the initial '<' */
-    addrlen = s - 1 - cp;	/* Length until final  '>' */
 
     /* BODY=8BITMIME SIZE=nnnn ENVID=xxxxxx RET=xxxx */
     SS->sizeoptval = -1;
@@ -606,6 +639,8 @@ const char *buf, *cp;
     const char *newcp = NULL;
     const char *srcrtestatus = "";
     int addrlen = 0, notifylen = 0, orcptlen = 0;
+    int strict = STYLE(SS->cfinfo, 'R');
+    int sloppy = STYLE(SS->cfinfo, 'S');
 
     /* some smtp clients don't get the 503 right and try again, so
        tell the spammers exactly what's happening. */
@@ -640,13 +675,16 @@ const char *buf, *cp;
     }
     for (cp = cp + 3; *cp != '\0' && *cp != '<'; ++cp)
 	if (!isspace(*cp)) {
+	  if (!sloppy) {
 	    type(SS, 501, m552, "where is <...> in that?");
 	    return;
+	  }
+	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
 	type(SS, 501, m552, "where is <...> in that?");
 	return;
-    } else if (*cp != '<') {
+    } else if (*cp != '<' && !sloppy) {
 	type(SS, 501, m552, "strangeness between : and <");
 	return;
     } else if (*(cp+1) == '>') {
@@ -657,9 +695,10 @@ const char *buf, *cp;
 	type(SS, 501, m552, "there are too many <'s in that!");
 	return;
     }
-    /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
-    s = rfc821_path(cp, STYLE(SS->cfinfo, 'R'));
-    if (s == cp) {
+    if (*cp == '<') {
+      /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
+      s = rfc821_path(cp, strict);
+      if (s == cp) {
 	/* Failure ?  Perhaps we are RESTRICTIVE, and the address
 	   is '<postmaster>' without domain ? */
 	if (CISTREQN(cp, "<POSTMASTER>", 12)) {
@@ -669,22 +708,48 @@ const char *buf, *cp;
 	  type821err(SS, 501, m552, buf, "Path data: %s", rfc821_error);
 	  return;
 	}
-    }
-    if (*s == '>') {
+      }
+      if (*s == '>') {
 	type(SS, 501, m552, "there are too many >'s in that!");
 	return;
-    }
-    /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
-    if (cp[1] == '@') {
-      /* Yup, Starting with an "@" ..  scan until ":", which must be
-	 in there as this is valid RFC-821 object. */
-      if (!allow_source_route) {
-	while (*cp != ':') ++cp; 
-	srcrtestatus = ", source route ignored";
       }
+      /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
+      if (cp[1] == '@') {
+	/* Yup, Starting with an "@" ..  scan until ":", which must be
+	   in there as this is valid RFC-821 object. */
+	if (!allow_source_route) {
+	  while (*cp != ':') ++cp; 
+	  srcrtestatus = ", source route ignored";
+	}
+      }
+      ++cp;			/* Skip the initial '<' */
+      addrlen = s - 1 - cp;	/* Length until final  '>' */
+    } else {
+      /* We can be here only with non-strict mode (i.e. Sloppy..) */
+
+      s = rfc821_path2(cp, strict);
+      if (s == cp) {
+	/* Failure.. */
+	type821err(SS, 501, m552, buf, "Path data: %.200s", rfc821_error);
+	return;
+      }
+
+      if (*s == '>') {
+	type(SS, 501, m552, "there are too many >'s in that!");
+	return;
+      }
+
+      /* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
+      if (cp[0] == '@') {
+	/* Yup, Starting with an "@" ..  scan until ":", which must be
+	   in there as this is valid RFC-821 object. */
+	if (!allow_source_route) {
+	  while (*cp != ':') ++cp; 
+	  srcrtestatus = ", source route ignored";
+	}
+      }
+      addrlen = s - cp;	/* Length */
     }
-    ++cp;			/* Skip the initial '<' */
-    addrlen = s - 1 - cp;	/* Length until final  '>' */
 
 #if 0
     if (debug)
