@@ -183,6 +183,6 @@ manual_parts.tar: Makefile $(PARTS) $(FIGS)
 	gzip -c manual_parts.tar > manual_parts.tar.gz
 
 
-index:	html ps
+index:	html ps pdf
 	gzip -9 < zmanual.ps > zmanual/zmanual.ps.gz
 	cd zmanual ; ../makeindex.sh > index.html

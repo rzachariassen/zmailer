@@ -432,7 +432,10 @@ There exists also a way to do the installation into
 a <QUOTE>parallel universe</> by means of install-time
 <QUOTE>prefix</> environment variable:
 <SCREEN>
-  <PROMPT># </><USERINPUT>make install prefix=/var/tmp/build</>
+  <PROMPT># </><USERINPUT>. SiteConfig</>
+  <PROMPT># </><USERINPUT>DESTDIR=/var/tmp/build</>
+  <PROMPT># </><USERINPUT>make install DESTDIR=$DESTDIR</>
+  <PROMPT># </><USERINPUT>$DESTDIR$MAILBIN/post-install --destdir $DESTDIR</>
 </SCREEN>
 which of course expects to have <QUOTE><FILENAME>/var/tmp/build/</></>
 directory in existence, and possibly some others under it, but you will

@@ -11,6 +11,10 @@ cat <<EOF
 <PRE>
 <HR>
 EOF
+$LSCMD  *.pdf | awk "$AWKARG"
+cat <<EOF
+<HR>
+EOF
 $LSCMD  *.ps.gz | awk "$AWKARG"
 cat <<EOF
 <HR>
@@ -20,10 +24,10 @@ $LSCMD *.html | egrep -v "zmanual.html|index.html" | awk "$AWKARG"
 cat <<EOF
 <HR>
 EOF
-$LSCMD *.css  | awk "$AWKARG"
-cat <<EOF
-<HR>
-EOF
+#$LSCMD *.css  | awk "$AWKARG"
+#cat <<EOF
+#<HR>
+#EOF
 $LSCMD *.gif  | awk "$AWKARG"
 cat <<EOF
 <HR>
