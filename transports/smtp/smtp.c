@@ -3726,7 +3726,7 @@ smtp_sync(SS, r, nonblocking)
 
 	    if (SS->pipercpts[idx] != NULL) {
 
-	      if (SS->rcptstates & (FROMSTATE_400|FROMSTATE_500)) {
+	      if (SS->rcptstates & (FROMSTATE_400)) {
 		/* If "MAIL From:<..>" tells non-200 report, and
 		   causes "RCPT To:<..>" commands to yield "400/500",
 		   we IGNORE the "500" status. */
