@@ -1,5 +1,10 @@
 2000-11-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/smtp/smtp.c:
+	    Few hours of going over the  smtp_sync()'s smtp_nbread()
+	    call, and its surroundings.  Iverted its logic, and finally
+	    got simple, clean, understandable code.  ("I smell Wumpus!")
+
 	* scheduler/mailq.c:
 	    Wondered that "mailq -vv" didn't show diagnostic messages
 	    along other data.  Now it does.  Plus other small tuneups
