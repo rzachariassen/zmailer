@@ -1252,6 +1252,7 @@ static int call_rate_counter(state, incr, what, countp)
 {
     int rc;
     char pbuf[2000]; /* Not THAT much space needed.. */
+    char wbuf[20];
     const char *cmd = "zz";
     const char *whatp = "CONNECT";
     int count = 0;
@@ -1259,34 +1260,29 @@ static int call_rate_counter(state, incr, what, countp)
 
     if (!limitp) limitp = "-1";
 
-    if (debug)
+    /* if (debug) */
       type(NULL,0,NULL,"call_rate_counter(incr=%d what=%d)",incr,what);
 
-
-    /* How to see, that we will have interest in these rate entries
-       in the future ?  E.g. there is no point in spending time
-       for externally incoming email... */
-
-    state->did_query_rate = 1;
 
     switch (what) {
     case POLICY_MAILFROM:
 	cmd   = "MSGS";
 	whatp = "MAIL";
 	count = incr;
+
+	/* How to see, that we will have interest in these rate entries
+	   in the future ?  E.g. there is no point in spending time
+	   for externally incoming email... */
+
+	state->did_query_rate = 1;
 	break;
+
     case POLICY_EXCESS:
 	cmd   = "EXCESS";
 	whatp = "MAIL";
 	count = 1;
 	break;
-#if 0
-    case POLICY_RCPTTO:
-	cmd   = "MSGS";
-	whatp = "RCPT";
-	count = incr;
-	break;
-#endif
+
     case POLICY_DATAOK:
 	whatp = "DATA";
 	count = incr ? incr : 1;
@@ -1294,20 +1290,19 @@ static int call_rate_counter(state, incr, what, countp)
 	  return 0; /* INCRed counters at DATA/BDAT, but hadn't
 		       shown interest at MAIL for this... */
 	break;
+
     case POLICY_DATAABORT:
 	cmd   = whatp = "DABORT";
 	count = incr ? incr : 1;
-#if 0
-	if (incr  &&  !state->did_query_rate)
-	  return 0; /* INCRed counters at DATA/BDAT, but hadn't
-		       shown interest at MAIL for this... */
-#endif
 	break;
+
     case POLICY_AUTHFAIL:
 	cmd   = whatp = "AUTHF";
 	count = 1;
 	break;
+
     default:
+	sprintf(wbuf, "w=%d", what);
 	break;
     }
 
@@ -1808,7 +1803,7 @@ static int pt_mailfrom(state, str, len)
 	    state->message = strdup("You are sending too much mail per time interval.  Try again latter.");
 	  if (rc != 0) {
 	    /* register the excess! */
-	    call_rate_counter(state, 2, POLICY_EXCESS, &count);
+	    call_rate_counter(state, 1, POLICY_EXCESS, &count);
 	  }
 	  return rc;
 	}
@@ -2230,7 +2225,6 @@ int policytest(state, what, str, len, authuser)
 	break;
     case POLICY_DATA:
     case POLICY_DATAOK:
-	/* rc = call_rate_counter(state, 1, what, NULL); */
 	rc = call_rate_counter(state, len, POLICY_DATAOK, NULL);
 	type(NULL,0,NULL," call_rate_counter(): DATAOK: i=%d",len);
 	break;

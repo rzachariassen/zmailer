@@ -784,7 +784,8 @@ subdaemon_handler_trk_input (statep, peerdata)
 	  } else if (i == -5) {	/* "DUMP" report */
 	    dump_trk( state, peerdata );
 	  } else if (i == -6) {	/* "RCPT" data */
-	    i = count_ipv4( state, ipv4addr, lastlimitval, 1 );
+	    if (countval > 0)
+	      count_ipv4( state, ipv4addr, lastlimitval, 1 );
 	    i = count_rcpts_ipv4( state, ipv4addr, countval );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  } else if (i == -7) {
@@ -792,6 +793,8 @@ subdaemon_handler_trk_input (statep, peerdata)
 	    if (i > auth_failrate) i = -999;
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  } else if (i == -8) {
+	    if (countval > 0)
+	      count_ipv4( state, ipv4addr, lastlimitval, 1 );
 	    i = count_daborts_ipv4( state, ipv4addr, countval );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  }
