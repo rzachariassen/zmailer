@@ -243,6 +243,9 @@ outbuf_fillup:
 	    /* We have here a VERY SHORT protocol timeout! */
 	    timeout = 30;
 
+	    if (statusreport)
+	      report(SS,"#idle NOOP");
+
 	    smtp_flush(SS); /* Flush in every case */
 	    i = smtpwrite(SS, 0, "NOOP", 0, NULL);
 	    if (i != EX_OK && SS->smtpfp != NULL) {

@@ -3,6 +3,7 @@
 	* transports/smtp/smtp.c:
 	    The SMTP "NOOP" shall timeout in 30 seconds..
 	    Otherwise it lingers around with DOT-timeout (20 minutes)..
+	    Also report this process state in proctitle data.
 
 	* transports/smtp/smtp.c:
 	    In EZMLM mode the SMTP TA didn't unlock all recipients,
