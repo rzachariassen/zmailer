@@ -12,6 +12,7 @@
 #include "prototypes.h"
 #include <ctype.h>
 #include <unistd.h>
+#include "zsyslog.h"
 /* #include <stdlib.h> */
 
 /*
@@ -1463,6 +1464,8 @@ idle_cleanup()
 
 		/* The thread-group can be deleted before reclaim() runs! */
 		thg->transporters -= 1;
+
+		zsyslog((LOG_EMERG,"ZMailer scheduler kludge shutdown of TA channel (info for debug only)."));
 	      }
 	    }
 	    if (thg->thread == NULL && thg->idleproc == NULL) {
