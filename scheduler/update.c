@@ -268,15 +268,6 @@ void unvertex(vp, justfree, ok)
 		   "unvertex(vtx=%p (thr=%p proc=%p, ng=%d) ,%d,%d)\n",
 		   vp, vp->thread, vp->proc, vp->ngroup, justfree, ok);
 
-	if (vp->thread != NULL &&
-	    vp->thread->vertices == vp && vp->thread->proc &&
-	    vp->thread->proc->pvertex == vp) {
-	    /* Whoops, we are the active first on thread.. */
-	  if (vp->proc == NULL)
-	    vp->proc = vp->thread->proc;
-	  vp->proc->pvertex = vp;
-	}
-
 	if (vp->proc && vp->proc->pvertex == vp) {
 	  /* Its me, move it elsewere! */
 	  pick_next_vertex(vp->proc);

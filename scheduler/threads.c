@@ -318,7 +318,7 @@ pick_next_thread(proc)
 	    proc->pthread = thr;
 	    proc->pvertex = thr->vertices;
 
-	    return 1;
+	    return (proc->pvertex != NULL);
 	  }
 	}
 	/* No result :-( */
@@ -355,66 +355,28 @@ delete_thread(thr, ok)
 
 	thg->threads -= 1;
 
+	if (thr->proc) {
+	  /* If this thread has a process, we detach it! */
+	  thr->proc->pthread = NULL;
+	  thr->proc->pvertex = NULL;
+	}
+
 	/* If threads count goes zero.. */
+
 
 	if (thg->threads == 0) {
 	  thg->thread = NULL;	/* Oops.. we were last!		*/
-	  if (thr->proc &&
-	      thr->proc->pthread == thr) { /* There is a process, detach it! */
 
-	    thr->proc->pthread = NULL;
-	    thr->proc->pvertex = NULL;
-
-	  } else if (thr->proc &&
-		     thr->proc->pid <= 0) {
-
-	    thr->proc->pthread = NULL;
-	    thr->proc->pvertex = NULL;
-
-	    if (verbose)
-	      sfprintf(sfstderr,"delete_thread(1) thr->proc=%p pid=%d\n",
-		       thr->proc, (int)thr->proc->pid);
-	  } else {
-	    if (verbose)
-	      sfprintf(sfstderr,"delete_thread(1b) thr->proc=%p pid=%d\n",
-		       thr->proc, thr->proc ? (int)thr->proc->pid : 0);
-	  }
-
+	  if (verbose)
+	    sfprintf(sfstderr,"delete_thread(1b) thr->proc=%p pid=%d\n",
+		     thr->proc, thr->proc ? (int)thr->proc->pid : 0);
 	} else {
 
 	  /* Some threads left						*/
-	  /* If there is a process, pick another job..  It may be that
-	     the process' current thread is no longer in the ring!	*/
 
-	  if (thr->proc &&
-	      thr->proc->pthread == thr) {
-
-	    /* detach it - ta_hungry() will handle idling.. */
-
-	    thr->proc->pvertex = NULL;
-	    thr->proc->pthread = NULL;
-
-	    if (verbose)
-	      sfprintf(sfstderr, "delete_thread(2) thr->proc=%p pid=%d\n",
-		       thr->proc, (int)thr->proc->pid);
-
-	    if (verbose)
-	      sfprintf(sfstderr,"   proc->thr=%p\n", thr->proc->pthread);
-
-	  } else if (thr->proc != NULL &&
-		     thr->proc->pid <= 0) {
-
-	    thr->proc->pthread = NULL;
-	    thr->proc->pvertex = NULL;
-
-	    if (verbose)
-	      sfprintf(sfstderr, "delete_thread(2b) thr->proc=%p pid=%d\n",
-		       thr->proc, (int)thr->proc->pid);
-	  } else {
-	    if (verbose)
-	      sfprintf(sfstderr, "delete_thread(3) thr->proc=%p pid=%d\n",
-		       thr->proc, thr->proc ? (int)thr->proc->pid : 0);
-	  }
+	  if (verbose)
+	    sfprintf(sfstderr, "delete_thread(3) thr->proc=%p pid=%d\n",
+		     thr->proc, thr->proc ? (int)thr->proc->pid : 0);
 	}
 
 	free(thr);
@@ -957,13 +919,15 @@ int
 pick_next_vertex(proc)
      struct procinfo *proc;
 {
-	struct thread      *thr;
-
-	thr  = proc->pthread;
-
+	struct thread * thr = proc->pthread;
+#if 0
+	if (proc->pvertex)
+	  proc->pvertex->proc = NULL; /* Done with the previous one */
+#endif
 	if (verbose)
 	  sfprintf(sfstdout,"pick_next_vertex(proc->tofd=%d, thr=%p, vtx=%p, jobs=%d OF=%d)\n",
 		 proc->tofd, thr, proc->pvertex, thr ? thr->jobs : 0, proc->overfed);
+
 
 	if (proc->pid < 0 || proc->tofd < 0) {	/* "Jim, He is dead!"	*/
 	  if (proc->pthread != NULL)
@@ -978,6 +942,9 @@ pick_next_vertex(proc)
 
 	if (proc->pvertex)
 	  proc->pvertex = proc->pvertex->nextitem;
+
+	if (proc->pvertex)
+	  proc->pvertex->proc = NULL; /* Next in line for feeding */
 
 	return (proc->pvertex != NULL);
 }
