@@ -16,7 +16,7 @@ $main::Q = undef;
 $main::chan = '';
 $main::host = '';
 
-& ZMailer::MAILQ::getopts('vQU:',\%main::opts);
+& ZMailer::MAILQ::getopts('vQU:K:',\%main::opts);
 
 $main::opts{'Q'} = 'undef' if (!defined $main::opts{'Q'});
 
@@ -33,7 +33,7 @@ $main::s = & ZMailer::MAILQ::new($main::host,'174');
 # $main::s->setdebug(1);
 
 if (defined $main::opts{'U'}) {
-    local($user,$passwd) = split('/:,', $main::opts{'U'});
+    local($user,$passwd) = split(/[\/:,]/, $main::opts{'U'});
     $main::s->login($user,$passwd);
 } else {
     $main::s->login("nobody","nobody");
@@ -43,7 +43,11 @@ if ($main::s->{resp} =~ m/^-/) {
     printf("login responce: '%s'\n",$main::s->{resp});
 }
 
-if ($main::opts{'Q'} == 3) {
+if ($main::opts{'K'} ne '') {
+    local($main::rc,@main::rc) = $main::s->sendcmd("KILL MSG " . $main::opts{'K'});
+    printf "%s\n",join("\n",@main::rc);
+    exit 0;
+} elsif ($main::opts{'Q'} == 3) {
     local($main::rc,@main::rc) = $main::s->showcmd("SHOW SNMP");
     printf "SHOW SNMP:\n%s\n",join("\n",@main::rc);
     exit 0;

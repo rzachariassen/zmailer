@@ -1,3 +1,12 @@
+2003-05-30  Matti Aarnio  <mea@zmailer.org>
+
+	* scheduler/mq2.c, scheduler/mailq.pl, scheduler/update.c:
+	   Andrey Blochintsev <bag@iptelecom.net.ua>  sent patch
+	   to implement "KILL MSG" type functionality via the MAILQ-v2
+	   socket command.  Client to implement it is in (surprise),
+	   the perl-testbench of MQ2...  Yours Truly did small style
+	   edits (like C99/C++ style "//" comment change to "/*" )
+
 2003-05-29  Matti Aarnio  <mea@zmailer.org>
 
 	* include/shmmib.h, scheduler/scheduler.c, scheduler/mailq.inc:

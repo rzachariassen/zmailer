@@ -407,28 +407,38 @@ deletemsg(msgid, curcfp)
 	     spl = sp_fnext(spl)) {
 	  cfp = (struct ctlfile *)spl->data;
 	  /* XX: message-id comparison is a Hard Problem. Approximate. */
-	  if (strcmp(cfp->spoolid, msgid) == 0)
+	  if (strcmp(cfp->spoolid, msgid) == 0
+	  	|| (strcmp(cfp->mid, msgid) == 0 && curcfp == NULL))
 	    break;
 	}
-	if (spl == NULL)
+	if (spl == NULL) {
+		sfprintf(sfstdout,"%s deletemsg: %s ID not found\n", timestring(), msgid);;
 		return;
-	/* security checks */
-	/* XX: address comparison is also a Hard Problem... sigh */
-	if ((cfp->erroraddr == NULL && curcfp->erroraddr != NULL)
-	    || (cfp->erroraddr != NULL && curcfp->erroraddr == NULL)
-	    || (cfp->erroraddr != curcfp->erroraddr
-		&& strcmp(cfp->erroraddr, curcfp->erroraddr) != 0))
-		return;
-	if (ctlowner(cfp) != ctlowner(curcfp))
-		return;
-	/*
-	 * It might be useful to return a report about what happened, but
-	 * for mailing lists this is dangerous.  Let's not, until we can
-	 * test for some 'return-receipt-requested' flag.
-	 */
+	}
 
-	if (do_syslog)
-	  zsyslog((LOG_INFO, "%s: obsoleted by %s", cfp->mid, curcfp->mid));
+	if (curcfp != NULL) { /* caller by MAILQ-V2 "kill" with curcfp==NULL */
+	  /* security checks */
+	  /* XX: address comparison is also a Hard Problem... sigh */
+	  if ((cfp->erroraddr == NULL && curcfp->erroraddr != NULL)
+	      || (cfp->erroraddr != NULL && curcfp->erroraddr == NULL)
+	      || (cfp->erroraddr != curcfp->erroraddr
+		  && strcmp(cfp->erroraddr, curcfp->erroraddr) != 0))
+		  return;
+	  if (ctlowner(cfp) != ctlowner(curcfp))
+		return;
+	  /*
+	   * It might be useful to return a report about what happened, but
+	   * for mailing lists this is dangerous.  Let's not, until we can
+	   * test for some 'return-receipt-requested' flag.
+	   */
+
+	  if (do_syslog)
+	    zsyslog((LOG_INFO, "%s: obsoleted by %s", cfp->mid, curcfp->mid));
+	} else {
+	  sfprintf(sfstdout,"%s deletemsg: %s %s killed\n", timestring(), cfp->spoolid, cfp->mid);
+	  if (do_syslog)
+	     zsyslog((LOG_INFO, "%s: %s killed", cfp->spoolid, cfp->mid));
+	}
 
 	/*
 	 * unvertex() will do unctlfile() on the last vertex, hence

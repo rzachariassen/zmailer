@@ -11,15 +11,25 @@ VERIFY: router/daemonsub.c around line 1470 the routerchilds[]
 	How will  NOTIFY  messages affect the job pickup ?
 
 Wanted done for 3.0:
+
   - router  aliases.cf  to have similar 'protocols' feature as
     domain routing has currently
+
   - WEB-based configuration/administration interface
+	Experimental stuff for queue watching is in  utils/webtools/
+	(2003-May)
+
   - scheduler to kill message/thread online without a need to
     run  "manual-expirer"
+
   - scheduler to be able to "reroute" given channel/host, e.g.
     push the message recipient(s) back to router
+	manual-version exists (2003-May)
+
   - LICENSE state cleanup.
+
   - A work-over of the documentation
+
 
 
 sfio:
@@ -39,13 +49,8 @@ check: Is router/db.c::db() now consistent at  argv1  construction ??
 check: scheduler.conf: command=  $channel  expansion ??
 	2.99.52-pre3  has apparently some problems!
 
-configure.in:
-	--includedir=.... not working ?? (Xos… V·zquez <xose@smi-ps.com>)
-
 proto/newdbprocessor.in:
 	Support  '-i -t ordered,$MAILVAR/db/realdata.dat -f ... '
-
-mailq: man-page update to match all options
 
 - Everywhere:  Spell-check  (propably -> probably, among others)
 
@@ -72,7 +77,7 @@ FEATURE:
 	-- Counter stuff exists on  2003-May-26
 
 INSTALL:
-	Badly out of date!
+	Needs further updates (2003-May)
 
 router:
 
@@ -94,13 +99,6 @@ router:
 	List expansions should not relay DSN data thru as is, but rather
 	handle NOTIFY=SUCCESS locally ("expanded"), and then continue
 	with whatever fancy the thing may want..
-
-	BUG?  router/functions.c: $(homedirectory ..) function does
-		getpwnam() from somewhere WITHOUT checking at the
-		possible errno telling that there is e.g. temporary
-		access error with backend database...
-	   Fixed(?) on 21-Sep-2000 with HOLD/DEFER code.
-	   Not, pulled that code back.  It is DIFFICULT problem..
 
 	Error address pickup  ( router/rfc822.c: erraddress() )
 	picks *bad* choices sometimes; e.g. it might consider
@@ -196,6 +194,7 @@ transports/smtp:
 	  RFC-821/RFC-822 line length limits (or whatever limits have
 	  been set).
 	- Track the memory leakage on long-lifetime TA agents
+	  (at least  mailbox  appears to leak something! 2002-Dec)
 
 	(router + TA library + TA programs):
 	Router to scan message MIME structure, and to store that

@@ -671,18 +671,25 @@ static int mq2cmd_kill(mq,s)
 {
   char *t = s, *u;
 
+  if (!(mq->auth & MQ2MODE_KILL)) {
+    mq2_puts(mq, "-No KILL allowed for you.\n");
+    return 0;
+  }
   while (*t && (*t != ' ') && (*t != '\t')) ++t;
   if (*t) *t++ = '\000';
   while (*t == ' ' || *t == '\t') ++t;
-  u = t;
-  while (*u && (*u != ' ') && (*u != '\t')) ++u;
-  if (*u) *u++ = '\000';
-  while (*u == ' ' || *u == '\t') ++u;
 
   /* 's' points to the first arg, 't' points to string after
      separating white-space has been skipped. */
+  if (strcmp(s, "MSG") == 0) {
+	sfprintf(sfstdout,"%s MQ2 KILL MSG: %s %s\n", timestring(), t);
+	deletemsg(t, NULL);
+	mq2_puts(mq, "+OK; KILLed something.\n\n");
+  } else {
+        mq2_puts(mq, "-Unknown request.\n\n");
+  }
 
-  return -1;
+  return 0;
 }
 
 /* INTERNAL */
