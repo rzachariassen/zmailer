@@ -121,7 +121,7 @@ canonical (host) {
 #	Do you want to put your system to hold for the DNS lookups at
 #	the router, or will you let the SMTP transport agents to handle
 #	such things in much more parallel fashion as they can under the
-#	scheduler.
+#	scheduler.  If you want to do the holding, use $(canon ..) version.
 #
 
 #	tmp="$(deliver "$host")" || tmp="$(canon "$host")" || tmp="$host"
