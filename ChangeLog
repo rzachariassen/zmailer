@@ -1,7 +1,7 @@
 1998-02-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:
-	    Version id 2.99.49p9-s9
+	    Version id 2.99.49p10-s9
 
 	* scheduler/threads.c, contrib/mrtg/mrtg-zmq:
 	    Noticed that "mailq -sQQ" output does not produce
