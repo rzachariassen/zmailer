@@ -32,8 +32,11 @@ provide aliases
 
 if [ -f $MAILVAR/db/aliases ]; then
 	# Need to be updated at boot ?
-	if [ ! -f $MAILVAR/db/aliases$DBEXTtest -o \
-	     $MAILVAR/db/aliases -nt $MAILVAR/db/aliases$DBEXTtest ]; then
+	if [ ! -f $MAILVAR/db/aliases$DBEXTtest ]; then
+		# Yes, so update!
+		$MAILBIN/zmailer newaliases
+	fi
+	if [ $MAILVAR/db/aliases -nt $MAILVAR/db/aliases$DBEXTtest ]; then
 		# Yes, so update!
 		$MAILBIN/zmailer newaliases
 	fi
