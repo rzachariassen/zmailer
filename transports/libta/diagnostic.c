@@ -477,6 +477,8 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 
 	  syslogmsg = strrchr(message, '\r');
 	  if (!syslogmsg) syslogmsg = message;
+	  else syslogmsg++; /* Skip the last \r ... */
+
 	  tasyslog(rp, xdelay, wtthost, wttip, statmsg, syslogmsg);
 	}
 	fflush(stdout);
@@ -484,6 +486,7 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	if (verboselog) {
 	  syslogmsg = strrchr(message, '\r');
 	  if (!syslogmsg) syslogmsg = message;
+	  else syslogmsg++; /* Skip the last \r ... */
 
 	  fprintf(verboselog,
 		  "DIAG: C='%s' H='%s' U='%s' P='%s' -- stat='%s' ",

@@ -282,132 +282,142 @@ makeLetter(e, octothorp)
 #endif	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
 
 	inheader = 0;
+
+	/* Line of length 1 is LIKELY just "\n" */
+
 	while ((n = zgetline(e->e_fp)) > 0) {
 
-	  /* We do kludgy processing things in case the input
-	     does have a CRLF at the end of the line.. */
+		/* We do kludgy processing things in case the input
+		   does have a CRLF at the end of the line.. */
 
-	  if (n > 1 &&
-	      zlinebuf[n-2] == '\r' &&
-	      zlinebuf[n-1] == '\n') {
-	    --n;
-	    zlinebuf[n-1] = '\n';
-	    if (n <= 1) break; /* Void line */
-	  }
+		if (n == 1 && zlinebuf[0] == '\n') {
+			/* Separator in between RFC 822  headers, and body */
+			break;
+		}
 
-	  /* Ok, now we can proceed with the original agenda.. */
-	  i = hdr_status(zlinebuf, zlinebuf, n, 0);
-	  if (i > 0) {		/* a real message header */
-	    /* record start of headers for posterity */
-	    if (!inheader)
-	      e->e_hdrOffset = zlineoffset(e->e_fp)-n;
-	    /* cons up a new one at top of header list */
-	    h = makeHeader(spt_headers, zlinebuf, i);
-	    h->h_next = e->e_headers;
-	    e->e_headers = h;
-	    h->h_lines = makeToken(zlinebuf+i+1, n-i-2);
-	    h->h_lines->t_type = Line;
-	    ++inheader;
-	  } else if (i == 0) {	/* a continuation line */
-	    if (inheader && zlinebuf[0] == ':') {
-	      optsave(FYI_ILLHEADER, e);
-	      /* cons up a new one at top of header list */
-	      h = makeHeader(spt_headers,"X-Null-Field",12);
-	      h->h_next = e->e_headers;
-	      e->e_headers = h;
-	      h->h_lines = makeToken(zlinebuf+i+1, n-i-2);
-	      h->h_lines->t_type = Line;
-	    } else if (inheader && n > 1) {
-	      /* append to the header we just saw */
-	      token822 *t;
-	      if (e->e_headers == NULL) {
-		/* Wow, continuation without previous header! */
-		/* It must be body.. */
-		repos_zgetline(e->e_fp,
-			       zlineoffset(e->e_fp) - n);
-		break;
-	      }
-	      t = e->e_headers->h_lines;
-	      while (t->t_next)
-		t = t->t_next;
-	      t->t_next = makeToken(zlinebuf, n-1);
-	      t->t_next->t_type = Line;
-	    } else {
-	      return PERR_BADCONTINUATION;
-	    }
-	  } else if (!inheader		/* envelope information */
-		     && (*(cp=zlinebuf-i) == ' ' || *cp == '\t'
-			 || *cp == '\n')) {
-	    HeaderSemantics osem;
-	    
-	    /* cons up a new one at top of envelope header list */
+		if (n > 1 &&
+		    zlinebuf[n-2] == '\r' &&
+		    zlinebuf[n-1] == '\n') {
+			--n;
+			zlinebuf[n-1] = '\n';
+			if (n <= 1) break; /* Void line */
+		}
+		/* Ok, now we can proceed with the original agenda.. */
+		i = hdr_status(zlinebuf, zlinebuf, n, 0);
+		if (i > 0) {		/* a real message header */
+			/* record start of headers for posterity */
+			if (!inheader)
+			  e->e_hdrOffset = zlineoffset(e->e_fp)-n;
 
-	    h = makeHeader(spt_eheaders, zlinebuf, -i);
-	    h->h_next = e->e_eHeaders;
-	    e->e_eHeaders = h;
-	    h->h_lines = makeToken(zlinebuf-i+1, n > 1-i ? n+i-2: 0);
-	    h->h_lines->t_type = Line;
-	    switch (h->h_descriptor->class) {
-	      
-	    case normal:
-	    case Resent:
-	      /* error */
-	      fprintf(stderr,
-		      "%s: unknown envelope header (class %d): ",
-		      progname, h->h_descriptor->class);
-	      fwrite((char *)zlinebuf, sizeof (char), -i, stderr);
-	      putc('\n', stderr);
-	      h->h_contents = hdr_scanparse(e, h, octothorp, 0);
-	      h->h_stamp = hdr_type(h);
-	      return PERR_BADSUBMIT;
-	      /* break; */
-	    case eFrom:		/* pity to break the elegance */
-	      osem = h->h_descriptor->semantics;
-	      h->h_descriptor->semantics = Mailbox;
-	      h->h_contents = hdr_scanparse(e, h, octothorp, 0);
-	      h->h_stamp = hdr_type(h);
-	      h->h_descriptor->semantics = osem;
-	      break;
-	    case eEnvEnd:		/* more elegance breaks */
-	      inheader = 1;
-	      /* record start of headers for posterity */
-	      e->e_hdrOffset = zlineoffset(e->e_fp);
-	      e->e_eHeaders = h->h_next;
-	      break;
-	    default:		/* a real envelope header */
-	      h->h_contents = hdr_scanparse(e, h, octothorp, 0);
-	      h->h_stamp = hdr_type(h);
-	      break;
-	    }
-	  } else {
-	    /* Expected RFC-822 header, and got something else.
-	       We play as if it was the end of the headers, and
-	       start of the body.  Keep the first faulty input
-	       around by reseeking into its start.		    */
-	    repos_zgetline(e->e_fp, zlineoffset(e->e_fp) - n);
-	    break;
-	  }
+			/* cons up a new one at top of header list */
+
+			h = makeHeader(spt_headers, zlinebuf, i);
+			h->h_next = e->e_headers;
+			e->e_headers = h;
+			h->h_lines = makeToken(zlinebuf+i+1, n-i-2);
+			h->h_lines->t_type = Line;
+			++inheader;
+		} else if (i == 0) {	/* a continuation line */
+			if (inheader && zlinebuf[0] == ':') {
+				optsave(FYI_ILLHEADER, e);
+
+				/* cons up a new one at top of header list */
+
+				h = makeHeader(spt_headers,"X-Null-Field",12);
+				h->h_next = e->e_headers;
+				e->e_headers = h;
+				h->h_lines = makeToken(zlinebuf+i+1, n-i-2);
+				h->h_lines->t_type = Line;
+			} else if (inheader && n > 1) {
+				/* append to the header we just saw */
+				token822 *t;
+				if (e->e_headers == NULL) {
+				  /* Wow, continuation without previous header! */
+				  /* It must be body.. */
+				  repos_zgetline(e->e_fp,
+						 zlineoffset(e->e_fp) - n);
+				  break;
+				}
+				t = e->e_headers->h_lines;
+				while (t->t_next)
+					t = t->t_next;
+				t->t_next = makeToken(zlinebuf, n-1);
+				t->t_next->t_type = Line;
+			} else {
+				return PERR_BADCONTINUATION;
+			}
+		} else if (!inheader		/* envelope information */
+			   && (*(cp=zlinebuf-i) == ' ' || *cp == '\t'
+				|| *cp == '\n')) {
+			HeaderSemantics osem;
+
+			/* cons up a new one at top of envelope header list */
+			h = makeHeader(spt_eheaders, zlinebuf, -i);
+			h->h_next = e->e_eHeaders;
+			e->e_eHeaders = h;
+			h->h_lines = makeToken(zlinebuf-i+1, n > 1-i ? n+i-2: 0);
+			h->h_lines->t_type = Line;
+			switch (h->h_descriptor->class) {
+
+			case normal:
+			case Resent:
+				/* error */
+				fprintf(stderr,
+					"%s: unknown envelope header (class %d): ",
+					progname, h->h_descriptor->class);
+				fwrite((char *)zlinebuf, sizeof (char), -i, stderr);
+				putc('\n', stderr);
+				h->h_contents = hdr_scanparse(e, h, 0, 0);
+				h->h_stamp = hdr_type(h);
+				return PERR_BADSUBMIT;
+				/* break; */
+			case eFrom:		/* pity to break the elegance */
+				osem = h->h_descriptor->semantics;
+				h->h_descriptor->semantics = Mailbox;
+				h->h_contents = hdr_scanparse(e, h, 0, 0);
+				h->h_stamp = hdr_type(h);
+				h->h_descriptor->semantics = osem;
+				break;
+			case eEnvEnd:		/* more elegance breaks */
+				inheader = 1;
+				/* record start of headers for posterity */
+				e->e_hdrOffset = zlineoffset(e->e_fp);
+				e->e_eHeaders = h->h_next;
+				break;
+			default:		/* a real envelope header */
+				h->h_contents = hdr_scanparse(e, h, 0, 0);
+				h->h_stamp = hdr_type(h);
+				break;
+			}
+		} else {
+			/* Expected RFC-822 header, and got something else.
+			   We play as if it was the end of the headers, and
+			   start of the body.  Keep the first faulty input
+			   around by reseeking into its start.		    */
+			repos_zgetline(e->e_fp, zlineoffset(e->e_fp) - n);
+			break;
+		}
 	}
 	/* reverse the list of headers so we keep them in the original order */
 	for (ph = NULL, h = e->e_eHeaders; h != NULL; h = nh) {
-	  nh = h->h_next;
-	  h->h_next = ph;
-	  if (h->h_descriptor->semantics == nilHeaderSemantics
-	      || !hdr_nilp(h))
-	    ph = h;
+		nh = h->h_next;
+		h->h_next = ph;
+		if (h->h_descriptor->semantics == nilHeaderSemantics
+		    || !hdr_nilp(h))
+			ph = h;
 	}
 	e->e_eHeaders = ph;
 	/* parse the message headers -- we already took care of envelope info */
 	for (ph = NULL, h = e->e_headers; h != NULL; h = nh) {
-	  nh = h->h_next;
-	  h->h_next = ph;
-	  if (!octothorp && h->h_descriptor) {
-	    h->h_contents = hdr_scanparse(e, h, 0, 0);
-	    h->h_stamp = hdr_type(h);
-	    if (!hdr_nilp(h))	/* excise null-valued headers */
-	      ph = h;
-	  } else
-	    ph = h;
+		nh = h->h_next;
+		h->h_next = ph;
+		if (h->h_descriptor) {
+			h->h_contents = hdr_scanparse(e, h, 0, 0);
+			h->h_stamp = hdr_type(h);
+			if (!hdr_nilp(h))	/* excise null-valued headers */
+				ph = h;
+		} else
+			ph = h;
 	}
 	e->e_headers = ph;
 	/* record the start of the message body for posterity */
@@ -457,7 +467,7 @@ makeLetter(e, octothorp)
 		    zlinebuf[n-1] == '\n') {
 			--n;
 			zlinebuf[n-1] = '\n';
-			if (n <= !octothorp) break;
+			if (n <= !octothorp) break; /* void line */
 		}
 		/* Ok, now we can proceed with the original agenda.. */
 		i = hdr_status(zlinebuf, zlinebuf, n, octothorp);

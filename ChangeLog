@@ -1,11 +1,22 @@
 2002-09-02  Matti Aarnio  <mea@zmailer.org>
 
+	* router/rfc822.c:
+	    Did something wrong, while scrubbed dead code..
+	    Detection of header/body (in RFC822 sense) separation
+	    fixed.  (Well, not entirely.. there are things which
+	    probably SHOULD stay in headers...)
+
+	* transports/libta/diagnostic.c:
+	    A beauty-wart in syslog()ed data, when truncking embedded
+	    CR containing diagnostic message, skip over the last CR
+	    also...
+
 	* transports/smtp/smtp.c:
-	     Support -F connection to  UNIX:/...  sockets.
-	     This MUST be defined at the command line! No routing
-	     controlled version allowed!  (security, you see..)
-	     (This is subject to system having AF_UNIX support in
-	      the first place, but that should be quite common...)
+	    Support -F connection to  UNIX:/...  sockets.
+	    This MUST be defined at the command line! No routing
+	    controlled version allowed!  (security, you see..)
+	    (This is subject to system having AF_UNIX support in
+	     the first place, but that should be quite common...)
 
 	* README.UPGRADING:
 	    Change in what  sm  outputs for envelope meta-data to
