@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SM 8 "2 Sep 1998"
+.TH SM 8 "26 Sep 2000"
 .SH NAME
 sm \- zmailer Sendmail compatible transport agent
 .SH SYNOPSIS
@@ -102,14 +102,114 @@ The
 field contains a concatenation of one-letter flags.  If no flags are desired,
 a ``-'' character should be used to indicate presense of the field.  All normal
 Sendmail flags are recognized, but the ones that do not make sense in the
-context of ZMailer will produce an error.  The flags that change the behaviour
-of
+context of ZMailer will produce an error.
+
+The flags that change the behaviour of
 .I sm
+and their comparisons against
+.I sendmail-8.10
 are:
+
+.IP ":, |, /, %, @"
+.I sendmail:
+various sendmail-specific things that are handled mostly by the
+.I router
+subsystem at ZMailer.
+
+.I sm: Not used
+
+.IP 0
+.I sendmail:
+Equivalent of ZMailer's
+.I smtp
+transport agents
+.I \-x
+option.  (Don't use MX data, only addresses)
+
+.I sm: Not used
+
+.IP 3
+.I sendmail:
+Extend the list of characters converted to =XX notation when converting to
+Quoted-Printable to include those that don't map cleanly between ASCII
+and EBCDIC.  Usefull if you have IBM mainframes on site.
+
+.I sm: Not implemented/used
+
+.IP 5
+.I sendmail:
+Local delivery alternate resolution ruleset (R5) in case no aliases
+are found for currently processed address.
+(Meaningless in ZMailer; router's task)
+
+.I sm:  Not used
+
+.IP 6
+.I sendmail:
+Strip RFC 822 headers to 7 bits.
+
+.I sm: Not implemented/used
+
+.IP 7
+.I sendmail:
+Will strip (set to 0) the 8th bit of every character in the message.
+
+.I sm:
+Will strip the 8th bit of every character of the message body, does
+not touch message headers.
+.I (Not stripping message header is sort of BUG.)
+
+.IP 8
+.I sendmail:
+Tells that the recipient system is 8-bit capable and that no
+8->7 downgrading is needed.
+
+.I sm:
+Behaves like
+.I sendmail's
+flag ``9''.
+
+.IP 9
+.I sendmail:
+If set, do
+.I limited
+7->8 bit MIME conversions.  These conversions are limited to text/plain data.
+
+.I sm:
+The ``8'' flag does this at ZMailer's
+.I sm.
+
+.IP a
+.I sendmail:
+Run ESMTP protocol on the SMTP connection
+
+.I sm: not implemented/used
+(See ``B'')
+.RI ( SMTP
+transport agent's task)
+
+.IP A
+.I sendmail:
+Look up the user part of the address in the alias database
+
+.I sm: not used
+(Router's task)
+
 .IP b
+.I sendmail:
+Force a blank line on the end of a message.
+(Not needed in
+.I sm's
+usage environment.)
+
+.I sm:
 will activate BSMTP-type wrapping with ``hidden-dot'' algorithm; e.g.
 quite ordinary SMTP stream, but in "batch mode".
+
 .IP B
+.I sendmail: not defined/used
+
+.I sm:
 The first ``\fIB\fR'' turns on similar BSMTP wrapping as ``\fIb\fR'', but
 adds SIZE and, if the
 .I sm
@@ -118,23 +218,206 @@ is started with option
 also 8BITMIME options.
 The second ``\fIB\fR'' adds there also DSN (Delivery Status Notification)
 parameters.
+
+.IP c
+.I sendmail:
+Do not include comments in RFC 822 header addresses.
+
+.I sm: not implemented/used
+
+.IP C
+.I sendmail:
+Header address canonicalization
+
+.I sm: not used (router's task)
+
+.IP d
+.I sendmail:
+Do not include angle brackets around route-address syntax addresses.
+(this is broken security trick for some shell script usages, nor recommented!)
+
+.I sm: not implemented/used
+
+.IP D
+.I sendmail:
+``Date:'' header wanted
+
+.I sm: not used (router's task)
+
+.IP e
+.I sendmail:
+This mailer is expensive to connect, connections only from queuerun.
+(Meaningless in sm)
+
+.I sm: not used
+
+.IP E
+.I sendmail, sm:
+Will prepend ``>'' to any message body line starting with ``From '' (From space).
+
+.IP f
+.I sendmail, sm:
+adds ``\-f\ \fIsender\fR'' arguments to the delivery program.
+
+.IP F
+.I sendmail: This mailer wants ``From:'' header line.
+
+.I sm: not used
+(Router's task)
+
+.IP g
+.I sendmail: Affects on what to use as error source envelope address
+
+.I sm: not used
+(Scheduler's task)
+
+.IP G
+.I sendmail, sm: Not used
+
+.IP h
+.I sendmail, sm: Not used
+
 .IP H
+.I sendmail: not used
+
+.I sm:
 Adds ``HELO'' or ``EHLO'' into front of the BSMTP stream.
 Normally the BSMTP streams
 .B do not
 have ``HELO/EHLO'' in front of them to avoid problems with
 catenation of BSMTP messages for streamed UUCP transfers, for example.
-.IP E
-will prepend ``>'' to any message body line starting with ``From '' (From space).
-.IP f
-adds "-f \fIsender\fR" arguments to the delivery program.
+
+.IP i
+.I sendmail:
+Do User Database rewriting on envelope sender address
+
+.I sm: not used (router's task)
+
+.IP I
+.I sendmail:
+The remote system is another sendmail, use special protocol  features
+
+.I sm: Not used
+
+.IP j
+.I sendmail:
+Do User Database rewriting on envelope recipients as well as senders.
+
+.I sm: not implemented/used (router's task)
+
+.IP J
+.I sendmail, sm: Not used
+
+.IP k
+.I sendmail:
+Allow network connection to myself (for very unusual usage cases,
+likely sendmail running at another port)
+
+.I sm: not used
+(See ZMailer
+.I smtp
+TA.)
+
+.IP K
+.I sendmail:
+Currently unimplemented, reserved for CHUNKING.
+
+.I sm: not used
+
+.IP l
+.I sendmail:
+This mailer is local (i.e., final delivery will be performed)
+
+.I sm: Not used (semi meaningless)
+
+.IP L
+.I sendmail:
+Limit the line lengths as specified in RFC 821. (This is deprecated option.)
+
+.I sm: Not used
+
+.IP m
+.I sendmail, sm:
+This mailer can hangle multiple recipients; Existence of
+.B $u
+macro in 
+.I argv
+part of the mailer definition will be expanded with recipients.
+
+.IP M
+.I sendmail:
+``Message-ID:'' header wanted
+
+.I sm: Not used
+(Router's task)
+
 .IP n
-will
+.I sendmail, sm:
+Do
 .B not
 prepend a From-space line (normal mailbox separator line) to the message.
+
+.IP o
+.I sendmail
+Always run as the owner of the recipient mailbox
+
+.I sm: meaningless/not used
+(ZMailer's
+.I sm
+is not really for doing local delivery - but see how
+.I procmail
+is driven.)
+
+.IP O
+.I sendmail, sm: Not used
+
+.IP p
+.I sendmail:
+Use route-addr style reverse-path in the SMTP ``MAIL FROM:'' command
+rather than just the return address.
+
+.I sm:
+Meaningless, not used.
+.RI ( smtp
+transport agent's task.)
+
+.IP P
+.I sendmail, sm:
+Header ``Return-Path:'' is wanted to be added to the message.
+
+.IP q
+.I sendmail:
+Some SMTP VRFY related thing, not applicable to ZMailer
+
+.I sm: Not used.
+
+.IP Q
+.I sendmail, sm: not used.
+
 .IP r
-adds "-r \fIsender\fR" arguments to the delivery program.
+.I sendmail, rm:
+adds ``\-r\ \fIsender\fR'' arguments to the delivery program.
+
+.IP R
+.I sendmail:
+Open SMTP connections from a ``secure'' port.
+(Meaningless in ZMailer, but see
+.I smtp
+transport agent.)
+
+.I sm:
+Use CRLF sequence as end-of-line sequence.
+Without it, will use LF-only end-of-line sequence.
+
+.IP s
+.I sendmail:
+Strip quote characters (" and \\) off of the addresses before calling
+the actual mailer.
+
+.I sm: Not implemented/used.
+
 .IP S
+.I sendmail, sm:
 will run the delivery program with the same real and effective uid as the
 .I sm
 process.  If this flag is not set, the delivery program will be run with
@@ -143,26 +426,62 @@ the real uid of the
 process.  This may be useful if
 .I sm
 is setuid.
-.IP m
-informs
-.I sm
-that each instance of the delivery program can deliver to many destinations.
-This affects $u expansion in the argument list, see below.
-.IP P
-prepends a Return-Path: header to the message.
+
+.IP "t, T"
+.I sendmail, sm: Not used
+
+.IP u
+.I sendmail:
+Upper case should be preserved in user names for this mailer.
+Standards require preservation of cae in the local part of addresses,
+except for those addresses for which your system accepts responsibility.
+
+.I sm: Not used
+
 .IP U
+.I sendmail, sm:
 will prepend a From-space line, with a "remote from \fImyuucpname\fR" at the
 end, to the message.  This is what is expected by remote
 .IR rmail (1)
 programs for incoming UUCP mail.
-.IP R
-use CRLF sequence as end-of-line sequence. Without it, will use LF-only
-end-of-line sequence.
+
+.IP "v, V"
+.I sendmail, sm: Not used
+
+.IP w
+.I sendmail:
+The user must have a valid account on this machine, i.e., getpwnam()
+must succeed.  If not, the mail is bounced.  (Local delivery stuff.)
+
+.I sm: Not used
+
+.IP W
+.I sendmail, sm: Not used
+
+.IP x
+.I sendmail:
+A ``Full-Name:'' header is wanted.
+
+.I sm: Not implemented/used
+
 .IP X
+.I sendmail, sm:
 does SMTP-like 'hidden-dot' algorithm of doubling all dots that are at
 the start of the line.
-.IP 7
-will strip (set to 0) the 8th bit of every character in the message.
+
+.IP "y, Y"
+.I sendmail, sm: Not used
+
+.IP z
+.I sendmail:
+Run Local Mail Transfer protocol (LMTP) between sendmail and the local mailer.
+See RFC 2033.
+
+.I sm: Not implemented/used.
+
+.IP Z
+.I sendmail, sm: Not used
+
 .PP
 The
 .I path

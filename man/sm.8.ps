@@ -1,11 +1,11 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.16
-%%CreationDate: Mon Sep  4 15:51:35 2000
+%%CreationDate: Tue Sep 26 19:30:39 2000
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
 %%DocumentSuppliedResources: procset grops 1.16 0
-%%Pages: 3
+%%Pages: 7
 %%PageOrder: Ascend
 %%Orientation: Portrait
 %%EndComments
@@ -292,7 +292,7 @@ E F0 .741(\214eld e)3.241 F .741(xtends from the be)-.15 F .741
 (It is used simply as a k)5.74 F -.15(ey)-.1 G(inde)108 729.6 Q 2.5(xt)
 -.15 G 2.5(ot)-2.5 G(he con\214guration \214le contents.)-2.5 E
 (Whitespace is used as the \214eld separator for all the \214elds.)5 E
-2.5(2S)283.5 768 S(ep 1998)-2.5 E(1)206.5 E EP
+(26 Sep 2000)281 768 Q(1)204 E EP
 %%Page: 2 2
 %%BeginPageSetup
 BP
@@ -305,121 +305,292 @@ BP
 (be used to indicate presense of the \214eld.)108 96 R .119
 (All normal Sendmail \215ags are recognized, b)5.119 F .119
 (ut the ones that do not)-.2 F(mak)108 108 Q 2.5(es)-.1 G
-(ense in the conte)-2.5 E(xt of ZMailer will produce an error)-.15 E 5
-(.T)-.55 G(he \215ags that change the beha)-5 E(viour of)-.2 E F1(sm)2.5
-E F0(are:)2.5 E 31(bw)108 124.8 S 2.217(ill acti)-31 F -.25(va)-.25 G
-2.217(te BSMTP-type wrapping with `).25 F(`hidden-dot')-.74 E 4.717('a)
--.74 G 2.217(lgorithm; e.g.)-4.717 F 2.217(quite ordinary SMTP)7.217 F
-(stream, b)144 136.8 Q(ut in "batch mode".)-.2 E 29.33(BT)108 153.6 S
-.789(he \214rst `)-29.33 F(`)-.74 E F1(B)A F0 2.269 -.74('' t)D .789
-(urns on similar BSMTP wrapping as `).74 F(`)-.74 E F1(b)A F0 -.74('')C
-3.289(,b).74 G .789(ut adds SIZE and, if the)-3.489 F F1(sm)3.289 E F0
-.788(is started)3.288 F .205(with option `)144 165.6 R(`)-.74 E F1<ad38>
--.36 E F0 -.74('').43 G 2.705(,a).74 G .205(lso 8BITMIME options.)-2.705
-F .206(The second `)5.206 F(`)-.74 E F1(B)A F0 1.686 -.74('' a)D .206
-(dds there also DSN \(Deli).74 F -.15(ve)-.25 G .206(ry Sta-).15 F
-(tus Noti\214cation\) parameters.)144 177.6 Q 28.78(HA)108 194.4 S .723
-(dds `)-28.78 F(`HELO')-.74 E 3.223('o)-.74 G 3.222(r`)-3.223 G(`EHLO')
--3.962 E 3.222('i)-.74 G .722(nto front of the BSMTP stream.)-3.222 F
-.722(Normally the BSMTP streams)5.722 F/F2 10/Times-Bold@0 SF(do)3.222 E
-(not)144 206.4 Q F0(ha)2.535 E .335 -.15(ve `)-.2 H(`HELO/EHLO')-.59 E
-2.535('i)-.74 G 2.535(nf)-2.535 G .036(ront of them to a)-2.535 F -.2
-(vo)-.2 G .036(id problems with catenation of BSMTP messages).2 F
-(for streamed UUCP transfers, for e)144 218.4 Q(xample.)-.15 E 29.89(Ew)
-108 235.2 S(ill prepend `)-29.89 E(`>')-.74 E 2.5('t)-.74 G 2.5(oa)-2.5
-G .3 -.15(ny m)-2.5 H(essage body line starting with `).15 E(`From ')
--.74 E 2.5('\()-.74 G(From space\).)-2.5 E 32.67(fa)108 252 S(dds "-f)
--32.67 E F1(sender)2.5 E F0 2.5("a)C -.18(rg)-2.5 G(uments to the deli)
-.18 E -.15(ve)-.25 G(ry program.).15 E 31(nw)108 268.8 S(ill)-31 E F2
-(not)2.5 E F0(prepend a From-space line \(normal mailbox separator line\
-\) to the message.)2.5 E 32.67(ra)108 285.6 S(dds "-r)-32.67 E F1
-(sender)2.5 E F0 2.5("a)C -.18(rg)-2.5 G(uments to the deli).18 E -.15
-(ve)-.25 G(ry program.).15 E 30.44(Sw)108 302.4 S .244(ill run the deli)
--30.44 F -.15(ve)-.25 G .243(ry program with the same real and ef).15 F
-(fecti)-.25 E .543 -.15(ve u)-.25 H .243(id as the).15 F F1(sm)2.743 E
-F0 2.743(process. If)2.743 F .243(this \215ag is)2.743 F .17
-(not set, the deli)144 314.4 R -.15(ve)-.25 G .17
-(ry program will be run with the real uid of the).15 F F1(sm)2.67 E F0
-2.67(process. This)2.67 F .17(may be useful if)2.67 F F1(sm)144 326.4 Q
-F0(is setuid.)2.5 E 28.22(mi)108 343.2 S(nforms)-28.22 E F1(sm)4.231 E
-F0 1.731(that each instance of the deli)4.231 F -.15(ve)-.25 G 1.731
-(ry program can deli).15 F -.15(ve)-.25 G 4.23(rt).15 G 4.23(om)-4.23 G
-(an)-4.23 E 4.23(yd)-.15 G 4.23(estinations. This)-4.23 F(af)144 355.2 Q
-(fects $u e)-.25 E(xpansion in the ar)-.15 E(gument list, see belo)-.18
-E -.65(w.)-.25 G 30.44(Pp)108 372 S(repends a Return-P)-30.44 E
-(ath: header to the message.)-.15 E 28.78(Uw)108 388.8 S 1.231
-(ill prepend a From-space line, with a "remote from)-28.78 F F1
-(myuucpname)3.731 E F0 3.731("a)C 3.732(tt)-3.731 G 1.232
-(he end, to the message.)-3.732 F(This is what is e)144 400.8 Q
-(xpected by remote)-.15 E F1(rmail)2.5 E F0
-(\(1\) programs for incoming UUCP mail.).51 E 29.33(Ru)108 417.6 S
-(se CRLF sequence as end-of-line sequence. W)-29.33 E
-(ithout it, will use LF-only end-of-line sequence.)-.4 E 28.78(Xd)108
-434.4 S(oes SMTP-lik)-28.78 E 2.5(e')-.1 G(hidden-dot' algorithm of dou\
-bling all dots that are at the start of the line.)-2.5 E 31(7w)108 451.2
-S(ill strip \(set to 0\) the 8th bit of e)-31 E -.15(ve)-.25 G
-(ry character in the message.).15 E(The)108 468 Q F1(path)2.87 E F0 .37
-(\214eld speci\214es the location of the deli)2.87 F -.15(ve)-.25 G .37
-(ry program.).15 F(Relati)5.37 E .67 -.15(ve p)-.25 H .37
-(athnames are allo).15 F .37(wed and are rela-)-.25 F(ti)108 480 Q .3
--.15(ve t)-.25 H 2.5(ot).15 G(he)-2.5 E F1(MAILBIN)2.5 E F0(directory)
-2.5 E 2.5(,b)-.65 G(ut also dollar)-2.7 E(-e)-.2 E
-(xpressions of type: ${ZENV)-.15 E(AR})-1.35 E(The)108 496.8 Q F1(ar)
-2.704 E(guments)-.37 E F0 .204(\214eld e)2.704 F .205
-(xtends to the end of the line.)-.15 F .205
-(It contains whitespace-separated ar)5.205 F .205(gv parameters which)
--.18 F(may contain one of the follo)108 508.8 Q(wing sequences:)-.25 E
-23.5($g which)108 525.6 R(is replaced by the sender address.)2.5 E 23.5
-($h which)108 542.4 R(is replaced by the destination host.)2.5 E 23.5
-($u which)108 559.2 R .141(is replaced by the recipient address.)2.641 F
-.14(If the \255m mailer \215ag is set and there are se)5.141 F -.15(ve)
--.25 G .14(ral recipi-).15 F 1.602(ents for this message, the ar)144
-571.2 R 1.603
-(gument containing the $u will be replicated as necessary for each)-.18
-F 2.5(recipient. \(Also)144 583.2 R(${ZENV)2.5 E(AR} e)-1.35 E
-(xpressions are allo)-.15 E(wed!\))-.25 E/F3 10.95/Times-Bold@0 SF
-(INTERF)72 600 Q -.602(AC)-.986 G(E).602 E F0 1.525
-(This program reads in processable \214le names relati)108 612 R 1.825
--.15(ve t)-.25 H 4.025(ot).15 G 1.525(he current w)-4.025 F 1.524
-(orking directory of the scheduler)-.1 F(\(namely:)108 624 Q F1
-($POSTIOFFICE/tr)2.932 E(ansport/)-.15 E F0 2.932(\). Optionally)B .433
-(on the same line the scheduler may tell which host is to)2.933 F
-(be look)108 636 Q(ed for from the recipients of the message.)-.1 E F1
--.37(re)180 660 S(lative-spool-path).37 E F0 2.5([<)2.5 G -.93(TA)-2.5 G
-(B>).93 E F1(hostname)2.5 E F0(])2.5 E
-(This program produces diagnostic output on the standard output.)108
-676.8 Q(Normal diagnostic output is of the form:)5 E F1(id)180 700.8 Q
-F0(/)A F1(of)A(fset)-.18 E F0(<T)A(AB>)-.93 E F1(notify-data)A F0(<T)A
-(AB>)-.93 E F1(status messa)A -.1(ge)-.1 G F0(where)108 724.8 Q F1(id)
-3.666 E F0 1.166(is the inode number of the message \214le,)3.666 F F1
-(of)3.666 E(fset)-.18 E F0 1.165(is a byte of)3.665 F 1.165
-(fset within its control \214le where the)-.25 F 2.5(2S)283.5 768 S
-(ep 1998)-2.5 E(2)206.5 E EP
+(ense in the conte)-2.5 E(xt of ZMailer will produce an error)-.15 E(.)
+-.55 E(The \215ags that change the beha)108 132 Q(viour of)-.2 E F1(sm)
+2.5 E F0(and their comparisons ag)2.5 E(ainst)-.05 E F1(sendmail-8.10)
+2.5 E F0(are:)2.5 E(:, |, /, %, @)108 160.8 Q F1(sendmail:)144 172.8 Q
+F0 -.25(va)4.264 G 1.764
+(rious sendmail-speci\214c things that are handled mostly by the).25 F
+F1 -.45(ro)4.264 G(uter).45 E F0 1.765(subsystem at)4.265 F(ZMailer)144
+184.8 Q(.)-.55 E F1(sm: Not used)144 208.8 Q F0(0)108 237.6 Q F1
+(sendmail:)31 E F0(Equi)3.951 E -.25(va)-.25 G 1.451(lent of ZMailer')
+.25 F(s)-.55 E F1(smtp)3.951 E F0 1.451(transport agents)3.951 F F1
+<ad78>3.951 E F0 3.951(option. \(Don')3.951 F 3.951(tu)-.18 G 1.45
+(se MX data, only)-3.951 F(addresses\))144 249.6 Q F1(sm: Not used)144
+273.6 Q F0(3)108 302.4 Q F1(sendmail:)31 E F0 1.421
+(Extend the list of characters con)3.92 F -.15(ve)-.4 G 1.421
+(rted to =XX notation when con).15 F -.15(ve)-.4 G 1.421
+(rting to Quoted-).15 F 1.317(Printable to include those that don')144
+314.4 R 3.817(tm)-.18 G 1.317(ap cleanly between ASCII and EBCDIC.)
+-3.817 F 1.317(Usefull if you)6.317 F(ha)144 326.4 Q .3 -.15(ve I)-.2 H
+(BM mainframes on site.).15 E F1(sm: Not implemented/used)144 350.4 Q F0
+(5)108 379.2 Q F1(sendmail:)31 E F0 .146(Local deli)2.646 F -.15(ve)-.25
+G .146(ry alternate resolution ruleset \(R5\) in case no aliases are fo\
+und for currently).15 F(processed address.)144 391.2 Q
+(\(Meaningless in ZMailer; router')5 E 2.5(st)-.55 G(ask\))-2.5 E F1
+(sm: Not used)144 415.2 Q F0(6)108 444 Q F1(sendmail:)31 E F0
+(Strip RFC 822 headers to 7 bits.)2.5 E F1(sm: Not implemented/used)144
+468 Q F0(7)108 496.8 Q F1(sendmail:)31 E F0 -.4(Wi)2.5 G
+(ll strip \(set to 0\) the 8th bit of e).4 E -.15(ve)-.25 G
+(ry character in the message.).15 E F1(sm:)144 520.8 Q F0 -.4(Wi)2.796 G
+.296(ll strip the 8th bit of e).4 F -.15(ve)-.25 G .296
+(ry character of the message body).15 F 2.796(,d)-.65 G .296
+(oes not touch message headers.)-2.796 F F1(\(Not stripping messa)144
+532.8 Q .2 -.1(ge h)-.1 H(eader is sort of B).1 E(UG.\))-.1 E F0(8)108
+561.6 Q F1(sendmail:)31 E F0 -.7(Te)2.5 G
+(lls that the recipient system is 8-bit capable and that no 8->7 do).7 E
+(wngrading is needed.)-.25 E F1(sm:)144 585.6 Q F0(Beha)2.5 E -.15(ve)
+-.2 G 2.5(sl).15 G(ik)-2.5 E(e)-.1 E F1(sendmail')2.5 E(s)-.4 E F0
+(\215ag `)2.5 E(`9')-.74 E('.)-.74 E(9)108 614.4 Q F1(sendmail:)31 E F0
+2.893(If set, do)5.393 F F1(limited)5.393 E F0 2.893(7->8 bit MIME con)
+5.393 F -.15(ve)-.4 G 5.393(rsions. These).15 F(con)5.393 E -.15(ve)-.4
+G 2.893(rsions are limited to).15 F(te)144 626.4 Q(xt/plain data.)-.15 E
+F1(sm:)144 650.4 Q F0(The `)2.5 E(`8')-.74 E 2.5<278d>-.74 G
+(ag does this at ZMailer')-2.5 E(s)-.55 E F1(sm.)2.5 E F0(a)108 679.2 Q
+F1(sendmail:)31.56 E F0(Run ESMTP protocol on the SMTP connection)2.5 E
+F1(sm: not implemented/used)144 703.2 Q F0(\(See `)2.5 E(`B')-.74 E
+('\) \()-.74 E F1(SMTP).33 E F0(transport agent')2.5 E 2.5(st)-.55 G
+(ask\))-2.5 E(26 Sep 2000)281 768 Q(2)204 E EP
 %%Page: 3 3
 %%BeginPageSetup
 BP
 %%EndPageSetup
-/F0 10/Times-Roman@0 SF 413.28(SM\(8\) SM\(8\))72 48 R .915
-(address being reported on is k)108 84 R(ept,)-.1 E/F1 10/Times-Italic@0
-SF(status)3.415 E F0 .915(is one of)3.415 F/F2 10/Times-Bold@0 SF(ok)
-3.415 E F0(,)A F2(err)3.415 E(or)-.18 E F0 3.415(,o)C(r)-3.415 E F2
-(deferr)3.415 E(ed)-.18 E F0 3.415(,a)C .915(nd the)-3.415 F F1(messa)
-3.415 E -.1(ge)-.1 G F0 .915(is descripti)3.515 F -.15(ve)-.25 G(te)108
-96 Q .85(xt associated with the report.)-.15 F .85(The te)5.85 F .85
+/F0 10/Times-Roman@0 SF 413.28(SM\(8\) SM\(8\))72 48 R(A)108 84 Q/F1 10
+/Times-Italic@0 SF(sendmail:)28.78 E F0
+(Look up the user part of the address in the alias database)2.5 E F1
+(sm: not used)144 108 Q F0(\(Router')2.5 E 2.5(st)-.55 G(ask\))-2.5 E(b)
+108 136.8 Q F1(sendmail:)31 E F0 -.15(Fo)2.5 G
+(rce a blank line on the end of a message.).15 E(\(Not needed in)5 E F1
+(sm')2.5 E(s)-.4 E F0(usage en)2.5 E(vironment.\))-.4 E F1(sm:)144 160.8
+Q F0 .476(will acti)2.976 F -.25(va)-.25 G .476
+(te BSMTP-type wrapping with `).25 F(`hidden-dot')-.74 E 2.975('a)-.74 G
+.475(lgorithm; e.g.)-2.975 F .475(quite ordinary SMTP)5.475 F(stream, b)
+144 172.8 Q(ut in "batch mode".)-.2 E(B)108 201.6 Q F1
+(sendmail: not de\214ned/used)29.33 E(sm:)144 225.6 Q F0 1.467
+(The \214rst `)3.967 F(`)-.74 E F1(B)A F0 2.947 -.74('' t)D 1.468
+(urns on similar BSMTP wrapping as `).74 F(`)-.74 E F1(b)A F0 -.74('')C
+3.968(,b).74 G 1.468(ut adds SIZE and, if the)-4.168 F F1(sm)3.968 E F0
+(is)3.968 E .116(started with option `)144 237.6 R(`)-.74 E F1<ad38>-.36
+E F0 -.74('').43 G 2.616(,a).74 G .116(lso 8BITMIME options.)-2.616 F
+.116(The second `)5.116 F(`)-.74 E F1(B)A F0 1.596 -.74('' a)D .115
+(dds there also DSN \(Deli).74 F(v-)-.25 E
+(ery Status Noti\214cation\) parameters.)144 249.6 Q(c)108 278.4 Q F1
+(sendmail:)31.56 E F0
+(Do not include comments in RFC 822 header addresses.)2.5 E F1
+(sm: not implemented/used)144 302.4 Q F0(C)108 331.2 Q F1(sendmail:)
+29.33 E F0(Header address canonicalization)2.5 E F1(sm: not used \(r)144
+355.2 Q(outer')-.45 E 2.5(st)-.4 G(ask\))-2.5 E F0(d)108 384 Q F1
+(sendmail:)31 E F0 1.171(Do not include angle brack)3.67 F 1.171
+(ets around route-address syntax addresses.)-.1 F 1.171(\(this is brok)
+6.171 F(en)-.1 E
+(security trick for some shell script usages, nor recommented!\))144 396
+Q F1(sm: not implemented/used)144 420 Q F0(D)108 448.8 Q F1(sendmail:)
+28.78 E F0 -.74(``)2.5 G(Date:').74 E 2.5('h)-.74 G(eader w)-2.5 E
+(anted)-.1 E F1(sm: not used \(r)144 472.8 Q(outer')-.45 E 2.5(st)-.4 G
+(ask\))-2.5 E F0(e)108 501.6 Q F1(sendmail:)31.56 E F0 .574
+(This mailer is e)3.074 F(xpensi)-.15 E .873 -.15(ve t)-.25 H 3.073(oc)
+.15 G .573(onnect, connections only from queuerun.)-3.073 F .573
+(\(Meaningless in)5.573 F(sm\))144 513.6 Q F1(sm: not used)144 537.6 Q
+F0(E)108 566.4 Q F1(sendmail, sm:)29.89 E F0 -.4(Wi)2.5 G(ll prepend `)
+.4 E(`>')-.74 E 2.5('t)-.74 G 2.5(oa)-2.5 G .3 -.15(ny m)-2.5 H
+(essage body line starting with `).15 E(`From ')-.74 E 2.5('\()-.74 G
+(From space\).)-2.5 E(f)108 595.2 Q F1(sendmail, sm:)32.67 E F0(adds `)
+2.5 E(`\255f)-.74 E F1(sender)2.5 E F0 1.48 -.74('' a)D -.18(rg).74 G
+(uments to the deli).18 E -.15(ve)-.25 G(ry program.).15 E(F)108 624 Q
+F1(sendmail: This mailer wants `)30.44 E(`F)-1.11 E -.45(ro)-.55 G(m:')
+.45 E 2.5('h)-1.11 G(eader line)-2.5 E(.)-.15 E(sm: not used)144 648 Q
+F0(\(Router')2.5 E 2.5(st)-.55 G(ask\))-2.5 E(g)108 676.8 Q F1
+(sendmail: Af)31 E(fects on what to use as err)-.18 E(or sour)-.45 E
+(ce en)-.37 E(velope addr)-.4 E(ess)-.37 E(sm: not used)144 700.8 Q F0
+(\(Scheduler')2.5 E 2.5(st)-.55 G(ask\))-2.5 E(26 Sep 2000)281 768 Q(3)
+204 E EP
+%%Page: 4 4
+%%BeginPageSetup
+BP
+%%EndPageSetup
+/F0 10/Times-Roman@0 SF 413.28(SM\(8\) SM\(8\))72 48 R(G)108 84 Q/F1 10
+/Times-Italic@0 SF(sendmail, sm: Not used)28.78 E F0(h)108 112.8 Q F1
+(sendmail, sm: Not used)31 E F0(H)108 141.6 Q F1(sendmail: not used)
+28.78 E(sm:)144 165.6 Q F0 .445(Adds `)2.945 F(`HELO')-.74 E 2.945('o)
+-.74 G 2.945(r`)-2.945 G(`EHLO')-3.685 E 2.945('i)-.74 G .445
+(nto front of the BSMTP stream.)-2.945 F .445
+(Normally the BSMTP streams)5.445 F/F2 10/Times-Bold@0 SF .385(do not)
+144 177.6 R F0(ha)2.885 E .685 -.15(ve `)-.2 H(`HELO/EHLO')-.59 E 2.885
+('i)-.74 G 2.885(nf)-2.885 G .385(ront of them to a)-2.885 F -.2(vo)-.2
+G .384(id problems with catenation of BSMTP mes-).2 F
+(sages for streamed UUCP transfers, for e)144 189.6 Q(xample.)-.15 E(i)
+108 218.4 Q F1(sendmail:)33.22 E F0(Do User Database re)2.5 E
+(writing on en)-.25 E -.15(ve)-.4 G(lope sender address).15 E F1
+(sm: not used \(r)144 242.4 Q(outer')-.45 E 2.5(st)-.4 G(ask\))-2.5 E F0
+(I)108 271.2 Q F1(sendmail:)32.67 E F0
+(The remote system is another sendmail, use special protocol)2.5 E
+(features)5 E F1(sm: Not used)144 295.2 Q F0(j)108 324 Q F1(sendmail:)
+33.22 E F0(Do User Database re)2.5 E(writing on en)-.25 E -.15(ve)-.4 G
+(lope recipients as well as senders.).15 E F1
+(sm: not implemented/used \(r)144 348 Q(outer')-.45 E 2.5(st)-.4 G
+(ask\))-2.5 E F0(J)108 376.8 Q F1(sendmail, sm: Not used)32.11 E F0(k)
+108 405.6 Q F1(sendmail:)31 E F0(Allo)2.67 E 2.67(wn)-.25 G(etw)-2.67 E
+.171(ork connection to myself \(for v)-.1 F .171
+(ery unusual usage cases, lik)-.15 F .171(ely sendmail run-)-.1 F
+(ning at another port\))144 417.6 Q F1(sm: not used)144 441.6 Q F0
+(\(See ZMailer)2.5 E F1(smtp)2.5 E F0 -.93(TA)2.5 G(.\)).93 E(K)108
+470.4 Q F1(sendmail:)28.78 E F0(Currently unimplemented, reserv)2.5 E
+(ed for CHUNKING.)-.15 E F1(sm: not used)144 494.4 Q F0(l)108 523.2 Q F1
+(sendmail:)33.22 E F0(This mailer is local \(i.e., \214nal deli)2.5 E
+-.15(ve)-.25 G(ry will be performed\)).15 E F1
+(sm: Not used \(semi meaningless\))144 547.2 Q F0(L)108 576 Q F1
+(sendmail:)29.89 E F0(Limit the line lengths as speci\214ed in RFC 821.\
+ \(This is deprecated option.\))2.5 E F1(sm: Not used)144 600 Q F0(m)108
+628.8 Q F1 .947(sendmail, sm:)28.22 F F0 .947
+(This mailer can hangle multiple recipients; Existence of)3.447 F F2($u)
+3.447 E F0 .946(macro in)3.446 F F1(ar)3.446 E(gv)-.37 E F0 .946
+(part of)3.446 F(the mailer de\214nition will be e)144 640.8 Q
+(xpanded with recipients.)-.15 E(M)108 669.6 Q F1(sendmail:)27.11 E F0
+-.74(``)2.5 G(Message-ID:').74 E 2.5('h)-.74 G(eader w)-2.5 E(anted)-.1
+E F1(sm: Not used)144 693.6 Q F0(\(Router')2.5 E 2.5(st)-.55 G(ask\))
+-2.5 E(26 Sep 2000)281 768 Q(4)204 E EP
+%%Page: 5 5
+%%BeginPageSetup
+BP
+%%EndPageSetup
+/F0 10/Times-Roman@0 SF 413.28(SM\(8\) SM\(8\))72 48 R(n)108 84 Q/F1 10
+/Times-Italic@0 SF(sendmail, sm:)31 E F0(Do)2.5 E/F2 10/Times-Bold@0 SF
+(not)2.5 E F0(prepend a From-space line \(normal mailbox separator line\
+\) to the message.)2.5 E(o)108 112.8 Q F1(sendmail)31 E F0(Al)2.5 E -.1
+(wa)-.1 G(ys run as the o).1 E(wner of the recipient mailbox)-.25 E F1
+.563(sm: meaningless/not used)144 136.8 R F0(\(ZMailer')3.063 E(s)-.55 E
+F1(sm)3.063 E F0 .564(is not really for doing local deli)3.064 F -.15
+(ve)-.25 G .564(ry - b).15 F .564(ut see ho)-.2 F(w)-.25 E F1(pr)3.064 E
+(oc-)-.45 E(mail)144 148.8 Q F0(is dri)2.5 E -.15(ve)-.25 G(n.\)).15 E
+(O)108 177.6 Q F1(sendmail, sm: Not used)28.78 E F0(p)108 206.4 Q F1
+(sendmail:)31 E F0 .604(Use route-addr style re)3.104 F -.15(ve)-.25 G
+.603(rse-path in the SMTP `).15 F .603(`MAIL FR)-.74 F(OM:')-.4 E 3.103
+('c)-.74 G .603(ommand rather than)-3.103 F(just the return address.)144
+218.4 Q F1(sm:)144 242.4 Q F0(Meaningless, not used.)2.5 E(\()5 E F1
+(smtp).34 E F0(transport agent')2.5 E 2.5(st)-.55 G(ask.\))-2.5 E(P)108
+271.2 Q F1(sendmail, sm:)30.44 E F0(Header `)2.5 E(`Return-P)-.74 E
+(ath:')-.15 E 2.5('i)-.74 G 2.5(sw)-2.5 G
+(anted to be added to the message.)-2.6 E(q)108 300 Q F1(sendmail:)31 E
+F0(Some SMTP VRFY related thing, not applicable to ZMailer)2.5 E F1
+(sm: Not used.)144 324 Q F0(Q)108 352.8 Q F1(sendmail, sm: not used.)
+28.78 E F0(r)108 381.6 Q F1(sendmail, rm:)32.67 E F0(adds `)2.5 E
+(`\255r)-.74 E F1(sender)2.5 E F0 1.48 -.74('' a)D -.18(rg).74 G
+(uments to the deli).18 E -.15(ve)-.25 G(ry program.).15 E(R)108 410.4 Q
+F1(sendmail:)29.33 E F0 .413(Open SMTP connections from a `)2.913 F
+(`secure')-.74 E 2.913('p)-.74 G 2.913(ort. \(Meaningless)-2.913 F .413
+(in ZMailer)2.913 F 2.913(,b)-.4 G .413(ut see)-3.113 F F1(smtp)2.914 E
+F0(transport agent.\))144 422.4 Q F1(sm:)144 446.4 Q F0 2.784
+(Use CRLF sequence as end-of-line sequence.)5.284 F -.4(Wi)7.783 G 2.783
+(thout it, will use LF-only end-of-line).4 F(sequence.)144 458.4 Q(s)108
+487.2 Q F1(sendmail:)32.11 E F0(Strip quote characters \(" and \\\) of)
+2.5 E 2.5(fo)-.25 G 2.5(ft)-2.5 G
+(he addresses before calling the actual mailer)-2.5 E(.)-.55 E F1
+(sm: Not implemented/used.)144 511.2 Q F0(S)108 540 Q F1 .108
+(sendmail, sm:)30.44 F F0 .109(will run the deli)2.608 F -.15(ve)-.25 G
+.109(ry program with the same real and ef).15 F(fecti)-.25 E .409 -.15
+(ve u)-.25 H .109(id as the).15 F F1(sm)2.609 E F0(process.)2.609 E .892
+(If this \215ag is not set, the deli)144 552 R -.15(ve)-.25 G .891
+(ry program will be run with the real uid of the).15 F F1(sm)3.391 E F0
+3.391(process. This)3.391 F(may be useful if)144 564 Q F1(sm)2.5 E F0
+(is setuid.)2.5 E(t, T)108 592.8 Q F1(sendmail, sm: Not used)22.11 E F0
+(u)108 621.6 Q F1(sendmail:)31 E F0 .222(Upper case should be preserv)
+2.722 F .222(ed in user names for this mailer)-.15 F 5.222(.S)-.55 G
+.223(tandards require preser)-5.222 F(-)-.2 E -.25(va)144 633.6 S 1.638
+(tion of cae in the local part of addresses, e).25 F 1.638
+(xcept for those addresses for which your system)-.15 F
+(accepts responsibility)144 645.6 Q(.)-.65 E F1(sm: Not used)144 669.6 Q
+F0(U)108 698.4 Q F1 .934(sendmail, sm:)28.78 F F0 .935
+(will prepend a From-space line, with a "remote from)3.434 F F1
+(myuucpname)3.435 E F0 3.435("a)C 3.435(tt)-3.435 G .935(he end, to)
+-3.435 F(the message.)144 710.4 Q(This is what is e)5 E
+(xpected by remote)-.15 E F1(rmail)2.5 E F0
+(\(1\) programs for incoming UUCP mail.).51 E(26 Sep 2000)281 768 Q(5)
+204 E EP
+%%Page: 6 6
+%%BeginPageSetup
+BP
+%%EndPageSetup
+/F0 10/Times-Roman@0 SF 413.28(SM\(8\) SM\(8\))72 48 R 1.3 -.65(v, V)108
+84 T/F1 10/Times-Italic@0 SF(sendmail, sm: Not used)20.08 E F0(w)108
+112.8 Q F1(sendmail:)28.78 E F0 .464(The user must ha)2.964 F .764 -.15
+(ve a v)-.2 H .463
+(alid account on this machine, i.e., getpwnam\(\) must succeed.)-.1 F
+(If)5.463 E(not, the mail is bounced.)144 124.8 Q(\(Local deli)5 E -.15
+(ve)-.25 G(ry stuf).15 E(f.\))-.25 E F1(sm: Not used)144 148.8 Q F0(W)
+108 177.6 Q F1(sendmail, sm: Not used)26.56 E F0(x)108 206.4 Q F1
+(sendmail:)31 E F0 2.5(A`)2.5 G(`Full-Name:')-3.24 E 2.5('h)-.74 G
+(eader is w)-2.5 E(anted.)-.1 E F1(sm: Not implemented/used)144 230.4 Q
+F0(X)108 259.2 Q F1 .742(sendmail, sm:)28.78 F F0 .742(does SMTP-lik)
+3.242 F 3.242(e')-.1 G .742
+(hidden-dot' algorithm of doubling all dots that are at the start of)
+-3.242 F(the line.)144 271.2 Q 1.3 -.65(y, Y)108 300 T F1
+(sendmail, sm: Not used)20.08 E F0(z)108 328.8 Q F1(sendmail:)31.56 E F0
+.43(Run Local Mail T)2.93 F .429
+(ransfer protocol \(LMTP\) between sendmail and the local mailer)-.35 F
+5.429(.S)-.55 G(ee)-5.429 E(RFC 2033.)144 340.8 Q F1
+(sm: Not implemented/used.)144 364.8 Q F0(Z)108 393.6 Q F1
+(sendmail, sm: Not used)29.89 E F0(The)108 422.4 Q F1(path)2.87 E F0 .37
+(\214eld speci\214es the location of the deli)2.87 F -.15(ve)-.25 G .37
+(ry program.).15 F(Relati)5.37 E .67 -.15(ve p)-.25 H .37
+(athnames are allo).15 F .37(wed and are rela-)-.25 F(ti)108 434.4 Q .3
+-.15(ve t)-.25 H 2.5(ot).15 G(he)-2.5 E F1(MAILBIN)2.5 E F0(directory)
+2.5 E 2.5(,b)-.65 G(ut also dollar)-2.7 E(-e)-.2 E
+(xpressions of type: ${ZENV)-.15 E(AR})-1.35 E(The)108 451.2 Q F1(ar)
+2.705 E(guments)-.37 E F0 .205(\214eld e)2.705 F .205
+(xtends to the end of the line.)-.15 F .204
+(It contains whitespace-separated ar)5.205 F .204(gv parameters which)
+-.18 F(may contain one of the follo)108 463.2 Q(wing sequences:)-.25 E
+23.5($g which)108 480 R(is replaced by the sender address.)2.5 E 23.5
+($h which)108 496.8 R(is replaced by the destination host.)2.5 E 23.5
+($u which)108 513.6 R .14(is replaced by the recipient address.)2.64 F
+.141(If the \255m mailer \215ag is set and there are se)5.14 F -.15(ve)
+-.25 G .141(ral recipi-).15 F 1.603(ents for this message, the ar)144
+525.6 R 1.603
+(gument containing the $u will be replicated as necessary for each)-.18
+F 2.5(recipient. \(Also)144 537.6 R(${ZENV)2.5 E(AR} e)-1.35 E
+(xpressions are allo)-.15 E(wed!\))-.25 E/F2 10.95/Times-Bold@0 SF
+(INTERF)72 554.4 Q -.602(AC)-.986 G(E).602 E F0 1.524
+(This program reads in processable \214le names relati)108 566.4 R 1.825
+-.15(ve t)-.25 H 4.025(ot).15 G 1.525(he current w)-4.025 F 1.525
+(orking directory of the scheduler)-.1 F(\(namely:)108 578.4 Q F1
+($POSTIOFFICE/tr)2.933 E(ansport/)-.15 E F0 2.933(\). Optionally)B .433
+(on the same line the scheduler may tell which host is to)2.933 F
+(be look)108 590.4 Q(ed for from the recipients of the message.)-.1 E F1
+-.37(re)180 614.4 S(lative-spool-path).37 E F0 2.5([<)2.5 G -.93(TA)-2.5
+G(B>).93 E F1(hostname)2.5 E F0(])2.5 E
+(This program produces diagnostic output on the standard output.)108
+631.2 Q(Normal diagnostic output is of the form:)5 E F1(id)180 655.2 Q
+F0(/)A F1(of)A(fset)-.18 E F0(<T)A(AB>)-.93 E F1(notify-data)A F0(<T)A
+(AB>)-.93 E F1(status messa)A -.1(ge)-.1 G F0(where)108 679.2 Q F1(id)
+3.665 E F0 1.165(is the inode number of the message \214le,)3.665 F F1
+(of)3.665 E(fset)-.18 E F0 1.166(is a byte of)3.666 F 1.166
+(fset within its control \214le where the)-.25 F .915
+(address being reported on is k)108 691.2 R(ept,)-.1 E F1(status)3.415 E
+F0 .915(is one of)3.415 F/F3 10/Times-Bold@0 SF(ok)3.415 E F0(,)A F3
+(err)3.415 E(or)-.18 E F0 3.415(,o)C(r)-3.415 E F3(deferr)3.415 E(ed)
+-.18 E F0 3.415(,a)C .915(nd the)-3.415 F F1(messa)3.415 E -.1(ge)-.1 G
+F0 .915(is descripti)3.515 F -.15(ve)-.25 G(te)108 703.2 Q .85
+(xt associated with the report.)-.15 F .85(The te)5.85 F .85
 (xt is terminated by a linefeed.)-.15 F(An)5.85 E 3.35(yo)-.15 G .85
 (ther format \(as might be pro-)-3.35 F(duced by subprocesses\) is pass\
-ed to standard output for logging in the)108 108 Q F2(scheduler)2.5 E F0
-(log.)2.5 E(The e)108 124.8 Q(xit status is a code from)-.15 E F2
-(<sysexits.h>)2.5 E F0(.)A/F3 10.95/Times-Bold@0 SF(FILES)72 141.6 Q F1
-(/etc/zmailer)108 153.6 Q(.conf)-1.11 E(/var/spool/postof)108 165.6 Q
-(\214ce \(POST)-.18 E(OFFICE\))-.18 E(/local/shar)108 177.6 Q
-(e/mail/sm.cf \(MAILSHARE/sm.cf\))-.37 E F3(SEE ALSO)72 194.4 Q F0
-(scheduler\(8\))108 206.4 Q F3 -.548(AU)72 223.2 S(THOR).548 E F0
-(This program authored and cop)108 235.2 Q(yright by:)-.1 E
-(Rayan Zachariassen <rayan@cs.toronto.edu>)108 247.2 Q(Se)108 259.2 Q
+ed to standard output for logging in the)108 715.2 Q F3(scheduler)2.5 E
+F0(log.)2.5 E(26 Sep 2000)281 768 Q(6)204 E EP
+%%Page: 7 7
+%%BeginPageSetup
+BP
+%%EndPageSetup
+/F0 10/Times-Roman@0 SF 413.28(SM\(8\) SM\(8\))72 48 R(The e)108 84 Q
+(xit status is a code from)-.15 E/F1 10/Times-Bold@0 SF(<sysexits.h>)2.5
+E F0(.)A/F2 10.95/Times-Bold@0 SF(FILES)72 100.8 Q/F3 10/Times-Italic@0
+SF(/etc/zmailer)108 112.8 Q(.conf)-1.11 E(/var/spool/postof)108 124.8 Q
+(\214ce \(POST)-.18 E(OFFICE\))-.18 E(/local/shar)108 136.8 Q
+(e/mail/sm.cf \(MAILSHARE/sm.cf\))-.37 E F2(SEE ALSO)72 153.6 Q F0
+(scheduler\(8\))108 165.6 Q F2 -.548(AU)72 182.4 S(THOR).548 E F0
+(This program authored and cop)108 194.4 Q(yright by:)-.1 E
+(Rayan Zachariassen <rayan@cs.toronto.edu>)108 206.4 Q(Se)108 218.4 Q
 -.15(ve)-.25 G(ral e).15 E(xtensions by:)-.15 E
-(Matti Aarnio <mea@nic.funet.\214>)108 271.2 Q 2.5(2S)283.5 768 S
-(ep 1998)-2.5 E(3)206.5 E EP
+(Matti Aarnio <mea@nic.funet.\214>)108 230.4 Q(26 Sep 2000)281 768 Q(7)
+204 E EP
 %%Trailer
 end
 %%EOF
