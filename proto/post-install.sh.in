@@ -78,9 +78,10 @@ sub compare_file {
 	# And its associated MD5 signature file
 	$l=`cat $x.md5`;
 	($md2,$junk) = split(' ',$l);
-	# echo "File: $x MD1=$md1 MD2=$md2"
+printf "File: $x MD1=$md1 MD2=$md2\n"
 	if ( $md1 eq $md2 ) {
 	    # They do match! We overwrite old file with new
+	   unlink("../$x");
 	   rename("$x", "../$x");
 	   system("$MD5SUM -b ../$x > $x.md5");
 	}
@@ -97,7 +98,7 @@ sub compare_file {
 # ----------  POSTOFFICE DIRECTORY BUILDER ------------
 
 sub dirprealloc {
-    local($DIR,$DSIZE) = @_;
+    local($DIR,$DSIZE,$DFILES) = @_;
     local(@st);
 
     $DSIZE *= 1000;
@@ -111,7 +112,7 @@ sub dirprealloc {
     @st = stat("${DIR}/."); # Can't fail ( -- eh ? )
     local($SIZE) = $st[7];
 
-    while ($SIZE < $DSIZE) {
+    while ($SIZE < $DSIZE && $NUM < $DFILES) {
 	# Link as long as you can -- or size is desired..
 	link("$DIR/filename.0","$DIR/$NAME.$NUM") || last;
 
@@ -129,26 +130,26 @@ sub dirprealloc {
     closedir(DH);
     local($x);
     foreach $x (@files) {
-	next if ($x eq '.'  || $x eq '..');
+	next if ($x eq '.' || $x eq '..');
 	unlink("$DIR/$x");
     }
 }
 
 sub mkpostofficedir {
-    local($DIR,$MOD,$HASH,$DSIZE) = @_;
+    local($DIR,$MOD,$HASH,$DSIZE,$DFILES) = @_;
 
     chdir($POSTOFFICE);
     if ( ! -d $DIR ) {
 	system("$MKDIR -p $DIR");
 	system("chmod $MOD $DIR");
-	& dirprealloc($DIR, $DSIZE);
+	& dirprealloc($DIR, $DSIZE, $DFILES);
 	local($xx,$yy);
 	if ($HASH eq 'HASH') {
 	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
 		system("$MKDIR -p $DIR/$xx");
 		system("chmod $MOD $DIR/$xx");
 		system("chmod g+s $DIR/$xx");
-		& dirprealloc("$DIR/$xx", $DSIZE);
+		& dirprealloc("$DIR/$xx", $DSIZE, $DFILES);
 	    }
 	}
 	if ($HASH eq 'HASH2') {
@@ -156,14 +157,14 @@ sub mkpostofficedir {
 		system("$MKDIR -p $DIR/$xx");
 		system("chmod $MOD $DIR/$xx");
 		system("chmod g+s $DIR/$xx");
-		& dirprealloc("$DIR/$xx", $DSIZE);
+		& dirprealloc("$DIR/$xx", $DSIZE, $DFILES);
 	    }
 	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
 		foreach $yy ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
 		    system("$MKDIR -p $DIR/$xx/$yy");
 		    system("chmod $MOD $DIR/$xx/$yy");
 		    system("chmod g+s $DIR/$xx/$yy");
-		    & dirprealloc("$DIR/$xx/$yy", $DSIZE);
+		    & dirprealloc("$DIR/$xx/$yy", $DSIZE, $DFILES);
 		}
 	    }
 	}
@@ -262,15 +263,15 @@ system("chmod 2755 $POSTOFFICE");
 system("chmod g+s $POSTOFFICE");
 
 #  subdir protchmod "no"/"HASH"/"HASH2" dirpreallocsize
-& mkpostofficedir('deferred',     '750', 'no',    60);
-& mkpostofficedir('TLSsrvrcache', '700', 'HASH',  60);
-& mkpostofficedir('TLSclntcache', '700', 'HASH',  60);
-& mkpostofficedir('freezer',      '750', 'no',    60);
-& mkpostofficedir('postman',      '750', 'no',    60);
-& mkpostofficedir('public',      '1777', 'no',    60);
-& mkpostofficedir('queue',        '750', 'HASH2', 60);
-& mkpostofficedir('transport',    '750', 'HASH2', 60);
-& mkpostofficedir('router',      '1777', 'HASH',  60);
+& mkpostofficedir('deferred',     '750', 'no',    60, 9999);
+& mkpostofficedir('TLSsrvrcache', '700', 'HASH',  60, 9999);
+& mkpostofficedir('TLSclntcache', '700', 'HASH',  60, 9999);
+& mkpostofficedir('freezer',      '750', 'no',    60, 9999);
+& mkpostofficedir('postman',      '750', 'no',    60, 9999);
+& mkpostofficedir('public',      '1777', 'no',    60, 9999);
+& mkpostofficedir('queue',        '750', 'HASH2', 60, 9999);
+& mkpostofficedir('transport',    '750', 'HASH2', 60, 9999);
+& mkpostofficedir('router',      '1777', 'HASH',  60, 9999);
 
 printf "
 ***
