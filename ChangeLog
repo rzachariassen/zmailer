@@ -1,3 +1,8 @@
+1998-05-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libsh/builtins.c:
+	    Finetuning of  sh_lreplace()  gadget.
+
 1998-05-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/db/smtp-policy.src, utils/policy-builder.sh.in:
