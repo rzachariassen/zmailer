@@ -39,7 +39,13 @@ quadprint (quad) {
 			;;
 		tfiss
 		;;
-	usenet)	text="250 newsgroup:" ;;
+	usenet)	text="250 newsgroup:"
+		;;
+	error)	case "$(host $quad)" in
+		-|'')	text="550 Error" ;;
+		*)	text="550 Error $(host $quad) for" ;;
+		esac
+		;;
 	*)	text="$(channel $quad) delivery"
 		case "$(host $quad)" in
 		-|'')	text="250 $text for" ;;
@@ -126,7 +132,7 @@ server (key) {
 				quadprint $j
 			done
 		done
-		echo "250 VRFY completed"
+		# echo "252 VRFY completed"
 		;;
 	expand)
 		a="$(router "$a" $B)"
@@ -140,7 +146,7 @@ server (key) {
 				quadprint $j
 			done
 		done
-		echo "250 EXPN completed"
+		# echo "252 EXPN completed"
 		;;
 	esac
 }
