@@ -4,6 +4,9 @@
 	    Alternate scheme for dealing with SMTP MAIL FROM:<>, and
 	    lack of "From:" header in the message.
 
+	* Makefile{,.in}:
+	    Version: 2.99.50-s2
+
 1998-04-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in, acconfig.h, lib/prversion.c:
