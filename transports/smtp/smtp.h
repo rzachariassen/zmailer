@@ -302,7 +302,7 @@ typedef char msgdata;
 #endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
 
 struct mxdata {
-	msgdata		*host;
+	char		*host;
 	int		 pref;
 	time_t		 expiry;
 	struct addrinfo *ai;
