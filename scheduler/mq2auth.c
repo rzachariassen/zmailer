@@ -271,6 +271,7 @@ static struct mq2pw * authuser(mq, user)
       *s++ = '\000';
       if (mq2amaskverify(mq, s)) continue; /* BAD! */
       mpw.auth = mq2authtokens(mpw.attrs);
+      sfclose(fp);
       return & mpw;
     }
   }

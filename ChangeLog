@@ -1,5 +1,9 @@
 2000-09-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* scheduler/mq2auth.c, scheduler/scheduler.c:
+	    File leakage at authuser(), which caused opendir() to fail,
+	    and its resulting NULL was used unprotected -> SEGV.
+
 	* router/functions.c, transports/hold/hold.c, proto/cf/aliases.cf:
 	    "hold" handling for the $(homedirectory ...) function.
 

@@ -1129,6 +1129,11 @@ static int dirqueuescan(dir, dq, subdirs)
 	/* Some changes lately, open the dir and read it */
 
 	dirp = opendir(dir);
+	if (!dirp) {
+	  sfprintf(sfstderr,"A 'this can never fail' opendir('%s') failed!; errno=%d (%s)\n",dir,errno,strerror(errno));
+	  return 0;
+	}
+
 	for (dp = readdir(dirp); dp != NULL; dp = readdir(dirp)) {
 	  /* Scan filenames into memory */
 
