@@ -58,19 +58,22 @@
 2003-07-23  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.c:
-	    Found a likely reason for scheduler's file descriptor leakage..
-	    The sfio-package does something wrong in odd case used in
-	    log-file re-opening, and filehandle recycling.
+	    Found a likely reason for scheduler's file descriptor
+	    leakage..    The sfio-package does something wrong in
+	    odd case used in log-file re-opening, and filehandle
+	    recycling.
 
 	* scheduler/scheduler.c:
 	    Don't unlink the message file in case its opening fails.
 	    (Like when scheduler/system has ran out of fd's)
 
 	* scheduler/mailq.c:
-	    Count also files in the $POSTOFFICE/queue/, and show it, if it
+	    Count also files in the $POSTOFFICE/queue/, and show it,
+	    if it
+	
 	    _differs_ from  $POSTOFFICE/transport/  count.
-	    Changed also slightly the output texts, which _MAY_ affect
-	    some management scripts!
+	    Changed also slightly the output texts, which _MAY_
+	    affect some management scripts!
 
 2003-07-01  Matti Aarnio  <mea@zmailer.org>
 
@@ -104,9 +107,10 @@
 
 	* configure.in, scheduler/mailq.inc, scheduler/mailq.c,
 	  scheduler/mq2.c:
-	    Auto-config test to find  getloadavg()  function (BSD, Solaris 8,
-	    Linux, ... a de-facto API for this data, in libc !)  and to print
-	    1 and 5 minute load-averages into the scheduler's "mailq -M"
+	    Auto-config test to find  getloadavg()  function
+	    (BSD, Solaris 8, Linux, ... a de-facto API for this
+	    data, in libc !)  and to print  1 and 5 minute
+	    load-averages into the scheduler's "mailq -M"
 	    report.
 
 	* transports/libta/diagnostic.c, transports/smtp/getmxrr.c:
@@ -152,12 +156,13 @@
 	* router/rfc822.c, router/functions.c:
 	    - Removing dead code (lots of it)
 	    - Reworked a bit the  reject()  function address processing,
-	      now also the originally intended error recipient will receive
-	      the message. (Thanks to Peter Ip to raise my attention at it.)
+	      now also the originally intended error recipient will
+	      receive the message. (Thanks to Peter Ip to raise my
+	      attention at it.)
 	    - All router internal  mail_open()  calls are wrapped with
 	      runastrusteduser()/runasrootuser() calls, so that created
-	      message file's owner will be 'trusted'.  Is THAT an ok thing
-	      in all situations ?  No definite idea...
+	      message file's owner will be 'trusted'.  Is THAT an ok
+	      thing in all situations ?  No definite idea...
 
 	* proto/cf/standard.cf:
 	    Rearranged the list of known top-level domains, and added
@@ -171,17 +176,18 @@
 	    When there was no logging file of any kind, this used to
 	    send TLS related diagnostics to the scheduler's log, which
 	    didn't work very nicely in one of my systems..
-	    Now changed so that if there is verbose-log, printouts go
-	    there, and independent of that, if there is smtp transport-agent
-	    log,  printouts go also there.  If there are neither, nothing is
-	    printed.
+	    Now changed so that if there is verbose-log, printouts
+	    go there, and independent of that, if there is smtp
+	    transport-agent log,  printouts go also there.
+	    If there are neither, nothing is printed.
 
 2003-06-17  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:
-	    If MAIL FROM test had  'rejectsource -' and/or 'freezesource -'
-	    attributes in  'user@do.main'  lookup, disable lookups of those
-	    same things from fallbacks of 'do.main'  lookup.
+	    If MAIL FROM test had  'rejectsource -' and/or
+	    'freezesource -'  attributes in  'user@do.main'
+	    lookup, disable lookups of those same things from
+	    fallbacks of 'do.main'  lookup.
 
 	* transports/mailbox/mailbox.c, transports/libta/mimeheaders.c,
 	  include/ta.h, transports/smtp/smtp.c:
@@ -203,8 +209,9 @@
 
 	* include/libz.h, include/shmmib.h, lib/fdstatfs-test.c,
 	  lib/fdstatfs.c, lib/zshmmibattach.c, router/daemonsub.c,
-	  scheduler/mailq.inc, scheduler/scheduler.c, smtpserver/smtpcmds.c,
-	  smtpserver/smtpdata.c, smtpserver/smtpserver.h:
+	  scheduler/mailq.inc, scheduler/scheduler.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c,
+	  smtpserver/smtpserver.h:
 	    - When wanting to add used spool space gauges into
 	      SHM segment header, realized that it does not have
 	      32 spare uint variables..  Oops..  Had to change
@@ -244,12 +251,13 @@
 2003-06-05  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mailq.inc:
-	    Print added seen EHLO-capability counters, and sent SMTP options
-	    counters.
+	    Print added seen EHLO-capability counters, and sent SMTP
+	    options counters.
 
 2003-06-04  Matti Aarnio  <mea@zmailer.org>
 
-	* include/shmmib.h, smtpserver/smtpcmds.c, transports/smtp/smtp.c:
+	* include/shmmib.h, smtpserver/smtpcmds.c,
+	  transports/smtp/smtp.c:
 	    Count several ESMTP options seen, (and used) by the smtp-ta,
 	    and used by the smtp clients.
 
@@ -258,15 +266,17 @@
 	  transports/hold/hold.c, transports/errormail/errormail.c,
 	  transports/sm/sm.c, transports/expirer/expirer.c,
 	  transports/reroute/reroute.c:
-	    Changed names of a number of variables, and added basic counters
-	    into all transport agents, which didn't have anything.
+	    Changed names of a number of variables, and added basic
+	    counters into all transport agents, which didn't have
+	    anything.
 
-	* Makefile.in, compat/Makefile.in, doc/Makefile.in, lib/Makefile.in,
-	  libc/Makefile.in, libident/Makefile.in, libmalloc/Makefile.in,
-	  libresolv/Makefile.in, libs/Makefile.in, libsh/Makefile.in,
-	  man/Makefile.in, proto/Makefile.in, router/Makefile.in,
-	  scheduler/Makefile.in, sfio/Makefile.in, smtpserver/Makefile.in,
-	  ssl/Makefile.in, transports/Makefile.in, utils/Makefile.in:
+	* Makefile.in, compat/Makefile.in, doc/Makefile.in,
+	  lib/Makefile.in, libc/Makefile.in, libident/Makefile.in,
+	  libmalloc/Makefile.in, libresolv/Makefile.in, libs/Makefile.in,
+	  libsh/Makefile.in, man/Makefile.in, proto/Makefile.in,
+	  router/Makefile.in, scheduler/Makefile.in, sfio/Makefile.in,
+	  smtpserver/Makefile.in, ssl/Makefile.in,  utils/Makefile.in,
+	  transports/Makefile.in:
 	    "make mostlyclean" -- clean everything except SFIO library.
 	    (Which is stand-alone in itself..)  This is side-result from
 	    SHMMIB-block tunings.
@@ -310,7 +320,8 @@
 2003-05-29  Matti Aarnio  <mea@zmailer.org>
 
 	* include/shmmib.h, scheduler/scheduler.c, scheduler/mailq.inc:
-	    Count for scheduler's time-server starts, and last start-time.
+	    Count for scheduler's time-server starts, and last
+	    start-time.
 
 	* transports/smtp/smtp.c:
 	    Count pipelining transmits only when doing connection
@@ -324,9 +335,9 @@
 	    Sending now (like sendmail) "250 2.0.0 ..."
 
 	* include/shmmib.h, scheduler/Makefile.in, scheduler/mailq.inc,
-	  scheduler/scheduler.h, smtpserver/smtpcmds.c, smtpserver/smtphelp.c,
-	  smtpserver/smtpserver.h, smtpserver/smtpserver.c,
-	  transports/smtp/smtp.c:
+	  scheduler/scheduler.h, smtpserver/smtpcmds.c,
+	  smtpserver/smtphelp.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c, transports/smtp/smtp.c:
 	    More simpleish counters and gauges...
 
 	* transports/smtp/smtp.c, include/shmmib.h, scheduler/mailq.inc:
@@ -343,26 +354,31 @@
 2003-05-26  Matti Aarnio  <mea@zmailer.org>
 
 	* bin/mkdep.in, bin/mklibdep.in, compat/rmail/Makefile.in,
-	  compat/sendmail/Makefile.in, lib/Makefile.in, libc/Makefile.in,
-	  libident/Makefile.in, libresolv/Makefile.in, libsh/Makefile.in,
-	  router/Makefile.in, router/libdb/Makefile.in, scheduler/Makefile.in,
-	  sfio/Makefile.in, smtpserver/Makefile.in,
-	  transports/errormail/Makefile.in, transports/expirer/Makefile.in,
+	  compat/sendmail/Makefile.in, lib/Makefile.in,
+	  libc/Makefile.in, libident/Makefile.in,
+	  libresolv/Makefile.in, libsh/Makefile.in,
+	  router/Makefile.in, router/libdb/Makefile.in,
+	  scheduler/Makefile.in,  sfio/Makefile.in,
+	  smtpserver/Makefile.in, transports/errormail/Makefile.in,
+	  transports/expirer/Makefile.in,
 	  transports/fuzzyalias/Makefile.in, transports/hold/Makefile.in,
 	  transports/libta/Makefile.in, transports/mailbox/Makefile.in,
 	  transports/reroute/Makefile.in, transports/sm/Makefile.in,
 	  transports/smtp/Makefile.in, utils/makedb/Makefile.in,
 	  utils/vacation/Makefile.in:
 	    Fixed the "make depend" processing, now it works also when
-	    compiling in "adjacent directory" (tested only in that, though..)
+	    compiling in "adjacent directory" (tested only in that,
+	    though..)
 
-	* include/libz.h, include/shmmib.h, lib/fdstatfs.c, router/daemonsub.c,
-	  lib/zshmmibattach.c, router/rfc822.c, scheduler/mailq.c,
-	  scheduler/mq2.c, scheduler/scheduler.c, scheduler/threads.c,
-	  scheduler/transport.c, scheduler/update.c, smtpserver/smtpchild.c,
-	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c, smtpserver/smtpetrn.c,
+	* include/libz.h, include/shmmib.h, lib/fdstatfs.c,
+	  router/daemonsub.c, lib/zshmmibattach.c, router/rfc822.c,
+	  scheduler/mailq.c, scheduler/mq2.c, scheduler/scheduler.c,
+	  scheduler/threads.c, scheduler/transport.c, scheduler/update.c,
+	  smtpserver/smtpchild.c, smtpserver/smtpcmds.c,
+	  smtpserver/smtpdata.c, smtpserver/smtpetrn.c,
 	  smtpserver/smtpserver.c, smtpserver/smtpserver.h,
-	  smtpserver/smtptls.c, transports/smtp/smtp.c, transports/smtp/smtp.h:
+	  smtpserver/smtptls.c, transports/smtp/smtp.c,
+	  transports/smtp/smtp.h:
 	    Reworked a bit more of the monitor counters and gauges.
 	    (Actually a lot..  Added first glimmers even to SMTP-ta.)
 
@@ -378,11 +394,11 @@
 	    flock/fcntl/lockf supported.
 
 	* scheduler/scheduler.c:
-	    Fixed the StoredReceipients and ReceivedRecipients accounting
-	    counters.  Primarily that gauge, secondarily moved the
-	    received counter next to the gauge.  (The gauge was incrementing
-	    twice for each received recipient, and decremented once for each
-	    sent ...)
+	    Fixed the StoredReceipients and ReceivedRecipients
+	    accounting counters.  Primarily that gauge, secondarily
+	    moved the received counter next to the gauge.
+	    (The gauge was incrementing twice for each received
+	    recipient, and decremented once for each sent ...)
 
 	* router/rfc822.c:
 	    Track the number of recipient addresses before routing
@@ -392,18 +408,20 @@
 
 	* include/shmmib.h, lib/zshmmibattach.c, router/daemonsub.c,
 	  router/router.c, scheduler/mailq.c, scheduler/mq2.c,
-	  scheduler/scheduler.c, scheduler/scheduler.h, scheduler/threads.c,
-	  scheduler/transport.c, scheduler/update.c, smtpserver/smtpchild.c,
-	  smtpserver/smtpserver.c, smtpserver/smtpserver.h:
-	    - Added fields of primary daemons start times, and counters of
-	      how many times they have been started in this block..
-	    - Fixed the scheduler process accounting, and for a good measure,
-	      threw in thread, vertex, and recipient gauges.
+	  scheduler/scheduler.c, scheduler/scheduler.h,
+	  scheduler/threads.c, scheduler/transport.c, scheduler/update.c,
+	  smtpserver/smtpchild.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h:
+	    - Added fields of primary daemons start times, and counters
+	      of how many times they have been started in this block..
+	    - Fixed the scheduler process accounting, and for a good
+	      measure, threw in thread, vertex, and recipient gauges.
 
 	* utils/perl/Makefile.in:
 	    As the "mailq" needs to be copied from its original location,
-	    when processing building in "adjacent directory", the "make clean"
-	    will need to remove it under same conditions.
+	    when processing building in "adjacent directory",
+	    the "make clean"  will need to remove it under same
+	    conditions.
 
 	* router/router.c, router/daemonsub.c, scheduler/scheduler.c,
 	  smtpserver/smtpserver.c:
@@ -423,22 +441,25 @@
 	    had been open-coded into the makefile.  Also support
 	    referring to  e.g.  ZMailer::mailq(3)  in hyperlinks.
 
-	* configure.in, lib/zshmmibattach.c, include/libz.h, scheduler/mailq.c:
-	    Added test for <sys/file.h> header,  Added  flock()/lockf()  locking
-	    of the shared segment storage, and detailed error status returning
-	    from Z_SHM_MIB_Attach() so that  "mailq -M" can report what exactly
-	    happened, when things didn't work.
+	* configure.in, lib/zshmmibattach.c, include/libz.h,
+	  scheduler/mailq.c:
+	    Added test for <sys/file.h> header,  Added  flock()/lockf()
+	    locking of the shared segment storage, and detailed error
+	    status returning from Z_SHM_MIB_Attach() so that  "mailq -M"
+	    can report what exactly happened, when things didn't work.
 
 	* include/libz.h,  lib/zshmmibattach.c,  smtpserver/smtpdata.c,
 	  scheduler/scheduler.c, smtpserver/smtpcmds.c, scheduler/mailq.c:
-	    More text changes, implemented two instances of spool free space gauge.
-	    (That thing peaks at about 2 GB, only when space goes BELOW it,
-	     there is a reason to watch for it..)
+	    More text changes, implemented two instances of spool free
+	    space gauge.  (That thing peaks at about 2 GB, only when
+	    space goes BELOW it, there is a reason to watch for it..)
 
-	* smtpserver/fdstatfs.c, smtpserver/fdstatfs-test.c, smtpserver/Makefile.in,
-	  lib/fdstatfs.c, lib/fdstatfs-test.c, lib/Makefile.in:
+	* smtpserver/fdstatfs.c, smtpserver/fdstatfs-test.c,
+	  smtpserver/Makefile.in, lib/fdstatfs.c, lib/fdstatfs-test.c,
+	  lib/Makefile.in:
 	    Moved the fdstatfs*.c files from one directory to another.
-	    Did that also in CVS repository, and thus preserved revision data..
+	    Did that also in CVS repository, and thus preserved revision
+	    data..
 
 	* scheduler/mailq.c:
 	    More 'mailq -M' printouts.
@@ -697,13 +718,14 @@
 2003-05-08  Matti Aarnio  <mea@zmailer.org>
 
 	* libsh/builtins.c:
-	    Debugging  sh_read()'s internal buffer re-allocation/extension
-	    code.  Something is wrong in there, and it grows without bounds..
+	    Debugging  sh_read()'s internal buffer
+	    re-allocation/extension code.
+	    Something is wrong in there, and it grows without bounds..
 
 	* include/listutils.h, libsh/listmalloc.c, router/db.c:
-	    "function with parameter that is a pointer to a function with ..."
-	    .. found correct thing.  I wish gcc would tell as much as
-	    the Sun WorkShop C compiler tells...
+	    "function with parameter that is a pointer to a function
+	    with ..."     .. found correct thing.  I wish gcc would
+	    tell as much as the Sun WorkShop C compiler tells...
 
 	* configure.in, include/zresolv.h:
 	    Solaris 2.6 oops.. u_int16_t isn't known type there..
@@ -776,45 +798,49 @@
 	* INSTALL:
 	    Small updates, more is needed...
 
-	* Makefile.in, compat/rmail/Makefile.in, compat/sendmail/Makefile.in,
-	  libc/Makefile.in, man/Makefile.in, packaging/solaris/Makefile.in,
+	* Makefile.in, compat/rmail/Makefile.in,
+	  compat/sendmail/Makefile.in, libc/Makefile.in,
+	  man/Makefile.in, packaging/solaris/Makefile.in,
 	  proto/Makefile.in, router/Makefile.in, scheduler/Makefile.in,
 	  smtpserver/Makefile.in, transports/errormail/Makefile.in,
-	  transports/expirer/Makefile.in, transports/fuzzyalias/Makefile.in,
-	  transports/hold/Makefile.in, transports/mailbox/Makefile.in,
-	  transports/reroute/Makefile.in, transports/sm/Makefile.in,
-	  transports/smtp/Makefile.in, utils/makedb/Makefile.in,
-	  utils/Makefile.in, utils/mxverify/Makefile.in,
+	  transports/expirer/Makefile.in,  utils/Makefile.in,
+	  transports/fuzzyalias/Makefile.in, transports/hold/Makefile.in,
+	  transports/mailbox/Makefile.in, transports/reroute/Makefile.in,
+	  transports/sm/Makefile.in, transports/smtp/Makefile.in,
+	  utils/makedb/Makefile.in, utils/mxverify/Makefile.in,
 	  utils/perl/Makefile.in:
-	    Rewriting the virtual-root installation support to use "DESTDIR="
-	    instead of "prefix=".  The Proper Way ...
+	    Rewriting the virtual-root installation support to use
+	    "DESTDIR=" instead of "prefix=".  The Proper Way ...
 
-	* include/mail.h.in, scheduler/readconfig.c, scheduler/scheduler.c,
-	  smtpserver/debugreport.c, transports/errormail/errormail.c,
-	  transports/expirer/expirer.c, transports/hold/hold.c,
-	  transports/sm/sm.c, transports/libta/lockaddr.c,
-	  transports/libta/tasysyslog.c, transports/mailbox/mailbox.c,
-	  transports/reroute/reroute.c:
+	* include/mail.h.in, scheduler/readconfig.c,
+	  scheduler/scheduler.c, smtpserver/debugreport.c,
+	  transports/errormail/errormail.c, transports/expirer/expirer.c,
+	  transports/hold/hold.c, transports/sm/sm.c,
+	  transports/libta/lockaddr.c, transports/libta/tasysyslog.c,
+	  transports/mailbox/mailbox.c, transports/reroute/reroute.c:
 	    Further cleanup after inserting Eugene's patch-cluster.
 	    Adding   #include "libc.h"  usually, and various other
 	    merryments it involves.
 
 2003-05-05  Matti Aarnio  <mea@zmailer.org>
 
-	* SiteConfig.in, configure.in, include/libz.h, scheduler/transport.c,
-	  smtpserver/cfgread.c, transports/smtp/smtp.c, lib/Makefile.in,
+	* SiteConfig.in, configure.in, include/libz.h,
+	  scheduler/transport.c, smtpserver/cfgread.c,
+	  transports/smtp/smtp.c, lib/Makefile.in,
 	  lib/zgetbindaddr.c:
-	    Patch cluster from Eugene Crosser to librarize common code, and
-	    to introduce 'BINDADDR' ZENV variable.
+	    Patch cluster from Eugene Crosser to librarize common code,
+	    and to introduce 'BINDADDR' ZENV variable.
 
 	* compat/sendmail/sendmail.c:
 	    If process environment has ZCONFIG variable set, does read
 	    ZENV variables from that place.
 
-	* proto/mailrm.sh.in, proto/newaliases.in, proto/newfqdnaliases.in,
-	  proto/post-install.sh.in, transports/expirer/manual-expirer.in,
-	  transports/reroute/manual-rerouter.in, utils/policy-builder.sh.in,
-	  utils/rotate-logs.sh.in, utils/zmailer.init.sh.in:
+	* proto/mailrm.sh.in, proto/newaliases.in,
+	  proto/newfqdnaliases.in, proto/post-install.sh.in,
+	  transports/expirer/manual-expirer.in,
+	  transports/reroute/manual-rerouter.in,
+	  utils/policy-builder.sh.in, utils/rotate-logs.sh.in,
+	  utils/zmailer.init.sh.in:
 	    Eugene Crosser noted, that not all scripts inherit / are
 	    otherwise configurable to use alternate (than configured-in)
 	    value of  ZCONFIG.
@@ -822,14 +848,15 @@
 2003-05-02  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/contentpolicy.c, smtpserver/readpolicy.c,
-	  include/policy.h, smtpserver/policytest.c, smtpserver/policytest.h,
-	  doc/guides/smtp-policy, proto/db/smtp-policy.src:
+	  include/policy.h, smtpserver/policytest.c,
+	  smtpserver/policytest.h, doc/guides/smtp-policy,
+	  proto/db/smtp-policy.src:
 	    Added 'filtering +' phrase to smtpserver's IP ADDRESS tests.
 
 	* utils/perl/mailq/Makefile.PL, utils/perl/mailq/mailq.pm,
 	  utils/perl/mailq/MANIFEST, utils/perl/mailq/README,
-	  utils/perl/mailq/Changes, utils/perl/Makefile.in, utils/Makefile.in,
-	  configure.in:
+	  utils/perl/mailq/Changes, utils/perl/Makefile.in,
+	  utils/Makefile.in, configure.in:
 	    Made old perl-test tool into proper OO Perl code.
 	    Requires perl 5.8. (I think).
 
@@ -848,7 +875,8 @@
 	    current CVS.
 
 	* proto/zmailer.sh.in:
-	    Quote typo introduced when adding  --zconfig   option..  Oops.
+	    Quote typo introduced when adding  --zconfig   option..
+	    Oops.
 
 2003-04-30  Matti Aarnio  <mea@zmailer.org>
 
@@ -857,7 +885,8 @@
 
 	* README.UPGRADING:
 	    The router internal logic change IS script incompatible!
-	    Carefull out there with your  aliases.cf,  and  fqdnaliases.cf !
+	    Carefull out there with your  aliases.cf,  and
+	    fqdnaliases.cf !
 
 	* proto/cf/aliases.cf, proto/cf/fqdnalias.cf, router/functions.c:
 	    - When a list-expansions fails to produce recipient list,
@@ -868,7 +897,8 @@
 	      codepath behaviour.
 
 	* scheduler/update.c:
-	    Change in debug outputs to use more usefull spoolid reference.
+	    Change in debug outputs to use more usefull spoolid
+	    reference.
 
 2003-04-28  Matti Aarnio  <mea@zmailer.org>
 
