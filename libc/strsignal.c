@@ -4,6 +4,10 @@
  */
 
 #include "hostenv.h"
+
+#ifndef HAVE_STRSIGNAL
+
+#ifndef SYS_SIGLIST_DECLARED
 #ifndef	HAVE_SYS_SIGLIST /* No  sys_siglist[]  at the libc ? */
 const char *sys_siglist[] = {
 	"Signal 0",
@@ -40,8 +44,8 @@ const char *sys_siglist[] = {
 	"Signal 31"
 };
 #endif	/* HAVE_SYS_SIGLIST */
+#endif
 
-#ifndef HAVE_STRSIGNAL
 #ifndef SYS_SIGLIST_DECLARED /* Not declared anywhere ? */
 extern const char *sys_siglist[];
 #endif
