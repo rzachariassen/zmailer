@@ -105,7 +105,7 @@ static char *_KK[] = {
 	"USER"
 };
 #define MAX_KK 5
-#define KK(x) ((((x)>0)&&((x)<=MAX_KK))?_KK[x]:"??")
+#define KK(x) ((((x)>0)&&((x)<=MAX_KK))?_KK[(x) 0xFF]:"??")
 
 static char *_KA[] = {
 	"UNKNOWN",
@@ -126,6 +126,6 @@ static char *_KA[] = {
 	"message",
 	"localdomain",
 };
-#define KA(x) ((((x)>0)&&((x)<=P_A_LastAttr))?_KA[x]:"??")
+#define KA(x) ((((x)>0)&&((x)<=P_A_LastAttr))?_KA[(x) & 0xFF]:"??")
 
 #endif
