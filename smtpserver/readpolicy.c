@@ -190,7 +190,7 @@ char *str1, *str2;
     struct _tokenpair *ap = attributes;
 
     abuf->len = 2 + strlen(str2) + 1;
-    strcpy(abuf->data, str2);
+    strcpy((char *)(abuf->data), str2);
 
     while (ap->name != NULL) {
       if (strcmp(ap->name, str1) == 0) {

@@ -38,7 +38,7 @@ static void dollarexpand(s0, space)
       ++str;
       if (*str == '$') {
 	/* A '$$' sequence shrinks to '$' */
-	strcpy(str, str+1);
+	strcpy((char*)str, str+1);
 	continue;
       }
       s = namebuf;
@@ -65,7 +65,7 @@ static void dollarexpand(s0, space)
       if (*namebuf == 0) /* If there are e.g.  "$/" or "${}" or "$()", or
 			    just "$" at the end of the line, then let it be. */
 	continue;
-      s = (char*) getzenv((char*)namebuf); /* Pick whatever name there was.. */
+      s = (unsigned char*) getzenv((char*)namebuf); /* Pick whatever name there was.. */
       if (!s) continue;     /* No ZENV variable with this name ? */
 
       len     = strlen((char*)s);
@@ -106,7 +106,7 @@ static void dollarexpand(s0, space)
 	  memcpy(s0, s, len);
 	if (s0+len < str)
 	  /* Copy down */
-	  strcpy((char*)(s0+len), str);
+	  strcpy((char*)(s0+len), (const char *)str);
 	str = s0 + len;
 	str[taillen] = 0; /* Chop the possible old junk from the tail */
 
@@ -157,7 +157,7 @@ static void cfparam(str,size)
     }
 
     /* Do '$' expansions on the string */
-    dollarexpand(str, size - (str - str0));
+    dollarexpand((unsigned char *)str, size - (str - str0));
 
     SKIPSPACE(str);
 

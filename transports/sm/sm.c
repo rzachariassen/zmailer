@@ -1239,7 +1239,8 @@ readsmcf(file, mailer)
 	  perror(file);
 	  exit(EX_OSFILE);
 	}
-	entry = cp = NULL;
+	entry = NULL;
+	cp    = NULL;
 	while (fgets(buf, sizeof buf, fp) != NULL) {
 	  if (buf[0] == '#' || buf[0] == '\n')
 	    continue;

@@ -375,7 +375,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    struct addrinfo *ai;
 	    Usockaddr *usa;
 	    char *canon;
-	    int   nlen = strlen(buf);
+	    int   nlen = strlen((const char*)buf);
 
 	    /* Pick the address data */
 	    for (i = 0; i < nmx; ++i) {
@@ -481,9 +481,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    /* This resolves CNAME, it should not happen in case
 	       of MX server, though..    */
 #ifdef HAVE_GETADDRINFO
-	    n = getaddrinfo(mx[i].host, "0", &req, &ai);
+	    n = getaddrinfo((const char*)mx[i].host, "0", &req, &ai);
 #else
-	    n = _getaddrinfo_(mx[i].host, "0", &req, &ai, SS->verboselog);
+	    n = _getaddrinfo_((const char*)mx[i].host, "0", &req, &ai, SS->verboselog);
 #endif
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET) -> r=%d (%s), ai=%p\n",
@@ -529,9 +529,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  /* This resolves CNAME, it should not happen in case
 	     of MX server, though..    */
 #ifdef HAVE_GETADDRINFO
-	    n2 = getaddrinfo(mx[i].host, "0", &req, &ai2);
+	    n2 = getaddrinfo((const char *)mx[i].host, "0", &req, &ai2);
 #else
-	    n2 = _getaddrinfo_(mx[i].host, "0", &req, &ai2,
+	    n2 = _getaddrinfo_((const char *)mx[i].host, "0", &req, &ai2,
 			       SS->verboselog);
 #endif
 	    if (SS->verboselog)
@@ -605,7 +605,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    mx[nmx].ai = ai;
 	    ai         = ai->ai_next;
 	    mx[nmx].ai->ai_next = NULL;
-	    mx[nmx].host = (msgdata *)strdup(mx[i].host);
+	    mx[nmx].host = (msgdata *)strdup((const char *)mx[i].host);
 	    if (mx[nmx].host == NULL) {
 	      fprintf(stderr, "Out of virtual memory!\n");
 	      exit(EX_OSERR);

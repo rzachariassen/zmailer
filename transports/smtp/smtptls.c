@@ -611,12 +611,12 @@ int     tls_init_clientengine(SS, cfgpath)
       continue; /* First non-whitespace char is comment start (or EOL) */
 
     SKIPSPACE(s);
-    n = s;
+    n = (char *)s;
     SKIPTEXT(s);
     if (*s) *s++ = 0;
 
     SKIPSPACE(s);
-    a1 = s;
+    a1 = (char *)s;
     SKIPTEXT(s);
     if (*s) *s++ = 0;
 
@@ -840,7 +840,7 @@ int     tls_start_clienttls(SS,peername)
      * we can later check, whether it is really reused.
      */
     if (tls_use_scache) {
-	MD5(peername, strlen(peername), peername_md5);
+	MD5((void *)peername, strlen(peername), peername_md5);
 	session = load_clnt_session(peername_md5, MD5_DIGEST_LENGTH,
 				    &verify_result);
 	if (session) {

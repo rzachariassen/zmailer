@@ -76,7 +76,7 @@ int md5file(filename, md5result)
 
     if (i == 0) break; /* EOF */
     if (i > 0)
-      MD5Update(&M5, buf, i);
+      MD5Update(&M5, (const void *)buf, i);
   }
   MD5Final(md5result, &M5);
 
