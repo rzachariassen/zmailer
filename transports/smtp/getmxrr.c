@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2001 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2002 by Matti Aarnio -- modifications, including MIME
  */
 
 #include "smtp.h"
@@ -933,9 +933,23 @@ int main(argc, argv)
 
 	if (argc != 2) {
 	  printf("Usage: getmxrr-test domain.name\n");
+	  printf("\n");
+	  printf("Std tests:\n");
+	  printf("     getmxrr-test  timeout-mx.zmailer.org\n");
+	  printf("  -> GETMXRR() rc=100 EX_DEFERALL; mxcount=0\n");
+	  printf("  -> NO SUCCESSFULLY COLLECTED MX DATA, LOOKING FOR A/AAAA DATA:\n");
+	  printf("  -> .. getaddrinfo() (INET*) r=-2 (no address)\n");
+	  printf("  ->  GOT NO ADDRESSES!\n");
+	  printf("\n");
+	  printf("     getmxrr-test  timeout-zone.zmailer.org\n");
+	  printf("  -> GETMXRR() rc=100 EX_DEFERALL; mxcount=0\n");
+	  printf("  -> NO SUCCESSFULLY COLLECTED MX DATA, LOOKING FOR A/AAAA DATA:\n");
+	  printf("  -> .. getaddrinfo() (INET*) r=-3 (temporary failure in name resolution)\n");
+	  printf("  ->  GOT NO ADDRESSES!\n");
 	  exit(EX_USAGE);
 	}
 
+	printf("ZMAILER GETMXRR() TEST HARNESS\n");
 
 	rc = getmxrr(&SS, host, SS.mxh, MAXFORWARDERS, 0);
 
@@ -993,13 +1007,15 @@ int main(argc, argv)
 	}
 
 
-	printf("getmxrr() rc=%d %s; mxcount=%d\n", rc, s, SS.mxcount);
+	printf("GETMXRR() rc=%d %s; mxcount=%d\n", rc, s, SS.mxcount);
 
 
 	if (SS.mxcount == 0 || SS.mxh[0].host == NULL) {
 
 	  struct addrinfo req, *ai;
 	  int r;
+
+	  printf("NO SUCCESSFULLY COLLECTED MX DATA, LOOKING FOR A/AAAA DATA:\n");
 
 	  memset(&req, 0, sizeof(req));
 	  req.ai_socktype = SOCK_STREAM;
@@ -1058,6 +1074,10 @@ int main(argc, argv)
 	    }
 	  }
 #endif
+	  if (ai)
+	    printf("  GOT SOME ADDRESS, SUCCESS!\n");
+	  else
+	    printf("  GOT NO ADDRESSES!\n");
 	}
 
 	return 0;

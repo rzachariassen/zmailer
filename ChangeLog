@@ -1,3 +1,10 @@
+2002-04-12  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/getmxrr.c:
+	    Extended the test-harness a bit by telling what
+	    are the two standard tests for it, and their
+	    expected results.
+
 2002-04-05  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.h, transports/smtp/smtp.c:
