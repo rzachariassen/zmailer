@@ -27,6 +27,7 @@ PARAM	VRFYcmd
 #PARAM	NoCHUNKING
 #PARAM  NoDSN
 #PARAM  NoETRN
+#PARAM  no-multiline-replies # except to EHLO
 #
 # HDR220 metatags:
 #  %% -- '%' character

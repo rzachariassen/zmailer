@@ -190,9 +190,7 @@ const char *buf, *cp;
      * We need it for proper handling of ESMTP anyway
      */
     if (checkhelo && skeptical && partridge(SS, cp)) {
-	type821err(SS, -501, "", buf,
-		   "Invalid `%.200s' parameter!",
-		   buf);
+	type821err(SS, -501, "", buf, "Invalid `%.200s' parameter!", buf);
 	if (msg != NULL)
 	  type(SS, -501, "", "%s", msg);
 	type(SS, 501, "", "Err: %s", rfc821_error);
@@ -269,6 +267,8 @@ const char *buf, *cp;
 	char sizebuf[20];
 	long policyinlimit = policyinsizelimit(policydb, &SS->policystate);
 	long maxinlimit = maxsize;
+	int multiline = multilinereplies;
+	multilinereplies = 1;
 
 	if (policyinlimit >= 0)  /* defined if non-negative value */
 	  maxinlimit = policyinlimit;
@@ -307,6 +307,7 @@ const char *buf, *cp;
 	  type(SS, -250, NULL, "ETRN");
 	type(SS, 250, NULL, "HELP");
 	SS->with_protocol = WITH_ESMTP;
+	multilinereplies = multiline;
     }
     SS->state = MailOrHello;
 }

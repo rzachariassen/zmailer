@@ -175,6 +175,10 @@ char *str;
       etrn_ok = 0;
       return;
     }
+    if (cistrcmp(name, "no-multiline-replies") == 0) {
+      multilinereplies = 0;
+      return;
+    }
 }
 
 struct smtpconf *

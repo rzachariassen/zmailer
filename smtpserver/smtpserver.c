@@ -188,6 +188,7 @@ int ident_flag = 0;
 int pipeliningok = 1;
 int chunkingok = 1;
 int enhancedstatusok = 1;
+int multilinereplies = 1;
 int mime8bitok = 1;
 int dsn_ok = 1;
 int ehlo_ok = 1;
@@ -1821,6 +1822,8 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     if (code < 0) {
 	code = -code;
 	c = '-';
+	if (!multilinereplies) /* Ignore ALL negative codes */
+	  return;
     } else
 	c = ' ';
 
@@ -2071,24 +2074,26 @@ va_dcl
 
     abscode = (code < 0) ? -code : code;
 
-    if (status && enhancedstatusok) {
-      fprintf(SS->outfp, "%03d-%s ", abscode, status);
-      if (logfp != NULL)
-	fprintf(logfp, "%dw\t%03d-%s ", pid, abscode, status);
-    } else { /* No status codes */
-      fprintf(SS->outfp, "%03d- ", abscode);
-      if (logfp != NULL)
-	fprintf(logfp, "%dw\t%03d- ", pid, abscode);
-    }
-    while (s < rfc821_error_ptr && --maxcnt >= 0) {
+    if (multilinereplies) {
+      if (status && enhancedstatusok) {
+	fprintf(SS->outfp, "%03d-%s ", abscode, status);
+	if (logfp != NULL)
+	  fprintf(logfp, "%dw\t%03d-%s ", pid, abscode, status);
+      } else { /* No status codes */
+	fprintf(SS->outfp, "%03d- ", abscode);
+	if (logfp != NULL)
+	  fprintf(logfp, "%dw\t%03d- ", pid, abscode);
+      }
+      while (s < rfc821_error_ptr && --maxcnt >= 0) {
 	++s;
 	putc(' ', SS->outfp);
 	if (logfp != NULL)
-	    putc(' ', logfp);
-    }
-    fprintf(SS->outfp, "^\r\n");
-    if (logfp != NULL)
+	  putc(' ', logfp);
+      }
+      fprintf(SS->outfp, "^\r\n");
+      if (logfp != NULL)
 	fprintf(logfp, "^\n");
+    }
 
     type(SS, code, status, msg, a1, a2, a3, a4);
 
