@@ -1,3 +1,10 @@
+1999-09-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/policy-builder.sh.in:
+	    Disable completely the old (original) spam-address
+	    downloading with Lynx, and its associated tests.
+	    Time has passed over them...
+
 1999-09-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/smtpserver.conf.in, proto/zmailer.sh.in,

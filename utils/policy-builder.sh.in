@@ -68,7 +68,7 @@ if [ f$FLAG != fn ]; then
     if [ -x $MAILBIN/smtp-policy-retrieve.pl ] ; then
 	$MAILBIN/smtp-policy-retrieve.pl
     else
-	if [ -x $MAILBIN/spamlist.py ] ; then
+	if [ -x $MAILBIN/spamlist.py -a -r spamlist_sources ] ; then
 	    $MAILBIN/spamlist.py spamlist_sources > smtp-policy.spam.new && \
 		mv  smtp-policy.spam.new smtp-policy.spam
 	else
@@ -77,23 +77,23 @@ if [ f$FLAG != fn ]; then
 	    # go (usually) to the result file, and in the end the result
 	    # OVERWRITES the "running"  smtp-policy.spam  file.
 	    #
-	    > smtp-policy.spam.new
-	#   lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
-	#	| sed -e '1,$s/^@/./' \
-	#	>> smtp-policy.spam.new
-	#   lynx -source http://www.sprocket.com/Security/SpamDomains | \
-	#	awk 'NF > 0 {printf ".%s\n",$1}' >> smtp-policy.spam.new
-	    cat smtp-policy.spam.new | sed 's/^@//g' | tr "[A-Z]" "[a-z]" | \
-		    sort | uniq > smtp-policy.spam.new2
-	    if [ `grep -c cyberpromo smtp-policy.spam.new` -gt "0" ]; then
-		mv smtp-policy.spam smtp-policy.spam.old
-		mv smtp-policy.spam.new2 smtp-policy.spam
-		rm -f smtp-policy.spam.new
-	    else
-	        echo "Hmm....something went wrong while updating the spam policy."
-		echo "Please try again."
- 		exit 1
-	    fi
+#	    > smtp-policy.spam.new
+#	   lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
+#		| sed -e '1,$s/^@/./' \
+#		>> smtp-policy.spam.new
+#	   lynx -source http://www.sprocket.com/Security/SpamDomains | \
+#		awk 'NF > 0 {printf ".%s\n",$1}' >> smtp-policy.spam.new
+#	    cat smtp-policy.spam.new | sed 's/^@//g' | tr "[A-Z]" "[a-z]" | \
+#		    sort | uniq > smtp-policy.spam.new2
+#	    if [ `grep -c cyberpromo smtp-policy.spam.new` -gt "0" ]; then
+#		mv smtp-policy.spam smtp-policy.spam.old
+#		mv smtp-policy.spam.new2 smtp-policy.spam
+#		rm -f smtp-policy.spam.new
+#	    else
+#		echo "Hmm....something went wrong while updating the spam policy."
+#		echo "Please try again."
+# 		exit 1
+#	    fi
 	fi
     fi
 fi
