@@ -249,14 +249,9 @@ struct sockaddr ***sockaddrp;
 	    /* Known address families ?
 	       The one we scanned for ??*/
 
-#ifndef SIOCGIFCONF
-	    if (sa->sa.sa_family != AF_INET)
-	      /* we process here both INET and INET6 if
-		 SIOCGIFCONF ioctl is not known! */
-	      /* Possibly skip if not PF_INET */
-#endif
-	      if (sa->sa.sa_family != AF_INET6)
-		/* Skip if not PF_INET6 */
+	    if ( sa->sa.sa_family != AF_INET &&
+		 sa->sa.sa_family != AF_INET6 )
+		/* Skip if not either of used protocols.. */
 		continue;
 
 	    /* Now, what do the flags say ? Are they alive ? */
