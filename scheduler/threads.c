@@ -1443,7 +1443,7 @@ idle_cleanup()
 	      if (!p) /* No process */
 		continue;
 	      if ((p->cmdlen == 0) && (p->overfed == 0) &&
-		  (p->hungertime + MAX_HUNGER_AGE > now)) {
+		  (p->hungertime != 0) && (p->hungertime + MAX_HUNGER_AGE <= now)) {
 
 		/* Close the command channel, let it die itself.
 		   Rest of the cleanup happens via mux() service. */
@@ -1453,7 +1453,7 @@ idle_cleanup()
 
 		write(p->tofd,"\n",1);
 		pipes_shutdown_child(p->tofd);
-#if 0
+
 		p->thg        = NULL;
 		p->thread     = NULL;
 		p->tofd = -1;
@@ -1463,8 +1463,8 @@ idle_cleanup()
 
 		/* The thread-group can be deleted before reclaim() runs! */
 		thg->transporters -= 1;
-#endif
-		zsyslog((LOG_EMERG,"ZMailer scheduler kludge shutdown of TA channel (info for debug only)."));
+
+		zsyslog((LOG_EMERG,"ZMailer scheduler kludge shutdown of TA channel (info for debug only); HA=%ds",now - p->hungertime));
 	      }
 	    }
 	    if (thg->thread == NULL && thg->idleproc == NULL) {
