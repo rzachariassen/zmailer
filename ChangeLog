@@ -1,3 +1,22 @@
+2003-11-16  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/aliases.cf:
+	    More patches from Eugene Crosser (actually something
+	    I omitted by accident when applying things manually;
+	    as in "retyping" ..)
+
+	* smtpserver/policytest.c:
+	    Moved target specific rejects early -- so that we can
+	    reject some targets even for cases where e.g. message
+	    source IP address carries "relay all thru us".
+
+	* transports/smtp/smtp.c:
+	    More of wrong return code hunting.
+	    It turns out, that reopening has been done without
+	    resetting MX index, and that omission caused in some
+	    case at some targets the reopen to fail with fatal
+	    error code.
+
 2003-11-07  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c, transports/smtp/smtp.h:

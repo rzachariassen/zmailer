@@ -1156,12 +1156,16 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  if ((first_uid = atoi(dp->senders->misc)) < 0 ||
 	      first_uid == nobody)
 	    first_uid = daemon_uid;
-	  
+
+	  if (doing_reopen) SS->firstmx = 0;
+
 	  openstatus = smtpopen(SS, host, noMX);
 	  if (openstatus != EX_OK) {
 
-	    
-	    /* if (doing_reopen) openstatus = r; */
+	    /* If we are doing reopen, and it fails, we report
+	       just EX_TEMPFAIL, and bail out... */
+
+	    if (doing_reopen) openstatus = EX_TEMPFAIL;
 
 	    for ( rp = startrp; startrp != rp->next; startrp = startrp->next) {
 	      if (startrp->lockoffset) {
@@ -2995,7 +2999,7 @@ smtpconn(SS, host, noMX)
 	    /* Has valid MX records, they have been suitably randomized
 	       at  getmxrr(), and are now ready for use.  */
 
-	    retval = EX_UNAVAILABLE;
+	    retval = EX_TEMPFAIL;
 
 	    for (i = SS->firstmx; (i < SS->mxcount &&
 				   SS->mxh[i].host != NULL); ++i) {

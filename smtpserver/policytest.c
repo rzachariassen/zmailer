@@ -1708,6 +1708,15 @@ const int len;
       break; /* Ok, could be ok, but RBL may say differently ... */
     }
 
+
+    /* Do target specific rejects early */
+
+    if (valueeq(state->values[P_A_RELAYTARGET], "-")) {
+      PICK_PA_MSG(P_A_RELAYTARGET);
+      return -1;
+    }
+
+
     if (valueeq(state->values[P_A_ACCEPTbutFREEZE], "+")) {
 	state->sender_freeze = 1;
 	PICK_PA_MSG(P_A_ACCEPTbutFREEZE);
@@ -1745,6 +1754,7 @@ const int len;
 
     if (state->always_accept) {
       int rc, c = '-';
+
       if (state->values[P_A_ACCEPTifMX]) {
 	c = state->values[P_A_ACCEPTifMX][0];
       }
@@ -1766,6 +1776,7 @@ const int len;
       PICK_PA_MSG(P_A_ACCEPTifMX);
       return rc;
     }
+
     if (state->values[P_A_ACCEPTifDNS]) {
       int rc = client_dns_verify(state->values[P_A_ACCEPTifDNS][0],
 				 at+1, len - (1 + at - str));
@@ -1774,11 +1785,6 @@ const int len;
 	type(NULL,0,NULL," ... returns: %d", rc);
       PICK_PA_MSG(P_A_ACCEPTifDNS);
       return rc;
-    }
-
-    if (valueeq(state->values[P_A_RELAYTARGET], "-")) {
-      PICK_PA_MSG(P_A_RELAYTARGET);
-      return -1;
     }
 
     return 0;

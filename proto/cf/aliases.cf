@@ -751,7 +751,7 @@ fi
 	# local user with no alias and no .forward file
 
 	if [ -n "$pobox" ] ; then
-		priv=$(login2uid "$user")
+		priv=$(login2uid "$sysuser")
 		returns (((local "pob:$user" "$pobox$plustail$domain" $(newattribute $attr privilege $priv))))
 	fi
 
