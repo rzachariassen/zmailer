@@ -2277,6 +2277,7 @@ run_syslog(argc, argv)
 		return 1;
 	}
 	zsyslog((prio, "%s", argv[optind]));
+	return 0;
 }
 
 static int
@@ -2484,7 +2485,6 @@ run_condquote(argc, argv)
 {
 	int len;
 	const char *s = argv[1];
-	const char *sp, *bs;
 	int mustquote = 0;
 	int candequote = 0;
 	int c;
