@@ -161,12 +161,24 @@ struct qtypes {
 	{	0,		0		}
 };
 
-const char *zh_errlist[] = {
+static const char *zh_errlist[] = {
 	"Error 0",
 	"unknown host/not findable at all",	/* 1 - HOST_NOT_FOUND	*/
 	"host name lookup/try again",		/* 2 - TRY_AGAIN	*/
 	"unknown server/no recovery",		/* 3 - NO_RECOVERY	*/
 	"no address associated with name"	/* 4 - NO_ADDRESS	*/
+};
+
+static const char *res_respcodes[] = {
+	"NOERROR",
+	"FORMERR",
+	"SERVFAIL",
+	"NXDOMAIN",
+	"NOTIMP",
+	"REFUSED",
+	"Resp6",
+	"Resp7",
+	"Resp8"
 };
 
 static conscell * getmxrr    __((const char *, const char *, time_t *, int));
@@ -596,8 +608,8 @@ getrrtypec(host, rrtype, ttlp, depth)
 	if (ancount == 0) {
 		if (D_bind || _res.options & RES_DEBUG)
 			fprintf(stderr,
-				"search_res: rcode=%d, ancount=%d, rrtype=%d\n",
-				hp->rcode, ancount, rrtype);
+				"search_res: rcode=%s, ancount=%d, rrtype=%d\n",
+				res_respcodes[hp->rcode], ancount, rrtype);
 		if (rrtype == T_CNAME && hp->rcode == NOERROR) {
 		  if (qdcount > 0 && strchr(host, '.') == NULL) {
 		    cp = (CUC*) &answer + sizeof(HEADER);

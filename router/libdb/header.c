@@ -30,12 +30,12 @@ struct headerinfo mandatory_hdrs[] = {
 { "cc",			AddressList,	Recipient,	normal		},
 { "from",		AMailboxList,	Sender,		normal		},
 { "message-id",		MessageID,	nilUserType,	normal		},
-{ "reply-to",		AMailboxList,	Sender,		normal		},
+{ "reply-to",		AddressList,	Sender,		normal		},
 { "resent-bcc",		Addresses,	Recipient,	Resent		},
 { "resent-cc",		AddressList,	Recipient,	Resent		},
 { "resent-from",	AMailboxList,	Sender,		Resent		},
 { "resent-message-id",	MessageID,	nilUserType,	Resent		},
-{ "resent-reply-to",	AMailboxList,	Sender,		Resent		},
+{ "resent-reply-to",	AddressList,	Sender,		Resent		},
 { "resent-sender",	Mailbox,	Sender,		Resent		},
 { "resent-to",		AddressList,	Recipient,	Resent		},
 { "sender",		Mailbox,	Sender,		normal		},
@@ -313,7 +313,10 @@ add_header(sip, cvalue)
 {
 	struct sptree *hdb;
 	struct spblk *spl;
-	char *cp, *value, *vbuf;
+	char *cp, *value;
+#ifndef USE_ALLOCA
+	char *vbuf;
+#endif
 	char *wcp;
 	char *lcbuf;
 	struct headerinfo rh, *rhp;
