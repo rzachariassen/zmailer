@@ -45,7 +45,7 @@ extern int default_full_content; /* at conf.c */
 
 typedef enum { ACTSET_DELIVERED = 0, ACTSET_FAILED = 1,
 	       ACTSET_RELAYED   = 2, ACTSET_DELAYED = 3,
-	       ACTSET_NONE = 4 } ACTSETENUM;
+	       ACTSET_EXPANDED  = 4, ACTSET_NONE = 5 } ACTSETENUM;
 
 struct not {
 	char	    *not;
@@ -375,6 +375,11 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary, actionset)
 			 actionset[ACTSET_DELIVERED]);
 		s = ",";
 	      }
+	      if (actionset[ACTSET_EXPANDED]) {
+		sfprintf(errfp,"%EXPANDED-OK(%d)",s,
+			 actionset[ACTSET_EXPANDED]);
+		s = ",";
+	      }
 	      s = (*s == ',') ? "]" : "";
 	      sfprintf(errfp,"%s\n", s);
 	    } else {
@@ -445,7 +450,8 @@ reporterrs(cfpi, delayreports)
 	long format;
 	char boundarystr[400];
 	char spoolid[30];
-	int actionsets[4]; /* 0:DELIVERED, 1:FAILED, 2:RELAYED, 3:DELAYED */
+	int actionsets[5]; /* 0:DELIVERED, 1:FAILED, 2:RELAYED, 3:DELAYED,
+			      4:EXPANDED */
 	ACTSETENUM thisaction;
 
 	if (cfpi->haderror == 0)
@@ -564,6 +570,8 @@ reporterrs(cfpi, delayreports)
 		thisaction = ACTSET_DELAYED;
 	      } else if (memcmp(action,"delivered",9)==0) {
 		thisaction = ACTSET_DELIVERED;
+	      } else if (memcmp(action,"expanded", 8)==0) {
+		thisaction = ACTSET_EXPANDED;
 	      } else if (memcmp(action,"relayed",  7)==0) {
 		thisaction = ACTSET_RELAYED;
 	      } else if (memcmp(action,"failed",   6)==0) {
@@ -647,6 +655,7 @@ reporterrs(cfpi, delayreports)
 	    notaries[notarycnt].message = cp;
 
 	    switch (thisaction) {
+	    case ACTSET_EXPANDED:
 	    case ACTSET_DELIVERED:
 	    case ACTSET_RELAYED:
 	      if (notaries[notarycnt].notifyflgs & NOT_SUCCESS)
@@ -692,6 +701,7 @@ reporterrs(cfpi, delayreports)
 	if (!(actionsets[ACTSET_FAILED]   |
 	      actionsets[ACTSET_RELAYED]  |
 	      actionsets[ACTSET_DELAYED]  |
+	      actionsets[ACTSET_EXPANDED] |
 	      actionsets[ACTSET_DELIVERED] )) {
 
 	  /* No reports what so ever ? */
@@ -758,6 +768,9 @@ reporterrs(cfpi, delayreports)
 	    break;
 	  case ACTSET_DELIVERED:
 	    sfprintf(errfp,"DELIVERED (successfully):\n");
+	    break;
+	  case ACTSET_EXPANDED:
+	    sfprintf(errfp,"EXPANDED (to some list or alias):\n");
 	    break;
 	  case ACTSET_NONE:
 	    sfprintf(errfp,"BUG (unknown ACTSET value: %d):\n",

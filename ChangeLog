@@ -1,5 +1,8 @@
 2000-07-29  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* scheduler/msgerror.c:
+	    Hooks for "expanded" action status.
+
 	* transports/smtp/smtp.c:
 	    Streamlined error handling when returning from getmxrr().
 
