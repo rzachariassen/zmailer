@@ -979,12 +979,15 @@ char *msg;
 			++s;
 		    if ((eol - s) < 10)
 			continue;	/* Hmm.. */
-#ifdef PARANOID_TRANSLATION
+
+		    /* Must ALWAYS check for C-T: TEXT/any ! */
+		    /* #ifdef PARANOID_TRANSLATION */
 		    if (CISTREQN("text", s, 4))
 			ct_is_text = 1;
 		    else
 			ct_is_text = 0;
-#endif				/* PARANOID_TRANSLATION */
+		    /* #endif */ /* PARANOID_TRANSLATION */
+
 		    continue;	/* do not write out this one */
 		}
 	    }

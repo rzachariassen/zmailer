@@ -844,6 +844,11 @@ NULL };
 			cistrcmp(ct->subtype,"plain") == 0);
 
 	if (ct->charset && is_textplain &&
+	    (convertmode != _CONVERT_QP) &&
+	    /* Change to US-ASCII for known 7-bit clean
+	       inputs where the claimed charset(prefix) has
+	       all its charsets equal to US-ASCII in the
+	       low 128 characters. */
 	    (cistrncmp(ct->charset,"ISO-8859",8) == 0 ||
 	     cistrncmp(ct->charset,"KOI8",4)     == 0)) {
 
@@ -851,20 +856,19 @@ NULL };
 	    free(ct->charset);
 
 	  ct->charset = strdup("US-ASCII");
+	  strcpy(*CTE, "Content-Transfer-Encoding: 7BIT");
 
 	}
+
+	/* Delete the old one, and place there the new version.. */
+	output_content_type(rp,ct,CT);
 
 	if (convertmode == _CONVERT_QP) {
 
 	  strcpy(*CTE, "Content-Transfer-Encoding: QUOTED-PRINTABLE");
 	  mime_received_convert(rp," convert rfc822-to-quoted-printable");
-	  return 1; /* No change on Charset.. Otherwise a SUCCESS! */
 
-	} else if (is_textplain)
-	  strcpy(*CTE, "Content-Transfer-Encoding: 7BIT");
-
-	/* Delete the old one, and place there the new version.. */
-	output_content_type(rp,ct,CT);
+	}
 
 	return 1; /* Non-zero for success! */
 }

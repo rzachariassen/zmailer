@@ -1153,6 +1153,7 @@ deliver(SS, dp, startrp, endrp)
 	    if ((SS->ehlo_capabilities & ESMTP_8BITMIME) == 0 &&
 		!ascii_clean && !force_8bit) {
 	      convertmode = _CONVERT_UNKNOWN;
+	      /* It is ASCII clean */
 	      downgrade_headers(startrp, convertmode, SS->verboselog);
 	    }
 	    break;
