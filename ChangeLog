@@ -1,5 +1,15 @@
 2000-09-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* proto/cf/rrouter.cf, proto/db/routes:
+	    Generalizing on various smtp* mechanisms.
+
+	* proto/scheduler.conf.in:
+	    Channel prototypes for  smtp77/*, smtp77x/*, and others.
+	    Some reordering, and log option rearrangements.
+
+	* transports/smtp/smtp.c, man/smtp.8:
+	    ESMTP disabler feature. ( -77 option )
+
 	* packaging/solaris/Makefile.in, packaging/solaris/README,
 	    More work at package manufacturing, now it likely works
 	    and produces suitable Solaris PKG files.

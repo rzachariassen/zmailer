@@ -387,7 +387,7 @@ main(argc, argv)
 	eocmdline = cmdline;
 
 	memset(&SS,0,sizeof(SS));
-	SS.main_esmtp_on_banner = -1;
+	SS.main_esmtp_on_banner = -1; /* Presume existing per spec */
 	SS.servport      = -1;
 	SS.smtp_bufsize  = 64*1024;
 	SS.ehlo_sizeval  = -1;
@@ -479,7 +479,7 @@ main(argc, argv)
 	    break;
 	  case 'E':		/* don't do EHLO, unless target system
 				   has "ESMTP" on its banner */
-	    SS.main_esmtp_on_banner = 0;
+	    SS.main_esmtp_on_banner = 0; /* Do test for it */
 	    break;
 	  case 'F':		/* Send all SMTP sessions to that host,
 				   possibly set also '-x' to avoid MXes! */
@@ -550,6 +550,10 @@ main(argc, argv)
 	    force_7bit = 0;
 	    break;
 	  case '7':
+	    if (force_7bit) /* Double-7 locks the ESMTP away, can
+			       then be turned into 'force-8' mode
+			       without ESMTP */
+	      SS.main_esmtp_on_banner = -2;
 	    ++force_7bit;
 	    force_8bit = 0;
 	    break;
@@ -1753,7 +1757,7 @@ char *str;
 	  while (*s && *s != 'e' && *s != 'E') ++s;
 	  if (!s) return;
 	  if (CISTREQN(s,"ESMTP",5)) {
-	    SS->esmtp_on_banner = 1;
+	    SS->esmtp_on_banner = 1; /* Found it */
 	    return;
 	  }
 	  ++s;
@@ -1776,7 +1780,7 @@ smtpopen(SS, host, noMX)
 
 	do {
 
-	  SS->esmtp_on_banner = SS->main_esmtp_on_banner;
+	  SS->esmtp_on_banner = SS->main_esmtp_on_banner; /* -1: presume it, 0: test for it */
 	  SS->ehlo_capabilities = 0;
 	  SS->ehlo_sizeval = 0;
 	  SS->rcpt_limit = 100; /* Max number of recipients per message */
@@ -1788,7 +1792,7 @@ smtpopen(SS, host, noMX)
 	  SS->prevcmdstate = 99;
 	  SS->cmdstate     = SMTPSTATE_MAILFROM; /* well, reusing this key */
 
-	  if (SS->esmtp_on_banner && force_7bit < 2) {
+	  if (SS->esmtp_on_banner > -2 && force_7bit < 2) {
 	    /* Either it is not tested, or it is explicitely
 	       desired to be tested, and was found! */
 	    if (SS->myhostname)
@@ -1914,7 +1918,7 @@ smtpopen(SS, host, noMX)
 	    }
 	  }
 
-	  if (SS->esmtp_on_banner && i == EX_OK ) {
+	  if (SS->esmtp_on_banner > -2 && i == EX_OK ) {
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,
 		      "  EHLO response flags = 0x%02x, rcptlimit=%d, sizeopt=%ld\n",
@@ -3940,7 +3944,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 		if (SS->within_ehlo)
 		  ehlo_check(SS,&buf[4]);
-		if (!strbuf && !SS->esmtp_on_banner)
+		if (!strbuf && !SS->esmtp_on_banner && SS->esmtp_on_banner > -2)
 		  esmtp_banner_check(SS,&buf[4]);
 		if (logfp != NULL) {
 		  if (debug)
@@ -4078,7 +4082,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	if (SS->within_ehlo)
 	  ehlo_check(SS,&buf[4]);
-	if (!strbuf && !SS->esmtp_on_banner)
+	if (!strbuf && !SS->esmtp_on_banner && SS->esmtp_on_banner > -2)
 	  esmtp_banner_check(SS,&buf[4]);
 
 	rmsgappend(SS, 1, "\r->> %s", buf);

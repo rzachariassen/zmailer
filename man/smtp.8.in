@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "20 Jun 2000"
+.TH SMTP 8 "20 Sep 2000"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
@@ -65,11 +65,14 @@ Prefer IPv6 type socket and addresses, if available.
 .IP \-7
 forces SMTP channel to be 7-bit, and thus forcing all 8-bit texts to be
 MIME-QP-encoded for the transport.
+.IP \-77
+This does same as
+.I \-7
+but also blocks of all ESMTP extensions from use.
 
-Issueing this option
-.B twice
-turns off all ESMTP extensions even if the remote site claims such
-by replying to EHLO greeting.
+This ``double-7'' option can be followed by ``\-8'' option to force the
+channel to be 8-bit transparent, and even to decode MIME-QP TEXT/PLAIN,
+but to do it without any ESMTP.
 .IP \-8
 forces SMTP channel to be 8-bit-clean, and as such, to decode the message
 while transporting it (is it is MIME QP encoded).

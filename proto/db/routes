@@ -9,3 +9,30 @@
 # or in this directory with usual configuration:
 #   ../bin/newdb routes
 #
+
+#
+#  Sample route statements (and channels):
+#
+#	.foo  error!cannedmsgfilename
+#	#	Canned error message from $MAILSHARE/forms/cannedmsgfilename
+#
+#	.bar  smtpx!
+#	#	Send all traffic destined to any subdomain under this
+#	#	suffix via "smtpx" channel to that domain
+#
+#	.bar  smtp-etrn!
+#	.bar  smtp-tls!
+#	.bar  smtp77!
+#	.bar  smtp77x!
+#	.bar  smtp8!
+#	.bar  smtp8x!
+#	#	Ditto
+#
+#	.bar  smtpgw-xyz!
+#	#	Drives genericish gateway function kit
+#
+#	junkdom      bitbucket!
+#	myself       local!
+#	news.domain  usenet!
+#	uunode.dom   uucp!uunode
+#

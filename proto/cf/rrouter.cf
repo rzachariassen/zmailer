@@ -289,25 +289,19 @@ routes_spec (domain, address, A) {
 	ignore!.*
 		break
 		;;
-	smtp!
-		tsift "$address" in
-		(.*)@(.+)
-			return (((smtp "\2" "$address" $A)))
-			;;
-		tfist
-		;;
-	smtpx!
-		tsift "$address" in
-		(.*)@(.+)
-			return (((smtpx "\2" "$address" $A)))
-			;;
-		tfist
-		;;
 	(smtpgw.*)!
 		tmp="\1"
 		tsift "$address" in
 		(.*)@(.+)
-			return ((($tmp "\1" "$address" $A)))
+			return ((("$tmp" "\1" "$address" $A)))
+			;;
+		tfist
+		;;
+	(smtp.*)!
+		tmp="\1"
+		tsift "$address" in
+		(.*)@(.+)
+			return ((("$tmp" "\2" "$address" $A)))
 			;;
 		tfist
 		;;

@@ -154,11 +154,8 @@ PARAMauthfile = "@MAILSHARE@/scheduler.auth"
 	maxchannel=0
 	maxring=20
 	#
-	maxta=250 # OSF/1 has 4096 files per process. Don't overbook :-)
+	maxta=0 # Let it be automagically determined
 	#
-	# skew is maximum number of tries before the retry time is
-	# aligned to a standard boundary (seconds modulo interval).
-	skew=1
 	# default uid/gid of transport agents
 	user=root
 	group=daemon
@@ -263,13 +260,6 @@ local/*
 	# Or with PROCMAIL as the local delivery agent:
 	#command="sm -8c $channel procm"
 
-# smtpx is a channel where the delivery is done without checking at MXes;
-# rather only on A/AAAA (address) entries:
-smtpx/*
-	maxchannel=90
-	maxring=10
-	command="smtp -c smtpx -x -s"
-
 
 # Sometimes we may want to PUNT all out to somewhere without regarding
 # on what the routing said:
@@ -358,6 +348,15 @@ smtp/*.fi
 	command="smtp -s" # -l ${LOGDIR}/smtp"
 
 #
+# Connections to the outside shouldn't duplicate effort so we only allow one
+# per destination.
+#
+smtp/*
+	maxchannel=199
+	maxring=50
+	command="smtp -s" # -l ${LOGDIR}/smtp"
+
+#
 # These messages will go only into the queue, and need explicite
 # SMTP mediated ETRN request, before they become flushed out.
 #
@@ -368,7 +367,7 @@ smtp-etrn/*
 	interval=1h
 	retries="12"
 	queueonly
-	command="smtp -s -c $channel -l ${LOGDIR}/smtp-etrn"
+	command="smtp -c $channel -s" # -l ${LOGDIR}/smtp-etrn"
 
 #
 # Destinations desired to use TLS (a.k.a. SSL) encryption can be
@@ -382,14 +381,41 @@ smtp-tls/*
 	interval=1h
 	retries="12"
 	queueonly
-	command="smtp -s -c $channel -T ${MAILSHARE}/smtp-tls.conf -l ${LOGDIR}/smtp-tls"
+	command="smtp -c $channel -s -S ${MAILSHARE}/smtp-tls.conf" # -l ${LOGDIR}/smtp-tls"
 
-# Connections to the outside shouldn't duplicate effort so we only allow one
-# per destination.
-smtp/*
+# smtpx is a channel where the delivery is done without checking at MXes;
+# rather only on A/AAAA (address) entries:
+smtpx/*
+	maxchannel=90
+	maxring=10
+	command="smtp -c $channel -x -s" # -l ${LOGDIR}/smtpx"
+
+# Connections to places which sit behind broken firewalls, e.g. Cisco PIX
+# versions with allowing EHLO to go thru with feature reply, but then
+# rejecting all ESMTP protocol features listed at that reply...
+smtp77/*
 	maxchannel=199
 	maxring=50
-	command="smtp -s" # -l ${LOGDIR}/smtp"
+	command="smtp -c $channel -77 -s" # -l ${LOGDIR}/smtp77"
+
+# Combination of smtp77 and smtpx
+smtp77x/*
+	maxchannel=199
+	maxring=50
+	command="smtp -c $channel -77 -x -s" # -l ${LOGDIR}/smtp77x"
+
+# Connections to places we want to drive 8-bit-clean channel to
+# independent of what EHLO tells (or does not tell)
+smtp8/*
+	maxchannel=199
+	maxring=50
+	command="smtp -c $channel -8 -s" # -l ${LOGDIR}/smtp8"
+
+# Combination of smtp8 and smtpx
+smtp8x/*
+	maxchannel=199
+	maxring=50
+	command="smtp -c $channel -8 -x -s" # -l ${LOGDIR}/smtp8x"
 
 # Error messages.  Delivery can be retried at leisure.
 error/*
