@@ -869,7 +869,7 @@ thread_start(thr, queue_only_too)
 	  /* Its idle process, feed it! */
 
 	  proc->state   = CFSTATE_LARVA;
-	  proc->overfed = 1;
+	  proc->overfed = 1; /* A simulated state.. */
 
 	  proc->pvertex = thr->thvertices;
 	  proc->pthread = thr;

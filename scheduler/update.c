@@ -880,9 +880,14 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 #endif
 
 	if ((proc->state   == CFSTATE_STUFFING) &&
-	    (proc->tofd    >= 0))
-	  proc->state = CFSTATE_FINISHING;
+	    (proc->tofd    >= 0)) {
 
+	  /* Fed work-entry caused 'retryat' to occur; stop
+	     feeding and move to the finishing state before
+	     continuing anywhere... */
+
+	  proc->state = CFSTATE_FINISHING;
+	}
 
 	if (*message == '+')
 	  ++message;

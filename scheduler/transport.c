@@ -160,8 +160,7 @@ flush_child(proc)
 	    break;
 	  proc->cmdlen -= rc;
 	}
-	return (proc->cmdlen == 0); /* We stop STUFFING feed,
-				       unless this is *now* zero */
+	return 0;
 }
 
 
@@ -294,6 +293,8 @@ ta_hungry(proc)
 	  sfprintf(sfstdout,"ta_hungry(%p) OF=%d S=%d tofd=%d\n",
 		   proc, proc->overfed, (int)proc->state, proc->tofd);
 
+	/* If ``proc->tofd'' is negative, we can't feed anyway.. */
+
 	if (proc->tofd < 0) {
 	  --proc->overfed;
 	  return;
@@ -309,18 +310,21 @@ ta_hungry(proc)
 	  /* Thread selected already along with its first vertex,
 	     which is pointer by  proc->pvertex  */
 
-	cfstate_larva:
+	  proc->overfed = 0; /* Should not need setting ... */
+
+	  if (feed_child(proc))
+	    /* We got some error :-/  D'uh! */
+	    goto feed_error_handler;
 
 	  proc->state = CFSTATE_STUFFING;
-	  feed_child(proc); /* Result state may be: CFSTATE_ERROR also */
 	  return;
 
 	case CFSTATE_STUFFING:
 
 	  if (proc->overfed > 0) return;
 
-	  while (proc->pvertex && (proc->cmdlen == 0) &&
-		 proc->state == CFSTATE_STUFFING) {
+	  while (proc->pvertex     && (proc->state == CFSTATE_STUFFING) &&
+		 (proc->tofd >= 0) && (proc->cmdlen == 0)) {
 
 	    /* As long as:
 	       - we have next vertex to feed
@@ -328,7 +332,7 @@ ta_hungry(proc)
 	       - state stays in STUFFING
 	    */
 
-	    if (!feed_child(proc))
+	    if (feed_child(proc))
 	      return; /* If an error, bail out.. */
 
 	    if (proc->overfed > proc->thg->ce.overfeed)
@@ -337,7 +341,7 @@ ta_hungry(proc)
 	  }
 
 	  proc->state = CFSTATE_FINISHING;
-	  /* fall thru ! */
+	  return;
 
 	case CFSTATE_FINISHING:
 
@@ -366,8 +370,12 @@ ta_hungry(proc)
 
 	    thr->proc      = proc;
 
-	    proc->state = CFSTATE_LARVA;
-	    goto cfstate_larva;
+	    if (feed_child(proc))
+	      /* non-zero return means things went wrong somehow.. */
+	      goto feed_error_handler;
+
+	    proc->state = CFSTATE_STUFFING;
+	    return;
 	  }
 
 	  /* No work in sight, queue up '#idle\n' string. */
@@ -392,11 +400,6 @@ ta_hungry(proc)
 
 	  /* ASSERT(proc->overfed == 0) ???? */
 
-	  if (proc->overfed < 0) {
-	    proc->overfed = 0;
-	    return;
-	  }
-
 	  if (verbose) sfprintf(sfstdout," ... IDLE THE PROCESS %p (of=%d).\n",
 				proc, proc->overfed);
 
@@ -417,6 +420,8 @@ ta_hungry(proc)
 	     point, we do nothing! */
 
 	  /* Some (real?) failure :-( */
+
+	feed_error_handler:
 
 	  /* We shut-down the child feed pipe */
 	  pipes_shutdown_child(proc->tofd);
