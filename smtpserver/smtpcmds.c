@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-1997.
+ *      Copyright 1991-1998.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -610,8 +610,10 @@ int insecure;
     if (SS->ihostaddr[0] != 0)
       fprintf(SS->mfp, "%s:%d ", SS->ihostaddr, SS->rport);
     rfc822commentprint(SS->mfp, SS->helobuf);
-    fprintf(SS->mfp, " ident: ");
-    rfc822commentprint(SS->mfp, SS->ident_username);
+    if (ident_flag) {
+      fprintf(SS->mfp, " ident: ");
+      rfc822commentprint(SS->mfp, SS->ident_username);
+    }
     fprintf(SS->mfp, ")\n");
 
     if (bodytype != NULL)
