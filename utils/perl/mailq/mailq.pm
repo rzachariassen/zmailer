@@ -7,7 +7,7 @@ use warnings;
 require Exporter;
 use IO::Handle '_IOLBF';
 use IO::Socket;
-use Digest::MD5 qw(md5_hext);
+use Digest::MD5 qw(md5_hex);
 
 our @ISA = qw(Exporter);
 
