@@ -257,7 +257,7 @@
 #|  or   'test-dns-rbl rbl.maps.vix.com' or maybe even this:
 #|  'test-dns-rbl rbl.maps.vix.com:dul.maps.vix.com'
 #|  to use Paul Vixie's  http://maps.vix.com/ MAPS RBL/DUL system.
-#|  (The "+" in treated as shorthand to  "rbl.maps.vix.com")
+#|  (The "+" is treated as shorthand to  "rbl.maps.vix.com")
 #|
 #|  You can also split this processing, which with above one aims at
 #|  MAIL FROM:<...> blocking, so that the blocking occurs at recipients:
