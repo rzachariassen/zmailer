@@ -90,6 +90,7 @@ int skeptical = 1;
 int checkhelo = 0;
 int verbose = 0;
 int daemon_flg = 1;
+int netconnected_flg = 0;
 int pid, routerpid = -1;
 int router_status = 0;
 FILE *logfp = NULL;
@@ -459,6 +460,20 @@ char **argv;
     if (!allow_source_route)
       allow_source_route = (getzenv("ALLOWSOURCEROUTE") != NULL);
 
+    raddrlen = sizeof SS.raddr;
+    memset(&SS.raddr, 0, raddrlen);
+    netconnected_flg = 1;
+    if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen)) {
+      netconnected_flg = 0;
+      if (errno == ENOTSOCK) {
+	;
+      } else {
+	fprintf(stderr, "%s: getpeername(0): %s\n",
+		progname, strerror(errno));
+	exit(1);
+      }
+    }
+
     if (!daemon_flg) {
 	strcpy(SS.rhostname, "stdin");
 	SS.rport = -1;
@@ -479,13 +494,6 @@ char **argv;
 	    exit(1);
 	}
 #endif
-	raddrlen = sizeof SS.raddr;
-	memset(&SS.raddr, 0, raddrlen);
-	if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen)) {
-	    fprintf(stderr, "%s: getpeername(0): %s\n",
-		    progname, strerror(errno));
-	    exit(1);
-	}
 #if defined(AF_INET6) && defined(INET6)
 	if (SS.raddr.v6.sin6_family == AF_INET6)
 	    SS.rport = SS.raddr.v6.sin6_port;

@@ -22,6 +22,9 @@
 
 #include "smtpserver.h"
 
+extern int netconnected_flg;
+
+
 static const char *orcpt_string __((const char *));
 
 static const char *orcpt_string(str)
@@ -620,15 +623,22 @@ int insecure;
     rewind(SS->mfp);
     if (insecure)
 	fprintf(SS->mfp, "external\n");
-    fprintf(SS->mfp, "rcvdfrom %s (", SS->rhostname);
-    if (SS->ihostaddr[0] != 0)
-      fprintf(SS->mfp, "%s:%d ", SS->ihostaddr, SS->rport);
-    rfc822commentprint(SS->mfp, SS->helobuf);
-    if (ident_flag) {
-      fprintf(SS->mfp, " ident: ");
-      rfc822commentprint(SS->mfp, SS->ident_username);
+
+    if (netconnected_flg) {
+
+      /* Produce the 'rcvdfrom' header only when connected
+	 to network socket */
+
+      fprintf(SS->mfp, "rcvdfrom %s (", SS->rhostname);
+      if (SS->ihostaddr[0] != 0)
+	fprintf(SS->mfp, "%s:%d ", SS->ihostaddr, SS->rport);
+      rfc822commentprint(SS->mfp, SS->helobuf);
+      if (ident_flag) {
+	fprintf(SS->mfp, " ident: ");
+	rfc822commentprint(SS->mfp, SS->ident_username);
+      }
+      fprintf(SS->mfp, ")\n");
     }
-    fprintf(SS->mfp, ")\n");
 
     if (bodytype != NULL)
 	fprintf(SS->mfp, "bodytype %s\n", bodytype);
