@@ -373,7 +373,7 @@ typedef struct SmtpState {
     struct smtpconf *cfinfo;
 
 #ifdef HAVE_WHOSON_H
-    int whoson_result
+    int whoson_result;
     char whoson_data[128];
 #endif
 
