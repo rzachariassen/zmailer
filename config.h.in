@@ -132,6 +132,9 @@
    byte first (like Motorola and SPARC, unlike Intel and VAX).  */
 #undef WORDS_BIGENDIAN
 
+/* What command was used to configure this setup ? */
+#undef CONFIGURE_CMD
+
 /* Define if you have the Andrew File System.  */
 #undef AFS
 
@@ -471,9 +474,6 @@
 
 /* Define if you have the syslog function.  */
 #undef HAVE_SYSLOG
-
-/* Define if you have the utime function.  */
-#undef HAVE_UTIME
 
 /* Define if you have the utimes function.  */
 #undef HAVE_UTIMES

@@ -29,10 +29,11 @@ dnl Process this file with autoconf to produce a configure script.
 #
 
 AC_INIT(router/router.c)
-
 AC_CONFIG_HEADER(config.h)
-
 AC_LANG_C
+
+AC_DEFINE_UNQUOTED(CONFIGURE_CMD,"$0 $ac_configure_args")
+
 #----------------------------------------------------------------------------
 #       Check if we should use gcc if available on this machine.
 #----------------------------------------------------------------------------
@@ -848,7 +849,7 @@ AC_CHECK_FUNCS(index rindex)
 AC_CHECK_FUNCS(endgrent fchdir ftime getcwd getgroups setgroups \
 		getmntinfo gettimeofday isascii memcpy mkfifo   \
 		getpgrp setsid seteuid setuid)
-AC_CHECK_FUNCS(setrlimit fchown utimes utime sysconf fpathconf)
+AC_CHECK_FUNCS(setrlimit fchown utimes sysconf fpathconf)
 # Networking stuff is in deep trouble, if sockets are not found..
 AC_CHECK_HEADERS(netdb.h syslog.h sys/resource.h \
 		protocols/rwhod.h select.h sys/select.h utime.h)
@@ -1007,7 +1008,8 @@ AC_MSG_RESULT([RFC-822 TABs setting: $use_rfc822_tabs])
 
 AC_SUBST(LIBWRAP)
 AC_SUBST(INCLWRAP)
-AC_ARG_WITH(tcp-wrappers,   [  --with-tcp-wrappers=DIRPATH Where the TCP-WRAPPERS can be found],
+AC_ARG_WITH(tcp-wrappers,   [
+  --with-tcp-wrappers=DIRPATH Where the TCP-WRAPPERS can be found],
 	use_tcpwrappers=1)
 
 t_oldLibs="$LIBS"
@@ -1123,6 +1125,15 @@ AC_ARG_WITH(ta-mmap,   [  --with-ta-mmap           TA's to use MMAP for reading 
 if test "$use_ta_mmap" = "1"; then
   AC_DEFINE(TA_USE_MMAP)
 fi
+
+AC_SUBST(GETPWLIB)
+AC_ARG_WITH(getpwnam-library, [  --with-getpwnam-library=\"-L.. -l..\"
+                            Linking options for non-std getpwnam() libraries],
+	use_getpwnam_lib=1, use_getpwnam_lib=0)
+if test "$use_getpwnam_lib" = 1; then
+  GETPWLIB="$withval"
+fi
+
 
 AC_STRUCT_DIRENT_D_INO
 

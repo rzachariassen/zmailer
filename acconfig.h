@@ -1,5 +1,8 @@
 /* locally added autoconfig test report entries */
 
+/* What command was used to configure this setup ? */
+#undef CONFIGURE_CMD
+
 /* Define if you have the Andrew File System.  */
 #undef AFS
 
