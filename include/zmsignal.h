@@ -62,16 +62,16 @@
 		OLD = oact.sa_handler;		\
 	}
 #define SIGNAL_HOLD(SIG) \
-	{	sigset_t	sigmask;	\
-		sigemptyset(&sigmask);		\
-		sigaddset(&sigmask,SIG);	\
-		sigprocmask(SIG_BLOCK,&sigmask,NULL);	\
+	{	sigset_t	sigmsk;		\
+		sigemptyset(&sigmsk);		\
+		sigaddset(&sigmsk,SIG);		\
+		sigprocmask(SIG_BLOCK,&sigmsk,NULL);	\
 	}
 #define SIGNAL_RELEASE(SIG) \
-	{	sigset_t	sigmask;	\
-		sigemptyset(&sigmask);		\
-		sigaddset(&sigmask,SIG);	\
-		sigprocmask(SIG_UNBLOCK,&sigmask,NULL);	\
+	{	sigset_t	sigmsk;		\
+		sigemptyset(&sigmsk);		\
+		sigaddset(&sigmsk,SIG);		\
+		sigprocmask(SIG_UNBLOCK,&sigmsk,NULL);	\
 	}
 #define SIGNAL_IGNORE(SIG) \
 	SIGNAL_HANDLE(SIG,SIG_IGN)
@@ -95,16 +95,16 @@
 		OLD = oact.sa_handler;		\
 	}
 #define SIGNAL_HOLD(SIG) \
-	{	sigset_t	sigmask;	\
-		sigemptyset(&sigmask);		\
-		sigaddset(&sigmask,SIG);	\
-		sigprocmask(SIG_BLOCK,&sigmask,NULL);	\
+	{	sigset_t	sigmsk;		\
+		sigemptyset(&sigmsk);		\
+		sigaddset(&sigmsk,SIG);		\
+		sigprocmask(SIG_BLOCK,&sigmsk,NULL);	\
 	}
 #define SIGNAL_RELEASE(SIG) \
-	{	sigset_t	sigmask;	\
-		sigemptyset(&sigmask);		\
-		sigaddset(&sigmask,SIG);	\
-		sigprocmask(SIG_UNBLOCK,&sigmask,NULL);	\
+	{	sigset_t	sigmsk;		\
+		sigemptyset(&sigmsk);		\
+		sigaddset(&sigmsk,SIG);		\
+		sigprocmask(SIG_UNBLOCK,&sigmsk,NULL);	\
 	}
 #define SIGNAL_IGNORE(SIG) \
 	SIGNAL_HANDLE(SIG,SIG_IGN)

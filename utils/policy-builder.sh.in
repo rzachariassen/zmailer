@@ -126,7 +126,11 @@ fi
 
 umask 022 # Make sure the resulting db file(s) are readable by all
 
-$MAILBIN/makedb -p $DBTYPE smtp-policy-new smtp-policy.dat || exit $?
+# Build the actual binary policy database (-p), and if the input
+# has same key repeating, append latter data instances to the first
+# one (-A):
+
+$MAILBIN/makedb -A -p $DBTYPE smtp-policy-new smtp-policy.dat || exit $?
 
 case $DBTYPE in
 dbm)

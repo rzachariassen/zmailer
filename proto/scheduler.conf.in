@@ -18,7 +18,40 @@
 # NB! For command paths, the "current directory" is MAILBIN/ta
 #
 
-# Boilerplate default parameters
+#
+# Note, there are three kinds of resource-pool limitation parameters
+# which control when a given channel+host pair (thread) is NOT taken
+# into processing:
+#
+#  maxta:  (Set in "*/*" clause)
+#       GLOBAL parameter limiting the number of transport-agent processes
+#       that the scheduler can have running at the same time.
+#
+#  maxchannel:
+#       Selector clause specific value limiting how many transport-agent
+#       processes can be running on which the ``channel'' part is the same.
+#       You may specify dis-similar values for these as well.  For example
+#       you may use value '50' for all your 'smtp' channel entries, except
+#       that you want always to guarantee at least five more for your own
+#       domain deliveries, and thus have:
+#               smtp/*your.domain
+#                       maxchannel=55
+#       If the sum of all ``maxchannel'' values in different channels exceeds
+#       that of ``maxta'', then ``maxta'' value will limit the amount of work
+#       done in extreme load situations.
+#
+#  maxring:
+#       This limits the number of parallel transport agents within each
+#       selector definition.    This defined the size of the POOL of
+#       transport agent processes available to processing the selector
+#       clause matching the selector.
+#
+
+
+#
+# Default parameter boilerplate, following values are in use in
+# all operational channel/host clauses, unless overridden in them..
+#
 */*	interval=1m
 	idlemax=4m # Max idle for SMTP connections is 5 minutes, don't exceed that!
 	#          # (Unless smtp channel becomes a bit smarter on handling it..)
