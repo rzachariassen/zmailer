@@ -3502,22 +3502,23 @@ smtp_sync(SS, r, nonblocking)
 
 	  reread_line:
 
-	    if (!nonblocking) {
+	    /* Blocking read mode */
 
-	      /* Blocking read mode */
-
-	      err = 0;
-	      len = smtp_nbread(SS, buf, sizeof(buf));
+	    err = 0;
+	    len = smtp_nbread(SS, buf, sizeof(buf));
 #ifdef HAVE_OPENSSL
-	      if (SS->sslmode) {
-		if (SS->wantreadwrite > 0)
-		  infd = -infd;
-	      }
+	    if (SS->sslmode) {
+	      if (SS->wantreadwrite > 0)
+		infd = -infd;
+	    }
 #endif /* - HAVE_OPENSSL */
-	      if (len < 0)
-		err = errno;
-	      else
-		goto have_some_data;
+	    if (len < 0)
+	      err = errno;
+
+	    if (!nonblocking && len < 0) {
+
+	      /* Blocking mode, and didn't succeed in reading, lets
+		 use select to see what we can do. */
 
 	      err = select_sleep(infd, timeout);
 	      en = errno;
@@ -3535,19 +3536,11 @@ smtp_sync(SS, r, nonblocking)
 
 	      /* select_sleep() indicated that yes, something is available! */
 	      goto reread_line;
+
 	    }
 
-	    /* Here we are either because we are non-blocking,
-	       or blocking was waiting at select() to confirm
-	       input availability */
-
-	    err = 0;
-	    len = smtp_nbread(SS, buf, sizeof(buf));
-	    if (len < 0)
-	      err = errno;
-
-	    /* Actually can come here with len >= 0 ! */
-	  have_some_data:
+	    /* Here we are because we are non-blocking, and have
+	       no data, OR we have some data! */
 
 	    if (len < 0) {
 	      /* Some error ?? How come ?
