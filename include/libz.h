@@ -159,6 +159,9 @@ extern int  matchmyaddresses  __((struct addrinfo *));
 /* zgetifaddress.c */
 extern int zgetifaddress __((int af, const char *ifname, Usockaddr *));
 
+/* zgetbindaddr.c */
+extern int zgetbindaddr __((char *ifname, Usockaddr *));
+
 /* splay.c */
 /* .... much ... in  "splay.h" */
 

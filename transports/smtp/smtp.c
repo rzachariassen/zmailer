@@ -3105,12 +3105,9 @@ vcsetup(SS, sa, fdp, hostname)
 	int af, port;
 	volatile int addrsiz;
 	int sk;
-	struct sockaddr_in *sai = (struct sockaddr_in *)sa;
-	struct sockaddr_in sad;
-#if defined(AF_INET6) && defined(INET6)
-	struct sockaddr_in6 *sai6 = (struct sockaddr_in6 *)sa;
-	struct sockaddr_in6 sad6;
-#endif
+	Usockaddr *sai = (Usockaddr *)sa;
+	Usockaddr sad;
+	int wantbindaddr = 0;
 	Usockaddr upeername;
 	int upeernamelen = 0;
 
@@ -3124,8 +3121,8 @@ vcsetup(SS, sa, fdp, hostname)
 	switch (af) {
 #if defined(AF_INET6) && defined(INET6)
 	case AF_INET6:
-	  addrsiz = sizeof(*sai6);
-	  memset(&sad6, 0, sizeof(sad6));
+	  addrsiz = sizeof(sai->v6);
+	  memset(&sad.v6, 0, sizeof(sad.v6));
 	  break;
 #endif
 #ifdef AF_UNIX
@@ -3175,93 +3172,22 @@ abort();
 	  return EX_TEMPFAIL;
 	}
 
-	if (localidentity != NULL) {
-	  /* Uh... Somebody wants us to do special hoops...
-	     ... to bind some of our alternate IP addresses,
-	     for example.. */
-	  if (0)
-	    ;
-#if defined(AF_INET6) && defined(INET6)
-	  else if (af == AF_INET6 &&
-		   CISTREQN(localidentity,"iface:",6)) {
-	    zgetifaddress(af, localidentity+6, (Usockaddr *)&sad6);
-	  }
-	  else if (CISTREQN(localidentity,"[ipv6 ",6)  ||
-		   CISTREQN(localidentity,"[ipv6:",6)  ||
-		   CISTREQN(localidentity,"[ipv6.",6) ) {
-	    char *s = strchr(localidentity,']');
-	    if (s) *s = 0;
-	    if (inet_pton(AF_INET6, localidentity+6, &sad6.sin6_addr) < 1) {
-	      /* False IPv6 number literal */
-	      /* ... then we don't set the IP address... */
-	    }
-	  }
-#endif /* AF_INET6 && INET6 */
-	  else if (af == AF_INET &&
-		   CISTREQN(localidentity,"iface:",6)) {
-	    zgetifaddress(af, localidentity+6, (Usockaddr *)&sad);
-	  }
-	  else if (*localidentity == '[') {
-	    char *s = strchr(localidentity,']');
-	    if (s) *s = 0;
-	    if (inet_pton(AF_INET, localidentity+1, &sad.sin_addr) < 1) {
-	      /* False IP(v4) number literal */
-	      /* ... then we don't set the IP address... */
-	    }
-	  } else {
-	    struct addrinfo req, *ai = NULL;
-	    int r2;
-
-	    memset(&req, 0, sizeof(req));
-	    req.ai_socktype = SOCK_STREAM;
-	    req.ai_protocol = IPPROTO_TCP;
-	    req.ai_flags    = AI_CANONNAME;
-	    req.ai_family   = sa->sa_family; /* Same family, as our
-						destination address is */
-#ifdef HAVE_GETADDRINFO
-	    r2 = getaddrinfo(localidentity, "0", &req, &ai);
-#else
-	    r2 = _getaddrinfo_(localidentity, "0", &req, &ai, SS->verboselog);
-#endif
-	    if (SS->verboselog)
-	      fprintf(SS->verboselog,"getaddrinfo(%s,'%s') -> r=%d, ai=%p\n",
-		      sa->sa_family == PF_INET ? "INET":"INET6",
-		      localidentity,r2,ai);
-	    if (r2 == 0 && ai != NULL) /* We try ONLY the first address. */ {
-	      if (ai->ai_family == AF_INET) {
-		memcpy((void*)&sad.sin_addr,
-		       (void*)&((struct sockaddr_in*)ai->ai_addr)->sin_addr,
-		       4);
-	      }
-#if defined(AF_INET6) && defined(INET6)
-	      else {
-		memcpy((void*)&sad6.sin6_addr,
-		       (void*)&((struct sockaddr_in6*)ai->ai_addr)->sin6_addr,
-		       16);
-	      }
-#endif
-	    }
-	    if (ai != NULL)
-	      freeaddrinfo(ai);
-	    /* If it didn't resolv, */
-	    /* ... then we don't set the IP address... */
-	  }
-	}
+	wantbindaddr = !zgetbindaddr(localidentity,&sad); 
 
 	if (wantreserved && getuid() == 0) {
 	  /* try grabbing a port */
 	  for (p = IPPORT_RESERVED-1; p >= (u_short)(IPPORT_RESERVED/2); --p) {
 	    if (af == AF_INET) {
-	      sad.sin_family = AF_INET;
-	      sad.sin_port   = htons(p);
-	      if (bind(sk, (struct sockaddr *)&sad, sizeof sad) >= 0)
+	      sad.v4.sin_family = AF_INET;
+	      sad.v4.sin_port   = htons(p);
+	      if (bind(sk, (struct sockaddr *)&sad, sizeof sad.v4) >= 0)
 		break;
 	    }
 #if defined(AF_INET6) && defined(INET6)
 	    else if (af == AF_INET6) {
-	      sad6.sin6_family = AF_INET6;
-	      sad6.sin6_port   = htons(p);
-	      if (bind(sk, (struct sockaddr *)&sad6, sizeof sad6) >= 0)
+	      sad.v6.sin6_family = AF_INET6;
+	      sad.v6.sin6_port   = htons(p);
+	      if (bind(sk, (struct sockaddr *)&sad, sizeof sad.v6) >= 0)
 		break;
 	    }
 #endif
@@ -3294,15 +3220,15 @@ abort();
 	      fprintf(logfp,"%s#\t(Internal error, too many busy ports)\n", logtag());
 	    return EX_TEMPFAIL;
 	  }
-	} else if (localidentity != NULL) {
+	} else if (wantbindaddr) {
 	  /* Ok, it wasn't a desire for any PRIVILEGED port, just
 	     binding on the specific IP will be accepted. */
 	  errno = 0;
 	  if (af == AF_INET)
-	    bind(sk, (struct sockaddr *)&sad, sizeof sad);
+	    bind(sk, (struct sockaddr *)&sad, sizeof sad.v4);
 #if defined(AF_INET6) && defined(INET6)
 	  if (af == AF_INET6)
-	    bind(sk, (struct sockaddr *)&sad6, sizeof sad6);
+	    bind(sk, (struct sockaddr *)&sad, sizeof sad.v6);
 #endif
 	  if (logfp)
 	    fprintf(logfp,"%s#\tlocalidentity=%s bind() errno = %d\n",
@@ -3315,11 +3241,11 @@ abort();
 	  port = SS->literalport;
 	switch (af) {
 	case AF_INET:
-	  sai->sin_port   = htons(port);
+	  sai->v4.sin_port   = htons(port);
 	  break;
 #if defined(AF_INET6) && defined(INET6)
 	case AF_INET6:
-	  sai6->sin6_port = htons(port);
+	  sai->v6.sin6_port = htons(port);
 	  break;
 #endif
 	}
@@ -3334,7 +3260,7 @@ abort();
 	  case AF_INET6:
 #endif
 	    fprintf(SS->verboselog, "Connecting to %s [%s] port %d\n",
-		    hostname, SS->ipaddress, ntohs(sai->sin_port));
+		    hostname, SS->ipaddress, ntohs(sai->v4.sin_port));
 	    break;
 #ifdef AF_UNIX
 	  case AF_UNIX:

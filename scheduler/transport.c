@@ -1509,9 +1509,10 @@ queryipcinit()
 	    if (modedata2)  modedata2[-1] = '@';
 
 	    memset(&ua, 0, sizeof(ua));
+	    if (zgetbindaddr(NULL, &ua))
+		ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
 	    ua.v4.sin_port        = htons(port);
 	    ua.v4.sin_family      = AF_INET;
-	    ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
 	    querysocket = -1;
 #ifdef INET6
 	    querysocket = socket(PF_INET6, SOCK_STREAM, 0);
@@ -1521,6 +1522,8 @@ queryipcinit()
 #ifdef INET6
 	    else {
 	      memset(&ua, 0, sizeof(ua));
+	      if (zgetbindaddr(NULL, &ua))
+		  ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
 	      ua.v6.sin6_port   = htons(port);
 	      ua.v6.sin6_family = AF_INET6;
 	    }
