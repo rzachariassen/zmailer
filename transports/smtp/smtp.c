@@ -1161,7 +1161,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  if (openstatus != EX_OK) {
 
 	    
-	    if (doing_reopen) openstatus = r;
+	    /* if (doing_reopen) openstatus = r; */
 
 	    for ( rp = startrp; startrp != rp->next; startrp = startrp->next) {
 	      if (startrp->lockoffset) {
@@ -1343,8 +1343,11 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	--once;
 
-
 	if (SS->smtpfp) {
+
+	  if ((SS->lastactiontime + 20) < time(NULL))
+	    SS->do_rset = 1; /* over 20 seconds since last
+				transaction on this link ? */
 
 	  /* SMTP is open, do we want to  RSET ? */
 	  if (SS->do_rset) {
@@ -1373,6 +1376,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	} else {
 
 	  /* SMTP isn't open, we re-open.. */
+	  r = EX_TEMPFAIL;
 	  doing_reopen = 1;
 	  goto re_open;
 
@@ -1516,6 +1520,12 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  } else {
 	    r = EX_TEMPFAIL; /* XXX: ??? */
 #endif
+	  }
+
+	  if (!SS->smtpfp && once > 0) {
+	    r = EX_TEMPFAIL;
+	    doing_reopen = 1;
+	    goto re_open;
 	  }
 
 	  SS->cmdstate     = SMTPSTATE_RCPTTO; /* 1 + MAILFROM.. */
@@ -4658,7 +4668,10 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    err = (r != len);
 	    if (!SS->smtpfp || sferror(SS->smtpfp) || sfsync(SS->smtpfp))
 	      err = 1;
+
 	  }
+
+	  SS->lastactiontime = time(NULL);
 
 	  if (err) {
 	    if (gotalarm) {

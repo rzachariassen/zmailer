@@ -318,6 +318,7 @@ typedef struct { /* SmtpState */
   struct smtpdisc smtpdisc;	/* SMTP outstream discipline data	*/
   int   lasterrno;		/* Last errno value			*/
   int	do_rset;		/* Will possibly need to do RSET	*/
+  time_t lastactiontime;	/* When last (write) action was ?	*/
 
   char *myhostname;		/* strdup()ed name of my outbound interface */
 

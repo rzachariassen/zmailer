@@ -1,5 +1,12 @@
 2003-11-07  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    Tracked connection restart problems, specifically against
+	    HOTMAIL, which runs things in highly questionable manner,
+	    but that may happen with other systems, too.
+	    (Apparently HM hangs up the inbound smtp connection
+	    right after receiving end of previous message.)
+
 	* compat/sendmail/sendmail.c, smtpserver/smtpserver.h,
 	  smtpserver/smtpserver.c, smtpserver/smtpcmds.c:
 	    - When 'sendmail' is called with '-bs' option, let it
