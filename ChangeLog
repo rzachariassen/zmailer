@@ -16,7 +16,7 @@
 	    the password is not completed -- all the kwazillion ways
 	    of doing it in different systems ...
 
-	    THIS EXTENSION IS NOT ENABLED CURRENTLY IN THE SYSTEM!
+	    THIS EXTENSION IS CURRENTLY NOT ENABLED IN THE SYSTEM!
 	
 	* router/rfc822.c:
 	    Converted from symbol() to symbol_lookup_db() in place where
