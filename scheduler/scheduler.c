@@ -1443,6 +1443,7 @@ struct offsort {
 	long	headeroffset;
 	long	drptoffset;
 	char	*sender;
+	char	*delayslot;
 	/* char	*dsnrecipient; */
 	int	notifyflg;
 	time_t	wakeup;
@@ -1645,7 +1646,15 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      if (*cp == ' ' || (*cp >= '0' && *cp <= '9')) {
 		/* New PID locking scheme.. */
 		offarr[opcnt].offset += _CFTAG_RCPTPIDSIZE;
+		cp += _CFTAG_RCPTPIDSIZE;
 	      }
+	      if (*cp == ' ' || (*cp >= '0' && *cp <= '9')) {
+		/* Newer DELAY data slot - _CFTAG_RCPTDELAYSIZE bytes */
+		offarr[opcnt].delayslot = cp;
+		offarr[opcnt].offset += _CFTAG_RCPTDELAYSIZE;
+		cp += _CFTAG_RCPTDELAYSIZE;
+	      } else
+		offarr[opcnt].delayslot = NULL;
 	      offarr[opcnt].wakeup = wakeuptime;
 	      offarr[opcnt].myidx = i;
 	      offarr[opcnt].headeroffset = -1;
