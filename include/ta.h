@@ -193,8 +193,8 @@ extern int append_header __((struct rcpt *rp, const char *fmt, ...));
 #else
 extern int append_header __(());
 #endif
-extern struct cte_data *parse_content_encoding __((char *cte_line));
-extern struct ct_data  *parse_content_type __((char *ct_line));
+extern struct cte_data *parse_content_encoding __((const char *cte_line));
+extern struct ct_data  *parse_content_type __((const char *ct_line));
 extern void output_content_type __((struct rcpt *rp, struct ct_data *ct, char **oldpos));
 extern int check_conv_prohibit __((struct rcpt *rp));
 extern int cte_check __((struct rcpt *rp));
