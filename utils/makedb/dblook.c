@@ -63,7 +63,7 @@ int errn;
 #ifdef HAVE_GDBM
   fprintf(stderr," gdbm");
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
   fprintf(stderr," btree bhash");
 #endif
   fprintf(stderr,"\n");
@@ -73,7 +73,7 @@ int errn;
 #ifdef HAVE_GDBM
   fprintf(stderr,"  (GDBM  DOES NOT append .gdbm  into the actual db file name..)\n");
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
   fprintf(stderr,"  (BTREE DOES NOT append  .db   into the actual db file name..)\n");
   fprintf(stderr,"  (BHASH appends .pag, and .dir into actual db file names..)\n");
 #endif
@@ -575,4 +575,3 @@ char *argv[];
 
   return 0;
 }
-

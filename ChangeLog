@@ -1,5 +1,10 @@
 2002-02-22  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/policytest.h, utils/makedb/makedb.c,
+	  utils/makedb/dblook.c:
+	    System with only SleepyCat DB 3.x in it (not 2.x, nor 1.x)
+	    didn't support it properly.  Oops..
+
 	* configure.in, libc/Makefile.in, man/Makefile.in:
 	    Found out, why  --libdir=,  --includedir=, and
 	    --mandir=  options didn't have effect.  D'uh..

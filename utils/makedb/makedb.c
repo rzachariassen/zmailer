@@ -176,7 +176,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 #ifdef HAVE_GDBM
 	GDBM_FILE gdbmfile = dbf;
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
 	DB *dbfile = dbf;
 #endif
 	int rc = -2;
@@ -819,7 +819,7 @@ char *argv[];
 #ifdef HAVE_GDBM
     GDBM_FILE gdbmfile = NULL;
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
     DB *dbfile = NULL;
 #endif
     char *dbtype = NULL;
