@@ -279,11 +279,11 @@ rrouter (address, origaddr, A, plustail, domain) {
 routes_spec (domain, address, A) {
 	local tmp channel rscshost
 
-	tsift "$domain" in
-#	(bsmtp3nd|bsmtp3|bitnet2|bitnet2deliver2)!(.)!(.)
-	(bsmtp3nd|bsmtp3|bsmtp3rfc|bsmtp3ndrfc)!(.)!(.)
+	ssift "$domain" in
+#	(bsmtp3nd|bsmtp3|bitnet2|bitnet2deliver2)!(.+)!(.+)
+	(bsmtp3nd|bsmtp3|bsmtp3rfc|bsmtp3ndrfc)!(.+)!(.+)
 		return ((("\1" "\2@\3" "$address" $A))) ;;
-	(defrt1)!(.)
+	(defrt1)!(.+)
 		channel="\1"
 		rscshost="\2"
 
@@ -316,6 +316,14 @@ routes_spec (domain, address, A) {
 			;;
 		tfist
 		;;
+	(smtpgw.*)!
+		tmp="\1"
+		tsift "$address" in
+		(.*)@(.+)
+			return ((($tmp "\1" "$address" $A)))
+			;;
+		tfist
+		;;
 	dns!
 		tsift "$address" in
 		(.*)@(.+)
@@ -323,10 +331,10 @@ routes_spec (domain, address, A) {
 			;;
 		tfist
 		;;
-	(.?)!
+	(.+)!
 		return ((("\1" - "$address" $A)))
 		;;
-	lotusgw!(.)!(.)
+	lotusgw!(.+)!(.+)
 		# Map user@domain to user%gwdom@gateway
 		tmp="\1"; channel="\2" # Variable name reuse..
 		tsift "$address" in
@@ -335,17 +343,17 @@ routes_spec (domain, address, A) {
 			;;
 		tfist
 		;;
-	delay!(.)
+	delay!(.+)
 		# NB! envelopeinfo *must* also be defined in interactive mode
 		tmp="$(/bin/expr $(get envelopeinfo now) + "\1")"
 		return (((hold "$tmp" "$address" $A))) ;;
-	(.?)!([^!]+)
+	(.+)!([^!]+)
 		return ((("\1" "\2" "$address" $A))) ;;
-	(.?)!(.+)
+	(.+)!(.+)
 		# BEWARE LOOPS
 		return $(rrouter "\2!$(uucproute "$address")" "$address" $A "" "$domain")
 		;;
-	tfist
+	tfiss
 	return 1
 }
 
