@@ -23,8 +23,10 @@
 	    Allows one to hunt things from the syslog..
 
 	* smtpserver/smtpserver.c:
-	    Doing  longjmp()  from whichin a signal handler isn't
+	    Doing  longjmp()  from within a signal handler isn't
 	    kosher -> sigsetjmp()/siglongjmp() and friends..
+	    (Not that that signal handler should ever be called in
+	     normal operation of the smtpserver..)
 
 	* scheduler/readconfig.c:
 	    Pulled back (disabled) code related to selector clause

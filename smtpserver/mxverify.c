@@ -5,55 +5,8 @@
  */
 
 #include "smtpserver.h"
-
-#if 0
-#include "hostenv.h"
-#include <stdio.h>
-#ifdef linux
-#define __USE_BSD 1
-#endif
-#include <ctype.h>
-#include <errno.h>
-#include <pwd.h>
-#include "zmsignal.h"
-#ifdef HAVE_STDARG_H
-# include <stdarg.h>
-#else
-# include <varargs.h>
-#endif
-#include <fcntl.h>
-#include <sys/file.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <setjmp.h>
-#include <string.h>
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#ifdef HAVE_NETINET_IN6_H
-# include <netinet/in6.h>
-#endif
-#ifdef HAVE_NETINET6_IN6_H
-# include <netinet6/in6.h>
-#endif
-#ifdef HAVE_LINUX_IN6_H
-# include <linux/in6.h>
-#endif
-#include <netdb.h>
 #ifndef EAI_AGAIN
 # include "netdb6.h"
-#endif
-#include <arpa/inet.h>
-
-#include "mail.h"
-#include "zsyslog.h"
-#include "ta.h"
-#include "zmalloc.h"
-#include "libz.h"
-#include "libc.h"
-
-
-#include "policytest.h"
 #endif
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
