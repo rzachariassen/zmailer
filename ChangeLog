@@ -1,5 +1,11 @@
 1999-09-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* configure.in, smtpserver/smtprouter.c:
+	    For some proprietary ZMailer instances we realized that
+	    we must pass arbitary environment variables down to the
+	    router process run underneath the smtpserver.  Ergo,
+	    ./configure for  putenv() function, and use it if available.
+
 	* utils/policy-builder.sh.in:
 	    Disable completely the old (original) spam-address
 	    downloading with Lynx, and its associated tests.

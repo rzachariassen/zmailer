@@ -58,6 +58,14 @@ MKDIR="mkdir -p"
 # AC_PROG_GCC_TRADITIONAL
 AC_PROG_MAKE_SET
 
+# things get pretty tought, if the dup2() is not available ...
+AC_CHECK_FUNC(dup2,
+	AC_DEFINE(HAVE_DUP2),
+	AC_MSG_ERROR([Bizzare -- the system does not have dup2()!  Is your C-compiler working ? (See config.log)])
+)
+
+
+
 defROUTEROPTIONS='-dkn 4'
 defSMTPOPTIONS='-a -sve -l ${LOGDIR}/smtpserver'
 defSCHEDULEROPTIONS='-l ${LOGDIR}/scheduler.perflog -S -H'
@@ -432,13 +440,7 @@ AC_ARG_WITH(yp-lib, [  --with-yp-lib='-L... -lyp'  Linker arguments for the YP/N
 AC_HEADER_SYS_WAIT
 AC_FUNC_WAIT3
 AC_CHECK_FUNCS(waitpid wait4)
-
-
-# things get pretty tought, if the dup2() is not available ...
-AC_CHECK_FUNC(dup2,
-	AC_DEFINE(HAVE_DUP2),
-	AC_MSG_ERROR([Bizzare -- the system does not have dup2()!  Is your C-compiler working ? (See config.log)])
-	)
+AC_CHECK_FUNCS(getenv putenv setenv unsetenv)
 
 #
 #  Study shared library generation

@@ -122,7 +122,11 @@ SmtpState *SS;
 	close(from[0]);
 	close(from[1]);
 	runasrootuser();	/* XXX: security alert! */
+#ifdef HAVE_PUTENV
+	putenv("SMTPSERVER=y");
+#else
 	environ = (char **) newenviron;
+#endif
 	execl(routerprog, "router", "-io-i", (char *) NULL);
 #define	BADEXEC	"8@$#&(\n\n"
 	write(1, BADEXEC, strlen(BADEXEC));
