@@ -1,5 +1,9 @@
 1999-11-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* lib/selfaddrs.c:
+	    When  HAVE_SA_LEN  is defined, we used wrong definition
+	    for  sa_len  field within the union.
+
 	* transports/libta/tasyslog.c, router/rtsyslog.c:
 	    An experiment on alternate TRANSPORT syslog format:
 	    if ZENV variable SYSLOGFLG has 'T', the classical ", "
