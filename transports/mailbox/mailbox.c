@@ -2087,53 +2087,69 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  SIGNAL_IGNORE(SIGHUP);
 	  SIGNAL_HANDLE(SIGTERM, SIG_DFL);
 
-#if 1 /* hmm.. must split the command line to inputs for  execve();
-	 I have uses for a strict environment without  /bin/sh ... [mea] */
+	  /* hmm.. must split the command line to inputs for  execve();
+	     I have uses for a strict environment without  /bin/sh ... [mea] */
 
 	  cp = cmdbuf+1;
-	  i = 0;
-	  while (*cp != 0) {
-	    while (*cp == ' ') ++cp;
-	    if (*cp == '\'') {
-	      argv[i++] = ++cp;
-	      while (*cp != 0 && *cp != '\'') ++cp;
-	      if (*cp == '\'') *cp++ = 0;
-	    } else if (*cp != 0)
-	      argv[i++] = cp;
-	    while (*cp != 0 && *cp != ' ') ++cp;
-	    if (*cp == ' ') *cp++ = 0;
+	  if (*cp == '/') {
+	    /* Starts with an ABSOLUTE PATH -- at least "/" */
+	    i = 0;
+	    while (*cp != 0) {
+	      while (*cp == ' ') ++cp;
+	      if (*cp == '\'') {
+		argv[i++] = ++cp;
+		while (*cp != 0 && *cp != '\'') ++cp;
+		if (*cp == '\'') *cp++ = 0;
+	      } else if (*cp != 0)
+		argv[i++] = cp;
+	      while (*cp != 0 && *cp != ' ') ++cp;
+	      if (*cp == ' ') *cp++ = 0;
+	    }
+	    argv[i] = NULL;
+	    if (verboselog) {
+	      fprintf(verboselog," argv:");
+	      for (i = 0; argv[i] != NULL; ++i)
+		fprintf(verboselog," [%d]<%s>", i, argv[i]);
+	      fprintf(verboselog,"\n");
+	    }
+	    execve(argv[0], argv, env);
+
+	  } else {
+
+	    /* Duh, propably something like:
+	       "|IFS=' '&&.... "
+	    */
+
+	    /*
+	     * Note that argv[0] is set to the command we are running.
+	     * That way, we should get some better error messages, at
+	     * least more understandable in rejection messages.
+	     * Some bourne shells may go into restricted mode if the
+	     * stuff to run contains an 'r'. XX: investigate.
+	     */
+
+	    argv[0] = "/bin/sh";
+	    execl(argv[0],  cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
+	    argv[0] = "/sbin/sh";
+	    execl(argv[0], cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
+
 	  }
-	  argv[i] = NULL;
-	  if (verboselog) {
-	    fprintf(verboselog," argv:");
-	    for (i = 0; argv[i] != NULL; ++i)
-	      fprintf(verboselog," [%d]<%s>", i, argv[i]);
-	    fprintf(verboselog,"\n");
-	  }
-	  execve(argv[0], argv, env);
 
-#else
-
-	  /*
-	   * Note that argv[0] is set to the command we are running.
-	   * That way, we should get some better error messages, at
-	   * least more understandable in rejection messages.
-	   * Some bourne shells may go into restricted mode if the
-	   * stuff to run contains an 'r'. XX: investigate.
-	   */
-
-	  execl("/bin/sh",  cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
-	  execl("/sbin/sh", cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
-#endif
-	  write(2, "Cannot exec /bin/sh\n", 20);
+	  write(2, "Cannot exec '", 13);
+	  write(2, argv[0], strlen(argv[0]));
+	  write(2, "'\n", 2);
 	  _exit(128);
+
 	} else if (pid < 0) {	/* fork failed */
+
 	  notaryreport(NULL,"failed",
 		       "5.3.0 (fork failure)",
 		       "x-local; 500 (fork failure)");
 	  DIAGNOSTIC(rp, cmdbuf, EX_OSERR, "cannot fork", 0);
 	  return EX_OSERR;
+
 	} /* parent */
+
 	close(out[0]);
 	close(in[1]);
 	errfp = fdopen(in[0], "r");
