@@ -1851,7 +1851,9 @@ static int pt_mailfrom(state, str, len)
 	    /* register the excess! */
 	    call_rate_counter(state, 1, POLICY_EXCESS, &count, NULL);
 	  }
-	  return rc;
+	  /* Reject here, if something rejects, otherwise pass on.. */
+	  if (rc != 0)
+	    return rc;
 	}
       }
     }

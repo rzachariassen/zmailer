@@ -1,3 +1,9 @@
+2004-09-23  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/policytest.c:
+	    Use rate-limiter ONLY to make REJECTs, don't use "not limited"
+	    to mean: "acceptable!"
+
 2004-09-21  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/mxverify.c, man/smtpserver.8.in:
