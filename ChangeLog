@@ -1,5 +1,9 @@
 1999-05-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* configure.in:
+	    Store into '#define CONFIGURE_CMD' also CC and CFLAGS
+	    used at the compilation.
+
 	* libsh/expand.c + include/listutils.h, libsh/builtins.c,
 	  libsh/interpret.c, libsh/listmalloc.c, libsh/listtrees.c,
 	  libsh/variables.c, router/db.c, router/functions.c,
@@ -11,6 +15,32 @@
 	    there is absolutely *no* reason to copy CAR() branch in
 	    most cases!  In fact we seem NEVER have need for full TREE
 	    copying, just current CDR chain!
+
+	    This turned up to supply router speedup of about factor 1.14
+	    with vger.rutgers.edu's workloads. (about 12 %)
+
+	    expand(), and its subroutines, are still consuming about
+	    16.8% of the total runtime. (860 recipient addresses in the
+	    test set, with crossbar() total of 1737 $(router ..) calls,
+	    228k calls of expand() -- after all, one for each function
+	    call within the script.)  Out of that, perhaps about 7% of
+	    the total runtime is amendable to changes without changeing
+	    overall system semantics radically...
+	    ... for that matter, perhaps for security point of view it
+	    could be better to explicitely execute calls that invoke
+	    subroutine IO redirection, and shell glob expansion..  With
+	    that, the shell script language could be turned into more
+	    secure one, and perhaps this 16% could be eliminated entirely ?
+
+	    A historical note from about 1994 shows that router speed
+	    for a reasonable run was about 120 k messages per 24h, or
+	    1.39 recipients per second at a SparcStation-10/50.  Syslog
+	    monitoring and load factor estimating  at vger.rutgers.edu
+	    with (on average) 50 recipient messages seems to indicate
+	    a speed of about 15-20 recipients per second at similar
+	    hardware, although 1) compiler has evolved, 2) workload is
+	    different, 3) router internal machinery has had *radical*
+	    changes.
 
 	* include/ta.h, include/libz.h, lib/taspoolid.c, router/prototypes.h,
 	  router/rfc822.c, router/rtsyslog.c, scheduler/scheduler.h,

@@ -114,6 +114,9 @@ AC_MSG_RESULT([** Using C compiler: $CC])
 AC_MSG_RESULT([** Using CFLAGS:     $CFLAGS])
 AC_MSG_RESULT([** Using CPPDEP:     $CPPDEP])
 
+AC_DEFINE_UNQUOTED(CONFIGURE_CMD,"CC='$CC' CFLAGS='$CFLAGS' $0 $ac_configure_args")
+
+
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PATH_PROG(AR, ar, ar)dnl
