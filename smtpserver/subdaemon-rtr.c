@@ -332,7 +332,7 @@ subdaemon_handler_rtr_preselect (state, rdset, wrset, topfdp)
 
 	if (! state) return 0; /* No state to monitor */
 
-	/* If we have router underneath us,
+	/* If we have a router underneath us,
 	   check if it has something to say! */
  
 	for (idx = 0; idx < MaxRtrs; ++idx) {
@@ -564,6 +564,9 @@ router(SS, function, holdlast, arg, len)
 	int rc;
 	struct rtr_state *state;
 	unsigned char *p;
+	time_t start_time;
+
+	time( &start_time );
 
 	if (arg == NULL) {
 	  type(SS, 501, NULL, NULL);
@@ -620,6 +623,11 @@ router(SS, function, holdlast, arg, len)
 
 	  if (state->buf) state->buf[0] = 0;
 	  rc = fdgets( & state->buf, 0, & state->buflen, & state->fdb, state->fd_io, 60 );
+
+	  time( &now );
+	  if ((now - start_time) > 30)
+	    type(NULL,0,NULL, "I-ROUTER DELAY %d secs!",
+		 (int)(now - start_time));
 
 	  if (state->buf && (rc > 0))
 	    if (state->buf[rc-1] == '\n')

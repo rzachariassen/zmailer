@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8zm "2004-Jul-10"
+.TH SMTPSERVER 8zm "2004-Sep-21"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -1473,6 +1473,10 @@ rejected.
 .PP
 .SH SMTP-POLICY RBL-TYPE BLOCKING LISTS
 .PP
+.B "There is a generic problem in these RBL things:"
+.B "They tend to grow stale, go to defunct, and sometimes become poisoned."
+.B "You have been warned!"
+.PP
 Per default the system
 .B does not
 use RBL-type blocking lists.
@@ -1508,20 +1512,14 @@ by using ``\fC:\fR'' character as glue in between:
   ``\fCrelays.mail-abuse.org\fR'' 
   ``\fCdul.maps.vix.com\fR'' 
   ``\fCrelays.orbs.org\fR'' 
-  ``\fCok.orbs.org:relays.orbs.org\fR'' <-- \fBTHIS IS A PAIR! 
 .fi
-.PP
-For the ``\fCok.orbs.org:relays.orbs.org\fR'' the ZMailer 2.99.52patch2
-has special support, but it isn't entirely fool-proof thing...
-(Due to false OKs in the OK zone while NETBLOCK type things
-exist at the RELAYS zone.)
 .PP
 An example for the resulting attribute pair: (RBL+DUL+RSS) 
 .PP
 .nf
 \fC
   #| Second RBL variant: Early block with RBL+DUL+RSS
-  _rbl0   test-dns-rbl  +:dul.maps.vix.com:relays.mail-abuse.org
+  _rbl0   test-dns-rbl  dul.maps.vix.com:relays.mail-abuse.org
   _rbl1   # Nothing
 .fi
 .PP
@@ -1532,8 +1530,8 @@ Delay the rejection report to ``\fCRCPT TO\fR'' verbs by using the
 .PP
 .nf
 \fC
-  #| Third RBL variant: Late block with RBL+DUL+RSS
-  _rbl0   rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+  #| Third RBL variant: Late block with DUL+RSS
+  _rbl0   rcpt-dns-rbl      dul.maps.vix.com:relays.mail-abuse.org
   _rbl1   test-rcpt-dns-rbl +
 .fi
 .PP

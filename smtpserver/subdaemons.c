@@ -396,7 +396,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    }
 		    if (!peer->outbuf) {
 		      peer->outspace = 250;
-		      peer->outbuf = calloc(1, 250); /* FIXME: MAGIC! */
+		      peer->outbuf = calloc(1, 251); /* FIXME: MAGIC! */
 		    }
 
 		    peer->fd = newfd;
@@ -404,7 +404,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    /* We write our greeting right away .. semi fake state! */
 		    _Z_FD_SET(peer->fd, wrset);
 
-		    strcpy(peer->outbuf, "#hungry\n");
+		    memcpy(peer->outbuf, "#hungry\n", 8);
 		    peer->outlen = 8;
 		    peer->outptr = 0;
 		    newfd = -1;
@@ -458,6 +458,10 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    } else {
 		      /* Sigh..  partial write :-( */
 		      peer->outptr += rc;
+		      rc = peer->outlen - peer->outptr;
+		      memmove(peer->outbuf, peer->outbuf+peer->outptr, rc);
+		      peer->outptr = 0;
+		      peer->outlen = rc;
 		    }
 		  }
 		} /* ... Writability testing */
@@ -481,7 +485,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    }
 		    if ((rc < 0) && (errno == EINTR))
 		      continue; /* try again */
-		    break;
+		    break; /* Something else wrong.. */
 		  }
 		  if (rc == 0) { /* EOF! */
 		    subdaemon_kill_peer(peer);
@@ -506,12 +510,15 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    if (last_peer_index >= top_peer)
 	      last_peer_index = 0;             /* Wrap around */
 
-#if 0
+#if 1
 	    peer = & peers[ last_peer_index ]; /* Round-robin;
 						  in abominal overload
 						  this means that nobody
 						  gets service.
 					       */
+	    ++ last_peer_index;		/* Continuous RR index counting,
+					   sending may stop at somewhere,
+					   but the counter progresses.. */
 #else
 	    peer = & peers[ n ];     /* Low slots get service;
 					in abominal overload this means
@@ -535,7 +542,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		  break;
 		} else if (rc == 0) {
 		  /* XON .. give me more jobs */
-		  ++last_peer_index;
+		  /* ++last_peer_index; */
 #if 1
 		  continue; /* go and pick next task talker, if any */
 #else

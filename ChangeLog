@@ -1,3 +1,14 @@
+2004-09-21  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/subdaemon-rtr.c:
+	    Report (into log) if the i-router subsystem response
+	    time exceeds 30 seconds.
+
+	* smtpserver/subdaemons.c:
+	    Change a bit of the round-robinny processing details.
+	    It may (or may not) improve sometimes observed long
+	    delays..
+
 2004-09-10  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/subdaemons.c:
