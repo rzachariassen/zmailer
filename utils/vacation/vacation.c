@@ -1,4 +1,5 @@
 #include "hostenv.h"
+
 #include <stdio.h>
 #include <ctype.h>
 #ifdef HAVE_STDLIB_H
@@ -25,6 +26,12 @@
 #ifdef  HAVE_GDBM_H
 #include <gdbm.h>
 #include <fcntl.h>
+#else
+#ifdef  HAVE_DB_H
+#include <db.h>
+#else
+# error "To compile, VACATION needs ndbm.h, gdbm.h, or db.h; none found!"
+#endif
 #endif
 #endif
 /* #include "useful.h"  */
@@ -97,13 +104,19 @@ ALIAS *names = NULL;
 
 #ifdef	HAVE_NDBM_H
 DBM *db;
+#define DBT datum
 #else
 #ifdef HAVE_GDBM_H
 GDBM_FILE db;
+#define DBT datum
+#else /* HAVE_DB_H */
+DB *db;
+/* Natural datum type is: DBT */
+#define dptr  data
+#define dsize size
 #endif /* GDBM */
 #endif	/* NDBM */
 
-#define DBT datum
 
 char from[MAXLINE];
 char *subject_str = NULL;	/* Glob subject from input */
@@ -234,7 +247,8 @@ main(argc, argv)
 			       S_IRUSR|S_IWUSR, NULL );
 #else
 	if (dblog)
-		db = dbinit(VDB); /* XX: old DBM ? */
+	  db = dbopen(VDB ".db", iflag ? (O_RDWR|O_CREAT) : O_RDWR,
+		      S_IRUSR|S_IWUSR, DB_BTREE, NULL);
 #endif
 #endif
 	if (dblog && !db) {
@@ -256,7 +270,7 @@ main(argc, argv)
 			gdbm_close(db);
 #else
 		if (dblog)
-			XX: eh, what ?
+			db->close(db);
 #endif
 #endif
 		exit(EX_OK);
@@ -274,12 +288,32 @@ main(argc, argv)
 	purge_input();
 	if (!recent()) {
 		setreply();
+#ifdef	HAVE_NDBM_H
 		if (dblog)
 			dbm_close(db);
+#else
+#ifdef HAVE_GDBM_H
+		if (dblog)
+			gdbm_close(db);
+#else
+		if (dblog)
+			db->close(db);
+#endif
+#endif
 		sendmessage(msgfile,pw->pw_name);
 	}
-	if (dblog)
-		dbm_close(db);
+#ifdef	HAVE_NDBM_H
+		if (dblog)
+			dbm_close(db);
+#else
+#ifdef HAVE_GDBM_H
+		if (dblog)
+			gdbm_close(db);
+#else
+		if (dblog)
+			db->close(db);
+#endif
+#endif
 	exit(EX_OK);
 }
 /*
@@ -621,7 +655,8 @@ int recent()
 #ifdef HAVE_GDBM_H
 	data = gdbm_fetch(db, key);
 #else
-    XX:XX:XX:XX:XX:XX:XX:XX
+	if (db->get(db, &key, &data, 0) != 0)
+	  data.dptr = NULL;
 #endif
 #endif
 	if (data.dptr == NULL)
@@ -638,7 +673,8 @@ int recent()
 #ifdef HAVE_GDBM_H
 	data = gdbm_fetch(db, key);
 #else
-    XX:XX:XX:XX:XX:XX:XX:XX
+	if (db->get(db, &key, &data, 0) != 0)
+	  data.dptr = NULL;
 #endif
 #endif
 	if (data.dptr) {
@@ -671,6 +707,7 @@ setinterval(interval)
 #ifdef HAVE_GDBM_H
 	gdbm_store(db, key, data, GDBM_REPLACE);
 #else
+	db->put(db, &key, &data, 0);
 #endif
 #endif
 }
@@ -698,6 +735,7 @@ setreply()
 #ifdef HAVE_GDBM_H
 	gdbm_store(db, key, data, GDBM_REPLACE);
 #else
+	db->put(db, &key, &data, 0);
 #endif
 #endif
 }

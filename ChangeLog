@@ -1,14 +1,26 @@
+1998-06-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/vacation/vacation.c:
+	    Add HAVE_DB_H test to be third known/supported database.
+	    Will it be sufficient for all environments shall be seen..
+
+	* utils/vacation/convtime.c:
+	    Add a couple autoconf includes
+
 1998-06-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/newdb.in:
+	    Smarter option processing, usage() function.
 
 	* compat/sendmail/sendmail.c:
 	    Recognize when no message was collected, and silently
 	    ignore such input.
-	
+
 	* compat/sendmail/sendmail.c:
 	    - Parse and verify option parameters for -B and -p options
 	    - implement -s option (save From_)
 	    - wrote a REAL usage() report -- try 'sendmail -?' to see
-	
+
 	* smtpserver/smtpcmds.c:
 	    When presenting diagnostics on bad parameters on MAIL command,
 	    the server used occasionally response number 455, where it
@@ -27,17 +39,17 @@
 	      databases.  (You could guess: somebody asked for this :) )
 	    - Others just recognize the "-s" option, and pass it around
 	      properly.
-	
+
 	* router/functions.c:
 	    Removed large chunk of dead code (#if 0 ..)
-	
+
 	* proto/Makefile.in:
 	    Fixed configuration file back-reference
 
 	* smtpserver/smtpcmds.c:
 	    When printing HELO-string into rcvdfrom comment, quote
 	    also "(", and ")" characters.
-	
+
 	* smtpserver/smtpserver.c:
 	    Revised that 'smtpserver -i' mode code so that
 	    it should work on a wider array of systems.
