@@ -907,7 +907,11 @@ char *argv[];
 	dbfile = NULL;
 	err = db_create(&dbfile, NULL, 0);
 	if (! err)
-	  err = dbfile->open(dbfile, dbasename, NULL, DB_BTREE,
+	  err = dbfile->open(dbfile,
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR == 1)
+			     NULL, /* TXN id was added at SleepyDB 4.1 */
+#endif
+			     dbasename, NULL, DB_BTREE,
 			     DB_CREATE|DB_TRUNCATE, 0644);
 	if (!err)
 	  dbf = dbfile;
@@ -921,7 +925,11 @@ char *argv[];
 	dbfile = NULL;
 	err = db_create(&dbfile, NULL, 0);
 	if (! err)
-	  err = dbfile->open(dbfile, dbasename, NULL, DB_HASH,
+	  err = dbfile->open(dbfile,
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR == 1)
+			     NULL, /* TXN id was added at SleepyDB 4.1 */
+#endif
+			     dbasename, NULL, DB_HASH,
 			     DB_CREATE|DB_TRUNCATE, 0644);
 	if (!err)
 	  dbf = dbfile;

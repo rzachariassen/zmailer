@@ -294,7 +294,11 @@ int zsleepyprivateopen(prv, roflag, mode, comment)
 	if (comment) *comment = " db_create()";
 	err = db_create(&db, prv->ZSE ? prv->ZSE->env : NULL, 0);
 	if (err == 0 && db != NULL) {
-	    err = db->open( db, prv->filename, NULL, prv->dbtype,
+	    err = db->open( db,
+#if (DB_VERSION_MAJOR == 4) && (DB_VERSION_MINOR == 1)
+			    NULL, /* TXN id was added at SleepyDB 4.1 */
+#endif
+			    prv->filename, NULL, prv->dbtype,
 			    ((roflag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
 			    mode );
 	    if (comment) *comment = " database";
