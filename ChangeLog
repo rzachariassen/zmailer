@@ -1,5 +1,11 @@
 2002-06-25  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.c:
+	    Separating DATA ending dot into separately done write(2),
+	    which hopefully leads into separately pushed out frame,
+	    and finally packet separation at the DATA-phase ending dot
+	    sending..  World is full of braindead firewalls...
+
 	* include/sleepycatdb.h, lib/sleepycatdb.c,
 	  router/libdb/bsdbtree.c, router/libdb/bsdhash.c:
 	    More work at the SleepyCat DB Concurrent Data Store  support.

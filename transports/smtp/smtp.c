@@ -1776,6 +1776,21 @@ deliver(SS, dp, startrp, endrp)
 
 	} else { /* Ordinary DATA-dot mode */
 
+
+	  /* Following the lead of sendmail, we separate
+	     the DATA ending ".CRLF" 'line' into separately
+	     pushed TCP frame.  That is apparently necessary
+	     as the world is full of braindead firewalls
+	     which change the ending CRLF.CRLF into something
+	     else...  Cisco PIX seems to be the most common
+	     culprit.. [mea] 2002-Jun-25
+
+	     Of course this separation might not survive possible
+	     packet retransmission, and nagle-merge... */
+
+	  report(SS, "DATA-flush (wait)");
+	  if (SS->smtpfp && !sferror(SS->smtpfp)) sfsync(SS->smtpfp);
+
 	  report(SS, "DATA-dot wait");
 	  r = smtpwrite(SS, 1, ".", lmtp_mode, NULL);
 	  if (!lmtp_mode)
