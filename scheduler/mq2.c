@@ -553,7 +553,7 @@ static int mq2cmd_etrn(mq,s)
 
   /* 's' points to the first arg, 't' points to string after
      separating white-space has been skipped. */
-  sfprintf(sfstdout,"%s MQ2 ETRN: %s\n", timestring(), s);
+  sfprintf(sfstdout,"%s MQ2 ETRN: %s %s\n", timestring(), s, t);
   rc = turnme(s);
   if (rc)
     mq2_puts(mq, "+OK; an ETRN started something.\n");
