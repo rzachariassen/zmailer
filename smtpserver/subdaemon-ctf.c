@@ -7,6 +7,8 @@
  *      Copyright 1991-2004.
  */
 
+/*  SMTPSERVER  CONTENT-FILTER MULTIPLEXER-SERVER  SUBDAEMON    */
+
 /*
  * Protocol from client to server is of TEXT LINES that end with '\n'
  * and are without '\r'... (that are meaningless inside the system.)
@@ -605,7 +607,7 @@ smtpcontentfilter_init ( statepp )
 	errno = 0;
 
 	if (state->buf) state->buf[0] = 0;
-	if (fdgets( & state->buf, 0, & state->buflen, & state->fdb, state->fd_io, 10 ) < 0) {
+	if (fdgets( & state->buf, 0, & state->buflen, & state->fdb, state->fd_io, 10 ) <= 0) {
 	  /* something failed! -- timeout in 10 secs ?? */
 	  if (debug)
 	    type(NULL,0,NULL,"smtpcontentfilter_init; FAILURE 10-B");

@@ -7,6 +7,8 @@
  *      Copyright 1991-2004.
  */
 
+/*  SMTPSERVER  ROUTER MULTIPLEXER-SERVER  SUBDAEMON    */
+
 /*
  * Protocol from client to server is of TEXT LINES that end with '\n'
  * and are without '\r'... (that are meaningless inside the system.)
@@ -167,7 +169,7 @@ static int subdaemon_callr (RTR, idx)
 	     RTR->bufsize[idx], RTR->buf[idx], rc, RTR->buf[idx][rc-1]);
 	  */
 
-	  if ( rc < 0 ) {
+	  if ( rc <= 0 ) {
 	    /* EOF.. */
 	    subdaemon_killr(RTR, idx);
 	    return -1;
@@ -475,7 +477,7 @@ smtprouter_init ( statep )
 	errno = 0;
 
 	if (state->buf) state->buf[0] = 0;
-	if (fdgets( & state->buf, 0, & state->buflen, & state->fdb, state->fd_io, 10 ) < 0) {
+	if (fdgets( & state->buf, 0, & state->buflen, & state->fdb, state->fd_io, 10 ) <= 0) {
 	  /* something failed! -- timeout in 10 secs ?? */
 	  if (debug)
 	    type(NULL,0,NULL,"smtprouter_init; FAILURE 10-B");
@@ -588,7 +590,7 @@ router(SS, function, holdlast, arg, len)
 	    type(NULL,0,NULL, "fdgets()->%p rc=%d buf=\"%s\"",
 		 state->buf, rc, (state->buf ? state->buf : "<NULL>"));
 
-	  if (rc < 0) {
+	  if (rc <= 0) {
 	    /* TIMED OUT !  BRR... */
 	    smtprouter_kill( state );
 	    type(SS, 450, "4.5.0", "Interactive router %s!",

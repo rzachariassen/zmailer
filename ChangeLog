@@ -1,5 +1,9 @@
 2004-09-03  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/subdaemon-rtr.c, smtpserver/subdaemon-ctf.c:
+	    SIGTERM reaction corrections in "clients" when talking
+	    (or trying to) with the subdaemon.
+
 	* smtpserver/smtpserver.c:
 	    Make the SMTP speaker loop to obey SIGTERM, and to
 	    drop everything it was doing... (gracefull death of
