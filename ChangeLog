@@ -1,5 +1,12 @@
 1998-05-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* All (very nearly) Makefile.in files, plus
+	  configure.in:
+	    Support CPPFLAGS input environment for the configure,
+	    and store it into all Makefiles that do compilation.
+	    It is intended to carry "-I/.." options for CPP phase
+	    so that some illogically placed headers can be found.
+
 	* utils/makedb/makedb.c:
 	    Missed  'l' and 'u' from  getopt() parameters; Oops..
 	    (Andrew Tridgell <tridge@samba.anu.edu.au> reported)
