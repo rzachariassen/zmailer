@@ -1,3 +1,9 @@
+2003-04-11  Matti Aarnio  <mea@zmailer.org>
+
+	* SiteConfig.in, configure.in:
+	    Updated default configuration values a bit, rearranged
+	    SiteConfig.in  parts to be more "groupped by function".
+
 2003-04-07  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/sleepycatdb.c:

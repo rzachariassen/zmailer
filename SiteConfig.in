@@ -41,18 +41,6 @@ MAILBOX=	@MAILBOX@
 # /var/spool/postoffice.
 POSTOFFICE=	@POSTOFFICE@
 
-# Multiple LOWER priorities on message routing can be defined by creating
-# $POSTOFFICE/<component-of-$ROUTERDIRS> -directories.
-# Routers process first   $POSTOFFICE/router/ -directory, and once it is
-# empty, files from subsequent dirs.   See  mail(3)  mail_priority
-# These can be only under the $POSTOFFICE.
-ROUTERDIRS=router1:router2:router3:router4
-
-# When defined, ROUTERDIRHASH submits messages immediately into the
-# 'A' thru 'Z' subdirectory of whatever directory (e.g. see ROUTERDIRS).
-# IF NO SUCH "hash subdirs" EXIST, MESSAGE SUBMISSION WILL FAIL!
-# (The value must be "1" for this to take effect!)
-#ROUTERDIRHASH=1
 
 # LOGDIR is the directory where log files will appear.  Usually /usr/spool/log
 # or /var/log.
@@ -73,6 +61,30 @@ LIBRARYDIR=	@libdir@
 # and it is used in conjunction with the  libzmailer.a ..
 INCLUDEDIR=	@includedir@
 
+
+# ROUTEROPTIONS are command line options given to the router when started
+# from the zmailer shell script. The default values are "-dWkn 4"
+#ROUTEROPTIONS= "-dWkn 4"
+ROUTEROPTIONS= @ROUTEROPTIONS@
+
+# Multiple LOWER priorities on message routing can be defined by creating
+# $POSTOFFICE/<component-of-$ROUTERDIRS> -directories.
+# Routers process first   $POSTOFFICE/router/ -directory, and once it is
+# empty, files from subsequent dirs.   See  mail(3)  mail_priority
+# These can be only under the $POSTOFFICE.
+ROUTERDIRS=router1:router2:router3:router4
+
+# When defined, ROUTERDIRHASH submits messages immediately into the
+# 'A' thru 'Z' subdirectory of whatever directory (e.g. see ROUTERDIRS).
+# IF NO SUCH "hash subdirs" EXIST, MESSAGE SUBMISSION WILL FAIL!
+# (The value must be "1" for this to take effect!)
+#ROUTERDIRHASH=1
+
+# The ROUTERNOTIFY defines, where is a socket at which the router
+# listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
+# The injection library informs the router queuing subsystem of new jobs.
+ROUTERNOTIFY=@POSTOFFICE@/.router.notify
+
 # SMTPOPTIONS are command line options given to the smtpserver when started
 # from the zmailer shell script.  The intent is that if you want non-default
 # address verification options they can be specified here.  The default
@@ -85,6 +97,7 @@ SMTPOPTIONS=	@SMTPOPTIONS@
 # the old RFC821/822 source routes of type:  @a,@b:c@d;  By "ignoring"
 # we mean here that system chops away "@a,@b:" and uses only:  c@d
 # This is done at all input portals; smtpserver, and at sendmail/rmail.
+# System behaviour is prone to problems in case this is ever enabled!
 #ALLOWSOURCEROUTE=
 
 # SCHEDULEROPTIONS are command line options given to the scheduler when
@@ -109,16 +122,6 @@ SCHEDULERDIRHASH=2
 # listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
 # The router(s) inform the scheduler of new jobs.
 SCHEDULERNOTIFY=@POSTOFFICE@/.scheduler.notify
-
-# The ROUTERNOTIFY defines, where is a socket at which the router
-# listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
-# The injection library informs the router queuing subsystem of new jobs.
-ROUTERNOTIFY=@POSTOFFICE@/.router.notify
-
-# ROUTEROPTIONS are command line options given to the router when started
-# from the zmailer shell script. The default values are "-dkn 4"
-#ROUTEROPTIONS= "-dkn 4"
-ROUTEROPTIONS= @ROUTEROPTIONS@
 
 # Here you can put any ZM ``environment'' variables you want to place in
 # the system-wide configuration file (/etc/zmailer.conf).  Typically this

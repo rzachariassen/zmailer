@@ -3790,8 +3790,8 @@ echo "${ECHO_T}!!!" >&6
   exit 1
 fi
 
-defROUTEROPTIONS='-dkn 4'
-defSMTPOPTIONS='-a -sve -l ${LOGDIR}/smtpserver'
+defROUTEROPTIONS='-dWkn 4'
+defSMTPOPTIONS='-sve -l ${LOGDIR}/smtpserver'
 defSCHEDULEROPTIONS='-l ${LOGDIR}/scheduler.perflog -S -H'
 defNNTPSERVER='nntp'
 ac_default_zmconfig="${ZCONFIG-$prefix/zmailer.conf}"
