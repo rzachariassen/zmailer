@@ -357,7 +357,7 @@ int insecure;
     }
     cp += 5;
     if (!strict_protocol)
-      for (cp = cp + 5; *cp != '\0' && *cp != '<'; ++cp)
+      for (; *cp != '\0' && *cp != '<'; ++cp)
 	/* Skip white-space */
 	if (!isascii(*cp) || !isspace(*cp)) {
 	  if (!sloppy) {
