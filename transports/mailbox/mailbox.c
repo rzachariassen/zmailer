@@ -1127,7 +1127,8 @@ deliver(dp, rp, usernam, timestring)
 			     "5.3.0 (Error getting user identity)",
 			     "x-local; 550 (Error getting user identity)");
 		DIAGNOSTIC(rp, usernam, EX_TEMPFAIL,
-			   "getpwnam for user \"%s\" failed", usernam);
+			   "getpwnam for user \"%s\" failed; errno=%d",
+			   usernam, errno);
 
 	      } else if (propably_x400(usernam)) {
 
