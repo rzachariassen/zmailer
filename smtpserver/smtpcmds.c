@@ -301,7 +301,11 @@ const char *buf, *cp;
 	if (rcptlimitcnt > 100)
 	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
 
-	if (auth_login_without_tls || SS->sslmode) {
+	if (auth_login_without_tls
+#ifdef HAVE_OPENSSL
+	    || SS->sslmode
+#endif
+	    ) {
 	  if (auth_ok)
 	    type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/
 						   Sun Solstice/ ? */
