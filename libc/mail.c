@@ -24,6 +24,7 @@
 #endif
 
 #include "mail.h"
+#include "zmsignal.h"
 
 #include "listutils.h"
 #include "libc.h"
