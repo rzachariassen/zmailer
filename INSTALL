@@ -203,7 +203,7 @@ Installation procedure:
 	Anyway the point is to get the sendmail to send its queue
 	via SMTP to the ZMailer.
 
-6.	Once you are safe, run either:
+6.	Once you are safe, run BOTH:
 
 		# make install
 		# $MAILBIN/post-install.sh -MD5
