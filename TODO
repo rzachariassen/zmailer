@@ -1,5 +1,9 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+smtpserver:
+	Implement policy analysis of %-hack addresses..
+	(And !-paths too ?)
+
 router:
 	Input header:
 		Cc: "\"\\"\\\"\\\\"\\\\\"'\\\\\\"Prof. dr J. Wil Foppen\\\\\\" <wfoppen@rsm.nl>' \\\\\"

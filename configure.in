@@ -646,36 +646,36 @@ if test "$ac_cv_header_db_185_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_dbopen" = yes ; then
     LIBDB=""
-    t_found_at="libc"
+    t_found_at="libc(1)"
     DBTYPE="btree"
   else
-    if test "$ac_cv_lib_db_dbopen" = yes ; then
-      LIBDB="-ldb"
-      t_found_at="db library"
+    if test "$ac_cv_lib_db1_dbopen" = yes ; then
+      LIBDB="-ldb1"
+      t_found_at="db1 library"
       DBTYPE="btree"
     else
       AC_TRY_LINK([], [dbopen();], ac_cv_lib_c_dbopen=yes,
 				   ac_cv_lib_c_dbopen=no)
       if test "$ac_cv_lib_c_dbopen" = no; then
-	if test "x$ac_cv_lib_db_dbopen" = x; then # not set
+	if test "x$ac_cv_lib_db1_dbopen" = x; then # not set
 	  t_oldLibs="$LIBS"
-	  LIBS="$LIBS -ldb"
-	  AC_TRY_LINK([], [dbopen();],	ac_cv_lib_db_dbopen=yes,
-					ac_cv_lib_db_dbopen=no)
-	  if test "$ac_cv_lib_db_dbopen" = yes; then
-	    LIBDB="-ldb"
-	    t_found_at="db library"
+	  LIBS="$LIBS -ldb1"
+	  AC_TRY_LINK([], [dbopen();],	ac_cv_lib_db1_dbopen=yes,
+					ac_cv_lib_db1_dbopen=no)
+	  if test "$ac_cv_lib_db1_dbopen" = yes; then
+	    LIBDB="-ldb1"
+	    t_found_at="db1 library"
 	    DBTYPE="btree"
 	  else
 	    AC_MSG_RESULT([Has <db_185.h>, but dbopen() is not at libc, nor at libdb ??])
 	  fi
 	  LIBS="$t_oldLibs"
 	else
-	  AC_MSG_ERROR([config.cache inconsistency! (db) Delete it, and redo!])
+	  AC_MSG_ERROR([config.cache inconsistency! (db1) Delete it, and redo!])
 	fi
       else # Has it in the libc!
 	LIBDB=""
-	t_found_at="libc"
+	t_found_at="libc(2)"
 	DBTYPE="btree"
       fi
     fi
@@ -693,11 +693,17 @@ if test "$ac_cv_header_db_185_h" = yes ; then
   fi
 fi
 
+dnl Possible backwards compability library is detected above, but we believe
+dnl that following code can be *still* able to locate  dbopen()  from another
+dnl library which contains call API (ABI?) compatible interface, however which
+dnl does not necessarily contain binary compatible DATABASE which would use
+dnl same binary layout as old BSD DB 1.85 version did...
+
 if test "$ac_cv_header_db_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_dbopen" = yes ; then
     LIBDB=""
-    t_found_at="libc"
+    t_found_at="libc(3)"
     DBTYPE="btree"
   else
     if test "$ac_cv_lib_db_dbopen" = yes ; then
@@ -726,7 +732,7 @@ if test "$ac_cv_header_db_h" = yes ; then
 	fi
       else # Has it in the libc!
 	LIBDB=""
-	t_found_at="libc"
+	t_found_at="libc(4)"
 	DBTYPE="btree"
       fi
     fi

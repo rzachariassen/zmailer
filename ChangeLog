@@ -1,3 +1,23 @@
+1999-05-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    Improve a bit of the testing of  <db_185.h> vs. <db.h>,
+	    and  -ldb1  vs.  -ldb  -- perhaps this is glibc 2.1 systems
+	    thing only, perhaps this is more common, don't know..
+
+	* utils/vacation/Makefile.in:
+	    When installing under a prefix, create  $(prefix)$(VACATIONDIR)
+	    in case it doesn't exist before storing anything into it.
+	    Also corrected the installed symlink a bit.
+
+	* transports/smtp/smtp.c:
+	    One semi-obscure bug in pipelining related smtp_sync() code
+	    yielding false positive delivery report, if the remote did
+	    support CHUNKING, and the message was sufficiently small,
+	    and the remote closed session before replying to MAIL/RCPT*/BDAT
+	    sequence completely...
+	    ( read: "small" = under 64 kB, which means almoast all emails ... )
+
 1999-05-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/readconfig.c, scheduler/transport.c:
