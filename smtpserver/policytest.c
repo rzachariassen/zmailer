@@ -1819,6 +1819,7 @@ static int pt_mailfrom(state, str, len)
 	  if (rc != 0) {
 	    /* register the excess! */
 	    call_rate_counter(state, 2, POLICY_MAILFROM, &count);
+	    type(NULL,0,NULL," call_rate_counter(): EXCESS: i=%d", 1);
 	  }
 	  return rc;
 	}
@@ -2242,12 +2243,15 @@ int policytest(state, what, str, len, authuser)
     case POLICY_DATAOK:
 	/* rc = call_rate_counter(state, 1, what, NULL); */
 	rc = call_rate_counter(state, len, POLICY_RCPTTO, NULL);
+	type(NULL,0,NULL," call_rate_counter(): DATAOK: i=%d",len);
 	break;
     case POLICY_DATAABORT:
 	rc = call_rate_counter(state, len, POLICY_DATAABORT, NULL);
+	type(NULL,0,NULL," call_rate_counter(): DABORT: i=%d",len);
 	break;
     case POLICY_AUTHFAIL:
 	rc = call_rate_counter(state, len, POLICY_AUTHFAIL, NULL);
+	type(NULL,0,NULL," call_rate_counter(): AUTHFAIL: i=%d",len);
 	break;
     default:
 	abort();		/* Code error! Bad policy !	*/
