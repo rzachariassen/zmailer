@@ -3871,6 +3871,11 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	if (SS->rcptstates & FROMSTATE_400)
 	  rc = EX_TEMPFAIL; /* MAIL FROM was a 4** code */
 
+	if (rc != EX_OK && logfp)
+	    fprintf(logfp,"%s#\t smtp_sync() fielded code %d\n", logtag(), rc);
+	if (SS->verboselog)
+	  fprintf(SS->verboselog," smtp_sync() fielded code %d\n", rc);
+
 	return rc;
 }
 
