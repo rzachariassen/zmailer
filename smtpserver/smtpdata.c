@@ -144,6 +144,14 @@ const char *buf, *cp;
 	    SS->policyresult = contentpolicy(policydb,&SS->policystate,fname);
 	}
 
+	if (SS->policyresult < 0) {
+	  if (logfp != NULL)
+	    fprintf(logfp, "%d#\t(Content)-policy-analysis ordered message rejection. (code=%d)\n", pid, SS->policyresult);
+	  type(SS, 552, m571, "Policy-analysis rejected this message");
+	  mail_abort(SS->mfp);
+	  SS->mfp = NULL;
+	}
+
 	if (SS->policyresult > 0) {
 	    char polbuf[20];
 	    struct stat stbuf;
@@ -334,6 +342,14 @@ const char *buf, *cp;
 	    char *fname = mail_fname(SS->mfp);
 
 	    SS->policyresult = contentpolicy(policydb,&SS->policystate,fname);
+	}
+
+	if (SS->policyresult < 0) {
+	  if (logfp != NULL)
+	    fprintf(logfp, "%d#\t(Content)-policy-analysis ordered message rejection. (code=%d)\n", pid, SS->policyresult);
+	  type(SS, 552, m571, "Policy-analysis rejected this message");
+	  mail_abort(SS->mfp);
+	  SS->mfp = NULL;
 	}
 
 	if (SS->policyresult > 0) {
