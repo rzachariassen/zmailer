@@ -1120,6 +1120,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  
 	  openstatus = smtpopen(SS, host, noMX);
 	  if (openstatus != EX_OK && openstatus != EX_TEMPFAIL) {
+	    rp = startrp;
 	    for ( ; startrp != rp->next; startrp = startrp->next) {
 	      if (startrp->lockoffset) {
 		notaryreport(startrp->addr->user, FAILED, NULL, NULL);
