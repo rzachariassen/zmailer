@@ -74,7 +74,7 @@ fi
     cat smtp-policy.relay | \
     awk '/^#/{next;}
 	NF == 1 {printf "%s = _full_rights\n",$1;next;}
-	NF >= 2 {printf "%s = _full_rights %s %s %s %s %s %s %s %s\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;next;}
+	NF >= 2 {printf "%s = _full_rights %s %s %s %s %s %s %s %s\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;next;}'
   fi
 
   # smtp-policy.mx
