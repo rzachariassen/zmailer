@@ -192,9 +192,9 @@ const char *h;
     int c;
 
 #ifndef	USE_ALLOCA
-    cp = emalloc(strlen(h) + 1);
+    cp = (char*)emalloc(strlen(h) + 1);
 #else
-    cp = alloca(strlen(h) + 1);
+    cp = (char*)alloca(strlen(h) + 1);
 #endif
     for (s = cp; *h != '\0'; ++h) {
 	c = (*h) & 0xFF;

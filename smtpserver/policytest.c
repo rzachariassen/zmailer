@@ -571,9 +571,9 @@ int whosonrc;
     }
     openok = 0;
 #ifdef HAVE_ALLOCA
-    dbname = alloca(strlen(rel->dbpath) + 8);
+    dbname = (char*)alloca(strlen(rel->dbpath) + 8);
 #else
-    dbname = emalloc(strlen(rel->dbpath) + 8);
+    dbname = (char*)emalloc(strlen(rel->dbpath) + 8);
 #endif
     switch (rel->dbt) {
 #ifdef HAVE_NDBM_H

@@ -304,6 +304,21 @@ char **argv;
     /* optarg = NULL; */
     while (1) {
 	int c = getopt(argc, argv,
+#ifndef __STDC__
+#if defined(AF_INET6) && defined(INET6)
+#ifdef USE_TRANSLATION
+		       "?46aBC:d:ighl:np:L:M:P:R:s:S:VvX8"
+#else /* xlate */
+		       "?46aBC:d:ighl:np:L:M:P:R:s:S:Vv"
+#endif /* xlate */
+#else /* INET6 */
+#ifdef USE_TRANSLATION
+		       "?4aBC:d:ighl:np:L:M:P:R:s:S:VvX8"
+#else
+		       "?4aBC:d:ighl:np:L:M:P:R:s:S:Vv"
+#endif /* xlate */
+#endif /* INET6 */
+#else /* __STDC__ */
 		       "?"
 		       "4"
 #if defined(AF_INET6) && defined(INET6)
@@ -315,6 +330,7 @@ char **argv;
 #ifdef USE_TRANSLATION
 		       "X8"
 #endif /* USE_TRANSLATION */
+#endif
 		       );
 	if (c == EOF)
 	    break;
