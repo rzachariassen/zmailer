@@ -1,6 +1,14 @@
 #!/bin/sh
-. /etc/zmailer/zmailer.conf
-# Cleanout public and postman directories
-$MAILBIN/zmailer cleanup
+##
+##
+## ZMailer default crontab:
+##
+
 # Resubmit deferred messages
-$MAILBIN/zmailer resubmit
+28 0,8,16 * * * root	. /etc/zmailer/zmailer.conf ; $MAILBIN/zmailer resubmit >> /dev/null
+
+# Cleanout public and postman directories
+7 4 * * *	root	. /etc/zmailer/zmailer.conf ; $MAILBIN/zmailer cleanup >> /dev/null
+
+# Check if services still work
+#11 6,12,18,0	root	/usr/lib/zmailer/zmailcheck

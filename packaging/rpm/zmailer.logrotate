@@ -1,7 +1,7 @@
 errors root@localhost
 compress
 
-/var/log/mail/* {
+/var/log/zmailer/* {
     missingok
     postrotate
 	/etc/rc.d/init.d/zmailer logsync

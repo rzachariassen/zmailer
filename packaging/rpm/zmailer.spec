@@ -1,21 +1,29 @@
-Summary: Mailer for extreme performance demands, secure mail delivery agent
-Name: zmailer
-Version: 2.99.52
-Release: 1
-Group: Networking/Daemons
-Packager: Matti Aarnio <mea@nic.funet.fi>
-URL: http://www.zmailer.org 
-Source: ftp://ftp.funet.fi/pub/unix/mail/zmailer/src/zmailer-%{version}.tar.gz
+#
+# Thu May 11 23:09:06 CEST 2000
+#
+
+%define name zmailer
+%define version 2.99.53pre1
+%define release 3
+
+Summary: Mailer for extreme performance demands, secure mail delivery agent.
+Name: %{name}
+Version: %{version}
+Release: %{release}
+Copyright: Freely usable, see /usr/doc/%{name}-%{version}/README
+Group: System Environment/Daemons
+Provides: smtpdaemon
+Packager: Xose Vazquez <xose@wanadoo.es>
+URL: http://www.zmailer.org
+Source0: ftp://ftp.funet.fi/pub/unix/mail/zmailer/src/%{name}-%{version}.tar.gz
 Source1: zmailer.init
 Source2: zmailer.logrotate
 Source3: zmailer.cron
 Source4: zmailer.pam
 Source5: README-RPM
-License: Freely usable, see /usr/doc/zmailer-%{version}/README
-BuildRoot: /var/tmp/zmailer-%{version}-root
+BuildRoot: /var/tmp/%{name}-%{version}-root
 Prereq: /sbin/chkconfig
-Provides: smtpdaemon
-Conflicts: sendmail qmail
+Conflicts: sendmail qmail postfix smail exim
 
 %description
 This is a package that implements an internet message transfer agent
@@ -26,52 +34,90 @@ in such situations. ZMailer is one of the mailers able to deal with
 huge quantities of mail and is more efficient any other mailer, qmail
 included, mostly due to its excellent queueing algorithms.
 
-Most users don't need this package -- for most users, sendmail or exim
+Most users don't need this package -- for most users, sendmail or exim 
 or smail will suffice.
 
 %package doc
-Summary: ZMailer documentation. 
-Group: Networking/Daemons
+Summary: Documentation about the Zmailer Mail Transport Agent program.
+Group: Documentation
 
 %description doc
-This package includes desing notes, the ZMailer manual, and a few
-papers written about ZMailer. The papers are available in PostScript,
-tex, html, txt and sgml.
+The zmailer-doc package contains documentation about the Zmailer
+Mail Transport Agent (MTA) program, including desing notes, 
+the ZMailer manual, and a few papers written about ZMailer.
+The papers are available in PostScript, tex, html, txt and sgml.
+
+Install the zmailer-doc package if you need documentation about
+Zmailer.
+
+Get the latest version of the Zmailer Manual from the zmailer web.
 
 %prep
-# unpack zmailer (and patch it).
+# unpack zmalier (and patch it).
 %setup -q 
 
 # build zmailer
 %build
 CFLAGS="$RPM_OPT_FLAGS" \
-	./configure --prefix=/opt/zmailer \
+	./configure --prefix=/usr/lib/zmailer \
 	--libdir=/usr/lib \
 	--includedir=/usr/include/zmailer \
-	--with-zconfig=/opt/zmailer/zmailer.conf \
+	--with-zconfig=/etc/zmailer/zmailer.conf \
 	--with-mailbox=/var/spool/mail \
-        --with-postoffice=/var/postoffice \
-	--with-logdir=/var/log/mail \
+	--with-postoffice=/var/spool/postoffice \
+	--with-mailshare=/etc/zmailer \
+	--with-mailvar=/etc/zmailer \
+	--with-mailbin=/usr/lib/zmailer \
+	--with-logdir=/var/log/zmailer \
         --with-sendmailpath=/usr/sbin/sendmail \
-        --with-rmailpath=/usr/sbin/rmail \
+        --with-rmailpath=/usr/bin/rmail \
         --with-system-malloc \
-	--with-tcp-wrappers \
-	--with-ta-mmap 
-make
+	--with-ta-mmap
+# do you need ssl ?
+#	--with-openssl-include=/usr/include/openssl \
+#	--with-openssl-lib=/usr/lib \
+#
+# and ldap ?
+#	--with-ldap-include-dir=/usr/local/include \
+#	--with-ldap-library-dir=/usr/local/lib
+
+# Do you have SMP ?
+if [ -x /usr/bin/getconf ] ; then
+	NRPROC=$(/usr/bin/getconf _NPROCESSORS_ONLN)
+		if [ $NRPROC -eq 0 ] ; then
+			NRPROC=1
+		fi
+else
+	NRPROC=1
+fi
+
+make -j $NRPROC
 
 %install
-rm -rf $RPM_BUILD_ROOT
+#rm -rf $RPM_BUILD_ROOT
 make install prefix=$RPM_BUILD_ROOT
 
 # install man pages
 make MANDIR=$RPM_BUILD_ROOT/usr/man -C man install
 
-## make install do not install authuser.3 
-##install -m644 $RPM_BUILD_DIR/zmailer-%{version}/man/authuser.3 \
-##        $RPM_BUILD_ROOT/usr/man/man3
+# make install man do not create a man3 dir
+rm -rf $RPM_BUILD_ROOT/usr/man/man3
+mkdir -p $RPM_BUILD_ROOT/usr/man/man3
+install -m644 $RPM_BUILD_DIR/zmailer-%{version}/man/*.3 \
+        $RPM_BUILD_ROOT/usr/man/man3
 
+# doc stuff
 install -m644 $RPM_SOURCE_DIR/README-RPM \
 	$RPM_BUILD_DIR/zmailer-%{version}
+
+# ps man pages
+mkdir -p $RPM_BUILD_DIR/zmailer-%{version}/man-ps
+install -m644 $RPM_BUILD_DIR/zmailer-%{version}/man/*.ps \
+	$RPM_BUILD_DIR/zmailer-%{version}/man-ps
+
+# strip only binary files
+strip `file $RPM_BUILD_ROOT/usr/lib/zmailer/* | awk -F':' '/not stripped/ { print $1 }'`
+strip `file $RPM_BUILD_ROOT/usr/lib/zmailer/ta/* | awk -F':' '/not stripped/ { print $1 }'`
 
 # install SYSV init stuff
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
@@ -89,60 +135,89 @@ for I in 2 3 4 5; do
 		$RPM_BUILD_ROOT/etc/rc.d/rc$I.d/S80zmailer 
 done
 
+touch $RPM_BUILD_ROOT/etc/mail.conf
+
 # install log rotation stuff
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 install -m644 $RPM_SOURCE_DIR/zmailer.logrotate \
 	$RPM_BUILD_ROOT/etc/logrotate.d/zmailer
 
 # install cron stuff
-mkdir -p $RPM_BUILD_ROOT/etc/cron.daily/
+mkdir -p $RPM_BUILD_ROOT/etc/cron.d/
 install -m644 $RPM_SOURCE_DIR/zmailer.cron \
-	 $RPM_BUILD_ROOT/etc/cron.daily/zmailer
+	 $RPM_BUILD_ROOT/etc/cron.d/zmailer
 
 # install pam support
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
 install -m644 $RPM_SOURCE_DIR/zmailer.pam \
 	$RPM_BUILD_ROOT/etc/pam.d/smtpauth-login
 
-#|# sendmail compatible stuff
-#|ln -sf /opt/zmailer/bin/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
-#|
-#|for I in rmail sendmail; do
-#|ln -sf ../lib/zmailer/$I $RPM_BUILD_ROOT/usr/sbin/$I
-#|done
-#|
-#|mkdir -p $RPM_BUILD_ROOT/usr/bin/
-#|for I in mailq newaliases vacation; do
-#|ln -sf ../lib/zmailer/$I \
-#|	$RPM_BUILD_ROOT/usr/bin/$I
-#|done
+# OBSOLETE, now we run post-install.sh, this is the BEST ?
+# post-install.sh break the %files and when you make
+#  rpm -i(after rpm -e) or -U show errors
 
-%preun
-# stop zmailer if it is running
+# config files
+#
+#for I in aliases fqdnaliases localnames routes smtp-policy.relay \
+#	smtp-policy.src ; do 
+#ln -sf proto/$I \
+#	$RPM_BUILD_ROOT/etc/zmailer/db/$I
+#done
+#
+#for I in scheduler.conf sm.conf smtpserver.conf ; do
+#ln -sf proto/$I \
+#	$RPM_BUILD_ROOT/etc/zmailer/$I
+#done 
+
+#mv $RPM_BUILD_ROOT/etc/zmailer/cf/proto/* \
+#	$RPM_BUILD_ROOT/etc/zmailer/cf/
+#ln -sf cf/TELE-FI.cf \
+#	$RPM_BUILD_ROOT/etc/zmailer/router.cf
+
+# zmailer control script in the PATH is more coooooool :-)
+ln -sf ../lib/zmailer/zmailer $RPM_BUILD_ROOT/usr/sbin/zmailer
+
+# sendmail compatible stuff
+ln -sf zmailer/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
+ln -sf ../lib/zmailer/sendmail $RPM_BUILD_ROOT/usr/sbin/sendmail
+ln -sf ../lib/zmailer/rmail $RPM_BUILD_ROOT/usr/bin/rmail
+
+for I in mailq newaliases vacation; do
+	ln -sf ../lib/zmailer/$I \
+	$RPM_BUILD_ROOT/usr/bin/$I
+done
+
+%pre
+# ####################
+# pre-install section
+
+# is zmailer running ?
 if ps auxw | egrep 'router|scheduler|smtpserver' | grep -v egrep \
 	>> /dev/null ; then
-        /usr/lib/zmailer/zmailer kill
+	/usr/lib/zmailer/zmailer kill
 	echo "1" > /var/run/.zmailer_was_run
 fi
 
 %post
+# #####################
+# post-install section
+
+# get source zmailer configuration.
+. /etc/zmailer/zmailer.conf
+
 /sbin/chkconfig --add zmailer
 
-MAILBIN=/opt/zmailer/bin
-echo "localhost" >> /opt/zmailer/db/localnames
-
 # mail.conf stuff
-if [ -s /opt/zmailer/mail.conf ] >> /dev/null ; then
+if ( [ -s /etc/mail.conf ] && grep -c '^hostname' /etc/mail.conf ) >> /dev/null ; then
 	:
 else
-	touch /opt/zmailer/mail.conf
-fi
-if grep -c -v '^#' /opt/zmailer/mail.conf >> /dev/null ; then
-        :
-else
-        [ -z "`hostname -d`" ] || echo "orgdomain=`hostname -d`" >> /opt/zmailer/mail.conf
-        [ -z "`hostname -d`" ] || echo "mydomain=`hostname -d`" >> /opt/zmailer/mail.conf
-        [ -z "`hostname -f`" ] || echo "hostname=`hostname -f`" >> /opt/zmailer/mail.conf
+#	mv -f /etc/mail.conf /etc/mail.conf.rpmsave
+	echo "# Where am I?" > /etc/mail.conf
+	[ -z "`hostname -d`" ] || echo "orgdomain=`hostname -d`" >> /etc/mail.conf
+	echo "# Who am I?" >> /etc/mail.conf
+	[ -z "`hostname -d`" ] || echo "mydomain=`hostname -d`" >> /etc/mail.conf
+	echo "# Who do I claim to be?" >> /etc/mail.conf
+	[ -z "`hostname -f`" ] || echo "hostname=`hostname -f`" >> /etc/mail.conf
 fi
 
 # make zmailer group
@@ -157,67 +232,112 @@ fi
 if grep -c "^mailq" /etc/services >> /dev/null ; then
         :
 else
-        echo "mailq		174/tcp			# Mailer transport queue" >> /etc/services
+        echo "mailq           174/tcp                         # Mailer transport queue" >> /etc/services
 fi
+
+# post-install.sh break the %files and when you make
+# rpm -i or -U zmailer, you get a pile of errors.
+# I don't know if the best solution is run post-install.sh
+# or made by hand like in "config files"
+echo " "
+$MAILBIN/post-install.sh -OLDSTYLE
+
+echo "localhost" > /etc/zmailer/db/localnames
+echo "`hostname -f`" >> /etc/zmailer/db/localnames
+echo "`hostname`" >> /etc/zmailer/db/localnames
+echo "`hostname -d`" >> /etc/zmailer/db/localnames
+echo "localhost.`hostname -d`" >> /etc/zmailer/db/localnames
+
+(cd /etc/ && ln -sf zmailer/db/aliases .)
 
 # rebuild the zmailer aliases database
 $MAILBIN/newaliases
-
 # recreates the FQDN alias map
 $MAILBIN/newfqdnaliases
-
-echo "`hostname -f`" >> /opt/zmailer/db/proto/localnames
-echo "`hostname`" >> /opt/zmailer/db/proto/localnames
-echo "`hostname -d`" >> /opt/zmailer/db/proto/localnames
-echo "localhost.`hostname -d`" >> /opt/zmailer/db/proto/localnames
-
-# start it back up again, after an upgrade
-if [ -s /var/run/.zmailer_was_run ] >> /dev/null ; then
-        /etc/rc.d/init.d/zmailer start
-        rm -f /var/run/.zmailer_was_run
-fi
 
 # notices
 echo " "  
 echo "     If you are running PROCMAIL as your local delivery agent"
 echo "     read /usr/doc/zmailer-doc-%{version}/doc/guides/procmail "
 echo " "
-echo "     This zmailer.spec links tcp wrapper code into scheduler."
-echo "     To allow the mailq command to work you must specify allowed"
-echo "     ip-addresses domains in /etc/hosts.allow file."
-echo "     Read the README-RPM file. "
-echo " " 
+echo "     Read the /usr/doc/zmailer-%{version}/README-RPM file."
+echo " "
+echo "     If you need docs, install the zmailer-doc-%{version} file"
+echo " "
+echo "     Visit the www.zmailer.org site to get a new version of"
+echo "     the Zmailer Manual and take a look to the news"
+echo " "
+echo "     A mailing list is avaliable at nic.funet.fi"
+echo " "
 
+# Yes, it was running. Startup zmailer again
+if [ -s /var/run/.zmailer_was_run ] >> /dev/null ; then
+        /etc/rc.d/init.d/zmailer start
+        rm -f /var/run/.zmailer_was_run
+fi
+
+%preun
+# ######################
+# pre-uninstall section
+
+# stop zmailer if it is running
+if ps auxw | egrep 'router|scheduler|smtpserver' | grep -v egrep \
+        >> /dev/null ; then
+        /usr/lib/zmailer/zmailer kill
+fi
+
+# delete the pid files
+for i in scheduler smtpserver router ; do
+	if [ -f /var/spool/postoffice/.pid.$i ] ; then
+		rm -f /var/spool/postoffice/.pid.$i
+	fi
+done
+
+/sbin/chkconfig --del zmailer
+
+%postun
+# ######################
+# post-uninstall section
+
+echo " "
+echo "     Look at /var/log/zmailer/ to delete the zmailer logs,"
+echo "     /var/spool/postoffice/ where are the zmailer big work"
+echo "     dirs and /etc/zmailer where are the config files"
+echo " "
 
 %clean
-# rm -rf $RPM_BUILD_ROOT
+#rm -rf $RPM_BUILD_ROOT
+#rm -rf /usr/src/redhat/BUILD/zmailer-%{version}
 
 %changelog
 
-* Sun Mar  5 2000 Matti Aarnio <mea@nic.funet.fi>
+* Sat Apr 1 2000 Xose Vazquez <xose@wanadoo.es>
 
-- Adapting this RPM specs file for  vger.redhat.com
+- New version for Zmailer-2.99.53, too many changes.
 
 * Wed Oct 13 1999 Xose Vazquez <xose@ctv.es>
 
--  Zmailer-2.99.52 install strip bin files, wonderful.
--  delete the strip section.
+- Zmailer-2.99.52 install strip bin files, wonderful.
+- delete the strip section.
 
 * Fri Aug 6  1999 Xose Vazquez <xose@ctv.es>
 
--  split zmailer, the doc is a independent rpm
+- split zmailer, the doc is a independent rpm
 
 * Thu Jul 29 1999 Xose Vazquez <xose@ctv.es>
 
--  based on zmailer-%{version}/contrib/zmailer49.spec
--  this is the first version, is all ok ?
+- based on zmailer-%{version}/contrib/zmailer49.spec
+- this is the first version, is all ok ?
 
 
 %files
 %defattr(-,root,root)
-/etc/aliases
+
+#/etc/aliases
+/etc/mail.conf
+
 %attr(644,root,root)/etc/pam.d/smtpauth-login
-%config %attr(755,root,root) /etc/cron.daily/zmailer
+%config %attr(755,root,root) /etc/cron.d/zmailer
 %config /etc/logrotate.d/zmailer
 %config /etc/rc.d/init.d/zmailer
 %config(missingok) /etc/rc.d/rc0.d/K30zmailer
@@ -227,28 +347,34 @@ echo " "
 %config(missingok) /etc/rc.d/rc4.d/S80zmailer
 %config(missingok) /etc/rc.d/rc5.d/S80zmailer
 %config(missingok) /etc/rc.d/rc6.d/K30zmailer
-%config(noreplace) /opt/zmailer/cf/*
-%config(noreplace) /opt/zmailer/db/*
-/opt/zmailer/forms
-/opt/zmailer/fqlists
-/opt/zmailer/lists
-%config(noreplace) /opt/zmailer/proto/*
-%config(noreplace) /opt/zmailer/router.cf
-%config(noreplace) /opt/zmailer/scheduler.conf
-%config(noreplace) /opt/zmailer/sm.conf
-%config(noreplace) /opt/zmailer/smtpserver.conf
-%config /opt/zmailer/vacation.msg
-%config /opt/zmailer/zmailer.conf
+%config(noreplace) /etc/zmailer/cf/*
+%config(noreplace) /etc/zmailer/db/*
+/etc/zmailer/forms
+/etc/zmailer/fqlists
+/etc/zmailer/lists
+%config(noreplace) /etc/zmailer/proto/*
+
+#%config(noreplace) /etc/zmailer/router.cf
+#%config(noreplace) /etc/zmailer/scheduler.conf
+#%config(noreplace) /etc/zmailer/sm.conf
+#%config(noreplace) /etc/zmailer/smtpserver.conf
+
+%config /etc/zmailer/vacation.msg
+%config /etc/zmailer/zmailer.conf
 /usr/bin/*
-/usr/include/zmailer/zmailer.h
-/usr/lib/libzmailer.a
+
+#/usr/include/zmailer/zmailer.h
+#/usr/lib/libzmailer.a
+
 /usr/lib/sendmail
 /usr/lib/zmailer
-# man pages
 /usr/man/*/*
 /usr/sbin/*
-%dir /var/log/mail
+
+%dir /var/log/zmailer
 %attr(2755,root,root) %dir /var/spool/postoffice/
+%attr(700,root,root) /var/spool/postoffice/TLSclntcache/
+%attr(700,root,root) /var/spool/postoffice/TLSsrvrcache/
 %attr(750,root,root) /var/spool/postoffice/deferred/
 %attr(750,root,root) /var/spool/postoffice/freezer/
 %attr(750,root,root) /var/spool/postoffice/postman/
@@ -257,9 +383,11 @@ echo " "
 %attr(755,root,root)  /var/spool/postoffice/queue/*
 %attr(1777,root,root) /var/spool/postoffice/router/
 %attr(755,root,root) /var/spool/postoffice/transport/
-%doc  ChangeLog INSTALL MANIFEST Overview README* TODO contrib/README.debian README-RPM
 
+%doc ChangeLog INSTALL MANIFEST Overview README* TODO contrib/README.debian
+
+#doc package files
 %files doc
-%doc doc
+%doc doc/* man-ps
 
 # EOF

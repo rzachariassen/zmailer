@@ -7,8 +7,8 @@
 # description: ZMailer is a Mail Transport Agent, which is the program \
 #              that moves mail from one machine to another.
 # processname: router scheduler smtpserver
-# config: /opt/zmailer/zmailer.conf
-# pidfile: /var/postoffice/.pid.scheduler .pid.smtpserver .pid.router
+# config: /etc/zmailer/zmailer.conf
+# pidfile: /var/spool/postoffice/.pid.scheduler .pid.smtpserver .pid.router
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -17,12 +17,11 @@
 . /etc/sysconfig/network
 
 # Source zmailer configureation.
-if [ -f /opt/zmailer/zmailer.conf ] ; then
-	. /opt/zmailer/zmailer.conf
+if [ -f /etc/zmailer/zmailer.conf ] ; then
+	. /etc/zmailer/zmailer.conf
 else 
 	exit 0
 fi
-
 
 # Check that networking is up.
 [ ${NETWORKING} = "no" ] && exit 0
@@ -34,13 +33,19 @@ case "$1" in
   start)
 	# Start daemons.
 	# echo "Starting ZMailer: "
-	if [ "${SMTPSERVER}" ]; then
-		$MAILBIN/zmailer smtp
-	elif [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
-		$MAILBIN/zmailer bootclean
-		$MAILBIN/zmailer
-	fi
+	if ps auxw | egrep 'router|scheduler|smtpserver' | grep -v egrep \
+                                                     >> /dev/null ; then
+		echo "Zmailer is running yet"
+	
+	else
+		if [ "${SMTPSERVER}" ]; then
+			$MAILBIN/zmailer smtp
+		elif [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
+			$MAILBIN/zmailer bootclean
+			$MAILBIN/zmailer
+		fi
 	touch /var/lock/subsys/zmailer
+	fi
 	;;
   stop)
 	# Stop daemons.
@@ -51,7 +56,7 @@ case "$1" in
 	rm -f /var/lock/subsys/zmailer
 	rm -f $POSTOFFICE/.pid.*
 	;;
-  restart)
+  restart|reload)
         $0 stop
         $0 start
         ;;
@@ -60,11 +65,11 @@ case "$1" in
 	status scheduler
 	status smtpserver
         ;;
-  logsync)
-	$MAILBIN/zmailer logsync
-	;;
+ logsync)
+        $MAILBIN/zmailer logsync
+        ;;
   *)
-	echo "Usage: zmailer {start|stop|restart|status}"
+	echo "Usage: zmailer {start|stop|restart|reload|status|logsync}"
 	exit 1
 	;;
 esac

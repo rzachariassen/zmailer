@@ -18,8 +18,8 @@ AR=		@AR@
 prefix=         @prefix@
 #exec_prefix=   @exec_prefix@
 LIBC_INCL=	@GENINCL@ @INCLRESOLV@
-INCLUDEDIR=	@includedir@
-LIBRARYDIR=	@libdir@
+INCLUDEDIR=	${prefix}@includedir@
+LIBRARYDIR=	${prefix}@libdir@
 INSTALL=	@INSTALL@
 MKDIR=		@MKDIR@
 #
