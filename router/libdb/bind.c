@@ -383,21 +383,10 @@ getmxrr(host, localhost, ttlp, depth)
 				strcpy(h_errhost, host);
 				h_errno = TRY_AGAIN;
 				return NULL;
-#ifdef	OLDJEEVES
-			/*
-			 * Jeeves (TOPS-20 server) still does not
-			 * support MX records.  For the time being,
-			 * we must accept FORMERRs as the same as
-			 * NOERROR.
-			 */
-			case FORMERR:
-#endif	/* OLDJEEVES */
 			case NOERROR:
 				/* if we got this, then ancount == 0! */
 				return NULL /*getrrtypec(host, T_A, ttlp)*/;
-#ifndef	OLDJEEVES
 			case FORMERR:
-#endif	/* !OLDJEEVES */
 			case NOTIMP:
 			case REFUSED:
 				strcpy(h_errhost, host);
