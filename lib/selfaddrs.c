@@ -67,6 +67,7 @@ union sockaddr_uni {
 #endif
 };
 
+#include "libc.h"
 #include "zmalloc.h"
 #include "libz.h"
 
