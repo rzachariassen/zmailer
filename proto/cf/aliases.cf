@@ -122,7 +122,7 @@ fi
 # a special error report on them.
 #
 if [ -f $MAILVAR/db/expiredaccts$DBEXTtest ]; then
-       relation -lmt $DBTYPE -f $MAILVAR/db/expiredaccts$DBTEXT expired
+       relation -lmt $DBTYPE -f $MAILVAR/db/expiredaccts$DBEXT expired
 else
        expired () { return 1 }
 fi
