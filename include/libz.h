@@ -133,20 +133,31 @@ extern token822 * scan822utext __((const char **cpp, size_t n,
 
 /* selfaddrs.c */
 
+#ifndef __Usockaddr__
+typedef union {
+    struct sockaddr_in v4;
+#ifdef INET6
+    struct sockaddr_in6 v6;
+#endif
+} Usockaddr;
+#define __Usockaddr__
+#endif
+
+
 struct sockaddr; /* a "forward" declaration */
 struct addrinfo; /* a "forward" declaration */
 
 extern void stashmyaddresses  __((const char *host));
 #ifdef SOCK_STREAM
-extern int  loadifaddresses   __((struct sockaddr ***));
-extern int  matchmyaddress    __((struct sockaddr *));
+extern int  loadifaddresses   __((Usockaddr ***));
+extern int  matchmyaddress    __((Usockaddr *));
 #endif
 #ifdef EAI_AGAIN   /* have 'struct addrinfo' */
 extern int  matchmyaddresses  __((struct addrinfo *));
 #endif
 
 /* zgetifaddress.c */
-extern int zgetifaddress __((int af, const char *ifname, struct sockaddr *));
+extern int zgetifaddress __((int af, const char *ifname, Usockaddr *));
 
 /* splay.c */
 /* .... much ... in  "splay.h" */

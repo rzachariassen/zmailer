@@ -286,14 +286,6 @@ extern int use_ipv6;
 #define ESMTP_AUTH        0x0100 /* RFC 2554+++   */
 
 
-typedef union {
-  struct sockaddr_in  v4;
-#if defined(AF_INET6) && defined(INET6)
-  struct sockaddr_in6 v6;
-#endif
-} Usockaddr;
-
-
 # ifdef RFC974
 
 #if	defined(BIND_VER) && (BIND_VER >= 473)

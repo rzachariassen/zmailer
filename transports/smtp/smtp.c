@@ -2711,7 +2711,7 @@ makeconn(SS, hostname, ai, ismx)
 
 	  if (ai->ai_family == AF_INET) {
 	    si = (struct sockaddr_in *)ai->ai_addr;
-	    i = matchmyaddress((struct sockaddr*)ai->ai_addr);
+	    i = matchmyaddress((Usockaddr *) ai->ai_addr);
 	    inet_ntop(AF_INET, &si->sin_addr, SS->ipaddress, sizeof(SS->ipaddress));
 	    sprintf(SS->ipaddress + strlen(SS->ipaddress), "|%d",
 		    SS->servport);
@@ -2719,7 +2719,7 @@ makeconn(SS, hostname, ai, ismx)
 #if defined(AF_INET6) && defined(INET6)
 	  if (ai->ai_family == AF_INET6) {
 	    si6 = (struct sockaddr_in6*)ai->ai_addr;
-	    i = matchmyaddress((struct sockaddr*)ai->ai_addr);
+	    i = matchmyaddress((Usockaddr *)ai->ai_addr);
 	    strcpy(SS->ipaddress,"ipv6 ");
 	    inet_ntop(AF_INET6, &si6->sin6_addr, SS->ipaddress+5, sizeof(SS->ipaddress)-5);
 	    sprintf(SS->ipaddress + strlen(SS->ipaddress), "|%d",
@@ -2916,7 +2916,7 @@ abort();
 #if defined(AF_INET6) && defined(INET6)
 	  else if (af == AF_INET6 &&
 		   CISTREQN(localidentity,"iface:",6)) {
-	    zgetifaddress(af, localidentity+6, (struct sockaddr *)&sad6);
+	    zgetifaddress(af, localidentity+6, (Usockaddr *)&sad6);
 	  }
 	  else if (CISTREQN(localidentity,"[ipv6 ",6)  ||
 		   CISTREQN(localidentity,"[ipv6:",6)  ||
@@ -2931,7 +2931,7 @@ abort();
 #endif /* AF_INET6 && INET6 */
 	  else if (af == AF_INET &&
 		   CISTREQN(localidentity,"iface:",6)) {
-	    zgetifaddress(af, localidentity+6, (struct sockaddr *)&sad);
+	    zgetifaddress(af, localidentity+6, (Usockaddr *)&sad);
 	  }
 	  else if (*localidentity == '[') {
 	    char *s = strchr(localidentity,']');

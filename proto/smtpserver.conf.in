@@ -23,7 +23,7 @@
 #PARAM BindPort                   25    # Binding port
 #PARAM BindAddress         [0.0.0.0]    # Binding address - for multihomers..
 #PARAM BindAddress       [IPv6.0::0]    # and here is for IPv6 - NO SPACES!
-#PARAM BindAddress            eth0:2    # Addresses of that interface
+#PARAM BindAddress      iface:eth0:2    # Addresses of that interface
 #
 # Enables of some commands:
 #PARAM  DEBUGcmd

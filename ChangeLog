@@ -1,3 +1,18 @@
+2002-07-11  Matti Aarnio  <mea@zmailer.org>
+
+	* include/libz.h, lib/selfaddrs.c, lib/zgetifaddress.c,
+	  router/libdb/selfmatch.c, smtpserver/mxverify.c, 
+	  smtpserver/policytest.c, smtpserver/smtpserver.h,
+	  transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    Moving commonly used 'Usockaddr' type into libz.h,
+	    and updating interfaces playing with addresses to
+	    use that type for the parameters.
+
+	* proto/smtpserver.conf.in, smtpserver/cfgread.c:
+	    Eugene Crosser noticed that binding to named interface
+	    does not quite succeed..  Address storage goes into
+	    slightly wrong place -> binding fails.
+
 2002-07-05  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpcmds.c:

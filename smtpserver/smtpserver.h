@@ -166,18 +166,6 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #endif
 
 
-
-#ifndef __Usockaddr__
-typedef union {
-    struct sockaddr_in v4;
-#ifdef INET6
-    struct sockaddr_in6 v6;
-#endif
-} Usockaddr;
-#define __Usockaddr__
-#endif
-
-
 #include "policytest.h"
 
 #ifdef HAVE_OPENSSL

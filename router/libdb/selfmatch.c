@@ -48,35 +48,34 @@ search_selfmatch(sip)
 	int rc;
 	char rbuf[8], *s;
 	int slen;
+	Usockaddr si;
 
 	/* Pick up current set of interface addresses ...
 	   ... or from the ZENV variable  SELFADDRESSES. */
 	stashmyaddresses(NULL);
 
+	memset(&si, 0, sizeof(si));
+
 	if (cistrncmp(sip->key,"IPv6 ",5)==0 ||
 	    cistrncmp(sip->key,"IPv6:",5)==0 ||
 	    cistrncmp(sip->key,"IPv6.",5)==0) {
 #if defined(AF_INET6) && defined(INET6)
-	  struct sockaddr_in6 si6;
 
-	  memset(&si6, 0, sizeof(si6));
-	  si6.sin6_family = AF_INET6;
-	  rc = inet_pton(AF_INET6, sip->key+5, (void*)&si6.sin6_addr);
+	  si.v6.sin6_family = AF_INET6;
+	  rc = inet_pton(AF_INET6, sip->key+5, (void*)&si.v6.sin6_addr);
 	  if (rc < 1)
 	    return NULL;
-	  rc = matchmyaddress((struct sockaddr *)&si6);
+	  rc = matchmyaddress(&si);
 #else
 	  return NULL; /* Sorry, we do not have it! */
 #endif
 	} else {
-	  struct sockaddr_in si4;
 
-	  memset(&si4, 0, sizeof(si4));
-	  si4.sin_family = AF_INET;
-	  rc = inet_pton(AF_INET, sip->key, (void*)&si4.sin_addr);
+	  si.v4.sin_family = AF_INET;
+	  rc = inet_pton(AF_INET, sip->key, (void*)&si.v4.sin_addr);
 	  if (rc < 1)
 	    return NULL;
-	  rc = matchmyaddress((struct sockaddr *)&si4);
+	  rc = matchmyaddress(&si);
 	}
 	if (rc == 0)
 	  return NULL;
@@ -86,11 +85,11 @@ search_selfmatch(sip)
 	return newstring(s, slen);
 }
 
-static void freeaddresses __((struct sockaddr **, int));
+static void freeaddresses __((Usockaddr **, int));
 static void
 freeaddresses(sap,cnt)
-struct sockaddr **sap;
-int cnt;
+     Usockaddr **sap;
+     int cnt;
 {
 	int i;
 	for (i = 0; i < cnt && sap[i] != NULL; ++i)
@@ -100,22 +99,22 @@ int cnt;
 
 void
 print_selfmatch(sip, outfp)
-search_info *sip;
-FILE *outfp;
+     search_info *sip;
+     FILE *outfp;
 {
-	struct sockaddr **sa = NULL;
+	Usockaddr **sa = NULL;
 	int i, cnt;
 	char buf[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")+2];
 
 	cnt = loadifaddresses(&sa);
 	for (i = 0; i < cnt; ++i) {
-	  if (sa[i]->sa_family == AF_INET) {
-	    inet_ntop(AF_INET, (void*)&((struct sockaddr_in*)sa[i])->sin_addr, buf, sizeof(buf));
+	  if (sa[i]->v4.sin_family == AF_INET) {
+	    inet_ntop(AF_INET, (void*)&sa[i]->v4.sin_addr, buf, sizeof(buf));
 	    fprintf(outfp,"[%s]\n",buf);
 	  }
 #if defined(AF_INET6) && defined(INET6)
-	  else if (sa[i]->sa_family == AF_INET) {
-	    inet_ntop(AF_INET6, (void*)&((struct sockaddr_in6*)sa[i])->sin6_addr, buf, sizeof(buf));
+	  else if (sa[i]->v6.sin6_family == AF_INET) {
+	    inet_ntop(AF_INET6, (void*)&sa[i]->v6.sin6_addr, buf, sizeof(buf));
 	    fprintf(outfp,"[ipv6 %s]\n",buf);
 	  }
 #endif
@@ -132,7 +131,7 @@ count_selfmatch(sip, outfp)
 search_info *sip;
 FILE *outfp;
 {
-	struct sockaddr **sa = NULL;
+	Usockaddr **sa = NULL;
 	int cnt;
 
 	cnt = loadifaddresses(&sa);

@@ -334,24 +334,23 @@ dnsmxlookup(host, depth, mxmode, qtype)
 
 #if 1
 		if (debug) {
-		  struct sockaddr * sa = (struct sockaddr*) &usa;
-		  if (sa->sa_family == AF_INET) {
-		    inet_ntop(AF_INET, (void*) & ((struct sockaddr_in *)sa)->sin_addr, (char *)buf, sizeof(buf));
+		  if (usa.v4.sin_family == AF_INET) {
+		    inet_ntop(AF_INET, (void*) & usa.v4.sin_addr, (char *)buf, sizeof(buf));
 		    printf("000-  matching %s AR address IPv4:[%s]\n", mx[i], buf);
 		  }
 #if defined(AF_INET6) && defined(INET6)
-		  else if (sa->sa_family == AF_INET6) {
-		    inet_ntop(AF_INET6, (void*) & ((struct sockaddr_in6 *)sa)->sin6_addr, buf, sizeof(buf));
+		  else if (usa.v6.sin6_family == AF_INET6) {
+		    inet_ntop(AF_INET6, (void*) & usa.v6.sin6_addr, buf, sizeof(buf));
 		    printf("000-  matching %s AR address IPv6:[%s]\n", mx[i], buf);
 		  }
 #endif
 		  else
 		    printf("000- matching unknown %s AR address family address; AF=%d\n",
-			   mx[i], sa->sa_family);
+			   mx[i], usa.v4.sin_family);
 		}
 #endif
 
-		i = matchmyaddress( (struct sockaddr *)&usa );
+		i = matchmyaddress( &usa );
 		if (i == 1) {
 		  if (debug)
 		    printf("000-   AR ADDRESS MATCH!\n");
@@ -436,24 +435,25 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	    ++k;
 #if 1
 	    if (debug) {
-	      struct sockaddr * sa = ai2->ai_addr;
+	      Usockaddr * usa = (Usockaddr *) ai2->ai_addr;
 	      char buf[60];
-	      if (sa->sa_family == AF_INET) {
-		inet_ntop(AF_INET, (void*) & ((struct sockaddr_in *)sa)->sin_addr, buf, sizeof(buf));
+
+	      if (usa->v4.sin_family == AF_INET) {
+		inet_ntop(AF_INET, (void*) & usa->v4.sin_addr, buf, sizeof(buf));
 		printf("000-  matching %s address IPv4:[%s]\n", mx[n], buf);
 	      }
 #if defined(AF_INET6) && defined(INET6)
-	      else if (sa->sa_family == AF_INET6) {
-		inet_ntop(AF_INET6, (void*) & ((struct sockaddr_in6 *)sa)->sin6_addr, buf, sizeof(buf));
+	      else if (usa->v6.sin6_family == AF_INET6) {
+		inet_ntop(AF_INET6, (void*) & usa->v6.sin6_addr, buf, sizeof(buf));
 		printf("000-  matching %s address IPv6:[%s]\n", mx[n], buf);
 	      }
 #endif
 	      else
 		printf("000- matching %s unknown address family address; AF=%d\n",
-		       mx[n], sa->sa_family);
+		       mx[n], usa->v4.sin_family);
 	    }
 #endif
-	    rc = matchmyaddress(ai2->ai_addr);
+	    rc = matchmyaddress((Usockaddr *)ai2->ai_addr);
 	    if (rc == 1) {
 	      if (debug)
 		printf("000-   ADDRESS MATCH!\n");

@@ -767,7 +767,7 @@ int sourceaddr;
     }
 
     lcldom = (state->request & (1 << P_A_LocalDomain));
-    myaddress = matchmyaddress((struct sockaddr*)&saddr);
+    myaddress = matchmyaddress(&saddr);
 
     if (debug)
       printf("000- policytestaddr: lcldom/myaddress=%d/%d\n",lcldom,myaddress);
