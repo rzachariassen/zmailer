@@ -261,6 +261,8 @@ router(8)
 .ta 2.5i
 .nf
 RFC 821	 The basic SMTP specification
+RFC 822	 Mail header format
+RFC 974	 MX routing
 RFC 1123	 Various 821 parameter clarifications
 
 Several extended SMTP facilities are implemented:

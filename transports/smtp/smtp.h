@@ -344,20 +344,22 @@ typedef struct {
   int pipeindex;		/* commands associated w/ those responses */
   int pipespace;
   int pipereplies;		/* Replies handled so far */
+  int continuation_line, first_line;
   char **pipecmds;
   struct rcpt **pipercpts;	/* recipients -""- */
   int *pipestates;
 
   int rcptcnt;			/* PIPELINING variables */
   int rcptstates;
-#define RCPTSTATE_OK   0x01  /* At least one OK   state   */
-#define RCPTSTATE_400  0x02  /* At least one TEMP failure */
-#define RCPTSTATE_500  0x04  /* At least one PERM failure */
-#define FROMSTATE_400  0x08  /* MAIL FROM --> 4XX code */
-#define FROMSTATE_500  0x10  /* MAIL FROM --> 5XX code */
-#define DATASTATE_OK   0x20  /* DATA/BDAT --> 2/3XX code */
-#define DATASTATE_400  0x40  /* DATA/BDAT --> 4XX code */
-#define DATASTATE_500  0x80  /* DATA/BDAT --> 5XX code */
+#define RCPTSTATE_OK   0x001  /* At least one OK   state   */
+#define RCPTSTATE_400  0x002  /* At least one TEMP failure */
+#define RCPTSTATE_500  0x004  /* At least one PERM failure */
+#define FROMSTATE_OK   0x008  /* MAIL FROM --> 2XX code */
+#define FROMSTATE_400  0x010  /* MAIL FROM --> 4XX code */
+#define FROMSTATE_500  0x020  /* MAIL FROM --> 5XX code */
+#define DATASTATE_OK   0x040  /* DATA/BDAT --> 2/3XX code */
+#define DATASTATE_400  0x080  /* DATA/BDAT --> 4XX code */
+#define DATASTATE_500  0x100  /* DATA/BDAT --> 5XX code */
   int state;
   int alarmcnt;
   int column;
@@ -378,7 +380,6 @@ typedef struct {
 #define SMTPSTATE_DATADOTRSET 4
 
   char remotehost[MAXHOSTNAMELEN+1];
-  char *mailfrommsg;
   char ipaddress[200];
 
   struct addrinfo ai;		/* Lattest active connection */

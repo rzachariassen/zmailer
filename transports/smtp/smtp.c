@@ -1361,9 +1361,17 @@ deliver(SS, dp, startrp, endrp)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
-	    if (SS->smtpfp)
+	    if (SS->rcptstates & DATASTATE_OK) {
+	      /* HUH!!!
+		 MAIL FROM/RCPT TO ones have failed, but DATA has succeeded !!
+		 This is SERIOUSLY weird, but some may work even that way.. */
+	      smtpclose(SS,1);
+	      fprintf(logfp, "%s#\t(closed SMTP channel - DATA ok, but MAIL FROM/RCPT TO failed!  rc=%d)\n", logtag(), rp ? rp->status : -999);
+	    }
+	    if (SS->smtpfp) {
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 		r = EX_TEMPFAIL;
+	    }
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog," .. timeout ? smtp_sync() rc = %d\n",r);
 	    return r;
@@ -3207,14 +3215,10 @@ smtp_sync(SS, r, nonblocking)
 	char *s, *eof, *eol;
 	volatile int idx  = 0, code = 0;
 	volatile int rc   = EX_OK, len;
-	volatile int some_ok = 0;
-	volatile int datafail = EX_OK;
 	volatile int err  = 0;
 	int          infd;
 	char buf[512];
 	char *p;
-	static int continuation_line = 0;
-	static int first_line = 1;
 	char *status = NULL;
 	int statesave;
 
@@ -3223,17 +3227,9 @@ smtp_sync(SS, r, nonblocking)
 
 	eol = SS->pipebuf;
 
-	/* Pre-fill  some_ok,  and  datafail  variables */
-	if (SS->rcptstates & RCPTSTATE_OK) /* ONE (or more) of them was OK */
-	  some_ok = 1;
-	if (SS->rcptstates & DATASTATE_500)
-	  datafail = EX_UNAVAILABLE;
-	if (SS->rcptstates & DATASTATE_400)
-	  datafail = EX_TEMPFAIL;
-
 	if (SS->pipereplies == 0) {
-	  continuation_line = 0;
-	  first_line = 1;
+	  SS->continuation_line = 0;
+	  SS->first_line = 1;
 	}
 
 	for (idx = SS->pipereplies; idx < SS->pipeindex; ++idx) {
@@ -3382,30 +3378,30 @@ smtp_sync(SS, r, nonblocking)
 
 	    /* We have a 'terminal' line */
 
-	    continuation_line = 0;
+	    SS->continuation_line = 0;
 	  } else { /* it is 'continuation line', or some such, ignore */
-	    continuation_line = 1;
+	    SS->continuation_line = 1;
 	  }
 
 	  statesave = SS->cmdstate;
 
 	  SS->cmdstate = SS->pipestates[idx];
 
-	  if (first_line)
+	  if (SS->first_line)
 	    rmsgappend(SS, 0, "\r<<- %s",
 		       SS->pipecmds[idx] ? SS->pipecmds[idx] : "(null)");
 
 	  /* first_line is not exactly complement of continuation_line,
 	     it is rather a more complex entity. */
 
-	  first_line = !continuation_line;
+	  SS->first_line = !SS->continuation_line;
 
 	  rmsgappend(SS, 1, "\r->> %s", s);
 
 	  SS->cmdstate = statesave;
 
 
-	  if (continuation_line)
+	  if (SS->continuation_line)
 	    goto rescan_line_0;
 	  else
 	    SS->pipereplies = idx +1; /* Final line, mark this as processed! */
@@ -3426,24 +3422,18 @@ smtp_sync(SS, r, nonblocking)
 	    /* DATA: 354/ 451/554/ 500/501/503/421 */
 	    /* RCPT To:<*>: 250/251/ 550/551/552/553/450/451/452/455/ 500/501/503/421 */
 	    if (SS->pipercpts[idx] != NULL) {
-	      if (code >= 500) {
-		if (SS->rcptstates & FROMSTATE_400) {
-		  /* If "MAIL From:<..>" tells non 200 report, and
-		     causes "RCPT To:<..>" commands to yield "500",
-		     we IGNORE the "500" status. */
-		  rc = EX_TEMPFAIL;
-		  /* } else if (SS->rcptstates & FROMSTATE_500) {
-		     rc = EX_UNAVAILABLE; */
-		} else {
-		  SS->rcptstates |= RCPTSTATE_500;
-		}
+	      if (SS->rcptstates & (FROMSTATE_400|FROMSTATE_500)) {
+		/* If "MAIL From:<..>" tells non-200 report, and
+		   causes "RCPT To:<..>" commands to yield "400/500",
+		   we IGNORE the "500" status. */
+		SS->rcptstates |= RCPTSTATE_400;
+		rc = EX_TEMPFAIL;
 	      } else {
-		if (SS->rcptstates & FROMSTATE_500) {
-		  /* Turn it into a more severe fault */
+		if (code >= 500)
 		  SS->rcptstates |= RCPTSTATE_500;
-		  rc = EX_UNAVAILABLE;
-		} else
+		else
 		  SS->rcptstates |= RCPTSTATE_400;
+		/* ``rc'' is correct. */
 	      }
 
 	      /* Diagnose the errors, we report successes AFTER the DATA phase.. */
@@ -3451,17 +3441,13 @@ smtp_sync(SS, r, nonblocking)
 	      notary_setxdelay((int)(endtime-starttime));
 	      notarystatsave(SS,s,status);
 	      notaryreport(SS->pipercpts[idx]->addr->user,FAILED,NULL,NULL);
-	      if ((SS->rcptstates & (FROMSTATE_400|FROMSTATE_500)) &&
-		  SS->mailfrommsg != NULL) {
-		if (SS->rcptstates & FROMSTATE_500)
-		  rc = EX_UNAVAILABLE;
-		else
-		  rc = EX_TEMPFAIL;
-		diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->mailfrommsg);
-	      } else
-		diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
+
+	      diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
+
 	    } else {
-	      /* No reports for  MAIL FROM:<> nor for DATA/BDAT phases */
+
+	      /* No diagnostic()s for  MAIL FROM:<> nor for DATA/BDAT phases */
+
 	      if (idx == 0 && SS->pipecmds[idx] != NULL &&
 		  strncmp(SS->pipecmds[idx],"MAIL", 4) == 0) {
 		/* We are working on MAIL From:<...> command here */
@@ -3469,20 +3455,26 @@ smtp_sync(SS, r, nonblocking)
 		  SS->rcptstates |= FROMSTATE_500;
 		else if (code >= 400)
 		  SS->rcptstates |= FROMSTATE_400;
-		if (SS->mailfrommsg != NULL)
-		  free(SS->mailfrommsg);
-		SS->mailfrommsg = strdup(SS->remotemsg);
+		else
+		  SS->rcptstates |= FROMSTATE_OK;
 	      } else {
 		/* "DATA" or "BDAT" phase */
 		if (code >= 500) {
-		  if (SS->rcptstates & (FROMSTATE_400|RCPTSTATE_400)) {
-		    datafail = EX_TEMPFAIL;
+		  if (SS->rcptstates & (FROMSTATE_400|FROMSTATE_500)) {
+		    /* The FROM failed already, make us 'soft' */
+		    SS->rcptstates |= DATASTATE_400;
+		  } else if (SS->rcptstates & RCPTSTATE_OK) {
+		    /* At least one OK result for RCPTs,
+		       It means we are REALLY hard error! */
+		    SS->rcptstates |= DATASTATE_500;
+		  } else if (SS->rcptstates & RCPTSTATE_400) {
+		    /* TMPFAIL RCPTs, make us 'soft' error! */
+		    SS->rcptstates |= DATASTATE_400;
 		  } else {
-		    datafail = EX_UNAVAILABLE;
+		    /* All others are HARD errors! */
 		    SS->rcptstates |= DATASTATE_500;
 		  }
 		} else if (code >= 400) {
-		  datafail = EX_TEMPFAIL;
 		  SS->rcptstates |= DATASTATE_400;
 		}
 	      }
@@ -3500,7 +3492,6 @@ smtp_sync(SS, r, nonblocking)
 		/* MAIL FROM was apparently ok. */
 		SS->rcptstates |= RCPTSTATE_OK;
 		SS->pipercpts[idx]->status = EX_OK;
-		some_ok = 1;
 if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeindex=%d]\n",code,idx,SS->pipeindex-1);
 	      }
 	    } else {
@@ -3538,16 +3529,32 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	  }
 	}
 
-	/* if (some_ok) */
 	rc = EX_OK;
-	if (datafail != EX_OK)
-	  rc = datafail;
-	if (rc == EX_OK && err != 0)
+	if (err != 0)
 	  rc = EX_TEMPFAIL; /* Some timeout happened at the response read */
-	if (SS->rcptstates & FROMSTATE_400)
+	if (rc == EX_OK && (SS->rcptstates & FROMSTATE_400))
 	  rc = EX_TEMPFAIL; /* MAIL FROM was a 4** code */
-	if (SS->rcptstates & FROMSTATE_500)
+	if (rc == EX_OK && (SS->rcptstates & FROMSTATE_500))
 	  rc = EX_UNAVAILABLE; /* MAIL FROM was a 5** code */
+	if (rc == EX_OK) {
+	  /* Study the RCPT STATES! */
+	  if (SS->rcptstates & RCPTSTATE_OK) {
+	    rc = EX_OK; /* SOME OK */
+	  } else if (SS->rcptstates & RCPTSTATE_400) {
+	    /* Some TEMPFAIL */
+	    rc = EX_TEMPFAIL;
+	  } else if (SS->rcptstates & RCPTSTATE_400) {
+	    /* only full failures :-( */
+	    rc = EX_UNAVAILABLE;
+	  }
+	}
+	if (rc == EX_OK) {
+	  /* Study the DATA STATES! */
+	  if (SS->rcptstates & DATASTATE_400)
+	    rc = EX_TEMPFAIL;
+	  if (SS->rcptstates & DATASTATE_500)
+	    rc = EX_UNAVAILABLE;
+	}
 
 	if (rc != EX_OK && logfp)
 	    fprintf(logfp,"%s#\t smtp_sync() did yield code %d\n", logtag(), rc);
