@@ -248,10 +248,8 @@ transports/smtp:
     BUG? (2001/6/30)
 	An error message produced by  "errormail"  channel appears to
 	become lost sometimes ?  Error on error on error ?
-
-    FEATURE (2001/6/30)
-	Add syslogging also into the scheduler (msgerror.c)  - list
-	spoolids created (=messages) while processing earlier msg.
+	(2003/4/14: a NOTIFY=NEVER type error message will never
+	            get any responses, but will be SYSLOGGED)
 
 
     BUG? (2000/3/29)
@@ -278,7 +276,8 @@ transports/smtp:
     FEATURE:
 	Tool/mechanism for requeueing a message from the transport
 	back to the router -- all message recipients that have not
-	been processed yet.
+	been processed yet.  (reroute/manual-reroute: 2002/3 - 2003/4)
+	(SCHEDULER thingie missing!)
 
     FEATURE:
 	Tool/mechanism for the scheduler to command expiration of all
