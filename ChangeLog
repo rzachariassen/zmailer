@@ -1,3 +1,14 @@
+2004-09-09  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/subdaemon-rtr.c:
+	    Changed subprocess instance abstraction details
+	    so, that there are no absolutely fixed array sizes.
+
+	* smtpserver/subdaemons.c:
+	    Changed processed client input pickup methodology into
+	    "process in round-robin manner" (as opposed to "lowest
+	    slot first -- which can be seriously pessimal approach.
+
 2004-09-07  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/mxverify.c:

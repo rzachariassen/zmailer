@@ -428,6 +428,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 		/* If we have things to output, and write is doable ? */
 		if (peer->outlen > 0 && _Z_FD_ISSET(peer->fd, wrset)) {
+		  rc = 0;
 		  for (;;) {
 #ifdef DEBUG_WITH_UNLINK
 		    {
@@ -440,7 +441,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 			       peer->outbuf + peer->outptr,
 			       peer->outlen - peer->outptr);
 		    if ((rc < 0) && (errno == EINTR))
-		      continue; /* try again */
+		      continue; /* try again -- later */
 		    if ((rc < 0) && (errno == EPIPE)) {
 		      /* SIGPIPE from writing to the socket..
 			 Abort it completely! */
@@ -500,12 +501,12 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	talk_with_subprocesses:;
 
-	  if (last_peer_index >= top_peer)
-	    last_peer_index = top_peer -1;
-
 	  for (n = 0; n < top_peer; ++n) {
-	    if (last_peer_index >= top_peer) last_peer_index = 0;
-#if 0
+
+	    if (last_peer_index >= top_peer)
+	      last_peer_index = 0;             /* Wrap around */
+
+#if 1
 	    peer = & peers[ last_peer_index ]; /* Round-robin;
 						  in abominal overload
 						  this means that nobody
@@ -520,35 +521,34 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 #endif
 	    if (peer->fd >= 0 && peer->inlen > 0) {
 
-	    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
-	      rc = (subdaemon_handler->input)( statep, peer );
+	      if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
+		rc = (subdaemon_handler->input)( statep, peer );
 #ifdef DEBUG_WITH_UNLINK
-	      {
-		char pp[50];
-		sprintf(pp,"/tmp/-input-from-peer-%d->%d",peer->fd,rc);
-		unlink(pp);
-	      }
+		{
+		  char pp[50];
+		  sprintf(pp,"/tmp/-input-from-peer-%d->%d",peer->fd,rc);
+		  unlink(pp);
+		}
 #endif
-	      if (rc > 0) {
-		/* XOFF .. busy right now, come back again.. */
-		break;
-	      } else if (rc == 0) {
-		/* XON .. give me more jobs */
-		++last_peer_index;
+		if (rc > 0) {
+		  /* XOFF .. busy right now, come back again.. */
+		  break;
+		} else if (rc == 0) {
+		  /* XON .. give me more jobs */
+		  ++last_peer_index;
 #if 1
-		continue; /* go and pick next task talker, if any */
+		  continue; /* go and pick next task talker, if any */
 #else
-		subdaemon_pick_next_job( peers, top_peer,
-					 subdaemon_handler, statep );
+		  subdaemon_pick_next_job( peers, top_peer,
+					   subdaemon_handler, statep );
 #endif
-	      } else {
-		/* Xnone .. ??
-		   Can't handle ?? */
+		} else {
+		  /* Xnone .. ??
+		     Can't handle ?? */
+		}
 	      }
 	    }
 	  }
-	}
-
 
 
 	} /* ... for(;;) ... */
