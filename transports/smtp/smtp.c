@@ -82,7 +82,6 @@ time_t now;
 
 extern time_t retryat_time;	/* diagnostic() thing */
 
-
 static void tcpstream_nagle   __((int fd));
 static void tcpstream_denagle __((int fd));
 
@@ -124,25 +123,29 @@ char *logtag()
 {
 	static char buf[30];
 	static int logcnt = 0;
-	static char id = 0;
+	static time_t logstart = 0;
 
-	/* The `id' is pseudo-random character inteded to lessen
-	   the probablility of reused PID matching same prefix-
-	   string between two SMTP sessions, and thus making the
-	   resulting output  sort(1)able in flat ascii mode.
-	   Timeorder would not be valid, perhaps, but 
-	   For debugging uses, of course  */
+	if (logstart == 0)  time( &logstart );
 
-	if (id == 0) {
-	  id = '0' + (time(NULL) % 58);
-	  if (id > '9') id += ('A'-'9'+1);
-	  if (id > 'Z') id += ('a'-'Z'+1);
-	}
+
+	/*
+	  
+	   The rewritten log tag is  sort(1):able  to separate sessions
+	   from the file.
+
+	*/
 
 	time(&now);
 
-	sprintf(buf,"%05d%c%05d%05d", pid, id, logcnt, (int)(now % 100000));
+	sprintf( buf, "%05d%04X-%04d-%04d",
+		 pid,
+		 ((int)logstart) & 0xFFFF,
+		 logcnt,
+		 (((int)(now - logstart)) % 10000) );
+
 	++logcnt;
+	if (logcnt > 9999) logcnt = 0;
+
 	return buf;
 }
 
@@ -627,6 +630,10 @@ main(argc, argv)
 	  }
 	}
 
+
+	time(&now);
+
+
 	if (errflg || optind > argc) {
 	  fprintf(stderr,
 		  "Usage: %s [-8|-8H|-7][-e][-r][-x][-E][-P][-W][-T timeout][-h myhostname][-l logfile][-p portnum][-c channel][-F forcedest][-L localidentity][-S /path/to/SmtpSSL.conf] [host]\n", argv[0]);
@@ -705,6 +712,18 @@ main(argc, argv)
 #endif
 #endif
 #endif
+
+	if (logfp) {
+	  char *cp;
+	  time( & now );
+
+	  cp = (char *) rfc822date( & now );
+	  if (cp) cp[strlen(cp)-1] = 0;
+	  else cp = "??";
+
+	  fprintf(logfp,"%s#\tStart time: %s", logtag(), cp);
+	}
+
 
 	while (!getout && !zmalloc_failure) {
 	  /* Input:

@@ -128,7 +128,8 @@ int unknown_cmd_limit = 10;
 int sum_sizeoption_value = 0;
 int always_flush_replies = 0;
 
-char logtag[16];
+char   logtag[32];
+time_t logtagepoch, now;
 
 sigjmp_buf jmpalarm;		/* Return-frame for breaking smtpserver
 				   when timeout hits.. */
@@ -291,23 +292,29 @@ SmtpState *SS;
 int insecure;
 {
     /* opening the logfile should be done before we reset the uid */
-    time_t now = time(NULL);
     struct tm *tt;
+
+    time( & now );
     tt = gmtime(&now);
     pid = getpid();
 
+    logtagepoch = now;
+
     /* %M%D%h%m%s_pid_ */
 
-    sprintf(logtag, "%c%c%c%c%05d",
-	    taspid_encodechars[ tt->tm_mday-1 ],
-	    taspid_encodechars[ tt->tm_hour   ],
-	    taspid_encodechars[ tt->tm_min    ],
-	    taspid_encodechars[ tt->tm_sec    ],
-	    pid);
+    sprintf( logtag, "%c%c%c%c%c%c%c",
+	     taspid_encodechars[ tt->tm_mday-1 ],
+	     taspid_encodechars[ tt->tm_hour   ],
+	     taspid_encodechars[ tt->tm_min    ],
+	     taspid_encodechars[ tt->tm_sec    ],
+	     taspid_encodechars[ (pid >> 12) & 63 ],
+	     taspid_encodechars[ (pid >>  6) & 63 ],
+	     taspid_encodechars[ (pid      ) & 63 ] );
 
     if (logfp != NULL)
 	fclose(logfp);
     logfp = NULL;
+
     if (logfile != NULL) {
 	char *fname;
 	int len1 = strlen(logfile);
@@ -364,7 +371,6 @@ char **argv;
     int pidfile_set = 0;
     SmtpState SS;
     int childpid, sameipcount, childcnt;
-    time_t now;
     const char *t, *syslogflg;
 
     progname = argv[0] ? argv[0] : "smtpserver";
@@ -1301,7 +1307,7 @@ char **argv;
 
 	    if (routerpid > 0)
 	      killr(&SS, routerpid);
-	    if (contentpolicypid > 0)
+	    if (contentpolicypid > 1)
 	      killr(&SS, contentpolicypid);
 
 	    if (netconnected_flg)
@@ -1324,7 +1330,7 @@ char **argv;
       }
     if (routerpid > 0)
 	killr(&SS, routerpid);
-    if (contentpolicypid > 0)
+    if (contentpolicypid > 1)
       killr(&SS, contentpolicypid);
     if (netconnected_flg)
       sleep(2);
@@ -1466,8 +1472,8 @@ int sig;
 	  router_status = status;
 	  routerpid = -1;
 	}
-	if (lpid == contentpolicypid && contentpolicypid > 0) {
-	  contentpolicypid = -1;
+	if (lpid == contentpolicypid && contentpolicypid > 1) {
+	  contentpolicypid = -lpid;
 	}
 
 	childreap(lpid);
@@ -1480,11 +1486,13 @@ SmtpState *SS;
 const long tell;
 const char *msg;
 {
+    time( & now );
+
     zsyslog((LOG_ERR,
-	     "%s - aborted (%ld bytes) from %s/%d: %s",
-	     logtag, tell, SS->rhostname, SS->rport, msg));
+	     "%s%04d - aborted (%ld bytes) from %s/%d: %s",
+	     logtag, (int)(now-logtagepoch), tell, SS->rhostname, SS->rport, msg));
     if (logfp != NULL) {
-	fprintf(logfp, "%s - aborted (%ld bytes): %s\n", logtag, tell, msg);
+	fprintf(logfp, "%s%04d - aborted (%ld bytes): %s\n", logtag, (int)(now-logtagepoch), tell, msg);
 	fflush(logfp);
     }
 }
@@ -1877,7 +1885,7 @@ int insecure;
 
 	if (routerpid > 0)
 	    killr(SS, routerpid);
-	if (contentpolicypid > 0)
+	if (contentpolicypid > 1)
 	  killr(SS, contentpolicypid);
 	exit(0);
     }
@@ -1942,7 +1950,8 @@ int insecure;
 	   Microsoft Outlook sExpress (not sure if it was that,
 	   and not one of those other Outlooks...) has a nasty
 	   misfunction of starting the TLS right away when the
-	   destination port at the server is not 25 ...
+	   destination port at the server is not 25, and "USE TLS"
+	   flag is set...
 	 */
 
 	if (c == 0x80) {
@@ -2121,12 +2130,13 @@ int insecure;
 	     there are many varying input syntaxes... */
 	}
 				   
+	if (logfp_to_syslog || logfp) time( & now );
 
 	if (logfp_to_syslog)
-	  zsyslog((LOG_DEBUG, "%s r %s", logtag, buf));
+	  zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, (int)(now-logtagepoch), buf));
 
 	if (logfp) {
-	    fprintf(logfp, "%sr\t%s\n", logtag, buf);
+	    fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now-logtagepoch), buf);
 	    fflush(logfp);
 	}
 	if (rc >= 0 && !strict_protocol) {
@@ -2648,11 +2658,13 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
       /* XXX: Buffer overflow ??!! Signal about it, and crash! */
     }
 
+    if (logfp_to_syslog || logfp) time( & now );
+
     if (logfp_to_syslog)
-      zsyslog((LOG_DEBUG,"%s %c %s", logtag, (SS ? 'w' : '#'), buf));
+      zsyslog((LOG_DEBUG,"%s%04d %c %s", logtag, (int)(now - logtagepoch), (SS ? 'w' : '#'), buf));
 
     if (logfp != NULL) {
-      fprintf(logfp, "%s%c\t%s\n", logtag, (SS ? 'w' : '#'), buf);
+      fprintf(logfp, "%s%04d%c\t%s\n", logtag, (int)(now - logtagepoch), (SS ? 'w' : '#'), buf);
       fflush(logfp);
     }
     if (!SS) return; /* Only to local log.. */
@@ -2824,10 +2836,12 @@ va_dcl
 
       buflen = bp - buf;
 
+      if (logfp_to_syslog || logfp) time( & now );
+
       if (logfp_to_syslog)
-	zsyslog((LOG_DEBUG, "%s w %s", logtag, buf));
+	zsyslog((LOG_DEBUG, "%s%04d w %s", logtag, (int)(now - logtagepoch), buf));
       if (logfp)
-	fprintf(logfp, "%sw\t%s\n", logtag, buf);
+	fprintf(logfp, "%s%04dw\t%s\n", logtag, (int)(now - logtagepoch), buf);
 
       strcpy(bp, "\r\n");
       Z_write(SS, buf, buflen+2); /* XX: check return value */

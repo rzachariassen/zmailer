@@ -278,10 +278,11 @@ int zsleepyprivateopen(prv, roflag, mode, comment)
 	    err = db->open( db, prv->filename, NULL, prv->dbtype,
 			    ((roflag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
 			    mode );
-	    if (comment) *comment = " batabase";
+	    if (comment) *comment = " database";
 	}
 	if (err != 0 && db != NULL) {
 	  db->close(db, 0);
+	  db = NULL;
 	}
 #else
 #if defined(HAVE_DB2)

@@ -1,4 +1,4 @@
-#! @PERL@
+#!@PERL@          # -*- perl -*-
 
 #
 #  Post-Installation script to complete the installation process.
@@ -45,52 +45,69 @@ sub compare_files {
 sub compare_file {
     local($x) = @_;
     local($s1,$s2,$y);
+    local($wrote) = 0;
 
-    if ( ! -f "${x}.md5" ) {
-	if ( ! -f "../${x}" ) {
+    return if ( -d $x );
+
+    if ( ! -f $x.'.md5' ) {
+
+	# No MD5 sum filed ???  Ok, lets calculate it..
+	
+	if ( ! -f '../'.$x ) {
+
 	    # A new file, easy to know that we can recalc the MD5SUM.
-	    rename("$x", "../$x");
+	    system('cp', '-p', $x, '../'.$x);
+	    $wrote = 1;
 	    system("$MD5SUM -b ../$x > $x.md5");
+
 	} else {
-	    # Don't overwrite!
-	    if ( $STYLE eq 'OLD') {
-		if (!system("cmp -s $x ../$x")) {
-		    # MATCH of the files
-		    system("$MD5SUM -b ../$x > $x.md5");
-		} else {
-		    # Non-match of the files, sum the NEW file!
-		    system("$MD5SUM -b $x > $x.md5");
-		}
-	    } else {
-		printf "File exists, but no MD5 sum?? $DIR/$x\n";
-		# Sum the NEW file
+
+	#    # Don't overwrite!
+	#   if (!system("cmp -s $x ../$x")) {
+	#	# MATCH of the files (sum either of them..)
+	#	system("$MD5SUM -b ../$x > $x.md5");
+	#   } else {
+	#	# Non-match of the files, sum the NEW file!
 		system("$MD5SUM -b $x > $x.md5");
-	    }
+	#   }
 	}
     }
-    if ( -f "$x" && -f "${x}.md5" ) {
-	# Still file exists, destination has this file ??
+
+    if ( ! -f '../'.$x ) {
+	# Ok, we have MD5 sum, but don't have the file
+	# in its proper place!
+	system('cp', '-p', $x, '../'.$x);
+	$wrote = 1;
+    }
+
+    if ( ! $wrote ) {
+	# We didn't write, so there exists an old file..
 	# Lets compare MD5 sums
 	# Destination file
+
 	local($md1,$md2,$l,$junk);
-	$l=`$MD5SUM -b "../$x"`;
+	$l=`$MD5SUM -b '../'.$x`; # BACKTICK DANGER!
 	($md1,$junk) = split(' ',$l);
+
 	# And its associated MD5 signature file
-	$l=`cat $x.md5`;
+
+	$l=`cat $x.'.md5'`; # BACKTICK DANGER!
 	($md2,$junk) = split(' ',$l);
-	# printf "File: $x MD1=$md1 MD2=$md2\n";
+
+	# printf(STDERR "File: $x MD1=$md1 MD2=$md2\n");
 	if ( $md1 eq $md2 ) {
 	    # They do match! We overwrite old file with new
-	   unlink("../$x");
-	   rename("$x", "../$x");
+	   unlink('../'.$x);
+	   system('cp', '-p', $x, '../'.$x);
 	   system("$MD5SUM -b ../$x > $x.md5");
+	   $wrote = 1;
 	}
     }
-    if ( -f "$x" ) {
+    if ( ! $wrote ) {
 	$y = $x;
 	$y =~ s!/proto/!/!;
-	printf "File $DIR/$y has mismatching MD5 sum.\n";
-	printf "    won't overwrite it with $DIR/$x.\n";
+	printf(STDERR "File $DIR/$y has mismatching MD5 sum.\n");
+	printf(STDERR "    won't overwrite it with $DIR/$x.\n");
     }
 }
 
@@ -146,33 +163,42 @@ sub mkpostofficedir {
     chdir($POSTOFFICE);
     if ( ! -d "${DIR}/." ) {
 
-	printf "Constructing dir: %s hash=%s\n",$DIR,$HASH;
+	printf(STDERR "Constructing dir: %s hash=%s\n",$DIR,$HASH);
 
 	mkdir $DIR, $MOD || die "mkdir ${DIR} failed!";
 	chmod $MOD, $DIR || die "chmod ${DIR} failed!";
 	& dirprealloc($DIR, $DSIZE, $DFILES);
 	local($xx,$yy);
 	if ($HASH eq 'HASH') {
+	    printf(STDERR " HASH: ");
 	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
+		printf(STDERR " %s", $xx);
 		mkdir "$DIR/$xx", $MOD || die "mkdir ${DIR}/$xx failed!";
 		chmod $MOD, "$DIR/$xx" || die "chmod ${DIR}/$xx failed!";
 		& dirprealloc("$DIR/$xx", $DSIZE, $DFILES);
 	    }
+	    printf(STDERR "\n");
 	}
 	if ($HASH eq 'HASH2') {
+	    printf(STDERR " HASH2: ");
 	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
+		printf(STDERR " %s", $xx);
 		mkdir "$DIR/$xx", $MOD || die "mkdir ${DIR}/$xx failed!";
 		chmod $MOD, "$DIR/$xx" || die "chmod ${DIR}/$xx failed!";
 		& dirprealloc("$DIR/$xx", $DSIZE, $DFILES);
 
 	    }
+	    printf(STDERR "\n");
 	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
 
+		printf(STDERR " HASH2/%s: ",$xx);
 		foreach $yy ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
+		    printf(STDERR " %s", $yy);
 		    mkdir "$DIR/$xx/$yy", $MOD || die "mkdir ${DIR}/$xx/$yy failed!";
 		    chmod $MOD, "$DIR/$xx/$yy" || die "chmod ${DIR}/$xx/$yy failed!";
 		    & dirprealloc("$DIR/$xx/$yy", $DSIZE, $DFILES);
 		}
+		printf(STDERR "\n");
 	    }
 	}
     }
@@ -194,6 +220,9 @@ sub pick_zenv {
 }
 
 # ------------------  MAIN PROGRAM --------------------
+
+select STDOUT; $| = 1;
+select STDERR; $| = 1;
 
 $MKDIR = "@MKDIR@";
 %ZENV  = ();
@@ -218,14 +247,14 @@ if ($ARGV[0] eq '-MD5') {
     $STYLE = 'OLD';
     shift @ARGV;
 } else {
-    printf "post-install.sh [-MD5|-OLDSTYLE]\n";
+    printf(STDERR "post-install.sh [-MD5|-OLDSTYLE]\n");
     exit 1;
 }
 
 if ($STYLE eq '') {
-    printf "post-install.sh [-MD5|-OLDSTYLE]\n";
-    printf " On first time around, it is SUGGESTED that you use\n";
-    printf " the  -OLDSTYLE   option....\n";
+    printf(STDERR "post-install.sh [-MD5|-OLDSTYLE]\n");
+    printf(STDERR " On first time around, it is SUGGESTED that you use\n");
+    printf(STDERR " the  -OLDSTYLE   option....\n");
     exit 1;
 }
 
@@ -257,7 +286,7 @@ foreach $x (qw("$MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf
     $y = $x;
     $y =~ s!/proto/!/!;
     if ( -f $x ) {
-	printf "**** Verify  $y  file!\n"
+	printf(STDERR "**** Verify  $y  file!\n")
 	    unless (system("cmp -s $x $y"));
     }
 }
@@ -265,6 +294,14 @@ foreach $x (qw("$MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf
 system("$MAILBIN/zmailer newdb");
 
 system("$MAILBIN/policy-builder.sh -n");
+
+printf(STDERR "
+***
+*** Will create directory hierarchies into  %s
+*** This is potentially VERY LENGTHY PROCESS
+*** please be patient...
+***
+", $POSTOFFICE);
 
 if (! -d "$POSTOFFICE/.") {
     system("$MKDIR -p $POSTOFFICE");
@@ -283,13 +320,13 @@ system("chmod g+s $POSTOFFICE/.");
 & mkpostofficedir('transport',    '750', 'HASH2', 6, 9999);
 & mkpostofficedir('router',      '1777', 'HASH',  6, 9999);
 
-printf "
+printf(STDERR "
 ***
 *** Remember to verify input databases, and then execute commands:
 ***    $MAILBIN/zmailer newdb
 ***    $MAILBIN/policy-builder.sh (-n)
 ***
-";
+");
 
 #trap "" 0
 exit 0;

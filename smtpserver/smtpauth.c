@@ -156,11 +156,13 @@ void smtp_auth(SS,buf,cp)
       i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
       abuf[sizeof(abuf)-1] = 0;
 
+      if (logfp_to_syslog || logfp) time( & now );
+
       if (logfp_to_syslog)
-	zsyslog((LOG_DEBUG, "%s r %s", logtag, abuf));
+	zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, (int)(now - logtagepoch), abuf));
 
       if (logfp != NULL) {
-	fprintf(logfp, "%sr\t%s\n", logtag, abuf);
+	fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now - logtagepoch), abuf);
 	fflush(logfp);
       }
       if (i == 0)	/* EOF ??? */
@@ -183,22 +185,25 @@ void smtp_auth(SS,buf,cp)
 
     i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
     abuf[sizeof(abuf)-1] = 0;
+
+    if (logfp_to_syslog || logfp) time( & now );
+
 #if 0
     /* This logs encoded password, usually that is *not* desired */
 
     if (logfp_to_syslog)
-      zsyslog((LOG_DEBUG, "%s r %s", logtag, abuf));
+      zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, (int)(now - logtagepoch), abuf));
 
     if (logfp != NULL) {
-      fprintf(logfp, "%sr\t%s\n", logtag, abuf);
+      fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now - logtagepoch), abuf);
       fflush(logfp);
     }
 #else
     if (logfp_to_syslog)
-      zsyslog((LOG_DEBUG, "%s r **base64-password**", logtag));
+      zsyslog((LOG_DEBUG, "%s%04d r **base64-password**", logtag, (int)(now - logtagepoch) ));
 
     if (logfp != NULL) {
-      fprintf(logfp, "%sr\t**base64-password**\n", logtag);
+      fprintf(logfp, "%s%04dr\t**base64-password**\n", logtag, (int)(now - logtagepoch) );
       fflush(logfp);
     }
 #endif

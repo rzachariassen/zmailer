@@ -167,10 +167,14 @@ const char *buf, *cp;
     SS->policyresult = policytest(policydb, &SS->policystate,
 				  POLICY_HELONAME, cp, strlen(cp),
 				  SS->authuser);
+
+    if (logfp || logfp_to_syslog) time( & now );
+
     if (logfp) {
       char *s = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || s != NULL) {
-	fprintf(logfp, "%s#\t-- policy result=%d, msg: %s\n", logtag,
+	fprintf(logfp, "%s%04d#\t-- policy result=%d, msg: %s\n", logtag,
+		(int)(now - logtagepoch),
 		SS->policyresult, (s ? s : "<NONE!>"));
 	fflush(logfp);
       }
@@ -178,7 +182,8 @@ const char *buf, *cp;
     if (logfp_to_syslog) {
       char *s = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || s != NULL) {
-	zsyslog((LOG_DEBUG, "%s # policy result=%d, msg: %s", logtag,
+	zsyslog((LOG_DEBUG, "%s%04d # policy result=%d, msg: %s", logtag,
+		(int)(now - logtagepoch),
 		SS->policyresult, (s ? s : "<NONE!>")));
       }
     }

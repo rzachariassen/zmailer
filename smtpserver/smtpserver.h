@@ -284,6 +284,7 @@ extern char *helplines[];
 #define HDR220MAX 4
 extern char *hdr220lines[];
 extern char logtag[];
+extern time_t logtagepoch, now;
 
 extern long availspace;
 extern long minimum_availspace;
