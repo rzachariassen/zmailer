@@ -410,6 +410,8 @@ const char *buf, *cp;
 		       "%s: (%ldc) accepted from %s/%d", taspid, tell,
 		       SS->rhostname, SS->rport));
 		
+	    policytest(policydb, &SS->policystate, POLICY_DATAOK, NULL, 0, NULL);
+
 	    MIBMtaEntry->ss.IncomingSMTP_DATA_ok    += 1;
 
 	    MIBMtaEntry->ss.TransmittedMessagesSs   += 1;
@@ -788,6 +790,8 @@ const char *buf, *cp;
 	      type(SS, code, statcode, "Content-Policy accepted this message; %s", taspid);
 	  }
 #endif
+
+	  policytest(policydb, &SS->policystate, POLICY_DATAOK, NULL, 0, NULL);
 
 
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_ok    += 1;

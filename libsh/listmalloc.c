@@ -246,6 +246,10 @@ int consvar_register(varptr)
 /*
  *  Deutch-Schorr-Waite garbage collection routine of the conscells..
  *
+ *  Once upon a time I _tried_ to do DSW, but I never got it working
+ *  properly.  On the other hand, we do have stackspace to burn, just
+ *  juridicious choice in scan/recursion ordering, and all should be
+ *  well.
  */
 static void cons_DSW __((conscell *source));
 

@@ -629,13 +629,13 @@ extern void fd_restoremode __((int fd, int mode));
 /* subdaemons.c */
 extern int subdaemons_init __((void));
 
-extern int  ratetracker_rdz_fd  [2];
+extern int  ratetracker_rdz_fd;
 extern int  ratetracker_server_pid;
 
-extern int  router_rdz_fd       [2];
+extern int  router_rdz_fd;
 extern int  router_server_pid;
 
-extern int  contentfilter_rdz_fd[2];
+extern int  contentfilter_rdz_fd;
 extern int  contentfilter_server_pid;
 
 
@@ -657,3 +657,5 @@ struct subdaemon_handler {
 extern struct subdaemon_handler subdaemon_handler_router;
 extern struct subdaemon_handler subdaemon_handler_ratetracker;
 extern struct subdaemon_handler subdaemon_handler_contentfilter;
+
+extern int call_subdaemon_trk __((void **statep,const char *cmd, char *retbuf, int retbuflen));

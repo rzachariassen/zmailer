@@ -46,6 +46,43 @@ extern struct spblk * sp_fnext __((struct spblk *));
 
 /* USER SUPPLIED: char *emalloc() */
 
+static struct spblk * _sp_alloc __((spkey_t, struct sptree *));
+static struct spblk *
+_sp_alloc(key, q)
+	register spkey_t key;
+	register struct sptree *q;
+{
+	struct spblk *n, *p;
+	int i;
+
+
+	if (!q->free) {
+
+		/* No free spblks... lets make a bunch! */
+
+		i = 1000;
+		n = (struct spblk *) emalloc( sizeof(*n) * i );
+		if (!n) return NULL; /* ARGH! */
+		memset(n, 0, sizeof(*n) * i);
+
+		for (p = & n[i-2]; p >= n; --p) {
+			p->leftlink = p+1;
+		}
+		q->free = n;
+
+	}
+
+	n = q->free;
+	q->free = n->leftlink;
+
+	n->key = key;
+	n->leftlink = NULL;
+	n->rightlink = NULL;
+	n->uplink = NULL;
+
+	return n;
+}
+
 
 /*
  * sp_lookup() -- given key, find a node in a tree.
@@ -96,11 +133,7 @@ sp_install(key, data, mark, q)
 	register struct spblk *n;
 
 	if ((n = sp_lookup(key, q)) == NULL) {
-		n = (struct spblk *) emalloc(sizeof(*n));
-		n->key = key;
-		n->leftlink = NULL;
-		n->rightlink = NULL;
-		n->uplink = NULL;
+		n = _sp_alloc(key, q);
 		q->eltscnt += 1;
 		(void) _sp_enq(n, q);
 	}
@@ -157,16 +190,21 @@ sp_scan(f, n, q)
 	}
 }
 
-static void _sp_chop __((struct spblk *));
+static void _sp_chop __((struct sptree *q, struct spblk *));
 static void
-_sp_chop(n)
+_sp_chop(q, n)
+	register struct sptree *q;
 	register struct spblk *n;
 {
 	if (n->rightlink)
-		_sp_chop(n->rightlink);
+		_sp_chop(q, n->rightlink);
 	if (n->leftlink)
-		_sp_chop(n->leftlink);
-	free((char *)n);
+		_sp_chop(q, n->leftlink);
+
+	/* return to free pool */
+	memset(n, 0, sizeof(*n) );
+	n->leftlink = q->free;
+	q->free = n;
 }
 
 
@@ -181,7 +219,7 @@ sp_null(q)
 {
 	if (q->root == NULL)
 		return;
-	_sp_chop(q->root);
+	_sp_chop(q, q->root);
 	q->eltscnt = 0;
 	q->lookups = 0;
 	q->lkpcmps = 0;
@@ -358,7 +396,12 @@ sp_delete(n, q)
 			x->rightlink->uplink = x;
 		q->root = x;
 	}
-	free((char *)n);
+
+	/* return to free pool */
+	memset(n, 0, sizeof(*n));
+	n->leftlink = q->free;
+	q->free = n;
+
 	q->eltscnt -= 1;
 } /* sp_delete */
 
@@ -427,6 +470,7 @@ sp_init()
 	q->splays  = 0;
 	q->splayloops = 0;
 	q->root    = NULL;
+	q->free	   = NULL;
 	return q;
 }
 

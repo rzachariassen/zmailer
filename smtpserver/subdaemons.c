@@ -20,84 +20,74 @@
 
 static int subdaemon_nofiles = 32;
 
-int  ratetracker_rdz_fd  [2] = {-1, -1};
+int  ratetracker_rdz_fd = -1;
 int  ratetracker_server_pid  = 0;
 
-int  router_rdz_fd       [2] = {-1, -1};
+int  router_rdz_fd = -1;
 int  router_server_pid       = 0;
 
-int  contentfilter_rdz_fd[2] = {-1, -1};
+int  contentfilter_rdz_fd = -1;
 int  contentfilter_server_pid = 0;
 
 
 static int subdaemon_loop __((int, struct subdaemon_handler *));
 
+
+
 int subdaemons_init __((void))
 {
 	int rc;
-	int to[2], from[2];
+	int to[2];
 
 	subdaemon_nofiles = resources_query_nofiles();
 	if (subdaemon_nofiles < 32) subdaemon_nofiles = 32; /* failsafe */
 
-	rc = fdpass_create(to,from);
+	rc = fdpass_create(to);
 	if (rc == 0) {
-	  ratetracker_rdz_fd[0] = to[0];
-	  ratetracker_rdz_fd[1] = to[1];
-
+	  ratetracker_rdz_fd = to[1];
 	  ratetracker_server_pid = fork();
 	  if (ratetracker_server_pid == 0) { /* CHILD */
 
 	    report(NULL," [smtpserver ratetracker subsystem]");
 
-	    fdpass_to_child_fds(to, from);
-
-	    subdaemon_loop(0, & subdaemon_handler_ratetracker);
+	    subdaemon_loop(to[0], & subdaemon_handler_ratetracker);
 
 	    sleep(10);
 	    exit(0);
 	  }
-	  pipes_close_parent(to,from);
+	  fdpass_close_parent(to);
 	}
 
-	rc = fdpass_create(to,from);
+	rc = fdpass_create(to);
 	if (rc == 0) {
-	  router_rdz_fd[0] = to[0];
-	  router_rdz_fd[1] = to[1];
-
+	  router_rdz_fd = to[1];
 	  router_server_pid = fork();
 	  if (router_server_pid == 0) { /* CHILD */
 
 	    report(NULL," [smtpserver router subsystem]");
 
-	    fdpass_to_child_fds(to, from);
-
-	    subdaemon_loop(0, & subdaemon_handler_router);
+	    subdaemon_loop(to[0], & subdaemon_handler_router);
 
 	    sleep(10);
 	    exit(0);
 	  }
-	  pipes_close_parent(to,from);
+	  fdpass_close_parent(to);
 	}
 
-	rc = fdpass_create(to,from);
+	rc = fdpass_create(to);
 	if (rc == 0) {
-	  contentfilter_rdz_fd[0] = to[0];
-	  contentfilter_rdz_fd[1] = to[1];
-
+	  contentfilter_rdz_fd = to[1];
 	  contentfilter_server_pid = fork();
 	  if (contentfilter_server_pid == 0) { /* CHILD */
 
 	    report(NULL," [smtpserver contentfilter subsystem]");
 
-	    fdpass_to_child_fds(to, from);
-
-	    subdaemon_loop(0, & subdaemon_handler_contentfilter);
+	    subdaemon_loop(to[0], & subdaemon_handler_contentfilter);
 
 	    sleep(10);
 	    exit(0);
 	  }
-	  pipes_close_parent(to,from);
+	  fdpass_close_parent(to);
 	}
 
 	return 0;
@@ -119,12 +109,11 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	/* Close all (possible) FDs above magic value of ZERO */
 	for (n = 0; n < subdaemon_nofiles; ++n)
-	  if (n != rendezvous_socket) close(n);
+	  if (n != rendezvous_socket)
+	    close(n);
 
-	peers = malloc(sizeof(*peers) * subdaemon_nofiles);
+	peers = calloc(subdaemon_nofiles, sizeof(*peers));
 	if (!peers) return -1; /* ENOMEM ?? */
-
-	memset(peers, 0, sizeof(*peers) * subdaemon_nofiles);
 
 	for (n = 0; n < subdaemon_nofiles; ++n)
 	  peers[n].fd = -1;
@@ -191,7 +180,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		  if (peer->fd < 0) {
 		    /* FREE SLOT! */
 		    if (n > top_peer)  top_peer = n;
-		    memset( peer, 0, sizeof(peers[0]) );
+		    memset( peer, 0, sizeof(*peer) );
 		    peer->fd = newfd;
 		    fd_nonblockingmode(newfd);
 		    /* We write our greeting right away .. semi fake state! */

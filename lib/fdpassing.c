@@ -30,27 +30,22 @@
  *  Life is easy, we have a system with socketpair, we shall use them...
  */
 
-int fdpass_create(tochild, fromchild)
+int fdpass_create(tochild)
      int tochild[2];
-     int fromchild[2];
 {
 	int rc = socketpair(PF_UNIX, SOCK_STREAM, 0, tochild);
-	if (rc < 0) return rc;
-	fromchild[0] = tochild[1];
-	fromchild[1] = tochild[0];
-	return 0;
+	return rc;
 }
 
-void fdpass_close_parent(tochild, fromchild)
+void fdpass_close_parent(tochild)
      int tochild[2];
-     int fromchild[2];
 {
 	close(tochild[0]); /*  same fd as  fromchild[1] */
 }
 
-void fdpass_to_child_fds(tochild, fromchild)
+#if 0
+void fdpass_to_child_fds(tochild)
      int tochild[2];
-     int fromchild[2];
 {
 	if (tochild[0] != 0)
 	  dup2(tochild[0],0);
@@ -58,6 +53,7 @@ void fdpass_to_child_fds(tochild, fromchild)
 	dup2(0,2);
 	close(tochild[1]); /* Same as fromchild[0] */
 }
+#endif
 
 void fdpass_shutdown_child(fd)
      int fd;

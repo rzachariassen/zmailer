@@ -1,3 +1,22 @@
+2004-04-08  Matti Aarnio  <mea@zmailer.org>
+
+	* include/libz.h, lib/fdpassing.c:
+	    Modify the call interface to always support only
+	    bidirectional pipe kind of thing.  One fd for the client
+	    side, one for the server side.  Not two.
+
+	* include/policy.h, smtpserver/policytest.c,
+	  smtpserver/policytest.h, smtpserver/policydata.c,
+	  smtpserver/smtpserver.h, smtpserver/subdaemon-trk.c:
+	    First scriblings on how to make one fully functional
+	    subdaemon server (rate-tracker), but it is still
+	    missing some intermediate bits and pieces...
+
+	* include/splay.h, lib/splay.c:
+	    Convert the splay block (spblk) to be slab-allocated
+	    cellish thing (like conscell:s in router) along with
+	    a chain of free spblk:s in the stree chain.
+
 2004-04-05  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/subdaemon-ctf.c, smtpserver/subdaemon-rtr.c,

@@ -3,7 +3,7 @@
  *  Added for ZMailer 2.99.44 by Matti Aarnio on 16-Dec-1996;
  *  part of ZMailer.
  *
- *  by Matti Aarnio <mea@nic.funet.fi> 1996-1999,2003
+ *  by Matti Aarnio <mea@nic.funet.fi> 1996-1999,2003-2004
  */
 
 /* Pre-included before including this:
@@ -27,6 +27,9 @@ struct policystate {		/* Part of SmtpState structure */
     int sender_norelay;
     int content_filter;
     char *authuser;
+    int  did_query_rate; /* When set, will need to INCR at DATA/BDAT. */
+    char ratelabelbuf[20];
+    void *rate_state;
 
     /* This variable contains bitmapped flags of attributes to be checked. */
     /* For example: P_A_REJECTSOURCE ( == 3)
@@ -115,7 +118,9 @@ typedef enum {
     POLICY_SOURCEDOMAIN,
     POLICY_MAILFROM,
     POLICY_RCPTTO,
-    POLICY_RCPTPOSTMASTER
+    POLICY_RCPTPOSTMASTER,
+    POLICY_DATA,
+    POLICY_DATAOK
 } PolicyTest;
 
 /* Test return values:

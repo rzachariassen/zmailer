@@ -23,7 +23,7 @@
 typedef unsigned long spkey_t; /* On Alpha this is BIG number.. */
 
 struct spblk {
-	struct spblk	*leftlink;
+	struct spblk	*leftlink;	/* used also as free-chain */
 	struct spblk	*rightlink;
 	struct spblk	*uplink;
 	spkey_t		key;
@@ -33,6 +33,7 @@ struct spblk {
 
 struct sptree {
 	struct spblk	*root;		/* root node */
+	struct spblk	*free;		/* free-chain */
 	struct sptree	*symbols;	/* If this db needs symbol support,
 					   here is another sptree for those */
 	int		eltscnt;	/* How many elements in this tree */

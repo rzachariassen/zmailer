@@ -53,7 +53,7 @@ struct policy_dom {
 	unsigned char type;
 	unsigned char dom[1];
 };
-#define P_K_USER   5 /* Starts with @    -- fully in ASCII, string
+#define P_K_USER   5 /* As an @ in it  -- fully in ASCII, string
 			ending with \000                                */
 struct policy_user {
 	unsigned char len;
@@ -91,9 +91,10 @@ struct policy_user {
 #define P_A_Filtering           25
 #define P_A_MaxSameIpSource	26
 #define P_A_CheckSPF	        27
+#define P_A_RateLimitMsgs	28
 
 #define P_A_FirstAttr	        2
-#define P_A_LastAttr	        27
+#define P_A_LastAttr	        28
 /* Note: Attribute codes outside range 1..31 cause problems at policystate
          processing!  If you ever need modify these, fix the  policytest.c,
 	 and  policytest.h: struct policystate { char values[]; } array,
@@ -146,7 +147,8 @@ static char *_KA[] = {
 	"warn-rcpt-dns-rbl",
 	"filtering",
 	"maxsameipsource",
-	"spf"
+	"spf",
+	"ratelimitmsgs"
 };
 #define KA(x) ((((x)>0)&&((x)<=P_A_LastAttr))?_KA[(x) & 0xFF]:"??")
 

@@ -1222,6 +1222,35 @@ Usockaddr *raddr;
       return -2;
     }
 
+#if defined(AF_INET6) && defined(INET6)
+    if (pbuf[1] == P_K_IPv6) {
+      char *s;
+      unsigned char *p;
+      int i;
+
+      strcpy(state->ratelabelbuf, "6:");
+      p = pbuf+2;
+      s = state->ratelabelbuf;
+      for (i = 0; i < 16; ++i) {
+	sprintf(s, "%02x", *p);
+	s += 2; ++p;
+      }
+    } else
+#endif
+      {
+	char *s;
+	unsigned char *p;
+	int i;
+
+	strcpy(state->ratelabelbuf, "4:");
+	p = pbuf+2;
+	s = state->ratelabelbuf;
+	for (i = 0; i < 4; ++i) {
+	  sprintf(s, "%02x", *p);
+	  s += 2; ++p;
+	}
+      }
+
     state->request = 0;
     state->content_filter = -1;
 
@@ -1251,8 +1280,49 @@ Usockaddr *raddr;
     }
 #endif /* HAVE_SPF_ALT_SPF_H */
 
+
+
     if (debug) fflush(stdout);
     return rc;
+}
+
+static int call_rate_counter(rel, state, incr, what, countp)
+     struct policytest *rel;
+     struct policystate *state;
+     int incr, *countp;
+     PolicyTest what;
+{
+    int rc;
+    char pbuf[2000]; /* Not THAT much space needed.. */
+
+    if (rel == NULL)
+      return 0;
+
+
+    /* How to see, that we will have interest in these rate entries
+       in the future ?  E.g. there is no point in spending time
+       for externally incoming email... */
+
+    if (incr  &&  !state->did_query_rate)
+      return 0; /* INCRed counters at DATA/BDAT, but hadn't
+		   shown interest at MAIL for this... */
+
+
+    state->did_query_rate = 1;
+
+    sprintf(pbuf, "%s %s %s",  (incr ? "INCR": "RATE"), state->ratelabelbuf,
+	    ( (what == POLICY_SOURCEADDR) ? "CONNECT" :
+	      ( (what == POLICY_MAILFROM) ? "MAIL" : "xxx" )));
+
+    rc = call_subdaemon_trk(&state->rate_state, pbuf, pbuf, sizeof(pbuf));
+
+    /* RATE all MAIL FROM lines, apply limits
+     * INCR all accepted DATA/BDATs.
+     */
+
+    /* FIXME: actual received data processing! */
+
+    return -1;
 }
 
 
@@ -1656,6 +1726,7 @@ const int len;
 		       1 << P_A_RELAYCUSTOMER |
 #endif
 		       1 << P_A_SENDERNoRelay |
+		       1 << P_A_RateLimitMsgs |
 		       1 << P_A_SENDERokWithDNS ) & (~ requestmask);
 
     at = find_nonqchr(str, '@', len);
@@ -1698,6 +1769,34 @@ const int len;
 	state->sender_freeze = 1;
 	PICK_PA_MSG(P_A_FREEZESOURCE);
 	return -1;
+    }
+
+    if (state->always_accept && state->values[P_A_RateLimitMsgs]) {
+      /* If we are in 'alwaysaccept' mode, which is true for IP-acl:s,
+	 then we check to see rate-limits */
+
+      int count;
+      int limitval;
+
+      if (sscanf(state->values[P_A_RateLimitMsgs], "%d", &limitval) == 1) {
+	/* Valid numeric value had.. */
+
+	int rc = call_rate_counter(rel, state, 0, POLICY_MAILFROM, &count);
+
+	/* Non-zero value means that counter was not reachable, or
+	   that there was no data. */
+
+	if (rc == 0) {
+	  /* Got some rate limit data back,  now USE IT ! */
+	  if (limitval < 0 && count > -limitval) {
+	    PICK_PA_MSG(P_A_RateLimitMsgs);
+	    return -1;  /* Hard, e.g. 500-series */
+	  } else if (limitval > 0 && count > limitval) {
+	    PICK_PA_MSG(P_A_RateLimitMsgs);
+	    return -100; /* Soft, e.g. 400-series */
+	  }
+	}
+      }
     }
 
     if (state->always_accept && at[1] != '[') {
@@ -2115,6 +2214,10 @@ const int len;
       break;
     case POLICY_RCPTPOSTMASTER:
       rc = pt_rcptpostmaster(rel, state, str, len);
+      break;
+    case POLICY_DATA:
+    case POLICY_DATAOK:
+      rc = call_rate_counter(rel, state, 1, what, NULL);
       break;
     default:
       abort();			/* Code error! Bad policy ! */
