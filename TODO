@@ -11,9 +11,6 @@ Wanted done for 3.0:
   - LICENSE state cleanup.
   - A work-over of the documentation
 
-OVERALL: SleepyCat DB 3 header inclusion does not (necessarily)
-         match code selections!  Brr..
-
 smtp:
 	In EZMLM mode: if some recipient is bounced, ones following it
 	seem to be getting rather spurious looking errors. (case hotmail.com
@@ -21,8 +18,6 @@ smtp:
 	problemas the EZMLM-rcpt-splitting is a subcase in larger code.
 	Possibly also old code running...  Updated the system, and begun
 	to watch for the phenomena...
-
-overall:  SleepyCat DB 4.x ?
 
 sm:	pass the address meta information also in environment
 	variables, and handle multirecipient cases as well!
