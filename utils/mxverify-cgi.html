@@ -25,13 +25,14 @@ Interactive DNS MX-verify CGI running at  nic.funet.fi
 <BODY BGCOLOR="#FFFFFF" LINK="#CC6600" VLINK="#663333" TEXT="#000000">
 <H1>Interactive DNS MX-verify CGI running at  nic.funet.fi</H1>
 <P>
-Enter here the <I>domain name</I> of which email backup MX servers functionality you want to verify.
+Enter here <I>the domain, or email address</I> for which you want to have
+the backup delivery things verified.
 <P>
-The domain name you give below <B>must</B> have MX records at it.
+The domain name (of address!) you give below <B>must</B> have MX records at it.
 If there are no MXes for given domain, email <I>might</I> get delivered
 by means of using traditional ``if there are no MXes, use A'' operational
 rule in the internet.  However this utility won't (naturally) have
-any usefull work in that case, and it reports an error.
+any usefull work in that case, and it reports an error (but continues..)
 <P>
 This does not <I>send</I> any email to you, just does a series of
 connections, plus interactive reception address tests of following kind:
@@ -39,6 +40,7 @@ connections, plus interactive reception address tests of following kind:
 <PRE>
   MAIL FROM:&lt;&gt;
   RCPT TO:&lt;postmaster@that.domain&gt;
+  RCPT TO:&lt;your.address@that.domain&gt;
 </PRE>
 <P>
 The explanation:
@@ -48,12 +50,14 @@ The explanation:
 which many systems fault -- they must not do so.
 <LI> And every email receiving domain <B>must</B> have <B>postmaster</B>
 account, so says RFC 822 standard.
+<LI> And finally (if you have an address, and not just a domain), also
+tries to use your given domain.
 </UL>
 <P>
 For each server, it is acceptable to yield:
 <P>
 <UL>
-<LI>``ERROR: Connection Timed Out'' -- server wasn't reachable within tester's short 20 second timeout period; this may be due to firewall blocking access to the primary servers with an intention that incoming email comes thru backup servers only. (Standard defined connection timeout is 5-10 minutes.)
+<LI>``ERROR: Connection Timed Out'' -- server wasn't reachable within tester's short 20 second timeout period; this may be due to firewall blocking access to the primary servers with an intention that incoming email comes thru backup servers only. (More usual connection timeout is 5-10 minutes.)
 <LI>``ERROR: Connection Refused'' -- either the destination server does not have SMTP server running, <B>or</B> network firewall near the destination server blocks access to it with an intention of quicker move to backup MX entries.
 <LI>``Apparently OK'' -- the address tests gave an OK result.
 </UL>
@@ -62,6 +66,7 @@ Anything else means you have to figure out, what is going on.
 Especially if any backup server rejects the ``RCPT TO'' with 400- or 500-series
 codes.
 <P>
+<H2>Domain or Email Address:</H2>
 <FORM METHOD="get"   ACTION="http://www.funet.fi/cgi-bin/mxverify-cgi">
 <INPUT TYPE="text"   VALUE="" NAME="DOMAIN" SIZE=80 MAXLENGTH=200>
 <BR>
@@ -71,6 +76,7 @@ codes.
 <P>
 <I>All tests this CGI does must yield ``Apparently OK'' if you aspire
 to have any change at having reliably working incoming email.
+(or ``Connection Timeout'' or ``Connection Refused'')
 </I>
 <P>
 This CGI utility is one of <A HREF="http://www.zmailer.org/">ZMailer</A>
