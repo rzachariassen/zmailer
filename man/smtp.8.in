@@ -1,13 +1,14 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8zm "2003-Sep-26"
+.TH SMTP 8zm "2003-Nov-23"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
 .SH SYNOPSIS
 .IP \fBsmtp\fR 5em
 [\fB\-678deEHMrPsVxXW\fR]
+[\fB\-A\fR\ \fI/path/to/smtp-auth-secrets.txt\fR]
 [\fB\-c\fR\ \fIchannel\fR]
 [\fB\-h\fR\ \fIheloname\fR]
 [\fB\-l\fR\ \fIlogfile\fR]
@@ -56,6 +57,9 @@ but to do it without any ESMTP.
 .IP \-8
 forces SMTP channel to be 8-bit-clean, and as such, to decode the message
 while transporting it (is it is MIME QP encoded).
+.IP \-A\ \fI/path/to/smtp-auth-secrets.txt\fR
+Defined file with application specific authentication secrets for
+use against some LMTP target systems.
 .IP \-c\ \fIchannel\fR
 specifies which channel name should be keyed on.  The default is
 .BR smtp .
@@ -297,6 +301,60 @@ tls-CAfile      @MAILVAR@/db/smtpserver-CAcert.pem
 #|
 #demand-tls-mode
 .fi
+.PP
+.SH SMTP-AUTH AND SMTP-AUTH-SECRETS.TXT FILE
+The code is doing this in application specific, and in a very
+sloppy manner!
+Following interaction is presumed to happen and be valid for this use:
+.PP
+.nf
+\fC C: AUTH LOGIN 
+ S: 334 VXNlcm5hbWU6                  base64 "Username:" 
+ C: bXluYW1l                          base64 "myname" 
+ S: 334 Uc2VjcmV0                     base64 "Password:" 
+ C: GFzc3dvcmQ6                       base64 "secret" 
+ S: 235 Authentication successful
+.fi
+.PP
+Where 'myname' and 'secret' are those of CYRUS IMAP server
+system... (or whatever is applicable to your case)
+Possibly this shall happen under TLS encryption.
+.PP
+
+The
+.I SMTP-AUTH-SECRETS.TXT
+file has authentication secrets for remote hosts,
+.B "keep the file well protected!"
+.PP
+
+Any empty line, or mere whitespace line, is ignored.
+Lines with first non-whitespace char being '#' are comments.
+.PP
+
+Other lines are presumed to be whitespace separated quads:
+.nf
+     channel   remotehost   remoteuser   remotesecret
+.fi
+.PP
+.TP 3em
+\(bu
+The 'channel' can be either "*" matching any runtime channel
+parameter, or literal something, like: "smtp-lmtp".
+(Without quotes in the file, though.)
+Matching is done case sensitive.
+.TP 3em
+\(bu
+The 'remotehost' is remote host name on which the connection
+has gone to (e.g. by MXes, or whatever means).
+Matching is done case insensitive.
+.TP 3em
+\(bu
+The 'remoteuser' is BASE64 encoded string to be sent to the
+remote system in SMTP-auth transaction.
+.TP 3em
+\(bu
+The 'remotesecret' is BASE64 encoded string to be sent to the
+remote system in SMTP-auth transaction.
 .PP
 .SH ENVIRONMENT VARIABLES
 .IP ZCONFIG

@@ -37,6 +37,9 @@ fi
 
 localdoesdomain=1
 
+# If there shall NOT be  $MAILVAR/fqlists/  directory lookups
+# in address resolving, uncomment following:
+#nofqlists=1
 
 # Set following to "1", if you want to do duplicate address
 # elimination at the message level instead of per address.

@@ -1,3 +1,21 @@
+2003-11-23  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/cf/router.cf, proto/cf/server.cf, proto/cf/SMTP.cf.in:
+	    Changes In order to get one system to report straight from
+	    'routes' database an entry like following:
+	      foo.dom  error!nosuchuser!explanation text here
+	    straight into online router processing, like:
+	      554 5.0.0 unresolvable address <...>; nosuchuser; explanation txt
+
+	* man/smtp.8.in, transports/smtp/smtp.h, transports/smtp/smtp.c,
+	  transports/smtp/Makefile.in, transports/smtp/smtpauth.c,
+	  doc/guides/cyrus-imap:
+	    Initial write-through of simple SMTP client authentication
+	    against selected remote clients - this is intended to be
+	    used under some sort of protection, like TLS, or very least
+	    within a protected network.  Indeed it is only written to
+	    work against Cyrus IMAP LMTP server over loopback network.
+
 2003-11-21  Xosé Vazquez Peres  <xose@wanadoo.es>
 
 	* proto/cf/aliases.cf:

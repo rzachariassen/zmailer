@@ -18,8 +18,8 @@ INSTALL=	@INSTALL@
 SMTPLIB=	@OPENSSLLIB@  @LIBSOCKET@ @LIBRESOLV@ $(LIBMALLOC)
 SMTPINCL=	@OPENSSLINCL@ @INCLRESOLV@ @GENINCL@
 #
-SOURCE=		smtp.c appendlet.c smtptls.c getmxrr.c
-OBJS=		smtp.o appendlet.o smtptls.o getmxrr.o
+SOURCE=		smtp.c appendlet.c smtptls.c getmxrr.c smtpauth.c
+OBJS=		smtp.o appendlet.o smtptls.o getmxrr.o smtpauth.o
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTPINCL)
 LIBMALLOC=	@LIBMALLOC@
@@ -56,6 +56,7 @@ version.c:	$(OBJS) $(TOPDIR)/Makefile
 
 smtp.o:      $(srcdir)/smtp.h $(srcdir)/$(TOPDIR)/include/shmmib.h
 smtptls.o:   $(srcdir)/smtp.h $(srcdir)/$(TOPDIR)/include/shmmib.h
+smtpauth.o:  $(srcdir)/smtp.h
 appendlet.o: $(srcdir)/smtp.h
 
 install:	smtp mprobe getmxrr-test

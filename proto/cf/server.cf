@@ -114,7 +114,7 @@ server (key) {
 			for j in $(elements $i)
 			do
 				case $(channel $j) in
-				error)	echo "554 5.0.0 unresolvable address: <$1>"
+				error)	echo "554 5.0.0 unresolvable address: <$1>; $(host $j); $(user $j)"
 					return ;;
 				esac
 

@@ -387,6 +387,13 @@ typedef struct { /* SmtpState */
 
   const char *taspoolid;
 
+  /* Along with 'remotehost', these can be used to pick
+     userid and password (readily BASE64 encoded and space
+     separated!) for SMTPAUTH exchange. */
+
+  const char *sel_channel;
+  const char *sel_host;
+
 } SmtpState;
 
 extern const char *FAILED;
@@ -473,3 +480,5 @@ extern char *logtag __((void));
 
 extern time_t starttime, endtime;
 
+extern int smtpauth  __((SmtpState *SS));
+extern char *authpasswdfile;

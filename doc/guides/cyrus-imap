@@ -1,70 +1,249 @@
-971029/mea
+To:	Alexander Voropay <a.voropay@vmb-service.ru>
 
-	For running CYRUS IMAP server as your local message store
+On Fri, Nov 21, 2003 at 08:06:07PM +0300, Alexander Voropay wrote:
+> Hi!
+> 
+>  I'm writting a Micro-HOWTO how to integrate Zmailer with
+> new AF_UNIX LMTP delivery.
+> 
+>  Do you have interest in this document ?
 
+Yes.
 
-You need to modify/verify three (3) files:
+>  Unfortunately, I'm not native english speaker, so my
+> doc should be edited.
 
-	$MAILSHARE/router.cf:
-	$MAILSHARE/scheduler.conf:
-	$MAILSHARE/sm.conf:
-
-
-In the router configuration there is a parameter, which controls on
-how the local addresses look when rewritten:
-
------- $MAILSHARE/router.cf:
-  # Does our "local" channel accept domain (@) at the user part ?
-  # ZMailer's mailbox does accept.  If you use something else, and
-  # it doesn't accept, comment this away!
-  
-< localdoesdomain=1
-> #localdoesdomain=1
-------
+I am not native English writer either, so don't look at me ;-)
 
 
-In the scheduler configuration we must leave clauses for "local/file*",
-and "local/pipe*" in front of "local/*" intact, as they handle things
-that CYRUS can not do by itself.  Then we continue by modifying the
-"local/*" clause to choose proper command:
+------------- ZMailer to Cyrus Micro-HOWTO ----------------
 
------- $MAILSHARE/scheduler.conf:
-  local/*
-	interval=5m
-	idlemax=9m
-	# Originally we had 3 hour expiry, but if your local system goes to
-	# a fizz (freezes, that is), your local mail may start to bounce
-	# before anybody notices anything...
-	expiry=3d
-	# want 20 channel slots, but only one HOST
-	maxchannel=15
-	maxring=5
-	#
-	# Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
-	# conversion on flight!
-<	command="mailbox -8"
->	#command="mailbox -8"
-	# Or with CYRUS server the following might do:
-<	#command="sm -8c $channel cyrus"
->	command="sm -8c $channel cyrus"
-	# Or with PROCMAIL as the local delivery agent:
-	#command="sm -8c $channel procm"
--------
-
-And lastly, the sm configuration needs to be made sure it has specfication
-for "cyrus" so that "sm" knows what it needs to do, and where your CYRUS
-program is:
-
-------- $MAILSHARE/sm.conf:
-cyrus	Pn	/usr/cyrus/bin/deliver		deliver -e -m $h -- $u
-#		# CYRUS example from: Tom Samplonius <tom@sdf.com>
--------
+=============
+Zmailer/LMTP integration for local delivery.
 
 
-These work with earlier versions of ZMailer too, provided that the router
-scripts recognize messages destined to files/pipes, and provides special
-versions for the "host" part of the address quad; namely "file." and "pipe."
-prefixes.
+ Zmailer starting from version 2.99.55 has a ability to
+ deliver local e-mail via AF_UNIX LMTP socket.
+
+
+1. LMTP Server
+
+You should have LMTP (RFC 2033) server running on
+AF_UNIX (AF_LOCAL) socket on your system.
+ 
+For example, to start Cyrus-IMAP listening on AF_UNIX
+socket you should add a line to the main Cyrus configfile
+(i.e. /etc/cyrus.conf)
+
+=========
+# UNIX sockets start with a slash and are put into /var/lib/imap/sockets
+SERVICES {
+....
+  # at least one LMTP is required for delivery
+  #lmtp         cmd="lmtpd" listen="lmtp" prefork=0
+  lmtpunix      cmd="lmtpd" listen="/var/lib/imap/socket/lmtp" prefork=1
+...
+}
+========
+
+NOTE: The Cyrus-IMAP has a `deliver` utility. This is just a
+"frontend" to the LMTP socket.
+
+Due to RFC 2033 "The LMTP protocol SHOULD NOT be used over
+wide area networks.". Cyrus-IMAP can to do this, but you MUST
+be authenticated as Cyrus-Admin user. Otherwise, AF_UNIX LMTP
+socket does not requres any user authentifiaction.
+
+
+ To "telnet" to this socket you could use latest version of
+`netcat` (or `nc`) utility :
+http://www.openbsd.org/cgi-bin/cvsweb/src/usr.bin/nc/
+
+# netcat -U /var/lib/imap/socket/lmtp
+220 cyrus.vmb-service.ru LMTP Cyrus v2.1.15 ready
+LHLO cyrus.vmb-service.ru
+250-cyrus.vmb-service.ru
+250-8BITMIME
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-SIZE
+250-AUTH EXTERNAL
+250 IGNOREQUOTA
+MAIL FROM:<alec@vmb-service.ru>
+250 2.1.0 ok
+RCPT TO:<alec@vmb-service.ru>
+250 2.1.5 ok
+DATA
+354 go ahead
+From: alec
+To: alec
+Subject: test LMTP
+
+test LMTP
+.
+250 2.1.5 Ok
+QUIT
+221 2.0.0 bye
+
+
+2. Zmailer configuration.
+
+In  $MAILSHARE/router.cf  there is the need to run WITHOUT qualifying
+local addresses.
+ ------ 
+   # Does our "local" channel accept domain (@) at the user part ?
+   # ZMailer's mailbox does accept.  If you use something else, and
+   # it doesn't accept, comment this away!
+   
+ - localdoesdomain=1
+ + #localdoesdomain=1
+ ------
+
+Another thing in that   router.cf   is to have these lines (changed
+or added) in near its top (right after preceding fragment):
+
+ ------
+   # If there shall NOT be  $MAILVAR/fqlists/  directory lookups
+   # in address resolving, uncomment following:
+ - #nofqlists=1
+ + nofqlists=1
+ ------
+
+
+In  scheduler.conf  file for   local/*   target, select the last
+of the CYRUS specific entries, disable all other "command=" lines
+in the subset, and edit UNIX:-path to match your application.
+
+ ----- scheduler.conf  fragment for  local/*  target -------
+   # Or with CYRUS server the following might do:
+   #command="sm -c $channel cyrus"
+   #command="smtp -c $channel -M -x -F [127.0.0.1] -p 2525 -s" # -l ${LOGDIR}/smtp-lmtp"
+   command="smtp -c $channel -M -x -F UNIX:/var/lib/imap/socket/lmtp -s -l ${LOGDIR}/smtp-lmtp"
+ ----------------
+
+An alternate processing way would be thru using  'smtp-lmtp/*' channel
+setup in  scheduler.conf,  and placing the above given  command=  line
+also in there to be the active one.  Observe relevant comments further
+below in routing database discussions.
+(Do note that although the SMTP client has ability to do  AUTH LOGIN
+in SMTP session, that isn't verified to function.)
+
+
+As the system doesn't use UNIX accounts (and homedirs) for anything,
+Doing fully qualifying routing for the addresses will be a challenge.
+One way to do it is to use following maps in   $MAILVAR/db/dbases.conf
+file:
+
+ aliases         $DBTYPE 0:0:644    -la $MAILVAR/db/aliases-local -lm
+ aliases         $DBTYPE 0:0:644    -r $MAILVAR/db/aliases      -lm -C $MAILVAR/db/sleepyenv.conf
+ fqdnaliases     $DBTYPE root:0:644 -la $MAILVAR/db/fqdnaliases-local  -lm%
+ fqdnaliases     $DBTYPE root:0:644 -r $MAILVAR/db/fqdnaliases  -lm% -C $MAILVAR/db/sleepyenv.conf
+ fqdnroutes      $DBTYPE root:0:644 -l $MAILVAR/db/fqdnroutes-local -lm%:
+ fqdnroutes      $DBTYPE root:0:644 -r $MAILVAR/db/fqdnroutes  -lm%: -C $MAILVAR/db/sleepyenv.conf
+
+ routesdb        $DBTYPE -   -l  $MAILVAR/db/routes      -lm%:d pathalias
+ thishost        $DBTYPE -   -l  $MAILVAR/db/localnames  -lm%d  pathalias
+
+The  'sleepyenv.conf'  file referred above is intended to be something 
+like:
+
+ -------
+ #
+ # SleepyCat DB 3/4 environment settings
+ #
+ 
+ envhome  = /var/mail/db
+ envmode  = 0600
+ envflags = CDB, CREATE, RO
+ -------
+
+Now these files with the  'sleepyenv.conf' in them are peculiar; they are
+READ-ONLY for 'newdbprocessor', but are read/write for the 'router'.
+In this example it is special "SleepyCat DB  Concurrent Database"  mode
+local database, which can be updated live by means of external updater
+program (*).  These could be also e.g. an LDAP maps, but for various
+reasons this author has always preferred local databases over network
+accessed ones, when having to rely on unknown quality DB access APIs.
+(This is about needing to know for sure that the key does not exist in
+the database, and not merely having problems accessing the database..
+"sendmail + NIS"  is a sad example of lack of this distinction.)
+
+*) The local access databases as ZMailer them uses do expect to have
+C-string ending NUL-chars in their keys, and lookup results!
+
+
+And following setup of database contents (by their base filenames):
+
+  In  'localnames':
+      List only local system name, NOT its service domains,
+      or anything else!
+
+  In  'smtp-policy.relay':
+      List all domains that are serviced within this system
+      (it will be a major pain to introduce new domains automatically
+       thru this, though!  This file is used to control smtpserver's
+       idea about locally serviced domains in addition to those listed
+       in 'localnames' file, and is processed into local static database
+       by means of  $MAILBIN/policy-builder.sh  script.)
+
+      If this file is managed (produced) by the system management
+      software, then 'smtp-policy.relay.manual' can be used to add
+      domains outside that software's control.
+
+  In  'routesdb':
+      For every locally serviced domain, have a failover entry:
+          locally.known.domain   error!nosuchuser
+      or:
+          locally.known.domain   error!nosuchuser!some explanation text
+
+      (There could be similar 'routesdb-local' and 'routesdb' pair
+       as is for actual online databases, or just mere text edited
+       databases that management software produces.  Refer to the
+       'smtp-policy.relay' above!)
+
+  In  'aliases-local':
+      Forwards for 'root', et.al. _just_in_case_
+  In  'aliases':
+      This isn't actually intended to be used in this case.
+
+  In  'fqdnaliases-local':
+      Map FQDN-address-forms to their actual addresses; this file should
+      handle things like  postmaster  addresses:
+          postmaster@locally.known.domain:  actual_postmaster@address
+
+  In  'fqdnaliases':
+      This is map of email addresses in locally serviced domains
+      to their Cyrus IMAP Message Store userids:
+          example.user@locally.known.domain:  fg56778
+
+      This has a problem of using non-qualified local parts as
+      intermediate delivery addresses.  Alternate way is to use
+      'fqdnroutes' further below.
+
+  In  'fqdnroutes-local':
+      This map can be used to make things similar to those of
+      'fqdnaliases-local', but sending message to an alternate
+      destination:
+          user@domain:  smtp-lmtp!cyrus-gw-node!cyrus-user%2
+
+      With the  smtp-lmtp/*  running thru a UNIX socket, the
+      middle part will be ignored.  The '%2' is magic for this
+      particular mapping that translates   user+tail@domain
+      into:  cyrus-user+tail  form.  Also: user--tail@domain
+      does get the exact same treatment, but goes thru a lot
+      more websites...
+
+  In  'fqdnroutes':
+      This is just a SleepyCat DB in a CDB mode with same purpose
+      as 'fqdnroutes-local' has.
+
+
+
+-- 
+/Matti Aarnio	<mea@nic.funet.fi>
+
+
+
 
 Success reports with this guide have been received for:
 

@@ -84,6 +84,8 @@ extern time_t retryat_time;	/* diagnostic() thing */
 static void tcpstream_nagle   __((int fd));
 static void tcpstream_denagle __((int fd));
 
+char *authpasswdfile;
+
 
 time_t starttime, endtime;
 
@@ -523,10 +525,13 @@ main(argc, argv)
 	SS.remotemsg[0] = '\0';
 	SS.remotehost[0] = '\0';
 	while (1) {
-	  c = getopt(argc, argv, "c:deh:l:p:rsvw:xXDEF:L:HMPS:T:VWZ:678");
+	  c = getopt(argc, argv, "A:c:deh:l:p:rsvw:xXDEF:L:HMPS:T:VWZ:678");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
+	  case 'A':
+	    authpasswdfile = strdup(optarg);
+	    break;
 	  case 'c':		/* specify channel scanned for */
 	    channel = strdup(optarg);
 	    break;
@@ -880,6 +885,9 @@ main(argc, argv)
 	  else
 #endif /* BIND */
 	    dp = ctlopen(filename, (char*)channel, (char*)host, &getout, NULL, NULL);
+
+	  SS.sel_channel = (const char *)channel;
+	  SS.sel_host    = (const char *)host;
 
 	  if (dp == NULL) {
 	    fprintf(stdout,"#resync %.200s\n", filename);
@@ -2521,6 +2529,15 @@ smtpopen(SS, host, noMX)
 	      i = EX_TEMPFAIL;
 	    }
 	  } /* END "EHLO" connection */
+
+
+	  /* If the remote has AUTH-capability, and we have
+	     'authpasswdfile' set, call  smtpauth() !  */
+
+	  if ( (i == EX_OK) && (SS->ehlo_capabilities & ESMTP_AUTH) &&
+	       authpasswdfile )
+	    i = smtpauth(SS);
+
 
 	  if (SS->esmtp_on_banner > -2 && i == EX_OK ) {
 	    if (SS->verboselog)

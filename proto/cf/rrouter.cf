@@ -333,8 +333,15 @@ routes_spec (rtedata, address, A) {
 		# NB! envelopeinfo *must* also be defined in interactive mode
 		tmp="$(/bin/expr $(get envelopeinfo now) + "\1")"
 		returns (((hold "$tmp" "$address" $A))) ;;
-	(.+)!([^!]+)
+
+	([^!]+)!([^!]+)
+		# "CHANNEL!HOST"  type cases
 		returns ((("\1" "\2" "$address" $A))) ;;
+
+	([^!]+)!([^!]+)!(.*)
+		# "CHANNEL!HOST!MORE"  type cases
+		returns ((("\1" "\2" "\3" $A))) ;;
+
 	(.+)!(.+)
 		# BEWARE LOOPS
 		tmp=$(rrouter "\2!$(uucproute "$address")" "$address" $A "" "$rtedata") && \
