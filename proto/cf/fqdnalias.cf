@@ -41,7 +41,7 @@ else
 	  if a="$(fqdnaliases_1 $key $o1 $o2 $o3 $o4 $o5 $o6 $o7 $o8 $o9)"; then
 	    priv="$(filepriv -M 644 $MAILVAR/db/fqdnaliases$DBEXTtest \
 			$(db owner fqdnaliases_1))" &&
-	    return "$a"
+	    returns "$a"
 	  fi
 	  return 1
 	}
@@ -106,7 +106,8 @@ fqdn_neighbour (domain, address, A) {
 		      listaddresses -c "$a sender fqdn userdb mailname" \
 				    -e root			 |	\
 		      maprrouter $nattr "sender-fqdn-userdb-mailname"	\
-					"$address" "$plustail" "$athost")
+					"$address" "$plustail" "$athost") &&
+			  returns $a
 		  return $a
 		fi
 		return 1
@@ -140,12 +141,12 @@ fqdn_neighbour (domain, address, A) {
 		    listaddresses	-c "$a fqdn alias expansion" 	\
 					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
-				"$plustail" "$athost")
+				"$plustail" "$athost") && returns $a
 		return $a
 	  fi
 	else
 	  # DID EXPAND !
-	  return (bitbucket "duplicate-$key.fqdnaliases"  "$address" $A)
+	  returns (bitbucket "duplicate-$key.fqdnaliases"  "$address" $A)
 	fi
 
 	if $(didexpand fqdnaliasesldap); then
@@ -157,12 +158,12 @@ fqdn_neighbour (domain, address, A) {
 		    listaddresses	-c "$a fqdn ldap expansion" 	\
 					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
-				"$plustail" "$athost")
+				"$plustail" "$athost") && returns $a
 		return $a
 	  fi
 	else
 	  # DID EXPAND !
-	  return (bitbucket "duplicate-$key.fqdnaliasesldap"  "$address" $A)
+	  returns (bitbucket "duplicate-$key.fqdnaliasesldap"  "$address" $A)
 	fi
 
 	# Didn't match,
@@ -184,7 +185,7 @@ fqdn_neighbour (domain, address, A) {
 		    listaddresses	-c "$a fqdn+ alias expansion" 	\
 					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"	\
-				"$pl2" "$athost")
+				"$pl2" "$athost") && returns $a
 		return $a
 	      fi
 	    else
@@ -200,12 +201,12 @@ fqdn_neighbour (domain, address, A) {
 			 listaddresses	-c "$a fqdn+ ldap expansion" 	\
 					-e root			 |	\
 			 maprrouter $nattr "fqdnalias" "$address"	\
-				"$plustail" "$athost")
+				"$plustail" "$athost") && returns $a
 		return $a
 	      fi
 	    else
 	      # DID EXPAND !
-	      return (bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)
+	      returns (bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)
 	    fi
 	    ;;
 	tfiss
@@ -228,12 +229,13 @@ fqdn_neighbour (domain, address, A) {
 		a=$(runas $priv cat "$a" |				\
 		    listexpand	-E "$l" -e "$l" -p $priv		\
 				-c "$a file expansion" $nattr "$a"	\
-				"$user$athost" "$plustail" "$athost")
+				"$user$athost" "$plustail" "$athost") &&
+			returns $a
 		return $a
 	  fi
 	else
 	  # DID EXPAND !
-	  return (bitbucket "duplicate-$key.fqlists" "$address" $A)
+	  returns (bitbucket "duplicate-$key.fqlists" "$address" $A)
 	fi
 
 	# Ok, if the list (MAILVAR/fqlists/user@host) did exist, we did
@@ -250,12 +252,14 @@ fqdn_neighbour (domain, address, A) {
 		    nattr=$(newattribute $A privilege $nobodypriv)
 		    $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		    a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
-				"$address" $nattr "" "" "$domain")
+				"$address" $nattr "" "" "$domain") &&
+			returns $a
 		    return $a
 		  fi
 		else
 		  # DID EXPAND !
-		  return (bitbucket "duplicate-$key.fqlists-owner" "$address" $A)
+		  returns (bitbucket "duplicate-$key.fqlists-owner" \
+			   "$address" $A)
 		fi
 		break
 		;;
@@ -268,12 +272,13 @@ fqdn_neighbour (domain, address, A) {
 		    nattr=$(newattribute $A privilege $nobodypriv)
 		    $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		    a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
-				"$address" $nattr "" "" "$domain")
+				"$address" $nattr "" "" "$domain") &&
+			return $a
 		    return $a
 		  fi
 		else
 		  # DID EXPAND !
-		  return (bitbucket "duplicate-$key.fqlists-request" "$address" $A)
+		  returns (bitbucket "duplicate-$key.fqlists-request" "$address" $A)
 		fi
 		break
 		;;
@@ -286,12 +291,13 @@ fqdn_neighbour (domain, address, A) {
 		    nattr=$(newattribute $A privilege $nobodypriv)
 		    $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		    a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
-				"$address" $nattr "" "" "$domain")
+				"$address" $nattr "" "" "$domain") &&
+			returns $a
 		    return $a
 		  fi
 		else
 		  # DID EXPAND !
-		  return (bitbucket "duplicate-$key.owner-fqlists" "$address" $A)
+		  returns (bitbucket "duplicate-$key.owner-fqlists" "$address" $A)
 		fi
 		;;
 	tfiss
@@ -314,12 +320,12 @@ fqdn_neighbour (domain, address, A) {
 		    listaddresses	-c "$a fqdn alias expansion" 	\
 					-e root			 |	\
 		    maprrouter	$nattr "fqdnalias" "$address"		\
-				"$plustail" "$athost")
+				"$plustail" "$athost") && returns $a
 		return $a
 	  fi
 	else
 	  # DID EXPAND !
-	  return (bitbucket "duplicate-$key.fqdnaliases" "$address" $A)
+	  returns (bitbucket "duplicate-$key.fqdnaliases" "$address" $A)
 	fi
 	if $(didexpand fqdnaliasesldap) ; then
 	  if a="$(fqdnaliasesldap "$key" -- "$user")" ; then
@@ -330,12 +336,12 @@ fqdn_neighbour (domain, address, A) {
 		    listaddresses	-c "$a fqdn ldap expansion" 	\
 					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
-				"$plustail" "$athost")
+				"$plustail" "$athost") && returns $a
 		return $a
 	  fi
 	else
 	  # DID EXPAND !
-	  return (bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)
+	  returns (bitbucket "duplicate-$key.fqdnaliasesldap" "$address" $A)
 	fi
 
 	return 1
@@ -363,5 +369,5 @@ mapfqrrouter (attribute, localpart, origaddr, plustail, domain) {
 		defer=''
 		lappend al $shh
 	done
-	return $al
+	returns $al
 }

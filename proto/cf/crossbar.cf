@@ -223,7 +223,8 @@ crossbar (from, to) {
 
 	#log recipient: "$(channel $to)" "$(host $to)" "$(user $to)"
 
-	return ($rewrite $from $to)
+	tmp=($rewrite $from $to) && returns $tmp
+	return $tmp
 
 }	# end of crossbar
 
@@ -244,9 +245,9 @@ crossbar (from, to) {
 
 intercept (address) {
 #	case "$(smtp_useratdomain "$address")" in
-#	*@pdq*)		return (file /var/scr/pdq) ;;
-#	rayan@csri.*)	return (drop) ;;
-#	bitftp*@*)	return (error bounce) ;;
+#	*@pdq*)		returns (file /var/scr/pdq) ;;
+#	rayan@csri.*)	returns (drop) ;;
+#	bitftp*@*)	returns (error bounce) ;;
 #	esac
 
 	return 1
@@ -274,7 +275,7 @@ intramachine (address, hname) {		# strip hostname if it came from here
 	(.*)@($hostname|$mydomain)
 		address="$(condquote "\1")" ;;
 	tfist
-	return "$address"
+	returns "$address"
 }	# end of intramachine
 
 
@@ -283,7 +284,7 @@ null (address, hname) {
 	# 'hname'   is the header whose address(es) we are rewriting;
 	#           value here is usually: 'From', 'To', etc.
 
-	return "$address"		# surprise!
+	returns "$address"		# surprise!
 }
 
 # This is usually the default message-header address rewriting function.
@@ -356,7 +357,7 @@ internet (address, hname) {
 		;;
 	tfist
 
-	return "$address"
+	returns "$address"
 }	# end of internet
 
 R=$POSTOFFICE/router

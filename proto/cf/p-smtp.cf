@@ -17,17 +17,17 @@ if [ x$world != x ]; then
 
 	smtp_neighbour (domain, address, A) {
 		if host_neighbour "$domain".$world. ; then
-			return (((smtp "$domain".$world "$address" $A)))
+			returns (((smtp "$domain".$world "$address" $A)))
 		fi
 		if host_neighbour "$domain". ; then
-			return (((smtp "$domain" "$address" $A)))
+			returns (((smtp "$domain" "$address" $A)))
 		fi
 		return 1
 	}
 else
 	smtp_neighbour (domain, address, A) {
 		if host_neighbour "$domain". ; then
-			return (((smtp "$domain" "$address" $A)))
+			returns (((smtp "$domain" "$address" $A)))
 		fi
 		return 1
 	}
@@ -58,7 +58,7 @@ smtproute (address) {
 		fi ;;
 	,(@.+)	address="\1" ;;
 	tfist
-	return "$address"
+	returns "$address"
 }
 
 smtp_useratdomain (address) {
@@ -80,7 +80,7 @@ smtp_useratdomain (address) {
 		fi
 		;;
 	tfist
-	return $address
+	returns $address
 }	# end of smtp_useratdomain
 
 # Turn any address into RFC822 source address form, ignoring domain name
@@ -122,5 +122,5 @@ rfc822route (address) {
 	[^@][^:]*:[^@]+@[^@]+
 		address="@$address" ; break ;;
 	tfist
-	return "$address"
+	returns "$address"
 }	# end of rfc822route

@@ -20,7 +20,7 @@ lookup_list (lu_type, list) {
             res="$res $scr"
         done
     done
-    return $(list $res)
+    returns $(list $res)
 }
 
 
@@ -37,11 +37,11 @@ iproutes_neighbour (domain, address, A) {
             tmp=$(iproutesdb "$b") &&
                 sift "$tmp" in
 		.*!		tmp=$(routes_spec "$tmp" "$address" $A) &&
-				    return $tmp ;;
+				    returns $tmp ;;
                 tfis
         done
 	tmp=$(routes_spec "$tmp" "$address" $A) &&
-	    return $tmp
+	    returns $tmp
 
 #| The routes_spec function interprets the return value from the
 #| iproutesdb lookup.

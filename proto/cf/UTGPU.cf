@@ -82,11 +82,11 @@ done
 
 #intercept (address) {
 #	case "$(smtp_useratdomain "$address")" in
-#	*@host1*)	return (file /var/scr/host1) ;;
-#	*@host2*)	return (file /var/scr/host2) ;;
-#       *@host3*)	return (drop) ;;
-#	*@host4*)	return (file /var/scr/host4) ;;
-#	bitftp*@*)	return (error bounce) ;;
+#	*@host1*)	returns (file /var/scr/host1) ;;
+#	*@host2*)	returns (file /var/scr/host2) ;;
+#       *@host3*)	returns (drop) ;;
+#	*@host4*)	returns (file /var/scr/host4) ;;
+#	bitftp*@*)	returns (error bounce) ;;
 #	esac
 #
 #	return 1
@@ -120,9 +120,9 @@ done
 ean_useratdomain (address) {
 	address=$(smtp_useratdomain "$address")
 	tsift "$address" in
-	(.*)\.toronto\.edu	return "\1.utoronto.ca" ;;
+	(.*)\.toronto\.edu	returns "\1.utoronto.ca" ;;
 	tfist
-	return "$address"
+	returns "$address"
 }	# end of ean_useratdomain
 
 # to disable pathalias stuff, define this:
@@ -145,14 +145,14 @@ if [ x$paworld != x ]; then
 			tmp=$(uucproute "$tmp")
 			tsift "$tmp" in
 			[^!]+	if [ $(deliver "$tmp") ]; then
-					return (((error database "$address" $A)))
+					returns (((error database "$address" $A)))
 				fi
 				case "$domain" in
-				*$tmp)  return (((error database "$address" $A))) ;;
+				*$tmp)  returns (((error database "$address" $A))) ;;
 				esac
 				;;
 			tfist
-			return $(rrouter "$tmp!$address" $A)
+			returns $(rrouter "$tmp!$address" $A)
 		fi
 	}
 fi

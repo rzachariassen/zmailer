@@ -17,12 +17,14 @@ uucp_neighbour (domain, address, A) {
 	tmp=$(pathalias "$domain") || return 1
 	tsift "$tmp" in
 	[^!]+	if [ $(deliver "$tmp") ]; then
-			return (((error database "$address" $A)))
+			returns (((error database "$address" $A)))
 
 #| In case the pathalias database claims local delivery for the
 #| destination host, and the local delivery database contradicts this.
 
 		fi ;;
 	tfist
-	return $(rrouter "$tmp!$(uucproute "$address")" "$address@$domain" $A)
+	tmp=$(rrouter "$tmp!$(uucproute "$address")" "$address@$domain" $A) \
+		&& returns $tmp
+	return $tmp
 }

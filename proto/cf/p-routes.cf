@@ -17,11 +17,11 @@ routes_neighbour (domain, address, A) {
 	$(iserrormsg) &&
 		tmp=$(routesdb "$domain" -: '.:ERROR') &&
 			tmp=$(routes_spec "$tmp" "$address" $A) &&
-				return $tmp
+				returns $tmp
 
 	tmp=$(routesdb "$domain") &&
 		tmp=$(routes_spec "$tmp" "$address" $A) &&
-			return $tmp
+			returns $tmp
 
 #| The routes_spec function interprets the return value from the
 #| routesdb lookup.

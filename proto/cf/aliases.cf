@@ -70,7 +70,7 @@ else
 		if a="$(aliasesdb "$key")"; then
 		  priv="$(filepriv -M 644 $MAILVAR/db/aliases$DBEXTtest \
 					$(db owner aliasesdb))" &&
-		  return "$a"
+		  returns "$a"
 		fi
 		return 1
 	}
@@ -106,7 +106,7 @@ case "$(type fullnamemapdb)" in
 	    local a;
 	    if a="$(fullnamemapdb "$key")" ; then
 		# "priv" analysis ???
-		return "$a"
+		returns "$a"
 	    fi
 	    return 1
 	}
@@ -235,8 +235,8 @@ routeuser (quad, plustail, domain) {
 	case $type in
 	sender)
 		a=$(userdb "$user:mailname") \
-		  || return ((("$chan" "$host" "$user$plustail$domain" $attr)))
-		return ((("$chan" "$a" "$user$plustail$domain" $attr)))
+		  || returns ((("$chan" "$host" "$user$plustail$domain" $attr)))
+		returns ((("$chan" "$a" "$user$plustail$domain" $attr)))
 		;;
 	esac
 
@@ -258,14 +258,14 @@ routeuser (quad, plustail, domain) {
 	#				    (((smtp $hostx $user $attr))) ;;
 	#			esac
 	#		done
-	#		return $al
+	#		returns $al
 	#		#a=((x) (smtp '$x' $user $attr))
 	#		#mapcar $a $mxhosts
 	#		;;
 	#	esac
 	#	;;
 	local)	;;	# this is the normal case, below
-	*)	return (($quad))
+	*)	returns (($quad))
 		;;
 	esac
 
@@ -275,7 +275,7 @@ routeuser (quad, plustail, domain) {
 # echo "routeuser: host=$host, user=$user" >> /dev/tty
 
 	[ -n "$FORCEPUNT" ] &&
-		return $(rrouter "$user@$FORCEPUNT" "$host" $attr "" "")
+		returns $(rrouter "$user@$FORCEPUNT" "$host" $attr "" "")
 
 	ssift $(dequote $user) in
 	\\(.*)	user="\1" # Back-quoted username -- most likely
@@ -297,10 +297,10 @@ routeuser (quad, plustail, domain) {
 				   -c ":include:\1 file expansion"	\
 				   "$nattr" "\1" "$host" "" "$domain" )
 		    postzapDSNnotify a
-		    return $a
+		    returns $a
 		  fi
 		else
-		  return (((bitbucket "duplicate-$key-:include:" "$user" $attr)))
+		  returns (((bitbucket "duplicate-$key-:include:" "$user" $attr)))
 		fi
 		;;
 
@@ -318,7 +318,7 @@ routeuser (quad, plustail, domain) {
 #			user="\"$user\""
 #		fi
 #		;;
-	[|/].*	return (($quad))
+	[|/].*	returns (($quad))
 		;;
 	tfiss
 
@@ -337,10 +337,10 @@ routeuser (quad, plustail, domain) {
 					-c "$user file expansion" | \
 		    maprrouter $nattr "$user" "$host" "$plustail" "$domain")
 		postzapDSNnotify a
-		return $a
+		returns $a
 	  fi
 	else
-	  return (((bitbucket "duplicate-$key-aliases" "$user" $attr)))
+	  returns (((bitbucket "duplicate-$key-aliases" "$user" $attr)))
 	fi
 
 # ---- from rrouter.cf:
@@ -354,21 +354,21 @@ routeuser (quad, plustail, domain) {
 
 		a=$(rrouter "$a" "$user" $nattr "$plustail" "$domain")
 		postzapDSNnotify a
-		return $a
+		returns $a
 	  fi
 	else
-	  return (((bitbucket "duplicate-$key-fullnamemap" "$user" $attr)))
+	  returns (((bitbucket "duplicate-$key-fullnamemap" "$user" $attr)))
 	fi
 	if [ "$do_newsgroup" ] && [ -n "$(newsgroup "$user")" ]; then
 		# Retain possible DSN attributes
-		return (((usenet - "$user" $attr)))
+		returns (((usenet - "$user" $attr)))
 	fi
 
 # ---- end of "from rrouter.cf":
 
 	# Listed in 'expired accounts' database ?
 	if [ -z "$PUNTHOST" ] && a=$(expired "$user") ; then
-		return (((error acctexpired "$user" $attr)))
+		returns (((error acctexpired "$user" $attr)))
 	fi
 
 	if $(didexpand mboxmap) ; then
@@ -376,19 +376,19 @@ routeuser (quad, plustail, domain) {
 		tsift "$pobox" in
 		([^:]+):([^:]+):(.+)
 			if [ "\1" != $hostname ]; then
-				return (((smtp "\1" "$user@\1" $attr)))
+				returns (((smtp "\1" "$user@\1" $attr)))
 			fi
 			user="\3"	# this is also good for .forward stuff
 			pobox="\2/$POBOX/\3"
 			break
 			;;
 		.+
-			return (((error database "$user" $attr)))
+			returns (((error database "$user" $attr)))
 			;;
 		tfist
 	  fi
 	else
-	  return (((bitbucket "duplicate-$key-mboxmap" "$user" $attr)))
+	  returns (((bitbucket "duplicate-$key-mboxmap" "$user" $attr)))
 	fi
 
 	priv=$(get $attr privilege)
@@ -423,11 +423,11 @@ routeuser (quad, plustail, domain) {
 				-c "$a file expansion"		\
 				$nattr  "$a" "$host" "" "$domain" )
 		postzapDSNnotify a
-		return $a
+		returns $a
 	    fi
 	  fi
 	else
-	  return (((bitbucket "duplicate-$key-lists" "$user" $attr)))
+	  returns (((bitbucket "duplicate-$key-lists" "$user" $attr)))
 	fi
 
 	a="$MAILVAR/modlists/$lcuser"
@@ -451,12 +451,12 @@ routeuser (quad, plustail, domain) {
 			    maprrouter $nattr "$a" "$host" "$plustail"	\
 					"$domain")
 			postzapDSNnotify a
-			return $a
+			returns $a
 			;;
 	    esac
 	  fi
 	else
-	  return (((bitbucket "duplicate-$key-modlists" "$user" $attr)))
+	  returns (((bitbucket "duplicate-$key-modlists" "$user" $attr)))
 	fi
 
 	# turn *-owner and *-request into the owner of a mailing list file
@@ -474,10 +474,10 @@ routeuser (quad, plustail, domain) {
 		    a=$(rrouter "$(uid2login $priv)" 			\
 				"$host" $nattr "$plustail" "$domain")
 		    postzapDSNnotify a
-		    return $a
+		    returns $a
 		  fi
 		else
-		  return (((bitbucket "duplicate-$key-lists-owner" "$user" $attr)))
+		  returns (((bitbucket "duplicate-$key-lists-owner" "$user" $attr)))
 		fi
 		break
 		;;
@@ -491,7 +491,7 @@ routeuser (quad, plustail, domain) {
 		    a=$(rrouter "$(uid2login $priv)" \
 				 "$host" $nattr "$plustail" "$domain")
 		    postzapDSNnotify a
-		    return $a
+		    returns $a
 		fi
 		break
 		;;
@@ -505,7 +505,7 @@ routeuser (quad, plustail, domain) {
 		    a=$(rrouter "$(uid2login $priv)" \
 				 "$host" $nattr "$plustail" "$domain")
 		    postzapDSNnotify a
-		    return $a
+		    returns $a
 		fi
 		break
 		;;
@@ -519,7 +519,7 @@ routeuser (quad, plustail, domain) {
 			maprrouter $nattr $lcuser "$host" "$plustail" \
 				   "$domain")
 		    postzapDSNnotify a
-		    return $a
+		    returns $a
 		fi
 		;;
 	tfiss
@@ -544,7 +544,7 @@ if [ -n "$LISTSERV" ] ; then
 		$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
 		a=(((local pipe.$lcuser "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $lcuser" $nattr)))
 		postzapDSNnotify a +
-		return $a
+		returns $a
 	fi
 
 	ssift "$lcuser" in
@@ -557,7 +557,7 @@ if [ -n "$LISTSERV" ] ; then
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.owner-$listbase "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool owner-$listbase" $nattr)))
 		   postzapDSNnotify a
-		   return $a
+		   returns $a
 		fi
 		;;
 
@@ -569,7 +569,7 @@ if [ -n "$LISTSERV" ] ; then
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.$listbase-owner "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool owner-$listbase" $nattr)))
 		   postzapDSNnotify a
-		   return $a
+		   returns $a
 		fi
 		;;
 
@@ -582,7 +582,7 @@ if [ -n "$LISTSERV" ] ; then
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.$listbase-search-request "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-search-request" $nattr)))
 		   postzapDSNnotify a
-		   return $a
+		   returns $a
 		fi
 		;;
 
@@ -594,7 +594,7 @@ if [ -n "$LISTSERV" ] ; then
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.$listbase-request "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-request" $nattr)))
 		   postzapDSNnotify a
-		   return $a
+		   returns $a
 		fi
 		;;
 
@@ -607,7 +607,7 @@ if [ -n "$LISTSERV" ] ; then
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.$listbase-server "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-server" $nattr)))
 		   postzapDSNnotify a
-		   return $a
+		   returns $a
 		fi
 		;;
 	(.+)
@@ -618,7 +618,7 @@ if [ -n "$LISTSERV" ] ; then
 		   $(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
 		   a=(((local pipe.$listbase "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase" $nattr)))
 		   postzapDSNnotify a 0
-		   return $a
+		   returns $a
 		fi
 		break
 		;;
@@ -632,7 +632,7 @@ fi
 		hashomedir=1
 	else
 	    [ "$defer" ] &&
-		    return (((hold "$defer" "$address" $attr)))
+		    returns (((hold "$defer" "$address" $attr)))
 
 	    ssift "$user" in # No 'homedir' for this user ? Has a '+' in it ?
 	    ([^+]+)\+.+
@@ -650,7 +650,7 @@ fi
 		      maprrouter $nattr "$user" "$host" \
 					"$plustail" "$domain")
 		  postzapDSNnotify a
-		  return $a
+		  returns $a
 
 		fi
 		# For a "user+" there is no homedirectory, try plusless below
@@ -673,7 +673,7 @@ fi
 		      maprrouter $nattr "$user" "$host" \
 					"$plustail2" "$domain")
 		  postzapDSNnotify a
-		  return $a
+		  returns $a
 
 		fi
 
@@ -684,21 +684,21 @@ fi
 
 		  a=$(rrouter "$a" "$user" $nattr "$plustail2" "$domain")
 		  postzapDSNnotify a
-		  return $a
+		  returns $a
 		fi
 
 		pobox="$(mboxmap "\1")" &&
 		  tsift "$pobox" in
 		  ([^:]+):([^:]+):(.+)
 			if [ "\1" != $hostname ]; then
-				return (((smtp "\1" "$user@\1" $attr)))
+				returns (((smtp "\1" "$user@\1" $attr)))
 			fi
 			plustail="$plustail2"
 			user="\3"	# this is also good for .forward stuff
 			pobox="\2/$POBOX/\3"
 			break
 			;;
-		  .+	return (((error database "$user" $attr)))
+		  .+	returns (((error database "$user" $attr)))
 			;;
 		  tfist
 
@@ -706,7 +706,7 @@ fi
 			hashomedir=1
 		fi
 		[ "$defer" ] &&
-		    return (((hold "$defer" "$address" $attr)))
+		    returns (((hold "$defer" "$address" $attr)))
 		;;
 	    tfiss
 	fi
@@ -719,7 +719,7 @@ fi
 ##	fi
 
 	case "$type" in
-	expandsender)	[ -f "$forward" ] && return (($quad))
+	expandsender)	[ -f "$forward" ] && returns (($quad))
 			;;
 	esac
 
@@ -735,7 +735,7 @@ fi
 		    listaddresses -e "$user" -c "$forward .forward expansion" | \
 		    maprrouter $nattr "$forward" "$host" "$plustail" "$domain")
 		postzapDSNnotify a
-		return $a
+		returns $a
 	    fi
 	fi
 
@@ -743,16 +743,16 @@ fi
 
 	if [ -n "$pobox" ] ; then
 		priv=$(login2uid "$user")
-		return (((local "pob:$user" "$pobox$plustail$domain" $(newattribute $attr privilege $priv))))
+		returns (((local "pob:$user" "$pobox$plustail$domain" $(newattribute $attr privilege $priv))))
 	fi
 
 	# oh well... give up, and sent to the PUNTHOST
 	if [ -n "$PUNTHOST" ]; then
-		return $(rrouter "$user$plustail"@$PUNTHOST "$host" $attr "" "$domain")
+		returns $(rrouter "$user$plustail"@$PUNTHOST "$host" $attr "" "$domain")
 	fi
 
 	case "$user" in
-	uid#*)	return $(rrouter postmaster "$host" $attr "" "$domain")
+	uid#*)	returns $(rrouter postmaster "$host" $attr "" "$domain")
 		;;
 	esac
 
@@ -774,7 +774,7 @@ fi
 				domain=""
 			fi
 			quad=($chan "$host" "$user$plustail$domain" $attr)
-			return (($quad))
+			returns (($quad))
 			;;
 		esac
 
@@ -788,12 +788,12 @@ fi
 				domain=""
 			fi
 			quad=($chan "$host" "$user$plustail$domain" $attr)
-			return (($quad))
+			returns (($quad))
 			;;
 		esac
 	fi
 
-	return (((error nosuchuser "$user$plustail$domain" $attr)))
+	returns (((error nosuchuser "$user$plustail$domain" $attr)))
 }
 
 # Usage: getpriv <maxperm> <present privilege> <filename> <filename type>
@@ -869,5 +869,5 @@ maprrouter (attribute, localpart, origaddr, plustail, domain) {
 		defer=''
 		lappend al $shh
 	done
-	return $al
+	returns $al
 }

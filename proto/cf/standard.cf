@@ -105,7 +105,7 @@ else
 	# file is loaded before the siteinfo stuff.
 	relation -lt incore -b thishostdb
 	thishost(name) {
-		local oldifs
+		local oldifs tmp
 		# If the relation hasn't been initialized, do so.
 		if [ $(thishostdb "$hostname") ]; then :; else
 			db add thishostdb "$hostname" ""
@@ -119,8 +119,10 @@ else
 				IFS="$oldifs"
 			fi
 		fi
-		return $(thishostdb "$name")	# XX: Will it work and produce
-						#     the canonic name/err ?
+		# XX: Will the  thishostdb   work, and produce
+		# the canonic name/err ?
+		tmp$(thishostdb "$name") && returns $tmp
+		return $tmp
 	}
   fi
 fi
@@ -238,30 +240,34 @@ router (address, attributes) {
 	fi
 
 	tmp=$(msgidfilter "$address" $attributes) || \
-		return ((( bitbucket - "$address" $attributes)))
+		returns ((( bitbucket - "$address" $attributes)))
 
 #| Now call the actual address routing functions
 
-	res=$(rrouter "$address" "$address" $attributes "")
+	if res=$(rrouter "$address" "$address" $attributes "") ; then
 
 #| The rrouter function does the real work of routing.  It should return
 #| a list of addresses in the normal AND-XOR tree form.
 
-	if [ "$defer" ]; then
+	    if [ "$defer" ]; then
 		log deferred: $defer: "$address"
-		return (((hold "$defer" "$address" $attributes)))
+		returns (((hold "$defer" "$address" $attributes)))
+	    fi
+
+#| Real successfull result received!
+	    returns $res
 	fi
 
 #| If an internal problem was detected during the routing, we ignore the
 #| results of routing and redirect this address to the hold transport
 #| queue for later resubmission.
 
-	return $res
+	return $res  # This MAY carry error code!  (put it: WILL)
 }
 
 header_defer (address) {
 	log header_defer: "$address"
-	return "\"$address\""@$hostname
+	returns "\"$address\""@$hostname
 }
 
 #| In case of internal problems during header address rewriting, this

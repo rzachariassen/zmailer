@@ -109,22 +109,22 @@ canonical (host) {
 
 	ssift "$host" in
 	\[.*\]
-		return "$host"
+		returns "$host"
 		;;
 	tfiss
 
-	tmp="$(deliver "$host")" && return "$tmp"
+	tmp="$(deliver "$host")" && returns "$tmp"
 
 	# Not locally known, is it multi-component domain with
 	# known toplevel ?   If not, lets do $(canon ..) anyway!
 	tsift "$host" in
 	.+\.(.)
-		[ $(istoplevel "\1") ] && return "$host"
+		[ $(istoplevel "\1") ] && returns "$host"
 		;;
 	tfist
-	tmp="$(canon "$host")" && return "$tmp"
+	tmp="$(canon "$host")" && returns "$tmp"
 
-	return "$host"
+	returns "$host"
 }
 
 canonicalize (address) {

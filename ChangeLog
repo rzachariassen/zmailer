@@ -1,5 +1,18 @@
 2001-10-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* proto/newdbprocessor.in, proto/cf/UTAI.cf, proto/cf/UTGPU.cf,
+	  proto/cf/aliases-new.cf, proto/cf/aliases.cf, proto/cf/canon.cf,
+	  proto/cf/crossbar.cf, proto/cf/fqdnalias.cf, proto/cf/p-routes.cf,
+	  proto/cf/p-iproutes.cf, proto/cf/p-smtp.cf, proto/cf/p-usenet.cf,
+	  proto/cf/p-uucp.cf, proto/cf/rrouter.cf, proto/cf/standard.cf:
+	    Reports about problems when aliases map into purely decimal
+	    digit containing local name prompted rewriting parts of the
+	    scripts (and newdbprocessor tool!) with old 'returns' return
+	    in place of the original 'return' return.  The difference is
+	    that 'returns' will _always_ yield a string, while 'return'
+	    may yield an integer value if the username/whatever is made
+	    of purely decimal digits...
+
 	* Makefile.in:
 	    Release version 2.99.56-pre1
 

@@ -285,7 +285,7 @@ foreach $rel (keys %rels) {
 		# ---- No privilege things collected -----
 		push(@tfn,
 "	if a=\"\$($rn \$key ".$optset.")\"; then
-	    return \"\$a\"
+	    returns \"\$a\"
 	fi");
 
 	    } else {
@@ -312,7 +312,7 @@ foreach $rel (keys %rels) {
 "	if a=\"\$($rn \$key ".$optset.")\"; then
 	    priv=\"\$(filepriv -M $fmask $rdbfile$rdbexttst \\
 			    \$(db owner $rn))\" &&
-	    return \"\$a\"
+	    returns \"\$a\"
 	fi");
 	    }
 	}

@@ -32,8 +32,8 @@ localpart (address) {
 
 	address=$(uucproute $address)
 	tsift $address in
-	.*!([^!])	return \1 ;;
-	.*		return $address ;;
+	.*!([^!])	returns \1 ;;
+	.*		returns $address ;;
 	tfist
 }	# end of localpart
 
