@@ -120,7 +120,7 @@ struct shCmd fnctns[] = {
 {	"printaliases",	run_praliases,	NULL,	NULL,	0	},
 {	"listaddresses",run_listaddresses,NULL,	NULL,	SH_ARGV	},
 {	"zapDSNnotify", zap_DSN_notify,	NULL,	NULL,	SH_ARGV	},
-{	"postzapDSNnotify", zap_DSN_notify, NULL, NULL,	SH_ARGV	},
+{	"postzapDSNnotify", post_zap_DSN_notify, NULL, NULL, SH_ARGV },
 {	"listexpand",	NULL,	run_listexpand,	NULL,	SH_ARGV	},
 #if 0
 {	"newattribute",	NULL,	run_newattribute, NULL,	SH_ARGV	},
