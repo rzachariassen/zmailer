@@ -145,6 +145,10 @@ than one bodypart (for example some MIME messages) the different body
 parts are all part of the outermost bodypart.
 </PARA>
 
+<PARA>
+&PGBREAK; <!-- hard-break for TeX processing -->
+</PARA>
+
 <FIGURE FLOAT="1">
 <TITLE>How a message looks normally.</>
 <SCREEN>
@@ -666,6 +670,10 @@ been showing their age and their limits.  ZMailer is intended to give the
 mail administrator a software tool that fits the times.
 </PARA>
 
+<PARA>
+&PGBREAK; <!-- hard-break for TeX processing -->
+</PARA>
+
 
 <SECT1><TITLE>Feature comparisons of MTAs</TITLE>
 
@@ -678,7 +686,7 @@ MTA comparison experiment report at
 </ABSTRACT>
 
 <TABLE FRAME=ALL><TITLE>MTA feature comparisons</TITLE>
-<TGROUP COLS=3 ALIGN=LEFT COLSEP=1 ROWSEP=1>
+<TGROUP COLS=4 ALIGN=LEFT COLSEP=1 ROWSEP=1>
 <COLSPEC COLNAME=C1-MTANAME>
 <COLSPEC COLNAME=C2-DNS-CONC>
 <COLSPEC COLNAME=C3-SMTP-CONC>

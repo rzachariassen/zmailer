@@ -1146,23 +1146,133 @@ entries and maximum size, flags, and associated files. See the
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-<SCREEN>
-DBType    add flush owner print remove
-------    ----------------------------
-incore    yes yes   yes   yes   yes
-header    yes yes   yes   yes   yes
-ordered   no  yes   yes   yes   no
-unordered yes yes   yes   yes   yes
-hostsfile no  no    no    yes   no
-bind      no  no    no    no    no
-ndbm      yes yes   yes   yes   yes
-gdbm      yes yes   yes   yes   yes
-dbm       yes yes   yes   yes   yes
-yp        no  no    yes   yes   no
-bhash     yes yes   yes   yes   yes
-btree     yes yes   yes   yes   yes
-ldap      no  no    yes   no    no
-</SCREEN>
+<TABLE FRAME=ALL><TITLE>DB type specific notes:</TITLE>
+<TGROUP COLS=6 ALIGN=LEFT COLSEP=1 ROWSEP=1>
+<COLSPEC COLNAME=C1-DBTYPE-NAME>
+<COLSPEC COLNAME=C2-DBFUNC-ADD>
+<COLSPEC COLNAME=C3-DBFUNC-FLUSH>
+<COLSPEC COLNAME=C4-DBFUNC-OWNER>
+<COLSPEC COLNAME=C5-DBFUNC-PRINT>
+<COLSPEC COLNAME=C6-DBFUNC-REMOVE>
+<THEAD>
+<ROW>
+  <ENTRY>DB type</ENTRY>
+  <ENTRY>add</ENTRY>
+  <ENTRY>flush</ENTRY>
+  <ENTRY>owner</ENTRY>
+  <ENTRY>print</ENTRY>
+  <ENTRY>remove</ENTRY>
+</ROW>
+</THEAD>
+<!-- <TFOOT> ... </TFOOT> -->
+<TBODY>
+<ROW>
+  <ENTRY>incore</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>header</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>ordered</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>no</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>unordered</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>hostsfile</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>no</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>bind</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>ndbm</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>gdbm</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>dbm</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>yp (NIS)</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>bhash</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>btree</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>yes</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>ldap</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>yes</ENTRY>
+  <ENTRY>no</ENTRY>
+  <ENTRY>no</ENTRY>
+</ROW>
+</TBODY>
+</TGROUP>
+</TABLE>
 
 
 </PARA></LISTITEM></VARLISTENTRY>

@@ -131,7 +131,7 @@ distclean clean:
 	rm -f $@.ppm
 
 %.ps: %.fig
-	fig2dev -Lps -c -P -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@
+	fig2dev -Lps -c -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@
 
 zmailer-logo.eps: zmailer-logo.fig
 	fig2dev -Leps -c -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@

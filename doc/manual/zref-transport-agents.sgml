@@ -823,7 +823,7 @@ are ignored, and all others are assumed to follow format shown in figure
 <TITLE>Sample <FILENAME>sm.conf</> file</TITLE>
 <SCREEN>
 #mailer flags program        argument list
-#------ ----- -------------- --------------------------------
+#&ddash;&ddash;&ddash; &ddash;&ddash;- &ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash; &ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;
 local   mS    sm/localm      localm -r $g $u
 prog    -     /bin/sh        sh -c $u
 tty     rs    /usr/local/to  to $u

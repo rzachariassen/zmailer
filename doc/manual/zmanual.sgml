@@ -8,19 +8,17 @@
 <!-- -------------------------------------------------------- -->
 
 <!DOCTYPE book PUBLIC    "-//OASIS//DTD DocBook V3.1//EN" [
-  <!ENTITY % local.notation.class "">
-  <!ENTITY % notation.class
-                "BMP| CGM-CHAR | CGM-BINARY | CGM-CLEAR | DITROFF | DVI
-                | EPS | EQN | FAX | GIF | GIF87a | GIF89a
-                | JPG | JPEG | IGES | PCX
-                | PIC | PS | SGML | TBL | TEX | TIFF | WMF | WPG | PDF
-                | linespecific
-                %local.notation.class;">
-  <!ENTITY PDF  "PDF">
 
+<!ENTITY % local.notation.class "| PDF">
+<!NOTATION PDF SYSTEM "PDF">
 
 
 <!ENTITY ZManVersion     "v1.99.21">
+
+<!-- double-dash -->
+<!ENTITY ddash    SDATA "[ddash]"    -- Double-Dash for ZMailer docs       -->
+<!ENTITY PGBREAK  SDATA "[pgbreak]"  -- LaTeX \pagebreak for ZMailer docs  -->
+<!ENTITY dd "&ddash;">
 
 <!ENTITY ZDATETIME       SYSTEM "z-datetime.txt">
 <!ENTITY ZWHAT           SYSTEM "z-what.txt">

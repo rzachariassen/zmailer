@@ -1079,15 +1079,26 @@ a slash character (`{\tt /}') is treated as mail destined for the file named
 by the local-part.
 </PARA>
 
-<PARA>
-General format:
-<SCREEN>
- local-address-token:    "replacement address" ,
-                         "extension line w/ another addr"
- --------------------    --------------------------------
-     "The Key"                "The Data"
-</SCREEN>
-</PARA>
+<TABLE FRAME=NONE><TITLE>General format of Alias file entries:</TITLE>
+<TGROUP COLS=2>
+<THEAD>
+<ROW ROWSEP=1>
+  <ENTRY ALIGN=CENTER>``The Key''</ENTRY>
+  <ENTRY ALIGN=CENTER>``The Data''</ENTRY>
+</ROW>
+</THEAD>
+<TBODY>
+<ROW>
+  <ENTRY ALIGN=LEFT><USERINPUT>local-address-token:</></ENTRY>
+  <ENTRY ALIGN=LEFT><USERINPUT>"replacement address" ,</></ENTRY>
+</ROW>
+<ROW>
+  <ENTRY ALIGN=LEFT><USERINPUT>&nbsp;</></ENTRY>
+  <ENTRY ALIGN=LEFT><USERINPUT>"extension line with another address"</></ENTRY>
+</ROW>
+</TBODY>
+</TGROUP>
+</TABLE>
 
 <PARA>
 Protection of the aliases database must be at least 0644.
