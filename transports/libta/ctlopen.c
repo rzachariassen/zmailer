@@ -627,6 +627,11 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  }
 	}
 
+	/* Sometimes we bail out before terminating NULLs are added..
+	   propably before anything is added. */
+	msgheaders   [headers_cnt] = NULL;
+	msgheaderscvt[headers_cnt] = NULL;
+
 	d.msgheaders    = msgheaders;		/* Original headers	*/
 	d.msgheaderscvt = msgheaderscvt;	/* Modified set		*/
 
