@@ -323,7 +323,7 @@ extern struct gcpro *gcprolist;
 #endif
 
 #ifdef __GNUC__
-#define LABELME(varname) ({__label__ _gc_; _gc_:; varname ## .labeladdr = &&_gc_;})
+#define LABELME(varname) ({__label__ _gc_; _gc_:; varname.labeladdr = &&_gc_;})
 #else
 #define LABELME(varname)
 #endif
@@ -359,7 +359,7 @@ extern struct gcpro *gcprolist;
 
 #define GCVARS3 struct gcpro gcpro3
 #define GCPRO3(varname1, varname2, varname3) \
- {LABELME(gcpro3);GCPLABPRINT(gcpro3);				\
+ { LABELME(gcpro3); GCPLABPRINT(gcpro3);			\
   gcpro3.var[0] = &varname1; gcpro3.var[1] = &varname2;		\
   gcpro3.var[2] = &varname3;					\
   gcpro3.next = gcprolist; gcpro3.nvars = 3;			\

@@ -252,9 +252,18 @@ main(argc, argv)
 #ifdef	AF_INET
 	if (!port || (port && *port != '/')) {
 
-	  struct in_addr naddr;
-	  struct hostent *hp = NULL, he;
-	  struct sockaddr_in sad;
+
+	  typedef union {
+	    struct sockaddr_in  v4;
+#if defined(AF_INET6) && defined(INET6)
+	    struct sockaddr_in6 v6;
+#endif
+	  } Usockaddr;
+
+
+	  struct addrinfo *ai, req;
+	  int rc;
+
 	  struct servent *serv = NULL;
 
 	  int portnum = 174;
@@ -290,23 +299,27 @@ main(argc, argv)
 		}
 	      }
 	    }
-	    hp = gethostbyname(host);
-	    if (hp == NULL) {
-	      if (inet_pton(AF_INET, host, &naddr.s_addr) == 1) {
-		hp = gethostbyaddr((void*)&naddr, sizeof(naddr), AF_INET);
-		if (hp == NULL){
-		  hp = &he;
-		  he.h_name = host;
-		  he.h_length = 4;
-		}
-	      } else if (hp == NULL) {
-		fprintf(stderr, "%s: cannot find address of %s\n", progname, host);
-		exit(EX_UNAVAILABLE);
-	      }
+
+	    memset(&req, 0, sizeof(req));
+	    req.ai_socktype = SOCK_STREAM;
+	    req.ai_protocol = IPPROTO_TCP;
+	    req.ai_flags    = AI_CANONNAME;
+	    req.ai_family   = 0;
+	    ai = NULL;
+
+#ifdef HAVE_GETADDRINFO
+	    rc = getaddrinfo(host, "0", &req, &ai);
+#else
+	    rc = _getaddrinfo_(host, "0", &req, &ai,
+			       (debug ? stderr : NULL));
+#endif
+	    if (! ai) {
+	      fprintf(stderr, "%s: cannot find address of %s\n", progname, host);
+	      exit(EX_UNAVAILABLE);
 	    }
-	    if (strcmp(host, "localhost") != 0 &&
-		strcmp(host, "127.0.0.1") != 0) {
-	      fprintf(stdout,"[%s]\n", hp->h_name);
+	    stashmyaddresses(NULL);
+	    if (ai && matchmyaddresses(ai) == 0) {
+	      fprintf(stdout, "[%s]\n", ai->ai_canonname);
 	      nonlocal = 1;
 	    } else
 	      nonlocal = 0;	/* "localhost" is per default a "local" */
@@ -317,60 +330,44 @@ main(argc, argv)
 	    if (status > 1 && !summary)
 	      exit(0);
 	  }
-	  /* try grabbing a port */
-	  fd = socket(PF_INET, SOCK_STREAM, 0);
-	  if (fd < 0) {
-	    fprintf(stderr, "%s: ", progname);
-	    perror("socket");
-	    exit(EX_UNAVAILABLE);
-	  }
-	  sad.sin_family = AF_INET;
-	  if (hp == &he)
-	    sad.sin_addr.s_addr = htonl(naddr.s_addr);
-	  else {
-	    char *addr;
 
-	    eval = EFAULT;
-	    hp_init(hp);
-	    while ((addr = *hp_getaddr()) != NULL) {
-	      sad.sin_addr.s_addr = 0;
-	      sad.sin_port = htons((short)0);
-	      if (bind(fd, (void*)&sad, sizeof sad) < 0) {
-		fprintf(stderr, "%s: ", progname);
-		perror("bind");
-		exit(EX_UNAVAILABLE);
-	      }
-	      sad.sin_port = htons(portnum);
-	      memcpy((void*)&sad.sin_addr, addr, hp->h_length);
-	      if (connect(fd, (void*)&sad, sizeof sad) < 0) {
-		eval = errno;
-		fprintf(stderr, "%s: connect failed to %s", progname,
-			dottedquad(&sad.sin_addr));
-		if ((addr = *hp_nextaddr()) != NULL) {
-		  memcpy((char *)&sad.sin_addr, addr, hp->h_length);
-		  fprintf(stderr, ", trying %s...\n", dottedquad(&sad.sin_addr));
-		} else
-		  putc('\n', stderr);
-		close(fd);
-		if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0){
-		  fprintf(stderr, "%s: ", progname);
-		  perror("socket");
-		  exit(EX_UNAVAILABLE);
-		}
-		continue;
-	      }
-	      break;
-	    }
-	    if (*hp_getaddr() == NULL) {
+	  fd = -1;
+
+	  for (; ai; ai = ai->ai_next) {
+
+	    Usockaddr *sa = (Usockaddr *)ai->ai_addr;
+	    int addrsiz = sizeof(sa->v4);
+
+#if defined(AF_INET6) && defined(INET6)
+	    if (ai->ai_family == AF_INET6)
+	      addrsiz = sizeof(sa->v6);
+#endif
+
+	    /* try grabbing a port */
+	    fd = socket(ai->ai_family, SOCK_STREAM, 0);
+	    if (fd < 0) {
 	      fprintf(stderr, "%s: ", progname);
-	      errno = eval;
-	      perror("connect");
-	      fprintf(stderr, "%s: unable to contact scheduler on %s\n",
-		      progname, hp->h_name);
-	      exit(EX_UNAVAILABLE);
+	      perror("socket");
+	      continue;
+	    }
+	    while ((rc = connect(fd, (struct sockaddr *)sa, addrsiz)) < 0 &&
+		   (errno == EINTR || errno == EAGAIN));
+
+	    if (rc < 0) {
+	      eval = errno;
+	      close(fd);
+	      fprintf(stderr, "%s: connect failed to %s",
+		      progname, ai->ai_canonname);
+	      fd = -1;
+	      continue;
 	    }
 	  }
-	  docat((char *)NULL, fd);
+	  if (fd >= 0)
+	    docat((char *)NULL, fd);
+	  else {
+	    fprintf(stderr, "%s: connect failed to %s",
+		    progname, host);
+	  }
 	}
 #else	/* !AF_INET */
 	if (strcmp(host, "localhost") == 0 ||

@@ -50,10 +50,10 @@ getmyhostname(namebuf, len)
 	req.ai_socktype = SOCK_STREAM;
 	req.ai_protocol = IPPROTO_TCP;
 	req.ai_flags    = AI_CANONNAME;
-	req.ai_family   = PF_INET;
+	req.ai_family   = 0;
 
 	for (i = 0; i < 5; ++i) {
-	  rc = getaddrinfo(namebuf, "smtp", &req, &ai);
+	  rc = getaddrinfo(namebuf, "0", &req, &ai);
 	  if (rc != EAI_AGAIN)
 	    break; /* We try it again if we fail here with EAI_AGAIN */
 	}
