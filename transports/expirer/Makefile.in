@@ -14,11 +14,12 @@ CPPDEP=		@CPPDEP@
 TOPDIR=		../..
 MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
+EXPIRER_INCL=	@GENINCL@
 INSTALL=	@INSTALL@
 #
 SOURCE=		expirer.c
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(EXPIRER_INCL) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libs/libmalloc_d.a
 LIB=		-L$(TOPDIR)/libs -lta -lz -lzc $(LIBMALLOC)

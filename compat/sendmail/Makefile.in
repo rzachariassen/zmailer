@@ -9,7 +9,7 @@ CC=		@CC@
 COPTS=		@CFLAGS@
 CPPFLAGS=	@CPPFLAGS@
 DEFS=		@DEFS@
-SENDMAIL_INCL=
+SENDMAIL_INCL=	@GENINCL@
 SENDMAIL_LIB=	@LIBRESOLV@ @LIBSOCKET@
 TOPDIR=		../..
 MAILBIN=	@MAILBIN@
@@ -20,7 +20,7 @@ MKDIR=		@MKDIR@
 INCL=           -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 LIB=            -L$(TOPDIR)/libs -lz -lzc
 LIBDEB=         $(TOPDIR)/libs/libtag
-CFLAGS=         $(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SENDMAIL_INCL)
+CFLAGS=         $(COPTS) $(CPPFLAGS) $(DEFS) $(SENDMAIL_INCL) $(INCL)
 SENDMAILPATH=	$(prefix)@SENDMAILPATH@
 USRLIB=         $(prefix)$(SENDMAILLIB)
 

@@ -15,12 +15,12 @@ TOPDIR=		../..
 MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
-MAILBOX_INCL=	
-MAILBOX_LIB=	@LIBMAIL@ @GETPWLIB@ @LIBRESOLV@ @LIBSOCKET@
+MAILBOX_INCL=	@GENINCL@
+MAILBOX_LIB=	@LIBMAIL@ @LIBRESOLV@ @LIBSOCKET@ @GETPWLIB@ 
 #
 SOURCE=		mailbox.c
-INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) $(MAILBOX_INCL)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(MAILBOX_INCL) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libs/libmalloc_d.a
 LIB=		-L$(TOPDIR)/libs -lta -lz -lzc $(LIBMALLOC)
@@ -63,9 +63,11 @@ version.c:	$(PROGRAM).o $(TOPDIR)/Makefile
 lock.o: $(srcdir)/lock.c
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/lock.c
 
-install:	$(PROGRAM)
+install:	$(PROGRAM) mboxpath
 	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/ta/$(PROGRAM).x
 	mv $(MAILBIN)/ta/$(PROGRAM).x $(MAILBIN)/ta/$(PROGRAM)
+	$(INSTALL) -m 0755 mboxpath $(MAILBIN)/mboxpath.x
+	mv $(MAILBIN)/mboxpath.x $(MAILBIN)/mboxpath
 
 clean:
 	-rm -f $(PROGRAM) in.rlockd *.o *.out make.log *~

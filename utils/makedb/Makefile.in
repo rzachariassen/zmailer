@@ -13,7 +13,7 @@ CPPDEP=		@CPPDEP@
 MAILBIN=	$(prefix)@MAILBIN@
 DEFS=		@DEFS@
 INSTALL=	@INSTALL@
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) @GENINCL@ $(INCL)
 TOPDIR=		../..
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 

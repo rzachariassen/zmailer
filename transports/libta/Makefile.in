@@ -14,9 +14,10 @@ CPPDEP=		@CPPDEP@
 TOPDIR=		../..
 DEFS=		@DEFS@
 RANLIB=		@RANLIB@
+INCL_TA=	@GENINCL@ @INCLRESOLV@
 #
-INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) @INCLRESOLV@
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL_TA) $(INCL)
 #
 OBJS=	markoff.o warning.o lockaddr.o myuucpname.o wantout.o \
 	stringlib.o diagnostic.o emptyline.o \

@@ -17,14 +17,14 @@ RANLIB=		@RANLIB@
 AR=		@AR@
 #prefix=        @prefix@
 #exec_prefix=   @exec_prefix@
-LIBC_INCL=	@INCLRESOLV@
+LIBC_INCL=	@GENINCL@ @INCLRESOLV@
 INCLUDEDIR=	@includedir@
 LIBRARYDIR=	@libdir@
 INSTALL=	@INSTALL@
 MKDIR=		@MKDIR@
 #
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
-CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(LIBC_INCL)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(LIBC_INCL) $(INCL)
 #
 #  The LIBOBJS is autoconfigure generated macro which feeds in several
 #  usefull/important bits:

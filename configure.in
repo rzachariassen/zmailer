@@ -1183,6 +1183,14 @@ if test "$use_getpwnam_lib" = 1; then
   GETPWLIB="$withval"
 fi
 
+AC_SUBST(GENINCL)
+AC_ARG_WITH(generic-include, [  --with-generic-include=\"-I/...\"
+                            Include option for local overriders],
+	use_genincl=1, use_genincl=0)
+if test "$use_genincl" = 1; then
+  GENINCL="$withval"
+fi
+
 
 AC_STRUCT_DIRENT_D_INO
 
