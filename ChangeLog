@@ -1,3 +1,17 @@
+2001-02-27  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/smtp.c:
+	    At  smtp_sync()  when running in PIPELINING, if the
+	    MAIL FROM has produced 400 or 500 series response,
+	    do fault the RCPT TO responses in every case.
+	    (With EX_UNAVAILABLE, or some such, not EX_TEMPFAIL.)
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c:
+	    Track Z_read() return errno code more properly to
+	    the 'Session closed w/o QUIT' log report.
+	    Case where this was needed was actually some firewall
+	    product which f**d OUTBOUND SMTP session of reporter...
+
 2001-02-26  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* utils/listexpand.c, transports/smtp/smtp.c, include/ta.h,

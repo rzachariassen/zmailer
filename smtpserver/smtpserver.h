@@ -258,6 +258,7 @@ typedef struct {
     int  s_bufread;
     int  s_readout;
     int  s_status;
+    int  s_readerrno;
     char s_buffer[SMTPLINESIZE];
 
     int  from_box;		/* Set when:  MAIL FROM:<>  */

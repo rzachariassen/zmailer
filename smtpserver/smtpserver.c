@@ -1539,20 +1539,24 @@ int s_getc(SS)
         /* We are about to read... */
 	alarm(SS->read_alarm_ival);
 	rc = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
+	SS->s_readerrno = 0;
 	if (rc < 0) {
+	  SS->s_readerrno = errno;
 	  if (errno == EINTR || errno == EAGAIN)
 	    if (!gotalarm)
 	      goto redo;
+	  /* The read returned.. */
+	  alarm(0);
 	  /* Other results are serious errors -- maybe */
 	  SS->s_status = EOF;
 	  return EOF;
 	}
+	/* We did read successfully! */
+	alarm(0);
 	if (rc == 0) {
 	    SS->s_status = EOF;
 	    return EOF;
 	}
-	/* We did read successfully! */
-	alarm(SS->read_alarm_ival);
 	SS->s_bufread = rc;
 	SS->s_readout = 0;
     }
@@ -2242,7 +2246,8 @@ int insecure;
 	tell = lseek(0, 0, SEEK_CUR);
 	reporterr(SS, tell, "session terminated");
     } else if (logfp != NULL) {
-	type(NULL,0,NULL,"Session closed w/o QUIT");
+	type(NULL,0,NULL,"Session closed w/o QUIT; read() errno=%d",
+	     SS->s_readerrno);
 	fflush(logfp);
     }
 #ifdef HAVE_OPENSSL
@@ -2472,7 +2477,7 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
       fflush(logfp);
     }
     if (!SS) return; /* Only to local log.. */
-    strcpy(s, "\r\n");
+    memcpy(s, "\r\n", 2);
     Z_write(SS, buf, buflen+2); /* XX: check return value */
 }
 
