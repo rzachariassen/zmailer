@@ -1,3 +1,10 @@
+2003-10-01  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpcmds.c:
+	    When outputing commentary data to spool file, quote
+	    all chars outside normal printable ASCII range, and
+	    some inside it...
+
 2003-09-27  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:

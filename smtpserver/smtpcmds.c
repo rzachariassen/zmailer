@@ -55,9 +55,13 @@ const char *str;
   fputc('"', mfp);
   for ( ; *str ; ++str ) {
     int c = (*str) & 0xFF;
-    if (c == '"' || c == '\\' || c == '(' || c == ')')
-      fputc('\\', mfp);
-    fputc(c, mfp);
+    if (c < 0x20 || c > 0x7e)
+      fprinf(mfp,"\\%03o", c);
+    else {
+      if (c == '"' || c == '\\' || c == '(' || c == ')')
+	fputc('\\', mfp);
+      fputc(c, mfp);
+    }
   }
   fputc('"', mfp);
 }
