@@ -1,3 +1,8 @@
+2000-07-29  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Streamlined error handling when returning from getmxrr().
+
 2000-07-27  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:

@@ -991,8 +991,8 @@ deliver(SS, dp, startrp, endrp)
 	if (CT) {
 	  if (CT->basetype == NULL ||
 	      CT->subtype  == NULL ||
-	      cistrcmp(CT->basetype,"text") != 0 ||
-	      cistrcmp(CT->subtype,"plain") != 0)
+	      !CISTREQ(CT->basetype,"text") ||
+	      !CISTREQ(CT->subtype,"plain"))
 
 	    /* Not TEXT/PLAIN! */
 	    conv_prohibit = -1;
@@ -1947,15 +1947,7 @@ smtpconn(SS, host, noMX)
 {
 	int	i, r, retval;
 	char	hbuf[MAXHOSTNAMELEN+1];
-	struct addrinfo req, *ai;
 	volatile int	rc;
-
-	memset(&req, 0, sizeof(req));
-	req.ai_socktype = SOCK_STREAM;
-	req.ai_protocol = IPPROTO_TCP;
-	req.ai_flags    = AI_CANONNAME;
-	req.ai_family   = 0; /* Either IPv4 or IPv6 ok */
-	ai = NULL;
 
 	SS->literalport = -1;
 
@@ -1986,6 +1978,14 @@ smtpconn(SS, host, noMX)
 	if (*host == '[') {	/* hostname is IP address domain literal */
 	  char *cp, buf[500];
 	  const char *hcp;
+	  struct addrinfo req, *ai;
+
+	  memset(&req, 0, sizeof(req));
+	  req.ai_socktype = SOCK_STREAM;
+	  req.ai_protocol = IPPROTO_TCP;
+	  req.ai_flags    = AI_CANONNAME;
+	  req.ai_family   = 0; /* Either IPv4 or IPv6 ok */
+	  ai = NULL;
 
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"SMTP: Connecting to host: %.200s (IP literal)\n",host);
@@ -2098,32 +2098,11 @@ smtpconn(SS, host, noMX)
 			rc, (SS->mxh[0].host) ? (char*)SS->mxh[0].host : "<NUL>",
 			host, SS->mxcount);
 	    }
-	    switch (rc) {
-	      /* remotemsg is generated within getmxrr */
-	    case EX_TEMPFAIL:
-	      /* This will look MAD.. We had a timeout on MX lookup,
-		 but the same domain name MAY have an A record.
-		 In this case the domain is likely to have an NS with
-		 failing DNS server, and nobody notices it... */
-	      if (ai != NULL)
-		freeaddrinfo(ai);
-	      break;
-	    case EX_SOFTWARE:
-	    case EX_UNAVAILABLE:
-	      if (ai != NULL)
-		freeaddrinfo(ai);
-	      return EX_TEMPFAIL;
-	    case EX_NOHOST:
-	      if (ai != NULL)
-		freeaddrinfo(ai);
-	      return EX_NOHOST;
-	    case EX_NOPERM:
-	      if (ai != NULL)
-		freeaddrinfo(ai);
-	      return EX_NOPERM;
-	    default:
-	      break;
-	    }
+
+	    /* Some error from getmxrr(), bail out immediately */
+	    if (rc != EX_OK)
+	      return rc;
+
 	  }
 #endif /* BIND */
 
@@ -2133,9 +2112,6 @@ smtpconn(SS, host, noMX)
 	       be considered as: Instant (Configuration?) Error;
 	       No usable MXes, possibly we are at the lowest MX priority level,
 	       and somebody has made some configuration errors... */
-
-	    if (ai != NULL)
-	      freeaddrinfo(ai);
 
 	    strcpy(SS->remotemsg,
 		   "smtp; 500 (configuration inconsistency, we are lowest MX, but this is not our local domain!)");
@@ -2148,10 +2124,17 @@ smtpconn(SS, host, noMX)
 
 	  if (SS->mxcount == 0 || SS->mxh[0].host == NULL) {
 
+	    struct addrinfo req, *ai;
+
+	    memset(&req, 0, sizeof(req));
+	    req.ai_socktype = SOCK_STREAM;
+	    req.ai_protocol = IPPROTO_TCP;
+	    req.ai_flags    = AI_CANONNAME;
+	    ai = NULL;
+
 	    errno = 0;
 	    /* Either forbidden MX usage, or does not have MX entries! */
 
-	    ai = NULL;
 	    req.ai_family   = PF_INET;
 #if !GETADDRINFODEBUG
 	    r = getaddrinfo(host, "smtp", &req, &ai);
@@ -2165,6 +2148,7 @@ smtpconn(SS, host, noMX)
 	    if (use_ipv6) {
 	      struct addrinfo *ai2 = NULL, *a;
 	      int i2;
+
 	      memset(&req, 0, sizeof(req));
 	      req.ai_socktype = SOCK_STREAM;
 	      req.ai_protocol = IPPROTO_TCP;
@@ -2292,6 +2276,9 @@ smtpconn(SS, host, noMX)
 	    }
 	    retval = makeconn(SS, ai, -1);
 
+	    if (ai != NULL)
+	      freeaddrinfo(ai);
+
 	  } else {
 
 	    /* Has valid MX records, they have been suitably randomized
@@ -2320,9 +2307,6 @@ smtpconn(SS, host, noMX)
 	if (debug && logfp)
 	  fprintf(logfp,
 		  "%s#\tsmtpconn: retval = %d\n", logtag(), retval);
-
-	if (ai != NULL)
-	  freeaddrinfo(ai);
 
 	return retval;
 }
@@ -4679,7 +4663,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    mx[i].host = NULL;
 	    continue;
 	  }
-	  if (cistrcmp(mx[i].ai->ai_canonname, myhostname) == 0 ||
+	  if (CISTREQ(mx[i].ai->ai_canonname, myhostname) ||
 	      matchmyaddresses(mx[i].ai) == 1) {
 
 #if GETMXRRDEBUG
@@ -4843,7 +4827,7 @@ rightmx(spec_host, addr_host, cbparam)
 	SmtpState *SS = cbparam;
 	int	i, rc;
 
-	if (cistrcmp(spec_host, addr_host) == 0)
+	if (CISTREQ(spec_host, addr_host))
 	  return 1;
 	if (SS->remotehost[0] == '\0')
 	  return 0;
@@ -4858,14 +4842,14 @@ rightmx(spec_host, addr_host, cbparam)
 	switch (getmxrr(SS, addr_host, SS->mxh, MAXFORWARDERS, 0)) {
 	case EX_OK:
 	  if (SS->mxh[0].host == NULL)
-	    return cistrcmp(addr_host, SS->remotehost) == 0;
+	    return CISTREQ(addr_host, SS->remotehost);
 	  break;
 	default:
 	  return 0;
 	}
 	rc = 0;
 	for (i = 0; SS->mxh[i].host != NULL; ++i) {
-	  if (cistrcmp((const void*)SS->mxh[i].host, SS->remotehost) == 0)
+	  if (CISTREQ((const void*)SS->mxh[i].host, SS->remotehost))
 	    rc = 1;
 	  freeaddrinfo(SS->mxh[i].ai);
 	  SS->mxh[i].ai = NULL;
@@ -4903,13 +4887,13 @@ matchroutermxes(spec_host, ap, mrparam)
 	SmtpState *SS = mrparam;
 	const char **mxes = ap->routermxes;
 
-	if (cistrcmp(spec_host, ap->host) == 0)
+	if (CISTREQ(spec_host, ap->host))
 	  return 1;
 	if (SS->remotehost[0] == 0)
 	  return 0;
 
 	while (*mxes) {
-	  if (cistrcmp(spec_host,*mxes)==0) return 1; /* Found it */
+	  if (CISTREQ(spec_host,*mxes)) return 1; /* Found it */
 	  ++mxes;
 	}
 	return 0;
