@@ -25,11 +25,11 @@ typedef struct tregexp {
 	char program[1];	/* Unwarranted chumminess with compiler. */
 } tregexp;
 
-   tregexp *tregcomp  __((const char *));
-       int  tregexec  __((tregexp *, token822 *));
-const char *tregsub   __((tregexp *, int));
-      void  tregerror __((const char *, tregexp *));
-      void  tregdump  __((tregexp *));
+tregexp *tregcomp  __((const char *));
+    int  tregexec  __((tregexp *, token822 *));
+   char *tregsub   __((tregexp *, int));
+   void  tregerror __((const char *, tregexp *));
+   void  tregdump  __((tregexp *));
 
 /*
  * The first byte of the regexp internal "program" is actually this magic

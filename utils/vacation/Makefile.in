@@ -52,8 +52,9 @@ distclean: clean
 	rm -f Makefile vacation.sh $(TOPDIR)/man/vacation.1
 
 install: vacation-inst
-	@VACATIONDIR=`echo $(VACATIONPATH) | sed -e 's!/[^/]$$!!'` ; \
-	if [ ! -d $$(VACATIONDIR) ] ; then mkdir -p -m 755 $$(VACATIONDIR) ; fi
+	@VACATIONDIR=`echo $(VACATIONPATH) | sed -e 's!/[^/]$$!!'` ;	\
+	if [ ! -d "$${VACATIONDIR}" ] ; then				\
+		mkdir -p -m 755 "$${VACATIONDIR}" ; fi
 	@if [ $(LN_S) = "ln -s" -a					\
 	     "$(VACATIONPATH)" != "$(MAILBIN)/vacation.sh" ]; then	\
 	    if [ -h "$(VACATIONPATH)" ]; then				\

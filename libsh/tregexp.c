@@ -1390,7 +1390,7 @@ tregerror(s, prog)
  * $ returns the number of characters in dest, or 0 if no expansion
  * took place.
  */
-const char *
+char *
 tregsub(prog, n)
 	tregexp *prog;
 	int n;
