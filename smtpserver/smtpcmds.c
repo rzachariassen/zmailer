@@ -56,7 +56,7 @@ const char *str;
   for ( ; *str ; ++str ) {
     int c = (*str) & 0xFF;
     if (c < 0x20 || c > 0x7e)
-      fprinf(mfp,"\\%03o", c);
+      fprintf(mfp,"\\%03o", c);
     else {
       if (c == '"' || c == '\\' || c == '(' || c == ')')
 	fputc('\\', mfp);
