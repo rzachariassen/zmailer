@@ -3497,26 +3497,27 @@ smtp_sync(SS, r, nonblocking)
 	  } else { /* No newline.. Read more.. */
 	    int en;
 
-	  reread_line:
-
 	    infd = SS->smtpfd;
 	    err = 0;
+
+	  reread_line:
+
 	    if (!nonblocking) {
 
 	      /* Blocking read mode */
 
+	      err = 0;
+	      len = smtp_nbread(SS, buf, sizeof(buf));
 #ifdef HAVE_OPENSSL
 	      if (SS->sslmode) {
-		err = 0;
-		len = smtp_nbread(SS, buf, sizeof(buf));
 		if (SS->wantreadwrite > 0)
 		  infd = -infd;
-		if (len < 0)
-		  err = errno;
-		else
-		  goto have_some_data;
 	      }
 #endif /* - HAVE_OPENSSL */
+	      if (len < 0)
+		err = errno;
+	      else
+		goto have_some_data;
 
 	      err = select_sleep(infd, timeout);
 	      en = errno;
@@ -3531,6 +3532,8 @@ smtp_sync(SS, r, nonblocking)
 		    fprintf(SS->verboselog,"Timeout (%d sec) while waiting responses from remote\n",timeout);
 		break;
 	      }
+
+	      /* select_sleep() indicated that yes, something is available! */
 	      goto reread_line;
 	    }
 
@@ -3568,7 +3571,7 @@ smtp_sync(SS, r, nonblocking)
 #endif
 		    ) {
 		  abort();
-		  goto reread_line;
+		  /*goto reread_line;*/
 		}
 
 	      }
