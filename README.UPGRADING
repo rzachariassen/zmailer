@@ -12,6 +12,13 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.51-patch1
+		The default behaviour of ssift and tsift of stripping
+		away top-most double quotes (and single quotes?) is
+		now removed, and the only place where such dequoting
+		*is* needed is at  aliases.cf.  Check the "$(dequote ..)"
+		call in proto/cf/aliases.cf !
+
 	ZMailer-2.99.50-s19
 		Support for SleepyCat's BSD DB 2.* database library.
 		While the db's are still called 'btree' and 'bhash',
