@@ -179,35 +179,6 @@ extern int	       emptyline __(( char *line, int size ));
 
 extern int zmalloc_failure;
 
-#if 0 /* actually better to include "libz.h" for this */
-/* esyslib.c: */
-extern int cistrcmp  __((const char *s1, const char *s2));
-extern int cistrncmp __((const char *s1, const char *s2, int n));
-extern int efstat  __((int fd, struct stat *stbuf));
-extern int emkdir  __((const char *dirpath, int mode));
-extern int eopen   __((const char *s, int f, int m));
-extern int epipe   __((int fdarr[2]));
-extern int eread   __((int fd, char *buf, int len));
-extern int estat   __((const char *filename, struct stat *stbuf));
-extern int eunlink __((const char *filename));
-extern int errno;
-extern int optind;
-extern int embytes;
-extern int emcalls;
-extern unsigned emsleeptime;
-extern void * emalloc  __((size_t len));
-extern void * erealloc __((void * buf, size_t len));
-#ifdef S_IWUSR /* Defined on <sys/stat.h> */
-extern int efstat __((int fd, struct stat *stbuf));
-#endif
-extern long elseek __((int fd, off_t pos, int action));
-extern int elink __((const char *file1, const char *file2));
-extern int eclose __((int fd));
-extern int echdir __((const char *path));
-extern int ermdir __((const char *path));
-extern int erename __((char *from, char *to));
-#endif
-
 /* lockaddr.c: */
 extern int lockaddr __((int fd, char *map, int offset, int was, int new, const char *file, const char *host, const int mypid));
 

@@ -777,7 +777,7 @@ main(argc, argv)
 		sfprintf(sfstderr, "Nothing scheduled for %s!\n",
 			 argv[optind]);
 	    } else
-	      eunlink(argv[optind]);
+	      eunlink(argv[optind], "sch-argv");
 	  }
 	  doagenda();
 	  killpidfile(pidfile);
@@ -1297,7 +1297,7 @@ int syncweb(dq)
 	  /* Can open ? */
 	  if ((fd = eopen(file, O_RDWR, 0)) < 0) {
 	    if (getuid() == 0)
-	      eunlink(file);	/* hrmpf! */
+	      eunlink(file,"sch-syncweb");	/* hrmpf! */
 	  } else {
 	    /* Ok, schedule! */
 	    if (schedule(fd, file, ino, 0) != NULL) {
@@ -1601,7 +1601,7 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	cfp = vtxprep(slurp(fd, ino), file, reread);
 	if (cfp == NULL) {
 	  if (!vtxprep_skip) {	/* Unless skipped.. */
-	    eunlink(file);	/* everything here has been processed */
+	    eunlink(file,"sch-sch-done");	/* everything here has been processed */
 	    if (verbose)
 	      sfprintf(sfstdout,"completed, unlink %s\n",file);
 	    return NULL;
@@ -2042,6 +2042,9 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 		      }
 		      if (*cp == ',') ++cp;
 		    }
+		  } else if (CISTREQN("BY=",cp,7)) {
+		    /* FIXME: Parse the BY= parameter! */
+		    while (*cp && *cp != ' ' && *cp != '\t') ++cp;
 		  } else {
 		    while (*cp && *cp != ' ' && *cp != '\t') ++cp;
 		  }

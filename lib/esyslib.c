@@ -133,8 +133,8 @@ elink(file1, file2)
 }
 
 int
-eunlink(file)
-	const char *file;
+eunlink(file,tag)
+	const char *file, *tag;
 {
 	int	r;
 
@@ -142,8 +142,8 @@ eunlink(file)
 	  ;
 	if (r < 0) {
 	  int serrno = errno;
-	  fprintf(stderr, "%s: unlink(%s): %s\n", progname,
-		  file, strerror(errno));
+	  fprintf(stderr, "%s: unlink(%s)[%s]: %s\n", progname,
+		  file, tag, strerror(errno));
 	  errno = serrno;
 	}
 	return r;

@@ -211,7 +211,7 @@ unctlfile(cfp, no_unlink)
 	  }
 	  ++MIBMtaEntry->mtaTransmittedMessagesSc;
 
-	  eunlink(path);
+	  eunlink(path,"sch-unctl-1");
 	  if (verbose)
 	    sfprintf(sfstdout,"%s: unlink %s (mid=%p)",
 		     cfp->logident, path, cfp->mid);
@@ -223,7 +223,7 @@ unctlfile(cfp, no_unlink)
 	    sprintf(path, "../%s/%s",
 		    QUEUEDIR, cfp->mid);
 
-	  eunlink(path);
+	  eunlink(path,"sch-unctl-2");
 	  if (verbose)
 	    sfprintf(sfstdout, "   and %s/\n", path);
 

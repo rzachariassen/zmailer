@@ -69,7 +69,7 @@ extern int estat  __((const char *path, struct stat *stbuf));
 #endif
 extern off_t elseek __((int fd, off_t pos, int action));
 extern int elink    __((const char *file1, const char *file2));
-extern int eunlink  __((const char *file));
+extern int eunlink  __((const char *file, const char *tag));
 extern int eclose   __((int fd));
 extern int echdir   __((const char *file));
 extern int emkdir   __((const char *file, int mode));
