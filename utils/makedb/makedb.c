@@ -364,8 +364,8 @@ const int typ;
 				str2 = tokskip(s, &s);
 				if (str2 == NULL) {
 					fprintf(stderr,
-						"Error: Invalid attribute pair on line %d.\n",
-						linenum);
+						"Error: Invalid attribute pair on line %d; aname='%s', value missing.\n",
+						linenum, str1);
 					errflag = 1;
 					err = 1;
 					break;
@@ -374,8 +374,8 @@ const int typ;
 							str1, str2);
 				if (rc != 0) {
 					fprintf(stderr,
-						"Error: Invalid attribute pair on line %d.\n",
-						linenum);
+						"Error: Invalid attribute pair (\"%s %s\")  on line %d.\n",
+						str1, str2, linenum);
 					errflag = 1;
 					err = 1;
 					break;
@@ -402,7 +402,7 @@ const int typ;
 			int tl = tlen;
 			fprintf(stderr, "Error: Duplicate key at line %d: \"",
 				linenum);
-			for (;tlen > 0; --tl,++t) {
+			for (;tl > 0; --tl,++t) {
 				unsigned char c = *t;
 				if (c < ' ' || c > 126 || c == '\\')
 					fprintf(stderr, "\\0%03o", c);
