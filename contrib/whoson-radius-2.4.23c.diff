@@ -1,0 +1,87 @@
+--- src/rad.accounting.c.orig	Wed Sep 11 22:46:49 1996
++++ src/rad.accounting.c	Thu Jul 16 17:48:01 1998
+@@ -63,6 +63,8 @@
+ #include	<sys/wait.h>
+ #include	<syslog.h>
+ 
++#include	<whoson.h>
++
+ #include	"radius.h"
+ 
+ extern char     send_buffer[4096];
+@@ -92,6 +94,66 @@
+ 
+ /*************************************************************************
+  *
++ *	Function: rad_acct_whoson
++ *
++ *	Purpose: Register logins and logouts with whoson database
++ *
++ *************************************************************************/
++
++static void
++rad_acct_whoson (authreq)
++
++AUTH_REQ       *authreq;
++
++{
++	char *func="rad_acct_whoson";
++	VALUE_PAIR     *vp;
++	char *addr,*user;
++	int status;
++
++	dprintf(2, (LOG_AUTH, LOG_DEBUG, "%s: entered", func));
++
++	if ((vp = get_vp (authreq->request, PW_ACCT_STATUS_TYPE))
++							== (VALUE_PAIR *) NULL)
++	{
++		logit (LOG_AUTH, LOG_ERR,
++			"%s: missing accounting status type", func);
++		return;
++	} else {
++		status=vp->lvalue;
++	}
++
++	if ((status != PW_STATUS_START) && (status != PW_STATUS_STOP))
++		return;
++
++	if ((vp = get_vp (authreq->request, PW_USER_NAME))
++							== (VALUE_PAIR *) NULL)
++	{
++		logit (LOG_AUTH, LOG_ERR,
++			"%s: missing user name", func);
++		return;
++	} else {
++		user=avpair_vtoa(vp,0);
++	}
++
++	if ((vp = get_vp (authreq->request, PW_FRAMED_IP_ADDRESS))
++							== (VALUE_PAIR *) NULL)
++	{
++		logit (LOG_AUTH, LOG_ERR,
++			"%s: missing framed ip address", func);
++		return;
++	} else {
++		addr=avpair_vtoa(vp,0);
++	}
++
++	if (status == PW_STATUS_START)
++		(void)wso_login(addr,user,NULL,0);
++	else
++		(void)wso_logout(addr,NULL,0);
++} /* end of rad_acct_whoson () */
++
++/*************************************************************************
++ *
+  *	Function: rad_acct_action
+  *
+  *	Purpose: Process Accounting requests.
+@@ -115,6 +177,8 @@
+ 	static char    *func = "rad_acct_action";
+ 
+ 	dprintf(2, (LOG_AUTH, LOG_DEBUG, "%s: entered", func));
++
++	rad_acct_whoson(authreq);
+ 
+ 	strcpy (clientname, ip_hostname (authreq->ipaddr));
+ 
