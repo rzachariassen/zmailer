@@ -1392,7 +1392,7 @@ run_listexpand(avl, il)
 	tmp = il;
 	for (; tmp != NULL; tmp = cdr(tmp)) ++cnt; /* Count arguments.. */
 
-	if (errflag || cnt != 3 ||
+	if (errflag || cnt < 3 || cnt > 5 ||
 	    !STRING(il) || !STRING(cdr(il)) || !STRING(cddr(il)) ) {
 		fprintf(stderr,
 			"Usage: %s [ -e error-address ] [ -E errors-to-address ] [-p privilege] [ -c comment ] [ -N notarystring ] $attribute $localpart $origaddr [$plustail [$domain]]< /file/path \n",
