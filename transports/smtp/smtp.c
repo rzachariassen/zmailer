@@ -310,6 +310,7 @@ typedef struct {
 
   char remotemsg[2*BUFSIZ];
   char remotehost[MAXHOSTNAMELEN+1];
+  char *mailfrommsg;
   char ipaddress[200];
 
   char stdinbuf[8192];
@@ -3365,6 +3366,8 @@ smtp_sync(SS, r, nonblocking)
 	int err;
 	char buf[8192];
 	char *p;
+	int continuation_line = 0;
+	int first_line = 1;
 
 	alarm(timeout);
 	gotalarm = 0;
@@ -3506,20 +3509,28 @@ smtp_sync(SS, r, nonblocking)
 
 	    /* We have a 'terminal' line */
 
+	    continuation_line = 0;
 	  } else { /* it is 'continuation line', or some such, ignore */
-	    goto rescan_line_0;
+	    continuation_line = 1;
 	  }
 
-	  if (SS->pipecmds[idx]) {
-	    if (strncmp(SS->pipecmds[idx],"RSET",4) != 0) /* If RSET,
-							 append to previous! */
-	      SS->remotemsg[0] = 0;
-	    rmsgappend(SS,"\r<<- ");
-	    rmsgappend(SS,"%s", SS->pipecmds[idx]);
-	  } else {
-	    strcpy(SS->remotemsg,"\r<<- (null)");
+	  if (first_line) {
+	    if (SS->pipecmds[idx]) {
+	      if (strncmp(SS->pipecmds[idx],
+			  "RSET",4) != 0) /* If RSET, append to previous! */
+		SS->remotemsg[0] = 0;
+	      rmsgappend(SS,"\r<<- ");
+	      rmsgappend(SS,"%s", SS->pipecmds[idx]);
+	    } else {
+	      strcpy(SS->remotemsg,"\r<<- (null)");
+	    }
 	  }
+	  first_line = !continuation_line;
+
 	  rmsgappend(SS,"\r->> %s",s);
+
+	  if (continuation_line)
+	    goto rescan_line_0;
 
 	  if (code >= 400) {
 	    /* Errors */
@@ -3531,22 +3542,35 @@ smtp_sync(SS, r, nonblocking)
 	    rc = code_to_status(code, &status);
 	    if (SS->pipercpts[idx] != NULL) {
 	      if (code >= 500) {
-		if (SS->rcptstates & (FROMSTATE_400|FROMSTATE_500)) {
+		if (SS->rcptstates & FROMSTATE_400) {
 		  /* If "MAIL FROM:<..>" tells non 200 report, and
 		     causes "RCPT TO:<..>" commands to yield "500",
 		     we IGNORE the "500" status. */
 		  rc = EX_TEMPFAIL;
-		} else
+		  /* } else if (SS->rcptstates & FROMSTATE_500) {
+		     rc = EX_UNAVAILABLE; */
+		} else {
 		  SS->rcptstates |= RCPTSTATE_500;
-	      } else
-		SS->rcptstates |= RCPTSTATE_400;
+		}
+	      } else {
+		if (SS->rcptstates & FROMSTATE_500) {
+		  /* Turn it into a more severe fault */
+		  SS->rcptstates |= RCPTSTATE_500;
+		  rc = EX_UNAVAILABLE;
+		} else
+		  SS->rcptstates |= RCPTSTATE_400;
+	      }
 
 	      /* Diagnose the errors, we report successes AFTER the DATA phase.. */
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
 	      notarystatsave(SS,s,status);
 	      notaryreport(SS->pipercpts[idx]->addr->user,FAILED,NULL,NULL);
-	      diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
+	      if ((SS->rcptstates & (FROMSTATE_400|FROMSTATE_500)) &&
+		  SS->mailfrommsg != NULL)
+		diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->mailfrommsg);
+	      else
+		diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
 	    } else {
 	      /* XX: No reports for  MAIL FROM:<> nor for DATA/BDAT phases ? */
 	      if (idx == 0) {
@@ -3554,6 +3578,9 @@ smtp_sync(SS, r, nonblocking)
 		  SS->rcptstates |= FROMSTATE_500;
 		else if (code >= 400)
 		  SS->rcptstates |= FROMSTATE_400;
+		if (SS->mailfrommsg != NULL)
+		  free(SS->mailfrommsg);
+		SS->mailfrommsg = strdup(SS->remotemsg);
 	      } else {
 		if (code >= 500) {
 		  datafail = EX_UNAVAILABLE;
@@ -3587,19 +3614,23 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 		 in case MAIL FROM failed ? */
 	    }
 	  }
-	  if (SS->pipecmds[idx] != NULL)
-	    free(SS->pipecmds[idx]);
-	  else
-	    if (logfp) fprintf(logfp,"%s#\t[Freeing free object at pipecmds[%d] ??]\n",logtag(),idx);
-	  SS->pipecmds[idx] = NULL;
+	  if (! nonblocking) {
+	    if (SS->pipecmds[idx] != NULL)
+	      free(SS->pipecmds[idx]);
+	    else
+	      if (logfp) fprintf(logfp,"%s#\t[Freeing free object at pipecmds[%d] ??]\n",logtag(),idx);
+	    SS->pipecmds[idx] = NULL;
+	  }
 	} /* for(..; idx < SS->pipeindex ; ..) */
 
-	for (; idx < SS->pipeindex; ++idx) {
-	  if (SS->pipecmds[idx] != NULL)
-	    free(SS->pipecmds[idx]);
-	  else
-	    if (logfp) fprintf(logfp,"%s#\t[Freeing free object at pipecmds[%d] ??]\n",logtag(),idx);
-	  SS->pipecmds[idx] = NULL;
+	if (! nonblocking) {
+	  for (; idx < SS->pipeindex; ++idx) {
+	    if (SS->pipecmds[idx] != NULL)
+	      free(SS->pipecmds[idx]);
+	    else
+	      if (logfp) fprintf(logfp,"%s#\t[Freeing free object at pipecmds[%d] ??]\n",logtag(),idx);
+	    SS->pipecmds[idx] = NULL;
+	  }
 	}
 
 	if (some_ok)  rc = EX_OK;
