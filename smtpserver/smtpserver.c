@@ -11,13 +11,14 @@
  * ZMailer SMTP server.
  */
 
+#include "smtpserver.h"
+
 const char *VerbID = "ZMailer SMTP server %s";
 const char *Copyright = "Copyright 1990 Rayan S. Zachariassen";
 const char *Copyright2 = "Copyright 1991-1997 Matti Aarnio";
 
 /* Timing parameters -- when expired, session is killed ... */
 
-#include "smtpserver.h"
 
 #include "identuser.h"
 #ifdef USE_TRANSLATION
