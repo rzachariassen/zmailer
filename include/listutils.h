@@ -13,7 +13,7 @@
 #define	_LISTUTILS_H
 
 extern char *dupnstr __((const char *str, const int len));
-#ifndef __GNUC__
+#ifdef __GNUC__
 #define dupstr(str) ({int _l = strlen(str); char *_s = dupnstr(str,_l); _s;})
 #else
 extern char *dupstr __((const char *str));
