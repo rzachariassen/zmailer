@@ -329,8 +329,7 @@ ta_hungry(proc)
 
 	  if (proc->overfed > 0) return;
 
-	  while (proc->pvertex     && (proc->state == CFSTATE_STUFFING) &&
-		 (proc->tofd >= 0) && (proc->cmdlen == 0)) {
+	  while (proc->pvertex && (proc->state == CFSTATE_STUFFING)) {
 
 	    /* As long as:
 	       - we have next vertex to feed
