@@ -37,9 +37,10 @@ AC_DEFINE_UNQUOTED(CONFIGURE_CMD,"$0 $ac_configure_args")
 #----------------------------------------------------------------------------
 #       Check if we should use gcc if available on this machine.
 #----------------------------------------------------------------------------
+use_gcc=0
 AC_ARG_WITH(gcc, [  --with-gcc              use gcc for compilation],
 	use_gcc=1)
-if test -z "$use_gcc" ; then
+if test "$use_gcc" = 0 ; then
     CC=${CC-cc}
 else
     AC_PROG_CC
@@ -154,9 +155,10 @@ if test -r $ZMAILERCFGFILE -a "$use_zcfg" != "0" ; then
 fi
 
 AC_SUBST(MAILBOX)
+use_mailbox=0
 AC_ARG_WITH(mailbox,      [  --with-mailbox=DIR      define the path of the mailbox directory],
 	use_mailbox=1)
-if test -z "$use_mailbox" ; then
+if test "$use_mailbox" = 0 ; then
     # No explicite value given, make some guesses as to where it might be..
     for DEFMAILBOX in /var/mail /var/spool/mail /usr/mail /usr/spool/mail
     do
@@ -171,9 +173,10 @@ fi
 AC_MSG_RESULT([Using ZMailer MAILBOX directory path: $MAILBOX])
 
 AC_SUBST(POSTOFFICE)
+use_postoffice=0
 AC_ARG_WITH(postoffice,   [  --with-postoffice=DIR   define the path of the postoffice directory],
 	use_postoffice=1)
-if test -z "$use_postoffice" ; then
+if test "$use_postoffice" = 0 ; then
     # No explicite value given, make some guesses as to where it might be..
     # XX: Should see what the MAILBOX value is, and then default between
     # XX: the /usr, and the /var -trees.
@@ -191,9 +194,10 @@ AC_MSG_RESULT([Using ZMailer POSTOFFICE path: $POSTOFFICE])
 
 
 AC_SUBST(MAILSHARE)
+use_mailshare=0
 AC_ARG_WITH(mailshare,    [  --with-mailshare=DIR    define the path of the mailshare directory],
 	use_mailshare=1)
-if test -z "$use_mailshare" ; then
+if test "$use_mailshare" = 0 ; then
     eval MAILSHARE="${MAILSHARE-$prefix}"
 else
     MAILSHARE="$withval"
@@ -201,9 +205,10 @@ fi
 AC_MSG_RESULT([Using ZMailer MAILSHARE directory path: $MAILSHARE])
 
 AC_SUBST(MAILVAR)
+use_mailvar=0
 AC_ARG_WITH(mailvar,      [  --with-mailvar=DIR      define the path of the mailvar directory],
 	use_mailvar=1)
-if test -z "$use_mailvar" ; then
+if test "$use_mailvar" = 0 ; then
     eval MAILVAR="${MAILVAR-$prefix}"
 else
     MAILVAR="$withval"
@@ -211,9 +216,10 @@ fi
 AC_MSG_RESULT([Using ZMailer MAILVAR directory path: $MAILVAR])
 
 AC_SUBST(MAILBIN)
+use_mailbin=0
 AC_ARG_WITH(mailbin,      [  --with-mailbin=DIR      define the path of the mailbin directory],
 	use_mailbin=1)
-if test -z "$use_mailbin" ; then
+if test "$use_mailbin" = 0 ; then
     eval MAILBIN="${MAILBIN-${MAILSHARE}/bin}"
 else
     MAILBIN="$withval"
@@ -221,9 +227,10 @@ fi
 AC_MSG_RESULT([Using ZMailer MAILBIN directory path: $MAILBIN])
 
 AC_SUBST(LOGDIR)
+use_logdir=0
 AC_ARG_WITH(logdir,       [  --with-logdir=DIR       define the path of the log directory],
 	use_logdir=1)
-if test -z "$use_logdir" ; then
+if test "$use_logdir" = 0; then
     LOGDIR=${LOGDIR-/var/log/mail}
 else
     LOGDIR="$withval"
@@ -231,16 +238,17 @@ fi
 AC_MSG_RESULT([Using ZMailer LOGDIR directory path: $LOGDIR])
 
 AC_SUBST(NNTPSERVER)
+use_nntpserver=0
 AC_ARG_WITH(nntpserver,   [  --with-nntpserver=HOST  define the domain name of the nntp server],
 	use_nntpserver=1)
-if test -z "$use_nntpserver" ; then
+if test "$use_nntpserver" = 0; then
     NNTPSERVER="${NNTPSERVER-$defNNTPSERVER}"
 else
     NNTPSERVER="$withval"
 fi
 AC_MSG_RESULT([Using ZMailer NNTPSERVER host name: $NNTPSERVER])
 
-if test -z "$INEWSBIN" ; then
+if test "x$INEWSBIN" = "x" ; then
   AC_PATH_PROG(INEWS, inews, inews)
 else
   AC_SUBST(INEWS)
@@ -259,9 +267,10 @@ SMTPOPTIONS="${SMTPOPTIONS-$defSMTPOPTIONS}"
 AC_MSG_RESULT([Using ZMailer SMTPOPTIONS='$SMTPOPTIONS'])
 
 AC_SUBST(SENDMAILPATH)
+use_sendmailpath=0
 AC_ARG_WITH(sendmailpath,   [  --with-sendmailpath=PATH The location of the 'sendmail'],
 	use_sendmailpath=1)
-if test -z "$use_sendmailpath" ; then
+if test "$use_sendmailpath" = 0 ; then
   # Ok, no value given, make some guesses; /usr/sbin ??
   for SENDMAILDEF in /usr/sbin/sendmail /usr/lib/sendmail ; do
     if test -x $SENDMAILDEF ; then
@@ -280,16 +289,17 @@ AC_MSG_RESULT([Using ZMailer SENDMAILPATH: $SENDMAILPATH])
 
 oldRMAILPATH="$RMAILPATH"
 AC_SUBST(RMAILPATH)
+use_rmailpath=0
 AC_ARG_WITH(rmailpath,   [  --with-rmailpath=PATH    The location of 'rmail'],
 	use_rmailpath=1)
-if test -z "$use_rmailpath" ; then
+if test "$use_rmailpath" = 0 ; then
   # Ok, no value given, make some guesses; /usr/bin ?? (last is default)
   for RMAILDEF in /sbin/rmail /usr/sbin/rmail /usr/bin/rmail /bin/rmail; do
     if test -x $RMAILDEF ; then
 	break
     fi
   done
-  if test -z "$oldRMAILPATH" ; then
+  if test "x$oldRMAILPATH" = x ; then
     RMAILPATH="$RMAILDEF"
   else
     RMAILPATH="$oldRMAILPATH"
@@ -933,11 +943,13 @@ if test "$ac_cv_libsocket_both" = 1 ; then
   fi
 fi
 
-if test "$LIBRESOLV" = ""; then
+if test "x$LIBRESOLV" = "x"; then
   # Ok, No  -lresolv,  is this enough for the  _res  to appear ?
   t_oldLibs="$LIBS"
   LIBS="$LIBS $LIBSOCKET"
-  AC_TRY_LINK([#include <resolv.h>],
+  ac_cv_var__res_options=no
+  AC_TRY_LINK([#include <resolv.h>
+#include <netinet/in.h>],
 	      [_res.options = RES_INIT;],
 		ac_cv_var__res_options=yes);
   if test "$ac_cv_var__res_options" != "yes"; then
@@ -1011,6 +1023,7 @@ AC_MSG_RESULT([RFC-822 TABs setting: $use_rfc822_tabs])
 
 AC_SUBST(LIBWRAP)
 AC_SUBST(INCLWRAP)
+use_tcpwrappers=0
 AC_ARG_WITH(tcp-wrappers,   [
   --with-tcp-wrappers=DIRPATH Where the TCP-WRAPPERS can be found],
 	use_tcpwrappers=1)
@@ -1018,7 +1031,7 @@ AC_ARG_WITH(tcp-wrappers,   [
 t_oldLibs="$LIBS"
 t_oldCpp="$CPPFLAGS"
 
-if test -z "$use_tcpwrappers" ; then
+if test "$use_tcpwrappers" = 0 ; then
 #    if test "$ac_cv_lib_tcpwrap" = yes; then
 #	LIBWRAP="-lwrap"
 #	INCLWRAP=""
