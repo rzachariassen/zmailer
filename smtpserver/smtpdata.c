@@ -33,6 +33,12 @@
 #include <libtrans.h>
 #endif				/* USE_TRANSLATION */
 
+#define SKIPSPACE(Y) while (*Y == ' ' || *Y == '\t') ++Y
+#define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
+#define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t') ++Y
+
+
+
 static int mvdata __((SmtpState *, char *));
 static int mvbdata __((SmtpState *, char *, long));
 
@@ -183,7 +189,7 @@ const char *buf, *cp;
 
 	ss  = policymsg(policydb, &SS->policystate);
 	ss0 = "";
-	if (!('0' <= *ss && *ss <= '9')) {
+	if (ss && !('0' <= *ss && *ss <= '9')) {
 	  /* The message is not starting with a number */
 	  ss0 = NULL;
 	}
@@ -195,10 +201,18 @@ const char *buf, *cp;
 	  if (!ss0 && ss)
 	    ss0 = "552 5.7.1 ";
 	  if (!ss0) ss0 = "";
-
-	  Z_printf(SS, "%s%s\r\n", ss0, ss ? ss : "552 5.7.1 Content-Policy-analysis rejected this message");
-	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	    Z_printf(SS, "%s%s\r\n", ss0, ss ? ss : "552 5.7.1 Content-Policy-analysis rejected this message");
+	  
+	  if (!ss) {
+	    type(SS,552,m571,"Content-Policy-Analysis rejected this message");
+	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	      type(SS,552,m571,"Content-Policy-Analysis rejected this message");
+	  } else {
+	    int rr = atoi(ss);
+	    if (rr < 200 || rr > 599) rr = 552;
+	    type(SS, rr, NULL, "%s", ss);
+	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	    type(SS, rr, NULL, "%s", ss);
+	  }
 
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
@@ -231,10 +245,13 @@ const char *buf, *cp;
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
 		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area", SS->policyresult);
 	    } else {
-	      if (!ss0) ss0 = "250 2.6.0 ";
-	      Z_printf(SS, "%s%s\r\n", ss0, ss);
+	      int rr = atoi(ss);
+	      if (rr < 200 || rr > 599) rr = 250;
+	      SKIPDIGIT(ss);
+	      SKIPSPACE(ss);
+	      type(SS, rr, "%s", ss);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		Z_printf(SS, "%s%s\r\n", ss0, ss);
+		type(SS, rr, "%s", ss);
 	    }
 
 	    typeflush(SS);
@@ -268,10 +285,13 @@ const char *buf, *cp;
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
 		type(SS, 250, "2.6.0", "%s message accepted", taspid);
 	    } else {
-	      if (!ss0) ss0 = "250 2.6.0 ";
-	      Z_printf(SS, "%s%s\r\n", ss0, ss);
+	      int rr = atoi(ss);
+	      if (rr < 200 || rr > 599) rr = 250;
+	      SKIPDIGIT(ss);
+	      SKIPSPACE(ss);
+	      type(SS, rr, "%s", ss);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		Z_printf(SS, "%s%s\r\n", ss0, ss);
+		type(SS, rr, "%s", ss);
 	    }
 	    typeflush(SS);
 

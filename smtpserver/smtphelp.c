@@ -28,6 +28,7 @@ const char *query;
     const char *cp;
     struct command *carp;
     Command cmd;
+    char linebuf[3000];
 
     for (carp = &command_list[0]; carp->verb != NULL; ++carp) {
 	if (CISTREQ(carp->verb, query))
@@ -44,48 +45,48 @@ const char *query;
     case HelloL:
         if (lmtp_mode) {
 	  TYPE_("LHLO your.domain.name");
-	  TYPE_("\tThe 'LHLO' is for RFC 2033 / LMTP session greeting.");
+	  TYPE_("    The 'LHLO' is for RFC 2033 / LMTP session greeting.");
 	} else {
 	  TYPE_("EHLO your.domain.name");
 	  TYPE_("HELO your.domain.name");
-	  TYPE_("\tThe 'EHLO' is for Extended SMTP feature recognition, and is preferred!.");
+	  TYPE_("    The 'EHLO' is for Extended SMTP feature recognition, and is preferred!.");
 	}
-	TYPE_("\tIt is polite to introduce yourself before talking.");
-	TYPE("\tI will in fact ignore you until you do!");
+	TYPE_("    It is polite to introduce yourself before talking.");
+	TYPE("    I will in fact ignore you until you do!");
 	break;
     case Mail:
     case Mail2:
 	TYPE_("MAIL FROM:<sender> (ESMTP parameters)");
 	TYPE_("EMAL FROM:<sender>");
-	TYPE_("\tSpecify the originator address for the next message.");
+	TYPE_("    Specify the originator address for the next message.");
 	if (STYLE(cfinfo, 'f')) {
-	    TYPE("\tThe address will be checked before it is accepted.");
+	    TYPE("    The address will be checked before it is accepted.");
 	} else {
-	    TYPE("\tAny address will be accepted here, but may be rejected later.");
+	    TYPE("    Any address will be accepted here, but may be rejected later.");
 	}
 	break;
     case Recipient:
 	TYPE_("RCPT TO:<recipient> (ESMTP parameters)");
-	TYPE_("\tSpecify a destination address for the next message.");
+	TYPE_("    Specify a destination address for the next message.");
 	if (STYLE(cfinfo, 't')) {
-	    TYPE("\tThe address will be checked before it is accepted.");
+	    TYPE("    The address will be checked before it is accepted.");
 	} else {
-	    TYPE("\tAny address will be accepted here, but may be rejected later.");
+	    TYPE("    Any address will be accepted here, but may be rejected later.");
 	}
 	break;
     case Data:
 	TYPE_("DATA");
-	TYPE_("\tStart collecting the message itself.  The text data");
-	TYPE("\tis terminated by a <CRLF>.<CRLF> combination.");
+	TYPE_("    Start collecting the message itself.  The text data");
+	TYPE("    is terminated by a <CRLF>.<CRLF> combination.");
 	break;
     case BData:
 	TYPE_("BDAT nnn [LAST]");
-	TYPE_("\tESMTP \"CHUNKING\" service extension; See RFC 1830");
+	TYPE_("    ESMTP \"CHUNKING\" service extension; See RFC 1830");
 	break;
     case Reset:
 	TYPE_("RSET");
-	TYPE_("\tReset the state of the SMTP server to be ready for");
-	TYPE_("\tthe next message, and abort any current transaction.");
+	TYPE_("    Reset the state of the SMTP server to be ready for");
+	TYPE_("    the next message, and abort any current transaction.");
 	TYPE_("");
 	switch (SS->state) {
 	case Hello:
@@ -114,55 +115,55 @@ const char *query;
     case SendAndMail:
     case Turn:
 	TYPE_(carp->verb);
-	TYPE("\tThis command will never be implemented.");
+	TYPE("    This command will never be implemented.");
 	break;
     case Turnme:
 	type(SS, -214, NULL, "%s hostname", carp->verb);
-	TYPE_("\tThis command schedules (at least tries to) all");
-	TYPE_("\toutbound traffic to ``hostname'' host.");
-	TYPE_("\tFor security reasons this server will initiate the");
-	TYPE("\tSMTP-transport towards relay/recipient SMTP-server.");
+	TYPE_("    This command schedules (at least tries to) all");
+	TYPE_("    outbound traffic to ``hostname'' host.");
+	TYPE_("    For security reasons this server will initiate the");
+	TYPE("    SMTP-transport towards relay/recipient SMTP-server.");
 	break;
     case Verify:
     case Verify2:
 	TYPE_("VRFY <recipient>");
 	TYPE_("EVFY <recipient>");
 	if (STYLE(cfinfo, 'v')) {
-	    TYPE_("\tPrints the recipients for the given address.")
-		TYPE("\tIf the address is local, it is not expanded.");
+	    TYPE_("    Prints the recipients for the given address.")
+		TYPE("    If the address is local, it is not expanded.");
 	} else {
-	    TYPE("\tThis command is disabled.");
+	    TYPE("    This command is disabled.");
 	}
 	break;
     case Expand:
 	TYPE_("EXPN <recipient>");
 	if (STYLE(cfinfo, 'e')) {
-	    TYPE_("\tPrints the recipients for the given address.")
-		TYPE("\tIf the address is local, it is expanded.");
+	    TYPE_("    Prints the recipients for the given address.")
+		TYPE("    If the address is local, it is expanded.");
 	} else {
-	    TYPE("\tThis command is disabled.");
+	    TYPE("    This command is disabled.");
 	}
 	break;
     case NoOp:
 	TYPE_(carp->verb);
-	TYPE("\tThis command does nothing.");
+	TYPE("    This command does nothing.");
 	break;
     case Quit:
 	TYPE_("QUIT");
-	TYPE("\tTerminate the SMTP protocol conversation.");
+	TYPE("    Terminate the SMTP protocol conversation.");
 	break;
     case Verbose:
 	TYPE_("VERB");
-	TYPE_("\tPrints out the SMTP server version and copyright notice.");
-	TYPE("\tThis command has no other effect.");
+	TYPE_("    Prints out the SMTP server version and copyright notice.");
+	TYPE("    This command has no other effect.");
 	break;
     case Tick:
 	TYPE_("TICK id");
-	TYPE("\tThis BSMTP command is just reflected back at you.");
+	TYPE("    This BSMTP command is just reflected back at you.");
 	break;
     case Help:
 	TYPE_("HELP [command]");
-	TYPE_("\tReminder of what the SMTP command does.");
+	TYPE_("    Reminder of what the SMTP command does.");
 	break;
     case Null:
     default:
@@ -175,11 +176,9 @@ const char *query;
 		TYPE_(helplines[i]);
 	    TYPE_("");
 	}
-	Z_printf(SS,"214-The following commands are recognized:");
-	if (logfp)
-	    fprintf(logfp, "%sw\t214-The following commands are recognized:",
-		    logtag);
-	col = 100;
+	TYPE_("The following commands are recognized:");
+	col = 4;
+	strcpy(linebuf, "    ");
 	for (carp = &command_list[0]; carp->verb != NULL; ++carp) {
 	    if (carp->cmd == HelloL && !lmtp_mode)
 	      continue;
@@ -189,19 +188,17 @@ const char *query;
 	      continue;
 	    if (col > 70) {
 		col = 12;
-		Z_printf(SS,",\r\n214-\t%s", carp->verb);
-		if (logfp)
-		    fprintf(logfp, ",\n%sw\t214\t%s", logtag, carp->verb);
+		TYPE_(linebuf);
+		col = 4;
+		strcpy(linebuf, "    ");
 	    } else {
-		Z_printf(SS,", %s", carp->verb);
-		if (logfp)
-		    fprintf(logfp, ", %s", carp->verb);
-		col += 6;
+		sprintf(linebuf+col, ", %s", carp->verb);
+		col += 2 + strlen(carp->verb);
 	    }
 	}
-	Z_printf(SS,"\r\n");
-	if (logfp)
-	    fprintf(logfp, "\n");
+	/* If it has more than just the start indentation. */
+	if (linebuf[4] != 0) TYPE_(linebuf);
+
 	TYPE_("");
 	TYPE_("The normal sequence is: EHLO/HELO (MAIL RCPT+ DATA)+ QUIT.");
 	TYPE_("");

@@ -1,5 +1,11 @@
 2000-10-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* smtpserver/smtpdata.c, smtpserver/smtphelp.c, smtpserver/smtptls.c,
+	  smtpserver/smtpserver.c:
+	    Rethought of things, killed the Z_printf() abomination.
+	    Also fixed inadverent NULL referral which Eugene Crosser
+	    found as well.  (It blocked my incoming email :-( )
+
 	* man/smtpserver.8, smtpserver/contentfilter.c, smtpserver/smtpdata.c:
 	    Improved documentation of the CONTENTFILTER INTERFACE
 	    ( = wrote it ), and modified a bit of the interface itself.

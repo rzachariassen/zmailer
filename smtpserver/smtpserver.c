@@ -66,14 +66,14 @@ struct command command_list[] =
 			/* sendmail extensions */
     {"VERB", Verbose},
     {"ONEX", NoOp},
-			/* Depreciated */
+			/* Deprecated */
     {"SEND", Send},
     {"SOML", SendOrMail},
     {"SAML", SendAndMail},
     {"TURN", Turn},
 			/* bsmtp extensions */
     {"TICK", Tick},
-			/* 8-bit smtp extensions -- depreciated */
+			/* 8-bit smtp extensions -- deprecated */
     {"EMAL", Mail2},
     {"ESND", Send2},
     {"ESOM", Send2},
@@ -1029,13 +1029,15 @@ char **argv;
 	openlogfp(&SS, daemon_flg);
 	if (logfp != NULL) {
 	  char *cp, *ssmtps = "";
+	  char *tt;
 	  if (ssmtp >= 0)
 	    ssmtps = " including deprecated SMTP/TLS port TCP/465";
 	  time(&now);
 	  cp = rfc822date(&now);
+	  tt = strchr(cp, '\n'); if (tt) *tt = 0;
 	  zsyslog((LOG_INFO, "server started."));
-	  fprintf(logfp, "00000#\tstarted server pid %d at %s%s", pid, cp, ssmtps);
-	  /*fprintf(logfp,"00000#\tfileno(logfp) = %d\n",fileno(logfp)); */
+	  fprintf(logfp, "000000000#\tstarted server pid %d at %s%s\n", pid, cp, ssmtps);
+	  /*fprintf(logfp,"000000000#\tfileno(logfp) = %d",fileno(logfp)); */
 	  fclose(logfp);
 	  logfp = NULL;
 	}
@@ -1115,7 +1117,7 @@ char **argv;
 	    openlogfp(&SS, daemon_flg);
 	    zsyslog((LOG_INFO, "accept() error=%d (%s)", err, strerror(err)));
 	    if (logfp) {
-	      fprintf(logfp, "000000#\taccept(): %s; %s",
+	      fprintf(logfp, "0000000000#\taccept(): %s; %s",
 		      strerror(err), (char *) rfc822date(&now));
 	      fclose(logfp);
 	      logfp = NULL;
@@ -1189,7 +1191,6 @@ char **argv;
 	    SIGNAL_HANDLE(SIGTERM, SIG_IGN);
 
 #if defined(AF_INET6) && defined(INET6)
-
 	    if (SS.raddr.v6.sin6_family == AF_INET6)
 	      SS.rport = SS.raddr.v6.sin6_port;
 	    else
@@ -1308,7 +1309,7 @@ char **argv;
 	  char *cp;
 	  time(&now);
 	  cp = rfc822date(&now);
-	  fprintf(logfp, "00000#\tkilled server pid %d at %s", pid, cp);
+	  fprintf(logfp, "000000000#\tkilled server pid %d at %s", pid, cp);
 	  fclose(logfp);
 	  logfp = NULL;
 	}
@@ -1756,6 +1757,20 @@ int insecure;
 	exit(0);
 #endif				/* USE_TRANSLATION */
     }
+
+#ifdef HAVE_OPENSSL
+    if (ssmtp_connected) {
+      if (tls_start_servertls(SS)) {
+	/* No dice... */
+	exit(2);
+      }
+      SS->sslwrbuf = emalloc(8192);
+      SS->sslwrspace = 8192;
+      SS->sslwrin = SS->sslwrout = 0;
+    }
+#endif /* - HAVE_OPENSSL */
+
+
 #ifdef HAVE_WHOSON_H
     if (do_whoson && netconnected_flg) {
 	char buf[64];
@@ -1801,16 +1816,6 @@ int insecure;
 
     /* re-opening the log ?? */
     zopenlog("smtpserver", LOG_PID, LOG_MAIL);
-
-#ifdef HAVE_OPENSSL
-    if (ssmtp_connected) {
-      if (tls_start_servertls(SS)) {
-	/* No dice... */
-	exit(2);
-      }
-    }
-#endif /* - HAVE_OPENSSL */
-
 
 #if 0 /* NO MORE TCP-WRAPPER AT SMTPSERVER -- USE POLICY CODE! */
 #ifdef HAVE_TCPD_H		/* TCP-Wrapper code */
@@ -2448,78 +2453,13 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
       zsyslog((LOG_DEBUG,"%s %c %s", logtag, (SS ? 'w' : '#'), buf));
 
     if (logfp != NULL) {
-	fprintf(logfp, "%s%c\t%s\n", logtag, (SS ? 'w' : '#'), buf);
-	fflush(logfp);
+      fprintf(logfp, "%s%c\t%s\n", logtag, (SS ? 'w' : '#'), buf);
+      fflush(logfp);
     }
     if (!SS) return; /* Only to local log.. */
     strcpy(s, "\r\n");
     Z_write(SS, buf, buflen+2); /* XX: check return value */
 }
-
-
-#ifdef HAVE_VPRINTF
-#ifdef HAVE_STDARG_H
-void
-#ifdef __STDC__
- Z_printf(SmtpState * SS, const char *fmt,...)
-#else				/* Non ANSI-C */
- Z_printf(SS, fmt)
-SmtpState *SS;
-const char *fmt;
-#endif
-#else
-/* VARARGS2 */
-void Z_printf(SS, fmt, va_alist)
-SmtpState *SS;
-const char *fmt;
-va_dcl
-#endif
-#else				/* No VPRINTF */
-/* VARARGS2 */
-void Z_printf(SS, fmt, s1, s2, s3, s4, s5, s6)
-SmtpState *SS;
-const char *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
-#endif
-{
-    char *s;
-    int buflen;
-    char buf[6000];
-
-
-    if (!SS)
-      *buf = 0;
-
-    s = buf;
-
-#ifdef HAVE_VPRINTF
-    {
-	va_list ap;
-#ifdef HAVE_STDARG_H
-	va_start(ap, fmt);
-#else
-	va_start(ap);
-#endif
-	vsprintf(s, fmt, ap);
-	va_end(ap);
-    }
-#else
-    sprintf(s, fmt, s1, s2, s3, s4, s5, s6);
-#endif
-    s += strlen(s);
-    buflen = s - buf;
-
-    if (buflen+4 > sizeof(buf)) {
-      /* XXX: Buffer overflow ??!! Signal about it, and crash! */
-    }
-
-    if (logfp != NULL) {
-      fwrite(buf, 1, buflen, logfp);
-      fflush(logfp);
-    }
-    if (!SS) return; /* Only to local log.. */
-    Z_write(SS, buf, buflen); /* XX: check return value */
-}
-
 
 /*
  *  type220headers() outputs the initial greeting header(s), and
@@ -2537,10 +2477,10 @@ type220headers(SS, identflg, xlatelang, curtime)
     char linebuf[8000];
     char *l, *le;
 
-    /* Below use of  fprintf()  for SS->outfp  channel is for
-       ensuring that  setvbuf( _IOFBF ) is honoured always.
-       It appears not to be so with  fputc() and putc(), it *may*
-       be so with  fputs()  -- Solaris 2.5.1 */
+    /* We collect the line into single buffer, then output it in one go
+       with the code below.  This to ensure that it will (very likely)
+       be written out in single syscall -- some systems get mighty upset
+       when they receive multiple TCP segments of the initial greeting :-/ */
 
     for (; *hh ; ++hh) {
       char c = (hh[1] == NULL) ? ' ' : '-';
@@ -2610,16 +2550,11 @@ type220headers(SS, identflg, xlatelang, curtime)
 	*l = 0;
       *le = 0;
 
-      fprintf(SS->outfp, "220%c%s\r\n", c, linebuf);
-
-      if (logfp_to_syslog)
-	zsyslog((LOG_DEBUG, "%s w 220%c%s", logtag, c, linebuf));
-      if (logfp)
-	fprintf(logfp, "%sw\t220%c%s\n", logtag, c, linebuf);
-
+      if (c == ' ')
+	type(SS,  220, NULL, "%s", linebuf);
+      else
+	type(SS, -220, NULL, "%s", linebuf);
     }
-    fflush(SS->outfp);
-    if (logfp) fflush(logfp);
 }
 
 

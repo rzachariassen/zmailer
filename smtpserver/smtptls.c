@@ -69,8 +69,6 @@ mail_queue_path(buf, subdir, filename)
   sprintf(buf, "%s/%s/%s", po, subdir, filename);
 }
 
-int tls_start_servertls __((SmtpState *SS));
-
 void
 smtp_starttls(SS, buf, cp)
      SmtpState *SS;
