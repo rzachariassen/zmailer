@@ -1577,22 +1577,19 @@ void query2(fpi, fpo)
 
 	      printf("\t%s: (", split[0]);
 
-	      *timebuf = 0;
-	      saytime((long)(now - cfp->mtime), timebuf, 1);
+	      if (!verbose) {
+		/* First recipient in the group */
+		printf("%s tries, ", split[7]);
 
-	      printf("%s tries, age %s, ", split[7], timebuf);
+		*timebuf = 0;
+		saytime((long)(atol(split[4]) - now), timebuf, 1);
 
-	      *timebuf = 0;
-	      saytime((long)(atol(split[4]) - now), timebuf, 1);
+		printf("expires in %s)", timebuf);
 
-	      printf("expires in %s, %ld+%ld bytes)", timebuf,
-		     (long)cfp->nlines, (long)cfp->msgbodyoffset);
-
-	      if (!verbose)
-		printf(" %s", split[9]);
-
-	      printf("\n");
+		printf(" %s\n", split[9]);
+	      } /* !verbose */
 	    }
+
 
 	    if (verbose) {
 	      if (j == 0) {
@@ -1602,6 +1599,19 @@ void query2(fpi, fpo)
 	      if (cfp) {
 		if (j == 0) {
 		  /* First recipient in the group */
+
+		  *timebuf = 0;
+		  saytime((long)(now - cfp->mtime), timebuf, 1);
+
+		  printf("%s tries, age %s, ", split[7], timebuf);
+
+		  *timebuf = 0;
+		  saytime((long)(atol(split[4]) - now), timebuf, 1);
+
+		  printf("expires in %s, %ld+%ld bytes)", timebuf,
+			 (long)cfp->nlines, (long)cfp->msgbodyoffset);
+
+		  printf("\n");
 
 		  if (cfp->logident)
 		    printf("\t  id\t%s\n", cfp->logident);
