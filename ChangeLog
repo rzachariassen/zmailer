@@ -1,5 +1,9 @@
 2000-10-12  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* utils/makedb/dbdump.c:
+	    New option:  -policydump   which decodes the policy
+	    binary set into a text.
+
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c, man/smtpserver.8,
 	  smtpserver/cfgread.c, smtpserver/smtphelp.c, smtpserver/smtpcmds.c,
 	  smtpserver/smtpdata.c:

@@ -3,6 +3,9 @@ Known/suspected bugs/Missing Features on current ZMailer sources
 - Everywhere:  Spell-check  (propably -> probably, among others)
 - smtp ta: Less verbose syslogging, not the entire protocol interaction
            for each recipient.
+	   VERIFY that failed connection to site A won't lead to recipient
+	   diagnostic() calls before all possible MXes/addresses have been
+	   gone thru for connection attempts.
 - RedHat 7.0: "gcc -O" breaks sfio subsystem (at least).
 
 - "Overview" -- revise at least the list subscription instructions;

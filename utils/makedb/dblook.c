@@ -48,7 +48,7 @@ usage(av0,err,errn)
 const char *av0, *err;
 int errn;
 {
-  fprintf(stderr,"Usage: %s [-dump] dbtype database.name [key]\n",av0);
+  fprintf(stderr,"Usage: %s [-dump|-policydump] dbtype database.name [key]\n",av0);
   fprintf(stderr,"  Dbtypes are:");
 #ifdef HAVE_NDBM_H
   fprintf(stderr," ndbm");
@@ -85,23 +85,96 @@ static int imax(a,b)
 }
 
 
-void dumpit(fp, keyptr, keylen, datptr, datlen)
+#define _POLICYTEST_INTERNAL_
+#include "policy.h"
+
+
+/* KK() and KA() macroes are at "policy.h" */
+
+static char *showkey __((const char *key));
+static char *showkey(key)
+const char *key;
+{
+    static char buf[256];
+
+    if (key[1] != P_K_IPv4 && key[1] != P_K_IPv6) {
+	if (strlen(key+2) > (sizeof(buf) - 200))
+	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), "<too long name>");
+	else
+	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), key+2);
+    } else
+      if (key[1] == P_K_IPv4)
+	sprintf(buf,"%d/%s/%u.%u.%u.%u/%d",
+		key[0], KK(key[1]),
+		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
+		key[6] & 0xff);
+      else
+	sprintf(buf,"%d/%s/%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x/%d",
+		key[0], KK(key[1]),
+		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
+		key[6] & 0xff, key[7] & 0xff, key[8] & 0xff, key[9] & 0xff,
+		key[10] & 0xff, key[11] & 0xff, key[12] & 0xff, key[13] & 0xff,
+		key[14] & 0xff, key[15] & 0xff, key[16] & 0xff, key[17] & 0xff,
+		key[18] & 0xff);
+    return buf;
+}
+
+
+
+static char *showattr __((const char *key));
+static char *showattr(key)
+const char *key;
+{
+    static char buf[500];
+    sprintf(buf,"%d/%s/'%s'", key[0], KA(key[1]), key+2);
+    return buf;
+}
+
+static void showpolicydata(fp, dp, len)
      FILE *fp;
+     unsigned char *dp;
+     int len;
+{
+  fprintf(fp, " %s \"", showattr(dp));
+  dp += 2;
+  len -= 2;
+  fwrite(dp, 1, len, fp);
+  fprintf(fp, "\"");
+}       
+
+
+void dumpit(fp, flag, keyptr, keylen, datptr, datlen)
+     FILE *fp;
+     int flag;
      void *keyptr, *datptr;
      int keylen, datlen;
 {
-  if (((char*)keyptr)[imax(0, keylen - 1)] == 0)
-    fwrite(keyptr, 1, imax(0, keylen - 1), fp);
-  else
-    fwrite(keyptr, 1, keylen, fp);
-  if (datptr != NULL) {
-    putc('\t',fp);
-    if (((char*)datptr)[imax(0, datlen - 1)] == 0)
-      fwrite(datptr, 1, imax(0, datlen - 1), fp);
+  if (flag == 1) {
+    if (((char*)keyptr)[imax(0, keylen - 1)] == 0)
+      fwrite(keyptr, 1, imax(0, keylen - 1), fp);
     else
-      fwrite(datptr, 1, datlen, fp);
+      fwrite(keyptr, 1, keylen, fp);
+    if (datptr != NULL) {
+      putc('\t',fp);
+      if (((char*)datptr)[imax(0, datlen - 1)] == 0)
+	fwrite(datptr, 1, imax(0, datlen - 1), fp);
+      else
+	fwrite(datptr, 1, datlen, fp);
+    }
+    putc('\n',fp);
+  } else {
+    unsigned char *dp = datptr;
+
+    fprintf(fp, "%s\t", showkey(keyptr));
+
+    while (datlen > 0) {
+      int len = *dp;
+      if (len > datlen) len = datlen;
+      showpolicydata(fp, dp, len);
+      datlen -= len;
+    }
+    putc('\n',fp);
   }
-  putc('\n',fp);
 }
 
 int
@@ -117,6 +190,10 @@ char *argv[];
 
   if (strcmp(argv[1],"-dump") == 0) {
     dumpflag = 1;
+    ++argv;
+  }
+  if (strcmp(argv[1],"-policydump") == 0) {
+    dumpflag = 2;
     ++argv;
   }
 
@@ -137,7 +214,7 @@ char *argv[];
       key = dbm_firstkey(Ndbmfile);
       while (key.dptr != NULL) {
 	result = dbm_fetch(Ndbmfile, key);
-	dumpit(stdout, key.dptr, key.dsize, result.dptr, result.dsize);
+	dumpit(stdout, dumpflag, key.dptr, key.dsize, result.dptr, result.dsize);
 	key = dbm_nextkey(Ndbmfile);
       }
     } else {
@@ -174,7 +251,7 @@ char *argv[];
       key = gdbm_firstkey(gdbmfile);
       while (key.dptr != NULL) {
 	result = gdbm_fetch(gdbmfile, key);
-	dumpit(stdout, key.dptr, key.dsize, result.dptr, result.dsize);
+	dumpit(stdout, dumpflag, key.dptr, key.dsize, result.dptr, result.dsize);
 	if (result.dptr) free(result.dptr);
 	nextkey = gdbm_nextkey(gdbmfile, key);
 	free(key.dptr);
@@ -226,7 +303,7 @@ char *argv[];
       rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
       if (rc) fprintf(stderr,"cursor errno=%d (%s)\n",rc, strerror(rc));
       while ( rc == 0 ) {
-	dumpit(stdout, key.data, key.size, result.data, result.size);
+	dumpit(stdout, dumpflag, key.data, key.size, result.data, result.size);
 	rc = (curs->c_get)(curs, &key, &result, DB_NEXT);
       }
       (curs->c_close)(curs);
@@ -275,7 +352,7 @@ char *argv[];
       memset(&result, 0, sizeof(key));
       rc = (curs->c_get)(curs, &key, &result, DB_FIRST);
       while ( rc == 0 ) {
-	dumpit(stdout, key.data, key.size, result.data, result.size);
+	dumpit(stdout, dumpflag, key.data, key.size, result.data, result.size);
 	rc = (curs->c_get)(curs, &key, &result, DB_NEXT);
       }
       (curs->c_close)(curs);
@@ -317,7 +394,7 @@ char *argv[];
       memset(&result, 0, sizeof(key));
       rc = (dbfile->seq)(dbfile, &key, &result, R_FIRST);
       while ( rc == 0 ) {
-	dumpit(stdout, key.data, key.size, result.data, result.size);
+	dumpit(stdout, dumpflag, key.data, key.size, result.data, result.size);
 	rc = (dbfile->seq)(dbfile, &key, &result, R_NEXT);
       }
     } else {
@@ -356,7 +433,7 @@ char *argv[];
       memset(&result, 0, sizeof(key));
       rc = (dbfile->seq)(dbfile, &key, &result, R_FIRST);
       while ( rc == 0 ) {
-	dumpit(stdout, key.data, key.size, result.data, result.size);
+	dumpit(stdout, dumpflag, key.data, key.size, result.data, result.size);
 	rc = (dbfile->seq)(dbfile, &key, &result, R_NEXT);
       }
     } else {
