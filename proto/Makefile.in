@@ -28,15 +28,15 @@ dirs:	$(PZCONFIG)
 	-@. $(PZCONFIG) ; \
 	umask 022 ; \
 	if [ -n "$(prefix)" ] ; then \
-		$(MKDIR) -p -m 755 $(prefix) ; \
+		$(MKDIR) -m 755 $(prefix) ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILSHARE ]; then \
-		echo $(MKDIR) -p $(prefix)$$MAILSHARE && \
-			$(MKDIR) -p $(prefix)$$MAILSHARE ; \
+		echo $(MKDIR) $(prefix)$$MAILSHARE && \
+			$(MKDIR) $(prefix)$$MAILSHARE ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILVAR ]; then \
-		echo $(MKDIR) -p $(prefix)$$MAILVAR && \
-			$(MKDIR) -p $(prefix)$$MAILVAR ; \
+		echo $(MKDIR) $(prefix)$$MAILVAR && \
+			$(MKDIR) $(prefix)$$MAILVAR ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILVAR/db ]; then \
 		echo $(MKDIR) $(prefix)$$MAILVAR/db && \
@@ -59,8 +59,8 @@ dirs:	$(PZCONFIG)
 			$(MKDIR) $(prefix)$$MAILSHARE/bak ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILBIN ]; then \
-		echo $(MKDIR) -p $(prefix)$$MAILBIN && \
-			$(MKDIR) -p $(prefix)$$MAILBIN ; \
+		echo $(MKDIR) $(prefix)$$MAILBIN && \
+			$(MKDIR) $(prefix)$$MAILBIN ; \
 	fi ; \
 	if [ ! -d $(prefix)$$MAILBIN/ta ]; then \
 		echo $(MKDIR) $(prefix)$$MAILBIN/ta && \
@@ -71,8 +71,8 @@ dirs:	$(PZCONFIG)
 			$(MKDIR) $(prefix)$$MAILBIN/bak ; \
 	fi ; \
 	if [ ! -d $(prefix)$$POSTOFFICE ]; then \
-		echo $(MKDIR) -p $(prefix)$$POSTOFFICE && \
-			$(MKDIR) -p $(prefix)$$POSTOFFICE ; \
+		echo $(MKDIR) $(prefix)$$POSTOFFICE && \
+			$(MKDIR) $(prefix)$$POSTOFFICE ; \
 		chmod 2755 $(prefix)$$POSTOFFICE ; \
 		chmod g+s  $(prefix)$$POSTOFFICE ; \
 	fi; \
@@ -120,10 +120,10 @@ dirs:	$(PZCONFIG)
 			$(MKDIR) $(prefix)$$POSTOFFICE/transport/$$hh ;	 \
 			chmod 755 $(prefix)$$POSTOFFICE/transport/$$hh ; \
 		done ; \
-	fi
+	fi ; \
 	if [ -d $(prefix)$$LOGDIR ]; then \
-		echo $(MKDIR) -p $(prefix)$$LOGDIR && \
-		$(MKDIR) -p $(prefix)$$LOGDIR ; \
+		echo $(MKDIR) $(prefix)$$LOGDIR && \
+		$(MKDIR) $(prefix)$$LOGDIR ; \
 		chmod 755 $(prefix)$$LOGDIR ; \
 	fi
 

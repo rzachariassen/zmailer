@@ -28,13 +28,16 @@ clean:
 distclean:
 	rm -f Makefile
 
-pkgs:
+pkgs:	pkgs-01
+
+pkgs-01:
 	. $(ZCONF) ; \
 	(cd $(prefix); ( \
 	 po=`echo $$POSTOFFICE|sed -e 's!^/!!'`;find $$po -type d -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -type d -print ; \
 	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv -type d -print ; \
 	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb -type d -print ; \
-	 mb=`echo $$MAILBOX|sed -e 's!^/!!'`;find $$mb -type d -print ; \
 	 ld=`echo $$LOGDIR|sed -e 's!^/!!'`;find $$ld -type d -print ) \
 		| sort | uniq | pkgproto ) > proto-01.dirs
+
+#	 mb=`echo $$MAILBOX|sed -e 's!^/!!'`;find $$mb -type d -print ; \
