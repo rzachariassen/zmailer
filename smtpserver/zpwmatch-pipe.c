@@ -157,6 +157,10 @@ char *pipezpwmatch( cmd, uname, password, uidp )
   status = pipeauth( cmd, msg, sizeof(msg), uname, password );
   if (status)
     *uidp = -1;
-  syslog( LOG_AUTHPRIV|LOG_INFO,"%s: %s", uname, msg );
+#ifdef LOG_AUTHPRIV
+  syslog( LOG_AUTHPRIV|LOG_INFO, "%s: %s", uname, msg );
+#else
+  syslog( LOG_AUTH|LOG_INFO, "%s: %s", uname, msg );
+#endif
   return status ? "Authentication failed" : NULL;
 }
