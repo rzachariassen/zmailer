@@ -22,7 +22,6 @@ LIB=            -L$(TOPDIR)/libs -lz -lzc
 LIBDEB=         $(TOPDIR)/libs/libtag
 CFLAGS=         $(COPTS) $(CPPFLAGS) $(DEFS) $(SENDMAIL_INCL) $(INCL)
 SENDMAILPATH=	$(prefix)@SENDMAILPATH@
-USRLIB=         $(prefix)$(SENDMAILLIB)
 
 SOURCE=		sendmail.c
 

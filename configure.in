@@ -313,6 +313,28 @@ else
 fi
 AC_MSG_RESULT([Using ZMailer RMAILPATH: $RMAILPATH])
 
+AC_SUBST(VACATIONPATH)
+use_vacationpath=0
+AC_ARG_WITH(vacationpath,   [  --with-vacationpath=PATH The location of the 'vacation'],
+	use_vacationpath=1)
+if test "$use_vacationpath" = 0 ; then
+  # Ok, no value given, make some guesses; /usr/sbin ??
+  for VACATIONDEF in /bin/vacation /usr/ucb/vacation /usr/bin/vacation ; do
+    if test -x $VACATIONDEF ; then
+	break
+    fi
+  done
+  VACATIONPATH="${VACATIONPATH-$VACATIONDEF}"
+else
+    if test -d "$withval" ; then
+        VACATIONPATH="$withval/vacation"
+    else
+        VACATIONPATH="$withval"
+    fi
+fi
+AC_MSG_RESULT([Using ZMailer VACATIONPATH: $VACATIONPATH])
+
+
 oldSELFADDRESSES="$SELFADDRESSES"
 AC_SUBST(SELFADDRESSES)
 AC_ARG_WITH(selfaddresses,   [  --with-selfaddresses=NAME,NAME  Comma separated list of names],

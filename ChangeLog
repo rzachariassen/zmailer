@@ -1,5 +1,16 @@
 1998-10-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* configure.in (and configure), utils/vacation/Makefile.in:
+	    Autosense possible location of  'vacation'.  If none
+	    is found, assume  "/usr/bin/".   At 'make install',
+	    install a symlink at that user-space location to point
+	    into MAILBIN/vacation.sh
+
+	* utils/vacation/vacation.c:
+	    Cleanup of database open/close routines after
+	    seeing one case of CORE-dump at nic.funet.fi
+	    when a new user took this vacation into use..
+
 	* Makefile.in:
 	    Version 2.99.50-s10
 

@@ -1,3 +1,10 @@
+/*
+ *  vacation -- originally BSD vacation by Eric Allman,
+ *
+ *  Adapted to ZMailer by Rayan Zachariassen, and further
+ *  modified by Matti Aarnio over years 1988(?) thru 1998.
+ */
+
 #include "hostenv.h"
 
 #include <stdio.h>
@@ -148,7 +155,7 @@ main(argc, argv)
 	ALIAS *cur;
 	time_t interval;
 	char *msgfile = NULL;
-	int ch, iflag;
+	int ch, iflag, ret;
 
 	progname = argv[0];
 
@@ -156,38 +163,39 @@ main(argc, argv)
 	opterr = iflag = 0;
 	interval = -1;
 	while ((ch = getopt(argc,argv,"a:Iir:t:m:d?")) != EOF) {
-		switch ((char)ch) {
-		  case 'a':	/* alias */
-		        if (!(cur = (ALIAS*) malloc((u_int)sizeof(ALIAS))))
-			  break;
-			cur->name = optarg;
-			cur->next = names;
-			names = cur;
-			break;
-		  case 'I':	/* backwards compatible */
-		  case 'i':	/* initialize the database*/
-			iflag = 1;
-			break;
-		  case 'm':	/* set file to get message from */
-			msgfile = optarg;
-			break;
-		  case 'd':	/* No dbm log of sender */
-			dblog = 0;
-			break;
-		  case 't':
-		  case 'r':
-			if (isdigit(*optarg)) {
-				interval = atol(optarg) * (24*60*60);
-				if (interval < 0)
-					usage();
-			}
-			else
-				interval = INT_MAX;
-			break;
-		  case '?':
-		  default:
-			usage();
-		}
+	  switch ((char)ch) {
+	  case 'a':	/* alias */
+	    cur = (ALIAS*) malloc((u_int)sizeof(ALIAS));
+	    if (!cur)
+	      break;
+	    cur->name = optarg;
+	    cur->next = names;
+	    names = cur;
+	    break;
+	  case 'I':	/* backwards compatible */
+	  case 'i':	/* initialize the database*/
+	    iflag = 1;
+	    break;
+	  case 'm':	/* set file to get message from */
+	    msgfile = optarg;
+	    break;
+	  case 'd':	/* No dbm log of sender */
+	    dblog = 0;
+	    break;
+	  case 't':
+	  case 'r':
+	    if (isdigit(*optarg)) {
+	      interval = atol(optarg) * (24*60*60);
+	      if (interval < 0)
+		usage();
+	    }
+	    else
+	      interval = INT_MAX;
+	    break;
+	  case '?':
+	  default:
+	    usage();
+	  }
 	}
 
 	argc -= optind;
@@ -196,125 +204,104 @@ main(argc, argv)
 	/* verify recipient argument */
 #ifdef ZMAILER
 	if (argc == 0) {
-		p = getenv("USER");
-		if (p == NULL) {
-			usrerr
-			  ("Zmailer error: USER environment variable not set");
-			exit(EX_USAGE+101);
-		}
+	  p = getenv("USER");
+	  if (p == NULL) {
+	    usrerr("Zmailer error: USER environment variable not set");
+	    exit(EX_USAGE+101);
+	  }
 	}
 #endif /* ZMAILER */
 
 	if (argc != 1) {
-		if (!iflag)
-			usage();
-		if (!(pw = getpwuid(getuid()))) {
-			fprintf(stderr,
-				"vacation: no such user uid %u.\n", getuid());
-			exit(EX_NOUSER);
-		}
+	  if (!iflag)
+	    usage();
+	  pw = getpwuid(getuid());
+	  if (!pw) {
+	    fprintf(stderr, "vacation: no such user uid %u.\n", getuid());
+	    exit(EX_NOUSER);
+	  }
 	} else if (!(pw = getpwnam(*argv))) {
-		fprintf(stderr, "vacation: no such user %s.\n", *argv);
-		exit(EX_NOUSER);
+	  fprintf(stderr, "vacation: no such user %s.\n", *argv);
+	  exit(EX_NOUSER);
 	}
 	if (chdir(pw->pw_dir)) {
-		fprintf(stderr,
-			"vacation: no such directory %s.\n", pw->pw_dir);
-		exit(EX_NOUSER);
+	  fprintf(stderr, "vacation: no such directory %s.\n", pw->pw_dir);
+	  exit(EX_NOUSER);
 	}
 
 	/* verify recipient argument */
 #ifdef ZMAILER
 	if (argc == 0) {
-		p = getenv("USER");
-		if (p == NULL) {
-			usrerr
-			  ("Zmailer error: USER environment variable not set");
-			exit(EX_USAGE+102);
-		}
+	  p = getenv("USER");
+	  if (p == NULL) {
+	    usrerr("Zmailer error: USER environment variable not set");
+	    exit(EX_USAGE+102);
+	  }
 	}
 #endif /* ZMAILER */
 
 #ifdef	HAVE_NDBM_H
 	if (dblog)
-		db = dbm_open(VDB, O_RDWR | (iflag ? O_TRUNC|O_CREAT : 0),
-			      S_IRUSR|S_IWUSR);
+	  db = dbm_open(VDB, O_RDWR | (iflag ? O_TRUNC|O_CREAT : 0),
+			S_IRUSR|S_IWUSR);
 #else	/* !NDBM */
 #ifdef HAVE_GDBM_H
 	if (dblog)
-		db = gdbm_open(VDB ".pag" /* Catenates these strings */, 8192,
-			       iflag ? GDBM_NEWDB : GDBM_WRITER,
-			       S_IRUSR|S_IWUSR, NULL );
+	  db = gdbm_open(VDB ".pag" /* Catenates these strings */, 8192,
+			 iflag ? GDBM_NEWDB : GDBM_WRITER,
+			 S_IRUSR|S_IWUSR, NULL );
 #else
 	if (dblog)
 	  db = dbopen(VDB ".db", iflag ? (O_RDWR|O_CREAT) : O_RDWR,
 		      S_IRUSR|S_IWUSR, DB_BTREE, NULL);
 #endif
 #endif
+
+	ret = EX_OK;
+
 	if (dblog && !db) {
-		fprintf(stderr, "vacation: %s.* database file(s): %s\n", 
-			VDB, strerror(errno));
-		exit(EX_CANTCREAT);
+	  fprintf(stderr, "vacation: %s.* database file(s): %s\n", 
+		  VDB, strerror(errno));
+	  exit(EX_CANTCREAT);
 	}
 
 	if (interval != -1)
-		setinterval(interval);
+	  setinterval(interval);
 
-	if (iflag) {
-#ifdef	HAVE_NDBM_H
-		if (dblog)
-			dbm_close(db);
-#else
-#ifdef HAVE_GDBM_H
-		if (dblog)
-			gdbm_close(db);
-#else
-		if (dblog)
-			db->close(db);
-#endif
-#endif
-		exit(EX_OK);
+	if (!iflag) {
+
+	  cur = (ALIAS *)malloc((u_int)sizeof(ALIAS));
+	  if (!cur) {
+	    ret = EX_TEMPFAIL;
+	  } else {
+	    cur->name = pw->pw_name;
+	    cur->next = names;
+	    names = cur;
+
+	    /* read message from standard input (just from line) */
+	    readheaders();
+	    purge_input();
+	    if (!recent()) {
+	      setreply();
+	      sendmessage(msgfile,pw->pw_name);
+	    }
+	  }
 	}
 
-	if (!(cur = (ALIAS *)malloc((u_int)sizeof(ALIAS)))) {
-		exit(EX_TEMPFAIL);
-	}
-	cur->name = pw->pw_name;
-	cur->next = names;
-	names = cur;
+#ifdef	HAVE_NDBM_H
+	if (dblog)
+	  dbm_close(db);
+#else
+#ifdef HAVE_GDBM_H
+	if (dblog)
+	  gdbm_close(db);
+#else
+	if (dblog)
+	  db->close(db);
+#endif
+#endif
 
-	/* read message from standard input (just from line) */
-	readheaders();
-	purge_input();
-	if (!recent()) {
-		setreply();
-#ifdef	HAVE_NDBM_H
-		if (dblog)
-			dbm_close(db);
-#else
-#ifdef HAVE_GDBM_H
-		if (dblog)
-			gdbm_close(db);
-#else
-		if (dblog)
-			db->close(db);
-#endif
-#endif
-		sendmessage(msgfile,pw->pw_name);
-	}
-#ifdef	HAVE_NDBM_H
-		if (dblog)
-			dbm_close(db);
-#else
-#ifdef HAVE_GDBM_H
-		if (dblog)
-			gdbm_close(db);
-#else
-		if (dblog)
-			db->close(db);
-#endif
-#endif
-	exit(EX_OK);
+	exit(ret);
 }
 /*
 **  SENDMESSAGE -- send a message to a particular user.
