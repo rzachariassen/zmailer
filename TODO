@@ -68,9 +68,6 @@ router:
 
 
 transports/smtp:
-	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
-	(syncing for BDAT, for example.)
-
    BUG:	PIPELINING:  If all RCPTs are rejected with 400 series code,
 	and the final DATA is then rejected with 500 series code, DON'T
 	abort with permanent error -- plus retry..
@@ -89,10 +86,13 @@ transports/smtp:
 	(But no response within timeout from remote server should be
 	 treated the same way as 'conn timeout' -- I think ?)
 
+   BUG:	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
+	(syncing for BDAT, for example.)
 
-	VERIFY: BDAT (and DATA) status processing in case the remote
+   VERIFY: BDAT (and DATA) status processing in case the remote
 	yields disk-full temporary error.
 
+   FEATURE:
 	To rewrite the MX processing in streamlined flashion:
 	  In case two domains have common (sub-)set of MX servers, and
 	  we have been feeding mail to domain A thru MX-server B, and
@@ -103,17 +103,19 @@ transports/smtp:
 	  (Noting that all MX-hosts with same or larger privilege,
 	   than ourselves are to be pre-removed from the list!)
 
-	- BIND to INTERFACE's address -- assuming a set of servers
-	  has their system setups defining that a eth0:1 has individual
-	  addresses, and servers are wanted to be attached at said
-	  *interface's* address, *and* that each node has identical
-	  ZMailer configuration, binding needs to be done by interface
-	  "name" as well as by literal addresses.
-	  (This is for the '-L' option.)
+   FEATURE:
+	BIND to INTERFACE's address -- assuming a set of servers
+	has their system setups defining that a eth0:1 has individual
+	addresses, and servers are wanted to be attached at said
+	*interface's* address, *and* that each node has identical
+	ZMailer configuration, binding needs to be done by interface
+	"name" as well as by literal addresses.
+	(This is for the '-L' option.)
 
-	- We violate RFC 1123 part 5.2.2 which says that at MAIL FROM
-	  and at RCPT TO the domain parts MUST be primary DNS objects,
-	  *not* CNAMEs.  We never rewrite...
+   FEATURE:
+	We violate RFC 1123 part 5.2.2 which says that at MAIL FROM
+	and at RCPT TO the domain parts MUST be primary DNS objects,
+	*not* CNAMEs.  We never rewrite...
 
 - Somewhere ? (smtpserver, and perhaps smtp transport agent ?)
 	Implement OUTBOUND message size limit mechanism.
