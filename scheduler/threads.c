@@ -834,9 +834,10 @@ thread_start(thr, queue_only_too)
 	  /* It may be that while we idled it, it died at the idle queue.. */
 	  if (proc->pid <= 0 || proc->tofd < 0) {
 
-	    sfprintf(sfstderr,"%% thread_start(thr=%s/%d/%s) (proc=%p ->pid=%d ->tofd=%d)\n",
-		     ch->name, thg->withhost, ho->name, proc,
-		     proc->pid, proc->tofd);
+	    /* sfprintf(sfstderr,
+	       "%% thread_start(thr=%s/%d/%s) (proc=%p ->pid=%d ->tofd=%d)\n",
+	       ch->name, thg->withhost, ho->name, proc,
+	       proc->pid, proc->tofd); */
 
 	    goto re_pick;
 	  }
@@ -882,10 +883,10 @@ thread_start(thr, queue_only_too)
 
 	  thr->proc             = proc;
 
-	  sfprintf(sfstderr,"%% thread_start(thr=%s/%d/%s) (proc=%p dt=%d thr=%p jobs=%d)\n",
-		   ch->name, thg->withhost, ho->name, thr->proc,
-		   (int)(thr->wakeup-now), thr, thr->jobs);
-
+	  if (verbose)
+	    sfprintf(sfstderr, "%% thread_start(thr=%s/%d/%s) (proc=%p dt=%d thr=%p jobs=%d)\n",
+		     ch->name, thg->withhost, ho->name, thr->proc,
+		     (int)(thr->wakeup-now), thr, thr->jobs);
 
 	  ta_hungry(proc);
 
@@ -943,7 +944,7 @@ thread_start(thr, queue_only_too)
 	if (rc) /* non-zero when child has started */
 	  thr->attempts += 1;
 
-	if (thr->proc)
+	if (thr->proc && verbose)
 	  sfprintf(sfstderr,"%% thread_start(thr=%s/%d/%s) (proc=%p dt=%d thr=%p jobs=%d)\n",
 		   ch->name, thg->withhost, ho->name, thr->proc,
 		   (int)(thr->wakeup-now), thr, thr->jobs);

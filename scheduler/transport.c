@@ -114,9 +114,10 @@ flush_child(proc)
 	  pipes_shutdown_child(proc->tofd);
 	  proc->tofd = -1;
 
-	  sfprintf(sfstderr,
-		   "%% shutdown of proc=%p pid=%d flush_child() pid<0 && tofd>=0\n",
-		   proc, proc->pid);
+	  if (verbose)
+	    sfprintf(sfstderr,
+		     "%% shutdown of proc=%p pid=%d flush_child() pid<0 && tofd>=0\n",
+		     proc, proc->pid);
 
 	}
 	if (proc->tofd < 0) {
@@ -129,9 +130,10 @@ flush_child(proc)
 	  proc->cmdlen = 0;
 	  proc->state = CFSTATE_ERROR;
 
-	  sfprintf(sfstderr,
-		   "%% disconnect of flush_child(proc=%p pid=%d) pid<0 && tofd<0 BAD?? \n",
-		   proc, proc->pid);
+	  if (verbose)
+	    sfprintf(sfstderr,
+		     "%% disconnect of flush_child(proc=%p pid=%d) pid<0 && tofd<0 BAD?? \n",
+		     proc, proc->pid);
 
 	  return -1;
 	}
@@ -169,9 +171,10 @@ flush_child(proc)
 	    proc->cmdlen = 0;
 	    proc->state = CFSTATE_ERROR;
 
-	    sfprintf(sfstderr,
-		     "%% shutdown of proc=%p pid=%d flush_child() write() errno=%d\n",
-		     proc, proc->pid, e);
+	    if (verbose)
+	      sfprintf(sfstderr,
+		       "%% shutdown of proc=%p pid=%d flush_child() write() errno=%d\n",
+		       proc, proc->pid, e);
 
 	    return -1;
 	  }
@@ -209,26 +212,29 @@ feed_child(proc)
 	  pipes_shutdown_child(proc->tofd);
 	  proc->tofd = -1;
 
-	  sfprintf(sfstderr,
-		   "%% shutdown of proc=%p pid=%d feed_child() proc->pthread == NULL\n",
-		   proc, proc->pid);
+	  if (verbose)
+	    sfprintf(sfstderr,
+		     "%% shutdown of proc=%p pid=%d feed_child() proc->pthread == NULL\n",
+		     proc, proc->pid);
 
 	  return -1; /* BUG if called without next THREAD.. */
 	}
 	if (proc->pvertex == NULL) {
 
-	  sfprintf(sfstderr,
-		   "%% feed_child(proc=%p pid=%d) proc->pvertex == NULL\n",
-		   proc, proc->pid);
+	  if (verbose)
+	    sfprintf(sfstderr,
+		     "%% feed_child(proc=%p pid=%d) proc->pvertex == NULL\n",
+		     proc, proc->pid);
 
 	  return 0; /* Might be called without next thing to process.. */
 	}
 	if (proc->pid <= 0 || proc->tofd < 0) {
 	  proc->state = CFSTATE_ERROR;
 
-	  sfprintf(sfstderr,
-		   "%% feed_child(proc=%p pid=%d tofd=%d) pid<0 || tofd<0 BAD??\n",
-		   proc, proc->pid, proc->tofd);
+	  if (verbose)
+	    sfprintf(sfstderr,
+		     "%% feed_child(proc=%p pid=%d tofd=%d) pid<0 || tofd<0 BAD??\n",
+		     proc, proc->pid, proc->tofd);
 
 	  return -1; /* No process../No write channel.. */
 	}
@@ -334,8 +340,8 @@ ta_hungry(proc)
 
 	mytime(&proc->hungertime);
 
-	/* if (verbose) */
-	sfprintf(sfstdout,"%% ta_hungry(%p) OF=%d S=%s tofd=%d\n",
+	if (verbose)
+	  sfprintf(sfstdout,"%% ta_hungry(%p) OF=%d S=%s tofd=%d\n",
 		   proc, proc->overfed, proc_state_names[proc->state],
 		   proc->tofd);
 
@@ -475,9 +481,10 @@ ta_hungry(proc)
 
 	feed_error_handler:
 
-	  sfprintf(sfstdout,"%% ta_hungry(%p) OF=%d S=%s tofd=%d\n",
-		   proc, proc->overfed, proc_state_names[proc->state],
-		   proc->tofd);
+	  if (verbose)
+	    sfprintf(sfstdout,"%% ta_hungry(%p) OF=%d S=%s tofd=%d\n",
+		     proc, proc->overfed, proc_state_names[proc->state],
+		     proc->tofd);
 
 	  proc->state = CFSTATE_ERROR;
 
