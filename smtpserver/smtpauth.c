@@ -147,7 +147,7 @@ void smtp_auth(SS,buf,cp)
       i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
       abuf[sizeof(abuf)-1] = 0;
       if (logfp != NULL) {
-	fprintf(logfp, "%dr\t%s\n", pid, abuf);
+	fprintf(logfp, "%sr\t%s\n", logtag, abuf);
 	fflush(logfp);
       }
       if (i == 0)	/* EOF ??? */
@@ -173,12 +173,12 @@ void smtp_auth(SS,buf,cp)
 #if 0
     /* This logs encoded password, usually that is *not* desired */
     if (logfp != NULL) {
-      fprintf(logfp, "%dr\t%s\n", pid, abuf);
+      fprintf(logfp, "%sr\t%s\n", logtag, abuf);
       fflush(logfp);
     }
 #else
     if (logfp != NULL) {
-      fprintf(logfp, "%dr\t**base64-password**\n", pid);
+      fprintf(logfp, "%sr\t**base64-password**\n", logtag);
       fflush(logfp);
     }
 #endif

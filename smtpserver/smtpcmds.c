@@ -169,7 +169,7 @@ const char *buf, *cp;
     if (logfp) {
       char *s = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || s != NULL) {
-	fprintf(logfp, "%d\t-- policy result=%d, msg: %s\n", pid,
+	fprintf(logfp, "%s\t-- policy result=%d, msg: %s\n", logtag,
 		SS->policyresult, (s ? s : "<NONE!>"));
 	fflush(logfp);
       }

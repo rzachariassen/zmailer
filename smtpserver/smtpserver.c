@@ -114,6 +114,8 @@ int X_settrrc = 9;
 int strict_protocol = 0;
 int mustexit = 0;
 
+char logtag[16];
+
 jmp_buf jmpalarm;		/* Return-frame for breaking smtpserver
 				   when timeout hits.. */
 
@@ -249,7 +251,15 @@ SmtpState *SS;
 int insecure;
 {
     /* opening the logfile should be done before we reset the uid */
+    time_t now = time(NULL);
+
     pid = getpid();
+    sprintf(logtag, "%05d%c%c%c%c", pid,
+	    'A'+(((int)now / (26*26*26)) % 26),
+	    'A'+(((int)now / (26*26   )) % 26),
+	    'A'+(((int)now / (26      )) % 26),
+	    'A'+(((int)now             ) % 26));
+
     if (logfp != NULL)
 	fclose(logfp);
     logfp = NULL;
@@ -1197,7 +1207,7 @@ const char *msg;
 	     "aborted (%ld bytes) from %s/%d: %s",
 	     tell, SS->rhostname, SS->rport, msg));
     if (logfp != NULL) {
-	fprintf(logfp, "%d-\taborted (%ld bytes): %s\n", pid, tell, msg);
+	fprintf(logfp, "%s-\taborted (%ld bytes): %s\n", logtag, tell, msg);
 	fflush(logfp);
     }
 }
@@ -1603,7 +1613,7 @@ int insecure;
 				   
 
 	if (logfp != NULL) {
-	    fprintf(logfp, "%dr\t%s\n", pid, buf);
+	    fprintf(logfp, "%sr\t%s\n", logtag, buf);
 	    fflush(logfp);
 	}
 	if (rc >= 0 && !strict_protocol) {
@@ -2065,7 +2075,7 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
       /* XXX: Buffer overflow ??!! Signal about it, and crash! */
     }
     if (logfp != NULL) {
-	fprintf(logfp, "%d%c\t%s\n", pid, (SS ? 'w' : '#'), buf);
+	fprintf(logfp, "%s%c\t%s\n", logtag, (SS ? 'w' : '#'), buf);
 	fflush(logfp);
     }
     if (!SS) return; /* Only to local log.. */
@@ -2093,7 +2103,7 @@ type220headers(SS, identflg, xlatelang, curtime)
       
       fprintf(SS->outfp, "%03d%c", 220, c);
       if (logfp != NULL)
-	fprintf(logfp, "%dw\t%03d%c", pid, 220, c);
+	fprintf(logfp, "%sw\t%03d%c", logtag, 220, c);
 
       /* The format meta-tags:
        *
@@ -2224,7 +2234,7 @@ va_dcl
       buflen = bp - buf;
 
       if (logfp != NULL)
-	fprintf(logfp, "%dw\t%s\n", pid, buf);
+	fprintf(logfp, "%sw\t%s\n", logtag, buf);
 
       strcpy(bp, "\r\n");
       Z_write(SS, buf, buflen+2); /* XX: check return value */

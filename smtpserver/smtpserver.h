@@ -215,6 +215,7 @@ typedef struct {
 extern char *helplines[];
 #define HDR220MAX 4
 extern char *hdr220lines[];
+extern char logtag[];
 
 extern long availspace;
 extern long maxsize;

@@ -164,14 +164,15 @@ const char *query;
 	}
 	printf("214-The following commands are recognized:");
 	if (logfp)
-	    fprintf(logfp, "%dw\t214-The following commands are recognized:", pid);
+	    fprintf(logfp, "%sw\t214-The following commands are recognized:",
+		    logtag);
 	col = 100;
 	for (carp = &command_list[0]; carp->verb != NULL; ++carp) {
 	    if (col > 70) {
 		col = 12;
 		printf("\r\n214-\t%s", carp->verb);
 		if (logfp)
-		    fprintf(logfp, "\n%dw\t214\t%s", pid, carp->verb);
+		    fprintf(logfp, "\n%sw\t214\t%s", logtag, carp->verb);
 	    } else {
 		printf(", %s", carp->verb);
 		if (logfp)

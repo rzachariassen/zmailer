@@ -10,6 +10,10 @@ router/libdb/ldap.c:
 		Do ONLY queries at ldap_search() !
 		Do dissociation at ldap_close() !
 
+router/functions.c: (or libsh/???.c ?)
+	lappend() and lreplace():
+		COPY the linear baseline before modifying it !
+
 smtpserver:
 	Implement policy analysis of %-hack addresses..
 	(And !-paths too ?)

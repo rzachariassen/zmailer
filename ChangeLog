@@ -1,3 +1,15 @@
+1999-06-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpauth.c, smtpserver/smtpcmds.c, smtpserver/smtphelp.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpserver.c:
+	    A change in logging; make individual input sessions stand out
+	    better by using constructed log line prefix; pppppTTTT[rw#-]
+	    where "ppppp" is "%05d" of process pid. "TTTT" are chars in
+	    range A thru Z, and are derived from log open time system time-
+	    stamp as lowest 4 of base26 "digits" (0 = "A", 25 = "Z").
+	    Now doing "egrep ^pppppTTTT smtpserver.log" should pick only
+	    the interesting session...
+
 1999-06-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/dateparse.c:
