@@ -281,6 +281,9 @@ tls-CAfile      @MAILVAR@/db/smtpserver-CAcert.pem
 #tls-CApath /path/to/CAdir/
 #tls-loglevel  0  # Value from 0 thru 4
 
+#tls-random-source  dev:/dev/urandom
+#tls-random-source  egd:/var/run/egd-pool
+
 #|
 #| If the TLS mode is MANDATED for a session, copy this file to
 #| e.g. "smtp-tls-mandatory.conf", uncomment following line, and

@@ -125,6 +125,7 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #ifdef HAVE_OPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/rand.h>
 #endif /* - HAVE_OPENSSL */
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)

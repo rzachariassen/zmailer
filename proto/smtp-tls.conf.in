@@ -9,6 +9,9 @@ tls-cert-file	@MAILVAR@/db/smtpserver-cert.pem
 tls-key-file	@MAILVAR@/db/smtpserver-key.pem
 tls-CAfile	@MAILVAR@/db/smtpserver-CAcert.pem
 
+#tls-random-source  dev:/dev/urandom
+#tls-random-source  egd:/var/run/egd-pool
+
 #tls-CApath /path/to/CAdir/
 
 #tls-loglevel  0  # Value from 0 thru 4

@@ -49,8 +49,11 @@ const char *tls_protocol    = NULL;
 const char *tls_cipher_name = NULL;
 int	tls_cipher_usebits  = 0;
 int	tls_cipher_algbits  = 0;
+const char *tls_random_source = NULL;
 
 int	tls_loglevel = 0;
+int     tls_rand_seeded = 0;
+
 
 
 #ifdef HAVE_STDARG_H
@@ -563,6 +566,95 @@ static void save_clnt_session(SSL_SESSION *session, unsigned char *HostID,
 }
 
 
+
+static int tls_randseeder(const char *source)
+{
+	int rand_bytes;
+	unsigned char buffer[255];
+
+	int var_tls_rand_bytes = 255;
+	
+	/*
+	 * Access the external sources for random seed. We may not be able to
+	 * access them again if we are sent to chroot jail, so we must leave
+	 * dev: and egd: type sources open.
+	 */
+
+	if (source && *source) {
+	  if (!strncmp(source, "dev:", 4)) {
+
+	    /*
+	     * Source is a random device
+	     */
+	    int fd = open(source + 4, 0, 0);
+	    if (fd < 0)     return -2;
+	    if (var_tls_rand_bytes > 255)
+	      var_tls_rand_bytes = 255;
+	    rand_bytes = read(fd, buffer, var_tls_rand_bytes);
+	    close(fd);
+
+	    RAND_seed(buffer, rand_bytes);
+
+	  } else if (!strncmp(source, "egd:", 4)) {
+	    /*
+	     * Source is a EGD compatible socket
+	     */
+	    struct sockaddr_un sun;
+	    int rc;
+	    int fd = socket(PF_UNIX, SOCK_STREAM, 0);
+
+	    if (fd < 0) return -1; /* URGH.. */
+
+	    memset(&sun, 0, sizeof(sun));
+	    sun.sun_family = AF_UNIX;
+	    strncpy(sun.sun_path, source+4, sizeof(sun.sun_path));
+	    sun.sun_path[sizeof(sun.sun_path)-1] = 0;
+	    for (;;) {
+	      rc = connect(fd, (struct sockaddr *)&sun, sizeof(sun));
+	      if (rc < 0 && (errno == EWOULDBLOCK || errno == EINTR || errno == EINPROGRESS))
+		continue;
+	      break;
+	    }
+
+	    if (rc < 0) {
+	      close(fd);
+	      return -2;
+	    }
+	    if (var_tls_rand_bytes > 255)
+	      var_tls_rand_bytes = 255;
+
+	    buffer[0] = 1;
+	    buffer[1] = var_tls_rand_bytes;
+
+	    if (write(fd, buffer, 2) != 2) {
+	      close(fd);
+	      return -3;
+	    }
+
+	    if (read(fd, buffer, 1) != 1) {
+	      close(fd);
+	      return -4;
+	    }
+
+	    rand_bytes = buffer[0];
+	    rc = read(fd, buffer, rand_bytes);
+	    close(fd);
+
+	    if (rc != rand_bytes)
+	      return -5;
+
+	    RAND_seed(buffer, rand_bytes);
+
+	  } else {
+	    rand_bytes = RAND_load_file(source, var_tls_rand_bytes);
+	  }
+	} else
+	  return -99; /* Bad call! */
+
+	return 0; /* Success.. */
+}
+
+
  /*
   * This is the setup routine for the SSL client. As smtpd might be called
   * more than once, we only want to do the initialization one time.
@@ -635,6 +727,8 @@ int     tls_init_clientengine(SS, cfgpath)
       if (tls_loglevel > 4) tls_loglevel = 4;
     } else if (strcasecmp(n, "tls-use-scache") == 0) {
       tls_use_scache = 1;
+    } else if (strcasecmp(n, "tls-random-source") == 0 && a1) {
+      tls_random_source = strdup(a1);
     } else if (strcasecmp(n, "tls-scache-timeout") == 0 && a1) {
       tls_scache_timeout = atol(a1);
       if (tls_loglevel < 0) tls_loglevel = 0;
@@ -649,6 +743,26 @@ int     tls_init_clientengine(SS, cfgpath)
     }
   }
   fclose(fp);
+
+  /* Lets try to do RAND-pool initing.. */
+  /* We don't loop, we bail-out from loop-contruction
+     enclosed alternate codes */
+  while ( !tls_rand_seeded ) {
+
+    /* Parametrized version ? */
+    if (tls_random_source && tls_randseeder(tls_random_source) >= 0) break;
+
+    /* How about  /dev/urandom  ?  */
+    if (tls_randseeder("dev:/dev/urandom") >= 0) break;
+
+    /* How about  EGD at /var/run/egd-seed  ?  */
+    if (tls_randseeder("egd:/var/run/egd-pool") >= 0) break;
+
+    break;
+  }
+
+  tls_rand_seeded = 1;
+
 
   if (tls_loglevel >= 2)
     msg_info(SS, "starting TLS engine");
