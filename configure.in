@@ -38,7 +38,11 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT(router/router.c)
 AC_CONFIG_HEADER(config.h)
-AC_LANG_C
+
+AC_PROG_CPP
+AC_ISC_POSIX
+AC_AIX
+AC_MINIX
 
 #----------------------------------------------------------------------------
 #       Check if we should use gcc if available on this machine.
@@ -54,11 +58,9 @@ else
         CC="gcc -Wall"
     fi
 fi
-AC_PROG_CPP
 
-AC_AIX
-AC_MINIX
-AC_ISC_POSIX
+AC_LANG_C
+
 
 AC_SUBST(MKDIR)
 MKDIR="mkdir -p"
@@ -2086,9 +2088,6 @@ AC_CHECK_LIB(ldgc, main)
 
 AC_CHECKING(for AFS)
 test -d /afs && AC_DEFINE(AFS)
-
-AC_SUBST(MANDIR)
-eval MANDIR=${mandir}
 
 if test "$ac_cv_c_const" = no ; then
   CFLAGS="$CFLAGS -Dconst=''"
