@@ -1050,7 +1050,6 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	int noMX;
 {
 	struct rcpt *rp = NULL;
-	int r = EX_TEMPFAIL;
 	int nrcpt, rcpt_cnt, size, tout, hdrsize;
 	int content_kind = 0;
 	CONVERTMODE convertmode;
@@ -1073,6 +1072,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	struct ct_data  *CT  = NULL;
 	struct cte_data *CTE = NULL;
 	char **hdr;
+	int doing_reopen;
+	int r;
 
 	hdr = has_header(startrp,"Content-Type:");
 	if (hdr)
@@ -1102,6 +1103,9 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  /* We don't know how to convert anything BUT  TEXT/PLAIN :-(  */
 	}
 
+	doing_reopen = 0;
+	r = EX_TEMPFAIL;
+
  re_open:
 
 	if (!SS->smtpfp) {
@@ -1117,6 +1121,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  
 	  openstatus = smtpopen(SS, host, noMX);
 	  if (openstatus != EX_OK) {
+
+	    
+	    if (doing_reopen) openstatus = r;
+
 	    for ( rp = startrp; startrp != rp->next; startrp = startrp->next) {
 	      if (startrp->lockoffset) {
 		notaryreport(startrp->addr->user, FAILED, NULL, NULL);
@@ -1259,7 +1267,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  }
 	}
 
-
+	r = EX_OK;
 
     more_recipients:
 	if (more_rp != NULL) {
@@ -1303,6 +1311,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    if (r != EX_OK) {
 	      smtpclose(SS,1);
 	      r = EX_TEMPFAIL;
+	      doing_reopen = 1;
 	      goto re_open;
 	    }
 	    r = EX_TEMPFAIL;
@@ -1310,6 +1319,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	} else {
 
 	  /* SMTP isn't open, we re-open.. */
+	  doing_reopen = 1;
 	  goto re_open;
 
 	}
