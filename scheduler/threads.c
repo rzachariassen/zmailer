@@ -1499,7 +1499,8 @@ void thread_report(fp,mqmode)
 		else {
 		  sfprintf(fp," FA=%ds",(int)(now - thr->proc->feedtime));
 		}
-		sfprintf(fp," OF=%d", thr->proc->overfed);
+		sfprintf(fp," OF=%d S=%d", thr->proc->overfed,
+			 (int)thr->proc->state);
 	      }
 
 	    } else if (thr->wakeup > now) {
