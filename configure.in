@@ -884,27 +884,28 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
     AC_MSG_RESULT([Didn't locate SleepyCat DB 2.x  db_open()  anywhere, although <db.h> file exists.])
   else
     AC_MSG_RESULT([Located SleepyCat DB 2.x  db_open()  routine at $t_found_at])
-    if test "x$LIBDB" != "x" ; then
-        # Does (db->cursor)(...) have 3 or 4 args ?
-        if test "$ac_cv_db_cursor_4" = "" ; then # not set
-	  if test "$ac_cv_header_db2_db_h" = yes ; then
-            AC_TRY_COMPILE([#include <db2/db.h>],[DB *db; DBC *curs;
+    # Does (db->cursor)(...) have 3 or 4 args ?
+    if test -z "$ac_cv_db_cursor_4" ; then # not set
+      if test "$ac_cv_header_db2_db_h" = yes ; then
+        AC_TRY_COMPILE([#include <db2/db.h>],[DB *db; DBC *curs;
 int err = (db->cursor)(db, NULL, &curs, 0);],
-                           ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
-	  elif test "$ac_cv_header_db_h" = yes ; then
-            AC_TRY_COMPILE([#include <db.h>],[DB *db; DBC *curs;
+                       ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
+      elif test "$ac_cv_header_db_h" = yes ; then
+        AC_TRY_COMPILE([#include <db.h>],[DB *db; DBC *curs;
 int err = (db->cursor)(db, NULL, &curs, 0);],
-                           ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
-          else
-	    AC_MSG_RESULT([  Hmm.. No <db2/db.h>, nor <db.h> ??])
-	  fi
-        fi
-        if test "$ac_cv_db_cursor_4" = yes; then
-          AC_MSG_RESULT([  (db->cursor)() method function seems to want 4 args.])
-          AC_DEFINE(HAVE_DB_CURSOR4)
-        fi
+                       ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
+      else
+        AC_MSG_RESULT([  Hmm.. No <db2/db.h>, nor <db.h> ??])
+      fi
     fi
-  if test "x$LIBDB" != "x" -a "x$LIBDB" = "x$LIBNDBM" ; then
+    if test "$ac_cv_db_cursor_4" = yes ; then
+      AC_MSG_RESULT([  (db->cursor)() method function seems to want 4 args.])
+      AC_DEFINE(HAVE_DB_CURSOR4)
+    else
+      AC_MSG_RESULT([  (db->cursor)() method function seems to want 3 args.])
+    fi
+  fi
+  if test -n "$LIBDB" -a "$LIBDB" = "$LIBNDBM" ; then
         # Well, both at the same library ( -ldb ), which propably
         # means that  <ndbm.h>  is just an emulation mode at BSD DB.
         LIBNDBM=""
