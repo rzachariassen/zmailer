@@ -348,7 +348,13 @@ ta_hungry(proc)
 	/* If ``proc->tofd'' is negative, we can't feed anyway.. */
 
 	if (proc->tofd < 0) {
+
 	  --proc->overfed;
+
+	  if (proc->overfed == 0 && proc->pthread)
+	    /* If we have a thread here still, reschedule it... */
+	    thread_reschedule(proc->pthread,0,-1);
+
 	  return;
 	}
 
@@ -400,6 +406,10 @@ ta_hungry(proc)
 	case CFSTATE_FINISHING:
 
 	  if (proc->overfed > 0) return;
+
+	  /* If we have a thread here still, reschedule it... */
+	  if (proc->pthread)
+	    thread_reschedule(proc->pthread,0,-1);
 
 	  /* Disconnect the previous thread from the proc. */
 	  if (proc->pthread)
