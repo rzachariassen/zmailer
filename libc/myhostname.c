@@ -23,8 +23,8 @@
 #endif
 #include "libc.h"
 
-int
-getmyhostname(namebuf, len)
+static int
+_getmyhostname(namebuf, len)
 	char *namebuf;
 	int len;
 {
@@ -130,4 +130,26 @@ getmyhostname(namebuf, len)
 #endif
 	return 0;
 #endif
+}
+
+
+int
+getmyhostname(namebuf, len)
+	char *namebuf; 
+	int len;
+{
+	int rc;
+	static char *savedname=NULL;
+
+	if (savedname) {
+		strncpy(namebuf, savedname, len);
+		namebuf[len - 1] = 0;
+		return 0;
+	}
+	rc = _getmyhostname(namebuf, len);
+	if (rc == 0) {
+		savedname=(char*)malloc(strlen(namebuf)+1);
+		strcpy(savedname, namebuf);
+	}
+	return rc;
 }
