@@ -3,6 +3,16 @@
 	* smtpserver/smtptls.c:
 	    Make CA file/directory issuance optional for smtpserver.
 
+	* router/daemonsub.c:
+	   E.Crosser reported that on some platform (apparently
+	   at least Solaris), child process death causes file-
+	   handle leakage in process.  (E.g. missing close() calls
+	   somewhere.)  While at it, I cleaned a bit of the code..
+
+	* lib/loginit.c:
+	   Do lessen the number of syscalls done by this routine.
+	   (At Linux with glibc 2.2.x).
+
 2002-09-23  Matti Aarnio  <mea@zmailer.org>
 
 	* compat/sendmail/sendmail.c:

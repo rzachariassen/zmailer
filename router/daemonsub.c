@@ -410,11 +410,10 @@ static int reader_getc(rc)
 
 
 /* Single child reader.. */
-static int _parent_reader __((const int i));
-static int _parent_reader(i)
-     const int i;
+static int _parent_reader __((struct router_child *rc));
+static int _parent_reader(rc)
+     struct router_child *rc;
 {
-  struct router_child *rc = &routerchilds[i];
   int c;
 
   if (rc->fromchild < 0) return 0;
@@ -434,6 +433,8 @@ static int _parent_reader(i)
       if (rc->tochild >= 0)
 	close(rc->tochild);
       rc->tochild   = -1;
+      if (rc->fromchild >= 0)
+	close(rc->fromchild);
       rc->fromchild = -1;
       rc->hungry    = 0;
       rc->task_ino  = 0;
@@ -485,11 +486,10 @@ static int _parent_reader(i)
 }
 
 /* Single child writer.. */
-static void _parent_writer __((const int i));
-static void _parent_writer(i)
-     const int i;
+static void _parent_writer __((struct router_child *rc));
+static void _parent_writer(rc)
+     struct router_child *rc;
 {
-  struct router_child *rc = &routerchilds[i];
   int c, left;
 
   /* FD for writing ?? */
@@ -499,6 +499,10 @@ static void _parent_writer(i)
   for (;rc->childout < rc->childsize;) {
     left = rc->childsize - rc->childout;
     c = write(rc->tochild, rc->childline + rc->childout, left);
+    if (c < 0 && errno == EPIPE) {
+      pipes_shutdown_child(rc->tochild);
+      rc->tochild = -1;
+    }
     if (c <= 0) break;
     rc->childout += c;
   }
@@ -618,8 +622,8 @@ static int parent_reader(waittime)
       goto redo_again;
     /* Hmm.. Do it just blindly (will handle error situations) */
     for (i = 0; i < MAXROUTERCHILDS; ++i) {
-      _parent_writer(i);
-      _parent_reader(i);
+      _parent_writer(&routerchilds[i]);
+      _parent_reader(&routerchilds[i]);
     }
     return 0;  /* Urgh, an error.. */
   }
@@ -632,10 +636,10 @@ static int parent_reader(waittime)
   for (i = 0; i < MAXROUTERCHILDS; ++i) {
     fd = routerchilds[i].tochild;
     if (fd >= 0 && _Z_FD_ISSET(fd, wrset))
-      _parent_writer(i);
+      _parent_writer(&routerchilds[i]);
     fd = routerchilds[i].fromchild;
     if (fd >= 0 && _Z_FD_ISSET(fd, rdset))
-      _parent_reader(i);
+      _parent_reader(&routerchilds[i]);
   }
   return 1; /* Did some productive job, don't sleep at the caller.. */
 }
@@ -647,7 +651,7 @@ static int parent_reader(waittime)
   int i;
   /* No select, but can do non-blocking -- we hope.. */
   for (i = 0; i < MAXROUTERCHILDS; ++i)
-    _parent_reader(i, waittime);
+    _parent_reader(&routerchilds[i], waittime);
   return 0;
 }
 #endif
@@ -896,8 +900,8 @@ dq_insert(DQ, ino, file, dir)
 	}
 
 #if 0
-loginit(SIGHUP); /* Reinit/rotate the log every at line .. */
-fprintf(stdout,"dqinsert: ino=%ld file='%s' dir='%s'\n",ino,file,dir);
+	loginit(SIGHUP); /* Reinit/rotate the log every at line .. */
+	fprintf(stdout,"dqinsert: ino=%ld file='%s' dir='%s'\n",ino,file,dir);
 #endif
 
 	/* Is it already in the database ? */

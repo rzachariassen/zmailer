@@ -6,6 +6,7 @@
 #include "hostenv.h"
 #include "mailer.h"
 #include <fcntl.h>
+#include <errno.h>
 #include "zmsignal.h"
 #include "libz.h"
 
@@ -28,24 +29,37 @@ loginit(sig)
 
 	if (logfn == NULL)
 		return -1;
+
 	fflush(stdout);
 	rewind(stdout);
 	fflush(stderr);
 	rewind(stderr);
-	if (freopen(logfn, "a+", stdout) != stdout
-	    || dup2(FILENO(stdout), FILENO(stderr)) < 0) {	/* sigh */
-		/* XX: stderr might be closed at this point... */
-		fprintf(stderr, "%s: cannot open log: %s\n", progname, logfn);
-		return -1;
+
+	if (freopen(logfn, "a", stdout) != stdout) {
+	  /* XX: stderr might be closed at this point... */
+	  fprintf(stderr, "%s: cannot open log: %s\n", progname, logfn);
+	  return -1;
 	}
+	while (dup2(FILENO(stdout), FILENO(stderr)) < 0) {
+	  if (errno == EINTR || errno == EAGAIN) continue;
+	  fprintf(stderr, "%s: cannot dup2(1,2) in loginit(); errno=%d",
+		  progname, errno);
+	  return -1;
+	}
+
 #if	defined(F_SETFL) && defined(O_APPEND)
 	flags = fcntl(FILENO(stdout), F_GETFL, 0);
 	flags |= O_APPEND;
 	fcntl(FILENO(stdout), F_SETFL, flags);
 #endif	/* F_SETFL */
+
 	setvbuf(stdout, (char *)NULL, _IOLBF, 0);
+
+#if 0
 	freopen(logfn, "a", stderr);
 	setvbuf(stderr, (char *)NULL, _IOLBF, 0);
+#endif
+
 	SIGNAL_HANDLE(sig, (RETSIGTYPE(*)())loginit);
 	return 0;
 }
