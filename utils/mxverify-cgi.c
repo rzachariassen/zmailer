@@ -12,6 +12,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include "zmsignal.h"
+
+int timeout_conn = 30; /* 30 seconds for connection */
+int timeout_tcpw = 20; /* 20 seconds for write      */
+int timeout_tcpr = 60; /* 60 seconds for responses  */
 
 /* Input by 'GET' method, domain-name at CGI URL */
 
@@ -26,6 +31,10 @@ char argv[];
      something which does not need decoding... */
 
   int err = 0;
+
+  SIGNAL_HANDLE(SIGPIPE, SIG_DFL);
+
+
   if (!getstr) err = 1;
   if (!getstr) getstr = "--DESTINATION-DOMAIN-NOT-SUPPLIED--";
 
@@ -56,7 +65,6 @@ char argv[];
 }
 
 
-#include "zmsignal.h"
 #include <sysexits.h>
 /* #include <strings.h> */ /* poorly portable.. */
 #ifdef HAVE_STDARG_H
@@ -272,8 +280,6 @@ getmxrr(host, mx, maxmx, depth)
 	int qlen, n, i, j, nmx, ancount, qdcount, maxpref;
 	u_short type;
 	int saw_cname = 0;
-	int ttl;
-	struct addrinfo req, *ai;
 
 	if (depth == 0)
 	  h_errno = 0;
@@ -407,27 +413,392 @@ getmxrr(host, mx, maxmx, depth)
 	fprintf(stdout, "<P><H1>DNS yields following MX entries</H1>\n");
 	fprintf(stdout, "<PRE>\n");
 	for (i = 0; i < nmx; ++i)
-	  fprintf(stdout, "  %s  IN MX %3d %s\n", host, mx[i].pref, mx[i].host);
+	  fprintf(stdout,"  %s  IN MX %3d %s\n", host,mx[i].pref,mx[i].host);
 	fprintf(stdout, "</PRE>\n<P>\n");
 
 	mx[nmx].host = NULL;
 	return EX_OK;
 }
 
+int
+vcsetup(sa, fdp, myname, mynamemax)
+	struct sockaddr *sa;
+	int *fdp, mynamemax;
+	char *myname;
+{
+	int af, gotalarm = 0;
+	volatile int addrsiz;
+	int sk;
+	struct sockaddr_in *sai = (struct sockaddr_in *)sa;
+	struct sockaddr_in sad;
+#if defined(AF_INET6) && defined(INET6)
+	struct sockaddr_in6 *sai6 = (struct sockaddr_in6 *)sa;
+	struct sockaddr_in6 sad6;
+#endif
+	struct hostent *hp;
+	union {
+	  struct sockaddr_in sai;
+#if defined(AF_INET6) && defined(INET6)
+	  struct sockaddr_in6 sai6;
+#endif
+	} upeername;
+	int upeernamelen = 0;
+
+	int errnosave, flg;
+	char *se;
+
+	af = sa->sa_family;
+#if defined(AF_INET6) && defined(INET6)
+	if (sa->sa_family == AF_INET6) {
+	  addrsiz = sizeof(*sai6);
+	  memset(&sad6, 0, sizeof(sad6));
+	}
+	else
+#endif
+	  {
+	    addrsiz = sizeof(*sai);
+	    memset(&sad, 0, sizeof(sad));
+	  }
+
+	sk = socket(af, SOCK_STREAM, 0);
+	if (sk < 0) {
+	  se = strerror(errno);
+	  fprintf(stdout,"<H2>ERROR: Failed to create %s type socket! err='%s'</H2>\n",
+		  af == AF_INET ? "AF_INET" : "AF_INET6", se);
+	  return EX_TEMPFAIL;
+	}
+
+	if (af == AF_INET)
+	  sai->sin_port   = htons(25);
+#if defined(AF_INET6) && defined(INET6)
+	if (af == AF_INET6)
+	  sai6->sin6_port = htons(25);
+#endif
+
+	/* The socket will be non-blocking for its entire lifetime.. */
+#ifdef O_NONBLOCK
+	fcntl(sk, F_SETFL, fcntl(sk, F_GETFL, 0) | O_NONBLOCK);
+#else
+#ifdef FNONBLOCK
+	fcntl(sk, F_SETFL, fcntl(sk, F_GETFL, 0) | FNONBLOCK);
+#else
+	fcntl(sk, F_SETFL, fcntl(sk, F_GETFL, 0) | FNDELAY);
+#endif
+#endif
+
+	errnosave = errno = 0;
+
+	if (connect(sk, sa, addrsiz) < 0 &&
+	    (errno == EWOULDBLOCK || errno == EINPROGRESS)) {
+
+	  /* Wait for the connection -- or timeout.. */
+
+	  struct timeval tv;
+	  fd_set wrset;
+	  int rc;
+
+	  /* Select for the establishment, or for the timeout */
+
+	  tv.tv_sec = timeout_conn;
+	  tv.tv_usec = 0;
+	  _Z_FD_ZERO(wrset);
+	  _Z_FD_SET(sk, wrset);
+
+	  rc = select(sk+1, NULL, &wrset, NULL, &tv);
+
+	  errno = 0; /* All fine ? */
+	  if (rc == 0) {
+	    /* Timed out :-( */
+	    gotalarm = 1; /* Well, sort of ... */
+	    errno = ETIMEDOUT;
+	  }
+	}
+
+	if (!errnosave)
+	  errnosave = errno;
+
+#ifdef SO_ERROR
+	flg = 0;
+	if (errnosave == 0) {
+	  int flglen = sizeof(flg);
+	  getsockopt(sk, SOL_SOCKET, SO_ERROR, (void*)&flg, &flglen);
+	}
+	if (flg != 0 && errnosave == 0)
+	  errnosave = flg;
+	/* "flg" contains socket specific error condition data */
+#endif
+
+	if (errnosave == 0) {
+	  /* We have successfull connection,
+	     lets record its peering data */
+	  memset(&upeername, 0, sizeof(upeername));
+	  upeernamelen = sizeof(upeername);
+	  getsockname(sk, (struct sockaddr*) &upeername, &upeernamelen);
+
+	  if (upeername.sai.sin_family == AF_INET)
+	    hp = gethostbyaddr((char*)&upeername.sai.sin_addr,   4, AF_INET);
+#if defined(AF_INET6) && defined(INET6)
+	  else if (upeername.sai6.sin6_family == AF_INET6)
+	    hp = gethostbyaddr((char*)&upeername.sai6.sin6_addr, 16, AF_INET6);
+#endif
+	  else
+	    hp = NULL;
+
+	  /* Ok, NOW we have a hostent with our IP-address reversed to a name */
+	  if (hp)
+	    strncpy(myname, hp->h_name, mynamemax);
+	  else
+	    getmyhostname(myname, mynamemax);
+	}
+
+	if (errnosave == 0 && !gotalarm) {
+	  *fdp = sk;
+	  fprintf(stdout,"<CODE>[ CONNECTED! ]</CODE><BR>\n");
+
+	  return EX_OK;
+	}
+
+	close(sk);
+
+	se = strerror(errnosave);
+	fprintf(stdout,"<H2>ERROR: Connect failure reason: %s</H2><BR>\n",se);
+
+	return EX_UNAVAILABLE;
+}
+
+
+int smtpgetc(sock, tout)
+int sock, tout;
+{
+	static unsigned char buf[1024];
+	static int bufin = 0, bufout = 0;
+	static int eof = 0;
+
+	if (sock < 0) {
+	  bufin = bufout = eof = 0;
+	  return 0;
+	}
+
+	if (eof) return -1;
+
+	for (;;) {
+
+	  /* Pick from input buffer */
+
+	  if (bufin > bufout) {
+	    return buf[bufout++];
+	  }
+
+	  if (bufin <= bufout)
+	    bufin = bufout = 0;
+
+	  if (bufin == 0) {
+	    struct timeval tv;
+	    fd_set rdset;
+	    int rc;
+
+	    rc = read(sock, buf, sizeof(buf));
+
+	    if (rc > 0) {
+	      bufin = rc;
+	      continue;
+	    }
+	    if (rc == 0) { /* EOF! */
+	      eof = 1;
+	      return -1;
+	    }
+	    if (errno == EINTR) continue;
+	    if (errno != EWOULDBLOCK && errno != EAGAIN) {
+	      eof = 1;
+	      return -errno;
+	    }
+	    
+	    _Z_FD_ZERO(rdset);
+	    _Z_FD_SET(sock, rdset);
+	    tv.tv_sec  = tout ? 1 : timeout_tcpr;
+	    tv.tv_usec = 0;
+
+	    rc = select(sock+1, &rdset, NULL, NULL, &tv);
+	    if (rc > 0) continue; /* THINGS TO READ! */
+	    if (rc == 0) {
+	      if (!tout)
+		eof = 1;
+	      return -ETIMEDOUT;
+	    }
+	    /* Errors ?? */
+	    if (errno == EINTR) continue;
+	    return -errno;
+	  }
+
+	}
+}
+
+
+int readsmtp(sock)
+int sock;
+{
+	char linebuf[8192];
+	int c = 0, i;
+	int end_seen = 0;
+	int no_more  = 0;
+
+	while ( !no_more && c >= 0 ) {
+
+	  int newline_seen = 0;
+	  int linelen = 0;
+
+	  while (!newline_seen) {
+	    c = smtpgetc(sock, end_seen);
+	    if (c < 0) {
+	      if (end_seen && c == -ETIMEDOUT)
+		/* Quick additional read timeout.. */
+		no_more = 1;
+	      else
+		/* ERROR !!?? */
+		;
+	      break;
+	    }
+	    if (c == '\r') continue; /* Ignore that */
+	    if (linelen < sizeof(linebuf))
+	      linebuf[linelen ++] = c;
+	    if (c == '\n')
+	      newline_seen = 1;
+	  }
+	  /* Got a full line, now what it might be.. */
+	  if (linelen > 3 &&
+	      ('0' <= linebuf[0] && linebuf[0] <= '9') &&
+	      ('0' <= linebuf[1] && linebuf[1] <= '9') &&
+	      ('0' <= linebuf[2] && linebuf[2] <= '9') &&
+	      (linebuf[3] == '\r' || linebuf[3] == '\n' ||
+	       linebuf[3] == ' '  || linebuf[3] == '\t'))
+	    end_seen = 1;
+
+	  if (linelen > 0) {
+	    fprintf(stdout, " ");
+	    for (i = 0; i < linelen; ++i) {
+	      if (linebuf[i] == '\n' ||
+		  (linebuf[i] >= ' ' && linebuf[i] < 127))
+		fprintf(stdout, "&#%d;", linebuf[i]);
+	      else
+		fprintf(stdout, "\\0x%02X", linebuf[i]);
+	    }
+	  }
+	}
+	if (c < 0 && no_more) c = 1;
+
+	return (c < 0) ? -c : 0;
+}
+
+
+int writesmtp(sock, str)
+int sock;
+char *str;
+{
+	int rc, len, e;
+
+	len = strlen(str);
+
+	while (len > 0) {
+	  SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
+	  rc = write(sock, str, len);
+	  e = errno;
+	  SIGNAL_HANDLE(SIGPIPE, SIG_DFL);
+	  errno = e;
+	  if (rc >= 0) {
+	    len -= rc;
+	    str += rc;
+	    continue;
+	  }
+	  /* Right, now error handling.. */
+	  if (errno == EINTR) continue;
+	  if (errno == EAGAIN || errno == EWOULDBLOCK) {
+	    fd_set wrset;
+	    struct timeval tv;
+	    _Z_FD_ZERO(wrset);
+	    _Z_FD_SET(sock, wrset);
+	    tv.tv_sec  = timeout_tcpw;
+	    tv.tv_usec = 0;
+	    rc = select(sock+1, NULL, &wrset, NULL, &tv);
+	    if (rc > 0) continue;
+	    if (rc == 0) {
+	      /* TIMEOUT! */
+	      return ETIMEDOUT;
+	    }
+	    /* Error processing! */
+	    if (errno == EINTR) continue;
+	  }
+	  return errno;
+	}
+	return 0;
+}
+
+
 void smtptest(thatdomain, ai)
 char *thatdomain;
 struct addrinfo *ai;
 {
-	int sock;
-	char fromaddr[300], toaddr[300];
-
-	fprintf(stdout, "SMTPTEST() TO BE WRITTEN!\n");
+	int sock, rc, wtout = 0;
+	char myhostname[200];
+	char smtpline[500];
 
 	/* Try two sessions:
 	   1) HELO + MAIL FROM:<> + RCPT TO:<postmaster@thatdomain> + close
+
+	   --- and perhaps if it turns out to be becessary, also:
+
 	   2) HELO + MAIL FROM:<postmaster@thisdomain> +
 	             RCPT TO:<postmaster@thatdomain> + close
 	*/
+
+	smtpgetc(-1);
+
+	rc = vcsetup(ai->ai_addr, &sock, myhostname, sizeof(myhostname));
+
+	if (rc != EX_OK) return; /* D'uh! */
+
+
+	fprintf(stdout, "<PRE>\n");
+
+
+	/* Initial greeting */
+
+	rc = readsmtp(sock); /* Read response.. */
+	if (rc != EX_OK) goto end_test_1;
+
+
+	sprintf(smtpline, "HELO %s\r\n", myhostname);
+	fprintf(stdout, " HELO %s\n", myhostname);
+	rc = writesmtp(sock, smtpline);
+
+	if (rc == ETIMEDOUT) wtout = 1;
+	if (rc != EX_OK) goto end_test_1;
+	rc = readsmtp(sock); /* Read response.. */
+	if (rc != EX_OK) goto end_test_1;
+
+	sprintf(smtpline, "MAIL FROM:<>\r\n");
+	fprintf(stdout, " MAIL FROM:&lt;&gt;\n");
+	rc = writesmtp(sock, smtpline);
+	if (rc == ETIMEDOUT) wtout = 1;
+	if (rc != EX_OK) goto end_test_1;
+	rc = readsmtp(sock); /* Read response.. */
+	if (rc != EX_OK) goto end_test_1;
+
+	sprintf(smtpline, "RCPT TO:<postmaster@%s>\r\n", thatdomain);
+	fprintf(stdout, " RCPT TO:&lt;postmaster@%s&gt;\n", thatdomain);
+	rc = writesmtp(sock, smtpline);
+	if (rc == ETIMEDOUT) wtout = 1;
+	if (rc != EX_OK) goto end_test_1;
+	rc = readsmtp(sock); /* Read response.. */
+
+	sprintf(smtpline, "RSET\r\nQUIT\r\n");
+	writesmtp(sock, smtpline);
+
+ end_test_1:
+	close(sock);
+	fprintf(stdout,"\n</PRE>\n");
+	/* fprintf(stdout, "RC = %d\n", rc); */
+	if (wtout)
+	  fprintf(stdout,"<H2> WRITE TIMEOUT!</H2>\n");
 }
 
 
@@ -504,7 +875,6 @@ char *hname;
 	  } else
 #endif
 	    sprintf(buf,"UNKNOWN-ADDR-FAMILY-%d", a->ai_family);
-	  
 	  fprintf(stdout,"<P>\n");
 	  fprintf(stdout,"<H2>Testing server at address: %s</H2>\n", buf);
 	  fprintf(stdout,"<P>\n");
