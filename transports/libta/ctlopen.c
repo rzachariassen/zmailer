@@ -360,7 +360,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	    break;
 	  /* Shudder... we trash the memory block here.. */
 	  s = contents + d.offset[i];
-	  switch (*s) r{
+	  switch (*s) {
 	  case _CF_FORMAT:
 	    ++s;
 	    format = 0;
