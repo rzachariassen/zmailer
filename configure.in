@@ -1433,6 +1433,7 @@ AC_OUTPUT(Makefile
 	proto/cf/SMTP.cf						\
 	proto/db/aliases		proto/sm.conf			\
 	bin/mkdep			bin/mklibdep			\
+	packaging/solaris/Makefile	\
 	SiteConfig	,
 [chmod 755 bin/*
  echo > stamp-h])dnl
