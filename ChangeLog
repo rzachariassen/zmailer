@@ -2,8 +2,11 @@
 
 	* transports/smtp/getmxrr.c:
 	    Yet another wrong index variable usage -- one which affects
-	    MX-list purge of self-identity matching servers.
-	    Sympom:  "No MX, no address"
+	    MX-list purge of self-identity matching of MX servers.
+	    Symptom:  "No MX, no address"
+	    [mea: That may have been part of the problem,  getaddrinfo()
+	          yielding EAI_NONAME in places of EAI_AGAIN may have
+		  been another.. -- at least for me.]
 	
 2000-08-02  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 	
