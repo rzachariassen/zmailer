@@ -450,7 +450,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	no_data = !h && h_errno == NO_DATA;
       }
 
-      if (no_data != 0) {
+      if (no_data) {
 	/* We made requests but they turned out no data.  The name
 	   is known, though.  */
 	/* FIX!FIX! garbage collect! */
