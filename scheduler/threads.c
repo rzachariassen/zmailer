@@ -998,7 +998,7 @@ int ok, justfree;
 	  proc->fed = 1;
 	  return; /* WE ARE IDLE! */
 	}
-#if 0 /* dead code ?? */
+#if 1 /* dead code ?? */
 	if (!justfree && proc->fed == 0 && proc->vertex != NULL) {
 	  if (verbose) sfprintf(sfstdout," ... NONE, current one has not been fed..\n");
 	  return; /* Current one has not been (completely) fed..	*/
@@ -1108,7 +1108,7 @@ int ok, justfree;
 
 	/* No free threads/vertices here, idle the process */
 	if (verbose) sfprintf(sfstdout," ... idle the process (of=%d, f=%d), and try to pick next thread.\n",
-			    proc->overfed, proc->fed);
+			      proc->overfed, proc->fed);
 	proc->thread = NULL;
 	proc->vertex = NULL;
 	proc->next = thg->idleproc;
