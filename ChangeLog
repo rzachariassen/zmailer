@@ -1,3 +1,10 @@
+2002-02-18  Matti Aarnio  <mea@zmailer.org>
+
+	* utils/makedb/makedb.c:
+	    Remove else -brances causing problems in some cases.
+	    I got definite reports about this earlier, but had
+	    solid neutronium in my skull...
+
 2002-02-15  Matti Aarnio  <mea@zmailer.org>
 
 	* libc/mail.c, libc/sfmail.c, router/rfc822.c:

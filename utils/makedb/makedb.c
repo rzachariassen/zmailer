@@ -886,12 +886,10 @@ char *argv[];
 #ifdef HAVE_NDBM
     if (cistrcmp(dbtype, "ndbm") == 0)
 	typ = 1;
-    else
 #endif
 #ifdef HAVE_GDBM
     if (cistrcmp(dbtype, "gdbm") == 0)
 	typ = 2;
-    else
 #endif
 #if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
     if (cistrcmp(dbtype, "btree") == 0)
