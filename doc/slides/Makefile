@@ -12,6 +12,7 @@ zmailer-fuug@sea2000.dvi: zmailer-fuug@sea2000.tex
 
 zmailer-fuug@sea2000.pdf: zmailer-fuug@sea2000.ps
 	ps2pdf zmailer-fuug@sea2000.ps
+	-cp  zmailer-fuug@sea2000.pdf /net/mea/home/ftp/zmailer/
 
 clean:
 	rm -f *~ *.aux *.dvi *.log

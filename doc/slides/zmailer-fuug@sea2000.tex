@@ -68,13 +68,14 @@
 
  Matti Aarnio, 15-Sep-2000
 
-The overlays and notes are supplementaty material, which supports
+The overlays and notes are supplementary material, which supports
 the mainline slides.
 (Page numbers at low right corner have a hyphen in them.)
 
 \small
-Note: When viewing this with XPDF (0.90 or 0.91), few \TeX\ fonts will
-be invisible.  Adobe AcroReader 4.0 is able to show those fonts.
+Note: When viewing this with XPDF (0.90 or 0.91), few \TeX{}
+fonts will be invisible.
+Adobe AcroReader 4.0 is able to show those fonts.
 (Mainly these are less-than and greater-than glyphs around email
  addresses in baseline text.)
 
@@ -167,7 +168,7 @@ can be shut down for a while without harming other subsystem functionality.
 
 The task-transfer in between the subsystems is done via
 the filesystem -- {``\it spool''}.
-Performance of this filesystem is usually the ultimate system thoughput limit.
+Performance of this filesystem is usually the ultimate system throughput limit.
 
 \vfill
 \centerline{\em There are no suid-anything programs in this system!}
@@ -336,9 +337,9 @@ The {\em smtpserver} can do interactive routing analysis of
 {\em MAIL FROM:} and {\em RCPT TO:} phase envelope addresses
 by running a router process synchronously underneath itself,
 however that is seriously heavy-weight thing, and really taxes
-system performance for no practically usefull thing.
+system performance for no practically useful thing.
 
-A more usefull approach is simply to do SMTP MX/A routing rules
+A more useful approach is simply to do SMTP MX/A routing rules
 analysis of source and destination envelope addresses, with
 some control rules from a few local database files giving the
 system an idea of which domains are local, and which are rules
@@ -470,7 +471,7 @@ class things like ``ccMail''.
 #PARAM maxsize              10000000    # Same as -M -option
 #PARAM min-availspace           5000    # Minimum free in POSTOFFICE after
 #                                       # message has arrived; in KILOBYTES.
-#PARAM max-error-recipients        3    # More than this is propably SPAM!
+#PARAM max-error-recipients        3    # More than this is probably SPAM!
 #PARAM MaxSameIpSource            10    # Max simultaneous connections
 #                                       # from any IP source address
 #PARAM MaxParallelConnections    800    # Max simultaneous connections
@@ -498,7 +499,7 @@ class things like ``ccMail''.
 PARAM   DEBUGcmd
 PARAM   EXPNcmd
 PARAM   VRFYcmd
-PARAM   enable-router   # This is a security decission for you.
+PARAM   enable-router   # This is a security decision for you.
 #                       # This is needed for EXPN/VRFY and interactive
 #                       # processing of MAIL FROM and RCPT TO addresses.
 #                       # However it also may allow external user entrance
@@ -513,7 +514,7 @@ PARAM   enable-router   # This is a security decission for you.
 \centerline{{\em ``smtpserver.conf''}}
 \tiny
 \begin{verbatim}
-PARAM   smtp-auth       # enable if you want to allow SMTP to autenticate
+PARAM   smtp-auth       # enable if you want to allow SMTP to authenticate
 #                       # with the default code against system  /etc/passwd
 #                       # (or whatever source  getpwnam() uses for it..)
 #
@@ -545,7 +546,7 @@ PARAM   deliverby 60
 #                       # command line and a password from standard input.
 #                       # Exit status 0 means successful authentication.
 #
-# Disablers of some facility adverticements
+# Disablers of some facility advertisements
 #PARAM  NoEHLO
 #PARAM  NoPIPELINING
 #PARAM  No8BITMIME
@@ -882,13 +883,13 @@ userdb          $DBTYPE -    -la $MAILVAR/db/userdb             -lm
 \centerline{\large \ZM{} subsystems: {\em ``scheduler''} (2)}
 
 \small
-The role of the {\em scheduler} in \ZM{} is to be seriously parallellizing
+The role of the {\em scheduler} in \ZM{} is to be seriously parallelizing
 taskmaster to make sure all recipients are getting evenhanded handling,
 while still making sure that nobody gets to be a resource hog.
 
 The {\em scheduler} reads all message processing task descriptors
 from their spoolfiles, and places them into appropriate slots in
-the workprofile datastructures.
+the work-profile data-structures.
 
 Depending on the situation the {\em scheduler} will likely immediately
 upon new recipient destination reception to try to start delivery into there.
@@ -924,11 +925,21 @@ is sent from the TA to the {\em scheduler}, and stored into the
 \begin{slide}
 \centerline{\large \ZM{} subsystems: {\em ``scheduler''} (4+)}
 
-{\Huge ??????????}
+- about resource controls
 
 - about scheduler configuration
 
-- about resource controls
+The {\em scheduler} has two configuration files:
+
+- scheduler.conf
+
+- scheduler.auth
+
+First of which guides task pickup and resource allocations.
+Path for the second one is parametrized inside the first one.
+
+The second file contains ``mailq'' service port access autentication
+data.
 
 \vfill
 \end{slide}
@@ -1154,7 +1165,7 @@ local/pipe*
 # This fallback "local/*" can be used to yield different local
 # delivery mechanism -- mailbox / CMU cyrus IMAP server / procmail
 #
-# The latter two can not do deliveries to explicite files / pipes,
+# The latter two can not do deliveries to explicit files / pipes,
 # thus you need the  "local/file*" and "local/pipe*" above.
 #
 
@@ -1328,7 +1339,7 @@ smtp/*.fi
 \tiny
 \begin{verbatim}
 #
-# These messages will go only into the queue, and need explicite
+# These messages will go only into the queue, and need explicit
 # SMTP mediated ETRN request, before they become flushed out.
 #
 
@@ -1555,7 +1566,7 @@ The {\em Transport Agents} are a collection of programs intended
 to be driven by the {\em scheduler} to perform processing for
 the routed result addresses.
 
-These programs will produce diagnostice according to system internal
+These programs will produce diagnostics according to system internal
 protocols for each processed recipient address.
 
 \vfill
@@ -1614,7 +1625,7 @@ also supported here for outbound email.
 
 This program can also use SSL/TLS protocol to communicate with
 remote node, and thus to encrypt the transfer session hiding
-message content and receivers from weak evasdroppers.
+message content and receivers from weak eavesdroppers.
 When using SSL/TLS mode, the program needs a configuration file
 telling parameters for the used crypto subsystem.
 (Mainly info about the keys, and certificates.)
@@ -1650,7 +1661,67 @@ Nowadays it is needed very rarely.
 \begin{slide}
 \centerline{\large \ZM{} Administrative tools}
 
-{\Huge ??????????}
+For system managers use the \ZM{} suite has couple of tools:
+
+\begin{itemize}
+\item
+``zmailer.sh'' (a.k.a. ``zmailer'') command which is all together
+the SystemV Init script for the system, and command interface for
+various submodules
+
+\item
+``newdb'' is script wrapper for ``makedb''
+
+\item
+``newdbprocessor'' is what ``zmailer newdb'' runs when it sees configuration
+file: ``\$MAILVAR/db/dbases.conf'', otherwise that
+same program does a set of classical pre-determined db setups.
+
+\end{itemize}
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} Administrative tools (2)}
+
+\begin{itemize}
+
+\item
+``manual-expirer'' is tool for managers having hundreds, or
+thousands of emails to some destination, and wanting to get rid
+of them all in one go.
+
+\item
+``newaliases'' and ``newfqdnaliases'' are scripts calling ``newdb''
+with suitable parameters to regenerate ``aliases'' and ``fqdnaliases''
+alias databases.  Semi-obsoleted by ``newdbprocessor''.
+
+\item
+``mboxpath'' is system helper in case admin wants to scatter
+classical UNIX mailspool directory (``/var/spool/mail/'') located
+mailboxes into subdirectories. See ``mailbox'' documentation.
+
+\end{itemize}
+\vfill
+\end{slide}
+
+\begin{slide}
+\centerline{\large \ZM{} Administrative tools (3)}
+
+\begin{itemize}
+
+\item
+``vacation'' -- well, an obvious thing, isn't it ?
+
+\item
+``policy-builder.sh'' rebuilds smtpserver input policy filter 
+control database from its components.
+
+\item
+``smtpserver-log-parser.pl'' -- can assist picking entire incoming
+SMTP sessions from the logfile (if its collection is active) with
+regular expression matching.
+\end{itemize}
 
 \vfill
 \end{slide}
