@@ -1,6 +1,6 @@
 /*	Prototypes of ZMailer Scheduler component routines	*/
 /*
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-1999
  */
 
 #ifndef __
@@ -158,4 +158,4 @@ extern void checkscheduler __(( void ));
 extern void report __(( FILE *fp ));
 
 /* Transport library */
-/* extern int lockaddr __((int, char *, long, int, int)); */
+/* extern int lockaddr __((int, char *, int, int, int)); */

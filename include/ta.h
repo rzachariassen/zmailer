@@ -187,7 +187,7 @@ extern int erename __((char *from, char *to));
 #endif
 
 /* lockaddr.c: */
-extern int lockaddr __((int fd, char *map, long offset, int was, int new, const char *file, const char *host, const int mypid));
+extern int lockaddr __((int fd, char *map, int offset, int was, int new, const char *file, const char *host, const int mypid));
 
 /* markoff.c: */
 extern int markoff __((char *filecontents, int bytesleft, long offsets[], const char *filename));

@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1995
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
  */
 
 #include "hostenv.h"
@@ -130,12 +130,10 @@ static int qpctlfile(spl)
 	    fprintf(qpfp, "%d:\t%s/%s\t%d;",
 		    vp->qid, cfpdirname(cfp->dirind), cfp->mid, vp->ngroup);
 	  else
-	    fprintf(qpfp, "%d:\t%s\t%d;",
-		    vp->qid, cfp->mid, vp->ngroup);
+	    fprintf(qpfp, "%d:\t%s\t%d;", vp->qid, cfp->mid, vp->ngroup);
 	  qpch = ' ';
 	  for (i = 0; i < vp->ngroup; ++i) {
-	    fprintf(qpfp, "%c%ld",
-		    qpch, cfp->offset[vp->index[i]]);
+	    fprintf(qpfp, "%c%ld", qpch, (long)cfp->offset[vp->index[i]]);
 	    qpch = ',';
 	  }
 	  if (vp->message != NULL)

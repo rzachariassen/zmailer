@@ -1335,7 +1335,7 @@ slurp(fd, ino)
 	register char *s;
 	register int i;
 	char *contents;
-	long *offset, *ip, *lp;
+	int *offset, *ip, *lp;
 	int offsetspace;
 	struct stat stbuf;
 	struct ctlfile *cfp;
@@ -1381,7 +1381,7 @@ slurp(fd, ino)
 	/* go through the file and mark it off */
 	i = 0;
 	offsetspace = 100;
-	offset = (long*)emalloc(sizeof(long)*offsetspace);
+	offset = (int*)emalloc(sizeof(int)*offsetspace);
 	offset[i++] = 0L;
 	for (s = contents; s - contents < stbuf.st_size; ++s) {
 	  if (*s == '\n') {
@@ -1389,7 +1389,7 @@ slurp(fd, ino)
 	    if (s - contents < stbuf.st_size) {
 	      if (i >= offsetspace-1) {
 		offsetspace += 20;
-		offset = (long*)erealloc(offset,sizeof(long)*offsetspace);
+		offset = (int*)erealloc(offset,sizeof(int)*offsetspace);
 	      }
 	      offset[i++] = s - contents;
 	      if (*s == _CF_MSGHEADERS) {
@@ -1438,14 +1438,14 @@ slurp(fd, ino)
 }
 
 struct offsort {
-	long	offset;
+	int	offset;
 	int	myidx;
-	long	headeroffset;
-	long	drptoffset;
-	char	*sender;
-	char	*delayslot;
-	/* char	*dsnrecipient; */
+	int	headeroffset;
+	int	drptoffset;
+	int	delayslot;
 	int	notifyflg;
+	char	*sender;
+	/* char	*dsnrecipient; */
 	time_t	wakeup;
 };
 
@@ -1512,7 +1512,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	const int rereading;
 {
 	register int i, opcnt;
-	register long *lp;
+	register int *lp;
 	int svn;
 	char *cp, *channel, *host, *l_channel, *l_host;
 	char *echannel, *ehost, *l_echannel, *l_ehost, mfpath[100], flagstr[2];
@@ -1650,11 +1650,11 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      }
 	      if (*cp == ' ' || (*cp >= '0' && *cp <= '9')) {
 		/* Newer DELAY data slot - _CFTAG_RCPTDELAYSIZE bytes */
-		offarr[opcnt].delayslot = cp;
+		offarr[opcnt].delayslot = offarr[opcnt].offset;
 		offarr[opcnt].offset += _CFTAG_RCPTDELAYSIZE;
 		cp += _CFTAG_RCPTDELAYSIZE;
 	      } else
-		offarr[opcnt].delayslot = NULL;
+		offarr[opcnt].delayslot = 0;
 	      offarr[opcnt].wakeup = wakeuptime;
 	      offarr[opcnt].myidx = i;
 	      offarr[opcnt].headeroffset = -1;

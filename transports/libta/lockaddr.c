@@ -29,7 +29,7 @@ int
 lockaddr(fd, map, offset, was, new, file, host, mypid)
 	int	fd;
 	char	*map;
-	long	offset;
+	int	offset;
 	int	was;
 	int	new;
 	const char *file, *host;

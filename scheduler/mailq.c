@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1995
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
  */
 
 /*
@@ -1094,7 +1094,7 @@ printaddrs(v)
 	if (verbose > 1 && v->cfp->offset[0] > 0) {
 	  long dt = now - v->cfp->ctime;
 	  int fields = 2;
-	  printf(", %ld bytes, age ", v->cfp->offset[0]);
+	  printf(", %ld bytes, age ", (long)v->cfp->offset[0]);
 	  /* age (now-ctime) printout */
 	  if (dt > (24*3600)) {	/* Days */
 	    printf("%dd", (int)(dt /(24*3600)));

@@ -430,7 +430,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	      break;
 	    }
 	    rp->addr = ap;
-	    rp->delayslot;
+	    rp->delayslot = delayslot;
 	    rp->id = d.offset[i];
 	    /* XX: XOR locks are different */
 	    rp->lockoffset = rp->id + 1;

@@ -86,7 +86,7 @@ struct ctlfile {
 	int	rcpnts_work;	/* .. yet to deliver ?			     */
 	int	mark;		/* flag used by selector() to pass filenames */
 	int	msgbodyoffset;	/* size of original headers to skip on errrpt*/
-	long	offset[1];	/* array of nlines byte offsets into the file*/
+	int	offset[1];	/* array of nlines byte offsets into the file*/
 };
 
 struct threadgroup {
@@ -168,8 +168,8 @@ struct vertex {
 	struct vertex	*nextitem;	/* next in list of scheduled vertices*/
 	struct vertex	*previtem;	/* prev in list of scheduled vertices*/
 	char		*message;	/* some text associated with node    */
-	long		headeroffset;	/* Message headers for this rcpt     */
-	long		drptoffset;	/* IETF-NOTARY DRPT  data	     */
+	int		headeroffset;	/* Message headers for this rcpt     */
+	int		drptoffset;	/* IETF-NOTARY DRPT  data	     */
 	char		*notary;	/* IETF Notary report data	     */
 	int		notaryflg;	/* IETF DSN notary control flags     */
 #define NOT_NEVER   001
