@@ -64,6 +64,16 @@ struct headerinfo optional_hdrs[] = {
 { "references",		References,	nilUserType,	normal		},
 { "in-reply-to",	References,	nilUserType,	normal		},
 #endif
+{ "x-orcpt",	nilHeaderSemantics,	killUserType,	normal		},
+{ "x-envid",	nilHeaderSemantics,	killUserType,	normal		},
+{ "return-path", nilHeaderSemantics,	killUserType,	normal		},
+{ "resent-x-orcpt",	nilHeaderSemantics,	killUserType,	Resent	},
+{ "resent-x-envid",	nilHeaderSemantics,	killUserType,	Resent	},
+{ "resent-return-path", nilHeaderSemantics,	killUserType,	Resent	},
+#if 0 /* Special treatment.. */
+{ "bcc",	nilHeaderSemantics,	killUserType,	normal		},
+{ "Resent-bcc",	nilHeaderSemantics,	killUserType,	Resent		},
+#endif
 };
 
 struct headerinfo envelope_hdrs[] = {
@@ -145,7 +155,7 @@ semenum2name(d)
 	  if (d == hdrsemtable[i].semantics)
 	    return hdrsemtable[i].name;
 	}
-	return NULL;
+	return "-";
 }
 
 void
@@ -337,7 +347,7 @@ add_header(sip, cvalue)
 	if (hdb == NULL)
 	  return EOF;
 
-	/* parse a line like:  rulename:sender/recipient/-:resent/normal */
+	/* parse a line like:  rulename/-:sender/recipient/kill/-:resent/normal */
 	if (*cvalue == '\0') {
 	  fprintf(stderr, "add_header: null header specification\n");
 	  return EOF;
@@ -363,7 +373,7 @@ add_header(sip, cvalue)
 	}
 	*cp++ = '\0';
 	rh.semantics = semname2enum(value);
-	if (rh.semantics == nilHeaderSemantics) {
+	if (rh.semantics == nilHeaderSemantics && strcmp(value,"-")!=0) {
 	  fprintf(stderr, "add_header: unknown parse rule '%s'\n", value);
 #ifndef USE_ALLOCA
 	  free(vbuf);
@@ -393,9 +403,11 @@ add_header(sip, cvalue)
 	  rh.user_type = Sender;
 	else if (cistrcmp(value, "Recipient") == 0)
 	  rh.user_type = Recipient;
+	else if (cistrcmp(value, "Kill") == 0)
+	  rh.user_type = killUserType;
 	else {
 	  fprintf(stderr,
-		  "add_header: sender/recipient misspecified as '%s'\n",
+		  "add_header: sender/recipient/kill misspecified as '%s'\n",
 		  value);
 #ifndef USE_ALLOCA
 	  free(vbuf);
@@ -527,12 +539,26 @@ hdprintdata(spl)
 	struct spblk *spl;
 {
 	const struct headerinfo *rhp;
+	const char *user_type = "-";
 
 	rhp = (const struct headerinfo *)spl->data;
+	switch(rhp->user_type) {
+	case Sender:
+	  user_type = "Sender";
+	  break;
+	case Recipient:
+	  user_type = "Recipient";
+	  break;
+	case killUserType:
+	  user_type = "Kill";
+	  break;
+	default:
+	  break;
+	}
+
 	fprintf(pcfp, "%-16s\t%s:%s:%s (%s)\n", pname(spl->key),
 		semenum2name(rhp->semantics),
-		rhp->user_type  == Sender    ? "Sender"    :
-		(rhp->user_type == Recipient ? "Recipient" : "-"),
+		user_type,
 		rhp->class      == Resent    ? "Resent"    : "-",
 		spl->mark       == 0         ? "optional"  : "permanent");
 	return 0;

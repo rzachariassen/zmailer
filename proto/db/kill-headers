@@ -1,0 +1,14 @@
+# File listing headers which the router should kill on sight.
+# Lines beginning with alphanumeric character are assumed to
+# contain header names to be killed.  No embedded spaces are
+# allowed.
+#
+# Just some (built-in) examples, add your own ones!
+#
+#return-path
+#resent-return-path
+#x-orcpt
+#resent-x-orcpt
+#x-envid
+#resent-x-envid
+

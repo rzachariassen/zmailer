@@ -1668,16 +1668,11 @@ sequencer(e, file)
 	while (*hp != NULL) {
 	  h = *hp;
 	  if (h->h_descriptor->hdr_name != NULL &&
-	      ((h->h_descriptor->class == normal &&
-		(CISTREQ(h->h_descriptor->hdr_name,"bcc") ||
-		 CISTREQ(h->h_descriptor->hdr_name,"return-path") ||
-		 CISTREQ(h->h_descriptor->hdr_name,"x-orcpt")     ||
-		 CISTREQ(h->h_descriptor->hdr_name,"x-envid")        ))
+	      ((h->h_descriptor->user_type == killUserType)
+	       || (h->h_descriptor->class == normal &&
+		   (CISTREQ(h->h_descriptor->hdr_name,"bcc")))
 	       || (h->h_descriptor->class == Resent &&
-		   (CISTREQ(h->h_descriptor->hdr_name,"resent-BCC")         ||
-		    CISTREQ(h->h_descriptor->hdr_name,"resent-return-path") ||
-		    CISTREQ(h->h_descriptor->hdr_name,"resent-x-orcpt")     ||
-		    CISTREQ(h->h_descriptor->hdr_name,"resent-x-envid")  )))) {
+		   (CISTREQ(h->h_descriptor->hdr_name,"resent-bcc"))))) {
 	    /* Skip this one */
 	    *hp = h->h_next;
 	  } else {

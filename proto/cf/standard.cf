@@ -312,3 +312,33 @@ done
 
 toplevels=""
 unset toplevels # No need for that variable anymore..
+
+#| Kill certain RFC-822 envelope headers traveling thru this system
+#| Commented ones are built-in, there is special treatment for Bcc
+#| as that one requires internal semantics, and still must be killed!
+
+#db add headers return-path		-:kill:-
+#db add headers resent-return-path	-:kill:-
+#db add headers x-orcpt			-:kill:-
+#db add headers resent-x-orcpt		-:kill:-
+#db add headers x-envid			-:kill:-
+#db add headers resent-x-envid		-:kill:-
+
+if [ -r $MAILVAR/db/kill-headers ]
+then
+
+# As normal SH read thing is forbidden (too simple redirection stuff):
+#    while read header dummy < $MAILVAR/db/kill-headers
+# we need to do something a bit strange looking:
+
+  cat  $MAILVAR/db/kill-headers | 
+  while read header dummy 
+  do
+	ssift "$header" in
+	[a-zA-Z0-9].*
+		db add headers "$header" -:kill:-
+		;;
+	tfiss
+  done
+
+fi

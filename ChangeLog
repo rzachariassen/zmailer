@@ -1,3 +1,15 @@
+2000-03-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* include/mailer.h, proto/Makefile.in, proto/cf/standard.cf,
+	  proto/db/kill-headers, router/rfc822.c, router/libdb/header.c:
+	    Runtime configuration mechanism for killing named headers.
+	    We have some uses for removing e.g. gateway generated
+	    "X-Login-ID:" type of things which no recipient has any
+	    business of seeing.
+
+	* Makefile.in:
+	    Version 2.99.53-pre1
+
 2000-03-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:

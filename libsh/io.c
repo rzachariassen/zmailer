@@ -79,6 +79,7 @@ int std_fwrite(b,s,n,fp) const char *b; u_int s, n; FILE *fp;{ return fwrite(b,s
 
 /* functionally equivalent (to stdio) routines to deal with string buffers */
 
+#if 0
 char *
 siogets(s)
 	register char *s;
@@ -96,6 +97,7 @@ siogets(s)
 	*s = '\0';
 	return (s == os) ? NULL : os;
 }
+#endif
 
 char *
 siofgets(s, n, fp)
@@ -108,8 +110,10 @@ siofgets(s, n, fp)
 	char *os = s;
 
 	/* assert siop != NULL */
-	while (--n > 0 && siop->sb_ptr + siop->sb_cnt < siop->sb_base + siop->sb_bufsiz) {
-	  if ((ch = (int)*siop->sb_ptr++) == '\0')
+	while (--n > 0 &&
+	       siop->sb_ptr + siop->sb_cnt < siop->sb_base + siop->sb_bufsiz) {
+	  ch = (int)*siop->sb_ptr++;
+	  if (ch == '\0')
 	    break;
 	  *s++ = ch;
 	  if (ch == '\n')

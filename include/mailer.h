@@ -161,7 +161,8 @@ union misc {					/* what a header can be */
 
 typedef enum {	nilUserType,	/* nil */
 		Sender,		/* this is a sender address field */
-		Recipient	/* this is a recipient address field */
+		Recipient,	/* this is a recipient address field */
+		killUserType	/* to be killed when sighted! */
 } HeaderUserType;
 
 typedef enum {	normal,		/* nil */

@@ -663,7 +663,7 @@ sh_read(argc, argv)
 	static char *buf = NULL;
 	static u_int bufsize;
 	char *cp, *value = NULL, *bp;
-	int flag, offset;
+	int flag, offset, eoinp = 0;
 
 	if (argc == 1) {
 		fprintf(stderr, USAGE_READ, argv[0]);
@@ -679,7 +679,11 @@ sh_read(argc, argv)
 	flag = 0;
 	bp = NULL;
 	buf[0] = '\0';
-	while (argc > 0 && fgets(buf, bufsize, stdin) != NULL) {
+	while (argc > 0) {
+		if (fgets(buf, bufsize, stdin) == NULL) {
+		  eoinp = 1;
+		  break;
+		}
 		for (cp = buf; argc > 0 && *cp != '\0'; ) {
 			while (*cp != '\0' && WHITESPACE((unsigned)*cp))
 				++cp;
@@ -692,7 +696,7 @@ sh_read(argc, argv)
 					cp = buf + offset;
 					continue;
 				} else
-					goto eoinput;
+					break;
 			}
 			if (!flag) {
 				bp = cp;
@@ -743,11 +747,10 @@ sh_read(argc, argv)
 			v_set(*argv++, value), --argc;
 		}
 	}
-	if (buf[0] == '\0')
-		return 1;
+	/* if (buf[0] == '\0') return 1; */
+	if (eoinp) return 1;
 eoinput:
-	while (argc-- > 0)
-		v_set(*argv++, "");
+	while (argc-- > 0) v_set(*argv++, "");
 	return 0;
 }
 
