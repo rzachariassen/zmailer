@@ -256,7 +256,7 @@ extern int first_uid;		/* Make the opening connect with the UID of the
 extern int D_alloc;		/* Memory usage debug */
 extern int no_pipelining;	/* In case the system just doesn't cope with it */
 extern int prefer_ip6;
-
+extern int use_ipv6;
 
 #ifdef	lint
 #undef	putc

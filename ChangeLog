@@ -1,5 +1,11 @@
 2000-07-29  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* transports/smtp/Makefile.in, transports/smtp/smtp.h,
+	  transports/smtp/smtp.c, transports/smtp/getmxrr.c:
+	    Moved  getmxrr()  function to separate file, and
+	    wrapped it with a test shell in attempt to understand
+	    *why* it seems to fail at some inputs at some machines.
+
 	* scheduler/msgerror.c:
 	    Hooks for "expanded" action status.
 

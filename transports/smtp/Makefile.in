@@ -18,8 +18,8 @@ INSTALL=	@INSTALL@
 SMTP_LIB=	@LIBRESOLV@ @OPENSSLLIB@  @LIBSOCKET@ $(LIBMALLOC)
 SMTP_INCL=	@GENINCL@   @OPENSSLINCL@ @INCLRESOLV@
 #
-SOURCE=		smtp.c appendlet.c smtptls.c
-OBJS=		smtp.o appendlet.o smtptls.o
+SOURCE=		smtp.c appendlet.c smtptls.c getmxrr.c
+OBJS=		smtp.o appendlet.o smtptls.o getmxrr.o
 INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(SMTP_INCL)
 LIBMALLOC=	@LIBMALLOC@
@@ -37,6 +37,13 @@ smtp:	$(OBJS) version.o $(LIBDEB)
 
 smtp.3rd: smtp
 	atom -tool 3rd -o smtp.3rd smtp
+
+
+getmxrr-test.o: getmxrr.c smtp.h
+	$(CC) $(CFLAGS) -DTEST -c -o $@ $(srcdir)/getmxrr.c
+
+getmxrr-test:  getmxrr-test.o
+	$(CC) $(CFLAGS) -o $@ getmxrr-test.o version.o $(LIB) $(SMTP_LIB)
 
 mprobe:	mprobe.o version.o $(LIBDEB)
 	-rm -f mprobe
@@ -57,6 +64,8 @@ install:	smtp mprobe
 
 clean:
 	-rm -f smtp mprobe *~ *.o *.out make.log *.third *.3rd
+	-rm -f getmxrr-test
+
 distclean: clean
 	-rm -f Makefile
 
