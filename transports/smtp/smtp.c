@@ -628,7 +628,7 @@ main(argc, argv)
 
 	& oldsig; /* volatile-like trick.. */
 	& channel; & host; & smtpstatus;
-	& need_host; & idle; &no_MX; & dp;
+	& need_host; & idle; &noMX; & dp;
 	& checkmx; & smtphost; & punthost;
 
 	memset(&SS,0,sizeof(SS));
