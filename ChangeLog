@@ -1,5 +1,9 @@
 2000-10-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/smtp/smtp.c:
+	    Move the  notarystatsave()  function call up so that it will
+	    always be called for various subfunctions.
+
 	* libc/getaddrinfo.c:
 	    Disable entirely AF_LOCAL support.
 	    The code in question used tmpnam() which created some complaints

@@ -3634,6 +3634,8 @@ smtp_sync(SS, r, nonblocking)
 
 	  rc = code_to_status(code, &status);
 
+	  notarystatsave(SS,s,status);
+
 	  /* if (SS->verboselog)
 	     fprintf(SS->verboselog,
 	     " lmtp_mode=%d code=%d rc=%d idx=%d datarp=%p pipercpts[idx]=%p pipecmds[idx]='%s'\n",
@@ -3667,7 +3669,6 @@ smtp_sync(SS, r, nonblocking)
 	      /* Diagnose the errors, we report successes AFTER the DATA phase.. */
 	      time(&endtime);
 	      notary_setxdelay((int)(endtime-starttime));
-	      notarystatsave(SS,s,status);
 	      notaryreport(SS->pipercpts[idx]->addr->user,FAILED,NULL,NULL);
 
 	      diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
@@ -3698,7 +3699,6 @@ smtp_sync(SS, r, nonblocking)
 		     recipients who have been reported as RCPTSTATE_OK */
 
 		  notary_setxdelay((int)(endtime-starttime));
-		  notarystatsave(SS,s,status);
 		  notaryreport(datarp->addr->user, FAILED, NULL, NULL);
 		  diagnostic(datarp, rc, 0, "%s", SS->remotemsg);
 		  SS->rcptstates |= ((code >= 500) ?
@@ -3756,7 +3756,6 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 		   recipients who have been reported as RCPTSTATE_OK */
 		time(&endtime);
 		notary_setxdelay((int)(endtime-starttime));
-		notarystatsave(SS,s,status);
 		notaryreport(datarp->addr->user, "delivered", NULL, NULL);
 		diagnostic(datarp, rc, 0, "%s", SS->remotemsg);
 		SS->rcptstates |= RCPTSTATE_OK;
