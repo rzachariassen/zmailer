@@ -279,8 +279,9 @@ Installation procedure:
 	listed at  /etc/group -entry:  zmailer.  Users (unames) listed there
 	will be able to claim any addresses at the message headers, etc.
 	(See $MAILSHARE/cf/trusted.cf  for its usage there.)
-	Usual set is:  root,daemon,uucp
-	(Note: At some machines 'daemon' is called 'daemons')
+	The usual MINIMAL set is:  root,daemon,uucp
+	(Note: At some machines 'daemon' is called 'daemons'; it MUST be on
+	 that group for the smtpserver to work properly!)
 
     ==>	SECURITY ITEM: Those users at zmailer-group MUST NOT contain 'nobody' !
 	(The 'nobody' is used to prevent externally given inputs from being

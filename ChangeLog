@@ -1,3 +1,32 @@
+1998-04-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/mailbox/mailbox.c:
+	    New hash-directory option: -P (and -PP)
+	    This uses pjwhash32() on the username and then calculates
+	    a sub-directory hash from that -- in range of 'A'..'Z'.
+	    With two -P's, the hash is two-level deep: /dir/X/Y/uname
+	    where X is calculated as 'A'+(hash/26)%26, and Y is 'A'+(hash%26)
+
+	* transports/mailbox/mboxpath.c:
+	    A new command with options '-d dirpath', '-P[P]' and '-D[D]'
+	    and username parameter.  It calculates same hashes, and reports
+	    to  stdout  the path of the mailbox.
+
+	    This is intended for system-wide startup script usage with
+	    code something like following for sh:
+		MAIL=`mboxpath -P $USER`
+	    It is important to use SAME options here as are used at running
+	    the mailbox program.
+
+	* lib/pjwhash32.c:
+	    Pulled from elsewere a hash-routine to convert a string into
+	    a hash-value.  Used at mailbox subdirectory hashing..
+
+	* transports/smtp/smtp.c:
+	    "-L localidentity" option fix.  Now it can select from
+	    possible multiple local identities.
+	    Also corrected similar problem with '-F' option processing.
+
 1998-04-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.c, smtpserver/smtpdata.c:

@@ -18,10 +18,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	data, and sync in-core status with the file.
 		(incomplete code skeleton written for this)
 
-	- "Remote-MTA:" field needs info about the remote host IP
-	  we had connection with. (When some MX target has multiple
-	  IP addresses -- for multiple hosts, for example.)  However
-	  the delivery report format does not allow differentiation..
 	- Delivery messages plain-text part needs easier human
 	  understandable format on the messages.
 
@@ -99,6 +95,10 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	  to be something else, than the default.
 	** Well...  See  $MAILSHARE/cf/standard.cf:  dribble routine, and
 	** especially its calls!  Not so easy to configure externally...
+	- SIGHUP log close/reopen does not work quite as one would
+	  want it to work.  In fact it does not close the files, rather
+	  opens new ones after it has dup()ed old descriptors away from
+	  the harms way..  e.g. it leaks log-files..
 
 - post-install-check
 	- check existence of mailq/tcp in /etc/services
@@ -133,13 +133,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	  D with lower preferrence..
 	  (Noting that all MX-hosts with same or larger privilege,
 	   than ourselves are to be pre-removed from the list!)
-	- To support RFC-1830 SMTP extension: CHUNKING
-		[ 27-Feb-1998: code in place, and works against
-		               ZMailer's receiver code.. ]
-		TO VERIFY: that pipelining stuff and smtp_sync() stuff
-			   work all right in conjunktion with BDAT.
-	- To verify that PIPELINING work all right in all cases of
-	  MAIL FROM/RCPT TO return status conbinations.
 
 - IPv6 stuff:
 	- lib/selfaddrs.c: Don't properly do automatic IPv6 interface address
@@ -174,14 +167,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	- System mailbox locking schemes are sometimes non-obvious..
 	- For the last PERHAPS must back introduce the host-configuring
 	  for describing host-system dependencies like mailbox-lock schemes
-
-- Scheduler eats way too much memory, when some huge lists
-  flow thru it -- all recipient channels/hosts PLUS the whole
-  transport specifications file.  With TA's doing statistics
-  logging, the scheduler should not need to keep those copies
-  of the file's full TA-spec files in scheduler's core.
-	4-Feb-97: Now it won't...  It is up to the transport-agents to
-				   do the verbose logging on a file
 
 - Got mail with a suggestion: (via zmailer-list)
 

@@ -962,10 +962,10 @@ else
 fi
 
 
-defROUTEROPTIONS="-dkn 4"
-defSMTPOPTIONS="-a -sve -l ${LOGDIR}/smtpserver"
-defSCHEDULEROPTIONS="-l ${LOGDIR}/scheduler.perflog -S -H"
-defNNTPSERVER="nntp"
+defROUTEROPTIONS='-dkn 4'
+defSMTPOPTIONS='-a -sve -l ${LOGDIR}/smtpserver'
+defSCHEDULEROPTIONS='-l ${LOGDIR}/scheduler.perflog -S -H'
+defNNTPSERVER='nntp'
 ac_default_zmconfig="${ZCONFIG-/etc/zmailer.conf}"
 
 
