@@ -1517,7 +1517,7 @@ AC_CHECK_HEADERS(locale.h)
 AC_CHECK_FUNCS(setlocale)
 
 AC_CHECK_HEADERS(sys/loadavg.h) dnl Solaris 8, BSD uses <stdlib.h>
-AC_CHECK_FUNCS(getloadavg) dnl BSDs and Solaris 8, at least..
+dnl AC_CHECK_FUNCS(getloadavg) dnl BSDs and Solaris 8, at least..
 
 AC_LINK_IFELSE([AC_LANG_PROGRAM(
 [[#ifdef HAVE_SYS_LOADAVG_H
