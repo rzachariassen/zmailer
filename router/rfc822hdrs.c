@@ -194,7 +194,8 @@ set_pname(e, h, s)
 
 	if (e->e_resent) {
 		strcpy(buf, "Resent-");
-		strcat(buf, s);
+		strncpy(buf+7, s, sizeof(buf)-8);
+		buf[sizeof(buf)-1] = 0;
 		s = strsave(buf);
 	}
 	if (!CISTREQ(h->h_descriptor->hdr_name, s)) {
@@ -287,7 +288,7 @@ mkMessageId(e, unixtime)
 	register struct header *h;
 	static struct headerinfo *msgidDesc;
 	static int genseq = 0;
-	char buf[1024];	/* XX: tsk tsk */
+	char buf[200];	/* XX: tsk tsk */
 	struct tm *ts;
 	
 	if (msgidDesc == NULL) {
@@ -318,14 +319,14 @@ mkMessageId(e, unixtime)
 	  }
 	  *p = '\0';
 	  cp = tzbuf;
-	  sprintf(buf, "<%02d%s%d.%02d%02d%02d%s.%s+%d@%s>",
+	  sprintf(buf, "<%02d%s%d.%02d%02d%02d%.20s.%.20s+%d@%.90s>",
 		  ts->tm_year % 100, monthname[ts->tm_mon], ts->tm_mday,
 		  ts->tm_hour, ts->tm_min, ts->tm_sec,
 		  cp, e->e_file, ++genseq, myhostname);
 	}
 #else /* New way to do this .. more compressed one.. */
 	ts = gmtime(&unixtime);
-	sprintf(buf, "<%04d%02d%02d%02d%02d%02dZ%s+%d@%s>",
+	sprintf(buf, "<%04d%02d%02d%02d%02d%02dZ%.20s+%d@%.90s>",
 		ts->tm_year + 1900, ts->tm_mon + 1, ts->tm_mday,
 		ts->tm_hour,        ts->tm_min,     ts->tm_sec,
 		e->e_file,          ++genseq,       myhostname);
@@ -888,6 +889,8 @@ saveAddress(pp)
  * because it needs to be kept in sync with the functions above.
  */
 
+struct errmsgpos { int pos; token822 *tokens; };
+
 void
 errprint(fp, pp, hdrlen)
 	FILE *fp;
@@ -897,7 +900,9 @@ errprint(fp, pp, hdrlen)
 	int inAddress, n, i, j, len;
 	token822 *t;
 	struct addr *lastp, *tpp;
-	struct { int pos; token822 *tokens; } errmsg[200];
+
+	static struct errmsgpos * errmsg = NULL;
+	static int errmsgposspace = 0;
 
 	inAddress = 0;
 	for (lastp = NULL, tpp = pp; tpp != NULL; tpp = tpp->p_next)
@@ -912,6 +917,19 @@ errprint(fp, pp, hdrlen)
 		else if (pp->p_type == anAddress)
 			inAddress = 1;
 		else if (pp->p_type == anError) {
+			if (n >= errmsgposspace) {
+			  /* Must expand the space */
+			  if (errmsgposspace == 0) {
+			    errmsgposspace = 100;
+			    errmsg = (void*) emalloc(sizeof(*errmsg) *
+							errmsgposspace);
+			  } else {
+			    errmsgposspace <<= 1;
+			    errmsg = (void*) erealloc(errmsg,
+						      sizeof(*errmsg) *
+						      errmsgposspace);
+			  }
+			}
 			errmsg[n].pos = len - 1;
 			errmsg[n++].tokens = pp->p_tokens;
 			continue;

@@ -98,7 +98,7 @@ run_rfc822(argc, argv)
 {
 	struct envelope *e;
 	const char *file;
-	char buf[8196];
+	char buf[8196];   /* FILE* buffer, will be released at fclose() */
 	int status, errflg;
 	memtypes oval;
 
