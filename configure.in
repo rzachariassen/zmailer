@@ -653,25 +653,27 @@ LIBDB=""
 # Umm...
 if test "$ac_cv_header_db_185_h" = yes ; then
   t_found_at="nowhere"
-  if test "$ac_cv_lib_c_dbopen" = yes ; then
+  if test "$ac_cv_lib_c_dbopen1" = yes ; then
     LIBDB=""
     t_found_at="libc(1)"
     DBTYPE="btree"
   else
-    if test "$ac_cv_lib_db1_dbopen" = yes ; then
+    if test "$ac_cv_lib_db1_dbopen1" = yes ; then
       LIBDB="-ldb1"
       t_found_at="db1 library"
       DBTYPE="btree"
     else
-      AC_TRY_LINK([], [dbopen();], ac_cv_lib_c_dbopen=yes,
-				   ac_cv_lib_c_dbopen=no)
-      if test "$ac_cv_lib_c_dbopen" = no; then
-	if test "x$ac_cv_lib_db1_dbopen" = x; then # not set
+      if test "x$ac_cv_lib_c_dbopen1" = x ; then # not set
+	AC_TRY_LINK([], [dbopen();], ac_cv_lib_c_dbopen1=yes,
+				     ac_cv_lib_c_dbopen1=no)
+      fi
+      if test "$ac_cv_lib_c_dbopen1" = no ; then
+	if test "x$ac_cv_lib_db1_dbopen1" = x ; then # not set
 	  t_oldLibs="$LIBS"
 	  LIBS="$LIBS -ldb1"
-	  AC_TRY_LINK([], [dbopen();],	ac_cv_lib_db1_dbopen=yes,
-					ac_cv_lib_db1_dbopen=no)
-	  if test "$ac_cv_lib_db1_dbopen" = yes; then
+	  AC_TRY_LINK([], [dbopen();],	ac_cv_lib_db1_dbopen1=yes,
+					ac_cv_lib_db1_dbopen1=no)
+	  if test "$ac_cv_lib_db1_dbopen1" = yes ; then
 	    LIBDB="-ldb1"
 	    t_found_at="db1 library"
 	    DBTYPE="btree"
