@@ -848,7 +848,7 @@ T: \fI(exits)\fR
 .RE
 .PP
 ("S" = Scheduler, "T" = Transport agent)
-
+.PP
 .PP
 Normal diagnostic output is of the form:
 .PP
@@ -856,15 +856,15 @@ Normal diagnostic output is of the form:
 \fIid\fR / \fIoffset\fR \\t \fInotarydata\fR \\t \fIstatus\fR SPC \fImessage\fR
 .RE
 .PP
-where:
-
+Where:
+.RS
 .IP id
 is the inode number of the message file,
-
+.PP
 .IP offset
 is a byte offset within its control file where the address being reported
 on is kept,
-
+.PP
 .IP notarydata
 is a Ctrl-A separated quintet/sextet carrying delivery-status-notification
 information for the recipient.
@@ -880,7 +880,11 @@ is one of
 or
 .BR retryat ,
 and the
-
+.PP
+.IP status
+The exit status is a code from
+.BR <sysexits.h> .
+.PP
 .IP message
 is descriptive text associated with the report.  The text is terminated by
 a linefeed.  Any other format (as might be produced by subprocesses)
@@ -891,13 +895,10 @@ The
 .B retryat
 response will assume the first word of the text is a numeric parameter,
 either an incremental time in seconds if prefixed by
-.B +,
+.BR + ,
 or otherwise an absolute time in seconds since epoch.
-
+.RE
 .PP
-The exit status is a code from
-.BR <sysexits.h> .
-
 .PP
 The notarydata has Control-A separated sub-fields, five or six of them:
 .PP
@@ -905,35 +906,35 @@ The notarydata has Control-A separated sub-fields, five or six of them:
 Final-Rcpt-Address DSN-Action ENH-Status Report-String WTT-Host [WTT-TAid]
 .RE
 .PP
-
+.PP
 .IP Final-Rcpt-Address
 This is the final form of the recipient address used at the final delivery
 of which the diagnostic data is report about.  Compare with ORCPT= data!
-
+.PP
 .IP DSN-Action
 One of: "delivered", "failed", relayed", "delayed", "expanded".
 See RFC 1892.
-
+.PP
 .IP ENH-Status
 Enhanced status code per RFC 2034.
-
+.PP
 .IP Report-String
 A free-form text (one line, no e.g. CRs enbedded).
-
+.PP
 .IP WTT-Host
 For SMTP systems to produce "Remote-MTA:" header contents.
-
+.PP
 .IP WTT-TAid
 ZMailer specific extension to report the process name and PID number
 of the transport agent producing this report.  Helps to hunt for the
 syslogged data relating to this diagnostics instance.
 .PP
-
+.PP
 .SH "STATISTICS LOG FORMAT"
 The statistics log reports condenced performance oriented information
 in following format:
 .PP
-
+.PP
 .TS
 l c r r c l.
 timestamp	fileid	dt1	dt2	state	$channel/$host
@@ -944,30 +945,30 @@ timestamp	fileid	dt1	dt2	state	$channel/$host
 \fC812876559	90401-1	 0	21	ok	smtp/utu.fi\fR
 .TE
 .PP
-
+.PP
 where the fields are:
 .PP
-
+.PP
 .IP timestamp
 The original spoolfile ctime (creation time) stamp in decimal.
-
+.PP
 .IP fileid
 Spoolfile name after the router has processed it
-
+.PP
 .IP dt1
 The time difference from spoolfile ctime to scheduler control file
 creation by the router
-
+.PP
 .IP dt2
 The time difference from scheduler file ctime to the delivery that is
 logged on
-
+.PP
 .IP state
 What happened?  Values: ok, error, expiry
-
+.PP
 .IP $channel/$host
 Where/how it was processed
-
+.PP
 .SH MAILQ(v1) PROTOCOL
 Upon accepting a TCP connection on the \fBMAILQ\fR port (TCP port 174), the
 .I scheduler
@@ -992,10 +993,13 @@ bytes are the real data format identification.  The data is interpreted
 according to that format until the terminating connection close.
 .PP
 Format identifiers should be registered with the author.
-The only one currently defined is "\fBzmailer 1.0\fR".
-For that data format, the syntax of the data following the first \fBLF\fR is:
+Currently identified ones are:
+\fB"zmailer\ 1.0"\fR, and \fB"zmailer\ 2.0"\fR.
 .PP
-
+For the \fB"zmailer\ 1.0"\fR data format, the syntax of the data following
+the first \fBLF\fR is:
+.PP
+.PP
 .RS
 .nf
 \fBVertices:\fR\fB\\n\fR
@@ -1012,17 +1016,31 @@ For that data format, the syntax of the data following the first \fBLF\fR is:
 .PP
 Where:
 .RS
-.TS
-l l.
-\fB\\n\fR	is an ASCII linefeed
-\fB\\t\fR	is an ASCII tab
-\fIkey\fR	is an unsigned decimal number
-\fImsg-file\fR	is a contiguous string (it is the message file name relative to a known directory)
-\fIn-addrs\fR	is an unsigned decimal number (number of addresses)
-\fIoff1\fR...\fIoffN\fR	are unsigned decimal numbers (address byte offsets)
-\fItext\fR	is a string not containing an ASCII linefeed (status message)
-\fIword\fR	is a contiguous non-space string
-.TE
+.TP 0.4i
+\fB\\n\fR
+is an ASCII linefeed
+.TP 0.4i
+\fB\\t\fR
+is an ASCII tab
+.TP 0.4i
+\fIkey\fR
+is an unsigned decimal number
+.TP 0.4i
+\fImsg\-file\fR
+is a contiguous string (it is the message file name relative
+to a known directory)
+.TP 0.4i
+\fIn\-addrs\fR
+is an unsigned decimal number (number of addresses)
+.TP 0.4i
+\fIoff1\fR...\fIoffN\fR
+are unsigned decimal numbers (address byte offsets)
+.TP 0.4i
+\fItext\fR
+is a string not containing an ASCII linefeed (status message)
+.TP 0.4i
+\fIword\fR
+is a contiguous non-space string
 .RE
 .PP
 .PP
@@ -1071,7 +1089,7 @@ lowercase hexadecimal character printout of MD5 checksum ran
 over the catenate of the challenge string (without its ending
 newline character), and the user's password.
 This algorithm is essentially the same what APOP scheme uses.
-
+.PP
 PERLish example with above challenge:
 .nf
   \fC$authen = MD5hex("MAILQ-V2-CHALLENGE: 942665308.906504.3"."my-passwd")
