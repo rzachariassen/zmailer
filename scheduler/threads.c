@@ -812,13 +812,13 @@ thread_start(thr, queueonly_too)
 	struct web         *ho;
 	struct web         *ch;
 
+	queryipccheck();
+
 	if (!thr->thrkids && !thr->jobs) {
 	  /* Cleanup when no processes, nor vertices */
 	  delete_thread(thr);
 	  return 0;
 	}
-
-	queryipccheck();
 
 	if (syncstart || (freeze && !slow_shutdown)) return 0;
 	if (!queueonly_too && (ce->flags & CFG_QUEUEONLY)) return 0;
