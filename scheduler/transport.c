@@ -1251,7 +1251,7 @@ static void readfrom(fd)
 	  proc->carryover = emalloc(cp - buf + 1);
 	  memcpy(proc->carryover, buf, cp - buf);
 	  proc->carryover[cp - buf] = '\0';
-	} else
+	} else if (cp > buf)
 	  sfprintf(sfstderr,
 		   "HELP! Lost %ld bytes (n=%d/%d): '%s'\n",
 		   (long)(cp - buf), n, errno, buf);
