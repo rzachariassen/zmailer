@@ -1,3 +1,9 @@
+2000-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/scheduler.c, scheduler/transports.c:
+	    Call  syncweb()  also inside the   mux()  routine
+	    so that new jobs will get assimilated faster.
+
 2000-05-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* libc/mail.c, router/rfc822.c:

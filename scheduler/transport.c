@@ -48,6 +48,14 @@ static void reclaim      __((int, int));
 static void waitandclose __((int));
 static void readfrom     __((int));
 
+/* These two are *not* exactly proper ones, but at least at most
+   systems it links properly without wider exportation of related
+   data structure types.  */
+
+extern int syncweb __((void *));
+extern void *dirq;
+
+
 extern FILE *vfp_open __((struct ctlfile *));
 
 #ifdef  HAVE_WAITPID
@@ -1173,6 +1181,9 @@ time_t timeout;
 
 	      /* Because this loop might take a while ... */
 	      queryipccheck();
+
+	      syncweb(dirq);
+
 	    }
 	  }
 

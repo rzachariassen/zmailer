@@ -231,7 +231,7 @@ struct dirqueue {
 };
 
 static int dirqueuescan __((const char *dir,struct dirqueue *dq, int subdirs));
-static int syncweb __((struct dirqueue *dq));
+int syncweb __((struct dirqueue *dq));
 
 int global_maxkids = 1000;
 time_t now;
@@ -659,6 +659,15 @@ main(argc, argv)
 		   progname);
 	  exit(128+errflg);
 	}
+	cp = getzenv("SCHEDULERDIRHASH");
+	if (cp){
+	  if ((cp[0] == '1' || cp[0] == '2') &&
+	      cp[1] == 0)
+	    hashlevels = cp[0] - '0';
+	  else
+	    hashlevels = 0;
+	}
+
 	mailshare = getzenv("MAILSHARE");
 	if (mailshare == NULL)
 	  mailshare = MAILSHARE;
@@ -830,7 +839,12 @@ main(argc, argv)
 	       so that if we forget some jobs, they will
 	       become relearned soon enough.          */
 	    if (dirqueuescan(".", dirq, 
-			     (now >= next_idlecleanup)) < 150) {
+#if 1 /* Do recursively every time */
+			     1
+#else
+			     (now >= next_idlecleanup)
+#endif
+			     ) < 150) {
 	      /* If we have more things to scan, don't quit yet! */
 	      next_dirscan = now + sweepinterval;  /* 10 seconds interval */
 	      if (dirq->wrksum > 100)
@@ -848,20 +862,6 @@ main(argc, argv)
 	    next_interim_report_time = now + 120; /* every 2 minutes */
 	    interim_report_run();
 	  }
-
-	  /* Submit one item from pre-scheduler-queue into the scheduler */
-	  if (dirq->wrksum > 1 ) {
-	    /* If more things in queue, submit them up to 200 pieces, or
-	       until spent two seconds at it! */
-	    time_t now0 = now + 2;
-	    for (i=0; i < 200 && now > now0; ++i) {
-	      if (syncweb(dirq) < 0)
-		break; /* Out of queue! */
-	      mytime(&now);
-	    }
-	  }
-	  if (dirq->wrksum > 0)
-	    syncweb(dirq);
 
 	  /* See when to timeout from mux() */
 	  timeout = next_dirscan;
@@ -890,6 +890,21 @@ main(argc, argv)
 	      rereadcf = 0;
 	    }
 	    mytime(&now);
+
+	    /* Submit one item from pre-scheduler-queue into the scheduler */
+	    if (dirq->wrksum > 1 ) {
+	      /* If more things in queue, submit them up to 200 pieces, or
+		 until spent two seconds at it! */
+	      time_t now0 = now + 2;
+	      for (i=0; i < 200 && now > now0; ++i) {
+		if (syncweb(dirq) < 0)
+		  break; /* Out of queue! */
+		mytime(&now);
+	      }
+	    }
+	    if (dirq->wrksum > 0)
+	      syncweb(dirq);
+
 	    if (slow_shutdown) {
 	      timeout = now+2;
 	      shutdown_kids();  /* If there are any to shut down.. */
@@ -1194,13 +1209,15 @@ static int dirqueuescan(dir, dq, subdirs)
 	return newents;
 }
 
-static int syncweb(dq)
+int syncweb(dq)
 	struct dirqueue *dq;
 {
 	struct stat *stbuf;
 	char *file;
+	struct dirstatname *dqstats;
 	struct spblk *spl;
 	int wrkcnt = 0;
+	int wrkidx = dq->wrkcount -1;
 	long ino;
 
 	/* Any work to do ? */
@@ -1235,19 +1252,36 @@ static int syncweb(dq)
 
 	mytime(&now);
 
-	if (dq->stats[dq->wrkcount-1]->not_before > now)
-	  return -1; /* WAIT! */
+	for (; wrkidx >= 0; --wrkidx) {
+
+	  /* Process only one -- from the tail -- but leave
+	     'not_before' things behind... */
+	  if (dq->stats[wrkcnt]->not_before > now)
+	    continue; /* WAIT! */
+
+	  break;
+	}
 
 	/* Ok some, decrement the count to change it to index */
 	dq->wrkcount -= 1;
 	dq->wrksum   -= 1;
-	file  =   dq->stats[dq->wrkcount]->name;
-	stbuf = &(dq->stats[dq->wrkcount]->st);
-	ino   =   dq->stats[dq->wrkcount]->ino;
+
+	dqstats = dq->stats[wrkidx];
+	file  =   dqstats->name;
+	stbuf = &(dqstats->st);
+	ino   =   dqstats->ino;
+
+	if (dq->wrkcount > wrkidx) {
+	  /* Skipped some ! Compact the array ! */
+	  memcpy( &dq->stats[wrkidx], &dq->stats[wrkidx+1],
+		  sizeof(dq->stats[0]) * (dq->wrkcount - wrkidx));
+	}
+	dq->stats[dq->wrkcount] = NULL;
+
 	/* Now we have pointers */
 
 	/* Deletion from the  dirscan_mesh  should ALWAYS succeed.. */
-	spl = sp_lookup((u_long)ino,dirscan_mesh);
+	spl = sp_lookup((u_long)ino, dirscan_mesh);
 	if (spl != NULL)
 	  sp_delete(spl,dirscan_mesh);
 
@@ -1274,8 +1308,7 @@ static int syncweb(dq)
 	}
 
 	/* Free the pre-schedule queue entry */
-	free(dq->stats[dq->wrkcount]);
-	dq->stats[dq->wrkcount] = NULL;
+	free(dqstats);
 
 	return wrkcnt;
 }
