@@ -628,7 +628,7 @@ char **argv;
 
 	s_setup(&SS, FILENO(stdin));
 
-	if (ident_flag != 0)
+	if (ident_flag != 0 && !daemon_flg)
 	    setrfc1413ident(&SS);
 	else
 	    strcpy(SS.ident_username, "IDENT-NOT-QUERIED");
@@ -1563,7 +1563,6 @@ int insecure;
     /* re-opening the log ?? */
     zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
-#if 0
 #ifdef HAVE_TCPD_H		/* TCP-Wrapper code */
     if (use_tcpwrapper && netconnected_flg &&
 	wantconn(SS->inputfd, "smtp-receiver") == 0) {
@@ -1575,7 +1574,6 @@ int insecure;
 	sleep(2);
 	exit(0);
     }
-#endif
 #endif
 
     if (SS->reject_net) {

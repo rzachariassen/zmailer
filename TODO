@@ -7,6 +7,8 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   gets a conversion note added, some pointers get confused..
 	(maybe not ?  perhaps it was far delayed report ?)
 
+- "./configure --without-rfc822-tabs"  doesn't really :-/
+
 - Configuration files, esp.   cf/aliases.cf   has controversy in it.
   Many people think it is broken (I tend to agree) - 940614/mea
 

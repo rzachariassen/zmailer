@@ -1,4 +1,20 @@
+1999-11-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c:
+	    Don't do ident query when in interactive mode.
+
 1999-10-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/Makefile.in, smtpserver/smtpserver.c,
+	  smtpserver/wantconn.c:
+	    Reversed the effective kill of the tcp-wrapper after
+	    the ./configure got a way not to link it in per default..
+
+	* configure.in:
+	    "--with-openssl" (or its more explicite cousins) must now
+	       be used to have OpenSSL enabled at the system
+	    "--with-tcp-wrappers" (or its more explicite cousins) must
+	       now be used to have TCP-Wrapper enabled at the system
 
 	* man/smtpserver.8, proto/smtpserver.conf.in, smtpserver/cfgread.c,
 	  smtpserver/smtpserver.h, smtpserver/smtpserver.c,

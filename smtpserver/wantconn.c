@@ -34,8 +34,6 @@
  *  has far more superior technology for the task.
  */
 
-#if 0 /* KILL THIS UTTERLY! */
-
 #include "hostenv.h"
 #ifdef HAVE_TCPD_H		/* The hall-mark of having tcp-wrapper things around */
 
@@ -78,7 +76,5 @@ char *progname;
     fromhost(&request);
     return (hosts_access(&request));
 }
-
-#endif
 
 #endif
