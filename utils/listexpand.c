@@ -83,8 +83,9 @@ char * origdomain;
   return buf;
 }
 
-int rcptcompare(p1,p2)
-void *p1, *p2;
+static int rcptcompare __((const void *, const void *));
+static int rcptcompare(p1,p2)
+const void *p1, *p2;
 {
   struct rcpts *r1 = (struct rcpts*)p1, *r2 = (struct rcpts*)p2;
   return strcmp((r1)->revdomain, (r2)->revdomain);

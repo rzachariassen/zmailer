@@ -4,6 +4,9 @@
 	    For Solaris 2.6 (and 2.7 ?) autodetect  -lxnet  for
 	    socket related functions.
 
+	* smtpserver/zpwmatch.c, utils/listexpand.c:
+	    Some cleanup from result of using SUN-CC 4.2 at Solaris 2.6.
+
 1999-08-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* README.TCP-WRAPPER:

@@ -37,11 +37,14 @@
 #include <string.h>
 #include "libz.h"
 
+extern int zpwmatch __((const char *, const char *, long *));
+
 #ifdef HAVE_SECURITY_PAM_APPL_H
 
 static char *username = NULL;
 static char *pword = NULL;
 
+static void clean_reply __((int, const struct pam_message **, struct pam_response *));
 static void clean_reply(int num_msg, const struct pam_message **msg,
 			struct pam_response *reply)
 {
@@ -55,7 +58,7 @@ static void clean_reply(int num_msg, const struct pam_message **msg,
 	    switch (msg[count]->msg_style) {
             case PAM_PROMPT_ECHO_ON:
             case PAM_PROMPT_ECHO_OFF:
-                bzero(reply[count].resp, strlen(reply[count].resp));
+		memset(reply[count].resp, 0, strlen(reply[count].resp));
                 free(reply[count].resp);
                 break;
             case PAM_ERROR_MSG:
@@ -70,8 +73,16 @@ static void clean_reply(int num_msg, const struct pam_message **msg,
     }
 }
 
-static int pam_cons(int num_msg, const struct pam_message **msg,
-		    struct pam_response **resp, void *appdata_ptr)
+static int
+pam_cons __((int, const struct pam_message **,
+	     struct pam_response **, void *));
+
+static int
+pam_cons(num_msg, msg, resp, appdata_ptr)
+     int num_msg;
+     const struct pam_message **msg;
+     struct pam_response **resp;
+     void *appdata_ptr;
 {
     int count = 0;
     struct pam_response *reply;
@@ -115,7 +126,7 @@ static struct pam_conv pam_c = {
 };
 
 int zpwmatch(uname,password,uidp)
-     char *uname, *password;
+     const char *uname, *password;
      long *uidp;
 {
     pam_handle_t *ph;
@@ -146,12 +157,12 @@ int zpwmatch(uname,password,uidp)
     runastrusteduser();
 
     if (username) {
-	bzero(username, strlen(username));
+	memset(username, 0, strlen(username));
 	free(username);
 	username = NULL;
     }
     if (pword) {
-	bzero(pword, strlen(pword));
+	memset(pword, 0, strlen(pword));
 	free(pword);
 	pword = NULL;
     }
@@ -163,7 +174,7 @@ int zpwmatch(uname,password,uidp)
 # ifdef HAVE_SHADOW_H
 
 int zpwmatch(uname, password, uidp)
-     char *uname, *password;
+     const char *uname, *password;
      long *uidp;
 {
     struct spwd *spw;
@@ -192,7 +203,7 @@ int zpwmatch(uname, password, uidp)
 # else
 
 int zpwmatch(uname,password,uidp)
-     char *uname, *password;
+     const char *uname, *password;
      long *uidp;
 {
     struct passwd *pw;
