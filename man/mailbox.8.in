@@ -1,12 +1,13 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILBOX 8 "2003-May-13"
+.TH MAILBOX 8 "2003-Jun-17"
 .SH NAME
 mailbox \- zmailer local delivery transport agent
 .SH SYNOPSIS
 .IP "\fBmailbox\fR" 8em
 [\fB\-8abCDHPrRSUVX\fR]
+[\fB\-F\fR\ \fCedquot\fR]
 [\fB\-c\fR\ \fIchannel\fR]
 [\fB\-h\fR\ \fI"localpart"\fR]
 [\fB\-l\fR\ \fIlogfile\fR]
@@ -152,6 +153,17 @@ With \fI\-DD\fR the mailbox file will be placed into directory:
 .\" .IP \-g
 .\" disables file creation if they don't already exist.
 .\"
+.IP \-F\ \fCedquot\fR
+.RS
+"Fatalify."
+.PP
+Parameter-full option that can turn into
+.B fatal
+things that previously were mere
+.IR TEMPFAIL s.
+.PP
+This makes "quota exceeded" condition instantly fatal.
+.RE
 .IP \-h\ \fI"localpart"\fR
 specifies which of the possible multiple recipients is to be picked
 this time. Default is "none", which selects all local channel

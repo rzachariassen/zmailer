@@ -321,6 +321,7 @@ int  do_xuidl = 0;		/* Store our own  X-UIDL: header to allow
 				   the messages..  IMAP4 does require
 				   something different -- 32-bit unique
 				   counter..  See RFC 2060 for IMAP4. */
+int edquot_is_fatal = 0;
 
 extern int fmtmbox __((char *, int, const char *, const char *, \
 			const struct Zpasswd *));
@@ -526,7 +527,7 @@ main(argc, argv)
 	logfile = NULL;
 	channel = CHANNEL;
 	while (1) {
-	  c = getopt(argc, (char*const*)argv, "abc:Cd:Dgh:Hl:MPrRSVUX8");
+	  c = getopt(argc, (char*const*)argv, "abc:Cd:DF:gh:Hl:MPrRSVUX8");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -554,6 +555,10 @@ main(argc, argv)
 	    break;
 	  case 'X':		/* Like pjwhash32() above, but with crc32() */
 	    ++crchashes;
+	    break;
+	  case 'F':
+	    if (STREQ(optarg,"edquot"))
+	      edquot_is_fatal = 1;
 	    break;
 	  case 'U':
 	    do_xuidl = 1;
@@ -602,7 +607,7 @@ main(argc, argv)
 	  }
 	}
 	if (errflg || optind != argc) {
-	  fprintf(stderr, "Usage: %s [-8abDPXgHMrSV] [-l logfile] [-c channel] [-h host] [-d mailboxdir]\n",
+	  fprintf(stderr, "Usage: %s [-8abDPXgHMrSV] [-F edquot] [-l logfile] [-c channel] [-h host] [-d mailboxdir]\n",
 		  argv[0]);
 	  exit(EX_USAGE);
 	}
@@ -823,10 +828,7 @@ process(dp)
 	  userlen = strlen(rp->addr->user);
 	  if (userlen >= userspace) {
 	    userspace = userlen + 1;
-	    if (userbuf == NULL)
-	      userbuf = emalloc(userspace);
-	    else
-	      userbuf = realloc(userbuf, userspace);
+	    userbuf = realloc(userbuf, userspace);
 	  }
 	  memcpy(userbuf, rp->addr->user, userlen+1);
 	  user = userbuf;
@@ -870,6 +872,8 @@ process(dp)
 	}
 	if (userbuf != NULL)
 	  free(userbuf);
+	if (CT) free_content_type(CT);
+	if (CTE) free_content_encoding(CTE);
 }
 
 /*
@@ -1224,8 +1228,9 @@ deliver(dp, rp, usernam, timestring)
 	    setrootuid(rp);
 	    return;
 	  }
-	  file = usernam;
-	  
+
+	  file = strdup(usernam);
+
 	  if (access(file, F_OK) < 0) {
 	    fdmail = createfile(rp, file, uid, 0);
 	    /* Did the create fail for some other reason, than
@@ -1406,6 +1411,7 @@ deliver(dp, rp, usernam, timestring)
 		       "2.2.0 (delivered successfully)",
 		       "x-local; 250 (Delivered successfully)");
 	  DIAGNOSTIC(rp, usernam, EX_OK, "Ok", 0);
+	  free((void*)file);
 	  return;
 	}
 
@@ -1417,6 +1423,7 @@ deliver(dp, rp, usernam, timestring)
 		       "x-local; 566 (User's mailbox disappeared, will retry)");
 	  DIAGNOSTIC(rp, usernam, EX_TEMPFAIL,
 		     "mailbox file \"%s\" disappeared", file);
+	  free((void*)file);
 	  return;
 	}
 
@@ -1428,6 +1435,7 @@ deliver(dp, rp, usernam, timestring)
 	  DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
 		     "attempted delivery to special file \"%s\"",
 		     file);
+	  free((void*)file);
 	  return;
 	}
 
@@ -1455,6 +1463,7 @@ deliver(dp, rp, usernam, timestring)
 	    DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
 		       "size of mailbox \"%s\" exceeds quota for the user",
 		       file);
+	    free((void*)file);
 	    return;
 	  }
 	}
@@ -1466,6 +1475,7 @@ deliver(dp, rp, usernam, timestring)
 		       "x-local; 500 (Destination file has more than one name..)");
 	  DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
 		     "too many links to file \"%s\"", file);
+	  free((void*)file);
 	  return;
 	}
 	/* [Edwin Allum]
@@ -1482,6 +1492,7 @@ deliver(dp, rp, usernam, timestring)
 	}
 	if (!setupuidgid(rp, st.st_uid, st.st_gid)) {
 	  setrootuid(rp);
+	  free((void*)file);
 	  return;			/* setupuidgid sets status */
 	}
 
@@ -1563,6 +1574,8 @@ deliver(dp, rp, usernam, timestring)
 #endif
 			starttime, timestring );
 	}
+
+	if (file) free((void*)file);
 
 	/* [Thomas Knott]  "Return-Receipt-To:" */
 	if (do_return_receipt_to) {
@@ -1941,6 +1954,9 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	}
 
 
+	memset( &WS, 0, sizeof(WS) );
+
+
 	WS.fp     = fp;
 	WS.expect = mmdf_mode ? 0 : 'F';
 	WS.lastch = 256;	/* Something no character can be,
@@ -2115,7 +2131,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	    err = WS.lasterrno;
 
 	    rc = EX_IOERR;
-	    if (err == EDQUOT)
+	    if (err == EDQUOT && edquot_is_fatal)
 	      rc = EX_UNAVAILABLE; /* Quota-exceeded is instant permanent reject ? */
 
 	    notaryreport(NULL,NULL,NULL,NULL);
@@ -2281,6 +2297,9 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	  zsfclose(fp);
 	  /* The pointer is needed later as a marker! (NULL or not) */
 	}
+
+
+	if (WS.buf2) free(WS.buf2);
 
 	return fp; /* Dummy marker! */
 }
@@ -2756,6 +2775,7 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	for (maild = &maildirs[0]; *maild != 0; maild++) {
 	  if (*filep != NULL)
 	    free(*filep);
+	  *filep = NULL;
 	  if (strchr(*maild,'%')) {
 	    *filep = emalloc(2048);
 	    if (fmtmbox(*filep,2048,*maild,uname,pw)) {
@@ -2766,7 +2786,7 @@ creatembox(rp, uname, filep, uid, gid, pw)
 		       "x-local; 566 (too long path for user spool mailbox file)");
 	      DIAGNOSTIC(rp, *filep, EX_CANTCREAT, "Too long path \"%s\"", *filep);
 	      free(*filep);
-	      *filep=NULL;
+	      *filep = NULL;
 	      return 0;
 	    }
 /*
@@ -2823,6 +2843,7 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	}
 	/* otherwise the message was printed by createfile() */
 	free(*filep);
+	*filep = NULL;
 	return 0;
 }
 
@@ -3440,18 +3461,11 @@ writemimeline(WS, buf, len)
 	int   tlen = 0, i = 0;
 	char *buf2;
 
-#ifdef	USE_ALLOCA
-	WS->buf2 = (char*)alloca(len+1);
-#else
-	if (WS->buf2 == NULL) {
-	  WS->buf2 = (char*)emalloc(len+1);
-	  WS->buf2len = len;
-	}
-	if (WS->buf2len < len) {
+	if (WS->buf2len < len || WS->buf2 == NULL) {
 	  WS->buf2 = (char*)realloc(WS->buf2, len+1);
 	  WS->buf2len = len;
 	}
-#endif
+
 	buf2 = WS->buf2;
 
 #if 0 /* Not yet */
@@ -3689,7 +3703,9 @@ return_receipt (dp, retrecptaddr, uidstr)
 
 	efp = sfopen(NULL, mfpath, "r");
 
-	{
+	free((void*)mfpath);
+
+	if (efp) {
 	  char *dom = mydomain(); /* transports/libta/buildbndry.c */
 	  struct stat stbuf;
 
@@ -3699,7 +3715,7 @@ return_receipt (dp, retrecptaddr, uidstr)
 	  strcat(boundarystr, dom);
 	}
 
-	if (efp != NULL) {
+	if (efp) {
 	  int inhdr = 1;
 	  buf[sizeof(buf)-1] = 0;
 	  while (csfgets(buf,sizeof(buf)-1,efp) >= 0) {

@@ -1172,7 +1172,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		}
 	      }
 	    }
-	    return openstatus;
+	    r = openstatus;
+	    goto post_cleanup;
 	  }
 	  did_open = 1;
 	}
@@ -1305,7 +1306,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		}
 	      }
 
-	    return EX_UNAVAILABLE;
+	    r = EX_UNAVAILABLE;
+	    goto post_cleanup;
 	  }
 	}
 
@@ -1334,7 +1336,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 	  SS->chunkbuf = NULL;
 
-	  return r;
+	  goto post_cleanup;
 	}
 
 	--once;
@@ -2199,6 +2201,15 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	/* More recipients to send ? */
 	goto more_recipients;
+
+ post_cleanup:
+
+
+	if (CT)  free_content_type(CT);
+	if (CTE) free_content_encoding(CTE);
+	return r;
+
+
 }
 
 

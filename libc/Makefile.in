@@ -56,6 +56,10 @@ whathost-test: whathost.o whathost-test.o
 
 getzenv.o: getzenv.c $(TOPDIR)/include/mailer.h $(TOPDIR)/include/rfc822.entry
 
+getaddrinfo-test: getaddrinfo-test.o
+	$(CC) $(CFLAGS) -o $@ getaddrinfo-test.o $(LIB) $(SMTPLIB)
+
+
 $(TOPDIR)/include/rfc822.entry:
 	cd ../router; $(MAKE) MFLAGS=$(MFLAGS) rfc822.entry
 
@@ -89,6 +93,7 @@ install:  $(TOPDIR)/libs/libzmailer.a
 clean-recursive clean mostlyclean:
 	-rm -f $(TOPDIR)/libs/$(LIBNAME).a make.log whathost-test
 	-rm -f *.o *.out *.ln *~
+	-rm -f getaddrinfo-test
 
 distclean-recursive distclean: clean
 	-rm -f Makefile

@@ -195,6 +195,7 @@ transports/smtp:
 	  been set).
 	- Track the memory leakage on long-lifetime TA agents
 	  (at least  mailbox  appears to leak something! 2002-Dec)
+	   (A fully generic leakage in mailbox  putmail() - check others)
 
 	(router + TA library + TA programs):
 	Router to scan message MIME structure, and to store that

@@ -1,3 +1,18 @@
+2003-06-17  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/mailbox/mailbox.c, transports/libta/mimeheaders.c,
+	  include/ta.h, transports/smtp/smtp.c:
+	    Track a bit more of allocated memory chunks, and provide
+	    explicite free() routines for them. (Hunting originally
+	    memory leaks in  mailbox.)
+
+	* transports/mailbox/mailbox.c, man/mailbox.8.in:
+	    Added option "-F edquot"  to instantly fatalify quota-exceed
+	    condition of the baseline code.
+
+	* libc/getaddrinfo-test.c:
+	    Another test-harness..
+
 2003-06-09  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:

@@ -875,6 +875,24 @@ static const char *debugptrs[20];
 	return ct;
 }
 
+void free_content_type(ct)
+     struct ct_data *ct;
+{
+	if (ct->basetype) free(ct->basetype);
+	if (ct->subtype)  free(ct->subtype);
+	if (ct->charset)  free(ct->charset);
+	if (ct->boundary) free(ct->boundary);
+	if (ct->name)     free(ct->name);
+	if (ct->unknown) {
+	  int i;
+	  for (i = 0; ct->unknown[i]; ++i)
+	    free(ct->unknown[i]);
+	  free(ct->unknown);
+	}
+
+	free(ct);
+}
+
 struct cte_data *
 parse_content_encoding(cte_line)
      const char *cte_line;
@@ -903,6 +921,15 @@ parse_content_encoding(cte_line)
 	/* XX: if (*s) -- errornoeus data */
 
 	return cte;
+}
+
+
+
+void free_content_encoding(cte)
+     struct cte_data *cte;
+{
+	if (cte->encoder) free(cte->encoder);
+	free(cte);
 }
 
 
@@ -1038,6 +1065,8 @@ downgrade_charset(rp, verboselog)
 
 	/* Delete the old one, and place there the new version.. */
 	output_content_type(rp,ct,CT);
+
+	if (ct) free_content_type(ct);
 
 	return 1;
 }
@@ -1203,6 +1232,8 @@ NULL };
 	  mime_received_convert(rp," convert rfc822-to-quoted-printable");
 
 	}
+
+	if (ct) free_content_type(ct);
 
 	return 1; /* Non-zero for success! */
 }
@@ -1548,7 +1579,14 @@ qp_to_8bit(rp)
 	if (ct->basetype == NULL ||
 	    ct->subtype  == NULL ||
 	    !CISTREQ(ct->basetype,"text") ||
-	    !CISTREQ(ct->subtype,"plain") ) return 0; /* Not TEXT/PLAIN! */
+	    !CISTREQ(ct->subtype,"plain") ) {
+	  
+	  free_content_type(ct);
+
+	  return 0; /* Not TEXT/PLAIN! */
+	}
+
+	free_content_type(ct);
 
 	hdr = *CTE;
 

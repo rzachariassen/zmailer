@@ -4,7 +4,7 @@
  *	Copyright 1990 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Copyright 1991-2002 by Matti Aarnio.
+ *	Copyright 1991-2003 by Matti Aarnio.
  */
 
 /*

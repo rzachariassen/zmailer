@@ -31,7 +31,7 @@ LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
 		$(TOPDIR)/libs/libsfio.a
 LINTLIB=	../libta/llib-llibta.ln
 
-smtp-a:	smtp mprobe getmxrr-test
+all smtp-a:	smtp mprobe getmxrr-test
 
 smtp:	$(OBJS) version.o $(LIBDEB)
 	-rm -f smtp
@@ -68,7 +68,7 @@ install:	smtp mprobe getmxrr-test
 
 clean:
 	-rm -f smtp mprobe *~ *.o *.out make.log *.third *.3rd
-	-rm -f getmxrr-test
+	-rm -f getmxrr-test getaddrinfo-test
 
 distclean: clean
 	-rm -f Makefile

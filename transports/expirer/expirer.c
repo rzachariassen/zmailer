@@ -3,7 +3,7 @@
  *
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-2002 Matti Aarnio.
+ *	Copyright 1992-2003 Matti Aarnio.
  */
 
 /*
