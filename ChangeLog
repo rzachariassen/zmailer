@@ -11,9 +11,10 @@
 	    Convert couple  LOG_ERR  level syslog()s to   LOG_NOTICE.
 	    They don't quite deserve being blasted to people's consoles..
 
-	* transports/smtp/smtp.c, transports/smtp/smtp.h, transports/smtp/smtptls.c:
-	    Additional "writeclosed" flag to inform that the socket shall not
-	    be written no, no matter what.
+	* transports/smtp/smtp.c, transports/smtp/smtp.h,
+	  transports/smtp/smtptls.c:
+	    Additional "writeclosed" flag to inform that the socket
+	    shall not be written to, no matter what.
 
 	* libsh/execute.c, libsh/zmsh.c:
 	    Added option 'J' into ZMSH interpreter to trace a subset of 'I'
