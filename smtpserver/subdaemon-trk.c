@@ -433,7 +433,7 @@ static void subdaemon_trk_checksigusr1(state)
 	dp4.cnt = 0;
 	dp4.lineprefix = " ";
 
-	fprintf(fp, "DUMP BEGINS; %s\n", rfc822date(&now));
+	fprintf(fp, "DUMP BEGINS; %s", rfc822date(&now));
 
 	sp_scan( dump_v4_rcptline, & dp4, NULL, state->spt4 );
 
@@ -488,7 +488,7 @@ dump_trk(state, peerdata)
 
 	rhead = state->ipv4_regs_head;
 
-	fprintf(fp, "200-DUMP BEGINS; %s\n", rfc822date(&now));
+	fprintf(fp, "200-DUMP BEGINS; %s", rfc822date(&now));
 	fflush(fp);
 
 	dp4.fp = fp;
