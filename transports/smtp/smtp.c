@@ -3363,6 +3363,10 @@ smtp_sync(SS, r, nonblocking)
 
 	s = SS->pipebuf;
 	eol = s;
+	for (idx = 0; idx < SS->pipereplies; ++idx) {
+	  /* Pre-fill some_ok, and data_fail variables */
+	  if (SS->pipercpts[idx] != NULL)
+	}
 	for (idx = SS->pipereplies; idx < SS->pipeindex; ++idx) {
 	  SS->pipereplies = idx;
       rescan_line_0: /* processed some continuation line */
