@@ -550,6 +550,7 @@ fdgetc(fdp, fd, timeout)
 	      goto extract_from_buffer;
 	    }
 	    if (rc == 0) return -1; /* EOF */
+	    if (errno == EBADFD) return -1; /* Simulate EOF! */
 	    if (errno == EINTR) continue;
 	    if (errno == EWOULDBLOCK) {
 		fd_set rdset;
