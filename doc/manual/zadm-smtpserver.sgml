@@ -195,6 +195,17 @@ Example configuration is is in figure <XREF LINKEND="fig.sample-smtpserver-cfg">
 #                                   # any IP source address
 #PARAM ListenQueueSize        10    # listen(2) parameter
 #
+# Enables of some commands:
+#PARAM  DEBUGcmd
+#PARAM  EXPNcmd
+#PARAM  VRFYcmd
+#PARAM  enable-router # This is a security decission for you.
+#                   # This is needed for EXPN/VRFY and interactive
+#                   # processing of MAIL FROM and RCPT TO addresses.
+#                   # However it also may allow external user entrance
+#                   # to ZMailer router shell environment with suitably
+#                   # pervert input, if quotation rules are broken in
+#                   # the scripts.
 PARAM help -------------------------------------------------------------
 PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
 PARAM help  Our telephone number is: +1-234-567-8900, and
@@ -205,8 +216,19 @@ PARAM help -------------------------------------------------------------
 PARAM  policydb  $DBTYPE  $MAILVAR/db/smtp-policy
 
 # External program for received message content analysis:
-#PARAM  contentfilter	$MAILBIN/smtp-contentfilter
-
+#PARAM  contentfilter   $MAILBIN/smtp-contentfilter
+....
+#
+# TLSv1/SSLv[23] parameters; all must be used for the system to work!
+#
+# See  doc/guides/openssl,  or:
+# http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
+#
+#PARAM  use-tls
+#PARAM  tls-CAfile      $MAILVAR/db/smtpserver-CAcert.pem
+#PARAM  tls-cert-file   $MAILVAR/db/smtpserver-cert.pem
+#PARAM  tls-key-file    $MAILVAR/db/smtpserver-key.pe
+....
 #
 # HELO/EHLO-pattern     style-flags
 #               [max loadavg]
@@ -289,6 +311,35 @@ likely to provide complete immunity against the accidental
 "attack" by the failing network routing.
 </PARA></LISTITEM></VARLISTENTRY>
 
+
+<VARLISTENTRY>
+<TERM><OPTION>DEBUGcmd</></TERM>
+<LISTITEM><PARA>
+FIXME! WRITEME!
+#PARAM  DEBUGcmd
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><OPTION>EXPNcmd</></TERM>
+<LISTITEM><PARA>
+FIXME! WRITEME!
+#PARAM  EXPNcmd
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><OPTION>VRFYcmd</></TERM>
+<LISTITEM><PARA>
+FIXME! WRITEME!
+#PARAM  VRFYcmd
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><OPTION>enable-router</></TERM>
+<LISTITEM><PARA>
+FIXME! WRITEME!
+#PARAM  enable-router # This is a security decission for you.
+</PARA></LISTITEM></VARLISTENTRY>
+
 <VARLISTENTRY>
 <TERM><OPTION>help</> <REPLACEABLE>'string'</></TERM>
 <LISTITEM><PARA>
@@ -314,7 +365,13 @@ and for deeper details, see <XREF LINKEND=zref-smtpserver-policy-relaying>.
 <VARLISTENTRY>
 <TERM><OPTION>contentfilter</> <REPLACEABLE>programpath</></TERM>
 <LISTITEM><PARA>
-
+The <EMPHASIS>contentfilter</> studies the received message at the end
+of the DATA or BDAT transaction, and produces syncronous report about
+should be message be accepted or not.  Unlike the <OPTION>PolicyDB</>,
+this does not (should not) care about validity of envelope source and
+recipient address validities, although perhaps it should consider at
+least the recipients in some cases -- e.g. accept about anything when
+the destination is <LITERAL>&lt;postmaster&gt;</>.
 </PARA><PARA>
 For an operative overview, see <XREF LINKEND=zadm-smtpserver-content-filter>,
 and for deeper details, see <XREF LINKEND=zref-smtpserver-content-filter>.
@@ -674,7 +731,7 @@ The program becomes active if PARAM entry ``contentfilter''  is set:
 <PROGRAMLISTING>
 <![CDATA[
 # External program for received message content analysis:
-#PARAM  contentfilter	$MAILBIN/smtp-contentfilter
+#PARAM  contentfilter  $MAILBIN/smtp-contentfilter
 ]]>
 </PROGRAMLISTING>
 </PARA>

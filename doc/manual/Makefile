@@ -32,6 +32,9 @@
 #     max_strings = 35000
 #
 
+# We run LOCAL version of Jade Wrapper (jw), which needs PATH with leading dot
+PATH := .:${PATH}
+
 PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 	zadministration.sgml    zref-router.sgml		\
 	zapp-filefmts.sgml      zref-scheduler.sgml		\
@@ -43,7 +46,7 @@ PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 	zreference.sgml		zref-rmail.sgml			\
 	ztutorial.sgml		zappendices.sgml		\
 	zadm-dnsissues.sgml	zadm-router.sgml		\
-	zadm-sm.sgml		zadm-logging.sgml		\
+	zadm-transport-agents.sgml zadm-logging.sgml		\
 	zadm-scheduler.sgml	zadm-smtpserver.sgml		\
 	zadm-queues.sgml	zadm-security.sgml		\
 	zapp-rfc821.sgml	zapp-rfc821.sgml		\
@@ -51,7 +54,8 @@ PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 
 FIGS   :=	msgmodl.fig msgrout.fig zmailer-logo.fig \
 		zmdirs.fig zmprocs.fig zmprocs-smtps.fig \
-		zmprocs-router.fig zmprocs-scheduler.fig
+		zmprocs-router.fig zmprocs-scheduler.fig \
+		zmprocs-tragents.fig zadm-sch-threads.fig
 
 .SUFFIXES: .eps .pdf .ps .gif .fig .gif-green .png
 
@@ -63,7 +67,6 @@ FIGGIF :=	$(FIGS:%.fig=%.gif)
 # set and export TEXINPUTS
 TEXINPUTS=$(LATEX2HTMLLIB):$(LINUXDOCLIB):$$TEXINPUTS:
 TEXENV=  TEXINPUTS=$(TEXINPUTS);export TEXINPUTS;
-
 
 GIFS = $(L2HGIFS) zmailer-logo2.gif
 
@@ -85,24 +88,25 @@ gifs: $(FIGGIF)
 
 $(L2HGIFS):
 
+OJCAT = /usr/share/sgml/openjade-1.3/catalog
+
 zmanual.html: gifs $(PARTS)
 	rm -rf zmanual
 	TZ=UTC date > z-datetime.txt
 	echo "HTML" > z-what.txt
 	echo '<!ENTITY GEXT "gif">' > z-gext.txt
 	make index-html
-	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl sh ./db2html zmanual.sgml
-	#sh  ./db2html zmanual.sgml
+	./db2html -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#html' zmanual.sgml
 	cp -p *.gif zmanual/
 	cd zmanual; ../html-post-fixup.sh *.html
 
 HTML.index:
 	touch genindex.sgm
-	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl sh ./db2html -html-index zmanual.sgml
+	./db2html -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#html' -V html-index zmanual.sgml
 	mv zmanual/HTML.index .
 
-index-html index-dvi index-pdf: HTML.index
-	perl ./collateindex.pl -f -g -i document-index -t Index -o genindex.sgm HTML.index
+genindex.sgm index-html index-dvi index-pdf: HTML.index
+	./collateindex.pl -d zman-index.html -f -g -i document-index -t Index -o genindex.sgm HTML.index
 
 zmanual.ps: zmanual.dvi $(FIGEPS)
 	dvips -ta4 -ozmanual.ps zmanual.dvi
@@ -112,14 +116,14 @@ zmanual.dvi: $(PARTS) $(FIGEPS) zmanual.sgml
 	echo "PostScript" > z-what.txt
 	echo '<!ENTITY GEXT "eps">' > z-gext.txt
 	make index-dvi
-	STYLESHEET=`/bin/pwd`/zmanual.dsl sh ./db2dvi zmanual.sgml
+	db2dvi -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#print' zmanual.sgml
 
 zmanual.pdf: $(PARTS) $(FIGPDF) zmanual.sgml
 	TZ=UTC date > z-datetime.txt
 	echo "PDF" > z-what.txt
 	echo '<!ENTITY GEXT "pdf">' > z-gext.txt
 	make index-pdf
-	STYLESHEET=`/bin/pwd`/zmanual.dsl sh ./db2pdf zmanual.sgml
+	db2pdf -c ${OJCAT} -d `/bin/pwd`/'zmanual.dsl#pdf'  zmanual.sgml
 
 distclean clean:
 	# Leave "zmanual.ps" in place, if it exists

@@ -8,21 +8,21 @@
 <!ENTITY % GEXT "gif">
 <!ENTITY % print "IGNORE">
 <!ENTITY % pdf   "IGNORE">
-<!ENTITY docbook.dsl SYSTEM "/usr/lib/sgml/stylesheets/nwalsh-modular/html/docbook.dsl" CDATA dsssl>
+<!ENTITY docbook.dsl SYSTEM "/usr/share/sgml/docbook/dsssl-stylesheets/html/docbook.dsl" CDATA dsssl>
 ]]>
 <!ENTITY % print "INCLUDE">
 <![%print;[
 <!ENTITY % GEXT "eps">
 <!ENTITY % html  "IGNORE">
 <!ENTITY % pdf   "IGNORE">
-<!ENTITY docbook.dsl SYSTEM "/usr/lib/sgml/stylesheets/nwalsh-modular/print/docbook.dsl" CDATA dsssl>
+<!ENTITY docbook.dsl SYSTEM "/usr/share/sgml/docbook/dsssl-stylesheets/print/docbook.dsl" CDATA dsssl>
 ]]>
 <!ENTITY % pdf "INCLUDE">
 <![%print;[
 <!ENTITY % GEXT "pdf">
 <!ENTITY % html  "IGNORE">
 <!ENTITY % print "IGNORE">
-<!ENTITY docbook.dsl SYSTEM "/usr/lib/sgml/stylesheets/nwalsh-modular/print/docbook.dsl" CDATA dsssl>
+<!ENTITY docbook.dsl SYSTEM "/usr/share/sgml/docbook/dsssl-stylesheets/print/docbook.dsl" CDATA dsssl>
 ]]>
 ]>
 
@@ -30,9 +30,9 @@
 <style-specification id="pdf" use="docbook">
 <style-specification-body> 
 
-;; ====================
-;; customize the PDF stylesheet
-;; ====================
+;; ================================
+;;   customize the PDF stylesheet
+;; ================================
 
 ;; this is necessary because right now jadetex does not understand
 ;; symbolic entities, whereas things work well with numeric entities.
@@ -129,9 +129,9 @@
 <style-specification id="print" use="docbook">
 <style-specification-body> 
 
-;; ====================
-;; customize the print stylesheet
-;; ====================
+;; ================================
+;;  customize the PRINT stylesheet
+;; ================================
 
 
 
@@ -220,9 +220,9 @@
 <style-specification id="html" use="docbook">
 <style-specification-body> 
 
-;; ====================
-;; customize the html stylesheet here
-;; ====================
+;; ===============================
+;;  customize the HTML stylesheet 
+;; ===============================
 
 ;;
 ;; No breaking at top-most SECTION levels, only at CHAPTER and alike.
@@ -246,6 +246,11 @@
         (normalize "set")  ;; sets are definitely chunks...
         ))
 
+
+(define (chunk-section-depth)
+  99)
+
+
 ;;
 ;; Redefine TOC-DEPTH for HTML so TOC will contain more of sublevel data
 ;; Default limit level for PRINT mode is 7 ...
@@ -257,8 +262,9 @@
 ;;      1))
 
 ;; Returns the depth of auto TOC that should be made at the nd-level
-(define (toc-depth nd)
-  99)
+(define (toc-depth nd)  99)
+(define chapter-toc?    #t)
+(define %force-chapter-toc% #t)
 
 (define %admon-graphics%
   ;; REFENTRY admon-graphics
@@ -320,6 +326,18 @@
   ;; Place elements on title page in document order?
   #t)
 
+(element sbr 
+  ;;
+  ;;  SBR  processor making explicite indention for following line
+  ;;
+  (make sequence
+    (make empty-element gi: "BR")
+    (make element gi: "CODE"
+	  (make entity-ref name: "nbsp")
+	  (make entity-ref name: "nbsp")
+	  (make entity-ref name: "nbsp")
+	  (make entity-ref name: "nbsp"))))
+
 
 (define (dingbat usrname)
   ;; Print dingbats and other characters selected by name
@@ -336,6 +354,8 @@
       ;; Straight out of Unicode
       (("ldquo")                "\"")
       (("rdquo")                "\"")
+      (("ldquor")               "``")
+      (("rdquor")               "''")
       (("lsquo")                "'")
       (("rsquo")                "'")
       (("en-dash")              "-")

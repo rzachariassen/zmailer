@@ -15,6 +15,146 @@ FIXME! FIXME! TO BE WRITTEN!
 subsections for each function ??
 </PARA>
 
+<SECT2 ID="zref-zmailer-start">
+<TITLE><COMMAND>zmailer start</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+
+<SECT2 ID="zref-zmailer-stop">
+<TITLE><COMMAND>zmailer stop</>, <COMMAND>zmailer kill</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+
+<SECT2 ID="zref-zmailer-router">
+<TITLE><COMMAND>zmailer router</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+
+<SECT2 ID="zref-zmailer-scheduler">
+<TITLE><COMMAND>zmailer scheduler</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-smtpserver">
+<TITLE><COMMAND>zmailer smtp(server)</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-newdb">
+<TITLE><COMMAND>zmailer newdb</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-newaliases">
+<TITLE><COMMAND>zmailer newal(iases)</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-newfqdnaliases">
+<TITLE><COMMAND>zmailer newf(qdnaliases)</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-new-route">
+<TITLE><COMMAND>zmailer new-route(s)</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-new-localnames">
+<TITLE><COMMAND>zmailer new-local(names)</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-logsync">
+<TITLE><COMMAND>zmailer logsync</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+
+<SECT2 ID="zref-zmailer-logrotate">
+<TITLE><COMMAND>zmailer logrotate</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-resubmit">
+<TITLE><COMMAND>zmailer resubmit</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-bootclean">
+<TITLE><COMMAND>zmailer bootclean</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-cleanup">
+<TITLE><COMMAND>zmailer cleanup</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID="zref-zmailer-freeze">
+<TITLE><COMMAND>zmailer freeze</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+<SECT2 ID="zref-zmailer-thaw">
+<TITLE><COMMAND>zmailer thaw</>, <COMMAND>zmailer unfr(eeze)</></>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+
 </SECT1>
 
 <SECT1 ID="zref.util.vacation">

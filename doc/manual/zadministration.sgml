@@ -152,7 +152,7 @@ wrapper script.
   <!ENTITY ZADM-SMTPSERVER SYSTEM "zadm-smtpserver.sgml">
   <!ENTITY ZADM-ROUTER     SYSTEM "zadm-router.sgml">
   <!ENTITY ZADM-SCHEDULER  SYSTEM "zadm-scheduler.sgml">
-  <!ENTITY ZADM-SM         SYSTEM "zadm-sm.sgml">
+  <!ENTITY ZADM-TR-AGENTS  SYSTEM "zadm-transport-agents.sgml">
   <!ENTITY ZADM-LOGGING    SYSTEM "zadm-logging.sgml">
 -->
 
@@ -162,7 +162,7 @@ wrapper script.
 &ZADM-SMTPSERVER;
 &ZADM-ROUTER;
 &ZADM-SCHEDULER;
-&ZADM-SM;
+&ZADM-TR-AGENTS;
 &ZADM-LOGGING;
 
 </PART>

@@ -4,4 +4,19 @@
 <PARA>
 This will contain juicy bits regarding RFC 821, the SMTP protocol.
 </PARA>
+
+
+<SECT1 ID=rfc821.from><TITLE>RFC821: "MAIL FROM:"</>
+<PARA>WRITEME! FIXME!</PARA>
+</SECT1>
+
+<SECT1 ID=rfc821.to><TITLE>RFC821: "RCPT TO:"</>
+<PARA>WRITEME! FIXME!</PARA>
+</SECT1>
+
+<SECT1 ID=rfc821.data><TITLE>RFC821: "DATA"</>
+<PARA>WRITEME! FIXME!</PARA>
+</SECT1>
+
+
 </APPENDIX>

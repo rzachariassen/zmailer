@@ -379,6 +379,49 @@ Text to be inserted here.
 
 </SECT1>
 
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zmshref-script-wellknown-functions>
+<TITLE>Router Script Well Known Entrypoints</TITLE>
+
+<PARA>
+This section describes the <COMMAND>router</> internal functions
+used as entrypoints by various uses inside and outside the <COMMAND>router</>
+program.
+</PARA>
+
+<SECT2 ID=zmshref.process><TITLE>The <FUNCTION>process()</> function</>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID=zmshref.router><TITLE>The <FUNCTION>router()</> function</>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID=zmshref.crossbar><TITLE>The <FUNCTION>crossbar()</> function</>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+<SECT2 ID=zmshref.server><TITLE>The <FUNCTION>server()</> function</>
+
+<PARA>
+FIXME! WRITEME!
+</PARA>
+</SECT2>
+
+
+</SECT1>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
 <SECT1 ID=zmshref-script-internal-functions>
 <TITLE>Script Language Internal Functions</TITLE>
@@ -1383,8 +1426,9 @@ The access function to the database facilities in the
 <COMMAND>router</>.
 
 </PARA><PARA>
-
 <EMPHASIS>FIXME! Notes about %[0-9] substitution rules, and their controls.</>
+</PARA><PARA>
+<EMPHASIS>FIXME! Notes about '-:' and '--' OPTIONS.</>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2559,6 +2603,7 @@ from a source file.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!--
 <SECT2 ID="zmshref.process">
 <TITLE><FUNCTION>process</FUNCTION></TITLE>
 
@@ -2606,6 +2651,7 @@ configuration file.
 
 
 </SECT2>
+-->
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2 ID="zmshref.read">
 <TITLE><FUNCTION>read</FUNCTION></TITLE>

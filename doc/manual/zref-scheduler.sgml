@@ -498,7 +498,7 @@ If the value is 0, a value of 1000 is used instead.
 <VARLISTENTRY><TERM><OPTION>maxring=nn</> (0)</TERM>
 	      <TERM>(<OPTION>maxrings=nn</>)</TERM><LISTITEM><PARA>
 Recipients are groupped into
-  <LINK LINKEND="zref.sched.threads"><EMPHASIS>threads</></>, 
+  <LINK LINKEND="zadm-scheduler-threads"><EMPHASIS>threads</></>, 
 and similar threads are groupped into <EMPHASIS>thread-rings</>, where same 
 transport agent can be switched over from one recipient to another.
 This defines how many transport agents can be running at any time at the ring.

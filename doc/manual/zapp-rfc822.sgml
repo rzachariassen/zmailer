@@ -5,4 +5,29 @@
 This will contain juicy bits regarding RFC 822, the message
 <EMPHASIS>visible</> header specification.
 </PARA>
+
+<SECT1 ID=rfc822.from><TITLE>RFC822: "From:"</>
+<PARA>WRITEME! FIXME!</PARA>
+</SECT1>
+
+<SECT1 ID=rfc822.to><TITLE>RFC822: "To:"</>
+<PARA>WRITEME! FIXME!</PARA>
+</SECT1>
+
+<SECT1 ID=rfc822.cc><TITLE>RFC822: "Cc:"</>
+<PARA>WRITEME! FIXME!</PARA>
+</SECT1>
+
+<SECT1 ID=rfc822.subject><TITLE>RFC822: "Subject:"</>
+<PARA>WRITEME! FIXME!</PARA>
+</SECT1>
+
+<SECT1 ID=rfc822.date><TITLE>RFC822: "Date:"</>
+<PARA>WRITEME! FIXME!</PARA>
+</SECT1>
+
+<SECT1 ID=rfc822.sender><TITLE>RFC822: "Sender:"</>
+<PARA>WRITEME! FIXME!</PARA>
+</SECT1>
+
 </APPENDIX>

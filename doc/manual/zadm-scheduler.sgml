@@ -100,7 +100,7 @@ consists of four components:
 <PARA>
 Of these, <EMPHASIS>Channel</>, and <EMPHASIS>Host</> parts are used
 by the <COMMAND>scheduler</> to classify message recipients and to
-choose on what <EMPHASIS>Transport Agents</> to use.
+choose to what <EMPHASIS>Transport Agents</> to use, and how to use them.
 </PARA>
 
 <PARA>
@@ -117,19 +117,125 @@ is the collection of all threads within same <EMPHASIS>scheduler</>
 See <XREF LINKEND=zadm-scheduler-scheduler.conf>.
 </PARA>
 
+<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadmsch.threads>
+  <TITLE ID=figtit.zadmsch.threads>Scheduler's Threads/Thread Groups</TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zadm-sch-threads.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
+</FIGURE>
+
 <PARA>
 In normal case the scheduling is done by running <EMPHASIS>single</>
 transport agent for the <EMPHASIS>thread</>, which delivers messages
 one at the time.
 This means that a single destination with thousands of messages does
-not load the system significantly more than some other destination with
-a single message.
+not block the system significantly more than some other destination
+with a single message.
 </PARA>
 
 <PARA>
 Also in normal cases, when messages in given thread are all delivered,
 or otherwise determined that nothing can be done, the transport agent
 can be switched to another thread within the same <EMPHASIS>thread group</>.
+</PARA>
+
+</SECT1>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<SECT1 ID=zadm-scheduler-resource-control>
+<TITLE><COMMAND>Scheduler</> Resource Control</TITLE>
+
+<PARA>FIXME! TO BE WRITTEN!</PARA>
+
+<PARA>
+Note, there are three kinds of resource-pool limitation parameters
+which control when a given channel+host pair (thread) is NOT taken
+into processing:
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM><LITERAL>MaxTA</>:   (Set in "*/*" clause)</TERM>
+<LISTITEM>
+<PARA>
+ GLOBAL parameter limiting the number of transport-agent processes
+ that the scheduler can have running at the same time.
+</PARA>
+
+<PARA>
+ With this you can limit the number of TA processes running at the
+ same time lower than maximum allowed by your OS setup.
+</PARA>
+
+<PARA>
+ The scheduler detects the max number of FDs allowed for a process,
+ and analyzing how many FDs each TA interface will need -- plus
+ reserving 10 FDs for the itself, result is ``probed maxkids''.
+</PARA>
+</LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><LITERAL>MaxChannel</>: (default: ``probed maxkids'')</>
+<LISTITEM>
+<PARA>
+ Selector clause specific value limiting how many transport-agent
+ processes can be running on which the ``channel'' part is the same.
+ You may specify dis-similar values for these as well.  For example
+ you may use value '50' for all your 'smtp' channel entries, except
+ that you want always to guarantee at least five more for your own
+ domain deliveries, and thus have:
+</PARA>
+
+<SCREEN>
+      smtp/*your.domain
+            maxchannel=55
+</SCREEN>
+
+<PARA>
+ If the sum of all ``maxchannel'' values in different channels exceeds
+ that of ``maxta'', then ``maxta'' value will limit the amount of work
+ done in extreme load situations.
+</PARA>
+</LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><LITERAL>MaxRing</>: (default: ``probed maxkids'')</>
+<LISTITEM>
+<PARA>
+ This limits the number of parallel transport agents within each
+ selector definition.
+ This defined the size of the POOL of transport agent processes
+ available for processing the threads matching the selector clause.
+</PARA>
+</LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><LITERAL>MaxTHR</>: (default: 1)</>
+<LISTITEM>
+<PARA>
+ This limits the number of parallel transport agents within each
+ thread; that is, using higher value than default ``1'' will allow
+ running more than one TA for the jobs at the thread.
+</PARA>
+
+<PARA>
+ Do note that running more than one TA in parallel may also require
+ lowering OVERFEED value.  (E.g. having a queue of 30 messages will
+ not benefit from more TAs, unless they all get something to process.
+ Having OVERFEED per default at 150 will essentially feed whole queue
+ to one TA, others are not getting any.)
+</PARA>
+</LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><LITERAL>OverFeed</>:</>
+<LISTITEM>
+<PARA>
+ This tells how many job specifiers to feed to the TA when
+ the TA process state is ``STUFFING''  Because the scheduler
+ is a bit sluggish to spin around to spot active TAs, it does
+ make sense to feed more than one task to a TA, and then wait
+ for the results.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
 </PARA>
 
 </SECT1>
@@ -470,15 +576,6 @@ files that indicate SMTP delivery to a particular host.
 The actual host is picked at random from the current choices, to avoid
 systematic errors leading to a deadlock of any queue.
 </PARA>
-
-</SECT1>
-
-<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-
-<SECT1 ID=zadm-scheduler-resource-control>
-<TITLE><COMMAND>Scheduler</> Resource Control</TITLE>
-
-<PARA>FIXME! TO BE WRITTEN!</PARA>
 
 </SECT1>
 

@@ -1,11 +1,45 @@
-<CHAPTER ID="ZADM-SM"><?dbhtml filename="zadm-sm.html">
-<TITLE><COMMAND>Sm</> Administration</TITLE>
+<CHAPTER ID="ZADM-TA"><?dbhtml filename="zadm-ta.html">
+<TITLE>Transport Agent Administration</TITLE>
 
 <PARA><SCREEN>
 - Move to be a SECTION of Scheduler ?
-  - This is support thingie for the Scheduler anyway.
+  - These are support thingies for the Scheduler anyway.
 - Less details than REFERENCE has, focus differently
+
+- sm
+- smtp
+- mailbox
+- hold
+- expirer
+- errormail
 </SCREEN></PARA>
+
+
+<PARA>
+These are ZMailer's components driven by the <COMMAND>Scheduler</>
+to actually do message delivery actions.
+</PARA>
+
+<PARA>
+The <XREF LINKEND=fig.zadmtragents.zmprocs> repeats earlier picture
+showing central components of the system, and where the
+<EMPHASIS>transport agents</> are in relation to the whole.
+</PARA>
+
+
+<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadmtragents.zmprocs>
+  <TITLE ID=figtit.zadmtragents.zmprocs>ZMailer's processes; Transport Agents</TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmprocs-tragents.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
+</FIGURE>
+
+
+
+<SECT1 ID=zadm-ta-sm>
+<TITLE><COMMAND>Sm</> Transport Agent</TITLE>
 
 <PARA>
 <COMMAND>sm</> is a ZMailer's <COMMAND>sendmail</>(8) compatible
@@ -196,5 +230,7 @@ will be replicated as necessary for each recipient.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
+
+</SECT1>
 
 </CHAPTER>
