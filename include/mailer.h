@@ -242,14 +242,6 @@ struct envelope {
 #define HDR_SCANNER(x)	scan822(&(x), strlen((const char *)x), 0, 0, 0, (token822 **)0)
 #endif	/* RFC976 */
 
-/* #include "libz.h" */
-
-#ifdef	USE_ZGETPWNAM
-#define	getpwnam	zgetpwnam
-#define	getpwuid	zgetpwuid
-#define	getgrnam	zgetgrnam
-#endif	/* USE_GETPWNAM */
-
 struct Zpasswd {
   /* Basic normal 'struct passwd' things */
   const char *pw_name;
