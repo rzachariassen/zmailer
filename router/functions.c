@@ -674,8 +674,10 @@ rd_doit(filename, dirs)
 	     */
 	  }
 	}
-	if (p == NULL || thatpid != router_id) {
-	  /* Not already in format of 'inode-pid' */
+	if (strncmp(filename,"core",4) != 0 &&
+	    (p == NULL || thatpid != router_id)) {
+	  /* Not a core file, and ...
+	     not already in format of 'inode-pid' */
 	  /* If the pid did exist, we do not touch on that file,
 	     on the other hand, we need to rename the file now.. */
 #ifdef	USE_ALLOCA
@@ -746,7 +748,7 @@ rd_stability(dirp,dirs)
 		/* Handle only files beginning with number -- plus "core"-
 		   files.. */
 		if (!(dp->d_name[0] >= '0' && dp->d_name[0] <= '9') &&
-		    strcmp(dp->d_name,"core") != 0)
+		    strncmp(dp->d_name,"core",4) != 0)
 			continue;
 
 		/* See that the file is a regular file! */
@@ -822,7 +824,7 @@ rd_instability(dirp, dirs)
 		/* Handle only files beginning with number -- plus "core"-
 		   files.. */
 		if (!(dp->d_name[0] >= '0' && dp->d_name[0] <= '9') &&
-		    strcmp(dp->d_name,"core") != 0)
+		    strncmp(dp->d_name,"core",4) != 0)
 			continue;
 
 		/* See that the file is a regular file! */
