@@ -47,11 +47,13 @@ pkgs-01:
 	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb -type d -print ; \
 	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb ! -type d -print ; \
 	 ld=`echo $$LOGDIR|sed -e 's!^/!!'`;find $$ld -type d -print ; \
-	 find $(RMAILPATH) -print ; \
-	 find $(SENDMAILPATH) -print ; \
+	 echo $(RMAILPATH)|sed -e 's!^/!!' ; \
+	 echo $(SENDMAILPATH)|sed -e 's!^/!!' ; \
 	  ) \
 		| sort | uniq | pkgproto ) | \
-		awk '/^d /{printf "%s %s /%s=$(prefix)%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next}{print}' \
+		awk '/^[^si] /{printf "%s %s /%s=$(prefix)/%s %s %s %s\n",$$1,$$2,$$3,$$3,$$4,$$5,$$6;next}
+		     /^s /{printf "%s %s /%s %s %s %s\n",$$1,$$2,$$3,$$4,$$5,$$6;next}
+			{print}' \
 		> proto-01.dirs
 	rm -f pkginfo
 	cp pkginfo-01 pkginfo
