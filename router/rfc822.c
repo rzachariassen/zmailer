@@ -1238,13 +1238,13 @@ mkTrace(e, rcvdhdr)
 		th->h_contents.r->r_by = NULL;
 	/* via */
 	FindEnvelope(eVia);
-	if (h  &&  h->h_contents.a->a_tokens) {
+	if (h  &&  h->h_contents.a  &&  h->h_contents.a->a_tokens) {
 		th->h_contents.r->r_via = h->h_contents.a->a_tokens->p_tokens;
 	} else
 		th->h_contents.r->r_via = NULL;
 	/* with */
 	FindEnvelope(eWith);
-	if (h  &&  h->h_contents.a->a_tokens) {
+	if (h  &&  h->h_contents.a  &&  h->h_contents.a->a_tokens) {
 		th->h_contents.r->r_with = h->h_contents.a->a_tokens->p_tokens;
 	} else
 		th->h_contents.r->r_with = NULL;
@@ -1759,7 +1759,7 @@ sequencer(e, file)
 			cdr(QHOST(e->e_from_trusted)) = l;
 		}
 		FindEnvelope(eUser);
-		if (h  && h->h_contents.a->a_pname) {
+		if (h  && h->h_contents.a && h->h_contents.a->a_pname) {
 			/* a previous user was specified */
 			slen = strlen(h->h_contents.a->a_pname);
 			l = cdr(QHOST(e->e_from_trusted));

@@ -1244,6 +1244,30 @@ char **argv;
 	    else
 	      strcpy(SS.ident_username, "IDENT-NOT-QUERIED");
 
+#ifdef HAVE_WHOSON_H
+	    if (do_whoson && netconnected_flg) {
+	      char buf[64];
+	      buf[0]='\0';
+	      if (SS.raddr.v4.sin_family == AF_INET) {  
+		inet_ntop(AF_INET, (void *) &SS.raddr.v4.sin_addr,    /* IPv4 */
+			  buf, sizeof(buf) - 1);
+#if defined(AF_INET6) && defined(INET6)
+	      } else if (SS.raddr.v6.sin6_family == AF_INET6) {
+		inet_ntop(AF_INET6, (void *) &SS.raddr.v6.sin6_addr,  /* IPv6 */
+			  buf, sizeof(buf) - 1);
+#endif
+	      }
+	      if ((SS.whoson_result = wso_query(buf, SS.whoson_data,
+						sizeof(SS.whoson_data)))) {
+		strcpy(SS.whoson_data,"-unregistered-");
+	      }
+	    } else {
+	      strcpy(SS.whoson_data,"NOT-CHECKED");
+	      SS.whoson_result = -1;
+	    }
+#endif /* HAVE_WHOSON_H */  
+
+
 	    if (smtp_syslog && ident_flag) {
 #ifdef HAVE_WHOSON_H
 	      zsyslog((LOG_INFO, "connection from %s@%s (whoson: %s)\n",
@@ -2011,26 +2035,6 @@ int insecure;
 
 
 #ifdef HAVE_WHOSON_H
-    if (do_whoson && netconnected_flg) {
-	char buf[64];
-	buf[0]='\0';
-	if (SS->raddr.v4.sin_family == AF_INET) {
-	  inet_ntop(AF_INET, (void *) &SS->raddr.v4.sin_addr,	/* IPv4 */
-		    buf, sizeof(buf) - 1);
-#if defined(AF_INET6) && defined(INET6)
-	} else if (SS->raddr.v6.sin6_family == AF_INET6) {
-	  inet_ntop(AF_INET6, (void *) &SS->raddr.v6.sin6_addr,  /* IPv6 */
-		    buf, sizeof(buf) - 1);
-#endif
-	}
-	if ((SS->whoson_result = wso_query(buf, SS->whoson_data,
-					   sizeof(SS->whoson_data)))) {
-	  strcpy(SS->whoson_data,"UNAVAILABLE");
-	}
-    } else {
-	strcpy(SS->whoson_data,"NOT-CHECKED");
-	SS->whoson_result = -1;
-    }
     policystatus     = policyinit(&policydb, &SS->policystate,
 				  SS->whoson_result);
 #else

@@ -1,3 +1,30 @@
+2003-05-20  Matti Aarnio  <mea@zmailer.org>
+
+	* router/rfc822.c:
+	    Eugene Crosser reported that envelope header
+	    "with" without a value does cause router process
+	    to drop core.  Indeed it does that.  Oops.
+	    (denial of service attack is possible from
+	    inside the system.)
+
+	* man/smtpserver.8.in, man/zmailer.3.in:
+	    Reworked/updated environment variable pickups of these
+	    programs.
+
+	* smtpserver/smtptls.c:
+	    Instead of picking the POSTOFFICE location all by itself,
+	    use smtpserver process global value.
+
+	* smtpserver/smtpserver.c:
+	    Andrey Blochintsev <bag@iptelecom.net.ua>  sent
+	    a patch to move  WHOSON  lookup upwards a bit
+	    so that the data is available, when it is being
+	    logged.
+
+	* INSTALL:
+	    Updated to match the reality a bit better, than
+	    what it has been for a long time...
+
 2003-05-15  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/contentpolicy.c, smtpserver/smtprouter.c,

@@ -184,8 +184,8 @@ allow sloppy input for systems incapable to respect RFC 821 properly; WinCE1.0 (
 The flags are concatenated to form the argument to the \-s option.  The
 default is \fBve\fR.
 .RE
-.IP \-T\ '[1.2.3.4]'
-.IP \-T\ '[ipv6.hhhh:hhhh:hhhh:hhhh:hhhh:hhhh:1.2.3.4]'
+.IP "\-T '[1.2.3.4]'"
+.IP "\-T '[ipv6.hhhh:hhhh:hhhh:hhhh:hhhh:hhhh:1.2.3.4]'"
 .RS
 Supply (in interactive mode) test address for policy dataset address testing.
 The optionset recommended for that case is:
@@ -212,7 +212,7 @@ Set when running smtpserver under e.g. inetd, and using service port
 number 465; a "well-known" deprecated one of SSL/SMTP; (From the era
 before ``STARTTLS'' protocol verb.)
 .RE
-.IP "\-Z\ \fIzenvfile\fR"
+.IP "\-Z \fIzenvfile\fR"
 .RS
 passes on explicite non-compiled-in-default located ZCONFIG environment file.
 .RE
@@ -242,7 +242,7 @@ various feature parametrizations
 On PARAM lines the system allows $-expansions of ZENV variables.
 (Special note: '$$' expands as '$', not shell-style process-id number!)
 .RE
-.IP The\ style\ (\fI\-s\fR)\ option
+.IP "The style (\fI\-s\fR) option"
 .RS
 behaviour based on glob patterns matching the
 .BR HELO / EHLO
@@ -264,7 +264,7 @@ This is synonym to start-time
 .I \-M
 option.
 .RE
-.IP PARAM\ min\-availspace\ 5000
+.IP "PARAM min\-availspace 5000"
 .RS
 This defines, in
 .BR kilobytes ,
@@ -272,7 +272,7 @@ the minimum available space in
 .B POSTOFFICE
 directory after the message has been accepted in.
 .RE
-.IP PARAM\ max\-error\-recipients
+.IP "PARAM max\-error\-recipients"
 .RS
 This defines how many recipients can be on a message whose source
 address is
@@ -280,7 +280,7 @@ address is
 That is, is an error message.  (Sometimes SPAMs are tried to inject
 in that form...)
 .RE
-.IP PARAM\ MaxSameIpSource
+.IP "PARAM MaxSameIpSource"
 .RS
 This sets the maximum number of active connections from any given
 single IP address.
@@ -298,7 +298,7 @@ the connection without telling anything.
 .B " is running as its own daemon, not while run from"
 .B "under inetd!"
 .RE
-.IP PARAM\ MaxParallelConnections
+.IP "PARAM MaxParallelConnections"
 .RS
 This limits how many simultaneous connections the server will accept
 in total -- e.g. how many childs a master server can have running.
@@ -314,41 +314,41 @@ In every case the connection is closed right after the possible message.
 .B "Do note that this works only when the smtpserver is running"
 .B "as its own daemon, not while run from under inetd!"
 .RE
-.IP PARAM\ ListenQueueSize
+.IP "PARAM ListenQueueSize"
 .RS
 This sets the listen queue size parameter for
 .IR listen (2)
 call at the server.
 .RE
-.IP PARAM\ TcpRcvBufferSize
+.IP "PARAM TcpRcvBufferSize"
 .RS
 This sets  setsockopt(SO_RCVBUF)  value, in case the system
 default is not suitable.
 .RE
-.IP PARAM\ TcpXmitBufferSize
+.IP "PARAM TcpXmitBufferSize"
 .RS
 This sets  setsockopt(SO_SNDBUF)  value, in case the system
 default is not suitable.
 .RE
-.IP PARAM\ RcptLimitCount\ 10000
+.IP "PARAM RcptLimitCount 10000"
 .RS
 This sets the maximum number of accepted recipients per one
 message transaction.  Default (and minimum!) value is 100,
 which is mandated by the RFC 821.
 .RE
-.IP PARAM\ BindPort\ \ \ 25
-.IP PARAM\ BindAddress\ [0.0.0.0]
-.IP PARAM\ BindAddress\ [IPv6.0::0]
-.IP PARAM\ BindAddress\ iface:ifacename
+.IP "PARAM BindPort    25"
+.IP "PARAM BindAddress [0.0.0.0]"
+.IP "PARAM BindAddress [IPv6.0::0]"
+.IP "PARAM BindAddress iface:ifacename"
 .RS
 Per default the server mode SMTP-server binds to port 25 and any
 locally accepted address, but occasionally people seem to want to
 have separate server instances with different configurations, and
 for those cases are these parameters.
 .RE
-.IP PARAM\ DEBUGcmd
-.IP PARAM\ EXPNcmd
-.IP PARAM\ VRFYcmd
+.IP "PARAM DEBUGcmd"
+.IP "PARAM EXPNcmd"
+.IP "PARAM VRFYcmd"
 .RS
 This trio (DEBUGcmd, EXPNcmd, VRFYcmd) are enablers of like named 
 SMTP verbs which have some uses in the debug mode.
@@ -356,7 +356,7 @@ SMTP verbs which have some uses in the debug mode.
 They are normally disabled, but running them enabled does not allow
 direct attacks with them.  (That we know of.)
 .RE
-.IP PARAM\ enable\-router
+.IP "PARAM enable\-router"
 .RS
 This enables interactive router use where user inputs reach the router.
 As things turn out, while the canned scripts should be safe against any
@@ -373,18 +373,18 @@ when you do this.
 This is also required for interactive router processing
 of ``MAIL FROM'' and ``RCPT TO'' addresses.
 .RE
-.IP PARAM\ smtp\-auth
+.IP "PARAM smtp\-auth"
 .RS
 This enables 'SMTP AUTH' facility (AUTH verb, plus optional parameter
 to MAIL verb).  With this the users who are able to 'login' successfully
 to this host, are then able to relay the email thru the server unlimited.
 .RE
-.IP PARAM\ AUTH\-LOGIN\-also\-without\-TLS
+.IP "PARAM AUTH\-LOGIN\-also\-without\-TLS"
 .RS
 This enables 'SMTP AUTH' facility usage also without running
 under SSL/TLS security envelope.
 .RE
-.IP PARAM\ MSA\-mode
+.IP "PARAM MSA\-mode"
 .RS
 Enable Message Submission Agent mode, where smtpserver
 .B requires
@@ -394,7 +394,7 @@ outside of the trusted networks or the networks with relaying enabled
 .I proto/db/smtp\-policy.src
 file).
 .RE
-.IP PARAM\ SMTP\-auth\-pipe\ /path/to/program
+.IP "PARAM SMTP\-auth\-pipe /path/to/program"
 .RS
 This is a path to the external authentication program.
 The authenticator should read a username from command line,
@@ -405,18 +405,18 @@ Exit status 0 means successful authentication.
 \fBprogram that follows the specification. Use this option only if
 \fByou know exactly what you do! BE CAREFULL!\fR
 .RE
-.IP PARAM\ use\-tcp\-wrapper
+.IP "PARAM use\-tcp\-wrapper"
 .RS
 If TCP-WRAPPER is configured in, uncommenting this
 will activate its use to look service name:  smtp-receiver
 .RE
-.IP PARAM\ No8BITMIME
-.IP PARAM\ NoCHUNKING
-.IP PARAM\ NoDSN
-.IP PARAM\ NoEHLO
-.IP PARAM\ NoENCHANCEDSTATUS(CODES)
-.IP PARAM\ NoETRN
-.IP PARAM\ NoPIPELINING
+.IP "PARAM No8BITMIME"
+.IP "PARAM NoCHUNKING"
+.IP "PARAM NoDSN"
+.IP "PARAM NoEHLO"
+.IP "PARAM NoENCHANCEDSTATUS(CODES)"
+.IP "PARAM NoETRN"
+.IP "PARAM NoPIPELINING"
 .RS
 This set contains
 .B disablers
@@ -432,12 +432,12 @@ for it, as in general they work quite fine.
 Of these, 8BITMIME can not in reality be disabled, only its adverticement
 can be turned off.
 .RE
-.IP PARAM\ no\-multiline\-replies
+.IP "PARAM no\-multiline\-replies"
 .RS
 Turn off ZMailer's default multiline replies; many systems (especially
 from M$ breed) don't do RFC 821 Appendix E properly...
 .RE
-.IP PARAM\ force\-rcpt\-notify\-never
+.IP "PARAM force\-rcpt\-notify\-never"
 .RS
 Whatever the incoming DNS NOTIFY= value is, we force it always
 to be NOTIFY=NEVER.   This is for those who won't like to let
@@ -455,7 +455,7 @@ This allows adding locally relevant data into the SMTP protocol
 HELP command response texts.
 See example in the sample configuration below.
 .RE
-.IP PARAM\ policydb
+.IP "PARAM policydb DBTYPE /path/to/dbfile"
 .RS
 This defines smtp input policy filtering/analysis database location.
 See the comments at the sample
@@ -466,7 +466,7 @@ An error here will be reported with obscureish code;
 "1" = "DBTYPE parameter unknown/unsupported",
 "2" = "can't open the database".
 .RE
-.IP PARAM\ contentfilter\ $MAILBIN/smtp-contentfilter
+.IP "PARAM contentfilter $MAILBIN/smtp-contentfilter"
 .RS
 An external program for received message content analysis.
 .PP
@@ -474,7 +474,7 @@ The interface is desribed below at
 .I "CONTENTFILTER INTERFACE"
 section.
 .RE
-.IP PARAM\ tarpit\ initial\ exponent\ toplimit
+.IP "PARAM tarpit initial exponent toplimit"
 .RS
 This defines a pre-reply slow-down factor, and next delay multiplier
 (both are integers).
@@ -886,9 +886,9 @@ The TLS related notes above.
 Possibly also:
 .RS 2em
 .IP \(bu 3em
-"PARAM\ AUTH\-LOGIN\-also\-without\-TLS"
+"PARAM AUTH\-LOGIN\-also\-without\-TLS"
 .IP \(bu 3em
-"PARAM\ SMTP\-auth\-pipe\ /path/to/program"
+"PARAM SMTP\-auth\-pipe /path/to/program"
 .IP \(bu 3em
 And possibly also PAM\-support for SMTP\-Auth, see below.
 .RE
@@ -1259,7 +1259,74 @@ PARAM tls-random-source /var/run/prngd-socket
 .fi
 .RE
 .PP
+.SH ENVIRONMENT VARIABLES USED BY THE SMTPSERVER
+The
+.IR zmailer (3)
+library's
+.I mail_open()
+et.al. functions use several environment variables.
+See that man-page.
 
+.SH Z\-ENV VARIABLES USED BY THE SMTPSERVER
+A collection of system configuration things
+.PP
+.IP ALLOWSOURCEROUTE
+Alternate way to tell the system the same thing as config does:
+.nf
+   PARAM allowsourceroute
+.fi
+.B "Preferrably this is not to be used!  Security dangers aplenty!"
+.PP
+.IP BINDADDR
+If exists (with valid content),
+.B BINDADDR
+specifies to which local interface to bind
+.IR smtpserver ,
+.I smtp
+transport agent, and
+.IR scheduler .
+Possible specification formats are:
+.nf
+  [0.0.0.0]
+  [IPv6.0::0]
+  iface:eth0:1
+.fi
+.PP
+.IP INPUTDIRS
+See
+.IR zmailer (3).
+.PP
+.IP INPUTNOTIFY
+See
+.IR zmailer (3).
+.PP
+.IP MAILBIN
+Used to find related
+.IR router (8)
+program for interactive routing things.
+.PP
+.IP PATH
+Passed on authentication subprocess program, see:
+.I "PARAM SMTP\-auth\-pipe ..."
+.PP
+.IP POSTOFFICE
+See also
+.IR zmailer (3).
+.PP
+.IP ROUTEDIRHASH
+See
+.IR zmailer (3).
+.PP
+.IP ROUTERNOTIFY
+See
+.IR zmailer (3).
+.PP
+.IP SYSLOGFLG
+.PP
+.IP ZCONFIG
+Passed on authentication subprocess program, see:
+.I "PARAM SMTP\-auth\-pipe ..."
+.PP
 .SH FILES
 .IP \fI@ZMAILERCFGFILE@\fR
 system global parameters

@@ -150,7 +150,7 @@ Just before the data starts, a magic entry:
 Then starts the message RFC-822 headers, and below it, the body
 .fi
 .SH EXAMPLE
-.ta 1i 1.5i 2.0i
+.ta 4em 8em 12em 16em 20em
 .nf
 	\&\fI... set up signal handlers ...\fR
 	\fBFILE\fR *mfp = mail_open(\fBMSG_RFC822\fR,0);
@@ -175,6 +175,19 @@ variable defines textual fullname, for example: "Sample User"
 .RS
 variable defines \fBuser@node\fR format of what user wants to claim as his/her
 own address (it must match those of mail router accepts.)
+.RE
+.IP LOGNAME
+.IP USERNAME
+.IP USER
+.RS
+Environment variables picked up in sequence in order to find
+an idea about user's identity to be stored into a line like:
+.PP
+.nf
+  recvfrom STDIN (username@hostname)
+.fi
+.PP
+which is purely cosmetic documenting thing.
 .RE
 .PP
 .SH Z\-ENVIRONMENT VARIABLES
@@ -215,6 +228,11 @@ of this ZENV-variable means that messages will be tried to be stored
 into these alternate directories (syntax alike with  ROUTERDIRS !)
 so that it can be leisurely analyzed (by e.g. virus scanners) before
 feeding it onwards to virus scanners.
+.PP
+Presence of this also activates checking of
+.IR INPUTDIRHASH ,
+and
+.IR INPUTNOTIFY .
 .RE
 .IP INPUTDIRHASH=1
 .RS

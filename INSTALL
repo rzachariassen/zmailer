@@ -1,8 +1,7 @@
-	THIS IS INCREASINLY OUT OF DATE, ONE OF THESE DAYS THIS
-	MUST BE REPLACED WITH THE TEXT FROM  doc/manual/zmanual.ps,
-	ESPECIALLY THE CHAPTER 2 -- INSTALL.
+	This isn't anymore wholly correct procedure, although
+	an attempt has been made to keep this fairly up to date.
 
-	Altenatively see:
+	Altenatively see:  (which isn't completely modern, either)
 		http://www.zmailer.org/zman/zinstall.html
 
 
@@ -38,6 +37,9 @@ Installation procedure:
 		The postoffice spool: POSTOFFICE ( /var/spool/postoffice )
 		The log directory: LOGDIR ( /var/log/mail )
 
+	PREFERRABLY those should be on SEPARATE DISKS!
+
+
 	We use GNU-autoconfig mechanism, however you may still need to
 	touch on some files after that system has run thru:
 
@@ -54,7 +56,8 @@ Installation procedure:
 
 	Also, if the   /etc/zmailer.conf   -file exists, it is read
 	to initialize several different environment paths (including
-	MAILBIN, et.al.!)
+	MAILBIN, et.al.!)  (Location of that file can be tuned with
+	--with-zconfig=  option, see below.)
 
 	# ./configure --prefix=/opt/zmailer	\
 		--with-postoffice=/var/spool/postoffice		\
@@ -207,7 +210,7 @@ Installation procedure:
 6.	Once you are safe, run BOTH:
 
 		# make install
-		# $MAILBIN/post-install.sh -MD5
+		# $MAILBIN/post-install -MD5
 FIXME:(write!)		(See notes about post-install below)
 
 	(this installs all binaries and the default database files, which
@@ -266,11 +269,11 @@ FIXME:(write!)		(See notes about post-install below)
 	builders), although you need to prepare the directory tree at first.
 	For example:
 
-		prefix=/var/tmp/build make install
+		. SiteConfig
+		DESTDIR=/var/tmp/build
+		make install DESTDIR=$DESTDIR
+		$DESTDIR/$MAILBIN/post-install -md5 --destdir $DESTDIR
 
-	However this does not create the intermediate directories leading
-	from $prefix to various trees, like $POSTOFFICE, $MAILVAR, $MAILBIN,
-	$MAILSHARE, $MAILLOG, etc.
 
 
 7.	If you are using the default configuration setup, the router.cf file
@@ -365,12 +368,14 @@ FIXME:(write!)		(See notes about post-install below)
 	databases, each even different types.
 
 	Basically you edit this file, and then execute command:
+
 		$MAILBIN/zmailer  newdb
+
 	which constructs all relation definitions, and recompiles
 	databases as needed.  If the set of databases changes, then
-	you need also to restart the router processes, otherwise the
-	router will detect quite quickly that the underlying databases
-	have been altered.
+	you need also to restart the router processes, otherwise for
+	mere content change the router will detect quite quickly that
+	the underlying databases have been altered.
 
 
    ==>	$MAILVAR/db/aliases file:
@@ -386,6 +391,7 @@ FIXME:(write!)		(See notes about post-install below)
 	Choose one of the following methods to rebuild the classical
 	aliases  database:
 
+	# $MAILBIN/zmailer newdb
 	# $MAILBIN/newaliases
 	# $MAILBIN/zmailer newaliases
 	# /usr/lib/sendmail -bi
@@ -428,8 +434,10 @@ FIXME:(write!)		(See notes about post-install below)
 		  destined into the host really is accepted.
 
 	Compile this into runtime binary database with command:
+		zmailer newdb
+
+	For old-salts there is also:
 		zmailer new-localnames
-	(fall-back method is sequential rescan of the text file)
 
 	Actually in certain cases the router is able to deduce some of
 	the names, however smtpserver anti-relay policy compiler will
@@ -438,7 +446,7 @@ FIXME:(write!)		(See notes about post-install below)
   ==>	$MAILVAR/db/routes file:
 
 	Add any UUCP neighbours or other special cases to this file.  For
-	example (remember to keep the entries sorted):
+	example:
 
 	.toronto.ca			error!err.wrongname
 	.toronto.cdn			error!err.wrongname
@@ -448,8 +456,10 @@ FIXME:(write!)		(See notes about post-install below)
 	icnucevm.bitnet			smtp!icnucevm.cnuce.cnr.it
 
 	Compile this into runtime binary database with command:
+		zmailer newdb
+
+	For old-salts there is also:
 		zmailer new-routes
-	(fall-back method is sequential rescan of the text file)
 
    ==>	$MAILVAR/db/fqdnaliases file:
 
@@ -475,6 +485,9 @@ FIXME:(write!)		(See notes about post-install below)
 	by executing  $MAILBIN/newfqdnaliases, or by "zmailer newfqdnaliases".
 
 	Compile this into runtime binary database with command:
+		zmailer newdb
+
+	For old-salts there is also:
 		zmailer newfqdnaliases
 
 	If there are errors, correct them in the $MAILVAR/db/fqdnaliases file
@@ -642,6 +655,7 @@ FIXME:(write!)		(See notes about post-install below)
 Installation on clients:
 
 The following files/programs are needed on clients:
+(actual path do depend on configuration!)
 
 	/etc/zmailer.conf	- the MAILSERVER variable may be set to the
 				  mail server host's name.  This is not
@@ -684,4 +698,4 @@ Often if the mail-folder directory is shared, also (depending upon the system):
 	/var/spool/mail
 
 
-(Rayan Zachariasen 1988-1990, Matti Aarnio 1993-1998)
+(Rayan Zachariasen 1988-1990, Matti Aarnio 1993-1998,2003)

@@ -25,6 +25,7 @@ Wanted done for 3.0:
 
 sfio:
 	Switch to SFio2002 ?  (or 2003...)
+	(Except it is full of thread cruft..)
 
 	feature-config to use simpler (s)ed facilities than GNU-stuff.
 
