@@ -3429,7 +3429,7 @@ int select_sleep(fd, when_tout, waitwr)
 	else
 	  _Z_FD_SET(fd,rdmask);
 
-	rc = select(fd+1,&rdmask,&wrmask,NULL,&tv);
+	rc = select(fd+1, &rdmask, &wrmask, NULL, &tv);
 	if (rc == 0) /* Timeout w/o input */
 	  return -1;
 	if (rc == 1) /* There is something to read (or write)! */
@@ -3701,7 +3701,12 @@ smtp_sync(SS, r, nonblocking)
 
 	      int infd = SS->smtpfd;
 
-	      err = select_sleep(infd, when_timeout, waitwr);
+	      if (infd >= 0) {
+		err = select_sleep(infd, when_timeout, waitwr);
+	      } else {
+		err = -1; /* Write has failed, but we still drop here to read.. or something */
+	      }
+
 	      en = errno;
 	      if (debug && logfp)
 		fprintf(logfp,"%s#\tselect_sleep(%d,%d); rc=%d\n",

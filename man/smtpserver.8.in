@@ -758,7 +758,7 @@ operation should be done under the security envelope of the SSL.
 does not know how to detect the session being IPSEC protected!)
 .PP
 You will likely need:
-.RS
+.RS 2em
 .IP \(bu 3em
 "PARAM smtp\-auth"
 .IP \(bu 3em
@@ -766,7 +766,7 @@ The TLS related notes above.
 .RE
 .PP
 Possibly also:
-.RS
+.RS 2em
 .IP \(bu 3em
 "PARAM\ AUTH\-LOGIN\-also\-without\-TLS"
 .IP \(bu 3em
