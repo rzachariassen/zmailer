@@ -1,5 +1,9 @@
 2000-03-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/forms/delivery:
+	    Added an URL reference to a "decode key" at
+		http://www.zmailer.org/reports.html
+
 	* scheduler/scheduler.h, scheduler/update.c, scheduler/threads.c,
 	  scheduler/prototypes.h, scheduler/readconfig.c, scheduler/msgerror.c,
 	  man/scheduler.8:

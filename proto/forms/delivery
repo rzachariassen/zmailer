@@ -3,5 +3,9 @@ HDR Sender:	mailer-daemon
 SUB Subject: Delivery reports about your email
 
 This is a collection of reports about email delivery
-process concerning a message you originated:
+process concerning a message you originated.
+
+Some explanations/translations for these reports
+can be found at:
+      http://www.zmailer.org/reports.html
 
