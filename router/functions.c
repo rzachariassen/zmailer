@@ -66,7 +66,6 @@ static int run_grpmems   ARGCV;
 #if 0 /* dead code */
 static int run_praliases ARGCV;
 #endif
-static int run_listaddresses ARGCV;
 static int zap_DSN_notify ARGCV;
 static int post_zap_DSN_notify ARGCV;
 static int run_homedir   ARGCV;
@@ -123,7 +122,6 @@ struct shCmd fnctns[] = {
 #if 0
 {	"printaliases",	run_praliases,	NULL,	NULL,	0	},
 #endif
-{	"listaddresses",run_listaddresses,NULL,	NULL,	SH_ARGV	},
 {	"zapDSNnotify", zap_DSN_notify,	NULL,	NULL,	SH_ARGV	},
 {	"postzapDSNnotify", post_zap_DSN_notify, NULL, NULL, SH_ARGV },
 {	"listexpand",	NULL,	run_listexpand,	NULL,	SH_ARGV	},
@@ -1550,6 +1548,12 @@ run_listexpand(avl, il)
 } /* end-of: run_listexpand() */
 
 
+
+#if 0
+--- function linkage table ---
+{	"listaddresses",run_listaddresses,NULL,	NULL,	SH_ARGV	},
+
+--- function itself ---
 static int
 run_listaddresses(argc, argv)
 	int argc;
@@ -1835,6 +1839,7 @@ run_listaddresses(argc, argv)
 	errors_to = old_errorsto;
 	return 0;
 }
+#endif /* disable a bit of code */
 
 static int
 run_homedir(argc, argv)

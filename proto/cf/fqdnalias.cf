@@ -276,7 +276,7 @@ fqdn_neighbour (domain, address, A) {
 		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		  if a=$(echo -- "$a" |				\
 		      listexpand -c "$a sender fqdn userdb mailname" \
-				 -e root			 	\
+				 -e root -N -			 	\
 				$nattr "sender-fqdn-userdb-mailname"	\
 					"$address" "$plustail" "$athost")
 		  then
@@ -335,7 +335,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
 		       listexpand -c "$a fqdn ldap expansion" 		\
-				-e root					\
+				-e root -N -				\
 				$nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		then
@@ -370,7 +370,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
 		       listexpand -c "$a fqdn+ alias expansion" 	\
-				-e root			 		\
+				-e root -N -		 		\
 				$nattr "fqdnalias" "$address"		\
 				"$pl2" "$athost")
 		then
@@ -391,7 +391,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
 			 listexpand	-c "$a fqdn+ ldap expansion" 	\
-					-e root			 	\
+					-e root -N -		 	\
 					$nattr "fqdnalias" "$address"	\
 					"$plustail" "$athost")
 		then
@@ -523,7 +523,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
 		       listexpand	-c "$a fqdn alias expansion" 	\
-					-e root			 	\
+					-e root -N -		 	\
 					$nattr "fqdnalias" "$address"	\
 					"$plustail" "$athost")
 		then
@@ -543,7 +543,7 @@ fqdn_neighbour (domain, address, A) {
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		if a=$(echo -- "$a" |					\
 		       listexpand -c "$a fqdn ldap expansion" 		\
-				  -e root			 	\
+				  -e root -N -			 	\
 				$nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost")
 		then
