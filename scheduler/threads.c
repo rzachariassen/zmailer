@@ -973,7 +973,7 @@ int ok, justfree;
 	      thr->proc->thread == thr)
 	    continue; /* in processing, don't touch! */
 
-	  if (thr->wakeup > now && thr->attempts > 0)
+	  if (thr->wakeup > now && thr->attempts > 0 )
 	    continue; /* wakeup in future, unless first time around! */
 
 	  /* Ok, this thread isn't busy, pick the first vertex */

@@ -226,7 +226,7 @@ int global_maxkids = 1000;
 time_t now;
 
 FILE * vfp_open __((struct ctlfile *));
-FILE *vfp_open(cfp)
+FILE * vfp_open(cfp)
 struct ctlfile *cfp;
 {
 	FILE *vfp;
@@ -1403,7 +1403,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	     * some previous transporter is still running.
 	     *
 	     */
-	    if (!lockverify(cfp,cp,1 || !rereading)) {
+	    if (!lockverify(cfp, cp, !rereading)) {
 #if 0
 	      /*
 	       * IMO we are better off by forgetting for a while that
@@ -1439,10 +1439,12 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      wakeuptime = now + 3600; /* 1 hour */
 #endif
 	    } else {
-	      *cp = _CFTAG_NORMAL; /* unlock it */
-	      lockaddr(cfp->fd, NULL, (long) (cp - cfp->contents),
-		       _CFTAG_LOCK, _CFTAG_NORMAL, cfp->mid,
-		       cp+_CFTAG_RCPTPIDSIZE, mypid);
+	      if (*cp != _CFTAG_NORMAL) {
+		*cp = _CFTAG_NORMAL; /* unlock it */
+		lockaddr(cfp->fd, NULL, (long) (cp - cfp->contents),
+			 _CFTAG_LOCK, _CFTAG_NORMAL, cfp->mid,
+			 cp+_CFTAG_RCPTPIDSIZE, mypid);
+	      }
 	    }
 	  }
 	  /* Calculate summary info */

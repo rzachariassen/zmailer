@@ -199,6 +199,9 @@ struct procinfo *proc;
 	  return;
 	}
 
+	if (vtx->wakeup > now)
+	  return; /* No, not yet! */
+
 	if (slow_shutdown)
 	  strcpy(cmdbuf,"\n");
 	else if (vtx->cfp->dirind > 0) {
