@@ -420,11 +420,6 @@ main(argc, argv)
 	else
 	  ++progname;
 
-	if (geteuid() != 0 || getuid() != 0) {
-	  fprintf(stderr, "%s: not running as root!\n", progname);
-	  exit(EX_NOPERM);
-	}
-
 	s = getzenv("MAILBOX");
 	if (s != NULL) {
 	  maildirs[0] = s;
@@ -511,6 +506,12 @@ main(argc, argv)
 		  argv[0]);
 	  exit(EX_USAGE);
 	}
+
+	if (geteuid() != 0 || getuid() != 0) {
+	  fprintf(stderr, "%s: not running as root!\n", progname);
+	  exit(EX_NOPERM);
+	}
+
 	setreuid(0, 0);		/* make us root all over */
 	currenteuid = 0;
 
@@ -2159,7 +2160,6 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	    /* execle(argv[0], cmdbuf+1,"-c",cmdbuf+1,(char*)NULL,env);*/
 	    execve("/sbin/sh", argv, env);
 	    /* execle(argv[0], cmdbuf+1, "-c", cmdbuf+1, (char *)NULL, env); */
-
 	  }
 
 	  write(2, "Cannot exec '", 13);
@@ -2611,7 +2611,7 @@ appendlet(dp, rp, fp, file, ismime)
 	      }
 	      if (writemimeline(&WS, s0, linelen) != linelen) {
 		DIAGNOSTIC(rp, file, EX_IOERR,
-			   "write to \"%s\" failed", file);
+			   "write to \"%s\" failed(1)", file);
 		return -256;
 	      }
 	      s0 = s;
@@ -2640,7 +2640,7 @@ appendlet(dp, rp, fp, file, ismime)
 	      ismime = 0;
 	    /* Ok, write the line */
 	    if (writemimeline(&WS, let_buffer, i) != i) {
-	      DIAGNOSTIC(rp, file, EX_IOERR, "write to \"%s\" failed", file);
+	      DIAGNOSTIC(rp, file, EX_IOERR, "write to \"%s\" failed(2)", file);
  	      MFPCLOSE;
 	      return -256;
 	    }
@@ -2659,7 +2659,7 @@ appendlet(dp, rp, fp, file, ismime)
 	  if (readalready != 0) {
 	    if (writebuf(&WS, let_buffer, readalready) != readalready) {
 	      DIAGNOSTIC(rp, file, EX_IOERR,
-			 "write to \"%s\" failed", file);
+			 "write to \"%s\" failed(3)", file);
 	      return -256;
 	    }
 	    rp->status = EX_OK;
@@ -2681,7 +2681,7 @@ appendlet(dp, rp, fp, file, ismime)
 	      return -256;
 	    }
 	    if (writebuf(&WS, let_buffer, i) != i) {
-	      DIAGNOSTIC(rp, file, EX_IOERR, "write to \"%s\" failed", file);
+	      DIAGNOSTIC(rp, file, EX_IOERR, "write to \"%s\" failed(4)", file);
 	      readalready = 0;
 	      return -256;
 	    }
@@ -2704,7 +2704,7 @@ appendlet(dp, rp, fp, file, ismime)
 	    if (s2 < dp->let_end && *s2 == '\n') ++s2, ++i;
 	    if (writemimeline(&WS, s, i) != i) {
 	      DIAGNOSTIC(rp, file, EX_IOERR,
-			 "write to \"%s\" failed", file);
+			 "write to \"%s\" failed(5)", file);
 	      return -256;
 	    }
 	    s = s2;
@@ -2712,7 +2712,7 @@ appendlet(dp, rp, fp, file, ismime)
 	} else {
 	  if (writebuf(&WS, s, dp->let_end - s) != (dp->let_end - s)) {
 	      DIAGNOSTIC(rp, file, EX_IOERR,
-			 "write to \"%s\" failed", file);
+			 "write to \"%s\" failed(6)", file);
 	      return -256;
 	  }
 	}
