@@ -1,3 +1,11 @@
+1999-04-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* include/listutils.h:
+	    Small macro change to please gcc 2.7.2.1 at FreeBSD 3.1;
+	    but perhaps it is due to some unfortunate #define overwriting
+	    my macro contents somewhere else...  I am listening on
+	    the reports of the issue.
+
 1999-04-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/policytest.h, smtpserver/policytest.c,
