@@ -779,9 +779,9 @@ struct thread *thr;
 	}
 
 	if (verbose)
-	  fprintf(stderr,"thread_start(thr=%s/%d/%s) (dt=%d, thr=0x%p)\n",
+	  fprintf(stderr,"thread_start(thr=%s/%d/%s) (dt=%d, thr=0x%p jobs=%d)\n",
 		  ch->name, thg->withhost, ho->name, (int)(thr->wakeup-now),
-		  thr);
+		  thr, thr->jobs);
 
 	if (thr->proc != NULL &&
 	    thr->proc->thread == thr) {
