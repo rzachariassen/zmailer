@@ -1251,7 +1251,7 @@ Usockaddr *raddr;
 	int i;
 
 	strcpy(state->ratelabelbuf, "4:");
-	p = pbuf+2;
+	p = (unsigned char *)(pbuf+2);
 	s = state->ratelabelbuf+2;
 	for (i = 0; i < 4; ++i) {
 	  sprintf(s, "%02x", *p);
@@ -1301,7 +1301,6 @@ static int call_rate_counter(rel, state, incr, what, countp)
      PolicyTest what;
 {
     int rc;
-    int retval;
     char pbuf[2000]; /* Not THAT much space needed.. */
 
     if (debug)

@@ -764,10 +764,11 @@ void
 smtpauth_ehloresponse(SS)
      SmtpState *SS;
 {
-	int result;
-
 #ifdef HAVE_SASL2
 	if (do_sasl) {
+
+	int result;
+
 	  if (SS->sasl.sasl_ok) {
 	    SS->sasl.ssp.security_flags = (SASLSecOpts & SASL_SEC_MAXIMUM);
 	    if (!(auth_login_without_tls || SS->sslmode)) {

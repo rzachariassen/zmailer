@@ -657,5 +657,3 @@ struct subdaemon_handler {
 extern struct subdaemon_handler subdaemon_handler_router;
 extern struct subdaemon_handler subdaemon_handler_ratetracker;
 extern struct subdaemon_handler subdaemon_handler_contentfilter;
-
-extern int call_subdaemon_trk __((void **statep,const char *cmd, char *retbuf, int retbuflen));
