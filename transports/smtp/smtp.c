@@ -2970,6 +2970,7 @@ smtpconn(SS, host, noMX)
 		return EX_DEFERALL;
 	      }
 
+#ifdef EAI_NODATA
 	      if ( r == EAI_NODATA ) {
 		sprintf(SS->remotemsg,"smtp; 500 (getaddrinfo<%.200s>: No data)",host);
 		time(&endtime);
@@ -2983,7 +2984,7 @@ smtpconn(SS, host, noMX)
 		  return EX_DEFERALL;
 		return EX_UNAVAILABLE;
 	      }
-
+#endif
 	      r = EX_UNAVAILABLE; /* This gives instant rejection */
 	      if (rc == EX_TEMPFAIL) r = rc;
 
@@ -3002,7 +3003,11 @@ smtpconn(SS, host, noMX)
 		  if (r != EX_TEMPFAIL)
 		    r = EX_NOHOST;
 #endif
-		} else if (gai_err == EAI_NONAME || gai_err == EAI_NODATA) {
+		} else if (gai_err == EAI_NONAME
+#ifdef EAI_NODATA
+			   || gai_err == EAI_NODATA
+#endif
+			   ) {
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s' (%s))",
 			  host, gai_err == EAI_NONAME ? "NONAME" : "NODATA");

@@ -703,7 +703,9 @@ int sender_dns_verify(state, retmode, domain, alen)
 	if (retmode == '+') {
 	  if (rc == -EX_NOHOST      ||
 	      rc == -EX_UNAVAILABLE ||
+#ifdef EAI_NODATA
 	      rc == EAI_NODATA      ||
+#endif
 	      rc == EAI_NONAME)
 	    return -2; /* Definitely hard errors */
 	  if (rc == 2)

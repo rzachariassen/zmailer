@@ -416,7 +416,9 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize, realnamettlp)
 	      break;
 	    case EAI_NONAME:
 	    case EAI_FAIL:
+#ifdef EAI_NODATA
 	    case EAI_NODATA:
+#endif
 	    case EAI_SERVICE:
 	    default:
 	      break;
@@ -470,7 +472,9 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize, realnamettlp)
 	      break;
 	    case EAI_NONAME:
 	    case EAI_FAIL:
+#ifdef EAI_NODATA
 	    case EAI_NODATA:
+#endif
 	    case EAI_SERVICE:
 	    default:
 	      break;
