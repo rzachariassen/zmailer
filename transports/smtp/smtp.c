@@ -4889,6 +4889,8 @@ static int cname_lookup(SS, host, cnamep)
     if (ci->ttl < now) {
       /* Move this entry to FREE chain */
       if (cp) cp->next = ci->next;
+      else /* When CP == NULL, we are at the FIRST cell, move head */
+	cnamecache_head = ci->next;
       ci->next = cnamecache_free;
       cnamecache_free = idx;
       if (ci->name)  free((void*)(ci->name));   ci->name  = NULL;
@@ -4963,7 +4965,7 @@ static const char *add_cname_cache(SS, host, cname, ttl)
   /* Check active list.. */
   for ( idx = cnamecache_head, cp = NULL ;
 	idx >= 0 ;
-	idx = nextidx) {
+	cp = ci, idx = nextidx) {
 
     ci = & cnamecache[idx];
     nextidx = ci->next;
@@ -4971,6 +4973,8 @@ static const char *add_cname_cache(SS, host, cname, ttl)
     if (ci->ttl < now) {
       /* Move this entry to FREE chain */
       if (cp) cp->next = ci->next;
+      else /* When CP == NULL, we are at the FIRST cell, move head */
+	cnamecache_head = ci->next;
       ci->next = cnamecache_free;
       cnamecache_free = idx;
       if (ci->name)  free((void*)(ci->name));   ci->name  = NULL;
