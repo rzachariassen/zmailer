@@ -419,8 +419,11 @@ delete_thread(thr, ok)
 	  /* If this thread has a process(es), we detach it(them)! */
 	  struct procinfo *proc = thr->proc;
 
-	  for (;proc; proc = proc->pnext)
+	  for (;proc; proc = proc->pnext) {
+	    sfprintf(sfstderr,"delete_thread() thr->proc=%p pid=%d\n",
+		     proc, proc->pid);
 	    proc->pthread = NULL;
+	  }
 
 	  /* These are handled by  transport.c:reclaim():
 	     thr->proc->ho = NULL;
