@@ -1,0 +1,86 @@
+.\" $Header$
+.ds ]W ZMailer 2.99
+.TH REROUTE 8 "17 Apr 2003"
+.SH NAME
+reroute \- zmailer's utility to move queued message back to router
+.SH SYNOPSIS
+.IP \fBreroute\fR 8em
+[\fB\-c\fR\ \fIchannel\fR]
+[\fB\-h\fR\ \fI"hostname"\fR]
+[\fB\-V\fR]
+.SH DESCRIPTION
+.I reroute
+is a ZMailer transport agent which sends message from scheduler queue
+back to router.
+The
+.IR reroute (8)
+program must be run with root privileges and invoked with the same
+current directory as the
+.IR scheduler ,
+namely \fIPOSTOFFICE\fB/transport\fR.
+.SH OPTIONS
+.IP \-c\ \fIchannel\fR
+Message recipient selector "channel" (optional)
+.IP \-h\ \fI"hostname"\fR
+Message recipient selector "host" (optional)
+.IP \-V
+prints a version message and exits.
+
+.SH INTERFACE
+This program reads in processable file names relative to the current
+working directory of the
+.IR scheduler (8)
+(namely: \fI$POSTIOFFICE/transport/\fR).
+Optionally on the same line the
+.IR scheduler (8)
+may tell which host is to be looked for from the recipients of the message.
+.PP
+.RS
+\fIrelative-spool-path\fR [ <TAB> \fIhostname\fR ]
+.RE
+.PP
+This program produces diagnostic output on the standard output.
+Normal diagnostic output is of the form:
+.PP
+.RS
+\fIid\fR/\fIoffset\fR<TAB>\fInotify-data\fR<TAB>\fIstatus\fR \fImessage\fR
+.RE
+.PP
+where 
+.I id
+is the inode number of the message file,
+.I offset
+is a byte offset within its control file where the address being reported
+on is kept,
+.I status
+is one of
+.BR ok ,
+.BR error ,
+or
+.BR deferred ,
+and the
+.I message
+is descriptive text associated with the report.  The text is terminated by
+a linefeed.  Any other format (as might be produced by subprocesses)
+is passed to standard output for logging in the
+.IR scheduler (8)
+log.
+.PP
+The exit status is a code from
+.BR <sysexits.h> .
+.PP
+.SH Z-ENVIRONMENT VARIABLES
+This program uses no \fBZMailer\fR environment variables.
+.SH FILES
+.I /etc/zmailer.conf
+.br
+.I /var/spool/postoffice (POSTOFFICE)
+.PP
+.SH SEE ALSO
+.IR scheduler (8),
+.IR manual-rerouter (8).
+.SH AUTHOR
+This program is authored and copyright by:
+.RS 3em
+Matti Aarnio <mea@nic.funet.fi>
+.RE

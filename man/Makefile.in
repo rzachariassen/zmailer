@@ -22,7 +22,7 @@ HTMLFIXUP = ${srcdir}/../doc/manual/html-post-fixup.sh
 MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
 MAN3=	zmailer.3 authuser.3
 MAN5=	aliases.5
-MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8 mailbox.8 makedb.8 newdb.8
+MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8 mailbox.8 makedb.8 newdb.8 reroute.8 manual-rerouter.8
 
 FRC:
 	@echo "make install MANDIR=/your/choice"
@@ -73,6 +73,8 @@ install:
 	$(INSTALL) -m 644 $S/zmailer.3	${MANDIR}/man3
 	$(INSTALL) -m 644 $S/manual-expirer.8 ${MANDIR}/man8
 	$(INSTALL) -m 644 $S/expirer.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/reroute.8	${MANDIR}/man8
+	$(INSTALL) -m 644 $S/manual-rerouter.8	${MANDIR}/man8
 	$(INSTALL) -m 644 $S/zmsh.1	${MANDIR}/man1
 	$(INSTALL) -m 644 vacation.1	${MANDIR}/man1
 
@@ -137,6 +139,10 @@ newdb.8.ps: $(srcdir)/newdb.8
 	groff -t -man $< > $@
 mboxpath.1.ps: $(srcdir)/mboxpath.1
 	groff -t -man $< > $@
+reroute.8.ps: $(srcdir)/reroute.8
+	groff -t -man $< > $@
+manual-rerouter.8.ps: $(srcdir)/manual-rerouter.8
+	groff -t -man $< > $@
 
 
 
@@ -192,6 +198,10 @@ newdb.8.html: $(srcdir)/newdb.8
 	sh $(srcdir)/man-to-html.sh $< > $@
 mboxpath.1.html: $(srcdir)/mboxpath.1
 	sh $(srcdir)/man-to-html.sh $< > $@
+manual-rerouter.8.html: $(srcdir)/manual-rerouter.8
+	sh $(srcdir)/man-to-html.sh $< > $@
+reroute.8.html: $(srcdir)/reroute.8
+	sh $(srcdir)/man-to-html.sh $< > $@
 
 
 
@@ -246,4 +256,8 @@ makedb.8.pdf: makedb.8.ps
 newdb.8.pdf: newdb.8.ps
 	ps2pdf $<
 mboxpath.1.pdf: mboxpath.1.ps
+	ps2pdf $<
+reroute.8.pdf: reroute.8.ps
+	ps2pdf $<
+manual-rerouter.8.pdf: manual-rerouter.8.ps
 	ps2pdf $<
