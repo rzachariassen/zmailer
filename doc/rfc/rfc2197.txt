@@ -4,10 +4,10 @@
 
 
 
-Network Working Group                                           N. Freed
-Request For Comments: 1854                  Innosoft International, Inc.
-Category: Standards Track                          A. Cargille, WG Chair
-                                                            October 1995
+Network Working Group                                       N. Freed
+Request for Comments: 2197                                  Innosoft
+Obsoletes: 1854                                       September 1997
+Category: Standards Track
 
 
                          SMTP Service Extension
@@ -21,23 +21,26 @@ Status of this Memo
    Official Protocol Standards" (STD 1) for the standardization state
    and status of this protocol.  Distribution of this memo is unlimited.
 
-Abstract
+1.  Abstract
 
    This memo defines an extension to the SMTP service whereby a server
    can indicate the extent of its ability to accept multiple commands in
    a single TCP send operation. Using a single TCP send operation for
    multiple commands can improve SMTP performance significantly.
 
-Introduction
+   The present document is an updated version of RFC 1854 [3].  Only
+   textual and editorial changes have been made; the protocol has not
+   changed in any way.
+
+2.  Introduction
 
    Although SMTP is widely and robustly deployed, certain extensions may
    nevertheless prove useful. In particular, many parts of the Internet
-   make use of high latency network links.
-
-   SMTP's intrinsic one command-one response structure is significantly
-   penalized by high latency links, often to the point where the factors
-   contributing to overall connection time are dominated by the time
-   spent waiting for responses to individual commands (turnaround time).
+   make use of high latency network links.  SMTP's intrinsic one
+   command-one response structure is significantly penalized by high
+   latency links, often to the point where the factors contributing to
+   overall connection time are dominated by the time spent waiting for
+   responses to individual commands (turnaround time).
 
    In the best of all worlds it would be possible to simply deploy SMTP
    client software that makes use of command pipelining: batching up
@@ -47,38 +50,40 @@ Introduction
    Internet SMTP servers cannot adequately handle command pipelining.
    Flaws known to exist in deployed servers include:
 
- (1)   Connection handoff and buffer flushes in the middle of
-       the SMTP dialogue.  Creation of server processes for
-       incoming SMTP connections is a useful, obvious, and
-       harmless implementation technique. However, some SMTP
-       servers defer process forking and connection handoff
 
 
 
-Freed & Cargille            Standards Track                     [Page 1]
+
+
+Freed                       Standards Track                     [Page 1]
 
-RFC 1854                    SMTP Pipelining                 October 1995
+RFC 2197                 SMTP Service Extension           September 1997
 
 
-       until some intermediate point in the SMTP dialogue.
-       When this is done material read from the TCP connection
-       and kept in process buffers can be lost.
+    (1)   Connection handoff and buffer flushes in the middle of
+          the SMTP dialogue.  Creation of server processes for
+          incoming SMTP connections is a useful, obvious, and
+          harmless implementation technique. However, some SMTP
+          servers defer process forking and connection handoff
+          until some intermediate point in the SMTP dialogue.
+          When this is done material read from the TCP connection
+          and kept in process buffers can be lost.
 
- (2)   Flushing the TCP input buffer when an SMTP command
-       fails. SMTP commands often fail but there is no reason
-       to flush the TCP input buffer when this happens.
-       Nevertheless, some SMTP servers do this.
+    (2)   Flushing the TCP input buffer when an SMTP command
+          fails. SMTP commands often fail but there is no reason
+          to flush the TCP input buffer when this happens.
+          Nevertheless, some SMTP servers do this.
 
- (3)   Improper processing and promulgation of SMTP command
-       failures. For example, some SMTP servers will refuse to
-       accept a DATA command if the last RCPT TO command
-       fails, paying no attention to the success or failure of
-       prior RCPT TO command results. Other servers will
-       accept a DATA command even when all previous RCPT TO
-       commands have failed. Although it is possible to
-       accommodate this sort of behavior in a client that
-       employs command pipelining, it does complicate the
-       construction of the client unnecessarily.
+    (3)   Improper processing and promulgation of SMTP command
+          failures. For example, some SMTP servers will refuse to
+          accept a DATA command if the last RCPT TO command
+          fails, paying no attention to the success or failure of
+          prior RCPT TO command results. Other servers will
+          accept a DATA command even when all previous RCPT TO
+          commands have failed. Although it is possible to
+          accommodate this sort of behavior in a client that
+          employs command pipelining, it does complicate the
+          construction of the client unnecessarily.
 
    This memo uses the mechanism described in [2] to define an extension
    to the SMTP service whereby an SMTP server can declare that it is
@@ -86,7 +91,15 @@ RFC 1854                    SMTP Pipelining                 October 1995
    check for this declaration and use pipelining only when the server
    declares itself capable of handling it.
 
-1.  Framework for the Command Pipelining Extension
+2.1.  Requirements notation
+
+   This document occasionally uses terms that appear in capital letters.
+   When the terms "MUST", "SHOULD", "MUST NOT", "SHOULD NOT", and "MAY"
+   appear capitalized, they are being used to indicate particular
+   requirements of this specification. A discussion of the meanings of
+   these terms appears in RFC 2119 [4].
+
+3.  Framework for the Command Pipelining Extension
 
    The Command Pipelining extension is defined as follows:
 
@@ -94,6 +107,14 @@ RFC 1854                    SMTP Pipelining                 October 1995
 
     (2)   the EHLO keyword value associated with the extension is
           PIPELINING;
+
+
+
+
+Freed                       Standards Track                     [Page 2]
+
+RFC 2197                 SMTP Service Extension           September 1997
+
 
     (3)   no parameter is used with the PIPELINING EHLO keyword;
 
@@ -107,16 +128,7 @@ RFC 1854                    SMTP Pipelining                 October 1995
           extension affects the behavior of a server and client
           SMTP.
 
-
-
-
-
-Freed & Cargille            Standards Track                     [Page 2]
-
-RFC 1854                    SMTP Pipelining                 October 1995
-
-
-2.  The Pipelining Service Extension
+4.  The Pipelining Service Extension
 
    When a client SMTP wishes to employ command pipelining, it first
    issues the EHLO command to the server SMTP. If the server SMTP
@@ -124,7 +136,7 @@ RFC 1854                    SMTP Pipelining                 October 1995
    the EHLO keyword value PIPELINING, then the server SMTP has indicated
    that it can accommodate SMTP command pipelining.
 
-2.1.  Client use of pipelining
+4.1.  Client use of pipelining
 
    Once the client SMTP has confirmed that support exists for the
    pipelining extension, the client SMTP may then elect to transmit
@@ -142,14 +154,24 @@ RFC 1854                    SMTP Pipelining                 October 1995
    extensions that define the commands.
 
    The actual transfer of message content is explicitly allowed to be
-   the first "command" in a group. That is, the RSET/MAIL FROM sequence
-   necessary to initiate a new message transaction can be placed in the
-   same group as the final transfer of the headers and body of the
-   previous message.
+   the first "command" in a group. That is, a RSET/MAIL FROM sequence
+   used to initiate a new message transaction can be placed in the same
+   group as the final transfer of the headers and body of the previous
+   message.
 
    Client SMTP implementations that employ pipelining MUST check ALL
    statuses associated with each command in a group. For example, if
    none of the RCPT TO recipient addresses were accepted the client must
+
+
+
+
+
+Freed                       Standards Track                     [Page 3]
+
+RFC 2197                 SMTP Service Extension           September 1997
+
+
    then check the response to the DATA command -- the client cannot
    assume that the DATA command will be rejected just because none of
    the RCPT TO commands worked.  If the DATA command was properly
@@ -164,14 +186,6 @@ RFC 1854                    SMTP Pipelining                 October 1995
 
    Client SMTP implementations MAY elect to operate in a nonblocking
    fashion, processing server responses immediately upon receipt, even
-
-
-
-Freed & Cargille            Standards Track                     [Page 3]
-
-RFC 1854                    SMTP Pipelining                 October 1995
-
-
    if there is still data pending transmission from the client's
    previous TCP send operation. If nonblocking operation is not
    supported, however, client SMTP implementations MUST also check the
@@ -185,7 +199,7 @@ RFC 1854                    SMTP Pipelining                 October 1995
    response, the last line not containing a dash between the response
    code and the response string.
 
-2.2.  Server support of pipelining
+4.2.  Server support of pipelining
 
    A server SMTP implementation that offers the pipelining extension:
 
@@ -206,6 +220,14 @@ RFC 1854                    SMTP Pipelining                 October 1995
           commands in an internal buffer so they can sent as a
           unit.
 
+
+
+
+Freed                       Standards Track                     [Page 4]
+
+RFC 2197                 SMTP Service Extension           September 1997
+
+
     (5)   MUST NOT buffer responses to EHLO, DATA, VRFY, EXPN,
           TURN, QUIT, and NOOP.
 
@@ -221,18 +243,11 @@ RFC 1854                    SMTP Pipelining                 October 1995
           implicitly or explicitly, what command the response
           matches.
 
-
-
-Freed & Cargille            Standards Track                     [Page 4]
-
-RFC 1854                    SMTP Pipelining                 October 1995
-
-
    The overriding intent of these server requirements is to make it as
    easy as possible for servers to conform to these pipelining
    extensions.
 
-3.  Examples
+5.  Examples
 
    Consider the following SMTP dialogue that does not use pipelining:
 
@@ -257,6 +272,18 @@ RFC 1854                    SMTP Pipelining                 October 1995
    C: QUIT
    S: 221 goodbye
 
+
+
+
+
+
+
+
+Freed                       Standards Track                     [Page 5]
+
+RFC 2197                 SMTP Service Extension           September 1997
+
+
    The client waits for a server response a total of 9 times in this
    simple example. But if pipelining is employed the following dialogue
    is possible:
@@ -276,20 +303,13 @@ RFC 1854                    SMTP Pipelining                 October 1995
    S: 250 recipient <ned@innosoft.com> OK
    S: 250 recipient <dan@innosoft.com> OK
    S: 250 recipient <kvc@innosoft.com> OK
-
-
-
-Freed & Cargille            Standards Track                     [Page 5]
-
-RFC 1854                    SMTP Pipelining                 October 1995
-
-
    S: 354 enter mail, end with line containing only "."
     ...
    C: .
    C: QUIT
    S: 250 message sent
    S: 221 goodbye
+
 
    The total number of turnarounds has been reduced from 9 to 4.
 
@@ -313,6 +333,13 @@ RFC 1854                    SMTP Pipelining                 October 1995
    C: QUIT
    S: 221 goodbye
 
+
+
+Freed                       Standards Track                     [Page 6]
+
+RFC 2197                 SMTP Service Extension           September 1997
+
+
    The client SMTP waits for the server 4 times here as well. If the
    server SMTP does not check for at least one valid recipient prior to
    accepting the DATA command, the following dialogue would result:
@@ -332,54 +359,61 @@ RFC 1854                    SMTP Pipelining                 October 1995
    S: 550 remote mail to <galvin@tis.com> not allowed
    S: 354 enter mail, end with line containing only "."
    C: .
-
-
-
-Freed & Cargille            Standards Track                     [Page 6]
-
-RFC 1854                    SMTP Pipelining                 October 1995
-
-
    C: QUIT
    S: 554 no valid recipients
    S: 221 goodbye
 
-4.  Security Considerations
+6.  Security Considerations
 
-   This RFC does not discuss security issues and is not believed to
+   This document does not discuss security issues and is not believed to
    raise any security issues not endemic in electronic mail and present
    in fully conforming implementations of [1].
 
-5.  Acknowledgements
+7.  Acknowledgements
 
    This document is based on the SMTP service extension model presented
    in RFC 1425. Marshall Rose's description of SMTP command pipelining
    in his book "The Internet Message" also served as a source of
    inspiration for this extension.
 
-6.  References
+8.  References
 
-   [1]  Postel, J., "Simple Mail Transfer Protocol", STD 10
-        RFC 821, USC/Information Sciences Institute, August
-        1982.
+   [1]  Postel, J., "Simple Mail Transfer Protocol", STD 10,
+        RFC 821, August 1982.
 
-   [2]  Klensin, J., Freed, N., Rose, M., Stefferud, E.,
-        and D. Crocker, "SMTP Service Extensions", RFC 1651,
-        MCI, Innosoft, Dover Beach Consulting, Inc.,
-        Network Management Associates, Inc., Silicon Graphics,
-        Inc., July 1994.
+   [2]  Klensin, J., Freed, N., Rose, M., Stefferud, E., and
+        D. Crocker, "SMTP Service Extensions", RFC 1869,
+        November 1995.
 
-7.  Author's Address
+   [3]  Freed, N., "SMTP Service Extension for Command Pipelining",
+        RFC 1854, October 1995.
+
+
+
+
+Freed                       Standards Track                     [Page 7]
+
+RFC 2197                 SMTP Service Extension           September 1997
+
+
+   [4]  Bradner, S., "Key words for use in RFCs to Indicate
+        Requirement Levels", RFC 2119, March 1997.
+
+9.  Author's Address
 
    Ned Freed
    Innosoft International, Inc.
-   1050 East Garvey Avenue South
+   1050 Lakes Drive
    West Covina, CA 91790
    USA
 
-   Phone: +1 818 919 3600
-   Fax: +1 818 919 3614
-   EMail: ned@innosoft.com
+   Phone: +1 626 919 3600
+   Fax: +1 626 919 3614
+   EMail: ned.freed@innosoft.com
+
+   This document is a product of work done by the Internet Engineering
+   Task Force Working Group on Messaging Extensions, Alan Cargille,
+   chair.
 
 
 
@@ -391,5 +425,27 @@ RFC 1854                    SMTP Pipelining                 October 1995
 
 
 
-Freed & Cargille            Standards Track                     [Page 7]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Freed                       Standards Track                     [Page 8]
 
