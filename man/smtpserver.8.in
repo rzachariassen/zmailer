@@ -1401,7 +1401,8 @@ if PAM mechanism is present and plain-password authentication is wanted
 .PP
 
 .SH SEE ALSO
-.IR router (8zm).
+.IR router (8zm),
+.IR zmailer.conf (5zm).
 .PP
 .TS
 l l

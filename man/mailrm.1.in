@@ -58,7 +58,8 @@ l l.
 .PP
 .IR router (8zm),
 .IR scheduler (8zm),
-.IR mailq (1zm).
+.IR mailq (1zm),
+.IR zmailer.conf (5zm).
 .br
 RFC987, RFC1138
 .SH AUTHOR

@@ -1,4 +1,5 @@
 #<VAR><HEAD>DESCRIPTION</HEAD><DESC>
+#.PP
 #  ZMailer 'ZENV' Environment Variables:
 #.PP
 #  A config file for storing various SITE CONFIG parameters
@@ -6,81 +7,104 @@
 #  These are generic material that DO NOT DEPEND UPON COMPILERS et.al!
 #.PP
 #  This is generated with autoconfiguration process from  SiteConfig.in
-#  file, and the configuration parameters.  The standard installation
-#  procedure WILL NOT overwrite the destination  ZCONFIG  file with
-#  the new one.    This file contains one parameter that is compiled
-#  in the binaries, and is not overridable with this file, namely
-#  the  ZCONFIG  variable, alias the final location of the processed
-#  result of this SiteConfig file.
+#  file, and the configuration parameters.
+#.PP
+# Following paragraph appears to be outdated:
+#.PP
+#  The standard installation procedure \fBWILL NOT\fR overwrite
+#  the destination  \fBZCONFIG\fR  file with the new one.
+#  This file contains one parameter that is compiled in the binaries,
+#  and is not overridable with this file, namely the  ZCONFIG  variable,
+#  alias the final location of the processed result of this
+#  SiteConfig file.
 #</DESC></VAR>
 
 #<VAR><NAME>ZCONFIG</NAME><DESC>
-# ZCONFIG is the pathname of the configuration file specifying all the other
-# host-dependent information needed by ZMailer programs.  This file is
-# created from the Config file in the distribution (the file you are reading
-# right now), and contains variable assignments in an sh-compatible format.
+# ZCONFIG is the pathname of the configuration file specifying all
+# the other host-dependent information needed by ZMailer programs.
+# This file is created from the \fISiteConfig\fR file in the distribution
+# (the file you are reading right now), and contains variable
+# assignments in an sh-compatible format.
+#.PP
+# Several top-level components of ZMailer do have runtime options
+# to choose some other path, than compiled-in default for this
+# (@ZMAILERCFGFILE@).
+#.PP
+# Some programs (notably '\fIsendmail\fR(8zm)', and transport agents)
+# do check for standard UNIX environment variables for overrider of
+# this value.)
 #</DESC></VAR>
 ZCONFIG=	@ZMAILERCFGFILE@
 
 #<VAR><NAME>MAILBIN</NAME><DESC>
 # MAILBIN is the directory hierarchy containing all ZMailer binaries.
-# Usually /usr/lib/mail/bin or /local/lib/mail.
+#.PP
+# Configured as: @MAILBIN@
 #</DESC></VAR>
 MAILBIN=	@MAILBIN@
 
 #<VAR><NAME>MAILSHARE</NAME><DESC>
-# MAILSHARE is the directory hierarchy containing site-wide configuration
-# files and databases.  Usually /usr/lib/mail or /local/share/mail.
+# MAILSHARE is the directory hierarchy containing site-wide
+# configuration files and databases.
+#.PP
+# Configured as: @MAILSHARE@
 #</DESC></VAR>
 MAILSHARE=	@MAILSHARE@
 
 #<VAR><NAME>MAILVAR</NAME><DESC>
-# MAILVAR is the directory that will contain machine-specific configuration
-# files and databases.  Usually /usr/lib/mail or /var/db/mail or
-# /local/share/mail.
+# MAILVAR is the directory that will contain machine-specific
+# configuration files and databases.
+#.PP
+# Configured as: @MAILVAR@
 #</DESC></VAR>
 MAILVAR=	@MAILVAR@
 
 #<VAR><NAME>MAILBOX</NAME><DESC>
-# MAILBOX is the directory containing all the user mailboxes.  This is
-# defaulted inside the mailbox.c program (currently /var/mail) and may
-# be overridden here.  Usually /usr/spool/mail or /var/mail.
+# MAILBOX is the directory containing all the user mailboxes.
+# This is defaulted inside the \fImailbox\fR(8zm) program
+# and may be overridden here.
+#.PP
+# Configured as: @MAILBOX@
 #</DESC></VAR>
 MAILBOX=	@MAILBOX@
 
 #<VAR><NAME>POSTOFFICE</NAME><DESC>
 # POSTOFFICE is the directory hierarchy used to manipulate message files,
 # where runtime activity takes places.
-# Usually /usr/spool/postoffice or /var/spool/postoffice.
+#.PP
+# Configured as: @POSTOFFICE@
 #</DESC></VAR>
 POSTOFFICE=	@POSTOFFICE@
 
 
 #<VAR><NAME>LOGDIR</NAME><DESC>
 # LOGDIR is the directory where log files will appear.
-# Usually /usr/spool/log, or /var/log.
+#.PP
+# Configured as: @LOGDIR@
 #</DESC></VAR>
 LOGDIR=		@LOGDIR@
 
 # prefix per autoconfig:
 prefix=		@prefix@
 
-## MANDIR is the top of the manual directory hierarchy where manual pages
-## for the ZMailer programs are installed.  Usually /usr/man or /local/man.
+## MANDIR is the top of the manual directory hierarchy where
+## manual pages for the ZMailer programs are installed.
+## Usually /usr/man or /local/man.
 #MANDIR=	@mandir@
 
-# LIBRARYDIR is the place for storing  libzmailer.a, which can be used to
-# create programs which use Zmailer's  zmailer(3) (aka: mail(3)) -library.
+# LIBRARYDIR is the place for storing  libzmailer.a, which can be
+# used to create programs which use Zmailer's  zmailer(3)
+# (aka: mail(3)) -library.
 LIBRARYDIR=	@libdir@
 
-# INCLUDEDIR is the place for storing   zmailer.h -- a copy of include/mail.h
-# and it is used in conjunction with the  libzmailer.a ..
+# INCLUDEDIR is the place for storing   zmailer.h -- a copy of
+# include/mail.h and it is used in conjunction with the  libzmailer.a ..
 INCLUDEDIR=	@includedir@
 
 
 #<VAR><NAME>INPUTDIRS</NAME><DESC>
-# INPUTDIRS  are alternate directories to receive files INSTEAD of standard
-# "router" and $ROUTERDIRS set.
+# INPUTDIRS  are alternate directories to receive files
+# \fBinstead\fR of standard "router" and $ROUTERDIRS set.
 #</DESC></VAR>
 #INPUTDIRS=input:input2
 
@@ -93,18 +117,22 @@ INCLUDEDIR=	@includedir@
 #INPUTDIRHASH=1
 
 #<VAR><NAME>INPUTNOTIFY</NAME><DESC>
-# The INPUTNOTIFY defines, where is a socket at which some pre-router queue
-# processor listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
-# The injection library informs the router queuing subsystem of new jobs,
-# and does it with same message as  ROUTERNOTIFY=  uses.
+# The INPUTNOTIFY defines, where is a socket at which some
+# pre-router queue processor listens for PF_UNIX/SOCK_DGRAM
+# messages telling paths to new jobs.
+#.PP
+# The injection library informs the router queuing subsystem
+# of new jobs, and does it with same message as  ROUTERNOTIFY=  uses.
 #</DESC></VAR>
 #INPUTNOTIFY=@POSTOFFICE@/.input.notify
 
 
 
 #<VAR><NAME>ROUTEROPTIONS</NAME><DESC>
-# ROUTEROPTIONS are command line options given to the router when started
-# from the zmailer shell script. The default values are "-dWkn 4"
+# ROUTEROPTIONS are command line options given to the \fIrouter\fR(8zm)
+# when started from the \fIzmailer\fR(1zm) shell script.
+#.PP
+# The default values are "-dWkn 4"
 #</DESC></VAR>
 #ROUTEROPTIONS= "-dWkn 4"
 ROUTEROPTIONS= @ROUTEROPTIONS@
@@ -313,28 +341,44 @@ TA_USE_MMAP=@TA_USE_MMAP@
 #SELFADDRESSES=[1.2.3.4],[2.3.4.5],[ipv6.::1.2.3.4]
 SELFADDRESSES=@SELFADDRESSES@
 
+#<VAR><NAME>DBTYPE</NAME><DESC>
 # What kind of DB type we prefer to use ?  We can support several,
-# after all...  btree/ndbm/gdbm ... (DBEXT: pag/db/dat)
+# simultaneously, after all; btree/ndbm/gdbm ...
+#</DESC></VAR>
 DBTYPE=@DBTYPE@
+#<VAR><NAME>DBEXT</NAME><DESC>
+# What extension that particular DB type wants for open operations ?
+#</DESC></VAR>
 DBEXT=@DBEXT@
+#<VAR><NAME>DBEXTtest</NAME><DESC>
+# What extension that particular DB type will actually have ?
+# This is used in
+# .IR "file age tests" .
+#</DESC></VAR>
 DBEXTtest=@DBEXTtest@
 
+#<VAR><NAME>DEFCHARSET</NAME><DESC>
 # The characterset to be used as a default when turning 8-bit containing
 # headers to MIME-2 headers -- and what to say at the default generated
 # "Content-Type: text/plain; charset=XXXX" -header in case the original
 # message was not of MIME, and still had 8-bit chars...
+#</DESC></VAR>
 DEFCHARSET=ISO-8859-1
 
+#<VAR><NAME>RFC822TABS</NAME><DESC>
 # We want those nice tabs between the header field name and value
 # The task of generating TABs or SPACEs is at TA *writeheaders().
 # Value '0' here yields expansion of possibly existing header resident
 # line-start TABs.  There is no mechanism to turn line-start SPACEs
 # to TABs with any other value stored here.
+#</DESC></VAR>
 RFC822TABS=@RFC822TABS@
 
-# Existence NORECEIVEDFORCLAUSE ZENV variable forbids the transport agents
-# from adding '(ORCPT <...> ...)' or  'for <...> ' clauses to the top-most
-# "Received:" header.
+#<VAR><NAME>NORECEIVEDFORCLAUSE</NAME><DESC>
+# Existence NORECEIVEDFORCLAUSE ZENV variable forbids the transport
+# agents from adding '(ORCPT <...> ...)' or  'for <...> ' clauses
+# to the top-most "Received:" header.
+#</DESC></VAR>
 #NORECEIVEDFORCLAUSE=1
 
 # If the following limitations are exceeded then zmailcheck
@@ -346,63 +390,78 @@ MAX_NT=1000
 # Load times 100
 MAX_LOAD=300
 
+#<VAR><NAME>SYSLOGFLG</NAME><DESC>
 # SYSLOGFLG tells which systems use syslog to log things:
 # Set of chars which are as follows:
-#   S  smtpserver and @SENDMAILPATH@
-#   R  router
-#   T  transport agents
-#   C  scheduler completion of a message
-#
+# .IP S
+#     smtpserver and @SENDMAILPATH@
+# .IP R
+#     router
+# .IP T
+#     transport agents
+# .IP C
+#     scheduler completion of a message
+#</DESC></VAR>
 #SYSLOGFLG=SRT
 SYSLOGFLG=RT
 
+#<VAR><NAME>TRUSTEDUSER</NAME><DESC>
 # Per default,  ZMailer uses ``daemon'' userid when it wants to
 # operate in  ``runastrusteduser()''  mode.  Finding that userid
 # (or rather its numeric uid) can be a bit difficult, and if it
 # *fails*, apparently uid 65535 will be used.
-#
+#</DESC></VAR>
 #TRUSTEDUSER=daemon
 
+
+#<VAR><NAME>ORGDOMAIN</NAME><DESC>
 # Use  ORGDOMAIN  in ZENV if the system can't generate
 # MIME multipart boundary string contained host/domain ids
 # automagically...
-#
+#</DESC></VAR>
 #ORGDOMAIN=my.local.domain
 
-# Depending, are you running strange private customer account databases
-# hooked (only) into 'mailbox', or not, make sure following is non-empty
-# if you *are* using private databases, as then ZMailer's router won't
-# claim wronly userid to be nonexistent.. These shunted tests look for
-# HOMEDIRECTORY, which might be nonexistent thing at such funny systems...
+#<VAR><NAME>ROUTEUSER_IN_ABNORMAL_UNIX</NAME><DESC>
+# Depending, are you running strange private customer account
+# databases hooked (only) into 'mailbox', or not, make sure
+# following is non-empty if you *are* using private databases,
+# as then ZMailer's router won't claim wronly userid to be
+# nonexistent.. These shunted tests look for HOMEDIRECTORY,
+# which might be nonexistent thing at such funny systems...
 # An EMPTY string means "this is NORMAL unix":
-#
-# (A "bug" is that this isn't automatically substituted, but non-void
-#  content gives behaviour that has been around for quite a while...)
-#
+#.PP
+# (A "bug" is that this isn't automatically substituted, but
+#  non-void content gives behaviour that has been around for
+#  quite a while...)
+#</DESC></VAR>
 ROUTEUSER_IN_ABNORMAL_UNIX="@ROUTEUSER_IN_ABNORMAL_UNIX@"
 
+#<VAR><NAME>LISTSERV</NAME><DESC>
 # Some sites (well, one FUNET site), has LISTSERV, this is for
 # configuring that subpart of the  aliases.cf  scripts:
+#</DESC></VAR>
 #LISTSERV=/v/net/listserv.funet.fi
 
+#<VAR><NAME>BINDADDR</NAME><DESC>
 # If defined, BINDADDR specifies to which local interface to bind
 # smtpserver, smtp transport agent and scheduler
 # Possible specification formats are:
-#    [0.0.0.0]
-#    [IPv6.0::0]
-#    iface:eth0:1
+# .PP
+# .nf
+# \fC   [0.0.0.0]\fR
+# \fC   [IPv6.0::0]\fR
+# \fC   iface:eth0:1\fR
+# .fi
+#</DESC></VAR>
 #BINDADDR=iface:eth0:1
 BINDADDR=@BINDADDR@
 
+#<VAR><NAME>SNMPSHAREDFILE</NAME><DESC>
 # SNMP-like global system instance monitoring datablock path:
 # This _file_ has absolute path (bo substitutions are allowed),
 # it is shared in between all principal subsystem components
 # in mmap(MAP_SHARED, MAP_READ|MAP_WRITE) mode. Counters in
 # this file are NEVER reset.  Gauges are managed as shadows
 # of subsystem internal state.
-SNMPSHAREDFILE=@POSTOFFICE@/.zmailer.SNMP.block
-
-#<VAR><DESC>
-#.PP
-# MORE MISSING!!!
 #</DESC></VAR>
+SNMPSHAREDFILE=@POSTOFFICE@/.zmailer.SNMP.block

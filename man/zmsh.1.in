@@ -438,7 +438,8 @@ The file descriptor prediction doesn't always work, especially in
 (nested) multi-pipe command lines.
 .SH SEE ALSO
 .IR sh (1),
-.IR router (8zm).
+.IR router (8zm),
+.IR zmailer.conf (1zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

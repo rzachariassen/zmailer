@@ -87,7 +87,8 @@ l l.
 .PP
 .SH SEE ALSO
 .IR scheduler (8zm),
-.IR manual-rerouter (8zm).
+.IR manual-rerouter (8zm),
+.IR zmailer.conf (5zm).
 .SH AUTHOR
 This program is authored and copyright by:
 .RS 3em

@@ -85,7 +85,8 @@ option.
 .IR comsat (8),
 .IR biff (1),
 .IR flock (2),
-.IR Mail (1).
+.IR Mail (1),
+.IR zmailer.conf (5zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

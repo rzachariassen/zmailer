@@ -128,7 +128,8 @@ l l.
 .SH SEE ALSO
 .IR scheduler (8zm),
 .IR router (8zm),
-.IR zmailer (3zm).
+.IR zmailer (3zm),
+.IR zmailer.conf (5zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

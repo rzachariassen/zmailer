@@ -711,7 +711,8 @@ l l.
 .TE
 .SH SEE ALSO
 .IR scheduler (8zm),
-.IR smtp (8zm).
+.IR smtp (8zm),
+.IR zmailer.conf (5zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

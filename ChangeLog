@@ -25,8 +25,9 @@
 	    Apparently we can be without 'groff -c' option, and still not
 	    get colour output to produced HTML..   Oh yes, that was when
 	    using '-Thtml' output driver.  Present HTML generation uses
-	    '-Tascii' and magic state processor to convert produced (with 
-	    occasional escapes) text file into fixed width courier font HTML.
+	    '-Tascii' and magic state processor to convert produced
+	    (with occasional escapes) text file into fixed width courier
+	    font HTML.
 
 2003-08-26  Matti Aarnio  <mea@zmailer.org>
 

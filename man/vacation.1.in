@@ -172,6 +172,7 @@ that it never points back to an address that could cause a loop.
 The From_ line is used only as a last resort.
 .SH SEE\ ALSO
 .IR sendmail (8zm),
+.IR zmailer.conf (5zm),
 .I Zmailer Manual (http://zmailer.org/)
 .SH AUTHOR
 This program is originally the

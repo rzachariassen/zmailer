@@ -133,7 +133,8 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
-.IR scheduler (8zm).
+.IR scheduler (8zm),
+.IR zmailer.conf (5zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

@@ -186,7 +186,8 @@ $MAILBIN/smtpserver
 .IR smtpserver (8zm),
 .IR mailq (1zm),
 .IR newdb (8zm),
-.IR zdbases.conf (5zm).
+.IR zdbases.conf (5zm),
+.IR zmailer.conf (5zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

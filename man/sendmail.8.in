@@ -217,7 +217,8 @@ l l.
 .IR scheduler (8zm),
 .IR mailq (1zm),
 .IR newaliases (8zm),
-.IR zmailer (3zm).
+.IR zmailer (3zm),
+.IR zmailer.conf (5zm).
 .PP
 RFC-2822
 .PP

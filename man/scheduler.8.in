@@ -1366,7 +1366,8 @@ l l.
 .IR expirer (8zm),
 .IR reroute (8zm),
 .IR manual-expirer (8zm),
-.IR manual-rerouter (8zm).
+.IR manual-rerouter (8zm),
+.IR zmailer.conf (5zm).
 .PP
 .TS
 l l

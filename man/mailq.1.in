@@ -312,7 +312,8 @@ manual page.
 .IR zmailer (1zm),
 .IR router (8zm),
 .IR scheduler (8zm),
-.IR "ZMailer::mailq" (3pm).
+.IR "ZMailer::mailq" (3pm),
+.IR zmailer.conf (5zm).
 .PP
 .SH AUTHOR
 This program authored and copyright by:

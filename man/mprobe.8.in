@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH mprobe 8zm "2003-Aug-23"
+.TH mprobe 8zm "2003-Aug-28"
 .SH NAME
 mprobe \- smtp-server aliveness probe
 .SH SYNOPSIS
@@ -38,7 +38,8 @@ Missing mandatory host parameter.
 .SH SEE ALSO
 .IR scheduler (8zm),
 .IR smtpserver (8zm),
-.IR smtp (8zm).
+.IR smtp (8zm),
+.IR zmailer.conf (5zm).
 .PP
 .SH AUTHOR
 This tool is authored and copyright by:

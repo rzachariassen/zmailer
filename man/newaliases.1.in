@@ -60,8 +60,9 @@ l l.
 .PP
 .SH SEE ALSO
 .IR router (8zm),
-.IR zmailer (1zm)
-.IR newdb (8zm).
+.IR newdb (8zm),
+.IR zmailer (1zm),
+.IR zmailer.conf (5zm).
 .PP
 .SH AUTHOR
 This program authored and copyright by:

@@ -316,7 +316,8 @@ l l.
 .SH SEE ALSO
 .PP
 .IR router (8zm),
-.IR scheduler (8zm).
+.IR scheduler (8zm),
+.IR zmailer.conf (5zm).
 .PP
 .TS
 l l

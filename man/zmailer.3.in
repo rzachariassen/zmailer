@@ -255,8 +255,9 @@ $POSTOFFICE/{ROUTERDIRS}/
 .IP \fI@POSTOFFICE@/.router.notify\fR
 $POSTOFFICE/.router.notify
 .SH SEE ALSO
+.IR sendmail (8zm),
 .IR zmailer (1zm),
-.IR sendmail (8zm).
+.IR zmailer.conf (5zm).
 .br
 RFC-2822
 .SH AUTHOR

@@ -462,7 +462,8 @@ l l.
 .IR biff (1),
 .IR flock (2),
 .IR Mail (1),
-.IR mboxpath (1zm).
+.IR mboxpath (1zm),
+.IR zmailer.conf (5zm).
 .PP
 .TS
 l l.

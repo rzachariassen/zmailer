@@ -49,7 +49,7 @@ Invoking the
 without any arguments will do nothing (except make it reads its configuration
 file and promptly exit).
 The normal startup method is to run the
-.IR zmailer (8zm)
+.IR zmailer (1zm)
 script, as in:
 .RS
 .nf
@@ -1030,7 +1030,8 @@ l l.
 .IR mailq (1zm),
 .IR zmailer (3zm),
 .IR scheduler (8zm),
-.IR zmsh (1zm).
+.IR zmsh (1zm),
+.IR zmailer.conf (5zm).
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

@@ -97,8 +97,9 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
+.IR router (8zm),
 .IR zmailer (8zm),
-.IR router (8zm).
+.IR zmailer.conf (5zm).
 .PP
 .SH AUTHOR
 This program authored and copyright by:

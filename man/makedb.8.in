@@ -83,6 +83,7 @@ nor any files this reads besides of given inputs.
 .SH SEE ALSO
 .IR newdb (8zm),
 .IR zmailer (1zm),
+.IR zmailer.conf (5zm),
 .IR @MAILBIN@/policy-builder.sh
 .SH AUTHOR
 This program authored and copyright by:

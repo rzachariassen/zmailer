@@ -53,7 +53,8 @@ utility, as well as to determine where
 directory is located at.
 .SH SEE ALSO
 .IR scheduler (8zm),
-.IR expirer (8zm).
+.IR expirer (8zm),
+.IR zmailer.conf (5zm).
 .SH AUTHOR
 This script is authored and copyright by:
 .RS 3em
