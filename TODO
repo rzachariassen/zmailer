@@ -8,7 +8,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 - scheduler + mailq: Complete the V2 protocol authentication,
   and turn it into mandated default mode.
 
-
 - smtp TA (all TAs ??) leak memory in MIME header processing.
   (or something else ?)
 
@@ -172,13 +171,6 @@ transports/smtp:
 	  living connection...
 
 - smtpserver
-
-  - BIND to INTERFACE's address -- assuming a set of servers
-    has their system setups defining that a eth0:1 has individual
-    addresses, and servers are wanted to be attached at said
-    *interface's* address, *and* that each node has identical
-    ZMailer configuration, binding needs to be done by interface
-    "name" as well as by literal addresses.
 
   - Control somehow if lack of configuration and/or PolicyDB is
     a system security offence, or not..
