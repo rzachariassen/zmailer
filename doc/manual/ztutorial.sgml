@@ -120,8 +120,12 @@ It shows the relationships between different elements of the model.
 </PARA>
 
 <FIGURE ID="fig.messagemodel" PGWIDE="0" FLOAT="1">
- <TITLE>A graphical example of the messaging model.</>
- <GRAPHIC FILEREF="msgmodl"></GRAPHIC>
+  <TITLE>A graphical example of the messaging model.</>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="msgmodl.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
 </FIGURE>
 
 <PARA>
@@ -207,8 +211,12 @@ in figure <XREF LINKEND="FIG.MSGROUT">.
 </PARA>
 
 <FIGURE ID="FIG.MSGROUT" PGWIDE="1" FLOAT="1">
- <TITLE>How a message should be handled.</TITLE>
- <GRAPHIC FILEREF="msgrout"></GRAPHIC>
+  <TITLE>How a message should be handled.</TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="msgrout.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
 </FIGURE>
 
 <PARA>
@@ -347,8 +355,12 @@ fit easily everywhere.
 <TITLE>Design Summary</TITLE>
 
 <FIGURE PGWIDE="1" FLOAT="1">
- <TITLE ID="FIG.ZMPROCS">ZMailer's processes.</TITLE>
- <GRAPHIC FILEREF="msgrout"></GRAPHIC>
+  <TITLE ID="FIG.ZMPROCS">ZMailer's processes.</TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmprocs.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
 </FIGURE>
 
 <PARA>
@@ -409,10 +421,14 @@ without requiring changes in standard User Agents.
 </PARA>
 
 <FIGURE PGWIDE="1" FLOAT="1">
- <TITLE ID="FIG.ZMDIRS">
-  Directories that ZMailer uses for message processing.
- </TITLE>
- <GRAPHIC FILEREF="zmdirs"></GRAPHIC>
+  <TITLE ID="FIG.ZMDIRS">
+    Directories that ZMailer uses for message processing.
+  </TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmdirs.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
 </FIGURE>
 
 </SECT2>

@@ -8,7 +8,6 @@
 <!-- -------------------------------------------------------- -->
 
 <!DOCTYPE book PUBLIC    "-//OASIS//DTD DocBook V3.1//EN" [
-<!--
   <!ENTITY % local.notation.class "">
   <!ENTITY % notation.class
                 "BMP| CGM-CHAR | CGM-BINARY | CGM-CLEAR | DITROFF | DVI
@@ -17,14 +16,17 @@
                 | PIC | PS | SGML | TBL | TEX | TIFF | WMF | WPG | PDF
                 | linespecific
                 %local.notation.class;">
-  <!ENTITY PDF  "">
--->
+  <!ENTITY PDF  "PDF">
 
 
-<!ENTITY ZManVersion     "v1.99.20">
+
+<!ENTITY ZManVersion     "v1.99.21">
 
 <!ENTITY ZDATETIME       SYSTEM "z-datetime.txt">
 <!ENTITY ZWHAT           SYSTEM "z-what.txt">
+<!ENTITY % ZGEXTDEF      SYSTEM "z-gext.txt">
+%ZGEXTDEF;
+
 
 <!ENTITY ZMAN-COVER      SYSTEM "zmanual-cover.sgml">
 <!ENTITY ZTUTORIAL       SYSTEM "ztutorial.sgml">

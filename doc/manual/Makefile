@@ -53,7 +53,6 @@ FIGEPS :=	$(FIGS:%.fig=%.eps)
 FIGPDF :=	$(FIGS:%.fig=%.pdf)
 FIG_PS :=	$(FIGS:%.fig=%.ps)
 FIGGIF :=	$(FIGS:%.fig=%.gif)
-FIGPNG :=	$(FIGS:%.fig=%.png)
 
 # set and export TEXINPUTS
 TEXINPUTS=$(LATEX2HTMLLIB):$(LINUXDOCLIB):$$TEXINPUTS:
@@ -84,6 +83,7 @@ zmanual.html: gifs $(PARTS)
 	rm -rf zmanual
 	TZ=UTC date > z-datetime.txt
 	echo "HTML" > z-what.txt
+	echo '<!ENTITY GEXT "gif">' > z-gext.txt
 	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl   sh   ./db2html zmanual.sgml
 	#sh  ./db2html zmanual.sgml
 	cp -p *.gif zmanual/
@@ -95,11 +95,13 @@ zmanual.ps: zmanual.dvi $(FIGEPS)
 zmanual.dvi: $(PARTS) $(FIGEPS) zmanual.sgml
 	TZ=UTC date > z-datetime.txt
 	echo "PostScript" > z-what.txt
+	echo '<!ENTITY GEXT "eps">' > z-gext.txt
 	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh  ./db2dvi zmanual.sgml
 
 zmanual.pdf: $(PARTS) $(FIGPDF) zmanual.sgml
 	TZ=UTC date > z-datetime.txt
 	echo "PDF" > z-what.txt
+	echo '<!ENTITY GEXT "pdf">' > z-gext.txt
 	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh  ./db2pdf zmanual.sgml
 
 distclean clean:
@@ -137,27 +139,14 @@ zmailer-logo.eps: zmailer-logo.fig
 %.eps: %.fig
 	fig2dev -Leps -c -p x -z A3 -m 0.5000 -x 0 -y 0 -n $@ $< $@
 
-zmailer-logo.pdf: zmailer-logo.fig
-	fig2dev -Leps -c -p x -z A3 -m 1.0000 -x 0 -y 0 -n $@ $< $@.eps
-	sh ./eps2epdf $@.eps $@
-	rm -f $@.eps
-
-%.pdf: %.fig
-	fig2dev -Leps -c -p x -z A3 -m 0.5000 -x 0 -y 0 -n $@ $< $@.eps
-	sh ./eps2epdf $@.eps $@
-	rm -f $@.eps
-
-#%.pdf: %.ps
-#	gs510 -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $^ -c quit
-#%.pdf: %.ps
-#	ps2pdf $< $>
-
+%.pdf: %.eps
+	: epstopdf $<
+	sh ./eps2epdf $< $@
 
 
 $(FIG_PS): $(FIGS)
 $(FIGEPS): $(FIGS)
 $(FIGPDF): $(FIGS)
-$(FIGPNG): $(FIGS)
 
 manual_parts.tar.gz: manual_parts.tar
 

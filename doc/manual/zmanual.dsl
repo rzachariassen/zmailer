@@ -45,11 +45,21 @@
   ;; Allow automatic hyphenation?
   #t)
 
+(define preferred-mediaobject-notations
+  '("PDF" "EPS" "PS" "JPG" "JPEG" "linespecific"))
+
+(define preferred-mediaobject-extensions
+  '("pdf" "eps" "ps" "jpg" "jpeg"))
+
+(define %graphic-extensions% 
+  ;; List of graphic filename extensions
+  '("eps" "epsf" "gif" "tif" "tiff" "jpg" "jpeg" "png" "pdf"))
+
 (define %graphic-default-extension% "pdf")
 
 (define %two-side% 
   ;; Is two-sided output being produced?
-  #f)
+  #t)
 
 (define %paper-type%
   ;; Name of paper type
