@@ -1,10 +1,10 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 5 "2 May 1997"
+.TH ZMAILER 5 "3 Jan 2000"
 .SH NAME
 .B aliases
 \- aliases file for ZMailer
-.P
+.PP
 .B .forward
 \- user's
 .B .forward
@@ -13,47 +13,46 @@ file for ZMailer
 .B aliases
 .SH DESCRIPTION (aliases)
 All lines beging with `#' are comments.
-.P
+.PP
 Lines begining with white space are extensions to previous
 line.
-.P
+.PP
 This file describes user ID aliases used by
 .IR zmailer (1).
 The file resides in ZMailer's database directory, which
 usually has a symlink to this file from
 .I /etc.
 Content of the file is formatted as a series of lines of form:
-.sp
-.nf
-      name: name2, name3, name4, . . .
-.fi
-.sp
+.PP
+.RS
+\fC name: name2, name3, name4, ...
+.RE
+.PP
 Each "name:" label must be valid RFC-822 header type object, and the
 colon must not have white-space in between 'name', and itself.
 .PP
 The targets must be valid RFC-822 address type objects; specifically
 following BSD-Sendmail type things do not work, and must be converted
 to RFC-822 format:
-.sp
-.nf
-    bsd-name:  |/path/to/foo/faa,   \\bsd-name
-    zm-name:  "|/path/to/foo/faa", "\\zm-name"
-    both-name: user@somewhere, another@elsewere
-.fi
-.sp
+.PP
+.RS
+\fC bsd-name:  |/path/to/foo/faa,   \\bsd-name
+\fC zm-name:  "|/path/to/foo/faa", "\\zm-name"
+\fC both-name: user@somewhere, another@elsewere
+.RE
+.PP
 .SH DESCRIPTION (.forward)
 The
 .B .forward
 file contains addresses that users want their incoming email
 to be sent to.  It may be some program (like procmail), or
 it may be another address.  Some examples for user "user":
-.sp
-.nf
-    "\\user", "|/path/to/vacation"
-
-    "\\user", another@address
-.fi
-.sp
+.PP
+.RS
+\fC "\\user", "|/path/to/vacation"
+\fC "\\user", another@address
+.RE
+.PP
 BSD-Sendmail lets those addresses be written without quotes,
 however it is against RFC-822 rules.
 .SH SEE ALSO
@@ -67,6 +66,6 @@ file format appeared in 4.0BSD.
 .SH AUTHOR
 This software authored and copyright by:
 .br
-Rayan Zachariassen <no address>,,
+Rayan Zachariassen <no address>,
 .br
 and by Matti Aarnio <mea@nic.funet.fi>

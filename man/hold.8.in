@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH HOLD 8 "18 Aug 1996"
+.TH HOLD 8 "3 Jan 2000"
 .SH NAME
 hold \- zmailer deferred processing transport agent
 .SH SYNOPSIS
@@ -46,14 +46,16 @@ directory, optionally followed by a slash followed by an argument to
 be passed to the shell script.
 .PP
 For example:
-.sp
+.PP
+.RS
 .nf
-	NS:nic.ddn.mil/cname
-	TIMEOUT:649901432
-	IO:error
-	SCRIPT:homedir/joe
+NS:nic.ddn.mil/cname
+TIMEOUT:649901432
+IO:error
+SCRIPT:homedir/joe
 .fi
-.sp
+.RE
+.PP
 The condition class name is case-insensitive but is capitalized by convention.
 The parameter strings are case-preserved for condition class-specific
 interpretation.  Whitespace is not permitted.
@@ -72,18 +74,18 @@ This program reads in processable file names relative to the current
 working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
 Optionally on the same line the scheduler may tell which host is to be
 looked for from the recipients of the message.
-.sp
-.nf
-	\fIrelative-spool-path\fR [ <TAB> \fIhostname\fR ]
-.fi
+.PP
+.RS
+\fIrelative-spool-path\fR [ <TAB> \fIhostname\fR ]
+.RE
 .PP
 This program produces diagnostic output on the standard output.
 Normal diagnostic output is of the form:
-.sp
-.nf
-	\fIid\fR/\fIoffset\fR/\fIstatus\fR \fImessage\fR
-.fi
-.sp
+.PP
+.RS
+\fIid\fR/\fIoffset\fR/\fIstatus\fR \fImessage\fR
+.RE
+.PP
 where 
 .I id
 is the inode number of the message file,
@@ -115,4 +117,8 @@ scheduler(8)
 .SH AUTHOR
 This program authored and copyright by:
 .br
-Rayan Zachariassen <rayan@cs.toronto.edu>
+Rayan Zachariassen <no.current.address>
+.br
+Maintance in ZMailer environment
+.br
+Matti Aarnio <mea@nic.funet.fi>

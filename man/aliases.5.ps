@@ -1,9 +1,10 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.15
-%%CreationDate: Mon Jan  3 18:15:05 2000
+%%CreationDate: Tue Jan  4 00:40:21 2000
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
+%%+ font Courier
 %%DocumentSuppliedResources: procset grops 1.15 0
 %%Pages: 1
 %%PageOrder: Ascend
@@ -169,6 +170,7 @@ setpacking
 %%IncludeResource: font Times-Roman
 %%IncludeResource: font Times-Bold
 %%IncludeResource: font Times-Italic
+%%IncludeResource: font Courier
 grops begin/DEFS 1 dict def DEFS begin/u{.001 mul}bind def end/RES 72
 def/PL 792 def/LS false def/ENC0[/asciicircum/asciitilde/Scaron/Zcaron
 /scaron/zcaron/Ydieresis/trademark/quotesingle/.notdef/.notdef/.notdef
@@ -197,8 +199,8 @@ def/PL 792 def/LS false def/ENC0[/asciicircum/asciitilde/Scaron/Zcaron
 /egrave/eacute/ecircumflex/edieresis/igrave/iacute/icircumflex/idieresis
 /eth/ntilde/ograve/oacute/ocircumflex/otilde/odieresis/divide/oslash
 /ugrave/uacute/ucircumflex/udieresis/yacute/thorn/ydieresis]def
-/Times-Italic@0 ENC0/Times-Italic RE/Times-Bold@0 ENC0/Times-Bold RE
-/Times-Roman@0 ENC0/Times-Roman RE
+/Courier@0 ENC0/Courier RE/Times-Italic@0 ENC0/Times-Italic RE
+/Times-Bold@0 ENC0/Times-Bold RE/Times-Roman@0 ENC0/Times-Roman RE
 %%EndProlog
 %%Page: 1 1
 %%BeginPageSetup
@@ -219,35 +221,34 @@ BP
 (which usually has a symlink to this \214le from)108 216 R F3(/etc.)
 3.483 E F0 .983
 (Content of the \214le is formatted as a series of lines of)5.983 F
-(form:)108 228 Q(name: name2, name3, name4, . . .)123 252 Q .33
-(Each "name:" label must be v)108 276 R .33
+(form:)108 228 Q/F4 10/Courier@0 SF(name: name2, name3, name4, ...)150
+244.8 Q F0 .33(Each "name:" label must be v)108 261.6 R .33
 (alid RFC-822 header type object, and the colon must not ha)-.25 F .63
 -.15(ve w)-.2 H .33(hite-space in).15 F(between 'name', and itself.)108
-288 Q .527(The tar)108 304.8 R .527(gets must be v)-.18 F .528
+273.6 Q .527(The tar)108 290.4 R .527(gets must be v)-.18 F .528
 (alid RFC-822 address type objects; speci\214cally follo)-.25 F .528
-(wing BSD-Sendmail type things)-.25 F(do not w)108 316.8 Q
+(wing BSD-Sendmail type things)-.25 F(do not w)108 302.4 Q
 (ork, and must be con)-.1 E -.15(ve)-.4 G(rted to RFC-822 format:).15 E
-2.5(bsd-name: |/path/to/foo/f)118 340.8 R 5(aa, \\bsd-name)-.1 F 2.5
-(zm-name: "|/path/to/foo/f)118 352.8 R(aa", "\\zm-name")-.1 E
-(both-name: user@some)118 364.8 Q(where, another@else)-.25 E(were)-.25 E
-F1(DESCRIPTION \(.f)72 393.6 Q(orward\))-.225 E F0(The)108 405.6 Q F2
-(.f)3.421 E(orward)-.25 E F0 .921
-(\214le contains addresses that users w)3.421 F .92
-(ant their incoming email to be sent to.)-.1 F .92(It may be some)5.92 F
-(program \(lik)108 417.6 Q 2.5(ep)-.1 G
+F4 6(bsd-name: |/path/to/foo/faa,)150 319.2 R(\\bsd-name)18 E 6
+(zm-name: "|/path/to/foo/faa",)150 331.2 R("\\zm-name")6 E
+(both-name: user@somewhere, another@elsewere)150 343.2 Q F1
+(DESCRIPTION \(.f)72 364.8 Q(orward\))-.225 E F0(The)108 376.8 Q F2(.f)
+3.421 E(orward)-.25 E F0 .921(\214le contains addresses that users w)
+3.421 F .92(ant their incoming email to be sent to.)-.1 F .92
+(It may be some)5.92 F(program \(lik)108 388.8 Q 2.5(ep)-.1 G
 (rocmail\), or it may be another address.)-2.5 E(Some e)5 E
-(xamples for user "user":)-.15 E("\\user", "|/path/to/v)118 441.6 Q
-(acation")-.25 E("\\user", another@address)118 465.6 Q
+(xamples for user "user":)-.15 E F4("\\user", "|/path/to/vacation")150
+405.6 Q("\\user", another@address)150 417.6 Q F0
 (BSD-Sendmail lets those addresses be written without quotes, ho)108
-489.6 Q(we)-.25 E -.15(ve)-.25 G 2.5(ri).15 G 2.5(ti)-2.5 G 2.5(sa)-2.5
-G -.05(ga)-2.5 G(inst RFC-822 rules.).05 E F1(SEE ALSO)72 506.4 Q F0
-(zmailer\(1\), sendmail\(8\))108 518.4 Q(RFC822)108 530.4 Q F1(HIST)72
-547.2 Q(OR)-.162 E(Y)-.315 E F0(The)108 559.2 Q F2(aliases)2.5 E F0
-(\214le format appeared in 4.0BSD.)2.5 E F1 -.45(AU)72 576 S(THOR).45 E
-F0(This softw)108 588 Q(are authored and cop)-.1 E(yright by:)-.1 E
-(Rayan Zachariassen <no address>,,)108 600 Q
-(and by Matti Aarnio <mea@nic.funet.\214>)108 612 Q 2.5(2M)281.835 768 S
-(ay 1997)-2.5 E(1)204.835 E EP
+434.4 Q(we)-.25 E -.15(ve)-.25 G 2.5(ri).15 G 2.5(ti)-2.5 G 2.5(sa)-2.5
+G -.05(ga)-2.5 G(inst RFC-822 rules.).05 E F1(SEE ALSO)72 451.2 Q F0
+(zmailer\(1\), sendmail\(8\))108 463.2 Q(RFC822)108 475.2 Q F1(HIST)72
+492 Q(OR)-.162 E(Y)-.315 E F0(The)108 504 Q F2(aliases)2.5 E F0
+(\214le format appeared in 4.0BSD.)2.5 E F1 -.45(AU)72 520.8 S(THOR).45
+E F0(This softw)108 532.8 Q(are authored and cop)-.1 E(yright by:)-.1 E
+(Rayan Zachariassen <no address>,)108 544.8 Q
+(and by Matti Aarnio <mea@nic.funet.\214>)108 556.8 Q 2.5(3J)284.335 768
+S(an 2000)-2.5 E(1)207.335 E EP
 %%Trailer
 end
 %%EOF

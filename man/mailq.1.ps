@@ -1,11 +1,12 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.15
-%%CreationDate: Mon Jan  3 18:15:03 2000
+%%CreationDate: Tue Jan  4 14:16:44 2000
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
+%%+ font Courier
 %%DocumentSuppliedResources: procset grops 1.15 0
-%%Pages: 2
+%%Pages: 3
 %%PageOrder: Ascend
 %%Orientation: Portrait
 %%EndComments
@@ -169,6 +170,7 @@ setpacking
 %%IncludeResource: font Times-Roman
 %%IncludeResource: font Times-Bold
 %%IncludeResource: font Times-Italic
+%%IncludeResource: font Courier
 grops begin/DEFS 1 dict def DEFS begin/u{.001 mul}bind def end/RES 72
 def/PL 792 def/LS false def/ENC0[/asciicircum/asciitilde/Scaron/Zcaron
 /scaron/zcaron/Ydieresis/trademark/quotesingle/.notdef/.notdef/.notdef
@@ -197,8 +199,8 @@ def/PL 792 def/LS false def/ENC0[/asciicircum/asciitilde/Scaron/Zcaron
 /egrave/eacute/ecircumflex/edieresis/igrave/iacute/icircumflex/idieresis
 /eth/ntilde/ograve/oacute/ocircumflex/otilde/odieresis/divide/oslash
 /ugrave/uacute/ucircumflex/udieresis/yacute/thorn/ydieresis]def
-/Times-Italic@0 ENC0/Times-Italic RE/Times-Bold@0 ENC0/Times-Bold RE
-/Times-Roman@0 ENC0/Times-Roman RE
+/Courier@0 ENC0/Courier RE/Times-Italic@0 ENC0/Times-Italic RE
+/Times-Bold@0 ENC0/Times-Bold RE/Times-Roman@0 ENC0/Times-Roman RE
 %%EndProlog
 %%Page: 1 1
 %%BeginPageSetup
@@ -293,63 +295,128 @@ E(heduler)-.15 E F0(at.)2.5 E<ad51>108 624 Q 13.42(\255QQ T)108 640.8 R
 (,w)-.65 G(hile one Q gi)-2.5 E -.15(ve)-.25 G 2.5(sf).15 G
 (ull report of all threads.)-2.5 E F1(mailq -Q output codes)72 657.6 Q
 F0(Examples of `)108 669.6 Q(`mailq -Q')-.74 E 2.5('o)-.74 G(utput:)-2.5
-E 2.5(smtp/aol.com/0 R=1)113 693.6 R(A=147 P=19598 HA=571s F)2.5 E
-(A=571s OF=1 QA=1d18h)-.74 E
-(smtp/some.com/0 R=1 A=58 W=1860s QA=11h11m28s)113 705.6 Q
-(The codes mean follo)108 729.6 Q(wing:)-.25 E(15 No)279.965 768 Q 2.5
-(v1)-.15 G 200.465(999 1)-2.5 F EP
+E/F4 10/Courier@0 SF(smtp/*.com/0)108 686.4 Q(smtp/aol.com/0)144 698.4 Q
+F0(R=1 A=147 P={19598} HA={571}s F)12 E
+(A={571}s OF=1 S={STUFF} UF=0 QA=1d18h)-.74 E F4(smtp/some.com/0)144
+710.4 Q F0(R=1 A=58 W=1860s QA=11h11m28s)6 E F4
+(Threads: 11 Msgs: 36 Procs: 23 Idle: 12 Plim:90 Flim: 150 Tlim: 1)180
+722.4 Q F0(15 No)279.965 768 Q 2.5(v1)-.15 G 200.465(999 1)-2.5 F EP
 %%Page: 2 2
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF 376.64(MAILQ\(1\) MAILQ\(1\))72 48 R/F1 10
-/Times-Bold@0 SF(R=)108 84 Q F0 .336(Number of)23.08 F F1(messages)2.836
-E F0 .336(on this)2.836 F -.74(``)5.336 G(channel/host').74 E 5.335('t)
--.74 G .335(hread; this does count indi)-5.335 F .335(vidual tar)-.25 F
-.335(get users sepa-)-.18 F(rately!)144 96 Q F1(A=)108 112.8 Q F0
-(Count of attempts to deli)23.08 E -.15(ve)-.25 G 2.5(rt).15 G
-(his message.)-2.5 E F1(P=)108 129.6 Q F0
-(Process number of the transport agent acti)24.19 E -.15(ve)-.25 G
-(ly handling this thread.).15 E F1(W=)108 146.4 Q F0
-(Delay time until ne)20.3 E
-(xt time the transport-agent may try to send this thread.)-.15 E F1(HA=)
-108 163.2 Q F0 -.74(``)15.3 G(#hunger age').74 E 2.5('-)-.74 G 2.5(-t)
--2.5 G(ime since the scheduler sa)-2.5 E 2.5(wl)-.15 G(ast `)-2.5 E
-(`#hungry')-.74 E 2.5('m)-.74 G(essage from the transport agent.)-2.5 E
-F1 -.9(FA)108 180 S(=).9 E F0 -.74(``)17.87 G(Feed age').74 E 2.5('-)
--.74 G 2.5(-t)-2.5 G(ime since the scheduler did last time feed somethi\
-ng to the transport agent.)-2.5 E F1(QA=)108 196.8 Q F0
-(Age of oldest message in the queue at this thread.)15.3 E F1(OF=)108
-213.6 Q F0 -.74(``)16.41 G(Ov).74 E 1.707(erFeed count')-.15 F 4.207('-)
--.74 G 4.208(-h)-4.207 G 2.208 -.25(ow m)-4.208 H(an).25 E 4.208(yu)-.15
-G(nackno)-4.208 E 1.708
-(wledged tasks are still in the transport agent for this)-.25 F 3.258
-(thread. The)144 225.6 R -.74(``)3.258 G(Ov).74 E(erFeed')-.15 E 3.257
-('w)-.74 G .757
+/Courier@0 SF
+(Kids: 414 Idle: 324 Msgs: 754 Thrds: 129 Rcpnts: 943 Uptime: 1d31m22s)
+108 84 Q(Msgs in 5384 out 4630 stored 754 Rcpnts in 441890 out 440917 s\
+tored 971)108 96 Q F0(The codes mean follo)108 112.8 Q(wing:)-.25 E/F2
+10/Times-Bold@0 SF(R=)108 129.6 Q F0 .89(Number of)23.08 F F2(messages)
+3.39 E F0 .89(on this)3.39 F -.74(``)5.89 G(channel/host').74 E 5.89('t)
+-.74 G .89(hread; this does)-5.89 F F2(not)3.39 E F0 .89(count indi)3.39
+F .89(vidual tar)-.25 F .89(get users)-.18 F 3.28(separately! \(e.g.)144
+141.6 R .78(if there are a dozen recipients at some message, b)3.28 F
+.781(ut the)-.2 F 3.281(ya)-.15 G .781(re at same host, the)-3.281 F(y)
+-.15 E(are counted as one.\))144 153.6 Q F2(A=)108 170.4 Q F0(Count of)
+23.08 E/F3 10/Times-Italic@0 SF(A)2.5 E F0(ttempts to do deli).03 E -.15
+(ve)-.25 G(ry at this thread.).15 E F2(P=)108 187.2 Q F3(P)24.19 E F0
+(rocess number\(s\) of the transport agent acti).44 E -.15(ve)-.25 G
+(ly handling this thread.).15 E F3(Ther)144 199.2 Q 3.49(ec)-.37 G .99
+(an be multiple pr)-3.49 F .99(ocesses, and the)-.45 F 3.49(ya)-.3 G
+1.73 -.37(re l)-3.49 H .99(isted comma-separ).37 F .99
+(ated inside the curly br)-.15 F(ac)-.15 E -.1(ke)-.2 G(ts.).1 E
+(Similarly for the test of the things below)144 211.2 Q(.)-.74 E F2(W=)
+108 228 Q F0(Delay time until ne)20.3 E
+(xt time the transport-agent may try to send this thread.)-.15 E(\()5 E
+F3(W)-.21 E F0(ait\))1.23 E F2(HA=)108 244.8 Q F0 -.74(``)15.3 G(#).74 E
+F3(H).58 E F0(unger).95 E F3(A)1.01 E F0(ge\(s\)').03 E 4.118('-)-.74 G
+4.118(-t)-4.118 G 1.618(ime since the scheduler sa)-4.118 F 4.118(wl)
+-.15 G 1.618(ast `)-4.118 F(`#hungry')-.74 E 4.119('m)-.74 G 1.619
+(essage from the transport)-4.119 F(agent.)144 256.8 Q F2 -.9(FA)108
+273.6 S(=).9 E F0 -.74(``)17.87 G F3(F).74 E F0(eed)A F3(A)2.5 E F0
+(ge\(s\)')A 2.5('-)-.74 G 2.5(-t)-2.5 G(ime since the scheduler did las\
+t time feed something to the transport agent\(s\).)-2.5 E F2(OF=)108
+290.4 Q F0 -.74(``)16.41 G F3(O).64 E F0 -.15(ve).27 G(r).15 E F3(F).42
+E F0 .813(eed count').84 F 3.313('-)-.74 G 3.313(-h)-3.313 G 1.313 -.25
+(ow m)-3.313 H(an).25 E 3.313(yu)-.15 G(nackno)-3.313 E .813
+(wledged tasks are still in the transport agent\(s\) for this)-.25 F
+3.257(thread. The)144 302.4 R -.74(``)3.257 G(Ov).74 E(erFeed')-.15 E
+3.257('w)-.74 G .757
 (as created to handle sluggish scheduler in hard pressed system to get)
 -3.357 F 1.119(jobs scheduled around, when the transport agents were in\
- practice running dry as the)144 237.6 R 3.619(yd)-.15 G 1.119(id their)
--3.619 F 1.143(jobs f)144 249.6 R 1.143(ast, b)-.1 F 1.143
-(ut the scheduler didn')-.2 F 3.643(tg)-.18 G 1.142
-(et around to feed them...)-3.643 F 1.142(Thus the w)6.142 F 1.142
-(ay for the scheduler to)-.1 F -.74(``)144 261.6 S -.15(ove).74 G
-(rfeed').15 E 3.451('a)-.74 G 3.451(sm)-3.451 G(an)-3.451 E 3.451(yo)
--.15 G 3.451(ft)-3.451 G .952(he jobs in acti)-3.451 F 1.252 -.15(ve t)
+ practice running dry as the)144 314.4 R 3.618(yd)-.15 G 1.118(id their)
+-3.618 F 1.142(jobs f)144 326.4 R 1.142(ast, b)-.1 F 1.142
+(ut the scheduler didn')-.2 F 3.642(tg)-.18 G 1.142
+(et around to feed them...)-3.642 F 1.143(Thus the w)6.142 F 1.143
+(ay for the scheduler to)-.1 F -.74(``)144 338.4 S -.15(ove).74 G
+(rfeed').15 E 3.452('a)-.74 G 3.452(sm)-3.452 G(an)-3.452 E 3.452(yo)
+-.15 G 3.452(ft)-3.452 G .952(he jobs in acti)-3.452 F 1.252 -.15(ve t)
 -.25 H .952(hread to the transport agent as possible, and then just).15
-F -.1(wa)144 273.6 S .751(it them to complete, and be ackno).1 F 3.251
-(wledged. W)-.25 F .75(ith it this a lot more becomes done e)-.4 F -.15
-(ve)-.25 G 3.25(nw).15 G .75(ith a)-3.25 F(sluggish scheduler)144 285.6
-Q(.)-.55 E/F2 9/Times-Bold@0 SF(FILES)72 302.4 Q/F3 10/Times-Italic@0 SF
-(/etc/zmailer)108 314.4 Q(.conf)-1.11 E(/var/spool/postof)108 326.4 Q
-(\214ce/tr)-.18 E(ansport \(POST)-.15 E(OFFICE/tr)-.18 E(ansport\))-.15
-E(/var/spool/postof)108 338.4 Q(\214ce/queue \(POST)-.18 E
-(OFFICE/queue\))-.18 E F2(SEE ALSO)72 355.2 Q F0
-(zmailer\(1\), router\(8\), scheduler\(8\))108 367.2 Q F2 -.45(AU)72 384
-S(THOR).45 E F0(This program authored and cop)108 396 Q(yright by:)-.1 E
-(Rayan Zachariassen <rayan@cs.toronto.edu>)108 408 Q -.15(Pa)108 420 S
-(rtial re).15 E(write for ZMailer 2.99/3.0 by:)-.25 E
-(Matti Aarnio <mea@nic.funet.\214>)108 432 Q(15 No)279.965 768 Q 2.5(v1)
--.15 G 200.465(999 2)-2.5 F EP
+F -.1(wa)144 350.4 S .227(it them to complete, and be ackno).1 F 2.727
+(wledged. W)-.25 F .227(ith this a lot more gets done e)-.4 F -.15(ve)
+-.25 G 2.727(nw).15 G .227(ith a sluggish)-2.727 F(scheduler)144 362.4 Q
+(.)-.55 E F2(S=)108 379.2 Q F0(Feed-)24.74 E F3(S).33 E F0(tate of T).58
+E(A-process\(es\) doing actual job)-.93 E 5(.T)-.4 G(he scheme goes lik)
+-5 E 2.5(ef)-.1 G(ollo)-2.5 E(wing:)-.25 E(LAR)144 396 Q -1.35(VA)-.8 G
+1.316(\(This is v)180 408 R 1.316(ery f)-.15 F 1.316
+(ast transient state.\))-.1 F 3.176 -.93(TA p)6.316 H 1.316
+(rocesses are created at this state, and the).93 F 3.816(ys)-.15 G(tay)
+-3.816 E .443(there only until the \214rst `)180 420 R(`#hungry')-.74 E
+2.944('m)-.74 G .444(essage is heard, then)-2.944 F F3(one)2.944 E F0
+.444(job if fed there, and state)2.944 F .169(is changed to `)180 432 R
+(`STUFFing.)-.74 E 4.149 -.74('' \()-.7 H .169(One job so that if it f)
+.74 F .169(ails, T)-.1 F 2.669(Ap)-.93 G .168
+(rocess kicks to other thread.\))-2.669 F(STUFFing)144 448.8 Q .986
+(This is normal lifetime state of a T)180 460.8 R 3.487(Ap)-.93 G 3.487
+(rocess. When)-3.487 F(process')3.487 E F3(UF=)3.487 E F0 .987
+(count goes to zero,)3.487 F(more jobs are fed to it.)180 472.8 Q 2.5
+(Ap)5 G(rocess mo)-2.5 E -.15(ve)-.15 G 2.5(sa).15 G -.1(wa)-2.65 G 2.5
+(yf).1 G(rom this state by either:)-2.5 E 2.5(-g)180 489.6 S
+(etting a #retryat)-2.5 E F3(messa)2.5 E -.1(ge)-.1 G F0(Ne)216 501.6 Q
+(xt state is FINISHing.)-.15 E 2.5(-r)180 518.4 S
+(unning out of jobs to feed)-2.5 E(Ne)216 530.4 Q 1.823
+(xt state is FINISHing -- this requires that no messages were a)-.15 F
+-.25(va)-.2 G 1.823(ilable for).25 F(feeding at the time.)216 542.4 Q
+(If e)5 E -.15(ve)-.25 G 2.5(ns).15 G
+(ingle one is fed, state stays in STUFFing.)-2.5 E(FINISHing)144 559.2 Q
+.53(This w)180 571.2 R .53(aits for the)-.1 F F3(OF=)3.03 E F0 .53
+(count to go to zero, and then it tries to pick a ne)3.03 F 3.03(wt)-.25
+G .53(hread for the)-3.03 F 1.204(process to w)180 583.2 R 1.204
+(ork on \(if a)-.1 F -.25(va)-.2 G 1.204
+(ilable\), or if none can be found, mo).25 F -.15(ve)-.15 G 3.703(st).15
+G 1.203(he process to IDLE)-3.703 F 3.004(state. If)180 595.2 R 3.004
+(an)3.004 G 1.004 -.25(ew t)-3.004 H .504
+(hread is found for processing, process mo).25 F -.15(ve)-.15 G 3.004
+(st).15 G .504(here, and goes to STUFF-)-3.004 F(ing state.)180 607.2 Q
+10.73(IDLE \(This)144 624 R .035(is v)2.535 F .035(ery f)-.15 F .035
+(ast transient state.\))-.1 F .035(The T)5.035 F 2.535(Ap)-.93 G .035
+(rocess is being idled, ne)-2.535 F .035(xt state for the process)-.15 F
+(will be in thread-group idle-pool.)180 636 Q F2(UF=)108 652.8 Q F0(Ho)
+16.97 E 3.186(wm)-.25 G(an)-3.186 E 3.186(ym)-.15 G .686
+(essages out of all present in the queue ha)-3.186 F .986 -.15(ve n)-.2
+H .687(ot yet been fed to the current T).15 F 3.187(Ap)-.93 G(ro-)-3.187
+E(cess set ?)144 664.8 Q(\(")5 E F3(U)A F0(n)A F3(F)A F0(ed count"\))A
+F2(QA=)108 681.6 Q F0
+(Age of oldest message in the queue at this thread.)15.3 E(\(")5 E F3(Q)
+A F0(ueue)A F3(A)A F0(ge"\))A/F4 9/Times-Bold@0 SF -.09(BU)72 698.4 S
+(GS).09 E F0(MAILQ-V2 isn')108 710.4 Q 2.5(td)-.18 G
+(escribed yet \(nor is that protocol implementation complete\))-2.5 E
+(15 No)279.965 768 Q 2.5(v1)-.15 G 200.465(999 2)-2.5 F EP
+%%Page: 3 3
+%%BeginPageSetup
+BP
+%%EndPageSetup
+/F0 10/Times-Roman@0 SF 376.64(MAILQ\(1\) MAILQ\(1\))72 48 R/F1 9
+/Times-Bold@0 SF(FILES)72 84 Q/F2 10/Times-Italic@0 SF(/etc/zmailer)108
+96 Q(.conf)-1.11 E(/var/spool/postof)108 108 Q(\214ce/tr)-.18 E
+(ansport \(POST)-.15 E(OFFICE/tr)-.18 E(ansport\))-.15 E
+(/var/spool/postof)108 120 Q(\214ce/queue \(POST)-.18 E(OFFICE/queue\))
+-.18 E F1(SEE ALSO)72 136.8 Q F0
+(zmailer\(1\), router\(8\), scheduler\(8\))108 148.8 Q F1 -.45(AU)72
+165.6 S(THOR).45 E F0(This program authored and cop)108 177.6 Q
+(yright by:)-.1 E(Rayan Zachariassen <rayan@cs.toronto.edu>)108 189.6 Q
+-.15(Pa)108 201.6 S(rtial re).15 E(write for ZMailer 2.99/3.0 by:)-.25 E
+(Matti Aarnio <mea@nic.funet.\214>)108 213.6 Q(15 No)279.965 768 Q 2.5
+(v1)-.15 G 200.465(999 3)-2.5 F EP
 %%Trailer
 end
 %%EOF

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "15 Nov 1999"
+.TH SCHEDULER 8 "3 Jan 2000"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -201,27 +201,33 @@ the clause will be applied
 to the
 .IR scheduler 's
 processing of that address.  If the clause specifies a command,
-the clause pattern matching sequence is terminated.  This is a
-clause:
-.sp
-.ta 0.5i 1.5i
+the clause pattern matching sequence is terminated.
+This is a clause:
+.PP
+.RS
 .nf
-	local/*	interval=10s
-		expiry=3h
-		# want 20 channel slots in case of blockage on one
-		maxchannel=20
-		# want 20 thread-ring slots
-		maxring=20
-		command="mailbox -8"
+local/*
+.RS
+interval=10s
+expiry=3h
+# want 20 channel slots in case of blockage on one
+maxchannel=20
+# want 20 thread-ring slots
+maxring=20
+command="mailbox -8"
+.RE
 .fi
-.sp
+.RE
 .PP
 A clause consists of:
-.IP
+.PP
+.RS
 \- A selection pattern (in shell style) that is matched against the
 \fIchannel\fR/\fIhost\fR string for an address.
-.IP
+.PP
 \- 0 or more variable assignments or keywords (described below).
+.PP
+.RE
 .PP
 There are several possible
 .BR PARAM -assignments
@@ -240,26 +246,28 @@ If the clause is empty (i.e., consists only of a pattern), then the
 contents of the next non-empty clause will be used.
 .PP
 The typical configuration file will contain the following clauses:
-.IP
+.PP
+.RS
 \- a clause matching all addresses (using the pattern
 .BR */* )
 that sets up default values.
-.IP
+.PP
 \- a clause matching the local delivery channel (usually
 .BR local ).
-.IP
+.PP
 \- a clause matching the deferred delivery channel (usually
 .BR hold ).
-.IP
+.PP
 \- a clause matching the error reporting channel (usually
 .BR error ).
-.IP
+.PP
 \- clauses specific to the other channels known by the
 .IR router ,
 for example,
 .B smtp
 and
 .BR uucp .
+.RE
 .PP
 The actual names of these channels are completely controlled by the
 .I router
@@ -282,7 +290,7 @@ This value, and the
 .I retries
 value mentioned below, are combined to determine the interval between
 each retry attempt.
-.IP "idlemax" (3x interval)
+.IP "idlemax (3x interval)"
 When a transport agent runs out of jobs, they are moved to ``idle pool'',
 and it a TA spends more than
 .I idlemax
@@ -304,24 +312,37 @@ When the end of the sequence is reached, the
 .I scheduler
 will jump into the sequence at a random spot and continue towards the
 end.  This allows various retry strategies to be specified easily:
-.sp
-.ta 0.5i 1i
+.PP
+.RS
 .nf
-	brute force (or "jackhammer"):
-		retries=0
-	constant primary interval:
-		retries=1
-	instant backoff:
-		retries="1 50 50 50 50 50 50 50 50 50 50 50 50"
-	slow increasing (fibonacci) sequence:
-		retries="1 1 2 3 5 8 13 21 34"
-	s-curve sequence:
-		retries="1 1 2 3 5 10 20 25 28 29 30"
-	exponential sequence:
-		retries="1 2 4 8 16 32 64 128 256"
-	etc.
+brute force (or "jackhammer"):
+.RS
+retries=0
+.RE
+constant primary interval:
+.RS
+retries=1
+.RE
+instant backoff:
+.RS
+retries="1 50 50 50 50 50 50 50 50 50 50 50 50"
+.RE
+slow increasing (fibonacci) sequence:
+.RS
+retries="1 1 2 3 5 8 13 21 34"
+.RE
+s-curve sequence:
+.RS
+retries="1 1 2 3 5 10 20 25 28 29 30"
+.RE
+exponential sequence:
+.RS
+retries="1 2 4 8 16 32 64 128 256"
+.RE
+etc.
 .fi
-.sp
+.RE
+.PP
 .IP "maxta (0)"
 if retrying an address would cause the number of simultaneously active
 transport agents to exceed the specified value, the retry is postponed.
@@ -387,27 +408,46 @@ suggested:
 .I interval=1h retries="24"
 .PP
 For example, this is a complete configuration file:
-.sp
-.ta 0.5i 1.5i
+.PP
 .nf
-	# Default values
-	*/*	interval=1m expiry=3d retries="1 1 2 3 5 8 13 21 34"
-		maxring=0 maxta=0 skew=5 user=root group=daemon
-	# Boilerplate parameters for local delivery and service channels
-	local/*	interval=10s expiry=3h maxchannel=2 command=mailbox
-	error	interval=5m maxchannel=10 command=errormail
-	hold/*	interval=5m maxchannel=1 command=hold
-
-	# Miscellaneous channels supported by router configuration
-	smtp/*.toronto.edu
-	smtp/*.utoronto.ca maxchannel=10 maxring=2
-		command="smtp -srl $LOGDIR/smtp"
-	smtp	maxchannel=10 maxring=5
-		command="smtp -esrl $LOGDIR/smtp"
-
-	uucp/*	maxchannel=5 command="sm -c $channel uucp"
+.RS
+# Default values
+*/*
+.RS
+interval=1m expiry=3d retries="1 1 2 3 5 8 13 21 34"
+maxring=0 maxta=0 skew=5 user=root group=daemon
+.RE
+# Boilerplate parameters for local delivery and service channels
+local/*
+.RS
+interval=10s expiry=3h maxchannel=2 command=mailbox
+.RE
+error
+.RS
+interval=5m maxchannel=10 command=errormail
+.RE
+hold/*
+.RS
+interval=5m maxchannel=1 command=hold
+.RE
+# Miscellaneous channels supported by router configuration
+smtp/*.toronto.edu
+smtp/*.utoronto.ca
+.RS
+maxchannel=10 maxring=2
+command="smtp -srl $LOGDIR/smtp"
+.RE
+smtp
+.RS
+maxchannel=10 maxring=5
+command="smtp -esrl $LOGDIR/smtp"
+.RE
+uucp/*
+.RS
+maxchannel=5 command="sm -c $channel uucp"
+.RE
+.RE
 .fi
-.sp
 .PP
 The first clause (*/*) sets up default values for all addresses.  There
 is no command specification, so clause matching will continue after
@@ -543,25 +583,27 @@ indicating an address, followed by space and comment to the end of line.
 .PP
 For example, this is a typical message control file (it is a snapshot taken
 while a transport agent was running):
-.sp
-.ta 0.5i 1.2i
+.PP
+.RS
+.ta 0.8i
 .nf
-	i 15582
-	o 60
-	l <90Jun3.165355edt.15582@neat.cs.toronto.edu>
-	e Rayan Zachariassen <rayan>
-	s local - rayan 7
-	r~\ 23456local - rayan 7
-	m
-	Received: by neat.cs.toronto.edu id <15582>; Sun, 3 Jun 1990 16:53:55 -0400
-	From:	Rayan Zachariassen <rayan>
-	To:	rayan
-	Subject: a typical message control file
-	Message-Id: <90Jun3.165355edt.15582@neat.cs.toronto.edu>
-	Date:	Sun, 3 Jun 1990 16:53:54 -0400
+i 15582
+o 60
+l <90Jun3.165355edt.15582@neat.cs.toronto.edu>
+e Rayan Zachariassen <rayan>
+s local - rayan 7
+r~\ 23456   local - rayan 7
+m
+Received: by neat.cs.toronto.edu id <15582>; Sun, 3 Jun 1990 16:53:55 -0400
+From:	Rayan Zachariassen <rayan>
+To:	rayan
+Subject: a typical message control file
+Message-Id: <90Jun3.165355edt.15582@neat.cs.toronto.edu>
+Date:   Sun, 3 Jun 1990 16:53:54 -0400
 
 .fi
-.sp
+.RE
+.PP
 .SH TRANSPORT AGENT INTERFACE
 The transport agent interface follows master-slave -model, where the TA
 informs the
@@ -572,26 +614,24 @@ Once the job is finished, the TA notifies the scheduler, that it
 is ready for a new job.
 .PP
 A short sample session looks like this:
-.sp
-.ta 0.5i
+.PP
+.RS
 .nf
-	\fI(start the transport agent)\fR
-	\fB#hungry\fR
-	\fIspoolid\\\fBt\fIhostspec\fR
-	\fBdiagnostics\fR
-	\fB#hungry\fR
-	...
+\fI(start the transport agent)\fR
+\fB#hungry\fR
+\fIspoolid\\\fBt\fIhostspec\fR
+\fBdiagnostics\fR
+\fB#hungry\fR
+...
 .fi
-.sp
-
+.RE
 .PP
 Normal diagnostic output is of the form:
-.sp
-.ta 0.5i
-.nf
-	\fIid\fR/\fIoffset\fR\\t\fInotarydata\fR\\t\fIstatus\fR \fImessage\fR
-.fi
-.sp
+.PP
+.RS
+\fIid\fR/\fIoffset\fR\\t\fInotarydata\fR\\t\fIstatus\fR \fImessage\fR
+.RE
+.PP
 where 
 .I id
 is the inode number of the message file,

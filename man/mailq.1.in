@@ -125,52 +125,115 @@ Two Q:s produces an abbreviated summary, while one Q gives full
 report of all threads.
 .SH mailq -Q output codes
 Examples of ``mailq -Q'' output:
-.sp
+.PP
 .nf
-  smtp/aol.com/0  R=1 A=147 P=19598 HA=571s FA=571s OF=1 QA=1d18h
-  smtp/some.com/0 R=1 A=58 W=1860s QA=11h11m28s
+\fCsmtp/*.com/0
+.br
+.RS
+\fCsmtp/aol.com/0  \fRR=1 A=147 P={19598} HA={571}s FA={571}s OF=1 S={STUFF} UF=0 QA=1d18h
+.br
+\fCsmtp/some.com/0 \fRR=1 A=58 W=1860s QA=11h11m28s
+.br
+.RS
+\fCThreads: 11 Msgs: 36 Procs: 23 Idle: 12 Plim:90 Flim: 150 Tlim: 1
+.br
+.RE
+.RE
+\fCKids: 414 Idle: 324 Msgs: 754 Thrds: 129 Rcpnts: 943 Uptime: 1d31m22s
+.br
+\fCMsgs in 5384 out 4630 stored 754 Rcpnts in 441890 out 440917 stored 971
+.br
 .fi
-.sp
+.PP
 The codes mean following:
-.TP
-.B R=
+.IP \fBR=\fR
 Number of
 .B messages
-on this  ``channel/host''  thread; this does count individual
-target users separately!
-.TP
-.B A=
-Count of attempts to deliver this message.
-.TP
-.B P=
-Process number of the transport agent actively handling this thread.
-.TP
-.B W=
+on this  ``channel/host''  thread; this does
+.B not
+count individual target users separately!
+(e.g. if there are a dozen recipients at some message, but they are
+at same host, they are counted as one.)
+.IP \fBA=\fR
+Count of
+.IR A ttempts
+to do delivery at this thread.
+.IP \fBP=\fR
+.IR P rocess
+number(s) of the transport agent actively handling this thread.
+.br
+\fIThere can be multiple processes, and they are listed comma-separated
+\fIinside the curly brackets.  Similarly for the test of the things below.
+.IP \fBW=\fR
 Delay time until next time the transport-agent may try to send this
 thread.
-.TP
-.B HA=
-``#hunger age'' -- time since the scheduler saw last ``#hungry'' message from
+.RI ( W ait)
+.IP \fBHA=\fR
+.RI ``# H unger A ge(s)''
+-- time since the scheduler saw last ``#hungry'' message from
 the transport agent.
-.TP
-.B FA=
-``Feed age'' -- time since the scheduler did last time feed something to the
-transport agent.
-.TP
-.B QA=
-Age of oldest message in the queue at this thread.
-.TP
-.B OF=
-``OverFeed count'' -- how many unacknowledged tasks are still in
-the transport agent for this thread.
-The ``OverFeed'' was created to handle sluggish scheduler in hard pressed
-system to get jobs scheduled around, when the transport agents were
-in practice running dry as they did their jobs fast, but the scheduler
-didn't get around to feed them...
+.IP \fBFA=\fR
+``\fIF\fReed \fIA\fRge(s)''
+-- time since the scheduler did last time feed something to
+the transport agent(s).
+.IP \fBOF=\fR
+.RI `` O ver F eed
+count'' -- how many unacknowledged tasks are still in the transport agent(s)
+for this thread.  The ``OverFeed'' was created to handle sluggish scheduler
+in hard pressed system to get jobs scheduled around, when the transport
+agents were in practice running dry as they did their jobs fast, but the
+scheduler didn't get around to feed them...
 Thus the way for the scheduler to ``overfeed'' as many of the jobs in
 active thread to the transport agent as possible, and then just wait
 them to complete, and be acknowledged.
-With it this a lot more becomes done even with a sluggish scheduler.
+With this a lot more gets done even with a sluggish scheduler.
+.IP \fBS=\fR
+.RI Feed- S tate
+of TA-process(es) doing actual job.  The scheme goes like following:
+.RS
+.IP LARVA
+(This is very fast transient state.)
+TA processes are created at this state, and they stay there only until
+the first ``#hungry'' message is heard, then
+.I one
+job if fed there, and state is changed to ``STUFFing.''
+(One job so that if it fails, TA process kicks to other thread.)
+.IP STUFFing
+This is normal lifetime state of a TA process.
+When process' 
+.I UF=
+count goes to zero, more jobs are fed to it.
+A process moves away from this state by either:
+.RS
+.IP "- getting a \fR#retryat \fImessage"
+Next state is FINISHing.
+.IP "- running out of jobs to feed"
+Next state is FINISHing -- this requires that no messages were
+available for feeding at the time.  If even single one is fed,
+state stays in STUFFing.
+.RE
+.IP FINISHing
+This waits for the
+.I OF=
+count to go to zero, and then it tries to pick a new thread for
+the process to work on (if available), or if none can be found,
+moves the process to IDLE state.
+If a new thread is found for processing, process moves there,
+and goes to STUFFing state.
+.IP IDLE
+(This is very fast transient state.)
+The TA process is being idled, next state for the process will
+be in thread-group idle-pool.
+.RE
+.IP \fBUF=\fR
+How many messages out of all present in the queue have not yet been
+fed to the current TA process set ?
+("\fIU\fRn\fIF\fRed count")
+.IP \fBQA=\fR
+Age of oldest message in the queue at this thread.
+("\fIQ\fRueue\fIA\fRge")
+.SH BUGS
+MAILQ-V2 isn't described yet (nor is that protocol implementation complete)
 .SH FILES
 .I /etc/zmailer.conf
 .br
