@@ -240,7 +240,7 @@ char *argv[];
     gdbmfile = gdbm_open(dbasename, 0, GDBM_READER, 0644, NULL);
 
     if (!gdbmfile) {
-      fprintf(stderr,"Failed to open '%s' GDBM-dbase\n",dbasename);
+      fprintf(stderr,"Failed to open '%s' GDBM-dbase (do remember to add file suffix!)\n",dbasename);
       return 1;
     }
 
@@ -284,7 +284,7 @@ char *argv[];
     db_open(dbasename, DB_BTREE, DB_RDONLY, 0644, NULL, NULL, &dbfile);
 
     if (!dbfile) {
-      fprintf(stderr,"Failed to open '%s' BTREE-dbase\n",dbasename);
+      fprintf(stderr,"Failed to open '%s' BTREE-dbase (try with whole filename?)\n",dbasename);
       return 1;
     }
 
@@ -334,7 +334,7 @@ char *argv[];
     db_open(dbasename, DB_HASH, DB_RDONLY, 0644, NULL, NULL, &dbfile);
 
     if (!dbfile) {
-      fprintf(stderr,"Failed to open '%s' BHASH-dbase\n",dbasename);
+      fprintf(stderr,"Failed to open '%s' BHASH-dbase (try with whole filename)\n",dbasename);
       return 1;
     }
 
@@ -382,7 +382,7 @@ char *argv[];
     dbfile = dbopen(dbasename, O_RDONLY, 0644, DB_BTREE, NULL);
 
     if (!dbfile) {
-      fprintf(stderr,"Failed to open '%s' BTREE-dbase\n",dbasename);
+      fprintf(stderr,"Failed to open '%s' BTREE-dbase (use whole filenames?)\n",dbasename);
       return 1;
     }
 
@@ -421,7 +421,7 @@ char *argv[];
     dbfile = dbopen(dbasename, O_RDONLY, 0644, DB_HASH, NULL);
 
     if (!dbfile) {
-      fprintf(stderr,"Failed to open '%s' BHASH-dbase\n",dbasename);
+      fprintf(stderr,"Failed to open '%s' BHASH-dbase (use whole filenames?)\n",dbasename);
       return 1;
     }
 
