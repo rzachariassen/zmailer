@@ -16,7 +16,7 @@
 	ZMailer-2.99.50-s14
 		Policy database has evolved quite a bit, very least you
 		should recompile possible pre-existing policy dataset
-		before re-enabling your smtpserver.
+		using new 'makedb' binary before re-enabling your smtpserver.
 
 	ZMailer-2.99.50
 		The router script language no longer has 'setf' function.
