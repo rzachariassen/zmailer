@@ -1,5 +1,9 @@
 2003-02-14  Matti Aarnio  <mea@zmailer.org>
 
+	* Makefile.in:
+	    Version: 2.99.56-pre4
+	    * WILL DO ALSO A RELEASE TARBALL OF THIS, BUT DON'T TRUST IT YET! *
+
 	* transports/smtp/smtp.c, transports/smtp/smtp.h:
 	    Centralized RSET sending into one place in
 	    MAIL/RCPT/DATA loop. Using state variable  do_rset
