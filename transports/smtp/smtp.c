@@ -2591,8 +2591,7 @@ makeconn(SS, ai, ismx)
 		 */
 		break;		/* try another host address */
 	      return EX_OK;
-	  case EX_TEMPFAIL:
-	      retval = EX_TEMPFAIL;
+	  default:
 	      break;
 	  }
 	} /* end of for-loop */
