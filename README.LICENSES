@@ -22,7 +22,7 @@ The license for ZMailer is herewith set as: "pick any you like":
 
     - GPL-2 / LGPL-2:
 		Of these the LGPL is applicable to all parts of ZMailer
-		that are libraries, or you were able to otherwise embedd
+		that are libraries, or you were able to otherwise embed
 		in librarized form.  Otherwise use GPL.
 
 		Demands contributing changes back to the baseline or
@@ -32,12 +32,15 @@ The license for ZMailer is herewith set as: "pick any you like":
 
 I (Matti Aarnio) have also contemplated adapting Mozilla/Netscape community
 license, or Qt's QPL, but those go a tad far in demands of wanting the
-modifications to be fed to the original author.
+modifications to be made available to the original author(s).
+
+I have (probably) somewhere emails, where Rayan Zachariassen said, he
+wanted to publish completed thing under GPL(v1).
 
 
 In every case:
 
- THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ THIS SOFTWARE IS PROVIDED BY THE AUTHOR(S) ``AS IS'' AND ANY EXPRESS OR
  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
