@@ -267,10 +267,15 @@ static void cfparam(str)
       sscanf(param1,"%d", & tls_req_cert);
 
     } else if (cistrcmp(name, "tls-use-scache") == 0) {
+#ifdef HAVE_OPENSSL
       tls_use_scache = 1;
+#endif /* - HAVE_OPENSSL */
 
     } else if (cistrcmp(name, "tls-scache-timeout") == 0 && param1) {
+#ifdef HAVE_OPENSSL
       sscanf(param1,"%d", & tls_scache_timeout);
+#endif /* - HAVE_OPENSSL */
+
     }
     else {
       /* XX: report error for unrecognized PARAM keyword ?? */
