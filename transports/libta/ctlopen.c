@@ -363,10 +363,11 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  switch (*s) {
 	  case _CF_FORMAT:
 	    ++s;
+	    format = 0;
 	    sscanf(s,"%li",&format);
 	    if (format & (~_CF_FORMAT_KNOWN_SET)) {
-	      warning("Unsupported SCHEDULER file format flags seen: 0x%x",
-		      format);
+	      warning("Unsupported SCHEDULER file format flags seen: 0x%x at file '%s'",
+		      format, file);
 	      *exitflagp = 1;
 	      break;
 	    }
