@@ -6418,7 +6418,7 @@ if test "$ac_cv_libsocket_both" = 1 ; then
   # Check cache
   if test "$ac_cv_func_socket_lxnet" = yes ; then
     echo "$ac_t""need -lxnet library (cached)" 1>&6
-    LIBSOCKET="-lxnet -lsocket -lnsl"
+    LIBSOCKET="-lnsl -lxnet"
   else
   if test "$ac_cv_func_socket_lsocket" = yes ; then
     echo "$ac_t""need -lsocket library (cached)" 1>&6
@@ -6463,7 +6463,7 @@ LIBS="$ac_save_LIBS"
 fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  LIBSOCKET="-lxnet -lsocket -lnsl"
+  LIBSOCKET="-lnsl -lxnet"
 				 ac_cv_func_socket_lsocket=no
 				 ac_cv_func_socket_lxnet=yes
 else
