@@ -18,7 +18,8 @@
 <!-- double-dash -->
 <!ENTITY ddash    SDATA "[ddash]"    -- Double-Dash for ZMailer docs       -->
 <!ENTITY PGBREAK  SDATA "[pgbreak]"  -- LaTeX \pagebreak for ZMailer docs  -->
-<!ENTITY dd "&ddash;">
+<!ENTITY dd       SDATA "[ddash]"    -- Double-Dash for ZMailer docs       -->
+<!-- ENTITY dd "&ddash;" -->
 
 <!ENTITY ZDATETIME       SYSTEM "z-datetime.txt">
 <!ENTITY ZWHAT           SYSTEM "z-what.txt">

@@ -167,10 +167,12 @@ do
 	-e 's/&lsaquo;/\&#8249;/g'	\
 	-e 's/&rsaquo;/\&#8250;/g'	\
 	-e 's/&euro;/\&#8364;/g'	\
-	-e 's/&dash;/\&#45;\&#45;/g'	\
+	-e 's/&dd;/--/g'		\
+	-e 's/&ddash;/--/g'		\
 	-e 's/&PGBREAK;//g'		\
-		|		\
-	tidy		> $x.new
+	-e 's/&pgbreak;//g'		\
+			|		\
+	tidy -i -u -n -q	> $x.new
 
 	# mv $x $x.old
 	mv $x.new $x
@@ -178,3 +180,8 @@ do
 done
 
 echo
+
+#	-e 's/&ndash;/\&#8211;/g'	\
+#	-e 's/&mdash;/\&#8212;/g'	\
+#	-e 's/&ndash;/-/g'	\
+#	-e 's/&mdash;/--/g'	\
