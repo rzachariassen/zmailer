@@ -127,14 +127,14 @@ sglob(ibuf)
 	int *ibuf;	/* unglobbed pathname w/ each byte stored as int */
 {
 	register int i, n;
-	register conscell *d, *tmp;
+	conscell **pp, *cc;
 	struct sawpath *spp;
-	conscell cc;
 	struct sawpath head;
 	char	*pwd,		/* points to end of current directory in cwd */
 		**base,		/* array of expanded filenames, for sorting */
 		cwd[4096];	/* all pathnames are constructed in cwd */
-	
+	GCVARS1;
+
 	if (BYTE(ibuf[0]) == '/') {
 		cwd[0] = '/';
 		pwd = cwd+1;
@@ -150,25 +150,44 @@ sglob(ibuf)
 	head.next = NULL;
 	spp = &head;
 	if (BYTE(ibuf[0]) != 0)
-		n = glut(cwd, pwd, ibuf, 0, &spp);	/* do expansion */
+	  n = glut(cwd, pwd, ibuf, 0, &spp);	/* do expansion */
 	else
-		return NULL;
+	  goto leave;
+	
 	if (n <= 0)
-		return NULL;
-	base = (char **)tmalloc((sizeof (char *))*n);
+	  goto leave;
+
+#ifdef USE_ALLOCA
+	base = (char **)alloca((sizeof (char *))*n);
+#else
+	base = (char **)malloc((sizeof (char *))*n);
+#endif
 	i = 0;
 	for (spp = head.next; spp != NULL ; spp = spp->next)
 		base[i++] = spp->array;
 	qsort(base, n, sizeof base[0], pathcmp);
 	/* construct a sorted linked list */
-	d = &cc;
+	cc = NULL;
+	GCPRO1(cc);
+	pp = &cc;
 	for (i = 0; i < n; ++i) {
-		cdr(d) = conststring(base[i]);
-		d = cdr(d);
+		*pp = newstring(dupstr(base[i]));
+		pp = &cdr(*pp);
+		*pp = NULL;
 		/* printf("saw %s\n", base[i]); */
 	}
-	cdr(d) = NULL;
-	return cdr(&cc);
+	UNGCPRO1;
+#ifndef USE_ALLOCA
+	free(base);
+#endif
+ leave:
+	spp = head.next;
+	while (spp != NULL) {
+	  struct sawpath *spp2 = spp->next;
+	  free(spp);
+	  spp = spp2;
+	}
+	return cc;
 }
 
 /*
@@ -184,7 +203,7 @@ stash(s, len, ps)
 {
 	register struct sawpath *spp;
 	
-	spp = (struct sawpath *)tmalloc(sizeof (struct sawpath) + len);
+	spp = (struct sawpath *)malloc(sizeof (struct sawpath) + len);
 	ps->next = spp;
 	spp->next = NULL;
 	memcpy(spp->array, s, len);
@@ -415,7 +434,7 @@ ok:
 
 int
 squish(d, bufp, ibufp)
-	conscell *d;
+	conscell *d; /* input is protected */
 	char **bufp;
 	int **ibufp;
 {
@@ -448,14 +467,16 @@ squish(d, bufp, ibufp)
 	    ++cp;
 	  len += cp - l->string;
 	}
-	/* allocate something large enough to hold integer per char */
-	*bufp = buf = (char *)tmalloc((len+1)*(sawglob ? sizeof(int) : 1));
-	*ibufp = ibuf = (int *)buf;
 
 	/* f option disables filename generation */
 	sawglob = sawglob && !isset('f');
-	if (!sawglob && cdr(d) == NULL)
+	if (!sawglob && cdr(d) == NULL) {
 	  return -1;
+	}
+
+	/* allocate something large enough to hold integer per char */
+	*bufp = buf = (char *)malloc((len+1)*(sawglob ? sizeof(int) : 1));
+	*ibufp = ibuf = (int *)buf;
 
 	for (l = d, bp = buf, ip = ibuf; l != NULL; l = cdr(l)) {
 	  if (l->string) {
@@ -504,22 +525,31 @@ glob(d)
 	register char *bp;
 	register int *ip;
 	conscell *tmp;
-	char *buf;
+	char *buf = NULL;
 	int *ibuf;
+	int s;
 
-	switch (squish(d, &buf, &ibuf)) {
+	s = squish(d, &buf, &ibuf);
+	switch (s) {
 	case -1:
+		/* if (buf) free(buf); -- no allocations; ever */
 		return d;
 	case 1:
 		tmp = sglob(ibuf);
-		if (tmp != NULL)
-			return tmp;
+		if (tmp != NULL) {
+		  free(buf);
+		  return tmp;
+		}
 		for (bp = buf, ip = ibuf; *ip != '\0'; ++ip)
 			*bp++ = BYTE(*ip);
 		*bp = '\0';
 		/* FALLTHROUGH */
+		/* (re)filled the buffer, can throw away
+		   the conscell chain in 'tmp'. */
 	case 0:
-		return newstring(buf);
+		tmp = newstring(dupstr(buf));
+		free(buf);
+		return tmp;
 	}
 	abort();
 	/* NOTREACHED */
@@ -538,13 +568,18 @@ glob(d)
 
 conscell *
 expand(d)
-	register conscell *d;
+	conscell *d; /* input protected */
 {
-	register conscell *tmp, *head, *next, *orig;
-	conscell *globbed, **pav;
+	conscell *tmp, *head, *next, *orig;
+	conscell *globbed = NULL, **pav;
 	register char *cp;
+	GCVARS6;
+
+	tmp = head = next = orig = globbed = NULL;
+	GCPRO6(tmp, head, next, orig, globbed, d);
 
 	/* grindef("EXP = ", d); */
+	d = s_copy_tree(d); /* this chain of data will be modified below! */
 	orig = d;
 	pav = &globbed;
 	for (head = d; d != NULL; d = next) {
@@ -560,20 +595,22 @@ expand(d)
 				pav = &cdr(s_last(*pav));
 			}
 			head = NULL;
-			d = copycell(d);
 			d->flags &= ~ELEMENT;
 			*pav = d;
 			pav = &cdr(d);
 			continue;
 		}
 		/* null strings should be retained */
-		/* printf("checking '%s'\n", d->string); */
+		/* fprintf(stderr,"checking '%s'\n", d->string); */
 		cp = d->string;
 		if (head == d) {
 			/* skip leading whitespace */
-			while (*cp != '\0' && WHITESPACE(*cp))
-				++cp;
-			d->string = cp;
+			char *p;
+			while (*cp != '\0' && WHITESPACE(*cp)) ++cp;
+			p = dupstr(cp);
+			freestr(d->string);
+			d->string = p;
+			cp = p;
 		}
 		while (*cp != '\0') {
 			if (WHITESPACE(*cp)) {
@@ -591,13 +628,17 @@ expand(d)
 					head = NULL;
 					break;
 				} else {
-					head = d = conststring(cp);
+					/* We have more non-white-space stuff
+					   following */
+					head = d = newstring(dupstr(cp));
 					cdr(head) = next;
+					cp = d->string;
 				}
 			}
 			++cp;
 		}
 	}
+
 	if (head != NULL) {
 		/* printf("trailing '%s'\n", head->string); */
 		/* glob is guaranteed to not return NULL */
@@ -605,11 +646,7 @@ expand(d)
 		pav = &cdr(s_last(*pav));
 	}
 	*pav = NULL;
-#ifdef CONSCELL_PREV
-	if (orig->prev != globbed->prev) {
-		s_set_prev(orig->prev, globbed);
-		globbed->pflags = orig->pflags;
-	}
-#endif
+
+	UNGCPRO6;
 	return globbed;
 }

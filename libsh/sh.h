@@ -97,10 +97,11 @@ typedef enum {
 
 struct osCmd {
 	conscell *argv;
-	conscell *envold;	/* old values of cmd-line var assigns */
-	conscell *rval;		/* rval from list-valued command */
-	conscell *buffer;	/* string buffer to build up words */
-	conscell **bufferp;	/* pointer to cdr() of last buffer */
+	conscell *envold;	/* old values of cmd-line var assigns	*/
+	conscell *rval;		/* rval from list-valued command	*/
+	conscell *buffer;	/* string buffer to build up words	*/
+	conscell **bufferp;	/* pointer to cdr() of last buffer	*/
+	GCVARS4;		/* Protection frame for GC uses		*/
 	IOFlag	  iocmd;	/* flag, see above */
 	int	  fdmask;	/* low bits indicate io taken care of */
 	short	  reaperTop;	/* cur top of list of active children */

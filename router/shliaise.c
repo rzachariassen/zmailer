@@ -9,7 +9,7 @@
 #include "prototypes.h"
 
 conscell **return_valuep = NULL;
-conscell *s_value        = NULL ;
+conscell *s_value        = NULL;
 
 int
 l_apply(fname, l)
@@ -19,6 +19,9 @@ l_apply(fname, l)
 	int retval;
 	conscell *retvp = NULL;
 	conscell **oretvp = return_valuep;
+	GCVARS2;
+
+	GCPRO2(l, retvp);
 
 	return_valuep = &retvp;
 
@@ -26,6 +29,7 @@ l_apply(fname, l)
 	s_value = retvp;
 
 	return_valuep = oretvp;
+	UNGCPRO2;
 	return retval;
 }
 
@@ -38,12 +42,16 @@ s_apply(argc, argv)
 	int retval;
 	conscell *retvp = NULL;
 	conscell **oretvp = return_valuep;
+	GCVARS1;
+
+	GCPRO1(retvp);
 
 	return_valuep = &retvp;
 
 	retval = apply(argc, argv);
 	s_value = retvp;
 	return_valuep = oretvp;
+	UNGCPRO1;
 	return retval;
 }
 
@@ -174,7 +182,6 @@ hdr_rewrite(name, h)
 	struct address *nap = NULL, *pap;
 	token822 *nt, *pt, *addrtokens;
 	struct header *nh;
-	conscell *l;
 	const char *cp, *eocp;
 	char *s, buf[4096], *eobuf; 	/* XX */
 
@@ -236,32 +243,45 @@ hdr_rewrite(name, h)
 			s_value = NULL;
 		else if (s_rewrite(name, addrtokens, NULL, h->h_pname) != 0) {
 			if (s_value != NULL) {
-				s_free_tree(s_value);
-				s_value = NULL;
+			  /* s_free_tree(s_value); */
+			  s_value = NULL;
 			}
 			if (deferit
 			    && s_rewrite(DEFERHDR, addrtokens, NULL, h->h_pname)
 			    && s_value != NULL) {
-				s_free_tree(s_value);
-				s_value = NULL;
+			  /* s_free_tree(s_value); */
+			  s_value = NULL;
 			}
 		}
 		if (s_value != NULL
 		    && (LIST(s_value) || *(s_value->string) == '\0')) {
-			s_free_tree(s_value);
-			s_value = NULL;
+		  /* s_free_tree(s_value); */
+		  s_value = NULL;
 		}
 		if (s_value == NULL) {
 			/* copy this address unchanged */
 			nap->a_tokens = ap->a_tokens;
 		} else {
 			/* integrate result with original address form */
+#if 1
+			const char *cs = s_value->cstring;
+			char *s = tmalloc(strlen(cs)+1);
+			strcpy(s, cs);
+			/* t = HDR_SCANNER(cs); */
+			t = scan822(&s, strlen(s), /* XXX: Does this really need long-term storage ??? */
+				    '!', '%', 0, &ap->a_tokens->p_tokens);
+#else
+			conscell *l;
+			GCVARS1;
 			l = s_copy_tree(s_value);
-			s_free_tree(s_value);
+			GCPRO1(l);
+			/* s_free_tree(s_value); */
 			s_value = NULL;
 			/* t = HDR_SCANNER(l->cstring); */
 			t = scan822(&l->cstring, strlen(l->cstring),
 				    '!', '%', 0, &ap->a_tokens->p_tokens);
+			UNGCPRO1;
+#endif
 			/* X: check for errors! */
 			nap->a_tokens = mergeAddress(ap->a_tokens, t);
 		}
@@ -284,8 +304,9 @@ setenvinfo(e)
 	struct envelope *e;
 {
 	struct header *h;
-	conscell *pl, *plhead, *tmp;
+	conscell *pl, *plhead;
 	char buf[20];
+	GCVARS1;
 
 	/* include header size ("headersize"), message size ("size"),
 	   message body size ("bodysize"), now ("now"), resent ("resent")
@@ -293,12 +314,12 @@ setenvinfo(e)
 	   ("message-id") */
 
 #define	CONSTSTR(s)	cdr(pl) = conststring(s); pl = cdr(pl)
-#define	NEWSTR(s)	cdr(pl) = newstring(s); pl = cdr(pl)
-#define	NEWSTRD(d)	sprintf(buf, "%ld", (long)(d)); \
-			cdr(pl) = newstring(strsave(buf)); \
-			pl = cdr(pl)
+#define	NEWSTR(s)	cdr(pl) = newstring(s);   pl = cdr(pl)
+#define	NEWSTRD(d)	sprintf(buf, "%ld", (long)(d)); NEWSTR(dupstr(buf))
 
 	pl = plhead = conststring("file");
+	GCPRO1(plhead);
+
 	CONSTSTR(e->e_file);
 
 	if (e->e_messageid != NULL) {
@@ -349,6 +370,7 @@ setenvinfo(e)
 	cdr(pl) = NULL;
 	plhead = ncons(plhead);
 	v_setl("envelopeinfo", plhead);
+	UNGCPRO1;
 }
 
 static char gsbuf[30];
@@ -360,11 +382,15 @@ const char *onam, *nam, *val;
 {
 	conscell *l, *lc, *tmp, **pl;
 	conscell	*l1;
+	GCVARS4;
 
 	l1 = v_find(onam);
 	if (!l1)
 	  return NULL;
 	l = copycell(cdr(l1));
+	lc = tmp = l1 = NULL;
+	GCPRO4(l, lc, tmp, l1);
+
 	cdr(l) = NULL;
 	car(l) = s_copy_tree(car(l));
 	pl = &car(l);
@@ -380,16 +406,17 @@ const char *onam, *nam, *val;
 	}
 
 	/* Prepend in reverse order */
-	tmp = newstring(strsave(val));
+	tmp = newstring(dupstr(val));
 	cdr(tmp) = car(l);
 	car(l) = tmp;
-	tmp = newstring(strsave(nam));
+	tmp = newstring(dupstr(nam));
 	cdr(tmp) = car(l);
 	car(l) = tmp;
 
 	sprintf(gsbuf, gs_name, gensym++);
 	/* gX (name in gsbuf) will be freed by free_gensym() later */
 	v_setl(gsbuf, l);
+	UNGCPRO4;
 	return gsbuf;
 }
 
@@ -402,44 +429,39 @@ int uid;
 const char *type, *DSNstr, *errorsto, *sender;
 {
 	char buf[20];
-	conscell *l, *lc, *tmp;
+	conscell *l, *pl;
+	GCVARS1;
 
 	/* assemble the default attribute list: (privilege <uid>) */
 	l = conststring("privilege");
+	GCPRO1(l);
 	sprintf(buf, "%d", uid);
-	cdr(l) = newstring(strsave(buf));
-	lc = cdr(l);
+	pl = l;
+	NEWSTR(dupstr(buf));
 	if (type != NULL) {
-		cdr(lc) = conststring("type");
-		lc = cdr(lc);
-		cdr(lc) = newstring(strsave(type));
-		lc = cdr(lc);
+		CONSTSTR("type");
+		NEWSTR(dupstr(type));
 	}
 	if (DSNstr != NULL) {
-		cdr(lc) = conststring("DSN");
-		lc = cdr(lc);
-		cdr(lc) = newstring(strsave(DSNstr));
-		lc = cdr(lc);
+		CONSTSTR("DSN");
+		NEWSTR(dupstr(DSNstr));
 	}
 	/* See if some "errorsto" definition is available.. */
 	if (errorsto != NULL) {
-		cdr(lc) = conststring("ERR");
-		lc = cdr(lc);
-		cdr(lc) = newstring(strsave(errorsto));
-		lc = cdr(lc);
+		CONSTSTR("ERR");
+		NEWSTR(dupstr(errorsto));
 	}
 	/* See if some "sender" definition is available.. */
 	if (sender != NULL) {
-		cdr(lc) = conststring("sender");
-		lc = cdr(lc);
-		cdr(lc) = newstring(strsave(sender));
-		lc = cdr(lc);
+		CONSTSTR("sender");
+		NEWSTR(dupstr(sender));
 	}
-	cdr(lc) = NULL;
+	cdr(pl) = NULL; /* not needed in reality */
 	l = ncons(l);
 	sprintf(gsbuf, gs_name, gensym++);
 	/* gX (name in gsbuf) will be freed by free_gensym() later */
 	v_setl(gsbuf, l);
+	UNGCPRO1;
 	return gsbuf;
 }
 
@@ -461,10 +483,11 @@ router(a, uid, type)
 	int r;
 	token822 *last;
 	struct addr *p;
-	conscell *l, *tmp;
+	conscell *l;
 	const char *gsym;
 	struct notary *DSN = NULL;
 	const char *DSNstr;
+	GCVARS1;
 
 	if (a == NULL)
 		return NULL;
@@ -502,30 +525,33 @@ router(a, uid, type)
 	r = s_rewrite(ROUTER, t, NULL, gsym);
 #if 0
 	if (deferit) {
-		s_free_tree(s_value);
-		s_value = NULL;
-		r = s_rewrite(DEFERENV, t, NULL, gsym);
+	  /* s_free_tree(s_value); */
+	  s_value = NULL;
+	  r = s_rewrite(DEFERENV, t, NULL, gsym);
 	}
 #endif
 	if (r != 0 || s_value == NULL || !LIST(s_value)) {
-		/* router returned something invalid */
-		s_free_tree(s_value);
-		s_value = NULL;
-		return NULL;
+	  /* router returned something invalid */
+	  /* s_free_tree(s_value); */
+	  s_value = NULL;
+	  return NULL;
 	}
 
 	/*
 	 * We expect router to either return
 	 * (local - user attributes) or (((local - user attributes)))
 	 */
+	l = NULL;
+	GCPRO1(l);
 	if (car(s_value) && LIST(car(s_value))) {
 		if (!LIST(caar(s_value)) || !STRING(caaar(s_value))) {
 			fprintf(stderr,
 				"%s: '%s' returned invalid 2-level list: ",
 				progname, ROUTER);
 			s_grind(s_value, stderr);
-			s_free_tree(s_value);
+			/* s_free_tree(s_value); */
 			s_value = NULL;
+			UNGCPRO1;
 			return NULL;
 		}
 		l = s_copy_tree(s_value);
@@ -535,8 +561,9 @@ router(a, uid, type)
 		l = ncons(l);
 	}
 
-	s_free_tree(s_value);
+	/* s_free_tree(s_value); */
 	s_value = NULL;
+	UNGCPRO1;
 
 	return l;
 }
@@ -558,19 +585,19 @@ conscell *
 crossbar(from, to)
 	conscell *from, *to;
 {
-	conscell *l, *tmp;
+	conscell *l = NULL;
+	GCVARS3;
 
-	l = ncons(from);
+	GCPRO3(l, from, to);
+
+	l = copycell(from);
+	l = ncons(l);
+
 	cdar(l) = to;
-#ifdef CONSCELL_PREV
-	s_set_prev(l, car(l));
-#endif
 
 	if (l_apply(CROSSBAR, l) != 0 || s_value == NULL) {
-		if (s_value != NULL)
-			s_free_tree(s_value);	/* superfluous? */
-		s_value = NULL;
-		return NULL;
+	  s_value = NULL;
+	  return NULL;
 	}
 
 	/*
@@ -580,9 +607,9 @@ crossbar(from, to)
 	 * back from the crossbar function.
 	 */
 
-	l = s_copy_tree(s_value);
-	s_free_tree(s_value);
+	l = s_value;
 	s_value = NULL;
+	UNGCPRO3;
 
 	return l;
 }

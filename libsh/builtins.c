@@ -135,15 +135,13 @@ struct shCmd builtins[] = {
 
 conscell *
 sh_car(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Input conscells are gc-protected! */
 {
-	conscell *tmp;
-
 	il = cdar(avl);
 	if (il == NULL)
 		return NULL;
 	if (STRING(il))
-		return conststring(il->string);
+		return newstring(dupstr(il->string));
 	/* setf preparation */
 	if (car(il) == NULL) {
 #ifdef CONSCELL_PREV
@@ -161,7 +159,7 @@ sh_car(avl, il)
 
 static conscell *
 sh_cdr(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Input conscells are gc-protected! */
 {
 	il = cdar(avl);
 	if (il == NULL || STRING(il) || car(il) == NULL)
@@ -184,7 +182,7 @@ sh_cdr(avl, il)
 
 static conscell *
 sh_last(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Input conscells are gc-protected! */
 {
 	il = cdar(avl);
 	if (il == NULL || STRING(il) || car(il) == NULL)
@@ -206,7 +204,7 @@ sh_last(avl, il)
 
 static conscell *
 sh_list(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Input conscells are gc-protected! */
 {
 	car(avl) = cdar(avl);
 	return avl;
@@ -214,25 +212,28 @@ sh_list(avl, il)
 
 static conscell *
 sh_grind(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Input conscells are gc-protected! */
 {
 	return cdar(avl);
 }
 
 static conscell *
 sh_elements(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Input conscells are gc-protected! */
 {
 	conscell *p;
 
 	if ((p = cdar(avl)) == NULL || !LIST(p))
 		return p;
-	for (il = cadar(avl); il != NULL; il = cdr(il))
-		il->flags |= ELEMENT;
-	return cadar(avl);
+	il = cadar(avl);
+	p = il = s_copy_tree(il); /* creates new cells, but this is
+				     also last call to the creator here */
+	for (; p != NULL; p = cdr(p))
+		p->flags |= ELEMENT;
+	return il;
 }
 
-#ifdef CONSCELL_PREV
+#ifdef CONSCELL_PREV /* THIS IS NOT IN USE ANYMORE AFTER 2.99.49 */
 
 static conscell *
 sh_setf(avl, il)
@@ -320,7 +321,7 @@ sh_setf(avl, il)
 
 static conscell *
 sh_lappend(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Input conscells are gc-protected! */
 {
 	conscell *key, *d, *tmp, *data;
 	memtypes omem = stickymem;
@@ -332,7 +333,7 @@ sh_lappend(avl, il)
 				car(avl)->string);
 		return NULL;
 	}
-	d = v_find(key->string);
+	d = v_find(key->string); /* no new objects allocated */
 	if (!d) return NULL;
 
 	d = cdr(d); /* This is variable content pointing object */
@@ -342,7 +343,7 @@ sh_lappend(avl, il)
 	tmp = cdr(key); /* data is the next elt after the variable name */
 	if (LIST(tmp))  /* If it is a LIST object, descend into it */
 	  tmp = car(tmp);
-	data = s_copy_tree(tmp);
+	data = s_copy_tree(tmp); /* The only cell-allocator in here */
 
 	if (car(d) != NULL) {
 	  d = car(d);
@@ -381,6 +382,8 @@ sh_lreplace(avl, il)
 	memtypes omem = stickymem;
 	int fieldidx;
 	char *fieldname;
+
+	GCVARS4;
 
 	const char *lreplace_usage =
 	  "Usage: %s variable-name fieldidx $new_value\n\
@@ -423,6 +426,10 @@ sh_lreplace(avl, il)
 	if (LIST(tmp))  /* If it is a LIST object, descend into it */
 	  tmp = car(tmp);
 #endif
+
+	data = NULL;
+	GCPRO4(data, tmp, d, key);
+
 	data = s_copy_tree(tmp);
 
 	dp = &car(cdr(d)); /* This is variable pointing object */
@@ -445,7 +452,7 @@ sh_lreplace(avl, il)
 	  }
 	  if (d == NULL) {
 	    /* Append the pair */
-	    d = newstring(strsave(fieldname));
+	    d = newstring(dupstr(fieldname));
 	    *dp = d;
 	    dp = &cdr(d);
 	    d = NULL;
@@ -461,8 +468,10 @@ sh_lreplace(avl, il)
 	if (d) {
 	  cdr(data) = cdr(d);
 	  cdr(d) = NULL;	/* Disconnect and discard old data */
-	  s_free_tree(d);
+	  /* s_free_tree(d); -- GC cleans it out latter .. */
 	}
+
+	UNGCPRO4;
 
 	stickymem = omem;
 	return NULL; /* Be quiet, don't force the caller
@@ -476,7 +485,8 @@ static conscell *
 sh_get(avl, il)
 	conscell *avl, *il;
 {
-	conscell *plist, *key, *d, *tmp;
+	conscell *plist, *key, *d = NULL;
+	GCVARS3;
 
 	if ((plist = cdar(avl)) == NULL
 	    || (key = cddar(avl)) == NULL
@@ -489,7 +499,11 @@ sh_get(avl, il)
 		d = v_find((const char *)plist->string);
 		if (d == NULL) {
 			/* (setq plist '(key nil)) */
-			d = conststring(key->string);
+			GCPRO3(avl,plist,d);
+			if (ISCONST(key))
+			  d = conststring(key->string);
+			else
+			  d = newstring(dupstr(key->string));
 			cdr(d) = NIL;
 			d = ncons(d);
 			assign(plist, d, (struct osCmd *)NULL);
@@ -498,6 +512,7 @@ sh_get(avl, il)
 			cdar(d)->prev = cadr(v_find((const char*)plist->string));
 			cdar(d)->pflags = 1;
 #endif
+			UNGCPRO3;
 			return cdar(d);
 		}
 		plist = cdr(d);
@@ -512,7 +527,7 @@ sh_get(avl, il)
 			printf("comparing '%s' and '%s'\n",
 				d->string, key->string);	*/
 		if (STRING(d) && strcmp(d->string, key->string) == 0) {
-			d = copycell(cdr(d));
+			d = copycell(cdr(d)); /* This input is plist elt */
 			cdr(d) = NULL;
 #ifdef CONSCELL_PREV
 			d->pflags |= 04;
@@ -535,7 +550,7 @@ sh_get(avl, il)
 		cddr(plist) = d;
 
 		stickymem = MEM_MALLOC;
-		cdr(plist) = s_copy_tree(cdr(plist));
+		cdr(plist) = s_copy_tree(cdr(plist)); /* input gc-protected */
 #ifdef CONSCELL_PREV
 		s_set_prev(plist, cdr(plist));
 		cdr(plist)->pflags = 1;
@@ -557,7 +572,6 @@ sh_length(avl, il)
 	conscell *avl, *il;
 {
 	char buf[10];
-	conscell *tmp;
 	int len = 0;
 
 	if ((il = cdar(avl)) && LIST(il)) {
@@ -566,7 +580,7 @@ sh_length(avl, il)
 	}
 	sprintf(buf, "%d", len);
 
-	avl = newstring(strsave(buf));
+	avl = newstring(dupstr(buf));
 	return avl;
 }
 
@@ -1114,7 +1128,7 @@ sh_set(argc, argv)
 	memtypes oval;
 	const char *cp;
 	char **kk, *ep;
-	conscell *d, *pd = NULL, *scope, *tmp;
+	conscell *d, *pd = NULL, *scope;
 	char ebuf[32];
 
 	if (argc == 1) {
@@ -1195,9 +1209,9 @@ sh_set(argc, argv)
 	stickymem = MEM_MALLOC;
 	if (globalcaller != NULL && globalcaller->argv != NULL)
 		pd = car(globalcaller->argv);
-	/* XX: possible memory leak here! */
 	while (argc-- > 0) {
-		d = newstring(strsave(*argv));
+		d = newstring(dupstr(*argv));
+		/* These go into  globalcaller->  protected storage */
 		if (pd != NULL)
 			cdr(pd) = d;
 		++argv;
@@ -1246,7 +1260,7 @@ sh_unset(argc, argv)
 				else
 					cddr(pd) = next;
 				cddr(d) = NULL;
-				s_free_tree(d);
+				/* s_free_tree(d); -- GC does it.. */ 
 				/* no point doing anything else in this scope */
 				break;
 			}

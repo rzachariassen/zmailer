@@ -49,6 +49,7 @@ const char * logfn;
 time_t	now;
 
 extern memtypes stickymem;
+extern conscell *s_value;
 
 int	mustexit = 0;
 int	canexit = 0;
@@ -80,6 +81,11 @@ main(argc, argv)
 	/* We null supplementary groups list entirely */
 	setgroups(0, NULL);
 #endif
+
+	/* setvbuf(stdout, (char *)NULL, _IOLBF, 0);
+	   setvbuf(stderr, (char *)NULL, _IOLBF, 0); */
+	setvbuf(stdout, (char *)NULL, _IONBF, 0);
+	setvbuf(stderr, (char *)NULL, _IONBF, 0);
 
 	progname = strrchr(argv[0], '/');
 	if (progname == NULL)
@@ -215,10 +221,6 @@ main(argc, argv)
 					  + strlen(progname)));
 		sprintf((char*)logfn, "%s/%s", logdir, progname);
 	}
-	/* setvbuf(stdout, (char *)NULL, _IOLBF, 0);
-	   setvbuf(stderr, (char *)NULL, _IOLBF, 0); */
-	setvbuf(stdout, (char *)NULL, _IONBF, 0);
-	setvbuf(stderr, (char *)NULL, _IONBF, 0);
 
 	if (logfn != NULL) {
 		/* loginit is a signal handler, so can't pass log */
@@ -363,6 +365,8 @@ initialize(configfile, argc, argv)
 	while (argc-- > 0)
 		av[ac++] = *argv++;
 	av[ac] = NULL;
+
+	staticprot(&s_value);
 	zshinit(ac, av);
 
 	/* add builtin router functions to list of builtin shell functions */

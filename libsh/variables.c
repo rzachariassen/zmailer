@@ -157,11 +157,14 @@ v_expand(s, caller, retcode)
 	struct osCmd *caller;		/* caller, for $@ */
 	int retcode;			/* last return code, for $? */
 {
-	register conscell *d, *l, *tmp;
+	conscell *d = NULL, *l = NULL, *tmp = NULL;
 	register int n;
 	register char *cp;
 	char np[CHARSETSIZE+1]; /* each possible option, plus last NUL */
-	
+
+	GCVARS3;
+	GCPRO3(d,l,tmp);
+
 	/*
 	 * We only need to test the first character since the parser
 	 * is supposed to enforce variable name syntax (so to speak).
@@ -169,45 +172,59 @@ v_expand(s, caller, retcode)
 	switch (*s) {
 	case '@':
 	case '*':
-		if (caller == NULL || cdar(caller->argv) == NULL)
+		if (caller == NULL || cdar(caller->argv) == NULL) {
+			UNGCPRO3;
 			return NULL;
+		}
 		d = s_copy_tree(cdar(caller->argv));
 		for (l = d; l != NULL && cdr(l) != NULL ; l = cdr(l)) {
-			tmp = newstring(strnsave(" ", 1));
+			tmp = newstring(dupnstr(" ",1));
 			cdr(tmp) = cdr(l);
 			l = cdr(l) = tmp;
 			if (*s == '@')
 				tmp->flags |= NOQUOTEIFQUOTED;
 		}
 		/* grindef("ARGW = ", ncons(d)); */
+		UNGCPRO3;
 		return d;
 
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-		if (caller == NULL)
+		if (caller == NULL) {
+			UNGCPRO3;
 			return NULL;
-		if ((d = s_nth(caller->argv, atoi(s))) == NULL)
+		}
+		if ((d = s_nth(caller->argv, atoi(s))) == NULL) {
+			UNGCPRO3;
 			return NULL;
+		}
 		d = copycell(d);
 		cdr(d) = NULL;
-		return s_copy_tree(d);
+		/* d = s_copy_tree(d); */ /* XXX: Needed ? */
+		UNGCPRO3;
+		return d;
 
 	case '#':
 		if (*++s == '\0')
 			d = car(caller->argv), n = -1;
-		else if ((d = v_find(s)) == NULL || !LIST(cdr(d)))
+		else if ((d = v_find(s)) == NULL || !LIST(cdr(d))) {
+			UNGCPRO3;
 			return NULL;
-		else
+		} else
 			d = cadr(d), n = 0;
 		while (d != NULL)
 			d = cdr(d), ++n;
 		/* print n into a string */
 		sprintf(np, "%d", n);
-		return newstring(strsave(np));
+		d = newstring(dupstr(np));
+		UNGCPRO3;
+		return d;
 
 	case '$':
 		sprintf(np, "%d", (int)getpid());
-		return newstring(strsave(np));
+		d = newstring(dupstr(np));
+		UNGCPRO3;
+		return d;
 
 	case '?':
 		if (retcode == -123456) {
@@ -217,11 +234,15 @@ v_expand(s, caller, retcode)
 			abort(); /* Bad magic retcode on $? expansion! */
 		}
 		sprintf(np, "%d", retcode);
-		return newstring(strsave(np));
+		d = newstring(dupstr(np));
+		UNGCPRO3;
+		return d;
 
 	case '!':
 		sprintf(np, "%d", lastbgpid);
-		return newstring(strsave(np));
+		d = newstring(dupstr(np));
+		UNGCPRO3;
+		return d;
 
 	case '-':
 		cp = np;
@@ -231,16 +252,21 @@ v_expand(s, caller, retcode)
 		if (cp == np)
 			*cp++ = '-';
 		*cp = '\0';
-		return newstring(strsave(np));
+		d = newstring(dupstr(np));
+		UNGCPRO3;
+		return d;
+
 	default:
 		break;
 	}
 
-	if ((d = v_find(s)) == NULL)
-		return NULL;
-	d = copycell(cdr(d));
-	cdr(d) = 0;
-	return s_copy_tree(d);
+	if ((d = v_find(s)) != NULL) {
+		d = copycell(cdr(d));
+		cdr(d) = NULL;
+	}
+	UNGCPRO3;
+
+	return d;
 }
 
 
@@ -310,12 +336,11 @@ v_setl(variable, value)
 	const char *variable;
 	conscell *value;
 {
-	conscell lhs;
-
-	cdr(&lhs) = NULL;
-	lhs.flags = 1;
-	lhs.cstring = variable;
-	assign(&lhs, value, (struct osCmd *)NULL);
+	conscell *lhs = newstring(dupstr(variable));
+	GCVARS1;
+	GCPRO1(lhs);
+	assign(lhs, value, (struct osCmd *)NULL);
+	UNGCPRO1;
 }
 
 /*
@@ -326,12 +351,13 @@ void
 v_set(variable, value)
 	const char *variable, *value;
 {
-	conscell rhs;
+	conscell *rhs;
+	GCVARS1;
 
-	cdr(&rhs) = NULL;
-	rhs.flags = 1;
-	rhs.cstring = value;
-	v_setl(variable, &rhs);
+	rhs = newstring(dupstr(value));
+	GCPRO1(rhs);
+	v_setl(variable, rhs);
+	UNGCPRO1;
 }
 
 /*
@@ -342,16 +368,22 @@ v_set(variable, value)
 void
 v_envinit()
 {
-	conscell *s, *e, *tmp;
+	conscell *s = NULL, *e = NULL;
 	register char	**cpp, *cp;
 	int gotpath;
 	memtypes oval;
+	GCVARS2;
+
+	GCPRO2(s, e);
 
 	oval = stickymem;
 	stickymem = MEM_MALLOC;
 	envarlist = NIL;
+	staticprot(&envarlist); /* Register this pointer to *all*
+				   variables in use! */
 	gotpath = 0;
 	for (cpp = environ; cpp != NULL && *cpp != NULL; ++cpp) {
+
 		cp = strchr(*cpp, '=');
 		if (cp == NULL)
 			continue;
@@ -360,9 +392,9 @@ v_envinit()
 			++gotpath;
 		else if (strcmp(*cpp, IFS) == 0)
 			continue;	/* don't inherit IFS */
-		s = newstring(strnsave(*cpp, cp - *cpp));
+		s = newstring(dupstr(*cpp));
 		nconc(envarlist, s);
-		s = newstring(strsave(cp));
+		s = newstring(dupstr(cp));
 		nconc(envarlist, s);
 		*--cp = '=';
 	}
@@ -379,12 +411,13 @@ v_envinit()
 	/* ... and put it in the list of pre-defined non-env. variables */
 	s = conststring(ENVIRONMENT);
 	cdr(s) = envarlist;	/* must only use s_push with envarlist now */
-	cdr(s_last(e)) = s;	/* (envcopy ENVIRONMENT (env)) */
-	s = ncons(e);		/* s = (envcopy ENVIRONMENT (env)) */
-	s_push(s, envarlist);/* ((envcopy ENVIRONMENT (env)) (env)) */
+	cdr(s_last(e)) = s;	/* (envcopy ENVIRONMENT (env))		*/
+	s = ncons(e);		/* s = (envcopy ENVIRONMENT (env))	*/
+	s_push(s, envarlist);	/* ((envcopy ENVIRONMENT (env)) (env))	*/
+	s = NULL;
 
-	/* grindef("Environment = ", envarlist); */
 	stickymem = oval;
+	UNGCPRO2;
 }
 
 
@@ -396,7 +429,7 @@ void
 v_export(name)
 	register const char	*name;
 {
-	register conscell *l, *pl, *scope, *value, *tmp;
+	conscell *l, *pl, *scope, *value;
 
 	value = NULL;
 	pl = NULL;
@@ -414,8 +447,8 @@ v_export(name)
 				cddr(l) = NULL;
 				if (value == NULL)
 					value = l;
-				else
-					s_free_tree(l);
+				/* else
+				   s_free_tree(l); */ /* GC work.. */
 			}
 		}
 	}
@@ -432,17 +465,17 @@ v_export(name)
 				cdr(pl) = value;
 			cddr(value) = cddr(l);
 			cddr(l) = NULL;
-			s_free_tree(l);
+			/* s_free_tree(l); */
 			return;
 		}
 	}
 	/* it isn't being exported */
 	if (value == NULL) {
-		memtypes oval = stickymem;
-		stickymem = MEM_MALLOC;
-		value = newstring(strsave(name));
+		GCVARS1;
+		value = newstring(dupstr(name));
+		GCPRO1(value);
 		cdr(value) = conststring("");
-		stickymem = oval;
+		UNGCPRO1;
 	}
 	cddr(value) = car(scope);
 	car(scope) = value;
@@ -468,9 +501,9 @@ v_purge(name)
 					car(scope) = cddr(l);
 				else
 					cdr(pl) = cddr(l);
-				/* free it */
-				cddr(l) = 0;
-				s_free_tree(l);
+                                /* free it ... by dissociating the tail,
+                                   GC does freeup.. */
+                                cddr(l) = NULL;
 				return;
 			}
 		}

@@ -57,7 +57,7 @@ extern int wait();
 
 /* The parent function of whatever is about to be executed, for $@ access */
 
-struct osCmd *globalcaller;
+struct osCmd *globalcaller = NULL;
 
 /* Default file mode for open() (output redirection) */
 
@@ -159,14 +159,19 @@ execute(c, caller, oretcode, name)
 	int nofork;			/* flag: don't fork shell before exec */
 	status_t status;		/* return code from wait() */
 	int n;
-	register conscell *sl, *l;
-	conscell *tmp;
 	RETSIGTYPE (*oquit_handler) __((int)),
 	  (*oint_handler) __((int)),
 	  (*oterm_handler) __((int));
 	RETSIGTYPE (*ochld_handler) __((int));
+	conscell *sl, *l, *tmp;
+
+	GCVARS3;
 
 	status = 0;
+
+	sl = l = tmp = NULL;
+	GCPRO3(sl, l, tmp); /* 'osCmd c' related conscells are caller
+			       protected */
 
 	ochld_handler = SIG_DFL;
 	globalcaller = caller;
@@ -204,20 +209,26 @@ execute(c, caller, oretcode, name)
 				if (STRING(sl))
 					ac++;
 			/* allocate space */
-#ifdef	x_USE_ALLOCA
+			/* This lifetime seems to be longish, too early free
+			   leads to "mysterious" crashes */
+#ifdef USE_ALLOCA
 			av = (const char **)alloca(ac * sizeof (char *));
 #else
-			av = (const char **)tmalloc(ac * sizeof (char *));
+			av = (const char **)malloc(ac * sizeof (char *));
 #endif
 			/* set them up */
 			ac = 0;
 			for (sl = car(c->argv); sl != NULL; sl = cdr(sl)) {
-				if (STRING(sl))
-					av[ac++] = (char *)sl->string;
-				if (!isset('I'))
-					continue;
-				putc(' ', runiofp);
-				s_grind(sl, runiofp);
+			  if (STRING(sl))
+			    av[ac++] = (char *)sl->string;
+			}
+			if (isset('I')) {
+			  for (sl = car(c->argv); sl != NULL; sl = cdr(sl)) {
+			    if (STRING(sl)) {
+			      putc(' ', runiofp);
+			      s_grind(sl, runiofp);
+			    }
+			  }
 			}
 			av[ac] = NULL;
 			if (av[0][0] == 'e' && strcmp(av[0], "exec") == 0) {
@@ -235,8 +246,8 @@ execute(c, caller, oretcode, name)
 		 * There is no command, so the "temporary" environment
 		 * variable settings should be kept.
 		 */
-		if (c->envold != NULL)
-			s_free_tree(c->envold);
+		/* if (c->envold != NULL)
+		   s_free_tree(c->envold); */
 		c->envold = NULL;
 		sfdp = NULL;
 	}
@@ -275,12 +286,12 @@ execute(c, caller, oretcode, name)
 					sl = s_read(stdin);
 			}
 			if (isset('x')) {
-				printf("+ %s ", c->shcmdp->name);
-				s_grind(c->argv, stdout);
-				putchar(' ');
-				s_grind(sl, stdout);
-				putchar('\n');
-				fflush(stdout);
+				fprintf(stderr,"+ %s ", c->shcmdp->name);
+				s_grind(c->argv, stderr);
+				putc(' ', stderr);
+				s_grind(sl, stderr);
+				putc('\n', stderr);
+				fflush(stderr);
 			}
 #ifdef	MAILER
 			if (D_functions) {
@@ -363,11 +374,11 @@ execute(c, caller, oretcode, name)
 			 * Normal argc,argv builtin command
 			 */
 			if (isset('x')) {
-				putchar('+');
+				putc('+',stderr);
 				for (n = 0; n < ac; ++n)
-					printf(" %s", av[n]);
-				putchar('\n');
-				fflush(stdout);
+					fprintf(stderr," %s", av[n]);
+				putc('\n',stderr);
+				fflush(stderr);
 			}
 #ifdef	MAILER
 			if (D_functions) {
@@ -391,11 +402,11 @@ execute(c, caller, oretcode, name)
 		 * Defined function
 		 */
 		if (isset('x')) {
-			putchar('+');
+			putc('+', stderr);
 			for (tmp = car(c->argv); tmp != NULL; tmp = cdr(tmp))
-				putchar(' '), s_grind(tmp, stdout);
-			putchar('\n');
-			fflush(stdout);
+				putc(' ', stderr), s_grind(tmp, stderr);
+			putc('\n', stderr);
+			fflush(stderr);
 		}
 #ifdef	MAILER
 		if (D_functions) {
@@ -429,11 +440,11 @@ execute(c, caller, oretcode, name)
 		 * Unix program (child of shell)
 		 */
 		if (isset('x')) {
-			putchar('+');
+			putc('+', stderr);
 			for (n = 0; n < ac; ++n)
-				printf(" %s", av[n]);
-			putchar('\n');
-			fflush(stdout);
+				fprintf(stderr," %s", av[n]);
+			putc('\n',stderr);
+			fflush(stderr);
 		}
 #ifdef	MAILER
 		if (D_functions) {
@@ -477,7 +488,7 @@ execute(c, caller, oretcode, name)
 		/*
 		 * Go fish
 		 */
-		execvp(av[0], (void**)av);
+		execvp(av[0], (char *const*)av);
 
 		if (!nofork && c->undoio)
 			RUNIO(c->undoio);
@@ -507,6 +518,10 @@ execute(c, caller, oretcode, name)
 		retcode = 0200;
 		fprintf(stderr, "%s: %s\n", progname, CANNOT_FORK);
 	}
+
+#ifndef USE_ALLOCA
+	if (av) free(av);
+#endif
 
 #ifdef	MAILER
 	if (D_functions && retcode != 0 && retcode != NO_RETCODE)
@@ -539,10 +554,11 @@ execute(c, caller, oretcode, name)
 			if (isset('I'))
 				fprintf(runiofp, "revert(%s)\n", sl->string);
 			l = v_find(sl->string);
-			if (ISNEW(cdr(l)))
-				free((char *)cdr(l)->string);
-			else
-				s_free_tree(cadr(l));
+			/* if (ISNEW(cdr(l)))
+			   free((char *)cdr(l)->string);
+			   else
+			   s_free_tree(cadr(l));
+			*/
 			cadr(l) = cadr(sl);
 #ifdef	MAILER
 			if (v_accessed)
@@ -555,13 +571,13 @@ execute(c, caller, oretcode, name)
 	if (c->envold != NULL) {
 		if (isset('I'))
 			grindef("Freeing = ", c->envold);
-		s_free_tree(c->envold);
+		/* s_free_tree(c->envold); */
 		c->envold = NULL;
 	}
 	if (retcode != NO_RETCODE) {
 		if (isset('t'))
 			trapexit(retcode);
-		return retcode;
+		goto out_exit;
 	}
 	if (WSIGNALSTATUS(status) != 0) {
 		if (WSIGNALSTATUS(status) != SIGINT) {
@@ -575,6 +591,8 @@ execute(c, caller, oretcode, name)
 		retcode = WEXITSTATUS(status);
 	if (isset('t'))
 		trapexit(retcode);
+ out_exit:;
+	UNGCPRO3;
 	return retcode;
 }
 
@@ -608,12 +626,14 @@ addbuffer(buf, len, state, command)
 		if (isascii(c) && isspace(c))
 			--ncp;
 		if (ncp > buf) {
-			cp = strnsave(buf, ncp-buf);
+			ncp = dupnstr(buf, ncp-buf);
+			tmp = newstring(ncp);
+
 			if (isset('I') || isset('R'))
-				fprintf(runiofp,
-					"readstring: '%s'\n", cp);
-			*command->bufferp = newstring(cp);
-			command->bufferp = &cdr(*command->bufferp);
+				fprintf(stderr,
+					"readstring: '%s'\n", ncp);
+			*command->bufferp =  tmp;
+			command->bufferp = &cdr(tmp);
 		}
 	}
 	return state;
@@ -632,10 +652,13 @@ readstring(fd, command)
 {
 	int n, state;
 	char buf[BUFSIZ];	/* read this size chunk at a time */
+	GCVARS1;
 
 	state = 0;
+	GCPRO1(command->buffer); /* Should not need ... */
 	while ((n = read(fd, &buf[0], sizeof(buf))) > 0)
 		state = addbuffer(&buf[0], n, state, command);
+	UNGCPRO1;
 }
 
 
@@ -857,7 +880,8 @@ runio(ioopp)
 	struct IOop *ioprev, *ionext, *ioop;
 	int errflag, fd = 0, pid, p[2];
 	struct stat stbuf;
-	struct siobuf *siop;
+	struct siobuf *siop = NULL;
+	GCVARS1;
 
 	/*
 	 * The list of actions is stored in reverse order.  Since each such
@@ -872,6 +896,11 @@ runio(ioopp)
 	}
 	errflag = 0;
 	for (ioop = ioprev, ionext = NULL; ioop != NULL; ioop = ioop->next) {
+
+#ifdef DEBUG
+fprintf(stderr,"runio(@%p) ioop=%p &ioop->command->buffer=%p\n",
+	__builtin_return_address(0), ioop, &ioop->command->buffer);
+#endif
 		switch (ioop->cmd) {
 #ifdef	S_IFIFO
 		case sIOopenPortal:	/* open named pipe */
@@ -912,10 +941,10 @@ runio(ioopp)
 			sb_push(&siofds[ioop->fd], (struct siobuf *)NULL);
 /*std_printf( "PUSH(%d) = %x (%d)\n", ioop->fd, siofds[ioop->fd], __LINE__);*/
 			if (isset('R'))
-				fprintf(runiofp,
-					       "open(%s, %x, %o) = %d\n",
-					       ioop->name, ioop->ioflags,
-					       smask, fd);
+				fprintf(stderr,
+					"open(%s, %x, %o) = %d\n",
+					ioop->name, ioop->ioflags,
+					smask, fd);
 			break;
 		case sIOopenString:
 			/* fork off a process to feed other proc in pipe */
@@ -945,7 +974,7 @@ runio(ioopp)
 			}
 			close(fd);
 			if (isset('R'))
-				fprintf(runiofp,
+				fprintf(stderr,
 					"write(%d, '%.40s', %d)\n",
 					ioop->fd, ioop->name,
 					strlen(ioop->name));
@@ -969,12 +998,14 @@ runio(ioopp)
 			sb_push(&siofds[p[1]], (struct siobuf *)NULL);
 /*std_printf( "PUSH(%d) = %x (%d)\n", p[1], siofds[p[1]], __LINE__);*/
 			if (isset('R'))
-				fprintf(runiofp, "pipe(%d|%d)\n", p[1], p[0]);
+				fprintf(stderr, "pipe(%d|%d)\n", p[1], p[0]);
 			break;
 		case sIOintoBuffer:
+			GCPRO1(ioop->command->buffer);
 			readstring(ioop->fd, ioop->command);
+			UNGCPRO1;
 			if (isset('R'))
-				fprintf(runiofp, "intoBuffer '%s'\n",
+				fprintf(stderr, "intoBuffer '%s'\n",
 					ioop->command->buffer ?
 					ioop->command->buffer->string : "");
 			break;
@@ -987,7 +1018,7 @@ runio(ioopp)
 			sb_push(&siofds[ioop->fd2], siofds[ioop->fd]);
 /*std_printf( "PUSH(%d) = %x %x (%d)\n", ioop->fd2, siofds[ioop->fd2], siofds[ioop->fd], __LINE__);*/
 			if (isset('R'))
-				fprintf(runiofp, "dup2(%d,%d) = %d\n",
+				fprintf(stderr, "dup2(%d,%d) = %d\n",
 					ioop->fd, ioop->fd2, fd);
 			break;
 		case sIOclose:
@@ -996,26 +1027,26 @@ runio(ioopp)
 			if (siofds[ioop->fd])
 				sb_free(ioop->fd)/*, sb_pr()*/;
 			if (isset('R'))
-				fprintf(runiofp, "close(%d) = %d\n",
+				fprintf(stderr, "close(%d) = %d\n",
 						 ioop->fd, fd);
 			break;
 		case sIObufIn:
 			errflag += sb_in(ioop->fd, ioop->fd2);
 			if (isset('R'))
-				fprintf(runiofp, "sb_in(%d,%d) err=%d\n",
+				fprintf(stderr, "sb_in(%d,%d) err=%d\n",
 						 ioop->fd, ioop->fd2, errflag);
 			break;
 		case sIObufOut:
 			/* allocate a string buffer to write to */
 			sb_out(ioop->fd);
 			if (isset('R'))
-				fprintf(runiofp, "sb_out(%d)\n", ioop->fd);
+				fprintf(stderr, "sb_out(%d)\n", ioop->fd);
 			break;
 		case sIObufFree:
 			/* free a string buffer */
 			sb_free(ioop->fd)/*, sb_pr()*/;
 			if (isset('R'))
-				fprintf(runiofp, "sb_free(%d)\n", ioop->fd);
+				fprintf(stderr, "sb_free(%d)\n", ioop->fd);
 			break;
 		case sIObufString:
 			/* move string buffer contents to command->buffer */
@@ -1041,17 +1072,22 @@ runio(ioopp)
 					f.__fileL = ioop->fd % 256;
 					f.__fileH = ioop->fd / 256;
 #else /* Other non-portable.. */
-#ifdef	__linux__ /* and other GNU LIBC systems */
+#ifdef	__GLIBC__ /* and other GNU LIBC systems */
 					f._fileno = ioop->fd;
 #else
 					f._file = ioop->fd;/* XX: nonportable */
 
 #endif
 #endif
+					GCPRO1(ioop->command->buffer);
 					*(ioop->command->bufferp) = s_read(&f);
+					UNGCPRO1;
 					ioop->command->bufferp = &cdr(*ioop->command->bufferp);
-				} else
+				} else {
+					GCPRO1(ioop->command->buffer);
 					addbuffer(siop->sb_base, siop->sb_bufsiz - siop->sb_cnt, 0, ioop->command);
+					UNGCPRO1;
+				}
 			}
 			break;
 		default:

@@ -71,6 +71,7 @@ search_yp(sip)
 			 strlen(sip->key), &valptr, &vallen);
 decode_result:
 	switch (yperr) {
+
 	case 0:
 	  /* trim leaning whitespace */
 	  while (isspace(*valptr) && (vallen > 0)) {
@@ -83,7 +84,8 @@ decode_result:
 	  if (valptr[vallen] == '\n') {
 	    valptr[vallen] = '\0';
 	  }
-	  return newstring((u_char *) strnsave(valptr,vallen));
+	  return newstring(dupnstr(valptr,vallen));
+
 	case YPERR_KEY:
 	  /* occasionally the terminating NULL is included in the key (lose!)
 	     so if we failed for "key not found" then try again with the NULL
@@ -95,9 +97,11 @@ decode_result:
 	  if (yperr != YPERR_KEY)
 	    goto decode_result;
 	  return NULL;
+
 	default:
 	  fprintf(stderr, "search_yp: %s\n", yperr_string(yperr));
 	  return NULL;
+
 	}
 }
 

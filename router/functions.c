@@ -280,7 +280,7 @@ run_hostname(argc, argv)
 	if (argc > 1) {
 		memtypes oval = stickymem;
 		stickymem = MEM_MALLOC;
-		myhostname = strsave(argv[1]);
+		myhostname = strdup(argv[1]);
 		stickymem = oval;
 	} else {
 		/* can't fail... */
@@ -353,7 +353,7 @@ run_erraddrlog(argc, argv)
 
 static conscell *
 run_dblookup(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Inputs gc protected */
 {
 	conscell *l;
 
@@ -369,10 +369,8 @@ run_dblookup(avl, il)
 
 static conscell *
 run_cadr(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Inputs gc protected */
 {
-	conscell *tmp;
-
 	il = cdar(avl);
 	if (il == NULL || STRING(il) || car(il) == NULL)
 		return NULL;
@@ -412,10 +410,8 @@ run_cadr(avl, il)
 
 static conscell *
 run_caddr(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Inputs gc protected */
 {
-	conscell *tmp;
-
 	il = cdar(avl);
 	if (il == NULL || STRING(il) || car(il) == NULL)
 		return NULL;
@@ -470,10 +466,8 @@ run_caddr(avl, il)
 
 static conscell *
 run_cadddr(avl, il)
-	conscell *avl, *il;
+	conscell *avl, *il; /* Inputs gc protected */
 {
-	conscell *tmp;
-
 	il = cdar(avl);
 	if (il == NULL || STRING(il) || car(il) == NULL)
 		return NULL;
@@ -943,7 +937,7 @@ run_daemon(argc, argv)
 			  dirp[i]->dd_size = 0;
 #endif
 #endif
-			  dirs[i] = strsave(pathbuf);
+			  dirs[i] = strdup(pathbuf);
 			  ++i;
 			}
 			if (s)
@@ -1359,8 +1353,9 @@ run_listexpand(avl, il)
 	struct envelope *e;
 	struct address *ap, *aroot = NULL, **atail = &aroot;
 	token822 *t;
-	conscell *al, *alp = NULL, *tmp;
+	conscell *al = NULL, *alp = NULL, *tmp = NULL;
 	conscell *plustail = NULL, *domain = NULL;
+	conscell *l, *lrc;
 	char *localpart, *origaddr, *attributenam;
 	int c, n, errflag, stuff;
 	volatile int cnt;
@@ -1378,6 +1373,7 @@ run_listexpand(avl, il)
 	int okaddresses = 0;
 	int errcount = 0;
 	int linecnt = 0;
+	GCVARS3;
 
 	il = cdar(avl); /* The CDR (next) of the arg list.. */
 
@@ -1636,11 +1632,13 @@ run_listexpand(avl, il)
 	}
 
 	cnt = 0;
-	al = NULL;
+
+	al = l = lrc = NULL;
+	GCPRO3(al, l, lrc);
+
 	for (ap = aroot; ap != NULL; ap = ap->a_next) {
 		int rc;
 		memtypes omem;
-		conscell *l, *lrc;
 		char *s2, *se;
 
 		buf[0] = 0;
@@ -1696,13 +1694,13 @@ run_listexpand(avl, il)
 		   (The last two were added in June-1998)
 		*/
 
-		l         = newstring(strsave(buf));
-		cdr(l)    = newstring(strsave(origaddr));
-		cddr(l)   = newstring(strsave(s));
+		l         = newstring(dupstr(buf));
+		cdr(l)    = newstring(dupstr(origaddr));
+		cddr(l)   = newstring(dupstr(s));
 		if (plustail != NULL) {
-		  cdr(cddr(l))  = conststring(plustail->string);
+		  cdr(cddr(l))  = s_copy_tree(plustail);
 		  if (domain != NULL)
-		    cddr(cddr(l)) = conststring(domain->string);
+		    cddr(cddr(l)) = s_copy_tree(domain);
 		}
 		l = ncons(l);
 
@@ -1725,11 +1723,11 @@ run_listexpand(avl, il)
 #endif
 #if 0 /* XX: This HOLD handling didn't work ?? */
 		if (deferit && (d = v_find(DEFER))) {
-		  s_free_tree(lrc);
+		  /* s_free_tree(lrc); */
 		  lrc = NULL;
 		  l = conststring("hold");
 		  cdr(l)   = copycell(cdr(d));
-		  cddr(l)  = newstring(strsave(buf));
+		  cddr(l)  = newstring(dupstr(buf));
 		  cdddr(l) = car(attributes);
 		  l = ncons(l);
 		  l = ncons(l);
@@ -1739,7 +1737,7 @@ run_listexpand(avl, il)
 		if (rc != 0 || lrc == NULL || !LIST(lrc)) {
 		  /* $(rrouter xx xx xx)  returned something invalid.. */
 #ifdef use_lapply
-		  s_free_tree(lrc);
+		  /* s_free_tree(lrc); */
 #endif
 		  lrc = NULL;
 		  continue;
@@ -1760,12 +1758,13 @@ run_listexpand(avl, il)
 			      progname, ROUTER);
 		      s_grind(lrc, stderr);
 #ifdef use_lapply
-		      s_free_tree(lrc);
+		      /* s_free_tree(lrc); */
 #endif
 		      lrc = NULL;
 		      if (errors_to != olderrors)
 			free(errors_to);
 		      errors_to = olderrors;
+		      UNGCPRO3;
 		      return NULL;
 		    }
 		    l = s_copy_tree(lrc);
@@ -1776,7 +1775,7 @@ run_listexpand(avl, il)
 		  }
 
 #ifdef use_lapply
-		  s_free_tree(lrc);
+		  /* s_free_tree(lrc); */
 #endif
 		  lrc = NULL;
 		}
@@ -1814,10 +1813,11 @@ run_listexpand(avl, il)
 	if (al == NULL) { /* ERROR! NO ADDRESSES! */
 	  al = conststring("error");
 	  cdr(al)  = conststring("expansion");
-	  cddr(al) = newstring(strsave(localpart));
+	  cddr(al) = newstring(dupstr(localpart));
 	  al = ncons(al);
 	  al = ncons(al);
 	}
+	UNGCPRO3;
 
 	if (errors_to != olderrors)
 	  free(errors_to);

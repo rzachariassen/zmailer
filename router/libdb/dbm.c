@@ -84,7 +84,7 @@ search_dbm(sip)
 		close_dbm(sip);
 		return NULL;
 	}
-	tmp = newstring(strnsave(val.dptr, val.dsize));
+	tmp = newstring(dupnstr(val.dptr, val.dsize));
 	close_dbm(sip);
 	return tmp;
 }

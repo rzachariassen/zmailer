@@ -71,7 +71,6 @@ search_ndbm(sip)
 	datum val, key;
 	conscell *tmp;
 	int retry;
-	char *us;
 
 	retry = 0;
 
@@ -100,8 +99,7 @@ reopen:
 #endif
 	  return NULL;
 	}
-	us = strnsave(val.dptr, val.dsize);
-	return newstring(us);
+	return newstring(dupnstr(val.dptr, val.dsize));
 }
 
 /*

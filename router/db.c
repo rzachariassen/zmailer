@@ -164,6 +164,45 @@ extern conscell	*readchunk  __((const char *file, long offset));
 static int	 iclistdbs  __((struct spblk *spl));
 
 
+#define	CACHE(x,f)	((dbip->cache+(x))->f)
+
+static void (*cachemarkupfunc) __((conscell*));
+static int
+iccachemarkup(spl)
+	struct spblk *spl;
+{
+	struct db_info *dbip = (struct db_info *)spl->data;
+	int i;
+	conscell *ll;
+
+	if (dbip == NULL || dbip->cache_size == 0 || dbip->cache == NULL)
+		return 0;
+
+	/* flush cache */
+	for (i = 0; i < dbip->cache_size && CACHE(i,key) != NULL; ++i) {
+		ll = CACHE(i,value);
+		cachemarkupfunc(ll);
+	}
+	return 0;
+}
+
+static void
+cache_gc_markup_iterator(mrkupfunc)
+     void (*mrkupfunc)__((conscell*));
+{
+  cachemarkupfunc = mrkupfunc;
+  sp_scan(iccachemarkup, (struct spblk *)NULL, spt_databases);
+}
+
+static void
+register_cache_gc_markup_iterator __((void))
+{
+  static int done = 0;
+  if (done) return;
+  functionprot(cache_gc_markup_iterator);
+  done = 1;
+}
+
 
 /*
  * Define a new relation according to the command line arguments.
@@ -384,6 +423,7 @@ run_relation(argc, argv)
 	} else
 		dbip->cache = NULL;	/* superfluous, but why not ... */
 	sp_install(symid, dbip, 0, spt_databases);
+	register_cache_gc_markup_iterator();
 	spl = sp_lookup(symbol(DBLOOKUPNAME), spt_builtins);
 	if (spl == NULL) {
 		fprintf(stderr, "%s: '%s' isn't built in\n",
@@ -647,8 +687,6 @@ run_db(argc, argv)
 }
 
 
-#define	CACHE(x,f)	((dbip->cache+(x))->f)
-
 /*
  * This is the basic interface to the database lookup routines.
  * It uses the configuration information for each relation properly,
@@ -668,6 +706,7 @@ db(dbname, key)
 	search_info si;
 	struct cache tce;
 	char kbuf[BUFSIZ];	/* XX: */
+	GCVARS3;
 
 	if (spt_files == NULL)          spt_files          = sp_init();
 	if (spt_files->symbols == NULL) spt_files->symbols = sp_init();
@@ -725,10 +764,12 @@ db(dbname, key)
 					fprintf(stderr,
 						"... expiring %s from cache\n",
 						CACHE(i,key));
-				if ((ll = CACHE(i,value)) != NULL)
-					s_free_tree(ll);
+				/* if ((ll = CACHE(i,value)) != NULL)
+				   s_free_tree(ll); */
+				CACHE(i,value) = NULL;
 				if (CACHE(i,key) != NULL) /* always true */
 					free((char *)CACHE(i,key));
+				CACHE(i,key) = NULL;
 				continue;
 			}
 			if (i > j) { /* expiry */
@@ -768,7 +809,8 @@ db(dbname, key)
 				if (D_db)
 					fprintf(stderr, "... found in cache\n");
 				/* return a scratch value */
-				return s_copy_tree(dbip->cache->value);
+				tmp = s_copy_tree(dbip->cache->value);
+				return tmp;
 			}
 			++j;
 		}
@@ -777,9 +819,12 @@ db(dbname, key)
 		oval = stickymem;	/* cannot return before this is reset */
 		stickymem = MEM_MALLOC;	/* this is reset down below */
 		/* key gets clobbered somewhere, so save it here */
-		realkey = strsave(key);
+		realkey = strdup(key);
 	}
-	l = NULL;
+
+	l = ll = tmp = NULL;
+	GCPRO3(l, ll, tmp);
+
 	if ((dbip->driver == NULL &&
 	     (l = (*dbip->lookup)(&si)) != NULL) ||
 	    (dbip->driver != NULL &&
@@ -787,17 +832,17 @@ db(dbname, key)
 
 		switch (dbip->postproc) {
 		case Boolean:
-			if (stickymem == MEM_MALLOC)
-				s_free_tree(l);
-			l = newstring(strsave(key));
+			/* if (stickymem == MEM_MALLOC)
+			   s_free_tree(l); */
+			l = newstring(dupstr(key));
 			break;
 		case NonNull:
 			if (STRING(l) && *(l->string) == '\0') {
-				if (stickymem == MEM_MALLOC)
-					s_free_tree(l);
-				l = newstring(strsave(key));
+				/* if (stickymem == MEM_MALLOC)
+				   s_free_tree(l); */
+				l = newstring(dupstr(key));
 			} else if (LIST(l) && car(l) == NULL) {
-				car(l) = newstring(strsave(key));
+				car(l) = newstring(dupstr(key));
 			}
 			break;
 		case Indirect:
@@ -806,14 +851,14 @@ db(dbname, key)
 			 * the file named by the subtype.  Used for aliases.
 			 */
 			if (LIST(l) || !isdigit(*(l->string))) {
-				if (stickymem == MEM_MALLOC)
-					s_free_tree(l);
+				/* if (stickymem == MEM_MALLOC)
+				   s_free_tree(l); */
 				l = NULL;
 				break;
 			}
 			i = atoi(l->string);	/* file offset */
-			if (stickymem == MEM_MALLOC)
-				s_free_tree(l);
+			/* if (stickymem == MEM_MALLOC)
+			   s_free_tree(l); */
 			l = readchunk(dbip->subtype, (long)i);
 			break;
 		case Pathalias:
@@ -830,12 +875,13 @@ db(dbname, key)
 	} else if (dbip->postproc == NonNull) {
 		if (D_db)
 			fprintf(stderr, "%s(%s) = %s\n", dbname, key, key);
-		l = newstring(strsave(key));
+		l = newstring(dupstr(key));
 	} else {
 		if (dbip->cache_size > 0) {
 			stickymem = oval;
 			free(realkey);
 		}
+		UNGCPRO3;
 		return NULL;
 	}
 	if (!deferit && dbip->cache_size > 0) {
@@ -846,8 +892,8 @@ db(dbname, key)
 			if (D_db)
 				fprintf(stderr, "... freeing cache[%d]: %s\n",
 						i, CACHE(i,key));
-			if ((ll = CACHE(i,value)) != NULL)
-				s_free_tree(ll);
+			/* if ((ll = CACHE(i,value)) != NULL)
+			   s_free_tree(ll); */
 			free((char *)CACHE(i,key));
 		} else if (i < dbip->cache_size - 1) {
 			if (D_db)
@@ -878,10 +924,11 @@ db(dbname, key)
 		stickymem = oval;
 		ll = s_copy_tree(l);	/* scratch version returned to shell */
 		free(realkey);
-		s_free_tree(l);
+		/* s_free_tree(l); */
 	} else
 		ll = l;
 
+	UNGCPRO3;
 	return ll;
 }
 
@@ -918,13 +965,14 @@ cacheflush(dbip)
 	/* flush cache */
 	for (i = 0; i < dbip->cache_size && CACHE(i,key) != NULL; ++i) {
 		ll = CACHE(i,value);
-		if (ll != NULL)
-			s_free_tree(ll);
+		/* if (ll != NULL)
+		   s_free_tree(ll); */
 		if (CACHE(i,key) != NULL) /* always true */
-			free((char *)CACHE(i,key));
+		  free((char *)CACHE(i,key));
 	}
-	dbip->cache->key = NULL;	/* ensure terminator */
+	CACHE(0,key) = NULL;	/* ensure terminator */
 }
+
 
 #ifdef	MALLOC_TRACE
 

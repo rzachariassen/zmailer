@@ -64,12 +64,18 @@ static conscell	*find_errto __((conscell *list));
 conscell *
 makequad()
 {
-	conscell *l, *tmp;
+	conscell *l;
+	GCVARS1;
+
+	l = NULL;
+	GCPRO1(l);
 
 	l = conststring(NULL);
 	cdr(l) = conststring(NULL);
 	cddr(l) = conststring(NULL);
 	cdr(cddr(l)) = conststring(NULL);
+
+	UNGCPRO1;
 	return l;
 }
 
@@ -95,11 +101,12 @@ run_rfc822(argc, argv)
 	int argc;
 	const char *argv[];
 {
-	struct envelope *e;
+	struct envelope *e; /* TWO GC PROTECTABLE ITEMS! */
 	const char *file;
 	char buf[8196];   /* FILE* buffer, will be released at fclose() */
 	int status, errflg;
 	memtypes oval;
+	GCVARS2;
 
 	errflg = 0;
 #if 0
@@ -131,6 +138,9 @@ run_rfc822(argc, argv)
 	stickymem = MEM_TEMP;	/* per-message space */
 
 	e = (struct envelope *)tmalloc(sizeof (struct envelope));
+	/* XXX: If this tmalloc() fails, we crash! */
+	memset(e, 0, sizeof(*e)); /* Lots of pointers, etc here! */
+	GCPRO2(e->e_from_trusted, e->e_from_resolved);
 	qate = e;
 
 	if ((e->e_fp = fopen(file, "r")) == NULL) {
@@ -205,6 +215,7 @@ run_rfc822(argc, argv)
 #ifdef	XMEM
 	mal_contents(stdout);
 #endif	/* XMEM */
+	UNGCPRO2;
 	return status;
 }
 
@@ -810,7 +821,11 @@ mkSender(e, name, flag)
 	conscell *l;
 	int didbracket;
 	struct spblk *spl;
-	
+	GCVARS1;
+
+	l = NULL;
+	GCPRO1(l);
+
 	sh = (struct header *)tmalloc(sizeof (struct header));
 	sh->h_pname = e->e_resent ? "Resent-From" : "From";
 	sh->h_descriptor = senderDesc();
@@ -920,6 +935,7 @@ mkSender(e, name, flag)
 	sh->h_contents = hdr_scanparse(e, sh, 0, 0);
 #endif
 	/* X: optimize: save this in a hashtable somewhere */
+	UNGCPRO1;
 	return sh;
 }
 
@@ -1072,7 +1088,7 @@ thesender(e, a)
 	struct envelope *e;
 	struct address *a;
 {
-	conscell *l;
+	conscell *l; /* Var life ends after return.. no GC protection */
 
 	l = router(a, e->e_statbuf.st_uid, "sender");
 	if (l == NULL)
@@ -1095,6 +1111,31 @@ thesender(e, a)
 	return CISTREQ(QUSER(e->e_from_resolved),uidpwnam(e->e_statbuf.st_uid));
 }
 
+extern conscell *rwmappend __((conscell *, conscell *, conscell *));
+conscell *rwmappend(rwmroot,info,errtop)
+     conscell *rwmroot, *info, *errtop;
+{
+  conscell *p = NULL;
+  GCVARS4;
+
+  GCPRO4(p, rwmroot, info, errtop);
+
+  if (info) {
+    p = ncons(info);
+    cdr(p) = rwmroot;
+    rwmroot = p;
+  }
+  if (errtop) {
+    p = ncons(info);
+    cdr(p) = rwmroot;
+    rwmroot = p;
+  }
+
+  UNGCPRO4;
+  return rwmroot;
+}
+
+
 
 /*
  * The sequencer takes care of doing the right things with the right headers
@@ -1113,6 +1154,7 @@ sequencer(e, file)
 	struct addr    *p = NULL;
 	char	       *ofpname, *path, *qpath;
 	conscell       *l, *routed_addresses, *sender, *to;
+	conscell       *rwmchain;
 	struct rwmatrix *rwhead, *nsp, *rwp = NULL, *rcp = NULL;
 	token822   *t = NULL;
 	int   idnumber, nxor, i;
@@ -1126,6 +1168,7 @@ sequencer(e, file)
 	const char     *fromaddr = "?from?";
 	const char     *msgidstr = "?msgid?";
 	const char     *smtprelay = NULL;
+	GCVARS5;
 
 	deferuid = 0;
 
@@ -1434,6 +1477,8 @@ sequencer(e, file)
 			}
 			if (h == NULL)
 				abort(); /* Failed to make sender header */
+
+			/* This conscell lifetime is limited.. */
 			l = router(h->h_contents.a,
 				   e->e_statbuf.st_uid, "sender");
 			if (l == NULL) {
@@ -1694,7 +1739,8 @@ sequencer(e, file)
 	incoming-rewriting rules for the originating channel.
 #endif
 	dprintf("Route recipient addresses\n");
-	routed_addresses = NULL;
+	rwmchain = l = routed_addresses = sender = to = NULL;
+	GCPRO5(l, routed_addresses, sender, to, rwmchain);
 
 	if (errors_to) free(errors_to);
 	errors_to = NULL;
@@ -1730,24 +1776,24 @@ sequencer(e, file)
 				continue;
 
 			if (routed_addresses == NULL) {
-				conscell *tmp;
 				routed_addresses = ncons(car(l));
 			} else {
 				cdr(s_last(car(l))) = car(routed_addresses);
 				car(routed_addresses) = car(l);
 			}
 			/* freecell(l) */
+			l = NULL;
 		}
-		if (deferuid)
-			return PERR_DEFERRED;
+		if (deferuid) {
+		  UNGCPRO5;
+		  return PERR_DEFERRED;
+		}
 	}
 
 	dprintf("Crossbar to be applied to all (sender,routed-address) pairs\n");
 
-	{
-	  conscell *tmp;
-	  sender = ncons(e->e_from_trusted);
-	}
+	sender = ncons(e->e_from_trusted);
+
 #if 0
 	if (LIST(sender) && LIST(car(sender)))
 		sender = caar(sender);
@@ -1755,6 +1801,7 @@ sequencer(e, file)
 
 	if (routed_addresses == NULL)	/* they were probably all deferred */ {
 		printf("No routed addresses -> deferred\n");
+		UNGCPRO5;
 		return PERR_DEFERRED;
 	}
 
@@ -1764,7 +1811,8 @@ sequencer(e, file)
 		++idnumber, nxor = 0;
 		for (to = car(l); to != NULL; to = cdr(to)) {
 			conscell *x, *tmp, *errto, *gg;
-			conscell *sender1;
+			conscell *sender1, *z;
+			GCVARS6;
 
 			/* secondlevel is XORs */
 #if 0
@@ -1777,7 +1825,11 @@ sequencer(e, file)
 #endif
 
 			if ((x = crossbar(sender, to)) == NULL)
-				continue;
+			  continue;
+
+			errto = gg = sender1 = tmp = z = NULL;
+			GCPRO6(x, errto, gg, sender1, tmp, z);
+
 
 			if (D_sequencer) {
 			  printf("crossbar returns: ");
@@ -1796,11 +1848,14 @@ sequencer(e, file)
 
 			/* Rewriter level: */
 			for (rwp = rwhead; rwp != NULL; rwp = rwp->next)
-				if (s_equal(rwp->info, tmp))
-					break;
+			  if (s_equal(rwp->info, tmp)) {
+			    break;
+			  }
 			if (rwp == NULL) {
 				rwp = rwalloc(&rwhead);
 				rwp->info  = tmp;	/* rewritings */
+				rwp->errto = NULL;
+				rwmchain = rwmappend(rwmchain,tmp,NULL);
 			}
 			/* else the 'tmp' leaks for a moment ? */
 			
@@ -1816,6 +1871,7 @@ sequencer(e, file)
 				nsp = rwalloc(&rwp->down);
 				nsp->info  = sender1;	/* new sender */
 				nsp->errto = errto;
+				rwmchain = rwmappend(rwmchain,sender1,errto);
 			}
 #if 0
 			else {
@@ -1831,6 +1887,7 @@ sequencer(e, file)
 			rcp->info = tmp;		/* new recipient */
 			rcp->urw.number = idnumber;
 			rcp->errto = errto;
+			rwmchain = rwmappend(rwmchain,tmp,errto);
 #if 0
 			for (rwp = rwhead; rwp != NULL; rwp = rwp->next) {
 				printf("**");
@@ -1853,6 +1910,7 @@ sequencer(e, file)
 				}
 			}
 #endif
+			UNGCPRO6;
 		}
 		if (nxor <= 1) {
 			--idnumber;
@@ -1861,8 +1919,10 @@ sequencer(e, file)
 		}
 	}
 
-	if (deferuid)
-		return PERR_DEFERRED;
+	if (deferuid) {
+	  UNGCPRO5;
+	  return PERR_DEFERRED;
+	}
 
 	isSenderAddr = isRecpntAddr = 0;
 	dprintf("Make sure Date, From, To, are in the header\n");
@@ -1886,11 +1946,15 @@ sequencer(e, file)
 		*hp = NULL;
 	}
  
-	if (deferuid)
+	if (deferuid) {
+	  UNGCPRO5;
 	  return PERR_DEFERRED;
+	}
 
-	if (rwhead == NULL)
+	if (rwhead == NULL) {
+	  UNGCPRO5;
 	  return PERR_NORECIPIENTS;
+	}
 
 	dprintf("Emit specification to the transport system\n");
 #ifdef	USE_ALLOCA
@@ -1905,6 +1969,7 @@ sequencer(e, file)
 		free(ofpname);
 #endif
 		printf("Creation of control file failed\n");
+		UNGCPRO5;
 		return PERR_CTRLFILE;
 	}
 	setvbuf(ofp, vbuf, _IOFBF, sizeof vbuf);
@@ -2082,6 +2147,7 @@ sequencer(e, file)
 			fprintf(ofp, "%c%c", _CF_SENDER, _CFTAG_NORMAL);
 			fromaddr = prctladdr(nsp->info, ofp, _CF_SENDER, "sender");
 			if (!fromaddr) {
+			  UNGCPRO5;
 			  goto bad_addrdata;
 			}
 			
@@ -2109,6 +2175,7 @@ sequencer(e, file)
 					fprintf(ofp, "%d ", rcp->urw.number);
 				if (! prctladdr(rcp->info, ofp,
 						_CF_RECIPIENT, "recipient")) {
+				  UNGCPRO5;
 				  goto bad_addrdata;
 				}
 				
@@ -2168,6 +2235,8 @@ sequencer(e, file)
 		if (vfp != NULL)
 			putc('\n', vfp);
 	}
+
+	UNGCPRO5;
 
 	if (vfp != NULL) {
 		fprintf(vfp, "router done processing %s\n", file);
@@ -2252,7 +2321,7 @@ sequencer(e, file)
 
 static const char *
 prctladdr(info, fp, cfflag, comment)
-	conscell *info;
+	conscell *info; /* No conscell allocs down here */
 	FILE *fp;
 	int cfflag;
 	const char *comment;
@@ -2344,7 +2413,7 @@ prdsndata(info, fp, cfflag, comment)
 	const char *comment;
 {
 	int i = 0;
-	register conscell *l, *x = NULL;
+	register conscell *l, *x = NULL; /* No allocs down here */
 
 	for (l = car(info); l != NULL; l = cdr(l)) {
 	  ++i;
@@ -2372,7 +2441,7 @@ prdsndata(info, fp, cfflag, comment)
 
 static conscell *
 find_errto(info)
-conscell *info;
+     conscell *info;	/* No allocs under here */
 {
 	register conscell *x = NULL;
 

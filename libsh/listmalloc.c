@@ -10,7 +10,9 @@
 #include "hostenv.h"
 #include "listutils.h"
 
+#ifdef CELLDEBUG
 #define DEBUG
+#endif
 
 #ifndef __GNUC__x
 #define __inline__ /* nothing for non-GCC */
@@ -81,7 +83,7 @@ void (*funcaddress) __((conscell *));
 int consblock_cellcount = 1000;	/* Optimizable for different systems.
 				   Alphas have 8kB pages, and most others
 				   have 4kB pages.. */
-int newcell_gc_interval = 0 /*1000*/;	/* Number of newcell() calls before GC */
+int newcell_gc_interval = 1000;	/* Number of newcell() calls before GC */
 int newcell_gc_callcount = 0;	/* ... trigger-count of those calls ... */
 int newcell_callcount = 0;	/* ... cumulative count of those calls ... */
 
@@ -288,7 +290,7 @@ int depth;
 	   layers in the CAR branch (a sign of error
 	   in fact if there are!), but CDR can be long. */
 
-	conscell *current = source;
+	conscell *current = (conscell*)source;
 	volatile int cdrcnt = 0; /* These volatilities are for
 				    debugging uses to forbid gcc
 				    from removing the variable
@@ -664,7 +666,7 @@ conscell *copycell(conscell *X)
   conscell *tmp = newcell();
   *tmp = *X;
   if (STRING(tmp)) {
-    car(tmp) = dupstr(car(tmp));
+    tmp->string = dupstr(tmp->string);
     tmp->flags = NEWSTRING;
   }
   return tmp;
@@ -674,11 +676,9 @@ conscell *copycell(conscell *X)
 /* nconc(list, list) -> old (,@list ,@list) */
 conscell *nconc(conscell *X, conscell *Y)
 {
-  if (car(X))
-    cdr(s_last(car(X))) = Y;
-  else
-    car(X) = Y;
-  return X;
+  return ((car(X) != NULL) ?
+	  cdr(s_last(car(X))) = Y :
+	  (car(X) = Y, X));
 }
 #endif
 #ifndef ncons

@@ -23,6 +23,7 @@ typedef struct ldapmap_struct {
 	int  scope;
 	char *filter;
 	char *attr;
+	int  wildcards;
 } LDAPMAP;
 
 extern int deferit;
@@ -64,6 +65,7 @@ open_ldap(sip, caller)
 
 		lmap->ldaphost = NULL;
 		lmap->ldapport = LDAP_PORT;
+		lmap->wildcards = 0;
 		lmap->base = NULL;
 		lmap->binddn = NULL;
 		lmap->passwd = NULL;
@@ -135,6 +137,13 @@ open_ldap(sip, caller)
 				else if (strncasecmp(p, "sub", 3) == 0)
        	                         	lmap->scope = LDAP_SCOPE_SUBTREE;
 			}
+			else if (strncasecmp(p, "wildcards", 9) == 0) {
+				p += 9;
+				while (isascii(*++p) && isspace(*p))
+					continue;
+				if (strncasecmp(p, "true", 4) == 0)
+					lmap->wildcards = 1;
+			}
 		}
 		fclose(fp);
 	}
@@ -155,8 +164,13 @@ search_ldap(sip)
 	char filter[LDAP_FILT_MAXSIZ + 1];
 	char **vals = NULL;
 	char *attrs[] = {NULL, NULL};
+	char *filterstring = NULL;
+	int starcount = 0;
+	int filterlength = 0;
+	int counter = 0;
+	int filterpos = 0;
 
-	conscell *tmp;
+	conscell *tmp = NULL;
 	u_char *us = NULL;
 
 	lmap = open_ldap(sip, "search_ldap");
@@ -174,7 +188,41 @@ search_ldap(sip)
 		goto ldap_exit;
 	}
 
-	sprintf(filter, lmap->filter, (char *)sip->key);
+	filterstring = (char *)sip->key;
+
+	if (!lmap->wildcards) {
+		filterlength = strlen(filterstring);
+
+		for (counter = 0; counter < filterlength; counter++) {
+			if (filterstring[counter] == '*') {
+				starcount++;
+			}
+		}
+
+		if (starcount) {
+			filterstring = malloc(filterlength + 2*starcount + 1);
+			filterpos = 0;
+			counter = 0;
+			for (; counter < filterlength; ) {
+				if (((char *)sip->key)[counter] == '*')  {
+					filterstring[filterpos++] = '\\';
+					filterstring[filterpos++] = '2';
+					filterstring[filterpos++] = 'a';
+				} else {
+					filterstring[filterpos++] = ((char *)sip->key)[counter];
+				}
+				counter++;
+			}
+			filterstring[filterpos] = 0;
+		}
+	}
+
+	sprintf(filter, lmap->filter, filterstring);
+
+	if (!lmap->wildcards && starcount) {
+		free(filterstring);
+	}
+
 	attrs[0] = lmap->attr;
 	if (ldap_search_s(ld, lmap->base, lmap->scope, filter,
 			  attrs, 0, &msg) != LDAP_SUCCESS) {
@@ -192,7 +240,7 @@ search_ldap(sip)
 	vals = ldap_get_values(ld, entry, lmap->attr);
 	if (vals != NULL)
 		/* if there is more that one, use the first */
-		us = (u_char *)strsave(vals[0]);
+		tmp = newstring(dupstr(vals[0]));
 
 ldap_exit:
 	if (vals != NULL)
@@ -202,7 +250,7 @@ ldap_exit:
 	if (ld != NULL)
 		ldap_unbind_s(ld);
 
-	return (us) ? newstring(us) : NULL;
+	return tmp;
 }
 
 void

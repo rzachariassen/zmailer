@@ -67,7 +67,6 @@ search_core(sip)
 {
 	struct sptree *db;
 	struct spblk *spl;
-	conscell *tmp;
 	spkey_t spk;
 
 	db = open_core(sip);
@@ -80,8 +79,8 @@ search_core(sip)
 	if (spl == NULL)
 		return NULL;
 	if (spl->data == NULL)
-		return newstring(strnsave("", 1));
-	return newstring(strsave((const char *)spl->data));
+		return conststring("");
+	return newstring(dupstr((const char *)spl->data));
 }
 
 /*
@@ -161,19 +160,15 @@ add_core(sip, value)
 	struct sptree *db;
 	struct spblk *spl;
 	spkey_t spk;
-	memtypes oval;
 
 	db = open_core(sip);
 	if (db == NULL)
 		return EOF;
 
-	oval = stickymem;
-	stickymem = MEM_MALLOC;
 	if (value == NULL || *value == '\0')
 		value = NULL;
 	else
-		value = strsave(value);
-	stickymem = oval;
+		value = strdup(value);
 
 	spk = symbol_db(sip->key, db->symbols);
 	spl = sp_lookup(spk, db);

@@ -207,6 +207,18 @@ STATIC char *regprop __((const char *));
 char *progp;
 #endif
 
+void
+free_tregexp (prog)
+	tregexp *prog;
+{
+	if (prog != NULL) {
+		if (prog->pattern)
+			free((void*)(prog->pattern));
+		free(prog);
+	}
+}
+
+
 /*
  - tregcomp - compile a regular expression into internal code
  *
@@ -254,7 +266,11 @@ const char *exp;
 /* printf("tregexp %x: %s\n", prog, exp); */
 	if (prog == NULL)
 		FAIL("out of space");
-	prog->pattern = exp;
+	prog->pattern = strdup(exp);
+	if (!prog->pattern) {
+		free((char*)prog);
+		FAIL("out of space");
+	}
 	regprog = prog;
 
 	/* Second pass: emit code. */

@@ -108,9 +108,7 @@ search_bhash(sip)
 {
 	DB *db;
 	DBT val, key;
-	conscell *tmp;
 	int retry, rc;
-	char *us;
 
 	retry = 0;
 reopen:
@@ -129,8 +127,7 @@ reopen:
 		}
 		return NULL;
 	}
-	us = strnsave(val.data, val.size);
-	return newstring(us);
+	return newstring(dupnstr(val.data, val.size));
 }
 
 

@@ -41,7 +41,6 @@ search_bin(sip)
 	register char *s;
 	off_t	top, bot;
 	int	i, retry;
-	conscell *tmp;
 	struct spblk *spl;
 	struct file_map *fm;
 #ifdef	HAVE_MMAP
@@ -143,7 +142,7 @@ search_bin(sip)
 	      if (!isascii(c) || isspace(c))
 		break;
 	    }
-	    return newstring(strnsave(cp, (u_int)(s - cp)));
+	    return newstring(dupnstr(cp, s - cp));
 	  }
 	  if (i < 0)
 	    top = mid - 1;
@@ -198,7 +197,7 @@ search_bin(sip)
 	      if (!isascii(c) || isspace(c))
 		break;
 	    }
-	    return newstring(strnsave(cp, s - cp));
+	    return newstring(dupnstr(cp, (u_int)(s - cp)));
 	  } else
 	    bot = mid;
 	}
@@ -231,7 +230,7 @@ search_bin(sip)
 	      if (!isascii(c) || isspace(c))
 		break;
 	    }
-	    return newstring(strnsave(cp, s - cp));
+	    return newstring(dupnstr(cp, (u_int)(s - cp)));
 	  }
 	}
 #endif

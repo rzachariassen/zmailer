@@ -26,6 +26,7 @@ extern void      s_free_tree __((conscell *));
 extern conscell *s_copy_tree __((conscell *));
 #endif	/* MALLOC_TRACE */
 
+#if 0 /* Not needed for GCed cells */
 /*
  * Free a linked structure that may have been allocated by s_copy_tree().
  */
@@ -63,6 +64,7 @@ s_free_tree(list)
 			return;
 	}
 }
+#endif
 
 /*
  * Return a list where all the components (recursively) are allocated
@@ -79,30 +81,29 @@ __s_copy_tree(list,filename,linename)
 }
 
 conscell *
-s_copy_tree(list)
-	register conscell *list;
+_s_copy_tree(list)
+	conscell *list;  /* input list is gc-protected */
 {
-	conscell *new, *foo, *tmp;
+	conscell *new = NULL, *foo = NULL;
+	GCVARS3;
 
 	if (list == NULL)
 		return NULL;
-	new = NULL;
+
+	GCPRO3(list, new, foo);
+
 	if (STRING(list)) {
 		/* malloc new string and conscell to store it in */
 		new = copycell(list);
+		new->flags = (list->flags & ~CONSTSTRING) | NEWSTRING;
 		cdr(new) = NULL;
-		new->flags = NEWSTRING;
-		if (list->string != NULL)
-		  new->string = strsave(list->string);
-		else
-		  new->string = NULL;
 
-	} else if ((foo = s_copy_tree(car(list))) != NULL) {
+	} else if ((foo = _s_copy_tree(car(list))) != NULL) {
 		/* malloc new conscell to store foo in car of */
 		new = copycell(list);
 		car(new) = foo;
 	}
-	if ((foo = s_copy_tree(cdr(list))) != NULL) {
+	if ((foo = _s_copy_tree(cdr(list))) != NULL) {
 		/* malloc new conscell to store foo in cdr of */
 		if (new == NULL) new = copycell(list);
 		cdr(new) = foo;
@@ -111,5 +112,18 @@ s_copy_tree(list)
 		/* malloc new conscell as a copy of this one */
 		new = copycell(list);
 	}
+	UNGCPRO3;
 	return new;
+}
+
+conscell *
+s_copy_tree(list)
+	conscell *list;  /* input list is gc-protected */
+{
+	list = _s_copy_tree(list);
+#ifdef CELLDEBUG
+    fprintf(stderr," s_copy_tree() returns %p to caller at %p\n", list,
+	    __builtin_return_address(0));
+#endif
+	return list;
 }

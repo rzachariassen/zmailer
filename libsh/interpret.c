@@ -38,6 +38,11 @@ extern int v_record, v_changed;
 int magic_number = 3;	/* check id for precompiled script files */
 long bin_magic   = 1;	/* Another check-id -- exec file  st_ctime ? */
 
+#if 0
+#undef STATIC
+#define STATIC /**/
+#endif
+
 STATIC int pipefd;		/* read side fd of a pipe, or -1 */
 
 STATIC struct osCmd *ib_command[20];	/* max # nested $() in stack */
@@ -84,7 +89,7 @@ freeio(fioop, mark)
 			fds[fd] = (fioop->cmd != sIOclose);
 
 			if (isset('R'))
-				fprintf(runiofp,
+				fprintf(stderr,
 					"fds[%d] = %d\n",
 					fd, (fioop->cmd != sIOclose));
 		}
@@ -144,6 +149,8 @@ dequote (str)
 	return (s0);
 }
 
+extern void free_tregexp __((tregexp *prog));
+
 STATIC void free_regexp __((regexp *prog));
 STATIC void
 free_regexp (prog)
@@ -151,6 +158,7 @@ free_regexp (prog)
 {
 	if (prog != NULL) {
 		regfree(&prog->re);
+		free((void*)(prog->pattern));
 		free(prog);
 	}
 }
@@ -183,11 +191,12 @@ reg_comp (str)
 	}
 	memset((void*)prog, 0, sizeof(regexp));
 
-	prog->pattern = str;
+	prog->pattern = strdup(str);
 
-	reg_stat = re_compile_pattern(str, strlen(str), &prog->re);
+	reg_stat = re_compile_pattern(prog->pattern, strlen(str), &prog->re);
 	if (reg_stat != NULL) {
 		fprintf(stderr, "%s: regexp %s: %s\n", progname,str,reg_stat);
+		free((void*)(prog->pattern));
 		free(prog);
 		return (NULL);
 	}
@@ -431,7 +440,7 @@ insertio(ioopp, command, name, cmd, ioflags, fd, fd2, opflags)
 	register struct IOop *iotmp;
 
 	if (isset('R'))
-		fprintf(runiofp,
+		fprintf(stderr,
 			"insertio(%x): %s %d %d\n", ioopp, ename(cmd), fd, fd2);
 	if (opflags)
 		iotmp = (struct IOop *)emalloc(sizeof (struct IOop));
@@ -478,7 +487,7 @@ appendio(ioopp, command, name, cmd, ioflags, fd, fd2)
 	register struct IOop *iotmp;
 
 	if (isset('R'))
-		fprintf(runiofp,
+		fprintf(stderr,
 			"appendio(%x): %s %d %d\n", ioopp, ename(cmd), fd, fd2);
 	iotmp = *ioopp;
 	if (iotmp != NULL) {
@@ -511,7 +520,7 @@ ioop(cmd, command, name, ioflags, defaultfd, arg1)
 	int	tofd, savefd, intobufflag;
 
 	if (isset('R'))
-		fprintf(runiofp, "ioop(%x): %s\n", command, ename(cmd));
+		fprintf(stderr, "ioop(%x): %s\n", command, ename(cmd));
 	intobufflag = 0;
 	tofd = defaultfd;
 	if (cmd == sIOdup) {
@@ -614,7 +623,7 @@ ioop(cmd, command, name, ioflags, defaultfd, arg1)
 		 */
 	}
 	if (isset('R'))
-		fprintf(runiofp, "end(%x)\n", command);
+		fprintf(stderr, "end(%x)\n", command);
 }
 
 /*
@@ -629,10 +638,12 @@ runcommand(c, pc, retcodep, cmdname)
 	const char *cmdname;
 {
 	int ioflags;
+	GCVARS1;
 
+	GCPRO1(c->argv);
 	if (c->argv) {	/* from tconc into list */
-		c->argv = car(c->argv);
-		cdr(c->argv) = 0;
+		c->argv = copycell(car(c->argv));
+		cdr(c->argv) = NULL;
 	}
 	c->buffer = NULL;
 	c->bufferp = &(c->buffer);
@@ -724,6 +735,7 @@ runcommand(c, pc, retcodep, cmdname)
 		freeio(c->undoio, 1);
 	if (c->execio)
 		freeio(c->execio, 0);
+	UNGCPRO1;
 }
 
 /*
@@ -741,13 +753,12 @@ assign(sl_lhs, sl_rhs, command)
 	conscell *sl_lhs, *sl_rhs;
 	struct osCmd *command;
 {
-	register conscell *s, *l, *tmp;
+	conscell *s = NULL, *l = NULL;
 	const char *varname;
-	int freerhs = 0, sl_rhs_set;
-	memtypes oval;
+	GCVARS4;
 
-	oval = stickymem;
-	stickymem = MEM_MALLOC;
+	GCPRO4(s, l, sl_lhs, sl_rhs);
+
 	/*
 	 * Add (lhs oldvalue) to a list "envold" kept in the command.
 	 * Variable values are really (potentially) lists.
@@ -755,116 +766,58 @@ assign(sl_lhs, sl_rhs, command)
 	varname = sl_lhs->string;
 	s = v_find(varname);
 
+	l = copycell(sl_rhs); /* Copy it just in case.. */
+	/* that was: s_copy_tree(), but we don't need THAT! */
+	if (l)
+	  sl_rhs = l;
+
 	if (s == NULL) {
 
 	  /* We don't know this variable, we create it */
 
-	  /* Following copy code was common, but separate locations
-	     are a lot easier to debug with DEC ATOM-tools */
-	  l = s_copy_tree(sl_rhs);
-	  if (l != NULL) {
-	    sl_rhs = l;
-	    sl_rhs_set = 1;
-	  } else
-	    sl_rhs_set = 0;
-
 	  /* create the variable in the global but non-exported scope */
 	  for (l = car(envarlist); cddr(l) != NULL; l = cdr(l))
-	    continue;
+	    continue; /* Scan scopes, stop at next to last */
+
 	  /* l points at the next-to-last sublist of envarlist */
 	  if (isset('a'))
 	    l = cdr(l);	/* or the list of exports */
-	  if (sl_rhs_set && cdr(sl_rhs) != NULL) {
-	    s_free_tree(cdr(sl_rhs));
-	    sl_rhs_set = 0;
-	  }
-	  cdr(sl_rhs) = car(l);
-	  s = newstring(strsave(varname));
-#ifdef CONSCELL_PREV
-	  s_set_prev(s, sl_rhs);
-#endif
-	  cdr(s) = sl_rhs;
-#ifdef CONSCELL_PREV
-	  sl_rhs->pflags = 1;	/* cdr(sl_rhs->prev) == sl_rhs */
-#endif
-	  car(l) = s;
-	  l = NIL;
-	  freerhs = 0;
+
+	  cdr(sl_rhs) = car(l);		/* the scope-list follows this value */
+	  s = newstring(dupstr(varname)); /* Variable name here */
+	  cdr(s) = sl_rhs;		/* .. value follows varname */
+	  car(l) = s;			/* .. and anchor varname into scope */
+	  l = NIL; /* A NIL-cell for old value.. */
 
 	} else {
 
 	  /* The variable exists, we replace the data content */
 
-	  /* Following copy code was common, but separate locations
-	     are a lot easier to debug with DEC ATOM-tools */
-	  l = s_copy_tree(sl_rhs);
-	  if (l != NULL) {
-	    sl_rhs = l;
-	    sl_rhs_set = 1;
-	  } else
-	    sl_rhs_set = 0;
 
-#if 1
-	  l = copycell(cdr(s));
-	  cdr(l) = NULL;
+	  cdr(sl_rhs) = cddr(s);	/* Glue the chain:
+					   s -> new_value -> old_tail */
+	  l = cdr(s);			/* Old value cell   */
+	  cdr(l) = NULL;		/* ... disconnected */
 
-	  if (command == NULL) {
-	    /* We have no place to save the old content, thus
-	       we throw it now away. */
-	    if (LIST(cdr(s)))
-	      s_free_tree(cadr(s));
-	    else
-	      free(cdr(s)->string);
-	  }
+	  cdr(s) = sl_rhs;		/* ... and place the new value in */
 
-	  cdr(s)->flags = sl_rhs->flags;
-	  if (LIST(sl_rhs)) {
-	    cadr(s) = car(sl_rhs);
-#ifdef CONSCELL_PREV
-	    s_set_prev(cdr(s), cadr(s));
-#endif
-	    s_free_tree(cdr(sl_rhs));
-	  } else
-	    cdr(s)->string = sl_rhs->string;
-	  freerhs = 1;
-	  /* since s isn't changing, we don't need to set cdr(s)->prev */
-#else
-	  l = cdr(s);
-	  tmp = cdr(l);
-	  cdr(l) = NULL;
-#ifdef CONSCELL_PREV
-	  s_set_prev(s, sl_rhs);
-#endif
-	  cdr(s) = sl_rhs;
-#ifdef CONSCELL_PREV
-	  sl_rhs->pflags = 1;	/* cdr(sl_rhs->prev) == sl_rhs */
-#endif
-	  if (sl_rhs_set && cdr(sl_rhs) != NULL) {
-	    s_free_tree(cdr(sl_rhs));
-	    sl_rhs_set = 0;
-	  }
-	  cdr(sl_rhs) = tmp;
-	  freerhs = 0;
-#endif
 #ifdef	MAILER
 	  if (v_accessed)
 	    v_written(s);
 #endif	/* MAILER */
-	  if (isset('a'))
+
+	  if (isset('a'))		/* if "auto-export" set */
 	    v_export(varname);	/* ick! */
+
 	}
 	/* stash old value */
 	if (command != NULL) {
-	  cdr(l) = command->envold;
-	  command->envold = l;
-	  s = conststring(varname);
-	  cdr(s) = command->envold;
-	  command->envold = s;
-	} else {
-	  free(l); /* No location to save this -- not  s_free_tree() ?  */
+	  cdr(l) = command->envold; command->envold = l;
+	  s = newstring(dupstr(varname));
+	  cdr(s) = command->envold; command->envold = s;
 	}
+	UNGCPRO4;
 
-	stickymem = oval;
 	/* fvcache.namesymbol = 0; */
 	v_sync(varname);
 
@@ -873,6 +826,7 @@ assign(sl_lhs, sl_rhs, command)
 	  s_grind(sl_rhs, runiofp);
 	  putc('\n', runiofp);
 	}
+
 #ifdef	MAILER
 	if (D_assign) {
 	  fprintf(stderr, "%*s%s=", 4*funclevel, " ", varname);
@@ -880,8 +834,7 @@ assign(sl_lhs, sl_rhs, command)
 	  fputc('\n', stderr);
 	}
 #endif	/* MAILER */
-	if (freerhs)
-	  free(sl_rhs); /* Not s_free_tree() ! */
+
 }
 
 /*
@@ -944,7 +897,7 @@ xundefun(spl)
 	      idx = sfdp->tabledesc->trearray_idx;
 	      trep = trepstart;
 	      while (trep - trepstart < idx && *trep != NULL)
-		free((void *)*trep++);
+		free_tregexp(*trep++);
 	      free((void *)sfdp->tabledesc->trearray);
 	    }
 #endif	/* MAILER */
@@ -1048,7 +1001,7 @@ coalesce(command)
 	command->buffer->flags |= QUOTEDSTRING;	/* so result will be too */
 	if (cdr(command->buffer) != NULL)
 	  /* this is only done for LARGE intoBuffer outputs */
-	  *(command->buffer) = *s_catstring(command->buffer);
+	  command->buffer = s_catstring(command->buffer);
 	command->bufferp = &cdr(command->buffer);
 }
 
@@ -1248,7 +1201,6 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 	struct codedesc *cdp;
 {
 	register const char *code = Vcode, *eocode = Veocode, *entry = Ventry;
-	register conscell *d, *tmp;
 	register const char  *pc;
 	register OutputTokens cmd;
 	register struct osCmd *command;
@@ -1261,20 +1213,26 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 	int	defaultfd, quote, quoted, nloop, ignore_level;
 #define LOOPMAXDEPTH 30
 	struct loopinfo loop[LOOPMAXDEPTH];	/* max # nested loops */
-	conscell *variable, *l, *margin;
-	struct osCmd *prevcommand;
-	struct osCmd *pcommand;
+	conscell *variable = NULL, *l = NULL, *margin = NULL;
+	conscell *d = NULL, *tmp = NULL;
+	struct osCmd *prevcommand = NULL;
+	struct osCmd *pcommand    = NULL;
 #define COMMANDMAXDEPTH 30
 	struct osCmd commandStack[COMMANDMAXDEPTH];
 #define VARMAXDEPTH 30
-	conscell *varStack[VARMAXDEPTH];
-	conscell *varmeter, *vmeterStack[VARMAXDEPTH];
+#if 0
+	conscell *varStack[VARMAXDEPTH], *vmeterStack[VARMAXDEPTH];
+#endif
+	conscell *varmeter = NULL;
+	conscell *varmchain = NULL;
 #ifdef	MAILER
 	struct siftinfo sift[30];
 	int nsift = -1;
 	regexp   *re = NULL;
 	tregexp *tre = NULL;
 #endif	/* MAILER */
+	GCVARS6;
+
 
 #ifdef	MAILER
 	++funclevel;
@@ -1305,7 +1263,7 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 	command->buffer = NULL;
 	command->bufferp = &command->buffer;
 	command->flag = 0;
-	command->rval = NULL;
+	command->rval = command->argv = command->envold = NULL;
 	variableIndex = -1;
 	variable = NULL;
 	ioflags = 0;
@@ -1317,7 +1275,6 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 	fds[0] = fds[1] = fds[2] = 1;   /* XX: this isn't recursive, eh?? */
 	if (entry == NULL)
 		pipefd = -1;
-	prevcommand = NULL;
 	margin = car(envarlist);/* so we can be sure to pop scopes on exit */
 #define	MAGIC_LARGE_IGNORE_LEVEL	123435	/* >> any valid ignore level */
 	ignore_level = MAGIC_LARGE_IGNORE_LEVEL;
@@ -1334,7 +1291,8 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 	d = NULL;
 	argi1 = 0;
 
-  
+  	GCPRO6(varmchain, variable, l, margin, d, tmp);
+
 	/* Initialize syntax for regular expressions */
 	(void) re_set_syntax(RE_CONTEXT_INDEP_ANCHORS |
 			     RE_CONTEXT_INDEP_OPS |
@@ -1343,10 +1301,18 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 			     RE_NO_BK_VBAR |
 			     RE_DOT_NOT_NULL);
 
+#ifdef DEBUGxx
+	fprintf(stderr,"%s:%d &command->buffer=%p\n",__FILE__,__LINE__,
+		&command->buffer);
+#endif
+	GCPRO4STORE(command->,
+		    command->argv, command->rval,
+		    command->envold, command->buffer);
+
 	/* funcall tracing could be done here */
 	/* if (caller != NULL) grindef("ARGV = ", caller->argv); */
 	if (isset('R'))
-		fds[FILENO(runiofp)] = 1;
+		fds[FILENO(stderr)] = 1;
 	for (pc = (entry == NULL ? code : entry) ; pc < eocode; ++pc) {
 		if (sprung) {
 			trapped();
@@ -1379,6 +1345,7 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 			argi1 |= (*++pc) & 0xFF;
 			break;
 		}
+
 		switch (cmd) {
 		case sBufferSetFromArgV:
 			dollar = 1;
@@ -1388,7 +1355,7 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 			/* FALL THROUGH */
 		case sBufferSet:
 			/* The buffer points at a linked list of strings */
-			command->buffer = 0;
+			command->buffer  = NULL;
 			command->bufferp = &command->buffer;
 			/* FALL THROUGH */
 		case sBufferAppend:
@@ -1403,13 +1370,18 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 						ignore_level = commandIndex;
 					}
 					d = conststring(uBLANK);
+				} else {
+					d = s_copy_tree(d);
 				}
 				if (!quote && STRING(d) && *(d->string) == '\0')
 					break;
 			} else if (*arg1 != '\0' || quote)
-				d = conststring(arg1);
+				d = newstring(dupstr(arg1));
 			else
 				break;	/* it is a null string! */
+#ifdef DEBUGxx
+fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffer);
+#endif
 			*command->bufferp = d;
 			for (tmp = d; cdr(tmp) != NULL; tmp = cdr(tmp))
 				continue;
@@ -1442,6 +1414,8 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 					ignore_level = commandIndex;
 				}
 				d = conststring(uBLANK);
+			} else {
+				d = s_copy_tree(d);
 			}
 			command->buffer = d;
 			while (d != NULL) {
@@ -1511,9 +1485,9 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 				     sIObufFree, 0, 0, 0);
 						else
 #endif
-						    INSERTIO(&command->undoio,
-							 command,
-							 sIObufFree, 0, 0, 0);
+						  INSERTIO(&command->undoio,
+							   command,
+							   sIObufFree,0,0,0);
 					}
 					/*
 					 * ... else we're connecting two
@@ -1539,6 +1513,7 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 			}
 			if (command->argv == NULL) {
 				command->argv = newcell();
+GCPLABPRINTis(command->gcpro4);
 				command->argv->flags = 0;
 #ifdef CONSCELL_PREV
 				command->argv->pflags = 0;
@@ -1595,10 +1570,15 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 				grindef("Variable = ", variable);
 			break;
 		case sVariablePush:
-
+#if 0
 			if (variableIndex >= 0) {
 				varStack   [variableIndex] = variable;
 				vmeterStack[variableIndex] = varmeter;
+			}
+#endif
+			if (variableIndex >= 0) {
+			  tmp = ncons(varmeter);  cdr(tmp) = varmchain; varmchain = tmp;
+			  tmp = ncons(variable);  cdr(tmp) = varmchain; varmchain = tmp;
 			}
 
 			++variableIndex;
@@ -1615,18 +1595,34 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 				variable = expand(command->buffer);
 				variable = ncons(variable);
 			}
+
 			varmeter = NULL;
 			if (isset('I'))
 				grindef("Variable = ", variable);
 			break;
 		case sVariablePop:
 			--variableIndex;
+#if 0
+			if (varmchain)
+			   varmchain = cddr(varmchain);
 			if (variableIndex >= 0) {
 				variable = varStack   [variableIndex];
 				varmeter = vmeterStack[variableIndex];
 				if (isset('I'))
 					grindef("Variable = ", variable);
 			}
+#else
+			if (varmchain) {
+				variable = car(varmchain);
+				varmeter = cadr(varmchain);
+				varmchain = cddr(varmchain);
+				if (isset('I'))
+					grindef("Variable = ", variable);
+			}
+#endif
+			else
+			  variable = varmeter = NULL;
+
 			break;
 		case sVariableBuffer:
 			if (variable != NULL) {
@@ -1686,9 +1682,17 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 				  progname, COMMANDMAXDEPTH);
 			  abort(); /* commandStack[] recursed too deep! */
 			}
-			command->buffer = NULL;
+			memset(command, 0, sizeof(*command));
+			/* command->argv = command->envold =
+			   command->rval = command->buffer = NULL; */
 			command->bufferp = &command->buffer;
-			command->argv = command->envold = NULL;
+#ifdef DEBUGxx
+fprintf(stderr,"%s:%d &command->buffer=%p\n",__FILE__,__LINE__,
+	&command->buffer);
+#endif
+			GCPRO4STORE(command->,
+				    command->argv, command->rval,
+				    command->envold, command->buffer);
 			command->doio = command->undoio = command->execio = 0;
 			command->iocmd = ioNil;
 			command->fdmask = 0;
@@ -1803,6 +1807,11 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 					}
 					/* this is done after getout, below */
 					/*setlevel(MEM_SHCMD, pcommand->memlevel);*/
+#ifdef DEBUGxx
+	fprintf(stderr,"%s:%d &command->buffer=%p\n",__FILE__,__LINE__,
+		&command->buffer);
+#endif
+					UNGCPROSTORE4( pcommand-> );
 					--commandIndex;
 				}
 				while (variableIndex > loop[nloop].varindex) {
@@ -1812,15 +1821,31 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 					}
 					if (--variableIndex < 0)
 					  break;
+#if 0
+					if (varmchain)
+					   varmchain = cddr(varmchain);
 					variable = varStack   [variableIndex];
 					varmeter = vmeterStack[variableIndex];
+#else
+					if (varmchain) {
+					  variable = car(varmchain);
+					  varmeter = cadr(varmchain);
+					  varmchain = cddr(varmchain);
+					} else
+					  variable = varmeter = NULL;
+#endif
 				}
+				if (isset('I'))
+					grindef("Variable = ", variable);
+
 				if (*command->shcmdp->name == 'b'
 				    && variableIndex >= 0
 				    && varmeter != NULL) {
 					car(varmeter) = NULL;
 					varmeter->flags = 0;
 					variableIndex--;
+					if (varmchain)
+					  varmchain = cddr(varmchain);
 				}
 				if (*command->shcmdp->name == 'r') { /* ``r''eturn */
 #if 0
@@ -1837,9 +1862,15 @@ interpret(Vcode, Veocode, Ventry, caller, retcodep, cdp)
 			}
 nobreak:
 			if (command->prev != NULL
-			    || (command->flag & OSCMD_SKIPIT))
+			    || (command->flag & OSCMD_SKIPIT)) {
+			  UNGCPROSTORE4( commandStack[commandIndex]. );
 				--commandIndex;
+			}
+			UNGCPROSTORE4( commandStack[commandIndex]. );
 			--commandIndex;
+#ifdef DEBUGxx
+fprintf(stderr,"%s:%d commandIndex=%d\n",__FILE__,__LINE__,commandIndex);
+#endif
 			/*
 			 * If we are returning data, we shouldn't free dtpr
 			 * or do a setlevel(), since the value may be used in
@@ -1858,17 +1889,24 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				pcommand = &commandStack[commandIndex];
 				while (command->argv != NULL
 					&& pcommand->flag & OSCMD_SKIPIT) {
-					pcommand =
-						&commandStack[--commandIndex];
+				  UNGCPROSTORE4( commandStack[commandIndex]. );
+				  pcommand = &commandStack[--commandIndex];
 				}
+#ifdef DEBUGxx
+	fprintf(stderr,"%s:%d &pcommand->buffer=%p\n",__FILE__,__LINE__,
+		&pcommand->buffer);
+#endif
 				pcommand->rval = command->rval;
 				if (command->buffer != NULL) {
+				  GCVARS2;
+				  GCPRO2(pcommand->buffer, command->buffer);
 					if (command->flag & OSCMD_QUOTEOUTPUT)
 						coalesce(command);
 					else
 						flushwhite(command);
 					*(pcommand->bufferp) = command->buffer;
 					pcommand->bufferp = command->bufferp;
+				  UNGCPRO2;
 				}
 				command = pcommand;
 				if (isset('I'))
@@ -1921,6 +1959,10 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				quote = 0;
 			}
 			ib_command[++ibt] = command;
+			if (ibt > 20) {
+			  fprintf(stderr,"interpret.c: Eccessive nested IOintoBuffer operations; over 20 of them in recursion!\n");
+			  abort();
+			}
 			break;
 		case sIOsetIn:
 			defaultfd = 0;
@@ -1950,25 +1992,20 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 						name = (const char *)d->string;
 				} else
 					name = "";
-				stickytmp = stickymem;
-				stickymem = MEM_MALLOC;
 				if (d != NULL && LIST(d)) {
 				  cdr(d) = NULL;
 				  d = s_copy_tree(d);
-#ifdef CONSCELL_PREV
-				  s_set_prev(d, car(d));
-#endif
 				} else
-				  d = newstring(strsave(name));
+				  d = newstring(dupstr(name));
 				/* create the variable in the current scope */
 				l = car(envarlist);
 				cdr(d) = car(l);
 				if (*arg1)
-				  car(l) = conststring(arg1);
+				  car(l) = newstring(dupstr(arg1));
 				else
 				  car(l) = conststring(uBLANK);
 				cdar(l) = d;
-				stickymem = stickytmp;
+
 				/* grindef("ARGV = ", caller->argv);
 				   grindef("VARS = ", envarlist);
 				   grindef("TMPO = ", l);  */
@@ -2008,9 +2045,9 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 		case sFunction:
 			if (isset('I'))
 				fprintf(runiofp,
-					"defining '%s', entry@ %d, exit@ %d\n",
+					"defining '%s', entry@ %d, exit@ %d cdp@ %p\n",
 					command->buffer->string,
-					pc + 1 - code, argi1);
+					pc + 1 - code, argi1, cdp);
 			defun(cdp, command->buffer->string, pc+1,
 			      code + argi1);
 			/* FALL THROUGH */
@@ -2068,6 +2105,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			} else if (car(variable)->string == NULL)
 				break;
 			globchars['|'] = 1;
+			iname = NULL; name = NULL;
 			switch (squish(command->buffer,(char**)&name,&iname)) {
 			case -1:
 				if (STRING(command->buffer)
@@ -2094,6 +2132,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 				} while (iname[i++] != 0);
 				break;
 			}
+			if (iname) free(iname);
 			globchars['|'] = 0;
 			break;
 		case sJumpIfFindVarNil:
@@ -2180,7 +2219,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			stickytmp = stickymem;
 			stickymem = MEM_MALLOC;
 			d = NIL;
-			tmp = conststring(arg1);
+			tmp = newstring(dupstr(arg1));
 #ifdef CONSCELL_PREV
 			s_set_prev(tmp, d);
 #endif
@@ -2203,7 +2242,7 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			d = car(envarlist);
 			car(envarlist) = cdar(envarlist);
 			cdr(d) = NULL;
-			s_free_tree(d);
+			/*s_free_tree(d);*/
 			/* fvcache.namesymbol = 0; */
 			break;
 		case sDollarExpand:
@@ -2358,7 +2397,7 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			    setsubexps(&sift[nsift].subexps, re);
 			  arg1 = regsub(re, atoi(arg1));
 			  if (arg1 != NULL) {
-			    tmp = conststring(arg1);
+			    tmp = newstring(dupstr(arg1));
 			    tmp->flags |= QUOTEDSTRING;
 			    /* cdr(tmp) = command->buffer; */
 			    *command->bufferp = tmp;
@@ -2374,7 +2413,7 @@ std_printf("set %x at %d\n", re, cdp->rearray_idx);
 			    tsetsubexps(&sift[nsift].subexps, tre);
 			  arg1 = (const char *)tregsub(tre, atoi(arg1));
 			  if (arg1 != NULL) {
-			    tmp = conststring(arg1);
+			    tmp = newstring(dupstr(arg1));
 			    tmp->flags |= QUOTEDSTRING;
 			    /* cdr(tmp) = command->buffer; */
 			    *command->bufferp = tmp;
@@ -2511,7 +2550,7 @@ std_printf("set %x at %d\n", tre, cdp->trearray_idx);
 			else
 				tsetsubexps(&sift[nsift].subexps, tre);
 			if ((arg1 = tregsub(tre,atoi(arg1))) != NULL) {
-				tmp = conststring(arg1);
+				tmp = newstring(dupstr(arg1));
 				tmp->flags |= QUOTEDSTRING;
 				/* cdr(tmp) = command->buffer; */
 				*command->bufferp = tmp;
@@ -2551,8 +2590,20 @@ getout:
 			car(varmeter) = NULL;
 			varmeter->flags = 0;
 		}
+#if 0
 		variable = varStack   [variableIndex];
 		varmeter = vmeterStack[variableIndex];
+		varmchain = cddr(varmchain);
+#else
+		if (varmchain) {
+		  variable = car(varmchain);
+		  varmeter = cadr(varmchain);
+		  varmchain = cddr(varmchain);
+		} else
+		  variable = varmeter = NULL;
+		if (isset('I'))
+		  grindef("Variable = ", variable);
+#endif
 		--variableIndex;
 	}
 	while (nsift >= 0) {
@@ -2577,6 +2628,9 @@ getout:
 		if (command->rval == NULL || caller == NULL)
 		  setlevel(MEM_SHCMD, pcommand->memlevel);
 
+		/* Can do without UNGCPROSTORE here, as we do
+		   a larger scope UNGCPRO below.. */
+		UNGCPROSTORE4( commandStack[commandIndex]. );
 		--commandIndex;
 	}
 
@@ -2591,17 +2645,8 @@ getout:
 	 * malloc'ing stuff unnecessarily.  For example we usually just
 	 * want to access the return value in the context of the caller.
 	 */
-	if (command->rval != NULL) {
-		if (caller != NULL) {
-			/*
-			 * XXXX: note: there is no guarantee of non-overlap.
-			 * This is done on a wing and a prayer...
-			 */
-			stickytmp = stickymem;
-			stickymem = MEM_TEMP;
-			caller->rval = s_copy_tree(command->rval);
-			stickymem = stickytmp;
-		}
+	if (command->rval != NULL && caller != NULL) {
+		caller->rval = command->rval;
 	}
 #endif
 #else /* defined: RETVAL_FREEUP */
@@ -2646,12 +2691,16 @@ getout:
 		d = car(envarlist);
 		car(envarlist) = cdr(d);
 		cdr(d) = NULL;
-		s_free_tree(d);
+		/*s_free_tree(d);*/
 	}
 	stickymem = origstickymem;
 #ifdef	MAILER
 	--funclevel;
 #endif	/* MAILER */
+
+	commandIndex = 0; /* Should be already, in fact.. */
+	UNGCPROSTORE4( commandStack[commandIndex]. );
+
 	if (cdp->functions == NULL) {
 		if (cdp->rearray != NULL) {
 			while (cdp->rearray_idx >= 0)
@@ -2665,10 +2714,13 @@ getout:
 		}
 		free((void *)cdp->table);
 		free((void *)cdp);
+		UNGCPRO6;
 		return NULL;
 	}
 	cdp->oktofree = 1;
-	
+
+	UNGCPRO6;
+
 	return cdp;
 }
 
@@ -2713,25 +2765,47 @@ lapply(fname, l)
 	conscell *l;
 {
 	int retcode = -123456;
-	memtypes oval;
 	struct sslfuncdef *sfdp;
 	struct spblk *spl;
 	struct osCmd avc;
 	conscell *ll, *tmp;
+	GCVARS4;
+
+#ifdef DEBUG
+	if (D_functions) {
+	  fprintf(stderr, "%*slapply('%s', (", 4*funclevel, " ", fname);
+	  ll = l;
+	  while (ll) {
+	    fprintf(stderr,"'");
+	    s_grind(ll, stderr);
+	    ll = cdr(ll);
+	    if (ll)
+	      fprintf(stderr,"', ");
+	    else
+	      fprintf(stderr,"'");
+	  }
+	  fprintf(stderr, "))\n");
+	  fflush(stderr);
+	}
+#endif
 
 	spl = sp_lookup(symbol(fname), spt_funclist);
 	if (spl == NULL) {
 		spl = sp_lookup(symbol(fname), spt_builtins);
 		if (spl == NULL)
 			return -1;
+		/* Non conscell input parameters to the target
+		   function, no conscell creates while calling it. */
 		return fapply((struct shCmd *)spl->data, l);
 	}
 	sfdp = (struct sslfuncdef *)spl->data;
 	if (sfdp == NULL)
 		return -1;
 	avc = avcmd;
+	ll = tmp = NULL;
+	GCPRO4(ll, l, avc.argv, avc.rval);
 	if (l != NULL) {
-		ll = conststring(fname);
+		ll = newstring(dupstr(fname));
 		cdr(ll) = car(l);
 		car(l) = ll;
 		avc.argv = l;
@@ -2740,17 +2814,9 @@ lapply(fname, l)
 	interpret(sfdp->tabledesc->table,
 		  sfdp->eot, sfdp->pos,
 		  &avc, &retcode, sfdp->tabledesc);
+	UNGCPRO4;
 	if (return_valuep != NULL) {
-		if (*return_valuep != NULL)
-			s_free_tree(*return_valuep);
-		if (avc.rval == NULL)
-			*return_valuep = NULL;
-		else {
-			oval = stickymem;
-			stickymem = MEM_MALLOC;
-			*return_valuep = s_copy_tree(avc.rval);
-			stickymem = oval;
-		}
+		*return_valuep = avc.rval;
 	}
 	avc.rval = NULL;
 	return retcode;
@@ -2761,11 +2827,17 @@ apply(argc, argv)
 	int argc;
 	const char *argv[];
 {
-	return lapply(argv[0],
-		      argc > 1
-			   ? s_listify(argc-1, &argv[1])
+	conscell *args = NULL;
+	int rc;
+	GCVARS1;
+
 	/* if argc == 0, don't change avc.argv even if there are arguments */
-			   : (conscell *)NULL);
+	if (argc > 1)
+	  args = s_listify(argc-1, &argv[1]);
+	GCPRO1(args);
+	rc = lapply(argv[0], args);
+	UNGCPRO1;
+	return rc;
 }
 
 

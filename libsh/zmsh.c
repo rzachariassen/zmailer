@@ -38,7 +38,7 @@ int saweof;
 FILE *runiofp = NULL;
 conscell *commandline = NULL;	/* argument to -c option */
 const char *progname;
-struct osCmd avcmd;
+struct osCmd avcmd = { 0, };
 
 char shfl[CHARSETSIZE/NBBY];
 
@@ -105,7 +105,7 @@ zshinit(argc, argv)
 	int c, errflag, io, uid, loadit;
 	register struct shCmd *shcmdp;
 	memtypes oval;
-	
+
 	runiofp = stdout;
 
 	oval = stickymem;
@@ -262,19 +262,30 @@ zshinit(argc, argv)
 		SIGNAL_HANDLE(SIGINT, trap_handler);
 	}
 
+	avcmd.argv = NULL;
+
+	staticprot(& avcmd.argv);  /* LispGC */
+	staticprot(& commandline); /* LispGC */
+	staticprot(& envarlist);   /* LispGC */
+
 	avcmd.argv = s_listify(argc-optind, &argv[optind]);
+
 	if (isset('s')) {
-		conscell *d, *tmp;
+		conscell *d = NULL;
+		GCVARS1;
+		GCPRO1(d);
 		d = conststring(progname);
 		s_push(d, avcmd.argv);
+		UNGCPRO1;
 	}
 
 	v_envinit();
 	v_set(PS2, DEFAULT_PS2);
-	if (uid == 0)
+	if (uid == 0) {
 		v_set(PS1, DEFAULT_ROOT_PS1);
-	else
+	} else {
 		v_set(PS1, DEFAULT_PS1);
+	}
 	path_flush();
 	mail_flush();
 	mail_intvl();
@@ -296,7 +307,8 @@ zshfree()
 {
 	sp_scan(xundefun, (struct spblk *)NULL, spt_funclist);
 	sp_null(spt_funclist);
-	s_free_tree(envarlist);
+	/* s_free_tree(envarlist); */
+	envarlist = NULL;
 }
 
 /* return no. of characters left to read from *cpp */
