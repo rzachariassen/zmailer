@@ -8,7 +8,7 @@ AOPT=""
 SOPT=""
 TOPT=""
 err=0
-while true; do
+while /bin/true; do
   case "x$1" in
   x-l)
     LUOPT="-l"
