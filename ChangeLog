@@ -1,3 +1,16 @@
+2000-05-25  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* transports/smtp/smtptls.c:
+	    Proper network timeout monitored non-blocking wrapper
+	    for SSL_connect()  code.
+
+	* transports/smtp/smtp.h, transports/smtp/smtp.c:
+	    Reworked diagnostics codes a bit to collect only relevant
+	    SMTP transaction bits per each recipient.
+	    (Although still not *quite* correct for problems diagnosed
+	     at DATA/dot time, which need all recipients, not just the
+	     last one...)
+
 2000-05-24  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* proto/newdb.in:

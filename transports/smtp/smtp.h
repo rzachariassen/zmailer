@@ -349,14 +349,14 @@ typedef struct {
 
   int rcptcnt;			/* PIPELINING variables */
   int rcptstates;
-#define RCPTSTATE_OK  0x01 /* At least one OK   state   */
-#define RCPTSTATE_400 0x02 /* At least one TEMP failure */
-#define RCPTSTATE_500 0x04 /* At least one PERM failure */
-#define FROMSTATE_400 0x08 /* MAIL FROM --> 4XX code */
-#define FROMSTATE_500 0x10 /* MAIL FROM --> 5XX code */
-#define DATASTATE_OK  0x20 /* DATA/BDAT --> 2/3XX code */
-#define DATASTATE_400 0x40 /* DATA/BDAT --> 4XX code */
-#define DATASTATE_500 0x80 /* DATA/BDAT --> 5XX code */
+#define RCPTSTATE_OK   0x01  /* At least one OK   state   */
+#define RCPTSTATE_400  0x02  /* At least one TEMP failure */
+#define RCPTSTATE_500  0x04  /* At least one PERM failure */
+#define FROMSTATE_400  0x08  /* MAIL FROM --> 4XX code */
+#define FROMSTATE_500  0x10  /* MAIL FROM --> 5XX code */
+#define DATASTATE_OK   0x20  /* DATA/BDAT --> 2/3XX code */
+#define DATASTATE_400  0x40  /* DATA/BDAT --> 4XX code */
+#define DATASTATE_500  0x80  /* DATA/BDAT --> 5XX code */
   int state;
   int alarmcnt;
   int column;
@@ -367,6 +367,13 @@ typedef struct {
   int   chunksize, chunkspace;
 
   char remotemsg[2*ZBUFSIZ];
+  char *remotemsgs[3];
+
+  int  cmdstate, prevcmdstate;
+#define SMTPSTATE_MAILFROM 0
+#define SMTPSTATE_RCPTTO   1
+#define SMTPSTATE_DATA     2
+
   char remotehost[MAXHOSTNAMELEN+1];
   char *mailfrommsg;
   char ipaddress[200];

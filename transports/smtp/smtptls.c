@@ -37,18 +37,18 @@ static unsigned char peername_md5[MD5_DIGEST_LENGTH];
 extern int demand_TLS_mode;
 extern int tls_available;
 
-int	tls_peer_verified = 0;
+int	tls_peer_verified  = 0;
 int	tls_use_read_ahead = 1;
 
-char   *tls_CAfile = NULL;
-char   *tls_CApath = NULL;
+char   *tls_CAfile    = NULL;
+char   *tls_CApath    = NULL;
 char   *tls_cert_file = NULL;
 char   *tls_key_file  = NULL;
 
-char   *tls_protocol = NULL;
-const char   *tls_cipher_name = NULL;
-int	tls_cipher_usebits = 0;
-int	tls_cipher_algbits = 0;
+const char *tls_protocol    = NULL;
+const char *tls_cipher_name = NULL;
+int	tls_cipher_usebits  = 0;
+int	tls_cipher_algbits  = 0;
 
 int	tls_loglevel = 0;
 
@@ -795,11 +795,6 @@ int     tls_start_clienttls(SS,peername)
 
     vlog = SS->verboselog;
 
-    /* FIXME: For some reason NON-BLOCKING socket causes client
-       to fail to init! OTOH..  we are single-threaded anyway! */
-    fd_blockingmode(sffileno(SS->smtpfp));
-    alarm(60); /* Allow 60 seconds for the handshake to complete! */
-
     if (!tls_available) {		/* should never happen */
 	msg_info(SS, "tls_engine not running");
 	alarm(0);
@@ -887,21 +882,101 @@ int     tls_start_clienttls(SS,peername)
      * everything that might be there. A session has to be removed anyway,
      * because RFC2246 requires it. 
      */
-    if ((sts = SSL_connect(SS->ssl)) <= 0) {
-	msg_info(SS, "SSL_connect error %d", sts);
-	tls_print_errors();
-	session = SSL_get_session(SS->ssl);
-	if (session) {
+    for (;;) {
+	int sslerr, rc, i;
+	BIO *wbio, *rbio;
+	fd_set rdset, wrset;
+	struct timeval tv;
+
+    ssl_connect_retry:;
+
+	wbio = SSL_get_wbio(SS->ssl);
+	rbio = SSL_get_rbio(SS->ssl);
+
+	sts = SSL_connect(SS->ssl);
+	sslerr = SSL_get_error(SS->ssl, sts);
+
+	switch (sslerr) {
+
+	case SSL_ERROR_WANT_READ:
+	    SS->wantreadwrite = -1;
+	    sslerr = EAGAIN;
+	    break;
+	case SSL_ERROR_WANT_WRITE:
+	    SS->wantreadwrite =  1;
+	    sslerr = EAGAIN;
+	    break;
+
+	case SSL_ERROR_WANT_X509_LOOKUP:
+	    goto ssl_connect_retry;
+	    break;
+
+	case SSL_ERROR_NONE:
+	    goto ssl_connect_done;
+	    break;
+
+	default:
+	    SS->wantreadwrite =  0;
+	    break;
+	}
+
+	if (BIO_should_read(rbio))
+	    SS->wantreadwrite = -1;
+	else if (BIO_should_write(wbio))
+	    SS->wantreadwrite =  1;
+
+	if (! SS->wantreadwrite) {
+	  /* Not proper retry by read or write! */
+
+	ssl_connect_error_bailout:;
+
+	  msg_info(SS, "SSL_connect error %d/%d", sts, sslerr);
+	  tls_print_errors();
+	  session = SSL_get_session(SS->ssl);
+	  if (session) {
 	    remove_clnt_session(session->session_id,
 			        session->session_id_length);
 	    SSL_CTX_remove_session(SS->ctx, session);
 	    msg_info(SS, "SSL session removed");
+	  }
+	  SSL_free(SS->ssl);
+	  SS->ssl = NULL;
+	  alarm(0);
+	  return (-1);
 	}
-	SSL_free(SS->ssl);
-	SS->ssl = NULL;
-	alarm(0);
-	return (-1);
+
+	i = SSL_get_fd(SS->ssl);
+	_Z_FD_ZERO(wrset);
+	_Z_FD_ZERO(rdset);
+
+	if (SS->wantreadwrite < 0)
+	  _Z_FD_SET(i, rdset); /* READ WANTED */
+	else if (SS->wantreadwrite > 0)
+	  _Z_FD_SET(i, wrset); /* WRITE WANTED */
+
+	tv.tv_sec = timeout_tcpw;
+	tv.tv_usec = 0;
+
+	rc = select(i+1, &rdset, &wrset, NULL, &tv);
+	sslerr = errno;
+
+	if (rc == 0) {
+	  /* TIMEOUT! */
+	  sslerr = ETIMEDOUT;
+	  goto ssl_connect_error_bailout;
+	}
+
+	if (rc < 0) {
+	  if (sslerr == EINTR || sslerr == EAGAIN)
+	    continue;
+
+	  /* Bug time ?! */
+	  goto ssl_connect_error_bailout;
+	}
+	/* Default is then success for either read, or write.. */
     }
+
+ ssl_connect_done:;
 
     /*
      * Now we must save the new session to disk, if necessary. If we had
@@ -969,10 +1044,6 @@ int     tls_start_clienttls(SS,peername)
 
     /* Mark the mode! */
     SS->sslmode = 1;
-
-    alarm(0);
-
-    fd_nonblockingmode(sffileno(SS->smtpfp));
 
     return (0);
 }

@@ -1088,6 +1088,9 @@ deliver(SS, dp, startrp, endrp)
 	  size = -1;
 	SS->msize = size;
 
+	SS->prevcmdstate = 99;
+	SS->cmdstate     = SMTPSTATE_MAILFROM;
+
 	if (strcmp(startrp->addr->link->channel,"error")==0)
 	  sprintf(SMTPbuf, "MAIL From:<>");
 	else
@@ -1180,6 +1183,9 @@ deliver(SS, dp, startrp, endrp)
 	    more_rp = rp->next;
 	    rp->next = NULL;
 	  }
+
+	  SS->cmdstate = SMTPSTATE_RCPTTO;
+
 	  sprintf(SMTPbuf, "RCPT To:<%.800s>", rp->addr->user);
 	  s = SMTPbuf + strlen(SMTPbuf);
 
@@ -1310,6 +1316,8 @@ deliver(SS, dp, startrp, endrp)
 	} else if (pipelining) {
 
 	  /* No CHUNKING here... do normal DATA-dot exchange */
+
+	  SS->cmdstate = SMTPSTATE_DATA;
 
 	  /* In PIPELINING mode ... send "DATA" */
 	  r = smtpwrite(SS, 1, "DATA", pipelining, NULL);
@@ -1669,6 +1677,9 @@ smtpopen(SS, host, noMX)
 	  i = smtpconn(SS, host, noMX);
 	  if (i != EX_OK)
 	    continue;
+
+	  SS->prevcmdstate = 99;
+	  SS->cmdstate     = SMTPSTATE_MAILFROM; /* well, reusing this key */
 
 	  if (SS->esmtp_on_banner) {
 	    /* Either it is not tested, or it is explicitely
@@ -2851,11 +2862,12 @@ int sig;
 #ifdef HAVE_STDARG_H
 #ifdef __STDC__
 void
-rmsgappend(SmtpState *SS, char *fmt, ...)
+rmsgappend(SmtpState *SS, int append, char *fmt, ...)
 #else /* Not ANSI-C */
 void
-rmsgappend(SS, fmt)
+rmsgappend(SS, append, fmt)
 	SmtpState *SS;
+	int append;
 	char *fmt;
 #endif
 #else
@@ -2872,10 +2884,17 @@ rmsgappend(va_alist)
 #else
 	char *fmt;
 	SmtpState *SS;
+	int append;
 	va_start(ap);
-	SS = va_arg(ap, SmtpState *);
-	fmt = va_arg(ap, char *);
+	SS     = va_arg(ap, SmtpState *);
+	append = va_arg(ap, int);
+	fmt    = va_arg(ap, char *);
 #endif
+
+	if (SS->cmdstate < SS->prevcmdstate)
+	  SS->remotemsgs[SS->cmdstate] = SS->remotemsg;
+	SS->prevcmdstate = SS->cmdstate;
+	if (!append) SS->remotemsgs[SS->cmdstate][0] = 0;
 
 	cp    = SS->remotemsg + strlen(SS->remotemsg);
 	cpend = SS->remotemsg + sizeof(SS->remotemsg) -1;
@@ -3359,16 +3378,17 @@ smtp_sync(SS, r, nonblocking)
 	      if (strncmp(SS->pipecmds[idx],
 			  "MAIL",4) == 0) /* If MAIL, flush buffer! */
 		SS->remotemsg[0] = 0;
-	      rmsgappend(SS,"\r<<- %s", SS->pipecmds[idx]);
+	      rmsgappend(SS, 0, "\r<<- %s", SS->pipecmds[idx]);
 	    } else {
-	      strcpy(SS->remotemsg,"\r<<- (null)");
+	      SS->remotemsg[0] = 0;
+	      rmsgappend(SS, 0, "\r<<- (null)");
 	    }
 	  }
 	  /* first_line is not exactly complement of continuation_line,
 	     it is rather more complex entity. */
 	  first_line = !continuation_line;
 
-	  rmsgappend(SS,"\r->> %s",s);
+	  rmsgappend(SS, 1, "\r->> %s",s);
 
 	  if (continuation_line)
 	    goto rescan_line_0;
@@ -3704,17 +3724,15 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
 	  if (strbuf) {
-	    if (strncmp(strbuf,"MAIL",4) == 0)
-	      /* If MAIL, flush buffer! */
-	      *SS->remotemsg = 0;
-	    rmsgappend(SS,"\r<<- %s", strbuf);
+	    rmsgappend(SS, 0, "\r<<- %s", strbuf);
 	  } else {
-	    strcpy(SS->remotemsg,"\r<<- (null)");
+	    SS->remotemsg[0] = 0;
+	    rmsgappend(SS, 0, "\r<<- (null)");
 	  }
 	} else {
 	  /* socket closed outwards, commands not written! */
 	  if (strbuf)
-	    rmsgappend(SS,"\rWrite Failure; shunted cmd: %s", strbuf);
+	    rmsgappend(SS, 0, "\rWrite Failure; shunted cmd: %s", strbuf);
 	  else
 	    strcpy(SS->remotemsg,
 		   "\rWrite Failure; expecting initial greeting??");
@@ -3784,7 +3802,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 		  break;
 		*s = '\0';
 
-		rmsgappend(SS,"\r->> %s",buf);
+		rmsgappend(SS, 1, "\r->> %s",buf);
 
 		if (SS->within_ehlo)
 		  ehlo_check(SS,&buf[4]);
@@ -3929,7 +3947,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	if (!strbuf && !SS->esmtp_on_banner)
 	  esmtp_banner_check(SS,&buf[4]);
 
-	rmsgappend(SS,"\r->> %s",buf);
+	rmsgappend(SS, 1, "\r->> %s",buf);
 
 	dflag = 0;
 
