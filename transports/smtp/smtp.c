@@ -2523,8 +2523,10 @@ makeconn(SS, hostname, ai, ismx)
 
 	if (ai->ai_canonname)
 	  strncpy(hostbuf, ai->ai_canonname, sizeof(hostbuf));
-	else
+	else if (hostname)
 	  strncpy(hostbuf, hostname, sizeof(hostbuf));
+	else
+	  *hostbuf = 0;
 	hostbuf[sizeof(hostbuf)-1] = 0;
 
 	if (checkwks && SS->verboselog)
