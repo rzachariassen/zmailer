@@ -1,5 +1,10 @@
 2004-03-31  Matti Aarnio  <mea@zmailer.org>
 
+	* utils/perl/Makefile.in,  configure.in:
+	    More hoops to get perl setup parameter feed in,
+	    and to make installation into non-root DESTDIR=
+	    to succeed.
+
 	* configure.in:
 	    Accept environment variables  LIBDB3,  LIBDB4,  which
 	    have effect if system has  <db3/db.h>  and  <db4/db.h>

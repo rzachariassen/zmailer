@@ -32,7 +32,7 @@ PERL=		@PERL@
 all:	mailq/Makefile
 
 install: mailq/Makefile
-	cd mailq && $(MAKE) $(MFLAGS) install @PERLINSTALLDIRS@
+	cd mailq && $(MAKE) $(MFLAGS) install @PERLDESTINSTALLDIRS@
 
 mailq/Makefile:
 	if [ ! -d mailq ] ; then mkdir mailq ; fi

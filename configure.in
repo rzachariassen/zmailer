@@ -153,13 +153,16 @@ AC_CHECK_SIZEOF(double)
 OrigCPPFLAGS="$CPPFLAGS"
 
 AC_SUBST(PERLINSTALLDIRS)
+AC_SUBST(PERLDESTINSTALLDIRS)
 PERLINSTALLDIRS=""
+PERLDESTINSTALLDIRS=""
 use_perlinstalldirs=0
-AC_ARG_WITH(perl-installdirs, [  --with-perl-installdirs=\"INSTALLDIRS=vendor\"
+AC_ARG_WITH(perl-installdirs, [  --with-perl-installdirs=\"/prefix/path\"
                              Perl module installation thingie.],
         use_perlinstalldirs=1)
 if test "$use_perlinstalldirs" = 1; then
-  PERLINSTALLDIRS="$with_perl_installdirs"
+  PERLINSTALLDIRS="PREFIX=$with_perl_installdirs"
+  PERLDESTINSTALLDIRS="PREFIX=\$(DESTDIR)$with_perl_installdirs"
 fi
 
 # AC_SUBST(PERLINSTALLPREFIX)
