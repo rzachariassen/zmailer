@@ -3182,6 +3182,8 @@ if (SS->verboselog)
 
 	flg = fd_nonblockingmode(sk);
 
+	errnosave = errno = 0;
+
 	if (connect(sk, sa, addrsiz) < 0 &&
 	    (errno == EWOULDBLOCK || errno == EINPROGRESS)) {
 
@@ -3191,11 +3193,17 @@ if (SS->verboselog)
 	  fd_set wrset;
 	  int rc;
 
+	  errno = 0;
+
 	  /* Pick our local socket name */
+	  /* NOTE: At Solaris 2.5.1 (STREAMS based) this may take
+	     lots of time! */
 
 	  memset(&upeername, 0, sizeof(upeername));
 	  upeernamelen = sizeof(upeername);
 	  getsockname(sk, (struct sockaddr*) &upeername, &upeernamelen);
+
+	  errnosave = errno;
 
 	  /* Select for the establishment, or for the timeout */
 
@@ -3214,12 +3222,13 @@ if (SS->verboselog)
 	  }
 	}
 
-	errnosave = errno;
+	if (!errnosave)
+	  errnosave = errno;
 	fcntl(sk, F_SETFL, flg);
 
 #ifdef SO_ERROR
 	flg = 0;
-	{
+	if (errnosave == 0) {
 	  int flglen = sizeof(flg);
 	  getsockopt(sk, SOL_SOCKET, SO_ERROR, (void*)&flg, &flglen);
 	}
@@ -3231,7 +3240,6 @@ if (SS->verboselog)
 	if (errnosave == 0) {
 	  /* We have successfull connection,
 	     lets record its peering data */
-
 	  memset(&upeername, 0, sizeof(upeername));
 	  upeernamelen = sizeof(upeername);
 	  getsockname(sk, (struct sockaddr*) &upeername, &upeernamelen);
@@ -3264,11 +3272,10 @@ if (SS->verboselog)
 	  notary_setwttip(SS->ipaddress);
 	}
 
-	if (errnosave == 0) {
+	if (errnosave == 0 && !gotalarm) {
 	  int on = 1;
 	  /* setreuid(0,0); */
 	  *fdp = sk;
-	  alarm(0);
 #if 1
 	  setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
 #else
@@ -3286,8 +3293,6 @@ if (SS->verboselog)
 	/* setreuid(0,0); */
 
 	se = strerror(errnosave);
-
-	alarm(0);
 
 	sprintf(SS->remotemsg, "smtp; 500 (connect to %.200s [%.200s]: %s)",
 		hostname, SS->ipaddress, se);

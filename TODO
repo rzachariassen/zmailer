@@ -34,6 +34,16 @@ router:
 	class is (momentrarily) empty, its router can work other
 	class jobs.
 
+	(another old entry had:)
+	- Log-file option does not set (reliably) the logfile
+	  to be something else, than the default.
+	** Well...  See  $MAILSHARE/cf/standard.cf:  dribble routine, and
+	** especially its calls!  Not so easy to configure externally...
+	- SIGHUP log close/reopen does not work quite as one would
+	  want it to work.  In fact it does not close the files, rather
+	  opens new ones after it has dup()ed old descriptors away from
+	  the harms way..  e.g. it leaks log-files..
+
 transports/smtp:
 	If reply waiting in smtp_sync() gets SIGALRM, program crashes..
 	(syncing for BDAT, for example.)
@@ -42,11 +52,17 @@ transports/smtp:
 	propably in MIME header rewrites.  It appears only in
 	very long living and hard working smtp-ta program as
 	slow size growth.
-- transports/smtp/smtp.c: (and scheduler)
-	- VERIFY: BDAT (and DATA) status processing in case the remote
-	  yields disk-full temporary error.
-	- To rewrite the MX processing in streamlined flashion (see next)
-	- In case two domains have common (sub-)set of MX servers, and
+
+	SSL/TLS client functionality has been asked for repeatedly.
+	To implement it we must rewamp the entire FILE* abstraction
+	based socket buffering at the smtp program, PLUS at
+	libta/mimeheaders.c ( writeheaders() ) as well...  Not so nice.
+
+	VERIFY: BDAT (and DATA) status processing in case the remote
+	yields disk-full temporary error.
+
+	To rewrite the MX processing in streamlined flashion:
+	  In case two domains have common (sub-)set of MX servers, and
 	  we have been feeding mail to domain A thru MX-server B, and
 	  now we change to deliver domain C which too has MX-server B.
 	  We are to reuse the already open channel to server B to feed
@@ -54,12 +70,6 @@ transports/smtp:
 	  D with lower preferrence..
 	  (Noting that all MX-hosts with same or larger privilege,
 	   than ourselves are to be pre-removed from the list!)
-
-router + TA library + TA programs:
-	Router to scan message MIME structure, and to store that
-	into dense consise format which doesn't need prerescan of
-	the message *body* for every delivery attempt in case some
-	"in-flight" data conversions are desired.
 
 - Somewhere ? (smtpserver, and perhaps smtp transport agent ?)
 	Implement OUTBOUND message size limit mechanism.
@@ -77,6 +87,23 @@ router + TA library + TA programs:
 	need to interrogate that same configuration mechanism
 	to do "Sorry, this is too large for sending" processing.
 
+- All transport agents:
+	- Unify the content MIME processing routines;  Construct them
+	  to be a common sub-layer ?
+	- Do not decode Q-P or Base-64 if the resulting material exceeds
+	  RFC-821/RFC-822 line length limits (or whatever limits have
+	  been set).
+
+	(router + TA library + TA programs):
+	Router to scan message MIME structure, and to store that
+	into dense consise format which doesn't need prerescan of
+	the message *body* for every delivery attempt in case some
+	"in-flight" data conversions are desired.
+
+	- transporters: When decoding MIME-QP the final line MAY be of
+		".....=", which means there is no final NEWLINE.
+	Fixed on SMTP, must fix on MAILBOX, and SM!  (4-Jan-95)
+	(Prepared to do it, however only on SMTP it is fatal -- I think..)
 
 - scheduler:
 	How does arrival of a new job into active thread work in case
@@ -124,6 +151,8 @@ router + TA library + TA programs:
 	  living connection...
 
 - smtpserver
+  - SSL/TLS code needs to be updated to support non-blocking operations,
+    which appeared at 0.9.4 release of the OpenSSL.
   - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills
   -	Report that if the router subprocess crashes, interactive
 	processing goes into mixed state -- it reports 2XX, and
@@ -143,10 +172,6 @@ router + TA library + TA programs:
 	  driver control; namely  "this domain can be valid source only
 				   when it is coming from this IP address"
 	  type of checkup...
-  - more complete address processing into policytest() routines
-  - truncate (somehow) rhostname, and helobuf data which are stored
-    into "rcvdfrom" envelope entry.  SMTP-systems allow only up to
-    about 1000 characters long lines..
 
 - "make install" does not handle manual-page installation properly,
   also alternate-root installation has a few odd ends (vacation
@@ -159,13 +184,6 @@ router + TA library + TA programs:
 	[July 1997: technical writers are hard at work on this one]
 	[April 1998: Completing the work is at Matti's hands..]
 
-
-- All transport agents:
-	- Unify the content MIME processing routines;  Construct them
-	  to be a common sub-layer ?
-	- Do not decode Q-P or Base-64 if the resulting material exceeds
-	  RFC-821/RFC-822 line length limits (or whatever limits have
-	  been set).
 
 - transports/sm/sm.c:
 	- what UID it runs programs like procmail with ?
@@ -180,15 +198,6 @@ router + TA library + TA programs:
 	  quotes from around a quoted destination address according to
 	  the RFC822 syntax. -- Is this always correct ?
 
-- router:
-	- Log-file option does not set (reliably) the logfile
-	  to be something else, than the default.
-	** Well...  See  $MAILSHARE/cf/standard.cf:  dribble routine, and
-	** especially its calls!  Not so easy to configure externally...
-	- SIGHUP log close/reopen does not work quite as one would
-	  want it to work.  In fact it does not close the files, rather
-	  opens new ones after it has dup()ed old descriptors away from
-	  the harms way..  e.g. it leaks log-files..
 
 - post-install-check
 	- check existence of mailq/tcp in /etc/services
@@ -295,13 +304,6 @@ router + TA library + TA programs:
 	 headers, but the loop-count exceeded trap is done in the
 	 same C-code without calling the scripts...)
 
-- transporters: Truly full-scale MIME-conversion facilities are in need!
-
-- transporters: When decoding MIME-QP the final line MAY be of
-		".....=", which means there is no final NEWLINE.
-	Fixed on SMTP, must fix on MAILBOX, and SM!  (4-Jan-95)
-	(Prepared to do it, however only on SMTP it is fatal -- I think..)
-
 - Sometimes incoming SMTP can be a hellish load, need to introduce
   a load-limited incoming SMTP acceptor (smtpserver/smtpserver.c)
   (Rayan wrote it, but never released it..)
@@ -317,12 +319,12 @@ router + TA library + TA programs:
   it would require fairly large rewrite of the SMTP-server..
 
   Also: What to do when there are more incoming SMTP sessions than the
-  process can have open file descriptors ?  Two for each way of SMTP (for
-  stdio library!) channel, one for each spool file in active use at the
-  input phase, and one for log. (The stdio is used only for SMTP responses,
-  and for spooling out the accumulated message.  Thus there SHOULD be enough
-  resources for all uses -- except when the system runs out of FDs per any
-  individual process..)
+  process can have open file descriptors ?  One for the SMTP socket, one
+  for each spool file in active use at the input phase, and one for log.
+  (The stdio is used only for SMTP responses, and for spooling out the
+   accumulated message.  Thus there SHOULD be enough resources for all
+   uses -- except when the system runs out of FDs per any individual
+   process..)
 
 - Processing of several headers is questionable/lack of:
 	From: <>  -- should be valid! --- now is (940626/mea)

@@ -1136,12 +1136,12 @@ deliver(dp, rp, usernam, timestring)
 		 and nothing was found!  The sensible thing
 		 would be to yield NULL along with   errno==0 ! */
 
-	      /* Now give the above, how the hell are we going
+	      /* Now given the above, how the hell are we going
 		 to detect when any of the databases used for
 		 the username resolution has a hickup, and the
 		 lack of found username is simply due to the db
 		 problem, which time will solve (as with system
-		 operator taking some action).  */
+		 operator taking some action) ?  */
 
 	      /* Many systems seem to use this in otherwise
 		 fine lookup -- to mark lack of data */
@@ -1156,6 +1156,7 @@ deliver(dp, rp, usernam, timestring)
 	      if (errno != 0) { /* getpwnam() failed for some other
 				   reason than simply not finding the
 				   given user... */
+		int err = errno;
 
 		if (verboselog)
 		  fprintf(verboselog,
@@ -1166,7 +1167,7 @@ deliver(dp, rp, usernam, timestring)
 			     "x-local; 550 (Error getting user identity)");
 		DIAGNOSTIC3(rp, usernam, EX_TEMPFAIL,
 			   "getpwnam for user \"%s\" failed; errno=%d",
-			   usernam, errno);
+			   usernam, err);
 
 	      } else if (propably_x400(usernam)) {
 

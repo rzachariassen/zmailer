@@ -234,9 +234,10 @@ nextline:
 
 /* Unfold (see RFC822) the contents of a compound token */
 
-static const char * _unfold __((int, const char *, const char **, token822*));
+static const char * _unfold __((TokenType, int, const char *, const char **, token822*));
 static const char *
-_unfold(len, start, cpp, t)
+_unfold(type, len, start, cpp, t)
+	TokenType type;
 	int len; /* Total length to unfold */
 	const char *start;
 	const char **cpp;
@@ -249,7 +250,15 @@ _unfold(len, start, cpp, t)
 
 	s = cp = (char *)tmalloc(len +1);
 	while (len > 0 && start != cpe) {
-		if (*start == 0) {
+		if (*start != 0) {
+		  if (*start == '\n') {
+		    ++start;
+		    --len;
+		    continue;
+		  }
+		  --len;
+		  *s++ = *start++;
+		} else {
 		  t = t->t_next;
 		  start = t->t_pname;
 #if 0 /* zero: unfold.. */
@@ -259,24 +268,19 @@ _unfold(len, start, cpp, t)
 		  while (len > 0 && start != cpe &&
 			 (*start == ' '  || *start == '\t' ||
 			  *start == '\n' || *start == '\r'))
-		    ++start;
+		    ++start, --len;
 		  /* And replace it with *one* space */
 		  *s++ = ' ';
 #endif
 		  --len;
 		}
-		if (*start == '\n') {
-			++start;
-			continue;
-		}
-		if (start == cpe) /* Check that we are not NOW
-				     at the end point. */
-		  break;
-		--len;
-		*s++ = *start++;
+	}
+	*cpp = start +1;
+	if (type == Comment) {
+	  /* Strip trailing spaces at comments */
+	  while (s > cp && s[-1] == ' ') --s;
 	}
 	*s = '\0';
-	*cpp = start +1;
 	return cp;
 }
 
@@ -368,7 +372,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 
 			  /* a compound token crossed line boundary */
 			  /* copy from ++cp for len chars */
-			  t.t_pname = _unfold(len, ++cp, cpp, ot);
+			  t.t_pname = _unfold(type, len, ++cp, cpp, ot);
 			  t.t_len   = strlen(t.t_pname);
 			} else {
 			  if (t.t_pname != NULL)

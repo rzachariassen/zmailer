@@ -3,12 +3,26 @@
 	* README.TCP-WRAPPER:
 	    New file.
 
+	* lib/rfc822scan.c:
+	    Reorganized the code a bit - now the fast path is
+	    straighter code with less odd tests.
+
+	* transports/mailbox/mailbox.c:
+	    getpwnam() failure report fix - should not need, but..
+
+	* transports/smtp/smtp.c:
+	    Solaris 2.5.1 doing  getsockname()  is doing blocking
+	    streams thing even on non-blocking socket :-/ Results
+	    are not as nice as with e.g. BSD based systems where
+	    same call doesn't block (no need!)  Also some errno
+	    saving around.
+
 1999-08-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* proto/cf/aliases.cf:
 	    When the   ssift  (and tsift)  were changed *not* to
 	    strip away quotes, buggeroo... we need *one* place where
-	    quotes are stripped -- that is explicitely..
+	    quotes are stripped -- that is: explicitely..
 
 	* lib/rfc822scan.c:
 	    _unfold() had problems at detecting the termination condition.
