@@ -195,7 +195,7 @@ run_rfc822(argc, argv)
 		squirrel(e, "_looped", "loop count exceeded");
 		break;
 	case PERR_ENVELOPE:		/* fatal */
-		reject(e, ":envelope");
+		reject(e, "envelope");
 		break;
 	case PERR_DEFERRED:
 		if (deferuid)
@@ -204,10 +204,10 @@ run_rfc822(argc, argv)
 		  defer(e, "deferred");
 		break;
 	case PERR_HEADER:		/* fatal */
-		reject(e, ":header");
+		reject(e, "header");
 		break;
 	case PERR_NORECIPIENTS:		/* fatal */
-		reject(e, ":norecipients");
+		reject(e, "norecipients");
 		break;
 	case PERR_NOSENDER:
 		squirrel(e, "nosender", "really truly Unknown Sender");

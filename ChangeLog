@@ -1,3 +1,10 @@
+2002-02-20  Matti Aarnio  <mea@zmailer.org>
+
+	* router/rfc822.c:
+	    Remove few earlier added ":" characters from places
+	    where those went into report form filenames.
+	    My blunder :-(
+
 2002-02-18  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/makedb.c:
