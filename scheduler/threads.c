@@ -1206,8 +1206,6 @@ time_t retrytime;
  *
  */
 
-#define SALARM(N)  (verbose ? sfprintf(sfstdout,"alarm(%d) = %d\n", (N),alarm(N)):alarm(N))
-
 void
 reschedule(vp, factor, index)
 	struct vertex *vp;

@@ -777,7 +777,7 @@ main(argc, argv)
 	SIGNAL_HANDLE(SIGUSR2, sig_iot);	/* dump queue info */
 
 	/* call it to create the timeserver -- if possible */
-	init_timeserver();
+	init_timeserver(); /* Will take around 3-4 secs.. */
 
 	queryipcinit();
 
@@ -932,12 +932,6 @@ int sig;
 	freeze = 1;
 }
 
-static RETSIGTYPE sig_alarm(sig)
-int sig;
-{
-	gotalarm = 1;
-	SIGNAL_HANDLE(SIGALRM, sig_alarm);
-}
 
 #ifdef SIGUSR2
 static RETSIGTYPE sig_iot(sig)
@@ -2630,6 +2624,18 @@ timestring()
 	return timebuf;
 }
 
+static int running_on_alarm;
+static time_t alarm_time;
+
+static RETSIGTYPE sig_alarm(sig)
+int sig;
+{
+	time(&alarm_time);
+	SIGNAL_HANDLE(SIGALRM, sig_alarm);
+	alarm(1);
+}
+
+
 #if defined(HAVE_MMAP)
 struct timeserver {
 	int	pid;
@@ -2691,8 +2697,27 @@ static void init_timeserver()
 
 	ppid = fork();
 	if (ppid > 0) {
+	  time_t now2;
 	  timeserver_pid = ppid;
 	  timeserver_segment->pid = ppid;
+
+	  time(&now);
+	  sleep(3);
+
+#ifdef HAVE_SELECT
+	  now2 = timeserver_segment->tv.tv_sec;
+#else
+	  now2 = timeserver_segment->time_sec;
+#endif
+	  if (now2 == 0 || now2 == now) {
+	    /* HUH ?! No incrementation in 3 seconds ?? */
+	    /* Start ticking in alarm() mode! */
+	    kill (ppid, SIGTERM);
+	    timeserver_pid = 0;
+	    timeserver_segment = NULL;
+	    alarm(1);
+	  }
+
 	  return;
 	}
 	if (ppid < 0) return; /* Error ?? brr.. */
@@ -2701,6 +2726,12 @@ static void init_timeserver()
 	strcpy((char*)ArgvSave[0],"TimeServer");
 
 	ppid = getppid(); /* who is our parent ? */
+
+#ifdef HAVE_SELECT
+	gettimeofday(&timeserver_segment->tv, NULL);
+#else
+	time(&timeserver_segment->time_sec);
+#endif
 
 	for(;;) {
 #ifdef HAVE_SELECT
@@ -2747,6 +2778,11 @@ time_t *timep;
 	  return t;
 	}
 #endif
+	if (running_on_alarm) {
+	  if (timep)
+	    *timep = alarm_time;
+	  return alarm_time;
+	}
 #ifdef HAVE_GETTIMEOFDAY
 	{
 	  struct timeval tv;

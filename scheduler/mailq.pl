@@ -25,7 +25,7 @@ local($main::s);
 
 $main::s = & ZMailer::MAILQ::new('127.0.0.1','174');
 
-#$main::s->setdebug(1);
+$main::s->setdebug(1);
  
 #if (!defined $main::s) {
 #    printf("ZMailer::MAILQ::new() yielded UNDEF\n");
@@ -38,9 +38,11 @@ $main::s->login("nobody","nobody");
 #printf("login responce: '%s'\n",$main::s->{resp});
 
 
-local($main::rc,@main::rc) = $main::s->showcmd("SHOW SNMP");
+#local($main::rc,@main::rc) = $main::s->showcmd("SHOW SNMP");
+#printf "SHOW SNMP:\n%s\n",join("\n",@main::rc);
 
-printf "SHOW SNMP:\n%s\n",join("\n",@main::rc);
+local($main::rc,@main::rc) = $main::s->etrncmd("ETRN mea.tmt.tele.fi");
+printf "ETRN mea.tmt.tele.fi:\n%s\n",join("\n",@main::rc);
 
 $main::s->bye();
 
@@ -122,7 +124,7 @@ sub sendcmd {
     if (defined $self->{debug}) {
 	printf "sendcmd() resp='%s'\n",$line;
     }
-    return substr($line,0,1);
+    return (substr($line,0,1) , substr($line,1));
 };
 
 sub login {
@@ -148,7 +150,7 @@ sub showcmd {
     # We collect here that multiline stuff.
     #
     my $self = shift;
-    my $rc = $self->sendcmd(@_);
+    my ($rc,$rest) = $self->sendcmd(@_);
 
     if ($rc eq '-') { return ($rc); }
 
@@ -167,6 +169,14 @@ sub showcmd {
 	}
     }
     return ('+', @lines);
+}
+
+sub etrncmd {
+    #
+    # ETRN-cmds return a single-line response.
+    #
+    my $self = shift;
+    return $self->sendcmd(@_);
 }
 
 1;
