@@ -121,7 +121,7 @@ dirs:	$(PZCONFIG)
 			chmod 755 $(prefix)$$POSTOFFICE/transport/$$hh ; \
 		done ; \
 	fi ; \
-	if [ -d $(prefix)$$LOGDIR ]; then \
+	if [ ! -d $(prefix)$$LOGDIR ]; then \
 		echo $(MKDIR) $(prefix)$$LOGDIR && \
 		$(MKDIR) $(prefix)$$LOGDIR ; \
 		chmod 755 $(prefix)$$LOGDIR ; \
