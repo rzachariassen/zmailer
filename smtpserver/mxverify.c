@@ -115,11 +115,11 @@ dnsmxlookup(host, depth, mxmode, qtype)
 
 	if (debug) {
 	  if (qtype == T_TXT)
-	    printf("TXT-lookup for domain: '%s'\n", host);
+	    printf("000- TXT-lookup for domain: '%s'\n", host);
 	  else if (mxmode)
-	    printf("MX-Verify: Look MX for host '%s'\n", host);
+	    printf("000- MX-Verify: Look MX for host '%s'\n", host);
 	  else
-	    printf("DNS-Verify: Look MX, or Addr for host '%s'\n", host);
+	    printf("000- DNS-Verify: Look MX, or Addr for host '%s'\n", host);
 	}
 
 	qlen = res_mkquery(QUERY, host, C_IN, qtype, NULL, 0, NULL,
@@ -231,17 +231,17 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	    i = _getaddrinfo_((const char*)buf, "0", &req, &ai,
 			      debug ? stdout : NULL);
 	    if (debug)
-	      printf("  getaddrinfo('%s','0') -> r=%d, ai=%p\n",buf,i,ai);
+	      printf("000-  getaddrinfo('%s','0') -> r=%d, ai=%p\n",buf,i,ai);
 #endif
 
 	    if (debug)
-	      printf("  getaddrinfo('%s') yields %d\n", buf, i);
+	      printf("000-  getaddrinfo('%s') yields %d\n", buf, i);
 	    
 	    if (i != 0)
 	      continue;		/* Well well.. spurious! */
 
 	    if (!mxmode) /* Accept if found ANYTHING! */ {
-	      if (debug) printf("  ... accepted!\n");
+	      if (debug) printf("000-  ... accepted!\n");
 	      freeaddrinfo(ai);
 	      return 1;
 	    }
@@ -273,15 +273,15 @@ dnsmxlookup(host, depth, mxmode, qtype)
 		rc = matchmyaddress(ai2->ai_addr);
 		if (rc == 1) {
 		  if (debug)
-		    printf("  ADDRESS MATCH!\n");
+		    printf("000-   ADDRESS MATCH!\n");
 		  freeaddrinfo(ai);
 		  return 1; /* Found a match! */
 		} else
 		  if (debug)
-		    printf("  matchmyaddress() yields: %d\n", rc);
+		    printf("000-   matchmyaddress() yields: %d\n", rc);
 	      }
 	      if (debug)
-		printf("  No address match among %d address!\n",i);
+		printf("000-   No address match among %d address!\n",i);
 	    }
 	    freeaddrinfo(ai);
 	    had_mx_record = 1;
@@ -324,7 +324,7 @@ perhaps_address_record:
 	  i = _getaddrinfo_((const char*)host, "0", &req, &ai, debug ? stdout : NULL);
 #endif
 	  if (debug)
-	    printf("  getaddrinfo('%s','0') -> r=%d, ai=%p\n",host,i,ai);
+	    printf("000-   getaddrinfo('%s','0') -> r=%d, ai=%p\n",host,i,ai);
 	  if (i != 0) /* Found nothing! */
 	    return 0;
 
@@ -446,14 +446,14 @@ int rbl_dns_test(ipv4addr, msgp)
 		 ipv4addr[3], ipv4addr[2], ipv4addr[1], ipv4addr[0]);
 
 	if (debug)
-	  printf("looking up DNS A object: %s\n", hbuf);
+	  printf("000- looking up DNS A object: %s\n", hbuf);
 
 	if (gethostbyname(hbuf) != NULL) {
 	  /* XX: Should verify that the named object has A record: 127.0.0.2 */
 
 	  /* Ok, then lookup for the TXT entry too! */
 	  if (debug)
-	    printf("looking up DNS TXT object: %s\n", hbuf);
+	    printf("000- looking up DNS TXT object: %s\n", hbuf);
 
 	  if (dnsmxlookup(hbuf, 0, 0, T_TXT) == 1) {
 	    if (*msgp != NULL)

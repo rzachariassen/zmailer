@@ -123,19 +123,19 @@ const struct policystate *state;
 {
 	int i;
 
-	printf("always_reject=%d\n",state->always_reject);
-	printf("always_freeze=%d\n",state->always_freeze);
-	printf("always_accept=%d\n",state->always_accept);
-	printf("full_trust=%d\n",   state->full_trust);
-	printf("trust_recipients=%d\n",state->trust_recipients);
-	printf("sender_reject=%d\n",state->sender_reject);
-	printf("sender_freeze=%d\n",state->sender_freeze);
-	printf("sender_norelay=%d\n",state->sender_norelay);
-	printf("relaycustnet=%d\n", state->relaycustnet);
-	printf("rcpt_nocheck=%d\n", state->rcpt_nocheck);
+	printf("000- always_reject=%d\n",state->always_reject);
+	printf("000- always_freeze=%d\n",state->always_freeze);
+	printf("000- always_accept=%d\n",state->always_accept);
+	printf("000- full_trust=%d\n",   state->full_trust);
+	printf("000- trust_recipients=%d\n",state->trust_recipients);
+	printf("000- sender_reject=%d\n",state->sender_reject);
+	printf("000- sender_freeze=%d\n",state->sender_freeze);
+	printf("000- sender_norelay=%d\n",state->sender_norelay);
+	printf("000- relaycustnet=%d\n", state->relaycustnet);
+	printf("000- rcpt_nocheck=%d\n", state->rcpt_nocheck);
 
 	for ( i = P_A_FirstAttr; i <= P_A_LastAttr ; ++i) {
-		printf("%s: %s, value=%c\n",
+		printf("000- %s: %s, value=%c\n",
 		       KA(i),
 		       (state->origrequest & (1<<i)) ? "requested" : "not req",
 		       state->values[i]?state->values[i]:'.');
@@ -323,14 +323,14 @@ int init;
     state->request |= (1 << P_A_MESSAGE);
 
     if (debug)
-       printf("Key: %s\n", showkey(key));
+       printf("000- Key: %s\n", showkey(key));
 /*
     if (key[1] != P_K_IPv4 && key[1] != P_K_IPv6) {
 	if (debug)
-	  printf("Key: %d/%d/%s\n", key[0],key[1],key+2);
+	  printf("000- Key: %d/%d/%s\n", key[0],key[1],key+2);
     } else
       if (debug)
-	printf("Key: %u.%u.%u.%u\n", key[2] & 0xff, key[3] & 0xff, 
+	printf("000- Key: %u.%u.%u.%u\n", key[2] & 0xff, key[3] & 0xff, 
 	       key[4] & 0xff, key[5] & 0xff);
 */
 
@@ -342,7 +342,7 @@ int init;
 
     if (str == NULL) {
       if (debug)
-	printf("  query failed\n");
+	printf("000-  query failed\n");
       return -1;
     }
     /* Scan trough attribute list. Call resolveattributes recursively
@@ -355,10 +355,10 @@ int init;
 	    /* Do not continue if max recursions reached. */
 	    if (recursions < 0) {
 	      if (debug)
-		printf("Max recursions reached.\n");
+		printf("000- Max recursions reached.\n");
 	    } else {
 	      if (debug)
-		printf("Alias-recursion: %d\n", recursions);
+		printf("000- Alias-recursion: %d\n", recursions);
 
 	      strcpy(pbuf+2,str+2);
 	      pbuf[0] = strlen(str+2) + 3;
@@ -372,13 +372,13 @@ int init;
 
 	/* Attribute */
 	if (debug)
-	  printf("  Attribute: %s\n", showattr(str));
+	  printf("000-   Attribute: %s\n", showattr(str));
 
 	interest = 1 << str[1];	/* Convert attrib. num. value into flag bit */
 	if ((interest & state->request) == 0) {
 	    /* Not interested in this attribute, skip into next. */
 	    if (debug)
-	      printf("    not interested, skipped...\n");
+	      printf("000-     not interested, skipped...\n");
 
 	    goto nextattr;
 	} else {
@@ -406,7 +406,7 @@ int init;
 	} else if (str[2] != '+' && str[2] != '-') {
 
 	  if (debug)
-	    printf("Unknown flag: %s\n", &str[2]);
+	    printf("000- Unknown flag: %s\n", &str[2]);
 	  goto nextattr;
 	}
 	/* Store valid attribute.
@@ -416,10 +416,10 @@ int init;
 	    if (state->values[str[1] & 0xFF] == 0)
 		state->values[str[1] & 0xFF] = str[2];
 	  if (debug)
-	    printf("    accepted!\n");
+	    printf("000-     accepted!\n");
 	} else {
 	  if (debug)
-	    printf("  Unknown attribute, number: %d\n", str[1] & 0xFF);
+	    printf("000-   Unknown attribute, number: %d\n", str[1] & 0xFF);
 	}
 
     nextattr:
@@ -430,7 +430,7 @@ int init;
 	/* If all requests are done, exit. */
 	if (!state->request) {
 	  if (debug)
-	    printf("Every request found. Finishing search.\n");
+	    printf("000- Every request found. Finishing search.\n");
 	  break;
 	}
     }				/* End of while. */
@@ -457,13 +457,13 @@ const char *pbuf;
 
     if (pbuf[1] == P_K_DOMAIN) {
 	if (debug)
-	  printf("checkaddr(): domain of '%s'\n",pbuf+2);
+	  printf("000- checkaddr(): domain of '%s'\n",pbuf+2);
 	result = resolveattributes(rel, maxrecursions, state, pbuf, 1);
 	if (debug) {
 	  int i;
-	  printf("Results: %s\n", showresults(state->values));
+	  printf("000- Results: %s\n", showresults(state->values));
 /*
-	  printf("Results: ");
+	  printf("000- Results: ");
 	  for (i = 0; i < sizeof(state->values); i++)
 	    printf(":%c", state->values[i] ? state->values[i] : '0');
 	  printf("\n");
@@ -473,13 +473,13 @@ const char *pbuf;
     }
     if (pbuf[1] == P_K_USER) {
 	if (debug)
-	  printf("checkaddr(): user of '%s'\n",pbuf+2);
+	  printf("000- checkaddr(): user of '%s'\n",pbuf+2);
 	result = resolveattributes(rel, maxrecursions, state, pbuf, 1);
 	if (debug) {
 	  int i;
-	  printf("Results: %s\n", showresults(state->values));
+	  printf("000- Results: %s\n", showresults(state->values));
 /*
-	  printf("Results: ");
+	  printf("000- Results: ");
 	  for (i = 0; i < sizeof(state->values); i++)
 	    printf(":%c", state->values[i] ? state->values[i] : '0');
 	  printf("\n");
@@ -528,11 +528,11 @@ const char *pbuf;
 
     if (result != 0) {
       if (debug)
-	printf("Address not found.\n");
+	printf("000- Address not found.\n");
       return -1;
     } else
       if (debug) {
-	printf("  %s\n", showresults(state->values));
+	printf("000-   %s\n", showresults(state->values));
       }
     return 0;
 }
@@ -614,7 +614,7 @@ struct policystate *state;
     if (!openok) {
 	/* ERROR!  Could not open the database! */
       if (debug)
-	printf("ERROR!  Could not open the database!\n");
+	printf("000- ERROR!  Could not open the database!\n");
       *relp = NULL;
       return 2;
     }
@@ -680,7 +680,7 @@ const char *pbuf;
 
     if (state->values[P_A_REJECTNET] == '+') {
       if (debug)
-	printf("policytestaddr: 'rejectnet +' found\n");
+	printf("000- policytestaddr: 'rejectnet +' found\n");
       if (state->message == NULL)
 	state->message = strdup("Your network address is blackholed in our static tables");
       state->always_reject = 1;
@@ -688,7 +688,7 @@ const char *pbuf;
     }
     if (state->values[P_A_FREEZENET] == '+') {
       if (debug)
-	printf("policytestaddr: 'freezenet +' found\n");
+	printf("000- policytestaddr: 'freezenet +' found\n");
       if (state->message == NULL)
 	state->message = strdup("Your network address is blackholed in our static tables");
       state->always_freeze = 1;
@@ -696,17 +696,17 @@ const char *pbuf;
     }
     if (state->values[P_A_TrustRecipients] == '+') {
       if (debug)
-	printf("policytestaddr: 'trustrecipients +' found\n");
+	printf("000- policytestaddr: 'trustrecipients +' found\n");
       state->trust_recipients = 1;
     }
     if (state->values[P_A_FullTrustNet] == '+') {
       if (debug)
-	printf("policytestaddr: 'fulltrustnet +' found\n");
+	printf("000- policytestaddr: 'fulltrustnet +' found\n");
       state->full_trust = 1;
     }
     if (state->values[P_A_RELAYCUSTNET] == '+') {
       if (debug)
-	printf("policytestaddr: 'relaycustnet +' found\n");
+	printf("000- policytestaddr: 'relaycustnet +' found\n");
       state->always_accept = 1;
     }
     if (state->trust_recipients || state->full_trust || state->always_accept)
@@ -716,10 +716,10 @@ const char *pbuf;
 	pbuf[1] == P_K_IPv4) {
       int rc;
       if (debug)
-	printf("policytestaddr: 'test-dns-rbl +' (IPv4) found;");
+	printf("000- policytestaddr: 'test-dns-rbl +' (IPv4) found;");
       rc = rbl_dns_test(ipv4addr, &state->message);
       if (debug)
-	printf(" rc=%d\n", rc);
+	printf("000-  rc=%d\n", rc);
       return rc;
     }
 
@@ -859,7 +859,7 @@ int inlen;
 
     while (result != 0) {
 	if (debug)
-	  printf("DEBUG: %s\n", showkey(pbuf));
+	  printf("000- DEBUG: %s\n", showkey(pbuf));
 	result = checkaddr(rel, state, pbuf);
 
 	if (result == 0) /* Found! */
@@ -1044,13 +1044,13 @@ const int len;
     }
     if (state->values[P_A_RELAYCUSTNET] == '+') {
       if (debug)
-	printf("pt_sourceaddr: 'relaycustnet +' found\n");
+	printf("000- pt_sourceaddr: 'relaycustnet +' found\n");
       state->always_accept = 1;
       return  0;
     }
     if (state->values[P_A_FullTrustNet] == '+') {
       if (debug)
-	printf("pt_sourceaddr: 'fulltrustnet +' found\n");
+	printf("000- pt_sourceaddr: 'fulltrustnet +' found\n");
       state->full_trust = 1;
       return  0;
     }
@@ -1092,13 +1092,13 @@ const int len;
     if (check_user(rel, state, str, len) == 0) {
       if (state->values[P_A_FREEZESOURCE] == '+') {
 	if (debug)
-	  printf("mailfrom: 'freezesource +'\n");
+	  printf("000- mailfrom: 'freezesource +'\n");
 	state->sender_freeze = 1;
 	return 1;
       }
       if (state->values[P_A_REJECTSOURCE] == '+') {
 	if (debug)
-	  printf("mailfrom: 'rejectsource +'\n");
+	  printf("000- mailfrom: 'rejectsource +'\n");
 	state->sender_reject = 1;
 	return -1;
       }
@@ -1122,26 +1122,26 @@ const int len;
 
     if (state->values[P_A_SENDERNoRelay] == '+') {
       if (debug)
-	printf("mailfrom: 'sendernorelay +'\n");
+	printf("000- mailfrom: 'sendernorelay +'\n");
       state->sender_norelay = 1;
     }
     if (state->values[P_A_SENDERokWithDNS] != 0) {
       int rc = sender_dns_verify(state->values[P_A_SENDERokWithDNS],
 				 at+1, len - (1 + at - str));
       if (debug)
-	printf("... returns: %d\n", rc);
+	printf("000- ... returns: %d\n", rc);
       return rc;
     }
 
     if (state->values[P_A_REJECTSOURCE] == '+') {
 	if (debug)
-	  printf("mailfrom: 'rejectsource +'\n");
+	  printf("000- mailfrom: 'rejectsource +'\n");
 	state->sender_reject = 1;
 	return -1;
     }
     if (state->values[P_A_FREEZESOURCE] == '+') {
 	if (debug)
-	  printf("mailfrom: 'freezesource +'\n");
+	  printf("000- mailfrom: 'freezesource +'\n");
 	state->sender_freeze = 1;
 	return -1;
     }
@@ -1149,20 +1149,20 @@ const int len;
     if (state->always_accept) {
       int rc = sender_dns_verify('-', at+1, len - (1 + at - str));
       if (debug)
-	printf("... returns: %d\n", rc);
+	printf("000- ... returns: %d\n", rc);
       return rc;
     }
 
     if (state->values[P_A_RELAYCUSTOMER] == '+') {
 	if (debug)
-	  printf("mailfrom: 'relaycustomer +'\n");
+	  printf("000- mailfrom: 'relaycustomer +'\n");
 	state->rcpt_nocheck = 1;
 	return  0;
     }
 #if 0 /* Umm.. no.. */
     if (state->values[P_A_RELAYCUSTOMER] == '-') {
 	if (debug)
-	  printf("mailfrom: 'relaycustomer -'\n");
+	  printf("000- mailfrom: 'relaycustomer -'\n");
 	state->sender_reject = 1;
 	return -1;
     }
@@ -1248,7 +1248,7 @@ const int len;
 
     if (state->rcpt_nocheck) {
       if (debug)
-	printf("... rcpt_nocheck is on!\n");
+	printf("000- ... rcpt_nocheck is on!\n");
       return 0;
     }
 
@@ -1260,7 +1260,7 @@ const int len;
       rc = client_dns_verify(c, at+1, len - (1 + at - str));
       /* XX: state->message setup! */
       if (debug)
-	printf("... returns: %d\n", rc);
+	printf("000- ... returns: %d\n", rc);
       return rc;
     }
 
@@ -1269,7 +1269,7 @@ const int len;
 				at+1, len - (1 + at - str)); 
       /* XX: state->message setup! */
       if (debug)
-	printf("...(mx_client_verify('%.*s')) returns: %d\n",
+	printf("000- ...(mx_client_verify('%.*s')) returns: %d\n",
 	       (int)(len - (1 + at - str)), at+1, rc);
       return rc;
     }
@@ -1278,7 +1278,7 @@ const int len;
 				 at+1, len - (1 + at - str));
       /* XX: state->message setup! */
       if (debug)
-	printf("... returns: %d\n", rc);
+	printf("000- ... returns: %d\n", rc);
       return rc;
     }
     return 0;
@@ -1315,7 +1315,7 @@ const int len;
       return 0;
 
     if (debug) {
-	printf("policytest what=%d\n", what);
+	printf("000- policytest what=%d\n", what);
 	printstate(state);
     }
 

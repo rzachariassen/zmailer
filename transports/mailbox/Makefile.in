@@ -70,7 +70,7 @@ install:	$(PROGRAM) mboxpath
 	mv $(MAILBIN)/mboxpath.x $(MAILBIN)/mboxpath
 
 clean:
-	-rm -f $(PROGRAM) in.rlockd *.o *.out make.log *~
+	-rm -f $(PROGRAM) in.rlockd *.o *.out make.log *~ mboxpath
 distclean: clean
 	-rm -f Makefile
 

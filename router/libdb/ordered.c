@@ -63,6 +63,7 @@ search_bin(sip)
 
 	retry = 0;
 
+ reopen:
 	spl = _open_seq(sip, "r");
 
 	if (spl == NULL)

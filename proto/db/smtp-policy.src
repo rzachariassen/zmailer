@@ -226,7 +226,8 @@
 #|    reason have given open permissions for people to use their server
 #|    as MX backup for their clients, but don't know all domains valid
 #|    to go thru...  Substitutes accurate data to user's whimsical DNS
-#|    maintenance activities.  Vulnerable to inbound resource abuse.
+#|    maintenance activities.  Vulnerable to unauthorized inbound MX
+#|    service abuse.
 #
 .			relaycustomer - acceptifmx - senderokwithdns +
 [0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns +
@@ -245,6 +246,10 @@
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
 #| the database with  'relaytarget +' attribute.
+#|
+#|-----------
+#|
+#| For outbound relaying control, see comments in file:  smtp-policy.relay
 #|
 #|-----------
 #|

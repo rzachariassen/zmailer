@@ -228,6 +228,12 @@ db:	FRC
 	else \
 		echo "*** No overwrite of smtp-policy.src, old exists"; \
 	fi
+	if [ ! -f $$MAILVAR/db/smtp-policy.relay ]; then \
+		echo $(INSTALL) -m 644 $(srcdir)/db/smtp-policy.relay $$MAILVAR/db/smtp-policy.relay ; \
+		$(INSTALL) -m 644 $(srcdir)/db/smtp-policy.relay $$MAILVAR/db/smtp-policy.relay ; \
+	else \
+		echo "*** No overwrite of smtp-policy.relay, old exists"; \
+	fi
 
 cf:	FRC
 	-@. $(PZCONFIG) ; \
