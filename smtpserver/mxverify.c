@@ -159,17 +159,18 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  } /* ===== END OF MX DATA PROCESING ========= */
 
 	  if (type == T_TXT) {
-	    int len = (*cp++) & 0xFF; /* 0..255 chars */
+	    int len = (*cp) & 0xFF; /* 0..255 chars */
 
 	    /* Mal-formed inputs are possible overflowing the buffer.. */
 	    if (len > (eom - cp))
 	      len = (eom - cp);
-	    if (len > n - 2)
-	      len = n - 2;
+	    if (len > n - 1)
+	      len = n - 1;
 
 	    if (txt_buf != NULL)
 	      free(txt_buf);
 	    txt_buf = emalloc(len+1);
+	    ++cp;
 	    memcpy(txt_buf, cp, len);
 	    txt_buf[len] = '\0';
 	    for (i = 0; i < mxcount; ++i) {
@@ -660,7 +661,7 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	     which isn't so easy to read, but ... */
 	  /* The 2000 char buffer should be way oversized
 	     for this routine's needs..  And it is managerial
-	     input at the policy database, which has the unpredictable
+	     input at the policy database, which has the "unpredictable"
 	     size...  */
 	  s = strchr(rbldomain, ':');
 	  if (s) *s = 0;
@@ -730,11 +731,12 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 		    *s = ' ';
 		}
 	      }
+	      type(NULL,0,NULL,"Found DNS TXT object: %s\n", *msgp ? *msgp : "<nil>");
 	    }
 	    return -1;
 	  }
 	  /* Didn't find A record */
-	  type(NULL,0,NULL, "Looking up DNS A object: %s", hbuf);
+	  type(NULL,0,NULL, "Didn't find DNS A object: %s", hbuf);
 	}
 
 	return 0;

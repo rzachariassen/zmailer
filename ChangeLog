@@ -1,5 +1,16 @@
 2003-11-06  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/mxverify.c, smtpserver/policytest.c:
+	    More of Mariano's question analysis.
+	    Found out that I were slightly too paranoid about
+	    T_TXT object length, and actually cut back one char
+	    from all objects.  Now will log lookup results
+	    into smtpserver's commentary side-stream.
+
+	* smtpserver/mxverify.c, smtpserver/policytest.c:
+	    Mariano Absatz wanted DNS RBL tests (results, at least)
+	    to be logged into smtpserve log.
+
 	* smtpserver/readpolicy.c:
 	    Looked deeper into policy database compilation process.
 	    Behold; sysadmin can create attributes that are TOO LONG.

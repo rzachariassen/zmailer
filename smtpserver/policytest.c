@@ -988,7 +988,9 @@ int sourceaddr;
       if (!state->message){ PICK_PA_MSG(P_A_TestDnsRBL); }
 
       if (debug)
-	type(NULL,0,NULL,"  rc=%d", rc);
+	type(NULL,0,NULL,"  rc=%d; msg='%s'",
+	     rc, state->message ? state->message : "<nil>");
+
       return rc;
     }
 
@@ -1021,10 +1023,11 @@ int sourceaddr;
 	type(NULL,0,NULL," policytestaddr: 'rcpt-dns-rbl %s' found;",
 	       state->values[P_A_RcptDnsRBL]);
       rc = rbl_dns_test(ipaf, ipaddr, state->values[P_A_RcptDnsRBL], &state->rblmsg);
-#if 0
-      type(NULL, 0, NULL, "rcpt-dns-rbl test yiels: rc=%d rblmsg='%s'",rc,
-	   state->rblmsg ? state->rblmsg : "<none>");
-#endif
+
+      if (debug)
+	type(NULL, 0, NULL, "rcpt-dns-rbl test yields: rc=%d rblmsg='%s'", rc,
+	     state->rblmsg ? state->rblmsg : "<none>");
+
       if (!state->message){ PICK_PA_MSG(P_A_RcptDnsRBL); }
       if (debug)
 	type(NULL,0,NULL,"  rc=%d", rc);
