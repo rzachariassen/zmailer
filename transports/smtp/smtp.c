@@ -1194,6 +1194,9 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	  if (doing_reopen) SS->firstmx = 0;
 
+	  smtp_flush(SS); /* Flush in every case */
+	  SS->cmdstate = 0;
+
 	  openstatus = smtpopen(SS, host, noMX);
 	  if (openstatus != EX_OK) {
 
@@ -1354,7 +1357,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	r = EX_OK;
 
-    more_recipients:
+ more_recipients:;
+
 	if (more_rp != NULL) {
 
 	  startrp   = more_rp;
@@ -1724,7 +1728,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  MIBMtaEntry->tasmtp.SmtpRCPT ++;
 
 	  /* RCPT To:<...> -- pipelineable */
- 	  r = smtpwrite(SS, 1, SMTPbuf, pipelining, rp);
+	  r = smtpwrite(SS, 1, SMTPbuf, pipelining, rp);
 	  if (r != EX_OK) {
 	    if (!SS->smtpfp || sffileno(SS->smtpfp) < 0) r = EX_TEMPFAIL; /* ALWAYS! */
 	    if (!pipelining) {
@@ -2359,6 +2363,8 @@ smtpopen(SS, host, noMX)
 
 	if (debug && logfp)
 	  fprintf(logfp, "%s#\tsmtpopen: connecting to %.200s\n", logtag(), host);
+
+	smtp_flush(SS);
 
 	do {
 
