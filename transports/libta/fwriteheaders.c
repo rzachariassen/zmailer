@@ -26,7 +26,8 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	struct rcpt *rp;
 	FILE *fp;
 	const char *newline;
-	int convertmode, maxwidth;
+	CONVERTMODE convertmode;
+	int maxwidth;
 	char ** chunkbufp;
 {
 	char **msgheaders = *(rp->newmsgheader);

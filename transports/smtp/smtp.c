@@ -731,7 +731,8 @@ deliver(SS, dp, startrp, endrp)
 	struct rcpt *rp = NULL;
 	int r = EX_TEMPFAIL;
 	int nrcpt, rcpt_cnt, size, tout;
-	int content_kind = 0, convertmode;
+	int content_kind = 0;
+	CONVERTMODE convertmode;
 	int ascii_clean = 0;
 	struct stat stbuf;
 	char SMTPbuf[2000];
@@ -1162,7 +1163,7 @@ deliver(SS, dp, startrp, endrp)
 	    hdrs = *(startrp->newmsgheadercvt);
 	  fprintf(SS->verboselog,
 		  "Processed headers:  ContentKind=%d, CvtMode=%d\n------\n",
-		  content_kind,convertmode);
+		  content_kind,(int)convertmode);
 	  while (hdrs && *hdrs)
 	    fprintf(SS->verboselog,"%s\n",*hdrs++);
 	}

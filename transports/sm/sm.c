@@ -369,8 +369,8 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	char *ws = NULL, *we = NULL;
 	const char *ds, **av, *s;
 	int status;
-	int content_kind, conversion_prohibited,
-	  convertmode = 0, ascii_clean = 0;
+	int content_kind, conversion_prohibited, ascii_clean = 0;
+	CONVERTMODE convertmode = _CONVERT_NONE;
 
 	if (lseek(dp->msgfd, (off_t)(dp->msgbodyoffset), SEEK_SET) < 0L)
 		warning("Cannot seek to message body! (%m)", (char *)NULL);

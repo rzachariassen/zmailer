@@ -42,11 +42,12 @@ struct taddress {
      _CONVERT_8BIT (2): Convert QP-encoded chars to 8-bit
      _CONVERT_UNKNOWN (3): Turn message to charset=UNKNOWN-8BIT, Q-P..
 */
-#define _CONVERT_NONE	 0
-#define _CONVERT_QP	 1
-#define _CONVERT_8BIT	 2
-#define _CONVERT_UNKNOWN 3
-
+typedef enum {
+  _CONVERT_NONE,
+  _CONVERT_QP,
+  _CONVERT_8BIT,
+  _CONVERT_UNKNOWN
+} CONVERTMODE;
 
 struct rcpt {
 	struct rcpt	*next;
@@ -215,7 +216,7 @@ extern int cte_check __((struct rcpt *rp));
 extern char **has_header __((struct rcpt *rp, const char *keystr));
 extern void delete_header __((struct rcpt *rp, char **hdrp));
 extern int  downgrade_charset __((struct rcpt *rp, FILE *verboselog));
-extern int  downgrade_headers __((struct rcpt *rp, int downgrade, FILE *verboselog));
+extern int  downgrade_headers __((struct rcpt *rp, CONVERTMODE downgrade, FILE *verboselog));
 extern int qp_to_8bit __((struct rcpt *rp));
 
 /* mime2headers.c */
@@ -224,9 +225,9 @@ extern int headers_need_mime2 __(( struct rcpt *rp ));
  
 
 /* fwriteheaders.c: */
-extern int fwriteheaders __((struct rcpt *rp, FILE *fp, const char *newline, int use_cvt, int maxwidth, char **chunkbufp));
+extern int fwriteheaders __((struct rcpt *rp, FILE *fp, const char *newline, CONVERTMODE use_cvt, int maxwidth, char **chunkbufp));
 /* swriteheaders.c: */
-extern int swriteheaders __((struct rcpt *rp, Sfio_t *fp, const char *newline, int use_cvt, int maxwidth, char **chunkbufp));
+extern int swriteheaders __((struct rcpt *rp, Sfio_t *fp, const char *newline, CONVERTMODE use_cvt, int maxwidth, char **chunkbufp));
 
 /* buildbndry.c: */
 extern char *mydomain __((void));

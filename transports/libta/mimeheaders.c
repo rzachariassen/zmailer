@@ -14,8 +14,8 @@
  * There are multiple-kind headers depending upon how they have been
  * rewritten, and those do tack together for each recipients (rp->)
  * There
- *    rp->newmsgheader    is a pointer to an element on  rp->desc->headers[]
- *    rp->newmsgheadercvt is respectively an elt on  rp->desc->headerscvt[]
+ *  rp->newmsgheader    is a pointer to an element on rp->desc->msgheaders[]
+ *  rp->newmsgheadercvt is respectively an element on rp->desc->msgheaderscvt[]
  *
  * The routine-collection   mimeheaders.c  creates converted headers,
  * if the receiving system needs them. Converted header data is created
@@ -731,7 +731,7 @@ FILE *verboselog;
 int
 downgrade_headers(rp, convertmode, verboselog)
 struct rcpt *rp;
-int convertmode;
+CONVERTMODE convertmode;
 FILE *verboselog;
 {
 	char ***oldmsgheader;

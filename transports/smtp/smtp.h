@@ -445,8 +445,8 @@ extern char **environ;
 
 extern int deliver    __((SmtpState *SS, struct ctldesc *dp, struct rcpt *startrp, struct rcpt *endrp));
 extern int writebuf   __((SmtpState *SS, const char *buf, int len));
-extern int writemimeline __((SmtpState *SS, const char *buf, int len, int cvtmode));
-extern int appendlet  __((SmtpState *SS, struct ctldesc *dp, int convertmode));
+extern int writemimeline __((SmtpState *SS, const char *buf, int len, CONVERTMODE cvtmode));
+extern int appendlet  __((SmtpState *SS, struct ctldesc *dp, CONVERTMODE convertmode));
 extern int smtpopen   __((SmtpState *SS, const char *host, int noMX));
 extern int smtpconn   __((SmtpState *SS, const char *host, int noMX));
 extern int smtp_ehlo  __((SmtpState *SS, const char *strbuf));

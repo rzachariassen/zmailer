@@ -19,7 +19,7 @@ int
 appendlet(SS, dp, convertmode)
 	SmtpState *SS;
 	struct ctldesc *dp;
-	int convertmode;
+	CONVERTMODE convertmode;
 {
 	/* `convertmode' controls the behaviour of the message conversion:
 	     _CONVERT_NONE (0): send as is
@@ -356,7 +356,7 @@ writemimeline(SS, buf, len, convertmode)
 	SmtpState *SS;
 	const char *buf;
 	int len;
-	int convertmode;
+	CONVERTMODE convertmode;
 {
 	Sfio_t *fp = SS->smtpfp;
 	register const char *cp;
