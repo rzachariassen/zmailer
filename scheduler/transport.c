@@ -121,10 +121,6 @@ flush_child(proc)
 
 	}
 	if (proc->tofd < 0) {
-	  if (proc->pthread) {
-	    proc->pthread->proc     = NULL;
-	    proc->pthread           = NULL;
-	  }
 	  proc->cmdlen = 0;
 	  proc->state = CFSTATE_ERROR;
 
@@ -160,10 +156,6 @@ flush_child(proc)
 	    /* Some real failure :-( */
 	    pipes_shutdown_child(proc->tofd);
 	    proc->tofd = -1;
-	    if (proc->pthread) {
-	      proc->pthread->proc     = NULL;
-	      proc->pthread           = NULL;
-	    }
 	    proc->cmdlen = 0;
 	    proc->state = CFSTATE_ERROR;
 
@@ -405,14 +397,15 @@ ta_hungry(proc)
 	  if (proc->overfed > 0) return;
 
 	  /* Disconnect the previous thread from the proc. */
+	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
+	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
+
 	  if (proc->pthread) {
-	    if (proc->pnext) proc->pnext->pprev = proc->pprev;
-	    if (proc->pprev) proc->pprev->pnext = proc->pnext;
 	    if (proc->pthread->proc == proc)
 	      proc->pthread->proc = proc->pnext;
 
-	    /* If this was the last process, reschedule the thread */
-	    if (proc->pthread->proc == NULL)
+	    /* Possibly also reschedule the thread (if last thrkid!) */
+	    if (proc->pthread)
 	      thread_reschedule(proc->pthread,0,-1);
 	  }
 	  proc->pthread = NULL;
@@ -466,10 +459,13 @@ ta_hungry(proc)
 	  /* Unlink me from the active chain */
 	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
 	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
-	  if (proc->pthread->proc == proc) /* Was chain head */
-	    proc->pthread->proc = proc->pnext;
+	  if (proc->pthread) {
+	    if (proc->pthread->proc == proc) /* Was chain head */
+	      proc->pthread->proc = proc->pnext;
 
-	  proc->pthread = NULL;
+	    proc->pthread->thrkids -= 1;
+	    proc->pthread = NULL;
+	  }
 
 	  proc->pnext   = proc->thg->idleproc;
 	  if (proc->pnext) proc->pnext->pprev = proc;
@@ -889,9 +885,8 @@ if (verbose)
 	  if (proc->pthread->proc == proc)
 	    proc->pthread->proc = proc->pnext;
 
-	  /* If this was the last process, reschedule the thread */
-	  if (proc->pthread->proc == NULL)
-	    thread_reschedule(proc->pthread,0,-1);
+	  /* Conditionally reschedule the thread */
+	  thread_reschedule(proc->pthread,0,-1);
 
 	  /* Disjoin the thread from the proc */
 	  proc->pthread->thrkids -= 1;

@@ -325,7 +325,8 @@ pick_next_thread(proc)
 	  if ((thr->wakeup > now) && (thr->attempts > 0))
 	    continue; /* wakeup in future, unless first time around! */
 
-	  if (vp && (thr->thrkids < ce->maxkidThread)) {
+	  if (vp && (thr->thrkids < ce->maxkidThread) &&
+	      (thr->thrkids < thr->jobs) /* FIXME: real unfed count ? */) {
 
 	    struct web     * ho = vp->orig[L_HOST];
 	    struct web     * ch = vp->orig[L_CHANNEL];
@@ -815,6 +816,7 @@ thread_start(thr, queue_only_too)
 		   thr, thr->jobs);
 
 	if ((thr->thrkids >= ce->maxkidThread) ||
+	    /* FIXME: real unfed count ? */
 	    (thr->thrkids >= thr->jobs)) {
 	  if (verbose) {
 	    struct procinfo * proc = thr->proc;
@@ -1050,12 +1052,8 @@ time_t retrytime;
 	  sfprintf(sfstdout,"thread_reschedule() ch=%s ho=%s jobs=%d thr=%p proc=%p\n",
 		   thr->channel,thr->host,thr->jobs,thr,thr->proc);
 
-	if (thr->proc) {
-	  /* We also disjoin possible current TA processes */
-	  thr->nextfeed      = NULL;
-	  thr->proc->pthread = NULL;
-	  thr->proc = NULL;
-	}
+	/* If there are multiple kids working still, DON'T reschedule! */
+	if (thr->thrkids > 0) return;
 
 	/* find out when to retry */
 	mytime(&now);
