@@ -220,7 +220,7 @@ int insecure;
 	    s = SS->rhostname;
 	len2 = strlen(s);
 #ifdef HAVE_ALLOCA
-	fname = alloca(len1 + 1 + len2 + 1);
+	fname = (char*)alloca(len1 + 1 + len2 + 1);
 #else
 	fname = malloc(len1 + 1 + len2 + 1);
 #endif
@@ -304,22 +304,22 @@ char **argv;
     /* optarg = NULL; */
     while (1) {
 	int c = getopt(argc, argv,
-		       "?"
+		       "?\
 #ifdef USE_INET
-		       "4"
+4\
 #if defined(AF_INET6) && defined(INET6)
-		       "6"
+6\
 #endif
 #endif
-		       "aBC:d:ighl:n"
+aBC:d:ighl:n\
 #ifdef USE_INET
-		       "p:"
+p:\
 #endif
-		       "L:M:P:R:s:S:Vv"
+L:M:P:R:s:S:Vv\
 #ifdef USE_TRANSLATION
-		       "X8"
+X8\
 #endif /* USE_TRANSLATION */
-		       );
+");
 	if (c == EOF)
 	    break;
 	if (c == '?') {
