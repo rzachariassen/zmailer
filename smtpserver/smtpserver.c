@@ -509,7 +509,7 @@ char **argv;
 
     if (!daemon_flg) {
 
-      raddrlen = sizeof SS.raddr;
+      raddrlen = sizeof(SS.raddr);
       memset(&SS.raddr, 0, raddrlen);
       if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen))
 	netconnected_flg = 0;
@@ -534,7 +534,7 @@ char **argv;
 	    exit(1);
 	}
 #endif
-	raddrlen = sizeof SS.raddr;
+	raddrlen = sizeof(SS.raddr);
 	memset(&SS.raddr, 0, raddrlen);
 
 	if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen))
