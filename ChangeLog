@@ -1,3 +1,10 @@
+1999-07-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpcmds.c, smtpserver/smtpserver.h:
+	    Limit the length of the "HELO/EHLO" string, and the length
+	    of reported reversed hostname in the "rcvdfrom" envelope
+	    header, and thus in the resulting "Received:" header.
+
 1999-07-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/rfc822.c, router/rfc822hdrs.c, router/libta/header.c:

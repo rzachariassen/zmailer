@@ -702,7 +702,7 @@ int insecure;
       /* Produce the 'rcvdfrom' header only when connected
 	 to network socket */
 
-      fprintf(SS->mfp, "rcvdfrom %s (", SS->rhostname);
+      fprintf(SS->mfp, "rcvdfrom %.200s (", SS->rhostname);
       if (SS->ihostaddr[0] != 0)
 	fprintf(SS->mfp, "%s:%d ", SS->ihostaddr, SS->rport);
       rfc822commentprint(SS->mfp, SS->helobuf);

@@ -195,7 +195,7 @@ typedef struct {
     char *authuser;
 
     char ident_username[MAXHOSTNAMELEN + MAXHOSTNAMELEN + 2];
-    char helobuf[SMTPLINESIZE];
+    char helobuf[200]; /* Carefully limited copy into this buffer */
     struct smtpconf *cfinfo;
 
 #ifdef HAVE_WHOSON_H
