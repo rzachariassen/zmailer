@@ -13,6 +13,7 @@ smtpserver \- zmailer SMTP server
 [\fB\-l\fR\ \fIlogfile\fR]
 [\fB\-s\fR[\fBftveR\fR]]
 [\fB\-s\ \fCstrict\fR]
+[\fB\-s\ \fCsloppy\fR]
 [\fB\-I\fR\ \fIpidfile\fR]
 [\fB\-L\fR\ \fImaxloadaver\fR]
 [\fB\-M\fR\ \fISMTPmaxsize\fR]
@@ -153,6 +154,11 @@ this turns on all kinds of
 .B strict
 smtp protocol adherence checks, which in normal life can be relaxed
 slightly.  Great for compliance testing ;)
+.RE
+.IP "\-s sloppy"
+.RS
+This makes smtpserver even more alike sendmail(TM), with
+all of its sloppy protocol processing.
 .RE
 .IP "\-s [ftveRS]"
 .RS
