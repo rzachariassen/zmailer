@@ -134,7 +134,7 @@ zmcast_set_loop(zmc, onoff)
 	      u_char flag = onoff;
 	      
 	      return setsockopt( zmc->fd, IPPROTO_IP, IP_MULTICAST_LOOP,
-				 &flag, sizeof(flag) );
+				 (const void *) &flag, sizeof(flag) );
 	    }
 
 #if defined(AF_INET6) && defined(INET6)
@@ -142,7 +142,7 @@ zmcast_set_loop(zmc, onoff)
 	    {
 	      u_int flag = onoff;
 	      return setsockopt( zmc->fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP,
-				 &flag, sizeof(flag) );
+				 (const void *) &flag, sizeof(flag) );
 	    }
 #endif
 

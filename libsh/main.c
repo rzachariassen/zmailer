@@ -29,7 +29,7 @@ main(argc, argv)
 	char *argv[];
 {
 	/* mal_debug(3); */
-	zshinit(argc, argv);
+	zshinit(argc, (const char **)argv);
 	/* mal_leaktrace(1); */
 	trapexit(zshtoplevel(zoptind < argc ? argv[zoptind] : (char *)NULL));
 	/* NOTREACHED */
