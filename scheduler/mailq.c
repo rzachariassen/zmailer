@@ -1242,12 +1242,14 @@ static struct ctlfile *readmq2cfp(fname)
 	      *p = 0;
 	      cfp->format = 0;
 	      sscanf(s, "%i", &cfp->format);
+printf("scanner: format='%s'\n",s);
 	      i -= (p - s);
 	      s = p;
 	      break;
 	    case _CF_LOGIDENT:
 	      cfp->logident = s;
 	      *p = 0;
+printf("scanner: logident='%s'\n",s);
 	      i -= (p - s);
 	      s = p;
 	      break;
@@ -1500,26 +1502,25 @@ void query2(fpi, fpo)
 		if (cfp) {
 		  if (j == 0) {
 		    /* First recipient in the group */
-
+		    printf("\t ");
 		    if (cfp->logident) {
-		      printf("\t  id\t%s, ", cfp->logident);
-		    } else if (verbose > 1) {
-		      printf("\t\t");
+		      printf(" id\t%s, ", cfp->logident);
 		    }
 		    if (verbose > 1) {
-		      printf("%ld bytes", (long)cfp->nlines);
+		      printf(" bytes %ld", (long)cfp->nlines);
 		    }
 		    printf("\n");
 
-		    printf("\t  from\t%s\n", *split[1] ? split[1] : "<>");
+		    printf("\t  from\t%s\n", *split[2] ? split[2] : "<>");
 		  }
 
 		  /* XXX: TO line ... */
 
-		  s = cfp->contents + atoi(split[3]);
-		  if (s < cfp->contents || s > (cfp->contents + cfp->nlines))
+		  s = cfp->contents + atoi(split[3]) +2;
+		  if (s > (cfp->contents + cfp->nlines)) {
+		    printf("\t\tto-ptr bad; split[3]='%s'\n",split[3]);
 		    continue; /* BAD! */
-		  s += 2;
+		  }
 
 		  if (*s == ' ' || (*s >= '0' && *s <= '9'))
 		    s += _CFTAG_RCPTPIDSIZE;
