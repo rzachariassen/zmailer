@@ -87,7 +87,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <arpa/inet.h>
 #include <arpa/nameser.h> /* Sol 2.6 barfs without this.. */
 #include <resolv.h>
+#ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
+#endif
 #include <sys/utsname.h>
 #include <netdb.h>
 #if !defined(EAI_AGAIN) || !defined(AI_NUMERICHOST)
@@ -101,8 +103,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif /* min */
 
 #ifndef AF_LOCAL
-# define AF_LOCAL AF_UNIX
-# define PF_LOCAL PF_UNIX
+# ifdef AF_UNIX
+#  define AF_LOCAL AF_UNIX
+#  define PF_LOCAL PF_UNIX
+# endif
 #endif
 
 static char * nrl_domainname __((void));
@@ -196,10 +200,12 @@ getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
     return -1;
 
   switch (sa->sa_family) {
+#ifdef AF_LOCAL
   case AF_LOCAL:
     if (addrlen < (size_t) (((struct sockaddr_un *) NULL)->sun_path))
       return -1;
     break;
+#endif
   case AF_INET:
     if (addrlen < sizeof (struct sockaddr_in))
       return -1;
@@ -252,6 +258,7 @@ getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
       }
       break;
 
+#ifdef AF_LOCAL
     case AF_LOCAL:
       if (!(flags & NI_NUMERICHOST)) {
 	struct utsname utsname;
@@ -268,6 +275,7 @@ getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
 
       strncpy (host, "localhost", hostlen);
       break;
+#endif
 
     default:
       return -1;
@@ -293,9 +301,11 @@ getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
 	}
 	break;
 
+#ifdef AF_LOCAL
       case AF_LOCAL:
 	strncpy (serv, ((struct sockaddr_un *) sa)->sun_path, servlen);
 	break;
+#endif
     }
 
   if (host && (hostlen > 0))

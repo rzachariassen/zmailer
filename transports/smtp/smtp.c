@@ -391,6 +391,10 @@ static char *filename;
 static int   filenamesize;
 static int task_count;
 
+const char *punthost; /* Besided of value, is also used as GLOBAL
+			 state variable! */
+
+
 int
 main(argc, argv)
 	int argc;
@@ -409,7 +413,7 @@ main(argc, argv)
 	volatile int checkmx = 0; /* check all destination hosts for MXness */
 #endif	/* BIND */
 	RETSIGTYPE (*oldsig)__((int));
-	volatile const char *smtphost, *punthost = NULL;
+	volatile const char *smtphost = NULL;
 
 #ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
 	old_malloc_hook = __malloc_hook;
@@ -2265,16 +2269,66 @@ smtpconn(SS, host, noMX)
 	if (host[0] == '"' && host[1] == '[')
 	  ++host;
 
-	if (*host == '[') {	/* hostname is IP address domain literal */
+#ifndef AF_UNIX
+# ifdef AF_LOCAL
+#  define AF_UNIX AF_LOCAL
+# endif
+#endif
+#ifdef AF_UNIX
+	if (punthost && STREQN(host,"UNIX:/",6)) {
+
+	  /* We are going into a UNIX domain socket...
+	     ... and this socket is defined at our command line!  */
+	  
+	  struct addrinfo *ai;
+	  struct sockaddr_un *su;
+
+	  su = malloc(256+8);
+	  ai = malloc(sizeof(*ai));
+
+	  if (ai && su) {
+
+	    memset(ai, 0, sizeof(*ai));
+	    memset(su, 0, 256+8);
+
+	    ai->ai_next     = NULL;
+	    ai->ai_family   = AF_UNIX;
+	    ai->ai_socktype = SOCK_STREAM;
+	    ai->ai_protocol = 0;
+	    ai->ai_flags    = 0;
+	    ai->ai_addr     = (void *) su;
+
+	    su->sun_family = AF_UNIX;
+#if HAVE_SA_LEN
+	    su->sun_len = sizeof(su);
+#endif
+	    strncpy(su->sun_path, host+6, 256);
+	    su->sun_path[255] = 0;
+
+	    SS->mxcount = 0;
+	    retval = makeconn(SS, host, ai, -2);
+
+	  } else
+	    retval = EX_TEMPFAIL; /* Out of memory... */
+
+	  if (ai) free(ai);
+	  if (su) free(su);
+
+	  goto bail_out;
+
+	}
+#endif
+	if (*host == '[') {	/* hostname is IP address literal */
+
 	  char *cp, buf[500];
 	  const char *hcp;
 	  struct addrinfo req, *ai;
 
 	  memset(&req, 0, sizeof(req));
+	  req.ai_family   = 0; /* Either IPv4 or IPv6 ok */
 	  req.ai_socktype = SOCK_STREAM;
 	  req.ai_protocol = IPPROTO_TCP;
 	  req.ai_flags    = AI_CANONNAME;
-	  req.ai_family   = 0; /* Either IPv4 or IPv6 ok */
 	  ai = NULL;
 
 	  if (SS->verboselog)
@@ -2344,8 +2398,12 @@ smtpconn(SS, host, noMX)
 	  SS->mxcount = 0;
 	  retval = makeconn(SS, host, ai, -2);
 
-	} else {
+	  goto bail_out;
 
+	}
+
+	/* Final "else" branch ... */
+	if (1) {
 	  /* HOSTNAME; (non-literal) */
 
 	  if (SS->verboselog)
@@ -2600,6 +2658,8 @@ smtpconn(SS, host, noMX)
 	  }
 	} /* end of HOSTNAME MX lookup processing */
 
+ bail_out:
+
 	if (debug && logfp)
 	  fprintf(logfp,
 		  "%s#\tsmtpconn: retval = %d\n", logtag(), retval);
@@ -2745,7 +2805,13 @@ makeconn(SS, hostname, ai, ismx)
 		    SS->servport);
 	  } else
 #endif
-	    sprintf(SS->ipaddress,"UNKNOWN-ADDR-FAMILY-%d", ai->ai_family);
+#ifdef AF_UNIX
+	    if (ai->ai_family == AF_UNIX) {
+	      struct sockaddr_un *un = (struct sockaddr_un *)ai->ai_addr;
+	      sprintf(SS->ipaddress, "UNIX:%s", un->sun_path);
+	    } else
+#endif
+	      sprintf(SS->ipaddress,"UNKNOWN-ADDR-FAMILY-%d", ai->ai_family);
 
 	  notary_setwttip(SS->ipaddress);
 
@@ -3073,10 +3139,27 @@ abort();
 	/* setreuid(0,first_uid);
 	   if(SS->verboselog) fprintf(SS->verboselog,"setreuid: first_uid=%d, ruid=%d, euid=%d\n",first_uid,getuid(),geteuid()); */
 
-	if (SS->verboselog)
-	  fprintf(SS->verboselog, "Connecting to %.200s [%.200s] port %d\n",
-		  hostname, SS->ipaddress, ntohs(sai->sin_port));
-
+	if (SS->verboselog) {
+	  if (af == AF_INET
+#if defined(AF_INET6) && defined(INET6)
+	      || af == AF_INET6
+#endif
+	      ) {
+	    fprintf(SS->verboselog, "Connecting to %s [%s] port %d\n",
+		    hostname, SS->ipaddress, ntohs(sai->sin_port));
+	  } else
+#ifdef AF_UNIX
+	    if (af == AF_UNIX) {
+	    /* PRESUMPTION: AF_UNIX socket... */
+	      fprintf(SS->verboselog, "Connecting to %s [%s]\n",
+		      hostname, SS->ipaddress);
+	    } else
+#endif
+	      {
+		fprintf(SS->verboselog, "Connecting to %s [UNKNOWN-ADDRESS-FAMILY]\n",
+			hostname);
+	      }
+	}
 
 	gotalarm = 0;
 

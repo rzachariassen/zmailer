@@ -805,6 +805,8 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	/* Write headers: */
 
 	fwriteheaders(startrp, tafp, lineendseq, convertmode, maxwidth, NULL);
+	if (verboselog)
+	  fwriteheaders(startrp, verboselog, "\n", convertmode, maxwidth, NULL);
 
 	/*
 	 * NOTE: Following header writers make sense only for SINGLE
@@ -817,6 +819,12 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    fprintf(tafp, "Envelope-Id: ");
 	    decodeXtext(tafp, dp->envid);
 	    fputs(lineendseq, tafp);
+
+	    if (verboselog) {
+	      fprintf(verboselog, "Envelope-Id: ");
+	      decodeXtext(verboselog, dp->envid);
+	      fputs("\n", verboselog);
+	    }
 	  }
 	}
 	if (mp->flags & (MO_XORCPT|MO_XENVELOPES)) {
@@ -835,6 +843,16 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	      decodeXtext(tafp, rp->orcpt);
 	      fputs(lineendseq, tafp);
 	    }
+	    if (verboselog) {
+	      fprintf(verboselog, "X-Envelope-To: <%s> (uid %s)\n",
+		    uu, rp->addr->misc);
+	      if (rp->orcpt) {
+		/* RFC 2298: section 2.3 */
+		fprintf(verboselog, "Original-Recipient: ");
+		decodeXtext(verboselog, rp->orcpt);
+		fputs("\n", verboselog);
+	      }
+	    }
 	  }
 	}
 
@@ -851,13 +869,11 @@ deliver(dp, mp, startrp, endrp, verboselog)
 
 	fputs(lineendseq, tafp);
 
+	if (verboselog) fprintf(verboselog, "\n");
 
-	if (verboselog) {
-	  fwriteheaders(startrp, verboselog, "\n", convertmode, maxwidth, NULL);
-	  fprintf(verboselog, "\n");
-	}
 
-	/* append message body itself */
+	/* Append message body itself */
+
 	i = appendlet(dp, mp, tafp, verboselog, convertmode);
 	if (i != EX_OK && !gotsigpipe) {
 	  for (rp = startrp; rp != endrp; rp = rp->next) {

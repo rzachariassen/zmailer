@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "10 Dec 2001"
+.TH SMTP 8 "2 Sep 2002"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
@@ -81,8 +81,22 @@ or
 overrides delivery destination by forceing
 .B all
 email to be sent to given
+.IR forcedest .
+.LP
+Understood formats for the
 .I forcedest
-hostname, or literal [IP-number].
+are:
+.LP
+.RS
+.IP "UNIX:/path/to/socket"
+Connects to named UNIX-domain socket in local system.
+.IP "[ipv6.1111:2222:3333:...]"
+Literal IPv6 address for IPv6 system
+.IP "[1.2.3.4]"
+Literal IPv4 address for non-IPv6 system
+.IP "some.host.name"
+DNS/hosts data registered name
+.RE
 .IP \-H
 Disable the per default active forced 8-bit headers conversion into
 .IR MIME-2 -format.

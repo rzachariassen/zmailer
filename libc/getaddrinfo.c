@@ -82,7 +82,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <arpa/inet.h>
 #include <arpa/nameser.h> /* Sol 2.6 barfs without this.. */
 #include <resolv.h>
+#ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
+#endif
 #include <sys/utsname.h>
 #include <netdb.h>
 #if !defined(EAI_AGAIN) || !defined(AI_NUMERICHOST)

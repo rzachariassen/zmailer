@@ -1,5 +1,12 @@
 2002-09-02  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.c:
+	     Support -F connection to  UNIX:/...  sockets.
+	     This MUST be defined at the command line! No routing
+	     controlled version allowed!  (security, you see..)
+	     (This is subject to system having AF_UNIX support in
+	      the first place, but that should be quite common...)
+
 	* README.UPGRADING:
 	    Change in what  sm  outputs for envelope meta-data to
 	    be in line with other transport-agents... (mailbox,

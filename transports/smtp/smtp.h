@@ -39,6 +39,10 @@
 #include "zsyslog.h"
 
 #include <sys/socket.h>
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
+
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #ifdef HAVE_NETINET_IN6_H
