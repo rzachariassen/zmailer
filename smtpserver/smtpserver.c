@@ -304,22 +304,18 @@ char **argv;
     /* optarg = NULL; */
     while (1) {
 	int c = getopt(argc, argv,
-		       "?\
-#ifdef USE_INET
-4\
+		       "?"
+		       "4"
 #if defined(AF_INET6) && defined(INET6)
-6\
+		       "6"
 #endif
-#endif
-aBC:d:ighl:n\
-#ifdef USE_INET
-p:\
-#endif
-L:M:P:R:s:S:Vv\
+		       "aBC:d:ighl:n"
+		       "p:"
+		       "L:M:P:R:s:S:Vv"
 #ifdef USE_TRANSLATION
-X8\
+		       "X8"
 #endif /* USE_TRANSLATION */
-");
+		       );
 	if (c == EOF)
 	    break;
 	if (c == '?') {
