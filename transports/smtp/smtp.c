@@ -505,7 +505,7 @@ outbuf_fillup:
 
 	oldflags = fd_nonblockingmode(infd);
 
-	while (1) {
+	while (!getout) {
 
 	  time(&now);
 	  if (tmout >= now)
@@ -526,7 +526,8 @@ outbuf_fillup:
 	    i = smtpwrite(SS, 0, "NOOP", 0, NULL);
 	    if (i != EX_OK && SS->smtpfp != NULL) {
 	      /* No success ?  QUIT + close! (if haven't closed yet..) */
-	      smtpwrite(SS, 0, "QUIT", 0, NULL);
+	      if (!getout)
+		smtpwrite(SS, 0, "QUIT", 0, NULL);
 	      smtpclose(SS);
 	    }
 	  }
@@ -857,7 +858,10 @@ main(argc, argv)
 	       In theory we could use same host via MX, but...     */
 	    if (host && strcmp(s,host) != 0) {
 	      if (SS.smtpfp) {
-		smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
+		if (!getout)
+		  smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
+		else
+		  smtpstatus = EX_OK;
 		smtpclose(&SS);
 		notary_setwtt(NULL);
 		notary_setwttip(NULL);
@@ -956,7 +960,7 @@ main(argc, argv)
 	} /* while (!getout) ... */
 
 	if (smtpstatus == EX_OK) {
-	  if (SS.smtpfp)
+	  if (SS.smtpfp && !getout)
 	    smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
 	}
 	/* Close the channel -- if it is open anymore .. */
@@ -2474,7 +2478,7 @@ makeconn(SS, ai, ismx)
 	  fprintf(SS->verboselog,"\n");
 	}
 #endif
-	for ( ; ai ; ai = ai->ai_next ) {
+	for ( ; ai && !getout ; ai = ai->ai_next ) {
 
 	  int i = 0;
 	  struct sockaddr_in *si;
@@ -2560,6 +2564,8 @@ if (SS->verboselog)
 	      break;
 	  }
 	}
+	if (getout)
+	  retval = EX_TEMPFAIL;
 	return retval;
 }
 
