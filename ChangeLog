@@ -1,3 +1,10 @@
+2001-06-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transport/smtp/smtp.c:
+	    In synchronous SMTP connections, handle the result
+	    processing correctly so that permanent reject with
+	    MAIL FROM will permanently reject the message..
+
 2001-06-11  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* utils/mxverify/mxverify-cgi.c:

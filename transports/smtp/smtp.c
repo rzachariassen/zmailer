@@ -883,6 +883,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		|| rp->newmsgheader != rp->next->newmsgheader) {
 
 	      if (smtpstatus == EX_OK && openstatus == EX_OK) {
+
 		if (logfp && !loggedid) {
 		  loggedid = 1;
 		  fprintf(logfp, "%s#\t%s: %s\n", logtag(), dp->msgfile, dp->logident);
@@ -942,14 +943,16 @@ process(SS, dp, smtpstatus, host, noMX)
 		  if (rphead->lockoffset) {
 
 		    notaryreport(rphead->addr->user, FAILED, NULL, NULL);
-		    diagnostic(rphead, EX_TEMPFAIL,
-			       openstatus == EX_TEMPFAIL ? 60 : 0,
+		    diagnostic(rphead, smtpstatus,
+			       smtpstatus == EX_TEMPFAIL ? 60 : 0,
 			       "%s", SS->remotemsg);
 		  }
 		}
 
 		rphead = rp->next;
+
 	      } else {
+
 		time(&endtime);
 		notary_setxdelay((int)(endtime-starttime));
 		while (rphead != rp->next) {
