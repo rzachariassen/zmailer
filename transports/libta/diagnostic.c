@@ -229,7 +229,12 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	int report_notary = 1;
 	int logreport = 0;
 
-	if (!rp->lockoffset) return; /* Don't re-report... */
+
+	/* Nothing to do ?? */
+	if (rp->lockoffset == 0 && !verboselog) return;
+
+	/* Ok, we either release the lock, and do diagnostics,
+	   or we do verbose logging... or both. */
 
 	rp->status = rc;
 
@@ -275,6 +280,8 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 
 	/* If we had ZMALLOC_FAILURE -> ABORT!  */
 	if (zmalloc_failure && !(rp->notifyflgs & _DSN__DIAGDELAYMODE)) {
+
+	  if (!rp->lockoffset) return; /* Don't re-report... */
 
 	  fprintf(stdout,"%d/%d\t%s\t%s %s\n",
 		  rp->desc->ctlid, rp->id,
@@ -364,7 +371,7 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	s = notarybuf; while (s && (s = strchr(s,'\n'))) *s = '\r';
 	s = message;   while (s && (s = strchr(s,'\n'))) *s = '\r';
 
-	if (logreport) {
+	if (logreport && rp->lockoffset) {
 	  /* Right, we have a honour to append our diagnostics to the
 	     transport specification file ourselves */
 	  int oldfl = fcntl(rp->desc->ctlfd, F_GETFL);
@@ -423,6 +430,7 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 		  break;
 #endif /* HAVE_FTRUNCATE */
 	      fprintf(stdout,"#HELP! diagnostic writeout with bad results!: len=%d, rc=%d\n", len, rc2);
+	      fflush(stdout);
 	      exit(EX_DATAERR);
 	    }
 #ifdef HAVE_FSYNC
@@ -449,9 +457,28 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	    *notarybuf = 0;
 	}
 
+
+	/* Do the verbose logging BEFORE actual diagnostics output.
+	   That way the "scheduler done processing" will always be
+	   the last -- presuming the verboselog does not throw in
+	   things AFTER the final diagnostic() call... */
+
+	if (verboselog) {
+	  fprintf(verboselog,
+		  "DIAG: C='%s' H='%s' U='%s' P='%s' -- stat='%s' ",
+		  rp->addr->channel, rp->addr->host, rp->addr->user,
+		  rp->addr->misc, statmsg);
+	  if (wtthost)
+	    fprintf(verboselog, "WTT='%s' ", wtthost);
+	  fprintf(verboselog, " MSG='%s'\n", message);
+	  fflush(verboselog);
+	}
+
+
+
 	/* "Delay" the diagnostics from mailbox sieve subprocessing.
 	   Actually DON'T do then at all! */
-	if (!(rp->notifyflgs & _DSN__DIAGDELAYMODE)) {
+	if (rp->lockoffset && (!(rp->notifyflgs & _DSN__DIAGDELAYMODE))) {
 
 	  fprintf(stdout,"%d/%d\t%s\t%s %s\n",
 		  rp->desc->ctlid, rp->id,
@@ -480,20 +507,5 @@ diagnostic(verboselog, rp, rc, timeout, fmt, va_alist) /* (verboselog, rp, rc, t
 	  else syslogmsg++; /* Skip the last \r ... */
 
 	  tasyslog(rp, xdelay, wtthost, wttip, statmsg, syslogmsg);
-	}
-	fflush(stdout);
-
-	if (verboselog) {
-	  syslogmsg = strrchr(message, '\r');
-	  if (!syslogmsg) syslogmsg = message;
-	  else syslogmsg++; /* Skip the last \r ... */
-
-	  fprintf(verboselog,
-		  "DIAG: C='%s' H='%s' U='%s' P='%s' -- stat='%s' ",
-		  rp->addr->channel, rp->addr->host, rp->addr->user,
-		  rp->addr->misc, statmsg);
-	  if (wtthost)
-	    fprintf(verboselog, "WTT='%s' ", wtthost);
-	  fprintf(verboselog, " MSG='%s'\n", syslogmsg);
 	}
 }

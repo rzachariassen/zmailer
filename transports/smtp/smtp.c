@@ -974,6 +974,12 @@ process(SS, dp, smtpstatus, host, noMX)
 		    diagnostic(SS->verboselog, rphead, smtpstatus,
 			       smtpstatus == EX_TEMPFAIL ? 60 : 0,
 			       "%s", SS->remotemsg);
+		    if (logfp) {
+		      fprintf(logfp, "%s#\t", logtag());
+		      diagnostic(logfp, rphead, smtpstatus,
+				 smtpstatus == EX_TEMPFAIL ? 60 : 0,
+				 "%s", SS->remotemsg);
+		    }
 		  }
 		}
 
@@ -995,6 +1001,12 @@ process(SS, dp, smtpstatus, host, noMX)
 		    diagnostic(SS->verboselog, rphead, EX_TEMPFAIL,
 			       smtpstatus == EX_TEMPFAIL ? 60 : 0,
 			       "%s", SS->remotemsg);
+		    if (logfp) {
+		      fprintf(logfp, "%s#\t", logtag());
+		      diagnostic(logfp, rphead, EX_TEMPFAIL,
+				 smtpstatus == EX_TEMPFAIL ? 60 : 0,
+				 "%s", SS->remotemsg);
+		    }
 		  }
 
 		  rphead = rphead->next;
@@ -1099,6 +1111,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      if (startrp->lockoffset) {
 		notaryreport(startrp->addr->user, FAILED, NULL, NULL);
 		diagnostic(SS->verboselog, startrp, openstatus, 60, "%s", SS->remotemsg);
+		if (logfp) {
+		  fprintf(logfp, "%s#\t", logtag());
+		  diagnostic(logfp, startrp, openstatus, 60, "%s", SS->remotemsg);
+		}
 	      }
 	    }
 	    return openstatus;
@@ -1223,6 +1239,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		notaryreport(rp->addr->user, FAILED,
 			     "5.3.4 (Message size exceeds limit given by remote system)", SMTPbuf);
 		diagnostic(SS->verboselog, rp, EX_UNAVAILABLE, 0, "\r\r%s", SMTPbuf+6);
+		if (logfp) {
+		  fprintf(logfp, "%s#\t", logtag());
+		  diagnostic(logfp, rp, EX_UNAVAILABLE, 0, "\r\r%s", SMTPbuf+6);
+		}
 	      }
 
 	    return EX_UNAVAILABLE;
@@ -1402,6 +1422,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		notaryreport(startrp->addr->user, FAILED,
 			     "5.5.0 (Undetermined protocol error)",NULL);
 		diagnostic(SS->verboselog, startrp, r, 0, "%s", SS->remotemsg);
+		if (logfp) {
+		  fprintf(logfp, "%s#\t", logtag());
+		  diagnostic(logfp, startrp, r, 0, "%s", SS->remotemsg);
+		}
 	      }
 	    } else {
 	      for (rp = startrp; rp && rp != endrp; rp = rp->next) {
@@ -1410,6 +1434,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		  notaryreport(rp->addr->user, FAILED,
 			       "5.5.0 (Undetermined protocol error)",NULL);
 		  diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+		  if (logfp) {
+		    fprintf(logfp, "%s#\t", logtag());
+		    diagnostic(logfp, rp, r, 0, "%s", SS->remotemsg);
+		  }
 		}
 	      }
 	    }
@@ -1556,6 +1584,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    /* NOTARY: address / action / status / diagnostic / wtt */
 	    notaryreport(rp->addr->user, FAILED, NULL, NULL);
 	    diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
+	    if (logfp) {
+	      fprintf(logfp, "%s#\t", logtag());
+	      diagnostic(logfp, rp, r, 0, "%s", SS->remotemsg);
+	    }
 	    if (!SS->smtpfp)
 	      break;
 
@@ -1649,6 +1681,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		if (rp->status == EX_OK) rp->status = r;
 		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+		if (logfp) {
+		  fprintf(logfp, "%s#\t", logtag());
+		  diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
+		}
 	      }
 	    }
 
@@ -1723,6 +1759,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		if (rp->status == EX_OK) rp->status = r;
 		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+		if (logfp) {
+		  fprintf(logfp, "%s#\t", logtag());
+		  diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
+		}
 	      }
 
 	    return r;
@@ -1807,6 +1847,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 			   "smtp; 566 (Message header write failure)");
 	      if (rp->status == EX_OK) rp->status = r;
 	      diagnostic(SS->verboselog, rp, rp->status, 0, "%s", "header write error");
+	      if (logfp) {
+		fprintf(logfp, "%s#\t", logtag());
+		diagnostic(logfp, rp, rp->status, 0, "%s", "header write error");
+	      }
 	    }
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"Writing headers after DATA failed\n");
@@ -1843,6 +1887,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 			   "smtp; 566 (Message write timed out;2)"); /* XX: FIX THE STATUS? */
 	      if (rp->status == EX_OK) rp->status = r;
 	      diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+	      if (logfp) {
+		fprintf(logfp, "%s#\t", logtag());
+		diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
+	      }
 	    }
 	  /* Diagnostics are done, protected (failure-)section ends! */
 	  dotmode = 0;
@@ -1936,8 +1984,13 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      /* If remote closed socket, don't diagnose here, diagnose
 		 latter.. (might also retry via other server!) */
 	      if (rp->status == EX_OK) rp->status = r;
-	      if (r != EX_TEMPFAIL)
+	      if (r != EX_TEMPFAIL) {
 		diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+		if (logfp) {
+		  fprintf(logfp, "%s#\t", logtag());
+		  diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
+		}
+	      }
 	    }
 
 	  report(SS, "Body done; %s", SS->remotemsg);
@@ -1987,6 +2040,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    notaryreport(rp->addr->user, reldel, NULL, NULL);
 	    if (rp->status == EX_OK) rp->status = r;
 	    diagnostic(SS->verboselog, rp, rp->status, 0, "%s", SS->remotemsg);
+	    if (logfp) {
+	      fprintf(logfp, "%s#\t", logtag());
+	      diagnostic(logfp, rp, rp->status, 0, "%s", SS->remotemsg);
+	    }
 	  }
 	}
 
@@ -4153,6 +4210,10 @@ smtp_sync(SS, r, nonblocking)
 	      notaryreport(SS->pipercpts[idx]->addr->user,FAILED,NULL,NULL);
 
 	      diagnostic(SS->verboselog, SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
+	      if (logfp) {
+		fprintf(logfp, "%s#\t", logtag());
+		diagnostic(logfp, SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
+	      }
 
 	    } else { /* SS->pipercpts[idx] == NULL
 			--> Connect, HELO, MAIL FROM or DATA/BDAT */
@@ -4190,6 +4251,10 @@ smtp_sync(SS, r, nonblocking)
 		  notary_setxdelay((int)(endtime-starttime));
 		  notaryreport(datarp->addr->user, FAILED, NULL, NULL);
 		  diagnostic(SS->verboselog, datarp, rc, 0, "%s", SS->remotemsg);
+		  if (logfp) {
+		    fprintf(logfp, "%s#\t", logtag());
+		    diagnostic(logfp, datarp, rc, 0, "%s", SS->remotemsg);
+		  }
 		  SS->rcptstates |= ((code >= 500) ?
 				     RCPTSTATE_500 : RCPTSTATE_400);
 
@@ -4247,6 +4312,10 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 		notary_setxdelay((int)(endtime-starttime));
 		notaryreport(datarp->addr->user, "delivered", NULL, NULL);
 		diagnostic(SS->verboselog, datarp, rc, 0, "%s", SS->remotemsg);
+		if (logfp) {
+		  fprintf(logfp, "%s#\t", logtag());
+		  diagnostic(logfp, datarp, rc, 0, "%s", SS->remotemsg);
+		}
 		SS->rcptstates |= RCPTSTATE_OK;
 
 		if (SS->verboselog)
