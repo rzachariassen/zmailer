@@ -6,7 +6,7 @@
 zmsh \- zmailer shell
 .SH SYNOPSIS
 .IP \fBzmsh\fR 5em
-[\fB\-CILOPRSYisaefhntuvx\fR]
+[\fB\-CIJLOPRSYisaefhntuvx\fR]
 [\fB\-c \fR\ \fIcommand\fR]
 [\fIscript\fR\ ...\fR]
 .PP
@@ -375,7 +375,11 @@ The following debugging options are specific to the internal function of
 print code generation output onto stdout.  If this option is doubled,
 the non-optimized code is printed out instead.
 .IP \-I
-print runtime interpreter activity onto /dev/tty.
+print runtime interpreter activity onto /dev/tty;
+argv:s of executes, assignments, variables, ...
+.IP \-J
+print runtime interpreter activity onto /dev/tty;
+just argv:s of executes.
 .IP \-L
 print lexer output onto stdout.
 .IP \-O

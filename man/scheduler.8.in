@@ -1343,13 +1343,13 @@ RFC 1341/1521/2045	MIME specification (body, formats)
 RFC 1342/1522/2047	"MIME-2" specification (headers)
 RFC 1425/1651/1869	ESMTP EHLO framework
 RFC 1428	Basic MIME conversion rules
-RFC 1891	ESMTP DSN
-RFC 1892	The Multipart/Report Content Type
-RFC 1893	Enhanced Mail System Status Codes
-RFC 1894	Extensible Message format for DSNs
+RFC 1891/3461	ESMTP DSN
+RFC 1892/3462	The Multipart/Report Content Type
+RFC 1893/3463	Enhanced Mail System Status Codes
+RFC 1894/3464	Extensible Message format for DSNs
 RFC 1985	ESMTP ETRN
 RFC 2034	ESMTP ENHANCEDSTATUSCODES
-RFC 2852	ESMTP DELIVERBY
+RFC 2852	ESMTP DELIVERBY (incomplete inplementation)
 .TE
 .SH AUTHOR
 This program authored and copyright by:
