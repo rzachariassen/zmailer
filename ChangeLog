@@ -1,3 +1,13 @@
+2003-08-26  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/smtpserver.conf, smtpserver/smtpcmds.c:
+	    In prototype smtpserver.conf: comment away 'localhost'
+	    case with 'f' and 't' flags.  People do get surprises
+	    when using those, and skipping some notes in INSTALL.
+	    ALSO: Made 'enable_router' to semi-silently to control
+	    even looking into router controlling flags.  If router
+	    is not enabled, it is not complained about.
+
 2003-08-25  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/makedb.c, utils/policy-builder.sh.in:

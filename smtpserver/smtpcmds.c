@@ -851,7 +851,7 @@ int insecure;
       return -1;
     }
     s = NULL;
-    if (/* addrlen > 0 && */ STYLE(SS->cfinfo, 'f')) {
+    if ( enable_router && /* addrlen > 0 && */ STYLE(SS->cfinfo, 'f')) {
 	s = router(SS, RKEY_FROM, 1, cp, addrlen);
 	if (s == NULL) {
 	    /* the error was printed in router() */
@@ -1480,7 +1480,7 @@ const char *buf, *cp;
     }
 
     s = NULL;
-    if (STYLE(SS->cfinfo, 't')) {
+    if (enable_router && STYLE(SS->cfinfo, 't')) {
 	s = router(SS, RKEY_TO, 1, cp, addrlen);
 	if (s == NULL) {
 	    /* the error was printed in router() */
@@ -1683,7 +1683,7 @@ const char *buf, *cp;
 
     RFC821_822QUOTE(cp, newcp, addrlen);
 
-    if (cfi) {
+    if (cfi && enable_router) {
 	s = router(SS, RKEY_VERIFY, 0, cp, addrlen);
 	if (s != NULL) {
 	    /* printf("%s\r\n", s); */
@@ -1715,7 +1715,7 @@ const char *buf, *cp;
 	++cp;
 
     cfi = STYLE(SS->cfinfo, 'e');
-    if (cfi != 0) {
+    if (cfi && enable_router) {
 #if 0				/* The input string is an arbitrary string! */
 	if (*cp == '<')
 	    s = rfc821_path(cp, cfi);	/* with < > */
