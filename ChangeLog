@@ -32,8 +32,8 @@
 	    that, the shell script language could be turned into more
 	    secure one, and perhaps this 16% could be eliminated entirely ?
 
-	    A historical note from about 1994 shows that router speed
-	    for a reasonable run was about 120 k messages per 24h, or
+	    A historical note from about 1994 shows that router speed for
+	    a reasonable test run was about 120 k messages per 24h, or
 	    1.39 recipients per second at a SparcStation-10/50.  Syslog
 	    monitoring and load factor estimating  at vger.rutgers.edu
 	    with (on average) 50 recipient messages seems to indicate

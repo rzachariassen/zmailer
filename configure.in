@@ -32,8 +32,6 @@ AC_INIT(router/router.c)
 AC_CONFIG_HEADER(config.h)
 AC_LANG_C
 
-AC_DEFINE_UNQUOTED(CONFIGURE_CMD,"$0 $ac_configure_args")
-
 #----------------------------------------------------------------------------
 #       Check if we should use gcc if available on this machine.
 #----------------------------------------------------------------------------
@@ -114,7 +112,9 @@ AC_MSG_RESULT([** Using C compiler: $CC])
 AC_MSG_RESULT([** Using CFLAGS:     $CFLAGS])
 AC_MSG_RESULT([** Using CPPDEP:     $CPPDEP])
 
-AC_DEFINE_UNQUOTED(CONFIGURE_CMD,"CC='$CC' CFLAGS='$CFLAGS' $0 $ac_configure_args")
+dnl AC_DEFINE_UNQUOTED(CONFIGURE_CMD,"$0 $ac_configure_args")
+AC_DEFINE_UNQUOTED(CONFIGURE_CMD,
+		   "CC='$CC' CFLAGS='$CFLAGS' $0 $ac_configure_args")
 
 
 AC_PROG_INSTALL
