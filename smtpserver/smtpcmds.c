@@ -443,7 +443,7 @@ int insecure;
     if ((strict_protocol != 0) || sloppy)
       for (; *cp != '\0' && *cp != '<'; ++cp)
 	/* Skip white-space */
-	if (!isascii(*cp) || !isspace(*cp)) {
+	if (!isascii((255 & *cp)) || !isspace((255 & *cp))) {
 	  if (!sloppy && (strict_protocol >= 0)) {
 	    smtp_tarpit(SS);
 	    type(SS, 501, m517, "where is <...> in that?");

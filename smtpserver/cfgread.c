@@ -541,7 +541,7 @@ readcffile(name)
 	if (c != '\0') {
 	    ++cp;
 	    SKIPSPACE(cp);
-	    if (*cp && isascii(*cp) && isdigit(*cp)) {
+	    if (*cp && isascii((255 & *cp)) && isdigit((255 & *cp))) {
 		/* Sanity-check -- 2 is VERY LOW */
 		if ((scf.maxloadavg = atoi(cp)) < 2)
 		    scf.maxloadavg = 2;
