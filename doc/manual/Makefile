@@ -11,6 +11,21 @@
 #  (Well, not all, I have CUSTOMIZED JADE - I break certain ligatures
 #   at TeX source in a rather ugly manner, should have a better way..)
 #
+#  When your "make pdf" run complains about running out of some resource
+#  in TeX, go and edit file:  /usr/share/texmf/web2c/texmf.cnf
+#  which tunes TeX startup array sizes.
+#  At least:
+#     save_size = 30000       % for saving values outside current group
+#  and:
+#     % Minimum pool space after TeX/MP's own strings; must be at least
+#     % 25000 less than pool_size, but doesn't need to be nearly that large.
+#     string_vacancies.context = 55000
+#     string_vacancies = 35000
+#     % Maximum number of strings.
+#     max_strings.context = 65000
+#     max_strings.jadetex = 65000
+#     max_strings = 35000
+#
 
 PARTS=	zmanual.sgml		zmanual-cover.sgml		\
 	zadministration.sgml    zref-router.sgml		\
