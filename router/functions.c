@@ -71,6 +71,7 @@ static conscell *run_listexpand   __((conscell *avl, conscell *il));
 static conscell *run_newattribute __((conscell *avl, conscell *il));
 #endif
 
+static int run_doit      ARGCV;
 static int run_stability ARGCV;
 static int run_process   ARGCV;
 static int run_grpmems   ARGCV;
@@ -123,6 +124,7 @@ struct shCmd fnctns[] = {
 {	"user",		NULL,	run_caddr,	NULL,	SH_ARGV	},
 {	"attributes",	NULL,	run_cadddr,	NULL,	SH_ARGV	},
 {	"stability",	run_stability,	NULL,	NULL,	0	},
+{	"stable-process", run_doit,	NULL,	NULL,	0	},
 {	"daemon",	run_daemon,	NULL,	NULL,	0	},
 {	"process",	run_process,	NULL,	NULL,	0	},
 {	"rfc822",	run_rfc822,	NULL,	NULL,	0	},
@@ -527,6 +529,39 @@ rd_endstability()
 		free((char *)dearray);
 	if (nbarray != NULL)
 		free((char *)nbarray);
+}
+
+static int
+run_doit(argc, argv)
+	int argc;
+	const char *argv[];
+{
+	const char *filename;
+	char *sh_memlevel = getlevel(MEM_SHCMD);
+	int r;
+	const char *av[3];
+
+	if (argc != 1) {
+	  fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+	  return 1;
+	}
+
+	filename = argv[0];
+
+	/* Do one file, return value is 0 or 1,
+	   depending on actually doing something
+	   on a file */
+
+	gensym = 1;
+	av[0] = "process"; /* I think this needs to be here */
+	av[1] = filename;
+	av[2] = NULL;
+	r = s_apply(2, av); /* "process" filename (within  rd_doit() ) */
+	free_gensym();
+
+	setlevel(MEM_SHCMD,sh_memlevel);
+
+	return r;
 }
 
 static int rd_doit __((const char *filename, const char *dirs));

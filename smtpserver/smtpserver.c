@@ -112,6 +112,7 @@ int X_8bit = 0;
 int X_settrrc = 9;
 #endif				/* USE_TRANSLATION */
 int strict_protocol = 0;
+int mustexit = 0;
 
 jmp_buf jmpalarm;		/* Return-frame for breaking smtpserver
 				   when timeout hits.. */
@@ -232,6 +233,7 @@ static void setrfc1413ident __((SmtpState * SS));
 static void setrhostname __((SmtpState *));
 static RETSIGTYPE reaper __((int sig));
 static RETSIGTYPE timedout __((int sig));
+static RETSIGTYPE sigterminator __((int sig));
 static void smtpserver __((SmtpState *, int insecure));
 
 
@@ -551,7 +553,7 @@ char **argv;
       smtpserver(&SS, 0);
 
     } else
-    if (inetd) {
+      if (inetd) {
 #if 0
 	if (maxloadavg != 999 &&
 	    maxloadavg < loadavg_current()) {
@@ -629,19 +631,20 @@ char **argv;
 
 	smtpserver(&SS, 1);
 
-    } else {			/* Not from under the inetd -- standalone server */
+      } else {			/* Not from under the inetd -- standalone server */
 	if (postoffice == NULL
 	    && (postoffice = getzenv("POSTOFFICE")) == NULL)
-	    postoffice = POSTOFFICE;
+	  postoffice = POSTOFFICE;
 	if (!port_set) {
-	    if (killprevious(SIGTERM, PID_SMTPSERVER) != 0) {
-		fprintf(stderr,
-			"%s: Can't write my pidfile!  Disk full ?\n",
-			progname);
-		exit(2);
-	    }
-	    fflush(stdout);
-	    fflush(stderr);
+	  /* Kill possible previous smtpservers now! */
+	  if (killprevious(SIGTERM, PID_SMTPSERVER) != 0) {
+	    fprintf(stderr,
+		    "%s: Can't write my pidfile!  Disk full ?\n",
+		    progname);
+	    exit(2);
+	  }
+	  fflush(stdout);
+	  fflush(stderr);
 	}
 #if defined(AF_INET6) && defined(INET6)
 
@@ -651,98 +654,98 @@ char **argv;
 	   If we are not explicitely told to use IPv6 only, we will try
 	   here to use IPv6, and if successfull, register it!  */
 	if (!use_ipv6 && !force_ipv4) {
-	    s = socket(AF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
-	    if (s >= 0) {
-		use_ipv6 = 1;	/* We can do it! */
-		close(s);
-	    }
+	  s = socket(AF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	  if (s >= 0) {
+	    use_ipv6 = 1;	/* We can do it! */
+	    close(s);
+	  }
 	}
 	if (use_ipv6) {
-	    s = socket(AF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	  s = socket(AF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
 #if 0
-	    if (s < 0) {	/* Fallback to the IPv4 mode .. */
-		s = socket(AF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
-		use_ipv6 = 0;
-	    }
+	  if (s < 0) {	/* Fallback to the IPv4 mode .. */
+	    s = socket(AF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+	    use_ipv6 = 0;
+	  }
 #endif
 	} else
-	    s = socket(AF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+	  s = socket(AF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
 #else
 	s = socket(AF_INET, SOCK_STREAM, 0);
 #endif
 	if (s < 0) {
-	    fprintf(stderr,
-		    "%s: socket(AF_INET%s, SOCK_STREAM): %s\n",
-		    progname, (use_ipv6 ? "6" : ""), strerror(errno));
-	    exit(1);
+	  fprintf(stderr,
+		  "%s: socket(AF_INET%s, SOCK_STREAM): %s\n",
+		  progname, (use_ipv6 ? "6" : ""), strerror(errno));
+	  exit(1);
 	}
 	i = 1;
 	if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (caddr_t) & i, sizeof i) < 0) {
-	    fprintf(stderr,
-		    "%s: setsockopt(SO_REUSEADDR): %s\n",
-		    progname, strerror(errno));
-	    exit(1);
+	  fprintf(stderr,
+		  "%s: setsockopt(SO_REUSEADDR): %s\n",
+		  progname, strerror(errno));
+	  exit(1);
 	}
 #ifdef SO_REUSEPORT
 	if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT, (caddr_t) & i, sizeof i) < 0) {
-	    fprintf(stderr,
-		    "%s: setsockopt(SO_REUSEPORT): %s\n",
-		    progname, strerror(errno));
-	    exit(1);
+	  fprintf(stderr,
+		  "%s: setsockopt(SO_REUSEPORT): %s\n",
+		  progname, strerror(errno));
+	  exit(1);
 	}
 #endif
 
 #ifdef SO_RCVBUF
 	if (TcpRcvBufferSize > 0)
-	    if (setsockopt(s, SOL_SOCKET, SO_RCVBUF,
-			   (char *) &TcpRcvBufferSize,
-			   sizeof(TcpRcvBufferSize)) < 0) {
-		fprintf(stderr, "%s: setsockopt(SO_RCVBUF): %s\n",
-			progname, strerror(errno));
-		exit(1);
-	    }
+	  if (setsockopt(s, SOL_SOCKET, SO_RCVBUF,
+			 (char *) &TcpRcvBufferSize,
+			 sizeof(TcpRcvBufferSize)) < 0) {
+	    fprintf(stderr, "%s: setsockopt(SO_RCVBUF): %s\n",
+		    progname, strerror(errno));
+	    exit(1);
+	  }
 #endif
 #ifdef SO_SNDBUF
 	if (TcpXmitBufferSize > 0)
-	    if (setsockopt(s, SOL_SOCKET, SO_SNDBUF,
-			   (char *) &TcpXmitBufferSize,
-			   sizeof(TcpXmitBufferSize)) < 0) {
-		fprintf(stderr, "%s: setsockopt(SO_SNDBUF): %s\n",
-			progname, strerror(errno));
-		exit(1);
-	    }
+	  if (setsockopt(s, SOL_SOCKET, SO_SNDBUF,
+			 (char *) &TcpXmitBufferSize,
+			 sizeof(TcpXmitBufferSize)) < 0) {
+	    fprintf(stderr, "%s: setsockopt(SO_SNDBUF): %s\n",
+		    progname, strerror(errno));
+	    exit(1);
+	  }
 #endif
 	if (port <= 0) {
-	    struct servent *service;
+	  struct servent *service;
 #ifdef	IPPORT_SMTP
-	    port = htons(IPPORT_SMTP);
+	  port = htons(IPPORT_SMTP);
 #endif				/* !IPPORT_SMTP */
-	    if ((service = getservbyname("smtp", "tcp")) == NULL) {
-		fprintf(stderr,
-			"%s: no SMTP service entry, using default\n",
-			progname);
-	    } else
-		port = service->s_port;
+	  if ((service = getservbyname("smtp", "tcp")) == NULL) {
+	    fprintf(stderr,
+		    "%s: no SMTP service entry, using default\n",
+		    progname);
+	  } else
+	    port = service->s_port;
 	}
 #if defined(AF_INET6) && defined(INET6)
 	if (use_ipv6) {
 
-	    struct sockaddr_in6 si6;
-	    memset(&si6, 0, sizeof(si6));
-	    si6.sin6_family = AF_INET6;
-	    si6.sin6_flowinfo = 0;
-	    si6.sin6_port = port;
-	    memcpy( &si6.sin6_addr, zin6addrany, 16 );
+	  struct sockaddr_in6 si6;
+	  memset(&si6, 0, sizeof(si6));
+	  si6.sin6_family = AF_INET6;
+	  si6.sin6_flowinfo = 0;
+	  si6.sin6_port = port;
+	  memcpy( &si6.sin6_addr, zin6addrany, 16 );
 
-	    i = bind(s, (struct sockaddr *) &si6, sizeof si6);
-	    if (i < 0) {
-		fprintf(stderr, "%s: bind(IPv6): %s\n",
-			progname, strerror(errno));
-		exit(1);
-	    }
+	  i = bind(s, (struct sockaddr *) &si6, sizeof si6);
+	  if (i < 0) {
+	    fprintf(stderr, "%s: bind(IPv6): %s\n",
+		    progname, strerror(errno));
+	    exit(1);
+	  }
 	} else
 #endif
-	{
+	  {
 	    struct sockaddr_in si4;
 
 	    memset(&si4, 0, sizeof(si4));
@@ -752,11 +755,11 @@ char **argv;
 
 	    i = bind(s, (struct sockaddr *) &si4, sizeof si4);
 	    if (i < 0) {
-		fprintf(stderr, "%s: bind(IPv4): %s\n",
-			progname, strerror(errno));
-		exit(1);
+	      fprintf(stderr, "%s: bind(IPv4): %s\n",
+		      progname, strerror(errno));
+	      exit(1);
 	    }
-	}
+	  }
 
 	/* Set the listen limit HIGH; there has been an active
 	   denial-of-service attack where people send faked SYNs
@@ -774,9 +777,9 @@ char **argv;
 	   (The classical default is: 5) */
 
 	if (listen(s, ListenQueueSize) < 0) {
-	    fprintf(stderr, "%s: listen(sock,%d): %s\n",
-		    progname, ListenQueueSize, strerror(errno));
-	    exit(1);
+	  fprintf(stderr, "%s: listen(sock,%d): %s\n",
+		  progname, ListenQueueSize, strerror(errno));
+	  exit(1);
 	}
 	settrusteduser();	/* dig out the trusted user ID */
 	zcloselog();		/* close the syslog too.. */
@@ -790,19 +793,22 @@ char **argv;
 	dup(0);
 	dup(0);			/* fd's 0, 1, 2 are in use again.. */
 
-	if (!port_set || port != htons(25))
-	    killprevious(0, PID_SMTPSERVER);	/* deposit pid */
+	if (!port_set || port != htons(25)) {
+	  sleep(3); /* Give a moment to possible previous server
+		       to die away... */
+	  killprevious(0, PID_SMTPSERVER);	/* deposit pid */
+	}
 #if 1
 	pid = getpid();
 	openlogfp(&SS, daemon_flg);
 	if (logfp != NULL) {
-	    char *cp;
-	    time(&now);
-	    cp = rfc822date(&now);
-	    fprintf(logfp, "00000#\tstarted server pid %d at %s", pid, cp);
-	    /*fprintf(logfp,"00000#\tfileno(logfp) = %d\n",fileno(logfp)); */
-	    fclose(logfp);
-	    logfp = NULL;
+	  char *cp;
+	  time(&now);
+	  cp = rfc822date(&now);
+	  fprintf(logfp, "00000#\tstarted server pid %d at %s", pid, cp);
+	  /*fprintf(logfp,"00000#\tfileno(logfp) = %d\n",fileno(logfp)); */
+	  fclose(logfp);
+	  logfp = NULL;
 	}
 #endif
 #if 0
@@ -812,222 +818,233 @@ char **argv;
 #endif
 	SIGNAL_HANDLE(SIGALRM, timedout);
 	SIGNAL_HANDLE(SIGHUP, SIG_IGN);
-	SIGNAL_HANDLE(SIGTERM, SIG_DFL);
-	while (1) {
-	    raddrlen = sizeof(SS.raddr);
-	    msgfd = accept(s, (struct sockaddr *) &SS.raddr, &raddrlen);
-	    if (msgfd < 0) {
-		int err = errno;
-		switch (err) {
-		case EINTR:	/* very common.. */
-		    continue;
+	SIGNAL_HANDLE(SIGTERM, sigterminator);
+	while (!mustexit) {
+	  raddrlen = sizeof(SS.raddr);
+	  msgfd = accept(s, (struct sockaddr *) &SS.raddr, &raddrlen);
+	  if (msgfd < 0) {
+	    int err = errno;
+	    switch (err) {
+	    case EINTR:	/* very common.. */
+	      continue;
 #if 0
-		case ECONNRESET:	/* seen to happen! */
-		case ECONNABORTED:
-		case ENETUNREACH:
-		case ENETRESET:
-		case ETIMEDOUT:	/* unlikely.. */
-		case ECONNREFUSED:	/* unlikely.. */
-		case EHOSTDOWN:
-		case EHOSTUNREACH:
-		case ECHILD:	/* Seen Solaris to do this! */
+	    case ECONNRESET:	/* seen to happen! */
+	    case ECONNABORTED:
+	    case ENETUNREACH:
+	    case ENETRESET:
+	    case ETIMEDOUT:	/* unlikely.. */
+	    case ECONNREFUSED:	/* unlikely.. */
+	    case EHOSTDOWN:
+	    case EHOSTUNREACH:
+	    case ECHILD:	/* Seen Solaris to do this! */
 #ifdef ENOSR
-		case ENOSR:
+	    case ENOSR:
 #endif
 #ifdef EPROTO
-		case EPROTO:
+	    case EPROTO:
 #endif
-		    continue;
-#endif
-		default:
-		    break;
-		}
-		/* Ok, all the WEIRD errors, continue life after
-		   logging, NO exit(1) we used to do... */
-		time(&now);
-		fprintf(stderr, "%s: accept(): %s; %s",
-			progname, strerror(err), rfc822date(&now));
-		openlogfp(&SS, daemon_flg);
-		if (logfp) {
-		    fprintf(logfp, "000000#\taccept(): %s; %s",
-			    strerror(err), (char *) rfc822date(&now));
-		    fclose(logfp);
-		    logfp = NULL;
-		}
-		continue;
-	    }
-
-	    sameipcount = childsameip(&SS.raddr, &childcnt);
-	    /* We query, and warn the remote when
-	       the count exceeds the limit, and we
-	       simply -- and FAST -- reject the
-	       remote when it exceeds 4 times the
-	       limit */
-	    if (sameipcount > 4 * MaxSameIpSource) {
-	      close(msgfd);
 	      continue;
+#endif
+	    default:
+	      break;
 	    }
+	    /* Ok, all the WEIRD errors, continue life after
+	       logging, NO exit(1) we used to do... */
+	    time(&now);
+	    fprintf(stderr, "%s: accept(): %s; %s",
+		    progname, strerror(err), rfc822date(&now));
+	    openlogfp(&SS, daemon_flg);
+	    if (logfp) {
+	      fprintf(logfp, "000000#\taccept(): %s; %s",
+		      strerror(err), (char *) rfc822date(&now));
+	      fclose(logfp);
+	      logfp = NULL;
+	    }
+	    continue;
+	  }
+
+	  sameipcount = childsameip(&SS.raddr, &childcnt);
+	  /* We query, and warn the remote when
+	     the count exceeds the limit, and we
+	     simply -- and FAST -- reject the
+	     remote when it exceeds 4 times the
+	     limit */
+	  if (sameipcount > 4 * MaxSameIpSource) {
+	    close(msgfd);
+	    continue;
+	  }
 	    
-	    if (childcnt > 100+MaxParallelConnections) {
+	  if (childcnt > 100+MaxParallelConnections) {
+	    close(msgfd);
+	    continue;
+	  }
+
+	  SIGNAL_HOLD(SIGCHLD);
+	  if ((childpid = fork()) < 0) {	/* can't fork! */
+	    close(msgfd);
+	    fprintf(stderr,
+		    "%s: fork(): %s\n",
+		    progname, strerror(errno));
+	    sleep(5);
+	    continue;
+	  } else if (childpid > 0) {	/* Parent! */
+	    childregister(childpid, &SS.raddr);
+	    SIGNAL_RELEASE(SIGCHLD);
+	    reaper(0);
+	    close(msgfd);
+	  } else {			/* Child */
+	    SIGNAL_RELEASE(SIGCHLD);
+
+	    netconnected_flg = 1;
+
+	    close(s);	/* Listening socket.. */
+	    pid = getpid();
+
+	    if (msgfd != 0)
+	      dup2(msgfd, 0);
+	    dup2(0, 1);
+	    if (msgfd > 1)
 	      close(msgfd);
-	      continue;
-	    }
+	    msgfd = 0;
 
-	    SIGNAL_HOLD(SIGCHLD);
-	    if ((childpid = fork()) < 0) {	/* can't fork! */
-		close(msgfd);
-		fprintf(stderr,
-			"%s: fork(): %s\n",
-			progname, strerror(errno));
-		sleep(5);
-		continue;
-	    } else if (childpid > 0) {	/* Parent! */
-		childregister(childpid, &SS.raddr);
-		SIGNAL_RELEASE(SIGCHLD);
-		reaper(0);
-		close(msgfd);
-	    } else {			/* Child */
-		SIGNAL_RELEASE(SIGCHLD);
-
-		netconnected_flg = 1;
-
-		close(s);	/* Listening socket.. */
-		pid = getpid();
-
-		if (msgfd != 0)
-		    dup2(msgfd, 0);
-		dup2(0, 1);
-		if (msgfd > 1)
-		    close(msgfd);
-		msgfd = 0;
-
-		if (logfp)	/* Open the logfp latter.. */
-		    fclose(logfp);
-		logfp = NULL;
+	    if (logfp)	/* Open the logfp latter.. */
+	      fclose(logfp);
+	    logfp = NULL;
 
 
 #if 0
-		if (maxloadavg != 999 &&
-		    maxloadavg < loadavg_current()) {
-		    write(msgfd, msg_toohighload,
-			  strlen(msg_toohighload));
-		    sleep(2);
-		    exit(1);
-		}
+	    if (maxloadavg != 999 &&
+		maxloadavg < loadavg_current()) {
+	      write(msgfd, msg_toohighload,
+		    strlen(msg_toohighload));
+	      sleep(2);
+	      exit(1);
+	    }
 #endif
-		SIGNAL_HANDLE(SIGTERM, SIG_IGN);
+	    SIGNAL_HANDLE(SIGTERM, SIG_IGN);
 
 #if defined(AF_INET6) && defined(INET6)
 
-		if (SS.raddr.v6.sin6_family == AF_INET6)
-		    SS.rport = SS.raddr.v6.sin6_port;
-		else
+	    if (SS.raddr.v6.sin6_family == AF_INET6)
+	      SS.rport = SS.raddr.v6.sin6_port;
+	    else
 #endif
-		    SS.rport = SS.raddr.v4.sin_port;
+	      SS.rport = SS.raddr.v4.sin_port;
 
-		setrhostname(&SS);
+	    setrhostname(&SS);
 
-		/* Lets figure-out who we are this time around -- we may be on
-		   a machine with multiple identities per multiple interfaces,
-		   or via virtual IP-numbers, or ... */
-		localsocksize = sizeof(SS.localsock);
-		if (getsockname(msgfd, (struct sockaddr *) &SS.localsock,
-				&localsocksize) != 0) {
-		    /* XX: ERROR! */
-		}
-		zopenlog("smtpserver", LOG_PID, LOG_MAIL);
-
-		s_setup(&SS, msgfd, stdout);
-
-		if (ident_flag != 0)
-		    setrfc1413ident(&SS);
-		else
-		    strcpy(SS.ident_username, "IDENT-NOT-QUERIED");
-
-		if (smtp_syslog && ident_flag) {
-#ifdef HAVE_WHOSON_H
-		  zsyslog((LOG_INFO, "connection from %s@%s (whoson: %s)\n",
-			   SS.ident_username, SS.rhostname, SS.whoson_data));
-#else /* WHOSON */
-		  zsyslog((LOG_INFO, "connection from %s@%s\n",
-			   SS.ident_username, SS.rhostname));
-#endif
-		}
-		pid = getpid();
-
-		openlogfp(&SS, daemon_flg);
-#ifdef HAVE_WHOSON_H
-		type(NULL,0,NULL,
-		     "connection from %s ipcnt %d childs %d ident: %s whoson: %s",
-		     SS.rhostname, sameipcount, childcnt,
-		     SS.ident_username, SS.whoson_data);
-#else
-		type(NULL,0,NULL,
-		     "connection from %s ipcnt %d childs %d ident: %s",
-		     SS.rhostname, sameipcount, childcnt,
-		     SS.ident_username);
-#endif
-
-/* if (logfp) type(NULL,0,NULL,"Input fd=%d",getpid(),msgfd); */
-
-		if (childcnt > MaxParallelConnections) {
-		    int len;
-		    char msg[200];
-		    sprintf(msg, "450-Too many simultaneous connections to this server (%d max %d)\r\n", childcnt, MaxParallelConnections);
-		    len = strlen(msg);
-		    if (write(msgfd, msg, len) != len) {
-		      sleep(2);
-		      exit(1);	/* Tough.. */
-		    }
-		    strcpy(msg, "450 Come again latter\r\n");
-		    len = strlen(msg);
-		    write(msgfd, msg, len);
-		    close(0); close(1);
-#if 1
-		    sleep(2);	/* Not so fast!  We need to do this to
-				   avoid (as much as possible) the child
-				   to exit before the parent has called
-				   childregister() -- not so easy to be
-				   100% reliable (this isn't!) :-( */
-#endif
-		    exit(0);	/* Now exit.. */
-		}
-		if (sameipcount > MaxSameIpSource && sameipcount > 1) {
-		    int len;
-		    char msg[200];
-		    sprintf(msg, "450-Too many simultaneous connections from same IP address (%d max %d)\r\n", sameipcount, MaxSameIpSource);
-		    len = strlen(msg);
-		    if (write(msgfd, msg, len) != len) {
-		      sleep(2);
-		      exit(1);	/* Tough.. */
-		    }
-		    strcpy(msg, "450 Come again latter\r\n");
-		    len = strlen(msg);
-		    write(msgfd, msg, len);
-		    close(0); close(1);
-#if 1
-		    sleep(2);	/* Not so fast!  We need to do this to
-				   avoid (as much as possible) the child
-				   to exit before the parent has called
-				   childregister() -- not so easy to be
-				   100% reliable (this isn't!) :-( */
-#endif
-		    exit(0);	/* Now exit.. */
-		}
-		smtpserver(&SS, 1);
-		/* Expediated filehandle closes before
-		   the mandatory sleep(2) below. */
-		close(0); close(1);
-
-		if (routerpid > 0)
-		    killr(&SS, routerpid);
-
-		if (netconnected_flg)
-		  sleep(2);
-		_exit(0);
+	    /* Lets figure-out who we are this time around -- we may be on
+	       a machine with multiple identities per multiple interfaces,
+	       or via virtual IP-numbers, or ... */
+	    localsocksize = sizeof(SS.localsock);
+	    if (getsockname(msgfd, (struct sockaddr *) &SS.localsock,
+			    &localsocksize) != 0) {
+	      /* XX: ERROR! */
 	    }
+	    zopenlog("smtpserver", LOG_PID, LOG_MAIL);
+
+	    s_setup(&SS, msgfd, stdout);
+
+	    if (ident_flag != 0)
+	      setrfc1413ident(&SS);
+	    else
+	      strcpy(SS.ident_username, "IDENT-NOT-QUERIED");
+
+	    if (smtp_syslog && ident_flag) {
+#ifdef HAVE_WHOSON_H
+	      zsyslog((LOG_INFO, "connection from %s@%s (whoson: %s)\n",
+		       SS.ident_username, SS.rhostname, SS.whoson_data));
+#else /* WHOSON */
+	      zsyslog((LOG_INFO, "connection from %s@%s\n",
+		       SS.ident_username, SS.rhostname));
+#endif
+	    }
+	    pid = getpid();
+
+	    openlogfp(&SS, daemon_flg);
+#ifdef HAVE_WHOSON_H
+	    type(NULL,0,NULL,
+		 "connection from %s ipcnt %d childs %d ident: %s whoson: %s",
+		 SS.rhostname, sameipcount, childcnt,
+		 SS.ident_username, SS.whoson_data);
+#else
+	    type(NULL,0,NULL,
+		 "connection from %s ipcnt %d childs %d ident: %s",
+		 SS.rhostname, sameipcount, childcnt,
+		 SS.ident_username);
+#endif
+
+	    /* if (logfp) type(NULL,0,NULL,"Input fd=%d",getpid(),msgfd); */
+
+	    if (childcnt > MaxParallelConnections) {
+	      int len;
+	      char msg[200];
+	      sprintf(msg, "450-Too many simultaneous connections to this server (%d max %d)\r\n", childcnt, MaxParallelConnections);
+	      len = strlen(msg);
+	      if (write(msgfd, msg, len) != len) {
+		sleep(2);
+		exit(1);	/* Tough.. */
+	      }
+	      strcpy(msg, "450 Come again latter\r\n");
+	      len = strlen(msg);
+	      write(msgfd, msg, len);
+	      close(0); close(1);
+#if 1
+	      sleep(2);	/* Not so fast!  We need to do this to
+			   avoid (as much as possible) the child
+			   to exit before the parent has called
+			   childregister() -- not so easy to be
+			   100% reliable (this isn't!) :-( */
+#endif
+	      exit(0);	/* Now exit.. */
+	    }
+	    if (sameipcount > MaxSameIpSource && sameipcount > 1) {
+	      int len;
+	      char msg[200];
+	      sprintf(msg, "450-Too many simultaneous connections from same IP address (%d max %d)\r\n", sameipcount, MaxSameIpSource);
+	      len = strlen(msg);
+	      if (write(msgfd, msg, len) != len) {
+		sleep(2);
+		exit(1);	/* Tough.. */
+	      }
+	      strcpy(msg, "450 Come again latter\r\n");
+	      len = strlen(msg);
+	      write(msgfd, msg, len);
+	      close(0); close(1);
+#if 1
+	      sleep(2);	/* Not so fast!  We need to do this to
+			   avoid (as much as possible) the child
+			   to exit before the parent has called
+			   childregister() -- not so easy to be
+			   100% reliable (this isn't!) :-( */
+#endif
+	      exit(0);	/* Now exit.. */
+	    }
+	    smtpserver(&SS, 1);
+	    /* Expediated filehandle closes before
+	       the mandatory sleep(2) below. */
+	    close(0); close(1);
+
+	    if (routerpid > 0)
+	      killr(&SS, routerpid);
+
+	    if (netconnected_flg)
+	      sleep(2);
+	    _exit(0);
+	  }
 	}
-    }
+	/* Stand-alone server, kill the pidfile at the exit! */
+	killpidfile(PID_SMTPSERVER);
+	openlogfp(&SS, daemon_flg);
+	if (logfp != NULL) {
+	  char *cp;
+	  time(&now);
+	  cp = rfc822date(&now);
+	  fprintf(logfp, "00000#\tkilled server pid %d at %s", pid, cp);
+	  fclose(logfp);
+	  logfp = NULL;
+	}
+      }
     if (routerpid > 0)
 	killr(&SS, routerpid);
     if (netconnected_flg)
@@ -1133,6 +1150,14 @@ int sig;
        data that exists only in that context... */
     longjmp(jmpalarm, 1);
     _exit(253);			/* We did return ?!?! Boo!! */
+}
+
+static RETSIGTYPE
+ sigterminator(sig)
+int sig;
+{
+  SIGNAL_HANDLE(sig, sigterminator);
+  mustexit = 1;
 }
 
 static RETSIGTYPE

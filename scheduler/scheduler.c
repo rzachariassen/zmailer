@@ -613,6 +613,7 @@ main(argc, argv)
 	      eunlink(argv[optind]);
 	  }
 	  doagenda();
+	  killpidfile(pidfile);
 	  exit(0);
 	}
 	mustexit = gotalarm = dumpq = rereadcf = 0;
@@ -743,6 +744,9 @@ main(argc, argv)
 #ifdef	MALLOC_TRACE
 	mal_dumpleaktrace(stderr);
 #endif	/* MALLOC_TRACE */
+
+	killpidfile(pidfile);
+
 	if (mustexit)
 		die(0, "signal");
 	return 0;

@@ -56,3 +56,19 @@ killprevious(sig, pidfile)
 	free(path);
 	return rc;
 }
+
+int
+killpidfile(pidfile)
+	const char *pidfile;
+{
+	int rc;
+	char *path;
+
+	path = emalloc((unsigned)(strlen(postoffice) + strlen(pidfile) + 2));
+	sprintf(path, "%s/%s", postoffice, pidfile);
+
+	rc = unlink(path);
+
+	free(path);
+	return rc;
+}

@@ -79,6 +79,7 @@ extern void hp_addr_randomize __((struct hostent *hp));
 
 /* killprev.c */
 extern int killprevious   __((int sig, const char *pidfil));
+extern int killpidfile    __((const char *pidfil));
 
 /* linebuffer.c */
 extern char *linebuf;

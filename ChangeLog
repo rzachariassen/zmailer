@@ -1,5 +1,16 @@
 1999-05-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/smtpserver.c, scheduler/scheduler.c,
+	  include/libz.h, lib/killprev.c:
+	    Remove the PIDFILE when the server goes away.
+	    (This isn't perfect method, but let it be..)
+
+	* router/functions.c:
+	    Created router function:  stable-process <filename>
+	    which is a wrapper on process.cf defined process() with
+	    cleanup of gensym generated symbols. (Work In Progress;
+	    part of my ideas to completely rework router queue...)
+
 	* router/db.c:
 	    Modify cache definitions -- zero them at the local db's
 
