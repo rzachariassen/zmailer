@@ -353,8 +353,8 @@ static void mq2_read(mq)
   }
 
   mq2_wflush(mq);
-}  ++mq2count;
-
+  ++mq2count;
+}
 
 
 /* EXTERNAL */
