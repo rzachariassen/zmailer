@@ -1,7 +1,19 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+Wanted done for 3.0:
+  - router  aliases.cf  to have similar 'protocols' feature as
+    domain routing has currently
+  - WEB-based configuration/administration interface
+  - scheduler to kill message/thread online without a need to
+    run  "manual-expirer"
+  - LICENSE state cleanup.
+  - A work-over of the documentation
+
+
 OVERALL: SleepyCat DB 3 header inclusion does not (necessarily)
          match code selections!  Brr..
+
+overall:  SleepyCat DB 4.x ?
 
 sm:	pass the address meta information also in environment
 	variables, and handle multirecipient cases as well!
@@ -31,15 +43,6 @@ libsh/builtins.c: sh_read()
     Command:   echo "11" | read v1 v2 v3
     Does put:   v1="11", v2="11"
     Should put: v1="11", v2="", v3=""
-
-
-Wanted done for 3.0:
-  - router  aliases.cf  to have similar 'protocols' feature as
-    domain routing has currently
-  - WEB-based configuration/administration interface
-  - scheduler to kill message/thread online without a need to
-    run  "manual-expirer"
-  - A work-over of the documentation
 
 
 proto/newdbprocessor.in:
