@@ -34,8 +34,8 @@ sub compare_files {
     closedir(DH);
 
     foreach $x (@files) {
-	next if ($x =~ m/.*\.md5\$/o);
 	next if ($x eq '.' || $x eq '..');
+	next if ($x =~ m/^.*\.md5$/o);
 
 	& compare_file($x);
     }
@@ -116,7 +116,7 @@ sub dirprealloc {
 	link("$DIR/filename.0","$DIR/$NAME.$NUM") || last;
 
 	@st = stat("${DIR}/."); # Can't fail ( -- eh ? )
-	local($SIZE) = $st[7];
+	$SIZE = $st[7];
 
 	$NUM += 1;
     }
@@ -129,8 +129,7 @@ sub dirprealloc {
     closedir(DH);
     local($x);
     foreach $x (@files) {
-	next if ($x eq '.');
-	next if ($x eq '..');
+	next if ($x eq '.'  || $x eq '..');
 	unlink("$DIR/$x");
     }
 }
@@ -247,7 +246,7 @@ foreach $x (qw("$MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf
 	 $MAILVAR/db/proto/smtp-policy.relay")) {
 
     $y = $x;
-    $y =~ s!/proto/!/!o;
+    $y =~ s!/proto/!/!;
     if ( -f $x ) {
 	printf "**** Verify  $y  file!\n"
 	    unless (system("cmp -s $x $y"));
