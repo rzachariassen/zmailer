@@ -343,6 +343,10 @@ ta_hungry(proc)
 
 	  if (proc->overfed > 0) return;
 
+	  /* Disconnect the previous thread from the proc. */
+
+	  proc->pthread->proc = NULL;
+
 	  /* Next: either the thread changes, or
 	     the process moves into IDLE state */
 
@@ -356,11 +360,10 @@ ta_hungry(proc)
 	    thread_vertex_shuffle(thr);
 
 	    thr->attempts += 1;
-	    proc->pvertex = thr->thvertices;
-	    proc->pthread = thr;
+	    proc->pvertex  = thr->thvertices;
+	    proc->pthread  = thr;
 
-	    thr->proc           = proc;
-	    /* thr->vertices->proc = proc; */
+	    thr->proc      = proc;
 
 	    proc->state = CFSTATE_LARVA;
 	    goto cfstate_larva;
@@ -395,6 +398,10 @@ ta_hungry(proc)
 
 	  if (verbose) sfprintf(sfstdout," ... IDLE THE PROCESS %p (of=%d).\n",
 				proc, proc->overfed);
+
+	  if (proc->pthread)
+	    proc->pthread->proc = NULL;
+
 	  proc->pthread = NULL;
 	  proc->pvertex = NULL;
 	  proc->pnext   = proc->thg->idleproc;

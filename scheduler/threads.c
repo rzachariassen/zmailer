@@ -296,7 +296,7 @@ pick_next_thread(proc)
 	struct threadgroup  *thg  = proc->thg;
 	int once = 1;
 
-	if (thr0 && thr0->proc != proc) /* Me ? */
+	if (thr0 && thr0->proc) /* Anybody ? */
 	  thr0->proc = NULL; /* Remove it */
 
 	proc->pthread = NULL;
@@ -323,8 +323,6 @@ pick_next_thread(proc)
 	    struct vertex  * vp = thr->thvertices;
 	    struct web     * ho = vp->orig[L_HOST];
 	    struct web     * ch = vp->orig[L_CHANNEL];
-
-if (ch == BADPTR || ho == BADPTR) abort();
 
 	    thr->proc     = proc;
 	    proc->pthread = thr;
