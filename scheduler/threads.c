@@ -551,12 +551,14 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	    vp->thgrp   = thg;
 	    thr->jobs  += 1;
 
+	    if (thr->proc)     /* Caring about the UF count while running */
+	      thr->unfed += 1;
+
 	    if (thr->proc && (thr->nextfeed == NULL)) {
 	      /* It is running, but no nextfeed is set (anymore),
 		 tack this vertex into the tail */
 
 	      thr->nextfeed = vp;
-	      thr->unfed   += 1;
 	    }
 
 	    /* Hookay..  Try to start it too... */
