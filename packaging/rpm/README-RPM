@@ -1,0 +1,72 @@
+This is Matti Aarnio's adaptation of original material, and not everything
+about the original setup may make sense..
+
+-----
+
+
+* Howto make a RedHat rpm of ZMailer MTA
+
+  1. Get zmailer-spec.tar.gz from :
+     http://www.ctv.es/USERS/xose/linux/zmailer-spec.tar.gz
+     This package is a posting to ZMailer mailing list and it's 
+     made by Xose Vazquez, xose@ctv.es
+
+  2. Open it 'tar xvfz zmailer-spec.tar.gz'
+
+  3. Copy all the files into /usr/src/redhat/SOURCES directory.
+
+  4. Get zmailer-2.99.xx.tar.gz or the last version from :
+     ftp://ftp.funet.fi/pub/unix/mail/zmailer/src/
+     and copy it under /usr/src/redhat/SOURCES as well.
+     
+     - If you get a new version, you need change the line 3 of 
+       the zmailer.spec : from Version: 2.99.52 to Version: X.XX.XX
+
+  5. Create your own rpm packages with commands:
+
+             cd /usr/src/redhat/SOURCES
+             rpm -ba zmailer.spec
+
+  6. rpm packages will be created under /usr/src/redhat/SRPMS (src) and
+     under /usr/src/redhat/RPMS/i386 (bin + doc)
+
+  7. Install ZMailer rpm packages into the system:
+
+             rpm -ivh /usr/src/redhat/RPMS/i386/zmailer-2.99.xx-y.i386.rpm
+             rpm -ivh /usr/src/redhat/RPMS/i386/zmailer-doc-2.99.xx-y.i386.rpm
+
+  8. Finish ZMailer configuration by editing the following:
+        o /etc/mail.conf
+        o /etc/zmailer/*
+     For first time installations I'd recommend reading
+     /usr/doc/zmailer-2.99.xx/INSTALL document.
+
+  9. Note: this zmailer.spec links tcp wrapper code into smtpserver. To
+     allow incoming SMTP traffic you must specify allowed ip-addresses or
+     domains in /etc/hosts.allow file. To allow the traffic for everybody
+     just put there:
+
+             smtp-receiver:  ALL
+
+     To allow incoming SMTP traffic only for *.yourdomain.com hosts use the
+     following instead:
+
+             smtp-receiver:  .yourdomain.com
+
+     The later requires properly configured DNS service (reverse ip mapping)
+     for yourdomain.com. For more information of tuning tcpd refer 'man
+     hosts.allow' and 'man hosts_access'.
+
+
+
+For more information about ZMailer just visit www.zmailer.org. For more
+information about rpm visit www.rpm.org.
+  ------------------------------------------------------------------------
+
+Please e-mail me any corrections about this document: jt@iki.fi and
+xose@ctv.es
+
+This document come out has been updated 13 Oct 1999
+
+Get it the last version from http://www.mpoli.fi/%7Ejussi/zmailer/
+or from the //www.ctv.es/USERS/xose/linux/zmailer-spec.tar.gz package

@@ -1,0 +1,9 @@
+errors root@localhost
+compress
+
+/var/log/mail/* {
+    missingok
+    postrotate
+	/etc/rc.d/init.d/zmailer logsync
+    endscript
+}

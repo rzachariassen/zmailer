@@ -1,0 +1,72 @@
+#!/bin/sh
+#
+# zmailer       This shell script takes care of starting and stopping
+#               ZMailer.
+#
+# chkconfig: 2345 80 30
+# description: ZMailer is a Mail Transport Agent, which is the program \
+#              that moves mail from one machine to another.
+# processname: router scheduler smtpserver
+# config: /opt/zmailer/zmailer.conf
+# pidfile: /var/postoffice/.pid.scheduler .pid.smtpserver .pid.router
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Source zmailer configureation.
+if [ -f /opt/zmailer/zmailer.conf ] ; then
+	. /opt/zmailer/zmailer.conf
+else 
+	exit 0
+fi
+
+
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+[ -f $MAILBIN/zmailer ] || exit 0
+
+# See how we were called.
+case "$1" in
+  start)
+	# Start daemons.
+	# echo "Starting ZMailer: "
+	if [ "${SMTPSERVER}" ]; then
+		$MAILBIN/zmailer smtp
+	elif [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
+		$MAILBIN/zmailer bootclean
+		$MAILBIN/zmailer
+	fi
+	touch /var/lock/subsys/zmailer
+	;;
+  stop)
+	# Stop daemons.
+        # echo "Shutting down ZMalier: "
+	if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
+		$MAILBIN/zmailer kill
+	fi
+	rm -f /var/lock/subsys/zmailer
+	rm -f $POSTOFFICE/.pid.*
+	;;
+  restart)
+        $0 stop
+        $0 start
+        ;;
+  status)
+	status router
+	status scheduler
+	status smtpserver
+        ;;
+  logsync)
+	$MAILBIN/zmailer logsync
+	;;
+  *)
+	echo "Usage: zmailer {start|stop|restart|status}"
+	exit 1
+	;;
+esac
+
+exit 0

@@ -1,0 +1,6 @@
+#!/bin/sh
+. /etc/zmailer/zmailer.conf
+# Cleanout public and postman directories
+$MAILBIN/zmailer cleanup
+# Resubmit deferred messages
+$MAILBIN/zmailer resubmit
