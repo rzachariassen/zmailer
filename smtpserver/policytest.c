@@ -17,6 +17,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <errno.h>
 #ifdef HAVE_DB_H
 #if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
@@ -630,7 +631,8 @@ int whosonrc;
 	/*
 	   rel->ndbm = dbm_open((char*)rel->dbpath, O_RDWR|O_CREAT|O_TRUNC, 0644);
 	 */
-	rel->ndbm = dbm_open((char *) rel->dbpath, O_RDONLY, 0644);
+	strcpy(dbname, rel->dbpath);
+	rel->ndbm = dbm_open(dbname, O_RDONLY, 0644);
 	openok = (rel->ndbm != NULL);
 	break;
 #endif
@@ -656,6 +658,8 @@ int whosonrc;
 	break;
 
     case _dbt_bhash:
+	/* Append '.db' to the name */
+	sprintf(dbname, "%s.dbh", rel->dbpath);
 #ifdef HAVE_DB_OPEN2
 	rel->bhash = NULL;
 	db_open(dbname, DB_HASH, DB_RDONLY, 0644, NULL, NULL, &rel->bhash);
@@ -668,16 +672,21 @@ int whosonrc;
     default:
 	break;
     }
-#ifndef HAVE_ALLOCA
-    free(dbname);
-#endif
     if (!openok) {
 	/* ERROR!  Could not open the database! */
       if (debug)
-	printf("000- ERROR!  Could not open the database!\n");
+	printf("000- ERROR!  Could not open the database file '%s'; errno=%d!\n",
+	       dbname, errno);
       *relp = NULL;
+
+#ifndef HAVE_ALLOCA
+      free(dbname);
+#endif
       return 2;
     }
+#ifndef HAVE_ALLOCA
+    free(dbname);
+#endif
 
     memset(state, 0, sizeof(*state));
 #ifdef HAVE_WHOSON_H
