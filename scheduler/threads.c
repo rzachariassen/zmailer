@@ -1497,18 +1497,20 @@ idle_cleanup()
 		write(p->tofd,"\n",1);
 		pipes_shutdown_child(p->tofd);
 		p->tofd       = -1;
-		p->thg        = NULL;
-		p->thread     = NULL;
+
 		thg->idlecnt -= 1;
 		--idleprocs;
 		++freecount;
 		/* The thread-group can be deleted before reclaim() runs! */
 		thg->transporters -= 1;
+#if 0
 		--numkids;
+		p->thg        = NULL;
+		p->thread     = NULL;
 
 		/* Remove this entry from the chain, and move to a next one */
 		p = *pp = p->next;
-
+#endif
 	      } else {
 		++newidlecnt;
 		/* Move to the next possible idle process */
