@@ -1,3 +1,8 @@
+2003-06-22  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/libta/mimeheaders.c:
+	    Last detected memory leak in header parsers.
+
 2003-06-21  Matti Aarnio  <mea@zmailer.org>
 
 	* include/ta.h, transports/libta/ctlopen.c, transports/libta/diagnostic.c,

@@ -185,10 +185,10 @@ ctlclose(dp)
 
 
 static void
-free_last_ap(d,ap)
+free_last_ap(d)
 	struct ctldesc *d; /* Chain in for latter free()ing */
-	struct taddress *ap;
 {
+	struct taddress *ap = d->ta_chain;
 	d->ta_chain = ap->ta_next;
 	ap->ta_next = NULL;
 	free((void*)ap);
@@ -487,7 +487,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 		    && host != NULL && cistrcmp(host,ap->host) !=0)
 		|| !lockaddr(d.ctlfd, d.ctlmap, d.offset[i]+1,
 			     _CFTAG_NORMAL, _CFTAG_LOCK, file, host, mypid)) {
-	      free_last_ap(&d,ap);
+	      free_last_ap(&d);
 	      break;
 	    }
 	    ap->link = d.senders; /* point at sender address */
@@ -497,7 +497,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 		       _CFTAG_LOCK, _CFTAG_DEFER, file, host, mypid);
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
-	      free_last_ap(&d,ap);
+	      free_last_ap(&d);
 	      break;
 	    }
 	    memset(rp, 0, sizeof(*rp));

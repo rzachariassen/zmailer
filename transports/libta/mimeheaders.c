@@ -865,9 +865,8 @@ static const char *debugptrs[20];
 
 	    strqcpy(&unk, unkpos, &unklen, parval);
 
-	    ct->unknown[unknowncount] = unk;
-	    ct->unknown[unknowncount] = NULL;
-	    ++unknowncount;
+	    ct->unknown[unknowncount++] = unk;
+	    ct->unknown[unknowncount  ] = NULL;
 	    free (parval);
 	  }
 	  if (paramname)

@@ -857,7 +857,7 @@ process(dp)
 	}
 	if (userbuf != NULL)
 	  free(userbuf);
-	if (CT) free_content_type(CT);
+	if (CT)  free_content_type(CT);
 	if (CTE) free_content_encoding(CTE);
 }
 
