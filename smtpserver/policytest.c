@@ -63,8 +63,12 @@
 #define _POLICYTEST_INTERNAL_
 #include "policytest.h"
 
+
 extern int debug;
 extern int percent_accept;
+
+/* This is *NOT* the official prototype for type() !!! */
+extern void type __((void *, const int code, const char *status, const char *fmt,...));
 
 static int resolveattributes __((struct policytest *, int, struct policystate *, const char *, int));
 static int  check_domain __((struct policytest *, struct policystate *, const char *, int));
@@ -867,6 +871,8 @@ int sourceaddr;
 	printf("000- policytestaddr: 'rcpt-dns-rbl %s' found;\n",
 	       state->values[P_A_RcptDnsRBL]);
       rc = rbl_dns_test(ipaf, ipaddr, state->values[P_A_RcptDnsRBL], &state->rblmsg);
+      type(NULL, 0, NULL, "rcpt-dns-rbl test yiels: rc=%d rblmsg='%s'",rc,
+	   state->rblmsg ? state->rblmsg : "<none>");
       if (!state->message){ PICK_PA_MSG(P_A_RcptDnsRBL); }
       if (debug)
 	printf("000-  rc=%d\n", rc);
