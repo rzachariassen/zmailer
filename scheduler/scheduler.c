@@ -2475,7 +2475,7 @@ struct timeserver {
 #else
 	time_t	time_sec;
 #endif
-#define MAPSIZE 16*1024
+#define MAPSIZE 16*1024 /* Should work at all systems ? */
 };
 struct timeserver *timeserver_segment = NULL;
 static void init_timeserver()
@@ -2487,26 +2487,27 @@ static void init_timeserver()
 	int fd = -1;
 	char blk[1024];
 	int i;
-	Sfio_t *fp = sftmp(1); /* Create the backing file fairly reliably. */
+	Sfio_t *fp = sftmp(0); /* Create the backing file fairly reliably. */
 
-	if (fp) {
+	if (fp)
 	  fd = sffileno(fp);
-	  sfsetfd(fp,-1); /* hide the fd */
-	  sfclose(fp);
+	if (fd < 0) {
+	  perror("init_timeserver() didn't create tempfile ??");
+	  return; /* Brr! */ 
 	}
-	if (fd < 0) return; /* Brr! */ 
 
 	memset(blk,0,sizeof(blk));
 	for (i=0; i < MAPSIZE; i += sizeof(blk))
-	  write(fd,blk,sizeof(blk));
-	lseek(fd,(off_t)0,0);
+	  sfwrite(fp, blk, sizeof(blk));
+	sfsync(fp);
+	sfseek(fp, 0, 0);
 
 #ifndef MAP_FILE
 # define MAP_FILE 0 /* SunOS 4.1 does not have this */
 #endif
 	timeserver_segment = (void*)mmap(NULL, MAPSIZE, PROT_READ|PROT_WRITE,
 					 MAP_FILE|MAP_SHARED, fd, 0);
-	close(fd);
+	sfclose(fp);
 	
 #else
 #ifndef MAP_VARIABLE

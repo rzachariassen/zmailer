@@ -1,5 +1,10 @@
 1999-12-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/scheduler.c:
+	    Wondered why (at Solaris) the system doesn't run with
+	    timeserver process.  Possible fix implemented. (SFIO
+	    usage mistake.)
+
 	* scheduler/threads.c:
 	    Spotted the final lurking thread-auto-switch bug -- "ho"
 	    and "ch" pointers at proc object were not updated at the
