@@ -107,7 +107,6 @@ int skeptical = 1;
 int checkhelo = 0;
 int verbose = 0;
 int daemon_flg = 1;
-int netconnected_flg = 0;
 int pid, routerpid = -1;
 extern int contentpolicypid;
 int router_status = 0;
@@ -804,16 +803,6 @@ char **argv;
 	if (!logfp)
 	  openlogfp(&SS, daemon_flg);
 	
-	mailshare = getzenv("MAILSHARE");
-	if (mailshare == NULL)
-	  mailshare = MAILSHARE;
-	if (cfgpath == NULL) {
-	  if (strchr(progname, '/') != NULL)
-	    sprintf(path, "%s/%s.conf", mailshare, strrchr(progname, '/') + 1);
-	  else
-	    sprintf(path, "%s/%s.conf", mailshare, progname);
-	}
-
 
 	/* The automatic "system can do ipv6" testing controls
 	   "use_ipv6" variable, which in turn controls what
@@ -844,6 +833,17 @@ char **argv;
 #endif
 
 
+	mailshare = getzenv("MAILSHARE");
+	if (mailshare == NULL)
+	  mailshare = MAILSHARE;
+	if (cfgpath == NULL) {
+	  char *t = strrchr(progname, '/');
+	  if (t != NULL)
+	    sprintf(path, "%s/%s.conf", mailshare, t + 1);
+	  else
+	    sprintf(path, "%s/%s.conf", mailshare, progname);
+	}
+
 	if (cfgpath == NULL)
 	  cfhead = readcffile(path);
 	else
@@ -851,8 +851,8 @@ char **argv;
 
 	if (daemon_flg)
 	  if (lmtp_mode && (!bindport_set || (bindport_set && bindport == 25)))
-	    lmtp_mode = 0; /* Disable LMTP mode unless we are bound at other than
-			      port 25. */
+	    lmtp_mode = 0; /* Disable LMTP mode unless we are bound at other
+			      than port 25. */
 
 #ifdef HAVE_OPENSSL
 	Z_init(); /* Some things for private processors */
@@ -860,7 +860,7 @@ char **argv;
 	if (!allow_source_route)
 	  allow_source_route = (getzenv("ALLOWSOURCEROUTE") != NULL);
 
-	netconnected_flg = 0;
+	SS.netconnected_flg = 0;
 
 	if (!daemon_flg) {
 
@@ -868,12 +868,12 @@ char **argv;
 	  memset(&SS.raddr, 0, raddrlen);
 	  if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen)) {
 	    if (testaddr_set) {
-	      netconnected_flg = 1;
+	      SS.netconnected_flg = 1;
 	      memcpy(&SS.raddr, &testaddr, sizeof(testaddr));
 	    }
 	  } else {
 	    /* Got a peer name (it is a socket) */
-	    netconnected_flg = 1;
+	    SS.netconnected_flg = 1;
 	    if (SS.raddr.v4.sin_family != AF_INET
 #ifdef AF_INET6
 		&& SS.raddr.v4.sin_family != AF_INET6
@@ -881,9 +881,9 @@ char **argv;
 		) {
 	      /* well, but somebody uses socketpair(2)  which is
 		 an AF_UNIX thing and sort of full-duplex pipe(2)... */
-	      netconnected_flg = 0;
+	      SS.netconnected_flg = 0;
 	    }
-	    if (netconnected_flg) {
+	    if (SS.netconnected_flg) {
 	      /* Lets figure-out who we are this time around -- we may be on
 		 a machine with multiple identities per multiple interfaces,
 		 or via virtual IP-numbers, or ... */
@@ -917,9 +917,9 @@ char **argv;
 	  memset(&SS.raddr, 0, raddrlen);
 
 	  if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen))
-	    netconnected_flg = 0;
+	    SS.netconnected_flg = 0;
 	  else
-	    netconnected_flg = 1;
+	    SS.netconnected_flg = 1;
 
 #if defined(AF_INET6) && defined(INET6)
 	  if (SS.raddr.v6.sin6_family == AF_INET6)
@@ -940,7 +940,7 @@ char **argv;
 	  }
 	  zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 	  
-	  if (netconnected_flg)
+	  if (SS.netconnected_flg)
 	    s_setup(&SS, FILENO(stdin), FILENO(stdin));
 	  else
 	    s_setup(&SS, FILENO(stdin), FILENO(stdout));
@@ -1262,7 +1262,7 @@ char **argv;
 		} else {			/* Child */
 		  SIGNAL_RELEASE(SIGCHLD);
 		  
-		  netconnected_flg = 1;
+		  SS.netconnected_flg = 1;
 		  
 		  switch (socktag) {
 		  case LSOCKTYPE_SMTP:
@@ -1331,7 +1331,7 @@ char **argv;
 		    strcpy(SS.ident_username, "IDENT-NOT-QUERIED");
 
 #ifdef HAVE_WHOSON_H
-		  if (do_whoson && netconnected_flg) {
+		  if (do_whoson && SS.netconnected_flg) {
 		    char buf[64];
 		    buf[0]='\0';
 		    if (SS.raddr.v4.sin_family == AF_INET) {  
@@ -1422,7 +1422,7 @@ char **argv;
 		  if (contentpolicypid > 1)
 		    killcfilter(&SS, contentpolicypid);
 		    
-		  if (netconnected_flg)
+		  if (SS.netconnected_flg)
 		    sleep(2);
 		  _exit(0);
 
@@ -1451,7 +1451,7 @@ char **argv;
 	  killr(&SS, routerpid);
 	if (contentpolicypid > 1)
 	  killcfilter(&SS, contentpolicypid);
-	if (netconnected_flg)
+	if (SS.netconnected_flg)
 	  sleep(2);
 	exit(0);
 	/* NOTREACHED */
@@ -1992,7 +1992,7 @@ int insecure;
 
     runastrusteduser();
 
-    if (!netconnected_flg)
+    if (!SS->netconnected_flg)
       strict_protocol = 0;
 
     fd_nonblockingmode(SS->inputfd);  /* redundant ? */
@@ -2118,36 +2118,39 @@ int insecure;
 
 
 #ifdef HAVE_WHOSON_H
-    policystatus     = policyinit(&policydb, &SS->policystate,
+      policystatus     = policyinit(&policydb, &SS->policystate,
 				  SS->whoson_result);
 #else
-    policystatus     = policyinit(&policydb, &SS->policystate, 0);
+      policystatus     = policyinit(&policydb, &SS->policystate, 0);
 #endif
-    if (!netconnected_flg && policystatus < 0)
+
+    if (!SS->netconnected_flg) {
       policystatus = 0; /* For internal - non-net-connected - mode
 			   lack of PolicyDB is no problem at all.. */
-
-    if (debug) typeflush(SS);
-    SS->policyresult = policytestaddr(policydb, &SS->policystate,
-				      POLICY_SOURCEADDR,
-				      (void *) &SS->raddr);
-    SS->reject_net = (SS->policyresult < 0);
-    maxsameip = policysameiplimit(policydb, &SS->policystate);
-    if (maxsameip == 0) SS->reject_net = 1; /* count=0 equivalent to reject */
-    if (debug) typeflush(SS);
-    if (SS->policyresult == 0) /* Alternates to this condition are:
-				  Always reject, or Always freeze.. */
-      SS->policyresult = policytest(policydb, &SS->policystate,
-				    POLICY_SOURCEDOMAIN,
-				    SS->rhostname,strlen(SS->rhostname),
-				    SS->authuser);
-
+      SS->reject_net = 0;
+    } else {
+      if (debug) typeflush(SS);
+      SS->policyresult = policytestaddr(policydb, &SS->policystate,
+					POLICY_SOURCEADDR,
+					(void *) &SS->raddr);
+      SS->reject_net = (SS->policyresult < 0);
+      maxsameip = policysameiplimit(policydb, &SS->policystate);
+      if (maxsameip == 0 && SS->netconnected_flg)
+	SS->reject_net = 1; /* count=0 equivalent to reject */
+      if (debug) typeflush(SS);
+      if (SS->policyresult == 0) /* Alternates to this condition are:
+				    Always reject, or Always freeze.. */
+	SS->policyresult = policytest(policydb, &SS->policystate,
+				      POLICY_SOURCEDOMAIN,
+				      SS->rhostname,strlen(SS->rhostname),
+				      SS->authuser);
+    }
     /* re-opening the log ?? */
     zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
 #ifdef USE_TCPWRAPPER
 #ifdef HAVE_TCPD_H		/* TCP-Wrapper code */
-    if (use_tcpwrapper && netconnected_flg &&
+    if (use_tcpwrapper && SS->netconnected_flg &&
 	wantconn(SS->inputfd, "smtp-receiver") == 0) {
 	zsyslog((LOG_WARNING, "refusing connection from %s:%d/%s",
 		 SS->rhostname, SS->rport, SS->ident_username));
@@ -2370,7 +2373,7 @@ int insecure;
 	  goto unknown_command;
 
 	/* Lack of configuration is problem only with network connections */
-	if (netconnected_flg && !configuration_ok) {
+	if (SS->netconnected_flg && !configuration_ok) {
 	  smtp_tarpit(SS);
 	  type(SS, -400, "4.7.0", "This SMTP server has not been configured!");
 	  typeflush(SS);

@@ -634,6 +634,8 @@ int whosonrc;
     if (rel == NULL)
       return -1;  /* Not defined! */
 
+    memset(state, 0, sizeof(*state));
+
 #ifdef HAVE_NDBM
     if (cistrcmp(rel->dbtype, "ndbm") == 0)
 	rel->dbt = _dbt_ndbm;
@@ -772,7 +774,6 @@ int whosonrc;
     free(dbname);
 #endif
 
-    memset(state, 0, sizeof(*state));
 #ifdef HAVE_WHOSON_H
     state->whoson_result = whosonrc;
 #endif

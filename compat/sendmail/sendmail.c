@@ -424,7 +424,7 @@ otherprog:
 		const char *av[30+1];
 		path = emalloc((unsigned)(strlen(mailbin)+1+strlen(SMTPSERVER)+1));
 		sprintf(path, "%s/%s", mailbin, SMTPSERVER);
-		av[0] = "smtp-in";
+		av[0] = "sendmail-smtp-in";
 		av[1] = "-i";
 		n = 2;
 		cp = (char*) getzenv("SMTPOPTIONS"); /* Normal smtp-server options */

@@ -294,6 +294,7 @@ typedef struct SmtpState {
     struct policystate policystate;
     int  policyresult, reject_net;
     int  postmasteronly;
+    int  netconnected_flg;
     int  tarpit;
     int  tarpit_cval;		/* current tarpit value */
     int  rport;

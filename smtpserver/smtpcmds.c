@@ -21,7 +21,6 @@
 
 #include "smtpserver.h"
 
-extern int netconnected_flg;
 extern int do_whoson;
 
 static const char *orcpt_string __((const char *));
@@ -179,9 +178,12 @@ const char *buf, *cp;
       while (*cp == ' ' || *cp == '\t') ++cp;
 
     if (debug) typeflush(SS);
-    SS->policyresult = policytest(policydb, &SS->policystate,
-				  POLICY_HELONAME, cp, strlen(cp),
-				  SS->authuser);
+    if (SS->netconnected_flg)
+      SS->policyresult = policytest(policydb, &SS->policystate,
+				    POLICY_HELONAME, cp, strlen(cp),
+				    SS->authuser);
+    else
+      SS->policyresult = 0;
 
     if (logfp || logfp_to_syslog) time( & now );
 
@@ -765,9 +767,12 @@ int insecure;
     RFC821_822QUOTE(cp, newcp, addrlen);
 
     if (debug) typeflush(SS);
-    SS->policyresult = policytest(policydb, &SS->policystate,
-				  POLICY_MAILFROM, cp, addrlen,
-				  SS->authuser);
+    if (SS->netconnected_flg)
+      SS->policyresult = policytest(policydb, &SS->policystate,
+				    POLICY_MAILFROM, cp, addrlen,
+				    SS->authuser);
+    else
+      SS->policyresult = 0;
     if (logfp || logfp_to_syslog) {
       char *ss = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || ss != NULL) {
@@ -858,7 +863,7 @@ int insecure;
     if (insecure)
 	fprintf(SS->mfp, "external\n");
 
-    if (netconnected_flg) {
+    if (SS->netconnected_flg) {
 
       /* Produce the 'rcvdfrom' header only when connected
 	 to network socket */
@@ -1306,9 +1311,12 @@ const char *buf, *cp;
     RFC821_822QUOTE(cp, newcp, addrlen);
 
     if (debug) typeflush(SS);
-    SS->policyresult = policytest(policydb, &SS->policystate,
-				  POLICY_RCPTTO, cp, addrlen,
-				  SS->authuser);
+    if (SS->netconnected_flg)
+      SS->policyresult = policytest(policydb, &SS->policystate,
+				    POLICY_RCPTTO, cp, addrlen,
+				    SS->authuser);
+    else
+      SS->policyresult = 0;
     if (logfp || logfp_to_syslog) {
       char *ss = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || ss != NULL) {
@@ -1328,9 +1336,12 @@ const char *buf, *cp;
 	  if (policydb != NULL && SS->policyresult > -100) {
 	    int rc;
 	    if (debug) typeflush(SS);
-	    rc = policytest(policydb, &SS->policystate,
-			    POLICY_RCPTPOSTMASTER, cp, addrlen,
-			    SS->authuser);
+	    if (SS->netconnected_flg)
+	      rc = policytest(policydb, &SS->policystate,
+			      POLICY_RCPTPOSTMASTER, cp, addrlen,
+			      SS->authuser);
+	    else
+	      rc = 0;
 	    if (rc == 0)
 	      SS->policyresult = 0;
 

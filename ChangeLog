@@ -1,3 +1,13 @@
+2003-11-07  Matti Aarnio  <mea@zmailer.org>
+
+	* compat/sendmail/sendmail.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c, smtpserver/smtpcmds.c:
+	    - When 'sendmail' is called with '-bs' option, let it
+	      call the subsequently started  smtpserver as:
+	      "sendmail-smtp-in".
+	    - Don't call policy database functions, when the program
+	      isn't being run under a network socket.
+
 2003-11-07  Eugene Crosser  <crosser@rol.ru>
              
 	* proto/cf/aliases.cf:
