@@ -140,7 +140,7 @@ struct db_kind {
 		  add_dbm, remove_dbm, print_dbm, count_dbm, owner_dbm,
 		  NULL, Nul, NULL } },
 #endif	/* HAVE_DBM */
-#ifdef	HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 { "btree",	{ NULL, NULL, 0, 0, 0, NULL, search_btree, close_btree,
 		  add_btree, remove_btree, print_btree, count_btree,
 		  owner_btree, modp_btree, Nul, NULL } },

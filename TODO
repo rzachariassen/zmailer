@@ -1,5 +1,8 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+- Linux glibc 2.2 (or its pre-versions) and DB 2.x vs. DB 3.x vs ...
+	SleepyCat DB 3.x is an unknown entity so far..
+
 - Solaris 2.6 native make --> no VPATH ?? (sfio fails)
 
 - BUG(security sensitivity):

@@ -1,5 +1,12 @@
 2000-07-18  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* configure.in, router/db.c, router/libdb/bsdbtree.c,
+	  router/libdb/bsdhash.c, smtpserver/policytest.h,
+	  smtpserver/policytest.c, utils/makedb/makedb.c,
+	  utils/makedb/dblook.c, utils/vacation/vacation.c:
+	    Rewamped things to support another kind of set of
+	    SleepyCat DB libraries.  Not yet covering version 3.x.
+
 	* lib/rfc822scan.c:
 	    A bit more characters into "no need to quote these here"
 	    set -- allow address <@[1.2.3.4]:foo@bar> and <foo@[1.2.3.4]>

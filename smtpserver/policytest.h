@@ -78,7 +78,7 @@ struct policytest {
 #ifdef HAVE_GDBM_H
 	GDBM_FILE _gdbm;
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 	DB *_db;
 #endif
     } db_;

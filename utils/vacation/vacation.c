@@ -34,11 +34,19 @@
 #include <gdbm.h>
 #include <fcntl.h>
 #else
-#ifdef  HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 #if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
 #else
+#ifdef HAVE_DB2_DB_H
+# include <db2/db.h>
+#else
+#ifdef HAVE_DB1_DB_H
+# include <db1/db.h>
+#else
 # include <db.h>
+#endif
+#endif
 #endif
 #else
 :error:error:error "To compile, VACATION needs ndbm.h, gdbm.h, or db.h; none found!"

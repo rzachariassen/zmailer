@@ -499,7 +499,8 @@ DEFDBTYPE="$DBTYPE" # From possible entry in  zmailer.conf above...
 AC_SUBST(DBTYPE) # Default db-type, unless we figure out something.
 AC_SUBST(DBEXT)  # Default db-extension (pag/db) for FILE OPEN
 AC_SUBST(DBEXTtest) # Default db-extension (pag/db) for FILE AGE TESTS
-AC_CHECK_HEADERS(gdbm.h ndbm.h sdbm.h db.h db_185.h)
+AC_CHECK_HEADERS(gdbm.h ndbm.h sdbm.h db.h db1/db.h db_185.h)
+AC_CHECK_HEADERS(db2/db.h db2/db_185.h db3/db.h db3/db_185.h)
 LIBGDBM=""
 # Sometimes it is in libc, sometimes at separate lib...
 # Umm...
@@ -685,40 +686,36 @@ if test "$ac_cv_header_db_185_h" = yes ; then
     LIBDB=""
     t_found_at="libc(1)"
     DBTYPE="btree"
+  elif test "$ac_cv_lib_db1_dbopen1" = yes ; then
+    LIBDB="-ldb1"
+    t_found_at="db1 library"
+    DBTYPE="btree"
   else
-    if test "$ac_cv_lib_db1_dbopen1" = yes ; then
-      LIBDB="-ldb1"
-      t_found_at="db1 library"
+    if test "x$ac_cv_lib_c_dbopen1" = x ; then # not set
+      AC_TRY_LINK([], [dbopen();], ac_cv_lib_c_dbopen1=yes,
+                                   ac_cv_lib_c_dbopen1=no)
+    fi
+    if test "$ac_cv_lib_c_dbopen1" = no ; then
+      if test "x$ac_cv_lib_db1_dbopen1" = x ; then # not set
+        t_oldLibs="$LIBS"
+        LIBS="$LIBS -ldb1"
+        AC_TRY_LINK([], [dbopen();],  ac_cv_lib_db1_dbopen1=yes,
+                                      ac_cv_lib_db1_dbopen1=no)
+        LIBS="$t_oldLibs"
+        if test "$ac_cv_lib_db1_dbopen1" = yes ; then
+          LIBDB="-ldb1"
+          t_found_at="db1 library"
+          DBTYPE="btree"
+        else
+          AC_MSG_RESULT([??? Has <db_185.h>, but dbopen() is not at libc, nor at libdb ???])
+        fi
+      elif test "$ac_cv_lib_db1_dbopen1" = yes ; then
+        AC_MSG_ERROR([config.cache inconsistency! (db1) Delete it, and redo!])
+      fi
+    else # Has it in the libc!
+      LIBDB=""
+      t_found_at="libc(2)"
       DBTYPE="btree"
-    else
-      if test "x$ac_cv_lib_c_dbopen1" = x ; then # not set
-	AC_TRY_LINK([], [dbopen();], ac_cv_lib_c_dbopen1=yes,
-				     ac_cv_lib_c_dbopen1=no)
-      fi
-      if test "$ac_cv_lib_c_dbopen1" = no ; then
-	if test "x$ac_cv_lib_db1_dbopen1" = x ; then # not set
-	  t_oldLibs="$LIBS"
-	  LIBS="$LIBS -ldb1"
-	  AC_TRY_LINK([], [dbopen();],	ac_cv_lib_db1_dbopen1=yes,
-					ac_cv_lib_db1_dbopen1=no)
-	  LIBS="$t_oldLibs"
-	  if test "$ac_cv_lib_db1_dbopen1" = yes ; then
-	    LIBDB="-ldb1"
-	    t_found_at="db1 library"
-	    DBTYPE="btree"
-	  else
-	    AC_MSG_RESULT([??? Has <db_185.h>, but dbopen() is not at libc, nor at libdb ???])
-	  fi
-	else
-	  if test "$ac_cv_lib_db1_dbopen1" = yes ; then
-	    AC_MSG_ERROR([config.cache inconsistency! (db1) Delete it, and redo!])
-	  fi
-	fi
-      else # Has it in the libc!
-	LIBDB=""
-	t_found_at="libc(2)"
-	DBTYPE="btree"
-      fi
     fi
   fi
   if test "$t_found_at" = nowhere ; then
@@ -726,9 +723,9 @@ if test "$ac_cv_header_db_185_h" = yes ; then
   else
     AC_MSG_RESULT([Located BSD DB 1.x  dbopen()  routine at $t_found_at])
     if test "x$LIBDB" != "x" -a "x$LIBDB" = "x$LIBNDBM" ; then
-	# Well, both at the same library ( -ldb ), which propably
-	# means that  <ndbm.h>  is just an emulation mode at BSD DB.
-	LIBNDBM=""
+        # Well, both at the same library ( -ldb ), which propably
+        # means that  <ndbm.h>  is just an emulation mode at BSD DB.
+        LIBNDBM=""
       AC_MSG_RESULT([Note: It looks like your NDBM is actually BSD DB compability wrapper at])
       AC_MSG_RESULT([      libdb -library. If so, your NDBM databases are actually BSD DB_HASH ones..])
     fi
@@ -750,50 +747,61 @@ if test "$ac_cv_header_db_h" = yes ; then
     LIBDB=""
     t_found_at="libc(3)"
     DBTYPE="btree"
+  elif test "$ac_cv_lib_db1_dbopen" = yes ; then
+    LIBDB="-ldb1"
+    t_found_at="db1 library"
+    DBTYPE="btree"
+  elif test "$ac_cv_lib_db_dbopen" = yes ; then
+    LIBDB="-ldb"
+    t_found_at="db library"
+    DBTYPE="btree"
   else
-    if test "$ac_cv_lib_db_dbopen" = yes ; then
-      LIBDB="-ldb"
-      t_found_at="db library"
+    if test "x$ac_cv_lib_c_dbopen" = x ; then # not set
+      AC_TRY_LINK([], [dbopen();], ac_cv_lib_c_dbopen=yes,
+                                   ac_cv_lib_c_dbopen=no)
+    fi
+    if test "$ac_cv_lib_c_dbopen" = no ; then
+      if test "x$ac_cv_lib_db1_dbopen" = x ; then # not set
+        t_oldLibs="$LIBS"
+        LIBS="$LIBS -ldb1"
+        AC_TRY_LINK([], [dbopen();],    ac_cv_lib_db1_dbopen=yes,
+                                        ac_cv_lib_db1_dbopen=no)
+        LIBS="$t_oldLibs"
+        if test "$ac_cv_lib_db1_dbopen" = no ; then
+          t_oldLibs="$LIBS"
+          LIBS="$LIBS -ldb"
+          AC_TRY_LINK([], [dbopen();],    ac_cv_lib_db_dbopen=yes,
+                                          ac_cv_lib_db_dbopen=no)
+          LIBS="$t_oldLibs"
+        fi
+        if test "$ac_cv_lib_db1_dbopen" = yes ; then
+          LIBDB="-ldb1"
+          t_found_at="db1 library"
+          DBTYPE="btree"
+        elif test "$ac_cv_lib_db_dbopen" = yes ; then
+          LIBDB="-ldb"
+          t_found_at="db library"
+          DBTYPE="btree"
+        else
+          AC_MSG_RESULT([??? Has <db.h>, but dbopen() is not at libc, at libdb, nor at libdb1 ???])
+        fi
+      elif test "$ac_cv_lib_db_dbopen" = yes ; then
+        AC_MSG_ERROR([config.cache inconsistency! (db) Delete it, and redo!])
+      fi
+    else # Has it in the libc!
+      LIBDB=""
+      t_found_at="libc(4)"
       DBTYPE="btree"
-    else
-      if test "x$ac_cv_lib_c_dbopen" = x ; then # not set
-	AC_TRY_LINK([], [dbopen();], ac_cv_lib_c_dbopen=yes,
-				     ac_cv_lib_c_dbopen=no)
-      fi
-      if test "$ac_cv_lib_c_dbopen" = no ; then
-	if test "x$ac_cv_lib_db_dbopen" = x ; then # not set
-	  t_oldLibs="$LIBS"
-	  LIBS="$LIBS -ldb"
-	  AC_TRY_LINK([], [dbopen();],	ac_cv_lib_db_dbopen=yes,
-					ac_cv_lib_db_dbopen=no)
-	  LIBS="$t_oldLibs"
-	  if test "$ac_cv_lib_db_dbopen" = yes ; then
-	    LIBDB="-ldb"
-	    t_found_at="db library"
-	    DBTYPE="btree"
-	  else
-	    AC_MSG_RESULT([??? Has <db.h>, but dbopen() is not at libc, nor at libdb ???])
-	  fi
-	else
-	  if test "$ac_cv_lib_db_dbopen" = yes ; then
-	    AC_MSG_ERROR([config.cache inconsistency! (db) Delete it, and redo!])
-	  fi
-	fi
-      else # Has it in the libc!
-	LIBDB=""
-	t_found_at="libc(4)"
-	DBTYPE="btree"
-      fi
     fi
   fi
   if test "$t_found_at" = nowhere ; then
-    AC_MSG_RESULT([Didn't locate BSD DB  dbopen()  anywhere, although <db.h> file exists.])
+    AC_MSG_RESULT([Didn't locate BSD DB 1.x  dbopen()  anywhere, although <db.h> file exists.])
   else
-    AC_MSG_RESULT([Located BSD DB  dbopen()  routine at $t_found_at])
+    AC_MSG_RESULT([Located BSD DB 1.x  dbopen()  routine at $t_found_at])
     if test "x$LIBDB" != "x" -a "x$LIBDB" = "x$LIBNDBM" ; then
-	# Well, both at the same library ( -ldb ), which propably
-	# means that  <ndbm.h>  is just an emulation mode at BSD DB.
-	LIBNDBM=""
+        # Well, both at the same library ( -ldb ), which propably
+        # means that  <ndbm.h>  is just an emulation mode at BSD DB.
+        LIBNDBM=""
       AC_MSG_RESULT([Note: It looks like your NDBM is actually BSD DB compability wrapper at])
       AC_MSG_RESULT([      libdb -library. If so, your NDBM databases are actually BSD DB_HASH ones..])
     fi
@@ -814,70 +822,92 @@ if test "$ac_cv_header_db_h" = yes ; then
     t_found_at="libc(3)"
     DBTYPE="btree"
     AC_DEFINE(HAVE_DB_OPEN2)
+  elif test "$ac_cv_lib_db2_db_open2" = yes ; then
+    LIBDB="-ldb2"
+    t_found_at="db2 library"
+    DBTYPE="btree"
+    AC_DEFINE(HAVE_DB_OPEN2)
+  elif test "$ac_cv_lib_db_db_open2" = yes ; then
+    LIBDB="-ldb"
+    t_found_at="db library"
+    DBTYPE="btree"
+    AC_DEFINE(HAVE_DB_OPEN2)
   else
-    if test "$ac_cv_lib_db_db_open2" = yes ; then
-      LIBDB="-ldb"
-      t_found_at="db library"
+    if test "x$ac_cv_lib_c_db_open2" = x ; then # not set
+      AC_TRY_LINK([], [db_open();], ac_cv_lib_c_db_open2=yes,
+                                    ac_cv_lib_c_db_open2=no)
+    fi
+    if test "$ac_cv_lib_c_db_open2" = no ; then
+      if test "x$ac_cv_lib_db_db_open2" = x ; then # not set
+        t_oldLibs="$LIBS"
+        LIBS="$LIBS -ldb"
+        AC_TRY_LINK([], [db_open();], ac_cv_lib_db_db_open2=yes,
+                                      ac_cv_lib_db_db_open2=no)
+        LIBS="$t_oldLibs"
+        if test "$ac_cv_lib_db_db_open2" = no ; then
+          LIBS="$LIBS -ldb2"
+          AC_TRY_LINK([], [db_open();], ac_cv_lib_db2_db_open2=yes,
+                                        ac_cv_lib_db2_db_open2=no)
+          LIBS="$t_oldLibs"
+        fi
+        if test "$ac_cv_lib_db2_db_open2" = yes ; then
+          LIBDB="-ldb2"
+          t_found_at="db2 library"
+          DBTYPE="btree"
+          AC_DEFINE(HAVE_DB_OPEN2)
+        elif test "$ac_cv_lib_db_db_open2" = yes ; then
+          LIBDB="-ldb"
+          t_found_at="db library"
+          DBTYPE="btree"
+          AC_DEFINE(HAVE_DB_OPEN2)
+        else
+          if test "$ac_cv_lib_db_dbopen"   != yes -a \
+                  "$ac_cv_lib_c_dbopen"    != yes -a \
+                  "$ac_cv_lib_db1_dbopen1" != yes -a \
+                  "$ac_cv_lib_c_dbopen1"   != yes ; then
+            AC_MSG_RESULT([??? Has <db.h>, but db_open() is not at libc, nor at libdb ???])
+          fi
+        fi
+      else
+        if test "$ac_cv_lib_db_db_open2" = yes ; then
+          AC_MSG_ERROR([config.cache inconsistency! (db2) Delete it, and redo!])
+        fi
+      fi
+    else # Has it in the libc!
+      LIBDB=""
+      t_found_at="libc(4)"
       DBTYPE="btree"
       AC_DEFINE(HAVE_DB_OPEN2)
-    else
-      if test "x$ac_cv_lib_c_db_open2" = x ; then # not set
-	AC_TRY_LINK([], [db_open();], ac_cv_lib_c_db_open2=yes,
-				      ac_cv_lib_c_db_open2=no)
-      fi
-      if test "$ac_cv_lib_c_db_open2" = no ; then
-	if test "x$ac_cv_lib_db_db_open2" = x ; then # not set
-	  t_oldLibs="$LIBS"
-	  LIBS="$LIBS -ldb"
-	  AC_TRY_LINK([], [db_open();],	ac_cv_lib_db_db_open2=yes,
-					ac_cv_lib_db_db_open2=no)
-	  LIBS="$t_oldLibs"
-	  if test "$ac_cv_lib_db_db_open2" = yes ; then
-	    LIBDB="-ldb"
-	    t_found_at="db library"
-	    DBTYPE="btree"
-	    AC_DEFINE(HAVE_DB_OPEN2)
-	  else
-	    if test "$ac_cv_lib_db_dbopen"   != yes -a \
-		    "$ac_cv_lib_c_dbopen"    != yes -a \
-		    "$ac_cv_lib_db1_dbopen1" != yes -a \
-		    "$ac_cv_lib_c_dbopen1"   != yes ; then
-	      AC_MSG_RESULT([??? Has <db.h>, but db_open() is not at libc, nor at libdb ???])
-	    fi
-	  fi
-	else
-	  if test "$ac_cv_lib_db_db_open2" = yes ; then
-	    AC_MSG_ERROR([config.cache inconsistency! (db2) Delete it, and redo!])
-	  fi
-	fi
-      else # Has it in the libc!
-	LIBDB=""
-	t_found_at="libc(4)"
-	DBTYPE="btree"
-	AC_DEFINE(HAVE_DB_OPEN2)
-      fi
     fi
   fi
   if test "$t_found_at" = nowhere ; then
-    AC_MSG_RESULT([Didn't locate BSD DB 2.x  db_open()  anywhere, although <db.h> file exists.])
+    AC_MSG_RESULT([Didn't locate SleepyCat DB 2.x  db_open()  anywhere, although <db.h> file exists.])
   else
-    AC_MSG_RESULT([Located BSD DB 2.x  db_open()  routine at $t_found_at])
+    AC_MSG_RESULT([Located SleepyCat DB 2.x  db_open()  routine at $t_found_at])
     if test "x$LIBDB" != "x" ; then
-	# Does (db->cursor)(...) have 3 or 4 args ?
-	if test "x$ac_cv_db_cursor_4" = x ; then # not set
-	  AC_TRY_COMPILE([#include <db.h>],[DB *db; DBC *curs;
+        # Does (db->cursor)(...) have 3 or 4 args ?
+        if test "$ac_cv_db_cursor_4" = "" ; then # not set
+	  if test "$ac_cv_header_db2_db_h" = yes ; then
+            AC_TRY_COMPILE([#include <db2/db.h>],[DB *db; DBC *curs;
 int err = (db->cursor)(db, NULL, &curs, 0);],
-			 ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
-	fi
-	if test "x$ac_cv_db_cursor_4" = "xyes"; then
-	  AC_MSG_RESULT([  (db->cursor)() method function seems to want 4 args.])
-	  AC_DEFINE(HAVE_DB_CURSOR4)
-	fi
+                           ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
+	  elif test "$ac_cv_header_db_h" = yes ; then
+            AC_TRY_COMPILE([#include <db.h>],[DB *db; DBC *curs;
+int err = (db->cursor)(db, NULL, &curs, 0);],
+                           ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
+          else
+	    AC_MSG_RESULT([  Hmm.. No <db2/db.h>, nor <db.h> ??])
+	  fi
+        fi
+        if test "$ac_cv_db_cursor_4" = yes; then
+          AC_MSG_RESULT([  (db->cursor)() method function seems to want 4 args.])
+          AC_DEFINE(HAVE_DB_CURSOR4)
+        fi
     fi
   if test "x$LIBDB" != "x" -a "x$LIBDB" = "x$LIBNDBM" ; then
-	# Well, both at the same library ( -ldb ), which propably
-	# means that  <ndbm.h>  is just an emulation mode at BSD DB.
-	LIBNDBM=""
+        # Well, both at the same library ( -ldb ), which propably
+        # means that  <ndbm.h>  is just an emulation mode at BSD DB.
+        LIBNDBM=""
     AC_MSG_RESULT([Note: It looks like your NDBM is actually BSD DB compability wrapper at])
     AC_MSG_RESULT([      libdb -library. If so, your NDBM databases are actually BSD DB_HASH ones..])
     fi

@@ -2,21 +2,33 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Copyright 1996-1999 Matti Aarnio
+ *	Copyright 1996-2000 Matti Aarnio
  */
 
 /* LINTLIBRARY */
 
 #include "mailer.h"
-#ifdef	HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 #if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
 #else
+#ifdef HAVE_DB2_DB_H
+# include <db2/db.h>
+#else
+#ifdef HAVE_DB1_DB_H
+# include <db1/db.h>
+#else
 # include <db.h>
 #endif
+#endif
+#endif
+#endif
+
 #include <sys/file.h>
 #include "search.h"
 #include "io.h"

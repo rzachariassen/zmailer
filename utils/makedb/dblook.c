@@ -1,4 +1,4 @@
-/* Copyright 1993 - Matti Aarnio, Turku University, Turku, Finland
+/* Copyright 1993-2000 - Matti Aarnio <mea@nic.funet.fi>
    This will be free software, but only when it is finished.
 
    The way the Zmailer uses DBM entries is by using strings with
@@ -21,11 +21,19 @@
 #include <gdbm.h>
 #undef datum
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 #if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
 #else
+#ifdef HAVE_DB2_DB_H
+# include <db2/db.h>
+#else
+#ifdef HAVE_DB1_DB_H
+# include <db1/db.h>
+#else
 # include <db.h>
+#endif
+#endif
 #endif
 #endif
 
@@ -46,7 +54,7 @@ int errn;
 #ifdef HAVE_GDBM_H
   fprintf(stderr," gdbm");
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
   fprintf(stderr," btree bhash");
 #endif
   fprintf(stderr,"\n");
@@ -56,7 +64,7 @@ int errn;
 #ifdef HAVE_GDBM_H
   fprintf(stderr,"  (GDBM  DOES NOT append .gdbm  into the actual db file name..)\n");
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
   fprintf(stderr,"  (BTREE DOES NOT append  .db   into the actual db file name..)\n");
   fprintf(stderr,"  (BHASH appends .pag, and .dir into actual db file names..)\n");
 #endif
@@ -185,7 +193,7 @@ char *argv[];
     return 0;
   }
 #endif /* GDBM */
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 #ifdef HAVE_DB_OPEN2
   if (strcmp(argv[1],"btree")==0) {
     DB *dbfile;

@@ -18,13 +18,23 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <errno.h>
-#ifdef HAVE_DB_H
+
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 #if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
+#else
+#ifdef HAVE_DB2_DB_H
+# include <db2/db.h>
+#else
+#ifdef HAVE_DB1_DB_H
+# include <db1/db.h>
 #else
 # include <db.h>
 #endif
 #endif
+#endif
+#endif
+
 #ifdef HAVE_NDBM_H
 #define datum Ndatum
 #include <ndbm.h>
@@ -219,7 +229,7 @@ int *rlenp;			/* result length ptr ! */
 #ifdef HAVE_GDBM_H
     Gdatum Gkey, Gresult;
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
     DBT Bkey, Bresult;
     int rc;
 #endif
@@ -262,7 +272,7 @@ int *rlenp;			/* result length ptr ! */
 	break; /* some compilers complain, some produce bad code
 		  without this... */
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
     case _dbt_btree:
 
 
@@ -608,7 +618,7 @@ int whosonrc;
     if (cistrcmp(rel->dbtype, "gdbm") == 0)
 	rel->dbt = _dbt_gdbm;
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
     if (cistrcmp(rel->dbtype, "btree") == 0)
 	rel->dbt = _dbt_btree;
     if (cistrcmp(rel->dbtype, "bhash") == 0)
@@ -644,7 +654,7 @@ int whosonrc;
 	openok = (rel->gdbm != NULL);
 	break;
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
     case _dbt_btree:
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.db", rel->dbpath);

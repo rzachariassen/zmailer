@@ -25,11 +25,19 @@
 #include <gdbm.h>
 #undef datum
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 #if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2)
 # include <db_185.h>
 #else
+#ifdef HAVE_DB2_DB_H
+# include <db2/db.h>
+#else
+#ifdef HAVE_DB1_DB_H
+# include <db1/db.h>
+#else
 # include <db.h>
+#endif
+#endif
 #endif
 #endif
 
@@ -72,7 +80,7 @@ int err;
 #ifdef HAVE_GDBM_H
 	fprintf(stderr, " gdbm");
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 	fprintf(stderr, " btree bhash");
 #endif
 	fprintf(stderr, "\n");
@@ -89,7 +97,7 @@ int err;
 #ifdef HAVE_GDBM_H
 	fprintf(stderr, "  (GDBM appends .gdbm, to the actual db file name..)\n");
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 	fprintf(stderr, "  (BTREE appends .db, to the actual db file name..)\n");
 	fprintf(stderr, "  (BHASH appends .pag, and .dir into actual db file names..)\n");
 #endif
@@ -154,7 +162,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 #ifdef HAVE_GDBM_H
 	GDBM_FILE gdbmfile = dbf;
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 	DB *dbfile = dbf;
 #endif
 	int rc = -2;
@@ -194,7 +202,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 				overwritemode ? GDBM_REPLACE : GDBM_INSERT);
 	}
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 	if (typ == 3 || typ == 4) {
 		DBT Bkey, Bdat;
 
@@ -253,7 +261,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 	    datalen = Gdat.dsize;
 	  }
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 	  if (typ == 3 || typ == 4) {
 	    DBT Bkey, Bdat;
 
@@ -778,7 +786,7 @@ char *argv[];
 #ifdef HAVE_GDBM_H
     GDBM_FILE gdbmfile = NULL;
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
     DB *dbfile = NULL;
 #endif
     char *dbtype = NULL;
@@ -851,7 +859,7 @@ char *argv[];
 	typ = 2;
     else
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
     if (cistrcmp(dbtype, "btree") == 0)
 	typ = 3;
     if (cistrcmp(dbtype, "bhash") == 0)
@@ -875,7 +883,7 @@ char *argv[];
 	dbf = gdbmfile;
     }
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
 #ifdef HAVE_DB_OPEN2
     if (typ == 3) {
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
@@ -926,7 +934,7 @@ char *argv[];
     if (typ == 2)
 	gdbm_close(gdbmfile);
 #endif
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
     if (typ == 3 || typ == 4) {
 	(dbfile->sync) (dbfile, 0);
 #ifdef HAVE_DB_OPEN2
