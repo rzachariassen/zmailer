@@ -1496,7 +1496,8 @@ deliver(SS, dp, startrp, endrp)
 
 	SS->hsize = -1;
 	if (!(chunkptr && !chunkblk))
-	  writeheaders(startrp, SS->smtpfp, "\r\n", convertmode, 0, chunkptr);
+	  SS->hsize = writeheaders(startrp, SS->smtpfp, "\r\n",
+				   convertmode, 0, chunkptr);
 
 	if (SS->hsize >= 0 && chunkblk) {
 
@@ -1522,7 +1523,7 @@ deliver(SS, dp, startrp, endrp)
 	  SS->chunkspace = SS->hsize;
 	  SS->chunkbuf   = chunkblk;
 	}
-	
+
 	if (SS->hsize < 0) {
 	  for (rp = startrp; rp != endrp; rp = rp->next)
 	    if (rp->status == EX_OK) {
