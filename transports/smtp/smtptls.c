@@ -5,18 +5,74 @@
  *	Universitaetsplatz 3-4
  *	D-03044 Cottbus, Germany
  *
- * Adaptation to ZMailer is by Matti Aarnio <mea@nic.funet.fi> (c) 1999-2001
+ * Adaptation to ZMailer is by Matti Aarnio <mea@nic.funet.fi> (c) 1999-2003
  */
 
 #include "smtp.h"
 
 extern int timeout_tcpw;
 
+/* Global variables -- BOO! */
+
+static FILE *vlog = NULL;
+
+/* more further down (in OpenSSL specific code..) */
+
+#ifdef HAVE_STDARG_H
+#ifdef __STDC__
+void msg_info(SmtpState *SS, char *fmt, ...)
+#else /* Not ANSI-C */
+void msg_info(SS, fmt)
+	SmtpState *SS;
+	char *fmt;
+#endif
+#else
+/* VARARGS */
+void
+msg_info(SS, va_alist)
+	SmtpState *SS;
+	va_dcl
+#endif
+{
+	va_list	ap;
+	FILE *fp;
+#ifdef HAVE_STDARG_H
+	va_start(ap, fmt);
+#else
+	char *fmt;
+	va_start(ap);
+	fmt = va_arg(ap, char *);
+#endif
+
+	if (vlog) {
+	  fp = vlog;
+	  fprintf(fp, "# ");
+	} else if (logfp) {
+	  fp = logfp;
+	  fprintf(fp, "%s#\t", logtag());
+	} else {
+	  fp = stderr; /* No LOGFP, to STDERR with DBGdiag prefix.. */
+	  fprintf(fp, "# ");
+	}
+
+#ifdef	HAVE_VPRINTF
+	vfprintf(fp, fmt, ap);
+#else	/* !HAVE_VPRINTF */
+ ERROR:ERROR:ERROR:No 
+#endif	/* HAVE_VPRINTF */
+
+	fprintf(fp,"\n");
+	fflush(fp);
+
+	va_end(ap);
+}
+
+
+
 #ifdef HAVE_OPENSSL
 
 /* Global variables -- BOO! */
 
-static FILE *vlog = NULL;
 static int TLScontext_index = -1;
 static int TLSpeername_index = -1;
 static int tls_clientengine = 0;
@@ -68,57 +124,6 @@ struct _randseed {
 	int ppid;
 	struct timeval tv;
 } tls_randseed;
-
-
-
-#ifdef HAVE_STDARG_H
-#ifdef __STDC__
-void msg_info(SmtpState *SS, char *fmt, ...)
-#else /* Not ANSI-C */
-void msg_info(SS, fmt)
-	SmtpState *SS;
-	char *fmt;
-#endif
-#else
-/* VARARGS */
-void
-msg_info(SS, va_alist)
-	SmtpState *SS;
-	va_dcl
-#endif
-{
-	va_list	ap;
-	FILE *fp;
-#ifdef HAVE_STDARG_H
-	va_start(ap, fmt);
-#else
-	char *fmt;
-	va_start(ap);
-	fmt = va_arg(ap, char *);
-#endif
-
-	if (vlog) {
-	  fp = vlog;
-	  fprintf(fp, "# ");
-	} else if (logfp) {
-	  fp = logfp;
-	  fprintf(fp, "%s#\t", logtag());
-	} else {
-	  fp = stderr; /* No LOGFP, to STDERR with DBGdiag prefix.. */
-	  fprintf(fp, "# ");
-	}
-
-#ifdef	HAVE_VPRINTF
-	vfprintf(fp, fmt, ap);
-#else	/* !HAVE_VPRINTF */
- ERROR:ERROR:ERROR:No 
-#endif	/* HAVE_VPRINTF */
-
-	fprintf(fp,"\n");
-	fflush(fp);
-
-	va_end(ap);
-}
 
 
 static char *zdupnstr(const void *p, const int len)
@@ -1789,9 +1794,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	const char * p = (const char *)vp;
 	int r, rr, e, i;
 
-#ifdef HAVE_OPENSSL
 	vlog = SS->verboselog;
-#endif /* - HAVE_OPENSSL */
 
 	/* If we have an errno status on a socket, it is extremely
 	   persistent!  Absolutely no writes are allowed from now
@@ -2012,9 +2015,9 @@ int smtp_nbread(SS, buf, spc)
 	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0) sfsync(SS->smtpfp);
 #endif
 
-#ifdef HAVE_OPENSSL
 	vlog = SS->verboselog;
 
+#ifdef HAVE_OPENSSL
 	if (SS->TLS.sslmode) {
 	  r = SSL_read(SS->TLS.ssl, buf, spc);
 	  e = SSL_get_error(SS->TLS.ssl, r);
