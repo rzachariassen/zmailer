@@ -466,7 +466,7 @@ main(argc, argv)
 	    break;
 	  case 'T':		/* specify Timeout in seconds */
 	    if (strncasecmp(optarg,"conn=",5)==0) {
-	      timeout_conn = atoi(optarg+5);
+	      timeout_conn = parse_interval(optarg+5,NULL);
 	      if (timeout_conn < 10) {
 		fprintf(stderr, "%s: bad tcp connection timeout: %s\n",
 			argv[0], optarg+5);
@@ -474,7 +474,7 @@ main(argc, argv)
 	      }
 	      break;
 	    } else if (strncasecmp(optarg,"data=",5)==0) {
-	      timeout_data = atoi(optarg+5);
+	      timeout_data = parse_interval(optarg+5,NULL);
 	      if (timeout_data < 10) {
 		fprintf(stderr, "%s: bad data timeout: %s\n",
 			argv[0], optarg+5);
@@ -482,7 +482,7 @@ main(argc, argv)
 	      }
 	      break;
 	    } else if (strncasecmp(optarg,"dot=",4)==0) {
-	      timeout_dot = atoi(optarg+4);
+	      timeout_dot = parse_interval(optarg+4,NULL);
 	      if (timeout_dot < 10) {
 		fprintf(stderr, "%s: bad data-dot-reply timeout: %s\n",
 			argv[0], optarg+4);
@@ -490,7 +490,7 @@ main(argc, argv)
 	      }
 	      break;
 	    } else if (strncasecmp(optarg,"tcpw=",5)==0) {
-	      timeout_tcpw = atoi(optarg+5);
+	      timeout_tcpw = parse_interval(optarg+5,NULL);
 	      if (timeout_tcpw < 10) {
 		fprintf(stderr, "%s: bad tcp-write timeout: %s\n",
 			argv[0], optarg+5);
@@ -498,10 +498,10 @@ main(argc, argv)
 	      }
 	      break;
 	    } else if (strncasecmp(optarg,"cmd=",4)==0) {
-	      timeout_cmd = atoi(optarg+4);
+	      timeout_cmd = parse_interval(optarg+4,NULL);
 	      optarg += 4;
 	    } else
-	      timeout_cmd = atoi(optarg);
+	      timeout_cmd = parse_interval(optarg,NULL);
 	    if (timeout_cmd < 5) {
 	      fprintf(stderr, "%s: bad general cmd timeout: %s\n",
 		      argv[0], optarg);
@@ -1194,7 +1194,7 @@ deliver(SS, dp, startrp, endrp)
 	  /* all the RCPT To addresses were rejected, so reset server */
 	  if (SS->smtpfp)
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	      r = EX_IOERR;
+	      r = EX_TEMPFAIL;
 
 	  if (r == EX_OK && more_rp)
 	    /* we have more recipients,
@@ -1259,7 +1259,7 @@ deliver(SS, dp, startrp, endrp)
 	      }
 	    if (SS->smtpfp)
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-		r = EX_IOERR;
+		r = EX_TEMPFAIL;
 	    return r;
 	  }
 
@@ -1284,7 +1284,7 @@ deliver(SS, dp, startrp, endrp)
 	      }
 	    if (SS->smtpfp)
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-		r = EX_IOERR;
+		r = EX_TEMPFAIL;
 	    return r;
 	  }
 	  time(&endtime);
@@ -1307,7 +1307,7 @@ deliver(SS, dp, startrp, endrp)
 	      }
 	    if (SS->smtpfp)
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-		r = EX_IOERR;
+		r = EX_TEMPFAIL;
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog," .. timeout ? smtp_sync() rc = %d\n",r);
 	    return r;
@@ -1328,7 +1328,7 @@ deliver(SS, dp, startrp, endrp)
 	      }
 	    if (SS->smtpfp)
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-		r = EX_IOERR;
+		r = EX_TEMPFAIL;
 	    return r;
 	  }
 	  timeout = timeout_dot;
@@ -1395,7 +1395,7 @@ deliver(SS, dp, startrp, endrp)
 	    fprintf(SS->verboselog,"Writing headers after DATA failed\n");
 	  if (SS->smtpfp)
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	      r = EX_IOERR;
+	      r = EX_TEMPFAIL;
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 
@@ -1545,7 +1545,7 @@ deliver(SS, dp, startrp, endrp)
 
 	if (r != EX_OK && SS->smtpfp && !getout)
 	  if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	    r = EX_IOERR;
+	    r = EX_TEMPFAIL;
 
 	if (SS->chunkbuf) free(SS->chunkbuf);
 

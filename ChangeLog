@@ -1,3 +1,14 @@
+2000-01-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c, include/libz.h, lib/parseintv.c,
+	  lib/Makefile.in, scheduler/readconfig.c:
+	    - Moved  parse_interval()  into library (from scheduler).
+	    - Using it at smtp-ta for timeout parameter parsing
+
+	* transports/smtp/smtp.c:
+	    If 'DATA' yields '500' series, don't just do RSET + retry
+	    at the same stream. (EX_IOERR)
+
 2000-01-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/libdb/headers.c:

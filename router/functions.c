@@ -806,6 +806,8 @@ run_listexpand(avl, il)
 		 * For sendmail compatibility, addresses may not cross line
 		 * boundaries, and line boundary is just as good an address
 		 * separator as comma is, sigh.
+		 * Also lines beginning with '#' are comments, and blank
+		 * lines are (sortof) comments too.
 		 */
 		if (zlinebuf[n-1] == '\n')
 			--n;
@@ -1244,6 +1246,8 @@ run_listaddrs(argc, argv)
 		 * For sendmail compatibility, addresses may not cross line
 		 * boundaries, and line boundary is just as good an address
 		 * separator as comma is, sigh.
+		 * Also lines beginning with '#' are comments, and blank
+		 * lines are (sortof) comments too.
 		 */
 		if (zlinebuf[n-1] == '\n')
 			--n;

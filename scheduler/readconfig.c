@@ -24,7 +24,6 @@
 
 static void celink __((struct config_entry *, struct config_entry **, struct config_entry **));
 static int readtoken __((Sfio_t *fp, char *buf, int buflen, int *linenump));
-static u_int parse_intvl __((char *string));
 static int paramparse __((char *line));
 
 #define RCKEYARGS __((char *key, char *arg, struct config_entry *ce))
@@ -453,37 +452,6 @@ redo_readtoken:
 	return rv;
 }
 
-static u_int
-parse_intvl(string)
-	char *string;
-{
-	u_int	intvl;
-	int	val;
-
-	for (intvl = 0; *string != '\0'; ++string) {
-	  while (isascii(*string) && !isdigit(*string))
-	    ++string;
-	  val = atoi(string);
-	  while (isascii(*string) && isdigit(*string))
-	    ++string;
-	  switch (*string) {
-	    case 'd':		/* days */
-	      val *= 24*60*60;
-	      break;
-	    case 'h':		/* hours */
-	      val *= 3600;
-	      break;
-	    case 'm':		/* minutes */
-	      val *= 60;
-	      break;
-	    case 's':		/* seconds */
-	      /* val *= 1; */
-	      break;
-	  }
-	  intvl += val;
-	}
-	return intvl;
-}
 
 struct config_entry *
 rereadconfig(head, file)
@@ -601,7 +569,7 @@ static int rc_expiry(key, arg, ce)
 	char *key, *arg;
 	struct config_entry *ce;
 {
-	ce->expiry = parse_intvl(arg);
+	ce->expiry = parse_interval(arg,NULL);
 	return 0;
 }
 
@@ -625,7 +593,7 @@ static int rc_interval(key, arg, ce)
 	char *key, *arg;
 	struct config_entry *ce;
 {
-	ce->interval = parse_intvl(arg);
+	ce->interval = parse_interval(arg,NULL);
 	return 0;
 }
 
@@ -633,7 +601,7 @@ static int rc_idlemax(key, arg, ce)
 	char *key, *arg;
 	struct config_entry *ce;
 {
-	ce->idlemax = parse_intvl(arg);
+	ce->idlemax = parse_interval(arg,NULL);
 	return 0;
 }
 
