@@ -678,8 +678,7 @@ static int new_session_cb(SSL *ssl, SSL_SESSION *session)
 	    session->verify_result = SSL_get_verify_result(SS->TLS.con);
 #endif
 
-    }
-    else {
+    } else {
 	create_server_lookup_id(idstring, session);
 	if (var_smtpd_tls_loglevel >= 3)
 	    msg_info(SS,"Trying to save Session to disc: %s", idstring);
@@ -1193,7 +1192,7 @@ int     tls_init_clientengine(SS, cfgpath)
 	 * Set the list of ciphers, if explicitely given; otherwise the
 	 * (reasonable) default list is kept.
 	 */
-	if (strlen(tls_cipherlist) != 0) {
+	if (tls_cipherlist) {
 	  if (SSL_CTX_set_cipher_list(SS->TLS.ctx, tls_cipherlist) == 0) {
 	    tls_print_errors(SS);
 	    return (-1);
@@ -1223,11 +1222,11 @@ int     tls_init_clientengine(SS, cfgpath)
 	 * hand, the file is not really readable.
 	 */ 
 
-	if (!tls_CAfile || strlen(tls_CAfile) == 0)
+	if (!tls_CAfile || *tls_CAfile == 0)
 	  CAfile = NULL;
 	else
 	  CAfile = tls_CAfile;
-	if (!tls_CApath || strlen(tls_CApath) == 0)
+	if (!tls_CApath || *tls_CApath == 0)
 	  CApath = NULL;
 	else
 	  CApath = tls_CApath;
