@@ -1329,6 +1329,7 @@ const int len;
 		       1 << P_A_RELAYCUSTNET |
 		       1 << P_A_InboundSizeLimit  |
 		       1 << P_A_OutboundSizeLimit   );
+    state->request |= ( 1 << P_A_RcptDnsRBL );	/* bag */
 
     check_domain(rel, state, str, len);
 
@@ -1361,6 +1362,21 @@ const int len;
       PICK_PA_MSG(P_A_FullTrustNet);
       return  0;
     }
+    /* bag + */
+    if (state->rblmsg == NULL &&	/* only if no rbl_message before (from lookup by net) */
+	state->values[P_A_RcptDnsRBL] &&
+	state->values[P_A_RcptDnsRBL][0] == '_') {
+      if (debug)
+	printf("000- pt_sourceaddr: 'rcpt-dns-rbl %s' found;\n",
+	       state->values[P_A_RcptDnsRBL]);
+      if (state->values[P_A_RcptDnsRBL][1] != '+') {
+	state->rblmsg = strdup(state->values[P_A_RcptDnsRBL] + 1);
+      }
+      free(state->values[P_A_RcptDnsRBL]);
+      return 0; /* We report error LATER */
+
+    }
+    /* bag - */
     return 0;
 }
 

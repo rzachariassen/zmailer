@@ -251,6 +251,9 @@ _bulk_mail	message "Your domain is not liked source for email" rejectsource + me
 #|  if (IP address of SMTP client has 'TEST-DNS-RBL +' attribute) then
 #|   we use RealtimeBlockingList DNS database.  If we get match from
 #|   there, we do: [state->always_reject = 1; return REJECT;]
+#|  if (IP address of SMTP client has "RCPT-DNS-RBL" attribute then
+#|   save RBL lookup result for processing at "RCPTO TO:" phase
+#|   [state->rbl_msg = <RBL_LOOKUP_RESULT>;]
 #|  else
 #|   return ACCEPT
 #|
@@ -262,12 +265,15 @@ _bulk_mail	message "Your domain is not liked source for email" rejectsource + me
 #|  if (state->always_freeze == 1) return FREEZE;
 #|  if (state->always_accept == 1) return ACCEPT;
 #|
-#|  if (IP address of SMTP client has 'REJECTNET +' attribute) then
+#|  if (source domain of address of SMTP client has 'REJECTNET +' attribute) then
 #|   any further conversation refused
 #|   [state->always_reject = 1; return REJECT;]
-#|  if (IP address of SMTP client has 'FREEZENET +' attribute) then
+#|  if (source domain of of SMTP client has 'FREEZENET +' attribute) then
 #|   we present happy face, but always put the messages into a freezer..
 #|   [state->always_freeze = 1; return FREEZE;]
+#|  if (source domain of SMTP client has 'RCPT-DNS-RBL "_Message' like attributes
+#|   then save it for rejection at rcpt to: phase
+#|   [state->rbl_msg = values[P_A_RcptDnsRBL] + 1;]
 #|  else
 #|   return ACCEPT
 #|
@@ -341,6 +347,8 @@ _bulk_mail	message "Your domain is not liked source for email" rejectsource + me
 #|  if (recipient address has 'FREEZE +' attribute) then
 #|    we accept with the happy face, but place it into a freezer
 #|    [status->sender_freeze = 1; return FREEZE;]
+#|  if (recipient address has 'TEST-RCPT-DNS-RBL +' attribute) then
+#|    return REJECT if have state->rblmsg
 #|
 #|  if (recipient's domain has 'RELAYTARGET +' attribute) then
 #|    return ACCEPT
@@ -349,6 +357,10 @@ _bulk_mail	message "Your domain is not liked source for email" rejectsource + me
 #|  if (recipient's domain has 'FREEZE +' attribute) then
 #|    we accept with the happy face, but place it into a freezer
 #|    [status->sender_freeze = 1; return FREEZE;]
+#|
+#|  if (recipient domain has 'TEST-RCPT-DNS-RBL +' attribute) then
+#|    return REJECT if have state->rblmsg
+#|
 #|
 #|  If (state->rcpt_nocheck  == 1) return ACCEPT;
 #|
