@@ -86,6 +86,7 @@ struct ctlfile {
 	int	rcpnts_work;	/* .. yet to deliver ?			     */
 	int	mark;		/* flag used by selector() to pass filenames */
 	int	msgbodyoffset;	/* size of original headers to skip on errrpt*/
+	int	format;		/* Message format version -- _CF_FORMAT data */
 	int	offset[1];	/* array of nlines byte offsets into the file*/
 };
 

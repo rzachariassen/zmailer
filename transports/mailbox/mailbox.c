@@ -687,8 +687,31 @@ process(dp)
 	char *user;
 	int userlen;
 	int userspace = 0;
+	struct ct_data  *CT  = NULL;
+	struct cte_data *CTE = NULL;
+	char **hdr;
 
-	conversion_prohibited = check_conv_prohibit(dp->recipients);
+	rp = dp->recipients;
+
+	conversion_prohibited = check_conv_prohibit(rp);
+
+	hdr = has_header(rp,"Content-Type:");
+	if (hdr)
+	  CT = parse_content_type(hdr);
+	hdr = has_header(rp,"Content-Transfer-Encoding:");
+	if (hdr)
+	  CTE = parse_content_encoding(hdr);
+	if (CT) {
+	  if (CT->basetype == NULL ||
+	      CT->subtype  == NULL ||
+	      cistrcmp(CT->basetype,"text") != 0 ||
+	      cistrcmp(CT->subtype,"plain") != 0)
+
+	    /* Not TEXT/PLAIN! */
+	    conversion_prohibited = -1;
+	  /* We don't know how to convert anything BUT  TEXT/PLAIN :-(  */
+	}
+
 	if (!conversion_prohibited)
 	  is_mime_qptext = qptext_check(dp->recipients);
 

@@ -138,7 +138,8 @@ eunlink(file)
 {
 	int	r;
 
-	r = unlink(file);
+	while ((r = unlink(file)) < 0 && (errno == EBUSY || errno == EINTR))
+	  ;
 	if (r < 0) {
 	  int serrno = errno;
 	  fprintf(stderr, "%s: unlink(%s): %s\n", progname,

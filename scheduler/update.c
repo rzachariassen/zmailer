@@ -113,19 +113,19 @@ update(fd, diagnostic)
 	if (*diagnostic != '#') { /* Not debug diagnostic message */
 	  inum = atol(diagnostic);
 	  if ((cp = strchr(diagnostic, '/')) == NULL) {
-	    sfprintf(sfstderr, "%s Misformed diagnostic: %s\n",
+	    sfprintf(sfstderr, "%s Misformed diagnostic1: %s\n",
 		     timestring(), diagnostic);
 	    return;
 	  }
 	  offset = atol(++cp);
 	  if ((cp = strchr(cp, '\t')) == NULL) {
-	    sfprintf(sfstderr, "%s Misformed diagnostic: %s\n",
+	    sfprintf(sfstderr, "%s Misformed diagnostic2: %s\n",
 		     timestring(), diagnostic);
 	    return;
 	  }
 	  notary = ++cp;
 	  if ((cp = strchr(cp, '\t')) == NULL) {
-	    sfprintf(sfstderr, "%s Misformed diagnostic: %s\n",
+	    sfprintf(sfstderr, "%s Misformed diagnostic3: %s\n",
 		     timestring(), diagnostic);
 	    return;
 	  }
@@ -390,7 +390,8 @@ void unvertex(vp, justfree, ok)
 
 	if (vp->cfp->head == vp)
 	  if ((vp->cfp->head = vp->next[L_CTLFILE]) == NULL) 
-	    unctlfile(vp->cfp, justfree);
+	    if (justfree >= 0)
+	      unctlfile(vp->cfp, justfree);
 
 	web_disentangle(vp, ok); /* does also unthread() */
 

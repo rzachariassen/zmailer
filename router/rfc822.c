@@ -90,6 +90,18 @@ iserrmessage()
 }
 
 
+static int zunlink __((const char *));
+static int zunlink(path)
+     const char *path;
+{
+  int rc;
+  while ((rc = unlink(path)) < 0 && (errno == EBUSY || errno == EINTR))
+    ;
+  return rc;
+}
+
+
+
 
 /*
  * Apply RFC822 parsing and processing to the message in the file in argv[1].
@@ -206,7 +218,7 @@ run_rfc822(argc, argv)
 	if (D_final > 0)
 		dumpInfo(e);
 	if (status != PERR_CTRLFILE && status != PERR_DEFERRED && !savefile)
-		(void) unlink(file); /* SILENT! */
+		(void) zunlink(file); /* SILENT! */
 	if (e->e_fp != NULL)
 		fclose(e->e_fp);
 	tfree(MEM_TEMP);
@@ -798,7 +810,7 @@ defer(e, why)
 	s = path;
 	while ((s = strchr(s, ' '))) /* remap blanks to '-':es.. */
 	  *s = '-';
-	unlink(path);
+	zunlink(path);
 
 	/* try renameing every few seconds for a minute */
 	for (i = 0; erename(e->e_file, path) < 0 && i < 10 && errno != ENOENT;++i)
@@ -806,7 +818,7 @@ defer(e, why)
 	if (i >= 10) {
 	  zsyslog((LOG_ALERT, "cannot defer %s (%m)", e->e_file));
 	  fprintf(stderr, "cannot defer %s\n", e->e_file);
-	  /* XX: make sure file is not unlink()ed in main() */
+	  /* XX: make sure file is not zunlink()ed in main() */
 	} else {
 	  zsyslog((LOG_NOTICE, "%s; %sing deferred", e->e_file,
 		   (deferit || deferuid) ? "schedul" : "rout"));
@@ -1879,6 +1891,13 @@ sequencer(e, file)
 			if ((x = crossbar(sender, to)) == NULL)
 			  continue;
 
+	/*
+	 * We expect to see something like
+	 * (rewrite (fc fh fu) (tc th tu)) or
+	 * ((address-rewrite header-rewrite) (fc fh fu) (tc th tu))
+	 * back from the crossbar function.
+	 */
+
 			errto = gg = sender1 = tmp = z = NULL;
 			GCPRO6(x, errto, gg, sender1, tmp, z);
 
@@ -1891,6 +1910,7 @@ sequencer(e, file)
 			
 			++nxor;
 			tmp   = copycell(car(x));
+
 			cdr(tmp) = NULL;
 			sender1 = cdar(x);
 			gg = cdr(cddr(car(sender1))); /* recipient attrib! */
@@ -2059,6 +2079,9 @@ sequencer(e, file)
 	} else
 		vfp = NULL;
 
+	fprintf(ofp, "%c%s%0x08lx\n",
+		_CF_FORMAT, _CFTAG_NORMAL, _CF_FORMAT_KNOWN_SET);
+
 	fprintf(ofp, "%c%c%s\n",
 		_CF_MESSAGEID, _CFTAG_NORMAL, file);
 	fprintf(ofp, "%c%c%d\n",
@@ -2219,11 +2242,12 @@ sequencer(e, file)
 				if (ofperrors) break; /* Sigh.. */
 
 				if (rcp->urw.number > 0)
-					putc(_CF_XORECIPIENT, ofp);
+				  putc(_CF_XORECIPIENT, ofp);
 				else
-					putc(_CF_RECIPIENT, ofp);
+				  putc(_CF_RECIPIENT, ofp);
 				putc(_CFTAG_NORMAL, ofp);
-				fprintf(ofp,"%*s",_CFTAG_RCPTPIDSIZE,"");
+				fprintf(ofp,"%*s",(_CFTAG_RCPTPIDSIZE +
+						   _CFTAG_RCPTDELAYSIZE),"");
 				if (rcp->urw.number > 0)
 					fprintf(ofp, "%d ", rcp->urw.number);
 				if (! prctladdr(rcp->info, ofp,
@@ -2238,22 +2262,20 @@ sequencer(e, file)
 				prdsndata(rcp->info, ofp,
 					  _CF_RCPTNOTARY, "recipient");
 				if (vfp != NULL) {
-					if (rcp->urw.number > 0)
-						fprintf(vfp, "%c%c%d ",
-							_CF_XORECIPIENT,
-							_CFTAG_NORMAL,
-							rcp->urw.number);
-					else
-						fprintf(vfp, "%c%c%*s",
-							_CF_RECIPIENT,
-							_CFTAG_NORMAL,
-							_CFTAG_RCPTPIDSIZE,"");
-					prctladdr(rcp->info, vfp,
-						  _CF_RECIPIENT, "recipient");
-					putc('\n', vfp);
-					/* DSN data output ! */
-					prdsndata(rcp->info, vfp,
-						  _CF_RCPTNOTARY, "recipient");
+				  if (rcp->urw.number > 0)
+				    putc(_CF_XORECIPIENT, vfp);
+				  else
+				    putc(_CF_RECIPIENT, vfp);
+				  putc(_CFTAG_NORMAL, vfp);
+				  fprintf(vfp,"%*s",(_CFTAG_RCPTPIDSIZE +
+						     _CFTAG_RCPTDELAYSIZE),"");
+				  if (rcp->urw.number > 0)
+				    fprintf(vfp, "%d ", rcp->urw.number);
+				  prctladdr(rcp->info, vfp,
+					    _CF_RECIPIENT, "recipient");
+				  /* DSN data output ! */
+				  prdsndata(rcp->info, vfp,
+					    _CF_RCPTNOTARY, "recipient");
 				}
 			}
 		}
@@ -2319,8 +2341,8 @@ sequencer(e, file)
 	ofperrors |= ferror(ofp);
 
 	if ((fclose(ofp) != 0) || ofperrors || (erename(file, qpath) != 0)) {
-	  unlink(qpath);
-	  unlink(ofpname);
+	  zunlink(qpath);
+	  zunlink(ofpname);
 #ifndef	USE_ALLOCA
 	  free(ofpname);
 	  free(qpath);
@@ -2336,10 +2358,10 @@ sequencer(e, file)
 	path = (char*)alloca(5+strlen(TRANSPORTDIR)+strlen(file));
 #endif
 	sprintf(path, "../%s/%s", TRANSPORTDIR, file);
-	unlink(path);	/* Should actually always fail.. */
+	zunlink(path);	/* Should actually always fail.. */
 	if (erename(ofpname, path) < 0) {
-	  unlink(qpath);
-	  unlink(path);
+	  zunlink(qpath);
+	  zunlink(path);
 #ifndef	USE_ALLOCA
 	  free(ofpname);
 	  free(qpath);
@@ -2366,7 +2388,7 @@ sequencer(e, file)
 	/* Bad data in routing results, can't do it now, must defer! */
 
 	fclose(ofp);
-	unlink(ofpname); /* created file is thrown away.. */
+	zunlink(ofpname); /* created file is thrown away.. */
 #ifndef	USE_ALLOCA
 	free(ofpname);
 #endif

@@ -285,7 +285,7 @@ struct ctlfile *cfp;
 	    nvp = vp->next[L_CTLFILE];
 	    MIBMtaEntry->mtaStoredRecipients -= vp->ngroup;
 	    vp->ngroup = 0;
-	    unvertex(vp,-1,1); /* Don't unlink()! Just free()! */
+	    unvertex(vp,1,1); /* Don't unlink()! Just free()! */
 	  }
 	}
 	free_cfp_memory(cfp);
@@ -1128,8 +1128,8 @@ static int sync_cfps __((struct ctlfile *, struct ctlfile *));
 static int sync_cfps(oldcfp, newcfp)
      struct ctlfile *oldcfp, *newcfp;
 {
-	struct vertex *ovp, *nvp;
-	struct vertex *novp, *vp;
+	struct vertex *ovp,  *nvp;
+	struct vertex *novp, *nnvp, *vp;
 
 	/* Scan both files thru their   vp->next[L_CTLFILE]  vertex chains.
 	   If oldcfp has things that newcfp does not have, remove those from
@@ -1148,10 +1148,12 @@ static int sync_cfps(oldcfp, newcfp)
 	ovp = oldcfp->head;
 	nvp = newcfp->head;
 
+
 	while (ovp != NULL) {
 	  /* Always prepare for removal of the ovp object..
 	     Pick the next-ovp pointer now */
-	  novp = ovp->next[L_CTLFILE];
+	  novp  = ovp->next[L_CTLFILE];
+	  nnvp  = nvp->next[L_CTLFILE];
 
 	  /* Does this exist also on NVP chain ? */
 
@@ -1163,23 +1165,54 @@ static int sync_cfps(oldcfp, newcfp)
 
 	    vp = ovp;
 
-	    while (vp && !VTXMATCH(vp,nvp)) {
+	    while (vp && !VTXMATCH(vp,nvp))
 	      vp = vp->next[L_CTLFILE];
-	    }
+
 	    if (vp == NULL) {
 	      /* New not in old at all ??? */
 	      return -1;
 	    }
-	    /* XX: All OVP instances before matching NVP
+
+	    /* All OVP instances before matching NVP
 	       are to be removed from OVP chains */
-	    /* XX: Adjust NOVP variable too */
+	    while (ovp && ovp != vp) {
+	      novp = ovp->next[L_CTLFILE];
+
+	      MIBMtaEntry->mtaStoredRecipients -= vp->ngroup;
+	      ovp->ngroup = 0;
+	      unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
+
+	      ovp = novp;
+	    }
+	    /* Adjust NOVP variable too */
+	    novp = ovp;
 	  }
 	  if (VTXMATCH(ovp, nvp)) {
-	    /* XX: Verify that OVP and NVP have same amount
-	       of address indexes in them, adjust OVP if not. */
+	    /* Verify/adjust OVP so that OVP and NVP have same
+	       address indexes in them. */
+	    int i, j, k, id;
+	    for (i = ovp->ngroup; i >= 0; --i) {
+	      id = ovp->index[i];
+	      for (j = nvp->ngroup; j >= 0; --j) {
+		if (nvp->index[j] == id)
+		  goto next_i;
+	      }
+	      /* ovp index elt not found in new set! */
+	      for (k = i+1; k < ovp->ngroup; ++k)
+		ovp->index[k-1] = ovp->index[k];
+	      ovp->ngroup -= 1;
+	      MIBMtaEntry->mtaStoredRecipients -= 1;
+	    next_i:;
+	    }
 	  }
+
 	  ovp = novp;
+	  nvp = nnvp;
 	}
+
+	oldcfp->rcpnts_failed = newcfp->rcpnts_failed;
+	oldcfp->haderror |= newcfp->haderror;
+
 	return 0;
 }
 
@@ -1245,8 +1278,6 @@ void resync_file(proc, file)
 
 	newcfp = schedule(fd, file, ino, 1);
 
-#if 0 /* XX: not usable before  sync_cfps()  works! */
-
 	if (newcfp != NULL) {
 	  /* ????  What ever, it succeeds, or it fails, all will be well */
 
@@ -1259,30 +1290,18 @@ void resync_file(proc, file)
 	  oldcfp->id = ino;
 	  sp_install(oldcfp->id, (void *)oldcfp, 0, spt_mesh[L_CTLFILE]);
 
+	  /* Delete it from memory */
+	  cfp_free0(newcfp);
+
 	  sfprintf(sfstdout," .. resynced!\n");
+
 	} else {
+
 	  sfprintf(sfstdout," .. NOT resynced!\n");
 	  /* Sigh.. Throw everything away :-( */
 	  oldcfp->id = ino;
 	  cfp_free(oldcfp, NULL);
 	}
-
-	/* Delete it from memory */
-	if (newcfp != NULL)
-	  cfp_free0(newcfp);
-
-#else
-
-	if (newcfp != NULL) {
-	  sfprintf(sfstdout," .. resynced!\n");
-	} else {
-	  sfprintf(sfstdout," .. NOT resynced!\n");
-	  /* Sigh.. Throw everything away :-( */
-	  oldcfp->id = ino;
-	}
-	
-	cfp_free0(oldcfp);
-#endif
 }
 
 
@@ -1333,8 +1352,10 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	sp_install(cfp->id, (void *)cfp, 0, spt_mesh[L_CTLFILE]);
 	++MIBMtaEntry->mtaStoredMessages;
 	++global_wrkcnt;
-	MIBMtaEntry->mtaStoredRecipients     += cfp->rcpnts_work;
-	MIBMtaEntry->mtaReceivedRecipientsSc += cfp->rcpnts_work;
+	MIBMtaEntry->mtaStoredRecipients     += (cfp->rcpnts_work +
+						 cfp->rcpnts_failed);
+	MIBMtaEntry->mtaReceivedRecipientsSc += (cfp->rcpnts_work +
+						 cfp->rcpnts_failed);
 	return cfp;
 }
 
@@ -1541,6 +1562,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	int prevrcpt = -1;
 	int is_turnme = 0;
 	time_t wakeuptime;
+	long format = 0;
 
 	char fpath[128], path[128], path2[128];
 
@@ -1630,6 +1652,20 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      *cp == '\n' /* This appears for msg-header entries.. */ ) {
 	    --cp;
 	    switch (*cp) {
+	    case _CF_FORMAT:
+	      ++cp;
+	      sscanf(cp,"%li",&format);
+	      if (format & (~_CF_FORMAT_KNOWN_SET)) {
+
+		sfprintf(sfstderr,"%s: ** FILE: '%s' has unknown/unsupported format set: 0x%08lx !\n",
+			 progname, file, format);
+
+		cfp_free(cfp, NULL);
+		free(offarr);
+		return NULL;
+	      }
+	      cfp->format = format;
+	      break;
 	    case _CF_SENDER:
 	      ++cp;
 	      while (*cp == ' ') ++cp;
@@ -1659,12 +1695,14 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      offarr[opcnt].offset = *lp + 2;
 	      cp += 2;
 	      strlower(cp);
-	      if (*cp == ' ' || (*cp >= '0' && *cp <= '9')) {
+	      if ((format & _CF_FORMAT_TA_PID) || *cp == ' ' ||
+		  (*cp >= '0' && *cp <= '9')) {
 		/* New PID locking scheme.. */
 		offarr[opcnt].offset += _CFTAG_RCPTPIDSIZE;
 		cp += _CFTAG_RCPTPIDSIZE;
 	      }
-	      if (*cp == ' ' || (*cp >= '0' && *cp <= '9')) {
+	      if ((format & _CF_FORMAT_DELAY1) || *cp == ' ' ||
+		  (*cp >= '0' && *cp <= '9')) {
 		/* Newer DELAY data slot - _CFTAG_RCPTDELAYSIZE bytes */
 		offarr[opcnt].delayslot = offarr[opcnt].offset;
 		offarr[opcnt].offset += _CFTAG_RCPTDELAYSIZE;

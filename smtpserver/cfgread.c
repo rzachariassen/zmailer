@@ -346,6 +346,7 @@ readcffile(name)
 	    *(tail->next) = scf;
 	    tail = tail->next;
 	}
+	configuration_ok = 1; /* At least something! */
     }
     fclose(fp);
     return head;

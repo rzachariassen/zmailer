@@ -1,3 +1,40 @@
+1999-12-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c, transports/mailbox/mailbox.c:
+	    Noticed case where still do MIME downgrading in place
+	    where we really DO NOT KNOW HOW TO!  Added code to
+	    once and for all disable conversions unless the message
+	    in question is TEXT/PLAIN.
+
+	* include/mail.h.in, router/rfc822.c, scheduler/scheduler.c,
+	  transports/libta/ctlopen.c, include/ta.h:
+	    Introduced  _CF_FORMAT  tag to the scheduler/TA spec file.
+	    From now on adding new gimmic formats is easier - I hope.
+
+	* include/libta/warning.c:
+	    Make sure that writing of the messages will happen in
+	    blocking mode socket, and do  fflush()  afterwards!
+
+	* transports/smtp/smtp.h, transports/smtp/smtp.c,
+	  transports/smtp/appendlet.c, include/libc.h:
+	    ZBUFSIZ macro to replace possibly <stdio.h> originated
+	    BUFSIZ macro.  Easier to be consistent and predictable..
+	    Added couple missing extern...() function declarations.
+
+	* lib/esyslib.c:
+	    At Solaris the  unlink(2) may yield EINTR or EBUSY, do
+	    a wrapper to retry the operation when that happens.
+
+	* router/rfc822.c:
+	    At Solaris the  unlink(2) may yield EINTR or EBUSY, do
+	    a wrapper to retry the operation when that happens.
+	    (This is different from  eunlink()  which complains..)
+
+	* smtpserver/smtpserver.c, smtpserver/policytest.c,
+	  smtpserver/smtpserver.h:
+	    Track successfull configuration, and refuse to accept
+	    email if no rudimentary configuration exists.
+
 1999-12-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler:

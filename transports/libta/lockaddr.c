@@ -21,9 +21,13 @@
 #include "mail.h"
 #include "ta.h"
 
+#undef HAVE_FCNTL  /* No, sorry, not really defined locking method! */
+
 #ifndef	SEEK_SET
 #define	SEEK_SET  0
 #endif	/* SEEK_SET */
+
+static char *ta_lockmode = NULL;
 
 int
 lockaddr(fd, map, offset, was, new, file, host, mypid)
@@ -38,33 +42,50 @@ lockaddr(fd, map, offset, was, new, file, host, mypid)
 	char	lockbuf[16];
 	int	newlock = 0;
 
-#ifdef USE_FCNTLLOCK
-	struct flock fl;
-	int rc = 0;
+	if (!ta_lockmode) {
+	  ta_lockmode = getzenv("TALOCKMODE");
+#if defined(TA_USE_MMAP) && defined(HAVE_MMAP)
+	  if (!ta_lockmode) ta_lockmode = "M"; /* MMAP */
+#else
+#ifdef HAVE_FCNTL
+	  if (!ta_lockmode) ta_lockmode = "F"; /* FCNTL */
+#else
+	  if (!ta_lockmode) ta_lockmode = "W"; /* WRITE */
+#endif
+#endif
+	}
+#ifdef HAVE_FCNTL
+	if (*ta_lockmode == 'F') {
+	  struct flock fl;
+	  int rc = 0;
 
-	fl.l_type   = F_WRLCK;
-	fl.l_start  = offset;
-	fl.l_whence = SEEK_SET;
-	fl.l_len    = 10; /* fixed.. */
+	  fl.l_type   = F_WRLCK;
+	  fl.l_start  = offset;
+	  fl.l_whence = SEEK_SET;
+	  fl.l_len    = 10; /* fixed.. */
 
-	if (new == _CFTAG_LOCK || new == _CFTAG_DEFER) {
-	  rc = fcntl(fd,F_GETLK,&fl);
-	  if (rc == -1) {
-	    warning("lockaddr: fcntl() lock error");
-	    return 0;
+	  if (new == _CFTAG_LOCK || new == _CFTAG_DEFER) {
+	    rc = fcntl(fd,F_GETLK,&fl);
+	    if (rc == -1) {
+	      warning("lockaddr: fcntl() lock error");
+	      return 0;
+	    }
+	  }
+	  lockbuf[1] = ' ';
+	  if (was == _CFTAG_NORMAL) {
+	    if (fl.l_type == F_UNLCK)
+	      lockbuf[0] = was;
+	    else
+	      lockbuf[0] = _CFTAG_LOCK;
+	  } else if (was == _CFTAG_LOCK) {
+	    if (fl.l_type == F_UNLCK)
+	      lockbuf[0] = new;
+	    else
+	      lockbuf[0] = was; /* XXX: Hmm... */
 	  }
 	}
-	lockbuf[1] = ' ';
-	if (was == _CFTAG_NORMAL) {
-	  if (fl.l_type == F_UNLCK)
-	    lockbuf[0] = was;
-	  else
-	    lockbuf[0] = _CFTAG_LOCK;
-	} else if (was == _CFTAG_LOCK) {
-	  if (fl.l_type == F_UNLCK)
-	}
 #endif
-	if (map) {
+	if (map && *ta_lockmode == 'M') {
 	  /* MMAP()ed block helps.. */
 	  memcpy(lockbuf,map+offset,sizeof(lockbuf));
 	} else {
@@ -87,24 +108,20 @@ lockaddr(fd, map, offset, was, new, file, host, mypid)
 	  lockbuf[0] = new;
 	  if (newlock) {
 	    if (new == _CFTAG_LOCK) {
-#ifdef USE_FCNTLLOCK
-	      /* Using FCNTL region locking */
-#else
 	      /* Mark the lock with client process-id */
 	      sprintf(lockbuf+1, "%*d", _CFTAG_RCPTPIDSIZE, mypid);
-	      if (map)
+	      if (map && *ta_lockmode == 'M')
 		memcpy(map+offset, lockbuf, _CFTAG_RCPTPIDSIZE+1);
 	      else if (write(fd,lockbuf,
 			     _CFTAG_RCPTPIDSIZE+1) != _CFTAG_RCPTPIDSIZE+1)
 		return 0;
-#endif
 	    } else if (new == _CFTAG_DEFER) {
-#ifdef USE_FCNTLLOCK
+#ifdef HAVE_FCNTL
 	      /* Using FCNTL region locking */
 #else
 	      /* Clear the lock location */
 	      sprintf(lockbuf+1,"%*s", _CFTAG_RCPTPIDSIZE, "");
-	      if (map)
+	      if (map && *ta_lockmode == 'M')
 		memcpy(map+offset, lockbuf, _CFTAG_RCPTPIDSIZE+1);
 	      else if (write(fd,lockbuf,
 			     _CFTAG_RCPTPIDSIZE+1) != _CFTAG_RCPTPIDSIZE+1)
@@ -113,7 +130,7 @@ lockaddr(fd, map, offset, was, new, file, host, mypid)
 	    } else {
 	      /* Clear the lock location */
 	      sprintf(lockbuf+1, "%*s", _CFTAG_RCPTPIDSIZE, "");
-	      if (map)
+	      if (map && *ta_lockmode == 'M')
 		memcpy(map+offset, lockbuf, _CFTAG_RCPTPIDSIZE+1);
 	      else if (write(fd,lockbuf,
 			     _CFTAG_RCPTPIDSIZE+1) != _CFTAG_RCPTPIDSIZE+1)

@@ -263,6 +263,7 @@ extern int strict_protocol;
 extern int rcptlimitcnt;
 extern int enable_router;
 extern int use_tcpwrapper;
+extern int configuration_ok;
 
 extern int bindaddr_set, bindport_set;
 extern u_short   bindport;

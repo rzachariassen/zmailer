@@ -30,6 +30,10 @@ router:
 		possible errno telling that there is e.g. temporary
 		access error with backend database...
 
+	Error address pickup  ( router/rfc822.c: erraddress() )
+	picks *bad* choices sometimes; e.g. it might consider
+	'Sender:' or 'Errors-To:' headers as good picks for the
+	address where to send the report to...
 
 	RFC 822 special bug(?):  '%' is a special, and/or combination
 	of   "From: foo%bar <fii@faa.fuu>"  formats causes the scanner
@@ -108,7 +112,7 @@ transports/smtp:
 
 	(router + TA library + TA programs):
 	Router to scan message MIME structure, and to store that
-	into dense consise format which doesn't need prerescan of
+	into dense concise format which doesn't need prerescan of
 	the message *body* for every delivery attempt in case some
 	"in-flight" data conversions are desired.
 
@@ -145,8 +149,6 @@ transports/smtp:
 	recipients in given thread.  (alike 'manual-expiry', except
 	a bit smarter..)
 
-	A new management channel protocol.
-
 	- Delivery messages plain-text part needs easier human
 	  understandable format on the messages.
 
@@ -160,14 +162,14 @@ transports/smtp:
 	- system spins (FAST) on those two...
 		(Fixed ?  Haven't seen this for a while)
 
-	- New cfg param:  maxha -- max age that a child-process can be
-	  active, and the scheduler will wait for that much after the
-	  feed for any "#hungry" message from (to detect hung-up processes)
 	- Another:  maxlife  -- maximum lifetime for a transport agent
 	  for limiting the time a smtp-channel stays open for a long-
 	  living connection...
 
 - smtpserver
+  - Control somehow if lack of configuration and/or PolicyDB is
+    a system security offence, or not..
+
   - Supply PARAM entries for *all* (well, very nearly) command-line
     startup options where it makes sense... (NOW DOES!)
   - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills
@@ -189,10 +191,6 @@ transports/smtp:
 	  driver control; namely  "this domain can be valid source only
 				   when it is coming from this IP address"
 	  type of checkup...
-
-- "make install" does not handle manual-page installation properly,
-  also alternate-root installation has a few odd ends (vacation
-  man-page, libc/libzmailer.a, (libc)include/zmailer.h )
 
 - Integrate transports/fuzzyalias/ into the configuration system
 
@@ -288,6 +286,11 @@ transports/smtp:
           * back from the crossbar function.
           */
 
+  5-Dec-1999: Reading the code, actually it *is* implemented.
+	      ... or perhaps not, *usage* of that double-rewriter
+		  form isn't done, existing code has always expected
+		  single rewriter address, not two elt list.
+
 - When killing previous routers/scheduler/smtpserver, should wait
   the previous process group leader to die before writing over
   the  $POSTOFFICE/.pid.KIND -file.
@@ -301,13 +304,10 @@ transports/smtp:
 	20-Jan-97: Sort of facility exists now..
 
 - DSN (Delivery Status Notification) mechanism does not (yet) report
-  on "DELAY".
-
-- Want to have more interactivity at the scheduler status and control
-  mechanisms.  Especially thinking a new two-way system where there
-  can be multiple manager interfaces acting at the scheduler ``mailq''
-  port issueing commands (queries), and receiving responces.
-  With authentication, could do queue purges, rerouteing commands, etc.
+  on "DELAY". (Dec-1999: placeholders for mechanism exist:
+	r+          smtp zimage.com method@zimage.com 60000
+	  123456ABCD  - 1-thru-6 are TA process PID space, A-thru-D are
+		        a 'delay has been reported' flag storage.)
 
 - 'channel error' detection is partial at places;
 	transporters: hold, errormail

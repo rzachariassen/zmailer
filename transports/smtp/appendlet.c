@@ -12,7 +12,7 @@
  */
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
-static char let_buffer[BUFSIZ*8];
+static char let_buffer[ZBUFSIZ*8];
 #endif
 
 int
@@ -33,7 +33,7 @@ appendlet(SS, dp, convertmode)
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	volatile int bufferfull = 0;
-	char iobuf[BUFSIZ];
+	char iobuf[ZBUFSIZ];
 	Sfio_t *mfp = NULL;
 #endif
 
@@ -148,7 +148,7 @@ appendlet(SS, dp, convertmode)
 	    i = cfgets(let_buffer, sizeof(let_buffer), mfp);
 	    if (i < 0)
 	      break;
-	    /* It MAY be malformed -- if it has a BUFSIZ*8 length
+	    /* It MAY be malformed -- if it has a ZBUFSIZ*8 length
 	       line in it, IT CAN'T BE STANDARD CONFORMANT MIME  :-/	*/
 	    lastwasnl = (let_buffer[i-1] == '\n');
 #else /* HAVE_MMAP */

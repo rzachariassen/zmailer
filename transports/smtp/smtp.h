@@ -238,7 +238,7 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 extern char *defcharset;
 extern char myhostname[MAXHOSTNAMELEN+1];
 extern int myhostnameopt;
-extern char errormsg[BUFSIZ]; /* Global for the use of  dnsgetrr.c */
+extern char errormsg[ZBUFSIZ]; /* Global for the use of  dnsgetrr.c */
 extern const char *progname;
 extern const char *cmdline, *eocmdline, *logfile, *msgfile;
 extern int pid;
@@ -386,7 +386,7 @@ typedef struct {
   char *chunkbuf;		/* CHUNKING, RFC-1830 */
   int   chunksize, chunkspace;
 
-  char remotemsg[2*BUFSIZ];
+  char remotemsg[2*ZBUFSIZ];
   char remotehost[MAXHOSTNAMELEN+1];
   char *mailfrommsg;
   char ipaddress[200];
@@ -487,6 +487,11 @@ extern void report __((SmtpState *SS, char *fmt, ...));
 #else
 extern void report();
 #endif
+
+#ifdef HAVE_OPENSSL
+extern int  tls_init_clientengine __((SmtpState *SS, char *cfgpath));
+extern int  tls_start_clienttls __((SmtpState *SS, const char *peername));
+#endif /* - HAVE_OPENSSL */
 
 extern char *logtag __((void));
 

@@ -597,7 +597,7 @@ int whosonrc;
     struct policytest *rel = *relp;
 
     if (rel == NULL)
-      return 0;  /* Not defined! */
+      return -1;  /* Not defined! */
 
 #ifdef HAVE_NDBM_H
     if (cistrcmp(rel->dbtype, "ndbm") == 0)

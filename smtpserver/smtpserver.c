@@ -113,6 +113,7 @@ int X_settrrc = 9;
 #endif				/* USE_TRANSLATION */
 int strict_protocol = 0;
 int mustexit = 0;
+int configuration_ok = 0;
 
 char logtag[16];
 
@@ -578,8 +579,18 @@ char **argv;
       memset(&SS.raddr, 0, raddrlen);
       if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen))
 	netconnected_flg = 0;
-      else
+      else {
+	/* Got a peer name (it is a socket) */
 	netconnected_flg = 1;
+	if (SS.raddr.v4.sin_family != AF_INET
+#ifdef AF_INET6
+	    && SS.raddr.v4.sin_family != AF_INET6
+#endif
+	    )
+	  /* well, but somebody uses socketpair(2)  which is
+	     an AF_UNIX thing and sort of full-duplex pipe(2)... */
+	  netconnected_flg = 0;
+      }
 
       strcpy(SS.rhostname, "stdin");
       SS.rport = -1;
@@ -1553,6 +1564,10 @@ int insecure;
 #else
     policystatus     = policyinit(&policydb, &SS->policystate, 0);
 #endif
+    if (!netconnected_flg && policystatus < 0)
+      policystatus = 0; /* For internal - non-net-connected - mode
+			   lack of PolicyDB is no problem at all.. */
+
     SS->policyresult = policytestaddr(policydb, &SS->policystate,
 				      POLICY_SOURCEADDR,
 				      (void *) &SS->raddr);
@@ -1751,6 +1766,15 @@ int insecure;
 	if (SS->carp->cmd == BData     && ! chunkingok)
 	  goto unknown_command;
 
+	/* Lack of configuration is problem only with network connections */
+	if (netconnected_flg && !configuration_ok) {
+	  smtp_tarpit(SS);
+	  type(SS, -400, "4.7.0", "This SMTP server has not been configured!");
+	  typeflush(SS);
+	  zsyslog((LOG_EMERG, "smtpserver configuration missing!"));
+	  sleep(20);
+	  continue;
+	}
 	if (policystatus != 0 &&
 	    SS->carp->cmd != Quit && SS->carp->cmd != Help) {
 	  smtp_tarpit(SS);
@@ -1852,7 +1876,8 @@ int insecure;
 	    }
 	    if (SS->state != Hello)
 		SS->state = MailOrHello;
-	    type(SS, 250, m200, NULL);
+	    type(SS, 250, m200, "2.0.0 Reset processed, now waiting for MAIL command");
+	    SS->policyresult = 0; /* Clear this state too */
 	    typeflush(SS);
 	    break;
 	case Help:

@@ -232,6 +232,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	int largest_headersize = 80; /* Some magic minimum.. */
 	char dirprefix[8];
 	int mypid = getpid();
+	long format = 0;
 
 	static struct ctldesc d; /* ONLY ONE OPEN AT THE TIME! */
 
@@ -360,6 +361,16 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  /* Shudder... we trash the memory block here.. */
 	  s = contents + d.offset[i];
 	  switch (*s) {
+	  case _CF_FORMAT:
+	    ++s;
+	    sscanf(s,"%li",&format);
+	    if (format & (~_CF_FORMAT_KNOWN_SET)) {
+	      warning("Unsupported SCHEDULER file format flags seen: 0x%x",
+		      format);
+	      *exitflagp = 1;
+	      break;
+	    }
+	    break;
 	  case _CF_SENDER:
 	    ap = ctladdr(s+2);
 	    ap->link  = d.senders;
@@ -384,22 +395,22 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 
 	    if (*s != _CFTAG_NORMAL || d.senders == NULL)
 	      break;
+
 	    ++s;
+	    /* Unconditionally expecting _CF_FORMAT_TA_PID !! */
 	    s += _CFTAG_RCPTPIDSIZE;
-	    if (*s >= 'a' && *s <= 'z') {
-	      /* The old style file.. w/o delay indicator slot */
-	      if ((ap = ctladdr(s)) == NULL) {
-		warning("Out of virtual memory!", (char *)NULL);
-		*exitflagp = 1;
-		break;
-	      }
-	      delayslot = NULL;
-	    } else if ((ap = ctladdr(s+_CFTAG_RCPTDELAYSIZE)) == NULL) {
+	    delayslot = NULL;
+	    if ((format & _CF_FORMAT_DELAY1) || *s == ' ' ||
+		(*s >= '0' && *s <= '9')) {
+	      /* Newer DELAY data slot - _CFTAG_RCPTDELAYSIZE bytes */
+	      delayslot = s;
+	      s += _CFTAG_RCPTDELAYSIZE;
+	    }
+	    if ((ap = ctladdr(s)) == NULL) {
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
 	      break;
-	    } else
-	      delayslot = s;
+	    }
 
 	    /* [mea] understand  'host' of type:
 	       "((mxer)(mxer mxer))"   */

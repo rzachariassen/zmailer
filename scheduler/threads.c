@@ -731,7 +731,7 @@ struct thread *thr;
 	    ur_arr[i]->nextitem = ur_arr[i+1];
 	  /* 4b) Clear vertex proc pointer */
 	  ur_arr[i]->proc   = NULL;
-#if 1
+#if 0
 	  /* 4c) Clear wakeup timer; the feed_child() will refuse
 	     to feed us, if this one is not cleared.. */
 	  ur_arr[i]->wakeup = 0;
@@ -1190,10 +1190,10 @@ time_t retrytime;
 #endif
 	thr->retryindex++;
 
-	/* XX: change this to a mod expression */
+	/* If history, move forward by ``ce.interval'' multiple */
 	if (vtx->wakeup < now)
-	  vtx->wakeup = ((((now - vtx->wakeup) / vtx->thgrp->ce.interval)+1)
-			 * vtx->thgrp->ce.interval);
+	  vtx->wakeup += ((((now - vtx->wakeup) / vtx->thgrp->ce.interval)+1)
+			  * vtx->thgrp->ce.interval);
 
 	wakeup = vtx->wakeup;
 
@@ -1207,13 +1207,13 @@ time_t retrytime;
 	  if (vtx->ce_expiry > 0 && vtx->ce_expiry <= now &&
 	      vtx->attempts  > 0) {
 	    struct vertex *nvtx = vtx->nextitem;
+
 	    /* ... and now expire it! */
 	    /* this MAY invalidate also the THREAD object! */
+
 	    if (thr->jobs > 1) {
-	      /* if (nvtx == NULL) fprintf(stderr,"threads:reschedule() - expiring with thr->jobs=%d, nvtx == NULL!\n",thr->jobs); */
 	      expire(vtx,index);
 	    } else {
-	      /* if (nvtx != NULL) fprintf(stderr,"threads:reschedule() - expiring with thr->jobs=%d, nvtx != NULL!\n",	thr->jobs); */
 	      expire(vtx,index);
 	      thr = NULL; /* The THR-pointed object is now invalid */
 	    }

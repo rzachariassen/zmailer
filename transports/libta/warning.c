@@ -4,7 +4,7 @@
  */
 /*
  *	A lot of changes all around over the years by Matti Aarnio
- *	<mea@nic.funet.fi>, copyright 1992-1997
+ *	<mea@nic.funet.fi>, copyright 1992-1999
  */
 
 #include "hostenv.h"
@@ -49,10 +49,12 @@ warning(fmt, va_alist) /* ("fmtstr", remotemsg) */
 	va_start(ap);
 #endif
 	
+	fd_blockingmode(FILENO(stderr));
 	if (progname != NULL)
 	  fprintf(stderr, "# %s:%d: ", progname, (int)getpid());
 	vfprintf(stderr, fmt, ap);
 	fprintf(stderr, "\n");
+	fflush(stderr);
 	va_end(ap);
 }
 
@@ -65,10 +67,12 @@ warning(fmt, arg, arg2, arg3, arg4)
 	static int isopen = 0;
 	int e = errno; /* Save it over the openlog() .. */
 
+	fd_blockingmode(FILENO(stderr));
 	if (progname != NULL)
 		(void) fprintf(stderr, "# %s:%d: ", progname, getpid());
 	fprintf(stderr, fmt, arg, arg2, arg3, arg4);
 	fprintf(stderr, "\n");
+	fflush(stderr);
 #if 0 /* Actually DON'T syslog this stuff! */
 	if (!isopen) {
 	  zopenlog(progname, 0, LOG_MAIL);

@@ -324,7 +324,7 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 #ifdef HAVE_FTRUNCATE
 	    ftruncate(rp->desc->ctlfd, ctlsize); /* Sigh.. */
 #endif
-	    printf("#HELP! diagnostic writeout with bad results!: len=%d, rc=%d\n", len, rc2);
+	    fprintf(stdout,"#HELP! diagnostic writeout with bad results!: len=%d, rc=%d\n", len, rc2);
 	    exit(EX_DATAERR);
 	  }
 #ifdef HAVE_FSYNC
@@ -347,13 +347,16 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	}
 
 	/* "Delay" the diagnostics from mailbox sieve subprocessing.
-	   Actually DON'T do them at all! */
+	   Actually DON'T do then at all! */
 	if (!(rp->notifyflgs & _DSN__DIAGDELAYMODE)) {
 
-	  printf("%d/%d\t%s\t%s %s\n",
-		 rp->desc->ctlid, rp->id,
-		 (notarybuf && report_notary) ? notarybuf : "",
-		 statmsg, message);
+	  /* This should always be in blocking mode, but... */
+	  fd_blockingmode(FILENO(stdout));
+	  fprintf(stdout,"%d/%d\t%s\t%s %s\n",
+		  rp->desc->ctlid, rp->id,
+		  (notarybuf && report_notary) ? notarybuf : "",
+		  statmsg, message);
+	  fflush(stdout);
 
 	  if (!lockaddr(rp->desc->ctlfd, rp->desc->ctlmap,
 			rp->lockoffset, _CFTAG_LOCK, mark,

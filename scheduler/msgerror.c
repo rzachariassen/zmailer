@@ -182,14 +182,16 @@ msgerror(vp, offset, message)
 {
 	Sfio_t *fp;
 	const char *notary = "";
-	char path[128];
+	char path[410];
 
 	if (vp->notary) notary = vp->notary;
 
 	if (vp->cfp->dirind > 0) {
-	  sprintf(path,"%s/%s", cfpdirname(vp->cfp->dirind), vp->cfp->mid);
+	  sprintf(path, "%.300s/%.100s",
+		  cfpdirname(vp->cfp->dirind), vp->cfp->mid);
 	} else {
-	  strcpy(path,vp->cfp->mid);
+	  strncpy(path,vp->cfp->mid,400);
+	  path[400] = 0;
 	}
 
 	/* exclusive access required, but we're the only scheduler... */

@@ -102,6 +102,7 @@ struct ctldesc {
 	int		rcpnts_total;	/* number of recipients, total */
 	int		rcpnts_remaining;/* .. how many yet to deliver */
 	int		rcpnts_failed  ;/* .. how many failed ones */
+	long		format;		/* _CF_FORMAT_xxx */
 	char		***msgheaders;	/* pointer to all msg headers */
 	char		***msgheaderscvt; /* converted headers */
 #ifdef	HAVE_MMAP

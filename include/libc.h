@@ -8,6 +8,8 @@
 # endif
 #endif
 
+#define ZBUFSIZ 8192
+
 /* fullname.c */
 extern char *fullname __((const char *s, char buf[], int buflen, char *up));
 

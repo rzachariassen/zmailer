@@ -12,6 +12,22 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.52-pre5
+		Scheduler work-specs file has new attribute which both
+		scheduler, and TA programs check:  '@' a.k.a.  _CF_FORMAT.
+		If the hex-encoded bit storage after it isn't understood
+		by the program, TA file is rejected with a warning!
+
+		In the future this likely means that age/version relationship
+		of programs should be:
+			router <= scheduler <= TA programs
+		where "<=" means 'older or same'.
+		(Well, in fact it is rather old requirement..)
+
+		Running older router than 2.99.52 with newer TA is not,
+		of course, neither recommended -- the _CF_FORMAT tag isn't
+		present before...
+
 	ZMailer-2.99.52-pre3
 		SiteConfig.in has new 'ROUTEUSER_IN_ABNORMAL_UNIX'
 		definition, which guides the way, how  aliases.cf

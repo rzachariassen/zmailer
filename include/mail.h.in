@@ -56,12 +56,19 @@
 #define	_CF_TURNME	'T'	/* trigger scheduler to attempt delivery now */
 #define _CF_RCVFROM	'F'	/* Where-from we are coming ? */
 
+#define _CF_FORMAT	'@'	/* What format variant are we ?? */
+
+#define _CF_FORMAT_TA_PID	0x00000001 /* At 'r' or 'X' lines */
+#define _CF_FORMAT_DELAY1	0x00000002 /* At 'r' or 'X' lines */
+#define _CF_FORMAT_KNOWN_SET (_CF_FORMAT_DELAY1|_CF_FORMAT_TA_PID)
+
 /* The following characters may appear in the second column after most _CF_* */
 #define	_CFTAG_NORMAL	' '	/* what the router sets it to be */
 #define _CFTAG_LOCK	'~'	/* that line is being processed, lock it */
 #define _CFTAG_OK	'+'	/* positive outcome of processing */
 #define _CFTAG_NOTOK	'-'	/* something went wrong */
 #define _CFTAG_DEFER	_CFTAG_NORMAL	/* try again later */
+
 #define _CFTAG_RCPTPIDSIZE 6	/* 6 chars for PID of the active transporter. */
 #define _CFTAG_RCPTDELAYSIZE 4	/* 4 chars for delay report indicator of this recipient; field contains decimal numeric string */
 

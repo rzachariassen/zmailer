@@ -23,7 +23,7 @@
 char *defcharset;
 char myhostname[MAXHOSTNAMELEN+1];
 int myhostnameopt;
-char errormsg[BUFSIZ]; /* Global for the use of  dnsgetrr.c */
+char errormsg[ZBUFSIZ]; /* Global for the use of  dnsgetrr.c */
 const char *progname;
 const char *cmdline, *eocmdline, *logfile, *msgfile;
 int pid;
@@ -743,6 +743,27 @@ deliver(SS, dp, startrp, endrp)
 	char **chunkptr = NULL;
 	char *chunkblk = NULL;
 	int early_bdat_sync = 0;
+	struct ct_data  *CT  = NULL;
+	struct cte_data *CTE = NULL;
+	char **hdr;
+
+	hdr = has_header(startrp,"Content-Type:");
+	if (hdr)
+	  CT = parse_content_type(hdr);
+	hdr = has_header(startrp,"Content-Transfer-Encoding:");
+	if (hdr)
+	  CTE = parse_content_encoding(hdr);
+	if (CT) {
+	  if (CT->basetype == NULL ||
+	      CT->subtype  == NULL ||
+	      cistrcmp(CT->basetype,"text") != 0 ||
+	      cistrcmp(CT->subtype,"plain") != 0)
+
+	    /* Not TEXT/PLAIN! */
+	    conv_prohibit = -1;
+	  /* We don't know how to convert anything BUT  TEXT/PLAIN :-(  */
+	}
+
 
 	if (no_pipelining) pipelining = 0;
 	SS->pipelining = pipelining;
@@ -1608,14 +1629,14 @@ smtpconn(SS, host, noMX)
 	  ++host;
 
 	if (*host == '[') {	/* hostname is IP address domain literal */
-	  char *cp, buf[BUFSIZ];
+	  char *cp, buf[500];
 	  const char *hcp;
 
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"SMTP: Connecting to host: %.200s (IP literal)\n",host);
 
 	  for (cp = buf, hcp = host+1 ;
-	       *hcp != 0 && *hcp != ']' && cp < (buf+BUFSIZ-1) ;
+	       *hcp != 0 && *hcp != ']' && cp < (buf+500-1) ;
 	       ++cp, ++hcp)
 	    *cp = *hcp;
 	  *cp = '\0';
