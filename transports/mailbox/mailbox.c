@@ -969,7 +969,7 @@ deliver(dp, rp, usernam, timestring)
 {
 	register const char **maild;
 	int fdmail;
-	uid_t uid;
+	long uid;
 	int hasdir;
 	struct stat st, s2;
 	const char *file = NULL;
@@ -990,7 +990,7 @@ deliver(dp, rp, usernam, timestring)
 	notary_setxdelay(0); /* Our initial speed estimate is
 				overtly optimistic.. */
 
-	if (sscanf(rp->addr->misc,"%d",&uid) != 1) {
+	if (sscanf(rp->addr->misc,"%ld",&uid) != 1) {
 	  char buf[1000];
 	  if (verboselog) {
 	    fprintf(verboselog,"mailbox: User recipient address privilege code invalid (non-numeric!): '%s'\n",rp->addr->misc);
