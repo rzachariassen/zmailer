@@ -60,6 +60,8 @@ int subdaemons_init __((void))
 	  ratetracker_server_pid = fork();
 	  if (ratetracker_server_pid == 0) { /* CHILD */
 
+	    report(NULL," [smtpserver ratetracker subsystem]");
+
 	    fdpass_to_child_fds(to, from);
 
 	    subdaemon_loop(0, subdaemon_handler_trk);
@@ -78,6 +80,8 @@ int subdaemons_init __((void))
 	  router_server_pid = fork();
 	  if (router_server_pid == 0) { /* CHILD */
 
+	    report(NULL," [smtpserver router subsystem]");
+
 	    fdpass_to_child_fds(to, from);
 
 	    subdaemon_loop(0, subdaemon_handler_rtr);
@@ -95,6 +99,8 @@ int subdaemons_init __((void))
 
 	  contentfilter_server_pid = fork();
 	  if (contentfilter_server_pid == 0) { /* CHILD */
+
+	    report(NULL," [smtpserver contentfilter subsystem]");
 
 	    fdpass_to_child_fds(to, from);
 
@@ -123,6 +129,10 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	fd_set rdset, wrset;
 	struct timeval tv;
 
+	/* Close all (possible) FDs above magic value of ZERO */
+	for (n = 0; n < subdaemon_nofiles; ++n)
+	  if (n != rendezvous_socket) close(n);
+
 	peers = malloc(sizeof(*peers) * subdaemon_nofiles);
 	if (!peers) return -1; /* ENOMEM ?? */
 
@@ -143,7 +153,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	  _Z_FD_ZERO(rdset);
 	  _Z_FD_ZERO(wrset);
-	  tv.tv_sec  = 30;
+
+	  tv.tv_sec  = 10;
 	  tv.tv_usec =  0;
 
 	  topfd = 0;
@@ -163,9 +174,9 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    }
 	  }
 
-	  rc = select(n, &rdset, &wrset, NULL, &tv);
+	  rc = select( topfd+1, &rdset, &wrset, NULL, &tv );
 
-	  if (n > 0) { /* Things have been read or written.. */
+	  if (rc > 0) { /* Things have been read or written.. */
 
 	    /* The rendezvous socket ?? */
 

@@ -854,7 +854,6 @@ char **argv;
 			      than port 25. */
 
 	resources_maximize_nofiles();
-	subdaemons_init();
 
 #ifdef HAVE_OPENSSL
 	Z_init(); /* Some things for private processors */
@@ -1056,6 +1055,8 @@ char **argv;
 			 to die away... */
 	    killprevious(0, pidfile);	/* deposit pid */
 	  }
+
+	  subdaemons_init();
 
 	  if (bindport <= 0) {
 	    struct servent *service;
@@ -2671,11 +2672,13 @@ va_dcl
 #endif
     memset(buf, 0, sizeof(buf));
 
+    if (SS) {
 #ifdef HAVE_SNPRINTF
-    snprintf(buf, sizeof(buf)-2, "<%s ", SS->rhostname);
+      snprintf(buf, sizeof(buf)-2, "<%s ", SS->rhostname);
 #else
-    sprintf(buf, "<%s ", SS->rhostname);
+      sprintf(buf, "<%s ", SS->rhostname);
 #endif
+    }
     s = buf + strlen(buf);
     bufspace = sizeof(buf) - (s - buf) - 2;
 
