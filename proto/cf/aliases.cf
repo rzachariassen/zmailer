@@ -529,6 +529,78 @@ routeuser (quad, plustail, domain) {
 		;;
 	tfiss
 
+#
+# START mailman integration
+#
+
+# You need to define the MAILMAN_ROOT variable in zmailer.conf
+# Something like: MAILMAN_ROOT=/var/mailman
+
+if [ -n "$MAILMAN_ROOT" ] ; then
+
+	a="$MAILMAN_ROOT/lists/$lcuser/"
+	if [ -d "$a" ] ; then
+		nattr=$(newattribute $attr privilege "0")
+		$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
+		a=(((local pipe.$lcuser "|$MAILMAN_ROOT/mail/mailman post $lcuser" $nattr)))
+		postzapDSNnotify a +
+		return $a
+	fi
+
+	ssift "$lcuser" in
+
+	(.+)-owner
+		listbase="\1"
+		mailman_todo="owner"
+		;;
+	(.+)-admin
+		listbase="\1"
+		mailman_todo="admin"
+		;;
+	(.+)-bounces
+		listbase="\1"
+		mailman_todo="bounces"
+		;;
+	(.+)-confirm
+		listbase="\1"
+		mailman_todo="confirm"
+		;;
+	(.+)-join
+		listbase="\1"
+		mailman_todo="join"
+		;;
+	(.+)-leave
+		listbase="\1"
+		mailman_todo="leave"
+		;;
+	(.+)-request
+		listbase="\1"
+		mailman_todo="request"
+		;;
+	(.+)-subscribe
+		listbase="\1"
+		mailman_todo="subscribe"
+		;;
+	(.+)-unsubscribe
+		listbase="\1"
+		mailman_todo="unsubscribe"
+		;;
+
+	tfiss
+
+	if [ -n "$listbase" ] ; then 
+		nattr=$(newattribute $attr privilege "0")
+		$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
+		a=(((local pipe.$lcuser "|$MAILMAN_ROOT/mail/mailman $mailman_todo $listbase" $nattr)))
+		postzapDSNnotify a +
+		return $a
+	fi
+
+fi
+
+#
+# END mailman integration
+#
 
 # Define something like following in your  zmailer.conf  file to enable this !
 #	LISTSERV="/v/net/listserv.funet.fi"
