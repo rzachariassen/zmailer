@@ -817,23 +817,46 @@ void testmxsrv(thatdomain, hname)
 char *thatdomain;
 char *hname;
 {
-	struct addrinfo req, *ai, *a;
-	int i;
+	struct addrinfo req, *ai, *ai2, *a;
+	int i, i2;
 
 	memset(&req, 0, sizeof(req));
 	req.ai_socktype = SOCK_STREAM;
 	req.ai_protocol = IPPROTO_TCP;
 	req.ai_flags    = AI_CANONNAME;
-	req.ai_family   = 0; /* Both OK (IPv4/IPv6) */
-	ai = NULL;
+	req.ai_family   = AF_INET;
+	ai = ai2 = NULL;
 
 	/* This resolves CNAME, it should not be done in case
 	   of MX server, though..    */
 	i = getaddrinfo(hname, "0", &req, &ai);
 
+#if defined(AF_INET6) && defined(INET6)
+	memset(&req, 0, sizeof(req));
+	req.ai_socktype = SOCK_STREAM;
+	req.ai_protocol = IPPROTO_TCP;
+	req.ai_flags    = AI_CANONNAME;
+	req.ai_family   = AF_INET6;
+
+	i2 = getaddrinfo(hname, "0", &req, &ai2);
+
+	if (i2 == 0 && i != 0) {
+	  /* IPv6 address, but no IPv4 address ? */
+	  i = i2;
+	  ai = ai2;
+	  ai2 = NULL;
+	}
+	if (ai2 && ai) {
+	  /* BOTH ?!  Catenate them! */
+	  a = ai;
+	  while (a && a->ai_next) a = a->ai_next;
+	  if (a) a->ai_next = ai2;
+	}
+#endif
+
 	if (i) {
 	  /* It is fucked up somehow.. */
-	  fprintf(stdout, "<H2> --- sorry, address lookup failed; code=%d</H2>\n", i);
+	  fprintf(stdout, "<H2> --- sorry, address lookup for ``%s'' failed;<BR> code = %s</H2>\n", hname, gai_strerror(i));
 	  return;
 	}
 	if (!ai) {

@@ -1986,12 +1986,48 @@ smtpconn(SS, host, noMX)
 	    /* Either forbidden MX usage, or does not have MX entries! */
 
 	    ai = NULL;
+	    req.ai_family   = PF_INET;
 #if !GETADDRINFODEBUG
 	    r = getaddrinfo(host, "smtp", &req, &ai);
 #else
 	    r = _getaddrinfo_(host, "smtp", &req, &ai, SS->verboselog);
 if (SS->verboselog)
   fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
+#endif
+#if defined(AF_INET6) && defined(INET6)
+	    {
+	      struct addrinfo *ai2 = NULL, *a;
+	      int i2;
+	      memset(&req, 0, sizeof(req));
+	      req.ai_socktype = SOCK_STREAM;
+	      req.ai_protocol = IPPROTO_TCP;
+	      req.ai_flags    = AI_CANONNAME;
+	      req.ai_family   = PF_INET6;
+
+	      /* This resolves CNAME, it should not happen in case
+		 of MX server, though..    */
+#if !GETADDRINFODEBUG
+	      i2 = getaddrinfo(host, "0", &req, &ai2);
+#else
+	      i2 = _getaddrinfo_(host, "0", &req, &ai2, SS->verboselog);
+	      if (SS->verboselog)
+		fprintf(SS->verboselog,
+			"  getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",
+			host,i2,ai2);
+#endif
+
+	      if (r != 0 && i2 == 0) {
+		/* IPv6 address, no IPv4 (or error..) */
+		r = i2;
+		ai = ai2; ai2 = NULL;
+	      }
+	      if (ai2 && ai) {
+		/* BOTH ?!  Catenate them! */
+		a = ai;
+		while (a && a->ai_next) a = a->ai_next;
+		if (a) a->ai_next = ai2;
+	      }
+	    }
 #endif
 	    if (r != 0) {
 
@@ -3999,7 +4035,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  req.ai_socktype = SOCK_STREAM;
 	  req.ai_protocol = IPPROTO_TCP;
 	  req.ai_flags    = AI_CANONNAME;
-	  req.ai_family   = 0; /* Both OK (IPv4/IPv6) */
+	  req.ai_family   = PF_INET;
 	  ai = NULL;
 
 	  /* This resolves CNAME, it should not happen in case
@@ -4008,9 +4044,47 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  i = getaddrinfo((const char*)buf, "0", &req, &ai);
 #else
 	  i = _getaddrinfo_((const char*)buf, "0", &req, &ai, SS->verboselog);
-if (SS->verboselog)
-  fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",buf,i,ai);
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
+		    buf,i,ai);
 #endif
+
+#if defined(AF_INET6) && defined(INET6)
+	  {
+	    struct addrinfo *ai2 = NULL, *a;
+	    int i2;
+	    memset(&req, 0, sizeof(req));
+	    req.ai_socktype = SOCK_STREAM;
+	    req.ai_protocol = IPPROTO_TCP;
+	    req.ai_flags    = AI_CANONNAME;
+	    req.ai_family   = PF_INET6;
+
+	  /* This resolves CNAME, it should not happen in case
+	     of MX server, though..    */
+#if !GETADDRINFODEBUG
+	    i2 = getaddrinfo((const char*)buf, "0", &req, &ai2);
+#else
+	    i2 = _getaddrinfo_((const char*)buf, "0", &req, &ai2,
+			       SS->verboselog);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
+		      buf,i2,ai2);
+#endif
+
+	    if (i != 0 && i2 == 0) {
+	      /* IPv6 address, no IPv4 (or error..) */
+	      i = i2;
+	      ai = ai2; ai2 = NULL;
+	    }
+	    if (ai2 && ai) {
+	      /* BOTH ?!  Catenate them! */
+	      a = ai;
+	      while (a && a->ai_next) a = a->ai_next;
+	      if (a) a->ai_next = ai2;
+	    }
+	  }
+#endif
+
 
 	  if (i != 0) {
 	    if (i == EAI_AGAIN) {

@@ -1,3 +1,17 @@
+2000-01-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    Turned out that Linux glibc 2.1 getaddrinfo() has some
+	    strange bugs when it is left to its devices to scan for
+	    a generic address suite -- it doesn't scan only IPv4 and
+	    IPv6, but also some others, and if it gets error anywhere,
+	    it seems to barf..  Will now scan for IPv4 and IPv6
+	    separately :-/  So much for the great transparent API ...
+
+	* utils/mxverify-cgi.c:
+	    Detected the above problem while playing with this utility,
+	    and developed that change here..
+
 2000-01-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* include/ta.h,           transports/libta/diagnostic.c,
