@@ -1,5 +1,17 @@
 2003-05-09  Matti Aarnio  <mea@zmailer.org>
 
+	* proto/zmailer.sh.in:
+	    Eino Tuominen spotted that I still have sloppy style to
+	    write scripts without testing them before publishing..
+	    ( e.g. users test :-/ )  Missing double-quote in one
+	    embedded perl script.
+
+	* proto/cf/fqdnalias.cf:
+	    Modification typo lurked in the FQDN aliasing script.
+	    OUTCH!  Found it when testing local virtualized email
+	    service failing to failure, and producing 'deferred'
+	    messages...
+
 	* lib/sleepycatdb.c, smtpserver/policytest.c, utils/makedb/dblook.c,
 	  utils/makedb/makedb.c:
 	    Support compiling against SleepyCat DB 4.1
@@ -170,7 +182,7 @@
 	    The router internal logic change IS script incompatible!
 	    Carefull out there with your  aliases.cf,  and  fqdnaliases.cf !
 
-	* proto/cf/aliases.cf, proto/cf/fqdnaliases.cf, router/functions.c:
+	* proto/cf/aliases.cf, proto/cf/fqdnalias.cf, router/functions.c:
 	    - When a list-expansions fails to produce recipient list,
 	      do produce an error message only, when the message being
 	      routed is _not_ an error message in itself.
