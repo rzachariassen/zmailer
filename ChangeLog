@@ -1,5 +1,11 @@
 1998-03-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/rfc822hdrs.c:
+	    A user found pathological case of errors which caused his
+	    router process to blow up.  Turned out to be overflow of
+	    stack contained array :-(   Outch!
+	    Fixed/limited several array/buffer references in the module.
+
 	* transports/smtp/smtp.c:
 	    Full-blown pipelining -- will collect replies asynchronously,
 	    and merge results into smtp_sync() states while still sending
