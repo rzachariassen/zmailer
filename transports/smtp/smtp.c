@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2001 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2002 by Matti Aarnio -- modifications, including MIME
  */
 
 #include "smtp.h"
@@ -1943,6 +1943,8 @@ smtpopen(SS, host, noMX)
 	  if (i != EX_OK)
 	    continue;
 
+	  SS->cmdstate = SMTPSTATE_HELO;
+
 	  if (lmtp_mode || (SS->esmtp_on_banner > -2 && force_7bit < 2)) {
 	    /* Either it is not tested, or it is explicitely
 	       desired to be tested, and was found! */
@@ -2975,6 +2977,7 @@ abort();
 	errnosave = errno = 0;
 
 	smtp_flush(SS);
+	SS->cmdstate = SMTPSTATE_CONNECT;
 
 	if (sa->sa_family == AF_INET) {
 	  struct sockaddr_in *si = (struct sockaddr_in*) sa;
@@ -3773,12 +3776,12 @@ smtp_sync(SS, r, nonblocking)
 	     SS->pipecmds[idx] ? SS->pipecmds[idx] : "<nil>");
 	  */
 
-	  if (SS->rcptstates & (FROMSTATE_500)) {
+	  if (SS->rcptstates & (FROMSTATE_500|HELOSTATE_500)) {
 	    /* If "MAIL From:<..>" tells non-200 report, and
 	       causes "RCPT To:<..>" commands to yield "400/500",
 	       we IGNORE the "500" status. */
 	    rc = EX_UNAVAILABLE;
-	  } else if (SS->rcptstates & (FROMSTATE_400)) {
+	  } else if (SS->rcptstates & (FROMSTATE_400|HELOSTATE_400)) {
 	    /* If "MAIL From:<..>" tells non-200 report, and
 	       causes "RCPT To:<..>" commands to yield "400/500",
 	       we IGNORE the "500" status. */
@@ -3814,7 +3817,7 @@ smtp_sync(SS, r, nonblocking)
 	      diagnostic(SS->pipercpts[idx], rc, 0, "%s", SS->remotemsg);
 
 	    } else { /* SS->pipercpts[idx] == NULL
-			--> MAIL FROM or DATA/BDAT */
+			--> Connect, HELO, MAIL FROM or DATA/BDAT */
 
 	      /* No diagnostic() calls for  MAIL FROM:<>, nor for
 		 DATA/BDAT phases (except in LMTP mode) */

@@ -316,11 +316,13 @@ struct smtpdisc {
 
 
 typedef enum {
-  SMTPSTATE_MAILFROM = 0,
-  SMTPSTATE_RCPTTO   = 1,
-  SMTPSTATE_DATA     = 2,
-  SMTPSTATE_DATADOT  = 3,
-  SMTPSTATE_DATADOTRSET = 4,
+  SMTPSTATE_CONNECT  = 0,
+  SMTPSTATE_HELO     = 1,
+  SMTPSTATE_MAILFROM = 2,
+  SMTPSTATE_RCPTTO   = 3,
+  SMTPSTATE_DATA     = 4,
+  SMTPSTATE_DATADOT  = 5,
+  SMTPSTATE_DATADOTRSET = 6,
   SMTPSTATE99        = 99
 } SMTPSTATES;
 
@@ -373,15 +375,18 @@ typedef struct {
   int rcptcnt;			/* PIPELINING variables */
   int rcptstates;
 
-#define RCPTSTATE_OK   0x001  /* At least one OK   state   */
-#define FROMSTATE_OK   0x002  /* MAIL FROM --> 2XX code */
-#define DATASTATE_OK   0x004  /* DATA/BDAT --> 2/3XX code */
-#define RCPTSTATE_400  0x010  /* At least one TEMP failure */
-#define FROMSTATE_400  0x020  /* MAIL FROM --> 4XX code */
-#define DATASTATE_400  0x040  /* DATA/BDAT --> 4XX code */
-#define RCPTSTATE_500  0x100  /* At least one PERM failure */
-#define FROMSTATE_500  0x200  /* MAIL FROM --> 5XX code */
-#define DATASTATE_500  0x400  /* DATA/BDAT --> 5XX code */
+#define HELOSTATE_OK   0x0001
+#define HELOSTATE_400  0x0002
+#define HELOSTATE_500  0x0004
+#define FROMSTATE_OK   0x0010  /* MAIL FROM --> 2XX code */
+#define FROMSTATE_400  0x0020  /* MAIL FROM --> 4XX code */
+#define FROMSTATE_500  0x0040  /* MAIL FROM --> 5XX code */
+#define RCPTSTATE_OK   0x0100  /* At least one OK   state   */
+#define RCPTSTATE_400  0x0200  /* At least one TEMP failure */
+#define RCPTSTATE_500  0x0400  /* At least one PERM failure */
+#define DATASTATE_OK   0x1000  /* DATA/BDAT --> 2/3XX code */
+#define DATASTATE_400  0x2000  /* DATA/BDAT --> 4XX code */
+#define DATASTATE_500  0x4000  /* DATA/BDAT --> 5XX code */
 
   int state;
   int alarmcnt;
@@ -393,7 +398,7 @@ typedef struct {
   int   chunksize, chunkspace;
 
   char remotemsg[2*ZBUFSIZ];
-  char *remotemsgs[5];
+  char *remotemsgs[7];
 
   SMTPSTATES cmdstate, prevcmdstate;
 

@@ -1,5 +1,8 @@
 2002-04-05  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.h, transports/smtp/smtp.c:
+	    Debugging oddball 'yield OK when DEFER is correct' problems..
+
 	* transports/libta/ctlopen.c:
 	    The RP data block is not initialized completely in all cases,
 	    which causes occasional bugs.  Doing   memset()  for it at
