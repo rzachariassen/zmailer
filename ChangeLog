@@ -3,6 +3,12 @@
 	* doc/guides/smtp-policy:
 	    Updated the contents to match system a bit more
 
+	* include/md5.h, include/md5-global.h, libc/md5c.c:
+	    Included generic MD5 code into the ZMailer's libc.
+	    To be used in a few server applications... (including
+	    APOP-like session authentication for scheduler cmd
+	    interface..)
+
 1998-06-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:

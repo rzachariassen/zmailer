@@ -36,7 +36,8 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(LIBC_INCL) $(INCL)
 LIBOBJS=  @LIBOBJS@
 #
 OBJS	= mail.o mail_alloc.o mail_host.o fullname.o getopt.o myhostname.o \
-	getzenv.o whathost.o getdtblsiz.o __fopen.o setreuid.o setregid.o
+	getzenv.o whathost.o getdtblsiz.o __fopen.o setreuid.o setregid.o \
+	md5c.o
 LIBMAILERobjs = mail.o mail_alloc.o getzenv.o mail_host.o myhostname.o	\
 	fullname.o whathost.o strerror.o
 SOURCE	= mail.c mail_alloc.c mail_host.c fullname.c getopt.c myhostname.c \
