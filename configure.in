@@ -1850,7 +1850,10 @@ ac_with_ipv6_replacement_libc=0
 AC_ARG_WITH(ipv6-replacement-libc, [  --with-ipv6-replacement-libc If system has broken  getaddrinfo() and friends],
         ac_with_ipv6_replacement_libc=1)
 
+LIBS="$LIBSOCKET $LIBS"
 AC_CHECK_FUNCS(inet_ntop inet_pton getaddrinfo getnameinfo gai_strerror)
+LIBS="$t_oldLibs"
+
 if test "$ac_with_ipv6_replacement_libc" = 1 ; then
   AC_LIBOBJ([inet_ntop])
   AC_LIBOBJ([inet_pton])
