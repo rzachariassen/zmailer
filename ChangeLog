@@ -1,3 +1,11 @@
+1999-07-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* man/smtpserver.8, smtpserver/smtpserver.c, smtpserver/smtpcmds.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpdata.c, smtpserver/cfgread.c,
+	  proto/smtpserver.conf.in:
+	    "PARAM min-availspace 5000" -- specify the minimum required
+	    available space in the $POSTOFFICE/ directory. In KILOBYTES.
+
 1999-07-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.c, contrib/whoson-1.08.tgz:
@@ -6,7 +14,6 @@
 	    - adding option "-w" to smtpserver to actually
 	      do the query of Whoson.  Allows code being
 	      compiled in without it being used...
-
 
 	* proto/cf/canon.cf, lib/rfc822scan.c:
 	    Turns out the best way to fix the 'foo\!faa!fii'

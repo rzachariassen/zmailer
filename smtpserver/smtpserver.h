@@ -218,6 +218,7 @@ extern char *hdr220lines[];
 extern char logtag[];
 
 extern long availspace;
+extern long minimum_availspace;
 extern long maxsize;
 extern int MaxErrorRecipients;
 extern int TcpRcvBufferSize;

@@ -93,6 +93,12 @@ static void cfparam(str)
 
     else if (cistrcmp(name, "maxsize") == 0) {
 	sscanf(param1, "%ld", &maxsize);
+    } else if (cistrcmp(name, "min-availspace") == 0) {
+	if (sscanf(param1, "%ld", &minimum_availspace) == 1) {
+	  minimum_availspace *= 1024;
+	  if (minimum_availspace < 1000000)
+	    minimum_availspace = 1000000;
+	}
     } else if (cistrcmp(name, "RcptLimitCnt") == 0) {
 	sscanf(param1, "%d", &rcptlimitcnt);
 	if (rcptlimitcnt < 100) rcptlimitcnt = 100;

@@ -122,6 +122,11 @@ const char *buf, *cp;
 
     report(SS, "Got '.'; tell=%ld", tell);
 
+    availspace = fd_statfs(FILENO(SS->mfp));
+    if (availspace < 0)
+	availspace = 2000000000;	/* Over 2G ? */
+    availspace -= minimum_availspace;
+
     if (*msg != 0) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
@@ -138,13 +143,13 @@ const char *buf, *cp;
 	reporterr(SS, tell, "premature EOF on DATA input");
 	typeflush(SS);
 	return -1;
-    } else if (ferror(SS->mfp)) {
-	type(SS, 452, m430, (char *) NULL);
+    } else if (availspace < 0 || ferror(SS->mfp)) {
+	type(SS, 452, m430, NULL); /* insufficient system storage */
 	typeflush(SS);
+	reporterr(SS, tell, ferror(SS->mfp) ? "write to spool file failed" : "system free storage under limit");
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
-	reporterr(SS, tell, "message file error");
     } else if (maxsize > 0 && filsiz > maxsize) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
@@ -322,6 +327,12 @@ const char *buf, *cp;
 	SS->rcpt_count = 0;	/* now we can zero them.. */
 	SS->sender_ok = 0;
     }
+
+    availspace = fd_statfs(FILENO(SS->mfp));
+    if (availspace < 0)
+	availspace = 2000000000;	/* Over 2G ? */
+    availspace -= minimum_availspace;
+
     /* The common typeflush() is at the end... */
     if (SS->mfp == NULL) {
 	type(SS, 503, m552, "BDAT block discarded due to earlier error");
@@ -340,11 +351,12 @@ const char *buf, *cp;
 	reporterr(SS, tell, "premature EOF on BDAT input");
 	typeflush(SS);
 	return -1;
-    } else if (ferror(SS->mfp)) {
+    } else if (availspace < 0 || ferror(SS->mfp)) {
 	type(SS, 452, m400, (char *) NULL);
+	reporterr(SS, tell, ferror(SS->mfp) ? "write to spool file failed" : "system free storage under limit");
+	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
-	reporterr(SS, tell, "write to spool file failed");
     } else if (maxsize > 0 && tell > maxsize) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;

@@ -785,7 +785,7 @@ int insecure;
     availspace = fd_statfs(FILENO(SS->mfp));
     if (availspace < 0)
 	availspace = 2000000000;	/* Over 2G ? */
-    availspace >>= 1;
+    availspace -= minimum_availspace;
 
     if (ferror(SS->mfp)) {
 	type(SS, 452, m430, (char *) NULL);

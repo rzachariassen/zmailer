@@ -176,6 +176,13 @@ This is synonym to start-time
 .I \-M
 option.
 
+.IP PARAM\ min-availspace\ 5000
+This defines, in
+.BR kilobytes ,
+the minimum available space in
+.B POSTOFFICE
+directory after the message has been accepted in.
+
 .IP PARAM\ max-error-recipients
 This defines how many recipients can be on a message whose source
 address is
