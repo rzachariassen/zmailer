@@ -742,7 +742,7 @@ extern int rbl_dns_test __((struct policystate *, const int, const u_char *, cha
 extern int ZSMTP_hook_init          __((const int, char **, const char **, const char *));
 extern void ZSMTP_hook_atexit       __((void));
 extern int ZSMTP_hook_set_ipaddress __((const char *, int *));
-extern int ZSMTP_hook_setuser       __((const char *, const char *, int *));
+extern int ZSMTP_hook_set_user      __((const char *, const char *, int *));
 extern int ZSMTP_hook_mailfrom      __((struct policystate *, const char *, const int, int *));
 extern int ZSMTP_hook_rcptto        __((struct policystate *, const char *, const int, int *));
 

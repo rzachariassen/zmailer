@@ -50,9 +50,11 @@
 
 			The 1st pair will accept any source address,
 			and any recipient addresses that are fed to
-			the server.
+			the server.  THIS IS FOR VERY RARE USE,
+			NOTHING IS CHECKED IF THIS IS PRESENT FOR
+			A GIVEN SUBNET!
 
-			The 2nd will verify the source IP-address,
+			The 2nd will verify the MAIL FROM domain,
 			but after that it will accept any recipient
 			addresses.
 

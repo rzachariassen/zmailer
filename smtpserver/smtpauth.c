@@ -404,7 +404,7 @@ void smtp_auth(SS,buf,cp)
 #if DO_PERL_EMBED
 	      {
 		int rc;
-		ZSMTP_hook_setuser(SS->authuser, "login", &rc);
+		ZSMTP_hook_set_user(SS->authuser, "login", &rc);
 	      }
 #endif
 	    } else {
@@ -600,7 +600,7 @@ void smtp_auth(SS,buf,cp)
 	      if (result == SASL_OK) {
 #if DO_PERL_EMBED
 		int rc;
-		ZSMTP_hook_setuser(SS->authuser, "saslauth", &rc);
+		ZSMTP_hook_set_user(SS->authuser, "saslauth", &rc);
 #endif
 	      }
 

@@ -1,0 +1,70 @@
+#!@PERL@
+
+package ZSMTP::hook;
+
+#use 
+
+$ZCONFIG = '@ZMAILERCFGFILE@';
+$ZCONFIG = $ENV{'ZCONFIG'} if (defined $ENV{'ZCONFIG'});
+
+& pick_zenv( $ZCONFIG);
+
+$ENV{'PATH'} = "$ZENV{'MAILBIN'}:$ENV{'PATH'}";
+$ENV{'MAILVAR'} = $ZENV{'MAILVAR'};
+$ENV{'MAILBIN'} = $ZENV{'MAILBIN'};
+$ENV{'MAILSHARE'} = $ZENV{'MAILSHARE'};
+
+# ---------   main  -------------
+
+
+
+
+
+1;
+
+# -------------------------------
+sub pick_zenv {
+
+    my ($ZCONFIG) = @_;
+
+    open(ZZ, "< ".$ZCONFIG) || die "No ZCONFIG file at '$ZCONFIG'";
+    while (<ZZ>) {
+	chomp;
+	local($n,$l) = split(/=/,$_,2);
+	$ZENV{$n} = $l  if ($n =~ m/^[A-Z0-9a-z]/);
+    }
+    close(ZZ);
+}
+
+
+# ------------ public interface functions ------------
+#
+# At each the return value is expected to be a vector of two integers:
+#  - 1st integer tells if the function has an opinnion to present
+#    (if it is non-zero)
+#  - 2nd integers tells the opinnion
+#
+
+sub set_ipaddress {
+    my ($ipaddr) = @_;
+
+    return (0, 0);
+}
+
+sub set_user {
+    my ($user, $kind) = @_;
+
+    return (0, 0);  
+}
+
+sub mailfrom {
+    my ($fromaddr) = @_;
+
+    return (0, 0);
+}
+
+sub rcptto {
+    my ($toaddr) = @_;
+
+    return (0, 0);
+}

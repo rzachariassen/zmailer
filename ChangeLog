@@ -1,3 +1,15 @@
+2004-07-14  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, smtpserver/smtptls.c:
+	    Know  --enable-distcache  -- code modelled after
+	    the one in Apache-2.0 mod_ssl module.
+	    (Distributed Session Cache)
+
+	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpauth.c, smtpserver/smtphook.c,
+	  smtpserver/smtp-perl-hooks.pl.in:
+	    First write-thru of perl-hooks for smtpserver.
+
 2004-07-11  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, smtpserver/cfgread.c,

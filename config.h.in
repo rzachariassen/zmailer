@@ -122,6 +122,9 @@
 /* Define to 1 if you have the `dirfd' function. */
 #undef HAVE_DIRFD
 
+/* Have distributed (SSL session) cache */
+#undef HAVE_DISTCACHE
+
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 

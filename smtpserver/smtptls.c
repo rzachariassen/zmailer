@@ -16,6 +16,10 @@
 
 #ifdef HAVE_OPENSSL
 
+#ifdef HAVE_DISTCACHE
+#include <distcache/dc_client.h>
+#endif
+
 /*
  * We are saving sessions to disc, we want to make sure, that the lenght of
  * the filename is somehow limited. When saving client sessions, the hostname
@@ -36,6 +40,14 @@ static int verify_error = X509_V_OK;
 
 int tls_scache_timeout = 3600;
 int tls_use_scache = 0;
+char *tls_scache_name;
+
+#ifdef HAVE_DISTCACHE
+static DC_CTX *dc_ctx;
+#endif
+
+#define SSL_SESSION_MAX_DER 10*1024
+
 
 /* We must keep some of info available */
 static const char hexcodes[] = "0123456789ABCDEF";
@@ -47,15 +59,6 @@ struct _randseed {
 	struct timeval tv;
 } tls_randseed;
 
-
-static void
-mail_queue_path(buf, subdir, filename)
-     char *buf;
-     char *subdir;
-     char *filename;
-{
-  sprintf(buf, "%s/%s/%s", postoffice, subdir, filename);
-}
 
 void
 smtp_starttls(SS, buf, cp)
@@ -194,6 +197,23 @@ Z_SSL_flush(SS)
 }
 
 
+#ifdef HAVE_DISTCACHE
+
+
+static DC_CTX      *ssl_scache_dc_init     __((void));
+static SSL_SESSION *ssl_scache_dc_retrieve __((SSL *, unsigned char *, int));
+static int          ssl_scache_dc_store    __((SSL_SESSION *, unsigned char *, int, time_t));
+static void         ssl_scache_dc_remove   __((SSL_SESSION *, unsigned char *, int));
+
+
+/* we initialize this index at startup time
+ * and never write to it at request time,
+ * so this static is thread safe.
+ * also note that OpenSSL increments at static variable when
+ * SSL_get_ex_new_index() is called, so we _must_ do this at startup.
+ */
+static int TLScontext_index = -1;
+
 
 /*
  * Callback to retrieve a session from the external session cache.
@@ -202,61 +222,10 @@ static SSL_SESSION *get_session_cb(SSL *ssl, unsigned char *SessionID,
 				   int length, int *copy)
 {
     SSL_SESSION *session;
-    char *buf;
-    FILE *fp;
-    struct stat st;
-    char *idstring;
-    int n;
-    int uselength;
-    int verify_result;
 
-    if (length > id_maxlength)
-	uselength = id_maxlength;	/* Limit length of ID */
-    else
-	uselength = length;
+    session = ssl_scache_dc_retrieve(ssl, SessionID, length);
 
-    idstring = (char *)malloc(2 * uselength + 1);
-    if (!idstring) {
-	type(NULL,0,NULL, "could not allocate memory for IDstring");
-	return (NULL);
-    }
-
-    for(n=0 ; n < uselength ; n++)
-	sprintf(idstring + 2 * n, "%02X", SessionID[n]);
-    if (tls_loglevel >= 3)
-      type(NULL,0,NULL, "Trying to reload Session from disc: %s", idstring);
-
-    /*
-     * The constant "100" is taken from mail_queue.c and also used there.
-     * It must hold the name the postfix spool directory (if not chrooted)
-     * and the hash directory forest.
-     */
-    buf = malloc(100 + 2 * uselength + 1);
-    mail_queue_path(buf, MAIL_TLS_SRVR_CACHE, idstring);
-
-    /*
-     * Try to read the session from the file. If the file exists, but its
-     * mtime is so old, that the session has already expired, we don´t
-     * waste time anymore, we rather delete the session file immediately.
-     */
-    session = NULL;
-    if (stat(buf, &st) == 0) {
-	if (st.st_mtime + tls_scache_timeout < time(NULL))
-            unlink(buf);
-	else if ((fp = fopen(buf, "r")) != 0) {
-	    if (fscanf(fp, "%d", &verify_result) <= 0)
-		verify_result = X509_V_ERR_APPLICATION_VERIFICATION;
-	    SSL_set_verify_result(ssl, verify_result);
-	    session = PEM_read_SSL_SESSION(fp, NULL, NULL, NULL);
-	    fclose(fp);
-	}
-    }
-
-    free(buf);
-    free(idstring);
-
-    if (session && (tls_loglevel >= 3))
-      type(NULL,0,NULL, "Successfully reloaded session from disc");
+    *copy = 0;
 
     return (session);
 }
@@ -267,65 +236,87 @@ static SSL_SESSION *get_session_cb(SSL *ssl, unsigned char *SessionID,
  */
 static int new_session_cb(SSL *ssl, SSL_SESSION *session)
 {
-    char *buf;
-    FILE *fp;
-    char *myname = "new_session_cb";
-    char *idstring;
-    int n;
-    int uselength;
-    int fd;
-    int success;
+    unsigned char *id;
+    unsigned int idlen;
+    int rc;
+    long timeout = tls_scache_timeout;
 
-    if (session->session_id_length > id_maxlength)
-	uselength = id_maxlength;	/* Limit length of ID */
-    else
-	uselength = session->session_id_length;
+    SSL_set_timeout(session, timeout);
+    id    = session->session_id;
+    idlen = session->session_id_length;
 
-    idstring = (char *)malloc(2 * uselength + 1);
-    if (!idstring) {
-      type(NULL,0,NULL, "could not allocate memory for IDstring");
-      return -1;
-    }
+    timeout += SSL_SESSION_get_time(session);
 
-    for(n=0 ; n < uselength ; n++)
-	sprintf(idstring + 2 * n, "%02X", session->session_id[n]);
+    rc = ssl_scache_dc_store(session,id,idlen,timeout);
 
-    if (tls_loglevel >= 3)
-      type(NULL,0,NULL, "Trying to save Session to disc: %s", idstring);
-
-    buf = malloc(100 + 2 * uselength + 1);
-    mail_queue_path(buf, MAIL_TLS_SRVR_CACHE, idstring);
-
-    /*
-     * Now open the session file in exclusive and create mode. If it
-     * already exists, we don´t touch it and silently omit the save.
-     * We cannot use Wietse´s VSTREAM code here, as PEM_write uses
-     * C´s normal buffered library and we better don´t mix.
-     * The return value of PEM_write_SSL_SESSION is nowhere documented,
-     * but from the source it seems to be something like the number
-     * of lines or bytes written. Anyway, success is positiv and
-     * failure is zero.
-     */
-    if ((fd = open(buf, O_WRONLY | O_CREAT | O_EXCL, 0600)) >= 0) {
-      if ((fp = fdopen(fd, "w")) == 0) {
-	type(NULL,0,NULL, "%s: could not fdopen %s: %s",
-	     myname, buf, strerror(errno));
-	return -1;
-      }
-      fprintf(fp, "%lu\n", (unsigned long)SSL_get_verify_result(ssl));
-      success = PEM_write_SSL_SESSION(fp, session);
-      fclose(fp);
-      if (success == 0)
-	unlink(buf);
-      else if (tls_loglevel >= 3)
-	type(NULL,0,NULL, "Successfully saved session to disc");
-    }
-
-    free(buf);
-    free(idstring);
-
-    return (0);
+    return rc;
 }
+
+/*
+ * Remove a session from the external cache
+ */
+static void remove_session_cb(SSL_CTX *ssl, SSL_SESSION *session)
+{
+    unsigned char *id;
+    unsigned int idlen;
+
+    id    = session->session_id;
+    idlen = session->session_id_length;
+
+    ssl_scache_dc_remove(session,id,idlen);
+}
+
+
+
+static void tls_scache_init(ssl_ctx)
+     SSL_CTX *ssl_ctx;
+{
+	/*
+	 * Initialize the session cache. We only want external caching to
+	 * synchronize between server sessions, so we set it to a minimum value
+	 * of 1. If the external cache is disabled, we won't cache at all.
+	 * The recall of old sessions "get" and save to disk of just created
+	 * sessions "new" is handled by the appropriate callback functions.
+	 *
+	 * We must not forget to set a session id context to identify to which
+	 * kind of server process the session was related. In our case, the
+	 * context is just the name of the patchkit: "Postfix/TLS".
+	 */
+
+	SSL_CTX_sess_set_cache_size(ssl_ctx, 1);
+	SSL_CTX_set_timeout(ssl_ctx, tls_scache_timeout);
+
+	SSL_CTX_set_session_id_context(ssl_ctx,
+				       (void*)&server_session_id_context,
+				       sizeof(server_session_id_context));
+
+	/*
+	 * The session cache is realized by distcache, if at all..
+	 */
+	if (tls_scache_name) {
+	    SSL_CTX_set_session_cache_mode(ssl_ctx,
+					   ( SSL_SESS_CACHE_SERVER |
+					     SSL_SESS_CACHE_NO_INTERNAL ));
+	    SSL_CTX_sess_set_get_cb(ssl_ctx,    get_session_cb);
+	    SSL_CTX_sess_set_new_cb(ssl_ctx,    new_session_cb);
+	    SSL_CTX_sess_set_remove_cb(ssl_ctx, remove_session_cb);
+	}
+	
+	/*
+	 * Finally create the global index to access TLScontext information
+	 * inside verify_callback.
+	 */
+	if (TLScontext_index < 0) {
+	  /* we _do_ need to call this twice */
+	  TLScontext_index = SSL_get_ex_new_index(0,
+						  "TLScontext ex_data index",
+						  NULL, NULL, NULL);
+	  TLScontext_index = SSL_get_ex_new_index(0,
+						  "TLScontext ex_data index",
+						  NULL, NULL, NULL);
+	}
+}
+#endif
 
 
 /* skeleton taken from OpenSSL crypto/err/err_prn.c */
@@ -855,7 +846,7 @@ static int tls_randseeder(const char *source)
   */
 
 static int tls_serverengine = 0;
-static SSL_CTX *ssl_ctx = NULL;
+static SSL_CTX * ssl_ctx;
 
 int
 tls_init_serverengine(verifydepth, askcert, requirecert)
@@ -1171,67 +1162,11 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	SSL_CTX_set_verify(ssl_ctx, verify_flags, verify_callback);
 	SSL_CTX_set_client_CA_list(ssl_ctx, SSL_load_client_CA_file(CAfile));
 	
-	/*
-	 * Initialize the session cache. We only want external caching to
-	 * synchronize between server sessions, so we set it to a minimum value
-	 * of 1. If the external cache is disabled, we won't cache at all.
-	 * The recall of old sessions "get" and save to disk of just created
-	 * sessions "new" is handled by the appropriate callback functions.
-	 *
-	 * We must not forget to set a session id context to identify to which
-	 * kind of server process the session was related. In our case, the
-	 * context is just the name of the patchkit: "Postfix/TLS".
-	 */
-
-	SSL_CTX_sess_set_cache_size(ssl_ctx, 1);
-	SSL_CTX_set_timeout(ssl_ctx, tls_scache_timeout);
-	{
-	  static char server_session_id_context[] = "ZMailer/Smtpserver/TLS"; /* anything will do */
-
-	  SSL_CTX_set_session_id_context(ssl_ctx,
-					 (void*)&server_session_id_context,
-					 sizeof(server_session_id_context));
-	}
 
 
-#if 0
-	/*
-	 * The session cache is realized by an external database file, that
-	 * must be opened before going to chroot jail. Since the session cache
-	 * data can become quite large, "[n]dbm" cannot be used as it has a
-	 * size limit that is by far too small.
-	 */
-	if (*var_smtpd_tls_scache_db) {
-	  /*
-	   * Insert a test against other dbms here, otherwise while writing
-	   * a session (content to large), we will receive a fatal error!
-	   */
-	  if (strncmp(var_smtpd_tls_scache_db, "sdbm:", 5))
-	    msg_warn("Only sdbm: type allowed for %s",
-		     var_smtpd_tls_scache_db);
-	  else
-	    scache_db = dict_open(var_smtpd_tls_scache_db, O_RDWR,
-				  ( DICT_FLAG_DUP_REPLACE | DICT_FLAG_LOCK |
-				    DICT_FLAG_SYNC_UPDATE ));
-	  if (scache_db) {
-	    SSL_CTX_set_session_cache_mode(ctx,
-					   ( SSL_SESS_CACHE_SERVER |
-					     SSL_SESS_CACHE_NO_AUTO_CLEAR ));
-	    SSL_CTX_sess_set_get_cb(ctx, get_session_cb);
-	    SSL_CTX_sess_set_new_cb(ctx, new_session_cb);
-	    SSL_CTX_sess_set_remove_cb(ctx, remove_session_cb);
-	  }
-	  else
-	    msg_warn("Could not open session cache %s",
-		     var_smtpd_tls_scache_db);
-	}
-	
-	/*
-	 * Finally create the global index to access TLScontext information
-	 * inside verify_callback.
-	 */
-	TLScontext_index = SSL_get_ex_new_index(0, "TLScontext ex_data index",
-						NULL, NULL, NULL);
+	tls_scache_init(ssl_ctx);
+#ifdef HAVE_DISTCACHE
+	dc_ctx = ssl_scache_dc_init();
 #endif
 
 	tls_serverengine = 1;
@@ -1625,4 +1560,180 @@ Z_cleanup(SS)
     if (SS->sslmode)
 	tls_stop_servertls(SS, 0);
 }
+
+#ifdef HAVE_DISTCACHE
+/*                      _             _
+**  _ __ ___   ___   __| |    ___ ___| |  mod_ssl
+** | '_ ` _ \ / _ \ / _` |   / __/ __| |  Apache Interface to OpenSSL
+** | | | | | | (_) | (_| |   \__ \__ \ |  www.modssl.org
+** |_| |_| |_|\___/ \__,_|___|___/___/_|  ftp.modssl.org
+**                      |_____|
+**  ssl_scache_dc.c
+**  Distributed Session Cache (client support)
+*/
+
+/* ====================================================================
+ * THIS SOFTWARE IS PROVIDED BY GEOFF THORPE ``AS IS'' AND ANY
+ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL RALF S. ENGELSCHALL OR
+ * HIS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * ====================================================================
+ */
+
+/* Only build this code if it's enabled at configure-time. */
+
+#if !defined(DISTCACHE_CLIENT_API) || (DISTCACHE_CLIENT_API < 0x0001)
+#error "You must compile with a more recent version of the distcache-base package"
+#endif
+
+/*
+ * This cache implementation allows modssl to access 'distcache' servers (or
+ * proxies) to facilitate distributed session caching. It is based on code
+ * released as open source by Cryptographic Appliances Inc, and was developed by
+ * Geoff Thorpe, Steve Robb, and Chris Zimmerman.
+ */
+
+/*
+**
+** High-Level "handlers" as per ssl_scache.c
+**
+*/
+
+static void ssl_scache_dc_kill(void)
+{
+  if (dc_ctx)
+    DC_CTX_free(dc_ctx);
+  dc_ctx = NULL;
+}
+
+static DC_CTX *ssl_scache_dc_init()
+{
+    DC_CTX *ctx;
+
+    if (!tls_scache_name) return NULL;
+
+    /*
+     * Create a session context
+     */
+#if 0
+    /* If a "persistent connection" mode of operation is preferred, you *must*
+     * also use the PIDCHECK flag to ensure fork()'d processes don't interlace
+     * comms on the same connection as each other. */
+#define SESSION_CTX_FLAGS	SESSION_CTX_FLAG_PERSISTENT | \
+	    			SESSION_CTX_FLAG_PERSISTENT_PIDCHECK | \
+	    			SESSION_CTX_FLAG_PERSISTENT_RETRY | \
+	    			SESSION_CTX_FLAG_PERSISTENT_LATE
+#else
+    /* This mode of operation will open a temporary connection to the 'target'
+     * for each cache operation - this makes it safe against fork()
+     * automatically. This mode is preferred when running a local proxy (over
+     * unix domain sockets) because overhead is negligable and it reduces the
+     * performance/stability danger of file-descriptor bloatage. */
+#define SESSION_CTX_FLAGS	0
+#endif
+    ctx = DC_CTX_new(tls_scache_name, SESSION_CTX_FLAGS);
+    if(!ctx) {
+      type(NULL,0,NULL,"distributed scache failed to obtain context");
+      exit(1);
+    }
+    type(NULL,0,NULL, "distributed scache context initialised");
+
+    atexit(ssl_scache_dc_kill);
+
+    /* 
+     * Success .. we return the cache content to the caller
+     * :-)
+     */
+    return ctx;
+}
+
+
+static int ssl_scache_dc_store(pSession, id, idlen, timeout)
+     SSL_SESSION * pSession;
+     unsigned char *id;
+     int idlen;
+     time_t timeout;
+{
+    unsigned char der[SSL_SESSION_MAX_DER];
+    int der_len;
+    unsigned char *pder = der;
+    DC_CTX *ctx  =  dc_ctx;
+
+    if (!ctx) return FALSE;
+
+    /* Serialise the SSL_SESSION object */
+    der_len = i2d_SSL_SESSION(pSession, NULL);
+    if (der_len > SSL_SESSION_MAX_DER)
+        return FALSE;
+    i2d_SSL_SESSION(pSession, &pder);
+    /* !@#$%^ - why do we deal with *absolute* time anyway??? */
+    timeout -= time(NULL);
+    /* Send the serialised session to the distributed cache context */
+    if(!DC_CTX_add_session(ctx, id, idlen, der, der_len,
+			    (unsigned long)timeout * 1000)) {
+	/* ERROR INDICATION! */
+	type(NULL,0,NULL, "distributed scache 'add_session' failed");
+	return FALSE;
+    }
+    type(NULL,0,NULL, "distributed scache 'add_session' successful");
+    return TRUE;
+}
+
+static SSL_SESSION *ssl_scache_dc_retrieve(s, id, idlen)
+     SSL *s;
+     unsigned char *id;
+     int idlen;
+{
+    unsigned char der[SSL_SESSION_MAX_DER];
+    unsigned int der_len;
+    SSL_SESSION *pSession;
+    unsigned char *pder = der;
+    DC_CTX *ctx = dc_ctx;
+
+    /* Retrieve any corresponding session from the distributed cache context */
+    if(!DC_CTX_get_session(ctx, id, idlen, der, SSL_SESSION_MAX_DER,
+			    &der_len)) {
+	type(NULL,0,NULL,"distributed scache 'get_session' MISS");
+	return NULL;
+    }
+    if(der_len > SSL_SESSION_MAX_DER) {
+	type(NULL,0,NULL,"distributed scache 'get_session' OVERFLOW");
+	return NULL;
+    }
+    pSession = d2i_SSL_SESSION(NULL, &pder, der_len);
+    if(!pSession) {
+	type(NULL,0,NULL,"distributed scache 'get_session' CORRUPT");
+	return NULL;
+    }
+    type(NULL,0,NULL,"distributed scache 'get_session' HIT");
+    return pSession;
+}
+
+
+static void ssl_scache_dc_remove(s, id, idlen)
+     SSL_SESSION *s;
+     unsigned char *id;
+     int idlen;
+{
+    DC_CTX *ctx = dc_ctx;
+
+    /* Remove any corresponding session from the distributed cache context */
+    if(!DC_CTX_remove_session(ctx, id, idlen)) {
+	type(NULL,0,NULL, "distributed scache 'remove_session' MISS");
+    } else {
+	type(NULL,0,NULL, "distributed scache 'remove_session' HIT");
+    }
+}
+
+
+#endif
+
 #endif /* - HAVE_OPENSSL */

@@ -1530,7 +1530,7 @@ int main(argc, argv, envp)
 #if DO_PERL_EMBED
 		    else {
 		      int rc;
-		      ZSMTP_hook_setuser(SS.whoson_data, "whoson", &rc);
+		      ZSMTP_hook_set_user(SS.whoson_data, "whoson", &rc);
 		    }
 #endif
 		  } else {
