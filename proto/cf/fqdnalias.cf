@@ -192,7 +192,7 @@ fqdn_neighbour (domain, address, A) {
 
 	# Do we have a file with that name ?
 	a="$MAILVAR/fqlists/$lcaddress"
-	key="$ldaddress"
+	key="$lcaddress"
 	l="$preowner$user$postowner$athost"
 	nattr=()
 	if [ -f "$a" ] && $(didexpand fqlists); then
