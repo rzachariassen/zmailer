@@ -164,7 +164,8 @@ flush_child(proc)
 	    break;
 	  proc->cmdlen -= rc;
 	}
-	return (proc->cmdlen != 0); /* We return latter.. */
+	return (proc->cmdlen == 0); /* We stop STUFFING feed,
+				       unless this is *now* zero */
 }
 
 
@@ -325,6 +326,7 @@ ta_hungry(proc)
 
 	  while (proc->pvertex && (proc->cmdlen == 0) &&
 		 proc->state == CFSTATE_STUFFING) {
+
 	    /* As long as:
 	       - we have next vertex to feed
 	       - there is no command buffer backlog
