@@ -1719,18 +1719,16 @@ void thread_detail_report(fp,mqmode,channel,host)
 	  /* Found it! */
 	  for (vp = th->thvertices; vp; vp = vp->nextitem) {
 	    struct ctlfile *cfp = vp->cfp;
-	    for (i = vp->ngroup; i >= 0; --i) {
+	    for (i = 0; i < vp->ngroup; ++i) {
 	      /* Spoolfile */
 	      if (vp->cfp->dirind >= 0)
 		sfprintf(fp, "%s/%s", cfpdirname(cfp->dirind), cfp->mid);
 	      else
 		sfprintf(fp, "%s", cfp->mid);
 	      /* Sender index -- or sender address */
-	      sfprintf(fp, "\t<%s>", vp->sender);
-	      /* Recipient index */
-	      sfprintf(fp,"\t%d", vp->index[i]);
-	      /* Wait status */
-	      sfprintf(fp,"\t%s", "waiting_for_xxx");
+	      sfprintf(fp, "\t<%s>", cfp->erroraddr);
+	      /* Recipient offset */
+	      sfprintf(fp,"\t%d", cfp->offset[vp->index[i]]);
 	      /* Expiry stamp */
 	      sfprintf(fp,"\t%ld", (long)vp->ce_expiry);
 	      /* next wakeup */
