@@ -877,6 +877,7 @@ int iuid;
 	  plus = strchr(maillockuser, '+');
 	  if (plus) *plus = 0;
 
+	  errno = 0;
 	  pw = getpwnam(maillockuser);
 
 	  if (plus) *plus = '+';

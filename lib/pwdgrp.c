@@ -25,9 +25,11 @@ zgetpwnam(name)
 	extern struct passwd *getpwent();
 
 	setpwent();
-	while ((pw = getpwent()) != NULL)
+	while ((pw = getpwent()) != NULL) {
+		errno = 0;
 		if (strcmp(name, pw->pw_name) == 0)
 			return pw;
+	}
 	return NULL;
 }
 

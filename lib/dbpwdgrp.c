@@ -80,6 +80,8 @@ dbgetpwnam(name)
 	if (!dbpwd_init)
 	  init_dbpwd();
 
+	errno = 0;
+
 	if (!db_pwdnam)
 	  return getpwnam(name);
 

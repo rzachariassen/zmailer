@@ -4,6 +4,7 @@
  */
 
 #include <stdio.h>
+#include <errno.h>
 #include "hostenv.h"
 #include "mailer.h"
 #include "libz.h"
@@ -60,15 +61,19 @@ getnobody()
 	if ((s = getzenv("NOBODY")) != NULL) {
 		while (*s == '-')
 			factor = -1, ++s;
+		errno = 0;
 		if (isdigit(*s) && atoi(s) != 0) {
 			nobody = atoi(s) * factor;
 			goto done;
-		} else if (isalpha(*s) && (pw = getpwnam(s)) != NULL) {
+		}
+		errno = 0;
+		if (isalpha(*s) && (pw = getpwnam(s)) != NULL) {
 			nobody = pw->pw_uid;
 			goto done;
 		}
 	}
 
+	errno = 0;
 	if ((pw = getpwnam(nouser)) != NULL) {
 		nobody = pw->pw_uid;
 		goto done;

@@ -86,9 +86,6 @@ extern int wait();
 
 
 extern const char *traps[];
-extern int nobody;
-extern struct group  *getgrnam __((const char *));
-extern struct passwd *getpwnam __((const char *));
 extern time_t time __((time_t *));
 extern int routerdirloops;
 

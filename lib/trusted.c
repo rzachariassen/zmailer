@@ -14,6 +14,7 @@
 #include "mailer.h"
 #include <ctype.h>
 #include <pwd.h>
+#include <errno.h>
 #include "libz.h"
 #include "libc.h"
 
@@ -46,6 +47,7 @@ settrusteduser()
 			return;
 		}
 	}
+	errno = 0;
 	if ((pw = getpwnam(trusteduser)) == NULL) {
 		trusteduid = 0;		/* can't do anything, run as root */
 		return;

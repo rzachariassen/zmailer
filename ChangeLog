@@ -1,3 +1,13 @@
+2001-01-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* lib/dbpwdgrp.c, lib/nobody.c, lib/pwdgrp.c, lib/trusted.c,
+	  router/daemonsub.c, router/functions.c, router/router.c,
+	  transports/mailbox/mailbox.c:
+	    Essentially in front of *every*  getpwnam(),  do place
+	    explicite clear of   errno  variable.
+	    Apparently at Solaris 2.6 it isn't cleared/set quite always
+	    when doing error paths...
+
 2001-01-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/mailbox/mailbox.c:

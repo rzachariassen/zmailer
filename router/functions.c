@@ -1785,19 +1785,24 @@ run_homedir(argc, argv)
 {
 	struct passwd *pw;
 	char *b;
+	int err;
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s name\n", argv[0]);
 		return 1;
 	}
+	errno = 0;
 	pw = getpwnam(argv[1]);
+	err = errno;
 	if (pw == NULL) {
 		strlower((char*)argv[1]);
+		errno = 0;
 		pw = getpwnam(argv[1]);
+		err = errno;
 		if (pw == NULL) {
-		  if (errno == ENOENT) return 2;
+		  if (err == ENOENT) return 2;
 #ifdef __osf__
-		  if (errno == EINVAL) return 2;
+		  if (err == EINVAL) return 2;
 #endif
 		  ++deferit;
 

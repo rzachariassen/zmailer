@@ -452,6 +452,7 @@ login_to_uid(name)
 		memtypes oval = stickymem;
 
 		stickymem = MEM_MALLOC;
+		errno = 0;
 		pw = getpwnam(name);
 		if (pw == NULL) {
 			uid = nobody;
