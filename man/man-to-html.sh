@@ -65,9 +65,10 @@ groff -t -man -Tascii "$1" | \
         } # ... while()
         if ($c0) { printf STDOUT "%s",$c0; }' |  \
     perl -ne '
-        s{</B>(.*)<B>}{\1}og;
-        s{</I>(.*)<I>}{\1}og;
-        s{</U>(.*)<U>}{\1}og;
+        s{</B>(\s*)<B>}{\1}og;
+        s{</I>(\s*)<I>}{\1}og;
+        s{</U>(\s*)<U>}{\1}og;
         s{</I><B>_</B><I>}{_}og;
+        s{<I>([-0-9a-zA-Z_]+)</I>\((\d)\)}{<A HREF="\1.\2.html"><I>\1</I>(\2)</A>}og;
 	print;'
 echo "</PRE></BODY></HTML>"

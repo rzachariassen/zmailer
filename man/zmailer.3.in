@@ -187,19 +187,24 @@ Value ``1'' at this variable means that all router directories
 .B must
 have subdirectories with names ``A'' thru ``Z'', alike 
 .SH FILES
-.I /var/spool/postoffice/public (POSTOFFICE/public)
-.br
-.I /var/spool/postoffice/router (POSTOFFICE/router)
-.br
-.I /var/spool/postoffice/{ROUTERDIRS} (POSTOFFICE/{ROUTERDIRS})
+.IP \fI/var/spool/postoffice/public/\fR
+$POSTOFFICE/public/
+.IP \fI/var/spool/postoffice/router/\fR
+$POSTOFFICE/router/
+.IP \fI/var/spool/postoffice/{ROUTERDIRS}/\fR
+$POSTOFFICE/{ROUTERDIRS}/
 .SH SEE ALSO
-zmailer(1), sendmail(8)
+.IR zmailer (1),
+.IR sendmail (8).
 .br
-RFC822
+RFC-2822
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
 .B ROUTERDIRS
-mechanism is by Matti Aarnio <mea@nic.funet.fi>
+mechanism is by:
+.RS 3em
+Matti Aarnio <mea@nic.funet.fi>
+.RE

@@ -3,26 +3,15 @@
 .SH NAME
 vacation \- reply to mail automatically 
 .SH SYNOPSIS
-.B vacation
-.B start
-.br
-.B vacation
-.B stop
-.br
-.B vacation
-.B \-I
-.br
-.B vacation
-[
-.BI \-t N
-]
-[
-.BI \-m Msgfile
-]
-[
-.B \-d
-]
-.I [user]
+.IP \fBvacation\ \fCstart\fR
+.IP \fBvacation\ \fCstop\fR
+.IP \fBvacation\fR 9em
+\fB\-I\fR
+.IP \fBvacation\fR 9em
+[\fB\-t\ \fIN\fR]
+[\fB\-m\ \fIMsgfile\fR]
+[\fB\-d\fR]
+[\fIuser\fR]
 .SH DESCRIPTION
 .IX vacation "" "\fIvacation\fR \(em automatic mail replies"
 .I vacation
@@ -32,59 +21,79 @@ contained in the file
 that you should create in your home directory (or the file 
 .I Msgfile
 specifiedby in the -m option).
-.LP
+.PP
 This file should include a header with at least a ``Subject:'' line (it
 should not include a ``To:'' line -- if you want, you may include a From:
 line, especially if you use the -m option).
 For example:
-.IP
+.PP
+.RS 4em
 .nf
 Subject: I am on vacation
 
-I am on vacation until July 22.  If you have something urgent,
-please contact Joe Jones (joe@blah.utoronto.ca).
-	--john
+I am on vacation until July 22.
+If you have something urgent, please contact
+Joe Jones (joe@blah.utoronto.ca).
+     --john
 .fi
-.LP
+.RE
+.PP
 No message is sent if the "user" specified in the vacation command (if
 nothing is specified, it uses your username) does not appear explicitly in
 the To: or Cc: lines of the message, which prevents messages from being sent
 back to mailing lists and causing loops.
-.LP
+.PP
 .SH USAGE
-.LP
+.PP
 To start
 .IR vacation ,
 run the command
-.br
-	vacation start
-.br
+.RS 4em
+.nf
+\fCvacation start\fR
+.fi
+.RE
+.PP
 It will create a 
 .I \&.vacation.msg
 file (if you don't already have one) in your home directory containing the
-message you want to send people who send you mail, and a 
+message you want to send people who send you mail, and a
+.RS 4em
 .I \&.forward
+.RE
 file in your home directory containing a line of the form:
-.IP
+.RS 4em
 "\fI\\name\fR", "|@MAILBIN@/vacation \fIname\fR"
-.LP
-where 
+.RE
+.PP
+Where
 .I name
-is your login name. Make sure these files and your home directory are
-readable by everyone.  Also make sure that no one else can write to them,
-and that no one can write to your home directory.  (chmod og-w $HOME
-$HOME/.forward)
-.LP
+is your login name.
+.PP
+Make sure these files and your home directory are
+readable by everyone.
+Also make sure that no one else can write to them,
+and that no one can write to your home directory.
+.PP
+.RS 4em
+.nf
+\fCchmod og-w $HOME $HOME/.forward\fR
+.fi
+.RE
+.PP
 To stop
-.IR vacation ,
-run the command
-.br
-	vacation stop
-.br
-It will move the
-.I \&.forward
-file to
-.I \&.vacforward, and the automatic replies will stop.
+.IR vacation (1),
+run the command:
+.PP
+.RS 4em
+.fi
+\fCvacation stop\fR
+.nf
+.RE
+.PP
+It will move the \fI.forward\fR file to \fI.vacforward\fR,
+and the automatic replies will stop.
+.PP
 .SH OPTIONS
 .TP
 .BR \-I ", " \-i
@@ -147,17 +156,36 @@ and the automatic reply is activated by the
 The default vacation message is stored in
 .I @MAILSHARE@/vacation.msg
 .SH ZMAILER NOTES
-On machines running ZMailer, the
+On machines running
+.BR ZMailer ,
+the
 .I name
 argument to vacation is optional, and the USER environment variable is used
-to determine where to look for the message and the list of previous
-recipients. 
+to determine where to look for the message and the list of previous recipients.
 .PP
 The SENDER variable is checked first to determine the reply destination.
-It is normally set to the SMTP ``MAIL FROM'' address or equivalent. This
-is an additional safeguard against sending replies to mailing lists, the
-PostMaster or the mailer daemon, since standards and common sense dictate
+It is normally set to the SMTP ``MAIL FROM'' address or equivalent.
+This is an additional safeguard against sending replies to mailing lists,
+the PostMaster or the mailer daemon, since standards and common sense dictate
 that it never points back to an address that could cause a loop.
 The From_ line is used only as a last resort.
 .SH SEE\ ALSO
-sendmail(8), Zmailer Operation Guide.
+.IR sendmail (8),
+.I Zmailer Manual (http://zmailer.org/)
+.SH AUTHOR
+This program is originally the
+.I BSD vacation(1)
+by:
+.RS 3em
+Eric Allman
+.RE
+It was adapted to
+.B ZMailer
+environment by:
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
+Further modified over the years 1988-2001 by:
+.RS 3em
+Matti Aarnio  <mea@nic.funet.fi>
+.RE

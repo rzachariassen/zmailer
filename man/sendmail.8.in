@@ -1,57 +1,25 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SENDMAIL 8 "12 Oct 2000"
+.TH SENDMAIL 8 "10 Dec 2001"
 .SH NAME
 sendmail \- zmailer sendmail emulation and mail submission interface
 .SH SYNOPSIS
-.B sendmail
-[
-.B \-C
-.I configfile
-]
-[
-.B \-EimqtUv
-]
-[
-.BR \-b [\fBmsdtip\fR]
-]
-[
-.BR \-B bodytype
-]
-[
-.BR \-N notify
-]
-[
-.BR \-R hdr-ret
-]
-[
-.BR \-V enVid
-]
-[
-.B \-f
-.I address
-]
-[
-.B \-F
-.I fullname
-]
-[
-.B \-r
-.I address
-]
-[
-.B \-o
-[
-.B i
-|
-.BR Q \fIpostoffice\fR
-] ]
-[
-.I address
-\&... ]
+.IP \fBsendmail\fR 9em
+[\fB\-C\fR\ \fIconfigfile\fR]
+[\fB\-EimqtUv\fR]
+[\fB\-b\fR[\fBmsdtip\fR]]
+[\fB\-V\fIenVid\fR]
+[\fB\-B\fIbodytype\fR]
+[\fB\-N\fInotify\fR]
+[\fB\-R\fIhdr-ret\fR]
+[\fB\-f\fIaddress\fR]
+[\fB\-F\fIfullname\fR]
+[\fB\-r\fIaddress\fR]
+[\fB\-o\fR[\fBi\fR|\fBQ\fIpostoffice\fR]]
+[\fIaddress\ ...\fR]
 .SH DESCRIPTION
 This
-.I sendmail
+.IR sendmail (8)
 program is an emulation of the original Sendmail interface.  It provides all
 the original options that it makes sense to support in the context of ZMailer.
 This is not intended to be the normal user interface to mail, rather it is
@@ -100,7 +68,7 @@ runs the
 in interactive mode for testing.
 .IP \-bi
 runs
-.IR newaliases (8)
+.IR newaliases (1)
 to rebuild the alias file database.
 .IP \-bp
 runs
@@ -173,19 +141,29 @@ or any combination of:
 .IP \-R\ \fIretmode\fR
 sets Delivery-Status-Notification parameter to be either of:
 .I FULL, HDRS.
+.PP
 .SH FILES
+.nf
 .I /etc/zmailer.conf
-.br
 .I /var/spool/postoffice (POSTOFFICE)
+.fi
+.PP
 .SH SEE ALSO
-zmailer(1), router(8), scheduler(8), mailq(1), newaliases(8), zmailer(3)
-.br
-RFC822
+.IR zmailer (1),
+.IR router (8),
+.IR scheduler (8),
+.IR mailq (1),
+.IR newaliases (8),
+.IR zmailer (3).
+.PP
+RFC-2822
+.PP
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
 Continued maintance by:
-.br
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

@@ -1,89 +1,74 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 1 "2001-Sep-30"
+.TH ZMAILER 1 "10 Dec 2001"
 .SH NAME
 zmailer \- zmailer control script
 .SH SYNOPSIS
-.B zmailer
-[
-.B \-q
-]
-[
-.B kill
-|
-.B nuke
-]
-[
-.B router
-]
-[
-.B scheduler
-]
-[
-.B smtpserver
-]
-[
-.B newaliases
-]
-[
-.B resubmit
-]
-[
-.B bootclean
-]
-[
-.B cleanup
-]
-[
-.B freeze
-]
-[
-.B thaw|unfreeze
-]
+.IP \fBzmailer\fR 8em
+[\fB\-q\fR]
+[\fBkill\fR|\fBnuke\fR]
+[\fBrouter\fR]
+[\fBscheduler\fR]
+[\fBsmtpserver\fR]
+[\fBnewdb\fR]
+[\fBnewaliases\fR]
+[\fBresubmit\fR]
+[\fBbootclean\fR]
+[\fBcleanup\fR]
+[\fBfreeze\fR]
+[\fBthaw\fR|\fBunfreeze\fR]
+
 .SH DESCRIPTION
-.I zmailer
-is the quick interface to starting and stopping the local mail daemons.
+The
+.IR zmailer (1)
+is the quick interface to starting and stopping the local mail daemons,
+and doing other administrative chores.
+.PP
 There are three daemons, called the
-.IR router ,
+.IR router (8),
 the
-.IR scheduler ,
+.IR scheduler (8),
 and the
-.IR smtpserver .
+.IR smtpserver (8).
 .PP
 The
-.IR router 's
+.IR router (8)'s
 home directory is \fIPOSTOFFICE\fB/router\fR, which it scans
-every 15 idle seconds for newly submitted message files.  The
-.I router
-determines what to do with a message.  It will typically send it on to
-the
-.I scheduler
-queue.  This is maintained in the \fIPOSTOFFICE\fB/scheduler\fR directory,
+every 15 idle seconds for newly submitted message files.
+The
+.IR router (8)
+determines what to do with a message.
+It will typically send it on to the
+.IR scheduler (8)
+queue.
+This is maintained in the \fIPOSTOFFICE\fB/scheduler\fR directory,
 which is also the working directory of the
-.I scheduler
-and its transport agents.  The
-.I scheduler
+.IR scheduler (8)
+and its transport agents.
+The
+.IR scheduler (8)
 process is what listens to the
 .B mailq
 TCP port for queries from the
-.I mailq
+.IR mailq (1)
 program used to examine the state of the transport queues.
+.PP
 .SH OPTIONS
 Invoking
-.I zmailer
+.IR zmailer (1)
 without any argument is equivalent to giving the three arguments:
-.B router
-.B scheduler
-.BR smtpserver .
+.RS 4em
+.B "router scheduler smtpserver"
+.RE
+.PP
 Invoking
-.I zmailer
-with only one argument,
-.BR kill ,
-is equivalent to invoking it with the four arguments:
-.B kill
-.B router
-.B scheduler
-.BR smtpserver .
+.IR zmailer (1)
+with only one argument, "\fBkill\fR", is equivalent to invoking
+it with the four arguments:
+.RS 4em
+.B "kill router scheduler smtpserver"
+.RE
+.PP
 The arguments specify actions to take in sequence:
 .IP \fB\-q\fR
 shuts up this script wrapper from muttering anything.
@@ -126,9 +111,13 @@ daemon.
 will start up (or shut down if after a
 .BR kill )
 a new SMTP server daemon.
+.IP \fBnewdb\fR
+will run database regeneration per definitions at
+"\fIMAILSHARE\fB/db/dbases.conf\fR" file.
 .IP \fBnewaliases\fR
 will run the script to recreate the alias database from the
-\fIMAILSHARE\fB/db/aliases\fR file.
+"\fIMAILSHARE\fB/db/aliases\fR" file.
+(\fIThis is old invokation method, and is superceded with "newdb"\fR)
 .IP \fBresubmit\fR
 moves messages from the \fIPOSTOFFICE\fB/deferred\fR directory to the
 \fIPOSTOFFICE\fB/router\fR directory.  This should be run regularly by cron.
@@ -140,42 +129,47 @@ gets rid of old files from the \fIPOSTOFFICE\fB/postman\fR and
 or week or month.
 .SH EXAMPLES
 To stop the currently running daemons:
-.sp
+.PP
+.RS 4em
 .nf
-	zmailer kill
+\fBzmailer kill\fR
 .fi
-.sp
+.RE
+.PP
 At boot time, typically the following script fragment will be run
 to start up all the daemons:
-.sp
-.ta 0.5i 1i 1.5i 2.0i 2.5i
+.PP
+.RS 4em
 .nf
-	. /etc/zmailer.conf
-	if [ -f $MAILSHARE/zmailer ]; then
-		$MAILSHARE/zmailer &
-			(echo -n ' zmailer')     >/dev/console
-	fi
+\fC. /etc/zmailer.conf
+if [ -f $MAILSHARE/zmailer ]; then
+        $MAILSHARE/zmailer -q &
+        (echo -n ' zmailer')     >/dev/console
+fi\fR
 .fi
-.sp
+.PP
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /var/spool/postoffice (POSTOFFICE)
-.br
-.I /local/lib/mail/router (MAILBIN/router)
-.br
-.I /local/lib/mail/scheduler (MAILBIN/scheduler)
-.br
-.I /local/lib/mail/smtpserver (MAILBIN/smtpserver)
-.br
-.I /local/share/mail/newaliases (MAILSHARE/newaliases)
+.IP \fI/etc/zmailer.conf\fR
+.IP \fI/var/spool/postoffice\fR
+$POSTOFFICE
+.IP \fI/opt/mail/bin/router\fR
+$MAILBIN/router
+.IP \fI/opt/mail/bin/scheduler\fR
+$MAILBIN/scheduler
+.IP \fI/opt/mail/bin/smtpserver\fR
+$MAILBIN/smtpserver
 .SH SEE ALSO
-router(8), scheduler(8), smtpserver(8), mailq(1), newaliases(1)
+.IR router (8),
+.IR scheduler (8),
+.IR smtpserver (8),
+.IR mailq (1),
+.IR newdb (8).
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
-.br
-Some extensions by:
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
+Modifications over the years 1990-2001 by:
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

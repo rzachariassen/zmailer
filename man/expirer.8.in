@@ -1,36 +1,22 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH EXPIRER 8 "3 Jan 2000"
+.TH EXPIRER 8 "10 Dec 2001"
 .SH NAME
 expirer \- zmailer forced queue expiration utility
 .SH SYNOPSIS
-.B expirer
-[
-.B \-c
-.I channel
-]
-[
-.B \-h
-.I hostname
-]
-[
-.B \-m
-.I "message string"
-]
-[
-.B \-l
-.I logfile
-]
-[
-.B \-Vs
-]
+.IP \fBexpirer\fR 8em
+[\fB\-c\fR\ \fIchannel\fR]
+[\fB\-h\fR\ \fI"hostname"\fR]
+[\fB\fR\-Vs]
+[\fB\-l\fR\ \fIlogfile\fR]
+[\fB\-m\fR\ \fI"message\ string"\fR]
 .SH DESCRIPTION
 .I expirer
 is a ZMailer transport agent which is used to expire selected recipients
 from the queue before their normal expiration time with (possibly)
 a customized message.
 The
-.I expirer
+.IR expirer (8)
 program must be run with root privileges and invoked with the same
 current directory as the
 .IR scheduler ,
@@ -51,9 +37,12 @@ specifies a logfile.
 
 .SH INTERFACE
 This program reads in processable file names relative to the current
-working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
-Optionally on the same line the scheduler may tell which host is to be
-looked for from the recipients of the message.
+working directory of the
+.IR scheduler (8)
+(namely: \fI$POSTIOFFICE/transport/\fR).
+Optionally on the same line the
+.IR scheduler (8)
+may tell which host is to be looked for from the recipients of the message.
 .PP
 .RS
 \fIrelative-spool-path\fR [ <TAB> \fIhostname\fR ]
@@ -83,18 +72,24 @@ and the
 is descriptive text associated with the report.  The text is terminated by
 a linefeed.  Any other format (as might be produced by subprocesses)
 is passed to standard output for logging in the
-.B scheduler
+.IR scheduler (8)
 log.
 .PP
 The exit status is a code from
 .BR <sysexits.h> .
-
+.PP
+.SH Z-ENVIRONMENT VARIABLES
+This program uses no \fBZMailer\fR environment variables.
 .SH FILES
 .I /etc/zmailer.conf
 .br
 .I /var/spool/postoffice (POSTOFFICE)
+.PP
 .SH SEE ALSO
-scheduler(8), manual-expirer(8)
+.IR scheduler (8),
+.IR manual-expirer (8).
 .SH AUTHOR
-This script is authored and copyright by:
+This program is authored and copyright by:
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

@@ -1,77 +1,43 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8 "25 Oct 2001"
+.TH SMTPSERVER 8 "10 Dec 2001"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
-.B smtpserver
-[
-.B \-46aBigntVvw
-]
-[
-.B \-p
-.I port
-]
-[
-.B \-l
-.I SYSLOG
-]
-[
-.B \-l
-.I logfile
-]
-[
-.BR \-s [\fBftveR\fR]
-]
-[
-.B \-s strict
-]
-[
-.B \-I
-.I pidfile
-]
-[
-.B \-L
-.I maxloadaver
-]
-[
-.B \-M
-.I SMTPmaxsize
-]
-[
-.B \-P
-.I postoffice
-]
-[
-.B \-R
-.I router
-]
-[
-.B \-C
-.I cfgfile
-]
-[
-.B \-T\ '[1.2.3.4]'
-]
+.IP \fBsmtpserver\fR 11em
+[\fB\-46aBigntVvw\fR]
+[\fB\-p\fR\ \fIport\fR]
+[\fB\-l\fR\ \fISYSLOG\fR]
+[\fB\-l\fR\ \fIlogfile\fR]
+[\fB\-s\fR[\fBftveR\fR]]
+[\fB\-s\ \fCstrict\fR]
+[\fB\-I\fR\ \fIpidfile\fR]
+[\fB\-L\fR\ \fImaxloadaver\fR]
+[\fB\-M\fR\ \fISMTPmaxsize\fR]
+[\fB\-P\fR\ \fIpostoffice\fR]
+[\fB\-R\fR\ \fIrouter\fR]
+[\fB\-C\fR\ \fIcfgfile\fR]
+[\fB\-T\ \fI'[1.2.3.4]'\fR]
 .SH DESCRIPTION
 This program implements the server side of the SMTP protocol as described
-in RFC821, and knows about the common extensions to the protocol expected by
-Sendmail and BSMTP clients.
+in RFC-2821, and knows about the common extensions to the protocol expected
+by Sendmail and BSMTP clients.
 .PP
 By default the program will kill the previous
-.I smtpserver
-daemon, if any, then detach and listen for SMTP connections.  Incoming
-messages will be submitted for processing using the
+.IR smtpserver (8)
+daemon, if any, then detach and listen for SMTP connections.
+Incoming messages will be submitted for processing using the
 .IR zmailer (3)
-interface to ZMailer.  Nontrivial address checking is done
-asynchronously, although this behaviour can be changed by a command line
-option if you cannot afford to transfer data just to bounce it back.  All
-checking is done by executing the
+interface to ZMailer.
+Nontrivial address checking is done asynchronously, although this behaviour
+can be changed by a command line option if you cannot afford to transfer
+data just to bounce it back.
+All checking is done by executing the
 .IR router (8)
 program in interactive mode, and executing a well-known shell function with
 well-known parameters for each request.
-
+.PP
 .SH OPTIONS
 
 .IP \-4
@@ -162,44 +128,56 @@ smtp protocol adherence checks, which in normal life can be relaxed
 slightly.  Great for compliance testing ;)
 
 .IP "\-s [ftveRS]"
+.RS
 specifies the style of address verification to be performed.  There are
 four independent commands that can invoke some kind of address verification,
 and four independent flags to control whether this should be done.
 They are:
-
-.TS
-l l.
-f	check MAIL FROM addresses
-t	check RCPT TO addresses
-v	check VRFY command argument
-e	check EXPN command argument
-R	require addresses to be of syntax:
-	local@remote (strict 821)
-S	allow sloppy input for systems incapable to respect RFC 821 properly; WinCE1.0 (and 2.0) does:
+.PP
+.IP f
+check MAIL FROM addresses
+.IP t
+check RCPT TO addresses
+.IP v
+check VRFY command argument
+.IP e
+check EXPN command argument
+.IP R
+require addresses to be of syntax:
+local@remote (strict 2821)
+.IP S
+.RS
+allow sloppy input for systems incapable to respect RFC 821 properly; WinCE1.0 (and 2.0) does:
+.RS 3em
 	   "MAIL FROM:user@domain"
-	:\-(
-.TE
+.RE
+:\-(
+.RE
+.PP
 The flags are concatenated to form the argument to the \-s option.  The
 default is \fBve\fR.
+.RE
 .IP \-T\ '[1.2.3.4]'
 .IP \-T\ '[ipv6.hhhh:hhhh:hhhh:hhhh:hhhh:hhhh:1.2.3.4]'
+.RS
 Supply (in interactive mode) test address for policy dataset address testing.
 The optionset recommended for that case is:
-
+.PP
 .nf
-    \-i \-d 1 \-T '[1.2.3.4]'
+   \-i \-d 1 \-T '[1.2.3.4]'
 .fi
-
+.PP
 A notable detail is that to see what really is going on in the policy analysis,
 one must usei the ``-d\ 1'' option to turn on the debugging early enough to
 see its initial verdict at the time the ``220..'' greeting banner is produced..
-
+.PP
 Also notable is that
 .B brackets
 in the supplied IP address
 .B must
 be present, otherwise illegal syntax will be reported.
 (Using RFC 821 address literal parser here.)
+.RE
 
 .IP \-t
 Set when running smtpserver under e.g. inetd, and using service port
@@ -209,21 +187,30 @@ before ``STARTTLS'' protocol verb.)
 .IP \-V
 prints a version message and exits.
 
+.PP
+
 .SH CONFIGURATION
 If the
 .IB $MAILSHARE/ smtpserver.conf
 exists it is read to configure two kinds of things:
 
-
 .IP "PARAM \-entries"
+.RS
 allow server start-time parametrization of several things, including:
-.nf
-.I \-\ help-texts
-.I \-\ acceptance/rejection\ database\ definitions
-.I \-\ various\ feature\ parametrizations
-.fi
+.PP
+.RS 1em
+.IP \(bu 2em
+help-texts
+.IP \(bu 2em
+acceptance/rejection database definitions
+.IP \(bu 2em
+various feature parametrizations
+.RE
+.PP
 On PARAM lines the system allows $-expansions of ZENV variables.
 (Special note: '$$' expands as '$', not shell-style process-id number!)
+.RE
+
 .IP The\ style\ (\fI\-s\fR)\ option
 behaviour based on glob patterns matching the
 .BR HELO / EHLO
@@ -718,26 +705,28 @@ If the ZMailer system is configured with \fItcp-wrapper\fR code,
 and ``PARAM use\-tcp\-wrapper'' is active in configuration,
 then service-id "\fCsmtp-receiver\fR" is looked for all those addresses
 that are allowed to feed SMTP email in.
-.P
+.PP
 Usually this mode of operation is not used, and files
 .IR hosts.allow ,
 and
 .I hosts.deny
 contain following kind of entries:
-.P
+.PP
+.RS 3em
 .nf
 \fC
-   \fI/ETC/hosts.allow\fC
-   mailq : ALL@1.2.3.0
-   smtp\-receiver: ALL@ALL
+\fI/ETC/hosts.allow\fC
+mailq : ALL@1.2.3.0
+smtp\-receiver: ALL@ALL
 
-   \fI/ETC/hosts.deny\fC
-   ALL : ALL@ALL\fR
+\fI/ETC/hosts.deny\fC
+ALL : ALL@ALL\fR
 .fi
-.P
+.RE
+.PP
 Alternatively, all the functions which tcp-wrapper could supply are
 also available thru the policy database machinery.
-.P
+.PP
 .I "(Do note that scheduler(8) has also tcp\-wrapper support, which becomes"
 .I "active simultaneously with smtpserver's tcp\-wrapper code!)"
 .P
@@ -755,17 +744,20 @@ account  required  /lib/security/pam_pwdb.so
 .fi
 .SH SMTP\-POLICY CONFIGURATION
 This subsystem of
-.I smtpserver
+.IR smtpserver (8)
 does control acceptability of recipient envelope addresses per several
 criteria:
-.IP -
+.PP
+.RS 2em
+.IP \(bu 3em
 "contactee IP address"
-.IP -
-SMTP\ "MAIL\ FROM:<..>"\ address
-.IP -
-SMTP\ "RCPT\ TO:<..>"\ addresses
-.IP -
+.IP \(bu 3em
+SMTP "MAIL FROM:<..>" address
+.IP \(bu 3em
+SMTP "RCPT TO:<..>" addresses
+.IP \(bu 3em
 "various control files"
+.RE
 .PP
 Specifically the
 .I $MAILBIN/policy-builder.sh
@@ -881,17 +873,20 @@ earlier analysis has shown.
 .RE
 Short usage instructions:
 .PP
-.IP -
+.RS 2em
+.IP \(bu 3em
 Fill in/modify related files
-.IP -
+.IP \(bu 3em
 Execute \fIMAILBIN/policy-builder.sh\fR script
 .RE
+.RE
+.PP
 .SH SMTP\-POLICY TESTING
 You can run the smtpserver in a mode where you can
 claim to be from any address in the outside world
 you wish:
 .PP
-.RS
+.RS 4em
 $MAILBIN/smtpserver \-i \-d 1 \-T '[1.2.3.4]'
 .RE
 .PP
@@ -999,16 +994,20 @@ file:
   sample.domain.no.rbl    test-rcpt-dns-rbl -
 .fi
 .PP
+
 .SH FILES
-.I /etc/zmailer.conf
-.br
-.I /var/spool/postoffice/.pid.smtpserver (POSTOFFICE/.pid.smtpserver)
-.br
-.I /local/share/mail/smtpserver.conf (MAILSHARE/smtpserver.conf)
-.br
-.I /etc/pam.d/smtpauth-login (if PAM mechanism is present and plain-password authentication is wanted)
+.IP \fI/etc/zmailer.conf\fR
+system global parameters
+.IP \fI/var/spool/postoffice/.pid.smtpserver\fR
+$POSTOFFICE/.pid.smtpserver
+.IP \fI/opt/mail/smtpserver.conf\fR
+$MAILSHARE/smtpserver.conf
+.IP \fI/etc/pam.d/smtpauth-login\fR
+if PAM mechanism is present and plain-password authentication is wanted
+.PP
+
 .SH SEE ALSO
-router(8)
+.IR router (8).
 .PP
 .TS
 l l
@@ -1041,9 +1040,10 @@ RFC 2852	 ESMTP DELIVERBY
 .TE
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen (was at U of Toronto)
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
 Extended SMTP, policy facilities, etc. by
-.br
+.RS 3em
 Matti Aarnio  <mea@nic.funet.fi>
+.RE

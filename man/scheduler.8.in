@@ -1,49 +1,22 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "25 Oct 2001"
+.TH SCHEDULER 8 "10 Dec 2001"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
-.B scheduler
-[
-.B \-divFHnQSVW
-]
-[
-.B \-f
-.I configfile
-]
-[
-.B \-E newentsmax
-]
-[
-.B \-L
-.I logfile
-]
-[
-.B \-l
-.I statisticslog
-]
-[
-.B \-N
-.I transpmaxfno
-]
-[
-.B \-P
-.I postoffice
-]
-[
-.B \-p
-.I channel/host-pair
-]
-[
-.B \-R
-.I maxforkfreq
-]
-[
-.B \-q
-.I rendezvous
-]
+.IP \fBscheduler\fR 10em
+[\fB\-divFHnQSVW\fR]
+[\fB\-f\fR\ \fIconfigfile\fR]
+[\fB\-E\fR\ \fInewentsmax\fR]
+[\fB\-L\fR\ \fIlogfile\fR]
+[\fB\-l\fR\ \fIstatisticslog\fR]
+[\fB\-N\fR\ \fItranspmaxfno\fR]
+[\fB\-P\fR\ \fIpostoffice\fR]
+[\fB\-p\fR\ \fIchannel/host-pair\fR]
+[\fB\-R\fR\ \fImaxforkfreq\fR]
+[\fB\-q\fR\ \fIrendezvous\fR
+.PP
 .SH DESCRIPTION
 The \fIscheduler\fR daemon manages the delivery processing of messages
 in the ZMailer.
@@ -248,12 +221,12 @@ command="mailbox -8"
 .PP
 A clause consists of:
 .PP
-.RS 0.3i
-.TP 0.3i
+.RS 3em
+.TP 4em
 \(bu
 A selection pattern (in shell style) that is matched against the
 \fIchannel\fR/\fIhost\fR string for an address.
-.TP 0.3i
+.TP 4em
 \(bu
 0 or more variable assignments or keywords (described below).
 .PP
@@ -277,25 +250,25 @@ contents of the next non-empty clause will be used.
 .PP
 The typical configuration file will contain the following clauses:
 .PP
-.RS 0.3i
-.TP 0.3i
+.RS 3em
+.TP 4em
 \(bu
 a clause matching all addresses (using the pattern
 .BR */* )
 that sets up default values.
-.TP 0.3i
+.TP 4em
 \(bu
 a clause matching the local delivery channel (usually
 .BR local ).
-.TP 0.3i
+.TP 4em
 \(bu
 a clause matching the deferred delivery channel (usually
 .BR hold ).
-.TP 0.3i
+.TP 4em
 \(bu
 a clause matching the error reporting channel (usually
 .BR error ).
-.TP 0.3i
+.TP 4em
 \(bu
 clauses specific to the other channels known by the
 .IR router ,
@@ -504,7 +477,7 @@ a command definition, as it limits the usability of idled transporter.\fR
 It is possible to place environment-string setting statements into
 the beginning of the line:
 .LP
-.RS 0.3i
+.RS 3em
 .nf
 command="MALLOC_DEBUG_=1 OTHER=var  cmdname cmdparams"
 .fi
@@ -600,11 +573,11 @@ The scheduler can assign several of its internal parameters
 by having variable assignments beginning at column 0, and
 beginning with "PARAM" text:
 
-.TP 0.4i
+.TP 4em
 PARAMmailqpath\ \=\ "UNIX:/path/to/pf_unix/mailq/socket"
-.TP 0.4i
+.TP 4em
 PARAMmailqpath\ \=\ "TCP:mailq"
-.TP 0.4i
+.TP 4em
 PARAMmailqpath\ \=\ "TCP:174"
 These define two different types of possible socket addresses for the
 .RI " mailq "
@@ -1016,29 +989,29 @@ the first \fBLF\fR is:
 .PP
 Where:
 .RS
-.TP 0.4i
+.TP 4em
 \fB\\n\fR
 is an ASCII linefeed
-.TP 0.4i
+.TP 4em
 \fB\\t\fR
 is an ASCII tab
-.TP 0.4i
+.TP 4em
 \fIkey\fR
 is an unsigned decimal number
-.TP 0.4i
+.TP 4em
 \fImsg\-file\fR
 is a contiguous string (it is the message file name relative
 to a known directory)
-.TP 0.4i
+.TP 4em
 \fIn\-addrs\fR
 is an unsigned decimal number (number of addresses)
-.TP 0.4i
+.TP 4em
 \fIoff1\fR...\fIoffN\fR
 are unsigned decimal numbers (address byte offsets)
-.TP 0.4i
+.TP 4em
 \fItext\fR
 is a string not containing an ASCII linefeed (status message)
-.TP 0.4i
+.TP 4em
 \fIword\fR
 is a contiguous non-space string
 .RE
@@ -1106,34 +1079,34 @@ Reports details usable to implement mailq-v1 like interface.
 The details are TAB separated fields in a line until an LF.
 Fields are:
 .PP
-.TP 0.4i
+.TP 4em
 1)
 filepath under $POSTOFFICE/transport/
-.TP 0.4i
+.TP 4em
 2)
 line number within a group, 0 starts a group
-.TP 0.4i
+.TP 4em
 3)
 error address in brackets
-.TP 0.4i
+.TP 4em
 4)
 recipient line offset within the control file
-.TP 0.4i
+.TP 4em
 5)
 message expiry time (time_t)
-.TP 0.4i
+.TP 4em
 6)
 next wakeup time (time_t)
-.TP 0.4i
+.TP 4em
 7)
 last feed time (time_t)
-.TP 0.4i
+.TP 4em
 8)
 count of attempts at the delivery
-.TP 0.4i
+.TP 4em
 9)
 "retry in NNN" or a pending on "channel"/"thread"
-.TP 0.4i
+.TP 4em
 10)
 possible diagnostic message from previous delivery attempt
 .RE
@@ -1266,7 +1239,7 @@ Usually files
 and
 .I hosts.deny
 contain following kind of entries:
-.P
+.PP
 .nf
 \fC
  /\fRETC\fC/\fIhosts.allow\fC
@@ -1276,9 +1249,11 @@ contain following kind of entries:
  /\fRETC\fC/\fIhosts.deny\fC
    ALL : ALL@ALL\fR
 .fi
-.P
-.I "(Do note that smtpserver(8) has also tcp\-wrapper support, which becomes"
-.I "active simultaneously with scheduler's tcp\-wrapper code!)"
+.PP
+(\fIDo note that
+.IR smtpserver (8)
+\fIhas also tcp\-wrapper support, which becomes active simultaneously
+with scheduler's tcp\-wrapper code!\fR)
 
 .SH SIGNALS
 
@@ -1314,7 +1289,9 @@ l l.
 \fI/var/spool/postoffice/queue\fR	(POSTOFFICE/queue)
 .TE
 .SH SEE ALSO
-router(8), mailq(1)
+.IR mailq (1),
+.IR router (8),
+.IR smtpserver (8).
 .PP
 .TS
 l l
@@ -1323,13 +1300,13 @@ l s
 l s
 l s
 l l.
-RFC 822	The basic Internet email format specification
+RFC 822/2822	The basic Internet email format specification
 RFC 1123	Various 822 parameter clarifications
 
 Several extended SMTP facilities are implemented:
 
 RFC 1341/1521/2045	MIME specification (body, formats)
-RFC 1342/1522/2047	MIME specification (headers)
+RFC 1342/1522/2047	"MIME-2" specification (headers)
 RFC 1425/1651/1869	ESMTP EHLO framework
 RFC 1428	Basic MIME conversion rules
 RFC 1891	ESMTP DSN
@@ -1342,9 +1319,10 @@ RFC 2852	ESMTP DELIVERBY
 .TE
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
 A plenty of changes and several real bugfixes by:
-.br
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

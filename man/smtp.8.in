@@ -1,69 +1,42 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "7 Nov 2001"
+.TH SMTP 8 "10 Dec 2001"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
 .SH SYNOPSIS
-.B smtp
-[
-.B \-678deEHMrPsVxW
-]
-[
-.B \-c
-.I channel
-]
-[
-.B \-h
-.I heloname
-]
-[
-.B \-l
-.I logfile
-]
-[
-.B \-p
-.I remote-port
-]
-[
-.B \-T
-.I timeouts
-]
-[
-.B \-w
-.I sockwbufsize
-]
-[
-.B \-S
-.I /path/to/smtp-tls.conf
-]
-[
-.B \-F
-.I forcedest
-]
-[
-.B \-L
-.I localidentity
-]
-.I host
+.IP \fBsmtp\fR 5em
+[\fB\-678deEHMrPsVxW\fR]
+[\fB\-c\fR\ \fIchannel\fR]
+[\fB\-h\fR\ \fIheloname\fR]
+[\fB\-l\fR\ \fIlogfile\fR]
+[\fB\-p\fR\ \fIremote-port\fR]
+[\fB\-T\fR\ \fItimeouts\fR]
+[\fB\-w\fR\ \fIsockwbufsize\fR]
+[\fB\-S\fR\ \fI/path/to/smtp-tls.conf\fR]
+[\fB\-F\fR\ \fIforcedest\fR]
+[\fB\-L\fR\ \fIlocalidentity\fR]
+\fIhost\fR
 .SH DESCRIPTION
-.I smtp
+The
+.IR smtp (8)
 is a ZMailer transport agent which is usually only run by the
 .IR scheduler (8)
 to transfer messages to a remote Internet host using the SMTP
-protocol. The
-.I smtp
-program must be run with the same
-current directory as the
-.IR scheduler ,
+protocol.
+The
+.IR smtp (8)
+program must be run with the same current directory as the
+.IR scheduler (8),
 namely \fIPOSTOFFICE\fB/transport\fR.
 .PP
 The program scans the message control files named on stdin for addresses
-destined for its channel and the host given on the command line.  If any
-are found, all matching addresses and messages are transferred in a single
-SMTP conversation.  The destination host might in fact be served by any
-available mail exchanger for that host.
+destined for its channel and the host given on the command line.
+If any are found, all matching addresses and messages are transferred
+in a single SMTP conversation.
+The destination host might in fact be served by any available mail exchanger
+for that host.
 .SH OPTIONS
 .IP \-6
 Prefer IPv6 type socket and addresses, if available.
@@ -71,13 +44,15 @@ Prefer IPv6 type socket and addresses, if available.
 forces SMTP channel to be 7-bit, and thus forcing all 8-bit texts to be
 MIME-QP-encoded for the transport.
 .IP \-77
+.RS
 This does same as
 .I \-7
 but also blocks of all ESMTP extensions from use.
-
+.PP
 This ``double-7'' option can be followed by ``\-8'' option to force the
 channel to be 8-bit transparent, and even to decode MIME-QP TEXT/PLAIN,
 but to do it without any ESMTP.
+.RE
 .IP \-8
 forces SMTP channel to be 8-bit-clean, and as such, to decode the message
 while transporting it (is it is MIME QP encoded).
@@ -290,14 +265,15 @@ tls-CAfile      @MAILVAR@/db/smtpserver-CAcert.pem
 #|
 #demand-tls-mode
 .fi
+.PP
 .SH FILES
+.nf
 .I /etc/zmailer.conf
-.br
 .I /var/spool/postoffice (POSTOFFICE)
+.fi
 .SH SEE ALSO
-scheduler(8)
-.SH SEE ALSO
-router(8)
+.IR router (8),
+.IR scheduler (8).
 .PP
 .TS
 l l
@@ -334,9 +310,10 @@ RFC 2852	ESMTP DELIVERBY
 .TE
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
 Heaps of extended SMTP facilities by:
-.br
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

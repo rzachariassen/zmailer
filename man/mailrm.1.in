@@ -39,10 +39,14 @@ to retrieve the message id for a given message file id.
 .br
 .I /var/spool/postoffice/transport (POSTOFFICE/transport)
 .SH SEE ALSO
-router(8), scheduler(8), mailq(1)
+.IR router (8),
+.IR  scheduler (8),
+.IR  mailq (1).
 .br
 RFC987, RFC1138
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
+

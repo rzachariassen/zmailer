@@ -1,27 +1,28 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH mprobe 8 "16 Feb 1998"
+.TH mprobe 8 "10 Dec 2001"
 .SH NAME
 mprobe \- smtp-server aliveness probe
 .SH SYNOPSIS
-.B mprobe
-.I hostname
+.IP \fBmprobe\fR 7em
+\fIhostname\fR
 .SH DESCRIPTION
-.I mprobe
-is usable to test, if the named host (no IP address usable!) has
-a smtp-server that responds properly.
+The
+.IR mprobe (8)
+is usable to test, if the named host (no IP address allowed!) has
+a smtp-server, that responds properly.
 .SH EXIT CODES
 .IP 0
 All is well, smtp-server responded just fine
 .IP 2
 Can't resolve target hostname
 .IP 3
-.B mprobe 
+.IR mprobe (8)
 internal failure, can't create socket (should not happen!)
 .IP 4
 failed to connect to the remote host
 .IP 5
-.B mprobe
+.IR mprobe (8)
 internal failure, fdopen() failed.. (should not happen!)
 .IP 17,\ 19
 The remote smtp-server hung-up on us, most likely
@@ -32,8 +33,14 @@ begin with "220"
 Timeout (60 seconds) from start of processing.
 .IP 99
 Missing mandatory host parameter.
+.PP
 .SH SEE ALSO
-scheduler(8), smtpserver(8), smtp(8)
+.IR scheduler (8),
+.IR smtpserver (8),
+.IR smtp (8).
+.PP
 .SH AUTHOR
 This tool is authored and copyright by:
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

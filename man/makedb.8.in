@@ -1,0 +1,25 @@
+.\" $Header$
+.ds ]W ZMailer 2.0
+.TH MAKEDB 1 "10 Dec 2001"
+.SH NAME
+makedb \- zmailer database builder
+.SH SYNOPSIS
+.B makedb
+.SH DESCRIPTION
+.PP
+TO BE WRITTEN - 10 Dec 2001
+.PP
+.SH FILES
+.nf
+.I /etc/zmailer.conf
+.I $MAILSHARE/db/dbases.conf
+.fi
+.SH SEE ALSO
+.IR newdb (8),
+.IR zmailer (1)
+.I newdb.
+.SH AUTHOR
+This program authored and copyright by:
+.RS 3em
+Matti Aarnio <mea@nic.funet.fi>
+.RE

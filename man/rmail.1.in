@@ -1,75 +1,81 @@
 .\" $Header$
-.ds ]W ZMailer 2.0
-.TH RMAIL 1 "2 June 1990"
+.ds ]W ZMailer 2.99
+.TH RMAIL 1 "10 Dec 2001"
 .SH NAME
 rmail \- zmailer program to process incoming uucp mail
 .SH SYNOPSIS
-.B rmail
-[
-.B \-d
-]
-[
-.B \-h
-.I somewhere
-]
-.I recipient...
+.IP \fBrmail\fR 6em
+[\fB\-d\fR]
+[\fB\-h\fR\ \fIsomewhere\fR]
+\fIrecipient...\fR
 .SH DESCRIPTION
-.I rmail
-is usually invoked by a remote UUCP neighbour host's mailer using a command line
-like:
-.sp
-.ta 0.5i
+The
+.I rmail (1)
+is usually invoked by a remote UUCP neighbour host's mailer using
+a command line like:
+.PP
+.RS 3em
 .nf
-	uux - -r -a\fIsender\fR -gC \fIthishost\fR!rmail (\fIrecipient1\fR) (\fIrecipient2\fR) ...
+uux - -r -a\fIsender\fR -gC \fIthishost\fR!rmail (\fIrecipient1\fR) (\fIrecipient2\fR) ...
 .fi
-.sp
+.RE
+.PP
 The end result is the remote neighbour's
-.IR uuxqt (8)
+.IR uuxqt( 8)
 runs
-.I rmail
+.IR rmail (1)
 on
 .I thishost
 with this command line:
-.sp
+.PP
+.RS 3em
 .nf
-	rmail \fIrecipient1\fR \fIrecipient2\fR ...
+rmail \fIrecipient1\fR \fIrecipient2\fR ...
 .fi
-.sp
+.RE
+.PP
 In both cases, a UUCP format mail message is on the standard input.
 .PP
 The task of
-.I rmail
+.IR rmail (1)
 is to transform the trace information in the UUCP format message to the
 equivalent RFC822 trace information, and to submit the message to the
-.IR zmailer (1)
-router with the appropriate envelope information.
+.B ZMailer
+.IR router (8)
+with the appropriate envelope information.
 .PP
 The expected input format looks like:
-.sp
+.PP
+.RS 3em
 .nf
-	\fBFrom\fR \fIaddress3\fR  \fIdate3\fR \fBremote from\fR \fIhost3\fR
-	\fB>From\fR \fIaddress2\fR  \fIdate2\fR \fBremote from\fR \fIhost2\fR
-	\fB>From\fR \fIaddress1\fR  \fIdate1\fR \fBremote from\fR \fIhost1\fR
+\fBFrom\fR \fIaddress3\fR  \fIdate3\fR \fBremote from\fR \fIhost3\fR
+\fB>From\fR \fIaddress2\fR  \fIdate2\fR \fBremote from\fR \fIhost2\fR
+\fB>From\fR \fIaddress1\fR  \fIdate1\fR \fBremote from\fR \fIhost1\fR
 .fi
-.sp
-followed by the rest of the message.  This is considered equivalent to
-the following (as it might appear in a mailbox):
-.sp
+.RE
+.PP
+followed by the rest of the message.
+This is considered equivalent to the following
+(as it might appear in a mailbox):
+.PP
+.RS 3em
 .nf
-	\fBFrom\fR \fIhost3\fR!\fIhost2\fR!\fIhost1\fR!\fIaddress1\fR \fIdate\fR
-	\fBReceived: by \fIhost3\fR ... ; \fIdate3\fR
-	\fBReceived: by \fIhost2\fR ... ; \fIdate2\fR
-	\fBReceived: by \fIhost1\fR ... ; \fIdate1\fR
+\fBFrom\fR \fIhost3\fR!\fIhost2\fR!\fIhost1\fR!\fIaddress1\fR \fIdate\fR
+\fBReceived: by \fIhost3\fR ... ; \fIdate3\fR
+\fBReceived: by \fIhost2\fR ... ; \fIdate2\fR
+\fBReceived: by \fIhost1\fR ... ; \fIdate1\fR
 .fi
-.sp
+.RE
 .PP
 In order for the mailer to process the incoming message properly,
-.I rmail
+.IR rmail (1)
 must be run by a userid which the
-.IR router (1)
-will accept forged mail from.  This is normally the
+.IR router (8)
+will accept forged mail from.
+This is normally the
 .B uucp
 account id.
+.PP
 .SH OPTIONS
 .IP \-d
 turns on debugging output.
@@ -81,13 +87,19 @@ message.  The default value for this is usually
 or
 .B uunet
 (since uunet was a frequent purveyor of this protocol violation).
+.PP
 .SH FILES
+.nf
 .I /etc/zmailer.conf
-.br
 .I /var/spool/postoffice (POSTOFFICE)
+.fi
+.PP
 .SH SEE ALSO
-zmailer(1), router(1)
+.IR zmailer (8),
+.IR router (8).
+.PP
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
+.RS 3em
+Rayan Zachariassen <no address>
+.RE

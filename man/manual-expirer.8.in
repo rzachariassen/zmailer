@@ -1,14 +1,16 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MANUAL-EXPIRER 8 "13 Feb 1998"
+.TH MANUAL-EXPIRER 8 "10 Dec 2001"
 .SH NAME
 manual-expirer \- wrapper for expirer(8) transporter
 .SH SYNOPSIS
-.B manual-expirer
-[
-.BI expirer (8)
-.I arguments
-]
+.IP \fBmanual-expirer\fR 17em
+[\fB\-c\fR\ \fIchannel\fR]
+[\fB\-h\fR\ \fI"hostname"\fR]
+[\fB\-l\fR\ \fIlogfile\fR]
+[\fB\-sV\fR]
+[\fB\-m\fR\ \fI"message\ string"\fR]
+.PP
 .SH DESCRIPTION
 The
 .I manual-expirer
@@ -30,11 +32,15 @@ Message recipient selector "host" (optional)
 .IP "\-m 'message string'"
 An alternate report string.
 .IP "\-s\ \ \ \ \ \ \ \ \ \ \ "
-Silent mode.
 Message expiration occurs without any report to anywhere.
+Silent mode.
+.IP "\-V\ \ \ \ \ \ \ \ \ \ \ "
+Print program version, and exit.
 .SH SEE ALSO
-.BR scheduler (8),
-.BR expirer (8)
+.IR scheduler (8),
+.IR expirer (8).
 .SH AUTHOR
 This script is authored and copyright by:
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

@@ -8,48 +8,56 @@ F="man-index.html"
 cat <<EOF  > $F
 <HTML>
 <HEAD><TITLE>ZMailer man-pages</TITLE></HEAD>
-<BODY>
+<BODY BGCOLOR=white>
 
 <H1>ZMailer man-pages of `TZ=UTC date`</H1>
 
 <P>
-
+<BLOCKQUOTE>
 <TABLE>
+<TR><TH ALIGN=LEFT>HTML</TH><TH>&nbsp;</TH><TH ALIGN=LEFT>PDF</TH></TR>
+<TR><TD COLSPAN=3><P>&nbsp;</P></TD></TR>
 EOF
 
 nn=""
 c1=""
 c2=""
 
-for x in `ls *.html *.pdf`
-do
+T="index.tmp.$$"
+> $T
 
-    n="`echo $x|cut -d. -f-2`"
+for x in *.html; do
+  if [ $x != "man-index.html" ]; then
+    basename $x .html >> $T
+  fi
+done
+for x in *.pdf; do
+    basename $x .pdf >> $T
+done
+bases="`sort $T | uniq`"
+rm $T
 
-    if [ "x$n" != "x$nn" -a -n "$nn" ]; then
-	echo "<TR>$c1$c2</TR>" >> $F
-	#c1=""
-	#c2=""
+mm="<TD>&nbsp;&nbsp;&nbsp;&nbsp;</TD>"
+
+for x in $bases; do
+
+    if [ -f "$x.html" ]; then
+      hh="<TR><TD><A HREF=\"$x.html\">$x</A></TD>$mm"
+    else
+      hh="<TR><TD>&nbsp;</TD>$mm"
     fi
-    nn="$n"
 
-    case "$x" in
-    *.html)
-	c1="<TD><A HREF=\"$x\">$x</A></TD>"
-	;;
-    *.pdf)
-	c2="<TD><A HREF=\"$x\">$x</A></TD>"
-	;;
-    esac
+    if [ -f "$x.pdf" ]; then
+      echo "$hh<TD><A HREF=\"$x.pdf\">$x</A></TD></TR>" >> $F
+    else
+      echo "$hh<TD>&nbsp;</TD></TR>" >> $F
+    fi
 
 done
 
-if [ -n "$c1" ]; then
-    echo "<TR>$c1$c2</TR>" >> $F
-fi
-
 cat <<EOF  >> $F
 </TABLE>
+</BLOCKQUOTE>
 </BODY>
 </HTML>
 EOF

@@ -22,7 +22,7 @@ HTMLFIXUP = ${srcdir}/../doc/manual/html-post-fixup.sh
 MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
 MAN3=	zmailer.3 authuser.3
 MAN5=	aliases.5
-MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8 mailbox.8
+MAN8=	errormail.8 hold.8 router.8 scheduler.8 sendmail.8 sm.8 smtp.8 smtpserver.8 manual-expirer.8 expirer.8 mprobe.8 mailbox.8 makedb.8 newdb.8
 
 FRC:
 	@echo "make install MANDIR=/your/choice"
@@ -131,6 +131,10 @@ mprobe.8.ps: $(srcdir)/mprobe.8
 	groff -t -man $< > $@
 mailbox.8.ps: $(srcdir)/mailbox.8
 	groff -t -man $< > $@
+makedb.8.ps: $(srcdir)/makedb.8
+	groff -t -man $< > $@
+newdb.8.ps: $(srcdir)/newdb.8
+	groff -t -man $< > $@
 mboxpath.1.ps: $(srcdir)/mboxpath.1
 	groff -t -man $< > $@
 
@@ -182,6 +186,10 @@ mprobe.8.html: $(srcdir)/mprobe.8
 	sh $(srcdir)/man-to-html.sh $< > $@
 mailbox.8.html: $(srcdir)/mailbox.8
 	sh $(srcdir)/man-to-html.sh $< > $@
+makedb.8.html: $(srcdir)/makedb.8
+	sh $(srcdir)/man-to-html.sh $< > $@
+newdb.8.html: $(srcdir)/newdb.8
+	sh $(srcdir)/man-to-html.sh $< > $@
 mboxpath.1.html: $(srcdir)/mboxpath.1
 	sh $(srcdir)/man-to-html.sh $< > $@
 
@@ -232,6 +240,10 @@ expirer.8.pdf: expirer.8.ps
 mprobe.8.pdf: mprobe.8.ps
 	ps2pdf $<
 mailbox.8.pdf: mailbox.8.ps
+	ps2pdf $<
+makedb.8.pdf: makedb.8.ps
+	ps2pdf $<
+newdb.8.pdf: newdb.8.ps
 	ps2pdf $<
 mboxpath.1.pdf: mboxpath.1.ps
 	ps2pdf $<

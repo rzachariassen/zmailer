@@ -1,52 +1,32 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ROUTER 8 "25 Oct 2001"
+.TH ROUTER 8 "10 Dec 2001"
 .SH NAME
 router \- zmailer message routing daemon
 .SH SYNOPSIS
-.B router
-[
-.B \-diksSVW
-]
-[
-.B \-f
-.I configfile
-]
-[
-.B \-n
-.I #routers
-]
-[
-.B \-o
-.I zmshoptions
-]
-[
-.B \-r
-.I routerdirloops
-]
-[
-.B \-t
-.I traceflag
-]
-[
-.B \-L
-.I logfile
-]
-[
-.B \-P
-.I postoffice
-]
+.IP \fBrouter\fR 7em
+[\fB\-diksSVW\fR]
+[\fB\-L\fR\ \fIlogfile\fR]
+[\fB\-P\fR\ \fIpostoffice\fR]
+[\fB\-f\fR\ \fIconfigfile\fR]
+[\fB\-n\fR\ \fI#routers\fR]
+[\fB\-o\fR\ \fIzmshoptions\fR]
+[\fB\-r\fR\ \fIrouterdirloops\fR]
+[\fB\-t\fR\ \fItraceflag\fR]
 .SH DESCRIPTION
 The
-.I router
-daemon makes all decisions affecting the processing of messages in ZMailer.
+.IR router (8)
+daemon makes all decisions affecting the processing of messages in
+.BR ZMailer .
 .PP
 A mail message is submitted by placing it in a file in the
-\fIPOSTOFFICE\fB/router\fR directory.  The
-.I router
-frequently scans this directory for new files and will lock and process them
-as it finds them.  The result is a message control file that gets linked into
+\fIPOSTOFFICE\fB/router\fR directory.
+The
+.IR router (8)
+scans this directory frequently for new files and will lock and process them
+as it finds them.
+The result is a message control file that gets linked into
 the \fIPOSTOFFICE\fB/scheduler\fR and \fIPOSTOFFICE\fB/transport\fR
 directories for use by the
 .IR scheduler (8)
@@ -55,29 +35,37 @@ The original message file is then moved to the \fIPOSTOFFICE\fB/queue\fR
 directory.
 .PP
 The
-.IR router 's
-behaviour is controlled by a configuration file read at startup.  It
-is really a
+.IR router (8)'s
+behaviour is controlled by a configuration file read at startup.
+It is really a
 .IR zmsh (1)
 script that uses facilities provided builtin to the
-.IR router .
+.IR router (8).
+.PP
 .SH OPTIONS
-Invoking
-.I router
+Invoking the
+.IR router (8)
 without any arguments will do nothing (except make it reads its configuration
-file and promptly exit).  The normal startup method is to run the
-.IR zmailer (1)
-script, as in \fBzmailer router\fR.  This will start the
-.I router
-as a daemon and kill the previous incarnation of the
-.IR router .
+file and promptly exit).
+The normal startup method is to run the
+.IR zmailer (8)
+script, as in:
+.RS
+.nf
+\fCzmailer router\fR
+.fi
+.RE
+This will kill the possible previous incarnation of the
+.IR router (8),
+and start a new as a daemon.
+.PP
 .IP \-d
 detach and run as a daemon.
 .IP \-f\ \fIconfigfile\fR
 overrides the default configuration file \fIMAILSHARE\fB/router.cf\fR.
 .IP \-i
 run interactively, presenting a
-.IR zmsh
+.IR zmsh (1)
 session with the configuration file preloaded.
 .IP \-k
 kill the currently running router by sending it a
@@ -95,9 +83,11 @@ starts the specified number of parallel router processes.  The default is
 a single router process.
 .IP \-o\ \fIzmshoptions\fR
 sets the option string passed on the the internal
-.I zmsh
-invocation.  The default is \fB-O\fR.  Note that the leading '-' is
-mandatory.  See
+.IR zmsh (1)
+invocation.
+The default is \fB-O\fR.
+Note that the leading '-' is mandatory.
+See
 .IR zmsh (1)
 for the available options.
 .IP \-P\ \fIpostoffice\fR
@@ -105,8 +95,10 @@ specifies an alternate \fIPOSTOFFICE\fR directory.
 .IP \-r\ \fIrouterdirloops\fR
 Process \fIrouterdirloops\fR messages out of any alternate router
 directories, then check to see if any higher-priority jobs have been
-created. If undefined and alternate router directories are in use, the
-router will clear the entire directory before returning. See below and 
+created.
+If undefined and alternate router directories are in use, the router
+will clear the entire directory before returning.
+See below and 
 .IR zmailer (3)
 about Z-Environment and \fIROUTERDIRS\fR.
 .IP \-S
@@ -114,12 +106,13 @@ Can be used to turn off non-serious syslogging.
 .IP \-s
 Turns
 .IR stability -flag
-off and on.  Without this flag, the search of new jobs
-will be done with (sometimes) timeconsuming care of
-organizing the job files into time order.
+off and on.
+Without this flag, the search of new jobs will be done with (sometimes)
+timeconsuming care of organizing the job files into time order.
 .IP \-t\ \fItraceflag\fR
 sets trace options, one per -t switch, even before the configuration file
-is loaded.  This is otherwise equivalent to the builtin \fBtrace\fR command.
+is loaded.
+This is otherwise equivalent to the builtin \fBtrace\fR command.
 The currently known options are: \fBassign\fR, \fBbind\fR,
 \fBcompare\fR, \fBdb\fR, \fBfinal\fR, \fBfunctions\fR, \fBmatched\fR,
 \fBmemory\fR, \fBon\fR, \fBregexp\fR, \fBresolv\fR,
@@ -130,15 +123,15 @@ print version message and run interactively.
 Warn about syntax errors in the RFC-822 headers when this option is on.
 Without this, bad headers are shown in their original form, not by
 rendering them thru any formatting RFC-822 engine.
-.I This deviates from old behaviour of the ZMailer major way!
+\fIThis deviates from old behaviour of the ZMailer in a major way!\fR
 .PP
 To restart a
-.I router
+.IR router (8)
 daemon:
 .PP
 .RS
 .nf
-router -dk
+\fCrouter -dk\fR
 .fi
 .RE
 .PP
@@ -146,65 +139,80 @@ To test an address, start up an interactive session:
 .PP
 .RS
 .nf
-router -i
+\fCrouter -i\fR
 .fi
 .RE
 .PP
-or if the ZMailer
+or if the
+.B ZMailer
 .IR sendmail (8)
 is installed:
 .PP
 .RS
 .nf
-sendmail -bt
+\fCsendmail -bt\fR
 .fi
 .RE
 .PP
 Then just use the pre-defined functions.
+.PP
 .SH CONFIGURATION FILE
 The
-.I router
+.IR router (8)
 configuration file must provide some services so the message processing
 can proceed:
 .PP
-.IP -
+.RS 2em
+.IP \(bu 3em
 There must be a way to translate an arbitrary syntactically valid address
-into a specification for how to deliver for that address.  This is routing
-and must be implemented by a configuration file function with the name:
-\fBrouter\fR.
-.IP -
+into a specification for how to deliver for that address.
+
+This is routing and must be implemented by a configuration file function
+with the name: \fBrouter\fR.
+.IP \(bu 3em
 There must be a way to make policy decisions about what to do with an
-address in the context of the particular message it came from.  The most
-typical kind of policy decision is how to rewrite addresses in the message
-header for the immediate destination of a message envelope recipient address.
+address in the context of the particular message it came from.
+The most typical kind of policy decision is how to rewrite addresses
+in the message header for the immediate destination of a message envelope
+recipient address.
+
 Policy at this level is implemented by a configuration file function
 called \fBcrossbar\fR.
-.IP -
+.IP \(bu 3em
 There must be a way to specify what should happen when message processing
 cannot continue due to a temporary resource unavailability (e.g., when
-the nameserver is acting up).  There is a shell variable, \fBdefer\fR,
-which may be set internally in the database lookup routines in the
-.IR router .
+the nameserver is acting up).
+There is a shell variable, \fBdefer\fR, which may be set internally
+in the database lookup routines in the
+.IR router (8)
+scripts.
+
 In case of a temporary resource failure, the variable will be set to a
-well-defined non-null string related to the failure.  Temporary failures
-encountered during message header address rewriting may be dealt with
-by the \fBheader_defer\fR function.
+well-defined non-null string related to the failure.
+Temporary failures encountered during message header address rewriting
+may be dealt with by the \fBheader_defer\fR function.
+.RE
 .PP
 The interface specifications of these items exhaust the expectations the
-.I router
-has of its configuration file.  The
-.I router
+.IR router (8)
+has of its configuration file.
+The
+.IR router (8)
 contains useful builtin functions that will aid in implementing the
-required functionality.  These functions are described in the section
-on BUILTIN FUNCTIONS below.  
+required functionality.
+These functions are described in the section on
+.I BUILTIN FUNCTIONS
+below.  
 .PP
 Optionally the
-.I router
-may provide services to other programs.  In particular, the
+.IR router (8)
+may provide services to other programs.
+In particular, the
 .IR smtpserver (8)
 program relies on the router to do address validation and verification
 when it is asked (and enabled) to provide this service during an SMTP
-conversation.  The expected name for this function is \fBserver\fR.
+conversation.
+The expected name for this function is \fBserver\fR.
 .PP
 The following are the interface specifications for the functions mentioned
 above:
@@ -212,8 +220,8 @@ above:
 .RS
 This function is applied to all message envelope addresses.
 The first argument to this function is a syntactically valid
-(understood by the parser) address.  The second argument is
-a symbol whose value is a property list for the address.
+(understood by the parser) address.
+The second argument is a symbol whose value is a property list for the address.
 The property list consists of alternating keys and values,
 and is modified using the
 .B lreplace
@@ -221,30 +229,33 @@ function.
 .PP
 The
 .B router
-function returns a list of address groups.  Each address group
-is a list of mutually exclusive address tuples, i.e. delivering to one
-is equivalent to delivering to any other destination address in the group.
+function returns a list of address groups.
+Each address group is a list of mutually exclusive address tuples,
+i.e. delivering to one is equivalent to delivering to any other destination
+address in the group.
 An address tuple is a list of 4 elements (another name for this is a quad),
 which in order are:
-.IP -
+.RS 2em
+.IP \(bu 3em
 the delivery channel, designating a transport agent.
-.IP -
+.IP \(bu 3em
 the next host to be delivered to (an uninterpreted channel parameter).
-.IP -
+.IP \(bu 3em
 the address to present the next host.
-.IP -
+.IP \(bu 3em
 the symbol whose value is a property list for this address.
+.RE
 .PP
 By convention, if either the channel or host is irrelevant, it is
 given as "-".
 .PP
 For example, these are possible parameters and return value:
 .PP
-.RS
+.RS 3em
 .nf
-z# g0=(privilege 0 type recipient)
-z# router rayan g0
-(((local - rayan g0)))
+\fCz# \fBg0=(privilege 0 type recipient)\fR
+\fCz# \fBrouter rayan g0\fR
+\fC(((local - rayan g0)))\fR
 .fi
 .RE
 .PP
@@ -252,10 +263,10 @@ This function also handles any alias expansion that may be necessary.
 The following example shows the expansion of a single address to
 multiple independent recipients:
 .PP
-.RS
+.RS 3em
 .nf
-z# router root g0
-(((local - ken g0)) ((local - rayan g0)))
+\fCz# \fBrouter root g0\fR
+\fC(((local - ken g0)) ((local - rayan g0)))\fR
 .fi
 .RE
 .PP
@@ -267,9 +278,9 @@ any other information to the property list for use by the
 function.
 .PP
 Note: in the current version of ZMailer, only the
-.I router
-knows about mutually exclusive addresses.  Therefore all quads must
-be the lone element of their address group.
+.IR router (8)
+knows about mutually exclusive addresses.
+Therefore all quads must be the lone element of their address group.
 .PP
 If a resource deferral occurs during processing (e.g., the nameserver
 is busy or broken), the global variable
@@ -289,13 +300,15 @@ The arguments are sender and recipient address quads, as returned by the
 function.
 The return value is a list of three elements:
 .PP
-.IP -
+.RS 2em
+.IP \(bu 3em
 the name of a function that will be used to
 rewrite all message header addresses
-.IP -
+.IP \(bu 3em
 rewritten sender address quad
-.IP -
+.IP \(bu 3em
 rewritten recipient address quad
+.RE
 .PP
 The message header address rewriting function will be called with
 a single argument, the address in original form, and returns a string
@@ -303,30 +316,34 @@ argument, the address rewritten.
 .RE
 .IP "\fBheader_defer\fR \fIaddress\fR"
 This function rewrites a message header address that might not have been
-rewritten properly due to a resource deferral.  In that case the
+rewritten properly due to a resource deferral.
+In that case the
 .B defer
 variable will be set by the
-.I router
+.IR router (8)
 during execution of the message header address rewriting function specified
 by the
 .B crossbar
 function.
 To avoid repeatedly having to check for this at the end of such rewriting
-functions, this mechanism is provided as a convenience.  Any resource
-deferral during the execution of this function is ignored.  Typically
+functions, this mechanism is provided as a convenience.
+Any resource deferral during the execution of this function is ignored.
+Typically
 .B header_defer
 would just quote the address and make it relative to the local host.
 .IP "\fBserver\fR \fIkey\fR ..."
 .RS
 This function is not used by the
-.I router
-while processing mail.  It is called from the
-.I smtpserver
-when synchronous address validation is required.  Since this function
-may need services provided by other parts of the normal configuration file,
-it is included by convention.  The first argument is a keyword which describes
-the desired service, followed by parameters to that service.  The known
-keywords are:
+.IR router (8)
+while processing mail.
+It is called from the
+.IR smtpserver (8)
+when synchronous address validation is required.
+Since this function may need services provided by other parts
+of the normal configuration file, it is included by convention.
+The first argument is a keyword which describes the desired service,
+followed by parameters to that service.
+The known keywords are:
 .PP
 .IP \fBinit\fR
 which should be invoked before any other service.
@@ -623,6 +640,7 @@ This is used for the aliases file.
 .IP \-l
 map all keys to lowercase before searching.
 .IP \-m
+.RS
 check for file content modification before every access.  Reopen the file
 when a change is detected.  This option is used when the router should
 discover changes to a database underfoot so it need not be restarted to
@@ -630,13 +648,14 @@ use new data.
 This is warmly recommended on relations which use unordered, or ordered
 datasets (aliases, routes, ...), and especially if the system is configured
 to use mmap(2) facility.
-
+.PP
 Updateing such databases should preferrably use
 .I mv
 command to move a new version of the database in place of the old one.
 (
 .B do not use copy!
 )
+.RE
 .IP \-n
 if the key exists in the database and the value is null or a list,
 return the key as value.  Otherwise return the value retrieved, if any.
@@ -647,43 +666,50 @@ with configured TTL. (See \fI\-e\fR option.)
 .IP \-u
 map all keys to uppercase before searching.
 .IP "\-d \fIdriver\fR"
+.RS
 specifies a search driver that allows searching for structured
 keys using special knowledge.  The argument to this option must be
 a known driver.
-
+.PP
 Currently known drivers are:
-.RS
+.PP
 .IP "\fBpathalias\fR"
+.RS 4em
 The lookup sequence for ``foo.bar.edu'' is:
-
-.RS
+.PP
+.RS 3em
 .nf
- foo.bar.edu
+\fC foo.bar.edu
  .foo.bar.edu
  .bar.edu
  .edu
- .
+ .\fR
 .fi
+.RE
 .RE
 .IP "\fBpathalias.nodot\fR"
+.RS 4em
 The lookup sequence for ``foo.bar.edu'' is:
-
-.RS
+.PP
+.RS 3em
 .nf
- bar.edu
- edu
+\fC bar.edu
+ edu\fR
 .fi
 .RE
+.RE
 .IP "\fBlongestmatch\fR"
+.RS 4em
 The lookup sequence for ``foo.bar.edu'' is:
-
-.RS
+.PP
+.RS 3em
 .nf
- foo.bar.edu
+\fC foo.bar.edu
  .bar.edu
  .edu
- .
+ .\fR
 .fi
+.RE
 .RE
 .RE
 .IP "\-%"
@@ -698,9 +724,9 @@ and the original full key does not give a match.
 .PP
 Nominally '%1' thru '%9' are positional options to \fIname\fR:
 .PP
-.RS
+.RS 3em
 .nf
-result=$(name $keyval $opt1 $opt2 ... $opt9)
+\fCresult=$(name $keyval $opt1 $opt2 ... $opt9)\fR
 .fi
 .RE
 .PP
@@ -824,7 +850,7 @@ In addition any defined relations will create a builtin function with
 the same name as the relation.
 .SH GLOBAL VARIABLES
 The following shell variables are defined by the
-.IR router :
+.IR router (8):
 .IP defer
 is set by the database lookup routines to indicate a temporary failure
 of some kind.  The value assigned to this variable is a valid host
@@ -903,7 +929,7 @@ for headers that are not essential to the relaying of mail, but whose
 semantics are in fact specified in RFC822.  For example, here is a
 representative sample of the contents of the database:
 .PP
-.RS
+.RS 3em
 .TS
 l l l.
 sender	Mailbox:Sender:-	(permanent)
@@ -977,9 +1003,9 @@ Example:
 .IP SCHEDULERDIRHASH
 Carries a numeric value of ``1'' or ``2'' (if defined at all),
 which will then override possible ``-H'' option at the
-.IR scheduler .
+.IR scheduler (8) .
 Existence of this ZENV-variable tells the
-.I router
+.IR router (8)
 to send messages directly to the scheduler's hash subdirectories,
 thus eliminating a few directory operations which the scheduler would
 otherwise do, and at the same time limiting the size of the directory
@@ -995,12 +1021,16 @@ l l.
 \fI/var/spool/postoffice/{ROUTERDIRS}\fR	(POSTOFFICE/{ROUTERDIRS})
 .TE
 .SH SEE ALSO
-router(8), mailq(1), zmailer(3), zmsh(1)
+.IR mailq (1),
+.IR zmailer (3),
+.IR scheduler (8),
+.IR zmsh (1).
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
 A plenty of changes and further developement by:
-.br
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

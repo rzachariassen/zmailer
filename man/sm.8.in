@@ -1,22 +1,15 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SM 8 "26 Sep 2000"
+.TH SM 8 "10 Dec 2001"
 .SH NAME
 sm \- zmailer Sendmail compatible transport agent
 .SH SYNOPSIS
-.B sm
-[
-.B \-8HQV
-]
-[
-.B \-f
-.I configfile
-]
-.B \-c
-.I channel
-.B \-h
-.I host
-.I mailer
+.IP \fBsm\fR 3em
+[\fB\-8HQV\fR]
+[\fB\-f\fR\ \fIconfigfile\fR]
+\fB\-c\ \fIchannel\fR
+\fB\-h\ \fIhost\fR
+\fImailer\fR
 .SH DESCRIPTION
 .I sm
 is a ZMailer transport agent which is usually only run by the
@@ -73,23 +66,25 @@ These are in fact the fields of the entries of the configuration file.
 Lines starting with whitespace or a ``#'' are ignored, and all others are
 assumed to follow this format:
 .sp
-.ta 1i 1.7i 4.3i
-.nf
+.TS
+l l l l
+l s
+l s
+l s
+l l l l.
 \fImailer	flags	program	argument list\fR
-.fi
-.sp
+
 For example:
-.sp
-.nf
+
 local	mS	sm/localm	localm -r $g $u
 prog	-	/bin/sh	sh -c $u
 tty	rs	/usr/local/to	to $u
 uucp	U	/usr/bin/uux	uux - -r -a$g -gC $h!rmail ($u)
 usenet	m	sm/usenet	usenet $u
-ean	mn	/local/lib/ean/gwsmean	gwsmean -d $u
+ean	mn	/lib/ean/gwsmean	gwsmean -d $u
 test	n	sm/test	test $u
-smsgw	nS	${MAILBIN}/sms-gw sms-gw $g $u
-.fi
+smsgw	nS	${MAILBIN}/sms-gw	sms-gw $g $u
+.TE
 .PP
 The
 .I mailer
@@ -511,18 +506,22 @@ This program reads in processable file names relative to the current
 working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
 Optionally on the same line the scheduler may tell which host is to be
 looked for from the recipients of the message.
-.sp
-.nf
-	\fIrelative-spool-path\fR [ <TAB> \fIhostname\fR ]
+.PP
+.RS 4em
 .fi
+\fIrelative-spool-path\fR [ <TAB> \fIhostname\fR ]
+.fi
+.RE
 .PP
 This program produces diagnostic output on the standard output.
 Normal diagnostic output is of the form:
-.sp
+.PP
+.RS 4em
 .nf
-	\fIid\fR/\fIoffset\fR<TAB>\fInotify-data\fR<TAB>\fIstatus\fR \fImessage\fR
+\fIid\fR/\fIoffset\fR<TAB>\fInotify-data\fR<TAB>\fIstatus\fR \fImessage\fR
 .fi
-.sp
+.RE
+.PP
 where 
 .I id
 is the inode number of the message file,
@@ -552,12 +551,13 @@ The exit status is a code from
 .br
 .I /local/share/mail/sm.cf (MAILSHARE/sm.cf)
 .SH SEE ALSO
-scheduler(8)
+.IR scheduler (8).
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
 Several extensions by:
-.br
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

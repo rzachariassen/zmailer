@@ -1,73 +1,52 @@
 .\" $Header$
 .ds ]W "ZMailer 2.99"
 .nr X
-.TH MAILQ 1 "7 Nov 2001"
+.TH MAILQ 1 "10 Dec 2001"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
-.B mailq
-[
-.B \-i
-]
-[
-.B \-p
-.I port_or_socket_path
-]
-[
-.BR \-s [\fBs\fR]
-]
-[
-.B \-t
-]
-[
-.B \-u
-.I user
-]
-[
-.B \-U
-.IR username / password
-]
-[
-.BR \-v [\fBv\fR]
-]
-[
-.B \-d
-]
-[
-.B \-S
-]
-[
-.B \-Q[Q[Q]]
-]
-[
-[
-\fB\-c\ \fIchannel\fR
-]
-\fB\-h\ \fIhost\fR
-]
-[
-.I host
-]
+.IP \fBmailq\fR 6em
+.\" 46c:dE:h:iK:p:Qr:sStu:U:vV
+[\fB\-4\fR|\fR-6\fR]
+[\fB\-d\fR]
+[\fB\-i\fR]
+[\fB\-p\fR\ \fIport_or_socket_path\fR]
+[\fB\-s\fR[\fBs\fR]]
+[\fB\-t\fR]
+[\fB\-u\fR\ \fIuser\fR]
+[\fB\-U\fR\ \fIusername\fR/\fIpassword\fR]
+[\fB\-v\fR[\fBv\fR]]
+[\fB\-S\fR]
+[\fB\-Q\fR[\fBQ\fR[\fBQ\fR]]]
+[[\fB\-c\ \fIchannel\fR]\ \fB\-h\ \fIhost\fR]
+[\fIhost\fR]
+.PP
+\fIFIXME: Not all options are documented!\fR
 .SH DESCRIPTION
-.I mailq
+The 
+.IR mailq (1)
 queries a running
-.I scheduler
-process on a specified host for its current
-internal model of the mail transport queues and presents this information
-to the user.  By default, the
-.I scheduler
+.IR scheduler (8)
+process on a specified host for its current internal model of
+the mail transport queues and presents this information to the user.
+By default, the
+.IR scheduler (8)
 process queried is the one relevant to the local host, i.e. either a
 local process or a
-.I scheduler
-on a mail server host.  If the optional
+.IR scheduler (8)
+on a mail server host.
+If the optional
 .I host
-argument is specified, the scheduler running on that host will be queried
-instead.
+argument is specified, the
+.IR scheduler (8)
+running on that host will be queried instead.
 .PP
-If the scheduler has used
+If the
+.IR scheduler (8)
+has used
 .B \-Q
 option to shrink the amount of output, the
-.I mailq
+.IR mailq (1)
 .B must
 also use
 .B \-Q
@@ -91,52 +70,79 @@ stating why a retry that should have happened was delayed.  A lack of
 annotations indicates a delivery attempt is in progress.
 .SH OPTIONS
 The normal action is to print the transport queue.
-.IP \-v
+.IP \-v[v]
+.RS
 will produce verbose transport queue output in that message id's,
 and sender and recipient addresses, will be listed in addition to the normal
-status line.  Doubling this option asks for extra verbose output, presently
+status line.
+.PP
+Doubling this option asks for extra verbose output, presently
 this adds the message size in bytes after the message id.  This option is
 only useful if
 .I mailq
 can read the message control files in the postoffice.
 Most users can only see the data for their own messages.
+.RE
 .IP \-s
+.RS
 asks for a status of the
-.IR router ,
-.IR scheduler ,
-and transport queues.  The first two are determined by scanning the
+.IR router (8),
+.IR scheduler (8),
+and transport queues.
+.PP
+The first two are determined by scanning the
 appropriate directories and counting files, whereas the status of the
 transport queue is retrieved from the running
-.I scheduler
-process. Doubling this option will cause
-.I mailq
+.IR scheduler (8)
+process.
+.PP
+Doubling this option will cause
+.IR mailq (1)
 to exit after printing this summary.
+.RE
 .IP \-S
 shows summary of files queued to the channel/destination.
 Listed info tells the number of files, and if available, also
 total- and mean-size of those files.
 .IP \-t
-disables any previous verbose flags to produce the normal terse output.
+disables any previous verbose flags to produce the normal
+.I terse
+output.
 .IP \-i
 prints a verbose transport queue output (see the \-v flag) for your own
 messages only.
 .IP \-u\ \fIuser\fR
-selects messages sent by the specified user id.  This option is usually
-only useful to the Postmaster on the system.
+.RS
+selects messages sent by the specified user id.
+.PP
+This option is usually only useful to the Postmaster on the system.
+.RE
 .IP \-U\ \fIusername\fR/\fIpassword\fR
+.RS
 Defines username/password pair for MAILQ-V2 mode connection, in case
 the default "nobody"/"nobody" is not proper.
+.PP
+Do note: The "/" separates fields!
+.RE
 .IP \-d
-prints the information received from the scheduler as is.  This will
-override the verbose option.
+This prints the information received from the scheduler as is.
+This will override the verbose option.
+This is
+.I debugging
+mode.
 .IP \-p\ \fIport\fR
 specifies an alternate TCP/IP port to connect to a
-.I scheduler
+.IR scheduler (8)
 at.
 .IP "\-c \fIchannel\fR \-h \fIhost\fR"
-.IP \-Q
-.IP \-QQ
-.IP \-QQQ
+.RS
+in MAILQv2 mode (see
+.IR scheduler (8))
+query details about only those messages destined at given channel and host.
+.PP
+The default for \fIchannel\fR is "\fIsmtp\fR".
+.RE
+.IP \-Q[Q[Q]]
 Two Q:s produces an abbreviated summary, while one Q gives full
 report of all threads.
 Three Q:s produces only "SNMP variables" report.
@@ -145,10 +151,10 @@ Examples of ``mailq -Q'' output:
 .PP
 .nf
 \fCsmtp/*.com/0
-.RS 0.3i
+.RS 3em
 \fCsmtp/aol.com/0  \fRR=1 A=147 P={19598} HA={571}s FA={571}s OF=1 S={STUFF} UF=0 QA=1d18h
 \fCsmtp/some.com/0 \fRR=1 A=58 W=1860s QA=11h11m28s
-.RS 0.3i
+.RS 3em
 \fCThreads: 11 Msgs: 36 Procs: 23 Idle: 12 Plim:90 Flim: 150 Tlim: 1
 .RE
 .RE
@@ -173,7 +179,7 @@ to do delivery at this thread.
 .IR P rocess
 number(s) of the transport agent actively handling this thread.
 \fIThere can be multiple processes, and they are listed comma-separated
-inside the curly brackets.  Similarly for the test of the things below.\fR
+inside the curly brackets.\fR  Similarly for the rest of the things below.
 .IP \fBW=\fR
 Delay time until next time the transport-agent may try to send this
 thread.
@@ -215,9 +221,9 @@ When process'
 count goes to zero, more jobs are fed to it.
 A process moves away from this state by either:
 .RS
-.IP "- getting a \fR#retryat \fImessage"
+.IP "Getting a \fR#retryat \fImessage"
 Next state is FINISHing.
-.IP "- running out of jobs to feed"
+.IP "Running out of jobs to feed"
 Next state is FINISHing -- this requires that no messages were
 available for feeding at the time.  If even single one is fed,
 state stays in STUFFing.
@@ -242,23 +248,28 @@ fed to the current TA process set ?
 .IP \fBQA=\fR
 Age of oldest message in the queue at this thread.
 ("\fIQ\fRueue\fIA\fRge")
+.PP
 .SH FILES
+.nf
 .I /etc/zmailer.conf
-.br
 .I /var/spool/postoffice/transport (POSTOFFICE/transport)
-.br
 .I /var/spool/postoffice/queue (POSTOFFICE/queue)
-.br
+.fi
 .SH SEE ALSO
 The \fBMAILQ-V2\fR protocol is described at the
-\fIscheduler\fR(8) manual page.
+.IR scheduler (8)
+manual page.
 .PP
-zmailer(1), router(8), scheduler(8)
+.IR zmailer (1),
+.IR router (8),
+.IR scheduler (8).
+.PP
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
 Partial rewrite for ZMailer 2.99/3.0 by:
-.br
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

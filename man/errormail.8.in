@@ -1,17 +1,12 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ERRORMAIL 8 "3 Jan 2000"
+.TH ERRORMAIL 8 "10 Dec 2001"
 .SH NAME
 errormail \- zmailer error message transport agent
 .SH SYNOPSIS
-.B errormail
-[
-.B \-c
-.I channel
-]
-[
-.B \-V
-]
+.IP \fBerrormail\fR 10em
+[\fB\-c\fR\ \fIchannel\fR]
+[\fB\-V\fR]
 .SH DESCRIPTION
 .I errormail
 is a ZMailer transport agent which is usually only run by the
@@ -20,21 +15,27 @@ program to produce error messages from canned forms.  The
 .I errormail
 program must be invoked with the same
 current directory as the
-.IR scheduler ,
+.IR scheduler (8),
 namely \fIPOSTOFFICE\fB/transport\fR.
 .PP
 The program will interpret the host part of an address destined for its channel
 as a file name in the \fIMAILSHARE\fB/forms\fR directory.  It will submit a
 new mail message consisting of the concatenation of:
-.IP
-\- a To: header containing the sender address (original error return address),
-.IP
-\- the file contents of the specified form,
-.IP
-\- the user name of each recipient address with some descriptive text indicating
+.RS 3em
+.TP 4em
+\(bu
+a To: header containing the sender address (original error return address),
+.TP 4em
+\(bu
+the file contents of the specified form,
+.TP 4em
+\(bu
+the user name of each recipient address with some descriptive text indicating
 the specific error, and
-.IP
-\- the message file being processed.
+.TP 4em
+\(bu
+the message file being processed.
+.RE
 .PP
 This program is used to report errors on behalf of the ZMailer
 .IR router (8)
@@ -53,9 +54,12 @@ default is
 prints a version message and exits.
 .SH INTERFACE
 This program reads in processable file names relative to the current
-working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
-Optionally on the same line the scheduler may tell which host is to be
-looked for from the recipients of the message.
+working directory of the
+.IR scheduler (8)
+(namely: \fI$POSTIOFFICE/transport/\fR).
+Optionally on the same line the
+.IR scheduler (8)
+may tell which host is to be looked for from the recipients of the message.
 .PP
 .RS
 \fIrelative-spool-path\fR [ <TAB> \fIhostname\fR ]
@@ -85,20 +89,36 @@ and the
 is descriptive text associated with the report.  The text is terminated by
 a linefeed.  Any other format (as might be produced by subprocesses)
 is passed to standard output for logging in the
-.B scheduler
+.IR scheduler (8)
 log.
 .PP
 The exit status is a code from
 .BR <sysexits.h> .
+.PP
+.SH Z\-ENVIRONMENT VARIABLES
+.PP
+Following \fIZENV-variables\fR are used by the \fBmailbox\fR program:
+.PP
+.IP MAILSHARE
+This supplies the location of the directory under which
+"$MAILSHARE/forms/hostpart" files are located.
+.PP
 .SH FILES
 .I /etc/zmailer.conf
 .br
 .I /var/spool/postoffice (POSTOFFICE)
 .br
 .I /local/share/mail/forms (MAILSHARE/forms)
+.PP
 .SH SEE ALSO
-scheduler(8), router(8)
+.IR scheduler (8),
+.IR router (8).
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
+Continued maintenance by:
+.RS 3em
+Matti Aarnio <mea@nic.funet.fi>
+.RE

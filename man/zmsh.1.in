@@ -5,19 +5,14 @@
 .SH NAME
 zmsh \- zmailer shell
 .SH SYNOPSIS
-.B zmsh
-[
-.B \-CILOPRSYisaefhntuvx
-]
-[
-.B \-c 
-.I command
-]
-[
-.I script
-\&... ]
+.IP \fBzmsh\fR 5em
+[\fB\-CILOPRSYisaefhntuvx\fR]
+[\fB\-c \fR\ \fIcommand\fR]
+[\fIscript\fR\ ...\fR]
+.PP
 .SH DESCRIPTION
-.I zmsh
+The
+.IR zmsh (1)
 is an implementation of the Bourne shell suitable for use with the ZMailer
 .IR router (8)
 as its configuration file language interpreter.
@@ -436,12 +431,14 @@ Hitting interrupt during I/O stuff is a bad thing.
 The file descriptor prediction doesn't always work, especially in
 (nested) multi-pipe command lines.
 .SH SEE ALSO
-sh(1), router(8)
+.IR sh( 1),
+.IR router (8).
 .SH AUTHOR
 This program authored and copyright by:
-.br
-Rayan Zachariassen <rayan@cs.toronto.edu>
-.br
+.RS 3em
+Rayan Zachariassen <no address>
+.RE
 Some "small" tweaks by:
-.br
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE

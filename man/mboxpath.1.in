@@ -1,26 +1,18 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MBOXPATH 1 "9 Sep 1999"
+.TH MBOXPATH 1 "10 Dec 2001"
 .SH NAME
 mboxpath \- ZMailer utility to show user's mailbox path
 .SH SYNOPSIS
-.B mboxpath
-[
-.B \-D[D]
-]
-[
-.B \-P[P]
-]
-[
-.B \-X[X]
-]
-[
-.B \-d
-.I dirpath
-]
-.I username
+.IP \fBmboxpath\fR 9em
+[\fB\-D\fR[\fBD\fR]]
+[\fB\-P\fR[\fBP\fR]]
+[\fB\-X\fR[\fBX\fR]]
+[\fB\-d\fR\ \fIdirpath\fR]
+\fIusername\fR
 .SH DESCRIPTION
-.I mboxpath
+The 
+.IR mboxpath (1)
 is a ZMailer utility program to be used when local user directories
 have been scattered around, and it is desired to have user's shell
 environment variable
@@ -46,9 +38,11 @@ See
 .SH USAGE
 This is intended for system-wide startup script usage with
 code something like following for sh:
-
-.B MAIL=`mboxpath\ \ \-P\ \ $USER`
-
+.PP
+.RS
+\fCMAIL=`mboxpath\ \ \-P\ \ $USER`\fR
+.RE
+.PP
 It is important to use SAME options here as are used at running
 the mailbox program.
 
@@ -65,15 +59,22 @@ to the directory containing user mailbox files, for example
 This is best done in the ZMailer SiteConfig file.
 
 This program outputs the
-.B likely
+.I likely
 mailbox location to the stdout, it does not go and see if there is anything.
 .SH FILES
+.nf
 .I /etc/zmailer.conf
-.br
 .I /var/mail (MAILBOX)
+.fi
 .SH SEE ALSO
-mailbox(8), scheduler(8), comsat(8C), biff(1), flock(2), Mail(1)
+.IR mailbox (8),
+.IR scheduler (8),
+.IR comsat (8C),
+.IR biff (1),
+.IR flock (2),
+.IR Mail (1).
 .SH AUTHOR
 This program authored and copyright by:
-.br
+.RS 3em
 Matti Aarnio <mea@nic.funet.fi>
+.RE
