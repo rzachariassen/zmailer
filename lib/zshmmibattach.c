@@ -138,7 +138,7 @@ static void Z_SHM_lock(rw, storage_fd)
 	    f.l_start  = 0;
 	    f.l_len    = 0;
 	    f.l_pid    = getpid();
-	    i = fcntl( storage_fd, SETLKW, &f );
+	    i = fcntl( storage_fd, F_SETLKW, &f );
 	    if (i == 0) break; /* Ok! */
 	    if (i < 0 &&  (errno == EINTR || errno == EAGAIN))
 	      continue;
