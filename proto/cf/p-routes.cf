@@ -19,7 +19,8 @@ routes_neighbour (domain, address, A) {
 			tmp=$(routes_spec "$tmp" "$address" $A) &&
 				returns $tmp
 
-	tmp=$(routesdb "$domain") &&
+	tmp="$(get $A type)"
+	tmp=$(routesdb "$domain" -: ".:$tmp" -: '.') &&
 		tmp=$(routes_spec "$tmp" "$address" $A) &&
 			returns $tmp
 

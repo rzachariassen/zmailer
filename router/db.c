@@ -746,6 +746,7 @@ db(dbname, argc, argv20)
 	int slen;
 	GCVARS3;
 	int zoptind = 1;
+	int defaultkeys;
 
 	now = time(NULL);
 
@@ -794,8 +795,9 @@ db(dbname, argc, argv20)
 	si.ttl     = dbip->ttl;
 	si.argv20  = argv20;
 	si.argv1   = NULL;
-	si.defaultkey = NULL;
+	si.defaultkey[0] = NULL;
 	si.flags   = dbip->flags;
+	defaultkeys = 0;
 
 	zoptind = 1;
 	/* Recognize options:
@@ -803,14 +805,15 @@ db(dbname, argc, argv20)
 	   -- end of options
 	   Rest will be alike sendmail $@ "options"
 	*/
-	while (argv20[zoptind] && zoptind < argc) {
+	while (argv20[zoptind] && zoptind < argc && defaultkeys < 20-1) {
 	  if (STREQ("--",argv20[zoptind])) {
 	    ++zoptind;
 	    break;
 	  }
 	  if (STREQ("-:",argv20[zoptind])) {
 	    ++zoptind;
-	    si.defaultkey = argv20[zoptind];
+	    si.defaultkey[defaultkeys++] = argv20[zoptind];
+	    si.defaultkey[defaultkeys] = NULL;
 	    ++zoptind;
 	    continue;
 	  }
@@ -1291,14 +1294,21 @@ find_domain(lookupfn, sip)
 	/* Still failed ?  Try to look for "." */
 	sip->key = ".";
 
-	if (sip->defaultkey)
-	  sip->key = sip->defaultkey;
+	if (sip->defaultkey[0]) {
+	    int i;
+	    for (i = 0 ; sip->defaultkey[i]; ++i) {
+		sip->key = sip->defaultkey[i];
+		l = (*lookupfn)(sip);
+		if (l) break;
+	    }
+	} else {
+	    l = (*lookupfn)(sip);
+	}
 
-	l = (*lookupfn)(sip);
 	if (l) {
-		if (sip->argv1) free((void*)sip->argv1);
-		sip->argv1 = dupnstr(realkey, keylen);
-		return l;
+	    if (sip->argv1) free((void*)sip->argv1);
+	    sip->argv1 = dupnstr(realkey, keylen);
+	    return l;
 	}
 
 	return NULL;
@@ -1432,10 +1442,18 @@ find_longest_match(lookupfn, sip)
 		/* Still failed ?  Try to look for "." */
 		sip->key = ".";
 
-		if (sip->defaultkey)
-		  sip->key = sip->defaultkey;
 
-		l = (*lookupfn)(sip);
+		if (sip->defaultkey[0]) {
+		    int i;
+		    for (i = 0 ; sip->defaultkey[i]; ++i) {
+			sip->key = sip->defaultkey[i];
+			l = (*lookupfn)(sip);
+			if (l) break;
+		    }
+		} else {
+		    l = (*lookupfn)(sip);
+		}
+
 		if (l) {
 			if (sip->argv1) free((void*)sip->argv1);
 			sip->argv1 = dupnstr(realkey, strlen(realkey));

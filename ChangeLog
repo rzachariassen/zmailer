@@ -1,3 +1,15 @@
+2002-02-05  Matti Aarnio  <mea@zmailer.org>
+
+	* router/db.c, proto/cf/p-routes.cf, router/libdb/search.h:
+	    Support _multiple_ instances of fallback keys, e.g.:
+	        $(routesdb "$domain" -: ".:$(get $A type)" -: .)
+	    which will look up fallback keys:
+	        .:sender
+		.:recipient
+	    depending on address type, and
+	        .
+	    if neither of those exist..
+
 2002-02-01  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/fqdnaliases.cf:

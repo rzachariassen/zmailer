@@ -20,7 +20,7 @@ typedef struct _search_info {
 	const char	*key;
 	time_t		 ttl;
 	const char	*subtype;
-	const char	*defaultkey;
+	const char	*defaultkey[20];
 	const char	**argv20;
 	const char	*argv1;
 	unsigned long	flags;
