@@ -85,6 +85,8 @@ install-bin:	# all
 	else						\
 		cp $(ZCONF) $(prefix)$$ZCONFIG; chmod 644 $(prefix)$$ZCONFIG; \
 	fi
+	@. $(ZCONF) ; cp $(srcdir)/ChangeLog $(prefix)$$MAILSHARE/ChangeLog ; chmod 644 $(prefix)$$MAILSHARE/ChangeLog
+	@. $(ZCONF) ; cp ./config.status $(prefix)$$MAILSHARE/config.status ; chmod 644 $(prefix)$$MAILSHARE/config.status
 	cd proto ;      $(MAKE) $(MFLAGS) install-bin  PZCONFIG="../$(ZCONF)"
 	cd compat ;     $(MAKE) $(MFLAGS) install
 	cd router ;     $(MAKE) $(MFLAGS) install
@@ -109,6 +111,8 @@ dirs:
 install:	dirs # all
 	@. $(ZCONF) ; zdir=`echo $$ZCONFIG|sed -e 's!\(.*\)/\([^/]*\)!\1/!'`; $(MKDIR) $(prefix)$$zdir
 	@. $(ZCONF) ; cp $(ZCONF) $(prefix)$$ZCONFIG ; chmod 644 $(prefix)$$ZCONFIG
+	@. $(ZCONF) ; cp $(srcdir)/ChangeLog $(prefix)$$MAILSHARE/ChangeLog ; chmod 644 $(prefix)$$MAILSHARE/ChangeLog
+	@. $(ZCONF) ; cp ./config.status $(prefix)$$MAILSHARE/config.status ; chmod 644 $(prefix)$$MAILSHARE/config.status
 	@cd proto ;      $(MAKE) $(MFLAGS) install  PZCONFIG="../$(ZCONF)"
 	@cd compat ;     $(MAKE) $(MFLAGS) install
 	@cd router ;     $(MAKE) $(MFLAGS) install

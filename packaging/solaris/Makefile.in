@@ -40,6 +40,8 @@ pkgs-01:	# DIRECTORIES, BINARIES
 	 cd $(prefix)/; ( \
 	 echo .$$ZCONFIG ; \
 	 po=`echo $$POSTOFFICE|sed -e 's!^/!!'`;find $$po -type d -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -name ChangeLog -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -name config.status -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -type d -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/forms -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/proto -print ; \
@@ -54,12 +56,13 @@ pkgs-01:	# DIRECTORIES, BINARIES
 		| sort | uniq | pkgproto )  \
 		> proto
 	cat ${srcdir}/pkginfo-01.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
-	pkgmk -o -f proto -b $(prefix)
+	rm -rf ZMailer01
+	pkgmk -o -f proto -b $(prefix) -d `/bin/pwd`
+	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer01.pkg ZMailer01
 
 pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	. $(ZCONF) ; \
 	(echo "i pkginfo"; \
-	 echo "s none usr/bin/mailq=$$MAILBIN/sendmail" ; \
 	 cd $(prefix)/; ( \
 	 echo .$$ZCONFIG ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf ! -name \*.fc -print ; \
@@ -70,4 +73,6 @@ pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 		| sort | uniq | pkgproto )  \
 		> proto
 	cat ${srcdir}/pkginfo-02.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
-	pkgmk -o -f proto -b $(prefix)
+	rm -rf ZMailer02
+	pkgmk -o -f proto -b $(prefix) -d `/bin/pwd`
+	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer02.pkg ZMailer02

@@ -1,5 +1,14 @@
 2000-09-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* packaging/solaris/Makefile.in, packaging/solaris/README,
+	    More work at package manufacturing, now it likely works
+	    and produces suitable Solaris PKG files.
+
+	* Makefile.in:
+	    Copy current compilation time valid  config.status  and
+	    ChangeLog files into $MAILSHARE  directory.  Those give
+	    a very good idea of HOW the package was made.
+
 	* packaging/solaris/*:
 	    Reworked a bit with Solaris pkgmk wizard..
 

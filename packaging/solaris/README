@@ -1,7 +1,7 @@
 	These are Solaris package files for easing managed
 	installation of ZMailer into Solaris systems
 
-	By Matti Aarnio <mea@nic.funet.fi> 1998
+	By Matti Aarnio <mea@nic.funet.fi> 1998, 2000
 
 These are something what my colleges asked for at work...
 
@@ -9,10 +9,14 @@ These are something what my colleges asked for at work...
 You do:
 
 1)	configure, compile, and then:
+
 		make install prefix=/tmp/zm-inst
+		(cd man; make install MANDIR=/tmp/zminst/usr/man)
+
 	All of those at the top-level directory
 
 2)	Execute following commands:
+
 		cd packaging/solaris
 		make pkgs prefix=/tmp/zm-inst VERSION="ZMailer-Z.ZZ.ZZ"
 
