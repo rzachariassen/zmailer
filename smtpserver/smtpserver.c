@@ -609,15 +609,13 @@ char **argv;
 	pid = getpid();
 	settrusteduser();	/* dig out the trusted user ID */
 	openlogfp(&SS, daemon_flg);
-	if (logfp != NULL) {
 #ifdef HAVE_WHOSON_H
-	    fprintf(logfp, "%d#\tconnection from %s:%d ident: %s whoson: %s\n",
-		    pid, SS.rhostname, SS.rport, SS.ident_username, SS.whoson_data);
+	type(NULL,0,NULL,"connection from %s:%d ident: %s whoson: %s",
+	     SS.rhostname, SS.rport, SS.ident_username, SS.whoson_data);
 #else
-	    fprintf(logfp, "%d#\tconnection from %s:%d ident: %s\n",
-		    pid, SS.rhostname, SS.rport, SS.ident_username);
+	type(NULL,0,NULL,"connection from %s:%d ident: %s",
+	     SS.rhostname, SS.rport, SS.ident_username);
 #endif
-	}
 
 #if 0
 	SIGNAL_HANDLE(SIGCHLD, SIG_DFL);
@@ -957,20 +955,19 @@ char **argv;
 		pid = getpid();
 
 		openlogfp(&SS, daemon_flg);
-		if (logfp != NULL) {
 #ifdef HAVE_WHOSON_H
-		    fprintf(logfp,
-			    "%d#\tconnection from %s ipcnt %d childs %d ident: %s whoson: %s\n",
-			    pid, SS.rhostname, sameipcount, childcnt,
-			    SS.ident_username, SS.whoson_data);
+		type(NULL,0,NULL,
+		     "connection from %s ipcnt %d childs %d ident: %s whoson: %s",
+		     SS.rhostname, sameipcount, childcnt,
+		     SS.ident_username, SS.whoson_data);
 #else
-		    fprintf(logfp,
-			    "%d#\tconnection from %s ipcnt %d childs %d ident: %s\n",
-			    pid, SS.rhostname, sameipcount, childcnt,
-			    SS.ident_username);
+		type(NULL,0,NULL,
+		     "connection from %s ipcnt %d childs %d ident: %s",
+		     SS.rhostname, sameipcount, childcnt,
+		     SS.ident_username);
 #endif
-		}
-/* if (logfp) fprintf(logfp,"%d#\tInput fd=%d\n",getpid(),msgfd); */
+
+/* if (logfp) type(NULL,0,NULL,"Input fd=%d",getpid(),msgfd); */
 
 		if (childcnt > MaxParallelConnections) {
 		    int len;
@@ -1267,7 +1264,8 @@ int buflen, *rcp;
 	else
 	    /* if (verbose) */
 	if (logfp)
-	    fprintf(logfp, "%d#\t-- pipeline input exists %d bytes\n", pid, s_hasinput(SS));
+	  type(NULL,0,NULL,
+	       "-- pipeline input exists %d bytes", s_hasinput(SS));
 
 	/* Alarm processing on the SMTP protocol channel */
 	alarm(SMTP_COMMAND_ALARM_IVAL);
@@ -1515,14 +1513,12 @@ int insecure;
     if (logfp != NULL) {
 	char *s = policymsg(policydb, &SS->policystate);
 	if (insecure)
-	    fprintf(logfp, "%d#\tremote from %s:%d\n",
-		    pid, SS->ihostaddr, SS->rport);
+	  type(NULL,0,NULL,"remote from %s:%d", SS->ihostaddr, SS->rport);
 	else
-	    fprintf(logfp, "%d#\tlocal from uid#%d\n",
-		    pid, (int)getuid());
+	  type(NULL,0,NULL,"local from uid#%d", (int)getuid());
 	if (SS->policyresult != 0 || s != NULL)
-	  fprintf(logfp, "%d#\t-- policyresult=%d initial policy msg: %s\n",
-		  pid, SS->policyresult, (s ? s : "<NONE!>"));
+	  type(NULL,0,NULL,"-- policyresult=%d initial policy msg: %s",
+	       SS->policyresult, (s ? s : "<NONE!>"));
 	fflush(logfp);
     }
     while (1) {

@@ -161,7 +161,8 @@ const char *buf, *cp;
 
 	if (SS->policyresult < 0) {
 	  if (logfp != NULL)
-	    fprintf(logfp, "%d#\tContent-policy analysis ordered message rejection. (code=%d)\n", pid, SS->policyresult);
+	    type(NULL,0,NULL,
+		 "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
 	  type(SS, 552, m571, "Content-policy analysis rejected this message");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
@@ -176,8 +177,9 @@ const char *buf, *cp;
 	    sprintf(polbuf,"policy-%d",SS->policyresult);
 	    if (mail_close_alternate(SS->mfp, FREEZERDIR, polbuf) != 0) {
 		if (logfp != NULL) {
-		  fprintf(logfp,"%d#\tmail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)\n",
-			  pid, polbuf, errno, strerror(errno));
+		  type(NULL,0,NULL,
+		       "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
+		       polbuf, errno, strerror(errno));
 		}
 		type(SS, 452, m430, "Message file disposition failed");
 		typeflush(SS);
@@ -221,7 +223,7 @@ const char *buf, *cp;
 			   SS->rhostname, SS->rport));
 
 		if (logfp != NULL) {
-		  fprintf(logfp, "%d#\t%s: %ld bytes\n", pid, taspid, tell);
+		  type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
 		  fflush(logfp);
 		}
 	    }
@@ -360,7 +362,8 @@ const char *buf, *cp;
 
 	if (SS->policyresult < 0) {
 	  if (logfp != NULL)
-	    fprintf(logfp, "%d#\tContent-policy analysis ordered message rejection. (code=%d)\n", pid, SS->policyresult);
+	    type(NULL,0,NULL,
+		 "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
 	  type(SS, 552, m571, "Content-policy analysis rejected this message");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
@@ -373,8 +376,10 @@ const char *buf, *cp;
 	    runasrootuser();
 	    if (mail_close_alternate(SS->mfp, FREEZERDIR, "policy") != 0) {
 		if (logfp != NULL) {
-		  fprintf(logfp,"%d#\tmail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)\n",
-			  pid, "policy", errno, strerror(errno));
+		  type(NULL,0,NULL,
+		       "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
+		       "policy", errno, strerror(errno));
+		  fflush(logfp);
 		}
 		type(SS, 452, m430, "Message file disposition failed");
 		SS->mfp = NULL;
@@ -401,7 +406,7 @@ const char *buf, *cp;
 	    type(SS, 250, "2.6.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
 		 taspid, bdata_chunksize, (long) tell);
 	    if (logfp)
-		fprintf(logfp, "%d#\t-- pipeline input: %d bytes\n", pid, s_hasinput(SS));
+		type(NULL,0,NULL,"-- pipeline input: %d bytes",s_hasinput(SS));
 
 	    if (smtp_syslog)
 	      zsyslog((LOG_INFO,
@@ -409,8 +414,8 @@ const char *buf, *cp;
 		       SS->rhostname, SS->rport));
 
 	    if (logfp != NULL) {
-		fprintf(logfp, "%d#\t%s: %ld bytes\n", pid, taspid, tell);
-		fflush(logfp);
+	      type(NULL,0,NULL,"s: %ld bytes", taspid, tell);
+	      fflush(logfp);
 	    }
 	}
     } else {			/* Not last chunk! */
@@ -737,11 +742,11 @@ char *msg;
 	    if (X_translation && X_8bit && ct_is_text && (X_settrrc == 0))
 		do_translate = 1;
 	    if (logfp)
-		fprintf(logfp, "%d#\t(8bit decode: %s, translate: %s) [%s%s,%s]\n", pid,
+	      type(NULL,0,NULL,"(8bit decode: %s, translate: %s) [%s%s,%s]",
 		   do_decode ? "YES" : "NO", do_translate ? "YES" : "NO",
-			X_translation ? "-X " : "",
-			X_8bit ? "-8" : "",
-			ct_is_text ? "text" : "non-text");
+		   X_translation ? "-X " : "",
+		   X_8bit ? "-8" : "",
+		   ct_is_text ? "text" : "non-text");
 	    /* write out content-type and content-transfer-encoding */
 	    if (delay_ct) {
 		if (do_translate) {
@@ -848,13 +853,13 @@ char *msg;
 	  /* Gee... Only SPAMmers (Cyberpromo!) use this .. (I hope..) */
 	  SS->policyresult = FREEZE__X_ADVERTISEMENT_FOUND;
 	  if (logfp)
-	    fprintf(logfp, "%d#\tFound X-Advertisement header\n", pid);
+	    type(NULL,0,NULL,"Found X-Advertisement header");
 	}
 	if (CISTREQN(linebuf, "X-Advertisment:",15)) {
 	  /* Gee... Only SPAMmers (Cyberpromo!) use this .. (I hope..) */
 	  SS->policyresult = FREEZE__X_ADVERTISEMENT_FOUND;
 	  if (logfp)
-	    fprintf(logfp, "%d#\tFound X-Advertisment header\n", pid);
+	    type(NULL,0,NULL,"Found X-Advertisment header");
 	}
 #ifdef USE_ANTISPAM_HACKS
 	if (strncmp(linebuf, "X-UIDL:", 7)==0) {
@@ -875,7 +880,7 @@ char *msg;
 	    if (CISTREQN(s, "(really ", 8)) {
 	      SS->policyresult = FREEZE__IMPROBABLE_RECEIVED_HEADER_FOUND;
 	      if (logfp)
-		fprintf(logfp, "%d#\tImprobable Received header\n", pid);
+		type(NULL,0,NULL,"Improbable Received: header");
 	      break;
 	    }
 	    ++s;
@@ -895,22 +900,22 @@ char *msg;
 	  if (*s != '<') {
 	    SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 	    if (logfp)
-	      fprintf(logfp, "%d#\tNo <> around Message-Id\n", pid);
+	      type(NULL,0,NULL,"No <> around Message-Id");
 	  } else if (s[1] == '@') {
 	    SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 	    if (logfp)
-	      fprintf(logfp, "%d#\tSource route in Message-Id\n", pid);
+	      type(NULL,0,NULL,"Source route in Message-Id:");
 	  } else if (s[1] == '>') {
 	    SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 	    if (logfp)
-	      fprintf(logfp, "%d#\tEmpty Message-Id\n", pid);
+	      type(NULL,0,NULL,"Empty Message-Id:");
 	  } else {
 	    const char *t = rfc821_path(s, 1);
 	    if (s == t) { /* error */
 #ifdef USE_STRICT_MSGID_FREEZING
 	      SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 	      if (logfp)
-		fprintf(logfp, "%d#\tMessage-Id syntax error\n", pid);
+		type(NULL,0,NULL,"Message-Id: syntax error");
 #endif
 	    } else {
 	      while (*t == ' ' || *t == '\t' || *t == '\r' || *t == '\n')
@@ -918,7 +923,7 @@ char *msg;
 	      if (*t) {
 		SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 		if (logfp)
-		  fprintf(logfp, "%d#\tSpurious junk after Message-Id\n", pid, t);
+		  type(NULL,0,NULL,"Spurious junk after Message-Id:");
 	      }
 	    }
 	  }
@@ -1016,7 +1021,7 @@ char *msg;
 	col = 0;
     }
     if (logfp && verbose)
-	fprintf(logfp, "%d#\t(mail_priority=%d)\n", pid, mail_priority);
+      type(NULL,0,NULL,"(mail_priority=%d)", mail_priority);
 #endif
 
     /* ================ Normal email BODY input.. ================ */

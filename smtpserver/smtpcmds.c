@@ -592,8 +592,8 @@ int insecure;
     if (logfp) {
       char *ss = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || ss != NULL) {
-	fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
-		SS->policyresult, (ss ? ss : "<NONE!>"));
+	type(NULL,0,NULL,"-- policy result=%d, msg: %s",
+	     SS->policyresult, (ss ? ss : "<NONE!>"));
 	fflush(logfp);
       }
     }
@@ -997,8 +997,8 @@ const char *buf, *cp;
     if (logfp) {
       char *ss = policymsg(policydb, &SS->policystate);
       if (SS->policyresult != 0 || ss != NULL) {
-	fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
-		SS->policyresult, (ss ? ss : "<NONE!>"));
+	type(NULL,0,NULL,"-- policy result=%d, msg: %s",
+	     SS->policyresult, (ss ? ss : "<NONE!>"));
 	fflush(logfp);
       }
     }
@@ -1019,8 +1019,8 @@ const char *buf, *cp;
 	    if (logfp) {
 	      char *ss = policymsg(policydb, &SS->policystate);
 	      if (SS->policyresult != 0 || ss != NULL) {
-		fprintf(logfp, "%d#\t-- policy result=%d, msg: %s\n", pid,
-			SS->policyresult, (ss ? ss : "<NONE!>"));
+		type(NULL,0,NULL,"-- policy result=%d, msg: %s",
+		     SS->policyresult, (ss ? ss : "<NONE!>"));
 		fflush(logfp);
 	      }
 	    }

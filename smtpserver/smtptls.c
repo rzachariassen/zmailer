@@ -123,8 +123,8 @@ tls_print_errors()
 {
     unsigned long l;
     char    buf[256];
-    char   *file;
-    char   *data;
+    const char *file;
+    const char *data;
     int     line;
     int     flags;
     unsigned long es;
@@ -365,13 +365,13 @@ tls_dump(s, len)
 
 /* taken from OpenSSL apps/s_cb.c */
 
-static long bio_dump_cb __((BIO * bio, int cmd, char *argp, int argi, long argl, long ret));
+static long bio_dump_cb __((BIO * bio, int cmd, const char *argp, int argi, long argl, long ret));
 
 static long
 bio_dump_cb(bio, cmd, argp, argi, argl, ret)
      BIO * bio;
      int cmd;
-     char *argp;
+     const char *argp;
      int argi;
      long argl;
      long ret;
@@ -589,6 +589,13 @@ start_servertls(SS)
     }
     SS->sslmode = 1;
     type(NULL,0,NULL,"TLS connection established");
+    {
+      SSL_CIPHER *cp = SSL_get_current_cipher(SS->ssl);
+      int n, cb;
+      cb = SSL_CIPHER_get_bits(cp, &n);
+      type(NULL,0,NULL,"Cipher: %s bits: %d/%d version: %s",
+	   SSL_CIPHER_get_name(cp), cb, n, SSL_CIPHER_get_version(cp));
+    }
     return (0);
 }
 #endif
