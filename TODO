@@ -1,7 +1,20 @@
-transports/mailbox:
-	Create "X-UIDL:" header, and delete any incoming one..
-
 Known/suspected bugs/Missing Features on current Zmailer sources
+
+router:
+	Have separate queueing processor feeding actual routers
+	to take care of the problem related to message priorities.
+	Could implement:  high/normal/bulk/junk priorities which
+	contains ways to be able to process messages from different
+	work categories without causing starvation of some class
+	queue; E.g. at least one router per class, but if some
+	class is (momentrarily) empty, its router can work other
+	class jobs.
+
+router + TA library + TA programs:
+	Router to scan message MIME structure, and to store that
+	into dense consise format which doesn't need prerescan of
+	the message *body* for every delivery attempt in case some
+	"in-flight" data conversions are desired.
 
 - Somewhere ? (smtpserver, and perhaps smtp transport agent ?)
 	Implement OUTBOUND message size limit mechanism.

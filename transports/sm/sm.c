@@ -672,9 +672,12 @@ deliver(dp, mp, startrp, endrp, verboselog)
  	/* Add the "Return-Path:" is it is desired, but does not yet
 	   exist.. */
 	if (mp->flags & MO_RETURNPATH) {
-	  char **hdrs = has_header(startrp,"Return-Path:");
 	  const char *uu = startrp->addr->link->user;
-	  if (hdrs) delete_header(startrp, hdrs);
+	  char **hdrs;
+	  do {
+	    hdrs = has_header(startrp,"Return-Path:");
+	    if (hdrs) delete_header(startrp, hdrs);
+	  } while (hdrs);
 	  if (strcmp(startrp->addr->link->channel,"error")==0)
 	    uu = "";
 	  append_header(startrp,"Return-Path: <%.999s>", uu);
@@ -693,7 +696,8 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	}
 
 	/* append message body itself */
-	if ((i = appendlet(dp, mp, tafp, verboselog, convertmode)) != EX_OK) {
+	i = appendlet(dp, mp, tafp, verboselog, convertmode);
+	if (i != EX_OK) {
 	  for (rp = startrp; rp != endrp; rp = rp->next) {
 	    notaryreport(rp->addr->user,"failed",
 			 /* Could indicate: 4.3.1 - mail system full ?? */

@@ -1,8 +1,27 @@
+1999-05-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* compat/sendmail/sendmail.c, include/mail.h.in,
+	  smtpserver/smtpdata.c:
+	    Define  _MAILPRIO_HIGH, and sense it in inputs, plus
+	    sense "Precedence: high/normal/bulk/junk" to set the
+	    mail_priority of  zmailer(3) library.
+
+	* transports/mailbox/mailbox.c:
+	    Implemented X-UIDL: header for POP3 UIDL command support;
+	    may some day have option which disables creation of that
+	    local storage string..
+	    Also, did same thing as  sm.c below:
+
+	* transports/sm/sm.c:
+	    Cleaned up (a bit) certain  has_header()/delete_header()
+	    processing so that all possible multiple instances of same
+	    ``header to be deleted'' will be deleted.
+
 1999-05-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/fdstatfs.c:
 	    A sidestep to a problem with  fstatvfs()  at glibc 2.1.1
-	    at Linux/i386/2.1.122 kernel (any 2.2.* I guess.)
+	    at Linux/i386/2.1.122 kernel (any 2.2.* kernel, I guess.)
 
 	* configure.in, smtpserver/Makefile.in:
 	    Autoconfigure "-lcrypt" library for the use at  @GETPWLIB@

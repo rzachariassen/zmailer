@@ -92,6 +92,7 @@ extern int    mail_close_alternate __((FILE *fp, const char *where, const char *
 extern int   _mail_close_ __((FILE *fp, int *inop, time_t *mtimep));
 extern int    mail_close __((FILE *fp));
 
+#define _MAILPRIO_HIGH	 0
 #define _MAILPRIO_NORMAL 0
 #define _MAILPRIO_BULK   1
 #define _MAILPRIO_JUNK   9

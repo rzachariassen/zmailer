@@ -302,6 +302,11 @@ long eofindex  = -1;		/* When negative, putmail() can't truncate() */
 int  dirhashes = 0;
 int  pjwhashes = 0;
 int  canonify_user = 0;
+int  do_xuidl = 1;		/* Store our own  X-UIDL: header to allow
+				   POP3 server to have some unique id for
+				   the messages..  IMAP4 does require
+				   something different -- 32-bit unique
+				   counter..  See RFC 2060 for IMAP4. */
 
 extern RETSIGTYPE wantout __((int));
 extern int optind;
@@ -1773,24 +1778,42 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	  fromuser = "MAILER-DAEMON";
 
 	{
-	  char **hdrs = has_header(rp,"Return-Path:");
-	  if (hdrs) delete_header(rp,hdrs);
+	  char **hdrs;
+
+	  do {
+	    hdrs = has_header(rp,"Return-Path:");
+	    if (hdrs) delete_header(rp,hdrs);
+	  } while (hdrs);
+
 	  append_header(rp,"Return-Path: <%.999s>", fromuser);
 
 	  hdrs = has_header(rp,"To:");
 	  if (!hdrs) {
 	    /* No "To:" -header ?  Rewrite possible "Apparently-To:" header! */
+
 	    /* Sendmailism... */
-	    hdrs = has_header(rp,"Apparently-To:");
-	    if (hdrs) delete_header(rp,hdrs);
+	    do {
+	      hdrs = has_header(rp,"Apparently-To:");
+	      if (hdrs) delete_header(rp,hdrs);
+	    } while (hdrs);
+
 	    append_header(rp,"Apparently-To: <%.999s>", rp->addr->link->user);
 	  }
 
-	  hdrs = has_header(rp,"X-Orcpt:");
-	  if (hdrs) delete_header(rp,hdrs);
+	  do {
+	    hdrs = has_header(rp,"X-Orcpt:");
+	    if (hdrs) delete_header(rp,hdrs);
+	  } while (hdrs);
 
-	  hdrs = has_header(rp,"X-Envid:");
-	  if (hdrs) delete_header(rp,hdrs);
+	  do {
+	    hdrs = has_header(rp,"X-Envid:");
+	    if (hdrs) delete_header(rp,hdrs);
+	  } while (hdrs);
+
+	  do {
+	    hdrs = has_header(rp,"X-UIDL:");
+	    if (hdrs) delete_header(rp,hdrs);
+	  } while (hdrs);
 	}
 
 	/* Add the From_ line and print out the header */
@@ -1808,6 +1831,13 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	  fprintf(fp, "X-Envid: ");
 	  decodeXtext(fp, dp->envid);
 	  fprintf(fp, "\n");
+	}
+	if (do_xuidl) {
+	  struct timeval tv;
+	  gettimeofday(&tv, NULL);
+
+	  fprintf(fp, "X-UIDL: %ld.%ld.%d\n",
+		  (long)tv.tv_sec, (long)tv.tv_usec, (int)getpid());
 	}
 	fprintf(fp, "\n");
 

@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-1998.
+ *      Copyright 1991-1999.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -930,10 +930,14 @@ char *msg;
 		++s;
 	    if ((eol - s) < 4)
 		continue;	/* Hmm.. */
-	    if (CISTREQN("junk", s, 4))
+	    if (CISTREQN("high", s, 4))
+		mail_priority = _MAILPRIO_HIGH;
+	    else if (CISTREQN("junk", s, 4))
 		mail_priority = _MAILPRIO_JUNK;
 	    else if (CISTREQN("bulk", s, 4))
 		mail_priority = _MAILPRIO_BULK;
+	    else if (((eol - s) >= 6) && CISTREQN("normal", s, 6))
+		mail_priority = _MAILPRIO_NORMAL;
 	}
 #ifdef USE_TRANSLATION
 	if (X_translation && (X_settrrc == 0)) {

@@ -175,7 +175,7 @@ void smtp_auth(SS,buf,cp)
     if (debug)
       type(SS, 0, NULL, "-> %s", bbuf);
 
-    if (zpwmatch(uname, bbuf)) {
+    if (zpwmatch(uname, bbuf) > 0) {
 	SS->authuser = uname;
 	type(SS, 253, NULL, "Authentication successfull");
     } else {

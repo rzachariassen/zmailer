@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Feature maintenance by  Matti Aarnio <mea@nic.funet.fi> 1991-1996
+ *	Feature maintenance by  Matti Aarnio <mea@nic.funet.fi> 1991-1999
  *
  */
 
@@ -124,8 +124,8 @@ void usage()
      -q*          -  queue processing commands (ignored)\n\
      -r fromaddr  -  (alternate for -f)\n\
      -t           -  scan message rfc822 headers for recipient addresses\n\
-     -v           -  verbose trace of processing\n");
-  
+     -v           -  verbose trace of processing\n\
+");
 }
 
 
@@ -166,8 +166,6 @@ main(argc, argv)
 	umask(022);
 
 	mailpriority = getenv("MAILPRIORITY");
-	if (mailpriority)
-	  mail_priority = atoi(mailpriority);
 
 	/* Pick up the sender's idea about C-chartype.. */
 	LC_ctype = getenv("LC_CTYPE");
@@ -352,7 +350,7 @@ main(argc, argv)
 			}
 			break;
 		case 'P':
-			mail_priority = atoi(optarg);
+			mailpriority = optarg;
 			break;
 		case 'V':
 			envidstr = optarg;
@@ -369,6 +367,23 @@ main(argc, argv)
 		}
 	}
 
+	mail_priority = _MAILPRIO_NORMAL;
+	if (mailpriority) {
+	  mail_priority = atoi(mailpriority);
+	  if (mail_priority < 0) {
+	    /* Some word ?? */
+	    if (cistrcmp(mailpriority,"high")==0)
+	      mail_priority = _MAILPRIO_HIGH;
+	    else if (cistrcmp(mailpriority,"normal")==0)
+	      mail_priority = _MAILPRIO_NORMAL;
+	    else if (cistrcmp(mailpriority,"bulk")==0)
+	      mail_priority = _MAILPRIO_BULK;
+	    else if (cistrcmp(mailpriority,"junk")==0)
+	      mail_priority = _MAILPRIO_JUNK;
+	    else
+	      mail_priority = _MAILPRIO_NORMAL;
+	  }
+	}
 	/* Make sure the submission priority is >= 0  */
 	if (mail_priority < 0) mail_priority = 0;
 
