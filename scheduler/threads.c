@@ -1585,22 +1585,25 @@ void thread_report(fp,mqmode)
 	    if (thg->threads != cnt)
 	      sfprintf(fp,"/%d",cnt);
 
-	    sfprintf(fp, " Msgs: %5d Procs: %3d", jobsum, thg->transporters);
-
-	    if (thg->transporters != procs)
-	      sfprintf(fp,"/%d",procs);
 	  }
 
 	  cnt = 0;
 	  for (p = thg->idleproc; p != 0; p = p->pnext) ++cnt;
+	  procs += cnt;
 
 	  if (mqmode & (MQ2MODE_FULL | MQ2MODE_QQ)) {
+
+	    sfprintf(fp, " Msgs: %5d Procs: %3d", jobsum, thg->transporters);
+
+	    if (thg->transporters != procs)
+	      sfprintf(fp,"/%d",procs);
+
 	    sfprintf(fp," Idle: %3d",thg->idlecnt);
 	    if (thg->idlecnt != cnt)
 	      sfprintf(fp, "/%d", cnt);
 
-	    sfprintf(fp, " Plim: %3d Flim: %3d\n",
-		     thg->ce.maxkidThreads,thg->ce.overfeed);
+	    sfprintf(fp, " Plim: %3d Flim: %3d Tlim: %d\n",
+		     thg->ce.maxkidThreads, thg->ce.overfeed, thg->ce.maxkidThread);
 	  }
 
 	  jobtotal  += jobsum;
