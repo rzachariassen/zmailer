@@ -60,9 +60,11 @@ int first_uid = 0;		/* Make the opening connect with the UID of the
 
 int D_alloc = 0;		/* Memory usage debug */
 int no_pipelining = 0;		/* In case the system just doesn't cope with it */
+#if defined(AF_INET6) && defined(INET6)
+int use_ipv6 = 1;
 int prefer_ip6 = 1;
+#endif
 int close_after_data = 0;
-
 
 #ifdef HAVE_OPENSSL
 int demand_TLS_mode = 0;	/* Demand TLS */
@@ -411,6 +413,15 @@ main(argc, argv)
 	SIGNAL_IGNORE(SIGPIPE);
 	timeout = timeout_cmd;
 
+#if defined(AF_INET6) && defined(INET6)
+	{
+	  int sk = socket(AF_INET6, SOCK_STREAM, 0);
+	  if (sk > 0) close(sk);
+	  if (sk < 0)
+	    use_ipv6 = 0; /* No go :-(  Can't create IPv6 socket */
+	}
+#endif
+
 	progname = PROGNAME;
 	errflg = 0;
 	channel = CHANNEL;
@@ -545,9 +556,11 @@ main(argc, argv)
 	  case 'Z':  /* Dummy option to carry HUGE parameter string for
 			the report system to make sense.. at OSF/1, at least */
 	    break;
+#if defined(AF_INET6) && defined(INET6)
 	  case '6':
 	    prefer_ip6 = !prefer_ip6;
 	    break;
+#endif
 	  case 'S':
 	    /* -S /path/to/SmtpSSL.conf */
 #ifdef HAVE_OPENSSL
@@ -2142,11 +2155,12 @@ smtpconn(SS, host, noMX)
 	    r = getaddrinfo(host, "smtp", &req, &ai);
 #else
 	    r = _getaddrinfo_(host, "smtp", &req, &ai, SS->verboselog);
-if (SS->verboselog)
-  fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
+
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
 #endif
 #if defined(AF_INET6) && defined(INET6)
-	    {
+	    if (use_ipv6) {
 	      struct addrinfo *ai2 = NULL, *a;
 	      int i2;
 	      memset(&req, 0, sizeof(req));
@@ -4125,7 +4139,7 @@ report(va_alist)
 
 typedef union {
 	HEADER qb1;
-	char qb2[PACKETSZ];
+	char qb2[8000];
 } querybuf;
 
 int
@@ -4137,9 +4151,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 {
 	HEADER *hp;
 	msgdata *eom, *cp;
-	querybuf qbuf, answer;
 	struct mxdata mxtemp;
-	msgdata buf[8192], realname[8192];
 	int qlen, n, i, j, nmx, qdcount, ancount, nscount, arcount, maxpref;
 	int class;
 	u_short type;
@@ -4147,6 +4159,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	int ttl;
 	int had_eai_again = 0;
 	struct addrinfo req, *ai;
+	querybuf qbuf, answer;
+	msgdata buf[8192], realname[8192];
 
 	h_errno = 0;
 
@@ -4205,6 +4219,13 @@ getmxrr(SS, host, mx, maxmx, depth)
 	ancount = ntohs(hp->ancount);
 	nscount = ntohs(hp->nscount);
 	arcount = ntohs(hp->arcount);
+
+	if (SS->verboselog)
+	  fprintf(SS->verboselog, "DNS lookup reply: len=%d rcode=%d qdcount=%d ancount=%d nscount=%d arcount=%d RD=%d TC=%d AA=%d QR=%d CD=%d AD=%d RA=%d\n",
+		  n, hp->rcode, ntohs(hp->qdcount), ntohs(hp->ancount),
+		  ntohs(hp->nscount), ntohs(hp->arcount),
+		  hp->rd, hp->tc, hp->aa, hp->qr, hp->cd, hp->ad, hp->ra);
+
 	if (hp->rcode != NOERROR || ancount == 0) {
 	  switch (hp->rcode) {
 	  case NXDOMAIN:
@@ -4214,12 +4235,16 @@ getmxrr(SS, host, mx, maxmx, depth)
 	     * change to return EX_TEMPFAIL iff hp->aa == 0.
 	     */
 	    sprintf(SS->remotemsg, "smtp; 500 (DNS: no such domain: %.200s)", host);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog," NXDOMAIN %s\n", SS->remotemsg);
 	    endtime = now;
 	    notary_setxdelay((int)(endtime-starttime));
 	    notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
 	    return EX_NOHOST;
 	  case SERVFAIL:
 	    sprintf(SS->remotemsg, "smtp; 500 (DNS: server failure: %.200s)", host);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog," SERVFAIL %s\n", SS->remotemsg);
 	    endtime = now;
 	    notary_setxdelay((int)(endtime-starttime));
 	    notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
@@ -4231,12 +4256,17 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  case NOTIMP:
 	  case REFUSED:
 	    sprintf(SS->remotemsg, "smtp; 500 (DNS: unsupported query: %.200s)", host);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog," FORMERR/NOTIMP/REFUSED(%d) %s\n",
+		      hp->rcode, SS->remotemsg);
 	    endtime = now;
 	    notary_setxdelay((int)(endtime-starttime));
 	    notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
 	    return EX_NOPERM;
 	  }
 	  sprintf(SS->remotemsg, "smtp; 500 (DNS: unknown error, MX info unavailable: %.200s)", host);
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog,"  %s\n", SS->remotemsg);
 	  endtime = now;
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
@@ -4322,6 +4352,11 @@ getmxrr(SS, host, mx, maxmx, depth)
 	       by using TCP! */
 	    /* FIXME: FIXME! FIXME! Truncated reply handling! */
 	  }
+
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog,"  left-over ANCOUNT=%d != 0! TC=%d\n",
+		    ancount, hp->tc);
+
 	  return EX_TEMPFAIL; /* FIXME?? FIXME?? */
 	}
 
@@ -4397,7 +4432,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	  if (type == T_A
 #if defined(AF_INET6) && defined(INET6)
-	      || type == T_AAAA
+	      || (type == T_AAAA && use_ipv6)
 #endif
 	      ) {
 
@@ -4498,7 +4533,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 #endif
 
 #if defined(AF_INET6) && defined(INET6)
-	  {
+	  if (use_ipv6) {
 	    struct addrinfo *ai2 = NULL, *a;
 	    int n2;
 	    memset(&req, 0, sizeof(req));

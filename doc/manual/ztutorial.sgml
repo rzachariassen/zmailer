@@ -678,5 +678,163 @@ been showing their age and their limits.  ZMailer is intended to give the
 mail administrator a software tool that fits the times.
 </PARA>
 
+
+<SECT1><TITLE>Feature comparisons of MTAs</TITLE>
+
+<ABSTRACT>
+<PARA>
+This section is adapted from <EMAIL>motonori@wide.ad.jp</EMAIL>'s
+MTA comparison experiment report at 
+<ULINK URL="http://www.kyoto.wide.ad.jp/mta/eval1/eindex.html"><CITETITLE>http://www.kyoto.wide.ad.jp/mta/eval1/eindex.html</CITETITLE></ULINK>
+</PARA>
+</ABSTRACT>
+
+<TABLE FRAME=ALL><TITLE>MTA feature comparisons</TITLE>
+<TGROUP COLS=3 ALIGN=LEFT COLSEP=1 ROWSEP=1>
+<COLSPEC COLNAME=C1-MTANAME>
+<COLSPEC COLNAME=C2-DNS-CONC>
+<COLSPEC COLNAME=C3-SMTP-CONC>
+<COLSPEC COLNAME=C4-SMTP-PGB>
+<THEAD>
+<ROW>
+  <ENTRY>MTA name</ENTRY>
+  <ENTRY>DNS Concurrency</ENTRY>
+  <ENTRY>SMTP Concurrency</ENTRY>
+  <ENTRY>SMTP Pickybacking</ENTRY>
+</ROW>
+</THEAD>
+<!-- <TFOOT>
+    </TFOOT> -->
+<TBODY>
+<ROW>
+  <ENTRY>ZMailer 2.99.53</ENTRY>
+  <ENTRY>Good (fork, AD-data)</ENTRY>
+  <ENTRY>Good (fork)</ENTRY>
+  <ENTRY>Weak (domain only)</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>PostFix beta 19990122-pl01</ENTRY>
+  <ENTRY>? (?)</ENTRY>
+  <ENTRY>Good (fork)</ENTRY>
+  <ENTRY>Weak (by domain)</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>sendmail 8.9.3</ENTRY>
+  <ENTRY>No (partial)</ENTRY>
+  <ENTRY>No</ENTRY>
+  <ENTRY>Good (MX list)</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>qmail 1.03</ENTRY>
+  <ENTRY>Good (fork)</ENTRY>
+  <ENTRY>Good (fork)</ENTRY>
+  <ENTRY>None</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>smail 3.2.0.101</ENTRY>
+  <ENTRY>No (AD-data)</ENTRY>
+  <ENTRY>No</ENTRY>
+  <ENTRY>Weak (by domain)</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>exim 2.053</ENTRY>
+  <ENTRY>No (AD-data)</ENTRY>
+  <ENTRY>Good (fork)</ENTRY>
+  <ENTRY>Excellent (by MX hosts)</ENTRY>
+</ROW>
+<ROW>
+  <ENTRY>SMTPfeed 0.95</ENTRY>
+  <ENTRY>Good (threaded, AD-data)</ENTRY>
+  <ENTRY>Good (threaded)</ENTRY>
+  <ENTRY>Excellent (by MX hosts)</ENTRY>
+</ROW>
+</TBODY>
+</TGROUP>
+</TABLE>
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>DNS Concurrency</TERM>
+<LISTITEM><PARA>
+The ``DNS Concurrency'' exists in a few forms:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Good</TERM><LISTITEM><PARA>
+Concurrent
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>No</TERM><LISTITEM><PARA>
+Not concurrent
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>threaded</TERM><LISTITEM><PARA>
+Single process doing it all via threads
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>fork</TERM><LISTITEM><PARA>
+DNS lookups happen at forked subprocess
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>partial</TERM><LISTITEM><PARA>
+sendmail does MX RR lookups before any SMTP deliveries, and
+the A RR queries are made only when connection for some server
+is desired.
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>AD-Data</TERM><LISTITEM><PARA>
+DNS reply ``ADDITIONAL SECTION'' data is used so that in
+most cases the MTA does not need to ask for more data (A-records)
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>SMTP Concurrency</TERM>
+<LISTITEM><PARA>
+The ``SMTP Concurrency'' exists in a few forms:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Good</TERM><LISTITEM><PARA>
+Several parallel transmissions are happening
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>No</TERM><LISTITEM><PARA>
+Operation is serialized
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>threaded</TERM><LISTITEM><PARA>
+Single process doing it all via threads
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>fork</TERM><LISTITEM><PARA>
+SMTP connections are done by forked subprocesses
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>SMTP Pickybacking</TERM>
+<LISTITEM><PARA>
+In which way the MTA bundles together transmitted messages
+into as few SMTP sessions as possible:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Excellent (by MX hosts)</TERM><LISTITEM><PARA>
+If two destination domains for possibly several messages can be
+delivered via same remote end server as they have same server host
+in their MXes, deliver both addresses/messages via the lowest of
+the same MX servers.
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Good (MX list)</TERM><LISTITEM><PARA>
+If two destination domains have same list of MX servers in similar
+precedence order, deliver those messages thru same connection.
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Weak (by domain)</TERM><LISTITEM><PARA>
+Deliver only those messages which recipients have same domain thru
+same SMTP connection
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>None</TERM><LISTITEM><PARA>
+Deliver each message/destination individually, no parallellism at all.
+</PARA><PARA>
+In fact the <APPLICATION>qmail</APPLICATION> delivers each
+<EMPHASIS>recipient</EMPHASIS> in separate SMTP connections.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM></VARLISTENTRY>
+
+</VARIABLELIST>
+
+<PARA>
+placeholder text
+</PARA>
+
+</SECT1>
+
 </CHAPTER>
 </PART>
