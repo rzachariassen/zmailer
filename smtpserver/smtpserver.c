@@ -1900,12 +1900,16 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     } else
 	c = ' ';
 
-    if (code >= 999)
-      sprintf(buf, "000%c", c);
-    else
-      sprintf(buf, "%03d%c", code, c);
-    if (enhancedstatusok && status && status[0] != 0)
-      sprintf(buf+4, "%s ", status);
+    if (!SS)
+      *buf = 0;
+    else {
+      if (code >= 999)
+	sprintf(buf, "000%c", c);
+      else
+	sprintf(buf, "%03d%c", code, c);
+      if (enhancedstatusok && status && status[0] != 0)
+	sprintf(buf+4, "%s ", status);
+    }
     s = strlen(buf)+buf;
 
     switch (code && SS) {
