@@ -502,7 +502,9 @@ otherprog:
 
 		RFC821_822QUOTE(newcp,from);
 
-		if (from != NULL && *from != '\0')
+		if (from != NULL && strcmp(from,"<>") == 0)
+		  fprintf(mfp, "channel error\n");
+		else if (from != NULL && *from != '\0')
 		  fprintf(mfp, "from %s\n", from);
 
 		if (newcp) free((void*)newcp); newcp = NULL;
