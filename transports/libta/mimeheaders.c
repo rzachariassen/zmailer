@@ -758,10 +758,9 @@ parse_content_type(ct_line)
 	       or what shall we do ? */
 	  }
 	  p = skip_822linearcomments(s);
-	  if (!p || !*p) return ct;
-	  s = p;
-	  p = skip_mimetoken(s);
-	  if (p == s && *p == 0) break; /* Nothing anymore */
+	  if (!p || !*p) break;
+	  s = skip_mimetoken(p);
+	  if (p == s && *s == 0) break; /* Nothing anymore */
 
 	  paramname = foldmalloccopy(p, s);
 
@@ -771,12 +770,10 @@ parse_content_type(ct_line)
 		charset = "foo-bar"
 	     That is, it had whitespaces around the "=" sign. */
 
-	  s = skip_822linearcomments(p);
+	  s = skip_822linearcomments(s);
 
 	  if (*s == '=') {	    /* What if no `=' ?? */
 	    ++s;
-	  } else {
-	    ++s; /* d'uh ??? */
 	  }
 	  p = skip_822linearcomments(s);
 
