@@ -1,11 +1,12 @@
 /*
 	Libc fill-in for ZMailer using IPv6 API
-	by Matti Aarnio <mea@nic.funet.fi> 1997
+	by Matti Aarnio <mea@nic.funet.fi> 1997, 2001
 
 	The original Craig Metz code is deeply Linux specific,
 	this adaptation tries to be way more generic..
 */
 
+#include "../config.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <netdb.h>
@@ -16,6 +17,8 @@
 #ifndef __STDC__
 # define const
 #endif
+
+#ifndef HAVE_GAI_STRERROR
 
 /*
 %%% copyright-cmetz-97
@@ -60,3 +63,5 @@ int errnum;
       return buffer;
   }
 }
+
+#endif

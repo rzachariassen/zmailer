@@ -1,3 +1,14 @@
+2001-05-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* smtpserver/smtpetrn.c:
+	    Tell to the remote scheduler [source.ip.address]@mynodename
+	    when issueing ETRN thru MQ2 mechanism.
+	    Helps to hunt down cases where lots of ETRN requests are
+	    appearing into the scheduler.
+
+	* configure.in, libc/gai_strerror.c:
+	    Problems at compling "replacement-ipv6-libc" with RH 7.1 libc.
+
 2001-05-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* ssl/Makefile.in, ssl/ssl.c, ssl/ssl:sst.[ch], ssl/ssl_sst.[ch]:

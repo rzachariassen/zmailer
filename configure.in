@@ -1395,6 +1395,7 @@ ac_with_ipv6_replacement_libc=0
 AC_ARG_WITH(ipv6-replacement-libc, [  --with-ipv6-replacement-libc If system has broken  getaddrinfo() and friends],
 	ac_with_ipv6_replacement_libc=1)
 
+AC_CHECK_FUNCS(inet_ntop inet_pton getaddrinfo getnameinfo gai_strerror)
 if test "$ac_with_ipv6_replacement_libc" = 1 ; then
   LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o gai_strerror.o"
   AC_SUBST(LIBOBJS)
@@ -1409,7 +1410,7 @@ else
   LIBS="$LIBS $LIBSOCKET"
 
   #  Following stuff may exist in our LIBC, or in separate -linet6
-  AC_CHECK_FUNCS(inet_ntop inet_pton getaddrinfo getnameinfo gai_strerror)
+ # AC_CHECK_FUNCS(inet_ntop inet_pton getaddrinfo getnameinfo gai_strerror)
   #  If not found in LIBC, try to use  -linet6,  if it fails too,
   #  THEN call the AC_REPLACE_FUNCS()
   if test "$ac_cv_func_gai_strerror" = no ; then

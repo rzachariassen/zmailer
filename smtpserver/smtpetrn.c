@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2000.
+ *      Copyright 1991-2001.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -291,7 +291,7 @@ const char *name, *cp;
       goto failure_exit;
     }
 
-    fprintf(fpo,"ETRN %s %s\n", cp, SS->ihostaddr);
+    fprintf(fpo,"ETRN %s %s@%s\n", cp, SS->ihostaddr, SS->myhostname);
     if (fflush(fpo) || ferror(fpo)) {
       type(SS,-250,m200,"MQ2-ETRN write failure occurred");
       goto failure_exit;

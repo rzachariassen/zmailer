@@ -10217,46 +10217,16 @@ if test "${with_ipv6_replacement_libc+set}" = set; then
   ac_with_ipv6_replacement_libc=1
 fi;
 
-if test "$ac_with_ipv6_replacement_libc" = 1 ; then
-  LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o gai_strerror.o"
-
-  cat >>confdefs.h <<\EOF
-#define HAVE_GETNAMEINFO 1
-EOF
-
-  cat >>confdefs.h <<\EOF
-#define HAVE_GETADDRINFO 1
-EOF
-
-  cat >>confdefs.h <<\EOF
-#define HAVE__GETADDRINFO_ 1
-EOF
-
-  cat >>confdefs.h <<\EOF
-#define HAVE_INET_NTOP 1
-EOF
-
-  cat >>confdefs.h <<\EOF
-#define HAVE_INET_PTON 1
-EOF
-
-else
-
-  t_oldLibs="$LIBS"
-  LIBS="$LIBS $LIBSOCKET"
-
-  #  Following stuff may exist in our LIBC, or in separate -linet6
-
 for ac_func in inet_ntop inet_pton getaddrinfo getnameinfo gai_strerror
 do
 ac_ac_var=`echo "ac_cv_func_$ac_func" | $ac_tr_sh`
-echo "$as_me:10253: checking for $ac_func" >&5
+echo "$as_me:10223: checking for $ac_func" >&5
 echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6
 if eval "test \"\${$ac_ac_var+set}\" = set"; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   cat >conftest.$ac_ext <<_ACEOF
-#line 10259 "configure"
+#line 10229 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func (); below.  */
@@ -10287,16 +10257,16 @@ f = $ac_func;
 }
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:10290: \"$ac_link\"") >&5
+if { (eval echo "$as_me:10260: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
-  echo "$as_me:10293: \$? = $ac_status" >&5
+  echo "$as_me:10263: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:10296: \"$ac_try\"") >&5
+  { (eval echo "$as_me:10266: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:10299: \$? = $ac_status" >&5
+  echo "$as_me:10269: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   eval "$ac_ac_var=yes"
 else
@@ -10306,7 +10276,7 @@ eval "$ac_ac_var=no"
 fi
 rm -f conftest$ac_exeext conftest.$ac_ext
 fi
-echo "$as_me:10309: result: `eval echo '${'$ac_ac_var'}'`" >&5
+echo "$as_me:10279: result: `eval echo '${'$ac_ac_var'}'`" >&5
 echo "${ECHO_T}`eval echo '${'$ac_ac_var'}'`" >&6
 if test `eval echo '${'$ac_ac_var'}'` = yes; then
   cat >>confdefs.h <<EOF
@@ -10316,6 +10286,36 @@ EOF
 fi
 done
 
+if test "$ac_with_ipv6_replacement_libc" = 1 ; then
+  LIBOBJS="$LIBOBJS inet_ntop.o inet_pton.o getaddrinfo.o getnameinfo.o gai_strerror.o"
+
+  cat >>confdefs.h <<\EOF
+#define HAVE_GETNAMEINFO 1
+EOF
+
+  cat >>confdefs.h <<\EOF
+#define HAVE_GETADDRINFO 1
+EOF
+
+  cat >>confdefs.h <<\EOF
+#define HAVE__GETADDRINFO_ 1
+EOF
+
+  cat >>confdefs.h <<\EOF
+#define HAVE_INET_NTOP 1
+EOF
+
+  cat >>confdefs.h <<\EOF
+#define HAVE_INET_PTON 1
+EOF
+
+else
+
+  t_oldLibs="$LIBS"
+  LIBS="$LIBS $LIBSOCKET"
+
+  #  Following stuff may exist in our LIBC, or in separate -linet6
+ # AC_CHECK_FUNCS(inet_ntop inet_pton getaddrinfo getnameinfo gai_strerror)
   #  If not found in LIBC, try to use  -linet6,  if it fails too,
   #  THEN call the AC_REPLACE_FUNCS()
   if test "$ac_cv_func_gai_strerror" = no ; then
