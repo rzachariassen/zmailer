@@ -1114,7 +1114,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	int r, rr, e, i;
 
 	rr = -1; /* No successfull write */
-	e = 0;
+	e = errno; /* Whatever the previous one was.. */
 
 #if 1 /* Remove after debug tests */
 	if (SS->verboselog)
