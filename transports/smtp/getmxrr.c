@@ -472,16 +472,20 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET) -> r=%d (%s), ai=%p\n",
 		      mx[i].host, n, gai_strerror(n), ai);
+#if 0
 	    if (n) {
 	      zsyslog((LOG_INFO,"getmxrr('%s') mx[%d]='%s' getaddrinfo(INET) rc=%d",
 		       host, i, mx[i].host, n));
 	    }
-
+#endif
 	    switch (n) {
 	    case 0:
 	      break;
 	    case EAI_AGAIN:
 	      had_eai_again = 1;
+	      break;
+	    case EAI_MEMORY:
+	      exit(EX_OSERR);
 	      break;
 	    case EAI_NONAME:
 	    case EAI_FAIL:
@@ -518,16 +522,20 @@ getmxrr(SS, host, mx, maxmx, depth)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') (PF_INET6) -> r=%d (%s), ai=%p\n",
 		      mx[i].host, n2, gai_strerror(n2), ai2);
 
+#if 0
 	    if (n) {
 	      zsyslog((LOG_INFO,"getmxrr('%s') mx[%d]='%s' getaddrinfo(INET6) rc=%d",
 		       host, i, mx[i].host, n));
 	    }
-
+#endif
 	    switch (n2) {
 	    case 0:
 	      break;
 	    case EAI_AGAIN:
 	      had_eai_again = 1;
+	      break;
+	    case EAI_MEMORY:
+	      exit(EX_OSERR);
 	      break;
 	    case EAI_NONAME:
 	    case EAI_FAIL:

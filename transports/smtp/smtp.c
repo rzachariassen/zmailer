@@ -2977,8 +2977,10 @@ rmsgappend(va_alist)
 #endif
 {
 	va_list ap;
-	char *arg;
+	char *args;
+	int   argi;
 	char *cp, *cpend;
+	char ibuf[15];
 #ifdef HAVE_STDARG_H
 	va_start(ap,fmt);
 #else
@@ -2995,7 +2997,7 @@ rmsgappend(va_alist)
 	cpend = SS->remotemsg + sizeof(SS->remotemsg) -1;
 
 	if (SS->prevcmdstate >= 99) /* magic limit.. */
-	  SS->remotemsgs[SS->cmdstate] = SS->remotemsg;
+	  SS->remotemsgs[SS->cmdstate] = cp = SS->remotemsg;
 	if (SS->cmdstate > SS->prevcmdstate)
 	  SS->remotemsgs[SS->cmdstate] = cp;
 
@@ -3006,10 +3008,24 @@ rmsgappend(va_alist)
 
 	if (!fmt) fmt="(NULL)";
 	for (; *fmt != 0; ++fmt) {
-	  if (*fmt == '%' && *++fmt == 's') {
-	    arg = va_arg(ap, char *);
-	    while (*arg && cp < cpend)
-	      *cp++ = *arg++;
+	  if (*fmt == '%') {
+	    int c = *++fmt;
+	    switch (c) {
+	    case 's':
+	      args = va_arg(ap, char *);
+	      while (*args && cp < cpend) *cp++ = *args ++;
+	      break;
+	    case 'd':
+	      argi = va_arg(ap, int);
+	      sprintf(ibuf, "%d", argi);
+	      args = ibuf;
+	      while (*args && cp < cpend) *cp++ = *args ++;
+	      break;
+	    default:
+	      if (cp < cpend) *cp++ = '%';
+	      if (cp < cpend) *cp++ = c;
+	      break;
+	    }
 	  } else
 	    if (cp < cpend)
 	      *cp++ = *fmt;
@@ -3412,6 +3428,9 @@ smtp_sync(SS, r, nonblocking)
 	      if (SS->verboselog)
 		fprintf(SS->verboselog,"Remote hung up on us while %d responses missing\n",
 			SS->pipeindex - idx);
+	      rmsgappend(SS, 1,
+			 "\rremote hung up on us while %d responses missing",
+			 SS->pipeindex - idx);
 	      err = EX_TEMPFAIL;
 	      break;
 	    } else {
@@ -3470,12 +3489,14 @@ smtp_sync(SS, r, nonblocking)
 	  statesave = SS->cmdstate;
 
 	  SS->cmdstate = SS->pipestates[idx];
+	  if (idx == 0 && SS->first_line)
+	    SS->prevcmdstate = 99;
 
 	  if (SS->first_line)
 	    rmsgappend(SS, 0, "\r<<- %s",
 		       SS->pipecmds[idx] ? SS->pipecmds[idx] : "(null)");
 
-	  /* first_line is not exactly complement of continuation_line,
+	  /* first_line is not exactly a complement of continuation_line,
 	     it is rather a more complex entity. */
 
 	  SS->first_line = !SS->continuation_line;

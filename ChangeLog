@@ -1,3 +1,10 @@
+2000-08-29  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/getmxrr.c, transports/smtp/smtp.c:
+	    Remove more old debug statements, make sure that
+	    lack of memory from  getaddrinfo() is handled
+	    properly (e.g. exit(EX_OSERR) -- not best, but..)
+
 2000-08-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* smtpserver/mailq.c:
@@ -8,6 +15,7 @@
 
 	* libc/myhostname.c:
 	    Pick any of my possible addresses, don't specify port.
+	    (We are looking for CANONIC NAME, after all..)
 
 	* smtpserver/smtpdata.c:
 	    Pipelined BDAT after failed MAIL FROM segfaulted
