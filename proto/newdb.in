@@ -1,52 +1,26 @@
-#! /bin/sh
+#! @PERL@
 #
 # See usage below ...
 #
+# FIXME: input file owner/protection should be copied to the db file!
+#
 
-LUOPT=""
-AOPT=""
-SOPT=""
-TOPT=""
-err=0
-while @TRUE@; do
-  case "x$1" in
-  x-l)
-    LUOPT="-l"
-    shift
-    ;;
-  x-la)
-    LUOPT="-l"
-    AOPT="-a"
-    shift
-    ;;
-  x-u)
-    LUOPT="-u"
-    shift
-    ;;
-  x-a)
-    AOPT="-a"
-    shift
-    ;;
-  x-s)
-    SOPT="-s"
-    shift
-    ;;
-  x-t)
-    TOPT="$2"
-    shift; shift;
-    ;;
-  x-*)
-    err=1
-    break
-    ;;
-  *)
-    break
-    ;;
-  esac
-done
+# use strict 'vars';
 
-if [ -z "$1" -o "$err" = 1 ]; then
-  cat <<EOF
+use Getopt::Std;
+
+$LUOPT='';
+$AOPT='';
+$SOPT='';
+$TOPT='';
+$err=0;
+
+%opts = {};
+%ZENV = {};
+
+if (getopts('alsut:', \%opts) || !defined($ARGV[0])) {
+
+    printf(STDERR "
 newdb [-l|-u][-a][-s][-t dbtype] dbfilenamebase [inputfile]
   A wrapper for   makedb  command, which does result file renameing
   in order to avoid need for LOCKING database files for compile time.
@@ -56,53 +30,75 @@ newdb [-l|-u][-a][-s][-t dbtype] dbfilenamebase [inputfile]
     -t dbtype: define what type of DB to use
          where dbtype is one of: btree bhash ndbm dbm gdbm
          see  makedb  for actually supported databases.
-EOF
-  exit 64
-fi
+");
+  exit 64;
+}
 
+$AOPT  = '-a' if (defined $opts{'a'});
+$LUOPT = '-l' if (defined $opts{'l'});
+$LUOPT = '-u' if (defined $opts{'u'});
+$SOPT  = '-t' if (defined $opts{'t'});
+$TOPT  = $opts{'t'} if (defined $opts{'t'});
 
-BASENAME="$1"
-INPUTNAME=${2:-$BASENAME}
+$BASENAME  = $ARGV[0];
+$INPUTNAME = $BASENAME;
+$INPUTNAME = $ARGV[1] if ($ARGV[1]);
 
-ZCONFIG=@ZMAILERCFGFILE@
-. $ZCONFIG
+& pick_zenv();
 
-PATH=/bin:/usr/bin:$PATH # ZMailer router paths are a bit restrictive..
+$MAILBIN = $ZENV{'MAILBIN'};
 
-trap "rm -f $BASENAME.$$*" 0
+# ------------------
 
-if [ -n "$TOPT" ]; then
-  DBTYPE="$TOPT"
-fi
+# trap "rm -f $BASENAME.$$*" 0
 
-$MAILBIN/makedb $LUOPT $AOPT $SOPT $DBTYPE $BASENAME.$$ < $INPUTNAME
+if ( "$TOPT" ) {
+  $ZENV{'DBTYPE'}="$TOPT"
+}
 
-case $? in
-0)	;;
-*)	x=$? ; echo '"'$BASENAME'" rebuilding aborted'
-	rm -f $BASENAME.$$.*
-	exit $x
-	;;
-esac
+$DBTYPE = $ZENV{'DBTYPE'};
+
+if (system("$MAILBIN/makedb $LUOPT $AOPT $SOPT $DBTYPE $BASENAME.$$ < $INPUTNAME")) {
+	$err = $!;
+	printf("'$BASENAME' rebuilding aborted\n");
+	system("rm -f $BASENAME.$$.*");
+	exit $err;
+}
 
 # Now install the files
 
-case "$DBTYPE" in
-btree)
-	mv $BASENAME.$$.db $BASENAME.db
-	;;
-bhash)
-	mv $BASENAME.$$.dbh $BASENAME.dbh
-	;;
-ndbm)
-	mv $BASENAME.$$.dir $BASENAME.dir
-	mv $BASENAME.$$.pag $BASENAME.pag
-	;;
-dbm)
-	mv $BASENAME.$$.dir $BASENAME.dir
-	mv $BASENAME.$$.pag $BASENAME.pag
-	;;
-gdbm)
-	mv $BASENAME.$$.gdbm $BASENAME.gdbm
-	;;
-esac
+
+if ($DBTYPE = 'btree') {
+	system("mv $BASENAME.$$.db $BASENAME.db");
+} elsif ($DBTYPE = 'bhash') {
+	system("mv $BASENAME.$$.dbh $BASENAME.dbh");
+} elsif ($DBTYPE = 'ndbm') {
+	system("mv $BASENAME.$$.pag $BASENAME.pag"); # First PAG, then DIR
+	system("mv $BASENAME.$$.dir $BASENAME.dir");
+} elsif ($DBTYPE = 'dbm') {
+	system("mv $BASENAME.$$.pag $BASENAME.pag"); # First PAG, then DIR
+	system("mv $BASENAME.$$.dir $BASENAME.dir");
+} elsif ($DBTYPE = 'gdbm') {
+	system("mv $BASENAME.$$.gdbm $BASENAME.gdbm");
+}
+
+exit 0;
+
+
+# --------------------
+
+sub pick_zenv {
+
+    my ($ZCONFIG) = '@ZMAILERCFGFILE@';
+
+    open(ZZ, "< ".$ZCONFIG) || die "No ZCONFIG file at '$ZCONFIG'";
+    while (<ZZ>) {
+	chomp;
+	local($n,$l) = split(/=/,$_,2);
+	$ZENV{$n} = $l  if ($n =~ m/^[A-Z0-9a-z]/);
+    }
+    close(ZZ);
+}
+
+
+1;

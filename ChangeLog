@@ -1,5 +1,8 @@
 2000-05-24  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* proto/newdb.in:
+	    Rewritten into PERL(v5) script.
+
 	* smtpserver/rfc821scn.c, smtpserver/smtpcmds.c:
 	    Eugene Crosser wanted to have:  <foo!_bar@some.dom>,
 	    our scanner demanded an alphanum starter character for
