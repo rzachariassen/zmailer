@@ -59,14 +59,13 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 		/* Expand line TABs */
 		int col = 0;
 		p = s;
-		for (; linelen > 0; --linelen, ++s) {
-		  if (*s == '\t')
+		for (; linelen > 0; --linelen, ++p) {
+		  if (*p == '\t')
 		    col += 8 - (col & 7);
 		  else
 		    ++col;
 		}
 		linelen = col;
-		s = p;
 	      }
 
 	      if (*chunkbufp == NULL)
@@ -109,12 +108,16 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 
 	      memcpy( p, newline, newlinelen );
 	      hsize += newlinelen;
+	      p     += newlinelen;
 
 	      /* New sub-line of the header ? */
 	      if (*s == '\n') ++s;
-	    }
-	  }
+
+	    } /* while in some header */
+	  } /* for all headers */
+
 	} else {
+
 	  for (;*msgheaders && !ferror(fp); ++msgheaders) {
 	    char *s = *msgheaders;
 	    while (*s) {
@@ -122,6 +125,7 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	      int linelen = p ? (p - s) : strlen(s);
 
 	      if (*s == '.')
+		/* ferror() not needed to check here.. */
 		fputc('.', fp); /* ALWAYS double-quote the beginning
 				   dot -- though it should NEVER occur
 				   in the headers, but better safe than

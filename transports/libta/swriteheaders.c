@@ -108,12 +108,16 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 
 	      memcpy( p, newline, newlinelen );
 	      hsize += newlinelen;
+	      p     += newlinelen;
 
 	      /* New sub-line of the header ? */
 	      if (*s == '\n') ++s;
-	    }
-	  }
+
+	    } /* while in some header */
+	  } /* for all headers */
+
 	} else {
+
 	  for (;*msgheaders && !sferror(fp); ++msgheaders) {
 	    char *s = *msgheaders;
 	    while (*s) {

@@ -1,5 +1,16 @@
 2000-11-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/libta/fwriteheaders.c, transports/libta/swriteheaders.c:
+	    One subtle bug in BDAT buffering mode left in line-ending
+	    newline handling --> surprising crashes seen.
+
+	* transports/libta/mimeheaders.c:
+	    Reserve a bit more space for coalesced mime-headers
+	    (of "totlen" type).
+
+	* transports/smtp/appendlet.c:
+	    Outch! Messages without Content-Type: header did SIGSEGV!
+
 	* lib/selfaddrs.c:
 	    there is no field called ifr_ifindex, there is: ifr_index
 

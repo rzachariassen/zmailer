@@ -337,7 +337,7 @@ output_content_type(rp,ct,old)
 	len = strlen(buf);
 	linelens[linecnt] = len;
 	lines[linecnt++] = dupnstr(buf, len);
-	totlen += len;
+	totlen += len+1;
 
 	*buf = 0; bp = buf;
 
@@ -429,7 +429,7 @@ output_content_type(rp,ct,old)
 	  /* Found the old entry ?  Skip over it.. */
 	  ++h1;
 	}
-	buf = realloc(buf, totlen + 3);
+	buf = realloc(buf, totlen + 4);
 	bp = buf;
 	for (i = 0; i < linecnt; ++i) {
 	  memcpy(bp, lines[i], linelens[i]);
