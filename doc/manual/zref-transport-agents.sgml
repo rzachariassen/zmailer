@@ -15,6 +15,14 @@ doing to the messages, and what kind of channels they handle.
 <SECT1 ID=zref-ta-mailbox>
 <TITLE><COMMAND>mailbox</></TITLE>
 
+<PARA><SCREEN>
+- All options
+- Internal Logic
+- Tuning issues
+- Customizability
+- Logging ? (or move that to ADM?)
+</SCREEN></PARA>
+
 <PARA>
 The <COMMAND>mailbox</> is a ZMailer transport agent which is usually
 only run by the <COMMAND>scheduler</>(8) program to deliver mail to
@@ -350,6 +358,13 @@ the subprograms it runs in the pipes:
 <SECT1 ID=zref-ta-hold>
 <TITLE><COMMAND>hold</></TITLE>
 
+<PARA><SCREEN>
+- All options
+- Internal Logic
+- Tuning issues
+- Logging ? (or move that to ADM?)
+</SCREEN></PARA>
+
 <PARA>
 <COMMAND>hold</> - zmailer deferred processing transport agent
 </PARA>
@@ -479,6 +494,13 @@ The exit status is a code from
 <SECT1 ID=zref-ta-smtp>
 <TITLE><COMMAND>smtp</></TITLE>
 
+<PARA><SCREEN>
+- All options
+- Internal Logic at conversions
+- SMTP vs. LMTP
+- Tuning issues
+- Logging ? (or move that to ADM?)
+</SCREEN></PARA>
 
 <PARA>
 <COMMAND>smtp</> - zmailer SMTP client transport agent
@@ -677,6 +699,13 @@ When ``Content-Transfer-Encoding:''-header is not present in the headers,
 <SECT1 ID=zref-ta-sm>
 <TITLE><COMMAND>sm</> - zmailer Sendmail compatible transport agent</TITLE>
 
+<PARA><SCREEN>
+- ALL options, comparison against sendmail M-flags
+- Internal Logic (incl. conversions)
+- Tuning issues
+- Logging ? (or move that to ADM?)
+</SCREEN></PARA>
+
 <PARA>
 <COMMAND>sm</> is a ZMailer transport agent which is usually only run by
  the <COMMAND>scheduler(8)</>, to deliver messages by invoking a program
@@ -827,7 +856,7 @@ are ignored, and all others are assumed to follow format shown in figure
 <TITLE>Sample <FILENAME>sm.conf</> file</TITLE>
 <SCREEN>
 #mailer flags program        argument list
-#&ddash;&ddash;&ddash; &ddash;&ddash;- &ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash; &ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;&ddash;
+#====== ====- ============== ================================
 local   mS    sm/localm      localm -r $g $u
 prog    -     /bin/sh        sh -c $u
 tty     rs    /usr/local/to  to $u
@@ -963,6 +992,14 @@ will be replicated as necessary for each recipient.
 <SECT1 ID=zref-ta-expirer>
 <TITLE><COMMAND>expirer</></TITLE>
 
+<PARA><SCREEN>
+- All options
+- Internal Logic
+- Tuning issues
+- Logging ? (or move that to ADM?)
+</SCREEN></PARA>
+
+
 <PARA>
 FIXME! FIMXE!  write me..
 (about the tool to kill out messages from the queue)
@@ -1005,7 +1042,7 @@ Text to be inserted here.
 
 </SECT2>
 
-<SECT2 ID=zref-ta-libta-fucntion-usage-examples>
+<SECT2 ID=zref-ta-libta-function-usage-examples>
 <TITLE>Function usage examples</TITLE>
 
 <PARA>

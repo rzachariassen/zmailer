@@ -1,5 +1,18 @@
 <CHAPTER ID="ZADM-ROUTER"><?dbhtml filename="zadm-router.html">
-<TITLE><COMMAND>Router</> Configuration</TITLE>
+<TITLE><COMMAND>Router</> Administration</TITLE>
+
+<PARA>
+<SCREEN>
+FIXME:
+  - Process picture again ?
+  - Intro to what the router does to the message
+  - How the configuration scripts are loaded
+  - How the standard scripts are tunable by means of databases,
+    specifically 'dbases.conf'
+  - The ROUGHT logic of the standard scripts
+  - What to do if one wants to tune ?
+</SCREEN>
+</PARA>
 
 <PARA>
 The names (determined at compile-time) and interface specifications for the
@@ -22,6 +35,11 @@ The configuration file looks like a <EMPHASIS>Bourne Shell</EMPHASIS>
 script at first glance.  There are minor syntax changes from standard
 <COMMAND>sh</>(1), but the aim is to be as close to the
 <EMPHASIS>Bourne Shell language</EMPHASIS> as is practical.
+In fact some aspects of variable handling are more of PERL style,
+and others are even LISPish.
+</PARA>
+
+<PARA>
 The contents of the file are compiled into bytecode, which can then
 be interpreted by the <COMMAND>router</>.
 The configuration file is usually self-contained, although an easy
@@ -70,7 +88,7 @@ No <FUNCTION>repeat</> statement.
 <LISTITEM><PARA>
 Functions are allowed, parameter lists are allowed. If not enough
 arguments are present in a function call to exhaust the parameter
-list, the so-far unbound parameter variables are bound to <LITERAL>''</>
+list, the so-far unbound parameter variables are bound to <LITERAL>``''</>
 (the empty string) as local variables. For example, this is the identity
 address rewriting function:
 <PROGRAMLISTING>
@@ -100,8 +118,8 @@ The following are all legal <FUNCTION>return</> statements:
 Variables are dynamically scoped, local variables are the ones in a function's
 parameter list and those declared with the ``<FUNCTION>local</>'' statement.
 Only the first value of a multiple-value return may be assigned to a variable.
-All values are strings, so no type information, checking, or declaration, is
-necessary.
+All values are either strings, or lists, so no type information, checking,
+or declaration, is necessary.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
@@ -132,10 +150,71 @@ is evaluated as
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-<EMPHASIS ROLE=BOLD>FIXME! FIXME!</>
-IFS, quoted strings, and evaluation results -- and how things differ
-from usual shell languages, and how they are alike with PERL!
-</PARA></LISTITEM>
+In standard shells the <ENVAR>IFS</> guides on how variable expansion
+results are to be treated.  Namely in cases where the expansion happens
+without being enclosed into double-quotes, the expansion result is at first
+split with <ENVAR>IFS</> contained characters forming the separation sequences.
+</PARA>
+
+<PARA>
+ZMailer's ``shell'' behaves alike PERL in this regard, and will not do
+<ENVAR>IFS</> interpolation on the result.   However, unlike with PERL,
+double-quoted evaluation will not have its contents re-evaluated.
+</PARA>
+
+<PARA>
+Thus it is equally safe to do assignments like:
+</PARA>
+<PROGRAMLISTING>
+<![CDATA[
+  var1='some text here'
+  var2=' more text
+  cat1="$var1$var2"
+  cat2=$var1$var2
+]]>
+</PROGRAMLISTING>
+<PARA>The notable thing at this particular example is that
+<EMPHASIS ROLE=BOLD>both</> result variables are catenates
+of the input strings.
+</PARA>
+<PARA>
+However! If either of inputs is a list of any kind, then the catenate
+is not to be done this way! See <FUNCTION>lappend</>.
+</PARA>
+</LISTITEM>
+
+<LISTITEM><PARA>
+Due to lack of implicite split by the <ENVAR>IFS</> characters,
+ZMailer ``shell'' contains function <FUNCTION>ifssplit</>.
+</PARA>
+</LISTITEM>
+
+<LISTITEM><PARA>
+The <FUNCTION>for</> construct is even more strange, and classical
+Bourne script:
+</PARA>
+<PROGRAMLISTING>
+<![CDATA[
+  countvar='1 2 3 4 5 6'
+  for x in $countvar; do ... ; done
+]]>
+</PROGRAMLISTING>
+<PARA>
+Yields only nasty surprise.
+</PARA>
+<PARA>
+Here are two alternates on how to do it:
+</PARA>
+<PROGRAMLISTING>
+<![CDATA[
+  countvar='1 2 3 4 5 6'
+  for x in $(ifssplit $countvar); do ... ; done
+
+  countvar=(1 2 3 4 5 6)
+  for x in $(elements $countvar); do ... ; done
+]]>
+</PROGRAMLISTING>
+</LISTITEM>
 
 <LISTITEM><PARA>
 Conditional substitution forms are supported:
@@ -150,8 +229,11 @@ Conditional substitution forms are supported:
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
-Patterns (in case labels) are evaluated once,
+Patterns (in case labels) are parsed once,
 the first time they are encountered.
+</PARA>
+<PARA>
+This is like with PERL's ``m/../o'' patterns.
 </PARA></LISTITEM>
 
 <LISTITEM><PARA>
@@ -194,7 +276,7 @@ tokens: ``foo'' (atom), ``.'' (dot, special), and ``bar'' (atom).
 </PARA>
 
 <PARA>
-Overall usage of these ``<FUNCTION>sifts</>'' is very much like that of
+Overall usage of these ``<FUNCTION>sift</>s'' is very much like that of
 ``<FUNCTION>case</>'', including the need for matching termination tokens:
 <PROGRAMLISTING>
 <![CDATA[
@@ -218,11 +300,15 @@ Various standard Bourne shell functions do not exist built in.
 
 <LISTITEM><PARA>
 The general form of function calls in the system is:
+</PARA>
+<PARA>
 <PROGRAMLISTING>
 <![CDATA[
   $(funcname arguments)
 ]]>
 </PROGRAMLISTING>
+</PARA>
+<PARA>
 It returns a scalar or list object, and the result can be stored
 into variables at will.
 </PARA></LISTITEM>
@@ -340,10 +426,6 @@ an internal function which runs its arguments as <COMMAND>/bin/sh</> would
 <LISTITEM><PARA>
 Non-critical but recommended functions:
 <VARIABLELIST>
-<VARLISTENTRY><TERM><FUNCTION>getzenv</></><LISTITEM><PARA>
-retrieves global ZMailer configuration values
-</PARA></LISTITEM></VARLISTENTRY>
-
 <VARLISTENTRY><TERM><FUNCTION>echo</></><LISTITEM><PARA>
 emulates <COMMAND>/bin/echo</>
 </PARA></LISTITEM></VARLISTENTRY>
@@ -353,7 +435,7 @@ aborts the <COMMAND>router</> with the specified status code
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><FUNCTION>hostname</></><LISTITEM><PARA>
-internal function to get and set the system name
+internal function to get and set the local idea about the system name
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><FUNCTION>trace</></><LISTITEM><PARA>
@@ -430,31 +512,6 @@ convention of the Bourne shell language.
 </PARA>
 
 <PARA>
-<EMPHASIS>However careless usage of ``<USERINPUT>$var</>'' is
-<EMPHASIS ROLE="BOLD">dangerous</>, as you may trip on following:</EMPHASIS>
-<PROGRAMLISTING>
-<![CDATA[
-  SS="1 -o bar"
-  if [ $SS = 0 ]; then
-    ...
-  fi
-]]>
-</PROGRAMLISTING>
-<EMPHASIS>
-In this kind of places you must tread carefully, and use double-quotes
-to save your neck:
-</EMPHASIS>
-<PROGRAMLISTING>
-<![CDATA[
-  SS="1 -o bar"
-  if [ "$SS" = 0 ]; then
-    ...
-  fi
-]]>
-</PROGRAMLISTING>
-</PARA>
-
-<PARA>
 To test the configuration or routing data, proceed as
 shown in figure <XREF LINKEND="fig.adm.testing">.
 </PARA>
@@ -500,6 +557,16 @@ information produced by the <COMMAND>router</>.
 
 <SECT1 ID="zadm-rtr-databases">
 <TITLE>Databases</TITLE>
+
+<PARA>
+<SCREEN>
+FIXME:
+ - Intro
+ - How 'dbases.conf' file works
+ - How the databases are defined in the deep down inside ('relation' function)
+ - How lookup works
+</SCREEN>
+</PARA>
 
 <PARA>
 Many of the decisions and actions taken by configuration file code depend
@@ -588,7 +655,7 @@ See figure <XREF LINKEND="fig.relation.params">.
  <ARG>-f <REPLACEABLE>file</></>
  <ARG>-e<REPLACEABLE>#</></>
  <ARG>-s<REPLACEABLE>#</></>
- <ARG>-bilmnpu</>
+ <ARG>-bilmnpu%</>
  <ARG>-d <REPLACEABLE>driver</></>
  <ARG CHOICE=PLAIN><REPLACEABLE>name</></>
 </CMDSYNOPSIS>
@@ -619,8 +686,8 @@ a particular relation.
 The predefined database types are:
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM><OPTION>bash</></><LISTITEM><PARA>
-the database is in BSD DB HASH format.
+<VARLISTENTRY><TERM><OPTION>bhash</></><LISTITEM><PARA>
+the database is in BSD/SleepyCat DB HASH format.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>bind</></><LISTITEM><PARA>
@@ -629,10 +696,6 @@ the database is the BIND nameserver, accessed through the standard resolver rout
 
 <VARLISTENTRY><TERM><OPTION>btree</></><LISTITEM><PARA>
 the database is in BSD/SleepyCat DB BTREE format.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM><OPTION>bhash</></><LISTITEM><PARA>
-the database is in BSD/SleepyCat DB HASH format.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>dbm</></><LISTITEM><PARA>
@@ -773,14 +836,25 @@ This is mutually exclusive with the ``<OPTION>-l</>'' option.
 
 <PARA>
 The ``<OPTION>-d</>'' option specifies a search routine.
-Currently the only legal argument to this option is ``<OPTION>pathalias</>'',
+Most commonly used argument for this option is ``<OPTION>pathalias</>'',
 specifying a driver that searches for the key using domain name lookup rules.
+</PARA>
+
+<PARA>
+The ``<OPTION>-%</>'' option enables substitution of ``<LITERAL>%0</>'' thru
+``<LITERAL>%9</>'' patterns in the db lookup results with key, iterated
+partial key, or positional parameter to lookup of the database.
+See Reference <XREF LINKEND=zmshref.relation> for more information.
 </PARA>
 
 <FIGURE ID="fig.adm-dbfrag1" PGWIDE="0" FLOAT="1">
 <TITLE>Some examples of <FUNCTION>relation</> definitions</TITLE>
 <PROGRAMLISTING>
 <![CDATA[
+ relation -lmt  $DBTYPE -f $MAILVAR/db/aliases$DBEXT     aliases
+ relation -lm%t $DBTYPE -f $MAILVAR/db/fqdnaliases$DBEXT fqdnaliases
+ relation -lm%t $DBTYPE -f $MAILVAR/db/routes$DBEXT -d pathalias  routes
+
  if [ -f /etc/resolv.conf ]; then
    relation -nt bind/cname -s 100 canon # T_CNAME canonicalize hostname
    relation -nt bind/uname uname        # T_UNAME UUCP name
@@ -880,7 +954,12 @@ information is maintained in a pathalias-format database
 </PARA>
 
 <SECT2 ID=zadm-rdr-databases-using>
-<TITLE>Using a Pathalias Database</TITLE>
+<TITLE>Using a Pathalias Database With ``%0'' substitution </TITLE>
+
+<PARA>
+<EMPHASIS>The <APPLICATION>pathalias</> is an UUCP era thing, and not quite
+what one would need these days, but just in case&hellip;</EMPHASIS>
+</PARA>
 
 <PARA>
 Accessing route databases is a rather essential capability for a mailer.
@@ -892,15 +971,53 @@ the <APPLICATION>pathalias</> program.
 </PARA>
 
 <PARA>
-<APPLICATION>pathalias</> generates key-value pairs of the form:
+The current ZMailer can do two separate things, which were combined
+into the old pathalias idea:
+</PARA>
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+<FUNCTION>relation</> defines <EMPHASIS>driver</> routine
+with ``<OPTION>-d pathalias</>''
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+<FUNCTION>relation</> defines that lookup result contained
+``<LITERAL>%0</>'' thru ``<LITERAL>%9</>'' strings may be
+substituted (the ``<OPTION>-%</>'' option).
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+
+<PARA>
+The <APPLICATION>pathalias</> generates key-value pairs of the form:
+</PARA>
+
+<PARA>
 <PROGRAMLISTING>
 <![CDATA[
   uunet    ai.toronto.edu!uunet!%s
   .css.gov ai.toronto.edu!uunet!seismo!%s
 ]]>
 </PROGRAMLISTING>
+</PARA>
+
+<PARA>
+which need to be post-processed to:
+</PARA>
+
+<PARA>
+<PROGRAMLISTING>
+<![CDATA[
+  uunet    ai.toronto.edu!uunet!%0
+  .css.gov ai.toronto.edu!uunet!seismo!%0
+]]>
+</PROGRAMLISTING>
+</PARA>
+
+<PARA>
 which when queried about ``uunet'' and ``beno.css.gov''
 correspond to the routes:
+</PARA>
+
+<PARA>
 <PROGRAMLISTING>
 <![CDATA[
   ai.toronto.edu!uunet
@@ -920,7 +1037,7 @@ and interface function as shown in figure
 </PARA>
 
 <FIGURE ID="fig.adm-pathalias-driver" PGWIDE="0" FLOAT="1">
-<TITLE>An example of lookup driver for <COMMAND>pathalias</>
+<TITLE>An example of lookup driver for genuine <COMMAND>pathalias</>
 generated database</TITLE>
 <PROGRAMLISTING>
 <![CDATA[
@@ -979,7 +1096,7 @@ consider the NFS with the user home directories in other machines&hellip;)
 An alternate mechanism is to implement lists in the traditional
 <APPLICATION>sendmail</> manner, however it means feeding the message
 to the <COMMAND>scheduler</>, and external program
-(<COMMAND>>/usr/lib/sendmail</>) before it comes back to
+(<COMMAND>/usr/lib/sendmail</>) before it comes back to
 the <COMMAND>router</>.
 </PARA>
 
@@ -1245,73 +1362,6 @@ case sensitive, and as such, there is no way to avoid this requirement.)
 
 </SECT3>
 
-<SECT3 ID=zadm-rtr-memory-consumption>
-<TITLE>About Large Lists, and Memory Consumption</TITLE>
-
-<PARA> FIXME! FIXME! -- VERIFY! UPDATE!
-(router internal memory management has improved dramatically at
-2.99.51, and no serious bloat effect appears anymore.)
-</PARA>
-
-<PARA>
-With old configuration scripts there used to be problems with list
-expansion causing serious memory bloat (of $O(n^{2})$ kind of memory
-consumption&hellip;)
-{\em ZMailer-2.98} did introduce a working solution via the builtin
-{\tt\$(listexpand ..)} function.
-</PARA>
-
-<PARA>
-The rest of these notes apply to older config files using old style pipe of:
-<PROGRAMLISTING>
-<![CDATA[
-  $(listaddresses &lt; file | maprrouter ...)
-]]>
-</PROGRAMLISTING>
-where the maprrouter caused the actual memory bloat...
-</PARA>
-
-<PARA>
-The primary reason behind this is that the router does necessary copies
-of objects &mdash; it uses memory in a form of heap storage which is
-allocated progressively and managed via ``<FUNCTION>mark</>()'', and
-``<FUNCTION>release</>()'' type calls.
-The ``<FUNCTION>release</>()'' calls are done when exiting
-``<COMMAND>zmsh</>'' interpreter, and never during script running
-(however calling builtin C functions which call scripts is another
-story &mdash; there are ``<FUNCTION>release</>()'' checkpoints
-available then.)
-</PARA>
-
-<PARA>
-Especially bad thing for memory use to do is to use ``<FUNCTION>setf</>''
-function.
-</PARA>
-
-<PARA>
-Internal list expansion (through the
- <FILENAME>$<VARNAME>MAILVAR</>/lists/LISTNAME</> 
-mechanism) is a sure way to expand <COMMAND>router</> process memory usage.
-</PARA>
-
-<PARA>
-You can decrease the memory requirement dramatically, if you can feed all
-the addresses in the envelope, or via <FILENAME>utils/listexpand.c</>
-utility (alpha-test tool on 1-Sep-94).
-You don't need to worry about it unless your list is 100+ recipients,
-only then the memory usage starts to bloat seriously with the old-style
-in-core <FUNCTION>$(listaddress ...)</> expander.
-</PARA>
-
-<PARA>
-Although more interesting and useful models exist, the mail forwarding
-functionality of ZMailer has been designed to generally emulate the
-interface and behaviour of <COMMAND>sendmail</>(8).
-The mechanisms that accomplish this are likely to be generalized in
-a future version.
-</PARA>
-
-</SECT3>
 
 <SECT3 ID=zadm-rtr-security-considerations>
 <TITLE>Security Considerations</TITLE>

@@ -1,5 +1,31 @@
 <CHAPTER ID="ZADM-SCHEDULER"><?dbhtml filename="zadm-scheduler.html">
-<TITLE><COMMAND>Scheduler</> Configuration</TITLE>
+<TITLE><COMMAND>Scheduler</> Administration</TITLE>
+
+<PARA>
+<SCREEN>
+TODO!FIXME!
+
+  Here we present longer examples out of the  scheduler.conf, and
+  reasons why the default script is as it is
+
+  - Intro
+  - Principles of scheduling, "threads"
+  - Clause selectors
+    - "local/*"
+    - "smtp/*.xyz"
+    - "smtp/*"
+    - "OTHER/*"
+    - How to roll your own when needed
+  - Something about the resource control ?
+  - scheduler.auth file, and its purpose
+  - MAILQv1/v2 interface, mailq-command
+    - but the protocols are REFERENCE material
+  - (manual-)expirer
+  - Diagnostics reporting, forms files
+
+  Appendix B contains full samples of scheduler.conf, and scheduler.auth
+</SCREEN>
+</PARA>
 
 <PARA>
 The <COMMAND>scheduler</> is the part of the ZMailer that manages
@@ -14,8 +40,8 @@ This is controlled by a table in a configuration file that is read by the
 </PARA>
 
 <PARA>
-Any line starting with a ``#'' character is assumed to be a comment 
-line, and is ignored, as are empty lines.
+Any line starting with a ``<LITERAL>#</>'' character is assumed to be
+a comment line, and is ignored, as are empty lines.
 All other lines must follow a rigid format. 
 </PARA>
 

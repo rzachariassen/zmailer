@@ -51,6 +51,7 @@
 
 <!ENTITY ZAPPENDICES     SYSTEM "zappendices.sgml">
 <!ENTITY ZAPP-SCRIPTS    SYSTEM "zapp-scripts.sgml">
+<!ENTITY ZAPP-SCHEDULER  SYSTEM "zapp-scheduler.sgml">
 <!ENTITY ZAPP-LISTMGRS   SYSTEM "zapp-listmgrs.sgml">
 <!ENTITY ZAPP-TR-AGENTS  SYSTEM "zapp-tragents.sgml">
 <!ENTITY ZAPP-FILEFMTS   SYSTEM "zapp-filefmts.sgml">

@@ -105,7 +105,7 @@ The <FILENAME>zmailer.conf</> file carries various so called
 <PARA>
 In following we refer to those often in style of:
 <SCREEN>
-  $MAILVAR   $MAILSHARE   ...
+  $MAILVAR   $MAILSHARE   &hellip;
 </SCREEN>
 Which essentially means expanding in Bourne-shell like manner given
 <EMPHASIS>ZENV-variable</> from this file.
@@ -239,8 +239,8 @@ compile there: (But it may need <APPLICATION>GNU make</>
 as system ``<COMMAND>make</>''!)
 <SCREEN>
   <PROMPT>$ </><USERINPUT>mkdir myhost ; cd myhost</>
-  <PROMPT>$ </><USERINPUT>../configure ...</>
-  <PROMPT>$ </><USERINPUT>make </>...
+  <PROMPT>$ </><USERINPUT>../configure &hellip;</>
+  <PROMPT>$ </><USERINPUT>make </>&hellip;
 </SCREEN>
 </PARA>
 
@@ -386,7 +386,7 @@ Sample SysV-init script is at file: ``<FILENAME>proto/zmailer.init.sh</>'')
 A sort of method to quickly handle your sendmail queue is to
 start ZMailer's SMTP server, reconfigure the old sendmail to
 use smart-host, which happens to be at the same machine.
-(Or at an adjacent machine if you moved the queue, or ...)
+(Or at an adjacent machine if you moved the queue, or &hellip;)
 Anyway the point is to get the sendmail to send its queue
 via SMTP to the ZMailer.
 An equally valid option is to drain the sendmail's queue by running
@@ -482,7 +482,7 @@ or in case the default guessing didn't get it right:
 <SECT1 ID=zins.run-time-files><TITLE>Run-time files</TITLE>
 <PARA>
 This section describes the configuration in short. More detailed information 
-can be found in section FIXME! FIXME! xxxxx....
+can be found in Administration and Reference parts.
 </PARA>
 
 <SECT2 ID=zins-rtf-zmailer.conf><TITLE><FILENAME>zmailer.conf</></>
@@ -493,7 +493,7 @@ The <FILENAME>zmailer.conf</> file carries various so called
 <PARA>
 In following we refer to those often in style of:
 <SCREEN>
-  $MAILVAR   $MAILSHARE   ...
+  $MAILVAR   $MAILSHARE   &hellip;
 </SCREEN>
 Which essentially means expanding in Bourne-shell like manner given
 <EMPHASIS>ZENV-variable</> from this file.
@@ -551,7 +551,7 @@ The usual <EMPHASIS>minimal</> set is: <LITERAL>root,daemon,uucp</>.
 
 <WARNING><PARA>
 <EMPHASIS>SECURITY ITEM</>: Those users at <LITERAL>zmailer</> group
-<EMPHASIS ROLE="BOLD">must not</> contain <LITERAL>nobody</>!
+<EMPHASIS ROLE=BOLD>must not</> contain <LITERAL>nobody</>!
 </PARA><PARA>
 The <LITERAL>nobody</> is used to prevent externally given inputs from being
 able to execute arbitrary programs at the system, or from writing to
@@ -569,7 +569,7 @@ mailq   174/tcp  # Mailer transport queue
 </SCREEN>
 Indeed this isn't <EMPHASIS>quite</> mandatory, as the <COMMAND>scheduler</>
 subsystem can be configured to use different IPC socket.
-See more about this at Scheduler's PARAM entries: <XREF LINKEND="scheduler.param.entries">.
+See more about this at Scheduler's PARAM entries: <XREF LINKEND="zref-scheduler-param-entries">.
 </PARA>
 
 </SECT2>
@@ -670,15 +670,17 @@ or
 
 <PARA>
 You should see something like:
-<SCREEN>
-  ZMailer router (2.99.50 #4: Sun May 10 15:24:09 EEST 1998)
+<PROGRAMLISTING>
+<![CDATA[
+  ZMailer router (2.99.55 #4: Tue Feb 22 15:24:09 EET 2001)
   you@hostname:/some/path/to/src/zmailer/router
   Copyright 1992 Rayan S. Zachariassen
   Copyright 1992-2001 Matti Aarnio
-  Configured with command: 'CC='gcc -Wall' CFLAGS='-g -O' ../configure ...'
+  Configured with command: 'CC='gcc -Wall' CFLAGS='-g -O' ../configure &hellip;'
   
   z#
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </PARA>
 
 <PARA>
@@ -722,9 +724,8 @@ I put this link in <FILENAME CLASS="DIRECTORY">/usr/local/sbin</>.
 </PARA>
 
 <PARA>
-This script is skeleton driver for lots of things in the ZMailer,
-including <EMPHASIS>the not so small a feat</> of acting as SysV-Init's
-init-script as well.
+This script is skeleton driver for lots of things in the ZMailer, including
+the not so small a feat of acting as SysV-Init's init-script as well.
 </PARA>
 </SECT3>
 
@@ -743,7 +744,7 @@ which are bound together in pre-determined query order (first matcher wins).
 <PARA>
 This configuration file is used to translate a semi-vague idea
 about what database sources (in what forms) are mapped together
-under which look-up names, and what format they are, etc..
+under which look-up names, and what format they are, etc&hellip;
 </PARA>
 
 <PARA>
@@ -758,7 +759,8 @@ the <COMMAND>router</> <EMPHASIS>must</> be restarted!
 
 <PARA>
 <EMPHASIS>When you use ``<COMMAND>zmailer newdb</>'' command, you recompile
-all databases defined in the <FILENAME>dbases.conf</> file -- or if you don't
+all databases defined in the controlling configuration file
+<FILENAME>$<VARNAME>MAILVAR</>/dbases.conf</> -- or if you don't
 have that file, then all databases listed below, as creation/update of those
 are the system defaults.</EMPHASIS>
 </PARA>
@@ -829,7 +831,7 @@ The final message should look something like:
 <SCREEN>
  319 aliases, longest 209 bytes, 16695 bytes total
 </SCREEN>
-exact numbers vary, of course...
+exact numbers vary, of course&hellip;
 </PARA>
 
 <PARA>
@@ -892,13 +894,13 @@ you have it at the next router start-up.
 The ``<USERINPUT>%1</>'' local part is special (and experimental, as of
 21-Feb-2001) substitution pattern where <EMPHASIS>local part (user)</>
 can be replaced into the looked up data.
-More details at <XREF LINKEND=zmshref.dblookup>,
-and at <XREF LINKEND=zmshref.relation>
+More details at <XREF LINKEND=zmshref.dblookup> (dblookup),
+and at <XREF LINKEND=zmshref.relation> (<FUNCTION>relation</> declaration).
 </PARA>
 
 <PARA>
 You may even handle just a few users for each of those domains, and then
-have the ``<FILENAME>routes</>'' entry (see above at
+have the ``<FILENAME>routes</>'' entry (see below at
 <XREF LINKEND="fig.inst.routes">) to declare something
 suitable:
 <SCREEN>
@@ -1095,9 +1097,19 @@ Generic server parametrization with ``<FILENAME>smtpserver.conf</>'' file.
 Relaying policy control via ``<FILENAME>smtp-policy</>'' database.
 </PARA></LISTITEM>
 <LISTITEM><PARA>
+Optional message content analysis via ``contentfilter'' mechanism.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
 Optional PAM authentication framework for SMTP AUTH extension.
 </PARA></LISTITEM>
+<LISTITEM><PARA>
+Optional externally driven program to autenticate users; command line contains username, and STDIN gets the user supplied password. 
+</PARA></LISTITEM>
 </ITEMIZEDLIST>
+</PARA>
+
+<PARA>
+See the Administration <XREF LINKEND=ZADM-SMTPSERVER> for further details.
 </PARA>
 
 <SECT2 ID=zins.smtps-smtpserver.conf-file>
@@ -1161,24 +1173,24 @@ the results:
 
 <SCREEN>
  000- Lots of debug information
- ....
+ &hellip;
  220 some greeting
  <USERINPUT>EHLO foobar</>
  000- Lots of debug information
- ....
+ &hellip;
  250-local.host.name Hello foobar
  250-8BITMIME
  250-PIPELINING
- ....
+ &hellip;
  250 HELP
  <USERINPUT>MAIL FROM:&lt;&gt</>
  000- Lots of debug information
- ....
- 250 Ok ...
+ &hellip;
+ 250 Ok &hellip;
  <USERINPUT>RCPT TO:&lt;user@some.where&gt;</>
  000- Lots of debug information
- ....
- 250 Ok ...
+ &hellip;
+ 250 Ok &hellip;
 </SCREEN>
 
 <PARA>
@@ -1209,6 +1221,14 @@ of ``<FILENAME>scheduler.conf</>''
 file is quite sufficient, but in case you want to do something
 unusual, like using <APPLICATION>procmail</> for local delivery,
 do read on.
+</PARA>
+
+<PARA>
+The default ``<FILENAME>scheduler.conf</>'' contains also linkage to
+``<FILENAME>scheduler.auth</>''
+(see <XREF LINKEND=zref-scheduler-scheduler.auth>), which is access-control
+for interacting with the scheduler from external programs, like
+<COMMAND>mailq</>.
 </PARA>
 
 <PARA>
@@ -1262,21 +1282,40 @@ Variant for using <APPLICATION>CMU Cyrus</> message store server.
 
 <PARA>
 For more information regarding <EMPHASIS>scheduler</> configuration language,
-see <XREF LINKEND="zref.schedulerconfig">.
+see <XREF LINKEND="zref-scheduler-scheduler.conf-language">.
 </PARA>
 </SECT2>
 
-<SECT2 ID="zins.sm.conf"><TITLE>Checking <FILENAME>sm.conf</> file</>
-<INDEXTERM ID=idx.zins-sm.conf-file><PRIMARY><FILENAME>sm.conf</>-file</></>
+<SECT2 ID="zins.scheduler.scheduler.auth">
+<TITLE>Checking <FILENAME>scheduler.auth</> file</>
+<INDEXTERM ID=idx.zins-scheduler.auth-file.1><PRIMARY>Install</><SECONDARY><FILENAME>scheduler.auth</>-file</></>
+<INDEXTERM ID=idx.zins-scheduler.auth-file.2><PRIMARY><FILENAME>scheduler.auth</>-file</><SECONDARY>Install time checking</></>
 
 <PARA>
-For some uses the scheduler runs <COMMAND>sm</>(8) program &mdash; called
-``sendmail-like mailer''.
+Access-control to the <COMMAND>Scheduler</>'s internal state data is
+defined at file <FILENAME>scheduler.auth</>, which should be usable
+in its default form.
+</PARA>
+
+<PARA>
+For more information about this, see Administration
+<XREF LINKEND=zadm-scheduler-scheduler.auth>, and Reference
+<XREF LINKEND=zref-scheduler-scheduler.auth>.
+</PARA>
+
+</SECT2>
+
+<SECT2 ID="zins.sm.conf"><TITLE>Checking <FILENAME>sm.conf</> file</>
+<INDEXTERM ID=idx.zins-sm.conf-file><PRIMARY>Install</><SECONDARY><FILENAME>sm.conf</>-file</></>
+
+<PARA>
+For some uses the <COMMAND>scheduler</> runs <COMMAND>sm</>(8)
+program &mdash; called ``sendmail-like mailer''.
 </PARA>
 
 <PARA>
 This supports <EMPHASIS>most</> of <APPLICATION>sendmail</>'s
-<FILENAME>M</>-entry flags, at least flags with versions previous to 8.x
+<FILENAME>M</>-entry flags, at least flags with versions previous to 8.11(.0)
 </PARA>
 
 <PARA>
@@ -1327,7 +1366,10 @@ are more, only the first one is picked.
 </PARA>
 
 <PARA>
-<EMPHASIS>FIXME: FIXME: XREF to Scheduler</>
+More details at Scheduler Administration
+  <XREF LINKEND=zadm-scheduler-forms-files>,
+and at Scheduler Reference
+  <XREF LINKEND=zref-scheduler-forms-files>.
 </PARA>
 
 </SECT2>
@@ -1528,7 +1570,7 @@ This section describes the installation at clients.
 
 <VARIABLELIST TERMLENGTH="99">
 <TITLE>The following files/programs are needed on clients:</TITLE>
-<VARLISTENTRY><TERM><FILENAME>$<VARNAME>MAILVAR</>/zmailer.conf</></>
+<VARLISTENTRY><TERM><FILENAME>$<VARNAME>MAILSHARE</>/zmailer.conf</></>
 <LISTITEM><PARA>
 The $<VARNAME>MAILSERVER</> variable may be set to the mail server host's name.
 This is not required as <COMMAND>mailq</> will usually be able to discover this
@@ -1579,7 +1621,7 @@ hierarchies via NFS, do it with options to disable various attribute caches:
 
 <PARA>
 <EMPHASIS>The best advice is to NOT to mount anything over NFS</>,
-but some people can't be persuaded...
+but some people can't be persuaded&hellip;
 </PARA>
 
 <PARA>
@@ -1597,12 +1639,12 @@ via NFS, consider the same rule!
 <PARA>
 Often if the mail folder directory is shared, also
 one of following (depending upon the system):
-<SCREEN>
-   /usr/mail
-   /usr/spool/mail
-   /var/mail
-   /var/spool/mail
-</SCREEN>
+<SIMPLELIST>
+<MEMBER><FILENAME CLASS=DIRECTORY>/usr/mail</></>
+<MEMBER><FILENAME CLASS=DIRECTORY>/usr/spool/mail</></>
+<MEMBER><FILENAME CLASS=DIRECTORY>/var/mail</></>
+<MEMBER><FILENAME CLASS=DIRECTORY>/var/spool/mail</></>
+</SIMPLELIST>
 </PARA>
 
 </SECT1>
@@ -1617,7 +1659,7 @@ one of following (depending upon the system):
 <INDEXTERM ID=idx.zins.configure.options><PRIMARY>configure</><SECONDARY>options</></>
 
 <PARA>
-configure  options of ZMailer package, per version 2.99.50.
+configure  options of ZMailer package, per version 2.99.55.
 </PARA>
 
 <PARA>
@@ -1648,7 +1690,7 @@ Not needed if the <OPTION>&dd;prefix=</> derived
 <TERM><VARNAME>CC</>="command"</>
 <TERM><VARNAME>CFLAGS</>="options"</>
 <LISTITEM><PARA>
-Obvious ones, compiler, and possible "-g -O" flags...
+Obvious ones, compiler, and possible "-g -O" flags&hellip;
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1660,8 +1702,8 @@ Not normally needed &mdash; builds dependencies
 <VARLISTENTRY>
 <TERM><VARNAME>INEWSBIN</>=/file/path</>
 <LISTITEM><PARA>
-If you want to pre-define where your `inews' program
-is &mdash; for possible use of `usenet' channel.
+If you want to pre-define where your ``<EMPHASIS ROLE=STRONG>inews</>'' program
+is &mdash; for possible use of ``<EMPHASIS ROLE=STRONG>usenet</>'' channel.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
@@ -1792,7 +1834,7 @@ override default value of:  <FILENAME CLASS="DIRECTORY">/var/log/mail/</>
 <VARLISTENTRY>
 <TERM><OPTION>&dd;with-nntpserver=HOST</OPTION></TERM>
 <LISTITEM><PARA>
-If you want to use ``<COMMAND>usenet</>'' channel, you need to name
+If you want to use ``<EMPHASIS ROLE=STRONG>usenet</>'' channel, you need to name
 NNTP server into which you feed news with NNTP.
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -1909,11 +1951,11 @@ At systems where the local file-system is log-based/journaling,
 doing   <FUNCTION>fsync</>()  is wasteful.  This disables
 <FUNCTION>fsync</>() in cases where it is not needed.
 (In others it may boost your system performance by about 20% &mdash;
- with dangers..
+ with dangers&hellip;
 On the other hand, once a system disk(?) fault which hang mailer at
 spool directory access did cause severe damage all over, and probably
-use of this option would not have made any difference..
- <COMMAND>fsck</> was mighty unhappy..)
+use of this option would not have made any difference;
+ <COMMAND>fsck</> was mighty unhappy.)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1946,7 +1988,7 @@ things, this generates those.
 <LISTITEM><PARA>
 Don't use <FUNCTION>maillock</>(3) even if system has it.
 (Solaris <FUNCTION>maillock</>(3) is ok, some early Linux
- versions weren't..)
+ versions weren't&hellip;)
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>

@@ -3,6 +3,17 @@
 <CHAPTER ID="ZREF-SCHEDULER"><?dbhtml filename="zref-scheduler.html">
 <TITLE><COMMAND>Scheduler</> Reference</TITLE>
 
+<PARA><SCREEN>
+... deeper details of internal protocols and algorithms
+ - Configuration Language Syntax Details (?)
+ - Resource Management
+ - What and how  scheduler.auth  can be tuned
+   - Security issues
+ - Diagnostics reporting, canned messages (forms/* files)
+ - (MAILQv1/)MAILQv2 protocol for MAILQv2 client writer
+ - Scheduler-TA interface
+</SCREEN></PARA>
+
 <PARA>
 The <COMMAND>scheduler</> daemon manages the delivery processing
 of messages in ZMailer.
@@ -221,11 +232,11 @@ the transporters.
 </VARIABLELIST>
 
 
-<SECT1 ID="zref.schedulerconfig"><TITLE>Configuration Language</TITLE>
-<!--
+<SECT1 ID="zref-scheduler-scheduler.conf-language"><TITLE>Configuration Language</TITLE>
+
 <SCREEN>
 \index{{\tt scheduler.conf} file}\index{scheduler, {\tt scheduler.conf}}
-</SCREEN> -->
+</SCREEN>
 
 <PARA>
 The <COMMAND>scheduler</> configuration file consists of a set of clauses. 
@@ -247,7 +258,7 @@ There are two kinds of clauses:
 </ITEMIZEDLIST>
 </PARA>
 
-<SECT2 ID="scheduler.param.entries"><TITLE>PARAM-entries</TITLE>
+<SECT2 ID="zref-scheduler-param-entries"><TITLE>PARAM-entries</TITLE>
 
 <PARA>
 There are three kinds of PARAM entries, all of them start at the column
@@ -275,7 +286,7 @@ PARAMauthfile = "${MAILSHARE}/scheduler.auth"
 
 <PARA>
 The <EMPHASIS>PARAMauthfile</> defines Scheduler's MAILQv2 authentication
-file; more at <XREF LINKEND="zref.scheduler.auth.file">.
+file; more at <XREF LINKEND="zref-scheduler-scheduler.auth">.
 </PARA>
 
 <PARA>
@@ -297,7 +308,7 @@ Current method is <EMPHASIS>somewhat</> quicker.
 </SECT2>
 
 
-<SECT2 ID=zref-sch-group-clause-selection>
+<SECT2 ID=zref-scheduler-group-clause-selection>
 <TITLE>Group-Clause selection</TITLE>
 
 <PARA>
@@ -344,7 +355,7 @@ a channel pattern and the host pattern is assumed to be the wildcard
 
 </SECT2>
 
-<SECT2 ID=zref-sch-clause-components>
+<SECT2 ID=zref-scheduler-clause-components>
 <TITLE>Clause components</TITLE>
 
 <PARA>
@@ -406,7 +417,7 @@ a second, minute, hour, or day value. For example:
 
 </SECT2>
 
-<SECT2 ID=zref-sch-vars-and-keywords>
+<SECT2 ID=zref-scheduler-vars-and-keywords>
 <TITLE>Variables and keywords</TITLE>
 
 <PARA>
@@ -699,7 +710,7 @@ systematic errors leading to a deadlock of any queue.
 </SECT2>
 </SECT1>
 
-<SECT1 ID=zref-sch-resource-management>
+<SECT1 ID=zref-scheduler-resource-management>
 <TITLE>Resource Management</TITLE>
 
 <PARA>
@@ -739,7 +750,7 @@ a bit sluggish, thus with this we can keep the transporters busy.
 
 </SECT1>
 
-<SECT1 ID="zref.scheduler.auth.file">
+<SECT1 ID="zref-scheduler-scheduler.auth">
 <TITLE><FILENAME>scheduler.auth</> file</TITLE>
 
 <PARA>
@@ -790,7 +801,7 @@ nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0
 </FIGURE>
 </SECT1>
 
-<SECT1 ID=zref-sch-mailq-cmd>
+<SECT1 ID=zref-scheduler-mailq-cmd>
 <TITLE><COMMAND>mailq</></TITLE>
 
 <PARA>FIXME! FIXME!</PARA>
@@ -907,11 +918,88 @@ to.
 
 </SECT1>
 
-<SECT1 ID=zref-sch-security-issues>
+<SECT1 ID=zref-scheduler-ta-interface>
+<TITLE>Transport Agent Interface Protocol</TITLE>
+
+<PARA>
+The transport agent interface follows a master-slave model,
+where the TA informs the scheduler that it is ready for the work,
+and then the scheduler sends it one job  description, and waits
+for diagnistics.
+Once the job is finished, the TA notifies the scheduler that it is
+ready for a new job.
+</PARA>
+
+<PARA>
+A short sample session looks like this:
+<SCREEN>
+<EMPHASIS>(start the transport agent)</>
+#hungry                <EMPHASIS>--&gt; (TA to scheduler)</>
+spoolid \t hostspec    <EMPHASIS>&lt;-- (scheduler to TA)</>
+diagnostics            <EMPHASIS>--&gt; (TA to scheduler)</>
+#hungry                <EMPHASIS>--&gt; (TA to scheduler)</>
+...</SCREEN></PARA>
+
+<PARA>
+Normal diagnostic output is of the form:
+<SCREEN>
+  id / offset \t notarydata \t status message
+</SCREEN>
+where:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>id</TERM><LISTITEM><PARA>
+is the inode number of the message file,
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>offset</TERM><LISTITEM><PARA>
+is a byte offset within its control file where the address
+being  reported on  is kept,
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>notarydata</TERM><LISTITEM><PARA>
+is a <EMPHASIS>Ctrl-A</> separated tuple is delivery-status-notification
+information for  the message, 
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>status</TERM><LISTITEM><PARA>
+is one of:<EMPHASIS>ok, ok2, ok3, error, error2, deferred, retryat</>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>message</TERM><LISTITEM><PARA>
+is descriptive text associated with the report.
+The text is terminated by a linefeed.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST></PARA>
+
+<PARA>
+Any other format (as might be produced by subprocesses) is passed
+to standard output for logging in the scheduler log.
+The <EMPHASIS>retryat</> response will assume the first word of the text
+is a numeric parameter, either an incremental time in seconds if prefixed
+by ``+'', or otherwise an absolute time in seconds since UNIX epoch.
+</PARA>
+
+<PARA>
+The exit status is a code from
+<FILENAME CLASS="HEADERFILE">&lt;sysexits.h&gt;</>.
+</PARA>
+
+</SECT1>
+
+<SECT1 ID=zref-scheduler-forms-files>
+<TITLE>Canned (Error) Message Files</TITLE>
+
+<PARA>
+FIXME! TEXT TO BE INSERTED HERE.
+</PARA>
+</SECT1>
+
+
+<SECT1 ID=zref-scheduler-security-issues>
 <TITLE>Security Issues</TITLE>
 
-<SCREEN>
-Text to be inserted here.
-</SCREEN>
+<PARA>
+FIXME! TEXT TO BE INSERTED HERE.
+</PARA>
 </SECT1>
 </CHAPTER>

@@ -10,18 +10,128 @@ explanations of how pre-existing scripts have been done.
 </PARA>
 
 <PARA>
-\segment{zadm-dnsissues}{section}{DNS and ZMailer}
-\segment{zadm-security}{section}{Security Issues}
-\segment{zadm-queues}{section}{The Queue}
-\clearpage
-\segment{zadm-smtpserver}{section}{Smtpserver Configuration}
-\clearpage
-\segment{zadm-router}{section}{Router Configuration}
-\clearpage
-\segment{zadm-scheduler}{section}{Scheduler Configuration}
-\clearpage
-\segment{zadm-sm}{section}{{\em sm} Configuration}
-\clearpage
+The <XREF LINKEND=fig.zadm.zmprocs> repeats earlier picture
+showing central components of the system.
+</PARA>
+
+
+<FIGURE PGWIDE="1" FLOAT="1" ID=fig.zadm.zmprocs>
+  <TITLE ID=figtit.zadm.zmprocs>ZMailer's processes.</TITLE>
+  <MEDIAOBJECT>
+    <IMAGEOBJECT>
+      <IMAGEDATA FILEREF="zmprocs.&GEXT;" FORMAT="&GEXT;">
+    </IMAGEOBJECT>
+  </MEDIAOBJECT>
+</FIGURE>
+
+<PARA>
+The things in the picture are pointed further here, along with
+their related auxiliary programs, etc:
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM><COMMAND>smtpserver</COMMAND></TERM>
+<LISTITEM><PARA>
+Administration of the <COMMAND>smtpserver</> is described at
+<XREF LINKEND=zadm-smtpserver-config>, and detailed Reference
+is at <XREF LINKEND=zref-smtpserver>.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>sendmail</COMMAND></TERM>
+<LISTITEM><PARA>
+The <COMMAND>sendmail</> client compatibility functions program
+is described at Reference <XREF LINKEND=zref-sendmail>.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>router</COMMAND></TERM>
+<LISTITEM><PARA>
+Administration of the <COMMAND>router</> is at
+ <XREF LINKEND=zadm-router>, and Reference is at
+ <XREF LINKEND=zref-router>.
+</PARA>
+
+<PARA>
+Auxiliary programs used to support the <COMMAND>router</> include:
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM><COMMAND>newdbprocessor</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>newdb</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>newaliases</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>newfqdnaliases</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+</VARIABLELIST> <!-- end of 'router' related programs -->
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>scheduler</COMMAND></TERM>
+<LISTITEM><PARA>
+Administration of the <COMMAND>scheduler</> is at
+ <XREF LINKEND=zadm-scheduler>, and Reference is at
+ <XREF LINKEND=zref-scheduler>.
+</PARA>
+
+<PARA>
+Auxiliary programs used to support the <COMMAND>scheduler</> include:
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM><COMMAND>mailq</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>mailbox</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>smtp</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>hold</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>sm</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>errormail</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><COMMAND>expirer</COMMAND></TERM>
+<LISTITEM><PARA>
+WRITEME!
+</PARA></LISTITEM></VARLISTENTRY>
+
+</VARIABLELIST> <!-- end of 'scheduler' related programs -->
+</PARA></LISTITEM></VARLISTENTRY>
+
+</VARIABLELIST>
+</PARA>
+
+
+</PARTINTRO>
+
 <!-- 
   <!ENTITY ZADM-DNSISSUES  SYSTEM "zadm-dnsissues.sgml">
   <!ENTITY ZADM-SECURITY   SYSTEM "zadm-security.sgml">
@@ -32,9 +142,6 @@ explanations of how pre-existing scripts have been done.
   <!ENTITY ZADM-SM         SYSTEM "zadm-sm.sgml">
   <!ENTITY ZADM-LOGGING    SYSTEM "zadm-logging.sgml">
 -->
-</PARA>
-
-</PARTINTRO>
 
 &ZADM-DNSISSUES;
 &ZADM-SECURITY;

@@ -2,6 +2,29 @@
 <TITLE>Security Issues</TITLE>
 
 <PARA>
+The intention of the security mechanisms is not to prevent address faking,
+but to control the privileges which are used to execute pipes, and
+accessing files (read, and write).
+</PARA>
+
+<PARA>
+In addition of doing strict privilege control on who can do what,
+ZMailer has a concept of <EMPHASIS>trust</>, which shows as a group
+of accounts who can claim wildly ``fradulent'' data in their headers.
+</PARA>
+
+<PARA>
+The <EMPHASIS>trusted</> accounts are those listed in the ZMailer group
+or the ``trusted'' variable in the system configuration
+(<FILENAME>router.cf</>) file.
+</PARA>
+
+<PARA>
+Of course when one uses SMTP protocol to inject email, it is extremely
+easy to ``fake'' any source and destination envelope and visible addresses.
+</PARA>
+
+<PARA>
 Having local-parts that allow delivery to arbitrary files, or which can
 trigger execution of arbitrary programs, can clearly lead to a huge security
 problem.
@@ -87,22 +110,6 @@ in the message header, or any origin specified in the envelope.
 If a discrepancy is discovered, appropriate action will be taken.
 This means that there is no way to forge the internal origin of
 a message without access to a trusted account.
-</PARA>
-
-<PARA>
-Trusted accounts are those listed in the ZMailer group or the ``trusted'' 
-variable in the system configuration (<FILENAME>router.cf</>) file.
-</PARA>
-
-<PARA>
-Of course when one uses SMTP protocol to inject email, it is extremely
-easy to ``fake'' any source and destination envelope and visible addresses.
-</PARA>
-
-<PARA>
-The intention of the security mechanisms is not to prevent address faking,
-but to control the privileges which are used to execute pipes, and
-accessing files (read, and write).
 </PARA>
 
 </CHAPTER>

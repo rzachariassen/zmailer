@@ -1,5 +1,11 @@
-<CHAPTER ID="ZADM-SMTPSERVER-CONFIG"><?dbhtml filename="zadm-smtpserver.html">
-<TITLE><COMMAND>Smtpserver</> Configuration</TITLE>
+<CHAPTER ID="ZADM-SMTPSERVER"><?dbhtml filename="zadm-smtpserver.html">
+<TITLE><COMMAND>Smtpserver</> Administration</TITLE>
+
+<PARA><SCREEN>
+Things to place here 
+ - administrative stuff
+ - 
+</SCREEN></PARA>
 
 <PARA>
 The <COMMAND>smtpserver</> is ZMailer's component to receive incoming
@@ -155,7 +161,8 @@ Example configuration is is in figure <XREF LINKEND="fig.sample-smtpserver-cfg">
 
 <FIGURE ID="fig.sample-smtpserver-cfg" PGWIDE="0" FLOAT="1">
 <TITLE>Sample <FILENAME>smtpserver.conf</> file</TITLE>
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
 #PARAM maxsize          10000000    # Same as -M -option
 #PARAM max-error-recipients    3    # More than this is propably SPAM!
 #PARAM MaxSameIpSource        10    # Max simultaneous connections from
@@ -170,6 +177,9 @@ PARAM help -------------------------------------------------------------
 
 # The policy database:  (NOTE: See  'makedb'  for its default suffixes!)
 PARAM  policydb  $DBTYPE  $MAILVAR/db/smtp-policy
+
+# External program for received message content analysis:
+#PARAM  contentfilter	$MAILBIN/smtp-contentfilter
 
 #
 # HELO/EHLO-pattern     style-flags
@@ -189,7 +199,8 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 # on that detail, remove the "R" from "veR" string below:
 
 *                   999 veR
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </FIGURE>
 
 <SECT2 ID=zadm-smtpserver-conf-param-keywords>
@@ -272,6 +283,15 @@ database appends ".pag" and ".dir", while BSD-Btree appends only
 </PARA><PARA>
 For an operative overview, see <XREF LINKEND=zadm-smtpserver-policy-filtering>,
 and for deeper details, see <XREF LINKEND=zref-smtpserver-policy-filtering>.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><OPTION>contentfilter</> <REPLACEABLE>programpath</></TERM>
+<LISTITEM><PARA>
+
+</PARA><PARA>
+For an operative overview, see <XREF LINKEND=zadm-smtpserver-content-filter>,
+and for deeper details, see <XREF LINKEND=zref-smtpserver-content-filter>.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
@@ -421,7 +441,7 @@ Who can use us as outbound relay.
 </PARA>
 
 <PARA>
-Use  <CONSTANT>[/ip.number]/maskwidth</>  here for listing those senders
+Use  <LITERAL>[ip.number]/maskwidth</>  here for listing those senders
 (networks) we want to trust.  You may also use domains, or domain suffixes
 so that the IP-reversed hostnames are accepted (but that is a it risky thing
 due to ease of fakeing the reversed domain names):
@@ -434,15 +454,16 @@ due to ease of fakeing the reversed domain names):
 </PARA>
 
 <PARA>
-Server sets its internal ``always_accept'' flag at the source IP tests
-before it decides on what to tell to the contacting client.
+Server sets its internal ``<LITERAL>always_accept</>'' flag at the source IP
+address tests before it decides on what to tell to the contacting client.
 The flag is not modified afterwards during the session.
 </PARA>
 
 <PARA>
 Usage of domain names here is discouraged as there is no way to tell
-that domain ``foo.bar'' here has different meaning than same domain
-elsewere &mdash; at ``<FILENAME>smtp-policy.mx</>'', for example.
+that domain ``<LITERAL>foo.bar</>'' here has different meaning than
+same domain elsewere &mdash; at ``<FILENAME>smtp-policy.mx</>,''
+for example.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -456,12 +477,14 @@ that if recipient has MX to you, it would be ok&hellip;
 
 <PARA>
 You can substitute this knowledge with a fuzzy feeling by using
-``acceptifmx -'' attribute at the generic boilerplate.
-List here domain names. 
+``<LITERAL>acceptifmx -</>'' attribute at the generic boilerplate.
+List here domain names, possibly suffixes:
 <SCREEN>
   mx-target.dom
   .mx-target.dom
 </SCREEN>
+The suffix (``<LITERAL>.mx-target.dom</>'') <EMPHASIS>does not</>
+match to the ``dot-less'' domain name: ``<LITERAL>mx-target.com</>'' !
 </PARA>
 
 <PARA>
@@ -500,7 +523,8 @@ details concerning this.
 
 <FIGURE ID="fig.adm.smtp-policy-boiler" PGWIDE="0" FLOAT="1">
 <TITLE>The <FILENAME>smtp-policy.src</> file default settings fragment</TITLE>
-<SCREEN>
+<PROGRAMLISTING>
+<![CDATA[
 ...
 #| ===========================
 #|
@@ -574,13 +598,15 @@ _rbl1 # Nothing at late phase
 #|  (The "+" at the DNS zone defines is treated as shorthand to
 #|   "rbl.maps.vix.com")
 #|
-#|  The Third RBL variant means that all target domains can all by themselves
-#|  choose if they use RBL to do source filtering.  The ``= _RBL1'' test
-#|  *must* be added to all domain instances where the check is wanted.
+#|  The Third RBL variant means that all target domains can all by
+#|  themselves choose if they use RBL to do source filtering.
+#|  The ``= _RBL1'' test *must* be added to all domain instances
+#|  where the check is wanted.
 #|  (Including the last-resort domain default of ".")
-#|  (Or inverting: If some recipient domain is *not* wanting RBL-type tests,
-#|   that domain shall have  ``test-rcpt-dns-rbl -'' attribute pair given for
-#|   it at the input datasets -- consider  smtp-policy.mx  file!)
+#|  (Or inverting: If some recipient domain is *not* wanting RBL-type
+#|   tests, that domain shall have  ``test-rcpt-dns-rbl -'' attribute
+#|   pair given for it at the input datasets - consider smtp-policy.mx
+#|   file!)
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
 #| the database with  'relaytarget +' attribute.  ("acceptifmx *" allows
@@ -599,7 +625,38 @@ _rbl1 # Nothing at late phase
 #|
 #| ===========================
 ...
-</SCREEN>
+]]>
+</PROGRAMLISTING>
 </FIGURE>
 </SECT1>
+
+<SECT1 ID="zadm-smtpserver-content-filtering">
+<TITLE>Content Based Filtering</TITLE>
+<INDEXTERM ID=zadm-smtps-content-filtering1><PRIMARY><FILENAME>smtpserver.conf</></><SECONDARY>input content filters</></>
+<INDEXTERM ID=zadm-smtps-content-filtering2><PRIMARY>SMTP input</><SECONDARY>content filtering, admin</></>
+
+<PARA>
+The ZMailer <EMPHASIS>can</> do also message content analysis with
+an external program at the end of DATA-dot phase, and BDAT LAST phase
+(that is, when the input message is complete, and final acknowledgement is
+expected by the email sender.)
+</PARA>
+
+<PARA>
+The program becomes active if PARAM entry ``contentfilter''  is set:
+
+<PROGRAMLISTING>
+<![CDATA[
+# External program for received message content analysis:
+#PARAM  contentfilter	$MAILBIN/smtp-contentfilter
+]]>
+</PROGRAMLISTING>
+</PARA>
+
+<PARA>
+More details are at the Reference part: <XREF LINKEND=zref-smtpserver-content-filtering>.
+</PARA>
+
+</SECT1>
+
 </CHAPTER>

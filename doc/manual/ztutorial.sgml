@@ -369,59 +369,69 @@ fit easily everywhere.
 
 <PARA>
 ZMailer is a multi-process mailer, using two daemon processes to manipulate
-messages.  One of these processes is a router, and makes all decisions
-about what should happen to a message.  The other daemon is a message queue
-manager, used to schedule delivery of messages.  The Router uses a
-configuration file that closely follows Bourne shell script syntax and
-semantics, with minimal magic.  Message files are moved around in a series
-of directories, and the Scheduler and its Transport Agents run off of
-control files created by the Router.
+messages.  One of these processes is a <COMMAND>router</>, and makes all
+decisions about what should happen to a message.
+The other daemon is a message queue manager, <COMMAND>scheduler</>, used to
+schedule delivery of messages.
+The Router uses a configuration file that closely follows
+ <EMPHASIS>Bourne shell script</> syntax and semantics, with minimal magic.
+Message files are moved around in a series of directories, and
+the <COMMAND>Scheduler</> and its <EMPHASIS>Transport Agents</> run off of
+control files created by the <EMPHASIS>Router</>.
 </PARA>
 
 <PARA>
-The Router will process messages one at a time, as it finds them in a
-directory where User Agents submit their outgoing messages.  Envelope and
-Message Header information is all kept in the same message file along with
-the message body, and this file is never modified by any ZMailer program.
-After parsing the envelope and RFC822 header information, the Router
-validates the information extracted, and calls functions defined in the
-configuration file to decide exactly how to deliver the message and how to
-transform the embedded addresses.  The algorithms that do this are easily
-re-configurable, since the control flow and address manipulation is
-specified by familiar shell script statements.  When the Router is
-finished, it will produce a message control file for use by the delivery
-processing stage of ZMailer, and move the original message file to another
-location.
+The <COMMAND>Router</> will process messages one at a time, as it finds them
+in a directory where <EMPHASIS>User Agents</> submit their outgoing messages.
+<EMPHASIS>Message Envelope</> and <EMPHASIS>Message Header</> information is
+all kept in the same <EMPHASIS>message file</> along with
+the <EMPHASIS>message body</>, and this file is never modified by
+any ZMailer program.
+After parsing the envelope and RFC822 header information,
+the <COMMAND>Router</> validates the information extracted,
+and calls functions defined in the configuration file to decide
+exactly how to deliver the message and how to transform the embedded addresses.
+The algorithms that do this are easily re-configurable, since the control flow
+and address manipulation is specified by familiar shell script statements.
+When the <COMMAND>Router</> is finished, it will produce a message control
+file for use by the delivery processing stage of ZMailer, and move
+the original message file to another location.
 </PARA>
 
 <PARA>
-Once the Router has decided what to do with each of the addresses in a
-message, the Scheduler builds a summary of this information by reading the
-control file created by the Router.  This knowledge is merged with a data
-structure it maintains that stores which messages are supposed to be sent
-where, and how.  According to a pre-arranged agenda, the Scheduler will
-execute delivery programs to properly move the message envelope, header,
-and body, to the immediate destination.  These delivery programs are called
-Transport Agents, and communicate with the Scheduler using a simple
-protocol that tells them which messages to process and returns status
-reports to the Scheduler.  The Scheduler also manages status reports,
-taking appropriate action on delivery errors and when all delivery
+Once the <COMMAND>Router</> has decided what to do with each of
+the addresses in a message, the <COMMAND>Scheduler</> builds a summary
+of this information by reading the control file created by
+the <COMMAND>Router</>.
+This knowledge is merged with a data structure it maintains that stores
+which messages are supposed to be sent where, and how.
+According to a pre-arranged agenda, the <COMMAND>Scheduler</> will execute
+delivery programs to properly move the message envelope, header, and body,
+to the immediate destination.
+These delivery programs are called <EMPHASIS>Transport Agents</>, and
+communicate with the <COMMAND>Scheduler</> using a simple protocol that
+tells them which messages to process and returns status reports to
+the <COMMAND>Scheduler</>.  The <COMMAND>Scheduler</> also manages status
+reports, taking appropriate action on delivery errors and when all delivery
 instructions for a message have been processed.
 </PARA>
 
 <PARA>
-There are several standard Transport Agents included with the ZMailer
-distribution.  The collection currently includes a local delivery program,
-an SMTP client implementation, and a Transport Agent that can run
-Sendmail-compatible delivery programs.
+There are several standard <EMPHASIS>Transport Agents</> included with
+the ZMailer distribution.
+The collection currently includes a local delivery program, an SMTP client
+implementation, and a Transport Agent that can run Sendmail-M-line-compatible
+delivery programs.
 </PARA>
 
 <PARA>
-A separate utility allows querying the Scheduler for the state of its mail
-queues.  For existing Sendmail installations, a replacement program is
-included that simulates most of the Sendmail functionality in the ZMailer
-environment.  This allows ZMailer to replace a Sendmail installation
-without requiring changes in standard User Agents.
+A separate <COMMAND>mailq</> utility allows querying the <COMMAND>Scheduler</>
+for the state of its queues.
+For existing <APPLICATION>Sendmail</> installations, a replacement program
+is included that simulates most of the <APPLICATION>Sendmail</> functionality
+in the ZMailer environment.
+This allows ZMailer to replace a <COMMAND>Sendmail</> installation without
+requiring changes in standard <EMPHASIS>User Agents</>.
 </PARA>
 
 <FIGURE PGWIDE="1" FLOAT="1" ID=fig.ztut.zmdirs>
@@ -830,10 +840,6 @@ In fact the <APPLICATION>qmail</APPLICATION> delivers each
 </PARA></LISTITEM></VARLISTENTRY>
 
 </VARIABLELIST>
-
-<PARA>
-placeholder text
-</PARA>
 
 </SECT1>
 

@@ -51,6 +51,8 @@ could be at separate partitions.  No they can't!
   </MEDIAOBJECT>
 </FIGURE>
 
+<PARA>&PGBREAK;</PARA>
+
 <PARA>
 There are multiple queues in ZMailer. Messages exist in
 in one of five locations:
@@ -78,8 +80,10 @@ Scheduler directories
     <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>)
 </PARA></LISTITEM>
 </ITEMIZEDLIST>
+</PARA>
 
-and sometimes is also copied into the 
+<PARA>
+And sometimes is also copied into the:
 <ITEMIZEDLIST>
 <LISTITEM><PARA>
 Postmaster analysis area
@@ -136,8 +140,8 @@ directory.
 FIXME:
    This description is from era before the router got
    ``daemonized'' in a sense of having separate instance
-   of queue processor (and it also handles logging/log rotation)
-   and a worker-farm of routing work processes.
+   of queue processor (and it also handles logging/log
+   rotation) and a worker-farm of routing work processes.
 </SCREEN>
 </PARA>
 
@@ -303,7 +307,14 @@ directory!</EMPHASIS>
 </PARA>
 
 <PARA>
-Usually forementioned underscoreless filenames 
+Usually forementioned underscoreless filenames are double-errors,
+that is, error messages to error messages.  There is nowhere else
+to send them.
+</PARA>
+
+<PARA>
+The indication of <EMPHASIS>error</> message is, of course,
+<LITERAL>MAIL FROM:&lt;&gt;</> per RFC 821.
 </PARA>
 
 <PARA>

@@ -260,6 +260,40 @@
 (define (toc-depth nd)
   99)
 
+(define %admon-graphics%
+  ;; REFENTRY admon-graphics
+  ;; PURP Use graphics in admonitions?
+  ;; DESC
+  ;; If true, admonitions are presented in an alternate style that uses
+  ;; a graphic.  Default graphics are provided in the distribution.
+  ;; /DESC
+  ;; AUTHOR N/A
+  ;; /REFENTRY
+  #t)
+
+(define %admon-graphics-path%
+  ;; REFENTRY admon-graphics-path
+  ;; PURP Path to admonition graphics
+  ;; DESC
+  ;; Sets the path, probably relative to the directory where the HTML
+  ;; files are created, to the admonition graphics.
+  ;; /DESC
+  ;; AUTHOR N/A
+  ;; /REFENTRY
+  "stylesheet-images/")
+
+
+(define %indent-synopsis-lines% 
+  ;; REFENTRY indent-synopsis-lines
+  ;; PURP Indent lines in a 'Synopsis'?
+  ;; DESC
+  ;; If not '#f', each line in the display will be indented
+  ;; with the content of this variable.  Usually it is set to some number
+  ;; of spaces, but you can indent with any string you wish.
+  ;; /DESC
+  ;; /REFENTRY
+  #f)
+
 
 (define %hyphenation%
   ;; Allow automatic hyphenation?

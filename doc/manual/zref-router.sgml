@@ -1208,7 +1208,6 @@ entries and maximum size, flags, and associated files. See the
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 <INFORMALTABLE FRAME=ALL ID=tbl-zref-router-db-type-specific-notes>
-<TITLE>DB type specific notes:</TITLE>
 <TGROUP COLS=6 ALIGN=LEFT COLSEP=1 ROWSEP=1>
 <COLSPEC COLNAME=C1-DBTYPE-NAME>
 <COLSPEC COLNAME=C2-DBFUNC-ADD>
@@ -2087,8 +2086,39 @@ will only be generated if a hostname has been set using this function.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
+</SECT2>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<SECT2 ID="zmshref.ifssplit">
+<TITLE><FUNCTION>ifssplit</FUNCTION></TITLE>
+
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+
+{\tt ifssplit any-string}
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
+
+split list
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+This splits given input string per IFS environment variable, and
+produces a list of substrings ready for further use.
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 </SECT2>
+
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2 ID="zmshref.lappend">
 <TITLE><FUNCTION>lappend</FUNCTION></TITLE>
@@ -2119,6 +2149,7 @@ This appends content of list object ({\em anyvalue}) to named
 </VARIABLELIST>
 
 </SECT2>
+
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2 ID="zmshref.last">
 <TITLE><FUNCTION>last</FUNCTION></TITLE>
@@ -2147,7 +2178,6 @@ none
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
-
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
@@ -2419,15 +2449,17 @@ is added to the list.
 </PARA>
 
 <SCREEN>
-  tt=(aa 11 bb 22 cc 33 dd 44)
-  lreplace tt aa zz
-  grind $tt
-  (zz 11 bb 22 cc 33 dd 44)
-  lreplace tt 0 aaa
-  grind $tt
+  <PROMPT>$ </><USERINPUT>tt=(aa 11 bb 22 cc 33 dd 44)</>
+  <PROMPT>$ </><USERINPUT>grind $tt</>
+  (aa 11 bb 22 cc 33 dd 44)
+  <PROMPT>$ </><USERINPUT>lreplace tt bb zz</>
+  <PROMPT>$ </><USERINPUT>grind $tt</>
+  (aa 11 bb zz cc 33 dd 44)
+  <PROMPT>$ </><USERINPUT>lreplace tt 0 aaa</>
+  <PROMPT>$ </><USERINPUT>grind $tt</>
   (aaa 11 bb 22 cc 33 dd 44)
-  lreplace tt zz aa
-  grind $tt
+  <PROMPT>$ </><USERINPUT>lreplace tt zz aa</>
+  <PROMPT>$ </><USERINPUT>grind $tt</>
   (aaa 11 bb 22 cc 33 dd 44 zz aa)
 </SCREEN>
 

@@ -1,5 +1,11 @@
 <CHAPTER ID="ZADM-SM"><?dbhtml filename="zadm-sm.html">
-<TITLE><COMMAND>Sm</> Configuration</TITLE>
+<TITLE><COMMAND>Sm</> Administration</TITLE>
+
+<PARA><SCREEN>
+- Move to be a SECTION of Scheduler ?
+  - This is support thingie for the Scheduler anyway.
+- Less details than REFERENCE has, focus differently
+</SCREEN></PARA>
 
 <PARA>
 <COMMAND>sm</> is a ZMailer's <COMMAND>sendmail</>(8) compatible
@@ -63,7 +69,7 @@ are ignored, and all others are assumed to follow format shown in figure
 <TITLE>Sample <FILENAME>sm.conf</> file</TITLE>
 <SCREEN>
 #mailer flags program        argument list
-#------ ----- -------------- --------------------------------
+#====== ===== ============== ================================
 local   mS    sm/localm      localm -r $g $u
 prog    -     /bin/sh        sh -c $u
 tty     rs    /usr/local/to  to $u
@@ -82,9 +88,9 @@ One or more whitespace is used as the field separator for all the fields.
 
 <PARA>
 The flags field contains a concatenation of one-letter flags.
-If no flags are desired, a ``<EMPHASIS ROLE="STRONG">-</>''
+If no flags are desired, a ``<LITERAL>-</>''
 character should be used to indicate presence of the field.
-All normal <APPLICATION>sendmail</> (<EMPHASIS>of 5.x era..</>)
+All normal <APPLICATION>sendmail</> (of 8.11(.0))
 flags are recognized, but the ones that do not make sense in
 the context of ZMailer will produce an error (or some are ignored).
 The flags that change the behaviour of <COMMAND>sm</> are:

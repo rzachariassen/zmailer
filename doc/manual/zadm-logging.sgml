@@ -1,10 +1,20 @@
 <CHAPTER ID="ZADM-LOGGING"><?dbhtml filename="zadm-logging.html">
-<TITLE>Logging and Statistics</TITLE>
+<TITLE>Logging and Statistics for Administrator</TITLE>
 
 <PARA>
 <EMPHASIS>
 This text has been copied from other sections and will change...
 </EMPHASIS>
+<SCREEN>
+  What material is applicable here ?
+  - Current one is more of FORMATS (Appendix E) material
+    at SGML-level comments ...
+
+  How to control logging ?
+   - Settings/variables/whatnot controlling it
+  How to rotate logfiles ?
+   - Example scripts for rotation ?
+</SCREEN>
 </PARA>
 
 
