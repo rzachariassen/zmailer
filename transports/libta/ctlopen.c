@@ -109,8 +109,8 @@ void
 ctlclose(dp)
 	struct ctldesc *dp;
 {
-	struct taddress *ap, *nextap;
-	struct rcpt *rp, *nextrp;
+	struct taddress *ap;
+	struct rcpt *rp;
 	char ***msghpp;
 
 	for (rp = dp->recipients; rp != NULL; rp = rp->next) {
@@ -131,18 +131,20 @@ ctlclose(dp)
 	if (dp->msgfd >= 0)
 	  close(dp->msgfd);
 
-	for (ap = dp->ta_chain; ap != NULL; ap = nextap) {
-	  nextap = ap->ta_next;
+	for (ap = dp->ta_chain; ap != NULL; ap = dp->ta_chain) {
+	  dp->ta_chain = ap->ta_next;
 	  free((char *)ap);
 	}
 	dp->ta_chain = dp->senders = NULL;
 
-	for (rp = dp->rp_chain; rp != NULL; rp = nextrp) {
-	  nextrp = rp->rp_next;
+	for (rp = dp->rp_chain; rp != NULL; rp = dp->rp_chain) {
+	  dp->rp_chain = rp->rp_next;
 	  if (rp->top_received) free((void*)(rp->top_received));
+	  rp->top_received = NULL;
 	  if (rp->lockoffset) {
 	    fprintf(stdout, "# undiagnosed: %s %d\n", dp->msgfile, rp->id);
 	  }
+	  rp->lockoffset = 0;
 
 	  free((void *)rp);
 	}
