@@ -80,9 +80,11 @@ home directory and login id respectively.  The \fBSENDER\fR value is the
 sender address for the message (as it would appear in a From_ line), and
 the \fBUID\fR value is the owner id of the process.  The \fBSIGINT\fR and
 \fBSIGHUP\fR signals are ignored, but \fBSIGTERM\fR is treated normally.
-If the process dumps core, it will be retried later.  Otherwise any non-zero
-exit status is taken as a permanent failure and will result in an error
-message back to the sender.
+If the process dumps core, it will be retried later.
+Sub-process exit codes are interpreted according to <sysexits.h> codes,
+and of those EX_NOPERM, EX_UNAVAILABLE, EX_NOHOST, EX_NOUSER, and
+EX_DATAERR are treated as permanent errors, all others are treated
+as temporary failures.
 .PP
 The actual data delivered to a file, mailbox, or process, is identical.
 It consists of the concationation of a UUCP style separator line,

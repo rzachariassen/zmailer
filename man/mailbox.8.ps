@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.11
-%%CreationDate: Mon Jun 22 14:09:08 1998
+%%CreationDate: Thu Aug  6 23:38:43 1998
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
@@ -271,247 +271,248 @@ F0(and)4.446 E F2(USER)4.446 E F0 -.25(va)4.446 G 1.947
 108 516 S 1.075(lue is the o).25 F 1.075(wner id of the process.)-.25 F
 (The)6.075 E F2(SIGINT)3.575 E F0(and)3.575 E F2(SIGHUP)3.575 E F0 1.076
 (signals are ignored, b)3.575 F(ut)-.2 E F2(SIGTERM)3.576 E F0(is)3.576
-E .734(treated normally)108 528 R 5.734(.I)-.65 G 3.234(ft)-5.734 G .734
-(he process dumps core, it will be retried later)-3.234 F 5.733(.O)-.55
-G .733(therwise an)-5.733 F 3.233(yn)-.15 G .733(on-zero e)-3.233 F .733
-(xit status is)-.15 F(tak)108 540 Q(en as a permanent f)-.1 E
-(ailure and will result in an error message back to the sender)-.1 E(.)
--.55 E .8(The actual data deli)108 556.8 R -.15(ve)-.25 G .8
+E .511(treated normally)108 528 R 5.511(.I)-.65 G 3.011(ft)-5.511 G .511
+(he process dumps core, it will be retried later)-3.011 F 5.51(.S)-.55 G
+.51(ub-process e)-5.51 F .51(xit codes are interpreted)-.15 F 3.363
+(according to <syse)108 540 R 3.363
+(xits.h> codes, and of those EX_NOPERM, EX_UN)-.15 F -1.35(AVA)-.35 G
+3.364(ILABLE, EX_NOHOST)1.35 F(,)-.74 E .214(EX_NOUSER, and EX_D)108 552
+R -1.21 -1.11(AT A)-.4 H .214(ERR are treated as permanent errors, all \
+others are treated as temporary f)1.11 F(ail-)-.1 E(ures.)108 564 Q .8
+(The actual data deli)108 580.8 R -.15(ve)-.25 G .8
 (red to a \214le, mailbox, or process, is identical.).15 F .801
 (It consists of the concationation of a)5.801 F .373(UUCP style separat\
 or line, the message header speci\214ed in the message control \214le, \
-and the message body)108 568.8 R .107(from the original message \214le.)
-108 580.8 R .107(The separator line starts with "From " and is follo)
-5.107 F .108(wed by the sender address)-.25 F(and a timestamp.)108 592.8
-Q 1.322(After all deli)108 609.6 R -.15(ve)-.25 G 1.322
+and the message body)108 592.8 R .107(from the original message \214le.)
+108 604.8 R .107(The separator line starts with "From " and is follo)
+5.107 F .108(wed by the sender address)-.25 F(and a timestamp.)108 616.8
+Q 1.322(After all deli)108 633.6 R -.15(ve)-.25 G 1.322
 (ries and just before e).15 F 1.321(xiting, the)-.15 F F3(mailbox)3.821
 E F0 1.321(process will pok)3.821 F(e)-.1 E F3(comsat)3.821 E F0 1.321
-(\(8C\) in case recipients).68 F(ha)108 621.6 Q .61 -.15(ve t)-.2 H .31
+(\(8C\) in case recipients).68 F(ha)108 645.6 Q .61 -.15(ve t)-.2 H .31
 (urned on).15 F F3(bif)2.81 E(f)-.18 E F0 2.81(\(1\). The)1.96 F .311(p\
 rogram may be compiled to look in the rwho \214les on the system for re\
 cipient)2.81 F .143
-(names logged onto neighbouring hosts, in which case the)108 633.6 R F3
+(names logged onto neighbouring hosts, in which case the)108 657.6 R F3
 (comsat)2.643 E F0 .143(on the remote host will be pok)2.643 F 2.642
 (ed. Ev)-.1 F .142(en if)-.15 F 1.105(this compile-time option is enabl\
-ed, this will only be done for users that ha)108 645.6 R 1.405 -.15
+ed, this will only be done for users that ha)108 669.6 R 1.405 -.15
 (ve a)-.2 H F2(.rbiff)3.755 E F0 1.105(\214le in their home)3.605 F
-(directory)108 657.6 Q 5(.\()-.65 G(Unless an '-DRBIFF_AL)-5 E -1.15
--1.2(WA Y)-.74 H(S' compile option is used.\))1.2 E F1(OPTIONS)72 674.4
-Q F0<ad63>108 686.4 Q F3 -.15(ch)2.5 G(annel).15 E F0
-(speci\214es which channel name should be k)144 698.4 Q -.15(ey)-.1 G
-(ed on.).15 E(The def)5 E(ault is)-.1 E F2(local)2.5 E F0(.)A
-(18 Jun 1998)281.555 768 Q(1)204.555 E EP
+(directory)108 681.6 Q 5(.\()-.65 G(Unless an '-DRBIFF_AL)-5 E -1.15
+-1.2(WA Y)-.74 H(S' compile option is used.\))1.2 E F1(OPTIONS)72 698.4
+Q F0(18 Jun 1998)281.555 768 Q(1)204.555 E EP
 %%Page: 2 2
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF(MAILBO)72 48 Q 349.66(X\(8\) MAILBO)-.4 F
-(X\(8\))-.4 E<ad68>108 84 Q/F1 10/Times-Italic@0 SF("localpart")2.5 E F0
-1.482
+(X\(8\))-.4 E<ad63>108 84 Q/F1 10/Times-Italic@0 SF -.15(ch)2.5 G(annel)
+.15 E F0(speci\214es which channel name should be k)144 96 Q -.15(ey)-.1
+G(ed on.).15 E(The def)5 E(ault is)-.1 E/F2 10/Times-Bold@0 SF(local)2.5
+E F0(.)A<ad68>108 112.8 Q F1("localpart")2.5 E F0 1.482
 (speci\214es which of the possible multiple recipients is to be pick)144
-96 R 1.482(ed this time. Def)-.1 F 1.482(ault is "none",)-.1 F .975
-(which selects all local channel recipients, ho)144 108 R(we)-.25 E -.15
-(ve)-.25 G 3.475(rw).15 G .975
+124.8 R 1.482(ed this time. Def)-.1 F 1.482(ault is "none",)-.1 F .975
+(which selects all local channel recipients, ho)144 136.8 R(we)-.25 E
+-.15(ve)-.25 G 3.475(rw).15 G .975
 (hen the routing is done with scripts storing)-3.475 F .549(some tok)144
-120 R .549(ens \(other than "\255"\) into the "host"-part, it is possib\
-le to process "host-wise", i.e. so that)-.1 F(each)144 132 Q/F2 10
-/Times-Bold@0 SF(user)2.5 E F0(has his/her o)2.5 E
-(wn lock-state, and not just e)-.25 E -.15(ve)-.25 G
-(rybody hang on the same lock\(s\)..).15 E<ad6c>108 148.8 Q F1(lo)2.5 E
-(g\214le)-.1 E F0 .579(speci\214es a log\214le.)144 160.8 R .579
-(Each entry is a line containing message id, pre-e)5.579 F .58
+148.8 R .549(ens \(other than "\255"\) into the "host"-part, it is poss\
+ible to process "host-wise", i.e. so that)-.1 F(each)144 160.8 Q F2
+(user)2.5 E F0(has his/her o)2.5 E(wn lock-state, and not just e)-.25 E
+-.15(ve)-.25 G(rybody hang on the same lock\(s\)..).15 E<ad6c>108 177.6
+Q F1(lo)2.5 E(g\214le)-.1 E F0 .579(speci\214es a log\214le.)144 189.6 R
+.579(Each entry is a line containing message id, pre-e)5.579 F .58
 (xisting mailbox size in bytes,)-.15 F
 (number of bytes appended, and the \214le name or command line deli)144
-172.8 Q -.15(ve)-.25 G(red to.).15 E 20.64(\255V prints)108 189.6 R 2.5
+201.6 Q -.15(ve)-.25 G(red to.).15 E 20.64(\255V prints)108 218.4 R 2.5
 (av)2.5 G(ersion message and e)-2.65 E(xits.)-.15 E 23.42(\255a the)108
-206.4 R .339(access time on mailbox \214les is, by def)2.839 F .339
+235.2 R .339(access time on mailbox \214les is, by def)2.839 F .339
 (ault, preserv)-.1 F .339(ed across deli)-.15 F -.15(ve)-.25 G(ry).15 E
 2.839(,s)-.65 G 2.838(ot)-2.839 G .338(hat programs such as)-2.838 F F1
-(lo)144 218.4 Q(gin)-.1 E F0(\(1\) can determine if ne).24 E 2.5(wm)-.25
+(lo)144 247.2 Q(gin)-.1 E F0(\(1\) can determine if ne).24 E 2.5(wm)-.25
 G(ail has arri)-2.5 E -.15(ve)-.25 G 2.5(d. This).15 F
 (option disables the abo)2.5 E .3 -.15(ve a)-.15 H(ction.).15 E 22.86
-(\255b disables)108 235.2 R(bif)2.5 E 2.5(fn)-.25 G(oti\214cation.)-2.5
-E 24.53(\255r disables)108 252 R(remote bif)2.5 E 2.5(fn)-.25 G
-(oti\214cation \(if supported\).)-2.5 E 22.86(\2558 enables)108 268.8 R
+(\255b disables)108 264 R(bif)2.5 E 2.5(fn)-.25 G(oti\214cation.)-2.5 E
+24.53(\255r disables)108 280.8 R(remote bif)2.5 E 2.5(fn)-.25 G
+(oti\214cation \(if supported\).)-2.5 E 22.86(\2558 enables)108 297.6 R
 2.634(MIME-QP-decoder to decode incoming MIME-email with Quoted-Printab\
-le encoded)5.133 F(characters.)144 280.8 Q 18.97(\255M enables)108 297.6
+le encoded)5.133 F(characters.)144 309.6 Q 18.97(\255M enables)108 326.4
 R .267
 (the creation of MMDF-style mail-folder in the incoming mail folder)
 2.768 F 5.267(.T)-.55 G .267(he def)-5.267 F .267(ault is "clas-)-.1 F
-(sic" UNIX-style folder)144 309.6 Q(.)-.55 E 21.19(\255C Canonify)108
-326.4 R .083(username by using internally v)2.582 F .083
+(sic" UNIX-style folder)144 338.4 Q(.)-.55 E 21.19(\255C Canonify)108
+355.2 R .083(username by using internally v)2.582 F .083
 (ersion of username recei)-.15 F -.15(ve)-.25 G 2.583(di).15 G(n)-2.583
 E F1(pw_name)2.583 E F0 .083(\214eld of the)2.583 F F1 -.1(ge)2.583 G
-(tp-).1 E(wnam\(\))144 338.4 Q F0(call result.)2.5 E 6.76(\255D[D] F)108
-355.2 R .302(or a user with is)-.15 F F1(abcdef)2.802 E F0 2.802(,o)1.96
-G(ne)-2.802 E F1<ad44>2.802 E F0 .302
+(tp-).1 E(wnam\(\))144 367.2 Q F0(call result.)2.5 E 6.76(\255D[D] F)108
+384 R .302(or a user with is)-.15 F F1(abcdef)2.802 E F0 2.802(,o)1.96 G
+(ne)-2.802 E F1<ad44>2.802 E F0 .302
 (will place the mailbox \214le into directory)2.802 F F1($MAILBO)2.802 E
-(X/a/abcdef)-.4 E F0(.)1.96 E -.4(Wi)144 367.2 S(th).4 E F1(\255DD)2.5 E
+(X/a/abcdef)-.4 E F0(.)1.96 E -.4(Wi)144 396 S(th).4 E F1(\255DD)2.5 E
 F0(the mailbox \214le will be placed into directory:)2.5 E F1($MAILBO)
-2.5 E(X/a/b/abcdef)-.4 E F0(.)1.96 E 10.08(\255P[P] This)108 384 R .808
-(uses much of similar method as)3.308 F F1(\255D[D])3.308 E F0 .808
+2.5 E(X/a/b/abcdef)-.4 E F0(.)1.96 E 10.08(\255P[P] This)108 412.8 R
+.808(uses much of similar method as)3.308 F F1(\255D[D])3.308 E F0 .808
 (option, b)3.308 F .808(ut directory names are deri)-.2 F -.15(ve)-.25 G
-3.308(df).15 G .808(rom much)-3.308 F(more smoothly distrib)144 396 Q
+3.308(df).15 G .808(rom much)-3.308 F(more smoothly distrib)144 424.8 Q
 (uting hash function o)-.2 E -.15(ve)-.15 G 2.5(ru).15 G
 (ser names, namely:)-2.5 E F1(pjwhash32\(\))2.5 E F0(.).06 E -.4(Wi)144
-420 S .316(th one).4 F F1<ad50>2.816 E F0 2.816(,t).44 G .316
+448.8 S .316(th one).4 F F1<ad50>2.816 E F0 2.816(,t).44 G .316
 (he calculated hash v)-2.816 F .316(alue is used by formula:)-.25 F F1
 ('A)2.816 E .316('+\(hash % 26\))-.37 F F0 .315(to produce one mid-)
-2.816 F(le)144 432 Q -.15(ve)-.25 G 2.524(ld).15 G(irectory)-2.524 E
+2.816 F(le)144 460.8 Q -.15(ve)-.25 G 2.524(ld).15 G(irectory)-2.524 E
 5.024(.W)-.65 G(ith)-5.424 E F1(\255PP)2.524 E F0 .025
 (the formula is more comple)2.524 F .025
 (x: upper directory uses formula:)-.15 F F1('A)2.525 E 2.525('+\()-.37 G
-(hash)-2.525 E 2.5(/2)144 444 S(6\) % 26)-2.5 E F0(and lo)2.5 E
+(hash)-2.525 E 2.5(/2)144 472.8 S(6\) % 26)-2.5 E F0(and lo)2.5 E
 (wer uses formula:)-.25 E F1('A)2.5 E('+\(hash % 26\))-.37 E F0 1.128
-(The result of these)144 468 R F1(\255P[P])3.628 E F0(deri)3.628 E -.15
-(ve)-.25 G 3.628(dd).15 G 1.127(irectory paths is something lik)-3.628 F
-(e:)-.1 E F1($MAILBO)3.627 E(X/X/username)-.4 E F0(or)3.627 E F1
-($MAILBO)144 480 Q(X/Y/X/username)-.4 E F0 22.3(\255S This)108 496.8 R
+(The result of these)144 496.8 R F1(\255P[P])3.628 E F0(deri)3.628 E
+-.15(ve)-.25 G 3.628(dd).15 G 1.127(irectory paths is something lik)
+-3.628 F(e:)-.1 E F1($MAILBO)3.627 E(X/X/username)-.4 E F0(or)3.627 E F1
+($MAILBO)144 508.8 Q(X/Y/X/username)-.4 E F0 22.3(\255S This)108 525.6 R
 .502(option enables `)3.002 F(`Return-Receipt-T)-.74 E(o:')-.8 E 3.002
 ('m)-.74 G .502(essage header recognition and processing along with)
--3.002 F 2.688(sending receipt to gi)144 508.8 R -.15(ve)-.25 G 5.188
+-3.002 F 2.688(sending receipt to gi)144 537.6 R -.15(ve)-.25 G 5.188
 (na).15 G(ddress.)-5.188 E F1(\(Ne)7.688 E 2.688(wer sendmails don')-.15
 F 5.187(ta)-.3 G(nymor)-5.187 E 5.187(es)-.37 G 2.687
-(upport this facility per)-5.187 F(default..\))144 520.8 Q/F3 9
-/Times-Bold@0 SF(INTERF)72 537.6 Q -.495(AC)-.81 G(E).495 E F0 1.524
-(This program reads in processable \214le names relati)108 549.6 R 1.825
+(upport this facility per)-5.187 F(default..\))144 549.6 Q/F3 9
+/Times-Bold@0 SF(INTERF)72 566.4 Q -.495(AC)-.81 G(E).495 E F0 1.524
+(This program reads in processable \214le names relati)108 578.4 R 1.825
 -.15(ve t)-.25 H 4.025(ot).15 G 1.525(he current w)-4.025 F 1.525
-(orking directory of the scheduler)-.1 F(\(namely:)108 561.6 Q F1
+(orking directory of the scheduler)-.1 F(\(namely:)108 590.4 Q F1
 ($POSTIOFFICE/tr)2.933 E(ansport/)-.15 E F0 2.933(\). Optionally)B .433
 (on the same line the scheduler may tell which host is to)2.933 F
-(be look)108 573.6 Q(ed for from the recipients of the message.)-.1 E F1
--.37(re)144 597.6 S(lative-spool-path).37 E F0 2.5([<)2.5 G -.93(TA)-2.5
+(be look)108 602.4 Q(ed for from the recipients of the message.)-.1 E F1
+-.37(re)144 626.4 S(lative-spool-path).37 E F0 2.5([<)2.5 G -.93(TA)-2.5
 G(B>).93 E F1(hostname)2.5 E F0(])2.5 E
 (This program produces diagnostic output on the standard output.)108
-614.4 Q(Normal diagnostic output is of the form:)5 E F1(id)144 638.4 Q
+643.2 Q(Normal diagnostic output is of the form:)5 E F1(id)144 667.2 Q
 F0(/)A F1(of)A(fset)-.18 E F0(<T)A(AB>)-.93 E F1(notify-data)A F0(<T)A
-(AB>)-.93 E F1(status messa)A -.1(ge)-.1 G F0(where)108 662.4 Q F1(id)
+(AB>)-.93 E F1(status messa)A -.1(ge)-.1 G F0(where)108 691.2 Q F1(id)
 3.665 E F0 1.165(is the inode number of the message \214le,)3.665 F F1
 (of)3.665 E(fset)-.18 E F0 1.166(is a byte of)3.666 F 1.166
 (fset within its control \214le where the)-.25 F .915
-(address being reported on is k)108 674.4 R(ept,)-.1 E F1(status)3.415 E
+(address being reported on is k)108 703.2 R(ept,)-.1 E F1(status)3.415 E
 F0 .915(is one of)3.415 F F2(ok)3.415 E F0(,)A F2(err)3.415 E(or)-.18 E
 F0 3.415(,o)C(r)-3.415 E F2(deferr)3.415 E(ed)-.18 E F0 3.415(,a)C .915
 (nd the)-3.415 F F1(messa)3.415 E -.1(ge)-.1 G F0 .915(is descripti)
-3.515 F -.15(ve)-.25 G(te)108 686.4 Q .85
+3.515 F -.15(ve)-.25 G(te)108 715.2 Q .85
 (xt associated with the report.)-.15 F .85(The te)5.85 F .85
 (xt is terminated by a linefeed.)-.15 F(An)5.85 E 3.35(yo)-.15 G .85
 (ther format \(as might be pro-)-3.35 F(duced by subprocesses\) is pass\
-ed to standard output for logging in the)108 698.4 Q F2(scheduler)2.5 E
-F0(log.)2.5 E(The e)108 715.2 Q(xit status is a code from)-.15 E F2
-(<sysexits.h>)2.5 E F0(.)A(18 Jun 1998)281.555 768 Q(2)204.555 E EP
+ed to standard output for logging in the)108 727.2 Q F2(scheduler)2.5 E
+F0(log.)2.5 E(18 Jun 1998)281.555 768 Q(2)204.555 E EP
 %%Page: 3 3
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF(MAILBO)72 48 Q 349.66(X\(8\) MAILBO)-.4 F
-(X\(8\))-.4 E/F1 9/Times-Bold@0 SF(LOCKS)72 84 Q F0 1.016(Locking schem\
-e used at the system is con\214gurable at the runtime, and has separate\
- parameters for mail-)108 96 R(box)108 108 Q .112(es, and \214les.)-.15
-F .112(The data is con\214gurable with zen)5.112 F 2.612(vv)-.4 G
-(ariable)-2.862 E/F2 10/Times-Bold@0 SF(MBO)2.612 E(XLOCKS)-.4 E F0 .112
-(at which follo)2.612 F .113(wing characters)-.25 F(ha)108 120 Q .3 -.15
-(ve m)-.2 H(eanins:).15 E 24.06(`:' Separates)108 141.6 R .135
+(X\(8\))-.4 E(The e)108 84 Q(xit status is a code from)-.15 E/F1 10
+/Times-Bold@0 SF(<sysexits.h>)2.5 E F0(.)A/F2 9/Times-Bold@0 SF(LOCKS)72
+112.8 Q F0 1.016(Locking scheme used at the system is con\214gurable at\
+ the runtime, and has separate parameters for mail-)108 124.8 R(box)108
+136.8 Q .112(es, and \214les.)-.15 F .112
+(The data is con\214gurable with zen)5.112 F 2.612(vv)-.4 G(ariable)
+-2.862 E F1(MBO)2.612 E(XLOCKS)-.4 E F0 .112(at which follo)2.612 F .113
+(wing characters)-.25 F(ha)108 148.8 Q .3 -.15(ve m)-.2 H(eanins:).15 E
+24.06(`:' Separates)108 170.4 R .135
 (mailbox locks, and \214le-locks at the string.)2.635 F .134
 (The left side has mailbox locks, and the right)5.134 F
-(side has locks for other re)144 153.6 Q(gular \214les. \(Files with e)
--.15 E(xplicite paths de\214ned.\))-.15 E(`.)108 170.4 Q 27.54('F)-.7 G
+(side has locks for other re)144 182.4 Q(gular \214les. \(Files with e)
+-.15 E(xplicite paths de\214ned.\))-.15 E(`.)108 199.2 Q 27.54('F)-.7 G
 (or mailbox)-27.69 E(es only: Does `)-.15 E(`dotlock')-.74 E 2.5('\()
 -.74 G(userid.lock\), or \(at Sun Solaris\) maillock\(\) mechanism.)-2.5
-E 21.28(`F' If)108 187.2 R 1.173(the system has)3.672 F/F3 10
+E 21.28(`F' If)108 216 R 1.173(the system has)3.672 F/F3 10
 /Times-Italic@0 SF(\215oc)3.673 E(k\(\))-.2 E F0 1.173
 (system call, uses it to lock the entire \214le.)3.673 F F3(\(Ignor)
-6.173 E 1.173(ed at systems without)-.37 F(\215oc)144 199.2 Q(k\(\)!\))
--.2 E F0(`L)108 216 Q 24.15('I)-.92 G 3.64(ft)-24.15 G 1.14
-(he system has)-3.64 F F3(loc)3.64 E(kf\(\))-.2 E F0 1.14
+6.173 E 1.173(ed at systems without)-.37 F(\215oc)144 228 Q(k\(\)!\))-.2
+E F0(`L)108 244.8 Q 24.15('I)-.92 G 3.64(ft)-24.15 G 1.14(he system has)
+-3.64 F F3(loc)3.64 E(kf\(\))-.2 E F0 1.14
 (system call, uses it to lock the entire \214le.)3.64 F F3(\(Ignor)6.14
-E 1.14(ed at systems without)-.37 F(loc)144 228 Q(kf\(\)!\))-.2 E F0
-(Locks are acquired in the same order as the k)108 244.8 Q .3 -.15(ey c)
--.1 H(haracters are listed.).15 E(Def)108 261.6 Q
-(ault for the lockf\(\) capable systems is:)-.1 E F2(MBO)108 278.4 Q
-(XLOCKS=".L:L")-.4 E F0 -1.1(Yo)108 295.2 S 4.568(uc)1.1 G 2.069(an cho\
-ose insane combinations of lock mechanisms, which at some systems cause\
- locks to f)-4.568 F(ail)-.1 E(al)108 307.2 Q -.1(wa)-.1 G(ys, lik).1 E
-2.5(ea)-.1 G 2.5(tL)-2.5 G(inux-2.0 series where program must not use b\
-oth lockf\(\) and \215ock\(\) locks.)-2.5 E F3 .08(It is e)108 324 R
-(xtr)-.2 E .08(emely important, that selected loc)-.37 F .079
+E 1.14(ed at systems without)-.37 F(loc)144 256.8 Q(kf\(\)!\))-.2 E F0
+(Locks are acquired in the same order as the k)108 273.6 Q .3 -.15(ey c)
+-.1 H(haracters are listed.).15 E(Def)108 290.4 Q
+(ault for the lockf\(\) capable systems is:)-.1 E F1(MBO)108 307.2 Q
+(XLOCKS=".L:L")-.4 E F0 -1.1(Yo)108 324 S 4.568(uc)1.1 G 2.069(an choos\
+e insane combinations of lock mechanisms, which at some systems cause l\
+ocks to f)-4.568 F(ail)-.1 E(al)108 336 Q -.1(wa)-.1 G(ys, lik).1 E 2.5
+(ea)-.1 G 2.5(tL)-2.5 G(inux-2.0 series where program must not use both\
+ lockf\(\) and \215ock\(\) locks.)-2.5 E F3 .08(It is e)108 352.8 R(xtr)
+-.2 E .08(emely important, that selected loc)-.37 F .079
 (king methods ar)-.2 F 2.579(es)-.37 G .079(ame thr)-2.579 F .079
 (oughout the system at all pr)-.45 F -.1(og)-.45 G -.15(ra).1 G .079
-(ms try-).15 F(ing to acquir)108 336 Q 2.5(el)-.37 G(oc)-2.5 E
-(ks on mail spools.)-.2 E F1(ENVIR)72 352.8 Q(ONMENT)-.27 E F0 6.098
-(The def)108 364.8 R 6.098(ault location for user mailbox \214les v)-.1
+(ms try-).15 F(ing to acquir)108 364.8 Q 2.5(el)-.37 G(oc)-2.5 E
+(ks on mail spools.)-.2 E F2(ENVIR)72 381.6 Q(ONMENT)-.27 E F0 6.098
+(The def)108 393.6 R 6.098(ault location for user mailbox \214les v)-.1
 F 6.098(aries per systems, b)-.25 F 6.098(ut usually it is one of:)-.2 F
-F2(/v)108 376.8 Q(ar/mail)-.1 E F0(,)A F2(/v)2.5 E(ar/spool/mail)-.1 E
+F1(/v)108 405.6 Q(ar/mail)-.1 E F0(,)A F1(/v)2.5 E(ar/spool/mail)-.1 E
 F0 3.18(,T)C .68(his may be modi\214ed by setting the v)-3.18 F(ariable)
--.25 E F2(MAILBO)3.18 E(X)-.4 E F0(in)3.18 E F2(/etc/zmailer)3.18 E
+-.25 E F1(MAILBO)3.18 E(X)-.4 E F0(in)3.18 E F1(/etc/zmailer)3.18 E
 (.conf)-1 E F0 2.255
-(to the directory containing user mailbox \214les, for e)108 388.8 R
-(xample)-.15 E F2(/usr/spool/mail)4.755 E F0 7.255(.T)C 2.256
-(his is best done in the)-7.255 F(ZMailer SiteCon\214g \214le.)108 400.8
-Q -1.11(Va)108 417.6 S(riable)1.11 E F2(MBO)2.774 E(XLOCKS)-.4 E F0 .274
+(to the directory containing user mailbox \214les, for e)108 417.6 R
+(xample)-.15 E F1(/usr/spool/mail)4.755 E F0 7.255(.T)C 2.256
+(his is best done in the)-7.255 F(ZMailer SiteCon\214g \214le.)108 429.6
+Q -1.11(Va)108 446.4 S(riable)1.11 E F1(MBO)2.774 E(XLOCKS)-.4 E F0 .274
 (is used to de\214ne locking schemes used for mailbox spool \214les, an\
-d separately for)2.774 F(other re)108 429.6 Q(gular \214les.)-.15 E F1
-(SECURITY)72 446.4 Q F0(Lik)108 458.4 Q 3.029(ea)-.1 G .529
+d separately for)2.774 F(other re)108 458.4 Q(gular \214les.)-.15 E F2
+(SECURITY)72 475.2 Q F0(Lik)108 487.2 Q 3.029(ea)-.1 G .529
 (ll parts of the)-3.029 F F3(ZMailer)3.029 E F0 3.029(,t).73 G(he)-3.029
 E F3(mailbox)3.029 E F0 .529(chooses to err into o)3.029 F -.15(ve)-.15
 G .53(rtly cautious side.).15 F .53(In case of pipes being)5.53 F .352
-(run under the)108 470.4 R F3(mailbox)2.852 E F0 2.852(,t).53 G .352
+(run under the)108 499.2 R F3(mailbox)2.852 E F0 2.852(,t).53 G .352
 (he program in pipe is started thru)-2.852 F F3(/bin/sh)2.852 E F0 .352
 (with se)2.852 F -.15(ve)-.25 G .352(rely sanitized en).15 F .351
 (vironment v)-.4 F(ari-)-.25 E .239
-(ables, and with only \214le descriptors STDIN, STDOUT)108 482.4 R 2.739
+(ables, and with only \214le descriptors STDIN, STDOUT)108 511.2 R 2.739
 (,a)-.74 G .239(nd STDERR.)-2.739 F .24
 (Programs are refused from running,)5.239 F 1.462
-(if address analysis has found suspicuous data; e)108 494.4 R 1.461
+(if address analysis has found suspicuous data; e)108 523.2 R 1.461
 (xternal messages can')-.15 F 3.961(td)-.18 G 1.461
 (irectly run programs, nor those)-3.961 F .782(addresses that ha)108
-506.4 R 1.082 -.15(ve h)-.2 H .783(ad a security breach detected during\
+535.2 R 1.082 -.15(ve h)-.2 H .783(ad a security breach detected during\
  \(Same applies also with writing into e).15 F(xplicitely)-.15 E
-(named \214les.\))108 518.4 Q .461(The pipe subprogram is run with user)
-108 535.2 R .461(-id it gets thru the address pri)-.2 F(vile)-.25 E .46
+(named \214les.\))108 547.2 Q .461(The pipe subprogram is run with user)
+108 564 R .461(-id it gets thru the address pri)-.2 F(vile)-.25 E .46
 (ge analysis during message routing,)-.15 F .385
-(and it gets the group-id thru lookup of:)108 547.2 R 2.885
+(and it gets the group-id thru lookup of:)108 576 R 2.885
 (getpwuid\(uid\). That)5.385 F .385(is, if you ha)2.885 F .686 -.15
 (ve m)-.2 H .386(ultiple usernames with same).15 F(uid, there are no gu\
-arantees as to which of them is used for the gid entry)108 559.2 Q(.)
--.65 E F1(SUBPR)72 576 Q(OGRAM ENVIR)-.27 E(ONMENT V)-.27 E(ARIABLES)
--1.215 E F0(The)108 588 Q F3(mailbox)2.5 E F0(sets follo)2.5 E(wing en)
--.25 E(vironment v)-.4 E
-(ariables for the subprograms it runs in the pipes:)-.25 E 4.06
-(HOME The)108 604.8 R(homedirectory path is tak)2.5 E(en from abo)-.1 E
--.15(ve)-.15 G(mentioned).15 E F3 -.1(ge)2.5 G(tpwuid\(\)).1 E F0
-(lookup.)2.5 E 7.94(USER Lik)108 621.6 R -.25(ew)-.1 G(ise the te).25 E
-(xtual username.)-.15 E(SENDER)108 638.4 Q 1.09
-(is the incoming "MAIL FR)144 650.4 R 1.09
+arantees as to which of them is used for the gid entry)108 588 Q(.)-.65
+E F2(SUBPR)72 604.8 Q(OGRAM ENVIR)-.27 E(ONMENT V)-.27 E(ARIABLES)-1.215
+E F0(The)108 616.8 Q F3(mailbox)2.5 E F0(sets follo)2.5 E(wing en)-.25 E
+(vironment v)-.4 E(ariables for the subprograms it runs in the pipes:)
+-.25 E 4.06(HOME The)108 633.6 R(homedirectory path is tak)2.5 E
+(en from abo)-.1 E -.15(ve)-.15 G(mentioned).15 E F3 -.1(ge)2.5 G
+(tpwuid\(\)).1 E F0(lookup.)2.5 E 7.94(USER Lik)108 650.4 R -.25(ew)-.1
+G(ise the te).25 E(xtual username.)-.15 E(SENDER)108 667.2 Q 1.09
+(is the incoming "MAIL FR)144 679.2 R 1.09
 (OM:<..>" address without brack)-.4 F 3.59(ets. F)-.1 F 1.09
-(or an incoming error message,)-.15 F -.25(va)144 662.4 S
-(lue "<>" is used.).25 E(ORCPT)108 679.2 Q 1.253
-(when present, is the XTEXT encoded ORCPT v)144 691.2 R 1.253
-(alue recei)-.25 F -.15(ve)-.25 G 3.753(da).15 G 3.753(tt)-3.753 G 1.253
-(he message injection into this)-3.753 F 2.5(system. See)144 703.2 R
-(RFC 1891 for details.)2.5 E(18 Jun 1998)281.555 768 Q(3)204.555 E EP
+(or an incoming error message,)-.15 F -.25(va)144 691.2 S
+(lue "<>" is used.).25 E(18 Jun 1998)281.555 768 Q(3)204.555 E EP
 %%Page: 4 4
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF(MAILBO)72 48 Q 349.66(X\(8\) MAILBO)-.4 F
-(X\(8\))-.4 E(ENVID)108 84 Q .004
-(when present, is the XTEXT encoded ENVID v)144 96 R .004(alue recei)
+(X\(8\))-.4 E(ORCPT)108 84 Q 1.253
+(when present, is the XTEXT encoded ORCPT v)144 96 R 1.253(alue recei)
+-.25 F -.15(ve)-.25 G 3.753(da).15 G 3.753(tt)-3.753 G 1.253
+(he message injection into this)-3.753 F 2.5(system. See)144 108 R
+(RFC 1891 for details.)2.5 E(ENVID)108 124.8 Q .004
+(when present, is the XTEXT encoded ENVID v)144 136.8 R .004(alue recei)
 -.25 F -.15(ve)-.25 G 2.504(da).15 G 2.504(tt)-2.504 G .004
-(he message injection into this sys-)-2.504 F 2.5(tem. See)144 108 R
-(RFC 1891 for details.)2.5 E(ZCONFIG)108 124.8 Q
-(is the location of the ZMailer ZENV \214le.)144 136.8 Q(MAILBIN)108
-153.6 Q(is the v)144 165.6 Q(alue from ZENV)-.25 E(.)-1.29 E(MAILSHARE)
-108 182.4 Q(is the v)144 194.4 Q(alue from ZENV)-.25 E(.)-1.29 E/F1 9
-/Times-Bold@0 SF(FILES)72 211.2 Q/F2 10/Times-Italic@0 SF(/etc/zmailer)
-108 223.2 Q(.conf)-1.11 E(/var/spool/postof)108 235.2 Q(\214ce \(POST)
--.18 E(OFFICE\))-.18 E(/var/mail \(MAILBO)108 247.2 Q(X\))-.4 E F1
-(SEE ALSO)72 264 Q F0(scheduler\(8\), comsat\(8C\), bif)108 276 Q
+(he message injection into this sys-)-2.504 F 2.5(tem. See)144 148.8 R
+(RFC 1891 for details.)2.5 E(ZCONFIG)108 165.6 Q
+(is the location of the ZMailer ZENV \214le.)144 177.6 Q(MAILBIN)108
+194.4 Q(is the v)144 206.4 Q(alue from ZENV)-.25 E(.)-1.29 E(MAILSHARE)
+108 223.2 Q(is the v)144 235.2 Q(alue from ZENV)-.25 E(.)-1.29 E/F1 9
+/Times-Bold@0 SF(FILES)72 252 Q/F2 10/Times-Italic@0 SF(/etc/zmailer)108
+264 Q(.conf)-1.11 E(/var/spool/postof)108 276 Q(\214ce \(POST)-.18 E
+(OFFICE\))-.18 E(/var/mail \(MAILBO)108 288 Q(X\))-.4 E F1(SEE ALSO)72
+304.8 Q F0(scheduler\(8\), comsat\(8C\), bif)108 316.8 Q
 (f\(1\), \215ock\(2\), Mail\(1\), mboxpath\(1\))-.25 E F1 -.45(AU)72
-292.8 S(THOR).45 E F0(This program authored and cop)108 304.8 Q
-(yright by:)-.1 E(Rayan Zachariassen <rayan@cs.toronto.edu>)108 316.8 Q
-(Extensi)108 328.8 Q .3 -.15(ve m)-.25 H(odi\214cations by:).15 E
-(Matti Aarnio <mea@nic.funet.\214>)108 340.8 Q(18 Jun 1998)281.555 768 Q
+333.6 S(THOR).45 E F0(This program authored and cop)108 345.6 Q
+(yright by:)-.1 E(Rayan Zachariassen <rayan@cs.toronto.edu>)108 357.6 Q
+(Extensi)108 369.6 Q .3 -.15(ve m)-.25 H(odi\214cations by:).15 E
+(Matti Aarnio <mea@nic.funet.\214>)108 381.6 Q(18 Jun 1998)281.555 768 Q
 (4)204.555 E EP
 %%Trailer
 end
