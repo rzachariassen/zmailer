@@ -26,28 +26,30 @@
 
 /* ISO Latin 1 (8859) */
 
-#ifdef __alpha /* On Alpha the short is slow to access! */
+#if defined(__alpha)||defined(__alpha__)
+/* On Alpha the short is slow to access! (this array is modified!) */
 int
 #else
+/* All other systems are assumed to contain short-load/store instructions */
 short
 #endif
-	rfc_ctype[256] = {						/* octalcode */
+	rfc_ctype[256] = {					/* octalcode */
 _c,	_c,	_c,	_c,	_c,	_c,	_c,	_c,	/*   0 -   7 */
 _c,	_c|_w,	_l|_c,	_c,	_c,	_r|_c,	_c,	_c,	/*  10 -  17 */
 _c,	_c,	_c,	_c,	_c,	_c,	_c,	_c,	/*  20 -  27 */
 _c,	_c,	_c,	_c,	_c,	_c,	_c,	_c,	/*  30 -  37 */
 _w,	_h,	_s|_h,	_h,	_h,	_h,	_h,	_h,	/*  40 -  47 */
 _s|_h,	_s|_h,	_h,	_h,	_s|_h,	_h,	_s|_h,	_h,	/*  50 -  57 */
-_d|_h,	_d|_h,	_d|_h,	_d|_h,	_d|_h,	_d|_h,	_d|_h,	_d|_h,	/*  60 -  67 */
-_d|_h,	_d|_h,	_s,	_s|_h,	_s|_h,	_h,	_s|_h,	_h,	/*  70 -  77 */
-_s|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 100 - 107 */
-_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 110 - 117 */
-_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 120 - 127 */
-_a|_h,	_a|_h,	_a|_h,	_s|_h,	_s|_h,	_s|_h,	_h,	_h,	/* 130 - 137 */
-_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 140 - 147 */
-_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 150 - 157 */
-_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 160 - 167 */
-_a|_h,	_a|_h,	_a|_h,	_h,	_h,	_h,	_h,	_c,	/* 170 - 177 */
+_d|_h,	_d|_h,	_d|_h,	_d|_h,	_d|_h,	_d|_h,	_d|_h,	_d|_h,	/* '0' - '7' */
+_d|_h,	_d|_h,	_s,	_s|_h,	_s|_h,	_h,	_s|_h,	_h,	/* '8' -  77 */
+_s|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* '@' - 'G' */
+_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 'H' - 'O' */
+_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 'P' - 'X' */
+_a|_h,	_a|_h,	_a|_h,	_s|_h,	_s|_h,	_s|_h,	_h,	_h,	/* 'Y' - 137 */
+_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* '`' - 'g' */
+_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 'h' - 'o' */
+_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	_a|_h,	/* 'p' - 'x' */
+_a|_h,	_a|_h,	_a|_h,	_h,	_h,	_h,	_h,	_c,	/* 'y' - 177 */
 	/* The class assignments of the second half are all ILLEGAL */
 _8,	_8,	_8,	_8,	_8,	_8,	_8,	_8,	/* 200 - 207 */
 _8,	_8,	_8,	_8,	_8,	_8,	_8,	_8,	/* 210 - 217 */
@@ -344,7 +346,12 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 			}
 			n = len;
 		} else if (ct & _s) {		/* specials */
-			if (*cp == ':' && cp[1] == ':')
+			/* Double-colons as with DECNET */
+			if (n > 1 && *cp == ':' && cp[1] == ':')
+				--n;
+			/* Backslash + special:  \@ \! \: ... */
+			if (n > 1 && *cp == '\\' && cp[1] != 0 &&
+			    (rfc_ctype[cp[1] & 0xFF] & _s))
 				--n;
 			--n;
 			t.t_type = Special;

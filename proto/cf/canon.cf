@@ -198,24 +198,15 @@ canonicalize (address) {
 ##		canonicalize "\1!\3@\2"
 ##		return
 ##		;;
-	tfist
-
-	# Must make sure that  'fooo\!foo!faa' decomposes to: 'fooo\!foo'+'faa'
-
-	ssift "$address" in
 	\[(.*)\]!(.*)				# leftmost '!', domain-literal
 		canonicalize "\2@\[\1\]"
 		return
 		;;
-	([^.]?[^\])!(.*)			# leftmost '!', pure uucp
+	([^!.]*)!(.*)				# leftmost '!', pure uucp
 		canonicalize "\2@\1.uucp"
 		return
 		;;
-	(.*?\\!.*[^\])!(.*)		# leftmost '!', domain uucp
-		canonicalize "\2@\1"
-		return
-		;;
-	(.*?[^\])!(.*)			# leftmost '!', domain uucp
+	([^!]*)!(.*)				# leftmost '!', domain uucp
 		canonicalize "\2@\1"
 		return
 		;;
@@ -223,7 +214,7 @@ canonicalize (address) {
 		canonicalize "\1@\2"
 		return
 		;;
-	tfiss
+	tfist
 
 	echo "$address"
 }
