@@ -10,7 +10,7 @@ PMAILBIN=	mailrm.sh newaliases newfqdnaliases newdb zmailer.sh
 PMAILSHARE=	scheduler.conf sm.conf smtpserver.conf
 
 all:
-	@echo Usage: '"make [ dirs | config | mailbin | mailshare | db | forms | install ]"'
+	@echo Usage: '"make [ dirs | config | mailbin | mailshare | db | cf | forms | install | install-bin ]"'
 
 install: dirs mailbin mailshare db cf forms
 
