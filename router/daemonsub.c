@@ -302,10 +302,11 @@ int signum;
 
 #ifdef  HAVE_WAIT4
 #ifdef HAVE_SYS_RESOURCE_H
-	  pid = wait4(-1, &statloc, WNOHANG, &r);
+	  pid = wait4(0, &statloc, WNOHANG, &r);
 #else
-	  pid = wait4(-1, &statloc, WNOHANG, NULL);
+	  pid = wait4(0, &statloc, WNOHANG, NULL);
 #endif
+	  if (pid <= 0) break; /* No processes */
 #else
 #ifdef  HAVE_WAIT3
 #ifdef HAVE_SYS_RESOURCE_H
@@ -313,6 +314,7 @@ int signum;
 #else
 	  pid = wait3(&statloc, WNOHANG, NULL);
 #endif
+	  if (pid <= 0) break; /* No processes */
 #else
 #ifdef	HAVE_WAITPID
 	  pid = waitpid(-1, &statloc, WNOHANG);
@@ -1653,6 +1655,11 @@ run_daemon(argc, argv)
 		if (routerdirs2[i])
 		  dirqueuescan(routerdirs2[i], dirq[i], 1);
 	      }
+#ifdef SIGCLD /* re-instantiate the child processor */
+	      sig_chld(SIGCLD);
+#else
+	      sig_chld(SIGCHLD);
+#endif
 	    }
 
 	    for (i = 0; i < MAXROUTERCHILDS; ++i) {
@@ -1660,11 +1667,6 @@ run_daemon(argc, argv)
 		   routerchilds[i].dq &&
 		   routerchilds[i].dq->wrkcount ) {
 		start_child(i);
-#ifdef SIGCLD /* re-instantiate the child processor */
-		sig_chld(SIGCLD);
-#else
-		sig_chld(SIGCHLD);
-#endif
 	      }
 
 	      if ( routerchilds[i].tochild >= 0 &&
