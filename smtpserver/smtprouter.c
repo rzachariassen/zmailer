@@ -196,6 +196,10 @@ const int holdlast, len;
 	type(SS, 501, NULL, NULL);
 	return NULL;
     }
+    if (!enable_router) {
+	type(SS, 400, "4.4.0","Interactive routing subsystem is not enabled");
+	return NULL;
+    }
     if (routerpid <= 0 && (routerpid = callr(SS)) <= 0) {
 	type(SS, 451, NULL, NULL);
 	return NULL;

@@ -141,6 +141,10 @@ char *str;
       vrfycmdok = 1;
       return;
     }
+    if (cistrcmp(name, "enable-router") == 0) {
+      enable_router = 1;
+      return;
+    }
 
     /* Some Enhanced-SMTP facility disablers */
     if (cistrcmp(name, "nopipelining") == 0) {

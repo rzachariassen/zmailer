@@ -221,6 +221,7 @@ extern int ehlo_ok;
 extern int etrn_ok;
 extern int strict_protocol;
 extern int rcptlimitcnt;
+extern int enable_router;
 
 extern const char *progname;
 extern int debug, skeptical, checkhelo, ident_flag, verbose;

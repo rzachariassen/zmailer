@@ -1,3 +1,22 @@
+1999-04-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/cf/fqdnaliases.cf:
+	    Typo: Missing ending ']' at a '[' test clause.
+
+	* smtpserver/policytest.c:
+	    Policytest should accept everything when running in non-network
+	    interactive mode.  (Ok, Syntax issues aside..)
+
+	* smtpserver/smtprouter.c, smtpserver/cfgread.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  proto/smtpserver.conf.in:
+	    Supply "PARAM enable-router" parameter to control the availability
+	    of interactive router subsystem.  Also strengthened the way how
+	    the user input is passed to the interactive router so that it
+	    should not allow bad inputs to cause escape into shell at any
+	    moment..  However this isn't the only place where the danger may
+	    lurk, so per default the "enable-router" is OFF.
+
 1999-04-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c,smtpserver/smtpdata.c:

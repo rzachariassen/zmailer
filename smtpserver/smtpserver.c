@@ -192,6 +192,7 @@ int pipeliningok = 1;
 int chunkingok = 1;
 int enhancedstatusok = 1;
 int multilinereplies = 1;
+int enable_router = 0; /* Off by default -- security */
 int mime8bitok = 1;
 int dsn_ok = 1;
 int auth_ok = 0;

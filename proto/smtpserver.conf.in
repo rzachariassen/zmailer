@@ -19,6 +19,13 @@
 #PARAM	DEBUGcmd
 PARAM	EXPNcmd
 PARAM	VRFYcmd
+#PARAM	enable-router	# This is a security decission for you.
+#			# This is needed for EXPN/VRFY and interactive
+#			# processing of MAIL FROM and RCPT TO addresses.
+#			# However it also may allow external user entrance
+#			# to ZMailer router shell environment with suitably
+#			# pervert input, if quotation rules are broken in
+#			# the scripts.
 #
 # Disablers of some facility adverticements
 #PARAM  NoEHLO
