@@ -2424,8 +2424,8 @@ int insecure;
 	if (s_hasinput(SS)) {
 	  if (logfp || logfp_to_syslog)
 	    type(NULL,0,NULL,
-		 "-- pipeline input exists %d bytes; %sseen EOF",
-		 s_hasinput(SS), s_seen_eof(SS) ? "" : "not " );
+		 "-- pipeline input exists %d bytes%",
+		 s_hasinput(SS), s_seen_eof(SS) ? "; seeing EOF" : "" );
 
 	  if (s_seen_eof(SS) &&  (SS->tarpit > 0.9999)) {
 	    type(NULL,0,NULL,"BAILING OUT");
