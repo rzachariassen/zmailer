@@ -1790,6 +1790,61 @@ the uid to login name mapping to the {\tt pwuid} in-core database.
 
 % -------------------------------------------
 \hrule
+\subsubsection{lreplace; \em experimental}
+
+\begin{description}
+\item[{\bf Syntax1:}] \mbox{}
+
+{\tt lreplace varname indexnum anyvalue}
+
+\item[{\bf Syntax2:}] \mbox{}
+
+{\tt lreplace varname fieldname anyvalue}
+
+\item[{\bf Return Values:}] \mbox{}
+
+none
+
+\item[{\bf Options:}] \mbox{}
+
+none  
+
+\item[{\bf Notes:}] \mbox{}
+
+This replaces designated field on {\em varname} variable containing
+list-like data with {\em anyvalue} value.
+
+The field designation can be given in numeric form, where
+the field index can be numeric (first field is zero), or
+{\em keyname} on key/value pair list.
+
+If a key is not found (with key/value pairs), then designated pair
+is added to the list.
+
+\begin{alltt}
+tt=(aa 11 bb 22 cc 33 dd 44)
+lreplace tt aa zz
+grind $tt
+(zz 11 bb 22 cc 33 dd 44)
+lreplace tt 0 aaa
+grind $tt
+(aaa 11 bb 22 cc 33 dd 44)
+lreplace tt zz aa
+grind $tt
+(aaa 11 bb 22 cc 33 dd 44 zz aa)
+\end{alltt}
+
+This function has been created to manage problems associated
+at the use of ``{\em setf}'', which in current implementation
+causes $O(n^{2})$ kind memory consumption by creating a new
+temporary copy of the target list into the heap for all invocations
+of ``{\em setf}''.  Result being that for a large list the system
+will quickly use massive amounts of heap.
+
+\end{description}
+
+% -------------------------------------------
+\hrule
 \subsubsection{malcontents}
 
 \begin{description}
