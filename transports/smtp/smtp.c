@@ -605,7 +605,7 @@ main(argc, argv)
 	char *argv[];
 {
 	char file[MAXPATHLEN+128];
-	volatile char *channel = NULL, *host = NULL;
+	char *channel = NULL, *host = NULL;
 	int i, fd, errflg, c;
 	int smtpstatus;
 	int need_host = 0;
@@ -627,6 +627,9 @@ main(argc, argv)
 	eocmdline = cmdline;
 
 	& oldsig; /* volatile-like trick.. */
+	& channel; & host; & smtpstatus;
+	& need_host; & idle; &no_MX; & dp;
+	& checkmx; & smtphost; & punthost;
 
 	memset(&SS,0,sizeof(SS));
 	SS.main_esmtp_on_banner = -1;
