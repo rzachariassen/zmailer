@@ -184,6 +184,16 @@ ctlclose(dp)
 }
 
 
+static void
+free_last_ap(d,ap)
+	struct ctldesc *d; /* Chain in for latter free()ing */
+	struct taddress *ap;
+{
+	d->ta_chain = ap->ta_next;
+	ap->ta_next = NULL;
+	free((void*)ap);
+}
+
 static struct taddress *
 ctladdr(d,cp)
 	struct ctldesc *d; /* Chain in for latter free()ing */
@@ -424,6 +434,11 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 
 	  case _CF_SENDER:
 	    ap = ctladdr(&d,s+2);
+	    if (ap == NULL) {
+	      warning("Out of virtual memory!", (char *)NULL);
+	      *exitflagp = 1;
+	      break;
+	    }
 	    ap->link  = d.senders;
 	    /* Test if this is "error"-channel..
 	       If it is,  ap->user  points to NUL string. */
@@ -472,7 +487,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 		    && host != NULL && cistrcmp(host,ap->host) !=0)
 		|| !lockaddr(d.ctlfd, d.ctlmap, d.offset[i]+1,
 			     _CFTAG_NORMAL, _CFTAG_LOCK, file, host, mypid)) {
-	      free((char *)ap);
+	      free_last_ap(&d,ap);
 	      break;
 	    }
 	    ap->link = d.senders; /* point at sender address */
@@ -482,7 +497,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam)
 		       _CFTAG_LOCK, _CFTAG_DEFER, file, host, mypid);
 	      warning("Out of virtual memory!", (char *)NULL);
 	      *exitflagp = 1;
-	      free((char *)ap);
+	      free_last_ap(&d,ap);
 	      break;
 	    }
 	    memset(rp, 0, sizeof(*rp));
