@@ -180,6 +180,9 @@ run_relation(argc, argv)
 	memtypes oval;
 	char *cp, *dbtyp;
 
+	if (spt_files == NULL)          spt_files          = sp_init();
+	if (spt_files->symbols == NULL) spt_files->symbols = sp_init();
+
 	errflg = 0;
 	dbtyp = NULL;
 	set_cache_size = 0;
