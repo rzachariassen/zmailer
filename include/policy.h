@@ -105,7 +105,7 @@ static char *_KK[] = {
 	"USER"
 };
 #define MAX_KK 5
-#define KK(x) ((((x)>0)&&((x)<=MAX_KK))?_KK[(x) 0xFF]:"??")
+#define KK(x) ((((x)>0)&&((x)<=MAX_KK))?_KK[(x) & 0xFF]:"??")
 
 static char *_KA[] = {
 	"UNKNOWN",
