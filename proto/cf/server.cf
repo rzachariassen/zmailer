@@ -79,12 +79,8 @@ server (key) {
 #| level should be appropriate.
 
 	case "$key" in
-	rtrace)
+	rtrace)		# For debugging things in interactive mode...
 		rtrace
-		return
-		;;
-	trace)
-		trace $1
 		return
 		;;
 	from)

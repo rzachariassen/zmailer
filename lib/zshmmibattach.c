@@ -247,6 +247,8 @@ int Z_SHM_MIB_Attach(rw)
 	  if (storage_fd >= 0) {
 	    /* GOT IT!  Now lock.. */
 
+	    /* Set "close-on-exec" flag on this */
+	    fcntl(storage_fd, F_SETFD, FD_CLOEXEC);
 	    Z_SHM_lock(rw, storage_fd);
 
 	    break;

@@ -242,7 +242,6 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		rendezvous_socket = -1;
 
 	      } else if ((rc > 0)  && (newfd >= 0)) { /* Successfully received something */
-
 		/* Ok, we have 'newfd', now we need a new peer slot.. */
 		for (n = 0; n < subdaemon_nofiles; ++n) {
 		  peer = & peers[n];

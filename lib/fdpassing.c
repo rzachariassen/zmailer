@@ -34,6 +34,12 @@ int fdpass_create(tochild)
      int tochild[2];
 {
 	int rc = socketpair(PF_UNIX, SOCK_STREAM, 0, tochild);
+
+	if (rc == 0 && tochild[0] >= 0)
+	  fcntl(tochild[0], F_SETFD, FD_CLOEXEC);
+	if (rc == 0 && tochild[1] >= 0)
+	  fcntl(tochild[1], F_SETFD, FD_CLOEXEC);
+
 	return rc;
 }
 
@@ -107,12 +113,16 @@ int fdpass_receivefd(fd, newfdp)
 	cmptr = CMSG_FIRSTHDR(&msg);
 	if (cmptr  &&  cmptr->cmsg_len == CMSG_LEN(sizeof(int))) {
 	  if ( (cmptr->cmsg_level == SOL_SOCKET) &&
-	       (cmptr->cmsg_type  == SCM_RIGHTS) )
+	       (cmptr->cmsg_type  == SCM_RIGHTS) ) {
 	    *newfdp = *((int*) CMSG_DATA(cmptr));
+	    fcntl(*newfdp, F_SETFD, FD_CLOEXEC);
+	  }
 	}
 #else
-	if (msg.msg_accrightslen == sizeof(int))
+	if (msg.msg_accrightslen == sizeof(int)) {
 	  *newfdp = newfd;
+	  fcntl(*newfdp, F_SETFD, FD_CLOEXEC);
+	}
 #endif
 	return n;
 }

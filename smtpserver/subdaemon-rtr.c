@@ -101,6 +101,9 @@ static int subdaemon_callr (RTR)
 	  sprintf(routerprog, "%s/router", cp);
 	}
 
+	fcntl(to[1],   F_SETFD, FD_CLOEXEC);
+	fcntl(from[0], F_SETFD, FD_CLOEXEC);
+
 	rpid = fork();
 	if (rpid == 0) {	/* child */
 	  rpid = getpid();
@@ -110,8 +113,6 @@ static int subdaemon_callr (RTR)
 	    dup2(from[1], 1);
 	  dup2(1, 2);
 	  if (to[0] > 2)   close(to[0]);
-	  if (to[1] > 2)   close(to[1]);
-	  if (from[0] > 2) close(from[0]);
 	  if (from[1] > 2) close(from[1]);
 
 	  runasrootuser();	/* XXX: security alert! */
@@ -140,7 +141,7 @@ static int subdaemon_callr (RTR)
 
 	RTR->fromfd = from[0];
 	fd_blockingmode(RTR->fromfd);
-
+	
 	for (;;) {
 	  RTR->bufsize = 0;
 	  rc = fdgets( & RTR->buf, & RTR->bufsize, RTR->fromfd, 10);
