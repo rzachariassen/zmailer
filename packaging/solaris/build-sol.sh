@@ -20,8 +20,8 @@ rm -f config.cache config.status
 set -x
 
 export CC CFLAGS
-CC=gcc
-CFLAGS="-g -O"
+#CC=gcc
+#CFLAGS="-g -O"
 MAKE=${MAKE:=make}
 
 ../configure					\
@@ -40,7 +40,8 @@ MAKE=${MAKE:=make}
 #  --with-logdir=/logs/mail
 
 
-ZVERSION=`awk -F "\t ="  '
+ZVERSION=`awk  '
+BEGIN{FS="\t =";}
 /^MAJORVERSION/{major=$2}
 /^MINORVERSION/{minor=$2}
 /^PATCHLEVEL/{patch=$2}
