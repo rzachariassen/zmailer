@@ -61,6 +61,8 @@ extern spkey_t     symbol __((const void *s));	/* build this into a symbol */
 extern spkey_t     symbol_lookup __((const void *s));
 extern spkey_t     symbol_db        __((const void *, struct sptree *));
 extern spkey_t     symbol_lookup_db __((const void *, struct sptree *));
+extern spkey_t     symbol_db_mem    __((const void *, int, struct sptree *));
+extern spkey_t symbol_lookup_db_mem __((const void *, int, struct sptree *));
 extern void	   symbol_free_db __((const void *, struct sptree *));
 extern void	   symbol_null_db __((struct sptree *));
 
