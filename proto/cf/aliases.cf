@@ -103,13 +103,15 @@ routeuser (quad, domain) {
 	# use 'attributes' element, because .forward recursion
 	# will have subsequently DIFFERENT values for it.
 
-	key="$(channel $quad)$(user $quad)"
+	user="$(user $quad)"
+	key="$(channel $quad)$user"
 	didexpand=$(expansions "$key")
 
 	[ -n "$didexpand" ] &&
 	case "$didexpand" in
-#	user)	# Empty .forward  will cause us to call back into here :-(
-#		;;
+	user)	# Looping thru  .forward  will cause us to call back
+		# into here :-(
+		;;
 	*)	
 		# Sigh, the easiest way to handle duplicate invokations
 		# in here is to yield "bitbucket".  In theory we could
@@ -383,6 +385,7 @@ routeuser (quad, domain) {
 
 	# local user with no alias and no .forward file
 
+	[ -z "$didexpand" ] &&
 	if [ -n "$pobox" ]; then
 		db add expansions "$key" pobox
 		priv=$(login2uid "$user")
