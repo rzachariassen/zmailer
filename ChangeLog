@@ -2,7 +2,7 @@
 
 	* VERSION 2.99.50s18
 
-	* smtpserver/smtpauth.c:
+	* smtpserver/smtpdata.c:
 	    BASE64 encoding of 7 chars long name yields a BASE64 string
 	    with two '=' chars, that was considered bad by the decoder..
 	    ( I think there should be only one '=' char, but Netscape

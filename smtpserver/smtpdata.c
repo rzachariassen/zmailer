@@ -549,6 +549,7 @@ int decodebase64string(instr,inlen,outstr,outspc,inleftover)
     }
     if (outlen < outspc)
       outstr[outlen] = 0;
+    while (*instr == '=') ++instr;
     if (inleftover)
       *inleftover = instr;
     return outlen;

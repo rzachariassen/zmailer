@@ -132,7 +132,7 @@ void smtp_auth(SS,buf,cp)
       if (debug)
 	type(SS, 0, NULL, "-> %s", bbuf);
       uname = strdup(bbuf);
-      if (*ccp != 0 && *ccp != '=') {
+      if (*ccp != 0) {
 	type(SS, 501, m552, "unrecognized input/extra junk ??");
 	return;
       }
