@@ -1,16 +1,17 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- */
-/*
+ *
  *	Some modifications  by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  */
 
 /*LINTLIBRARY*/
 
 #include "hostenv.h"
+
 #include <stdio.h>
+
 #include <errno.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -95,7 +96,8 @@ eqrename(from, to)
 
 #else	/* !HAVE_RENAME */
 	
-	if ((unlink(to) < 0 && errno != ENOENT) || (link(from, to) < 0)) {
+	if ((unlink(to) < 0 && errno != ENOENT) ||
+	    (link(from, to) < 0)) {
 	  return -1;
 	}
 
@@ -119,11 +121,12 @@ eqrename(from, to)
 extern int mail_priority;
 
 /*
- * Makes a temporary file under the postoffice, based on a file name template.
- * The last '%' character of the file name passed will be overwritten with
- * different suffix characters until the open() succeeds or we have exhausted
- * the search space.  Note: a single process cannot hold more than number-of-
- * suffix-characters message files at once.
+ * Makes a temporary file under the postoffice, based on a file name
+ * template.  The last '%' character of the file name passed will be
+ * overwritten with different suffix characters until the open()
+ * succeeds or we have exhausted the search space.  Note: a single
+ * process cannot hold more than number-of-suffix-characters message
+ * files at once.
  */
 
 FILE *
@@ -135,8 +138,10 @@ _mail_fopen(filenamep)
 	FILE *fp;
 	int fd, eno;
 
-	if (postoffice == NULL && (postoffice = getzenv("POSTOFFICE")) == NULL)
+	if (postoffice == NULL &&
+	    (postoffice = getzenv("POSTOFFICE")) == NULL)
 	  postoffice = POSTOFFICE;
+
 	path = mail_alloc(strlen(postoffice)+strlen(*filenamep)+2);
 	sprintf(path, "%s/%s", postoffice, *filenamep);
 	for (cp = *filenamep; *cp != '\0' && *cp != '%'; ++cp)
@@ -150,7 +155,7 @@ _mail_fopen(filenamep)
 	eno = 0;
 	for (suffix = SUFFIXCHARS; *suffix != 0; ++suffix) {
 		if (cp == NULL)
-			sleep(2);	/* hope something happens meanwhile */
+			sleep(2); /* hope something happens meanwhile */
 		else if (*suffix != ' ') {
 			*cp = *suffix;
 			strcpy(cp+1, post);
@@ -177,9 +182,9 @@ _mail_fopen(filenamep)
 
 /*
  * Link from-file to a file given by the to-file template.
- * The last '%' character of the to-file name passed will be overwritten with
- * different suffix characters until the link() succeeds or we have exhausted
- * the search space.
+ * The last '%' character of the to-file name passed will be overwritten
+ * with different suffix characters until the link() succeeds or we have
+ * exhausted the search space.
  */
 
 int
@@ -191,8 +196,10 @@ mail_link(from, tonamep)
 	const char *suffix, *post;
 	int eno;
 
-	if (postoffice == NULL && (postoffice = getzenv("POSTOFFICE")) == NULL)
+	if (postoffice == NULL &&
+	    (postoffice = getzenv("POSTOFFICE")) == NULL)
 		postoffice = POSTOFFICE;
+
 	path = mail_alloc(strlen(postoffice)+strlen(*tonamep)+2);
 	sprintf(path, "%s/%s", postoffice, *tonamep);
 	for (cp = *tonamep; *cp != '\0' && *cp != '%'; ++cp)
@@ -224,8 +231,8 @@ mail_link(from, tonamep)
 }
 
 /*
- * Open a message file of the specified type and initialize generic envelope
- * information (i.e. the file position on return may not be 0).
+ * Open a message file of the specified type and initialize generic
+ * envelope information (i.e. the file position on return may not be 0).
  */
 
 FILE *
@@ -251,26 +258,28 @@ mail_open(type)
 
 	fp = _mail_fopen(&scratch);
 	if (fp == NULL) {
-		eno = errno;
-		fprintf(stderr, "mail_fopen(\"%s\", \"w+\"): errno %d\n",
-			scratch, errno);
-		mail_free(scratch);
-		errno = eno;
-		return NULL;
+	  eno = errno;
+	  fprintf(stderr, "mail_fopen(\"%s\", \"w+\"): errno %d\n",
+		  scratch, errno);
+	  mail_free(scratch);
+	  errno = eno;
+	  return NULL;
 	}
 
-	/* Determine a unique id associated with the file (inode number) */
+	/* Determine a unique id associated with the file
+	   (inode number) */
 
 	fn = FILENO(fp);
 	if (fstat(fn, &stbuf) < 0) {
-		eno = errno;
-		fprintf(stderr, "fstat(\"%s\"): errno %d\n", scratch, errno);
-		mail_free(scratch);
-		errno = eno;
-		return NULL;
+	  eno = errno;
+	  fprintf(stderr, "fstat(\"%s\"): errno %d\n", scratch, errno);
+	  mail_free(scratch);
+	  errno = eno;
+	  return NULL;
 	}
 
-	/* Rename the scratch file to the message file name based on the id */
+	/* Rename the scratch file to the message file name
+	   based on the id */
 
 	if (type == NULL)
 		type = MSG_RFC822;
@@ -280,12 +289,14 @@ mail_open(type)
 #endif
 
 	/* Extend when need! */
-
+	
 	if (fn >= mail_nfiles) {
 	  int nfile = fn+1;
 	  if (mail_file == NULL) {
-	    mail_file = (char**)mail_alloc((u_int)(sizeof(char*) * nfile));
-	    mail_type = (char**)mail_alloc((u_int)(sizeof(char*) * nfile));
+	    mail_file = (char**)mail_alloc((u_int)(sizeof(char*) *
+						   nfile));
+	    mail_type = (char**)mail_alloc((u_int)(sizeof(char*) *
+						   nfile));
 	  } else {
 	    mail_file = (char**)mail_realloc((char*)mail_file,
 					     (sizeof(char*) * nfile));
@@ -302,19 +313,21 @@ mail_open(type)
 	mail_file[fn] = scratch;
 	mail_type[fn] = strdup(type);
 
-	/* Grab preferences from the environment to initialize the envelope */
+	/* Grab preferences from the environment to initialize
+	   the envelope */
 
 #ifndef	notype
 	if (type != NULL && *type != '\0')
-		fprintf(fp, "type %s\n", type);
+	  fprintf(fp, "type %s\n", type);
 #endif
 	cp = getenv("FULLNAME");
 	if (cp != NULL)
-		fprintf(fp, "fullname %s\n",
-			fullname(cp, namebuf, sizeof namebuf, (char *)NULL));
+	  fprintf(fp, "fullname %s\n",
+		   fullname(cp, namebuf, sizeof namebuf, (char *)NULL));
 	cp = getenv("PRETTYLOGIN");
 	if (cp != NULL)
-		fprintf(fp, "loginname %s\n", cp);
+	  fprintf(fp, "loginname %s\n", cp);
+
 	/*
 	 * If the postoffice lives elsewhere, put our hostname
 	 * in the Received-from header, to aid in message tracing.
@@ -388,7 +401,8 @@ mail_abort(fp)
 }
 
 /*
- * Close the message file on the indicated stream and submit it to the mailer.
+ * Close the message file on the indicated stream and submit it to
+ * the mailer.
  */
 
 int mail_close(fp)
@@ -408,19 +422,13 @@ _mail_close_(fp,inop, mtimep)
 {
 	char *message, *nmessage, *type, *ftype;
 	const char *routerdir;
+	const char *inputdirs;
 	char *s = NULL;
 	struct stat stb;
+	int disable_routerdirhash = 0;
 	int fn;
 	long ino;
 	char subdirhash[6];
-
-	if (routersubdirhash < 0) {
-	  const char *ss = getzenv("ROUTERDIRHASH");
-	  if (ss && *ss == '1')
-	    routersubdirhash = 1;
-	  else
-	    routersubdirhash = 0;
-	}
 
 	if (postoffice == NULL) {
 		fprintf(stderr, "mail_close: called out of order!\n");
@@ -452,11 +460,6 @@ _mail_close_(fp,inop, mtimep)
 	}
 	ino = stb.st_ino;
 
-	if (routersubdirhash > 0) {
-	  sprintf(subdirhash, "%c/", (int)('A' + (ino % 26)));
-	} else
-	  *subdirhash = 0;
-
 	/*
 	 * *** NFS users beware ***
 	 * the fsync() between fflush() and fclose() may be mandatory
@@ -464,7 +467,9 @@ _mail_close_(fp,inop, mtimep)
 	 * data without being told about it.
 	 */
 
-	if (fflush(fp) == EOF) {
+	while (fflush(fp) != 0) {
+	  if (errno == EINTR || errno == EAGAIN)
+	    continue;
 	  mail_free(message);
 	  if (ftype) mail_free(ftype);
 	  errno = EIO;
@@ -487,24 +492,74 @@ _mail_close_(fp,inop, mtimep)
 	  return -1;
 	}
 
-	routerdir = ROUTERDIR;
+	inputdirs = getzenv("INPUTDIRS");
+
+	routerdir = NULL;
 	nmessage  = NULL;
 	s         = NULL;
-	if (mail_priority) {
+
+	if (inputdirs) {
+	  int i = mail_priority;
+	  const char *rd = inputdirs;
+	  const char *ord = NULL;
+#ifdef HAVE_ALLOCA
+	  nmessage = alloca(strlen(postoffice)+strlen(inputdirs)+3+
+			    9+4+strlen(type));
+#else
+	  nmessage = mail_alloc(strlen(postoffice)+strlen(inputdirs)+3+
+				9+4+strlen(type));
+#endif
+	  /* There are some defined!   A ":" separated list of strings */
+
+	  /* mail_priority == 1 pics first, 2 pics second, ..
+	     if segments run out, last one is kept at  rd     */
+
+	  while (i-- && (s = strchr(rd,':'))) {
+	    *s = 0;
+	    sprintf(nmessage, "%s/%s", postoffice, rd);
+	    *s = ':';
+	    if ((stat(nmessage,&stb) < 0) || !S_ISDIR(stb.st_mode)) {
+	      rd = s+1;
+	      continue;	/* Not ok -- not a dir, for example */
+	    }
+	    ord = rd;
+	    rd = s+1;
+	  }
+	  
+	  /* Here we are when there is only one entry in the inputdirs:*/
+	  if (s == NULL && i > 0 && *rd != 0) {
+	    if (s) *s = 0;
+	    sprintf(nmessage, "%s/%s", postoffice, rd);
+	    if (s) *s = ':';
+	    /* Is it a valid directory ? */
+	    if ((stat(nmessage,&stb) == 0) && S_ISDIR(stb.st_mode))
+	      ord = rd; /* IT IS ! */
+	  }
+	  routerdir = ord;
+	  if (ord) disable_routerdirhash = 1;
+	}
+
+
+	if (!routerdir && !mail_priority)
+	  routerdir = ROUTERDIR;
+
+	if (mail_priority && !routerdir) {
 	  /* We are asked to place the mail somewhere else */
 	  const char *routerdirs = getzenv("ROUTERDIRS");
+	  routerdir = ROUTERDIR;
 	  if (routerdirs) {
 	    int i = mail_priority;
 	    const char *rd = routerdirs;
 	    const char *ord = routerdir;
 #ifdef HAVE_ALLOCA
-	    nmessage = alloca(strlen(postoffice)+strlen(routerdirs)+3+
-			      9+4+strlen(type));
+	    nmessage = alloca(strlen(postoffice)+strlen(routerdirs)+
+			      3+9+4+strlen(type));
 #else
-	    nmessage = mail_alloc(strlen(postoffice)+strlen(routerdirs)+3+
-				  9+4+strlen(type));
+	    nmessage = mail_alloc(strlen(postoffice)+strlen(routerdirs)+
+				  3+9+4+strlen(type));
 #endif
-	    /* There are some defined!   A ":" separated list of strings */
+	    /* There are some defined!
+	       A ":" separated list of strings */
 
 	    /* mail_priority == 1 pics first, 2 pics second, ..
 	       if segments run out, last one is kept at  rd     */
@@ -521,7 +576,8 @@ _mail_close_(fp,inop, mtimep)
 	      rd = s+1;
 	    }
 
-	    /* Here we are when there is only one entry in the routerdirs: */
+	    /* Here we are when there is only one entry in
+	       the routerdirs: */
 	    if (s == NULL && i > 0 && *rd != 0) {
 	      if (s) *s = 0;
 	      sprintf(nmessage, "%s/%s", postoffice, rd);
@@ -533,6 +589,26 @@ _mail_close_(fp,inop, mtimep)
 	    routerdir = ord;
 	  }
 	}
+
+	if (routersubdirhash < 0) {
+	  const char *ss;
+	  if (disable_routerdirhash)
+	    ss = getzenv("INPUTDIRHASH");
+	  else
+	    ss = getzenv("ROUTERDIRHASH");
+
+	  if (ss && *ss == '1')
+	    routersubdirhash = 1;
+	  else
+	    routersubdirhash = 0;
+	}
+
+	if (routersubdirhash > 0) {
+	  sprintf(subdirhash, "%c/", (int)('A' + (ino % 26)));
+	} else
+	  *subdirhash = 0;
+
+
 	/* Assert postoffice != NULL */
 	if (nmessage == NULL) {
 #ifdef HAVE_ALLOCA
@@ -578,7 +654,11 @@ _mail_close_(fp,inop, mtimep)
 	  RETSIGTYPE (*oldsig)__((int));
 #endif
 
-	  routernotify = getzenv("ROUTERNOTIFY");
+	  if (disable_routerdirhash)
+	    routernotify = getzenv("INPUTNOTIFY");
+	  else
+	    routernotify = getzenv("ROUTERNOTIFY");
+
 	  if (!routernotify) break;
 
 	  memset(&sad, 0, sizeof(sad));
@@ -597,7 +677,8 @@ _mail_close_(fp,inop, mtimep)
 	  s = strchr(routerdir,':');
 	  if (s) *s = 0;
 
-	  sprintf(buf, "NEW %s %s%ld%s", routerdir, subdirhash, ino, type);
+	  sprintf(buf, "NEW %s %s%ld%s",
+		  routerdir, subdirhash, ino, type);
 
 	  if (s) *s = ':';
 
@@ -613,12 +694,11 @@ _mail_close_(fp,inop, mtimep)
 		 (struct sockaddr *)&sad, sizeof(sad));
 
 	  close(notifysocket);
-
 #ifndef MSG_NOSIGNAL
 	  SIGNAL_HANDLE(SIGPIPE, oldsig);
 #endif
 
-	} while (0);
+	} while(0);
 #endif /* AF_UNIX */
 
 #ifndef HAVE_ALLOCA
@@ -628,9 +708,10 @@ _mail_close_(fp,inop, mtimep)
 	if (ftype) mail_free(ftype);
 
 	if (inop != NULL)
-	  *inop   = (long)   stb.st_ino;
+	  *inop   = (long) stb.st_ino;
 	if (mtimep != NULL)
 	  *mtimep = (time_t) stb.st_mtime;
+
 
 	return 0;
 }
@@ -652,18 +733,20 @@ mail_close_alternate(fp,where,suffix)
 	int fn;
 
 	if (postoffice == NULL) {
-		fprintf(stderr, "mail_close: called out of order!\n");
-		errno = EINVAL;
-		return -1;
+	  fprintf(stderr,
+		  "mail_close_alternate: called out of order!\n");
+	  errno = EINVAL;
+	  return -2;
 	}
 	if (fp == NULL) {
-		errno = EBADF;
-		return -1;
+	  errno = EBADF;
+	  return -2;
 	}
 	fn = FILENO(fp);
 	fstat(fn, &stbuf);
 	if (fn >= mail_nfiles)
-		abort(); /* Usage error -- no such fileno in our use! */
+	  abort(); /* Usage error -- no such fileno in our use! */
+
 	message = mail_file[fn];
 	if (message == NULL) {
 		errno = ENOENT;
@@ -682,7 +765,11 @@ mail_close_alternate(fp,where,suffix)
 	 * on NFS mounted postoffices if you want to guarantee not losing
 	 * data without being told about it.
 	 */
-	if (fflush(fp) == EOF) {
+
+
+	while (fflush(fp) != 0) {
+	  if (errno == EINTR || errno == EAGAIN)
+	    continue;
 	  mail_free(message);
 	  if (ftype) mail_free(ftype);
 	  errno = EIO;

@@ -818,7 +818,7 @@ dblookup(dbname, argc, argv30)
 		return NULL;
 	}
 	if (D_db)
-		fprintf(stderr, "%s(%s)\n", dbname, key);
+		fprintf(stderr, "%s(%s)", dbname, key);
 	/* apply flags */
 	realkey = NULL;
 
@@ -875,6 +875,13 @@ dblookup(dbname, argc, argv30)
 	  break;
 	}
 	si.defaultkey[defaultkeys] = NULL;
+
+	if (D_db) {
+	  int i;
+	  for (i = 0; i < defaultkeys; ++i)
+	    fprintf(stderr, " -: %s", si.defaultkey[i]);
+	  fprintf(stderr, "\n");
+	}
 
 	if ((dbip->flags & DB_MODCHECK) &&
 	    dbip->modcheckp  &&  (*dbip->modcheckp)(&si) &&

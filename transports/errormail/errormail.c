@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-2002 Matti Aarnio -- this & that smaller, and
+ *	Copyright 1992-2003 Matti Aarnio -- this & that smaller, and
  *	larger changes...
  */
 
@@ -288,7 +288,7 @@ process(dp)
 	encodeXtext(mfp, rp->addr->link->user, strlen(rp->addr->link->user));
 
 	if (STREQ(rp->addr->link->channel,"error"))
-	  rp->addr->link->user = "";
+	  rp->addr->link->user = "postmaster";
 
 	sfprintf(mfp, "\nto <%s>\n",rp->addr->link->user);
 
@@ -368,7 +368,7 @@ process(dp)
 	  sfmail_abort(mfp);
 	  for (rp = dp->recipients; rp != NULL; rp = rp->next)
 	    if (!(rp->notifyflgs & _DSN_NOTIFY_FAILURE))
-	      diagnostic(verboselog, rp, EX_OK, 0, NULL);
+	      diagnostic(verboselog, rp, EX_OK, 0, "discarded, reportcnt=0");
 	  return;
 	}
 

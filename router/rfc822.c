@@ -2344,10 +2344,10 @@ sequencer(e, file)
 			   h->h_contents.a->a_tokens->p_tokens,
 			   (token822 *)NULL, 0);
 		/*
-		 * We have to be careful how we open this file, since one might
-		 * imagine someone trying to append to /etc/passwd using this
-		 * stuff.  The only safe way is to open it with the permissions
-		 * of the owner of the message file.
+		 * We have to be careful how we open this file, since one
+		 * might imagine someone trying to append to /etc/passwd
+		 * using this stuff.  The only safe way is to open it
+		 * with the permissions of the owner of the message file.
 		 */
 		SETEUID(e->e_statbuf.st_uid);
 
