@@ -1584,14 +1584,14 @@ sequencer(e, file)
 	  cdr(QHOST(e->e_from_trusted)) = l;
 	}
 	if (QUSER(e->e_from_trusted) == NULL) {
-	  l = cdr(QUSER(e->e_from_trusted));
+	  /* l = cdr(QUSER(e->e_from_trusted)); */
 	  QUSER(e->e_from_trusted) = QUSER(e->e_from_resolved);
-	  cdr(QUSER(e->e_from_trusted)) = l;
+	  /* cdr(QUSER(e->e_from_trusted)) = l; */
 	}
 	if (QATTRIBUTES(e->e_from_trusted) == NULL) {
-	  l = cdr(QATTRIBUTES(e->e_from_trusted));
+	  /* l = cdr(QATTRIBUTES(e->e_from_trusted)); */
 	  QATTRIBUTES(e->e_from_trusted) = QATTRIBUTES(e->e_from_resolved);
-	  cdr(QATTRIBUTES(e->e_from_trusted)) = l;
+	  /* cdr(QATTRIBUTES(e->e_from_trusted)) = l; */
 	}
 
 	if (deferuid)
