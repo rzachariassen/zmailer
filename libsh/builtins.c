@@ -54,12 +54,14 @@ static conscell *sh_cdr		CSARGS2;
 static conscell *sh_list	CSARGS2;
 static conscell *sh_grind	CSARGS2;
 static conscell *sh_elements	CSARGS2;
-static conscell *sh_setf	CSARGS2;
 static conscell *sh_get		CSARGS2;
 static conscell *sh_length	CSARGS2;
 static conscell *sh_last	CSARGS2;
 static conscell *sh_lappend     CSARGS2;
 static conscell *sh_lreplace    CSARGS2;
+#ifdef CONSCELL_PREV
+static conscell *sh_setf	CSARGS2;
+#endif
 
 #define CSARGV2 __((int argc, const char *argv[]))
 
@@ -93,7 +95,9 @@ struct shCmd builtins[] = {
 {	"list",		NULL,	sh_list,	NULL,	SH_ARGV		},
 {	"grind",	NULL,	sh_grind,	NULL,	SH_ARGV		},
 {	"elements",	NULL,	sh_elements,	NULL,	SH_ARGV		},
+#ifdef CONSCELL_PREV
 {	"setf",		NULL,	sh_setf,	NULL,	SH_ARGV		},
+#endif
 {	"get",		NULL,	sh_get,		NULL,	SH_ARGV		},
 {	"length",	NULL,	sh_length,	NULL,	SH_ARGV		},
 {	"[",		sh_test,	NULL,	NULL,	0		},
@@ -142,10 +146,12 @@ sh_car(avl, il)
 		return conststring(il->string);
 	/* setf preparation */
 	if (car(il) == NULL) {
+#ifdef CONSCELL_PREV
 		if (il->prev) {
 			il->prev = cdr(il->prev);
 			il->pflags = 0;
 		}
+#endif
 		return il;
 	}
 	car(il) = copycell(car(il));	/* don't modify malloc'ed memory! */
@@ -160,6 +166,7 @@ sh_cdr(avl, il)
 	il = cdar(avl);
 	if (il == NULL || STRING(il) || car(il) == NULL)
 		return NULL;
+#ifdef CONSCELL_PREV
 	/* setf preparation */
 	if (cdar(il)) {
 		il->prev = cdar(il)->prev;
@@ -170,6 +177,7 @@ sh_cdr(avl, il)
 			il->prev = car(car(il)->prev);
 	}
 	il->pflags = 3;
+#endif
 	car(il) = cdar(il);
 	return il;
 }
@@ -184,6 +192,7 @@ sh_last(avl, il)
 	/* setf preparation */
 	while (cdar(il) != NULL)
 		car(il) = cdar(il);
+#ifdef CONSCELL_PREV
 	if (car(il)->prev) {
 		/* if (car(il)->pflags)*/
 			il->prev = car(il)->prev;
@@ -191,6 +200,7 @@ sh_last(avl, il)
 			il->prev = car(car(il)->prev);*/
 	}
 	il->pflags = 3;
+#endif
 	return il;
 }
 
@@ -221,6 +231,8 @@ sh_elements(avl, il)
 		il->flags |= ELEMENT;
 	return cadar(avl);
 }
+
+#ifdef CONSCELL_PREV
 
 static conscell *
 sh_setf(avl, il)
@@ -296,6 +308,7 @@ sh_setf(avl, il)
 #endif	/* MAILER */
 	return cddar(avl);
 }
+#endif
 
 
 /*
@@ -480,9 +493,11 @@ sh_get(avl, il)
 			cdr(d) = NIL;
 			d = ncons(d);
 			assign(plist, d, (struct osCmd *)NULL);
+#ifdef CONSCELL_PREV
 			/* setf preparation */
 			cdar(d)->prev = cadr(v_find((const char*)plist->string));
 			cdar(d)->pflags = 1;
+#endif
 			return cdar(d);
 		}
 		plist = cdr(d);
@@ -499,7 +514,9 @@ sh_get(avl, il)
 		if (STRING(d) && strcmp(d->string, key->string) == 0) {
 			d = copycell(cdr(d));
 			cdr(d) = NULL;
+#ifdef CONSCELL_PREV
 			d->pflags |= 04;
+#endif
 			return d;
 		}
 		d = cdr(d);
@@ -519,13 +536,17 @@ sh_get(avl, il)
 
 		stickymem = MEM_MALLOC;
 		cdr(plist) = s_copy_tree(cdr(plist));
+#ifdef CONSCELL_PREV
 		s_set_prev(plist, cdr(plist));
 		cdr(plist)->pflags = 1;
+#endif
 		stickymem = oval;
 
+#ifdef CONSCELL_PREV
 		/* setf preparation */
 		d->prev = cdr(plist);
 		d->pflags = 01 | 04;
+#endif
 	}
 
 	return d;

@@ -3,6 +3,9 @@ router/functions:
 	To get rid of 'setf' -- 3.0 thing, as is conscell 'prev'
 	component removal, too.
 
+	check:  sh_last() -- rather weird way to search for
+				the last elt...
+
 smtpserver/policy:
 	<foo@[nn.nn.nn.nn]> policy acceptance ???
 

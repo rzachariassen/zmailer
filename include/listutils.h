@@ -25,6 +25,10 @@ typedef struct _conscell {
 		char		 *u_string;
 		const char	 *cu_string;
 	} u;
+#if 0
+	int		flags;
+#else
+#define CONSCELL_PREV
 #ifdef __alpha	/* Alpha doesn't take nicely stores into too small objects.
 		   The hardware has store support only for 32/64/128-bit
 		   objects. (Well, newer EV5/EV56/EV6 processors have byte
@@ -36,6 +40,7 @@ typedef struct _conscell {
 	short		pflags;	/* if 1 x->prev->cdr == x */
 #endif
 	struct _conscell *prev;	/* points to whichever dtpr points to here */
+#endif
 } conscell;
 
 #define	NEWSTRING	0001	/* newly allocated string (free() when GC) */
@@ -88,16 +93,29 @@ extern conscell * newcell __((void));
 #define nconc(X,Y)	(car(X) != 0 ? cdr(s_last(car(X))) = (Y) \
 			       : (car(X) = (Y), (X)))
 /* ncons(s-expr) -> new (s-expr) */
+#ifdef CONSCELL_PREV
 #define ncons(X)	(tmp = newcell(), car(tmp) = (X), \
-    tmp->flags = 0, cdr(tmp) = 0, tmp->prev = 0, tmp->pflags = 0, tmp)
+	 tmp->flags = 0, cdr(tmp) = 0, tmp->prev = 0, tmp->pflags = 0, tmp)
 /* cons(s-expr, list) -> new (s-expr ,@list) */
+#else
+#define ncons(X)	(tmp = newcell(), car(tmp) = (X), \
+			 tmp->flags = 0, cdr(tmp) = 0, tmp)
+/* cons(s-expr, list) -> new (s-expr ,@list) */
+#endif
 #define cons(X,Y)	(tmp = ncons(X), cdar(tmp) = (Y), tmp)
 /* s_push(s-expr, list) -> old (s-expr ,@list) */
 #define s_push(X,Y)	(cdr(X) = car(Y), car(Y) = (X), (Y))
+#ifdef CONSCELL_PREV
 #define newstring(X)	(tmp = newcell(), tmp->string = (X), \
     tmp->flags = NEWSTRING, cdr(tmp) = 0, tmp->prev = 0, tmp->pflags = 0, tmp)
 #define conststring(X)	(tmp = newcell(), tmp->cstring = (X), \
     tmp->flags = CONSTSTRING, cdr(tmp) = 0, tmp->prev = 0, tmp->pflags = 0, tmp)
+#else
+#define newstring(X)	(tmp = newcell(), tmp->string = (X), \
+			 tmp->flags = NEWSTRING, cdr(tmp) = 0, tmp)
+#define conststring(X)	(tmp = newcell(), tmp->cstring = (X), \
+			 tmp->flags = CONSTSTRING, cdr(tmp) = 0, tmp)
+#endif
 #define NIL		ncons(0)
 
 /* listutils.c */

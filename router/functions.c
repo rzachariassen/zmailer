@@ -376,6 +376,7 @@ run_cadr(avl, il)
 	if (il == NULL || STRING(il) || car(il) == NULL)
 		return NULL;
 	/* cdr */
+#ifdef CONSCELL_PREV
 	/* setf preparation */
 	if (cdar(il)) {
 		il->prev = cdar(il)->prev;
@@ -386,9 +387,11 @@ run_cadr(avl, il)
 			il->prev = car(car(il)->prev);
 	}
 	il->pflags = 3;
+#endif
 	car(il) = cdar(il);
 
 	/* car */
+#ifdef CONSCELL_PREV
 	/* setf preparation */
 	if (car(il) == NULL) {
 		if (il->prev) {
@@ -397,9 +400,12 @@ run_cadr(avl, il)
 		}
 		return il;
 	}
+#endif
 	car(il) = copycell(car(il));	/* don't modify malloc'ed memory! */
 	cdar(il) = NULL;
+#ifdef CONSCELL_PREV
 	car(il)->pflags |= 01 | 04;
+#endif
 	return car(il);
 }
 
@@ -413,6 +419,7 @@ run_caddr(avl, il)
 	if (il == NULL || STRING(il) || car(il) == NULL)
 		return NULL;
 	/* cdr */
+#ifdef CONSCELL_PREV
 	/* setf preparation */
 	if (cdar(il)) {
 		il->prev = cdar(il)->prev;
@@ -423,9 +430,11 @@ run_caddr(avl, il)
 			il->prev = car(car(il)->prev);
 	}
 	il->pflags = 3;
+#endif
 	car(il) = cdar(il);
 
 	/* cdr */
+#ifdef CONSCELL_PREV
 	/* setf preparation */
 	if (cdar(il)) {
 		il->prev = cdar(il)->prev;
@@ -436,20 +445,25 @@ run_caddr(avl, il)
 			il->prev = car(car(il)->prev);
 	}
 	il->pflags = 3;
+#endif
 	car(il) = cdar(il);
 
 	/* car */
 	/* setf preparation */
 	if (car(il) == NULL) {
+#ifdef CONSCELL_PREV
 		if (il->prev) {
 			il->prev = cdr(il->prev);
 			il->pflags = 0;
 		}
+#endif
 		return il;
 	}
 	car(il) = copycell(car(il));	/* don't modify malloc'ed memory! */
 	cdar(il) = NULL;
+#ifdef CONSCELL_PREV
 	car(il)->pflags |= 01 | 04;
+#endif
 	return car(il);
 }
 
@@ -463,6 +477,7 @@ run_cadddr(avl, il)
 	if (il == NULL || STRING(il) || car(il) == NULL)
 		return NULL;
 	/* cdr */
+#ifdef CONSCELL_PREV
 	/* setf preparation */
 	if (cdar(il)) {
 		il->prev = cdar(il)->prev;
@@ -473,9 +488,11 @@ run_cadddr(avl, il)
 			il->prev = car(car(il)->prev);
 	}
 	il->pflags = 3;
+#endif
 	car(il) = cdar(il);
 
 	/* cdr */
+#ifdef CONSCELL_PREV
 	/* setf preparation */
 	if (cdar(il)) {
 		il->prev = cdar(il)->prev;
@@ -486,9 +503,11 @@ run_cadddr(avl, il)
 			il->prev = car(car(il)->prev);
 	}
 	il->pflags = 3;
+#endif
 	car(il) = cdar(il);
 
 	/* cdr */
+#ifdef CONSCELL_PREV
 	/* setf preparation */
 	if (cdar(il)) {
 		il->prev = cdar(il)->prev;
@@ -499,20 +518,25 @@ run_cadddr(avl, il)
 			il->prev = car(car(il)->prev);
 	}
 	il->pflags = 3;
+#endif
 	car(il) = cdar(il);
 
 	/* car */
 	/* setf preparation */
 	if (car(il) == NULL) {
+#ifdef CONSCELL_PREV
 		if (il->prev) {
 			il->prev = cdr(il->prev);
 			il->pflags = 0;
 		}
+#endif
 		return il;
 	}
 	car(il) = copycell(car(il));	/* don't modify malloc'ed memory! */
 	cdar(il) = NULL;
+#ifdef CONSCELL_PREV
 	car(il)->pflags |= 01 | 04;
+#endif
 	return car(il);
 }
 

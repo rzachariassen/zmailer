@@ -559,7 +559,9 @@ crossbar(from, to)
 
 	l = ncons(from);
 	cdar(l) = to;
+#ifdef CONSCELL_PREV
 	s_set_prev(l, car(l));
+#endif
 
 	if (l_apply(CROSSBAR, l) != 0 || s_value == NULL) {
 		if (s_value != NULL)

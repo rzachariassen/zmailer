@@ -605,9 +605,11 @@ expand(d)
 		pav = &cdr(s_last(*pav));
 	}
 	*pav = NULL;
+#ifdef CONSCELL_PREV
 	if (orig->prev != globbed->prev) {
 		s_set_prev(orig->prev, globbed);
 		globbed->pflags = orig->pflags;
 	}
+#endif
 	return globbed;
 }

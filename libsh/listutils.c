@@ -110,6 +110,8 @@ s_nth(list, n)
 	return list;
 }
 
+
+#ifdef CONSCELL_PREV
 /*
  * Set the back-pointers (->prev) for the passed structure.
  * This is used by the setf facility to figure out where stuff is stashed.
@@ -131,6 +133,7 @@ s_set_prev(prev, list)
 			list->pflags = 1;
 	}
 }
+#endif
 
 /*
  * Does a string contain any metacharacters that might be misinterpreted
@@ -290,8 +293,10 @@ s_read(fp)
 		list = newcell();
 		list->flags = 0;
 		cdr(list) = NULL;
+#ifdef CONSCELL_PREV
 		list->prev = 0;
 		list->pflags = 0;
+#endif
 		listp = &car(list);
 		do {
 			if ((*listp = s_read(fp)) == NULL)
@@ -311,8 +316,10 @@ s_read(fp)
 		list = newcell();
 		cdr(list) = NULL;
 		list->flags = NEWSTRING;	/* string */
+#ifdef CONSCELL_PREV
 		list->prev = 0;
 		list->pflags = 0;
+#endif
 		while ((ch = getc(fp)) != EOF && ch != ech) {
 			if (ch == '\\')
 				if ((ch = getc(fp)) == EOF)
@@ -326,8 +333,10 @@ s_read(fp)
 		list = newcell();
 		cdr(list) = NULL;
 		list->flags = NEWSTRING;	/* string */
+#ifdef CONSCELL_PREV
 		list->prev = 0;
 		list->pflags = 0;
+#endif
 		*bp++ = ch;
 		while ((ch = getc(fp)) != EOF && isascii(ch) &&
 		       !isspace(ch) && ch != '(' && ch != ')') {
