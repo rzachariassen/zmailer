@@ -489,6 +489,7 @@ extern void header_from_mime __((char *, int *, int));
 #endif				/* USE_TRANSLATION */
 
 extern void killr __((SmtpState * SS, int rpid));
+extern void killcfilter __((SmtpState * SS, int rpid));
 extern void typeflush __((SmtpState *));
 #if defined(HAVE_STDARG_H) && defined(HAVE_VPRINTF)
 extern void type __((SmtpState *, int code, const char *status, const char *fmt,...));

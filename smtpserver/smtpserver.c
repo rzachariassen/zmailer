@@ -1322,7 +1322,7 @@ char **argv;
 	    if (routerpid > 0)
 	      killr(&SS, routerpid);
 	    if (contentpolicypid > 1)
-	      killr(&SS, contentpolicypid);
+	      killcfilter(&SS, contentpolicypid);
 
 	    if (netconnected_flg)
 	      sleep(2);
@@ -1345,7 +1345,7 @@ char **argv;
     if (routerpid > 0)
 	killr(&SS, routerpid);
     if (contentpolicypid > 1)
-      killr(&SS, contentpolicypid);
+      killcfilter(&SS, contentpolicypid);
     if (netconnected_flg)
       sleep(2);
     exit(0);
@@ -1916,7 +1916,7 @@ int insecure;
 	if (routerpid > 0)
 	    killr(SS, routerpid);
 	if (contentpolicypid > 1)
-	  killr(SS, contentpolicypid);
+	  killcfilter(SS, contentpolicypid);
 	exit(0);
     }
     report(SS, "(connected)");
@@ -2117,7 +2117,7 @@ int insecure;
     {
 	char *s = policymsg(policydb, &SS->policystate);
 	if (insecure)
-	  type(NULL,0,,NULL,"remote from %s:%d", SS->ihostaddr, SS->rport);
+	  type(NULL,0,NULL,"remote from %s:%d", SS->ihostaddr, SS->rport);
 	else
 	  type(NULL,0,NULL,"local from uid#%d", (int)getuid());
 	if (SS->policyresult != 0 || s != NULL)

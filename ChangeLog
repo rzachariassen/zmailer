@@ -1,3 +1,14 @@
+2003-05-15  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/contentpolicy.c, smtpserver/smtprouter.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h:
+	    From  Andrey Blochintsev <bag@iptelecom.net.ua>
+	    spotted process deaths by NULL pointer referral
+	    during state cleanup.
+
+	* transports/mailbox/mailbox.c:
+	    Turning EDQUOT failure to instant permanent failure.
+
 2003-05-13  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c, smtpserver/smtpserver.c:

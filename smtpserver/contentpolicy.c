@@ -257,3 +257,20 @@ const char *fname;
 
   return rc;
 }
+
+void killcfilter(SS, cpid)
+SmtpState *SS;
+int cpid;
+{
+    if (cpid > 0) {
+	if (cpol_tofp == NULL)
+	    fclose(cpol_tofp);
+        cpol_tofp   = NULL;
+	if (cpol_fromfp == NULL)
+            fclose(cpol_fromfp);
+	cpol_fromfp = NULL;
+	sleep(1); /* for normal filter shutdown */
+	kill(cpid, SIGKILL);
+    }
+}
+

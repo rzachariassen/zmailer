@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-2002 Matti Aarnio -- MIME processing et.al.
+ *	Copyright 1992-2003 Matti Aarnio -- MIME processing et.al.
  */
 
 /* History:
@@ -2048,8 +2048,12 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	    /* Does the 'errno' really have correct data in all paths ? */
 	    err = WS.lasterrno;
 
+	    rc = EX_IOERR;
+	    if (err == EDQUOT)
+	      rc = EX_UNAVAILABLE; /* Quota-exceeded is instant permanent reject ? */
+
 	    notaryreport(NULL,NULL,NULL,NULL);
-	    DIAGNOSTIC4(rp, file, EX_IOERR,
+	    DIAGNOSTIC4(rp, file, rc,
 			"message write[%s] to \"%s\" failed: %s",
 			mw, file, strerror(err));
 #ifdef HAVE_FTRUNCATE
@@ -2209,7 +2213,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	if (fp) {
 	  /* Discard and close */
 	  zsfclose(fp);
-	  /* The pointer is needed later! */
+	  /* The pointer is needed later as a marker! (NULL or not) */
 	}
 
 	return fp; /* Dummy marker! */
