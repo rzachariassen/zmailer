@@ -262,6 +262,8 @@ int bindport_set = 0;
 int use_tcpwrapper = 0;
 int tarpit_initial = 0;
 int tarpit_exponent = 0;
+int tarpit_toplimit = 0;
+int tarpit_cval = 0;
 
 int lmtp_mode = 0;	/* A sort-of RFC 2033 LMTP mode ;
 			   this is MAINLY for debug purposes,
@@ -1202,7 +1204,7 @@ char **argv;
 	      close(msgfd);
 	    msgfd = 0;
 
-	    if (logfp)	/* Open the logfp latter.. */
+	    if (logfp)	/* Open the logfp later.. */
 	      fclose(logfp);
 	    logfp = NULL;
 
@@ -1279,7 +1281,7 @@ char **argv;
 		sleep(2);
 		exit(1);	/* Tough.. */
 	      }
-	      strcpy(msg, "450 Come again latter\r\n");
+	      strcpy(msg, "450 Come again later\r\n");
 	      len = strlen(msg);
 	      write(msgfd, msg, len);
 	      close(0); close(1); close(2);
@@ -1301,7 +1303,7 @@ char **argv;
 		sleep(2);
 		exit(1);	/* Tough.. */
 	      }
-	      strcpy(msg, "450 Come again latter\r\n");
+	      strcpy(msg, "450 Come again later\r\n");
 	      len = strlen(msg);
 	      write(msgfd, msg, len);
 	      close(0); close(1); close(2);
@@ -1513,6 +1515,13 @@ const char *msg;
 	fprintf(logfp, "%s%04d - aborted (%ld bytes): %s\n", logtag, (int)(now-logtagepoch), tell, msg);
 	fflush(logfp);
     }
+    if (logfp != NULL && SS->tarpit > tarpit_initial ) {
+        char *ts = rfc822date(&now);
+
+        fprintf(logfp, "%s#\ttar_pit with delay %04d ends at %s", logtag, SS->tarpit_cval, ts );
+        fflush(logfp);
+    }
+
 }
 
 
@@ -1859,6 +1868,7 @@ int insecure;
     SS->VerboseCommand = 0;
 
     SS->tarpit = tarpit_initial;
+    SS->tarpit_cval = tarpit_cval;
 
     stashmyaddresses(NULL);
 
@@ -2130,6 +2140,8 @@ int insecure;
 
 	if (i <= 0)	/* EOF ??? */
 	  break;
+				   
+	time( & now );
 
 	if (s_hasinput(SS))
 	  if (logfp || logfp_to_syslog)
@@ -2151,8 +2163,6 @@ int insecure;
 	     ... except that this is likely *wrong* place, as
 	     there are many varying input syntaxes... */
 	}
-				   
-	if (logfp_to_syslog || logfp) time( & now );
 
 	if (logfp_to_syslog)
 	  zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, (int)(now-logtagepoch), buf));
@@ -2443,6 +2453,13 @@ int insecure;
 	    SS->mfp = NULL;
 	    type(SS, 221, m200, NULL, "Out");
 	    typeflush(SS);
+	    /* I want a log entry for when tarpit is complete - jmack Apr,2003 */
+	    if (logfp != NULL && SS->tarpit > tarpit_initial ) {
+		      char *ts = rfc822date(&now);
+	              fprintf(logfp, "%s#\ttar_pit with delay %04d ends at %s", logtag, SS->tarpit_cval, ts );
+	              fflush(logfp);
+	    }
+		    
 #ifdef HAVE_OPENSSL
 	    Z_cleanup(SS);
 #endif /* - HAVE_OPENSSL */
@@ -2461,6 +2478,13 @@ int insecure;
 	     SS->s_readerrno);
 	fflush(logfp);
     }
+    if (logfp != NULL && SS->tarpit > tarpit_initial ) {
+         char *ts = rfc822date(&now);
+         fprintf(logfp, "%s#\ttar_pit with delay %04d ends at %s", logtag, SS->tarpit_cval, ts );
+         fflush(logfp);
+    }
+
+	    
 #ifdef HAVE_OPENSSL
     Z_cleanup(SS);
 #endif /* - HAVE_OPENSSL */
@@ -2916,11 +2940,26 @@ SmtpState *SS;
 void smtp_tarpit(SS)
      SmtpState *SS;
 {
+    char *ts;
+
     if (SS->tarpit) {
-	if (SS->tarpit < 0 || SS->tarpit > 250)
-	    SS->tarpit = 250;
+	/* add this so we know when tarpit is active */
+        if (logfp != NULL && SS->tarpit != 0 ) {
+	  time(&now);
+	  ts = rfc822date(&now);
+
+          fprintf(logfp, "%s#\ttarpit delay:%04d sec. at %s", logtag, SS->tarpit,ts );
+          fflush(logfp);
+        }
+	    
+	SS->tarpit_cval += SS->tarpit;
+
 	sleep(SS->tarpit);
+	/* adjust tarpit delay and limit here, "after!" the sleep */
 	SS->tarpit += (SS->tarpit * tarpit_exponent);
+	/* was 250 - set up to a config param in smtpserver.conf - jmack apr 2003 */
+        if (SS->tarpit < 0 || SS->tarpit > tarpit_toplimit )
+		SS->tarpit = tarpit_toplimit;
     }
 }
 

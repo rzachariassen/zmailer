@@ -1,11 +1,12 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8 "19 Aug 2002"
+.TH SMTPSERVER 8 "2003-May-1"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
 .IP \fBsmtpserver\fR 11em
+.RS 11em
 [\fB\-46aBhigntVvw\fR]
 [\fB\-p\fR\ \fIport\fR]
 [\fB\-l\fR\ \fISYSLOG\fR]
@@ -20,6 +21,7 @@ smtpserver \- zmailer SMTP server
 [\fB\-C\fR\ \fIcfgfile\fR]
 [\fB\-Z\fR\ \fIzenvfile\fR]
 [\fB\-T\ \fI'[1.2.3.4]'\fR]
+.RE
 .SH DESCRIPTION
 This program implements the server side of the SMTP protocol as described
 in RFC-2821, and knows about the common extensions to the protocol expected
@@ -40,44 +42,52 @@ program in interactive mode, and executing a well-known shell function with
 well-known parameters for each request.
 .PP
 .SH OPTIONS
-
+.PP
 .IP \-4
+.RS
 Explicitely to use IPv4 type of socket even on machines that is capable to
 do IPv6 type of sockets.
-
+.RE
 .IP \-6
+.RS
 Explicitely to (try to) use IPv6 type of socket even if the machine does
 not support it.
 For a default the server will try to use IPv6, if it has been compiled on
 an environment where it is present, but will do a fallback to IPv4 in case
 the runtime system does not have IPv6.
-
+.RE
 .IP \-a
+.RS
 turn on RFC931/RFC1413 indentification protocol, and log the information
 acquired with it to the submitted file.
-
+.RE
 .IP \-w
+.RS
 turn on usage of "whoson" protocol.  This option is available even if
 actual code is not available.
-
+.RE
 .IP \-g
+.RS
 the gullible option will make the program believe any information it is
 told (such as origin of a connection) without checking.
-
+.RE
 .IP \-h
+.RS
 check helo-parameter,  per default that is
 .B not
 checked in any way, with this option, syntax check is done on it.
-
+.RE
 .IP \-i
+.RS
 runs the server interactively, which makes it usable for processing
 a batched SMTP stream (BSMTP) on stdin.
 With
 .I \-v
 option this echoes incoming BSMTP to create more accurate faximille
 of BITNET BSMTP mailers.
-
+.RE
 .IP "\-l \fISYSLOG\fR"
+.RS
 A magic value of "SYSLOG" for the
 .I logfile
 is interpreted by directing all session log stuff thru syslogd;
@@ -86,53 +96,64 @@ something which
 require better syslogd, than your system
 has by default; see ``syslog-ng'' at a well indexed free software
 sites.
-
+.RE
 .IP "\-l \fIlogfile\fR"
+.RS
 specifies a logfile and enables recording of incoming SMTP conversations.
 If you want both file based session log, and syslog() based, issue this
 option after ``\-l\ SYSLOG'' one.
-
+.RE
 .IP "\-n "
+.RS
 indicates the program is being run from
 .IR inetd (8).
-
+.RE
 .IP "\-p "
+.RS
 specifies the TCP port to listen on instead of the default SMTP port, 25.
-
+.RE
 .IP "\-B "
+.RS
 flags the email to arrive via BSMTP channel (via BITNET, for example).
-
+.RE
 .IP "\-I \fIpidfile\fR"
+.RS
 specifies an alternate PID file location.
-
+.RE
 .IP "\-L \fImaxloadaver\fR"
+.RS
 tells the maximum load-average the system is under when we still accept
 email in.
-
+.RE
 .IP "\-M \fISMTPmaxsize\fR"
+.RS
 Defines the asolute maximum size we accept from incoming email.
 (Default: infinite) (This is local policy issue.)
-
+.RE
 .IP "\-P \fIpostoffice\fR"
+.RS
 specifies an alternate
 .B POSTOFFICE
 directory.
-
+.RE
 .IP "\-R \fIrouter\fR"
+.RS
 specifies an alternate
 .I router (8)
 program to use for address verification.
-
+.RE
 .IP "\-C \fIcfgfile\fR"
+.RS
 specifies nonstandard configuration file location; the default is
 .IR $MAILSHARE/ smtpserver.conf .
-
+.RE
 .IP "\-s strict"
+.RS
 this turns on all kinds of
 .B strict
 smtp protocol adherence checks, which in normal life can be relaxed
 slightly.  Great for compliance testing ;)
-
+.RE
 .IP "\-s [ftveRS]"
 .RS
 specifies the style of address verification to be performed.  There are
@@ -155,7 +176,7 @@ local@remote (strict 2821)
 .RS
 allow sloppy input for systems incapable to respect RFC 821 properly; WinCE1.0 (and 2.0) does:
 .RS 3em
-	   "MAIL FROM:user@domain"
+"MAIL FROM:user@domain"
 .RE
 :\-(
 .RE
@@ -173,9 +194,10 @@ The optionset recommended for that case is:
    \-i \-d 1 \-T '[1.2.3.4]'
 .fi
 .PP
-A notable detail is that to see what really is going on in the policy analysis,
-one must usei the ``-d\ 1'' option to turn on the debugging early enough to
-see its initial verdict at the time the ``220..'' greeting banner is produced..
+A notable detail is that to see what really is going on in
+the policy analysis,one must usei the ``-d\ 1'' option to
+turn on the debugging early enough to see its initial verdict
+at the time the ``220..'' greeting banner is produced..
 .PP
 Also notable is that
 .B brackets
@@ -184,25 +206,26 @@ in the supplied IP address
 be present, otherwise illegal syntax will be reported.
 (Using RFC 821 address literal parser here.)
 .RE
-
 .IP \-t
+.RS
 Set when running smtpserver under e.g. inetd, and using service port
 number 465; a "well-known" deprecated one of SSL/SMTP; (From the era
 before ``STARTTLS'' protocol verb.)
-
+.RE
 .IP "\-Z\ \fIzenvfile\fR"
+.RS
 passes on explicite non-compiled-in-default located ZCONFIG environment file.
-
+.RE
 .IP \-V
+.RS
 prints a version message and exits.
-
+.RE
 .PP
-
 .SH CONFIGURATION
 If the
 .IB $MAILSHARE/ smtpserver.conf
 exists it is read to configure two kinds of things:
-
+.PP
 .IP "PARAM \-entries"
 .RS
 allow server start-time parametrization of several things, including:
@@ -219,21 +242,22 @@ various feature parametrizations
 On PARAM lines the system allows $-expansions of ZENV variables.
 (Special note: '$$' expands as '$', not shell-style process-id number!)
 .RE
-
 .IP The\ style\ (\fI\-s\fR)\ option
+.RS
 behaviour based on glob patterns matching the
 .BR HELO / EHLO
 name given by a remote client.  Lines beginning with a
-.I #
+.I "#"
 or whitespace are ignored in the file, and all other lines must consist
 of two tokens: a shell-style (glob) pattern starting at the beginning of
 the line, whitespace, and a sequence of style flags.  The first matching
 line is used.  As a special case, the flags section may start with a
-.I !
+.I "!"
 character in which case the remainder of the line is a failure comment
-message to print at the client.  This configuration capability is intended
-as a way to control misbehaving client software or mailers.
-
+message to print at the client.
+This configuration capability is intended as a way to control
+misbehaving client software or mailers.
+.RE
 .IP "PARAM maxsize"
 This is synonym to start-time
 .I \-M
@@ -254,94 +278,111 @@ That is, is an error message.  (Sometimes SPAMs are tried to inject
 in that form...)
 
 .IP PARAM\ MaxSameIpSource
+.RS
 This sets the maximum number of active connections from any given
 single IP address.
-
+.PP
 When the limit is reached, system tells the remote end:
-.B ``450 Too many simultaneous connections...''
+.RS 3em
+.B "450 Too many simultaneous connections..."
+.RE
 (and then closes the connection.)
-
+.PP
 When the limit is exceeded by factor of four, the server just closes
 the connection without telling anything.
-
-.B Do note that this works only when the smtpserver is running as its
-.B own daemon, not while run from under inetd!
-
+.PP
+.B "Do note that this works only when the smtpserver"
+.B " is running as its own daemon, not while run from"
+.B "under inetd!"
+.RE
 .IP PARAM\ MaxParallelConnections
+.RS
 This limits how many simultaneous connections the server will accept
 in total -- e.g. how many childs a master server can have running.
 Default value: 800.
-
+.PP
 Exceeding the limit by less than 100 will get a message
-.B ``450 Too many simultaneous connections...''
+.RS 3em
+.B "450 Too many simultaneous connections..."
+.RE
 printed to the connection.
 In every case the connection is closed right after the possible message.
-
-.B Do note that this works only when the smtpserver is running as its
-.B own daemon, not while run from under inetd!
-
+.PP
+.B "Do note that this works only when the smtpserver is running"
+.B "as its own daemon, not while run from under inetd!"
+.RE
 .IP PARAM\ ListenQueueSize
+.RS
 This sets the listen queue size parameter for
 .IR listen (2)
 call at the server.
-
+.RE
 .IP PARAM\ TcpRcvBufferSize
+.RS
 This sets  setsockopt(SO_RCVBUF)  value, in case the system
 default is not suitable.
-
+.RE
 .IP PARAM\ TcpXmitBufferSize
+.RS
 This sets  setsockopt(SO_SNDBUF)  value, in case the system
 default is not suitable.
-
+.RE
 .IP PARAM\ RcptLimitCount\ 10000
+.RS
 This sets the maximum number of accepted recipients per one
 message transaction.  Default (and minimum!) value is 100,
 which is mandated by the RFC 821.
-
+.RE
 .IP PARAM\ BindPort\ \ \ 25
 .IP PARAM\ BindAddress\ [0.0.0.0]
 .IP PARAM\ BindAddress\ [IPv6.0::0]
 .IP PARAM\ BindAddress\ iface:ifacename
+.RS
 Per default the server mode SMTP-server binds to port 25 and any
 locally accepted address, but occasionally people seem to want to
 have separate server instances with different configurations, and
 for those cases are these parameters.
-
+.RE
 .IP PARAM\ DEBUGcmd
 .IP PARAM\ EXPNcmd
 .IP PARAM\ VRFYcmd
+.RS
 This trio (DEBUGcmd, EXPNcmd, VRFYcmd) are enablers of like named 
 SMTP verbs which have some uses in the debug mode.
-
+.PP
 They are normally disabled, but running them enabled does not allow
 direct attacks with them.  (That we know of.)
-
+.RE
 .IP PARAM\ enable\-router
+.RS
 This enables interactive router use where user inputs reach the router.
 As things turn out, while the canned scripts should be safe against any
 and all inputs, a careless change in the router scripts may endanger
 this status.
-
+.PP
 Per default this is
 .B disabled
 to protect your system.
-
+.PP
 To enable EXPN and VRFY, this must be enabled, but be
 .B very carefull
 when you do this.
 This is also required for interactive router processing
 of ``MAIL FROM'' and ``RCPT TO'' addresses.
-
+.RE
 .IP PARAM\ smtp\-auth
+.RS
 This enables 'SMTP AUTH' facility (AUTH verb, plus optional parameter
 to MAIL verb).  With this the users who are able to 'login' successfully
 to this host, are then able to relay the email thru the server unlimited.
-
+.RE
 .IP PARAM\ AUTH\-LOGIN\-also\-without\-TLS
+.RS
 This enables 'SMTP AUTH' facility usage also without running
 under SSL/TLS security envelope.
-
+.RE
 .IP PARAM\ MSA\-mode
+.RS
 Enable Message Submission Agent mode, where smtpserver
 .B requires
 successful user authentication during SMTP sessions initiated from
@@ -349,22 +390,23 @@ outside of the trusted networks or the networks with relaying enabled
 (see "fulltrustnet" and "relaycustnet" at the sample
 .I proto/db/smtp\-policy.src
 file).
-
+.RE
 .IP PARAM\ SMTP\-auth\-pipe\ /path/to/program
-
+.RS
 This is a path to the external authentication program.
 The authenticator should read a username from command line,
 and a password from standard input.
 Exit status 0 means successful authentication.
-
+.PP
 \fBIt is relatively easy to make a mistake in external authentication
 \fBprogram that follows the specification. Use this option only if
 \fByou know exactly what you do! BE CAREFULL!\fR
-
+.RE
 .IP PARAM\ use\-tcp\-wrapper
+.RS
 If TCP-WRAPPER is configured in, uncommenting this
 will activate its use to look service name:  smtp-receiver
-
+.RE
 .IP PARAM\ No8BITMIME
 .IP PARAM\ NoCHUNKING
 .IP PARAM\ NoDSN
@@ -372,6 +414,7 @@ will activate its use to look service name:  smtp-receiver
 .IP PARAM\ NoENCHANCEDSTATUS(CODES)
 .IP PARAM\ NoETRN
 .IP PARAM\ NoPIPELINING
+.RS
 This set contains
 .B disablers
 of like named Extended SMTP EHLO responses, plus EHLO verb itself,
@@ -379,59 +422,66 @@ e.g. using these will turn off given (for example ``PIPELINING'')
 response from the EHLO replies, and then a client possibly capable
 to feed PIPELINING will not do it -- unless it breaks rules, and
 does it even when the server does not report facility being available.
-
+.PP
 If you want to disable any of these, you better have a good reason
 for it, as in general they work quite fine.
-
+.PP
 Of these, 8BITMIME can not in reality be disabled, only its adverticement
 can be turned off.
-
+.RE
 .IP PARAM\ no\-multiline\-replies
+.RS
 Turn off ZMailer's default multiline replies; many systems (especially
 from M$ breed) don't do RFC 821 Appendix E properly...
-
+.RE
 .IP PARAM\ force\-rcpt\-notify\-never
+.RS
 Whatever the incoming DNS NOTIFY= value is, we force it always
 to be NOTIFY=NEVER.   This is for those who won't like to let
 others even to find out that the message made into the system,
 but still want to support incoming DSN. (That is, not to disable DSN!)
-
+.RE
 .IP "PARAM hdr220 a string of stuff"
+.RS
 This allows full customization of the initial greeting message.
 For details, see the sample configuration below.
-
+.RE
 .IP "PARAM help ...."
+.RS
 This allows adding locally relevant data into the SMTP protocol
 HELP command response texts.
 See example in the sample configuration below.
-
-
+.RE
 .IP PARAM\ policydb
+.RS
 This defines smtp input policy filtering/analysis database location.
 See the comments at the sample
 .I proto/db/smtp\-policy.src
 file.
-
+.PP
 An error here will be reported with obscureish code;
 "1" = "DBTYPE parameter unknown/unsupported",
 "2" = "can't open the database".
-
-
+.RE
 .IP PARAM\ contentfilter\ $MAILBIN/smtp-contentfilter
+.RS
 An external program for received message content analysis.
-
+.PP
 The interface is desribed below at
 .I "CONTENTFILTER INTERFACE"
 section.
-
-.IP PARAM\ tarpit\ n1\ n2
+.RE
+.IP PARAM\ tarpit\ initial\ exponent\ toplimit
+.RS
 This defines a pre-reply slow-down factor, and next delay multiplier
 (both are integers).
 Default values are (0, 0).  Delay tops at 250 (seconds).
-The ``n1'' is used as the initial tarpit delay, and ``n2'' is
-multiplier for formula:
-.I next = prev + (prev * n2)
-
+The ``initial'' is used as the initial tarpit delay,
+and ``exponent'' is multiplier for formula:
+.I next = prev + (prev * exponent)
+.PP
+Finally, ``toplimit'' caps the delay value.
+.RE
 .IP "PARAM use\-tls"
 .IP "PARAM tls\-CAfile $MAILVAR/db/smtpserver\-CAcert.pem"
 .IP "PARAM tls\-cert\-file  $MAILVAR/db/smtpserver\-cert.pem"
@@ -449,57 +499,63 @@ Also see below section
 .RE
 .IP "PARAM tls\-dh512  $MAILVAR/db/smtpserver\-cert\-dh512.pem"
 .IP "PARAM tls\-dh1024 $MAILVAR/db/smtpserver\-cert\-dh1024.pem"
+.RS
 Optional file to supply auxiliary DH parameters for the key exchange,
 in case the certificate is so old, that it does not contain them.
 The system has built-in default values for these.
-
+.RE
 .IP "PARAM listen\-ssmtp"
+.RS
 Listen on port TCP/465, which is deprecated SSL/SMTP listener port.
-
+.RE
 .IP "PARAM outlook\-tls\-bug"
+.RS
 Microsoft does it again...
 If TLS is set at Outlook, and server port is not 25, it bloody well
 seems to expect that the server starts in TLS handshake mode.
-
+.PP
 This implements a 2 second startup delay in case the port is some
 other than 25, and if some byte is received from client during that
 time, and it happens to be 0x80, then this server will initiate TLS
 negotiation.  If nothing happens (well-behaving client), normal
 SMTP greeting is presented.
-
+.RE
 .IP "PARAM tls\-loglevel   0"
 .IP "PARAM tls\-ccert\-vd   0"
 .IP "PARAM tls\-ask\-cert   0"
 .IP "PARAM tls\-require\-cert 0
 .IP "PARAM tls\-CApath ... (somewhen: verify client's certificates)"
 .IP "PARAM tls\-enforce\-tls 1"
+.RS
 These are some futher thoughs that may materialize some time..
-
+.RE
 .IP "PARAM rcvd\-ident"
 .IP "PARAM rcvd\-whoson"
 .IP "PARAM rcvd\-auth\-user"
 .IP "PARAM rcvd\-tls\-mode"
 .IP "PARAM rcvd\-tls\-peer"
+.RS
 This quintet controls what possibly collected data is shown at
 the published ``Received:'' header that this system generates.
-
+.RE
 .IP "PARAM etrn\-cluster node\-name\-or\-address mq2\-username mq2\-passwd"
+.RS
 In load-balance clusters a network level load-balancer may distribute
 the incoming SMTP connections to multiple real machines, and by using
 this parameter (repeatedly) to list those peers, system can relay
 user initiated ETRN requests to all cluster nodes.
-
-.I This method requires that the scheduler runs its mailq service
-.I in MAILQv2 mode!
-
+.PP
+.I "This method requires that the scheduler runs its mailq service"
+.I "in MAILQv2 mode!"
+.RE
 .IP "PARAM lmtp\-mode"
+.RS
 When desiring to test LMTP (RFC 2033), this parameter can be turned on,
-.I however ZMailer is no real LMTP server, and this feature is
-.I only for debug purposes.
-
-.IP Here\ is\ a\ possible\ configuration\ file:
-.sp
-.ta 0.0i 0.5i
+.I "however ZMailer is no real LMTP server, and this feature is"
+.I "only for debug purposes."
+.RE
+.IP "Here is a possible configuration file:"
+.RS 2em
 .nf
 \fC
 #
@@ -613,8 +669,8 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
 # External program for received message content analysis:
 #PARAM  contentfilter  $MAILBIN/smtp-content-policy-analysis
 
-#PARAM  tarpit 0 0   # No "tarpit" for 4XX/5XX reply codes
-#PARAM  tarpit 20 2  # Initial delay: 20 secs, next = prev + (prev * 2)
+#PARAM  tarpit 0 0 0    # No "tarpit" for 4XX/5XX reply codes
+#PARAM  tarpit 20 2 300 # Initial delay: 20 secs, next = prev + (prev * 2)
 
 #
 # TLSv1/SSLv[23] parameters;
@@ -683,6 +739,7 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 *                   999 veR
 .fi
 .sp
+.RE
 .SH CONTENTFILTER INTERFACE
 .PP
 The

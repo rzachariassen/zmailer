@@ -261,6 +261,7 @@ typedef struct {
     int  policyresult, reject_net;
     int  postmasteronly;
     int  tarpit;
+    int  tarpit_cval;		/* current tarpit value */
     int  rport;
     char ihostaddr[sizeof("[ipv6.ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]") + 8];
     Usockaddr raddr;
@@ -344,6 +345,7 @@ extern long minimum_availspace;
 extern long maxsize;
 extern int tarpit_initial;
 extern int tarpit_exponent;
+extern int tarpit_toplimit;
 extern int MaxErrorRecipients;
 extern int TcpRcvBufferSize;
 extern int TcpXmitBufferSize;
