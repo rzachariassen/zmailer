@@ -999,6 +999,8 @@ process(SS, dp, smtpstatus, host, noMX)
 	int loggedid;
 	int openstatus = EX_OK;
 
+
+	smtpstatus = EX_OK; /* Hmm... */
 	loggedid = 0;
 
 	SS->firstmx = 0; /* If need be to connect to a new host,
@@ -1071,7 +1073,7 @@ process(SS, dp, smtpstatus, host, noMX)
 		notaryreport(rp->addr->user,FAILED,
 			     "5.0.0 (Target status indeterminable)",
 			     NULL);
-		diagnostic(rphead, smtpstatus, 60, "%s", SS->remotemsg);
+		diagnostic(rphead, EX_TEMPFAIL, 60, "%s", SS->remotemsg);
 
 		rphead = rphead->next;
 	      }
