@@ -25,7 +25,10 @@
 #done
 #shift `expr $OPTIND - 1`
 
-ZCONFIG=@ZMAILERCFGFILE@
+if [ -z "$ZCONFIG" ] ; then
+    ZCONFIG=@ZMAILERCFGFILE@
+fi
+
 . $ZCONFIG
 
 DBDIR="$MAILVAR/db/"

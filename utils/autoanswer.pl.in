@@ -71,9 +71,10 @@ $outfile = $ZMAILER{'POSTOFFICE'} . "/public/autoanswer.$$";
 $now = time;
 $txttime = localtime(time);
 
-open(OUT,">$outfile");
+open(OUT,"> $outfile");
 select(OUT);
 print "channel error\n";
+print "errormsg\n";
 print "to $address\n";
 print "env-end\n"; 
 print "From: Autoreply service <postmaster>\n";

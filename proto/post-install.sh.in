@@ -17,7 +17,6 @@
 # - MAILVAR/db/proto/*          --> MAILVAR/db/     (conditionally)
 
 
-
 # ------------------------------------------
 # Common file comparison sub-program
 # Args: - base directory 
@@ -208,9 +207,10 @@ sub mkpostofficedir {
 
 sub pick_zenv {
 
-    my ($ZCONFIG) = '@ZMAILERCFGFILE@';
+    my($ZCONFIG) = @_;
 
     open(ZZ, "< ".$ZCONFIG) || die "No ZCONFIG file at '$ZCONFIG'";
+
     while (<ZZ>) {
 	chomp;
 	local($n,$l) = split(/=/,$_,2);
@@ -227,7 +227,48 @@ select STDERR; $| = 1;
 $MKDIR = "@MKDIR@";
 %ZENV  = ();
 
-& pick_zenv();
+$ZCONFIG = '@ZMAILERCFGFILE@';
+
+$STYLE = 'MD5';
+
+while (defined $ARGV[0]) {
+
+	if ($ARGV[0] eq '-MD5') {
+	    $STYLE = 'MD5';
+	    shift @ARGV;
+	    next;
+	}
+	if ($ARGV[0] eq '-OLDSTYLE') {
+	    $STYLE = 'OLD';
+	    shift @ARGV;
+	    next;
+	}
+
+	if ($ARGV[0] eq '--zconfig') {
+	    shift @ARGV;
+	    $ZCONFIG = $ARGV[0];
+	    shift @ARGV;
+	    next;
+	}
+
+	printf(STDERR "unknown parameter: %s\n", $ARGV[0]);
+	exit(64);
+}
+
+#if ($STYLE eq '') {
+#    printf(STDERR "post-install.sh [-MD5|-OLDSTYLE]\n");
+#    exit 1;
+#}
+
+if ($STYLE eq '') {
+    printf(STDERR "post-install.sh [--zconfig @ZMAILERCFGFILES@] [-MD5|-OLDSTYLE]\n");
+    printf(STDERR " On first time around, it is SUGGESTED that you use\n");
+    printf(STDERR " the  -OLDSTYLE   option....\n");
+    exit 1;
+}
+
+
+& pick_zenv( $ZCONFIG );
 
 $POSTOFFICE = $ZENV{'POSTOFFICE'};
 $MAILSHARE  = $ZENV{'MAILSHARE'};
@@ -238,25 +279,6 @@ die "Failed to pick POSTOFFICE from @ZMAILERCFGFILE@ !?"
     if (!defined $POSTOFFICE || $POSTOFFICE eq '');
 
 $MD5SUM = "@MD5SUM@";
-
-$STYLE = '';
-if ($ARGV[0] eq '-MD5') {
-    $STYLE = 'MD5';
-    shift @ARGV;
-} elsif ($ARGV[0] eq '-OLDSTYLE') {
-    $STYLE = 'OLD';
-    shift @ARGV;
-} else {
-    printf(STDERR "post-install.sh [-MD5|-OLDSTYLE]\n");
-    exit 1;
-}
-
-if ($STYLE eq '') {
-    printf(STDERR "post-install.sh [-MD5|-OLDSTYLE]\n");
-    printf(STDERR " On first time around, it is SUGGESTED that you use\n");
-    printf(STDERR " the  -OLDSTYLE   option....\n");
-    exit 1;
-}
 
 # trap 'echo "Directory access failure; DIR=$DIR/proto"' 0
 

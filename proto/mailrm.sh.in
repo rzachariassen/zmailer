@@ -1,6 +1,9 @@
 #! /bin/sh -
 
-ZCONFIG=@ZMAILERCFGFILE@
+if [ -z "$ZCONFIG" ] ; then
+    ZCONFIG=@ZMAILERCFGFILE@
+fi
+
 . $ZCONFIG
 
 cd $POSTOFFICE/transport || exit 1

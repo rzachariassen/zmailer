@@ -1,6 +1,11 @@
 #! /bin/sh
 
-ZCONFIG=@ZMAILERCFGFILE@
+### The basic   zmailer   script works also in SysV init environment.
+### This isn't absolutely necessary.
+
+if [ -z "$ZCONFIG" ] ; then
+    ZCONFIG=@ZMAILERCFGFILE@
+fi
 
 if [ -r $ZCONFIG ]; then
 	. $ZCONFIG

@@ -2,11 +2,16 @@
 #
 # This zshell script recreates the FQDN alias map
 #
+#  THIS IS IN PRACTICE SUPERCEDED BY THE  'zmailer newdb'  MECHANISM!
+#
 # NB!  If your kernel supports #! but the mechanism fails mysteriously when
 # invoking this file, remember the total length of the command's path is
 # limited to 30 characters or so.
 #
-ZCONFIG=@ZMAILERCFGFILE@
+
+if [ -z "$ZCONFIG" ] ; then
+    ZCONFIG=@ZMAILERCFGFILE@
+fi
 
 . $ZCONFIG
 
