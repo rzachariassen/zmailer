@@ -22,6 +22,7 @@
 	    Noticed that in Solaris the master router leaves zombies.
 	    This is a bit uncertain attempt at handling that by regularly
 	    collecting all zombies, and instantiating processing vectors.
+	    Eventually:  wait4(-1 ..) is wrong, correct is:  wait4(0 ..)
 
 	* libsh/trap.c:
 	    Nick Briggs reports odd compiler things on Solaris
