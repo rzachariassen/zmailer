@@ -5,50 +5,11 @@
  */
 
 #include "smtpserver.h"
-
-#if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
-#define	BIND		/* Want BIND (named) nameserver support enabled */
-#endif	/* TRY_AGAIN */
-#ifdef	BIND
-#ifdef NOERROR
-#undef NOERROR		/* Several SysV-streams using systems have NOERROR,
-			   which is not the same as  <arpa/nameser.h> has! */
-#endif
-#include <arpa/nameser.h>
-#include <resolv.h>
-
-#ifndef	BIND_VER
-#ifdef	GETLONG
-/* 4.7.3 introduced the {GET,PUT}{LONG,SHORT} macros in nameser.h */
-#define	BIND_VER	473
-#else	/* !GETLONG */
-#define	BIND_VER	472
-#endif	/* GETLONG */
-#endif	/* !BIND_VER */
-#endif	/* BIND */
-
-#ifndef	T_TXT
-# define T_TXT 16	/* Text strings */
-#endif
-
-extern int h_errno;
-extern int res_mkquery(), res_send(), dn_skipname(), dn_expand();
+#include "zresolv.h"
 
 extern int use_ipv6;
 
-#if	defined(BIND_VER) && (BIND_VER >= 473)
-typedef u_char msgdata;
-#else	/* !defined(BIND_VER) || (BIND_VER < 473) */
-typedef char msgdata;
-#endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
-
-
 static int dnsmxlookup __((const char*, int, int, int));
-
-typedef union {
-	HEADER qb1;
-	char qb2[8000];
-} querybuf;
 
 extern int debug;
 static char * txt_buf = NULL;
@@ -65,7 +26,7 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	int qlen, n, i, qdcount, ancount, nscount, arcount, maxpref, class;
 	u_short type;
 	int saw_cname = 0, had_mx_record = 0;
-	/* int ttl; */
+	int ttl;
 	struct addrinfo req, *ai;
 #define MAXMX 128
 	char *mx[MAXMX];
@@ -151,16 +112,11 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  if (n < 0)
 	    break;
 	  cp += n;
-	  type = _getshort(cp);
-	  cp += 2;
-	  /* class = _getshort(cp); */
-	  cp += 2;
-	  /* ttl = _getlong(cp); */
-	  cp += 4; /* "long" -- but keep in mind that some machines
-		      have "funny" ideas about "long" -- those 64-bit
-		      ones I mean ... */
-	  n = _getshort(cp); /* dlen */
-	  cp += 2;
+
+	  NS_GET16(type,  cp); /* type  */
+	  NS_GET16(class, cp); /* class */
+	  NS_GET32(ttl,   cp); /* ttl   */
+	  NS_GET16(n,     cp); /* dlen  */
 
 	  if (cp + n > eom) {
 	    /* BAD data.. */
@@ -256,16 +212,12 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	    break;
 	  cp += n;
 	  if (cp+10 > eom) { cp = eom; break; }
-	  /* type = _getshort(cp); */
-	  cp += 2;
-	  /* class = _getshort(cp); */
-	  cp += 2;
-	  /* mx[nmx].expiry = now + _getlong(cp); */ /* TTL */
-	  cp += 4; /* "long" -- but keep in mind that some machines
-		      have "funny" ideas about "long" -- those 64-bit
-		      ones, I mean ... */
-	  n = _getshort(cp); /* dlen */
-	  cp += 2;
+
+	  NS_GET16(type,  cp); /* type  - short */
+	  NS_GET16(class, cp); /* class - short */
+	  cp += NS_INT32SZ;    /* ttl   - long  */
+	  NS_GET16(n, cp);     /* dlen  - short */
+
 	  cp += n; /* We simply skip this data.. */
 	  if (cp <= eom)
 	    --nscount;
@@ -286,16 +238,11 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	  if (n < 0) { cp = eom; break; }
 	  cp += n;
 	  if (cp+10 > eom) { cp = eom; break; }
-	  type = _getshort(cp);
-	  cp += 2;
-	  class = _getshort(cp);
-	  cp += 2;
-	  /* mx[nmx].expiry = now + _getlong(cp); */ /* TTL */
-	  cp += 4; /* "long" -- but keep in mind that some machines
-		      have "funny" ideas about "long" -- those 64-bit
-		      ones, I mean ... */
-	  n = _getshort(cp); /* dlen */
-	  cp += 2;
+
+	  NS_GET16(type,  cp); /* type  - short */
+	  NS_GET16(class, cp); /* class - short */
+	  cp += NS_INT32SZ;    /* ttl   - long  */
+	  NS_GET16(n, cp);     /* dlen  - short */
 
 	  if (cp + n > eom) { cp = eom; break; }
 

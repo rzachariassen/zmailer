@@ -36,6 +36,7 @@
 #include "ta.h"
 #include "zmalloc.h"
 #include "libz.h"
+#include "libc.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

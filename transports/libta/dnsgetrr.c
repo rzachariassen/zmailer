@@ -3,7 +3,7 @@
  *		    transport agents
  *
  *	A lot of changes all around over the years by Matti Aarnio
- *	<mea@nic.funet.fi>, copyright 1992-1997
+ *	<mea@nic.funet.fi>, copyright 1992-2003
  */
 
 
@@ -20,164 +20,19 @@
 #include <errno.h>
 #include "zmsignal.h"
 #include "zmalloc.h"
-
-#if	defined(HAVE_RESOLVER)
-#include <netdb.h>
-#ifndef EAI_AGAIN
-# include "netdb6.h"
-#endif
-#include <sys/socket.h>
-#include <netinet/in.h>
-#ifdef HAVE_NETINET_IN6_H
-# include <netinet/in6.h>
-#endif
-#ifdef HAVE_NETINET6_IN6_H
-# include <netinet6/in6.h>
-#endif
-#ifdef HAVE_LINUX_IN6_H
-# include <linux/in6.h>
-#endif
-#endif	/* HAVE_RESOLVER */
-
-#include <arpa/inet.h>
-
+#include "libc.h"
 #include "ta.h"
 
 #define DPRINTF(x)
 
-#if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
-#define	BIND		/* Want BIND (named) nameserver support enabled */
-#endif	/* TRY_AGAIN */
-#ifdef	BIND
-#undef NOERROR /* Solaris  <sys/socket.h>  has  NOERROR too.. */
-
-#include <arpa/nameser.h>
-#include <resolv.h>
-
-#include "libc.h"
-
-#ifndef HFIXEDSZ	/* An ancient resolver (arpa/nameser.h) file ? */
-# define HFIXEDSZ 12
-#endif
-#ifndef NETDB_SUCCESS	/* Ancient <netdb.h> ? */
-# define NETDB_SUCCESS   0
-# define NETDB_INTERNAL -1
-#endif
-
-#ifndef	BIND_VER
-#ifdef	GETLONG
-/* 4.7.3 introduced the {GET,PUT}{LONG,SHORT} macros in nameser.h */
-#define	BIND_VER	473
-#else	/* !GETLONG */
-#define	BIND_VER	472
-#endif	/* GETLONG */
-#endif	/* !BIND_VER */
-#endif	/* BIND */
-
-#if	defined(BIND_VER) && (BIND_VER >= 473)
-typedef u_char msgdata;
-#else	/* !defined(BIND_VER) || (BIND_VER < 473) */
-typedef char msgdata;
-#endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
-
-
-/* Define all those things which exist on newer BINDs, and which may
-   get returned to us, when we make a query with  T_ANY ... */
-
-#ifndef	T_TXT
-# define T_TXT 16
-#endif
-#ifndef T_RP
-# define T_RP 17
-#endif
-#ifndef T_AFSDB
-# define T_AFSDB 18
-#endif
-#ifndef T_NSAP
-# define T_NSAP 22
-#endif
-#ifndef T_NSAP_PTR
-# define T_NSAP_PTR 23
-#endif
-#ifndef T_SIG
-# define T_SIG		24		/* security signature */
-#endif
-#ifndef T_KEY
-# define T_KEY		25		/* security key */
-#endif
-#ifndef T_PX
-# define T_PX		26		/* X.400 mail mapping */
-#endif
-#ifndef T_GPOS
-# define T_GPOS		27		/* geographical position (withdrawn) */
-#endif
-#ifndef T_AAAA
-# define T_AAAA		28		/* IP6 Address */
-#endif
-#ifndef T_LOC
-# define T_LOC		29		/* Location Information */
-#endif
-#ifndef	T_UINFO
-# define T_UINFO 100
-#endif
-#ifndef T_UID
-# define T_UID 101
-#endif
-#ifndef T_GID
-# define T_GID 102
-#endif
-#ifndef T_UNSPEC
-# define T_UNSPEC 103
-#endif
-#ifndef T_SA
-# define T_SA 200
-#endif
-
-extern int res_mkquery(), res_send(), dn_expand(), dn_skipname();
-
-#ifndef	IPPORT_SMTP
-#define	IPPORT_SMTP	25
-#endif	/* IPPORT_SMTP */
+#include "zresolv.h"
+#include "dnsgetrr.h"
 
 extern char errormsg[];
 #ifndef strchr
 extern char *strchr();
 #endif
 
-#ifdef	BIND
-
-#if PACKETSZ > 1024
-#define	MAXPACKET	PACKETSZ
-#else
-#define	MAXPACKET	1024
-#endif
-
-#ifndef INADDRSZ
-# define INADDRSZ 4
-#endif
-#ifndef IN6ADDRSZ
-# define IN6ADDRSZ 16
-#endif
-#ifndef AF_INET6
-# define AF_INET6 999 /* If the system does not define this,  we use a value
-			 that nobody has as AF_ value -- I hope.. */
-#endif
-#ifndef INT16SZ
-# define INT16SZ 2
-#endif
-#ifndef INT32SZ
-# define INT32SZ 4
-#endif
-
-typedef union {
-    HEADER hdr;
-    u_char buf[MAXPACKET];
-} querybuf;
-
-#define ALIGN_A    4 /* IPv4 works ok with 32-bit alignment */
-#define ALIGN_AAAA 8 /* IPv6 can use 64-bit machines more efficiently.. */
-
-extern int h_errno;
 extern FILE *verboselog;
 
 int
@@ -286,13 +141,10 @@ getrrtype(host, ttlp, hbsize, rrtype, cnamelevel, vlog)
 	    first = 0;
 	  }
 	  cp += n;
-	  type = _getshort(cp);
-	  cp += 2;		/* type		-- "short" */
-	  cp += 2;		/* class	-- "short" */
-	  *ttlp = _getlong(cp);
-	  cp += 4;		/* ttl		-- "long"  */
-	  n = _getshort(cp);
-	  cp += 2;		/* dlen		-- "short" */
+	  NS_GET16(type, cp);	/* type		-- "short" */
+	  cp += NS_INT16SZ;	/* class	-- "short" */
+	  NS_GET32(*ttlp ,cp);	/* ttl		-- "long"  */
+	  NS_GET16(n, cp);	/* dlen		-- "short" */
 	  if (type != rrtype) {
 	    cp += n;
 	    continue;
@@ -483,14 +335,11 @@ getanswer_r(answer, anslen, qname, qtype, result)
 			continue;
 		}
 		cp += n;			/* name */
-		type = _getshort(cp);
- 		cp += INT16SZ;			/* type */
-		class = _getshort(cp);
- 		cp += INT16SZ;			/* class */
-		result->ttl = _getlong(cp);
-		cp += INT32SZ;			/* TTL */
-		n = _getshort(cp);
-		cp += INT16SZ;			/* len */
+		NS_GET16(type, cp);		/* type */
+		NS_GET16(class, cp);		/* class */
+		NS_GET32(result->ttl, cp);	/* ttl */
+		NS_GET16(n, cp);		/* len */
+
 		if (class != C_IN) {
 			/* XXX - debug? syslog? */
 			cp += n;
@@ -905,5 +754,3 @@ gethostbyaddr_rz(addr, len, af, result)
 	h_errno = NETDB_SUCCESS;
 	return (hp);
 }
-
-#endif	/* BIND */

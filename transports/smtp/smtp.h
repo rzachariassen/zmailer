@@ -34,38 +34,20 @@
 #include <setjmp.h>
 #include <string.h>
 
-#include "ta.h"
+#include "zresolv.h"
 
+#include "ta.h"
 #include "mail.h"
 #include "zsyslog.h"
+#include "dnsgetrr.h"
+#include "zmalloc.h"
+#include "libz.h"
+#include "libc.h"
 
 #include <sys/socket.h>
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#ifdef HAVE_NETINET_IN6_H
-# include <netinet/in6.h>
-#endif
-#ifdef HAVE_NETINET6_IN6_H
-# include <netinet6/in6.h>
-#endif
-#ifdef HAVE_LINUX_IN6_H
-# include <linux/in6.h>
-#endif
-#include <netdb.h>
-#ifndef EAI_AGAIN
-# include "netdb6.h"
-#endif
-
-#include "zmalloc.h"
-#include "libz.h"
-#include "libc.h"
-
-#include "dnsgetrr.h"
-
 
 #ifdef _AIX /* Defines NFDBITS, et.al. */
 #include <sys/types.h>
@@ -128,70 +110,6 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #endif /* - HAVE_OPENSSL */
-
-#if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
-#define	BIND		/* Want BIND (named) nameserver support enabled */
-#endif	/* TRY_AGAIN */
-#ifdef	BIND
-#ifdef NOERROR
-#undef NOERROR		/* Several SysV-streams using systems have NOERROR,
-			   which is not the same as  <arpa/nameser.h> has! */
-#endif
-#include <arpa/nameser.h>
-#include <resolv.h>
-
-#ifndef	BIND_VER
-#ifdef	GETLONG
-/* 4.7.3 introduced the {GET,PUT}{LONG,SHORT} macros in nameser.h */
-#define	BIND_VER	473
-#else	/* !GETLONG */
-#define	BIND_VER	472
-#endif	/* GETLONG */
-#endif	/* !BIND_VER */
-#endif	/* BIND */
-
-/* Define all those things which exist on newer BINDs, and which may
-   get returned to us, when we make a query with  T_ANY ... */
-
-#ifndef	T_TXT
-# define T_TXT 16	/* Text strings */
-#endif
-#ifndef T_RP
-# define T_RP 17	/* Responsible person */
-#endif
-#ifndef T_AFSDB
-# define T_AFSDB 18	/* AFS cell database */
-#endif
-#ifndef T_X25
-# define T_X25 19	/* X.25 calling address */
-#endif
-#ifndef T_ISDN
-# define T_ISDN 20	/* ISDN calling address */
-#endif
-#ifndef T_RT
-# define T_RT 21	/* router */
-#endif
-#ifndef T_NSAP
-# define T_NSAP 22	/* NSAP address */
-#endif
-#ifndef T_NSAP_PTR
-# define T_NSAP_PTR 23	/* reverse NSAP lookup (depreciated) */
-#endif
-#ifndef	T_UINFO
-# define T_UINFO 100
-#endif
-#ifndef T_UID
-# define T_UID 101
-#endif
-#ifndef T_GID
-# define T_GID 102
-#endif
-#ifndef T_UNSPEC
-# define T_UNSPEC 103
-#endif
-#ifndef T_SA
-# define T_SA 200		/* Shuffle addresses */
-#endif
 
 
 
@@ -293,12 +211,6 @@ extern int use_ipv6;
 
 
 # ifdef RFC974
-
-#if	defined(BIND_VER) && (BIND_VER >= 473)
-typedef u_char msgdata;
-#else	/* !defined(BIND_VER) || (BIND_VER < 473) */
-typedef char msgdata;
-#endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
 
 struct mxdata {
 	char		*host;

@@ -59,7 +59,7 @@ zgetbindaddr(bindspec, sap)
 	int result = 0;
 
 	if ((bindspec == NULL) || (*bindspec == '\0'))
-		bindspec=getzenv("BINDADDR");
+	        bindspec = (char *)getzenv("BINDADDR"); /* we modify this..*/
 	if ((bindspec == NULL) || (*bindspec == '\0'))
 		return 1; /* not specified - bind to INADDR_ANY */
 

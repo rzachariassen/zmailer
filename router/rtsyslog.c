@@ -22,6 +22,7 @@
 #include "mail.h"
 #include "ta.h"
 #include "libz.h"
+#include "libc.h"
 
 static char lbuf[8000];	/* Should be aplenty..		*/
 

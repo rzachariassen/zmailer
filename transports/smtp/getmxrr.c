@@ -6,12 +6,6 @@
  */
 
 #include "smtp.h"
-#include "libc.h"
-
-typedef union {
-	HEADER qb1;
-	char qb2[8000];
-} querybuf;
 
 int
 getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize, realnamettlp)
@@ -195,17 +189,14 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize, realnamettlp)
 	    break;
 	  cp += n;
 	  if (cp+10 > eom) { cp = eom; break; }
-	  type = _getshort(cp);
-	  cp += 2;
-	  class = _getshort(cp);
-	  cp += 2;
-	  ttl = _getlong(cp); /* TTL */
+
+	  NS_GET16(type,  cp);
+	  NS_GET16(class, cp);
+	  NS_GET32(ttl,   cp);	/* TTL */
+	  NS_GET16(n, cp);	/* dlen */
+
 	  mx[nmx].expiry = now + ttl;
-	  cp += 4; /* "long" -- but keep in mind that some machines
-		      have "funny" ideas about "long" -- those 64-bit
-		      ones, I mean ... */
-	  n = _getshort(cp); /* dlen */
-	  cp += 2;
+
 	  if (cp + n > eom) { cp = eom; break; }
 
 	  if (class != C_IN) {
@@ -231,8 +222,9 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize, realnamettlp)
 	    continue;
 	  }
 	  if (cp + n /* dlen */ > eom) { cp = eom; break; }
-	  mx[nmx].pref = _getshort(cp);
-	  cp += 2; /* MX preference value */
+
+	  NS_GET16(mx[nmx].pref, cp);  /* MX preference value */
+
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0) break;
 	  cp += n;
@@ -280,13 +272,12 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize, realnamettlp)
 	      break;
 	    cp += n;
 	    if (cp+10 > eom) { cp = eom; break; }
-	    cp += 2;
-	    cp += 2;
-	    cp += 4; /* "long" -- but keep in mind that some machines
-			have "funny" ideas about "long" -- those 64-bit
-			ones, I mean ... */
-	    n = _getshort(cp); /* dlen */
-	    cp += 2;
+
+	    cp += NS_INT16SZ; /* type */
+	    cp += NS_INT16SZ; /* class */
+	    cp += NS_INT32SZ; /* ttl */
+	    NS_GET16(n, cp); /* dlen */
+
 	    cp += n;
 	    --ancount;
 	  } /* Skipped thru all remaining answers */
@@ -344,16 +335,12 @@ getmxrr(SS, host, mx, maxmx, depth, realname, realnamesize, realnamettlp)
 	    break;
 	  cp += n;
 	  if (cp+10 > eom) { cp = eom; break; }
-	  /* type = _getshort(cp); */
-	  cp += 2;
-	  /* class = _getshort(cp); */
-	  cp += 2;
-	  /* mx[nmx].expiry = now + _getlong(cp); */ /* TTL */
-	  cp += 4; /* "long" -- but keep in mind that some machines
-		      have "funny" ideas about "long" -- those 64-bit
-		      ones, I mean ... */
-	  n = _getshort(cp); /* dlen */
-	  cp += 2;
+
+	  cp += NS_INT16SZ; /* type  */
+	  cp += NS_INT16SZ; /* class */
+	  cp += NS_INT32SZ; /* ttl   */
+	  NS_GET16(n, cp);  /* dlen  */
+
 	  cp += n; /* We simply skip this data.. */
 	  if (cp <= eom)
 	    --nscount;

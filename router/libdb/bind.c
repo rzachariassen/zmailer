@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  */
 
 /* LINTLIBRARY */
@@ -14,44 +14,8 @@
 
 #define	RFC974		/* MX/WKS/A processing according to RFC974 */
 
-#include <sys/socket.h>
+#include "zresolv.h"
 
-#include <netdb.h>
-#ifndef EAI_AGAIN
-# include "netdb6.h" /* IPv6 API stuff */
-#endif
-
-#define CUC const u_char
-
-/* ================ do we have a normal nameserver? ================ */
-#ifdef	TRY_AGAIN
-
-#ifdef	BSDTYPES_H
-#include BSDTYPES_H
-#endif	/* BSDTYPES_H */
-
-#include <netinet/in.h>
-#ifdef HAVE_NETINET_IN6_H
-# include <netinet/in6.h>
-#endif
-#ifdef HAVE_NETINET6_IN6_H
-# include <netinet6/in6.h>
-#endif
-#ifdef HAVE_LINUX_IN6_H
-# include <linux/in6.h>
-#endif
-
-#ifdef NOERROR
-#undef NOERROR /* On Solaris 2.3 the  netinet/in.h  includes
-		  sys/stream.h, which has DIFFERENT "NOERROR" in it.. */
-#endif
-
-#ifdef __linux__
-#define __USE_BSD 1	/* Linux headers ... Auch..  <endian.h> */
-#endif
-#include <arpa/inet.h>
-#include <arpa/nameser.h>
-#include <resolv.h>
 #include <string.h>
 #include "search.h"
 
@@ -66,82 +30,9 @@
  */
 
 
-/* For use by WKS lookup, we need to know the SMTP port number. */
-
-#ifndef	IPPORT_SMTP
-#define	IPPORT_SMTP	25
-#endif	/* !IPPORT_SMTP */
-
-#ifndef	MAXNAME
-#define	MAXNAME		BUFSIZ
-#endif	/* !MAXNAME */
-
-#define	MAXVALIDTTL	(60*60*24*365)	/* any ttl over this is ignored */
-
-#ifndef	BIND_VER
-#ifdef	GETLONG
-/* 4.7.3 introduced the {GET,PUT}{LONG,SHORT} macros in arpa/nameser.h */
-#define	BIND_VER	473
-#else	/* !GETLONG */
-#define	BIND_VER	472
-#endif	/* GETLONG */
-#endif	/* !BIND_VER */
-
-#if	defined(BIND_VER) && (BIND_VER >= 473)
-const char * conffile;
-#endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
-
-
-/* Define all those things which exist on newer BINDs, and which may
-   get returned to us, when we make a query with  T_ANY ... */
-
-#ifndef	T_TXT
-# define T_TXT 16	/* Text strings */
-#endif
-#ifndef T_RP
-# define T_RP 17	/* Responsible person */
-#endif
-#ifndef T_AFSDB
-# define T_AFSDB 18	/* AFS cell database */
-#endif
-#ifndef T_X25
-# define T_X25 19	/* X.25 calling address */
-#endif
-#ifndef T_ISDN
-# define T_ISDN 20	/* ISDN calling address */
-#endif
-#ifndef T_RT
-# define T_RT 21	/* router */
-#endif
-#ifndef T_NSAP
-# define T_NSAP 22	/* NSAP address */
-#endif
-#ifndef T_NSAP_PTR
-# define T_NSAP_PTR 23	/* reverse NSAP lookup (depreciated) */
-#endif
-#ifndef T_AAAA
-# define T_AAAA 28	/* IPv6 Address */
-#endif
-#ifndef	T_UINFO
-# define T_UINFO 100
-#endif
-#ifndef T_UID
-# define T_UID 101
-#endif
-#ifndef T_GID
-# define T_GID 102
-#endif
-#ifndef T_UNSPEC
-# define T_UNSPEC 103
-#endif
-#ifndef T_SA
-# define T_SA 200		/* Shuffle addresses */
-#endif
-
 
 extern int D_bind, D_resolv;
 
-extern int	h_errno;
 char *h_errhost = NULL;
 
 #define T_MXWKS    0x00010000
@@ -316,11 +207,6 @@ search_res(sip)
 }
 
 
-typedef union {
-	HEADER qb1;
-	char qb2[8000];
-} querybuf;
-
 struct mxdata {
 	char *host;
 	int	pref;
@@ -375,7 +261,7 @@ getmxrr(host, ttlp, depth, flags)
 	  /* Retry it ONCE.. */
 	  n = res_send((void *)&buf, qlen, (void *)&answer, sizeof(answer));
 	  if (n < 0) {
-	    if (D_bind || _res.options & RES_DEBUG)
+	    if (D_bind || (_res.options & RES_DEBUG))
 	      fprintf(stderr,
 		      "search_res: res_send (%s) failed\n", host);
 	    h_errhost = realloc(h_errhost, strlen(host)+1);
@@ -433,14 +319,12 @@ getmxrr(host, ttlp, depth, flags)
 		if (n < 0)
 			break;
 		cp += n;
-		type = _getshort(cp);
- 		cp += 2;				/* type -- short */
-		/* class = _getshort(cp); */
- 		cp += 2;				/* class -- short */
-		ttl = (time_t) _getlong(cp);
-		cp += 4;				/* ttl -- "long" */
-		n = _getshort(cp);
-		cp += 2;				/* dlen -- short */
+
+		NS_GET16(type,  cp);		/* type -- short */
+ 		cp += NS_INT16SZ;		/* class -- short */
+		NS_GET32(ttl, cp);		/* ttl -- "long" */
+		NS_GET16(n, cp);		/* dlen -- short */
+
 		if (type == T_CNAME) {
 			cp += dn_expand((CUC*)&answer, (CUC*)eom, (CUC*)cp,
 					(void*)realname, sizeof realname);
@@ -454,8 +338,9 @@ getmxrr(host, ttlp, depth, flags)
 			continue;
 		}
 		mx[nmx].ttl = ttl;
-		mx[nmx].pref = _getshort(cp);
-		cp += 2; /* "short" */		/* MX preference value */
+
+		NS_GET16(mx[nmx].pref, cp);	/* MX preference value */
+
 		n = dn_expand((CUC*)&answer, (CUC*)eom, (CUC*)cp,
 			      (void*)hbuf, sizeof hbuf);
 		if (n < 0)
@@ -747,13 +632,12 @@ getrrtypec(host, rrtype, ttlp, depth)
 			first = 0;
 		}
 		cp += n;
-		type = _getshort((const u_char*)cp);
- 		cp += 2;			/* type  -- short */
- 		cp += 2;			/* class -- short */
-		ttl = (time_t) _getlong((const u_char*)cp);
-		cp += 4;			/* ttl -- "long" */
-		n = _getshort((const u_char*)cp);
-		cp += 2;			/* dlen -- short */
+
+		NS_GET16(type,  cp);	/* type  -- short */
+ 		cp += NS_INT16SZ;	/* class -- short */
+		NS_GET32(ttl, cp);	/* ttl -- "long" */
+		NS_GET16(n,   cp);	/* dlen -- short */
+
 		nextcp = cp + n;
 
 		if (rrtype != T_ANY && type != rrtype)
@@ -922,5 +806,4 @@ getrrtypec(host, rrtype, ttlp, depth)
 	}
 	return NULL;
 }
-#endif	/* TRY_AGAIN */
 #endif	/* HAVE_RESOLVER */

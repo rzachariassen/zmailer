@@ -22,6 +22,107 @@
 #include <string.h>
 #include <sysexits.h>
 
+/* #include <strings.h> */ /* poorly portable.. */
+#ifdef HAVE_STDARG_H
+# include <stdarg.h>
+#else
+# include <varargs.h>
+#endif
+#include <fcntl.h>
+#include <sys/file.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <setjmp.h>
+
+#include "zresolv.h"
+#include "libc.h"
+
+#ifdef _AIX /* Defines NFDBITS, et.al. */
+#include <sys/types.h>
+#endif
+
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+
+#include <sys/time.h>
+
+#ifndef	NFDBITS
+/*
+ * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
+ * assumption we are dealing with pre-4.3bsd select().
+ */
+
+/* #error "FDSET macro susceptible" */
+
+typedef long	fd_mask;
+
+#ifndef	NBBY
+#define	NBBY	8
+#endif	/* NBBY */
+#define	NFDBITS		((sizeof fd_mask) * NBBY)
+
+/* SunOS 3.x and 4.x>2 BSD already defines this in /usr/include/sys/types.h */
+#ifdef	notdef
+typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
+#endif	/* notdef */
+
+#ifndef	_Z_FD_SET
+/* #warning "_Z_FD_SET[1]" */
+#define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
+#define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
+#define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
+#define _Z_FD_ZERO(p)	  memset((char *)(p), 0, sizeof(*(p)))
+#endif	/* !FD_SET */
+#endif	/* !NFDBITS */
+
+#ifdef FD_SET
+/* #warning "_Z_FD_SET[2]" */
+#define _Z_FD_SET(sock,var) FD_SET(sock,&var)
+#define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
+#define _Z_FD_ZERO(var) FD_ZERO(&var)
+#define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
+#else
+/* #warning "_Z_FD_SET[3]" */
+#define _Z_FD_SET(sock,var) var |= (1 << sock)
+#define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
+#define _Z_FD_ZERO(var) var = 0
+#define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
+#endif
+
+
+#ifndef	SEEK_SET
+#define	SEEK_SET	0
+#endif	/* SEEK_SET */
+#ifndef SEEK_CUR
+#define SEEK_CUR   1
+#endif
+#ifndef SEEK_XTND
+#define SEEK_XTND  2
+#endif
+
+#ifndef	IPPORT_SMTP
+#define	IPPORT_SMTP	25
+#endif 	/* IPPORT_SMTP */
+
+#define	PROGNAME	"smtpclient"	/* for logging */
+#define	CHANNEL		"smtp"	/* the default channel name we deliver for */
+
+#ifndef	MAXHOSTNAMELEN
+#define	MAXHOSTNAMELEN 64
+#endif	/* MAXHOSTNAMELEN */
+
+#define MAXFORWARDERS	128	/* Max number of MX rr's that can be listed */
+
+
+struct mxdata {
+	const msgdata	*host;
+	int		 pref;
+	int		 ttl;
+};
+
+
+
 int timeout_conn = 30; /* 30 seconds for connection */
 int timeout_tcpw = 20; /* 20 seconds for write      */
 int timeout_tcpr = 60; /* 60 seconds for responses  */
@@ -92,196 +193,6 @@ void htmlprintf(const char *fmt, ...)
 extern int mxverifyrun();
 
 
-#include <sysexits.h>
-/* #include <strings.h> */ /* poorly portable.. */
-#ifdef HAVE_STDARG_H
-# include <stdarg.h>
-#else
-# include <varargs.h>
-#endif
-#include <fcntl.h>
-#include <sys/file.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <setjmp.h>
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#ifdef HAVE_NETINET_IN6_H
-# include <netinet/in6.h>
-#endif
-#ifdef HAVE_NETINET6_IN6_H
-# include <netinet6/in6.h>
-#endif
-#ifdef HAVE_LINUX_IN6_H
-# include <linux/in6.h>
-#endif
-#include <netdb.h>
-#ifndef EAI_AGAIN
-# include "netdb6.h"
-#endif
-
-#include "libc.h"
-
-#ifdef _AIX /* Defines NFDBITS, et.al. */
-#include <sys/types.h>
-#endif
-
-#ifdef HAVE_SYS_SELECT_H
-#include <sys/select.h>
-#endif
-
-#include <sys/time.h>
-
-#ifndef	NFDBITS
-/*
- * This stuff taken from the 4.3bsd /usr/include/sys/types.h, but on the
- * assumption we are dealing with pre-4.3bsd select().
- */
-
-/* #error "FDSET macro susceptible" */
-
-typedef long	fd_mask;
-
-#ifndef	NBBY
-#define	NBBY	8
-#endif	/* NBBY */
-#define	NFDBITS		((sizeof fd_mask) * NBBY)
-
-/* SunOS 3.x and 4.x>2 BSD already defines this in /usr/include/sys/types.h */
-#ifdef	notdef
-typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
-#endif	/* notdef */
-
-#ifndef	_Z_FD_SET
-/* #warning "_Z_FD_SET[1]" */
-#define	_Z_FD_SET(n, p)   ((p)->fds_bits[0] |= (1 << (n)))
-#define	_Z_FD_CLR(n, p)   ((p)->fds_bits[0] &= ~(1 << (n)))
-#define	_Z_FD_ISSET(n, p) ((p)->fds_bits[0] & (1 << (n)))
-#define _Z_FD_ZERO(p)	  memset((char *)(p), 0, sizeof(*(p)))
-#endif	/* !FD_SET */
-#endif	/* !NFDBITS */
-
-#ifdef FD_SET
-/* #warning "_Z_FD_SET[2]" */
-#define _Z_FD_SET(sock,var) FD_SET(sock,&var)
-#define _Z_FD_CLR(sock,var) FD_CLR(sock,&var)
-#define _Z_FD_ZERO(var) FD_ZERO(&var)
-#define _Z_FD_ISSET(i,var) FD_ISSET(i,&var)
-#else
-/* #warning "_Z_FD_SET[3]" */
-#define _Z_FD_SET(sock,var) var |= (1 << sock)
-#define _Z_FD_CLR(sock,var) var &= ~(1 << sock)
-#define _Z_FD_ZERO(var) var = 0
-#define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
-#endif
-#if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
-#define	BIND		/* Want BIND (named) nameserver support enabled */
-#endif	/* TRY_AGAIN */
-#ifdef	BIND
-#ifdef NOERROR
-#undef NOERROR		/* Several SysV-streams using systems have NOERROR,
-			   which is not the same as  <arpa/nameser.h> has! */
-#endif
-#include <arpa/nameser.h>
-#include <resolv.h>
-
-#ifndef	BIND_VER
-#ifdef	GETLONG
-/* 4.7.3 introduced the {GET,PUT}{LONG,SHORT} macros in nameser.h */
-#define	BIND_VER	473
-#else	/* !GETLONG */
-#define	BIND_VER	472
-#endif	/* GETLONG */
-#endif	/* !BIND_VER */
-#endif	/* BIND */
-
-/* Define all those things which exist on newer BINDs, and which may
-   get returned to us, when we make a query with  T_ANY ... */
-
-#ifndef	T_TXT
-# define T_TXT 16	/* Text strings */
-#endif
-#ifndef T_RP
-# define T_RP 17	/* Responsible person */
-#endif
-#ifndef T_AFSDB
-# define T_AFSDB 18	/* AFS cell database */
-#endif
-#ifndef T_X25
-# define T_X25 19	/* X.25 calling address */
-#endif
-#ifndef T_ISDN
-# define T_ISDN 20	/* ISDN calling address */
-#endif
-#ifndef T_RT
-# define T_RT 21	/* router */
-#endif
-#ifndef T_NSAP
-# define T_NSAP 22	/* NSAP address */
-#endif
-#ifndef T_NSAP_PTR
-# define T_NSAP_PTR 23	/* reverse NSAP lookup (depreciated) */
-#endif
-#ifndef	T_UINFO
-# define T_UINFO 100
-#endif
-#ifndef T_UID
-# define T_UID 101
-#endif
-#ifndef T_GID
-# define T_GID 102
-#endif
-#ifndef T_UNSPEC
-# define T_UNSPEC 103
-#endif
-#ifndef T_SA
-# define T_SA 200		/* Shuffle addresses */
-#endif
-
-
-
-#ifndef	SEEK_SET
-#define	SEEK_SET	0
-#endif	/* SEEK_SET */
-#ifndef SEEK_CUR
-#define SEEK_CUR   1
-#endif
-#ifndef SEEK_XTND
-#define SEEK_XTND  2
-#endif
-
-#ifndef	IPPORT_SMTP
-#define	IPPORT_SMTP	25
-#endif 	/* IPPORT_SMTP */
-
-#define	PROGNAME	"smtpclient"	/* for logging */
-#define	CHANNEL		"smtp"	/* the default channel name we deliver for */
-
-#ifndef	MAXHOSTNAMELEN
-#define	MAXHOSTNAMELEN 64
-#endif	/* MAXHOSTNAMELEN */
-
-#define MAXFORWARDERS	128	/* Max number of MX rr's that can be listed */
-
-
-#if	defined(BIND_VER) && (BIND_VER >= 473)
-typedef u_char msgdata;
-#else	/* !defined(BIND_VER) || (BIND_VER < 473) */
-typedef char msgdata;
-#endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
-
-struct mxdata {
-	const msgdata	*host;
-	int		 pref;
-	int		 ttl;
-};
-
-typedef union {
-	HEADER qb1;
-	char qb2[1024];
-} querybuf;
 
 int
 getmxrr(host, mx, maxmx, depth)
@@ -378,18 +289,12 @@ getmxrr(host, mx, maxmx, depth)
 	  if (n < 0)
 	    break;
 	  cp += n;
-	  type = _getshort(cp);
-	  cp += 2;
-	  /*
-	     class = _getshort(cp);
-	     */
-	  cp += 2;
-	  mx[nmx].ttl = _getlong(cp); /* ttl */
-	  cp += 4; /* "long" -- but keep in mind that some machines
-		      have "funny" ideas about "long" -- those 64-bit
-		      ones, I mean ... */
-	  n = _getshort(cp); /* dlen */
-	  cp += 2;
+
+	  NS_GET16(type, cp);        /* type  */
+	  cp += NS_INT16SZ;          /* class */
+	  NS_GET32(mx[nmx].ttl, cp); /* ttl */
+	  NS_GET16(n, cp);           /* dlen */
+
 	  if (type == T_CNAME) {
 	    cp += dn_expand((msgdata *)&answer, eom, cp,
 			    (void*)realname, sizeof realname);
@@ -399,8 +304,9 @@ getmxrr(host, mx, maxmx, depth)
 	    cp += n;
 	    continue;
 	  }
-	  mx[nmx].pref = _getshort(cp);
-	  cp += 2; /* MX preference value */
+
+	  NS_GET16(mx[nmx].pref, cp);  /* MX preference value */
+
 	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
 	  if (n < 0)
 	    break;
