@@ -1488,12 +1488,12 @@ const char *timestring;
 		err = 1;
 		break;
 	    }
-	    ++locks; /* Always advance */
 	    if (err) break;
+	    ++locks; /* Advance on success only! */
 	  }
 
 	  if (err > 0) {
-	    --locks;
+	    --locks; /* Don't try to revert the failed (= last) lock! */
 	    while (locks >= mboxlocks) {
 	      switch (*locks) {
 		case '"':
@@ -1590,6 +1590,7 @@ const char *timestring;
 	      lseek(fdmail,(off_t)0,SEEK_SET);
 	      lockf(fdmail, F_ULOCK, 0);
 #endif	/* HAVE_LOCKF */
+
 	      break;
 	    case 'F':
 	    case 'f':

@@ -1,4 +1,48 @@
+1998-07-01  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/mailbox/mailbox.c:
+	    Lock acquisition code had "faulty" way to unrolling
+	    itself.  I begun to suspect this while my  ELM  at
+	    rare times complained that it can't remove the .lock
+	    file it constructed itself :-O  Turns out, the lock
+	    unrolling did unroll also the failed lock -- in case
+	    of "dot-lock" that is the "mbox.lock" file..
+
+1998-06-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* man/scheduler.8, man/smtpserver.8:
+	    Added .SH paragraphs about TCP-WRAPPER into them.
+
+1998-06-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+	
+	* TODO, include/libsh.h, include/listutils.h, libsh/builtins.c,
+	  libsh/expand.c, libsh/interpret.c, libsh/listutils.c, libsh/regex.h,
+	  router/funcsions.c, router/shliaise.c:
+
+	    Conditional removal of code handling "prev" pointer for "setf"
+	    function uses at the conscell objects.  Default is NOT to
+	    remove them (yet), although experimental systems running code
+	    without any "setf" anywhere seem to be successfull, and even
+	    reduce the router memory footprint by 2-3 % ...
+	
+1998-06-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* obsolete/*
+	    Removed this tree from the CVS, perhaps soon also from the
+	    distribution tar files...
+	
+1998-06-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libc/md5c.c:
+	    Some fine-tuning added so that the module will compile at most
+	    platforms, but perhaps linking will cause indigection at some
+	    systems still (Solaris -lnsl has md5 routines in...)
+
 1998-06-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/policytest.c:
+	    For a "always_accept" sender, turn DNS based rejections
+	    (NXDOMAIN errors) to be hard errors.
 
 	* smtpserver/smtpcmds.c:
 	    A mistake in <postmaster@*> recipient policy
