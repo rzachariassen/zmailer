@@ -493,6 +493,8 @@ extern int  smtp_nbread  __((SmtpState *, void *, int));
 
 extern int  getmxrr __((SmtpState *SS, const char *host, struct mxdata mx[], int maxmx, int depth));
 
+extern void rmsgappend __((SmtpState *, int, const char *, ...));
+
 #if defined(HAVE_STDARG_H) && defined(__STDC__)
 extern void report __((SmtpState *SS, char *fmt, ...));
 #else

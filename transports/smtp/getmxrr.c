@@ -37,8 +37,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	notary_setwttip(NULL);
 #endif
 
-	if (depth == 0)
+	if (depth == 0) {
 	  SS->mxcount = 0;
+	  sprintf(SS->remotemsg, "-- Lookup of MX/A for '%.200s'", host);
+	}
 
 	if (depth > 3) {
 	  sprintf(SS->remotemsg,"smtp; 500 (DNS: Recursive CNAME on '%.200s')",host);
@@ -105,6 +107,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 #endif
 	  fprintf(SS->verboselog, "\n");
 	}
+
+	rmsgappend(SS, 1,
+		   "\rDNSreply: len=%d rcode=%d qd=%d an=%d ns=%d ar=%d",
+		   n, hp->rcode, qdcount, ancount, nscount, arcount);
 
 	if (hp->rcode != NOERROR || ancount == 0) {
 	  switch (hp->rcode) {
@@ -230,6 +236,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog, " -> (%lds) MX[%d] pref=%d host=%s\n",
 		    mx[nmx].expiry - now, nmx, mx[nmx].pref, buf);
+	  rmsgappend(SS, 1, "\r-> %lds MX[%d] p=%d '%s'",
+		     mx[nmx].expiry - now, nmx, mx[nmx].pref, mx[nmx].host);
 	  mxtype[nmx] = 0;
 	  ++nmx;
 	  --ancount;
@@ -282,11 +290,15 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    /* Yes, it is TRUNCATED reply!   Must retry with e.g.
 	       by using TCP! */
 	    /* FIXME: FIXME! FIXME! Truncated reply handling! */
+	    rmsgappend(SS, 1, "\rTRUNCATED REPLY!");
 	  }
 
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"  left-over ANCOUNT=%d != 0! TC=%d\n",
 		    ancount, hp->tc);
+
+	  rmsgappend(SS, 1, "\rAnswerCount  %d > 0!!", ancount);
+
 
 	  return EX_TEMPFAIL; /* FIXME?? FIXME?? */
 	}
@@ -389,7 +401,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 		/* WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
 		   This assumes intimate knowledge of the system
-		   implementation of the  ``struct addrinfo'' !  */
+		   implementation of the  ``struct addrinfo'' !
+
+		   Linux and FreeBSD have DIFFERENT implementatoin!
+		   Other operating systems are likely different as well! */
 
 		if (SS->verboselog)
 		  fprintf(SS->verboselog,"  host='%s' AF=%s TTL=%d\n",
@@ -622,6 +637,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	for (i = 0; i < nmx; ++i) {
 	  if (mx[i].ai == NULL && mx[i].host != NULL) {
+	    rmsgappend(SS, 1, "\rNo addresses for '%s'[%d]", mx[i].host, i);
 	    free(mx[i].host);
 	    mx[i].host = NULL;
 	    continue;
@@ -630,6 +646,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	       CISTREQ(mx[i].ai->ai_canonname, myhostname)) ||
 	      matchmyaddresses(mx[i].ai) == 1) {
 
+	    rmsgappend(SS, 1, "\rSelfmatch '%s'(%s)[%d]",
+		       mx[i].host, mx[i].ai->ai_canonname, i);
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", mx[i].ai->ai_canonname ? mx[i].ai->ai_canonname : "<NIL>", myhostname);
 	    if (maxpref > (int)mx[i].pref)
@@ -641,6 +659,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	if (SS->verboselog)
 	  fprintf(SS->verboselog,"  getmxrr('%s') -> nmx=%d, maxpref=%d, realname='%s'\n", host, nmx, maxpref, realname);
+	rmsgappend(SS, 1, "\r nmx=%d maxpref=%d realname='%s'",
+		   nmx, maxpref, realname);
 
 	/* discard MX RRs with a value >= that of  myhost */
 	for (n = i = 0; n < nmx; ++n) {
@@ -652,7 +672,8 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    ++i; /* discard count */
 	  }
 	}
-	if (i == nmx) {	/* All discarded, we are the best MX :-( */
+	if (i /* discard count */ == nmx) {
+	  /* All discarded, we are the best MX :-( */
 	  mx[0].host = NULL;
 	  SS->mxcount = 0;
 	  if (had_eai_again)
@@ -694,8 +715,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  return EX_TEMPFAIL;
 
 	if (n == 0) {/* MX's exist, but their WKS's show no TCP smtp service */
-	  sprintf(SS->remotemsg,
-		  "smtp; 500 (DNS: MX host does not support SMTP: %.200s)", host);
+	  rmsgappend(SS, 1, "\rNONE of MXes support SMTP!");
 	  time(&endtime);
 #ifndef TEST
 	  notary_setxdelay((int)(endtime-starttime));
@@ -773,6 +793,82 @@ getmxrr(SS, host, mx, maxmx, depth)
 	if (had_eai_again && nmx == 0)
 	  return EX_TEMPFAIL;
 	return EX_OK;
+}
+
+
+#ifdef HAVE_STDARG_H
+#ifdef __STDC__
+void
+rmsgappend(SmtpState *SS, int append, const char *fmt, ...)
+#else /* Not ANSI-C */
+void
+rmsgappend(SS, append, fmt)
+	SmtpState *SS;
+	int append;
+	const char *fmt;
+#endif
+#else
+void
+rmsgappend(va_alist)
+	va_dcl
+#endif
+{
+	va_list ap;
+	char *args;
+	int   argi;
+	char *cp, *cpend;
+	char ibuf[15];
+#ifdef HAVE_STDARG_H
+	va_start(ap,fmt);
+#else
+	const char *fmt;
+	SmtpState *SS;
+	int append;
+	va_start(ap);
+	SS     = va_arg(ap, SmtpState *);
+	append = va_arg(ap, int);
+	fmt    = va_arg(ap, char *);
+#endif
+
+	cp    = SS->remotemsg + strlen(SS->remotemsg);
+	cpend = SS->remotemsg + sizeof(SS->remotemsg) -1;
+
+	if (SS->prevcmdstate >= SMTPSTATE99) /* magic limit.. */
+	  SS->remotemsgs[(int)SS->cmdstate] = cp = SS->remotemsg;
+	if (SS->cmdstate > SS->prevcmdstate)
+	  SS->remotemsgs[(int)SS->cmdstate] = cp;
+
+	if (!append)
+	  cp = SS->remotemsgs[(int)SS->cmdstate];
+
+	SS->prevcmdstate = SS->cmdstate;
+
+	if (!fmt) fmt="(NULL)";
+	for (; *fmt != 0; ++fmt) {
+	  if (*fmt == '%') {
+	    int c = *++fmt;
+	    switch (c) {
+	    case 's':
+	      args = va_arg(ap, char *);
+	      while (*args && cp < cpend) *cp++ = *args ++;
+	      break;
+	    case 'd':
+	      argi = va_arg(ap, int);
+	      sprintf(ibuf, "%d", argi);
+	      args = ibuf;
+	      while (*args && cp < cpend) *cp++ = *args ++;
+	      break;
+	    default:
+	      if (cp < cpend) *cp++ = '%';
+	      if (cp < cpend) *cp++ = c;
+	      break;
+	    }
+	  } else
+	    if (cp < cpend)
+	      *cp++ = *fmt;
+	}
+	*cp = 0;
+	va_end(ap);
 }
 
 
