@@ -26,6 +26,13 @@
 #	 some semi-strange hybride of redirected ORCPT data would be in
 #	 order -- at least.  (With redirected sender address.)
 #
+#	/* Now depending are we handling a mailing-list expansion, or
+#	   an alias expansion (RFC 1891, 6.2.7.*) we either report
+#	   "delivered" to the list input address, OR "expanded"
+#	   for aliases and .forwards (single recipient ones should
+#	   *not* report anything but rewrite the recipient address,
+#	   but we slip at that..) */
+#
 # (and same for  fqdnalias.cf  file)
 #
 
@@ -204,7 +211,7 @@ didexpand (subkey) {
 
 routeuser (quad, plustail, domain) {
 	local chan user host lcuser mxh al a l
-	local key attr pobox nattr homedir
+	local key attr pobox nattr homedir sender
 	local plustail2 forward priv hashomedir type
 
 	plustail2=""
@@ -221,6 +228,7 @@ routeuser (quad, plustail, domain) {
 	key="$user"
 
 	type="$(get $attr type)"
+	sender="$(get $attr sender)"
 
 	case "$type" in
 	sender)
@@ -280,12 +288,13 @@ routeuser (quad, plustail, domain) {
 		  # sendmail-like :include: expansion
 		  db add expansions "$key.:include:" 1
 		  nattr=$(newattribute $attr privilege $priv)
-		  $(zapDSNnotify $nattr)
+		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 		  defer=''
 		  a=$(runas $priv cat "\1" | \
 		      listexpand -E "postmaster" -e root -p $priv	\
 				 -c ":include:\1 file expansion"	\
 				 "$nattr" "\1" "$host" "" "$domain" )
+		  postzapDSNnotify a
 		  return $a
 		fi
 		;;
@@ -314,13 +323,14 @@ routeuser (quad, plustail, domain) {
 	if $(didexpand aliases) && a="$(aliases "$user")" ; then
 		db add expansions "$key.aliases" 1
 		nattr=$(newattribute $attr privilege $priv)
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
 		a=$(echo "$a" |				\
 		    listaddresses	-E "root"	\
 					-e "root"	\
 					-c "$user file expansion" | \
 		    maprrouter $nattr "$user" "$host" "$plustail" "$domain")
+		postzapDSNnotify a
 		return $a
 	fi
 
@@ -330,9 +340,10 @@ routeuser (quad, plustail, domain) {
 	if $(didexpand fullnamemap) && a="$(fullnamemap "$user")" ; then
 		db add expansions "$key.fullnamemap" 1
 		nattr=$(newattribute $attr privilege $priv)
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
 		a=$(rrouter "$a" "$user" $nattr "$plustail" "$domain")
+		postzapDSNnotify a
 		return $a
 	fi
 	if [ "$do_newsgroup" ] && [ -n "$(newsgroup "$user")" ]; then
@@ -388,11 +399,12 @@ routeuser (quad, plustail, domain) {
 	    db add expansions "$key.lists" 1
 	    if priv=$(getpriv "664" $priv "$a" maillist) &&
 	       nattr=$(newattribute $attr privilege $priv sender "$l") ; then
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
 		a=$(runas $priv cat "$a" | \
 		    listexpand	-E "$l" -e "$l" -p $priv	\
 				-c "$a file expansion"		\
 				$nattr  "$a" "$host" "" "$domain" )
+		postzapDSNnotify a
 		return $a
 	    fi
 	fi
@@ -407,7 +419,7 @@ routeuser (quad, plustail, domain) {
 		*-mod)
 			l="$preowner$(basename "$lcuser" -mod)$postowner"
 			nattr=$(newattribute $attr privilege $priv sender "$l")
-			$(zapDSNnotify $nattr)
+			$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
 
 			# echo "$l exists!" >> /dev/tty
 			a=$(runas $priv cat "$a" | \
@@ -416,6 +428,8 @@ routeuser (quad, plustail, domain) {
 						-c "$a file expansion" |
 			    maprrouter $nattr "$a" "$host" "$plustail"	\
 					"$domain")
+			postzapDSNnotify a
+			return $a
 			;;
 	    esac
 	fi
@@ -430,9 +444,10 @@ routeuser (quad, plustail, domain) {
 		    db add expansions "$key.listowner" 1
 		    priv=$(filepriv -M 664 "$a")
 		    nattr=$(newattribute $attr privilege $priv)
-		    $(zapDSNnotify $nattr)
+		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 		    a=$(rrouter "$(uid2login $priv)" 			\
 				"$host" $nattr "$plustail" "$domain")
+		    postzapDSNnotify a
 		    return $a
 		fi
 		break
@@ -443,9 +458,10 @@ routeuser (quad, plustail, domain) {
 		    db add expansions "$key.ownerlist" 1
 		    priv=$(filepriv -M 664 "$a")
 		    nattr=$(newattribute $attr privilege $priv)
-		    $(zapDSNnotify $nattr)
+		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 		    a=$(rrouter "$(uid2login $priv)" \
 				 "$host" $nattr "$plustail" "$domain")
+		    postzapDSNnotify a
 		    return $a
 		fi
 		break
@@ -456,9 +472,10 @@ routeuser (quad, plustail, domain) {
 		    db add expansions "$key.listrequest" 1
 		    priv=$(filepriv -M 664 "$a")
 		    nattr=$(newattribute $attr privilege $priv)
-		    $(zapDSNnotify $nattr)
+		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 		    a=$(rrouter "$(uid2login $priv)" \
 				 "$host" $nattr "$plustail" "$domain")
+		    postzapDSNnotify a
 		    return $a
 		fi
 		break
@@ -467,11 +484,12 @@ routeuser (quad, plustail, domain) {
 		if $(didexpand unixgroup) && a="$(groupmembers "\1")" ; then
 		    db add expansions "$key.unixgroup" 1
 		    nattr=$(newattribute $attr privilege $nobodypriv )
-		    $(zapDSNnotify $nattr)
+		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 		    a=$(echo $a |
 			listaddresses -e postmaster -c "$lcuser expansion" |
 			maprrouter $nattr $lcuser "$host" "$plustail" \
 				   "$domain")
+		    postzapDSNnotify a
 		    return $a
 		fi
 		;;
@@ -494,8 +512,9 @@ if [ -n "$LISTSERV" ] ; then
   
 	if [ -f "$a" ] ; then
 		nattr=$(newattribute $attr privilege "0")
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
 		a=(((local pipe.$lcuser "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $lcuser" $nattr)))
+		postzapDSNnotify a +
 		return $a
 	fi
 
@@ -508,6 +527,7 @@ if [ -n "$LISTSERV" ] ; then
 		   nattr=$(newattribute $attr privilege "0")
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.owner-$listbase "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool owner-$listbase" $nattr)))
+		   postzapDSNnotify a
 		   return $a
 		fi
 		;;
@@ -519,6 +539,7 @@ if [ -n "$LISTSERV" ] ; then
 		   nattr=$(newattribute $attr privilege "0")
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.$listbase-owner "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool owner-$listbase" $nattr)))
+		   postzapDSNnotify a
 		   return $a
 		fi
 		;;
@@ -531,6 +552,7 @@ if [ -n "$LISTSERV" ] ; then
 		   nattr=$(newattribute $attr privilege "0")
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.$listbase-search-request "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-search-request" $nattr)))
+		   postzapDSNnotify a
 		   return $a
 		fi
 		;;
@@ -542,6 +564,7 @@ if [ -n "$LISTSERV" ] ; then
 		   nattr=$(newattribute $attr privilege "0")
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.$listbase-request "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-request" $nattr)))
+		   postzapDSNnotify a
 		   return $a
 		fi
 		;;
@@ -554,6 +577,7 @@ if [ -n "$LISTSERV" ] ; then
 		   nattr=$(newattribute $attr privilege "0")
 		   $(zapDSNnotify $nattr)
 		   a=(((local pipe.$listbase-server "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase-server" $nattr)))
+		   postzapDSNnotify a
 		   return $a
 		fi
 		;;
@@ -562,8 +586,9 @@ if [ -n "$LISTSERV" ] ; then
 		a="$LISTSERV/home/$listbase.list"
 		if [ -f "$a" ] ; then
 		   nattr=$(newattribute $attr privilege "0")
-		   $(zapDSNnotify $nattr)
+		   $(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
 		   a=(((local pipe.$listbase "|$LISTSERV/bin/lsv_amin $LISTSERV/lsvspool $listbase" $nattr)))
+		   postzapDSNnotify a 0
 		   return $a
 		fi
 		break
@@ -584,7 +609,7 @@ fi
 		if $(didexpand 'aliases+') && a="$(aliases "\1+")"; then
 		  db add expansions "$key.aliases+" 1
 		  nattr=$(newattribute $attr privilege $priv)
-		  $(zapDSNnotify $nattr)
+		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
 		  a=$(echo "$a" |			\
 		      listaddresses	-E "root"	\
@@ -592,6 +617,7 @@ fi
 					-c "$user alias expansion" | \
 		      maprrouter $nattr "$user" "$host" \
 					"$plustail" "$domain")
+		  postzapDSNnotify a
 		  return $a
 
 		fi
@@ -606,7 +632,7 @@ fi
 		if $(didexpand aliases+-) && a="$(aliases "\1")"; then
 		  db add expansions "$key.aliases+-" 1
 		  nattr=$(newattribute $attr privilege $priv)
-		  $(zapDSNnotify $nattr)
+		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
 		  a=$(echo "$a" |			\
 		      listaddresses	-E "root"	\
@@ -614,6 +640,7 @@ fi
 					-c "$user alias expansion" | \
 		      maprrouter $nattr "$user" "$host" \
 					"$plustail2" "$domain")
+		  postzapDSNnotify a
 		  return $a
 
 		fi
@@ -621,9 +648,10 @@ fi
 		if $(didexpand 'fullnamemap+-') && a="$(fullnamemap "\1")";then
 		  db add expansions "$key.fullnamemap+-" 1
 		  nattr=$(newattribute $attr privilege $priv)
-		  $(zapDSNnotify $nattr)
+		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
 		  a=$(rrouter "$a" "$user" $nattr "$plustail2" "$domain")
+		  postzapDSNnotify a
 		  return $a
 		fi
 
@@ -668,10 +696,11 @@ fi
 	    db add expansions "$key.forward" 1
 	    if priv=$(getpriv "644" $priv "$forward" .forward) ; then
 		nattr=$(newattribute $attr privilege $priv)
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 		a=$(runas $priv cat "$forward" | \
 		    listaddresses -e "$user" -c "$forward .forward expansion" | \
 		    maprrouter $nattr "$forward" "$host" "$plustail" "$domain")
+		postzapDSNnotify a
 		return $a
 	    fi
 	fi

@@ -85,7 +85,7 @@ fqdn_neighbour (domain, address, A) {
 
 		  db add expansions "$key.userdbmailname" 1
 		  nattr=$(newattribute $A privilege $priv)
-		  $(zapDSNnotify $nattr)
+		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		  a=$(echo "$a" |				\
 		      listaddresses -c "$a sender fqdn userdb mailname" \
 				    -e root			 |	\
@@ -133,7 +133,7 @@ fqdn_neighbour (domain, address, A) {
 	if $(didexpand fqdnaliases) &&  a="$(fqdnaliases "$lcaddress")" ; then
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv)
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 		    listaddresses	-c "$a fqdn alias expansion" 	\
 					-e root			 |	\
@@ -146,7 +146,7 @@ fqdn_neighbour (domain, address, A) {
 	    a="$(fqdnaliasesldap "$lcaddress")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv)
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 		    listaddresses	-c "$a fqdn ldap expansion" 	\
 					-e root			 |	\
@@ -168,7 +168,7 @@ fqdn_neighbour (domain, address, A) {
 	    if $(didexpand fqdnaliases) && a="$(fqdnaliases "$key")" ; then
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv)
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 		    listaddresses	-c "$a fqdn+ alias expansion" 	\
 					-e root			 |	\
@@ -181,7 +181,7 @@ fqdn_neighbour (domain, address, A) {
 	       a="$(fqdnaliasesldap "$key")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv)
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 			 listaddresses	-c "$a fqdn+ ldap expansion" 	\
 					-e root			 |	\
@@ -212,7 +212,7 @@ fqdn_neighbour (domain, address, A) {
 		db add expansions "$key.fqlists" 1
 		priv=$(getpriv "644" $priv "$a" maillist)
 		nattr=$(newattribute $A privilege $priv sender "$l")
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(runas $priv cat "$a" |				\
 		    listexpand	-E "$l" -e "$l" -p $priv	\
 				-c "$a file expansion"		\
@@ -232,7 +232,7 @@ fqdn_neighbour (domain, address, A) {
 		if [ -f "$a" ] && $(didexpand fqlistowner); then
 		  db add expansions "$key.fqlistowner" 1
 		  nattr=$(newattribute $A privilege $nobodypriv)
-		  $(zapDSNnotify $nattr)
+		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		  a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
 				"$address" $nattr "" "" "$domain")
 		  return $a
@@ -245,7 +245,7 @@ fqdn_neighbour (domain, address, A) {
 		if [ -f "$a" ] && $(didexpand fqlistrequest); then
 		  db add expansions "$key.fqlistrequest" 1
 		  nattr=$(newattribute $A privilege $nobodypriv)
-		  $(zapDSNnotify $nattr)
+		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		  a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
 				"$address" $nattr "" "" "$domain")
 		  return $a
@@ -258,7 +258,7 @@ fqdn_neighbour (domain, address, A) {
 		if [ -f "$a" ] && $(didexpand ownerfqlists); then
 		  db add expansions "$key.ownerfqlists" 1
 		  nattr=$(newattribute $A privilege $nobodypriv)
-		  $(zapDSNnotify $nattr)
+		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		  a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
 				"$address" $nattr "" "" "$domain")
 		  return $a
@@ -278,7 +278,7 @@ fqdn_neighbour (domain, address, A) {
 	if $(didexpand fqdnaliases) && a="$(fqdnaliases "$key")" ; then
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv) &&
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |						\
 		    listaddresses	-c "$a fqdn alias expansion" 	\
 					-e root			 |	\
@@ -290,7 +290,7 @@ fqdn_neighbour (domain, address, A) {
 	   a="$(fqdnaliasesldap "$key")" ; then
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv) &&
-		$(zapDSNnotify $nattr)
+		$(zapDSNnotify $nattr) ## FIXME!FIXME!
 		a=$(echo "$a" |					\
 		    listaddresses	-c "$a fqdn ldap expansion" 	\
 					-e root			 |	\

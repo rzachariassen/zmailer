@@ -1,5 +1,9 @@
 2000-09-19  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* router/functions.c, proto/cf/aliases.cf, proto/cf/fqdnalias.cf:
+	    Suspended the  $(zapDSNnotify ...) processing development.
+	    The issues I am trying solve there are rather -- complicated.
+
 	* router/daemonsub.c:
 	    Do test for "an inode in processing" while looking for
 	    tasks in the router subdirs -- thus won't reinsert a

@@ -64,6 +64,7 @@ static int run_grpmems   ARGCV;
 static int run_praliases ARGCV;
 static int run_listaddresses ARGCV;
 static int zap_DSN_notify ARGCV;
+static int post_zap_DSN_notify ARGCV;
 static int run_homedir   ARGCV;
 static int run_822date   ARGCV;
 static int run_filepriv  ARGCV;
@@ -119,6 +120,7 @@ struct shCmd fnctns[] = {
 {	"printaliases",	run_praliases,	NULL,	NULL,	0	},
 {	"listaddresses",run_listaddresses,NULL,	NULL,	SH_ARGV	},
 {	"zapDSNnotify", zap_DSN_notify,	NULL,	NULL,	SH_ARGV	},
+{	"postzapDSNnotify", zap_DSN_notify, NULL, NULL,	SH_ARGV	},
 {	"listexpand",	NULL,	run_listexpand,	NULL,	SH_ARGV	},
 #if 0
 {	"newattribute",	NULL,	run_newattribute, NULL,	SH_ARGV	},
@@ -668,25 +670,39 @@ FILE *fp;
  *  To be called immediately after a new nattr value has been generated,
  *  and thus a new storage variable for it exists!
  *
- *  $(zapDSNnotify attrlistvarname [diagname finalsuccessrcpt])
+ *  scrubbedset=$(zapDSNnotify attrlistvarname [diagname finalsuccessrcpt])
  *
+
+ +
+ +  Damn...  The issues here are rather complicated.
+ +  These routines will be suspended for a while pending further
+ +  analysis.  [mea/10-sept-2000]
+ +
+
  */
 static int zap_DSN_notify(argc, argv)
      int argc;
      const char *argv[];
 {
+#if 1
+	return 0;
+#else
 	conscell *l, *lc, **pl;
 	conscell *l1, *tmp;
 	int notifysuccess = 0;
 	int notifytrace   = 0;
 	int len;
 	char *s;
-	const char *onam = argv[1];
-	const char *diagname = NULL;
+	const char *onam             = argv[1];
+	const char *diagname         = argv[2];
+	const char *finalsuccessrcpt = argv[3];
+	const char *diagaddr         = argv[4];
+
+	if (!diagname)         finalsuccessrcpt = NULL;
+	if (!finalsuccessrcpt) diagaddr         = NULL;
 
 	l1 = v_find(onam);
-	if (!l1)
-	  return 0;
+	if (!l1) return 0;
 	l = cdr(l1);
 	lc = l1 = NULL;
 
@@ -708,6 +724,175 @@ static int zap_DSN_notify(argc, argv)
 
 	if (D_sequencer)
 	  fprintf(stderr," zapDSNnotify('%s') DSN='%s'  -> ", onam, s);
+
+	while (*s) {
+	  if (CISTREQN(s,"NOTIFY=",7)) {
+	    char *p = s+7;
+	    /* While non-blank (parameter) string */
+	    while (*p && *p != ' ' && *p != '\t') {
+	      if (*p == ',') {
+		++p;
+		continue;
+	      }
+	      if (CISTREQN(p,"SUCCESS",7)) {
+		notifysuccess=1;
+		if (p[7] == ',')
+		  strcpy(p,p+8); /* ZAP the "SUCCESS," status! */
+		else
+		  strcpy(p,p+7); /* ZAP the "SUCCESS" status! */
+		continue;
+	      }
+	      if (CISTREQN(p,"TRACE",5)) {
+		notifytrace = 1;
+		if (p[5] == ',')
+		  strcpy(p,p+6); /* ZAP the "TRACE," status! */
+		else
+		  strcpy(p,p+5); /* ZAP the "TRACE" status! */
+		continue;
+	      }
+	      ++p;
+	    }
+	    /* Ok,  Now we may have e.g.:
+	         i1: NOTIFY=NEVER
+	         o1: NOTIFY=NEVER
+		 i2: NOTIFY=SUCCESS,DELAY,FAILURE
+		 o2: NOTIFY=DELAY,FAILURE
+		 i3: NOTIFY=DELAY,SUCCESS,FAILURE
+		 o3: NOTIFY=DELAY,FAILURE
+		 i4: NOTIFY=DELAY,FAILURE,SUCCESS
+		 o4: NOTIFY=DELAY,FAILURE,
+		 i5: NOTIFY=SUCCESS
+		 o5: NOTIFY=
+	       of which the o4 needs trailing comma cleanup,
+	       and o5 zapping of the entire NOTIFY parameter. */
+
+	    if (p > s && p[-1] == ',') /* Case 4 */
+	      p[-1] = ' '; /* An extra comma to zap */
+
+	    if (p > s && p[-1] == '=') /* Case 5 */ {
+	      while (*p == ' ' || *p == '\t') ++p;
+	      strcpy(s, p); /* That the entire NOTIFY= parameter */
+	      continue;
+	    }
+
+	    /* Skip over trailing whitespace */
+	    while (*p == ' ' || *p == '\t') ++p;
+	    s = p;
+	    continue; /* This is done, restart */
+	  } /* end of  if ("NOTIFY=") */
+
+	  /* Nothing recognized, scan over the non-blank string */
+	  while (*s && *s != ' ' && *s != '\t') ++s;
+	  /* And possible trailing whitespace */
+	  while (      *s == ' ' || *s == '\t') ++s;
+	}
+
+	if (D_sequencer)
+	  fprintf(stderr,"'%s'  rc=%d\n", lc->string, notifysuccess);
+
+	if (!notifysuccess && !notifytrace) return 0; /* We are DONE! */
+
+	/* Now depending are we handling a mailing-list expansion, or
+	   an alias expansion (RFC 1891, 6.2.7.*) we either report
+	   "delivered" to the list input address, OR "expanded"
+	   for aliases and .forwards (single recipient ones should
+	   *not* report anything but rewrite the recipient address,
+	   but we slip at that..) */
+
+	s = lc->string;
+	len = strlen(s);
+
+	if (diagname)         len += strlen(diagname)+2;
+	if (finalsuccessrcpt) len += strlen(finalsuccessrcpt)+2;
+	if (diagaddr)         len += strlen(diagaddr)+2;
+
+	s = (char *)realloc(s, len+23);
+	if (!s) return -1; /* Hardly happens, but... */
+
+	lc->string = s;
+
+	s += len;
+
+	if (notifysuccess && notifytrace)
+	  strcpy(s, " NTRACE=SUCCESS,TRACE");
+	else if (notifysuccess)
+	  strcpy(s, " NTRACE=SUCCESS");
+	else if (notifytrace)
+	  strcpy(s, " NTRACE=TRACE");
+
+	if (notifysuccess) {
+	  s += strlen(s);
+	  if (diagname)         sprintf(s,";%s", diagname);
+	  s += strlen(s);
+	  if (finalsuccessrcpt) sprintf(s,";%s", finalsuccessrcpt);
+	  s += strlen(s);
+	  if (diagaddr)         sprintf(s,";%s", diagaddr);
+	}
+
+	return notifysuccess;
+#endif
+}
+
+
+/*
+ *  post_zap_DSN_notify()
+ *
+ *  To be called immediately after a new nattr value has been generated,
+ *  and thus a new storage variable for it exists!
+ *
+ *  $(postzapDSNnotify chainvarname)
+ *
+ *  If the variable called  chainvarname  has more than one address
+ *  entry -- ( ((x x x x))  ((x x x x)) ) -- then we leave this NTRACE=
+ *  data to be as is.  If the variable has only ONE address ( ((x x x x)) )
+ *  AND the ...............
+
+ +
+ +  Damn...  The issues here are rather complicated.
+ +  These routines will be suspended for a while pending further
+ +  analysis.  [mea/10-sept-2000]
+ +
+
+ */
+static int post_zap_DSN_notify(argc, argv)
+     int argc;
+     const char *argv[];
+{
+#if 1
+	return 0;
+#else
+	conscell *l, *lc, **pl;
+	conscell *l1, *tmp, *l0;
+	int notifysuccess = 0;
+	int notifytrace   = 0;
+	int len;
+	char *s;
+	const char *onam = argv[1];
+
+	l0 = v_find(onam);
+	if (!l0) return 0;
+
+	l = cdr(l1);
+	lc = l1 = NULL;
+
+	pl = &car(l);
+	l = *pl;
+	for (lc = l; lc && cdr(lc); pl = &cddr(lc),lc = *pl) {
+	  if (!STRING(lc))
+	    return 0; /* ?? */
+	  if (strcmp("DSN",lc->string)==0) {
+	    lc = cdr(lc);
+	    if (!lc || !STRING(lc))
+	      return 0;
+	    break;
+	  }
+	}
+	if (!lc) return 0; /* No DSN data */
+
+	s = lc->string;
+
+	if (D_sequencer)
+	  fprintf(stderr," postzapDSNnotify('%s') DSN='%s'  -> ", onam, s);
 
 	while (*s) {
 	  if (CISTREQN(s,"NOTIFY=",7)) {
@@ -801,6 +986,7 @@ static int zap_DSN_notify(argc, argv)
 	  strcpy(s, " NTRACE=TRACE");
 
 	return notifysuccess;
+#endif
 }
 
 
