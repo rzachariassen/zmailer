@@ -1,3 +1,9 @@
+2003-04-17  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/libta/mimeheader.c:
+	    When outputting ORCPT value into "for clause", do
+	    decode the XTEXT encoded data into plain format.
+
 2003-04-16  Matti Aarnio  <mea@zmailer.org>
 
 	* SiteConfig.in, transports/libta/mimeheader.c:
