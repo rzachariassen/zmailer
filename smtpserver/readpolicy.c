@@ -164,6 +164,7 @@ struct _tokenpair {
   { "localdomain",	P_A_LocalDomain		},
   { "maxinsize",	P_A_InboundSizeLimit	},
   { "maxoutsize",	P_A_OutboundSizeLimit	},
+  { "fulltrustnet",	P_A_FullTrustNet	},
   { NULL, 0 },
 };
 

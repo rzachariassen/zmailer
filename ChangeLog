@@ -1,9 +1,21 @@
 1998-06-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* include/policy.h, smtpserver/policytest.c, smtpserver/policytest.h,
+	  smtpserver/readpolicy.c:
+	    Altered "relaycustnet" semantics a bit.  Even though it will
+	    still allow unlimited inbound feed, it will at first fo DNS
+	    verification on MAIL FROM, and RCPT TO headers -- accepts
+	    recipients if said recipients have any DNS A/MX entry at all,
+	    and likewise with sender...
+	    Introduced new attribute:  "fulltrustnet +"  which can
+	    be used in case there absolutely is need for not checking
+	    input addresses (like in a very high-volume email traffic
+	    in between vger.rutgers.edu and nic.funet.fi ...)
+
 	* transports/mailbox/sieve.c, transports/mailbox/mailbox.c,
 	  include/sieve.h, transports/mailbox/Makefile.in:
-	      Hooks for 'SIEVE' things; ways for the user to define
-	      message arrival time filtering.
+	    Hooks for 'SIEVE' things; ways for the user to define
+	    message arrival time filtering.
 
 1998-06-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
 

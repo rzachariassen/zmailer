@@ -126,6 +126,7 @@ const struct policystate *state;
 	printf("always_reject=%d\n",state->always_reject);
 	printf("always_freeze=%d\n",state->always_freeze);
 	printf("always_accept=%d\n",state->always_accept);
+	printf("full_trust=%d\n",   state->full_trust);
 	printf("sender_reject=%d\n",state->sender_reject);
 	printf("sender_freeze=%d\n",state->sender_freeze);
 	printf("sender_norelay=%d\n",state->sender_norelay);
@@ -636,7 +637,8 @@ const char *pbuf;
 		       1 << P_A_RELAYCUSTNET      |
 		       1 << P_A_TestDnsRBL        |
 		       1 << P_A_InboundSizeLimit  |
-		       1 << P_A_OutboundSizeLimit   );
+		       1 << P_A_OutboundSizeLimit |
+		       1 << P_A_FullTrustNet	    );
 
     state->maxinsize  = -1;
     state->maxoutsize = -1;
@@ -691,6 +693,12 @@ const char *pbuf;
       if (debug)
 	printf("policytestaddr: 'relaycustnet +' found\n");
       state->always_accept = 1;
+      return  0;
+    }
+    if (state->values[P_A_FullTrustNet] == '+') {
+      if (debug)
+	printf("policytestaddr: 'fulltrustnet +' found\n");
+      state->full_trust = 1;
       return  0;
     }
     if (state->values[P_A_TestDnsRBL] == '+' &&
@@ -961,6 +969,8 @@ const int len;
 	return 1;
     if (state->always_accept)
 	return 0;
+    if (state->full_trust)
+	return 0;
 
     /* state->request initialization !! */
     state->request = ( 1 << P_A_REJECTNET    |
@@ -996,6 +1006,8 @@ const int len;
 	return 1;
     if (state->always_accept)
 	return 0;
+    if (state->full_trust)
+	return 0;
 
     /* state->request initialization !! */
     state->request = ( 1 << P_A_REJECTNET    |
@@ -1025,6 +1037,12 @@ const int len;
       state->always_accept = 1;
       return  0;
     }
+    if (state->values[P_A_FullTrustNet] == '+') {
+      if (debug)
+	printf("pt_sourceaddr: 'fulltrustnet +' found\n");
+      state->full_trust = 1;
+      return  0;
+    }
     return 0;
 }
 
@@ -1045,8 +1063,8 @@ const int len;
 	return -1;
     if (state->always_freeze)
 	return 1;
-    if (state->always_accept)
-	return 0;
+    if (state->full_trust)
+      return 0;
 
     if (len == 0) /* MAIL FROM:<> -- error message ? */
       return 0;   /* We accept it, sigh.. */
@@ -1091,6 +1109,19 @@ const int len;
       return -1;
     }
 
+    if (state->values[P_A_SENDERNoRelay] == '+') {
+      if (debug)
+	printf("mailfrom: 'sendernorelay +'\n");
+      state->sender_norelay = 1;
+    }
+    if (state->values[P_A_SENDERokWithDNS] != 0) {
+      int rc = sender_dns_verify(state->values[P_A_SENDERokWithDNS],
+				 at+1, len - (1 + at - str));
+      if (debug)
+	printf("... returns: %d\n", rc);
+      return rc;
+    }
+
     if (state->values[P_A_REJECTSOURCE] == '+') {
 	if (debug)
 	  printf("mailfrom: 'rejectsource +'\n");
@@ -1103,6 +1134,14 @@ const int len;
 	state->sender_freeze = 1;
 	return -1;
     }
+
+    if (state->always_accept) {
+      int rc = sender_dns_verify('+', at+1, len - (1 + at - str));
+      if (debug)
+	printf("... returns: %d\n", rc);
+      return rc;
+    }
+
     if (state->values[P_A_RELAYCUSTOMER] == '+') {
 	if (debug)
 	  printf("mailfrom: 'relaycustomer +'\n");
@@ -1117,18 +1156,6 @@ const int len;
 	return -1;
     }
 #endif
-    if (state->values[P_A_SENDERokWithDNS] != 0) {
-      int rc = sender_dns_verify(state->values[P_A_SENDERokWithDNS],
-				 at+1, len - (1 + at - str));
-      if (debug)
-	printf("... returns: %d\n", rc);
-      return rc;
-    }
-    if (state->values[P_A_SENDERNoRelay] == '+') {
-      if (debug)
-	printf("mailfrom: 'sendernorelay +'\n");
-      state->sender_norelay = 1;
-    }
     return 0;
 }
 
@@ -1144,7 +1171,7 @@ const int len;
     if (state->sender_reject) return -2;
     if (state->always_freeze) return  1;
     if (state->sender_freeze) return  1;
-    if (state->always_accept) return  0;
+    if (state->full_trust)    return  0;
 
     /* rcptfreeze even for 'rcpt-nocheck' ? */
 
@@ -1210,7 +1237,15 @@ const int len;
     if (state->rcpt_nocheck) {
       if (debug)
 	printf("... rcpt_nocheck is on!\n");
-	return 0;
+      return 0;
+    }
+
+    if (state->always_accept) {
+      int rc = client_dns_verify('+', at+1, len - (1 + at - str));
+      /* XX: state->message setup! */
+      if (debug)
+	printf("... returns: %d\n", rc);
+      return rc;
     }
 
     if (state->values[P_A_ACCEPTifMX] != 0 || state->sender_norelay != 0) {

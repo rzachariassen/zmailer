@@ -13,6 +13,7 @@ struct policystate {		/* Part of SmtpState structure */
     int always_reject;
     int always_freeze;
     int always_accept;
+    int full_trust;
     int sender_reject;
     int sender_freeze;
     int relaycustnet;
