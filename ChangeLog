@@ -1262,7 +1262,8 @@
 	* transports/libta/ctlopen.c:
 	    The RP data block is not initialized completely in all cases,
 	    which causes occasional bugs.  Doing   memset()  for it at
-	    first, then filling in non-zero values.
+	    first, then filling in non-zero values.  This resulted from
+	    RP structure expansion a month ago.
 
 2002-03-08  Matti Aarnio  <mea@zmailer.org>
 
@@ -1277,7 +1278,7 @@
 	    which carry more of message meta-data, than previously.
 
 	* transports/libta/ctlopen.c:
-	    Pass the  INFROM= DNS metadata into   rp->infrom  field.
+	    Pass the  INFROM= DSN metadata into   rp->infrom  field.
 
 	* transports/hold/hold.c:
 	    Detect "channel error" type messages properly.
@@ -1429,7 +1430,7 @@
 2001-12-07  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/mailbox/mailbox.c, transports/libta/swriteheaders.c:
-	    When message writing into a file fails with e.g. EDQUOTA
+	    When message writing into a file fails with e.g. EDQUOT
 	    (quota exceeded), abort writing completely, discard sfio
 	    buffers, and truncate away the incompletely received message.
 	    This problem appeared at Solaris 8, when using quotas.
@@ -1541,7 +1542,7 @@
 	  smtpserver/smtpserver.h, smtpserver/smtpcmds.c,
 	  smtpserver/cfgparse.c, proto/smtpserver:
 	    PARAM force-rcpt-notify-never
-	    Whatever the incoming DNS NOTIFY= value is, we force it
+	    Whatever the incoming DSN NOTIFY= value is, we force it
 	    always to be NOTIFY=NEVER.   This is for those who won't
 	    like to let others even to find out that the message made
 	    into the system, but still want to support incoming DSN.
@@ -9457,7 +9458,7 @@ Mon Dec  2 18:38:09 1996  Matti Aarnio  <mea@zmailer.org>
 	    One missing setting of a variable.
 
 	* transports/smtp/smtp.c:
-	    Missing space at DNS RET= parameter writing.
+	    Missing space at DSN RET= parameter writing.
 
 Wed Nov 27 21:23:12 1996  Matti Aarnio  <mea@zmailer.org>
 
