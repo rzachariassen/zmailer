@@ -1,0 +1,11 @@
+# this one is here as an example of how to include your personal blacklist in the
+# spammers database
+#Local	file:/home/rcb/spamlist1
+
+#this one seems to be out of date
+#Hilotek	http://www.hilotek.com/Mail/SpamDomains.html	<h3	<P
+Sprocket	http://www.sprocket.com/Security/SpamDomains
+Taz 1	http://www.taz.net.au/Mail/SpamDomains
+Taz 2	http://www.taz.net.au/Mail/Spammers
+Webeasy	http://www.webeasy.com:8080/spam/spam_download_table
+Znet	http://www.znet.com/spammers.txt

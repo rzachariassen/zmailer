@@ -5,7 +5,9 @@
 #
 # Roy Bixler
 # rcb@press-gopher.uchicago.edu
-# 1 Dec. 1997, 6 Jun 1998
+# 1 Dec. 1997
+# Jun 1998 - modified to accept IP blocks to be banned and to get sources of
+#            blacklist from a text file (default: 'spamlist_sources')
 #
 
 import ftplib, httplib, re, string, sys
@@ -91,6 +93,7 @@ def add_to_junkers_dict(jdict, svc_name, svc_url, start_after='',
     sys.stderr.write("%s: (status = " % (svc_name))
     tdict = get_url_contents(svc_url)
     sys.stderr.write(") - done\n")
+    # i - line number counter
     i = 0
     if (start_after):
 	while ((i < len(tdict)) and
@@ -101,7 +104,9 @@ def add_to_junkers_dict(jdict, svc_name, svc_url, start_after='',
 	if ((end_before) and (tdict[i][0:len(end_before)] == end_before)):
 	    break
 	if ((tdict[i]) and (tdict[i][0] <> "#")):
-	    jdict[atify(tdict[i])] = svc_name
+            # assume interesting information is in the beginning of the line
+            # until the first whitespace character
+	    jdict[atify(string.split(tdict[i])[0])] = svc_name
         i = i+1
 
 # and now for the main program
@@ -109,33 +114,41 @@ def add_to_junkers_dict(jdict, svc_name, svc_url, start_after='',
 # start with an empty junk list
 sl = {}
 
-#add_to_junkers_dict(sl, "Local",
-#		    "file:/home/rcb/spamlist1",
-#		    "", "")
+# open a file containing our list of sources for the blacklisted spammers
+# database
+if (len(sys.argv) > 1):
+    ssf = open(sys.argv[1])
+else:
+    ssf = open("spamlist_sources")
 
-add_to_junkers_dict(sl, "Hilotek",
-		    "http://www.hilotek.com/Mail/SpamDomains.html",
-		    "<h3", "<P")
-add_to_junkers_dict(sl, "Taz 1",
-		    "http://www.taz.net.au/Mail/SpamDomains",
-		    "", "")
-add_to_junkers_dict(sl, "Taz 2",
-		    "http://www.taz.net.au/Mail/Spammers",
-		    "", "")
-add_to_junkers_dict(sl, "Webeasy",
-		    "http://www.webeasy.com:8080/spam/spam_download_table",
-		    "", "")
-add_to_junkers_dict(sl, "Znet",
-		    "http://www.znet.com/spammers.txt",
-		    "", "")
+ssl = ssf.readline()
+while (ssl):
+    ssl = string.strip(ssl)
+    #skip comment lines
+    if ((len(ssl) > 0) and (ssl[0] <> '#')):
+        # each line is has tab-delimited delimited field describing spam source
+        ssi = string.split(ssl, '\t')
+        # first two params. (description and URL) are mandatory
+        if (len(ssi) > 1):
+            bgn_slist_tag = ""
+            end_slist_tag = ""
+            if (len(ssi) > 2):
+                bgn_slist_tag = ssi[2]
+                if (len(ssi) > 3):
+                    end_slist_tag = ssi[3]
+            add_to_junkers_dict(sl, ssi[0], ssi[1], bgn_slist_tag, end_slist_tag)
+    ssl = ssf.readline()
+ssf.close()
 
-# we only really care about the dictionary keys
+# time to sort and output our dictionary to standard output
 ksl = sl.keys()
-
-# output the sorted dictionary keys
 ksl.sort()
+
+# look for IP addresses
 ipv4_net = re.compile("^@[0-9]{1,3}(\.[0-9]{0,3}){0,3}$")
 for i in ksl:
+    # if an IP address is found, convert to canonical netblock format and ban that
+    # netblock from even connecting to smtpserver
     if (ipv4_net.match(i)):
         num_dots = string.count(i, ".")
         if (i[-1] == "."):
@@ -150,4 +163,5 @@ for i in ksl:
         else:
             print "what's wrong with this? i = %s, num_dots = %d" % (i, num_dots)
     else:
+        # just output as-is (we take it to be a banned domain or e-mail address)
         print i
