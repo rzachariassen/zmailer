@@ -4341,8 +4341,45 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  --ancount;
 	} /* Gone thru all answers */
 
+	if (nmx >= maxmx-1 && ancount > 0) {
+
+	  /* If the MAXFORWARDERS count has been exceeded
+	     (quite a feat!)  skip over the rest of the
+	     answers, as long as we have them, and the
+	     reply-buffer has not been exceeded...
+
+	     These are in fact extremely pathological cases
+	     of the DNS datasets, and most MTA systems will
+	     simply barf at this scale of things far before.. */
+
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog, "  collected MX count matches maximum supported (%d) with still some (%d) answers left to pick, we discard them.\n",
+		    maxmx, ancount);
+
+	  while (ancount > 0 && cp < eom) {
+#if	defined(BIND_VER) && (BIND_VER >= 473)
+	    n = dn_skipname(cp, eom);
+#else	/* !defined(BIND_VER) || (BIND_VER < 473) */
+	    n = dn_skip(cp);
+#endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
+	    if (n < 0)
+	      break;
+	    cp += n;
+	    if (cp+10 > eom) { cp = eom; break; }
+	    cp += 2;
+	    cp += 2;
+	    cp += 4; /* "long" -- but keep in mind that some machines
+			have "funny" ideas about "long" -- those 64-bit
+			ones, I mean ... */
+	    n = _getshort(cp); /* dlen */
+	    cp += 2;
+	    cp += n;
+	    --ancount;
+	  } /* Skipped thru all remaining answers */
+	}
+
 	if (ancount > 0) {
-	  /* URGH!!!!   Answers left over, WHAT ?!?!?! */
+	  /* URGH!!!!   Still answers left over, WHAT ?!?!?! */
 	  for (i = 0; i < nmx; ++i) {
 	    if (mx[i].host) free(mx[i].host);
 	    mx[i].host = NULL;
@@ -4585,10 +4622,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	/* Separate all addresses into their own MXes */
 
-	for (i = 0; i < nmx && nmx < maxmx; ++i) {
+	for (i = 0; i < nmx && nmx < maxmx-1; ++i) {
 	  struct addrinfo *ai = mx[i].ai;
 	  if (ai) ai = ai->ai_next; /* If more than one.. */
-	  while (ai && nmx < maxmx) {
+	  while (ai && nmx < maxmx-1) {
 	    memcpy(&mx[nmx], &mx[i], sizeof(mx[0]));
 	    mx[nmx].ai = ai;
 	    ai         = ai->ai_next;
@@ -4600,6 +4637,12 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    }
 	    ++nmx;
 	  }
+
+	  /* If there was something, it has been split out..
+	     Hmm.. except if nmx >= maxmx-1, which is pathological
+	     anyway...  100+ addressed server entities.. */
+
+	  if (mx[i].ai) mx[i].ai->ai_next = NULL;
 	}
 
 	for (i = 0; i < nmx; ++i) {
