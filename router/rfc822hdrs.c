@@ -491,11 +491,9 @@ hdr_print(h, fp)
 			}
 			break;
 		}
-		putc(' ',fp);
-		++col;
 		if ((ap = h->h_contents.r->r_from) != NULL) {
-			fprintf(fp, "from ");
-			col += 5;
+			fprintf(fp, " from ");
+			col += 6;
 			col += printAddress(fp, ap->a_tokens, 0);
 		}
 		if ((ap = h->h_contents.r->r_by) != NULL) {
