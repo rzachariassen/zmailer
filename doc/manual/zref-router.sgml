@@ -719,6 +719,22 @@ Do note that unlike more usual bourne-shells, this <EMPHASIS>does not</>
 short-circuit logical evaluations, e.g. falseness of the left side of an AND
 does not eliminate evaluation of the right side!
 
+</PARA><PARA>
+
+Usual ``<FUNCTION>test</>'' precautions with things like
+parameter data prefixing with some character so that
+it will not become treated as one of the control options.
+<SCREEN>
+Not:
+  [ "$(funcname ...)" ]
+  [ "$varname" = "value" ]
+
+Ok:
+  [ "z$(funcname ...)" ]
+  [ "z$varname" = "zvalue" ]
+</SCREEN>
+
+
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
@@ -1420,9 +1436,12 @@ See the <FUNCTION>relation</> function for more information.
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 Does lookup via <FUNCTION>relation</> defined <EMPHASIS>dblookup</>
 vector:
-<SYNOPSIS>
-<EMPHASIS>dblookup</> key
-</SYNOPSIS>
+<CMDSYNOPSIS>
+<COMMAND>dblookup <REPLACEABLE>key</></>
+ <ARG>
+  <ARG>
+    <OPTION>-: <REPLACEABLE>defaultkey</></></ARG> -- %subst1 %subst2 ... %subst9 </ARG>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1435,7 +1454,7 @@ Lookup result
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><LITERAL>NULL</></TERM><LISTITEM><PARA>
 
-Lookup failed, <LITERAL>$deferred</> may be set if the reason is
+Lookup failed, variable <LITERAL>$defer</> may be set if the reason is
 considered <EMPHASIS>temporary</> and thus solvable latter.
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1446,6 +1465,14 @@ considered <EMPHASIS>temporary</> and thus solvable latter.
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <EMPHASIS>FIXME! Notes about '-:' and '--' OPTIONS.</>
+The '-:' does supply the "final case" lookup key in cases where
+various domain shortening lookups reach their end (and have the
+builtin ultimate default lookup of ".").
+*** sample code of this use ***
+
+</PARA><PARA>
+Note: The %subst things are used only if the relation
+definition has -% option flag set!
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
@@ -1473,7 +1500,7 @@ The access function to the database facilities in the
 <CMDSYNOPSIS>
 <COMMAND>echo</COMMAND>
  <ARG><OPTION>-n</></ARG>
- <ARG><REPLACEABLE>string-expressions</></ARG>
+ <ARG>-- <REPLACEABLE>string-expressions</></ARG>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1494,6 +1521,13 @@ The access function to the database facilities in the
 <VARLISTENTRY><TERM><OPTION>-n</></TERM><LISTITEM><PARA>
 
 Don't print newline at end of string.
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION>--</></TERM><LISTITEM><PARA>
+
+End the option set, use this if there is even a small change of
+starting the the data with the hyphen character.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1516,9 +1550,10 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-elements <REPLACEABLE>lisp-object</>
-</SYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>elements <REPLACEABLE>lisp-object</></>
+</CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1589,9 +1624,9 @@ A debug tool to print internal variable tree.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-erraddron [file]
-</SYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>erraddron</> <ARG><REPLACEABLE>file</></>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1629,9 +1664,10 @@ or other collectors of address trivia.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-eval expression
-</SYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>eval <REPLACEABLE>expression</></>
+</CMDSYNOPSIS>
+
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1645,7 +1681,28 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none
+This is the generic workhorse for self-modifying code execution
+within the <EMPHASIS>zmsh</>, it creates the workhorse of
+following code-fragment:
+<SCREEN>
+# Usage: newattribute &lt;oldattribute> &lt;key1> &lt;value1> [ &lt;key2> &lt;value2> ] ...
+#
+# Returns a new attribute list symbol with the &lt;keyN> &lt;valueN>
+# attributes added to the contents of the &lt;oldattribute> list.
+
+newattribute (oldattribute) {
+	local a null value
+
+	a=$(gensym)
+	eval $a=\$$oldattribute
+	while [ "$#" != 0 ];
+	do
+		lreplace $a "$1" "$2"
+		shift ; shift
+	done
+	echo -- "$a"
+}
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1660,7 +1717,7 @@ none
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
-exit
+ exit
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1689,9 +1746,9 @@ Exit from the shell/router with exit code.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-export [variable-name ...]
-</SYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>export</> <ARG><REPLACEABLE>variable-name ...</></>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1727,9 +1784,9 @@ export prints a list of which variables have been exported.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-filepriv file [uid]
-</SYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>filepriv <REPLACEABLE>file</></> <ARG><REPLACEABLE>uid</></>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1787,9 +1844,9 @@ for nonwritability and for having the same (or a 0) uid.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-first object-reference
-</SYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>first <REPLACEABLE>object-reference</></>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1821,9 +1878,9 @@ commands.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<SYNOPSIS>
-gensym
-</SYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>gensym</>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1849,6 +1906,28 @@ sequence <VARNAME>g0</> to <VARNAME>gN</> every time it is called. The
 sequence is reset and any symbol values destroyed after the <COMMAND>router</>
 has processed a message. This function is used to generate new symbols, to 
 hold attached address property lists, during alias expansion.
+</PARA><PARA>
+Code-fragment showing a way how it is used inside the router scripts:
+<SCREEN>
+# Usage: newattribute &lt;oldattribute> &lt;key1> &lt;value1> [ &lt;key2> &lt;value2> ] ...
+#
+# Returns a new attribute list symbol with the &lt;keyN> &lt;valueN>
+# attributes added to the contents of the &lt;oldattribute> list.
+
+newattribute (oldattribute) {
+	local a null value
+
+	a=$(gensym)
+	eval $a=\$$oldattribute
+	while [ "$#" != 0 ];
+	do
+		lreplace $a "$1" "$2"
+		shift ; shift
+	done
+	echo -- "$a"
+}
+</SCREEN>
+
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1905,19 +1984,19 @@ Returns a property-list corresponding to key string:
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt getopts optstring-name [arguments ...]}
-
+<CMDSYNOPSIS>
+ <COMMAND>getopts <REPLACEABLE>optstring-name</></> <ARG>arguments ...</ARG>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+success ?
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 Error.
 
@@ -1933,7 +2012,9 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none  
+Never used inside the <EMPHASIS>zmsh</> scripts,
+usefullness questionable, and usage documentation
+missing.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1947,13 +2028,13 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt grind lisp-object}
-
+<CMDSYNOPSIS>
+ <COMMAND>grind <REPLACEABLE>lisp-object</></>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-Pointer to list of {\tt varcell}.
+Pointer to list of <EMPHASIS>varcell</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -1963,7 +2044,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none
+The side-effect is to output the text form of the <EMPHASIS>lisp-object</>.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1977,16 +2058,26 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt groupmembers groupname}
-
+<CMDSYNOPSIS>
+  <COMMAND>groupmembers <REPLACEABLE>groupname</></>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
+Found data, side-effect is described below.
 
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
+
+Didn't find anything.  No side-effects.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Usage (number of arguments) is wrong.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2000,8 +2091,8 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Prints the accounts that are listed as 
-members of a group in the system groups file, one per line.
+Prints the accounts that are listed as members of a group in
+the system groups file, one per line.
 Note that accounts with the same login group id, but that are 
 not listed in the groups file, will not appear in this list.
 
@@ -2017,16 +2108,16 @@ not listed in the groups file, will not appear in this list.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt hash [-r] [command names]}
-
+<CMDSYNOPSIS>
+ <COMMAND>hash</> <ARG><OPTION>-r</></> <ARG><REPLACEABLE>command names</></>
+</CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+This value is returned always.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2036,9 +2127,15 @@ not listed in the groups file, will not appear in this list.
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt -r}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-r</></TERM><LISTITEM><PARA>
 
 Path is flushed.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><REPLACEABLE>command names</></TERM><LISTITEM><PARA>
+
+These are looked up one by one via the PATH environment variable,
+and results are stored into internal quick-access hash table.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2061,21 +2158,35 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt homedirectory user}
+<CMDSYNOPSIS>
+ <COMMAND>homedirectory <REPLACEABLE>user</></>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Found home directory, side-effect is printing of that
+directory into stdout, whence it may be captured into
+e.g. some variable.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>2</TERM><LISTITEM><PARA>
 
-Error.
+Error, no such user.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>3</TERM><LISTITEM><PARA>
+
+Error, some temporary lookup failure.
+Also sets '$defer' variable.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>64</TERM><LISTITEM><PARA>
+
+Usage error, wrong number of arguments.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2089,8 +2200,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Prints the home directory of the specified 
-user account.
+Prints the home directory of the specified user account.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2104,8 +2214,9 @@ user account.
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt host object-reference}
+<CMDSYNOPSIS>
+ <COMMAND>host <REPLACEABLE>object-reference</></>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -2743,19 +2854,20 @@ none
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt recase [-u \verb/|/ -l \verb/|/ -p] string}
+<CMDSYNOPSIS>
+ <COMMAND>recase [-u | -l | -p] string</>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 Error.
 
@@ -2767,17 +2879,17 @@ Error.
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt -u}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>-u</TERM><LISTITEM><PARA>
 
 Convert into uppercase.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -l}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>-l</TERM><LISTITEM><PARA>
 
 Convert into lowercase.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt -p}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>-p</TERM><LISTITEM><PARA>
 
 Prettify.
 
@@ -3232,7 +3344,7 @@ appends ``.pag'' and ``.dir'' to each file.
 
 The old ATT DBM library with even worse limitations than <OPTION>ndbm</> has.
 Avoid if you can.  (ZMailer can manage with this also, each lookup is done
-by opening the DB, and closing immediately after wards.)
+by opening the DB, and closing immediately afterwards.)
 
 </PARA><PARA>
 
@@ -3466,25 +3578,36 @@ This command is synonymous to the <LINK LINKEND="zmshref.cdr"><CITETITLE>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt return lisp-object}
+<CMDSYNOPSIS>
+ <COMMAND>return <REPLACEABLE>lisp-object</></>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt lisp-object}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>lisp-object</TERM><LISTITEM><PARA>
 
-String contains a not ASCII digit character.    
-(Returns a pointer to {\tt varcell}'s string.)
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt statusp}</TERM><LISTITEM><PARA>
-
-ASCII digit character. (Returns numeric value.)
+The argument lisp-object contains a non ASCII digit character, or is
+a complex lisp-object.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt NULL}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>string</TERM><LISTITEM><PARA>
+
+The argument lisp-object contains a non ASCII digit character, and is
+a simple string-object.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>statuscode</TERM><LISTITEM><PARA>
+
+The argument lisp-object contains a all ASCII digit characters, and is
+a simple string-object.
+</PARA><PARA>
+
+FIXME: Compare with ``returns'' below.
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>NULL</TERM><LISTITEM><PARA>
 
 Invalid lisp-object.
 
@@ -3500,7 +3623,16 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none  
+The system has weird dichtomy on returning numeric vs. other results.
+</PARA><PARA>
+
+Presume a function call with two different possible results,
+failure indication, and successfull (arbitrary) string result:
+<SCREEN>
+  tmp=$(funcnnn args..) && returns $tmp
+  return $tmp  # error code return!
+</SCREEN>
+
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -3515,20 +3647,18 @@ none
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
-{\tt returns lisp-object}
+<CMDSYNOPSIS>
+ <COMMAND>returns <REPLACEABLE>lisp-object</></>
+</CMDSYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt string}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>lisp-object</TERM><LISTITEM><PARA>
 
-
-
-</PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt lisp-object}</TERM><LISTITEM><PARA>
-
-
+This one will always return the lisp object without
+interpreting possible string value to be numeric return code.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -3542,7 +3672,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none
+See notes of ``<EMPHASIS>return</>'' above.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -3595,7 +3725,7 @@ called by the {\tt process} function.
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 
 
