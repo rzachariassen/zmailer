@@ -479,6 +479,13 @@ but still want to support incoming DSN. (That is, not to disable DSN!)
 This allows full customization of the initial greeting message.
 For details, see the sample configuration below.
 .RE
+.IP "PARAM contact-pointer-message ...."
+.RS
+This is a final message for many SMTP rejects.  By default, it's value is
+.B "\"Ask HELP for our contact information.\""
+You may want to put here, e.g., a pointer to a web page with local policy.
+See example in the sample configuration below.
+.RE
 .IP "PARAM help ...."
 .RS
 This allows adding locally relevant data into the SMTP protocol
@@ -715,6 +722,8 @@ PARAM  enable-router
 #
 #PARAM hdr220 %H ZMailer ESMTP-server %V running at Yoyodyne Inc.
 #PARAM hdr220 %H (NO UCE)(NO UBE) our local time is now %T
+#
+PARAM contact-pointer-message See http://www.yoyodyne.com/mailpolicy.html
 #
 PARAM help ------------------------------------------------------
 PARAM help  This mail-server is at Yoyodyne Propulsion Inc.

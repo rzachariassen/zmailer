@@ -1,3 +1,45 @@
+2004-03-31  Matti Aarnio  <mea@zmailer.org>
+
+	* router/libdb/gdbm.c:
+	    Urgh, folks have repeatedly told me that this gdbm
+	    interface leaks fds like no tomorrow..  I finally
+	    tried it myself, and it was ... most educative.
+	    Looks like sip->dbprivate datablock introduction
+	    code mutation was never completed.
+
+	* router/libdb/ndbm.c:
+	    Did same code mutation as gdbm.c has, and completed it
+	    all in one go..  (testing needs e.g. Solaris to see
+	    that ndbm compiles, and works..)
+
+	* libsh/isterminal.c, libsh/execute.c, libsh/sslwalter.c,
+	  include/libz.h:
+	    New  z_isterminal(fd)  function.  If it yields false,
+	    execute.c will cry out missing external program with
+	    LOG_EMERG level message.
+
+	* configure.in:
+	    AC_HEADER_CHECK(termios.h)
+
+2004-03-19  Matti Aarnio  <mea@zmailer.org>
+
+	* TODO, lib/sleepycatdb.c:
+	    Add some markers for RPC access mode; work to be done...
+
+	* packaging/rpm/README-RPM, packaging/rpm/zmailer.spec:
+	    Xose Vazquez  sent some updates.
+
+	* proto/cf/fqdnalias.cf, proto/cf/p-routes.cf:
+	    Differentiate route lookup (especially for DEFAULT)
+	    in between 'sender' and 'recipient' modes.
+
+	* man/smtpserver.8.in, proto/smtpserver.conf.in,
+	  smtpserver/cfgread.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h:
+	    Contact-pointer message tunability feature into
+	    smtpserver from Eugene Crosser.
+
+
 2004-03-11  Matti Aarnio  <mea@zmailer.org>
 
 	* utils/makedb/makedb.c, utils/makedb/dblook.c, lib/sleepycatdb.c,

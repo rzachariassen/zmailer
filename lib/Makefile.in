@@ -28,7 +28,7 @@ OBJS=	esyslib.o stringlib.o rfc822date.o detach.o \
 	emalloc.o cfgets.o selfaddrs.o skip821address.o \
 	taspoolid.o strlower.o strupper.o pjwhash32.o crc32.o \
 	parseintv.o zgetifaddress.o zgetbindaddr.o sleepycatdb.o \
-	zshmmibattach.o   fdstatfs.o
+	zshmmibattach.o   fdstatfs.o isterminal.o
 SOURCE=	esyslib.c stringlib.c rfc822date.c detach.c \
 	killprev.c linebuffer.c loginit.c die.c zmclib.c \
 	ranny.c trusted.c allocate.c prversion.c \
@@ -37,7 +37,7 @@ SOURCE=	esyslib.c stringlib.c rfc822date.c detach.c \
 	emalloc.c cfgets.c selfaddrs.c skip821address.c \
 	taspoolid.c strlower.c strupper.c pjwhash32.c crc32.c \
 	parseintv.c zgetifaddress.c zgetbindaddr.c sleepycatdb.c \
-	zshmmibattach.c  fdstatfs.c 
+	zshmmibattach.c  fdstatfs.c isterminal.c
 
 all $(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a
 

@@ -592,6 +592,9 @@
 /* Have found TCP-Wrapper tcpd.h header file. */
 #undef HAVE_TCPD_H
 
+/* Define to 1 if you have the <termios.h> header file. */
+#undef HAVE_TERMIOS_H
+
 /* Timezone offset variable 'timezone' exists */
 #undef HAVE_TIMEZONE
 

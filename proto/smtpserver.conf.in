@@ -116,6 +116,10 @@ PARAM   no-multiline-replies    # except to EHLO (Bloody M$ RFC821/AppE violator
 # "EHLO is to be done blindly, server responses are not to be studied for
 #  any possible 'ESMTP' keyword!"
 #
+# Final message for SMTP rejects.  You can put a pointer to your policy
+# web page or such things.
+#PARAM contact-pointer-message Ask HELP for our contact information.
+#
 #PARAM help =============================================================
 #PARAM help  This mail-server is at Yoyodyne Propulsion Inc.
 #PARAM help  Our telephone number is: +1-234-567-8900, and

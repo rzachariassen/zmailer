@@ -134,6 +134,15 @@ static int readsleepycfg(prv)
 	    }
 	    continue;
 	  }
+#if defined(DB_RPCCLIENT)
+	  /* Some things are needed for this:
+	     http://www.sleepycat.com/docs/api_c/env_set_rpc_server.html
+	  */
+	  if (CISTREQ(cmd, "rpc-server")) {
+	  }
+	  if (CISTREQ(cmd, "rpc-cl-timeout")) {
+	  }
+#endif
 #if   defined(HAVE_DB3) || defined(HAVE_DB4)
 	    if (CISTREQ(cmd,"envhome")) {
 	    if (ZSE.envhome) free((void*)ZSE.envhome);

@@ -272,6 +272,7 @@ int lmtp_mode = 0;	/* A sort-of RFC 2033 LMTP mode ;
 int detect_incorrect_tls_use;
 int force_rcpt_notify_never;
 
+const char *contact_pointer_message="Ask HELP for our contact information.";
 
 #define LSOCKTYPE_SMTP 0
 #define LSOCKTYPE_SSMTP 1
@@ -1385,7 +1386,8 @@ char **argv;
 		  
 		  if (childcnt > MaxParallelConnections) {
 		    type(&SS, -450, NULL, "Too many simultaneous connections to this server (%d max %d)", childcnt, MaxParallelConnections);
-		    type(&SS,  450, NULL, "Come again later");
+		    type(&SS, -450, NULL, "Come again later");
+		    type(&SS,  450, NULL, contact_pointer_message);
 		    typeflush(&SS);
 		    MIBMtaEntry->ss.MaxParallelConnections ++;
 		    close(0); close(1); close(2);
@@ -1400,7 +1402,8 @@ char **argv;
 		  }
 		  if (sameipcount > MaxSameIpSource && sameipcount > 1) {
 		    type(&SS, -450, NULL, "Too many simultaneous connections from same IP address (%d max %d)", sameipcount, MaxSameIpSource);
-		    type(&SS,  450, NULL, "Come again later");
+		    type(&SS, -450, NULL, "Come again later");
+		    type(&SS,  450, NULL, contact_pointer_message);
 		    typeflush(&SS);
 		    MIBMtaEntry->ss.MaxSameIpSourceCloses ++;
 		    close(0); close(1); close(2);
@@ -2175,12 +2178,13 @@ int insecure;
 	       SS->myhostname);
 	}
 	type(SS, -550, NULL, "If you feel we mistreat you, do contact us.");
-	type(SS, 550, NULL, "Ask HELP for our contact information.");
+	type(SS, 550, NULL, contact_pointer_message);
     } else if ((maxsameip >= 0) && (SS->sameipcount > maxsameip)) {
 	smtp_tarpit(SS);
 	type(SS, -450, NULL, "%s - Too many simultaneous connections from this IP address (%li of %li)",
 	       SS->myhostname, SS->sameipcount, maxsameip);
-	type(SS,  450, NULL, "Come again later");
+	type(SS, -450, NULL, "Come again later");
+	type(SS,  450, NULL, contact_pointer_message);
 	MIBMtaEntry->ss.MaxSameIpSourceCloses ++;
     } else
 #ifdef USE_TRANSLATION
@@ -2392,7 +2396,7 @@ int insecure;
 	    SS->carp->cmd != Quit && SS->carp->cmd != Help) {
 	  smtp_tarpit(SS);
 	  type(SS, -400, "4.7.0", "Policy database problem, code=%d", policystatus);
-	  type(SS,  400, "4.7.0", "With 'HELP' command you can get our contact information.");
+	  type(SS,  400, "4.7.0", contact_pointer_message);
 	  typeflush(SS);
 	  zsyslog((LOG_EMERG, "smtpserver policy database problem, code: %d", policystatus));
 	  sleep(20);
@@ -2402,7 +2406,7 @@ int insecure;
 	    smtp_tarpit(SS);
 	    type(SS, -550, NULL, "You are on our reject-IP-address -list, GO AWAY!");
 	    type(SS, -550, NULL, "If you feel we mistreat you, do contact us.");
-	    type(SS, 550, NULL, "With 'HELP' command you can get out contact information.");
+	    type(SS, 550, NULL, contact_pointer_message);
 	    typeflush(SS);
 	    continue;
 	}

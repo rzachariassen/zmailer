@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2004
  */
 
 /* LINTLIBRARY */
@@ -23,45 +23,91 @@
 #include "libc.h"
 #include "libsh.h"
 
-static DBM * open_ndbm __((search_info *, int, const char *));
-static DBM *
-open_ndbm(sip, flag, comment)
+typedef struct ZNdbmPrivate {
+  DBM	*db;
+  int    roflag;
+  time_t stmtime;
+  long   stino;
+  int    stnlink;
+} ZNdbmPrivate;
+
+static ZNdbmPrivate * open_ndbm __((search_info *, int, const char *));
+static ZNdbmPrivate *
+open_ndbm(sip, roflag, comment)
 	search_info *sip;
-	int flag;
+	int roflag;
 	const char *comment;
 {
-	DBM *db = NULL;
-	struct spblk *spl;
-	spkey_t symid;
-	int i;
+	ZNdbmPrivate *prv;
+	int i, flag;
 
-	if (sip->file == NULL)		return NULL;
+	if (sip->file == NULL)
+		return NULL;
 
-	symid = symbol_db(sip->file, spt_files->symbols);
-	spl = sp_lookup(symid, spt_files);
-	if (spl != NULL && flag == O_RDWR && spl->mark != O_RDWR)
-		close_ndbm(sip,"open_ndbm");
-	if (spl == NULL || (db = (DBM *)spl->data) == NULL) {
+	prv = (ZGdbmPrivate*) sip->dbprivate;
+
+	if (prv && roflag == O_RDWR && roflag != prv->roflag)
+	  close_ndbm(sip,"open_ndbm");
+
+	if (roflag == O_RDWR)	flag = O_RDWR;
+	else			flag = O_RDONLY;
+
+	prv = (ZGdbmPrivate*) sip->dbprivate;
+
+	if (!prv || !prv->db) {
+
+		DBM *db = NULL;
+
+		if (!prv) {
+		  prv = malloc(sizeof(*prv));
+		  if (!prv) return NULL;
+		  memset(prv, 0, sizeof(*prv));
+		  sip->dbprivate = (void*)prv;
+		}
+
 		for (i = 0; i < 3; ++i) {
-		  db = dbm_open(sip->file, flag, 0);
+		  db = dbm_open(sip->file, 0, flag);
 		  if (db != NULL)
 		    break;
 		  sleep(1);
 		}
 
-		if (db == NULL) {
-			++deferit;
-			v_set(DEFER, DEFER_IO_ERROR);
-			fprintf(stderr, "%s: cannot open %s!\n",
-					comment, sip->file);
-			return NULL;
+		if (db) {
+		  prv->db     = db;
+		  prv->roflag = roflag;
 		}
-		if (spl == NULL)
-			sp_install(symid, (void *)db, flag, spt_files);
-		else
-			spl->data = (void *)db;
+
+		if (db == NULL) {
+		  ++deferit;
+		  v_set(DEFER, DEFER_IO_ERROR);
+		  fprintf(stderr, "%s: cannot open %s!\n",
+			  comment, sip->file);
+		  return NULL;
+		}
 	}
-	return db;
+	return prv;
+}
+
+/*
+ * Flush buffered information from this database,
+ * close any file descriptors, free private data.
+ */
+
+void
+close_ndbm(sip,comment)
+	search_info *sip;
+	const char *comment;
+{
+	ZNdbmPrivate *prv;
+
+	prv = (ZGdbmPrivate*) sip->dbprivate;
+
+	if (prv == NULL) return;
+
+	if (prv->db)
+	  dbm_close(prv->db);
+
+	prv->db = NULL;
 }
 
 /*
@@ -73,6 +119,7 @@ search_ndbm(sip)
 	search_info *sip;
 {
 	DBM *db;
+	ZNdbmPrivate *prv;
 	datum val, key;
 	int retry;
 
@@ -80,9 +127,10 @@ search_ndbm(sip)
 
 reopen:
 
-	db = open_ndbm(sip, O_RDONLY, "search_ndbm");
-	if (db == NULL)
+	prv = open_ndbm(sip, O_RDONLY, "search_ndbm");
+	if (prv == NULL || prv->db == NULL)
 	  return NULL; /* Failed :-( */
+	db = prv->db;
 
 	key.dptr  = (void*) sip->key; /* Sigh.. the cast.. */
 	key.dsize = strlen(sip->key) + 1;
@@ -107,33 +155,6 @@ reopen:
 }
 
 /*
- * Flush buffered information from this database, close any file descriptors.
- */
-
-void
-close_ndbm(sip,comment)
-	search_info *sip;
-	const char *comment;
-{
-	DBM *db;
-	struct spblk *spl;
-	spkey_t symid;
-
-	if (sip->file == NULL)
-		return;
-	symid = symbol_db(sip->file, spt_files->symbols);
-	spl = sp_lookup(symid, spt_modcheck);
-	if (spl != NULL)
-		sp_delete(spl, spt_modcheck);
-	spl = sp_lookup(symid, spt_files);
-	if (spl == NULL || (db = (DBM *)spl->data) == NULL)
-		return;
-	dbm_close(db);
-	sp_delete(spl, spt_files);
-	symbol_free_db(sip->file, spt_files->symbols);
-}
-
-/*
  * Add the indicated key/value pair to the database.
  */
 
@@ -142,12 +163,15 @@ add_ndbm(sip, value)
 	search_info *sip;
 	const char *value;
 {
+	ZNdbmPrivate *prv;
 	DBM *db;
 	datum val, key;
 
-	db = open_ndbm(sip, O_RDWR, "add_ndbm");
-	if (db == NULL)
+	prv = open_ndbm(sip, O_RDWR, "add_ndbm");
+	if (prv == NULL || prv->db == NULL)
 		return EOF;
+
+	db = prv->db;
 
 	key.dptr  = (void*) sip->key;	/* Sigh.. the cast.. */
 	key.dsize = strlen(sip->key) + 1;
@@ -171,12 +195,15 @@ int
 remove_ndbm(sip)
 	search_info *sip;
 {
+	ZNdbmPrivate *prv;
 	DBM *db;
 	datum key;
 
-	db = open_ndbm(sip, O_RDWR, "remove_ndbm");
-	if (db == NULL)
+	prv = open_ndbm(sip, O_RDWR, "remove_ndbm");
+	if (prv == NULL || prv->db == NULL)
 		return EOF;
+
+	db = prv->db;
 
 	key.dptr  = (void*) sip->key;	/* Sigh.. the cast.. */
 	key.dsize = strlen(sip->key) + 1;
@@ -199,14 +226,18 @@ print_ndbm(sip, outfp)
 	search_info *sip;
 	FILE *outfp;
 {
+	ZNdbmPrivate *prv;
 	DBM *db;
 	datum key, val;
 
-	db = open_ndbm(sip, O_RDONLY, "print_ndbm");
-	if (db == NULL)
+	prv = open_ndbm(sip, O_RDONLY, "print_ndbm");
+	if (prv == NULL || prv->db == NULL)
 		return;
 
+	db = prv->db;
+
 	for (key = dbm_firstkey(db); key.dptr != NULL; key = dbm_nextkey(db)) {
+
 		val = dbm_fetch(db, key);
 		if (val.dptr == NULL)
 			continue;
@@ -234,12 +265,15 @@ count_ndbm(sip, outfp)
 	search_info *sip;
 	FILE *outfp;
 {
-	DBM *db;
-	datum key;
-	int cnt = 0;
+	ZNdbmPrivate *prv;
 
-	db = open_ndbm(sip, O_RDONLY, "count_ndbm");
-	if (db != NULL)
+	prv = open_ndbm(sip, O_RDONLY, "count_ndbm");
+	if (prv != NULL && prv->db != NULL) {
+
+	  DBM *db = prv->db;
+	  datum key;
+	  int cnt = 0;
+
 	  for (key = dbm_firstkey(db);
 	       key.dptr != NULL;
 	       key = dbm_nextkey(db)) {
@@ -251,7 +285,9 @@ count_ndbm(sip, outfp)
 	      break;
 #endif
 	    ++cnt;
+	  }
 	}
+
 	fprintf(outfp,"%d\n",cnt);
 	fflush(outfp);
 }
@@ -267,15 +303,15 @@ owner_ndbm(sip, outfp)
 	search_info *sip;
 	FILE *outfp;
 {
-	DBM *db;
+	ZNdbmPrivate *prv;
 	struct stat stbuf;
 
-	db = open_ndbm(sip, O_RDONLY, "owner_ndbm");
-	if (db == NULL)
+	prv = open_ndbm(sip, O_RDONLY, "owner_ndbm");
+	if (prv == NULL || prv->db == NULL)
 		return;
 	/* There are more timing hazards, when the internal fd is not
 	   available for probing.. */
-	if (fstat(dbm_pagfno(db), &stbuf) < 0) {
+	if (fstat(dbm_pagfno(prv->db), &stbuf) < 0) {
 		fprintf(stderr, "owner_ndbm: cannot fstat(\"%s\")!\n",
 				sip->file);
 		return;
@@ -288,17 +324,17 @@ int
 modp_ndbm(sip)
 	search_info *sip;
 {
-	DBM *db;
+	ZNdbmPrivate *prv;
 	struct stat stbuf;
 	struct spblk *spl;
 	spkey_t symid;
 	int rval;
 
-	db = open_ndbm(sip, O_RDONLY, "owner_ndbm");
-	if (db == NULL)
+	prv = open_ndbm(sip, O_RDONLY, "owner_ndbm");
+	if (prv == NULL || prv->db == NULL)
 		return 0;
 
-	if (fstat(dbm_pagfno(db), &stbuf) < 0) {
+	if (fstat(dbm_pagfno(prv->db), &stbuf) < 0) {
 		fprintf(stderr, "modp_ndbm: cannot fstat(\"%s\")!\n",
 			sip->file);
 		return 0;
@@ -306,15 +342,15 @@ modp_ndbm(sip)
 	if (stbuf.st_nlink == 0)
 		return 1;	/* Unlinked underneath of us! */
 
-	symid = symbol_db(sip->file, spt_files->symbols);
-	spl = sp_lookup(symid, spt_modcheck);
-	if (spl != NULL) {
-		rval = ((long)stbuf.st_mtime != (long)spl->data ||
-			(long)stbuf.st_nlink != (long)spl->mark);
-	} else
-		rval = 0;
-	sp_install(symid, (u_char *)((long)stbuf.st_mtime),
-		   stbuf.st_nlink, spt_modcheck);
+
+	rval = ( (stbuf.st_mtime != prv->stmtime) ||
+		 (stbuf.st_nlink != prv->stnlink) ||
+		 (stbuf.st_ino   != prv->stino) );
+
+	prv->stmtime = stbuf.st_mtime;
+	prv->stnlink = stbuf.st_nlink;
+	prv->stino   = stbuf.st_ino;
+
 	return rval;
 }
 #endif	/* HAVE_NDBM */

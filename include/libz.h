@@ -229,3 +229,5 @@ extern long Z_SHM_FileSysFreeSpace __((void)); /* in KILOBYTES */
 extern long used_fd_statfs __((int fd));
 extern long free_fd_statfs __((int fd));
 
+/* isterminal.c */
+extern int z_isterminal __((const int fd));

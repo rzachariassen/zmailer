@@ -19,6 +19,9 @@
 #include "mailer.h"
 #include "zmsignal.h"
 
+#include "zsyslog.h"
+extern int z_isterminal __((const int fd));
+
 /* #define static
   #define register */
 #define RUNIO(X)	(/*fprintf(runiofp, "runio(%s,%d)\n", __FILE__, __LINE__), */runio(&X))
@@ -494,6 +497,8 @@ execute(c, caller, oretcode, name)
 		if (!nofork && c->undoio)
 			RUNIO(c->undoio);
 		fprintf(stderr, "%s: %s\n", av[0], NOT_FOUND);
+		if (!z_isterminal(0))
+		  zsyslog((LOG_EMERG, "zmailer: interpreter: cmd not found: %s", av[0]));
 		if (!nofork)
 			_exit(1);
 		SIGNAL_HANDLE(SIGTERM, oterm_handler);

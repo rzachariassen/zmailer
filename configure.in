@@ -581,7 +581,7 @@ AC_C_CONST
 AC_HEADER_STDC
 
 # Timezones are always a pain in... everybody has their own ways :-(
-AC_CHECK_HEADERS(sys/time.h)
+AC_CHECK_HEADERS(sys/time.h termios.h)
 AC_HEADER_TIME
 AC_STRUCT_TIMEZONE
 AC_STRUCT_TM

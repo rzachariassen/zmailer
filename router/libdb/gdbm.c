@@ -9,7 +9,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2004
  */
 
 /* LINTLIBRARY */
@@ -36,6 +36,7 @@ struct __gdbmfoo {
 
 #include <fcntl.h>
 #include <sys/file.h>
+#include <time.h>
 
 #include "libsh.h"
 #include "search.h"
@@ -50,7 +51,10 @@ extern int nobody;	/* UID of NOBODY */
 
 typedef struct ZGdbmPrivate {
   GDBM_FILE db;
-  int roflag;
+  int    roflag;
+  time_t stmtime;
+  long   stino;
+  int    stnlink;
 } ZGdbmPrivate;
 
 
@@ -80,35 +84,57 @@ open_gdbm(sip, roflag, comment)
 
 		GDBM_FILE db = NULL;
 
-		prv = malloc(sizeof(*prv));
-		if (!prv) return NULL;
-		memset(prv, 0, sizeof(*prv));
+		if (!prv) {
+		  prv = malloc(sizeof(*prv));
+		  if (!prv) return NULL;
+		  memset(prv, 0, sizeof(*prv));
+		  sip->dbprivate = (void*)prv;
+		}
 
 		for (i = 0; i < 3; ++i) {
 		  db = gdbm_open((void*)sip->file, 0, flag, 0, NULL);
 		  if (db != NULL)
 		    break;
-		  free(prv);
-		  prv = NULL;
 		  sleep(1);
 		}
 
-		if (prv) {
+		if (db) {
 		  prv->db     = db;
 		  prv->roflag = roflag;
 		}
 
 		if (db == NULL) {
-			++deferit;
-			v_set(DEFER, DEFER_IO_ERROR);
-			fprintf(stderr, "%s: cannot open %s!\n",
-					comment, sip->file);
-			return NULL;
+		  ++deferit;
+		  v_set(DEFER, DEFER_IO_ERROR);
+		  fprintf(stderr, "%s: cannot open %s!\n",
+			  comment, sip->file);
+		  return NULL;
 		}
-
-		sip->dbprivate = (void*)prv;
 	}
 	return prv;
+}
+
+/*
+ * Flush buffered information from this database,
+ * close any file descriptors, free private data.
+ */
+
+void
+close_gdbm(sip,comment)
+	search_info *sip;
+	const char *comment;
+{
+	ZGdbmPrivate *prv;
+
+	prv = (ZGdbmPrivate*) sip->dbprivate;
+
+	if (!sip->file || !prv)
+		return;
+
+	if (prv->db)
+	  gdbm_close(prv->db);
+
+	prv->db = NULL;
 }
 
 
@@ -156,35 +182,6 @@ reopen:
 	free(val.dptr);
 	return tmp;
 }
-
-/*
- * Flush buffered information from this database, close any file descriptors.
- */
-
-void
-close_gdbm(sip,comment)
-	search_info *sip;
-	const char *comment;
-{
-	GDBM_FILE db;
-	struct spblk *spl;
-	spkey_t symid;
-
-	if (sip->file == NULL)
-		return;
-	symid = symbol_db(sip->file, spt_files->symbols);
-	if ((spkey_t)0 == symid)
-		return;
-	spl = sp_lookup(symid, spt_modcheck);
-	if (spl != NULL)
-		sp_delete(spl, spt_modcheck);
-	spl = sp_lookup(symid, spt_files);
-	if (spl == NULL || (db = (GDBM_FILE)spl->data) == NULL)
-		return;
-	gdbm_close(db);
-	sp_delete(spl, spt_files);
-}
-
 
 /*
  * Add the indicated key/value pair to the database.
@@ -369,8 +366,6 @@ modp_gdbm(sip)
 	GDBM_FILE db;
 	int	fno;
 	struct stat stbuf;
-	struct spblk *spl;
-	spkey_t symid;
 	int rval;
 	ZGdbmPrivate *prv;
 
@@ -388,16 +383,14 @@ modp_gdbm(sip)
 	if (stbuf.st_nlink == 0)
 		return 1;	/* Unlinked underneath of us! */
 
-	symid = symbol_db(sip->file, spt_files->symbols);
-	spl   = sp_lookup(symid, spt_modcheck);
-	if (spl != NULL) {
-		rval = stbuf.st_mtime != (time_t)spl->data
-			|| (long)stbuf.st_nlink != (long)spl->mark
-			|| stbuf.st_nlink == 0;
-	} else
-		rval = 0;
-	sp_install(symid, (u_char *)stbuf.st_mtime,
-			  stbuf.st_nlink, spt_modcheck);
+	rval = ( (stbuf.st_mtime != prv->stmtime) ||
+		 (stbuf.st_nlink != prv->stnlink) ||
+		 (stbuf.st_ino   != prv->stino)   );
+
+	prv->stmtime = stbuf.st_mtime;
+	prv->stnlink = stbuf.st_nlink;
+	prv->stino   = stbuf.st_ino;
+
 	return rval;
 }
 #endif	/* HAVE_GDBM */

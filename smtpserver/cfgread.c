@@ -165,6 +165,12 @@ static void cfparam(str, size, cfgfilename, linenum)
       SASL_Auth_Mechanisms = strdup(str);
       return;
     }
+    if (cistrcmp(name, "contact-pointer-message") == 0) {
+      param2 = strchr(str, '\n');
+      if (param2) *param2 = 0;
+      contact_pointer_message = strdup(str);
+      return;
+    }
 
     /* Do '$' expansions on the string */
     dollarexpand((unsigned char *)str, size - (str - str0));

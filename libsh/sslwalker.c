@@ -34,7 +34,7 @@ STATIC u_int	outlen, outsize;
 
 struct smallSymbol shsymbol[CHARSETSIZE];
 
-struct kwdefn {
+static struct kwdefn {
 	const char *name;
 	Keyword	    kw;
 } kwlist[] = {	/* most used first order */

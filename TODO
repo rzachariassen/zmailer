@@ -5,6 +5,11 @@ Known/suspected bugs/Missing Features on current ZMailer sources
 contrib/zmailcheck  -script   vs.  mailq output ?
 	Fix the first, or both.
 
+sleepycat db integration:
+   - Support RPC client mode!
+     - Observe new error modes to creep up everywhere!
+     - Documentation speaks of 'CLIENT*' structure, which
+       is  <rpc/clnt.h>
 
 smtp-ta: TLS mode demands a bit too much of remote server's certificates..
 	 How to relax it more ?

@@ -21,8 +21,8 @@ Summary(pt_BR): Servidor de e-mail para demandas extremas de performance e segur
 Summary(es): Agente de entrega de correo seguro para demandas de rendimiento extremas.
 Name: zmailer
 Version: 2.99.56
-Release: 12
-License: Free/Open Source Licenses, see %{_defaultdocdir}/%{name}-%{version}/README.LICENSES
+Release: 13
+License: Free/Open Source Licenses, see %{_defaultdocdir}/%{name}-%{version}/README
 Group: System Environment/Daemons
 Provides: MTA smtpd smtpdaemon %{_bindir}/newaliases %{_bindir}/mailq %{_bindir}/rmail %{_bindir}/vacation %{_sbindir}/sendmail
 Packager: Xose Vazquez Perez <http://www.zmailer.org/buglog.html>
@@ -367,7 +367,7 @@ rm -rf %{_builddir}/%{name}-%{version}
 %attr(2700,root,root) %{_Zpostoffdir}/TLSclntcache
 %attr(2700,root,root) %{_Zpostoffdir}/TLSsrvrcache
 
-%doc README.LICENSES LICENSES
+%doc LICENSES LICENSES/README
 
 # ##################
 # doc package files
@@ -386,12 +386,15 @@ rm -rf %{_builddir}/%{name}-%{version}
 %{_Zincludedir}/zmailer.h
 %{_mandir}/man3
 
-%doc README.LICENSES LICENSES
+%doc LICENSES LICENSES/README
 
 # ##################
 # changelog
 
 %changelog
+* Thu Jan 29 2004 Xose Vazquez <xose@wanadoo.es> 2.99.56-13
+
+- README.LICENSES does not exist out of CVS releases.
 
 * Fri Nov  7 2003 Xose Vazquez <xose@wanadoo.es> 2.99.56-12
 

@@ -45,8 +45,8 @@ B. gzip the resulting zmailer-{version}.tar file
 
 	# rpmbuild -ba /usr/src/redhat_or_rpm/SPECS/zmailer.spec
   
-   If you need more features like ssl, ldap, sasl2, ipv6, tcpw,
-   whoson or yp. It is necesary to add "--with <feature>" at rpm 
+   If you need more features (like ssl, ldap, sasl2, ipv6, tcpw,
+   whoson or yp), it is necessary to add "--with <feature>" at rpm 
    command line build: e.g. --with ssl --with ldap --with ...
 
    You can add "--target arch-os" to get binary files more
