@@ -1,3 +1,25 @@
+2003-03-05  Matti Aarnio  <mea@zmailer.org>
+
+	* include/mailer.h, router/rfc822.c, router/rfc822hdrs.c,
+	  router/rtsyslog.c, lib/taspoolid.c, router/prototypes.h,
+	  smtpserver/smtpserver.c:
+	    - Generate file  taspoolid  at message envelope
+	      parse time into  'struct envelope',  and pass it
+	      around instead of generating it at multiple times.
+	    - In  Received:  header, former   id <spoolid>   is
+	      now changed to:   id spoolid  (without angle-brackets)
+	    - Message-id generation uses now taspoolid value
+	      as one component of its formulation.
+	    - explicitely constified some constant data.
+
+	* router/functions.c:
+	    Comment away dead declarations.
+
+	* proto/smtpserver.conf.in:
+	    Comment away the default  PARAM help  text where
+	    "Yoyodyne Propulsion" is mentioned as system
+	    owner...   People don't edit those...
+
 2003-02-28  Matti Aarnio  <mea@zmailer.org>
 
 	* proto/cf/standard.cf, router/libdb/header.c:
