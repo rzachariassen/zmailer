@@ -4224,9 +4224,9 @@ getmxrr(SS, host, mx, maxmx, depth)
 	arcount = ntohs(hp->arcount);
 
 	if (SS->verboselog)
-	  fprintf(SS->verboselog, "DNS lookup reply: len=%d rcode=%d qdcount=%d ancount=%d nscount=%d arcount=%d RD=%d TC=%d AA=%d QR=%d CD=%d AD=%d RA=%d\n",
+	  fprintf(SS->verboselog, "DNS lookup reply: len=%d rcode=%d qdcount=%d ancount=%d nscount=%d arcount=%d RD=%d TC=%d AA=%d QR=%d RA=%d\n",
 		  n, hp->rcode, qdcount, ancount, nscount, arcount,
-		  hp->rd, hp->tc, hp->aa, hp->qr, hp->cd, hp->ad, hp->ra);
+		  hp->rd, hp->tc, hp->aa, hp->qr, hp->ra);
 
 	if (hp->rcode != NOERROR || ancount == 0) {
 	  switch (hp->rcode) {

@@ -1,5 +1,10 @@
 2000-07-17  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    Oops.. Solaris 2.6 --with-bundled-libresolv  does not
+	    know about BIND 8 resolver's AD and CD bits.  Don't use
+	    them.
+
 	* Makefile.in:
 	    Version 2.99.53
 
