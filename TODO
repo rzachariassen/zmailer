@@ -108,7 +108,6 @@ transports/smtp:
 	E.g. go to use of A in this case only if WKS checking is enabled.
 		Conditionalized on non-usage of -W option
 		Works ? (20000314)
-
    BUG?
 	Bad interaction with scheduler in some instances.  If e.g.
 	message goes to retry because MAIL FROM or some RCPT TO

@@ -3362,7 +3362,7 @@ find_return_receipt_hdr (rp)
     const char **ptr, *hdr;
 
     for (ptr = *((const char ***)rp->newmsgheader); *ptr != NULL; ptr++) {
-        if (cistrncmp(*ptr, "Return-Receipt-To:", 18) == 0)
+        if (CISTREQN(*ptr, "Return-Receipt-To:", 18))
             break;
     }
 

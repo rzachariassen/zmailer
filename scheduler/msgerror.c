@@ -433,7 +433,7 @@ reporterrs(cfpi, delayreports)
 	int i, n, wroteheader, byteidx, headeridx = -1, drptidx, fd;
 	int *lp;
 	time_t tstamp;
-	char *midbuf, *cp, *cp2, *action, *eaddr;
+	char *cp, *cp2, *action, *eaddr;
 	char *deliveryform;
 	Sfio_t *errfp, *fp;
 	char *notary;
@@ -441,7 +441,7 @@ reporterrs(cfpi, delayreports)
 	char *envid;
 	int notarycnt = 0;
 	int notaryspc = 0;
-	struct ctlfile *cfp;
+	struct ctlfile *cfp = NULL;
 	char *rcpntpointer;
 	int no_error_report = 0;
 	int has_errors = 0;
@@ -455,10 +455,16 @@ reporterrs(cfpi, delayreports)
 			      4:EXPANDED */
 	ACTSETENUM thisaction;
 
-	if (cfpi->haderror == 0)
-		return;
-	if (cfpi->erroraddr == NULL)
-		return;
+	if (cfpi->haderror == 0) {
+	  if (verbose > 1)
+	    sfprintf(sfstdout, "reporterrs: No errors! bailing out!\n");
+	  return;
+	}
+	if (cfpi->erroraddr == NULL) {
+	  if (verbose)
+	    sfprintf(sfstdout, "reporterrs: No error address! bailing out!\n");
+	  return;
+	}
 	no_error_report = cfpi->iserrmesg;
 
 	taspoolid(spoolid, cfpi->mtime, cfpi->id);
@@ -466,8 +472,6 @@ reporterrs(cfpi, delayreports)
 	eaddr        = cfpi->erroraddr;
 	deliveryform = cfpi->deliveryform;
 	envid        = cfpi->envid;
-	/* re-read the control file to get some unstashed information */
-	midbuf       = cfpi->mid;
 
 	/* exclusive access required, but we're the only scheduler... */
 	if (cfpi->dirind > 0)
@@ -487,8 +491,6 @@ reporterrs(cfpi, delayreports)
 	}
 	lp = &cfp->offset[0];
 	mypid = getpid();
-	if (cfp->mid) free(cfp->mid);
-	cfp->mid = midbuf; /* This is the original one! */
 	wroteheader = 0;
 	lastoffset = cfp->offset[cfp->nlines-1];
 	format = 0L;
@@ -589,7 +591,7 @@ reporterrs(cfpi, delayreports)
 	    rcpntpointer += _CFTAG_RCPTDELAYSIZE;
 
 	  if (do_syslog)
-	    zsyslog((LOG_INFO, "%s: <%s>: %s", cfp->mid, rcpntpointer, cp));
+	    zsyslog((LOG_INFO, "%s: <%s>: %s", cfpi->mid, rcpntpointer, cp));
 
 	  if (notary != NULL && *notary != 0) {
 	    if (!notaries) {
@@ -706,8 +708,11 @@ reporterrs(cfpi, delayreports)
 
 	if (notaries == NULL) {
 	  /* Oops!  No recipients on which to report anything ?! */
+
+	  if (verbose)
+	    sfprintf(sfstdout, "No reports! bailing out!\n");
+
 	  close(cfp->fd);
-	  cfp->mid = NULL; /* we don't want to loose the original one! */
 	  free_cfp_memory(cfp);
 	  return;
 	}
@@ -728,6 +733,10 @@ reporterrs(cfpi, delayreports)
 	  free((void*)notaries);
 	  close(cfp->fd);
 	  free_cfp_memory(cfp);
+
+	  if (verbose > 1)
+	    sfprintf(sfstdout, "reporterrs: No reports! bailing out!\n");
+
 	  return;
 	}
 
@@ -983,7 +992,6 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	else
 	  sfmail_close(errfp);	/* XX: check for error */
 	close(cfp->fd);
-	cfp->mid = NULL; /* we don't want to loose the original one! */
 	free_cfp_memory(cfp);
 }
 
