@@ -1,6 +1,7 @@
 2004-04-12  Matti Aarnio  <mea@zmailer.org>
 
-	* include/libz.h, transports/mailbox/mailbox.c:
+	* include/libz.h, transports/mailbox/mailbox.c,
+	  transports/mailbox/mboxpath.c:
 	    Match prototypes of crc32() and pjwhash32() properly..
 
 	* router/daemonsub.c, router/functions.c, router/prototypes.h:

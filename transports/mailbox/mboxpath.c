@@ -81,9 +81,6 @@ static void mkhashpath(s, uname)
      char *s;
      const char *uname;
 {
-	extern long pjwhash32 __((const char *));
-	extern long crc32     __((const char *));
-
 	if (crchashes) {
 	  int h = crc32(uname);
 	  switch (crchashes) {
