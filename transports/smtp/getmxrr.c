@@ -715,7 +715,6 @@ int main(argc, argv)
 	int c, rc;
 	SmtpState SS;
 	char *host, *s;
-	struct mxdata mx[100];
 
 	progname = argv[0];
 
@@ -730,7 +729,7 @@ int main(argc, argv)
 	}
 
 
-	rc = getmxrr(&SS, host, mx, 100, 0);
+	rc = getmxrr(&SS, host, SS.mxh, MAXFORWARDERS, 0);
 
 	switch (rc) {
 	case EX_OK:
@@ -786,7 +785,69 @@ int main(argc, argv)
 	printf("getmxrr() rc=%d %s\n", rc, s);
 	printf("     mxcount=%d\n", SS.mxcount);
 
-	return 0;
-}
+
+	if (SS.mxcount == 0 || SS.mxh[0].host == NULL) {
+
+	  struct addrinfo req, *ai, **aip;
+
+	  memset(&req, 0, sizeof(req));
+	  req.ai_socktype = SOCK_STREAM;
+	  req.ai_protocol = IPPROTO_TCP;
+	  req.ai_flags    = AI_CANONNAME;
+	  req.ai_family   = PF_INET;
+
+	  ai = NULL;
+
+	  errno = 0;
+	  /* Either forbidden MX usage, or does not have MX entries! */
+
+#if !GETADDRINFODEBUG
+	  r = getaddrinfo(host, "smtp", &req, &ai);
+#else
+	  r = _getaddrinfo_(host, "smtp", &req, &ai, SS->verboselog);
+
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog,"getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",host,r,ai);
+#endif
+#if defined(AF_INET6) && defined(INET6)
+	  if (use_ipv6) {
+	    struct addrinfo *ai2 = NULL, *a;
+	    int i2;
+
+	    memset(&req, 0, sizeof(req));
+	    req.ai_socktype = SOCK_STREAM;
+	    req.ai_protocol = IPPROTO_TCP;
+	    req.ai_flags    = AI_CANONNAME;
+	    req.ai_family   = PF_INET6;
+
+	    /* This resolves CNAME, it should not happen in case
+	       of MX server, though..    */
+#if !GETADDRINFODEBUG
+	    i2 = getaddrinfo(host, "0", &req, &ai2);
+#else
+	    i2 = _getaddrinfo_(host, "0", &req, &ai2, SS->verboselog);
+	    if (SS->verboselog)
+	      fprintf(SS->verboselog,
+		      "  getaddrinfo('%s','smtp') -> r=%d, ai=%p\n",
+		      host,i2,ai2);
+#endif
+
+	    if (r != 0 && i2 == 0) {
+	      /* IPv6 address, no IPv4 (or error..) */
+	      r = i2;
+	      ai = ai2; ai2 = NULL;
+	    }
+	    if (ai2 && ai) {
+	      /* BOTH ?!  Catenate them! */
+	      aip = &(ai->ai_next);
+	      while (*aip) aip = &((*aip)->ai_next);
+	      *aip = ai2;
+	    }
+	  }
+#endif
+
+
+	  return 0;
+	}
 
 #endif
