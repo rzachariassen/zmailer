@@ -375,7 +375,7 @@ static void subdaemon_trk_checksigusr1(state)
 
 	    if (r[i].spl != NULL) {
 	      ip4key = r[i].spl->key;
-	      sprintf(buf, "%u.%u.%u.%u\t",
+	      sprintf(buf, "%u.%u.%u.%u",
 		      (ip4key >> 24) & 255,  (ip4key >> 16) & 255,
 		      (ip4key >>  8) & 255,   ip4key & 255 );
 	      fprintf(fp, "%-16s", buf);
@@ -456,7 +456,7 @@ dump_trk(state, peerdata)
 
 	    if (r[i].spl != NULL) {
 	      ip4key = r[i].spl->key;
-	      sprintf(buf, "%u.%u.%u.%u\t",
+	      sprintf(buf, "%u.%u.%u.%u",
 		      (ip4key >> 24) & 255,  (ip4key >> 16) & 255,
 		      (ip4key >>  8) & 255,   ip4key & 255 );
 	      fprintf(fp, "200- %-16s", buf);
@@ -937,6 +937,7 @@ smtp_report_ip(SS, ip)
 	void *statep;
 	unsigned char ipaddr[16];
 	int addrtype = 4;
+	FILE *logfp_orig = logfp;
 
 	/* type(NULL,0,NULL,"smtp_report_ip() ip='%s'",ip); */
 
@@ -1023,6 +1024,8 @@ smtp_report_ip(SS, ip)
 	  break;
 	}
 
+	logfp = NULL; /* Temporarily DO NOT DUMP OUTPUT DATA! */
+
 	if (rc2 && rc1)
 	  type(SS, -rc1, NULL, "%s", buf1+4);
 	if (!rc2 && rc1)
@@ -1032,6 +1035,10 @@ smtp_report_ip(SS, ip)
 
 	if (!rc1 && !rc2)
 	  type(SS, 450, NULL, "No reply from tracking subsystem");
+
+	logfp = logfp_orig;
+
+	type(NULL,0,NULL,"Reported %d lines", (rc1 != 0) + (rc2 != 0));
 
 	discard_subdaemon_trk( statep );
 
@@ -1045,8 +1052,11 @@ smtp_report_dump(SS)
 {
 	char buf1[900];
 	char *s;
-	int rc;
+	int rc, lines = 1;
 	void *statep;
+	FILE *logfp_orig = logfp;
+
+	logfp = NULL; /* Temporarily DO NOT DUMP OUTPUT DATA! */
 
 	/* type(NULL,0,NULL,"smtp_report_dump()"); */
 
@@ -1085,10 +1095,13 @@ smtp_report_dump(SS)
 	    break; /* failure.. */
 	  
 	  s = strchr(buf1,'\n'); if (s) *s = 0;
-
+	  ++lines;
 	}
 
 	discard_subdaemon_trk( statep );
+	type(NULL,0,NULL, "Output %d lines", lines);
+
+	logfp = logfp_orig;
 
 	return 0;
 }

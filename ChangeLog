@@ -1,3 +1,9 @@
+2004-04-30  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/subdaemon-trk.c:
+	    - Tiny format fixes
+	    - Don't log Z-REPORT replies into smtpserver log file.
+
 2004-04-28  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/subdaemon-ctf.c,
