@@ -275,7 +275,7 @@ NOBODY=nobody
 #LOGLEVEL=	"file: recipient:"
 LOGLEVEL=	"deferred: file: header_defer:"
 
-#<VAR><NAME>NNTPSERVER></NAME><DESC>
+#<VAR><NAME>NNTPSERVER</NAME><DESC>
 # Builtin USENET channel uses  NNTPSERVER variable (depending upon your
 # inews ..) to send the artickle to..
 #</DESC></VAR>

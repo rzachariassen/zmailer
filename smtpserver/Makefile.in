@@ -35,14 +35,16 @@ OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o \
 		policytest.o cfgread.o smtpdata.o smtpcmds.o smtphelp.o \
 		smtprouter.o smtpchild.o mxverify.o contentpolicy.o     \
 		smtpauth.o zpwmatch.o smtptls.o zpwmatch-pipe.o smtpetrn.o \
-		wantconn.o subdaemons.o
+		wantconn.o subdaemons.o subdaemon-rtr.o subdaemon-trk.o \
+		subdaemon-ctf.o
 # loadaver.o
 
 SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c \
 		policytest.c  cfgread.c smtpdata.c smtpcmds.c smtphelp.c \
 		smtprouter.c smtpchild.c mxverify.c contentpolicy.c	 \
 		smtpauth.c zpwmatch.c smtptls.c zpwmatch-pipe.c smtpetrn.c \
-		wantconn.c subdaemons.c
+		wantconn.c subdaemons.c subdaemon-rtr.c subdaemon-trk.c \
+		subdaemon-ctf.c
 # loadaver.c
 
 # Compile & install time: 'make privateauth="private/"'

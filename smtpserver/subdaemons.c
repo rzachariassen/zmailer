@@ -18,6 +18,8 @@
 
 #include "smtpserver.h"
 
+static int subdaemon_nofiles = 32;
+
 int  ratetracker_rdz_fd  [2] = {-1, -1};
 int  ratetracker_server_pid  = 0;
 
@@ -27,22 +29,8 @@ int  router_server_pid       = 0;
 int  contentfilter_rdz_fd[2] = {-1, -1};
 int  contentfilter_server_pid = 0;
 
-struct peerdata {
-	int  fd;
-	int  inlen;
-	int  outlen, outptr;
-	char inpbuf[2000];
-	char outbuf[5000];
-};
 
-static int subdaemon_nofiles = 32;
-
-
-static int subdaemon_handler_rtr __((struct peerdata *, void**));
-static int subdaemon_handler_trk __((struct peerdata *, void**));
-static int subdaemon_handler_ctf __((struct peerdata *, void**));
-
-static int subdaemon_loop __((int, int (*subdaemonhandler)(struct peerdata *, void **) ));
+static int subdaemon_loop __((int, struct subdaemon_handler *));
 
 int subdaemons_init __((void))
 {
@@ -64,7 +52,7 @@ int subdaemons_init __((void))
 
 	    fdpass_to_child_fds(to, from);
 
-	    subdaemon_loop(0, subdaemon_handler_trk);
+	    subdaemon_loop(0, & subdaemon_handler_ratetracker);
 
 	    sleep(10);
 	    exit(0);
@@ -84,7 +72,7 @@ int subdaemons_init __((void))
 
 	    fdpass_to_child_fds(to, from);
 
-	    subdaemon_loop(0, subdaemon_handler_rtr);
+	    subdaemon_loop(0, & subdaemon_handler_router);
 
 	    sleep(10);
 	    exit(0);
@@ -104,7 +92,7 @@ int subdaemons_init __((void))
 
 	    fdpass_to_child_fds(to, from);
 
-	    subdaemon_loop(0, subdaemon_handler_ctf);
+	    subdaemon_loop(0, & subdaemon_handler_contentfilter);
 
 	    sleep(10);
 	    exit(0);
@@ -118,11 +106,11 @@ int subdaemons_init __((void))
 
 int subdaemon_loop(rendezvous_socket, subdaemon_handler)
      int rendezvous_socket;
-     int (*subdaemon_handler)__((struct peerdata *, void **));
+     struct subdaemon_handler *subdaemon_handler;
 {
 	int n, rc;
 	struct peerdata *peers, *peer;
-	void *statep;
+	void *statep = NULL;
 	int ppid, myparent = getppid();
 	int top_peer = 0, topfd, newfd;
 
@@ -142,6 +130,9 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	  peers[n].fd = -1;
 
 	fd_nonblockingmode(rendezvous_socket);
+
+	rc = (subdaemon_handler->init)( & statep );
+
 
 	for (;;) {
 
@@ -174,9 +165,15 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    }
 	  }
 
+	  rc = (subdaemon_handler->preselect)( & statep, & rdset, & wrset, &topfd );
+
+
 	  rc = select( topfd+1, &rdset, &wrset, NULL, &tv );
 
 	  if (rc > 0) { /* Things have been read or written.. */
+
+
+	    rc = (subdaemon_handler->postselect)( & statep, & rdset, & wrset );
 
 	    /* The rendezvous socket ?? */
 
@@ -200,8 +197,8 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    /* We write our greeting right away .. semi fake state! */
 		    _Z_FD_SET(peer->fd, wrset);
 
-		    strcpy(peer->outbuf, "000 HELLO\n");
-		    peer->outlen = 10;
+		    strcpy(peer->outbuf, "#hungry\n");
+		    peer->outlen = 8;
 		    newfd = -1;
 		  }
 		}
@@ -243,7 +240,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		if (_Z_FD_ISSET(peer->fd, rdset)) {
 		  for (;;) {
 		    rc = read( peer->fd, peer->inpbuf + peer->inlen,
-			      sizeof(peer->inpbuf) - peer->inlen );
+			       sizeof(peer->inpbuf) - peer->inlen );
 		    if ((rc < 0) && (errno == EINTR))
 		      continue; /* try again */
 		    break;
@@ -257,7 +254,16 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		  if (rc > 0) {
 		    peer->inlen += rc;
 		    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
-		      rc = (subdaemon_handler)( peer, & statep );
+		      rc = (subdaemon_handler->input)( peer, statep );
+		      if (rc > 0) {
+			/* XOFF .. busy right now, come back again.. */
+		      } else if (rc == 0) {
+			/* XON .. give me more jobs */
+		      } else {
+			/* Xnone .. ??
+			   Can't handle ?? */
+		      }
+		      peer->inlen = 0;
 		    }
 		  }
 
@@ -268,43 +274,6 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	  } /* readability or writeability detected */
 
 	} /* ... for(;;) ... */
-
-	return -1;
-}
-
-
-static int
-subdaemon_handler_rtr (peerdata, state)
-     struct peerdata *peerdata;
-     void **state;
-{
-	int i;
-
-	peerdata->inlen = 0;
-
-	return -1;
-}
-
-static int
-subdaemon_handler_trk (peerdata, state)
-     struct peerdata *peerdata;
-     void **state;
-{
-	int i;
-
-	peerdata->inlen = 0;
-
-	return -1;
-}
-
-static int
-subdaemon_handler_ctf (peerdata, state)
-     struct peerdata *peerdata;
-     void **state;
-{
-	int i;
-
-	peerdata->inlen = 0;
 
 	return -1;
 }

@@ -627,4 +627,33 @@ extern int  fd_blockingmode __((int fd));
 extern void fd_restoremode __((int fd, int mode));
 
 /* subdaemons.c */
-int subdaemons_init __((void));
+extern int subdaemons_init __((void));
+
+extern int  ratetracker_rdz_fd  [2];
+extern int  ratetracker_server_pid;
+
+extern int  router_rdz_fd       [2];
+extern int  router_server_pid;
+
+extern int  contentfilter_rdz_fd[2];
+extern int  contentfilter_server_pid;
+
+
+struct peerdata {
+	int  fd;
+	int  inlen;
+	int  outlen, outptr;
+	char inpbuf[2000];
+	char outbuf[5000];
+};
+
+struct subdaemon_handler {
+	int (*init)__((void **));
+	int (*input)__((struct peerdata *, void *));
+	int (*preselect)__((void *state, fd_set *rdset, fd_set *wrset, int *topfd));
+	int (*postselect)__((void *state, fd_set *rdset, fd_set *wrset));
+};
+
+extern struct subdaemon_handler subdaemon_handler_router;
+extern struct subdaemon_handler subdaemon_handler_ratetracker;
+extern struct subdaemon_handler subdaemon_handler_contentfilter;
