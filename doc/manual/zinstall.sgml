@@ -19,6 +19,10 @@ for more information.</PARA></TIP>
 
 </PARTINTRO>
 
+
+<!-- ############################################################### -->
+
+
 <CHAPTER><?dbhtml filename="zins-buildinstall.html">
 <TITLE>Build and Install</TITLE>
 <SECT1 ID="build.environment"><TITLE>Environment Issues</>
@@ -48,8 +52,43 @@ yield replies for repeated questions.</EMPHASIS>
 You may also choose to use ``<APPLICATION>whoson</>'' services provided by
 a utility package at ``<FILENAME CLASS="DIRECTORY">contrib/</>'' subdirectory.
 If you do, then do install that before configuring and installing the ZMailer.
+(More on section <XREF LINKEND="installing-whoson-service">.)
 </PARA>
+
+<PARA>
+You may also want to support any of following facilities by pre-installing
+them into your system (before compiling and installing ZMailer, that is):
+<ITEMIZEDLIST>
+  <LISTITEM>
+    <PARA>
+      OpenSSL for in- and outbound encrypted SMTP sessions
+    </PARA>
+  </LISTITEM>
+  <LISTITEM>
+    <PARA>
+      TCP-Wrapper
+    </PARA>
+  </LISTITEM>
+  <LISTITEM>
+    <PARA>
+      LDAP client library
+    </PARA>
+  </LISTITEM>
+  <LISTITEM>
+    <PARA>
+      Private replacement libary for  getpwnam(), and/or
+      for  zgetpwnam()
+    </PARA>
+  </LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
+
+<PARA>
+</PARA>
+
 </SECT1>
+
+<!-- ############################################################### -->
 
 <SECT1 ID="build.autoconfiguration"><TITLE>Autoconfiguration</TITLE>
 
@@ -185,6 +224,13 @@ Additional examples:
   <PROMPT>$ </><USERINPUT>./configure &dd;prefix=/opt/mail &dd;with-gcc</>
 </SCREEN></PARA></LISTITEM>
 
+<LISTITEM><PARA>Sun Solaris 8  at marsu.funet.fi, gcc-2.95.2 (egcs-1.1.2)
+<SCREEN>
+  <PROMPT>$ </><USERINPUT>'CC='gcc' CFLAGS='-g -O'  ./configure  \</>
+       <USERINPUT>&dd;prefix=/opt/mail &dd;with-ipv6     \</> 
+       <USERINPUT>&dd;with-zconfig=/opt/mail/zmailer.conf</>
+</SCREEN></PARA></LISTITEM>
+
 <LISTITEM><PARA>Linux-2.0.x/libc-5.4.2 at mea.cc.utu.fi, gcc-2.7.2
 <SCREEN>
   <PROMPT>$ </><USERINPUT>./configure &dd;prefix=/l/mail</>
@@ -192,6 +238,9 @@ Additional examples:
 </ITEMIZEDLIST>
 </PARA>
 </SECT1>
+
+<!-- ############################################################### -->
+
 
 <SECT1><TITLE>Compilation</>
 
@@ -222,6 +271,8 @@ touched at this point.
 </PARA>
 
 </SECT1>
+
+<!-- ############################################################### -->
 
 <SECT1><TITLE>Installing and Upgrading</TITLE>
 
@@ -294,61 +345,43 @@ points to ZMailer's ``<COMMAND>sendmail</>.''
      <INDEXTERM><PRIMARY>installation</><secondary>entire ZMailer</></> -->
 
 <PARA>
-Once you are safe, run either:
+Once you are safe, run:
 <SCREEN>
   <PROMPT># </><USERINPUT>make install</>
+  <PROMPT># </><USERINPUT>$MAILBIN/post-install -MD5</>
 </SCREEN>
-(this installs all binaries and the default database files, which
-still need editing! See below.)
-or if you just want to have the new <EMPHASIS>binaries</> without touching
-at your configurations:
-<SCREEN>
-  <PROMPT># </><USERINPUT>make install-bin</>
-</SCREEN>
-however this method might not be a complete success in case boilerplate
-configurations need to be updated as well to match the programs.
+<EMPHASIS>(Substitute <USERINPUT>$MAILBIN</> with the path where your
+binaries go)</EMPHASIS>
+</PARA>
+
+<PARA>
+This installs all binaries and the default configuration and database files,
+as well as creates <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
+directories.   The configurations will still need editing! See below.
+</PARA>
+
+<PARA>
+The <COMMAND>post-install</> handles important activity in tracking the
+base versions of configuration files by storing MD5 checksums of original
+files with <FILENAME>.md5</> suffix tagged to them into their original
+location (<FILENAME CLASS=DIRECTORY>proto/</> subdirectories).
+This way when sysadmin changes something, the new run of
+<COMMAND>post-install</> will detect the changes and not write over such
+file.
 </PARA>
 
 <PARA>
 There exists also a way to do the installation into a ``parallel universe''
 by means of install-time ``prefix'' environment variable:
 <SCREEN>
-  <PROMPT># </><USERINPUT>prefix=/var/tmp/build make install-bin</>
+  <PROMPT># </><USERINPUT>make install prefix=/var/tmp/build</>
 </SCREEN>
-which of course expects to have ``<FILENAME>/var/tmp/build/</>'' directory in existence,
-and possibly some others under it, but you will soon see, what it needs.
+which of course expects to have ``<FILENAME>/var/tmp/build/</>'' directory
+in existence, and possibly some others under it, but you will soon see, what
+it needs.  (But <COMMAND>post-install</> does not support that, and so
+it needs to be used at the last stage of packaged ZMailer's installation)
 </PARA>
 
-
-<IMPORTANT>
-<PARA>FIXME! FIXME! (Update with POST-INSTALL.SH program!)</PARA>
-<PARA>
-All programs are stored into
-<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/</>, and
-<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILBIN</>/ta/</>, and
-possible older binaries are saved into ``<FILENAME CLASS="DIRECTORY">bak/</>''
-subdirectories.
-This step should be non-destructive (anything replaced will be
-saved in a ``<FILENAME CLASS="DIRECTORY">bak/</>'' directory,
-and <EMPHASIS>for some customizable files, if they exist, new versions
-won't replace them</EMPHASIS>).
-</PARA>
-
-<PARA>
-If this is not a from-scratch installation, be aware that the install
-procedure will <EMPHASIS>not</> replace some of the files in
-<FILENAME CLASS="DIRECTORY">$<VARNAME>MAILSHARE</>/</> with the equivalents
-from the distribution.
-Specifically, the <FILENAME>$<VARNAME>MAILSHARE</>/cf/*</>,
-<FILENAME>$<VARNAME>MAILVAR</>/db/aliases</>,
-<FILENAME>$<VARNAME>MAILVAR</>/db/routes</>, and
-<FILENAME>$<VARNAME>MAILVAR</>/db/localnames</>
-files are never replaced if they already exist.
-The <FILENAME>$<VARNAME>MAILSHARE</>/forms/*</> files are always replaced,
-but the old files will be saved in a ``<FILENAME CLASS="DIRECTORY">bak/</>''
-directory.
-</PARA>
-</IMPORTANT>
 </SECT2>
 
 <SECT2><TITLE>Installing the Manual Pages.</TITLE>
@@ -358,45 +391,25 @@ directory.
 <PARA>
 Because for a long time the installation location of ZMailer's man-pages
 has not had an obvious destination location, normal ``make install''
-does <EMPHASIS>not</> install them!
+run at the top-level does <EMPHASIS>not</> install them!
 </PARA>
 
 <PARA>
 Go into the <FILENAME CLASS="DIRECTORY">man/</> directory,
 and install the manual pages by hand:
 <SCREEN>
-  <PROMPT># </><USERINPUT>cd man ; make install</>
+  <PROMPT># </><USERINPUT>cd man</>
+  <PROMPT># </><USERINPUT>make</>
+</SCREEN>
+This will tell what you can order it doing, and what is the default for
+<VARNAME>MANDIR</> is at the moment.  If the default is right:
+<SCREEN>
+  <PROMPT># </><USERINPUT>make install</>
 </SCREEN>
 or in case the default guessing didn't get it right:
 <SCREEN>
-  <PROMPT># </><USERINPUT>cd man ; make install MANDIR=/our/manpages</>
+  <PROMPT># </><USERINPUT>make install MANDIR=/our/manpages</>
 </SCREEN>
-</PARA>
-
-</SECT2>
-
-<SECT2><TITLE>The Router Configuration File (<FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>).</>
-<!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</><TERTIARY>router configuration; <FILENAME>router.cf</></></>
-     <INDEXTERM><PRIMARY><FILENAME>router.cf</>; router configuration</><SECONDARY>config</></> -->
-
-<PARA>
-You must now pick a toplevel router configuration file.
-The default is provided in <FILENAME>proto/cf/SMTP+UUCP.cf</>
-(by now copied to <FILENAME>$<VARNAME>MAILSHARE</>/cf/SMTP+UUCP.cf</>).
-</PARA>
-
-<PARA>
-You need to create <FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>.
-</PARA>
-
-<PARA>
-The simplest method is to make it symbolic link to, or copy of,
-the <FILENAME>cf/SMTP+UUCP.cf</> file.
-</PARA>
-
-<PARA>
-Some real-life samples of <FILENAME>router.cf</> are at
-the <FILENAME>proto/</> directory in the source tree.
 </PARA>
 
 </SECT2>
@@ -407,6 +420,8 @@ the <FILENAME>proto/</> directory in the source tree.
 <TITLE>System Configuring</>
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</></>
      <INDEXTERM><PRIMARY>configuration</><SECONDARY>basic ZMailer installation</></> -->
+
+<!-- ############################################################### -->
 
 <SECT1><TITLE>Runtime files</TITLE>
 <PARA>
@@ -438,8 +453,8 @@ The usual <EMPHASIS>minimal</> set is: <LITERAL>root,daemon,uucp</>.
 <EMPHASIS>must not</> contain <LITERAL>nobody</>!
 </PARA><PARA>
 The <LITERAL>nobody</> is used to prevent externally given inputs from being
-able to execute arbitary programs at the system, or from writing to
-arbitary files.</PARA></WARNING>
+able to execute arbitrary programs at the system, or from writing to
+arbitrary files.</PARA></WARNING>
 
 </SECT2>
 
@@ -453,19 +468,47 @@ mailq   174/tcp  # Mailer transport queue
 </SCREEN>
 Indeed this isn't <EMPHASIS>quite</> mandatory, as the <COMMAND>scheduler</>
 subsystem can be configured to use different ipc socket.
-FIXME: Reference to scheduler.conf:PARAM entries!
+See more about this at Scheduler's PARAM enties: <XREF LINKEND="scheduler.param.entries">.
+</PARA>
+
+</SECT2>
+</SECT1>
+
+<!-- ############################################################### -->
+
+<SECT1><TITLE>The Router subsystem</TITLE>
+
+<SECT2><TITLE>The Router Configuration File (<FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>).</>
+<!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</><TERTIARY>router configuration; <FILENAME>router.cf</></></>
+     <INDEXTERM><PRIMARY><FILENAME>router.cf</>; router configuration</><SECONDARY>config</></> -->
+
+<PARA>
+You must now pick a toplevel router configuration file.
+The default is provided in <FILENAME>proto/cf/SMTP.cf(.in)</>.
+(The <COMMAND>post-install</> places it into
+ <FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>).
+</PARA>
+
+<PARA>
+You need to <EMPHASIS>verify</> <FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>.
+</PARA>
+
+<PARA>
+Some real-life samples of <FILENAME>router.cf</> are at
+the <FILENAME>proto/</> directory in the source tree.
 </PARA>
 
 </SECT2>
 
-<SECT2><TITLE><FILENAME>/etc/mail.conf</></>
-<!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</><TERTIARY><FILENAME>/etc/mail.conf</></></>
-     <INDEXTERM><PRIMARY><FILENAME>/etc/mail.conf</>-file</></> -->
+
+<SECT2><TITLE><FILENAME>$<VARNAME>MAILVAR</>/mail.conf</></>
+<!-- <INDEXTERM><PRIMARY>build</><SECONDARY>config</><TERTIARY><FILENAME>$<VARNAME>MAILVAR</>/mail.conf</></></>
+     <INDEXTERM><PRIMARY><FILENAME>$<VARNAME>MAILVAR</>/mail.conf</>-file</></> -->
 
 <PARA>
 If you are using the default configuration setup, the <FILENAME>router.cf</>
-file expects to find a <FILENAME>/etc/mail.conf</> file containing three
-variable definitions:
+file expects to find a <FILENAME>$<VARNAME>MAILVAR</>/mail.conf</> file
+containing three variable definitions:
 <SCREEN>
   # Where am I?
   orgdomain=domain
@@ -486,140 +529,27 @@ For example:
 </PARA>
 
 <PARA>
-Create <FILENAME>/etc/mail.conf</> with appropriate contents.
-If you are a multi-host site, determining these things can be
-automated according to your local policies and conventions.
-See the files specific to the University of Toronto
-(<FILENAME>UT*.cf</>) for examples of this.
+Create <FILENAME>$<VARNAME>MAILVAR</>/mail.conf</> with appropriate contents.
+If you are a multi-host site, determining these things can be automated
+according to your local policies and conventions.  See the files specific
+to the University of Toronto (<FILENAME>UT*.cf</>) for examples of this.
 </PARA>
 
 <PARA>
 Location of this file is written in
 <FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>.
-By editing that entry you can alter it &mdash; into
-<FILENAME>$<VARNAME>MAILSHARE</>/mail.conf</>,
-for example.
+By editing that entry you can alter it.
 </PARA>
 
 <CAUTION>
 <PARA>
 Note that ``hostname='' entry above <EMPHASIS>is not alone sufficient</>
 for getting the system to know all of the domains it should consider
-as local.  See below about <FILENAME>localnames</> database.}
+as local.  See below about <FILENAME>localnames</> database.
 </PARA>
 </CAUTION>
 
 </SECT2>
-</SECT1>
-
-<SECT1><TITLE>The Smtpserver subsystem</TITLE>
-
-<PARA>
-The <COMMAND>smtpserver</> implements RFC-821 server along with lots
-of latter extensions.
-</PARA>
-
-<PARA>
-Configurable subsystems are:
-<ITEMIZEDLIST>
-<LISTITEM><PARA>
-Generic server parametrization with ``<FILENAME>smtpserver.conf</>'' file.
-</PARA></LISTITEM>
-<LISTITEM><PARA>
-Relaying policy control via ``<FILENAME>smtp-policy</>'' database.
-</PARA></LISTITEM>
-<LISTITEM><PARA>
-Optional PAM authentication framework for SMTP AUTH extension.
-</PARA></LISTITEM>
-</ITEMIZEDLIST>
-</PARA>
-
-<SECT2><TITLE>The ``<FILENAME>smtpserver.conf</>'', and smtp-policy databases</>
-<!-- <INDEXTERM><PRIMARY>smtpserver</><SECONDARY><FILENAME>smtpserver.conf</>-file</></> -->
-
-<PARA>
-These take care of such a things as preventing relay-hijack type
-of abuse of your system.
-</PARA>
-
-<PARA>
-Basically you want to install the boilerplates and the tool scripts,
-edit them a bit, and run <COMMAND>policy-builder.sh</> script.
-For further details on this, see chapter
-<XREF LINKEND="adm.smtp-policy-filtering">.
-</PARA>
-
-<PARA>
-In <COMMAND>smtpserver</> front you may need to lower the strict standards
-of the basic RFC-821 SMTP protocol and allow acceptance of non-qualified
-addresses &mdash; ones without any sort of domain name in them.
-</PARA>
-
-<PARA>
-Another thing to allow is (sigh) MS-Windows-CE 1.0/2.0 gadgets with
-their totally broken SMTP sending system.
-</PARA>
-
-<PARA>
-Both of these things are handled by ``EHLO-style options'' described
-at chapter <XREF LINKEND="adm.smtpserver.ehlostyle">.
-</PARA>
-
-</SECT2>
-
-<SECT2><TITLE>Testing smtpserver operationality</TITLE>
-<PARA>
-The <COMMAND>smtpserver</> can be tested fully with fairly simple
-method -- as long as input databases are readable by the test runner:
-</PARA>
-
-<SCREEN>
-  <PROMPT>$ </><USERINPUT>$MAILBIN/smtpserver -i -d 1 -T '[1.2.3.4]'</>
-</SCREEN>
-
-<PARA>
-Above the bracketed dotted decimal address literal is source address
-used at policy function testing, and one should vary there systems
-which <EMPHASIS>are</> allowed to relay thru the server, and also
-systems which are not allowed to relay thru the server.
-</PARA>
-
-<PARA>
-Do testing by issuing normal SMTP protocol transactions, and observing
-the results:
-</PARA>
-
-<SCREEN>
- 000- Lots of debug information
- ....
- 220 some greeting
- <USERINPUT>EHLO foobar</>
- 000- Lots of debug information
- ....
- 250-local.host.name Hello foobar
- 250-8BITMIME
- 250-PIPELINING
- ....
- 250 HELP
- <USERINPUT>MAIL FROM:&lt;&gt</>
- 000- Lots of debug information
- ....
- 250 Ok ...
- <USERINPUT>RCPT TO:&lt;user@some.where&gt;</>
- 000- Lots of debug information
- ....
- 250 Ok ...
-</SCREEN>
-
-<PARA>
-If you want to do testing without excessive amount of debug information,
-do leave out ``-d 1'' part of the start arguments.
-</PARA>
-
-</SECT2>
-</SECT1>
-
-<SECT1><TITLE>The Router subsystem</TITLE>
 
 <SECT2><TITLE>Verifying That the Router Starts</TITLE>
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY>router start verify</></>
@@ -670,6 +600,7 @@ and forms files against your previous setup.
 <PARA>
 Pay particular attention to the following items:
 FIXME! FIXME! (changed somewhen from itemized list to subsections, I think)
+<EMPHASIS>$MAILBAR/db/dbases.conf configuration file !!</>
 </PARA>
 
 <SECT3><TITLE><FILENAME>$MAILBIN/zmailer</> script</>
@@ -833,7 +764,7 @@ separate people to be postmasters for each of them as shown at
 
 <PARA>
 It is also possible to shunt all recipient addresses for given domain to
-some arbitary addresses as shown at <XREF LINKEND="fig.inst.fqdnaliases-2">.
+some arbitrary addresses as shown at <XREF LINKEND="fig.inst.fqdnaliases-2">.
 </PARA>
 
 <FIGURE ID="fig.inst.fqdnaliases-2" PGWIDE="1" FLOAT="1">
@@ -922,6 +853,118 @@ you can give command ``<COMMAND>rtrace</>'' before trying to use
 </SECT2>
 </SECT1>
 
+
+<!-- ############################################################### -->
+
+<SECT1><TITLE>The Smtpserver subsystem</TITLE>
+
+<PARA>
+The <COMMAND>smtpserver</> implements RFC-821 server along with lots
+of latter extensions.
+</PARA>
+
+<PARA>
+Configurable subsystems are:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>
+Generic server parametrization with ``<FILENAME>smtpserver.conf</>'' file.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+Relaying policy control via ``<FILENAME>smtp-policy</>'' database.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+Optional PAM authentication framework for SMTP AUTH extension.
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
+
+<SECT2><TITLE>The ``<FILENAME>smtpserver.conf</>'', and smtp-policy databases</>
+<!-- <INDEXTERM><PRIMARY>smtpserver</><SECONDARY><FILENAME>smtpserver.conf</>-file</></> -->
+
+<PARA>
+These take care of such a things as preventing relay-hijack type
+of abuse of your system.
+</PARA>
+
+<PARA>
+Basically you want to install the boilerplates and the tool scripts,
+edit them a bit, and run <COMMAND>policy-builder.sh</> script.
+For further details on this, see chapter
+<XREF LINKEND="adm.smtp-policy-filtering">.
+</PARA>
+
+<PARA>
+In <COMMAND>smtpserver</> front you may need to lower the strict standards
+of the basic RFC-821 SMTP protocol and allow acceptance of non-qualified
+addresses &mdash; ones without any sort of domain name in them.
+</PARA>
+
+<PARA>
+Another thing to allow is (sigh) MS-Windows-CE 1.0/2.0 gadgets with
+their totally broken SMTP sending system.
+</PARA>
+
+<PARA>
+Both of these things are handled by ``EHLO-style options'' described
+at chapter <XREF LINKEND="adm.smtpserver.ehlostyle">.
+</PARA>
+
+</SECT2>
+
+<SECT2><TITLE>Testing smtpserver operationality</TITLE>
+<PARA>
+The <COMMAND>smtpserver</> can be tested fully with fairly simple
+method -- as long as input databases are readable by the test runner:
+</PARA>
+
+<SCREEN>
+  <PROMPT>$ </><USERINPUT>$MAILBIN/smtpserver -i -d 1 -T '[1.2.3.4]'</>
+</SCREEN>
+
+<PARA>
+Above the bracketed dotted decimal address literal is source address
+used at policy function testing, and one should vary there systems
+which <EMPHASIS>are</> allowed to relay thru the server, and also
+systems which are not allowed to relay thru the server.
+</PARA>
+
+<PARA>
+Do testing by issuing normal SMTP protocol transactions, and observing
+the results:
+</PARA>
+
+<SCREEN>
+ 000- Lots of debug information
+ ....
+ 220 some greeting
+ <USERINPUT>EHLO foobar</>
+ 000- Lots of debug information
+ ....
+ 250-local.host.name Hello foobar
+ 250-8BITMIME
+ 250-PIPELINING
+ ....
+ 250 HELP
+ <USERINPUT>MAIL FROM:&lt;&gt</>
+ 000- Lots of debug information
+ ....
+ 250 Ok ...
+ <USERINPUT>RCPT TO:&lt;user@some.where&gt;</>
+ 000- Lots of debug information
+ ....
+ 250 Ok ...
+</SCREEN>
+
+<PARA>
+If you want to do testing without excessive amount of debug information,
+do leave out ``-d 1'' part of the start arguments.
+</PARA>
+
+</SECT2>
+</SECT1>
+
+<!-- ############################################################### -->
+
 <SECT1><TITLE>The Scheduler subsystem</TITLE>
 
 <SECT2><TITLE>Checking the Scheduler</TITLE>
@@ -949,7 +992,7 @@ about tuning the ``<FILENAME>local</>'' channel behaviour.
 <TITLE>Sample of ``<FILENAME>scheduler.conf</>'' passage
 for ``<FILENAME>local/*</>'' selector</TITLE>
 <SCREEN>
-  local/*
+local/*
     interval=5m
     idlemax=9m
     expiry=3d
@@ -1029,6 +1072,8 @@ For more information, see <XREF LINKEND="ref.ta.smconfig">.
 </SECT1>
 
 
+<!-- ############################################################### -->
+
 <SECT1><TITLE>Bootup Scripts</TITLE>
 
 <PARA>
@@ -1055,6 +1100,8 @@ if you have it to begin with.
 
 </SECT1>
 
+<!-- ############################################################### -->
+
 <SECT1><TITLE>Checking the Log Files</>
 
 <PARA>
@@ -1074,6 +1121,8 @@ of resource problems.
 </PARA>
 
 </SECT1>
+
+<!-- ############################################################### -->
 
 <SECT1><TITLE>Crontab</TITLE>
 
@@ -1121,6 +1170,8 @@ You may want to hardwire the location of the zmailer script.
 </PARA>
 </SECT1>
 
+<!-- ############################################################### -->
+
 <SECT1><TITLE>Customizing ZMailer Messages</TITLE>
 
 <PARA>
@@ -1155,6 +1206,8 @@ are more, only the first one is picked.
 
 </SECT1>
 
+<!-- ############################################################### -->
+
 <SECT1><TITLE>Alias expansion</TITLE>
 
 <PARA>
@@ -1165,6 +1218,8 @@ and on mailing list maintenance in <XREF LINKEND="mailing-list-maintenance">,
 
 </SECT1>
 
+
+<!-- ############################################################### -->
 
 <SECT1><TITLE>Trimdown of Logging</TITLE>
 
@@ -1232,6 +1287,8 @@ appropriate for your site.
 This section describes the installation at clients.
 </PARA>
 
+<!-- ############################################################### -->
+
 <SECT1><TITLE>Required Files</TITLE>
 
 <VARIABLELIST TERMLENGTH="99">
@@ -1262,6 +1319,8 @@ This directory from the server should be mounted and writable.
 </VARIABLELIST>
 
 </SECT1>
+
+<!-- ############################################################### -->
 
 <SECT1><TITLE>Mounting <FILENAME>$MAILBOX</>es and/or
 <FILENAME>$POSTOFFICE/</> Hierarchies via NFS</>
@@ -1333,6 +1392,8 @@ The  configure  script has three kinds of parameters for it:
 <LISTITEM><PARA>various  <OPTION>&dd;with-*</>  et.al. options</></>
 </ITEMIZEDLIST>
 
+<!-- ############################################################### -->
+
 <SECT1><TITLE>Used environment variables</TITLE>
 
 <VARIABLELIST TERMLENGTH="99">
@@ -1388,6 +1449,8 @@ Recycled ZENV variables (from $<VARNAME>ZCONFIG</> file):
 </PARA>
 
 </SECT1>
+
+<!-- ############################################################### -->
 
 <SECT1><TITLE>Options for various facilities</TITLE>
 

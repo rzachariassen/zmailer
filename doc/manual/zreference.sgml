@@ -3,73 +3,8 @@
 
 <PARTINTRO>
 <PARA>
-<SCREEN>
-       UNCONVERTED! UNCONVERTED! UNCONVERTED!
-
-%% \chapter{Reference}
-
-This reference section tries to tell all the details of how each
-subsystem parameter affects things, though perhaps without wide
-explanations in every place. The usage examples and elaborations
-are left (mostly) for the Administration part, and in case of
-router scripts, into Appendix A.
-
-%begin{latexonly}
-%
-% Included here are SECTION level files
-%
-
-
-\segment{zref-smtpserver}{section}{SMTP-server}
-
-\clearpage
-%\begin{multicols}{2}
-
-\segment{zref-sendmail}{section}{sendmail}
-\clearpage
-\segment{zref-rmail}{section}{rmail}
-\clearpage
-\segment{zref-zmailer3}{section}{zmailer(3)}
-\clearpage
-\segment{zref-router}{section}{Router}
-\clearpage
-\segment{zref-scheduler}{section}{Scheduler}
-\clearpage
-\segment{zref-transport-agents}{section}{Transport Agents}
-%\end{multicols}
-\clearpage
-\segment{zref-utilities}{section}{Utilities}
-
-
-\cleardoublepage
-%end{latexonly}
-
-\begin{htmlonly}
-
-% \htmladdnormallink{TEXT}{URL}
-% \htmladdnormallink{NAME}{TEXT}{URL}
-
-\begin{itemize}
-\item
-\htmladdnormallink{ZMailer smtpserver}{RSM.html}
-\item
-\htmladdnormallink{/usr/lib/sendmail}{RSE.html}
-\item
-\htmladdnormallink{/usr/bin/rmail}{RRM.html}
-\item
-\htmladdnormallink{zmailer(3) library}{RZL.html}
-\item
-\htmladdnormallink{ZMailer router}{RRT.html}
-\item
-\htmladdnormallink{ZMailer scheduler}{RSC.html}
-\item
-\htmladdnormallink{Writing ZMailer Transport Agents}{RTA.html}
-\item
-\htmladdnormallink{ZMailer Utilities}{RUT.html}
-\end{itemize}
-
-\end{htmlonly}
-</SCREEN>
+Here are <EMPHASIS>reference</> versions of the documentation for
+each subsystem, these go very deep into details.
 </PARA>
 </PARTINTRO>
 

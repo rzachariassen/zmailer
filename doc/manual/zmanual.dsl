@@ -243,10 +243,14 @@
 ;; Default limit level for PRINT mode is 7 ...
 ;;
 
+;; (define (toc-depth nd)
+;;  (if (string=? (gi nd) (normalize "book"))
+;;      7 ;; was '3'
+;;      1))
+
+;; Returns the depth of auto TOC that should be made at the nd-level
 (define (toc-depth nd)
-  (if (string=? (gi nd) (normalize "book"))
-      7 ;; was '3'
-      1))
+  99)
 
 
 (define %hyphenation%
@@ -264,7 +268,8 @@
   ;; Are sections enumerated?
   #t)
 
-(define %generate-part-toc% #t)
+(define %generate-part-toc%
+  #t)
 
 (define %shade-verbatim%
   #t)

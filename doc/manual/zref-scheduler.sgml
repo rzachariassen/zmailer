@@ -211,9 +211,72 @@ the transporters.
 The <EMPHASIS>scheduler</> configuration file consists of a set of clauses. 
 </PARA>
 
+<PARA>
+There are two kinds of clauses:
+<ITEMIZEDLIST>
+  <LISTITEM>
+    <PARA>
+      PARAM-entries
+    </PARA>
+  </LISTITEM>
+  <LISTITEM>
+    <PARA>
+      Group-Clause selections
+    </PARA>
+  </LISTITEM>
+</ITEMIZEDLIST>
+</PARA>
+
+<SECT2 ID="scheduler.param.entries"><TITLE>PARAM-entries</TITLE>
+
+<PARA>
+There are three kinds of PARAM entries:
+<SCREEN>
+#
+# MAILQv2 authentication database file reference:
+# If you define this (like the default is), and the file exists,
+# scheduler mailq interface goes to v2 mode.
+# (Nonexistence of this file  A) leaves system running, B) uses MAILQv1
+#  interface along with its security problems.)
+#
+
+PARAMauthfile = "$MAILSHARE/scheduler.auth"
+
+#PARAMmailqsock = "UNIX:/path/to/mailq.sock"
+#PARAMmailqsock = "TCP:174"
+
+# Time for accumulating diagnostic reports for a given message, before
+# all said diagnostics are reported -- so that reports would carry more
+# than one diagnostic in case of multi-recipient messages.
+#PARAMglobal-report-interval = 15m
+</SCREEN>
+</PARA>
+
+<PARA>
+The <EMPHASIS>PARAMauthfile</> defines Scheduler's MAILQv2 authentication
+file; more at <XREF LINKEND="zref.scheduler.auth.file">.
+</PARA>
+
+<PARA>
+The <EMPHASIS>PARAMmailqsock</> defines non-standard socket for the MAILQv2,
+the default is ``TCP:174'' meaning local host binding on wild-card address,
+and port 174 of TCP.  Other ports and protocols can be set.
+<EMPHASIS>The <COMMAND>mailq</> tool will <EMPHASIS ROLE="BOLD">not</> parse
+ this file to know where to connect.</EMPHASIS>
+</PARA>
+
+<PARA>
+The <EMPHASIS>PARAMglobal-report-interval</> is how often (or infrequently)
+to run the scheduler's subtask of reporting so far accumulated diagnostics.
+Original behaviour was to report diagnostics only when message timed out,
+or last recipient was otherwise disposed of.
+Current method is <EMPHASIS>somewhat</> quicker.
+</PARA>
+
+</SECT2>
 
 
-<SECT2><TITLE>Clause selection</TITLE>
+<SECT2><TITLE>Group-Clause selection</TITLE>
 
 <PARA>
 Each clause is selected by the pattern it starts with.
@@ -594,6 +657,48 @@ Oldest first.
 </VARIABLELIST>
 </PARA>
 
+</SECT1>
+
+<SECT1 ID="zref.scheduler.auth.file"><TITLE><FILENAME>scheduler.auth</> file</TITLE>
+<FIGURE ID="fig.ref.scheduler.auth.file" PGWIDE=1 FLOAT=1>
+<TITLE>Sample of ``<FILENAME>scheduler.auth</FILENAME>'' file</TITLE>
+<SCREEN>
+#
+# APOP-like authentication control file for the ZMailer scheduler.
+#
+# Fields are double-colon (':') separated, and are:
+#   - Username
+#   - PLAINTEXT PASSWORD (which must not have double-colon in it!)
+#   - Enabled attributes (tokens, space separated)
+#   - Addresses in brackets plus netmask widths:  [1.2.3.4]/32
+#
+# Same userid CAN appear multiple times, parsing will pick the first
+# instance of it which has matching IP address set
+#
+# The default-account for 'mailq' is 'nobody' with password 'nobody'.
+# Third field is at the moment a WORK IN PROGRESS!
+#
+# SECURITY NOTE:
+#   OWNER:      root
+#   PROTECTION: 0600
+#
+# Attribute tokens:
+#       ALL     well, a wild-card enabling everything
+#       SNMP    "SHOW SNMP"
+#       QQ      "SHOW QUEUE SHORT"
+#       TT      "SHOW QUEUE THREADS", "SHOW THREAD channel/host"
+#       ETRN    "START THREAD channel host"
+#       KILL    "KILL THREAD channel host", "KILL MSG spoolid"
+#
+# - "nobody" via loopback gets different treatment from
+#   "nobody" from anywhere else.
+#
+nobody:nobody:SNMP QQ TT ETRN:  [127.0.0.0]/8 [ipv6.0::1]/128
+nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0
+#watcher:zzzzz:SNMP QQ TT ETRN: [127.0.0.0]/8 [192.168.0.1]/32
+#root:zzzzzzz:ALL:              [127.0.0.0]/8 [192.168.0.2]/32
+</SCREEN>
+</FIGURE>
 </SECT1>
 
 <SECT1><TITLE>mailq</TITLE>
