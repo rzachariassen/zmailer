@@ -374,7 +374,7 @@ routeuser (quad, domain) {
 	# oh well... give up, and sent to the PUNTHOST
 	if [ -n "$PUNTHOST" ]; then
 		return $(rrouter "$user$plustail"@$PUNTHOST "$host" $attr "" "$domain")
-	else
+	elif [ -n "$didexpand" ]; then
 		case $(expansions "$key") in
 		user|alias)
 			db add expansions "$key" other ;;
