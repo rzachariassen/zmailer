@@ -1073,7 +1073,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	struct cte_data *CTE = NULL;
 	char **hdr;
 	int doing_reopen;
-	int r;
+	int r, once;
 
 	hdr = has_header(startrp,"Content-Type:");
 	if (hdr)
@@ -1105,6 +1105,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	doing_reopen = 0;
 	r = EX_TEMPFAIL;
+
+	once = 2;
 
  re_open:
 
@@ -1277,17 +1279,25 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	  more_rp  = NULL;
 	  more_rpp = NULL;
+
+	  once = 1;
 	}
 
-	if (startrp == NULL || startrp == endrp
-	    || startrp->lockoffset == 0 /* done that.. */
-	    || getout) {
+	/* Scan onwards over possibly processed instances */
+	while (startrp  &&  startrp != endrp  &&  startrp->lockoffset == 0)
+	  startrp = startrp->next;
+
+	if (once < 1 /* No progress ? */
+	    || getout
+	    || startrp == NULL || startrp == endrp) {
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 	  SS->chunkbuf = NULL;
 
 	  return r;
 	}
+
+	--once;
 
 
 	if (SS->smtpfp) {
@@ -4847,15 +4857,15 @@ static void tcpstream_nagle(fd)
 	int i, r;
 	if (fd < 0) return;
 
-#ifdef TCP_CORK
+#ifdef TCP_CORK		/* Linux 2.4 / FreeBSD 5.x ?	*/
 	i = 1;
 	r = setsockopt(fd, SOL_TCP, TCP_CORK, &i, sizeof(i));
 #else
-#ifdef TCP_NOPUSH
+#ifdef TCP_NOPUSH	/* FreeBSD -- relates to T/TCP	*/
 	i = 1;
 	r = setsockopt(fd, SOL_TCP, TCP_NOPUSH, &i, sizeof(i));
 #else
-#ifdef TCP_NODELAY
+#ifdef TCP_NODELAY	/* old original BSD network stack thing */
 	i = 0;
 	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i));
 #else
@@ -4885,7 +4895,8 @@ static void tcpstream_denagle(fd)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */
 #else
 #ifdef TCP_NODELAY
-	i = 1;
+	i = 1;		/* Turning this on DOES NOT FLUSH accumulated
+			   data immediately!  Unlike TCP_CORK at Linux.. */
 	r = setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i));
 	if (r < 0)
 	  sleep(1); /* Fall back to classic timeout based anti-nagle.. */

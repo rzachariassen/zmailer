@@ -1,3 +1,10 @@
+2003-05-23  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/smtp/smtp.c:
+	    Additional "once" counter that breaks the loop, if
+	    other ways don't stop it -- when doing "more recipients"
+	    retry things.
+
 2003-05-22  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, transports/smtp/smtp.h, transports/smtp/smtp.c:
