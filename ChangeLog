@@ -1,5 +1,9 @@
 2000-01-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/libdb/headers.c:
+	    Darn..  Can't just disable "date" from known headers, however
+	    changeing their semantics to 'nilHeaderSemantics' should do it.
+
 	* scheduler/threads.c:
 	    abort() replaced with correct code -- "the thing never to
 	    happen *did* happen"...
