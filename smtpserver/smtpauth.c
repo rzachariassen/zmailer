@@ -93,6 +93,10 @@ void smtp_auth(SS,buf,cp)
       return;
     }
 
+    if (SS->state == Hello) {
+      type(SS, 503, m551, "EHLO first, then - perhaps - AUTH!");
+      return;
+    }
     if (SS->state != MailOrHello && SS->state != Mail) {
       type(SS, 503, m551, "AUTH not allowed during MAIL transaction!");
       return;
@@ -101,7 +105,7 @@ void smtp_auth(SS,buf,cp)
     if (*cp == ' ') ++cp;
     if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
     if (!CISTREQN(cp, "LOGIN", 5)) {
-      type(SS, 501, m552, "where is LOGIN in that?");
+      type(SS, 504, m571, "Only 'AUTH LOGIN' supported.");
       return;
     }
 
@@ -128,15 +132,11 @@ void smtp_auth(SS,buf,cp)
       if (debug)
 	type(SS, 0, NULL, "-> %s", bbuf);
       uname = strdup(bbuf);
-      if (*ccp != 0) {
+      if (*ccp != 0 && *ccp != '=') {
 	type(SS, 501, m552, "unrecognized input/extra junk ??");
 	return;
       }
     } else {
-      if (*cp != 0) {
-	type(SS, 501, m552, "unrecognized input/extra junk ??");
-	return;
-      }
 
       i = encodebase64string("Username:", 9, abuf, sizeof(abuf));
       if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
