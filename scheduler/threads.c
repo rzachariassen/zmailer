@@ -317,9 +317,28 @@ pick_next_thread(proc)
 
 	  if (thr->proc == NULL) {
 
-	    thr->proc = proc;
+	    struct vertex  * vp = thr->vertices;
+	    struct web     * ho = vp->orig[L_HOST];
+	    struct web     * ch = vp->orig[L_CHANNEL];
+
+	    thr->proc     = proc;
 	    proc->pthread = thr;
-	    proc->pvertex = thr->vertices;
+	    proc->pvertex = vp;
+	    proc->ch      = ch;
+
+	    if (proc->ho != NULL && proc->ho != ho) {
+	      /* Get rid of the old host web */
+	      proc->ho->kids -= 1;
+	      if (proc->ho->kids == 0 && proc->ho->link == NULL)
+		unweb(L_HOST,proc->ho);
+	    }
+
+	    /* Move the kid to this host web */
+	    
+	    if (proc->ho != ho) {
+	      proc->ho = ho;
+	      proc->ho->kids += 1;
+	    }
 
 	    /* Move the pickup pointer forward.. */
 	    thg->thread = thg->thread->nextthg;
