@@ -1,5 +1,15 @@
 2003-04-03  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/sm/sm.c:
+	    Oops, bad parameter for  header_received_for_clause()
+	    function.  Used one was always NULL, which is kind of
+	    bad idea...
+
+	* transports/smtp/smtp.c:
+	    Finished complete RFC 1123 part 5.2.2  CNAME rewriting
+	    both in MAIL FROM and RCPT TO.  Also cleaned up code
+	    somewhat in relevant parts.
+
 	* transports/smtp/smtp.c, transports/smtp/getmxrr.c,
 	  transports/smtp/smtp.h:
 	    Third round, completing processing also in cases,
@@ -15,6 +25,7 @@
 	      aliased domain names.  This DOES NOT touch on
 	      visible headers, nor ORCPT data, only RCPT TO
 	      domain.  Still a bit incomplete...
+	      Actually that reference is: RFC 1123 part 5.2.2
 
 2003-04-02  Matti Aarnio  <mea@zmailer.org>
 
@@ -35,6 +46,7 @@
 	  transports/smtp/smtp.h:
 	    Follow strictures of RFC 821 about rewriting RCPT TO
 	    envelope domain, if target domain did resolve via CNAME.
+	      Actually that reference is: RFC 1123 part 5.2.2
 
 	* transports/smtp/smtp.c:
 	   If target system has DSN capability, but our sent address
