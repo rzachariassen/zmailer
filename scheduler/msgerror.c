@@ -349,7 +349,6 @@ writeheader(errfp, eaddr, no_error_reportp, deliveryform, boundary)
 	  /* Always report to postmaster as well! */
 	  fprintf(errfp, "todsn ORCPT=rfc822;postmaster\nto <postmaster>\n");
 	  fprintf(errfp, "env-end\n");
-	  fseek(fp,(off_t)0,SEEK_SET); /* Rewind! Start building the report */
 
 	  if (*no_error_reportp == 0)
 	    fprintf(errfp, "To: %s\n", eaddr);
