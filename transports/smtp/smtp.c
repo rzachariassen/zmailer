@@ -2153,6 +2153,10 @@ smtpopen(SS, host, noMX)
 	if (logfp)
 	  fprintf(logfp, "%s#\tsmtpopen: status = %d\n", logtag(), i);
 
+	if (SS->verboselog)
+	  fprintf(SS->verboselog, "smtpopen: result code %d / %s, socket is %sopen\n",
+		  i, sysexitstr(i), SS->smtpfp ? "" : "not ");
+
 	return i;
 }
 
