@@ -53,7 +53,7 @@ L2HCOMMON =	-external_file zmanual -no_subdir -toc_depth 8 \
 		-short_index
 #		-info 0
 
-L2HLTOP	     =	$(L2HCOMMON)
+L2HLTOP	     =	$(L2HCOMMON) -t "ZMailer manual"
 L2HLSEC1     =	$(L2HCOMMON)
 L2HLSEC2     =	$(L2HCOMMON)
 L2HLSEC3     =	$(L2HCOMMON)
@@ -213,19 +213,4 @@ zrzl:	$(FIGEPS)
 
 index:	html ps
 	gzip -9 < zmanual.ps > zmanual.ps.gz
-	echo "<HTML><HEAD><TITLE>ZMailer manual test dump index</TITLE></HEAD>" > index.html
-	echo "<BODY>" >> index.html
-	echo "<H1>ZMailer manual test dump index:</H1>" >> index.html
-	echo "<PRE>" >> index.html
-	echo "<HR>" >> index.html
-	ls -l --full-time *.ps.gz | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
-	echo "<HR>" >> index.html
-	ls -l  zmanual.html | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
-	ls -l  *.html | egrep -v "zmanual.html|index.html" | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
-	echo "<HR>" >> index.html
-	ls -l  *.css  | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
-	echo "<HR>" >> index.html
-	ls -l  *.gif  | awk '{printf "%s %2s %s %s  %12s <A HREF=\"%s\">%s</A>\n",$$7,$$8,$$9,$$10,$$5,$$11,$$11}' >> index.html
-	echo "<HR>" >> index.html
-	echo "</PRE>" >> index.html
-	echo "</BODY></HTML>" >> index.html
+	./makeindex.sh > index.html

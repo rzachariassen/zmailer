@@ -945,9 +945,26 @@ This was default for a while, however most systems don't
 have really well-behaved munmap()s :-/
 (Perhaps IBM AIX is the only exception ?)
 
+\item[\tt ---with-getpwnam-library="-L... -l..."] \mbox{} \\
+Certain sites have expressed wishes to use their own libraries
+to replace the standard {\tt getpwnam()} (and possibly {\tt getpwuid()}
+routines.
+These are used in router, scheduler, mailbox, hold, and vacation
+programs.
+
+These programs use {\tt getpwnam()} libary call to look up
+various customer usernames to whatever the system needs them
+for.
+
+For {\em system} needs the library must support userids:
+\begin{description}
+\item[\tt root] \mbox{} \\
+\item[\tt daemon{\rm , or} daemons] \mbox{} \\
+the usual
+\end{description}
+and whatever others your local magic system needs.
 \end{description}
 
 \subsection{Verifying the System}
 
 Text to be inserted here.
-
