@@ -141,7 +141,7 @@ selectaddr(spec_host, ap, saparam_)
      const struct taddress *ap;
      const void *saparam_;
 {
-	struct _saparam *saparam = saparam;
+	const struct _saparam *saparam = saparam_;
 
 	/* When we are called, the CHANNEL has already been matched
 	   (or can be ignored..) */
