@@ -164,13 +164,16 @@ static int mq2amaskcompare(mq, width, ua)
      Usockaddr *ua;
 {
   Usockaddr qa = mq->qaddr;
+  unsigned char ipbuf1[16], ipbuf2[16];
 
 #ifdef INET6
   if (qa.v6.sin6_family == AF_INET6) {
     if (ua->v6.sin6_family != AF_INET6) return 0; /* No match! */
-    mask_ip_bits(&qa.v6.sin6_addr,  width, 128);
-    mask_ip_bits(&ua->v6.sin6_addr, width, 128);
-    if (memcmp(&qa.v6.sin6_addr, &ua->v6.sin6_addr, 16) == 0)
+    memcpy(ipbuf1, &qa.v6.sin6_addr, 16);
+    memcpy(ipbuf2, &ua->v6.sin6_addr, 16);
+    mask_ip_bits(ipbuf1, width, 128);
+    mask_ip_bits(ipbuf2, width, 128);
+    if (memcmp(ipbuf1, ipbuf2, 16) == 0)
       return 1; /* Match! */
     return 0; /* No match */
 
@@ -178,9 +181,11 @@ static int mq2amaskcompare(mq, width, ua)
 #endif
     if (qa.v4.sin_family == AF_INET) {
       if (ua->v4.sin_family != AF_INET) return 0; /* No match! */
-      mask_ip_bits(&qa.v4.sin_addr,  width, 32);
-      mask_ip_bits(&ua->v4.sin_addr, width, 32);
-      if (memcmp(&qa.v4.sin_addr, &ua->v4.sin_addr, 4) == 0)
+      memcpy(ipbuf1, &qa.v4.sin_addr,  4);
+      memcpy(ipbuf2, &ua->v4.sin_addr, 4);
+      mask_ip_bits(ipbuf1, width, 32);
+      mask_ip_bits(ipbuf2, width, 32);
+      if (memcmp(ipbuf1, ipbuf2, 4) == 0)
 	return 1; /* Match! */
       return 0; /* No match */
 

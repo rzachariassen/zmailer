@@ -1,5 +1,15 @@
 2000-08-29  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* scheduler/mq2auth.c:
+	    Copy addresses into separate range buffers for
+	    masking and comparison.  (Generalized the function).
+
+	* scheduler/msgerror.c:
+	    Construct the report message somewhat differently
+
+	* scheduler/udpate.c:
+	    Do certain diagnostics only when  (verbose)  flag is set.
+
 	* transports/smtp/getmxrr.c, transports/smtp/smtp.c:
 	    Remove more old debug statements, make sure that
 	    lack of memory from  getaddrinfo() is handled

@@ -790,11 +790,12 @@ static int u_error(proc, vp, index, inum, offset, notary, message)
 {
 	if (message == NULL)
 	  message = "(unknown)";
-#if 0
-	sfprintf(sfstderr,
-		 "%s %s: %ld/%ld/%s/error %s\n", timestring(),
-		 vp->thgrp->ce.command, inum, offset, notary, message);
-#endif
+
+	if (verbose)
+	  sfprintf(sfstderr,
+		   "%s %s: %ld/%ld/%s/error %s\n", timestring(),
+		   vp->thgrp->ce.command, inum, offset, notary, message);
+
 	if (!procselect && vp->notaryflg & NOT_FAILURE)
 	  msgerror(vp, offset, message);
 #if 0
@@ -827,11 +828,12 @@ static int u_error2(proc, vp, index, inum, offset, notary, message)
 {
 	if (message == NULL)
 	  message = "(unknown)";
-#if 0
-	sfprintf(sfstderr,
-		"%s %s: %ld/%ld/%s/error2 %s\n", timestring(),
-		vp->thgrp->ce.command, inum, offset, notary, message);
-#endif
+
+	if (verbose)
+	  sfprintf(sfstderr,
+		   "%s %s: %ld/%ld/%s/error2 %s\n", timestring(),
+		   vp->thgrp->ce.command, inum, offset, notary, message);
+
 	/* We don't need to log it! */
 	vp->cfp->haderror = 1; /* Mark it into the incore dataset */
 #if 0

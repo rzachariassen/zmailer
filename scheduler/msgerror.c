@@ -51,6 +51,7 @@ struct not {
 	char	    *not;
 	const char  *message;
 	const char  *orcpt;
+	const char  *inrcpt;
 	const char  *notify;
 	int          notifyflgs;
 	char	    *rcpntp;
@@ -602,6 +603,7 @@ reporterrs(cfpi, delayreports)
 	    }
 	    notaries[notarycnt].not        = notary;
 	    notaries[notarycnt].orcpt      = NULL;
+	    notaries[notarycnt].inrcpt     = NULL;
 	    notaries[notarycnt].notify     = NULL;
 	    notaries[notarycnt].message    = NULL;
 	    /* If NOTIFY= is not defined, default is: NOTIFY=FAILURE */
@@ -615,6 +617,13 @@ reporterrs(cfpi, delayreports)
 		if (CISTREQN(d,"ORCPT=",6)) {
 		  notaries[notarycnt].orcpt = d+6;
 		  d += 6;
+		  while (*d != 0 && (*d != ' ' && *d != '\t')) ++d;
+		  if (*d) *d++ = 0;
+		  continue;
+		}
+		if (CISTREQN(d,"INRCPT=",7)) {
+		  notaries[notarycnt].inrcpt = d+7;
+		  d += 7;
 		  while (*d != 0 && (*d != ' ' && *d != '\t')) ++d;
 		  if (*d) *d++ = 0;
 		  continue;
@@ -783,19 +792,31 @@ reporterrs(cfpi, delayreports)
 	    --n;
 	    break;
 	  }
-	  sfprintf(errfp, "  <%s>: ", notaries[i].rcpntp);
+	  if (notaries[i].orcpt) {
+	    sfprintf(errfp, "  Original Recipient:\n    ");
+	    decodeXtext(errfp,notaries[i].orcpt);
+	    sfputc(errfp,'\n');
+	  } else if (notaries[i].inrcpt) {
+	    sfprintf(errfp, "  Arrived Recipient:\n    ");
+	    decodeXtext(errfp, notaries[i].inrcpt);
+	    sfputc(errfp,'\n');
+	  }
+	  sfprintf(errfp, "  Control data:\n");
+	  sfprintf(errfp, "    %s\n", notaries[i].rcpntp);
+	  sfprintf(errfp, "  Diagnostic texts:\n");
 	  ccp = notaries[i].message;
+	  if (*ccp != '\r')
+	    sfprintf(errfp, "    ");
 	  if (strchr(ccp, '\r')) {
-	    sfprintf(errfp, "...\\\n        ");
+	    sfprintf(errfp, "...\\\n    ");
 	    s = ccp;
 	    if (*s == '\r') ++s; /* Skip possible first '\r' */
 	    for (; *s != '\0'; ++s) {
 	      if (*s == '\r') {
-		sfprintf(errfp,"\n        ");
+		sfprintf(errfp,"\n    ");
 	      } else {
 		sfputc(errfp, *s);
 	      }
-	      
 	    }
 	    sfputc(errfp, '\n');
 	  } else
