@@ -19,8 +19,11 @@ CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL)
 LIBMALLOC=	@LIBMALLOC@
 LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 #
-LIB=		-L$(TOPDIR)/libs -lzc @LIBRESOLV@ @LIBSOCKET@
+LIB=		@LIBRESOLV@ @LIBSOCKET@
 LIBDEB=		$(TOPDIR)/libs/libtag
+
+OBJS=		mxverify-cgi.o gai_strerror.o getaddrinfo.o inet_ntop.o \
+		myhostname.o
 
 BINS=	
 
@@ -31,9 +34,8 @@ install:
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-mxverify-cgi: mxverify-cgi.o
-	cd $(TOPDIR)/libc; make
-	$(CC) $(CFLAGS) -o $@.x $@.o $(LIB)
+mxverify-cgi: $(OBJS)
+	$(CC) $(CFLAGS) -o $@.x $(OBJS) $(LIB)
 	mv $@.x $@
 
 FRC:
