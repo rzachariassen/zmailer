@@ -196,9 +196,8 @@ gaih_local (name, service, req, pai, vlog)
     return GAIH_OKIFUNSPEC | -EAI_NONAME;
 
   if ((name != NULL) || (req->ai_flags & AI_CANONNAME))
-    if (uname (&utsname))
-      return -EAI_SYSTEM;
-  
+    if (uname (&utsname) < 0) return -EAI_SYSTEM;
+
   if (name != NULL) {
     if (strcmp(name, "localhost") &&
 	strcmp(name, "local") &&
