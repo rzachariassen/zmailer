@@ -1,3 +1,13 @@
+#
+#  I kept typing in this trace command so frequently, that eventually
+#  I just had to make for it into a single command... /Matti Aarnio
+#
+
+rtrace () {
+	trace all except rfc822 regexp
+}
+
+
 # set up output to log file (stdout) independent of current output redirection
 log () {
 	case "$LOGLEVEL" in
@@ -294,8 +304,9 @@ toplevels="ad ae af ag ai al am an ao aq ar as at au aw az ba
 	vi vn vu wf ws ye yu za zm zr zw"
 
 relation -lbt incore istoplevel
-
 for x in $toplevels
 do
 	db add istoplevel $x 1
 done
+
+unset toplevels # No need for that variable anymore..

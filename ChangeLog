@@ -1,3 +1,47 @@
+1998-05-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/db/smtp-policy.src, utils/policy-builder.sh.in:
+	    Define a new alias tag:  _localnames
+	    to be used with "localnames" source file.
+	    It does not have "relaycustomer +" tag in it, thus just
+	    simply doing "MAIL FROM:<foo@local.host.name>" will not
+	    allow wide-open relaying...
+
+	* libsh/trap.c:
+	    printf() argument castings into ones that are likely
+	    supersets of all existing instances -- mainly casting
+	    to  long ...
+
+	* proto/cf/standard.cf:
+	    relation 'localnames' got '-m' option, which was missing :-/
+	    (detected when one system didn't react at changes in the
+	     localnames file/database)
+
+	* lib/rfc822scan.c:
+	    A bug in error processing caused certain pathologic cases
+	    to follow NULL pointer... Outch.  Sample case detected
+	    by Alexis Yushin.
+
+	* lib/symbol.c:
+	    Removed conditionally builtin "pjwhash32()" function in
+	    favour of same function in separate file.
+
+	* libsh/builtins.c:
+	    First stab at 'lappend' function
+
+	* Makefile.in:
+	    Don't demand automatic dependency on "configure: configure.in",
+	    which would run autoconf, as CVS extraction gets dates reversed
+	    (or otherwise screwed up..)
+
+	* configure.in, smtpserver/Makefile.in, smtpserver/smtpserver.c:
+	    Comment away "-lelf" and "-lkvm" autoconfig tests, and
+	    removed all instances of loadaver_current() uses.
+	    I don't believe there to be any worthwhile point in it.
+
+	* configure.in:
+	    Fixes for "-lresolv" tests so that IRIX6.4 is happy.
+
 1998-05-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* All (very nearly) Makefile.in files, plus

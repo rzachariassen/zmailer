@@ -1,39 +1,35 @@
 %% \section{Router}
 
 
-The {\em router\/} daemon makes all decisions affecting 
+The {\em router} daemon makes all decisions affecting 
 the processing of messages in ZMailer.
 
 A mail message is submitted by placing it in a file in the
 {\tt \$POSTOFFICE/router/} directory. The 
-{\em router\/} frequently scans this directory for new 
+{\em router} frequently scans this directory for new 
 files and will lock and process them as it finds them. 
 The result is a message control file that gets linked into 
 the {\tt \$POSTOFFICE/scheduler/} and 
 {\tt \$POSTOFFICE/transport/} directories for use 
-by the {\em scheduler(8)\/} in the next step of message 
+by the {\em scheduler(8)} in the next step of message 
 processing. The original message file is then moved to the 
 {\tt \$POSTOFFICE/queue/} directory. 
 
-The {\em router\/}'s behaviour is controlled by a 
+The {\em router}'s behaviour is controlled by a 
 configuration file read at startup. It is really a 
-{\em zmsh(1)\/} script that uses facilities provided 
-builtin to the {\em router\/}. 
+{\em zmsh(1)} script that uses facilities provided 
+builtin to the {\em router}. 
 
 {\bf Usage}
 
 Invoking router without any arguments will do nothing
 (except make it read its configuration file and promptly
-exit). The normal startup method is to run the {\em zmailer(1)\/} 
+exit). The normal startup method is to run the {\em zmailer(1)} 
 script, as in {\tt zmailer router}. This will start the 
-{\em router\/} as a daemon and  kill the previous 
-incarnation of the {\em router\/}. 
+{\em router} as a daemon and  kill the previous 
+incarnation of the {\em router}. 
 
-\begin{verbatim}
-router [ -diksSV ] [ -f configfile ] [ -n #routers ] [ -o 
-zmshoptions ] [ -t traceflag ] [ -L logfile ] [ -P postof-
-fice ] 
-\end{verbatim}
+{\tt router [ -diksSV ] [ -f configfile ] [ -n \#routers ] [ -o zmshoptions ] [ -t traceflag ] [ -L logfile ] [ -P postoffice ]}
  
 
 {\bf Parameters}
@@ -50,7 +46,7 @@ file {\tt MAILSHARE/router.cf}.
 
 \item[{\tt -i}] \mbox{}
 
-Run interactively, presenting a {\em zmsh\/}  
+Run interactively, presenting a {\em zmsh}  
 session with the configuration file preloaded. 
 
 \item[{\tt -k}] \mbox{}
@@ -71,8 +67,8 @@ parallel router processes. The default is a single router process.
 \item[{\tt -o zmshoptions}] \mbox{}
 
 Sets the option string passed on the 
-internal {\em zmsh\/} invocation. The default is {\tt -O}. 
-Note that the leading `-' is mandatory. See {\em zmsh(1)\/} 
+internal {\em zmsh} invocation. The default is {\tt -O}. 
+Note that the leading `-' is mandatory. See {\em zmsh(1)} 
 for the available options. 
 
 \item[{\tt -P postoffice}] \mbox{}
@@ -104,22 +100,22 @@ Print version message and run interactively.
 \end{description}
  
 
-To restart a {\em router\/} daemon: 
-\begin{verbatim}
-         router -dk
-\end{verbatim}
+To restart a {\em router} daemon: 
+\begin{alltt}
+   router -dk
+\end{alltt}
 
 
 To test an address, start up an interactive session: 
-\begin{verbatim}
-         router -i
-\end{verbatim}
+\begin{alltt}
+   router -i
+\end{alltt}
 
 
-or if the ZMailer {\em sendmail(8)\/} is installed: 
-\begin{verbatim}
-         sendmail -bt
-\end{verbatim}
+or if the ZMailer {\em sendmail(8)} is installed: 
+\begin{alltt}
+   sendmail -bt
+\end{alltt}
 
 
 Then just use the pre-defined functions.
@@ -131,8 +127,8 @@ Then just use the pre-defined functions.
 
 
 
-{\em zmsh\/} is an implementation of the Bourne shell 
-suitable for use with the ZMailer {\em router(8)\/} as 
+{\em zmsh} is an implementation of the Bourne shell 
+suitable for use with the ZMailer {\em router(8)} as 
 its configuration file language interpreter. It contains 
 extensions that allow structured data (in the form of lists) 
 to be manipulated. 
@@ -167,9 +163,8 @@ prior to the execution of a command and its I/O setup.
 
 {\bf Usage}
 
-\begin{verbatim}
-zmsh [ -CILOPRSYaefhinstuvx ] [ -c command ] [ script ...] 
-\end{verbatim}
+{\tt zmsh [ -CILOPRSYaefhinstuvx ] [ -c command ] [ script ...]}
+
 
 
 {\bf Parameters}
@@ -255,7 +250,7 @@ Text to be inserted here.
 
 
 The following debugging options are specific to the internal 
-function of {\em zmsh\/}: 
+function of {\em zmsh}: 
 \begin{description}
 \item[{\tt -C}] \mbox{}
 
@@ -857,10 +852,10 @@ none
 
 \item[{\bf Notes:}] \mbox{}
 
-Starts the {\em router\/} running in daemon mode, 
+Starts the {\em router} running in daemon mode, 
 scanning the {\tt \$POSTOFFICE/router/} directory every few 
 seconds for message files to process. This function is invoked 
-automatically by other code in the {\em router\/} program and has no 
+automatically by other code in the {\em router} program and has no 
 other purpose.
 
 \end{description}
@@ -873,7 +868,7 @@ other purpose.
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt db \{ $add\|flush\|owner\|print\|remove\|toc$ \} {[database [key [value]]]}}
+{\tt db \{add\verb/|/flush\verb/|/owner\verb/|/print\verb/|/remove\verb/|/toc\} {[database [key [value]]]}}
 
 
 
@@ -933,21 +928,22 @@ entries and maximum size, flags, and associated files. See the
 
 \item[{\bf Notes:}] \mbox{}
 
-\begin{verbatim}
-        DBType        add    flush   owner   print   remove
-        ------        -------------------------------------
-        incore        yes    yes     yes     yes     yes
-        header        yes    yes     yes     yes     yes
-        ordered       no     yes     yes     yes     no
-        unordered     yes    yes     yes     yes     yes
-        hostsfile     no     no      no      yes     no
-        bind          no     no      no      no      no
-        ndbm          yes    yes     yes     yes     yes
-        gdbm          yes    yes     yes     yes     yes
-        dbm           yes    yes     yes     yes     yes
-        yp            no     no      yes     yes     no
-        btree         yes    yes     yes     yes     yes
-\end{verbatim}
+\begin{alltt}
+DBType    add flush owner print remove
+------    ----------------------------
+incore    yes yes   yes   yes   yes
+header    yes yes   yes   yes   yes
+ordered   no  yes   yes   yes   no
+unordered yes yes   yes   yes   yes
+hostsfile no  no    no    yes   no
+bind      no  no    no    no    no
+ndbm      yes yes   yes   yes   yes
+gdbm      yes yes   yes   yes   yes
+dbm       yes yes   yes   yes   yes
+yp        no  no    yes   yes   no
+btree     yes yes   yes   yes   yes
+ldap      no  no    yes   no    no
+\end{alltt}
 
 
 \end{description}
@@ -1019,7 +1015,7 @@ Don't print newline at end of string.
 \item[{\bf Notes:}] \mbox{}
 
 The access function to the database facilities in the 
-{\em router\/}.
+{\em router}.
 
 \end{description}
 
@@ -1296,7 +1292,7 @@ none
 
 Generates and prints a new symbol name in the 
 sequence {\tt g0} to {\tt gN} every time it is called. The 
-sequence is reset and any symbol values destroyed after the {\em router\/} 
+sequence is reset and any symbol values destroyed after the {\em router} 
 has processed a message. This function is used to generate new symbols, to 
 hold attached address property lists, during alias expansion.
 
@@ -1543,14 +1539,45 @@ none
 
 \item[{\bf Notes:}] \mbox{}
 
-Sets the {\em router\/}'s idea of the
+Sets the {\em router}'s idea of the
 system hostname. Without an argument the name is retrieved from
-the system and printed. The {\em router\/} has no preconceived 
+the system and printed. The {\em router} has no preconceived 
 notion of what the hostname is, so Message-Id and Received headers 
 will only be generated if a hostname has been set using this function.
 
 \end{description}
 
+
+% -------------------------------------------
+\hrule
+\subsubsection{lappend; \em experimental}
+
+\begin{description}
+\item[{\bf Syntax:}] \mbox{}
+
+{\tt lappend varname anyvalue}
+
+\item[{\bf Return Values:}] \mbox{}
+
+none
+
+\item[{\bf Options:}] \mbox{}
+
+none  
+
+\item[{\bf Notes:}] \mbox{}
+
+This appends content of list object ({\em anyvalue}) to named
+{\em varname} variable.
+
+This function has been created to manage problems associated
+at the use of ``{\em setf}'', which in current implementation
+causes $O(n^{2})$ kind memory consumption by creating a new
+temporary copy of the target list into the heap for all invocations
+of ``{\em setf}''.  Result being that for a large list the system
+will quickly use massive amounts of heap.
+
+\end{description}
 
 % -------------------------------------------
 \hrule
@@ -1827,7 +1854,7 @@ file, parses them assuming contents must be an address list, and sorts
 and prints the header lines with all addresses in normal form. Comments 
 are allowed; they extend from the character `\#' at the beginning of 
 a line, or after an address, to the end of line. This function is used 
-by the {\em newaliases(1)\/} program to generate the aliases database 
+by the {\em newaliases(1)} program to generate the aliases database 
 from a source file.
 
 \end{description}
@@ -1868,10 +1895,10 @@ in turn call an internal protocol-specific function which knows the
 syntax and semantics of the message file. The current version knows 
 about messages submitted using the {\tt MSG\_RFC822} parameter to 
 {\tt mail\_open(3)}. For that case, the protocol function is called 
-{\tt rfc822}. {\em router\/} has a bit more complex directory 
+{\tt rfc822}. {\em router} has a bit more complex directory 
 semantics, than is stated above. See {\tt zmailer(3)} for details. 
 Although the {\tt process} function is provided built in, it is 
-usually overridden by a defined function in the {\em router\/} 
+usually overridden by a defined function in the {\em router} 
 configuration file.
 
 \end{description}
@@ -1918,7 +1945,7 @@ none
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt recase [-u $\|$ -l $\|$ -p] string}
+{\tt recase [-u \verb/|/ -l \verb/|/ -p] string}
 
 \item[{\bf Return Values:}] \mbox{}
 
@@ -2007,11 +2034,11 @@ is a recipient address in a message header''.
 
 Options are listed below. {\tt name} is the name of the relation
 that is wanted to be created. Examples:
-\begin{verbatim}
+\begin{alltt}
 relation -t bind,mx mxhost
 relation -t ordered -f $MAILVAR/db/routes routes
 relation -t ordered -b -f /usr/lib/news/active.sorted newsgroups
-\end{verbatim}
+\end{alltt}
 
 
 
@@ -2061,7 +2088,7 @@ separated by whitespace.
 
 \item[{\tt hostsfile}] \mbox{}
 
-{\em hosts(5)\/} file.
+{\em hosts(5)} file.
 
 \item[{\tt bind}] \mbox{}
 
@@ -2136,7 +2163,7 @@ Map all keys to lowercase before searching.
 
 Check for file content modification before every 
 access. Reopen the file when a change is detected. This option is 
-used when the {\em router\/} should discover changes to a database
+used when the {\em router} should discover changes to a database
 underfoot so it need not be restarted to use new data. This is 
 recommended on relations which use unordered, or ordered datasets 
 (aliases, routes, ...), and especially if the system is configured 
@@ -2396,7 +2423,7 @@ none
 \item[{\bf Notes:}] \mbox{}
 
 Changes the current effective user id 
-of the {\em router\/} process to that given (which may be 
+of the {\em router} process to that given (which may be 
 numeric or an account name), then runs the specified function 
 with the specified arguments, then switches the effective 
 user id of the process back (to root). 
@@ -2688,7 +2715,7 @@ indicate what to do to toggle the event flag.
 \begin{description}
 \item[{\bf Syntax:}] \mbox{}
 
-{\tt stability [on $\|$ off]}
+{\tt stability [on \verb/|/ off]}
 
 \item[{\bf Return Values:}] \mbox{}
 
@@ -2706,9 +2733,9 @@ none
 
 \item[{\bf Notes:}] \mbox{}
 
-Determines whether the {\em router\/} will 
+Determines whether the {\em router} will 
 process incoming messages in arrival order (when on), or in random 
-order determined by position in the router directory. The {\em router\/} 
+order determined by position in the router directory. The {\em router} 
 will by default do the first queue scan in stable mode, and subsequent 
 scans in unstable mode. The name of this command is the name for a 
 similar characteristic of sorting algorithms. 
@@ -2718,37 +2745,9 @@ similar characteristic of sorting algorithms.
 
 % -------------------------------------------
 \hrule
-\subsubsection{test, .}
+\subsubsection{``test'', ``[''}
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
-
-{\tt test \{many parameters\} {[} \{many parameters\} {]}}
-
-\item[{\bf Return Values:}] \mbox{}
-
-\begin{description}
-\item[{\tt 1}] \mbox{}
-
-True.
-
-\item[{\tt 0}] \mbox{}
-
-False.
-
-\item[{\tt -1}] \mbox{}
-
-Error.
-
-\end{description}
-
-
-\item[{\bf Notes:}] \mbox{}
-
-This is basically the shell {\tt {[}} a.k.a. 
-{\tt test} program. See UNIX ``test'' command for the options.
-
-\end{description}
+{\em see: ``['', ``test''}
 
 % -------------------------------------------
 \hrule

@@ -4,6 +4,8 @@
 deliver messages by invoking a program with facilities and in a way 
 compatible with a {\em sendmail} mailer.
 
+%\begin{multicols}{2}
+
 The program scans the message control files named on stdin
 for addresses destined for the channel and/or the host
 given on the command line. If any are found, all matching
@@ -17,22 +19,6 @@ EX\_NOUSER, EX\_NOHOST, EX\_UNAVAILABLE, and EX\_NOPERM indicate
 permanent failure.
 All other exit codes will be treated as a temporary failure
 and the delivery will be retried.
-
-
-\begin{figure*}
-\begin{alltt}\hrule\medskip
-#mailer flags program        argument list
-#------ ----- -------------- --------------------------------
-local   mS    sm/localm      localm -r $g $u
-prog    -     /bin/sh        sh -c $u
-tty     rs    /usr/local/to  to $u
-uucp    U     /usr/bin/uux   uux - -r -a$g -gC $h!rmail ($u)
-usenet  m     sm/usenet      usenet $u
-test    n     sm/test        test $u
-\medskip\hrule\end{alltt}
-\caption{\label{fig:adm:sample_sm_conf}Sample {\tt sm.conf} file}
-\end{figure*}
-
 
 {\em Usage}
 
@@ -52,6 +38,20 @@ Lines starting with whitespace or a `{\tt \#}' are ignored, and all
 others are assumed to follow format shown in figure
 \vref{fig:adm:sample_sm_conf}.
 
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+#mailer flags program        argument list
+#------ ----- -------------- --------------------------------
+local   mS    sm/localm      localm -r $g $u
+prog    -     /bin/sh        sh -c $u
+tty     rs    /usr/local/to  to $u
+uucp    U     /usr/bin/uux   uux - -r -a$g -gC $h!rmail ($u)
+usenet  m     sm/usenet      usenet $u
+test    n     sm/test        test $u
+\medskip\hrule\end{alltt}
+\caption{\label{fig:adm:sample_sm_conf}Sample {\tt sm.conf} file}
+\end{figure*}
+
 The mailer field extends from the beginning of the line to
 the first whitespace.  It is used simply as a key index to
 the configuration  file  contents.  Whitespace is used as
@@ -70,9 +70,9 @@ will activate BSMTP-type wrapping with a ``hidden-dot''
 algorithm; e.g. quite ordinary SMTP stream, but in ``batch mode''.
 
 \item[ {\tt B}] \mbox{} \\
-The  first `{\tt B}'  turns on similar BSMTP wrapping as
-`{\tt b}', but adds SIZE and, if the sm is  started  with
-option `{\tt -8}', also 8BITMIME options.  The second `{\tt B}'
+The  first ``{\tt B}''  turns on similar BSMTP wrapping as
+``{\tt b}'', but adds SIZE and, if the sm is  started  with
+option ``{\tt -8}'', also 8BITMIME options.  The second ``{\tt B}''
 adds there also DSN (Delivery Status  Notification) parameters.
 
 \item[ {\tt E}] \mbox{} \\
@@ -144,3 +144,5 @@ message, the argument containing  the {\tt \$u} will be replicated
 as necessary for each recipient.
 
 \end{description}
+
+%\end{multicols}

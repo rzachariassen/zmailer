@@ -320,19 +320,22 @@ sh_lappend(avl, il)
 	d = v_find(key->string);
 	if (!d) return NULL;
 
-	d = cdr(d);
+	d = car(cdr(d)); /* This is variable pointed object */
 
 	stickymem = MEM_MALLOC;
 
-	data = s_copy_tree(cdr(key));
+	tmp = cdr(key); /* data is the next elt after the variable name */
+	if (LIST(tmp))  /* If it is a LIST object, descend into it */
+	  tmp = car(tmp);
+	data = s_copy_tree(tmp);
 
-	tmp = car(d);
-	while (cdr(tmp)) tmp = cdr(tmp);
-	cdr(tmp) = data;
-	tmp =  ncons(car(d));
+	while (cdr(d)) tmp = cdr(d); /* Scan to the end of the list */
+	cdr(d) = data;
 
 	stickymem = omem;
-	return tmp;
+	return NULL; /* Be quiet, don't force the caller
+			to store the result into heap just
+		        for latter discard... */
 }
 
 

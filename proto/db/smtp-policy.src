@@ -266,6 +266,7 @@ _private_address    message "We reject your network" rejectnet + message "We don
 #|
 _our_network		= _full_rights
 _full_rights	rejectnet - relaycustnet + relaycustomer + relaytarget +
+_localnames	rejectnet - relaycustnet - localdomain + relaytarget +
 #
 #sztaki.hu		= _full_rights
 #.sztaki.hu		= _full_rights

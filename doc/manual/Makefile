@@ -86,8 +86,9 @@ $(L2HGIFS):
 	rm -f icons.html
 
 distclean clean:
-	rm -f zmanual.*
-	rm -f *~ *.html *.ps *.eps *.gif *.bak *.dvi *.toc *.lof
+	# Leave "zmanual.ps" in place, if it exists
+	rm -f zmanual.tex
+	rm -f *~ *.html *.eps *.gif *.bak *.dvi *.toc *.lof
 	rm -f *.css *.aux *.ptr *.old *.ilg *.gls *.cb *.glo *.log
 	rm -rf l2h[1-9][0-9]* *sections.pl *internals.pl *index.pl
 	rm -f *contents.pl *.ind *.idx *images.pl *table.pl

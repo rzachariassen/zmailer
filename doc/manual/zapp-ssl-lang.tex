@@ -1,4 +1,4 @@
-%% \subsection{S/SL Language}
+%% \section{S/SL Language}
 
 The information in this appendix is based on 
 ``Specification of S/SL: Syntax/Semantic Language'' by 
@@ -19,7 +19,7 @@ S/SL  has  been  used  to implement compilers for Euclid, PT
 Pascal and Speckle, a PL/1 subset.
 
 
-\subsection{Introduction}
+\section{Introduction}
 
 S/SL is a procedure-based variable-free programming 
 language in which the program logic is  stated  using  a  small
@@ -38,7 +38,7 @@ provided.
 
 
 
-\subsection{Identifiers, Strings and Integers}
+\section{Identifiers, Strings and Integers}
 
 An  S/SL identifier may consist of any string of up to 50
 letters, digits and underscores (\_) beginning with a letter.
@@ -65,7 +65,7 @@ must not contain embedded blanks.
 
 
 
-\subsection{Comments}
+\section{Comments}
 
 A  comment consists of the character ``\%'' (which is not in
 a string) and the characters to the right of it on a  source
@@ -74,7 +74,7 @@ line.
 
 
 
-\subsection{Character Set}
+\section{Character Set}
 
 Since  not all of the special characters used in S/SL are
 available on all machines,  the  following  alternatives  to
@@ -91,7 +91,7 @@ special characters are allowed.
 
 
 
-\subsection{Source Program Format}
+\section{Source Program Format}
 
 S/SL programs are free format; that is, the identifiers,
 keywords, strings, integers  and  special  characters  which
@@ -102,7 +102,7 @@ aries.
 
 
 
-\subsection{Notation}
+\section{Notation}
 
 The      following  sections  define  the  syntax  of  S/SL.
 Throughout the following, {\tt \{item\}} means zero or more  of the
@@ -110,7 +110,7 @@ item,  and {\tt [item]} means the item is optional.  The abbreviation
 {\tt id} is used for identifier.
 
 
-\subsubsection{Programs}
+\subsection{Programs}
 
 An S/SL program consists of a set of definitions followed
 by a set of rules.
@@ -125,7 +125,7 @@ A program is:
 \end{verbatim}
 
 
-\subsubsection{Input and Output Definitions}
+\subsection{Input and Output Definitions}
 
 An {\tt inputDefinition} is:
 \begin{verbatim}
@@ -181,7 +181,7 @@ respect to both input tokens and output tokens.
 
 
 
-\subsubsection{Error Signals}
+\subsection{Error Signals}
 
 An {\tt errorDefinition} is:
 \begin{verbatim}
@@ -207,7 +207,7 @@ error signal is 10 (errors 0 to 9 are reserved for S/SL system use).
 
 
 
-\subsubsection{Type and Mechanism Definitions}
+\subsection{Type and Mechanism Definitions}
 
 Type and mechanism definitions may be grouped and  inter-
 mixed  to reflect the association of types and the operation
@@ -223,7 +223,7 @@ A {\tt typeOrMechanismDefinition} is one of:
 
 
 
-\paragraph{Types.}
+\subsubsection{Types.}
 
 A {\tt typeDefinition} is:
 \begin{verbatim}
@@ -252,7 +252,7 @@ value  identifier  plus  one.   The default value associated
 with the first {\tt valueDefinition} in a type is zero.
 
 
-\paragraph{Mechanisms.}
+\subsubsection{Mechanisms.}
 
 A {\tt mechanismDefinition} is:
 \begin{verbatim}
@@ -299,7 +299,7 @@ invoked only as the selector in a semantic choice.
 
 
 
-\subsubsection{Rules}
+\subsection{Rules}
 
 A rule is one of:
 \begin{enumerate}
@@ -323,7 +323,7 @@ as the selector in a rule choice.
 
 
 
-\subsubsection{Actions}
+\subsection{Actions}
 
 An action is one of the following:
 \begin{enumerate}
@@ -503,7 +503,7 @@ undefined (the implementation aborts).
 
 
 
-\subsubsection{The Syntax of S/SL}
+\subsection{The Syntax of S/SL}
 
 A program is:
 \begin{verbatim}

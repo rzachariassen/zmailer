@@ -1,9 +1,11 @@
 %% \section{Utilities}
 
-
 There is considerable collection of various utilities in the
 ZMailer package. Not all of them even become installed into
 your system in all situations.
+
+%\begin{multicols}{2}
+
 
 \subsection{vacation}
 
@@ -213,15 +215,14 @@ into the actual db file names.
 
 \end{description}
 
+%\end{multicols}
 
 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\subsection{{\tt policy-builder.sh}}
 
-
-\subsection{policy-builder.sh}
-
-
-
-\begin{verbatim}
+\begin{alltt}
 #! /bin/sh
 #
 # Sample smtp-policy-db builder script.
@@ -248,7 +249,7 @@ if [ ! -f smtp-policy.src ] ; then
         exit 64 # EX_USAGE
 fi
 
-lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
+lynx -source http://www.webeasy.com:8080/spam/spam_download_table \verb/\/
    > smtp-policy.spam.new && mv smtp-policy.spam.new smtp-policy.spam
 
 # Fork off a subshell to do it all...
@@ -257,21 +258,21 @@ lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
   cat smtp-policy.src
 
   # Localnames
-  cat localnames | \
-  awk '/^#/{next;} NF >= 1 {printf "%s = _full_rights\n",$1;}'
+  cat localnames | \verb/\/
+  awk '/^#/\{next;\} NF >= 1 \{printf "%s = _full_rights\verb/\/n",$1;\}'
 
   # smtp-policy.relay
   # (Lists domains and networks that are allowed to use us as relay)
   if [ -f smtp-policy.relay ] ; then
-    cat smtp-policy.relay | \
-    awk '/^#/{next;} NF >= 1 {printf "%s = _full_rights\n",$1;}'
+    cat smtp-policy.relay | \verb/\/
+    awk '/^#/\{next;\} NF >= 1 \{printf "%s = _full_rights\verb/\/n",$1;\}'
   fi
 
   # smtp-policy.mx
   # (Lists domains that are allowed to use us as inbound MX relay for them)
   if [ -f smtp-policy.mx ] ; then
-    cat smtp-policy.mx | \
-    awk '/^#/{next;} NF >= 1 {printf "%s relaytarget +\n",$1;}'
+    cat smtp-policy.mx | \verb/\/
+    awk '/^#/\{next;\} NF >= 1 \{printf "%s relaytarget +\verb/\/n",$1;\}'
   fi
 
   # smtp-policy.spam
@@ -279,18 +280,18 @@ lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
   # (We use file from "http://www.webeasy.com:8080/spam/spam_download_table"
   #  which is intended for QMAIL, and thus needs to be edited..)
   if [ -f smtp-policy.spam ] ; then
-    cat smtp-policy.spam | tr "[A-Z]" "[a-z]" | sort | uniq | \
-    awk '/^@/{ # Domain, but ZMailer processes them without '@'
-          printf "%s = _bulk_mail\n", substr($1,2);
+    cat smtp-policy.spam | tr "[A-Z]" "[a-z]" | sort | uniq | \verb/\/
+    awk '/^@/\{ # Domain, but ZMailer processes them without '@'
+          printf "%s = _bulk_mail\verb/\/n", substr($1,2);
           next;
-        }
-        { # All other cases are usernames with their domains
-          printf "%s = _bulk_mail\n", $1;
-        }'
+        \}
+        \{ # All other cases are usernames with their domains
+          printf "%s = _bulk_mail\verb/\/n", $1;
+        \}'
   fi
 
 # --------- end of subshell
-) | tee smtp-policy.dat | \
+) | tee smtp-policy.dat | \verb/\/
 $MAILBIN/makendbm -p $DBTYPE smtp-policy-new -
 
 case $DBTYPE in
@@ -311,10 +312,7 @@ btree)
 esac
 
 exit 0
-\end{verbatim}
-
-
-
+\end{alltt}
 
 
 \subsection{autoanswer}
@@ -424,9 +422,9 @@ print "      This is autoreply answer message by your request.\n\n";
 print "      Original message was received at UNIX time $now;\n";
 print "      which means '$txttime' in cleartext.\n\n";
 print "      Headers were:\n\n";
-print "------------------------------------------------------------------------------\n";
+print "--------------------------------------------------------------------\n";
 print @header;
-print "------------------------------------------------------------------------------\n";
+print "--------------------------------------------------------------------\n";
 print "\n      Have a nice day.\n";
 select(STDOUT);
 close OUT;
@@ -449,7 +447,6 @@ sub LOG {
 \subsection{newdb}
 
 
-
 This is elementary wrapper script building binary databases
 with {\tt makedb} utility into a temporary file, and replacing
 the old files with the new ones in proper order for the 
@@ -459,9 +456,8 @@ parameter {\tt -m} to work correctly.
 {\bf Usage}
 
 \begin{verbatim}
-newdb /db/path/name [input-file-name]
+newdb /db/path/name [-u|-l] [input-file-name]
 \end{verbatim}
-
 
 This script uses system {\tt ZCONFIG} file to find out the desired
 database type, and derives the actual database file names from the 

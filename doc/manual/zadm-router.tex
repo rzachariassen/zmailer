@@ -1,5 +1,6 @@
 % \section{Router Configuration}
 
+%\begin{multicols}{2}
 
 The names (determined at compile-time) and interface specifications for the
 routing and crossbar functions, are the only crucial ``magical'' things one
@@ -72,7 +73,7 @@ Multiple-value returns are allowed.
 The {\tt return} statement can be used to return a non-``'' value
 from a function.
 The following are all legal {\tt return} statements:
-\begin{alltt}\medskip\small
+\begin{alltt}\medskip
 return
 return $address
 return $channel ${next_host} ${next_address}
@@ -288,7 +289,7 @@ emulates a subset of {\tt /bin/test}
 
 
 The {\tt relation} function is described in 
-{\em Databases}, section \vref{Databases}.
+{\em Databases}, section \vref{adm:Databases}.
 Functions {\tt trace} and {\tt untrace} are described
 in connection with debugging. 
 
@@ -338,17 +339,22 @@ to save your neck:
 \medskip\hrule\end{alltt}\medskip
 }
 
-To test the configuration or routing data, proceed as follows:
+To test the configuration or routing data, proceed as
+shown in figure \vref{fig:adm:testing}.
 
-\begin{alltt}\medskip\hrule\scriptsize\medskip
-  $MAILBIN/router -i         (select interactive mode)
-  rtrace                     (turn tracing on)
-  router user@broken.address (the address that gave you trouble)
-  router another@address     (and so on)
+\begin{figure*}
+\begin{alltt}\hrule\medskip
+sh$ $MAILBIN/router -i        {\rm(select interactive mode)}
+z$ rtrace                     {\rm(turn tracing on)}
+z$ router user@broken.address {\rm(the address that gave you trouble)}
+z$ router another@address     {\rm(and so on)}
 \medskip\hrule\end{alltt}\medskip
+\caption{Example of running tests on {\em router}}
+\label{fig:adm:testing}
+\end{figure*}
 
-
-Old salts can use {\tt /usr/lib/sendmail -bt} instead of {\tt router -i}. Once satisfied that routing works, command:
+Old salts can use {\tt /usr/lib/sendmail -bt} instead of {\tt router -i}.
+Once satisfied that routing works, command:
 \begin{alltt}\medskip\hrule\medskip
   zmailer router
 \medskip\hrule\end{alltt}\medskip
@@ -364,7 +370,8 @@ this will create the file ``{\tt .123}'' containing the control information
 produced by the {\em router}.
 
 
-\subsection{Databases\label{Databases}}
+\subsection{Databases}
+\label{adm:Databases}
 
 Many of the decisions and actions taken by configuration file code depend
 on the specifics of the environment the MTA finds itself in.  So, not just
@@ -416,15 +423,14 @@ to tell the lookup routine which table of several in a database
 one is interested in.
 
 There are no predefined relations in the {\em router}.
-They must all be specified in the configuration file,
-before first use.
+They must all be specified in the configuration file before first use.
 This is done by calling the special function {\tt relation} with
 various options, as indicated by the usage strings printed by
 the {\tt relation} function when called the wrong way.
 See figure \vref{fig:relation:params}.
 
 \begin{figure*}
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 Usage: relation -t dbtype[,subtype] [-f file -e# -s# -bilmnpu -d driver] name
   dbtypes: incore,header,unordered,ordered,hostsfile,bind,selfmatch,ndbm,gdbm,btree,bhash
 \medskip\hrule\end{alltt}\medskip
@@ -655,13 +661,13 @@ The most widespread kind of route database is produced by the {\em pathalias}
 program.
 
 {\em pathalias} generates key-value pairs of the form:
-\begin{alltt}\small\medskip
+\begin{alltt}\medskip
   uunet    ai.toronto.edu!uunet!\%s
   .css.gov ai.toronto.edu!uunet!seismo!\%s
 \medskip\end{alltt}
 which when queried about {\tt uunet} and {\tt beno.css.gov} correspond to 
 the routes:
-\begin{alltt}\small\medskip
+\begin{alltt}\medskip
   ai.toronto.edu!uunet
   ai.toronto.edu!uunet!seismo!beno.css.gov
 \medskip\end{alltt}
@@ -832,12 +838,12 @@ the characters in the prefix are RFC822 specials, the entire local-part
 must be quoted.
 Thus, whereas {\em sendmail} allowed:
 
-\begin{alltt}\medskip\small\hrule\medskip
+\begin{alltt}\medskip\hrule\medskip
 people: :include:/usr/lib/mail/lists/people
 \medskip\hrule\end{alltt}\medskip
 
 the proper syntax with ZMailer is:
-\begin{alltt}\medskip\small\hrule\medskip
+\begin{alltt}\medskip\hrule\medskip
 people: ":include:/usr/lib/mail/lists/people"
 \medskip\hrule\end{alltt}\medskip
 
@@ -856,7 +862,7 @@ by the local-part.
 
 General format:
 
-\begin{alltt}\medskip\hrule\scriptsize\medskip
+\begin{alltt}\medskip\hrule\medskip
  local-address-token:    "replacement address" ,
                          "extension line w/ another addr"
  --------------------    --------------------------------
@@ -886,7 +892,7 @@ file-path: "/path/to/file"
 
 If the local-part starts with ``{\tt :include:}'' the rest should be a file
 pathname of a list of mail addresses.  They are substituted:
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 included-list: ":include:/path/to/address/file"
 \medskip\hrule\end{alltt}\medskip
 
@@ -910,7 +916,7 @@ consumption\ldots)
 
 The rest of these notes apply to older config files using old style pipe
 of:
-\begin{alltt}\medskip\small\hrule\medskip
+\begin{alltt}\medskip\hrule\medskip
  $(listaddresses < file | maprrouter ...)
 \medskip\hrule\end{alltt}\medskip
 where the maprrouter caused the actual memory bloat...
@@ -965,3 +971,5 @@ it as if it was only owner writable independent of its actual modes.
 This allows {\tt MAILVAR/lists/} to be group or world writable and
 sticky-bitted if you want your general user population (or special admin
 group) to be able to create mailing lists.
+
+%\end{multicols}

@@ -59,7 +59,7 @@ fi
 
   # Localnames
   cat localnames | \
-  awk '/^#/{next;} NF >= 1 {printf "%s = _full_rights\n",$1;}'
+  awk '/^#/{next;} NF >= 1 {printf "%s = _localnames\n",$1;}'
 
   # smtp-policy.relay
   # (Lists domains and networks that are allowed to use us as relay)

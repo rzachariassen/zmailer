@@ -274,9 +274,6 @@
 /* */
 #undef TA_USE_MMAP
 
-/* */
-#undef SVR4_elf
-
 /* The number of bytes in a double.  */
 #undef SIZEOF_DOUBLE
 

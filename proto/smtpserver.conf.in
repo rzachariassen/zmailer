@@ -46,6 +46,8 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 localhost	    999	ftveR
 some.host.domain    999	!NO EMAIL ACCEPTED FROM YOUR MACHINE
 # If the host presents itself as:  HELO [1.2.3.4], be lenient to it..
+# The syntax below is due to these patterns being SH-GLOB style patterns
+# where the brackets are special characters.
 \[*\]		    999	ve
 # Per default demant strict syntactic adherence, including fully
 # qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient

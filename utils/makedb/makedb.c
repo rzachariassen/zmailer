@@ -400,12 +400,12 @@ const int typ;
 			      t, tlen, s, slen);
 		if (rc > 0) {
 			int tl = tlen;
-			fprintf(stderr, "Error: Duplicate key at line %d: \"",
+			fprintf(stderr, "WARNING: Duplicate key at line %d: \"",
 				linenum);
 			for (;tl > 0; --tl,++t) {
 				unsigned char c = *t;
 				if (c < ' ' || c > 126 || c == '\\')
-					fprintf(stderr, "\\0%03o", c);
+					fprintf(stderr, "\\%03o", c);
 				else
 					fprintf(stderr, "%c", c);
 			}

@@ -26,7 +26,7 @@ originate yourself, an instance of nameserver is able to cache
 replies it receives from the network, and thus be able to faster
 yield replies for repeated questions.}
 
-\begin{multicols}{2}
+%\begin{multicols}{2}
 
 \section{Autoconfiguration}%
 \index{build!autoconfiguration}%
@@ -39,9 +39,9 @@ different things:%
 
 \begin{itemize}
 \item Software binaries, and databases: {\tt \$MAILVAR/, \$MAILSHARE/, \$MAILBIN/}
-\item The mailbox spool: {\tt \$MAILBOX} ({\tt /var/mail})
-\item The postoffice spool: {\tt \$POSTOFFICE} ({\tt /var/spool/postoffice})
-\item The log directory: {\tt \$LOGDIR} ({\tt /var/log/mail})
+\item The mailbox spool: {\tt \$MAILBOX} (/var/mail)
+\item The postoffice spool: {\tt \$POSTOFFICE} (/var/spool/postoffice)
+\item The log directory: {\tt \$LOGDIR} (/var/log/mail)
 \end{itemize}
 
 The GNU-autoconfig mechanism is used, however, you still may need to
@@ -64,7 +64,7 @@ Also, if the {\tt /etc/zmailer.conf} file exists, it is read
 to initialize several different environment paths (including
 {\tt \$MAILBIN}, et.al.!)
 
-\begin{alltt}\small\hrule\medskip
+\begin{alltt}\hrule\medskip
 # ./configure                             \verb/\/
   --prefix=/opt/mail                      \verb/\/
   --with-postoffice=/var/spool/postoffice \verb/\/
@@ -75,7 +75,7 @@ to initialize several different environment paths (including
 
 Or an example from my development machine:\medskip
 \nopagebreak
-\begin{alltt}\scriptsize\hrule\medskip
+\begin{alltt}\hrule\medskip
 $ ./configure --prefix=/opt/mail
 creating cache ./config.cache
 ***
@@ -169,11 +169,12 @@ or perhaps:
 which at first cleans everything, and then makes -- great if you
 changed some configuration parameters.
 
-This should compile everything, and leave a {\tt zmailer.Config} file in
+This should compile everything, and leave a \hfill{}
+{\tt zmailer.Config} file in
 the toplevel directory.  Nothing outside the source area will be
 touched at this point.
 
-(If your system ``make'' lets your shell ``SHELL''-environment
+(If your system ``make'' lets your shell ``SHELL'' environment
 affect its own execution environment, it may be that non sh/ksh/zsh
 users detect weird phenomena, and failures. Beware!)
 
@@ -254,7 +255,7 @@ This step should be non-destructive (anything replaced will be
 saved in a ``bak'' directory, and {\sf for some customizable files, if
 they exist, new versions won't replace them}).
 
-{\bf\Large ?!}
+{\bf\Large ?!}{\sloppy
 If this is not a from-scratch installation, be aware that the install
 procedure will {\bf not} replace some of the files in {\tt \$MAILSHARE}
 with the equivalents from the distribution.
@@ -263,7 +264,7 @@ Specifically, the {\tt \$MAILSHARE/cf/*}, {\tt \$MAILVAR/db/aliases},
 never replaced if they already exist.
 The {\tt \$MAILSHARE/forms/*} files are always replaced, but the
 old files will be saved in a ``bak'' directory.
-
+}
 
 \subsubsection{The Router Configuration File (\$MAILSHARE/router.cf).}%
 \index{build!config!router configuration; {\tt router.cf}}%
@@ -385,7 +386,7 @@ or
 }%\vbox
 
 You should see something like:
-\begin{alltt}\medskip\scriptsize\hrule\medskip
+\begin{alltt}\medskip\hrule\medskip
 ZMailer router (2.99.50 #4: Sun May 10 15:24:09 EEST 1998)
 you@hostname:/some/path/to/src/zmailer/router
 Copyright 1992 Rayan S. Zachariassen
@@ -433,7 +434,7 @@ Choose one of the following methods to rebuild the database:
 If there are errors, correct them in the ``{\tt aliases}'' file,
 and repeat the command until the alias database has been initialized.
 The final message should look something like:
-\begin{alltt}\medskip\scriptsize\hrule\medskip
+\begin{alltt}\medskip\hrule\medskip
  319 aliases, longest 209 bytes, 16695 bytes total
 \medskip\hrule\end{alltt}\medskip
 
@@ -476,7 +477,7 @@ sirius               sirius.utu.fi
 sirius.astro.utu.fi  sirius.utu.fi
 sirius.utu.fi        sirius.utu.fi
 \medskip\hrule\medskip\end{alltt}
-\caption{\label{fig:inst:localnames}Samle ``{\tt localnames}'' file}
+\caption{\label{fig:inst:localnames}Sample of ``{\tt localnames}'' file}
 \end{figure*}
 
 In certain cases the router is able to deduce some of the names,
@@ -524,7 +525,7 @@ The {\tt fqdnaliases} database is for mapping fully-qualified user
 addresses to others -- for example you machine has a set of
 domain-names for it to consider local, but you want to have
 separate people to be postmasters for each of them:
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 postmaster@domain1: person1
 postmaster@domain2: person2
 postmaster@domain3: person3, person4
@@ -532,7 +533,7 @@ postmaster@domain3: person3, person4
 
 It is also possible to shunt all recipient addresses for given domain
 to some arbitary addresses:
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 @domain4:  person4
 \medskip\hrule\medskip\end{alltt}
 
@@ -541,7 +542,7 @@ you have it.
 
 You may even handle just a few users for each of those domains, and then
 have the ``{\tt routes}'' entry (see above) to declare something suitable:
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 .domain1  error!nosuchuser
 \medskip\hrule\medskip\end{alltt}
 
@@ -549,11 +550,11 @@ which combined with the ``{\tt fqdnalias}'' method will let
 ``{\tt postmaster@domain1}'' to exist, and report error on all others.
 
 Choose one of the following methods to rebuild the database:
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 # $MAILBIN/newfqdnaliases
 \medskip\hrule\medskip\end{alltt}
 or
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 # $MAILBIN/zmailer newfqdnaliases
 \medskip\hrule\medskip\end{alltt}
 
@@ -581,7 +582,7 @@ z# router you
 \medskip\hrule\end{alltt}\medskip
 
 should print out:
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 (((local you you default_attributes)))
 \medskip\hrule\end{alltt}\medskip
 
@@ -596,7 +597,7 @@ you can give command ``{\em rtrace}'' before trying to use ``{\em route}.''
 
 Add the following line to {\tt /etc/services} in the section for
 host-specific services:
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 mailq   174/tcp  # Mailer transport queue
 \medskip\hrule\end{alltt}
 
@@ -696,7 +697,7 @@ at chapter \vref{adm:smtpserver:ehlostyle}
 
 Add something like the following lines to bootup scripts ({\tt /etc/rc.local}
 or {\tt /etc/rc2.d/S99local} or similar):
-\begin{alltt}\medskip\hrule\small\medskip
+\begin{alltt}\medskip\hrule\medskip
 if [ -r /etc/zmailer.conf ]; then
 (
   . /etc/zmailer.conf
@@ -804,7 +805,7 @@ All ZMailer programs log using the LOG\_MAIL facility code for normal
 messages.  You can deal with this specifically in your {\tt syslog}
 configuration file on systems with a 4.3bsd-based syslog.  The
 following reflects the recommended configuration on SunOS 4.0:
-\begin{alltt}\medskip\small\hrule\medskip
+\begin{alltt}\medskip\hrule\medskip
 mail.crit   /var/log/syslog
 mail.debug  /var/log/mail/mail.syslog
 \medskip\hrule\end{alltt}\medskip
@@ -1165,4 +1166,4 @@ and whatever others your local system magic needs.
 {\em\large TO BE WRITTEN}
 
 
-\end{multicols}
+%\end{multicols}

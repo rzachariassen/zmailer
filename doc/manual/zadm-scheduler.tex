@@ -1,5 +1,10 @@
 % \section{Scheduler Configuration}
 
+The {\em scheduler} is the part of the ZMailer that manages
+message processing outbound from the MTA proper.
+
+%\begin{multicols}{2}
+
 The major action of the Scheduler is to periodically start up Transport
 Agents and tell them what to do.  This is controlled by a table in a
 configuration file that is read by the Scheduler when it starts.  
@@ -181,7 +186,7 @@ is  the  group  id  of a transport agent processing the
 address.  The value is either  numeric  (a  gid)  or a
 group name.
 
-\item[\tt command \rm(smtp -srl \$LOGDIR/smtp \$host)]\mbox{}\\
+\item[\tt command \rm(smtp -srl \$\{LOGDIR\}/smtp \$\{host\})]\mbox{}\\
 is  the command line used to start a transport agent to
 process the address. The program pathname is specified
 relative  to the  {\tt \$MAILBIN/ta/}  directory.   The  string
@@ -228,7 +233,7 @@ smtp/*.utoronto.ca maxchannel=10 maxring=2
 smtp      maxchannel=10 maxring=5
           command="smtp -esrl $\{LOGDIR\}/smtp"
 
-uucp/*    maxchannel=5 command="sm -c $channel uucp"
+uucp/*    maxchannel=5 command="sm -c $\{channel\} uucp"
 \medskip\hrule\end{alltt}\medskip
 \caption{\label{fig:adm:full_schedconf_sample}Example of full {\tt scheduler.conf} file}
 \end{figure*}
@@ -257,3 +262,5 @@ transport agent will only be told about the  message  control
 files that indicate SMTP delivery to a particular
 host. The actual host is picked at random from the  current  
 choices, to avoid systematic errors leading to a deadlock of any queue.
+
+%\end{multicols}
