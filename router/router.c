@@ -59,6 +59,7 @@ int	origoptind;
 int	savefile = 0;
 const char * zshopts = "-O";
 int	nosyslog = 1;
+int	routerdirloops = 0;
 int	do_hdr_warning = 0;
 
 int
@@ -93,7 +94,7 @@ main(argc, argv)
 
 
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:sSVW");
+		c = getopt(argc, (char*const*)argv, "m:n:dikf:o:t:L:P:r:sSVW");
 		if (c == EOF)
 			break;
 	  
@@ -162,6 +163,11 @@ main(argc, argv)
 			break;
 		case 'W':
 			do_hdr_warning = !do_hdr_warning;
+			break;
+		case 'r':
+			routerdirloops = atoi(optarg);
+			if (routerdirloops < 0)
+				routerdirloops = 0;
 			break;
 		case '?':
 		default:

@@ -101,6 +101,7 @@ extern int nobody;
 extern struct group  *getgrnam __((const char *));
 extern struct passwd *getpwnam __((const char *));
 extern time_t time __((time_t *));
+extern int routerdirloops;
 
 #ifndef strchr
 extern char *strchr(), *strrchr();
@@ -824,11 +825,12 @@ rd_stability(dirp,dirs)
 			dohup(0);
 		did_cnt += rd_doit(nbarray + dearray[deindex].f_name, dirs);
 
-		/* Only process one file out of the low-priority subdirs,
-		   so we can go back and see if any higher-priority
+		/* Maybe only process few files out of the low-priority
+		   subdirs, so we can go back and see if any higher-priority
 		   jobs have been created */
-		if (*dirs)
-			break;
+		if ((*dirs) &&
+		    ((routerdirloops) && (routerdirloops == did_cnt)))
+		  break;
 
 	}
 	return did_cnt;

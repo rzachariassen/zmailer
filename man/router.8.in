@@ -21,6 +21,10 @@ router \- zmailer message routing daemon
 .I zmshoptions
 ]
 [
+.B \-r
+.I routerdirloops
+]
+[
 .B \-t
 .I traceflag
 ]
@@ -97,6 +101,13 @@ mandatory.  See
 for the available options.
 .IP \-P\ \fIpostoffice\fR
 specifies an alternate \fIPOSTOFFICE\fR directory.
+.IP \-r\ \fIrouterdirloops\fR
+Process \fIrouterdirloops\fR messages out of any alternate router
+directories, then check to see if any higher-priority jobs have been
+created. If undefined and alternate router directories are in use, the
+router will clear the entire directory before returning. See below and 
+.IR zmailer (3)
+about Z-Environment and \fIROUTERDIRS\fR.
 .IP \-S
 Can be used to turn off non-serious syslogging.
 .IP \-s
