@@ -826,6 +826,11 @@ db(dbname, key)
 	l = ll = tmp = NULL;
 	GCPRO3(l, ll, tmp);
 
+	if (D_db) {
+	  fprintf(stderr, "%s(%s) = ", dbname, key);
+	  fflush(stderr);
+	}
+
 	if ((dbip->driver == NULL &&
 	     (l = (*dbip->lookup)(&si)) != NULL) ||
 	    (dbip->driver != NULL &&
@@ -869,15 +874,16 @@ db(dbname, key)
 			break;
 		}
 		if (D_db) {
-			fprintf(stderr, "%s(%s) = ", dbname, key);
 			s_grind(l, stderr);
 			putc('\n', stderr);
 		}
 	} else if (dbip->postproc == NonNull) {
 		if (D_db)
-			fprintf(stderr, "%s(%s) = %s\n", dbname, key, key);
+			fprintf(stderr, "%s\n", key);
 		l = newstring(dupstr(key));
 	} else {
+		if (D_db)
+			fprintf(stderr, "NIL\n");
 		if (dbip->cache_size > 0) {
 			stickymem = oval;
 			free(realkey);
