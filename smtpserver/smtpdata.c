@@ -270,7 +270,7 @@ const char *buf, *cp;
 	typeflush(SS);
 	return 0;
     }
-    if (SS->bdata_blocknum == 1) {
+    if (SS->bdata_blocknum == 1 && SS->mfp) {
 	fputs("env-end\n", SS->mfp);
 	if (msa_mode && SS->authuser != NULL ) {
 	  fprintf(SS->mfp, "X-Comment: RFC 2476 MSA function at %s logged sender identity as: %s\n", SS->myhostname, SS->authuser);
