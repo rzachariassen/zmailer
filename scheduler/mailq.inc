@@ -359,6 +359,34 @@
   sfprintf(fp,"TA-SMTP.SmtpLHLOfail            %10u\n",
 	   M.tasmtp.SmtpLHLOfail);
 
+  sfprintf(fp,"TA-SMTP.capa8BITMIME            %10u\n",
+	  M.tasmtp.EHLOcapability8BITMIME);
+  sfprintf(fp,"TA-SMTP.capaAUTH                %10u\n",
+	  M.tasmtp.EHLOcapabilityAUTH);
+  sfprintf(fp,"TA-SMTP.capaCHUNKING            %10u\n",
+	  M.tasmtp.EHLOcapabilityCHUNKING);
+  sfprintf(fp,"TA-SMTP.capaDELIVERBY           %10u\n",
+	  M.tasmtp.EHLOcapabilityDELIVERBY);
+  sfprintf(fp,"TA-SMTP.capaENHANCEDSTATUSCODES %10u\n",
+	  M.tasmtp.EHLOcapabilityENHANCEDSTATUSCODES);
+  sfprintf(fp,"TA-SMTP.capaPIPELINING          %10u\n",
+	  M.tasmtp.EHLOcapabilityPIPELINING);
+  sfprintf(fp,"TA-SMTP.capaSIZE                %10u\n",
+	  M.tasmtp.EHLOcapabilitySIZE);
+  sfprintf(fp,"TA-SMTP.capaSTARTTLS            %10u\n",
+	  M.tasmtp.EHLOcapabilitySTARTTLS);
+
+  sfprintf(fp,"TA-SMTP.sent-option-ENVID       %10u\n",
+	   M.tasmtp.SmtpOPT_ENVID);
+  sfprintf(fp,"TA-SMTP.sent-option-SIZE        %10u\n",
+	   M.tasmtp.SmtpOPT_SIZE);
+  sfprintf(fp,"TA-SMTP.sent-option-RET         %10u\n",
+	   M.tasmtp.SmtpOPT_RET);
+  sfprintf(fp,"TA-SMTP.sent-option-NOTIFY      %10u\n",
+	   M.tasmtp.SmtpOPT_NOTIFY);
+  sfprintf(fp,"TA-SMTP.sent-option-ORCPT       %10u\n",
+	   M.tasmtp.SmtpOPT_ORCPT);
+
   sfprintf(fp,"TA-SMTP.SmtpMAIL                %10u\n",
 	   M.tasmtp.SmtpMAIL);
   sfprintf(fp,"TA-SMTP.SmtpMAILok              %10u\n",
