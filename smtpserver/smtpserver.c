@@ -1521,7 +1521,7 @@ int insecure;
 #endif				/* USE_TRANSLATION */
     }
 #ifdef HAVE_WHOSON_H
-    if (do_whoson) {
+    if (do_whoson && netconnected_flg) {
 	char buf[64];
 	buf[0]='\0';
 	if (SS->raddr.v4.sin_family == AF_INET) {
@@ -1560,7 +1560,7 @@ int insecure;
     zopenlog("smtpserver", LOG_PID, LOG_MAIL);
 
 #ifdef HAVE_TCPD_H		/* TCP-Wrapper code */
-    if (use_tcpwrapper &&
+    if (use_tcpwrapper && netconnected_flg &&
 	wantconn(SS->inputfd, "smtp-receiver") == 0) {
 	zsyslog((LOG_WARNING, "refusing connection from %s:%d/%s",
 		 SS->rhostname, SS->rport, SS->ident_username));

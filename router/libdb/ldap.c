@@ -59,7 +59,7 @@ open_ldap(sip, caller)
 			++deferit;
 			v_set(DEFER, DEFER_IO_ERROR);
 			fprintf(stderr, "%s: cannot open %s!\n",
-					caller, sip->file);			
+					caller, sip->file);
 			return NULL;
 		}
 

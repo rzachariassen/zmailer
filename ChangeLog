@@ -1,3 +1,9 @@
+1999-09-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c:
+	    Don't call  whoson(),  nor tcp-wrapper libraries in case
+	    the smtpserver is not running from a network socket.
+
 1999-09-15  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in, smtpserver/smtprouter.c:

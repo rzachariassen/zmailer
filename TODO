@@ -11,6 +11,9 @@ libc: "make install" is "crazy"
 proto:	"make install" -- nothing goes in ???
 		--> MAILSHARE/proto/ !!
 
+INSTALL:
+	Badly out of date!
+
 router:
 	BUG:  $(elements zz)  does not result in a LIST type object
 		in proper way.  Most visible this problem is in  server.cf
