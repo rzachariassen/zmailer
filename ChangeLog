@@ -1,3 +1,9 @@
+2003-09-03  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/contentpolicy.c:
+	    Patch from Eugene Crosser to run be able to run content-filter
+	    as an AF_UNIX socket server.
+
 2003-09-02  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/appendlet.c:

@@ -52,7 +52,7 @@ static int contentphase;
 */
 
 
-static int init_content_policy()
+static int init_content_policy_prog()
 {
   int piperd[2], pipewr[2]; /* per parent */
 
@@ -97,6 +97,46 @@ static int init_content_policy()
   close(piperd[1]);
 
   return 1; /* Successfull start! (?) */
+}
+
+static int init_content_policy_sock()
+{
+  int msgsock;
+  struct sockaddr_un server;
+
+  memset((char*)&server,0,sizeof(server));
+  server.sun_family = AF_UNIX;
+  strncpy(server.sun_path,contentfilter,sizeof(server.sun_path)-1);
+  server.sun_path[sizeof(server.sun_path)-1]='\0';
+  if ((msgsock=socket(AF_UNIX,SOCK_STREAM,0)) < 0) {
+    type(NULL,0,NULL, "contentfilter socket(%s) error %d (%s)",
+			contentfilter,errno,strerror(errno));
+    return(0);
+  }
+  if (connect(msgsock,(struct sockaddr *)&server,
+      sizeof(server)-sizeof(server.sun_path)+strlen(server.sun_path)+1) < 0) {
+    type(NULL,0,NULL, "contentfilter connect(%s) error %d (%s)",
+			contentfilter,errno,strerror(errno));
+    return 0;
+  }
+  contentpolicypid = 0;
+  cpol_tofp   = fdopen(msgsock, "w");
+  cpol_fromfp = fdopen(msgsock, "r");
+  return 1;
+}
+
+static int init_content_policy()
+{
+  struct stat stbuf;
+
+  if (stat(contentfilter,&stbuf)) {
+    type(NULL,0,NULL, "contentfilter stat(%s) error %d",contentfilter,errno);
+    return 0;
+  }
+  if (S_ISREG(stbuf.st_mode))
+    return init_content_policy_prog();
+  else
+    return init_content_policy_sock();
 }
 
 static int
