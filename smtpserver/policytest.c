@@ -1391,8 +1391,10 @@ const int len;
 
     at = find_nonqchr(str, '@', len);
     if (at != NULL) {
-      if (check_domain(rel, state, at+1, len - (1 + at - str)) != 0)
+      if (check_domain(rel, state, at+1, len - (1 + at - str)) != 0) {
+	type(NULL,0,NULL,"rcptto checkdomain fails; -1");
 	return -1;
+      }
     } else {
       if (state->rcpt_nocheck)
 	return 0;
