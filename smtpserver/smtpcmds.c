@@ -264,14 +264,16 @@ const char *buf, *cp;
 	long policyinlimit = policyinsizelimit(policydb, &SS->policystate);
 	long maxinlimit = maxsize;
 
-	if (maxinlimit && policyinlimit && policyinlimit < maxinlimit)
+	if (policyinlimit >= 0)  /* defined if non-negative value */
 	  maxinlimit = policyinlimit;
-	if (!maxinlimit && policyinlimit) /* Policy says: LIMIT, default 0 */
-	  maxinlimit = policyinlimit;
+	if (maxsize != 0 && maxsize < maxinlimit)
+	  maxinlimit = maxsize;
+	if (maxsize != 0 && maxinlimit == 0)
+	  maxinlimit = maxsize; /* Lower from infinite */
 
-	sprintf(sizebuf, "SIZE %ld", maxinlimit);	/* 0: No fixed max size
-						   in force, else:
-						   The FIXED maximum */
+	sprintf(sizebuf, "SIZE %ld", maxinlimit); /* 0: No fixed max size
+						     in force, else:
+						     The FIXED maximum */
 	type(SS, -250, NULL, sizebuf);
 	type(SS, -250, NULL, "8BITMIME");
 	type(SS, -250, NULL, "PIPELINING");

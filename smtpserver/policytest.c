@@ -638,6 +638,8 @@ const char *pbuf;
 		       1 << P_A_InboundSizeLimit  |
 		       1 << P_A_OutboundSizeLimit   );
 
+    state->maxinsize  = -1;
+    state->maxoutsize = -1;
 
     if (checkaddr(rel, state, pbuf) != 0)
       return 0; /* Nothing found */
