@@ -1067,7 +1067,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	char *s;
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
-	int pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
+	int pipelining = 0;
 	time_t env_start, body_start, body_end;
 	struct rcpt *more_rp = NULL;
 	char **chunkblkptr = NULL;
@@ -1130,6 +1130,8 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  }
 	}
 
+
+	pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
 
 	if (no_pipelining) pipelining = 0;
 	SS->pipelining = pipelining;
