@@ -9,7 +9,8 @@
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
 	  smtpserver/Makefile.in, smtpserver/policytest.h,
-	  smtpserver/smtpdata.c, smtpserver/contentpolicy.h:
+	  smtpserver/smtpdata.c, smtpserver/contentpolicy.h,
+	  include/mail.h.in, include/policy.h:
 	    - Modified several multi-line policy report messages
 	      into a narrower form with same text folded on
 	      shorter lines
