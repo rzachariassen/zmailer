@@ -1,9 +1,17 @@
+1998-06-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* contrib/spamlist.py, utils/policy-builder.sh.in:
+	    New version of  spamlist.py  from Roy Bixler, a bit
+	    support for its output format into policy-builder.
+
 1998-06-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/sm/sm.c:
 	    Added "H" flag to the "sm" facility flags.
 	    Altered here the way the BSMTP mode has worked for
-	    ages.  Specifically 
+	    ages.  Specifically now it requires EXPLICITE 'H' flag
+	    to produce HELO/EHLO to the begining of the BSMTP
+	    datastream.
 
 	* utils/rotate-logs.sh.in, configure.in, utils/Makefile.in:
 	    Made "rotate-logs" utility to be 1) autoconfig, and

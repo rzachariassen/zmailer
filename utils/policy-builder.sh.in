@@ -4,10 +4,11 @@
 #
 # This merges following files from $MAILVAR/db/ directory:
 #	smtp-policy.src
-#	localnames	  ('= _localnames')
-#	smtp-policy.relay ('= _full_rights')
-#	smtp-policy.mx	  ('relaytargets +')
-#	smtp-policy.spam  ('= _bulk_mail')
+#	localnames	        ('= _localnames')
+#	smtp-policy.relay       ('= _full_rights')
+#	smtp-policy.mx	        ('relaytargets +')
+#	smtp-policy.spam        ('= _bulk_mail')
+#	smtp-policy.spam.manual ('= _bulk_mail')
 #
 # These all together are used to produce files:  smtp-policy.$DBEXT
 # The produced database retains the first instance of any given key.
@@ -44,12 +45,18 @@ if [ ! -f smtp-policy.src ] ; then
 fi
 
 if [ f$FLAG != fn ]; then
- if [ -x $MAILBIN/smtp-policy-retrieve.pl ] ; then
-   $MAILBIN/smtp-policy-retrieve.pl
- else
-   lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
-     > smtp-policy.spam.new && mv smtp-policy.spam.new smtp-policy.spam
- fi
+    if [ -x $MAILBIN/smtp-policy-retrieve.pl ] ; then
+	$MAILBIN/smtp-policy-retrieve.pl
+    else
+	if [ -x $MAILBIN/spamlist.py ] ; then
+	    $MAILBIN/spamlist.py > smtp-policy.spam.new && \
+		mv  smtp-policy.spam.new smtp-policy.spam
+	else
+	    lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
+		> smtp-policy.spam.new && \
+	    mv smtp-policy.spam.new smtp-policy.spam
+	fi
+    fi
 fi
 
 # Fork off a subshell to do it all...
@@ -79,11 +86,20 @@ fi
   # (Lists users, and domains that are known spam sources)
   # (We use file from "http://www.webeasy.com:8080/spam/spam_download_table"
   #  which is intended for QMAIL, and thus needs to be edited..)
-  if [ -f smtp-policy.spam ] ; then
-    cat smtp-policy.spam | tr "[A-Z]" "[a-z]" | sort | uniq | \
+  if [ -f smtp-policy.spam -o -f smtp-policy.spam.manual ] ; then
+    ( if [ -f smtp-policy.spam ] ; then
+	cat smtp-policy.spam
+      fi
+      if [ -f smtp-policy.spam.manual ] ; then
+	cat smtp-policy.spam.manual
+      fi ) | tr "[A-Z]" "[a-z]" | sort | uniq | \
     awk '/^@/{ # Domain, but ZMailer processes them without '@'
-	  printf "%s = _bulk_mail\n", substr($1,2);
-	  next;
+	    printf "%s = _bulk_mail\n", substr($1,2);
+	    next;
+	}
+	/^\[/{ # an address block to reject
+	    printf "%s rejectnet +\n", $1;
+	    next;
 	}
 	{ # All other cases are usernames with their domains
 	  printf "%s = _bulk_mail\n", $1;
