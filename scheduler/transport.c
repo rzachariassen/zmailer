@@ -103,6 +103,9 @@ idle_child(proc)
 struct procinfo *proc;
 {
 	int len, rc;
+
+	if (proc->tofd < 0) return; /* can't write... */
+
 	/* we are NOT to be called while there is something
 	   left in the cmdbuf[] ! */
 	if (proc->cmdbuf == NULL)
@@ -125,7 +128,7 @@ struct procinfo *proc;
 	  proc->overfed += 1;
 	}
 	rc = write(proc->tofd, proc->cmdbuf, len);
-	if (rc != len && rc < 0 &&
+	if (rc < 0 &&
 	    (errno != EAGAIN && errno != EINTR &&
 	     errno != EWOULDBLOCK)) {
 	  /* Some real failure :-( */
