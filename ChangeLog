@@ -1,5 +1,17 @@
 2002-07-05  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpcmds.c:
+	    A practically unexploitable potential buffer overflow.
+	    Exploit requires presense of 'h' flag in EHLO greeting
+	    match patterns (non documented, non-default style flag),
+	    and that the host address reversal text is long in the
+	    extreme. Getting the server to crash is less difficult,
+	    than to get it to execute anything..   Repeat: A 'h' must
+	    be present in style-flags at the end of the smtpserver.conf
+	    file EHLO/HELO-patterns, AND the hostname reversal PTR text
+	    must be longer than around 100 bytes.  Then, maybe, it will
+	    be possible to feed working buffer overflow exploit..
+
 	* Makefile.in:
 	    Version 2.99.56-pre3 (CVS tagged  2-99-56-pre3)
 

@@ -231,9 +231,9 @@ const char *buf, *cp;
     /* Note, these are orthogonal to those of smtp-server
        internal policy functions! */
     if (STYLE(SS->cfinfo, 'h')) {
-      char argbuf[MAXHOSTNAMELEN+30];
+      char argbuf[100+100];
       char *s;
-      sprintf(argbuf,"%s %s", SS->rhostname,
+      sprintf(argbuf,"%.99s %.99s", SS->rhostname,
 	      ((SS->ihostaddr && (SS->ihostaddr[0] != '\0'))
 	       ? SS->ihostaddr : "[0.0.0.0]"));
       if ((s = router(SS, RKEY_HELLO, 1, argbuf, strlen(argbuf))) == NULL)
