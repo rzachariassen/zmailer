@@ -47,7 +47,7 @@ FILE *fp;
 	    break;
 	}
 	++cp;
-	if (strncmp(cp - promptlen, promptbuf, promptlen) == 0) {
+	if (cp - promptlen >= buf && strncmp(cp - promptlen, promptbuf, promptlen) == 0) {
 	    free(buf);
 	    buf = NULL;
 	    *flagp = 1;
@@ -145,6 +145,12 @@ SmtpState *SS;
     fprintf(tofp, "PS1='%s' ; %s %s '%s' '%s'\n", promptbuf,
 	    ROUTER_SERVER, RKEY_INIT, SS->rhostname, SS->ihostaddr);
     fflush(tofp);
+    if (debug) {
+      typeflush(SS);
+      fprintf(stdout, "000 ==> PS1='%s' ; %s %s '%s' '%s'\n", promptbuf,
+	      ROUTER_SERVER, RKEY_INIT, SS->rhostname, SS->ihostaddr);
+      fflush(stdout);
+    }
 
     sawend = 0;
     while ((bufp = mgets(SS, &sawend, fromfp)) != NULL) {
@@ -195,17 +201,30 @@ const int holdlast, len;
 	return NULL;
     }
     fprintf(tofp, "%s %s \"", ROUTER_SERVER, function);
+    if (debug) {
+      typeflush(SS);
+      fprintf(stdout, "000 ==> %s %s \"", ROUTER_SERVER, function);
+    }
 
     /* Process all double-quotes and backslashes so that
        no surprises happen.. */
 
     for (i = 0; *args && i < len; ++args, ++i) {
-	if (*args == '\\' || *args == '"')
+	if (*args == '\\' || *args == '"') {
 	    putc('\\', tofp);
+	    if (debug)
+	      putc('\\', stdout);
+	}
 	putc(*args, tofp);
+	if (debug)
+	  putc(*args, stdout);
     }
     fprintf(tofp, "\"\n");
     fflush(tofp);
+    if (debug) {
+      fprintf(stdout, "\"\n");
+      fflush(stdout);
+    }
 
     for (;;) {
 	/*
@@ -228,9 +247,10 @@ const int holdlast, len;
 	    fprintf(stdout, "001 Got string: '%s'\r\n", bufp);
 	    typeflush(SS);
 	}
+
 	if (prevb != NULL) {
 	    if (strlen(prevb) > 4 &&
-	      isdigit(prevb[0]) && isdigit(prevb[1]) && isdigit(prevb[2])
+		isdigit(prevb[0]) && isdigit(prevb[1]) && isdigit(prevb[2])
 		&& (prevb[3] == ' ' || prevb[3] == '-')) {
 		printf("%s\r\n", prevb);
 	    } else {

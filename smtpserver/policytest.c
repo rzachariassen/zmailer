@@ -102,7 +102,7 @@ static char *showattr __((const char *key));
 static char *showattr(key)
 const char *key;
 {
-    static char buf[256];
+    static char buf[500];
     sprintf(buf,"%d/%s/'%s'", key[0], KA(key[1]), key+2);
     return buf;
 }
@@ -119,7 +119,7 @@ static char *showresults __((char *values[]));
 static char *showresults(values)
 char *values[];
 {
-    static char buf[256];
+    static char buf[2000];
     int i;
 
     buf[0] = '\0';
@@ -148,9 +148,9 @@ const struct policystate *state;
 	printf("000- rcpt_nocheck=%d\n", state->rcpt_nocheck);
 
 	for ( i = P_A_FirstAttr; i <= P_A_LastAttr ; ++i) {
-		printf("000- %s: %s, value=%s\n",
+		printf("000- %s: %srequested, value=%s\n",
 		       KA(i),
-		       (state->origrequest & (1<<i)) ? "requested" : "not req",
+		       (state->origrequest & (1<<i)) ? "" : "not ",
 		       state->values[i]?state->values[i]:".");
 	}
 }
