@@ -204,12 +204,12 @@ char * zpwmatch(uname, password, uidp)
     */
 
     cr = crypt(password, pw->pw_passwd);
-    if (strcmp(cp, pw->pw_passwd) == 0)
+    if (strcmp(cr, pw->pw_passwd) == 0)
       ok = 1;
     else {
       /* Ok, perhaps the second one contains usable encrypted password ? */
       cr = crypt(password, spw->sp_pwdp);
-      if (strcmp(cp, spw->sp_pwdp) == 0)
+      if (strcmp(cr, spw->sp_pwdp) == 0)
 	ok = 1;
     }
 
