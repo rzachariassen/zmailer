@@ -37,10 +37,40 @@
 #define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
 #define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t') ++Y
 
-
+static const char *m260 = "2.6.0";
 
 static int mvdata __((SmtpState *, char *));
 static int mvbdata __((SmtpState *, char *, long));
+
+static int parsestatcode __((const char **ss, const char **statcode));
+static int parsestatcode(ssp, statcodep)
+     const char **ssp;
+     const char **statcodep;
+{
+    int code = -1;
+    const char *ss = *ssp;
+    static char statcodebuf[6];
+
+    *statcodep = NULL;
+
+    for (;'0' <= *ss && *ss <= '9'; ++ss) {
+      if (code < 0) code = 0;
+      code = code * 10 + (*ss - '0');
+    }
+    SKIPSPACE(ss);
+    if (isdigit(ss[0]) && ss[1] == '.' &&
+	isdigit(ss[2]) && ss[3] == '.' &&
+	isdigit(ss[4])) {
+      memcpy(statcodebuf, ss, 5);
+      statcodebuf[5] = 0;
+      *statcodep = statcodebuf;
+      ss += 5;
+    }
+    SKIPSPACE(ss);
+    *ssp = ss;
+    if (code < 200 || code > 599) code = 0;
+    return code;
+}
 
 int smtp_data(SS, buf, cp)
 SmtpState *SS;
@@ -183,35 +213,31 @@ const char *buf, *cp;
 
 	/* Lets see what the content-policy will tell now ? */
 	char *fname = mail_fname(SS->mfp);
-	char *ss0, *ss;
+	const char *statcode = NULL, *ss, *ss0;
+	int code = 0;
+
 	if (debug) typeflush(SS);
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
-	ss  = policymsg(policydb, &SS->policystate);
-	ss0 = "";
-	if (ss && !('0' <= *ss && *ss <= '9')) {
-	  /* The message is not starting with a number */
-	  ss0 = NULL;
-	}
+	ss0 = ss  = policymsg(policydb, &SS->policystate);
+	if (ss)
+	  code = parsestatcode(&ss,&statcode);
 
 	if (SS->policyresult < 0) {
 	  type(NULL,0,NULL,
-	       "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
+	       "Content-policy analysis ordered message rejection. (code=%d); msg='%s'", SS->policyresult, ss0 ? ss0 : "<NIL>");
 
-	  if (!ss0 && ss)
-	    ss0 = "552 5.7.1 ";
-	  if (!ss0) ss0 = "";
-	  
+	  if (!statcode)  statcode = m571;
+	  if (!code)      code = 552;
+
 	  if (!ss) {
-	    type(SS,552,m571,"Content-Policy-Analysis rejected this message");
+	    type(SS,code,statcode,"Content-Policy-Analysis rejected this message");
 	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	      type(SS,552,m571,"Content-Policy-Analysis rejected this message");
+	      type(SS,code,statcode,"Content-Policy-Analysis rejected this message");
 	  } else {
-	    int rr = atoi(ss);
-	    if (rr < 200 || rr > 599) rr = 552;
-	    type(SS, rr, NULL, "%s", ss);
+	    type(SS, code, statcode, "%s", ss);
 	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-	    type(SS, rr, NULL, "%s", ss);
+	      type(SS, code, statcode, "%s", ss);
 	  }
 
 	  mail_abort(SS->mfp);
@@ -245,13 +271,11 @@ const char *buf, *cp;
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
 		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area", SS->policyresult);
 	    } else {
-	      int rr = atoi(ss);
-	      if (rr < 200 || rr > 599) rr = 250;
-	      SKIPDIGIT(ss);
-	      SKIPSPACE(ss);
-	      type(SS, rr, "%s", ss);
+	      if (!statcode)  statcode = m260;
+	      if (!code)      code = 250;
+	      type(SS, code, statcode, "%s", ss);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, rr, "%s", ss);
+		type(SS, code, statcode, "%s", ss);
 	    }
 
 	    typeflush(SS);
@@ -285,13 +309,11 @@ const char *buf, *cp;
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
 		type(SS, 250, "2.6.0", "%s message accepted", taspid);
 	    } else {
-	      int rr = atoi(ss);
-	      if (rr < 200 || rr > 599) rr = 250;
-	      SKIPDIGIT(ss);
-	      SKIPSPACE(ss);
-	      type(SS, rr, "%s", ss);
+	      if (!statcode)  statcode = m260;
+	      if (!code)      code = 250;
+	      type(SS, code, statcode, "%s", ss);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, rr, "%s", ss);
+		type(SS, code, statcode, "%s", ss);
 	    }
 	    typeflush(SS);
 
@@ -467,13 +489,23 @@ const char *buf, *cp;
 
 	/* Lets see what the content-policy will tell now ? */
 	char *fname = mail_fname(SS->mfp);
+	const char *statcode = NULL, *ss, *ss0;
+	int code = 0;
+
 	if (debug) typeflush(SS);
 	SS->policyresult = contentpolicy(policydb, &SS->policystate, fname);
 
+	ss0 = ss  = policymsg(policydb, &SS->policystate);
+	if (ss)
+	  code = parsestatcode(&ss,&statcode);
+
 	if (SS->policyresult < 0) {
-	  char *ss = policymsg(policydb, &SS->policystate);
-type(NULL,0,NULL,
-  "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
+	  type(NULL,0,NULL,
+	       "Content-policy analysis ordered message rejection. (code=%d); msg: '%s'", SS->policyresult, ss0 ? ss0 : "<NIL>");
+
+	  if (!code) code = 552;
+	  if (!statcode) statcode = m571;
+
 	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i){
 	    type(SS,-552,m571,"Content-Policy analysis rejected this message");
 	    type(SS, 552,m571,"Content-Policy msg: %s", ss ? ss : "rejected");
@@ -495,15 +527,17 @@ type(NULL,0,NULL,
 		 "policy", errno, strerror(errno));
 	    if (logfp)
 	      fflush(logfp);
-	    if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i){
-	      type(SS, 452, m430, "Message file disposition failed");
+	    if (lmtp_mode && bdata_last) {
+	      for(i = 0; i < SS->ok_rcpt_count; ++i)
+		type(SS, 452, m430, "Message file disposition failed");
 	    } else
 	      type(SS, 452, m430, "Message file disposition failed");
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
 	  } else {
-	    if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i){
-	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
+	    if (lmtp_mode && bdata_last) {
+	      for(i = 0; i < SS->ok_rcpt_count; ++i)
+		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
 	    } else
 	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
 	    SS->mfp = NULL;
@@ -513,8 +547,9 @@ type(NULL,0,NULL,
 	  }
 	  runastrusteduser();
 	} else if (_mail_close_(SS->mfp, &inum, &mtime) == EOF) {
-	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i) {
-	    type(SS, 452, m400, (char *) NULL);
+	  if (lmtp_mode && bdata_last) {
+	    for(i = 0; i < SS->ok_rcpt_count; ++i)
+	      type(SS, 452, m400, (char *) NULL);
 	  } else
 	    type(SS, 452, m400, (char *) NULL);
 	  SS->mfp = NULL;

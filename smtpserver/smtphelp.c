@@ -17,8 +17,6 @@
  * parse the query string and print an appropriate help message.
  */
 
-
-
 void help(SS, cfinfo, query)
 SmtpState *SS;
 struct smtpconf *cfinfo;
@@ -29,6 +27,8 @@ const char *query;
     struct command *carp;
     Command cmd;
     char linebuf[3000];
+
+    while (query && (*query == ' ' || *query == '\t')) ++query;
 
     for (carp = &command_list[0]; carp->verb != NULL; ++carp) {
 	if (CISTREQ(carp->verb, query))
@@ -186,15 +186,16 @@ const char *query;
 	      continue;
 	    if (carp->cmd == Silent)
 	      continue;
-	    if (col > 70) {
-		col = 12;
+	    if (col > 55) {
 		TYPE_(linebuf);
 		col = 4;
 		strcpy(linebuf, "    ");
+	    } else if (col == 4) {
+		sprintf(linebuf+col, "%s", carp->verb);
 	    } else {
 		sprintf(linebuf+col, ", %s", carp->verb);
-		col += 2 + strlen(carp->verb);
 	    }
+	    col += strlen(linebuf+col);
 	}
 	/* If it has more than just the start indentation. */
 	if (linebuf[4] != 0) TYPE_(linebuf);
