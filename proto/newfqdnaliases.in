@@ -14,6 +14,7 @@ if [ -z "$ZCONFIG" ] ; then
 fi
 
 . $ZCONFIG
+export ZCONFIG
 
 SOPT=""
 if [ "x$1" = "x-s" ]; then

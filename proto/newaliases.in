@@ -1,12 +1,14 @@
 #! /bin/sh
 #
-# This zshell script recreates the traditional aliases file database.
+# This shell script recreates the traditional aliases file database.
 #
-#  THIS IS IN PRACTICE SUPERCEDED BY THE  'zmailer newdb'  MECHANISM!
+#  THIS IS IN PRINCIPLE SUPERCEDED BY THE  'zmailer newdb'  MECHANISM!
 #
-# NB!  If your kernel supports #! but the mechanism fails mysteriously when
-# invoking this file, remember the total length of the command's path is
-# limited to 30 characters or so.
+# IF  dbases.conf  file defines default location 'aliases' file with
+# default ('$DBTYPE') type, this script can be used to recompile it.
+#
+# Supplying file-path argument to this script, this can be used to
+# compile other aliases(5)-format files.
 #
 
 if [ -z "$ZCONFIG" ] ; then
@@ -14,6 +16,7 @@ if [ -z "$ZCONFIG" ] ; then
 fi
 
 . $ZCONFIG
+export ZCONFIG
 
 PATH=/bin:/usr/bin:$PATH # ZMailer router paths are a bit restrictive..
 

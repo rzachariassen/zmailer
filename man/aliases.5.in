@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 5zm "2003-Aug-28"
+.TH ZMAILER 5zm "2003-Sep-08"
 .SH NAME
 .B aliases
 \- aliases file for ZMailer
@@ -29,14 +29,24 @@ Content of the file is formatted as a series of lines of form:
 \fC name: name2, name3, name4, ...
 .RE
 .PP
-Each "name:" label must be valid RFC-822 header type object, and the
-colon must not have white-space in between 'name', and itself.
+Each "name:" label must be valid RFC-822 localpart or address entity,
+and the colon must not have white-space in between 'name', and itself.
 .PP
 The labels may actually be quoted-strings in RFC-822 style:
 .PP
 .RS
 .nf
 "with space":
+.fi
+.RE
+.PP
+Valid labels include:
+.PP
+.RS
+.nf
+postmaster:
+postmaster@zmailer.org:
+"post office manager":
 .fi
 .RE
 .PP

@@ -1,45 +1,60 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH NEWALIASES 1zm "2003-Aug-28"
+.TH NEWALIASES 1zm "2003-Sep-08"
 .SH NAME
 newaliases \- zmailer aliases database rebuilder
 .SH SYNOPSIS
 .B newaliases
+[ \-s ]
+[
+.I /file/path
+]
 .SH DESCRIPTION
 .B "This utility has been superceded by"
 .I "zmailer newdb"
-.B mechanism.
+.B "mechanism, but can be used in few places, provided that"
+.B "\fIaliases\fB type database is being produced with default"
+.B "settings!"
 .PP
-The
+Running the
 .IR newaliases (1zm)
-rebuilds the aliases database used by the
+without parameters rebuilds the
+.IR aliases (5zm)
+database used by the
 .IR router (8zm)
 configuration at most sites.
 .PP
-The database is a sorted list of (alias,byteoffset) values,
-with the byteoffset referring to a digested file containing
-the raw data from the normal aliases file.
-The indirection allows the alias entries to be arbitrarily
-large without running into representational limits.
+This script wrapper constructs argument list for underlying
+.IR newdb (8zm)
+program
+(and
+.IR makedb (8zm)
+under it,) which does actual
+.IR aliases (5zm)
+format database compilation work.
 .PP
-\fINote: Modern systems use e.g. SleepyCat DB instead of these
-arcane indirection schemes.
-Classical DBM systems weren't good enough due to e.g. NDBM having
-a limit of 1 kilobyte of key + data!\fR
+.SH OPTIONS
 .PP
-The
-.IR router (8zm)
-must be available to interpret this script, as it provides the address
-digestification functionality.
+.IP "\-s"
+.RS
+Optionally silence the underlying
+.IR makedb (8zm)
+program.
+.RE
+.IP "\fI/file/path\fR"
+.RS
+Optionally specify file path (fully qualified, or relative)
+to the database to be compiled.
+.PP
+With this option one can specify which database is to be compiled.
+.RE
 .PP
 .SH ENVIRONMENT VARIABLES
 .IP ZCONFIG
 .RS
 This environment variable is expected to be inherited from the
-user's environment, and it tells where scheduler's idea of
-.IR ZENV -variables
-are located at.
+user's environment for cases where default location isn't correct.
 .RE
 .SH Z\-ENVIRONMENT VARIABLES
 .PP
@@ -48,7 +63,7 @@ Following \fIZENV-variables\fR are used by the
 program:
 .PP
 .IP MAILVAR
-Tells where the ZMailer's runtime databases, etc. are.
+Tells where the ZMailer's runtime databases, etc. are by default.
 .PP
 .SH FILES
 .PP
@@ -59,8 +74,11 @@ l l.
 .TE
 .PP
 .SH SEE ALSO
+.IR aliases (5zm),
 .IR router (8zm),
+.IR makedb (8zm),
 .IR newdb (8zm),
+.IR zdbases.conf (5zm),
 .IR zmailer (1zm),
 .IR zmailer.conf (5zm).
 .PP
@@ -68,4 +86,8 @@ l l.
 This program authored and copyright by:
 .RS 3em
 Rayan Zachariassen <no address>
+.RE
+Fairly radical rewriting by:
+.RS 3em
+Matti Aarnio <mea@nic.funet.fi>
 .RE

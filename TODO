@@ -73,6 +73,10 @@ proto/newdbprocessor.in:
   - Also, how about enabling non-privileged users to execute "zmailer newdb"
     to recompile their own databases even though they won't be able to
     recreate all dbases and their hook .zmsh scripts ?
+  - Support 'compile only those needing it' thing in "zmailer newdb", e.g.
+    when source file is newer, than destination...
+  - Don't overwrite produced .zmsh files in "zmailer newdb", when result
+    has not changed at all..
 
 FEATURE:
   router+scheduler+TA status (SNMP) MIB areas in an SHM segment

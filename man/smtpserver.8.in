@@ -402,6 +402,11 @@ support, use that instead of built-in plain-text authenticator code.
 List only those mechanisms that are wanted to be supported in the
 running system.
 Undefined list means: any and all what the SASL-system supports.
+.PP
+Suggested list: "\fCPLAIN LOGIN\fR"
+.PP
+Other ways might work, or might not.
+Experience is partial, and failed in several combinations.
 .RE
 .IP "PARAM MSA\-mode"
 .RS

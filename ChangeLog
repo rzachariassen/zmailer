@@ -1,3 +1,13 @@
+2003-09-08  Matti Aarnio  <mea@zmailer.org>
+
+	* man/Makefile.in:
+	    Replaced (in 'make install' target) literal
+	    'zm' suffix in files with '$Z' substitution.
+
+	* man/aliases.5.in, man/newaliases.1.in,
+	  man/smtpserver.8.in:
+	    Man-page text updates.
+
 2003-09-05  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
