@@ -818,6 +818,9 @@ thread_start(thr, queueonly_too)
 	if (syncstart || (freeze && !slow_shutdown)) return 0;
 	if (!queueonly_too && (ce->flags & CFG_QUEUEONLY)) return 0;
 
+	ho = vp->orig[L_HOST];
+	ch = vp->orig[L_CHANNEL];
+
 	if (procselect) {
 	  thr->pending = "procsel-mismatch";
 	  if (*procselect != '*' &&
@@ -828,9 +831,6 @@ thread_start(thr, queueonly_too)
 	    return 0;
 	}
 	thr->pending = NULL;
-
-	ho = vp->orig[L_HOST];
-	ch = vp->orig[L_CHANNEL];
 
 	if (verbose)
 	  sfprintf(sfstderr,"thread_start(thr=%s/%d/%s) (dt=%d thr=%p jobs=%d)\n",
