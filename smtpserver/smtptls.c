@@ -1002,12 +1002,20 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	 * set_cert_stuff().   We cannot run without.
 	 */
 
+	if (tls_ask_cert && (!CApath && !CAfile)) {
+	  type(NULL,0,NULL,"TLS engine: No CA certificate file/directory defined, and asking for client certs");
+	  return (-1);
+	}
+
 	if ((!SSL_CTX_load_verify_locations(ssl_ctx, CAfile, CApath)) ||
 	    (!SSL_CTX_set_default_verify_paths(ssl_ctx))) {
-	  type(NULL,0,NULL,"TLS engine: cannot load CA data");
-	  tls_print_errors();
-	  return (-1);
-
+	  /* Consider this to be fatal ONLY if client
+	     certificates really are required ( = hardly ever) */
+	  if (tls_ask_cert && tls_req_cert) {
+	    type(NULL,0,NULL,"TLS engine: cannot load CA data");
+	    tls_print_errors();
+	    return (-1);
+	  }
 	}
 
 	/*

@@ -44,11 +44,20 @@
 			for this key entry:
 				fulltrustnet +
 				trustrecipient +
-			First pair will accept any source address,
+				maxinsize 30000000
+
+			The first pair will accept any source address,
 			and any recipient addresses that are fed to
-			the server;  the second will verify the source
-			address, but after that it will accept any
-			recipient addresses.
+			the server.
+
+			The second will verify the source IP-address,
+			but after that it will accept any recipient
+			addresses.
+
+			The third pair sets EHLO-reported "SIZE nn"
+			parameter to be limited to 30 million bytes.
+			(Or to global definition, if that is in range
+			 of 1 thru 'nn'.)
 
 			You may also enter domains which are looked
 			up for the hostname of reversed IP address,
