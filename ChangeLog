@@ -1,7 +1,15 @@
 2005-03-24  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/errormail/errormail.c:
+	    Hardwire the default-form in with a bit more elegance, also
+	    output all recipients on visible headers!
+
+	* transports/libta/dnsgetrr.c:
+	   Drop off  res_hnok() and res_dnok()  calls, which are
+	   unnecessary in our use..
+
 	* transports/smtp/smtp.c:
-	    Debugging some suspicuous EZMLM-mode behaviour
+	    Debugging some suspicuous EZMLM-mode behaviour.
 
 	* router/router.c, router/functions.c, router/prototypes.h:
 	   Eliminate the need for 'struct shCmd' in prototypes.h

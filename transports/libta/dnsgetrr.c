@@ -197,9 +197,6 @@ getrrtype(host, ttlp, hbsize, rrtype, cnamelevel, vlog)
    gethostbyname2() routines from  BIND 4.9.4 -- "slighly" by adding
    a state block into parameters, and thus removing blind static arrays. */
 
-static int res_hnok(cp)const char *cp;{return 1;}
-static int res_dnok(cp)const char *cp;{return 1;}
-
 static const char AskedForGot[] =
 			  "gethostby*.getanswer_r: asked for \"%s\", got \"%s\"";
 
@@ -271,7 +268,6 @@ getanswer_r(answer, anslen, qname, qtype, result)
 	int toobig = 0;
 	char tbuf[MAXDNAME+1];
 	const char *tname;
-	int (*name_ok) __((const char *));
 
 	result->ttl = 0;
 
@@ -281,10 +277,8 @@ getanswer_r(answer, anslen, qname, qtype, result)
 	switch (qtype) {
 	case T_A:
 	case T_AAAA:
-		name_ok = res_hnok;
 		break;
 	case T_PTR:
-		name_ok = res_dnok;
 		break;
 	default:
 		return (NULL);	/* XXX should be abort(); */
@@ -303,7 +297,7 @@ getanswer_r(answer, anslen, qname, qtype, result)
 		return (NULL);
 	}
 	n = dn_expand(answer->buf, eom, cp, bp, buflen);
-	if ((n < 0) || !(*name_ok)(bp)) {
+	if ((n < 0)) {
 		h_errno = NO_RECOVERY;
 		return (NULL);
 	}
@@ -330,7 +324,7 @@ getanswer_r(answer, anslen, qname, qtype, result)
 	had_error = 0;
 	while (ancount-- > 0 && cp < eom && !had_error) {
 		n = dn_expand(answer->buf, eom, cp, bp, buflen);
-		if ((n < 0) || !(*name_ok)(bp)) {
+		if (n < 0) {
 			had_error++;
 			continue;
 		}
@@ -349,7 +343,7 @@ getanswer_r(answer, anslen, qname, qtype, result)
 			if (ap >= &result->host_aliases[MAXALIASES-1])
 				continue;
 			n = dn_expand(answer->buf, eom, cp, tbuf, sizeof tbuf);
-			if ((n < 0) || !(*name_ok)(tbuf)) {
+			if (n < 0) {
 				had_error++;
 				continue;
 			}
@@ -373,7 +367,7 @@ getanswer_r(answer, anslen, qname, qtype, result)
 		}
 		if (qtype == T_PTR && type == T_CNAME) {
 			n = dn_expand(answer->buf, eom, cp, tbuf, sizeof tbuf);
-			if ((n < 0) || !res_hnok(tbuf)) {
+			if (n < 0) {
 				had_error++;
 				continue;
 			}
@@ -411,7 +405,7 @@ getanswer_r(answer, anslen, qname, qtype, result)
 				continue;	/* XXX - had_error++ ? */
 			}
 			n = dn_expand(answer->buf, eom, cp, bp, buflen);
-			if ((n < 0) || !res_hnok(bp)) {
+			if ((n < 0)) {
 				had_error++;
 				break;
 			}

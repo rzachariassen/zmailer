@@ -27,18 +27,6 @@
 #define	PROGNAME	"errormail"
 #define	CHANNEL		"error"	/* the default channel name we deliver for */
 
-const char *dfltform[] = {
-		"From: The Post Office <postmaster>",
-		"Subject: email delivery error",
-		"Cc: The Postmaster <postmaster>",
-		"MIME-Version: 1.0",
-		"Precedence: junk", /* BSD sendmail */
-		"Content-Type: multipart/report; report-type=delivery-status;",
-		"",
-		"Processing your mail message caused the following errors:",
-		NULL
-};
-
 const char *progname;
 
 extern char *optarg;
@@ -293,7 +281,7 @@ process(dp)
 	struct ctldesc *dp;
 {
 	char buf[BUFSIZ];
-	const char **cpp, *mailshare, *mfpath;
+	const char *mailshare, *mfpath;
 	Sfio_t *mfp, *efp;
 	int n;
 	struct rcpt *rp;
@@ -370,7 +358,8 @@ process(dp)
 
 	mfpath = emalloc(3 + strlen(mailshare) + strlen(FORMSDIR) +
 			 strlen(rp->addr->host));
-	sprintf((char*)mfpath, "%s/%s/%s", mailshare, FORMSDIR, rp->addr->host);
+	sprintf((char*)mfpath, "%s/%s/%s",
+		mailshare, FORMSDIR, rp->addr->host);
 
 	efp = sfopen(NULL, mfpath, "r");
 	if (efp != NULL) {
@@ -402,11 +391,13 @@ process(dp)
 	    } else {
 	      if (inhdr) {
 		inhdr = 0;
-		sfprintf(mfp,"MIME-Version: 1.0\n");
-		sfprintf(mfp,"Content-Type: multipart/report; report-type=delivery-status;\n");
-		sfprintf(mfp,"\tboundary=\"%s\"\n\n\n",boundarystr);
+		sfprintf(mfp, "MIME-Version: 1.0\n");
+		sfprintf(mfp, "Content-Type: multipart/report;\n");
+		sfprintf(mfp, "\treport-type=delivery-status;\n");
+		sfprintf(mfp, "\tboundary=\"%s\"\n\n\n",boundarystr);
 		sfprintf(mfp, "--%s\n", boundarystr);
-		sfprintf(mfp, "Content-Type: text/plain\n");
+		sfprintf(mfp, "Content-Transfer-Encoding: 7BIT\n");
+		sfprintf(mfp, "Content-Type: text/plain; charset=US-ASCII\n");
 	      }
 	      sfprintf(mfp, "%s", buf);
 	    }
@@ -415,13 +406,21 @@ process(dp)
 	} else {
 	  sfprintf(mfp,"to <postmaster>\n"); /* Default-form Cc: ... */
 	  sfprintf(mfp,"env-end\n");
-	  for (cpp = &dfltform[0]; *cpp != NULL; ++cpp)
-	    if (**cpp == '\0') {
-	      sfprintf(mfp, "\tboundary=\"%s\"\n\n\n", boundarystr);
-	      sfprintf(mfp, "--%s\n", boundarystr);
-	      sfprintf(mfp, "Content-Type: text/plain\n");
-	    } else
-	      sfprintf(mfp, "%s\n", *cpp);
+
+	  sfprintf(mfp, "From: The Post Office <postmaster>\n");
+	  sfprintf(mfp, "Subject: email delivery error\n");
+
+	  sfprintf(mfp, "To: <%s>\n",rp->addr->link->user);
+
+	  sfprintf(mfp, "Precedence: junk\n"); /* BSD sendmail */
+	  sfprintf(mfp,"MIME-Version: 1.0\n");
+	  sfprintf(mfp, "Content-Type: multipart/report;\n");
+	  sfprintf(mfp, "\treport-type=delivery-status;\n");
+	  sfprintf(mfp, "\tboundary=\"%s\"\n\n\n", boundarystr);
+	  sfprintf(mfp, "--%s\n", boundarystr);
+	  sfprintf(mfp, "Content-Transfer-Encoding: 7BIT\n");
+	  sfprintf(mfp, "Content-Type: text/plain; charset=US-ASCII\n");
+	  sfprintf(mfp, "\nProcessing your mail message caused the following errors:\n");
 	}
 	/* print out errors in standard format */
 	sfputc(mfp, '\n');
