@@ -664,8 +664,16 @@ struct peerdata {
 	int  fd;
 	int  inlen;
 	int  outlen, outptr;
-	char inpbuf[1000];
-	char outbuf[2000];
+	int  inpspace;
+	int  outspace;
+	char *inpbuf;		/* Grown to fit in an input line..
+				   The input protocol shall be SINGLE
+				   text line with '\n' at the end! */
+	char *outbuf;		/* Written out "synchronously" to the
+				   socket/pipe buffer space.
+				   About 200 chars should be enough.
+				   If not, adding automated buffer
+				   expansion codes is trivialish...  */
 };
 
 struct subdaemon_handler {

@@ -251,8 +251,26 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		  peer = & peers[n];
 		  if (peer->fd < 0) {
 		    /* FREE SLOT! */
+		    char *p = peer->inpbuf;
+		    char *o = peer->outbuf;
+		    int  sp = peer->inpspace;
+		    int  so = peer->outspace;
 		    if (top_peer <= n)  top_peer = n + 1;
 		    memset( peer, 0, sizeof(*peer) );
+		    peer->inpbuf   = p;
+		    peer->inpspace = sp;
+		    peer->outbuf   = o;
+		    peer->outspace = so;
+
+		    if (!peer->inpbuf) {
+		      peer->inpspace = 64;
+		      peer->inpbuf = calloc(1, peer->inpspace);
+		    }
+		    if (!peer->outbuf) {
+		      peer->outspace = 250;
+		      peer->outbuf = calloc(1, 250); /* FIXME: MAGIC! */
+		    }
+
 		    peer->fd = newfd;
 		    fd_nonblockingmode(newfd);
 		    /* We write our greeting right away .. semi fake state! */
@@ -308,8 +326,20 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		/* Now if we have something to read ?? */
 		if (_Z_FD_ISSET(peer->fd, rdset)) {
 		  for (;;) {
+		    if ((peer->inpspace - peer->inlen) < 32) {
+		      /* Enlarge the buffer! */
+		      peer->inpspace += 64;
+		      peer->inpbuf = realloc(peer->inpbuf,
+					     peer->inpspace);
+		    }
 		    rc = read( peer->fd, peer->inpbuf + peer->inlen,
-			       sizeof(peer->inpbuf) - peer->inlen );
+			       peer->inpspace - peer->inlen );
+		    if (rc > 0) {
+		      peer->inlen += rc;
+		      if (peer->inpbuf[ peer->inlen -1 ] == '\n')
+			break; /* Stop here! */
+		      continue; /* read more, if there is.. */
+		    }
 		    if ((rc < 0) && (errno == EINTR))
 		      continue; /* try again */
 		    break;
@@ -321,7 +351,6 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 		    continue;
 		  }
 		  if (rc > 0) {
-		    peer->inlen += rc;
 		    if (peer->inpbuf[ peer->inlen -1 ] == '\n') {
 		      rc = (subdaemon_handler->input)( statep, peer );
 		      if (rc > 0) {
@@ -395,11 +424,12 @@ subdaemon_send_to_peer(peer, buf, len)
 	    peer->outptr = 0;
 	  }
 
-	  fit = sizeof(peer->outbuf) - peer->outlen; /* outptr == 0 */
+	  fit = peer->outspace - peer->outlen; /* outptr == 0 */
 	  if (fit > len) fit = len; /* But no more than what we have.. */
 
 	  if (fit > 0) {
 	    memcpy(peer->outbuf + peer->outlen, buf, fit);
+	    peer->outlen += fit;
 	    buf += fit;
 	    len -= fit;
 	  }
@@ -489,6 +519,7 @@ void subdaemon_pick_next_job( peers, top_peer, subdaemon_handler, statep )
 	for (i = 0; i < top_peer; ++i) {
 	  peer = & peers[i];
 	  if ((peer->fd >= 0) && (peer->inlen > 0) &&
+	      peer->inpbuf && 
 	      (peer->inpbuf[ peer->inlen -1 ] == '\n')) {
 
 	    rc = (subdaemon_handler->input)( statep, peer );
