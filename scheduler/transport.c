@@ -361,14 +361,21 @@ ta_hungry(proc)
 	  /* Thread selected already along with its first vertex,
 	     which is pointer by  proc->pthread->nextfeed  */
 
+	  /* However if we have multiple parallel processes
+	     in single thread, we may end up driving a new
+	     process straight from LARVA to IDLE... */
+
 	  proc->overfed = 0; /* Should not need setting ... */
 
-	  if (feed_child(proc) < 0)
+	  if (proc->pthread->nextfeed != NULL &&
+	      feed_child(proc) < 0)
 	    /* We got some error :-/  D'uh! */
 	    goto feed_error_handler;
 
 	  proc->state = CFSTATE_STUFFING;
-	  return;
+	  /* Not YET drained.. */
+	  if (proc->pthread->nextfeed)
+	    return;
 
 	case CFSTATE_STUFFING: /* "2" */
 

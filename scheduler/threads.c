@@ -291,8 +291,8 @@ struct config_entry *cep;
  * Pick next thread from the group which this process serves.
  * At call the proc->pthread->proc does not contain us!
  *
- * Result is  proc->pthread and proc->pthread->nextfeed being updated to
- * new thread, and function returns 1.
+ * Result is  proc->pthread  and  proc->pthread->nextfeed  being
+ * updated to new thread, and function returns 1.
  * If no new thread can be picked (all are active, and whatnot),
  * return 0.
  */
