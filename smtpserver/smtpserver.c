@@ -1347,9 +1347,7 @@ char *buf, *cop, *cp;
 int buflen, *rcp;
 {
 	int c, co = -1;
-	int i, rc;
-
-	rc = -1;
+	int i = -1, rc = -1;
 
 	if (!pipeliningok || !s_hasinput(SS))
 	    typeflush(SS);
@@ -1363,11 +1361,10 @@ int buflen, *rcp;
 	alarm(SMTP_COMMAND_ALARM_IVAL);
 
 	/* Our own  fgets() -- gets also NULs, flags illegals.. */
-	i = 0;
 	--buflen;
 	while ((c = s_getc(SS)) != EOF && i < buflen) {
 	    if (c == '\n') {
-		buf[i++] = c;
+		buf[++i] = c;
 		break;
 	    } else if (co == '\r' && rc < 0)
 		rc = i;		/* Spurious CR on the input.. */
@@ -1379,10 +1376,10 @@ int buflen, *rcp;
 	    if (c != '\r' && c != '\t' &&
 		(c < 32 || c == 127) && rc < 0)
 		rc = i;
-	    buf[i++] = c;
+	    buf[++i] = c;
 	    co = c;
 	}
-	buf[i] = '\0';
+	buf[++i] = '\0';
 	alarm(0);		/* Cancel the alarm */
 
 	if (c == EOF && i == 0) {
@@ -1393,15 +1390,15 @@ int buflen, *rcp;
 	}
 
 	/* Zap the ending newline */
-	if (c  == '\n') buf[--i] = '\0';
+	if (c  == '\n') buf[i-1] = '\0';
 	/* Zap the possible preceeding \r */
-	if (co == '\r') buf[--i] = '\0';
+	if (co == '\r') buf[i-2] = '\0';
 
 	*cop = co;
 	*cp  = c;
 	*rcp = rc;
 
-	if (i == buflen && c != EOF && c != '\n') {
+	if (i >= buflen && c != EOF && c != '\n') {
 	  /* Huh, oversized input line ?? */
 	  while ((c = s_getc(SS)) != EOF && c != '\n')
 	    ;
@@ -1637,7 +1634,8 @@ int insecure;
 	int i;
 
 	i = s_gets(SS, buf, sizeof(buf), &rc, &co, &c );
-	if (i == 0)	/* EOF ??? */
+
+	if (i <= 0)	/* EOF ??? */
 	  break;
 
 	eobuf = &buf[i-1];	/* Buf end ptr.. */

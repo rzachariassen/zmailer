@@ -179,43 +179,45 @@ char * zpwmatch(uname, password, uidp)
 {
     struct spwd *spw;
     struct passwd *pw;
-    char *cr;
     int ok = 0;
     
     runasrootuser();
 
     if (lckpwdf() == -1) {
-	spw = NULL;
-    } else
+	spw = NULL; /* Lock failed.. */
+    } else {
 	spw = getspnam(uname);
-    ulckpwdf(); /* Not much we can do here anyway if it fails */
+	ulckpwdf(); /* Unlock */
+    }
+
+    pw = getpwnam(uname); /* Do this as root user, just in case.. */
 
     runastrusteduser();
 
-    if (!spw) goto final_out; /* No such user */
-    pw = getpwnam(uname);
-    if (!pw) goto final_out; /*No such user! HUH! (had shadow-entry, though! */
+    if (pw) { 
 
-    /* Either the   getpwnam()  returns working password out of
-       the shadow dataset, or a third-party shadow set must be used
-       to pick also the encrypted data..  Both fetches are done,
-       and now we do comparisons presuming the first fetch result
-       is usable encrypted password ...  (Thanks to Eugene Crosser for report.)
-    */
+      /* Either the   getpwnam()  returns working password out of
+	 the shadow dataset, or a third-party shadow set must be used
+	 to pick also the encrypted data..  Both fetches are done,
+	 and now we do comparisons presuming the first fetch result
+	 is usable encrypted password ...
+	 (Thanks to Eugene Crosser for report.)
+      */
 
-    cr = crypt(password, pw->pw_passwd);
-    if (strcmp(cr, pw->pw_passwd) == 0)
-      ok = 1;
-    else {
-      /* Ok, perhaps the second one contains usable encrypted password ? */
-      cr = crypt(password, spw->sp_pwdp);
-      if (strcmp(cr, spw->sp_pwdp) == 0)
+      char *cr = crypt(password, pw->pw_passwd);
+
+      if (strcmp(cr, pw->pw_passwd) == 0)
 	ok = 1;
+      else if (spw) {
+	/* Ok, perhaps the second one contains usable encrypted password ? */
+	cr = crypt(password, spw->sp_pwdp);
+	if (strcmp(cr, spw->sp_pwdp) == 0)
+	  ok = 1;
+      }
+
+      *uidp = pw->pw_uid;
     }
 
-    *uidp = pw->pw_uid;
-
- final_out:
     return (ok ? NULL : "Authentication Failed");
 }
 

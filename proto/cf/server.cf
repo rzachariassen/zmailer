@@ -10,40 +10,39 @@ quadprint (quad) {
 	user="$(user $quad)"
 	case $(channel $quad) in
 	local)	ssift "$user" in
-		[|/].*	text="local delivery for"
+		[|/].*	text="250-local delivery for"
 			break
 			;;
 		.*
-			user2="$user"
-			ssift "$user2" in
+			ssift "$user" in
 			(.*)@([^@]+)	# FQDN format address ?
-				user2="\1" ;;
+				user="\1" ;;
 			.*	;;
 			tfiss
-			ssift "$user2" in
+			ssift "$user" in
 			(.*)\+(.*)	# A "+" in the name ?
-				user2="\1" ;;
+				user="\1" ;;
 			.*	;;
 			tfiss
 			
-			text="$(login2uid "$user2")"	# ignore return value
-			if text="$(fullname "$user2")"; then
-				text="$text"
+			text="$(login2uid "$user")"	# ignore return value
+			if text="$(fullname "$user")"; then
+				text="250-$text"
 			else
-				if text="$(fullname "$(recase -l "$user2")")"; then
-					text="$text"
+				if text="$(fullname "$(recase -l "$user")")"; then
+					text="250-$text"
 				else
-					text="550 no such user:"
+					text="550-no such user:"
 				fi
 			fi
 			;;
 		tfiss
 		;;
-	usenet)	text="newsgroup:" ;;
+	usenet)	text="250-newsgroup:" ;;
 	*)	text="$(channel $quad) delivery"
 		case "$(host $quad)" in
-		-|'')	text="$text for" ;;
-		*)	text="$text to $(host $quad) for" ;;
+		-|'')	text="250-$text for" ;;
+		*)	text="250-$text to $(host $quad) for" ;;
 		esac
 		;;
 	esac
@@ -57,7 +56,7 @@ server (key) {
 #| specifies the semantics of the additional arguments provided by the
 #| smtpserver.  The key values are: init, to, from, verify, and expand.
 
-	local a A B
+	local a A B Ei Ej
 
 	A=$(newattribute default_attributes type sender)
 	B=$(newattribute default_attributes type expandsender)
@@ -80,9 +79,9 @@ server (key) {
 	case "$key" in
 	to|from|verify|expand)
 		a="$1"
-		tsift "$a" in # "Defocus" brackets
+		ssift "$a" in # "Defocus" brackets
 		<(.+)>	a="\1"; continue ;;
-		tfist
+		tfiss
 		if rfc822syntax "$a"; then ; else
 			echo "554 illegal address syntax: <$a>"
 			return
@@ -126,6 +125,7 @@ server (key) {
 				quadprint $j
 			done
 		done
+		echo "250 VRFY completed"
 		;;
 	expand)
 		a="$(router "$a" $B)"
@@ -139,6 +139,7 @@ server (key) {
 				quadprint $j
 			done
 		done
+		echo "250 EXPN completed"
 		;;
 	esac
 }

@@ -1,3 +1,18 @@
+1999-09-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c, smtpserver/smtprouter.c, proto/cf/server.cf:
+	    Noticed several problems:
+	    - Router reports were not reported thru the proper socket, and
+	      that screw up things..
+	    - Made some wrappers into the  server.cf  to always issue proper
+	      status code in the line + plus always terminating "250 EXPN done"
+	      or "250 VRFY done" lines.  Also noticed a bug in the zmsh!
+	    - smtpserver main loop got spurious EOF result from protocol input
+	      line, when the input was in fact just plain CRLF ... Urgle..
+
+	* smtpserver/zpwmatch.c:
+	    More rework at the SHADOW -branch..
+
 1999-09-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.c:

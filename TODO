@@ -12,6 +12,9 @@ proto:	"make install" -- nothing goes in ???
 		--> MAILSHARE/proto/ !!
 
 router:
+	BUG:  $(elements zz)  does not result in a LIST type object
+		in proper way.  Most visible this problem is in  server.cf
+
 	Replace current multi-process router farm with one where queue
 	scanner runs interactive routers alike the smtpserver hooks
 	to routers:
