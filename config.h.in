@@ -452,6 +452,9 @@
 /* System has soclken_t type */
 #undef HAVE_SOCKLEN_T
 
+/* Define to 1 if you have the <spf2/spf.h> header file. */
+#undef HAVE_SPF2_SPF_H
+
 /* Define to 1 if you have the <spf_alt/spf.h> header file. */
 #undef HAVE_SPF_ALT_SPF_H
 
@@ -667,11 +670,17 @@
 /* Using our own special replacement library for IPv6 support */
 #undef HAVE__GETADDRINFO_
 
+/* Define to 1 if you have the </local/include/spf2/spf.h> header file. */
+#undef HAVE__LOCAL_INCLUDE_SPF2_SPF_H
+
 /* Define to 1 if you have the </local/include/spf_alt/spf.h> header file. */
 #undef HAVE__LOCAL_INCLUDE_SPF_ALT_SPF_H
 
 /* Define to 1 if you have the </local/include/whoson.h> header file. */
 #undef HAVE__LOCAL_INCLUDE_WHOSON_H
+
+/* Define to 1 if you have the </opt/include/spf2/spf.h> header file. */
+#undef HAVE__OPT_INCLUDE_SPF2_SPF_H
 
 /* Define to 1 if you have the </opt/include/spf_alt/spf.h> header file. */
 #undef HAVE__OPT_INCLUDE_SPF_ALT_SPF_H
@@ -679,12 +688,18 @@
 /* Define to 1 if you have the </opt/include/whoson.h> header file. */
 #undef HAVE__OPT_INCLUDE_WHOSON_H
 
+/* Define to 1 if you have the </opt/local/include/spf2/spf.h> header file. */
+#undef HAVE__OPT_LOCAL_INCLUDE_SPF2_SPF_H
+
 /* Define to 1 if you have the </opt/local/include/spf_alt/spf.h> header file.
    */
 #undef HAVE__OPT_LOCAL_INCLUDE_SPF_ALT_SPF_H
 
 /* Define to 1 if you have the </opt/local/include/whoson.h> header file. */
 #undef HAVE__OPT_LOCAL_INCLUDE_WHOSON_H
+
+/* Define to 1 if you have the </usr/local/include/spf2/spf.h> header file. */
+#undef HAVE__USR_LOCAL_INCLUDE_SPF2_SPF_H
 
 /* Define to 1 if you have the </usr/local/include/spf_alt/spf.h> header file.
    */
