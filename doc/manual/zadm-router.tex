@@ -176,16 +176,17 @@ More about this later.
 \end{itemize}
 
 There are currently only three entry points (i.e. magic names known to the
-{\em router} code) in the configuration scripts, namely the {\tt process}, {\tt router} and 
-{\tt crossbar} functions.
+{\em router} code) in the configuration scripts, namely the {\tt process()},
+the {\tt router()} and the {\tt crossbar()} functions.
 
-The {\tt process} function is called with a file name as argument. 
+
+The {\tt process()} function is called with a file name as argument. 
 The file is typically located in the {\tt \$POSTOFFICE/router/} 
 directory. {\tt Process} is a protocol switch function which uses the 
 form of the file name to determine how to process different types of 
 messages.
 
-The {\tt router} function is called with an address as argument,
+The {\tt router()} function is called with an address as argument,
 and returns a quad of (channel, host, user, attribs) as three
 separate values,  corresponding to the channel the message should
 be sent out on (or, the router function can also be called to check
@@ -196,7 +197,7 @@ The fourth parameter is ``attribute'' storage variable name from
 which a ``privilege'' value-pair is picked for recipient address
 security control functions.
 
-The {\tt crossbar} function is in charge of rewriting envelope addresses,
+The {\tt crossbar()} function is in charge of rewriting envelope addresses,
 selecting message header address munging type (a function to be called with
 each message header address), and possibly doing per-message logging or
 enforcing restrictions deemed necessary.
@@ -207,6 +208,13 @@ a function name corresponding to the function to be used to rewrite header
 addresses for the specific destination.
 If the destination is to be ignored, returning a null function name will
 accomplish this.
+
+
+There is a fourth script entrypoint used by the {\em smtpserver} program,
+namely the {\tt server()}, which is used to implement smtpserver's
+realtime support facilities for ``EXPN'' and ``VRFY'' commands, and
+optionally also to process addresses in ``MAIL FROM'', and ``RCPT TO''
+commands.
 
 The {\em router} has several built in (C coded) functions.
 Their calling sequence and interface specification is exactly the same
@@ -527,44 +535,44 @@ For {\tt unordered} and {\tt ordered} database types, the datum
 corresponding to a particular key may be null.  This situation arises if 
 the database is a simple list, with one key per line and nothing else.  
 In this situation, the use of an appropriate post-processor option 
-(e.g. `{\tt b}') is recommended to be able to detect whether or not 
+(e.g. ``{\tt b}'') is recommended to be able to detect whether or not 
 the lookup succeeded.
 
-The `{\tt f}' option specifies the name of the database.  This is typically a
+The ``{\tt f}'' option specifies the name of the database.  This is typically a
 path that either names the actual (and single) database file, or gives the
 root path for a number of files comprising the database (e.g. {\tt foo} may
-refer to the NDBM files `{\tt foo.pag}' and `{\tt foo.dir}').  For the 
+refer to the NDBM files ``{\tt foo.pag}'' and ``{\tt foo.dir}'').  For the 
 {\tt hostsfile} type of database, the {\tt /etc/hosts} file is the one 
 used (and since the normal hosts file access routines do not allow specifying 
 a different file, this cannot be overridden).
 
-The `{\tt s}' option specifies the size of the cache.  If this value 
+The ``{\tt s}'' option specifies the size of the cache.  If this value 
 is non-zero (by default it is 10), then an LRU cache of this size is 
 maintained for previous queries to this relation, including both positive 
 and negative results.
 
-The `{\tt e}' option specifies the cache data expiration time in seconds.
+The ``{\tt e}'' option specifies the cache data expiration time in seconds.
 
-The `{\tt b}' option asks that a postprocessor is applied to the database 
+The ``{\tt b}'' option asks that a postprocessor is applied to the database 
 lookup result, so the empty string is returned from the relation query if the
 database search failed, and the key itself it returned if the search
 succeeded.  In the latter case, any retrieved data is discarded.  The
 option letter is short for Boolean.
 
-The `{\tt n}' option asks that a postprocessor is applied to the database 
+The ``{\tt n}'' option asks that a postprocessor is applied to the database 
 lookup result, so the key string is returned from the relation query if the
 database search failed, and the retrieved datum string is returned if the
 search succeeded.  The option letter is short for Non-Null.
 
-The `{\tt l}' option asks that all keys are converted to lowercase before 
-lookup in the database.  This is mutually exclusive with the `{\tt u}' 
+The ``{\tt l}'' option asks that all keys are converted to lowercase before 
+lookup in the database.  This is mutually exclusive with the ``{\tt u}'' 
 option.
 
-The `{\tt u}' option asks that all keys are converted to uppercase before 
-lookup in the database.  This is mutually exclusive with the `{\tt l}' 
+The ``{\tt u}'' option asks that all keys are converted to uppercase before 
+lookup in the database.  This is mutually exclusive with the ``{\tt l}'' 
 option.
 
-The `{\tt d}' option specifies a search routine.  Currently the only legal
+The ``{\tt d}'' option specifies a search routine.  Currently the only legal
 argument to this option is {\tt pathalias}, specifying a driver that searches
 for the key using domain name lookup rules.
 
@@ -708,12 +716,11 @@ padblookup (name) \{
 \end{figure*}
 
 This is actually a simplistic algorithm, but it does illustrate the method.
-The lookup algorithm used when the `{\tt -d}' flag is specified in the
+The lookup algorithm used when the ``{\tt -d}'' flag is specified in the
 relation definition command is rather simple; it doesn't test various case
 combinations for the keys it tries.  Therefore, the keys in the pathalias
-output data should probably be converted to a single case, and the `{\tt -l}'
-or `{\tt -u}' flag given in the relation definition.
-
+output data should probably be converted to a single case, and the ``{\tt -l}''
+or ``{\tt -u}'' flag given in the relation definition.
 
 
 
@@ -732,8 +739,9 @@ manner, however it means feeding the message to the scheduler, and
 external program ({\tt /usr/lib/sendmail}) before it comes back to the
 {\em router}.
 
-The list FILE must have protection 0664 or stricter, 0700 has invalid bits.
-(ok, so the ``x"-bit is not used, but illegal it is, all the same.)
+The list {\em file} must have protection 0664 or stricter, 0700 has
+invalid bits.
+(ok, so the ``x''-bit is not used, but illegal it is, all the same.)
 Preferrable protection is: 0600
 
 The {\tt \$MAILSHARE/lists/} directory must be owned by root.
@@ -745,9 +753,9 @@ The owner of FILE gets FILE-owner, and FILE-request mails,
 {\em unless any of the above listed limitations are breached}.
 
 If FILE has protection 666 (for example), the ZMailer internal function
-"{\tt \$(filepriv \$filepath)}" 
-returns "{\tt \$nobody}" (userid of nobody), and  function
-"{\tt \$(uid2login \$nobody)}" fails, thus losing -owner, and 
+``\tt \$(filepriv \$filepath)}''
+returns ``{\tt \$nobody}'' (userid of nobody), and  function
+``{\tt \$(uid2login \$nobody)}'' fails, thus losing -owner, and 
 -request features.
 
 Also lists with filepriv ``nobody'' cannot be archived simply
@@ -769,7 +777,7 @@ sent to LIST-owner and LIST-request.  This can be explicitly overridden
 in the aliases file.  Mail to the list will go out with LIST-owner as
 the sender, so list bounce messages will return to the LIST-owner
 address.  Archives of the list can be created by adding a file name
-address (a local pathname starting with "/") to the LIST file.  The
+address (a local pathname starting with ``/'') to the LIST file.  The
 archive file is written with the ownership of the owner of the LIST
 file.  Forwarding the mailing list into a newsgroup
 can be done using a mail to news script (two generations are provided
@@ -914,8 +922,7 @@ consumption\ldots)
 {\em ZMailer-2.98} did introduce a working solution via the builtin
 {\tt\$(listexpand ..)} function.
 
-The rest of these notes apply to older config files using old style pipe
-of:
+The rest of these notes apply to older config files using old style pipe of:
 \begin{alltt}\medskip\hrule\medskip
  $(listaddresses < file | maprrouter ...)
 \medskip\hrule\end{alltt}\medskip
