@@ -1,3 +1,42 @@
+2002-06-18  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, acconfig.h:
+	    Full support for finding SleepyCat DB 4.0, and
+	    to inform the system about it.
+
+	* lib/Makefile.in, lib/sleepycatdb.c, include/sleepycatdb.h:
+	    Librarize support for SleepyCat DB by allowing more versatile
+	    parametrisation, e.g. DBENV things, etc.   This to make it
+	    possible to work with "Concurrent Data Store" kind databases.
+	    E.g. single-writer, multiple readers to allow online modifying
+	    of the databases.
+
+	* router/db.c, router/libdb/search.h:
+	    For each online database, supply a private variable usable
+	    by the database method itself for whatever needs it has
+	    (e.g. storing own structure with private data, like DB
+	     structure handle.)
+
+	* router/libdb/bsdbtree.c, router/libdb/bsdhash.c:
+	    Usage of librarized SleepyCat DB interface, and radical
+	    surgery to discard a bunch of splay-trees that are no longer
+	    necessary as the database method handle carries "dbprivate"
+	    pointer.
+
+	* smtpserver/policytest.c, utils/makedb/dblook.c,
+	  utils/makedb/makedb.c, utils/vacation/vacation.c:
+	    Support SleepyCat DB 4.0; use (where can) librarized
+	    support interface.
+
+	* transports/smtp/smtp.c:
+	    Fix the call parameters to "select_sleep()" so that there
+	    is explicite knowledge of when the select is for writing,
+	    and when it is for reading.
+
+	* utils/smtp-contentfilter.in:
+	    Fix originally inverted test on meta-environment scanner
+	    stopping condition part.
+
 2002-05-28  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c:
@@ -5,6 +44,8 @@
 	    and that is indeed possible if the deprecated  ssmtp
 	    service is in use.  Moving relevant initialization code
 	    upwards slightly fixes the problem.
+	    (Latter Eugene admitted that there could have been
+	     a pilot error -- omitting "make clean" before "make".)
 
 2002-05-20  Matti Aarnio  <mea@zmailer.org>
 

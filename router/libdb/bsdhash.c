@@ -2,41 +2,20 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Copyright 1996-2001 Matti Aarnio
+ *	Copyright 1996-2002 Matti Aarnio
  */
 
 /* LINTLIBRARY */
 
 #include "mailer.h"
-#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
-    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
+
+#include "sleepycatdb.h"
+#ifdef HAVE_DB
+
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
 
-#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
-    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
-    !defined(HAVE_DB_CREATE)
-# include <db_185.h>
-#else
-#if defined(HAVE_DB3_DB_H) && defined(HAVE_DB3)
-# include <db3/db.h>
-#else
-#if defined(HAVE_DB2_DB_H) && defined(HAVE_DB2)
-# include <db2/db.h>
-#else
-#if defined(HAVE_DB_H)
-# include <db.h>
-#else
-#if defined(HAVE_DB1_DB_H)
-# include <db1/db.h>
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
 
 #include <sys/file.h>
 #include "search.h"
@@ -48,7 +27,6 @@
 extern int errno;
 extern int deferit;
 
-
 /*
  * Flush buffered information from this database, close any file descriptors.
  */
@@ -58,91 +36,99 @@ close_bhash(sip,comment)
 	search_info *sip;
 	const char *comment;
 {
-	DB *db;
-	struct spblk *spl = NULL;
-	spkey_t symid;
+	ZSleepyPrivate *prv;
 
-	if (sip->file == NULL)
+	if (*(sip->dbprivate) == NULL )
 		return;
-	symid = symbol_lookup_db(sip->file, spt_files->symbols);
-	if ((spkey_t)0 != symid)
-	  spl = sp_lookup(symid, spt_modcheck);
-	if (spl != NULL)
-	  sp_delete(spl, spt_modcheck);
-	spl = sp_lookup(symid, spt_files);
-	if (spl == NULL || (db = (DB *)spl->data) == NULL)
-		return;
-#ifdef HAVE_DB_CLOSE2
-	(db->close)(db,0);
-#else
-	(db->close)(db);
-#endif
-	symbol_free_db(sip->file, spt_files->symbols);
-	sp_delete(spl, spt_files);
+
+	prv = *(sip->dbprivate);
+
+	SLEEPYCATDBCLOSE(prv->db);
+
+	zsleepyprivatefree(prv);
+
+	sip->dbprivate = NULL;
 }
 
 
 static DB * open_bhash __((search_info *, int, const char *));
 static DB *
-open_bhash(sip, flag, comment)
+open_bhash(sip, roflag, comment)
 	search_info *sip;
-	int flag;
+	int roflag;
 	const char *comment;
 {
-	DB *db = NULL;
-	struct spblk *spl;
-	spkey_t symid;
 	int i;
+	ZSleepyPrivate **prvp = (ZSleepyPrivate **)sip->dbprivate;
+	DB *db = NULL;
+
+	if (sip->cfgfile) {
+		/* read the related configuration file, e.g.
+		   information about environment, etc.. */
+	}
 
 	if (sip->file == NULL)
 		return NULL;
 
-	symid = symbol_db(sip->file, spt_files->symbols);
-	spl = sp_lookup(symid, spt_files);
-	if (spl != NULL && flag != spl->mark)
-		close_bhash(sip,"open_bhash");
-	if (spl == NULL || (db = (DB *)spl->data) == NULL) {
-		for (i = 0; i < 3; ++i) {
-#if defined(HAVE_DB3)
-		  int err;
-		  db = NULL;
-		  /*unlink("/tmp/ -mark1- ");*/
-		  err = db_create(&db, NULL, 0);
-		  if (err == 0 && db != NULL)
-		    err = db->open(db, sip->file, NULL, DB_BTREE,
-				   DB_NOMMAP |
-				   ((flag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
-				   0644);
-		  /*unlink("/tmp/ -mark2- ");*/
-#else
-#if defined(HAVE_DB2)
-		  int err;
-		  db = NULL;
-		  err = db_open(sip->file, DB_HASH,
-				DB_NOMMAP|((flag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
-				0644, NULL, NULL, &db);
-#else
-		  db = dbopen(sip->file, flag, 0, DB_HASH, NULL);
-#endif
-#endif
-		  if (db != NULL)
-		    break;
-		  sleep(1); /* Open failed, retry after a moment */
-		}
-		if (db == NULL) {
-			++deferit;
-			v_set(DEFER, DEFER_IO_ERROR);
-			fprintf(stderr, "%s: cannot open %s!\n",
-					comment, sip->file);
-			return NULL;
-		}
-		if (spl == NULL)
-			sp_install(symid, (void *)db, flag, spt_files);
-		else {
-			spl->data = (void *)db;
-			spl->mark = flag;
-		}
+
+
+	if (*prvp && roflag != (*prvp)->roflag)
+ 		close_bhash(sip,"open_bhash");
+
+	if (*prvp) db = (*prvp)->db;
+
+	if (db == NULL) {
+
+	    *prvp = zsleepyprivateinit(sip->file, sip->cfgfile, DB_HASH);
+	    if (!*prvp) return NULL; /* URGH!! Out of memory! */
+
+	    for (i = 0; i < 3; ++i) {
+
+		int err;
+	        err = zsleepyprivateopen(*prvp, roflag, 0644);
+		db = (*prvp)->db;
+
+		if (db != NULL)  break;
+
+		sleep(1); /* Open failed, retry after a moment */
+	    }
+	    if (db == NULL) {
+		++deferit;
+		v_set(DEFER, DEFER_IO_ERROR);
+		fprintf(stderr, "%s: cannot open %s!\n",
+			comment, sip->file);
+		return NULL;
+	    }
 	}
+
+	if (db != NULL) {
+
+	    /* Prepare for  modp_bhash()  tests. */
+
+	    struct stat stbuf;
+	    int fd = -1, err = 0;
+
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
+	    err = (db->fd)(db, &fd);
+	    if (fstat(fd, &stbuf) < 0) {
+		fprintf(stderr, "open_bhash: cannot fstat(\"%s\"(%d))!  err=%d/%s (%s/%s)\n",
+			sip->file, fd, err, errno,
+			db_strerror(err), strerror(errno));
+		return 0;
+	    }
+#else
+	    fd = (db->fd)(db);
+	    if (fstat(fd, &stbuf) < 0) {
+		fprintf(stderr, "open_bhash: cannot fstat(\"%s\"/%d))!  err=%d (%s)\n",
+			sip->file, fd, errno, strerror(errno));
+		return 0;
+	    }
+#endif
+
+	    (*prvp)->mtime = stbuf.st_mtime;
+
+	}
+
 	return db;
 }
 
@@ -167,11 +153,12 @@ reopen:
 	if (db == NULL)
 	  return NULL; /* Huh! */
 
-	memset(&val, 0, sizeof(val));
 	memset(&key, 0, sizeof(key));
+	memset(&val, 0, sizeof(val));
 
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
+
 #ifdef DB_INIT_TXN
 	rc = (db->get)(db, NULL, &key, &val, 0);
 #else
@@ -211,8 +198,8 @@ add_bhash(sip, value)
 	if (db == NULL)
 		return EOF;
 
-	memset(&val, 0, sizeof(val));
 	memset(&key, 0, sizeof(key));
+	memset(&val, 0, sizeof(val));
 
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
@@ -284,7 +271,7 @@ print_bhash(sip, outfp)
 	DB *db;
 	DBT key, val;
 	int rc;
-#if defined(HAVE_DB2) || defined(HAVE_DB3)
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
 	DBC *curs;
 
 	db = open_bhash(sip, O_RDONLY, "print_bhash");
@@ -296,6 +283,7 @@ print_bhash(sip, outfp)
 #else
 	rc = (db->cursor)(db, NULL, &curs);
 #endif
+
 	memset(&val, 0, sizeof(val));
 	memset(&key, 0, sizeof(key));
 
@@ -355,8 +343,7 @@ count_bhash(sip, outfp)
 	DBT key, val;
 	int cnt = 0;
 	int rc;
-
-#if defined(HAVE_DB2) || defined(HAVE_DB3)
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
 	DBC *curs;
 
 	db = open_bhash(sip, O_RDONLY, "count_bhash");
@@ -397,10 +384,6 @@ count_bhash(sip, outfp)
 	    if (val.data == NULL) /* ???? When this would happen ? */
 	      continue;
 	    ++cnt;
-
-	    memset(&val, 0, sizeof(val));
-	    memset(&key, 0, sizeof(key));
-
 	    rc = (db->seq)(db, &key, &val, R_NEXT);
 	  }
 	}
@@ -428,9 +411,9 @@ owner_bhash(sip, outfp)
 	if (db == NULL)
 		return;
 
-	/* There are more timing hazards, when the internal fd is not
+	/* There are timing hazards, when the internal fd is not
 	   available for probing.. */
-#if defined(HAVE_DB2) || defined(HAVE_DB3)
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
 	(db->fd)(db, &fd);
 #else
 	fd = (db->fd)(db);
@@ -450,36 +433,37 @@ modp_bhash(sip)
 {
 	DB *db;
 	struct stat stbuf;
-	struct spblk *spl;
-	spkey_t symid;
-	int rval, fd;
+	int rval, fd = -1, err = 0;
+	int roflag = O_RDONLY;
 
-	db = open_bhash(sip, O_RDONLY, "owner_bhash");
-	if (db == NULL)
-		return 0;
+	ZSleepyPrivate **prvp = (ZSleepyPrivate **)sip->dbprivate;
+	if (*prvp) roflag = (*prvp)->roflag;
 
-#if defined(HAVE_DB2) || defined(HAVE_DB3)
-	(db->fd)(db, &fd);
+	if (roflag != O_RDONLY) return 0; /* We are a WRITER ??
+					     Of course it changes.. */
+
+	db = open_bhash(sip, roflag, "owner_bhash"); /* if it isn't open.. */
+	if (db == NULL) return 0;
+
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
+	err = (db->fd)(db, &fd);
 #else
 	fd = (db->fd)(db);
 #endif
 	if (fstat(fd, &stbuf) < 0) {
-		fprintf(stderr, "modp_bhash: cannot fstat(\"%s\")!\n",
-				sip->file);
+		fprintf(stderr, "modp_bhash: cannot fstat(\"%s\"(%d))! err=%d\n",
+				sip->file, fd, err);
 		return 0;
 	}
 	if (stbuf.st_nlink == 0)
 		return 1;	/* Unlinked underneath of us! */
 	
-	symid = symbol_lookup_db(sip->file, spt_files->symbols);
-	spl = sp_lookup(symid, spt_modcheck);
-	if (spl != NULL) {
-		rval = ((long)stbuf.st_mtime != (long)spl->data ||
-			(long)stbuf.st_nlink != 1);
-	} else
-		rval = 0;
-	sp_install(symid, (void *)((long)stbuf.st_mtime),
-		   (long)stbuf.st_nlink, spt_modcheck);
+
+	rval = (stbuf.st_mtime != (*prvp)->mtime || stbuf.st_nlink != 1);
+
+	(*prvp)->mtime = stbuf.st_mtime;
+
+
 	return rval;
 }
 #endif	/* HAVE_DB */

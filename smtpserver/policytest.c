@@ -1,6 +1,6 @@
 /*
  *  relaytest.c -- module for ZMailer's smtpserver
- *  By Matti Aarnio <mea@nic.funet.fi> 1997-2001
+ *  By Matti Aarnio <mea@nic.funet.fi> 1997-2002
  *
  */
 
@@ -20,29 +20,7 @@
 #include <errno.h>
 
 
-#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
-    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
-    !defined(HAVE_DB_CREATE)
-# include <db_185.h>
-#else
-#if defined(HAVE_DB3_DB_H) && defined(HAVE_DB3)
-# include <db3/db.h>
-#else
-#if defined(HAVE_DB2_DB_H) && defined(HAVE_DB2)
-# include <db2/db.h>
-#else
-#ifdef HAVE_DB_H
-# include <db.h>
-#else
-#if defined(HAVE_DB1_DB_H) && defined(HAVE_DB1)
-# include <db1/db.h>
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
+#include "sleepycatdb.h"
 
 #ifdef HAVE_NDBM
 #define datum Ndatum
@@ -238,7 +216,7 @@ int *rlenp;			/* result length ptr ! */
 #ifdef HAVE_GDBM
     Gdatum Gkey, Gresult;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
     DBT Bkey, Bresult;
     int rc;
 #endif
@@ -281,7 +259,7 @@ int *rlenp;			/* result length ptr ! */
 	break; /* some compilers complain, some produce bad code
 		  without this... */
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
     case _dbt_btree:
 
 
@@ -628,7 +606,7 @@ int whosonrc;
     if (cistrcmp(rel->dbtype, "gdbm") == 0)
 	rel->dbt = _dbt_gdbm;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
     if (cistrcmp(rel->dbtype, "btree") == 0)
 	rel->dbt = _dbt_btree;
     if (cistrcmp(rel->dbtype, "bhash") == 0)
@@ -664,12 +642,12 @@ int whosonrc;
 	openok = (rel->gdbm != NULL);
 	break;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
     case _dbt_btree:
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.db", rel->dbpath);
 
-#if defined(HAVE_DB3)
+#if defined(HAVE_DB3) || defined(HAVE_DB4)
 
 	rel->btree = NULL;
 	openok = db_create(&rel->btree, NULL, 0);
@@ -701,7 +679,7 @@ int whosonrc;
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.dbh", rel->dbpath);
 
-#if defined(HAVE_DB3)
+#if defined(HAVE_DB3) || defined(HAVE_DB4)
 
 	rel->bhash = NULL;
 	openok = db_create(&rel->bhash, NULL, 0);

@@ -42,7 +42,7 @@ sub filter {
 	# Scan the envelope thru to spot the magic "env-end" line
 	while (<SP>) {
 		chomp;
-		last unless ($_ eq 'env-end');
+		last if ($_ eq 'env-end');
 	}
 	# Ok, either EOF, or got that "env-end" token.
 

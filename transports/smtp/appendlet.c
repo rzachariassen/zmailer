@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2000 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2002 by Matti Aarnio -- modifications, including MIME
  */
 
 #include "smtp.h"

@@ -3368,13 +3368,14 @@ int bdat_flush(SS, lastflg)
 }
 
 
-extern int select_sleep __((int fd, time_t when_tout));
+extern int select_sleep __((int fd, time_t when_tout, int waitwr));
 
 #ifdef	HAVE_SELECT
 
-int select_sleep(fd,when_tout)
-int fd;
-time_t when_tout;
+int select_sleep(fd, when_tout, waitwr)
+     int fd;
+     time_t when_tout;
+     int waitwr;
 {
 	struct timeval tv;
 	int rc;
@@ -3389,19 +3390,22 @@ time_t when_tout;
 	tv.tv_usec = 0;
 	_Z_FD_ZERO(rdmask);
 	_Z_FD_ZERO(wrmask);
-	if (fd > 0)
-	  _Z_FD_SET(fd,rdmask);
-	else {
-	  fd = -fd;
+
+	if (waitwr)
 	  _Z_FD_SET(fd,wrmask);
-	}
+	else
+	  _Z_FD_SET(fd,rdmask);
 
 	rc = select(fd+1,&rdmask,&wrmask,NULL,&tv);
 	if (rc == 0) /* Timeout w/o input */
 	  return -1;
 	if (rc == 1) /* There is something to read (or write)! */
 	  return 0;
-	return 1;    /* interrupt, or some such.. */
+
+	/* Return soft errors first .. */
+	if (errno == EINTR || errno == EAGAIN) return 1;
+
+	return -1;    /* definitely bad things! */
 }
 
 int has_readable(fd)
@@ -3422,9 +3426,10 @@ int fd;
 	return 0;    /* interrupt or timeout, or some such.. */
 }
 #else /* not HAVE_SELECT */
-int select_sleep(fd, when_tout)
-int fd;
-time_t when_tout;
+int select_sleep(fd, when_tout, waitwr)
+     int fd;
+     time_t when_tout;
+     int waitwr;
 {
 	errno = ENOSYS;
 	return -1;
@@ -3549,7 +3554,6 @@ smtp_sync(SS, r, nonblocking)
 	int idx  = 0, nextidx, code = 0;
 	int rc   = EX_OK, len;
 	int err  = 0;
-	int infd;
 	int i, found_any;
 	char buf[512];
 	char *p;
@@ -3638,9 +3642,8 @@ smtp_sync(SS, r, nonblocking)
 		      logtag(), SS->pipebufsize,(int)(s-SS->pipebuf),
 		      (int)(eol-SS->pipebuf));
 	  } else { /* No newline.. Read more.. */
-	    int en;
+	    int en, waitwr;
 
-	    infd = SS->smtpfd;
 	    err = 0;
 
 	  reread_line:
@@ -3649,12 +3652,12 @@ smtp_sync(SS, r, nonblocking)
 
 	    err = 0;
 	    len = smtp_nbread(SS, buf, sizeof(buf));
+	    waitwr = 0;
+
 #ifdef HAVE_OPENSSL
-	    if (SS->sslmode) {
-	      if (SS->wantreadwrite > 0)
-		infd = -infd;
-	    }
+	    if (SS->sslmode && SS->wantreadwrite > 0) waitwr = 1;
 #endif /* - HAVE_OPENSSL */
+
 	    if (len < 0)
 	      err = errno;
 
@@ -3663,7 +3666,9 @@ smtp_sync(SS, r, nonblocking)
 	      /* Blocking mode, and didn't succeed in reading, lets
 		 use select to see what we can do. */
 
-	      err = select_sleep(infd, when_timeout);
+	      int infd = SS->smtpfd;
+
+	      err = select_sleep(infd, when_timeout, waitwr);
 	      en = errno;
 	      if (debug && logfp)
 		fprintf(logfp,"%s#\tselect_sleep(%d,%d); rc=%d\n",

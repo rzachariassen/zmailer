@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-1999.
+ *      Copyright 1991-2002.
  */
 /*
  * Zmailer SMTP-server divided into bits

@@ -1,4 +1,4 @@
-/* Copyright 1993-2001 - Matti Aarnio <mea@nic.funet.fi>
+/* Copyright 1993-2002 - Matti Aarnio <mea@nic.funet.fi>
    This will be free software, but only when it is finished.
 
    The way the Zmailer uses DBM entries is by using strings with
@@ -22,29 +22,7 @@
 #undef datum
 #endif
 
-#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
-    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
-    !defined(HAVE_DB_CREATE)
-# include <db_185.h>
-#else
-#if defined(HAVE_DB3_DB_H) && defined(HAVE_DB3)
-# include <db3/db.h>
-#else
-#if defined(HAVE_DB2_DB_H) && defined(HAVE_DB2)
-# include <db2/db.h>
-#else
-#ifdef HAVE_DB_H
-# include <db.h>
-#else
-#if defined(HAVE_DB1_DB_H) && defined(HAVE_DB1)
-# include <db1/db.h>
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
+#include "sleepycatdb.h"
 
 #include <errno.h>
 extern int errno;
@@ -63,7 +41,7 @@ int errn;
 #ifdef HAVE_GDBM
   fprintf(stderr," gdbm");
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
   fprintf(stderr," btree bhash");
 #endif
   fprintf(stderr,"\n");
@@ -73,7 +51,7 @@ int errn;
 #ifdef HAVE_GDBM
   fprintf(stderr,"  (GDBM  DOES NOT append .gdbm  into the actual db file name..)\n");
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
   fprintf(stderr,"  (BTREE DOES NOT append  .db   into the actual db file name..)\n");
   fprintf(stderr,"  (BHASH appends .pag, and .dir into actual db file names..)\n");
 #endif
@@ -281,9 +259,9 @@ char *argv[];
   }
 #endif /* GDBM */
 
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
 
-#if defined(HAVE_DB3)
+#if defined(HAVE_DB3) || defined(HAVE_DB4)
 
   if (strcmp(argv[1],"btree")==0) {
     DB *dbfile;

@@ -3,7 +3,7 @@
  *	This will be free software, but only when it is finished.
  *
  *	New database mechanism added by Matti Aarnio <mea@nic.funet.fi>
- *	over years 1992-2001
+ *	over years 1992-2002
  */
 
 /* Information needed by the database search routines */
@@ -17,6 +17,7 @@ extern struct sptree *spt_files, *spt_modcheck;
 
 typedef struct _search_info {
 	const char	*file;
+	const char	*cfgfile;
 	const char	*key;
 	time_t		 ttl;
 	const char	*subtype;
@@ -24,6 +25,7 @@ typedef struct _search_info {
 	const char	**argv20;
 	const char	*argv1;
 	unsigned long	flags;
+	void		**dbprivate;
 } search_info;
 
 struct file_map {

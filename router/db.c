@@ -2,7 +2,7 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Modifications/maintance, Matti Aarnio, over years 1990-2001
+ *	Modifications/maintance, Matti Aarnio, over years 1990-2002
  *
  *	'longestmatch' driver kissg@sztaki.hu 970209
  */
@@ -28,6 +28,7 @@
 #endif
 #include "libdb/search.h"
 #include "splay.h"
+#include "sleepycatdb.h"
 
 #include "prototypes.h"
 
@@ -43,11 +44,11 @@ extern struct sptree *spt_databases; /* At conf.c */
 typedef enum { Nul, Boolean, Pathalias, Indirect, NonNull } postprocs;
 
 struct cache {
-	char		*key;
+	time_t		expiry;
 	unsigned long	keyhash;
+	char		*key;
 	struct cache	*next;
 	conscell	*value;
-	time_t		expiry;
 };
 
 #define DBFUNC(_fn_)  (* _fn_) __((search_info *))
@@ -57,6 +58,7 @@ struct cache {
 
 struct db_info {
 	const char	*file;			/* a file parameter */
+	const char	*cfgfile;		/* generalized config file */
 	const char	*subtype;		/* optional selector */
 	int		flags;			/* miscellaneous options */
 	int		cache_size;		/* default cache size */
@@ -74,6 +76,9 @@ struct db_info {
 	struct cache	*cache;			/* cache entry array */
 	struct cache	*cfirst;		/* LRU cache head entry */
 	struct cache	*cfree;			/* Chain of free entries */
+	void		*dbprivate;		/* DB specific private data;
+						   created by open, destroyed
+						   by close..  */
 };
 
 /* bits in the flags field */
@@ -89,7 +94,7 @@ struct db_kind {
 	const char	*name;		/* database type identification */
 	struct db_info	config;		/* default configuration information */
 } db_kinds[] = {
-{ "incore",	{ NULL, NULL, 0, 0, 0, NULL, search_core, close_core,
+{ "incore",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_core, close_core,
 		  add_core,
 		  remove_core,
 		  print_core,
@@ -97,73 +102,70 @@ struct db_kind {
 		  owner_core,
 		  NULL,
 		  Nul,
-		  NULL } },
-{ "header",	{ NULL, NULL, 0, 0, 0, NULL, search_header, close_header,
+		  NULL, NULL } },
+{ "header",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_header, close_header,
 		  add_header, remove_header, print_header, count_header,
-		  owner_header, NULL, Nul, NULL } },
-{ "unordered",	{ NULL, NULL, 0, 10, 0, NULL, search_seq, close_seq,
+		  owner_header, NULL, Nul, NULL, NULL } },
+{ "unordered",	{ NULL, NULL, NULL, 0, 10, 0, NULL, search_seq, close_seq,
 		  add_seq, NULL, print_seq, count_seq, owner_seq, modp_seq,
-		  Nul, NULL } },
+		  Nul, NULL, NULL } },
 #ifndef	HAVE_MMAP
-{ "ordered",	{ NULL, NULL, 0, 10, 0, NULL, search_bin, close_seq,
+{ "ordered",	{ NULL, NULL, NULL, 0, 10, 0, NULL, search_bin, close_seq,
 		  NULL, NULL, print_seq, count_seq, owner_seq, modp_seq,
-		  Nul, NULL } },
+		  Nul, NULL, NULL } },
 #else /* HAVE_MMAP */ /* When using MMAP(), no cache is needed for ordered.. */
-{ "ordered",	{ NULL, NULL, 0, 0, 0, NULL, search_bin, close_seq,
+{ "ordered",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_bin, close_seq,
 		  NULL, NULL, print_seq, count_seq, owner_seq, modp_seq,
-		  Nul, NULL } },
+		  Nul, NULL, NULL } },
 #endif
 
 #ifdef	HAVE_RESOLVER
-{ "hostsfile",	{ "/etc/hosts", NULL, 0, 0, 0, NULL, search_hosts, NULL,
-		  NULL, NULL, print_hosts, NULL, NULL, NULL, Nul, NULL } },
+{ "hostsfile",	{ "/etc/hosts", NULL, NULL, 0, 0, 0, NULL, search_hosts, NULL,
+		  NULL, NULL, print_hosts, NULL, NULL, NULL, Nul, NULL, NULL } },
 #endif	/* HAVE_RESOLVER */
 #ifdef	HAVE_RESOLVER
 #ifndef RESOLV_CONF
 # define RESOLV_CONF "/etc/resolv.conf"
 #endif
-{ "bind",	{ RESOLV_CONF, NULL, 0, 0, 0, NULL, search_res, NULL, NULL,
-		    NULL, NULL, NULL, NULL, NULL, Nul, NULL }},
+{ "bind",	{ RESOLV_CONF, NULL, NULL, 0, 0, 0, NULL, search_res, NULL, NULL,
+		    NULL, NULL, NULL, NULL, NULL, Nul, NULL, NULL }},
 #endif	/* HAVE_RESOLV */
-{ "selfmatch",	{ NULL, NULL, 0, 0, 0, NULL, search_selfmatch, NULL, NULL,NULL,
-		  print_selfmatch, count_selfmatch, NULL, NULL, Nul, NULL } },
+{ "selfmatch",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_selfmatch, NULL, NULL,NULL,
+		  print_selfmatch, count_selfmatch, NULL, NULL, Nul, NULL, NULL } },
 #ifdef	HAVE_NDBM
-{ "ndbm",	{ NULL, NULL, 0, 0, 0, NULL, search_ndbm, close_ndbm,
+{ "ndbm",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_ndbm, close_ndbm,
 		  add_ndbm, remove_ndbm, print_ndbm, count_ndbm, owner_ndbm,
-		  modp_ndbm, Nul, NULL } },
+		  modp_ndbm, Nul, NULL, NULL } },
 #endif	/* HAVE_NDBM */
 #ifdef	HAVE_GDBM
-{ "gdbm",	{ NULL, NULL, 0, 0, 0, NULL, search_gdbm, close_gdbm,
+{ "gdbm",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_gdbm, close_gdbm,
 		  add_gdbm, remove_gdbm, print_gdbm, count_gdbm, owner_gdbm,
-		  modp_gdbm, Nul, NULL } },
+		  modp_gdbm, Nul, NULL, NULL } },
 #endif	/* HAVE_GDBM */
 #ifdef	HAVE_DBM
-{ "dbm",	{ NULL, NULL, 0, 0, 0, NULL, search_dbm, close_dbm,
+{ "dbm",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_dbm, close_dbm,
 		  add_dbm, remove_dbm, print_dbm, count_dbm, owner_dbm,
-		  NULL, Nul, NULL } },
+		  NULL, Nul, NULL, NULL } },
 #endif	/* HAVE_DBM */
-#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
-    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
-#if defined(HAVE_DB1)  || defined(HAVE_DB2) || defined(HAVE_DB3)
-{ "btree",	{ NULL, NULL, 0, 0, 0, NULL, search_btree, close_btree,
+#ifdef HAVE_DB
+{ "btree",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_btree, close_btree,
 		  add_btree, remove_btree, print_btree, count_btree,
-		  owner_btree, modp_btree, Nul, NULL } },
-{ "bhash",	{ NULL, NULL, 0, 0, 0, NULL, search_bhash, close_bhash,
+		  owner_btree, modp_btree, Nul, NULL, NULL } },
+{ "bhash",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_bhash, close_bhash,
 		  add_bhash, remove_bhash, print_bhash, count_bhash,
-		  owner_bhash, modp_bhash, Nul, NULL } },
-#endif
-#endif	/* HAVE_DB_H */
+		  owner_bhash, modp_bhash, Nul, NULL, NULL } },
+#endif	/* HAVE_DB */
 #ifdef	HAVE_YP
-{ "yp",		{ NULL, NULL, 0, 0, 0, NULL, search_yp, NULL, NULL,
-		  NULL, print_yp, NULL, owner_yp, NULL, Nul, NULL } },
+{ "yp",		{ NULL, NULL, NULL, 0, 0, 0, NULL, search_yp, NULL, NULL,
+		  NULL, print_yp, NULL, owner_yp, NULL, Nul, NULL, NULL } },
 #endif	/* HAVE_YP */
 #ifdef HAVE_LDAP
-{ "ldap",	{ NULL, NULL, 0, 0, 0, NULL, search_ldap, close_ldap,
-		  NULL, NULL, NULL, NULL, NULL, modp_ldap, Nul, NULL } },
+{ "ldap",	{ NULL, NULL, NULL, 0, 0, 0, NULL, search_ldap, close_ldap,
+		  NULL, NULL, NULL, NULL, NULL, modp_ldap, Nul, NULL, NULL } },
 #endif
-{ NULL, { NULL, NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+{ NULL, { NULL, NULL, NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	    /* proto_config is initialized from this entry */
-	    NULL, NULL, Nul, NULL }}
+	    NULL, NULL, Nul, NULL, NULL }}
 };
 
 
@@ -246,12 +248,18 @@ run_relation(argc, argv)
 	proto_config=db_kinds[sizeof(db_kinds)/(sizeof(db_kinds[0]))-1].config;
 
 	while (1) {
-		c = zgetopt(argc,(char*const*)argv,":%CbilmnNpud:f:s:L:t:Te:");
+		c = zgetopt(argc,(char*const*)argv,":%C:bilmnNpud:f:s:L:t:Te:");
 		if (c == EOF)
 			break;
 		switch (c) {
 		case 'b':	/* boolean postprocessor */
 			proto_config.postproc = Boolean;
+			break;
+		case 'C': /* Generalized cfgfile definition argument */
+			oval = stickymem;
+			stickymem = MEM_PERM;
+			proto_config.cfgfile = strsave(zoptarg);
+			stickymem = oval;
 			break;
 		case 'd':	/* driver routine */
 			if (STREQ(zoptarg, "pathalias.nodot"))
@@ -399,7 +407,7 @@ run_relation(argc, argv)
 		/* and the subtype is used to stash the splay tree */
 		proto_config.subtype = (char*) sp_init();
 	} else {
-		if (! proto_config.file)
+		if ((! proto_config.file) && (! proto_config.cfgfile))
 			proto_config.file    = dbkp->config.file;
 		if (! proto_config.subtype)
 			proto_config.subtype = dbkp->config.subtype;
@@ -442,6 +450,7 @@ run_relation(argc, argv)
 		dbip->cfree  = &dbip->cache[0];
 	} else
 		dbip->cache = NULL;	/* superfluous, but why not ... */
+	dbip->dbprivate = NULL; /* also superfluous .. */
 
 	sp_install(symid, dbip, 0, spt_databases);
 	register_cache_gc_markup_iterator();
@@ -632,10 +641,12 @@ run_db(argc, argv)
 		}
 	}
 
-	si.file    = dbip->file;
-	si.key     = argv[3];
-	si.subtype = dbip->subtype;
-	si.ttl     = dbip->ttl;
+	si.file      =  dbip->file;
+	si.cfgfile   =  dbip->cfgfile;
+	si.key       =   argv[3];
+	si.subtype   =  dbip->subtype;
+	si.ttl       =  dbip->ttl;
+	si.dbprivate = &dbip->dbprivate;
 
 	switch (argv[1][0]) {
 	case 'a':	/* add db key value */
@@ -789,14 +800,16 @@ db(dbname, argc, argv20)
 	} else
 	  khash = crc32(key);
 
-	si.file    = dbip->file;
-	si.key     = key;
-	si.subtype = dbip->subtype;
-	si.ttl     = dbip->ttl;
-	si.argv20  = argv20;
-	si.argv1   = NULL;
+	si.file      =  dbip->file;
+	si.cfgfile   =  dbip->cfgfile;
+	si.key       =   key;
+	si.subtype   =  dbip->subtype;
+	si.ttl       =  dbip->ttl;
+	si.argv20    =   argv20;
+	si.argv1     =   NULL;
 	si.defaultkey[0] = NULL;
-	si.flags   = dbip->flags;
+	si.flags     =  dbip->flags;
+	si.dbprivate = &dbip->dbprivate;
 	defaultkeys = 0;
 
 	zoptind = 1;
@@ -848,6 +861,7 @@ db(dbname, argc, argv20)
 						"... expiring %s from cache\n",
 						cache->key);
 				if (cache->key) free(cache->key);
+				cache->keyhash = 0UL;
 				cache->key   = NULL;
 				cache->value = NULL; /* conscell GC does it */
 
@@ -1003,14 +1017,14 @@ db(dbname, argc, argv20)
 				fprintf(stderr, "\n");
 		}
 		ll = l;
+		/* The "realkey" went into cache. */
 
-	} else if (dbip->cache_size > 0) {
+	} else {
 
-		free(realkey);
 		ll = l;
+		if (realkey) free(realkey);
 
-	} else
-		ll = l;
+	}
 
 	UNGCPRO3;
  post_subst:
@@ -1401,7 +1415,7 @@ find_longest_match(lookupfn, sip)
 			  ((oct3 & 255) <<  8) |
 			  ((oct4 & 255)));
 
-		sip->key=buf;
+		sip->key = buf;
 		for (prefix=32, h_mask=0xffffffffL;
 		    prefix>=0;  --prefix, h_mask<<=1) {
 			sprintf((char*)buf,"%u.%u.%u.%u/%d",

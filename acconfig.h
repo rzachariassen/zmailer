@@ -85,6 +85,7 @@
 #undef HAVE_DB1
 #undef HAVE_DB2
 #undef HAVE_DB3
+#undef HAVE_DB4
 #undef HAVE_NDBM
 #undef HAVE_GDBM
 #undef HAVE_SDBM

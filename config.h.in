@@ -1,4 +1,4 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h.in.  Generated from configure.in by autoheader.  */
 /* locally added autoconfig test report entries */
 
 /* What command was used to configure this setup ? */
@@ -86,6 +86,7 @@
 #undef HAVE_DB1
 #undef HAVE_DB2
 #undef HAVE_DB3
+#undef HAVE_DB4
 #undef HAVE_NDBM
 #undef HAVE_GDBM
 #undef HAVE_SDBM
@@ -261,6 +262,9 @@
 
 /* Define if you have the <db3.h> header file. */
 #undef HAVE_DB3_H
+
+/* Define if you have the <db4/db.h> header file. */
+#undef HAVE_DB4_DB_H
 
 /* Define if you have the <db_185.h> header file. */
 #undef HAVE_DB_185_H
@@ -541,6 +545,9 @@
 /* Define if you have the <stdarg.h> header file. */
 #undef HAVE_STDARG_H
 
+/* Define if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
 /* Define if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
@@ -631,8 +638,14 @@
 /* Define if you have the <sys/statvfs.h> header file. */
 #undef HAVE_SYS_STATVFS_H
 
+/* Define if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
 /* Define if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
+
+/* Define if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
 
 /* Define if you have the <sys/un.h> header file. */
 #undef HAVE_SYS_UN_H
@@ -684,7 +697,8 @@
 /* Define if you have the `vsprintf' function. */
 #undef HAVE_VSPRINTF
 
-/* Define if you have the `wait3' system call. */
+/* Define if you have the `wait3' system call. Deprecated, you should no
+   longer depend upon `wait3'. */
 #undef HAVE_WAIT3
 
 /* Define if you have the `wait4' function. */
@@ -770,7 +784,7 @@
    defined. */
 #undef _POSIX_1_SOURCE
 
-/* Define if you need to in order for stat and other things to work. */
+/* Define if you need to in order for `stat' and other things to work. */
 #undef _POSIX_SOURCE
 
 /* Define to empty if `const' does not conform to ANSI C. */

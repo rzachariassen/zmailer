@@ -2,7 +2,7 @@
  *  vacation -- originally BSD vacation by Eric Allman,
  *
  *  Adapted to ZMailer by Rayan Zachariassen, and further
- *  modified by Matti Aarnio over years 1988(?) thru 2001
+ *  modified by Matti Aarnio over years 1988(?) thru 2002
  */
 
 #include "mailer.h"
@@ -28,7 +28,7 @@
 #include <sysexits.h>
 
 /* Database format preferrence order:
-   NDBM, GDBM, SleepyCat3, SleepyCat2, BSD DB 1
+   NDBM, GDBM, SleepyCat4, SleepyCat3, SleepyCat2, BSD DB 1
 */
 
 #ifdef	HAVE_NDBM
@@ -40,27 +40,9 @@
 #include <fcntl.h>
 #else
 #if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
-    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
-    !defined(HAVE_DB_CREATE)
-# include <db_185.h>
-#else
-#ifdef HAVE_DB3_DB_H
-# include <db3/db.h>
-#else
-#ifdef HAVE_DB2_DB_H
-# include <db2/db.h>
-#else
-#ifdef HAVE_DB_H
-# include <db.h>
-#else
-#ifdef HAVE_DB1_DB_H
-# include <db1/db.h>
-#endif
-#endif
-#endif
-#endif
-#endif
+    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H) || \
+    defined(HAVE_DB4_DB_H)
+#include "sleepycatdb.h"
 #else
 :error:error:error "To compile, VACATION needs ndbm.h, gdbm.h, or db.h; none found!"
 #endif
@@ -271,9 +253,12 @@ main(argc, argv)
 #ifdef HAVE_DB_CREATE
 	if (dblog) {
 	  ret = db_create(&db, NULL, 0);
+#ifndef DB_UPGRADE
+#define DB_UPGRADE 0
+#endif
 	  if (ret == 0)
 	    ret = db->open(db, VDB ".db", NULL, DB_BTREE,
-			   DB_CREATE, S_IRUSR|S_IWUSR);
+			   DB_CREATE|DB_UPGRADE, S_IRUSR|S_IWUSR);
 	  if (ret)
 	    db = NULL;
 	}

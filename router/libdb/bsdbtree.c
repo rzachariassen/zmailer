@@ -2,43 +2,20 @@
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
  *
- *	Copyright 1996-2001 Matti Aarnio
+ *	Copyright 1996-2002 Matti Aarnio
  */
 
 /* LINTLIBRARY */
 
 #include "mailer.h"
 
-#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
-    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
+#include "sleepycatdb.h"
+#ifdef HAVE_DB
 
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
 
-#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
-    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
-    !defined(HAVE_DB_CREATE)
-# include <db_185.h>
-#else
-#if defined(HAVE_DB3_DB_H) && defined(HAVE_DB3)
-# include <db3/db.h>
-#else
-#if defined(HAVE_DB2_DB_H) && defined(HAVE_DB2)
-# include <db2/db.h>
-#else
-#if defined(HAVE_DB_H)
-# include <db.h>
-#else
-#if defined(HAVE_DB1_DB_H)
-# include <db1/db.h>
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
 
 #include <sys/file.h>
 #include "search.h"
@@ -59,105 +36,99 @@ close_btree(sip,comment)
 	search_info *sip;
 	const char *comment;
 {
-	DB *db;
-	struct spblk *spl = NULL;
-	spkey_t symid;
+	ZSleepyPrivate *prv;
 
-	if (sip->file == NULL)
+	if (*(sip->dbprivate) == NULL )
 		return;
-	symid = symbol_lookup_db(sip->file, spt_files->symbols);
-	if ((spkey_t)0 != symid)
-	  spl = sp_lookup(symid, spt_modcheck);
-	if (spl != NULL)
-	  sp_delete(spl, spt_modcheck);
-	spl = sp_lookup(symid, spt_files);
-#if 0
-{
-  char bb[2000];
-  sprintf(bb,"/tmp/-mark2- file='%s' symid=%lx spl=%p db=%p cmt=%s",sip->file,symid,spl, (spl) ? spl->data : NULL, comment );
-  unlink(bb);
-}
-#endif
-	if (spl == NULL || (db = (DB *)spl->data) == NULL)
-		return;
-#ifdef HAVE_DB_CLOSE2
-	(db->close)(db,0);
-#else
-	(db->close)(db);
-#endif
-	symbol_free_db(sip->file, spt_files->symbols);
-	sp_delete(spl, spt_files);
+
+	prv = *(sip->dbprivate);
+
+	SLEEPYCATDBCLOSE(prv->db);
+
+	zsleepyprivatefree(prv);
+
+	sip->dbprivate = NULL;
 }
 
 
 static DB * open_btree __((search_info *, int, const char *));
 static DB *
-open_btree(sip, flag, comment)
+open_btree(sip, roflag, comment)
 	search_info *sip;
-	int flag;
+	int roflag;
 	const char *comment;
 {
-	DB *db = NULL;
-	struct spblk *spl;
-	spkey_t symid;
 	int i;
+	ZSleepyPrivate **prvp = (ZSleepyPrivate **)sip->dbprivate;
+	DB *db = NULL;
+
+	if (sip->cfgfile) {
+		/* read the related configuration file, e.g.
+		   information about environment, etc.. */
+	}
 
 	if (sip->file == NULL)
 		return NULL;
 
-	symid = symbol_db(sip->file, spt_files->symbols);
-	spl = sp_lookup(symid, spt_files);
-#if 0
-{
-  char bb[2000];
-  sprintf(bb,"/tmp/-mark1- file='%s' symid=%lx spl=%p cmt=%s spl->mark=%lx flag=%x",sip->file,symid,spl,comment,spl?spl->mark:0,flag);
-  unlink(bb);
-}
-#endif
-	if (spl != NULL && flag != spl->mark)
-		close_btree(sip,"open_btree");
-	if (spl == NULL || (db = (DB *)spl->data) == NULL) {
-		for (i = 0; i < 3; ++i) {
-#if   defined(HAVE_DB3)
-		  int err;
-		  db = NULL;
-		  /*unlink("/tmp/ -mark1- ");*/
-		  err = db_create(&db, NULL, 0);
-		  if (err == 0 && db != NULL)
-		    err = db->open(db, sip->file, NULL, DB_BTREE,
-				   DB_NOMMAP |
-				   ((flag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
-				   0644);
-		  /*unlink("/tmp/ -mark2- ");*/
-#else
-#if defined(HAVE_DB2)
-		  int err;
-		  db = NULL;
-		  /*unlink("/tmp/ -mark1- ");*/
-		  err = db_open(sip->file, DB_BTREE,
-				DB_NOMMAP|((flag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
-				0644, NULL, NULL, &db);
-		  /*unlink("/tmp/ -mark2- ");*/
-#else
-		  db = dbopen(sip->file, flag, 0, DB_BTREE, NULL);
-#endif
-#endif
-		  if (db != NULL)
-		    break;
-		  sleep(1); /* Open failed, retry after a moment */
-		}
-		if (db == NULL) {
-			++deferit;
-			v_set(DEFER, DEFER_IO_ERROR);
-			fprintf(stderr, "%s: cannot open %s!\n",
-					comment, sip->file);
-			return NULL;
-		}
-		if (spl == NULL)
-			spl = sp_install(symid, (void *)db, flag, spt_files);
-		spl->data = (void *)db;
-		spl->mark = flag;
+
+
+	if (*prvp && roflag != (*prvp)->roflag)
+ 		close_btree(sip,"open_btree");
+
+	if (*prvp) db = (*prvp)->db;
+
+	if (db == NULL) {
+
+	    *prvp = zsleepyprivateinit(sip->file, sip->cfgfile, DB_BTREE);
+	    if (!*prvp) return NULL; /* URGH!! Out of memory! */
+
+	    for (i = 0; i < 3; ++i) {
+
+		int err;
+	        err = zsleepyprivateopen(*prvp, roflag, 0644);
+		db = (*prvp)->db;
+
+		if (db != NULL)  break;
+
+		sleep(1); /* Open failed, retry after a moment */
+	    }
+	    if (db == NULL) {
+		++deferit;
+		v_set(DEFER, DEFER_IO_ERROR);
+		fprintf(stderr, "%s: cannot open %s!\n",
+			comment, sip->file);
+		return NULL;
+	    }
 	}
+
+	if (db != NULL) {
+
+	    /* Prepare for  modp_btree()  tests. */
+
+	    struct stat stbuf;
+	    int fd = -1, err = 0;
+
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
+	    err = (db->fd)(db, &fd);
+	    if (fstat(fd, &stbuf) < 0) {
+		fprintf(stderr, "open_btree: cannot fstat(\"%s\"(%d))!  err=%d/%s (%s/%s)\n",
+			sip->file, fd, err, errno,
+			db_strerror(err), strerror(errno));
+		return 0;
+	    }
+#else
+	    fd = (db->fd)(db);
+	    if (fstat(fd, &stbuf) < 0) {
+		fprintf(stderr, "open_btree: cannot fstat(\"%s\"/%d))!  err=%d (%s)\n",
+			sip->file, fd, errno, strerror(errno));
+		return 0;
+	    }
+#endif
+
+	    (*prvp)->mtime = stbuf.st_mtime;
+
+	}
+
 	return db;
 }
 
@@ -300,7 +271,7 @@ print_btree(sip, outfp)
 	DB *db;
 	DBT key, val;
 	int rc;
-#if defined(HAVE_DB2) || defined(HAVE_DB3)
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
 	DBC *curs;
 
 	db = open_btree(sip, O_RDONLY, "print_btree");
@@ -372,7 +343,7 @@ count_btree(sip, outfp)
 	DBT key, val;
 	int cnt = 0;
 	int rc;
-#if defined(HAVE_DB2) || defined(HAVE_DB3)
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
 	DBC *curs;
 
 	db = open_btree(sip, O_RDONLY, "count_btree");
@@ -442,7 +413,7 @@ owner_btree(sip, outfp)
 
 	/* There are timing hazards, when the internal fd is not
 	   available for probing.. */
-#if defined(HAVE_DB2) || defined(HAVE_DB3)
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
 	(db->fd)(db, &fd);
 #else
 	fd = (db->fd)(db);
@@ -462,36 +433,36 @@ modp_btree(sip)
 {
 	DB *db;
 	struct stat stbuf;
-	struct spblk *spl;
-	spkey_t symid;
-	int rval, fd;
+	int rval, fd = -1, err = 0;
+	int roflag = O_RDONLY;
 
-	db = open_btree(sip, O_RDONLY, "owner_btree");
-	if (db == NULL)
-		return 0;
+	ZSleepyPrivate **prvp = (ZSleepyPrivate **)sip->dbprivate;
+	if (*prvp) roflag = (*prvp)->roflag;
 
-#if defined(HAVE_DB2) || defined(HAVE_DB3)
-	(db->fd)(db, &fd);
+	if (roflag != O_RDONLY) return 0; /* We are a WRITER ??
+					     Of course it changes.. */
+
+	db = open_btree(sip, roflag, "owner_btree"); /* if it isn't open.. */
+	if (db == NULL) return 0;
+
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
+	err = (db->fd)(db, &fd);
 #else
 	fd = (db->fd)(db);
 #endif
 	if (fstat(fd, &stbuf) < 0) {
-		fprintf(stderr, "modp_btree: cannot fstat(\"%s\")!\n",
-				sip->file);
+		fprintf(stderr, "modp_btree: cannot fstat(\"%s\"(%d))! err=%d\n",
+				sip->file, fd, err);
 		return 0;
 	}
 	if (stbuf.st_nlink == 0)
 		return 1;	/* Unlinked underneath of us! */
 	
-	symid = symbol_lookup_db(sip->file, spt_files->symbols);
-	spl = sp_lookup(symid, spt_modcheck);
-	if (spl != NULL) {
-		rval = ((long)stbuf.st_mtime != (long)spl->data ||
-			(long)stbuf.st_nlink != 1);
-	} else
-		rval = 0;
-	sp_install(symid, (void *)((long)stbuf.st_mtime),
-		   stbuf.st_nlink, spt_modcheck);
+
+	rval = (stbuf.st_mtime != (*prvp)->mtime || stbuf.st_nlink != 1);
+
+	(*prvp)->mtime = stbuf.st_mtime;
+
 
 	return rval;
 }

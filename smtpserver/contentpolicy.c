@@ -1,6 +1,6 @@
 /*
  *  contentpolicy.c -- module for ZMailer's smtpserver
- *  By Matti Aarnio <mea@nic.funet.fi> 1998, 2000
+ *  By Matti Aarnio <mea@nic.funet.fi> 1998, 2000, 2002
  *
  *  This is the ugly one, we run SENSOR program on each
  *  accepted message -- if the sensor decrees the program
@@ -152,7 +152,7 @@ const char *fname;
     /* No working reply, ah well, push it into the freezer */
 
     i = 0;
-    rc = -1;
+    rc = 1;
   }
 
   if (!cpol_tofp) {

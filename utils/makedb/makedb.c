@@ -1,4 +1,4 @@
-/* Copyright 1993-2001 - Matti Aarnio
+/* Copyright 1993-2002 - Matti Aarnio
 
    The way the Zmailer uses DBM entries is by using strings with
    their terminating NULL as keys, and as data..  Thus the length
@@ -26,29 +26,7 @@
 #undef datum
 #endif
 
-#if defined(HAVE_DB_H)     || defined(HAVE_DB1_DB_H) || \
-    defined(HAVE_DB2_DB_H) || defined(HAVE_DB3_DB_H)
-#if defined(HAVE_DB_185_H) && !defined(HAVE_DB_OPEN2) && \
-    !defined(HAVE_DB_CREATE)
-# include <db_185.h>
-#else
-#if defined(HAVE_DB3_DB_H) && defined(HAVE_DB3)
-# include <db3/db.h>
-#else
-#if defined(HAVE_DB2_DB_H) && defined(HAVE_DB2)
-# include <db2/db.h>
-#else
-#ifdef HAVE_DB_H
-# include <db.h>
-#else
-#if defined(HAVE_DB1_DB_H) && defined(HAVE_DB1)
-# include <db1/db.h>
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
+#include "sleepycatdb.h"
 
 #define _POLICYTEST_INTERNAL_
 #include "policy.h"
@@ -89,7 +67,7 @@ int err;
 #ifdef HAVE_GDBM
 	fprintf(stderr, " gdbm");
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
 	fprintf(stderr, " btree bhash");
 #endif
 	fprintf(stderr, "\n");
@@ -106,11 +84,11 @@ int err;
 #ifdef HAVE_GDBM
 	fprintf(stderr, "  (GDBM appends .gdbm, to the actual db file name..)\n");
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
 	fprintf(stderr, "  (BTREE appends .db, to the actual db file name..)\n");
 	fprintf(stderr, "  (BHASH appends .pag, and .dir into actual db file names..)\n");
-#if defined(HAVE_DB2) || defined(HAVE_DB3)
-	fprintf(stderr, "  (Version: %s)\n", db_version(NULL,NULL,NULL));
+#if defined(HAVE_DB2) || defined(HAVE_DB3) || defined(HAVE_DB4)
+	fprintf(stderr, "    (Version: %s)\n", db_version(NULL,NULL,NULL));
 #else
 	fprintf(stderr, "  (Version 1.x ?)\n");
 #endif
@@ -176,7 +154,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 #ifdef HAVE_GDBM
 	GDBM_FILE gdbmfile = dbf;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
 	DB *dbfile = dbf;
 #endif
 	int rc = -2;
@@ -222,7 +200,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 	  }
 	  break;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
 	case 3: case 4:
 	  {
 	    DBT Bkey, Bdat;
@@ -291,7 +269,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 	    }
 	    break;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
 	  case 3: case 4:
 	    {
 	      DBT Bkey, Bdat;
@@ -819,7 +797,7 @@ char *argv[];
 #ifdef HAVE_GDBM
     GDBM_FILE gdbmfile = NULL;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
     DB *dbfile = NULL;
 #endif
     char *dbtype = NULL;
@@ -891,7 +869,7 @@ char *argv[];
     if (cistrcmp(dbtype, "gdbm") == 0)
 	typ = 2;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
     if (cistrcmp(dbtype, "btree") == 0)
 	typ = 3;
     if (cistrcmp(dbtype, "bhash") == 0)
@@ -919,8 +897,8 @@ char *argv[];
 	dbf = gdbmfile;
 	break;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
-#if defined(HAVE_DB3)
+#ifdef HAVE_DB
+#if defined(HAVE_DB3) || defined(HAVE_DB4)
 
     case 3:
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
@@ -1019,7 +997,7 @@ char *argv[];
       gdbm_close(gdbmfile);
       break;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
+#ifdef HAVE_DB
     case 3: case 4:
       (dbfile->sync) (dbfile, 0);
 #if defined(HAVE_DB_CLOSE2)
