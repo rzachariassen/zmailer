@@ -1284,7 +1284,17 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  if (SS->smtpfp) {
 
 	    SS->rcptstates = 0;
-	    if (smtpwrite(SS, 0, "RSET", 0, NULL) != EX_OK) {
+
+	    if (statusreport)
+	      report(SS,"RSET");
+
+	    timeout = timeout_cmd;
+	    r =smtpwrite(SS, 0, "RSET", 0, NULL);
+
+	    if (statusreport)
+	      report(SS,"RSET rc=%d",r);
+
+	    if (r != EX_OK) {
 	      smtpclose(SS,1);
 	      r = EX_TEMPFAIL;
 	      goto re_open;
