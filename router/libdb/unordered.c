@@ -293,9 +293,17 @@ print_seq(sip, outfp)
 		return;
 
 	fseek(fp, (off_t)0, 0);
-	while ((n = fread(buf, 1, sizeof buf, fp)) > 0)
-		fwrite(buf, 1, n, outfp);
-	fflush(outfp);
+	while ((n =
+		fread(
+		      buf, 1, sizeof buf
+		      , fp )
+		) > 0)
+	  fwrite(
+		 buf, 1, n
+		 , outfp );
+	fflush(
+	       outfp
+	       );
 }
 
 /*
