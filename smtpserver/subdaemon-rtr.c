@@ -42,6 +42,7 @@ typedef struct state_rtr {
 	char *buf;
 	int   bufsize;
 	int   sawhungry;
+	struct fdgets_fdbuf fdb;
 } RtState;
 
 
@@ -144,7 +145,11 @@ static int subdaemon_callr (RTR)
 	
 	for (;;) {
 	  RTR->bufsize = 0;
-	  rc = fdgets( & RTR->buf, & RTR->bufsize, RTR->fromfd, 10);
+	  rc = fdgets( & RTR->buf, & RTR->bufsize, & RTR->fdb, RTR->fromfd, 10);
+	  /* type(NULL,0,NULL,"fdgets-RTR-1: bufsize=%d '%s' rc=%d lastc=%d",
+	     RTR->bufsize, RTR->buf, rc, RTR->buf[rc-1]);
+	  */
+
 	  if ( rc < 1 || ! RTR->buf ) {
 	    /* FIXME: ERROR PROCESSING ! */
 	    if (rc == 0) {
@@ -176,7 +181,7 @@ static int
 subdaemon_handler_rtr_init (statep)
      void **statep;
 {
-	struct state_rtr *state = calloc(1, sizeof(struct state_rtr));
+	RtState *state = calloc(1, sizeof(RtState));
 	*statep = state;
 
 	if (state) {
@@ -253,6 +258,7 @@ subdaemon_handler_rtr_preselect (state, rdset, wrset, topfdp)
      int *topfdp;
 {
 	RtState *RTR = state;
+	int rc = -1;
 
 	if (! RTR) return 0; /* No state to monitor */
 
@@ -263,9 +269,11 @@ subdaemon_handler_rtr_preselect (state, rdset, wrset, topfdp)
 	  _Z_FD_SETp(RTR->fromfd, rdset);
 	  if (*topfdp < RTR->fromfd)
 	    *topfdp = RTR->fromfd;
+	  if (RTR->fdb.rdsize)
+	    rc = 1;
 	}
 
-	return -1;
+	return rc;
 }
 
 static int
@@ -279,10 +287,14 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 	if (! RTR) return -1; /* No state to monitor */
 	if (RTR->fromfd < 0) return -1; /* No router there.. */
 
-	if ( _Z_FD_ISSETp(RTR->fromfd, rdset) ) {
+	if ( _Z_FD_ISSETp(RTR->fromfd, rdset) || RTR->fdb.rdsize ) {
 	  /* We have something to read ! */
 
-	  rc = fdgets( & RTR->buf, & RTR->bufsize, RTR->fromfd, -1);
+	  rc = fdgets( & RTR->buf, & RTR->bufsize, & RTR->fdb, RTR->fromfd, -1);
+
+	  /* type(NULL,0,NULL,"fdgets-RTR-2: bufsize=%d '%s' rc=%d lastc=%d",
+	     RTR->bufsize, RTR->buf, rc, RTR->buf[rc-1]);
+	  */
 
 	  if (rc < 0 && errno == EAGAIN) return -EAGAIN;  /* */
 	  if (rc == 0) { /* EOF */
@@ -331,6 +343,7 @@ struct rtr_state {
 	char *pbuf;
 	int sawhungry; /* remote may yield  N  lines of output, 
 			  until  Hungry  */
+	struct fdgets_fdbuf fdb;
 };
 
 
@@ -365,11 +378,11 @@ smtprouter_init ( statep )
 
 
 	if (!state)
-	  state = *statep = malloc(sizeof(*state));
+	  state = *statep = calloc(1, sizeof(*state));
 	if (!state) return -1;
 
-	memset( state, 0, sizeof(*state) );
 	state->fd_io = -1;
+	state->fdb.rdsize = 0;
 
 	/* Abusing the thing, to be exact, but... */
 	rc = socketpair(PF_UNIX, SOCK_STREAM, 0, toserver);
@@ -404,7 +417,7 @@ smtprouter_init ( statep )
 
 	if (state->buf) state->buf[0] = 0;
 	state->buflen = 0;
-	if (fdgets( & state->buf, & state->buflen, state->fd_io, 10 ) < 0) {
+	if (fdgets( & state->buf, & state->buflen, & state->fdb, state->fd_io, 10 ) < 0) {
 	  /* something failed! -- timeout in 10 secs ?? */
 	  if (debug)
 	    type(NULL,0,NULL,"smtprouter_init; FAILURE 10-B");
@@ -508,7 +521,7 @@ router(SS, function, holdlast, arg, len)
 
 	  if (state->buf) state->buf[0] = 0;
 	  state->buflen = 0;
-	  rc = fdgets( & state->buf, & state->buflen, state->fd_io, 60 );
+	  rc = fdgets( & state->buf, & state->buflen, & state->fdb, state->fd_io, 60 );
 
 	  if (state->buf && (rc > 0))
 	    if (state->buf[rc-1] == '\n')

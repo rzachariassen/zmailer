@@ -206,6 +206,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	  top_peer = top_peer2; /* New topmost peer index */
 
 	  rc = (subdaemon_handler->preselect)( statep, & rdset, & wrset, &topfd );
+	  if (rc > 0) tv.tv_sec = 0; /* RAPID select */
 
 	  rc = select( topfd+1, &rdset, &wrset, NULL, &tv );
 	  time(&now);
@@ -504,12 +505,80 @@ void subdaemon_pick_next_job( peers, top_peer, subdaemon_handler, statep )
  *	Return number of characters read, -1 for errors, 0 for EOF!
  */
 
+static int
+fdgetc(fdp, fd, timeout)
+     struct fdgets_fdbuf *fdp;
+     int fd, timeout;
+{
+	int c, rc;
+	int rdspace;
+	char *p;
+
+	if (fdp->rdsize > sizeof(fdp->rdbuf)) fdp->rdsize = 0;
+
+ extract_from_buffer:
+	if (fdp->rdsize > 0) {
+	  /* Have buffered data! */
+	  c = 255 & (fdp->rdbuf[0]);
+	  fdp->rdsize -= 1;
+	  if (fdp->rdsize > 0)
+	    memmove(fdp->rdbuf, fdp->rdbuf+1, fdp->rdsize);
+	  return c;
+	}
+
+	/* The buffer is empty.. */
+	rdspace = sizeof(fdp->rdbuf);
+	fdp->rdsize = 0;
+	p = fdp->rdbuf;
+
+	for (;;) {
+	    /* if (logfp)
+	       fprintf(logfp, "to read() fd=%d len=%d\n",fd, rdspace);
+	    */
+	    rc = read(fd, p, rdspace);
+	    c = errno;
+
+	    /* if (logfp)
+	       fprintf(logfp, "fdgetc() read(fd=%d rdspc=%d) -> rc=%d\n",
+	       fd, rdspace, rc);
+	    */
+
+	    errno = c;
+
+	    if (rc > 0) {
+	      fdp->rdsize += rc;
+	      goto extract_from_buffer;
+	    }
+	    if (rc == 0) return -1; /* EOF */
+	    if (errno == EINTR) continue;
+	    if (errno == EWOULDBLOCK) {
+		fd_set rdset;
+		struct timeval tv;
+
+		if (timeout < 0) {
+		  return -2; /* EWOULDBLOCK.. */
+		}
+
+		_Z_FD_ZERO(rdset);
+		tv.tv_sec = timeout;
+		tv.tv_usec = 0;
+		_Z_FD_SET(fd, rdset);
+		rc = select( fd+1, &rdset, NULL, NULL, &tv );
+		if (rc == 0) {
+		  return -3; /* TIMEOUT!  D'UH! */
+		}
+	    }
+	}
+	return (255 & c);
+}
+
 int
-fdgets (bufp, buflenp, fd, timeout)
+fdgets (bufp, buflenp, fdp, fd, timeout)
      char **bufp;
+     struct fdgets_fdbuf *fdp;
      int *buflenp, fd, timeout;
 {
-	int i, rc;
+	int i;
 	char c;
 	char *buf  = *bufp;
 	int buflen = *buflenp;
@@ -519,45 +588,24 @@ fdgets (bufp, buflenp, fd, timeout)
 
 	i = buflen;
 	for (;;) { /* Accumulate a line */
-	  for (;;) {
-	    rc = read(fd, &c, 1);
-	    if (rc >= 0) break;
-	    if (errno == EINTR) continue;
-	    if (errno == EWOULDBLOCK) {
-	      fd_set rdset;
-	      struct timeval tv;
+	    c = fdgetc(fdp, fd, timeout);
 
-	      if (timeout < 0) {
-		*bufp = buf;
-		*buflenp = buflen = i;
-		return -1; /* EWOULDBLOCK.. */
-	      }
+	    /* if (logfp)
+	       fprintf(logfp, "fdgetc() ret=%d c='%c'\n",c,c);
+	    */
 
-	      _Z_FD_ZERO(rdset);
-	      tv.tv_sec = timeout;
-	      tv.tv_usec = 0;
-	      _Z_FD_SET(fd, rdset);
-	      rc = select( fd+1, &rdset, NULL, NULL, &tv );
-	      if (rc == 0) {
-		i = -1;
-		goto read_end; /* TIMEOUT!  D'UH! */
-	      }
+	    if ((i + 4 > buflen) || !buf) {
+		buflen += 64;
+		buf = realloc(buf, buflen);
 	    }
-	  }
-	  if (rc == 0) { /* EOF seen! */
-	    break;
-	  }
-	  if ((i + 4 > buflen) || !buf) {
-	    buflen += 64;
-	    buf = realloc(buf, buflen);
-	  }
+	    if (c < 0) break; /* Any of break reasons.. */
 
-	  buf[i++] = c;
-	  if (c == '\n') break;
+	    buf[i++] = c;
+	    if (c == '\n') break;
 	}
- read_end:;
+
 	if ((i >= 0) && buf)
-	  buf[i] = 0;
+	    buf[i] = 0;
 
 	fd_blockingmode(fd);
 

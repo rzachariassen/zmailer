@@ -85,6 +85,7 @@ typedef struct state_ctf {
 	char *buf[MAXCTFS];
 	int   bufsize[MAXCTFS];
 	int   sawhungry[MAXCTFS];
+	struct fdgets_fdbuf fdb[MAXCTFS];
 } Ctfstate;
 
 
@@ -211,7 +212,7 @@ static int subdaemon_ctf_proc (CTF, idx)
 	
 	for (;;) {
 	  CTF->bufsize[idx] = 0;
-	  rc = fdgets( & CTF->buf[idx], & CTF->bufsize[idx], CTF->fromfd[idx], 10);
+	  rc = fdgets( & CTF->buf[idx], & CTF->bufsize[idx], &CTF->fdb[idx], CTF->fromfd[idx], 10);
 	  if ( rc < 1 || ! CTF->buf[idx] ) {
 	    /* FIXME: ERROR PROCESSING ! */
 	    if (rc == 0) {
@@ -369,6 +370,7 @@ subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
 	Ctfstate *CTF = state;
 	int idx;
 	struct stat stbuf;
+	int rc = -1;
 
 	if (! CTF) return 0; /* No state to monitor */
 
@@ -401,10 +403,12 @@ subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
 	    _Z_FD_SETp(CTF->fromfd[idx], rdset);
 	    if (*topfdp < CTF->fromfd[idx])
 	      *topfdp = CTF->fromfd[idx];
+	    if (CTF->fdb[idx].rdsize)
+	      rc = 1;
 	  }
 	}
 
-	return -1;
+	return rc;
 }
 
 static int
@@ -423,11 +427,11 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 	  if (CTF->fromfd[idx] < 0)
 	    continue; /* No contentfilter there.. */
 
-	  if ( _Z_FD_ISSETp(CTF->fromfd[idx], rdset) ) {
+	  if ( _Z_FD_ISSETp(CTF->fromfd[idx], rdset) || CTF->fdb[idx].rdsize ) {
 	    /* We have something to read ! */
 	    
 	    rc = fdgets( & CTF->buf[idx], & CTF->bufsize[idx],
-			 CTF->fromfd[idx], -1);
+			 &CTF->fdb[idx], CTF->fromfd[idx], -1);
 
 #if 0 /* Let the loop to spin... */
 	    if (rc < 0 && errno == EAGAIN) return -EAGAIN;  /* */
@@ -481,6 +485,7 @@ struct ctf_state {
 	char *pbuf;
 	int sawhungry; /* remote may yield  N  lines of output, 
 			  until  Hungry  */
+	struct fdgets_fdbuf fdb;
 };
 
 
@@ -557,7 +562,7 @@ smtpcontentfilter_init ( statepp )
 
 	if (state->buf) state->buf[0] = 0;
 	state->buflen = 0;
-	if (fdgets( & state->buf, & state->buflen, state->fd_io, 10 ) < 0) {
+	if (fdgets( & state->buf, & state->buflen, & state->fdb, state->fd_io, 10 ) < 0) {
 	  /* something failed! -- timeout in 10 secs ?? */
 	  if (debug)
 	    type(NULL,0,NULL,"smtpcontentfilter_init; FAILURE 10-B");
@@ -630,7 +635,7 @@ contentfilter_proc(ctfstatep, fname)
 
 	  if (ctfstate->buf) ctfstate->buf[0] = 0;
 	  ctfstate->buflen = 0;
-	  rc = fdgets( & ctfstate->buf, & ctfstate->buflen, ctfstate->fd_io, 120 );
+	  rc = fdgets( & ctfstate->buf, & ctfstate->buflen, & ctfstate->fdb, ctfstate->fd_io, 120 );
 
 	  if (ctfstate->buf && (rc > 0))
 	    if (ctfstate->buf[rc-1] == '\n')

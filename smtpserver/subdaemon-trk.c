@@ -764,6 +764,7 @@ struct trk_client_state {
 	FILE *outfp;
 	char *buf;
 	int buflen;
+	struct fdgets_fdbuf fdb;
 };
 
 
@@ -841,7 +842,7 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 
 	  if (state->buf) state->buf[0] = 0;
 	  state->buflen = 0;
-	  if (fdgets( & state->buf, & state->buflen, state->fd_io, 5 ) < 0) {
+	  if (fdgets( & state->buf, & state->buflen, & state->fdb, state->fd_io, 5 ) < 0) {
 	    /* something failed! */
 	    /* type(NULL,0,NULL,"call_subdaemon_trk; 10-B");*/
 	  }
@@ -875,7 +876,7 @@ call_subdaemon_trk (statep, cmd, retbuf, retbuflen)
 
 	if (state->buf) state->buf[0] = 0;
 	state->buflen = 0;
-	fdgets( & state->buf, & state->buflen, state->fd_io, 5 );
+	fdgets( & state->buf, & state->buflen, & state->fdb, state->fd_io, 5 );
 
 	if (! state->buf || (state->outfp && ferror(state->outfp)))
 	  return -6; /* Uh ok.. */
@@ -907,7 +908,7 @@ call_subdaemon_trk_getmore (statep, retbuf, retbuflen)
 
 	if (state->buf) state->buf[0] = 0;
 	state->buflen = 0;
-	rc = fdgets( & state->buf, & state->buflen, state->fd_io, 5 );
+	rc = fdgets( & state->buf, & state->buflen, & state->fdb, state->fd_io, 5 );
 
 	if (! state->buf || (state->outfp && ferror(state->outfp)))
 	  return -6; /* Uh ok.. */

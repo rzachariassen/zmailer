@@ -1,5 +1,13 @@
 2004-04-28  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpserver.h, smtpserver/subdaemon-ctf.c,
+	  smtpserver/subdaemon-rtr.c, smtpserver/subdaemon-trk.c,
+	  smtpserver/subdaemons.c:
+	    Modify underlying details in fdgets() handling to use
+	    larger read() operations, than 1 byte at the time..
+	    This gives slight speedup, ... well, at least nicer
+	    kernel call traces...
+
 	* smtpserver/Makefile.in, smtpserver/contentpolicy.c,
 	  smtpserver/mxverify.c, smtpserver/policytest.c,
 	  smtpserver/policytest.h, smtpserver/smtpcmds.c,

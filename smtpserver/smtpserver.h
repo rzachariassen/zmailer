@@ -644,7 +644,11 @@ extern void fd_restoremode __((int fd, int mode));
 
 /* subdaemons.c */
 extern int subdaemons_init __((void));
-extern int fdgets __((char **bufp, int *buflenp, int fd, int timeout));
+struct fdgets_fdbuf {
+	int rdsize;
+	char rdbuf[100];
+};
+extern int fdgets __((char **bufp, int *buflenp, struct fdgets_fdbuf *fdp, int fd, int timeout));
 
 extern int  ratetracker_rdz_fd;
 extern int  ratetracker_server_pid;
