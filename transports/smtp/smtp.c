@@ -1343,7 +1343,7 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->smtpfp) {
 	    SS->rcptstates = 0;
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	      r = EX_TEMPFAIL ;
+	      /* r = EX_TEMPFAIL */ ;
 	  }
 
 	  if (r == EX_OK && more_rp)
@@ -1425,8 +1425,9 @@ deliver(SS, dp, startrp, endrp)
 
 	  /* No CHUNKING here... do normal DATA-dot exchange */
 
-	  /* In PIPELINING mode ... send "DATA" */
-	  r = smtpwrite(SS, 1, "DATA", pipelining, NULL);
+	  /* In PIPELINING mode ... send "DATA" and SYNC ! */
+	  r = smtpwrite(SS, 1, "DATA", 0, NULL);
+#if 0
 	  if (r != EX_OK) { /* failure on pipes ? */
 	    time(&endtime);
 	    notary_setxdelay((int)(endtime-starttime));
@@ -1447,6 +1448,7 @@ deliver(SS, dp, startrp, endrp)
 	  /* Now it is time to do synchronization .. */
 	  if (SS->smtpfp)
 	    r = smtp_sync(SS, EX_OK, 0); /* Up & until "DATA".. */
+#endif
 	  if (r != EX_OK) {
 	    if (SS->smtpfp &&
 		(SS->rcptstates & DATASTATE_OK)) {
@@ -1467,6 +1469,9 @@ deliver(SS, dp, startrp, endrp)
 	      smtpclose(SS,1);
 	      if (logfp)
 		fprintf(logfp, "%s#\t(closed SMTP channel - tempfails for RCPTs; 'too many recipients per session' ??  rc=%d)\n", logtag(), rp ? rp->status : -999);
+	      if (SS->verboselog)
+		fprintf(SS->verboselog, "(closed SMTP channel - tempfails for RCPTs; 'too many recipients per session' ??  rc=%d)\n", rp ? rp->status : -999);
+
 	      if (SS->rcptstates & RCPTSTATE_OK)
 		retryat_time = 0;
 
@@ -1499,6 +1504,7 @@ deliver(SS, dp, startrp, endrp)
 
 	    return r;
 	  }
+
 	  /* Successes are reported AFTER the DATA-transfer is ok */
 	} else {
 	  /* Non-PIPELINING sync mode */
