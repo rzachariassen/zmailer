@@ -53,7 +53,7 @@ static conscell **staticvec[NSTATICVARS] = { NULL };
 static int staticidx = 0;
 
 
-static void (*functionvec[NSTATICVARS])__((void (*objectiterator)(void (*gcmarkupfunc)(conscell *)))) = { NULL };
+static void (*functionvec[NSTATICVARS])__((void (*gcmarkupfunc)(conscell *))) = { NULL };
 
 static int functionidx = 0;
 
