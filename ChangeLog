@@ -1,4 +1,14 @@
+1998-04-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c, smtpserver/smtpdata.c:
+	    Report end of "DATA" and "BDAT" commands too -- the server
+	    may be sleeping around on idle-states for a long time..
+	
 1998-03-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/mailbox/mailbox.c:
+	    Corrected the use of x.2.2 type of mail status code from
+	    "5.2.2" to "4.2.2".  (Persistent transient error.)
 
 	* INSTALL:
 	    Warn about configuration phase --prefix="parameter" string
