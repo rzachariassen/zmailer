@@ -4348,7 +4348,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  mx[nmx].expiry = now + _getlong(cp); /* TTL */
 	  cp += 4; /* "long" -- but keep in mind that some machines
 		      have "funny" ideas about "long" -- those 64-bit
-		      ones I mean ... */
+		      ones, I mean ... */
 	  n = _getshort(cp); /* dlen */
 	  cp += 2;
 	  if (type == T_CNAME) {
