@@ -1083,10 +1083,11 @@ deliver(SS, dp, startrp, endrp)
 	int ascii_clean = 0;
 	struct stat stbuf;
 	const char *cname, *u = NULL;
-	char *s;
 	char SMTPbuf[2000];
-	char const * const se = SMTPbuf+sizeof(SMTPbuf)-40;
-	int conv_prohibit = check_conv_prohibit(startrp);
+	char const * const  se = SMTPbuf + 800;
+	char const * const se2 = SMTPbuf + sizeof(SMTPbuf)-40;
+	char *s;
+	const int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
 	int pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
 	time_t env_start, body_start, body_end;
@@ -1294,8 +1295,8 @@ deliver(SS, dp, startrp, endrp)
 
 	  u = startrp->addr->link->user;
 
-	  for ( ; *u && s < se; ++u) {
-	    char c = *u;
+	  for ( ; *u && (s < se); ++u) {
+	    const char c = *u;
 	    if (c == '\\') {
 	      *s++ = c; ++u;
 	      if (*u == 0) break;
@@ -1314,7 +1315,7 @@ deliver(SS, dp, startrp, endrp)
 	  if (startrp->ezmlm) {
 	    /* The EZMLM mode appendix... */
 	    const char *p = startrp->ezmlm;
-	    while (*p && s < se) *s++ = *p++;
+	    while (*p && (s < se)) *s++ = *p++;
 	  }
 
 	  /* Normal (tail) mode */
@@ -1469,8 +1470,8 @@ deliver(SS, dp, startrp, endrp)
 
 	    /* Copy the (possibly quoted) local part */
 	    quote = 0;
-	    for ( ; *u && s < se; ++u) {
-	      char c = *u;
+	    for ( ; *u && (s < se); ++u) {
+	      const char c = *u;
 	      if (c == '\\') {
 		*s++ = c; ++u;
 		if (*u == 0) break;
@@ -1494,7 +1495,7 @@ deliver(SS, dp, startrp, endrp)
 		if ((cname_lookup(SS, u, & cname) > 0) && cname) {
 		  u = cname;
 		}
-		while (*u && s < se) *s++ = *u++;
+		while (*u && (s < se)) *s++ = *u++;
 	      }
 	    }
 	    *s++ = '>';
