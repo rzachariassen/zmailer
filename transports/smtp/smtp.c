@@ -1711,9 +1711,10 @@ deliver(SS, dp, startrp, endrp)
 
 	} else { /* Ordinary DATA-dot mode */
 
-	  report(SS, "DATA-dot");
+	  report(SS, "DATA-dot wait");
 	  r = smtpwrite(SS, 1, ".", lmtp_mode, NULL);
-	  report(SS, "DATA-dot; rc=%d", r);
+	  if (!lmtp_mode)
+	    report(SS, "DATA-dot; rc=%d", r);
 
 	  /* Special case processing: If we are in LMTP's dot-of-DATA
 	     phase, always use  smtp_sync()  to handle our diagnostics. */
