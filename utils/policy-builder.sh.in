@@ -6,7 +6,7 @@
 #	smtp-policy.src
 #	localnames	        ('= _localnames')
 #	smtp-policy.relay       ('= _full_rights')
-#	smtp-policy.mx	        ('relaytargets +')
+#	smtp-policy.mx	        ('= _relaytarget')
 #	smtp-policy.spam        ('= _bulk_mail')
 #	smtp-policy.spam.manual ('= _bulk_mail')
 #
@@ -95,14 +95,14 @@ fi
   if [ -f smtp-policy.relay ] ; then
     cat smtp-policy.relay | \
     awk '/^#/{next;}
-	{printf "%s = _full_rights %s %s %s %s %s %s %s %s\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;next;}'
+	{printf "%s  %s %s %s %s %s %s %s %s = _full_rights\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;next;}'
   fi
 
   # smtp-policy.mx
   # (Lists domains that are allowed to use us as inbound MX relay for them)
   if [ -f smtp-policy.mx ] ; then
     cat smtp-policy.mx | \
-    awk '/^#/{next;} NF >= 1 {printf "%s relaytarget +\n",$1;}'
+    awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$1;}'
   fi
 
   # smtp-policy.spam

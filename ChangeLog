@@ -1,3 +1,14 @@
+1999-06-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/policytest.c, smtpserver/smtpcmds.c,
+	  proto/db/smtp-policy.src, utils/policy-builder.sh.in:
+	    Tried to use delayed "rcpt-dns-rbl + test-rcpt-dns-rbl"
+	    policy attributes, and noticed that things didn't work
+	    quite the way I had planned  .  Ah well, some testing,
+	    and patching, and now it works...   Noticed also that
+	    the report out of themachinery used wrong variable in
+	    the  RCPT TO report code.
+
 1999-06-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in, ChangeLog, compat/rmail/Makefile.in,
@@ -34,7 +45,7 @@
 	      the file, although CVS will show deletion and adding..)
 	    - Manage to autodetect OpenSSL shared objects, although does
 	      not do full blown shared-library runtime load path define,
-	      as that details tends to vary from system to system :-(
+	      as that detail tends to vary from system to system :-(
 	
 1999-06-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
