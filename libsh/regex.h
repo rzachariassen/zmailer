@@ -523,6 +523,7 @@ extern int re_exec _RE_ARGS ((const char *));
 #   define __restrict
 #  endif
 # endif
+#endif
 /* gcc 3.1 and up support the [restrict] syntax.  */
 #ifndef __restrict_arr
 # if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
@@ -530,7 +531,6 @@ extern int re_exec _RE_ARGS ((const char *));
 # else
 #  define __restrict_arr
 # endif
-#endif
 #endif
 
 /* POSIX compatibility.  */
