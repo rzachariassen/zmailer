@@ -1,37 +1,78 @@
 #! /bin/sh
 
-#set -x
 
 echo "<HTML><HEAD><TITLE>"
 echo "$1"
 echo "</TITLE></HEAD><BODY BGCOLOR=white><PRE>"
-groff -t -man -Tascii "$1" | \
-    perl -ne '
+groff -t -man -Tascii "$1" | tee "$1".txt | \
+    perl -e '
+        #select STDIN; $| = 1;
         select STDERR; $| = 1;
-	s{&}{&amp;}og;
-	#s{<}{&lt;}og;
-	#s{>}{&gr;}og;
-	s{_\010<}{<I>&lt;</I>}og;
-	s{<\010<}{<B>&lt;</B>}og;
-	s{_\010>}{<I>&gt;</I>}og;
-	s{>\010>}{<B>&gt;</B>}og;
-	#s{_\010&}{<I>&amp;</I>}og;
-	#s{&\010&}{<B>&amp;</B>}og;
-	while(m/(.)\010(.)/o) {
-	  if ($1 eq $2) {
-	    s{(.)\010(.)}{<B>$1</B>}o;
-	  } elsif ($1 eq "_") {
-	    s{(.)\010(.)}{<I>$2</I>}o;
-	  } elsif ($1 eq "+" && $2 eq "o") {
-            s{(.)\010(.)}{<B>o</B>}o;
-	  } else {
-	    printf STDERR "UNEXPECTED PATTERN: (%s)\\010(%s); str=\"%s\"\n",$1,$2,$0;
-	    last;
-	  }
-	}
-	s{</B><B>}{}og;
-	s{</I><I>}{}og;
-	s{</U><U>}{}og;
-	s{</I><B>_</B><I>}{_}og;
-        print STDOUT;'
+        #select STDOUT; $| = 1;
+        $h = "\010";
+        undef $c0;
+        while(read(STDIN,$c,1) > 0) {
+
+#printf STDERR "c0 = \"%s\"  c = \"%s\"\n",
+#	      !defined $c0 ? "<UNDEF>" : (ord($c0) < 32 ?
+# 				          sprintf("\\%03o",ord($c0)): $c0),
+#	      ord($c) < 32 ? sprintf("\\%03o",ord($c)) : $c;
+
+          if ($c0) {
+            if ($c eq $h) {
+              # X ^H Y -> bold/italic/something
+              undef $c1;
+              read(STDIN,$c1,1);
+
+#printf STDERR " .. c1 = \"%s\"\n",
+#	      ord($c1) < 32 ? sprintf("\\%03o",ord($c1)) : $c1;
+
+              if ($c0 eq $c1) {
+                # bold
+	        if    ($c0 eq "&") { $c0 = "&amp;"; }
+		elsif ($c0 eq "<") { $c0 = "&lt;"; }
+		elsif ($c0 eq ">") { $c0 = "&gt;"; }
+                printf STDOUT "<B>%s</B>",$c0;
+              } elsif ($c0 eq "_") {
+                # italic
+	        if    ($c1 eq "&") { $c1 = "&amp;"; }
+		elsif ($c1 eq "<") { $c1 = "&lt;"; }
+		elsif ($c1 eq ">") { $c1 = "&gt;"; }
+                printf STDOUT "<I>%s</I>",$c1;
+              } elsif ($c0 eq "+" && $c1 eq "o") {
+                printf STDOUT "<B>*</B>";
+              } else {
+                # something -- overstrike ?
+	        if    ($c1 eq "&") { $c1 = "&amp;"; }
+		elsif ($c1 eq "<") { $c1 = "&lt;"; }
+		elsif ($c1 eq ">") { $c1 = "&gt;"; }
+                printf STDOUT "<B>%s</B>",$c1;
+              }
+              undef $c0;
+              if ($c1 eq "\n") { printf STDOUT "\n"; }
+            } else {
+              # Not  X ^H Y, but X is defined.
+              if ($c0 eq "&") {
+                printf STDOUT "&amp;";
+              } elsif ($c0 eq "<") {
+                printf STDOUT "&lt;";
+              } elsif ($c0 eq ">") {
+                printf STDOUT "&gt;";
+              } else {
+                printf STDOUT "%s",$c0;
+              }
+              $c0 = $c;
+            }
+          } else {
+            printf STDOUT "%s",$c0;
+            $c0 = $c;
+          }
+        } # ... while()
+        if ($c0) { printf STDOUT "%s",$c0; }' |  \
+    perl -ne '
+        s{</B><B>}{}og;
+        s{</I><I>}{}og;
+        s{</U><U>}{}og;
+        s{</I><B>_</B><I>}{_}og;
+	print;'
 echo "</PRE></BODY></HTML>"
