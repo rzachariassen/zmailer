@@ -1,3 +1,11 @@
+1998-02-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/resources.c:
+	    Per report from Martin Wendel, AIX 4.2.1 yields
+	    surprising values on  getrlimit(RLIMIT_NOFILE, ..)
+	    result structure.  Altered things so that we won't
+	    use that facility on _AIX systems -- ever.
+
 1998-02-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/threads.c (and others):

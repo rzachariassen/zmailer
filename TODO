@@ -14,11 +14,7 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	resync mechanism needs to be rewritten; now it throws away
 	all info about the file, while it should only scan thru all
 	data, and sync in-core status with the file.
-
-- scheduler:
-	does not always treat host-parts case-insensitively,
-	namely keeps "caipfs.rutgers.edu" and "caipfs.Rutgers.EDU"
-	as separate entities
+		(incomplete code skeleton written for this)
 
 - smtpserver
   - accept email to postmaster(s), never mind what else policy testers
@@ -117,12 +113,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	- system spins (FAST) on those two...
 
 - transports/smtp/smtp.c:
-	- pipelined mode needs a recheck to the status analysis of the
-	  MAIL FROM:<>, RCPT TO:<>, DATA -phase.  If the MAIL/RCPT cmds
-	  gave non-ok (no RCPT gave OK), the reception of false from
-	  the DATA is no surprise, and SHOULD NOT be treated as permanent
-	  error even though it may present a 5XX code..
-		[done? need to verify!]
 	- To rewrite the MX processing in streamlined flashion (see next)
 	- In case two domains have common (sub-)set of MX servers, and
 	  we have been feeding mail to domain A thru MX-server B, and
@@ -130,7 +120,7 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	  We are to reuse the already open channel to server B to feed
 	  the message out even though the domain C might have had server
 	  D with lower preferrence..
-	  (Noteing that all MX-hosts with same or larger privilege,
+	  (Noting that all MX-hosts with same or larger privilege,
 	   than ourselves are to be pre-removed from the list!)
 	- To support RFC-1830 SMTP extension: CHUNKING
 
