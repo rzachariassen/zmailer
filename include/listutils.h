@@ -66,8 +66,8 @@ typedef struct _conscell {
 #define EXTINLINE extern __inline__
 #endif
 
-EXTINLINE int LIST(conscell *C)   { return ((~_DSW_MASK & (C)->flags) == 0); }
-EXTINLINE int STRING(conscell *C) { return ((~_DSW_MASK & (C)->flags) != 0); }
+EXTINLINE int LIST(conscell *C)   { return ((~(_DSW_MASK|ELEMENT) & (C)->flags) == 0); }
+EXTINLINE int STRING(conscell *C) { return ((~(_DSW_MASK|ELEMENT) & (C)->flags) != 0); }
 EXTINLINE int ISCONST(conscell *C) { return ((C)->flags & CONSTSTRING); }
 EXTINLINE int ISNEW(conscell *C) { return ((C)->flags & NEWSTRING); }
 EXTINLINE int ISQUOTED(conscell *C) { return ((C)->flags & QUOTEDSTRING); }
@@ -76,8 +76,8 @@ EXTINLINE int ISELEMENT(conscell *C) { return ((C)->flags & ELEMENT); }
 
 #else /* ----- not profiling ----- */
 
-#define LIST(C)		((~_DSW_MASK & (C)->flags) == 0)
-#define STRING(C)	((~_DSW_MASK & (C)->flags) != 0)
+#define LIST(C)		((~(_DSW_MASK|ELEMENT) & (C)->flags) == 0)
+#define STRING(C)	((~(_DSW_MASK|ELEMENT) & (C)->flags) != 0)
 #define	ISCONST(C)	((C)->flags & CONSTSTRING)
 #define	ISNEW(C)	((C)->flags & NEWSTRING)
 #define	ISQUOTED(C)	((C)->flags & QUOTEDSTRING)
