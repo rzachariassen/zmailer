@@ -37,7 +37,7 @@ FLAGS="defaults 50"
 
 unset ZCONFIG
 
-if [ "$1 = "--zconfig" ] ; then
+if [ "$1" = "--zconfig" ] ; then
     shift
     ZCONFIG="$1"
     shift
