@@ -475,7 +475,7 @@ int insecure;
 		s += 4;
 	    }
 	    if (*s && *s != ' ' && *s != '\t') {
-		type(SS, 455, m554, "BODY-param data error, must be one of: 8BITMIME/BINARYMIME/7BIT");
+		type(SS, 501, m554, "BODY-param data error, must be one of: 8BITMIME/BINARYMIME/7BIT");
 		rc = 1;
 		break;
 	    }
@@ -484,7 +484,7 @@ int insecure;
 	if (CISTREQN("SIZE=", s, 5)) {
 	    s += 5;
 	    if (SS->sizeoptval != -1) {
-		type(SS, 455, m554, "SIZE-param double definition!");
+		type(SS, 501, m554, "SIZE-param double definition!");
 		rc = 1;
 		break;
 	    }
@@ -526,7 +526,7 @@ int insecure;
 	    }
 	    continue;
 	}
-	type(SS, 555, m454, "Unknown MAIL FROM:<> parameter: %s", s);
+	type(SS, 501, m554, "Unknown MAIL FROM:<> parameter: %s", s);
 	rc = 1;
 	break;
     }
