@@ -82,19 +82,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <sys/param.h>
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
 #include <sys/utsname.h>
-#include <bits/libc-lock.h>
 
 #ifndef min
 # define min(x,y) (((x) > (y)) ? (y) : (x))
 #endif /* min */
 
+#ifndef AF_LOCAL
+# define AF_LOCAL AF_UNIX
+# define PF_LOCAL PF_UNIX
+#endif
 
 static char * nrl_domainname __((void));
 static char *
@@ -149,17 +152,17 @@ nrl_domainname ()
 
 
 int
-getnameinfo __((const struct sockaddr *sa, socklen_t addrlen, char *host,
-		socklen_t hostlen, char *serv, socklen_t servlen, int flags));
+getnameinfo __((const struct sockaddr *sa, size_t addrlen, char *host,
+		size_t hostlen, char *serv, size_t servlen, int flags));
 
 int
 getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
      const struct sockaddr *sa;
-     socklen_t addrlen;
+     size_t addrlen;
      char *host;
-     socklen_t hostlen;
+     size_t hostlen;
      char *serv;
-     socklen_t servlen;
+     size_t servlen;
      int flags;
 {
   int serrno = errno;
@@ -170,7 +173,7 @@ getnameinfo (sa, addrlen, host, hostlen, serv, servlen, flags)
 
   switch (sa->sa_family) {
   case AF_LOCAL:
-    if (addrlen < (socklen_t) (((struct sockaddr_un *) NULL)->sun_path))
+    if (addrlen < (size_t) (((struct sockaddr_un *) NULL)->sun_path))
       return -1;
     break;
   case AF_INET:
