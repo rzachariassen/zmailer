@@ -1,3 +1,9 @@
+2003-11-27  Matti Aarnio  <mea@zmailer.org>
+
+	* router/libdb/ldap.c:
+	    Found a sneaky typo - for some reason my compilations
+	    don't compile LDAP by default :-(
+
 2003-11-24  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtpauth.c:

@@ -59,7 +59,7 @@ open_lmap_ (lmap)
 	if (lmap->ld != NULL) {
 
 		if (lmap->protocol > 0 &&
-		    ldap_set_option( ldap->ld,
+		    ldap_set_option( lmap->ld,
 				     LDAP_OPT_PROTOCOL_VERSION,
 				     &lmap->protocol ) != LDAP_OPT_SUCCESS ) {
 		  fprintf( stderr, "Could not set LDAP_OPT_PROTOCOL_VERSION %d\n", lmap->protocol );
