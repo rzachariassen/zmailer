@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MBOXPATH 1 "2003-May-05"
+.TH MBOXPATH 1 "2003-May-13"
 .SH NAME
 mboxpath \- ZMailer utility to show user's mailbox path
 .SH SYNOPSIS
@@ -19,7 +19,7 @@ have been scattered around, and it is desired to have user's shell
 environment variable
 .B MAIL
 be set to where ever his/her UNIX mailbox file is.
-
+.PP
 This does only manage scattering under common
 .I \-d\ dirpath
 directory prefix, but usually that is sufficient.
@@ -46,7 +46,7 @@ code something like following for sh:
 .PP
 It is important to use SAME options here as are used at running
 the mailbox program.
-
+.PP
 .SH ENVIRONMENT
 The default location for user mailbox files depends per system,
 but one of them is:
@@ -54,11 +54,11 @@ but one of them is:
 This may be modified by setting the variable
 .B MAILBOX
 in
-.B /etc/zmailer.conf
+.B @ZMAILERCFGFILE@
 to the directory containing user mailbox files, for example
-.BR /usr/spool/mail .
+.BR @MAILBOX@ .
 This is best done in the ZMailer SiteConfig file.
-
+.PP
 This program outputs the
 .I likely
 mailbox location to the stdout, it does not go and see if there is anything.
@@ -66,8 +66,8 @@ mailbox location to the stdout, it does not go and see if there is anything.
 .PP
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/mail\fR	(MAILBOX)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@MAILBOX@\fR	(MAILBOX)
 .TE
 .PP
 While this utility does read

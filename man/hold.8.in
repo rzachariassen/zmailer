@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH HOLD 8 "2003-May-05"
+.TH HOLD 8 "2003-May-13"
 .SH NAME
 hold \- zmailer deferred processing transport agent
 .SH SYNOPSIS
@@ -128,8 +128,8 @@ These four are passed onwards to script execution environment.
 .SH FILES
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice\fR	(POSTOFFICE)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@\fR	(POSTOFFICE)
 .TE
 .PP
 .SH SEE ALSO

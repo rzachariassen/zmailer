@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ROUTER 8 "2003-May-05"
+.TH ROUTER 8 "2003-May-13"
 .SH NAME
 router \- zmailer message routing daemon
 .SH SYNOPSIS
@@ -1030,12 +1030,12 @@ files.
 .SH FILES
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice/.pid.router\fR	(POSTOFFICE/.pid.router)
-\fI/var/spool/postoffice/.router.notify\fR	(POSTOFFICE/.router.notify)
-\fI/var/spool/postoffice/.scheduler.notify\fR	(POSTOFFICE/.scheduler.notify)
-\fI/var/spool/postoffice/router\fR	(POSTOFFICE/router)
-\fI/var/spool/postoffice/{ROUTERDIRS}\fR	(POSTOFFICE/{ROUTERDIRS})
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@/.pid.router\fR	(POSTOFFICE/.pid.router)
+\fI@POSTOFFICE@/.router.notify\fR	(POSTOFFICE/.router.notify)
+\fI@POSTOFFICE@/.scheduler.notify\fR	(POSTOFFICE/.scheduler.notify)
+\fI@POSTOFFICE@/router\fR	(POSTOFFICE/router)
+\fI@POSTOFFICE@/{ROUTERDIRS}\fR	(POSTOFFICE/{ROUTERDIRS})
 .TE
 .SH SEE ALSO
 .IR mailq (1),

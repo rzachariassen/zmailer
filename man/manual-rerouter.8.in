@@ -1,8 +1,10 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MANUAL-REROUTER 8 "17 Apr 2003"
+.TH MANUAL-REROUTER 8 "2003-May-13"
 .SH NAME
-manual-rerouter \- wrapper for reroute(8) transporter
+manual-rerouter \- wrapper for
+.IR reroute (8)
+transport agent program
 .SH SYNOPSIS
 .IP \fBmanual-rerouter\fR 17em
 [\fB\-c\fR\ \fIchannel\fR]
@@ -29,6 +31,18 @@ Message recipient selector "channel" (optional)
 Message recipient selector "host" (optional)
 .IP "\-V\ \ \ \ \ \ \ \ \ \ \ "
 Print program version, and exit.
+.SH ENVIRONMENT VARIABLES
+The
+.I manual\-rerouter
+program inherits
+.B ZCONFIG
+environment variable, and reads it, and uses value of
+.B MAILBIN
+in it to locate the
+.IR reroute (8)
+utility, as well as to determine where
+.BR POSTFOFFICE /transport/
+directory is located at.
 .SH SEE ALSO
 .IR scheduler (8),
 .IR reroute (8).

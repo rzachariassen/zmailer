@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH zDBASES.CONF 5 "2003-May-05"
+.TH zDBASES.CONF 5 "2003-May-13"
 .SH NAME
 .B TBW:
 .B dbases.conf
@@ -141,8 +141,8 @@ TBW: many variables!
 .PP
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice\fR	(POSTOFFICE)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@\fR	(POSTOFFICE)
 .TE
 .PP
 .SH SEE ALSO

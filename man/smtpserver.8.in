@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8 "2003-May-1"
+.TH SMTPSERVER 8 "2003-May-13"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -1261,11 +1261,11 @@ PARAM tls-random-source /var/run/prngd-socket
 .PP
 
 .SH FILES
-.IP \fI/etc/zmailer.conf\fR
+.IP \fI@ZMAILERCFGFILE@\fR
 system global parameters
-.IP \fI/var/spool/postoffice/.pid.smtpserver\fR
+.IP \fI@POSTOFFICE@/.pid.smtpserver\fR
 $POSTOFFICE/.pid.smtpserver
-.IP \fI/opt/mail/smtpserver.conf\fR
+.IP \fI@ZMAILSHARE@/smtpserver.conf\fR
 $MAILSHARE/smtpserver.conf
 .IP \fI/etc/pam.d/smtpauth-login\fR
 if PAM mechanism is present and plain-password authentication is wanted

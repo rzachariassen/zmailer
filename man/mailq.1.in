@@ -2,7 +2,7 @@
 .\" $Header$
 .ds ]W "ZMailer 2.99"
 .nr X
-.TH MAILQ 1 "2003-May-05"
+.TH MAILQ 1 "2003-May-13"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
@@ -259,9 +259,9 @@ Age of oldest message in the queue at this thread.
 .PP
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice/transport\fR	(POSTOFFICE/transport)
-\fI/var/spool/postoffice/queue\fR	(POSTOFFICE/queue)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@/transport\fR	(POSTOFFICE/transport)
+\fI@POSTOFFICE@/queue\fR	(POSTOFFICE/queue)
 .TE
 .PP
 .SH SEE ALSO

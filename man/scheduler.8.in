@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "2003-Apr-17"
+.TH SCHEDULER 8 "2003-May-13"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
@@ -1340,12 +1340,12 @@ file.
 .SH FILES
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	
-\fI/var/spool/postoffice/.pid.scheduler\fR	(POSTOFFICE/.pid.scheduler)
-\fI/var/spool/postoffice/.scheduler.notify\fR	(POSTOFFICE/.scheduler.notify)
-\fI/var/spool/postoffice/scheduler\fR	(POSTOFFICE/scheduler)
-\fI/var/spool/postoffice/transport\fR	(POSTOFFICE/transport)
-\fI/var/spool/postoffice/queue\fR	(POSTOFFICE/queue)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@/.pid.scheduler\fR	(POSTOFFICE/.pid.scheduler)
+\fI@POSTOFFICE@/.scheduler.notify\fR	(POSTOFFICE/.scheduler.notify)
+\fI@POSTOFFICE@/scheduler\fR	(POSTOFFICE/scheduler)
+\fI@POSTOFFICE@/transport\fR	(POSTOFFICE/transport)
+\fI@POSTOFFICE@/queue\fR	(POSTOFFICE/queue)
 .TE
 .SH SEE ALSO
 .IR mailq (1),

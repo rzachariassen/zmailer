@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH NEWDB 1 "2003-May-05"
+.TH NEWDB 1 "2003-May-13"
 .SH NAME
 newdb \- zmailer database builder
 .SH SYNOPSIS
@@ -43,8 +43,8 @@ if sysadmin hasn't chosen something else.
 .PP
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI$MAILSHARE/db/dbases.conf\fR
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@MAILSHARE@/db/dbases.conf\fR	(MAILSHARE/db/dbases.conf)
 .TE
 .PP
 .SH SEE ALSO

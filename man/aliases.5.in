@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 5 "2003-May-05"
+.TH ZMAILER 5 "2003-May-13"
 .SH NAME
 .B aliases
 \- aliases file for ZMailer
@@ -67,7 +67,8 @@ BSD-Sendmail lets those addresses be written without quotes,
 however it is against RFC-822 rules.
 .SH SEE ALSO
 .IR zmailer (1),
-.IR sendmail (8).
+.IR sendmail (8),
+.IR zdbases.conf (5).
 .br
 RFC 822
 .SH HISTORY

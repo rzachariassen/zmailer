@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.0
-.TH MAILRM 1 "2 June 1990"
+.TH MAILRM 1 "2003-May-13"
 .SH NAME
 mailrm \- zmailer mail queue message remover
 .SH SYNOPSIS
@@ -50,8 +50,8 @@ are located at.
 .PP
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice/transport\fR	(POSTOFFICE/transport)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@/transport\fR	(POSTOFFICE/transport)
 .TE
 .PP
 .SH SEE ALSO

@@ -24,6 +24,8 @@ Wanted done for 3.0:
 
 
 sfio:
+	Switch to SFio2002 ?  (or 2003...)
+
 	feature-config to use simpler (s)ed facilities than GNU-stuff.
 
 	Implement stream-specific storage of 'errno' value yielded

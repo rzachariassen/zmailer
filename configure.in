@@ -2353,12 +2353,18 @@ AC_CONFIG_FILES([
         libmalloc/splay/Makefile        libresolv/Makefile              
         ssl/Makefile                                                    
         doc/Makefile                    doc/design/Makefile             
-        include/mail.h                  man/Makefile                    
+        include/mail.h                  
         utils/policy-builder.sh         utils/Makefile                  
         utils/zmailer.init.sh           utils/autoanswer.pl             
-        utils/vacation/Makefile         man/vacation.1                  
+        utils/vacation/Makefile         
         utils/vacation/vacation.sh      utils/makedb/Makefile           
         utils/rotate-logs.sh            utils/smtpserver-log-parser.pl  
+        utils/mxverify/Makefile         
+	utils/smtp-contentfilter	
+        packaging/Makefile              packaging/solaris/Makefile      
+        SiteConfig
+],[])dnl
+AC_CONFIG_FILES([
         proto/Makefile                  proto/zmailer.sh                
         proto/newaliases                proto/newfqdnaliases            
         proto/newdb                     proto/newdbprocessor            
@@ -2368,10 +2374,20 @@ AC_CONFIG_FILES([
         proto/cf/SMTP+UUCP.cf           proto/cf/UTdefault.cf           
         proto/cf/SMTP.cf                proto/smtp-tls.conf             
         proto/db/aliases                proto/sm.conf                   
-        proto/post-install.sh           utils/mxverify/Makefile         
-	utils/smtp-contentfilter	
-        packaging/Makefile              packaging/solaris/Makefile      
-        SiteConfig
+        proto/post-install.sh
+],[])dnl
+dnl man-files
+AC_CONFIG_FILES([
+	man/Makefile		man/aliases.5		man/authuser.3
+	man/errormail.8		man/expirer.8		man/hold.8
+	man/mailbox.8		man/mailq.1		man/mailrm.1
+	man/makedb.8		man/manual-expirer.8	man/zmsh.1
+	man/manual-rerouter.8	man/mboxpath.1		man/zmailer.3
+	man/mprobe.8		man/newaliases.1	man/newdb.8
+	man/reroute.8		man/rmail.1		man/router.8
+	man/scheduler.8		man/sendmail.8		man/sm.8
+	man/smtp.8		man/smtpserver.8	man/ssl.1
+	man/vacation.1		man/zdbases.conf.5	man/zmailer.1
 ],[])dnl
 AC_CONFIG_FILES([
 	utils/perl/Makefile		

@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "2003-May-05"
+.TH SMTP 8 "2003-May-13"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
@@ -309,8 +309,8 @@ TBW: many variables!
 .PP
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice\fR	(POSTOFFICE)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@\fR	(POSTOFFICE)
 .TE
 .PP
 .SH SEE ALSO

@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH EXPIRER 8 "2003-May-05"
+.TH EXPIRER 8 "2003-May-13"
 .SH NAME
 expirer \- zmailer forced queue expiration utility
 .SH SYNOPSIS
@@ -93,8 +93,8 @@ This program uses no \fBZMailer\fR environment variables.
 .SH FILES
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice\fR	(POSTOFFICE)
+\fI@ZMAILERCFGFILE\fR	(ZCONFIG)
+\fI@POSTOFFICE@\fR	(POSTOFFICE)
 .TE
 .PP
 .SH SEE ALSO

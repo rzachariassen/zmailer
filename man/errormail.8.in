@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ERRORMAIL 8 "2003-May-05"
+.TH ERRORMAIL 8 "2003-May-13"
 .SH NAME
 errormail \- zmailer error message transport agent
 .SH SYNOPSIS
@@ -120,9 +120,9 @@ library, while posting error messages.
 .SH FILES
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice\fR	(POSTOFFICE)
-\fI/opt/zmailer/forms\fR	(MAILSHARE/forms)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@\fR	(POSTOFFICE)
+\fI@MAILSHARE@/forms\fR	(MAILSHARE/forms)
 .TE
 .PP
 .SH SEE ALSO

@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SM 8 "2003-May-05"
+.TH SM 8 "2003-May-13"
 .SH NAME
 sm \- zmailer Sendmail compatible transport agent
 .SH SYNOPSIS
@@ -705,9 +705,9 @@ are located at.
 .PP
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice\fR	(POSTOFFICE)
-\fI/opt/zmailer/sm.cf\fR	(MAILSHARE/sm.cf)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@\fR	(POSTOFFICE)
+\fI@MAILSHARE@/sm.cf\fR	(MAILSHARE/sm.cf)
 .TE
 .SH SEE ALSO
 .IR scheduler (8),

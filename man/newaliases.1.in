@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH NEWALIASES 1 "2003-May-05"
+.TH NEWALIASES 1 "2003-May-13"
 .SH NAME
 newaliases \- zmailer aliases database rebuilder
 .SH SYNOPSIS
@@ -54,8 +54,8 @@ Tells where the ZMailer's runtime databases, etc. are.
 .PP
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/zmailer/db/aliases\fR	(MAILVAR/db/aliases)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@MAILVAR@/db/aliases\fR	(MAILVAR/db/aliases)
 .TE
 .PP
 .SH SEE ALSO

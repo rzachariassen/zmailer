@@ -1,8 +1,10 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MANUAL-EXPIRER 8 "10 Dec 2001"
+.TH MANUAL-EXPIRER 8 "2003-May-13"
 .SH NAME
-manual-expirer \- wrapper for expirer(8) transporter
+manual-expirer \- wrapper for
+.IR expirer (8
+transport agent program
 .SH SYNOPSIS
 .IP \fBmanual-expirer\fR 17em
 [\fB\-c\fR\ \fIchannel\fR]
@@ -13,11 +15,11 @@ manual-expirer \- wrapper for expirer(8) transporter
 .PP
 .SH DESCRIPTION
 The
-.I manual-expirer
+.I manual\-expirer
 is tool for ZMailer administrator for removing mails from the spool by
 expiring them prematurely.
 .PP
-.I manual-expirer
+.I manual\-expirer
 wraps
 .IR expirer (8)
 utility call with suitable parameters for generating input.
@@ -36,6 +38,18 @@ Message expiration occurs without any report to anywhere.
 Silent mode.
 .IP "\-V\ \ \ \ \ \ \ \ \ \ \ "
 Print program version, and exit.
+.SH ENVIRONMENT VARIABLES
+The
+.I manual\-expirer
+program inherits
+.B ZCONFIG
+environment variable, and reads it, and uses value of
+.B MAILBIN
+in it to locate the
+.IR expirer (8)
+utility, as well as to determine where
+.BR POSTFOFFICE /transport/
+directory is located at.
 .SH SEE ALSO
 .IR scheduler (8),
 .IR expirer (8).

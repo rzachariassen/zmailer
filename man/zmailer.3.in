@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 3 "2003-May-05"
+.TH ZMAILER 3 "2003-May-13"
 .SH NAME
 mail_open, mail_priority, mail_abort, mail_close, mail_close_alternate, mail_alloc, mail_free, mail_host
 \- zmailer message submission interface
@@ -184,7 +184,7 @@ own address (it must match those of mail router accepts.)
 defines directory where all POSTOFFICE functions are under.
 .br
 Example:
-.B POSTOFFICE=/var/spool/postoffice
+.B POSTOFFICE=@POSTOFFICE@
 .RE
 .IP ROUTERDIRS
 .RS
@@ -228,13 +228,13 @@ This is analogous to
 .RE
 .PP
 .SH FILES
-.IP \fI/var/spool/postoffice/public/\fR
+.IP \fI@POSTOFFICE@/public/\fR
 $POSTOFFICE/public/
-.IP \fI/var/spool/postoffice/router/\fR
+.IP \fI@POSTOFFICE@/router/\fR
 $POSTOFFICE/router/
-.IP \fI/var/spool/postoffice/{ROUTERDIRS}/\fR
+.IP \fI@POSTOFFICE@/{ROUTERDIRS}/\fR
 $POSTOFFICE/{ROUTERDIRS}/
-.IP \fI/var/spool/postoffice/.router.notify\fR
+.IP \fI@POSTOFFICE@/.router.notify\fR
 $POSTOFFICE/.router.notify
 .SH SEE ALSO
 .IR zmailer (1),

@@ -19,6 +19,10 @@ DB2HTML   = jw -c ${OJCAT} -b html -f docbook -o .
 DB2MAN    = jw -c ${OJCAT} -b man -f docbook -o .
 HTMLFIXUP = ${srcdir}/../doc/manual/html-post-fixup.sh
 
+MAN2HTML  = sh $(srcdir)/man-to-html.sh
+MAN2PS    = groff -t -man
+PS2PDF	  = ps2pdf
+
 
 MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
 MAN3=	zmailer.3 authuser.3
@@ -35,10 +39,10 @@ FRC:
 
 clean:
 	rm -rf *~
-	if [ "$(srcdir)" != "" ]; then rm -f *.ps *.html; fi
+	if [ "$(srcdir)" != "" ]; then rm -f *.ps *.html *.pdf; fi
 
 distclean:
-	rm -rf *~ vacation.1
+	rm -rf *~ *.?
 
 depend:
 
@@ -96,183 +100,183 @@ mailbox.8s: $(srcdir)/mailbox.sgml
 	${DB2MAN}  $(srcdir)/mailbox.sgml
 	#${HTMLFIXUP} mailbox.html
 
-aliases.5.ps: $(srcdir)/aliases.5
-	groff -t -man $< > $@
-authuser.3.ps: $(srcdir)/authuser.3
-	groff -t -man $< > $@
-mailq.1.ps: $(srcdir)/mailq.1
-	groff -t -man $< > $@
-mailrm.1.ps: $(srcdir)/mailrm.1
-	groff -t -man $< > $@
-newaliases.1.ps: $(srcdir)/newaliases.1
-	groff -t -man $< > $@
-rmail.1.ps: $(srcdir)/rmail.1
-	groff -t -man $< > $@
-ssl.1.ps: $(srcdir)/ssl.1
-	groff -t -man $< > $@
+aliases.5.ps: aliases.5
+	$(MAN2PS) $< > $@
+authuser.3.ps: authuser.3
+	$(MAN2PS) $< > $@
+mailq.1.ps: mailq.1
+	$(MAN2PS) $< > $@
+mailrm.1.ps: mailrm.1
+	$(MAN2PS) $< > $@
+newaliases.1.ps: newaliases.1
+	$(MAN2PS) $< > $@
+rmail.1.ps: rmail.1
+	$(MAN2PS) $< > $@
+ssl.1.ps: ssl.1
+	$(MAN2PS) $< > $@
 vacation.1.ps: vacation.1
-	groff -t -man $< > $@
-zmailer.1.ps: $(srcdir)/zmailer.1
-	groff -t -man $< > $@
-zmsh.1.ps: $(srcdir)/zmsh.1
-	groff -t -man $< > $@
-zmailer.3.ps: $(srcdir)/zmailer.3
-	groff -t -man $< > $@
-errormail.8.ps: $(srcdir)/errormail.8
-	groff -t -man $< > $@
-hold.8.ps: $(srcdir)/hold.8
-	groff -t -man $< > $@
-router.8.ps: $(srcdir)/router.8
-	groff -t -man $< > $@
-scheduler.8.ps: $(srcdir)/scheduler.8
-	groff -t -man $< > $@
-sendmail.8.ps: $(srcdir)/sendmail.8
-	groff -t -man $< > $@
-sm.8.ps: $(srcdir)/sm.8
-	groff -t -man $< > $@
-smtp.8.ps: $(srcdir)/smtp.8
-	groff -t -man $< > $@
-smtpserver.8.ps: $(srcdir)/smtpserver.8
-	groff -t -man $< > $@
-manual-expirer.8.ps: $(srcdir)/manual-expirer.8
-	groff -t -man $< > $@
-expirer.8.ps: $(srcdir)/expirer.8
-	groff -t -man $< > $@
-mprobe.8.ps: $(srcdir)/mprobe.8
-	groff -t -man $< > $@
-mailbox.8.ps: $(srcdir)/mailbox.8
-	groff -t -man $< > $@
-makedb.8.ps: $(srcdir)/makedb.8
-	groff -t -man $< > $@
-newdb.8.ps: $(srcdir)/newdb.8
-	groff -t -man $< > $@
-mboxpath.1.ps: $(srcdir)/mboxpath.1
-	groff -t -man $< > $@
-reroute.8.ps: $(srcdir)/reroute.8
-	groff -t -man $< > $@
-manual-rerouter.8.ps: $(srcdir)/manual-rerouter.8
-	groff -t -man $< > $@
-zdbases.conf.5.ps: $(srcdir)/zdbases.conf.5
-	groff -t -man $< > $@
+	$(MAN2PS) $< > $@
+zmailer.1.ps: zmailer.1
+	$(MAN2PS) $< > $@
+zmsh.1.ps: zmsh.1
+	$(MAN2PS) $< > $@
+zmailer.3.ps: zmailer.3
+	$(MAN2PS) $< > $@
+errormail.8.ps: errormail.8
+	$(MAN2PS) $< > $@
+hold.8.ps: hold.8
+	$(MAN2PS) $< > $@
+router.8.ps: router.8
+	$(MAN2PS) $< > $@
+scheduler.8.ps: scheduler.8
+	$(MAN2PS) $< > $@
+sendmail.8.ps: sendmail.8
+	$(MAN2PS) $< > $@
+sm.8.ps: sm.8
+	$(MAN2PS) $< > $@
+smtp.8.ps: smtp.8
+	$(MAN2PS) $< > $@
+smtpserver.8.ps: smtpserver.8
+	$(MAN2PS) $< > $@
+manual-expirer.8.ps: manual-expirer.8
+	$(MAN2PS) $< > $@
+expirer.8.ps: expirer.8
+	$(MAN2PS) $< > $@
+mprobe.8.ps: mprobe.8
+	$(MAN2PS) $< > $@
+mailbox.8.ps: mailbox.8
+	$(MAN2PS) $< > $@
+makedb.8.ps: makedb.8
+	$(MAN2PS) $< > $@
+newdb.8.ps: newdb.8
+	$(MAN2PS) $< > $@
+mboxpath.1.ps: mboxpath.1
+	$(MAN2PS) $< > $@
+reroute.8.ps: reroute.8
+	$(MAN2PS) $< > $@
+manual-rerouter.8.ps: manual-rerouter.8
+	$(MAN2PS) $< > $@
+zdbases.conf.5.ps: zdbases.conf.5
+	$(MAN2PS) $< > $@
 
 
 
-aliases.5.html: $(srcdir)/aliases.5
-	sh $(srcdir)/man-to-html.sh $< > $@
-zdbases.conf.5.html: $(srcdir)/zdbases.conf.5
-	sh $(srcdir)/man-to-html.sh $< > $@
-authuser.3.html: $(srcdir)/authuser.3
-	sh $(srcdir)/man-to-html.sh $< > $@
-mailq.1.html: $(srcdir)/mailq.1
-	sh $(srcdir)/man-to-html.sh $< > $@
-mailrm.1.html: $(srcdir)/mailrm.1
-	sh $(srcdir)/man-to-html.sh $< > $@
-newaliases.1.html: $(srcdir)/newaliases.1
-	sh $(srcdir)/man-to-html.sh $< > $@
-rmail.1.html: $(srcdir)/rmail.1
-	sh $(srcdir)/man-to-html.sh $< > $@
-ssl.1.html: $(srcdir)/ssl.1
-	sh $(srcdir)/man-to-html.sh $< > $@
+aliases.5.html: aliases.5
+	$(MAN2HTML) $< > $@
+zdbases.conf.5.html: zdbases.conf.5
+	$(MAN2HTML) $< > $@
+authuser.3.html: authuser.3
+	$(MAN2HTML) $< > $@
+mailq.1.html: mailq.1
+	$(MAN2HTML) $< > $@
+mailrm.1.html: mailrm.1
+	$(MAN2HTML) $< > $@
+newaliases.1.html: newaliases.1
+	$(MAN2HTML) $< > $@
+rmail.1.html: rmail.1
+	$(MAN2HTML) $< > $@
+ssl.1.html: ssl.1
+	$(MAN2HTML) $< > $@
 vacation.1.html: vacation.1
-	sh $(srcdir)/man-to-html.sh $< > $@
-zmailer.1.html: $(srcdir)/zmailer.1
-	sh $(srcdir)/man-to-html.sh $< > $@
-zmsh.1.html: $(srcdir)/zmsh.1
-	sh $(srcdir)/man-to-html.sh $< > $@
-zmailer.3.html: $(srcdir)/zmailer.3
-	sh $(srcdir)/man-to-html.sh $< > $@
-errormail.8.html: $(srcdir)/errormail.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-hold.8.html: $(srcdir)/hold.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-router.8.html: $(srcdir)/router.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-scheduler.8.html: $(srcdir)/scheduler.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-sendmail.8.html: $(srcdir)/sendmail.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-sm.8.html: $(srcdir)/sm.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-smtp.8.html: $(srcdir)/smtp.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-smtpserver.8.html: $(srcdir)/smtpserver.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-manual-expirer.8.html: $(srcdir)/manual-expirer.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-expirer.8.html: $(srcdir)/expirer.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-mprobe.8.html: $(srcdir)/mprobe.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-mailbox.8.html: $(srcdir)/mailbox.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-makedb.8.html: $(srcdir)/makedb.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-newdb.8.html: $(srcdir)/newdb.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-mboxpath.1.html: $(srcdir)/mboxpath.1
-	sh $(srcdir)/man-to-html.sh $< > $@
-manual-rerouter.8.html: $(srcdir)/manual-rerouter.8
-	sh $(srcdir)/man-to-html.sh $< > $@
-reroute.8.html: $(srcdir)/reroute.8
-	sh $(srcdir)/man-to-html.sh $< > $@
+	$(MAN2HTML) $< > $@
+zmailer.1.html: zmailer.1
+	$(MAN2HTML) $< > $@
+zmsh.1.html: zmsh.1
+	$(MAN2HTML) $< > $@
+zmailer.3.html: zmailer.3
+	$(MAN2HTML) $< > $@
+errormail.8.html: errormail.8
+	$(MAN2HTML) $< > $@
+hold.8.html: hold.8
+	$(MAN2HTML) $< > $@
+router.8.html: router.8
+	$(MAN2HTML) $< > $@
+scheduler.8.html: scheduler.8
+	$(MAN2HTML) $< > $@
+sendmail.8.html: sendmail.8
+	$(MAN2HTML) $< > $@
+sm.8.html: sm.8
+	$(MAN2HTML) $< > $@
+smtp.8.html: smtp.8
+	$(MAN2HTML) $< > $@
+smtpserver.8.html: smtpserver.8
+	$(MAN2HTML) $< > $@
+manual-expirer.8.html: manual-expirer.8
+	$(MAN2HTML) $< > $@
+expirer.8.html: expirer.8
+	$(MAN2HTML) $< > $@
+mprobe.8.html: mprobe.8
+	$(MAN2HTML) $< > $@
+mailbox.8.html: mailbox.8
+	$(MAN2HTML) $< > $@
+makedb.8.html: makedb.8
+	$(MAN2HTML) $< > $@
+newdb.8.html: newdb.8
+	$(MAN2HTML) $< > $@
+mboxpath.1.html: mboxpath.1
+	$(MAN2HTML) $< > $@
+manual-rerouter.8.html: manual-rerouter.8
+	$(MAN2HTML) $< > $@
+reroute.8.html: reroute.8
+	$(MAN2HTML) $< > $@
 
 
 
 aliases.5.pdf: aliases.5.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 zdbases.conf.5.pdf: zdbases.conf.5.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 authuser.3.pdf: authuser.3.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 mailq.1.pdf: mailq.1.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 mailrm.1.pdf: mailrm.1.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 newaliases.1.pdf: newaliases.1.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 rmail.1.pdf: rmail.1.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 ssl.1.pdf: ssl.1.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 vacation.1.pdf: vacation.1.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 zmailer.1.pdf: zmailer.1.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 zmsh.1.pdf: zmsh.1.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 zmailer.3.pdf: zmailer.3.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 errormail.8.pdf: errormail.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 hold.8.pdf: hold.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 router.8.pdf: router.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 scheduler.8.pdf: scheduler.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 sendmail.8.pdf: sendmail.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 sm.8.pdf: sm.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 smtp.8.pdf: smtp.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 smtpserver.8.pdf: smtpserver.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 manual-expirer.8.pdf: manual-expirer.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 expirer.8.pdf: expirer.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 mprobe.8.pdf: mprobe.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 mailbox.8.pdf: mailbox.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 makedb.8.pdf: makedb.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 newdb.8.pdf: newdb.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 mboxpath.1.pdf: mboxpath.1.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 reroute.8.pdf: reroute.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<
 manual-rerouter.8.pdf: manual-rerouter.8.ps
-	ps2pdf $<
+	$(PS2PDF) $<

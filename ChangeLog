@@ -1,5 +1,10 @@
 2003-05-13  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in, man/Makefile.in, man/*:
+	  Changed ALL man-page files to be autoconf generated
+	  so that @MAILBIN@ substitutions (et.al.) can be
+	  done into the files.
+
 	* proto/post-install.sh.in:
 	    Added '--destdir' option.
 

@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
-.ds ]W ZMailer 2.0
-.TH MAKEDB 1 "2003-May-05"
+.ds ]W ZMailer 2.99
+.TH MAKEDB 1 "2003-May-13"
 .SH NAME
 makedb \- zmailer database builder
 .SH SYNOPSIS
@@ -83,7 +83,7 @@ nor any files this reads besides of given inputs.
 .SH SEE ALSO
 .IR newdb (8),
 .IR zmailer (1),
-.IR $MAILBIN/policy-builder.sh
+.IR @MAILBIN@/policy-builder.sh
 .SH AUTHOR
 This program authored and copyright by:
 .RS 3em

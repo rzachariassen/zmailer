@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH RMAIL 1 "10 Dec 2001"
+.TH RMAIL 1 "2003-May-13"
 .SH NAME
 rmail \- zmailer program to process incoming uucp mail
 .SH SYNOPSIS
@@ -89,10 +89,11 @@ or
 (since uunet was a frequent purveyor of this protocol violation).
 .PP
 .SH FILES
-.nf
-.I /etc/zmailer.conf
-.I /var/spool/postoffice (POSTOFFICE)
-.fi
+.TS
+l l.
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@\fR	(POSTOFFICE)
+.TE
 .PP
 .SH SEE ALSO
 .IR zmailer (8),

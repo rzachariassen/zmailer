@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 1 "2003-May-05"
+.TH ZMAILER 1 "2003-May-13"
 .SH NAME
 zmailer \- zmailer control script
 .SH SYNOPSIS
@@ -161,7 +161,7 @@ to start up all the daemons:
 .PP
 .RS 4em
 .nf
-\fC. /etc/zmailer.conf
+\fC. @ZMAILERCFGFILE@
 if [ -f $MAILSHARE/zmailer ]; then
         $MAILSHARE/zmailer -q &
         (echo -n ' zmailer')     >/dev/console
@@ -169,14 +169,15 @@ fi\fR
 .fi
 .PP
 .SH FILES
-.IP \fI/etc/zmailer.conf\fR
-.IP \fI/var/spool/postoffice\fR
+.IP \fI@ZMAILERCFGFILE@\fR
+ZCONFIG file
+.IP \fI@POSTOFFICE@\fR
 $POSTOFFICE
-.IP \fI/opt/mail/bin/router\fR
+.IP \fI@MAILBIN@/router\fR
 $MAILBIN/router
-.IP \fI/opt/mail/bin/scheduler\fR
+.IP \fI@MAILBIN@/scheduler\fR
 $MAILBIN/scheduler
-.IP \fI/opt/mail/bin/smtpserver\fR
+.IP \fI@MAILBIN@/smtpserver\fR
 $MAILBIN/smtpserver
 .SH SEE ALSO
 .IR router (8),

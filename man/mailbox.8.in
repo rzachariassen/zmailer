@@ -1,7 +1,7 @@
 .\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILBOX 8 "2003-May-05"
+.TH MAILBOX 8 "2003-May-13"
 .SH NAME
 mailbox \- zmailer local delivery transport agent
 .SH SYNOPSIS
@@ -439,9 +439,9 @@ form file.
 .SH FILES
 .TS
 l l.
-\fI/etc/zmailer.conf\fR	(ZCONFIG)
-\fI/var/spool/postoffice\fR	(POSTOFFICE)
-\fI/var/mail\fR	(MAILBOX)
+\fI@ZMAILERCFGFILE@\fR	(ZCONFIG)
+\fI@POSTOFFICE@\fR	(POSTOFFICE)
+\fI@MAILBOX@\fR	(MAILBOX)
 .TE
 .PP
 .SH SEE ALSO
