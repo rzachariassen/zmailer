@@ -32,4 +32,4 @@ OBJS=	_sfclrerr.o _sfdlen.o _sfeof.o _sferror.o _sffileno.o _sfgetc.o \
 must:	$(OBJS)
 
 clean:
-	-(rm $(OBJS); exit 0) >/dev/null 2>&1
+	-rm -f $(OBJS)
