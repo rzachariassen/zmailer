@@ -925,7 +925,7 @@ const char *buf, *cp;
     }
 
     if (SS->rcpt_count >= rcptlimitcnt) {
-      type(SS, 450, "4.5.0", "Too many recipients in one go!");
+      type(SS, 452, "4.5.2", "Too many recipients in one go!");
       return;
     }
 
