@@ -4095,7 +4095,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	}
 	--cp;
 	/* trim trailing whitespace */
-	while (isascii(*cp) && isspace(*cp))
+	while (isascii((*cp)&0xFF) && isspace((*cp)&0xFF))
 	  --cp;
 	*++cp = '\0';
 	for (i = 0; i < 4; ++i)		/* can't happen, right? wrong... */
