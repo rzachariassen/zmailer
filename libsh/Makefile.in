@@ -66,7 +66,8 @@ optimizer.o: $(srcdir)/optimizer.c $(srcdir)/sh.h
 $(TOPDIR)/include/rfc822.entry:
 	cd $(TOPDIR)/router; $(MAKE) MFLAGS=$(MFLAGS) rfc822.entry
 
-interpret.o: $(TOPDIR)/include/rfc822.entry $(TOPDIR)/include/mailer.h
+interpret.o: $(TOPDIR)/include/rfc822.entry $(srcdir)/$(TOPDIR)/include/mailer.h
+test.o: $(srcdir)/test.c
 
 version.c: main.o $(TOPDIR)/libs/$(LIBNAME).a $(TOPDIR)/Makefile
 	$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
@@ -148,7 +149,7 @@ $(TOPDIR)/libc/libzc.a:
 	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
 
 depend:	sh.entry sh-in.i sh-out.i sh-procs.i
-	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
+	CPPDEP="${CPPDEP}" $(srcdir)/$(TOPDIR)/bin/mklibdep $(CFLAGS) $(SOURCE)
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.
