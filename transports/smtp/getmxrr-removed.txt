@@ -1,0 +1,122 @@
+
+	/* If nscount isn't zero here, then (cp >= eom) is true ... */
+
+	/* Ok, can continue to pick the ADDITIONAL SECTION data */
+	/* BUT ONLY IF THE REPLY HAD 'AA' BIT SET! If it didn't,
+	   we must always ask A/AAAA separately.. */
+	while (hp->aa && arcount > 0 && cp < eom) {
+	  int ttl;
+	  n = dn_expand((msgdata *)&answer, eom, cp, (void*)buf, sizeof buf);
+	  if (n < 0) { cp = eom; break; }
+	  cp += n;
+	  if (cp+10 > eom) { cp = eom; break; }
+	  type  = _getshort(cp);
+	  cp += 2;
+	  class = _getshort(cp);
+	  cp += 2;
+	  ttl   = _getlong(cp);  /* TTL */
+	  cp += 4; /* "long" -- but keep in mind that some machines
+		      have "funny" ideas about "long" -- those 64-bit
+		      ones, I mean ... */
+	  n = _getshort(cp); /* dlen */
+	  cp += 2;
+
+	  if (cp + n > eom) { cp = eom; break; }
+
+	  if (class != C_IN) {
+	    cp += n; --nscount;
+	    continue;
+	  }
+
+	  /* Ok, we have Type IN data in the ADDITIONAL SECTION */
+
+	  /* A and AAAA are known here! */
+
+	  if (type == T_A
+#if defined(AF_INET6) && defined(INET6)
+	      || (type == T_AAAA && use_ipv6)
+#endif /* INET6 */
+	      ) {
+
+	    struct addrinfo *ai;
+	    Usockaddr *usa;
+	    char *canon;
+	    int   nlen = strlen((const char*)buf);
+
+	    /* Pick the address data */
+	    for (i = 0; i < nmx; ++i) {
+	      /* Is this known (wanted) name ?? */
+	      if (CISTREQ(buf, mx[i].host)) {
+		/* YES! */
+
+		/* We do have a wanted name! */
+
+		/* build addrinfo block, pick addresses */
+
+		/* WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
+		   This assumes intimate knowledge of the system
+		   implementation of the  ``struct addrinfo'' !
+
+		   Linux and FreeBSD have DIFFERENT implementatoin!
+		   Other operating systems are likely different as well! */
+
+		if (SS->verboselog)
+		  fprintf(SS->verboselog,"  host='%s' AF=%s TTL=%d\n",
+			  buf, (type == T_A) ? "INET" : "INET6", ttl);
+
+		ai = (void*)malloc(sizeof(*ai) + sizeof(*usa) + nlen + 1);
+		if (ai == NULL) exit(EX_OSERR);
+		memset(ai, 0, sizeof(*ai) + sizeof(*usa) + nlen + 1);
+
+		usa   = (void*)((char *) ai + sizeof(*ai));
+
+		canon = ((char *)usa) + sizeof(*usa);
+		memcpy(canon, buf, nlen);
+
+		ai->ai_flags    = 0;
+		ai->ai_socktype = SOCK_STREAM;
+		ai->ai_protocol = IPPROTO_TCP;
+		ai->ai_addr     = (struct sockaddr *)usa;
+		ai->ai_addrlen  = sizeof(*usa);
+
+		/* At FreeBSD the 'ai_canonname' points to SEPARATE
+		   malloc() block, at Linux GLIBC it points inside
+		   this same... */
+		ai->ai_canonname = /* canon */ NULL;
+
+		ai->ai_next     = mx[i].ai;
+		mx[i].ai        = ai;
+
+		mxtype[i] |= (type == T_A) ? 1 : 2;
+
+		switch (type) {
+#if defined(AF_INET6) && defined(INET6)
+		case T_AAAA:
+		  ai->ai_family = PF_INET6;
+		  usa->v6.sin6_family = PF_INET6;
+		  memcpy(&usa->v6.sin6_addr, cp, 16);
+		  break;
+#endif /* INET6 */
+		case T_A:
+		  ai->ai_family = PF_INET;
+		  usa->v4.sin_family = PF_INET;
+		  memcpy(&usa->v4.sin_addr, cp, 4);
+		  break;
+		default:
+		  break;
+		}
+	      } /* Matched name! */
+	    } /* Name matching loop */
+	  } /* type = T_A or T_AAAA */
+
+	  cp += n;
+	  --arcount;
+	} /* Additional data collected! */
+
+
+	if (SS->verboselog)
+	  for (i = 0; i < nmx; ++i) {
+	    if (mx[i].ai == NULL)
+	      fprintf(SS->verboselog, " MX lookup lacked ADDITIONAL SECTION Address for entry: MX %d %s\n",
+		      mx[i].pref, mx[i].host);
+	  }
