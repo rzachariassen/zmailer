@@ -366,6 +366,23 @@ Recipients are groupped into ``threads'', and similar threads are
 groupped into ``thread-rings'', where same transport agent can be
 switched over from one recipient to another.  This defines how many
 transport agents can be running at any time at the ring.
+.IP "maxthr (1)"
+This limits the number of parallel transport agents within each
+thread; that is, using higher value than default ``1'' will allow
+running more than one TA for the jobs at the thread.
+
+Do note that running more than one TA in parallel may also require
+lowering OVERFEED value.  (E.g. having a queue of 30 messages will
+not benefit from more TAs, unless they all get something to process.
+Having OVERFEED per default at 150 will essentially feed whole queue
+to one TA, others are not getting any.)
+.IP "overfeed (150)"
+This tells how many job specifiers to feed to the TA when
+the TA process state is ``STUFFING''  Because the scheduler
+is a bit sluggish to spin around to spot active TAs, it does
+make sense to feed more than one task to a TA, and then wait
+for the results.
+
 .IP "skew (5)"
 is the maximum number of retries before the retry time is aligned to a standard
 boundary (seconds since epoch, modulo primary interval).  The lower this

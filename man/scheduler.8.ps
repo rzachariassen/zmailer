@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.15
-%%CreationDate: Wed May  3 23:16:02 2000
+%%CreationDate: Wed May  3 23:49:56 2000
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
@@ -525,509 +525,533 @@ ay be retried as soon as possible after the scheduled retry)144 302.4 R
 -.15(ve)-.15 G 2.887(rf).15 G .387(rom one recipient to another)-2.887 F
 5.387(.T)-.55 G .387(his de\214nes ho)-5.387 F(w)-.25 E(man)144 367.2 Q
 2.5(yt)-.15 G(ransport agents can be running at an)-2.5 E 2.5(yt)-.15 G
-(ime at the ring.)-2.5 E(sk)108 384 Q .5 -.25(ew \()-.1 H(5\)).25 E .206
-(is the maximum number of retries before the retry time is aligned to a\
- standard boundary \(seconds)144 396 R .738
-(since epoch, modulo primary interv)144 408 R 3.238(al\). The)-.25 F(lo)
-3.239 E .739(wer this number \(1 is lo)-.25 F .739(west\), the f)-.25 F
-.739(aster the align-)-.1 F .785(ment is done.)144 420 R .784
+(ime at the ring.)-2.5 E(maxthr \(1\))108 384 Q .753(This limits the nu\
+mber of parallel transport agents within each thread; that is, using hi\
+gher v)144 396 R(alue)-.25 E(than def)144 408 Q(ault `)-.1 E(`1')-.74 E
+2.5('w)-.74 G(ill allo)-2.5 E 2.5(wr)-.25 G(unning more than one T)-2.5
+E 2.5(Af)-.93 G(or the jobs at the thread.)-2.5 E .532
+(Do note that running more than one T)144 432 R 3.033(Ai)-.93 G 3.033
+(np)-3.033 G .533(arallel may also require lo)-3.033 F .533(wering O)
+-.25 F .533(VERFEED v)-.5 F(alue.)-.25 E .137(\(E.g. ha)144 444 R .137
+(ving a queue of 30 messages will not bene\214t from more T)-.2 F .136
+(As, unless the)-.93 F 2.636(ya)-.15 G .136(ll get something)-2.636 F
+.778(to process.)144 456 R(Ha)5.778 E .778(ving O)-.2 F .778
+(VERFEED per def)-.5 F .779
+(ault at 150 will essentially feed whole queue to one T)-.1 F(A,)-.93 E
+(others are not getting an)144 468 Q -.65(y.)-.15 G(\)).65 E -.15(ove)
+108 484.8 S(rfeed \(150\)).15 E .658(This tells ho)144 496.8 R 3.158(wm)
+-.25 G(an)-3.158 E 3.158(yj)-.15 G .658
+(ob speci\214ers to feed to the T)-3.158 F 3.158(Aw)-.93 G .657
+(hen the T)-3.158 F 3.157(Ap)-.93 G .657(rocess state is `)-3.157 F
+(`STUFFING')-.74 E(')-.74 E 1.016
+(Because the scheduler is a bit sluggish to spin around to spot acti)144
+508.8 R 1.317 -.15(ve T)-.25 H 1.017(As, it does mak)-.78 F 3.517(es)-.1
+G 1.017(ense to)-3.517 F(feed more than one task to a T)144 520.8 Q
+(A, and then w)-.93 E(ait for the results.)-.1 E(sk)108 549.6 Q .5 -.25
+(ew \()-.1 H(5\)).25 E .206(is the maximum number of retries before the\
+ retry time is aligned to a standard boundary \(seconds)144 561.6 R .738
+(since epoch, modulo primary interv)144 573.6 R 3.238(al\). The)-.25 F
+(lo)3.239 E .739(wer this number \(1 is lo)-.25 F .739(west\), the f)
+-.25 F .739(aster the align-)-.1 F .785(ment is done.)144 585.6 R .784
 (The purpose of this alignment is to ensure that e)5.785 F -.15(ve)-.25
-G .784(ntually a single transport agent).15 F(in)144 432 Q -.2(vo)-.4 G
-(kation will be able to process destination addresses that arri).2 E
+G .784(ntually a single transport agent).15 F(in)144 597.6 Q -.2(vo)-.4
+G(kation will be able to process destination addresses that arri).2 E
 -.15(ve)-.25 G 2.5(dr).15 G(andomly to the scheduler)-2.5 E(.)-.55 E
-(user \(root\))108 448.8 Q .231
-(is the user id of a transport agent processing the address.)144 460.8 R
+(user \(root\))108 614.4 Q .231
+(is the user id of a transport agent processing the address.)144 626.4 R
 .231(The v)5.231 F .231(alue is either numeric \(a uid\) or an)-.25 F
-(account name.)144 472.8 Q(group \(daemon\))108 489.6 Q .143
-(is the group id of a transport agent processing the address.)144 501.6
+(account name.)144 638.4 Q(group \(daemon\))108 655.2 Q .143
+(is the group id of a transport agent processing the address.)144 667.2
 R .143(The v)5.143 F .143(alue is either numeric \(a gid\) or a)-.25 F
-(group name.)144 513.6 Q(command \(smtp -srl ${LOGDIR}/smtp $host\))108
-530.4 Q .275(is the command line used to start a transport agent to pro\
-cess the address.)144 542.4 R .275(The program pathname)5.275 F .323
-(is speci\214ed relati)144 554.4 R .623 -.15(ve t)-.25 H 2.823(ot).15 G
+(group name.)144 679.2 Q(command \(smtp -srl ${LOGDIR}/smtp $host\))108
+696 Q .275(is the command line used to start a transport agent to proce\
+ss the address.)144 708 R .275(The program pathname)5.275 F .323
+(is speci\214ed relati)144 720 R .623 -.15(ve t)-.25 H 2.823(ot).15 G
 (he)-2.823 E F2(MAILBIN)2.823 E F1(/ta)A F0(directory)2.823 E 5.323(.T)
--.65 G .323(he string "$channel" is replaced by the current)-5.323 F
-2.467(matched channel, and "$host" is replaced by the current matched h\
-ost, from the destination)144 566.4 R .039
-(address, and "${LOGDIR}" substitutes ZENV v)144 578.4 R .038
-(ariable LOGDIR v)-.25 F .038(alue there.)-.25 F F2 .038(It is str)5.038
-F .038(ongly r)-.45 F(ecom-)-.37 E .403(mended that the $host is not to\
- be used on a command de\214nition, as it limits the usability of idled)
-144 590.4 R(tr)144 602.4 Q(ansporter)-.15 E(.)-1.11 E F0(queueonly)108
-619.2 Q 3.835(ac)144 631.2 S 1.335(lause with)-3.835 F F2(queueonly)
-3.834 E F0 1.334(\215ag does not auto-start at the arri)3.834 F -.25(va)
--.25 G 3.834(lo).25 G 3.834(fam)-3.834 G 1.334(essage, instead it)-3.834
-F F1(must)3.834 E F0(be)3.834 E .477(started by means of)144 643.2 R F2
-(smtpserver)2.977 E F0 .477(\(8\) command).73 F F1(ETRN)2.977 E F0 .477
-(thru an SMTP connection.)2.977 F 2.077 -.8(To h)5.477 H -2.25 -.2(av e)
-.8 H(message)3.177 E -.15(ex)144 655.2 S(piration w).15 E(orking, follo)
--.1 E(wing additional entries are suggested:)-.25 E F2(interval=1h r)2.5
-E(etries="24")-.37 E F0 -.15(Fo)108 672 S 2.5(re).15 G
-(xample, this is a complete con\214guration \214le:)-2.65 E 2.5(#D)144
-688.8 S(ef)-2.5 E(ault v)-.1 E(alues)-.25 E(*/*)144 700.8 Q(interv)180
-712.8 Q(al=1m e)-.25 E(xpiry=3d retries="1 1 2 3 5 8 13 21 34")-.15 E
-(maxring=0 maxta=0 sk)180 724.8 Q -.25(ew)-.1 G
-(=5 user=root group=daemon).25 E 2.5(3M)282.67 768 S(ar 2000)-2.5 E(4)
-205.67 E EP
+-.65 G .323(he string "$channel" is replaced by the current)-5.323 F 2.5
+(3M)282.67 768 S(ar 2000)-2.5 E(4)205.67 E EP
 %%Page: 5 5
 %%BeginPageSetup
 BP
 %%EndPageSetup
-/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R 2.5
-(#B)144 84 S(oilerplate parameters for local deli)-2.5 E -.15(ve)-.25 G
-(ry and service channels).15 E(local/*)144 96 Q(interv)180 108 Q
+/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R
+2.467(matched channel, and "$host" is replaced by the current matched h\
+ost, from the destination)144 84 R .039
+(address, and "${LOGDIR}" substitutes ZENV v)144 96 R .038
+(ariable LOGDIR v)-.25 F .038(alue there.)-.25 F/F1 10/Times-Italic@0 SF
+.038(It is str)5.038 F .038(ongly r)-.45 F(ecom-)-.37 E .403(mended tha\
+t the $host is not to be used on a command de\214nition, as it limits t\
+he usability of idled)144 108 R(tr)144 120 Q(ansporter)-.15 E(.)-1.11 E
+F0(queueonly)108 136.8 Q 3.835(ac)144 148.8 S 1.335(lause with)-3.835 F
+F1(queueonly)3.834 E F0 1.334(\215ag does not auto-start at the arri)
+3.834 F -.25(va)-.25 G 3.834(lo).25 G 3.834(fam)-3.834 G 1.334
+(essage, instead it)-3.834 F/F2 10/Times-Bold@0 SF(must)3.834 E F0(be)
+3.834 E .477(started by means of)144 160.8 R F1(smtpserver)2.977 E F0
+.477(\(8\) command).73 F F2(ETRN)2.977 E F0 .477
+(thru an SMTP connection.)2.977 F 2.077 -.8(To h)5.477 H -2.25 -.2(av e)
+.8 H(message)3.177 E -.15(ex)144 172.8 S(piration w).15 E(orking, follo)
+-.1 E(wing additional entries are suggested:)-.25 E F1(interval=1h r)2.5
+E(etries="24")-.37 E F0 -.15(Fo)108 189.6 S 2.5(re).15 G
+(xample, this is a complete con\214guration \214le:)-2.65 E 2.5(#D)144
+206.4 S(ef)-2.5 E(ault v)-.1 E(alues)-.25 E(*/*)144 218.4 Q(interv)180
+230.4 Q(al=1m e)-.25 E(xpiry=3d retries="1 1 2 3 5 8 13 21 34")-.15 E
+(maxring=0 maxta=0 sk)180 242.4 Q -.25(ew)-.1 G
+(=5 user=root group=daemon).25 E 2.5(#B)144 254.4 S
+(oilerplate parameters for local deli)-2.5 E -.15(ve)-.25 G
+(ry and service channels).15 E(local/*)144 266.4 Q(interv)180 278.4 Q
 (al=10s e)-.25 E(xpiry=3h maxchannel=2 command=mailbox)-.15 E(error)144
-120 Q(interv)180 132 Q(al=5m maxchannel=10 command=errormail)-.25 E
-(hold/*)144 144 Q(interv)180 156 Q(al=5m maxchannel=1 command=hold)-.25
-E 2.5(#M)144 168 S
+290.4 Q(interv)180 302.4 Q(al=5m maxchannel=10 command=errormail)-.25 E
+(hold/*)144 314.4 Q(interv)180 326.4 Q(al=5m maxchannel=1 command=hold)
+-.25 E 2.5(#M)144 338.4 S
 (iscellaneous channels supported by router con\214guration)-2.5 E
-(smtp/*.toronto.edu)144 180 Q(smtp/*.utoronto.ca)144 192 Q
-(maxchannel=10 maxring=2)180 204 Q(command="smtp -srl $LOGDIR/smtp")180
-216 Q(smtp)144 228 Q(maxchannel=10 maxring=5)180 240 Q
-(command="smtp -esrl $LOGDIR/smtp")180 252 Q(uucp/*)144 264 Q
-(maxchannel=5 command="sm -c $channel uucp")180 276 Q .274
-(The \214rst clause \(*/*\) sets up def)108 292.8 R .274(ault v)-.1 F
+(smtp/*.toronto.edu)144 350.4 Q(smtp/*.utoronto.ca)144 362.4 Q
+(maxchannel=10 maxring=2)180 374.4 Q(command="smtp -srl $LOGDIR/smtp")
+180 386.4 Q(smtp)144 398.4 Q(maxchannel=10 maxring=5)180 410.4 Q
+(command="smtp -esrl $LOGDIR/smtp")180 422.4 Q(uucp/*)144 434.4 Q
+(maxchannel=5 command="sm -c $channel uucp")180 446.4 Q .274
+(The \214rst clause \(*/*\) sets up def)108 463.2 R .274(ault v)-.1 F
 .274(alues for all addresses.)-.25 F .273
 (There is no command speci\214cation, so clause)5.273 F
-(matching will continue after address ha)108 304.8 Q .3 -.15(ve p)-.2 H
+(matching will continue after address ha)108 475.2 Q .3 -.15(ve p)-.2 H
 (ick).15 E(ed up the parameters set here.)-.1 E 1.494(The third clause \
-\(error\) has an implicit host wildcard of '*', so it w)108 321.6 R
-1.494(ould match the same as specifying)-.1 F(error/* w)108 333.6 Q
-(ould ha)-.1 E -.15(ve)-.2 G(.).15 E .32(The \214fth clause \(smtp/*.to\
-ronto.edu\) has no further components so it selects the components of t\
-he follo)108 350.4 R(w-)-.25 E(ing non-empty clause \(the sixth\).)108
-362.4 Q 2.521(Both the \214fth and sixth clauses are speci\214c to addr\
-ess destinations within the T)108 379.2 R(OR)-.18 E(ONT)-.4 E 2.522
-(O.EDU and)-.18 F(UT)108 391.2 Q(OR)-.18 E(ONT)-.4 E .83(O.CA or)-.18 F
--.05(ga)-.18 G .83(nization \(the tw).05 F 3.33(oa)-.1 G .829
-(re parallel domains\).)-3.33 F .829(At most 10 deli)5.829 F -.15(ve)
--.25 G .829(ries to the).15 F/F1 10/Times-Bold@0 SF(smtp)3.329 E F0
-(channel)3.329 E .531(may be concurrently acti)108 403.2 R -.15(ve)-.25
-G 3.031(,a).15 G .532(nd at most 2 for all possible hosts within T)
--3.031 F(OR)-.18 E(ONT)-.4 E 3.032(O.EDU. If)-.18 F .532($host is men-)
-3.032 F .839(tioned in the command speci\214cation, the transport agent\
- will only be told about the message control \214les)108 415.2 R 1.474
-(that indicate SMTP deli)108 427.2 R -.15(ve)-.25 G 1.474
-(ry to a particular host.).15 F 1.474(The actual host is pick)6.474 F
-1.474(ed at random from the current)-.1 F(choices, to a)108 439.2 Q -.2
-(vo)-.2 G(id systematic errors leading to a deadlock of an).2 E 2.5(yq)
--.15 G(ueue.)-2.5 E/F2 9/Times-Bold@0 SF(CONFIGURA)72 456 Q(TION FILE P)
+\(error\) has an implicit host wildcard of '*', so it w)108 492 R 1.494
+(ould match the same as specifying)-.1 F(error/* w)108 504 Q(ould ha)-.1
+E -.15(ve)-.2 G(.).15 E .32(The \214fth clause \(smtp/*.toronto.edu\) h\
+as no further components so it selects the components of the follo)108
+520.8 R(w-)-.25 E(ing non-empty clause \(the sixth\).)108 532.8 Q 2.521
+(Both the \214fth and sixth clauses are speci\214c to address destinati\
+ons within the T)108 549.6 R(OR)-.18 E(ONT)-.4 E 2.522(O.EDU and)-.18 F
+(UT)108 561.6 Q(OR)-.18 E(ONT)-.4 E .83(O.CA or)-.18 F -.05(ga)-.18 G
+.83(nization \(the tw).05 F 3.33(oa)-.1 G .829(re parallel domains\).)
+-3.33 F .829(At most 10 deli)5.829 F -.15(ve)-.25 G .829(ries to the).15
+F F2(smtp)3.329 E F0(channel)3.329 E .531(may be concurrently acti)108
+573.6 R -.15(ve)-.25 G 3.031(,a).15 G .532
+(nd at most 2 for all possible hosts within T)-3.031 F(OR)-.18 E(ONT)-.4
+E 3.032(O.EDU. If)-.18 F .532($host is men-)3.032 F .839(tioned in the \
+command speci\214cation, the transport agent will only be told about th\
+e message control \214les)108 585.6 R 1.474(that indicate SMTP deli)108
+597.6 R -.15(ve)-.25 G 1.474(ry to a particular host.).15 F 1.474
+(The actual host is pick)6.474 F 1.474(ed at random from the current)-.1
+F(choices, to a)108 609.6 Q -.2(vo)-.2 G
+(id systematic errors leading to a deadlock of an).2 E 2.5(yq)-.15 G
+(ueue.)-2.5 E/F3 9/Times-Bold@0 SF(CONFIGURA)72 626.4 Q(TION FILE P)
 -.855 E(ARAM-ASSIGNMENTS)-.666 E F0 .076(The scheduler can assign se)108
-468 R -.15(ve)-.25 G .076(ral of its internal parameters by ha).15 F
+638.4 R -.15(ve)-.25 G .076(ral of its internal parameters by ha).15 F
 .076(ving v)-.2 F .076(ariable assignments be)-.25 F .076
-(ginning at col-)-.15 F(umn 0, and be)108 480 Q(ginning with "P)-.15 E
-(ARAM" te)-.92 E(xt:)-.15 E -.92(PA)108 496.8 S
+(ginning at col-)-.15 F(umn 0, and be)108 650.4 Q(ginning with "P)-.15 E
+(ARAM" te)-.92 E(xt:)-.15 E -.92(PA)108 667.2 S
 (RAMmailqpath = "UNIX:/path/to/pf_unix/mailq/sock).92 E(et")-.1 E -.92
-(PA)108 513.6 S(RAMmailqpath = "TCP:mailq").92 E -.92(PA)108 530.4 S
-(RAMmailqpath = "TCP:174").92 E 2.223(These de\214ne tw)144 542.4 R
+(PA)108 684 S(RAMmailqpath = "TCP:mailq").92 E -.92(PA)108 700.8 S
+(RAMmailqpath = "TCP:174").92 E 2.223(These de\214ne tw)144 712.8 R
 4.723(od)-.1 G(if)-4.723 E 2.223(ferent type of possible sock)-.25 F
-2.224(et addresses for "mailq" protocol; PF_UNIX)-.1 F(sock)144 554.4 Q
-(et, and TCP sock)-.1 E 2.5(et. Def)-.1 F(ault is "TCP:174".)-.1 E -.92
-(PA)108 571.2 S(RAMaut\214le = "/path/to/scheduler).92 E(.auth")-.55 E
-(Location of MAILQv2 autentication control \214le)144 583.2 Q -.92(PA)
-108 600 S(RAMglobal-report-interv).92 E(al = 15m)-.25 E(Interv)144 612 Q
-1.286(al by which all permanent reports accumulated into a message are \
-reported by; sends out)-.25 F .781(early reports of deli)144 624 R -.15
-(ve)-.25 G .782(ry f).15 F .782(ailures, and does not force to w)-.1 F
-.782(ait for maximum queue timeout in case)-.1 F
-(the message has more than once recipient.)144 636 Q F2(MESSA)72 652.8 Q
-(GE CONTR)-.495 E(OL FILE SYNT)-.27 E(AX)-.81 E F0 3.885(Am)108 664.8 S
-1.385(essage control \214le contains all the information needed by deli)
--3.885 F -.15(ve)-.25 G 1.384(ry programs lik).15 F(e)-.1 E/F3 10
-/Times-Italic@0 SF(sc)3.884 E(heduler)-.15 E F0 1.384(and the)3.884 F
-.211(transport agents.)108 676.8 R .212
-(It is a terse presentation of the)5.211 F F3 -.45(ro)2.712 G(uter).45 E
-F0 1.312 -.55('s d).73 H .212
-(ecisions, along with some useful reference infor).55 F(-)-.2 E(mation.)
-108 688.8 Q .068
-(The message control \214le consists of a number of \214elds.)108 705.6
-R .067(All \214elds start in the \214rst column \(i.e., at the be)5.068
-F(gin-)-.15 E .484(ning of the \214le or just after a ne)108 717.6 R
-.484(wline\), and most \214elds e)-.25 F .485(xtend to the end of line.)
--.15 F .485(The one e)5.485 F .485(xception is the)-.15 F .41
-(message header \214eld which e)108 729.6 R .409
-(xtends till a double-ne)-.15 F .409(wline terminator)-.25 F 5.409(.F)
--.55 G .409(or all b)-5.559 F .409(ut this message header \214eld,)-.2 F
-2.5(3M)282.67 768 S(ar 2000)-2.5 E(5)205.67 E EP
+2.224(et addresses for "mailq" protocol; PF_UNIX)-.1 F(sock)144 724.8 Q
+(et, and TCP sock)-.1 E 2.5(et. Def)-.1 F(ault is "TCP:174".)-.1 E 2.5
+(3M)282.67 768 S(ar 2000)-2.5 E(5)205.67 E EP
 %%Page: 6 6
 %%BeginPageSetup
 BP
 %%EndPageSetup
-/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R .382
-(the second column is reserv)108 84 R .382(ed for a tag byte.)-.15 F
-.383(This position is used to lock the \214eld and to indicate the sta-)
-5.382 F .59(tus of past processing of the \214eld.)108 96 R -.15(Fo)5.59
-G 3.09(re).15 G .59(xample, the success or f)-3.24 F .59(ailure of deli)
--.1 F -.15(ve)-.25 G .59(ry to a recipient address is).15 F .867(indica\
-ted by a '+' or means the \214eld has not been processed, or that proce\
-ssing has been deferred.)108 108 R 3.367(A')5.867 G(~')-3.367 E .765
-(indicates the \214eld is lock)108 120 R .765
+/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R -.92
+(PA)108 84 S(RAMaut\214le = "/path/to/scheduler).92 E(.auth")-.55 E
+(Location of MAILQv2 autentication control \214le)144 96 Q -.92(PA)108
+112.8 S(RAMglobal-report-interv).92 E(al = 15m)-.25 E(Interv)144 124.8 Q
+1.286(al by which all permanent reports accumulated into a message are \
+reported by; sends out)-.25 F .781(early reports of deli)144 136.8 R
+-.15(ve)-.25 G .782(ry f).15 F .782(ailures, and does not force to w)-.1
+F .782(ait for maximum queue timeout in case)-.1 F
+(the message has more than once recipient.)144 148.8 Q/F1 9/Times-Bold@0
+SF(MESSA)72 165.6 Q(GE CONTR)-.495 E(OL FILE SYNT)-.27 E(AX)-.81 E F0
+3.885(Am)108 177.6 S 1.385
+(essage control \214le contains all the information needed by deli)
+-3.885 F -.15(ve)-.25 G 1.384(ry programs lik).15 F(e)-.1 E/F2 10
+/Times-Italic@0 SF(sc)3.884 E(heduler)-.15 E F0 1.384(and the)3.884 F
+.211(transport agents.)108 189.6 R .212
+(It is a terse presentation of the)5.211 F F2 -.45(ro)2.712 G(uter).45 E
+F0 1.312 -.55('s d).73 H .212
+(ecisions, along with some useful reference infor).55 F(-)-.2 E(mation.)
+108 201.6 Q .068
+(The message control \214le consists of a number of \214elds.)108 218.4
+R .067(All \214elds start in the \214rst column \(i.e., at the be)5.068
+F(gin-)-.15 E .484(ning of the \214le or just after a ne)108 230.4 R
+.484(wline\), and most \214elds e)-.25 F .485(xtend to the end of line.)
+-.15 F .485(The one e)5.485 F .485(xception is the)-.15 F .41
+(message header \214eld which e)108 242.4 R .409
+(xtends till a double-ne)-.15 F .409(wline terminator)-.25 F 5.409(.F)
+-.55 G .409(or all b)-5.559 F .409(ut this message header \214eld,)-.2 F
+.382(the second column is reserv)108 254.4 R .382(ed for a tag byte.)
+-.15 F .383
+(This position is used to lock the \214eld and to indicate the sta-)
+5.382 F .59(tus of past processing of the \214eld.)108 266.4 R -.15(Fo)
+5.59 G 3.09(re).15 G .59(xample, the success or f)-3.24 F .59
+(ailure of deli)-.1 F -.15(ve)-.25 G .59(ry to a recipient address is)
+.15 F .867(indicated by a '+' or means the \214eld has not been process\
+ed, or that processing has been deferred.)108 278.4 R 3.367(A')5.867 G
+(~')-3.367 E .765(indicates the \214eld is lock)108 290.4 R .765
 (ed because some transport agent is currently processing deli)-.1 F -.15
-(ve)-.25 G .764(ry for the address.).15 F .265(The kno)108 132 R .265
-(wn \214eld names and tags are de\214ned in)-.25 F/F1 10/Times-Bold@0 SF
-(<mail.h>)2.766 E F0 5.266(.F)C .266(or all the)-5.416 F/F2 10
-/Times-Italic@0 SF -.37(re)2.766 G(cipient).37 E F0 .266
-(addresses, there is 6 charac-)2.766 F .456(ters space for transport-pr\
-ocess process-id so that a quickly restarted scheduler will not do doub\
-le-deli)108 144 R -.15(ve)-.25 G(ry).15 E(on some slo)108 156 Q
-(wly running transporter)-.25 E(.)-.55 E(The follo)108 172.8 Q
-(wing \214elds are mandatory:)-.25 E 33.22(it)108 189.6 S .248
-(he name of the message \214le in the)-33.22 F F2(POST)2.749 E(OFFICE)
--.18 E F1(/queue)A F0 .249(directory and of the message control \214le)
-2.749 F .338(in the)144 201.6 R F2(POST)2.838 E(OFFICE)-.18 E F1
-(/transport)A F0(directory)2.838 E 5.338(.')-.65 G .338
+(ve)-.25 G .764(ry for the address.).15 F .265(The kno)108 302.4 R .265
+(wn \214eld names and tags are de\214ned in)-.25 F/F3 10/Times-Bold@0 SF
+(<mail.h>)2.766 E F0 5.266(.F)C .266(or all the)-5.416 F F2 -.37(re)
+2.766 G(cipient).37 E F0 .266(addresses, there is 6 charac-)2.766 F .456
+(ters space for transport-process process-id so that a quickly restarte\
+d scheduler will not do double-deli)108 314.4 R -.15(ve)-.25 G(ry).15 E
+(on some slo)108 326.4 Q(wly running transporter)-.25 E(.)-.55 E
+(The follo)108 343.2 Q(wing \214elds are mandatory:)-.25 E 33.22(it)108
+360 S .248(he name of the message \214le in the)-33.22 F F2(POST)2.749 E
+(OFFICE)-.18 E F3(/queue)A F0 .249
+(directory and of the message control \214le)2.749 F .338(in the)144 372
+R F2(POST)2.838 E(OFFICE)-.18 E F3(/transport)A F0(directory)2.838 E
+5.338(.')-.65 G .338
 (i' is a mnemonic for 'inode' since message \214le names)-5.338 F(must \
 be unique on the system and therefore are named by their inode number)
-144 213.6 Q(.)-.55 E 31(ot)108 230.4 S(he byte of)-31 E
+144 384 Q(.)-.55 E 31(ot)108 400.8 S(he byte of)-31 E
 (fset of the message body in the original message.)-.25 E(The follo)108
-247.2 Q(wing \214elds will frequently e)-.25 E(xist:)-.15 E 31.56(ei)108
-264 S 2.5(st)-31.56 G
+417.6 Q(wing \214elds will frequently e)-.25 E(xist:)-.15 E 31.56(ei)108
+434.4 S 2.5(st)-31.56 G
 (he return address for error messages, in a form that can be put in a T)
--2.5 E(o: header line.)-.8 E 33.22(li)108 280.8 S 2.933(sas)-33.22 G
+-2.5 E(o: header line.)-.8 E 33.22(li)108 451.2 S 2.933(sas)-33.22 G
 .433(tring identifying this message in log entries.)-2.933 F -.8(Ty)
 5.433 G .433(pically the message id of the message w).8 F(ould)-.1 E
-(be used.)144 292.8 Q 31(ni)108 309.6 S 2.5(st)-31 G(he deli)-2.5 E -.15
+(be used.)144 463.2 Q 31(ni)108 480 S 2.5(st)-31 G(he deli)-2.5 E -.15
 (ve)-.25 G(ry-status-noti\214cation en).15 E
-(vironment id data for the message.)-.4 E 28.78(Na)108 326.4 S
+(vironment id data for the message.)-.4 E 28.78(Na)108 496.8 S
 (re the deli)-28.78 E -.15(ve)-.25 G
 (ry-status-noti\214cation entries for each recipient address.).15 E
-(The follo)108 343.2 Q(wing \214elds will occasionally appear:)-.25 E 31
-(xi)108 360 S 2.848(st)-31 G .347(he log identi\214cation string \(usua\
-lly a message id\) of an obsoleted message.)-2.848 F .347
-(The scheduler will)5.347 F(pur)144 372 Q(ge an)-.18 E 2.5(ys)-.15 G
+(The follo)108 513.6 Q(wing \214elds will occasionally appear:)-.25 E 31
+(xi)108 530.4 S 2.848(st)-31 G .347(he log identi\214cation string \(us\
+ually a message id\) of an obsoleted message.)-2.848 F .347
+(The scheduler will)5.347 F(pur)144 542.4 Q(ge an)-.18 E 2.5(ys)-.15 G
 (uch identi\214ed message after running sanity checks.)-2.5 E 31(vi)108
-388.8 S 2.836(st)-31 G .336(he name of a \214le that the deli)-2.836 F
+559.2 S 2.836(st)-31 G .336(he name of a \214le that the deli)-2.836 F
 -.15(ve)-.25 G .337(ry system can appended log information to.).15 F
 .337(This w)5.337 F .337(ould appear)-.1 F .348
-(as the result of running)144 400.8 R F1 .348(sendmail -v)2.848 F F0(or)
-2.848 E F1 .348(Mail -v)2.848 F F0 5.348(.S)C .348
+(as the result of running)144 571.2 R F3 .348(sendmail -v)2.848 F F0(or)
+2.848 E F3 .348(Mail -v)2.848 F F0 5.348(.S)C .348
 (ince all programs need to refer to the same \214le,)-5.348 F .634
-(on mail clusters it is recommended that this be a relati)144 412.8 R
+(on mail clusters it is recommended that this be a relati)144 583.2 R
 .934 -.15(ve p)-.25 H .634(ath naming a \214le within the).15 F F2(POST)
-3.135 E(OF-)-.18 E(FICE)144 424.8 Q F0(directory hierarch)2.5 E -.65(y.)
--.05 G 2.976(Am)108 441.6 S .475
+3.135 E(OF-)-.18 E(FICE)144 595.2 Q F0(directory hierarch)2.5 E -.65(y.)
+-.05 G 2.976(Am)108 612 S .475
 (essage control \214le must contain at least one address "group".)-2.976
 F .475(Each group consists of a sender address)5.475 F .956(\214eld, on\
 e or more recipient address \214elds, and a message header that goes al\
-ong with these.)108 453.6 R .956(An address)5.956 F(\214eld is a string\
- containing a space-separated 4-tuple \(quad\) as follo)108 465.6 Q(ws:)
--.25 E(channel)108 482.4 Q(is the name of the deli)144 494.4 Q -.15(ve)
--.25 G(ry channel for this address.).15 E(This must be a contiguous w)5
-E(ord.)-.1 E 16.83(host is)108 511.2 R(the name of the ne)2.5 E
+ong with these.)108 624 R .956(An address)5.956 F(\214eld is a string c\
+ontaining a space-separated 4-tuple \(quad\) as follo)108 636 Q(ws:)-.25
+E(channel)108 652.8 Q(is the name of the deli)144 664.8 Q -.15(ve)-.25 G
+(ry channel for this address.).15 E(This must be a contiguous w)5 E
+(ord.)-.1 E 16.83(host is)108 681.6 R(the name of the ne)2.5 E
 (xt destination host for this address.)-.15 E
-(This too must be a contiguous w)5 E(ord.)-.1 E 16.84(user is)108 528 R
-1.103(the address to be handed to the destination host for further deli)
-3.604 F -.15(ve)-.25 G(ry).15 E 6.103(.T)-.65 G 1.103
-(his string may contain)-6.103 F 2.5(space. It)144 540 R
+(This too must be a contiguous w)5 E(ord.)-.1 E 16.84(user is)108 698.4
+R 1.103
+(the address to be handed to the destination host for further deli)3.604
+F -.15(ve)-.25 G(ry).15 E 6.103(.T)-.65 G 1.103(his string may contain)
+-6.103 F 2.5(space. It)144 710.4 R
 (is distinguishable because the last component cannot contain spaces.)
-2.5 E(pri)108 556.8 Q(vile)-.25 E(ge)-.15 E
-(is the numeric uid representing the pri)144 568.8 Q(vile)-.25 E
-(ges associated with this address.)-.15 E
-(The address group components are:)108 585.6 Q 32.11(si)108 602.4 S 2.5
-(sas)-32.11 G(ender address \214eld.)-2.5 E 32.67(ri)108 619.2 S 2.5
-(sar)-32.67 G(ecipient address \214eld.)-2.5 E 29.33(Ri)108 636 S 3.395
-(sa)-29.33 G 3.395(nX)-3.395 G .896(OR recipient address \214eld.)-3.395
-F .896
-(The \214rst element is a tag \(a class number\) to identify collec-)
-5.896 F .826(tions of recipient addresses which are equi)144 648 R -.25
-(va)-.25 G .826(lent \(and therefore mutually e).25 F(xclusi)-.15 E -.15
-(ve)-.25 G 3.326(\). This).15 F .826(is fol-)3.326 F(lo)144 660 Q
-(wed by an address \214eld as described abo)-.25 E -.15(ve)-.15 G(.).15
-E 28.78(Na)108 676.8 S(re the deli)-28.78 E -.15(ve)-.25 G
-(ry-status-noti\214cation parameters for the pre).15 E(vious recipient.)
--.25 E 28.22(mi)108 693.6 S 2.5(st)-28.22 G
-(he message header for this address group.)-2.5 E .746(After one or mor\
-e of these address groups, the error messages for addresses are appende\
-d to the message)108 710.4 R(control \214le.)108 722.4 Q
-(This is done by the)5 E F2(sc)2.5 E(heduler)-.15 E F0(as it recei)2.5 E
--.15(ve)-.25 G 2.5(se).15 G(rror reports from transport agents.)-2.5 E
-2.5(3M)282.67 768 S(ar 2000)-2.5 E(6)205.67 E EP
+2.5 E 2.5(3M)282.67 768 S(ar 2000)-2.5 E(6)205.67 E EP
 %%Page: 7 7
 %%BeginPageSetup
 BP
 %%EndPageSetup
-/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R 31
-(di)108 84 S 2.548(sad)-31 G .047
+/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R(pri)
+108 84 Q(vile)-.25 E(ge)-.15 E(is the numeric uid representing the pri)
+144 96 Q(vile)-.25 E(ges associated with this address.)-.15 E
+(The address group components are:)108 112.8 Q 32.11(si)108 129.6 S 2.5
+(sas)-32.11 G(ender address \214eld.)-2.5 E 32.67(ri)108 146.4 S 2.5
+(sar)-32.67 G(ecipient address \214eld.)-2.5 E 29.33(Ri)108 163.2 S
+3.395(sa)-29.33 G 3.395(nX)-3.395 G .896(OR recipient address \214eld.)
+-3.395 F .896
+(The \214rst element is a tag \(a class number\) to identify collec-)
+5.896 F .826(tions of recipient addresses which are equi)144 175.2 R
+-.25(va)-.25 G .826(lent \(and therefore mutually e).25 F(xclusi)-.15 E
+-.15(ve)-.25 G 3.326(\). This).15 F .826(is fol-)3.326 F(lo)144 187.2 Q
+(wed by an address \214eld as described abo)-.25 E -.15(ve)-.15 G(.).15
+E 28.78(Na)108 204 S(re the deli)-28.78 E -.15(ve)-.25 G
+(ry-status-noti\214cation parameters for the pre).15 E(vious recipient.)
+-.25 E 28.22(mi)108 220.8 S 2.5(st)-28.22 G
+(he message header for this address group.)-2.5 E .746(After one or mor\
+e of these address groups, the error messages for addresses are appende\
+d to the message)108 237.6 R(control \214le.)108 249.6 Q
+(This is done by the)5 E/F1 10/Times-Italic@0 SF(sc)2.5 E(heduler)-.15 E
+F0(as it recei)2.5 E -.15(ve)-.25 G 2.5(se).15 G
+(rror reports from transport agents.)-2.5 E 31(di)108 266.4 S 2.548(sad)
+-31 G .047
 (iagnostic \214eld, consisting of a message control \214le byte of)
 -2.548 F .047(fset indicating an address, follo)-.25 F(wed)-.25 E
-(by space and comment to the end of line.)144 96 Q -.15(Fo)108 112.8 S
-3.248(re).15 G .748(xample, this is a typical message control \214le \(\
-it is a snapshot tak)-3.398 F .749(en while a transport agent w)-.1 F
-.749(as run-)-.1 F(ning\):)108 124.8 Q 2.5(i1)144 141.6 S(5582)-2.5 E
-2.5(o6)144 153.6 S(0)-2.5 E 2.5(l<)144 165.6 S
-(90Jun3.165355edt.15582@neat.cs.toronto.edu>)-2.5 E 2.5(eR)144 177.6 S
-(ayan Zachariassen <rayan>)-2.5 E 2.5(sl)144 189.6 S(ocal - rayan 7)-2.5
-E(r~ 23456)144 201.6 Q(local - rayan 7)7.5 E(m)144 213.6 Q(Recei)144
-225.6 Q -.15(ve)-.25 G
+(by space and comment to the end of line.)144 278.4 Q -.15(Fo)108 295.2
+S 3.248(re).15 G .748(xample, this is a typical message control \214le \
+\(it is a snapshot tak)-3.398 F .749(en while a transport agent w)-.1 F
+.749(as run-)-.1 F(ning\):)108 307.2 Q 2.5(i1)144 324 S(5582)-2.5 E 2.5
+(o6)144 336 S(0)-2.5 E 2.5(l<)144 348 S
+(90Jun3.165355edt.15582@neat.cs.toronto.edu>)-2.5 E 2.5(eR)144 360 S
+(ayan Zachariassen <rayan>)-2.5 E 2.5(sl)144 372 S(ocal - rayan 7)-2.5 E
+(r~ 23456)144 384 Q(local - rayan 7)7.5 E(m)144 396 Q(Recei)144 408 Q
+-.15(ve)-.25 G
 (d: by neat.cs.toronto.edu id <15582>; Sun, 3 Jun 1990 16:53:55 -0400)
-.15 E 30.65(From: Rayan)144 237.6 R(Zachariassen <rayan>)2.5 E -.8(To)
-144 249.6 S 44.51(:r).8 G(ayan)-44.51 E
-(Subject: a typical message control \214le)144 261.6 Q
-(Message-Id: <90Jun3.165355edt.15582@neat.cs.toronto.edu>)144 273.6 Q 5
-(Date: Sun,)144 285.6 R 2.5(3J)2.5 G(un 1990 16:53:54 -0400)-2.5 E/F1 9
-/Times-Bold@0 SF(TRANSPOR)72 319.2 Q 2.25(TA)-.36 G(GENT INTERF)-2.745 E
--.495(AC)-.81 G(E).495 E F0 1.197(The transport agent interf)108 331.2 R
+.15 E 30.65(From: Rayan)144 420 R(Zachariassen <rayan>)2.5 E -.8(To)144
+432 S 44.51(:r).8 G(ayan)-44.51 E
+(Subject: a typical message control \214le)144 444 Q
+(Message-Id: <90Jun3.165355edt.15582@neat.cs.toronto.edu>)144 456 Q 5
+(Date: Sun,)144 468 R 2.5(3J)2.5 G(un 1990 16:53:54 -0400)-2.5 E/F2 9
+/Times-Bold@0 SF(TRANSPOR)72 501.6 Q 2.25(TA)-.36 G(GENT INTERF)-2.745 E
+-.495(AC)-.81 G(E).495 E F0 1.197(The transport agent interf)108 513.6 R
 1.197(ace follo)-.1 F 1.197(ws master)-.25 F(-sla)-.2 E 1.497 -.15(ve -)
 -.2 H 1.197(model, where the T).15 F 3.697(Ai)-.93 G 1.196(nforms the)
--3.697 F/F2 10/Times-Italic@0 SF(sc)3.696 E(heduler)-.15 E F0 1.196
-(that it is)3.696 F .073(ready for the w)108 343.2 R .073
+-3.697 F F1(sc)3.696 E(heduler)-.15 E F0 1.196(that it is)3.696 F .073
+(ready for the w)108 525.6 R .073
 (ork, and then the scheduler sends it one job description, and a)-.1 F
 -.1(wa)-.15 G .074(its for diagnistics.).1 F .074(Once the)5.074 F
-(job is \214nished, the T)108 355.2 Q 2.5(An)-.93 G
+(job is \214nished, the T)108 537.6 Q 2.5(An)-.93 G
 (oti\214es the scheduler)-2.5 E 2.5(,t)-.4 G(hat it is ready for a ne)
--2.5 E 2.5(wj)-.25 G(ob)-2.5 E(.)-.4 E 2.5(As)108 372 S
-(hort sample session looks lik)-2.5 E 2.5(et)-.1 G(his:)-2.5 E F2
-(\(start the tr)144 388.8 Q(ansport a)-.15 E -.1(ge)-.1 G(nt\)).1 E/F3
-10/Times-Bold@0 SF(#hungry)144 400.8 Q F2(spoolid\\)144 412.8 Q F3(t)A
-F2(hostspec)A F3(diagnostics)144 424.8 Q(#hungry)144 436.8 Q F0
-(Normal diagnostic output is of the form:)108 453.6 Q F2(id)144 470.4 Q
-F0(/)A F2(of)A(fset)-.18 E F0(\\t)A F2(notarydata)A F0(\\t)A F2
-(status messa)A -.1(ge)-.1 G F0(where)108 487.2 Q F2(id)3.666 E F0 1.166
-(is the inode number of the message \214le,)3.666 F F2(of)3.666 E(fset)
+-2.5 E 2.5(wj)-.25 G(ob)-2.5 E(.)-.4 E 2.5(As)108 554.4 S
+(hort sample session looks lik)-2.5 E 2.5(et)-.1 G(his:)-2.5 E F1
+(\(start the tr)144 571.2 Q(ansport a)-.15 E -.1(ge)-.1 G(nt\)).1 E/F3
+10/Times-Bold@0 SF(#hungry)144 583.2 Q F1(spoolid\\)144 595.2 Q F3(t)A
+F1(hostspec)A F3(diagnostics)144 607.2 Q(#hungry)144 619.2 Q F0
+(Normal diagnostic output is of the form:)108 636 Q F1(id)144 652.8 Q F0
+(/)A F1(of)A(fset)-.18 E F0(\\t)A F1(notarydata)A F0(\\t)A F1
+(status messa)A -.1(ge)-.1 G F0(where)108 669.6 Q F1(id)3.666 E F0 1.166
+(is the inode number of the message \214le,)3.666 F F1(of)3.666 E(fset)
 -.18 E F0 1.165(is a byte of)3.665 F 1.165
 (fset within its control \214le where the)-.25 F 1.606
-(address being reported on is k)108 499.2 R(ept,)-.1 E F2(notarydata)
+(address being reported on is k)108 681.6 R(ept,)-.1 E F1(notarydata)
 4.106 E F0 1.606(is a Ctrl-A separated triplet is deli)4.106 F -.15(ve)
 -.25 G(ry-status-noti\214cation).15 E .06(information for the message,)
-108 511.2 R F2(status)2.56 E F0 .06(is one of)2.56 F F3(ok)2.559 E F0(,)
+108 693.6 R F1(status)2.56 E F0 .06(is one of)2.56 F F3(ok)2.559 E F0(,)
 A F3(err)2.559 E(or)-.18 E F0(,)A F3(deferr)2.559 E(ed)-.18 E F0 2.559
 (,o)C(r)-2.559 E F3 -.18(re)2.559 G(tryat).18 E F0 2.559(,a)C .059
-(nd the)-2.559 F F2(messa)2.559 E -.1(ge)-.1 G F0 .059(is descripti)
-2.659 F -.15(ve)-.25 G(te)108 523.2 Q .85
+(nd the)-2.559 F F1(messa)2.559 E -.1(ge)-.1 G F0 .059(is descripti)
+2.659 F -.15(ve)-.25 G(te)108 705.6 Q .85
 (xt associated with the report.)-.15 F .85(The te)5.85 F .85
 (xt is terminated by a linefeed.)-.15 F(An)5.85 E 3.35(yo)-.15 G .85
 (ther format \(as might be pro-)-3.35 F .036(duced by subprocesses\) is\
- passed to standard output for logging in the)108 535.2 R F3(scheduler)
+ passed to standard output for logging in the)108 717.6 R F3(scheduler)
 2.536 E F0 2.536(log. The)2.536 F F3 -.18(re)2.536 G(tryat).18 E F0
-(response)2.536 E .582(will assume the \214rst w)108 547.2 R .582
-(ord of the te)-.1 F .582(xt is a numeric parameter)-.15 F 3.082(,e)-.4
-G .582(ither an incremental time in seconds if pre-)-3.082 F<8c78>108
-559.2 Q(ed by)-.15 E F3(+,)2.5 E F0
-(or otherwise an absolute time in seconds since epoch.)2.5 E(The e)108
-576 Q(xit status is a code from)-.15 E F3(<sysexits.h>)2.5 E F0(.)A F1
-(ST)72 592.8 Q -.855(AT)-.81 G(ISTICS LOG FORMA).855 E(T)-.855 E F0(The\
- statistics log reports condenced performance oriented information in f\
-ollo)108 604.8 Q(wing format:)-.25 E 27.83(timestamp \214leid)144 628.8
-R 20.72(dt1 dt2)37.04 F(state $channel/$host)16.02 E 24.5
-(812876190 90401-2)144 640.8 R 31(05)29.27 G(ok usenet/\255)-4.7 E 24.5
-(812876228 90401-1)144 652.8 R 31(07)29.27 G(ok usenet/\255)-4.7 E 24.5
-(812876244 90401-1)144 664.8 R 31(01)29.27 G(ok local/gopher\255admin)
--4.7 E 24.5(812876244 90401-1)144 676.8 R 31(05)29.27 G
-(ok smtp/funet.\214)-4.7 E 24.5(812876559 90401-1)144 688.8 R 28.5(02)
-29.27 G 23.8(1o)-28.5 G 2.5(ks)-23.8 G(mtp/utu.\214)-2.5 E
-(where the \214elds are:)108 712.8 Q 2.5(3M)282.67 768 S(ar 2000)-2.5 E
-(7)205.67 E EP
+(response)2.536 E 1.647(will assume the \214rst w)108 729.6 R 1.648
+(ord of the te)-.1 F 1.648(xt is a numeric parameter)-.15 F 4.148(,e)-.4
+G 1.648(ither an incremental time in seconds if)-4.148 F 2.5(3M)282.67
+768 S(ar 2000)-2.5 E(7)205.67 E EP
 %%Page: 8 8
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R
-(timestamp)108 84 Q
+(pre\214x)108 84 Q(ed by)-.15 E/F1 10/Times-Bold@0 SF(+,)2.5 E F0
+(or otherwise an absolute time in seconds since epoch.)2.5 E(The e)108
+100.8 Q(xit status is a code from)-.15 E F1(<sysexits.h>)2.5 E F0(.)A/F2
+9/Times-Bold@0 SF(ST)72 117.6 Q -.855(AT)-.81 G(ISTICS LOG FORMA).855 E
+(T)-.855 E F0(The statistics log reports condenced performance oriented\
+ information in follo)108 129.6 Q(wing format:)-.25 E 27.83
+(timestamp \214leid)144 153.6 R 20.72(dt1 dt2)37.04 F
+(state $channel/$host)16.02 E 24.5(812876190 90401-2)144 165.6 R 31(05)
+29.27 G(ok usenet/\255)-4.7 E 24.5(812876228 90401-1)144 177.6 R 31(07)
+29.27 G(ok usenet/\255)-4.7 E 24.5(812876244 90401-1)144 189.6 R 31(01)
+29.27 G(ok local/gopher\255admin)-4.7 E 24.5(812876244 90401-1)144 201.6
+R 31(05)29.27 G(ok smtp/funet.\214)-4.7 E 24.5(812876559 90401-1)144
+213.6 R 28.5(02)29.27 G 23.8(1o)-28.5 G 2.5(ks)-23.8 G(mtp/utu.\214)-2.5
+E(where the \214elds are:)108 237.6 Q(timestamp)108 254.4 Q
 (The original spool\214le ctime \(creation time\) stamp in decimal.)144
-96 Q 12.94(\214leid Spool\214le)108 112.8 R
-(name after the router has processed it)2.5 E 20.72(dt1 The)108 129.6 R
+266.4 Q 12.94(\214leid Spool\214le)108 283.2 R
+(name after the router has processed it)2.5 E 20.72(dt1 The)108 300 R
 (time dif)2.5 E(ference from spool\214le ctime to scheduler control \
-\214le creation by the router)-.25 E 20.72(dt2 The)108 146.4 R(time dif)
+\214le creation by the router)-.25 E 20.72(dt2 The)108 316.8 R(time dif)
 2.5 E(ference from scheduler \214le ctime to the deli)-.25 E -.15(ve)
--.25 G(ry that is logged on).15 E 15.17(state What)108 163.2 R 2.5
+-.25 G(ry that is logged on).15 E 15.17(state What)108 333.6 R 2.5
 (happened? V)2.5 F(alues: ok, error)-1.11 E 2.5(,e)-.4 G(xpiry)-2.65 E
-($channel/$host)108 180 Q(Where/ho)144 192 Q 2.5(wi)-.25 G 2.5(tw)-2.5 G
-(as processed)-2.6 E/F1 9/Times-Bold@0 SF(MAILQ PR)72 208.8 Q -1.692
--.36(OT O)-.27 H(COL).36 E/F2 10/Times-Bold@0 SF
-(*** This is actually out of date, when using \255Q-mode ***)108 220.8 Q
-F0 .946(Upon accepting a TCP connection on the)108 237.6 R F2(MAILQ)
-3.446 E F0 .946(port \(TCP port 174\), the)3.446 F/F3 10/Times-Italic@0
-SF(sc)3.446 E(heduler)-.15 E F0 .945(dumps data to the)3.446 F
-(TCP stream in the follo)108 249.6 Q
+($channel/$host)108 350.4 Q(Where/ho)144 362.4 Q 2.5(wi)-.25 G 2.5(tw)
+-2.5 G(as processed)-2.6 E F2(MAILQ PR)72 379.2 Q -1.692 -.36(OT O)-.27
+H(COL).36 E F1
+(*** This is actually out of date, when using \255Q-mode ***)108 391.2 Q
+F0 .946(Upon accepting a TCP connection on the)108 408 R F1(MAILQ)3.446
+E F0 .946(port \(TCP port 174\), the)3.446 F/F3 10/Times-Italic@0 SF(sc)
+3.446 E(heduler)-.15 E F0 .945(dumps data to the)3.446 F
+(TCP stream in the follo)108 420 Q
 (wing format and immediately closes the connection:)-.25 E
-(The TCP stream syntax is:)108 266.4 Q F2 -.1(ve)144 290.4 S(rsion).1 E
-F3(id)2.5 E F2(\\n)A F3(data in id-dependent format)144 302.4 Q F0(<)A
+(The TCP stream syntax is:)108 436.8 Q F1 -.1(ve)144 460.8 S(rsion).1 E
+F3(id)2.5 E F1(\\n)A F3(data in id-dependent format)144 472.8 Q F0(<)A
 F3(close)A F0(>)A .174
-(The \214rst line \(all bytes up to an ASCII LF character)108 331.2 R
+(The \214rst line \(all bytes up to an ASCII LF character)108 501.6 R
 2.675(,o)-.4 G .175
 (ctal 12\) is used to identify the syntax of all bytes fol-)-2.675 F(lo)
-108 343.2 Q .666(wing the line terminator)-.25 F F2(LF)3.166 E F0 5.666
-(.T)C .665(he \214rst 8 characters of the \214rst line are ")-5.666 F F2
+108 513.6 Q .666(wing the line terminator)-.25 F F1(LF)3.166 E F0 5.666
+(.T)C .665(he \214rst 8 characters of the \214rst line are ")-5.666 F F1
 -.1(ve)C(rsion).1 E F0 3.165("a)3.165 G 3.165(sac)-3.165 G .665
-(heck that this is)-3.165 F .296(indeed a)108 355.2 R F2(MAILQ)2.796 E
+(heck that this is)-3.165 F .296(indeed a)108 525.6 R F1(MAILQ)2.796 E
 F0 .296(port serv)2.796 F .297(er that has been reached, the remaining \
 bytes are the real data format identi\214ca-)-.15 F 2.5(tion. The)108
-367.2 R(data is interpreted according to that format until the terminat\
-ing connection close.)2.5 E -.15(Fo)108 384 S 1.002
+537.6 R(data is interpreted according to that format until the terminat\
+ing connection close.)2.5 E -.15(Fo)108 554.4 S 1.002
 (rmat identi\214ers should be re).15 F 1.001(gistered with the author)
 -.15 F 6.001(.T)-.55 G 1.001(he only one currently de\214ned is ")-6.001
-F F2 1.001(zmailer 1.0)B F0(".)A -.15(Fo)108 396 S 2.5(rt).15 G
+F F1 1.001(zmailer 1.0)B F0(".)A -.15(Fo)108 566.4 S 2.5(rt).15 G
 (hat data format, the syntax of the data follo)-2.5 E(wing the \214rst)
--.25 E F2(LF)2.5 E F0(is:)2.5 E F2 -1(Ve)144 420 S(rtices:\\n)1 E F0
-(\(<)144 432 Q F3 -.1(ke)C(y)-.2 E F0(>)A F2(:\\t)A F0(><)A F3
-(msg-\214le)A F0(>)A F2(\\t)A F0(><)A F3(n-addr)A(s)-.1 E F0(>)A F2(;)A
-F0(<)2.5 E F3(of)A(f1)-.18 E F0(>\()A F2(,)A F0(<)A F3(of)A(fN)-.18 E F0
-(>\)*)A F2(\\t)A F0(>[)A F2(#)A F0(<)A F3(te)A(xt)-.2 E F0(>])A F2(\\n)A
-F0(\)*)A(\()144 444 Q F2(Channels:\\n)A F0(\(<)144 456 Q F3(wor)A(d)-.37
-E F0(>)A F2(:\\t)A F0(>\()A F2(>)A F0(<)A F3 -.1(ke)C(y)-.2 E F0(>\)+)A
-F2(\\n)A F0(\)+)A F2(Hosts:\\n)144 468 Q F0(\(<)144 480 Q F3(wor)A(d)
--.37 E F0(>)A F2(:\\t)A F0(>\()A F2(>)A F0(<)A F3 -.1(ke)C(y)-.2 E F0
-(>\)+)A F2(\\n)A F0(\)+\)?)A(Where:)108 504 Q F2(\\n)20.97 E F0
-(is an ASCII linefeed)85.26 E F2(\\t)158.4 516 Q F0(is an ASCII tab)
-87.49 E F3 -.1(ke)158.4 528 S(y)-.2 E F0(is an unsigned decimal number)
-80.68 E F3(msg-\214le)158.4 540 Q F0
+-.25 E F1(LF)2.5 E F0(is:)2.5 E F1 -1(Ve)144 590.4 S(rtices:\\n)1 E F0
+(\(<)144 602.4 Q F3 -.1(ke)C(y)-.2 E F0(>)A F1(:\\t)A F0(><)A F3
+(msg-\214le)A F0(>)A F1(\\t)A F0(><)A F3(n-addr)A(s)-.1 E F0(>)A F1(;)A
+F0(<)2.5 E F3(of)A(f1)-.18 E F0(>\()A F1(,)A F0(<)A F3(of)A(fN)-.18 E F0
+(>\)*)A F1(\\t)A F0(>[)A F1(#)A F0(<)A F3(te)A(xt)-.2 E F0(>])A F1(\\n)A
+F0(\)*)A(\()144 614.4 Q F1(Channels:\\n)A F0(\(<)144 626.4 Q F3(wor)A(d)
+-.37 E F0(>)A F1(:\\t)A F0(>\()A F1(>)A F0(<)A F3 -.1(ke)C(y)-.2 E F0
+(>\)+)A F1(\\n)A F0(\)+)A F1(Hosts:\\n)144 638.4 Q F0(\(<)144 650.4 Q F3
+(wor)A(d)-.37 E F0(>)A F1(:\\t)A F0(>\()A F1(>)A F0(<)A F3 -.1(ke)C(y)
+-.2 E F0(>\)+)A F1(\\n)A F0(\)+\)?)A(Where:)108 674.4 Q F1(\\n)20.97 E
+F0(is an ASCII linefeed)85.26 E F1(\\t)158.4 686.4 Q F0(is an ASCII tab)
+87.49 E F3 -.1(ke)158.4 698.4 S(y)-.2 E F0
+(is an unsigned decimal number)80.68 E F3(msg-\214le)158.4 710.4 Q F0
 (is a contiguous string \(it is the message)61.94 E(\214le name relati)
-252 552 Q .3 -.15(ve t)-.25 H 2.5(oak).15 G(no)-2.5 E(wn directory\))
--.25 E F3(n-addr)158.4 564 Q(s)-.1 E F0
-(is an unsigned decimal number \(number of)62.59 E(addresses\))252 576 Q
-F3(of)158.4 588 Q(f1)-.18 E F0(...)A F3(of)A(fN)-.18 E F0
-(are unsigned decimal numbers)53.67 E(\(address byte of)252 600 Q
-(fsets\))-.25 E F3(te)158.4 612 Q(xt)-.2 E F0
-(is a string not containing an ASCII linefeed)79.36 E
-(\(status message\))252 624 Q F3(wor)158.4 636 Q(d)-.37 E F0
-(is a contiguous string)73.41 E 2.5(a")158.4 660 S
-(contiguous string" is a sequence of printable)-2.5 E
-(non-space characters)158.4 672 Q -.15(Fo)108 700.8 S 2.5(re).15 G
-(xample, here is sample output from connecting to the)-2.65 E F2(MAILQ)
-2.5 E F0(port:)2.5 E -.15(ve)144 724.8 S(rsion zmailer 1.0).15 E 2.5(3M)
-282.67 768 S(ar 2000)-2.5 E(8)205.67 E EP
+252 722.4 Q .3 -.15(ve t)-.25 H 2.5(oak).15 G(no)-2.5 E(wn directory\))
+-.25 E 2.5(3M)282.67 768 S(ar 2000)-2.5 E(8)205.67 E EP
 %%Page: 9 9
 %%BeginPageSetup
 BP
 %%EndPageSetup
-/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R
--1.11(Ve)144 84 S(rtices:)1.11 E(311424:37141; 116)144 96 Q
-(311680:64722; 151,331#128.100.8.4: Null read! \(will retry\))144 108 Q
-(312192:63471; 152#128.89.0.93: connect: Connection timed out \(will re\
-try\))144 120 Q(Channels:)144 132 Q(smtp:>311424>311680>312192)144 144 Q
-(Hosts:)144 156 Q(scg.toronto.edu:>311424)144 168 Q
-(mv04.ecf.toronto.edu:>311680)144 180 Q(relay1.cs.net:>312192)144 192 Q
-.005(This is suf)108 220.8 R .006(\214cient information to be able to r\
-econstruct the transport queues as seen by the scheduler process,)-.25 F
-.406(and to \214nd more information than what is sho)108 232.8 R .405
-(wn here by actually looking up the message control and data)-.25 F
-(\214les referred to.)108 244.8 Q/F1 9/Times-Bold@0 SF(MAILQv2 PR)72
-261.6 Q -1.692 -.36(OT O)-.27 H(COL).36 E F0 2.32
-(The MAILQv2 protocol is interacti)108 273.6 R 2.62 -.15(ve a)-.25 H
+/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R/F1
+10/Times-Italic@0 SF(n-addr)158.4 84 Q(s)-.1 E F0
+(is an unsigned decimal number \(number of)62.59 E(addresses\))252 96 Q
+F1(of)158.4 108 Q(f1)-.18 E F0(...)A F1(of)A(fN)-.18 E F0
+(are unsigned decimal numbers)53.67 E(\(address byte of)252 120 Q
+(fsets\))-.25 E F1(te)158.4 132 Q(xt)-.2 E F0
+(is a string not containing an ASCII linefeed)79.36 E
+(\(status message\))252 144 Q F1(wor)158.4 156 Q(d)-.37 E F0
+(is a contiguous string)73.41 E 2.5(a")158.4 180 S
+(contiguous string" is a sequence of printable)-2.5 E
+(non-space characters)158.4 192 Q -.15(Fo)108 220.8 S 2.5(re).15 G
+(xample, here is sample output from connecting to the)-2.65 E/F2 10
+/Times-Bold@0 SF(MAILQ)2.5 E F0(port:)2.5 E -.15(ve)144 244.8 S
+(rsion zmailer 1.0).15 E -1.11(Ve)144 256.8 S(rtices:)1.11 E
+(311424:37141; 116)144 268.8 Q
+(311680:64722; 151,331#128.100.8.4: Null read! \(will retry\))144 280.8
+Q(312192:63471; 152#128.89.0.93: connect: Connection timed out \(will r\
+etry\))144 292.8 Q(Channels:)144 304.8 Q(smtp:>311424>311680>312192)144
+316.8 Q(Hosts:)144 328.8 Q(scg.toronto.edu:>311424)144 340.8 Q
+(mv04.ecf.toronto.edu:>311680)144 352.8 Q(relay1.cs.net:>312192)144
+364.8 Q .005(This is suf)108 393.6 R .006(\214cient information to be a\
+ble to reconstruct the transport queues as seen by the scheduler proces\
+s,)-.25 F .406(and to \214nd more information than what is sho)108 405.6
+R .405(wn here by actually looking up the message control and data)-.25
+F(\214les referred to.)108 417.6 Q/F3 9/Times-Bold@0 SF(MAILQv2 PR)72
+434.4 Q -1.692 -.36(OT O)-.27 H(COL).36 E F0 2.32
+(The MAILQv2 protocol is interacti)108 446.4 R 2.62 -.15(ve a)-.25 H
 2.32(utenticating protocol, unlik).15 F 4.82(ei)-.1 G 2.32
-(ts predecessor \(v1\).)-4.82 F 2.32(The system)7.32 F(be)108 285.6 Q
+(ts predecessor \(v1\).)-4.82 F 2.32(The system)7.32 F(be)108 458.4 Q
 .16(gins with a greeting telling v)-.15 F .16(ersion, and then gi)-.15 F
 .16(ving one line of challenge to be used in subsequent auten-)-.25 F
-(tication command:)108 297.6 Q -.15(ve)144 321.6 S(rsion zmailer 2.0\\n)
-.15 E(MAILQ-V2-CHALLENGE: 942665308.906504.3\\n)144 333.6 Q
-(Protocol commands are:)108 362.4 Q -.55(AU)108 379.2 S(TH username he)
-.55 E(xauthenticator)-.15 E .567(The "login" of the mailq session.)144
-391.2 R .568(The he)5.567 F .568(xauthenticator is lo)-.15 F .568
-(wercase he)-.25 F .568(xadecimal character print-)-.15 F 1.164
-(out of MD5 checksum ran o)144 403.2 R -.15(ve)-.15 G 3.663(rt).15 G
-1.163(he catenate of the challenge string \(without its ending ne)-3.663
-F(wline)-.25 E 1.157(character\), and the user')144 415.2 R 3.657(sp)
--.55 G(assw)-3.657 E 3.658(ord. This)-.1 F 1.158
+(tication command:)108 470.4 Q -.15(ve)144 494.4 S(rsion zmailer 2.0\\n)
+.15 E(MAILQ-V2-CHALLENGE: 942665308.906504.3\\n)144 506.4 Q
+(Protocol commands are:)108 535.2 Q -.55(AU)108 552 S(TH username he).55
+E(xauthenticator)-.15 E .567(The "login" of the mailq session.)144 564 R
+.568(The he)5.567 F .568(xauthenticator is lo)-.15 F .568(wercase he)
+-.25 F .568(xadecimal character print-)-.15 F 1.164
+(out of MD5 checksum ran o)144 576 R -.15(ve)-.15 G 3.663(rt).15 G 1.163
+(he catenate of the challenge string \(without its ending ne)-3.663 F
+(wline)-.25 E 1.157(character\), and the user')144 588 R 3.657(sp)-.55 G
+(assw)-3.657 E 3.658(ord. This)-.1 F 1.158
 (algorithm is essentially the same what APOP scheme)3.658 F(uses.)144
-427.2 Q(SHO)108 444 Q 2.5(WS)-.35 G(NMP)-2.5 E(Implements 'mailq -QQQ'.)
-144 456 Q(SHO)108 472.8 Q 2.5(WQ)-.35 G(UEUE SHOR)-2.6 E(T)-.6 E
-(Implements 'mailq -QQ'.)144 484.8 Q(SHO)108 501.6 Q 2.5(WQ)-.35 G
-(UEUE THREADS)-2.6 E(Implements 'mailq -Q'.)144 513.6 Q(SHO)108 530.4 Q
-2.5(WT)-.35 G(HREAD channel host)-2.5 E(Unimplemented.)144 542.4 Q .4 LW
-157.16 561.7 152.16 561.7 DL(ETRN etrn)108 559.2 Q(string)5 E
-(Supports ETRN-cluster subsystem at smtpserv)144 571.2 Q(er)-.15 E(.)
--.55 E(KILL MSG spoolid)108 588 Q(Unimplemented.)144 600 Q
-(KILL THREAD channel host)108 616.8 Q(Unimplemented.)144 628.8 Q
-(Responses are written out to same sock)108 645.6 Q(et in POP-lik)-.1 E
-2.5(em)-.1 G(anner:)-2.5 E -.55(AU)144 669.6 S(TH .... \\n).55 E 2.5
-(+OK or -LOGIN)144 681.6 R -.74(FA)2.5 G(ILED \\n).74 E(SHO)144 705.6 Q
-2.5(WS)-.35 G(NMP\\n)-2.5 E(+OK until LF)144 717.6 Q(.LF\\n)-.8 E(te)144
-729.6 Q(xt\\n)-.15 E 2.5(3M)282.67 768 S(ar 2000)-2.5 E(9)205.67 E EP
+600 Q(SHO)108 616.8 Q 2.5(WS)-.35 G(NMP)-2.5 E(Implements 'mailq -QQQ'.)
+144 628.8 Q(SHO)108 645.6 Q 2.5(WQ)-.35 G(UEUE SHOR)-2.6 E(T)-.6 E
+(Implements 'mailq -QQ'.)144 657.6 Q(SHO)108 674.4 Q 2.5(WQ)-.35 G
+(UEUE THREADS)-2.6 E(Implements 'mailq -Q'.)144 686.4 Q(SHO)108 703.2 Q
+2.5(WT)-.35 G(HREAD channel host)-2.5 E(Unimplemented.)144 715.2 Q 2.5
+(3M)282.67 768 S(ar 2000)-2.5 E(9)205.67 E EP
 %%Page: 10 10
 %%BeginPageSetup
 BP
 %%EndPageSetup
-/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R(te)
-144 84 Q(xt\\n)-.15 E(.\\n)144 96 Q(If the output te)108 124.8 Q
-(xt contains a dot at the be)-.15 E
+/F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R .4
+LW 157.16 86.5 152.16 86.5 DL(ETRN etrn)108 84 Q(string)5 E
+(Supports ETRN-cluster subsystem at smtpserv)144 96 Q(er)-.15 E(.)-.55 E
+(KILL MSG spoolid)108 112.8 Q(Unimplemented.)144 124.8 Q
+(KILL THREAD channel host)108 141.6 Q(Unimplemented.)144 153.6 Q
+(Responses are written out to same sock)108 170.4 Q(et in POP-lik)-.1 E
+2.5(em)-.1 G(anner:)-2.5 E -.55(AU)144 194.4 S(TH .... \\n).55 E 2.5
+(+OK or -LOGIN)144 206.4 R -.74(FA)2.5 G(ILED \\n).74 E(SHO)144 230.4 Q
+2.5(WS)-.35 G(NMP\\n)-2.5 E(+OK until LF)144 242.4 Q(.LF\\n)-.8 E(te)144
+254.4 Q(xt\\n)-.15 E(te)144 266.4 Q(xt\\n)-.15 E(.\\n)144 278.4 Q
+(If the output te)108 307.2 Q(xt contains a dot at the be)-.15 E
 (ginning of the line, it is duplicated in SMTP \(and POP\) style.)-.15 E
-1.367(Of v)108 141.6 R 1.366(arious commands, the "SHO)-.25 F 1.366
+1.367(Of v)108 324 R 1.366(arious commands, the "SHO)-.25 F 1.366
 (W" class implements multiple te)-.35 F 1.366
-(xt-line outputs, others only "+OK" \(or)-.15 F("-ERR..."\).)108 153.6 Q
-/F1 9/Times-Bold@0 SF(MAILQv2 A)72 175.2 Q(UTHENTICA)-.45 E(TION FILE)
--.855 E F0 -.15(Fo)108 187.2 S 3.468(ra).15 G .969
+(xt-line outputs, others only "+OK" \(or)-.15 F("-ERR..."\).)108 336 Q
+/F1 9/Times-Bold@0 SF(MAILQv2 A)72 357.6 Q(UTHENTICA)-.45 E(TION FILE)
+-.855 E F0 -.15(Fo)108 369.6 S 3.468(ra).15 G .969
 (utenticating MAILQv2 protocol users, system can use)-3.468 F/F2 10
 /Times-Italic@0 SF -.9(PA)3.469 G(RAMauth\214le="/path/to/\214le).9 E
 (.auth")-.15 E F0 -.92(PA)3.469 G(RAM-).92 E .667(assignment to identif\
 y \214le containing the data, and with the \214le to authenticate and p\
-arametrize what user)108 199.2 R(can do thru the MAILQv2 port.)108 211.2
-Q(#)108 240 Q 2.5(#A)108 252 S(POP-lik)-2.5 E 2.5(ea)-.1 G
+arametrize what user)108 381.6 R(can do thru the MAILQv2 port.)108 393.6
+Q(#)108 422.4 Q 2.5(#A)108 434.4 S(POP-lik)-2.5 E 2.5(ea)-.1 G
 (uthentication control \214le for the ZMailer scheduler)-2.5 E(.)-.55 E
-(#)108 264 Q 2.5(#F)108 276 S
+(#)108 446.4 Q 2.5(#F)108 458.4 S
 (ields are double-colon \(':'\) separated, and are:)-2.5 E 7.5(#-)108
-288 S(Username)-5 E 7.5(#-)108 300 S(PLAINTEXT P)-5 E(ASSW)-.92 E
+470.4 S(Username)-5 E 7.5(#-)108 482.4 S(PLAINTEXT P)-5 E(ASSW)-.92 E
 (ORD \(which must not ha)-.1 E .3 -.15(ve d)-.2 H(ouble-colon in it!\))
-.15 E 7.5(#-)108 312 S(Enabled attrib)-5 E(utes \(tok)-.2 E
-(ens, space separated\))-.1 E(#)108 324 Q 2.5(#D)108 336 S(ef)-2.5 E
+.15 E 7.5(#-)108 494.4 S(Enabled attrib)-5 E(utes \(tok)-.2 E
+(ens, space separated\))-.1 E(#)108 506.4 Q 2.5(#D)108 518.4 S(ef)-2.5 E
 (ault-account for 'mailq' is 'nobody' with passw)-.1 E(ord 'nobody'.)-.1
-E 2.5(#T)108 348 S(hird \214eld is at the moment a W)-2.5 E(ORK IN PR)
--.1 E(OGRESS!)-.4 E(#)108 360 Q 2.5(#S)108 372 S(ECURITY NO)-2.5 E(TE:)
--.4 E 7.5(#O)108 384 S 17.91(WNER: root)-7.85 F 7.5(#P)108 396 S -.4
-(ROT)-7.5 G(ECTION: 0600).4 E(#)108 408 Q 2.5(#A)108 420 S(ttrib)-2.5 E
-(ute tok)-.2 E(ens:)-.1 E 31(#A)108 432 S 14.06(LL well,)-31 F 2.5(aw)
-2.5 G(ild-card enabling e)-2.5 E -.15(ve)-.25 G(rything).15 E 31(#S)108
-444 S 6.27(NMP "SHO)-31 F 2.5(WS)-.35 G(NMP")-2.5 E 31(#Q)108 456 S
-21.56(Q")-31 G(SHO)-21.56 E 2.5(WQ)-.35 G(UEUE SHOR)-2.6 E(T")-.6 E 31
-(#T)108 468 S 23.78(T")-31 G(SHO)-23.78 E 2.5(WQ)-.35 G
+E 2.5(#T)108 530.4 S(hird \214eld is at the moment a W)-2.5 E(ORK IN PR)
+-.1 E(OGRESS!)-.4 E(#)108 542.4 Q 2.5(#S)108 554.4 S(ECURITY NO)-2.5 E
+(TE:)-.4 E 7.5(#O)108 566.4 S 17.91(WNER: root)-7.85 F 7.5(#P)108 578.4
+S -.4(ROT)-7.5 G(ECTION: 0600).4 E(#)108 590.4 Q 2.5(#A)108 602.4 S
+(ttrib)-2.5 E(ute tok)-.2 E(ens:)-.1 E 31(#A)108 614.4 S 14.06(LL well,)
+-31 F 2.5(aw)2.5 G(ild-card enabling e)-2.5 E -.15(ve)-.25 G(rything).15
+E 31(#S)108 626.4 S 6.27(NMP "SHO)-31 F 2.5(WS)-.35 G(NMP")-2.5 E 31(#Q)
+108 638.4 S 21.56(Q")-31 G(SHO)-21.56 E 2.5(WQ)-.35 G(UEUE SHOR)-2.6 E
+(T")-.6 E 31(#T)108 650.4 S 23.78(T")-31 G(SHO)-23.78 E 2.5(WQ)-.35 G
 (UEUE THREADS", "SHO)-2.6 E 2.5(WT)-.35 G(HREAD channel host")-2.5 E 31
-(#E)108 480 S 7.39(TRN "ETRN)-31 F(etrn_string")2.5 E 31(#K)108 492 S
-10.73(ILL "KILL)-31 F(THREAD channel host", "KILL MSG spoolid")2.5 E(#)
-108 504 Q(nobody:nobody:SNMP ETRN)108 516 Q(#w)108 528 Q
-(atcher:zzzzz:SNMP QQ TT ETRN)-.1 E(#root:zzzzzzz:ALL)108 540 Q F1
-(TCP-WRAPPER AND MAILQ)72 573.6 Q F0 .719(If the ZMailer system is con\
-\214gured with tcp-wrapper code, then service-id "mailq" is look)108
-585.6 R .72(ed for all those)-.1 F(addresses that are allo)108 597.6 Q
-(wed to do queries.)-.25 E(Usually \214les)108 614.4 Q F2(hosts.allow)
-2.5 E F0 2.5(,a).31 G(nd)-2.5 E F2(hosts.deny)2.5 E F0(contain follo)2.5
-E(wing kind of entries:)-.25 E(.../hosts.allo)110.5 631.2 Q(w)-.25 E
-(mailq : ALL@1.2.3.0)110.5 643.2 Q(.../hosts.den)110.5 667.2 Q(y)-.15 E
-(ALL : ALL@ALL)110.5 679.2 Q F2 2.162
-(\(Do note that smtpserver\(8\) has also tcp-wr)108 696 R 2.162
-(apper support, whic)-.15 F 4.661(hb)-.15 G 2.161
-(ecomes active simultaneously with)-4.661 F(sc)108 708 Q(heduler')-.15 E
-2.5(st)-.4 G(cp-wr)-2.5 E(apper code!\))-.15 E F0 2.5(3M)282.67 768 S
-(ar 2000)-2.5 E(10)200.67 E EP
+(#E)108 662.4 S 7.39(TRN "ETRN)-31 F(etrn_string")2.5 E 31(#K)108 674.4
+S 10.73(ILL "KILL)-31 F(THREAD channel host", "KILL MSG spoolid")2.5 E
+(#)108 686.4 Q(nobody:nobody:SNMP ETRN)108 698.4 Q(#w)108 710.4 Q
+(atcher:zzzzz:SNMP QQ TT ETRN)-.1 E(#root:zzzzzzz:ALL)108 722.4 Q 2.5
+(3M)282.67 768 S(ar 2000)-2.5 E(10)200.67 E EP
 %%Page: 11 11
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF 324.4(SCHEDULER\(8\) SCHEDULER\(8\))72 48 R/F1 9
-/Times-Bold@0 SF(SIGN)72 84 Q(ALS)-.18 E/F2 10/Times-Bold@0 SF(SIGHUP)
-108 96 Q F0(:)A(close and reopen the stdout/stderr log \214le.)144 108 Q
-F2(SIGTERM)108 124.8 Q F0(:)A -.15(ex)144 136.8 S(it cleanly).15 E(.)
--.65 E F2(SIGQ)108 153.6 Q(UIT)-.1 E F0(:)A -.15(ex)144 165.6 S
-(it cleanly).15 E 2.5(,b)-.65 G
-(ut at \214rst order transporter childs to shut do)-2.7 E
-(wn, and collect their status reports.)-.25 E F2(SIGALRM)108 182.4 Q F0
-(:)A(check pending w)144 194.4 Q(ork.)-.1 E F2(SIGUSR1)108 211.2 Q F0(:)
-A(reread the)144 223.2 Q/F3 10/Times-Italic@0 SF(sc)2.5 E(heduler)-.15 E
-F0(con\214guration \214le.)2.5 E F2(SIGUSR2)108 240 Q F0(:)A
-(dump state information to the)144 252 Q F3 -.37(re)2.5 G(ndezvous).37 E
-F0(\214le.)2.5 E F1(FILES)72 268.8 Q F3(/etc/zmailer)108 280.8 Q(.conf)
--1.11 E(/var/spool/postof)108 292.8 Q(\214ce/.pid.sc)-.18 E
+/Times-Bold@0 SF(TCP-WRAPPER AND MAILQ)72 84 Q F0 .719(If the ZMailer s\
+ystem is con\214gured with tcp-wrapper code, then service-id "mailq" is\
+ look)108 96 R .72(ed for all those)-.1 F(addresses that are allo)108
+108 Q(wed to do queries.)-.25 E(Usually \214les)108 124.8 Q/F2 10
+/Times-Italic@0 SF(hosts.allow)2.5 E F0 2.5(,a).31 G(nd)-2.5 E F2
+(hosts.deny)2.5 E F0(contain follo)2.5 E(wing kind of entries:)-.25 E
+(.../hosts.allo)110.5 141.6 Q(w)-.25 E(mailq : ALL@1.2.3.0)110.5 153.6 Q
+(.../hosts.den)110.5 177.6 Q(y)-.15 E(ALL : ALL@ALL)110.5 189.6 Q F2
+2.162(\(Do note that smtpserver\(8\) has also tcp-wr)108 206.4 R 2.162
+(apper support, whic)-.15 F 4.661(hb)-.15 G 2.161
+(ecomes active simultaneously with)-4.661 F(sc)108 218.4 Q(heduler')-.15
+E 2.5(st)-.4 G(cp-wr)-2.5 E(apper code!\))-.15 E F1(SIGN)72 235.2 Q(ALS)
+-.18 E/F3 10/Times-Bold@0 SF(SIGHUP)108 247.2 Q F0(:)A
+(close and reopen the stdout/stderr log \214le.)144 259.2 Q F3(SIGTERM)
+108 276 Q F0(:)A -.15(ex)144 288 S(it cleanly).15 E(.)-.65 E F3(SIGQ)108
+304.8 Q(UIT)-.1 E F0(:)A -.15(ex)144 316.8 S(it cleanly).15 E 2.5(,b)
+-.65 G(ut at \214rst order transporter childs to shut do)-2.7 E
+(wn, and collect their status reports.)-.25 E F3(SIGALRM)108 333.6 Q F0
+(:)A(check pending w)144 345.6 Q(ork.)-.1 E F3(SIGUSR1)108 362.4 Q F0(:)
+A(reread the)144 374.4 Q F2(sc)2.5 E(heduler)-.15 E F0
+(con\214guration \214le.)2.5 E F3(SIGUSR2)108 391.2 Q F0(:)A
+(dump state information to the)144 403.2 Q F2 -.37(re)2.5 G(ndezvous).37
+E F0(\214le.)2.5 E F1(FILES)72 420 Q F2(/etc/zmailer)108 432 Q(.conf)
+-1.11 E(/var/spool/postof)108 444 Q(\214ce/.pid.sc)-.18 E
 (heduler \(POST)-.15 E(OFFICE/.pid.sc)-.18 E(heduler\))-.15 E
-(/var/spool/postof)108 304.8 Q(\214ce/sc)-.18 E(heduler \(POST)-.15 E
-(OFFICE/sc)-.18 E(heduler\))-.15 E(/var/spool/postof)108 316.8 Q
+(/var/spool/postof)108 456 Q(\214ce/sc)-.18 E(heduler \(POST)-.15 E
+(OFFICE/sc)-.18 E(heduler\))-.15 E(/var/spool/postof)108 468 Q
 (\214ce/tr)-.18 E(ansport \(POST)-.15 E(OFFICE/tr)-.18 E(ansport\))-.15
-E(/var/spool/postof)108 328.8 Q(\214ce/queue \(POST)-.18 E
-(OFFICE/queue\))-.18 E F1(SEE ALSO)72 345.6 Q F0
-(router\(8\), mailq\(1\))108 357.6 Q(RFC 822)108 374.4 Q
-(The basic Internet email format speci\214cation)146.1 E(RFC 1123)108
-386.4 Q -1.11(Va)141.1 G(rious 822 parameter clari\214cations)1.11 E(Se)
-108 410.4 Q -.15(ve)-.25 G(ral e).15 E(xtended SMTP f)-.15 E
-(acilities are implemented:)-.1 E(RFC 1341/1521/2045)108 434.4 Q
-(MIME speci\214cation \(body)95.54 E 2.5(,f)-.65 G(ormats\))-2.5 E
-(RFC 1342/1522/2047)108 446.4 Q(MIME speci\214cation \(headers\))95.54 E
-(RFC 1425/1651/1869)108 458.4 Q(ESMTP EHLO frame)95.54 E -.1(wo)-.25 G
-(rk).1 E(RFC 1428)108 470.4 Q(Basic MIME con)141.1 E -.15(ve)-.4 G
-(rsion rules).15 E(RFC 1892)108 482.4 Q(The Multipart/Report Content T)
-141.1 E(ype)-.8 E(RFC 1893)108 494.4 Q
-(Enhanced Mail System Status Codes)141.1 E(RFC 1894)108 506.4 Q
-(Extensible Message format for DSNs)141.1 E F1 -.45(AU)72 523.2 S(THOR)
-.45 E F0(This program authored and cop)108 535.2 Q(yright by:)-.1 E
-(Rayan Zachariassen <rayan@cs.toronto.edu>)108 547.2 Q 2.5(Ap)108 559.2
+E(/var/spool/postof)108 480 Q(\214ce/queue \(POST)-.18 E(OFFICE/queue\))
+-.18 E F1(SEE ALSO)72 496.8 Q F0(router\(8\), mailq\(1\))108 508.8 Q
+(RFC 822)108 525.6 Q(The basic Internet email format speci\214cation)
+146.1 E(RFC 1123)108 537.6 Q -1.11(Va)141.1 G
+(rious 822 parameter clari\214cations)1.11 E(Se)108 561.6 Q -.15(ve)-.25
+G(ral e).15 E(xtended SMTP f)-.15 E(acilities are implemented:)-.1 E
+(RFC 1341/1521/2045)108 585.6 Q(MIME speci\214cation \(body)95.54 E 2.5
+(,f)-.65 G(ormats\))-2.5 E(RFC 1342/1522/2047)108 597.6 Q
+(MIME speci\214cation \(headers\))95.54 E(RFC 1425/1651/1869)108 609.6 Q
+(ESMTP EHLO frame)95.54 E -.1(wo)-.25 G(rk).1 E(RFC 1428)108 621.6 Q
+(Basic MIME con)141.1 E -.15(ve)-.4 G(rsion rules).15 E(RFC 1892)108
+633.6 Q(The Multipart/Report Content T)141.1 E(ype)-.8 E(RFC 1893)108
+645.6 Q(Enhanced Mail System Status Codes)141.1 E(RFC 1894)108 657.6 Q
+(Extensible Message format for DSNs)141.1 E F1 -.45(AU)72 674.4 S(THOR)
+.45 E F0(This program authored and cop)108 686.4 Q(yright by:)-.1 E
+(Rayan Zachariassen <rayan@cs.toronto.edu>)108 698.4 Q 2.5(Ap)108 710.4
 S(lenty of changes and se)-2.5 E -.15(ve)-.25 G(ral real b).15 E
-(ug\214x)-.2 E(es by:)-.15 E(Matti Aarnio <mea@nic.funet.\214>)108 571.2
+(ug\214x)-.2 E(es by:)-.15 E(Matti Aarnio <mea@nic.funet.\214>)108 722.4
 Q 2.5(3M)282.67 768 S(ar 2000)-2.5 E(11)200.67 E EP
 %%Trailer
 end

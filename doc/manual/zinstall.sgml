@@ -512,7 +512,47 @@ as local.  See below about <FILENAME>localnames</> database.}
 </SECT2>
 </SECT1>
 
-<SECT1><TITLE>Verifying That the Router Starts</>
+<SECT1><TITLE>The Smtpserver subsystem</TITLE>
+
+<SECT2><TITLE>The ``<FILENAME>smtpserver.conf</>'', and smtp-policy databases</>
+<!-- <INDEXTERM><PRIMARY>smtpserver</><SECONDARY><FILENAME>smtpserver.conf</>-file</></> -->
+
+<PARA>
+These take care of such a things as preventing relay-hijack type
+of abuse of your system.
+</PARA>
+
+<PARA>
+Basically you want to install the boilerplates and the tool scripts,
+edit them a bit, and run <COMMAND>policy-builder.sh</> script.
+For further details on this, see chapter
+<XREF LINKEND="adm.smtp-policy-filtering">.
+</PARA>
+
+<PARA>
+In <COMMAND>smtpserver</> front you may need to lower the strict standards
+of the basic RFC-821 SMTP protocol and allow acceptance of non-qualified
+addresses &mdash; ones without any sort of domain name in them.
+</PARA>
+
+<PARA>
+Another thing to allow is (sigh) MS-Windows-CE 1.0/2.0 gadgets with
+their totally broken SMTP sending system.
+</PARA>
+
+<PARA>
+Both of these things are handled by ``EHLO-style options'' described
+at chapter <XREF LINKEND="adm.smtpserver.ehlostyle">.
+</PARA>
+
+</SECT2>
+
+
+</SECT1>
+
+<SECT1><TITLE>The Router subsystem</TITLE>
+
+<SECT2><TITLE>Verifying That the Router Starts</TITLE>
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY>router start verify</></>
      <INDEXTERM><PRIMARY>installation</><SECONDARY>router start verify</></> -->
 
@@ -547,10 +587,10 @@ It is unlikely you can do anything useful before setting up the data files,
 so get out of this by hitting EOF, or type <USERINPUT>exit</>.
 </PARA>
 
-</SECT1>
+</SECT2>
 
-<SECT1><TITLE>The Database Files</>
-<!-- \index{build!config!databases}    \index{build!config!forms files}%
+<SECT2><TITLE>The Router Database Files</>
+<!-- \index{build!config!router-databases}    \index{build!config!forms files}%
      \index{configuration!forms files} \index{configuration!databases}    -->
 
 <PARA>
@@ -563,16 +603,16 @@ Pay particular attention to the following items:
 FIXME! FIXME! (changed somewhen from itemized list to subsections, I think)
 </PARA>
 
-<SECT2><TITLE><FILENAME>$MAILBIN/zmailer</> script</>
+<SECT3><TITLE><FILENAME>$MAILBIN/zmailer</> script</>
 
 <PARA>
 You may want to add a symbolic link from some directory in your path
 to <FILENAME>$<VARNAME>MAILBIN</>/zmailer</>, if you don't already have this.
 I put this link in <FILENAME CLASS="DIRECTORY">/usr/local/sbin</>.
 </PARA>
-</SECT2>
+</SECT3>
 
-<SECT2><TITLE><FILENAME>$MAILVAR/db/aliases</> file</>
+<SECT3><TITLE><FILENAME>$MAILVAR/db/aliases</> file</>
 
 <PARA>
 The provided skeleton aliases file on purpose contains syntax errors,
@@ -606,9 +646,9 @@ Functions'' (file <FILENAME>doc/rfc/rfc2142.txt</>)
 for other suggested aliases you may need. 
 </PARA>
 
-</SECT2>
+</SECT3>
 
-<SECT2 ID="configure-localnames-file">
+<SECT3 ID="configure-localnames-file">
 <TITLE><FILENAME>$MAILVAR/db/localnames</> file</>
 
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY><FILENAME>$<VARNAME>MAILVAR</>/db/localnames</></></> -->
@@ -671,9 +711,9 @@ Compile this into runtime binary database with command:
 (fall-back method is sequential rescan of the text file)
 </PARA>
 
-</SECT2>
+</SECT3>
 
-<SECT2><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/routes</> file</>
+<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/routes</> file</>
 
 <PARA>
 Add any UUCP neighbours or other special cases to this file.
@@ -701,9 +741,9 @@ You can compile the file into binary database with command:
   icnucevm.bitnet  smtp!icnucevm.cnuce.cnr.it
 </SCREEN>
 </FIGURE>
-</SECT2>
+</SECT3>
 
-<SECT2><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/fqdnaliases</> file</>
+<SECT3><TITLE><FILENAME>$<VARNAME>MAILVAR</>/db/fqdnaliases</> file</>
 
 <PARA>
 The <FILENAME>fqdnaliases</> database is for mapping fully-qualified
@@ -769,9 +809,9 @@ and repeat the command until the alias database has been initialized.
 The final message looks similar to that of the ordinary aliases case.
 </PARA>
 
-</SECT2>
+</SECT3>
 
-<SECT2><TITLE>UUCP Node Names</>
+<SECT3><TITLE>UUCP Node Names</>
 
 <PARA>
 If your hostname and UUCP node name are not identical, put your
@@ -779,10 +819,10 @@ UUCP node name in the file <FILENAME>/etc/name.uucp</>
 (or <FILENAME>/etc/uucpname</>).
 </PARA>
 
+</SECT3>
 </SECT2>
-</SECT1>
 
-<SECT1><TITLE>Checking the Routing</>
+<SECT2><TITLE>Checking the Routing</>
 
 <PARA>
 At this point, you should be able to start the router again in
@@ -810,9 +850,12 @@ To give more feeling of what goes on during the ``<COMMAND>route</>''-command,
 you can give command ``<COMMAND>rtrace</>'' before trying to use
 ``<COMMAND>route</>.''
 </PARA>
+</SECT2>
 </SECT1>
 
-<SECT1><TITLE>Checking the Scheduler</>
+<SECT1><TITLE>The Scheduler subsystem</TITLE>
+
+<SECT2><TITLE>Checking the Scheduler</TITLE>
 
 <PARA>
 The location of the <FILENAME>scheduler.conf</> on running system is
@@ -881,6 +924,7 @@ Variant for using <APPLICATION>CMU Cyrus</> message store server.
 For more information regarding <EMPHASIS>scheduler</> configuration language,
 see <XREF LINKEND="zref.schedulerconfig">.
 </PARA>
+</SECT2>
 
 <SECT2 ID="sm.conf"><TITLE>Checking <FILENAME>sm.conf</> file</>
 <!-- <INDEXTERM><PRIMARY><FILENAME>sm.conf</>-file</></> -->
@@ -910,39 +954,6 @@ as local delivery agent </PARA></LISTITEM>
 
 <PARA>
 For more information, see <XREF LINKEND="ref.ta.smconfig">.
-</PARA>
-
-</SECT2>
-
-<SECT2><TITLE>The ``<FILENAME>smtpserver.conf</>'', and smtp-policy databases</>
-<!-- <INDEXTERM><PRIMARY>smtpserver</><SECONDARY><FILENAME>smtpserver.conf</>-file</></> -->
-
-<PARA>
-These take care of such a things as preventing relay-hijack type
-of abuse of your system.
-</PARA>
-
-<PARA>
-Basically you want to install the boilerplates and the tool scripts,
-edit them a bit, and run <COMMAND>policy-builder.sh</> script.
-For further details on this, see chapter
-<XREF LINKEND="adm.smtp-policy-filtering">.
-</PARA>
-
-<PARA>
-In <COMMAND>smtpserver</> front you may need to lower the strict standards
-of the basic RFC-821 SMTP protocol and allow acceptance of non-qualified
-addresses &mdash; ones without any sort of domain name in them.
-</PARA>
-
-<PARA>
-Another thing to allow is (sigh) MS-Windows-CE 1.0/2.0 gadgets with
-their totally broken SMTP sending system.
-</PARA>
-
-<PARA>
-Both of these things are handled by ``EHLO-style options'' described
-at chapter <XREF LINKEND="adm.smtpserver.ehlostyle">.
 </PARA>
 
 </SECT2>
