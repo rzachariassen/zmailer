@@ -35,6 +35,9 @@
 #|	'acceptifdns'	{ '+', '-' }
 #|	'sendernorelay' { '+', '-' }
 #|	'test-dns-rbl'	{ '+', '-', "suffix.one:suffix.two" }
+#|	  Sample suffixes: rbl.maps.vix.com  
+#|			   dul.orca.bc.ca    dul.maps.vix.com
+#|			   relays.orbs.org   orbs.dorkslayers.com
 #|  ------------- document update for following items needed!
 #|	'rcpt-dns-rbl'	{ '+', '-', "suffix.one:suffix.two" }
 #|	'test-rcpt-dns-rbl' { '+', '-', "suffix.one:suffix.two" }
