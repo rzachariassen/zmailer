@@ -2215,8 +2215,6 @@ va_dcl
 #endif
 
     s = inbuf + 3 + 1;
-    if (enhancedstatusok)
-      s += strlen(status);
 
     /* These are not always safe... but they should be ok
        if we are carrying  (char*)s or (int)s.. */
@@ -2230,8 +2228,10 @@ va_dcl
     if (multilinereplies) {
       if (enhancedstatusok) {
 	sprintf(buf, "%03d-%s ", abscode, status);
+	s += strlen(status) +1;
       } else { /* No status codes */
 	sprintf(buf, "%03d- ", abscode);
+	++s;
       }
       bp = buf + strlen(buf);
       while (s < rfc821_error_ptr && --maxcnt >= 0) {

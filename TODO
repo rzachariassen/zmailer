@@ -1,5 +1,4 @@
-- makedb: duplicate key report to report IP address labels properly
-- some one-off error in rfc822-scanner
+- some one-off error in rfc822-scanner at the router ??
 
 Known/suspected bugs/Missing Features on current Zmailer sources
 
@@ -13,14 +12,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 libc: "make install" is "crazy"
 proto:	"make install" -- nothing goes in ???
 		--> MAILSHARE/proto/ !!
-
-libsh:
-	ssift and tsift do dequotation of input string:
-		address='"foo@bar"'
-		ssift "$address" in
-		...
-		tfiss
-	Inside the shifting: address='foo@bar'
 
 router:
 	Replace current multi-process router farm with one where queue
@@ -111,11 +102,6 @@ router + TA library + TA programs:
 	Tool/mechanism for the scheduler to command expiration of all
 	recipients in given thread.  (alike 'manual-expiry', except
 	a bit smarter..)
-
-	Having two or more users at the same target domain, the
-	scheduler can produce error telling ORCPT of first user,
-	but giving final-recipient of the second one.  Hmm..
-	(Seen to happen with 2.99.50-s10)
 
 	A new management channel protocol.
 

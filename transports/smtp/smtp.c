@@ -3334,7 +3334,7 @@ int sig;
 {
 	if (logfp != NULL) {
 	  fprintf(logfp, "%s#\t*** Received SIGPIPE!\n", logtag());
-	  abort();
+	  /* abort(); */
 	}
 	SIGNAL_HANDLE(sig, sig_pipe);
 	SIGNAL_RELEASE(sig);

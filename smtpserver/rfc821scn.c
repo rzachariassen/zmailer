@@ -1049,7 +1049,7 @@ int strict;
     }
     q = rfc821_path2(p, strict);
     if (q == p) {
-	/* Report whatever part2() reports as an error */
+	/* Report whatever path2() reports as an error */
 	return s;
     }
     if (*q == ' ' || *q == '\t') {

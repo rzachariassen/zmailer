@@ -58,11 +58,11 @@ if [ f$FLAG != fn ]; then
 	    # OVERWRITES the "running"  smtp-policy.spam  file.
 	    #
 	    > smtp-policy.spam.new
-	    lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
-		| sed -e '1,$s/^@/./' \
-		>> smtp-policy.spam.new
-	    lynx -source http://www.sprocket.com/Security/SpamDomains | \
-		awk 'NF > 0 {printf ".%s\n",$1}' >> smtp-policy.spam.new
+	#   lynx -source http://www.webeasy.com:8080/spam/spam_download_table \
+	#	| sed -e '1,$s/^@/./' \
+	#	>> smtp-policy.spam.new
+	#   lynx -source http://www.sprocket.com/Security/SpamDomains | \
+	#	awk 'NF > 0 {printf ".%s\n",$1}' >> smtp-policy.spam.new
 	    cat smtp-policy.spam.new | sed 's/^@//g' | tr "[A-Z]" "[a-z]" | \
 		    sort | uniq > smtp-policy.spam.new2
 	    if [ `grep -c cyberpromo smtp-policy.spam.new` -gt "0" ]; then

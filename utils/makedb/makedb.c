@@ -33,6 +33,9 @@
 #endif
 #endif
 
+#define _POLICYTEST_INTERNAL_
+#include "policy.h"
+
 #define PROG "makedb"
 
 #include <errno.h>
@@ -261,6 +264,35 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 extern int parsepolicykey __((void *, char *));
 extern int parseattributepair __((void *, char *, char *));
 
+/* KK() and KA() macroes are at "policy.h" */
+
+static char *showkey __((const char *key));
+static char *showkey(key)
+const char *key;
+{
+    static char buf[256];
+
+    if (key[1] != P_K_IPv4 && key[1] != P_K_IPv6) {
+	if (strlen(key+2) > (sizeof(buf) - 200))
+	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), "<too long name>");
+	else
+	    sprintf(buf,"%d/%s/'%s'", key[0], KK(key[1]), key+2);
+    } else
+      if (key[1] == P_K_IPv4)
+	sprintf(buf,"%d/%s/%u.%u.%u.%u/%d",
+		key[0], KK(key[1]),
+		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
+		key[6] & 0xff);
+      else
+	sprintf(buf,"%d/%s/%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x/%d",
+		key[0], KK(key[1]),
+		key[2] & 0xff, key[3] & 0xff, key[4] & 0xff, key[5] & 0xff,
+		key[6] & 0xff, key[7] & 0xff, key[8] & 0xff, key[9] & 0xff,
+		key[10] & 0xff, key[11] & 0xff, key[12] & 0xff, key[13] & 0xff,
+		key[14] & 0xff, key[15] & 0xff, key[16] & 0xff, key[17] & 0xff,
+		key[18] & 0xff);
+    return buf;
+}
 
 /* Scan over quoted string with embedded white spaces, or
    in case the object does not start with a double quote,
@@ -430,17 +462,13 @@ const int typ;
 		rc = store_db(dbf, typ, 0, linenum,
 			      t, tlen, s, slen);
 		if (rc > 0) {
-			int tl = tlen;
-			fprintf(stderr, "WARNING: Duplicate key at line %d: \"",
+			char *s;
+			fprintf(stderr, "WARNING: Duplicate key at line %d: ",
 				linenum);
-			for (;tl > 0; --tl,++t) {
-				unsigned char c = *t;
-				if (c < ' ' || c > 126 || c == '\\')
-					fprintf(stderr, "\\%03o", c);
-				else
-					fprintf(stderr, "%c", c);
-			}
-			fprintf(stderr, "\"\n");
+
+			s = showkey(policykeybuf);
+
+			fprintf(stderr, "%s\n", s);
 		}
 	}
 	return errflag;
