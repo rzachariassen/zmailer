@@ -63,7 +63,7 @@ sub new {
 	return undef;
     }
 
-    my $line = $self->{in}->getline();
+    $line = $self->{in}->getline();
     chomp $line;
 
     $self->{salt} = $line;
