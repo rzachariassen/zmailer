@@ -1307,6 +1307,9 @@ deliver(dp, rp, usernam, timestring)
 	      int cmd = sieve_command(&sv);
 
 	      switch(cmd) {
+	      case SIEVE_NOOP:
+		/* Absolutely NOTHING done with this label; end of iterator */
+		break;
 	      case SIEVE_RUNPIPE:
 		program(dp, rp, sv.pipecmdbuf, usernam, timestring, sv.pipeuid);
 		break;
@@ -1995,7 +1998,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	if (verboselog)
 	  fprintf(verboselog,"To run a pipe with uid=%d gid=%d cmd='%s'\n",
-		  uid, gid, user);
+		  uid, gid, cmdbuf);
 
 	env[i] = NULL;
 
@@ -2009,7 +2012,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 		       "5.3.0 (out of pipe resources)",
 		       "x-local; 500 (out of pipe resources)");
 	  DIAGNOSTIC(rp, user, EX_OSERR,
-		     "cannot create pipe from \"%s\"", user);
+		     "cannot create pipe from \"%s\"", cmdbuf);
 	  return;
 	}
 	if (pipe(out) < 0) {
@@ -2017,7 +2020,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 		       "5.3.0 (out of pipe resources)",
 		       "x-local; 500 (out of pipe resources)");
 	  DIAGNOSTIC(rp, user, EX_OSERR,
-		     "cannot create pipe to \"%s\"", user);
+		     "cannot create pipe to \"%s\"", cmdbuf);
 	  close(in[0]);
 	  close(in[1]);
 	  return;
@@ -2049,8 +2052,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	   * Some bourne shells may go into restricted mode if the
 	   * stuff to run contains an 'r'. XX: investigate.
 	   */
-	  execl("/bin/sh",  user+1, "-c", user+1, (char *)NULL);
-	  execl("/sbin/sh", user+1, "-c", user+1, (char *)NULL);
+	  execl("/bin/sh",  cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
+	  execl("/sbin/sh", cmdbuf+1, "-c", cmdbuf+1, (char *)NULL);
 	  write(2, "Cannot exec /bin/sh\n", 20);
 	  _exit(128);
 	} else if (pid < 0) {	/* fork failed */
@@ -2066,7 +2069,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	/* write the message */
 	mmdf_mode += 2;
 	eofindex = -1; /* NOT truncatable! */
-	fp = putmail(dp, rp, out[1], "a", timestring, user);
+	fp = putmail(dp, rp, out[1], "a", timestring, cmdbuf);
 	mmdf_mode -= 2;
 	if (fp == NULL) {
 	  pid = wait(&status);
