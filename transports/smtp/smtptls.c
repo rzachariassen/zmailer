@@ -1209,6 +1209,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 		/* TIMEOUT!  Uarrgh!! */
 		rr = -1; /* Zap the write-count! We are to FAIL! */
 		e = ETIMEDOUT;
+		len = 0; /* Entirely break out of the wrapping while() */
 zsyslog((LOG_ERR, "ERROR: SMTP socket write timeout\n"));
 		break;
 	      }

@@ -1,5 +1,9 @@
 2000-01-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* transports/smtp/smtptls.c:
+	    smtp_sfwrite() didn't break out at write-timeout quite
+	    as I had intended..
+
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
 	    More debug stuff for hunting strance message breaks..
 
