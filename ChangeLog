@@ -1,3 +1,9 @@
+2001-05-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* configure.in:  --with-zconfig-noload   option to disable
+	    preloading of possibly existing ZCONFIG file contents
+	    into configuration variables.
+
 2001-04-04  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/getmxrr.c:

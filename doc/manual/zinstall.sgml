@@ -1782,6 +1782,17 @@ from it to the auto-configuration environment.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
+<TERM><OPTION>&dd;with-zconfig-noload</OPTION></TERM>
+<LISTITEM><PARA>
+Without this option the configuration will load ZENV variable values
+from possibly existing <ENVAR>ZCONFIG</> file.
+</PARA>
+
+<PARA>
+Default: values will be preloaded without this option.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
 <TERM><OPTION>&dd;with-mailbox=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 Overrides system-dependent location of the user mail-boxes.
