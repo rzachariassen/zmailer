@@ -1,3 +1,9 @@
+1999-08-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    For Solaris 2.6 (and 2.7 ?) autodetect  -lxnet  for
+	    socket related functions.
+
 1999-08-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* README.TCP-WRAPPER:

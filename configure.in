@@ -1111,6 +1111,10 @@ AC_CHECK_FUNC(connect, ac_cv_libsocket_both=0)
 AC_CHECK_FUNC(gethostbyname, ac_cv_libsocket_both=0)
 if test "$ac_cv_libsocket_both" = 1 ; then
   # Check cache
+  if test "$ac_cv_func_socket_lxnet" = yes ; then
+    AC_MSG_RESULT([need -lxnet library (cached)])
+    LIBSOCKET="-lxnet"
+  else
   if test "$ac_cv_func_socket_lsocket" = yes ; then
     AC_MSG_RESULT([need -lsocket library (cached)])
     LIBSOCKET="-lsocket"
@@ -1119,13 +1123,16 @@ if test "$ac_cv_libsocket_both" = 1 ; then
     fi
   else
     # Well, will this work ?  SysVR4, but not Sun Solaris ?
-    AC_CHECK_LIB(socket, connect, [LIBSOCKET="-lsocket"
-				   ac_cv_func_socket_lsocket=yes],
-				   ac_cv_func_socket_lsocket=no)
-    if test "$ac_cv_func_socket_lsocket" = yes ; then
-      t_oldLibs="$LIBS"
-      LIBS="$LIBS -lsocket $LIBRESOLV"
-      AC_TRY_LINK([],[gethostbyname();], ,[
+    AC_CHECK_LIB(xnet, connect, [LIBSOCKET="-lxnet"
+				 ac_cv_func_socket_lsocket=no
+				 ac_cv_func_socket_lxnet=yes],[
+      AC_CHECK_LIB(socket, connect, [LIBSOCKET="-lsocket"
+				     ac_cv_func_socket_lsocket=yes],
+				     ac_cv_func_socket_lsocket=no)
+      if test "$ac_cv_func_socket_lsocket" = yes ; then
+        t_oldLibs="$LIBS"
+        LIBS="$LIBS -lsocket $LIBRESOLV"
+        AC_TRY_LINK([],[gethostbyname();], ,[
 	  LIBS="$LIBS -lnsl" # Add this Solaris library..
 	  AC_TRY_LINK([],[gethostbyname();],[
 			LIBSOCKET="-lsocket -lnsl"
@@ -1133,9 +1140,11 @@ if test "$ac_cv_libsocket_both" = 1 ; then
 		], [
 		   AC_MSG_ERROR([Weird, '$LIBS' not enough to find  gethostnyname() ?!])
 		])
-	])
-      LIBS="$t_oldLibs"
-    fi
+	  ])
+        LIBS="$t_oldLibs"
+      fi
+    ])
+  fi
   fi
 fi
 
