@@ -116,6 +116,12 @@ typedef union {
 
 #include "policytest.h"
 
+#ifdef HAVE_OPENSSL
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif
+
+
 struct smtpconf {
     const char *pattern;
     int maxloadavg;

@@ -1437,6 +1437,13 @@ if test "$use_getpwnam_lib" = 1; then
   GETPWLIB="$withval"
 fi
 
+AC_SUBST(OPENSSLINCL)
+AC_SUBST(OPENSSLLIB)
+AC_ARG_WITH(openssl-lib-dir, [  --with-openssl-lib-dir=/dir/path],
+	OPENSSLLIB="$withval";AC_DEFINE(HAVE_OPENSSL))
+AC_ARG_WITH(openssl-incl-dir, [  --with-openssl-incl-dir=/dir/path],
+	OPENSSLINCL="$withval";AC_DEFINE(HAVE_OPENSSL))
+
 AC_CHECK_FUNCS(crypt)
 
 if test "$ac_cv_func_crypt" != yes ; then

@@ -153,3 +153,7 @@
 
 /* */
 #undef HAVE_WHOSON_H
+
+/* HAVE_OPENSSL -- The system has www.OpenSSL.org software;
+   version 0.9.2b, very least */
+#undef HAVE_OPENSSL
