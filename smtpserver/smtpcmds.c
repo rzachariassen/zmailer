@@ -23,7 +23,7 @@
 #include "smtpserver.h"
 
 extern int netconnected_flg;
-
+extern int do_whoson;
 
 static const char *orcpt_string __((const char *));
 
@@ -712,7 +712,7 @@ int insecure;
 	rfc822commentprint(SS->mfp, SS->ident_username);
       }
 #ifdef HAVE_WHOSON_H
-      if (log_rcvd_whoson) {
+      if (log_rcvd_whoson && do_whoson) {
 	fprintf(SS->mfp, " whoson: ");
 	rfc822commentprint(SS->mfp,
 			   ((SS->whoson_result == 0) ? SS->whoson_data :
