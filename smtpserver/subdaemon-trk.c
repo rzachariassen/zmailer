@@ -411,10 +411,12 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
 	if (!reg) return 0;    /*  alloc failed!  */
 
 	if (incr > 0) {
+	  /* -- this is independent of slotcounts! */
 	  ++ reg->mails;
-	  reg->countsetmsgs [ state->hourslotindex ] += 1;
+	  /* reg->countsetmsgs [ state->hourslotindex ] += 1; */
 	}
 	reg->recipients += incr;
+	/* .. but rcpts are slot-counted here! */
 	reg->countsetrcpts[ state->hourslotindex ] += incr;
 
 	reg->last_recipients = now;
