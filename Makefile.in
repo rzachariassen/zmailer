@@ -2,7 +2,7 @@
 
 MAJORVERSION =	2
 MINORVERSION =	99
-PATCHLEVEL =	50-s4
+PATCHLEVEL =	50-s5
 
 srcdir = @srcdir@
 VPATH = @srcdir@
@@ -12,6 +12,7 @@ ZCONFIG = @ZMAILERCFGFILE@
 ZCONF   = ./zmailer.Config
 #ZDEPEND = Dependencies
 CPPDEP  =  @CPPDEP@
+MKDIR   =  @MKDIR@
 
 SHELL = /bin/sh
 
@@ -70,6 +71,7 @@ install-cf:	# all
 	cd proto ;	$(MAKE) $(MFLAGS) cf
 
 install-bin:	# all
+	. $(ZCONF) ; zdir=`echo $$ZCONFIG|sed -e 's!\(.*\)/\([^/]*\)!\1/!'`; $(MKDIR) $(prefix)$$zdir
 	@. $(ZCONF) ; if [ -f $$ZCONFIG ] ; then	\
 	 cmp -s $(ZCONF) $(prefix)$$ZCONFIG ||		\
 	   echo "**" && echo "** Please consider copying $(ZCONF) to $(prefix)$$ZCONFIG !" && echo "**";\
@@ -84,12 +86,18 @@ install-bin:	# all
 	cd transports ; $(MAKE) $(MFLAGS) install
 	cd libc ;       $(MAKE) $(MFLAGS) install
 	cd utils ;      $(MAKE) $(MFLAGS) install
-	@. $(ZCONF) ; echo "** Please make sure the $$ZCONFIG -file is up to date!"
+	@. $(ZCONF) ; if [ -f $$ZCONFIG ] ; then	\
+	 cmp -s $(ZCONF) $(prefix)$$ZCONFIG ||		\
+	   echo "**" && echo "** Please consider copying $(ZCONF) to $(prefix)$$ZCONFIG !" && echo "**";\
+	else						\
+		cp $(ZCONF) $(prefix)$$ZCONFIG; chmod 644 $(prefix)$$ZCONFIG; \
+	fi
 
 dirs:
 	cd proto ; $(MAKE) $(MFLAGS) dirs PZCONFIG="../$(ZCONF)"
 
 install:	dirs # all
+	. $(ZCONF) ; zdir=`echo $$ZCONFIG|sed -e 's!\(.*\)/\([^/]*\)!\1/!'`; $(MKDIR) $(prefix)$$zdir
 	. $(ZCONF) ; cp $(ZCONF) $(prefix)$$ZCONFIG ; chmod 644 $(prefix)$$ZCONFIG
 	cd proto ;      $(MAKE) $(MFLAGS) install  PZCONFIG="../$(ZCONF)"
 	cd compat ;     $(MAKE) $(MFLAGS) install

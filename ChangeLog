@@ -1,5 +1,9 @@
 1998-06-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Most  Makefile.in  files:
+	    Reworked on "prefix=nnnnn make install" installation.
+	    Now it creates the target parent directories if needed.
+
 	* Makefile.in, ChangeLog:
 	    Version 2.99.50-s5 -- are we now safe ??
 

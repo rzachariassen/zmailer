@@ -17,6 +17,7 @@ INSTALL=	@INSTALL@
 TOPDIR=		../..
 RMAILPATH=	$(prefix)@RMAILPATH@
 LN_S=		"@LN_S@"
+MKDIR=		@MKDIR@
 #
 INCL=   -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 LIB=    -L$(TOPDIR)/libs -lz -lzc
@@ -49,15 +50,22 @@ linebuffer.o: $(srcdir)/$(TOPDIR)/lib/linebuffer.c
 # comment (loudly!) to the user --- who on earth can have
 # any modern system without symlinks ?
 install: $(LIBDEB) rmail
+	rdir=`echo $(RMAILPATH)|sed -e 's!^\(.*\)/\([^/]*\)$$!\1!'`; $(MKDIR) $$rdir; echo "  rdir = $$rdir"
 	$(INSTALL) -m 0755 rmail $(prefix)$(MAILBIN)/rmail.x ; \
 	mv $(prefix)$(MAILBIN)/rmail.x $(prefix)$(MAILBIN)/rmail
 	@if [ $(LN_S) = "ln -s" ]; then				\
 	    if [ -h $(RMAILPATH) ]; then			\
-		rm -f $(RMAILPATH) ;				\
-		ln -s $(MAILBIN)/rmail $(RMAILPATH) ;		\
+		test -f $(RMAILPATH) &&				\
+			rm -f $(prefix)$(RMAILPATH) ;		\
+		echo "ln -s $(MAILBIN)/rmail $(RMAILPATH)";	\
+		ln -s $(MAILBIN)/rmail $(RMAILPATH) ||		\
+			echo "Failed! rc=$?" ;			\
 	    else						\
-		mv -f $(RMAILPATH) $(RMAILPATH).orig ;		\
-		ln -s $(MAILBIN)/rmail $(RMAILPATH) ;		\
+		test -f $(RMAILPATH) &&				\
+			mv -f $(RMAILPATH) $(RMAILPATH).orig ;	\
+		echo "ln -s $(MAILBIN)/rmail $(RMAILPATH)" ;	\
+		ln -s $(MAILBIN)/rmail $(RMAILPATH) ||		\
+			echo "Failed! rc=$?" ;			\
 	    fi ;						\
 	else							\
 	    echo "********************************************************" ; \

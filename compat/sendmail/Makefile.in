@@ -15,6 +15,7 @@ TOPDIR=		../..
 MAILBIN=	@MAILBIN@
 INSTALL=	@INSTALL@
 LN_S=		"@LN_S@"
+MKDIR=		@MKDIR@
 #
 INCL=           -I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
 LIB=            -L$(TOPDIR)/libs -lz -lzc
@@ -46,20 +47,27 @@ version.c: $(srcdir)/sendmail.c $(TOPDIR)/Makefile
 # comment (loudly!) to the user --- who on earth can have
 # any modern system without symlinks ?
 install: $(LIBDEB) sendmail
+	sdir=`echo $(SENDMAILPATH)|sed -e 's!^\(.*\)/\([^/]*\)$$!\1!'`; $(MKDIR) $$sdir;echo "  sdir = $$sdir"
 	$(INSTALL) -m 0755 sendmail $(prefix)$(MAILBIN)/sendmail.x ; \
 	mv $(prefix)$(MAILBIN)/sendmail.x $(prefix)$(MAILBIN)/sendmail
 	@if [ $(LN_S) = "ln -s" ]; then				\
 	    if [ -h $(SENDMAILPATH) ]; then			\
-		rm -f $(SENDMAILPATH) ;				\
-		ln -s $(MAILBIN)/sendmail $(SENDMAILPATH) ;	\
+		test -f $(SENDMAILPATH) &&			\
+			rm -f $(SENDMAILPATH) ;			\
+		echo "ln -s $(MAILBIN)/sendmail $(SENDMAILPATH)" ; \
+		ln -s $(MAILBIN)/sendmail $(SENDMAILPATH) ||	\
+			echo "Failed! rc=$?" ;			\
 	    else						\
-		mv -f $(SENDMAILPATH) $(SENDMAILPATH).orig ;	\
-		ln -s $(MAILBIN)/sendmail $(SENDMAILPATH) ;	\
+		test -f $(SENDMAILPATH) &&			\
+			mv -f $(SENDMAILPATH) $(SENDMAILPATH).orig;  \
+		echo "ln -s $(MAILBIN)/sendmail $(SENDMAILPATH)"; \
+		ln -s $(MAILBIN)/sendmail $(SENDMAILPATH) ||	\
+			echo "Failed! rc=$?" ;			\
 	    fi ;						\
 	else							\
 	    echo "********************************************************" ; \
-	    echo "** $(SENDMAILPATH) needs to be updated to be" ;	  \
-	    echo "**   a symlink (if possible) to $(MAILBIN)/sendmail" ;  \
+	    echo "** $(SENDMAILPATH) needs to be updated to be" ;  	\
+	    echo "**   a symlink (if possible) to $(MAILBIN)/sendmail" ;    \
 	    echo "********************************************************" ; \
 	fi
 

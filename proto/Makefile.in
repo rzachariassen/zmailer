@@ -5,7 +5,7 @@ SHELL=		/bin/sh
 TOPDIR=		..
 PZCONFIG=	$(TOPDIR)/zmailer.Config
 INSTALL=	@INSTALL@
-MKDIR=		mkdir -p
+MKDIR=		@MKDIR@
 
 PMAILBIN=	mailrm.sh newaliases newfqdnaliases newdb zmailer.sh
 PMAILSHARE=	scheduler.conf sm.conf smtpserver.conf
@@ -141,13 +141,15 @@ cleandirs: FRC $(PZCONFIG)
 
 mailbin: $(PZCONFIG) $(PMAILBIN)
 	-@. $(PZCONFIG) ; \
+	if [ ! -d $$MAILBIN/bak ]; then $(MKDIR) $$MAILBIN/bak ; fi ; \
 	for file in $(PMAILBIN) ; \
 	do \
 		name=`expr $$file : '\([^.]*\)'` ; \
-		test -f $(prefix)$$MAILBIN/$$name && \
-			test -f $(prefix)$$MAILBIN/bak/$$name || \
-			echo mv -f $(prefix)$$MAILBIN/$$name $(prefix)$$MAILBIN/bak/$$name && \
+		if test -f $(prefix)$$MAILBIN/$$name -a \
+			! -f $(prefix)$$MAILBIN/bak/$$name ; then \
+			echo "mv -f $(prefix)$$MAILBIN/$$name $(prefix)$$MAILBIN/bak/$$name" && \
 			mv -f $(prefix)$$MAILBIN/$$name $(prefix)$$MAILBIN/bak/$$name ; \
+		fi ; \
 		echo $(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
 		$(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
 	done
@@ -155,6 +157,7 @@ mailbin: $(PZCONFIG) $(PMAILBIN)
 mailshare:	$(PZCONFIG) $(PMAILSHARE)
 	-@. $(PZCONFIG) ; pwd=`pwd` ; \
 	MAILSHARE=$(prefix)$$MAILSHARE ; \
+	if [ ! -d $$MAILSHARE/bak ]; then $(MKDIR) $$MAILSHARE/bak ; fi ; \
 	for file in $(PMAILSHARE) ; \
 	do \
 		if test  -f $$MAILSHARE/$$file -a \
