@@ -1611,8 +1611,8 @@ deliver(SS, dp, startrp, endrp)
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next)
 	    if (rp->status == EX_OK) {
 	      notaryreport(rp->addr->user, FAILED,
-			   "5.4.2 (Message write timed out;3)",
-			   "smtp; 566 (Message write timed out;3)"); /* XX: FIX THE STATUS? */
+			   "5.4.2 (Message write failed; possibly remote rejected the message)",
+			   "smtp; 566 (Message write failed; possibly remote rejected the message)");
 	      diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	    }
 	  /* Diagnostics are done, protected (failure-)section ends! */
@@ -1719,6 +1719,9 @@ appendlet(SS, dp, convertmode)
 	FILE *mfp = NULL;
 #endif
 
+	jmp_buf oldalarmjmp;
+	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
+
 	SS->state  = 1;
 	SS->column = -1;
 	SS->alarmcnt = ALARM_BLOCKSIZE;
@@ -1729,15 +1732,17 @@ appendlet(SS, dp, convertmode)
 	   wrapping which breaks out of the lower levels if the
 	   timer does not get reset.. */
 
+	alarm(timeout);
+
 	if (setjmp(alarmjmp) == 0) {
 
-	  alarm(timeout);
 	  gotalarm = 0;
 	  fflush(SS->smtpfp);
 
 	} else {
 	  /*  Alarm jumped here! */
 
+	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	  alarm(0);
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
@@ -1787,6 +1792,7 @@ appendlet(SS, dp, convertmode)
 	      strcpy(SS->remotemsg,
 		     "smtp; 500 (Read error from message file!?)");
 	      alarm(0);
+	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	      return EX_IOERR;
 	    }
 #endif /* !HAVE_MMAP */
@@ -1797,17 +1803,17 @@ appendlet(SS, dp, convertmode)
 		     SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
 	    /* We NEVER get timeouts here.. We get anything else.. */
 	    if (rc != i) {
+	      alarm(0);
+	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	      if (gotalarm) {
 		sprintf(SS->remotemsg,"smtp; 500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
 			SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-		alarm(0);
 		return EX_IOERR;
 	      }
 	      sprintf(SS->remotemsg,
 		      "smtp; 500 (msgbuffer write IO-error[1]! [%s] DATA %d/%d [%d%%])",
 		      strerror(errno),
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
-	      alarm(0);
 	      return EX_IOERR;
 	    }
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
@@ -1861,6 +1867,7 @@ appendlet(SS, dp, convertmode)
 
 	    /* We NEVER get timeouts here.. We get anything else.. */
 	    if (rc != i) {
+	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	      sprintf(SS->remotemsg,
 		      "500 (msgbuffer write IO-error[2]! [%s] DATA %d/%d [%d%%])",
 		      strerror(errno),
@@ -1878,6 +1885,7 @@ appendlet(SS, dp, convertmode)
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 	  if (i == EOF && !feof(mfp)) {
 	    strcpy(SS->remotemsg, "500 (Read error from message file!?)");
+	    memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	    MFPCLOSE
 	    return EX_IOERR;
 	  }
@@ -1890,6 +1898,7 @@ appendlet(SS, dp, convertmode)
 	  alarm(timeout);
 	  if (writebuf(SS, "\n", 1) != 1) {
 	    alarm(0);
+	    memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	    if (gotalarm) {
 	      sprintf(SS->remotemsg,"500 (msgbuffer write timeout!  DATA %d/%d [%d%%])",
 		      SS->hsize, SS->msize, (SS->hsize*100+SS->msize/2)/SS->msize);
@@ -1914,9 +1923,11 @@ appendlet(SS, dp, convertmode)
 	alarm(timeout);
 	if (fflush(SS->smtpfp) != 0) {
 	  alarm(0);
+	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	  return EX_IOERR;
 	}
 	alarm(0);
+	memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 
 	return EX_OK;
 }
@@ -3292,6 +3303,8 @@ int bdat_flush(SS, lastflg)
 {
 	int pos, i, wrlen, r;
 	char lbuf[80];
+	jmp_buf oldalarmjmp;
+	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
 
 	if (lastflg)
 	  sprintf(lbuf, "BDAT %d LAST", SS->chunksize);
@@ -3302,26 +3315,35 @@ int bdat_flush(SS, lastflg)
 	if (r != EX_OK)
 	  return r;
 
-	for (pos = 0; pos < SS->chunksize;) {
-	  wrlen = SS->chunksize - pos;
-	  if (wrlen > ALARM_BLOCKSIZE) wrlen = ALARM_BLOCKSIZE;
-	  alarm(timeout);
-	  i = fwrite(SS->chunkbuf + pos, 1, wrlen, SS->smtpfp);
-	  fflush(SS->smtpfp);
-	  if (i < 0) {
-	    if (errno == EINTR)
-	      continue;
-	    alarm(0);
-	    return EX_TEMPFAIL;
-	  }
-	  pos += i;
-	  SS->hsize += i;
-	  if (ferror(SS->smtpfp)) {
-	    alarm(0);
-	    return EX_TEMPFAIL;
+	if (setjmp(alarmjmp) == 0) {
+	  for (pos = 0; pos < SS->chunksize;) {
+	    wrlen = SS->chunksize - pos;
+	    if (wrlen > ALARM_BLOCKSIZE) wrlen = ALARM_BLOCKSIZE;
+	    alarm(timeout);
+	    i = fwrite(SS->chunkbuf + pos, 1, wrlen, SS->smtpfp);
+	    fflush(SS->smtpfp);
+	    if (i < 0) {
+	      if (errno == EINTR)
+		continue;
+	      alarm(0);
+	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+	      return EX_TEMPFAIL;
+	    }
+	    pos += i;
+	    SS->hsize += i;
+	    if (ferror(SS->smtpfp)) {
+	      alarm(0);
+	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+	      return EX_TEMPFAIL;
+	    }
 	  }
 	}
 	SS->chunksize = 0;
+	alarm(0);
+	memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+
+	if (gotalarm)
+	  return EX_TEMPFAIL;
 
 	if (SS->smtpfp) {
 	  if (lastflg || ! SS->pipelining)
@@ -3508,13 +3530,19 @@ smtp_sync(SS, r, nonblocking)
 	static int first_line = 1;
 
 	if (!nonblocking) {
+	  unsigned int oldalarm;
+	  jmp_buf oldalarmjmp;
+	  memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
 
-	  alarm(timeout);
+	  oldalarm = alarm(timeout);
 	  gotalarm = 0;
-	  if (setjmp(alarmjmp) == 0)
+	  if (setjmp(alarmjmp) == 0) {
 	    fflush(SS->smtpfp);			/* Flush output */
-	  alarm(0);
-
+	  }
+	  if (gotalarm)
+	    oldalarm = 1; /* Don't waste time below ... */
+	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+	  alarm(oldalarm);
 	}
 
 	SS->smtp_outcount = 0;
@@ -3865,6 +3893,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	char *status = NULL;
 	char buf[2*8192]; /* XX: static buffer - used in several places */
 	char ch;
+	jmp_buf oldalarmjmp;
+	memcpy(oldalarmjmp, alarmjmp, sizeof(alarmjmp));
 
 	&cp; &r; &i;
 
@@ -3876,6 +3906,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  if (setjmp(alarmjmp) == 0)
 	    fflush(SS->smtpfp);
 	  alarm(0);
+	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 	}
 	outfd = infd = FILENO(SS->smtpfp);
 
@@ -3899,13 +3930,13 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  SS->pipeindex += 1;
 
 	} /* ... end of if(pipelining) */
-
+	
 	if (strbuf != NULL) {
 	  int len = strlen(strbuf) + 2;
 	  volatile int err = 0;
 
 
-	   if (!gotalarm && setjmp(alarmjmp) == 0) {
+	  if (!gotalarm && setjmp(alarmjmp) == 0) {
 	    alarm(timeout);	/* This much total to write and get answer */
 	    gotalarm = 0;
 
@@ -3944,7 +3975,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    }
 	  } /* Long-jmp ends */
 	  alarm(0); /* Turn off the alarm */
-
+	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+	  
 	  if (err || gotalarm) {
 	    if (gotalarm) {
 	      strcpy(SS->remotemsg, "Timeout on cmd write");
@@ -4017,15 +4049,15 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	do {
 
-
+	  alarm(timeout);
 	  if (setjmp(alarmjmp) == 0) {
 	    gotalarm = 0;
-	    alarm(timeout);
 	    r = read(infd, cp, sizeof(buf) - (cp - buf));
 	  } else
 	    r = -1;
 
 	  alarm(0);
+	  memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 
 	  if (r > 0) {
 	    if (SS->verboselog)
