@@ -82,7 +82,7 @@ dotlock(file)
 
 	sprintf(lockname, "%s.lock", file);
 	sprintf(temp, "%s.L%x.%lx.%x",
-		file, getpid(), time(NULL), (int)gethostid());
+		file, (int)getpid(), (long)time(NULL), (int)gethostid());
 	unlink(temp);
 	for (;;) {
 		if ((fd = open(temp, O_WRONLY|O_CREAT|O_EXCL, 0666)) < 0)

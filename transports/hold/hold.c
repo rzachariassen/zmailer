@@ -403,9 +403,10 @@ hold(s, errmsgp)
 
 	colon = NULL;
 	for (cp = (char*)s; *cp != '\0'; ++cp) {
-	  if (isascii(*cp) && isupper(*cp))
-	    *cp = tolower(*cp);
-	  else if (*cp == ':')
+	  unsigned char c = *cp;
+	  if (isascii(c) && isupper(c))
+	    *cp = tolower(c);
+	  else if (c == ':')
 	    colon = cp;
 	}
 

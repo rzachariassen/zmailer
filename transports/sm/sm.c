@@ -1173,7 +1173,8 @@ struct maildesc *
 readsmcf(file, mailer)
 	char *file, *mailer;
 {
-	char *cp, *entry, buf[BUFSIZ];
+	char *entry, buf[BUFSIZ];
+	unsigned char *cp;
 	FILE *fp;
 	int i;
 	static struct maildesc m;
@@ -1200,7 +1201,7 @@ readsmcf(file, mailer)
 		    progname);
 	    exit(EX_OSERR);
 	  }
-	  entry = cp;
+	  entry = (char*)cp;
 	  strcpy(entry, buf);
 	  SKIPWHILE(!isspace, cp);
 	  if (isascii(*cp) && isspace(*cp)) {
@@ -1276,9 +1277,9 @@ readsmcf(file, mailer)
 	  }
 	}
 	SKIPWHILE(isspace, cp);
-	m.command = cp;
+	m.command = (char*) cp;
 	SKIPWHILE(!isspace, cp);
-	if (cp == m.command) {
+	if ((char*)cp == m.command) {
 		fprintf(stderr,"%s: bad entry for %s\n",progname, m.name);
 		return NULL;
 	}
@@ -1298,7 +1299,7 @@ readsmcf(file, mailer)
 	while (isascii(*cp) && !isspace(*cp) && i < MD_ARGVMAX) {
 	  if (*cp == '\0')
 	    break;
-	  m.argv[i++] = cp;
+	  m.argv[i++] = (char*) cp;
 	  SKIPWHILE(!isspace, cp);
 	  if (isascii(*cp)) {
 	    *cp++ = '\0';

@@ -16,11 +16,13 @@ int
 cistrcmp(a, b)
 	register char *a, *b;
 {
-	char	ac, bc;
+	unsigned char	ac, bc;
 
 	while (*a && *b) {
-		ac = isupper(*a) ? tolower(*a) : *a;
-		bc = isupper(*b) ? tolower(*b) : *b;
+		ac = *a;
+		bc = *b;
+		ac = isupper(ac) ? tolower(ac) : ac;
+		bc = isupper(bc) ? tolower(bc) : bc;
 		if (ac != bc)
 			return ac - bc;
 		++a, ++b;
@@ -38,11 +40,13 @@ cistrncmp(a, b, n)
 	register char *a, *b;
 	int	n;
 {
-	char	ac, bc;
+	unsigned char	ac, bc;
 
 	while (n-- > 0) {
-		ac = isupper(*a) ? tolower(*a) : *a;
-		bc = isupper(*b) ? tolower(*b) : *b;
+		ac = *a;
+		bc = *b;
+		ac = isupper(ac) ? tolower(ac) : ac;
+		bc = isupper(bc) ? tolower(bc) : bc;
 		if (ac != bc)
 			return ac - bc;
 		++a, ++b;
@@ -60,11 +64,13 @@ ci2strncmp(a, b, n)
 	register char *a, *b;
 	int	n;
 {
-	char	ac, bc;
+	unsigned char	ac, bc;
 
 	while (n-- > 0) {
-		ac = isupper(*a) ? tolower(*a) : *a;
-		bc = isupper(*b) ? tolower(*b) : *b;
+		ac = *a;
+		bc = *b;
+		ac = isupper(ac) ? tolower(ac) : ac;
+		bc = isupper(bc) ? tolower(bc) : bc;
 		if (ac != bc) {
 			return ac - bc;
 		}

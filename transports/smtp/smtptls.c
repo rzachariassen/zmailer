@@ -656,7 +656,8 @@ int     tls_init_clientengine(SS, cfgpath)
   char   *c_key_file;
   int	  verifydepth = 0;
   FILE   *fp;
-  char	  buf[1024], *s, *n, *a1;
+  char	  buf[1024], *n, *a1;
+  unsigned char *s;
 
   if (SS->sslmode)
     return (0);				/* already running */
@@ -669,9 +670,9 @@ int     tls_init_clientengine(SS, cfgpath)
   while (!feof(fp) && !ferror(fp)) {
     if (!fgets(buf, sizeof(buf), fp))
       break;
-    s = strchr(buf, '\n');
+    s = (void*) strchr(buf, '\n');
     if (s) *s = 0;
-    s = buf;
+    s = (void*) buf;
 
 #define SKIPWHILE(X,Y)  while (*Y != '\0' && isascii(*Y) && X(*Y)) { ++Y; }
 

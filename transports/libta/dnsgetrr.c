@@ -727,7 +727,7 @@ gethostbyname2_rz(name, af, result)
 	 * disallow names consisting only of digits/dots, unless
 	 * they end in a dot.
 	 */
-	if (isdigit(name[0]))
+	if (isdigit(name[0] & 0xFF))
 		for (cp = name;; ++cp) {
 			if (!*cp) {
 				if (*--cp == '.')
@@ -756,7 +756,7 @@ gethostbyname2_rz(name, af, result)
 				h_errno = NETDB_SUCCESS;
 				return (&result->host);
 			}
-			if (!isdigit(*cp) && *cp != '.') 
+			if (!isdigit(*cp & 0xFF) && *cp != '.') 
 				break;
 		}
 
