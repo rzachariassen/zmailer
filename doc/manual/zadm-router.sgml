@@ -679,6 +679,7 @@ See figure <XREF LINKEND="fig.relation.params">.
  <ARG>-s<REPLACEABLE>#</></>
  <ARG>-bilmnpu%</>
  <ARG>-d <REPLACEABLE>driver</></>
+ <ARG>-C <REPLACEABLE>configfile</></>
  <ARG CHOICE=PLAIN><REPLACEABLE>name</></>
 </CMDSYNOPSIS>
 <PARA>
@@ -861,6 +862,12 @@ The <QUOTE><OPTION>-d</></QUOTE> option specifies a search routine.
 Most commonly used argument for this option
 is <QUOTE><OPTION>pathalias</></QUOTE>, specifying a driver that
 searches for the key using domain name lookup rules.
+</PARA>
+
+<PARA>
+The <QUOTE><OPTION>-C</></QUOTE> option specifies a configuration
+file for the underlying database mechanism.
+Exact details depend by the database mechanisms.
 </PARA>
 
 <PARA>

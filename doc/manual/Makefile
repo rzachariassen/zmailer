@@ -2,10 +2,10 @@
 # GNU-Makefile for ZMailer manual
 #
 
-VERSION = "v1.99.23"
+VERSION = "v1.99.25"
 
 #
-#  Utilizing DocBook 3.1, Structured Stylesheets, DSSSL, openjade-1.3
+#  Utilizing DocBook 3.1, Structured Stylesheets, DSSSL, openjade-1.3.1
 #
 #  All relevant bits are available at for example in redhat 7.1 beta
 #  as RPM packages (February 2001)
@@ -92,7 +92,7 @@ z-version.txt: ${PARTS} ${FIGS}
 	echo "${VERSION}.`TZ=UTC date +%Y%m%d%H%M`" > z-version.txt
 
 
-OJCAT = /usr/share/sgml/openjade-1.3/catalog
+OJCAT = /usr/share/sgml/openjade-1.3.1/catalog
 
 zmanual.html: gifs $(PARTS)
 	rm -rf zmanual

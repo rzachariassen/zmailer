@@ -1627,6 +1627,15 @@ vector:
       <ARG> <OPTION>-:</> <REPLACEABLE>defaultkey</></ARG>
             <OPTION>--</> %subst1 %subst2 ... %subst9 </ARG>
 </CMDSYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>dblookup</>
+    <ARG CHOICE=PLAIN><REPLACEABLE>key</></ARG>
+    <ARG>
+      <ARG> <OPTION>-:</> <REPLACEABLE>defaultkey</></ARG>
+            <OPTION>--</> %subst2 %subst2 ... %subst9 </ARG>
+</CMDSYNOPSIS>
+The latter form is for databases which have <EMPHASIS>any</>
+driver routine in use!
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -3557,6 +3566,7 @@ Generic:
   <ARG><OPTION>-s <REPLACEABLE>#</></></ARG>
   <ARG><OPTION>-:%blmnu</></ARG>
   <ARG><OPTION>-d <REPLACEABLE>driver</></></ARG>
+  <ARG><OPTION>-C <REPLACEABLE>configfile</></></ARG>
   <ARG CHOICE=PLAIN><OPTION><REPLACEABLE>name</></></ARG>
 </CMDSYNOPSIS>
 The separator character between "dbtype" and "subtype" can be either
@@ -3969,24 +3979,64 @@ information to the interface.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>btree</></TERM><LISTITEM><PARA>
 
-SleepyCat DB 1.x, 2.x or 3.x B-Tree database
+SleepyCat DB 1.x, 2.x, 3.x or 4.x B-Tree database
 
 </PARA><PARA>
 
 The <OPTION>-f</>-option defines the path of the database file,
 the SleepyCat DB does not append anything to the name.
-(This is true with versions 1.x, 2.x, and 3.x.)
+(This is true with versions 1.x, 2.x, 3.x, and 4.x.)
+
+</PARA><PARA>
+
+The <OPTION>-C</>-option defines SleepyCat DB environment configuration
+file, which can be used to define advanced features, mainly
+<EMPHASIS>Concurrent Data Store</> function.
+<SCREEN>
+ FIXME! FIXME! config file!
+
+$ cat /opt/mail/db/sleepyenv.conf 
+#
+# SleepyCat DB 3/4 environment settings
+#
+
+envhome  = /opt/mail/db
+#tmpdir = ...
+envmode  = 0600
+envflags = CDB, CREATE, RO
+
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>bhash</></TERM><LISTITEM><PARA>
 
-SleepyCat DB 1.x, 2.x or 3.x HASH database
+SleepyCat DB 1.x, 2.x, 3.x or 4.x HASH database
 
 </PARA><PARA>
 
 The <OPTION>-f</>-option defines the path of the database file,
 the SleepyCat DB does not append anything to the name.
-(This is true with versions 1.x, 2.x, and 3.x.)
+(This is true with versions 1.x, 2.x, 3.x, and 4.x.)
+
+</PARA><PARA>
+
+The <OPTION>-C</>-option defines SleepyCat DB environment configuration
+file, which can be used to define advanced features, mainly
+<EMPHASIS>Concurrent Data Store</> function.
+<SCREEN>
+ FIXME! FIXME! config file!
+
+$ cat /opt/mail/db/sleepyenv.conf 
+#
+# SleepyCat DB 3/4 environment settings
+#
+
+envhome  = /opt/mail/db
+#tmpdir = ...
+envmode  = 0600
+envflags = CDB, CREATE, RO
+
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>selfmatch</></TERM><LISTITEM><PARA>
