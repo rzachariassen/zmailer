@@ -19,7 +19,7 @@ INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) @GENINCL@
 
 PROGS=		makedb dblook
 SOURCE=		makedb.c dblook.c
-LIBS=		@GENLIB@ -L$(TOPDIR)/libs -lzm -lzc @LIBLOCALDBMS@
+LIBS=		@GENLIB@ -L$(TOPDIR)/libs -lzm -lzc @LIBLOCALDBMS@ @LIBSOCKET@
 
 all: $(PROGS)
 
