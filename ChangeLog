@@ -1,5 +1,8 @@
 1999-12-31  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in:
+	    Version 2.99.52-patch1
+
 	* transports/mailbox/mailbox.c:
 	    Spotted lurking SFIO usage bug which caused
 	    missing safe buffer zone newlines at the ends
