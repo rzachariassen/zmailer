@@ -1,5 +1,11 @@
 1998-06-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/functions.c:
+	    Added two new parameters to function  listexpand.
+
+	* libsh/regex.h, libsh/regex.c:
+	    Matched against GLIBC  <regex.h>  type defines.
+
 	* transports/smtp/smtp.c:
 	    A screwup in DBAT dot-processing algorithm.
 	    Basically BDAT phase did line-start dot-duplication,

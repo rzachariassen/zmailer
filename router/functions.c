@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Some functions Copyright 1991-1997 Matti Aarnio.
+ *	Some functions Copyright 1991-1998 Matti Aarnio.
  */
 
 /*
@@ -1317,6 +1317,7 @@ run_listexpand(avl, il)
 	struct address *ap, *aroot = NULL, **atail = &aroot;
 	token822 *t;
 	conscell *al, *alp = NULL, *tmp;
+	conscell *plustail = NULL, *domain = NULL;
 	char *localpart, *origaddr, *attributenam;
 	int c, n, errflag, stuff;
 	volatile int cnt;
@@ -1392,7 +1393,7 @@ run_listexpand(avl, il)
 	if (errflag || cnt != 3 ||
 	    !STRING(il) || !STRING(cdr(il)) || !STRING(cddr(il)) ) {
 		fprintf(stderr,
-			"Usage: %s [ -e error-address ] [ -E errors-to-address ] [-p privilege] [ -c comment ] [ -N notarystring ] $attribute $localpart $origaddr < /file/path \n",
+			"Usage: %s [ -e error-address ] [ -E errors-to-address ] [-p privilege] [ -c comment ] [ -N notarystring ] $attribute $localpart $origaddr [$plustail [$domain]]< /file/path \n",
 		car(avl)->string);
 		if (errors_to != olderrors)
 		  free(errors_to);
@@ -1403,6 +1404,10 @@ run_listexpand(avl, il)
 	attributenam = (char*)    (il)->string;
 	localpart    = (char*) cdr(il)->string;
 	origaddr     = (char*) cddr(il)->string;
+	if (cdr(cddr(il)))
+	  plustail = cdr(cddr(il));
+	if (cddr(cddr(il)))
+	  domain = cddr(cddr(il));
 
 	/* We (memory-)leak this stuff for a moment.. (but it is tmalloc()ed)*/
 	e = (struct envelope *)tmalloc(sizeof (struct envelope));
@@ -1636,9 +1641,24 @@ run_listexpand(avl, il)
 		omem = stickymem;
 		/* stickymem = MEM_MALLOC; */
 
-		l       = newstring(strsave(buf));
-		cdr(l)  = newstring(strsave(origaddr));
-		cddr(l) = newstring(strsave(s));
+		/* The set of parameters for the rrouter() script
+		   function are:
+		   - address
+		   - origaddress
+		   - Attribute variable name
+		   - plustail
+		   - domain
+		   (The last two were added in June-1998)
+		*/
+
+		l         = newstring(strsave(buf));
+		cdr(l)    = newstring(strsave(origaddr));
+		cddr(l)   = newstring(strsave(s));
+		if (plustail != NULL) {
+		  cdr(cddr(l))  = conststring(plustail->string);
+		  if (domain != NULL)
+		    cddr(cddr(l)) = conststring(domain->string);
+		}
 		l = ncons(l);
 
 		stickymem = omem;
