@@ -165,17 +165,13 @@ selectaddr(spec_host, ap, saparam_)
 int
 main(argc, argv)
 	int argc;
-	const char *argv[];
+	const char **argv;
 {
 	char file[2048];
 	char *s;
 	char *optmsg = NULL;
 	int c, errflg, fd;
 	int silent = 0;
-	char *host = NULL;	/* .. and what is my host ? */
-	char *user = NULL;
-	int matchhost = 0;
-	int matchuser = 0;
 	struct ctldesc *dp;
 	FILE *verboselog = NULL;
 	struct _saparam saparam = { NULL, NULL };
@@ -232,8 +228,7 @@ main(argc, argv)
 	    exit(EX_OK);
 	    break;
 	  case 'h':
-	    host = strdup(optarg);
-	    matchhost = 1;
+	    saparam.host = strdup(optarg);
 	    break;
 	  case 'l':		/* log file */
 	    logfile = optarg;
@@ -248,8 +243,7 @@ main(argc, argv)
 	    silent = 1;
 	    break;
 	  case 'u':
-	    user = strdup(optarg);
-	    matchuser = 1;
+	    saparam.user = strdup(optarg);
 	    break;
 	  default:
 	    ++errflg;
@@ -314,8 +308,8 @@ main(argc, argv)
 
 	  s = strchr(file,'\t');
 	  if (s != NULL) {
-	    if (host) free(host);
-	    host = strdup(s+1);
+	    if (saparam.host) free((void*)saparam.host);
+	    saparam.host = strdup(s+1);
 	    *s = 0;
 	  }
 
@@ -325,7 +319,7 @@ main(argc, argv)
 	  notary_setxdelay(0); /* Our initial speed estimate is
 				  overtly optimistic.. */
 
-	  dp = ctlopen(file, channel, host, &getout, selectaddr, &saparam);
+	  dp = ctlopen(file, channel, saparam.host, &getout, selectaddr, &saparam);
 	  if (dp == NULL) {
 	    printf("#resync %s\n",file);
 	    fflush(stdout);
