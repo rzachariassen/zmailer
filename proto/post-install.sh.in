@@ -58,17 +58,17 @@ sub compare_file {
 	    # A new file, easy to know that we can recalc the MD5SUM.
 	    system('cp', '-p', $x, '../'.$x);
 	    $wrote = 1;
-	    system("$MD5SUM -b ../$x > $x.md5");
+	    system("$MD5SUM -b ../$x > ${x}.md5");
 
 	} else {
 
 	#    # Don't overwrite!
 	#   if (!system("cmp -s $x ../$x")) {
 	#	# MATCH of the files (sum either of them..)
-	#	system("$MD5SUM -b ../$x > $x.md5");
+	#	system("$MD5SUM -b ../$x > ${x}.md5");
 	#   } else {
 	#	# Non-match of the files, sum the NEW file!
-		system("$MD5SUM -b $x > $x.md5");
+		system("$MD5SUM -b $x > ${x}.md5");
 	#   }
 	}
     }
@@ -86,12 +86,12 @@ sub compare_file {
 	# Destination file
 
 	local($md1,$md2,$l,$junk);
-	$l=`$MD5SUM -b '../'.$x`; # BACKTICK DANGER!
+	$l=`$MD5SUM -b "../${x}"`; # BACKTICK DANGER!
 	($md1,$junk) = split(' ',$l);
 
 	# And its associated MD5 signature file
 
-	$l=`cat $x.'.md5'`; # BACKTICK DANGER!
+	$l=`cat "${x}.md5"`; # BACKTICK DANGER!
 	($md2,$junk) = split(' ',$l);
 
 	# printf(STDERR "File: $x MD1=$md1 MD2=$md2\n");
@@ -99,7 +99,7 @@ sub compare_file {
 	    # They do match! We overwrite old file with new
 	   unlink('../'.$x);
 	   system('cp', '-p', $x, '../'.$x);
-	   system("$MD5SUM -b ../$x > $x.md5");
+	   system("$MD5SUM -b ../${x} > ${x}.md5");
 	   $wrote = 1;
 	}
     }
