@@ -1,5 +1,11 @@
 2004-07-14  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtptls.c:
+	    Dist-cache disabled compilation fixed.
+
+	* smtpserver/smtphook.c:
+	    A bit work to please the compiler (to silence it, that is)
+
 	* configure.in, smtpserver/smtptls.c:
 	    Know  --enable-distcache  -- code modelled after
 	    the one in Apache-2.0 mod_ssl module.

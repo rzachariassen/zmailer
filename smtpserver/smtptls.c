@@ -271,6 +271,14 @@ static void remove_session_cb(SSL_CTX *ssl, SSL_SESSION *session)
 static void tls_scache_init(ssl_ctx)
      SSL_CTX *ssl_ctx;
 {
+
+	/*
+	 * Initialize the DISTCACHE context.
+	 */
+
+	dc_ctx = ssl_scache_dc_init();
+	if (!dc_ctx) return; /* No can do.. */
+
 	/*
 	 * Initialize the session cache. We only want external caching to
 	 * synchronize between server sessions, so we set it to a minimum value
@@ -1164,9 +1172,8 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
 	
 
 
-	tls_scache_init(ssl_ctx);
 #ifdef HAVE_DISTCACHE
-	dc_ctx = ssl_scache_dc_init();
+	tls_scache_init(ssl_ctx);
 #endif
 
 	tls_serverengine = 1;
@@ -1698,6 +1705,8 @@ static SSL_SESSION *ssl_scache_dc_retrieve(s, id, idlen)
     unsigned char *pder = der;
     DC_CTX *ctx = dc_ctx;
 
+    if (!ctx) return FALSE;
+
     /* Retrieve any corresponding session from the distributed cache context */
     if(!DC_CTX_get_session(ctx, id, idlen, der, SSL_SESSION_MAX_DER,
 			    &der_len)) {
@@ -1724,6 +1733,8 @@ static void ssl_scache_dc_remove(s, id, idlen)
      int idlen;
 {
     DC_CTX *ctx = dc_ctx;
+
+    if (!ctx) return;
 
     /* Remove any corresponding session from the distributed cache context */
     if(!DC_CTX_remove_session(ctx, id, idlen)) {

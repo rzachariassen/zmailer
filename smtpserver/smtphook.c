@@ -105,7 +105,7 @@ int ZSMTP_hook_init(argc, argv, env, filename)
 	perl_construct(my_perl);
 
 	embedding[0] = "";
-	embedding[1] = filename;
+	embedding[1] = (char*)filename;
 
 	exitstatus = perl_parse( my_perl, xs_init, 2, embedding, NULL);
 	PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
