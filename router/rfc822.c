@@ -1216,7 +1216,10 @@ sequencer(e, file)
 	const char     *senderstr;
 	char subdirhash[8];
 	struct notary *DSN;
+	time_t start_now;
 	GCVARS5;
+
+	time(&start_now);
 
 	if (schedulersubdirhash < 0) {
 	  const char *s = getzenv("SCHEDULERDIRHASH");
@@ -2418,7 +2421,7 @@ sequencer(e, file)
 
 	rtsyslog(e->e_statbuf.st_mtime, (long)e->e_statbuf.st_ino,
 		 fromaddr, smtprelay, (int) e->e_statbuf.st_size,
-		 nrcpts, msgidstr);
+		 nrcpts, msgidstr, start_now);
 
 #ifndef	USE_ALLOCA
 	free(ofpname);

@@ -1,7 +1,7 @@
 /*
  *  skip821address()
  *
- *  Routine to scan over a string representing an RFC-821 address
+ *  Routine to scan over a string representing a VALID RFC-821 address
  *  with embedded white-space in it
  *
  *  Copyright Matti Aarnio 1996

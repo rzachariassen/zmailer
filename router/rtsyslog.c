@@ -26,13 +26,14 @@
 static char lbuf[8000];	/* Should be aplenty..		*/
 
 void
-rtsyslog(msgmtime,msgino,from,smtprelay,size,nrcpts,msgid)
-time_t msgmtime;
-long msgino;
-char *from, *smtprelay, *msgid;
-int size, nrcpts;
+rtsyslog(msgmtime,msgino,from,smtprelay,size,nrcpts,msgid,starttime)
+const time_t msgmtime, starttime;
+const long msgino;
+const char *from, *smtprelay, *msgid;
+const int size, nrcpts;
 {
   char spoolid[30];		/* Min. space: 6+8+1 chars	*/
+  char delays[16], xdelays[16]; /* Min. space: 8+1 chars	*/
   time_t now;
   static const char *syslogflg = NULL;
   const char *t;
@@ -60,15 +61,17 @@ int size, nrcpts;
      ctladdr=`getpwuid(rp->addr->misc)`
      mailer='rp->addr->channel' */
 
+  tatimestr(delays,  now - msgmtime);
+  tatimestr(xdelays, now - starttime);
+
   if (*t == 'R')
     sprintf(lbuf,
-	    "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s",
-	    spoolid, from, smtprelay, size, nrcpts, msgid);
+	    "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s, delay=%s, xdelay=%s",
+	    spoolid, from, smtprelay, size, nrcpts, msgid, delays, xdelays);
   else
     sprintf(lbuf,
-	    "%s:\tfrom=<%.200s>\trrelay=%.200s\tsize=%d\tnrcpts=%d\tmsgid=%.200s",
-	    spoolid, from, smtprelay, size, nrcpts, msgid);
-
+	    "%s:\tfrom=<%.200s>\trrelay=%.200s\tsize=%d\tnrcpts=%d\tmsgid=%.200s\tdelay=%s\txdelay=%s",
+	    spoolid, from, smtprelay, size, nrcpts, msgid, delays, xdelays);
 
   zsyslog((LOG_INFO, "%s", lbuf));
 }

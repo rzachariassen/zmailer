@@ -19,13 +19,15 @@
 #include "ta.h"
 #include "libz.h"
 
-int bundlesize = 200;
+int bundlesize = 6000;
 
 char *progname = "listexpand";
 int D_alloc = 0;
 #ifndef strchr
 extern char *strchr();
 #endif
+
+extern  char * rfc821_path2 __((char *s, int strict));
 
 /* this macro is from  compat/sendmail/sendmail.c */
 
@@ -54,7 +56,7 @@ extern char *strchr();
 
 void usage()
 {
-  fprintf(stderr,"%s: [-{bundlesize}]  owner@address /path/to/file/containing/addresses [privuid]\n",
+  fprintf(stderr,"%s: ['-debug'] ['+ezmlm'] [-{bundlesize}]  owner@address /path/to/file/containing/addresses [privuid]\n",
 	  progname);
   exit(EX_USAGE);
 }
@@ -108,14 +110,30 @@ main(argc,argv)
 	struct rcpts *rcpts = malloc(sizeof(*rcpts)*8);
 	int rcpts_space = 8;
 	int rcpts_count = 0;
+	int ezmlmalike = 0;
+	int debug = 0;
+
+	if (argv[1] && strcmp(argv[1],"-debug")==0) {
+	  ++argv;
+	  --argc;
+	  debug = 1;
+	}
+
+	if (argv[1] && strcmp(argv[1],"+ezmlm")==0) {
+	  ++argv;
+	  --argc;
+	  ezmlmalike = 1;
+	}
 
 	if (argc > 3 && argv[1][0]=='-') {
 	  bundlesize = atoi(argv[1]+1);
-	  if (bundlesize < 200)
-	    bundlesize = 200;
+	  if (bundlesize < 1)
+	    bundlesize = 1;
 	  ++argv;
 	  --argc;
 	}
+
+	if (bundlesize > 1) ezmlmalike = 0;
 
 	if (argc < 3 || argc > 4)
 	  usage();
@@ -133,18 +151,47 @@ main(argc,argv)
 	  s = strchr(buf,'\n'); if (s) *s = 0; /* Zap the trailing '\n' */
 
 	  s = buf;
-	  while(*s == ' ' || *s == '\t') ++s;
-	  p = skip821address(s);
+	  while(*s == ' ' || *s == '\t') ++s; /* Skip white */
+
+	  p = rfc821_path2(s, 1); /* Strict syntax scanner */
+
 	  /* Blank line -- or started with TAB or SPC.. */
+
+	  if (p == s) {
+	    if (debug) {
+	      fprintf(stderr, "Input Address Syntax Fault: '%s'\n", buf);
+	    } else {
+	      /* Report the error to the given OWNER! */
+	      if (!mfp) {
+		mfp = mail_open(MSG_RFC822);
+		if (!mfp) exit(EX_CANTCREAT); /* ??? */
+
+		fprintf(mfp, "channel error\n");
+		fprintf(mfp, "to %s\nenv-end\n", argv[1]);
+		fprintf(mfp, "From: \"Expander of %s\" <>\n", argv[2]);
+		fprintf(mfp, "To: List Owner <%s>\n", argv[1]);
+		fprintf(mfp, "Subject: Bad data at listfile '%s'\n", argv[2]);
+		fprintf(mfp, "\n");
+		fprintf(mfp, "Following lines were found to have bad RFC 821\n");
+		fprintf(mfp, "interpreted data at file: %s\n\n", argv[2]);
+	      }
+
+	      fprintf(mfp, "%s\n", buf);
+
+	    }
+	    continue;
+	  }
+
 	  *p = 0;
 	  if (s == p || *s == '\n' || *s == 0) continue;
 
 	  p2 = p = strrchr(s,'@');
-	  while (p && *p) {
-	    if (*p >= 'A' && *p <= 'Z')
-	      *p += 0x20;
-	    ++p;
+
+	  /* Lowercasify the ASCII (domain) string */
+	  for (; p && *p; ++p) {
+	    if ('A' <= *p && *p <= 'Z') *p += 0x20;
 	  }
+
 	  if (rcpts_count >= rcpts_space) {
 	    rcpts_space <<= 1;
 	    rcpts = realloc(rcpts, sizeof(*rcpts)*rcpts_space);
@@ -154,6 +201,9 @@ main(argc,argv)
 	  ++rcpts_count;
 	}
 	fclose(addrfile);
+
+	if (mfp)
+	  mail_close(mfp);
 
 	if (rcpts_count == 0) {
 	  rcpts[rcpts_count].address = "postmaster";
@@ -195,15 +245,25 @@ for (i = 0; i < rcpts_count; ++i)
 	while (rcpts_space < rcpts_count) {
 	  int i;
 	  /* Open the spool file  */
-	  mfp = mail_open(MSG_RFC822);
+	  if (debug) {
+	    mfp = stderr;
+	    fprintf(mfp, "\n----------- %d -----------\n\n", rcpts_space);
+	  } else
+	    mfp = mail_open(MSG_RFC822);
 	  if (!mfp) exit(EX_CANTCREAT); /* ??? */
+
+	  if (!debug)
+	    fprintf(mfp,"via listexpand\n");
+
 	  if (argv[1][0] == 0 || argv[1][0] == ' ')
 	    fprintf(mfp,"channel error\n");
-	  else
-	    fprintf(mfp,"from %s\n",argv[1]);
-	  fprintf(mfp,"via listexpand\n");
+	  else {
+	    fprintf(mfp,"from %s",argv[1]);
+	    if (!ezmlmalike)
+	      fprintf(mfp,"\n");
+	  }
 
-	  /* Up to 200 recipient addresses */
+	  /* Up to BUNDLESIZE recipient addresses */
 	  for (i = 0;
 	       rcpts_space < rcpts_count && i < bundlesize;
 	       ++i) {
@@ -211,16 +271,30 @@ for (i = 0; i < rcpts_count; ++i)
 	    ++rcpts_space;
 	    RFC821_822QUOTE(newcp,s);
 
+	    if (ezmlmalike) {
+	      putc('+', mfp);
+	      for (p = s; *p; ++p) {
+		u_char c = *p;
+	      if (('0' <= c && c <= '9') ||
+		  ('A' <= c && c <= 'Z') ||
+		  ('a' <= c && c <= 'z') ||
+		  ('.' == c) || ('-' == c) || (c == '_')) {
+		putc(c, mfp);
+	      } else
+		fprintf(mfp, "=%02X", c);
+	      }
+	      fprintf(mfp, "\n");
+	    }
+
 	    /* FIRST 'todsn', THEN 'to' -header! */
 	    fprintf(mfp, "todsn ORCPT=rfc822;");
 	    p = s;
-	    while (*p) {
+	    for (p = s; *p; ++p) {
 	      u_char c = *p;
 	      if ('!' <= c && c <= '~' && c != '+' && c != '=')
 		putc(c,mfp);
 	      else
 		fprintf(mfp,"+%02X",c);
-	      ++p;
 	    }
 	    /* if (notify)
 	       fprintf(mfp," NOTIFY=%s", notify);
@@ -228,29 +302,37 @@ for (i = 0; i < rcpts_count; ++i)
 	    putc('\n',mfp);
 	    fprintf(mfp,"to %s\n",s);
 	  } /* End of recipient address printing */
+
 	  fprintf(mfp,"env-end\n");
+
 	  if (ferror(mfp) || feof(mfp)) {
 	    mail_abort(mfp);
 	    exit(EX_CANTCREAT);
 	  }
 
-	  fseek(bodycopy, 0, SEEK_SET);
-	  while (1) {
-	    int siz = fread(buf,1,sizeof(buf),bodycopy);
-	    if (siz == 0) break;
-	    if (fwrite(buf,1,siz,mfp) != siz) {
+	  if (!debug) {
+
+	    fseek(bodycopy, 0, SEEK_SET);
+	    while (1) {
+	      int siz = fread(buf,1,sizeof(buf),bodycopy);
+	      if (siz == 0) break;
+	      if (fwrite(buf,1,siz,mfp) != siz) {
+		mail_abort(mfp);
+		exit(EX_CANTCREAT);
+	      }
+	    }
+
+	    if (feof(mfp) || ferror(mfp)) {
 	      mail_abort(mfp);
 	      exit(EX_CANTCREAT);
 	    }
-	  }
+	    if (privuid >= 0)
+	      fchown(FILENO(mfp),privuid,-1);
+	    mail_close(mfp);
 
-	  if (feof(mfp) || ferror(mfp)) {
-	    mail_abort(mfp);
-	    exit(EX_CANTCREAT);
-	  }
-	  if (privuid >= 0)
-	    fchown(FILENO(mfp),privuid,-1);
-	  mail_close(mfp);
-	}
+	  } /* - not debug - */
+
+	} /* All recipientbundles */
+
 	return 0;
 }

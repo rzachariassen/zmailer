@@ -50,9 +50,12 @@ install:
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-listexpand:	listexpand.o
-	$(CC) $(CFLAGS) -o $@.x listexpand.o $(LIB)
+listexpand:	listexpand.o $(TOPDIR)/smtpserver/rfc821scn.o
+	$(CC) $(CFLAGS) -o $@.x listexpand.o $(TOPDIR)/smtpserver/rfc821scn.o $(LIB)
 	mv $@.x $@
+
+$(TOPDIR)/smtpserver/rfc821scn.o:
+	cd $(TOPDIR)/smtpserver; $(MAKE) $MFLAGS) rfc821scn.o
 
 md5sum: md5sum.o $(LIBDEB)
 	$(CC) $(CFLAGS) -o $@.x md5sum.o $(LIB)

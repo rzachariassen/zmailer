@@ -1,3 +1,18 @@
+2001-02-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* router/rfc822.c, router/rtsyslog.c:
+	    Added the time to process the message to the router syslog
+	    report.  Both 'delay' and 'xdelay' just like at the TA's.
+	    'delay' is time from message injection to routing completion,
+	    'xdelay' is the time spent at the routing.
+
+	* utils/listexpand.c, utils/Makefile.in:
+	    Added '+ezlml' option, changed the low limit at
+	    the -bundlesize -- and set its default to 6000!
+	    Also re-learned that 'skip821address()' can only
+	    be used with *valid* addresses,  rfc821_path2()
+	    is for possibly invalid input scanning!
+
 2001-02-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* Makefile.in:
