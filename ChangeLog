@@ -1,3 +1,45 @@
+1999-04-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* libsh/builtins.c:
+	    $(elements ...) tinkering; code "cleanup".  (This wasn't the
+	    real problem..)
+
+	* include/listutils.h:
+	    Test of ``LISTness'' vs. ``STRINGness'' became a bit confused
+	    with ELEMENT flag set.  Mask that off when comparing.
+	    (THIS was the problem that plagued $(elements ...) )
+
+	* libsh/execute.c:  Just small cleanup.
+
+	* libsh/expand.c:
+	    glob() expansion list construction straightening.  Pre-Sort
+	    items in reverse, and the list construction will be easy..
+
+	* libsh/interpret.c: functype()
+	    Remember always to set the return value variable -- if its
+	    pointer is available, otherwise some things behave strangely
+	    depening on what happens to be at the stack frame...
+	    ( + removed some dead code from the  interpret()  proper.)
+
+	* libsh/listtrees.c: _s_copy_tree()
+	    Added a comment (for myself) to explain things a bit.
+
+	* proto/cf/server.cf:
+	    Some extra tinkerings for those who want interactive router
+	    at their smtpserver.
+
+	* smtpserver/policytest.c: _addrtest_()
+	    Selectively test blanket allowance/denial things, so that
+	    when  e.g. MAIL FROM:<foo@[1.2.3.4]> the literal IP address
+	    can be looked up from the RBL/DUL/whatnot database while
+	    not allowing e.g. MAIL FROM to suddently allow input from
+	    any possible host just because once a suitable address is
+	    given in MAIL FROM data...
+
+	* smtpserver/smtpchild.c:
+	    Count the number of childs properly, and always remember to
+	    return a value thru the  childcntp  pointer.
+	
 1999-04-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in: 2.99.50-s14
