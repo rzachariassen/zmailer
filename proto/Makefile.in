@@ -227,7 +227,7 @@ db:	FRC
 		$(INSTALL) -m 644 $(srcdir)/db/smtp-policy.src $$MAILVAR/db/smtp-policy.src ; \
 	else \
 		echo "*** No overwrite of smtp-policy.src, old exists"; \
-	fi
+	fi ; \
 	if [ ! -f $$MAILVAR/db/smtp-policy.relay ]; then \
 		echo $(INSTALL) -m 644 $(srcdir)/db/smtp-policy.relay $$MAILVAR/db/smtp-policy.relay ; \
 		$(INSTALL) -m 644 $(srcdir)/db/smtp-policy.relay $$MAILVAR/db/smtp-policy.relay ; \

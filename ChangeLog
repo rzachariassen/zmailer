@@ -1,3 +1,9 @@
+1998-07-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* proto/Makefile.in: (Mark Visser)
+	    Missed " ; \ " from the middle of "make db" 
+	    sequence.
+
 1998-07-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:
