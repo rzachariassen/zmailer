@@ -56,7 +56,7 @@ const char *str;
   putc('"', mfp);
   for ( ; *str ; ++str ) {
     int c = (*str) & 0xFF;
-    if (c == '"' || c == '\\')
+    if (c == '"' || c == '\\' || c == '(' || c == ')')
       putc('\\', mfp);
     putc(c, mfp);
   }

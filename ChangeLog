@@ -1,5 +1,9 @@
 1998-06-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/smtpcmds.c:
+	    When printing HELO-string into rcvdfrom comment, quote
+	    also "(", and ")" characters.
+	
 	* smtpserver/smtpserver.c:
 	    Revised that 'smtpserver -i' mode code so that
 	    it should work on a wider array of systems.
