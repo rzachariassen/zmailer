@@ -1,3 +1,13 @@
+2001-01-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* libresolv/gethnamaddr.c:
+	    Silence the code in several occasions.
+	    Getting SIG data is *not* a problem, it *does* happen.
+
+	* smtpserver/smtpserver.c:
+	    Clean "RSET" response from "250 2.0.0 2.0.0 Reset processed.."
+	    to one with: "250 2.0.0 Reset processed.."
+
 2001-01-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/smtp.c:

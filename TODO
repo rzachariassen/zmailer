@@ -1,15 +1,18 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+
+Wanted done for 3.0:
+  - router  aliases.cf  to have similar 'protocols' feature as
+    domain routing has currently
+  - WEB-based configuration/administration interface
+  - scheduler to kill message/thread online without a need to
+    run  "manual-expirer"
+  - A work-over of the documentation
+
+
 post-install:  Needs a way to define $(prefix) !
 
 mailq: man-page update to match all options
-
-"make install": (Eugene Crosser)
-  1. make install does not make $POSTOFFICE/public and $POSTOFFICE/router
-     world-writable as they should be (or is it my mistake?)
-
-  "$MAILBIN/post-install -MD5" does that!
-
 
 getmxrr()  MX retrieve failure with its merriment:
   [root@vger mea]# /opt/mail/bin/getmxrr-test cs.lakeheadu.ca
@@ -25,14 +28,6 @@ getmxrr()  MX retrieve failure with its merriment:
   CAN I DO ANYTHING ?!  Lack of data *is* valid result, how can those
   rare bad lacks of data be detected ?  Flags do look the same :-/
 
-
-Wanted done for 3.0:
-  - router  aliases.cf  to have similar 'protocols' feature as
-    domain routing has currently
-  - WEB-based configuration/administration interface
-  - scheduler to kill message/thread online without a need to
-    run  "manual-expirer"
-  - A work-over of the documentation
 
 
 - Everywhere:  Spell-check  (propably -> probably, among others)
@@ -104,11 +99,6 @@ router:
 	The BIND subset might not handle the 'bigmx.zmailer.org'
 	correctly -- or at all..
 
-transports/mailbox:
-
-   BUG:
-	Return-Receipt-To: needs proper return address picking from
-	the possibly folded header.
 
 transports/smtp:
 
@@ -175,16 +165,6 @@ transports/smtp:
 	Worthwhileness of this is *not* unambiguous.
 	How many domains really are served by same system ?
 	At some places a lot, but elsewere perhaps not...
-
-   FEATURE:
-	BIND to INTERFACE's address -- assuming a set of servers
-	has their system setups defining that a eth0:1 has individual
-	addresses, and servers are wanted to be attached at said
-	*interface's* address, *and* that each node has identical
-	ZMailer configuration, binding needs to be done by interface
-	"name" as well as by literal addresses.
-	(This is for the '-L' option.)
-		Done (?) 20000620
 
    FEATURE:
 	We violate RFC 1123 part 5.2.2 which says that at MAIL FROM

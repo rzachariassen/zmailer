@@ -293,6 +293,11 @@ getanswer(answer, anslen, qname, qtype, ttlp)
 			buflen -= n;
 			continue;
 		}
+		if (type == T_SIG) {
+			/* Silently ignore all signatures */
+			cp += n;
+			continue;
+		}
 		if (type != qtype) {
 			syslog(LOG_NOTICE|LOG_AUTH,
 	       "gethostby*.getanswer: asked for \"%s %s %s\", got type \"%s\"",

@@ -2151,7 +2151,7 @@ int insecure;
 	    }
 	    if (SS->state != Hello)
 		SS->state = MailOrHello;
-	    type(SS, 250, m200, "2.0.0 Reset processed, now waiting for MAIL command");
+	    type(SS, 250, m200, "Reset processed, now waiting for MAIL command");
 	    SS->policyresult = 0; /* Clear this state too */
 	    typeflush(SS);
 	    break;
