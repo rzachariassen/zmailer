@@ -355,6 +355,23 @@ FIXME:(write!)		(See notes about post-install below)
 	to $MAILBIN/zmailer, if you don't already have this.  I put this link
 	into /usr/local/sbin.
 
+
+   ==>  $MAILVAR/db/dbases.conf  file:
+
+	This controls the entire set of ROUTER process databases.
+	With classical setup you have one database of each type, but
+	with this you can do things like have multiple "aliases" backend
+	databases, each even different types.
+
+	Basically you edit this file, and then execute command:
+		$MAILBIN/zmailer  newdb
+	which constructs all relation definitions, and recompiles
+	databases as needed.  If the set of databases changes, then
+	you need also to restart the router processes, otherwise the
+	router will detect quite quickly that the underlying databases
+	have been altered.
+
+
    ==>	$MAILVAR/db/aliases file:
 
 	The provided skeleton aliases file on purpose contains syntax errors,
@@ -365,7 +382,8 @@ FIXME:(write!)		(See notes about post-install below)
 	have /usr/ucb/newaliases symlinked properly, or by "zmailer newaliases"
 	or "sendmail -bi" if the ZMailer sendmail replacement is installed.
 
-	Choose one of the following methods to rebuild the database:
+	Choose one of the following methods to rebuild the classical
+	aliases  database:
 
 	# $MAILBIN/newaliases
 	# $MAILBIN/zmailer newaliases
