@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2002.
+ *      Copyright 1991-2003.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -36,8 +36,6 @@
 #define SKIPSPACE(Y) while (*Y == ' ' || *Y == '\t') ++Y
 #define SKIPDIGIT(Y) while ('0' <= *Y && *Y <= '9') ++Y
 #define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t') ++Y
-
-static const char *m260 = "2.6.0";
 
 static int mvdata __((SmtpState *, char *));
 static int mvbdata __((SmtpState *, char *, long));
@@ -293,11 +291,11 @@ const char *buf, *cp;
 	    sleep(freezecnt);
 
 	    if (!ss) {
-	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
+	      type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
+		type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
 	    } else {
-	      if (!statcode)  statcode = m260;
+	      if (!statcode)  statcode = "2.7.1";
 	      if (!code)      code = 250;
 	      type(SS, code, statcode, "%s; %s", ss, taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
@@ -331,11 +329,11 @@ const char *buf, *cp;
 
 	    SS->mfp = NULL;
 	    if (!ss || *ss == 0) {
-	      type(SS, 250, "2.6.0", "Message accepted; %s", taspid);
+	      type(SS, 250, "2.0.0", "Message accepted; %s", taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, 250, "2.6.0", "Message accepted; %s", taspid);
+		type(SS, 250, "2.0.0", "Message accepted; %s", taspid);
 	    } else {
-	      if (!statcode)  statcode = m260;
+	      if (!statcode)  statcode = "2.0.0";
 	      if (!code)      code = 250;
 	      type(SS, code, statcode, "%s; %s", ss, taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
@@ -613,11 +611,11 @@ const char *buf, *cp;
 	    sleep(freezecnt);
 
 	    if (!ss) {
-	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
+	      type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
-		type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
+		type(SS, 250, "2.7.1", "message accepted; into freezer[%d] area; %s", SS->policyresult, taspid);
 	    } else {
-	      if (!statcode)  statcode = m260;
+	      if (!statcode)  statcode = "2.7.1";
 	      if (!code)      code = 250;
 	      type(SS, code, statcode, "%s; %s", ss, taspid);
 	      if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
@@ -646,10 +644,10 @@ const char *buf, *cp;
 	  SS->mfp = NULL;
 
 	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i) {
-	    type(SS, 250, "2.6.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
+	    type(SS, 250, "2.0.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
 	       taspid, bdata_chunksize, (long) tell);
 	  } else
-	    type(SS, 250, "2.6.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
+	    type(SS, 250, "2.0.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
 	       taspid, bdata_chunksize, (long) tell);
 	  type(NULL,0,NULL,"-- pipeline input: %d bytes",s_hasinput(SS));
 
@@ -672,9 +670,9 @@ const char *buf, *cp;
 	}
     } else {			/* Not last chunk! */
       if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i) {
-	type(SS, 250, "2.6.0", "Received %ld bytes", bdata_chunksize);
+	type(SS, 250, "2.0.0", "Received %ld bytes", bdata_chunksize);
       } else
-	type(SS, 250, "2.6.0", "Received %ld bytes", bdata_chunksize);
+	type(SS, 250, "2.0.0", "Received %ld bytes", bdata_chunksize);
     }
     if (bdata_last) {
 	SS->state = MailOrHello;

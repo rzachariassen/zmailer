@@ -1,5 +1,19 @@
 2003-05-27  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpdata.c:
+	    Examples in RFC 2034 weren't the best possible, practice has
+	    shown, that "250 2.6.0 .." isn't quite what is intended.
+	    Sending now (like sendmail) "250 2.0.0 ..."
+
+	* include/shmmib.h, scheduler/Makefile.in, scheduler/mailq.inc,
+	  scheduler/scheduler.h, smtpserver/smtpcmds.c, smtpserver/smtphelp.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  transports/smtp/smtp.c:
+	    More simpleish counters and gauges...
+
+	* transports/smtp/smtp.c, include/shmmib.h, scheduler/mailq.inc:
+	    Count outgoing sessions where we use PIPELINING.
+
 	* scheduler/scheduler.c:
 	    Fix the  LogFreeSpace-kB-G  to be filled (instead of
 	    overwriting  SpoolFreeSpace-kB-G !)

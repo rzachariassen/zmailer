@@ -5,7 +5,7 @@
  *  talking with us in order to figure out of there are too
  *  many parallel connections from same IP address out there..
  *
- *  Copyright Matti Aarnio <mea@nic.funet.fi> 1998-1999
+ *  Copyright Matti Aarnio <mea@nic.funet.fi> 1998-1999, 2003
  *
  */
 

@@ -1635,6 +1635,8 @@ const char *buf, *cp;
     const char *newcp = NULL;
     int addrlen;
 
+    MIBMtaEntry->ss.IncomingSMTP_VRFY ++;
+
     if (SS->state == Hello) {
 	type(SS, 503, m551, "Waiting for HELO/EHLO command");
 	return;
@@ -1687,6 +1689,8 @@ const char *buf, *cp;
     char *s;
     int cfi, addrlen;
     char *newcp = NULL;
+
+    MIBMtaEntry->ss.IncomingSMTP_EXPN ++;
 
     if (SS->state == Hello) {
 	type(SS, 503, m551, "Waiting for HELO/EHLO command");

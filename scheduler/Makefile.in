@@ -49,8 +49,8 @@ $(PROGRAM).third: $(PROGRAM)
 	make $(PROGRAM) LIBMALLOC=
 	atom -tool third -o $(PROGRAM).third $(PROGRAM)
 
-mq2.o: $(srcdir)/mq2.c $(srcdir)/mailq.inc
-mailq.o: $(srcdir)/mailq.c $(srcdir)/mailq.inc
+mq2.o:   $(srcdir)/mailq.inc
+mailq.o: $(srcdir)/mailq.inc
 $(OBJS): $(srcdir)/../include/shmmib.h ../include/mail.h
 $(OBJS): $(srcdir)/prototypes.h $(srcdir)/scheduler.h
 

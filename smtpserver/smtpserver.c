@@ -2222,11 +2222,14 @@ int insecure;
 				   
 	time( & now );
 
-	if (s_hasinput(SS))
+	if (s_hasinput(SS)) {
 	  if (logfp || logfp_to_syslog)
 	    type(NULL,0,NULL,
 		 "-- pipeline input exists %d bytes", s_hasinput(SS));
-
+	  if (!SS->s_seen_pipeline)
+	    MIBMtaEntry->ss.IncomingClientPipelines ++;
+	  SS->s_seen_pipeline = 1;
+	}
 
 	eobuf = &buf[i-1];	/* Buf end ptr.. */
 
@@ -2465,6 +2468,9 @@ int insecure;
 	    }
 	    break;
 	case Reset:
+
+	    MIBMtaEntry->ss.IncomingSMTP_RSET ++;
+
 	    if (*cp != 0 && strict_protocol) {
 	      type(SS, 501, m554, "Extra junk after 'RSET' verb");
 	      break;
@@ -2498,6 +2504,7 @@ int insecure;
 	    typeflush(SS);
 	    break;
 	case Turn:
+	    MIBMtaEntry->ss.IncomingSMTP_TURN ++;
 	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
 	      type(SS, -502, m554, "Extra junk after 'TURN' verb");
 	    }
@@ -2505,6 +2512,7 @@ int insecure;
 	    typeflush(SS);
 	    break;
 	case NoOp:
+	    MIBMtaEntry->ss.IncomingSMTP_NOOP ++;
 	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
 	      type(SS, 501, m554, "Extra junk after 'NOOP' verb");
 	      break;
@@ -2513,6 +2521,7 @@ int insecure;
 	    typeflush(SS);
 	    break;
 	case Verbose:
+	    MIBMtaEntry->ss.IncomingSMTP_VERBOSE ++;
 	    type(SS, -250, m200, VerbID, Version);
 	    type(SS, -250, m200, Copyright);
 	    type(SS, 250, m200, Copyright2);
@@ -2520,6 +2529,7 @@ int insecure;
 	    SS->VerboseCommand = 1;
 	    break;
 	case DebugMode:
+	    MIBMtaEntry->ss.IncomingSMTP_DEBUG ++;
 	    ++debug;
 	    debug_report(SS, SS->VerboseCommand, SS->rhostname, buf);
 	    typeflush(SS);
@@ -2530,11 +2540,13 @@ int insecure;
 	    typeflush(SS);
 	    break;
 	case Tick:
+	    MIBMtaEntry->ss.IncomingSMTP_TICK ++;
 	    type(SS, 250, m200, "%s", buf);
 	    typeflush(SS);
 	    SS->with_protocol = WITH_BSMTP;
 	    break;
 	case Quit:
+	    MIBMtaEntry->ss.IncomingSMTP_QUIT ++;
 	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
 	      type(SS, -221, m554, "Extra junk after 'QUIT' verb");
 	    }
@@ -3084,6 +3096,10 @@ void smtp_tarpit(SS)
 	/* was 250 - set up to a config param in smtpserver.conf - jmack apr 2003 */
         if (SS->tarpit < 0 || SS->tarpit > tarpit_toplimit )
 		SS->tarpit = tarpit_toplimit;
+
+
+	/* XX: Count each tarpit call, or just once per connection ? */
+	MIBMtaEntry->ss.IncomingSmtpTarpits ++;
     }
 }
 

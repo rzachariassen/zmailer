@@ -28,6 +28,8 @@ const char *query;
     Command cmd;
     char linebuf[3000];
 
+    MIBMtaEntry->ss.IncomingSMTP_HELP ++;
+
     while (query && (*query == ' ' || *query == '\t')) ++query;
 
     for (carp = &command_list[0]; carp->verb != NULL; ++carp) {

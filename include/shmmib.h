@@ -109,7 +109,17 @@ struct MIB_MtaEntrySs {
   uint		TransmittedMessagesSs;	/* counter, smtpserver	*/
   uint		TransmittedRecipientsSs;/* counter, smtpserver	*/
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  uint		IncomingSMTP_TURN;
+  uint		IncomingSMTP_NOOP;
+  uint		IncomingSMTP_VERBOSE;
+  uint		IncomingSMTP_DEBUG;
+  uint		IncomingSMTP_TICK;
+  uint		IncomingSMTP_QUIT;
+
+  uint		IncomingClientPipelines;
+  uint		IncomingSmtpTarpits;
+
+  uint	space[24]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -250,7 +260,9 @@ struct MIB_MtaEntryTaS {
   uint		OutgoingSmtpTAprocesses;	/* counter */
   uint		OutgoingSmtpTAprocCountG;	/* counter */
 
-  uint	space[30]; /* Add to tail without need to change MAGIC */
+  uint		OutgoingSmtpPIPELINING;		/* counter */
+
+  uint	space[29]; /* Add to tail without need to change MAGIC */
 
 };
 

@@ -103,7 +103,8 @@ struct ctlfile {
 	int	rcpnts_work;	/* .. yet to deliver ?			     */
 	int	mark;		/* flag used by selector() to pass filenames */
 	int	msgbodyoffset;	/* size of original headers to skip on errrpt*/
-	int	msgbodysizekb;	/* header size + body size, in kB	     */
+	int	msgbodysize;	/* header size + body size, in kB	     */
+	int	msgheadsize;	/* header size (from within transport file)  */
 	int	msgfilesizekb;	/* Sum of both, round up to nearest kB, div  */
 	int	format;		/* Message format version -- _CF_FORMAT data */
 	int	offset[1];	/* array of nlines byte offsets into the file*/

@@ -250,7 +250,7 @@ struct smtpserver_ssl_subset {
 #endif /* - HAVE_OPENSSL */
 
 
-typedef struct {
+typedef struct SmtpState {
     int  outputfd;		/* stdout */
     int  inputfd;		/* stdin  */
     FILE *mfp;			/* Storage-bound mail-file fp */
@@ -298,6 +298,7 @@ typedef struct {
     int  s_readerrno;
     char s_buffer[SMTPLINESIZE];
     int  s_ungetcbuf;
+    int  s_seen_pipeline;
 
     int  from_box;		/* Set when:  MAIL FROM:<>  */
     int  rcpt_count;

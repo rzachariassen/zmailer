@@ -83,38 +83,74 @@
   sfprintf(fp,"SS.SMTPcommands-unknown         %10u\n",
 	   M.ss.IncomingCommands_unknown);
 
+  sfprintf(fp,"SS.IncomingClientPipelines      %10u\n",
+	   M.ss.IncomingClientPipelines);
+  sfprintf(fp,"SS.IncomingSmtpTarpits          %10u\n",
+	   M.ss.IncomingSmtpTarpits);
+
   sfprintf(fp,"SS.SMTP_HELO                    %10u\n",
 	   M.ss.IncomingSMTP_HELO);
+  sfprintf(fp,"SS.SMTP_HELO_ok                 %10u\n",
+	   M.ss.IncomingSMTP_HELO_ok);
+  sfprintf(fp,"SS.SMTP_HELO_bad                %10u\n",
+	   M.ss.IncomingSMTP_HELO_bad);
+
   sfprintf(fp,"SS.SMTP_EHLO                    %10u\n",
 	   M.ss.IncomingSMTP_EHLO);
-  sfprintf(fp,"SS.SMTP_ETRN                    %10u\n",
-	   M.ss.IncomingSMTP_ETRN);
+  sfprintf(fp,"SS.SMTP_EHLO_ok                 %10u\n",
+	   M.ss.IncomingSMTP_EHLO_ok);
+  sfprintf(fp,"SS.SMTP_EHLO_bad                %10u\n",
+	   M.ss.IncomingSMTP_EHLO_bad);
+
+  sfprintf(fp,"SS.SMTP_NOOP                    %10u\n",
+	   M.ss.IncomingSMTP_NOOP);
+  sfprintf(fp,"SS.SMTP_RSET                    %10u\n",
+	   M.ss.IncomingSMTP_RSET);
   sfprintf(fp,"SS.SMTP_HELP                    %10u\n",
 	   M.ss.IncomingSMTP_HELP);
+  sfprintf(fp,"SS.SMTP_ETRN                    %10u\n",
+	   M.ss.IncomingSMTP_ETRN);
+  sfprintf(fp,"SS.SMTP_EXPN                    %10u\n",
+	   M.ss.IncomingSMTP_EXPN);
+  sfprintf(fp,"SS.SMTP_VRFY                    %10u\n",
+	   M.ss.IncomingSMTP_VRFY);
+  sfprintf(fp,"SS.SMTP_TICK                    %10u\n",
+	   M.ss.IncomingSMTP_TICK);
+  sfprintf(fp,"SS.SMTP_TURN                    %10u\n",
+	   M.ss.IncomingSMTP_TURN);
+  sfprintf(fp,"SS.SMTP_VERBOSE                 %10u\n",
+	   M.ss.IncomingSMTP_VERBOSE);
+  sfprintf(fp,"SS.SMTP_DEBUG                   %10u\n",
+	   M.ss.IncomingSMTP_DEBUG);
+
   sfprintf(fp,"SS.SMTP_MAIL                    %10u\n",
 	   M.ss.IncomingSMTP_MAIL);
   sfprintf(fp,"SS.SMTP_MAIL_ok                 %10u\n",
 	   M.ss.IncomingSMTP_MAIL_ok);
   sfprintf(fp,"SS.SMTP_MAIL_bad                %10u\n",
 	   M.ss.IncomingSMTP_MAIL_bad);
+
   sfprintf(fp,"SS.SMTP_RCPT                    %10u\n",
 	   M.ss.IncomingSMTP_RCPT);
   sfprintf(fp,"SS.SMTP_RCPT_ok                 %10u\n",
 	   M.ss.IncomingSMTP_RCPT_ok);
   sfprintf(fp,"SS.SMTP_RCPT_bad                %10u\n",
 	   M.ss.IncomingSMTP_RCPT_bad);
+
   sfprintf(fp,"SS.SMTP_DATA                    %10u\n",
 	   M.ss.IncomingSMTP_DATA);
   sfprintf(fp,"SS.SMTP_DATA_ok                 %10u\n",
 	   M.ss.IncomingSMTP_DATA_ok);
   sfprintf(fp,"SS.SMTP_DATA_bad                %10u\n",
 	   M.ss.IncomingSMTP_DATA_bad);
+
   sfprintf(fp,"SS.SMTP_BDAT                    %10u\n",
 	   M.ss.IncomingSMTP_BDAT);
   sfprintf(fp,"SS.SMTP_BDAT_ok                 %10u\n",
 	   M.ss.IncomingSMTP_BDAT_ok);
   sfprintf(fp,"SS.SMTP_BDAT_bad                %10u\n",
 	   M.ss.IncomingSMTP_BDAT_bad);
+
   sfprintf(fp,"SS.SMTP_DATA-kB                 %10u\n",
 	   M.ss.IncomingSMTP_DATA_KBYTES);
   sfprintf(fp,"SS.SMTP_BDAT-kB                 %10u\n",
@@ -171,6 +207,7 @@
 	   M.sc.TransmittedMessagesSc);
   sfprintf(fp,"SC.TransmittedRecipients        %10u\n",
 	   M.sc.TransmittedRecipientsSc);
+
   sfprintf(fp,"SC.StoredMessages-G              %9d\n",
 	   M.sc.StoredMessagesSc);
   sfprintf(fp,"SC.StoredThreads-G               %9d\n",
@@ -179,21 +216,72 @@
 	   M.sc.StoredVerticesSc);
   sfprintf(fp,"SC.StoredRecipients-G            %9d\n",
 	   M.sc.StoredRecipientsSc);
+
   sfprintf(fp,"SC.ReceivedVolume-kB            %10u\n",
 	   M.sc.ReceivedVolumeSc);
-  sfprintf(fp,"SC.StoredVolume-kB-G            %10u\n",
+  sfprintf(fp,"SC.StoredVolume-kB-G             %9d\n",
 	   M.sc.StoredVolumeSc);
   sfprintf(fp,"SC.TransmittedVolume-kB         %10u\n",
 	   M.sc.TransmittedVolumeSc);
 
   sfprintf(fp,"SC.TransportAgentForks          %10u\n",
 	   M.sc.TransportAgentForksSc);
-  sfprintf(fp,"SC.TransportAgentProcesses-G    %10u\n",
+  sfprintf(fp,"SC.TransportAgentProcesses-G     %9d\n",
 	   M.sc.TransportAgentProcessesSc);
   sfprintf(fp,"SC.TransportAgentsActive-G       %9d\n",
 	   M.sc.TransportAgentsActiveSc);
   sfprintf(fp,"SC.TransportAgentsIdle-G         %9d\n",
 	   M.sc.TransportAgentsIdleSc);
+
+  sfprintf(fp,"SC.MQ2Parallel-G                 %9d\n",
+	   M.sc.MQ2sockParallel);
+  sfprintf(fp,"SC.MQ2Connects                  %10u\n",
+	   M.sc.MQ2sockConnects);
+  sfprintf(fp,"SC.MQ2TcpWrapRej                %10u\n",
+	   M.sc.MQ2sockTcpWrapRej);
+  sfprintf(fp,"SC.MQ2AuthRej                   %10u\n",
+	   M.sc.MQ2sockAuthRej);
+  sfprintf(fp,"SC.MQ2TimedOut                  %10u\n",
+	   M.sc.MQ2sockTimedOut);
+  sfprintf(fp,"SC.MQ2ReadEOF                   %10u\n",
+	   M.sc.MQ2sockReadEOF);
+  sfprintf(fp,"SC.MQ2ReadFails                 %10u\n",
+	   M.sc.MQ2sockReadFails);
+  sfprintf(fp,"SC.MQ2WriteFails                %10u\n",
+	   M.sc.MQ2sockWriteFails);
+  sfprintf(fp,"SC.MQ2Commands                  %10u\n",
+	   M.sc.MQ2sockCommands);
+  sfprintf(fp,"SC.MQ2CommandsRej               %10u\n",
+	   M.sc.MQ2sockCommandsRej);
+  sfprintf(fp,"SC.MQ2CommandAUTH               %10u\n",
+	   M.sc.MQ2sockCommandAUTH);
+  sfprintf(fp,"SC.MQ2CommandQUIT               %10u\n",
+	   M.sc.MQ2sockCommandQUIT);
+  sfprintf(fp,"SC.MQ2CommandETRN               %10u\n",
+	   M.sc.MQ2sockCommandETRN);
+  sfprintf(fp,"SC.MQ2CommandKillThr            %10u\n",
+	   M.sc.MQ2sockCommandKillThr);
+  sfprintf(fp,"SC.MQ2CommandKillMsg            %10u\n",
+	   M.sc.MQ2sockCommandKillMsg);
+  sfprintf(fp,"SC.MQ2CommandKillProcess        %10u\n",
+	   M.sc.MQ2sockCommandKillProcess);
+  sfprintf(fp,"SC.MQ2CommandRerouteThr         %10u\n",
+	   M.sc.MQ2sockCommandRerouteThr);
+  sfprintf(fp,"SC.MQ2CommandRerouteMsg         %10u\n",
+	   M.sc.MQ2sockCommandRerouteMsg);
+  sfprintf(fp,"SC.MQ2CommandShowQueueThreads   %10u\n",
+	   M.sc.MQ2sockCommandShowQueueThreads);
+  sfprintf(fp,"SC.MQ2CommandShowQueueThreads2  %10u\n",
+	   M.sc.MQ2sockCommandShowQueueThreads2);
+  sfprintf(fp,"SC.MQ2CommandShowQueueShort     %10u\n",
+	   M.sc.MQ2sockCommandShowQueueShort);
+  sfprintf(fp,"SC.MQ2CommandShowQueueVeryShort %10u\n",
+	   M.sc.MQ2sockCommandShowQueueVeryShort);
+  sfprintf(fp,"SC.MQ2CommandShowThread         %10u\n",
+	   M.sc.MQ2sockCommandShowThread);
+  sfprintf(fp,"SC.MQ2CommandShowCounters       %10u\n",
+	   M.sc.MQ2sockCommandShowCounters);
+
 
   sfprintf(fp,"\n");
 
@@ -213,6 +301,10 @@
 	   M.tas.OutgoingSmtpConnectFails);
   sfprintf(fp,"TA.OutgoingSmtpConnectsCnt-G     %9d\n",
 	   M.tas.OutgoingSmtpConnectsCnt);
+
+  sfprintf(fp,"TA.OutgoingSmtpPIPELINING       %10u\n",
+	   M.tas.OutgoingSmtpPIPELINING);
+
   sfprintf(fp,"TA.OutgoingSmtpSTARTTLS         %10u\n",
 	   M.tas.OutgoingSmtpSTARTTLS);
   sfprintf(fp,"TA.OutgoingSmtpSTARTTLSok       %10u\n",

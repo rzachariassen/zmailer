@@ -1165,6 +1165,9 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	if (no_pipelining) pipelining = 0;
 	SS->pipelining = pipelining;
 
+	if (pipelining)
+	  MIBMtaEntry->tas.OutgoingSmtpPIPELINING ++;
+
 	SS->chunking   = ( SS->ehlo_capabilities & ESMTP_CHUNKING );
 
 	convertmode = _CONVERT_NONE;
