@@ -658,7 +658,7 @@ web_detangle(vp, ok)
 
 	struct thread *thr = vp->thread;
 
-	if (thr) {
+	if (thr && thr->proc) {
 	  assert_pvertex_null(vp);
 	  unthread(vp);
 	}
