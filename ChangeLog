@@ -1,5 +1,11 @@
 2004-09-10  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/subdaemons.c:
+	    Changed the client input pickup methodology back into
+	    "prefer lowest slot" (instead of round-robin).
+	    It just didn't work :-(  (probably broken logic
+	    somewhere in there..)
+
 	* smtpserver/smtpchild.c:
 	    Account childs by type, not all together..  (oops..)
 
