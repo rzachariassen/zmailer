@@ -460,28 +460,24 @@ char **argv;
     if (!allow_source_route)
       allow_source_route = (getzenv("ALLOWSOURCEROUTE") != NULL);
 
-    raddrlen = sizeof SS.raddr;
-    memset(&SS.raddr, 0, raddrlen);
-    netconnected_flg = 1;
-    if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen)) {
-      netconnected_flg = 0;
-      if (errno == ENOTSOCK) {
-	;
-      } else {
-	fprintf(stderr, "%s: getpeername(0): %s\n",
-		progname, strerror(errno));
-	exit(1);
-      }
-    }
+    netconnected_flg = 0;
 
     if (!daemon_flg) {
-	strcpy(SS.rhostname, "stdin");
-	SS.rport = -1;
-	SS.ihostaddr[0] = '\0';
-	sprintf(SS.ident_username, "uid#%d@localhost", getuid());
 
-	s_setup(&SS, FILENO(stdin), stdout);
-	smtpserver(&SS, 0);
+      raddrlen = sizeof SS.raddr;
+      memset(&SS.raddr, 0, raddrlen);
+      if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen))
+	netconnected_flg = 0;
+      else
+	netconnected_flg = 1;
+
+      strcpy(SS.rhostname, "stdin");
+      SS.rport = -1;
+      SS.ihostaddr[0] = '\0';
+      sprintf(SS.ident_username, "uid#%d@localhost", getuid());
+
+      s_setup(&SS, FILENO(stdin), stdout);
+      smtpserver(&SS, 0);
 
     } else
 #ifdef	USE_INET
@@ -494,12 +490,20 @@ char **argv;
 	    exit(1);
 	}
 #endif
+	raddrlen = sizeof SS.raddr;
+	memset(&SS.raddr, 0, raddrlen);
+
+	if (getpeername(SS.inputfd, (struct sockaddr *) &SS.raddr, &raddrlen))
+	  netconnected_flg = 0;
+	else
+	  netconnected_flg = 1;
+
 #if defined(AF_INET6) && defined(INET6)
 	if (SS.raddr.v6.sin6_family == AF_INET6)
-	    SS.rport = SS.raddr.v6.sin6_port;
+	  SS.rport = SS.raddr.v6.sin6_port;
 	else
 #endif
-	    SS.rport = SS.raddr.v4.sin_port;
+	  SS.rport = SS.raddr.v4.sin_port;
 
 	setrhostname(&SS);
 
@@ -800,6 +804,8 @@ char **argv;
 	    } else {			/* Child */
 		SIGNAL_RELEASE(SIGCHLD);
 
+		netconnected_flg = 1;
+
 		close(s);	/* Listening socket.. */
 		pid = getpid();
 
@@ -813,6 +819,7 @@ char **argv;
 		if (logfp)	/* Open the logfp latter.. */
 		    fclose(logfp);
 		logfp = NULL;
+
 
 #if 0
 		if (maxloadavg != 999 &&

@@ -1,4 +1,17 @@
+1998-06-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c:
+	    Revised that 'smtpserver -i' mode code so that
+	    it should work on a wider array of systems.
+
 1998-06-02  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.c, smtpserver/smtpcmds.c:
+	    More Roy Bixler patches.  Moved some code around so
+	    that the system will always know when it truly is
+	    connected to a network socket. The server will not
+	    produce "rcvdfrom " envelope header in case it is
+	    not running on a network socket.
 
 	* Most  Makefile.in  files:
 	    Reworked on "prefix=nnnnn make install" installation.
