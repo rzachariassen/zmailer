@@ -1232,7 +1232,7 @@ static struct ctlfile *readmq2cfp(fname)
 	struct stat stbuf;
 	char *s, *s0;
 
-	sprintf(path, "%s/transport/%s", postoffice, fname);
+	sprintf(path, "%s/%s/%s", postoffice, TRANSPORTDIR, fname);
 	if (lstat(path, &stbuf) != 0) return NULL;
 
 	cfp = malloc(sizeof(*cfp) + stbuf.st_size + 20);
@@ -1260,9 +1260,11 @@ static struct ctlfile *readmq2cfp(fname)
 	  return NULL;
 	}
 
-	sprintf(path, "%s/queue/%s", postoffice, fname);
-	if (lstat(path, &stbuf) == 0)
+	sprintf(path, "%s/%s/%s", postoffice, QUEUEDIR, fname);
+	if (lstat(path, &stbuf) == 0) {
 	  cfp->msgbodyoffset = stbuf.st_size;
+	  cfp->mtime         = stbuf.st_mtime;
+	}
 
 	s0[i] = 0;
 
@@ -1576,9 +1578,15 @@ void query2(fpi, fpo)
 	      printf("\t%s: (", split[0]);
 
 	      *timebuf = 0;
+	      saytime((long)(now - cfp->mtime), timebuf, 1);
+
+	      printf("%s tries, age %s, ", split[7], timebuf);
+
+	      *timebuf = 0;
 	      saytime((long)(atol(split[4]) - now), timebuf, 1);
 
-	      printf("%s tries, expires in %s)", split[7], timebuf);
+	      printf("expires in %s, %ld+%ld bytes)", timebuf,
+		     (long)cfp->nlines, (long)cfp->msgbodyoffset);
 
 	      if (!verbose)
 		printf(" %s", split[9]);
@@ -1594,14 +1602,9 @@ void query2(fpi, fpo)
 	      if (cfp) {
 		if (j == 0) {
 		  /* First recipient in the group */
-		  printf("\t");
-		  if (cfp->logident) {
-		    printf(" id\t%s,", cfp->logident);
-		  }
-		  if (verbose > 1) {
-		    printf(" bytes %ld", (long)cfp->msgbodyoffset);
-		  }
-		  printf("\n");
+
+		  if (cfp->logident)
+		    printf("\t  id\t%s\n", cfp->logident);
 
 		  printf("\t  from\t%s\n", *split[2] ? split[2] : "<>");
 		}
