@@ -1,6 +1,8 @@
 router/functions:
-	To test  $(lreplace ...)  function
-	To document  lreplace, and lappend
+	To test  $(lreplace ...)  function [ok!]
+	To document  lreplace, and lappend [half-hearted work]
+	To get rid of 'setf' -- 3.0 thing, as is conscell 'prev'
+	component removal, too.
 
 Known/suspected bugs/Missing Features on current Zmailer sources
 
@@ -31,6 +33,16 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	data, and sync in-core status with the file.
 		(incomplete code skeleton written for this)
 		( sync_cfps() is that skeleton.. )
+
+	Tool/mechanism for requeueing a message from the transport
+	back to the router -- all message recipients that have not
+	been processed yet.
+
+	Tool/mechanism for the scheduler to command expiration of all
+	recipients in given thread.  (alike 'manual-expiry', except
+	a bit smarter..)
+
+	A new management channel protocol.
 
 	- Delivery messages plain-text part needs easier human
 	  understandable format on the messages.
@@ -77,6 +89,9 @@ Known/suspected bugs/Missing Features on current Zmailer sources
     test activation based on:
 	- If policytest is in use, do it
 	- If "-sR" mode is on, do it
+  - truncate (somehow) rhostname, and helobuf data which are stored
+    into "rcvdfrom" envelope entry.  SMTP-systems allow only up to
+    about 1000 characters long lines..
 
 - "make install" does not handle manual-page installation properly,
   also alternate-root installation has a few odd ends (vacation

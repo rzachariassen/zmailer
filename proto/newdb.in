@@ -1,4 +1,4 @@
-#! @MAILBIN@/router -f
+#! /bin/sh
 #
 #  Generate default (DBTYPE) type database with 'namendbm'
 #  utility with following args:
