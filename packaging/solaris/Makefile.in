@@ -28,7 +28,7 @@ all:
 	@echo "make pkgs prefix=/dir/prefix"
 
 clean:
-	rm -f *~ proto pkginfo
+	rm -f *~ proto proto01 proto02 pkginfo
 
 distclean:
 	rm -f Makefile
@@ -37,7 +37,7 @@ pkgs:	pkgs-01 pkgs-02
 
 pkgs-01:	# DIRECTORIES, BINARIES
 	. $(ZCONF) ; \
-	(echo "i pkginfo"; \
+	(echo "i pkginfo01"; \
 	 echo "s none usr/bin/mailq=$$MAILBIN/sendmail" ; \
 	 cd $(prefix)/; ( \
 	 echo .$$ZCONFIG ; \
@@ -56,18 +56,18 @@ pkgs-01:	# DIRECTORIES, BINARIES
 	 echo $(SENDMAILPATH)|sed -e 's!^/!!' ; \
 	  ) \
 		| sort | uniq | pkgproto )  \
-		> proto
+		> proto01
 	cat ${srcdir}/pkginfo-01.src | \
 		sed -e "s/%VERSION%/$(VERSION)/g" \
 		    -e "s/%SUFF%/${SUFF}/g" \
-		> pkginfo
+		> pkginfo01
 	rm -rf ZMailer01${SUFF}
-	pkgmk -o -f proto -b $(prefix) -d `/bin/pwd`
+	pkgmk -o -f proto01 -b $(prefix) -d `/bin/pwd`
 	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer01${SUFF}.pkg ZMailer01${SUFF}
 
 pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	. $(ZCONF) ; \
-	(echo "i pkginfo"; \
+	(echo "i pkginfo02"; \
 	 cd $(prefix)/; ( \
 	 echo .$$ZCONFIG ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf ! -name \*.fc -print ; \
@@ -76,12 +76,12 @@ pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -print ; \
 	  ) \
 		| sort | uniq | pkgproto )  \
-		> proto
+		> proto2
 	cat ${srcdir}/pkginfo-02.src | \
 		sed -e "s/%VERSION%/$(VERSION)/g" \
 		    -e "s/%SUFF%/${SUFF}/g" \
-		> pkginfo
+		> pkginfo02
 	rm -rf ZMailer02${SUFF}
-	pkgmk -o -f proto -b $(prefix) -d `/bin/pwd`
+	pkgmk -o -f proto2 -b $(prefix) -d `/bin/pwd`
 	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer02${SUFF}.pkg ZMailer02${SUFF}
 
