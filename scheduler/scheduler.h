@@ -66,7 +66,7 @@ struct ctlfile {
 	int	fd;		/* a file descriptor pointing at the file    */
 	char	*vfpfn;		/* a filename for verbose logging of mail    */
 	uid_t	uid;		/* the owner of the control file (= msg file)*/
-	time_t	ctime;		/* when the original file arrived	     */
+	time_t	mtime;		/* original msg file's mtime (~ arrival)     */
 	time_t	envctime;	/* when the transport file was created	     */
 	int	haderror;	/* some errors/diagnostics need processing   */
 	struct vertex	*head;		/* head of the list of groups	     */

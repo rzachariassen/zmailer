@@ -639,6 +639,8 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	  return NULL;
 	}
 
+	d.msginonumber = (long)stbuf.st_ino;
+
 	fcntl(d.msgfd, F_SETFD, 1); /* Close-on-exec */
 
 #if defined(HAVE_MMAP) && defined(TA_USE_MMAP)

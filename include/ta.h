@@ -82,6 +82,7 @@ struct ctldesc {
 	time_t		msgmtime;	/* Message file arrival time */
 	long		msgbodyoffset;	/* offset of message body in msgfile */
 	long		msgsizeestimate; /* Estimate of the msg size */
+	long		msginonumber;	/* message file inode number */
 	int		msgfd;		/* message file I/O descriptor */
 	int		ctlfd;		/* control file I/O descriptor */
 	int		ctlid;		/* control file id (inode number) */

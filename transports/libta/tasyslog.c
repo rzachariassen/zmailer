@@ -53,7 +53,7 @@ const char *msg;
     return;  /* If no 'T' flag in SYSLOGFLG, no transport agent sysloging! */
   
 
-  taspoolid(spoolid, sizeof(spoolid), rp->desc->msgmtime, rp->desc->msgfile);
+  taspoolid(spoolid, rp->desc->msgmtime, rp->desc->msginonumber);
 
   time(&now);
 

@@ -24,9 +24,10 @@
 #include "libz.h"
 
 void
-rtsyslog(msgmtime,msgfile,from,smtprelay,size,nrcpts,msgid)
+rtsyslog(msgmtime,msgino,from,smtprelay,size,nrcpts,msgid)
 time_t msgmtime;
-char *msgfile, *from, *smtprelay, *msgid;
+long msgino;
+char *from, *smtprelay, *msgid;
 int size, nrcpts;
 {
   char linebuf[8000];		/* Should be aplenty..		*/
@@ -48,7 +49,7 @@ int size, nrcpts;
   if (*t == '\0')
     return;  /* If no 'R' flag in SYSLOGFLG, no router sysloging! */
 
-  taspoolid(spoolid, sizeof(spoolid), msgmtime, msgfile);
+  taspoolid(spoolid, msgmtime, msgino);
 
   time(&now);
 

@@ -290,9 +290,9 @@
 #| private IP address...
 #|
 _private_address    message "We reject your network" rejectnet + message "We don't accept email from this source address" rejectsource + relaycustomer - relaytarget -
-[172.16.0.0]/12		= _private_address
-[192.168.0.0]/16	= _private_address
-[10.0.0.0]/8		= _private_address
+#[172.16.0.0]/12         = _private_address
+#[192.168.0.0]/16        = _private_address
+#[10.0.0.0]/8            = _private_address
 #|
 #| ...but hosts in the address range 192.168.16.0-192.168.17.255 may be
 #| our SMTP clients.

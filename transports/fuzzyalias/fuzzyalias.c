@@ -284,8 +284,7 @@ process(dp, answer)
 	  struct stat stbuf;
 
 	  fstat(FILENO(mfp),&stbuf);
-	  sprintf(fname,"%d",stbuf.st_ino);
-	  taspoolid(boundarystr, sizeof(boundarystr), stbuf.st_ctime, fname);
+	  taspoolid(boundarystr, stbuf.st_ctime, (long)stbuf.st_ino);
 	  strcat(boundarystr, "=_/fuzzy/");
 	  strcat(boundarystr, dom);
 	}

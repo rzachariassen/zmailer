@@ -591,12 +591,12 @@ reporterrs(cfpi)
 
 	{
 	  char *dom = mydomain(); /* transports/libta/buildbndry.c */
-	  char fname[20];
 	  struct stat stbuf;
 
-	  fstat(fileno(errfp),&stbuf);
-	  sprintf(fname,"%ld",(long)stbuf.st_ino);
-	  taspoolid(boundarystr, sizeof(boundarystr), stbuf.st_ctime, fname);
+	  fstat(fileno(errfp),&stbuf); /* doesn't matter exactly what,
+					  as long as unique */
+	  taspoolid(boundarystr, stbuf.st_ctime, (long)stbuf.st_ino);
+
 	  strcat(boundarystr, "=_/");
 	  strcat(boundarystr, dom);
 	}
@@ -639,7 +639,7 @@ reporterrs(cfpi)
 	  putc('\n',errfp);
 	}
 	/* rfc822date() returns a string with trailing newline! */
-	fprintf(errfp, "Arrival-Date: %s", rfc822date(&cfpi->ctime));
+	fprintf(errfp, "Arrival-Date: %s", rfc822date(&cfpi->mtime));
 	fprintf(errfp, "\n");
 
 	/* Now scan 'em all again for IETF-NOTARY */

@@ -1,8 +1,38 @@
+1999-05-30  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* include/ta.h, include/libz.h, lib/taspoolid.c, router/prototypes.h,
+	  router/rfc822.c, router/rtsyslog.c, scheduler/scheduler.h,
+	  scheduler/scheduler.c, scheduler/mailq.c, scheduler/update.c,
+	  scheduler/msgerror.c, scheduler/threads.c, smtpserver/smtpdata.c,
+	  transports/errormail/errormail.c, transports/libta/tasyslog.c,
+	  transports/fuzzyalias/fuzzyalias.c, transports/libta/ctlopen.c,
+	  transports/mailbox/mailbox.c:
+	    A cascade of changes from wanting to change the basis of
+	    taspoolid() generated string..  Now it is parsable back to
+	    inode number and input file mtime -- even readable online,
+	    although obfuscated...
+
+	    Also renamed lots of variables in the scheduler from  'ctime'
+	    to 'mtime', as their function has been for the last few years...
+
+	* transports/smtp/smtp.c:
+	    Cleanup slightly the error report when no MXes are found,
+	    *nor* address, and yield INSTANT error.
+
+	* libsh/interpret.c:
+	    fixing indentation, it seems...
+
+	* proto/db/smtp-policy.src:
+	    Per default, don't block even "private internet" networks.
+
 1999-05-28  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* libsh/expand.c:
 	    Remove  dupnstr() + freestr() calls by changeing code
-	    slightly..
+	    slightly..  (Circa 5% of runtime in that junk..
+	    For that matter, about 13% of runtime is s_copy_tree()
+	    calls by that same expand() function... Better to
+	    rewrite it alltogether.)
 
 	* libsh/interpret.c:
 	    Removed unnecessary strsave() calls from within debugging.
@@ -21,13 +51,14 @@
 	      actually breaks UUCP bang-path processing slightly:
 		broken\!case!is!like@this
 		working!case\!is!like@this
-	      (It is about finding the left-most non-quoted bang which is
-	       'somewhat' difficult..)
-	
+	      (It is about difficulties of writing an RE for finding
+	       the left-most non-quoted bang ...)
+
 	* libsh/tregexp.c, libsh/interpret.c:
 	    A bit less copying around, and way smaller initial malloc
 	    to avoid need for big memory blocks, which don't seem to be
 	    available for latter reuse -- memory fragments, you see..
+	    (At least I think so..)
 
 	* configure.in:
 	    Improve a bit of the testing of  <db_185.h> vs. <db.h>,

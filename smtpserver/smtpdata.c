@@ -212,7 +212,7 @@ const char *buf, *cp;
 		/* Ok, build responce with proper "spoolid" */
 		char fnam[20], taspid[30];
 		sprintf(fnam, "%d", ino);
-		taspoolid(taspid, sizeof(taspid), mtime, fnam);
+		taspoolid(taspid, mtime, (long)ino);
 
 		SS->mfp = NULL;
 		type(SS, 250, "2.6.0", "%s message accepted", taspid);
@@ -399,9 +399,8 @@ const char *buf, *cp;
 	    reporterr(SS, tell, "message file close failed");
 	} else {
 	    /* Ok, build responce with proper "spoolid" */
-	    char fnam[20], taspid[30];
-	    sprintf(fnam, "%d", inum);
-	    taspoolid(taspid, sizeof(taspid), mtime, fnam);
+	    char taspid[30];
+	    taspoolid(taspid, mtime, inum);
 
 	    SS->mfp = NULL;
 	    type(SS, 250, "2.6.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",

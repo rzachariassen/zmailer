@@ -1015,9 +1015,8 @@ mkTrace(e)
 		th->h_contents.r->r_with = NULL;
 	/* id */
 	{
-	  char fnam[20], taspid[30];
-	  sprintf(fnam, "%ld", (long)e->e_statbuf.st_ino);
-	  taspoolid(taspid, sizeof(taspid), e->e_statbuf.st_mtime, fnam);
+	  char taspid[32];
+	  taspoolid(taspid, e->e_statbuf.st_mtime, (long)e->e_statbuf.st_ino);
 
 	  na = (struct addr *)tmalloc(sizeof (struct addr));
 	  na->p_tokens = makeToken(taspid, strlen(taspid));
@@ -2348,8 +2347,9 @@ sequencer(e, file)
 	  return PERR_CTRLFILE;
 	}
 
-	rtsyslog(e->e_statbuf.st_mtime, path, fromaddr, smtprelay,
-		 (int) e->e_statbuf.st_size, nrcpts, msgidstr);
+	rtsyslog(e->e_statbuf.st_mtime, (long)e->e_statbuf.st_ino,
+		 fromaddr, smtprelay, (int) e->e_statbuf.st_size,
+		 nrcpts, msgidstr);
 
 #ifndef	USE_ALLOCA
 	free(ofpname);

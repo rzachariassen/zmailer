@@ -1849,7 +1849,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  free(offarr);
 	  return NULL;
 	}
-	cfp->ctime = stbuf.st_mtime; /* instead of ctime, we use mtime
+	cfp->mtime = stbuf.st_mtime; /* instead of ctime, we use mtime
 					at the queue-dir accesses, this
 					way we can move the spool to
 					another machine, and run things
@@ -2136,7 +2136,7 @@ static void vtxdo(vp, cehdr, path)
 
 	/* set default values */
 	if (tp->expiry > 0)
-	  vp->ce_expiry = tp->expiry + vp->cfp->ctime;
+	  vp->ce_expiry = tp->expiry + vp->cfp->mtime;
 	else
 	  vp->ce_expiry = 0;
 

@@ -2632,6 +2632,11 @@ if (SS->verboselog)
 		  zsyslog((LOG_ERR, "%s", SS->remotemsg));
 		  r = EX_TEMPFAIL; /* This gives delayed rejection (after a timeout) */
 #endif
+		} else if (gai_err == EAI_NONAME || gai_err == EAI_NODATA) {
+		  sprintf(SS->remotemsg,
+			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s')",
+			  host);
+		  r = EX_UNAVAILABLE; /* Can do instant reject */
 		} else {
 		  sprintf(SS->remotemsg,
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s', errno=%s, gai_errno='%s')",

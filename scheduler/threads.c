@@ -658,16 +658,16 @@ web_disentangle(vp, ok)
 	  delete_thread(vp->thread, ok);
 }
 
-static int vtx_ctime_cmp __((const void *, const void *));
-static int vtx_ctime_cmp(ap, bp)
+static int vtx_mtime_cmp __((const void *, const void *));
+static int vtx_mtime_cmp(ap, bp)
      const void *ap, *bp;
 {
 	const struct vertex **a = (const struct vertex **)ap;
 	const struct vertex **b = (const struct vertex **)bp;
 
-	if ((*a)->cfp->ctime < (*b)->cfp->ctime)
+	if ((*a)->cfp->mtime < (*b)->cfp->mtime)
 	  return -1;
-	else if ((*a)->cfp->ctime == (*b)->cfp->ctime)
+	else if ((*a)->cfp->mtime == (*b)->cfp->mtime)
 	  return 0;
 	else
 	  return 1;
@@ -684,7 +684,7 @@ struct thread *thr;
 	static struct vertex **ur_arr  = NULL;
 
 	/* Randomize the order of vertices in processing, OR
-	   sort them by spool-file CTIME, if the thread has
+	   sort them by spool-file MTIME, if the thread has
 	   AGEORDER -flag set. */
 
 	/* 1) Create storage array for the vertex re-arrange */
@@ -706,9 +706,9 @@ struct thread *thr;
 
 	/* 3) re-arrange pointers */
 	if (thr->thgrp->ce.flags & CFG_AGEORDER) {
-	  /* ctime order */
+	  /* mtime order */
 	  if (n > 1)
-	    qsort((void*)ur_arr, n, sizeof(struct vertex *), vtx_ctime_cmp);
+	    qsort((void*)ur_arr, n, sizeof(struct vertex *), vtx_mtime_cmp);
 	} else
 	  /* Random order */
 	  for (i = 0; i < n; ++i) {
@@ -843,7 +843,7 @@ struct thread *thr;
 
 	  /* Clean vertices 'proc'-pointers,  randomize the
 	     order of thread vertices  (or sort by spool file
-	     ctime, if in AGEORDER..) */
+	     mtime, if in AGEORDER..) */
 	  thread_vertex_shuffle(thr);
 
 	  thr->attempts += 1;
@@ -935,7 +935,7 @@ struct thread *thr;
 	
 	/* Clean vertices 'proc'-pointers,  randomize the
 	   order of thread vertices  (or sort by spool file
-	   ctime, if in AGEORDER..) */
+	   mtime, if in AGEORDER..) */
 	thread_vertex_shuffle(thr);
 
 	rc = start_child(thr->vertices,
@@ -1070,7 +1070,7 @@ int ok, justfree;
 
 	  /* Clean vertices 'proc'-pointers,  randomize the
 	     order of thread vertices  (or sort by spool file
-	     ctime, if in AGEORDER..) */
+	     mtime, if in AGEORDER..) */
 	  thread_vertex_shuffle(thr);
 
 	  thr->attempts += 1;
@@ -1485,8 +1485,8 @@ struct thread *th;
 
 	vp = th->vertices;
 	while (vp) {
-	  if (vp->cfp->ctime < oo)
-	    oo = vp->cfp->ctime;
+	  if (vp->cfp->mtime < oo)
+	    oo = vp->cfp->mtime;
 	  vp = vp->nextitem;
 	}
 	return (now - oo);

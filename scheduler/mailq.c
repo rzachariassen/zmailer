@@ -1080,10 +1080,10 @@ printaddrs(v)
 	    if (stat(path, &stbuf) == 0) {
 	      /* overload offset[] to be size of message */
 	      v->cfp->offset[0] = stbuf.st_size;
-	      v->cfp->ctime     = stbuf.st_ctime;
+	      v->cfp->mtime     = stbuf.st_mtime;
 	    } else {
 	      v->cfp->offset[0] = 0;
-	      v->cfp->ctime     = 0;
+	      v->cfp->mtime     = 0;
 	    }
 	  }
 	}
@@ -1092,10 +1092,10 @@ printaddrs(v)
 	if (v->cfp->logident)
 	  printf("\t  id\t%s", v->cfp->logident);
 	if (verbose > 1 && v->cfp->offset[0] > 0) {
-	  long dt = now - v->cfp->ctime;
-	  int fields = 2;
+	  long dt = now - v->cfp->mtime;
+	  int fields = 3;
 	  printf(", %ld bytes, age ", (long)v->cfp->offset[0]);
-	  /* age (now-ctime) printout */
+	  /* age (now-mtime) printout */
 	  if (dt > (24*3600)) {	/* Days */
 	    printf("%dd", (int)(dt /(24*3600)));
 	    dt %= (24*3600);

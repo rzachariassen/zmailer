@@ -1532,7 +1532,8 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 				}
 			}
 
-GCPLABPRINTis(command->gcpro4);
+			GCPLABPRINTis(command->gcpro4);
+
 			if (command->argv == NULL) {
 				command->argv = ncons(d);
 				command->argv = ncons(command->argv);

@@ -257,9 +257,8 @@ unctlfile(cfp, no_unlink)
 	  reporterrs(cfp);
 
 	  if (do_syslog) {
-	    char taspid[30],fnam[30];
-	    sprintf(fnam,"%lu",(long)cfp->id);
-	    taspoolid(taspid, sizeof(taspid), cfp->ctime, fnam);
+	    char taspid[30];
+	    taspoolid(taspid, cfp->mtime, (long)cfp->id);
 	    zsyslog((LOG_INFO, "%s: complete (total %d recepients, %d failed)",
 		     taspid, cfp->rcpnts_total, cfp->rcpnts_failed));
 	  }
@@ -291,7 +290,7 @@ unctlfile(cfp, no_unlink)
 #if 0
 	  /* We will LOOSE this from the schedules -- add info about
 	     it into the indirscanqueue -- at the tail... */
-	  dq_insert(NULL, atol(cfp->mid), path, 30);
+	  dq_insert(NULL, cfp->id, path, 30);
 #endif
 	}
 
@@ -646,8 +645,8 @@ static void logstat(fp,vp,reason)
 {
 	mytime(&now);
 	fprintf(fp,"%ld %s %ld %ld %s %s/%s\n",
-		(long)vp->cfp->ctime, vp->cfp->mid,
-		(long)(vp->cfp->envctime - vp->cfp->ctime),
+		(long)vp->cfp->mtime, vp->cfp->mid,
+		(long)(vp->cfp->envctime - vp->cfp->mtime),
 		(long)(now - vp->cfp->envctime), reason,
 		vp->orig[L_CHANNEL]->name,vp->orig[L_HOST]->name);
 	fflush(fp);
@@ -697,13 +696,13 @@ expire(vp, index)
 		  "failed",
 		  "5.4.7 (unspecified timeout failure)",
 		  "smtp; 500 (Expired after ");
-	  saytime((u_long)(vp->ce_expiry - vp->cfp->ctime), buf, 0);
+	  saytime((u_long)(vp->ce_expiry - vp->cfp->mtime), buf, 0);
 	  strcat(buf,")\001");
 	  vp->notary = strsave(buf);
 	}
 
 	strcpy(buf, "expired after ");
-	saytime((u_long)(vp->ce_expiry - vp->cfp->ctime), buf, 0);
+	saytime((u_long)(vp->ce_expiry - vp->cfp->mtime), buf, 0);
 
 	if (vp->message != NULL && *(vp->message) != '\0') {
 	  emsg = emalloc(strlen(buf) + strlen(vp->message) + strlen(fmt));

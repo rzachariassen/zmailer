@@ -152,8 +152,8 @@ extern int strmatch __((const char *pattern, const char *term));
 /* symbol.c */
 /* include "splay.h" ! */
 
-/* taspoolid.c */
-extern void taspoolid __((char *buf, int len, time_t mtime, const char *fn));
+/* taspoolid.c */ /* Minimum buffer size: 32 bytes ! */
+extern void taspoolid __((char *buf, time_t mtime, long inodenum));
 
 /* token.c */
 #ifdef Z_TOKEN_H

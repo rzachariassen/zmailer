@@ -3273,12 +3273,10 @@ return_receipt (dp, retrecptaddr, uidstr)
 
 	{
 	  char *dom = mydomain(); /* transports/libta/buildbndry.c */
-	  char fname[20];
 	  struct stat stbuf;
 
 	  fstat(FILENO(mfp),&stbuf);
-	  sprintf(fname,"%ld",(long)stbuf.st_ino);
-	  taspoolid(boundarystr, sizeof(boundarystr), stbuf.st_ctime, fname);
+	  taspoolid(boundarystr, stbuf.st_ctime, (long)stbuf.st_ino);
 	  strcat(boundarystr, "=_/return-receipt/");
 	  strcat(boundarystr, dom);
 	}
