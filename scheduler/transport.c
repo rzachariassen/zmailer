@@ -133,7 +133,7 @@ struct procinfo *proc;
 	  len = 6;
 	  /* Count this feed as one of normal inputs.
 	     At least we WILL get a "#hungry" message for this */
-	  proc->overfed += 1;
+	  proc->overfed = 1;
 	}
 	rc = write(proc->tofd, proc->cmdbuf, len);
 	if (rc < 0 &&

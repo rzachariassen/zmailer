@@ -1060,12 +1060,14 @@ int ok, justfree;
 
 	mytime(&now);
 
-#if 0
+#if 1
 	/* Move current thread to the last of the threads eligible for start */
 	_thread_timechain_unlink(thr);
 	_thread_timechain_append(thr);
 	/* Idle the process, and be happy.. */
-#else
+
+#else /* Something wrong below here... */
+
 	/* the threads are in a ring/chain.. */
 	thr = (thr->nextthg ? thr->nextthg : thg->thread);
 	for (;thr != thr0; thr = (thr->nextthg ? thr->nextthg : thg->thread)) {
