@@ -296,22 +296,21 @@ gaih_inet (const char *name, const struct gaih_service *service,
 		   && req->ai_protocol != tp->protocol)))
       ++tp;
 
-    if (tp->name == NULL)
-      {
-	if (req->ai_socktype)
-	  return (GAIH_OKIFUNSPEC | -EAI_SOCKTYPE);
-	else
-	  return (GAIH_OKIFUNSPEC | -EAI_SERVICE);
-      }
+    if (tp->name == NULL) {
+      if (req->ai_socktype)
+	return (GAIH_OKIFUNSPEC | -EAI_SOCKTYPE);
+      else
+	return (GAIH_OKIFUNSPEC | -EAI_SERVICE);
+    }
   }
 
-  if (service != NULL) {
+  if (service) {
 
     if ((tp->protoflag & GAI_PROTO_NOSERVICE) != 0)
       return (GAIH_OKIFUNSPEC | -EAI_SERVICE);
 
     if (service->num < 0) {
-      if (tp->name != NULL) {
+      if (tp->name) {
 
 	int rc;
 
@@ -320,7 +319,6 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
 	rc = gaih_inet_serv (service->name, tp, st);
 	if (rc) {
-	  /* FIX!FIX! garbage collect! */
 	  free(st);
 	  return rc;
 	}
@@ -363,6 +361,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
       st->socktype = tp->socktype;
       st->protocol = tp->protocol;
       st->port     = htons (service->num);
+
     }
   }
 
@@ -380,6 +379,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	at->family = AF_INET;
       else {
 	free(at);
+	if (st != &nullserv) free(st);
 	return -EAI_ADDRFAMILY;
       }
     }
@@ -395,15 +395,54 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
 	int i;
 
-	do {
-	  h = gethostbyname (name);
-	} while (!h && h_errno == NETDB_INTERNAL);
+	h = gethostbyname (name);
+
+	if (vlog)
+	  fprintf(vlog, " gaih_inet('%s') gethostbyname() h=%p  h_errno=%d\n",
+		  name, h, h_errno);
 
 	if (!h && h_errno == NETDB_INTERNAL) {
 	  /* XXX FIX!FIX! garbage collect! */
+	  free(at);
+	  if (st != &nullserv) free(st);
 	  return -EAI_SYSTEM;
 	}
-	if (h != NULL) {
+	if (!h) {
+	  switch (h_errno) {
+	  case NETDB_INTERNAL:
+	    free(at);
+	    if (st != &nullserv) free(st);
+	    return -EAI_SYSTEM;
+	    break;
+	  case HOST_NOT_FOUND:
+	    free(at);
+	    if (st != &nullserv) free(st);
+	    return -EAI_NONAME;
+	    break;
+	  case TRY_AGAIN:
+	    free(at);
+	    if (st != &nullserv) free(st);
+	    return -EAI_AGAIN;
+	    break;
+	  case NO_RECOVERY:
+	    free(at);
+	    if (st != &nullserv) free(st);
+	    return -EAI_FAIL;
+	    break;
+	  case NO_DATA:
+	    /* free(at);
+	       if (st != &nullserv) free(st);
+	       return -EAI_NODATA; */
+	    break;
+	  default:
+	    /* free(at);
+	       if (st != &nullserv) free(st);
+	       return -EAI_SYSTEM; */
+	    break;
+	  }
+	}
+	
+	if (h) {
 	  for (i = 0; h->h_addr_list[i]; i++) {
 	    if (*pat == NULL)
 	      *pat = malloc (sizeof(struct gaih_addrtuple));
@@ -417,16 +456,22 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	no_data = !h && h_errno == NO_DATA;
       }
 
-      if (no_data != 0)
+      if (no_data != 0) {
 	/* We made requests but they turned out no data.  The name
 	   is known, though.  */
 	/* FIX!FIX! garbage collect! */
+	free(at);
+	if (st != &nullserv) free(st);
 	return (GAIH_OKIFUNSPEC | -EAI_NODATA);
+      }
     }
 
-    if (at->family == AF_UNSPEC)
+    if (at->family == AF_UNSPEC) {
       /* FIX!FIX! garbage collect! */
+      free(at);
+      if (st != &nullserv) free(st);
       return (GAIH_OKIFUNSPEC | -EAI_NONAME);
+    }
 
   } else {
 
@@ -447,9 +492,13 @@ gaih_inet (const char *name, const struct gaih_service *service,
     }
   }
 
-  if (pai == NULL)
+  if (pai == NULL) {
     /* FIX!FIX! GC! */
+    if (st != &nullserv) free(st);
+    if (at && at->next) free(at->next);
+    if (at) free(at);
     return 0;
+  }
 
   {
     const char *c = NULL;
