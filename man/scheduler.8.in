@@ -880,7 +880,6 @@ contain following kind of entries:
 .nf
  .../hosts.allow
  mailq : ALL@1.2.3.0
- smtp-receive: ALL@ALL
 
  .../hosts.deny
  ALL : ALL@ALL

@@ -178,7 +178,7 @@ outbuf_fillup:
 	      /* No success ?  QUIT + close! (if haven't closed yet..) */
 	      if (!getout)
 		smtpwrite(SS, 0, "QUIT", 0, NULL);
-	      smtpclose(SS);
+	      smtpclose(SS, 0);
 	    }
 	  }
 	  if (now > tmout)
@@ -674,7 +674,7 @@ main(argc, argv)
 		  smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
 		else
 		  smtpstatus = EX_OK;
-		smtpclose(&SS);
+		smtpclose(&SS, 0);
 		notary_setwtt(NULL);
 		notary_setwttip(NULL);
 		if (logfp)
@@ -746,7 +746,7 @@ main(argc, argv)
 
 	/* Close the channel -- if it is open anymore .. */
 	if (SS.smtpfp) {
-	  smtpclose(&SS);
+	  smtpclose(&SS, 0);
 	  if (logfp)
 	    fprintf(logfp, "%s#\t(closed SMTP channel - final close)\n", logtag());
 	}
@@ -823,7 +823,7 @@ process(SS, dp, smtpstatus, host, noMX)
 
 		  /* Only for EX_TEMPFAIL, or for any non EX_OK ? */
 		  if (smtpstatus == EX_TEMPFAIL) {
-		    smtpclose(SS);
+		    smtpclose(SS, 1);
 		    notary_setwtt(NULL);
 		    notary_setwttip(NULL);
 		    if (logfp)
@@ -871,7 +871,7 @@ process(SS, dp, smtpstatus, host, noMX)
 	} else {
 	  /* processing fails entirely if PROCABORT is received */
 	  smtpstatus = EX_UNAVAILABLE;
-	  smtpclose(SS);
+	  smtpclose(SS, 1);
 	  if (logfp)
 	    fprintf(logfp, "%s#\t(procabort executed)\n", logtag());
 	}
@@ -1099,7 +1099,7 @@ deliver(SS, dp, startrp, endrp)
 	    if (has_readable(sffileno(SS->smtpfp))) {
 	      /* Drain the input, and then close the channel */
 	      (void) smtpwrite(SS, 1, NULL, 0, NULL);
-	      smtpclose(SS);
+	      smtpclose(SS, 1);
 	      if (logfp)
 		fprintf(logfp, "%s#\t(closed SMTP channel - MAIL FROM:<> got two responses!)\n", logtag());
 	    }
@@ -1429,12 +1429,7 @@ deliver(SS, dp, startrp, endrp)
 	   * Don't send the dot! 2/June/94 edwin@cs.toronto.edu
 	   */
 	  if (SS->smtpfp) {
-	    /* First close the socket so that no FILE buffered stuff
-	       can become flushed out anymore. */
-	    close(sffileno(SS->smtpfp));
-	    /* Now do all normal FILE close things -- including
-	       buffer flushes... */
-	    smtpclose(SS);
+	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - appendlet() failure, status=%d)\n", logtag(), rp ? rp->status : -999);
 	  }
@@ -1484,12 +1479,7 @@ deliver(SS, dp, startrp, endrp)
 	  dotmode = 0;
 
 	  if (SS->smtpfp && gotalarm) {
-	    /* First close the socket so that no FILE buffered stuff
-	       can become flushed out anymore. */
-	    close(sffileno(SS->smtpfp));
-	    /* Now do all normal FILE close things -- including
-	       buffer flushes... */
-	    smtpclose(SS);
+	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - smtpwrite('.') failure)\n", logtag());
 	  }
@@ -1671,7 +1661,7 @@ smtpopen(SS, host, noMX)
 		i = tls_start_clienttls(SS, host);
 		if (i != 0) {
 		  /* TLS startup failed :-( */
-		  smtpclose(SS);
+		  smtpclose(SS, 1);
 
 		  /* Only if we are configured to *demand* the TLS mode,
 		     then this situation is an error! */
@@ -1732,7 +1722,7 @@ smtpopen(SS, host, noMX)
 		  continue;
 
 	      } else {
-		smtpclose(SS); /* D'uh.. restart! */
+		smtpclose(SS, 1); /* D'uh.. STARTTLS verb failed! */
 
 		SS->esmtp_on_banner = SS->main_esmtp_on_banner;
 		SS->ehlo_capabilities = 0;
@@ -1771,7 +1761,7 @@ smtpopen(SS, host, noMX)
 	      sprintf(SMTPbuf, "HELO %.200s", myhostname);
 	    i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
 	    if (i != EX_OK && SS->smtpfp) {
-	      smtpclose(SS);
+	      smtpclose(SS, 1);
 	      if (logfp)
 		fprintf(logfp, "%s#\t(closed SMTP channel - HELO failed ?)\n", logtag());
 	    }
@@ -1782,7 +1772,7 @@ smtpopen(SS, host, noMX)
 		continue;;
 	      i = smtpwrite(SS, 1, SMTPbuf, 0, NULL);
 	      if (i == EX_TEMPFAIL && SS->smtpfp) {
-		smtpclose(SS);
+		smtpclose(SS, 1);
 		if (logfp)
 		  fprintf(logfp, "%s#\t(closed SMTP channel - HELO failed(2))\n", logtag());
 	      }
@@ -2307,8 +2297,8 @@ makeconn(SS, ai, ismx)
 	  }
 
 	  if (SS->smtpfp) {
-	    /* Clean (close) these fds -- they have noted to leak.. */
-	    smtpclose(SS);
+	    /* Clean (close) these fds -- they have been noted to leak.. */
+	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp,"%s#\t(closed SMTP channel at makeconn())\n",logtag());
 	  }
@@ -2370,7 +2360,7 @@ int
 makereconn(SS)
      SmtpState *SS;
 {
-  smtpclose(SS);
+  smtpclose(SS, 1);
   return makeconn(SS, & SS->ai, SS->ismx);
 }
 
@@ -2811,17 +2801,31 @@ rmsgappend(va_alist)
 
 
 void
-smtpclose(SS)
-SmtpState *SS;
+smtpclose(SS, failure)
+     SmtpState *SS;
+     int failure;
 {
-	if (SS->smtpfp != NULL)
+	if (SS->smtpfp != NULL) {
+
+	  /* First close the socket so that no FILE buffered stuff
+	     can become flushed out anymore. */
+
+	  close(sffileno(SS->smtpfp));
+	  sfsetfd(SS->smtpfp, -1);
+
+	  /* Now do all normal SFIO close things -- including
+	     buffer flushes... */
+
 	  sfclose(SS->smtpfp);
+	  SS->smtpfp = NULL;
+	}
 
 #ifdef HAVE_OPENSSL
+	if (SS->sslmode)
+	  tls_stop_clienttls(SS, failure);
 	SS->sslmode = 0;
 #endif /* - HAVE_OPENSSL */
 
-	SS->smtpfp = NULL;
 	if (SS->smtphost != NULL)
 	  free(SS->smtphost);
 	SS->smtphost = NULL;
@@ -3521,7 +3525,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    }
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	    smtpclose(SS);
+	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - timeout on smtpwrite())\n", logtag());
 	    /* Alarm OFF */
@@ -3533,7 +3537,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    notaryreport(NULL,FAILED,"5.4.2 (SMTP cmd partial write failure)",SS->remotemsg);
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	    smtpclose(SS);
+	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - second timeout on smtpwrite() )\n", logtag());
 	    /* Alarm OFF */
@@ -3669,7 +3673,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    dflag = 0;
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	    smtpclose(SS);
+	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - bad response on smtpwrite() )\n", logtag());
 	    return EX_TEMPFAIL;
@@ -3683,7 +3687,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    dflag = 0;
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	    smtpclose(SS);
+	    smtpclose(SS, 1);
 	    if (logfp)
 	      fprintf(logfp, "%s#\t(closed SMTP channel - hangup on smtpwrite() )\n", logtag());
 	    return EX_TEMPFAIL;
@@ -3701,7 +3705,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  dflag = 0;
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	  smtpclose(SS);
+	  smtpclose(SS, 1);
 	  if (logfp)
 	    fprintf(logfp, "%s#\t(closed SMTP channel - response overrun on smtpwrite() )\n", logtag());
 	  return EX_TEMPFAIL;
@@ -3716,7 +3720,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  dflag = 0;
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	  smtpclose(SS);
+	  smtpclose(SS, 1);
 	  if (logfp)
 	    fprintf(logfp, "%s#\t(closed SMTP channel - unexpected response on smtpwrite() )\n", logtag());
 	  return EX_TEMPFAIL;

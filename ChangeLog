@@ -1,3 +1,15 @@
+2000-01-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.h, transports/smtp/smtp.c:
+	    Seen strange junk commands fed out to the remote
+	    systems, trying to determine what is going on..
+
+2000-01-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpcmds.c:
+	    Change several policy situation '550' codes to '553';
+	    temporary failure indicators shall stay as '440'.
+
 2000-01-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c:
@@ -1250,11 +1262,11 @@
 
 	* smtpserver/policytest.c, smtpserver/smtpcmds.c,
 	  proto/db/smtp-policy.src, utils/policy-builder.sh.in:
-	    Tried to use delayed "rcpt-dns-rbl + test-rcpt-dns-rbl"
+	    Tried to use delayed "rcpt-dns-rbl + test-rcpt-dns-rbl +"
 	    policy attributes, and noticed that things didn't work
 	    quite the way I had planned  .  Ah well, some testing,
 	    and patching, and now it works...   Noticed also that
-	    the report out of themachinery used wrong variable in
+	    the report out of the machinery used wrong variable in
 	    the  RCPT TO report code.
 
 1999-06-26  Matti Aarnio  <mea@mea.tmt.tele.fi>

@@ -456,7 +456,7 @@ extern void stashmyaddresses();
 extern void getdaemon();
 extern int  has_readable __((int));
 extern int  bdat_flush __((SmtpState *SS, int lastflg));
-extern void smtpclose __((SmtpState *SS));
+extern void smtpclose __((SmtpState *SS, int failure));
 extern void pipeblockread __((SmtpState *SS));
 extern ssize_t smtp_sfwrite __((Sfio_t *, const void *, size_t, Sfdisc_t *));
 extern int smtp_nbread      __((SmtpState *, void *, int));
@@ -469,7 +469,8 @@ extern void report();
 
 #ifdef HAVE_OPENSSL
 extern int  tls_init_clientengine __((SmtpState *SS, char *cfgpath));
-extern int  tls_start_clienttls __((SmtpState *SS, const char *peername));
+extern int  tls_start_clienttls   __((SmtpState *SS, const char *peername));
+extern int  tls_stop_clienttls    __((SmtpState *SS, int failure));
 #endif /* - HAVE_OPENSSL */
 
 extern char *logtag __((void));
