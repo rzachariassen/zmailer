@@ -868,7 +868,7 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 	if (verbose)
 	  sfprintf(sfstdout,
 		   "RETRYAT: proc=%p (S=%d OF=%d tofd=%d) vp=%p[%d] message='%s'\n",
-		   proc, (int)proc->state, proc->overfed, proc->tofd, vp, index);
+		   proc, (int)proc->state, proc->overfed, proc->tofd, vp, index, message);
 
 	if ((proc->state   == CFSTATE_LARVA) &&
 	    (proc->overfed == 1) &&
