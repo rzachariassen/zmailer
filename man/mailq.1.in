@@ -1,13 +1,13 @@
 .\" $Header$
 .ds ]W "ZMailer 2.99"
 .nr X
-.TH MAILQ 1 "10 Dec 2001"
+.TH MAILQ 1 "27 Feb 2003"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
 .IP \fBmailq\fR 6em
 .\" 46c:dE:h:iK:p:Qr:sStu:U:vV
-[\fB\-4\fR|\fR-6\fR]
+[\fB\-4\fR|\fB\-6\fR]
 [\fB\-d\fR]
 [\fB\-i\fR]
 [\fB\-p\fR\ \fIport_or_socket_path\fR]
@@ -56,18 +56,20 @@ format.
 The information printed for each queued message is labelled by its
 message file id, which is the name of the original message file in the
 \fIPOSTOFFICE\fB/queue\fR directory and of the message control file in
-the \fIPOSTOFFICE\fB/transport\fR directory.  The information may be
-different for different \fIchannel\fR/\fIhost\fR combinations in destination
-addresses in a single message, so the status information is grouped
-in clusters labelled by the channel and host for addresses in the group.
+the \fIPOSTOFFICE\fB/transport\fR directory.
+The information may be different for different \fIchannel\fR/\fIhost\fR
+combinations in destination addresses in a single message, so the status
+information is grouped in clusters labelled by the channel and host for
+addresses in the group.
 .PP
 The text associated with a particular deferred destination in a message
-originates in a transport agent.  The
+originates in a transport agent.
+The
 .I scheduler
 annotates the transport agent messages with retry information when an
 address has been scheduled for later delivery attempts, or with text
-stating why a retry that should have happened was delayed.  A lack of
-annotations indicates a delivery attempt is in progress.
+stating why a retry that should have happened was delayed.
+A lack of annotations indicates a delivery attempt is in progress.
 .SH OPTIONS
 The normal action is to print the transport queue.
 .IP \-v[v]
@@ -77,8 +79,8 @@ and sender and recipient addresses, will be listed in addition to the normal
 status line.
 .PP
 Doubling this option asks for extra verbose output, presently
-this adds the message size in bytes after the message id.  This option is
-only useful if
+this adds the message size in bytes after the message id.
+This option is only useful if
 .I mailq
 can read the message control files in the postoffice.
 Most users can only see the data for their own messages.
@@ -90,9 +92,9 @@ asks for a status of the
 .IR scheduler (8),
 and transport queues.
 .PP
-The first two are determined by scanning the
-appropriate directories and counting files, whereas the status of the
-transport queue is retrieved from the running
+The first two are determined by scanning the appropriate directories
+and counting files, whereas the status of the transport queue is
+retrieved from the running
 .IR scheduler (8)
 process.
 .PP

@@ -328,8 +328,13 @@ unset toplevels # No need for that variable anymore..
 #db add headers resent-return-path	-:kill:-
 #db add headers x-orcpt			-:kill:-
 #db add headers resent-x-orcpt		-:kill:-
+#db add headers original-recipient	-:kill:-
+#db add headers resent-original-recipient -:kill:-
 #db add headers x-envid			-:kill:-
+#db add headers envelope-id		-:kill:-
 #db add headers resent-x-envid		-:kill:-
+#db add headers resent-envelope-id	-:kill:-
+#db add headers x-envelope-to		-:kill:-
 
 if [ -r $MAILVAR/db/kill-headers ]
 then

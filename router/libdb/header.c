@@ -49,9 +49,6 @@ struct headerinfo mandatory_hdrs[] = {
 
 struct headerinfo optional_hdrs[] = {
 { "return-receipt-to",	AddressList,	Sender,		normal		},
-#if 0
-{ "return-path",	AMailboxList,	nilUserType,	normal		},
-#endif
 #if 1
 { "date",	 nilHeaderSemantics,	nilUserType,	normal		},
 { "resent-date", nilHeaderSemantics,	nilUserType,	Resent		},
@@ -62,18 +59,35 @@ struct headerinfo optional_hdrs[] = {
 { "encrypted",		Encrypted,	nilUserType,	normal		},
 { "errors-to",		AddressList,	Sender,		normal		},
 { "obsoletes",		MessageIDList,	nilUserType,	normal		},
+
 #if 0 /* Don't parse these .. */
 { "received",		Received,	nilUserType,	normal		},
 { "keywords",		PhraseList,	nilUserType,	normal		},
 { "references",		References,	nilUserType,	normal		},
 { "in-reply-to",	References,	nilUserType,	normal		},
 #endif
-{ "x-orcpt",	nilHeaderSemantics,	killUserType,	normal		},
-{ "x-envid",	nilHeaderSemantics,	killUserType,	normal		},
-{ "return-path", nilHeaderSemantics,	killUserType,	normal		},
-{ "resent-x-orcpt",	nilHeaderSemantics,	killUserType,	Resent	},
+
+{ "envelope-id",	nilHeaderSemantics,	killUserType,	normal	},
+{ "resent-envelope-id",	nilHeaderSemantics,	killUserType,	Resent	},
+
+{ "x-envid",		nilHeaderSemantics,	killUserType,	normal	},
 { "resent-x-envid",	nilHeaderSemantics,	killUserType,	Resent	},
+
+{ "x-orcpt",		nilHeaderSemantics,	killUserType,	normal	},
+{ "resent-x-orcpt",	nilHeaderSemantics,	killUserType,	Resent	},
+
+{ "original-recipient",	nilHeaderSemantics,	killUserType,	normal	},
+{ "resent-original-recipient",nilHeaderSemantics,killUserType,	Resent	},
+
+{ "x-envelope-to",	nilHeaderSemantics,	killUserType,	normal	},
+
+#if 0
+{ "return-path",	AMailboxList,	nilUserType,	normal		},
+#else
+{ "return-path", nilHeaderSemantics,	killUserType,	normal		},
+#endif
 { "resent-return-path", nilHeaderSemantics,	killUserType,	Resent	},
+
 #if 0 /* Special treatment.. */
 { "bcc",	nilHeaderSemantics,	killUserType,	normal		},
 { "Resent-bcc",	nilHeaderSemantics,	killUserType,	Resent		},

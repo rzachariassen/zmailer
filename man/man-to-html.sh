@@ -1,10 +1,24 @@
 #! /bin/sh
 
+unset LC_CTYPE
+
+LANG=en_US
+export LANG
+
+TERM=xterm
+export TERM
+
+COLUMNS=80
+export COLUMNS
+
+LINES=9999
+export LINES
+
 
 echo "<HTML><HEAD><TITLE>"
-echo "$1"
+basename "$1"
 echo "</TITLE></HEAD><BODY BGCOLOR=white><PRE>"
-groff -t -man -Tascii "$1" | \
+groff  -c -t -man -Tascii "$1" | \
     perl -e '
         #select STDIN; $| = 1;
         select STDERR; $| = 1;

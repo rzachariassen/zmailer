@@ -4,7 +4,7 @@
  */
 /*
  *	Some modifications  by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  */
 
 /*

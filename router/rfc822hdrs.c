@@ -607,9 +607,8 @@ hdr_print(h, fp)
 			  col = 8;
 			} else
 			  putc(' ',fp), ++col;
-			fprintf(fp, "id <");
+			fprintf(fp, "id ");
 			col = printLAddress(fp, ap->a_tokens, col+5, 8, 0);
-			putc('>', fp); ++col;
 		}
 		if ((ap = h->h_contents.r->r_for) != NULL) {
 			cl = printAddress(NULL, ap->a_tokens, col+5);
