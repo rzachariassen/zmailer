@@ -306,7 +306,7 @@ struct spblk   *spl;
 {
 	/* Delete from the  spt_mesh[]  */
 
-	if (spl == NULL)
+	if (spl == NULL && cfp->id)
 	  spl = sp_lookup((u_long)(cfp->id), spt_mesh[L_CTLFILE]);
 	if (spl != NULL)
 	  sp_delete(spl, spt_mesh[L_CTLFILE]);
@@ -1429,7 +1429,8 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	  return NULL;
 	}
 
-	sp_install(cfp->id, (void *)cfp, 0, spt_mesh[L_CTLFILE]);
+	if (!reread)
+	  sp_install(cfp->id, (void *)cfp, 0, spt_mesh[L_CTLFILE]);
 	++MIBMtaEntry->mtaStoredMessages;
 	++global_wrkcnt;
 	
