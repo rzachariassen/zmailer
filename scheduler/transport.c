@@ -26,6 +26,10 @@
 #include "prototypes.h"
 #include "zsyslog.h"
 #include <sysexits.h>
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+#include "ta.h"
 
 extern int forkrate_limit;
 extern int freeze;
@@ -351,7 +355,7 @@ static int runcommand(argv, vhead, chwp, howp)
 	struct vertex *vhead;
 	struct web *chwp, *howp;
 {
-	int	i, pid, to[2], from[2], uid, gid;
+	int	i, pid, to[2], from[2], uid, gid, prio;
 	char	*cmd;
 	static int pipesize = 0;
 
@@ -359,6 +363,7 @@ static int runcommand(argv, vhead, chwp, howp)
 	uid = vhead->thgrp->ce.uid;
 	gid = vhead->thgrp->ce.gid;
 	cmd = vhead->thgrp->ce.command;
+	prio= vhead->thgrp->ce.priority;
 
 	if (pipes_create(to,from) < 0) return 0;
 	if (pipesize == 0)
@@ -381,6 +386,15 @@ static int runcommand(argv, vhead, chwp, howp)
 	    scheduler_nofiles = resources_query_nofiles();
 	  for (i = 3; i < scheduler_nofiles; ++i)
 	    close(i);
+
+#ifdef HAVE_SETPRIORITY
+	  if (prio >= 80) { /* MAGIC LIMIT VALUE FOR ABSOLUTE SET! */
+	    setpriority(PRIO_PROCESS, 0, i - 100);
+	  } else
+#endif
+	    if (prio != 0) {
+	      nice(prio);
+	    }
 
 	  resources_limit_nofiles(transportmaxnofiles);
 	  setgid(gid);	/* Do GID setup while still UID 0..   */
@@ -520,7 +534,7 @@ if (verbose)
 	proc->reaped = 0;
 	if (proc->carryover != NULL) {
 	  fprintf(stderr, "%s: HELP! Lost %d bytes: '%s'\n",
-		  progname, strlen(proc->carryover), proc->carryover);
+		  progname, (int)strlen(proc->carryover), proc->carryover);
 	  free(proc->carryover);
 	  proc->carryover = NULL;
 	}

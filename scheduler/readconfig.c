@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1995
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1998
  */
 
 #include "hostenv.h"
@@ -15,6 +15,9 @@
 #include "scheduler.h"
 #include "prototypes.h"
 #include "mail.h"
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
 
 #include "libz.h"
 
@@ -39,6 +42,10 @@ static int rc_ageorder __((char *key, char *arg, struct config_entry *ce));
 static int rc_queueonly __((char *key, char *arg, struct config_entry *ce));
 static int rc_deliveryform __((char *key, char *arg, struct config_entry *ce));
 static int rc_overfeed __((char *key, char *arg, struct config_entry *ce));
+static int rc_priority __((char *key, char *arg, struct config_entry *ce));
+static int rc_nice     __((char *key, char *arg, struct config_entry *ce));
+static int rc_syspriority __((char *key, char *arg, struct config_entry *ce));
+static int rc_sysnice     __((char *key, char *arg, struct config_entry *ce));
 
 extern int errno;
 
@@ -75,6 +82,10 @@ static struct rckeyword {
 {	"ageorder",		rc_ageorder	},	/* boolean */
 {	"queueonly",		rc_queueonly	},	/* boolean */
 {	"overfeed",		rc_overfeed	},	/* number */
+{	"priority",		rc_priority	},	/* number */
+{	"nice",			rc_nice		},	/* number */
+{	"syspriority",		rc_syspriority	},	/* number */
+{	"sysnice",		rc_sysnice	},	/* number */
 {	NULL,			0		}
 };
 
@@ -108,6 +119,7 @@ defaultconfigentry(ce,defaults)
 	  ce->skew		= defaults->skew;
 	  ce->deliveryform	= defaults->deliveryform;
 	  ce->overfeed		= defaults->overfeed;
+	  ce->priority		= defaults->priority;
 	} else if (defaults == NULL) {
 	  /* Compile these defaults in.. Only for the "*" / "* / *" entry.. */
 	  ce->next	= NULL;
@@ -130,6 +142,7 @@ defaultconfigentry(ce,defaults)
 	  ce->skew	= 5;
 	  ce->deliveryform = NULL;
 	  ce->overfeed	= 0;
+	  ce->priority  = 0; /* nice(0) -- no change */
 	}
 }
 
@@ -166,6 +179,12 @@ vtxprint(vp)
 	printf("\tmaxkidChannel %d\n",	ce->maxkidChannel);
 	printf("\tmaxkidThreads %d\n",	ce->maxkidThreads);
 	printf("\toverfeed %d\n",	ce->overfeed);
+
+	if (ce->priority >= 80)
+	  printf("\tpriority %d\n",	ce->priority - 100);
+	else
+	  printf("\tnice %d\n",		ce->priority);
+
 	if (ce->argv != NULL) {
 	  for (i = 0; ce->argv[i] != NULL; ++i)
 	    printf("\targv[%d] = %s\n", i, ce->argv[i]);
@@ -216,6 +235,7 @@ celink(ce, headp, tailp)
 	    ce->nretries	= (*tailp)->nretries;
 	    ce->retries		= (*tailp)->retries;
 	    ce->overfeed	= (*tailp)->overfeed;
+	    ce->priority	= (*tailp)->priority;
 	  }
 	}
 }
@@ -603,6 +623,61 @@ static int rc_overfeed(key, arg, ce)
 	ce->overfeed = atoi(arg);
 	if (ce->overfeed < 0)
 	  ce->overfeed = 0;
+	return 0;
+}
+
+static int rc_priority(key, arg, ce)
+	char *key, *arg;
+	struct config_entry *ce;
+{
+	if (sscanf(arg,"%d",&ce->priority) != 1 ||
+	    ce->priority < -20 || ce->priority > 19) {
+	  fprintf(stderr, "%s: Bad UNIX priority value, acceptable in range: -20..19; input=\"%s\"\n", progname, arg);
+	  return 1;
+	}
+	ce->priority += 100;
+	return 0;
+}
+
+static int rc_nice(key, arg, ce)
+	char *key, *arg;
+	struct config_entry *ce;
+{
+	if (sscanf(arg,"%d",&ce->priority) != 1 ||
+	    ce->priority < -40 || ce->priority > 39) {
+	  fprintf(stderr, "%s: Bad UNIX nice offset value, acceptable in range: -40..39; input=\"%s\"\n", progname, arg);
+	  return 1;
+	}
+	return 0;
+}
+
+static int rc_syspriority(key, arg, ce)
+	char *key, *arg;
+	struct config_entry *ce;
+{
+	int i;
+	if (sscanf(arg,"%d",&i) != 1 ||
+	    i < -20 || i > 19) {
+	  fprintf(stderr, "%s: Bad UNIX priority value, acceptable in range: -20..19; input=\"%s\"\n", progname, arg);
+	  return 1;
+	}
+#ifdef HAVE_SETPRIORITY
+	setpriority(PRIO_PROCESS, 0, i);
+#endif
+	return 0;
+}
+
+static int rc_sysnice(key, arg, ce)
+	char *key, *arg;
+	struct config_entry *ce;
+{
+	int i;
+	if (sscanf(arg,"%d",&i) != 1 ||
+	    i < -40 || i > 39) {
+	  fprintf(stderr, "%s: Bad UNIX nice offset value, acceptable in range: -40..39; input=\"%s\"\n", progname, arg);
+	  return 1;
+	}
+	nice(i);
 	return 0;
 }
 

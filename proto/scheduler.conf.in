@@ -47,6 +47,22 @@
 	#
 	ageorder
 	overfeed=150
+	#
+	# Possible nice/setpriority values in case one wants to run
+	# the scheduler at higher scheduling priority, than TA programs:
+	#
+	# "priority" sets ABSOLUTE value, and requires setpriority(2)
+	# system call.  "nice" is -- well: nice(2)
+	#
+	# nice=2
+	##priority=0
+	#
+	# "syspriority"/"sysnice" set the value for the scheduler process
+	# itself, and are not inherited from the default boilerplate to
+	# other parameter blocks.
+	#
+	# sysnice=-2
+	# syspriority=-2
 
 
 # Deferred delivery is handled by this transport agent.  Deferrals are low

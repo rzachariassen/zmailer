@@ -42,6 +42,7 @@ struct config_entry {
 	int	idlemax;	/* max time to keep idle ta-procs around     */
 	int	skew;		/* retry skew parameter			     */
 	int	mark;		/* non-0 if we started a TA the last time    */
+	int	priority;	/* Scheduling priority			     */
 	int	overfeed;	/* How much overfeeding instead of sync processing ? */
 	char	**argv;		/* execv parameters for the command	     */
 	int	nretries;	/* number of retry factors known	     */
