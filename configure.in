@@ -606,7 +606,7 @@ if test "$ac_cv_header_sdbm_h" = yes ; then
   AC_MSG_RESULT([       is installed as  libdbm.a, and it is indistinguishable])
   AC_MSG_RESULT([       (at source level) from a real NDBM.])
   t_found_at="nowhere"
-  if test "$ac_cv_lib_c_sdbm_open" = yes ; then
+  if test "$ac_cv_lib_c_dbm_open" = yes ; then
     LIBSDBM=""
     t_found_at="libc"
     DBTYPE="ndbm"
@@ -819,9 +819,11 @@ if test "$ac_cv_header_db_h" = yes ; then
   AC_MSG_RESULT([Located BSD DB 2.x  db_open()  routine at $t_found_at])
   if test "x$LIBDB" != "x" ; then
 	# Does (db->cursor)(...) have 3 or 4 args ?
-	AC_TRY_COMPILE([#include <db.h>],[DB *db; DBC *curs;
+	if test "x$ac_cv_db_cursor_4" = x ; then # not set
+	  AC_TRY_COMPILE([#include <db.h>],[DB *db; DBC *curs;
 int err = (db->cursor)(db, NULL, &curs, 0);],
-			ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
+			 ac_cv_db_cursor_4=yes, ac_cv_db_cursor_4=no)
+	fi
 	if test "x$ac_cv_db_cursor_4" = "xyes"; then
 	  AC_MSG_RESULT([  (db->cursor)() method function seems to want 4 args.])
 	  AC_DEFINE(HAVE_DB_CURSOR4)
