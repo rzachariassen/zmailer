@@ -57,18 +57,23 @@ int fd_statfs(fd, bavailp, busedp, iavailp, iusedp)
 
 #ifdef HAVE_STATVFS
       struct statvfs statbuf;	/* SysV and BSD definitions differ..    */
-      if ((rc = fstatvfs(fd, &statbuf)) == 0) {
-	/* Sidestep a problem at glibc 2.1.1 when running at Linux/i386 */
-	bavail = statbuf.f_bavail;
-	bused = statbuf.f_blocks - statbuf.f_bavail;
+      rc = fstatvfs(fd, &statbuf); /* appears in Linux as well as Solaris */
+      if (rc == 0) {
+	/* Availability by 'non-super-user', usage per last drop.. */
+
+	bavail = statbuf.f_bavail;  /* available to non-super-user */
+	bused  = statbuf.f_blocks - statbuf.f_bfree; /* real usage */
+
 	if (statbuf.f_frsize != 0)
 	  bsize = statbuf.f_frsize;
 	else
 	  bsize = statbuf.f_bsize;
-	if (statbuf.f_ffree >= LONG_MAX)
+
+	if (statbuf.f_favail >= LONG_MAX)
 	  iavail = LONG_MAX;
 	else
-	  iavail = statbuf.f_ffree;
+	  iavail = statbuf.f_favail;
+
 	if ((statbuf.f_files - statbuf.f_ffree) >= LONG_MAX)
 	  iused = LONG_MAX;
 	else
@@ -77,7 +82,8 @@ int fd_statfs(fd, bavailp, busedp, iavailp, iusedp)
 #else
 #ifdef STAT_STATFS3_OSF1
       struct statfs statbuf;
-      if ((rc = fstatfs(fd, &statbuf, sizeof(statbuf))) == 0) {
+      rc = fstatfs(fd, &statbuf, sizeof(statbuf));
+      if (rc == 0) {
 	bavail = statbuf.f_bavail;
 	bsize  = statbuf.f_fsize;
 	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
@@ -93,27 +99,31 @@ int fd_statfs(fd, bavailp, busedp, iavailp, iusedp)
 	  iused = (statbuf.f_files - statbuf.f_ffree);
       }
 #else
-#ifdef STAT_STATFS2_BSIZE
-      struct statfs statbuf;
-      if ((rc = fstatfs(fd, &statbuf)) == 0) {
-	bavail = statbuf.f_bavail;
+#ifdef STAT_STATFS2_BSIZE /* 2 param fstatfs(), with f_bsize field */
+      struct statfs statbuf;	  /* Linux, FreeBSD 4.x */
+      rc = fstatfs(fd, &statbuf);
+      if (rc == 0) {
+	/* Availability by 'non-super-user', usage per last drop.. */
+
+	bavail = statbuf.f_bavail;		/* avail to non-root */
 	bsize  = statbuf.f_bsize;
-	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
-	bused = statbuf.f_blocks - statbuf.f_bavail;
-	bsize = statbuf.f_bsize;
+	bused  = statbuf.f_blocks - statbuf.f_bfree; /* real used */
+
 	if (statbuf.f_ffree >= LONG_MAX)
 	  iavail = LONG_MAX;
 	else
 	  iavail = statbuf.f_ffree;
+
 	if ((statbuf.f_files - statbuf.f_ffree) >= LONG_MAX)
 	  iused = LONG_MAX;
 	else
 	  iused = (statbuf.f_files - statbuf.f_ffree);
       }
 #else
-#ifdef STAT_STATFS2_FSIZE
+#ifdef STAT_STATFS2_FSIZE /* 2 param fstatfs(), with f_fsize field */
       struct statfs statbuf;
-      if ((rc = fstatfs(fd, &statbuf)) == 0) {
+      rc = fstatfs(fd, &statbuf);
+      if (rc == 0) {
 	bavail = statbuf.f_bavail;
 	bsize  = statbuf.f_fsize;
 	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
@@ -133,7 +143,8 @@ int fd_statfs(fd, bavailp, busedp, iavailp, iusedp)
   XX: XXX: XX: XXX:
 #else				/* none of the previous  -- SVR3 stuff... */
       struct statfs statbuf;
-      if ((rc = fstatfs(fd, &statbuf, sizeof statbuf, 0)) == 0) {
+      rc = fstatfs(fd, &statbuf, sizeof statbuf, 0);
+      if (rc == 0) {
 	bavail = statbuf.f_bfree;
 	bsize  = statbuf.f_bsize;
 	/* UNSURE OF THIS WITHOUT MACHINE WHERE TO CHECK! */
