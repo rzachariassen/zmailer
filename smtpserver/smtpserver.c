@@ -46,6 +46,7 @@ struct command command_list[] =
     {"EHLO", Hello2},
 			/* Normal stuff.. */
     {"HELO", Hello},
+    {"LHLO", HelloL},
     {"MAIL", Mail},
     {"RCPT", Recipient},
     {"DATA", Data},
@@ -248,6 +249,10 @@ int bindport_set = 0;
 int use_tcpwrapper = 0;
 int tarpit_initial = 0;
 int tarpit_exponent = 0;
+
+int lmtp_mode = 0;	/* A sort-of RFC 2033 LMTP mode ;
+			   this is MAINLY for debug purposes,
+			   NOT for real use! */
 
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5
@@ -492,7 +497,7 @@ char **argv;
 	    inetd = 1;
 	    break;
 	case 'p':
-	    bindport = htons(atoi(optarg));
+	    bindport = atoi(optarg);
 	    bindport_set = 1;
 	    break;
 	case 'P':
@@ -634,6 +639,11 @@ char **argv;
       cfhead = readcffile(path);
     else
       cfhead = readcffile(cfgpath);
+
+    if (daemon_flg)
+      if (lmtp_mode && (!bindport_set || (bindport_set && bindport == 25)))
+	lmtp_mode = 0; /* Disable LMTP mode unless we are bound at other than
+			  port 25. */
 
 #ifdef HAVE_OPENSSL
     Z_init(); /* Some things for private processors */
@@ -855,14 +865,14 @@ char **argv;
 	if (bindport <= 0) {
 	  struct servent *service;
 #ifdef	IPPORT_SMTP
-	  bindport = htons(IPPORT_SMTP);
+	  bindport = IPPORT_SMTP;
 #endif				/* !IPPORT_SMTP */
 	  if ((service = getservbyname("smtp", "tcp")) == NULL) {
 	    fprintf(stderr,
 		    "%s: no SMTP service entry, using default\n",
 		    progname);
 	  } else
-	    bindport = service->s_port;
+	    bindport = ntohs(service->s_port);
 	}
 #if defined(AF_INET6) && defined(INET6)
 	if (use_ipv6) {
@@ -871,7 +881,7 @@ char **argv;
 	  memset(&si6, 0, sizeof(si6));
 	  si6.sin6_family = AF_INET6;
 	  si6.sin6_flowinfo = 0;
-	  si6.sin6_port = bindport;
+	  si6.sin6_port = htons(bindport);
 	  memcpy( &si6.sin6_addr, zin6addrany, 16 );
 	  if (bindaddr_set && bindaddr.v6.sin6_family == AF_INET6)
 	    memcpy(&si6.sin6_addr, &bindaddr.v6.sin6_addr, 16);
@@ -890,7 +900,7 @@ char **argv;
 	    memset(&si4, 0, sizeof(si4));
 	    si4.sin_family = AF_INET;
 	    si4.sin_addr.s_addr = INADDR_ANY;
-	    si4.sin_port = bindport;
+	    si4.sin_port = htons(bindport);
 	    if (bindaddr_set && bindaddr.v4.sin_family == AF_INET)
 	      memcpy(&si4.sin_addr, &bindaddr.v4.sin_addr, 4);
 
@@ -1867,6 +1877,12 @@ int insecure;
 	    continue;
 	}
 
+	/* RFC 2033 rules */
+	if (!lmtp_mode && SS->carp->cmd == HelloL)
+	  goto unknown_command;
+	if (lmtp_mode && (SS->carp->cmd == Hello || SS->carp->cmd == Hello2))
+	  goto unknown_command;
+
 	if (SS->carp->cmd == DebugMode && ! debugcmdok)
 	  goto unknown_command;
 	if (SS->carp->cmd == Expand    && ! expncmdok)
@@ -1951,6 +1967,7 @@ int insecure;
 #endif /* - HAVE_OPENSSL */
 	case Hello:
 	case Hello2:
+	case HelloL:
 	    /* This code is LONG.. */
 	    smtp_helo(SS, buf, cp);
 	    typeflush(SS);

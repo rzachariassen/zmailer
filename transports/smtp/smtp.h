@@ -312,6 +312,16 @@ struct smtpdisc {
   void *SS;		/* Ptr to SS context			*/
 };
 
+
+typedef enum {
+  SMTPSTATE_MAILFROM = 0,
+  SMTPSTATE_RCPTTO   = 1,
+  SMTPSTATE_DATA     = 2,
+  SMTPSTATE_DATADOT  = 3,
+  SMTPSTATE_DATADOTRSET = 4,
+  SMTPSTATE99        = 99
+} SMTPSTATES;
+
 typedef struct {
   int  ehlo_capabilities;	/* Capabilities of the remote system */
   int  esmtp_on_banner;
@@ -361,15 +371,17 @@ typedef struct {
 
   int rcptcnt;			/* PIPELINING variables */
   int rcptstates;
+
 #define RCPTSTATE_OK   0x001  /* At least one OK   state   */
-#define RCPTSTATE_400  0x002  /* At least one TEMP failure */
-#define RCPTSTATE_500  0x004  /* At least one PERM failure */
-#define FROMSTATE_OK   0x008  /* MAIL FROM --> 2XX code */
-#define FROMSTATE_400  0x010  /* MAIL FROM --> 4XX code */
-#define FROMSTATE_500  0x020  /* MAIL FROM --> 5XX code */
-#define DATASTATE_OK   0x040  /* DATA/BDAT --> 2/3XX code */
-#define DATASTATE_400  0x080  /* DATA/BDAT --> 4XX code */
-#define DATASTATE_500  0x100  /* DATA/BDAT --> 5XX code */
+#define FROMSTATE_OK   0x002  /* MAIL FROM --> 2XX code */
+#define DATASTATE_OK   0x004  /* DATA/BDAT --> 2/3XX code */
+#define RCPTSTATE_400  0x010  /* At least one TEMP failure */
+#define FROMSTATE_400  0x020  /* MAIL FROM --> 4XX code */
+#define DATASTATE_400  0x040  /* DATA/BDAT --> 4XX code */
+#define RCPTSTATE_500  0x100  /* At least one PERM failure */
+#define FROMSTATE_500  0x200  /* MAIL FROM --> 5XX code */
+#define DATASTATE_500  0x400  /* DATA/BDAT --> 5XX code */
+
   int state;
   int alarmcnt;
   int column;
@@ -382,12 +394,7 @@ typedef struct {
   char remotemsg[2*ZBUFSIZ];
   char *remotemsgs[5];
 
-  int  cmdstate, prevcmdstate;
-#define SMTPSTATE_MAILFROM 0
-#define SMTPSTATE_RCPTTO   1
-#define SMTPSTATE_DATA     2
-#define SMTPSTATE_DATADOT  3
-#define SMTPSTATE_DATADOTRSET 4
+  SMTPSTATES cmdstate, prevcmdstate;
 
   char remotehost[MAXHOSTNAMELEN+1];
   char ipaddress[200];
@@ -450,7 +457,6 @@ extern int  smtp_ehlo  __((SmtpState *SS, const char *strbuf));
 extern int  ehlo_check __((SmtpState *SS, const char *buf));
 extern void smtp_flush __((SmtpState *SS));
 extern int  smtp_sync  __((SmtpState *SS, int, int));
-extern int  smtpreplypick __((SmtpState *SS, int saverpt, const char *buf, int pipelining, struct rcpt *syncrp));
 extern int  smtpwrite  __((SmtpState *SS, int saverpt, const char *buf, int pipelining, struct rcpt *syncrp));
 extern void smtppipestowage  __((SmtpState *SS, const char *buf, struct rcpt *syncrp));
 extern int  process    __((SmtpState *SS, struct ctldesc*, int, const char*, int));

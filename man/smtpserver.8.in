@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTPSERVER 8 "4 Sep 2000"
+.TH SMTPSERVER 8 "12 Oct 2000"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -396,6 +396,11 @@ user initiated ETRN requests to all cluster nodes.
 .I This method requires that the scheduler runs its mailq service
 .I in MAILQv2 mode!
 
+.IP PARAM\ lmtp\-mode
+When desiring to test LMTP (RFC 2033), this parameter can be turned on,
+.I however ZMailer is no real LMTP server, and this feature is
+.I only for debug purposes.
+
 .IP Here\ is\ a\ possible\ configuration\ file:
 .sp
 .ta 0.0i 0.5i
@@ -604,6 +609,7 @@ RFC 1830	 ESMTP CHUNKING
 RFC 1854/2197	 ESMTP PIPELINING
 RFC 1891	 ESMTP DSN
 RFC 1985	 ESMTP ETRN
+RFC 2033	 LMTP mode
 RFC 2034	 ESMTP ENHANCEDSTATUSCODES
 RFC 2487	 ESMTP STARTTLS
 RFC 2554+M$ Exchange	 ESMTP AUTH LOGIN

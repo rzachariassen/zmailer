@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SENDMAIL 8 "26 Oct 1996"
+.TH SENDMAIL 8 "12 Oct 2000"
 .SH NAME
 sendmail \- zmailer sendmail emulation and mail submission interface
 .SH SYNOPSIS
@@ -188,4 +188,4 @@ Rayan Zachariassen <rayan@cs.toronto.edu>
 .br
 Continued maintance by:
 .br
-Matti Aarnio <mea@utu.fi>
+Matti Aarnio <mea@nic.funet.fi>

@@ -1024,6 +1024,7 @@ int insecure;
       SS->state = Recipient;
 
     SS->rcpt_count = 0;
+    SS->ok_rcpt_count = 0;
     SS->from_box = (addrlen == 0);
 }
 
@@ -1039,6 +1040,7 @@ const char *buf, *cp;
     int addrlen = 0, notifylen = 0, orcptlen = 0, notifyflgs;
     int strict = STYLE(SS->cfinfo, 'R');
     int sloppy = STYLE(SS->cfinfo, 'S');
+    int err;
 
     if (strict && sloppy) /* If misconfigured, SLOPPY takes precedence! */
       strict = 0;
@@ -1521,6 +1523,9 @@ const char *buf, *cp;
     else
       SS->sizeoptsum = SS->sizeoptval;
 
+    err = 1;
+    SS->rcpt_count += 1;
+
     if (ferror(SS->mfp)) {
 	smtp_tarpit(SS);
 	type(SS, 452, m430, (char *) NULL);
@@ -1534,9 +1539,12 @@ const char *buf, *cp;
 	if (SS->from_box && SS->rcpt_count > MaxErrorRecipients) {
 	    smtp_tarpit(SS);
 	    type(SS, 552, m571, "SPAM trap -- too many recipients for an empty source address!");
-	} else
-	    type(SS, atoi(s), s + 4, "Ok");
-	SS->rcpt_count += 1;
+	} else {
+	    err = atoi(s);
+	    type(SS, err, "%s", s + 4);
+	    if (err < 400)
+	      err = 0;
+	}
     } else {
 	if (SS->from_box && SS->rcpt_count > MaxErrorRecipients) {
 	    smtp_tarpit(SS);
@@ -1547,11 +1555,15 @@ const char *buf, *cp;
 	else
 	    type(SS, 250, "2.1.5", "Recipient address syntax Ok%s; rcpt=<%.*s>",
 		 srcrtestatus, addrlen, cp);
-	SS->rcpt_count += 1;
+	err = 0;
     }
     if (s)
 	free((void *) s);
-    SS->state = RecipientOrData;
+
+    if (!err) {
+      SS->ok_rcpt_count += 1;
+      SS->state = RecipientOrData;
+    }
 }
 
 

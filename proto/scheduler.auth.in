@@ -7,7 +7,10 @@
 #   - Enabled attributes (tokens, space separated)
 #   - Addresses in brackets plus netmask widths:  [1.2.3.4]/32
 #
-# Default-account for 'mailq' is 'nobody' with password 'nobody'.
+# Same userid CAN appear multiple times, parsing will pick the first
+# instance of it which has matching IP address set
+#
+# The default-account for 'mailq' is 'nobody' with password 'nobody'.
 # Third field is at the moment a WORK IN PROGRESS!
 #
 # SECURITY NOTE:
@@ -22,6 +25,10 @@
 #	ETRN	"START THREAD channel host"
 #	KILL	"KILL THREAD channel host", "KILL MSG spoolid"
 #
-nobody:nobody:SNMP ETRN:[0.0.0.0]/0
-#watcher:zzzzz:SNMP QQ TT ETRN:[127.0.0.0]/8 [192.168.0.1]/32
-#root:zzzzzzz:ALL:[127.0.0.0]/8 [192.168.0.2]/32
+# -- "nobody" via loopback gets different treatment from
+#    "nobody" from anywhere else.
+#
+nobody:nobody:SNMP QQ TT ETRN:  [127.0.0.0]/8 [ipv6.0::1]/128
+nobody:nobody:SNMP ETRN:        [0.0.0.0]/0   [ipv6.0::0]/0
+#watcher:zzzzz:SNMP QQ TT ETRN: [127.0.0.0]/8 [192.168.0.1]/32
+#root:zzzzzzz:ALL:              [127.0.0.0]/8 [192.168.0.2]/32

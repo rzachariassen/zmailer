@@ -141,9 +141,9 @@ do
                         ;;
                 *)
 			checkfreeze
-                        cd /
+                        cd $POSTOFFICE
                         if [ -f $MAILSHARE/smtpserver.conf ]; then
-                            cd /; smtpserver $SMTPOPTIONS
+                            smtpserver $SMTPOPTIONS
                         elif [ -d $MAILSHARE/smtpserver.conf ]; then
                             if [ -e $POSTOFFICE/.pid.smtpserver ]; then
                                 if [ ! -d $POSTOFFICE/.pid.smtpserver ]; then

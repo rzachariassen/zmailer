@@ -85,7 +85,7 @@ parseaddrlit(hostp, au)
 	const char **hostp;
 	Usockaddr *au;
 {
-	int rc;
+	int rc = 0, err;
 	const char *host = *hostp;
 	char *hh = (void *) host;
 
@@ -95,31 +95,30 @@ parseaddrlit(hostp, au)
 	if (hh) *hh = 0;
 
 #if defined(AF_INET6) && defined(INET6)
-	if (strncasecmp(host,"[IPv6:",6)==0) {
+	if (CISTREQN(host,"[IPv6:",6) ||
+	    CISTREQN(host,"[IPv6.",6)) {
 	  au->v6.sin6_family = AF_INET6;
-	  rc = inet_pton(AF_INET6, host+6, &au->v6.sin6_addr);
-	  if (hh) *hh = ']';
-	  if (rc > 0) rc = 128;
+	  err = inet_pton(AF_INET6, host+6, &au->v6.sin6_addr);
+	  if (err > 0) rc = 128;
 	} else
 #endif
 	  if (*host == '[') {
 	    au->v4.sin_family = AF_INET;
-	    rc = inet_pton(AF_INET, host+1, &au->v4.sin_addr);
-	    if (hh) *hh = ']';
-	    if (rc > 0) rc = 32;
+	    err = inet_pton(AF_INET, host+1, &au->v4.sin_addr);
+	    if (err > 0) rc = 32;
 	  } else
-	    return -1;
+	    err = -1;
 
-	if (rc <= 0)
-	  return -1; /* Umm.. Failed ? */
+	if (hh) *hh = ']';
 
 	while (*host && *host != ']') ++host;
 	if (*host == ']') ++host;
 
 	if (*host == '/') {
 	  ++host;
-	  rc = 0;
+	  rc = -1;
 	  while ('0' <= *host && *host <= '9') {
+	    if (rc < 0) rc = 0;
 	    rc = rc * 10 + (*host) - '0';
 	    ++host;
 	  }
@@ -127,6 +126,7 @@ parseaddrlit(hostp, au)
 
 	*hostp = host;
 
+	if (err < 0) rc = -1;
 	return rc;
 }
 
@@ -305,7 +305,7 @@ void mq2auth(mq,str)
   pw = authuser(mq, str);
 
   if (!pw) {
-    mq2_puts(mq,"-BAD USER OR PASSWORD OR CONTACT ADDRESS\n");
+    mq2_puts(mq,"-BAD USER OR AUTHENTICATOR OR CONTACT ADDRESS\n");
     return;
   }
 

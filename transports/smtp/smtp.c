@@ -394,6 +394,7 @@ main(argc, argv)
 	SS.servport      = -1;
 	SS.smtp_bufsize  = 64*1024;
 	SS.ehlo_sizeval  = -1;
+	smtp_flush(&SS);
 
 	for (i = 0; argv[i] != NULL; ++i)
 	  eocmdline = strlen(argv[i])+ argv[i] + 1;
@@ -435,7 +436,7 @@ main(argc, argv)
 	SS.remotemsg[0] = '\0';
 	SS.remotehost[0] = '\0';
 	while (1) {
-	  c = getopt(argc, argv, "c:deh:l:p:rsvxDEF:L:HM:PS:T:VWZ:678");
+	  c = getopt(argc, argv, "c:deh:l:p:rsvxDEF:L:HMPS:T:VWZ:678");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -594,7 +595,7 @@ main(argc, argv)
 
 	if (lmtp_mode && SS.servport == 25) {
 	  fprintf(stderr,
-		  "%s: LMTP mode is not allowed without explicite port specifier with value different from 25\n", argv[0]);
+		  "%s: LMTP mode is not allowed without explicite port specifier with value other than 25\n", argv[0]);
 	  exit(EX_USAGE);
 	}
 
@@ -854,10 +855,6 @@ process(SS, dp, smtpstatus, host, noMX)
 
 	  for (rp = rphead = dp->recipients; rp != NULL; rp = rp->next) {
 
-	    /* Set this special flag so that we can retry EX_IOERR and
-	       EX_TEMPFAIL status cases more easily.. */
-	    rp->notifyflgs |= _DSN__TEMPFAIL_NO_UNLOCK;
-
 	    if (rp->next == NULL
 		|| rp->addr->link   != rp->next->addr->link
 		|| rp->newmsgheader != rp->next->newmsgheader) {
@@ -915,9 +912,6 @@ process(SS, dp, smtpstatus, host, noMX)
 
 		for (;rphead && rphead != rp->next; rphead = rphead->next) {
 		  if (rphead->lockoffset) {
-		    /* Clear this special flag so that we can now diagnose
-		       them.. */
-		    rphead->notifyflgs &= ~ _DSN__TEMPFAIL_NO_UNLOCK;
 
 		    notaryreport(rphead->addr->user, FAILED, NULL, NULL);
 		    diagnostic(rphead, EX_TEMPFAIL,
@@ -935,9 +929,6 @@ process(SS, dp, smtpstatus, host, noMX)
 		     from the remote server */
 		  /* NOTARY: address / action / status / diagnostic */
 		  if (rphead->lockoffset) {
-		    /* Clear this special flag so that we can now diagnose
-		       them.. */
-		    rphead->notifyflgs &= ~ _DSN__TEMPFAIL_NO_UNLOCK;
 
 		    notaryreport(rp->addr->user,FAILED,
 				 "5.0.0 (Target status indeterminable)",
@@ -1037,7 +1028,7 @@ deliver(SS, dp, startrp, endrp)
 	  }
 
 	  if (conv_prohibit == 7)
-	    force_7bit = 1;
+	    SS->ehlo_capabilities &= ~ESMTP_8BITMIME;
 
 	  if (force_7bit)	/* Mark off the 8BIT MIME capability.. */
 	    SS->ehlo_capabilities &= ~ESMTP_8BITMIME;
@@ -1122,7 +1113,6 @@ deliver(SS, dp, startrp, endrp)
 	}
 
 
-	SS->rcptstates = 0;
 	mail_from_failed = 0;
 
     more_recipients:
@@ -1140,9 +1130,6 @@ deliver(SS, dp, startrp, endrp)
 	else
 	  size = -1;
 	SS->msize = size;
-
-	SS->prevcmdstate = 99;
-	SS->cmdstate     = SMTPSTATE_MAILFROM;
 
 	if (STREQ(startrp->addr->link->channel,"error"))
 	  sprintf(SMTPbuf, "MAIL From:<>");
@@ -1229,11 +1216,8 @@ deliver(SS, dp, startrp, endrp)
 	nrcpt = 0;
 	rcpt_cnt = 0;
 	SS->rcptstates = 0;
-	for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 
-	  /* Set this special flag so that we can retry EX_IOERR and
-	     EX_TEMPFAIL status cases more easily.. */
-	  rp->notifyflgs |= _DSN__TEMPFAIL_NO_UNLOCK;
+	for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 
 	  if (++rcpt_cnt >= SS->rcpt_limit) {
 	    more_rp = rp->next;
@@ -1316,7 +1300,7 @@ deliver(SS, dp, startrp, endrp)
 
 	  if (SS->smtpfp)
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	      r = EX_TEMPFAIL;
+	      r = EX_TEMPFAIL ;
 
 	  if (r == EX_OK && more_rp)
 	    /* we have more recipients,
@@ -1606,13 +1590,22 @@ deliver(SS, dp, startrp, endrp)
 
 	SS->cmdstate = SMTPSTATE_DATADOT;
 
+
+	if (lmtp_mode) SS->rcptstates = 0;
+
 	if (SS->chunking) { /* BDAT mode */
 
 	  r = bdat_flush(SS, 1);
 
 	} else { /* Ordinary DATA-dot mode */
 
-	  r = smtpwrite(SS, 1, ".", 0, NULL);
+	  r = smtpwrite(SS, 1, ".", lmtp_mode, NULL);
+
+	  /* Special case processing: If we are in LMTP's dot-of-DATA
+	     phase, always use  smtp_sync()  to handle our diagnostics. */
+
+	  if (lmtp_mode && r == EX_OK)
+	    r = smtp_sync(SS, EX_OK, 0); /* BLOCKING! */
 
 	}
 
@@ -1804,9 +1797,6 @@ smtpopen(SS, host, noMX)
 	  if (i != EX_OK)
 	    continue;
 
-	  SS->prevcmdstate = 99;
-	  SS->cmdstate     = SMTPSTATE_MAILFROM; /* well, reusing this key */
-
 	  if (lmtp_mode || (SS->esmtp_on_banner > -2 && force_7bit < 2)) {
 	    /* Either it is not tested, or it is explicitely
 	       desired to be tested, and was found! */
@@ -1824,7 +1814,7 @@ smtpopen(SS, host, noMX)
 	    if (logfp)
 	      fprintf(logfp, "%s#\tEHLO rc=%d demand_TLS_mode=%d tls_available=%d%s\n", logtag(), i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"");
 	    if (SS->verboselog)
-	      fprintf(SS->verboselog, "%s#\tEHLO rc=%d demand_TLS_mode=%d tls_available=%d%s\n", logtag(), i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"");
+	      fprintf(SS->verboselog, "--> EHLO rc=%d demand_TLS_mode=%d tls_available=%d%s\n", i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"");
 
 	    if ((i == EX_OK) && demand_TLS_mode && tls_available &&
 		!(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
@@ -2006,7 +1996,8 @@ smtpconn(SS, host, noMX)
 	    if (SS->mxh[i].ai != NULL)
 	      freeaddrinfo(SS->mxh[i].ai);
 	  }
-	  memset(SS->mxh, 0, sizeof(SS->mxh));
+	  if (SS->verboselog)
+	    fprintf(SS->verboselog, "memset(SS->mxh, 0, %d)\n",sizeof(SS->mxh));
 	}
 
 #ifdef	BIND
@@ -2105,7 +2096,7 @@ smtpconn(SS, host, noMX)
 	  /* HOSTNAME; (non-literal) */
 
 	  if (SS->verboselog)
-	    fprintf(SS->verboselog,"SMTP: Connecting to host: %.200s firstmx=%d mxcount=?\n",host,SS->firstmx);
+	    fprintf(SS->verboselog,"SMTP: Connecting to host: %.200s firstmx=%d mxcount=? noMX=%d\n",host,SS->firstmx, noMX);
 	  hbuf[0] = '\0';
 	  errno = 0;
 
@@ -2129,6 +2120,8 @@ smtpconn(SS, host, noMX)
 	      report(SS,"MX-lookup: %s", host);
 
 	    SS->mxcount = 0;
+	    memset(SS->mxh, 0, sizeof(SS->mxh));
+
 	    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0);
 
 	    if (rc == EX_OK)
@@ -2564,9 +2557,6 @@ makeconn(SS, ai, ismx)
 	      if (SS->esmtp_on_banner > 0)
 		SS->esmtp_on_banner = 0;
 
-	      SS->prevcmdstate = 99;
-	      SS->cmdstate     = SMTPSTATE_MAILFROM;
-
 	      /* Wait for the initial "220-" greeting */
 	      retval = smtpwrite(SS, 1, NULL, 0, NULL);
 	      if (retval != EX_OK)
@@ -2822,6 +2812,8 @@ abort();
 
 	errnosave = errno = 0;
 
+	smtp_flush(SS);
+
 	if (connect(sk, sa, addrsiz) < 0 &&
 	    (errno == EWOULDBLOCK || errno == EINPROGRESS)) {
 
@@ -3019,13 +3011,13 @@ rmsgappend(va_alist)
 	cp    = SS->remotemsg + strlen(SS->remotemsg);
 	cpend = SS->remotemsg + sizeof(SS->remotemsg) -1;
 
-	if (SS->prevcmdstate >= 99) /* magic limit.. */
-	  SS->remotemsgs[SS->cmdstate] = cp = SS->remotemsg;
+	if (SS->prevcmdstate >= SMTPSTATE99) /* magic limit.. */
+	  SS->remotemsgs[(int)SS->cmdstate] = cp = SS->remotemsg;
 	if (SS->cmdstate > SS->prevcmdstate)
-	  SS->remotemsgs[SS->cmdstate] = cp;
+	  SS->remotemsgs[(int)SS->cmdstate] = cp;
 
 	if (!append)
-	  cp = SS->remotemsgs[SS->cmdstate];
+	  cp = SS->remotemsgs[(int)SS->cmdstate];
 
 	SS->prevcmdstate = SS->cmdstate;
 
@@ -3116,6 +3108,11 @@ smtp_flush(SS)
 	}
 	SS->pipeindex   = 0;
 	SS->pipereplies = 0;
+
+	SS->rcptstates  = 0;
+
+	SS->prevcmdstate = SMTPSTATE99;
+	SS->cmdstate     = SMTPSTATE_MAILFROM;
 }
 
 
@@ -3156,12 +3153,7 @@ int bdat_flush(SS, lastflg)
 
 	if (SS->smtpfp && !sferror(SS->smtpfp)) {
 	  if (lastflg || ! SS->pipelining) {
-	    if (lastflg && lmtp_mode) {
-	      /* NOTE: "BDAT nn LAST" yields ZERO replies,
-		 if no RCPT got 200 series response!       */
-	      r = EX_OK;
-	    } else
-	      r = smtp_sync(SS, r, 0);
+	    r = smtp_sync(SS, r, 0); /* blocking     */
 	  } else
 	    r = smtp_sync(SS, r, 1); /* non-blocking */
 	} else {
@@ -3343,10 +3335,11 @@ smtp_sync(SS, r, nonblocking)
 	int r, nonblocking;
 {
 	char *s, *eof, *eol;
-	volatile int idx  = 0, nextidx, code = 0;
-	volatile int rc   = EX_OK, len;
-	volatile int err  = 0;
-	int          infd;
+	int idx  = 0, nextidx, code = 0;
+	int rc   = EX_OK, len;
+	int err  = 0;
+	int infd;
+	int i, found_any;
 	char buf[512];
 	char *p;
 	char *status = NULL;
@@ -3374,7 +3367,8 @@ smtp_sync(SS, r, nonblocking)
 	   similarly to "BDAT nn LAST".
 
 	   To recognize when this is the case:
-	       lmtp_mode && (idx == (SS->pipeindex-1))
+	       lmtp_mode && (idx == (SS->pipeindex-1)) &&
+	       SS->cmdstate >= SMTPSTATE_DATADOT
 
 	   At the begin of the loop we must check if there are any
 	   nondiagnosed recipients left.  If none are, we exit the loop.
@@ -3388,14 +3382,26 @@ smtp_sync(SS, r, nonblocking)
 
 	  nextidx = idx+1;
 
-	  if (lmtp_mode && (idx == (SS->pipeindex-1))) {
+	  /* Collect MULTIPLE missing replies IF WE ARE 1) IN LMTP MODE,
+	     2) at the last item of commands, 3) we are at the DOT of
+	     DATA or at BDAT LAST phase. */
 
-	    int i, found_any = 0;
+	  found_any = 0;
+	  if (lmtp_mode && (idx == (SS->pipeindex-1)) &&
+	      SS->cmdstate >= SMTPSTATE_DATADOT) {
+
 	    for (i = 0; i < idx; ++i) {
 	      datarp = SS->pipercpts[i];
 	      if (datarp && datarp->lockoffset) {
 		found_any = 1;
 		nextidx = idx;
+		/* 
+		   if (SS->verboselog)
+		   fprintf(SS->verboselog,
+		   " lmtp: Data-dot/bdat-last; i=%d datarp=('%s' '%s' '%s')\n",
+		   i, datarp->addr->channel, datarp->addr->host,
+		   datarp->addr->user);
+		*/
 		break;
 	      }
 	    }
@@ -3534,11 +3540,14 @@ smtp_sync(SS, r, nonblocking)
 	  if (p > s && p[-1] == '\r') --p; /* "\r\n" ?			*/
 	  *p = 0;
 
-	  if (logfp != NULL) {
-	    if (debug)
-	      putc('\n',logfp);
+	  if (SS->within_ehlo)
+	    ehlo_check(SS, s+4);
+	  if (!SS->esmtp_on_banner && SS->esmtp_on_banner > -2)
+	    esmtp_banner_check(SS, s+4);
+
+	  if (logfp != NULL)
 	    fprintf(logfp, "%sr\t%s\n", logtag(), s);
-	  }
+
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"%s\n",s);
 
@@ -3559,7 +3568,7 @@ smtp_sync(SS, r, nonblocking)
 
 	  SS->cmdstate = SS->pipestates[idx];
 	  if (idx == 0 && SS->first_line)
-	    SS->prevcmdstate = 99;
+	    SS->prevcmdstate = SMTPSTATE99;
 
 	  if (SS->first_line)
 	    rmsgappend(SS, 0, "\r<<- %s",
@@ -3578,7 +3587,7 @@ smtp_sync(SS, r, nonblocking)
 	  if (SS->continuation_line)
 	    goto rescan_line_0;
 	  else
-	    SS->pipereplies = idx +1; /* Final line, mark this as processed! */
+	    SS->pipereplies = nextidx; /* Final line, mark this as processed! */
    
 
 	  /* If write-fd has closed(shut down), we shall turn all
@@ -3589,13 +3598,23 @@ smtp_sync(SS, r, nonblocking)
 	    code -= 100; /* SOFTEN IT! */
 
 	  rc = code_to_status(code, &status);
+
+	  /* if (SS->verboselog)
+	     fprintf(SS->verboselog,
+	     " lmtp_mode=%d code=%d rc=%d idx=%d datarp=%p pipercpts[idx]=%p pipecmds[idx]='%s'\n",
+	     lmtp_mode, code, rc, idx, datarp, SS->pipercpts[idx],
+	     SS->pipecmds[idx] ? SS->pipecmds[idx] : "<nil>");
+	  */
+
 	  if (code >= 400) {
 	    /* Errors */
 
 	    /* MAIL From:<*>: ... */
 	    /* DATA: 354/ 451/554/ 500/501/503/421 */
 	    /* RCPT To:<*>: 250/251/ 550/551/552/553/450/451/452/455/ 500/501/503/421 */
+
 	    if (SS->pipercpts[idx] != NULL) {
+
 	      if (SS->rcptstates & (FROMSTATE_400|FROMSTATE_500)) {
 		/* If "MAIL From:<..>" tells non-200 report, and
 		   causes "RCPT To:<..>" commands to yield "400/500",
@@ -3624,9 +3643,11 @@ smtp_sync(SS, r, nonblocking)
 	      /* No diagnostic() calls for  MAIL FROM:<>, nor for
 		 DATA/BDAT phases (except in LMTP mode) */
 
-	      if (idx == 0 && SS->pipecmds[idx] != NULL &&
-		  STREQN(SS->pipecmds[idx],"MAIL", 4)) {
+
+	      if ((idx == 0) && (SS->pipecmds[idx] != NULL) &&
+		  (STREQN(SS->pipecmds[idx],"MAIL", 4))) {
 		/* We are working on MAIL From:<...> command here */
+
 		if (code >= 500)
 		  SS->rcptstates |= FROMSTATE_500;
 		else if (code >= 400)
@@ -3634,7 +3655,9 @@ smtp_sync(SS, r, nonblocking)
 		else
 		  SS->rcptstates |= FROMSTATE_OK;
 	      } else {
+
 		/* "DATA" or "BDAT" phase */
+
 		if (lmtp_mode && datarp) {
 		  /* LMTP is different animal..  We do  diagnostic() for all
 		     recipients who have been reported as RCPTSTATE_OK */
@@ -3645,6 +3668,7 @@ smtp_sync(SS, r, nonblocking)
 		  diagnostic(datarp, rc, 0, "%s", SS->remotemsg);
 		  SS->rcptstates |= ((code >= 500) ?
 				     RCPTSTATE_500 : RCPTSTATE_400);
+
 		} /* LMTP mode */
 
 		if (code >= 500) {
@@ -3666,7 +3690,8 @@ smtp_sync(SS, r, nonblocking)
 		  SS->rcptstates |= DATASTATE_400;
 		}
 	      }
-	    }
+
+	    } /* SS->pipercpts[idx] == NULL */
 
 	  } else { /* code < 400 */
 
@@ -3690,24 +3715,28 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	      if (idx == 0)
 		SS->rcptstates |= FROMSTATE_OK;
 
-	      if (idx > 0) {
-		/* DATA/BDAT phase */
-		if (lmtp_mode && datarp) {
-		  /* LMTP is different animal..  We do  diagnostic() for all
-		     recipients who have been reported as RCPTSTATE_OK */
-		  time(&endtime);
-		  notary_setxdelay((int)(endtime-starttime));
-		  notarystatsave(SS,s,status);
-		  notaryreport(datarp->addr->user, "delivered", NULL, NULL);
-		  diagnostic(datarp, rc, 0, "%s", SS->remotemsg);
-		  SS->rcptstates |= RCPTSTATE_OK;
-		} /* LMTP mode */
+	      /* DATA/BDAT phase */
+	      if (lmtp_mode && datarp) {
+		/* LMTP is different animal..  We do  diagnostic() for all
+		   recipients who have been reported as RCPTSTATE_OK */
+		time(&endtime);
+		notary_setxdelay((int)(endtime-starttime));
+		notarystatsave(SS,s,status);
+		notaryreport(datarp->addr->user, "delivered", NULL, NULL);
+		diagnostic(datarp, rc, 0, "%s", SS->remotemsg);
+		SS->rcptstates |= RCPTSTATE_OK;
 
+		if (SS->verboselog)
+		  fprintf(SS->verboselog, " LMTP diagnostic() done; rc=%d code=%d datarp->lockoffset=%d%s\n", rc, code, datarp->lockoffset, datarp->lockoffset ? " **NOT ZERO!**":"");
+	      } /* LMTP mode */
+
+	      if (idx > 0) {
 		if (SS->rcptstates & RCPTSTATE_OK)
 		  SS->rcptstates |= DATASTATE_OK;
 	      }
 	    }
-	  }
+	  } /* end if 'code' interpretation */
+
 	  if (! nonblocking) {
 	    if (SS->pipecmds[idx] != NULL)
 	      free(SS->pipecmds[idx]);
@@ -3818,240 +3847,6 @@ SmtpState *SS;
 }
 
 
-int dflag = 0;
-
-
-int
-smtpreplypick(SS, saverpt, strbuf, pipelining, syncrp)
-	SmtpState *SS;
-	int saverpt;
-	const char *strbuf;
-	int pipelining;
-	struct rcpt *syncrp;
-{
-	register char *s;
-	volatile char *cp;
-	int response, infd, rc;
-	volatile int r = 0, i;
-	char *se;
-	char *status = NULL;
-	char buf[2*8192]; /* XX: static buffer - used in several places */
-	char ch;
-	infd = SS->smtpfd;
-
-	if (debug)
-	  fprintf(logfp, "%s#\tAttempting to read reply\n",logtag());
-
-	if (statusreport && strbuf != NULL)
-	  report(SS,"%s", strbuf);
-
-	i = 2;	/* state variable, beginning of new line */
-	cp = buf;
-
-	do {
-
-	  fd_set rdset;
-	  struct timeval tv;
-
-	do_reread:
-
-	  tv.tv_sec = timeout;
-	  tv.tv_usec = 0;
-
-	  if (sffileno(SS->smtpfp) < 0  &&  timeout > 300) {
-	    /* Earlier write failure has bitten us, and we
-	       arrived into DOT-WAIT, or some such.. */
-	    /* Cut this wait down to 5 minutes */
-	    tv.tv_sec = 300;
-	  }
-
-	  _Z_FD_ZERO(rdset);
-	  _Z_FD_SET(infd,rdset);
-
-	  gotalarm = 0;
-
-	  r = select(infd+1, &rdset, NULL, NULL, &tv);
-	  if (r < 0 && errno == EINTR) goto do_reread;
-	  if (r > 0) {
-	    r = smtp_nbread(SS, (char*)cp, sizeof(buf) - (cp - buf));
-	    if (r < 0 && errno == EINTR) goto do_reread;
-	  } else { /* == 0 */
-	    if (r == 0)
-	      gotalarm = 1;
-	    r = -1;
-	  }
-	  if (r > 0) {
-	    if (SS->verboselog)
-	      fwrite((char*)cp,r,1,SS->verboselog);
-	    s = (char*)cp;
-	    cp += r;
-	    for ( ; s < cp; ++s ) {
-	      switch (i) {
-	      	/* i == 0 means we're on last line */
-	      case 1:		/* looking for \n */
-		if (*s != '\n')
-		  break;
-		*s = '\0';
-
-		rmsgappend(SS, 1, "\r->> %s", buf);
-
-		if (SS->within_ehlo)
-		  ehlo_check(SS,&buf[4]);
-		if (!strbuf && !SS->esmtp_on_banner && SS->esmtp_on_banner > -2)
-		  esmtp_banner_check(SS,&buf[4]);
-		if (logfp != NULL) {
-		  if (debug)
-		    putc('\n',logfp);
-		  fprintf(logfp, "%sr\t%s\n", logtag(), buf);
-		}
-
-		if (s + 1 < cp)	/* Compress the buffer */
-		  memcpy(buf, s+1, cp-s-1);
-		cp = buf + (cp-s-1);
-		s = buf;
-		--s;		/* incremented in for() stmt */
-		/* fall through */
-	      case 2:		/* saw \n, 1st char on line */
-	      case 3:		/* 2nd char on line */
-	      case 4:		/* 3rd char on line */
-		if ((i == 1) || ('0' <= *s && *s <= '9'))
-		  ++i;
-		else
-		  /* silently look for num. code lines */
-		  i = 1;
-		break;
-	      case 5:		/* 4th char on line */
-		i = (*s == '-');
-		break;
-	      }
-	    }
-	  } else if (r == -1) {
-	    if (gotalarm) {
-	      time(&endtime);
-	      notary_setxdelay((int)(endtime-starttime));
-	      if (SS->smtpfp && sffileno(SS->smtpfp) < 0) {
-		sprintf(SS->remotemsg,
-			"smtp; 466 (Timeout on SMTP write, and response read)");
-		notaryreport(NULL,FAILED,
-			     "5.4.2 (smtp transaction write+read timeout)",
-			     SS->remotemsg);
-	      } else {
-		if (strbuf == NULL)
-		  sprintf(SS->remotemsg,
-			  "smtp; 466 (Timeout on initial SMTP response read)");
-		else
-		  sprintf(SS->remotemsg,
-			  "smtp; 466 (Timeout on SMTP response read, Cmd: %s)",
-			  strbuf);
-		notaryreport(NULL,FAILED,
-			     "5.4.2 (smtp transaction read timeout)",
-			     SS->remotemsg);
-	      }
-	    } else {
-	      se = strerror(errno);
-	      if (strbuf == NULL)
-		sprintf(SS->remotemsg,
-			"smtp; 500 (Error on initial SMTP response read: %s)",se);
-
-	      else
-		sprintf(SS->remotemsg,
-			"smtp; 500 (Error on SMTP response read: %s, Cmd: %s)",
-			se, strbuf);
-	      time(&endtime);
-	      notary_setxdelay((int)(endtime-starttime));
-	      notaryreport(NULL,FAILED,"5.4.2 (smtp transaction read timeout)",SS->remotemsg);
-	    }
-
-	    dflag = 0;
-	    if (SS->verboselog)
-	      fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	    smtpclose(SS, 1);
-	    if (logfp)
-	      fprintf(logfp, "%s#\t(closed SMTP channel - bad response on smtpwrite() )\n", logtag());
-	    return EX_TEMPFAIL;
-	  } else {
-	    /* read() returned 0 .. usually meaning EOF .. */
-	    sprintf(SS->remotemsg, "smtp; 500 (Server hung up on us! Cmd: %s)",
-		    strbuf == NULL ? "(null cmd)" : strbuf);
-	    time(&endtime);
-	    notary_setxdelay((int)(endtime-starttime));
-	    notaryreport(NULL,FAILED,"5.4.2 (server hung-up on us)",SS->remotemsg);
-	    dflag = 0;
-	    if (SS->verboselog)
-	      fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	    smtpclose(SS, 1);
-	    if (logfp)
-	      fprintf(logfp, "%s#\t(closed SMTP channel - hangup on smtpwrite() )\n", logtag());
-	    return EX_TEMPFAIL;
-	  }
-	  /* Exit if the last thing we read was a LF and we're on the
-	     last line (in case of multiline response).  This
-	     also takes care of the required CRLF termination */
-	} while (cp < buf+sizeof buf && !(i == 0 && *(cp-1) == '\n'));
-
-	if (cp >= (buf+sizeof buf)) {
-	  strcpy(SS->remotemsg,"smtp; 500 (SMTP Response overran input buffer!)");
-	  time(&endtime);
-	  notary_setxdelay((int)(endtime-starttime));
-	  notaryreport(NULL,"X-BUG","5.5.0 (SMTP-response overran input buffer!)",SS->remotemsg);
-	  dflag = 0;
-	  if (SS->verboselog)
-	    fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	  smtpclose(SS, 1);
-	  if (logfp)
-	    fprintf(logfp, "%s#\t(closed SMTP channel - response overrun on smtpwrite() )\n", logtag());
-	  return EX_TEMPFAIL;
-	}
-	*--cp = '\0';	/* kill the LF */
-	if ((cp - buf) < 3) {
-	  /* A '354<CRLR>' could be treated as ok... */
-	  sprintf(SS->remotemsg, "smtp; 500 (SMTP response '%s' unexpected!)", buf);
-	  time(&endtime);
-	  notary_setxdelay((int)(endtime-starttime));
-	  notaryreport(NULL,"X-BUG","5.5.0 (SMTP response unexpected)",SS->remotemsg);
-	  dflag = 0;
-	  if (SS->verboselog)
-	    fprintf(SS->verboselog,"%s\n",SS->remotemsg);
-	  smtpclose(SS, 1);
-	  if (logfp)
-	    fprintf(logfp, "%s#\t(closed SMTP channel - unexpected response on smtpwrite() )\n", logtag());
-	  return EX_TEMPFAIL;
-	}
-	--cp;
-	/* trim trailing whitespace */
-	while (isascii((*cp)&0xFF) && isspace((*cp)&0xFF))
-	  --cp;
-	*++cp = '\0';
-	for (i = 0; i < 4; ++i)		/* can't happen, right? wrong... */
-	  if (buf[i] == ' ' || buf[i] == '\r' || buf[i] == '\n')
-	    break;
-	if (i == 4) --i;
-	ch = buf[i];
-	buf[i] = '\0';
-	response = atoi(buf);
-	if (logfp != NULL)
-	  fprintf(logfp, "%sr\t%s%c%s\n", logtag(), buf, ch, &buf[i+1]);
-	buf[i] = ch;
-
-	if (SS->within_ehlo)
-	  ehlo_check(SS,&buf[4]);
-	if (!strbuf && !SS->esmtp_on_banner && SS->esmtp_on_banner > -2)
-	  esmtp_banner_check(SS,&buf[4]);
-
-	rmsgappend(SS, 1, "\r->> %s", buf);
-
-	dflag = 0;
-
-	if (response >= 400)
-	  notaryreport(NULL,FAILED,NULL,NULL);
-
-	rc = code_to_status(response, &status);
-
-	if (saverpt)
-	  notarystatsave(SS,buf,status);
-	return rc;
-}
-
 void
 smtppipestowage(SS, strbuf, syncrp)
 	SmtpState *SS;
@@ -4092,6 +3887,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 {
 	char buf[8192];
 	int r, r2 = EX_OK;
+	volatile int err = 0;
 
 	gotalarm = 0; /* smtp_sfwrite() may set it.. */
 
@@ -4099,7 +3895,6 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	if (strbuf != NULL) {
 	  int len = strlen(strbuf) + 2;
-	  volatile int err = 0;
 
 	  if (pipelining > 0) {
 	    /* We are asynchronous! */
@@ -4183,12 +3978,8 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	    return EX_TEMPFAIL;
 #endif
 	  }
-	  if (logfp != NULL) {
-	    if (dflag) abort();
+	  if (logfp)
 	    fprintf(logfp, "%sw\t%s\n", logtag(), strbuf);
-	    if (!pipelining)
-	      dflag = 1;
-	  }
 	}
 
 	if (SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
@@ -4218,7 +4009,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  return pipeblockread(SS);
 	}
 
-	return smtpreplypick(SS, saverpt, strbuf, pipelining, syncrp);
+	return smtp_sync(SS, EX_OK, pipelining);
 }
 
 
@@ -4228,7 +4019,7 @@ smtp_ehlo(SS, strbuf)
 	const char *strbuf;
 {
 	int rc;
-	SS->within_ehlo = 1;
+	SS->within_ehlo = (SS->esmtp_on_banner > -2);
 	SS->ehlo_capabilities = 0;
 	rc = smtpwrite(SS, 1, strbuf, 0, NULL);
 	SS->within_ehlo = 0;
@@ -4317,6 +4108,7 @@ rightmx(spec_host, addr_host, cbparam)
 	if (SS->remotehost[0] == '\0')
 	  return 0;
 
+	memset(SS->mxh, 0, sizeof(SS->mxh));
 	SS->mxh[0].host = NULL;
 	SS->mxcount = 0;
 	SS->firstmx = 0;

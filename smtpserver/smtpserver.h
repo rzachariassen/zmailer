@@ -149,6 +149,7 @@ typedef enum {
     StartTLS,
 #endif /* - HAVE_OPENSSL */
     Hello2, Mail2, Send2, Verify2,	/* 8-bit extensions */
+    HelloL,		/* RFC 2033 LHLO -- sort of */
     Silent		/* One particular client error trap.. */
 } Command;
 
@@ -208,6 +209,7 @@ typedef struct {
 
     int  from_box;		/* Set when:  MAIL FROM:<>  */
     int  rcpt_count;
+    int  ok_rcpt_count;
     int  sender_ok;
     /* For BDAT -command */
     int  bdata_blocknum;
@@ -288,6 +290,7 @@ extern int use_tcpwrapper;
 extern int configuration_ok;
 extern int unknown_cmd_limit;
 extern int sum_sizeoption_value;
+extern int lmtp_mode;
 
 extern int bindaddr_set, bindport_set, testaddr_set;
 extern u_short   bindport;

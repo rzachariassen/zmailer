@@ -25,17 +25,29 @@ const char *query;
     int col;
     const char *cp;
     struct command *carp;
+    Command cmd;
 
     for (carp = &command_list[0]; carp->verb != NULL; ++carp) {
 	if (CISTREQ(carp->verb, query))
 	    break;
     }
-    switch (carp->cmd) {
+
+    cmd = carp->cmd;
+    if (lmtp_mode && (cmd == Hello || cmd == Hello2)) cmd = Null;
+    if (!lmtp_mode && (cmd == HelloL)) cmd = Null;
+
+    switch (cmd) {
     case Hello:
     case Hello2:
-	TYPE_("EHLO your.domain.name");
-	TYPE_("HELO your.domain.name");
-	TYPE_("\tThe 'EHLO' is for Extended SMTP feature recognition, and is preferred!.");
+    case HelloL:
+        if (lmtp_mode) {
+	  TYPE_("LHLO your.domain.name");
+	  TYPE_("\tThe 'LHLO' is for RFC 2033 / LMTP session greeting.");
+	} else {
+	  TYPE_("EHLO your.domain.name");
+	  TYPE_("HELO your.domain.name");
+	  TYPE_("\tThe 'EHLO' is for Extended SMTP feature recognition, and is preferred!.");
+	}
 	TYPE_("\tIt is polite to introduce yourself before talking.");
 	TYPE("\tI will in fact ignore you until you do!");
 	break;
@@ -162,17 +174,24 @@ const char *query;
 		TYPE_(helplines[i]);
 	    TYPE_("");
 	}
+	typeflush(SS);
 	printf("214-The following commands are recognized:");
 	if (logfp)
 	    fprintf(logfp, "%sw\t214-The following commands are recognized:",
 		    logtag);
 	col = 100;
 	for (carp = &command_list[0]; carp->verb != NULL; ++carp) {
+	    if (carp->cmd == HelloL && !lmtp_mode)
+	      continue;
+	    if (lmtp_mode && (carp->cmd == Hello || carp->cmd == Hello2))
+	      continue;
+	    if (carp->cmd == Silent)
+	      continue;
 	    if (col > 70) {
 		col = 12;
-		printf("\r\n214-\t%s", carp->verb);
+		printf(",\r\n214-\t%s", carp->verb);
 		if (logfp)
-		    fprintf(logfp, "\n%sw\t214\t%s", logtag, carp->verb);
+		    fprintf(logfp, ",\n%sw\t214\t%s", logtag, carp->verb);
 	    } else {
 		printf(", %s", carp->verb);
 		if (logfp)
@@ -181,6 +200,7 @@ const char *query;
 	    }
 	}
 	printf("\r\n");
+	fflush(stdout);
 	if (logfp)
 	    fprintf(logfp, "\n");
 	TYPE_("");

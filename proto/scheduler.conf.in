@@ -357,6 +357,17 @@ smtp/*
 	command="smtp -s" # -l ${LOGDIR}/smtp"
 
 #
+#  LMTP (RFC 2033) protocol driver with presumed "standard" port of 2525.
+#
+
+smtp-lmtp/*
+	maxchannel=199
+	maxring=20
+	interval=1m
+	retries="1 3 7 15"
+	command="smtp -c $channel -M -x -p 2525 -s -l ${LOGDIR}/smtp-lmtp"
+
+#
 # These messages will go only into the queue, and need explicite
 # SMTP mediated ETRN request, before they become flushed out.
 #

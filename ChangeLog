@@ -1,3 +1,37 @@
+2000-10-12  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c, man/smtpserver.8,
+	  smtpserver/cfgread.c, smtpserver/smtphelp.c, smtpserver/smtpcmds.c,
+	  smtpserver/smtpdata.c:
+	    Implemented experimental LMTP (RFC 2033) support, this is *not*
+	    for real LMTP use, merely for debugging LMTP clients.
+
+	* transports/smtp/smtp.c, transports/smtp/smtp.h,
+	  proto/scheduler.conf.in:
+	    Completed the LMTP (-M) mode, tested it quite a bit with
+	    and without remote speaking PIPELINING. Can support even
+	    remotes announcing STARTTLS capability in the LMTP port.
+	    Removed duplicate remote response analysis code from
+	    synchronous (non pipelined) code path, now using only
+	    the  smtp_sync()  to collect replies.
+
+	    Supplied sample "smtp-lmtp/*" configuration for use. 
+
+	* proto/zmailer.sh.in:
+	    Do cd to $POSTOFFICE  when starting smtpserver.
+	    Dropping cores to system root is not polite..
+
+	* man/sendmail.8, man/zmsh.1:
+	    Changed <mea@utu.fi> to <mea@nic.funet.fi>
+
+	* man/smtp.8:
+	    Mention RFC 2033 and LMTP at the RFC list in the end.
+
+	* man/scheduler.8, scheduler/mq2auth.c, proto/scheduler.auth.in:
+	    Allow multiple instances of same userid by scanning the address
+	    ACLs at each UID.  Thus nobody@localhost can get different
+	    level of access from nobody@elsewere.
+
 2000-10-10  Ambrose Li <acli@mingpaoxpress.com>
 
 	* utils/vacation/vacation.c:

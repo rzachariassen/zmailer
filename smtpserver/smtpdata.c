@@ -43,7 +43,7 @@ const char *buf, *cp;
     int filsiz;
     long tell = 0;
     time_t mtime;
-    int ino;
+    int ino, i;
     char msg[2048];
 
     while (!strict_protocol && (*cp == ' ' || *cp == '\t')) ++cp;
@@ -137,6 +137,8 @@ const char *buf, *cp;
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
 	type(SS, 452, m430, "%s", msg);
+	if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	    type(SS, 452, m430, "%s", msg);
 	typeflush(SS);
     } else if (s_feof(SS)) {
 	/* [mea@utu.fi] says this can happen */
@@ -147,10 +149,14 @@ const char *buf, *cp;
 	  mail_abort(SS->mfp);
 	SS->mfp = NULL;
 	reporterr(SS, tell, "premature EOF on DATA input");
+	if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	  reporterr(SS, tell, "premature EOF on DATA input");
 	typeflush(SS);
 	return -1;
     } else if (availspace < 0 || ferror(SS->mfp)) {
 	type(SS, 452, m430, NULL); /* insufficient system storage */
+	if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	  type(SS, 452, m430, NULL); /* insufficient system storage */
 	typeflush(SS);
 	reporterr(SS, tell, ferror(SS->mfp) ? "write to spool file failed" : "system free storage under limit");
 	clearerr(SS->mfp);
@@ -160,6 +166,8 @@ const char *buf, *cp;
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
 	type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
+	if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	  type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
 	typeflush(SS);
     } else {
 
@@ -177,6 +185,10 @@ const char *buf, *cp;
 	       "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
 	  type(SS, -552,m571, "Content-Policy analysis rejected this message");
 	  type(SS, 552, m571, "Content-Policy msg: %s", ss ? ss : "rejected");
+	  if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i) {
+	    type(SS, -552,m571, "Content-Policy analysis rejected this message");
+	    type(SS, 552, m571, "Content-Policy msg: %s", ss ? ss : "rejected");
+	  }
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	} else if (SS->policyresult > 0) {
@@ -193,6 +205,8 @@ const char *buf, *cp;
 		 "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
 		 polbuf, errno, strerror(errno));
 	    type(SS, 452, m430, "Message file disposition failed");
+	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	      type(SS, 452, m430, "Message file disposition failed");
 	    typeflush(SS);
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
@@ -201,6 +215,8 @@ const char *buf, *cp;
 	    freezecnt <<= 1;
 	    sleep(freezecnt);
 	    type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
+	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
 	    typeflush(SS);
 	    SS->mfp = NULL;
 	    zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze[%d]",
@@ -215,6 +231,8 @@ const char *buf, *cp;
 
 	  if (_mail_close_(SS->mfp, &ino, &mtime) == EOF) {
 	    type(SS, 452, m430, (char *) NULL);
+	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	      type(SS, 452, m430, (char *) NULL);
 	    typeflush(SS);
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
@@ -226,6 +244,8 @@ const char *buf, *cp;
 
 	    SS->mfp = NULL;
 	    type(SS, 250, "2.6.0", "%s message accepted", taspid);
+	    if (lmtp_mode) for(i = 1; i < SS->ok_rcpt_count; ++i)
+	      type(SS, 250, "2.6.0", "%s message accepted", taspid);
 	    typeflush(SS);
 
 	    if (smtp_syslog)
@@ -253,7 +273,7 @@ const char *buf, *cp;
     long tell;
     char msg[2048];
     long bdata_chunksize;
-    int bdata_last;
+    int bdata_last, i;
 
     if (SS->state == RecipientOrData) {
 	SS->state = BData;
@@ -303,7 +323,10 @@ const char *buf, *cp;
 	    cp = NULL;
 	    break;
 	}
-	type(SS, 503, m552, cp);
+	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	  type(SS, 503, m552, cp);
+	else
+	  type(SS, 503, m552, cp);
 	typeflush(SS);
 	if (SS->mfp)
 	    mail_abort(SS->mfp);
@@ -315,7 +338,10 @@ const char *buf, *cp;
 	    cp = "No valid sender, rejecting all recipients";
 	    if (SS->sender_ok != 0)
 		cp = "No valid recipient at RCPT addresses, or no RCPT addresses at all";
-	    type(SS, 550, "5.1.3", cp);
+	    if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	      type(SS, 550, "5.1.3", cp);
+	    else
+	      type(SS, 550, "5.1.3", cp);
 	    typeflush(SS);
 	    SS->state = MailOrHello;
 	    if (SS->mfp)
@@ -325,7 +351,10 @@ const char *buf, *cp;
 	}
 	if ((SS->from_box != 0) && (SS->rcpt_count > MaxErrorRecipients)) {
 	  /* Too many recipients for a  "MAIL FROM:<>" */
-	  type(SS, 550, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");
+	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	    type(SS, 550, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");
+	  else
+	    type(SS, 550, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");
 	  typeflush(SS);
 	  SS->state = MailOrHello;
 	  mail_abort(SS->mfp);
@@ -343,11 +372,17 @@ const char *buf, *cp;
 
     /* The common typeflush() is at the end... */
     if (SS->mfp == NULL) {
-	type(SS, 503, m552, "BDAT block discarded due to earlier error");
+	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	  type(SS, 452, m430, "BDAT block discarded due to earlier error");
+	else
+	  type(SS, 452, m430, "BDAT block discarded due to earlier error");
     } else if (*msg != 0) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
-	type(SS, 452, "%s", msg);
+	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	  type(SS, 452, "%s", msg);
+	else
+	  type(SS, 452, "%s", msg);
     } else if (s_feof(SS)) {
 	/* [mea@utu.fi] says this can happen */
 	if (STYLE(SS->cfinfo,'D')) {
@@ -357,10 +392,13 @@ const char *buf, *cp;
 	  mail_abort(SS->mfp);
 	SS->mfp = NULL;
 	reporterr(SS, tell, "premature EOF on BDAT input");
-	typeflush(SS);
+	typeflush(SS); /* Pointless ?? */
 	return -1;
     } else if (availspace < 0 || ferror(SS->mfp)) {
-	type(SS, 452, m400, (char *) NULL);
+	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	  type(SS, 452, m400, (char *) NULL);
+	else
+	  type(SS, 452, m400, (char *) NULL);
 	reporterr(SS, tell, ferror(SS->mfp) ? "write to spool file failed" : "system free storage under limit");
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
@@ -368,7 +406,10 @@ const char *buf, *cp;
     } else if (maxsize > 0 && tell > maxsize) {
 	mail_abort(SS->mfp);
 	SS->mfp = NULL;
-	type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
+	if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i)
+	  type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
+	else
+	  type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
     } else if (bdata_last) {
 	time_t mtime;
 	int inum;
@@ -385,8 +426,13 @@ const char *buf, *cp;
 	  char *ss = policymsg(policydb, &SS->policystate);
 type(NULL,0,NULL,
   "Content-policy analysis ordered message rejection. (code=%d)", SS->policyresult);
-	  type(SS, -552,m571, "Content-Policy analysis rejected this message");
-	  type(SS, 552, m571, "Content-Policy msg: %s", ss ? ss : "rejected");
+	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i){
+	    type(SS,-552,m571,"Content-Policy analysis rejected this message");
+	    type(SS, 552,m571,"Content-Policy msg: %s", ss ? ss : "rejected");
+	  } else {
+	    type(SS,-552,m571,"Content-Policy analysis rejected this message");
+	    type(SS,552, m571,"Content-Policy msg: %s", ss ? ss : "rejected");
+	  }
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
 	} else if (SS->policyresult > 0) {
@@ -401,11 +447,17 @@ type(NULL,0,NULL,
 		 "policy", errno, strerror(errno));
 	    if (logfp)
 	      fflush(logfp);
-	    type(SS, 452, m430, "Message file disposition failed");
+	    if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i){
+	      type(SS, 452, m430, "Message file disposition failed");
+	    } else
+	      type(SS, 452, m430, "Message file disposition failed");
 	    SS->mfp = NULL;
 	    reporterr(SS, tell, "message file close failed");
 	  } else {
-	    type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
+	    if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i){
+	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
+	    } else
+	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
 	    SS->mfp = NULL;
 	    zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze",
 		     (int) stbuf.st_ino, (int) stbuf.st_size,
@@ -413,7 +465,10 @@ type(NULL,0,NULL,
 	  }
 	  runastrusteduser();
 	} else if (_mail_close_(SS->mfp, &inum, &mtime) == EOF) {
-	  type(SS, 452, m400, (char *) NULL);
+	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i) {
+	    type(SS, 452, m400, (char *) NULL);
+	  } else
+	    type(SS, 452, m400, (char *) NULL);
 	  SS->mfp = NULL;
 	  reporterr(SS, tell, "message file close failed");
 	} else {
@@ -422,7 +477,12 @@ type(NULL,0,NULL,
 	  taspoolid(taspid, mtime, inum);
 
 	  SS->mfp = NULL;
-	  type(SS, 250, "2.6.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
+
+	  if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i) {
+	    type(SS, 250, "2.6.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
+	       taspid, bdata_chunksize, (long) tell);
+	  } else
+	    type(SS, 250, "2.6.0", "%s Roger, got %ld bytes in the last chunk, stored %ld bytes into spool",
 	       taspid, bdata_chunksize, (long) tell);
 	  type(NULL,0,NULL,"-- pipeline input: %d bytes",s_hasinput(SS));
 
@@ -430,12 +490,15 @@ type(NULL,0,NULL,
 	    zsyslog((LOG_INFO,
 		     "%s: (%ldc) accepted from %s/%d", taspid, tell,
 		     SS->rhostname, SS->rport));
-
 	  type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
+
 	  if (logfp)
 	    fflush(logfp);
 	}
     } else {			/* Not last chunk! */
+      if (lmtp_mode && bdata_last) for(i = 0; i < SS->ok_rcpt_count; ++i) {
+	type(SS, 250, "2.6.0", "Received %ld bytes", bdata_chunksize);
+      } else
 	type(SS, 250, "2.6.0", "Received %ld bytes", bdata_chunksize);
     }
     if (bdata_last) {

@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "20 Sep 2000"
+.TH SMTP 8 "13 Oct 2000"
 .SH NAME
 .B smtp
 \- zmailer SMTP client transport agent
@@ -302,6 +302,7 @@ RFC 1854/2197	 ESMTP PIPELINING
 RFC 1891	 ESMTP DSN
 RFC 1893/2034	 ESMTP ENHANCEDSTATUSCODES
 RFC 1985	 ESMTP ETRN
+RFC 2033	 LMTP client mode
 RFC 2487	 ESMTP STARTTLS
 RFC 2554+M$ Exchange	 ESMTP AUTH LOGIN
 RFC 2554+NetScape	 ESMTP AUTH=LOGIN
@@ -312,6 +313,6 @@ This program authored and copyright by:
 .br
 Rayan Zachariassen <rayan@cs.toronto.edu>
 .br
-MIME downconverting feature (RFC1428) by:
+Heaps of extended SMTP facilities by:
 .br
-Matti Aarnio <mea@utu.fi>
+Matti Aarnio <mea@nic.funet.fi>

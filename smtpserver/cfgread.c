@@ -98,7 +98,7 @@ static void cfparam(str)
     /* IP address and port binders */
 
     else if (cistrcmp(name, "BindPort") == 0 && param1) {
-      bindport = htons(atoi(param1));
+      bindport = atoi(param1);
       if (bindport != 0 && bindport != 0xFFFFU)
 	bindport_set = 1;
     } else if (cistrcmp(name, "BindAddress") == 0 && param1) {
@@ -319,6 +319,8 @@ static void cfparam(str)
 #ifdef HAVE_OPENSSL
       sscanf(param1,"%d", & tls_scache_timeout);
 #endif /* - HAVE_OPENSSL */
+    } else if (cistrcmp(name, "lmtp-mode") == 0) {
+      lmtp_mode = 1;
     }
 
     /* Cluster-wide ETRN support for load-balanced smtp relay use */
