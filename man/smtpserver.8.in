@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8 "23 Sep 2001"
+.TH SMTPSERVER 8 "25 Oct 2001"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS

@@ -1,7 +1,7 @@
-'\" t TBL macroes present!
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ROUTER 8 "9 May 2000"
+.TH ROUTER 8 "25 Oct 2001"
 .SH NAME
 router \- zmailer message routing daemon
 .SH SYNOPSIS

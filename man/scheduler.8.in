@@ -1,7 +1,7 @@
-'\" t TBL macroes present!
+'\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "13 Feb 2001"
+.TH SCHEDULER 8 "25 Oct 2001"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
