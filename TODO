@@ -1,5 +1,7 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+post-install:  Needs a way to define $(prefix) !
+
 mailq: man-page update to match all options
 
 "make install": (Eugene Crosser)

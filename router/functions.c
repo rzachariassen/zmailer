@@ -1800,6 +1800,7 @@ run_homedir(argc, argv)
 		pw = getpwnam(argv[1]);
 		err = errno;
 		if (pw == NULL) {
+		  if (err == 0)      return 2;
 		  if (err == ENOENT) return 2;
 #ifdef __osf__
 		  if (err == EINVAL) return 2;

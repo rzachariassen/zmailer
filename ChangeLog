@@ -1,5 +1,9 @@
 2001-01-16  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* router/functions.c:
+	    Condition "no such user" can be signaled with   getpwnam()
+	    yielding NULL and errno == 0.  Not only   errno == ENOENT.
+
 	* lib/dbpwdgrp.c, lib/nobody.c, lib/pwdgrp.c, lib/trusted.c,
 	  router/daemonsub.c, router/functions.c, router/router.c,
 	  transports/mailbox/mailbox.c:
