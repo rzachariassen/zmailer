@@ -304,6 +304,10 @@ Installation procedure:
 	(Note: At some machines 'daemon' is called 'daemons'; it MUST be on
 	 that group for the smtpserver to work properly!)
 
+	If you have multiple incoming UUCICO with different uids (not all
+	using 'uucp' user), you may want to add all those into the zmailer
+	group.
+
     ==>	SECURITY ITEM: Those users at zmailer-group MUST NOT contain 'nobody' !
 	(The 'nobody' is used to prevent externally given inputs from being
 	 able to execute arbitary programs at the system, or from writing to
