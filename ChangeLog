@@ -1,5 +1,11 @@
 2000-01-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* router/libdb/bind.c, proto/cf/i-smtp.cf:
+	    Created sub-mode 'mxlocal' for the BIND database.
+	    If local system is lowest MX for given domain, then
+	    it yields string (query domain) and zero return code,
+	    else NIL and non-zero return code.
+
 	* Makefile.in, bin/usa-itar-stripper.sh:
 	    'make dist-usa' creates now
 	       - DIRNAME-usa.tar  package (vs. DIRNAME.tar of 'make dist')

@@ -16,6 +16,7 @@ if [ -f /etc/resolv.conf -o -f /usr/etc/resolv.conf ]; then
 	#relation -t bind,cname -n -s 200 canon # T_CNAME canonicalize hostname
 	relation -t bind,any -n -s 200 canon    # T_ANY canonicalize hostname
 	relation -t bind,mx -s 200 mxhosts	# T_MX
+	relation -t bind,mxlocal -s 200 mxlocal # T_MX with a twist...
 
 #| The mxhosts relation returns a list of values.
 

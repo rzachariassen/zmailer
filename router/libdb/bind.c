@@ -8,7 +8,7 @@
 #include "mailer.h"
 #ifdef	HAVE_RESOLVER
 
-#undef	RFC974		/* MX/WKS/A processing according to RFC974 */
+#define	RFC974		/* MX/WKS/A processing according to RFC974 */
 
 #include <sys/socket.h>
 
@@ -140,6 +140,9 @@ extern int D_bind, D_resolv;
 extern int	h_errno;
 char h_errhost[MAXNAME];
 
+#define T_MXWKS    0x00010000
+#define T_MXLOCAL  0x00020000
+
 struct qtypes {
 	const char *typename;
 	int	value;
@@ -147,6 +150,8 @@ struct qtypes {
 	{	"cname",	T_CNAME		},
 	{	"any",		T_ANY		},
 	{	"mx",		T_MX		},
+	{	"mxwks",	T_MX|T_MXWKS	},
+	{	"mxlocal",	T_MX|T_MXLOCAL	},
 	{	"a",		T_A		},
 	{	"aaaa",		T_AAAA		},
 #ifdef	T_MP
@@ -182,7 +187,7 @@ static const char *res_respcodes[] = {
 	"Resp8"
 };
 
-static conscell * getmxrr    __((const char *, const char *, time_t *, int));
+static conscell * getmxrr    __((const char *, time_t *, int, int));
 static conscell * getcrrtype __((const char *, int, time_t *, int));
 static conscell * getrrtypec __((const char *, int, time_t *, int));
 
@@ -211,6 +216,8 @@ search_res(sip)
 	conscell *rval;
 	const char *host;
 	char        buf[BUFSIZ];
+
+	h_errno = 0;
 
 	if (!(_res.options & RES_INIT)) {
 	  if (sip->file != NULL)
@@ -249,9 +256,12 @@ search_res(sip)
 	}
 	h_errno = 0;
 	h_errhost[0] = '\0';
-	switch (qtp->value) {
+	switch (0xFF & qtp->value) {
 	case T_MX:
-		rval = getmxrr(sip->key, myhostname, &sip->ttl, 0);
+		if (qtp->value & T_MXLOCAL)
+		  stashmyaddresses(myhostname); /* Need to know my local
+						   interface addresses! */
+		rval = getmxrr(sip->key, &sip->ttl, 0, qtp->value);
 		break;
 	case T_WKS:
 	case T_PTR:
@@ -287,8 +297,8 @@ search_res(sip)
 	  if (h_errno >= 0 &&
 	      h_errno < (sizeof zh_errlist/sizeof zh_errlist[0]))
 	    fprintf(stderr,
-		    "search_res: deferred: %s: %s (%s) error\n",
-		    host, qtp->typename, zh_errlist[h_errno]);
+		    "search_res: deferred: %s: %s (%s) error; errhost=%s\n",
+		    host, qtp->typename, zh_errlist[h_errno], h_errhost);
 	  else
 	    fprintf(stderr,
 		    "search_res: deferred: %s: %s (%d) error\n",
@@ -313,11 +323,11 @@ struct mxdata {
 };
 
 static conscell *
-getmxrr(host, localhost, ttlp, depth)
+getmxrr(host, ttlp, depth, flags)
 	const char *host;
-	const char *localhost;
 	time_t *ttlp;
 	int depth;
+	int flags;
 {
 	HEADER *hp;
 	CUC *eom, *cp;
@@ -339,7 +349,7 @@ getmxrr(host, localhost, ttlp, depth)
 	  fprintf(stderr,
 		  "search_res: CNAME chain length exceeded (%s)\n",
 		  host);
-	  strcpy(h_errhost, host); /* use strcat on purpose */
+	  strcpy(h_errhost, host);
 	  h_errno = TRY_AGAIN;
 	  return NULL;
 	}
@@ -347,7 +357,7 @@ getmxrr(host, localhost, ttlp, depth)
 			   (void *)&buf, sizeof(buf));
 	if (qlen < 0) {
 		fprintf(stderr, "search_res: res_mkquery (%s) failed\n", host);
-		strcpy(h_errhost, host);	/* use strcat on purpose */
+		strcpy(h_errhost, host);
 		h_errno = NO_RECOVERY;
 		return NULL;
 	}
@@ -359,7 +369,7 @@ getmxrr(host, localhost, ttlp, depth)
 	    if (D_bind || _res.options & RES_DEBUG)
 	      fprintf(stderr,
 		      "search_res: res_send (%s) failed\n", host);
-	    strcpy(h_errhost, host); /* use strcat on purpose */
+	    strcpy(h_errhost, host);
 	    h_errno = TRY_AGAIN;
 	    return NULL;
 	  }
@@ -378,6 +388,7 @@ getmxrr(host, localhost, ttlp, depth)
 				hp->rcode, ancount, hp->aa);
 		switch (hp->rcode) {
 			case NXDOMAIN:
+				h_errno = HOST_NOT_FOUND;
 				return NULL;
 			case SERVFAIL:
 				strcpy(h_errhost, host);
@@ -385,6 +396,7 @@ getmxrr(host, localhost, ttlp, depth)
 				return NULL;
 			case NOERROR:
 				/* if we got this, then ancount == 0! */
+				h_errno = 0;
 				return NULL /*getrrtypec(host, T_A, ttlp)*/;
 			case FORMERR:
 			case NOTIMP:
@@ -403,7 +415,6 @@ getmxrr(host, localhost, ttlp, depth)
 		cp += dn_skip((CUC*)cp) + QFIXEDSZ;
 #endif	/* defined(BIND_VER) && (BIND_VER >= 473) */
 	realname[0] = '\0';
-	/* assert: stickymem == MEM_MALLOC;  for storing RHS of MX RR's */
 	while (--ancount >= 0 && cp < eom && nmx < (sizeof mx/sizeof mx[0])) {
 		n = dn_expand((CUC*)&answer, (CUC*)eom, (CUC*)cp,
 			      (void*)hbuf, sizeof hbuf);
@@ -438,15 +449,39 @@ getmxrr(host, localhost, ttlp, depth)
 			break;
 		cp += n;
 		mx[nmx].host = (char *)strdup((char*)hbuf);
-		if (localhost != NULL && CISTREQ(hbuf, localhost))
+		if (myhostname != NULL && CISTREQ(hbuf, myhostname)) {
 		    if ((maxpref < 0) || (maxpref > (int)mx[nmx].pref))
 			maxpref = mx[nmx].pref;
+		} else
+		  if (flags & T_MXLOCAL) {
+		    struct addrinfo req, *ai;
+		    int herr = h_errno;
+
+		    memset(&req, 0, sizeof(req));
+		    req.ai_socktype = SOCK_STREAM;
+		    req.ai_protocol = IPPROTO_TCP;
+		    req.ai_flags    = AI_CANONNAME;
+		    req.ai_family   = 0; /* Both OK (IPv4/IPv6) */
+		    ai = NULL;
+		  
+#if !defined(GETADDRINFODEBUG)
+		    i = getaddrinfo((const char*)hbuf, "0", &req, &ai);
+#else
+		    i = _getaddrinfo_((const char*)hbuf,"0",&req,&ai,stderr);
+#endif
+		    if (matchmyaddresses(ai) != 0)
+		      if ((maxpref < 0) || (maxpref > (int)mx[nmx].pref))
+			maxpref = mx[nmx].pref;
+		    if (ai)
+		      freeaddrinfo(ai);
+		    h_errno = herr;
+		  }
 		++nmx;
 	}
 	if (nmx == 0 && realname[0] != '\0' &&
 	    !CISTREQ(host,(char*)realname)) {
 		/* do it recursively for the real name */
-		return getmxrr((char *)realname, localhost, ttlp, depth+1);
+		return getmxrr((char *)realname, ttlp, depth+1, flags);
 	} else if (nmx == 0)
 		return NULL;
 	/* discard MX RRs with a value >= that of localdomain */
@@ -460,15 +495,16 @@ getmxrr(host, localhost, ttlp, depth)
 	}
 #ifdef	RFC974
 	/* discard MX's that do not support SMTP service */
-	for (n = 0; n < nmx; ++n) {
-		if (mx[n].host == NULL)
-			continue;
-		strcpy(hbuf, mx[n].host);
-		if (!getrrtypec(hbuf, T_WKS, ttlp, 0)) {
-			free(mx[n].host);
-			mx[n].host = NULL;
-		}
-	}
+	if (flags & T_MXWKS)
+	  for (n = 0; n < nmx; ++n) {
+	    if (mx[n].host == NULL)
+	      continue;
+	    strcpy(hbuf, mx[n].host);
+	    if (!getrrtypec(hbuf, T_WKS, ttlp, 0)) {
+	      free(mx[n].host);
+	      mx[n].host = NULL;
+	    }
+	  }
 #endif	/* RFC974 */
 	/* determine how many are left, and their max ttl */
 	n = 0;
@@ -482,27 +518,35 @@ getmxrr(host, localhost, ttlp, depth)
 		if (mx[i].ttl > maxttl && mx[i].ttl < MAXVALIDTTL)
 			maxttl = ttl;
 		if (D_bind || _res.options & RES_DEBUG)
-			fprintf(stderr, "search_res: %s: mx[%d] = %s\n",
-				host, n, mx[i].host);
-		slen = strlen(mx[i].host);
-		s = dupnstr(mx[i].host, slen);
-		if (lhead == NULL)
-			lhead = l = newstring(s,slen);
-		else {
-			cdr(l) = newstring(s,slen);
-			l = cdr(l);
+			fprintf(stderr, "search_res: %s: mx[%d] = %s [%d]\n",
+				host, n, mx[i].host, mx[i].pref);
+		if (!(flags & T_MXLOCAL)) {
+		  slen = strlen(mx[i].host);
+		  s = dupnstr(mx[i].host, slen);
+		  if (lhead == NULL)
+		    lhead = l = newstring(s,slen);
+		  else {
+		    cdr(l) = newstring(s,slen);
+		    l = cdr(l);
+		  }
 		}
 		if (mx[i].host) free(mx[i].host);
 		mx[i].host = NULL;
+	}
+	if (flags & T_MXLOCAL) {
+	  /* Did find MXes, and we were the lowest of them all... */
+	  if (!n && nmx > 0) {
+	    int slen = strlen(host);
+	    char  *s = dupnstr(host, slen);
+	    lhead = newstring(s, slen);
+	  }
 	}
 	if (lhead)
 		lhead = ncons(lhead);
 	UNGCPRO1;
 
 	if (D_bind || _res.options & RES_DEBUG)
-		fprintf(stderr, "search_res: %s: %d valid MX RR's\n", host, n);
-	if (n == 0) /* MX's exist, but their WKS's show no TCP smtp service */
-		return NULL;
+		fprintf(stderr, "search_res: %s: %d valid MX RR's out of %d\n", host, n, nmx);
 	else if (maxttl > 0)
 		*ttlp = maxttl;
 	return lhead;

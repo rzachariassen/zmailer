@@ -1089,12 +1089,7 @@ int     tls_stop_clienttls(SS, failure)
      - While writing data, a block
        at the time: 3 minutes  (How large a block ?)
      - From "." to "250 OK": 10 minutes
-
-   I think we simplify:  5 minutes each, except "."
-   to "250 ok" which is 60 (!) minutes. (sendmail's
-   default value.)
-   Block-size is 1kB.   4-Feb-95: [mea@utu.fi]
-
+       (We use 60 minutes here - sendmail's default)
  */
 
 extern int timeout;  /* That is the global setting.. */
