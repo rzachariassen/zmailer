@@ -1,5 +1,10 @@
 2000-06-02  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* router/daemonsub.c:
+	    Tried actually to use ROUTERDIRHASH=1 mode, and learned
+	    of bitter errors at the subchild feeder code...  Dirname
+	    was written twice to the workfilename.
+
 	* router/libdb/header.c:
 	    Allow just about *any* character to appear at headers
 	    database key fields..  old limits were too strict anyway.

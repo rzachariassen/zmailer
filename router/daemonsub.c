@@ -612,10 +612,9 @@ static int _parent_feed_child(rc, fname, dir)
   rc->hungry = 0;
 
   /* What shall we feed ?? */
-  if (!dir || *dir == 0)
-    sprintf(rc->childline, "%s\n", fname);
-  else
-    sprintf(rc->childline, "%s/%s\n", dir, fname);
+  sprintf(rc->childline, "%s\n", fname);
+  /* DIR information is already included at the fname ! */
+
   rc->childsize = strlen(rc->childline);
   rc->childout  = 0;
 

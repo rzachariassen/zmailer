@@ -144,7 +144,7 @@ sub mkpostofficedir {
     $MOD = 02000 + oct($MOD);
 
     chdir($POSTOFFICE);
-    if ( ! -d $DIR/. ) {
+    if ( ! -d "${DIR}/." ) {
 
 	printf "Constructing dir: %s hash=%s\n",$DIR,$HASH;
 
