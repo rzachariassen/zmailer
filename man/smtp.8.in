@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SMTP 8 "25 Dec 1996"
+.TH SMTP 8 "21 Sep 1999"
 .SH NAME
 smtp \- zmailer SMTP client transport agent
 .SH SYNOPSIS
@@ -87,7 +87,7 @@ overrides delivery destination by forceing
 .B all
 email to be sent to given
 .I forcedest
-IP-number/hostname.
+hostname, or literal [IP-number].
 .IP \-H
 Disable the per default active forced 8-bit headers conversion into
 .IR MIME-2 -format.

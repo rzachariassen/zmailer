@@ -11,6 +11,11 @@ libc: "make install" is "crazy"
 proto:	"make install" -- nothing goes in ???
 		--> MAILSHARE/proto/ !!
 
+All programs (?)
+- At places where time definitions are entered, allow always
+  "6m30s" type notation in addition to plain integers..
+
+
 INSTALL:
 	Badly out of date!
 
