@@ -1832,6 +1832,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	int failed = 0;
 
 	struct writestate WS;
+	char **hdrs;
 
 	fstat(fdmail, &st);
 
@@ -1851,12 +1852,14 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	WS.frombuf[0] = 0;
 	WS.fromp = WS.frombuf;
 	WS.epipe_seen = topipe ? 0 : -1;
+
 	memset(&WS.WSdisc, 0, sizeof(WS.WSdisc));
 	WS.WSdisc.D.readf   = NULL;
 	WS.WSdisc.D.writef  = mbox_sfwrite;
 	WS.WSdisc.D.seekf   = NULL;
 	WS.WSdisc.D.exceptf = NULL;
 	WS.WSdisc.WS        = &WS;
+
 	sfdisc(WS.fp, &WS.WSdisc.D);
 
 
@@ -1899,45 +1902,41 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	if (*fromuser == 0)
 	  fromuser = "MAILER-DAEMON";
 
-	{
-	  char **hdrs;
+	do {
+	  hdrs = has_header(rp,"Return-Path:");
+	  if (hdrs) delete_header(rp,hdrs);
+	} while (hdrs);
 
+	append_header(rp,"Return-Path: <%.999s>", fromuser);
+
+	hdrs = has_header(rp,"To:");
+	if (!hdrs) {
+	  /* No "To:" -header ?  Rewrite possible "Apparently-To:" header! */
+
+	  /* Sendmailism... */
 	  do {
-	    hdrs = has_header(rp,"Return-Path:");
+	    hdrs = has_header(rp,"Apparently-To:");
 	    if (hdrs) delete_header(rp,hdrs);
 	  } while (hdrs);
 
-	  append_header(rp,"Return-Path: <%.999s>", fromuser);
-
-	  hdrs = has_header(rp,"To:");
-	  if (!hdrs) {
-	    /* No "To:" -header ?  Rewrite possible "Apparently-To:" header! */
-
-	    /* Sendmailism... */
-	    do {
-	      hdrs = has_header(rp,"Apparently-To:");
-	      if (hdrs) delete_header(rp,hdrs);
-	    } while (hdrs);
-
-	    append_header(rp,"Apparently-To: <%.999s>", rp->addr->link->user);
-	  }
-
-	  do {
-	    hdrs = has_header(rp,"X-Orcpt:");
-	    if (hdrs) delete_header(rp,hdrs);
-	  } while (hdrs);
-
-	  do {
-	    hdrs = has_header(rp,"X-Envid:");
-	    if (hdrs) delete_header(rp,hdrs);
-	  } while (hdrs);
-
-	  if (do_xuidl)
-	    do {
-	      hdrs = has_header(rp,"X-UIDL:");
-	      if (hdrs) delete_header(rp,hdrs);
-	    } while (hdrs);
+	  append_header(rp,"Apparently-To: <%.999s>", rp->addr->link->user);
 	}
+
+	do {
+	  hdrs = has_header(rp,"X-Orcpt:");
+	  if (hdrs) delete_header(rp,hdrs);
+	} while (hdrs);
+
+	do {
+	  hdrs = has_header(rp,"X-Envid:");
+	  if (hdrs) delete_header(rp,hdrs);
+	} while (hdrs);
+
+	if (do_xuidl)
+	  do {
+	    hdrs = has_header(rp,"X-UIDL:");
+	    if (hdrs) delete_header(rp,hdrs);
+	  } while (hdrs);
 
 	/* Add the From_ line and print out the header */
 
@@ -2375,6 +2374,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	mmdf_mode += 2;
 	eofindex = -1; /* NOT truncatable! */
 	fp = putmail(dp, rp, out[1], "a", timestring, cmdbuf);
+	/* ``fp'' is dummy marker */
 	mmdf_mode -= 2;
 	if (fp == NULL) {
 	  pid = wait(&status);
@@ -2382,7 +2382,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  sfclose(errfp);
 	  return status;
 	}
-	sfclose(fp);
+	close(out[1]);
 	/* read any messages from its stdout/err on in[0] */
 	/* ... having forked and set up the pipe, we quickly continue */
 	buf[sizeof(buf)-100] = 0; /* Chop it just to make sure */
