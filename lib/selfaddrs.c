@@ -57,6 +57,7 @@
 #endif
 #include <arpa/inet.h>
 #include <string.h>
+#include <errno.h>
 
 union sockaddr_uni {
     struct sockaddr     sa;
@@ -102,7 +103,6 @@ struct sockaddr ***sockaddrp;
 	int s;
 	int i;
 	int ifcount = 0;
-	int af = AF_INET;
 	int pf = PF_INET;
         struct ifconf ifc;
 	int ifbufsize = 4 * sizeof(struct ifreq) + 4;
