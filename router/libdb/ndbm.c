@@ -99,7 +99,7 @@ reopen:
 #endif
 	  return NULL;
 	}
-	return newstring(dupnstr(val.dptr, val.dsize));
+	return newstring(dupnstr(val.dptr, val.dsize), val.dsize);
 }
 
 /*
@@ -144,9 +144,9 @@ add_ndbm(sip, value)
 	if (db == NULL)
 		return EOF;
 
-	key.dptr  = (const void*) sip->key;	/* Sigh.. the cast.. */
+	key.dptr  = (void*) sip->key;	/* Sigh.. the cast.. */
 	key.dsize = strlen(sip->key) + 1;
-	val.dptr  = (const void*) value;	/* Sigh.. the cast.. */
+	val.dptr  = (void*) value;	/* Sigh.. the cast.. */
 	val.dsize = strlen(value) + 1;
 	if (dbm_store(db, key, val, DBM_REPLACE) < 0) {
 		++deferit;
@@ -173,7 +173,7 @@ remove_ndbm(sip)
 	if (db == NULL)
 		return EOF;
 
-	key.dptr  = (const void*) sip->key;	/* Sigh.. the cast.. */
+	key.dptr  = (void*) sip->key;	/* Sigh.. the cast.. */
 	key.dsize = strlen(sip->key) + 1;
 	if (dbm_delete(db, key) < 0) {
 		++deferit;
