@@ -1,3 +1,13 @@
+2003-06-25  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in:
+	    Changed version number to more RPM-friendly one, e.g. no
+	    hyphen in it.
+
+	* transports/smtp/smtp.c:
+	    The  getmxrr()  calls in cname_lookup() did leak AI and NAME
+	    objects.  Freeing collected (and unneeded) data there.
+
 2003-06-24  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, scheduler/mailq.inc, scheduler/mailq.c,

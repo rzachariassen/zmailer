@@ -5151,15 +5151,23 @@ static int cname_lookup(SS, host, cnamep)
     char realname[1024];
     time_t realnamettl;
     struct mxdata mxh[4];
-    int rc;
+    int rc, i;
 
     realname[0] = 0;
     realnamettl = 86400; /* Max cache age.. */
+    memset( mxh, 0, sizeof(mxh) );
 
     /* if (SS->verboselog) fprintf(SS->verboselog," ... looking it up from DNS\n"); */
 
     rc = getmxrr(SS, host, mxh, 2, 0,
 		 realname, sizeof(realname), &realnamettl);
+
+    /* We did possibly collect up to two address entries, discard them here. */
+    for (i = 0; i < 2; ++i) {
+      if (mxh[i].host)  free(mxh[i].host);
+      if (mxh[i].ai)    freeaddrinfo(mxh[i].ai);
+    }
+
     realnamettl += now;
 
     if (rc == EX_OK) {
