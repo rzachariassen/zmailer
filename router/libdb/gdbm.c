@@ -9,13 +9,13 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2003
  */
 
 /* LINTLIBRARY */
 
 #include "mailer.h"
-#ifdef	HAVE_GDBM_H
+#ifdef	HAVE_GDBM
 #include <gdbm.h>
 #ifndef	HAVE_GDBM_FDESC
 	/* Because GDBM 1.7.3 does not have gdbm_fdesc() or some such,

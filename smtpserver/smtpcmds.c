@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2002.
+ *      Copyright 1991-2003.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -784,66 +784,28 @@ int insecure;
 	  mcode = m571;
 	}
 	smtp_tarpit(SS);
-	type(SS, code, mcode, "For MAIL FROM address <%.*s> policy analysis reported: %s",
-	     addrlen, cp, ss);
+	type(SS, code, mcode, "Hello %s, for your MAIL FROM address <%.*s> policy analysis reported: %s",
+	     SS->ihostaddr, addrlen, cp, ss);
       } else if (SS->policyresult < -99) {
 	smtp_tarpit(SS);
 	if (SS->policyresult < -103) { /* -104 */
-	  if (!multilinereplies) {
-	    type(SS,450,m443, "For input: <%.*s> policy analysis reports temporary DNS error with your source domain.", addrlen, cp);
-	  } else {
-	    type(SS, -450, m443, "Policy analysis reports temporary DNS error");
-	    type(SS, -450, m443, "with your source domain.  Retrying may help,");
-	    type(SS, -450, m443, "or if the condition persists, you may need");
-	    type(SS,  450, m443, "to get somebody to fix your DNS servers: <%.*s>",
-		 addrlen, cp);
-	  }
+	  type(SS,450,m443, "Hello %s, for your input: <%.*s> policy analysis reports temporary DNS error with your source domain.",
+	       SS->ihostaddr, addrlen, cp);
 	} else if (SS->policyresult < -100) {
-	  if (!multilinereplies) {
-	    type(SS,450,m443, "For input: <%.*s> policy analysis reports DNS error with your source domain.", addrlen, cp);
-	  } else {
-	    type(SS, -450, m443, "Policy analysis reports DNS error with your");
-	    type(SS, -450, m443, "source domain.   Please correct your source");
-	    type(SS,  450, m443, "address and/or the info at the DNS: <%.*s>",
-		 addrlen, cp);
-	  }
+	  type(SS,450,m443, "Hello %s, for your input: <%.*s> policy analysis reports DNS error with your source domain.",
+	       SS->ihostaddr, addrlen, cp);
 	} else {
-	  if (!multilinereplies) {
-	    type(SS,450,m471, "For address <%.*s> access denied by the policy analysis functions.", addrlen, cp);
-	  } else {
-	    type(SS, -450, m471, "Access denied by the policy analysis functions.");
-	    type(SS, -450, m471, "This may be due to your source IP address,");
-	    type(SS, -450, m471, "the IP reversal domain, the data you gave for");
-	    type(SS, -450, m471, "the HELO/EHLO parameter, or address/domain you");
-	    type(SS,  450, m471, "gave at the MAIL FROM:<%.*s> address.",
-		 addrlen, cp);
-	  }
+	  type(SS,450,m471, "Hello %s, for address <%.*s> access denied by the policy analysis functions.", SS->ihostaddr, addrlen, cp);
 	}
       } else {
 	char *ss = policymsg(policydb, &SS->policystate);
 	smtp_tarpit(SS);
 	if (ss != NULL) {
-	  type(SS, 553, m571, "For input address <%.*s> Policy analysis reported: %s", addrlen, cp, ss);
+	  type(SS, 553, m571, "Hello %s, for your input address <%.*s> Policy analysis reported: %s", SS->ihostaddr, addrlen, cp, ss);
 	} else if (SS->policyresult < -1) {
-	  if (!multilinereplies) {
-	    type(SS,553,m543,"For MAIL FROM address <%.*s> the policy analysis reports DNS error with your source domain.", addrlen, cp);
-	  } else {
-	    type(SS, -553, m543, "Policy analysis reports DNS error with your");
-	    type(SS, -553, m543, "source domain.   Please correct your source");
-	    type(SS,  553, m543, "address and/or the info at the DNS: <%.*s>",
-		 addrlen, cp);
-	  }
+	  type(SS,553,m543,"Hello %s, for MAIL FROM address <%.*s> the policy analysis reports DNS error with your source domain.", SS->ihostaddr, addrlen, cp);
 	} else {
-	  if (!multilinereplies) {
-	    type(SS,553,m571,"For MAIL FROM address <%.*s> access is denied by the policy analysis functions.", addrlen, cp);
-	  } else {
-	    type(SS, -553, m571, "Access denied by the policy analysis functions.");
-	    type(SS, -553, m571, "This may be due to your source IP address,");
-	    type(SS, -553, m571, "the IP reversal domain, the data you gave for");
-	    type(SS, -553, m571, "the HELO/EHLO parameter, or address/domain you");
-	    type(SS,  553, m571, "gave at the MAIL FROM:<%.*s> address.",
-		 addrlen, cp);
-	  }
+	  type(SS,553,m571,"Hello %s, for MAIL FROM address <%.*s> access is denied by the policy analysis functions.", SS->ihostaddr, addrlen, cp);
 	}
       }
       if (newcp)
@@ -1104,15 +1066,7 @@ const char *buf, *cp;
     if ( (SS->state == MailOrHello || SS->state == Mail) &&
 	 policydb != NULL && SS->policyresult < 0 ) {
       smtp_tarpit(SS);
-      if (!multilinereplies)
-	type(SS, 550, m571, "Access denied by the policy analysis functions by earlier rejection");
-      else {
-	type(SS, -550, m571, "Access denied by the policy analysis functions.");
-	type(SS, -550, m571, "This may be due to your source IP address,");
-	type(SS, -550, m571, "the IP reversal domain, the data you gave for");
-	type(SS, -550, m571, "the HELO/EHLO parameter, or address/domain");
-	type(SS,  550, m571, "you gave at the MAIL FROM:<...> address.");
-      }
+      type(SS, 550, m571, "Hello %s, access denied by the policy analysis functions by earlier rejection", SS->ihostaddr);
       return -1;
     }
 
@@ -1400,78 +1354,41 @@ const char *buf, *cp;
 
 	if (SS->policyresult < -99) { /* "soft error, 4XX code */
 	  if (ss != NULL) {
-	    type(SS, 450, m471, "For recipient address <%.*s> the policy analysis reported: %s", addrlen, cp, ss);
+	    type(SS, 450, m471, "Hello %s, for recipient address <%.*s> the policy analysis reported: %s", SS->ihostaddr, addrlen, cp, ss);
+
 	  } else if (SS->policyresult < -103) { /* -104 */
-	    if (!multilinereplies)
-	      type(SS, 450, m443, "Policy analysis reports temporary DNS error with the target domain: <%.*s>", addrlen, cp);
-	    else {
-	      type(SS, -450, m443, "Policy analysis reports temporary DNS error");
-	      type(SS, -450, m443, "with this target domain. Retrying may help,");
-	      type(SS, -450, m443, "or if the condition persists, some further");
-	      type(SS, -450, m443, "work may be in need with the target domain");
-	      type(SS,  450, m443, "DNS servers; RCPT TO:<%.*s>", addrlen, cp);
-	    }
+	    type(SS, 450, m443, "Hello %s, policy analysis reports temporary DNS error with the target domain: <%.*s>", SS->ihostaddr, addrlen, cp);
 
 	  } else if (SS->policyresult < -102) {
 	    /* Code: -103 */
-	    if (!multilinereplies) {
-	      type(SS,450, m471, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
-		   SS->ihostaddr, addrlen, cp);
-	    } else {
-	      type(SS,-450, m471, "This target address is not our MX service");
-	      type(SS,-450, m471, "client, nor you are connecting from address");
-	      type(SS,-450, m471, "that is allowed to openly use us to relay");
-	      type(SS,-450, m471, "to any arbitrary address thru us: %s",
-		   SS->ihostaddr);
-	      type(SS, 450, m471, "We don't accept this recipient: <%.*s>",
-		   addrlen, cp);
-	    }
+	    type(SS,450, m471, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
+		 SS->ihostaddr, addrlen, cp);
+
 	  } else if (SS->policyresult < -100) {
 	    /* Code: -102 */
-	    if (!multilinereplies)
-	      type(SS, 450, m443, "Policy analysis found DNS error on the target address: <%.*s>", addrlen, cp);
-	    else {
-	      type(SS,-450, m443, "Policy analysis found DNS error on");
-	      type(SS,-450, m443, "the target address. This address is");
-	      type(SS, 450, m443, "not currently acceptable: <%.*s>",
-		   addrlen, cp);
-	    }
+	    type(SS, 450, m443, "Hello %s, Policy analysis found DNS error on the target address: <%.*s>", SS->ihostaddr, addrlen, cp);
+
 	  } else {
-	    type(SS,450,m443, "Policy rejection on the target address: <%.*s>",
-		 addrlen, cp);
+	    type(SS,450,m443, "Hello %s, Policy rejection on the target address: <%.*s>",
+		 SS->ihostaddr, addrlen, cp);
 	  }
 	} else {
 	  if (ss != NULL) {
-	    type(SS, 550, m571, "Policy analysis reported: %s rcpt=<%.*s>",
-		 ss, addrlen, cp);
+	    type(SS, 550, m571, "Hello %s, Policy analysis reported: %s rcpt=<%.*s>",
+		 SS->ihostaddr, ss, addrlen, cp);
+
 	  } else if (SS->policyresult < -2) {
 	    /* Code: -3 */
-	    if (!multilinereplies)
-	      type(SS,550, m571, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
-		   SS->ihostaddr, addrlen, cp);
-	    else {
-	      type(SS,-550, m571, "This target address is not our MX service");
-	      type(SS,-550, m571, "client, nor you are connecting from address");
-	      type(SS,-550, m571, "that is allowed to openly use us to relay");
-	      type(SS,-550, m571, "to any arbitrary address thru us: %s",
-		   SS->ihostaddr);
-	      type(SS, 550, m571, "We don't accept this recipient: <%.*s>",
-		   addrlen, cp);
-	    }
+	    type(SS,550, m571, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
+		 SS->ihostaddr, addrlen, cp);
 
 	  } else if (SS->policyresult < -1) {
 	    /* Code: -2 */
-	    if (!multilinereplies) {
-	      type(SS,550,m543, "Policy analysis found DNS error on the target domain: <%.*s>", addrlen, cp);
-	    } else {
-	      type(SS,-550, m543, "Policy analysis found DNS error on");
-	      type(SS,-550, m543, "the target address. This address is");
-	      type(SS, 550, m543, "not currently acceptable: <%.*s>",
-		   addrlen, cp);
-	    }
+	    type(SS,550,m543, "Hello %s, Policy analysis found DNS error on the target domain: <%.*s>", SS->ihostaddr, addrlen, cp);
+
 	  } else {
-	    type(SS,550,m571, "Policy rejection on the target address: <%.*s>",
-		 addrlen, cp);
+	    type(SS,550,m571, "Hello %s, Policy rejection on the target address: <%.*s>",
+		 SS->ihostaddr, addrlen, cp);
 	  }
 	}
 	if (newcp)

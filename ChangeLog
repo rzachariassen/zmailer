@@ -1,5 +1,20 @@
 2003-09-25  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in, router/db.c, router/libdb/gdbm.c,
+	  router/libdb/ldap.c:
+	    - A bunch of "--without-*" things:
+	    	    --without-ndbm
+		    --without-gdbm
+		    --without-ldap
+	      To disable some autodetections.
+	    - Removed traces of SDBM autoconfig;
+	      a once-upon-a-time replacement for NDBM.
+
+	* smtpserver/smtpcmds.c:
+	    When reporting various rejections, do report also
+	    peer IP address.  This to help some analysis, and
+	    to some extent, to help users.
+
 	* configure.in:
 	    - Default builtin value for SCHEDULEROPTIONS is
 	      now changed to  "-S -H".

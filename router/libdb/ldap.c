@@ -12,7 +12,7 @@
 #include "search.h"
 #include "io.h"
 #include <ctype.h>
-#ifdef HAVE_LDAP_H
+#ifdef USE_LDAP
 #include "lber.h"
 #include "ldap.h"
 
@@ -343,4 +343,4 @@ modp_ldap(sip)
                    stbuf.st_nlink, spt_modcheck);
         return rval;
 }
-#endif	/* HAVE_LDAP_H */
+#endif	/* USE_LDAP */

@@ -248,7 +248,7 @@
 /* Define to 1 if you have the `isascii' function. */
 #undef HAVE_ISASCII
 
-/* HAVE_LDAP_H, 5 */
+/* HAVE_LDAP_H, 4 */
 #undef HAVE_LDAP_H
 
 /* Define to 1 if you have the `bsd' library (-lbsd). */
@@ -373,12 +373,6 @@
 
 /* The struct sockaddr has field sa_len */
 #undef HAVE_SA_LEN
-
-/* System has dbm_open() in -lsdbm, and want to use it. */
-#undef HAVE_SDBM
-
-/* Define to 1 if you have the <sdbm.h> header file. */
-#undef HAVE_SDBM_H
 
 /* Define to 1 if you have the <security/pam_appl.h> header file. */
 #undef HAVE_SECURITY_PAM_APPL_H
@@ -796,6 +790,9 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
+
+/* Support of LDAP isn't explicitely disabled */
+#undef USE_LDAP
 
 /* Want to use TCP-Wrapper code */
 #undef USE_TCPWRAPPER
