@@ -1,3 +1,11 @@
+2004-04-19  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Code rearrange; K&R doesn't like some C99 things..
+
+	* smtpserver/subdaemon-trk.c:
+	    Unused variables, and occasional lack of init..
+
 2004-04-16  Matti Aarnio  <mea@zmailer.org>
 
 	* include/shmmib.h, smtpserver/smtpreport.c, smtpserver/smtpserver.h,
@@ -7,6 +15,8 @@
 	    into SMTP responder that will query the internal rate-tracker
 	    server for more details about rating counters.
 	    (Won't say a thing about _limits_ at all!)
+	    Can use  scheduler.auth   file for user+password+ACLs,
+	    no need to have separate file..
 
 	* smtpserver/smtpcmds.c, smtpserver/smtptls.c:
 	    Extra White-space sloppy-scanner fixes.
@@ -38,8 +48,8 @@
 	* scheduler/prototypes.h, scheduler/scheduler.c, scheduler/transport.c:
 	    Reworked the 'mailq' TCP socket binding somewhat.
 	    Depending on system modes, IPv6 binding may or may not
-	    support also IPv4.  Handling that by creating at first
-	    the IPv6 socket bound on any6/mailq port, and then
+	    support also IPv4 connections.  Handling that by creating
+	    at first the IPv6 socket bound on any6/mailq port, and then
 	    a IPv4 socket is attempted to bind of  any/mailq.
 	    If the IPv4 doesn't bind successfully, will be using
 	    IPv6 listening socket for everyhing.

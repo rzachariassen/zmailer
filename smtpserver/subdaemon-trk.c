@@ -413,7 +413,6 @@ subdaemon_handler_trk_init (statep)
      void **statep;
 {
 	struct trk_state *state = calloc(1, sizeof(*state));
-	int i;
 
 	*statep = state;
 
@@ -747,6 +746,8 @@ smtp_report_ip(SS, ip)
 
 	s = strchr(ip, ':'); /* IPv6 address! */
 	if (s) addrtype = 6;
+
+	rc = -1;
 	if (addrtype == 4) {
 	  rc = inet_pton(AF_INET, ip, ipaddr);
 	}
@@ -755,6 +756,7 @@ smtp_report_ip(SS, ip)
 	  rc = inet_pton(AF_INET6, ip, ipaddr);
 	}
 #endif
+
 	/* type(NULL,0,NULL,"smtp_report_ip() inet_pton(); addrtype=%d rc=%d",
 	   addrtype,rc); */
 

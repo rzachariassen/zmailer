@@ -1037,6 +1037,7 @@ char **argv;
 	    postoffice = POSTOFFICE;
 
 	  if (daemon_flg) {
+	    int r;
 
 	    /* Kill possible previous smtpservers now! */
 	    if (killprevious(SIGTERM, pidfile) != 0) {
@@ -1052,7 +1053,7 @@ char **argv;
 	    /* Daemon attaches the SHM block, and may complain, but will not
 	       give up..  instead uses builtin fallback  */
 	    
-	    int r = Z_SHM_MIB_Attach (1);  /* R/W mode */
+	    r = Z_SHM_MIB_Attach (1);  /* R/W mode */
 	    if (r < 0) {
 	      /* Error processing -- magic set of constants: */
 	      switch (r) {
