@@ -821,15 +821,15 @@ do read on.
 </PARA>
 
 <PARA>
-In the figure <XREF LINKEND="fig.inst.scheduler1"> there are some
-salient points about tuning the ``<FILENAME>local</>'' channel behaviour.
+In <XREF LINKEND="fig.inst.scheduler1"> there are some salient points
+about tuning the ``<FILENAME>local</>'' channel behaviour.
 </PARA>
 
-<FIGURE ID="fig.inst.scheduler1">
+<FIGURE ID="fig.inst.scheduler1" FLOAT="1" PGWIDE="1">
 <TITLE>Sample of ``<FILENAME>scheduler.conf</>'' passage
 for ``<FILENAME>local/*</>'' selector</TITLE>
 <SCREEN>
-local/*
+  local/*
     interval=5m
     idlemax=9m
     expiry=3d
@@ -871,7 +871,7 @@ Variant for using <APPLICATION>CMU Cyrus</> message store server.
 
 <PARA>
 For more information regarding <EMPHASIS>scheduler</> configuration language,
-see chapter <XREF LINKEND="schedulerconfig">.
+see <XREF LINKEND="schedulerconfig">.
 </PARA>
 
 <SECT2 ID="sm.conf"><TITLE>Checking <FILENAME>sm.conf</> file</>
@@ -901,7 +901,7 @@ as local delivery agent </PARA></LISTITEM>
 </PARA>
 
 <PARA>
-For more information, see chapter <XREF LINKEND="smconfig">.
+For more information, see <XREF LINKEND="smconfig">.
 </PARA>
 
 </SECT2>
@@ -1214,10 +1214,10 @@ via NFS, consider the same rule!
 Often if the mail folder directory is shared, also
 one of following (depending upon the system):
 <SCREEN>
-    /usr/mail
-    /usr/spool/mail
-    /var/mail
-    /var/spool/mail
+   /usr/mail
+   /usr/spool/mail
+   /var/mail
+   /var/spool/mail
 </SCREEN>
 </PARA>
 
@@ -1235,13 +1235,13 @@ configure  options of ZMailer package, per version 2.99.50.
 
 <PARA>
 The  configure  script has three kinds of parameters for it:
+</PARA>
 <ITEMIZEDLIST>
 <LISTITEM><PARA>(optional) environment variables for CC="..." et.al.</></>
 <LISTITEM><PARA>ZENV data pulled in from <FILENAME>$<VARNAME>ZCONFIG</></>
  file (if it exists)</></>
 <LISTITEM><PARA>various  <OPTION>--with-*</>  et.al. options</></>
 </ITEMIZEDLIST>
-</PARA>
 
 <SECT1><TITLE>Used environment variables</TITLE>
 
@@ -1520,9 +1520,9 @@ things, this generates those.
 <LISTITEM><PARA>
 Some systems dislike getting RFC-822 headers with form of:
 <SCREEN>
-   "Headername: &lt;HTAB&gt; value"
+   "Headername: &lt;TAB&gt; value"
 </SCREEN>
-With this option, no HTABs are used and instead "ordinary"
+With this option, no TABs are used and instead "ordinary"
 space character is used.
 </PARA></LISTITEM></VARLISTENTRY>
 
