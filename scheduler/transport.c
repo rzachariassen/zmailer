@@ -1371,7 +1371,7 @@ queryipcinit()
 	  ua.v4.sin_family      = AF_INET;
 	  ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
 	  querysocket = -1;
-#ifdef INET6_not_now
+#ifdef INET6
 	  querysocket = socket(PF_INET6, SOCK_STREAM, 0);
 #endif
 	  if (querysocket < 0)

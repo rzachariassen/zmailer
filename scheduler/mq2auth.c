@@ -168,6 +168,16 @@ static int mq2amaskcompare(mq, width, ua)
 
 #ifdef INET6
   if (qa.v6.sin6_family == AF_INET6) {
+    const u_char zv4mapprefix[16] = 
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 0, 0};
+
+    if (memcmp((void *)&qa.v6.sin6_addr, zv4mapprefix, 12) == 0) {
+      /* Is a IPv4 address mapped via IPv6 prefix. */
+      qa.v4.sin_family = AF_INET;
+      memcpy((void*)&qa.v4.sin_addr, 12+((char*)&qa.v6.sin6_addr), 4);
+    }
+  }
+  if (qa.v6.sin6_family == AF_INET6) {
     if (ua->v6.sin6_family != AF_INET6) return 0; /* No match! */
     memcpy(ipbuf1, &qa.v6.sin6_addr, 16);
     memcpy(ipbuf2, &ua->v6.sin6_addr, 16);

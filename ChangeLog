@@ -1,3 +1,10 @@
+2000-09-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/transport.c, scheduler/mq2auth.c:
+	    If system allows, create the "mailq" port in IPv6 space.
+	    Know how to turn IPv4-Mapped-in-IPv6 address into IPv4 one,
+	    and thus be able to test it neatly.
+
 2000-09-08  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/getmxrr.c:
