@@ -1,3 +1,9 @@
+2000-09-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* proto/db/dbases.conf:
+	    The 'thishost' relations used to carry '-d pathalias'
+	    driver option on original systems, now it was missing..
+
 2000-09-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* proto/Makefile.in:
