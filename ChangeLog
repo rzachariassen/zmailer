@@ -1,3 +1,11 @@
+2003-04-06  Matti Aarnio  <mea@zmailer.org>
+
+	* lib/sleepycatdb.c:
+	    Adding debugging things, trying to understand
+	    couple CDB-mode related problem things.
+	    Possibly this is about a bug in system thread library,
+	    which interacts badly with SleepyCat DB 4.0.14  ?
+
 2003-04-04  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
