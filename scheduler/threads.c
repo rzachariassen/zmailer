@@ -1378,7 +1378,7 @@ void thread_report(fp,mqmode)
 	  procs = 0;
 	  jobsum = 0;
 
-#if 0 /* XX: zero for verifying of modified system; turn to 1 for running! */
+#if 1 /* XX: zero for verifying of modified system; turn to 1 for running! */
 
 	  /* We scan thru the local ring of threads */
 
