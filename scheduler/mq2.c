@@ -89,8 +89,8 @@ static void mq2_discard(mq)
      struct mailq *mq;
 {
   struct mailq **mqp = &mq2root;
-  while (*mqp && **mqp) {
-    if (*mqp == mq) {
+  while ((*mqp) && (**mqp)) {
+    if ((*mqp) == mq) {
       *mqp = mq->nextmailq;
       break;
     }
