@@ -1422,7 +1422,7 @@ deliver(SS, dp, startrp, endrp)
 	  SS->hsize = writeheaders(startrp, SS->smtpfp, "\r\n",
 				   convertmode, 0, chunkptr);
 
-	if (SS->hsize >= 0 && chunkptr) {
+	if (SS->hsize >= 0 && chunkblk) {
 
 	  chunkblk = erealloc(chunkblk, SS->hsize+2);
 	  if (chunkblk) {
@@ -1831,6 +1831,7 @@ ssputc(SS, ch, fp)
   if (SS->chunkbuf == NULL) {
     putc(ch, fp);
     if (ferror(fp)) return EOF;
+    return 0;
   }
   if (SS->chunksize >= CHUNK_MAX_SIZE) {
     if (bdat_flush(SS, 0) != EX_OK) /* Not yet the last one! */
