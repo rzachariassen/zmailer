@@ -1832,7 +1832,7 @@ ssputc(SS, ch, fp)
     putc(ch, fp);
     if (ferror(fp)) return EOF;
   }
-  if (SS->chunksize > CHUNK_MAX_SIZE) {
+  if (SS->chunksize >= CHUNK_MAX_SIZE) {
     if (bdat_flush(SS, 0) != EX_OK) /* Not yet the last one! */
       return EOF;
   }
@@ -2635,7 +2635,7 @@ makeconn(SS, ai, ismx)
 	    i = matchmyaddress((struct sockaddr*)ai->ai_addr);
 	    inet_ntop(AF_INET, &si->sin_addr, SS->ipaddress, sizeof(SS->ipaddress));
 	    sprintf(SS->ipaddress + strlen(SS->ipaddress), "|%d",
-		    ntohs(si->sin_port));
+		    SS->servport);
 	  } else
 #if defined(AF_INET6) && defined(INET6)
 	  if (ai->ai_family == AF_INET6) {
@@ -2644,7 +2644,7 @@ makeconn(SS, ai, ismx)
 	    strcpy(SS->ipaddress,"ipv6 ");
 	    inet_ntop(AF_INET6, &si6->sin6_addr, SS->ipaddress+5, sizeof(SS->ipaddress)-5);
 	    sprintf(SS->ipaddress + strlen(SS->ipaddress), "|%d",
-		    ntohs(si6->sin6_port));
+		    SS->servport);
 	  } else
 #endif
 	    sprintf(SS->ipaddress,"UNKNOWN-ADDR-FAMILY-%d", ai->ai_family);
