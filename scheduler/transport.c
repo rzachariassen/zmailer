@@ -921,10 +921,10 @@ static void reclaim(fromfd, tofd)
 {
 	struct procinfo *proc = &cpids[fromfd];
 
-if (verbose)
-  sfprintf(sfstderr,"reclaim(%d,%d) pid=%d, reaped=%d, chan=%s, host=%s\n",
-	   fromfd, tofd, (int)proc->pid, proc->reaped,
-	   proc->ch->name, proc->ho->name);
+	if (verbose)
+	  sfprintf(sfstderr,"reclaim(%d,%d) pid=%d, reaped=%d, chan=%s, host=%s\n",
+		   fromfd, tofd, (int)proc->pid, proc->reaped,
+		   proc->ch->name, proc->ho->name);
 
 	if (proc->reaped &&
 	    ((WIFEXITED(proc->waitstat) && WEXITSTATUS(proc->waitstat)) ||
