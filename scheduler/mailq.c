@@ -397,7 +397,7 @@ main(argc, argv)
 	      eval = errno;
 	      close(fd);
 	      fprintf(stderr, "%s: connect failed to %s",
-		      progname, ai->ai_canonname);
+		      progname, ai->ai_canonname ? ai->ai_canonname : host);
 	      fd = -1;
 	      continue;
 	    }

@@ -613,7 +613,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	      matchmyaddresses(mx[i].ai) == 1) {
 
 	    if (SS->verboselog)
-	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", mx[i].ai->ai_canonname, myhostname);
+	      fprintf(SS->verboselog,"  matchmyaddresses(): matched!  canon='%s', myname='%s'\n", mx[i].ai->ai_canonname ? mx[i].ai->ai_canonname : "<NIL>", myhostname);
 	    if (maxpref > (int)mx[i].pref)
 	      maxpref = mx[i].pref;
 	  }
