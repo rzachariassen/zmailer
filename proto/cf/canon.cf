@@ -115,7 +115,18 @@ canonicalize (address) {
 #
 canonical (host) {
 	local tmp
-	tmp="$(deliver "$host")" || tmp="$(canon "$host")" || tmp="$host"
+#
+#  Now a big question:
+#
+#	Do you want to put your system to hold for the DNS lookups at
+#	the router, or will you let the SMTP transport agents to handle
+#	such things in much more parallel fashion as they can under the
+#	scheduler.
+#
+
+#	tmp="$(deliver "$host")" || tmp="$(canon "$host")" || tmp="$host"
+	tmp="$(deliver "$host")" || tmp="$host"
+
 	echo "$tmp"
 }
 
