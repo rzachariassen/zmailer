@@ -2121,11 +2121,11 @@ smtpopen(SS, host, noMX)
 			    " TLS cipher bits: %d in use: %d\n",
 			    SS->TLS.cipher_algbits, SS->TLS.cipher_usebits);
 		    fprintf(SS->verboselog,
-			    " TLS peer cert name:        %s\n",
-			    SS->TLS.peer_subject);
+			    " TLS peer CN:               %s\n",
+			    SS->TLS.peer_CN ? SS->TLS.peer_CN : "<>");
 		    fprintf(SS->verboselog,
 			    " TLS peer cert issuer name: %s\n",
-			    SS->TLS.peer_issuer);
+			    SS->TLS.issuer_CN ? SS->TLS.issuer_CN : "<>");
 		  } else
 		    fprintf(SS->verboselog, " Failed the TLS startup!\n");
 		}
