@@ -536,7 +536,7 @@ AC_TYPE_OFF_T
 AC_TYPE_SIGNAL
 AC_TYPE_SIZE_T
 AC_TYPE_UID_T
-AC_CHECK_TYPE(ino_t, unsigned long)
+AC_CHECK_TYPES([ino_t, u_int16_t, u_int32_t, uint16_t, uint32_t])
 
 AC_C_CONST
 AC_HEADER_STDC

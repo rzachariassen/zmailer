@@ -201,6 +201,9 @@
 /* Define to 1 if you have the `getpgrp' function. */
 #undef HAVE_GETPGRP
 
+/* Define to 1 if you have the `getrusage' function. */
+#undef HAVE_GETRUSAGE
+
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
@@ -218,6 +221,9 @@
 
 /* Have inet_pton() function. */
 #undef HAVE_INET_PTON
+
+/* Define to 1 if the system has the type `ino_t'. */
+#undef HAVE_INO_T
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -565,6 +571,12 @@
    `tzname'. */
 #undef HAVE_TZNAME
 
+/* Define to 1 if the system has the type `uint16_t'. */
+#undef HAVE_UINT16_T
+
+/* Define to 1 if the system has the type `uint32_t'. */
+#undef HAVE_UINT32_T
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -579,6 +591,12 @@
 
 /* Define to 1 if you have the <utime.h> header file. */
 #undef HAVE_UTIME_H
+
+/* Define to 1 if the system has the type `u_int16_t'. */
+#undef HAVE_U_INT16_T
+
+/* Define to 1 if the system has the type `u_int32_t'. */
+#undef HAVE_U_INT32_T
 
 /* Define to 1 if you have the <varargs.h> header file. */
 #undef HAVE_VARARGS_H
@@ -786,9 +804,6 @@
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */
 #undef inline
-
-/* Define to `unsigned long' if <sys/types.h> does not define. */
-#undef ino_t
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef mode_t
