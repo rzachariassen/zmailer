@@ -2143,7 +2143,559 @@ the <QUOTE><FILENAME CLASS=DIRECTORY>contrib/</></> sub-directory.
 </VARIABLELIST>
 
 </SECT1>
+
+<!-- ############################################################### -->
+
+<SECT1 ID=zins.runtime.zenv.variables>
+<TITLE>Runtime <EMPHASIS>ZENV</> Variables</TITLE>
+
+<VARIABLELIST TERMLENGTH=99>
+<TITLE>Runtime <EMPHASIS>ZENV</> Variables</TITLE>
+
+<VARLISTENTRY>
+<TERM><VARNAME>ZCONFIG</>=</TERM>
+<LISTITEM><PARA>
+
+ ZCONFIG is the pathname of the configuration file specifying all the other
+ host-dependent information needed by ZMailer programs.  This file is
+ created from the Config file in the distribution (the file you are reading
+ right now), and contains variable assignments in an sh-compatible format.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><VARNAME>MAILBIN</>=</TERM>
+<LISTITEM><PARA>
+
+ MAILBIN is the directory hierarchy containing all ZMailer binaries.
+ Usually /usr/lib/mail/bin or /local/lib/mail.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><VARNAME>MAILSHARE</>=</TERM>
+<LISTITEM><PARA>
+
+ MAILSHARE is the directory hierarchy containing site-wide configuration
+ files and databases.  Usually /usr/lib/mail or /local/share/mail.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><VARNAME>MAILVAR</>=</TERM>
+<LISTITEM><PARA>
+
+ MAILVAR is the directory that will contain machine-specific configuration
+ files and databases.
+ Usually /usr/lib/mail or /var/db/mail or /local/share/mail.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><VARNAME>MAILBOX</>=</TERM>
+<LISTITEM><PARA>
+
+ MAILBOX is the directory containing all the user mailboxes.
+ This is defaulted inside the mailbox.c program
+ (currently /var/mail) and may be overridden here.
+ Usually /usr/spool/mail or /var/mail.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><VARNAME>POSTOFFICE</>=</TERM>
+<LISTITEM><PARA>
+
+ POSTOFFICE is the directory hierarchy used to manipulate message files,
+ where runtime activity takes places.  Usually /usr/spool/postoffice or
+ /var/spool/postoffice.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><VARNAME>ROUTERDIRS</>=</TERM>
+<LISTITEM><PARA>
+
+ Multiple LOWER priorities on message routing can be defined by creating
+ $POSTOFFICE/&lt;component-of-$ROUTERDIRS&gt; -directories.
+ Routers process first   $POSTOFFICE/router/ -directory, and once it is
+ empty, files from subsequent dirs.   See  mail(3)  mail_priority
+ These can be only under the $POSTOFFICE.
+
+</PARA><PARA>
+
+ ROUTERDIRS=router1:router2:router3:router4
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><VARNAME>ROUTERDIRHASH</>=</TERM>
+<LISTITEM><PARA>
+
+ When defined, ROUTERDIRHASH submits messages immediately into the
+ 'A' thru 'Z' subdirectory of whatever directory (e.g. see ROUTERDIRS).
+ IF NO SUCH "hash subdirs" EXIST, MESSAGE SUBMISSION WILL FAIL!
+ (The value must be "1" for this to take effect!)
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><VARNAME>LOGDIR</>=</TERM>
+<LISTITEM><PARA>
+
+ LOGDIR is the directory where log files will appear.
+ Usually /usr/spool/log  or /var/log.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>MANDIR</>=</TERM>
+<LISTITEM><PARA>
+
+ MANDIR is the top of the manual directory hierarchy where manual pages
+ for the ZMailer programs are installed.  Usually /usr/man or /local/man.
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>LIBRARYDIR</>=</TERM>
+<LISTITEM><PARA>
+
+# LIBRARYDIR is the place for storing  libzmailer.a, which can be used to
+# create programs which use Zmailer's  zmailer(3) (aka: mail(3)) -library.
+LIBRARYDIR=	@libdir@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>INCLUDEDIR</>=</TERM>
+<LISTITEM><PARA>
+
+# INCLUDEDIR is the place for storing   zmailer.h -- a copy of include/mail.h
+# and it is used in conjunction with the  libzmailer.a ..
+INCLUDEDIR=	@includedir@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>SMTPOPTIONS</>=</TERM>
+<LISTITEM><PARA>
+
+# SMTPOPTIONS are command line options given to the smtpserver when started
+# from the zmailer shell script.  The intent is that if you want non-default
+# address verification options they can be specified here.  The default
+# value is "-sve".   This is also used, when invoking  ``sendmail'' with
+# "-bs" option.
+#SMTPOPTIONS= "-l ${LOGDIR}/smtpserver"
+SMTPOPTIONS=	@SMTPOPTIONS@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>ALLOWSOURCEROUTE</>=</TERM>
+<LISTITEM><PARA>
+
+# ALLOWSOURCEROUTE (when present) stops the system from ignoring
+# the old RFC821/822 source routes of type:  @a,@b:c@d;  By "ignoring"
+# we mean here that system chops away "@a,@b:" and uses only:  c@d
+# This is done at all input portals; smtpserver, and at sendmail/rmail.
+#ALLOWSOURCEROUTE=
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>SCHEDULEROPTIONS</>=</TERM>
+<LISTITEM><PARA>
+
+# SCHEDULEROPTIONS are command line options given to the scheduler when
+# started from the zmailer shell script.  The intent is that if you want
+# non-default logging options, the can be specified here.  The default
+# value is ""
+#
+#SCHEDULEROPTIONS=	"-l ${LOGDIR}/scheduler.perflog -S -H"
+SCHEDULEROPTIONS= @SCHEDULEROPTIONS@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>SCHEDULERDIRHASH</>=</TERM>
+<LISTITEM><PARA>
+
+# The SCHEDULERDIRHASH is magic thing to tell to the router that it
+# should move resulting files directly into hash subdir(s) of the
+# scheduler subsystem, and not only to the main-level.
+# Existence of this variable also overrides -H option(s) to
+# the scheduler.  Value is the number of -H options.
+# If these hash subdirectories don't exist, system failure happens!
+SCHEDULERDIRHASH=1
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>SCHEDULERNOTIFY</>=</TERM>
+<LISTITEM><PARA>
+
+# The SCHEDULERNOTIFY defines, where is a socket at which the scheduler
+# listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
+# The router(s) inform the scheduler of new jobs.
+SCHEDULERNOTIFY=@POSTOFFICE@/.scheduler.notify
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>ROUTERNOTIFY</>=</TERM>
+<LISTITEM><PARA>
+
+# The ROUTERNOTIFY defines, where is a socket at which the router
+# listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.
+# The injection library informs the router queuing subsystem of new jobs.
+ROUTERNOTIFY=@POSTOFFICE@/.router.notify
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>ROUTEROPTIONS</>=</TERM>
+<LISTITEM><PARA>
+
+# ROUTEROPTIONS are command line options given to the router when started
+# from the zmailer shell script. The default values are "-dkn 4"
+#ROUTEROPTIONS= "-dkn 4"
+ROUTEROPTIONS= @ROUTEROPTIONS@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>MAILSERVER</>=</TERM>
+<LISTITEM><PARA>
+
+# MAILSERVER is the hostname of the remote machine where the postoffice is
+# located.  This value is only needed in an environment with distributed file
+# systems, and if it exists will be used by the mail queue querying program
+# as the default name of the host to query.  It is a way of overriding the
+# algorithm used by mailq in an NFS environment, or when you are running a
+# different kind of DFS.  Usually undefined or a hostname.
+#MAILSERVER=	neat.cs
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>PUNTHOST</>=</TERM>
+<LISTITEM><PARA>
+
+# PUNTHOST is where mail that is supposed to go to a local address, but
+# no such address exists, is punted to.
+#PUNTHOST=	relay.cs
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>FORCEPUNT</>=</TERM>
+<LISTITEM><PARA>
+
+# FORCEPUNT is for cases when the local machine under no circumstances
+# is to store any email locally, but send all such to this given address
+# (local host is a member on a "cluster" whose message store is at some
+#  other cluster server, and said node handles "local" delivery for all
+#  cluster members... *including* running pipes..)
+#FORCEPUNT=    mailhost
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>SMARTHOST</>=</TERM>
+<LISTITEM><PARA>
+
+# SMARTHOST is where mail that cannot be resolved or routed is punted to.
+# There used to be a variable for this, now a better way is to use 'routes'
+# database at which you put line:   .  smtp!smart.host.name
+# (That is: dot, white-space(s), "smtp!smart.host.name" )
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>NOBODY</>=</TERM>
+<LISTITEM><PARA>
+
+# NOBODY is the unprivileged UID value.
+# This is absolutely necessary if setuid() will fail on your "nobody" account
+# uid (if it is -2, for example).  Make sure that whatever value you give
+# here will work with setuid().  Values between 1 and 29999 will usually work.
+# BE CAREFULL WITH THIS!  THE SYSTEM RELIES ON IT VERY MUCH IN DEED!
+#  (On SunOS 4.1.x, the value of "-2" works the best,  on Solaris the default
+#   for nobody is 60001!  If your system has "nobody" "account", use here the
+#   name instead of number -- it should (usually) work)
+# -- Use a mapping via /etc/passwd, this is most generic..
+NOBODY=nobody
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>LOGLEVEL</>=</TERM>
+<LISTITEM><PARA>
+
+
+# LOGLEVEL may be set to restrict the log output of the router to entries
+# whose tags are found in the specified string value.  The currently known
+# tags are:
+#	address: deferred: file: header_defer: info: recipient:
+#LOGLEVEL=	"file: recipient:"
+LOGLEVEL=	"deferred: file: header_defer:"
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>NNTPSERVER</>=</TERM>
+<LISTITEM><PARA>
+
+# Builtin USENET channel uses  NNTPSERVER variable (depending upon your
+# inews ..) to send the artickle to..
+NNTPSERVER=	@NNTPSERVER@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><VARNAME>INEWSBIN</>=</TERM>
+<LISTITEM><PARA>
+
+# Builtin USENET channel uses  NNTPSERVER variable (depending upon your
+# inews ..) to send the artickle to..
+INEWSBIN=	@INEWS@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>SENDMAILPATH</>=</TERM>
+<LISTITEM><PARA>
+
+# Where the sendmail (compability one) shall be located ?
+SENDMAILPATH=	@SENDMAILPATH@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>RMAILPATH</>=</TERM>
+<LISTITEM><PARA>
+
+# Where is the rmail to be located at ?
+RMAILPATH=	@RMAILPATH@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>BLOCKLOCKS</>=</TERM>
+<LISTITEM><PARA>
+
+# MAILBOX locking scheme -- no configuration option (yet)
+# See man-page of  mailbox.8  for details; the order of key-chars
+# is meaningfull:
+#	`.'	Dotlock scheme for mailboxes at $MAILBOX/ directory
+#	`F'	flock() locking of files (and perhaps mailboxes)
+#	`L'	lockf() locking of files (and perhaps mailboxes)
+#	`:'	Separates the two parts of the parameter; left part
+#		is for the mailbox locking, and right part is for
+#		all other kinds of files.
+#
+# We use compiled-in defaults at the mailbox program!
+# Following examples are for  flock(), and lockf() systems with their
+# respective defaults.  ( Systems capable to use both will use lockf() )
+#MBOXLOCKS=".F:F"
+#MBOXLOCKS=".L:L"
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>SELFADDRESSES</>=</TERM>
+<LISTITEM><PARA>
+
+# The SELFADDRESSES is a comma separated list of IP address literals
+# listing all of our acceptable IP addresses (Comma because IPv6 uses
+# colon for short-hand notation..):
+# For usual (IPv4) universe, no addresses are needed listing, however
+# for IPv6 it may be necessary - likewise if you want to use cluster-mode,
+# you may want to list all *cluster* addresses here - nodes know only
+# their local ones, after all.. (See: doc/guides/etrn-cluster)
+#SELFADDRESSES=[1.2.3.4],[2.3.4.5],[ipv6.::1.2.3.4]
+SELFADDRESSES=@SELFADDRESSES@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>DBTYPE</>=</TERM>
+<LISTITEM><PARA>
+
+# What kind of DB type we prefer to use ?  We can support several,
+# after all...  btree/ndbm/gdbm ... (DBEXT: pag/db/dat)
+DBTYPE=@DBTYPE@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>DBEXT</>=</TERM>
+<LISTITEM><PARA>
+
+# What kind of DB type we prefer to use ?  We can support several,
+# after all...  btree/ndbm/gdbm ... (DBEXT: pag/db/dat)
+DBEXT=@DBEXT@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>DBEXTtest</>=</TERM>
+<LISTITEM><PARA>
+
+# What kind of DB type we prefer to use ?  We can support several,
+# after all...  btree/ndbm/gdbm ... (DBEXT: pag/db/dat)
+DBEXTtest=@DBEXTtest@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>DEFCHARSET</>=</TERM>
+<LISTITEM><PARA>
+
+# The characterset to be used as a default when turning 8-bit containing
+# headers to MIME-2 headers -- and what to say at the default generated
+# "Content-Type: text/plain; charset=XXXX" -header in case the original
+# message was not of MIME, and still had 8-bit chars...
+DEFCHARSET=ISO-8859-1
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>RFC822TABS</>=</TERM>
+<LISTITEM><PARA>
+
+# We want those nice tabs between the header field name and value
+# The task of generating TABs or SPACEs is at TA *writeheaders().
+# Value '0' here yields expansion of possibly existing header resident
+# line-start TABs.  There is no mechanism to turn line-start SPACEs
+# to TABs with any other value stored here.
+RFC822TABS=@RFC822TABS@
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>MAX_NR, MAX_NT, MAX_LOAD</>=</TERM>
+<LISTITEM><PARA>
+
+# If the following limitations are exceeded then zmailcheck
+# will sent an alert.
+# Limit on the Router Queue
+MAX_NR=1000
+# Limit on Transport Queue
+MAX_NT=1000
+# Load times 100
+MAX_LOAD=300
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>SYSLOGFLG</>=</TERM>
+<LISTITEM><PARA>
+
+# SYSLOGFLG tells which systems use syslog to log things:
+# Set of chars which are as follows:
+#   S  smtpserver and @SENDMAILPATH@
+#   R  router
+#   T  transport agents
+#   C  scheduler completion of a message
+#
+#SYSLOGFLG=SRT
+SYSLOGFLG=RT
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>TRUSTEDUSER</>=</TERM>
+<LISTITEM><PARA>
+
+# Per default,  ZMailer uses ``daemon'' userid when it wants to
+# operate in  ``runastrusteduser()''  mode.  Finding that userid
+# (or rather its numeric uid) can be a bit difficult, and if it
+# *fails*, apparently uid 65535 will be used.
+#
+#TRUSTEDUSER=daemon
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>ORGDOMAIN</>=</TERM>
+<LISTITEM><PARA>
+
+# Use  ORGDOMAIN  in ZENV if the system can't generate
+# MIME multipart boundary string contained host/domain ids
+# automagically...
+#
+#ORGDOMAIN=my.local.domain
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>ROUTEUSER_IN_ABNORMAL_UNIX</>=</TERM>
+<LISTITEM><PARA>
+
+# Depending, are you running strange private customer account databases
+# hooked (only) into 'mailbox', or not, make sure following is non-empty
+# if you *are* using private databases, as then ZMailer's router won't
+# claim wronly userid to be nonexistent.. These shunted tests look for
+# HOMEDIRECTORY, which might be nonexistent thing at such funny systems...
+# An EMPTY string means "this is NORMAL unix":
+#
+# (A "bug" is that this isn't automatically substituted, but non-void
+#  content gives behaviour that has been around for quite a while...)
+#
+ROUTEUSER_IN_ABNORMAL_UNIX="@ROUTEUSER_IN_ABNORMAL_UNIX@"
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+
+<VARLISTENTRY>
+<TERM><VARNAME>LISTSERV</>=</TERM>
+<LISTITEM><PARA>
+
+# Some sites (well, one FUNET site), has LISTSERV, this is for
+# configuring that subpart of the  aliases.cf  scripts:
+#LISTSERV=/v/net/listserv.funet.fi
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+</SECT1>
 </CHAPTER>
+
+<!-- ############################################################### -->
 
 <CHAPTER ID=ch.zins.verification><?dbhtml filename="zins-verification.html">
 <TITLE>Verifying the System</TITLE>
