@@ -866,7 +866,7 @@ struct thread *thr;
 	  if (proc->fed)
 	    proc->overfed += 1;
 
-#if 1
+#if 0
 
 	  /* The initial thread-start will feed only
 	     one job-spec, latter OK will get burst of
