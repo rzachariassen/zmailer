@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-1997.
+ *      Copyright 1991-1998.
  */
 /*
  * Zmailer SMTP-server divided into bits
@@ -15,6 +15,17 @@
  *  - BDAT
  *
  */
+
+/* XX: for anti-spam hack */
+/* #define USE_ANTISPAM_HACKS */
+/* #define USE_STRICT_MSGID_FREEZING */
+
+#define FREEZE__X_ADVERTISEMENT_FOUND                   951
+#ifdef  USE_ANTISPAM_HACKS
+#define FREEZE__X_UIDL_FOUND                            952
+#define FREEZE__IMPROBABLE_RECEIVED_HEADER_FOUND        952
+#define FREEZE__MALFORMED_MESSAGE_ID_HEADER             953
+#endif
 
 #ifdef USE_TRANSLATION
 #include <libtrans.h>
@@ -732,25 +743,29 @@ char *msg;
 		has8bitsum += has8bit;
 	    }
 	}
+	/* XX: The anti-spam hacks. To differentiate between the auto-freeze of
+	 * allegedly-spam messages and freezes resulting from user-specified
+	 * smtp-policy.src, we do not use 1 to freeze the messages.
+	 */
 	if (CISTREQN(linebuf, "X-Advertisement:",16)) {
 	  /* Gee... Only SPAMmers (Cyberpromo!) use this .. (I hope..) */
-	  SS->policyresult = 1; /* Mark it for the freezer! */
+	  SS->policyresult = FREEZE__X_ADVERTISEMENT_FOUND;
 	  if (logfp)
 	    fprintf(logfp, "%d#\tFound X-Advertisement header\n", pid);
 	}
 	if (CISTREQN(linebuf, "X-Advertisment:",15)) {
 	  /* Gee... Only SPAMmers (Cyberpromo!) use this .. (I hope..) */
-	  SS->policyresult = 1; /* Mark it for the freezer! */
+	  SS->policyresult = FREEZE__X_ADVERTISEMENT_FOUND;
 	  if (logfp)
 	    fprintf(logfp, "%d#\tFound X-Advertisment header\n", pid);
 	}
-#if 0
+#ifdef USE_ANTISPAM_HACKS
 	if (strncmp(linebuf, "X-UIDL:", 7)==0) {
 	  /* Sigh... SPAMmers use this .. but it is valid AOL too.. */
-	  SS->policyresult = 1; /* Mark it for the freezer! */
+	  SS->policyresult = FREEZE__X_UIDL_FOUND;
 	}
 #endif
-#if 0
+#ifdef USE_ANTISPAM_HACKS
 	/* This test probably doesn't work */
 	if (CISTREQN(linebuf, "Received:", 9)) {
 	  /* Scan for "(really ". Anything with this string in the Received
@@ -761,7 +776,7 @@ char *msg;
 	  s = linebuf + 11;
 	  while (*s) {
 	    if (CISTREQN(s, "(really ", 8)) {
-	      SS->policyresult = 1; /* Mark it for the freezer! */
+	      SS->policyresult = FREEZE__IMPROBABLE_RECEIVED_HEADER_FOUND;
 	      if (logfp)
 		fprintf(logfp, "%d#\tImprobable Received header\n", pid);
 	      break;
@@ -770,7 +785,7 @@ char *msg;
 	  }
 	}
 #endif
-#if 0
+#ifdef USE_ANTISPAM_HACKS
 	if (CISTREQN(linebuf, "Message-ID:", 11)) {
 	  /* Freeze any mail with no message id in the message-id header,
 	   * or a message id with obvious syntax errors, or message id
@@ -781,28 +796,30 @@ char *msg;
 	  while (*s == ' ' || *s == '\t')
 	    ++s;
 	  if (*s != '<') {
-	    SS->policyresult = 1; /* Mark it for the freezer! */
+	    SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 	    if (logfp)
 	      fprintf(logfp, "%d#\tNo <> around Message-Id\n", pid);
 	  } else if (s[1] == '@') {
-	    SS->policyresult = 1; /* Mark it for the freezer! */
+	    SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 	    if (logfp)
 	      fprintf(logfp, "%d#\tSource route in Message-Id\n", pid);
 	  } else if (s[1] == '>') {
-	    SS->policyresult = 1; /* Mark it for the freezer! */
+	    SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 	    if (logfp)
 	      fprintf(logfp, "%d#\tEmpty Message-Id\n", pid);
 	  } else {
 	    const char *t = rfc821_path(s, 1);
 	    if (s == t) { /* error */
-	      SS->policyresult = 1; /* Mark it for the freezer! */
+#ifdef USE_STRICT_MSGID_FREEZING
+	      SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 	      if (logfp)
 		fprintf(logfp, "%d#\tMessage-Id syntax error\n", pid);
+#endif
 	    } else {
 	      while (*t == ' ' || *t == '\t' || *t == '\r' || *t == '\n')
 		++t;
 	      if (*t) {
-		SS->policyresult = 1; /* Mark it for the freezer! */
+		SS->policyresult = FREEZE__MALFORMED_MESSAGE_ID_HEADER;
 		if (logfp)
 		  fprintf(logfp, "%d#\tSpurious junk after Message-Id\n", pid, t);
 	      }
