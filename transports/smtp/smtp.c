@@ -2757,6 +2757,8 @@ makeconn(SS, hostname, ai, ismx)
 		 * the below should be 'return EX_TEMPFAIL'.
 		 */
 		break;		/* try another host address */
+	      if (SS->verboselog)
+		fprintf(SS->verboselog,"Connection attempt did yield code %d / %s\n", retval, sysexitstr(retval));
 	      return EX_OK;
 	  default:
 	      break;
@@ -2765,6 +2767,10 @@ makeconn(SS, hostname, ai, ismx)
 
 	if (getout)
 	  retval = EX_TEMPFAIL;
+
+	if (SS->verboselog)
+	  fprintf(SS->verboselog,"Connection attempt did yield code %d / %s\n", retval, sysexitstr(retval));
+
 	return retval;
 }
 
