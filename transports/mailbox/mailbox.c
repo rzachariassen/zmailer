@@ -395,6 +395,9 @@ static void zsfclose(fp)
 static void MIBcountCleanup __((void))
 {
 	MIBMtaEntry->tambox.TaProcCountG -= 1;
+	/* That is UNSIGNED, thus.. */
+	if (MIBMtaEntry->tambox.TaProcCountG > 99999U)
+	  MIBMtaEntry->tambox.TaProcCountG = 0;
 }
 
 static void SHM_MIB_diag(rc)

@@ -148,6 +148,8 @@ extern char *strchr(), *strrchr();
 static void MIBcountCleanup __((void))
 {
 	MIBMtaEntry->tahold.TaProcCountG -= 1;
+	if (MIBMtaEntry->tahold.TaProcCountG > 99999U)
+	  MIBMtaEntry->tahold.TaProcCountG = 0;
 }
 
 static void SHM_MIB_diag(rc)

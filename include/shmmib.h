@@ -9,151 +9,156 @@
  *
  */
 
+
+
+#define Vpid_t   volatile pid_t
+#define Vtime_t  volatile time_t
+#define Vuint    volatile uint
+
 #define ZM_MIB_MAGIC 0x33120006
 
 struct timeserver {
-	int	pid;
+	Vuint	pid;
 #ifdef HAVE_SELECT
-	struct timeval tv;
+	volatile struct timeval tv;
 #else
-	time_t	time_sec;
+	Vtime_t	time_sec;
 #endif
 };
 
-
 struct MIB_MtaEntrySys {
 
-  pid_t		RouterMasterPID;
-  time_t	RouterMasterStartTime;
-  uint		RouterMasterStarts;
+  Vpid_t	RouterMasterPID;
+  Vtime_t	RouterMasterStartTime;
+  Vuint		RouterMasterStarts;
 
-  pid_t		SchedulerMasterPID;
-  time_t	SchedulerMasterStartTime;
-  uint		SchedulerMasterStarts;
+  Vpid_t	SchedulerMasterPID;
+  Vtime_t	SchedulerMasterStartTime;
+  Vuint		SchedulerMasterStarts;
 
-  pid_t		SmtpServerMasterPID;
-  time_t	SmtpServerMasterStartTime;
-  uint		SmtpServerMasterStarts;
+  Vpid_t	SmtpServerMasterPID;
+  Vtime_t	SmtpServerMasterStartTime;
+  Vuint		SmtpServerMasterStarts;
 
   double dummy1; /* cache-line alignment, etc.. */
 
   /* SpoolFree  is monitored and stored by _XX_ subsystem ?  
      Router and scheduler ?  Smtpserver ?  All three ? */
 
-  uint		SpoolFreeSpace;		/* gauge,	in kB	*/
-  uint		SpoolUsedSpace;		/* gauge,	in kB	*/
-  uint		LogFreeSpace;		/* gauge,	in kB  ?? */
-  uint		LogUsedSpace;		/* gauge,	in kB  ?? */
+  Vuint		SpoolFreeSpace;		/* gauge,	in kB	*/
+  Vuint		SpoolUsedSpace;		/* gauge,	in kB	*/
+  Vuint		LogFreeSpace;		/* gauge,	in kB  ?? */
+  Vuint		LogUsedSpace;		/* gauge,	in kB  ?? */
 
-  uint		SpoolFreeFiles;
-  uint		SpoolUsedFiles;
-  uint		LogFreeFiles;
-  uint		LogUsedFiles;
+  Vuint		SpoolFreeFiles;
+  Vuint		SpoolUsedFiles;
+  Vuint		LogFreeFiles;
+  Vuint		LogUsedFiles;
 
-  uint		TportSpoolFreeSpace; /* gauge,	in kB	*/
-  uint		TportSpoolUsedSpace; /* gauge,	in kB	*/
-  uint		TportSpoolFreeFiles;
-  uint		TportSpoolUsedFiles;
+  Vuint		TportSpoolFreeSpace; /* gauge,	in kB	*/
+  Vuint		TportSpoolUsedSpace; /* gauge,	in kB	*/
+  Vuint		TportSpoolFreeFiles;
+  Vuint		TportSpoolUsedFiles;
 
-  uint		dummy99[24];
+  Vuint		dummy99[24];
 };
 
 struct MIB_MtaEntrySs {
 
   /* SMTPSERVER substystem counters */
 
-  uint		IncomingSMTPSERVERprocesses;  /* gauges */
-  uint		IncomingParallelSMTPconnects;
-  uint		IncomingParallelSMTPSconnects;
-  uint		IncomingParallelSUBMITconnects;
+  Vuint		IncomingSMTPSERVERprocesses;  /* gauges */
+  Vuint		IncomingParallelSMTPconnects;
+  Vuint		IncomingParallelSMTPSconnects;
+  Vuint		IncomingParallelSUBMITconnects;
 
-  uint		IncomingSMTPSERVERforks;
-  uint		MaxSameIpSourceCloses;
-  uint		MaxParallelConnections;
-  uint		ForkFailures;
-  uint		ContentPolicyForkFailures;
+  Vuint		IncomingSMTPSERVERforks;
+  Vuint		MaxSameIpSourceCloses;
+  Vuint		MaxParallelConnections;
+  Vuint		ForkFailures;
+  Vuint		ContentPolicyForkFailures;
 
-  uint		IncomingSMTPconnects;	/* Incoming SMTP sessions */
-  uint		IncomingSMTPSconnects;	/* Incoming SMTPS sessions */
-  uint		IncomingSUBMITconnects;	/* Incoming SUBMIT sessions */
+  Vuint		IncomingSMTPconnects;	/* Incoming SMTP sessions */
+  Vuint		IncomingSMTPSconnects;	/* Incoming SMTPS sessions */
+  Vuint		IncomingSUBMITconnects;	/* Incoming SUBMIT sessions */
 
-  uint		IncomingClientPipelines;
-  uint		IncomingSmtpTarpits;
+  Vuint		IncomingClientPipelines;
+  Vuint		IncomingSmtpTarpits;
 
-  uint		IncomingCommands;	/* counters */
-  uint		IncomingCommands_unknown;
+  Vuint		IncomingCommands;	/* counters */
+  Vuint		IncomingCommands_unknown;
 
-  uint		IncomingSMTP_HELO;
-  uint		IncomingSMTP_HELO_ok;
-  uint		IncomingSMTP_HELO_bad;
+  Vuint		IncomingSMTP_HELO;
+  Vuint		IncomingSMTP_HELO_ok;
+  Vuint		IncomingSMTP_HELO_bad;
 
-  uint		IncomingSMTP_EHLO;
-  uint		IncomingSMTP_EHLO_ok;
-  uint		IncomingSMTP_EHLO_bad;
+  Vuint		IncomingSMTP_EHLO;
+  Vuint		IncomingSMTP_EHLO_ok;
+  Vuint		IncomingSMTP_EHLO_bad;
 
-  uint		IncomingSMTP_ETRN;
-  uint		IncomingSMTP_ETRN_ok;
-  uint		IncomingSMTP_ETRN_bad;
+  Vuint		IncomingSMTP_ETRN;
+  Vuint		IncomingSMTP_ETRN_ok;
+  Vuint		IncomingSMTP_ETRN_bad;
 
-  uint		IncomingSMTP_STARTTLS;	/* Number of STARTTLSes */
-  uint		IncomingSMTP_STARTTLS_fail;
-  uint		IncomingSMTP_HELP;
-  uint		IncomingSMTP_EXPN;
-  uint		IncomingSMTP_VRFY;
-  uint		IncomingSMTP_RSET;
-  uint		IncomingSMTP_TURN;
-  uint		IncomingSMTP_NOOP;
-  uint		IncomingSMTP_VERBOSE;
-  uint		IncomingSMTP_DEBUG;
-  uint		IncomingSMTP_TICK;
-  uint		IncomingSMTP_QUIT;
+  Vuint		IncomingSMTP_STARTTLS;	/* Number of STARTTLSes */
+  Vuint		IncomingSMTP_STARTTLS_fail;
+  Vuint		IncomingSMTP_HELP;
+  Vuint		IncomingSMTP_EXPN;
+  Vuint		IncomingSMTP_VRFY;
+  Vuint		IncomingSMTP_RSET;
+  Vuint		IncomingSMTP_TURN;
+  Vuint		IncomingSMTP_NOOP;
+  Vuint		IncomingSMTP_VERBOSE;
+  Vuint		IncomingSMTP_DEBUG;
+  Vuint		IncomingSMTP_TICK;
+  Vuint		IncomingSMTP_QUIT;
 
-  uint		IncomingSMTP_MAIL;
-  uint		IncomingSMTP_MAIL_ok;
-  uint		IncomingSMTP_MAIL_bad;
+  Vuint		IncomingSMTP_MAIL;
+  Vuint		IncomingSMTP_MAIL_ok;
+  Vuint		IncomingSMTP_MAIL_bad;
 
-  uint		IncomingSMTP_RCPT;
-  uint		IncomingSMTP_RCPT_ok;
-  uint		IncomingSMTP_RCPT_bad;
+  Vuint		IncomingSMTP_RCPT;
+  Vuint		IncomingSMTP_RCPT_ok;
+  Vuint		IncomingSMTP_RCPT_bad;
 
-  uint		IncomingSMTP_OPT_ENVID;
-  uint		IncomingSMTP_OPT_SIZE;
-  uint		IncomingSMTP_OPT_AUTH;
-  uint		IncomingSMTP_OPT_DELIVERBY;
-  uint		IncomingSMTP_OPT_BODY_8BITMIME;
-  uint		IncomingSMTP_OPT_BODY_BINARYMIME;
-  uint		IncomingSMTP_OPT_BODY_7BIT;
-  uint		IncomingSMTP_OPT_RET;
+  Vuint		IncomingSMTP_OPT_ENVID;
+  Vuint		IncomingSMTP_OPT_SIZE;
+  Vuint		IncomingSMTP_OPT_AUTH;
+  Vuint		IncomingSMTP_OPT_DELIVERBY;
+  Vuint		IncomingSMTP_OPT_BODY_8BITMIME;
+  Vuint		IncomingSMTP_OPT_BODY_BINARYMIME;
+  Vuint		IncomingSMTP_OPT_BODY_7BIT;
+  Vuint		IncomingSMTP_OPT_RET;
 
-  uint		IncomingSMTP_OPT_NOTIFY;
-  uint		IncomingSMTP_OPT_ORCPT;
+  Vuint		IncomingSMTP_OPT_NOTIFY;
+  Vuint		IncomingSMTP_OPT_ORCPT;
 
-  uint		IncomingSMTP_DATA;
-  uint		IncomingSMTP_DATA_ok;
-  uint		IncomingSMTP_DATA_bad;
-  uint		IncomingSMTP_BDAT;
-  uint		IncomingSMTP_BDAT_ok;
-  uint		IncomingSMTP_BDAT_bad;
+  Vuint		IncomingSMTP_DATA;
+  Vuint		IncomingSMTP_DATA_ok;
+  Vuint		IncomingSMTP_DATA_bad;
+  Vuint		IncomingSMTP_BDAT;
+  Vuint		IncomingSMTP_BDAT_ok;
+  Vuint		IncomingSMTP_BDAT_bad;
 
-  uint		IncomingSMTP_DATA_KBYTES;
-  uint		IncomingSMTP_BDAT_KBYTES;
-  uint		IncomingSMTP_spool_KBYTES;
+  Vuint		IncomingSMTP_DATA_KBYTES;
+  Vuint		IncomingSMTP_BDAT_KBYTES;
+  Vuint		IncomingSMTP_spool_KBYTES;
 
-  uint		ReceivedMessagesSs;	/* counter, smtpserver	*/
-  uint		ReceivedRecipientsSs;	/* counter, smtpserver	*/
-  uint		TransmittedMessagesSs;	/* counter, smtpserver	*/
-  uint		TransmittedRecipientsSs;/* counter, smtpserver	*/
+  Vuint		ReceivedMessagesSs;	/* counter, smtpserver	*/
+  Vuint		ReceivedRecipientsSs;	/* counter, smtpserver	*/
+  Vuint		TransmittedMessagesSs;	/* counter, smtpserver	*/
+  Vuint		TransmittedRecipientsSs;/* counter, smtpserver	*/
 
 
   double dummy3; /* Alignment, etc.. */
 
-  uint		SubsysRateTrackerPID;
-  uint		SubsysRouterMasterPID;
-  uint		SubsysContentfilterMasterPID;
+  Vuint		SubsysRateTrackerPID;
+  Vuint		SubsysRouterMasterPID;
+  Vuint		SubsysContentfilterMasterPID;
 
-  uint		IncomingSMTP_REPORT;
+  Vuint		IncomingSMTP_REPORT;
 
-  uint	space[28]; /* Add to tail without need to change MAGIC */
+  Vuint	space[28]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -161,25 +166,25 @@ struct MIB_MtaEntrySs {
 struct MIB_MtaEntryRt {
   /* ROUTER subsystem counters */
 
-  uint		RouterProcesses;	/* gauge */
-  uint		RouterProcessForks;	/* counter, cleared at start */
-  uint		RouterProcessFaults;	/* counter, cleared at start */
+  Vuint		RouterProcesses;	/* gauge */
+  Vuint		RouterProcessForks;	/* counter, cleared at start */
+  Vuint		RouterProcessFaults;	/* counter, cleared at start */
 
-  uint		ReceivedMessages;	/* counter, router	*/
-  uint		ReceivedRecipients;	/* counter, router - not! */
-  uint		TransmittedMessages;	/* counter, router	*/
-  uint		TransmittedRecipients;	/* counter, router	*/
+  Vuint		ReceivedMessages;	/* counter, router	*/
+  Vuint		ReceivedRecipients;	/* counter, router - not! */
+  Vuint		TransmittedMessages;	/* counter, router	*/
+  Vuint		TransmittedRecipients;	/* counter, router	*/
 
-  uint		ReceivedVolume;		/* counter,	in kB	*/
-  uint		TransmittedVolume;	/* counter,	in kB	*/
-  uint		TransmittedVolume2;	/* counter,	in kB	*/
+  Vuint		ReceivedVolume;		/* counter,	in kB	*/
+  Vuint		TransmittedVolume;	/* counter,	in kB	*/
+  Vuint		TransmittedVolume2;	/* counter,	in kB	*/
 
   /* Subsystem queue size  */
-  uint		StoredMessages;		/* gauge, router	*/
-  uint		StoredVolume;		/* gauge,	in kB	*/
+  Vuint		StoredMessages;		/* gauge, router	*/
+  Vuint		StoredVolume;		/* gauge,	in kB	*/
 
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  Vuint	space[32]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -187,63 +192,63 @@ struct MIB_MtaEntryRt {
 struct MIB_MtaEntrySc {
   /* SCHEDULER subsystem counters */
 
-  uint		schedulerTimeserverStarts;
-  uint		schedulerTimeserverStartTime;
+  Vuint		schedulerTimeserverStarts;
+  Vuint		schedulerTimeserverStartTime;
 
-  uint		ReceivedMessagesSc;	/* counter, scheduler	*/
-  uint		ReceivedRecipientsSc;	/* counter, scheduler	*/
-  uint		TransmittedMessagesSc;	/* counter, scheduler	*/
-  uint		TransmittedRecipientsSc;/* counter, scheduler	*/
+  Vuint		ReceivedMessagesSc;	/* counter, scheduler	*/
+  Vuint		ReceivedRecipientsSc;	/* counter, scheduler	*/
+  Vuint		TransmittedMessagesSc;	/* counter, scheduler	*/
+  Vuint		TransmittedRecipientsSc;/* counter, scheduler	*/
 
-  uint		StoredMessagesSc;	/* gauge, scheduler	*/
-  uint		StoredThreadsSc;	/* gauge, scheduler	*/
-  uint		StoredVerticesSc;	/* gauge, scheduler	*/
-  uint		StoredRecipientsSc;	/* gauge, scheduler	*/
+  Vuint		StoredMessagesSc;	/* gauge, scheduler	*/
+  Vuint		StoredThreadsSc;	/* gauge, scheduler	*/
+  Vuint		StoredVerticesSc;	/* gauge, scheduler	*/
+  Vuint		StoredRecipientsSc;	/* gauge, scheduler	*/
 
-  uint		ReceivedVolumeSc;	/* counter,	in kB	*/
-  uint		StoredVolumeSc;		/* gauge,	in kB	*/
-  uint		TransmittedVolumeSc;	/* counter, ??	in kB	*/
+  Vuint		ReceivedVolumeSc;	/* counter,	in kB	*/
+  Vuint		StoredVolumeSc;		/* gauge,	in kB	*/
+  Vuint		TransmittedVolumeSc;	/* counter, ??	in kB	*/
 
-  uint		TransportAgentForksSc;	/* counter		*/
-  uint		TransportAgentProcessesSc;/* gauge		*/
-  uint		TransportAgentsActiveSc;/* gauge		*/
-  uint		TransportAgentsIdleSc;	/* gauge		*/
+  Vuint		TransportAgentForksSc;	/* counter		*/
+  Vuint		TransportAgentProcessesSc;/* gauge		*/
+  Vuint		TransportAgentsActiveSc;/* gauge		*/
+  Vuint		TransportAgentsIdleSc;	/* gauge		*/
 
   /* MQ1 socket */
-  uint		MQ1sockConnects;	/* counter */
-  uint		MQ1sockParallel;	/* gauge */
-  uint		MQ1sockTcpWrapRej;	/* counter */
+  Vuint		MQ1sockConnects;	/* counter */
+  Vuint		MQ1sockParallel;	/* gauge */
+  Vuint		MQ1sockTcpWrapRej;	/* counter */
   
   /* MQ2 socket */
 
-  uint		MQ2sockConnects;	/* counter */
-  uint		MQ2sockParallel;	/* gauge   */
-  uint		MQ2sockTcpWrapRej;
-  uint		MQ2sockAuthRej;
-  uint		MQ2sockTimedOut;
-  uint		MQ2sockReadEOF;
-  uint		MQ2sockReadFails;
-  uint		MQ2sockWriteFails;
-  uint		MQ2sockCommands;
-  uint		MQ2sockCommandsRej;
-  uint		MQ2sockCommandAUTH;
-  uint		MQ2sockCommandQUIT;
-  uint		MQ2sockCommandETRN;
-  uint		MQ2sockCommandKillThr;
-  uint		MQ2sockCommandKillMsg;
-  uint		MQ2sockCommandKillProcess;
-  uint		MQ2sockCommandRerouteThr;
-  uint		MQ2sockCommandRerouteMsg;
-  uint		MQ2sockCommandShowQueueThreads;
-  uint		MQ2sockCommandShowQueueThreads2;
-  uint		MQ2sockCommandShowQueueShort;
-  uint		MQ2sockCommandShowQueueVeryShort;
-  uint		MQ2sockCommandShowThread;
-  uint		MQ2sockCommandShowCounters;
-  uint		MQ2sockCommandShow7;	/* spares.. */
-  uint		MQ2sockCommandShow8;
+  Vuint		MQ2sockConnects;	/* counter */
+  Vuint		MQ2sockParallel;	/* gauge   */
+  Vuint		MQ2sockTcpWrapRej;
+  Vuint		MQ2sockAuthRej;
+  Vuint		MQ2sockTimedOut;
+  Vuint		MQ2sockReadEOF;
+  Vuint		MQ2sockReadFails;
+  Vuint		MQ2sockWriteFails;
+  Vuint		MQ2sockCommands;
+  Vuint		MQ2sockCommandsRej;
+  Vuint		MQ2sockCommandAUTH;
+  Vuint		MQ2sockCommandQUIT;
+  Vuint		MQ2sockCommandETRN;
+  Vuint		MQ2sockCommandKillThr;
+  Vuint		MQ2sockCommandKillMsg;
+  Vuint		MQ2sockCommandKillProcess;
+  Vuint		MQ2sockCommandRerouteThr;
+  Vuint		MQ2sockCommandRerouteMsg;
+  Vuint		MQ2sockCommandShowQueueThreads;
+  Vuint		MQ2sockCommandShowQueueThreads2;
+  Vuint		MQ2sockCommandShowQueueShort;
+  Vuint		MQ2sockCommandShowQueueVeryShort;
+  Vuint		MQ2sockCommandShowThread;
+  Vuint		MQ2sockCommandShowCounters;
+  Vuint		MQ2sockCommandShow7;	/* spares.. */
+  Vuint		MQ2sockCommandShow8;
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  Vuint	space[32]; /* Add to tail without need to change MAGIC */
 
 };
 
@@ -251,184 +256,184 @@ struct MIB_MtaEntryTaS {
 
   /* SMTP TRANSPORT AGENT generic counters  */
 
-  uint		TaProcessStarts;	/* counter */
-  uint		TaProcCountG;		/* gauge */
-  uint		TaIdleStates;		/* counter */
-  uint		TaMessages;		/* counter */
-  uint		TaDeliveryStarts;		/* counter,  delivery() calls */
+  Vuint		TaProcessStarts;	/* counter */
+  Vuint		TaProcCountG;		/* gauge */
+  Vuint		TaIdleStates;		/* counter */
+  Vuint		TaMessages;		/* counter */
+  Vuint		TaDeliveryStarts;		/* counter,  delivery() calls */
 
-  uint		SmtpStarts;		/* counter */
-  uint		SmtpConnects;		/* counter */
-  uint		LmtpConnects;		/* counter */
-  uint		SmtpConnectFails; 	/* counter ?? */
-  uint		SmtpConnectsCnt;	/* gauge */
-  uint		SmtpPIPELINING;		/* counter */
-  uint		SmtpSTARTTLS;		/* counter */
-  uint		SmtpSTARTTLSok;		/* counter */
-  uint		SmtpSTARTTLSfail; 	/* counter */
-  uint		SmtpEHLO;		/* counter */
-  uint		SmtpEHLOok;		/* counter */
-  uint		SmtpEHLOfail;		/* counter */
-  uint		SmtpHELO;		/* counter */
-  uint		SmtpHELOok;		/* counter */
-  uint		SmtpHELOfail;		/* counter */
-  uint		SmtpLHLO;		/* counter */
-  uint		SmtpLHLOok;		/* counter */
-  uint		SmtpLHLOfail;		/* counter */
+  Vuint		SmtpStarts;		/* counter */
+  Vuint		SmtpConnects;		/* counter */
+  Vuint		LmtpConnects;		/* counter */
+  Vuint		SmtpConnectFails; 	/* counter ?? */
+  Vuint		SmtpConnectsCnt;	/* gauge */
+  Vuint		SmtpPIPELINING;		/* counter */
+  Vuint		SmtpSTARTTLS;		/* counter */
+  Vuint		SmtpSTARTTLSok;		/* counter */
+  Vuint		SmtpSTARTTLSfail; 	/* counter */
+  Vuint		SmtpEHLO;		/* counter */
+  Vuint		SmtpEHLOok;		/* counter */
+  Vuint		SmtpEHLOfail;		/* counter */
+  Vuint		SmtpHELO;		/* counter */
+  Vuint		SmtpHELOok;		/* counter */
+  Vuint		SmtpHELOfail;		/* counter */
+  Vuint		SmtpLHLO;		/* counter */
+  Vuint		SmtpLHLOok;		/* counter */
+  Vuint		SmtpLHLOfail;		/* counter */
 
-  uint		EHLOcapability8BITMIME;
-  uint		EHLOcapabilityAUTH;
-  uint		EHLOcapabilityCHUNKING;
-  uint		EHLOcapabilityDELIVERBY;
-  uint		EHLOcapabilityDSN;
-  uint		EHLOcapabilityENHANCEDSTATUSCODES;
-  uint		EHLOcapabilityPIPELINING;
-  uint		EHLOcapabilitySIZE;
-  uint		EHLOcapabilitySTARTTLS;
+  Vuint		EHLOcapability8BITMIME;
+  Vuint		EHLOcapabilityAUTH;
+  Vuint		EHLOcapabilityCHUNKING;
+  Vuint		EHLOcapabilityDELIVERBY;
+  Vuint		EHLOcapabilityDSN;
+  Vuint		EHLOcapabilityENHANCEDSTATUSCODES;
+  Vuint		EHLOcapabilityPIPELINING;
+  Vuint		EHLOcapabilitySIZE;
+  Vuint		EHLOcapabilitySTARTTLS;
 
-  uint		SmtpOPT_ENVID;
-  uint		SmtpOPT_SIZE;
-  uint		SmtpOPT_RET;
-  uint		SmtpOPT_NOTIFY;
-  uint		SmtpOPT_ORCPT;
+  Vuint		SmtpOPT_ENVID;
+  Vuint		SmtpOPT_SIZE;
+  Vuint		SmtpOPT_RET;
+  Vuint		SmtpOPT_NOTIFY;
+  Vuint		SmtpOPT_ORCPT;
 
-  uint		SmtpMAIL;		/* counter, all tried */
-  uint		SmtpMAILok;		/* counter, successfull */
-  uint		SmtpRCPT;		/* counter, all tried */
-  uint		SmtpRCPTok;		/* counter, successfull */
-  uint		SmtpDATA;		/* counter, all tried */
-  uint		SmtpDATAok;		/* counter, successfull */
-  uint		SmtpBDAT;		/* counter, all tried */
-  uint		SmtpBDATok;		/* counter, successfull */
-  uint		SmtpDATAvolume;		/* counter, in kB, successfull	*/
-  uint		SmtpBDATvolume;		/* counter, in kB, successfull	*/
+  Vuint		SmtpMAIL;		/* counter, all tried */
+  Vuint		SmtpMAILok;		/* counter, successfull */
+  Vuint		SmtpRCPT;		/* counter, all tried */
+  Vuint		SmtpRCPTok;		/* counter, successfull */
+  Vuint		SmtpDATA;		/* counter, all tried */
+  Vuint		SmtpDATAok;		/* counter, successfull */
+  Vuint		SmtpBDAT;		/* counter, all tried */
+  Vuint		SmtpBDATok;		/* counter, successfull */
+  Vuint		SmtpDATAvolume;		/* counter, in kB, successfull	*/
+  Vuint		SmtpBDATvolume;		/* counter, in kB, successfull	*/
 
-  uint		TaRcptsOk;		/* counter, delivered recipients */
-  uint		TaRcptsRetry;		/* counter, issued a retry */
-  uint		TaRcptsFail;		/* counter, resulted in a failure */
+  Vuint		TaRcptsOk;		/* counter, delivered recipients */
+  Vuint		TaRcptsRetry;		/* counter, issued a retry */
+  Vuint		TaRcptsFail;		/* counter, resulted in a failure */
 
   double dummy7; /* Alignment, etc.. */
 
 
   /* Hmm...  actually we have never encountered these ... */
 
-  uint		SuccessfulConvertedMessages;	/* counter */
-  uint		FailedConvertedMessages;	/* counter */
-  uint		LoopsDetected;		/* counter */
+  Vuint		SuccessfulConvertedMessages;	/* counter */
+  Vuint		FailedConvertedMessages;	/* counter */
+  Vuint		LoopsDetected;		/* counter */
 
   double dummy99; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  Vuint	space[32]; /* Add to tail without need to change MAGIC */
 
 };
 
 
 struct MIB_MtaEntryTaSm {
   /* SM TRANSPORT AGENT */
-  uint		TaProcessStarts;		/* counter */
-  uint		TaProcCountG;			/* gauge */
-  uint		TaIdleStates;
-  uint		TaMessages;
-  uint		TaDeliveryStarts;
-  uint		TaRcptsOk;
-  uint		TaRcptsRetry;
-  uint		TaRcptsFail;
+  Vuint		TaProcessStarts;		/* counter */
+  Vuint		TaProcCountG;			/* gauge */
+  Vuint		TaIdleStates;
+  Vuint		TaMessages;
+  Vuint		TaDeliveryStarts;
+  Vuint		TaRcptsOk;
+  Vuint		TaRcptsRetry;
+  Vuint		TaRcptsFail;
 
   double dummy99; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  Vuint	space[32]; /* Add to tail without need to change MAGIC */
 };
 
 struct MIB_MtaEntryTaMbx {
   /* MAILBOX TRANSPORT AGENT */
-  uint		TaProcessStarts;		/* counter */
-  uint		TaProcCountG;			/* gauge */
-  uint		TaIdleStates;
-  uint		TaMessages;
-  uint		TaDeliveryStarts;
-  uint		TaRcptsOk;
-  uint		TaRcptsRetry;
-  uint		TaRcptsFail;
+  Vuint		TaProcessStarts;		/* counter */
+  Vuint		TaProcCountG;			/* gauge */
+  Vuint		TaIdleStates;
+  Vuint		TaMessages;
+  Vuint		TaDeliveryStarts;
+  Vuint		TaRcptsOk;
+  Vuint		TaRcptsRetry;
+  Vuint		TaRcptsFail;
 
 
   double dummy99; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  Vuint	space[32]; /* Add to tail without need to change MAGIC */
 };
 
 struct MIB_MtaEntryTaHo {
   /* HOLD TRANSPORT AGENT */
-  uint		TaProcessStarts;		/* counter */
-  uint		TaProcCountG;		/* gauge */
-  uint		TaIdleStates;
-  uint		TaMessages;
-  uint		TaDeliveryStarts;
-  uint		TaRcptsOk;
-  uint		TaRcptsRetry;
-  uint		TaRcptsFail;
+  Vuint		TaProcessStarts;		/* counter */
+  Vuint		TaProcCountG;		/* gauge */
+  Vuint		TaIdleStates;
+  Vuint		TaMessages;
+  Vuint		TaDeliveryStarts;
+  Vuint		TaRcptsOk;
+  Vuint		TaRcptsRetry;
+  Vuint		TaRcptsFail;
 
 
   double dummy99; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  Vuint	space[32]; /* Add to tail without need to change MAGIC */
 };
 
 struct MIB_MtaEntryTaErr {
   /* ERRORMAIL TRANSPORT AGENT */
-  uint		TaProcessStarts;		/* counter */
-  uint		TaProcCountG;			/* gauge */
-  uint		TaIdleStates;
-  uint		TaMessages;
-  uint		TaDeliveryStarts;
-  uint		TaRcptsOk;
-  uint		TaRcptsRetry;
-  uint		TaRcptsFail;
+  Vuint		TaProcessStarts;		/* counter */
+  Vuint		TaProcCountG;			/* gauge */
+  Vuint		TaIdleStates;
+  Vuint		TaMessages;
+  Vuint		TaDeliveryStarts;
+  Vuint		TaRcptsOk;
+  Vuint		TaRcptsRetry;
+  Vuint		TaRcptsFail;
 
 
   double dummy99; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  Vuint	space[32]; /* Add to tail without need to change MAGIC */
 };
 
 struct MIB_MtaEntryTaExpi {
   /* EXPIRER TRANSPORT AGENT */
-  uint		TaProcessStarts;		/* counter */
-  uint		TaProcCountG;			/* gauge */
-  uint		TaIdleStates;
-  uint		TaMessages;
-  uint		TaDeliveryStarts;
-  uint		TaRcptsOk;
-  uint		TaRcptsRetry;
-  uint		TaRcptsFail;
+  Vuint		TaProcessStarts;		/* counter */
+  Vuint		TaProcCountG;			/* gauge */
+  Vuint		TaIdleStates;
+  Vuint		TaMessages;
+  Vuint		TaDeliveryStarts;
+  Vuint		TaRcptsOk;
+  Vuint		TaRcptsRetry;
+  Vuint		TaRcptsFail;
 
 
   double dummy99; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  Vuint	space[32]; /* Add to tail without need to change MAGIC */
 };
 
 struct MIB_MtaEntryTaRert {
   /* REROUTE TRANSPORT AGENT */
-  uint		TaProcessStarts;		/* counter */
-  uint		TaProcCountG;			/* gauge */
-  uint		TaIdleStates;
-  uint		TaMessages;
-  uint		TaDeliveryStarts;
-  uint		TaRcptsOk;
-  uint		TaRcptsRetry;
-  uint		TaRcptsFail;
+  Vuint		TaProcessStarts;		/* counter */
+  Vuint		TaProcCountG;			/* gauge */
+  Vuint		TaIdleStates;
+  Vuint		TaMessages;
+  Vuint		TaDeliveryStarts;
+  Vuint		TaRcptsOk;
+  Vuint		TaRcptsRetry;
+  Vuint		TaRcptsFail;
 
 
   double dummy99; /* Alignment, etc.. */
 
-  uint	space[32]; /* Add to tail without need to change MAGIC */
+  Vuint	space[32]; /* Add to tail without need to change MAGIC */
 };
 
 
 
 struct MIB_MtaEntry {
-	uint	magic;
-	time_t	BlockCreationTimestamp;
+	Vuint	magic;
+	Vtime_t	BlockCreationTimestamp;
 
 	struct timeserver	ts;
 

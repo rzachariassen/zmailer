@@ -584,12 +584,13 @@ fdgetc(fdp, fd, timeout)
 	    if (rc == 0) return -1; /* EOF */
 	    if (errno == EBADFD) return -1; /* Simulate EOF! */
 	    if (errno == EINTR) continue;
-	    if (errno == EWOULDBLOCK) {
+	    if (errno == EAGAIN) {
 		fd_set rdset;
 		struct timeval tv;
 
 		if (timeout < 0) {
-		  return -2; /* EWOULDBLOCK.. */
+		  errno = EAGAIN;
+		  return -2; /* EAGAIN.. */
 		}
 
 		_Z_FD_ZERO(rdset);
@@ -598,6 +599,7 @@ fdgetc(fdp, fd, timeout)
 		_Z_FD_SET(fd, rdset);
 		rc = select( fd+1, &rdset, NULL, NULL, &tv );
 		if (rc == 0) {
+		  errno = EBUSY;
 		  return -3; /* TIMEOUT!  D'UH! */
 		}
 	    }
@@ -631,6 +633,7 @@ fdgets (bufp, endi, buflenp, fdp, fd, timeout)
 		buflen += 64;
 		buf = realloc(buf, buflen);
 	    }
+
 	    if (c < 0) break; /* Any of break reasons.. */
 
 	    buf[i++] = c;
@@ -645,6 +648,6 @@ fdgets (bufp, endi, buflenp, fdp, fd, timeout)
 	*bufp = buf;
 	*buflenp = buflen;
 
-	/* if (i == 0) return -1; */
+	if (i == 0) return c;
 	return i;
 }

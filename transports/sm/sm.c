@@ -144,6 +144,8 @@ decodeXtext(mfp,xtext)
 static void MIBcountCleanup __((void))
 {
 	MIBMtaEntry->tasmcm.TaProcCountG -= 1;
+	if (MIBMtaEntry->tasmcm.TaProcCountG > 99999U)
+	  MIBMtaEntry->tasmcm.TaProcCountG = 0;
 }
 
 static void SM_MIB_diag(rc)

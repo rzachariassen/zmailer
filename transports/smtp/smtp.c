@@ -418,6 +418,9 @@ static int net_socks_open_cnt;
 static void MIBcountCleanup __((void))
 {
 	MIBMtaEntry->tasmtp.TaProcCountG -= 1;
+	/* That is UNSIGNED, thus.. */
+	if (MIBMtaEntry->tasmtp.TaProcCountG > 99999U)
+	  MIBMtaEntry->tasmtp.TaProcCountG = 0;
 
 	/* Clean this counter, just in case it is non-zero... */
 	MIBMtaEntry->tasmtp.SmtpConnectsCnt  -= net_socks_open_cnt;

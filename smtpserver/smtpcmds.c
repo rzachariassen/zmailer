@@ -850,7 +850,7 @@ int insecure;
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
 	    smtp_tarpit(SS);
-	    type(SS, atoi(s), s + 4, "Failed", "Failed");
+	    type(SS, atoi(s), "Hi %s, %s", SS->rhostaddr, s + 4);
 	    free((void *) s);
 	    if (newcp)
 		free((void *) newcp);
@@ -1465,7 +1465,7 @@ const char *buf, *cp;
 	if (atoi(s) / 100 != 2) {
 	    /* verification failed */
 	    smtp_tarpit(SS);
-	    type(SS, atoi(s), s + 4, "Failed", "Failed");
+	    type(SS, atoi(s), "Hi %s, %s", SS->rhostaddr, s + 4);
 	    free((void *) s);
 	    if (newcp)
 		free((void *) newcp);

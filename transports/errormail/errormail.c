@@ -61,6 +61,9 @@ int D_alloc = 0; /* For tmalloc() from libz.a ... */
 static void MIBcountCleanup __((void))
 {
 	MIBMtaEntry->taerrm.TaProcCountG -= 1;
+	if (MIBMtaEntry->taerrm.TaProcCountG > 99999U)
+	  MIBMtaEntry->taerrm.TaProcCountG = 0;
+
 }
 
 static void SHM_MIB_diag(rc)

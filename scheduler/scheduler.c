@@ -889,6 +889,14 @@ main(argc, argv)
 	MIBMtaEntry->sc.TransportAgentsActiveSc		= 0;
 	MIBMtaEntry->sc.TransportAgentsIdleSc		= 0;
 
+	/* Zero also these transport agent gauges at our startup.. */
+	MIBMtaEntry->tasmtp.TaProcCountG		= 0;
+	MIBMtaEntry->tasmcm.TaProcCountG		= 0;
+	MIBMtaEntry->tambox.TaProcCountG		= 0;
+	MIBMtaEntry->tahold.TaProcCountG		= 0;
+	MIBMtaEntry->taerrm.TaProcCountG		= 0;
+	MIBMtaEntry->taexpi.TaProcCountG		= 0;
+	MIBMtaEntry->tarert.TaProcCountG		= 0;
 
 	/* Actually we want this to act as daemon,
 	   even when not in daemon mode.. */
@@ -3154,9 +3162,9 @@ static void init_timeserver()
 	  ppid = getppid(); /* who is our parent ? */
 
 #ifdef HAVE_SELECT
-	  gettimeofday(&timeserver_segment->tv, NULL);
+	  gettimeofday((struct timeval *)&timeserver_segment->tv, NULL);
 #else
-	  time(&timeserver_segment->time_sec);
+	  time((time_t *)&timeserver_segment->time_sec);
 #endif
 
 	  for(;;) {
@@ -3167,12 +3175,12 @@ static void init_timeserver()
 	    tv.tv_sec = 0;
 	    tv.tv_usec = 300000;
 
-	    gettimeofday(&timeserver_segment->tv, NULL);
+	    gettimeofday((struct timeval *)&timeserver_segment->tv, NULL);
 
 	    rc = select(0,NULL,NULL,NULL,&tv);
 #else
-	    time(&timeserver_segment->time_sec);
-	    sleep(1);
+	    time((time_t *)&timeserver_segment->time_sec);
+	    sleep(1); /* We don't have select() to use.. */
 #endif
 	    /* Is the parent still alive ?? */
 	    if (kill(ppid, 0) != 0)

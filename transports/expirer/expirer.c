@@ -88,6 +88,8 @@ int sig;
 static void MIBcountCleanup __((void))
 {
 	MIBMtaEntry->taexpi.TaProcCountG -= 1;
+	if (MIBMtaEntry->taexpi.TaProcCountG > 99999U)
+	  MIBMtaEntry->taexpi.TaProcCountG = 0;
 }
 
 static void SHM_MIB_diag(rc)

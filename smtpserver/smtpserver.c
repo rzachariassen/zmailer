@@ -3296,6 +3296,7 @@ void
 zsleep(delay)
      int delay;
 {
+#ifdef HAVE_SELECT
 	struct timeval tv;
 	int rc;
 
@@ -3303,6 +3304,9 @@ zsleep(delay)
 	tv.tv_usec = 0;
 
 	rc = select(0, NULL, NULL, NULL, &tv);
+#else
+	sleep(delay); /* Sigh..  no select..  why we exist at all?? */
+#endif
 }
 
 

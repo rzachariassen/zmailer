@@ -1,3 +1,24 @@
+2004-05-08  Matti Aarnio  <mea@zmailer.org>
+
+	* include/shmmib.h, scheduler/scheduler.c,
+	  transports/mailbox/mailbox.c, transports/smtp/smtp.c,
+	  transports/expirer/expirer.c, transports/errormail/errormail.c,
+	  transports/hold/hold.c, transports/sm/sm.c,
+	  transports/reroute/reroute.c:
+	    Changed SHMMIB area variables all to be of "volatile" kind.
+
+	* smtpserver/smtpcmds.c, 
+	    Changed report output a bit, don't give router output
+	    directly to type() as a format string.
+
+	* smtpserver/smtpserver.c:
+	    Implement  zsleep()  by means of calling select(2).
+
+	* smtpserver/subdaemon-rtr.c, smtpserver/subdaemons.c:
+	    Reworked subprocess error (EOF) processing a bit.
+	    Perhaps now dying router will automagically recover
+	    loosing only the session currently underway.
+
 2004-05-07  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,

@@ -66,8 +66,13 @@ subdaemon_killr(RTR, idx)
 	  if (RTR->fromfd[idx] >= 0)
             close(RTR->fromfd[idx]);
 	  RTR->fromfd[idx] = -1;
-	  kill(RTR->routerpid[idx], SIGKILL);
+	  kill(RTR->routerpid[idx], SIGTERM);
 	  RTR->routerpid[idx] = 0;
+
+	  subdaemon_send_to_peer(RTR->replypeer[idx],
+				 "400 i-router killr\n", 19);
+
+	  RTR->replypeer[idx] = NULL;
 	}
 }
 
@@ -95,6 +100,9 @@ static int subdaemon_callr (RTR, idx)
 {
 	int rpid = 0, to[2], from[2], rc;
 	char *cp;
+
+	/* We want to write to blocking socket/pipe, while
+	   reading from non-blocking one.. */
 
 	if (pipe(to) < 0 || pipe(from) < 0)
 	  return -1;
@@ -159,13 +167,14 @@ static int subdaemon_callr (RTR, idx)
 	     RTR->bufsize[idx], RTR->buf[idx], rc, RTR->buf[idx][rc-1]);
 	  */
 
-	  if ( rc < 1 || ! RTR->buf[idx] ) {
-	    /* FIXME: ERROR PROCESSING ! */
-	    if (rc == 0) {
-	      /* EOF! */
-	      subdaemon_killr(RTR, idx);
-	    }
+	  if ( rc < 0 ) {
+	    /* EOF.. */
+	    subdaemon_killr(RTR, idx);
 	    return -1;
+	  }
+	  if ( rc < 1 || ! RTR->buf[idx] ) {
+	    /* FIXME: ERROR PROCESSING ?? */
+	    continue;
 	  }
 	  if (strncmp( RTR->buf[idx], BADEXEC, sizeof(BADEXEC) - 3) == 0) {
 	    subdaemon_killr(RTR, idx);
@@ -252,7 +261,7 @@ subdaemon_handler_rtr_input (state, peerdata)
 	      select(0, NULL, NULL, NULL, &tv); /* Sleep about 1 sec.. */
 	      return EAGAIN;
 	    }
-	    
+
 	    /* Now   RTR->fromfd[idx]   is in NON-BLOCKING MODE!
 	       However  RTR->tofp[idx]  is definitely in blocking! */
 	  }
@@ -324,17 +333,29 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 	       RTR->fdb[idx].rdsize ) {
 	    /* We have something to read ! */
 
-	    rc = fdgets( & RTR->buf[idx], RTR->inlen[idx], & RTR->bufsize[idx],
+	    rc = fdgets( & RTR->buf[idx], RTR->inlen[idx],
+			 & RTR->bufsize[idx],
 			 & RTR->fdb[idx], RTR->fromfd[idx], -1);
 
-	    /* type(NULL,0,NULL,"fdgets-RTR-2: bufsize=%d '%s' rc=%d lastc=%d",
+	    /* type(NULL,0,NULL,
+	       "fdgets-RTR-2: bufsize=%d '%s' rc=%d lastc=%d",
 	       RTR->bufsize[idx], RTR->buf[idx], rc, RTR->buf[idx][rc-1]);
 	    */
-#if 0 /* Let the loop to spin ... */
-	    if (rc < 0 && errno == EAGAIN) return -EAGAIN;  /* */
-#endif
-	    if (rc == 0) { /* EOF */
+
+	    if (rc < 0 && errno == EAGAIN) 
+	      /* Let the loop to spin ...
+		 actually the select has said: readable!
+		 but still that is sometimes wrong...
+	      */
+	      continue;
+
+	    if (rc <= 0) { /* EOF - timeout, or something.. */
+	      /* EOFed, KILL IT! */
 	      subdaemon_killr(RTR, idx);
+	      /* Start it again! */
+	      if (subdaemon_callr(RTR, idx) > 1)
+		sawhungry = 1;
+	      continue;
 	    }
 
 	    if (rc > 0) {
@@ -594,10 +615,17 @@ router(SS, function, holdlast, arg, len)
 		isdigit(p[0]) && isdigit(p[1]) && isdigit(p[2]) && 
 		(p[3] == ' ' || p[3] == '-')) {
 	      int code = atoi(state->pbuf);
+	      unsigned char *s = p + 4;
+	      p += 4;
+	      while (*p && (isdigit(*p) || *p == '.')) ++p;
+	      if(*p == ' ') *p++ = 0;
 
-	      type(SS, -code, NULL, "%s", state->pbuf + 4);
+	      if ((code / 100) != 2)
+		type(SS, -code, s, "Hi %s, %s", SS->rhostaddr, p);
+	      else
+		type(SS, -code, s, "%s", p);
 	    } else {
-	      type(SS, -250, NULL, "%s", state->pbuf);
+	      type(SS, -250, NULL, "%s", p);
 	    }
 	    free(state->pbuf);
 	    state->pbuf = NULL;
@@ -632,10 +660,17 @@ router(SS, function, holdlast, arg, len)
 	      isdigit(p[0]) && isdigit(p[1]) && isdigit(p[2]) && 
 	      (p[3] == ' ' || p[3] == '-')) {
 	    int code = atoi(state->pbuf);
+	    unsigned char *s = p + 4;
+	    p += 4;
+	    while (*p && (isdigit(*p) || *p == '.')) ++p;
+	    if(*p == ' ') *p++ = 0;
 
-	    type(SS, code, NULL, "%s", state->pbuf + 4);
+	    if ((code / 100) != 2)
+	      type(SS, code, s, "Hi %s, %s", SS->rhostaddr, p);
+	    else
+	      type(SS, code, s, "%s", p);
 	  } else {
-	    type(SS, 250, NULL, "%s", state->pbuf);
+	    type(SS, 250, NULL, "%s", p);
 	  }
 	  free(state->pbuf);
 	  state->pbuf = NULL;
