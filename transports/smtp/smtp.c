@@ -236,8 +236,13 @@ outbuf_fillup:
 	  time(&now);
 
 	  if (now >= tmout && SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
+
 	    /* Timed out, and have a writable SMTP connection active.. */
 	    /* Lets write a NOOP there. */
+
+	    /* We have here a VERY SHORT protocol timeout! */
+	    timeout = 30;
+
 	    smtp_flush(SS); /* Flush in every case */
 	    i = smtpwrite(SS, 0, "NOOP", 0, NULL);
 	    if (i != EX_OK && SS->smtpfp != NULL) {

@@ -1,6 +1,10 @@
 2003-05-21  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:
+	    The SMTP "NOOP" shall timeout in 30 seconds..
+	    Otherwise it lingers around with DOT-timeout (20 minutes)..
+
+	* transports/smtp/smtp.c:
 	    In EZMLM mode the SMTP TA didn't unlock all recipients,
 	    which did cause considerable amount of  "#resync" activity
 	    in between the scheduler, and SMTP TA.
