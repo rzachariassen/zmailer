@@ -1206,7 +1206,7 @@ static struct ctlfile *readmq2cfp(fname)
 	  return NULL;
 	}
 
-	s0 = (char *)cfp+1;
+	s0 = (char *)(cfp+1);
 
 	i = read(fd, s0, stbuf.st_size);
 	close(fd);
