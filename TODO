@@ -85,18 +85,6 @@ INSTALL:
 router:
 
     FEATURE:
-	run_listexpand() and run_listaddresses() (latter with part of code)
-	to support expanding '"%1"@domainpart'  type patterns with
-	original address *local* part (a.k.a. "user" part).
-	Problem being that the place where this replacing can run is
-	definitely doing it in TOKEN822 objects, not on strings.
-
-	THAT IS WRONG APPROACH!
-
-	Better one: At DB lookups support substituting %0 (the key) thru
-	%1 thru %9 (optional parameters) 
-
-    FEATURE:
 	router/rfc822.c:  sequencer()
 	Consider providing some data/function/whatever telling to
 	the configuration script how many "Received:" headers there
