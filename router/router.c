@@ -161,7 +161,7 @@ main(argc, argv)
 			version = 1;
 			break;
 		case 'W':
-			do_hdr_warning = 1;
+			do_hdr_warning = !do_hdr_warning;
 			break;
 		case '?':
 		default:
