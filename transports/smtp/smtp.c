@@ -1659,8 +1659,13 @@ deliver(SS, dp, startrp, endrp)
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next)
 	    if (rp->status == EX_OK) {
 	      notaryreport(rp->addr->user, FAILED,
+#if 1
+			   NULL, NULL
+#else
 			   "5.4.2 (Message write failed; possibly remote rejected the message)",
-			   "smtp; 566 (Message write failed; possibly remote rejected the message)");
+			   "smtp; 566 (Message write failed; possibly remote rejected the message)"
+#endif
+			   );
 	      diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	    }
 
@@ -3517,6 +3522,9 @@ int bdat_flush(SS, lastflg)
 	} else {
 	  /* Arrival of alarm is caught... */
 	  r = EX_TEMPFAIL;
+	  notaryreport(NULL,NULL,
+		       "5.4.2 (Message write failed; timeout)",
+		       "smtp; 566 (Message write failed; timeout)");
 	  alarm(0);
 	}
 	memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
@@ -5043,6 +5051,7 @@ if (SS->verboselog)
 	*s++ = *smtpline++;
 	*s++ = ' ';
 	if (*smtpline == ' ') ++smtpline;
+
 	if (len >= 11) {
 	  if (ESMTP_ENHSTATUS & SS->ehlo_capabilities) {
 	    char *p = statbuf;
@@ -5059,24 +5068,27 @@ if (SS->verboselog)
 	    while (*smtpline == ' ' || *smtpline == '\t')
 	      ++smtpline;
 	  }
+	}
 
+	if (*smtpline) {
 	  *s++ = '(';
 	  while (*smtpline) {
 	    switch (*smtpline) {
 	    case '(':
-	        *s++ = '[';
-		break;
+	      *s++ = '[';
+	      break;
 	    case ')':
-		*s++ = ']';
-		break;
+	      *s++ = ']';
+	      break;
 	    default:
-		*s++ = *smtpline;
+	      *s++ = *smtpline;
 	    }
 	    ++smtpline;
 	  }
 	  *s++ = ')';
 	}
 	*s = 0;
+
 	notaryreport(NULL,NULL,status,str);
 #if 0
 if (SS->verboselog)
