@@ -183,7 +183,10 @@ update(fd, diagnostic)
 	      /* Unless it is still overfed,
 		 Pick next, and feed it! */
 	      pick_next_vertex(proc, 1, 0);
-#if 1 /* YES OVERFEEDING! */
+	      /* Feed *one* */
+	      if (proc->hungry)
+		feed_child(proc);
+#if 0 /* NO OVERFEEDING! */
 	      /* While we have a thread, and things to feed.. */
 	      while (!proc->fed && proc->thread) {
 		if (proc->hungry)
