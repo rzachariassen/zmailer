@@ -3208,8 +3208,7 @@ int bdat_flush(SS, lastflg)
 	else
 	  sprintf(linebuf, "BDAT %d", SS->chunksize);
 
-	r = smtpwrite(SS, 1, linebuf, SS->pipelining, NULL);
-	/* XX: BDAT syncing processing ??? */
+	r = smtpwrite(SS, 1, linebuf, 1 /* ALWAYS "pipeline" */, NULL);
 	if (r != EX_OK)
 	  return r;
 
@@ -3225,9 +3224,12 @@ int bdat_flush(SS, lastflg)
 	}
 	SS->chunksize = 0;
 
-	if (lastflg)
+	if (lastflg || ! SS->pipelining)
 	  r = smtp_sync(SS, r, 0);
-
+#if 0 /* not yet! */
+	else
+	  r = smtp_sync(SS, r, 1); /* non-blocking */
+#endif
 	return r;
 }
 
