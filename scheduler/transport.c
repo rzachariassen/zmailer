@@ -75,8 +75,25 @@ int	numkids = 0;
 int	readsockcnt = 0; /* Count how many childs to read there are;
 			    this for the SLOW Shutdown */
 
-extern int errno;
+static void cmdbufalloc __((int, char **, int *));
 
+static void
+cmdbufalloc(newlen, bufp, spcp)
+     int newlen;
+     char **bufp;
+     int *spcp;
+{
+  if (*bufp == NULL) {
+    *bufp = emalloc(newlen+1);
+    *spcp = newlen;
+  }
+  if (newlen > *spcp) {
+    *bufp = erealloc(*bufp, newlen+1);
+    *spcp = newlen;
+  }
+}
+
+extern int errno;
 extern int slow_shutdown;
 
 /* Send "#idle\n" -string to the child.. */
@@ -88,6 +105,8 @@ struct procinfo *proc;
 	int len, rc;
 	/* we are NOT to be called while there is something
 	   left in the cmdbuf[] ! */
+	if (proc->cmdbuf == NULL)
+	  cmdbufalloc(2000, &proc->cmdbuf, &proc->cmdspc);
 	if (proc->cmdlen != 0) {
 	  proc->cmdbuf[proc->cmdlen] = 0;
 	  fprintf(stderr,"idle_child(proc->cmdbuf=\"%s\") -> abort()!\n",proc->cmdbuf);
@@ -140,6 +159,10 @@ struct procinfo *proc;
 	  return 0;
 	}
 
+	/* Make sure the buffer exists.. */
+	if (proc->cmdbuf == NULL)
+	  cmdbufalloc(2000, &proc->cmdbuf, &proc->cmdspc);
+
 	/* Make sure it is zero terminated! */
 	proc->cmdbuf[proc->cmdlen] = 0;
 
@@ -178,24 +201,6 @@ struct procinfo *proc;
 	  return proc->cmdlen; /* We return latter.. */
 	}
 	return 0;
-}
-
-static void cmdbufalloc __((int, char **, int *));
-
-static void
-cmdbufalloc(newlen, bufp, spcp)
-     int newlen;
-     char **bufp;
-     int *spcp;
-{
-  if (*bufp == NULL) {
-    *bufp = emalloc(newlen+1);
-    *spcp = newlen;
-  }
-  if (newlen > *spcp) {
-    *bufp = erealloc(*bufp, newlen+1);
-    *spcp = newlen;
-  }
 }
 
 void
