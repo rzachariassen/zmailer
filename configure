@@ -10054,14 +10054,13 @@ trap 'rm -fr `echo "Makefile
 	proto/newdb			proto/newdbprocessor		\
 	proto/scheduler.conf		proto/scheduler.auth		\
 	proto/mailrm.sh			proto/db/Makefile		\
-	proto/cf/TELE-FI.cf						\
+	proto/cf/TELE-FI.cf		proto/smtpserver.conf		\
 	proto/cf/SMTP+UUCP.cf		proto/cf/UTdefault.cf		\
 	proto/cf/SMTP.cf		proto/smtp-tls.conf		\
 	proto/db/aliases		proto/sm.conf			\
 	bin/mkdep			bin/mklibdep			\
 	proto/post-install.sh		utils/mxverify/Makefile		\
-	packaging/Makefile		\
-	packaging/solaris/Makefile	\
+	packaging/Makefile		packaging/solaris/Makefile	\
 	SiteConfig	 config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -10245,14 +10244,13 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
 	proto/newdb			proto/newdbprocessor		\
 	proto/scheduler.conf		proto/scheduler.auth		\
 	proto/mailrm.sh			proto/db/Makefile		\
-	proto/cf/TELE-FI.cf						\
+	proto/cf/TELE-FI.cf		proto/smtpserver.conf		\
 	proto/cf/SMTP+UUCP.cf		proto/cf/UTdefault.cf		\
 	proto/cf/SMTP.cf		proto/smtp-tls.conf		\
 	proto/db/aliases		proto/sm.conf			\
 	bin/mkdep			bin/mklibdep			\
 	proto/post-install.sh		utils/mxverify/Makefile		\
-	packaging/Makefile		\
-	packaging/solaris/Makefile	\
+	packaging/Makefile		packaging/solaris/Makefile	\
 	SiteConfig	"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF

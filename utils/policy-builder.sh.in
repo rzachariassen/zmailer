@@ -138,7 +138,7 @@ fi
     echo "# ----------------------"
     echo "# smtp-policy.mx.manual:"
     cat smtp-policy.mx.manual | \
-    awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$1;}'
+    awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$0;}'
   fi
   # smtp-policy.mx
   # (Lists domains that are allowed to use us as inbound MX relay for them)
@@ -146,7 +146,7 @@ fi
     echo "# ---------------"
     echo "# smtp-policy.mx:"
     cat smtp-policy.mx | \
-    awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$1;}'
+    awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$0;}'
   fi
 
   # smtp-policy.spam

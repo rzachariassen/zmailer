@@ -179,6 +179,8 @@ static struct addrinfo default_hints =
 	{ 0, PF_UNSPEC, 0, 0, 0, NULL, NULL, NULL };
 
 
+#if 0 /* NO SUPPORT FOR "LOCAL" ADDRESS SPACE ENTITIES! */
+
 static int gaih_local __((const char *name, const struct gaih_service *service,
 			  const struct addrinfo *req, struct addrinfo **pai,
 			  FILE *vlog));
@@ -281,6 +283,7 @@ gaih_local (name, service, req, pai, vlog)
       (*pai)->ai_canonname = NULL;
     return 0;
 }
+#endif /* GAIH_LOCAL() KILLED... */
 
 
 static int
@@ -808,7 +811,7 @@ static struct gaih gaih[] = {
   { PF_INET6, gaih_inet, "INET6" },
 #endif
   { PF_INET,  gaih_inet, "INET"  },
-  { PF_LOCAL, gaih_local, "LOCAL" },
+  /*  { PF_LOCAL, gaih_local, "LOCAL" }, */
   { PF_UNSPEC, NULL }
 };
 

@@ -89,7 +89,7 @@ while (<INFN>) {
 
 	next unless(m/^[0-9a-zA-Z]/);
 	chomp;
-	($rname,$rest) = split(' ',$_);
+	($rname,$rest) = split(' ',$_,2);
 	$rels{$rname} = 1;
 	push @inps, $_;
 
@@ -117,7 +117,7 @@ foreach $rel (keys %rels) {
     $oo='';
     # --- construct each relation, and binding at lookup, generate the db
     foreach $inp (@inps) {
-	($rname,$rtype,$rpriv,$rndbopt, $rdbfile, $rdbflags) = split(' ',$inp);
+	($rname,$rtype,$rpriv,$rndbopt, $rdbfile, $rdbflags) = split(' ',$inp,6);
 	next unless ( $rel eq $rname );
 
 	$rn="${rel}_$rnum";
