@@ -546,8 +546,6 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
 	  fprintf(stderr, "%s: listen(smtp_sock,%d): %s\n",
 		  progname, ListenQueueSize, strerror(errno));
 	}
-
-
 }
 
 
@@ -897,6 +895,15 @@ char **argv;
 			      than port 25. */
 
 	resources_maximize_nofiles();
+
+
+	if (STREQ(pidfile,"sub-router"))
+	  subdaemon_router(0);
+	else if (STREQ(pidfile,"sub-ratetracker"))
+	  subdaemon_ratetracker(0);
+	else if (STREQ(pidfile,"sub-contentfilter"))
+	  subdaemon_contentfilter(0);
+
 
 #ifdef HAVE_OPENSSL
 	Z_init(); /* Some things for private processors */

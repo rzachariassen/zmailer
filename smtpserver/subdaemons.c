@@ -35,10 +35,55 @@ static void subdaemon_pick_next_job __(( struct peerdata *peers, int top_peer, s
 
 
 
+void subdaemon_ratetracker(fd)
+     int fd;
+{
+  if (logfp) fclose(logfp); logfp = NULL;
+  report(NULL,"[smtpserver ratetracker subsystem]");
+
+  subdaemon_loop(fd, & subdaemon_handler_ratetracker);
+  zsleep(10);
+  exit(0);
+}
+
+void subdaemon_contentfilter(fd)
+     int fd;
+{
+  if (logfp) fclose(logfp); logfp = NULL;
+  report(NULL,"[smtpserver contentfilter subsystem]");
+
+  subdaemon_loop(fd, & subdaemon_handler_contentfilter);
+  zsleep(10);
+  exit(0);
+}
+
+void subdaemon_router(fd)
+     int fd;
+{
+  if (logfp) fclose(logfp); logfp = NULL;
+  report(NULL,"[smtpserver router subsystem]");
+	      
+  subdaemon_loop(fd, & subdaemon_handler_router);
+  zsleep(10);
+  exit(0);
+}
+
+
+
+
+
 int subdaemons_init __((void))
 {
 	int rc;
 	int to[2];
+	const char *zconf = getzenv("ZCONFIG");
+	const char *mailbin = getzenv("MAILBIN");
+	char *smtpserver = NULL;
+
+	if (mailbin) {
+	  smtpserver = malloc(strlen(mailbin) + 20);
+	  sprintf(smtpserver, "%s/smtpserver", mailbin);
+	}
 
 	subdaemon_nofiles = resources_query_nofiles();
 	if (subdaemon_nofiles < 32) subdaemon_nofiles = 32; /* failsafe */
@@ -49,15 +94,17 @@ int subdaemons_init __((void))
 	  ratetracker_server_pid = fork();
 	  if (ratetracker_server_pid == 0) { /* CHILD */
 
-	    if (logfp) fclose(logfp); logfp = NULL;
-
-	    report(NULL,"[smtpserver ratetracker subsystem]");
-
 	    close(to[1]); /* Close the parent (called) end */
-	    subdaemon_loop(to[0], & subdaemon_handler_ratetracker);
-
-	    zsleep(10);
-	    exit(0);
+	    if (to[0]) {
+	      dup2(to[0], 0);
+	      close(to[0]);
+	    }
+	    /* exec here ??? */
+	    if (smtpserver)
+	      execl(smtpserver, "smtpserver", "-I", "sub-ratetracker",
+		    "-Z", zconf, NULL);
+	    subdaemon_ratetracker(0);
+	    /* never reached */
 	  }
 	  MIBMtaEntry->ss.SubsysRateTrackerPID = ratetracker_server_pid;
 	  fdpass_close_parent(to);
@@ -70,17 +117,18 @@ int subdaemons_init __((void))
 	    contentfilter_server_pid = fork();
 	    if (contentfilter_server_pid == 0) { /* CHILD */
 
-	      if (logfp) fclose(logfp); logfp = NULL;
-
-	      report(NULL,"[smtpserver contentfilter subsystem]");
-
 	      close(ratetracker_rdz_fd); /* Our sister server's handle */
-
 	      close(to[1]); /* Close the parent (called) end */
-	      subdaemon_loop(to[0], & subdaemon_handler_contentfilter);
-
-	      zsleep(10);
-	      exit(0);
+	      if (to[0]) {
+		dup2(to[0], 0);
+		close(to[0]);
+	      }
+	      /* exec here ??? */
+	      if (smtpserver)
+		execl(smtpserver, "smtpserver", "-I", "sub-contentfilter",
+		      "-Z", zconf, NULL);
+	      subdaemon_contentfilter(0);
+	      /* never reached */
 	    }
 	    MIBMtaEntry->ss.SubsysContentfilterMasterPID = contentfilter_server_pid;
 	    fdpass_close_parent(to);
@@ -94,19 +142,20 @@ int subdaemons_init __((void))
 	    router_server_pid = fork();
 	    if (router_server_pid == 0) { /* CHILD */
 	      
-	      if (logfp) fclose(logfp); logfp = NULL;
-	      
-	      report(NULL,"[smtpserver router subsystem]");
-	      
 	      close(ratetracker_rdz_fd);     /* Our sister server's handle */
 	      if (contentfilter_rdz_fd >= 0)
 		close(contentfilter_rdz_fd); /* Our sister server's handle */
-	      
 	      close(to[1]); /* Close the parent (called) end */
-	      subdaemon_loop(to[0], & subdaemon_handler_router);
-	      
-	      zsleep(10);
-	      exit(0);
+	      if (to[0]) {
+		dup2(to[0], 0);
+		close(to[0]);
+	      }
+	      /* exec here ??? */
+	      if (smtpserver)
+		execl(smtpserver, "smtpserver", "-I", "sub-router",
+		      "-Z", zconf, NULL);
+	      subdaemon_router(0);
+	      /* never reached */
 	    }
 	    MIBMtaEntry->ss.SubsysRouterMasterPID = router_server_pid;
 	    fdpass_close_parent(to);

@@ -1,5 +1,10 @@
 2004-05-08  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/smtpserver.c, smtpserver/subdaemons.c:
+	    For Solaris environemnts...  start the smtpserver's
+	    subservers via execl(), actually does it for all
+	    environments, but still...
+
 	* include/shmmib.h, scheduler/scheduler.c,
 	  transports/mailbox/mailbox.c, transports/smtp/smtp.c,
 	  transports/expirer/expirer.c, transports/errormail/errormail.c,
