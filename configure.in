@@ -172,6 +172,20 @@ fi
 #
 # fi
 
+AC_SUBST(PERLEMBEDCCOPTS)
+AC_SUBST(PERLEMBEDLDOPTS)
+
+AC_ARG_WITH(embed-perl,      [  --with-embed-perl       Do embed perl into system],
+        embed_perl=1)
+if test "$embed_perl" = 1 ; then
+  PERLEMBEDCCOPTS="`$ac_cv_path_PERL  -MExtUtils::Embed -e ccopts`"
+  PERLEMBEDLDOPTS="`$ac_cv_path_PERL  -MExtUtils::Embed -e ldopts`"
+  AC_DEFINE(DO_PERL_EMBED,1,[We do embed perl into system])
+  AC_MSG_RESULT([Embedding perl, with:])
+  AC_MSG_RESULT([  CCOPTS=$PERLEMBEDCCOPTS])
+  AC_MSG_RESULT([  LDOPTS=$PERLEMBEDLDOPTS])
+fi
+
 
 AC_SUBST(GENINCL)
 use_genincl=0

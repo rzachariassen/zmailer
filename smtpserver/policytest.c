@@ -1698,9 +1698,16 @@ static int pt_mailfrom(state, str, len)
 	return -1;
     if (state->always_freeze)
 	return 1;
-    if (state->full_trust || state->authuser)
+    if (state->full_trust)
 	return 0;
 
+#ifdef DO_PERL_EMBED  /* TODO: external hooks ... */
+    if (state->authuser) {
+      int rc = ZSMTP_hook_authuser_mailfrom(state, str, len);
+      /* return value 0: accepted! */
+      if (!rc) return 0;
+    }
+#endif
 
     if (len > 0) { /* Non-box address.. */
 
@@ -1853,6 +1860,19 @@ static int pt_mailfrom(state, str, len)
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
       PICK_PA_MSG(P_A_SENDERokWithDNS);
+      return rc;
+    }
+
+    if (state->authuser) {
+      /* Accept if found in DNS, and not an address literal! */
+      int test_c = '-';
+      int rc = sender_dns_verify(state, test_c, at+1, len - (1 + at - str));
+      if (debug)
+	type(NULL,0,NULL," ... returns: %d", rc);
+      if (rc) {
+	if (state->message) free(state->message);
+	state->message = strdup("Sorry, bad DNS result for your source domain");
+      }
       return rc;
     }
 

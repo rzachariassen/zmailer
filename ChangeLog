@@ -1,3 +1,16 @@
+2004-07-09  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, smtpserver/Makefile.in, smtpserver/policytest.c,
+	  smtpserver/smtpserver.h, smtpserver/smtphook.c:
+	    Added begins of embedded perl hooking into smtpserver so that
+	    folks can install their own policy stuff, as they want..
+	    THIS IS NOT YET USABLE!
+
+	* smtpserver/policytest.c:
+	    Moved 'state->authuser' check onwards within  pt_mailfrom().
+	    And added hardwired 'verify that mail from domain does exist'
+	    into it.
+
 2004-07-08  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in, smtpserver/cfgread.c, smtpserver/policytest.c,

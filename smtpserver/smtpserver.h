@@ -726,3 +726,11 @@ extern int mx_client_verify  __((struct policystate *, int, const char *, int));
 extern int sender_dns_verify __((struct policystate *, int, const char *, int));
 extern int client_dns_verify __((struct policystate *, int, const char *, int));
 extern int rbl_dns_test __((struct policystate *, const int, const u_char *, char *, char **));
+
+/* smtphook.c */
+#ifdef DO_PERL_EMBED
+
+extern int ZSMTP_hook_init __((const int, const char **, const char **, const char *));
+extern int ZSMTP_hook_authuser_mailfrom __((struct policystate *, const char *, const int));
+
+#endif
