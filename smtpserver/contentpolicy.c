@@ -1,6 +1,6 @@
 /*
  *  contentpolicy.c -- module for ZMailer's smtpserver
- *  By Matti Aarnio <mea@nic.funet.fi> 1998, 2000, 2002
+ *  By Matti Aarnio <mea@nic.funet.fi> 1998, 2000, 2002-2003
  *
  *  This is the ugly one, we run SENSOR program on each
  *  accepted message -- if the sensor decrees the program
