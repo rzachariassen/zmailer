@@ -48,6 +48,7 @@ pkgs-01:	# DIRECTORIES, BINARIES
 	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -type d -print ; \
 	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb -type d -print ; \
 	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb '(' -type f -o -type l ')' -print ; \
+	 find usr/share/man '(' -type f -o -type l ')' -print ; \
 	 ld=`echo $$LOGDIR|sed -e 's!^/!!'`;find $$ld -type d -print ; \
 	 find usr/man -type f -print ; \
 	 echo "bin/vacation" ; \
