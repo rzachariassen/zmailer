@@ -1,0 +1,16 @@
+			CRYPTO WARNING
+
+	This software contains hooks to use external cryptographic
+	packages to do traffic encryption over the SMTP channel.
+
+	Because for for example US Government's view of the things,
+	you might get nasty comments from US export control people
+	if you include the sources of this MTA to e.g. a CDROM.
+
+	I am not a lawyer with detailed knowledge of what is allowed,
+	and what isn't for US citicens, but you can always point to
+	the sources at  ftp://ftp.funet.fi/pub/unix/mail/zmailer/
+	and at the web-server  http://www.zmailer.org/
+
+
+/Matti Aarnio - 1999-May-14
