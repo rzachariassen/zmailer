@@ -67,7 +67,7 @@ smtp_starttls(SS, buf, cp)
     SS->sslwrin = SS->sslwrout = 0;
 }
 
-int
+static int
 Z_SSL_flush(SS)
      SmtpState * SS;
 {
@@ -83,14 +83,39 @@ Z_SSL_flush(SS)
     return SSL_write(SS->ssl, SS->sslwrbuf + ou, in - ou);
 }
 
+
 int
-Z_SSL_write(SS, ptr, len)
+Z_read(SS, ptr, len)
+     SmtpState * SS;
+     void *ptr;
+     int len;
+{
+    if (SS->sslmode)
+      return SSL_read(SS->ssl, (char*)ptr, len);
+    return read(SS->inputfd, (char*)ptr, len);
+}
+
+int
+Z_pending(SS)
+     SmtpState * SS;
+{
+    if (SS->sslmode)
+      return SSL_pending(SS->ssl);
+    return 0;
+}
+
+
+int
+Z_write(SS, ptr, len)
      SmtpState * SS;
      const void *ptr;
      int len;
 {
     int i, rc = 0;
     char *buf = (char *)ptr;
+
+    if (!SS->sslmode)
+      return fwrite(ptr, len, 1, SS->outfp);
 
     while (len > 0) {
       i = SS->sslwrspace - SS->sslwrin; /* space */
@@ -113,6 +138,17 @@ Z_SSL_write(SS, ptr, len)
     /* how much written out ? */
     return rc;
 }
+
+void typeflush(SS)
+SmtpState *SS;
+{
+    if (SS->sslmode)
+      Z_SSL_flush(SS);
+    else
+      fflush(SS->outfp);
+}
+
+
 
 /* skeleton taken from OpenSSL crypto/err/err_prn.c */
 
@@ -406,6 +442,8 @@ bio_dump_cb(bio, cmd, argp, argi, argl, ret)
   */
 
 static int tls_serverengine = 0;
+static SSL_CTX *ssl_ctx = NULL;
+
 
 int
 tls_init_serverengine(verifydepth, askcert, requirecert)
@@ -492,9 +530,7 @@ tls_init_serverengine(verifydepth, askcert, requirecert)
   * be reported.
   */
 
-void tls_stop_servertls __((SmtpState *SS))
-;
-void
+static void
 tls_stop_servertls(SS)
      SmtpState *SS;
 {
@@ -598,10 +634,36 @@ start_servertls(SS)
     {
       SSL_CIPHER *cp = SSL_get_current_cipher(SS->ssl);
       int n, cb;
-      cb = SSL_CIPHER_get_bits(cp, &n);
-      type(NULL,0,NULL,"Cipher: %s bits: %d/%d version: %s",
-	   SSL_CIPHER_get_name(cp), cb, n, SSL_CIPHER_get_version(cp));
+      static char cbuf[2000];
+
+      if (cp) {
+	cb = SSL_CIPHER_get_bits(cp, &n);
+	sprintf(cbuf, "%s keybits %d version %s",
+		SSL_CIPHER_get_name(cp), cb, SSL_CIPHER_get_version(cp));
+      } else {
+	strcpy(cbuf,"<no-cipher-in-use!>");
+      }
+      SS->tls_cipher_info = cbuf;
+      type(NULL,0,NULL,"Cipher: %s",cbuf);
     }
+
+    SSL_set_read_ahead(SS->ssl, 1); /* Improves performance */
+
     return (0);
 }
-#endif
+
+void
+Z_init __((void))
+{
+    if (starttls_ok)
+	tls_init_serverengine(tls_ccert_vd,tls_ask_cert,tls_req_cert);
+}
+
+void
+Z_cleanup(SS)
+     SmtpState *SS;
+{
+    if (SS->sslmode)
+	tls_stop_servertls(SS);
+}
+#endif /* - HAVE_OPENSSL */

@@ -301,11 +301,7 @@ const char *buf, *cp;
 	if (rcptlimitcnt > 100)
 	  type(SS, -250, NULL, "X-RCPTLIMIT %d", rcptlimitcnt);
 
-	if (auth_login_without_tls
-#ifdef HAVE_OPENSSL
-	    || SS->sslmode
-#endif
-	    ) {
+	if (auth_login_without_tls || SS->sslmode) {
 	  if (auth_ok)
 	    type(SS, -250, NULL, "AUTH=LOGIN"); /* RFC 2554, NetScape/
 						   Sun Solstice/ ? */
@@ -318,7 +314,7 @@ const char *buf, *cp;
 	if (starttls_ok && !SS->sslmode) {
 	  type (SS, -250, NULL, "STARTTLS"); /* RFC 2487 */
 	}
-#endif
+#endif /* - HAVE_OPENSSL */
 	if (etrn_ok)
 	  type(SS, -250, NULL, "ETRN");		/* RFC 1985 */
 	type(SS, 250, NULL, "HELP");		/* RFC 821 ? */
@@ -734,25 +730,20 @@ int insecure;
 	  fprintf(SS->mfp, "<none>");
 	}
       }
-#ifdef HAVE_OPENSSL
-      if (SS->sslmode && SS->ssl) {
+      if (SS->sslmode) {
 	if (log_rcvd_tls_mode) {
-	  SSL_CIPHER *cp = SSL_get_current_cipher(SS->ssl);
-	  char cbuf[2000];
-	  int n, cb;
-	  cb = SSL_CIPHER_get_bits(cp, &n);
-	  sprintf(cbuf, "%s keybits %d version %s",
-		  SSL_CIPHER_get_name(cp), cb, SSL_CIPHER_get_version(cp));
 	  fprintf(SS->mfp, " TLS-CIPHER: ");
-	  rfc822commentprint(SS->mfp, cbuf);
+	  if (SS->tls_cipher_info)
+	    rfc822commentprint(SS->mfp, SS->tls_cipher_info);
+	  else
+	    fprintf(SS->mfp, "<none>");
 	}
 	if (log_rcvd_tls_ccert) {
-	  if (!SS->tls_ccert_subject) {
-	    fprintf(SS->mfp, " TLS-CCERT: <none>");
-	  } else {
-	    fprintf(SS->mfp, " TLS-CCERT: ");
+	  fprintf(SS->mfp, " TLS-CCERT: ");
+	  if (SS->tls_ccert_subject)
 	    rfc822commentprint(SS->mfp, SS->tls_ccert_subject);
-	  }
+	  else
+	    fprintf(SS->mfp, "<none>");
 	}
       } else {
 	if (log_rcvd_tls_mode)
@@ -760,7 +751,6 @@ int insecure;
 	if (log_rcvd_tls_ccert)
 	  fprintf(SS->mfp, " TLS-CCERT: <none>");
       }
-#endif
       fprintf(SS->mfp, ")\n");
     }
 

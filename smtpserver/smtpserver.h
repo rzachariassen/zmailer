@@ -119,8 +119,7 @@ typedef union {
 #ifdef HAVE_OPENSSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#endif
-
+#endif /* - HAVE_OPENSSL */
 
 struct smtpconf {
     const char *pattern;
@@ -137,7 +136,7 @@ typedef enum {
     Turnme, BData, DebugMode, Auth,
 #ifdef HAVE_OPENSSL
     StartTLS,
-#endif
+#endif /* - HAVE_OPENSSL */
     Hello2, Mail2, Send2, Verify2	/* 8-bit extensions */
 } Command;
 
@@ -170,17 +169,17 @@ typedef struct {
     Usockaddr raddr;
     Usockaddr localsock;
 
+    int   sslmode;		/* Set, when SSL/TLS in running */
 #ifdef HAVE_OPENSSL
-    int   sslmode;
     SSL * ssl;
     char *sslwrbuf;
     int   sslwrspace, sslwrin, sslwrout;
     /* space, how much stuff in, where the output cursor is */
-
+#endif /* - HAVE_OPENSSL */
+    char *tls_cipher_info;
     char *tls_ccert_subject;
     char *tls_ccert_issuer;
     char *tls_ccert_fingerprint;
-#endif
 
     int  s_bufread;
     int  s_readout;
@@ -391,14 +390,12 @@ extern void add_to_toplevels __((char *str));
 extern void smtp_auth __((SmtpState * SS, const char *buf, const char *cp));
 
 #ifdef HAVE_OPENSSL
-/* smtptls.c */
-extern int tls_init_serverengine __((int, int, int));
 extern void smtp_starttls __((SmtpState * SS, const char *buf, const char *cp));
-extern int Z_SSL_write __((SmtpState *, const void *, int));
-extern int Z_SSL_flush __((SmtpState *));
-
-extern SSL_CTX *ssl_ctx;
-#endif
+extern void Z_init    __(( void ));
+extern void Z_cleanup __(( SmtpState * ));
+#endif /* - HAVE_OPENSSL */
+extern int  Z_write   __(( SmtpState *, const void *, int ));
+extern int  Z_read    __(( SmtpState *, void *, int ));
 
 #ifdef HAVE_TCPD_H		/* The hall-mark of having tcp-wrapper things around */
 extern int wantconn __((int sock, char *prgname));

@@ -84,7 +84,7 @@ struct command command_list[] =
 			/* End of the list */
 #ifdef HAVE_OPENSSL
     {"STARTTLS", StartTLS}, /* RFC 2487 */
-#endif
+#endif /* - HAVE_OPENSSL */
     {0, Null}
 };
 
@@ -216,11 +216,6 @@ int log_rcvd_authuser = 0;
 int log_rcvd_tls_mode = 0;
 int log_rcvd_tls_ccert = 0;
 int auth_login_without_tls = 0;
-
-#ifdef HAVE_OPENSSL
-SSL_CTX *ssl_ctx = NULL;
-#endif
-
 
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5
@@ -531,10 +526,8 @@ char **argv;
       cfhead = readcffile(cfgpath);
 
 #ifdef HAVE_OPENSSL
-    if (starttls_ok)
-      tls_init_serverengine(tls_ccert_vd,tls_ask_cert,tls_req_cert);
-#endif
-
+    Z_init(); /* Some things for private processors */
+#endif /* - HAVE_OPENSSL */
     if (!allow_source_route)
       allow_source_route = (getzenv("ALLOWSOURCEROUTE") != NULL);
 
@@ -1176,13 +1169,48 @@ long tell;
 const char *msg;
 {
     zsyslog((LOG_ERR,
-	     "aborted (%ld bytes) from %s/%d: %s", tell, SS->rhostname, SS->rport, msg));
+	     "aborted (%ld bytes) from %s/%d: %s",
+	     tell, SS->rhostname, SS->rport, msg));
     if (logfp != NULL) {
 	fprintf(logfp, "%d-\taborted (%ld bytes): %s\n", pid, tell, msg);
 	fflush(logfp);
     }
 }
 
+#ifndef HAVE_OPENSSL
+int
+Z_write(SS, ptr, len)
+     SmtpState * SS;
+     const void *ptr;
+     int len;
+{
+    return fwrite(ptr, len, 1, SS->outfp);
+}
+
+int
+Z_read(SS, ptr, len)
+     SmtpState * SS;
+     void *ptr;
+     int len;
+{
+    return read(SS->inputfd, ptr, len);
+}
+
+int
+Z_pending(SS)
+     SmtpState * SS;
+{
+    return 0;
+}
+
+void
+typeflush(SS)
+     SmtpState *SS;
+{
+    fflush(SS->outfp);
+}
+
+#endif /* --HAVE_OPENSSL */
 
 /* Support routine: Our own buffering for stdinput */
 
@@ -1202,12 +1230,7 @@ SmtpState *SS;
 
     if (SS->s_readout >= SS->s_bufread) {
     redo:
-#ifdef HAVE_OPENSSL
-        if (SS->sslmode) {
-	  rc = SSL_read(SS->ssl, SS->s_buffer, sizeof(SS->s_buffer));
-	} else
-#endif
-	  rc = read(SS->inputfd, SS->s_buffer, sizeof(SS->s_buffer));
+	rc = Z_read(SS, SS->s_buffer, sizeof(SS->s_buffer));
 	if (rc < 0) {
 	  goto redo; /* XX: ??? some input-problem circumvention problem ?? */
 	  if (errno == EINTR || errno == EAGAIN)
@@ -1230,12 +1253,9 @@ SmtpState *SS;
 int s_hasinput(SS)
 SmtpState *SS;
 {
-#ifdef HAVE_OPENSSL
-    if (SS->sslmode) {
-      /* This presumes that  SSL_set_read_ahead(SS->ssl, 1)  is done! */
-      return SSL_pending(SS->ssl);
-    }
-#endif
+    int i = Z_pending(SS);
+    if (i) return i;
+
     if (SS->s_readout >= SS->s_bufread) {
 	/* So if it did dry up, try non-blocking read */
 	int flags = fcntl(SS->inputfd, F_GETFL, 0);
@@ -1668,7 +1688,7 @@ int insecure;
 	case StartTLS:
 	    smtp_starttls(SS, buf, cp);
 	    break;
-#endif
+#endif /* - HAVE_OPENSSL */
 	case Hello:
 	case Hello2:
 	    /* This code is LONG.. */
@@ -1695,20 +1715,16 @@ int insecure;
 	case Data:
 	    if (smtp_data(SS, buf, cp) < 0) {
 #ifdef HAVE_OPENSSL
-	      if (SS->sslmode) {
-		tls_stop_servertls(SS);
-	      }
-#endif
+	      Z_cleanup(SS);
+#endif /* - HAVE_OPENSSL */
 	      return;
 	    }
 	    break;
 	case BData:
 	    if (smtp_bdata(SS, buf, cp) < 0) {
 #ifdef HAVE_OPENSSL
-	      if (SS->sslmode) {
-		tls_stop_servertls(SS);
-	      }
-#endif
+	      Z_cleanup(SS);
+#endif /* - HAVE_OPENSSL */
 	      return;
 	    }
 	    break;
@@ -1791,10 +1807,8 @@ int insecure;
 	    type(SS, 221, m200, NULL, "Out");
 	    typeflush(SS);
 #ifdef HAVE_OPENSSL
-	    if (SS->sslmode) {
-	      tls_stop_servertls(SS);
-	    }
-#endif
+	    Z_cleanup(SS);
+#endif /* - HAVE_OPENSSL */
 	    return;
 	default:
 	    break;
@@ -1810,10 +1824,8 @@ int insecure;
 	fflush(logfp);
     }
 #ifdef HAVE_OPENSSL
-    if (SS->sslmode) {
-	tls_stop_servertls(SS);
-    }
-#endif
+    Z_cleanup(SS);
+#endif /* - HAVE_OPENSSL */
 }
 
 #if 0				/* tmalloc() is in the library, isn't it ? */
@@ -1825,19 +1837,6 @@ int n;
 }
 #endif
 
-
-/* Flush the stdio (output) channel towards the SMTP client */
-
-void typeflush(SS)
-SmtpState *SS;
-{
-#ifdef HAVE_OPENSSL
-    if (SS->sslmode)
-      Z_SSL_flush(SS);
-    else
-#endif
-      fflush(SS->outfp);
-}
 
 /*
  * In theory, this should modify the command that ps shows for this process.
@@ -2046,12 +2045,7 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     }
     if (!SS) return; /* Only to local log.. */
     strcpy(s, "\r\n");
-#ifdef HAVE_OPENSSL
-    if (SS->sslmode)
-      Z_SSL_write(SS, buf, buflen+2); /* XX: check return value */
-    else
-#endif
-      fwrite(buf, buflen+2, 1, SS->outfp);
+    Z_write(SS, buf, buflen+2); /* XX: check return value */
 }
 
 
@@ -2208,12 +2202,7 @@ va_dcl
 	fprintf(logfp, "%dw\t%s\n", pid, buf);
 
       strcpy(bp, "\r\n");
-#ifdef HAVE_OPENSSL
-      if (SS->sslmode) {
-	Z_SSL_write(SS, buf, buflen+2); /* XX: check return value */
-      } else
-#endif
-	fwrite(buf, buflen+2, 1, SS->outfp);
+      Z_write(SS, buf, buflen+2); /* XX: check return value */
     }
 
     type(SS, code, status, msg, a1, a2, a3, a4);
