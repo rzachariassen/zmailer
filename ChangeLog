@@ -1,5 +1,8 @@
 1999-04-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in:
+	    Version 2.99.50-s16
+
 	* proto/cf/fqdnaliases.cf:
 	    Typo: Missing ending ']' at a '[' test clause.
 
