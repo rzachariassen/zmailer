@@ -414,7 +414,7 @@ sh_trap(argc, argv)
 		/* don't bother guarding argc > 0, sh doesn't */
 	}
 	while (argc-- > 0) {
-		if (!isascii(**argv) || !isdigit(**argv)) {
+		if (!isascii((255 & **argv)) || !isdigit((255 & **argv))) {
 			fprintf(stderr, "%s: bad number: '%s'\n", av0, *argv);
 			++argv;
 			continue;

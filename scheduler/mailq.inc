@@ -38,14 +38,14 @@ as this is backed on mmap(2)ed file.
   double loadavg[3];
   int rc = getloadavg(loadavg, 3);
   if (rc > 0)
-    sfprintf(fp,"SYS.Load-Avg-1-min-G                %6.2lf\n",
+    sfprintf(fp,"SYS.Load-Avg-1-min-G                %6.2f\n",
 	     loadavg[0]);
 /*<VAR><NAME>SYS.Load_Avg-1-min-G</NAME><DESC>
 At systems with  getloadavg(3) API, shows 1 minute load-average
 as a fixed point fractional number.
 </DESC></VAR>*/
   if (rc > 1)
-    sfprintf(fp,"SYS.Load-Avg-5-min-G                %6.2lf\n",
+    sfprintf(fp,"SYS.Load-Avg-5-min-G                %6.2f\n",
 	     loadavg[1]);
 /*<VAR><NAME>SYS.Load_Avg-5-min-G</NAME><DESC>
 At systems with  getloadavg(3) API, shows 5 minute load-average
@@ -69,7 +69,7 @@ Various top-level things, e.g. process group leader PIDs et.al.
 
   PIDTEST(sys.RouterMasterPID, sys.RouterMasterStartTime)
   sfprintf(fp,"SYS.RouterMasterPID             %10u",
-	   M.sys.RouterMasterPID);
+	   (u_int) M.sys.RouterMasterPID);
   if (i) sfprintf(fp," NOT PRESENT!");
   sfprintf(fp,"\n");
 /*<VAR><NAME>SYS.RouterMasterPID</NAME><DESC>
@@ -91,7 +91,7 @@ in the lifetime of this shared memory block.
 
   PIDTEST(sys.SchedulerMasterPID, sys.SchedulerMasterStartTime)
   sfprintf(fp,"SYS.SchedulerMasterPID          %10u",
-	   M.sys.SchedulerMasterPID);
+	   (u_int) M.sys.SchedulerMasterPID);
   if (i) sfprintf(fp," NOT PRESENT!");
   sfprintf(fp,"\n");
 /*<VAR><NAME>SYS.SchedulerMasterPID</NAME><DESC>
@@ -154,7 +154,7 @@ This should match with  SYS.SchedulerMasterStartTime.
 
   PIDTEST(sys.SmtpServerMasterPID, sys.SmtpServerMasterStartTime)
   sfprintf(fp,"SYS.SmtpServerMasterPID         %10u",
-	   M.sys.SmtpServerMasterPID);
+	   (u_int) M.sys.SmtpServerMasterPID);
   if (i) sfprintf(fp," NOT PRESENT!");
   sfprintf(fp,"\n");
 /*<VAR><NAME>SYS.SmtpServerMasterPID</NAME><DESC>

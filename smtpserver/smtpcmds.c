@@ -1115,7 +1115,7 @@ const char *buf, *cp;
     cp += 3;
     if ((strict_protocol != 0) || sloppy)
       for (; *cp != '\0' && *cp != '<'; ++cp)
-	if (!isspace(*cp)) {
+	if (!isspace((255 & *cp))) {
 	  if (!sloppy && (strict_protocol >= 0)) {
 	    smtp_tarpit(SS);
 	    type(SS, 501, m513, "where is <...> in this?  %s", cp);

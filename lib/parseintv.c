@@ -32,7 +32,7 @@ parse_interval(string, restp)
 	for (; *string; ++string) {
 
 	  val = 0;
-	  while (isascii(*string) && isdigit(*string)) {
+	  while (isascii((255 & *string)) && isdigit((255 & *string))) {
 	    val = val * 10 + (*string - '0');
 	    ++string;
 	  }

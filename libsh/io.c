@@ -510,7 +510,7 @@ rflag:		switch (*++fmt) {
 				n = va_arg(argp, int);
 			else {
 				n = 0;
-				while (isascii(*fmt) && isdigit(*fmt))
+				while (isascii((255 & *fmt)) && isdigit((255 & *fmt)))
 					n = 10 * n + todigit(*fmt++);
 				--fmt;
 			}
@@ -529,7 +529,7 @@ rflag:		switch (*++fmt) {
 			n = 0;
 			do {
 				n = 10 * n + todigit(*fmt);
-			} while (isascii(*++fmt) && isdigit(*fmt));
+			} while (isascii((255 & *++fmt)) && isdigit((255 & *fmt)));
 			width = n;
 			--fmt;
 			goto rflag;

@@ -904,7 +904,7 @@ sh_bce(argc, argv)		/* handle break, continue, and exit */
 {
 	int n;
 
-	if (argc > 2 || (argc == 2 && !isdigit(argv[1][0])))
+	if (argc > 2 || (argc == 2 && !isdigit((255 & argv[1][0]))))
 		fprintf(stderr, USAGE_BCE, argv[0]);
 	else if (argc == 1)
 		/* 0 for "return" and "exit", 1 o/w */
@@ -1047,7 +1047,7 @@ sh_shift(argc, argv)
 	int n;
 	conscell *d;
 
-	if (argc > 2 || (argc == 2 && !isdigit(argv[1][0]))) {
+	if (argc > 2 || (argc == 2 && !isdigit((255 & argv[1][0])))) {
 		fprintf(stderr, USAGE_SHIFT, argv[0]);
 		return EX_USAGE;
 	}
@@ -1070,7 +1070,7 @@ sh_umask(argc, argv)
 	int mask;
 	const char *cp;
 
-	if (argc > 2 || (argc == 2 && !isdigit(argv[1][0]))) {
+	if (argc > 2 || (argc == 2 && !isdigit((255 & argv[1][0])))) {
 		fprintf(stderr, USAGE_UMASK, argv[0]);
 		return EX_USAGE;
 	}
@@ -1248,7 +1248,7 @@ sh_wait(argc, argv)
 	int retcode, pid;
 	int status = 0;
 
-	if (argc > 2 || (argc == 2 && !isdigit(argv[1][0]))) {
+	if (argc > 2 || (argc == 2 && !isdigit((255 & argv[1][0])))) {
 		fprintf(stderr, USAGE_WAIT, argv[0]);
 		return EX_USAGE;
 	}

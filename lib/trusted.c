@@ -40,7 +40,7 @@ settrusteduser()
 
 	if ((trusteduser = getzenv("TRUSTEDUSER")) == NULL)
 		trusteduser = DEFTRUSTEDUSER;
-	if (isascii(*trusteduser) && isdigit(*trusteduser)) {
+	if (isascii((255 & *trusteduser)) && isdigit((255 & *trusteduser))) {
 		int n = atoi(trusteduser);
 		if (n > 0) {
 			trusteduid = n;

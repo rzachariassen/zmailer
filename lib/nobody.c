@@ -62,12 +62,12 @@ getnobody()
 		while (*s == '-')
 			factor = -1, ++s;
 		errno = 0;
-		if (isdigit(*s) && atoi(s) != 0) {
+		if (isdigit((255 & *s)) && atoi(s) != 0) {
 			nobody = atoi(s) * factor;
 			goto done;
 		}
 		errno = 0;
-		if (isalpha(*s) && (pw = zgetpwnam(s)) != NULL) {
+		if (isalpha((255 & *s)) && (pw = zgetpwnam(s)) != NULL) {
 			nobody = pw->pw_uid;
 			goto done;
 		}

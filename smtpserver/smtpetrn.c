@@ -140,7 +140,7 @@ const char *name, *cp;
 
       int portnum = 174;
 
-      if (port && isdigit(port[1])) {
+      if (port && isdigit((255 & port[1]))) {
 	portnum = atol(port+1);
       } else if (port == NULL) {
 	serv = getservbyname("mailq", "tcp");
