@@ -1,6 +1,8 @@
-errors root@localhost
+weekly
+rotate 9
 compress
 missingok
+create
 
 /var/log/zmailer/router {
     postrotate
@@ -27,6 +29,72 @@ missingok
 }
 
 /var/log/zmailer/smtp {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp-log {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp.punt {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp-lmtp {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp-etrn {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp-tls {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtpx {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtpxw {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp77 {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp77x {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp8 {
+    postrotate
+        /etc/rc.d/init.d/zmailer logsync
+    endscript
+}
+
+/var/log/zmailer/smtp8x {
     postrotate
         /etc/rc.d/init.d/zmailer logsync
     endscript

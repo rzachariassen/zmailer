@@ -1,14 +1,14 @@
 #!/bin/sh
 #
-# zmailer       This shell script takes care of starting and stopping
-#               ZMailer.
+# zmailer      Zmailer Mail Transfer Agent
 #
 # chkconfig: 2345 80 30
 # description: ZMailer is a Mail Transport Agent, which is the program \
 #              that moves mail from one machine to another.
 # processname: router scheduler smtpserver
-# config: /etc/zmailer/zmailer.conf
 # pidfile: /var/spool/postoffice/.pid.scheduler .pid.smtpserver .pid.router
+# config: /etc/zmailer
+#
 
 # Source function library.
 if [ -f /etc/rc.d/init.d/functions ] ; then
@@ -16,14 +16,14 @@ if [ -f /etc/rc.d/init.d/functions ] ; then
 		elif [ -f /etc/init.d/functions ] ; then
 			. /etc/init.d/functions
 			else
-				exit 1
+				exit 0
 fi
 
 # Source networking configuration.
 if  [ -f  /etc/sysconfig/network ] ; then
 	. /etc/sysconfig/network
 	else
-		exit 1
+		exit 0
 fi
 
 # Check that networking is up.
@@ -33,28 +33,33 @@ fi
 if [ -f /etc/zmailer/zmailer.conf ] ; then
 	. /etc/zmailer/zmailer.conf
 else 
-	exit 1
+	exit 0
 fi
 
-[ -f $MAILBIN/zmailer ] || exit 1
+# Check zmailer script and directories
+[ -f $MAILBIN/zmailer ] || exit 0
+[ -d $MAILSHARE ] || exit 0
+[ -d $MAILBOX ] || exit 0
+[ -d $POSTOFFICE ] || exit 0
+[ -d $LOGDIR ] || exit 0
 
+# Here we go
 RETVAL=0
 
 start() {
 	# Start daemons.
-
 	if ( status scheduler || status router || status smtpserver ) | grep -v stop > /dev/null ; then
 		echo "Zmailer is running yet"
 	else
 		if [ "${SMTPSERVER}" ]; then
 			$MAILBIN/zmailer smtp
 		elif [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
-			$MAILBIN/zmailer bootclean
-			$MAILBIN/zmailer
+			$MAILBIN/zmailer bootclean 
+			$MAILBIN/zmailer && success || failure
 		fi
 	RETVAL=$?
-	echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/zmailer
+	echo
 	return $RETVAL
 
 	fi
@@ -62,19 +67,22 @@ start() {
 
 stop() {
 	# Stop daemons.
-
 	if ( status scheduler || status router || status smtpserver ) | grep stop > /dev/null ; then
 		echo "Zmailer is not running"
 	else
 		if [ ${MAILSERVER-NONE} = NONE -a -x $MAILBIN/zmailer ]; then
-			$MAILBIN/zmailer kill
+			$MAILBIN/zmailer kill && success || failure
 		fi
 	RETVAL=$?
-        echo
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/zmailer $POSTOFFICE/.pid.*
+        echo
 	return $RETVAL
 
 	fi
+}
+restart() {
+	stop
+	start
 }
 
 # See how we were called.
@@ -85,24 +93,25 @@ case "$1" in
   stop)
         stop
         ;;
-  restart|reload)
+  reload)
 	stop
 	start
-	RETVAL=$?
 	;;
   status)
 	status router
 	status scheduler
 	status smtpserver
-	RETVAL=$?
         ;;
   logsync)
-        $MAILBIN/zmailer logsync
-        ;;
+	$MAILBIN/zmailer logsync
+	;;
+  condrestart)
+	[ -f /var/lock/subsys/zmailer ] && restart || :
+	;;
   *)
-	echo "Usage: $0 {start|stop|restart|reload|status|logsync}"
+	echo "Usage: $0 {start|stop|restart|reload|status|logsync|condrestart}"
 	exit 1
 	;;
 esac
 
-exit $RETVAL
+exit $?
