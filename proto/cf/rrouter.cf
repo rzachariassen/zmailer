@@ -25,6 +25,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		return $tmp
 
 	address="$(condquote "$address")"
+	tmp="$address"
 
 	#
 	# We have troublesome addresses coming here...
@@ -57,6 +58,11 @@ rrouter (address, origaddr, A, plustail, domain) {
 	tfiss
 
 	address=$(canonicalize "$address")
+
+	if [ "$tmp" != "$address" ]; then
+		tmp=$(fqdn_neighbour "$origaddr" "$address" $A) &&
+			return $tmp
+	fi
 
 	tsift "$address" in
 #	<in%>(.*)
