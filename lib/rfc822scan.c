@@ -229,7 +229,7 @@ nextline:
 	tp->t_type = type;
 	tp->t_len = len;
 	*np = n;
-	*cpp = (char*)cp-1;
+	*cpp = (char*)cp;
 	return len;
 }
 
@@ -373,7 +373,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 			    /* magic sign; NULL: no ending char */
 			    --t.t_len, ++(*cpp);
 				/* past first bracketing char */
-			  --t.t_len, ++(*cpp);
+			  --t.t_len;  /* ++(*cpp); */
 			  t.t_pname = ++cp;
 			}
 
