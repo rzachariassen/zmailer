@@ -650,6 +650,9 @@ runcommand(c, pc, retcodep, cmdname)
 
 	GCPRO1(c->argv);
 	if (c->argv) {	/* from tconc into list */
+
+		if (!LIST(c->argv)) *((int*)0) = 0; /* ZAP! */
+
 		c->argv = copycell(car(c->argv));
 		cdr(c->argv) = NULL;
 	}
@@ -1524,9 +1527,10 @@ fprintf(stderr,"%s:%d &command->buffer = %p\n",__FILE__,__LINE__,&command->buffe
 				}
 			}
 			if (command->argv == NULL) {
-				command->argv = newcell();
 GCPLABPRINTis(command->gcpro4);
+				command->argv = newcell();
 				command->argv->flags = 0;
+				command->argv->slen = 0; /* not needed */
 				cdr(command->argv) = NULL;
 				car(command->argv) = newcell();
 				car(command->argv)->flags = 0;
@@ -1671,10 +1675,21 @@ GCPLABPRINTis(command->gcpro4);
 				  progname, COMMANDMAXDEPTH);
 			  abort(); /* commandStack[] recursed too deep! */
 			}
+
 			memset(command, 0, sizeof(*command));
-			/* command->argv = command->envold =
-			   command->rval = command->buffer = NULL; */
 			command->bufferp = &command->buffer;
+			/* command->argv = command->envold =
+			   command->rval = command->buffer = NULL;
+			   command->doio = command->undoio = 0;
+			   command->execio = command->fdmask = 0;
+			   command->pgrp = 0;
+			   command->flag = 0;
+			   command->shcmdp = NULL;
+			   command->sfdp = NULL;
+			   command->next = NULL;
+			*/
+
+			command->iocmd = ioNil;
 #ifdef DEBUGxx
 fprintf(stderr,"%s:%d &command->buffer=%p\n",__FILE__,__LINE__,
 	&command->buffer);
@@ -1682,11 +1697,7 @@ fprintf(stderr,"%s:%d &command->buffer=%p\n",__FILE__,__LINE__,
 			GCPRO4STORE(command->,
 				    command->argv, command->rval,
 				    command->envold, command->buffer);
-			command->doio = command->undoio = command->execio = 0;
-			command->iocmd = ioNil;
-			command->fdmask = 0;
-			command->pgrp = 0;
-			command->flag = 0;
+
 			if (prevcommand != NULL) {	/* in pipe */
 				command->memlevel = prevcommand->memlevel;
 				command->pgrpp = prevcommand->pgrpp;
@@ -1694,9 +1705,6 @@ fprintf(stderr,"%s:%d &command->buffer=%p\n",__FILE__,__LINE__,
 				command->memlevel = getlevel(MEM_SHCMD);
 				command->pgrpp = NULL;
 			}
-			command->shcmdp = NULL;
-			command->sfdp = NULL;
-			command->next = NULL;
 			command->prev = prevcommand;
 			if (commandIndex > 1) {
 				/*
@@ -1869,8 +1877,8 @@ XXX: HERE! Must copy the output to PREVIOUS memory level, then discard
 			}
 			if (commandIndex > 0) {
 				pcommand = &commandStack[commandIndex];
-				while (command->argv != NULL
-					&& pcommand->flag & OSCMD_SKIPIT) {
+				while (command->argv != NULL &&
+				       pcommand->flag & OSCMD_SKIPIT) {
 				  UNGCPROSTORE4( commandStack[commandIndex]. );
 				  pcommand = &commandStack[--commandIndex];
 				}
