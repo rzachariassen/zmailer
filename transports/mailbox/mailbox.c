@@ -2078,7 +2078,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	  cp = cmdbuf+1;
 	  i = 0;
-	  for (; *cp != 0; ++cp) {
+	  while (*cp != 0) {
 	    while (*cp == ' ') ++cp;
 	    if (*cp == '\'') {
 	      argv[i++] = ++cp;
