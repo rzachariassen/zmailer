@@ -1,5 +1,41 @@
 2003-02-06  Matti Aarnio  <mea@zmailer.org>
 
+	* compat/sendmail/sendmail.c, libsh/builtins.c, libsh/execute.c,
+	  router/libdb/bsdbtree.c, router/libdb/bsdhash.c, router/libdb/ndbm.c,
+	  transports/libta/ctlopen.c
+	     Do  #include <errno.h>  -- that is definitely needed
+	     for correctly compiling code at glibc 2.3.1+,  but is
+	     correct for other cases, too.
+
+	* transports/smtp/smtp.c:
+	    Convert couple  LOG_ERR  level syslog()s to   LOG_NOTICE.
+	    They don't quite deserve being blasted to people's consoles..
+
+	* transports/smtp/smtp.c, transports/smtp/smtp.h, transports/smtp/smtptls.c:
+	    Additional "writeclosed" flag to inform that the socket shall not
+	    be written no, no matter what.
+
+	* libsh/execute.c, libsh/zmsh.c:
+	    Added option 'J' into ZMSH interpreter to trace a subset of 'I'
+	    traced things.
+
+	* libsh/expand.c,  libsh/interpret.c:
+	    Disable eating away backquotes from expanded variable values.
+	    EFFECTS TO BE TESTED MORE THOROUGH!
+
+	* proto/cf/aliases.cf, proto/cf/rrouter.cf, proto/cf/server.cf:
+	    Moved  $(dequote ...)  calls into separate variable assignments
+	    to analyze things for backquote (non-)processing.
+
+	* libsh/path.c:
+	    Don't include <sfio.h>,  it isn't needed.
+
+	* router/daemonsub.c:
+	    If message has been (tried to) process earlier, and the "lock pid"
+	    is ours, do process the message, otherwise see at first if the system
+	    has a process with that pid in it, then skip that item..
+	    (FIXME: this is not perfect...)
+
 	* libsh/regex.h:
 	    Moving one #endif upwards a bit to make sure
 	    there is always some definition for  __restrict  et.al.
