@@ -1,5 +1,10 @@
 2004-10-07  Matti Aarnio  <mea@zmailer.org>
 
+	* smtpserver/subdaemons.c, smtpserver/subdaemon-rtr.c:
+	    Reworked (more carefully) of how the round-robin job
+	    queueing should work.  Now there is perhaps a bit of
+	    fairness in job processing.
+
 	* man/smtpserver.8.in:
 	    Document (in man-page) about the 'msgratelimit nn,mm'
 	    syntax parameter.

@@ -517,15 +517,18 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	    if (last_peer_index >= top_peer)
 	      last_peer_index = 0;             /* Wrap around */
 
-#if 0
+#if 1
 	    peer = & peers[ last_peer_index ]; /* Round-robin;
 						  in abominal overload
 						  this means that nobody
 						  gets service.
 					       */
+#if 0
+#define CONTINUOUS_RR_COUNTING 1
 	    ++ last_peer_index;		/* Continuous RR index counting,
 					   sending may stop at somewhere,
 					   but the counter progresses.. */
+#endif
 #else
 	    peer = & peers[ n ];     /* Low slots get service;
 					in abominal overload this means
@@ -533,38 +536,50 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 					some others don't get it.
 				     */
 #endif
-	    if (peer->fd >= 0 && peer->inlen > 0) {
+	    if (peer->in_job) {
 
-	      if (peer->in_job) {
-		rc = (subdaemon_handler->input)( statep, peer );
+	      /* Has a job, advance only, if was able to process it */
+
+	      rc = (subdaemon_handler->input)( statep, peer );
 #ifdef DEBUG_WITH_UNLINK
-		{
-		  char pp[50];
-		  sprintf(pp,"/tmp/-input-from-peer-%d->%d",peer->fd,rc);
-		  unlink(pp);
-		}
-#endif
-		if (rc > 0) {
-		  /* XOFF .. busy right now, come back again.. */
-		  break;
-		} else if (rc == 0) {
-		  /* XON .. give me more jobs */
-		  peer->in_job = 0; /* Done that one.. */
-		  /* ++last_peer_index; */
-#if 1
-		  continue; /* go and pick next task talker, if any */
-#else
-		  subdaemon_pick_next_job( peers, top_peer,
-					   subdaemon_handler, statep );
-#endif
-		} else {
-		  /* Xnone .. ??
-		     Can't handle ?? */
-		}
+	      {
+		char pp[50];
+		sprintf(pp,"/tmp/-input-from-peer-%d->%d",peer->fd,rc);
+		unlink(pp);
 	      }
+#endif
+	      if (rc > 0) {
+		/* XOFF .. busy right now, come back again.. */
+		/* Do NOT advance the job pointer! */
+		break;
+	      } else if (rc == 0) {
+		/* XON .. give me more jobs */
+		peer->in_job = 0; /* Done that one.. */
+
+#ifndef CONTINUOUS_RR_COUNTING
+		/* Sent it ok, go to next task */
+		++last_peer_index;
+#endif
+		continue; /* go and pick next task talker, if any */
+	      } else {
+		/* Xnone .. ??
+		   Can't handle ??
+		   Won't happen ??
+		   Code Bug ?? */
+#ifndef CONTINUOUS_RR_COUNTING
+		/* Advance, just in case */
+		++last_peer_index;
+#endif
+	      }
+	    } else {
+
+#ifndef CONTINUOUS_RR_COUNTING
+	      /* No job to be processed,
+		 advance in every case */
+	      ++last_peer_index;
+#endif
 	    }
 	  }
-
 
 	} /* ... for(;;) ... */
 

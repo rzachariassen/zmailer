@@ -269,7 +269,7 @@ subdaemon_handler_rtr_input (state, peerdata)
 	      tv.tv_sec = 1;
 	      tv.tv_usec = 0;
 	      select(0, NULL, NULL, NULL, &tv); /* Sleep about 1 sec.. */
-	      return EAGAIN;
+	      return 2; /* WAIT!  actually this is an error situation.. */
 	    }
 
 	    /* Now   RTR->fromfd   is in NON-BLOCKING MODE!
@@ -294,7 +294,7 @@ subdaemon_handler_rtr_input (state, peerdata)
 	  return 0; /* I _MAY_ be able to take more work! */
 	}
 
-	return EAGAIN;  /* Do come again! */
+	return 1;  /* Do come again! */
 }
 
 
