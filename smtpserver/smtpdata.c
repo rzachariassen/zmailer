@@ -179,66 +179,64 @@ const char *buf, *cp;
 	  type(SS, 552, m571, "Content-Policy msg: %s", ss ? ss : "rejected");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
-	}
+	} else if (SS->policyresult > 0) {
+	  char polbuf[20];
+	  struct stat stbuf;
+	  char *ss = policymsg(policydb, &SS->policystate);
 
-	if (SS->policyresult > 0) {
-	    char polbuf[20];
-	    struct stat stbuf;
-	    char *ss = policymsg(policydb, &SS->policystate);
-
-	    fflush(SS->mfp);
-	    fstat(FILENO(SS->mfp), &stbuf);
-	    runasrootuser();
-	    sprintf(polbuf,"policy-%d",SS->policyresult);
-	    if (mail_close_alternate(SS->mfp, FREEZERDIR, polbuf) != 0) {
-	      type(NULL,0,NULL,
-		   "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
-		   polbuf, errno, strerror(errno));
-	      type(SS, 452, m430, "Message file disposition failed");
-	      typeflush(SS);
-	      SS->mfp = NULL;
-	      reporterr(SS, tell, "message file close failed");
-	    } else {
-	      static int freezecnt = 1;
-	      freezecnt <<= 1;
-	      sleep(freezecnt);
-	      type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
-	      typeflush(SS);
-	      SS->mfp = NULL;
-	      zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze[%d]",
-		       (int) stbuf.st_ino, (int) stbuf.st_size,
-		       SS->rhostname, SS->rport, SS->policyresult));
-	    }
-	    runastrusteduser();
+	  fflush(SS->mfp);
+	  fstat(FILENO(SS->mfp), &stbuf);
+	  runasrootuser();
+	  sprintf(polbuf,"policy-%d",SS->policyresult);
+	  if (mail_close_alternate(SS->mfp, FREEZERDIR, polbuf) != 0) {
+	    type(NULL,0,NULL,
+		 "mail_close_alternate(..'FREEZER','%s') failed, errno=%d (%s)",
+		 polbuf, errno, strerror(errno));
+	    type(SS, 452, m430, "Message file disposition failed");
+	    typeflush(SS);
+	    SS->mfp = NULL;
+	    reporterr(SS, tell, "message file close failed");
+	  } else {
+	    static int freezecnt = 1;
+	    freezecnt <<= 1;
+	    sleep(freezecnt);
+	    type(SS, 250, "2.6.0", "message accepted; into freezer[%d] area; %s", SS->policyresult, ss ? ss : "");
+	    typeflush(SS);
+	    SS->mfp = NULL;
+	    zsyslog((LOG_INFO, "accepted id %d (%dc) from %s/%d into freeze[%d]",
+		     (int) stbuf.st_ino, (int) stbuf.st_size,
+		     SS->rhostname, SS->rport, SS->policyresult));
+	  }
+	  runastrusteduser();
 	} else {
 
-	    /*  Ok, we didn't have smtp-policy defined freezer action,
-		lets see if we do it some other way.. */
+	  /*  Ok, we didn't have smtp-policy defined freezer action,
+	      lets see if we do it some other way.. */
 
-	    if (_mail_close_(SS->mfp, &ino, &mtime) == EOF) {
-		type(SS, 452, m430, (char *) NULL);
-		typeflush(SS);
-		SS->mfp = NULL;
-		reporterr(SS, tell, "message file close failed");
-	    } else {
-		/* Ok, build response with proper "spoolid" */
-		char fnam[20], taspid[30];
-		sprintf(fnam, "%d", ino);
-		taspoolid(taspid, mtime, (long)ino);
+	  if (_mail_close_(SS->mfp, &ino, &mtime) == EOF) {
+	    type(SS, 452, m430, (char *) NULL);
+	    typeflush(SS);
+	    SS->mfp = NULL;
+	    reporterr(SS, tell, "message file close failed");
+	  } else {
+	    /* Ok, build response with proper "spoolid" */
+	    char fnam[20], taspid[30];
+	    sprintf(fnam, "%d", ino);
+	    taspoolid(taspid, mtime, (long)ino);
 
-		SS->mfp = NULL;
-		type(SS, 250, "2.6.0", "%s message accepted", taspid);
-		typeflush(SS);
+	    SS->mfp = NULL;
+	    type(SS, 250, "2.6.0", "%s message accepted", taspid);
+	    typeflush(SS);
 
-		if (smtp_syslog)
-		  zsyslog((LOG_INFO,
-			   "%s: (%ldc) accepted from %s/%d", taspid, tell,
-			   SS->rhostname, SS->rport));
+	    if (smtp_syslog)
+	      zsyslog((LOG_INFO,
+		       "%s: (%ldc) accepted from %s/%d", taspid, tell,
+		       SS->rhostname, SS->rport));
 		
-		type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
-		if (logfp)
-		  fflush(logfp);
-	    }
+	    type(NULL,0,NULL,"%s: %ld bytes", taspid, tell);
+	    if (logfp)
+	      fflush(logfp);
+	  }
 	}
     }
 
@@ -391,9 +389,7 @@ type(NULL,0,NULL,
 	  type(SS, 552, m571, "Content-Policy msg: %s", ss ? ss : "rejected");
 	  mail_abort(SS->mfp);
 	  SS->mfp = NULL;
-	}
-
-	if (SS->policyresult > 0) {
+	} else if (SS->policyresult > 0) {
 	  struct stat stbuf;
 	  char *ss = policymsg(policydb, &SS->policystate);
 	  fflush(SS->mfp);

@@ -482,7 +482,7 @@ _mail_close_(fp,inop, mtimep)
 	ino = stb.st_ino;
 
 	if (routersubdirhash > 0) {
-	  sprintf(subdirhash, "%c/", 'A' + (ino % 26));
+	  sprintf(subdirhash, "%c/", (int)('A' + (ino % 26)));
 	} else
 	  *subdirhash = 0;
 

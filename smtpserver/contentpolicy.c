@@ -106,9 +106,10 @@ const char *fname;
   fprintf(cpol_tofp, "%s\n", fname);
   fflush(cpol_tofp);
 
-  for (c = i = 0; c != '\n' && i < sizeof(responsebuf)-1; ++i) {
+  for (c = i = 0; i < sizeof(responsebuf)-1; ++i) {
     if (ferror(cpol_fromfp) || feof(cpol_fromfp)) break;
     c = fgetc(cpol_fromfp);
+    if (c == '\n') break;
     responsebuf[i] = c;
   }
   responsebuf[i] = 0;
@@ -117,7 +118,7 @@ const char *fname;
     c = fgetc(cpol_fromfp);
   }
 
-  type(NULL,0,NULL, "%s", responsebuf);
+  type(NULL,0,NULL, "policyprogram said: %s", responsebuf);
 
   /* on non-zero return, do set  state->message  on free()able storage ! */
 
