@@ -1990,7 +1990,9 @@ optsave(type, e)
 				sprintf(name,"_%s", fyitable[i].fyiname);
 				squirrel(e, name, fyitable[i].fyitext);
 			}
-			fprintf(stderr, "*** %s\n", fyitable[i].fyitext);
+			fprintf(stderr, "%s: *** %s\n",
+				e->e_spoolid,
+				fyitable[i].fyitext);
 			return;
 		}
 	}
