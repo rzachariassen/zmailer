@@ -3388,8 +3388,9 @@ smtp_sync(SS, r, nonblocking)
 	    if (len < 0)
 	      err = errno;
 	    
+#ifdef HAVE_OPENSSL
 	  have_some_data:
-
+#endif
 	    if (len < 0) {
 	      /* Some error ?? How come ?
 		 We have select() confirmed input! */
