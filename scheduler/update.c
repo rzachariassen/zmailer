@@ -261,7 +261,7 @@ void unvertex(vp, justfree, ok)
 	register struct vertex *vp;
 	int justfree, ok;
 {
-	int	i, removeme;
+	int	i;
 
 	if (vp->ngroup > 0)
 	  return;
@@ -273,9 +273,10 @@ void unvertex(vp, justfree, ok)
 
 	if (vp->proc) {
 	  /* Somebody here, move it elsewere! */
-	  /* XXXX: This MAY happen -- expire() hits when some
-	     XXXX: thread is being processed...               */
-	  assert_pvertex_null(vp);
+	  /* This MAY happen -- expire() hits when some
+	     thread is coming into processing...            */
+	  if (vp->proc->pvertex == vp)
+	    pick_next_vertex(vp->proc);
 	}
 
 	for (i = 0; i < SIZE_L; ++i) {
