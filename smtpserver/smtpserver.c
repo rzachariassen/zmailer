@@ -1863,10 +1863,10 @@ va_dcl
 #endif
 {
     va_list ap;
-    const char *s = inbuf + 3 + strlen(status) + 1;
     int maxcnt = 200;
     int abscode;
     const char *a1, *a2, *a3, *a4;
+    const char *s;
 
 #ifdef HAVE_STDARG_H
     va_start(ap, msg);
@@ -1881,6 +1881,9 @@ va_dcl
     inbuf = va_arg(ap, const char *);
     msg = va_arg(ap, const char *);
 #endif
+
+    s = inbuf + 3 + strlen(status) + 1;
+
     /* These are not always safe... but they should be ok
        if we are carrying  (char*)s or (int)s.. */
     a1 = va_arg(ap, const char *);
