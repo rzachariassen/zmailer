@@ -1,12 +1,5 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
-DECNET route handling BUG  (rrouter.cf ?)
-	"NODE::USER"@gw.host  ->  NODE::USER@gw.host  ->  USER@gw.host@NODE
-    which is WRONG!  Uaargh...
-
-"zmailer newdb"
-	Update also  mboxmap  if it exists..
-
 mailq: man-page update to match all options
 
 "make install": (Eugene Crosser)
