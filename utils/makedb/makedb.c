@@ -40,6 +40,8 @@ char *progname    = NULL;
 int   D_alloc     = 0;
 int   verbose     = 0;
 int   append_mode = 0;
+int   lc_key	  = 0;
+int   uc_key      = 0;
 
 /* extern char *strchr(); */
 
@@ -51,7 +53,7 @@ void usage(prog, errs, err)
 const char *prog, *errs;
 int err;
 {
-	fprintf(stderr, "Usage: %s [-A][-a|-p] dbtype database.name [infilename|-]\n", prog);
+	fprintf(stderr, "Usage: %s [-l|-u]] [-A][-a|-p] dbtype database.name [infilename|-]\n", prog);
 	fprintf(stderr, "  where supported dbtypes are:");
 #ifdef HAVE_NDBM_H
 	fprintf(stderr, " ndbm");
@@ -80,6 +82,8 @@ int err;
 	fprintf(stderr, "                     '  with,indented,extended,lines'\n");
 	fprintf(stderr, "  The '-p' option is for parsing smtpserver policy database.\n");
 	fprintf(stderr, "  The '-A' option APPENDS new data to existing keyed data.\n");
+	fprintf(stderr, "  The '-l' and '-u' will lower-/uppercasify key string before\n");
+	fprintf(stderr, "    storing it into the database.  This does not apply to '-p'.\n");
 	fprintf(stderr, " Error now: %s", errs);
 	fprintf(stderr, ", errno=%d (%s)", err, strerror(err));
 	fprintf(stderr, "\n");
@@ -459,8 +463,11 @@ const int typ;
 	int tlen, slen, llen;
 	char *s, *t;
 	char *t0 = NULL, *s0 = NULL;
-	int linenum = 0;
-	int errflag = 0;
+	int  linenum = 0;
+	int  errflag = 0;
+	int  longest = 0;
+	int  count   = 0;
+	long totsize = 0;
 
 	while ((llen = getline(infile)) != 0) {
 		++linenum;
@@ -484,6 +491,16 @@ const int typ;
 			if (t0 != NULL) {
 				tlen = strlen(t0) + 1;
 				slen = strlen(s0) + 1;
+
+				++count;
+				totsize += slen;
+				if (longest < slen)
+				  longest = slen;
+
+				if (uc_key)
+				  strupper(t0); /* Uppercasify the key */
+				if (lc_key)
+				  strlower(t0); /* Lowercasify the key */
 
 				if (store_db(dbf, typ, 0, linenum,
 					     t0, tlen, s0, slen) < 0)
@@ -524,7 +541,7 @@ const int typ;
 			continue;
 		}
 		if (*t == '\t' || *t == ' ') {
-			/* Continuaton line without previous key line */
+			/* Continuation line without previous key line */
 			fprintf(stderr,"Line %d: Continuation line without initial keying line\n", linenum);
 			errflag = 1;
 			continue;
@@ -535,6 +552,16 @@ const int typ;
 		if (t0 != NULL) {
 			tlen = strlen(t0) + 1;
 			slen = strlen(s0) + 1;
+
+			++count;
+			totsize += slen;
+			if (longest < slen)
+			  longest = slen;
+
+			if (uc_key)
+			  strupper(t0); /* Uppercasify the key */
+			if (lc_key)
+			  strlower(t0); /* Lowercasify the key */
 
 			if (store_db(dbf, typ, 0, linenum,
 				     t0, tlen, s0, slen) < 0)
@@ -571,11 +598,23 @@ const int typ;
 		tlen = strlen(t0) + 1;
 		slen = strlen(s0) + 1;
 
+		++count;
+		totsize += slen;
+		if (longest < slen)
+		  longest = slen;
+
+		if (uc_key)
+		  strupper(t0); /* Uppercasify the key */
+		if (lc_key)
+		  strlower(t0); /* Lowercasify the key */
+
 		(void) store_db(dbf, typ, 0, linenum,
 				t0, tlen, s0, slen);
 		if (t0) free(t0);  t0 = NULL;
 		if (s0) free(s0);  s0 = NULL;
 	}
+	fprintf(stdout, "%d aliases, longest %d bytes, %ld bytes total\n",
+		count, longest, totsize);
 	return errflag;
 }
 
@@ -628,7 +667,10 @@ const int typ;
 		while (*s && (*s == '\t' || *s == ' '))
 			++s;
 	    
-		strlower(t); /* Lowercasify the key */
+		if (uc_key)
+		  strupper(t); /* Uppercasify the key */
+		if (lc_key)
+		  strlower(t); /* Lowercasify the key */
 	    
 		tlen = strlen(t) + 1;
 		slen = strlen(s) + 1;
@@ -670,6 +712,12 @@ char *argv[];
 
     while ((c = getopt(argc, argv, "Aapv")) != EOF) {
 	switch (c) {
+	case 'l':
+	    lc_key = 1;
+	    break;
+	case 'u':
+	    uc_key = 1;
+	    break;
 	case 'A':
 	    append_mode = 1;
 	    break;
