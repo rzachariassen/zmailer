@@ -1150,12 +1150,10 @@ mime_received_convert(rp, convertstr)
 	char *convertstr;
 {
 	int convertlen = strlen(convertstr);
-	char *semic = NULL;
-	char **schdr = NULL;
-	int semicindex = -1;
+	int semicindex, receivedlen;
+	char *newreceived;
 
 	char **inhdr = *(rp->newmsgheadercvt);
-	char **hdro = NULL;
 	char *sc;
 
 	/* We have one advantage: The "Received:" header we
@@ -1169,45 +1167,33 @@ mime_received_convert(rp, convertstr)
 
 	sc = strrchr(*inhdr, ';');
 	if (sc) {
-	  semic = sc;
-	  schdr = inhdr;
 	  semicindex = sc - *inhdr;
-	}
-	hdro = inhdr;
-
-	/* Now 'semic' is either set, or not; if set, 'schdr' points
-	   to the begin of the line where it is.
-	   If 'semic' is not set, 'hdro' will point to the last line
-	   of the 'Received:' header in question */
-
-	if (!semic) {
-	  schdr = hdro;
-	  semicindex = strlen(*schdr);
-	  semic = *schdr + semicindex;
+	} else {
+	  semicindex = strlen(*inhdr);
+	  sc = *inhdr + semicindex;
 	}
 
-	{
-	  int receivedlen = strlen(*schdr);
-	  char *newreceived = malloc(receivedlen + convertlen + 1);
-	  int  semicindex;
+	receivedlen = strlen(*inhdr);
+	newreceived = malloc(receivedlen + convertlen + 1);
 
-	  if (!newreceived) return 0; /* Failed malloc.. */
+	if (!newreceived) return 0; /* Failed malloc.. */
 
-	  semicindex = semic - *schdr;
-	  memcpy(newreceived, *schdr, semicindex);
-	  memcpy(newreceived+semicindex, convertstr, convertlen);
-	  strcpy(newreceived+semicindex+convertlen, (*schdr) + semicindex);
-	  newreceived[receivedlen + convertlen] = '\0';
+	memcpy(newreceived, *inhdr, semicindex);
+	memcpy(newreceived+semicindex, convertstr, convertlen);
+	if (semicindex < receivedlen)
+	  memcpy(newreceived+semicindex+convertlen, (*inhdr) + semicindex,
+		 receivedlen - semicindex);
+	newreceived[receivedlen + convertlen] = '\0';
 
-	  ctlfree(rp->desc,*schdr);
-	  *schdr = newreceived;
+	ctlfree(rp->desc,*inhdr);
+	*inhdr = newreceived;
 
-	  /* if (verboselog) {
-	     fprintf(verboselog,"Rewriting 'Received:' headers.\n");
-	     fprintf(verboselog,"The new line is: '%s'\n",*hdro);
-	     }
-	  */
-	}
+	/* if (verboselog) {
+	   fprintf(verboselog,"Rewriting 'Received:' headers.\n");
+	   fprintf(verboselog,"The new line is: '%s'\n",*inhdr);
+	   }
+	*/
+
 	return 1;
 }
 

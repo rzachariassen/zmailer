@@ -387,7 +387,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	d.verbose    = NULL;
 
 	headers_cnt = 0;
-	headers_spc = 1;
+	headers_spc = 2;
 	for (i = 0; i < n; ++i)
 	  if (contents[ d.offset[i] ] == _CF_MSGHEADERS)
 	    ++headers_spc;

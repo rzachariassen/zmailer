@@ -1,4 +1,11 @@
 2000-11-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/libta/mimeheaders.c:
+	    Simplify!  More of the simplification of code.
+
+	* transports/libta/ctlopen.c:
+	    add a bit to an allocation -- not that it really
+	    should matter, but ...
 	
 	* transports/smtp/smtp.c:
 	    sprinkled  smtp_flush() around places while hunting one
