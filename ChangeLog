@@ -1,3 +1,9 @@
+2002-09-10  Matti Aarnio  <mea@zmailer.org>
+
+	* scheduler/scheduler.c:
+	    Default the 'expiry2' to be zero, if it can't be set to
+	    be anything more appropriate.
+
 2002-09-06  Matti Aarnio  <mea@zmailer.org>
 
 	* SiteConfig.in:
@@ -27,6 +33,9 @@
 	    the same thing as with e.g. sendmail.  Also clean
 	    up the received string to have only printable
 	    characters in ISO-8859-* character-sets.
+	    All that this could have done in ZMailer is to pick
+	    garbage data from beyond the (received) buffer, not
+	    overwrite anything.
 
 	* contrib/clean-mean-contentfilter-1.00.tar.gz:
 	    Package from Eugene Crosser: "if you think it's worth,

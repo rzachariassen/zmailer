@@ -2658,10 +2658,10 @@ static void vtxdo(vp, cehdr, path)
 	else
 	  vp->ce_expiry = 0;
 
-	if (tp->expiry2 > 0)
-	  vp->ce_expiry2 = tp->expiry2 + vp->cfp->mtime;
+	if (tp->expiry2 > 0 && tp->expiry > 0)
+	  vp->ce_expiry2 = tp->expiry2 + vp->ce_expiry;
 	else
-	  vp->ce_expiry2 = vp->ce_expiry;
+	  vp->ce_expiry2 = /* vp->ce_expiry */ 0;
 
 	if (vp->ce_expiry2 < vp->ce_expiry)
 	  vp->ce_expiry2 = vp->ce_expiry + 24*3600;
