@@ -1556,7 +1556,7 @@ run_listexpand(avl, il)
 	al = NULL;
 	for (ap = aroot; ap != NULL; ap = ap->a_next) {
 		int rc;
-		int omem;
+		memtypes omem;
 		conscell *l, *lrc;
 		char *s2, *se;
 
