@@ -3216,6 +3216,7 @@ smtp_sync(SS, r, nonblocking)
 	static int continuation_line = 0;
 	static int first_line = 1;
 	char *status = NULL;
+	int statesave;
 
 	SS->smtp_outcount = 0;
 	SS->block_written = 0;
@@ -3386,6 +3387,10 @@ smtp_sync(SS, r, nonblocking)
 	    continuation_line = 1;
 	  }
 
+	  statesave = SS->cmdstate;
+
+	  SS->cmdstate = SS->pipestates[idx];
+
 	  if (first_line)
 	    rmsgappend(SS, 0, "\r<<- %s",
 		       SS->pipecmds[idx] ? SS->pipecmds[idx] : "(null)");
@@ -3396,6 +3401,9 @@ smtp_sync(SS, r, nonblocking)
 	  first_line = !continuation_line;
 
 	  rmsgappend(SS, 1, "\r->> %s", s);
+
+	  SS->cmdstate = statesave;
+
 
 	  if (continuation_line)
 	    goto rescan_line_0;
@@ -3622,16 +3630,20 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      SS->pipecmds  = (char**)malloc(SS->pipespace * sizeof(char*));
 	      SS->pipercpts = (struct rcpt **)malloc(SS->pipespace *
 						     sizeof(struct rcpt*));
+	      SS->pipestates = (int*)malloc(SS->pipespace * sizeof(int));
 	    } else {
 	      SS->pipecmds  = (char**)realloc((void**)SS->pipecmds,
 					      SS->pipespace * sizeof(char*));
 	      SS->pipercpts = (struct rcpt **)realloc((void**)SS->pipercpts,
 						      SS->pipespace *
 						      sizeof(struct rcpt*));
+	      SS->pipestates  = (int*)realloc((void*)SS->pipestates,
+					      SS->pipespace * sizeof(int));
 	    }
 	  }
-	  SS->pipecmds [SS->pipeindex] = strdup(strbuf);
-	  SS->pipercpts[SS->pipeindex] = syncrp; /* RCPT or NULL */
+	  SS->pipecmds  [SS->pipeindex] = strdup(strbuf);
+	  SS->pipercpts [SS->pipeindex] = syncrp; /* RCPT or NULL */
+	  SS->pipestates[SS->pipeindex] = SS->cmdstate;
 	  SS->pipeindex += 1;
 
 	} /* ... end of if(pipelining) */

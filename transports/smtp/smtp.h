@@ -346,6 +346,7 @@ typedef struct {
   int pipereplies;		/* Replies handled so far */
   char **pipecmds;
   struct rcpt **pipercpts;	/* recipients -""- */
+  int *pipestates;
 
   int rcptcnt;			/* PIPELINING variables */
   int rcptstates;
