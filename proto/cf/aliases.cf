@@ -262,7 +262,7 @@ routeuser (quad, plustail, domain) {
 	if [ -z "$didexpand" ] && a="$(aliases "$user")" ; then
 		db add expansions "$key" alias
 		nattr=$(newattribute $attr privilege $priv \
-			sender "\\$user")
+			sender "$user")
 
 		return $(echo "$a" |			\
 			 listaddresses	-E "root"	\
@@ -408,7 +408,7 @@ routeuser (quad, plustail, domain) {
 		if a="$(aliases "\1+")"; then
 		  db add expansions "$key" alias
 		  nattr=$(newattribute $attr privilege $priv \
-			  sender "\\\1")
+			  sender "\1")
 
 		  return $(echo "$a" |			\
 			 listaddresses	-E "root"	\
