@@ -1,10 +1,10 @@
 <CHAPTER ID="ZADM-ROUTER"><?dbhtml filename="zadm-router.html">
-<TITLE><EMPHASIS>Router</> Configuration</TITLE>
+<TITLE>Router Configuration</TITLE>
 
 <PARA>
 The names (determined at compile-time) and interface specifications for the
 routing and crossbar functions, are the only crucial ``magical'' things one
-needs to contend with in a proper <EMPHASIS>router</> configuration.
+needs to contend with in a proper <COMMAND>router</> configuration.
 The syntax and semantics of the configuration file's contents are dealt
 with in the following subsection. The details of the two functions
 introduced here are specified after that, once the necessary background
@@ -12,9 +12,9 @@ information has been given.
 </PARA>
 
 <PARA>
-<EMPHASIS>Router</> behavior is controlled by a configuration file read at
+<COMMAND>Router</> behavior is controlled by a configuration file read at
 startup. It is a <COMMAND>zmsh</>(1) script that uses facilities provided
-built into the <EMPHASIS>router</>.
+built into the <COMMAND>router</>.
 </PARA>
 
 <PARA>
@@ -23,7 +23,7 @@ script at first glance.  There are minor syntax changes from standard
 <COMMAND>sh</>(1), but the aim is to be as close to the
 <EMPHASIS>Bourne Shell language</EMPHASIS> as is practical.
 The contents of the file are compiled into bytecode, which can then
-be interpreted by the <EMPHASIS>router</>.
+be interpreted by the <COMMAND>router</>.
 The configuration file is usually self-contained, although an easy
 mechanism exists to make use of external UNIX programs when so desired.
 Together with a very flexible database lookup mechanism, functions, and
@@ -33,22 +33,24 @@ accomplish its purpose. When the language is inadequate, or if speed
 becomes an issue, it is possible to call built in (C coded) functions. The
 interface to these functions is mostly identical to what a standalone
 program would expect (modulo symbol name clashes and return values), to
-ease migration of external programs to inclusion in the <EMPHASIS>router</>
+ease migration of external programs to inclusion in the <COMMAND>router</>
 process.
 </PARA>
 
-<SECT1><TITLE>Configuration File Programming Language</TITLE>
+<SECT1 ID=zadm-rtr-cfg-script-language>
+<TITLE>Configuration File Programming Language</TITLE>
 
 <PARA>
-Whenever the <EMPHASIS>router</> process starts, its first action
+Whenever the <COMMAND>router</> process starts, its first action
 is to read its configuration file.  The configuration file is a text
 file which contains statements interpreted immediately when the file
 is read.  Some statements are functions, in which case the function
 is defined at that point in reading the configuration file.
 The purpose of the configuration file is to provide a simple way to
 customize the behavior of routing process of the mailer, and this is
-primarily achieved by defining the <EMPHASIS ROLE="STRONG">router</> and
-<EMPHASIS ROLE="STRONG">crossbar</> functions.
+primarily achieved by defining the <LINK LINKEND=zmshref.router>
+<CITETITLE><FUNCTION>router</></></>, and <LINK LINKEND=zmshref.crossbar>
+<CITETITLE><FUNCTION>crossbar</></></> functions.
 For these to work properly, some initialization code and auxiliary
 functions will usually be needed.
 </PARA>
@@ -213,10 +215,10 @@ More about this later.
 
 <PARA>
 There are currently only three entry points (i.e. magic names known to the
-<EMPHASIS>router</> code) in the configuration scripts, namely the
-<EMPHASIS ROLE="STRONG">process</>(), the
-<EMPHASIS ROLE="STRONG">router</>(), and the
-<EMPHASIS ROLE="STRONG">crossbar</>() -functions.
+<COMMAND>router</> code) in the configuration scripts, namely the
+<FUNCTION>process</>, the
+<FUNCTION>router</>, and the
+<FUNCTION>crossbar</> -functions.
 </PARA>
 
 <ITEMIZEDLIST>
@@ -247,7 +249,7 @@ picked for recipient address security control functions.
 
 <LISTITEM>
 <PARA>
-The <EMPHASIS>crossbar()</> function is in charge of rewriting envelope
+The <FUNCTION>crossbar()</> function is in charge of rewriting envelope
 addresses, selecting message header address munging type (a function to
 be called with each message header address), and possibly doing per-message
 logging or enforcing restrictions deemed necessary.
@@ -263,7 +265,7 @@ accomplish this.
 
 
 <PARA>
-There is a fourth script entrypoint used by the <EMPHASIS>smtpserver</>
+There is a fourth script entrypoint used by the <COMMAND>smtpserver</>
 program, namely the <FUNCTION>server()</>, which is used to implement
 smtpserver's realtime support facilities for
 ``<USERINPUT>EXPN</>'' and ``<USERINPUT>VRFY</>'' commands, and optionally
@@ -272,7 +274,7 @@ and ``<USERINPUT>RCPT TO:&lt;&hellip;&gt;</>'' commands.
 </PARA>
 
 <PARA>
-The <EMPHASIS>router</> has several built in (C coded) functions.
+The <COMMAND>router</> has several built in (C coded) functions.
 Their calling sequence and interface specification is exactly
 the same as for the functions defined in the configuration file.
 Some of these functions have special semantics, and they fall
@@ -353,10 +355,12 @@ emulates a subset of ``<COMMAND>/bin/test</>''
 </PARA>
 
 <PARA>
-The <FUNCTION>relation</> function is described in ``<EMPHASIS>Databases</>'',
-section <XREF LINKEND="adm.Databases">.
-Functions <FUNCTION>trace</> and <FUNCTION>untrace</> are described in
-connection with debugging. 
+The <LINK LINKEND=zmshref.relation><CITETITLE><FUNCTION>relation</></></>
+function is described in ``<EMPHASIS>Databases</>'', at section
+<XREF LINKEND="zadm-rtr-databases">.
+Functions <LINK LINKEND=zmshref.trace><CITETITLE><FUNCTION>trace</></></>,
+and <LINK LINKEND=zmshref.untrace><CITETITLE><FUNCTION>untrace</></></>
+are described in connection with debugging. 
 </PARA>
 
 <PARA>
@@ -366,19 +370,23 @@ See <EMPHASIS>Logging and Statistics</>, section
 </PARA>
 
 <PARA>
-The <FUNCTION>hostname</> function requires some further explanation.
+The <LINK LINKEND=zmshref.hostname><CITETITLE><FUNCTION>hostname</></></>
+function requires some further explanation.
 It is intended to emulate the BSD UNIX <COMMAND>/bin/hostname</>
 functionality, except that setting the hostname will only set
-the <EMPHASIS>router's</> idea of the hostname, not the system's.
+the <COMMAND>router</>'s idea of the hostname, not the system's.
 Doing so will enable generation of ``Message-Id:'' and ``Received:''
-``trace'' headers on all messages processed by the <EMPHASIS>router</>.
-<!-- -->
+``trace'' headers on all messages processed by the <COMMAND>router</>.
+</PARA>
 
-It is done this way since the <EMPHASIS>router</> needs to know the official
+<PARA>
+It is done this way since the <COMMAND>router</> needs to know the official
 domain name of the local host in order to properly generate these headers,
 and this method is cleaner than reserving a magic variable for the purpose.
-<!-- -->
-The <EMPHASIS>router</> cannot assume the hostname reported by the system is
+</PARA>
+
+<PARA>
+The <COMMAND>router</> cannot assume the hostname reported by the system is
 a properly qualified domain name, so the configuration file may generate it
 using whichever method it chooses.
 </PARA>
@@ -424,7 +432,7 @@ shown in figure <XREF LINKEND="fig.adm.testing">.
 </PARA>
 
 <FIGURE ID="fig.adm.testing" PGWIDE="1" FLOAT="1">
-<TITLE>Example of running tests on <EMPHASIS>router</></TITLE>
+<TITLE>Example of running tests on <COMMAND>router</></TITLE>
 <SCREEN>
 sh$ $MAILBIN/router -i         (select interactive mode)
 z$ rtrace                      (turn tracing on)
@@ -440,11 +448,11 @@ Once satisfied that routing works, command:
 <SCREEN>
   zmailer router
 </SCREEN>
-will restart the <EMPHASIS>router</>.
+will restart the <COMMAND>router</>.
 </PARA>
 
 <PARA>
-You can also run the <EMPHASIS>router</> directly on a message.
+You can also run the <COMMAND>router</> directly on a message.
 Copy your message to someplace other than the postoffice
 (<FILENAME CLASS="DIRECTORY">/tmp/</> is usually good), to a numeric
 file name.
@@ -453,12 +461,13 @@ If the file name is ``<FILENAME>123</>'', you run
   $MAILBIN/router 123
 </SCREEN>
 this will create the file ``<FILENAME>.123</>'' containing the control
-information produced by the <EMPHASIS>router</>.
+information produced by the <COMMAND>router</>.
 </PARA>
 </SECT1>
 
 
-<SECT1 ID="adm.Databases"><TITLE>Databases</TITLE>
+<SECT1 ID="zadm-rtr-databases">
+<TITLE>Databases</TITLE>
 
 <PARA>
 Many of the decisions and actions taken by configuration file code depend
@@ -476,7 +485,7 @@ It is also undesirable to change what is really a program
 <PARA>
 The desirable solution to this data abstraction problem is to provide a way
 for the configuration file programmer to manage such information externally
-to ZMailer, and access it from within the <EMPHASIS>router</>.
+to ZMailer, and access it from within the <COMMAND>router</>.
 The logical way to do this is to have an interface to externally
 maintained databases.
 These databases need not be terribly complicated;
@@ -489,7 +498,7 @@ words.
 <PARA>
 However, there are many ways to organize databases, and the necessary
 interfaces cannot be known in advance.
-The <EMPHASIS>router</> therefore implements a framework that allows
+The <COMMAND>router</> therefore implements a framework that allows
 flexible interfacing to databases, and easy extension to cover new types
 of databases.
 </PARA>
@@ -530,7 +539,7 @@ the lookup routine which table of several in a database one is interested in.
 </PARA>
 
 <PARA>
-There are no predefined relations in the <EMPHASIS>router</>.
+There are no predefined relations in the <COMMAND>router</>.
 They must all be specified in the configuration file before first use.
 This is done by calling the special function <FUNCTION>relation</> with
 various options, as indicated by the usage strings printed by
@@ -768,7 +777,7 @@ same way, using the same names, independent of their actual definition.
 <PARA>
 {\bf\Large CHECK! (-i option!)}
 As the comment says, the relation name <EMPHASIS>aliases</> has
-special significance to the <EMPHASIS>router</>.
+special significance to the <COMMAND>router</>.
 Although the relation is not special in any other way (i.e. it can
 be used in the normal fashion), the semantics of the data retrieved
 are bound by assumptions in the aliasing mechanism.
@@ -804,7 +813,8 @@ information is maintained in a pathalias-format database
 (e.g. ``bar smtp!bar'' means to send mail to ``bar'' via the SMTP channel).
 </PARA>
 
-<SECT2><TITLE>Using a Pathalias Database</TITLE>
+<SECT2 ID=zadm-rdr-databases-using>
+<TITLE>Using a Pathalias Database</TITLE>
 
 <PARA>
 Accessing route databases is a rather essential capability for a mailer.
@@ -896,9 +906,9 @@ consider the NFS with the user home directories in other machines&hellip;)
 <PARA>
 An alternate mechanism is to implement lists in the traditional
 <APPLICATION>sendmail</> manner, however it means feeding the message
-to the <EMPHASIS>scheduler</>, and external program
-(<EMPHASIS>>/usr/lib/sendmail</>) before it comes back to
-the <EMPHASIS>router</>.
+to the <COMMAND>scheduler</>, and external program
+(<COMMAND>>/usr/lib/sendmail</>) before it comes back to
+the <COMMAND>router</>.
 </PARA>
 
 <PARA>
@@ -967,7 +977,8 @@ script (two generations are provided in
 in the sources).
 </PARA>
 
-<SECT3><TITLE><FILENAME>aliases.cf</> Logic</TITLE>
+<SECT3 ID="zadm-rtr-aliases.cf-logic">
+<TITLE><FILENAME>aliases.cf</> Logic</TITLE>
 
 <PARA> FIXME! FIXME! -- VERIFY! UPDATE!
 </PARA>
@@ -1021,7 +1032,8 @@ to ensure local spool mailbox delivery for local users.
 
 </SECT3>
 
-<SECT3><TITLE>aliases</TITLE>
+<SECT3 ID=zadm-rtr-aliases>
+<TITLE>aliases</TITLE>
 
 <PARA> FIXME! FIXME! -- aliases db regeneration methods have changed since
 </PARA>
@@ -1029,7 +1041,7 @@ to ensure local spool mailbox delivery for local users.
 
 <PARA>
 The file containing the actual aliasing data is automatically created by
-the <EMPHASIS>router</> when asked to reconstruct the aliases database.
+the <COMMAND>router</> when asked to reconstruct the aliases database.
 It does this based on a text file containing the alias definitions.
 This text file, which corresponds to the <APPLICATION>sendmail</> aliases
 file, consists of individual alias definitions, possibly separated by blank
@@ -1050,7 +1062,7 @@ The string ``{\tt :include:}'' at the start of a local-part
 {\em Sendmail} would strip this prefix, and regard the rest of the local-part
 as a path to a file containing a list of addresses to be included in the alias
 expansion.
-Indeed, the <EMPHASIS>router</> behaves in the same manner, but because some of
+Indeed, the <COMMAND>router</> behaves in the same manner, but because some of
 the characters in the prefix are RFC822 specials, the entire local-part
 must be quoted.
 Thus, whereas <COMMAND>sendmail</>(8) allowed:
@@ -1079,7 +1091,9 @@ a slash character (`{\tt /}') is treated as mail destined for the file named
 by the local-part.
 </PARA>
 
-<TABLE FRAME=NONE><TITLE>General format of Alias file entries:</TITLE>
+<FIGURE PGWIDE=0 FLOAT=0 ID=fig.zadm-router-aliases-figure>
+<TITLE>General format of Alias file entries:</TITLE>
+<INFORMALTABLE FRAME=NONE>
 <TGROUP COLS=2>
 <THEAD>
 <ROW ROWSEP=1>
@@ -1098,7 +1112,8 @@ by the local-part.
 </ROW>
 </TBODY>
 </TGROUP>
-</TABLE>
+</INFORMALTABLE>
+</FIGURE>
 
 <PARA>
 Protection of the aliases database must be at least 0644.
@@ -1145,7 +1160,8 @@ as such, there is no way to avoid this requirement.)
 
 </SECT3>
 
-<SECT3><TITLE>About Large Lists, and Memory Consumption</TITLE>
+<SECT3 ID=zadm-rtr-memory-consumption>
+<TITLE>About Large Lists, and Memory Consumption</TITLE>
 
 <PARA> FIXME! FIXME! -- VERIFY! UPDATE!
 (router internal memory management has improved dramatically at
@@ -1174,7 +1190,7 @@ of objects &mdash; it uses memory in a form of heap storage which is
 allocated progressively and managed via ``<FUNCTION>mark</>()'', and
 ``<FUNCTION>release</>()'' type calls.
 The ``<FUNCTION>release</>()'' calls are done when exiting
-``<EMPHASIS>zmsh</>'' interpreter, and never during script running
+``<COMMAND>zmsh</>'' interpreter, and never during script running
 (however calling builtin C functions which call scripts is another
 story &mdash; there are ``<FUNCTION>release</>()'' checkpoints
 available then.)
@@ -1182,13 +1198,13 @@ available then.)
 
 <PARA>
 Especially bad thing for memory use to do is to use ``<FUNCTION>setf</>''
- unction.
+function.
 </PARA>
 
 <PARA>
 Internal list expansion (through the
  <FILENAME>$<VARNAME>MAILVAR</>/lists/LISTNAME</> 
-mechanism) is a sure way to expand <EMPHASIS>router</> process memory usage.
+mechanism) is a sure way to expand <COMMAND>router</> process memory usage.
 </PARA>
 
 <PARA>
@@ -1210,7 +1226,8 @@ a future version.
 
 </SECT3>
 
-<SECT3><TITLE>Security Considerations</TITLE>
+<SECT3 ID=zadm-rtr-security-considerations>
+<TITLE>Security Considerations</TITLE>
 
 <PARA>
 A LIST file must not be world writable, while most likely it can be

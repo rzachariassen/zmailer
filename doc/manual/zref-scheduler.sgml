@@ -1,7 +1,7 @@
 <!-- <!DOCTYPE chapter PUBLIC    "-//OASIS//DTD DocBook V3.1//EN"> -->
 
 <CHAPTER ID="ZREF-SCHEDULER"><?dbhtml filename="zref-scheduler.html">
-<TITLE><EMPHASIS>Scheduler</></TITLE>
+<TITLE><EMPHASIS>Scheduler Reference</></TITLE>
 
 <PARA>
 The <EMPHASIS>scheduler</> daemon manages the delivery processing

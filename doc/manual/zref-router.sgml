@@ -1,5 +1,5 @@
 <CHAPTER ID="ZREF-ROUTER"><?dbhtml filename="zref-router.html">
-<TITLE><COMMAND>Router</></TITLE>
+<TITLE><COMMAND>Router Reference</></TITLE>
 
 <PARA>
 The <COMMAND>router</> daemon makes all decisions affecting 
