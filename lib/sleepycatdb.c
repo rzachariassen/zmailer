@@ -90,7 +90,6 @@ static int readsleepycfg(prv)
 	  }
 	  if (CISTREQ(cmd,"envflags")) {
 	    /*   envflags = CDB, RO  */
-	    long envflags2 = 0;
 	    ZSE.envflags = 0;
 	    while (param && *param != 0) {
 	      char *p = param;
@@ -101,15 +100,13 @@ static int readsleepycfg(prv)
 
 	      if (CISTREQ(param, "cdb")) {
 #if defined(DB_INIT_CDB) && defined(DB_INIT_MPOOL)
-		ZSE.envflags = DB_INIT_CDB|DB_INIT_MPOOL;
+		ZSE.envflags |= DB_INIT_CDB|DB_INIT_MPOOL;
 		zseset = 1;
 #endif
 	      }
 	      if (CISTREQ(param, "create")) {
-#if defined(DB_INIT_CDB) && defined(DB_INIT_MPOOL)
-		envflags2 |= DB_CREATE;
+		ZSE.envflags |= DB_CREATE;
 		zseset = 1;
-#endif
 	      }
 	      if (CISTREQ(param, "ro")) {
 		prv->roflag = 1;
@@ -117,7 +114,6 @@ static int readsleepycfg(prv)
 	      param = p;
 
 	    }
-	    ZSE.envflags |= envflags2;
 	    continue;
 	  }
 	  if (CISTREQ(cmd,"envmode")) {
@@ -243,20 +239,25 @@ int zsleepyprivateopen(prv, roflag, mode, comment)
      int mode;
      char **comment;
 {
-	int err = 0;
+	volatile int err = 0;
 	DB *db = NULL;
 
+#if 0 /* Must always do environment init, even when doing R/O DB access */
 	if (prv->roflag && (roflag != O_RDONLY)) {
 	  return -1;
 	}
+#endif
 
 #if   defined(HAVE_DB3) || defined(HAVE_DB4)
 
 	if (prv->ZSE && prv->ZSE->envhome && !prv->ZSE->env) {
 	    if (comment) *comment = " environment of";
 
-	    err = db_env_create(&prv->ZSE->env, 0);
+	    err = db_env_create(& prv->ZSE->env, 0);
 	    if (err) return err; /* Uhh.. */
+
+	    prv->ZSE->env->set_errpfx(prv->ZSE->env, "router");
+	    prv->ZSE->env->set_errfile(prv->ZSE->env, stderr);
 
 	    if (prv->ZSE->tmpdir)
 	      err = prv->ZSE->env->set_tmp_dir(prv->ZSE->env,
@@ -268,6 +269,7 @@ int zsleepyprivateopen(prv, roflag, mode, comment)
 				 prv->ZSE->envhome,
 				 prv->ZSE->envflags,
 				 prv->ZSE->envmode);
+	    if (err) prv->ZSE->env->err(prv->ZSE->env, err, "envhome <%s> open failed", prv->ZSE->envhome ? prv->ZSE->envhome : "NULL");
 
 	    if (err) return err; /* Uhh.. */
 	}
