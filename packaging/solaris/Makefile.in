@@ -19,6 +19,8 @@ SENDMAILPATH=	@SENDMAILPATH@
 
 SHELL = /bin/sh
 
+SUFF =
+
 prefix = /
 
 all:
@@ -55,10 +57,13 @@ pkgs-01:	# DIRECTORIES, BINARIES
 	  ) \
 		| sort | uniq | pkgproto )  \
 		> proto
-	cat ${srcdir}/pkginfo-01.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
-	rm -rf ZMailer01
+	cat ${srcdir}/pkginfo-01.src | \
+		sed -e "s/%VERSION%/$(VERSION)/g" \
+		    -e "s/%SUFF%/${SUFF}/g" \
+		> pkginfo
+	rm -rf ZMailer01${SUFF}
 	pkgmk -o -f proto -b $(prefix) -d `/bin/pwd`
-	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer01.pkg ZMailer01
+	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer01${SUFF}.pkg ZMailer01${SUFF}
 
 pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	. $(ZCONF) ; \
@@ -72,7 +77,11 @@ pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	  ) \
 		| sort | uniq | pkgproto )  \
 		> proto
-	cat ${srcdir}/pkginfo-02.src | sed -e "s/%VERSION%/$(VERSION)/g" > pkginfo
-	rm -rf ZMailer02
+	cat ${srcdir}/pkginfo-02.src | \
+		sed -e "s/%VERSION%/$(VERSION)/g" \
+		    -e "s/%SUFF%/${SUFF}/g" \
+		> pkginfo
+	rm -rf ZMailer02${SUFF}
 	pkgmk -o -f proto -b $(prefix) -d `/bin/pwd`
-	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer02.pkg ZMailer02
+	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMailer02${SUFF}.pkg ZMailer02${SUFF}
+
