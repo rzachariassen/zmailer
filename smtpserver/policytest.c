@@ -113,9 +113,9 @@ const char *key;
     return buf;
 }
 
-static char *showattr __((const char *key));
+static char *showattr __((const unsigned char *key));
 static char *showattr(key)
-const char *key;
+const unsigned char *key;
 {
     static char buf[500];
     sprintf(buf,"%d/%s/'%s'", key[0], KA(key[1]), key+2);
@@ -361,7 +361,7 @@ struct policystate *state;
 const char *key;
 int init;
 {
-    char *str, *str_base;
+    unsigned char *str, *str_base;
     int rlen, result, interest;
     char *msgstr = NULL;
 
@@ -408,6 +408,16 @@ int init;
 
     while (rlen > 3) {
 
+	if (str[0] < 3) {
+	  if (debug)
+	    type(NULL,0,NULL," Bad length of attrbute, under 3 bytes!  %d", str[0]);
+	  break; /* BAD ATTRIBUTE! */
+	}
+
+	/* Attribute */
+	if (debug)
+	  type(NULL,0,NULL,"   Attribute: %s", showattr(str));
+
 	/* Alias */
 	if (str[1] == P_A_ALIAS) {
 	    /* Do not continue if max recursions reached. */
@@ -432,10 +442,6 @@ int init;
 	    str  += str[0];
 	    continue;
 	}
-
-	/* Attribute */
-	if (debug)
-	  type(NULL,0,NULL,"   Attribute: %s", showattr(str));
 
 	if (str[1] == P_A_MESSAGE) {
 	  if (msgstr) free(msgstr);
@@ -522,6 +528,7 @@ int init;
 	    type(NULL,0,NULL," Every request found. Finishing search.");
 	  break;
 	}
+
     }				/* End of while. */
 
     /* Free memory from attribute list. Allocated in dbquery. */
