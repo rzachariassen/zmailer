@@ -110,9 +110,11 @@ main(argc,argv)
 	int rcpts_count = 0;
 
 	if (argc > 3 && argv[1][0]=='-') {
-	  bundlesize = atoi(argv[1]);
+	  bundlesize = atoi(argv[1]+1);
 	  if (bundlesize < 200)
 	    bundlesize = 200;
+	  ++argv;
+	  --argc;
 	}
 
 	if (argc < 3 || argc > 4)
