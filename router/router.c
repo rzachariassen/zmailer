@@ -565,13 +565,15 @@ logmessage(e)
 						to = buf;
 					}
 					if (to + len + 2 >= buf + sizeof buf)
-						continue;
+					  /* Can't fit it in.. */
+					  continue;
 				} else {
 					if (n) *to++ = ',';
 					*to++ = ' ';
 				}
-				strncpy(to, cp, len);
+				memcpy(to, cp, len);
 				to += len;
+				*to = 0;
 				++n;
 			}
 		}

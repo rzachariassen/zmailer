@@ -36,6 +36,8 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	char **msgheaders = *(rp->newmsgheader);
 	int newlinelen = strlen(newline);
 	int hsize = 0;
+	int col, linelen;
+	char *s, *p;
 
 	if (! WriteTabs) {
 	  WriteTabs = getzenv("RFC822TABS");
@@ -50,9 +52,8 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 
 	if (chunkbufp) {
 	  for ( ; *msgheaders; ++msgheaders ) {
-	    char *s = *msgheaders;
-	    char *p;
-	    int linelen = strlen(s);
+	    s = *msgheaders;
+	    linelen = strlen(s);
 
 	    if (*WriteTabs == '0') {
 	      /* Expand line TABs */
@@ -78,17 +79,23 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 
 	    if (*WriteTabs == '0') {
 	      /* Expand line TABs */
-	      int col = 0;
+	      col = 0;
+	      s = *msgheaders;
+	      linelen = strlen(s);
 	      for (; linelen > 0; --linelen, ++s) {
 		if (*s == '\t') {
 		  int c2 = col + 8 - (col & 7);
 		  while (col < c2) {
-		    *p++ = ' ';
+		    *p = ' ';
+		    ++p;
 		    ++col;
+		    ++hsize;
 		  }
 		} else {
 		  ++col;
-		  *p++ = *s;
+		  *p = *s;
+		  ++p;
+		  ++hsize;
 		}
 	      }
 	    }
@@ -102,8 +109,8 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 	  }
 	} else {
 	  while (*msgheaders && !sferror(fp)) {
-	    char *s = *msgheaders;
-	    int linelen = strlen(s);
+	    s = *msgheaders;
+	    linelen = strlen(s);
 	    if (**msgheaders == '.')
 	      /* sferror() not needed to check here.. */
 	      sfputc(fp,'.'); /* ALWAYS double-quote the begining
