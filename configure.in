@@ -2194,8 +2194,9 @@ LIBS="$t_oldLibs"
 AC_SUBST(LIBSPF)
 AC_SUBST(INCLSPF)
 use_spf=0
-AC_ARG_WITH(spf,   [  --with-spf[[=DIRPATH]]     Where the SPF libs can be found.  Needs spf_alt
-                           from http://www.midwestcs.com/spf/libspf-alt/],
+AC_ARG_WITH(spf,   [  --with-spf[[=DIRPATH]]     Where the SPF libs can be found.
+                           Needs spf_alt from http://www.midwestcs.com/spf/libspf-alt/
+                           or  spf2   from  http://www.libspf2.org/],
         [if test "$withval" = yes; then
                 use_spf=2
          else
@@ -2208,139 +2209,279 @@ t_oldCpp="$CPPFLAGS"
 if test "$use_spf" != 0 ; then
   if test "$use_spf" = 2 ; then
 
-        AC_CHECK_HEADERS(spf_alt/spf.h)
-        if test "$ac_cv_header_spf_alt_spf_h" = yes; then
-            LIBSPF="-lspf_alt"
-            INCLSPF=""
-            spfloc="sysdefault"
+	AC_CHECK_HEADERS(spf2/spf.h spf_alt/spf.h)
 
-            LIBS="$LIBS $LIBSOCKET $LIBSPF"
-            CPPFLAGS="$CPPFLAGS $INCLSPF"
-            AC_TRY_LINK([#include <sys/types.h>
-			#include <spf_alt/spf.h>
-                        int major, minor;],
-			[SPF_get_lib_version(&major,&minor);],
-                        ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
-dnl AC_MSG_RESULT([ ... link -lspf yields: $ac_cv_lib_spf])
-            if test "$ac_cv_lib_spf" = no; then
-                LIBS="$t_oldLibs"
-                LIBS="$LIBS $LIBSOCKET -L/usr/local/lib $LIBSPF"
-                AC_TRY_LINK([#include <sys/types.h>
-				#include <spf_alt/spf.h>
-				int major, minor;],
-				[SPF_get_lib_version(&major,&minor);],
-                        ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
-dnl AC_MSG_RESULT([ ... link -L/usr/local/lib -lspf yields: $ac_cv_lib_spf])
-                if test  "$ac_cv_lib_spf" = yes; then
-                    spfloc="-L/usr/local/lib"
-                    LIBSPF="-L/usr/local/lib $LIBSPF"
-                fi
-            fi
-            if test "$ac_cv_lib_spf" = no; then
-                LIBS="$t_oldLibs"
-                LIBS="$LIBS $LIBSOCKET -L/local/lib $LIBSPF"
-                AC_TRY_LINK([#include <sys/types.h>
-				#include <spf_alt/spf.h>
-				int major, minor;],
-				[SPF_get_lib_version(&major,&minor);],
-                        ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
-dnl AC_MSG_RESULT([ ... link -L/local/lib -lspf yields: $ac_cv_lib_spf])
-                if test  "$ac_cv_lib_spf" = yes; then
-                    spfloc="-L/local/lib"
-                    LIBSPF="-L/local/lib $LIBSPF"
-                fi
-            fi
-            if test "$ac_cv_lib_spf" = no; then
-                LIBS="$t_oldLibs"
-                LIBS="$LIBS $LIBSOCKET -L/opt/lib $LIBSPF"
-                AC_TRY_LINK([#include <sys/types.h>
-				#include <spf_alt/spf.h>
-				int major, minor;],
-				[SPF_get_lib_version(&major,&minor);],
-                        ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
-dnl AC_MSG_RESULT([ ... link -L/opt/lib -lspf yields: $ac_cv_lib_spf])
-                if test  "$ac_cv_lib_spf" = yes; then
-                    spfloc="-L/opt/lib"
-                    LIBSPF="-L/opt/lib $LIBSPF"
-                fi
-            fi
-            if test "$ac_cv_lib_spf" = no; then
-                LIBS="$t_oldLibs"
-                LIBS="$LIBS $LIBSOCKET -L/opt/local/lib $LIBSPF"
-                AC_TRY_LINK([#include <sys/types.h>
-				#include <spf_alt/spf.h>
-				int major, minor;],
-				[SPF_get_lib_version(&major,&minor);],
-                        ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
-                if test  "$ac_cv_lib_spf" = yes; then
-                    spfloc="-L/opt/local/lib"
-                    LIBSPF="-L/opt/local/lib $LIBSPF"
-                fi
-            fi
-            if test "$ac_cv_lib_spf" = no; then
-                unset ac_cv_lib_spf
-            fi
+	SPFvers=0
 
-            CPPFLAGS="$t_oldCpp"
-            LIBS="$t_oldLibs"
+	if test "$ac_cv_header_spf2_spf_h" = yes; then
+	    LIBSPF="-lspf2"
+	    INCLSPF=""
+	    spfloc="sysdefault"
+	    SPFvers=2
 
-        else
-            AC_CHECK_HEADERS(/local/include/spf_alt/spf.h /usr/local/include/spf_alt/spf.h \
-                             /opt/include/spf_alt/spf.h /opt/local/include/spf_alt/spf.h)
-            if test -n "$ac_cv_header__local_include_spf_alt_spf_h"; then
-                LIBSPF="-L/local/lib -lspf_alt"
-                INCLSPF="-I/local/include"
-                spfloc="-L/local/lib -I/local/include"
-            elif test -n "$ac_cv_header__usr_local_include_spf_alt_spf_h"; then
-                LIBSPF="-L/usr/local/lib -lspf_alt"
-                INCLSPF="-I/usr/local/include"
-                spfloc="-L/usr/local/lib -I/usr/local/include"
-            elif test -n "$ac_cv_header__opt_include_spf_alt_spf_h"; then
-                LIBSPF="-L/opt/lib -lspf_alt"
-                INCLSPF="-I/opt/include"
-                spfloc="-L/opt/lib -I/opt/include"
-            elif test -n "$ac_cv_header__opt_local_include_spf_alt_spf_h"; then
-                LIBSPF="-L/opt/local/lib -lspf_alt"
-                INCLSPF="-I/opt/local/include"
-                spfloc="-L/opt/local/lib -I/opt/local/include"
-            else
-                LIBSPF=""
-                INCLSPF=""
-                spfloc="nowhere?"
-            fi
-        fi
-        LIBS="$LIBS $LIBSOCKET $LIBSPF"
-        CPPFLAGS="$CPPFLAGS $INCLSPF"
-        AC_CACHE_VAL(ac_cv_lib_spf,
-          [AC_TRY_LINK([#include <sys/types.h>
+	    LIBS="$LIBS $LIBSOCKET $LIBSPF"
+	    CPPFLAGS="$CPPFLAGS $INCLSPF"
+	    AC_TRY_LINK([#include <sys/types.h>
+			#include <spf2/spf.h>
+			int major, minor, patch;],
+			[SPF_get_lib_version(&major,&minor,&patch);],
+			ac_cv_lib_spf2=yes,ac_cv_lib_spf2=no)
+dnl AC_MSG_RESULT([ ... link -lspf2 yields: $ac_cv_lib_spf2])
+	    if test "$ac_cv_lib_spf2" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/usr/local/lib $LIBSPF"
+		AC_TRY_LINK([#include <sys/types.h>
+				#include <spf2/spf.h>
+				int major, minor,patch;],
+				[SPF_get_lib_version(&major,&minor,&patch);],
+			ac_cv_lib_spf2=yes,ac_cv_lib_spf2=no)
+dnl AC_MSG_RESULT([ ... link -L/usr/local/lib -lspf2 yields: $ac_cv_lib_spf2])
+		if test	 "$ac_cv_lib_spf2" = yes; then
+		    spfloc="-L/usr/local/lib"
+		    LIBSPF="-L/usr/local/lib $LIBSPF"
+		fi
+	    fi
+	    if test "$ac_cv_lib_spf2" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/local/lib $LIBSPF"
+		AC_TRY_LINK([#include <sys/types.h>
+				#include <spf2/spf.h>
+				int major, minor,patch;],
+				[SPF_get_lib_version(&major,&minor,&patch);],
+			ac_cv_lib_spf2=yes,ac_cv_lib_spf2=no)
+dnl AC_MSG_RESULT([ ... link -L/local/lib -lspf2 yields: $ac_cv_lib_spf2])
+		if test	 "$ac_cv_lib_spf2" = yes; then
+		    spfloc="-L/local/lib"
+		    LIBSPF="-L/local/lib $LIBSPF"
+		fi
+	    fi
+	    if test "$ac_cv_lib_spf2" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/opt/lib $LIBSPF"
+		AC_TRY_LINK([#include <sys/types.h>
+				#include <spf2/spf.h>
+				int major, minor,patch;],
+				[SPF_get_lib_version(&major,&minor,&patch);],
+			ac_cv_lib_spf2=yes,ac_cv_lib_spf2=no)
+dnl AC_MSG_RESULT([ ... link -L/opt/lib -lspf yields: $ac_cv_lib_spf2])
+		if test	 "$ac_cv_lib_spf2" = yes; then
+		    spfloc="-L/opt/lib"
+		    LIBSPF="-L/opt/lib $LIBSPF"
+		fi
+	    fi
+	    if test "$ac_cv_lib_spf2" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/opt/local/lib $LIBSPF"
+		AC_TRY_LINK([#include <sys/types.h>
+				#include <spf2/spf.h>
+				int major, minor;],
+				[SPF_get_lib_version(&major,&minor);],
+			ac_cv_lib_spf2=yes,ac_cv_lib_spf2=no)
+		if test	 "$ac_cv_lib_spf2" = yes; then
+		    spfloc="-L/opt/local/lib"
+		    LIBSPF="-L/opt/local/lib $LIBSPF"
+		fi
+	    fi
+	    if test "$ac_cv_lib_spf2" = no; then
+		unset ac_cv_lib_spf2
+	    fi
+
+	    CPPFLAGS="$t_oldCpp"
+	    LIBS="$t_oldLibs"
+
+	else
+	    AC_CHECK_HEADERS(/local/include/spf2/spf.h /usr/local/include/spf2/spf.h \
+			     /opt/include/spf2/spf.h /opt/local/include/spf2/spf.h)
+	    SPFvers=2
+	    if test -n "$ac_cv_header__local_include_spf2_spf_h"; then
+		LIBSPF="-L/local/lib -lspf2"
+		INCLSPF="-I/local/include"
+		spfloc="-L/local/lib -I/local/include"
+	    elif test -n "$ac_cv_header__usr_local_include_spf2_spf_h"; then
+		LIBSPF="-L/usr/local/lib -lspf2"
+		INCLSPF="-I/usr/local/include"
+		spfloc="-L/usr/local/lib -I/usr/local/include"
+	    elif test -n "$ac_cv_header__opt_include_spf2_spf_h"; then
+		LIBSPF="-L/opt/lib -lspf2"
+		INCLSPF="-I/opt/include"
+		spfloc="-L/opt/lib -I/opt/include"
+	    elif test -n "$ac_cv_header__opt_local_include_spf2_spf_h"; then
+		LIBSPF="-L/opt/local/lib -lspf2"
+		INCLSPF="-I/opt/local/include"
+		spfloc="-L/opt/local/lib -I/opt/local/include"
+	    else
+		LIBSPF=""
+		INCLSPF=""
+		spfloc="nowhere?"
+		SPFvers=0
+	    fi
+	fi
+
+	# How about the old   <spf_alt/spf.h>  file & lib ?
+	if test -z "$LIBSPF" -a "$ac_cv_header_spf_alt_spf_h" = yes; then
+	    LIBSPF="-lspf_alt"
+	    INCLSPF=""
+	    spfloc="sysdefault"
+	    SPFvers=1
+
+	    LIBS="$LIBS $LIBSOCKET $LIBSPF"
+	    CPPFLAGS="$CPPFLAGS $INCLSPF"
+	    AC_TRY_LINK([#include <sys/types.h>
 			#include <spf_alt/spf.h>
 			int major, minor;],
 			[SPF_get_lib_version(&major,&minor);],
-                        ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
-          ])
-        if test "$ac_cv_lib_spf" = yes; then
-            AC_MSG_RESULT([SPF libs  available at $spfloc: -lspf_alt !]);
-            AC_DEFINE(HAVE_SPF_H,1,[SPF libs  available at $spfloc: -lspf_alt !])
-        else
-            AC_MSG_RESULT([No spf libs available at system default locations ?])
-            LIBSPF=""
-            INCLSPF=""
-        fi
+			ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
+dnl AC_MSG_RESULT([ ... link -lspf yields: $ac_cv_lib_spf])
+	    if test "$ac_cv_lib_spf" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/usr/local/lib $LIBSPF"
+		AC_TRY_LINK([#include <sys/types.h>
+				#include <spf_alt/spf.h>
+				int major, minor;],
+				[SPF_get_lib_version(&major,&minor);],
+			ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
+dnl AC_MSG_RESULT([ ... link -L/usr/local/lib -lspf yields: $ac_cv_lib_spf])
+		if test	 "$ac_cv_lib_spf" = yes; then
+		    spfloc="-L/usr/local/lib"
+		    LIBSPF="-L/usr/local/lib $LIBSPF"
+		fi
+	    fi
+	    if test "$ac_cv_lib_spf" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/local/lib $LIBSPF"
+		AC_TRY_LINK([#include <sys/types.h>
+				#include <spf_alt/spf.h>
+				int major, minor;],
+				[SPF_get_lib_version(&major,&minor);],
+			ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
+dnl AC_MSG_RESULT([ ... link -L/local/lib -lspf yields: $ac_cv_lib_spf])
+		if test	 "$ac_cv_lib_spf" = yes; then
+		    spfloc="-L/local/lib"
+		    LIBSPF="-L/local/lib $LIBSPF"
+		fi
+	    fi
+	    if test "$ac_cv_lib_spf" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/opt/lib $LIBSPF"
+		AC_TRY_LINK([#include <sys/types.h>
+				#include <spf_alt/spf.h>
+				int major, minor;],
+				[SPF_get_lib_version(&major,&minor);],
+			ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
+dnl AC_MSG_RESULT([ ... link -L/opt/lib -lspf yields: $ac_cv_lib_spf])
+		if test	 "$ac_cv_lib_spf" = yes; then
+		    spfloc="-L/opt/lib"
+		    LIBSPF="-L/opt/lib $LIBSPF"
+		fi
+	    fi
+	    if test "$ac_cv_lib_spf" = no; then
+		LIBS="$t_oldLibs"
+		LIBS="$LIBS $LIBSOCKET -L/opt/local/lib $LIBSPF"
+		AC_TRY_LINK([#include <sys/types.h>
+				#include <spf_alt/spf.h>
+				int major, minor;],
+				[SPF_get_lib_version(&major,&minor);],
+			ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
+		if test	 "$ac_cv_lib_spf" = yes; then
+		    spfloc="-L/opt/local/lib"
+		    LIBSPF="-L/opt/local/lib $LIBSPF"
+		fi
+	    fi
+	    if test "$ac_cv_lib_spf" = no; then
+		unset ac_cv_lib_spf
+	    fi
+
+	    CPPFLAGS="$t_oldCpp"
+	    LIBS="$t_oldLibs"
+
+	elif test -z "$LIBSPF" ; then
+	    AC_CHECK_HEADERS(/local/include/spf_alt/spf.h /usr/local/include/spf_alt/spf.h \
+			     /opt/include/spf_alt/spf.h /opt/local/include/spf_alt/spf.h)
+	    SPFvers=1
+	    if test -n "$ac_cv_header__local_include_spf_alt_spf_h"; then
+		LIBSPF="-L/local/lib -lspf_alt"
+		INCLSPF="-I/local/include"
+		spfloc="-L/local/lib -I/local/include"
+	    elif test -n "$ac_cv_header__usr_local_include_spf_alt_spf_h"; then
+		LIBSPF="-L/usr/local/lib -lspf_alt"
+		INCLSPF="-I/usr/local/include"
+		spfloc="-L/usr/local/lib -I/usr/local/include"
+	    elif test -n "$ac_cv_header__opt_include_spf_alt_spf_h"; then
+		LIBSPF="-L/opt/lib -lspf_alt"
+		INCLSPF="-I/opt/include"
+		spfloc="-L/opt/lib -I/opt/include"
+	    elif test -n "$ac_cv_header__opt_local_include_spf_alt_spf_h"; then
+		LIBSPF="-L/opt/local/lib -lspf_alt"
+		INCLSPF="-I/opt/local/include"
+		spfloc="-L/opt/local/lib -I/opt/local/include"
+	    else
+		LIBSPF=""
+		INCLSPF=""
+		spfloc="nowhere?"
+		SPFvers=0
+	    fi
+	fi
+
+	if test -n "$LIBSPF" ; then
+	    if test "$SPFvers" = 2 ; then
+		LIBS="$LIBS $LIBSOCKET $LIBSPF"
+		CPPFLAGS="$CPPFLAGS $INCLSPF"
+		AC_CACHE_VAL(ac_cv_lib_spf,
+		    [AC_TRY_LINK([#include <sys/types.h>
+			#include <spf2/spf.h>
+			int major, minor, patch;],
+			[SPF_get_lib_version(&major,&minor,&patch);],
+			ac_cv_lib_spf2=yes,ac_cv_lib_spf2=no)
+		])
+		if test "$ac_cv_lib_spf2" = yes; then
+		    AC_MSG_RESULT([SPF2 libs  available at $spfloc: -lspf2 !]);
+		    AC_DEFINE(HAVE_SPF_H,1,[SPF2 libs  available at $spfloc: -lspf2 !])
+		else
+		    AC_MSG_RESULT([No spf2 libs available at system default locations ?])
+		    LIBSPF=""
+		    INCLSPF=""
+		fi
+	    else # SPF_ALT, I presume..
+		LIBS="$LIBS $LIBSOCKET $LIBSPF"
+		CPPFLAGS="$CPPFLAGS $INCLSPF"
+		AC_CACHE_VAL(ac_cv_lib_spf,
+		    [AC_TRY_LINK([#include <sys/types.h>
+			#include <spf_alt/spf.h>
+			int major, minor;],
+			[SPF_get_lib_version(&major,&minor);],
+			ac_cv_lib_spf=yes,ac_cv_lib_spf=no)
+		])
+		if test "$ac_cv_lib_spf" = yes; then
+		    AC_MSG_RESULT([SPF libs  available at $spfloc: -lspf_alt !]);
+		    AC_DEFINE(HAVE_SPF_H,1,[SPF libs  available at $spfloc: -lspf_alt !])
+		else
+		    AC_MSG_RESULT([No spf libs available at system default locations ?])
+		    LIBSPF=""
+		    INCLSPF=""
+		fi
+	    fi
+	fi
   #  fi
   else
-    if test -f "$withval"/lib/libspf_alt.a ; then
-        LIBSPF="-L$withval/lib -lspf_alt"
-        AC_MSG_RESULT([Using spf libs at directory: $withval/lib]);
+    if test -f "$withval"/lib/libspf2.a ; then
+	LIBSPF="-L$withval/lib -lspf2"
+	AC_MSG_RESULT([Using spf libs at directory: $withval/lib]);
+    elif test -f "$withval"/lib/libspf_alt.a ; then
+	LIBSPF="-L$withval/lib -lspf_alt"
+	AC_MSG_RESULT([Using spf libs at directory: $withval/lib]);
     else
-        LIBSPF="-L$withval -lspf_alt"
-        AC_MSG_RESULT([Using spf libs at directory: $withval]);
+	LIBSPF="-L$withval -lspf_alt"
+	AC_MSG_RESULT([Using spf libs at directory: $withval]);
     fi
-    if test -f "$withval"/include/spf_alt/spf.h ; then
-        INCLSPF="-I$withval/include"
-        AC_MSG_RESULT([Using spf includes at directory: $withval]);
+    if test -f "$withval"/include/spf2/spf.h ; then
+	INCLSPF="-I$withval/include"
+	AC_MSG_RESULT([Using spf2 includes at directory: $withval]);
+    elif test -f "$withval"/include/spf_alt/spf.h ; then
+	INCLSPF="-I$withval/include"
+	AC_MSG_RESULT([Using spf includes at directory: $withval]);
     else
-        INCLSPF="-I$withval"
-        AC_MSG_RESULT([Using spf includes at directory: $withval]);
+	INCLSPF="-I$withval"
+	AC_MSG_RESULT([Using spf includes at directory: $withval]);
     fi
     unset ac_cv_lib_spf
     AC_DEFINE(HAVE_SPF_H,1,[Using spf includes at directory: $withval])

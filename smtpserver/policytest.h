@@ -63,7 +63,8 @@ struct policystate {		/* Part of SmtpState structure */
 #ifdef HAVE_WHOSON_H
     int whoson_result;
 #endif
-#ifdef HAVE_SPF_ALT_SPF_H
+#if defined(HAVE_SPF_ALT_SPF_H) || defined(HAVE_SPF2_SPF_H)
+#define Z_CHECK_SPF_DATA
     int check_spf;
     char *spf_received_hdr;
     SPF_config_t spfcid;

@@ -184,9 +184,9 @@ const char *buf, *cp;
       fprintf(SS->mfp, "X-Comment: RFC 2476 MSA function at %s logged sender identity as: %s\n", SS->myhostname, SS->authuser);
     }
 
-#ifdef HAVE_SPF_ALT_SPF_H
-    if (spf_received && policyspfhdr(policydb, &SS->policystate)) {
-      fprintf(SS->mfp,"%s\n", policyspfhdr(policydb, &SS->policystate));
+#ifdef Z_CHECK_SPF_DATA
+    if (spf_received && policyspfhdr(&SS->policystate)) {
+      fprintf(SS->mfp,"%s\n", policyspfhdr(&SS->policystate));
     }
 #endif
 
@@ -515,9 +515,9 @@ const char *buf, *cp;
 	if (msa_mode && SS->authuser != NULL ) {
 	  fprintf(SS->mfp, "X-Comment: RFC 2476 MSA function at %s logged sender identity as: %s\n", SS->myhostname, SS->authuser);
 	}
-#ifdef HAVE_SPF_ALT_SPF_H
-	if (spf_received && policyspfhdr(policydb, &SS->policystate)) {
-	  fprintf(SS->mfp,"%s\n", policyspfhdr(policydb, &SS->policystate));
+#ifdef Z_CHECK_SPF_DATA
+	if (spf_received && policyspfhdr(&SS->policystate)) {
+	  fprintf(SS->mfp,"%s\n", policyspfhdr(&SS->policystate));
 	}
 #endif
     }

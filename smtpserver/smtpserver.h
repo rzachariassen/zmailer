@@ -189,8 +189,12 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #define _Z_FD_ISSET(i,var) ((var & (1 << i)) != 0)
 #endif
 
+#ifdef HAVE_SPF2_SPF_H
+#include <spf2/spf.h>
+#else
 #ifdef HAVE_SPF_ALT_SPF_H
 #include <spf_alt/spf.h>
+#endif
 #endif
 
 #include "policytest.h"

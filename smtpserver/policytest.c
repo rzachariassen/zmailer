@@ -28,9 +28,14 @@
 #define _POLICYTEST_INTERNAL_
 #include "smtpserver.h"
 
+#ifdef HAVE_SPF2_SPF_H
+#include <spf2/spf.h>
+#include <spf2/spf_dns_resolv.h>
+#else
 #ifdef HAVE_SPF_ALT_SPF_H
 #include <spf_alt/spf.h>
 #include <spf_alt/spf_dns_resolv.h>
+#endif
 #endif
 
 #define PICK_PA_MSG(attrib)	\
@@ -827,7 +832,7 @@ int policyinit(state, rel, whosonrc)
     }
     state->whoson_result = whosonrc;
 #endif
-#ifdef HAVE_SPF_ALT_SPF_H
+#ifdef Z_CHECK_SPF_DATA
     state->check_spf=0;
 #endif
     state->maxsameiplimit = -1;
@@ -1035,7 +1040,7 @@ static int _addrtest_(state, pbuf, sourceaddr)
     }
 
     if (valueeq(state->values[P_A_CheckSPF], "+")) {
-#ifdef HAVE_SPF_ALT_SPF_H
+#ifdef Z_CHECK_SPF_DATA
       if (debug)
 	type(NULL,0,NULL," policytestaddr: 'spf +' found");
       state->check_spf=1;
@@ -1551,7 +1556,7 @@ static int pt_heloname(state, str, len)
      *
      */
 
-#ifdef HAVE_SPF_ALT_SPF_H
+#ifdef Z_CHECK_SPF_DATA
     if (state->check_spf) {
       if (debug) type(NULL,0,NULL,"doing SPF_set_helo_dom(\"%s\")",str);
       if (SPF_set_helo_dom(state->spfcid, str)) {
@@ -1676,7 +1681,7 @@ static int pt_mailfrom(state, str, len)
     state->sender_freeze = 0;
     state->sender_norelay = 0;
 
-#ifdef HAVE_SPF_ALT_SPF_H
+#ifdef Z_CHECK_SPF_DATA
     if (state->check_spf) {
       char *nstr=strdup(str);
       nstr[len]='\0';
@@ -1862,7 +1867,7 @@ static int pt_mailfrom(state, str, len)
 #endif
 
     rc=0;
-#ifdef HAVE_SPF_ALT_SPF_H
+#ifdef Z_CHECK_SPF_DATA
     if (state->check_spf) {
       int spf_level;
       SPF_output_t spf_output = SPF_result(state->spfcid,state->spfdcid);
@@ -2278,7 +2283,7 @@ policymsg(state)
     return state->message;
 }
 
-#ifdef HAVE_SPF_ALT_SPF_H
+#ifdef Z_CHECK_SPF_DATA
 char *
 policyspfhdr(state)
      struct policystate *state;

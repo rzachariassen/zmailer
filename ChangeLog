@@ -1,3 +1,13 @@
+2004-07-08  Matti Aarnio  <mea@zmailer.org>
+
+	* configure.in, smtpserver/cfgread.c, smtpserver/policytest.c,
+	  smtpserver/smtpdate.c, smtpserver/policytest.h, 
+	  smtpserver/smtpserver.h:
+	    SPF_ALT to SPF2 library support migration.
+
+	* smtpserver/cfgread.c:
+	    SPF parameter parsing bug fix from Eugene Crosser.
+
 2004-07-07  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
