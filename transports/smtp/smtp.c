@@ -4556,13 +4556,13 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  /* This resolves CNAME, it should not happen in case
 	     of MX server, though..    */
 #if !GETADDRINFODEBUG
-	    n2 = getaddrinfo((const char*)buf, "0", &req, &ai2);
+	    n2 = getaddrinfo(mx[i].host, "0", &req, &ai2);
 #else
-	    n2 = _getaddrinfo_((const char*)buf, "0", &req, &ai2,
+	    n2 = _getaddrinfo_(mx[i].host, "0", &req, &ai2,
 			       SS->verboselog);
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog,"  getaddrinfo('%s','0') -> r=%d, ai=%p\n",
-		      buf,n2,ai2);
+		      mx[i].host, n2, ai2);
 #endif
 
 	    if (n != 0 && n2 == 0) {
@@ -4614,6 +4614,11 @@ getmxrr(SS, host, mx, maxmx, depth)
 	}
 
 	for (i = 0; i < nmx; ++i) {
+	  if (mx[i].ai == NULL && mx[i].host != NULL) {
+	    free(mx[i].host);
+	    mx[i].host = NULL;
+	    continue;
+	  }
 	  if (cistrcmp(mx[i].ai->ai_canonname, myhostname) == 0 ||
 	      matchmyaddresses(mx[i].ai) == 1) {
 
@@ -4635,7 +4640,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	/* discard MX RRs with a value >= that of  myhost */
 	for (n = i = 0; n < nmx; ++n) {
-	  if ((int)mx[n].pref >= maxpref) {
+	  if ((int)mx[n].pref >= maxpref && mx[n].host) {
 	    free(mx[n].host);
 	    freeaddrinfo(mx[n].ai);
 	    mx[n].host = NULL;
