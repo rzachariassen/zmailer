@@ -1190,7 +1190,7 @@ const int len;
       /* XX: state->message setup! */
       if (debug)
 	printf("...(mx_client_verify('%.*s')) returns: %d\n",
-	       (len - (1 + at - str)), at+1, rc);
+	       (int)(len - (1 + at - str)), at+1, rc);
       return rc;
     }
     if (state->values[P_A_ACCEPTifDNS] != 0) {

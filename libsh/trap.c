@@ -184,14 +184,14 @@ extern void *optimize __((int, void *, void **));
 			    (fp = fopen(fcfile, "w")) != NULL) {
 				/* magic1, magic2, st_dev, st_ino,
 				   st_size, st_mtime, st_ctime */
-				fprintf(fp,"#!zmsh -l%s,%d,%d,%d,%ld,%ld,%d,%d\n",
+				fprintf(fp,"#!zmsh -l%s,%d,%ld,%ld,%ld,%ld,%d,%d\n",
 					VersionNumb,
-					magic_number, bin_magic,
-					srcstbufp->st_dev,
-					srcstbufp->st_ino,
-					srcstbufp->st_size,
-					srcstbufp->st_mtime,
-					srcstbufp->st_ctime);
+					magic_number, (long)bin_magic,
+					(long)srcstbufp->st_dev,
+					(long)srcstbufp->st_ino,
+					(long)srcstbufp->st_size,
+					(int)srcstbufp->st_mtime,
+					(int)srcstbufp->st_ctime);
 
 				std_fwrite(table, 1,
 					   (char*)eotable - (char*)table, fp);
@@ -255,14 +255,14 @@ leaux(fcfd, path, srcstbufp)
 	char sbuf[200];
 
 	/* magic1, magic2, st_dev, st_ino, st_size, st_mtime, st_ctime */
-	sprintf(sbuf,"#!zmsh -l%s,%d,%d,%d,%ld,%ld,%d,%d\n",
+	sprintf(sbuf,"#!zmsh -l%s,%d,%ld,%ld,%ld,%ld,%d,%d\n",
 		VersionNumb,
-		magic_number, bin_magic,
-		srcstbufp->st_dev,
-		srcstbufp->st_ino,
-		srcstbufp->st_size,
-		srcstbufp->st_mtime,
-		srcstbufp->st_ctime);
+		magic_number, (long)bin_magic,
+		(long)srcstbufp->st_dev,
+		(long)srcstbufp->st_ino,
+		(long)srcstbufp->st_size,
+		(int)srcstbufp->st_mtime,
+		(int)srcstbufp->st_ctime);
 
 	fp = fopen(path, "r");
 	if (fp == NULL)

@@ -9,6 +9,7 @@ Known/suspected bugs/Missing Features on current Zmailer sources
 	all info about the file, while it should only scan thru all
 	data, and sync in-core status with the file.
 		(incomplete code skeleton written for this)
+		( sync_cfps() is that skeleton.. )
 
 	- Delivery messages plain-text part needs easier human
 	  understandable format on the messages.
