@@ -145,7 +145,7 @@ main(argc, argv)
 	progname = argv[0];
 	verbose = debug = errflg = status = user = onlyuser = summary = 0;
 	while (1) {
-	  c = getopt(argc, argv, "46c:dE:h:iK:p:Qr:sStu:U:vV");
+	  c = getopt(argc, argv, "46c:dE:h:iK:p:Qr:sStu:U:vVZ:");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -235,6 +235,10 @@ main(argc, argv)
 	    prversion("mailq");
 	    exit(0);
 	    break;
+	  case 'Z':
+	    if (readzenv(optarg) == 0)
+	      ++errflg;
+	    break;
 	  default:
 	    ++errflg;
 	    break;
@@ -255,9 +259,9 @@ main(argc, argv)
 	}
 	if (errflg) {
 #ifdef	AF_INET
-	  fprintf(stderr, "Usage: %s [-46isSvt] [-cchannel -hhost] [-p#] [host]\n", progname);
+	  fprintf(stderr, "Usage: %s [-46isSvt] [-Z zenvcfgfile] [-cchannel -hhost] [-p#] [host]\n", progname);
 #else  /* !AF_INET */
-	  fprintf(stderr, "Usage: %s [-isSvt] [-cchannel -hhost]\n", progname);
+	  fprintf(stderr, "Usage: %s [-isSvt] [-Z zenvcfgfile] [-cchannel -hhost]\n", progname);
 #endif /* AF_INET */
 	  exit(EX_USAGE);
 	}
@@ -1662,7 +1666,12 @@ void query2(fpi, fpo)
 		ocp = s;
 		s = skip821address(s); /* skip user */
 		*s++ = 0;
-		fprintf(stdout,"\t  to\t%s\n",ocp);
+		fprintf(stdout,"\t  to\t%s",ocp);
+
+		/* XXX: ORCPT data! */
+		
+
+		fprintf(stdout,"\n");
 
 	      } else /* not have cfp */ {
 		/* Can't show 'message-id', nor 'to' addresses,

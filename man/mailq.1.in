@@ -17,7 +17,8 @@ mailq \- zmailer mail queue printer
 [\fB\-U\fR\ \fIusername\fR/\fIpassword\fR]
 [\fB\-v\fR[\fBv\fR]]
 [\fB\-S\fR]
-[\fB\-Q\fR[\fBQ\fR[\fBQ\fR]]]
+[\fB\-Q\fR[\fBQ\fR[\fBQ\fR]
+[\fB\-Z\fR\ \fIzenvfile\fR]]]
 [[\fB\-c\ \fIchannel\fR]\ \fB\-h\ \fIhost\fR]
 [\fIhost\fR]
 .PP
@@ -148,6 +149,8 @@ The default for \fIchannel\fR is "\fIsmtp\fR".
 Two Q:s produces an abbreviated summary, while one Q gives full
 report of all threads.
 Three Q:s produces only "SNMP variables" report.
+.IP "\-Z\ \fIzenvfile\fR"
+passes on explicite non-compiled-in-default located ZCONFIG environment file.
 .SH mailq -Q output codes
 Examples of ``mailq -Q'' output:
 .PP

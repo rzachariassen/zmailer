@@ -47,6 +47,13 @@ html:	  $(patsubst %, %.html, $(MAN1) $(MAN3) $(MAN5) $(MAN8))
 	-rm -f index.html
 	sh $(srcdir)/man-index.sh
 
+# Publish  is for Matti's use to publish these files at  zmailer.org
+publish:
+	# Make the files in correct order
+	make pdf html
+	# publish in  http://zmailer.org/man/
+	cp -p *.html *.pdf /home/httpd/zmailer/html/man/
+
 install:
 	if [ ! -d ${MANDIR}/man1 ] ; then mkdir -p ${MANDIR}/man1 ; fi
 	if [ ! -d ${MANDIR}/man3 ] ; then mkdir -p ${MANDIR}/man3 ; fi
