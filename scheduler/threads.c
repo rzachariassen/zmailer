@@ -818,6 +818,7 @@ struct thread *thr;
 	  thr->proc     = proc;
 	  *ipp          = proc->next;
 	  proc->next    = NULL;
+	  proc->overfed = 0; /* Restart! */
 
 	  thg->idlecnt -= 1;
 	  --idleprocs;
@@ -856,6 +857,7 @@ struct thread *thr;
 	  /* Its idle process, feed it! */
 
 	  proc->hungry = 1;	/* Simulate hunger.. */
+	  proc->fed = 0;
 	  pick_next_vertex(proc, 1, 0);
 	  if (proc->fed != 0) {
 	    /* Duh! Nothing to feed! */
@@ -1058,13 +1060,14 @@ int ok, justfree;
 
 	mytime(&now);
 
-#if 1
+#if 0
 	/* Move current thread to the last of the threads eligible for start */
 	_thread_timechain_unlink(thr);
 	_thread_timechain_append(thr);
 	/* Idle the process, and be happy.. */
 #else
 	/* the threads are in a ring.. */
+	thr = thr->nextthg;
 	for ( ;thr != thr0; thr = thr->nextthg) {
 	  if (thr->proc != NULL &&
 	      thr->proc->thread == thr)
