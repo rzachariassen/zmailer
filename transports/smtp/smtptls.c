@@ -1235,7 +1235,9 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 
 		e = ETIMEDOUT;
 
-zsyslog((LOG_ERR, "ERROR: SMTP socket write timeout; leftover=%d; IP: %s\n", len, SS->ipaddress));
+zsyslog((LOG_ERR,
+	 "ERROR: SMTP socket write timeout; leftover=%d; IP=[%s] mx=%d/%d\n",
+	 len, SS->ipaddress, SS->firstmx, SS->mxcount));
 
 		break;
 	      }
