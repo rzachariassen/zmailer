@@ -101,7 +101,9 @@ SCHEDULEROPTIONS= @SCHEDULEROPTIONS@
 # Existence of this variable also overrides -H option(s) to
 # the scheduler.  Value is the number of -H options.
 # If these hash subdirectories don't exist, system failure happens!
-SCHEDULERDIRHASH=1
+# SYSTEMS WITH LOW LOADS CAN DO WITH VALUE "1", WHILE
+# SYSTEMS WITH LARGE QUEUES SHOULD DEFINITELY USE VALUE "2" !
+SCHEDULERDIRHASH=2
 
 # The SCHEDULERNOTIFY defines, where is a socket at which the scheduler
 # listens for PF_UNIX/SOCK_DGRAM messages telling paths to new jobs.

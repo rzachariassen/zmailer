@@ -5,7 +5,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2002
  */
 
 #define USE_SIGREAPER /* DO Use SIGCLD-driven reaper.. */
@@ -29,6 +29,7 @@ struct config_entry {
 	char	*host;		/* host part of pattern			     */
 	time_t	interval;	/* how often to start up these things	     */
 	time_t	expiry;		/* bounce the message after this long in q's */
+	time_t	expiry2;	/* bounce the message after this long in q's */
 	char	*expiryform;	/* use this form as the error message	     */
 			/* Following two need to be SIGNED variables	     */
 	int	uid;		/* what uid to run the transport agent under */
@@ -230,6 +231,7 @@ struct vertex {
 #define NOT_TRACE   020 /* RFC 2852 */
 	int		ce_pending;	/* pending on what ?		     */
 	time_t		ce_expiry;	/* when this vertex expires ?        */
+	time_t		ce_expiry2;	/* when this vertex expires ? w/o attempts */
 	int		attempts;	/* count of number of TA invocations */
 	int		retryindex;	/* cur index into ce->retries array  */
 	time_t		wakeup;		/* time to wake up and run this      */

@@ -333,6 +333,9 @@
 /* System has Sasl2 of some version, and want to use it. */
 #undef HAVE_SASL2
 
+/* Have <sasl/sasl.h> header */
+#undef HAVE_SASL_SASL_H
+
 /* The struct sockaddr has field sa_len */
 #undef HAVE_SA_LEN
 

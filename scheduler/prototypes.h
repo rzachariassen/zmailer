@@ -41,6 +41,7 @@ extern u_int ranny __((u_int m));
 /* agenda.c */
 extern time_t qipcretry;
 extern int doagenda __((void));
+extern int doexpiry2 __((void));
 extern int turnme __((const char *));
 
 /* conf.c */
@@ -54,10 +55,10 @@ extern int  nobody;
 extern int  sweepinterval;
 extern int  idle_sweepinterval;
 extern const char *mq2authfile;
-extern char *mailqsock;
-extern char *notifysock;
 extern const void *BADPTR;
 extern int   global_report_interval;
+extern int   expiry2_timelimit;
+extern int   expiry2_sweepinterval;
 
 /* msgerror.c */
 extern void msgerror __((struct vertex *vp, long offset, const char *message));
@@ -100,6 +101,8 @@ extern int  global_maxkids;
 extern int  verbose;
 extern int  querysocket;
 extern int  notifysocket;
+extern char *mailqsock;
+extern char *notifysock;
 extern int  do_syslog;
 extern struct ctlfile *slurp __((int fd, long ino));
 extern void free_cfp_memory __((struct ctlfile *cfp));
@@ -138,6 +141,7 @@ extern int   idleprocs;
 extern void  web_detangle __((struct vertex *vp, int ok));
 extern void  reschedule __((struct vertex *vp, int factor, int index));
 extern int   thread_reschedule __((struct thread *, time_t, int index));
+extern int   thread_expire2 __((struct thread *thr, time_t timelimit, int killall, const char *msgstr));
 
 /* transport.c */
 extern struct procinfo *cpids;
@@ -188,4 +192,3 @@ extern int  mq2_active __((void));
 extern void mq2auth __((struct mailq *, char *));
 struct mq2pw; /* forward definition */
 extern struct mq2pw * mq2_authuser __((struct mailq *mq, char *user));
-

@@ -1,7 +1,7 @@
 /*
  *	ZMailer 2.99.16+ Scheduler "threads" routines
  *
- *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-2001
+ *	Copyright Matti Aarnio <mea@nic.funet.fi> 1995-2002
  *
  *
  *	These "threads" are for book-keeping of information
@@ -643,12 +643,11 @@ memset(wp, 0x55, sizeof(*wp));
 /*
  * unthread(vtx) -- detach this vertex from its thread
  */
-static void unthread __((struct vertex *vtx));
-static void unthread(vtx)
-struct vertex *vtx;
+static void unthread __((struct thread *thr, struct vertex *vtx));
+static void unthread(thr, vtx)
+     struct thread *thr;
+     struct vertex *vtx;
 {
-	struct thread *thr = vtx->thread;
-
 	if (vtx->previtem != NULL)
 	  vtx->previtem->nextitem = vtx->nextitem;
 	if (vtx->nextitem != NULL)
@@ -684,10 +683,9 @@ web_detangle(vp, ok)
 
 	struct thread *thr = vp->thread;
 
-	if (thr && thr->nextfeed == vp)
-	  thr->nextfeed = vp->nextitem; /* Oh, next one then.. */
+	/* unthread() will also unpick the  nextfeed link.. */
 
-	unthread(vp);
+	unthread(thr, vp);
 
 	/* The thread can now be EMPTY! */
 
@@ -1070,6 +1068,57 @@ pick_next_vertex(proc)
 }
 
 /*
+ *  The  thread_expire2()  will handle exceedingly old things
+ *  with ages in excess of expire+expire2 (seconds) in queue
+ *  even if no successfull delivery attempt has been made.
+ *
+ *  Return the kill-count.
+ *
+ *  Side-effect warning:  Afterwards the THR may point to nonexistent object!
+ */
+
+
+int
+thread_expire2(thr, timelimit, killall, msgstr)
+     struct thread *thr;
+     time_t timelimit;
+     int killall;	  /* latter uses in mind.. now dummy parameter */
+     const char *msgstr;  /* ... likewise. */
+{
+	int killcount = 0;
+	struct vertex       *vtx  = thr->thvertices;
+	struct vertex	*nextvtx;
+
+	for ( ;vtx; vtx = nextvtx) {
+	  int expire_this = 0;
+
+	  nextvtx = vtx->nextitem;
+
+	  /* Time to expire ? */
+	  if (vtx->ce_expiry > 0 && vtx->ce_expiry <= now &&
+	      vtx->attempts  > 0) {
+	    expire_this = 1;
+	  }
+	  if (vtx->ce_expiry2 > 0 && vtx->ce_expiry2 <= now) {
+	    expire_this = 1;
+	  }
+	  if (expire_this) {
+	    /* ... and now expire it! */
+	    /* this MAY invalidate also the THREAD object! */
+
+	    expire(vtx, -1); /* ... them all. */
+	    ++killcount;
+
+	    mytime(&now);
+	    if (now > timelimit) break;
+	  }
+	}
+
+	return killcount;
+}
+
+
+/*
  * The  thread_reschedule()  updates threads time-chain to match the
  * new value of wakeup for the  doagenda()  to latter use.
  * Return 0 for DESTROYED thread, 1 for EXISTING thread.
@@ -1077,11 +1126,12 @@ pick_next_vertex(proc)
 
 int
 thread_reschedule(thr, retrytime, index)
-struct thread *thr;
-int index;
-time_t retrytime;
+     struct thread *thr;
+     int index;
+     time_t retrytime;
 {
 	struct vertex *vtx = thr->thvertices;
+	struct vertex *nvtx;
 	time_t wakeup = 0;
 	int skew;
 
@@ -1096,7 +1146,7 @@ time_t retrytime;
 	}
 
 	/* If there are multiple kids working still, DON'T reschedule! */
-	if (thr->thrkids > 0 || !vtx) return 1;
+	if ((thr->thrkids > 0)  ||  (vtx == NULL)) return 1;
 
 	/* find out when to retry */
 	mytime(&now);
@@ -1163,33 +1213,40 @@ time_t retrytime;
 	  retrytime = wakeup;
 
 	/* Reschedule ALL vertices on this thread */
-	while (vtx) {
+	for ( ;vtx; vtx = nvtx) {
+	  int expire_this = 0;
+
+	  nvtx = vtx->nextitem;
 
 	  /* Time to expire ? */
 	  if (vtx->ce_expiry > 0 && vtx->ce_expiry <= now &&
 	      vtx->attempts  > 0) {
-	    struct vertex *nvtx = vtx->nextitem;
-
+	    expire_this = 1;
+	  }
+	  if (vtx->ce_expiry2 > 0 && vtx->ce_expiry2 <= now) {
+	    expire_this = 1;
+	  }
+	  if (expire_this) {
 	    /* ... and now expire it! */
 	    /* this MAY invalidate also the THREAD object! */
 
 	    if (thr->jobs > 1) {
-	      expire(vtx,index);
+	      expire(vtx, index);
 	    } else {
-	      expire(vtx,index);
+	      expire(vtx, index);
 	      thr = NULL; /* The THR-pointed object is now invalid */
 	    }
-	    vtx = nvtx;
 	    continue;
 	  }
+
+	  /* Didn't expire, so time to tune the wakeup ... */
 
 	  if (vtx->wakeup < retrytime)
 	    vtx->wakeup = retrytime;
 	  if (wakeup > vtx->wakeup || wakeup == 0)
 	    wakeup = vtx->wakeup;
-
-	  vtx = vtx->nextitem;
 	}
+
 	if (thr != NULL)
 	  thr->wakeup = wakeup;
 

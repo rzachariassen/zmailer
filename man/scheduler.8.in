@@ -1,14 +1,14 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SCHEDULER 8 "11 Feb 2002"
+.TH SCHEDULER 8 "2002-Sep-08"
 .SH NAME
 scheduler \- zmailer transport queue scheduler daemon
 .SH SYNOPSIS
 .IP \fBscheduler\fR 10em
 [\fB\-divFHnQSVW\fR]
 [\fB\-f\fR\ \fIconfigfile\fR]
-[\fB\-E\fR\ \fInewentsmax\fR]
+[\fB\-E\fR\ \fInewentsmax[,newentstimemax]\fR]
 [\fB\-L\fR\ \fIlogfile\fR]
 [\fB\-l\fR\ \fIstatisticslog\fR]
 [\fB\-N\fR\ \fItranspmaxfno\fR]
@@ -92,9 +92,23 @@ without any argument will start it as a daemon.
 run as a daemon, usually used after \-v to log daemon activity in great
 detail.
 .PP
-.IP "\-E \fInewentsmax\fR"
+.IP "\-E \fInewentsmax[,neweventtimelimit]\fR"
+.RS
 when globbing new tasks from the directory, pick only first ``newentsmax''
-of them, and leave rest for a new scan run.
+of them, and leave rest for a new scan run, or do it at most
+for ``newenttimelimit'' seconds.
+Default values are 40 000 messages, and 5 seconds.
+.PP
+This relates on how the system will scan the input queue areas for new
+messaes.
+Nominally in lightly loaded systems the scan for new messages will be done
+every 10 seconds, but if the queue in pre-scan area is sufficiently large,
+that interval is raised up to 20 seconds.
+.PP
+The ``newenttimelimit'' value can be set to 2 thru 15, and tells essentially
+for how long the scheduler is allowed to spend on the work to look for new
+things.
+.RE
 .PP
 .IP "\-f \fIconfigfile\fR"
 overrides the default configuration file \fIMAILSHARE\fB/scheduler.cf\fR.
@@ -309,11 +323,23 @@ and it a TA spends more than
 time in there, it is terminated.
 .PP
 .IP "expiry (3d)"
+.RS
 specifies the maximum age of an address in the
 .I scheduler
 queue before a repeatedly deferred address is bounced with an expiration
 error.  The actual report is produced when all addresses have
 been processed.
+.PP
+The expiry happens only, if there has been at least one delivery
+attempt in the lifetime of the scheduler process currently running.
+.RE
+.PP
+.IP "expiry2 (0)"
+.RS
+specifies additional time beyond primary expiration by which
+time the message will be expired even without any delivery
+attempts having been made.
+.RE
 .PP
 .IP "retries (1 1 2 3 5 8 13 21 34)"
 .RS
@@ -1206,6 +1232,7 @@ sends a message for the
 that there is a new job available.
 .PP
 .IP SCHEDULERDIRHASH
+.RS
 Carries a numeric value of ``1'' or ``2'' (if defined at all),
 which will then override possible ``-H'' option at the
 .IR scheduler (8) .
@@ -1215,6 +1242,11 @@ to send messages directly to the scheduler's hash subdirectories,
 thus eliminating a few directory operations which the scheduler would
 otherwise do, and at the same time limiting the size of the directory
 files.
+.PP
+On high-load systems, value of:
+.I SCHEDULERDIRHASH=2
+is highly recommended!
+.RE
 .PP
 .IP SYSLOGFLG
 Existence of ``c'' or ``C'' character in value string enables

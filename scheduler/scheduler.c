@@ -123,17 +123,21 @@ char * procselect = NULL;	/* Non-null defines  channel/host specifier
 char *  procselhost = NULL;	/* Just spliced out 'host'-part of the above */
 extern int forkrate_limit;	/* How many forks per second ? */
 int	mailqmode = 1;		/* ZMailer v1.0 mode on mailq */
-char *  mailqsock = NULL;
-char *  notifysock = NULL;
+char *  mailqsock;
+char *  notifysock;
 
-static int vtxprep_skip      = 0;
-static int vtxprep_skip_any  = 0;
-static int vtxprep_skip_lock = 0;
-static time_t next_dirscan     = 0;
-static time_t next_idlecleanup = 0;
-static time_t next_interim_report_time = 0;
-static struct sptree *dirscan_mesh = NULL;
-static int newents_limit = 400;
+static int vtxprep_skip;
+static int vtxprep_skip_any;
+static int vtxprep_skip_lock;
+static time_t next_dirscan;
+static time_t next_idlecleanup;
+static time_t next_interim_report_time;
+static time_t next_expiry2_scan;
+static struct sptree *dirscan_mesh;
+
+static int newents_limit = 40000;
+static int newents_timelimit = 5;
+
 extern int default_full_content; /* on conf.c */
 
 #include "memtypes.h"
@@ -565,9 +569,11 @@ main(argc, argv)
 			config = optarg;
 			break;
 		case 'E':
-			newents_limit = atoi(optarg);
-			if (newents_limit < 10)
-			  newents_limit = 10;
+		        sscanf(optarg, "%d,%d", &newents_limit, &newents_timelimit);
+
+			if (newents_limit < 10)      newents_limit = 10;
+			if (newents_timelimit < 2)   newents_timelimit = 2;
+			if (newents_timelimit > 15)  newents_timelimit = 15;
 			break;
 		case 'F':
 			freeze = 1;
@@ -889,9 +895,16 @@ main(argc, argv)
 	  }
 
 	  if (now >= next_idlecleanup) {
+	    idle_cleanup();
+
 	    next_idlecleanup = now + idle_sweepinterval; /* 120 second
 							    interval */
-	    idle_cleanup();
+	  }
+
+	  if (now >= next_expiry2_scan) {
+	    i = doexpiry2();
+	    if (i == 0) 
+	      next_expiry2_scan = now + expiry2_sweepinterval;
 	  }
 
 	  if (now >= next_interim_report_time) {
@@ -1139,6 +1152,15 @@ static int dirqueuescan(dir, dq, subdirs)
 	struct stat stbuf;
 	char file[MAXNAMLEN+1];
 	int newents = 0;
+	static time_t timelimit;
+	time_t then;
+
+	mytime( &now );
+	then = now;
+
+	if (dir && dir[0] == '.' && dir[1] == 0) {
+	  timelimit = now + newents_timelimit;
+	}
 
 #if 0
 	static time_t modtime = 0;
@@ -1169,7 +1191,14 @@ static int dirqueuescan(dir, dq, subdirs)
 
 	  /* Here we are presuming the time retrieval is essentially
 	     _free_ in form of shared memory segment.. */
-	  queryipccheck();
+	  mytime( &now );
+	  if (now >  then) {
+	    then = now;
+	    queryipccheck();
+	  }
+
+	  if (!syncstart && now > timelimit)
+	    break; /* At most  newents_timelimit  seconds in this scanner... */
 
 	  if (!syncstart && newents > newents_limit)
 	    break; /* At most NNN per one go */
@@ -2549,6 +2578,7 @@ static void ce_fillin(thg,cep)
 	if (cep->interval != -1) ce->interval = cep->interval;
 	if (cep->idlemax  != -1) ce->idlemax  = cep->idlemax;
 	if (cep->expiry   != -1) ce->expiry   = cep->expiry;
+	if (cep->expiry2  != -1) ce->expiry2  = cep->expiry2;
 	ce->expiryform     = cep->expiryform;
 	if (cep->uid      != -1) ce->uid = cep->uid;
 	if (cep->gid      != -1) ce->gid = cep->gid;
@@ -2627,6 +2657,14 @@ static void vtxdo(vp, cehdr, path)
 	  vp->ce_expiry = tp->expiry + vp->cfp->mtime;
 	else
 	  vp->ce_expiry = 0;
+
+	if (tp->expiry2 > 0)
+	  vp->ce_expiry2 = tp->expiry2 + vp->cfp->mtime;
+	else
+	  vp->ce_expiry2 = vp->ce_expiry;
+
+	if (vp->ce_expiry2 < vp->ce_expiry)
+	  vp->ce_expiry2 = vp->ce_expiry + 24*3600;
 
 	if (tp->reporttimes[0])
 	  vp->nextrprttime = now + tp->reporttimes[0];

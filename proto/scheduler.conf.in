@@ -146,8 +146,14 @@ PARAMauthfile = "${MAILSHARE}/scheduler.auth"
 #
 */*	interval=1m
 	idlemax=4m # Max lifetime of idled TA before it is killed
-	# expire messages after 5 days without full delivery
+	# Expire messages after 5 days without full delivery.
+	# However at least one delivery attempt must be made
+	# before this happens.
 	expiry=5d
+	# If the message has not been successfully delivered in
+	# expiry+expiry2  time, the message will be expired
+	# from the queue even without single delivery attempt.
+	expiry2=2d
 	# when the scheduler gets to the end of the retry sequence,
 	# it starts over at some random point in the middle.  The
 	# numbers are factors of the scheduling interval.

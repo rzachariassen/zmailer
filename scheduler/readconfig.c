@@ -35,6 +35,7 @@ static int paramparse __((char *line));
 static int rc_command		RCKEYARGS;
 static int rc_expform		RCKEYARGS;
 static int rc_expiry		RCKEYARGS;
+static int rc_expiry2		RCKEYARGS;
 static int rc_group		RCKEYARGS;
 static int rc_interval		RCKEYARGS;
 static int rc_maxchannel	RCKEYARGS;
@@ -75,6 +76,7 @@ static struct rckeyword {
 {	"command",		rc_command	},	/* array of strings */
 {	"deliveryform",		rc_deliveryform	},	/* string */
 {	"expiry",		rc_expiry	},	/* time */
+{	"expiry2",		rc_expiry2	},	/* time */
 {	"expiryform",		rc_expform	},	/* string */
 {	"group",		rc_group	},	/* number */
 {	"idlemax",		rc_idlemax	},	/* time */
@@ -117,6 +119,7 @@ defaultconfigentry(ce,defaults)
 	  ce->interval		= defaults->interval;
 	  ce->idlemax		= defaults->idlemax;
 	  ce->expiry		= defaults->expiry;
+	  ce->expiry2		= defaults->expiry2;
 	  ce->expiryform	= defaults->expiryform;
 	  ce->uid		= defaults->uid;
 	  ce->gid		= defaults->gid;
@@ -147,6 +150,7 @@ defaultconfigentry(ce,defaults)
 	  ce->interval	= -1;
 	  ce->idlemax   = -1;
 	  ce->expiry	= -1;
+	  ce->expiry2	= -1;
 	  ce->expiryform = NULL;
 	  ce->uid	= -1;
 	  ce->gid	= -1;
@@ -185,9 +189,10 @@ vtxprint(vp)
 	sfprintf(sfstdout," %p  mark %d\n",	ce, ce->mark);
 	sfprintf(sfstdout,"\tinterval %d\n",	(int)ce->interval);
 	sfprintf(sfstdout,"\tidlemax %d\n",	ce->idlemax);
-	sfprintf(sfstdout,"\texpiry %d\n",		(int)ce->expiry);
+	sfprintf(sfstdout,"\texpiry %d\n",	(int)ce->expiry);
+	sfprintf(sfstdout,"\texpiry2 %d\n",	(int)ce->expiry2);
 	sfprintf(sfstdout,"\texpiryform %s\n",	ISS(ce->expiryform));
-	sfprintf(sfstdout,"\tdeliveryform %s\n",	ISS(ce->deliveryform));
+	sfprintf(sfstdout,"\tdeliveryform %s\n", ISS(ce->deliveryform));
 	sfprintf(sfstdout,"\tuid %d\n",		ce->uid);
 	sfprintf(sfstdout,"\tgid %d\n",		ce->gid);
 	sfprintf(sfstdout,"\tcommand %s\n",	ISS(ce->command));
@@ -202,11 +207,11 @@ vtxprint(vp)
 							 " WAKEUPRESTARTONLY");
 	}
 	sfprintf(sfstdout,"\n");
-	sfprintf(sfstdout,"\tmaxkids %d\n",	ce->maxkids);
+	sfprintf(sfstdout,"\tmaxkids %d\n",		ce->maxkids);
 	sfprintf(sfstdout,"\tmaxkidChannel %d\n",	ce->maxkidChannel);
 	sfprintf(sfstdout,"\tmaxkidThread  %d\n",	ce->maxkidThread);
 	sfprintf(sfstdout,"\tmaxkidThreads %d\n",	ce->maxkidThreads);
-	sfprintf(sfstdout,"\toverfeed %d\n",	ce->overfeed);
+	sfprintf(sfstdout,"\toverfeed %d\n",		ce->overfeed);
 
 	if (ce->priority >= 80)
 	  sfprintf(sfstdout,"\tpriority %d\n",	ce->priority - 100);
@@ -268,6 +273,7 @@ celink(ce, headp, tailp, copy)
 	    ce->interval	= (*tailp)->interval;
 	    ce->idlemax		= (*tailp)->idlemax;
 	    ce->expiry		= (*tailp)->expiry;
+	    ce->expiry2		= (*tailp)->expiry2;
 	    ce->expiryform	= (*tailp)->expiryform;
 	    ce->uid		= (*tailp)->uid;
 	    ce->gid		= (*tailp)->gid;
@@ -599,6 +605,14 @@ static int rc_expiry(key, arg, ce)
 	struct config_entry *ce;
 {
 	ce->expiry = parse_interval(arg,NULL);
+	return 0;
+}
+
+static int rc_expiry2(key, arg, ce)
+	char *key, *arg;
+	struct config_entry *ce;
+{
+	ce->expiry2 = parse_interval(arg,NULL);
 	return 0;
 }
 

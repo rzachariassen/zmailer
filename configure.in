@@ -2134,6 +2134,8 @@ AC_ARG_WITH(sasl2-lib, [  --with-sasl2-lib=/dir/lib/path],
 if test -n "$SASL2PREFIX" -a -z "$SASL2INCL" ; then
   if test -f "$SASL2PREFIX/include/sasl/sasl.h" ; then
     SASL2INCL="-I$SASL2PREFIX/include/"
+    AC_DEFINE(HAVE_SASL_SASL_H, 1, [Have <sasl/sasl.h> header])
+EOF
   else
     AC_MSG_RESULT([!!! You defined  --with-sasl2-prefix=$SASL2PREFIX,  BUT])
     AC_MSG_RESULT([!!! there does not exist file  $SASL2PREFIX/include/sasl/sasl.h !])
@@ -2162,6 +2164,7 @@ AC_ARG_WITH(sasl2, [  --with-sasl2             Search for, and use Sasl2, if it 
   # No Explicite setup, lets do some auto-tests
   SaslH=/usr/local/include/sasl/sasl.h
   if test -r $SaslH ; then
+    AC_DEFINE(HAVE_SASL_SASL_H, 1, [Have <sasl/sasl.h> header])
     SaslMajor="`awk '/SASL_VERSION_MAJOR/{print $NF}' < $SaslH`"
     if test "$SaslMajor" != "2"; then
       # HUH! Not SASL2 !
@@ -2181,6 +2184,7 @@ AC_ARG_WITH(sasl2, [  --with-sasl2             Search for, and use Sasl2, if it 
   fi
   SaslH=/usr/include/sasl/sasl.h
   if test -r $SaslH ; then
+    AC_DEFINE(HAVE_SASL_SASL_H, 1, [Have <sasl/sasl.h> header])
     SaslMajor="`awk '/SASL_VERSION_MAJOR/{print $NF}' < $SaslH`"
     if test "$SaslMajor" != "2"; then
       # HUH! Not SASL2 !

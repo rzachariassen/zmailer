@@ -1,10 +1,48 @@
+2002-09-06  Matti Aarnio  <mea@zmailer.org>
+
+	* SiteConfig.in:
+	    Changed the default value for SCHEDULERDIRHASH  to be  2
+	    It is important thing for large queue sites, while
+	    at small systems it uses deep hashing unnecessarily..
+
+	* configure.in:
+	    Mark for presense of header  <sasl/sasl.h>
+
+	* man/scheduler.8, scheduler/scheduler.c:
+	    The  -E  option for the scheduler can now have
+	    two parameters to better control the pre-scan of
+	    the input queue.  Also altered default values.
+
+	* scheduler/readconfig.c, scheduler/scheduler.h, man/scheduler.8,
+	  scheduler/agenda.c,  scheduler/conf.c, scheduler/scheduler.c,
+	  scheduler/prototypes.h, scheduler/threads.c:
+	    Another form of expiry -- when the queues become truly
+	    huge, ZMailer's scheduler has not been able to expire
+	    messages because it must at first do a delivery attempt
+	    at least once. A new "expire2=" time limit _beyond_primary_
+	    _expiry_.
+
+	* smtpserver/mxverify.c:
+	    The bad T_TXT data detection and cutback, nominally
+	    the same thing as with e.g. sendmail.  Also clean
+	    up the received string to have only printable
+	    characters in ISO-8859-* character-sets.
+
+	* contrib/clean-mean-contentfilter-1.00.tar.gz:
+	    Package from Eugene Crosser: "if you think it's worth,
+	    maybe you'll include the attached thing into contrib/.
+	    It's running here for more than a week under serious
+	    load. It's not very smart and not very portable but
+	    it's light (I did not feel any noticable growth of load
+	    on the servers)."
+	
 2002-09-03  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, smtpserver/zpwmatch-pipe.c:
 	    Running the legacy application authentication against
 	    SASL via an external program..  Turns out the old
-	    pipe-matcher code fails when we have active child
-	    exit reaper...  Oops.
+	    pipe-matcher code fails (by looping with ECHILD error)
+	    when we have active child exit reaper...  Oops.
 
 	* smtpserver/smtpauth-sasl.c:
 	    The external program mentioned above.  This program is NOT
