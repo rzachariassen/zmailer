@@ -189,7 +189,7 @@ update(fd, diagnostic)
 	      pick_next_vertex(proc, 1, 0);
 	      if (proc->hungry > 0)
 		feed_child(proc);
-#if 0 /* NO OVERFEEDING! */
+#if 1 /* YES OVERFEEDING! */
 	      /* While we have a thread, and things to feed.. */
 	      while (!proc->fed && proc->thread) {
 		if (proc->hungry > 0)

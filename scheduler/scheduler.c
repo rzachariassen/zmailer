@@ -1265,10 +1265,12 @@ void resync_file(proc, file)
 	/* Already in processing ? */
 	spl = sp_lookup((u_long)ino, spt_mesh[L_CTLFILE]);
 	if (spl == NULL) {
+#if 0
 	  if (!in_dirscanqueue(NULL,ino)) {
 	    sfprintf(sfstdout,"Resyncing file \"%s\" (ino=%ld)", file, ino);
 	    sfprintf(sfstdout," .. not in processing database\n");
 	  }
+#endif
 	  /* Not (anymore) in processing! */
 	  return;
 	}
