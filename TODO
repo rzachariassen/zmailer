@@ -1,9 +1,5 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
-- SFIO doesn't like to be compiled in other than source directory..
-  That is:  mkdir thisbin; cd thisbin; ../configure ... ; make
-  will fail.  (noticed 2000/3/23)
-
 - router+scheduler+TA status MIB areas in an SHM segment
   (Solaris et.al. which don't allow ARGV overwrite..
    DNS lookups, connecting, protocol exchanges, ...)
