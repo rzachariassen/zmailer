@@ -2789,30 +2789,36 @@ makeconn(SS, hostname, ai, ismx)
 	    SS->ismx = ismx;
 	  }
 
-	  if (ai->ai_family == AF_INET) {
+	  switch (ai->ai_family) {
+	  case AF_INET:
 	    si = (struct sockaddr_in *)ai->ai_addr;
 	    i = matchmyaddress((Usockaddr *) ai->ai_addr);
 	    inet_ntop(AF_INET, &si->sin_addr, SS->ipaddress, sizeof(SS->ipaddress));
 	    sprintf(SS->ipaddress + strlen(SS->ipaddress), "|%d",
 		    SS->servport);
-	  } else
+	    break;
 #if defined(AF_INET6) && defined(INET6)
-	  if (ai->ai_family == AF_INET6) {
+	  case AF_INET6:
 	    si6 = (struct sockaddr_in6*)ai->ai_addr;
 	    i = matchmyaddress((Usockaddr *)ai->ai_addr);
 	    strcpy(SS->ipaddress,"ipv6 ");
 	    inet_ntop(AF_INET6, &si6->sin6_addr, SS->ipaddress+5, sizeof(SS->ipaddress)-5);
 	    sprintf(SS->ipaddress + strlen(SS->ipaddress), "|%d",
 		    SS->servport);
-	  } else
+	    break;
 #endif
 #ifdef AF_UNIX
-	    if (ai->ai_family == AF_UNIX) {
+	  case AF_UNIX:
+	    {
 	      struct sockaddr_un *un = (struct sockaddr_un *)ai->ai_addr;
 	      sprintf(SS->ipaddress, "UNIX:%s", un->sun_path);
-	    } else
+	    }
+	    break;
 #endif
-	      sprintf(SS->ipaddress,"UNKNOWN-ADDR-FAMILY-%d", ai->ai_family);
+	  default:
+	    sprintf(SS->ipaddress,"UNKNOWN-ADDR-FAMILY-%d", ai->ai_family);
+	    break;
+	  }
 
 	  notary_setwttip(SS->ipaddress);
 
@@ -2950,17 +2956,26 @@ vcsetup(SS, sa, fdp, hostname)
 	time(&now);
 
 	af = sa->sa_family;
+	switch (af) {
 #if defined(AF_INET6) && defined(INET6)
-	if (sa->sa_family == AF_INET6) {
+	case AF_INET6:
 	  addrsiz = sizeof(*sai6);
 	  memset(&sad6, 0, sizeof(sad6));
-	}
-	else
+	  break;
 #endif
+#ifdef AF_UNIX
+	case AF_UNIX:
 	  {
-	    addrsiz = sizeof(*sai);
-	    memset(&sad, 0, sizeof(sad));
+	    struct sockaddr_un *sau = (struct sockaddr_un *)sa;
+	    addrsiz = 3 + strlen( sau->sun_path );
 	  }
+	  break;
+#endif
+	default: /* PRESUME: AF_INET */
+	  addrsiz = sizeof(*sai);
+	  memset(&sad, 0, sizeof(sad));
+	  break;
+	}
 
 	if (conndebug)
 	  fprintf(stderr, "Trying %.200s [%.200s] ... ",
@@ -3131,35 +3146,40 @@ abort();
 	port = SS->servport;
 	if (SS->literalport > 0)
 	  port = SS->literalport;
-	if (af == AF_INET)
+	switch (af) {
+	case AF_INET:
 	  sai->sin_port   = htons(port);
+	  break;
 #if defined(AF_INET6) && defined(INET6)
-	if (af == AF_INET6)
+	case AF_INET6:
 	  sai6->sin6_port = htons(port);
+	  break;
 #endif
+	}
+
 	/* setreuid(0,first_uid);
 	   if(SS->verboselog) fprintf(SS->verboselog,"setreuid: first_uid=%d, ruid=%d, euid=%d\n",first_uid,getuid(),geteuid()); */
 
 	if (SS->verboselog) {
-	  if (af == AF_INET
+	  switch (af) {
+	  case AF_INET:
 #if defined(AF_INET6) && defined(INET6)
-	      || af == AF_INET6
+	  case AF_INET6:
 #endif
-	      ) {
 	    fprintf(SS->verboselog, "Connecting to %s [%s] port %d\n",
 		    hostname, SS->ipaddress, ntohs(sai->sin_port));
-	  } else
+	    break;
 #ifdef AF_UNIX
-	    if (af == AF_UNIX) {
-	    /* PRESUMPTION: AF_UNIX socket... */
-	      fprintf(SS->verboselog, "Connecting to %s [%s]\n",
-		      hostname, SS->ipaddress);
-	    } else
+	  case AF_UNIX:
+	    fprintf(SS->verboselog, "Connecting to %s [%s]\n",
+		    hostname, SS->ipaddress);
+	    break;
 #endif
-	      {
-		fprintf(SS->verboselog, "Connecting to %s [UNKNOWN-ADDRESS-FAMILY]\n",
-			hostname);
-	      }
+	  default:
+	    fprintf(SS->verboselog, "Connecting to %s [UNKNOWN-ADDRESS-FAMILY-%d]\n",
+		    hostname, af);
+	    break;
+	  }
 	}
 
 	gotalarm = 0;
@@ -3183,6 +3203,7 @@ abort();
 	  }
 	}
 
+	
 	if (connect(sk, sa, addrsiz) < 0 &&
 	    (errno == EWOULDBLOCK || errno == EINPROGRESS)) {
 
