@@ -2071,6 +2071,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	Sfio_t *errfp;
 	Sfio_t *fp;
 	time_t starttime, endtime;
+	char errbuf[4*1024];
 
 	time(&starttime);
 
@@ -2283,7 +2284,8 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 
 	close(out[0]);
 	close(in[1]);
-	errfp = sfnew(NULL, NULL, 16*1024, in[0], SF_READ|SF_LINE);
+
+	errfp = sfnew(NULL, errbuf, sizeof(errbuf), in[0], SF_READ);
 	/* write the message */
 	mmdf_mode += 2;
 	eofindex = -1; /* NOT truncatable! */
@@ -2293,7 +2295,6 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  pid = wait(&status);
 	  close(out[1]);
 	  sfclose(errfp);
-	  close(in[0]);
 	  return status;
 	}
 	sfclose(fp);
@@ -2305,9 +2306,7 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	else if ((cp = strchr(buf, '\n')) != NULL)
 		*cp = '\0';
 	pid = wait(&status);
-	close(out[1]);
 	sfclose(errfp);
-	close(in[0]);
 	cp = buf + strlen(buf);
 
 	/* Union or not, we treat it as if it were an integer.. */
