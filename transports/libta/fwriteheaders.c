@@ -131,10 +131,14 @@ fwriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 		return -1;
 
 	    hsize += linelen;
+
 	    if (ferror(fp) ||
 		fwrite(newline, 1, newlinelen, fp) != newlinelen) {
 	      return -1;
 	    }
+
+	    hsize += newlinelen;
+
 	    ++msgheaders;
 	  }
 	}

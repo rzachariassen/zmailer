@@ -5,6 +5,9 @@
 	    do diagnostics right after smtpwrite(".").  It leads
 	    to bad retry results :-/
 
+	    Reworked something else; simplified code for header
+	    output -- which will be "obviously correct".
+
 	* smtpserver/smtpserver.c:
 	    Make '-l SYSLOG' option to work in parallel with possible
 	    '-l /path/to/file' logging option.

@@ -132,8 +132,11 @@ swriteheaders(rp, fp, newline, convertmode, maxwidth, chunkbufp)
 		return -1;
 
 	    hsize += linelen;
+
 	    if (sferror(fp) || sfwrite(fp, newline, newlinelen) != newlinelen)
 	      return -1;
+
+	    hsize += newlinelen;
 
 	    ++msgheaders;
 	  }

@@ -1356,10 +1356,8 @@ deliver(SS, dp, startrp, endrp)
 	    fprintf(SS->verboselog,"%s\n",*hdrs++);
 	}
 
-	SS->hsize = -1;
-	if (!(chunkptr && !chunkblk))
-	  SS->hsize = swriteheaders(startrp, SS->smtpfp, "\r\n",
-				    convertmode, 0, chunkptr);
+	SS->hsize = swriteheaders(startrp, SS->smtpfp, "\r\n",
+				  convertmode, 0, chunkptr);
 
 	if (SS->hsize >= 0 && chunkblk) {
 
