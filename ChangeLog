@@ -1,3 +1,155 @@
+1999-04-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* Makefile.in: 2.99.50-s14
+
+	* proto/cf/aliases.cf:
+	    Fixed a typo, which doesn't affect most people at all..
+
+	* scheduler/transport.c:
+	    Allow the  command="..."  to define at first some environment
+	    variables, before starting the program.  Syntax something like:
+	    command="VAR1=value1 VAR2=value2 command -params"
+	    No white-space is placeable into the values, all expansions that
+	    work for the command parameters will also work at values.
+
+	* transports/mailbox/mailbox.c:
+	    A strange DEC Tru64 (a.k.a. DEC OSF/1 a.k.a DEC UNIX) feature
+	    in  getpwnam(),  which seems to return errno==EINVAL, when no
+	    entry is found at /etc/passwd -- getpwnam() return value is
+	    NULL, of course.
+
+	* router/db.c:
+	    Changed the way how  D_db ("trace db") works; shows the query-
+	    in-progress proceeding.
+
+
+	* router/router.c:
+	    Turn stdout/stderr buffering from NON-BUF to LINE-BUF mode.
+
+	* proto/db/smtp-policy.src:
+	    Removed "relaycustomer +" from the  "_full_rights" set.
+
+	* man/Makefile.in, man/smtpserver.8, proto/smtpserver.conf.in,
+	  smtpserver/cfgread.c, smtpserver/smtpchilc.c, smtpserver/smtpcmds.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h:
+	    - added new PARAMs to disable selected facilities
+	    - added new PARAMS to tune a few other facilities
+	    - allows limiting the number of parallel smtpserver processes
+	    - updated smtpserver.conf.in sample file
+	    - updated man-page
+
+	* Makefile.in: 2.99.50-s13
+
+	* include/listutils.h, libsh/builtins.c, libsh/execute.c, libsh/sh.h,
+	  libsh/expand.c, libsh/interpret.c, libsh/listmalloc.c, libsh/trap.c,
+	  libsh/listtrees.c, libsh/listutils.c, libsh/tregexp.c, libsh/zmsh.c,
+	  libsh/variables.c, router/db.c, router/functions.c, router/rfc822.c,
+	  router/router.c, router/router.c, router/shliaise.c, include/libsh.h,
+	  router/libdb/bind.c, router/libdb/bsdbtree.c, router/libdb/bsdhash.c,
+	  router/libdb/dbm.c, router/libdb/gdbm.c, router/libdb/header.c,
+	  router/libdb/hostsfile.c, router/libdb/incore.c, router/libdb/ldap.c,
+	  router/libdb/ndbm.c, router/libdb/ordered.c, router/libdb/yp.c,
+	  router/libdb/unordered.c:
+	    A MASSIVE rewrite of internal conscell processing facilities.
+
+	* smtpserver/cfgread.c, smtpserver/smtpserver.c:
+	    Accept PARAM keywords even if they are preceded with some
+	    white-space at the beginning of the line.
+
+	* router/rfc822.c:
+	    Modify privilege data verification; accept also negative values.
+
+	* transports/libta/tasyslog.c, utils/listexpand.c,
+	  smtpserver/smtpserver.h:
+	    Minor things to apeact some compilation environments
+
+	* compat/sendmail/sendmail.c, configure.in:
+	    Use  mkstemp()  function, if it is available
+
+	* smtpserver/smtpserver.c:
+	    Utter strictness in local mode is not so good..
+	    Turn the strictness selectively off in local mode.
+
+	* Makefile.in:
+	    Incremented version number
+
+	* proto/cf/server.cf:
+	    Accept "MAIL FROM:<>" from the client.
+
+	* INSTALL:
+	    Added a note about UUCICO/uucp uids, and 'zmailer'-group
+
+	* transports/mailbox/mailbox.c:
+	    Moved "running as root test down a bit, changed slightly
+	    some debug related diagnostic messages.
+
+	* transports/libra/diagnostic.c:
+	    If scheduler diagnostics are suppressed, suppress also
+	    syslog messages.
+
+	* transports/libta/tasyslog.c:
+	    Allow a bit longer diagnostic string to be sent...
+
+	* */Makefile.in, */*/Makefile.in:
+	    Change 'libz.a' to 'libzm.a' -- until somebody uses thus named
+	    library in some other system, and we can't sidestep it...
+
+	* smtpserver/policytest.c, smtpserver/smtprouter.c:
+	    Fix debug related buffer overflow in policytest.c (debug messages
+	    scribled over memory -- no user data at the writeout) add a bit
+	    more debug things into the  smtprouter.c so that we can see what
+	    is sent to the router process.
+
+	* smtpserver/policytest.c, smtpserver/policytest.h,
+	  smtpserver/mxverify.c, proto/db/smtp-policy.src:
+	    Updated commentary documents a bit at  smtp-policy.src  file.
+	    Made policytest stuff to use arbitary size strings as options,
+	    and pass such to  rbl_dns_test()  function as a colon-separated
+	    list of domain suffixes for where to query for RBL-like data.
+
+	* transports/mailbox/mailbox.c:
+	    Hunting an ellusive problem reporting [exit status 0] and
+	    not knowing which branch of the thing it really is from.
+	    Also matched UTIME/UTIMES test order with other instances
+	    in the same code.
+
+	* transports/sm/sm.c, transports/smtp/smtp.c,
+	  utils/pop-proxy/pop-proxy.c, scheduler/scheduler.c:
+	    Moving arount the  setvbuf()  calls a bit, propably mostly
+	    safe without this, but better be absolutely sure..
+
+	* libc/md5c.c:
+	    Cleanup of 32- vs. 64-bit platform portability issues.
+
+	* transports/libta/mimeheaders.c, transports/mailbox/mailbox.c,
+	  transports/smtp/smtp.c, transports/sm/sm.c, include/ta.h:
+	    A bug in how 8-bit containing body was downgraded to
+	    Quoted-Printable when the message in question was in
+	    fact NOT TEXT/PLAIN !  Aargh!.. (MULTIPART/ZZZ things..)
+
+	* transports/smtp/smtp.c:
+	    A Q-P encoding change from Arnt Hulbrandsen
+
+	* transports/mailbox/mailbox.c, router/rfc822.c, lib/selfaddrs.c:
+	    Adaptation to match some glibc 2.1 beta compability issues.
+
+	* proto/cf/crossbar.cf
+	* utils/listexpand.c
+	    Modernization work
+
+	* proto/smtpserver.conf.in
+	    Per default turn off 'DEBUG' command
+
+	* contrib/whoson-protocol.txt
+	    Protocol document (draft)
+
+	* INSTALL:
+	    Added a word about  scheduler.conf  file.
+
+	* doc/guides/smtp-etrn, doc/guides/offline-operation
+	    Generalized guide on ETRN usage with ZMailer,
+	    and one special case..
+
 1998-11-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* Makefile.in:
