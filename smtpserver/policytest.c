@@ -993,7 +993,10 @@ const int len;
 
     /* state->request initialization !! */
     state->request = ( 1 << P_A_REJECTNET    |
-		       1 << P_A_FREEZENET  );
+		       1 << P_A_FREEZENET    |
+		       1 << P_A_RELAYCUSTNET |
+		       1 << P_A_InboundSizeLimit  |
+		       1 << P_A_OutboundSizeLimit   );
 
     check_domain(rel, state, str, len);
 
@@ -1009,6 +1012,12 @@ const int len;
     if (state->values[P_A_FREEZENET] == '+') {
 	state->always_freeze = 1;
 	return  1;
+    }
+    if (state->values[P_A_RELAYCUSTNET] == '+') {
+      if (debug)
+	printf("pt_sourceaddr: 'relaycustnet +' found\n");
+      state->always_accept = 1;
+      return  0;
     }
     return 0;
 }

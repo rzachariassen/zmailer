@@ -82,7 +82,7 @@ struct policytest *policydb = NULL;
 struct smtpconf *cfhead = NULL;
 struct smtpconf *cfinfo = NULL;
 
-const char *progname, *cmdline, *eocmdline, *logfile, *postoffice;
+const char *progname, *cmdline, *eocmdline, *logfile;
 char *routerprog = NULL;
 int logstyle = 0;		/* 0: no suffix, 1: 'myhostname', 2: 'rhostname' */
 int debug = 0;
