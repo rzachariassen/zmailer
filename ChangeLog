@@ -1,5 +1,8 @@
 2004-04-04  Matti Aarnio  <mea@zmailer.org>
 
+	* configure.in:
+	    Version label: 2.99.57-pre1
+
 	* scheduler/pipes.c -> lib/pipes.c,  scheduler/resources.c ->
 	  lib/resources.c, include/libz.h, scheduler/prototypes.h,
 	  router/daemonsub.c, lib/Makefile.in, scheduler/Makefile.in,

@@ -12,7 +12,7 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
-	ZMailer-2.99.56-patch1pre2:
+	ZMailer-2.99.57-pre1
 		When "mailq -M|grep Tport" lists something, the system
 		can split the postoffice in two filesystems, namely
 		"everything", and "transport/" subtrees.
