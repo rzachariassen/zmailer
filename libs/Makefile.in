@@ -13,7 +13,9 @@ ALL =	libsfio.a libident.a libzmdb.a libsh.a libta.a libzm.a libzc.a \
 	$(LIBRESOLVA) lib@MALLOC@.a
 
 
-libtag all: ${ALL}
+all: libtag
+
+libtag: ${ALL}
 	touch libtag
 
 depend:  # Eh ?
@@ -42,15 +44,20 @@ libzm.a: ../include/sfio.h
 libzc.a: ../include/sfio.h
 	cd ../libc; $(MAKE) $(MFLAGS) $@
 
-libmalloc.a libmalloc_d.a:
+libmalloc.a:: MALLOC
+libmalloc_d.a:: MALLOC
+
+MALLOC:
 	if [ "x$(LIBMALLOC)" != "x" ] ; then	  \
 	  cd ../libmalloc; $(MAKE) $(MFLAGS) $@ ; \
 	fi
 
 libsystem.a:
-	: # Dummy...
+	touch libsystem.a
 
-../include/sfio.h libsfio.a:
+../include/sfio.h:
+	cd ../sfio; $(MAKE) $(MFLAGS) all
+libsfio.a:
 	cd ../sfio; $(MAKE) $(MFLAGS) all
 
 #

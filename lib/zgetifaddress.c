@@ -58,8 +58,6 @@ union sockaddr_uni {
 #include "zmalloc.h"
 #include "libz.h"
 
-extern char  *getzenv     __((const char *));
-
 /*
 **  LOADIFADDRESSES -- load interface-specific addresses
 */

@@ -32,8 +32,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 
 	h_errno = 0;
 
+#ifndef TEST
 	notary_setwtt  (NULL);
 	notary_setwttip(NULL);
+#endif
 
 	if (depth == 0)
 	  SS->mxcount = 0;
@@ -41,8 +43,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	if (depth > 3) {
 	  sprintf(SS->remotemsg,"smtp; 500 (DNS: Recursive CNAME on '%.200s')",host);
 	  time(&endtime);
+#ifndef TEST
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(NULL,FAILED,"5.4.3 (Recursive DNS CNAME)",SS->remotemsg);
+#endif
 	  fprintf(stderr, "%s\n", SS->remotemsg);
 	  return EX_NOHOST;
 	}
@@ -58,8 +62,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    fprintf(SS->verboselog,"  %s\n", SS->remotemsg);
 
 	  time(&endtime);
+#ifndef TEST
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(NULL,FAILED,"5.4.3 (DNS-failure)",SS->remotemsg);
+#endif
 	  return EX_SOFTWARE;
 	}
 	n = res_send((void*)&qbuf, qlen, (void*)&answer, sizeof answer);
@@ -71,8 +77,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    fprintf(SS->verboselog,"  %s\n", SS->remotemsg);
 
 	  time(&endtime);
+#ifndef TEST
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(NULL,FAILED,"5.4.3 (DNS-failure)",SS->remotemsg);
+#endif
 	  return EX_TEMPFAIL;
 	}
 
@@ -110,16 +118,20 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog," NXDOMAIN %s\n", SS->remotemsg);
 	    endtime = now;
+#ifndef TEST
 	    notary_setxdelay((int)(endtime-starttime));
 	    notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
+#endif
 	    return EX_NOHOST;
 	  case SERVFAIL:
 	    sprintf(SS->remotemsg, "smtp; 500 (DNS: server failure: %.200s)", host);
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog," SERVFAIL %s\n", SS->remotemsg);
 	    endtime = now;
+#ifndef TEST
 	    notary_setxdelay((int)(endtime-starttime));
 	    notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
+#endif
 	    return EX_TEMPFAIL;
 	  case NOERROR:
 	    mx[0].host = NULL;
@@ -132,16 +144,20 @@ getmxrr(SS, host, mx, maxmx, depth)
 	      fprintf(SS->verboselog," FORMERR/NOTIMP/REFUSED(%d) %s\n",
 		      hp->rcode, SS->remotemsg);
 	    endtime = now;
+#ifndef TEST
 	    notary_setxdelay((int)(endtime-starttime));
 	    notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
+#endif
 	    return EX_NOPERM;
 	  }
 	  sprintf(SS->remotemsg, "smtp; 500 (DNS: unknown error, MX info unavailable: %.200s)", host);
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"  %s\n", SS->remotemsg);
 	  endtime = now;
+#ifndef TEST
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
+#endif
 
 	  if (had_eai_again)
 	    return EX_TEMPFAIL;
@@ -568,8 +584,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    if (n == EAI_AGAIN) {
 	      sprintf(SS->remotemsg, "smtp; 500 (DNS: getaddrinfo<%.200s> got EAI_AGAIN)", buf);
 	      endtime = now;
+#ifndef TEST
 	      notary_setxdelay((int)(endtime-starttime));
 	      notaryreport(NULL,FAILED,"4.4.4 (DNS lookup report)",SS->remotemsg);
+#endif
 
 	      had_eai_again = 1;
 	    }
@@ -641,6 +659,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    return EX_TEMPFAIL;
 	  return EX_OK;
 	}
+#ifndef TEST
 #ifdef	RFC974
 	/* discard MX's that do not support SMTP service */
 	if (checkwks)
@@ -660,6 +679,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    }
 	  }
 #endif	/* RFC974 */
+#endif /* TEST */
 	/* determine how many are left */
 	for (i = 0, n = 0; i < nmx; ++i) {
 	  if (mx[i].host == NULL)
@@ -677,8 +697,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  sprintf(SS->remotemsg,
 		  "smtp; 500 (DNS: MX host does not support SMTP: %.200s)", host);
 	  time(&endtime);
+#ifndef TEST
 	  notary_setxdelay((int)(endtime-starttime));
 	  notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
+#endif
 	  return EX_UNAVAILABLE;
 	}
 	nmx = n;
@@ -910,4 +932,23 @@ int main(argc, argv)
 
 	return 0;
 }
+
+const char * getzenv(name) 
+     const char *name;
+{
+   return NULL;
+}
+
+#if 0 /* Deep testing .. */
+int _getaddrinfo_ (host, port, req, ai, logfp)
+  const char *host;
+  const char *port;
+  const struct addrinfo *req;
+  struct addrinfo **ai;
+  FILE *logfp;
+{
+  return getaddrinfo(host, port, req, ai);
+}
+#endif
+
 #endif

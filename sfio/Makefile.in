@@ -10,26 +10,51 @@ VPATH = @srcdir@
 CC     = @CC@
 CFLAGS = @CFLAGS@
 
-all:
-	-mkdir -p lib include
-	DIR=`/bin/pwd`;PATH=$$DIR/$$srcdir/bin:$$PATH;export PATH; \
-		cd src/lib/sfio; $(MAKE) -f makefile $(MFLAGS) all
-	rm -f ../libs/libsfio.a ../libs/libstdio.a
+all:	install
+
+install: ../libs/libsfio.a ../libs/libstdio.a \
+	 ../include/ast_common.h ../include/sfio.h
+
+../libs/libsfio.a: lib/libsfio.a
+	rm -f ../libs/libsfio.a
 	ln lib/libsfio.a  ../libs/
+
+../libs/libstdio.a: lib/libstdio.a
+	rm -f  ../libs/libstdio.a
 	ln lib/libstdio.a ../libs/
-	rm -f ../include/ast_common.h ../include/sfio.h
+
+../include/ast_common.h: include/ast_common.h
+	rm -f ../include/ast_common.h
 	ln include/ast_common.h  ../include/
+
+../include/sfio.h: include/sfio.h
+	rm -f ../include/sfio.h
 	ln include/sfio.h        ../include/
 
+lib include:
+	-mkdir -p lib include
+
+lib/libsfio.a:: SFIO
+lib/libstdio.a:: SFIO
+include/ast_common.h:: SFIO
+include/sfio.h:: SFIO
+
+SFIO: lib include
+	-mkdir -p lib include
+	DIR=`/bin/pwd`;PATH=$$DIR/$$srcdir/bin:$$PATH;export PATH; \
+		cd src/lib/sfio && $(MAKE) -f makefile $(MFLAGS) all
+
+
 clean:
-	-cd src/lib/sfio; $(MAKE) -f makefile $(MFLAGS) clean
+	-cd src/lib/sfio && $(MAKE) -f makefile $(MFLAGS) clean
 	rm -f ../libs/libsfio.a ../libs/libstdio.a
 	rm -f ../include/ast_common.h ../include/sfio.h
 	rm -f lib/*.a include/*.h
 
 distclean: clean
-	rm -f Makefile src/lib/sfio/makefile
-	rm -f sfio/src/lib/sfio/Stdio_b/Makefile
-	rm -f sfio/src/lib/sfio/Stdio_s/Makefile
-	rm -f sfio/src/lib/sfio/Sfio_f/Makefile
-	rm -f sfio/src/lib/sfio/Sfio_dc/Makefile
+	rm -f Makefile
+	rm -f src/lib/sfio/makefile
+	rm -f src/lib/sfio/Stdio_b/Makefile
+	rm -f src/lib/sfio/Stdio_s/Makefile
+	rm -f src/lib/sfio/Sfio_f/Makefile
+	rm -f src/lib/sfio/Sfio_dc/Makefile

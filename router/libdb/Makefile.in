@@ -27,11 +27,11 @@ SOURCE	= bind.c dbm.c gdbm.c header.c hostsfile.c incore.c ndbm.c \
 $(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a $(TOPDIR)/include/rfc822.entry
 
 $(TOPDIR)/libs/$(LIBNAME).a:	$(OBJS)
-	ar rv $@ *.o
+	ar rv $@ $(OBJS)
 	$(RANLIB) $@
 	#-rm -f *.o
 
-$(OBJS): $(TOPDIR)/include/rfc822.entry $(TOPDIR)/include/sfio.h
+$(OBJS):: $(TOPDIR)/include/rfc822.entry $(TOPDIR)/include/sfio.h
 
 $(TOPDIR)/include/rfc822.entry:
 	cd .. ; $(MAKE) $(MFLAGS) ../include/rfc822.entry

@@ -22,8 +22,8 @@ extern int getopt __((int argc, char * const *argv, const char *optstring));
 extern int getdtablesize __((void));
 
 /* getzenv.c */
-extern int   readzenv __((const char *file));
-extern char *getzenv  __((const char *variable));
+extern int         readzenv __((const char *file));
+extern const char *getzenv  __((const char *variable));
 
 /* mail.c */
 extern const char *postoffice;

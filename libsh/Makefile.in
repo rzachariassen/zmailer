@@ -89,7 +89,7 @@ $(TOPDIR)/libs/$(LIBNAME).a: $(OBJS)
 
 #$(OBJS): $(SOURCE) ../config.h
 
-$(OBJS): $(TOPDIR)/include/mailer.h $(TOPDIR)/include/sfio.h
+$(OBJS): $(TOPDIR)/include/mail.h $(TOPDIR)/include/sfio.h
 
 
 lint:

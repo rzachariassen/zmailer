@@ -69,7 +69,7 @@ readzenv(file)
 
 #define BOL	1
 
-char *
+const char *
 getzenv(variable)
 	const char *variable;
 {

@@ -39,8 +39,8 @@ const char *msg;
   char spoolid[30];		/* Min. space: 6+8+1 chars	*/
   char delays[16], xdelays[16]; /* Min. space: 8+1 chars	*/
   time_t now;
-  static char *syslogflg = NULL;
-  char *t;
+  static const char *syslogflg = NULL;
+  const char *t;
 
   /* Syslogflag 'T' for classical format, and 't' for TAB-separated format */
 

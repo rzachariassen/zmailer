@@ -87,8 +87,8 @@
 /* These following are declared in order they are in prespective files */
 
 /* getzenv.c */
-extern int   readzenv __((const char *file));
-extern char *getzenv  __((const char *variable));
+extern int         readzenv __((const char *file));
+extern const char *getzenv  __((const char *variable));
 
 /* mail.c */
 extern const char * postoffice;

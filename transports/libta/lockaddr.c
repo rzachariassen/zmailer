@@ -27,7 +27,7 @@
 #define	SEEK_SET  0
 #endif	/* SEEK_SET */
 
-static char *ta_lockmode = NULL;
+static const char *ta_lockmode = NULL;
 
 int
 lockaddr(fd, map, offset, was, new, file, host, mypid)

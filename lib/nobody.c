@@ -46,14 +46,13 @@ static int nobodies[] = {
 static int didnobody = 0;
 
 extern int getnobody __((void));
-extern char *getzenv __((const char *));
 
 int
 getnobody()
 {
 	int i, factor = 1;
 	struct passwd *pw;
-	char *s;
+	const char *s;
 
 	if (didnobody)
 		return nobody;

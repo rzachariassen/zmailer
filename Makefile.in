@@ -55,7 +55,7 @@ all: config.h Makefile rfc822.entry $(ZCONF) SiteConfig \
 #	If need be, "make libs" at the top-level will remake all libraries
 
 include/sfio.h libs/libtag libs: force
-	cd libs && $(MAKE) $(MFLAGS) clean all
+	cd libs && $(MAKE) $(MFLAGS) all
 
 
 info dvi:
