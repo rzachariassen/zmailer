@@ -1743,11 +1743,13 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	    ++cfp->rcpnts_total;
 	    if (*cp == _CFTAG_NOTOK) {
 	      ++cfp->rcpnts_failed;
+	      ++MIBMtaEntry->mtaReceivedRecipientsSc,
 	      ++MIBMtaEntry->mtaTransmittedRecipientsSc;
 	      prevrcpt = -1;
 	    } else if (*cp != _CFTAG_OK) {
 	      ++cfp->rcpnts_work;
 	    } else { /* _CFTAG_OK */
+	      ++MIBMtaEntry->mtaReceivedRecipientsSc,
 	      ++MIBMtaEntry->mtaTransmittedRecipientsSc;
 	    }
 	  }
