@@ -12,6 +12,7 @@
 #include <sysexits.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #include "zmsignal.h"
 #include "zmalloc.h"
@@ -729,7 +730,16 @@ const char *user;
 	struct passwd *pw;
 	struct stat st;
 
-	if ((pw = getpwnam(user)) == NULL) return 1;
+	pw = getpwnam(user);
+	if (!pw)
+	  pw = getpwnam(user);
+	if (!pw) {
+	  if (errno == ENOENT) return 1;
+#ifdef __osf__
+	  if (errno == EINVAL) return 1;
+#endif
+	  return ranny(2) == 0;	/* 30% of the time */
+	}
 	if (pw->pw_dir == NULL || pw->pw_dir[0] == '\0') return 1;
 	if (stat(pw->pw_dir, &st) == 0 &&
 	    S_ISDIR(st.st_mode)) return 1;

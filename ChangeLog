@@ -1,5 +1,8 @@
 2000-09-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/hold/hold.c:
+	    This was left out from the commit 4 days ago.
+
 	* libresolv/sys/bitypes.h, sfio/src/lib/sfio/sfhdr.h,
 	  ssl/ssl.c:
 	    Experimental changes to support compilation at AIX 4.1.
