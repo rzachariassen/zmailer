@@ -20,6 +20,9 @@
 #undef	symbol
 #endif	/* symbol */
 
+extern long pjwhash32n __((const void *, int));
+
+
 /* crc table and hash algorithm from pathalias */
 /*
  * fold a string into a long int.  31 bit crc (from andrew appel).
@@ -155,13 +158,12 @@ symbol_lookup_db_mem(s, slen, spt)
 spkey_t
 symbol_db_mem_(s, slen, spt, usecrc)
 	const void *s;
-	int slen;
+	int slen, usecrc;
 	struct sptree *spt;
 {
 	register const char *ucp;
 	register spkey_t key;
 	register struct syment *se, *pe;
-	char *newname;
 	struct spblk *spl;
 	int i = slen;
 
@@ -254,11 +256,10 @@ symbol_null_db(spt)
  */
 
 void
-symbol_free_db_mem(s, slen, spt)
+symbol_free_db_mem_(s, slen, spt, usecrc)
 	const void *s;
-	int slen;
+	int slen, usecrc;
 	struct sptree *spt;
-
 {
 	register const char *ucp;
 	register spkey_t key;
@@ -268,14 +269,15 @@ symbol_free_db_mem(s, slen, spt)
 
 	if (s == NULL || spt == NULL)
 		return;
-#if _USE_CRC
-	/* Input string is to be CRCed to form a new key-id */
-	key = 0;
-	for (ucp = s; i >= 0; ++ucp, --i)
-		key = (key >> 7) ^ CrcTable[(key ^ *ucp) & 0x7f];
-#else
-	key = pjwhash32n(s, slen);
-#endif
+
+	if (usecrc) {
+	  /* Input string is to be CRCed to form a new key-id */
+	  key = 0;
+	  for (ucp = s; i >= 0; ++ucp, --i)
+	    key = (key >> 7) ^ CrcTable[(key ^ *ucp) & 0x7f];
+	} else {
+	  key = pjwhash32n(s, slen);
+	}
 
 	/* Ok, time for the hard work.  Lets see if we have this key
 	   in the symtab splay tree (we can't use cache here!) */
@@ -305,6 +307,14 @@ symbol_free_db_mem(s, slen, spt)
 
 	if (spl != NULL && spl->data == NULL)
 		sp_delete(spl, spt);
+}
+
+void symbol_free_db_mem(s, slen, spt)
+	const void *s;
+	int slen;
+	struct sptree *spt;
+{
+	symbol_free_db_mem_(s, slen, spt, 0);
 }
 
 void

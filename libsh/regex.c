@@ -36,7 +36,7 @@
 #include <sys/types.h>
 
 /* This is for other GNU distributions with internationalized messages.  */
-#if HAVE_LIBINTL_H || defined (_LIBC)
+#if defined(HAVE_LIBINTL_H) || defined (_LIBC)
 # include <libintl.h>
 #else
 # define gettext(msgid) (msgid)

@@ -151,7 +151,7 @@ struct shCmd fnctns[] = {
 {	"malcontents",	run_malcontents,NULL,	NULL,	0	},
 #endif	/* CSRIMALLOC */
 /* The rest have been added locally */
-{ 0 }
+{ NULL, NULL, NULL, NULL, 0 }
 };
 
 int		funclevel = 0;

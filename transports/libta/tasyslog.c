@@ -23,11 +23,11 @@
 #include "ta.h"
 
 void
-tasyslog(rp,xdelay,wtthost,wttip,stat,msg)
+tasyslog(rp,xdelay,wtthost,wttip,statstr,msg)
 struct rcpt *rp;
 int xdelay;
 const char *wtthost, *wttip;
-const char *stat;
+const char *statstr;
 const char *msg;
 {
   char linebuf[8000];		/* Should be aplenty..		*/
@@ -70,24 +70,24 @@ const char *msg;
       wtthost = s;
   }
 #if 0
-  if (strcmp(stat,"ok")==0) {
+  if (strcmp(statstr,"ok")==0) {
     msg = ""; /* Shut up ... */
-  } else if (strcmp(stat,"ok2")==0) {
+  } else if (strcmp(statstr,"ok2")==0) {
     msg = ""; /* Shut up ... */
   }
 #endif
   if (wtthost == NULL)
     sprintf(linebuf, "%s: to=<%.200s>, delay=%s, xdelay=%s, mailer=%.80s, stat=%.80s %.200s",
-	    spoolid, rp->addr->user, delays, xdelays, rp->addr->channel, stat, msg);
+	    spoolid, rp->addr->user, delays, xdelays, rp->addr->channel, statstr, msg);
   else {
     if (wttip != NULL)
       sprintf(linebuf, "%s: to=<%.200s>, delay=%s, xdelay=%s, mailer=%.80s, relay=%.200s ([%.80s]), stat=%.80s %.200s",
 	    spoolid, rp->addr->user, delays, xdelays, rp->addr->channel,
-	      wtthost, wttip, stat, msg);
+	      wtthost, wttip, statstr, msg);
     else
       sprintf(linebuf, "%s: to=<%.200s>, delay=%s, xdelay=%s, mailer=%.80s, relay=%.200s, stat=%.80s %.200s",
 	      spoolid, rp->addr->user, delays, xdelays, rp->addr->channel,
-	      wtthost, stat, msg);
+	      wtthost, statstr, msg);
   }
 
   zsyslog((LOG_INFO, "%s", linebuf));

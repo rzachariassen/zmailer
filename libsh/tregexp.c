@@ -229,7 +229,7 @@ const char *exp;
 	register tregexp *prog;
 	register const char *scan;
 	register const char *longest;
-	register int len;
+	register unsigned int len;
 	int flags;
 
 	regprog = NULL;

@@ -229,7 +229,7 @@ FILE *vlog;
   char *prevcname = NULL;
   char *p, *ep;
   int answers, qdcount, i, j;
-  int rtype, rclass;
+  int rclass;
 
   answerlen = res_search(name, C_IN, type, (void*)answer, sizeof(answer));
   if (answerlen < 0) {
@@ -303,7 +303,7 @@ FILE *vlog;
   }
 
   if (vlog)
-    fprintf(vlog,"resolver(): question skipped, dn='%s', first answer at p=%d  answers=%d\n", dn, (p-answer), answers);
+    fprintf(vlog,"resolver(): question skipped, dn='%s', first answer at p=%d  answers=%d\n", dn, (int)(p-answer), (int)answers);
 
   /* Answer analysis */
   for ( ; answers > 0; --answers) {
@@ -311,7 +311,7 @@ FILE *vlog;
     if (i < 0) {
       if (vlog)
 	fprintf(vlog, "resolver() dn_expand() fail; eof-p=%d, p-start=%d\n",
-		(ep-p), (p-answer));
+		(int)(ep-p), (int)(p-answer));
       return -(EAI_FAIL);
     }
     p += i;
@@ -376,11 +376,12 @@ FILE *vlog;
       }
       memcpy((*pat)->addr, p, i);
     
-      if (req->ai_flags & AI_CANONNAME)
+      if (req->ai_flags & AI_CANONNAME) {
 	if (prevcname && !strcmp(prevcname, dn))
 	  (*pat)->cname = prevcname;
 	else
 	  prevcname = (*pat)->cname = strdup(dn);
+      }
     }
     p += i;
   }
@@ -521,11 +522,12 @@ FILE *vlog;
     for (tp++; tp->name &&
 	   ((req->ai_socktype != tp->socktype) || !req->ai_socktype) && 
 	   ((req->ai_protocol != tp->protocol) || !req->ai_protocol); tp++);
-    if (!tp->name)
+    if (!tp->name) {
       if (req->ai_socktype)
 	return (GAIH_OKIFUNSPEC | -(EAI_SOCKTYPE));
       else
 	return (GAIH_OKIFUNSPEC | -(EAI_SERVICE));
+    }
   }
 
   if (service) {
@@ -701,7 +703,7 @@ build:
 	if (at2->family == AF_INET6) {
 	  struct sockaddr_in6 *si6;
 	  si6 = (struct sockaddr_in6 *) (*pai)->ai_addr;
-#if HAVE_SA_LEN
+#ifdef HAVE_SA_LEN
 	  si6->sin6_len      = i;
 #endif /* SALEN */
 	  si6->sin6_family   = at2->family;
@@ -713,7 +715,7 @@ build:
 	  {
 	    struct sockaddr_in  *si4;
 	    si4 = (struct sockaddr_in *) (*pai)->ai_addr;
-#if HAVE_SA_LEN
+#ifdef HAVE_SA_LEN
 	    si4->sin_len     = i;
 #endif /* SALEN */
 	    si4->sin_family  = at2->family;
@@ -802,7 +804,7 @@ FILE *vlog;
   if (service && (service[0] == '*') && !service[1])
     service = NULL;
 
-#if BROKEN_LIKE_POSIX
+#ifdef BROKEN_LIKE_POSIX
   if (!name && !service)
     return EAI_NONAME;
 #endif /* BROKEN_LIKE_POSIX */
@@ -813,7 +815,7 @@ FILE *vlog;
   if (req->ai_flags & ~(AI_CANONNAME | AI_PASSIVE | AI_NONAME))
     return EAI_BADFLAGS;
 
-#if BROKEN_LIKE_POSIX
+#ifdef BROKEN_LIKE_POSIX
   if ((req->ai_flags & AI_CANONNAME) && !name)
     return EAI_BADFLAGS;
 #endif
@@ -824,7 +826,7 @@ FILE *vlog;
     gaih_service.num = strtoul(service, &c, 10);
     if (*c)
       gaih_service.num = -1;
-#if BROKEN_LIKE_POSIX
+#ifdef BROKEN_LIKE_POSIX
     else
       if (!req->ai_socktype)
 	return EAI_SERVICE;

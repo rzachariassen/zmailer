@@ -419,7 +419,7 @@ login_to_uid(name)
 	struct passwd *pw;
 	uid_t uid;
 	char buf[BUFSIZ];
-	char *cp, *fn;
+	char *cp;
 	struct spblk *spl;
 
 	spl = lookup_incoresp(name, spt_loginmap);
@@ -433,7 +433,7 @@ login_to_uid(name)
 		} else {
 			uid = pw->pw_uid;
 			cp = strsave(pw->pw_name);
-			sp_install(uid, cp, 0, spt_uidmap);
+			sp_install(uid, cp, 0L, spt_uidmap);
 			fullname(pw->pw_gecos,buf,sizeof buf,pw->pw_name);
 			add_incoresp(cp, buf, spt_fullnamemap);
 		}
@@ -453,9 +453,9 @@ uidpwnam(uid)
 	struct spblk *spl;
 	char buf[BUFSIZ];
 
-	spl = sp_lookup((u_int)uid, spt_uidmap);
+	spl = sp_lookup((u_long)uid, spt_uidmap);
 	if (spl == NULL) {
-		pw = getpwuid(uid);
+		pw = getpwuid((uid_t)uid);
 		if (pw == NULL) {
 			/* memory shall be temporary in
 			   its nature for this data! */
@@ -469,7 +469,7 @@ uidpwnam(uid)
 			addd_incoresp(pw->pw_name, (void*)((long)(pw->pw_uid)), spt_loginmap);
 			fullname(pw->pw_gecos,buf, sizeof buf, pw->pw_name);
 			add_incoresp(pw->pw_name, buf, spt_fullnamemap);
-			sp_install((u_int)uid, cp, 0, spt_uidmap);
+			sp_install((u_int)uid, cp, 0L, spt_uidmap);
 			stickymem = oval;
 		}
 	} else
@@ -633,12 +633,13 @@ logit(file, id, from, to)
 		 id, file, from, to);
 	else
 	  printf("%.200s: file: %.150s %.250s\n", id, file, to);
-	if (!nosyslog)
+	if (!nosyslog) {
 	  if (flen > 0)
 	    zsyslog((LOG_INFO, "%.200s: file: %.150s %.200s => %.200s",
 		     id, file, from, to));
 	  else
 	    zsyslog((LOG_INFO, "%.200s: file: %.150s %.200s", id, file, to));
+	}
 #endif
 }
 

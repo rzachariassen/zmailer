@@ -1695,7 +1695,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	{
 	  char **hdrs = has_header(rp,"Return-Path:");
 	  if (hdrs) delete_header(rp,hdrs);
-	  append_header(rp,"Return-Path: <%s>", fromuser);
+	  append_header(rp,"Return-Path: <%.999s>", fromuser);
 
 	  hdrs = has_header(rp,"To:");
 	  if (!hdrs) {
@@ -1703,7 +1703,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 	    /* Sendmailism... */
 	    hdrs = has_header(rp,"Apparently-To:");
 	    if (hdrs) delete_header(rp,hdrs);
-	    append_header(rp,"Apparently-To: <%s>", rp->addr->link->user);
+	    append_header(rp,"Apparently-To: <%.999s>", rp->addr->link->user);
 	  }
 
 	  hdrs = has_header(rp,"X-Orcpt:");

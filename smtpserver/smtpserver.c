@@ -720,7 +720,6 @@ char **argv;
 	pid = getpid();
 	openlogfp(&SS, daemon_flg);
 	if (logfp != NULL) {
-	    time_t now;
 	    char *cp;
 	    time(&now);
 	    cp = rfc822date(&now);

@@ -9,7 +9,7 @@ pjwhash32 (ptr)
     register unsigned long  hash, tmp;
 
     if (! ptr)
-	return (~0);
+	return (~(0UL));
 
     for (hash = 0; *ptr; ptr++) {
 	hash <<= 4;
@@ -28,7 +28,7 @@ pjwhash32 (ptr)
 	 *  on e.g. 64-bit systems.
 	 */
 
-	if (tmp = (hash & ~0x0fffffffL)) {
+	if (tmp = (hash & ~(0x0fffffffUL))) {
 	    hash ^= tmp >> 24;
 	    hash ^= tmp;	/* Clear the high bits - fast! */
 	}
@@ -45,7 +45,7 @@ pjwhash32n (ptr, n)
     register unsigned long  hash, tmp;
 
     if (! ptr)
-	return (~0);
+	return (~(0UL));
 
     for (hash = 0; n > 0; --n, ptr++) {
 	hash <<= 4;
@@ -64,7 +64,7 @@ pjwhash32n (ptr, n)
 	 *  on e.g. 64-bit systems.
 	 */
 
-	if (tmp = (hash & ~0x0fffffffL)) {
+	if (tmp = (hash & ~(0x0fffffffUL))) {
 	    hash ^= tmp >> 24;
 	    hash ^= tmp;	/* Clear the high bits - fast! */
 	}

@@ -151,9 +151,9 @@ add_btree(sip, value)
 	if (db == NULL)
 		return EOF;
 
-	key.data = (char*)sip->key;
+	key.data = (const char*)sip->key;
 	key.size = strlen(sip->key) + 1;
-	val.data = (char*)value;
+	val.data = (const char*)value;
 	val.size = strlen(value)+1;
 	rc = (db->put)(db, &key, &val, 0);
 	if (rc < 0) {
@@ -182,7 +182,7 @@ remove_btree(sip)
 	if (db == NULL)
 		return EOF;
 
-	key.data = (char*)sip->key;
+	key.data = (const char*)sip->key;
 	key.size = strlen(sip->key) + 1;
 	rc = (db->del)(db, &key, 0);
 	if (rc < 0) {

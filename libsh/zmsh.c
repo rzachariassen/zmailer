@@ -110,7 +110,8 @@ zshinit(argc, argv)
 	stickymem = MEM_PERM;
 
 	/* check for funny business */
-	if ((uid = geteuid()) != getuid()) {
+	uid = geteuid();
+	if (uid != getuid()) {
 		fprintf(stderr, "%s: ruid != euid\n", argv[0]);
 		exit(1);
 	}
@@ -127,7 +128,7 @@ zshinit(argc, argv)
 		spt_builtins = sp_init();
 
 	for (shcmdp = &builtins[0]; shcmdp->name != NULL; ++shcmdp)
-	  sp_install(symbol(shcmdp->name), (void *)shcmdp, 0, spt_builtins);
+	  sp_install(symbol(shcmdp->name), (void *)shcmdp, 0L, spt_builtins);
 
 	TOKEN_NARGS(sBufferSet) = 1;
 	TOKEN_NARGS(sBufferAppend) = 1;
@@ -168,8 +169,7 @@ zshinit(argc, argv)
 	loadit = errflag = 0;
 	optind = 1;	/* not to be influenced by previous getopt()'s */
 	while (1) {
-		c = getopt(argc, (char*const*)argv,
-			   "CILMOPRSYc:l:isaefhkntuvx");
+		c = getopt(argc, (char**)argv, "CILMOPRSYc:l:isaefhkntuvx");
 		if (c == EOF)
 		  break;
 		switch (c) {

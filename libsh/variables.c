@@ -275,7 +275,8 @@ void
 v_sync(name)
 	const char *name;
 {
-	register int i, hash, j;
+	register unsigned int i;
+	register int hash, j;
 	register const char *cp;
 
 	if (name == NULL)

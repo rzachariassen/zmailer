@@ -66,13 +66,13 @@ getline(fp)
 	FILE *fp;
 {
 	register char	*cp;
-	register int	n;
+	register u_int	n;
 
 	/* assert getline_block != NULL */
-	if (getline_blen <= 0 ||
+	if (getline_blen == 0 ||
 	    getline_bend >= (getline_block + getline_bsize)) {
 	  getline_blen = fread(getline_block, 1, getline_bsize-1, fp);
-	  if (getline_blen == 0)
+	  if (getline_blen == 0) /* Error or EOF, never mind which */
 	    return 0;
 	  getline_bend = getline_block;
 	}

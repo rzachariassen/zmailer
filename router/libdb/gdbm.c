@@ -68,7 +68,7 @@ open_gdbm(sip, flag, comment)
 	else			flag = GDBM_READER;
 	if (spl == NULL || (db = (GDBM_FILE)spl->data) == NULL) {
 		for (i = 0; i < 3; ++i) {
-		  db = gdbm_open((char*)sip->file, 0, flag, 0, NULL);
+		  db = gdbm_open((const char*)sip->file, 0, flag, 0, NULL);
 		  if (db != NULL)
 		    break;
 		  sleep(1);
@@ -101,8 +101,7 @@ search_gdbm(sip)
 	GDBM_FILE db;
 	datum val, key;
 	conscell *tmp;
-	struct spblk *spl = NULL;
-	int retry, i;
+	int retry;
 
 	retry = 0;
 
@@ -112,7 +111,7 @@ reopen:
 	if (db == NULL)
 	  return NULL;
 
-	key.dptr  = (char*)sip->key;
+	key.dptr  = (const char*)sip->key;
 	key.dsize = strlen(sip->key) + 1;
 	val = gdbm_fetch(db, key);
 	if (val.dptr == NULL) {
@@ -173,9 +172,9 @@ add_gdbm(sip, value)
 	if (db == NULL)
 		return EOF;
 
-	key.dptr  = (char*)sip->key;
+	key.dptr  = (const char*)sip->key;
 	key.dsize = strlen(sip->key) + 1;
-	val.dptr  = (char*)value;
+	val.dptr  = (const char*)value;
 	val.dsize = strlen(value) + 1;
 	if (gdbm_store(db, key, val, GDBM_REPLACE) < 0) {
 		++deferit;
@@ -259,7 +258,7 @@ count_gdbm(sip, outfp)
 	FILE *outfp;
 {
 	GDBM_FILE db;
-	datum key, nextkey, val;
+	datum key, nextkey;
 	int count = 0;
 
 	db = open_gdbm(sip, O_RDONLY, "count_gdbm");

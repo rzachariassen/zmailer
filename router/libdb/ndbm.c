@@ -83,7 +83,7 @@ reopen:
 	if (db == NULL)
 	  return NULL; /* Failed :-( */
 
-	key.dptr  = (char*) sip->key; /* Sigh.. the cast.. */
+	key.dptr  = (const char*) sip->key; /* Sigh.. the cast.. */
 	key.dsize = strlen(sip->key) + 1;
 	val = dbm_fetch(db, key);
 	if (val.dptr == NULL) {
@@ -148,9 +148,9 @@ add_ndbm(sip, value)
 	if (db == NULL)
 		return EOF;
 
-	key.dptr  = (char*) sip->key;	/* Sigh.. the cast.. */
+	key.dptr  = (const char*) sip->key;	/* Sigh.. the cast.. */
 	key.dsize = strlen(sip->key) + 1;
-	val.dptr  = (char*) value;	/* Sigh.. the cast.. */
+	val.dptr  = (const char*) value;	/* Sigh.. the cast.. */
 	val.dsize = strlen(value) + 1;
 	if (dbm_store(db, key, val, DBM_REPLACE) < 0) {
 		++deferit;
@@ -234,7 +234,7 @@ count_ndbm(sip, outfp)
 	FILE *outfp;
 {
 	DBM *db;
-	datum key, val;
+	datum key;
 	int cnt = 0;
 
 	db = open_ndbm(sip, O_RDONLY, "count_ndbm");

@@ -332,7 +332,7 @@ extern int  smtp_bdata  __((SmtpState * SS, const char *buf, const char *cp));
 extern void add_to_toplevels __((char *str));
 
 #ifdef HAVE_TCPD_H		/* The hall-mark of having tcp-wrapper things around */
-extern int wantconn __((int sock, char *progname));
+extern int wantconn __((int sock, char *prgname));
 #endif
 extern char *rfc822date __((time_t *));
 

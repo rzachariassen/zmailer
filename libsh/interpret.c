@@ -1118,7 +1118,7 @@ tsetsubexps(sepp, tre)
 	tregexp *tre;
 {
 	register struct si_retab *sep, *psep;
-	register int i;
+	register unsigned int i;
 
 	for (sep = *sepp, psep = NULL; sep != NULL;
 	     psep = sep, sep = sep->next) {

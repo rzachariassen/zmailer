@@ -119,7 +119,7 @@ static HeaderSemantics
 semname2enum(name)
 	const char *name;
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < (sizeof hdrsemtable / sizeof hdrsemtable[0]); ++i) {
 	  if (cistrcmp(name, hdrsemtable[i].name) == 0)
@@ -133,7 +133,7 @@ const char *
 semenum2name(d)
 	HeaderSemantics d;
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < (sizeof hdrsemtable / sizeof hdrsemtable[0]); ++i) {
 	  if (d == hdrsemtable[i].semantics)
@@ -146,7 +146,7 @@ void
 init_header()
 {
 	struct headerinfo rh, *rhp;
-	int i;
+	unsigned int i;
 	spkey_t symid;
 
 	if (spt_headers == NULL)           spt_headers           = sp_init();
@@ -516,9 +516,9 @@ static int
 hdprintdata(spl)
 	struct spblk *spl;
 {
-	struct headerinfo *rhp;
+	const struct headerinfo *rhp;
 
-	rhp = (struct headerinfo *)spl->data;
+	rhp = (const struct headerinfo *)spl->data;
 	fprintf(pcfp, "%-16s\t%s:%s:%s (%s)\n", pname(spl->key),
 		semenum2name(rhp->semantics),
 		rhp->user_type  == Sender    ? "Sender"    :

@@ -564,7 +564,7 @@ getanswer_r(answer, anslen, qname, qtype, result)
 				had_error++;
 				break;
 			}
-#if MULTI_PTRS_ARE_ALIASES
+#ifdef MULTI_PTRS_ARE_ALIASES
 			cp += n;
 			if (!haveanswer)
 				host.h_name = bp;
@@ -627,9 +627,10 @@ getanswer_r(answer, anslen, qname, qtype, result)
 				continue;
 			}
 			if (hap >= &result->h_addr_ptrs[MAXADDRS-1]) {
-				if (!toobig++)
+				if (!toobig++) {
 					DPRINTF(("Too many addresses (%d)\n",
 						 MAXADDRS));
+				}
 				cp += n;
 				continue;
 			}

@@ -214,8 +214,8 @@ STATIC struct flags {
 { 'z',	strng,	1,		~0,		~0			},
 };
 
-#define	N1	(value < 0 ? atoi(cp) : value)
-#define N2	(strcmp(*(*avp+1), "-l") == 0 && *(*avp+2) != NULL ? \
+#define	N1	(int)(value < 0 ? atoi(cp) : value)
+#define N2	(int)(strcmp(*(*avp+1), "-l") == 0 && *(*avp+2) != NULL ? \
 		       ++*avp, strlen(*(*avp+1)) : atoi(*(*avp+1)))
 
 /*

@@ -658,7 +658,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  if (hdrs) delete_header(startrp, hdrs);
 	  if (strcmp(startrp->addr->link->channel,"error")==0)
 	    uu = "";
-	  append_header(startrp,"Return-Path: <%s>", uu);
+	  append_header(startrp,"Return-Path: <%.999s>", uu);
 	}
 	if (mp->flags & MO_CRLF) {
 	  writeheaders(startrp, tafp, "\r\n", convertmode, maxwidth, NULL);

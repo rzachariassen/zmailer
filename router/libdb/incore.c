@@ -229,9 +229,10 @@ icprintNS(spl)
 	struct spblk *spl;
 {
 	if (spl->data != NULL)
-		fprintf(pcfp, "%d\t%s\n", (int)spl->key, (char *)spl->data);
+		fprintf(pcfp, "%d\t%s\n",
+			(int)spl->key, (const char *)spl->data);
 	else
-		fprintf(pcfp, "%d\n", spl->key);
+		fprintf(pcfp, "%d\n", (int) spl->key);
 	return 0;
 }
 
@@ -250,9 +251,11 @@ icprintSS(spl)
 	struct spblk *spl;
 {
 	if (spl->data != NULL)
-		fprintf(pcfp, "%s\t%s\n", pname(spl->key), (char *)spl->data);
+		fprintf(pcfp, "%s\t%s\n",
+			pname(spl->key), (const char *)spl->data);
 	else
-		fprintf(pcfp, "%s\n", pname(spl->key));
+		fprintf(pcfp, "%s\n",
+			pname(spl->key));
 	return 0;
 }
 

@@ -251,7 +251,7 @@ if (vlog) fprintf(vlog,"8-bit header: '%s'\n",hdr);
 	      q += strlen(q);
 
 	      for ( ; *s && (*s != ' ' && *s != '\t' && *s != ')'); ++s) {
-		int c = (*s) & 0xFF;
+		c = (*s) & 0xFF;
 		if (c < ' '  || c > 126  ||
 		    c == '=' || c == '?' || c == '_') {
 		  sprintf(q, "=%02X", c);
