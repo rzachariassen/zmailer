@@ -1,5 +1,9 @@
 2003-11-20  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/smtp/smtp.c:
+	    Don't use BDAT mode, if the message size estimate
+	    is larger, than our outgoing BDAT buffer Chunk-Size.
+
 	* proto/scheduler.conf.in, scheduler/msgerror.c,
 	  scheduler/readconfig.c,  scheduler/prototypes.h,
 	  transports/errormail/errormail.c, man/scheduler.8.in,
@@ -11,7 +15,8 @@
 	* configure.in, router/daemonsub.c:
 	    Buggy (in Solaris et.al.) autoconf of  dirfd()  thing
 	    in they fchdir() callbacks.   Probably should redo
-	    the thing somehow differently...
+	    the thing somehow differently...  (This is for users
+	    of  ROUTERDIRHASH=1  and multiple  ROUTERDIRS  directories.)
 
 	* scheduler/msgerror.c, transports/errormail/errormail.c:
 	    Add "Return-Path:" data label into produced

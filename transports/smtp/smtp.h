@@ -360,6 +360,7 @@ typedef struct { /* SmtpState */
   int column;
   int lastch;
   int chunking;
+  int doing_chunking;
 
   char *chunkbuf;		/* CHUNKING, RFC-1830 */
   int   chunksize, chunkspace;

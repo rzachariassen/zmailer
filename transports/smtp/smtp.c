@@ -1762,7 +1762,9 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	SS->cmdstate = SMTPSTATE_DATA;
 
-	if (SS->chunking) {
+	SS->doing_chunking = 0;
+	if (SS->chunking && startrp->desc->msgsizeestimate < CHUNK_MAX_SIZE) {
+	  SS->doing_chunking = 1;
 
 	  timeout = timeout_tcpw;
 
@@ -2067,7 +2069,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	if (lmtp_mode) SS->rcptstates = 0;
 
-	if (SS->chunking) { /* BDAT mode */
+	if (SS->doing_chunking) { /* BDAT mode */
 
 	  r = bdat_flush(SS, 1);
 
