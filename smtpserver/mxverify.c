@@ -484,6 +484,8 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	  if (debug)
 	    printf("000- looking up DNS A object: %s\n", hbuf);
 
+	  type(NULL,0,NULL, "Looking up DNS A object: %s", hbuf);
+
 	  if (gethostbyname(hbuf) != NULL) {
 	    /* XX: Should verify that the named object has A record: 127.0.0.2
 	       D'uh.. alternate dataset has A record: 127.0.0.3 */
