@@ -1,3 +1,8 @@
+2000-07-12  John D Groenveld <jdg117@elvis.arl.psu.edu>
+
+	* man/Makefile.in:
+	    If "${MANDIR}/man3 directory does not exist, create it.
+
 2000-07-11  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* transports/smtp/smtp.c:
