@@ -274,6 +274,7 @@ struct ctlfile *cfp;
 	if (cfp->head != NULL) {
 	  for (vp = cfp->head; vp != NULL; vp = nvp) {
 	    nvp = vp->next[L_CTLFILE];
+	    MIBMtaEntry->mtaStoredRecipients -= vp->ngroup;
 	    vp->ngroup = 0;
 	    unvertex(vp,-1,1); /* Don't unlink()! Just free()! */
 	  }

@@ -399,8 +399,6 @@ void unvertex(vp, justfree, ok)
 	if (vp->notary  != NULL) free(vp->notary);
 	/* if (vp->sender != NULL) free(vp->sender); */ /* XX: cache !! ?? */
 	free((char *)vp);
-
-	--MIBMtaEntry->mtaStoredRecipients;
 }
 
 static struct vertex *findvertex(inum, offset, idx)
@@ -522,9 +520,11 @@ deletemsg(msgid, curcfp)
 	 * this strange way of doing the unlink.
 	 */
 	while (cfp->head->next[L_CTLFILE] != NULL) {
+	  MIBMtaEntry->mtaStoredRecipients -= cfp->head->ngroup;
 	  cfp->head->ngroup = 0;
 	  unvertex(cfp->head,0,1);
 	}
+	MIBMtaEntry->mtaStoredRecipients -= cfp->head->ngroup;
 	cfp->head->ngroup = 0;
 	unvertex(cfp->head,0,1);
 }
@@ -624,6 +624,9 @@ static void vtxupdate(vp, index, ok)
 	  if (vp->index[i] == index) {
 	    /* remove us from the vertex indices */
 	    vp->ngroup -= 1;
+
+	    --MIBMtaEntry->mtaStoredRecipients;
+
 	    /* compact the index array */
 	    for (++i; i <= vp->ngroup; ++i)
 	      vp->index[i-1] = vp->index[i];
