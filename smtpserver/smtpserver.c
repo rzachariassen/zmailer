@@ -1523,15 +1523,15 @@ char **argv;
 		  openlogfp(&SS, daemon_flg);
 #ifdef HAVE_WHOSON_H
 		  type(NULL,0,NULL,
-		       "connection from %s %s:%d ipcnt %d childs %d ident: %s whoson: %s",
+		       "connection from %s %s:%d ipcnt %d childs %d pid %d ident: %s whoson: %s",
 		       SS.rhostname, SS.rhostaddr,SS.rport,
-		       sameipcount, childcnt,
+		       sameipcount, childcnt, pid,
 		       SS.ident_username, SS.whoson_data);
 #else
 		  type(NULL,0,NULL,
-		       "connection from %s %s:%d ipcnt %d childs %d ident: %s",
+		       "connection from %s %s:%d ipcnt %d childs %d pid %d ident: %s",
 		       SS.rhostname, SS.rhostaddr,SS.rport,
-		       sameipcount, childcnt,
+		       sameipcount, childcnt, pid,
 		       SS.ident_username);
 #endif
 
