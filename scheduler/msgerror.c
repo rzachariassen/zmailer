@@ -645,8 +645,7 @@ reporterrs(cfpi, delayreports)
 	      }
 	      /* Report conditional testing in the latter phases */
 	    }
-	    while (isascii(*cp) && isspace(*cp))
-	      ++cp;
+	    while (*cp == ' ' || *cp == '\t') ++cp;
 	    notaries[notarycnt].message = cp;
 
 	    switch (thisaction) {

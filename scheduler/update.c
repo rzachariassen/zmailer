@@ -85,7 +85,7 @@ update(fd, diagnostic)
 	const char	*type, *message, *notary;
 	long	offset;
 	long	inum;
-	int	index;
+	int	index, c;
 	struct vertex *vp;
 	struct diagcodes *dcp;
 	struct procinfo *proc = &cpids[fd];
@@ -147,7 +147,7 @@ update(fd, diagnostic)
 	}
 	*cp = 0; /* Trailing TAB after notary string, NULL it */
 	type = ++cp;
-	while (*cp != '\0' && isascii(*cp) && !isspace(*cp))
+	while ( (c = (0xFF & *cp)) && isascii(c) && !isspace(c))
 	  ++cp;
 	if (*cp == '\0') {
 	  message = NULL;
@@ -870,6 +870,7 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 	time_t	retrytime;
 	long    dtvalue;
 	const char * cp;
+	int c;
 
 	/* If a message gets a "retryat" signal, kick this thread at
 	   next  "#hungry"  into FINISHING state */
@@ -897,7 +898,7 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 	  ++message;
 	dtvalue = 0;
 	sscanf(message, "%ld", &dtvalue);
-	for (cp = message; *cp != '\0' && isdigit(*cp); ++cp)
+	for (cp = message; (c = 0xFF & *cp) && isdigit(c); ++cp)
 	  continue;
 	if (*cp != '\0')
 	  ++cp;

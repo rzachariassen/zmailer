@@ -412,7 +412,7 @@ redo_readtoken:
 	  lp = line;
 	}
 	/* Skip initial white-space */
-	while (*lp != '\0' && isspace(*lp))
+	while (*lp != '\0' && isspace(0xFF & *lp))
 	  ++lp;
 	/* Now it is one of: a token, a comment start, or end of line */
 	if (*lp == '\0' || *lp == '#') {
@@ -422,12 +422,12 @@ redo_readtoken:
 	}
 	/* Now we scan for the token + possible value */
 	elp = lp;
-	while (*elp && !isspace(*elp) && *elp != '=' && *elp != '#')
+	while (*elp && !isspace(0xFF & *elp) && *elp != '=' && *elp != '#')
 	  ++elp;
-	if (isspace(*elp)) {
+	if (isspace(0xFF & *elp)) {
 	  /* Allow spaces after the token and before '=' */
 	  char *p = elp;
-	  while (*p && isspace(*p)) ++p;
+	  while (*p && isspace(0xFF & *p)) ++p;
 	  if (*p == '=')
 	    elp = p;
 	}
@@ -435,7 +435,7 @@ redo_readtoken:
 	if (*elp == '=') {
 	  /* Allow spaces between '=', and value */
 	  ++elp;
-	  while (*elp && isspace(*elp)) ++elp;
+	  while (*elp && isspace(0xFF & *elp)) ++elp;
 	  if (*elp == '"') {
 	    ++elp;
 	    while (*elp != '"' && *elp != '\0') {
@@ -457,7 +457,7 @@ redo_readtoken:
 	    }
 	    ++elp;
 	  } else {
-	    while (*elp && !isspace(*elp) && *elp != '"')
+	    while (*elp && !isspace(0xFF & *elp) && *elp != '"')
 	      ++elp;
 	  }
 	}
@@ -542,12 +542,12 @@ static int rc_command(key, arg, ce)
 	  argv[j++] = cp;
 	  if (j >= (sizeof argv)/(sizeof argv[0]))
 	    break;
-	  while (*cp != '\0' && isascii(*cp) && !isspace(*cp))
+	  while (*cp != '\0' && !isspace(0xFF & *cp))
 	    ++cp;
 	  if (*cp == '\0')
 	    break;
 	  *cp++ = '\0';
-	  while (*cp != '\0' && isascii(*cp) && isspace(*cp))
+	  while (*cp != '\0' && isspace(0xFF & *cp))
 	    ++cp;
 	}
 	argv[j++] = NULL;
@@ -734,12 +734,12 @@ static int rc_retries(key, arg, ce)
 
 	j = 0;
 	for (cp = arg; *cp != '\0'; ++cp) {
-	  while (*cp != '\0' && isspace(*cp))
+	  while (*cp != '\0' && isspace(0xFF & *cp))
 	    ++cp;
 	  if (*cp == '\0')
 	    break;
 	  d = cp++;
-	  while (*cp != '\0' && !isspace(*cp))
+	  while (*cp != '\0' && !isspace(0xFF & *cp))
 	    ++cp;
 	  c = *cp;
 	  *cp = '\0';
@@ -780,12 +780,12 @@ static int rc_reporttimes(key, arg, ce)
 
 	j = 0;
 	for (cp = arg; *cp != '\0'; ++cp) {
-	  while (*cp != '\0' && isspace(*cp))
+	  while (*cp != '\0' && isspace(0xFF & *cp))
 	    ++cp;
 	  if (*cp == '\0')
 	    break;
 	  d = cp++;
-	  while (*cp != '\0' && !isspace(*cp))
+	  while (*cp != '\0' && !isspace(0xFF & *cp))
 	    ++cp;
 	  c = *cp;
 	  *cp = '\0';
