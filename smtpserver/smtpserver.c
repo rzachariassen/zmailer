@@ -1771,7 +1771,7 @@ const char *msg;
         fflush(logfp);
     }
     if (logfp) {
-	type(NULL,0,NULL,"aborted (%ld bytes): %s\n", (int)(now-logtagepoch), tell, msg);
+	type(NULL,0,NULL,"aborted (%ld bytes): %s\n", tell, msg);
 	fflush(logfp);
     }
 

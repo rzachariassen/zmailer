@@ -1,3 +1,11 @@
+2004-06-23  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Found a long-lurked bug in reporterr().
+	    It did refer to wrong data in Solaris -> SEGV.
+	    Oops..  Corrected printf()-like parameters, and
+	    now it should not fault.
+
 2004-06-22  Matti Aarnio  <mea@zmailer.org>
 
 	* router/rfc822.c:
