@@ -1175,9 +1175,15 @@ SmtpState *SS;
 
     if (SS->s_status)
 	return SS->s_status;
+
     if (SS->s_readout >= SS->s_bufread) {
     redo:
-	rc = read(SS->inputfd, SS->s_buffer, sizeof(SS->s_buffer));
+#ifdef HAVE_OPENSSL
+        if (SS->sslmode) {
+	  rc = SSL_read(SS->ssl, SS->s_buffer, sizeof(SS->s_buffer));
+	} else
+#endif
+	  rc = read(SS->inputfd, SS->s_buffer, sizeof(SS->s_buffer));
 	if (rc < 0) {
 	  goto redo; /* XX: ??? some input-problem circumvention problem ?? */
 	  if (errno == EINTR || errno == EAGAIN)
@@ -1200,6 +1206,12 @@ SmtpState *SS;
 int s_hasinput(SS)
 SmtpState *SS;
 {
+#ifdef HAVE_OPENSSL
+    if (SS->sslmode) {
+      /* This presumes that  SSL_set_read_ahead(SS->ssl, 1)  is done! */
+      return SSL_pending(SS->ssl);
+    }
+#endif
     if (SS->s_readout >= SS->s_bufread) {
 	/* So if it did dry up, try non-blocking read */
 	int flags = fcntl(SS->inputfd, F_GETFL, 0);
@@ -1769,7 +1781,12 @@ int n;
 void typeflush(SS)
 SmtpState *SS;
 {
-    fflush(SS->outfp);
+#ifdef HAVE_OPENSSL
+    if (SS->sslmode)
+      SSL_flush(SS->ssl); /* XX: ???? */
+    else
+#endif
+      fflush(SS->outfp);
 }
 
 /*
@@ -1853,8 +1870,9 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 {
     char format[256];		/* We limit the fill to 200+some */
     const char *text = NULL;
-    char c;
-    int code = Code;
+    char c, *s;
+    int code = Code, buflen;
+    char buf[6000];
 
     if (code < 0) {
 	code = -code;
@@ -1862,15 +1880,10 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
     } else
 	c = ' ';
 
-    fprintf(SS->outfp, "%03d%c", code, c);
+    sprintf(buf, "%03d%c", code, c);
     if (enhancedstatusok && status && status[0] != 0)
-      fprintf(SS->outfp, "%s ", status);
-
-    if (logfp != NULL) {
-      fprintf(logfp, "%dw\t%03d%c", pid, code, c);
-      if (enhancedstatusok && status && status[0] != 0)
-	fprintf(logfp, "%s ", status);
-    }
+      sprintf(buf+4, "%s ", status);
+    s = strlen(buf)+buf;
 
     switch (code) {
     case 211:			/* System status */
@@ -1943,6 +1956,7 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 	text = "Transaction failed";
 	break;
     }
+
 #ifdef HAVE_VPRINTF
     {
 	va_list ap;
@@ -1952,37 +1966,41 @@ const char *status, *fmt, *s1, *s2, *s3, *s4, *s5, *s6;
 	va_start(ap);
 #endif
 	if (fmt != NULL)
-	    vfprintf(SS->outfp, fmt, ap);
+	    vsprintf(s, fmt, ap);
 	else
-	    vfprintf(SS->outfp, text, ap);
-	fprintf(SS->outfp, "\r\n");
-	if (logfp != NULL) {
-	    if (fmt != NULL)
-		vfprintf(logfp, fmt, ap);
-	    else
-		vfprintf(logfp, text, ap);
-	    fprintf(logfp, "\n");
-	    fflush(logfp);
-	}
+	    vsprintf(s, text, ap);
 	va_end(ap);
     }
 #else
     if (fmt != NULL)
-	fprintf(SS->outfp, fmt, s1, s2, s3, s4, s5, s6);
+	sprintf(s, fmt, s1, s2, s3, s4, s5, s6);
     else
-	fprintf(SS->outfp, text, s1, s2, s3, s4, s5, s6);
-    fprintf(SS->outfp, "\r\n");
+	sprintf(s, text, s1, s2, s3, s4, s5, s6);
+#endif
+    s += strlen(s);
+    buflen = s - buf;
+
+    if (buflen+4 > sizeof(buf)) {
+      /* XXX: Buffer overflow ??!! Signal about it, and crash! */
+    }
     if (logfp != NULL) {
-	if (fmt != NULL)
-	    fprintf(logfp, fmt, s1, s2, s3, s4, s5, s6);
-	else
-	    fprintf(logfp, text, s1, s2, s3, s4, s5, s6);
-	fprintf(logfp, "\n");
+	fprintf(logfp, "%dw\t%s\n", pid, buf);
 	fflush(logfp);
     }
+    strcpy(s, "\r\n");
+#ifdef HAVE_OPENSSL
+    if (SS->sslmode)
+      SSL_write(SS->ssl, buf, buflen+2); /* XX: check return value */
+    else
 #endif
+      fwrite(buf, buflen+2, 1, SS->outfp);
 }
 
+
+/*
+ *  type220headers() outputs the initial greeting header(s), and
+ *  does it without need for SSL wrapping.
+ */
 
 void
 type220headers(SS, identflg, xlatelang, curtime)
@@ -2080,9 +2098,10 @@ va_dcl
 {
     va_list ap;
     int maxcnt = 200;
-    int abscode;
+    int abscode, buflen;
     const char *a1, *a2, *a3, *a4;
     const char *s;
+    char buf[2000], *bp;
 
 #ifdef HAVE_STDARG_H
     va_start(ap, msg);
@@ -2098,7 +2117,9 @@ va_dcl
     msg = va_arg(ap, const char *);
 #endif
 
-    s = inbuf + 3 + strlen(status) + 1;
+    s = inbuf + 3 + 1;
+    if (enhancedstatusok)
+      s += strlen(status);
 
     /* These are not always safe... but they should be ok
        if we are carrying  (char*)s or (int)s.. */
@@ -2110,24 +2131,31 @@ va_dcl
     abscode = (code < 0) ? -code : code;
 
     if (multilinereplies) {
-      if (status && enhancedstatusok) {
-	fprintf(SS->outfp, "%03d-%s ", abscode, status);
-	if (logfp != NULL)
-	  fprintf(logfp, "%dw\t%03d-%s ", pid, abscode, status);
+      if (enhancedstatusok) {
+	sprintf(buf, "%03d-%s ", abscode, status);
       } else { /* No status codes */
-	fprintf(SS->outfp, "%03d- ", abscode);
-	if (logfp != NULL)
-	  fprintf(logfp, "%dw\t%03d- ", pid, abscode);
+	sprintf(buf, "%03d- ", abscode);
       }
+      bp = buf + strlen(buf);
       while (s < rfc821_error_ptr && --maxcnt >= 0) {
 	++s;
-	putc(' ', SS->outfp);
-	if (logfp != NULL)
-	  putc(' ', logfp);
+	*bp++ = ' ';
       }
-      fprintf(SS->outfp, "^\r\n");
+      *bp++ = '^';
+      *bp = 0;
+
+      buflen = bp - buf;
+
       if (logfp != NULL)
-	fprintf(logfp, "^\n");
+	fprintf(logfp, "%dw\t%s\n", pid, buf);
+
+      strcpy(bp, "\r\n");
+#ifdef HAVE_OPENSSL
+      if (SS->sslmode) {
+	SSL_write(SS->ssl, buf, buflen+2); /* XX: check return value */
+      } else
+#endif
+	fwrite(buf, buflen+2, 1, SS->outfp);
     }
 
     type(SS, code, status, msg, a1, a2, a3, a4);

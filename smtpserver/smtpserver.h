@@ -161,6 +161,11 @@ typedef struct {
     Usockaddr raddr;
     Usockaddr localsock;
 
+#ifdef HAVE_OPENSSL
+    int   sslmode;
+    SSL * ssl;
+#endif
+
     int  s_bufread;
     int  s_readout;
     int  s_status;

@@ -1,3 +1,10 @@
+1999-05-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/smtpcmds.c:
+	    Place-holder hooks for 'STARTTLS' related stuff...
+	    (once I get the OpenSSL to work at my Alpha ..)
+
 1999-05-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* compat/sendmail/sendmail.c, include/mail.h.in,
