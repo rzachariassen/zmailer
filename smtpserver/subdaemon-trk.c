@@ -1276,9 +1276,10 @@ int call_rate_counter(state, incr, what, countp, countp2)
 
     switch (what) {
     case POLICY_MAILFROM:
-	cmd   = "MSGS";
-	whatp = "MAIL";
-	count = incr;
+	cmd    = "MSGS";
+	whatp  = "MAIL";
+	count  = 1;
+	count2 = incr;
 
 	/* How to see, that we will have interest in these rate entries
 	   in the future ?  E.g. there is no point in spending time
@@ -1294,9 +1295,10 @@ int call_rate_counter(state, incr, what, countp, countp2)
 	break;
 
     case POLICY_DATAOK:
-	cmd   = "RCPT";
-	whatp = "DATA";
-	count = incr ? incr : 1;
+	cmd    = "RCPT";
+	whatp  = "DATA";
+	count  = 1;
+	count2 = incr ? incr : 1;
 	if (incr  &&  !state->did_query_rate)
 	  return 0; /* INCRed counters at DATA/BDAT, but hadn't
 		       shown interest at MAIL for this... */
