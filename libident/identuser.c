@@ -197,7 +197,7 @@ static volatile const char *ident_sockuser2(s,local,remote,realbuf,realbuflen)
       saveerrno = errno;
       close(s);
       if (errno == ECONNREFUSED || errno == EPIPE)
-	return "NO-IDENT-SERVICE";
+	return "NO-IDENT-SERVICE[2]";
       else {
 	sprintf(realbuf,"SOCKWRITE-%d", errno);
 	return realbuf;
@@ -294,6 +294,8 @@ volatile const char *ident_tcpuser9(af,len,inlocal,inremote,local,remote,timeout
       SIGNAL_HANDLE(SIGPIPE, old_sig);
       SIGNAL_HANDLE(SIGALRM, old_alrm);
       alarm(oldival);
+      if (errno == ECONNREFUSED)
+	return "NO-IDENT-SERVICE";
       return "SOCKFAULT1";
     }
     tv.tv_sec = timeout;
