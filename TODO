@@ -1,3 +1,7 @@
+router/functions:
+	To test  $(lreplace ...)  function
+	To document  lreplace, and lappend
+
 Known/suspected bugs/Missing Features on current Zmailer sources
 
 - Somewhere ? (smtpserver, and perhaps smtp transport agent ?)
