@@ -161,11 +161,11 @@
 	   M.ss.IncomingSMTP_OPT_AUTH);
   sfprintf(fp,"SS.Smtp-Opt-DELIVERBY           %10u\n",
 	   M.ss.IncomingSMTP_OPT_DELIVERBY);
-  sfprintf(fp,"SS.Smtp-Opt-BODY_8BITMIME       %10u\n",
+  sfprintf(fp,"SS.Smtp-Opt-BODY-8BITMIME       %10u\n",
 	   M.ss.IncomingSMTP_OPT_BODY_8BITMIME);
-  sfprintf(fp,"SS.Smtp-Opt-BODY_BINARYMIME     %10u\n",
+  sfprintf(fp,"SS.Smtp-Opt-BODY-BINARYMIME     %10u\n",
 	   M.ss.IncomingSMTP_OPT_BODY_BINARYMIME);
-  sfprintf(fp,"SS.Smtp-Opt-BODY_7BIT           %10u\n",
+  sfprintf(fp,"SS.Smtp-Opt-BODY-7BIT           %10u\n",
 	   M.ss.IncomingSMTP_OPT_BODY_7BIT);
   sfprintf(fp,"SS.Smtp-Opt-RETURN              %10u\n",
 	   M.ss.IncomingSMTP_OPT_RET);
