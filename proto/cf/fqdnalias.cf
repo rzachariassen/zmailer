@@ -179,36 +179,6 @@ fqdn_neighbour (domain, address, A) {
 
 	# Didn't match,
 
-
-	# We may also match for:  "@domain.name"
-
-	#   Yes, add to the expansions.  Success ?
-	#     Yes, Any success with filepriv from the alias db ?
-	#       Yes, generate new privilege attribute for it. Success ?
-	#         Yes, do the expansion! (echo .. | listexpand ...)
-	#
-	key="$athost"
-	if $(didexpand fqdnaliases) && a="$(fqdnaliases "$key")" ; then
-		db add expansions "$key.fqdnaliases" 1
-		nattr=$(newattribute $A privilege $priv) &&
-		return $(echo "$a" |				   \
-			 listaddresses	-c "$a fqdn alias expansion" 	\
-					-e root			 |	\
-			 maprrouter $nattr "fqdnalias" "$address"	\
-				"$plustail" "$athost")
-	fi
-	if $(didexpand fqdnaliasesldap) &&
-	   a="$(fqdnaliasesldap "$key")" ; then
-		db add expansions "$key.fqdnaliasesldap" 1
-		# FIXME: privilege NOBODY!
-		return $(echo "$a" |					\
-			 listaddresses	-c "$a fqdn ldap expansion" 	\
-					-e root			 |	\
-			 maprrouter $A "fqdnalias" "$address"		\
-				"$plustail" "$athost")
-	fi
-
-
 # TODO: *@any.domain  which maps  somebody@any.domain via
 #	replacement pattern(s): %s@other.domain or other.uucp!%s, or ..
 #	to:  somebody@other.domain, or other.uucp!somebody
@@ -266,6 +236,35 @@ fqdn_neighbour (domain, address, A) {
 		fi
 		;;
 	tfiss
+
+
+	# We may also match for:  "@domain.name"
+
+	#   Yes, add to the expansions.  Success ?
+	#     Yes, Any success with filepriv from the alias db ?
+	#       Yes, generate new privilege attribute for it. Success ?
+	#         Yes, do the expansion! (echo .. | listexpand ...)
+	#
+	key="$athost"
+	if $(didexpand fqdnaliases) && a="$(fqdnaliases "$key")" ; then
+		db add expansions "$key.fqdnaliases" 1
+		nattr=$(newattribute $A privilege $priv) &&
+		return $(echo "$a" |				   \
+			 listaddresses	-c "$a fqdn alias expansion" 	\
+					-e root			 |	\
+			 maprrouter $nattr "fqdnalias" "$address"	\
+				"$plustail" "$athost")
+	fi
+	if $(didexpand fqdnaliasesldap) &&
+	   a="$(fqdnaliasesldap "$key")" ; then
+		db add expansions "$key.fqdnaliasesldap" 1
+		# FIXME: privilege NOBODY!
+		return $(echo "$a" |					\
+			 listaddresses	-c "$a fqdn ldap expansion" 	\
+					-e root			 |	\
+			 maprrouter $A "fqdnalias" "$address"		\
+				"$plustail" "$athost")
+	fi
 
 	return 1
 }
