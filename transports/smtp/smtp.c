@@ -3243,25 +3243,32 @@ int bdat_flush(SS, lastflg)
 }
 
 
+extern int select_sleep __((int fd, time_t when_tout));
+
 #ifdef	HAVE_SELECT
 
-int select_sleep(fd,tout)
-int fd, tout;
+int select_sleep(fd,when_tout)
+int fd;
+time_t when_tout;
 {
 	struct timeval tv;
 	int rc;
 	fd_set rdmask;
 	fd_set wrmask;
 
-	tv.tv_sec = tout;
+	time(&now);
+
+	tv.tv_sec = when_tout - now;
+	if (when_tout < now)
+	  tv.tv_sec = 0;
 	tv.tv_usec = 0;
 	_Z_FD_ZERO(rdmask);
 	_Z_FD_ZERO(wrmask);
 	if (fd > 0)
 	  _Z_FD_SET(fd,rdmask);
 	else {
-	  _Z_FD_SET(fd,wrmask);
 	  fd = -fd;
+	  _Z_FD_SET(fd,wrmask);
 	}
 
 	rc = select(fd+1,&rdmask,&wrmask,NULL,&tv);
@@ -3290,15 +3297,18 @@ int fd;
 	return 0;    /* interrupt or timeout, or some such.. */
 }
 #else /* not HAVE_SELECT */
-int select_sleep(fd, tout)
-int fd, tout;
+int select_sleep(fd, when_tout)
+int fd;
+time_t when_tout;
 {
+	errno = ENOSYS;
 	return -1;
 }
 
 int has_readable(fd)
 int fd;
 {
+	errno = ENOSYS;
 	return 1;
 }
 #endif
@@ -3420,6 +3430,7 @@ smtp_sync(SS, r, nonblocking)
 	char *p;
 	char *status = NULL;
 	int statesave;
+	time_t when_timeout;
 
 	SS->smtp_outcount = 0;
 	SS->block_written = 0;
@@ -3490,6 +3501,8 @@ smtp_sync(SS, r, nonblocking)
 	  s = eol;
       rescan_line:   /* Got additional input */
 
+	  when_timeout = time(&now) + timeout;
+
 	  eof = SS->pipebuf + SS->pipebufsize;
 	  for (eol = s; eol < eof; ++eol)
 	    if (*eol == '\n') break;
@@ -3525,11 +3538,11 @@ smtp_sync(SS, r, nonblocking)
 	      /* Blocking mode, and didn't succeed in reading, lets
 		 use select to see what we can do. */
 
-	      err = select_sleep(infd, timeout);
+	      err = select_sleep(infd, when_timeout);
 	      en = errno;
 	      if (debug && logfp)
 		fprintf(logfp,"%s#\tselect_sleep(%d,%d); rc=%d\n",
-			logtag(),infd,timeout,err);
+			logtag(),infd,(int)(when_timeout - now),err);
 	      if (err < 0) {
 		if (logfp)
 		  fprintf(logfp,"%s#\tTimeout (%d sec) while waiting responses from remote (errno=%d)\n",logtag(),timeout,en);
