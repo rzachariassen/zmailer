@@ -1,5 +1,10 @@
 2000-01-24  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* utils/mxverify/*
+	    Made it as stand-alone as possible; it still uses ZMailer's
+	    configuration system, but does not need rest of the system
+	    for compilation -- all parts it needs are localized copies.
+
 	* transports/smtp/smtptls.c:
 	    smtp_sfwrite() didn't break out at write-timeout quite
 	    as I had intended..
