@@ -715,10 +715,10 @@ process(dp)
 
 	hdr = has_header(rp,"Content-Type:");
 	if (hdr)
-	  CT = parse_content_type(hdr);
+	  CT = parse_content_type(*hdr);
 	hdr = has_header(rp,"Content-Transfer-Encoding:");
 	if (hdr)
-	  CTE = parse_content_encoding(hdr);
+	  CTE = parse_content_encoding(*hdr);
 	if (CT) {
 	  if (CT->basetype == NULL ||
 	      CT->subtype  == NULL ||

@@ -1,5 +1,10 @@
 2000-11-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/libta/mimeheaders.c, transports/mailbox/mailbox.c,
+	  transports/smtp/smtp.c, include/ta.h:
+	    Content-Type Parser had reversed pointers -- oops
+	    Changed parsers (multiple) parameters from (char **) to (char *)
+
 	* transports/libta/mimeheaders.c:
 	    RFC822 ATOM skipping didn't.. (single-char atoms)
 

@@ -709,8 +709,8 @@ static char * foldmalloccopy (start, end)
 
 
 struct ct_data *
-parse_content_type(ct_linep)
-     char **ct_linep;	/* Could be multiline! */
+parse_content_type(ct_line)
+     char *ct_line;
 {
 	char *s, *p;
 	struct ct_data *ct = (struct ct_data*)malloc(sizeof(struct ct_data));
@@ -725,7 +725,7 @@ parse_content_type(ct_linep)
 	ct->name     = NULL;
 	ct->unknown  = NULL;
 
-	s = *ct_linep;
+	s = ct_line;
 	s += 13;	/* "Content-Type:" */
 
 	p = skip_822linearcomments(s);
@@ -758,9 +758,10 @@ parse_content_type(ct_linep)
 	       or what shall we do ? */
 	  }
 	  p = skip_822linearcomments(s);
-	  if (!*p) return ct;
-	  s = skip_mimetoken(p);
-	  if (s == p && *s == 0) break; /* Nothing anymore */
+	  if (!p || !*p) return ct;
+	  s = p;
+	  p = skip_mimetoken(s);
+	  if (p == s && *p == 0) break; /* Nothing anymore */
 
 	  paramname = foldmalloccopy(p, s);
 
@@ -770,7 +771,7 @@ parse_content_type(ct_linep)
 		charset = "foo-bar"
 	     That is, it had whitespaces around the "=" sign. */
 
-	  s = skip_822linearcomments(s);
+	  s = skip_822linearcomments(p);
 
 	  if (*s == '=') {	    /* What if no `=' ?? */
 	    ++s;
@@ -827,15 +828,15 @@ parse_content_type(ct_linep)
 }
 
 struct cte_data *
-parse_content_encoding(cte_linep)
-     char **cte_linep;	/* Probably is not a multiline entry.. */
+parse_content_encoding(cte_line)
+     char *cte_line;
 {
 	char *s;
 	struct cte_data *cte = malloc(sizeof(struct cte_data));
 
 	if (!cte) return NULL;
 
-	s = (*cte_linep) + 26;
+	s = cte_line + 26;
 	/* Skip over the 'Content-Transfer-Encoding:' */
 	s = skip_822linearcomments(s);
 	if (*s == '"') {
@@ -969,7 +970,7 @@ downgrade_charset(rp, verboselog)
 	CTE  = has_header(rp,cCTE);
 	if (CT == NULL || CTE == NULL) return 0; /* ??? */
 
-	ct = parse_content_type(CT);
+	ct = parse_content_type(*CT);
 
 	if (ct->basetype == NULL ||
 	    ct->subtype  == NULL ||
@@ -1107,7 +1108,7 @@ NULL };
 	  return 0;
 	}
 
-	ct = parse_content_type(CT);
+	ct = parse_content_type(*CT);
 
 	is_textplain = (ct->basetype != NULL &&
 			ct->subtype  != NULL &&
@@ -1222,7 +1223,7 @@ qp_to_8bit(rp)
 
 	if (!CTE || !CT) return 0; /* No C-T-E header! */
 
-	ct = parse_content_type(CT);
+	ct = parse_content_type(*CT);
 
 	if (ct->basetype == NULL ||
 	    ct->subtype  == NULL ||

@@ -1004,7 +1004,7 @@ deliver(SS, dp, startrp, endrp)
 
 	hdr = has_header(startrp,"Content-Type:");
 	if (hdr)
-	  CT = parse_content_type(hdr);
+	  CT = parse_content_type(*hdr);
 
 	if (!CT && SS->verboselog)
 	  fprintf(SS->verboselog, ".. No Content-Type: header parsed ??\n");
@@ -1018,7 +1018,7 @@ deliver(SS, dp, startrp, endrp)
 
 	hdr = has_header(startrp,"Content-Transfer-Encoding:");
 	if (hdr)
-	  CTE = parse_content_encoding(hdr);
+	  CTE = parse_content_encoding(*hdr);
 	if (CT) {
 	  if (CT->basetype == NULL ||
 	      CT->subtype  == NULL ||
