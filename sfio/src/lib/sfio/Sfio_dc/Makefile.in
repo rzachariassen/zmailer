@@ -1,0 +1,37 @@
+# makefile for discipline functions
+#
+# Written by Kiem-Phong Vo (03/18/1998)
+#
+# Adapted to ZMailer's environment by Matti Aarnio <mea@nic.funet.fi>
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+INCDIR=	$(srcdir)/../../../../include
+LIBDIR=	../../../../lib
+BINDIR=	../../../../bin
+
+# Compiler and flags to use
+CXFLAGS=
+CCMODE=	@CFLAGS@
+AR=	@AR@
+CC=	@CC@
+CCFLAGS= -I$(srcdir)/.. -I.. $(CCMODE) $(CXFLAGS)
+
+# Native compiler if building libsfdisc.a for a cross compilation environment
+NC=	@CC@
+
+# sfdisc
+SRCS=	sfdcdio.c sfdcdos.c sfdcfilter.c sfdclzw.c sfdcseekable.c sfdcslow.c \
+	sfdcsubstream.c sfdctee.c sfdcunion.c
+OBJS=	sfdcdio.o sfdcdos.o sfdcfilter.o sfdclzw.o sfdcseekable.o sfdcslow.o \
+	sfdcsubstream.o sfdctee.o sfdcunion.o
+
+.c.o:
+	$(CC) -c $(CCFLAGS) $<
+
+must:	$(OBJS)
+
+clean:
+	-(rm $(OBJS); exit 0) >/dev/null 2>&1
