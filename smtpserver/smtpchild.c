@@ -30,7 +30,8 @@ int *childcntp;
     int childcnt = 1; /* Ourself */
 
     time(&child_now);
-
+    
+    *childcntp = 1;
     if (childs == NULL) return 0;
 
     for (i = 0; i < child_top; ++i) {
@@ -50,7 +51,7 @@ int *childcntp;
       if (childs[i].pid != 0 &&
 	  /* PID non zero */
 	  addr->v4.sin_family == childs[i].addr.v4.sin_family) {
-	    /* Same AddressFamily */
+	/* Same AddressFamily */
 	if ((addr->v4.sin_family == AF_INET &&
 	     /* Address is IPv4 one */
 	     memcmp(& addr->v4.sin_addr, & childs[i].addr.v4.sin_addr, 4) == 0)
@@ -60,10 +61,11 @@ int *childcntp;
 	      /* ... or Address is IPv6 one */
 	      memcmp(& addr->v6.sin6_addr, & childs[i].addr.v6.sin6_addr, 16) == 0))
 #endif
-	     )
+	    )
 	  ++cnt;
       }
-      ++childcnt;
+      if (childs[i].pid != 0)
+	++childcnt;
     }
 
     *childcntp = childcnt;
