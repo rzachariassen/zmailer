@@ -1013,8 +1013,8 @@ char **argv;
 	  settrusteduser();	/* dig out the trusted user ID */
 	  openlogfp(&SS, daemon_flg);
 
-	  type(NULL,0,NULL,"connection from %s:%d ident: %s",
-	       SS.rhostname, SS.rport, SS.ident_username);
+	  type(NULL,0,NULL,"connection from %s:%d pid %d ident: %s",
+	       SS.rhostname, SS.rport, pid, SS.ident_username);
 
 #if 0
 	  SIGNAL_HANDLE(SIGCHLD, SIG_DFL);

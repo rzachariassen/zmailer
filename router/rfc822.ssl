@@ -362,7 +362,7 @@ AMailbox:					% mailbox -- for "From:"
 			oDeferEmitToken
 			@AnyWord
 			[*
-				| '::', '.', tOtherSpecial:
+				| '::', tPeriod, tOtherSpecial:
 					% saw first Word of LocalPart
 					oReleaseEmitToken(cAddress)
 					?
@@ -752,7 +752,7 @@ LocalPart:					% local-part
 		| *:
 	]
 	{[
-		| '::', '.', tOtherSpecial:
+		| '::', tPeriod, tOtherSpecial:
 			oEmitTokenCurType
 			@AnyWord
 			[

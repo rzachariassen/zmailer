@@ -1,3 +1,34 @@
+2004-06-22  Matti Aarnio  <mea@zmailer.org>
+
+	* router/rfc822.c:
+	    Move the verbose-tracing a bit earlier in the processing.
+
+	* router/rfc822.ssl:
+	    Remains of an attempt to modify the local-part address
+	    semantics...  Not a success :-(
+
+	* router/lib/header.c:
+	    Change parsing rules for envelope headers.
+
+	* smtpserver/policytest.c:
+	    When in MSA-mode, _ignore_ 'relaycustnet +' attributes.
+	    Will then always demand user to authenticate!
+
+	* smtpserver/rfc821scn.c:
+	    Deep reading of RFC 2821/2822 did show, that we had
+	    a wee bit wrong type encodings for '"', '.', and '@'.
+	    Corrected those, and under non-strict conditions did
+	    modify the parsing to allow e.g.:  .foo.@example.com
+
+	* smtpserver/smtpserver.c:
+	    At the star of incoming session, report (into log) also
+	    the PID of the running smtpserver process.  Helps to debug
+	    couple odd problems that I have seen.
+
+	* smtpserver/subdaemons.c:
+	    Error-code  EBADFD  is something that exists only at Solaris,
+	    and at Linux, not at FreeBSD..
+
 2004-06-02  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.c:

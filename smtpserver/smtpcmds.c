@@ -474,7 +474,7 @@ int insecure;
     /* "<" [ <a-t-l> ":" ] <localpart> "@" <domain> ">" */
     if (*cp == '<') {
       if (!sloppy) {
-	s = rfc821_path(cp, strict || (strict_protocol > 0));
+	s = rfc821_path(cp, (strict || (strict_protocol > 0)));
 	if (s == cp) {
 	  /* Failure.. ? */
 	  type821err(SS, -501, m517, buf, "Path data: %.200s", rfc821_error);

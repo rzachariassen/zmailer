@@ -1000,7 +1000,7 @@ static int _addrtest_(state, pbuf, sourceaddr)
       PICK_PA_MSG(P_A_TrustWhosOn);
     }
 #endif
-    if (valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
+    if (!msa_mode && valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
       if (debug)
 	type(NULL,0,NULL," policytestaddr: 'relaycustnet +' found");
       state->always_accept = 1;
@@ -1631,7 +1631,7 @@ static int pt_sourcedomain(state, str, len)
     if (state->always_accept)
 	return 0;
 
-    if (valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
+    if (!msa_mode && valueeq(state->values[P_A_RELAYCUSTNET], "+")) {
       if (debug)
 	type(NULL,0,NULL," pt_sourceaddr: 'relaycustnet +' found");
       state->always_accept = 1;

@@ -25,6 +25,7 @@ static void	prdsndata __((conscell *info, FILE *fp, const char *comment));
 static conscell	*find_errto __((conscell *list));
 
 #define dprintf	if (D_sequencer) printf
+#define Vprintf	if (vfp) fprintf
 
 #define	QCHANNEL(x)	(x)
 #define	QHOST(x)	cdr(x)
@@ -1226,6 +1227,38 @@ sequencer(e, file)
 
 	time(&start_now);
 
+	if (e == NULL) {
+	  /* No envelope ??? */
+	  return PERR_OK;
+	}
+
+	FindEnvelope(eVerbose);
+	if (h  &&  h->h_contents.a  &&  h->h_contents.a->a_tokens) {
+	  if (h->h_contents.a->a_tokens->p_tokens    &&
+	      h->h_contents.a->a_tokens->p_tokens->t_type == String)
+	    h->h_contents.a->a_tokens->p_tokens->t_type = Atom;
+	  printToken(verbosefile, verbosefile + sizeof verbosefile,
+		     h->h_contents.a->a_tokens->p_tokens,
+		     (token822 *)NULL, 0);
+	  /*
+	   * We have to be careful how we open this file, since one
+	   * might imagine someone trying to append to /etc/passwd
+	   * using this stuff.  The only safe way is to open it
+	   * with the permissions of the owner of the message file.
+	   */
+	  SETEUID(e->e_statbuf.st_uid);
+
+	  vfp = fopen(verbosefile, "a");
+	  if (vfp) {
+	    fseek(vfp, (off_t)0, 2);
+	    setvbuf(vfp, NULL, _IOLBF, 0);
+	    fprintf(vfp, "router processing message %s\n", file);
+	  }
+	  SETEUID(0);
+	} else
+	  vfp = NULL;
+
+
 	if (schedulersubdirhash < 0) {
 	  const char *s = getzenv("SCHEDULERDIRHASH");
 	  if (s && ((s[0] == '1' || s[0] == '2') && s[1] == 0))
@@ -1259,17 +1292,17 @@ sequencer(e, file)
 
 	errors_to = NULL; /* to be gotten rid off.. */
 
-	if (e == NULL) {
-		/* No envelope ??? */
-		return PERR_OK;
-	}
-
 	dprintf("Sender authentication\n");
+	Vprintf(vfp,"Sender authentication\n");
 	e->e_trusted = isgoodguy(e->e_statbuf.st_uid);
 	dprintf("Sender is%s trusted\n", e->e_trusted ? "" : "n't");
+	Vprintf(vfp,"Sender is%s trusted\n", e->e_trusted ? "" : "n't");
 
-	if (deferuid)
+	if (deferuid) {
+	  Vprintf(vfp,"DEFERRING DUE TO FILE OWNER PROBLEMS\n");
+	  if (vfp) fclose(vfp);
 	  return PERR_DEFERRED;
+	}
 
 	FindEnvelopeLast(eRcvdFrom);
 	rcvdhdr = h;
@@ -1293,6 +1326,7 @@ sequencer(e, file)
 	       that the message writer coded in... */
 
 	    dprintf("Message has 'rcvdfrom' envelope header, but we don't trust it!\n");
+	    Vprintf(vfp, "Message has 'rcvdfrom' envelope header, but we don't trust it!\n");
 	    s = uidpwnam(e->e_statbuf.st_uid);
 	    ps = "";
 	    totlen = 10 + strlen(s) + 60;
@@ -1331,8 +1365,11 @@ sequencer(e, file)
 	  smtprelay     = ts+9;
 	}
 
-	if (deferuid)
+	if (deferuid) {
+	  Vprintf(vfp,"DEFERRING due to unspecified reason\n");
+	  if (vfp) fclose(vfp);
 	  return PERR_DEFERRED;
+	}
 
 	dprintf("Parse envelope and message header\n");
 	e->e_messageid = NULL;
@@ -1361,8 +1398,11 @@ sequencer(e, file)
 		}
 	}
 
-	if (deferuid)
+	if (deferuid) {
+	  Vprintf(vfp,"DEFERRING due to unspecified reason\n");
+	  if (vfp) fclose(vfp);
 	  return PERR_DEFERRED;
+	}
 
 	dprintf("Determine if message is a Resent-* type thing\n");
 	e->e_resent = 0;
@@ -1410,8 +1450,12 @@ sequencer(e, file)
 		  e->e_messageid = saveAddress(msgidh->h_contents.a->a_tokens);
 	}
 
-	if (perr)
-		return perr;
+	if (perr) {
+	  Vprintf(vfp,"ERRORING OUT with code %s\n",
+		  (perr == PERR_LOOP ? "PERR_LOOP" : "PERR_ENVELOPE"));
+	  if (vfp) fclose(vfp);
+	  return perr;
+	}
 
 	/* put pertinent message information in the zsh environment */
 	setenvinfo(e);
@@ -1457,6 +1501,8 @@ sequencer(e, file)
 
 	if (deferuid) {
 	  UNGCPRO5;
+	  Vprintf(vfp,"DEFERRING due to unspecified reason\n");
+	  if (vfp) fclose(vfp);
 	  return PERR_DEFERRED;
 	}
 
@@ -1713,6 +1759,8 @@ sequencer(e, file)
 
 	if (deferuid) {
 	  UNGCPRO5;
+	  Vprintf(vfp,"DEFERRING due to unspecified reason\n");
+	  if (vfp) fclose(vfp);
 	  return PERR_DEFERRED;
 	}
 
@@ -1720,9 +1768,12 @@ sequencer(e, file)
 	FindEnvelope(eTo);
 	if (h == NULL) {
 		dprintf("No recipient(s) specified in the envelope\n");
+		Vprintf(vfp,"No recipient(s) specified in the envelope\n");
 		if (header_error) {
 			dprintf("Due to header error, we ignore message\n");
+			Vprintf(vfp,"Due to header error, we ignore message\n");
 			UNGCPRO5;
+			if (vfp) fclose(vfp);
 			return PERR_HEADER;
 		}
 		ph = e->e_eHeaders;
@@ -1746,6 +1797,8 @@ sequencer(e, file)
 		dprintf("Are we supposed to be psychic?\n");
 		if (ph == e->e_eHeaders) {
 		  UNGCPRO5;
+		  Vprintf(vfp,"Bailing out - no recipients\n");
+		  if (vfp) fclose(vfp);
 		  return PERR_NORECIPIENTS;
 		}
 	}
@@ -1942,6 +1995,8 @@ sequencer(e, file)
 		}
 		if (deferuid) {
 		  UNGCPRO5;
+		  Vprintf(vfp,"DEFERRING due to unspecified reason\n");
+		  if (vfp) fclose(vfp);
 		  return PERR_DEFERRED;
 		}
 	}
@@ -1957,7 +2012,9 @@ sequencer(e, file)
 
 	if (routed_addresses == NULL)	/* they were probably all deferred */ {
 		printf("No routed addresses -> deferred\n");
+		Vprintf(vfp,"No routed addresses -> deferred\n");
 		UNGCPRO5;
+		if (vfp) fclose(vfp);
 		return PERR_DEFERRED;
 	}
 
@@ -2085,6 +2142,7 @@ sequencer(e, file)
 
 	if (deferuid) {
 	  UNGCPRO5;
+	  if (vfp) fclose(vfp);
 	  return PERR_DEFERRED;
 	}
 
@@ -2113,11 +2171,13 @@ sequencer(e, file)
  
 	if (deferuid) {
 	  UNGCPRO5;
+	  if (vfp) fclose(vfp);
 	  return PERR_DEFERRED;
 	}
 
 	if (rwhead == NULL) {
 	  UNGCPRO5;
+	  if (vfp) fclose(vfp);
 	  return PERR_NORECIPIENTS;
 	}
 
@@ -2139,6 +2199,7 @@ sequencer(e, file)
 #endif
 		printf("Creation of control file failed\n");
 		UNGCPRO5;
+		if (vfp) fclose(vfp);
 		return PERR_CTRLFILE;
 	}
 	setvbuf(ofp, vbuf, _IOFBF, sizeof vbuf);
@@ -2150,33 +2211,9 @@ sequencer(e, file)
 	fprintf(ofp, "%c%c0x%08lx\n",
 		_CF_FORMAT, _CFTAG_NORMAL, (long)_CF_FORMAT_KNOWN_SET);
 
-	FindEnvelope(eVerbose);
-	if (h  &&  h->h_contents.a  &&  h->h_contents.a->a_tokens) {
-		if (h->h_contents.a->a_tokens->p_tokens    &&
-		    h->h_contents.a->a_tokens->p_tokens->t_type == String)
-			h->h_contents.a->a_tokens->p_tokens->t_type = Atom;
-		printToken(verbosefile, verbosefile + sizeof verbosefile,
-			   h->h_contents.a->a_tokens->p_tokens,
-			   (token822 *)NULL, 0);
-		/*
-		 * We have to be careful how we open this file, since one
-		 * might imagine someone trying to append to /etc/passwd
-		 * using this stuff.  The only safe way is to open it
-		 * with the permissions of the owner of the message file.
-		 */
-		SETEUID(e->e_statbuf.st_uid);
-
-		vfp = fopen(verbosefile, "a");
-		if (vfp) {
-			fseek(vfp, (off_t)0, 2);
-			setvbuf(vfp, NULL, _IOLBF, 0);
-			fprintf(vfp, "router processed message %s\n", file);
-			fprintf(ofp, "%c%c%s\n", _CF_VERBOSE, _CFTAG_NORMAL,
-				verbosefile);
-		}
-		SETEUID(0);
-	} else
-		vfp = NULL;
+	if (vfp)
+	  fprintf(ofp, "%c%c%s\n", _CF_VERBOSE, _CFTAG_NORMAL,
+		  verbosefile);
 
 	fprintf(ofp, "%c%c%s\n",
 		_CF_MESSAGEID, _CFTAG_NORMAL, pfile);
@@ -2460,6 +2497,7 @@ sequencer(e, file)
 	  free(ofpname);
 	  free(qpath);
 #endif
+	  if (vfp) fclose(vfp);
 	  return PERR_CTRLFILE;
 	}
 
@@ -2496,6 +2534,7 @@ sequencer(e, file)
 		}
 #endif
 		fclose(vfp);
+		vfp = NULL;
 	}
 
 	rtsyslog(e->e_spoolid, e->e_statbuf.st_mtime,

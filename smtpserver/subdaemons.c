@@ -495,7 +495,11 @@ subdaemon_send_to_peer(peer, buf, len)
 	      peer->outlen = peer->outptr = 0;
 	    continue; /* Written all.. */
 	  }
-	  if ((rc < 0) && (errno == EBADFD)) {
+	  if ((rc < 0) && ((errno == EBADF)
+#ifdef EBADFD /* linux & Solaris, not FreeBSD ... */
+			   || (errno == EBADFD)
+#endif
+			   )) {
 	    subdaemon_kill_peer(peer);
 	    return -1;
 	  }
@@ -632,7 +636,10 @@ fdgetc(fdp, fd, timeout)
 	      goto extract_from_buffer;
 	    }
 	    if (rc == 0) return -1; /* EOF */
+	    if (errno == EBADF) return -1; /* Simulate EOF! */
+#ifdef EBADFD /* linux & Solaris, not FreeBSD ... */
 	    if (errno == EBADFD) return -1; /* Simulate EOF! */
+#endif
 	    if (errno == EINTR) continue;
 	    if (errno == EAGAIN) {
 		fd_set rdset;
