@@ -254,29 +254,19 @@ feed_child(proc)
 	  cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
 	  strcpy(cmdbuf,"\n");
 
-	} else if (vtx->cfp->dirind >= 0) {
+	} else {
 
 	  const char *d = cfpdirname(vtx->cfp->dirind);
 	  if (proc->thg->withhost) { /* cmd-line was with host */
-	    cmdlen = 2 + strlen(d) + strlen(vtx->cfp->mid);
+	    cmdlen = 1 + strlen(d) + strlen(vtx->cfp->mid);
 	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
 	    sprintf(cmdbuf, "%s%s\n", d, vtx->cfp->mid);
 	  } else {
-	    cmdlen = 3+strlen(d)+strlen(vtx->cfp->mid)+strlen(proc->ho->name);
+	    cmdlen = 2+strlen(d)+strlen(vtx->cfp->mid)+strlen(proc->ho->name);
 	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
 	    sprintf(cmdbuf, "%s%s\t%s\n", d, vtx->cfp->mid, proc->ho->name);
 	  }
-	} else {
 
-	  if (proc->thg->withhost) { /* cmd-line was with host */
-	    cmdlen = 1 + strlen(vtx->cfp->mid);
-	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
-	    sprintf(cmdbuf, "%s\n", vtx->cfp->mid);
-	  } else {
-	    cmdlen = 2+strlen(vtx->cfp->mid)+strlen(proc->ho->name);
-	    cmdbufalloc(cmdlen, & cmdbuf, & cmdbufspc);
-	    sprintf(cmdbuf, "%s\t%s\n", vtx->cfp->mid, proc->ho->name);
-	  }
 	}
 
 	if ((proc->cmdlen + cmdlen) >= proc->cmdspc)

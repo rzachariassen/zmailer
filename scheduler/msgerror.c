@@ -203,8 +203,7 @@ msgerror(vp, offset, message)
 
 	if (vp->notary) notary = vp->notary;
 
-	sprintf(path, "%.300s%.100s",
-		cfpdirname(vp->cfp->dirind), vp->cfp->mid);
+	sprintf(path, "%s%.400s", cfpdirname(vp->cfp->dirind), vp->cfp->mid);
 
 	/* exclusive access required, but we're the only scheduler... */
 	fp = sfopen(NULL, path, "a");
@@ -474,7 +473,7 @@ reporterrs(cfpi, delayreports)
 	envid        = cfpi->envid;
 
 	/* exclusive access required, but we're the only scheduler... */
-	sprintf(mpath,"%s%s", cfpdirname(cfpi->dirind), cfpi->mid);
+	sprintf(mpath,"%s%.400s", cfpdirname(cfpi->dirind), cfpi->mid);
 
 	fd = open(mpath, O_RDWR, 0);
 	if (fd < 0 ||
@@ -866,7 +865,7 @@ Following is copy of the message headers. Original message content may\n\
 be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 
 	/* path to the message body */
-	sprintf(path, "../%s/%s%s",
+	sprintf(path, "../%s/%s%.300s",
 		QUEUEDIR, cfpdirname(cfpi->dirind), cfpi->mid);
 
 	fp = sfopen(NULL, path, "r");
@@ -1013,8 +1012,7 @@ msgdelayed(vp, offset, notary, message)
 	  if (s) *s++ = 0;
 	}
 
-	sprintf(path, "%.300s%.100s",
-		cfpdirname(vp->cfp->dirind), vp->cfp->mid);
+	sprintf(path, "%s%.300s", cfpdirname(vp->cfp->dirind), vp->cfp->mid);
 
 	/* exclusive access required, but we're the only scheduler... */
 	fp = sfopen(NULL, path, "a");
