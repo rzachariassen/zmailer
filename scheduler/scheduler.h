@@ -144,7 +144,7 @@ typedef enum {
   CFSTATE_ERROR = 0		/* Error encountered			*/
 } TASTATE;
 
-  /* State changes:  fork() -> (1) --> (2) -+-> (3) -+-> (0) -+-> death
+  /* State changes:  fork() -> (1) --> (2) -+-> (3) -+-> (4) -+-> death
                                 ^       ^   |        |        |
                                 |       |-<-|        v        v
                                 |---<------------<---|--<-----|

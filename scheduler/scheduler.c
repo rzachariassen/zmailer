@@ -2133,9 +2133,14 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	if (verbose) {
 	  int completed = cfp->rcpnts_total - cfp->rcpnts_work -
 			  cfp->rcpnts_failed;
-	  sfprintf(sfstdout,"vtxprep: msg %s rcptns total %d work %d failed %d done %d\n",
+	  sfprintf(sfstdout,"vtxprep: msg %s rcptns total %d work %d failed %d done %d\n  vertices:",
 		 cfp->mid, cfp->rcpnts_total, cfp->rcpnts_work,
 		 cfp->rcpnts_failed, completed );
+	  vp = cfp->head;
+	  for (vp = cfp->head; vp; vp = vp->next[L_CTLFILE]) {
+	    sfprintf(sfstdout," %p", vp);
+	  }
+	  sfprintf(sfstdout,"\n");
 	}
 
 	{
