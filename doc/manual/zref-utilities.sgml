@@ -7,7 +7,7 @@ Not all of them even become installed into your system in all situations.
 </PARA>
 
 
-<SECT1><TITLE>vacation</TITLE>
+<SECT1 ID="zref.util.vacation"><TITLE><EMPHASIS>vacation</></TITLE>
 
 <PARA>
 <EMPHASIS>vacation</> automatically replies to incoming mail.
@@ -131,7 +131,8 @@ it never points back to an address that could cause a loop. The
 
 </SECT1>
 
-<SECT1><TITLE>makedb</TITLE>
+<SECT1 ID="zref.util.makedb">
+<TITLE><EMPHASIS>makedb</></TITLE>
 
 <PARA>
 The way the ZMailer uses DBM entries is by using strings with 
@@ -181,7 +182,7 @@ The {\tt -a} option is for parsing input that comes in
 
 </SECT1>
 
-<SECT1><TITLE>dblook</TITLE>
+<SECT1 ID="zref.util.dblook"><TITLE><EMPHASIS>dblook</></TITLE>
 
 <SCREEN>
 The way the ZMailer uses DBM entries is by using strings with 
@@ -513,7 +514,7 @@ sub LOG {
 </SCREEN>
 </SECT1>
 
-<SECT1><TITLE>newdb</TITLE>
+<SECT1 ID="zref.util.newdb"><TITLE><EMPHASIS>newdb</></TITLE>
 
 <PARA>
 This is elementary wrapper script building binary databases with

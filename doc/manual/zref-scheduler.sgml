@@ -1,5 +1,5 @@
 <CHAPTER ID="ZREF-SCHEDULER"><?dbhtml filename="zref-scheduler.html">
-<TITLE>Scheduler</TITLE>
+<TITLE><EMPHASIS>Scheduler</></TITLE>
 
 <PARA>
 The <EMPHASIS>scheduler</> daemon manages the delivery processing

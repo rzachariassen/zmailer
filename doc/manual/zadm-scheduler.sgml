@@ -1,5 +1,5 @@
 <CHAPTER ID="ZADM-SCHEDULER"><?dbhtml filename="zadm-scheduler.html">
-<TITLE>Scheduler Configuration</TITLE>
+<TITLE><EMPHASIS>Scheduler</> Configuration</TITLE>
 
 <PARA>
 The <EMPHASIS>scheduler</> is the part of the ZMailer that manages

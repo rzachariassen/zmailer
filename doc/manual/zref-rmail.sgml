@@ -1,8 +1,8 @@
 <CHAPTER ID="ZREF-RMAIL"><?dbhtml filename="zref-rmail.html">
-<TITLE>rmail</TITLE>
+<TITLE><EMPHASIS>Rmail</></TITLE>
 
 <PARA>
-<EMPHASIS>rmail</> is a program to process incoming UUCP mail.
+The <EMPHASIS>rmail</> is a program to process incoming UUCP mail.
 <EMPHASIS>rmail</> is usually invoked by a remote UUCP neighbour
 host's mailer using a command line like:
 </PARA>
@@ -65,11 +65,11 @@ rmail [-d] [-h somewhere] recipient...
 <VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>-d</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-d</></TERM><LISTITEM><PARA>
 turns on debugging output.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-h somewhere</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-h somewhere</></TERM><LISTITEM><PARA>
 will use the argument as the  default remote UUCP host name
 to use if there is no <EMPHASIS>remote from host</> tag in the
 first <EMPHASIS>From-space</> line in the message.

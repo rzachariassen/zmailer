@@ -557,7 +557,10 @@ Message id of message obsoleted by this.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>v</TERM><LISTITEM><PARA>
-Log file name for verbose log (<USERINPUT>mail -v</>).
+Log file name for verbose log (<USERINPUT>mail -v</>):
+<SCREEN>
+ v ../public/v_some_magic_tmpfile
+</SCREEN>
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>T</TERM><LISTITEM><PARA>

@@ -1,5 +1,5 @@
 <CHAPTER ID="ZREF-ROUTER"><?dbhtml filename="zref-router.html">
-<TITLE>Router</TITLE>
+<TITLE><EMPHASIS>Router</></TITLE>
 
 <PARA>
 The <EMPHASIS>router</> daemon makes all decisions affecting 
@@ -333,576 +333,650 @@ This section describes the router internal functions.
 <SECT2 ID="zmshref.doublecolon">
 <TITLE>``:'' (doublecolon)</TITLE>
 
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</><LISTITEM><PARA>
 <SYNOPSIS>
  : &lt;SPC&gt; anything else forming a command pipeline
 </SYNOPSIS>
+</PARA></LISTITEM></VARLISTENTRY>
 
-<SCREEN>
-Description
+<VARLISTENTRY><TERM>Description:</><LISTITEM><PARA>
 	none
+</PARA></LISTITEM></VARLISTENTRY>
 
-Return Values:
+<VARLISTENTRY><TERM>Return Values:</><LISTITEM><PARA>
 	0
+</PARA></LISTITEM></VARLISTENTRY>
 
-Options:
+<VARLISTENTRY><TERM>Options:</><LISTITEM><PARA>
 	none
+</PARA></LISTITEM></VARLISTENTRY>
 
-Notes:
+<VARLISTENTRY><TERM>Notes:</><LISTITEM><PARA>
 	none
-</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 </SECT2>
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>``.'', ``include''</TITLE>
 
-<SCREEN>
-
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
-
-{\tt {\bf .} script}
-
-\item[{\bf Return Values:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+<SYNOPSIS>
+ . scriptfilename
+</SYNOPSIS>
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 status
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>``['', ``test''</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+<SYNOPSIS>
+[ {test parameters} ]
+</SYNOPSIS>
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Alternate syntax:</TERM><LISTITEM><PARA>
+<SYNOPSIS>
+test {test parameters}
+</SYNOPSIS>
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-{\tt {\bf {[}} \{test parameters\} {\bf {]}}}
-
-\item[{\bf Alternate syntax:}] \mbox{}
-
-{\tt {\bf {test}} \{test parameters\}}
-
-\item[{\bf Return Values:}] \mbox{}
-
-\begin{description}
-\item[{\tt 1}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM> 1 </TERM><LISTITEM><PARA>
 
 True.
 
-\item[{\tt 0}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM> 0 </TERM><LISTITEM><PARA>
 
 False.
 
-\item[{\tt -1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM> -1 </TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\item[{\bf Options:}] \mbox{}
-
-\begin{itemize}
-\item File testing unary prefix functions:
-\begin{description}
-\item[{\tt -b file}] \mbox{}
+<ITEMIZEDLIST>
+<LISTITEM><PARA> File testing unary prefix functions:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -b file}</TERM><LISTITEM><PARA>
 
 True if file exists and is block special.
 
-\item[{\tt -c file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -c file}</TERM><LISTITEM><PARA>
 
 True if file exists and is character special.
 
-\item[{\tt -d file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -d file}</TERM><LISTITEM><PARA>
 
 True if file exists and is a directory.
 
-\item[{\tt -f file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -f file}</TERM><LISTITEM><PARA>
 
 True if file exists and is a regular file.
 
-\item[{\tt -g file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -g file}</TERM><LISTITEM><PARA>
 
 True if file exists and is set-group-id.
 
-\item[{\tt -k file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -k file}</TERM><LISTITEM><PARA>
 
 True if file has its ``sticky'' bit set.
 
-\item[{\tt -p file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -p file}</TERM><LISTITEM><PARA>
 
 True if file exists and is a named pipe.
 
-\item[{\tt -r file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -r file}</TERM><LISTITEM><PARA>
 
 True if file exists and is readable.
 
-\item[{\tt -s file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -s file}</TERM><LISTITEM><PARA>
 
 True if file exists and has a size greater than zero.
 
-\item[{\tt -t {[fd]}}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -t {[fd]}}</TERM><LISTITEM><PARA>
 
 True if {\tt fd} is opened on a terminal. 
 If {\tt fd} is omitted, it defaults to 1 (standard output).
 
-\item[{\tt -u file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -u file}</TERM><LISTITEM><PARA>
 
 True if file exists and its set-user-id bit is set.
 
-\item[{\tt -w file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -w file}</TERM><LISTITEM><PARA>
 
 True if file exists and is writable.
 
-\item[{\tt -x file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -x file}</TERM><LISTITEM><PARA>
 
 True if file exists and is executable.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM>
 
-\item String testing binary functions:
-\begin{description}
-\item[{\tt str1 = str2}] \mbox{}
+<LISTITEM><PARA> String testing binary functions:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt str1 = str2}</TERM><LISTITEM><PARA>
 
 True if the strings are equal.
 
-\item[{\tt str1 != str2}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt str1 != str2}</TERM><LISTITEM><PARA>
 
 True if the strings are not equal.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM>
 
-\item Interget value testing binary functions:
-\begin{description}
-\item[{\tt iexpr -eq iexpr}] \mbox{}
+<LISTITEM><PARA> Interget value testing binary functions:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt iexpr -eq iexpr}</TERM><LISTITEM><PARA>
 
 True if values are equal.
 
-\item[{\tt iexpr -ne iexpr}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt iexpr -ne iexpr}</TERM><LISTITEM><PARA>
 
 True if values are not equal.
 
-\item[{\tt iexpr -gt iexpr}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt iexpr -gt iexpr}</TERM><LISTITEM><PARA>
 
 True if value1 is greater than value2.
 
-\item[{\tt iexpr -ge iexpr}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt iexpr -ge iexpr}</TERM><LISTITEM><PARA>
 
 True if value1 is greater or equal than value2.
 
-\item[{\tt iexpr -lt iexpr}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt iexpr -lt iexpr}</TERM><LISTITEM><PARA>
 
 True if value1 is less than value2.
 
-\item[{\tt iexpr -le iexpr}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt iexpr -le iexpr}</TERM><LISTITEM><PARA>
 
 True if value1 is less or equal than value2.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM>
 
-\item File comparison binary functions:
-\begin{description}
-\item[{\tt file1 -nt file2}] \mbox{}
+<LISTITEM><PARA> File comparison binary functions:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt file1 -nt file2}</TERM><LISTITEM><PARA>
 
 True if file1's mtime is newer than file2's.
 
-\item[{\tt file1 -ot file2}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt file1 -ot file2}</TERM><LISTITEM><PARA>
 
 True if file1's mtime is older than file2's.
 
-\item[{\tt file1 -ef file2}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt file1 -ef file2}</TERM><LISTITEM><PARA>
 
 True if both files have same inode, and device.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM>
 
-\item Logical functions:
-\begin{description}
-\item[{\tt ! expr}] \mbox{}
+<LISTITEM><PARA> Logical functions:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt ! expr}</TERM><LISTITEM><PARA>
 
 Unary NOT
 
-\item[{\tt expr -a expr}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt expr -a expr}</TERM><LISTITEM><PARA>
 
 Binary AND
 
-\item[{\tt expr -o expr}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt expr -o expr}</TERM><LISTITEM><PARA>
 
 Binary OR
 
-\item[{\tt ( expr )}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt ( expr )}</TERM><LISTITEM><PARA>
 
 Parenthesis
 
-\end{description}
-\end{itemize}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM>
+</ITEMIZEDLIST>
 
 
 
-
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This is basically the shell {\tt {[}} a.k.a. 
 {\tt test} program.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>attributes</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
-
-{\tt attributes object-reference}
-
-\item[{\bf Return Values:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+<SYNOPSIS>
+  attributes object-reference
+</SYNOPSIS>
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 The property list symbol (4th) component 
 of an address quad.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>basename</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt basename pathname [ suffix ]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 If a suffix is given and matches the filename, 
 the suffix too is stripped from the filename.
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Prints the base filename of the pathname.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>break</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt break}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 1}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>builtin</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt builtin}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>builtins</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt builtins}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 List builtin functions.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>car</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt car object-reference}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to copied lisp-object of 
 object-reference's {\tt car} operation.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This command is synonymous to the {\tt channel} 
 and {\tt first} commands.  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>cd</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt cd [directory]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 {\tt cd} successful.
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
-
-none  
-
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>cdr</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt cdr object-reference}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to copied lisp-object of 
 object-reference's {\tt cdr} operation.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This command is synonymous to the {\tt rest}
 command.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>channel</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt channel object-reference}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 The channel (1st) component of an address
 quad.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 The {\tt car} and {\tt first} commands are 
 synonymous to this command. 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>continue</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt continue}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 1}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>daemon</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt daemon}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Starts the {\em router} running in daemon mode, 
 scanning the {\tt \$POSTOFFICE/router/} directory every few 
@@ -910,67 +984,104 @@ seconds for message files to process. This function is invoked
 automatically by other code in the {\em router} program and has no 
 other purpose.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>db</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+<CMDSYNOPSIS>
+ <COMMAND>db</>
+  <ARG CHOICE=REQ>add</>
+  <ARG CHOICE=REQ><REPLACEABLE>database</></>
+  <ARG CHOICE=REQ><REPLACEABLE>key</></>
+  <ARG CHOICE=REQ><REPLACEABLE>value</></>
+</CMDSYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>db</>
+  <ARG CHOICE=REQ>flush</>
+  <ARG CHOICE=REQ><REPLACEABLE>database</></>
+</CMDSYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>db</>
+  <ARG CHOICE=REQ>owner</>
+  <ARG CHOICE=REQ><REPLACEABLE>database</></>
+</CMDSYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>db</>
+  <ARG CHOICE=REQ>print</>
+  <ARG CHOICE=REQ><REPLACEABLE>database</></>
+</CMDSYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>db</>
+  <ARG CHOICE=REQ>remove</>
+  <ARG CHOICE=REQ><REPLACEABLE>database</></>
+  <ARG CHOICE=REQ><REPLACEABLE>key</></>
+</CMDSYNOPSIS>
+<CMDSYNOPSIS>
+ <COMMAND>db</>
+  <ARG CHOICE=REQ>toc</>
+</CMDSYNOPSIS>
 
-{\tt db \{add\verb/|/flush\verb/|/owner\verb/|/print\verb/|/remove\verb/|/toc\} {[database [key [value]]]}}
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\bf Return Values:}] \mbox{}
-
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt {a[dd]}}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt {a[dd]}}</TERM><LISTITEM><PARA>
 
 Add a {\tt key,value} 
 entry to the database, if possible.
 
-\item[{\tt {f[lush]}}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt {f[lush]}}</TERM><LISTITEM><PARA>
 
 Remove all entries from the database, 
 if possible.
 
-\item[{\tt {o[wner]}}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt {o[wner]}}</TERM><LISTITEM><PARA>
 
 Print the account name of the owner 
 of the database, if possible. This is usually determined by the 
 files associated with the database.
 
-\item[{\tt {p[rint]}}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt {p[rint]}}</TERM><LISTITEM><PARA>
 
 Print all entries of the database, 
 if possible. 
 
-\item[{\tt {r[emove]}}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt {r[emove]}}</TERM><LISTITEM><PARA>
 
 Remove a {\tt key} entry 
 from the database, if possible.
 
-\item[{\tt {t[oc]}}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt {t[oc]}}</TERM><LISTITEM><PARA>
 
 Print a table of defined relations 
 and their associated information. This table has five columns, 
@@ -978,12 +1089,14 @@ in order: the name of the relation, its type and subtype, cache
 entries and maximum size, flags, and associated files. See the 
 {\tt relation} function for more information.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-\begin{alltt}
+<SCREEN>
 DBType    add flush owner print remove
 ------    ----------------------------
 incore    yes yes   yes   yes   yes
@@ -996,312 +1109,341 @@ ndbm      yes yes   yes   yes   yes
 gdbm      yes yes   yes   yes   yes
 dbm       yes yes   yes   yes   yes
 yp        no  no    yes   yes   no
+bhash     yes yes   yes   yes   yes
 btree     yes yes   yes   yes   yes
 ldap      no  no    yes   no    no
-\end{alltt}
-
-
-\end{description}
-
-
 </SCREEN>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>dblookup</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt dblookup key}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt cell}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt cell}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt NULL}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt NULL}</TERM><LISTITEM><PARA>
 
 Error.  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
-
-none
-
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+none
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>echo</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt echo [string-expressions]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
         
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt -n}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -n}</TERM><LISTITEM><PARA>
 
 Don't print newline at end of string.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 The access function to the database facilities in the 
 {\em router}.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>elements</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt elements lisp-object}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 {\tt lisp-object}
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>envars</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt envars}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Print internal variable tree.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>erraddron</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt erraddron [file]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Specifies a filename to append all address 
 parsing error messages to. If there is no argument given, the 
 logging is stopped. This is primarily for curious postmasters 
 or other collectors of address trivia.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>eval</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt eval expression}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 status
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>exit</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt exit}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:} ] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes: </TERM><LISTITEM><PARA>
 
 Exit from the shell with exit code.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>export</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt export [variable-name ...]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Exports variable name(s). If no variables are given, 
 export prints a list of which variables have been exported.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>filepriv</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt filepriv file [uid]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Prints the numeric user id of the least 
 privileged account that can modify the specified file. This is 
@@ -1318,65 +1460,70 @@ If a second argument is given, it is the numeric user id to assume
 for the file. This means only the parent directory will be checked 
 for nonwritability and for having the same (or a 0) uid.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>first</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt first object-reference}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to copied lisp-object of 
 object-reference's {\tt car} operation.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This command is synonymous to the {\tt car} 
 and {\tt channel} commands.  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>gensym</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt gensym}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Generates and prints a new symbol name in the 
 sequence {\tt g0} to {\tt gN} every time it is called. The 
@@ -1384,272 +1531,297 @@ sequence is reset and any symbol values destroyed after the {\em router}
 has processed a message. This function is used to generate new symbols, to 
 hold attached address property lists, during alias expansion.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>get</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt get property-list key}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 {\tt property-list}
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Returns a property list corresponding to key string.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>getopts</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt getopts optstring-name [arguments ...]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
-
-none  
-
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>grind</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt grind lisp-object}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to list of {\tt varcell}.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>groupmembers</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt groupmembers groupname}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Prints the accounts that are listed as 
 members of a group in the system groups file, one per line.
 Note that accounts with the same login group id, but that are 
 not listed in the groups file, will not appear in this list.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>hash</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt hash [-r] [command names]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
 
-\begin{description}
-\item[{\tt -r}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
+
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -r}</TERM><LISTITEM><PARA>
 
 Path is flushed.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>homedirectory</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt homedirectory user}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Prints the home directory of the specified 
 user account.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>host</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt host object-reference}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 The host (2nd) component of an 
 address quad.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>hostname</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt hostname [name]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Sets the {\em router}'s idea of the
 system hostname. Without an argument the name is retrieved from
@@ -1657,30 +1829,32 @@ the system and printed. The {\em router} has no preconceived
 notion of what the hostname is, so Message-Id and Received headers 
 will only be generated if a hostname has been set using this function.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>lappend; \em experimental</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt lappend varname anyvalue}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 none
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This appends content of list object ({\em anyvalue}) to named
 {\em varname} variable.
@@ -1692,225 +1866,247 @@ temporary copy of the target list into the heap for all invocations
 of ``{\em setf}''.  Result being that for a large list the system
 will quickly use massive amounts of heap.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>last</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt last lisp-object}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Return a pointer to last cell of 
 {\tt varcell}'s list.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>length</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt length lisp-object}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 String of length of {\tt varcell}'s 
 parameter list.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>list</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt list lisp-object}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 {\tt lisp-object}
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>listaddresses</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt listaddresses [-e error-address] [-E errors-to-address] [-c comment]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt -e}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -e}</TERM><LISTITEM><PARA>
 
 Any syntax errors at list parsing will cause a 
 report to be mailed to the given address.
 
-\item[{\tt -E}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -E}</TERM><LISTITEM><PARA>
 
 If an error occurs while messages are being delivered, 
 the `errors-to-address' can be used to force error message destination 
 elsewhere than to the default `sender' of the message.
 
-\item[{\tt -c}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -c}</TERM><LISTITEM><PARA>
 
 A comment will be inserted in the error report.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Filters an RFC822 address list on standard input 
 to produce one normal form (no non-address tokens) address per line on 
 its output. This function can be used to parse the alias file or .forward 
 files or similar.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>listexpand</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt listexpand [-c comment] [-e error-address] [-E errors-to-address] \$attribute \$localpart \$origaddr {\(<\)} listfile}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 {\tt lisp-object}
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt -e error-address}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -e error-address}</TERM><LISTITEM><PARA>
 
 Any syntax errors at list 
 parsing will cause a report to be mailed to the given address.
 
-\item[{\tt -E errors-to-address}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -E errors-to-address}</TERM><LISTITEM><PARA>
 
 If an error occurs while messages 
 are being delivered, the `errors-to-address' can be used to force error 
 message destination elsewhere than to the default `sender' of the message.
 
-\item[{\tt -c comment}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -c comment}</TERM><LISTITEM><PARA>
 
 A comment will be inserted in the error report.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Implements the most common pipeline where 
 {\tt listaddresses} was used with more efficient memory consumption 
 handling. (That is, without variable duplicating {\tt setf}'s.)
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>login2uid</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt login2uid username}
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Prints the uid associated with the specified
 account name, if any. A side-effect is to add the GECOS name field of 
@@ -1918,34 +2114,37 @@ the account to the {\tt fullname} in-core database, to add the login
 name to uid mapping to the {\tt pwnam} in-core database, and to add 
 the uid to login name mapping to the {\tt pwuid} in-core database.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>lreplace; \em experimental</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax1:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\bf Syntax1:}</TERM><LISTITEM><PARA>
 
 {\tt lreplace varname indexnum anyvalue}
 
-\item[{\bf Syntax2:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\bf Syntax2:}</TERM><LISTITEM><PARA>
 
 {\tt lreplace varname fieldname anyvalue}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 none
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This replaces designated field on {\em varname} variable containing
 list-like data with {\em anyvalue} value.
@@ -1977,74 +2176,81 @@ temporary copy of the target list into the heap for all invocations
 of ``{\em setf}''.  Result being that for a large list the system
 will quickly use massive amounts of heap.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>malcontents</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt malcontents}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>printaliases</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt printaliases [-v] [-o indexoutputfile] file}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt -v}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -v}</TERM><LISTITEM><PARA>
 
 Verbose.
 
-\item[{\tt -o indexoutputfile}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -o indexoutputfile}</TERM><LISTITEM><PARA>
 
 Each header line will also generate 
 a {\tt header TAB byteoffset} line in the indexfile.
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Reads RFC822 syntax header lines from the specified
 file, parses them assuming contents must be an address list, and sorts 
@@ -2054,39 +2260,43 @@ a line, or after an address, to the end of line. This function is used
 by the {\em newaliases(1)} program to generate the aliases database 
 from a source file.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>process</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt process messagefile}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 The protocol switch function. It is called by
 the {\tt daemon} function to process a message found in the 
@@ -2101,146 +2311,160 @@ Although the {\tt process} function is provided built in, it is
 usually overridden by a defined function in the {\em router} 
 configuration file.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>read</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt read [variable]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 Successful read.
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
-
-none  
-
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>recase</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt recase [-u \verb/|/ -l \verb/|/ -p] string}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt -u}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -u}</TERM><LISTITEM><PARA>
 
 Convert into uppercase.
 
-\item[{\tt -l}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -l}</TERM><LISTITEM><PARA>
 
 Convert into lowercase.
 
-\item[{\tt -p}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -p}</TERM><LISTITEM><PARA>
 
 Prettify.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 A case-mapping function that prints the parameter 
 string in either all-uppercase, all-lowercase, or capitalized (pretty).
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>recipient</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt recipient}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 1}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Is a recipient address.
 
-\item[{\tt 0}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 Is not.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 A boolean function that returns the value of 
 the statement ``executing a header rewriting function and the address 
 is a recipient address in a message header''.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>relation</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt relation -t {dbtype[,subtype] [-f file -e\# -s\# -bilmnu -d driver]} name}
 
@@ -2255,123 +2479,145 @@ relation -t ordered -b -f /usr/lib/news/active.sorted newsgroups
 
 
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1..7}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1..7}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt -t {dbtype[,subtype]}}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -t {dbtype[,subtype]}}</TERM><LISTITEM><PARA>
 
 One of the known types 
 of databases, currently: 
-\begin{description}
-\item[{\tt incore}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt incore}</TERM><LISTITEM><PARA>
 
 A database maintained in virtual memeory (using 
 splay trees). This type should not be used for any database that must 
 periodically be flushed, since all occupied memory can be freed.
 
-\item[{\tt header}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt header}</TERM><LISTITEM><PARA>
 
 A database type used to store RFC822 header 
 semantics information. It is unlikely to be used for anything else.
 
-\item[{\tt ordered}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt ordered}</TERM><LISTITEM><PARA>
 
 A file with key-value pairs on every line, 
 separated by whitespace, sorted by key. 
 
-\item[{\tt unordered}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt unordered}</TERM><LISTITEM><PARA>
 
 A file with key-value pairs on every line, 
 separated by whitespace. 
 
-\item[{\tt hostsfile}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt hostsfile}</TERM><LISTITEM><PARA>
 
 {\em hosts(5)} file.
 
-\item[{\tt bind}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt bind}</TERM><LISTITEM><PARA>
 
 The BIND implementation of a Domain Name System 
 resolver. The subtype for this type is the name of a Resource Record 
 type in the {\tt IN} class.
 
-\item[{\tt ndbm}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt ndbm}</TERM><LISTITEM><PARA>
 
 The new DBM library. The BSD4.4 has a thing called 
 {\tt db}, which is a different thing, but it can be used in place 
 of {\tt ndbm} via its interface library. (The {\tt BSD4.4-db} 
 does have only one database file, not two, like {\tt ndbm} does.)
 
-\item[{\tt gdbm}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt gdbm}</TERM><LISTITEM><PARA>
 
 The GNU implementation of the new DBM library. 
 {\bf Note:} GDBM uses one file, which is named exactly as you 
 parametrize it. This is unlike NDBM, which appends .dir and .pag to 
 the supplied name!
 
-\item[{\tt dbm }] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt dbm }</TERM><LISTITEM><PARA>
 
 The old DBM library. There can be only one DBM 
 open at the time, and this system keeps them all open all the time. 
 Avoid if you can.
 
-\item[{\tt yp}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt yp}</TERM><LISTITEM><PARA>
 
 The Network Information Service from Sun Microsystems 
 Inc. (Later renamed to be NIS, the still newer NIS+ is not supported).
 
-\item[{\tt btree}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt btree}</TERM><LISTITEM><PARA>
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\tt -f file}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -f file}</TERM><LISTITEM><PARA>
 
 A file associated with the database, typically 
 the file containing the data, or the basename of DBM files or something 
 similarly relevant to the database access routine. 
 
-\item[{\tt -e\#}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -e\#}</TERM><LISTITEM><PARA>
 
 The default time-to-live on cached information. 
 When the information has been in the cache for this many seconds, it 
 is discarded. The default is 0. 
 
-\item[{\tt -s\#}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -s\#}</TERM><LISTITEM><PARA>
 
 Sets the cache size to the specified number. 
 The default is usually 10, depending on the database type. 
 
-\item[{\tt -b}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -b}</TERM><LISTITEM><PARA>
 
 If the key exists in the database, return the key 
 as the value. 
 
-\item[{\tt -i}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -i}</TERM><LISTITEM><PARA>
 
 If the key exists, its value is a byte offset into 
 a file named by the subtype for this database. The value then becomes 
 the concatenation of the data on the lines following that offset which 
 start with whitespace. This is used for the aliases file. 
 
-\item[{\tt -l}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -l}</TERM><LISTITEM><PARA>
 
 Map all keys to lowercase before searching.
 
-\item[{\tt -m}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -m}</TERM><LISTITEM><PARA>
 
 Check for file content modification before every 
 access. Reopen the file when a change is detected. This option is 
@@ -2383,17 +2629,20 @@ to use {\tt mmap(2)} facility. Updating such databases should
 preferably use {\tt mv} command to move a new version of the 
 database in place of the old one. 
 
-\item[{\tt -n}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -n}</TERM><LISTITEM><PARA>
 
 If the key exists in the database and the value is 
 null or list, return the key as value. Otherwise return the value 
 retrieved, if any. 
 
-\item[{\tt -u}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -u}</TERM><LISTITEM><PARA>
 
 Map all keys to uppercase before searching. 
 
-\item[{\tt -d driver}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -d driver}</TERM><LISTITEM><PARA>
 
 Specifies a search driver that allows
 searching for structured keys using special knowledge. The 
@@ -2402,220 +2651,242 @@ only known driver is {\tt pathalias} which will search a
 pathalias format database for an entry matching a domain name 
 using the pathalias rules.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 On systems with {\tt USE\_MMAP} the ordered 
 and unordered databases are r/o mapped into memory, and for ordered 
 case, a special line-index is generated for speeding up the binary 
 search. (Makes less system calls that way.)
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>rest</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt rest object-reference}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to copied lisp-object of 
 object-reference's {\tt cdr} operation.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This command is synonymous to the {\tt cdr}
 command.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>return</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt return lisp-object}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt lisp-object}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt lisp-object}</TERM><LISTITEM><PARA>
 
 String contains a not ASCII digit character.    
 (Returns a pointer to {\tt varcell}'s string.)
 
-\item[{\tt statusp}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt statusp}</TERM><LISTITEM><PARA>
 
 ASCII digit character. (Returns numeric value.)
 
-\item[{\tt NULL}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt NULL}</TERM><LISTITEM><PARA>
 
 Invalid lisp-object.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
-
-none  
-
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>returns</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt returns lisp-object}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt string}] \mbox{}
-
-
-
-\item[{\tt lisp-object}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt string}</TERM><LISTITEM><PARA>
 
 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt lisp-object}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>rfc822</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt rfc822 messagefile}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 {\tt status}
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This function controls the parsing and 
 processing of the message file in RFC822/976 format. It is 
 called by the {\tt process} function. 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>rfc822date</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt rfc822date}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Prints the current time in RFC822 format. 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>rfc822syntax</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt rfc822syntax address}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 This is a simple interface to the address 
 parser. If the command line argument is a syntactically valid 
@@ -2624,36 +2895,39 @@ status. If there is a parse error, a verbose error message is
 printed to {\tt stdout} and the function returns a non-0 
 exit status. 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>runas</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt runas user function [arguments...]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Changes the current effective user id 
 of the {\em router} process to that given (which may be 
@@ -2661,57 +2935,60 @@ numeric or an account name), then runs the specified function
 with the specified arguments, then switches the effective 
 user id of the process back (to root). 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>sender</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt sender}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 1}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Is a sender address.
 
-\item[{\tt 0}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 Is not.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 A boolean function that returns the value of 
 the statement ``executing a header rewriting function and the address 
 is a sender address in a message header''. 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>set</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt set [-a -e -f -h -n -t -u -v -x -L -C -P -S -k -] variable}
 
@@ -2719,221 +2996,255 @@ Without parameters {\tt set} prints variable values.
 
 
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to copied structure of {\tt car} 
 operation.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt -a}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -a}</TERM><LISTITEM><PARA>
 
 Automatically export changed variables.
 
-\item[{\tt -e}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -e}</TERM><LISTITEM><PARA>
 
 Exit on error exit status of any command.
 
-\item[{\tt -f}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -f}</TERM><LISTITEM><PARA>
 
 Disable filename generation (no globbing).
 
-\item[{\tt -h}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -h}</TERM><LISTITEM><PARA>
 
 Hash program locations.
 
-\item[{\tt -n}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -n}</TERM><LISTITEM><PARA>
 
 Read commands but do not execute them.
 
-\item[{\tt -t}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -t}</TERM><LISTITEM><PARA>
 
 Read and execute one command only.
 
-\item[{\tt -u}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -u}</TERM><LISTITEM><PARA>
 
 Unset variables are error on substitution.
 
-\item[{\tt -v}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -v}</TERM><LISTITEM><PARA>
 
 Print shell input lines as they are read.
 
-\item[{\tt -x}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -x}</TERM><LISTITEM><PARA>
 
 Print commands as they are executed.
 
-\item[{\tt -L}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -L}</TERM><LISTITEM><PARA>
 
 Trace LEXER processing (sslWalker).
 
-\item[{\tt -C}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -C}</TERM><LISTITEM><PARA>
 
 Print branch and emit inputs (sslWalker).
 
-\item[{\tt -P}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -P}</TERM><LISTITEM><PARA>
 
 Trace execution (sslWalker).
 
-\item[{\tt -S}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -S}</TERM><LISTITEM><PARA>
 
 Print input buffers when used (sslWalker). 
 
-\item[{\tt -k}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -k}</TERM><LISTITEM><PARA>
 
 Not supported option.
 
-\item[{\tt -}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt -}</TERM><LISTITEM><PARA>
 
 Do nothing.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!--
 <SECT2><TITLE>setf</TITLE>
 
-<SCREEN>
 
 {\em THIS FUNCTION IS NO LONGER AVAILABLE! }
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt setf variable-reference [new-value]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to original variable reference.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Replaces variable reference within a {\tt varcell}.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
+ -->
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>shift</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt shift [number]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Modifies caller's argument vector.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>sleep</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt sleep number}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
-
-none  
-
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>squirrel</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt squirrel [-]event}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt -}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt -}</TERM><LISTITEM><PARA>
 
 Set flag value to 0.
 
-\item[{\tt {\(<\)}none>}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt {\(<\)}none>}</TERM><LISTITEM><PARA>
 
 Set flag value to 1. 
 
@@ -2947,10 +3258,12 @@ The events are:
 \end{itemize}
 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Sets the kinds of events that cause a message 
 to be copied into the {\tt \$POSTOFFICE/postman/} directory. 
@@ -2958,36 +3271,39 @@ Whether or not a `{\tt -}' is necessary for an event depends on
 the current state of the event's flag. The usage message will 
 indicate what to do to toggle the event flag. 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>stability</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt stability [on \verb/|/ off]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Determines whether the {\em router} will 
 process incoming messages in arrival order (when on), or in random 
@@ -2996,434 +3312,480 @@ will by default do the first queue scan in stable mode, and subsequent
 scans in unstable mode. The name of this command is the name for a 
 similar characteristic of sorting algorithms. 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>``test'', ``[''</TITLE>
 
-<SCREEN>
-
+<PARA>
 {\em see: ``['', ``test''}
+</PARA>
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>times</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt times }
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
-
-none  
-
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>trace</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt trace key1 ... keyN}
 
 Enables tracing of the specified items. The valid keywords 
 are listed in the options below. 
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt all}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt all}</TERM><LISTITEM><PARA>
 
 Turns on all tracing options. You only 
 do this to test the I/O capabilities of your system. 
 
-\item[{\tt assign}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt assign}</TERM><LISTITEM><PARA>
 
 Prints shell variable assignments. 
 
-\item[{\tt bind}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt bind}</TERM><LISTITEM><PARA>
 
 Prints various information from the 
 code that calls the DNS resolver. 
 
-\item[{\tt compare}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt compare}</TERM><LISTITEM><PARA>
 
 Prints {\tt sift} statement 
 pattern-selector comparisons. 
 
-\item[{\tt db}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt db}</TERM><LISTITEM><PARA>
 
 Prints database lookups, including cache 
 search and update information. 
 
-\item[{\tt final}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt final}</TERM><LISTITEM><PARA>
 
 Prints the message envelope information 
 after processing each message. 
 
-\item[{\tt functions}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt functions}</TERM><LISTITEM><PARA>
 
 Prints shell function calls and 
 return values, with nesting indicated by indentation. 
 
-\item[{\tt matched}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt matched}</TERM><LISTITEM><PARA>
 
 Prints {\tt sift} statement 
 pattern-selector matches. 
 
-\item[{\tt on}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt on}</TERM><LISTITEM><PARA>
 
 Same as {\tt functions}. 
 
-\item[{\tt regexp}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt regexp}</TERM><LISTITEM><PARA>
 
 Prints regular expression matching execution. 
 
-\item[{\tt resolv}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt resolv}</TERM><LISTITEM><PARA>
 
 Turns on the {\tt RES\_DEBUG} flag in the 
 {\tt BIND} resolver library, and prints various information 
 from the code that calls the DNS resolver. 
 
-\item[{\tt rewrite}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt rewrite}</TERM><LISTITEM><PARA>
 
 Prints the tokenized addresses sent through 
 the message header address rewriting functions. 
 
-\item[{\tt router}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt router}</TERM><LISTITEM><PARA>
 
 Prints the tokenized addresses sent through 
 the {\tt router} function. 
 
-\item[{\tt sequencer}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt sequencer}</TERM><LISTITEM><PARA>
 
 Prints the procedural steps taken during 
 message processing. 
 
-\item[{\tt memory}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt memory}</TERM><LISTITEM><PARA>
 
 Prints memory allocation information after 
 each message. 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>trap</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt trap [[script trap\_nro] ...]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 If no parameters are given, {\tt trap} prints all 
 known traps.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>type</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt type [command ...]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
-
-
-
-\end{description}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
-\item[{\bf Options:}] \mbox{}
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
+
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>uid2login</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt uid2login uid}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Prints the first account name associated with 
 a specified user id, if any, or {\tt uid\#uid} if no account 
 exists with that user id. It has the same side-effects as the 
 {\tt login2uid} function. 
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>umask</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt umask [octal-number-mask]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to copied structure of {\tt car} 
 operation.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Without parameters default mask is 077.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>unset</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt unset [variable ...]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
-
-none  
-
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
+
+none  
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>untrace</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt untrace key1 ... keyN}
 
 Disables tracing of the specified items. 
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-\begin{description}
-\item[{\tt 0}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
 
 
 
-\item[{\tt 1}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
 
 Error.
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 See the {\tt trace} function for 
 valid keywords. 
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
   
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>user</TITLE>
 
-<SCREEN>
 
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt user object-reference}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 The next-address (3rd) component of 
 and address quad.
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
-</SCREEN>
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2><TITLE>wait</TITLE>
 
-<SCREEN>
-\begin{description}
-\item[{\bf Syntax:}] \mbox{}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 {\tt wait [pid]}
 
-\item[{\bf Return Values:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 {\tt retcode}
 
-\item[{\bf Options:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 none  
 
-\item[{\bf Notes:}] \mbox{}
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 none
 
-\end{description}
-</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 </SECT2>
 </SECT1>
 

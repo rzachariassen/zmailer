@@ -1,5 +1,5 @@
 <CHAPTER ID="ZADM-SM"><?dbhtml filename="zadm-sm.html">
-<TITLE><COMMAND>sm</> Configuration</TITLE>
+<TITLE><EMPHASIS>Sm</> Configuration</TITLE>
 
 <PARA>
 <EMPHASIS>sm</> is a ZMailer's <COMMAND>sendmail</>(8) compatible
@@ -9,28 +9,37 @@ MTA.
 </PARA>
 
 <PARA>
-The program scans the message control files named on stdin
-for addresses destined for the channel and/or the host
-given on the command line. If any are found, all matching
-addresses and messages are processed according to the
-specifications for the mailer in the configuration file.
+The program scans the message control files named on stdin for addresses
+destined for the channel and/or the host given on the command line.
+If any are found, all matching addresses and messages are processed
+according to the specifications for the mailer in the configuration file.
 </PARA>
 
 <PARA>
-The exit status of a mailer should be one of the standard
-values specified in <EMPHASIS>#include &lt;sysexits.h&gt;</>.
-Of these, <CONSTANT>EX_OK</> indicates successful deliver, and
-<CONSTANT>EX_DATAERR</>, <CONSTANT>EX_NOUSER</>, <CONSTANT>EX_NOHOST</>,
-<CONSTANT>EX_UNAVAILABLE</>, and <CONSTANT>EX_NOPERM</> indicate
+The exit status of a mailer should be one of the standard values specified in
+ <EMPHASIS>#include &lt;<FILENAME CLASS="HEADERFILE">sysexits.h</>&gt;</>.
+Of these, <ERRORCODE>EX_OK</> indicates successful deliver, and
+ <ERRORCODE>EX_DATAERR</>, <ERRORCODE>EX_NOUSER</>, <ERRORCODE>EX_NOHOST</>,
+ <ERRORCODE>EX_UNAVAILABLE</>, and <ERRORCODE>EX_NOPERM</> indicate
 permanent failure.
-All other exit codes will be treated as a temporary failure
-and the delivery will be retried.
+All other exit codes will be treated as a temporary failure and the delivery
+will be retried.
 </PARA>
 
 <PARA>
 Usage:
 
-<SYNOPSIS>sm [ -8HQV ] [ -f configfile ] -c channel -h host mailer</SYNOPSIS>
+<CMDSYNOPSIS>
+<COMMAND>sm</COMMAND>
+  <ARG>-8</ARG>
+  <ARG>-H</ARG>
+  <ARG>-Q</ARG>
+  <ARG>-V</ARG>
+  <ARG>-f <REPLACEABLE>configfile</></ARG>
+  <ARG CHOICE=PLAIN>-c <REPLACEABLE>channel</></ARG>
+  <ARG CHOICE=PLAIN>-h <REPLACEABLE>host</></ARG>
+  <ARG CHOICE=PLAIN><REPLACEABLE>mailer</></ARG>
+</CMDSYNOPSIS>
 </PARA>
 
 <PARA>
@@ -65,52 +74,54 @@ test    n     sm/test        test $u
 </FIGURE>
 
 <PARA>
-The mailer field extends from the beginning of the line to
-the first whitespace.  It is used simply as a key index to
-the configuration  file  contents.  Whitespace is used as
-the field separator for all the fields.
+The mailer field extends from the beginning of the line to the first
+whitespace.
+It is used simply as a key index to the configuration file contents.
+One or more whitespace is used as the field separator for all the fields.
 </PARA>
 
 <PARA>
-The flags field contains  a  concatenation  of  one-letter
-flags.  If no flags are desired, a ``<EMPHASIS ROLE="STRONG">-</>''
+The flags field contains a concatenation of one-letter flags.
+If no flags are desired, a ``<EMPHASIS ROLE="STRONG">-</>''
 character should be used to indicate presence of the field.
-All normal <COMMAND>sendmail</> (<EMPHASIS>of 5.x era..</>)
+All normal <APPLICATION>sendmail</> (<EMPHASIS>of 5.x era..</>)
 flags are recognized, but the ones that do not make sense in
 the context of ZMailer will produce an error (or some are ignored).
 The flags that change the behaviour of <EMPHASIS>sm</> are:
+
 <VARIABLELIST>
-<VARLISTENTRY><TERM>b</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>b</OPTION></TERM><LISTITEM><PARA>
 will activate BSMTP-type wrapping with a ``hidden-dot''
 algorithm; e.g. quite ordinary SMTP stream, but in ``batch mode''.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>B</TERM><LISTITEM><PARA>
-The  first ``B''  turns on similar BSMTP wrapping as ``b'', but adds
-SIZE and, if the <EMPHASIS>sm</> is  started  with option ``-8'',
-also 8BITMIME options.  The second ``B'' adds there also DSN
+<VARLISTENTRY><TERM><OPTION>B</OPTION></TERM><LISTITEM><PARA>
+The  first ``<OPTION>B</>''  turns on similar BSMTP wrapping
+as ``<OPTION>b</>'', but adds
+SIZE and, if the <EMPHASIS>sm</> is  started  with option ``<OPTION>-8</>'',
+also 8BITMIME options.  The second ``<OPTION>B</>'' adds there also DSN
 (Delivery Status  Notification) parameters.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>E</TERM><LISTITEM><PARA>
-will prepend ``>'' to any message body line starting
+<VARLISTENTRY><TERM><OPTION>E</OPTION></TERM><LISTITEM><PARA>
+will prepend ``<OPTION>&gt;</>'' to any message body line starting
 with ``<EMPHASIS ROLE="STRONG">From </>''. (Read: ``From-space'')
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>f</TERM><LISTITEM><PARA>
-adds ``-f sender'' arguments to the delivery program.
+<VARLISTENTRY><TERM><OPTION>f</OPTION></TERM><LISTITEM><PARA>
+adds ``<OPTION>-f sender</>'' arguments to the delivery program.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>n</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>n</OPTION></TERM><LISTITEM><PARA>
 will not prepend a ``<EMPHASIS ROLE="STRONG">From </>''-line
 (normal mailbox separator line) to the message.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>r</TERM><LISTITEM><PARA>
-adds ``-r sender'' arguments to the delivery program.
+<VARLISTENTRY><TERM><OPTION>r</OPTION></TERM><LISTITEM><PARA>
+adds ``<OPTION>-r sender</>'' arguments to the delivery program.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>S</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>S</OPTION></TERM><LISTITEM><PARA>
 will run the delivery program with the same real and effective uid as
 the <EMPHASIS>sm</> process.
 If this flag is not set, the delivery program will be run with the real
@@ -118,34 +129,34 @@ uid of the <EMPHASIS>sm</> process.
 This may be useful if <EMPHASIS>sm</> is setuid.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>m</TERM><LISTITEM><PARA>
-informs sm that each instance of the delivery program can deliver to
-many destinations.
-This affects <EMPHASIS>$u</>  expansion  in the argument list, see below.
+<VARLISTENTRY><TERM><OPTION>m</OPTION></TERM><LISTITEM><PARA>
+informs <EMPHASIS>sm</> that each instance of the delivery program
+can deliver to many destinations.
+This affects <OPTION>$u</>  expansion  in the argument list, see below.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>P</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>P</OPTION></TERM><LISTITEM><PARA>
 prepends a ``Return-Path:'' header to the message.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>U</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>U</OPTION></TERM><LISTITEM><PARA>
 will prepend a ``<EMPHASIS ROLE="STRONG">From </>''-line, with
 a ``remote from myuucpname'' at the end, to the message.
 This is what is expected by remote  <COMMAND>rmail</>(1)
 programs for incoming UUCP mail.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>R</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>R</OPTION></TERM><LISTITEM><PARA>
 use CRLF sequence as end-of-line sequence. Without
 it, will use LF-only end-of-line sequence.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>X</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>X</OPTION></TERM><LISTITEM><PARA>
 does SMTP-like ``hidden-dot'' algorithm  of doubling
 all dots that are at the start of the line.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>7</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>7</OPTION></TERM><LISTITEM><PARA>
 will strip (set to 0) the 8th bit of every character in the message.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -159,23 +170,23 @@ Relative pathnames are allowed and are relative to the
 
 <PARA>
 The arguments field extends to the end of the line.
-It contains whitespace separated <EMPHASIS>argv</> parameters which may
+It contains whitespace separated <OPTION>argv</> parameters which may
 contain one of the following sequences:
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>$g</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>$g</OPTION></TERM><LISTITEM><PARA>
 which is replaced by the sender address.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>$h</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>$h</OPTION></TERM><LISTITEM><PARA>
 which is replaced by the destination host.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>$u</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>$u</OPTION></TERM><LISTITEM><PARA>
 which is replaced by the recipient address.
-If the ``-m'' mailer flag is set and there are several recipients
-for this message, the argument containing the ``$u'' will be replicated 
-as necessary for each recipient.
+If the ``<OPTION>m</>'' mailer flag is set and there are several
+recipients for this message, the argument containing the ``<OPTION>$u</>''
+will be replicated as necessary for each recipient.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>

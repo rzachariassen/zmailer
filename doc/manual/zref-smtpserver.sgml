@@ -1,60 +1,61 @@
 <CHAPTER ID="ZREF-SMTPSERVER"><?dbhtml filename="zref-smtpserver.html">
-<TITLE>SMTP-server</TITLE>
+<TITLE><EMPHASIS>Smtpserver</></TITLE>
 
 <PARA>
-The ZMailer distribution contains an <EMPHASIS>SMTP-server</> program
+The ZMailer distribution contains an <EMPHASIS>smtpserver</> program
 for the BSD socket implementation of TCP/IP.
-It is an asynchronous implementation, in that while address syntax
-is checked in real time,  semantics are not,  nor are other
-(optional in the SMTP standard) functions that require
-<EMPHASIS>router</> functionality.
+It is an asynchronous implementation, in that while address syntax is
+checked in real time, semantics are not, nor are other (optional in
+the SMTP standard) functions that require <EMPHASIS>router</> functionality.
 </PARA>
 
 <PARA>
 The server will run an RFC-821 syntax scanner for addresses, plus possible
-policy analysis phase, and if things are ok, it says ``Yes yes, sure!'' to
-everything.
+policy analysis phase, and if things are ok, it says
+``<EMPHASIS>Yes yes, sure!</>'' to everything.
 The program may also be used in non-daemon mode to unpack BSMTP format
 messages on the standard input stream.
 </PARA>
 
 <PARA>
-This program implements the server side of the {\em SMTP} protocol
-as described in RFC821, and knows about the common extensions to
-the protocol expected by {\em sendmail} and BSMTP clients.
-By default the program will kill the previous smtp-server daemon,
-if any, then detach and listen for {\em SMTP} connections.
+This program implements the server side of the <EMPHASIS>SMTP</> protocol
+as described in <LINK LINKEND="RFC821">RFC821</LINK>, and knows about
+the common extensions to the protocol expected by <APPLICATION>sendmail</>
+and BSMTP clients.
+By default the program will kill the previous <EMPHASIS>smtpserver</> daemon,
+if any, then detach and listen for <EMPHASIS>SMTP</> connections.
 Incoming messages will be submitted for processing using the 
-{\tt zmailer(3)} interface to ZMailer.
+<LINK LINKEND="zref-zmailer3"><EMPHASIS>zmailer(3)</></LINK> interface
+to ZMailer.
 Some non-trivial address checking is doable in optional policy analysis
-functions within the {\em smtpserver}, or can be acomplished with
+functions within the <EMPHASIS>smtpserver</>, or can be acomplished with
 synchronous (or asynchronous) running of router.
-This behaviour can be changed by a command line option (or
-HELO/EHLO style patterns) if you cannot afford to transfer
-data just to bounce it back.
+This behaviour can be changed by a command line option (or HELO/EHLO style
+patterns) if you cannot afford to transfer data just to bounce it back.
 </PARA>
 
 <PARA>
-All {\em router} assisted checking is done by executing
-the  {\em router(8)} program in interactive mode, and executing
+All <EMPHASIS>router</> assisted checking is done by executing
+the <EMPHASIS>router</>(8) program in interactive mode, and executing
 well-known shell function with well-known parameters for each request.
 </PARA>
 
 <PARA>
 The server implements also most of the ESMTP facilities invented
-up to date (May, 1998).  The ones that are active are visible
-at greeting response to ``{\bf EHLO}'' command, as can be seen
+up to date (Feb, 2000).
+The ones that are active are visible at greeting response to
+``<EMPHASIS ROLE="STRONG">EHLO</>'' command, as can be seen
 in figure <XREF LINKEND="fig.ref.smtpserver1">.
 </PARA>
 
 <FIGURE ID="fig.ref.smtpserver1" PGWIDE="0" FLOAT="1">
 <TITLE>Sample ``<EMPHASIS>EHLO</>'' greeting with smtpserver</TITLE>
 <SCREEN>
-\$ {\bfseries{}telnet 127.1 smtp}
+<PROMPT>$ </><USERINPUT>telnet 127.1 smtp</>
 Connected to 127.1.
 Escape character is '^]'.
 220 localhost ZMailer ....
-{\bfseries{}EHLO foo}
+<USERINPUT>EHLO foo</>
 250-localhost expected "EHLO localhost"
 250-SIZE 1234567
 250-8BITMIME
@@ -72,304 +73,407 @@ Escape character is '^]'.
 </FIGURE>
 
 
-<SECT1><TITLE>SMTP-server Runtime Parameters</TITLE>
+<SECT1><TITLE><EMPHASIS>Smtpserver</> Runtime Parameters</TITLE>
 
-<SCREEN>
-{\em Usage}
+<VARIABLELIST>
+<VARLISTENTRY>
+<TERM>Usage:</TERM>
+<LISTITEM>
+<PARA>
+<CMDSYNOPSIS>
+<COMMAND>smtpserver</>
+<ARG>-46aginvBV</>
+<ARG>-p <REPLACEABLE>port</></>
+<ARG>-l <REPLACEABLE>logfile</></>
+<ARG>-s <OPTION><CONSTANT>'strict'</></></>
+<ARG>-s <GROUP><ARG>f</><ARG>t</><ARG>v</><ARG>e</><ARG>R</></GROUP></ARG>
+<ARG>-L <REPLACEABLE>maxloadaver</></ARG>
+<ARG>-M <REPLACEABLE>SMTPmaxsize</></ARG>
+<ARG>-P <REPLACEABLE>postoffice</></ARG>
+<ARG>-R <REPLACEABLE>router</></ARG>
+<ARG>-C <REPLACEABLE>cfgfile</></ARG>
+</CMDSYNOPSIS>
+</PARA></LISTITEM></VARLISTENTRY>
 
-{\tt smtpserver [ -46aginvBV ] [ -p port ] [ -l logfile ] [ -s [ftveR] ] [ -L maxloadaver ] [ -M SMTPmaxsize ] [ -P postoffice ] [ -R router ] [ -C cfgfile ]}
-
-{\em Parameters}
-
-\begin{description}
-\item[{\tt -4}] \mbox{} \\
+<VARLISTENTRY>
+<TERM>Parameters:</TERM>
+<LISTITEM><PARA>
+<VARIABLELIST>
+<VARLISTENTRY><TERM><OPTION>-4</></><LISTITEM><PARA>
 Explicitly use IPv4 type of socket even on machines that are capable to do
 IPv6 type of sockets.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -6}] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-6</></><LISTITEM><PARA>
 Explicitely (try to) use IPv6 type of socket even if the machine does not
 support it.
 By default the server will try to use IPv6, if it has been compiled in
 an environment where it is present, but will fall back to IPv4, if
 the runtime system does not have IPv6.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -8}] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-8</></><LISTITEM><PARA>
 This option is part of optional inbound translate processing;
-see ``-X'' option below.
+see ``<OPTION>-X</>'' option below.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -a}] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-a</></><LISTITEM><PARA>
 Turn on RFC931/RFC1413 identification protocol, and log the information
 acquired with it into the submitted file.
+Reliability, validity, worthwhileness, ... all such are suspect at this.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -B}] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-B</></><LISTITEM><PARA>
 Flags the email to arrive via BSMTP channel (via BITNET, for example).
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -C cfgfile}] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-B <REPLACEABLE>cfgfile</></></><LISTITEM><PARA>
 Specifies nonstandard configuration file location; the default is 
-{\tt \$MAILSHARE/smtpserver.conf}.
+<FILENAME>$<VARNAME>MAILSHARE</>/smtpserver.conf</>.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -d nnn] \mbox{} \\
-This option sets numeric debug value.  Any non-zero will work.
-(This numeric argument is provision for possible bit-flag or
-level oriented debugging mode\ldots)
+<VARLISTENTRY><TERM><OPTION>-d <REPLACEABLE>nnnn</></></><LISTITEM><PARA>
+This option sets numeric debug value.
+Any non-zero will work.
+This numeric argument is provision for possible bit-flag or level oriented
+debugging mode&hellip;.)
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[{\tt -g}] \mbox{} \\
-The ``gullible'' option will make the program believe any information
-it is told (such as origin of a connection) without checking.
+<VARLISTENTRY><TERM><OPTION>-g</></><LISTITEM><PARA>
+The ``<EMPHASIS>gullible</>'' option will make the program believe
+any information it is told (such as origin of a connection) without checking.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -h] \mbox{} \\
-Check ``HELO'' parameter very closely (syntax), and if it is bad,
-complain with ``501''.
-Such behaviour is against ``{\em Be lenient on what you accept}'' policy,
-and apparently will break a lot of bad clients\ldots
+<VARLISTENTRY><TERM><OPTION>-h</></><LISTITEM><PARA>
+Check ``<USERINPUT>HELO</>'' parameter very closely (syntax),
+and if it is bad, complain with ``501''.
+Such behaviour is against interoperability minded 
+``<EMPHASIS>Be lenient on what you accept</>'' policy, and apparently
+will break a lot of <EMPHASIS>common</> clients&hellip;.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -i] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-i</></><LISTITEM><PARA>
 Runs the server interactively, which makes it usable for processing a batched 
-{\em SMTP} stream (BSMTP) on {\tt stdin}. With {\tt -v} option this echoes incoming BSMTP to create more 
+<EMPHASIS>SMTP</> stream (<EMPHASIS>BSMTP</>) on <PARAMETER>stdin</>.
+With ``<OPTION>-v</>'' option this echoes incoming BSMTP to create more 
 accurate faximile of BITNET BSMTP mailers.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -L maxloadaver] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-L <REPLACEABLE>maxloadaver</></></><LISTITEM><PARA>
 The maximum load-average the system is under when we still accept email.
+</PARA><PARA>
+<EMPHASIS>Not all systems are supported for load-aver extraction; and as
+that information happens to be very poorly extractable without major magics,
+it is our considered opinnion that it is better to spend time to figure
+other methods for limiting incoming email induced load impact, than trying
+to see any load-average &mdash; anyway the ZMailer </>smtpserver<EMPHASIS>
+used without interactive routing is very low load inpact system.</EMPHASIS>
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -l logfile] \mbox{} \\
-Specifies a logfile and enables recording of incoming {\em SMTP} conversations.
+<VARLISTENTRY><TERM><OPTION>-l <CONSTANT>'SYSLOG'</></></><LISTITEM><PARA>
+Specifies that incoming <EMPHASIS>SMTP</> conversations are logged via
+<FUNCTION>syslog(3)</> to system <COMMAND>syslogd(8)</> server by using
+facility <LITERAL>LOG_MAIL</> and level <LITERAL>LOG_DEBUG</> messages.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -M SMTPmaxsize] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-l <REPLACEABLE>LOGFILE</></></><LISTITEM><PARA>
+Specifies a logfile and enables recording of incoming <EMPHASIS>SMTP</>
+conversations to go there.
+</PARA><PARA>
+<EMPHASIS>This can be used in parallel with <OPTION>-l 'SYSLOG'</> version!</>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-M <REPLACEABLE>SMTPmaxsize</></></><LISTITEM><PARA>
 Defines the absolute maximum size we accept from incoming email. 
 (Default: infinite) (This is a local policy issue.)
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -n] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-n</></><LISTITEM><PARA>
 Indicates the program is being run from {\em inetd(8)}.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -P postoffice] \mbox{} \\
-Specifies an alternate {\tt \$POSTOFFICE} directory.
+<VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>postofficedir</></></><LISTITEM><PARA>
+Specifies an alternate <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</>
+directory.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -p port] \mbox{} \\
-Specifies the TCP port to listen on instead of the default {\em SMTP} port, 25.
+<VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>port</></></><LISTITEM><PARA>
+Specifies the TCP port to listen on instead of the default <EMPHASIS>SMTP</>
+port: 25.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -R {\em router}] \mbox{} \\
-Specifies an alternate {\em router(8)} program to use for address verification.
+<VARLISTENTRY><TERM><OPTION>-R <REPLACEABLE>routerpath</></></><LISTITEM><PARA>
+Specifies an alternate <EMPHASIS>router</>(8) program to use for address
+verification.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -s] \mbox{} \\
-Specifies the style of address verification to be performed. There are four independent commands 
-that can invoke some kind of address verification, and four independent flags to control whether this should be done. 
+<VARLISTENTRY><TERM><OPTION>-s <CONSTANT>'strict'</></></><LISTITEM><PARA>
+This turns server protocol processing into extremely strict mode, any
+misplaced character is rejected.  Not very practical in real file, but
+nice for protocol interoperability bakeout testing.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-s <CONSTANT>'strict'</></></><LISTITEM><PARA>
+Specifies the style of address verification to be performed.
+There are four independent commands  that can invoke some kind of address
+verification, and four independent flags to control whether this should be
+done.
+</PARA><PARA>
 They are:
+<VARIABLELIST>
+<VARLISTENTRY><TERM><OPTION>f</></><LISTITEM><PARA>
+Run ``<USERINPUT>MAIL FROM</>'' address through online router for analysis.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\begin{description}
-\item[\tt f] \mbox{} \\
-Run ``MAIL FROM'' address through online router for analysis.
+<VARLISTENTRY><TERM><OPTION>t</></><LISTITEM><PARA>
+Run ``<USERINPUT>RCPT TO</>'' address through online router for analysis.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt t] \mbox{} \\
-Run ``RCPT TO'' address through online router for analysis.
+<VARLISTENTRY><TERM><OPTION>v</></><LISTITEM><PARA>
+Enable ``<USERINPUT>VRFY</>'' command for this style selector
+(if configuration ``<PARAMETER>PARAM vrfycmd</>'' is in effect)
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt v] \mbox{} \\
-Enable ``VRFY'' command for this style selector
-(of configuration ``PARAM vrfycmd'' is in effect)
+<VARLISTENTRY><TERM><OPTION>e</></><LISTITEM><PARA>
+Enable ``<USERINPUT>EXPN</>'' command for this style selector
+(if configuration ``<PARAMETER>PARAM expncmd</>'' is in effect)
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt e] \mbox{} \\
-Enable ``EXPN'' command for this style selector
-(of configuration ``PARAM expncmd'' is in effect)
-
-\item[\tt R] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>R</></><LISTITEM><PARA>
 Require incoming addresses to be of fully-qualified domained form.
-
-Don't use this, if you want to allow non-domained addresses accepted
+</PARA><PARA>
+Don't use this if you want to allow non-domained addresses accepted
 into your server through SMTP.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt S] \mbox{} \\
-Allow ``Sloppy'' behaviour from the sending smtp clients; namely
-allow ``{\em MAIL FROM:foo@bar}'', that is, addresses without
-mandatory (RFC-821) angle braces.
-\end{description}
+<VARLISTENTRY><TERM><OPTION>S</></><LISTITEM><PARA>
+Allow ``<EMPHASIS>Sloppy</>'' behaviour from the sending smtp clients;
+namely allow ``<USERINPUT>MAIL FROM:foo@bar</>'', that is, an addresses
+<EMPHASIS>without</>
+mandatory (<LINK LINKEND="RFC821.FROM">RFC-821</>) angle braces.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+The flags are concatenated to form the argument to the ``<OPTION>-s</>''
+option. 
+The default is ``<OPTION>ve</>''.
+</PARA></LISTITEM></VARLISTENTRY>
 
-The flags are concatenated to form the argument to the {\tt -s} option. 
-The default is ``{\tt ve}''.
-
-\item[\tt -S \em suffixstyle] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-S <REPLACEABLE>suffixstyle</></></><LISTITEM><PARA>
 This defines log suffix which can alter the default logfile
 name to one which splits incoming traffic into separate files.
-
+</PARA><PARA>
 Possible values are:
-\begin{description}
-\item[\tt remote] \mbox{} \\
+<VARIABLELIST>
+<VARLISTENTRY><TERM><OPTION><LITERAL>'remote'</></></><LISTITEM><PARA>
 Append remote hostname to the logfile name (after a dot) so that
 from host ``foo.bar.edu'' the logfile would be:
 ``smtpserver.foo.bar.edu''.
-\item[\tt local] \mbox{} \\
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM><OPTION><LITERAL>'local'</></></><LISTITEM><PARA>
 Append local end reversed hostname to the logfile name (after a dot)
 so that in multihomed hosts all different ``hosts'' have different logfiles.
 Such does, of course, assume that different IP addresses in the host reverse
 to different names.
-\end{description}
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -v] \mbox{} \\
-``Verbose'' option to be used with ``-i'' option.
+<VARLISTENTRY><TERM><OPTION>-v</></><LISTITEM><PARA>
+This is a ``<EMPHASIS>verbose</>'' option to be used with
+ ``<OPTION>-i</>'' option.
 This is especially for ``BSMTP'' processing.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -V] \mbox{} \\
+<VARLISTENTRY><TERM><OPTION>-V</></><LISTITEM><PARA>
 prints a version message and exits.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt -X] \mbox{} \\
-``Xlate'' option.  For more info, see source file:
-{\em README.translation:
-
+<VARLISTENTRY><TERM><OPTION>-X</></><LISTITEM><PARA>
+This is ``<EMPHASIS>Xlate</>'' option.
+For more info, see source file:
+</PARA><BLOCKQUOTE><ATTRIBUTION><FILENAME>README.translation</></>
+<PARA>
 ``It may be necessary in some cases (e.g. in Cyrillic-language countries)
 to translate charset on the messages coming from the clients with, e.g.
 old Eudora or other MUAs that do not correctly support koi8-r charset.
-\ \ldots''
-}
-
-\end{description}
-
-</SCREEN>
+&nbsp;&hellip;''</PARA></BLOCKQUOTE>
+</LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
+</LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 </SECT1>
 
-<SECT1><TITLE>Smtpserver configuration</TITLE>
+<SECT1><TITLE><EMPHASIS>Smtpserver</> Configuration</TITLE>
 
-<SCREEN>
-If the {\tt \$MAILSHARE/smtpserver.conf} file exists it is read 
-to configure two kinds of things. Specifically the following:
-
-\begin{description}
-\item[\rm PARAM -entries] \mbox{} \\
+<PARA>
+If the <FILENAME>$<VARNAME>MAILSHARE</>/smtpserver.conf</> file exists
+it is read to configure two kinds of things.
+Specifically the following:
+<VARIABLELIST>
+<VARLISTENTRY><TERM>PARAM -entries</TERM><LISTITEM><PARA>
 Allow server start-time parametrization of several things, including:
+<ITEMIZEDLIST>
+<LISTITEM><PARA> system parameters </></>
+<LISTITEM><PARA> help texts </></>
+<LISTITEM><PARA> acceptance/rejection database definitions </></>
+</ITEMIZEDLIST>
+</PARA></LISTITEM></VARLISTENTRY>
 
-\begin{itemize}
-\item  system parameters
-\item  help texts
-\item  acceptance/rejection database definitions
-\end{itemize}
-
-\item[\rm The style ({\tt -s}) options] \mbox{} \\
-Behaviour is based on glob patterns matching the {\bf HELO/EHLO} name given
-by a remote client.
-Lines beginning with a \# or whitespace are ignored in the file, and all other
-lines must consist of two tokens:
+<VARLISTENTRY><TERM>The style (<OPTION>-s</>) options</TERM><LISTITEM><PARA>
+Behaviour is based on glob patterns matching
+the <USERINPUT>HELO</>/<USERINPUT>EHLO</> name given by a remote client.
+Lines beginning with a ``#'' or whitespace are ignored in the file,
+and all other lines must consist of two tokens:
 a shell-style (glob) pattern starting at the beginning of the line,
 whitespace, and a sequence of style flags.
 The first matching line is used.
-
-As a special case, the flags section may start with a ``{\tt !}'' character
-in which case the remainder of the line is a failure comment message to print
-at the client.
+</PARA>
+<PARA>
+As a special case, the flags section may start with a ``!'' character
+in which case the remainder of the line is a failure comment message
+to print at the client.
 This configuration capability is intended as a way to control misbehaving
 client software or mailers.
-\end{description}
-</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+</PARA>
 
 <SECT2><TITLE>Smtpserver configuration; PARAM -entries</TITLE>
 
-<SCREEN>
-\begin{description}
-\item[\tt PARAM maxsize nn] \mbox{} \\
+<VARIABLELIST>
+<VARLISTENTRY><TERM>PARAM maxsize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
 Maximum size in the number of bytes of the entire spool message
 containing both the transport envelope, and the actual message.
 That is, if the max-size is too low, and there are a lot of
 addresses, the message may entirely become undeliverable..
+</PARA><PARA>
+This sets system default value, and overrides commandline ``<OPTION>-M</>''
+ option.
+</PARA></LISTITEM></VARLISTENTRY>
 
-This sets system default value, and overrides {\em -M} option.
-
-\item[\tt PARAM max-error-recipients nn] \mbox{} \\
+<VARLISTENTRY><TERM>PARAM max-error-recipients <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
 In case the message envelope is an error envelope (MAIL FROM:&lt;&gt;),
 the don't accept more than this many separate recipient addresses
 for it. The default value is 3, which should be enough for most cases.
 (Some SPAMs claim to be error messages, and then provide a huge
-number of recipient addresses...)
+number of recipient addresses&hellip;  Of course as spam-spewers learn,
+they begin just sending single recipients per message &mdash; less
+efficient, but working still&hellip;)
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt PARAM MaxSameIpSource nn] \mbox{} \\
-(Effective only on daemon-mode server -- not on "-i", nor "-n" modes.)
+<VARLISTENTRY><TERM>PARAM MaxSameIpSource <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
+(Effective only on daemon-mode server &mdash; not on ``<OPTION>-i</>'',
+ nor ``<OPTION>-n</>'' modes.)
 Sometimes some systems set up multiple parallel connections to same
 host  (qmail ones especially, not that ZMailer has entirely clean
-papers on this - at least up to 2.99.X series), we won't accept
-more than this many connections from the same IP source address
-open in parallel.  The default value for this limit is 10.
-
+papers on this either &mdash; at least up to 2.99.X series), we won't
+accept more than this many connections from the same IP source address
+open in parallel.
+</PARA><PARA>
+The default value for this limit is 10.
+</PARA><PARA>
 The principal reason for this has been authors experience at nic.funet.fi,
-where some MS-Windows users have caused {\bf huge} numbers
-of parallel connections to some services.  So huge, that the system
-did in fact run out of swap due to that, and caused all manner of
-other nasty things to occur too...  All this simply because some
-windows client had opened 800+ parallel sessions, and each server
-process consumed separate blocks of swap space...  To avoid the
-system to succumb under such an accidental denial-of-service attack
-at the overall system, this parallel limit was created.
+where some MS-Windows users have caused <EMPHASIS>huge</> numbers
+of parallel connections to some services.
+So huge, that the system did in fact run out of swap due to that,
+and caused all manner of other nasty things to occur too&hellip;
+All this simply because some windows client had opened 800+ parallel
+sessions, and each server process consumed separate blocks of
+swap space&hellip;
+To avoid the system to succumb under such an accidental denial-of-service
+attack at the overall system, this parallel limit was created.
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-\item[\tt PARAM TcpRcvBufferSize nnn] \mbox{} \\
-This sets {\tt setsockopt(SO_RCVBUF)} value, 
+<VARLISTENTRY><TERM>PARAM TcpRcvBufferSize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
+This sets <FUNCTION>setsockopt(SO_RCVBUF)</> value, 
 in case the system default is not suitable for some reason.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt PARAM TcpXmitBufferSize nnn] \mbox{} \\
-This sets {\tt setsockopt(SO_SNDBUF)} value, 
+<VARLISTENTRY><TERM>PARAM TcpXmitBufferSize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
+This sets <FUNCTION>setsockopt(SO_SNDBUF)</> value, 
 in case the system default is not suitable for some reason.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt PARAM ListenQueueSize nnn] \mbox{} \\
-This relates to newer systems where the {\tt listen(2)} system call
+<VARLISTENTRY><TERM>PARAM ListenQueueSize <REPLACEABLE>nn</></TERM><LISTITEM><PARA>
+This relates to newer systems where the <FUNCTION>listen(2)</> system call
 can define higher limits, than the traditional/original 5.
-This limit tells how many nascent TCP streams we can have in
-SYN_RCVD state before we stop answering to incoming SYN packets
-requesting opening of a connection.
-
+This limit tells how many nascent TCP streams we can have in SYN_RCVD state
+before the socket stops answering to incoming SYN packets requesting opening
+of a connection.  Such sockets have <EMPHASIS>not</> opened sufficiently
+to reach a state where bi-directional communication has been established,
+thus they won't appear to <FUNCTION>accept(2)</> yet for the server to
+pick them up!
+</PARA><PARA>
 There are entirely deliberate denial-of-service attacks based on
 flooding to some server many SYNS on which it can't send replies
 back (because the target machines don't have network connectivity,
 for example), and thus filling the back-queue of nascent sockets.
+</PARA><PARA>
 This can also happen accidentally, as the connectivity in between
 the client host, and the server host may have a black hole into
 which the SYN-ACK packets disappear, and the client thus will not
 be able to get the TCP startup three-way handshake completed.
-
+</PARA><PARA>
 Most modern systems can have this value upped to thousands to
 improve systems resiliency against malicious attacks, and most
 likely to provide complete immunity against the accidental
 ``attack'' by the failing network routing.
+</PARA><PARA>
+Do consult your system specific information on how much memory each
+nascent (and matured) socket will require before you commence upping
+this very much.  You might commit heaps of unswappable memory to
+useless waste.
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-\item[\tt PARAM help string] \mbox{} \\
+<VARLISTENTRY><TERM>PARAM help <REPLACEABLE>string</></TERM><LISTITEM><PARA>
 This one adds yet another string (no quotes are used) into those
-that are presented to the client when it asks for ``HELP'' in the
-SMTP session.
+that are presented to the client when it asks for ``<USERINPUT>HELP</>''
+in the SMTP session.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt PARAM debugcmd] \mbox{} \\
-Enables ``DEBUG'' command in the {\em smtpserver}.
+<VARLISTENTRY><TERM>PARAM debugcmd</TERM><LISTITEM><PARA>
+Enables ``<USERINPUT>DEBUG</>'' command in the server.
 This command turns on various trace functions which ruin the protocol
 from standards compliant client, but may help interactive debuggers.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt PARAM expncmd] \mbox{} \\
-Enables ``EXPN'' command in the {\em smtpserver}.
+<VARLISTENTRY><TERM>PARAM expncmd</TERM><LISTITEM><PARA>
+Enables ``<USERINPUT>EXPN</>'' command in the server.
+</PARA></LISTITEM></VARLISTENTRY>
 
-\item[\tt PARAM vrfycmd] \mbox{} \\
-Enables ``VRFY'' command in the {\em smtpserver}.
+<VARLISTENTRY><TERM>PARAM vrfycmd</TERM><LISTITEM><PARA>
+Enables ``<USERINPUT>VRFY</>'' command in the server.
+</PARA></LISTITEM></VARLISTENTRY>
 
-
-\item[\tt PARAM PolicyDB dbtype dbpath] \mbox{} \\
+<VARLISTENTRY><TERM>PARAM PolicyDB <REPLACEABLE>dbtype</> <REPLACEABLE>dbpath</></TERM><LISTITEM><PARA>
 This defines the database type, and file path prefix to the binary
-database containing policy processing information.  More of this
-below.  Actual binary database file names are formed by appending
-type specific suffixes to the path prefix.  For example NDBM
-database appends ".pag" and ".dir", while BSD-Btree appends only
-".db".  (And the latter has only one file, while the first has two.)
+database containing policy processing information.
+Actual binary database file names are formed by appending type specific
+suffixes to the path prefix.
+For example NDBM database appends ``.pag'' and ``.dir'', while BSD-Btree
+appends only ``.db''.
+(And the latter has only one file, while the first has two.)
+</PARA><PARA>
+More information below, and at <EMPHASIS>newdb</> at
+<XREF LINKEND="zref.util.newdb">
+</PARA></LISTITEM></VARLISTENTRY>
 
-More information below.
-
-\item[\tt PARAM allowsourceroute] \mbox{} \\
+<VARLISTENTRY><TERM>PARAM allowsourceroute</TERM><LISTITEM><PARA>
 When present, this parameter will not convert input of form
 &lt;@aa,@bb:cc@dd&gt; into source-route-less form of &lt;cc@dd&gt;
 Instead it carries the original source-route into the system as is.
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
 
-\item[\tt PARAM accept-percent-kludge] \mbox{} \\
-Accept locally destined localparts which contain ``%'' and ``!'' characters.
-\item[\tt PARAM reject-percent-kludge] \mbox{} \\
-Reject locally destined localparts which contain ``%'' and ``!'' characters.
+<PARA>
+A possible <EMPHASIS>smtpserver</> configuration file is shown in figure
+<XREF LINKEND="fig.ref.smtpserver2">.
+</PARA>
 
-\end{description}
-
-
-A possible {\em smtpserver} configuration file is shown in figure
-\vref{fig:ref:smtpserver2}.
-
-\begin{figure*}
-\begin{alltt}\hrule\setlength{\baselineskip}{0.8\baselineskip}\medskip
+<FIGURE ID="fig.ref.smtpserver2">
+<TITLE>Full-featured <FILENAME>smtpserver.conf</> file example</TITLE>
+<SCREEN>
 #
 # {\rm{}smtpserver.conf - autogenerated edition}
 #
@@ -418,18 +522,15 @@ some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 # {\rm{}The syntax below is due to these patterns being SH-GLOB patterns,}
 # {\rm{}where brackets are special characters.}
 
-\verb/\/[*\verb/\/]               999 ve
+[*]                 999 ve
 
 # {\rm{}Per default demant strict syntactic adherence, including fully}
 # {\rm{}qualified addresses for  MAIL FROM, and RCPT TO.  To be lenient}
 # {\rm{}on that detail, remove the "R" from "veR" string below:}
 
 *                   999 veR
-\medskip\hrule\end{alltt}
-\caption{Full-featured {\tt smtpserver.conf} file example}
-\label{fig:ref:smtpserver2}
-\end{figure*}
 </SCREEN>
+</FIGURE>
 </SECT2>
 </SECT1>
 

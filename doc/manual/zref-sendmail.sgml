@@ -1,7 +1,7 @@
 <CHAPTER ID="ZREF-SENDMAIL"><?dbhtml filename="zref-sendmail.html">
-<TITLE>sendmail</TITLE>
+<TITLE><EMPHASIS>Sendmail</></TITLE>
 
-<SCREEN>
+<PARA>
 This {\em sendmail\/} program is an emulation of the original
 {\em sendmail\/} interface. It provides all the original options
 that make sense to support in the context of ZMailer.
@@ -10,7 +10,9 @@ This is not intended to be the normal user interface to
 {\tt mail(1)}, to submit mail. This mechanism has been superseded
 by the {\tt zmailer(3)} library routines as the native
 submission interface (Application Program Interface) for ZMailer.
+</PARA>
 
+<PARA>
 The default action is to submit the RFC822 format mail
 message expected on {\tt stdin} to the mailer, with the
 addresses listed on the command line as recipients. If
@@ -21,34 +23,72 @@ except for {\tt root} where the preferred sender is the
 account of the current login session. The message terminates 
 when a period is seen by itself on a line, or at end of file on
 the input stream.
+</PARA>
 
+<PARA>
 If the message submission fails immediately on the
-{\tt mail\_open(3)}, the data on {\tt stdin} will be 
+<FUNCTION>mail_open(3)</>, the data on {\tt stdin} will be 
 appended to a {\tt dead.letter} file in the submitters home directory.
+</PARA>
 
-{\bf Usage}
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Usage:</TERM><LISTITEM><PARA>
+<SCREEN>
+/usr/sbin/sendmail: unknown option -?
+Usage: sendmail [sendmail options] [recipient addresses]
+ ZMailer's sendmail recognizes and implements following options:
+   -B bodytype  -  Valid values: 8BITMIME, 7BIT
+   -C conffile  -  specifies config file (meaningfull for -bt)
+   -E           -  flag 'external' source
+   -F 'full name'  sender's full name string
+   -N notifyopt -  Notify option(s): NEVER or a set of:
+                                     SUCCESS,DELAY,FAILURE
+   -P priority# -  numeric priority for ZMailer router queue
+                   pre-selection
+   -R returnopt -  Error report return option, either of: FULL, HDRS
+   -U           -  Flag as 'user submission'
+   -V envidstring - XTEXT encoded ENVID string
+   -b?          -  operational mode flags
+   -bd          -  starts smtpserver in daemon mode
+   -bi          -  runs 'newaliases' command
+   -bm          -  deliver mail; always :-)
+   -bp          -  runs 'mailq' command
+   -bs          -  speak smtp; runs server in interactive mode
+   -bt          -  starts router in interactive test mode
+   -e*          -  (ignored)
+   -f fromaddr  -  sets envelope from address for the message
+   -i           -  on inputs from tty this will ignore SMTP-like
+                   dot-EOF
+   -m           -  send a copy of the message to the sender too
+                   (ignored)
+   -o*          -  multiple options; those not listed cause error
+   -oQ queuedir -  defines POSTOFFICE directory for message
+                   submission
+   -ob*         -  (ignored)
+   -od*         -  (ignored)
+   -oe*         -  (ignored)
+   -oi          -  alias of '-i' option
+   -or*         -  (ignored)
+   -p submitprotocol - value for 'with' label at 'Received:' header
+   -q*          -  queue processing commands (ignored)
+   -r fromaddr  -  (alternate for -f)
+   -t           -  scan message rfc822 headers for recipients
+   -v           -  verbose trace of processing
+</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
 
-{\tt sendmail [-C configfile] [-EimqtUv] [-b[msdtip]]
-[-Bbodytype] [-Nnotify] [-Rretmode]
-[-Venvid] [-f address] [-F fullname]
-[-r address] [-o[i$\|$Qpostoffice]] [address ...]}
-
-{\bf Parameters}
-
+<VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM><PARA>
+<SCREEN>
 \begin{description}
 \item[ {\tt -bm}] \mbox{} \\
 
 asks {\em sendmail\/} to deliver mail, which it does anyway. 
 This option has no effect.
 
-
-
 \item[ {\tt -bs}] \mbox{} \\
 
 will start an {\em SMTP\/} server reading from {\tt stdin}. 
 This causes the {\em smtpserver(8)\/} program to be executed.
-
-
 
 \item[ {\tt -bd}] \mbox{} \\
 
@@ -56,31 +96,21 @@ starts the {\em router(8)\/} and {\em scheduler(8)\/}
 programs to emulate {\em sendmail\/}'s daemon mode. This is {\bf not} a 
 recommended method to start these programs, instead use {\em zmailer(1)\/}.
 
-
-
 \item[ {\tt -bt}] \mbox{} \\
 
 runs the {\em router(8)\/} in interactive mode for testing.
-
-
 
 \item[ {\tt -bi}] \mbox{} \\
 
 runs {\em newaliases(8)\/} to rebuild the alias file database.
 
-
-
 \item[ {\tt -bp}] \mbox{} \\
 
 runs {\em mailq(1)\/} to print the mail transport queue status.
 
-
-
 \item[ {\tt -C configfile}] \mbox{} \\
 
 specifies the {\em router(8)\/} configuration file.
-
-
 
 \item[ {\tt -E}] \mbox{} \\
 
@@ -89,8 +119,6 @@ channel. This should be used when {\em sendmail\/} is used to submit
 messages coming in from outside the local machine, to avoid security 
 problems during message processing. This flag ensures the message will 
 have no privileges even if the current {\tt userid} is ``trusted''.
-
-
 
 \item[ {\tt -f address}] \mbox{} \\
 
@@ -101,27 +129,20 @@ current {\tt userid} is not ``trusted'' by the mailer, it is free to
 ignore both this option and any header information to ensure properly 
 authenticated originator information.
 
-
-
 \item[ {\tt -F fullname}] \mbox{} \\
 
 specifies the full name of the (local) sender.
 
-
-
 \item[ {\tt -i}] \mbox{} \\
 
 tells {\em sendmail\/} to not use a period (`.') on a line 
-by itself as a message terminator, only the end of file will terminate the message.
-
-
+by itself as a message terminator, only the end of file will terminate
+the message.
 
 \item[ {\tt -m}] \mbox{} \\
 
 asks the mailer not to ignore the originator in the 
 addressee list. This is default behaviour, so this option has no effect.
-
-
 
 \item[ {\tt -N notify}] \mbox{} \\
 
@@ -129,54 +150,38 @@ sets Delivery-Status-Notification notify parameter
 to be: {\tt NEVER}, or any combination of: {\tt SUCCESS}, 
 {\tt FAILURE}, {\tt DELAY}.
 
-
-
 \item[ {\tt -oi}] \mbox{} \\
 
 is like {\tt -i}.
-
-
 
 \item[ {\tt -oQ postoffice}] \mbox{} \\
 
 specifies an alternate {\tt \$POSTOFFICE/} 
 directory.
 
-
-
 \item[ {\tt -q}] \mbox{} \\
 
 asks for queue processing. This option has no effect.
-
-
 
 \item[ {\tt -R retmode}] \mbox{} \\
 
 sets Delivery-Status-Notification parameter to be 
 either of: {\tt FULL}, {\tt HDRS}.
 
-
-
 \item[ {\tt -r address}] \mbox{} \\
 
 is like {\tt -f}.
-
-
 
 \item[ {\tt -t}] \mbox{} \\
 
 scans header for recipient addresses if none are specified 
 on the command line. This is also the default behaviour, so this option has no effect.
 
-
-
 \item[ {\tt -v}] \mbox{} \\
 
 will report the progress of the message after it has been 
 submitted. The {\em sendmail\/} process will write verbose log information 
 to the {\tt stderr} stream until the {\em scheduler\/} deletes the message.
-
-
 
 \item[ {\tt -V envid}] \mbox{} \\
 
@@ -185,4 +190,8 @@ to be any arbitrary [{\tt xtext}] string.
 
 \end{description}
 </SCREEN>
+
+</PARA></LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
 </CHAPTER>

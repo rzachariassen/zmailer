@@ -126,17 +126,22 @@ the `-s' option.)
 </PARA>
 
 <PARA>
-The <EMPHASIS>router</> acquires a lock on the message (spool file) by means
-of renaming the file from its previous name to a name with the format: 
-<QUOTE>concat(file_ino_number,"-",progpid)</QUOTE>
+The <EMPHASIS>router</> acquires a lock on the message (spool file) by means of
+renaming the file from its previous name to a name created with
+formatting statement:
+<SCREEN>
+  sprintf(buf, "%ld-%d", (long)filestat.st_ino, (int)getpid());
+</SCREEN>
 </PARA>
 
 <PARA>
 Once the <EMPHASIS>router</> has been able to acquire a new name
 for the file, it starts off by creating a temporary file of
 <EMPHASIS>router</> routing decisions. 
-The file has a name with the format:
-<QUOTE>concat("..",file_ino_number,"-",progpid)</QUOTE>
+The file has a name created with formatting statement:
+<SCREEN>
+  sprintf(buf, "..%ld-%d", (long)filestat.st_ino, (int)getpid());
+</SCREEN>
 </PARA>
 
 <PARA>
@@ -196,7 +201,7 @@ and <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>.
 </PARA>
 
 <PARA>
-The <EMPHASIS>scheduler</> (if so configured by ``-H'' option) will
+The <EMPHASIS>scheduler</> (if so configured by ``<OPTION>-H</>'' option) will
 move the messages into ``hashed subdirectories,'' when it finds the
 new work specification files, and then start processing them.
 </PARA>
@@ -244,10 +249,14 @@ through successfully in spite of being copied into the directory.
 </PARA>
 
 <PARA>
-If the filename in that directory <EMPHASIS ROLE="STRONG">does not have
+<EMPHASIS ROLE="STRONG">If the filename in that directory does not have
 an underscrore in it, that file has not been processed successfully, and
 the <EMPHASIS ROLE="BOLD">only</> copy of the message is now in that
 directory!</EMPHASIS>
+</PARA>
+
+<PARA>
+Usually forementioned underscoreless filenames 
 </PARA>
 
 <PARA>
@@ -255,7 +264,9 @@ If the  smtpserver  receives a message with content that the policy filtering
 system decides to be dubious, it can move the message into
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/freezer/</> directory
 with a bit explanatory name of type:
-<QUOTE>concat(file_ino_number,".",causecode)</QUOTE>.
+<SCREEN>
+  sprintf(buf, "%ld.%s", (long)filestat.st_ino, causecodestring);
+</SCREEN>
 </PARA>
 
 <PARA>
