@@ -29,7 +29,7 @@ LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc -lsfio
 LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	../libta/llib-llibta.ln
 
-smtp-a:	smtp mprobe
+smtp-a:	smtp mprobe getmxrr-test
 
 smtp:	$(OBJS) version.o $(LIBDEB)
 	-rm -f smtp
@@ -56,11 +56,13 @@ smtp.o:      $(srcdir)/smtp.c $(srcdir)/smtp.h
 smtptls.o:   $(srcdir)/smtptls.c $(srcdir)/smtp.h
 appendlet.o: $(srcdir)/appendlet.c $(srcdir)/smtp.h
 
-install:	smtp mprobe
+install:	smtp mprobe getmxrr-test
 	$(INSTALL) -m 0755 smtp $(MAILBIN)/ta/smtp.x
 	mv $(MAILBIN)/ta/smtp.x $(MAILBIN)/ta/smtp
 	$(INSTALL) -m 0755 mprobe $(MAILBIN)/mprobe.x
 	mv $(MAILBIN)/mprobe.x $(MAILBIN)/mprobe
+	$(INSTALL) -m 0755 getmxrr-test $(MAILBIN)/getmxrr-test.x
+	mv $(MAILBIN)/getmxrr-text.x $(MAILBIN)/getmxrr-test
 
 clean:
 	-rm -f smtp mprobe *~ *.o *.out make.log *.third *.3rd

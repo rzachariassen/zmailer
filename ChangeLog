@@ -1,5 +1,9 @@
 2000-10-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* transports/smtp/Makefile.in:
+	    Add into "make install" installation of $MAILBIN/getmxrr-test
+	    so that it will be available at all installations...
+
 	* utils/mxverify/mxverify-cgi.c:
 	    Small text changes.
 
