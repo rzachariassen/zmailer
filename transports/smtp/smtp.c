@@ -3492,11 +3492,14 @@ int bdat_flush(SS, lastflg)
 	    alarm(timeout);
 	    i = fwrite(SS->chunkbuf + pos, 1, wrlen, SS->smtpfp);
 	    fflush(SS->smtpfp);
-	    if (i < 0) {
+	    if (i <= 0) {
 	      if (errno == EINTR)
 		continue;
 	      alarm(0);
 	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+	      notaryreport(NULL,NULL,
+			   "5.4.2 (BDAT message write failed)",
+			   "smtp; 566 (BDAT Message write failed)");
 	      return EX_TEMPFAIL;
 	    }
 	    pos += i;
@@ -3504,6 +3507,9 @@ int bdat_flush(SS, lastflg)
 	    if (ferror(SS->smtpfp)) {
 	      alarm(0);
 	      memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
+	      notaryreport(NULL,NULL,
+			   "5.4.2 (BDAT message write failed)",
+			   "smtp; 566 (BDAT message write failed)");
 	      return EX_TEMPFAIL;
 	    }
 	  }
