@@ -12,7 +12,9 @@ mailbox \- zmailer local delivery transport agent
 [\fB\-d\fR\ \fIdirpath\fR]
 .SH DESCRIPTION
 .I mailbox
-is a ZMailer transport agent which is usually only run by the
+is a
+.B ZMailer
+transport agent which is usually only run by the
 .IR scheduler (8)
 program to deliver mail to local user mailbox files.  The
 .I mailbox
@@ -342,6 +344,27 @@ For an incoming error message, value "<>" is used.
 when present, is the XTEXT encoded ORCPT value received at
 the message injection into this system.
 See RFC 1891 for details.
+.IP INRCPT
+A
+.B ZMailer
+specific thing which is supposed to carry the RCPT TO address
+that was given at the incoming SMTP session, independent of
+ORCPT data.
+.IP NOTIFY
+Possible (usually) externally received DSN NOTIFY parameter data.
+.IP BY
+Possible externally received DELIVERBY parameter data.
+.IP INFROM
+A
+.B ZMailer
+specific thing which is supposed to carry the MAIL FROM address
+that was given at the incoming SMTP session.
+.IP EZMLM
+A
+.B ZMailer
+specific thing which is actually present only at
+.IR listexpand -utility
+expanded email list.
 .IP ENVID
 when present, is the XTEXT encoded ENVID value received at
 the message injection into this system.

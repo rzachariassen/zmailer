@@ -3,7 +3,7 @@ VPATH = @srcdir@
 @SET_MAKE@
 CPPDEP=	@CPPDEP@
 
-SUBDIRS = errormail mailbox hold sm smtp expirer #fuzzyalias
+SUBDIRS = errormail mailbox hold sm smtp expirer reroute #fuzzyalias
 
 all:
 	cd libta ; $(MAKE) $(MFLAGS)

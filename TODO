@@ -6,14 +6,10 @@ Wanted done for 3.0:
   - WEB-based configuration/administration interface
   - scheduler to kill message/thread online without a need to
     run  "manual-expirer"
+  - scheduler to be able to "reroute" given channel/host, e.g.
+    push the message recipient(s) back to router
   - LICENSE state cleanup.
   - A work-over of the documentation
-
-libc/*mail.c, router/rfc822.c:
-  Can the AF_UNIX/DGRAM  sendto()  sometimes yield SIGPIPE ?
-  Should the code be armored against that ?  (I do think so,
-  thus this is a TODO item..)
-
 
 OVERALL: SleepyCat DB 3 header inclusion does not (necessarily)
          match code selections!  Brr..
@@ -77,9 +73,6 @@ getmxrr()  MX retrieve failure with its merriment:
 
 - "Overview" -- revise at least the list subscription instructions;
 		verify also other document files
-
-- Linux glibc 2.2 (or its pre-versions) and DB 2.x vs. DB 3.x vs ...
-	SleepyCat DB 3.x is an unknown entity so far..
 
 - Solaris 2.6 native make --> no VPATH ?? (sfio fails)
 

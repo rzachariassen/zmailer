@@ -255,13 +255,13 @@ local/*
 	maxchannel=15
 	maxring=5
 	#
-	# Do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
+	# Don't do MIME text/plain; Quoted-Printable -> text/plain; 8BIT
 	# conversion on flight!
-	command="mailbox -8"
+	command="mailbox"
 	# Or with CYRUS server the following might do:
-	#command="sm -8c $channel cyrus"
+	#command="sm -c $channel cyrus"
 	# Or with PROCMAIL as the local delivery agent:
-	#command="sm -8c $channel procm"
+	#command="sm -c $channel procm"
 
 
 # Sometimes we may want to PUNT all out to somewhere without regarding

@@ -427,7 +427,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	    /* mea: altered the scheme, we must detect the "error" channel
 	       otherwise */
 	    /* if (strcmp(ap->channel,"error")==0)
-	       ap->user = ""; */
+	         ap->user = ""; */
 	    d.senders = ap;
 	    break;
 	  case _CF_RECIPIENT:
@@ -515,7 +515,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	      prevrp->drptoffset = d.offset[i];
 	      while (*s) {
 		while (*s && (*s == ' ' || *s == '\t')) ++s;
-		if (cistrncmp("NOTIFY=",s,7)==0) {
+		if (CISTREQN("NOTIFY=",s,7)) {
 		  char *p;
 		  s += 7;
 		  prevrp->notify = p = s;
@@ -593,7 +593,7 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 		}
 		if (CISTREQN("INFROM=",s,7)) {
 		  s += 7;
-		  /* FIXME: pull INFROM into some sensible use.. */
+		  prevrp->infrom = s;
 		  while (*s && *s != ' ' && *s != '\t') ++s;
 		  if (*s) *s++ = 0;
 		  continue;

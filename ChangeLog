@@ -1,3 +1,34 @@
+2002-03-08  Matti Aarnio  <mea@zmailer.org>
+
+	* transports/reroute/reroute.c, transports/reroute/Makefile.in,
+	  transports/Makefile.in:
+	    Added a new Transport Agent -- "reroute", e.g. send given
+	    messages back to router.  This is intended for quite special
+	    (and intimate) interaction with the Scheduler.
+
+	* transports/mailbox/mailbox.c, man/mailbox.8:
+	    Add a few subprocess execution environment variables
+	    which carry more of message meta-data, than previously.
+
+	* transports/libta/ctlopen.c:
+	    Pass the  INFROM= DNS metadata into   rp->infrom  field.
+
+	* transports/hold/hold.c:
+	    Detect "channel error" type messages properly.
+	    Pass more of DSN Metadata to outgoing message envelope.
+	    Output "env-end\n" meta-header after the envelope headers.
+
+	* transports/expirer/expirer.c:
+	    Update the comments a bit.
+
+	* router/rfc822.c, libc/mail.c, libc/sfmail.c:
+	    Take precautions (just in case) "the next-stage notify"
+	    socket closes, and causes a SIGPIPE to be sent to relevant
+	    process.
+
+	* proto/scheduler.conf.in:
+	    Remove "-8" from a few prototype command lines.
+
 2002-02-22  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/policytest.h, utils/makedb/makedb.c,

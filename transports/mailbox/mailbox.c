@@ -1927,7 +1927,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 
 	fromuser = rp->addr->link->user;
 	if (*fromuser == 0 ||
-	    strcmp(rp->addr->link->channel, "error") == 0)
+	    STREQ(rp->addr->link->channel, "error"))
 	  fromuser = "";
 
 	do {
@@ -2239,113 +2239,187 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	int gid = -1;
 	char *env[40];
 	const char *s;
-	char buf[8192], *cp, *cpe;
+	char *cp, *cpe;
 	int status;
 	struct Zpasswd *pw;
 	Sfio_t *errfp;
 	Sfio_t *fp;
 	time_t starttime, endtime;
+	char safe1[1100]; /* Stack safety buffer zones.. */
+	char buf[8192];
+	char safe2[1100]; /* second stack safety buffer */
 	char errbuf[4*1024];
 
 	time(&starttime);
+	cp = safe1; cp = safe2; /* Silence compiler... */
 
 	notaryreport(rp->addr->user, NULL, NULL, NULL);
 
 	envi = 0;
 	env[envi++] = "SHELL=/bin/sh";
 	env[envi++] = "IFS= \t\n";
-	cp = buf;
-	*cp = 0; /* Trunc the buf string... */
-	cpe = buf + sizeof(buf) - 20;
-	if ((s = getzenv("PATH")) == NULL)
-	  env[envi++] = "PATH=/usr/bin:/bin:/usr/ucb";
-	else {
-	  sprintf(cp, "PATH=%.999s", s);
-	  env[envi++] = cp;
-	  cp += strlen(cp) + 1;
-	}
-	s = getenv("TZ");
-	if (s != NULL) {
-	  sprintf(cp,"TZ=%s", s);
-	  env[envi++] = cp;
-	  cp += strlen(cp) + 1;
-	}
 
-	pw = zgetpwuid(uid);
-	if (pw == NULL) {
+	while (1) {
+	  /* Zone in which:
+	       if (cp > cpe) break;
+	     statement can be used as buffer overflow safety.. */
 
-	  if (verboselog) {
-	    fprintf(verboselog,"mailbox: User recipient address privilege code invalid (no user with this uid?): '%s'\n", rp->addr->misc);
+
+	  cp = buf;
+	  *cp = 0; /* Trunc the buf string... */
+	  cpe = buf + sizeof(buf) -2;
+	  if ((s = getzenv("PATH")) == NULL)
+	    env[envi++] = "PATH=/usr/bin:/bin:/usr/ucb";
+	  else {
+	    sprintf(cp, "PATH=%.999s", s);
+	    env[envi++] = cp;
+	    cp += strlen(cp) + 1;
 	  }
-	  sprintf(buf,"x-local; 500 (User recipient address privilege code invalid [no user with this uid?]: '%.200s')", rp->addr->misc);
-	  notaryreport(NULL,"failed",
-		       "5.3.0 (User address recipient privilege code invalid)",
-		       buf);
-	  DIAGNOSTIC(rp, cmdbuf, EX_SOFTWARE,
-		     "Bad privilege for a pipe \"%s\"", rp->addr->misc);
-	  return EX_SOFTWARE;
-	} else {
-	  gid = pw->pw_gid;
-	  sprintf(cp, "HOME=%.500s", pw->pw_dir);
-	  env[envi++] = cp;
-	  cp += strlen(cp) + 1;
-	  if (user[0] == 0)
-	    sprintf(cp, "USER=%.100s", pw->pw_name);
+	  s = getenv("TZ");
+	  if (s != NULL) {
+	    sprintf(cp,"TZ=%.99s", s);
+	    env[envi++] = cp;
+	    cp += strlen(cp) + 1;
+	  }
+
+	  pw = zgetpwuid(uid);
+	  if (pw == NULL) {
+
+	    if (verboselog) {
+	      fprintf(verboselog,"mailbox: User recipient address privilege code invalid (no user with this uid?): '%s'\n", rp->addr->misc);
+	    }
+	    sprintf(buf,"x-local; 500 (User recipient address privilege code invalid [no user with this uid?]: '%.200s')", rp->addr->misc);
+	    notaryreport(NULL,"failed",
+			 "5.3.0 (User address recipient privilege code invalid)",
+			 buf);
+	    DIAGNOSTIC(rp, cmdbuf, EX_SOFTWARE,
+		       "Bad privilege for a pipe \"%s\"", rp->addr->misc);
+	    return EX_SOFTWARE;
+	  } else {
+	    gid = pw->pw_gid;
+	    sprintf(cp, "HOME=%.500s", pw->pw_dir);
+	    env[envi++] = cp;
+	    cp += strlen(cp) + 1;
+
+	    if (user[0] == 0)
+	      sprintf(cp, "USER=%.100s", pw->pw_name);
+	    else
+	      sprintf(cp, "USER=%.100s", user);
+	    env[envi++] = cp;
+	    cp += strlen(cp) + 1;
+	  }
+	  if (STREQ(rp->addr->link->channel,"error"))
+	    sprintf(cp, "SENDER=<>");
 	  else
-	    sprintf(cp, "USER=%.100s", user);
+	    sprintf(cp, "SENDER=%.999s", rp->addr->link->user);
 	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
-	}
-	if (strcmp(rp->addr->link->channel,"error")==0)
-	  sprintf(cp, "SENDER=<>");
-	else
-	  sprintf(cp, "SENDER=%.999s", rp->addr->link->user);
-	env[envi++] = cp;
-	cp += strlen(cp) + 1;
-	sprintf(cp, "UID=%d", (int)uid);
-	env[envi++] = cp;
-	if ((s = getzenv("ZCONFIG")) == NULL)
-	  s = ZMAILER_ENV_FILE;
-	cp += strlen(cp) + 1;
-	sprintf(cp, "ZCONFIG=%.200s", s);
-	env[envi++] = cp;
-	if ((s = getzenv("MAILBIN")) == NULL)
-		s = MAILBIN;
-	cp += strlen(cp) + 1;
-	sprintf(cp, "MAILBIN=%.200s", s);
-	env[envi++] = cp;
-	if ((s = getzenv("MAILSHARE")) == NULL)
-		s = MAILSHARE;
-	cp += strlen(cp) + 1;
-	sprintf(cp, "MAILSHARE=%.200s", s);
-	env[envi++] = cp;
-	cp += strlen(cp) + 1;
-	if (rp->orcpt) {
-	  sprintf(cp, "ORCPT=%.999s", rp->orcpt);
+
+	  sprintf(cp, "UID=%d", (int)uid);
 	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
-	}
-	if (dp->envid) {
-	  sprintf(cp, "ENVID=%.999s", dp->envid);
+	  if (cp > cpe) break;
+
+	  if ((s = getzenv("ZCONFIG")) == NULL)
+	    s = ZMAILER_ENV_FILE;
+
+	  sprintf(cp, "ZCONFIG=%.200s", s);
 	  env[envi++] = cp;
 	  cp += strlen(cp) + 1;
-	}
+	  if (cp > cpe) break;
+
+	  if ((s = getzenv("MAILBIN")) == NULL)
+	    s = MAILBIN;
+	  sprintf(cp, "MAILBIN=%.200s", s);
+	  env[envi++] = cp;
+	  cp += strlen(cp) + 1;
+	  if (cp > cpe) break;
+
+	  if ((s = getzenv("MAILSHARE")) == NULL)
+	    s = MAILSHARE;
+	  env[envi++] = cp;
+	  sprintf(cp, "MAILSHARE=%.200s", s);
+	  cp += strlen(cp) + 1;
+	  if (cp > cpe) break;
+
+	  if (rp->notifyflgs) {
+	    char *p = "", *p2 = ",";
+	    env[envi++] = cp;
+	    sprintf(cp,"NOTIFY="); cp += strlen(cp);
+	    if (rp->notifyflgs & _DSN_NOTIFY_NEVER) {
+	      strcpy(cp, "NEVER"); p = p2; cp += strlen(cp); }
+	    if (rp->notifyflgs & _DSN_NOTIFY_DELAY) {
+	      sprintf(cp, "%sDELAY", p); p = p2; cp += strlen(cp); }
+	    if (rp->notifyflgs & _DSN_NOTIFY_FAILURE) {
+	      sprintf(cp, "%sFAILURE", p); p = p2; cp += strlen(cp); }
+	    if (rp->notifyflgs & _DSN_NOTIFY_SUCCESS) {
+	      sprintf(cp, "%sSUCCESS", p); p = p2; cp += strlen(cp); }
+	    if (rp->notifyflgs & _DSN_NOTIFY_TRACE) {
+	      sprintf(cp, "%sTRACE", p); p = p2; cp += strlen(cp); }
+	    ++cp;
+	  }
+	  if (rp->deliverby || rp->deliverbyflgs) {
+	    env[envi++] = cp;
+	    sprintf(cp,"BY=%ld;",rp->deliverby); cp += strlen(cp);
+	    if (rp->deliverbyflgs & _DELIVERBY_R) *cp++ = 'R';
+	    if (rp->deliverbyflgs & _DELIVERBY_N) *cp++ = 'N';
+	    if (rp->deliverbyflgs & _DELIVERBY_T) *cp++ = 'T';
+	    *cp++ = 0;
+	  }
+	  if (rp->orcpt) {
+	    sprintf(cp, "ORCPT=%.999s", rp->orcpt);
+	    env[envi++] = cp;
+	    cp += strlen(cp) + 1;
+	    if (cp > cpe) break;
+	  }
+	  if (rp->inrcpt) {
+	    sprintf(cp, "INRCPT=%.999s", rp->inrcpt);
+	    env[envi++] = cp;
+	    cp += strlen(cp) + 1;
+	    if (cp > cpe) break;
+	  }
+	  if (rp->infrom) {
+	    sprintf(cp, "INFROM=%.999s", rp->infrom);
+	    env[envi++] = cp;
+	    cp += strlen(cp) + 1;
+	    if (cp > cpe) break;
+	  }
+	  if (rp->ezmlm) {
+	    sprintf(cp, "EZMLM=%.999s", rp->ezmlm);
+	    env[envi++] = cp;
+	    cp += strlen(cp) + 1;
+	    if (cp > cpe) break;
+	  }
+	  if (dp->envid) {
+	    sprintf(cp, "ENVID=%.999s", dp->envid);
+	    env[envi++] = cp;
+	    cp += strlen(cp) + 1;
+	    if (cp > cpe) break;
+	  }
 	
-	env[envi++] = cp;
-	strcpy(cp, "MSGSPOOLID="); cp += 11;
-	taspoolid(cp, rp->desc->msgmtime, rp->desc->msginonumber);
-	cp += strlen(cp) + 1;
-
-	if (rp->desc->msgfile) {
-	  /* Put also the message-id of the message into variables. */
 	  env[envi++] = cp;
-	  sprintf(cp, "MESSAGEID=%.199s", rp->desc->msgfile);
+	  strcpy(cp, "MSGSPOOLID="); cp += 11;
+	  taspoolid(cp, rp->desc->msgmtime, rp->desc->msginonumber);
 	  cp += strlen(cp) + 1;
-	}
+	  if (cp > cpe) break;
 
-	if (verboselog)
-	  fprintf(verboselog,"To run a pipe with uid=%d gid=%d cmd='%s'\n",
-		  uid, gid, cmdbuf);
+	  if (rp->desc->msgfile) {
+	    /* Put also the message-id of the message into variables. */
+	    env[envi++] = cp;
+	    sprintf(cp, "MESSAGEID=%.199s", rp->desc->msgfile);
+	    cp += strlen(cp) + 1;
+	    if (cp > cpe) break;
+	  }
+
+	  if (verboselog)
+	    fprintf(verboselog,"To run a pipe with uid=%d gid=%d cmd='%s'\n",
+		    uid, gid, cmdbuf);
+
+	  /* Here the CP should be less than about 5000 bytes
+	     into the 8k buffer .. */
+
+	  break;
+	}
 
 	env[envi] = NULL;
 

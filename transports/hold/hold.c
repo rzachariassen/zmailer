@@ -313,7 +313,7 @@ process(dp)
 	SETEUID(getuid());
 
 	fprintf(mfp, "via suspension\n");
-	if (dp->senders->user[0] == 0)
+	if (STREQ(dp->senders->channel,"error"))
 	  fprintf(mfp, "channel error\n");
 	else
 	  fprintf(mfp, "from <%s>\n", dp->senders->user);
@@ -331,6 +331,15 @@ process(dp)
 	      if (rp->orcpt != NULL)
 		fprintf(mfp," ORCPT=%s",rp->orcpt);
 
+	      if (rp->inrcpt != NULL)
+		fprintf(mfp," INRCPT=%s",rp->inrcpt);
+
+	      if (rp->infrom != NULL)
+		fprintf(mfp," INFROM=%s",rp->infrom);
+
+	      if (rp->ezmlm != NULL)
+		fprintf(mfp," EZMLM=%s",rp->ezmlm);
+
 	      if (rp->notify)
 		fprintf(mfp," NOTIFY=%s", rp->notify);
 
@@ -344,6 +353,7 @@ process(dp)
 	      putc('\n',mfp);
 	    }
 	  }
+	fprintf(mfp,"env-end\n");
 
 	fwriteheaders(dp->recipients,mfp,"\n",0,0,NULL);
 	fprintf(mfp,"\n");

@@ -1,0 +1,84 @@
+PROGRAM=	reroute
+#
+# ZMailer REROUTE Transport Agent makefile
+#
+srcdir = @srcdir@
+VPATH = @srcdir@
+@SET_MAKE@
+
+SHELL=		/bin/sh
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		../..
+MAILBIN=	$(prefix)@MAILBIN@
+DEFS=		@DEFS@
+INSTALL=	@INSTALL@
+REROUTE_INCL=	@GENINCL@ @INCLRESOLV@
+REROUTE_LIB=	@GETPWLIB@ @LIBRESOLV@ @LIBSOCKET@ $(LIBMALLOC)
+#
+SOURCE=		reroute.c
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR)
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(INCL) $(REROUTE_INCL)
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a
+LIB=		-L$(TOPDIR)/libs -lta -lzm -lzc
+LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
+		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a
+LINTLIB=	../libta/llib-llibta.ln
+
+$(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)
+
+$(PROGRAM):	$(PROGRAM).o version.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o $(LIB) $(REROUTE_LIB)
+
+$(PROGRAM).o: $(srcdir)/$(PROGRAM).c
+
+version.c:	$(PROGRAM).o $(TOPDIR)/Makefile
+	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@
+
+install:	$(PROGRAM)
+	$(INSTALL) -m 0755 $(PROGRAM) $(MAILBIN)/ta/$(PROGRAM).x
+	mv $(MAILBIN)/ta/$(PROGRAM).x $(MAILBIN)/ta/$(PROGRAM)
+
+clean:
+	-rm -f $(PROGRAM) *.o *.out make.log *~
+distclean: clean
+	-rm -f Makefile
+
+lint:	$(LINTLIB)
+	lint $(DEFS) $(INCL) $(LINTLIB) $(PROGRAM).c
+
+../libta/llib-llibta.ln:
+	cd ../libta ; $(MAKE) $(MFLAGS) lintlib
+
+$(TOPDIR)/libs/libtag:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
+
+../libta/libta.a-a:
+	cd ../libta ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libs/libta.a:
+	cd ../libta ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libc/libzc.a-a:
+	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libs/libzc.a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/lib/libzm.a-a:
+	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libs/libzm.a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS)
+
+$(TOPDIR)/libmalloc/libmalloc_d.a-a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+$(TOPDIR)/libmalloc/libmalloc_d.a:
+	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS)
+
+depend:
+	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep $(CFLAGS) $(SOURCE)
+
+
+# DO NOT DELETE THIS LINE -- mkdep uses it.
+# DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

@@ -579,6 +579,9 @@ _sfmail_close_(fp,inop, mtimep)
 	  char buf[1000];
 	  int notifysocket;
 	  struct sockaddr_un sad;
+#ifndef MSG_NOSIGNAL
+	  RETSIGTYPE (*oldsig)__((int));
+#endif
 
 	  routernotify = getzenv("ROUTERNOTIFY");
 	  if (!routernotify) break;
@@ -603,19 +606,24 @@ _sfmail_close_(fp,inop, mtimep)
 
 	  if (s) *s = ':';
 
+#ifndef MSG_NOSIGNAL
+	  SIGNAL_HANDLESAVE(SIGPIPE, SIG_IGN, oldsig);
+#endif
+
 	  sendto(notifysocket, buf, strlen(buf),
 #ifdef MSG_NOSIGNAL
 		 MSG_NOSIGNAL|
-#else
-		 /* FIXME: URGH! WILL WE HAVE SIGPIPE PROBLEMS ??? */
 #endif
 		 MSG_DONTWAIT ,
 		 (struct sockaddr *)&sad, sizeof(sad));
 
 	  close(notifysocket);
+#ifndef MSG_NOSIGNAL
+	  SIGNAL_HANDLE(SIGPIPE, oldsig);
+#endif
 
 	} while (0);
-#endif
+#endif /* AF_UNIX */
 
 #ifndef HAVE_ALLOCA
 	mail_free(nmessage);

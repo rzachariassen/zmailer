@@ -3,7 +3,7 @@
  *
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1992-1997 Matti Aarnio.
+ *	Copyright 1992-2002 Matti Aarnio.
  */
 
 /*
@@ -17,6 +17,8 @@
  *  - spoolfilename
  *  - optional host selector (empty if third parameter is given)
  *  - optional explanatory string (up to newline)
+ *
+ * The scheduler will supply '-c' option to drive the channel selection.
  *
  */
 
@@ -196,7 +198,7 @@ main(argc, argv)
 	while (!getout) {
 
 	  /* Input:
-	       spool/file/name [ \t host.info ] \n
+	       spool/file/name [ \t host.info [ \t explanation ]] \n
 	   */
 
 	  printf("#hungry\n");
