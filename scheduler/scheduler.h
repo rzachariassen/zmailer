@@ -102,7 +102,8 @@ struct threadgroup {
 	int		withhost;	/* When set, wchan matters.	    */
 	struct thread	*thread;	/* First of the thread in the group */
 	struct thread	*thrtail;	/* Last of the threads in the group */
-	struct threadgroup *next, *prev; /* Ring of thread groups	    */
+	struct threadgroup *nextthg;    /* Ring of thread groups	    */
+	struct threadgroup *prevthg;
 	struct config_entry *cep;	/* Pointer to a config database     */
 	struct config_entry ce;		/* consed scheduler config file entry*/
 };

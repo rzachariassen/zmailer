@@ -74,14 +74,14 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	wh->linkcnt += 1;
 
 	if (thrg_root == NULL) {
-	  thrg_root = thgp;
-	  thgp->next = thgp;
-	  thgp->prev = thgp;
+	  thrg_root     = thgp;
+	  thgp->nextthg = thgp;
+	  thgp->prevthg = thgp;
 	} else {
-	  thgp->next       = thrg_root->next;
-	  thgp->prev       = thrg_root->next->prev;
-	  thgp->prev->next = thgp;
-	  thgp->next->prev = thgp;
+	  thgp->nextthg       = thrg_root->nextthg;
+	  thgp->prevthg       = thrg_root->nextthg->prevthg;
+	  thgp->prevthg->nextthg = thgp;
+	  thgp->nextthg->prevthg = thgp;
 	}
 
 	return thgp;
@@ -116,9 +116,9 @@ if (verbose) sfprintf(sfstdout,"delete_threadgroup(%s/%d/%s)\n",
 	  unweb(L_HOST,thgp->whost);
 
 	/* Unlink this thread-group from the ring */
-	tgp              = thgp->next;
-	thgp->prev->next = thgp->next;
-	tgp->prev        = thgp->prev;
+	tgp                    = thgp->nextthg;
+	thgp->prevthg->nextthg = thgp->nextthg;
+	tgp->prevthg           = thgp->prevthg;
 
 	/* are we at the ring root pointer ? */
 	if (thrg_root == thgp)
@@ -155,6 +155,8 @@ struct thread *thr;
 
 	thr->prevthg->nextthg = thr->nextthg;
 	thr->nextthg->prevthg = thr->prevthg;
+
+	thg->threads -= 1;
 
 	if (thg->thread == thr)
 	  thg->thread = thr->nextthg;	/* pick other */
@@ -205,12 +207,16 @@ struct thread *thr;
 
 	} else {
 
+	  thr->nextthg = thg->thrtail->nextthg;
 	  thg->thrtail->nextthg = thr;
-	  thr->nextthg = thg->thread;
-	  thr->prevthg = thg->thrtail;
+	  thr->prevthg = thr->nextthg->prevthg;
+	  thr->nextthg->prevthg = thr;
+
 	  thg->thrtail = thr;
 
 	}
+
+	thg->threads += 1;
 }
 
 
@@ -253,7 +259,6 @@ struct config_entry *cep;
 		}
 	}
 
-	thgrp->threads += 1;
 	thr->vertices   = vtx;
 	thr->lastvertex = vtx;
 	thr->jobs       = 1;
@@ -356,8 +361,6 @@ delete_thread(thr, ok)
 	/* ... and thread-group-ring */
 	_thread_timechain_unlink(thr);
 
-	thg->threads -= 1;
-
 	if (thr->proc) {
 	  /* If this thread has a process, we detach it! */
 	  thr->proc->pthread = NULL;
@@ -366,21 +369,10 @@ delete_thread(thr, ok)
 
 	/* If threads count goes zero.. */
 
-
-	if (thg->threads == 0) {
-	  thg->thread = NULL;	/* Oops.. we were last!		*/
-
-	  if (verbose)
-	    sfprintf(sfstderr,"delete_thread(1b) thr->proc=%p pid=%d\n",
-		     thr->proc, thr->proc ? (int)thr->proc->pid : 0);
-	} else {
-
-	  /* Some threads left						*/
-
-	  if (verbose)
-	    sfprintf(sfstderr, "delete_thread(3) thr->proc=%p pid=%d\n",
-		     thr->proc, thr->proc ? (int)thr->proc->pid : 0);
-	}
+	if (verbose)
+	  sfprintf(sfstderr,"delete_thread() thr->proc=%p pid=%d OF=%d\n",
+		   thr->proc, thr->proc ? (int)thr->proc->pid : 0,
+		   thr->proc ? thr->proc->overfed : 0);
 
 	free(thr);
 }
@@ -456,7 +448,7 @@ void (*ce_fillin) __((struct threadgroup*, struct config_entry *));
 	 */
 	for (thg = thrg_root, thg_once = 1;
 	     thg_once || thg != thrg_root;
-	     thg = thg->next, thg_once = 0) {
+	     thg = thg->nextthg, thg_once = 0) {
 
 	  int thr_once;
 
@@ -639,17 +631,19 @@ web_detangle(vp, ok)
 	/* If it was in processing, remove process node binding.
 	   We do this only when we have reaped the channel program. */
 
+	struct thread *thr = vp->thread;
+
 	if (vp->proc)
 	  pick_next_vertex(vp->proc);
 	vp->proc = NULL;
 
-	if (vp->thread != NULL)
+	if (thr)
 	  unthread(vp);
 
 	/* The thread can now be EMPTY! */
 
-	if (vp->thread != NULL && vp->thread->vertices == NULL)
-	  delete_thread(vp->thread, ok);
+	if (thr && (thr->vertices == NULL))
+	  delete_thread(thr, ok);
 }
 
 static int vtx_mtime_cmp __((const void *, const void *));
@@ -1276,7 +1270,7 @@ idle_cleanup()
 	     thg_once || (thg != thrg_root);
 	     thg = nthg, thg_once = 0) {
 
-	  nthg = thg->next;
+	  nthg = thg->nextthg;
 
 	  if (thg->thread != NULL) {
 	    struct procinfo *p;
@@ -1431,7 +1425,7 @@ void thread_report(fp,mqmode)
 
 	for (thg = thrg_root;
 	     thg && (thg_once || thg != thrg_root);
-	     thg = thg->next) {
+	     thg = thg->nextthg) {
 
 	  int thr_once;
 
@@ -1605,7 +1599,7 @@ int thread_count_recipients()
 
 	for (thg = thrg_root, thg_once = 1;
 	     thg_once || thg != thrg_root;
-	     thg = thg->next, thg_once = 0) {
+	     thg = thg->nextthg, thg_once = 0) {
 
 	  int thr_once;
 	  int jobsum = 0;
