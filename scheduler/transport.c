@@ -185,18 +185,12 @@ feed_child(proc)
 	static char *cmdbuf = NULL;
 	static int cmdbufspc = 0;
 
-
-	if (flush_child(proc))
-	  /* Nothing written -> break out -- might not be an error! */
-	  return -1;
-
 	if (proc->pthread == NULL) {
 	  proc->state = CFSTATE_ERROR;
-	  return -1; /* Might be called without next process.. */
+	  return -1; /* BUG if called without next THREAD.. */
 	}
 	if (proc->pvertex == NULL) {
-	  proc->state = CFSTATE_ERROR;
-	  return -1; /* Might be called without next process.. */
+	  return 0; /* Might be called without next thing to process.. */
 	}
 	if (proc->pid <= 0 || proc->tofd < 0) {
 	  proc->state = CFSTATE_ERROR;
@@ -251,7 +245,6 @@ feed_child(proc)
 	if (verbose) {
 	  sfprintf(sfstdout,"feed: tofd=%d, chan='%s', proc=%p, vtx=%p, ",
 		 proc->tofd, proc->ch->name, proc, vtx);
-	  fflush(stdout);
 	}
 
 	if (vtx->cfp->vfpfn != NULL) {
@@ -270,8 +263,10 @@ feed_child(proc)
 	  }
 	}
 
-	vtx->proc = proc;    /* Flag that it is in processing */
-	vtx->ce_pending = 0; /* and clear the pending.. */
+	vtx->proc = proc;     /* Flag that it is in processing */
+	vtx->ce_pending  = 0; /* and clear the pending..       */
+
+	vtx->attempts   += 1;
 	
 	/* It was fed (to buffer), clear this flag.. */
 	proc->overfed += 1;
@@ -279,9 +274,10 @@ feed_child(proc)
 	if (verbose)
 	  sfprintf(sfstdout,"len=%d buf=%s", cmdlen, cmdbuf);
 
-	proc->feedtime = now;
-	if (vtx)
-	  vtx->attempts += 1; /* We may get it closed above.. */
+	mytime(&proc->feedtime);
+
+
+	pick_next_vertex(proc);
 
 	return flush_child(proc);
 }
@@ -326,13 +322,17 @@ ta_hungry(proc)
 
 	  if (proc->overfed > 0) return;
 
-	  for (;;) {
-
-	    if (!pick_next_vertex(proc, proc->pvertex))
-	      break;
+	  while (proc->pvertex && (proc->cmdlen == 0) &&
+		 proc->state == CFSTATE_STUFFING) {
+	    /* As long as:
+	       - we have next vertex to feed
+	       - there is no command buffer backlog
+	       - state stays in STUFFING
+	    */
 
 	    if (!feed_child(proc))
 	      return; /* If an error, bail out.. */
+
 	    if (proc->overfed > proc->thg->ce.overfeed)
 	      return; /* Or over limit ...       */
 
@@ -348,7 +348,7 @@ ta_hungry(proc)
 	  /* Next: either the thread changes, or
 	     the process moves into IDLE state */
 
-	  if (pick_next_thread(proc, proc->pthread)) {
+	  if (pick_next_thread(proc)) {
 	    struct thread *thr = proc->pthread;
 	    /* We have WORK ! */
 
@@ -362,7 +362,7 @@ ta_hungry(proc)
 	    proc->pthread = thr;
 
 	    thr->proc           = proc;
-	    thr->vertices->proc = proc;
+	    /* thr->vertices->proc = proc; */
 
 	    proc->state = CFSTATE_LARVA;
 	    goto cfstate_larva;
@@ -381,8 +381,8 @@ ta_hungry(proc)
 	    proc->cmdlen += 6;
 	  }
 	  proc->state = CFSTATE_IDLE;
-	  if (!flush_child(proc)) /* May flip the state to CFSTATE_ERROR */
-	    proc->overfed += 1;
+	  proc->overfed += 1;
+	  flush_child(proc);  /* May flip the state to CFSTATE_ERROR */
 	  return;
 
 	case CFSTATE_IDLE:

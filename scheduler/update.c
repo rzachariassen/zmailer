@@ -271,8 +271,9 @@ void unvertex(vp, justfree, ok)
 
 	if (vp->proc) {
 	  /* Somebody here, move it elsewere! */
-	  pick_next_vertex(vp->proc, vp);
-	  vp->proc = NULL;
+	  /* XXXX: This MAY happen -- expire() hits when some
+	     XXXX: thread is being processed...               */
+	  assert_pvertex_null(vp);
 	}
 
 	for (i = 0; i < SIZE_L; ++i) {
@@ -627,7 +628,7 @@ expire(vp, index)
 
 	if (index < 0) {
 	  /* Expire from the LAST index to the first, this way
-	     we won't do the mistake of referring indixes after
+	     we won't do the mistake of referring indices after
 	     they have been deleted.. */
 	  for (i = vp->ngroup -1; i >= 0; --i)
 	    expaux(vp, vp->index[i], emsg);
@@ -871,10 +872,15 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 		   "RETRYAT: proc=%p (S=%d OF=%d tofd=%d) vp=%p[%d] message='%s'\n",
 		   proc, (int)proc->state, proc->overfed, proc->tofd, vp, index, message);
 
+#if 0
 	if ((proc->state   == CFSTATE_LARVA) &&
 	    (proc->overfed == 1) &&
 	    (proc->tofd    >= 0))
 	  proc->state = CFSTATE_FINISHING;
+	/* That previous state change would mean a fork()ed sub-program
+	   has spontaneously decided to produce  retryat  state... */
+#endif
+
 	if ((proc->state   == CFSTATE_STUFFING) &&
 	    (proc->tofd    >= 0))
 	  proc->state = CFSTATE_FINISHING;
@@ -920,9 +926,7 @@ static int u_retryat(proc, vp, index, inum, offset, notary, message)
 #if 0
 	/* ``vp'' might become expired by  thread_reschedule() .. */
 	if (vp->proc) {
-	  /* Pick next, but don't feed it (yet)! */
-	  pick_next_vertex(vp->proc, vp);
-	  vp->proc = NULL;
+	  assert_pvertex_null(vp);
 	}
 #endif
 

@@ -277,7 +277,7 @@ struct config_entry *cep;
 
 /*
  * Pick next thread from the group which this process serves.
- * 
+ *
  * Result is  proc->pthread and proc->pvertex being updated to
  * new thread, and function returns 1.
  * If no new thread can be picked (all are active, and whatnot),
@@ -285,15 +285,15 @@ struct config_entry *cep;
  */
 
 int
-pick_next_thread(proc, thr0)
+pick_next_thread(proc)
      struct procinfo *proc;
-     struct thread *thr0;
 {
 	struct thread	    *thr;
+	struct thread       *thr0 = proc->pthread;
 	struct threadgroup  *thg  = proc->thg;
 	int once = 1;
 
-	if (thr0 && thr0->proc)
+	if (thr0 && thr0->proc != proc) /* Me ? */
 	  thr0->proc = NULL; /* Remove it */
 
 	proc->pthread = NULL;
@@ -616,6 +616,13 @@ struct vertex *vtx;
 	vtx->previtem = NULL;
 }
 
+void
+assert_pvertex_null(vtx)
+     struct vertex *vtx;
+{
+  if (vtx->thread->proc->pvertex == vtx) abort();
+}
+
 
 /*
  * Detach the vertex from its chains
@@ -632,9 +639,7 @@ web_detangle(vp, ok)
 
 	struct thread *thr = vp->thread;
 
-	if (vp->proc)
-	  pick_next_vertex(vp->proc, vp);
-	vp->proc = NULL;
+	assert_pvertex_null(vp);
 
 	if (thr)
 	  unthread(vp);
@@ -829,6 +834,7 @@ struct thread *thr;
 	  /* Clean vertices 'proc'-pointers,  randomize the
 	     order of thread vertices  (or sort by spool file
 	     mtime, if in AGEORDER..) */
+
 	  thread_vertex_shuffle(thr);
 
 	  thr->attempts += 1;
@@ -907,6 +913,10 @@ struct thread *thr;
 /*
  * pick_next_vertex() -- pick next free to process vertex in this thread
  *
+ * This is called *only* by  feed_child(), and  proc->vertex  directs
+ * then caller of feed_child() to tune the process state.
+ * (From STUFFING to FINISHING and possibly to IDLE.)
+ * 
  * - if (proc->pvertex != NULL) proc->pvertex = proc->pvertex->nextitem;
  * - return (proc->pvertex != NULL);
  *
@@ -915,15 +925,15 @@ struct thread *thr;
 /* Return 0 for errors, 1 for success; result is at  proc->pvertex */
 
 int
-pick_next_vertex(proc, vtx)
+pick_next_vertex(proc)
      struct procinfo *proc;
-     struct vertex *vtx;
 {
 	struct thread * thr = proc->pthread;
+	struct vertex * vtx = proc->pvertex;
 
 	if (verbose)
-	  sfprintf(sfstdout,"pick_next_vertex(proc=%p vtx=%p) proc->tofd=%d, thr=%p, pvtx=%p, jobs=%d OF=%d S=%d\n",
-		   proc, vtx, proc->tofd, thr, proc->pvertex,
+	  sfprintf(sfstdout,"pick_next_vertex(proc=%p) proc->tofd=%d, thr=%p, pvtx=%p, jobs=%d OF=%d S=%d\n",
+		   proc, proc->tofd, thr, proc->pvertex,
 		   thr ? thr->jobs : 0, proc->overfed, (int)proc->state);
 
 	if (proc->pvertex)
@@ -931,16 +941,18 @@ pick_next_vertex(proc, vtx)
 	if (vtx)
 	  vtx->proc = NULL;		/* Likewise */
 
-	if (proc->pid < 0 || proc->tofd < 0) {	/* "Jim, He is dead!"	*/
+	if (proc->pid < 0 || proc->tofd < 0) {	/* "He is dead, Jim!"	*/
+#if 0
 	  if (proc->pthread) {
 	    proc->pthread->proc = NULL;
 	    proc->pthread       = NULL;
 	  }
+#endif
 	  if (proc->pvertex) {
 	    proc->pvertex->proc = NULL;
 	    proc->pvertex       = NULL;
 	  }
-	  if (verbose) sfprintf(sfstdout," ... NONE, 'Jim, He is dead!'\n");
+	  if (verbose) sfprintf(sfstdout," ... NONE, 'He is dead, Jim!'\n");
 	  return 0;
 	}
 
@@ -1091,8 +1103,7 @@ time_t retrytime;
 
 
 /*
- * reschedule() operates WITHIN a thread, and moves vertices into
- * appropriately latter position in the queues.
+ * reschedule() operates WITHIN a thread, but does *not* move things!
  *
  */
 
@@ -1109,11 +1120,9 @@ reschedule(vp, factor, index)
 	struct threadgroup *thg = vp->thgrp;
 	struct config_entry *ce = &(thg->ce);
 
-#if 0 /* Hmm.. The reschedule() is called only when we have a reason
-	 to call it, doesn't it ?  */
-	if (thr->proc &&
-	    thr->proc->pthread == thr) return; /* IN PROCESSING! */
-#endif
+	/* Hmm.. The reschedule() is called only when we have a reason
+	   to call it, doesn't it ?  */
+	/* *** assert_pvertex_null(vp); *** */
 
 	/* find out when to retry */
 	mytime(&now);
@@ -1197,6 +1206,7 @@ reschedule(vp, factor, index)
 	  return;
 	}
 
+#if 0
 	/* unlink from the list of scheduled vertices */
 	unthread(vp);
 	/* NOW THE THREAD CAN BE WITHOUT ANY VERTEX ! (thr->jobs == 0 !)
@@ -1240,13 +1250,13 @@ reschedule(vp, factor, index)
 
 	/* Now set thread wakeup value same as first vertex wakeup */
 	thr->wakeup = thr->vertices->wakeup;
-
 #if 0
-	if (thr->wakeup > now  &&
-	    (thr->wakeup - sweepinterval) <= now)
+	if (thr->wakeup > now  && (thr->wakeup - sweepinterval) <= now)
 	  SALARM((u_int)(thr->wakeup - now));
 	else
 	  SALARM(sweepinterval/2);
+#endif
+
 #endif
 }
 
@@ -1494,9 +1504,8 @@ void thread_report(fp,mqmode)
 
 	    jobsum += thr->jobs;
 
-	    if (mqmode & MQ2MODE_FULL) {
+	    if (mqmode & MQ2MODE_FULL)
 	      sfprintf(fp,"R=%-2d A=%-2d", thr->jobs, thr->attempts);
-	    }
 
 	    ++cnt;
 	    if (thr->proc != NULL &&
