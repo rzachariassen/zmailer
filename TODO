@@ -23,10 +23,6 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   poorly ever since non-blocking connection was taken into use.
     (cured at 2.99.52 ??)
 
-- "./configure --without-rfc822-tabs"  does turn line-start TABs
-  to spaces, however there is no mechanism to turn line-start
-  SPACEs to TABs. (Place to do it is likely router/rfc822hdrs.c)
-
 - Configuration files, esp.   cf/aliases.cf   has controversy in it.
   Many people think it is broken (I tend to agree) - 940614/mea
 

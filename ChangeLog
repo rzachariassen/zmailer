@@ -1,5 +1,8 @@
 2000-01-23  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* lib/token.c, router/rfc822hdrs.c:
+	    Turn all header start spaces to optimized TABs plus spaces.
+
 	* smtpserver/smtpcmds.c:
 	    Now (!) people tell me that the most common
 	    M$ email clients are absolutely stupid, and won't be able

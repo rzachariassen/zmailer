@@ -299,7 +299,7 @@ fprintFold(fp, t, col, foldcol)
 		  while (len > 0 && isascii((*cp)&0xFF) && isspace((*cp)&0xFF))
 		    --len, ++cp;
 		  putc('\n', fp);
-		  for (col = 0; col + 8  < foldcol; col += 8)
+		  for (col = 0; col + 8 <= foldcol; col += 8)
 		    putc('\t', fp);
 		  for (;col < foldcol; ++col)
 		    putc(' ', fp);

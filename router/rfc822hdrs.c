@@ -427,19 +427,18 @@ hdr_print(h, fp)
 	if (h->h_stamp == BadHeader)
 	  sem = nilHeaderSemantics;
 
-	col = 1 + strlen(h->h_pname);
+	foldcol = col = 1 + strlen(h->h_pname);
 
 	fprintf(fp, "%s:", h->h_pname);
 
 	/* If it was pre-existing header, output all its pre-existing
 	   white-spaces now */
 
-	foldcol = 0; /* reusing for other purpose */
 	for (t = h->h_lines; t != NULL; t = t->t_next) {
 		const char *p = t->t_pname;
 		while (*p == ' ' || *p == '\t' ||
 		       *p == '\n' || *p == '\r') {
-		  putc(*p, fp);
+		  /* putc(*p, fp); */
 		  if (*p == ' ')
 		    ++col;
 		  else if (*p == '\t')
@@ -447,32 +446,39 @@ hdr_print(h, fp)
 		  else
 		    col = 0;
 		  ++p;
-		  ++foldcol;
 		}
 		if (*p != 0)
 		  break;
 		if (!t->t_next) /* Don't fold here ! */
 		  break;
 		col = 0;
-		putc('\n', fp);
-		foldcol = 0;
-	}
-	if (h->h_lines == 0) {
-		putc(' ', fp);
-		++col;
-		++foldcol;
+		/* putc('\n', fp); */
 	}
 
 	/* Fill to column 8 in all cases.. */
-	for ( ; col < 8; ++col) {
-	  putc(' ', fp);
-	  ++foldcol;
+	if (col < 8) col = 8;
+
+	/* always produces TABFULLY INDENTED headers, TA's
+	   may fold them to SPACEFULL if so desired.. */
+
+	hadspc = 0;
+	while (foldcol < col) {
+		int c2 = foldcol + 8 - (foldcol & 7);
+		if (c2 <= col) {
+		  putc('\t', fp);
+		  foldcol = c2;
+		} else {
+		  putc(' ', fp);
+		  foldcol += 1;
+		}
+		hadspc = 1;
 	}
 
-	if (!foldcol) {
-	  /* Always at least one space! */
-	  putc(' ', fp);
-	  ++col;
+	/* Always at least one space! */
+	if (h->h_lines == NULL  &&  !hadspc) {
+		putc(' ', fp);
+		++col;
+		++foldcol;
 	}
 
 	foldcol = col;
@@ -480,22 +486,23 @@ hdr_print(h, fp)
 	switch (sem) {
 	case Received:
 		if (h->h_lines != NULL) {
-		  /* Write out the original lines, if possible */
-		  int first = 1;
-		  for (t = h->h_lines; t != NULL; t = t->t_next) {
-		    const char *p = t->t_pname;
-		    int len = (int)(TOKENLEN(t));
-		    if (first) {
-		      while ((len > 0) &&
-			     (*p == ' '||*p == '\t'||*p == '\n'||*p == '\r'))
-			++p, --len;
-		      if (!len) continue;
-		      first = 0;
+		    /* Write out the original lines, if possible */
+		    int first = 1;
+		    for (t = h->h_lines; t != NULL; t = t->t_next) {
+			const char *p = t->t_pname;
+			int len = (int)(TOKENLEN(t));
+			if (first) {
+			    while ((len > 0) &&
+				   (*p == ' '||*p == '\t'||
+				    *p == '\n'||*p == '\r'))
+				++p, --len;
+			    if (!len) continue;
+			    first = 0;
+			}
+			fwrite(p, sizeof (char), len, fp);
+			putc('\n', fp);
 		    }
-		    fwrite(p, sizeof (char), len, fp);
-		    putc('\n', fp);
-		  }
-		  break;
+		    break;
 		}
 		hadspc = 1;
 		if ((ap = h->h_contents.r->r_from) != NULL) {
@@ -638,7 +645,7 @@ hdr_print(h, fp)
 
 		    /* Explicite prefold */
 		    putc('\n', fp);
-		    for (col = 0; col + 8  < foldcol; col += 8)
+		    for (col = 0; col + 8 <= foldcol; col += 8)
 		      putc('\t', fp);
 		    for (;col < foldcol; ++col)
 		      putc(' ', fp);
@@ -852,23 +859,23 @@ printAddress(fp, pp, col)
 static int ThisAddressLen(pp)
      register struct addr *pp;
 {
-  int len = 0;
-  token822 *t;
-  int hadSpecial = (pp->p_type == aSpecial);
+	int len = 0;
+	token822 *t;
+	int hadSpecial = (pp->p_type == aSpecial);
 
-  if (hadSpecial)
-    /* Ok, this one is aSpecial '<', next one is anAddress.
-       Scan as long as there are Addresses. */
-    ++len;
+	if (hadSpecial)
+	  /* Ok, this one is aSpecial '<', next one is anAddress.
+	     Scan as long as there are Addresses. */
+	  ++len;
 
-  for (pp = pp->p_next; pp && pp->p_type == anAddress; pp = pp->p_next)
-    for (t = pp->p_tokens; t != NULL; t = t->t_next)
-      len = fprintToken(NULL, t, len);
+	for (pp = pp->p_next; pp && pp->p_type == anAddress; pp = pp->p_next)
+	  for (t = pp->p_tokens; t != NULL; t = t->t_next)
+	    len = fprintToken(NULL, t, len);
 
-  if (hadSpecial) /* Just imply it.. */
-    len += 2;
+	if (hadSpecial) /* Just imply it.. */
+	  len += 2;
 
-  return len;
+	return len;
 }
 
 /* Return the column where the cursor is */
@@ -909,7 +916,7 @@ printLAddress(fp, pp, col, foldcol, canprefold)
 		    if (alen + col > hdr_width) {
 		      /* Ok, fold now */
 		      putc('\n', fp);
-		      for (col = 0; col+8  < foldcol; col += 8)
+		      for (col = 0; col+8  <= foldcol; col += 8)
 			putc('\t', fp);
 		      for (;col < foldcol; ++col)
 			putc(' ', fp);
@@ -977,7 +984,7 @@ printLAddress(fp, pp, col, foldcol, canprefold)
 			      && (fprintToken(NULL, t->t_next, col+2)
 				  >= hdr_width)))) {
 			  putc('\n', fp);
-			  for (col = 0; col+8  < foldcol; col += 8)
+			  for (col = 0; col+8 <= foldcol; col += 8)
 			    putc('\t', fp);
 			  for (;col < foldcol; ++col)
 			    putc(' ', fp);
