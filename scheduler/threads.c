@@ -1088,13 +1088,14 @@ time_t retrytime;
 	  sfprintf(sfstderr,"thread_reschedule() ch=%s ho=%s jobs=%d thr=%p proc=%p\n",
 		   thr->channel,thr->host,thr->jobs,thr,thr->proc);
 
-	/* If there are multiple kids working still, DON'T reschedule! */
-	if (thr->thrkids > 0 || !vtx) return 1;
 
 	if (!thr->thrkids && !thr->jobs) {
 	  delete_thread(thr);
 	  return 0;
 	}
+
+	/* If there are multiple kids working still, DON'T reschedule! */
+	if (thr->thrkids > 0 || !vtx) return 1;
 
 	/* find out when to retry */
 	mytime(&now);

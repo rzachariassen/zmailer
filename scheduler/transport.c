@@ -517,11 +517,6 @@ ta_hungry(proc)
 	    sfprintf(sfstdout, " ... IDLE THE PROCESS %p (of=%d).\n",
 		     proc, proc->overfed);
 
-	  /* Unlink me from the active chain */
-	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
-	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
-	  proc->pnext = proc->pprev = NULL;
-
 	  thr0 = proc->pthread;
 	  if (thr0) {
 
@@ -533,6 +528,10 @@ ta_hungry(proc)
 	    thr0->thrkids -= 1;
 
 	  }
+
+	  /* Unlink me from the active chain */
+	  if (proc->pnext) proc->pnext->pprev = proc->pprev;
+	  if (proc->pprev) proc->pprev->pnext = proc->pnext;
 
 	  proc->pnext = proc->thg->idleproc;
 	  if (proc->pnext) proc->pnext->pprev = proc;
