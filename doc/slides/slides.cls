@@ -304,16 +304,16 @@
 \else %%if@compatibility
 \def\ps@headings{%
   \def\ps@slide{%
-    \def\@oddfoot{\@mainsize\hfil{\SLIDEFOOT}}%
+    \def\@oddfoot{\@mainsize\hfil{\SLIDEFOOT}\hfil\theslide\hss}%
     \def\@oddhead{\@mainsize\centerline{\SLIDEHEAD}}%
     \def\@evenfoot{\@oddfoot}%
     \def\@evenhead{\@oddhead}}
 
   \def\ps@overlay{%
-    \def\@oddfoot{\@mainsize \mbox{}\hfil\hb@xt@3em{\theoverlay\hss}}%
-    \def\@oddhead{}%
-    \def\@evenfoot{\@mainsize \mbox{}\hfil\hb@xt@3em{\theoverlay\hss}}%
-    \def\@evenhead{}}
+    \def\@oddfoot{\@mainsize\hfil{\SLIDEFOOT}\hfil\theoverlay\hss}%
+    \def\@oddhead{\@mainsize\centerline{\SLIDEHEAD}}%
+    \def\@evenfoot{\@oddfoot}%
+    \def\@evenhead{\@oddhead}}
 
   \def\ps@note{%
     \def\@oddfoot{%
@@ -336,15 +336,15 @@
     \def\@evenhead{}}}
 \fi  %% if@compatibility
 \def\ps@plain{\def\ps@slide{%
- \def\@oddfoot{\@mainsize \hfil{\SLIDEFOOT}\hss}%
+ \def\@oddfoot{\@mainsize \hfil{\SLIDEFOOT}\hfil\theslide\hss}%
  \def\@oddhead{\@mainsize \hfil{\SLIDEHEAD}\hfil\hss}%
  \def\@evenfoot{\@oddfoot}%
  \def\@evenhead{\@oddhead}}
-\def\ps@overlay{\def\@oddfoot{\@mainsize
-   \mbox{}\hfil\hb@xt@3em{\theoverlay\hss}}%
- \def\@oddhead{}%
- \def\@evenfoot{\@mainsize \mbox{}\hfil\hb@xt@3em{\theoverlay\hss}}%
- \def\@evenhead{}}
+\def\ps@overlay{%
+ \def\@oddfoot{\@mainsize \hfil{\SLIDEFOOT}\hfil\theoverlay\hss}%
+ \def\@oddhead{\@mainsize \hfil{\SLIDEHEAD}\hss}%
+ \def\@evenfoot{\@oddfoot}%
+ \def\@evenhead{\@oddhead}}
 \def\ps@note{\def\@oddfoot{\@mainsize \hbox{}\hfil\thenote}%
  \def\@oddhead{}%
  \def\@evenfoot{\@mainsize \hbox{}\hfil\thenote}%
