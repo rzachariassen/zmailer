@@ -279,7 +279,8 @@ subdaemon_handler_rtr_input (state, peerdata)
 	  RTR->bufsize[idx]    = 0;
 	  RTR->sawhungry[idx]  = 0;
 	  peerdata->inlen      = 0;
-	  break;
+
+	  return 0; /* I _MAY_ be able to take more work! */
 	}
 
 	return EAGAIN;
