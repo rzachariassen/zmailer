@@ -274,12 +274,15 @@ fqdn_neighbour (domain, address, A) {
 		  db add expansions "$key.userdbmailname" 1
 		  nattr=$(newattribute $A privilege $priv)
 		  $(zapDSNnotify $nattr) ## FIXME!FIXME!
-		  a=$(echo -- "$a" |				\
-		      listaddresses -c "$a sender fqdn userdb mailname" \
-				    -e root			 |	\
-		      maprrouter $nattr "sender-fqdn-userdb-mailname"	\
-					"$address" "$plustail" "$athost") &&
-			  returns $a
+		  if a=$(echo -- "$a" |				\
+		      listexpand -c "$a sender fqdn userdb mailname" \
+				 -e root			 	\
+				$nattr "sender-fqdn-userdb-mailname"	\
+					"$address" "$plustail" "$athost")
+		  then
+		    postzapDSNnotify a
+		    returns $a
+		  fi
 		  return $a # error code return
 		fi
 		return 1
@@ -309,11 +312,15 @@ fqdn_neighbour (domain, address, A) {
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo -- "$a" |					\
-		    listaddresses	-c "$a fqdn alias expansion" 	\
-					-e root			 |	\
-		    maprrouter $nattr "fqdnalias" "$address"		\
-				"$plustail" "$athost") && returns $a
+		if a=$(echo -- "$a" |					\
+		       listexpand -c "$a fqdn alias expansion" 		\
+				-e root		 			\
+				$nattr "fqdnalias" "$address"		\
+				"$plustail" "$athost")
+		then
+		  postzapDSNnotify a
+		  returns $a
+		fi
 		return $a # error code return
 	  fi
 	else
@@ -326,11 +333,15 @@ fqdn_neighbour (domain, address, A) {
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo -- "$a" |					\
-		    listaddresses	-c "$a fqdn ldap expansion" 	\
-					-e root			 |	\
-		    maprrouter $nattr "fqdnalias" "$address"		\
-				"$plustail" "$athost") && returns $a
+		if a=$(echo -- "$a" |					\
+		       listexpand -c "$a fqdn ldap expansion" 		\
+				-e root					\
+				$nattr "fqdnalias" "$address"		\
+				"$plustail" "$athost")
+		then
+		  postzapDSNnotify a
+		  returns $a
+		fi
 		return $a # error code return
 	  fi
 	else
@@ -357,11 +368,15 @@ fqdn_neighbour (domain, address, A) {
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo -- "$a" |					\
-		    listaddresses	-c "$a fqdn+ alias expansion" 	\
-					-e root			 |	\
-		    maprrouter $nattr "fqdnalias" "$address"	\
-				"$pl2" "$athost") && returns $a
+		if a=$(echo -- "$a" |					\
+		       listexpand -c "$a fqdn+ alias expansion" 	\
+				-e root			 		\
+				$nattr "fqdnalias" "$address"		\
+				"$pl2" "$athost")
+		then
+		  postzapDSNnotify a
+		  returns $a
+		fi
 		return $a # error code return
 	      fi
 	    else
@@ -374,11 +389,15 @@ fqdn_neighbour (domain, address, A) {
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv)
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo -- "$a" |					\
-			 listaddresses	-c "$a fqdn+ ldap expansion" 	\
-					-e root			 |	\
-			 maprrouter $nattr "fqdnalias" "$address"	\
-				"$plustail" "$athost") && returns $a
+		if a=$(echo -- "$a" |					\
+			 listexpand	-c "$a fqdn+ ldap expansion" 	\
+					-e root			 	\
+					$nattr "fqdnalias" "$address"	\
+					"$plustail" "$athost")
+		then
+		  postzapDSNnotify a
+		  returns $a
+		fi
 		return $a # error code return
 	      fi
 	    else
@@ -502,11 +521,15 @@ fqdn_neighbour (domain, address, A) {
 		db add expansions "$key.fqdnaliases" 1
 		nattr=$(newattribute $A privilege $priv) &&
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo -- "$a" |					\
-		    listaddresses	-c "$a fqdn alias expansion" 	\
-					-e root			 |	\
+		if a=$(echo -- "$a" |					\
+		       listaddresses	-c "$a fqdn alias expansion" 	\
+					-e root			 	\
 		    maprrouter	$nattr "fqdnalias" "$address"		\
-				"$plustail" "$athost") && returns $a
+				"$plustail" "$athost")
+		then
+		  postzapDSNnotify a
+		  returns $a
+		fi
 		return $a # error code return
 	  fi
 	else
@@ -518,11 +541,15 @@ fqdn_neighbour (domain, address, A) {
 		db add expansions "$key.fqdnaliasesldap" 1
 		nattr=$(newattribute $A privilege $nobodypriv) &&
 		$(zapDSNnotify $nattr) ## FIXME!FIXME!
-		a=$(echo -- "$a" |					\
-		    listaddresses	-c "$a fqdn ldap expansion" 	\
-					-e root			 |	\
-		    maprrouter $nattr "fqdnalias" "$address"		\
-				"$plustail" "$athost") && returns $a
+		if a=$(echo -- "$a" |					\
+		       listexpand -c "$a fqdn ldap expansion" 		\
+				  -e root			 	\
+				$nattr "fqdnalias" "$address"		\
+				"$plustail" "$athost")
+		then
+		  postzapDSNnotify a
+		  returns $a
+		fi
 		return $a # error code return
 	  fi
 	else

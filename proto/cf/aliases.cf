@@ -294,12 +294,14 @@ routeuser (quad, plustail, domain) {
 		    nattr=$(newattribute $attr privilege $priv)
 		    $(zapDSNnotify $nattr expanded "$sender" "$user$domain")
 		    defer=''
-		    a=$(runas $priv cat "\1" | \
-		        listexpand -E "postmaster" -e root -p $priv	\
-				   -c ":include:\1 file expansion"	\
-				   "$nattr" "\1" "$host" "" "$domain" )
-		    postzapDSNnotify a
-		    returns $a
+		    if a=$(runas $priv cat "\1" | \
+		           listexpand -E "postmaster" -e root -p $priv	\
+					-c ":include:\1 file expansion"	\
+					"$nattr" "\1" "$host" "" "$domain" )
+		    then
+		      postzapDSNnotify a
+		      returns $a
+		    fi
 		  fi
 		else
 		  returns (((bitbucket "duplicate-$key-:include:" "$user" $attr)))
@@ -333,13 +335,14 @@ routeuser (quad, plustail, domain) {
 		nattr=$(newattribute $attr privilege $priv)
 		$(zapDSNnotify $nattr expanded "$sender" "$user$domain")
 
-		a=$(echo -- "$a" |				\
-		    listaddresses	-E "root"	\
-					-e "root"	\
-					-c "$user file expansion" | \
-		    maprrouter $nattr "$user" "$host" "$plustail" "$domain")
-		postzapDSNnotify a
-		returns $a
+		if a=$(echo -- "$a" |				\
+		       listexpand	-E "root" -e "root"		\
+					-c "$user file expansion"  \
+				$nattr "$user" "$host" "$plustail" "$domain")
+		then
+		  postzapDSNnotify a
+		  returns $a
+		fi
 	  fi
 	else
 	  returns (((bitbucket "duplicate-$key-aliases" "$user" $attr)))
@@ -399,17 +402,6 @@ routeuser (quad, plustail, domain) {
 	lcuser="$(recase -l -- "$user")"
 
 	l="$preowner$lcuser$postowner$domain"
-#	a="$MAILVAR/listrun/$lcuser"
-#	if [ -f "$a" ] && $(didexpand list) ; then
-#	    db add expansions "$key.list" 1
-#	    priv=$(getpriv "644" $priv "$a" maillist) &&
-#		return $(runas $priv cat "$a" | \
-#			 listaddresses	-E "$l" -e "$l"	\
-#					-c "$a file expansion" | \
-#		         maprrouter $(newattribute $attr privilege $priv \
-#					sender "$l")			 \
-#				"$a" "$host" "$plustail" "$domain")
-#	fi
 
 	a="$MAILVAR/lists/$lcuser"
 	nattr=()
@@ -420,12 +412,14 @@ routeuser (quad, plustail, domain) {
 	    if priv=$(getpriv "664" $priv "$a" maillist) &&
 	       nattr=$(newattribute $attr privilege $priv sender "$l") ; then
 		$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
-		a=$(runas $priv cat "$a" | \
-		    listexpand	-E "$l" -e "$l" -p $priv	\
+		if a=$(runas $priv cat "$a" | \
+		       listexpand -E "$l" -e "$l" -p $priv	\
 				-c "$a file expansion"		\
 				$nattr  "$a" "$host" "" "$domain" )
-		postzapDSNnotify a
-		returns $a
+		then
+		  postzapDSNnotify a
+		  returns $a
+		fi
 	    fi
 	  fi
 	else
@@ -434,7 +428,6 @@ routeuser (quad, plustail, domain) {
 
 	a="$MAILVAR/modlists/$lcuser"
 # /bin/ls -lL "$a"
-	# WARNING: THIS SHOULD USE  $(listexpand ...) FACILITY !
 	if $(didexpand modlists) ; then
 	  if [ -f "$a" ] ; then
 	    db add expansions "$key.modlists" 1
@@ -446,14 +439,14 @@ routeuser (quad, plustail, domain) {
 			$(zapDSNnotify $nattr delivered "$sender" "$lcuser$domain")
 
 			# echo -- "$l exists!" >> /dev/tty
-			a=$(runas $priv cat "$a" | \
-			    listaddresses	-E "$l$domain"		\
-						-e "$l"			\
-						-c "$a file expansion" |
-			    maprrouter $nattr "$a" "$host" "$plustail"	\
-					"$domain")
-			postzapDSNnotify a
-			returns $a
+			if  a=$(runas $priv cat "$a" | \
+				listexpand -E "$l$domain" -e "$l"	\
+					-c "$a file expansion"		\
+				     $nattr "$a" "$host" "$plustail" "$domain")
+			then
+			  postzapDSNnotify a
+			  returns $a
+			fi
 			;;
 	    esac
 	  fi
@@ -516,12 +509,13 @@ routeuser (quad, plustail, domain) {
 		    db add expansions "$key.unixgroup" 1
 		    nattr=$(newattribute $attr privilege $nobodypriv )
 		    $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
-		    a=$(echo -- "$a" |
-			listaddresses -e postmaster -c "$lcuser expansion" |
-			maprrouter $nattr $lcuser "$host" "$plustail" \
-				   "$domain")
-		    postzapDSNnotify a
-		    returns $a
+		    if a=$(echo -- "$a" |
+			   listexpand -e postmaster -c "$lcuser expansion" \
+				$nattr $lcuser "$host" "$plustail" "$domain")
+		    then
+		      postzapDSNnotify a
+		      returns $a
+		    fi
 		fi
 		;;
 	tfiss
@@ -646,11 +640,9 @@ fi
 		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
 		  a=$(echo -- "$a" |			\
-		      listaddresses	-E "root"	\
-					-e "root"	\
-					-c "$user alias expansion" | \
-		      maprrouter $nattr "$user" "$host" \
-					"$plustail" "$domain")
+		      listexpand	-E "root" -e "root"	\
+					-c "$user alias expansion"  \
+				$nattr "$user" "$host" "$plustail" "$domain")
 		  postzapDSNnotify a
 		  returns $a
 
@@ -669,11 +661,9 @@ fi
 		  $(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 
 		  a=$(echo -- "$a" |			\
-		      listaddresses	-E "root"	\
-					-e "root"	\
-					-c "$user alias expansion" | \
-		      maprrouter $nattr "$user" "$host" \
-					"$plustail2" "$domain")
+		      listexpand -E "root" -e "root"	\
+				-c "$user alias expansion" \
+				$nattr "$user" "$host" "$plustail2" "$domain")
 		  postzapDSNnotify a
 		  returns $a
 
@@ -734,8 +724,8 @@ fi
 		nattr=$(newattribute $attr privilege $priv)
 		$(zapDSNnotify $nattr expanded "$sender" "$lcuser$domain")
 		a=$(runas $priv cat "$forward" | \
-		    listaddresses -e "$user" -c "$forward .forward expansion" | \
-		    maprrouter $nattr "$forward" "$host" "$plustail" "$domain")
+		    listexpand -e "$user" -c "$forward .forward expansion" \
+			     $nattr "$forward" "$host" "$plustail" "$domain")
 		postzapDSNnotify a
 		returns $a
 	    fi

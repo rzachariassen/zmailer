@@ -1222,18 +1222,18 @@ run_listexpand(avl, il)
 		  ++errcount;
 		  if (hs.h_stamp == BadHeader) {
 		    if (erroraddress != NULL) {
-		      if (!isErrChannel) {
+		      if (!isErrChannel && !isErrorMsg) {
 			if (mfp == NULL) {
 			  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
 			    osiop = siofds[FILENO(mfp)];
 			    siofds[FILENO(mfp)] = NULL;
 			    fprintf(mfp, "channel error\n");
+			    fprintf(mfp, "errormsg\n");
 			    fprintf(mfp, "to <%s>\n", erroraddress);
-			    fprintf(mfp, "to <postmaster>\n");
+			    fprintf(mfp, "to <postoffice>\n");
 			    fprintf(mfp, "env-end\n");
 			    fprintf(mfp, "From: Error Channel <MAILER-DAEMON>\n");
 			    fprintf(mfp, "To: %s\n", erroraddress);
-			    fprintf(mfp, "Cc: The Post Office <postmaster>\n");
 			    fprintf(mfp, "Subject: Error in %s\n", comment);
 			    fprintf(mfp, "Precedence: junk\n\n");
 			    /* Print the report: */
@@ -1245,8 +1245,10 @@ run_listexpand(avl, il)
 			  hdr_errprint(e, &hs, mfp, comment);
 			}
 		      }
+#if 0
 		      if (errcount == 1) /* At the first time only! */
 			printf("%s\n", erroraddress);
+#endif
 		    }
 		    fprintf(stderr,"Input file line number %d:\n",linecnt);
 		    hdr_errprint(e, &hs, stderr, comment);
@@ -1277,7 +1279,10 @@ run_listexpand(avl, il)
 	dup2(fd2,0);	/* Return the fd to descriptor 0..		*/
 	close(fd2);	/* .. and discard the backup copy..		*/
 
-	if (okaddresses == 0) {	/* if the file is empty, use error address */
+	if (okaddresses == 0 && !isErrorMsg) {
+		/* If the file is empty, use error address ...
+		   Except when this is already an error mesage, say nothing! */
+
 
 		if (erroraddress == NULL)
 			erroraddress = "postmaster";
@@ -1309,22 +1314,22 @@ run_listexpand(avl, il)
 		    osiop = siofds[FILENO(mfp)];
 		    siofds[FILENO(mfp)] = NULL;
 		    fprintf(mfp, "channel error\n");
+		    fprintf(mfp, "errormsg\n");
 		    fprintf(mfp, "to <%s>\n", erroraddress);
-		    fprintf(mfp, "to <postmaster>\n");
+		    fprintf(mfp, "to <postoffice>\n");
 		    fprintf(mfp, "env-end\n");
 		    fprintf(mfp, "From: Error Channel <MAILER-DAEMON>\n");
 		    fprintf(mfp, "To: %s\n", erroraddress);
-		    fprintf(mfp, "Cc: The Post Office <postmaster>\n");
 		    fprintf(mfp, "Subject: Error in %s\n", comment);
 		    fprintf(mfp, "Precedence: junk\n\n");
 		    /* Print the report: */
 		    fprintf(mfp,"NO valid recipient addresses!\n");
-		    fprintf(mfp,"Verify source file protection/ownership/access-path\n");
+		    fprintf(mfp,"Verify source file protection/ownership/access-path, and content.\n");
 		    fprintf(mfp,"Current effective UID = %d\n", geteuid());
 		  }
 		} else { /* mfp != NULL */
 		  fprintf(mfp,"\nNO valid recipient addresses!\n");
-		  fprintf(mfp,"Verify source file protection/ownership/access-path\n");
+		  fprintf(mfp,"Verify source file protection/ownership/access-path, and content.\n");
 		  fprintf(mfp,"Current effective UID = %d\n", geteuid());
 		}
 	}
@@ -1524,6 +1529,7 @@ run_listexpand(avl, il)
 		   fwrite(buf,1,len+1,stdout); */
 	}
 
+#if 0
 	if (al == NULL) { /* ERROR! NO ADDRESSES! */
 	  int slen;
 	  al = conststring("error", 5);
@@ -1533,6 +1539,7 @@ run_listexpand(avl, il)
 	  al = ncons(al);
 	  al = ncons(al);
 	}
+#endif
 	UNGCPRO3;
 
 	if (errors_to != olderrors)
@@ -1695,18 +1702,18 @@ run_listaddresses(argc, argv)
 		  ++errcount;
 		  if (hs.h_stamp == BadHeader) {
 		    if (erroraddress != NULL) {
-		      if (!isErrChannel) {
+		      if (!isErrChannel && !isErrorMsg) {
 			if (mfp == NULL) {
 			  if ((mfp = mail_open(MSG_RFC822)) != NULL) {
 			    osiop = siofds[FILENO(mfp)];
 			    siofds[FILENO(mfp)] = NULL;
 			    fprintf(mfp, "channel error\n");
+			    fprintf(mfp, "errormsg\n");
 			    fprintf(mfp, "to <%s>\n", erroraddress);
-			    fprintf(mfp, "to <postmaster>\n");
+			    fprintf(mfp, "to <postoffice>\n");
 			    fprintf(mfp, "env-end\n");
 			    fprintf(mfp, "From: Error Channel <MAILER-DAEMON>\n");
 			    fprintf(mfp, "To: %s\n", erroraddress);
-			    fprintf(mfp, "Cc: The Post Office <postmaster>\n");
 			    fprintf(mfp, "Subject: Error in %s\n", comment);
 			    fprintf(mfp, "Precedence: junk\n\n");
 			    /* Print the report: */
@@ -1748,7 +1755,9 @@ run_listaddresses(argc, argv)
 	dup2(fd2,0);	/* Return the fd to descriptor 0..		*/
 	close(fd2);	/* .. and discard the backup copy..		*/
 
-	if (okaddresses == 0) {	/* if the file is empty, use error address */
+	if (okaddresses == 0 && !isErrorMsg) {
+		/* If the file is empty, use error address ...
+		   Except when this is already an error mesage, say nothing! */
 
 		if (erroraddress == NULL)
 			erroraddress = "postmaster";
@@ -1779,22 +1788,22 @@ run_listaddresses(argc, argv)
 		    osiop = siofds[FILENO(mfp)];
 		    siofds[FILENO(mfp)] = NULL;
 		    fprintf(mfp, "channel error\n");
+		    fprintf(mfp, "errormsg\n");
 		    fprintf(mfp, "to <%s>\n", erroraddress);
-		    fprintf(mfp, "to <postmaster>\n");
+		    fprintf(mfp, "to <postoffice>\n");
 		    fprintf(mfp, "env-end\n");
 		    fprintf(mfp, "From: Error Channel <MAILER-DAEMON>\n");
 		    fprintf(mfp, "To: %s\n", erroraddress);
-		    fprintf(mfp, "Cc: The Post Office <postmaster>\n");
 		    fprintf(mfp, "Subject: Error in %s\n", comment);
 		    fprintf(mfp, "Precedence: junk\n\n");
 		    /* Print the report: */
 		    fprintf(mfp,"NO valid recipient addresses!\n");
-		    fprintf(mfp,"Verify source file protection/ownership/access-path\n");
+		    fprintf(mfp,"Verify source file protection/ownership/access-path, and content.\n");
 		    fprintf(mfp,"Current effective UID = %d\n", geteuid());
 		  }
 		} else { /* mfp != NULL */
 		  fprintf(mfp,"\nNO valid recipient addresses!\n");
-		  fprintf(mfp,"Verify source file protection/ownership/access-path\n");
+		  fprintf(mfp,"Verify source file protection/ownership/access-path, and content.\n");
 		  fprintf(mfp,"Current effective UID = %d\n", geteuid());
 		}
 
