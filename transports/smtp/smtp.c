@@ -1282,9 +1282,10 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	}
 
 
-	if (SS->do_rset) {
+	if (SS->smtpfp) {
 
-	  if (SS->smtpfp) {
+	  /* SMTP is open, do we want to  RSET ? */
+	  if (SS->do_rset) {
 
 	    SS->rcptstates = 0;
 
@@ -1305,10 +1306,12 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      goto re_open;
 	    }
 	    r = EX_TEMPFAIL;
-	    
-	  } else {
-	    goto re_open;
 	  }
+	} else {
+
+	  /* SMTP isn't open, we re-open.. */
+	  goto re_open;
+
 	}
 
 	SS->rcptstates = 0;
@@ -2104,7 +2107,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  smtpwrite(SS, 0, "QUIT", -1, NULL);
 	  smtpclose(SS,1);
 	  if (logfp)
-	    fprintf(logfp, "%s#\t(closed SMTP channel - ``close_after_data'' mode.", logtag());
+	    fprintf(logfp, "%s#\t(closed SMTP channel - ``close_after_data'' mode)\n", logtag());
 	  retryat_time = 0;
 	}
 
@@ -3562,6 +3565,8 @@ smtpclose(SS, failure)
 	SS->TLS.sslmode = 0;
 #endif /* - HAVE_OPENSSL */
 
+	/* Purge former state */
+	smtp_flush(SS);
 }
 
 void
