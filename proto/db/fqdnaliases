@@ -9,5 +9,9 @@
 # Refreshing this mapping is done with program  MAILBIN/newfqdnaliases
 # (no way to call it via some non-MAILBIN program..)
 #
+# We support here entries like:
+#  local.part@domain.name: new@address
+#  @domain.name:	new2@address2
+#
 
 #matti.aarnio@utu.fi: matti.aarnio@tele.fi
