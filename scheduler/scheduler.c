@@ -149,8 +149,8 @@ static RETSIGTYPE sig_readcf __((int sig));
 
 extern char *strerror __((int err));
 
-static struct MIB_MtaEntry MIBMtaEntryLocal = {0,}
-struct MIB_MtaEntry *MIBMtaEntry = &MibMtaEntryLocal;
+static struct MIB_MtaEntry MIBMtaEntryLocal = {0,};
+struct MIB_MtaEntry *MIBMtaEntry = &MIBMtaEntryLocal;
 
 
 static int    timeserver_pid = 0;
