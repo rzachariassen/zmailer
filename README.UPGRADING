@@ -12,6 +12,11 @@
 	If you upgrade several steps at once, all the notes in between
 	are important, naturally!
 
+	ZMailer-2.99.52-patch2(cvs)
+		New TA specs file format item -- _CF_MIMESTRUCT ('M'),
+		which is a multi-line entity just like _CF_HEADERS ('m')
+		Make sure the level comparison given below is honoured.
+
 	ZMailer-2.99.52-pre5
 		Scheduler work-specs file has new attribute which both
 		scheduler, and TA programs check:  '@' a.k.a.  _CF_FORMAT.

@@ -1666,7 +1666,8 @@ slurp(fd, ino)
 		offset = (int*)erealloc(offset,sizeof(int)*offsetspace);
 	      }
 	      offset[i++] = s - contents;
-	      if (*s == _CF_MSGHEADERS) {
+	      if (*s == _CF_MSGHEADERS ||
+		  *s == _CF_MIMESTRUCT) {
 		/* find a \n\n combination */
 		while (!(*s == '\n' && *(s+1) == '\n'))
 		  if (s-contents < stbuf.st_size)

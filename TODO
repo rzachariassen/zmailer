@@ -14,24 +14,7 @@ Known/suspected bugs/Missing Features on current Zmailer sources
   encoding fails in some combinations ??  At nic.funet.fi
   I see it every 1-3 days..
 	Cured around 25-Jan-2000 ??? (for 2.99.52patch2)
-
-  This is classical: "Oh no, 1 day after previous, this happened:"
-
-      Jan 27 01:06:04 nic smtp[29847]: S11234AbQAZW4o: to=<Marc@mutz.com>, delay=00:09:20, xdelay=00:00:03, mailer=smtp, relay=mm.mailbank.com ([208.49.167.53|25|193.166.0.145|49747]), stat=error2 <<- HELO nic.funet.fi->> 500 Command unrecognized: "xa46~p@$@"500 Command unrecognized: ""500 Command unrecognized: " i"500 Command unrecognized: "Pk"500 Command unrecognized: ""500 Command unrecognized: "P"500 Command unrecognized: ""500 Command unrecognized: ""500 Command unrecognized:""500 Command unrecognized: ""500 Command unrecognized: ""500 Command cvt=QPJan 27 01:06:04 nic smtp[29847]: S11298AbQAZW4y: to=<Marc@mutz.com>, delay=00:09:10, xdelay=00:00:00, mailer=smtp, relay=mm.mailbank.com ([208.49.167.53|25|193.166.0.145|49747]), stat=deferred smtp; 500 (Server hung up on us! Cmd: MAIL From:<owner-linux-newbie-outgoing@vger.rutgers.edu>) cvt=NONE
-
-      Which means that EHLO/HELO procedure -> smtpwrite() is sensitive
-      to write buffer breaks in form form.
-
-	220 s6.mailbank.com ESMTP Sendmail 8.9.3/8.9.1; Thu, 27 Jan 2000 15:32:16 -0800 
-
-      Eh ???  Hmm...
-
-      A bit latter:
-
-      Jan 31 14:29:15 nic smtp[23675]: S7648AbQAaMVa: to=<cgantz@lucent.com>, delay=00:07:45, xdelay=00:04:35, mailer=smtp, relay=auemail1.lucent.com ([192.11.223.161|25|193.166.0.145|47264]), stat=deferred <<- .->> 451 timeout waiting for input during message collect500 Command unrecognized: "Received: from vger.rutgers.edu ([128.6.190.2]:23297 "EHLO vger.rutgers.edu""500 Command unrecognized: "       ident: "NO-IDENT-SERVICE[2]" smtp-auth: <none> TLS-CIPHER: <none>)"500 Command unrecognized: "  by nic.funet.fi with ESMTP id <S7648AbQAaMVa>;"500 Command unrecognized: "      Mon, 31 Jan 2000 14:21:30 + cvt=NONE
-
-      Which suspicuously points to data-dot buffering failure.
-
+	Cured around 02-Feb-2000 ???
 
 - smtp TA (all TAs ??) leak memory in MIME header processing.
   (or something else ?)
@@ -144,6 +127,8 @@ transports/smtp:
 	into dense concise format which doesn't need prerescan of
 	the message *body* for every delivery attempt in case some
 	"in-flight" data conversions are desired.
+	(2.99.52patch2 prepared for it: _CF_MIMESTRUCT block defined
+	 for the TA-specfile.)
 
 	- transporters: When decoding MIME-QP the final line MAY be of
 		".....=", which means there is no final NEWLINE.

@@ -28,7 +28,8 @@ markoff(filecontents, bytesleft, offsets, filename)
 	        *s++ = '\0';
 		if (s < eoc) {
 		    offsets[++n] = s - filecontents;
-		    if (*s == _CF_MSGHEADERS) {
+		    if (*s == _CF_MSGHEADERS ||
+			*s == _CF_MIMESTRUCT) {
 			/* terminate at a \n\n combination */
 			while (s+1 < eoc) {
 			    if (*s == '\n' && *(s+1) == '\n')

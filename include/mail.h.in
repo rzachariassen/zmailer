@@ -50,6 +50,7 @@
 #define _CF_ERRORADDR	'e'	/* return address for error messages */
 #define _CF_DIAGNOSTIC	'd'	/* diagnostic message for ctlfile offset */
 #define _CF_MSGHEADERS	'm'	/* message header for preceeding recipients */
+#define _CF_MIMESTRUCT	'M'	/* compacted MIME structure data for message */
 #define _CF_LOGIDENT	'l'	/* identification string for log entries */
 #define _CF_OBSOLETES	'x'	/* message id of message obsoleted by this */
 #define _CF_VERBOSE	'v'	/* log file name for verbose log (mail -v) */
@@ -60,7 +61,9 @@
 
 #define _CF_FORMAT_TA_PID	0x00000001 /* At 'r' or 'X' lines */
 #define _CF_FORMAT_DELAY1	0x00000002 /* At 'r' or 'X' lines */
-#define _CF_FORMAT_KNOWN_SET (_CF_FORMAT_DELAY1|_CF_FORMAT_TA_PID)
+#define _CF_FORMAT_MIMESTRUCT   0x00000004 /* The 'M' block       */
+#define _CF_FORMAT_KNOWN_SET (_CF_FORMAT_DELAY1|_CF_FORMAT_TA_PID | \
+			      _CF_FORMAT_MIMESTRUCT)
 
 /* The following characters may appear in the second column after most _CF_* */
 #define	_CFTAG_NORMAL	' '	/* what the router sets it to be */
