@@ -455,7 +455,7 @@ int insecure;
 	smtp_tarpit(SS);
 	type(SS, 501, m517, "where is <...> in this: %s", cp);
 	return -1;
-    } else if (*cp != '<' && !sloppy) {
+    } else if (*cp != '<' && !sloppy && (strict_protocol >= 0)) {
 	smtp_tarpit(SS);
 	type(SS, 501, m517, "strangeness between ':' and '<': %s", cp);
 	return -1;
@@ -1125,7 +1125,7 @@ const char *buf, *cp;
 	smtp_tarpit(SS);
 	type(SS, 501, m513, "where is <...> in this?  %s", cp);
 	return -1;
-    } else if (*cp != '<' && !sloppy) {
+    } else if (*cp != '<' && !sloppy && (strict_protocol >= 0)) {
 	smtp_tarpit(SS);
 	type(SS, 501, m513, "strangeness between ':' and '<': %s", cp);
 	return -1;
