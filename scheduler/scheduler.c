@@ -1129,7 +1129,7 @@ static int sync_cfps(oldcfp, newcfp)
      struct ctlfile *oldcfp, *newcfp;
 {
 	struct vertex *ovp,  *nvp;
-	struct vertex *novp, *nnvp, *vp;
+	struct vertex *novp, *nnvp;
 
 	/* Scan both files thru their   vp->next[L_CTLFILE]  vertex chains.
 	   If oldcfp has things that newcfp does not have, remove those from
@@ -1161,6 +1161,8 @@ static int sync_cfps(oldcfp, newcfp)
 #define VTXMATCH(ovp,nvp) (((ovp)->orig[L_CHANNEL] == (nvp)->orig[L_CHANNEL]) && ((ovp)->orig[L_HOST] == (nvp)->orig[L_HOST]))
 
 	  if (!VTXMATCH(ovp,nvp)) {
+
+	    struct vertex *vp;
 
 	    /* Uugh... Does not match :-( */
 
@@ -1215,7 +1217,7 @@ static int sync_cfps(oldcfp, newcfp)
 	while (ovp) {
 	  novp = ovp->next[L_CTLFILE];
 
-	  MIBMtaEntry->mtaStoredRecipients -= vp->ngroup;
+	  MIBMtaEntry->mtaStoredRecipients -= ovp->ngroup;
 	  ovp->ngroup = 0;
 	  unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
 
