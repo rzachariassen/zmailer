@@ -1,6 +1,11 @@
 2003-07-23  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/scheduler.c:
+	    Found likely reason for scheduler's file descriptor leakage..
+	    The sfio-package does something wrong in odd case used in
+	    log-file re-opening, and filehandle recycling.
+
+	* scheduler/scheduler.c:
 	    Don't unlink the message file in case its opening fails.
 	    (Like when scheduler/system has ran out of fd's)
 

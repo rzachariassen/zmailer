@@ -202,8 +202,8 @@ int sig;
 	  sfset(sfstderr, SF_LINE, 1);
 	}
 	if (statusfn != NULL && statuslog != NULL) {
-	  sfsync(statuslog);
-	  if (sfopen(statuslog, statusfn, "a") != statuslog) {
+	  sfclose(statuslog);
+	  if (sfopen(NULL, statusfn, "a") != statuslog) {
 	    sfprintf(sfstderr,"%s: cannot open statuslog: %s, errno=%d\n", progname, statusfn, errno);
 	    return -1;
 	  }
