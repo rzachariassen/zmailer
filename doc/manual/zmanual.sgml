@@ -3,7 +3,7 @@
 <!--                                                          -->
 <!--  Copyright Matti Aarnio                                  -->
 <!--  <mea@nic.funet.fi>                                      -->
-<!--  1995-2000                                               -->
+<!--  1995-2001                                               -->
 <!--                                                          -->
 <!-- -------------------------------------------------------- -->
 
@@ -11,7 +11,6 @@
 
 <!ENTITY % local.notation.class "| PDF">
 <!NOTATION PDF SYSTEM "PDF">
-
 
 <!ENTITY ZManVersion     "v1.99.21">
 
@@ -25,7 +24,6 @@
 <!ENTITY ZWHAT           SYSTEM "z-what.txt">
 <!ENTITY % ZGEXTDEF      SYSTEM "z-gext.txt">
 %ZGEXTDEF;
-
 
 <!ENTITY ZMAN-COVER      SYSTEM "zmanual-cover.sgml">
 <!ENTITY ZTUTORIAL       SYSTEM "ztutorial.sgml">
@@ -59,6 +57,8 @@
 <!ENTITY ZAPP-SSL-LANG   SYSTEM "zapp-ssl-lang.sgml">
 <!ENTITY ZAPP-RFC821     SYSTEM "zapp-rfc821.sgml">
 <!ENTITY ZAPP-RFC822     SYSTEM "zapp-rfc822.sgml">
+
+<!ENTITY genindex.sgm SYSTEM "genindex.sgm">
 
 <!ENTITY % isopub   PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN">
 <!ENTITY % isolat1  PUBLIC "ISO 8879:1986//ENTITIES Added Latin 1//EN">
@@ -102,4 +102,9 @@
 
 <!-- \appendix								-->
 &ZAPPENDICES;
+
+&genindex.sgm;	<!-- Put this after the end tag of the last chapter or	-->
+		<!-- appendix, or wherever you want the index to appear.-->
+		<!-- It must be a valid location for an index.		-->
+
 </BOOK>

@@ -364,7 +364,7 @@ directories.   The configurations will still need editing! See below.
 The <COMMAND>post-install</> handles important activity in tracking the
 base versions of configuration files by storing MD5 checksums of original
 files with <FILENAME>.md5</> suffix tagged to them into their original
-location (<FILENAME CLASS=DIRECTORY>proto/</> subdirectories).
+location (<FILENAME CLASS="DIRECTORY">proto/</> subdirectories).
 This way when sysadmin changes something, the new run of
 <COMMAND>post-install</> will detect the changes and not write over such
 file.
@@ -428,6 +428,26 @@ or in case the default guessing didn't get it right:
 This section describes the configuration in short. More detailed information 
 can be found in section FIXME! FIXME! xxxxx....
 </PARA>
+
+<SECT2><TITLE><FILENAME>zmailer.conf</></>
+<PARA>
+The <FILENAME>zmailer.conf</> file carries various so called
+``ZMailer Environment'' configuration variables.
+</PARA>
+<PARA>
+In following we refer to those often in style of:
+<SCREEN>
+  $MAILVAR   $MAILSHARE   ...
+</SCREEN>
+Which essentially means expanding in Bourne-shell like manner given
+<EMPHASIS>ZENV-variable</> from this file.
+</PARA>
+<PARA>
+The location of this file is defined at system configuration, originally
+it was at: <FILENAME>/etc/zmailer.conf</>, but these days more often
+at the <FILENAME CLASS="DIRECTORY">$<VARNAME>MAILVAR</>/</>.
+</PARA>
+</SECT2>
 
 <SECT2><TITLE><FILENAME>/etc/group</></>
 <!-- <INDEXTERM><PRIMARY>build</><SECONDARY><FILENAME>/etc/group</> entries</></>
@@ -588,9 +608,15 @@ so get out of this by hitting EOF, or type <USERINPUT>exit</>.
 
 </SECT2>
 
-<SECT2><TITLE>The Router Database Files</>
-<!-- \index{build!config!router-databases}    \index{build!config!forms files}%
-     \index{configuration!forms files} \index{configuration!databases}    -->
+<SECT2 ID="zins-router-db-files"><TITLE>The Router Database Files</>
+<INDEXTERM ID="build.config.router-databases.1">
+<PRIMARY>build</><secondary>config</><tertiary>router-databases</></>
+<INDEXTERM ID="build.config.router-databases.2">
+<PRIMARY>build</><secondary>config</><tertiary>forms files</></>
+<INDEXTERM ID="build.config.router-databases.3">
+<PRIMARY>configuration</><secondary>forms files</></>
+<INDEXTERM ID="build.config.router-databases.4">
+<PRIMARY>configuration</><secondary>databases</></>
 
 <PARA>
 Now you should merge, replace, and very least check the default database
@@ -598,9 +624,11 @@ and forms files against your previous setup.
 </PARA>
 
 <PARA>
-Pay particular attention to the following items:
-FIXME! FIXME! (changed somewhen from itemized list to subsections, I think)
-<EMPHASIS>$MAILBAR/db/dbases.conf configuration file !!</>
+In older systems users had fixed choices on which databases to have
+at the <COMMAND>router</> subsystem for which looked up relation.
+Newer systems have <FILENAME>$<VARNAME>MAILBAR</>/db/dbases.conf</>
+configuration file to tell the association of database to lookup relations,
+and also the source files.
 </PARA>
 
 <SECT3><TITLE><FILENAME>$MAILBIN/zmailer</> script</>
@@ -610,6 +638,88 @@ You may want to add a symbolic link from some directory in your path
 to <FILENAME>$<VARNAME>MAILBIN</>/zmailer</>, if you don't already have this.
 I put this link in <FILENAME CLASS="DIRECTORY">/usr/local/sbin</>.
 </PARA>
+
+<PARA>
+This script is skeleton driver for lots of things in the ZMailer,
+including <EMPHASIS>the not so small a feat</> of acting as SysV-Init's
+init-script as well.
+</PARA>
+</SECT3>
+
+<SECT3><TITLE><FILENAME>$MAILVAR/db/dbases.conf</> file</>
+
+<PARA>
+As mentioned above, this file configures (when exists) database lookup
+functions versus actual backend databases.
+</PARA>
+
+<PARA>
+With this file one can have e.g. multiple <EMPHASIS>aliases</> databases
+which are bound together in pre-determined query order (first matcher wins).
+</PARA>
+
+<PARA>
+This configuration file is used to translate a semi-vague idea
+about what database sources (in what forms) are mapped together
+under which lookup names, and what format they are, etc..
+</PARA>
+
+<PARA>
+This is used by  ``<COMMAND>zmailer newdb</>''  command to generate
+all databases described here, and to produce relevant  <FILENAME>.zmsh</>
+scripts for the router to use things.
+The  ``<COMMAND>zmailer newdb</>'' invocation does not mandate router
+restart in case the database definitions have not changed; reverse is true:
+If definitions are added/modified/removed,
+the router <EMPHASIS ROLE=BOLD>must</> be restarted!
+</PARA>
+
+<PARA>
+<EMPHASIS>When you use ``<COMMAND>zmailer newdb</>'' command, you recompile
+all databases defined in the <FILENAME>dbases.conf</> file -- or if you don't
+have that file, then all databases listed below, as creation/update of those
+are the system defaults.</EMPHASIS>
+</PARA>
+
+<PARA>
+For more complete example, see the default boilerplate version of this file.
+</PARA>
+
+
+<FIGURE ID="fig.inst.dbases.conf" PGWIDE="1" FLOAT="1">
+<TITLE>Sample of ``<FILENAME>$<VARNAME>MAILVAR</>/db/dbases.conf</>'' file</TITLE>
+<SCREEN>
+
+#|Fields:
+#|     relation-name
+#|         dbtype(,subtype)
+#|              dbpriv control data (or "-")
+#|                  newdb_compile_options (-a for aliases!)
+#|                     dbfile (or "-")
+#|                         dbflags (or "-") ...
+#|
+#| The  dbtype  can be "magic" '$DBTYPE', or any other valid database
+#| type for the Router.  Somewhat magic treatment (newdb runs) are
+#| done when the dbtype is any of: *DBTYPE/dbm/gdbm/ndbm/btree
+#|
+#| The "dbfile" need not be located underneath of $MAILVAR, as long as
+#| it is in system local filesystem (for performance reasons.)  E.g.
+#| one can place one of e.g. aliases files to some persons directory.
+#|
+
+aliases     $DBTYPE 0:0:644    -la $MAILVAR/db/aliases     -lm
+aliases     $DBTYPE majordomo:0:644 -la /opt/Majordomo/md-aliases -lm
+
+fqdnaliases $DBTYPE root:0:644 -la $MAILVAR/db/fqdnaliases -lm
+userdb      $DBTYPE root:0:644 -la $MAILVAR/db/userdb      -lm
+
+routesdb    $DBTYPE -          -l  $MAILVAR/db/routes      -lm -d pathalias
+thishost    $DBTYPE -          -l  $MAILVAR/db/localnames  -lm -d pathalias
+
+</SCREEN>
+</FIGURE>
+
+
 </SECT3>
 
 <SECT3><TITLE><FILENAME>$MAILVAR/db/aliases</> file</>
@@ -641,8 +751,10 @@ exact numbers vary, of course...
 </PARA>
 
 <PARA>
-See also IETF's RFC 2142: ``Mailbox Names for Common Services, Roles and
-Functions'' (file <FILENAME>doc/rfc/rfc2142.txt</>)
+See also IETF's 
+<ULINK URL="http://www.ietf.org/rfc/rfc2142.txt"><CITETITLE>RFC 2142:
+``Mailbox Names for Common Services, Roles and Functions''</CITETITLE></ULINK>
+(file <FILENAME>doc/rfc/rfc2142.txt</>)
 for other suggested aliases you may need. 
 </PARA>
 
@@ -665,7 +777,7 @@ in this file, to indicate everything under some subdomain.
 </PARA>
 
 <PARA>
-With the sample config files for Zmailer-2.98, and latter,
+With the sample config files for ZMailer-2.98, and latter,
 this <FILENAME>localnames</> is actually a mapping of those various
 names to the desired forms of the canonic name, thus an example as seen
 in figure <XREF LINKEND="fig.inst.localnames">.
@@ -1010,22 +1122,22 @@ local/*
 </FIGURE>
 
 <PARA>
-There are three variants of the ``command='' entry:
+There are three variants of the ``<FILENAME>command=</>'' entry:
 <VARIABLELIST TERMLENGTH="99">
 <VARLISTENTRY>
-<TERM>command="mailbox -8"</TERM>
+<TERM><FILENAME>command="mailbox -8"</></TERM>
 <LISTITEM><PARA>
 The normal ZMailer <COMMAND>mailbox</>(8) channel program.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>command="sm -8c $channel procm"</TERM>
+<TERM><FILENAME>command="sm -8c $channel procm"</></TERM>
 <LISTITEM><PARA>
 Variant for running <APPLICATION>procmail</>.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
-<TERM>command="sm -8c $channel cyrus"</TERM>
+<TERM><FILENAME>command="sm -8c $channel cyrus"</></TERM>
 <LISTITEM><PARA>
 Variant for using <APPLICATION>CMU Cyrus</> message store server.
 </PARA></LISTITEM></VARLISTENTRY>
@@ -1481,6 +1593,18 @@ Everything else is runtime relocatable by means of using
 
 <PARA>
 Default: <FILENAME>/etc/zmailer.conf</>
+</PARA>
+
+<PARA>
+Lots of <ENVAR>ZCONFIG</> environment variables are pre-set from values
+present in pre-existing file.
+</PARA>
+
+<PARA>
+When environment variable <ENVAR>ZCONFIG</> is set and exported to the
+<COMMAND>./configure</> script, use of ``<OPTION>&dd;with-zconfig=no</>''
+will set the location of the file, but prevents preload of various values
+from it to the auto-configuration environment.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1520,9 +1644,10 @@ in case there is no previously created postoffice directory.
 <TERM><OPTION>&dd;with-mailbin=/DIR/PATH</OPTION></TERM>
 <LISTITEM><PARA>
 These are overrides for values derived from  <OPTION>&dd;prefix=/DIR</>
-option.</PARA>
+option, or possibly preloaded from <ENVAR>ZCONFIG</> file.</PARA>
+
 <PARA><VARNAME>MAILSHARE</> = "$PREFIX", <VARNAME>MAILVAR</> = "$PREFIX",
-but the last is <FILENAME>MAILBIN</> = "$PREFIX/bin".
+but <FILENAME>MAILBIN</> = "$PREFIX/bin".
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1560,6 +1685,10 @@ Obsolete option regarding providing into in ZENV variable
 to yield system internal names automagically for the SMTP
 transport channel uses, and also for the router to see,
 if destination IP address is local at the system.
+</PARA><PARA>
+Usage of this option may become necessary at load-balance clusters,
+but even then, setting the value to the <ENVAR>ZCONFIG</> file is
+easier than pre-configuring them.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1635,6 +1764,13 @@ Special overrider for linkage library directory of LDAP
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
+<TERM><OPTION>&dd;disable-pam</OPTION></TERM>
+<LISTITEM><PARA>
+Disable PAM(3) facility from becoming autoconfigured even when
+its API headers and libraries are present.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
 <TERM><OPTION>&dd;without-fsync</OPTION></TERM>
 <LISTITEM><PARA>
 At systems where the local filesystem is log-based/journaling,
@@ -1673,6 +1809,13 @@ things, this generates those.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
+<TERM><OPTION>&dd;without-maillock</OPTION></TERM>
+<LISTITEM><PARA>
+Don't use maillock(3) even if system has it.
+(Solaris maillock is ok, some early Linux versions weren't..)
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
 <TERM><OPTION>&dd;without-rfc822-tabs</OPTION></TERM>
 <LISTITEM><PARA>
 Some systems dislike getting RFC-822 headers with form of:
@@ -1681,6 +1824,11 @@ Some systems dislike getting RFC-822 headers with form of:
 </SCREEN>
 With this option, no TABs are used and instead "ordinary"
 space character is used.
+</PARA><PARA>
+In real life, this feature is superceded by the router to
+<EMPHASIS>always</> <EMPHASIS>TABifying</> all headers, and
+the transport-agent header write-out to <EMPHASIS>untabifying</>
+them, if ZENV variable <VARNAME>RFC822TABS=</> has value ``0''.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1710,8 +1858,30 @@ than the buffer-cache works at <FUNCTION>read</>()/<FUNCTION>write</>() blocks.
 
 <PARA>
 This was default for a while, however most systems don't
-have really well-behaved munmap()s :-/
+have really well-behaved <FUNCTION>munmap</>()s :-/
 (Perhaps IBM AIX is the only exception ?)
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><OPTION>&dd;with-mboxquotacheck</OPTION></TERM>
+<LISTITEM><PARA>
+Set 'CHECK_MB_SIZE' #define for mailbox.c compilation, and expect
+<FUNCTION>checkmbsize</>() function to be found via
+<OPTION>&dd;with-generic-lib=</> referred library.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><OPTION>&dd;with-privateauth"</OPTION></TERM>
+<LISTITEM><PARA>
+Use ``<FILENAME CLASS="DIRECTORY">private/</>'' subdirectory in a part of
+<COMMAND>smtpserver</> program compilation.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><OPTION>&dd;with-privatembox"</OPTION></TERM>
+<LISTITEM><PARA>
+Use ``<FILENAME CLASS="DIRECTORY">private/</>'' subdirectory in a part of
+<COMMAND>mailbox</> program compilation.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1727,6 +1897,14 @@ programs.
 <PARA>
 These programs use getpwnam() libary call to look up various customer
 usernames to whatever the system needs them for.
+</PARA><PARA>
+For ZMailer needs the library must support userids:
+<ITEMIZEDLIST>
+<LISTITEM><PARA>root</></>
+<LISTITEM><PARA>daemon, or daemons</></>
+<LISTITEM><PARA>nobody</></>
+</ITEMIZEDLIST>
+and whatever others your local system magic needs.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
@@ -1737,6 +1915,26 @@ in all program compilations throughout the package.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY>
+<TERM><OPTION>&dd;with-generic-library="-L/..."</OPTION></TERM>
+<LISTITEM><PARA>
+This parameter allows ubiquitous ``<OPTION>-L/...</>'' options to be used
+in all program linkages throughout the package.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
+<TERM><OPTION>&dd;with-openssl</OPTION></TERM>
+<!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
+<TERM><OPTION>&dd;with-openssl-prefix="/dir/prefix"</OPTION></TERM>
+<!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
+<TERM><OPTION>&dd;with-openssl-include="/dir/incl"</OPTION></TERM>
+<!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
+<TERM><OPTION>&dd;with-openssl-lib="/dir/lib"</OPTION></TERM>
+<LISTITEM><PARA>
+Search for, and use OpenSSL, if it can be found.
+(For optional in and outbound SMTP traffic encryption on the Internet.)
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY>
 <TERM><OPTION>&dd;with-whoson</OPTION></TERM>
 <!-- <LISTITEM></LISTITEM></VARLISTENTRY><VARLISTENTRY> -->
 <TERM><OPTION>&dd;with-whoson="/dir/prefix"</OPTION></TERM>
@@ -1744,14 +1942,6 @@ in all program compilations throughout the package.
 This does explicite integration with ``<APPLICATION>whoson</>'' server; see
 the ``<FILENAME>whoson-*.tar.gz</>'' file in
 the ``<FILENAME CLASS="DIRECTORY">contrib/</>'' subdirectory.
-</PARA><PARA>
-For ZMailer needs the library must support userids:
-<ITEMIZEDLIST>
-<LISTITEM><PARA>root</></>
-<LISTITEM><PARA>daemon, or daemons</></>
-<LISTITEM><PARA>nobody</></>
-</ITEMIZEDLIST>
-and whatever others your local system magic needs.
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 

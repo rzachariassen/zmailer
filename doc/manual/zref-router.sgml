@@ -1,20 +1,20 @@
 <CHAPTER ID="ZREF-ROUTER"><?dbhtml filename="zref-router.html">
-<TITLE><EMPHASIS>Router</></TITLE>
+<TITLE><COMMAND>Router</></TITLE>
 
 <PARA>
-The <EMPHASIS>router</> daemon makes all decisions affecting 
+The <COMMAND>router</> daemon makes all decisions affecting 
 the processing of messages in ZMailer.
 </PARA>
 
 <PARA>
 A mail message is submitted by placing it in a file in the
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/router/</> directory.
-The  <EMPHASIS>router</> frequently scans this directory for new 
+The  <COMMAND>router</> frequently scans this directory for new 
 files and will lock and process them as it finds them. 
 The result is a message control file that gets linked into 
 the <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/scheduler/</> and 
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/transport/</>
-directories for use by the <EMPHASIS>scheduler</> in the next step
+directories for use by the <COMMAND>scheduler</> in the next step
 of message processing.
 The original message file is then moved to the 
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/queue/</>
@@ -22,113 +22,127 @@ directory.
 </PARA>
 
 <PARA>
-The <EMPHASIS>router</>'s behaviour is controlled by a configuration
+The <COMMAND>router</>'s behaviour is controlled by a configuration
 file read at startup.
-It is really a  <EMPHASIS>zmsh</>(1) script that uses facilities provided 
-builtin to the <EMPHASIS>router</>. 
+It is really a  <COMMAND>zmsh</>(1) script that uses facilities provided 
+builtin to the <COMMAND>router</>. 
 </PARA>
 
-<PARA>
-Usage:
-</PARA>
+<VARIABLELIST>
+<VARLISTENTRY><TERM>Usage:</TERM><LISTITEM>
 
 <PARA>
 Invoking router without any arguments will do nothing (except make it read
 its configuration file and promptly exit).
 The normal startup method is to run the <COMMAND>zmailer</>(1) script, as
 in ``<COMMAND>zmailer router</>''.
-This will start the <EMPHASIS>router</> as a daemon and kill the previous 
-incarnation of the <EMPHASIS>router</>.
+This will start the <COMMAND>router</> as a daemon and kill the previous 
+incarnation of the <COMMAND>router</>.
 </PARA>
 
 <PARA>
-<SYNOPSIS>router [ -diksSV ] [ -f configfile ] [ -n #routers ] [ -o zmshoptions ] [ -t traceflag ] [ -L logfile ] [ -P postoffice ]</SYNOPSIS>
+<CMDSYNOPSIS>
+  <COMMAND>router</>
+    <ARG>-diksSV</ARG>
+    <ARG>-f configfile</ARG>
+    <ARG>-n #routers</ARG>
+    <ARG>-o zmsh-options</ARG>
+    <ARG>-t traceflag</ARG>
+    <ARG>-L logfile</ARG>
+    <ARG>-P postoffice</ARG>
+</CMDSYNOPSIS>
 </PARA>
 
+</LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM>
 <PARA>
-Parameters:
+
 <VARIABLELIST>
-<VARLISTENTRY><TERM>-d</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-d</></><LISTITEM><PARA>
 Detach and run as a daemon. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-f configfile</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-f <REPLACEABLE>configfile</></></TERM><LISTITEM><PARA>
 Overrides the default configuration 
 file <FILENAME>$<VARNAME>MAILSHARE</>/router.cf</>. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-i</TERM><LISTITEM><PARA>
-Run interactively, presenting a <EMPHASIS>zmsh</>  
+<VARLISTENTRY><TERM><OPTION>-i</></TERM><LISTITEM><PARA>
+Run interactively, presenting a <COMMAND>zmsh</>  
 session with the configuration file preloaded. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-k</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-k</></TERM><LISTITEM><PARA>
 Kill the currently running router by 
 sending it a <CONSTANT>SIGTERM</> signal. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-L logfile</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-L <REPLACEABLE>logfile</></></TERM><LISTITEM><PARA>
 Overrides the default  log file location 
 <FILENAME>$<VARNAME>LOGDIR</>/router</>. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-n #routers</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-n <REPLACEABLE>#routers</></></TERM><LISTITEM><PARA>
 Starts the specified number of parallel router processes.
 The default is a single router process. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-o zmshoptions</TERM><LISTITEM><PARA>
-Sets the option string passed on the internal <EMPHASIS>zmsh</> invocation.
+<VARLISTENTRY><TERM><OPTION>-o <REPLACEABLE>zmsh-options</></></TERM><LISTITEM><PARA>
+Sets the option string passed on the internal <COMMAND>zmsh</> invocation.
 The default is <OPTION>-O</>. 
 Note that the leading ``-'' is mandatory.
-See <EMPHASIS>zmsh</>(1) for the available options. 
+See <LINK LINKEND="zref-zmsh-options"><CITETITLE><COMMAND>zmsh</>(1)</CITETITLE>
+</LINK> for the available options. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-P postoffice</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>postoffice</></></TERM><LISTITEM><PARA>
 Specifies an alternate 
 <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/</> directory. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-S</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-S</></TERM><LISTITEM><PARA>
 Can be used to turn off non-serious syslogging. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-s</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-s</></TERM><LISTITEM><PARA>
 Turns stability-flag off and on. Without this
 flag, the search of new jobs will be done with (sometimes) 
 timeconsuming care of organizing the job files into time order. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-t traceflag</TERM><LISTITEM><PARA>
-Sets trace options, one per -t switch, even before the configuration
+<VARLISTENTRY><TERM><OPTION>-t <REPLACEABLE>traceflag</></></TERM><LISTITEM><PARA>
+Sets trace options, one per <OPTION>-t</> switch, even before the configuration
 file is loaded.
-This is otherwise equivalent to the builtin <EMPHASIS>trace</> command.
+This is otherwise equivalent to the builtin <COMMAND>trace</> command.
 The currently known options are:
 <OPTION>assign, bind, compare, db, final, functions, matched, memory,
 on, regexp, resolv, rewrite, router, and sequencer</OPTION>. 
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM>-V</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-V</></TERM><LISTITEM><PARA>
 Print version message and run interactively. 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
 
+</LISTITEM></VARLISTENTRY>
+</VARIABLELIST>
+
 <PARA>
-To restart a <EMPHASIS>router</> daemon: 
+To restart a <COMMAND>router</> daemon: 
 <SCREEN>
-   router -dk
+   <USERINPUT>router -dk</USERINPUT>
 </SCREEN>
 </PARA>
 
 <PARA>
 To test an address, start up an interactive session: 
 <SCREEN>
-  router -i
+  <USERINPUT>router -i</USERINPUT>
 </SCREEN>
-or if the ZMailer <EMPHASIS>sendmail</>(8) is installed: 
+or if the ZMailer <COMMAND>sendmail</>(8) is installed: 
 <SCREEN>
-  sendmail -bt
+  <USERINPUT>sendmail -bt</USERINPUT>
 </SCREEN>
 </PARA>
 
@@ -136,11 +150,12 @@ or if the ZMailer <EMPHASIS>sendmail</>(8) is installed:
 Then just use the pre-defined functions.
 </PARA>
 
-<SECT1><TITLE>ZMSH Script Language</TITLE>
+<SECT1 ID="zmshref-script-language">
+<TITLE>ZMSH Script Language</TITLE>
 
 <PARA>
-<EMPHASIS>zmsh</> is an implementation of the Bourne shell 
-suitable for use with the ZMailer <EMPHASIS>router</>(8) as 
+<COMMAND>zmsh</> is an implementation of the Bourne shell 
+suitable for use with the ZMailer <COMMAND>router</>(8) as 
 its configuration file language interpreter. It contains 
 extensions that allow structured data (in the form of lists) 
 to be manipulated.
@@ -183,20 +198,20 @@ prior to the execution of a command and its I/O setup.
 </PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>Usage:</TERM><LISTITEM>
+<VARLISTENTRY><TERM>Usage:</TERM><LISTITEM><PARA>
 
-<SYNOPSIS>
-zmsh [ -CILOPRSYaefhinstuvx ] [ -c command ] [ script ...]
-</SYNOPSIS>
-
+<CMDSYNOPSIS>
+  <COMMAND>zmsh</COMMAND>
+    <ARG>-CILOPRSYaefhinstuvx</ARG>
+    <ARG>-c <REPLACEABLE>command</></ARG>
+    <ARG><REPLACEABLE>script ...</></ARG>
+</CMDSYNOPSIS>
+</PARA>
 </LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM>Parameters:</TERM><LISTITEM><PARA>
-See the Debugging section for <OPTION>[-CILOPRSY]</>
-debugging options. 
-</PARA>
 
-<VARIABLELIST>
+<VARIABLELIST ID="zref-zmsh-options">
 
 <VARLISTENTRY><TERM><OPTION>-c command</OPTION></TERM><LISTITEM><PARA>
 
@@ -280,15 +295,73 @@ Print shell input as it is read.
 Print commands as they are executed. 
 
 </PARA></LISTITEM></VARLISTENTRY>
+
+</VARIABLELIST></PARA>
+</LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM>Debug options:</TERM><LISTITEM><PARA>
+<VARIABLELIST ID="zref-zmsh-debug-options">
+
+<VARLISTENTRY><TERM><OPTION>-C</></TERM><LISTITEM><PARA>
+
+Print code generation output onto <FILENAME>stdout</>.
+If this option is doubled, the non-optimized code is printed out instead.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-I</></TERM><LISTITEM><PARA>
+
+Print runtime interpreter activity onto <FILENAME>/dev/tty</>.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-L</></TERM><LISTITEM><PARA>
+
+Print lexer output onto <FILENAME>stdout</>. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-O</></TERM><LISTITEM><PARA>
+
+Optimize the compiled script.
+If this option is doubled, the optimized code is also printed out. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-P</></TERM><LISTITEM><PARA>
+
+Print parser output (S/SL trace output) onto <FILENAME>stdout</>. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-R</></TERM><LISTITEM><PARA>
+
+Print I/O actions onto <FILENAME>/dev/tty</>.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-S</></TERM><LISTITEM><PARA>
+
+Print scanner output (token assembly) onto <FILENAME>stdout</>.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-Y</></TERM><LISTITEM><PARA>
+
+Open <FILENAME>/dev/tty</> for internal debugging use. 
+
+</PARA></LISTITEM></VARLISTENTRY>
+
 </VARIABLELIST>
+</PARA>
 </LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
 </SECT1>
 
 
-
-<SECT1><TITLE>Configuration Script Writing Rules</TITLE>
+<SECT1 ID="zmshref-cfg-script-writing-rules">
+<TITLE>Configuration Script Writing Rules</TITLE>
 
 <SCREEN>
 Text to be inserted here.
@@ -296,69 +369,31 @@ Text to be inserted here.
 
 </SECT1>
 
-<SECT1><TITLE>Debugging</TITLE>
+
+<SECT1 ID=zmshref-script-security-issues>
+<TITLE>Script Security Issues</TITLE>
+
+<SCREEN>
+Text to be inserted here.
+</SCREEN>
+
+</SECT1>
+
+
+<SECT1 ID=zmshref-script-internal-functions>
+<TITLE>Script Language Internal Functions</TITLE>
 
 <PARA>
-The following debugging options are specific to the internal 
-function of <EMPHASIS>zmsh</>: 
-<VARIABLELIST>
-<VARLISTENTRY><TERM>-C</TERM><LISTITEM><PARA>
-Print code generation output onto <FILENAME>stdout</>.
-If this option is doubled, the non-optimized code is printed out instead.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>-I</TERM><LISTITEM><PARA>
-Print runtime interpreter activity onto <FILENAME>/dev/tty</>.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>-L</TERM><LISTITEM><PARA>
-Print lexer output onto <FILENAME>stdout</>. 
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>-O</TERM><LISTITEM><PARA>
-Optimize the compiled script.
-If this option is doubled, the optimized code is also printed out. 
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>-P</TERM><LISTITEM><PARA>
-Print parser output (S/SL trace output) onto <FILENAME>stdout</>. 
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>-R</TERM><LISTITEM><PARA>
-Print I/O actions onto <FILENAME>/dev/tty</>.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>-S</TERM><LISTITEM><PARA>
-Print scanner output (token assembly) onto <FILENAME>stdout</>.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>-Y</TERM><LISTITEM><PARA>
-Open <FILENAME>/dev/tty</> for internal debugging use. 
-</PARA></LISTITEM></VARLISTENTRY>
-</VARIABLELIST>
+This section describes the <EMPHASIS>router</> internal functions.
 </PARA>
 
-</SECT1>
-
-
-<SECT1><TITLE>Security Issues</TITLE>
-
-<SCREEN>
-Text to be inserted here.
-</SCREEN>
-
-</SECT1>
-
-
-<SECT1><TITLE>Script Language Internal Functions</TITLE>
-
 <PARA>
-This section describes the router internal functions.
+FIXME! FIXME! some internal functions are missing from this listing!
 </PARA>
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <SECT2 ID="zmshref.doublecolon">
-<TITLE>``:'' (doublecolon)</TITLE>
+<TITLE>``<FUNCTION>:</>'' (doublecolon)</TITLE>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</><LISTITEM><PARA>
@@ -386,17 +421,23 @@ This section describes the router internal functions.
 </SECT2>
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>``.'', ``include''</TITLE>
+<SECT2 ID="zmshref.include">
+<TITLE>``<FUNCTION>.</>'', ``<FUNCTION>include</>''</TITLE>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
- . scriptfilename
+ . <REPLACEABLE>scriptfilename</>
+</SYNOPSIS>
+</PARA></LISTITEM></VARLISTENTRY>
+<VARLISTENTRY><TERM>Alternate syntax:</TERM><LISTITEM><PARA>
+<SYNOPSIS>
+ include <REPLACEABLE>scriptfilename</>
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-status
+status of the script load
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -406,7 +447,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none
+This puts the running script to read more script from given filename.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -415,18 +456,19 @@ none
 </SECT2>
 
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>``['', ``test''</TITLE>
+<SECT2 ID="zmshref.test">
+<TITLE>``<FUNCTION>[</>'', ``<FUNCTION>test</>''</TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
-[ {test parameters} ]
+<FUNCTION>[</> <REPLACEABLE>test parameters</> <FUNCTION>]</>
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Alternate syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
-test {test parameters}
+<FUNCTION>test</> <REPLACEABLE>test parameters</>
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -628,13 +670,20 @@ Parenthesis
 This is basically the shell ``<FUNCTION>[</>'' a.k.a. 
 ``<FUNCTION>test</>'' program.
 
+</PARA><PARA>
+
+Do note that unlike more usual bourne-shells, this <EMPHASIS>does not</>
+short-circuit logical evaluations, e.g. falseness of the left side of an AND
+does not eliminate evaluation of the right side!
+
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>attributes</TITLE>
+<SECT2 ID="zmshref.attributes">
+<TITLE><FUNCTION>attributes</></TITLE>
 
 
 <VARIABLELIST>
@@ -664,13 +713,14 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>basename</TITLE>
+<SECT2 ID="zmshref.basename">
+<TITLE><FUNCTION>basename</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
-basename pathname [ suffix ]
+ basename pathname [ suffix ]
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -706,7 +756,8 @@ Prints the base filename of the pathname.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>break</TITLE>
+<SECT2 ID="zmshref.break">
+<TITLE><FUNCTION>break</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -755,12 +806,13 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>builtin</TITLE>
+<SECT2 ID="zmshref.builtin">
+<TITLE><FUNCTION>builtin</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-<EMPHASIS>NOT IMPLEMENTED!</>
+<EMPHASIS ROLE="BOLD">NOT IMPLEMENTED!</>
 <SYNOPSIS>
 builtin {builtin command name, and its params}
 </SYNOPSIS>
@@ -785,7 +837,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-<EMPHASIS>NOT IMPLEMENTED!</>
+<EMPHASIS ROLE="BOLD">NOT IMPLEMENTED!</>
 </PARA><PARA>
 
 Ensures that named command is builtin within the scheduler,
@@ -798,7 +850,8 @@ and not a) external, b) script based.
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 <!--
-<SECT2><TITLE>builtins</TITLE>
+<SECT2 ID="zmshref.builtins">
+<TITLE><FUNCTION>builtins</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -828,19 +881,20 @@ List builtin functions.
 </SECT2>
  -->
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>car</TITLE>
+<SECT2 ID="zmshref.car">
+<TITLE><FUNCTION>car</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
-car object-reference
+car <REPLACEABLE>object-reference</>
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
-Pointer to copied lisp-object of 
-object-reference's <FUNCTION>car</> operation.
+Pointer to copied lisp-object of object-reference's
+<FUNCTION>car</> operation.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -850,8 +904,10 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This command is synonymous to the <FUNCTION>channel</>
-and <FUNCTION>first</> functions.
+This command is synonymous to the <LINK LINKEND="zmshref.channel">
+<CITETITLE><FUNCTION>channel</></></LINK>, and
+<LINK LINKEND="zmshref.first"><CITETITLE><FUNCTION>first</></></LINK>
+functions.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -859,14 +915,15 @@ and <FUNCTION>first</> functions.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>cd</TITLE>
+<SECT2 ID="zmshref.cd">
+<TITLE><FUNCTION>cd</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 
 <SYNOPSIS>
-cd [directory]
+cd <REPLACEABLE>[directory]</>
 </SYNOPSIS>
 
 </PARA></LISTITEM></VARLISTENTRY>
@@ -902,13 +959,14 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>cdr</TITLE>
+<SECT2 ID="zmshref.cdr">
+<TITLE><FUNCTION>cdr</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
-cdr object-reference
+cdr <REPLACEABLE>object-reference</>
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -924,8 +982,8 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This command is synonymous to the <FUNCTION>rest</>
-function.
+This command is synonymous to the <LINK LINKEND="zmshref.rest">
+<CITETITLE><FUNCTION>rest</></></LINK> function.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -933,13 +991,14 @@ function.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>channel</TITLE>
+<SECT2 ID="zmshref.channel">
+<TITLE><FUNCTION>channel</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
-channel object-reference
+channel <REPLACEABLE>object-reference</>
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -954,8 +1013,9 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-The <FUNCTION>car</> and <FUNCTION>first</> functions are 
-synonymous to this one. 
+The <LINK LINKEND="zmshref.car"><CITETITLE><FUNCTION>car</></></LINK>, and
+<LINK LINKEND="zmshref.first"><CITETITLE><FUNCTION>first</></></LINK>
+functions are synonymous to this one.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -963,7 +1023,8 @@ synonymous to this one.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>continue</TITLE>
+<SECT2 ID="zmshref.continue">
+<TITLE><FUNCTION>continue</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1000,7 +1061,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>daemon</TITLE>
+<SECT2 ID="zmshref.daemon">
+<TITLE><FUNCTION>daemon</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1028,11 +1090,11 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-Starts the <EMPHASIS>router</> running in daemon mode, 
+Starts the <COMMAND>router</> running in daemon mode, 
 scanning the <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/router/</>
 directory every few seconds for message files to process.
 This function is invoked automatically by other code in
-the <EMPHASIS>router</> program and has no other purpose.
+the <COMMAND>router</> program and has no other purpose.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1040,7 +1102,8 @@ the <EMPHASIS>router</> program and has no other purpose.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>db</TITLE>
+<SECT2 ID="zmshref.db">
+<TITLE><FUNCTION>db</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1102,8 +1165,7 @@ Error.
 <VARIABLELIST>
 <VARLISTENTRY><TERM><OPTION>a[dd]</OPTION></TERM><LISTITEM><PARA>
 
-Add a {\tt key,value} 
-entry to the database, if possible.
+Add a <PARAMETER>key,value</> entry to the database, if possible.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>f[lush]</OPTION></TERM><LISTITEM><PARA>
@@ -1127,8 +1189,7 @@ if possible.
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>r[emove]</OPTION></TERM><LISTITEM><PARA>
 
-Remove a {\tt key} entry 
-from the database, if possible.
+Remove a <PARAMETER>key</> entry from the database, if possible.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM><OPTION>t[oc]</OPTION></TERM><LISTITEM><PARA>
@@ -1281,7 +1342,8 @@ entries and maximum size, flags, and associated files. See the
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE><EMPHASIS>dblookup</></TITLE>
+<SECT2 ID="zmshref.dblookup">
+<TITLE><EMPHASIS>dblookup</></TITLE>
 
 
 <VARIABLELIST>
@@ -1326,7 +1388,8 @@ The access function to the database facilities in the
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>echo</TITLE>
+<SECT2 ID="zmshref.echo">
+<TITLE><FUNCTION>echo</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1369,13 +1432,14 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>elements</TITLE>
+<SECT2 ID="zmshref.elements">
+<TITLE><FUNCTION>elements</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
 <SYNOPSIS>
-elements <EMPHASIS>lisp-object</>
+elements <REPLACEABLE>lisp-object</>
 </SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
@@ -1398,7 +1462,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>envars</TITLE>
+<SECT2 ID="zmshref.envars">
+<TITLE><FUNCTION>envars</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1434,7 +1499,8 @@ Print internal variable tree.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>erraddron</TITLE>
+<SECT2 ID="zmshref.erraddron">
+<TITLE><FUNCTION>erraddron</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1446,9 +1512,9 @@ erraddron [file]
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+??? (FIXME!)
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1473,14 +1539,15 @@ or other collectors of address trivia.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>eval</TITLE>
+<SECT2 ID="zmshref.eval">
+<TITLE><FUNCTION>eval</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt eval expression}
-
+<SYNOPSIS>
+eval expression
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1502,14 +1569,15 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>exit</TITLE>
+<SECT2 ID="zmshref.exit">
+<TITLE><FUNCTION>exit</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt exit}
-
+<SYNOPSIS>
+exit
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -1538,21 +1606,22 @@ Exit from the shell with exit code.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>export</TITLE>
+<SECT2 ID="zmshref.export">
+<TITLE><FUNCTION>export</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt export [variable-name ...]}
-
+<SYNOPSIS>
+export [variable-name ...]
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+??? FIXME
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1575,24 +1644,25 @@ export prints a list of which variables have been exported.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>filepriv</TITLE>
+<SECT2 ID="zmshref.filepriv">
+<TITLE><FUNCTION>filepriv</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt filepriv file [uid]}
-
+<SYNOPSIS>
+filepriv file [uid]
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+??? FIXME
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1</TERM><LISTITEM><PARA>
 
 Error.
 
@@ -1609,15 +1679,18 @@ none
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Prints the numeric user id of the least 
-privileged account that can modify the specified file. This is 
-determined by an approximation that pessimistically assumes that 
-any file or directory writable by group or others is insecure, 
-and optimistically assumes that it is enough to check a file and 
-its parent directory instead of all the way to the filesystem root. 
-The reason for the latter is that if grandparent directories are 
-insecure, the system is likely to have just as bad potential 
-problems as can be created by using mail to run processes with
-forged powers (besides, doing the full check would be quite expensive).
+privileged account that can modify the specified file.
+</PARA>
+
+<PARA>
+This is determined by an approximation that pessimistically assumes that 
+any file or directory writable by group or others is insecure, and
+optimistically assumes that it is enough to check a file and its parent
+directory instead of all the way to the filesystem root.
+The reason for the latter is that if grandparent directories are insecure,
+the system is likely to have just as bad potential problems as can be
+created by using mail to run processes with forged powers (besides, doing
+the full check would be quite expensive).
 </PARA>
 
 <PARA>
@@ -1631,19 +1704,20 @@ for nonwritability and for having the same (or a 0) uid.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>first</TITLE>
+<SECT2 ID="zmshref.first">
+<TITLE><FUNCTION>first</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt first object-reference}
-
+<SYNOPSIS>
+first object-reference
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to copied lisp-object of 
-object-reference's {\tt car} operation.
+object-reference's <FUNCTION>car</> operation.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -1653,8 +1727,10 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This command is synonymous to the {\tt car} 
-and {\tt channel} commands.  
+This command is synonymous to the
+<LINK LINKEND="zmshref.car"><CITETITLE><FUNCTION>car</></></LINK>, and
+<LINK LINKEND="zmshref.channel"><CITETITLE><FUNCTION>channel</></></LINK>
+commands.  
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -1662,19 +1738,20 @@ and {\tt channel} commands.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>gensym</TITLE>
+<SECT2 ID="zmshref.gensym">
+<TITLE><FUNCTION>gensym</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt gensym}
-
+<SYNOPSIS>
+gensym
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
 
 
@@ -1691,8 +1768,8 @@ none
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
 Generates and prints a new symbol name in the 
-sequence {\tt g0} to {\tt gN} every time it is called. The 
-sequence is reset and any symbol values destroyed after the {\em router} 
+sequence <VARNAME>g0</> to <VARNAME>gN</> every time it is called. The 
+sequence is reset and any symbol values destroyed after the <COMMAND>router</>
 has processed a message. This function is used to generate new symbols, to 
 hold attached address property lists, during alias expansion.
 
@@ -1702,7 +1779,8 @@ hold attached address property lists, during alias expansion.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>get</TITLE>
+<SECT2 ID="zmshref.get">
+<TITLE><FUNCTION>get</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1731,7 +1809,8 @@ Returns a property list corresponding to key string.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>getopts</TITLE>
+<SECT2 ID="zmshref.getopts">
+<TITLE><FUNCTION>getopts</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1772,7 +1851,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>grind</TITLE>
+<SECT2 ID="zmshref.grind">
+<TITLE><FUNCTION>grind</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1801,7 +1881,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>groupmembers</TITLE>
+<SECT2 ID="zmshref.groupmembers">
+<TITLE><FUNCTION>groupmembers</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1840,7 +1921,8 @@ not listed in the groups file, will not appear in this list.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>hash</TITLE>
+<SECT2 ID="zmshref.hash">
+<TITLE><FUNCTION>hash</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1883,7 +1965,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>homedirectory</TITLE>
+<SECT2 ID="zmshref.homedirectory">
+<TITLE><FUNCTION>homedirectory</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1925,7 +2008,8 @@ user account.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>host</TITLE>
+<SECT2 ID="zmshref.host">
+<TITLE><FUNCTION>host</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -1955,7 +2039,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>hostname</TITLE>
+<SECT2 ID="zmshref.hostname">
+<TITLE><FUNCTION>hostname</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2000,7 +2085,8 @@ will only be generated if a hostname has been set using this function.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>lappend; \em experimental</TITLE>
+<SECT2 ID="zmshref.lappend">
+<TITLE><FUNCTION>lappend</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2029,7 +2115,8 @@ This appends content of list object ({\em anyvalue}) to named
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>last</TITLE>
+<SECT2 ID="zmshref.last">
+<TITLE><FUNCTION>last</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2059,7 +2146,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>length</TITLE>
+<SECT2 ID="zmshref.length">
+<TITLE><FUNCTION>length</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2089,7 +2177,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>list</TITLE>
+<SECT2 ID="zmshref.list">
+<TITLE><FUNCTION>list</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2118,7 +2207,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>listaddresses</TITLE>
+<SECT2 ID="zmshref.listaddresses">
+<TITLE><FUNCTION>listaddresses</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2182,7 +2272,8 @@ files or similar.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>listexpand</TITLE>
+<SECT2 ID="zmshref.listexpand">
+<TITLE><FUNCTION>listexpand</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2234,7 +2325,8 @@ handling.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>login2uid</TITLE>
+<SECT2 ID="zmshref.login2uid">
+<TITLE><FUNCTION>login2uid</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2279,7 +2371,8 @@ the uid to login name mapping to the {\tt pwuid} in-core database.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>lreplace; \em experimental</TITLE>
+<SECT2 ID="zmshref.lreplace">
+<TITLE><FUNCTION>lreplace</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2338,14 +2431,15 @@ is added to the list.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>malcontents</TITLE>
+<SECT2 ID="zmshref.malcontents">
+<TITLE><FUNCTION>malcontents</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt malcontents}
-
+<SYNOPSIS>
+malcontents}
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -2359,7 +2453,7 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-none  
+ZMSH Debugging thing.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2367,7 +2461,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>printaliases</TITLE>
+<SECT2 ID="zmshref.printaliases">
+<TITLE><FUNCTION>printaliases</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2427,7 +2522,8 @@ from a source file.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>process</TITLE>
+<SECT2 ID="zmshref.process">
+<TITLE><FUNCTION>process</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2474,7 +2570,8 @@ configuration file.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>read</TITLE>
+<SECT2 ID="zmshref.read">
+<TITLE><FUNCTION>read</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2515,7 +2612,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>recase</TITLE>
+<SECT2 ID="zmshref.recase">
+<TITLE><FUNCTION>recase</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2574,7 +2672,8 @@ string in either all-uppercase, all-lowercase, or capitalized (pretty).
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>recipient</TITLE>
+<SECT2 ID="zmshref.recipient">
+<TITLE><FUNCTION>recipient</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2617,35 +2716,44 @@ is a recipient address in a message header''.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>relation</TITLE>
+<SECT2 ID="zmshref.relation">
+<TITLE><FUNCTION>relation</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
+<CMDSYNOPSIS>
+  <COMMAND>relation</COMMAND>
+  <ARG>-t <REPLACEABLE>dbtype</><ARG>,<REPLACEABLE>subtype</></ARG></ARG>
+  <ARG>-f <REPLACEABLE>file</REPLACEABLE></ARG>
+  <ARG>-e <REPLACEABLE>#</></ARG>
+  <ARG>-s <REPLACEABLE>#</></ARG>
+  <ARG>-bilmnu</ARG>
+  <ARG>-d <REPLACEABLE>driver</></ARG>
+  <ARG CHOICE=PLAIN>name</ARG>
+</CMDSYNOPSIS>
+</PARA>
 
-{\tt relation -t {dbtype[,subtype] [-f file -e\# -s\# -bilmnu -d driver]} name}
-
-Options are listed below. {\tt name} is the name of the relation
+<PARA>
+Options are listed below. <OPTION>name</> is the name of the relation
 that is wanted to be created. Examples:
-\begin{alltt}
+<SCREEN>
 relation -t bind,mx mxhost
 relation -t ordered -f $MAILVAR/db/routes routes
 relation -t ordered -b -f /usr/lib/news/active.sorted newsgroups
-\end{alltt}
-
-
-
+</SCREEN>
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt 0}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>0</TERM><LISTITEM><PARA>
 
-
+Relation is reated successfully, however possible database access are
+not tried yet.
 
 </PARA></LISTITEM></VARLISTENTRY>
-<VARLISTENTRY><TERM>{\tt 1..7}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM>1..7</TERM><LISTITEM><PARA>
 
 Error.
 
@@ -2657,7 +2765,7 @@ Error.
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM>{\tt -t {dbtype[,subtype]}}</TERM><LISTITEM><PARA>
+<VARLISTENTRY><TERM><OPTION>-t <REPLACEABLE>dbtype</>[,<REPLACEABLE>subtype</>]</OPTION></TERM><LISTITEM><PARA>
 
 One of the known types 
 of databases, currently: 
@@ -2826,19 +2934,20 @@ search. (Makes less system calls that way.)
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>rest</TITLE>
+<SECT2 ID="zmshref.rest">
+<TITLE><FUNCTION>rest</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt rest object-reference}
-
+<SYNOPSIS>
+ rest <REPLACEABLE>object-reference</>
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
 Pointer to copied lisp-object of 
-object-reference's {\tt cdr} operation.
+object-reference's <FUNCTION>cdr</> operation.
 
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Options:</TERM><LISTITEM><PARA>
@@ -2848,8 +2957,8 @@ none
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Notes:</TERM><LISTITEM><PARA>
 
-This command is synonymous to the {\tt cdr}
-command.
+This command is synonymous to the <LINK LINKEND="zmshref.cdr"><CITETITLE>
+<FUNCTION>cdr</></></LINK> command.
 
 </PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
@@ -2857,7 +2966,8 @@ command.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>return</TITLE>
+<SECT2 ID="zmshref.return">
+<TITLE><FUNCTION>return</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2904,7 +3014,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>returns</TITLE>
+<SECT2 ID="zmshref.returns">
+<TITLE><FUNCTION>returns</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2945,7 +3056,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>rfc822</TITLE>
+<SECT2 ID="zmshref.rfc822">
+<TITLE><FUNCTION>rfc822</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -2976,7 +3088,8 @@ called by the {\tt process} function.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>rfc822date</TITLE>
+<SECT2 ID="zmshref.rfc822date">
+<TITLE><FUNCTION>rfc822date</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3012,7 +3125,8 @@ Prints the current time in RFC822 format.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>rfc822syntax</TITLE>
+<SECT2 ID="zmshref.rfc822syntax">
+<TITLE><FUNCTION>rfc822syntax</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3058,14 +3172,15 @@ exit status.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>runas</TITLE>
+<SECT2 ID="zmshref.runas">
+<TITLE><FUNCTION>runas</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>
-
-{\tt runas user function [arguments...]}
-
+<SYNOPSIS>
+ runas user function [arguments...]
+</SYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 <VARLISTENTRY><TERM>Return Values:</TERM><LISTITEM><PARA>
 
@@ -3098,7 +3213,8 @@ user id of the process back (to root).
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>sender</TITLE>
+<SECT2 ID="zmshref.sender">
+<TITLE><FUNCTION>sender</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3141,7 +3257,8 @@ is a sender address in a message header''.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>set</TITLE>
+<SECT2 ID="zmshref.set">
+<TITLE><FUNCTION>set</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3252,7 +3369,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>shift</TITLE>
+<SECT2 ID="zmshref.shift">
+<TITLE><FUNCTION>shift</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3293,7 +3411,8 @@ Modifies caller's argument vector.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>sleep</TITLE>
+<SECT2 ID="zmshref.sleep">
+<TITLE><FUNCTION>sleep</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3334,7 +3453,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>squirrel</TITLE>
+<SECT2 ID="zmshref.squirrel">
+<TITLE><FUNCTION>squirrel</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3401,7 +3521,8 @@ indicate what to do to toggle the event flag.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>stability</TITLE>
+<SECT2 ID="zmshref.stability">
+<TITLE><FUNCTION>stability</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3442,15 +3563,18 @@ similar characteristic of sorting algorithms.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>``test'', ``[''</TITLE>
+<SECT2 ID="zmshref.test2">
+<TITLE>``<FUNCTION>test</>'', ``<FUNCTION>[</>''</TITLE>
 
 <PARA>
-{\em see: ``['', ``test''}
+See: ``<LINK LINKEND="zmshref.test"><CITETITLE><FUNCTION>[</></></>'',
+a.k.a. ``<LINK LINKEND="zmshref.test"><CITETITLE><FUNCTION>test</></></>''
 </PARA>
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>times</TITLE>
+<SECT2 ID="zmshref.times">
+<TITLE><FUNCTION>times</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3491,7 +3615,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>trace</TITLE>
+<SECT2 ID=zmshref.trace>
+<TITLE><FUNCTION>trace</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3625,7 +3750,8 @@ each message.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>trap</TITLE>
+<SECT2 ID=zmshref.trap>
+<TITLE><FUNCTION>trap</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3662,7 +3788,8 @@ known traps.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>type</TITLE>
+<SECT2 ID=zmshref.type>
+<TITLE><FUNCTION>type</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3698,7 +3825,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>uid2login</TITLE>
+<SECT2 ID=zmshref.uid2login>
+<TITLE><FUNCTION>uid2login</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3742,7 +3870,8 @@ exists with that user id. It has the same side-effects as the
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>umask</TITLE>
+<SECT2 ID=zmshref.umask>
+<TITLE><FUNCTION>umask</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3772,7 +3901,8 @@ Without parameters default mask is 077.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>unset</TITLE>
+<SECT2 ID=zmshref.unset>
+<TITLE><FUNCTION>unset</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3813,7 +3943,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>untrace</TITLE>
+<SECT2 ID=zmshref.untrace>
+<TITLE><FUNCTION>untrace</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3857,7 +3988,8 @@ valid keywords.
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>user</TITLE>
+<SECT2 ID=zmshref.user>
+<TITLE><FUNCTION>user</FUNCTION></TITLE>
 
 
 <VARIABLELIST>
@@ -3886,7 +4018,8 @@ none
 
 </SECT2>
 <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-<SECT2><TITLE>wait</TITLE>
+<SECT2 ID=zmshref.wait>
+<TITLE><FUNCTION>wait</FUNCTION></TITLE>
 
 <VARIABLELIST>
 <VARLISTENTRY><TERM>Syntax:</TERM><LISTITEM><PARA>

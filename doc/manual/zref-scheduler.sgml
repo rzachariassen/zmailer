@@ -94,15 +94,16 @@ Invoking <EMPHASIS>scheduler</> without any parameter will start
 it as a daemon.
 <CMDSYNOPSIS>
  <COMMAND>scheduler</>
- <ARG>-divFHQSVW</>
- <ARG>-f configfile</>
+ <ARG>-dinvFHQSVW</>
  <ARG>-E newentsmax</>
- <ARG>-L logfile</>
+ <ARG>-f configfile</>
  <ARG>-l statisticslog</>
+ <ARG>-L logfile</>
  <ARG>-N transpmaxfno</>
+ <ARG>-p channel/host-pair</>
  <ARG>-P postoffice</>
- <ARG>-R maxforkfreq</>
  <ARG>-q rendezvous</>
+ <ARG>-R maxforkfreq</>
 </CMDSYNOPSIS>
 </PARA></LISTITEM></VARLISTENTRY>
 
@@ -143,19 +144,37 @@ two ``<OPTION>HH</>'' mean <EMPHASIS>dual level hashing</>.
 run interactively, i.e., not as a daemon.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>-L <REPLACEABLE>logfile</></OPTION></TERM><LISTITEM><PARA>
-overrides the default log file location 
-<FILENAME>$<VARNAME>LOGDIR</>/scheduler</>.
-</PARA></LISTITEM></VARLISTENTRY>
-
 <VARLISTENTRY><TERM><OPTION>-l <REPLACEABLE>statisticslog</></OPTION></TERM><LISTITEM><PARA>
 starts the appending of delivery statistics information (ASCII form)
 into given file.  No default value.
 </PARA></LISTITEM></VARLISTENTRY>
 
+<VARLISTENTRY><TERM><OPTION>-L <REPLACEABLE>logfile</></OPTION></TERM><LISTITEM><PARA>
+overrides the default log file location 
+<FILENAME>$<VARNAME>LOGDIR</>/scheduler</>.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-n</OPTION></TERM><LISTITEM><PARA>
+Toggles the configuration flag called ``default_full_content'', which defines
+what will be ``DSN RET'' parameter assumed value in case the originator didn't
+supply that parameter.
+</PARA><PARA>
+The default behaviour is similar to RET=FULL, while usage of this option is
+equivalent of  RET=HDRS.
+</PARA><PARA>
+This option does not override originator supplied DSN RET parameter value.
+</PARA></LISTITEM></VARLISTENTRY>
+
 <VARLISTENTRY><TERM><OPTION>-N <REPLACEABLE>transmaxfno</></OPTION></TERM><LISTITEM><PARA>
 sets how many filehandles are allocated for the <EMPHASIS>scheduler</>'s
 started children (if the system has adjustable resources.)
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>-p <REPLACEABLE>channel/host</></OPTION></TERM><LISTITEM><PARA>
+A debug option for running selectively some thread under a single instance
+of the scheduler.
+</PARA><PARA>
+Use this option with ``<OPTION>-v</>''.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>-P <REPLACEABLE>postoffice</></OPTION></TERM><LISTITEM><PARA>
@@ -203,9 +222,10 @@ the transporters.
 
 
 <SECT1 ID="zref.schedulerconfig"><TITLE>Configuration Language</TITLE>
+<!--
 <SCREEN>
 \index{{\tt scheduler.conf} file}\index{scheduler, {\tt scheduler.conf}}
-</SCREEN>
+</SCREEN> -->
 
 <PARA>
 The <EMPHASIS>scheduler</> configuration file consists of a set of clauses. 
@@ -230,7 +250,8 @@ There are two kinds of clauses:
 <SECT2 ID="scheduler.param.entries"><TITLE>PARAM-entries</TITLE>
 
 <PARA>
-There are three kinds of PARAM entries:
+There are three kinds of PARAM entries, all of them start at the column
+number 0 (left edge):
 <SCREEN>
 #
 # MAILQv2 authentication database file reference:
@@ -240,13 +261,13 @@ There are three kinds of PARAM entries:
 #  interface along with its security problems.)
 #
 
-PARAMauthfile = "$MAILSHARE/scheduler.auth"
+PARAMauthfile = "${MAILSHARE}/scheduler.auth"
 
 #PARAMmailqsock = "UNIX:/path/to/mailq.sock"
 #PARAMmailqsock = "TCP:174"
 
 # Time for accumulating diagnostic reports for a given message, before
-# all said diagnostics are reported -- so that reports would carry more
+# all said diagnostics are reported &dd; so that reports would carry more
 # than one diagnostic in case of multi-recipient messages.
 #PARAMglobal-report-interval = 15m
 </SCREEN>
@@ -389,12 +410,51 @@ a second, minute, hour, or day value. For example:
 The known variables and keywords, and their typical values and semantics are:
 
 <VARIABLELIST>
-<VARLISTENTRY><TERM><OPTION>interval=nn</> (1m)</TERM><LISTITEM><PARA>
-specifies the primary retry interval, which determines how frequently
-a transport agent should be scheduled for an address.
-The value is a delta time specification.
-This value, and the <OPTION>retries=&hellip;</> value mentioned below,
-are combined to determine the interval between each retry attempt.
+<VARLISTENTRY><TERM><OPTION>ageorder</OPTION></TERM><LISTITEM><PARA>
+Default is to randomize the order of tasks at the queue, when it is started,
+with this the order is that of the original spool-file MTIME.
+Oldest first. 
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>bychannel</></TERM><LISTITEM><PARA>
+is a keyword (with no associated value) that tells the <EMPHASIS>scheduler</>
+that the transport agent specified in the command will only process destination
+addresses that match the first destination channel it encounters.
+This is automatically set when the string ``<OPTION>$channel</>'' occurs
+in the command, but may also be specified manually by this keyword.
+This is rarely used.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>command="sss"</></TERM><LISTITEM><PARA>
+<!-- {\tt command (smtp -srl /var/log/smtp \$host)}  -->
+is the command line used to start a transport agent to process the address.
+The program pathname is specified relative to the
+  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/ta/</> directory.
+</PARA><PARA>
+The string ``<OPTION>$channel</>'' is replaced by the current matched channel,
+and ``<OPTION>$host</>'' replaced by the current matched host, from
+the destination address.
+</PARA><PARA>
+It is strongly recommended that the ``<OPTION>$host</>'' is not to be used
+on a command definition, as it limits the usability of idled transporter.
+</PARA><PARA>
+It is possible to place environment-string setting statements into the
+beginning of the line:
+<SCREEN>
+  command="MALLOC_DEBUG_=1 OTHER=var cmdname cmdparams"
+</SCREEN>
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>expiry=nn</> (3d)</TERM><LISTITEM><PARA>
+specifies the maximum age of an address in the <EMPHASIS>scheduler</>
+queue before a repeatedly deferred address is bounced with an expiration
+error.
+The actual report is produced when all addresses have been processed.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>group="sss"</> (daemon)</TERM><LISTITEM><PARA>
+is the group id of a transport agent processing the address.
+The value is either numeric (a gid) or a group name.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>idlemax=nn</> (3x interval)</TERM><LISTITEM><PARA>
@@ -403,11 +463,102 @@ When a transport agent runs out of jobs, they are moved to
 in there, it is terminated.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>expiry=nn</> (3d)</TERM><LISTITEM><PARA>
-specifies the maximum age of an address in the <EMPHASIS>scheduler</>
-queue before a repeatedly deferred address is bounced with an expiration
-error.
-The actual report is produced when all addresses have been processed.
+<VARLISTENTRY><TERM><OPTION>interval=nn</> (1m)</TERM><LISTITEM><PARA>
+specifies the primary retry interval, which determines how frequently
+a transport agent should be scheduled for an address.
+The value is a delta time specification.
+This value, and the <OPTION>retries=&hellip;</> value mentioned below,
+are combined to determine the interval between each retry attempt.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>maxchannel=nn</> (0)</TERM>
+              <TERM>(<OPTION>maxchannels=nn</>)</TERM><LISTITEM><PARA>
+if retrying an address would cause the number of simultaneously active
+transport agents processing mail for the same channel to exceed the specified
+value, the retry is postponed.
+The check is repeated frequently so the address may be retried as soon
+as possible after the scheduled retry interval.
+If the value is 0, a value of 1000 is used instead.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>maxring=nn</> (0)</TERM>
+	      <TERM>(<OPTION>maxrings=nn</>)</TERM><LISTITEM><PARA>
+Recipients are groupped into
+  <LINK LINKEND="zref.sched.threads"><EMPHASIS>threads</></>, 
+and similar threads are groupped into <EMPHASIS>thread-rings</>, where same 
+transport agent can be switched over from one recipient to another.
+This defines how many transport agents can be running at any time at the ring.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>maxta=nn</> (0)</TERM><LISTITEM><PARA>
+if retrying an address would cause the number of simultaneously active
+transport agents to exceed the specified value, the retry is postponed.
+The check is repeated frequently so the address may be retried as soon
+as possible after the scheduled retry interval. 
+If the value is 0, a value of 1000<FOOTNOTE><PARA>
+The maximum number of supported TA's is actually probed by
+the <EMPHASIS>scheduler</> at its startup; procedure is:
+<ORDEREDLIST>
+<LISTITEM><PARA>
+Ask system for maximum number of file descriptors the scheduler's
+child can have.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+Substract ``30'' from resulting count.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+If child communication channel needs two file descriptors
+(no full-duplex pipe, e.g. <FUNCTION>socketpair()</> available),
+divide the leftover count by two.
+</PARA></LISTITEM>
+<LISTITEM><PARA>
+Result is the maximum number of TAs which document elsewere
+refers as ``1000''.
+</PARA></LISTITEM>
+</ORDEREDLIST>
+</PARA></FOOTNOTE> is used instead.
+
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>maxthr=nn</> (1)</TERM><LISTITEM><PARA>
+This limits the number of parallel transport agents within each thread; that
+is, using higher value than default ``1''
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>nice=nn</></TERM><LISTITEM><PARA>
+Defines <EMPHASIS>relative</> priority value for transport-agent process.
+Default is not to use this.   Value range in between -40 to 40.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>overfeed=nnn</OPTION> (0)</TERM><LISTITEM><PARA>
+Max number of tasks to feed from the thread to the transporter agent
+ when feeding jobs to it.
+The <EMPHASIS>scheduler</> main-loop at the <FUNCTION>mux()</> is
+a bit sluggish, thus with this we can keep the transporters busy.
+</PARA><PARA>
+The default is defined at the <EMPHASIS>*/*</> clause.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>priority=nn</></TERM><LISTITEM><PARA>
+Defines <EMPHASIS>absolute</> priority value for transport-agent process.
+Default is not to use this.  Value range in between -20 to 20.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>queueonly</></TERM><LISTITEM><PARA>
+a clause with <EMPHASIS>queueonly</> flag does not auto-start at the arrival
+of a message, instead it must be started by means of <EMPHASIS>smtpserver(8)</>
+command <USERINPUT>ETRN</> through an SMTP connection.
+</PARA><PARA>
+To have message expiration working, following additional entries are suggested:
+<SCREEN>
+  interval=1h
+  retries="24"
+</SCREEN>
+That is, retry once in a day.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>reporttimes="n n n"</> ()</TERM><LISTITEM><PARA>
+Placeholder for DELAYED reporting mechanism.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>retries="n n n"</> (1 1 2 3 4 8 13 21 34)</TERM><LISTITEM><PARA>
@@ -463,61 +614,21 @@ exponential sequence:
 </ITEMIZEDLIST>
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>maxta=nn</> (0)</TERM><LISTITEM><PARA>
-if retrying an address would cause the number of simultaneously active
-transport agents to exceed the specified value, the retry is postponed.
-The check is repeated frequently so the address may be retried as soon
-as possible after the scheduled retry interval. 
-If the value is 0, a value of 1000<FOOTNOTE><PARA>
-The maximum number of supported TA's is actually probed by
-the <EMPHASIS>scheduler</> at its startup; procedure is:
-<ORDEREDLIST>
-<LISTITEM><PARA>
-Ask system for maximum number of file descriptors the scheduler's
-child can have.
-</PARA></LISTITEM>
-<LISTITEM><PARA>
-Substract ``30'' from resulting count.
-</PARA></LISTITEM>
-<LISTITEM><PARA>
-If child communication channel needs two file descriptors
-(no full-duplex pipe, e.g. <FUNCTION>socketpair()</> available),
-divide the leftover count by two.
-</PARA></LISTITEM>
-<LISTITEM><PARA>
-Result is the maximum number of TAs which document elsewere
-refers as ``1000''.
-</PARA></LISTITEM>
-</ORDEREDLIST>
-</PARA></FOOTNOTE> is used instead.
-
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM><OPTION>maxchannel=nn</> (0)</TERM><LISTITEM><PARA>
-if retrying an address would cause the number of simultaneously active
-transport agents processing mail for the same channel to exceed the specified
-value, the retry is postponed.
-The check is repeated frequently so the address may be retried as soon
-as possible after the scheduled retry interval.
-If the value is 0, a value of 1000 is used instead.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM><OPTION>maxring=nn</> (0)</TERM><LISTITEM><PARA>
-Recipients are groupped into
-  <LINK LINKEND="zref.sched.threads"><EMPHASIS>threads</></>, 
-and similar threads are groupped into <EMPHASIS>thread-rings</>, where same 
-transport agent can be switched over from one recipient to another.
-This defines how many transport agents can be running at any time at the ring.
-</PARA></LISTITEM></VARLISTENTRY>
-
 <VARLISTENTRY><TERM><OPTION>skew=nn</> (5)</TERM><LISTITEM><PARA>
-FIXME: FIXME:
-is the maximum number of retries before the retry time is aligned
-to a standard boundary (seconds since epoch, modulo primary interval).
-The lower this number (1 is lowest), the faster the alignment is done.
-The purpose of this alignment is to ensure that eventually a single 
-transport agent invocation will be able to process destination addresses 
-that arrived randomly to the <EMPHASIS>scheduler</>.
+Leftover of earlier <EMPHASIS>scheduler</> internal algorithms,
+does not make sense anymore.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>sysnice=nn</></TERM><LISTITEM><PARA>
+Can be used (if desired) at the <EMPHASIS>*/*</> clause to set
+<EMPHASIS>relative niceness</> for the <EMPHASIS>scheduler</> process,
+and all of its children.
+</PARA></LISTITEM></VARLISTENTRY>
+
+<VARLISTENTRY><TERM><OPTION>syspriority=nn</></TERM><LISTITEM><PARA>
+Can be used (if desired) at the <EMPHASIS>*/*</> clause to set
+<EMPHASIS>absolute priority</> for the <EMPHASIS>scheduler</> process,
+and all of its children.
 </PARA></LISTITEM></VARLISTENTRY>
 
 <VARLISTENTRY><TERM><OPTION>user="sss"</> (root)</TERM><LISTITEM><PARA>
@@ -525,45 +636,12 @@ is the user id of a transport agent processing the address.
 The value is either numeric (a uid) or an account name.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>group="sss"</> (daemon)</TERM><LISTITEM><PARA>
-is the group id of a transport agent processing the address.
-The value is either numeric (a gid) or a group name.
+<VARLISTENTRY><TERM><OPTION>wakeuprestartonly</></TERM><LISTITEM><PARA>
+Start only one instance of handling processes, never mind what other
+settings say.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>command="sss"</></TERM><LISTITEM><PARA>
-<!-- {\tt command (smtp -srl /var/log/smtp \$host)}  -->
-is the command line used to start a transport agent to process the address.
-The program pathname is specified relative to the
-  <FILENAME CLASS=DIRECTORY>$<VARNAME>MAILBIN</>/ta/</> directory.
-The string ``<OPTION>$channel</>'' is replaced by the current matched channel,
-and ``<OPTION>$host</>'' replaced by the current matched host, from
-the destination address.
-It is strongly recommended that the ``<OPTION>$host</>'' is not to be used
-on a command definition, as it limits the usability of idled transporter.
-</PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>bychannel</></TERM><LISTITEM><PARA>
-is a keyword (with no associated value) that tells the <EMPHASIS>scheduler</>
-that the transport agent specified in the command will only process destination
-addresses that match the first destination channel it encounters.
-This is automatically set when the string ``<OPTION>$channel</>'' occurs
-in the command, but may also be specified manually by this keyword.
-This is rarely used.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM>FIXME: <OPTION>sm</> (8)</TERM><LISTITEM><PARA>
-to avoid the <EMPHASIS>scheduler</> having to discover that
-the transport agent didn't consider a destination address
-the <EMPHASIS>scheduler</> thought it should have.
-The penalty for not using this keyword in such situations is that delivery
-of passed-over addresses will be staggered.
-</PARA></LISTITEM></VARLISTENTRY>
-
-<VARLISTENTRY><TERM><OPTION>queueonly</></TERM><LISTITEM><PARA>
-a clause with <EMPHASIS>queueonly</> flag does not auto-start at the arrival
-of a message, instead it must be started by means of <EMPHASIS>smtpserver(8)</>
-command <USERINPUT>ETRN</> through an SMTP connection.
-</PARA></LISTITEM></VARLISTENTRY>
 </VARIABLELIST>
 </PARA>
 
@@ -636,6 +714,10 @@ Max number of processes with this same ``channel''.
 Max number of processes with this set of threads. 
 </PARA></LISTITEM></VARLISTENTRY>
 
+<VARLISTENTRY><TERM><OPTION>maxthr=nn</OPTION></TERM><LISTITEM><PARA>
+Max number of processes at any given thread in this set of threads.
+</PARA></LISTITEM></VARLISTENTRY>
+
 <VARLISTENTRY><TERM><OPTION>idlemax=time</OPTION></TERM><LISTITEM><PARA>
 How long the non-active (idle) transporter processes are allowed to keep
 around. 
@@ -648,18 +730,19 @@ The <EMPHASIS>scheduler</> main-loop at the <FUNCTION>mux()</> is
 a bit sluggish, thus with this we can keep the transporters busy.
 </PARA></LISTITEM></VARLISTENTRY>
 
-<VARLISTENTRY><TERM><OPTION>ageorder</OPTION></TERM><LISTITEM><PARA>
-Default is to randomize the order of tasks at the queue, when it is started,
-with this the order is that of the original spool-file MTIME.
-Oldest first. 
-</PARA></LISTITEM></VARLISTENTRY>
-
 </VARIABLELIST>
 </PARA>
 
 </SECT1>
 
 <SECT1 ID="zref.scheduler.auth.file"><TITLE><FILENAME>scheduler.auth</> file</TITLE>
+<PARA>
+The file whose default boilerplate is shown at
+<XREF LINKEND="fig.ref.scheduler.auth.file"> is able to
+control what kind of things (and who, of those who know shared secrets) can
+ask the scheduler to do via the so called ``MAILQv2'' protocol.
+</PARA>
+
 <FIGURE ID="fig.ref.scheduler.auth.file" PGWIDE=1 FLOAT=1>
 <TITLE>Sample of ``<FILENAME>scheduler.auth</FILENAME>'' file</TITLE>
 <SCREEN>

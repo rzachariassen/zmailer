@@ -84,10 +84,19 @@ zmanual.html: gifs $(PARTS)
 	TZ=UTC date > z-datetime.txt
 	echo "HTML" > z-what.txt
 	echo '<!ENTITY GEXT "gif">' > z-gext.txt
-	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl   sh   ./db2html zmanual.sgml
+	make index-html
+	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl sh ./db2html zmanual.sgml
 	#sh  ./db2html zmanual.sgml
 	cp -p *.gif zmanual/
 	cd zmanual; ../html-post-fixup.sh *.html
+
+HTML.index:
+	touch genindex.sgm
+	DB_STYLESHEET=`/bin/pwd`/zmanual.dsl sh ./db2html -html-index zmanual.sgml
+	mv zmanual/HTML.index .
+
+index-html index-dvi index-pdf: HTML.index
+	perl ./collateindex.pl -f -g -i document-index -t Index -o genindex.sgm HTML.index
 
 zmanual.ps: zmanual.dvi $(FIGEPS)
 	dvips -ta4 -ozmanual.ps zmanual.dvi
@@ -96,13 +105,15 @@ zmanual.dvi: $(PARTS) $(FIGEPS) zmanual.sgml
 	TZ=UTC date > z-datetime.txt
 	echo "PostScript" > z-what.txt
 	echo '<!ENTITY GEXT "eps">' > z-gext.txt
-	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh  ./db2dvi zmanual.sgml
+	make index-dvi
+	STYLESHEET=`/bin/pwd`/zmanual.dsl sh ./db2dvi zmanual.sgml
 
 zmanual.pdf: $(PARTS) $(FIGPDF) zmanual.sgml
 	TZ=UTC date > z-datetime.txt
 	echo "PDF" > z-what.txt
 	echo '<!ENTITY GEXT "pdf">' > z-gext.txt
-	STYLESHEET=`/bin/pwd`/zmanual.dsl   sh  ./db2pdf zmanual.sgml
+	make index-pdf
+	STYLESHEET=`/bin/pwd`/zmanual.dsl sh ./db2pdf zmanual.sgml
 
 distclean clean:
 	# Leave "zmanual.ps" in place, if it exists
