@@ -346,9 +346,10 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 	    *notarybuf = 0;
 	}
 
-	if (rp->notifyflgs & _DSN__DIAGDELAYMODE) {
-	  /* XX: Delay the diagnostic reports */
-	} else {
+	/* "Delay" the diagnostics from mailbox sieve subprocessing.
+	   Actually DON'T do them at all! */
+	if (!(rp->notifyflgs & _DSN__DIAGDELAYMODE)) {
+
 	  printf("%d/%d\t%s\t%s %s\n",
 		 rp->desc->ctlid, rp->id,
 		 (notarybuf && report_notary) ? notarybuf : "",
@@ -359,8 +360,8 @@ diagnostic(rp, rc, timeout, fmt, va_alist) /* (rp, rc, timeout, "fmtstr", remote
 			(char*)rp->desc->msgfile, "?host?", getpid())) {
 	    /* something went wrong in unlocking it, concurrency problem? */
 	  }
+	  rp->lockoffset = 0;	/* mark this recipient unlocked */
 	}
-	rp->lockoffset = 0;	/* mark this recipient unlocked */
 	fflush(stdout);
 
 	tasyslog(rp, xdelay, wtthost, wttip, statmsg, message);
