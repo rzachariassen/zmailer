@@ -81,6 +81,7 @@ struct ctlfile {
 	uid_t	uid;		/* the owner of the control file (= msg file)*/
 	time_t	mtime;		/* original msg file's mtime (~ arrival)     */
 	time_t	envctime;	/* when the transport file was created	     */
+	char*   spoolid;	/* buffer for msg file spoolid storage	     */
 	int	haderror;	/* some errors/diagnostics need processing   */
 	int	resynccount;	/* How many resync requests ?		     */
 #define MAXRESYNCS 30

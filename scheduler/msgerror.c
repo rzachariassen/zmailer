@@ -77,14 +77,15 @@ decodeXtext(fp,xtext)
 	}
 }
 
-static void scnotaryreport __((Sfio_t *, struct not *, int *, int));
+static void scnotaryreport __((Sfio_t *, struct not *, int *, int, int));
 
 static void	/* There is notaryreport() on transporters also.. */
-scnotaryreport(errfp,notary,haserrsp,notifyrespectflg)
+scnotaryreport(errfp,notary,haserrsp,notifyrespectflg,headstyle)
 	Sfio_t *errfp;
 	struct not *notary;
 	int *haserrsp;
 	int notifyrespectflg;
+	int headstyle;
 {
 	char *rcpt, *action, *status, *diagstr, *wtt;
 	char *taid;
@@ -160,26 +161,49 @@ scnotaryreport(errfp,notary,haserrsp,notifyrespectflg)
 	} else
 	  typetag = type_local;
 	if (notary->orcpt) {
-	  sfprintf(errfp, "Original-Recipient: ");
+	  if (headstyle)
+	    sfprintf(errfp, "  Original Recipient:\n      ");
+	  else
+	    sfprintf(errfp, "Original-Recipient: ");
 	  decodeXtext(errfp,notary->orcpt);
 	  sfputc(errfp,'\n');
 	}
-	sfprintf(errfp, "Final-Recipient: %s;%s\n", typetag, rcpt);
-	sfprintf(errfp, "Action: %s\n", action);
+	if (headstyle) {
+	  sfprintf(errfp, "  Final Recipient:\n      %s;%s\n", typetag, rcpt);
+	} else {
+	  sfprintf(errfp, "Final-Recipient: %s;%s\n", typetag, rcpt);
+	  sfprintf(errfp, "Action: %s\n", action);
+	}
 	if (status) {
 	  if (*status == '4' || *status == '5')
 	    *haserrsp = 1;
-	  sfprintf(errfp, "Status: %s\n", status);
+	  if (headstyle)
+	    sfprintf(errfp, "  Status:\n      %s\n", status);
+	  else
+	    sfprintf(errfp, "Status: %s\n", status);
 	}
-	sfprintf(errfp, "Diagnostic-Code: %s\n", diagstr);
-	if (wtt && wtt[0] != 0)
-	  sfprintf(errfp, "Remote-MTA: %s\n", wtt);
-	if (notary->tstamp != 0)
-	  sfprintf(errfp, "Last-Attempt-Date: %s",
-		   rfc822date(&notary->tstamp));
-	if (taid)
-	  sfprintf(errfp, "X-ZTAID: %s\n", taid);
-	sfprintf(errfp, "\n");
+	if (wtt && wtt[0] != 0) {
+	  if (headstyle)
+	    sfprintf(errfp, "  Remote MTA:\n      %s\n", wtt);
+	  else
+	    sfprintf(errfp, "Remote-MTA: %s\n", wtt);
+	}
+	if (notary->tstamp != 0) {
+	  if (headstyle)
+	    sfprintf(errfp, "  Last Attempt Date:\n      %s",
+		     rfc822date(&notary->tstamp));
+	  else
+	    sfprintf(errfp, "Last-Attempt-Date: %s",
+		     rfc822date(&notary->tstamp));
+	}
+	if (taid && headstyle)
+	  sfprintf(errfp, "  X-ZTAID:\n      %s\n", taid);
+	if (headstyle)
+	  sfprintf(errfp, "  Diagnostic Code:\n      %s\n", diagstr);
+	else {
+	  sfprintf(errfp, "Diagnostic-Code: %s\n", diagstr);
+	  sfprintf(errfp, "\n");
+	}
 
 	action[-1] = '\001';
 	if (status) status[-1] = '\001';
@@ -430,7 +454,7 @@ reporterrs(cfpi, delayreports)
 	const int delayreports;
 {
 	int i, n, wroteheader, byteidx, headeridx = -1, drptidx, fd;
-	int *lp;
+	int *lp, ignored = 0;
 	time_t tstamp;
 	char *cp, *cp2, *action, *eaddr;
 	char *deliveryform;
@@ -448,7 +472,7 @@ reporterrs(cfpi, delayreports)
 	int mypid;
 	long format;
 	char boundarystr[400];
-	char spoolid[30];
+	char rptspoolid[30];
 	time_t mtime;
 	long ino;
 	int actionsets[5]; /* 0:DELIVERED, 1:FAILED, 2:RELAYED, 3:DELAYED,
@@ -468,8 +492,6 @@ reporterrs(cfpi, delayreports)
 	}
 	no_error_report = cfpi->iserrmesg;
 
-	taspoolid(spoolid, cfpi->mtime, cfpi->id);
-
 	eaddr        = cfpi->erroraddr;
 	deliveryform = cfpi->deliveryform;
 	envid        = cfpi->envid;
@@ -481,8 +503,8 @@ reporterrs(cfpi, delayreports)
 	if (fd < 0 ||
 	    (cfp = slurp(fd, cfpi->id)) == NULL) {
 	  sfprintf(sfstderr,
-		   "%s: unexpected absence of control file %s for error processing!\n",
-		   progname, mpath);
+		   "%s: unexpected absence of control file %s for error processing (%s)!\n",
+		   progname, mpath, cfpi->spoolid ? cfpi->spoolid : "-");
 	  if (fd >= 0)
 	    close(fd);
 	  return;
@@ -588,8 +610,9 @@ reporterrs(cfpi, delayreports)
 	  if (format & _CF_FORMAT_DELAY1)
 	    rcpntpointer += _CFTAG_RCPTDELAYSIZE;
 
-	  if (do_syslog)
-	    zsyslog((LOG_INFO, "%s: <%s>: %s", cfpi->mid, rcpntpointer, cp));
+	  if (do_syslog > 1)
+	    zsyslog((LOG_INFO, "%s: <%s>: %s",
+		     cfpi->spoolid ? cfpi->spoolid:"-", rcpntpointer, cp));
 
 	  if (notary != NULL && *notary != 0) {
 	    if (!notaries) {
@@ -674,20 +697,30 @@ reporterrs(cfpi, delayreports)
 	    case ACTSET_RELAYED:
 	      if (notaries[notarycnt].notifyflgs & NOT_SUCCESS)
 		actionsets[thisaction] += 1;
-	      else thisaction = ACTSET_NONE;
+	      else {
+		thisaction = ACTSET_NONE;
+		++ignored;
+	      }
 	      break;
 	    case ACTSET_DELAYED:
 	      if (notaries[notarycnt].notifyflgs & NOT_DELAY)
 		actionsets[thisaction] += 1;
-	      else thisaction = ACTSET_NONE;
+	      else {
+		thisaction = ACTSET_NONE;
+		++ignored;
+	      }
 	      break;
 	    case ACTSET_FAILED:
 	      if (notaries[notarycnt].notifyflgs & NOT_FAILURE)
 		actionsets[thisaction] += 1;
-	      else thisaction = ACTSET_NONE;
+	      else {
+		thisaction = ACTSET_NONE;
+		++ignored;
+	      }
 	      break;
 	    default:
 	      thisaction = ACTSET_NONE;
+	      ++ignored;
 	      break;
 	    }
 	    notaries[notarycnt].thisaction = thisaction;
@@ -712,6 +745,11 @@ reporterrs(cfpi, delayreports)
 
 	  close(cfp->fd);
 	  free_cfp_memory(cfp);
+
+	  if (do_syslog)
+	    zsyslog((LOG_INFO, "%s: Abnormal: No notaries to report; 1",
+		     cfpi->spoolid ? cfpi->spoolid:"-"));
+
 	  return;
 	}
 
@@ -735,6 +773,11 @@ reporterrs(cfpi, delayreports)
 	  if (verbose > 1)
 	    sfprintf(sfstdout, "reporterrs: No reports! bailing out!\n");
 
+	  if (do_syslog)
+	    zsyslog((LOG_INFO, "%s: Nothing to report, ignorecount: %d",
+		     cfpi->spoolid ? cfpi->spoolid:"-", ignored));
+
+
 	  return;
 	}
 
@@ -751,6 +794,11 @@ reporterrs(cfpi, delayreports)
 	  free((void*)notaries);
 	  close(cfp->fd);
 	  free_cfp_memory(cfp);
+
+	  if (do_syslog)
+	    zsyslog((LOG_INFO, "%s: ABNORMAL: Failed to open report file!",
+		     cfpi->spoolid ? cfpi->spoolid:"-"));
+
 	  return;
 	}
 
@@ -768,6 +816,25 @@ reporterrs(cfpi, delayreports)
 
 	writeheader(errfp, eaddr, &no_error_report, deliveryform, boundarystr,
 		    actionsets);
+
+
+	if (mydomain() != NULL) {
+	  sfprintf(errfp, "Reporting-MTA: dns; %s\n", mydomain() );
+	} else {
+	  sfprintf(errfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
+	}
+	if (envid != NULL) {
+	  sfprintf(errfp, "Original-Envelope-Id: ");
+	  decodeXtext(errfp,envid);
+	  sfputc(errfp, '\n');
+	}
+	/* rfc822date() returns a string with trailing newline! */
+	sfprintf(errfp, "Arrival-Date: %s", rfc822date(&cfpi->mtime));
+	if (cfpi->spoolid)
+	  sfprintf(errfp, "Local-Spool-ID: %s\n", cfpi->spoolid);
+	sfprintf(errfp, "\n\n");
+
+
 
 	n = 0;
 	for (i = 0; i < notarycnt; ++i) {
@@ -799,35 +866,27 @@ reporterrs(cfpi, delayreports)
 	    --n;
 	    break;
 	  }
-	  if (notaries[i].orcpt) {
-	    sfprintf(errfp, "  Original Recipient:\n    ");
-	    decodeXtext(errfp,notaries[i].orcpt);
-	    sfputc(errfp,'\n');
-	  } else if (notaries[i].inrcpt) {
-	    sfprintf(errfp, "  Arrived Recipient:\n    ");
+	  if (notaries[i].inrcpt) {
+	    sfprintf(errfp, "  Arrived Recipient:\n      ");
 	    decodeXtext(errfp, notaries[i].inrcpt);
 	    sfputc(errfp,'\n');
 	  }
-	  sfprintf(errfp, "  Control data:\n");
-	  sfprintf(errfp, "    %s\n", notaries[i].rcpntp);
-	  sfprintf(errfp, "  Diagnostic texts:\n");
+	  scnotaryreport(errfp, &notaries[i], &has_errors, no_error_report, 1);
+
+	  sfprintf(errfp, "  Control data:\n      %s\n", notaries[i].rcpntp);
+	  sfprintf(errfp, "  Diagnostic texts:\n      ");
 	  ccp = notaries[i].message;
-	  if (*ccp != '\r')
-	    sfprintf(errfp, "    ");
-	  if (strchr(ccp, '\r')) {
-	    sfprintf(errfp, "...\\\n    ");
-	    s = ccp;
-	    if (*s == '\r') ++s; /* Skip possible first '\r' */
-	    for (; *s != '\0'; ++s) {
-	      if (*s == '\r') {
-		sfprintf(errfp,"\n    ");
-	      } else {
-		sfputc(errfp, *s);
-	      }
+	  s = ccp;
+	  while (*s == '\r') ++s; /* Skip possible first '\r' */
+	  for (; *s != '\0'; ++s) {
+	    if (*s == '\r') {
+	      sfprintf(errfp,"\n     ");
+	    } else {
+	      sfputc(errfp, *s);
 	    }
-	    sfputc(errfp, '\n');
-	  } else
-	    sfprintf(errfp, "%s\n", ccp);
+	  }
+	  sfputc(errfp, '\n');
+
 	}
 
 	sfprintf(errfp,"\n\
@@ -855,12 +914,13 @@ sent you this report, please include this information in your question!\n\
 	}
 	/* rfc822date() returns a string with trailing newline! */
 	sfprintf(errfp, "Arrival-Date: %s", rfc822date(&cfpi->mtime));
-	sfprintf(errfp, "Local-Spool-ID: %s\n", spoolid);
+	if (cfpi->spoolid)
+	  sfprintf(errfp, "Local-Spool-ID: %s\n", cfpi->spoolid);
 	sfprintf(errfp, "\n");
 
 	/* Now scan 'em all again for IETF-NOTARY */
 	for (i = 0; i < notarycnt; ++i)
-	  scnotaryreport(errfp, &notaries[i],&has_errors,no_error_report);
+	  scnotaryreport(errfp, &notaries[i],&has_errors,no_error_report, 0);
 
 	sfprintf(errfp,"\n\
 Following is copy of the message headers. Original message content may\n\
@@ -919,12 +979,13 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	}
 	/* rfc822date() returns a string with trailing newline! */
 	sfprintf(errfp, "Arrival-Date: %s", rfc822date(&cfpi->mtime));
-	sfprintf(errfp, "Local-Spool-ID: %s\n", spoolid);
+	if (cfpi->spoolid)
+	  sfprintf(errfp, "Local-Spool-ID: %s\n", cfpi->spoolid);
 	sfprintf(errfp, "\n");
 
 	/* Now scan 'em all again for IETF-NOTARY */
 	for (i = 0; i < notarycnt; ++i) {
-	  scnotaryreport(errfp, &notaries[i],&has_errors,no_error_report);
+	  scnotaryreport(errfp, &notaries[i],&has_errors,no_error_report, 0);
 	  if (notaries[i].not != NULL)
 	    free(notaries[i].not);
 	}
@@ -988,7 +1049,12 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	  _sfmail_close_(errfp, &ino, &mtime);	/* XX: check for error */
 	close(cfp->fd);
 	free_cfp_memory(cfp);
-	taspoolid(spoolid, cfpi->mtime, cfpi->id);
+	taspoolid(rptspoolid, mtime, ino);
+
+	if (do_syslog)
+	  zsyslog((LOG_INFO, "%s: Created report on spoolid: %s",
+		     cfpi->spoolid ? cfpi->spoolid:"-", rptspoolid));
+
 }
 
 

@@ -202,12 +202,10 @@ unctlfile(cfp, no_unlink)
 
 	  reporterrs(cfp, 0);
 
-	  if (do_syslog) {
-	    char taspid[30];
-	    taspoolid(taspid, cfp->mtime, (long)cfp->id);
+	  if (do_syslog)
 	    zsyslog((LOG_INFO, "%s: complete (total %d recepients, %d failed)",
-		     taspid, cfp->rcpnts_total, cfp->rcpnts_failed));
-	  }
+		     cfp->spoolid, cfp->rcpnts_total, cfp->rcpnts_failed));
+
 	  ++MIBMtaEntry->mtaTransmittedMessagesSc;
 
 	  eunlink(path,"sch-unctl-1");

@@ -26,16 +26,16 @@
     !defined(HAVE_DB_CREATE)
 # include <db_185.h>
 #else
-#ifdef HAVE_DB3_DB_H
+#if defined(HAVE_DB3_DB_H) && defined(HAVE_DB3)
 # include <db3/db.h>
 #else
-#ifdef HAVE_DB2_DB_H
+#if defined(HAVE_DB2_DB_H) && defined(HAVE_DB2)
 # include <db2/db.h>
 #else
 #ifdef HAVE_DB_H
 # include <db.h>
 #else
-#ifdef HAVE_DB1_DB_H
+#if defined(HAVE_DB1_DB_H) && defined(HAVE_DB1)
 # include <db1/db.h>
 #endif
 #endif
@@ -43,7 +43,6 @@
 #endif
 #endif
 #endif
-
 
 #ifdef HAVE_NDBM
 #define datum Ndatum
@@ -282,11 +281,11 @@ int *rlenp;			/* result length ptr ! */
 	break; /* some compilers complain, some produce bad code
 		  without this... */
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
     case _dbt_btree:
 
 
-	memset(&Bkey, 0, sizeof(Bkey));
+	memset(&Bkey,    0, sizeof(Bkey));
 	memset(&Bresult, 0, sizeof(Bresult));
 
 	Bkey.data = (void *) qptr;
@@ -311,7 +310,7 @@ int *rlenp;			/* result length ptr ! */
 
     case _dbt_bhash:
 
-	memset(&Bkey, 0, sizeof(Bkey));
+	memset(&Bkey,    0, sizeof(Bkey));
 	memset(&Bresult, 0, sizeof(Bresult));
 
 	Bkey.data = (void *) qptr;
@@ -629,7 +628,7 @@ int whosonrc;
     if (cistrcmp(rel->dbtype, "gdbm") == 0)
 	rel->dbt = _dbt_gdbm;
 #endif
-#if defined(HAVE_DB1) || defined(HAVE_DB2)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
     if (cistrcmp(rel->dbtype, "btree") == 0)
 	rel->dbt = _dbt_btree;
     if (cistrcmp(rel->dbtype, "bhash") == 0)
@@ -665,22 +664,24 @@ int whosonrc;
 	openok = (rel->gdbm != NULL);
 	break;
 #endif
-#if defined(HAVE_DB_H) || defined(HAVE_DB1_DB_H) || defined(HAVE_DB2_DB_H) \
-    || defined(HAVE_DB3_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
     case _dbt_btree:
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.db", rel->dbpath);
 
-#if   defined(HAVE_DB_CREATE)
+#if defined(HAVE_DB3)
 
 	rel->btree = NULL;
 	openok = db_create(&rel->btree, NULL, 0);
 	if (openok == 0)
 	  openok = rel->btree->open(rel->btree, dbname, NULL,  DB_BTREE,
 				    DB_RDONLY, 0);
+	if (debug && openok)
+	  printf("000- btree->open('%s',BTREE, RDONLY) ret=%d\n",dbname,openok);
 	openok = !openok;
 
-#elif defined(HAVE_DB_OPEN2)
+#else
+#if defined(HAVE_DB2)
 
 	rel->btree = NULL;
 #ifndef DB_RDONLY
@@ -689,9 +690,10 @@ int whosonrc;
 	openok = db_open(dbname, DB_BTREE, DB_RDONLY, 0644,
 			 NULL, NULL, &rel->btree);
 	openok = !openok;
-#else
+#else /* HAVE_DB1 */
 	rel->btree = dbopen(dbname, O_RDONLY, 0644, DB_BTREE, NULL);
 	openok = (rel->btree != NULL);
+#endif
 #endif
 	break;
 
@@ -699,16 +701,19 @@ int whosonrc;
 	/* Append '.db' to the name */
 	sprintf(dbname, "%s.dbh", rel->dbpath);
 
-#if   defined(HAVE_DB_CREATE)
+#if defined(HAVE_DB3)
 
 	rel->bhash = NULL;
 	openok = db_create(&rel->bhash, NULL, 0);
 	if (openok == 0)
 	  openok = rel->btree->open(rel->bhash, dbname, NULL, DB_HASH,
 				    DB_RDONLY, 0);
+	if (debug && openok)
+	  printf("000- bhash->open('%s',BHASH, RDONLY) ret=%d\n",dbname,openok);
 	openok = !openok;
 
-#elif defined(HAVE_DB_OPEN2)
+#else
+#if defined(HAVE_DB2)
 
 	rel->bhash = NULL;
 #ifndef DB_RDONLY
@@ -717,9 +722,10 @@ int whosonrc;
 	openok = db_open(dbname, DB_HASH, DB_RDONLY, 0644,
 			 NULL, NULL, &rel->bhash);
 	openok = !openok;
-#else
+#else /* HAVE_DB1 */
 	rel->bhash = dbopen(rel->dbpath, O_RDONLY, 0644, DB_HASH, NULL);
 	openok = (rel->bhash != NULL);
+#endif
 #endif
 	break;
 #endif

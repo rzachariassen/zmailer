@@ -32,16 +32,16 @@
     !defined(HAVE_DB_CREATE)
 # include <db_185.h>
 #else
-#ifdef HAVE_DB3_DB_H
+#if defined(HAVE_DB3_DB_H) && defined(HAVE_DB3)
 # include <db3/db.h>
 #else
-#ifdef HAVE_DB2_DB_H
+#if defined(HAVE_DB2_DB_H) && defined(HAVE_DB2)
 # include <db2/db.h>
 #else
 #ifdef HAVE_DB_H
 # include <db.h>
 #else
-#ifdef HAVE_DB1_DB_H
+#if defined(HAVE_DB1_DB_H) && defined(HAVE_DB1)
 # include <db1/db.h>
 #endif
 #endif
@@ -190,58 +190,68 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 		    (const char*)t, (const char *)s);
 	}
 
-#ifdef HAVE_NDBM
-	if (typ == 1) {
-		Ndatum Ndat, Nkey;
-		Nkey.dptr = (void*)t;
-		Nkey.dsize = tlen;
-		Ndat.dptr = (void*)s;
-		Ndat.dsize = slen;
-		rc = dbm_store(ndbmfile, Nkey, Ndat,
-			       overwritemode ? DBM_REPLACE : DBM_INSERT);
 
-		if (rc < 0 && errno == ENOSPC) {
-		  fprintf(stderr,"NDBM does not allow KEY.LEN + DATA.LEN to exceed 1024 bytes!  linenro=%d\n",linenum);
-		}
-	}
+	switch (typ) {
+#ifdef HAVE_NDBM
+	case 1:
+	  {
+	    Ndatum Ndat, Nkey;
+	    Nkey.dptr = (void*)t;
+	    Nkey.dsize = tlen;
+	    Ndat.dptr = (void*)s;
+	    Ndat.dsize = slen;
+	    rc = dbm_store(ndbmfile, Nkey, Ndat,
+			   overwritemode ? DBM_REPLACE : DBM_INSERT);
+
+	    if (rc < 0 && errno == ENOSPC) {
+	      fprintf(stderr,"NDBM does not allow KEY.LEN + DATA.LEN to exceed 1024 bytes!  linenro=%d\n",linenum);
+	    }
+	  }
+	  break;
 #endif
 #ifdef HAVE_GDBM
-	if (typ == 2) {
-		Gdatum Gdat, Gkey;
-		Gkey.dptr = (void*)t;
-		Gkey.dsize = tlen;
-		Gdat.dptr = (void*)s;
-		Gdat.dsize = slen;
-		rc = gdbm_store(gdbmfile, Gkey, Gdat,
-				overwritemode ? GDBM_REPLACE : GDBM_INSERT);
-	}
+	case 2:
+	  {
+	    Gdatum Gdat, Gkey;
+	    Gkey.dptr = (void*)t;
+	    Gkey.dsize = tlen;
+	    Gdat.dptr = (void*)s;
+	    Gdat.dsize = slen;
+	    rc = gdbm_store(gdbmfile, Gkey, Gdat,
+			    overwritemode ? GDBM_REPLACE : GDBM_INSERT);
+	  }
+	  break;
 #endif
 #if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
-	if (typ == 3 || typ == 4) {
-		DBT Bkey, Bdat;
+	case 3: case 4:
+	  {
+	    DBT Bkey, Bdat;
 
-		memset(&Bkey,0,sizeof(Bkey));
-		memset(&Bdat,0,sizeof(Bdat));
+	    memset(&Bkey,0,sizeof(Bkey));
+	    memset(&Bdat,0,sizeof(Bdat));
 
-		Bkey.data = (void*)t;
-		Bkey.size = tlen;
+	    Bkey.data = (void*)t;
+	    Bkey.size = tlen;
 
-		Bdat.data = (void*)s;
-		Bdat.size = slen;
+	    Bdat.data = (void*)s;
+	    Bdat.size = slen;
 
 #ifdef DB_INIT_TXN
-		rc = (dbfile->put) (dbfile, NULL, &Bkey, &Bdat,
-				    overwritemode ? 0: DB_NOOVERWRITE);
+	    rc = (dbfile->put) (dbfile, NULL, &Bkey, &Bdat,
+				overwritemode ? 0: DB_NOOVERWRITE);
 
-		/* emulate BSD DB 1.85 return values */
-		rc = -rc;
+	    /* emulate BSD DB 1.85 return values */
+	    rc = -rc;
 
 #else
-		rc = (dbfile->put) (dbfile, &Bkey, &Bdat,
-				    overwritemode ? 0: R_NOOVERWRITE);
+	    rc = (dbfile->put) (dbfile, &Bkey, &Bdat,
+				overwritemode ? 0: R_NOOVERWRITE);
 #endif
-	}
+	  }
+	  break;
 #endif
+	} /* end of switch(typ) ... */
+
 
 	if (rc > 0 && append_mode == 0)
 	  return rc; /* Duh! Duplicate, and no append_mode :-( */
@@ -255,46 +265,55 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 	  char *newptr = NULL;
 	  int   newlen = 0;
 
+	  switch (typ) {
+
 #ifdef HAVE_NDBM
-	  if (typ == 1) {
-	    Ndatum Ndat, Nkey;
-	    Nkey.dptr = (void*)t;
-	    Nkey.dsize = tlen;
-	    Ndat = dbm_fetch(ndbmfile, Nkey);
-	    dataptr = Ndat.dptr;
-	    datalen = Ndat.dsize;
-	  }
+	  case 1:
+	    {
+	      Ndatum Ndat, Nkey;
+	      Nkey.dptr = (void*)t;
+	      Nkey.dsize = tlen;
+	      Ndat = dbm_fetch(ndbmfile, Nkey);
+	      dataptr = Ndat.dptr;
+	      datalen = Ndat.dsize;
+	    }
+	    break;
 #endif
 #ifdef HAVE_GDBM
-	  if (typ == 2) {
-	    Gdatum Gdat, Gkey;
-	    Gkey.dptr = (void*)t;
-	    Gkey.dsize = tlen;
-	    Gdat = gdbm_fetch(gdbmfile, Gkey);
-	    dataptr = Gdat.dptr; /* Must free() this */
-	    datalen = Gdat.dsize;
-	  }
+	  case 2:
+	    {
+	      Gdatum Gdat, Gkey;
+	      Gkey.dptr = (void*)t;
+	      Gkey.dsize = tlen;
+	      Gdat = gdbm_fetch(gdbmfile, Gkey);
+	      dataptr = Gdat.dptr; /* Must free() this */
+	      datalen = Gdat.dsize;
+	    }
+	    break;
 #endif
 #if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
-	  if (typ == 3 || typ == 4) {
-	    DBT Bkey, Bdat;
+	  case 3: case 4:
+	    {
+	      DBT Bkey, Bdat;
 
-	    memset(&Bkey,0,sizeof(Bkey));
-	    memset(&Bdat,0,sizeof(Bdat));
+	      memset(&Bkey,0,sizeof(Bkey));
+	      memset(&Bdat,0,sizeof(Bdat));
 
-	    Bkey.data = (void*)t;
-	    Bkey.size = tlen;
+	      Bkey.data = (void*)t;
+	      Bkey.size = tlen;
 #ifdef DB_INIT_TXN
-	    rc = (dbfile->get) (dbfile, NULL, &Bkey, &Bdat, 0);
+	      rc = (dbfile->get) (dbfile, NULL, &Bkey, &Bdat, 0);
 #else
-	    rc = (dbfile->get) (dbfile, &Bkey, &Bdat, 0);
+	      rc = (dbfile->get) (dbfile, &Bkey, &Bdat, 0);
 #endif
-	    if (rc != 0)
-	      memset(&Bdat, 0, sizeof(Bdat));
-	    dataptr = Bdat.data;
-	    datalen = Bdat.size;
-	  }
+	      if (rc != 0)
+		memset(&Bdat, 0, sizeof(Bdat));
+	      dataptr = Bdat.data;
+	      datalen = Bdat.size;
+	    }
+	    break;
 #endif
+	  } /* end of .. switch(typ) ... */
 
 	  /* Ok, now we have  dataptr  and  datalen -- we should have
 	     non-NULL dataptr.  We need to build a new block with
@@ -903,7 +922,7 @@ char *argv[];
 	break;
 #endif
 #if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
-#if defined(HAVE_DB_CREATE)
+#if defined(HAVE_DB3)
 
     case 3:
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
@@ -933,7 +952,7 @@ char *argv[];
 	break;
 
 #else
-#if defined(HAVE_DB_OPEN2)
+#if defined(HAVE_DB2)
     case 3:
 
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
@@ -942,7 +961,7 @@ char *argv[];
 	dbfile = NULL;
 	err = db_open(dbasename, DB_BTREE,  DB_CREATE|DB_TRUNCATE,
 		      0644, NULL, NULL, &dbfile);
-	if (!err)
+	if (! err)
 	  dbf = dbfile;
 	break;
 
@@ -991,24 +1010,28 @@ char *argv[];
     else
 	    rc = create_keyed_dbase(infile, dbf, typ);
 
+    switch (typ) {
 #ifdef HAVE_NDBM
-    if (typ == 1)
-	dbm_close(ndbmfile);
+    case 1:
+      dbm_close(ndbmfile);
+      break;
 #endif
 #ifdef HAVE_GDBM
-    if (typ == 2)
-	gdbm_close(gdbmfile);
+    case 2:
+      gdbm_close(gdbmfile);
+      break;
 #endif
 #if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
-    if (typ == 3 || typ == 4) {
-	(dbfile->sync) (dbfile, 0);
-#ifdef HAVE_DB_CLOSE2
-	(dbfile->close) (dbfile, 0);
+    case 3: case 4:
+      (dbfile->sync) (dbfile, 0);
+#if defined(HAVE_DB_CLOSE2)
+      (dbfile->close) (dbfile, 0);
 #else
-	(dbfile->close) (dbfile);
+      (dbfile->close) (dbfile);
 #endif
-    }
+      break;
 #endif
+    }  /* end of .. switch(typ) .. */
 
     if (store_errors) {
       fprintf(stderr,"STORE ERRORS DURING DATABASE WRITE!\n");

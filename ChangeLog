@@ -1,3 +1,21 @@
+2001-10-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* scheduler/msgerror.c, scheduler/scheduler.c,
+	  scheduler/scheduler.h, scheduler/update.c:
+	    Added couple  zsyslog()  calls to conditionally syslog
+	    when scheduler has completed processing of a message.
+
+	* router/rfc822.c:
+	    Added a bit of double-colons on squirel() and
+	    reject() calls when the thing is FATAL.
+	    (Its me again being dense and forgetting documentation
+	    elsewere, but the ":error-on-error" tag looked so neat...)
+
+	* router/libdb/bsdbtree.c, router/libdb/bsdhash.c,
+	  smtpserver/policytest.c, utils/makedb/dblook.c,
+	  utils/makedb/makedb.c:
+	    Reworked SleepyCat DB 1.x/2.x/3.x conditionals.
+
 2001-10-21  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/mq2.c:

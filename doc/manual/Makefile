@@ -136,7 +136,7 @@ distclean clean:
 	# Leave "zmanual.ps" in place, if it exists
 	rm -f *~ *.html *.eps *.gif *.bak *.dvi *.toc *.lof *.pdf
 	rm -f *.css *.aux *.ptr *.old *.ilg *.gls *.cb *.glo *.log
-	rm -rf l2h[1-9][0-9]* *sections.pl *internals.pl *index.pl
+	rm -rf l2h[1-9][0-9]* *sections.pl *internals.pl #*index.pl
 	rm -f *contents.pl *.ind *.idx *images.pl *table.pl
 	rm -f [A-Z]*images.* *labels.pl *figure.pl IMG_PAR*
 	rm -f TEXENV *.ps.gz *.xbm *.png

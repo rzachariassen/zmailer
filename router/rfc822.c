@@ -180,17 +180,17 @@ run_rfc822(argc, argv)
 	case PERR_BADOPEN:
 		break;
 	case PERR_BADCONTINUATION:	/* fatal */
-		squirrel(e, "badenvelope", "continuation line prior to header");
+		squirrel(e, ":badenvelope", "continuation line prior to header");
 		break;
 	case PERR_BADSUBMIT:		/* fatal */
-		squirrel(e, "badsubmit", "unrecognized envelope information");
+		squirrel(e, ":badsubmit", "unrecognized envelope information");
 		break;
 	case PERR_LOOP:			/* fatal */
 		reject(e, "loopexceeded");
 		squirrel(e, "_looped", "loop count exceeded");
 		break;
 	case PERR_ENVELOPE:		/* fatal */
-		reject(e, "envelope");
+		reject(e, ":envelope");
 		break;
 	case PERR_DEFERRED:
 		if (deferuid)
@@ -199,10 +199,10 @@ run_rfc822(argc, argv)
 		  defer(e, "deferred");
 		break;
 	case PERR_HEADER:		/* fatal */
-		reject(e, "header");
+		reject(e, ":header");
 		break;
 	case PERR_NORECIPIENTS:		/* fatal */
-		reject(e, "norecipients");
+		reject(e, ":norecipients");
 		break;
 	case PERR_NOSENDER:
 		squirrel(e, "nosender", "really truly Unknown Sender");

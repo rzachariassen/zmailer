@@ -1684,7 +1684,7 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->smtpfp) {
 	    smtpclose(SS, 1);
 	    if (logfp)
-	      fprintf(logfp, "%s#\t(closed SMTP channel - appendlet() failure, status=%d)\n", logtag(), rp ? rp->status : -999);
+	      fprintf(logfp, "%s#\t(closed SMTP channel - appendlet() failure, status=%d  msg='%s')\n", logtag(), rp ? rp->status : -999, SS->remotemsg);
 	  }
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);

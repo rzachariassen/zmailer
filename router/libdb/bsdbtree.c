@@ -22,16 +22,16 @@
     !defined(HAVE_DB_CREATE)
 # include <db_185.h>
 #else
-#ifdef HAVE_DB3_DB_H
+#if defined(HAVE_DB3_DB_H) && defined(HAVE_DB3)
 # include <db3/db.h>
 #else
-#ifdef HAVE_DB2_DB_H
+#if defined(HAVE_DB2_DB_H) && defined(HAVE_DB2)
 # include <db2/db.h>
 #else
-#ifdef HAVE_DB_H
+#if defined(HAVE_DB_H)
 # include <db.h>
 #else
-#ifdef HAVE_DB1_DB_H
+#if defined(HAVE_DB1_DB_H)
 # include <db1/db.h>
 #endif
 #endif
@@ -49,10 +49,6 @@
 
 extern int errno;
 extern int deferit;
-
-#ifndef HAVE_DB_OPEN2
-static BTREEINFO BINFO = { 0, 2560, 0, 0, 0, NULL,  NULL, 0 };
-#endif
 
 /*
  * Flush buffered information from this database, close any file descriptors.
@@ -122,7 +118,7 @@ open_btree(sip, flag, comment)
 		close_btree(sip,"open_btree");
 	if (spl == NULL || (db = (DB *)spl->data) == NULL) {
 		for (i = 0; i < 3; ++i) {
-#if   defined(HAVE_DB_CREATE)
+#if   defined(HAVE_DB3)
 		  int err;
 		  db = NULL;
 		  /*unlink("/tmp/ -mark1- ");*/
@@ -133,7 +129,8 @@ open_btree(sip, flag, comment)
 				   ((flag == O_RDONLY) ? DB_RDONLY:DB_CREATE),
 				   0644);
 		  /*unlink("/tmp/ -mark2- ");*/
-#elif defined(HAVE_DB_OPEN2)
+#else
+#if defined(HAVE_DB2)
 		  int err;
 		  db = NULL;
 		  /*unlink("/tmp/ -mark1- ");*/
@@ -142,7 +139,8 @@ open_btree(sip, flag, comment)
 				0644, NULL, NULL, &db);
 		  /*unlink("/tmp/ -mark2- ");*/
 #else
-		  db = dbopen(sip->file, flag, 0, DB_BTREE, &BINFO);
+		  db = dbopen(sip->file, flag, 0, DB_BTREE, NULL);
+#endif
 #endif
 		  if (db != NULL)
 		    break;
@@ -302,7 +300,7 @@ print_btree(sip, outfp)
 	DB *db;
 	DBT key, val;
 	int rc;
-#ifdef HAVE_DB_OPEN2
+#if defined(HAVE_DB2) || defined(HAVE_DB3)
 	DBC *curs;
 
 	db = open_btree(sip, O_RDONLY, "print_btree");
@@ -374,7 +372,7 @@ count_btree(sip, outfp)
 	DBT key, val;
 	int cnt = 0;
 	int rc;
-#ifdef HAVE_DB_OPEN2
+#if defined(HAVE_DB2) || defined(HAVE_DB3)
 	DBC *curs;
 
 	db = open_btree(sip, O_RDONLY, "count_btree");
@@ -444,7 +442,7 @@ owner_btree(sip, outfp)
 
 	/* There are timing hazards, when the internal fd is not
 	   available for probing.. */
-#ifdef HAVE_DB_OPEN2
+#if defined(HAVE_DB2) || defined(HAVE_DB3)
 	(db->fd)(db, &fd);
 #else
 	fd = (db->fd)(db);
@@ -472,7 +470,7 @@ modp_btree(sip)
 	if (db == NULL)
 		return 0;
 
-#ifdef HAVE_DB_OPEN2
+#if defined(HAVE_DB2) || defined(HAVE_DB3)
 	(db->fd)(db, &fd);
 #else
 	fd = (db->fd)(db);

@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2001
  */
 
 /*
@@ -284,6 +284,9 @@ struct ctlfile *cfp;
 	/* Throw all way, if no vertices.. */
 	if (!cfp->head) {
 	  /* This should *not* be happening.. */
+	  sfprintf(sfstderr,
+		   "%s: SHOULD NOT HAPPEN: cfp->head == NULL; spoolid: %s\n",
+		   progname, cfp->spoolid);
 	  unctlfile(cfp, 1);
 	  return;
 	}
@@ -337,12 +340,13 @@ struct ctlfile *cfp;
 {
 	if (cfp->contents)	free(cfp->contents);
 	if (cfp->vfpfn)		free(cfp->vfpfn);
+	if (cfp->spoolid)	free(cfp->spoolid);
 	if (cfp->mid)		free(cfp->mid);
 	if (cfp->erroraddr)	free(cfp->erroraddr);
 	if (cfp->logident)	free(cfp->logident);
 	if (cfp->envid)		free(cfp->envid);
 
-memset(cfp, 0x55, sizeof(*cfp));
+	/* memset(cfp, 0x55, sizeof(*cfp)); */
 
 	free((char *)cfp);
 }
@@ -1512,11 +1516,12 @@ void resync_file(proc, file)
 	  sp_delete(spl, spt_mesh[L_CTLFILE]);
 	spl = NULL;
 
-	oldcfp->resynccount += 1;
+	++ oldcfp->resynccount;
 
-	sfprintf(sfstdout, "Resyncing file \"%s\" (ino=%d pid=%d of=%d ho='%s') reqcnt=%d\n",
+	sfprintf(sfstdout, "Resyncing file \"%s\" (ino=%d pid=%d of=%d ho='%s') reqcnt=%d global-work-count=%ld\n",
 		 file, (int) ino, proc->pid, proc->overfed,
-		 (proc->ho ? proc->ho->name : "<NULL>"), oldcfp->resynccount);
+		 (proc->ho ? proc->ho->name : "<NULL>"),
+		 oldcfp->resynccount, global_wrkcnt);
 	/* sfprintf(sfstdout, " .. in processing db\n"); */
 
 	if (oldcfp->resynccount > MAXRESYNCS) {
@@ -1561,20 +1566,17 @@ void resync_file(proc, file)
 
 	  if (oldcfp->head == NULL) {
 	    cfp_free(oldcfp,spl);
-	    if (verbose)
-	      sfprintf(sfstdout," .. LOST in resync ?!\n");
+	    sfprintf(sfstdout," .. LOST in resync ?!  (wrkcnt %ld)\n", global_wrkcnt);
 	  } else
-	    if (verbose)
-	      sfprintf(sfstdout," .. resynced!\n");
+	    sfprintf(sfstdout," .. resynced!  (wrkcnt %ld)\n", global_wrkcnt);
 
 	} else {
-
-	  if (verbose)
-	    sfprintf(sfstdout," .. NOT resynced!\n");
 
 	  /* Sigh.. Throw everything away :-( */
 	  oldcfp->id = ino;
 	  cfp_free(oldcfp, NULL);
+
+	  sfprintf(sfstdout," .. NOT resynced!  (wrkcnt %ld)\n", global_wrkcnt);
 	}
 }
 
@@ -1609,9 +1611,6 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	  return NULL;
 	}
 
-	++MIBMtaEntry->mtaStoredMessages;
-	++global_wrkcnt;
-
 	if (cfp->head == NULL) {
 	  unctlfile(cfp, 0); /* Delete the file.
 				(decrements those counters above!) */
@@ -1631,6 +1630,11 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	if (cfp->contents != NULL) {
 	  free(cfp->contents);
 	  cfp->contents = NULL;
+	}
+
+	if (!reread) {
+	  ++MIBMtaEntry->mtaStoredMessages;
+	  ++global_wrkcnt;
 	}
 
 	return cfp;
@@ -1681,9 +1685,10 @@ slurp(fd, ino)
 	cfp->envctime = stbuf.st_ctime;
 	cfp->contents = contents;
 	/* 
-	   cfp->vfpfn = NULL;
-	   cfp->head = NULL;
-	   cfp->mark = V_NONE;
+	   cfp->vfpfn    = NULL;
+	   cfp->spoolid  = NULL;
+	   cfp->head     = NULL;
+	   cfp->mark     = V_NONE;
 	   cfp->haderror = 0;
 	   cfp->mid      = NULL;
 	   cfp->envid    = NULL;
@@ -2191,6 +2196,13 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 					another machine, and run things
 					in there, and still have same
 					expiration times.. */
+
+	/* Reuse the buffer ...
+	   Generate same spoolid string that all other subsystems also
+	   report to syslog. */
+	taspoolid(path2, cfp->mtime, cfp->id);
+	cfp->spoolid = strsave(path2);
+
 	cfp->fd = -1;
 	/* sort it to get channels and channel/hosts together */
 	bcp = cfp->contents;

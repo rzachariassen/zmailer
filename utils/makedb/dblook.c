@@ -28,16 +28,16 @@
     !defined(HAVE_DB_CREATE)
 # include <db_185.h>
 #else
-#ifdef HAVE_DB3_DB_H
+#if defined(HAVE_DB3_DB_H) && defined(HAVE_DB3)
 # include <db3/db.h>
 #else
-#ifdef HAVE_DB2_DB_H
+#if defined(HAVE_DB2_DB_H) && defined(HAVE_DB2)
 # include <db2/db.h>
 #else
 #ifdef HAVE_DB_H
 # include <db.h>
 #else
-#ifdef HAVE_DB1_DB_H
+#if defined(HAVE_DB1_DB_H) && defined(HAVE_DB1)
 # include <db1/db.h>
 #endif
 #endif
@@ -283,7 +283,7 @@ char *argv[];
 
 #if defined(HAVE_DB1) || defined(HAVE_DB2) || defined(HAVE_DB3)
 
-#ifdef HAVE_DB_CREATE
+#if defined(HAVE_DB3)
 
   if (strcmp(argv[1],"btree")==0) {
     DB *dbfile;
@@ -386,7 +386,8 @@ char *argv[];
     return 0;
   }
 
-#elif defined(HAVE_DB_OPEN2)
+#else
+#if defined(HAVE_DB2)
 
   if (strcmp(argv[1],"btree")==0) {
     DB *dbfile;
@@ -566,6 +567,7 @@ char *argv[];
 
     return 0;
   }
+#endif
 #endif
 #endif
 

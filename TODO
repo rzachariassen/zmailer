@@ -1,5 +1,8 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+OVERALL: SleepyCat DB 3 header inclusion does not (necessarily)
+         match code selections!  Brr..
+
 check: Is router/db.c::db() now consistent at  argv1  construction ??
 
 check: scheduler.conf: command=  $channel  expansion ??
