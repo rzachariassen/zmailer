@@ -4,7 +4,9 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-2000
+ *
+ *	We produce RFC 1894 format reports with everything it contains.
  */
 
 #include "hostenv.h"
@@ -675,7 +677,6 @@ sent you this report, please include this information in your question!\n\
 	} else {
 	  sfprintf(errfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
 	}
-	sfprintf(errfp, "X-Spool-ID: %s\n", spoolid);
 	if (envid != NULL) {
 	  sfprintf(errfp, "Original-Envelope-Id: ");
 	  decodeXtext(errfp,envid);
@@ -683,12 +684,12 @@ sent you this report, please include this information in your question!\n\
 	}
 	/* rfc822date() returns a string with trailing newline! */
 	sfprintf(errfp, "Arrival-Date: %s", rfc822date(&cfpi->mtime));
+	sfprintf(errfp, "Local-Spool-ID: %s\n", spoolid);
 	sfprintf(errfp, "\n");
 
 	/* Now scan 'em all again for IETF-NOTARY */
-	for (i = 0; i < notarycnt; ++i) {
+	for (i = 0; i < notarycnt; ++i)
 	  scnotaryreport(errfp, &notaries[i],&has_errors,no_error_report);
-	}
 
 	sfprintf(errfp,"\n\
 Following is copy of the message headers. Original message content may\n\
@@ -752,6 +753,7 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	}
 	/* rfc822date() returns a string with trailing newline! */
 	sfprintf(errfp, "Arrival-Date: %s", rfc822date(&cfpi->mtime));
+	sfprintf(errfp, "Local-Spool-ID: %s\n", spoolid);
 	sfprintf(errfp, "\n");
 
 	/* Now scan 'em all again for IETF-NOTARY */
