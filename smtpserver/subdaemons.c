@@ -38,9 +38,14 @@ static int subdaemon_loop __((int, struct subdaemon_handler *));
 void subdaemon_ratetracker(fd)
      int fd;
 {
+  Vuint i1, i2;
+
   if (logfp) fclose(logfp); logfp = NULL;
   /* report(NULL,"[smtpserver ratetracker subsystem]"); */
 
+  subdaemon_handler_contentfilter.reply_queue_G = & i1;
+  subdaemon_handler_contentfilter.reply_delay_G = & i2;
+  
   subdaemon_loop(fd, & subdaemon_handler_ratetracker);
   zsleep(10);
   exit(0);

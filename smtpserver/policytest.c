@@ -1094,10 +1094,17 @@ static int _addrtest_(state, pbuf, sourceaddr)
     if (state->values[P_A_TestDnsRBL] &&
 	!valueeq(state->values[P_A_TestDnsRBL], "-")) {
       int rc;
+      time_t then;
       if (debug)
 	type(NULL,0,NULL," policytestaddr: 'test-dns-rbl %s' found;",
 	       state->values[P_A_TestDnsRBL]);
+      time(&then);
       rc = rbl_dns_test(state, ipaf, ipaddr, state->values[P_A_TestDnsRBL], &state->message);
+      time(&now);
+      if ((now - then) > 30)
+	type(NULL,0,NULL,"RBL_DNS_TEST() TOOK %d SECONDS!",
+	     (int)(now - then));
+
       if (!state->message){ PICK_PA_MSG(P_A_TestDnsRBL); }
 
       if (debug)
@@ -1132,10 +1139,16 @@ static int _addrtest_(state, pbuf, sourceaddr)
     if (state->values[P_A_RcptDnsRBL] &&
 	!valueeq(state->values[P_A_RcptDnsRBL], "-")) {
       int rc;
+      time_t then;
       if (debug)
 	type(NULL,0,NULL," policytestaddr: 'rcpt-dns-rbl %s' found;",
 	       state->values[P_A_RcptDnsRBL]);
+      time(&then);
       rc = rbl_dns_test(state, ipaf, ipaddr, state->values[P_A_RcptDnsRBL], &state->rblmsg);
+      time(&now);
+      if ((now - then) > 30)
+	type(NULL,0,NULL,"RBL_DNS_TEST() TOOK %d SECONDS!",
+	     (int)(now - then));
 
       if (debug)
 	type(NULL, 0, NULL, "rcpt-dns-rbl test yields: rc=%d rblmsg='%s'", rc,
@@ -1795,8 +1808,16 @@ static int pt_mailfrom(state, str, len)
        * Reject if not found in DNS (and not an address literal)
        */
       int test_c = state->values[P_A_SENDERokWithDNS][0];
-      int rc = sender_dns_verify( state, test_c, (const char *)at+1,
-				  len - (1 + at - str) );
+      int rc;
+      time_t then;
+      time(&then);
+      rc = sender_dns_verify( state, test_c, (const char *)at+1,
+			      len - (1 + at - str) );
+      time(&now);
+      if ((now - then) > 30)
+	type(NULL,0,NULL,"SENDER_DNS_VERIFY() TOOK %d SECONDS!",
+	     (int)(now - then));
+
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
       PICK_PA_MSG(P_A_SENDERokWithDNS);
@@ -2152,14 +2173,20 @@ static int pt_rcptto(state, str, len)
     if (state->values[P_A_ACCEPTifMX] || state->sender_norelay != 0) {
       int c = state->values[P_A_ACCEPTifMX] ? state->values[P_A_ACCEPTifMX][0] : '.';
       int rc;
+      time_t then;
 
       /* The getmxrr() testing will report, if
 	 the target domain has just A record,
 	 and it is one of ours. */
       state->islocaldomain = 0;
 
+      time(&then);
       rc = mx_client_verify( state, c, (const char *)at+1,
 			     len - (1 + at - str) ); 
+      time(&now);
+      if ((now - then) > 30)
+	type(NULL,0,NULL,"MX_CLIENT_VERIFY() TOOK %d SECONDS!",
+	     (int)(now - then));
 
       /* XX: state->message setup! */
       if (debug)
@@ -2195,8 +2222,15 @@ static int pt_rcptto(state, str, len)
     }
 
     if (state->values[P_A_ACCEPTifDNS]) {
-      int rc = client_dns_verify( state, state->values[P_A_ACCEPTifDNS][0],
-				  (const char *)at+1, len - (1 + at - str));
+      time_t then;
+      int rc;
+      time(&then);
+      rc = client_dns_verify( state, state->values[P_A_ACCEPTifDNS][0],
+			      (const char *)at+1, len - (1 + at - str));
+      time(&now);
+      if ((now - then) > 30)
+	type(NULL,0,NULL,"CLIENT_DNS_VERIFY() TOOK %d SECONDS!",
+	     (int)(now - then));
       /* XX: state->message setup! */
       if (debug)
 	type(NULL,0,NULL," ... returns: %d", rc);
