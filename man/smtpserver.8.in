@@ -24,25 +24,93 @@ smtpserver \- zmailer SMTP server
 [\fB-T\ \fI'[1.2.3.4]'\fR]
 .RE
 .SH DESCRIPTION
-This program implements the server side of the SMTP protocol as described
-in RFC-2821, and knows about the common extensions to the protocol expected
-by
-.I Sendmail
+This program implements the server side of the \fCSMTP\fR protocol
+as defined in RFC-2821, and knows about the common extensions to
+the protocol expected by
+.I sendmail
 and BSMTP clients.
 .PP
 By default the program will kill the previous
 .IR smtpserver (8zm)
-daemon, if any, then detach and listen for SMTP connections.
+daemon, if any, then detach and listen for \fCSMTP\fR connections.
 Incoming messages will be submitted for processing using the
 .IR zmailer (3zm)
 interface to ZMailer.
-Nontrivial address checking is done asynchronously, although this behaviour
-can be changed by a command line option if you cannot afford to transfer
-data just to bounce it back.
-All checking is done by executing the
+.PP
+Non-trivial address checking is done asynchronously,
+although this behaviour can be changed by a command
+line option if you cannot afford to transfer data just
+to bounce it back.
+.PP
+Complex routing analysis checking is done by executing the
 .IR router (8zm)
-program in interactive mode, and executing a well-known shell function with
-well-known parameters for each request.
+program in interactive mode, and executing a well-known
+shell function with well-known parameters for each request.
+.PP
+Traditionally this task has needed starting
+.I router
+process (and some other processes) underneath each incoming
+\fCSMTP\fR session, which is not a very lightweight thing.
+.PP
+Current version has prestarted farm of auxiliary server
+processes that can be used to handle complex things, and
+they can amortize e.g.
+.I router
+startup cost among lots of actual users making the use of
+routing in reception time very cheap in terms of resources.
+.PP
+Presently system starts a master process that starts
+a set of auxiliary processes, and keeps internal nameless
+rendezvous sockets for each of them.
+Then it creates listening sockets, and begins to accept(2)
+them (by means of select(2)).  The master looks at contactee's
+IP number, and limits the number of parallel connections
+from any given IP address to configured value.
+If these first round limits don't bite, a SMTP talking
+server is fork(2)ed off, and in addition to the protocol
+socket, also subserver rendezvous sockets are passed to
+the protocol talker.
+.PP
+When a protocol talker needs to interact with an auxiliary
+server, it creates a socketpair(2) and uses nameless rendezvous
+socket to pass other end of the socketpair to the auxiliary server.
+The servers reply standard "\fC#hungry\\n\fR" message to the
+protocol talker end to inform that they are ready for actual
+interaction.
+Exact details of this interface are not documented here,
+as that is not available to user programs.
+.PP
+The set of auxiliary servers is:
+.RS
+.IP \(bu 3em
+Interactive
+.I router
+multiplexer.
+(If "\fCPARAM enable-router\fR" is activated.)
+.IP \(bu 3em
+Message content-analyzer multiplexer.
+(If "\fCPARAM contentfilter\fR" is defined.)
+.IP \(bu 3em
+Rate-tracker server.
+(Always active.)
+.RE
+.PP
+This server supports following variations of \fCSMTP\fR protocol:
+.RS
+.IP \(bu 3em
+"SMTP" at TCP port 25
+.IP \(bu 3em
+"SUBMIT" at TCP port 587.
+Serves message submission protocol, which is SMTP with
+mandatory user authentication. (See RFC 2476)
+.IP \(bu 3em
+"SMTPS" at TCP port 465.
+This is deprecated in favour of using "STARTTLS" command
+in normal SMTP.
+.IP \(bu 3em
+"LMTP" at TCP port 2525 (or whatever).
+This is merely a debug mode, not true LMTP server!
+.RE
 .PP
 .SH OPTIONS
 .PP
@@ -713,6 +781,12 @@ what scheduler uses.
 #PARAM BindPort          25    # Binding port
 #PARAM BindAddress  [0.0.0.0]  # Binding address - for multihomers..
 #PARAM BindAddress [IPv6.0::0] # and here is for IPv6 - NO SPACES!
+#          ###### Number of address binders is not limited!
+#
+#PARAM BindSmtp    <addr_or_if>  <optional_port>
+#PARAM BindSmtpS   <addr_or_if>  <optional_port>
+#PARAM BindSubmit  <addr_or_if>  <optional_port>
+#          ###### Number of protocol address binders is not limited!
 #
 # Enables of some commands:
 #PARAM  DEBUGcmd
@@ -902,6 +976,29 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 # HELO/EHLO-pattern     style-flags
 #               [max loadavg]
 #
+#  Note about the style-flags: 'ftve' set needs enable-router!
+#    The system will not complain about lack of it (since 2.99.56),
+#    but without that enable, those four flags have no effect.
+#
+#  List of supported style flags:
+#    f     Process MAIL FROM thru the interactive router
+#    t     Process RCPT TO thru the interactive router
+#    v     Process VRFY thru the interactive router
+#    e     Process EXPN thru the interactive router
+#    R     Require always fully-qualified addresses for MAIL FROM,
+#          and for RCPT TO; that is, have @ and domain.
+#          ( <postmaster> is the only exception! )
+#    S     Allow utter sloppyness in input syntax; mainly extra
+#          white-spaces in places where they don't belong are
+#          tolerated.  Also lack of HELO/EHLO greeting is allowed!
+#    h     Process HELO parameter thru the interactive router
+#          Use of this IS NOT RECOMMENED, but is here for the
+#          completeness sake...
+#    D     Don't Discard; protocol timeouts leave behind files in
+#          the $POSTOFFICE/public/ directory with suffixes:
+#               .SMTP-TIMEOUT   .DATA-EOF    .BDAT-EOF
+#          depending on where the abort happened..
+#
 localhost           999 ftveR
 some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
 # If the host presents itself as:  HELO [1.2.3.4]  be lenient to
@@ -1013,11 +1110,11 @@ contain following kind of entries:
 .PP
 .RS 3em
 .nf
-\fI/ETC/hosts.allow
+\fI/etc/hosts.allow
 \fCmailq : ALL@1.2.3.0
 smtp-receiver: ALL@ALL
 
-\fI/ETC/hosts.deny
+\fI/etc/hosts.deny
 \fCALL : ALL@ALL\fR
 .fi
 .RE

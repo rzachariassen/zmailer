@@ -22,7 +22,7 @@ DB2MAN    = jw -c ${OJCAT} -b man -f docbook -o .
 HTMLFIXUP = ${srcdir}/../doc/manual/html-post-fixup.sh
 
 MAN2HTML  = sh $(srcdir)/man-to-html.sh
-MAN2PS    = groff -Tps -t -man
+MAN2PS    = groff -Tps  -t -man
 MAN2DVI   = groff -Tdvi -t -man
 PS2PDF	  = ps2pdf
 DVI2PDF	  = dvipdfm
