@@ -942,7 +942,7 @@ char **argv;
 	  
 	  strcpy(SS.rhostname, "stdin");
 	  SS.rport = -1;
-	  SS.ihostaddr[0] = '\0';
+	  SS.rhostaddr[0] = '\0';
 	  sprintf(SS.ident_username, "uid#%d@localhost", (int)getuid());
 	  
 	  /* INTERACTIVE */
@@ -1518,13 +1518,13 @@ char **argv;
 #ifdef HAVE_WHOSON_H
 		  type(NULL,0,NULL,
 		       "connection from %s %s:%d ipcnt %d childs %d ident: %s whoson: %s",
-		       SS.rhostname, SS.ihostaddr,SS.rport,
+		       SS.rhostname, SS.rhostaddr,SS.rport,
 		       sameipcount, childcnt,
 		       SS.ident_username, SS.whoson_data);
 #else
 		  type(NULL,0,NULL,
 		       "connection from %s %s:%d ipcnt %d childs %d ident: %s",
-		       SS.rhostname, SS.ihostaddr,SS.rport,
+		       SS.rhostname, SS.rhostaddr,SS.rport,
 		       sameipcount, childcnt,
 		       SS.ident_username);
 #endif
@@ -1647,19 +1647,19 @@ SmtpState *SS;
 
     if (SS->raddr.v4.sin_family == AF_INET)
 	inet_ntop(AF_INET, (void *) &SS->raddr.v4.sin_addr,	/* IPv4 */
-		  SS->ihostaddr + 1, sizeof(SS->ihostaddr) - 2);
+		  SS->rhostaddr + 1, sizeof(SS->rhostaddr) - 2);
 #if defined(AF_INET6) && defined(INET6)
     else if (SS->raddr.v6.sin6_family == AF_INET6) {
-	strcpy(SS->ihostaddr + 1, "IPv6:");
+	strcpy(SS->rhostaddr + 1, "IPv6:");
 	inet_ntop(AF_INET6, (void *) &SS->raddr.v6.sin6_addr,	/* IPv6 */
-		  SS->ihostaddr + 6, sizeof(SS->ihostaddr) - 7);
+		  SS->rhostaddr + 6, sizeof(SS->rhostaddr) - 7);
     }
 #endif
     else {
 	;			/* XX: ??? Not AF_INET, nor AF_INET6 ??? */
     }
-    SS->ihostaddr[0] = '[';
-    sprintf(SS->ihostaddr + strlen(SS->ihostaddr), "]");
+    SS->rhostaddr[0] = '[';
+    sprintf(SS->rhostaddr + strlen(SS->rhostaddr), "]");
 
     if (skeptical) {
 	if (SS->raddr.v4.sin_family == AF_INET)
@@ -1684,9 +1684,9 @@ SmtpState *SS;
 	if (hp != NULL)
 	    strcpy(SS->rhostname, hp->h_name);
 	else
-	    strcpy(SS->rhostname, SS->ihostaddr);
+	    strcpy(SS->rhostname, SS->rhostaddr);
     } else {
-	strcpy(SS->rhostname, SS->ihostaddr);
+	strcpy(SS->rhostname, SS->rhostaddr);
     }
 }
 
@@ -2303,19 +2303,17 @@ int insecure;
 	char *msg = policymsg(&SS->policystate);
 	smtp_tarpit(SS);
 	if (msg != NULL) {
-	  type(SS, -550, NULL, "%s", msg);
+	  type(SS, -550, NULL, "Hello %s; %s",SS->rhostaddr,  msg);
 	} else {
-	  type(SS, -550, NULL, "%s - You are on our reject-IP-address -list, GO AWAY!",
-	       SS->myhostname);
+	  type(SS, -550, NULL, "Hello %s; %s - You are on our reject-IP-address -list, GO AWAY!",
+	       SS->rhostaddr, SS->myhostname);
 	}
-	type(SS, -550, NULL, "If you feel we mistreat you, do contact us.");
-	type(SS, 550, NULL, contact_pointer_message);
+	type(SS, -550, NULL, "Hello %s; If you feel we mistreat you, do contact us.", SS->rhostaddr);
+	type(SS, 550, NULL, "Hello %s; %s", SS->rhostaddr, contact_pointer_message);
     } else if ((maxsameip >= 0) && (SS->sameipcount > maxsameip)) {
 	smtp_tarpit(SS);
-	type(SS, -450, NULL, "%s - Too many simultaneous connections from this IP address (%li of %li)",
+	type(SS, 450, NULL, "%s - Come again latter, too many simultaneous connections from this IP address /ms(%li of %li)",
 	       SS->myhostname, SS->sameipcount, maxsameip);
-	type(SS, -450, NULL, "Come again later");
-	type(SS,  450, NULL, contact_pointer_message);
 	MIBMtaEntry->ss.MaxSameIpSourceCloses ++;
     } else {
 #ifdef USE_TRANSLATION
@@ -2338,8 +2336,8 @@ int insecure;
       SS->state = MailOrHello;
 
     if ((!insecure
-	 || (SS->ihostaddr[0] != '\0'
-	     && strcmp(SS->ihostaddr, "[127.0.0.1]") == 0))
+	 || (SS->rhostaddr[0] != '\0'
+	     && strcmp(SS->rhostaddr, "[127.0.0.1]") == 0))
 	&& ((cfinfo = findcf("127.0.0.1")) == NULL
 	    || strcmp(cfinfo->flags, "-") == 0))
 	SS->state = MailOrHello;
@@ -2468,7 +2466,7 @@ int insecure;
 	    ++SS->unknown_cmd_count;
 
 	    if (SS->unknown_cmd_count >= unknown_cmd_limit) {
-	      type(SS, 550, m552, "One too many unknown command '%s'", buf);
+	      type(SS, 550, m552, "Hi %s, One too many unknown command '%s'", SS->rhostaddr, buf);
 	      typeflush(SS);
 	      break;
 	    }
@@ -2527,9 +2525,9 @@ int insecure;
 	}
 	if (SS->reject_net && SS->carp->cmd != Quit && SS->carp->cmd != Help) {
 	    smtp_tarpit(SS);
-	    type(SS, -550, NULL, "You are on our reject-IP-address -list, GO AWAY!");
+	    type(SS, -550, NULL, "Hello %s; you are on our reject-IP-address -list, GO AWAY!", SS->rhostaddr);
 	    type(SS, -550, NULL, "If you feel we mistreat you, do contact us.");
-	    type(SS, 550, NULL, contact_pointer_message);
+	    type(SS, 550, NULL, "Hello %s; %s", SS->rhostaddr, contact_pointer_message);
 	    typeflush(SS);
 	    continue;
 	}
@@ -2549,7 +2547,7 @@ int insecure;
 	  case Quit:
 	    break;
 	  default:
-	    type(SS, 530, m530, "Authentication required" );
+	    type(SS, 530, m530, "Sorry %s; Authentication required", SS->rhostaddr );
 	    typeflush(SS);
 	    continue;
 	  }

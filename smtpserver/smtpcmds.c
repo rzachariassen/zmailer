@@ -144,8 +144,6 @@ void smtp_helo(SS, buf, cp)
 SmtpState *SS;
 const char *buf, *cp;
 {
-    const char *msg = NULL;
-
     switch (SS->carp->cmd) {
     case Hello2:
       MIBMtaEntry->ss.IncomingSMTP_EHLO += 1;
@@ -155,19 +153,6 @@ const char *buf, *cp;
       break;
     default: /* Should not happen... */
       break;
-    }
-
-    if (SS->state != Hello && SS->state != MailOrHello) {
-	switch (SS->state) {
-	case Mail:
-	    msg = "Waiting for MAIL command";
-	    break;
-	case Recipient:
-	    msg = "Waiting for RCPT command";
-	    break;
-	default:
-	    break;
-	}
     }
 
     /* HELO/EHLO is also implicite RSET ! */
@@ -231,9 +216,7 @@ const char *buf, *cp;
     if (checkhelo && skeptical && partridge(SS, cp)) {
 	smtp_tarpit(SS);
 	type821err(SS, -501, "", buf, "Invalid `%.200s' parameter!", buf);
-	if (msg != NULL)
-	  type(SS, -501, "", "%s", msg);
-	type(SS, 501, "", "Err: %s", rfc821_error);
+	type(SS, 501, "", "Sorrt %s, Err: %s", SS->rhostaddr, rfc821_error);
 	strcpy(SS->helobuf, "Bad.Helo.Input");
 	return;
     }
@@ -242,18 +225,16 @@ const char *buf, *cp;
     if (!checkhelo && partridge(SS, cp)) {
 	if (SS->carp->cmd != Hello) {
 	    type821err(SS, -250, "", buf, "Invalid `%.200s' parameter!", buf);
-	    type(SS, -250, NULL, "Err: %s", rfc821_error);
-	    if (msg != NULL)
-	      type(SS, -250, "", "%s", msg);
+	    type(SS, -250, NULL, "Sorry %s, Err: %s", SS->rhostaddr, rfc821_error);
 	}
     }
     SS->cfinfo = findcf(cp);
     if (SS->cfinfo != NULL && *(SS->cfinfo->flags) == '!') {
 	smtp_tarpit(SS);
 	if (SS->cfinfo->flags[1] != '\0')
-	    type(SS, 501, NULL, "%s", (SS->cfinfo->flags) + 1);
+	    type(SS, 501, NULL, "Sorry %s, %s", SS->rhostaddr, (SS->cfinfo->flags) + 1);
 	else
-	    type(SS, 501, NULL, "Sorry, access denied.");
+	    type(SS, 501, NULL, "Sorry %s, access denied.", SS->rhostaddr);
 	return;
     }
 
@@ -277,8 +258,8 @@ const char *buf, *cp;
       char argbuf[100+100];
       char *s;
       sprintf( argbuf,"%.99s %.99s",
-	       ((SS->ihostaddr && (SS->ihostaddr[0] != '\0'))
-		? SS->ihostaddr : "[0.0.0.0]"),
+	       ((SS->rhostaddr && (SS->rhostaddr[0] != '\0'))
+		? SS->rhostaddr : "[0.0.0.0]"),
 	       SS->rhostname);
       if ((s = router(SS, RKEY_HELLO, 1, argbuf, strlen(argbuf))) == NULL)
 	/* the error was printed in router() */
@@ -298,7 +279,7 @@ const char *buf, *cp;
 #endif
 
     /* Check `cp' corresponds to the reverse address */
-    if (skeptical && SS->ihostaddr[0] != '\0'
+    if (skeptical && SS->rhostaddr[0] != '\0'
 	&& SS->rhostname[0] != '\0' && SS->rhostname[0] != '['
 	&& !CISTREQ(cp, SS->rhostname)) {
 	if (checkhelo) {
@@ -307,14 +288,10 @@ const char *buf, *cp;
 	    type(SS, -250, NULL, "%s your address to name mapping.",
 		 SS->myhostname);
 	}
-	if (msg != NULL)
-	  type(SS, -250, "", "%s", msg);
 	type(SS, SS->carp->cmd == Hello2 ? -250 : 250, NULL,
 	     "%s expected \"%s %s\"", SS->myhostname,
 	     SS->carp->verb, SS->rhostname);
     } else {
-	if (msg != NULL)
-	  type(SS, -250, "", "%s", msg);
 	type(SS, SS->carp->cmd == Hello2 ? -250 : 250, NULL,
 	     "%s Hello %s", SS->myhostname, cp);
     }
@@ -443,7 +420,7 @@ int insecure;
 	    break;
 	}
 	smtp_tarpit(SS);
-	type(SS, 503, m551, cp);
+	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, cp);
 	return -1;
     }
 
@@ -454,7 +431,7 @@ int insecure;
 
     if (!CISTREQN(cp, "From:", 5)) {
 	smtp_tarpit(SS);
-	type(SS, 501, m552, "where is From: in that?");
+	type(SS, 501, m552, "Hello %s, where is From: in that?", SS->rhostaddr);
 	return -1;
     }
     cp += 5;
@@ -465,20 +442,23 @@ int insecure;
 	if (!isascii((255 & *cp)) || !isspace((255 & *cp))) {
 	  if (!sloppy && (strict_protocol >= 0)) {
 	    smtp_tarpit(SS);
-	    type(SS, 501, m517, "where is <...> in that?");
+	    type(SS, 501, m517, "Hello %s, where is <...> in that?", SS->rhostaddr);
 	    return -1;
 	  }
 	  break; /* Sigh, be sloppy.. */
 	}
     if (*cp == '\0') {
 	smtp_tarpit(SS);
-	type(SS, 501, m517, "where is <...> in this: %s", cp);
+	type(SS, 501, m517, "Hello %s, where is <...> in this: %s", SS->rhostaddr, cp);
 	return -1;
     } else if (*cp != '<' && !sloppy && (strict_protocol >= 0)) {
 	smtp_tarpit(SS);
-	type(SS, 501, m517, "strangeness between ':' and '<': %s", cp);
+	type(SS, 501, m517, "Hello %s, strangeness between ':' and '<': %s", SS->rhostaddr, cp);
 	return -1;
     }
+
+    while ((sloppy > 0) && (cp[1] == '<')) ++cp;
+
     if (*(cp + 1) == '<') {
 	smtp_tarpit(SS);
 	type(SS, 501, m517, "there are too many <'s in this: %s", cp);
@@ -490,13 +470,13 @@ int insecure;
 	s = rfc821_path(cp, strict || (strict_protocol > 0));
 	if (s == cp) {
 	  /* Failure.. ? */
-	  type(SS, -501, m517, "For input: %s", cp);
-	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
+	  type821err(SS, -501, m517, buf, "Path data: %.200s", rfc821_error);
+	  type(SS, 501, m517, "Hi %s, that was for input: %s", SS->rhostaddr, cp);
 	  return -1;
 	}
 	if (*s == '>') {
 	  smtp_tarpit(SS);
-	  type(SS, 501, m517, "there are too many >'s in this: <%s", cp);
+	  type(SS, 501, m517, "Hi %s, there are too many >'s in this: <%s", SS->rhostaddr, cp);
 	  return -1;
 	}
 	/* Ok, now it is a moment to see, if we have source routes: @a,@b:c@d */
@@ -516,8 +496,8 @@ int insecure;
 	s = rfc821_path2(cp, 0);
 	if (s == cp && *s != '>') {
 	  /* Failure.. ? */
-	  type(SS, -501, m517, "For input: %s", cp);
-	  type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
+	  type821err(SS, -501, m517, buf, "Path data: %.200s", rfc821_error);
+	  type(SS, 501, m517, "Hi %s, that was for input: %s", SS->rhostaddr, cp);
 	  return -1;
 	}
 	/* Now it is a moment to see, if we have source routes: @a,@b:c@d */
@@ -534,8 +514,8 @@ int insecure;
 	while (*s == ' ' || *s == '\t') ++s;
 	if (*s != '>') {
 	  rfc821_error_ptr = s;
-	  type(SS, -501, m517, "For input: %s", cp);
-	  type821err(SS, 501, m517, buf, "Missing ending '>' bracket");
+	  type821err(SS, -501, m517, buf, "Missing ending '>' bracket");
+	  type(SS, 501, m517, "Hi %s, that was for input: %s", SS->rhostaddr, cp);
 	  return -1;
 	}
 	++s;
@@ -546,14 +526,14 @@ int insecure;
       s = rfc821_path2(cp, strict);
       if (s == cp) {
 	/* Failure.. */
-	type(SS, -501, m517, "For input: %s", cp);
-	type821err(SS, 501, m517, buf, "Path data: %.200s", rfc821_error);
+	type821err(SS, -501, m517, buf, "Path data: %.200s", rfc821_error);
+	type(SS, 501, m517, "Hi %s, that was for input: %s", SS->rhostaddr, cp);
 	return -1;
       }
 
       if (*s == '>') {
 	smtp_tarpit(SS);
-	type(SS, 501, m517, "there are too many >'s in that!");
+	type(SS, 501, m517, "Hi %s, there are too many >'s in that!", SS->rhostaddr);
 	return -1;
       }
 
@@ -817,27 +797,27 @@ int insecure;
 	}
 	smtp_tarpit(SS);
 	type(SS, code, mcode, "Hello %s, for your MAIL FROM address <%.*s> policy analysis reported: %s",
-	     SS->ihostaddr, addrlen, cp, ss);
+	     SS->rhostaddr, addrlen, cp, ss);
       } else if (SS->policyresult < -99) {
 	smtp_tarpit(SS);
 	if (SS->policyresult < -103) { /* -104 */
 	  type(SS,450,m443, "Hello %s, for your input: <%.*s> policy analysis reports temporary DNS error with your source domain.",
-	       SS->ihostaddr, addrlen, cp);
+	       SS->rhostaddr, addrlen, cp);
 	} else if (SS->policyresult < -100) {
 	  type(SS,450,m443, "Hello %s, for your input: <%.*s> policy analysis reports DNS error with your source domain.",
-	       SS->ihostaddr, addrlen, cp);
+	       SS->rhostaddr, addrlen, cp);
 	} else {
-	  type(SS,450,m471, "Hello %s, for address <%.*s> access denied by the policy analysis functions.", SS->ihostaddr, addrlen, cp);
+	  type(SS,450,m471, "Hello %s, for address <%.*s> access denied by the policy analysis functions.", SS->rhostaddr, addrlen, cp);
 	}
       } else {
 	char *ss = policymsg(&SS->policystate);
 	smtp_tarpit(SS);
 	if (ss != NULL) {
-	  type(SS, 553, m571, "Hello %s, for your input address <%.*s> Policy analysis reported: %s", SS->ihostaddr, addrlen, cp, ss);
+	  type(SS, 553, m571, "Hello %s, for your input address <%.*s> Policy analysis reported: %s", SS->rhostaddr, addrlen, cp, ss);
 	} else if (SS->policyresult < -1) {
-	  type(SS,553,m543,"Hello %s, for MAIL FROM address <%.*s> the policy analysis reports DNS error with your source domain.", SS->ihostaddr, addrlen, cp);
+	  type(SS,553,m543,"Hello %s, for MAIL FROM address <%.*s> the policy analysis reports DNS error with your source domain.", SS->rhostaddr, addrlen, cp);
 	} else {
-	  type(SS,553,m571,"Hello %s, for MAIL FROM address <%.*s> access is denied by the policy analysis functions.", SS->ihostaddr, addrlen, cp);
+	  type(SS,553,m571,"Hello %s, for MAIL FROM address <%.*s> access is denied by the policy analysis functions.", SS->rhostaddr, addrlen, cp);
 	}
       }
       if (newcp)
@@ -892,8 +872,8 @@ int insecure;
 	 to network socket */
 
       fprintf(SS->mfp, "rcvdfrom %.200s (", SS->rhostname);
-      if (SS->ihostaddr[0] != 0)
-	fprintf(SS->mfp, "%s:%d ", SS->ihostaddr, SS->rport);
+      if (SS->rhostaddr[0] != 0)
+	fprintf(SS->mfp, "%s:%d ", SS->rhostaddr, SS->rport);
       rfc822commentprint(SS->mfp, SS->helobuf);
 
       if (ident_flag && log_rcvd_ident) {
@@ -945,8 +925,8 @@ int insecure;
       /* COMMENT SECTION GETTING IT ALL IN EVERY CASE! */
 
       fprintf(SS->mfp, "comment %s ", SS->rhostname);
-      if (SS->ihostaddr[0] != 0)
-	fprintf(SS->mfp, "%s:%d ", SS->ihostaddr, SS->rport);
+      if (SS->rhostaddr[0] != 0)
+	fprintf(SS->mfp, "%s:%d ", SS->rhostaddr, SS->rport);
       rfc822commentprint(SS->mfp, SS->helobuf);
 
 #ifdef HAVE_WHOSON_H
@@ -1108,7 +1088,7 @@ const char *buf, *cp;
     if ( (SS->state == MailOrHello || SS->state == Mail) &&
 	 policydb != NULL && SS->policyresult < 0 ) {
       smtp_tarpit(SS);
-      type(SS, 550, m571, "Hello %s, access denied by the policy analysis functions by earlier rejection", SS->ihostaddr);
+      type(SS, 550, m571, "Hello %s, access denied by the policy analysis functions by earlier rejection", SS->rhostaddr);
       return -1;
     }
 
@@ -1126,7 +1106,7 @@ const char *buf, *cp;
 	    break;
 	}
 	smtp_tarpit(SS);
-	type(SS, 503, m551, cp);
+	type(SS, 503, m551, "Hello %s, %s", SS->rhostaddr, cp);
 	return -1;
     }
 
@@ -1403,41 +1383,41 @@ const char *buf, *cp;
 
 	if (SS->policyresult < -99) { /* "soft error, 4XX code */
 	  if (ss != NULL) {
-	    type(SS, 450, m471, "Hello %s, for recipient address <%.*s> the policy analysis reported: %s", SS->ihostaddr, addrlen, cp, ss);
+	    type(SS, 450, m471, "Hello %s, for recipient address <%.*s> the policy analysis reported: %s", SS->rhostaddr, addrlen, cp, ss);
 
 	  } else if (SS->policyresult < -103) { /* -104 */
-	    type(SS, 450, m443, "Hello %s, policy analysis reports temporary DNS error with the target domain: <%.*s>", SS->ihostaddr, addrlen, cp);
+	    type(SS, 450, m443, "Hello %s, policy analysis reports temporary DNS error with the target domain: <%.*s>", SS->rhostaddr, addrlen, cp);
 
 	  } else if (SS->policyresult < -102) {
 	    /* Code: -103 */
 	    type(SS,450, m471, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
-		 SS->ihostaddr, addrlen, cp);
+		 SS->rhostaddr, addrlen, cp);
 
 	  } else if (SS->policyresult < -100) {
 	    /* Code: -102 */
-	    type(SS, 450, m443, "Hello %s, Policy analysis found DNS error on the target address: <%.*s>", SS->ihostaddr, addrlen, cp);
+	    type(SS, 450, m443, "Hello %s, Policy analysis found DNS error on the target address: <%.*s>", SS->rhostaddr, addrlen, cp);
 
 	  } else {
 	    type(SS,450,m443, "Hello %s, Policy rejection on the target address: <%.*s>",
-		 SS->ihostaddr, addrlen, cp);
+		 SS->rhostaddr, addrlen, cp);
 	  }
 	} else {
 	  if (ss != NULL) {
 	    type(SS, 550, m571, "Hello %s, Policy analysis reported: %s rcpt=<%.*s>",
-		 SS->ihostaddr, ss, addrlen, cp);
+		 SS->rhostaddr, ss, addrlen, cp);
 
 	  } else if (SS->policyresult < -2) {
 	    /* Code: -3 */
 	    type(SS,550, m571, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
-		 SS->ihostaddr, addrlen, cp);
+		 SS->rhostaddr, addrlen, cp);
 
 	  } else if (SS->policyresult < -1) {
 	    /* Code: -2 */
-	    type(SS,550,m543, "Hello %s, Policy analysis found DNS error on the target domain: <%.*s>", SS->ihostaddr, addrlen, cp);
+	    type(SS,550,m543, "Hello %s, Policy analysis found DNS error on the target domain: <%.*s>", SS->rhostaddr, addrlen, cp);
 
 	  } else {
 	    type(SS,550,m571, "Hello %s, Policy rejection on the target address: <%.*s>",
-		 SS->ihostaddr, addrlen, cp);
+		 SS->rhostaddr, addrlen, cp);
 	  }
 	}
 	if (newcp)

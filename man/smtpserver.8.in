@@ -1840,6 +1840,12 @@ $POSTOFFICE/.pid.smtpserver
 $MAILSHARE/smtpserver.conf
 .IP \fI/etc/pam.d/smtpauth-login\fR
 if PAM mechanism is present and plain-password authentication is wanted
+.IP "\fI/etc/hosts.allow\fR, \fI/etc/hosts.deny\fR"
+Files for the
+.IR tcp-wrapper ,
+if compiled and configured into use.
+.IP "${MAILSHARE}/scheduler.auth"
+Possible ACL control file for the Z-REPORT SMTP verb.
 .PP
 
 .SH SEE ALSO

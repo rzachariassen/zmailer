@@ -115,7 +115,7 @@ const char *buf, *cp;
 	    break;
 	}
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
-	type(SS, 503, m552, cp);
+	type(SS, 503, m552, "Hi %s, %s", SS->rhostaddr, cp);
 	typeflush(SS);
 	return 0;
     }

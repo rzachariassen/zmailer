@@ -40,7 +40,7 @@ int silence;
 	return -1;
     }
 
-    fprintf(mfp, "%c%c%s %s\n", _CF_TURNME,  _CFTAG_NORMAL, cp, SS->ihostaddr);
+    fprintf(mfp, "%c%c%s %s\n", _CF_TURNME,  _CFTAG_NORMAL, cp, SS->rhostaddr);
     /* printf("050-My uid=%d/%d\r\n",getuid(),geteuid()); */
     runasrootuser();
     rc = mail_close_alternate(mfp, TRANSPORTDIR, "");
@@ -291,7 +291,7 @@ const char *name, *cp;
       goto failure_exit;
     }
 
-    fprintf(fpo,"ETRN %s %s@%s\n", cp, SS->ihostaddr, SS->myhostname);
+    fprintf(fpo,"ETRN %s %s@%s\n", cp, SS->rhostaddr, SS->myhostname);
     if (fflush(fpo) || ferror(fpo)) {
       type(SS,-250,m200,"MQ2-ETRN write failure occurred");
       goto failure_exit;

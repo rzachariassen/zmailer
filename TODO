@@ -435,20 +435,15 @@ WIirGqB0000w    503 5.5.2 Waiting for RCPT command
   the previous process group leader to die before writing over
   the  $POSTOFFICE/.pid.KIND -file.
 
-- Co-ordinated shutdown for the scheduler -- send a signal to it
-  (SIGQUIT), and it sends out newlines to all processes still
-  receiving anything from the scheduler, and shuts the feed channels
-  down from the scheduler to the transporters.  Then it will spend
-  some time (infinity?) to get responces from the transporters.
-  When all childs are dead, it can exit.
-	20-Jan-97: Sort of facility exists now..
-
 - Sometimes incoming SMTP can be a hellish load, need to introduce
   a load-limited incoming SMTP acceptor (smtpserver/smtpserver.c)
   (Rayan wrote it, but never released it..)
 	13-Dec-94:  It exists for Linux ....
 	23-Dec-94:  Pulled bits from "top" -program.  Now it
 		    exists also for Suns..
+        01-May-04:  Other approaches have made this unnecessary.
+                    System does lots more, but things are lot less
+                    weightly..
 
   A discussion on the ZMailer -list revealed that the acceptance blocking
   is a BIG can of worms, and that even the  BSD-sendmail has had a long

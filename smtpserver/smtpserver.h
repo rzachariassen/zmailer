@@ -308,8 +308,8 @@ typedef struct SmtpState {
     int  netconnected_flg;
     int  tarpit;
     int  tarpit_cval;		/* current tarpit value */
+    char rhostaddr[sizeof("[ipv6.ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]") + 8];
     int  rport;
-    char ihostaddr[sizeof("[ipv6.ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]") + 8];
     Usockaddr raddr;
     Usockaddr localsock;
 

@@ -1,3 +1,13 @@
+2004-05-02  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c,
+	  smtpserver/smtpetrn.c:
+	    Something bothered me in variable names,
+	    and I changed one.  I added "Hi <remoteip>, .."
+	    for many error messages to aid troublesome
+	    host pickup by means of simple grepping...
+
 2004-04-30  Matti Aarnio  <mea@zmailer.org>
 
 	* man/smtpserver.8.in, proto/smtpserver.conf.in,
