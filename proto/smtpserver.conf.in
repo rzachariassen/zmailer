@@ -91,6 +91,14 @@ PARAM  policydb   @DBTYPE@  @MAILVAR@/db/smtp-policy
 ##PARAM tls-ask-cert	0
 ##PARAM tls-require-cert 0
 
+# Elements to be added into "Received:" header's initial comment part:
+#
+#PARAM rcvd-ident	# The ident lookup result (or even admitting it)
+#PARAM rcvd-whoson	# Likewise for "whoson"
+#PARAM rcvd-auth-user	# Authenticated Username
+#PARAM rcvd-tls-mode	# Cipher or not
+#PARAM rcvd-tls-ccert	# Client Certificate reference
+
 #
 #
 # HELO/EHLO-pattern	style-flags (Remember: 'ftve' set needs enable-router!)

@@ -16,7 +16,7 @@
 
 	* smtpserver/smtpserver.h, smtpserver/cfgread.c,
 	  smtpserver/smtpserver.c, smtpserver/smtptls.c,
-	  smtpserver/smtpsmds.c:
+	  smtpserver/smtpsmds.c, proto/smtpserver.conf.in:
 	    Much work again, now to parametrize ways of selectively adding
 	    pieces of "Received:" header contained commentary information.
 	    Features: ident, whoson, auth-username, tls-cipher, tls-client-cert
