@@ -740,10 +740,12 @@ main(argc, argv)
 	      fprintf(SS.verboselog,
 		      "# -S '%s' tls_init_client_engine() -> tls_available=%d\n",
 		      tls_conf_file, tls_available);
+#if 0
 	    else
 	      fprintf(stderr,
 		      "# -S '%s' tls_init_client_engine() -> tls_available=%d\n",
 		      tls_conf_file, tls_available);
+#endif
 	  }
 #endif /* - HAVE_OPENSSL */
 
