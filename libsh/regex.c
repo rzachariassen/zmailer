@@ -5095,7 +5095,7 @@ bcmp_translate (s1, s2, len, translate)
 const char *
 re_compile_pattern (pattern, length, bufp)
      const char *pattern;
-     int length;
+     size_t length;
      struct re_pattern_buffer *bufp;
 {
   reg_errcode_t ret;
