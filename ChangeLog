@@ -13,8 +13,7 @@
 	    than 30 seconds.
 
 	* smtpserver/subdaemons.c:
-	    There must be at least dummy pointer init for rate-tracker,
-	    too..
+	    There must be at least a dummy pointer init for rate-tracker, too.
 
 	* include/shmmib.h, scheduler/mailq.inc:
 	    Added couple subserver task queue tracker variables,

@@ -43,8 +43,8 @@ void subdaemon_ratetracker(fd)
   if (logfp) fclose(logfp); logfp = NULL;
   /* report(NULL,"[smtpserver ratetracker subsystem]"); */
 
-  subdaemon_handler_contentfilter.reply_queue_G = & i1;
-  subdaemon_handler_contentfilter.reply_delay_G = & i2;
+  subdaemon_handler_ratetracker.reply_queue_G = & i1;
+  subdaemon_handler_ratetracker.reply_delay_G = & i2;
   
   subdaemon_loop(fd, & subdaemon_handler_ratetracker);
   zsleep(10);
