@@ -1,7 +1,7 @@
 /*
  *      A component of ZMailer
  *
- *	Copyright 1996-2002 Matti Aarnio
+ *	Copyright 1996-2003 Matti Aarnio
  */
 
 /* LINTLIBRARY */
@@ -40,7 +40,7 @@ close_btree(sip,comment)
 	ZSleepyPrivate *prv;
 
 	if (*(sip->dbprivate) == NULL )
-		return;
+	  return;
 
 	prv = *(sip->dbprivate);
 
@@ -48,7 +48,7 @@ close_btree(sip,comment)
 
 	zsleepyprivatefree(prv);
 
-	sip->dbprivate = NULL;
+	*(sip->dbprivate) = NULL;
 }
 
 
@@ -66,6 +66,7 @@ open_btree(sip, roflag, comment)
 	if (sip->cfgfile) {
 		/* read the related configuration file, e.g.
 		   information about environment, etc.. */
+		/* Doing that (too) in  zsleepyprivateinit()  below */
 	}
 
 	if (sip->file == NULL)

@@ -47,7 +47,7 @@ close_bhash(sip,comment)
 
 	zsleepyprivatefree(prv);
 
-	sip->dbprivate = NULL;
+	*(sip->dbprivate) = NULL;
 }
 
 

@@ -396,6 +396,7 @@ typedef struct { /* SmtpState */
   int   writeclosed;		/* The SMTP socket is closed for write  */
   struct smtpdisc smtpdisc;	/* SMTP outstream discipline data	*/
   int   lasterrno;		/* Last errno value			*/
+  int	do_rset;		/* Will possibly need to do RSET	*/
 
   char *myhostname;		/* strdup()ed name of my outbound interface */
 

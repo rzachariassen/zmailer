@@ -1262,6 +1262,22 @@ deliver(SS, dp, startrp, endrp)
 	  size = -1;
 	SS->msize = size;
 
+	if (SS->do_rset) {
+
+	  if (SS->smtpfp) {
+
+	    SS->rcptstates = 0;
+	    ++ SS->cmdstate;
+	    if (smtpwrite(SS, 0, "RSET", 0, NULL) != EX_OK)
+	      return EX_TEMPFAIL;
+
+	    mail_from_failed = 1;
+	  }
+	}
+
+	SS->do_rset = 1; /* Unless completed successfully,
+			    we must do RSET latter... */
+
 	strcpy(SMTPbuf, "MAIL From:<");
 	s = SMTPbuf + 11;
 
@@ -1372,13 +1388,10 @@ deliver(SS, dp, startrp, endrp)
 	  SS->cmdstate     = SMTPSTATE_RCPTTO; /* 1 + MAILFROM.. */
 
 	  if (SS->smtpfp) {
-	    SS->rcptstates = 0;
-	    ++ SS->cmdstate;
-	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	      if ( ! mail_from_failed ) {
-		mail_from_failed = 1;
-		goto more_recipients;
-	      }
+	    if ( ! mail_from_failed ) {
+	      mail_from_failed = 1;
+	      goto more_recipients;
+	    }
 	  }
 
 	  /* Returning here EX_TEMPFAIL while smtpfp == NULL will do
@@ -1501,12 +1514,7 @@ deliver(SS, dp, startrp, endrp)
 
 	  SS->cmdstate     = SMTPSTATE_DATA; /* 1 + RCPTTO.. */
 
-	  if (SS->smtpfp) {
-	    SS->rcptstates = 0;
-	    ++ SS->cmdstate;
-	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	      /* r = EX_TEMPFAIL */ ;
-	  }
+	  /* Next time around will need to do "RSET" before MAIL FROM */
 
 	  if (r == EX_OK && more_rp)
 	    /* we have more recipients,
@@ -1566,18 +1574,17 @@ deliver(SS, dp, startrp, endrp)
 	       we failed too.. (there should not be any positive diagnostics
 	       to report...)
 	     */
-	    for (rp = startrp; rp && rp != endrp; rp = rp->next)
+	    for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	      if (rp->lockoffset) {
 		/* NOTARY: address / action / status / diagnostic / wtt */
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
 	      }
-	    if (SS->smtpfp) {
-	      SS->rcptstates = 0;
-	      ++ SS->cmdstate;
-	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-		r = EX_TEMPFAIL;
 	    }
+
+	    /* Next time around will need to do "RSET" before MAIL FROM */
+	    /* XX: Set  r = EX_TEMPFAIL;  ??? */
+
 	    return r; /* The smtpfp != NULL -> no retry for these
 			 recipients -- at least not right away! */
 	  }
@@ -1627,13 +1634,9 @@ deliver(SS, dp, startrp, endrp)
 	      r = EX_TEMPFAIL;
 	    }
 
-	    if (SS->smtpfp) {
-	      SS->rcptstates = 0;
-	      ++ SS->cmdstate;
-	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-		/* r = EX_TEMPFAIL */ ;
 
-	    }
+	    /* Next time around will need to do "RSET" before MAIL FROM */
+	    /* XX: Set  r = EX_TEMPFAIL;  ??? */
 
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog," .. timeout ? smtp_sync() rc = %d\n",r);
@@ -1733,12 +1736,9 @@ deliver(SS, dp, startrp, endrp)
 	    }
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog,"Writing headers after DATA failed\n");
-	  if (SS->smtpfp) {
-	    SS->rcptstates = 0;
-	    ++ SS->cmdstate;
-	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	      r = EX_TEMPFAIL;
-	  }
+
+	  /* Next time around will need to do "RSET" before MAIL FROM */
+	  /* XX: Set  r = EX_TEMPFAIL;  ??? */
 
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 	  SS->chunkbuf = NULL;
@@ -1937,17 +1937,14 @@ deliver(SS, dp, startrp, endrp)
 	  retryat_time = 0;
 	}
 
+	/* If all fine, all is fine...  No need to RSET afterwards. */
+	if (r == EX_OK) SS->do_rset = 0;
+
 
 	/* More recipients to send ? */
 	if (r == EX_OK && more_rp && !getout)
 	  goto more_recipients;
 
-	if (r != EX_OK && SS->smtpfp && !getout) {
-	  SS->rcptstates = 0;
-	  ++ SS->cmdstate;
-	  if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	    r = EX_TEMPFAIL;
-	}
 
 	if (SS->chunkbuf) free(SS->chunkbuf);
 	SS->chunkbuf = NULL;
@@ -2917,6 +2914,8 @@ makeconn(SS, hostname, ai, ismx)
 	      SS->smtp_outcount = 0;
 	      SS->block_written = 0;
 
+	      SS->do_rset     = 0;
+
 	      if (SS->esmtp_on_banner > 0)
 		SS->esmtp_on_banner = 0;
 
@@ -2977,9 +2976,6 @@ vcsetup(SS, sa, fdp, hostname)
 	int errnosave, flg;
 	char *se;
 
-#if 0
-	& addrsiz;
-#endif
 	time(&now);
 
 	af = sa->sa_family;
