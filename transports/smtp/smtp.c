@@ -734,7 +734,7 @@ main(argc, argv)
 	  if (cp) cp[strlen(cp)-1] = 0;
 	  else cp = "??";
 
-	  fprintf(logfp,"%s#\tStart time: %s", logtag(), cp);
+	  fprintf(logfp,"%s#\tStart time: %s\n", logtag(), cp);
 	}
 
 
@@ -937,7 +937,6 @@ process(SS, dp, smtpstatus, host, noMX)
 
 	  struct rcpt *rp, *rphead;
 	  int loggedid;
-	  int retrymax;
 
 	  procabortset = 1;
 
@@ -963,31 +962,8 @@ process(SS, dp, smtpstatus, host, noMX)
 		  fprintf(logfp, "%s#\t%s: %s\n", logtag(), dp->msgfile, dp->logident);
 		}
 
-		retrymax = 3;
-
-		do {
-
-		  smtpstatus = deliver(SS, dp, rphead, rp->next, host, noMX);
-
-		  /* Only for EX_TEMPFAIL, or for any non EX_OK ? */
-		  if (smtpstatus == EX_TEMPFAIL && SS->smtpfp) {
-		    smtpclose(SS, 1);
-		    notary_setwtt(NULL);
-		    notary_setwttip(NULL);
-		    if (logfp)
-		      fprintf(logfp, "%s#\t(closed SMTP channel - after delivery failure)\n", logtag());
-		    if (SS->verboselog)
-		      fprintf(SS->verboselog, "(closed SMTP channel - after delivery failure; firstmx = %d, mxcount=%d)\n",SS->firstmx,SS->mxcount);
-		  }
-
-		  /* If delivery fails, try other MX hosts */
-		  --retrymax;
-
-		} while ((retrymax > 0) &&
-			 ((smtpstatus == EX_TEMPFAIL && !SS->smtpfp) ||
-			  (smtpstatus == EX_IOERR)) &&
-			 (SS->firstmx < SS->mxcount));
-
+		smtpstatus = deliver(SS, dp, rphead, rp->next, host, noMX);
+		
 		/* Report (and unlock) all those recipients which aren't
 		   otherwise diagnosed.. */
 
@@ -1056,7 +1032,6 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	int r = EX_TEMPFAIL;
 	int nrcpt, rcpt_cnt, size, tout, hdrsize;
 	int content_kind = 0;
-	int mail_from_failed;
 	CONVERTMODE convertmode;
 	int ascii_clean = 0;
 	struct stat stbuf;
@@ -1255,7 +1230,6 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	}
 
 
-	mail_from_failed = 0;
 
     more_recipients:
 	if (more_rp != NULL) {
@@ -1267,14 +1241,16 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 
 	  if (SS->smtpfp) {
 
+	    SS->rcptstates = 0;
+	    if (smtpwrite(SS, 0, "RSET", 0, NULL) != EX_OK) {
+	      smtpclose(SS,1);
+	      r = EX_TEMPFAIL;
+	      goto re_open;
+	    }
+	    
 	    /* We are starting a new pipelined phase */
 	    smtp_flush(SS); /* Flush in every case */
 
-	    SS->rcptstates = 0;
-	    if (smtpwrite(SS, 0, "RSET", 0, NULL) != EX_OK)
-	      return EX_TEMPFAIL;
-
-	    mail_from_failed = 1;
 	  } else {
 	    goto re_open;
 	  }
@@ -1414,17 +1390,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 #endif
 	  }
 
-	  /* Sync system which rejects subsequent MAIL FROM if not
-	     getting an RSET ??   *dont* yield diagnostic()s here! */
-
 	  SS->cmdstate     = SMTPSTATE_RCPTTO; /* 1 + MAILFROM.. */
-
-	  if (SS->smtpfp) {
-	    if ( ! mail_from_failed ) {
-	      mail_from_failed = 1;
-	      goto more_recipients;
-	    }
-	  }
 
 	  /* Returning here EX_TEMPFAIL while smtpfp == NULL will do
 	     quick retry!  DON'T diagnose those now! */
@@ -1452,7 +1418,6 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  return r;
 	}
 
-	mail_from_failed = 0;
 	nrcpt = 0;
 	rcpt_cnt = 0;
 
@@ -1569,8 +1534,6 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	    }
 	  }
 	  
-	  /* NOTARY: address / action / status / diagnostic */
-	  notaryreport(rp->addr->user, NULL, NULL, NULL);
 	  /* RCPT To:<...> -- pipelineable */
  	  r = smtpwrite(SS, 1, SMTPbuf, pipelining, rp);
 	  if (r != EX_OK) {
@@ -1591,7 +1554,7 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	      r = EX_TEMPFAIL;
 
 	    /* NOTARY: address / action / status / diagnostic / wtt */
-	    notaryreport(NULL, FAILED, NULL, NULL);
+	    notaryreport(rp->addr->user, FAILED, NULL, NULL);
 	    diagnostic(SS->verboselog, rp, r, 0, "%s", SS->remotemsg);
 	    if (!SS->smtpfp)
 	      break;
@@ -2174,9 +2137,9 @@ smtpopen(SS, host, noMX)
 #ifdef HAVE_OPENSSL
 
 	    if (logfp)
-	      fprintf(logfp, "%s#\tEHLO rc=%d demand_TLS_mode=%d tls_available=%d%s\n", logtag(), i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"");
+	      fprintf(logfp, "%s#\tEHLO rc=%d demand_TLS_mode=%d tls_available=%d%s %sPIPELINING\n", logtag(), i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"", (SS->ehlo_capabilities & ESMTP_PIPELINING) ? "":"no ");
 	    if (SS->verboselog)
-	      fprintf(SS->verboselog, "--> EHLO rc=%d demand_TLS_mode=%d tls_available=%d%s\n", i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"");
+	      fprintf(SS->verboselog, "--> EHLO rc=%d demand_TLS_mode=%d tls_available=%d%s %sPIPELINING\n", i, demand_TLS_mode, tls_available, (SS->ehlo_capabilities & ESMTP_STARTTLS) ? " STARTTLS":"", (SS->ehlo_capabilities & ESMTP_PIPELINING) ? "":"no ");
 
 	    if ((i == EX_OK) && demand_TLS_mode && tls_available &&
 		!(SS->ehlo_capabilities & ESMTP_STARTTLS)) {
