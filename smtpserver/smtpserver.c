@@ -1728,7 +1728,7 @@ int insecure;
 	    fprintf(stdout, "%s\n", buf);	/* XX: trace.. */
 	report(SS, "%.100s", buf);
 
-	for (cp = buf; isascii(*cp) && !isalnum(*cp); ++cp)
+	for (cp = buf; isascii(*cp) && isalnum(*cp); ++cp)
 	    continue;
 	if (cp > buf + 8) {	/* "DEBUG" is longest of them.. */
 	    smtp_tarpit(SS);
