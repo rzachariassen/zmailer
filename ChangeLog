@@ -1,5 +1,10 @@
 1999-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/mxverify.c:
+	    Fatal RBL lookup error -- caused effectively all
+	    instances to try for IPv6 lookups which failed
+	    consistently.
+
 	* Makefile, Makefile.in:
 	    Release 2.99.50s15 (to have a clean point)
 

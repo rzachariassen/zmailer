@@ -451,7 +451,7 @@ int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
 	char hbuf[2000], *s, *suf;
 	/* int hspc; */
 
-	if (ipaf == AF_INET) {
+	if (ipaf == P_K_IPv4) {
 	  sprintf(hbuf, "%d.%d.%d.%d.",
 		  ipaddr[3], ipaddr[2], ipaddr[1], ipaddr[0]);
 
