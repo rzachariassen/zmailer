@@ -275,7 +275,7 @@ static void new_ipv4_timeslot( state )
 	      r[i].slots = 0;
 	    }
 
-	    if (r[i].excesses2) continue;
+	    if (r[i].excesses2 || r[i].excesses3) continue;
 
 	    /* See if now ALL slots are ZERO value.. */
 	    if (memcmp(zerocountset, r[i].countset,
