@@ -1,5 +1,8 @@
 2000-03-29  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* scheduler/threads.c:
+	    thread_reschedule() crashed on thr->thvertices being NULL ??
+
 	* router/rfc822hdrs.c:
 	    Sometimes missed sending out at leat one space after the
 	    header name tag.

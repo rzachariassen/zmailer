@@ -1104,7 +1104,7 @@ time_t retrytime;
 		   thr->channel,thr->host,thr->jobs,thr,thr->proc);
 
 	/* If there are multiple kids working still, DON'T reschedule! */
-	if (thr->thrkids > 0) return;
+	if (thr->thrkids > 0 || !vtx) return;
 
 	/* find out when to retry */
 	mytime(&now);
