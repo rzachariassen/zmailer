@@ -1,3 +1,12 @@
+2000-07-27  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    - At getmxrr() a missed state variable initialization
+	      (to zero) caused errorneous eternal loops. OOPS!
+	    - smtp_sync() didn't handle RCPTSTATE_500 at all.. (oops).
+	    - calls to  stashmyaddresses()  don't need to carry determined
+	      self-host-identity.
+
 2000-07-24  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* scheduler/msgerror.c:

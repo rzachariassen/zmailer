@@ -1975,7 +1975,7 @@ smtpconn(SS, host, noMX)
 	h_errno = 0;
 #endif	/* BIND */
 
-	stashmyaddresses(myhostname);
+	stashmyaddresses(NULL);
 
 	if (debug && logfp)
 	  fprintf(logfp, "%s#\tsmtpconn: host = %.200s\n", logtag(), host);
@@ -2077,7 +2077,7 @@ smtpconn(SS, host, noMX)
 		and thus can (hopefully!) avoid sending mail to
 		ourselves thru MX pointed identity we didn't
 		realize being ours!				*/
-	    stashmyaddresses(myhostname);
+	    stashmyaddresses(NULL);
 
 	    if (statusreport)
 	      report(SS,"MX-lookup: %s", host);
@@ -3608,9 +3608,9 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	rc = EX_OK;
 	if (err != 0)
 	  rc = EX_TEMPFAIL; /* Some timeout happened at the response read */
-	if (rc == EX_OK && (SS->rcptstates & FROMSTATE_400))
+	else if (rc == EX_OK && (SS->rcptstates & FROMSTATE_400))
 	  rc = EX_TEMPFAIL; /* MAIL FROM was a 4** code */
-	if (rc == EX_OK && (SS->rcptstates & FROMSTATE_500))
+	else if (rc == EX_OK && (SS->rcptstates & FROMSTATE_500))
 	  rc = EX_UNAVAILABLE; /* MAIL FROM was a 5** code */
 	if (rc == EX_OK) {
 	  /* Study the RCPT STATES! */
@@ -3619,7 +3619,7 @@ if (SS->verboselog) fprintf(SS->verboselog,"[Some OK - code=%d, idx=%d, pipeinde
 	  } else if (SS->rcptstates & RCPTSTATE_400) {
 	    /* Some TEMPFAIL */
 	    rc = EX_TEMPFAIL;
-	  } else if (SS->rcptstates & RCPTSTATE_400) {
+	  } else if (SS->rcptstates & RCPTSTATE_500) {
 	    /* only full failures :-( */
 	    rc = EX_UNAVAILABLE;
 	  }
@@ -4544,13 +4544,12 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  --arcount;
 	} /* Additional data collected! */
 
-	for (i = 0; i < nmx; ++i) {
-	  if (mx[i].ai == NULL)
-	    if (SS->verboselog) {
+	if (SS->verboselog)
+	  for (i = 0; i < nmx; ++i) {
+	    if (mx[i].ai == NULL)
 	      fprintf(SS->verboselog, " MX lookup lacked ADDITIONAL SECTION Address for entry: MX %d %s\n",
 		      mx[i].pref, mx[i].host);
-	    }
-	}
+	  }
 
 	/* Collect addresses for all those who don't have them from
 	   the ADDITIONAL SECTION data */
@@ -4561,9 +4560,10 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  /* If not IPv6 speaker, and already have A, skip it. */
 	  if (!use_ipv6 && (mxtype[i] & 1))
 	    continue;
-#endif
+
 	  if (mxtype[i] == 3)
 	    continue; /* Have both A and AAAA */
+#endif
 	  
 	  memset(&req, 0, sizeof(req));
 	  req.ai_socktype = SOCK_STREAM;
@@ -4571,6 +4571,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  req.ai_flags    = AI_CANONNAME;
 	  req.ai_family   = PF_INET;
 	  ai = NULL;
+	  n = 0;
 
 	  if (! (mxtype[i] & 1)) {  /* Not have A */
 
@@ -4809,7 +4810,11 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  for (i=0; i<nmx; ++i) {
 	    struct addrinfo *ai = mx[i].ai;
 	    for (n = 0; ai; ai = ai->ai_next) ++n;
-	    fprintf(SS->verboselog,"  MX %3d %-30.200s  (%d addrs)\n", mx[i].pref, mx[i].host, n);
+	    fprintf(SS->verboselog,"  MX %3d %-30.200s  (%d %saddrs)\n",
+		    mx[i].pref, mx[i].host, n,
+		    n == 1 ?
+		    (mx[i].ai->ai_family == PF_INET ? "AF_INET ":"AF_INET6 "):
+		    "");
 	  }
 	}
 #endif
