@@ -1,3 +1,10 @@
+2001-01-22  Eugene Crosser <crosser@online.ru>
+
+	* transports/libta/mimeheaders.c:
+	    Sometimes quoted string (to de stripped) is really not,
+	    and we must be carefull to do it only with a string of
+	    minimum length of 3.
+
 2001-01-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/smtp/smtp.c:

@@ -722,7 +722,7 @@ static char * foldmalloccopy (start, end)
 	b = malloc(space);
 	if (!b) return NULL; /* UARGH! */
 
-	if (*start == '"') {
+	if (*start == '"' && len > 2) {
 	  /* QUOTED-STRING, which we UNQUOTE here */
 	  /* Our caller allows only quoted-strings, not
 	     quoted-localparts! */
