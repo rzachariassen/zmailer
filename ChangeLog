@@ -430,24 +430,27 @@
 	    Version 2.99.56-pre3 (CVS tagged  2-99-56-pre3)
 
 	* transports/smtp/smtp.c:
-	    An attempt to create a smart way (at least at Linux and at some
-	    BSD's) to de-nagle tcp streams in high-performance manner.
-	    Low-performance de-nagle is:  sleep(1) ...
+	    An attempt to create a smart way (at least at Linux and
+	    at some BSD's) to de-nagle tcp streams in high-performance
+	    manner.   Low-performance de-nagle is:  sleep(1) ...
 
 	* configure.in, acconfig.h, aclocal.m4:
 	    Updates to remove couple of deprecated features, adding
 	    third parameters (often also second) to AC_DEFINE() macroes.
 
-	* proto/post-install.sh.in, proto/cf/fqdnalias.cf, proto/cd/rrouter.cf,
-	  proto/db/dbases.conf, proto/db/fqdnroutes, proto/Makefile.in:
+	* proto/post-install.sh.in, proto/cf/fqdnalias.cf,
+	  proto/cd/rrouter.cf, proto/db/dbases.conf,
+	  proto/db/fqdnroutes, proto/Makefile.in:
 	    - cleaned up a bit the  routes_spec()  function parameter
 	      variables -- less confusion with the new name, I hope..
-	    - new routing mechanism:  fqdnroutes -- user@domain -> chan!data..
+	    - new routing mechanism:
+	           fqdnroutes -- user@domain -> chan!data..
 	
-	* lib/sleepycatdb.c, include/sleepycatdb.c, router/libdb/bsdbtree.c,
-	  router/libdb/bsdhash.c
+	* lib/sleepycatdb.c, include/sleepycatdb.c,
+	  router/libdb/bsdbtree.c, router/libdb/bsdhash.c
 	    More rework on SleepyCat DB driver routines to better use
-	    the ZSleepyPrivate structure to carry relevant reference data.
+	    the ZSleepyPrivate structure to carry relevant reference
+	    data.
 	
 	* router/libdb/gdbm.c, configure.in:
 	    Similar code work to SleepyCat DB for GDBM.
@@ -477,8 +480,8 @@
 	    More work at the SleepyCat DB Concurrent Data Store  support.
 
 	* router/db.c:
-	    Clean a bit of the database call mechanism passed parameter block
-	    by doing initial memset(,0,) on it..
+	    Clean a bit of the database call mechanism passed parameter
+	    block by doing initial memset(,0,) on it..
 
 	* libc/mail.c, libc/sfmail.c:
 	    Change (slightly) of how the initial temporary file name
@@ -487,7 +490,8 @@
 
 2002-06-20  Matti Aarnio  <mea@zmailer.org>
 
-	* include/sleepycatdb.h, lib/sleepycatdb.c, proto/newdbprocessor.in:
+	* include/sleepycatdb.h, lib/sleepycatdb.c,
+	  proto/newdbprocessor.in:
 	    More of  SleepyCat DB support stuff.
 
 	* smtpserver/smtpauth.c:
@@ -504,8 +508,8 @@
 	    Librarize support for SleepyCat DB by allowing more versatile
 	    parametrisation, e.g. DBENV things, etc.   This to make it
 	    possible to work with "Concurrent Data Store" kind databases.
-	    E.g. single-writer, multiple readers to allow online modifying
-	    of the databases.
+	    E.g. single-writer, multiple readers to allow online
+	    modifying of the databases.
 
 	* router/db.c, router/libdb/search.h:
 	    For each online database, supply a private variable usable
@@ -559,7 +563,7 @@
 
 	* transports/smtp/smtp.c:
 	    Sometimes the  SS->smtpfp  will be NULL, and at such times
-	    sferror() on stream yields SEGV..  Additional code armouring..
+	    sferror() on stream yields SEGV..  Additional code armouring.
 
 	* utils/smtp-contentfilter.in:
 	    A bit cleaner use of perl's implied default variables..
@@ -575,7 +579,8 @@
 
 	* transports/smtp/smtp.c:
 	    In the obscureish EZMLM mode we LACKED mandatory trailing
-	    ">" character at MAIL FROM envelope address.  A major goofup.. :-/
+	    ">" character at MAIL FROM envelope address.
+	    A major goofup.. :-/
 	    (Especially as I use the beast myself sometimes..)
 
 	* transports/mailbox/mboxpath.c:
@@ -720,17 +725,18 @@
 	    can be sent.
 
 	* router/rfc822.c, scheduler/transport.c:
-	    The Scheduler Notify socket got changed to use  SCHEDULERNOTIFY=
-	    ZENV variable, and be AF_UNIX socket.
+	    The Scheduler Notify socket got changed to use
+	    SCHEDULERNOTIFY=   ZENV variable, and be AF_UNIX socket.
 
 2002-02-07  Matti Aarnio  <mea@zmailer.org>
 
-	* scheduler/scheduler.c, scheduler/conf.c, scheduler/prototypes.h,
-	  scheduler/transport.c:
-	    Implemented a 'notifysocket', which is an UDP socket (mailq/udp)
-	    receiving simple "NEW X/Y/123-456" text lines, and verifying
-	    the inputs a bit..  Perhaps should have this configurable,
-	    so that the system could have multiple schedulers around.
+	* scheduler/scheduler.c, scheduler/conf.c,
+	  scheduler/prototypes.h, scheduler/transport.c:
+	    Implemented a 'notifysocket', which is an UDP socket
+	    (mailq/udp) receiving simple "NEW X/Y/123-456" text lines,
+	    and verifying the inputs a bit..  Perhaps should have this
+	    configurable, so that the system could have multiple
+	    schedulers around...
 
 	* scheduler/scheduler.c:
 	    Reworked  2001-10-27 Stephen <steve@activemessage.com>
@@ -758,7 +764,8 @@
 	    At   u_error2()   log the name of the event fully.
 
 	* router/libdb/bind.c:
-	    h_errhost[] change into source material length safe construction.
+	    h_errhost[] change into source material length safe
+	    construction.
 
 	* router/libdb/dbm.c:
 	    Mark this file with a  "#warning"  for being suspicuously
@@ -883,10 +890,12 @@
 
 2001-10-10  Matti Aarnio  <mea@zmailer.org>
 
-	* proto/cf/aliases.cf,  proto/cf/aliases-new.cf, proto/cf/canon.cf,
-	  proto/cf/crossbar.cf, proto/cf/fqdnaliases.cf, proto/cf/server.cf,
-	  proto/cf/fussy-aliases.cf, proto/cf/i-smtp.cf, proto/cf/i-uucp.cf,
-	  proto/cf/p-bitnet.cf, proto/cf/rrouter.cf, proto/cf/standard.cf:
+	* proto/cf/aliases.cf,  proto/cf/aliases-new.cf,
+	  proto/cf/canon.cf, proto/cf/crossbar.cf,
+	  proto/cf/fqdnaliases.cf, proto/cf/server.cf,
+	  proto/cf/fussy-aliases.cf, proto/cf/i-smtp.cf,
+	  proto/cf/i-uucp.cf, proto/cf/p-bitnet.cf,
+	  proto/cf/rrouter.cf, proto/cf/standard.cf:
 	    Noticed strange bounces which turned out to be due to
 	    calls of functions which have optional options beginning
 	    with '-' character.  These fixes handle cases where localpart
@@ -896,13 +905,14 @@
 
 2001-10-09  Matti Aarnio  <mea@zmailer.org>
 
-	* man/smtpserver.8, smtpserver/smtpserver.c, smtpserver/smtpserver.h,
-	  smtpserver/smtpcmds.c, smtpserver/cfgparse.c, proto/smtpserver
+	* man/smtpserver.8, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h, smtpserver/smtpcmds.c,
+	  smtpserver/cfgparse.c, proto/smtpserver:
 	    PARAM force-rcpt-notify-never
-	    Whatever the incoming DNS NOTIFY= value is, we force it always
-	    to be NOTIFY=NEVER.   This is for those who won't like to let
-	    others even to find out that the message made into the system,
-	    but still want to support incoming DSN.
+	    Whatever the incoming DNS NOTIFY= value is, we force it
+	    always to be NOTIFY=NEVER.   This is for those who won't
+	    like to let others even to find out that the message made
+	    into the system, but still want to support incoming DSN.
 	    (That is, not to disable DSN!)
 
 2001-10-04  Matti Aarnio  <mea@zmailer.org>
@@ -1038,8 +1048,8 @@
 	    overwrite last real command performed on connection and
 	    having done something which e.g. caused a reject
 
-	* smtpserver/cfgread.c, smtpserver/smtpdata.c, smtpserver/smtpserver.c,
-	  smtpserver/smtpserver.h:
+	* smtpserver/cfgread.c, smtpserver/smtpdata.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h:
 	    "PARAM outlook-tls-bug" -- Outlook Express seems to kick on
 	    TLS when it is told to use TLS, and the destination port is
 	    not 25, but _anything_else_ !
@@ -1102,16 +1112,16 @@
 	    promptly misbehaved...
 
 	* scheduler/transport.c, scheduler/conf.c:
-	    Under some mysterious conditions (Linux kernel 2.4.5-pre4... ??)
+	    Under some mysterious conditions (Linux kernel 2.4.5-pre4. ?)
 	    the scheduler does not get select on read on dead childrens
 	    stdout ??
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
 	  smtpserver/smtptls.c, smtpserver/smtpdata.c:
 	    Got rid of all  alarm()  calls in the server code, and use
-	    select() instead everywhere.  Along with NON-BLOCKING sockets.
-	    The previous code has apparently allowed accumulation of servers
-	    which never die out...
+	    select() instead everywhere. Along with NON-BLOCKING sockets.
+	    The previous code has apparently allowed accumulation of
+	    servers, which never die out...
 
 2001-06-03  Matti Aarnio  <mea@zmailer.org>
 
@@ -1126,8 +1136,9 @@
 
 2001-05-30  Matti Aarnio  <mea@zmailer.org>
 
-	* scheduler/scheduler.c, scheduler/msgerror.c, scheduler/qprint.c,
-	  scheduler/threads.c, scheduler/transport.c, scheduler/update.c:
+	* scheduler/scheduler.c, scheduler/msgerror.c,
+	  scheduler/qprint.c, scheduler/threads.c,
+	  scheduler/transport.c, scheduler/update.c:
 	    I suspect that in certain cases the scheduler should do
 	    "resync" on message file instead of just logging a complaint
 	    into stderr like it now does at the end of  findvertex().
@@ -1150,9 +1161,9 @@
 	    strange side-effects when thus revealed previous content of
 	    the buffer may reappear.
 
-	    Additional coding to always zero-terminate the allocated buffer.
-	    The code is being used both as classical  fgets(),  but also
-	    by returning exact number of characters collected.
+	    Additional coding to always zero-terminate the allocated
+	    buffer.   The code is being used both as classical  fgets(),
+	    but also by returning exact number of characters collected.
 
 	    I am doubtfull that the previous state was in any way capable
 	    to produce system security threat.
@@ -1174,26 +1185,28 @@
 	    and/or other such strange things...
 
 	* configure.in, libc/gai_strerror.c:
-	    Problems at compling "replacement-ipv6-libc" with RH 7.1 libc.
+	    Problems at compling "replacement-ipv6-libc"
+	    with RH 7.1 libc.
 
 2001-05-16  Matti Aarnio  <mea@zmailer.org>
 
 	* ssl/Makefile.in, ssl/ssl.c, ssl/ssl:sst.[ch], ssl/ssl_sst.[ch]:
-	    Changed references from   ssl:sst.[ch]  files to  ssl_sst.[ch]
+	    Changed references from  ssl:sst.[ch]  files to  ssl_sst.[ch]
 
 2001-05-15  Matti Aarnio  <mea@zmailer.org>
 
-	* include/ta.h, scheduler/update.c, transports/libta/diagnostic.c,
-	  transports/smtp/getmxrr.c, transports/smtp/smtp.c:
-	    Define and use  EX_DEFERALL  exit code, which introduces a new,
-	    somewhat differently behaving handling of temporary kind of
-	    failures -- intended for smtp transport-agent for DNS lookup
-	    failures of some domains, and connection failures.
-	    To large extent this behaves as if "retryat +60" were defined,
-	    but this will also mark ALL subsequent messages in the thread
-	    (via "nextitem" chain) to 1) have been attempted, and 2) with
-	    the same message as we initially have.
-	    (It does not, however, expire any messages - at least directly.)
+	* include/ta.h, scheduler/update.c,  transports/smtp/smtp.c,
+	  transports/libta/diagnostic.c, transports/smtp/getmxrr.c:
+	    Define and use  EX_DEFERALL  exit code, which introduces
+	    a new, somewhat differently behaving handling of temporary
+	    kind of failures -- intended for smtp transport-agent for
+	    DNS lookup failures of some domains, and connection failures.
+	    To large extent this behaves as if "retryat +60" were
+	    defined, but this will also mark ALL subsequent messages
+	    in the thread (via "nextitem" chain) to 1) have been
+	    attempted, and 2) with the same message as we initially have.
+	    (It does not, however, expire any messages - at least
+	     directly.)
 
 	* scheduler/mailq.c:
 	    The 'mailq -v' did show the ta-work-specification-file
@@ -1230,7 +1243,8 @@
 	    Wrong function called to pick the flag data..
 
 	* transports/smtp/smtp.c:
-	    Fixup into pipelined error diagnostics accumulation methodology.
+	    Fixup into pipelined error diagnostics accumulation
+	    methodology.
 
 	* proto/newdbprocessor.in:
 	    PERL 5.6.0+ specific syntax altered back to earlier syntax,
@@ -1425,7 +1439,8 @@
 2001-02-19  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/getmxrr.c:
-	    Format printing of '%s' with NULL argument -> NULL referral -> ...
+	    Format printing of '%s' with NULL argument -> NULL-
+	    referral -> ...
 
 	* scheduler/mailq.c:
 	    When doing some slow  'mailq -vv', and using MAILQv2, do
@@ -1440,8 +1455,9 @@
 
 	* configure.in:
 	    Derive  ZCONFIG  (formely defaulted to  /etc/zmailer.conf)
-	    from  --prefix  !  The same way as --prefix derives $MAILSHARE.
-	    Officially zmailer.conf's new location *is* $MAILSHARE.
+	    from  --prefix  !  The same way as --prefix derives
+	    $MAILSHARE.    Officially zmailer.conf's new location
+	    *is* $MAILSHARE.
 
 2001-02-15  Matti Aarnio  <mea@zmailer.org>
 
@@ -1532,7 +1548,8 @@
 	     number of alarm(2) calls a bit.
 	
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
-	  smtpserver/wantconn.c, scheduler/transport.c, scheduler/wantconn.c:
+	  smtpserver/wantconn.c, scheduler/transport.c,
+	  scheduler/wantconn.c:
 	    #ifdef  USE_TCPWRAPPER   in addition to  #ifdef HAVE_TCPD_H
 
 2001-01-30  Matti Aarnio  <mea@zmailer.org>
@@ -1542,7 +1559,8 @@
 	    Getting SIG data is *not* a problem, it *does* happen.
 
 	* smtpserver/smtpserver.c:
-	    Clean "RSET" response from "250 2.0.0 2.0.0 Reset processed.."
+	    Clean "RSET" response from
+	      "250 2.0.0 2.0.0 Reset processed.."
 	    to one with: "250 2.0.0 Reset processed.."
 
 2001-01-25  Matti Aarnio  <mea@zmailer.org>
@@ -1555,19 +1573,21 @@
 	* router/functions.c:
 	    - In  $(listaddresses ..)  and  $(listexpand ..)  functions,
 	      explicitely support receiving lines with '#'- starting them
-	      (comments, you see).  Also when found no addresses, explicitely
-	      do mention A) what EUID the expansion was running, and B) that
-	      user should check the file/directory protections of the original
-	      file.
-	    - Also, the $(filepriv ...)  function will from now on allow wider
-	      opening privileges in some cases -- if residence directory does
-	      not have X-bits in group and/or world, then related bits in the
-	      file are not checked -- i.e. if the directory is not world-
-	      accessible, it is irrelevant if file has w-bit in world set.
+	      (comments, you see).  Also when found no addresses,
+	      explicitely do mention A) what EUID the expansion was
+	      running, and B) that user should check the file/directory
+	      protections of the original file.
+	    - Also, the $(filepriv ...)  function will from now on
+	      allow wider opening privileges in some cases -- if
+	      residence directory does not have X-bits in group
+	      and/or world, then related bits in the file are not
+	      checked -- i.e. if the directory is not world-
+	      accessible, it is irrelevant if file has w-bit in
+	      world set.
 
 	* proto/cf/SMTP+UUCP.cf.in, proto/cf/SMTP.cf.in:
-	    Couple of fixes, and code rearrangements into the sample boiler
-	    plate.
+	    Couple of fixes, and code rearrangements into
+	    the sample boiler plate.
 
 	* transports/smtp/getmxrr.c:
 	    Play a bit more with  rmsgappend()  calls here.
@@ -1595,21 +1615,24 @@
 	  transports/mailbox/mailbox.c, transports/mailbox/mboxpath.c,
 	  transports/smtp/smtp.c, transports/smtp/smtp.h,
 	  utils/vacation/Makefile.in, utils/vacation/vacation.c:
-	    Use  zgetpwnam()  everywhere where there used to be   getpwnam(),
-	    supply also our very own   struct Zpasswd   for the data referral.
-	    Library  lib/pwdgrp.c  is the location of the wrapper function
-	    which intention is to clarify error handling of various
-	    systems -- getpwnam() returning NULL may mean many things,
-	    and interpreting  errno  is -- challenging.
+	    Use  zgetpwnam()  everywhere where there used to be
+	    getpwnam(),  supply also our very own   struct Zpasswd
+	    for the data referral.
+	    Library  lib/pwdgrp.c  is the location of the wrapper
+	    function, which intention is to clarify error handling
+	    of various systems -- getpwnam() returning NULL may mean
+	    many things, and interpreting  errno  is -- challenging.
 
 	* libsh/builtin.c, libsh/interpret.c, libsh/variables.c,
 	  proto/cf/SMTP+UUCP.cf.in, proto/cf/SMTP.cf.in,
-	  proto/cf/aliases-new.cf, proto/cf/aliases.cf, proto/cf/consist.cf,
-	  proto/cf/fuzzy-aliases.cf, proto/cf/process.cf, proto/cf/rrouter.cf,
+	  proto/cf/aliases-new.cf, proto/cf/aliases.cf,
+	  proto/cf/consist.cf, proto/cf/fuzzy-aliases.cf,
+	  proto/cf/process.cf, proto/cf/rrouter.cf,
 	  proto/cf/server.cf, proto/cf/standard.cf, README.UPGRADING:
-	    Change internal variable expantion to never do IFS tokenisation
-	    at expanded strings.  Supply  $(ifssplit ...)  function in case
-	    it is needed for something, and just token-lists don't make it.
+	    Change internal variable expantion to never do IFS
+	    tokenisation at expanded strings.
+	    Supply  $(ifssplit ...)  function in case it is needed
+	    for something, and just token-lists don't make it.
 	    Write some definite words on README.UPGRADING !
 
 2001-01-22  Eugene Crosser <crosser@online.ru>
@@ -1740,14 +1763,16 @@
 	    	if (!ptr) ptr = malloc(..); else ptr = realloc(ptr,..);
 	    into
 	    	ptr = realloc(ptr,...)
-	    after wanting to simplyfy one part of code and reading man-page..
+	    after wanting to simplyfy one part of code and reading
+	    man-page..
 
 	* Makefile.in, libident/Makefile.in, libs/Makefile.in,
-	  libsh/Makefile.in, router/Makefile.in, router/libdb/Makefile.in,
-	  sfio/Makefile.in, sfio/src/lib/sfio/makefile.in,
-	  sfio/src/lib/sfio/Stdio_b/Makefile.in, smtpserver/Makefile.in,
+	  libsh/Makefile.in, router/Makefile.in, smtpserver/Makefile.in,
+	  router/libdb/Makefile.in, sfio/Makefile.in,
+	  sfio/src/lib/sfio/makefile.in, 
+	  sfio/src/lib/sfio/Stdio_b/Makefile.in, 
 	  sfio/src/lib/sfio/Stdio_b/sfstdhdr.sh:
-	    Tried to "make -j 20" and learned things about parallellism...
+	    Tried to "make -j 20" and learned things about parallellism..
 	    Things really aren't correct yet, and at least sfio may end
 	    up being compiled some N-4 times in parallel...
 
@@ -1761,14 +1786,16 @@
 	* transports/libta/mimeheaders.c, transports/mailbox/mailbox.c,
 	  transports/smtp/smtp.c, include/ta.h:
 	    Content-Type Parser had reversed pointers -- oops
-	    Changed parsers (multiple) parameters from (char **) to (char *)
+	    Changed parsers (multiple) parameters from (char **)
+	    to (char *)
 
 	* transports/libta/mimeheaders.c:
 	    RFC822 ATOM skipping didn't.. (single-char atoms)
 
-	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
-	    Reusing variable caused wrong content at the pointer, and rare
-	    SIGSEGVs lurking ...
+	* transports/libta/swriteheaders.c,
+	  transports/libta/fwriteheaders.c:
+	    Reusing variable caused wrong content at the pointer,
+	    and rare SIGSEGVs lurking ...
 
 2000-11-24  Matti Aarnio  <mea@zmailer.org>
 
@@ -1783,8 +1810,10 @@
 	    sprinkled  smtp_flush() around places while hunting one
 	    nasty memory corruption.
 
-	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
-	    Some leftover counter adjustments in places where it now harmed...
+	* transports/libta/swriteheaders.c,
+	  transports/libta/fwriteheaders.c:
+	    Some leftover counter adjustments in places where
+	    it now harmed...
 
 	* transports/smtp/smtp.c:
 	    Debugging most peculiar problems - propably at swriteheader.c
@@ -1792,8 +1821,8 @@
 
 	* transports/smtp/smtp.c:
 	    A bit different handling on pipelined response collection.
-	    If MAIL FROM yields an error, report it, never mind what socket
-	    read did latter..
+	    If MAIL FROM yields an error, report it, never mind what
+	    socket read did latter..
 
 	* transports/libta/mimeheaders.c:
 	    Simplify!  Don't try to be smart when playing with malloced
@@ -1801,7 +1830,8 @@
 	    of cases where a buffer got reallocated, but a pointer into
 	    it wasn't adjusted into the new area.
 
-	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
+	* transports/libta/swriteheaders.c,
+	  transports/libta/fwriteheaders.c:
 	    Changed the code from "scan the input to determine future
 	    space needs" to "(re)expand as more space is needed" to
 	    make sure there is no discrepancy in between the two.
@@ -1844,7 +1874,8 @@
 	    Meaningless variable name changes (and some revoked changes
 	    which got committed into CVS - and now removed.)
 
-	* transports/libta/fwriteheaders.c, transports/libta/swriteheaders.c:
+	* transports/libta/fwriteheaders.c,
+	  transports/libta/swriteheaders.c:
 	    One subtle bug in BDAT buffering mode left in line-ending
 	    newline handling --> surprising crashes seen.
 
@@ -1858,8 +1889,8 @@
 	* lib/selfaddrs.c:
 	    there is no field called ifr_ifindex, there is: ifr_index
 	    -- returned to previous: memset(ptr, 0, size)
-	    -- because Linux glibc 2.1+ has ifr_ifindex, solaris has ifr_index
-	    (barf...)
+	    -- because Linux glibc 2.1+ has ifr_ifindex, solaris has
+	       ifr_index   (barf...)
 
 2000-11-19  Matti Aarnio  <mea@zmailer.org>
 
@@ -1917,8 +1948,8 @@
 
 	* include/ta.h, transports/libta/fwriteheaders.c,
 	  transports/libta/swriteheaders.c, transports/libta/markoff.c,
-	  transports/libta/mime2headers.c, transports/libta/mimeheaders.c,
-	  transports/libta/stringlib.c, transports/smtp/appendlet.c,
+	  transports/libta/mime2headers.c, transports/libta/stringlib.c,
+	  transports/libta/mimeheaders.c, transports/smtp/appendlet.c,
 	  transports/smtp/smtp.c, transports/smtp/smtp.h:
 	    Initial steps towards doing proper format downgrade
 	    during (SMTP) transport.
@@ -1941,7 +1972,8 @@
 
 	* transports/smtp/smtp.c:
 	    Some oddball moments don't fail properly after response
-	    timeout during certain critical periods -- mainly of DATA/RSET.
+	    timeout during certain critical periods -- mainly of
+	    DATA/RSET.
 	    Doing   smtpclose()  where we used to RSET  right after
 	    DATA has been sent, and response to it has been waited
 	    for way too long..
@@ -1972,13 +2004,14 @@
 	    Move the  notarystatsave()  function call up so that it will
 	    always be called for all collected replies.  Formelly there
 	    were cases where it didn't get called, which caused somewhat
-	    weird looking results when the TA program switched to alternate
-	    destination domain.
+	    weird looking results when the TA program switched to
+	    alternate destination domain.
 
 	* libc/getaddrinfo.c:
 	    Disable entirely the AF_LOCAL support.
-	    The code in question used tmpnam() which created some complaints
-	    from the recent linker/libc at RH 6.2/7.0 hybride system.
+	    The code in question used tmpnam() which created some
+	    complaints from the recent linker/libc at RH 6.2/7.0
+	    hybride system.
 
 	* configure.in, proto/smtpserver.conf(.in):
 	    Turns out that "make install" when working in "adjacent
@@ -1990,8 +2023,9 @@
 	  proto/newdbprocessor.in:
 	    Spotted a few mistakes at the perl scripts of newdbprocessor.
 	    With a hindsight -- me stupid...
-	    Spotted also missing "-d pathalias" at "routesdb" specification.
-	    And some awk cleanups at policy-builder as well, of course.
+	    Spotted also missing "-d pathalias" at "routesdb"
+	    specification.  And some awk cleanups at policy-builder
+	    as well, of course.
 
 	* packaging/solaris/README:
 	    Some additional comments on usage of this tool subset.
@@ -2056,13 +2090,14 @@
 
 2000-10-16  Matti Aarnio  <mea@zmailer.org>
 
-	* smtpserver/smtpdata.c, smtpserver/smtphelp.c, smtpserver/smtptls.c,
-	  smtpserver/smtpserver.c:
+	* smtpserver/smtpdata.c, smtpserver/smtphelp.c,
+	  smtpserver/smtptls.c, smtpserver/smtpserver.c:
 	    Rethought of things, killed the Z_printf() abomination.
 	    Also fixed inadverent NULL referral which Eugene Crosser
 	    found as well.  (It blocked my incoming email :-( )
 
-	* man/smtpserver.8, smtpserver/contentfilter.c, smtpserver/smtpdata.c:
+	* man/smtpserver.8, smtpserver/contentfilter.c,
+	  smtpserver/smtpdata.c:
 	    Improved documentation of the CONTENTFILTER INTERFACE
 	    ( = wrote it ), and modified a bit of the interface itself.
 
@@ -2071,36 +2106,40 @@
 	    Allow $ZENV expansions in smtpserver's configuration.
 	    Thus allow simpler moving of the thing to other location
 	    without needing to edit anything but  zmailer.conf  file..
-	    Also removed  smtpserver.conf  from autoconfigured protofiles.
+	    Also removed  smtpserver.conf  from autoconfigured
+	    protofiles.
 
-	* scheduler/readconfig.c, smtpserver/cfgread.c, transports/sm/sm.c,
-	  transports/mailbox/mailbox.c, transports/smtp/smtptls.c, 
+	* scheduler/readconfig.c, smtpserver/cfgread.c,
+	  transports/sm/sm.c, transports/mailbox/mailbox.c,
+	  transports/smtp/smtptls.c:
 	    Changed all instances of macro-in-macro style CPP things
 	    of 'SKIPWHILE(testfunction,varname)' to be appropriate
 	    'SKIPSPACE(varname)' and 'SKIPTEXT(varname)'.
 	    (RedHat 7.0 gcc version does not work correctly with those..)
 
 	* smtpserver/policytest.c, smtpserver/rfc821scn.c,
-	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c, smtpserver/smtpetrn.c,
-	  smtpserver/smtpserver.c, smtpserver/smtpserver.h,
-	  smtpserver/smtphelp.c, smtpserver/mxverify.c:
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c,
+	  smtpserver/smtpetrn.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h, smtpserver/smtphelp.c,
+	  smtpserver/mxverify.c:
 	    Aimed for some coherence at debug mode printouts/flushes
-	    in some cases.  Mainly the problem is that at the policytest.c,
-	    and at the mxverify.c the debug output goes to stdout via
-	    printf(), while elsewere it goes via type() to SFIO attached
-	    to the connection.    TO BE ACCURATE, AS THINGS ARE NOW IS
-	    NOT SUITABLE FOR DEBUGGING E.G. SSL WRAPPED SESSIONS!
+	    in some cases.  Mainly the problem is that at
+	    the policytest.c,  and at the mxverify.c the debug output
+	    goes to stdout via printf(), while elsewere it goes
+	    via type() to SFIO attached to the connection.
+	    TO BE ACCURATE, AS THINGS ARE NOW IS NOT SUITABLE
+	    FOR DEBUGGING E.G. SSL WRAPPED SESSIONS!
 
 	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
 	  smtpserver/cfgread.c, smtpserver/smtptls.c:
 	    - Have new runtime flag (-t) telling that this is a session
-	      running immediately under TLS (port tcp/465, "ssmtp"), which
-	      feature predates STARTTLS facility.
+	      running immediately under TLS (port tcp/465, "ssmtp"),
+	      which feature predates STARTTLS facility.
 	    - Have parallel listen socket for two different services;
 	      namely plain 'smtp', and 'ssl/smtp')
 
-	* scheduler/mq2auth.c, scheduler/msgerror.c, scheduler/readconfig.c,
-	  include/libz.h, lib/cfgets.c, smtpserver/cfgread.c,
+	* scheduler/mq2auth.c, scheduler/msgerror.c, include/libz.h,
+	  scheduler/readconfig.c, lib/cfgets.c, smtpserver/cfgread.c,
 	  transports/errormail/errormail.c, transports/mailbox/mailbox.c,
 	  transports/sm/sm.c, transports/smtp/appendlet.c:
 	    Renamed that function to be   csfgets()  -- after I myself
@@ -2109,7 +2148,8 @@
 
 2000-10-13  Matti Aarnio  <mea@zmailer.org>
 
-	* sfio/src/lib/sfio/makefile.in, sfio/src/lib/sfio/Stdio_b/Makefile.in:
+	* sfio/src/lib/sfio/makefile.in,
+	  sfio/src/lib/sfio/Stdio_b/Makefile.in:
 	    Noticed an omission in cross-directory compilations.
 	    Sometimes 'iffe' would fail when directory 'FEATURES' didn't
 	    exist at the running position.  Oops.
@@ -2120,11 +2160,12 @@
 	    New option:  -policydump   which decodes the policy
 	    binary set into a text.
 
-	* smtpserver/smtpserver.h, smtpserver/smtpserver.c, man/smtpserver.8,
-	  smtpserver/cfgread.c, smtpserver/smtphelp.c, smtpserver/smtpcmds.c,
-	  smtpserver/smtpdata.c:
-	    Implemented experimental LMTP (RFC 2033) support, this is *not*
-	    for real LMTP use, merely for debugging LMTP clients.
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  man/smtpserver.8, smtpserver/cfgread.c, smtpserver/smtphelp.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpdata.c:
+	    Implemented experimental LMTP (RFC 2033) support,
+	    this is *not* for real LMTP use, merely for debugging
+	    LMTP clients.
 
 	* transports/smtp/smtp.c, transports/smtp/smtp.h,
 	  proto/scheduler.conf.in:
@@ -2148,9 +2189,9 @@
 	    Mention RFC 2033 and LMTP at the RFC list in the end.
 
 	* man/scheduler.8, scheduler/mq2auth.c, proto/scheduler.auth.in:
-	    Allow multiple instances of same userid by scanning the address
-	    ACLs at each UID.  Thus nobody@localhost can get different
-	    level of access from nobody@elsewere.
+	    Allow multiple instances of same userid by scanning
+	    the address ACLs at each UID.  Thus nobody@localhost
+	    can get different level of access from nobody@elsewere.
 
 2000-10-10  Ambrose Li <acli@mingpaoxpress.com>
 
@@ -2161,8 +2202,8 @@
 2000-10-10  Matti Aarnio  <mea@zmailer.org>
 
 	* lib/Makefile.in:
-	    "make install" did put zmailer.h into  $prefix/$prefix/include/,
-	    which is "somewhat" wrong...
+	    "make install" did put zmailer.h into
+	    $prefix/$prefix/include/,    which is "somewhat" wrong...
 
 	* man/smtp.8, transports/smtp/smtp.c, transports/smtp/smtp.h:
 	    Implemented LMTP (RCF 2033) at the smtp TA program.
@@ -2173,32 +2214,37 @@
 	      "Unknown command, or refused by access control;" ...
 
 	* smtpserver/mxverify.c:
-	    Fix the IPv6 nybble-reverse code to do proper in6 type reverser,
-	    although an alternate (binary labels) is defined these days...
+	    Fix the IPv6 nybble-reverse code to do proper in6 type
+	    reverser, although an alternate (binary labels) is defined
+	    these days...
 
 	* transports/libta/ctlopen.c:
 	    See if the message to be opened is an ETRN request -- if yes,
 	    just return with failure...  (manual-expirer triggers this.)
 
 	* transports/libta/mimeheaders.c:
-	    While parsing for Content-Type: parameters, allow LWSP in same
-	    lines.  Full specification really calls for RFC 822 tokens along
-	    with CWSP and commend handling.
+	    While parsing for Content-Type: parameters, allow LWSP in
+	    same lines.  Full specification really calls for RFC 822
+	    tokens along with CWSP and commend handling.
 
 	* transports/mailbox/mailbox.c:
 	    Separates "From MAILER-DAEMON " from "Return-Path: <>".
 	    Produces "X-Envelope-To: <...>" header.
 
 	* ChangeLog, INSTALL, Overview, README.TCP-WRAPPER,
-	  README.UPGRADING, compat/sendmail/sendmail.c, doc/guides/configure,
-	  doc/guides/smtp-etrn, include/zmsignal.h, lib/hashtest.c,
-	  man/smtpserver.8, proto/smtpserver.conf.in, proto/cf/aliases-new.cf,
-	  proto/cf/aliases.cf, proto/cf/rrouter.cf, proto/cf/standard.cf,
-	  router/prototypes.h, router/rfc822walk.c, scheduler/msgerror.c,
-	  scheduler/scheduler.c, smtpserver/rfc821scn.c, transports/sm/sm.c,
-	  smtpserver/smtprouter.c, transports/libta/diagnostic.c, 
-	  transports/mailbox/mailbox.c, transports/smtp/smtp.c, 
-	  utils/smtpserver-log-parser.pl.in, utils/pop-proxy/pop-proxy.c:
+	  README.UPGRADING, compat/sendmail/sendmail.c,
+	  doc/guides/configure, doc/guides/smtp-etrn,
+	  include/zmsignal.h, lib/hashtest.c,
+	  man/smtpserver.8, proto/smtpserver.conf.in,
+	  proto/cf/aliases-new.cf,
+	  proto/cf/aliases.cf, proto/cf/rrouter.cf,
+	  proto/cf/standard.cf, router/prototypes.h,
+	  router/rfc822walk.c, scheduler/msgerror.c,
+	  scheduler/scheduler.c, smtpserver/rfc821scn.c,
+	  transports/sm/sm.c, smtpserver/smtprouter.c,
+	  transports/libta/diagnostic.c,  transports/mailbox/mailbox.c,
+	  transports/smtp/smtp.c,  utils/smtpserver-log-parser.pl.in,
+	  utils/pop-proxy/pop-proxy.c:
 	    A great speller-bee of "propab*" -> "probab*".
 
 2000-09-26  Matti Aarnio  <mea@zmailer.org>
@@ -2235,7 +2281,8 @@
 	    and its resulting NULL was used unprotected -> SEGV.
 	    (Ran out of free file descriptors.)
 
-	* router/functions.c, transports/hold/hold.c, proto/cf/aliases.cf:
+	* router/functions.c, transports/hold/hold.c,
+	  proto/cf/aliases.cf:
 	    "hold" handling for the $(homedirectory ...) function.
 
 2000-09-20  Matti Aarnio  <mea@zmailer.org>
@@ -2280,7 +2327,8 @@
 	    Pointer arithmetic with (void*) !! Urgh..
 
 	* smtpserver/Makefile.in:
-	    Oops.. QC failure, wrong dependency order -> compilation failure
+	    Oops.. QC failure, wrong dependency order -> compilation
+	    failure
 
 	* router/functions.c, proto/cf/aliases.cf, proto/cf/fqdnalias.cf:
 	    Suspended the  $(zapDSNnotify ...) processing development.
@@ -2372,14 +2420,17 @@
 2000-08-30  Matti Aarnio  <mea@zmailer.org>
 
 	* compat/sendmail/sendmail.c:
-	    - Recognize  "sendmail -bd"  as an order to run "zmailer" script.
+	    - Recognize  "sendmail -bd"  as an order to run "zmailer"
+	      script.
 	    - Input and encode INFROM= data into DSN dataset.
 
-	* proto/cf/aliases.cf, proto/cf/crossbar.cf, proto/cf/fqdnalias.cf,
-	  proto/cf/standard.cf, router/functions.c, router/prototypes.h,
+	* proto/cf/aliases.cf, proto/cf/crossbar.cf,
+	  proto/cf/fqdnalias.cf, proto/cf/standard.cf,
+	  router/functions.c, router/prototypes.h,
 	  router/rfc822.c, router/shliaise.c:
-	    - New experiental code to handle DSN data handling bugs in
-	      alias expansion-like situations.  This is NOT complete thing!
+	    - New experiental code to handle DSN data handling bugs
+	      in alias expansion-like situations.
+	      This is NOT complete thing!
 	    - Debug code to analyze the effects of the SCHEDULERDIRHASH
 	      ZENV variable.
 
@@ -2428,7 +2479,8 @@
 	    Use  getaddrinfo()  to pick the peer address.
 
 	* include/listutils.h:
-	    Incorrect ANSI-C pre-processor string concatenation directive use.
+	    Incorrect ANSI-C pre-processor string concatenation
+	    directive use.
 
 	* libc/myhostname.c:
 	    Pick any of my possible addresses, don't specify port.
@@ -2477,11 +2529,11 @@
 
 	* include/libz.h, scheduler/scheduler.c, scheduler/update.c,
 	  lib/esyslib.c, include/ta.h:
-	    To track strange looking  eunlink()  problem reported by
-	    Eugene my first approach is to add identity tags for eunlink()
-	    calls so I can have some additional clue as to *which* of
-	    four possible places the problems are occurring at.
-	    (Fift place is impossible, fortunately.)
+	    To track strange looking  eunlink()  problem reported
+	    by Eugene my first approach is to add identity tags for
+	    eunlink() calls so I can have some additional clue as
+	    to *which* of four possible places the problems are
+	    occurring at.  (Fift place is impossible, fortunately.)
 
 2000-08-02  Eugene Crosser <crosser@online.ru>
 
@@ -2517,7 +2569,8 @@
 
 2000-07-31  Matti Aarnio  <mea@zmailer.org>
 
-	* scheduler/scheduler.h, scheduler/scheduler.c, scheduler/msgerror.c:
+	* scheduler/scheduler.h, scheduler/scheduler.c,
+	  scheduler/msgerror.c:
 	    Recognize our internal NOTIFY=TRACE flag.
 
 	* transports/smtp/smtp.c:
@@ -2557,9 +2610,9 @@
 
 	* transports/smtp/getmxrr.c:
 	    dnscache by djb produces replies which don't have NS or AD
-	    sections, and when scanning replies, we had one-off comparison
-	    error which bailed out in case the ANSWER section reached
-	    the end of the reply packet.
+	    sections, and when scanning replies, we had one-off
+	    comparison error which bailed out in case the ANSWER
+	    section reached the end of the reply packet.
 
 	* man/scheduler.8:
 	    Updating on data formats and communication protocols.
@@ -2591,8 +2644,8 @@
 	    - At getmxrr() a missed state variable initialization
 	      (to zero) caused errorneous eternal loops. OOPS!
 	    - smtp_sync() didn't handle RCPTSTATE_500 at all.. (oops).
-	    - calls to  stashmyaddresses()  don't need to carry determined
-	      self-host-identity.
+	    - calls to  stashmyaddresses()  don't need to carry
+	      determined self-host-identity.
 
 2000-07-24  Matti Aarnio  <mea@zmailer.org>
 
@@ -2672,9 +2725,9 @@
 	* transports/smtp/smtp.c, smtpserver/mxverify.c:
 	    Further commentary from  bind-workers  told me that unless
 	    the AA-bit (authoritative answer) is set, the received ADDATA
-	    isn't possibly good enough to trust - some of A/AAAAs may have
-	    expired.  Thus we shall use that reply section for A/AAAA only
-	    if AA-bit is set.
+	    isn't possibly good enough to trust - some of A/AAAAs may
+	    have expired.  Thus we shall use that reply section for
+	    A/AAAA only if AA-bit is set.
 
 2000-06-21  Matti Aarnio  <mea@zmailer.org>
 
@@ -2852,7 +2905,8 @@
 	* transports/smtp/smtp.c, transports/smtp/smtp.h:
 	    Cosmetics-like things about diagnostics tracking.
 
-	* proto/newdb.in, proto/newdbprocessor.in, proto/post-install.sh.in:
+	* proto/newdb.in, proto/newdbprocessor.in,
+	  proto/post-install.sh.in:
 	    These are all PERL scripts now -- that last one should be
 	    renamed, thinking about it...
 
@@ -3024,7 +3078,8 @@
 
 	* smtpserver/smtptls.c, smtpserver/smtpserver.c:
 	    Under TLS do always flush replies - to simulate one other
-	    MTA running under TLS wrapper. (This was removed a bit latter.)
+	    MTA running under TLS wrapper.
+	    (This was removed a bit latter.)
 
 2000-04-12  Matti Aarnio  <mea@zmailer.org>
 
@@ -3036,7 +3091,8 @@
 2000-04-11  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mq2.c, scheduler/mq2auth.c, scheduler/prototypes.h,
-	  scheduler/scheduler.h, scheduler/scheduler.c, scheduler/transport.c:
+	  scheduler/scheduler.h, scheduler/scheduler.c,
+	  scheduler/transport.c:
 	    Hooks for verifying MAILQv2 contactee IP address.
 
 	* router/db.c:
@@ -3046,9 +3102,10 @@
 
 2000-04-08  Matti Aarnio  <mea@zmailer.org>
 
-	* scheduler/msgerror.c, scheduler/prototypes.h, scheduler/threads.c,
-	  scheduler/transport.c:
-	    Tracked possible reasons for processing crashes when maxthr>1.
+	* scheduler/msgerror.c, scheduler/prototypes.h,
+	  scheduler/threads.c, scheduler/transport.c:
+	    Tracked possible reasons for processing crashes
+	    when maxthr>1.
 
 	* transports/smtp/smtp.c:
 	    Changed the commentary log accumulation method, now
@@ -3087,7 +3144,7 @@
 
 	* proto/cf/aliases.cf, proto/cf/fqdnalias.cf:
 	    - More work on rewritten expansion loop prevention measures.
-	    - Added UserDB sender address rewriter into  fqdnalias.cf too.
+	    - Added UserDB sender address rewriter into fqdnalias.cf too.
 
 	* lib/rfc822scan.c, router/functions.c, proto/cf/aliases.cf:
 	    Reworked alias (et.al.) expansion loop preventation
@@ -3112,11 +3169,11 @@
 	    Sometimes missed sending out at least one space after the
 	    header name tag.
 
-	* scheduler/transport.c, scheduler/update.c, scheduler/mq2auth.c,
-	  transports/smtp/smtptls.c:
-	    Various bad diagnostics seen (from smtp) which in turn crashed
-	    scheduler :-/  Oops..   Some new comments into  mq2auth.c about
-	    possible future directions.
+	* scheduler/transport.c, scheduler/update.c,
+	  scheduler/mq2auth.c,  transports/smtp/smtptls.c:
+	    Various bad diagnostics seen (from smtp) which in turn
+	    crashed scheduler :-/  Oops..   Some new comments into
+	    mq2auth.c about possible future directions.
 
 	* proto/cf/crossbar.cf, proto/db/userdb:
 	    Some more work on this, now allowing rather peculiar
@@ -3129,17 +3186,19 @@
 	    without too large of an impact on performance.
 	    ( The hash collisions are resolved by means of doing actual
 	      key  strcmp() )
-	    The cache at each DB relation interface is still an LRU with
-	    linear (urgh..) search time.  (A splay-tree was also considered,
-	    but decided not to use.)
+	    The cache at each DB relation interface is still an LRU
+	    with linear (urgh..) search time.  (A splay-tree was also
+	    considered, but decided not to use.)
 
 2000-03-28  Matti Aarnio  <mea@zmailer.org>
 
-	* proto/cf/aliases.cf, proto/cf/crossbar.cf, proto/cf/standard.cf,
-	  proto/db/dbases.conf, proto/db/kill-headers, proto/db/userdb:
-	    Created a way (always on when DB is defined, and rewrite
-	    (at crossbar.cf) happens via 'internet') to do ``username''
-	    mapping to given FQDN address, e.g.  ``user.name@here.domain''
+	* proto/cf/aliases.cf, proto/cf/crossbar.cf,
+	  proto/cf/standard.cf, proto/db/dbases.conf,
+	  proto/db/kill-headers, proto/db/userdb:
+	    Created a way (always on when DB is defined, and
+	    rewrite (at crossbar.cf) happens via 'internet') to
+	    do ``username'' mapping to given FQDN address,
+	    e.g.  ``user.name@here.domain''
 	    Reworked kill-headers initialization.
 
 	* include/mailer.h, proto/Makefile.in, proto/cf/standard.cf,
@@ -3175,8 +3234,9 @@
 	* INSTALL, configure.in, Makefile.in, sfio/Makefile.in,
 	  sfio/src/lib/sfio/makefile.in,
 	  sfio/src/lib/sfio/{Sfio_{dc,f},Stdio_{b,s}}:
-	    Made SFIO compilation environment to work also when running
-	    in "subdirectory" configuration (e.g. using  ../configure ...)
+	    Made SFIO compilation environment to work also when
+	    running in "subdirectory" configuration (e.g. using
+	    ../configure ...)
 	    Also cleaned up the SFIO configuration system a bit.
 
 	* doc/guides/smtp-policy:
@@ -3184,23 +3244,25 @@
 
 2000-03-21  Matti Aarnio  <mea@zmailer.org>
 
-	* man/smtpserver.8, smtpserver/smtpserver.h, smtpserver/smtpserver.c:
-	    Implemented  -T  option for a local interactive policy testing
-	    without having connectivity all around the world.
+	* man/smtpserver.8, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c:
+	    Implemented  -T  option for a local interactive policy
+	    testing without having connectivity all around the world.
 	    See the man-page.
 
 2000-03-18  Matti Aarnio  <mea@zmailer.org>
 
 	* router/daemonsub.c, router/conf.c:
-	    Spotted a self-healing misbehaviour in the child process feeder,
-	    which skipped messages from queue quite *often*.  Cured that
-	    by waiting in proper place for successfull delivery.
-	    Also changed some default values for "stability" processing.
+	    Spotted a self-healing misbehaviour in the child process
+	    feeder, which skipped messages from queue quite *often*.
+	    Cured that by waiting in proper place for successfull
+	    delivery.  Also changed some default values for
+	    "stability" processing.
 
 	* router/rfc822hdrs.c, router/rfc822.c, lib/token.c:
-	    Aborted (and deactivated) foldable tokens processing on headers
-	    we don't know about right now.  Perhaps need to have some other
-	    approach on the problem...
+	    Aborted (and deactivated) foldable tokens processing on
+	    headers we don't know about right now.  Perhaps need to
+	    have some other approach on the problem...
 
 2000-03-17  Matti Aarnio  <mea@zmailer.org>
 
@@ -3250,8 +3312,8 @@
 	      permitting delivery there.
 
 	* smtpserver/smtpcmds.c:
-	    DRUMS/SMTPUPD tells that policy based rejections of recipients
-	    shall use 550 (and 450) codes.
+	    DRUMS/SMTPUPD tells that policy based rejections of
+	    recipients shall use 550 (and 450) codes.
 
 2000-03-09  Matti Aarnio  <mea@zmailer.org>
 
@@ -3296,9 +3358,10 @@
 	* man/smtp.8, man/smtpserver.8:
 	    Updates/fixes to text.
 
-	* scheduler/scheduler.c, scheduler/scheduler.h, scheduler/conf.c,
-	  scheduler/agenda.c, scheduler/msgerror.c, scheduler/readconfig.c,
-	  scheduler/prototypes.h, man/scheduler.8:
+	* scheduler/scheduler.c, scheduler/scheduler.h,
+	  scheduler/conf.c, scheduler/agenda.c, scheduler/msgerror.c,
+	  scheduler/readconfig.c, scheduler/prototypes.h,
+	  man/scheduler.8:
 	    - Slightly simplified doagenda()
 	    - Created accumulated report collector/reporter subservice.
 
@@ -3309,21 +3372,23 @@
 		http://www.zmailer.org/reports.html
 
 	* scheduler/scheduler.h, scheduler/update.c, scheduler/threads.c,
-	  scheduler/prototypes.h, scheduler/readconfig.c, scheduler/msgerror.c,
-	  man/scheduler.8:
-	    - Reworked how IDLE handles idle process recycling; always the
-	      channel must match, host may or may not need to match.
-	    - Reworked parts of error reporting in preparation for creating
-	      delay reports.  (And earlier FAILED/DELIVERED/RELAYED reports
-	      at the same time, of course..)
+	  scheduler/prototypes.h, scheduler/readconfig.c,
+	  scheduler/msgerror.c, man/scheduler.8:
+	    - Reworked how IDLE handles idle process recycling; always
+	      the channel must match, host may or may not need to match.
+	    - Reworked parts of error reporting in preparation for
+	      creating delay reports.
+	      (And earlier FAILED/DELIVERED/RELAYED reports at the same
+	       time, of course..)
 
 	* proto/cf/fqdnalias.cf:
 	    Spotted some FIXME things..
 
 	* transports/smtp/smtp.c:
 	    When socket write failure causes shutdown of write direction
-	    socket, do turn all back reported 500 series errors into softer
-	    400 series codes.  Won't unnecessarily reject messages.
+	    socket, do turn all back reported 500 series errors into
+	    softer  400 series codes.  Won't unnecessarily reject
+	    messages.
 
 2000-02-29  Matti Aarnio  <mea@zmailer.org>
 
@@ -3333,14 +3398,15 @@
 
 	* smtpserver/smtpserver.c, smtpserver/smtpserver.h,
 	  smtpserver/cfgread.c, smtpserver/smtpcmds.c:
-	    - PARAM sum-sizeoption-value  -- modify how MAIL FROM:<> SIZE=nn
-	      option value is processed when compared against various limits
-	      in the system -- if the option is present, effectively the
-	      system required free space is message size multiplied by the
-	      recipient count.
-	    - PARAM max-unknown-commands nn -- how many pure junk commands
-	      can be accepted before our side hungs the connection. Default
-	      limit: 10
+	    - PARAM sum-sizeoption-value  -- modify how
+	      MAIL FROM:<> SIZE=nn option value is processed
+	      when compared against various limits in the system;
+	      if the option is present, effectively the system required
+	      free space is message size multiplied by the recipient
+	      count.
+	    - PARAM max-unknown-commands nn -- how many pure junk
+	      commands can be accepted before our side hungs the
+	      connection. Default limit: 10
 
 2000-02-28  Matti Aarnio  <mea@zmailer.org>
 
@@ -3348,7 +3414,8 @@
 	  smtpserver/cfgread.c, smtpserver/smtpetrn.c,
 	  proto/smtpserver.conf.in, doc/guides/etrn-cluster:
 	    - A bug in '-l SYSLOG' which bite me at Solaris.. Oops..
-	    - some reworking of ETRN-CLUSTER code, but no completition yet.
+	    - some reworking of ETRN-CLUSTER code, but no completition
+	       yet.
 
 2000-02-25  Matti Aarnio  <mea@zmailer.org>
 
@@ -3367,8 +3434,9 @@
 2000-02-18  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
-	    Moved   --with-zconfig=  code around a bit, apparently it was
-	    quite ineffective, and has been that way for quite a while :-/
+	    Moved   --with-zconfig=  code around a bit, apparently
+	    it was quite ineffective, and has been that way for quite
+	    a while :-/
 	    (More so the documentation spoke of some other option..)
 
 2000-02-17  Eugene Crosser  <crosser@online.ru>
@@ -3382,11 +3450,12 @@
 2000-02-15  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/agenda.c, scheduler/mq2.c, scheduler/prototypes.h,
-	  scheduler/scheduler.c, scheduler/scheduler.h, scheduler/threads.c,
-	  scheduler/transport.c, man/scheduler.8, scheduler/MAILQv2:
+	  scheduler/scheduler.c, scheduler/scheduler.h,
+	  scheduler/threads.c, scheduler/transport.c,
+	  man/scheduler.8, scheduler/MAILQv2:
 	    - Streamlined MAILQv2 processing -- it should now be as low
-	      latency service as possible, even with long-lasting operations
-	      blocking at things like input queue scanner.
+	      latency service as possible, even with long-lasting
+	      operations blocking at things like input queue scanner.
 	    - Implemented a 30 second apopteosis for MAILQv2 sockets.
 	    - Implemented MAILQv2 action ETRN -- exactly alike the SMTP-
 	      server one.
@@ -3410,20 +3479,23 @@
 
 2000-02-08  Matti Aarnio  <mea@zmailer.org>
 
-	* man/smtpserver.8, smtpserver/smtpserver.h, smtpserver/smtpserver.c,
-	  smtpserver/smtpdata.c, smtpserver/smtpcmds.c, smtpserver/smtpauth.c:
+	* man/smtpserver.8, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c, smtpserver/smtpdata.c,
+	  smtpserver/smtpcmds.c, smtpserver/smtpauth.c:
 	    Created smtpserver runtime command-line option "-l SYSLOG",
-	    which is a magic thing to send logfile material through syslog()
-	    facility.  Beware there is *huge* amount of dataflow there!
+	    which is a magic thing to send logfile material through
+	    syslog()  facility.  Beware there is *huge* amount of
+	    dataflow there!
 	    Some updates to smtpserver.8 man-page.
 
 2000-02-04  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/smtpserver.c, lib/taspoolid.c:
-	    Changed (again) the logtag prefix for smtpserver's -l parameter
-	    defined logfile.  Considering enabling it to be also diverted
-	    via syslog() to where-ever that goes.  (But server process can
-	    have only one syslog() session active with one facility..)
+	    Changed (again) the logtag prefix for smtpserver's "-l"
+	    parameter defined logfile.  Considering enabling it to
+	    be also diverted via syslog() to where-ever that goes.
+	    (But server process can have only one syslog() session
+	     active with one facility..)
 
 2000-02-03  Matti Aarnio  <mea@zmailer.org>
 
@@ -3440,21 +3512,23 @@
 	  transports/libta/markoff.c:
 	    Prepared for adding _CF_MIMESTRUCT multiline entity into
 	    the TA-specsfile.  It will contain preparsed result of what
-	    the message structure is - and be able to prevent e.g. decoding
-	    QP when the end result exceeds linelength limits..
+	    the message structure is - and be able to prevent e.g.
+	    decoding  QP when the end result exceeds linelength limits..
 	    (And do proper body structure processings where appropriate)
 
 	* transports/smtp/smtp.c:
-	    Lengthened the -Ttcpw= default to 5 minutes (RFC 1123: 3 minutes)
+	    Lengthened the -Ttcpw= default to 5 minutes
+	    (RFC 1123: 3 minutes)
 
 	* router/parsedate.c:
 	    Armour  lilian()  function against bad MON or DAY inputs.
 	    (Especially zero month is deadly..)  However this code is
 	    currently completely dead -- not used, so...
 
-	* scheduler/mq2.c, transports/mailbox/mailbox.c, transports/sm/sm.c,
-	  transports/smtp/smtp.h, transports/smtp/smtptls.c,
-	  transports/smtp/smtp.c, transports/smtp/appendlet.c:
+	* scheduler/mq2.c, transports/mailbox/mailbox.c,
+	  transports/sm/sm.c, transports/smtp/smtp.h,
+	  transports/smtp/smtptls.c, transports/smtp/smtp.c,
+	  transports/smtp/appendlet.c:
 	    Turns out the  sfsetfd()  has a undesirable side-effect,
 	    which might be turnable off, but...  Namely it does sfsync()
 	    on the stream before setting the fd -- we don't want that.
@@ -3469,15 +3543,16 @@
 	    More of hunting of strange errors at protocol transmission.
 
 	* smtpserver/smtpserver.c:
-	    When reporting '-- pipeline input exists', do that immediately
-	    after collecting previous input line, not after SYNCing out
-	    previous reply.
+	    When reporting '-- pipeline input exists', do that
+	    immediately after collecting previous input line, not
+	    after SYNCing out previous reply.
 
 2000-02-01  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/appendlet.c, transports/smtp/smtp.h,
 	  transports/smtp/smtptls.c,   transports/smtp/smtp.c:
-	    More of the same work as yesterday evening/today early morning..
+	    More of the same work as yesterday evening/today
+	    early morning..
 
 	* transports/smtp/smtp.c, transports/smtp/smtptls.c,
 	  transports/libta/swriteheaders.c:
@@ -3500,8 +3575,10 @@
 
 2000-01-24  Matti Aarnio  <mea@zmailer.org>
 
-	* transports/libta/swriteheaders.c, transports/libta/fwriteheaders.c:
-	    Do proper TAB-expand in entire header strings, if so directed.
+	* transports/libta/swriteheaders.c,
+	  transports/libta/fwriteheaders.c:
+	    Do proper TAB-expand in entire header strings,
+	    if so directed.
 
 	* utils/mxverify/*
 	    Made it as stand-alone as possible; it still uses ZMailer's
@@ -3521,13 +3598,13 @@
 	    Turn all header start spaces to optimized TABs plus spaces.
 
 	* smtpserver/smtpcmds.c:
-	    Now (!) people tell me that the most common M$ email clients
-	    are absolutely stupid, and won't be able to correlate outgoing
-	    SMTP verbs to responses they receive.  They just tell to user
-	    the error which Z returns, and as it doesn't repeat the address
-	    in fault (why should it?), user has no clue...
-	    (So the one-line reports will from now on also mention the
-	     received address...)
+	    Now (!) people tell me that the most common M$ email
+	    clients are absolutely stupid, and won't be able to
+	    correlate outgoing SMTP verbs to responses they receive.
+	    They just tell to user the error which Z returns, and
+	    as it doesn't repeat the address in fault (why should it?),
+	    user has no clue...   (So the one-line reports will from
+	    now on also mention the received address...)
 
 	* utils/mxverify/Makefile.in, utils/mxverify/mxverify-cgi.c,
 	  utils/mxverify/mxverify-cgi.html, utils/Makefile.in,
@@ -3587,11 +3664,11 @@
 
 2000-01-14  Matti Aarnio  <mea@zmailer.org>
 
-	* scheduler/msgerror.c, include/ta.h, transports/libta/diagnostic.c,
-	  transports/smtp/smtp.c:
-	    Extend the notary report with "X-ZTAID:" which is diagnostic
-	    about which TA process did generate the error report.
-	    Allows one to hunt things from the syslog..
+	* scheduler/msgerror.c, include/ta.h,
+	  transports/libta/diagnostic.c, transports/smtp/smtp.c:
+	    Extend the notary report with "X-ZTAID:" which is
+	    diagnostic about which TA process did generate the error
+	    report.    Allows one to hunt things from the syslog..
 
 	* smtpserver/smtpserver.c:
 	    Doing  longjmp()  from within a signal handler isn't
@@ -3610,16 +3687,19 @@
 2000-01-07  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/threads.c:
-	    Sometimes adding new tasks into a long-running thread did cause
-	    the "unfed" count to go to *negative* value.  Now counting tasks
-	    there always when they arrive to the thread, not only when all
-	    previous ones have already been fed.. (caring about it only when
-	    a process is active on the thread.)
+	    Sometimes adding new tasks into a long-running thread did
+	    cause the "unfed" count to go to *negative* value.
+	    Now counting tasks there always when they arrive to
+	    the thread, not only when all previous ones have already
+	    been fed.. (caring about it only when a process is active
+	    on the thread.)
 
-	* proto/cf/aliases.cf, proto/cf/fqdnalias.cf, proto/cf/i-iprouter.cf,
-	  proto/cf/i-router.cf, proto/cf/standard.cf, proto/db/dbases.conf:
-	    Some collected thoughts about how to do multiple instances of
-	    several popular databases (like aliases) in varying DB formats.
+	* proto/cf/aliases.cf, proto/cf/fqdnalias.cf,
+	  proto/cf/i-iprouter.cf, proto/cf/i-router.cf,
+	  proto/cf/standard.cf, proto/db/dbases.conf:
+	    Some collected thoughts about how to do multiple instances
+	    of several popular databases (like aliases) in varying DB
+	    formats.
 
 	* router/libdb/bind.c, proto/cf/i-smtp.cf:
 	    Created sub-mode 'mxlocal' for the BIND database.
@@ -3660,8 +3740,9 @@
 2000-01-03  Matti Aarnio  <mea@zmailer.org>
 
 	* router/libdb/headers.c:
-	    Darn..  Can't just disable "date" from known headers, however
-	    changeing their semantics to 'nilHeaderSemantics' should do it.
+	    Darn..  Can't just disable "date" from known headers,
+	    however changeing their semantics to 'nilHeaderSemantics'
+	    should do it.
 
 	* scheduler/threads.c:
 	    abort() replaced with correct code -- "the thing never to
@@ -3669,10 +3750,11 @@
 
 2000-01-02  Matti Aarnio  <mea@zmailer.org>
 
-	* router/rfc822.c, lib/skip821address.c, transports/libta/ctlopen.c:
-	    Have seen one mighty strange local non-delivery, and learned
-	    ways to use quotes in addresses which are not always safe from
-	    router to scheduler, and to TAs..
+	* router/rfc822.c, lib/skip821address.c,
+	  transports/libta/ctlopen.c:
+	    Have seen one mighty strange local non-delivery,
+	    and learned ways to use quotes in addresses which
+	    are not always safe from router to scheduler, and to TAs..
 
 	* man/smtp.8, proto/smtp-tls.conf{,.in}, doc/guides/openssl,
 	  configure.in, proto/Makefile.in, proto/scheduler.conf.in,
@@ -3681,7 +3763,8 @@
 	    - Updated OpenSSL GUIDE
 	    - Updated the prototype of  smtp-tls.conf  (and renamed
 	      it for autoconf reasons)
-	    - Install the  smtp-tls.conf  prototype file (for post-install)
+	    - Install the  smtp-tls.conf  prototype file
+	      (for post-install)
 	    - Updated  post-install.sh
 	    - Added example usage clause to scheduler.conf.in
 
@@ -3707,15 +3790,16 @@
 	    - Process will stay in STUFFING until it gets #hungry in
 	      that state without that the thread has any 'nextfeed'
 	      available.
-	    - Only when there are no more things to feed in STUFFING state,
-	      process moves to FINISHING state. ("retryat" processing being
-	      sole exception.)
+	    - Only when there are no more things to feed in STUFFING-
+	      state, process moves to FINISHING-state
+	      ("retryat" processing being sole exception.)
 	    - A new vertex to a thread while there are active processes,
 	      but 'nextfeed == NULL' will be placed into 'nextfeed'.
 	    - A new clause parameter ``WakeupRestartOnly'' works by
-	      allowing a newly created thread to be processed immediately,
-	      but if existing thread is in ``Retry Delay'' state, this new
-	      message will not auto-start the thread right away.
+	      allowing a newly created thread to be processed
+	      immediately, but if existing thread is in ``Retry Delay''
+	      state, this new message will not auto-start the thread
+	      right away.
 	
 	* proto/scheduler.conf.in:
 	    Explained a lot (more) about the scheduler usage of
@@ -3752,7 +3836,8 @@
 1999-12-30  Matti Aarnio  <mea@zmailer.org>
 
 	* contrib/zmailer-spec/*:
-	    SPECS files for RPM generation from Xos… V·zquez <xose@ctv.es>
+	    SPECS files for RPM generation
+	    from Xos… V·zquez <xose@ctv.es>
 
 	* Makefile.in:
 	   Version 2.99.52-pre5
@@ -3800,19 +3885,22 @@
 	    do clean them too!
 	
 	* include/ta.h, transports/libta/ctlopen.c,
-	  transports/libta/diagnostic.c, transports/libta/fwriteheaders.c,
-	  transports/libta/swriteheaders.c, transports/libta/mimeheaders.c,
-	  transports/libta/routermxes.c, transports/smtp/smtp.c:
+	  transports/libta/diagnostic.c, transports/libta/mimeheaders.c,
+	  transports/libta/fwriteheaders.c, transports/smtp/smtp.c,
+	  transports/libta/swriteheaders.c,
+	  transports/libta/routermxes.c:
 	    Tracked memory freeup order failure!  D'uh it was difficult!
 	    ( ctlclose() did free(d.contents) too early... )
 
 1999-12-29  Matti Aarnio  <mea@zmailer.org>
 
-	* scheduler/scheduler.h, scheduler/prototypes.h, scheduler/mq2.c,
-	  scheduler/threads.c, scheduler/transport.c, scheduler/readconfig.c,
-	  scheduler/qprint.c, scheduler/update.c, proto/scheduler.conf.in,
+	* scheduler/scheduler.h, scheduler/prototypes.h,
+	  scheduler/mq2.c, scheduler/threads.c, scheduler/transport.c,
+	  scheduler/readconfig.c, scheduler/qprint.c,
+	  scheduler/update.c, proto/scheduler.conf.in,
 	  scheduler/agenda.c:
-	    Implemented changes needed for running multiple TAs at threads.
+	    Implemented changes needed for running multiple TAs
+	    at threads.
 
 1999-12-28  Matti Aarnio  <mea@zmailer.org>
 
@@ -3824,12 +3912,12 @@
 	* transports/hold/Makefile.in, transports/mailbox/Makefile.in,
 	  transports/sm/Makefile.in, transports/smtp/Makefile.in:
 	    Modify library linkage orders; in case @LIBMALLOC@ is used,
-	    link it *last*.  That should avoid some problems I had recently
-	    when running memory-debug TAs..
+	    link it *last*.  That should avoid some problems I had
+	    recently when running memory-debug TAs..
 
 	* scheduler/transport.c:
-	    One more oddball corner case - missed to do *thread* rescheduling
-	    at the thread-switch..
+	    One more oddball corner case - missed to do *thread*
+	    rescheduling at the thread-switch..
 
 	* scheduler/scheduler.c, scheduler/scheduler.h:
 	    After some fixed amount of resyncs on a file, throw it away
@@ -3848,8 +3936,10 @@
 	    Report at reclaim() to scheduler main error log if subprogram
 	    has returned with non-zero exit status.
 
-	* scheduler/agenda.c, scheduler/threads.c, scheduler/prototypes.h:
-	    Moved  QUEUE_ONLY  flag observation inside the  thread_start().
+	* scheduler/agenda.c, scheduler/threads.c,
+	  scheduler/prototypes.h:
+	    Moved  QUEUE_ONLY  flag observation inside
+	    the  thread_start().
 
 	* scheduler/scheduler.c:
 	    Timeserver waking up on select() every circa 0.3 seconds.
@@ -3865,8 +3955,9 @@
 	* scheduler/transport.c:
 	    Inverted flush_child() return code - to work like specified..
 
-	* scheduler/update.c, scheduler/scheduler.h, scheduler/threads.c,
-	  scheduler/transport.c, scheduler/conf.c, scheduler/prototypes.h:
+	* scheduler/update.c, scheduler/scheduler.h,
+	  scheduler/threads.c, scheduler/transport.c,
+	  scheduler/conf.c, scheduler/prototypes.h:
 	    More tracking of referrals thru freed memory blocks,
 	    and various core logic cleanups.
 
@@ -3905,10 +3996,10 @@
 
 1999-12-16  Matti Aarnio  <mea@zmailer.org>
 
-	* scheduler/prototypes.h, scheduler/threads.c, scheduler/transport.c,
-	  scheduler/update.c:
-	    Reworked vertex processing some more -- the child feed function
-	    (and *only* that) will call  pick_next_vertex().
+	* scheduler/prototypes.h, scheduler/threads.c,
+	  scheduler/transport.c,  scheduler/update.c:
+	    Reworked vertex processing some more -- the child feed
+	    function (and *only* that) will call  pick_next_vertex().
 
 1999-12-15  Matti Aarnio  <mea@zmailer.org>
 
@@ -3917,10 +4008,12 @@
 	
 1999-12-14  Matti Aarnio  <mea@zmailer.org>
 
-	* scheduler/scheduler.h, scheduler/prototypes.h, scheduler/update.c,
-	  scheduler/transport.c, scheduler/threads.c:
-	    Reworked the logic of TA child process feeding and job picking.
-	    This is initial edition - not yet confirmed to *work*.
+	* scheduler/scheduler.h, scheduler/prototypes.h,
+	  scheduler/update.c, scheduler/transport.c,
+	  scheduler/threads.c:
+	    Reworked the logic of TA child process feeding and job
+	    picking.   This is initial edition - not yet confirmed
+	    to *work*.   
 	    Killed a *lot* of hairy code -- thus must have done something
 	    right...  (Added about 440 lines, removed about 550 lines.)
 
@@ -3966,8 +4059,8 @@
 
 1999-12-09  Matti Aarnio  <mea@zmailer.org>
 
-	* transports/libta/ctlopen.c, router/rfc822.c, scheduler/scheduler.c,
-	  scheduler/threads.c:
+	* transports/libta/ctlopen.c, router/rfc822.c,
+	  scheduler/scheduler.c, scheduler/threads.c:
 	    Immediately obvious bugfixes, once the system is under load..
 
 1999-12-08  Matti Aarnio  <mea@zmailer.org>
@@ -4011,8 +4104,8 @@
 
 	* scheduler:
 	  - Some more SFIO fixes which I missed last night
-	  - Possibly fixed the 'mailq -Q' reported stored recipient counts.
-	    (cosmetics)
+	  - Possibly fixed the 'mailq -Q' reported stored
+	    recipient counts. (cosmetics)
 
 	* lib/symbol.c, libc/getzenv.c:
 	    Compiler pleasing..
@@ -4032,22 +4125,23 @@
 
 	* proto/smtp-tls.conf, transports/smtp/smtp.c,
 	  transports/smtp/smtp.h, transports/smtp/smtptls.c:
-	    - Completed initial write-thru of TLS client mode for the SMTP TA
-	      however *no* testing has been done yet!
-	    - Both client and server got (from Postfix) session cache, but
-	      that code is *untested*
+	    - Completed initial write-thru of TLS client mode for
+	      the SMTP TA, however *no* testing has been done yet!
+	    - Both client and server got (from Postfix) session cache,
+	      but that code is *untested*
 	
 	* smtpserver/smtptls.c, proto/smtpserver.conf.in,
 	  smtpserver/cfgread.c, smtpserver/smtpserver.h,
 	  smtpserver/smtpserver.c, smtpserver/smtpcmds.c:
-	    - Updates to smtpserver for evolved original code from Postfix.
-	    - Both client and server got (from Postfix) session cache, but
-	      that code is *untested*
+	    - Updates to smtpserver for evolved original code
+	      from Postfix.
+	    - Both client and server got (from Postfix) session
+	      cache, but that code is *untested*
 
 	* proto/Makefile.in:
 	    With "make dirs" creates $POSTOFFICE/TLSsrvrcache/ and
-	    $POSTOFFICE/TLSclntcache/ directories with protection of 700 ..
-	    (For the SSL session cache storage.)
+	    $POSTOFFICE/TLSclntcache/ directories with protection of
+	    700 ..    (For the SSL session cache storage.)
 	
 1999-12-01  Matti Aarnio  <mea@zmailer.org>
 
@@ -4063,9 +4157,10 @@
 	    to fit ZMailer environment.  Use  SFIO  stuff at Transport
 	    Agents.
 
-	* transports/libta/{,f}writeheaders.c, transports/libta/Makefile.in,
+	* transports/libta/writeheaders.c, transports/libta/Makefile.in,
 	  transports/errormail/errormail.c, transports/hold/hold.c,
-	  transports/sm/sm.c, transports/mailbox/mailbox.c:
+	  transports/sm/sm.c, transports/mailbox/mailbox.c,
+	  transports/libta/fwriteheaders.c:
 	    Renamed former  writeheaders()  to be  fwriteheaders().
 
 	* transports/libta/swriteheaders.c, transports/libra/Makefile.in,
@@ -4095,7 +4190,8 @@
 	    Do line-start dot-duplication a'la SMTP...
 	
 	* utils/smtpserver-log-parser.pl:
-	    Synced this tool with my lattest online edition, fairly usable..
+	    Synced this tool with my lattest online edition,
+	    fairly usable..
 
 1999-11-17  Matti Aarnio  <mea@zmailer.org>
 
@@ -4108,7 +4204,8 @@
 	    A dead router child is reclaimed properly, and new ones
 	    are started as the need arises.
 
-	* scheduler/scheduler.c, scheduler/transport.c, scheduler/update.c:
+	* scheduler/scheduler.c, scheduler/transport.c,
+	  scheduler/update.c:
 	    Fix message-specific interactive report logging to use
 	    vfp_open() routine (which had a feature/security problem
 	    in itself). Rearranged several logging points so that
@@ -4164,24 +4261,27 @@
 	    intermediate calculations to 32-bits during the processing!
 
 	* lib/selfaddrs.c, libident/identuser.c, scheduler/mailq.c,
-	  scheduler/pipes.c, scheduler/transport.c, smtpserver/smtpserver.c,
-	  transports/mailbox/mailbox.c, transports/smtp/mprobe.c:
+	  scheduler/pipes.c, scheduler/transport.c,
+	  smtpserver/smtpserver.c, transports/mailbox/mailbox.c,
+	  transports/smtp/mprobe.c:
 	    Instead of  AF_xxxx  we call  socket parameter  PF_xxx
 	    (not: Address Family, but Protocol Family ...)
 	
 	* man/scheduler.8, man/mailq.1, scheduler/mailq.c,
 	  scheduler/threads.c:
-	    Updated man-pages a bit (quite a bit!), implemented 'mailq -QQQ'
-	    in MAILQv2 mode. (E.g. 'SHOW SNMP')
+	    Updated man-pages a bit (quite a bit!),
+	    implemented 'mailq -QQQ'  in MAILQv2 mode.
+	    (E.g. 'SHOW SNMP')
 
 1999-11-12  Matti Aarnio  <mea@zmailer.org>
 
 	* configure.in:
 	    Autodetect  <sys/un.h>  header file
 
-	* proto/scheduler.conf.in, scheduler/mailq.c, scheduler/mq2auth.c,
-	  scheduler/prototypes.h, scheduler/readconfig.c,
-	  scheduler/scheduler.c, scheduler/transport.c:
+	* proto/scheduler.conf.in, scheduler/mailq.c,
+	  scheduler/mq2auth.c, scheduler/prototypes.h,
+	  scheduler/readconfig.c, scheduler/scheduler.c,
+	  scheduler/transport.c:
 	    * scheduler.conf file can now have:
 	        PARAMmailqpath = "UNIX:/path/to/pf_unix/mailq/socket"
 		PARAMmailqpath = "TCP:174"
@@ -4196,8 +4296,9 @@
 1999-11-11  Matti Aarnio  <mea@zmailer.org>
 
 	* scheduler/mq2.c, scheduler/scheduler.c, scheduler/prototypes.h,
-	  scheduler/threads.c, scheduler/readconfig.c, proto/scheduler.conf.in,
-	  scheduler/mq2auth.c, proto/scheduler.auth:
+	  scheduler/threads.c, scheduler/readconfig.c,
+	  proto/scheduler.conf.in, scheduler/mq2auth.c,
+	  proto/scheduler.auth:
 	    Modified somewhat commands, and how they are selected.
 	    Now  "scheduler.auth"  file defines which operations are
 	    allowed (a bit-mask).
@@ -4232,8 +4333,8 @@
 	* scheduler/readconfig.c, scheduler/threads.c, scheduler/conf.c,
 	  scheduler/mailq.c, scheduler/mq2.c, scheduler/mq2auth.c,
 	  scheduler/prototypes.h:
-	    'mailq -Q' and 'mailq -QQ' work when scheduler runs with '-M2'
-	    now :)  Authentication wants
+	    'mailq -Q' and 'mailq -QQ' work when scheduler runs
+	    with '-M2'  now :)  Authentication wants
 		PARAMauthfile = "/path/to/scheduler.auth"
 	    into the boilerplate defining section of the scheduler.conf,
 	    and that file -- well, see the example. WORK IN PROGRESS!
@@ -4274,8 +4375,9 @@
 	    and output.  Sometimes we are *not* running with
 	    bidirectional socket as the point of contact..
 
-	* scheduler/scheduler.h, scheduler/scheduler.c, scheduler/mailq.c,
-	  scheduler/prototypes.h, libc/md5c.c, scheduler/MAILQ-V2:
+	* scheduler/scheduler.h, scheduler/scheduler.c,
+	  scheduler/mailq.c, scheduler/prototypes.h,
+	  libc/md5c.c, scheduler/MAILQ-V2:
 	    Initial steps to write an interactive command channel
 	    via the MAILQ port.
 
@@ -4292,9 +4394,9 @@
 	    "--with-tcp-wrappers" (or its more explicite cousins) must
 	       now be used to have TCP-Wrapper enabled at the system
 
-	* man/smtpserver.8, proto/smtpserver.conf.in, smtpserver/cfgread.c,
-	  smtpserver/smtpserver.h, smtpserver/smtpserver.c,
-	  smtpserver/smtpcmds.c:
+	* man/smtpserver.8, proto/smtpserver.conf.in,
+	  smtpserver/cfgread.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c,  smtpserver/smtpcmds.c:
 	    A "tarpit" feature implementation per an idea from
 	    Arjan van de Ven <arjan@NL.UU.NET>, plus
 	    Mark Visser <mark@cal026031.student.utwente.nl>.
@@ -4371,7 +4473,8 @@
 	* transports/sm/sm.c:
 	    - If write to pipe fails (except with 'gotsigpipe'), cleanup
 	      PIPEs to the child process.
-	    - Don't be upset even if write to pipe fails with EPIPE/SIGPIPE.
+	    - Don't be upset even if write to pipe fails with
+	      EPIPE/SIGPIPE.
 
 	* router/dateparse.c:
 	    Certain pathologic inputs are able to feed extra data to
