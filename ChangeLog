@@ -5,7 +5,7 @@
 	    always be called for various subfunctions.
 
 	* libc/getaddrinfo.c:
-	    Disable entirely AF_LOCAL support.
+	    Disable entirely the AF_LOCAL support.
 	    The code in question used tmpnam() which created some complaints
 	    from the recent linker/libc at RH 6.2/7.0 hybride system.
 
@@ -20,6 +20,7 @@
 	    Spotted a few mistakes at the perl scripts of newdbprocessor.
 	    With a hindsight -- me stupid...
 	    Spotted also missing "-d pathalias" at "routesdb" specification.
+	    And some awk cleanups at policy-builder as well, of course.
 
 	* packaging/solaris/README:
 	    Some additional comments on usage of this tool subset.
