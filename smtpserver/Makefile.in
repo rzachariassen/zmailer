@@ -28,7 +28,8 @@ LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/libident/llib-llibident.ln
 OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o loadaver.o \
 		fdstatfs.o wantconn.o policytest.o cfgread.o smtpdata.o \
-		smtpcmds.o smtphelp.o smtprouter.o smtpchild.o mxverify.o
+		smtpcmds.o smtphelp.o smtprouter.o smtpchild.o mxverify.o \
+		contentpolicy.o
 
 SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c loadaver.c fdstatfs.c \
 		wantconn.c policytest.c  cfgread.c smtpdata.c \
@@ -48,6 +49,7 @@ smtpdata.o:   $(srcdir)/smtpdata.c $(srcdir)/smtpserver.h
 smtphelp.o:   $(srcdir)/smtphelp.c $(srcdir)/smtpserver.h
 smtprouter.o: $(srcdir)/smtprouter.c $(srcdir)/smtpserver.h
 policytest.o:  $(srcdir)/policytest.c $(srcdir)/policytest.h # ignored: $(srcdir)/smtpserver.h
+contentpolicy.o: $(srcdir)/contentpolicy.c $(srcdir)/policytest.h # ignored: $(srcdir)/smtpserver.h
 
 
 $(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)

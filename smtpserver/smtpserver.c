@@ -112,11 +112,13 @@ const char *m200 = "2.0.0";
 const char *m400 = "4.0.0";
 const char *m430 = "4.3.0";
 const char *m454 = "4.5.4";
+const char *m471 = "4.7.1";
 const char *m540 = "5.4.0";
 const char *m550 = "5.5.0";
 const char *m551 = "5.5.1";
 const char *m552 = "5.5.2";
 const char *m554 = "5.5.4";
+const char *m571 = "5.7.1";
 
 /*
  * The "style" variable controls when the router is interrogated about the

@@ -99,3 +99,6 @@ extern int policytestaddr __((struct policytest * rel, struct policystate * ps, 
 extern char *policymsg __((struct policytest *rel, struct policystate *ps));
 
 extern struct policytest *policydb;
+
+/* contentpolicy.c */
+extern int contentpolicy __((struct policytest *rel, struct policystate *ps, const char *fname));

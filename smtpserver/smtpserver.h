@@ -234,11 +234,13 @@ extern const char *m200;
 extern const char *m400;
 extern const char *m430;
 extern const char *m454;
+extern const char *m471;
 extern const char *m540;
 extern const char *m550;
 extern const char *m551;
 extern const char *m552;
 extern const char *m554;
+extern const char *m571;
 
 extern int getpeername();
 extern int isit42inetd();

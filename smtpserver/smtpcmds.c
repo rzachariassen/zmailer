@@ -535,31 +535,36 @@ int insecure;
     if (SS->policyresult < 0) {
       char *s = policymsg(policydb, &SS->policystate);
       if (s != NULL) {
-	type(SS,-453, "4.7.1", "Policy analysis reported:");
-	type(SS, 453, "4.7.1", "%s", s);
+	type(SS,-453, m471, "Policy analysis reported:");
+	type(SS, 453, m471, "%s", s);
       } else if (SS->policyresult < -99) {
 	if (SS->policyresult < -100) {
-	  type(SS, -453, "4.7.1", "Policy analysis reports DNS error with your source domain.");
-	  type(SS,  453, "4.7.1", "Please correct your source address and/or the info at the DNS.");
+	  type(SS, -453, m471, "Policy analysis reports DNS error with your");
+	  type(SS, -453, m471, "source domain.   Please correct your source");
+	  type(SS,  453, m471, "address and/or the info at the DNS.");
 	} else {
-	  type(SS, -453, "4.7.1", "Access denied by the policy analysis functions.");
-	  type(SS, -453, "4.7.1", "This may be due to your source IP address, the IP reversal domain,");
-	  type(SS, -453, "4.7.1", "the data you gave for the HELO/EHLO parameter, or address/domain");
-	  type(SS, 453, "4.7.1", "you gave at the MAIL FROM:<...> address.");
+	  type(SS, -453, m471, "Access denied by the policy analysis functions.");
+	  type(SS, -453, m471, "This may be due to your source IP address,");
+	  type(SS, -453, m471, "the IP reversal domain, the data you gave for");
+	  type(SS, -453, m471, "the HELO/EHLO parameter, or address/domain you");
+	  type(SS,  453, m471, "gave at the MAIL FROM:<...> address.");
 	}
       } else {
 	char *s = policymsg(policydb, &SS->policystate);
 	if (s != NULL) {
-	  type(SS,-553, "5.7.1", "Policy analysis reported:");
-	  type(SS, 553, "5.7.1", "%s", s);
+	  type(SS,-553, m571, "Policy analysis reported:");
+	  type(SS, 553, m571, "%s", s);
 	} else if (SS->policyresult < -1) {
-	  type(SS, -553, "5.7.1", "Policy analysis reports DNS error with your source domain.");
-	  type(SS,  553, "5.7.1", "Please correct your source address and/or the info at the DNS.");
+	  type(SS, -553, m571, "Policy analysis reports DNS error with your");
+	  type(SS, -553, m571, "source domain.   Please correct your source");
+	  type(SS,  553, m571, "address and/or the info at the DNS.");
 	} else {
-	  type(SS, -553, "5.7.1", "Access denied by the policy analysis functions.");
-	  type(SS, -553, "5.7.1", "This may be due to your source IP address, the IP reversal domain,");
-	  type(SS, -553, "5.7.1", "the data you gave for the HELO/EHLO parameter, or address/domain");
-	  type(SS, 553, "5.7.1", "you gave at the MAIL FROM:<...> address.");
+	  type(SS, -553, m571, "Access denied by the policy analysis functions.");
+	  type(SS, -553, m571, "This may be due to your source IP address,");
+	  type(SS, -553, m571, "the IP reversal domain, the data you gave for");
+	  type(SS, -553, m571, "the HELO/EHLO parameter, or address/domain you");
+	  type(SS,  553, m571, "gave at the MAIL FROM:<...> address.");
+
 	}
       }
       if (newcp)
@@ -672,9 +677,10 @@ const char *buf, *cp;
     if ( (SS->state == MailOrHello || SS->state == Mail) &&
 	 policydb != NULL && SS->policyresult < 0 ) {
       type(SS, -553, "5.1.8", "Access denied by the policy analysis functions.");
-      type(SS, -553, "5.1.8", "This may be due to your source IP address, the IP reversal domain,");
-      type(SS, -553, "5.1.8", "the data you gave for the HELO/EHLO parameter, or address/domain");
-      type(SS, 553, "5.1.8", "you gave at the MAIL FROM:<...> address.");
+      type(SS, -553, "5.1.8", "This may be due to your source IP address,");
+      type(SS, -553, "5.1.8", "the IP reversal domain, the data you gave for");
+      type(SS, -553, "5.1.8", "the HELO/EHLO parameter, or address/domain");
+      type(SS,  553, "5.1.8", "you gave at the MAIL FROM:<...> address.");
       return;
     }
 
@@ -878,36 +884,43 @@ const char *buf, *cp;
 
 	if (SS->policyresult < -99) { /* "soft error, 4XX code */
 	  if (s != NULL) {
-	    type(SS,-453, "4.7.1", "Policy analysis reported:");
-	    type(SS, 453, "4.7.1", "%s", s);
+	    type(SS,-453, m471, "Policy analysis reported:");
+	    type(SS, 453, m471, "%s", s);
 	  } else if (SS->policyresult < -102) {
 	    /* Code: -103 */
-	    type(SS,-453, "4.7.1", "This target address is not our MX service client, nor you are");
-	    type(SS,-453, "4.7.1", "connecting from address that is allowed to openly use us to relay");
-	    type(SS, 453, "4.7.1", "to any arbitary address thru us.  We don't accept this recipient.");
+	    type(SS,-453, m471, "This target address is not our MX service");
+	    type(SS,-453, m471, "client, nor you are connecting from address");
+	    type(SS,-453, m471, "that is allowed to openly use us to relay");
+	    type(SS,-453, m471, "to any arbitary address thru us.");
+	    type(SS, 453, m471, "We don't accept this recipient.");
 	  } else if (SS->policyresult < -100) {
 	    /* Code: -102 */
-	    type(SS,-453, "4.7.1", "Policy analysis found DNS error on the target address.");
-	    type(SS, 453, "4.7.1", "This address is not currently acceptable.");
+	    type(SS,-453, m471, "Policy analysis found DNS error on");
+	    type(SS,-453, m471, "the target address. This address is");
+	    type(SS, 453, m471, "not currently acceptable.");
 	  } else {
-	    type(SS, 453, "4.7.1", "Policy rejection on the target address");
+	    type(SS, 453, m471, "Policy rejection on the target address");
 	  }
 	} else {
 	  char *s = policymsg(policydb, &SS->policystate);
 	  if (s != NULL) {
-	    type(SS,-553, "5.7.1", "Policy analysis reported:");
-	    type(SS, 553, "5.7.1", "%s", s);
+	    type(SS,-553, m571, "Policy analysis reported:");
+	    type(SS, 553, m571, "%s", s);
 	  } else if (SS->policyresult < -2) {
 	    /* Code: -3 */
-	    type(SS,-553, "5.7.1", "This target address is not our MX service client, nor you are");
-	    type(SS,-553, "5.7.1", "connecting from address that is allowed to openly use us to relay");
-	    type(SS, 553, "5.7.1", "to any arbitary address thru us.  We don't accept this recipient.");
+	    type(SS,-553, m571, "This target address is not our MX service");
+	    type(SS,-553, m571, "client, nor you are connecting from address");
+	    type(SS,-553, m571, "that is allowed to openly use us to relay");
+	    type(SS,-553, m571, "to any arbitary address thru us.");
+	    type(SS, 553, m571, "We don't accept this recipient.");
+
 	  } else if (SS->policyresult < -1) {
 	    /* Code: -2 */
-	    type(SS,-553, "5.7.1", "Policy analysis found DNS error on the target address.");
-	    type(SS, 553, "5.7.1", "This address is not currently acceptable.");
+	    type(SS,-553, m571, "Policy analysis found DNS error on");
+	    type(SS,-553, m571, "the target address. This address is");
+	    type(SS, 553, m571, "not currently acceptable.");
 	  } else {
-	    type(SS, 553, "5.7.1", "Policy rejection on the target address");
+	    type(SS, 553, m571, "Policy rejection on the target address");
 	  }
 	}
 	if (newcp)
@@ -980,13 +993,13 @@ const char *buf, *cp;
 	type(SS, 452, "4.3.1", "insufficient storage space, try again later");
     } else if (s) {
 	if (SS->from_box && SS->rcpt_count > MaxErrorRecipients) {
-	    type(SS, 552, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");
+	    type(SS, 552, m571, "SPAM trap -- too many recipients for an empty source address!");
 	} else
 	    type(SS, atoi(s), s + 4, "Ok");
 	SS->rcpt_count += 1;
     } else {
 	if (SS->from_box && SS->rcpt_count > MaxErrorRecipients) {
-	    type(SS, 552, "5.7.1", "SPAM trap -- too many recipients for an empty source address!");
+	    type(SS, 552, m571, "SPAM trap -- too many recipients for an empty source address!");
 	} else if (SS->sizeoptval)
 	    type(SS, 250, "2.1.5", "Ok; can accomodate %d byte message%s",
 		 SS->sizeoptval, srcrtestatus);

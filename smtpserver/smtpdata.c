@@ -128,6 +128,21 @@ const char *buf, *cp;
 	type(SS, 552, "5.3.4", "Message size exceeded fixed maximum size of %ld chars for acceptable email", maxsize);
 	typeflush(SS);
     } else {
+
+	/* Things have been good thus far, now we store
+	   the resulting file into router spool area;
+	   pending a few things we do at first.. */
+
+	if (SS->policyresult == 0) {
+
+	    /* No rejection from earlier sources, lets see what we
+	       will do now ? */
+
+	    char *fname = mail_filename(SS->mfp);
+
+	    SS->policyresult = contentpolicy(policydb,&SS->policystate,fname);
+	}
+
 	if (SS->policyresult > 0) {
 	    char polbuf[20];
 	    struct stat stbuf;
@@ -156,29 +171,35 @@ const char *buf, *cp;
 			 SS->rhostname, SS->rport, SS->policyresult));
 	    }
 	    runastrusteduser();
-	} else if (_mail_close_(SS->mfp, &ino, &mtime) == EOF) {
-	    type(SS, 452, m430, (char *) NULL);
-	    typeflush(SS);
-	    SS->mfp = NULL;
-	    reporterr(SS, tell, "message file close failed");
 	} else {
-	    /* Ok, build responce with proper "spoolid" */
-	    char fnam[20], taspid[30];
-	    sprintf(fnam, "%d", ino);
-	    taspoolid(taspid, sizeof(taspid), mtime, fnam);
 
-	    SS->mfp = NULL;
-	    type(SS, 250, "2.6.0", "%s message accepted", taspid);
-	    typeflush(SS);
+	    /*  Ok, we didn't have smtp-policy defined freezer action,
+		lets see if we do it some other way.. */
 
-	    if (smtp_syslog)
-	      zsyslog((LOG_INFO,
-		       "%s: (%ldc) accepted from %s/%d", taspid, tell,
-                       SS->rhostname, SS->rport));
+	    if (_mail_close_(SS->mfp, &ino, &mtime) == EOF) {
+		type(SS, 452, m430, (char *) NULL);
+		typeflush(SS);
+		SS->mfp = NULL;
+		reporterr(SS, tell, "message file close failed");
+	    } else {
+		/* Ok, build responce with proper "spoolid" */
+		char fnam[20], taspid[30];
+		sprintf(fnam, "%d", ino);
+		taspoolid(taspid, sizeof(taspid), mtime, fnam);
 
-	    if (logfp != NULL) {
-		fprintf(logfp, "%d#\t%s: %ld bytes\n", pid, taspid, tell);
-		fflush(logfp);
+		SS->mfp = NULL;
+		type(SS, 250, "2.6.0", "%s message accepted", taspid);
+		typeflush(SS);
+
+		if (smtp_syslog)
+		  zsyslog((LOG_INFO,
+			   "%s: (%ldc) accepted from %s/%d", taspid, tell,
+			   SS->rhostname, SS->rport));
+
+		if (logfp != NULL) {
+		  fprintf(logfp, "%d#\t%s: %ld bytes\n", pid, taspid, tell);
+		  fflush(logfp);
+		}
 	    }
 	}
     }
@@ -298,6 +319,20 @@ const char *buf, *cp;
     } else if (bdata_last) {
 	time_t mtime;
 	int inum;
+
+	/* Things have been good thus far, now we store
+	   the resulting file into router spool area;
+	   pending a few things we do at first.. */
+
+	if (SS->policyresult == 0) {
+
+	    /* No rejection from earlier sources, lets see what we
+	       will do now ? */
+
+	    char *fname = mail_filename(SS->mfp);
+
+	    SS->policyresult = contentpolicy(policydb,&SS->policystate,fname);
+	}
 
 	if (SS->policyresult > 0) {
 	    struct stat stbuf;
