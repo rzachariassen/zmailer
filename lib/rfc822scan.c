@@ -251,32 +251,26 @@ _unfold(len, start, cpp, t)
 	while (len > 0 && start != cpe) {
 		if (*start == 0) {
 		  t = t->t_next;
-if (t == NULL) {
-  fprintf(stderr,"_unfold() did meet EndOfTokenchain; len=%d\n",len);
-  break;
-}
 		  start = t->t_pname;
-		  --len;
 #if 0 /* zero: unfold.. */
 		  *s++ = '\n';
 #else
 		  /* Skip all folding white-space */
 		  while (len > 0 && start != cpe &&
 			 (*start == ' '  || *start == '\t' ||
-			  *start == '\n' || *start == '\r')) {
+			  *start == '\n' || *start == '\r'))
 		    ++start;
-		    --len;
-		  }
 		  /* And replace it with *one* space */
 		  *s++ = ' ';
 #endif
+		  --len;
 		}
 		if (*start == '\n') {
 			++start;
-			--len;
 			continue;
 		}
-		if (start == cpe)
+		if (start == cpe) /* Check that we are not NOW
+				     at the end point. */
 		  break;
 		--len;
 		*s++ = *start++;
@@ -374,7 +368,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 
 			  /* a compound token crossed line boundary */
 			  /* copy from ++cp for len chars */
-			  t.t_pname = _unfold(len-1, ++cp, cpp, ot);
+			  t.t_pname = _unfold(len, ++cp, cpp, ot);
 			  t.t_len   = strlen(t.t_pname);
 			} else {
 			  if (t.t_pname != NULL)
