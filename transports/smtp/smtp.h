@@ -1,7 +1,8 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2000 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2003 by Matti Aarnio -- modifications, including
+ *	MIME things...
  */
 
 #define	RFC974		/* If BIND, check that TCP SMTP service is enabled */

@@ -1,7 +1,8 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1991-2002 by Matti Aarnio -- modifications, including MIME
+ *	Copyright 1991-2003 by Matti Aarnio -- modifications, including
+ *	MIME things...
  */
 
 #include "smtp.h"
@@ -89,7 +90,7 @@ static void tcpstream_denagle __((int fd));
 time_t starttime, endtime;
 
 
-static void add_cname_cache __((SmtpState *SS, const char *host, const char *realname, time_t realnamettl));
+static const char *add_cname_cache __((SmtpState *SS, const char *host, const char *realname, time_t realnamettl));
 static int  cname_lookup    __((SmtpState *SS, const char *host, char ** cnamep));
 
 
@@ -1081,7 +1082,7 @@ deliver(SS, dp, startrp, endrp)
 	CONVERTMODE convertmode;
 	int ascii_clean = 0;
 	struct stat stbuf;
-	char *s, *se,  *rcpthost;
+	char *s, *se,  *rcpthost, *cname;
 	char SMTPbuf[2000];
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
@@ -1448,7 +1449,8 @@ deliver(SS, dp, startrp, endrp)
 	  rcpthost = strchr(rp->addr->user, '@');
 	  if (rcpthost) ++rcpthost;
 
-	  if (rcpthost && (cname_lookup(SS, rcpthost, & rcpthost) > 0)) {
+	  cname = NULL;
+	  if (rcpthost && (cname_lookup(SS, rcpthost, & cname) > 0) && cname) {
 	    /* re-using 'rcpthost' to have now CNAME version */
 
 	    const char *p = rp->addr->user;
@@ -1461,7 +1463,7 @@ deliver(SS, dp, startrp, endrp)
 
 	    if ('@' == *p) { /* Has "@-full" address, will rewrite.. */
 	      *s++ = *p++;
-	      p = rcpthost;
+	      p = cname;
 	      while (*p && s < e) *s++ = *p++;
 	      *s++ = '>';
 	    }
@@ -4843,7 +4845,7 @@ static int cname_lookup(SS, host, cnamep)
   if (!cnamecache) cnamecache_init(SS->verboselog);
   if (!cnamecache) return -1; /* OOPS! */
 
-  if (SS->verboselog) fprintf(SS->verboselog,"cname_lookup(name='%s'[%d])\n", host, hhash);
+  /* if (SS->verboselog) fprintf(SS->verboselog,"cname_lookup(name='%s'[%d])\n", host, hhash); */
 
   for ( idx = cnamecache_head, cp = NULL ;
 	idx >= 0;
@@ -4865,7 +4867,7 @@ static int cname_lookup(SS, host, cnamep)
 
     if ((ci->hash == hhash) && ci->name && CISTREQ(ci->name, host)) {
       *cnamep = ci->cname;
-      if (SS->verboselog) fprintf(SS->verboselog," ... found '%s'\n", ci->cname);
+      /* if (SS->verboselog) fprintf(SS->verboselog," ... found '%s'\n", ci->cname); */
 
       return 1;
     }
@@ -4873,28 +4875,38 @@ static int cname_lookup(SS, host, cnamep)
 
   /* Not in cache.. */
 
-#if 0 /* Not tonight... */
-  /* XXX: DNS LOOKUP! */
-
+  /* DNS LOOKUP! */
   {
     char realname[1024];
     time_t realnamettl;
+    struct mxdata mxh[4];
+    int rc;
 
     realname[0] = 0;
     realnamettl = 86400; /* Max cache age.. */
-    rc = getmxrr(SS, host, SS->mxh, MAXFORWARDERS, 0,
+
+    /* if (SS->verboselog) fprintf(SS->verboselog," ... looking it up from DNS\n"); */
+
+    rc = getmxrr(SS, host, mxh, 2, 0,
 		 realname, sizeof(realname), &realnamettl);
     realnamettl += now;
 
-  }
-#endif
+    if (rc == EX_OK) {
+      mxsetsave(SS, host);
+      *cnamep = add_cname_cache(SS, host, *realname ? realname : NULL, realnamettl);
+      /* if (SS->verboselog) fprintf(SS->verboselog," ... returning successfully\n"); */
 
-  if (SS->verboselog) fprintf(SS->verboselog," ... found nothing\n");
+      return 1;
+    }
+
+  }
+
+  /* if (SS->verboselog) fprintf(SS->verboselog," ... found nothing, not even from DNS.\n"); */
 
   return 0;
 }
 
-static void add_cname_cache(SS, host, cname, ttl)
+static const char *add_cname_cache(SS, host, cname, ttl)
      SmtpState *SS;
      const char *host, *cname;
      const time_t ttl;
@@ -4904,7 +4916,7 @@ static void add_cname_cache(SS, host, cname, ttl)
   struct cnamecache_struct *ci, *cp;
 
   if (!cnamecache) cnamecache_init(SS->verboselog);
-  if (!cnamecache) return; /* OOPS! */
+  if (!cnamecache) return NULL; /* OOPS! */
 
   /* if (SS->verboselog) fprintf(SS->verboselog,"add_cname_cache(host='%s', cname='%s', ttl= +%d)\n",host,cname?cname:"<NULL>",(int)(ttl-now)); */
 
@@ -4939,7 +4951,7 @@ static void add_cname_cache(SS, host, cname, ttl)
       if (ci->cname) { free((void*)(ci->cname)); ci->cname = NULL; }
       if (cname)  ci->cname = strdup(cname);
       /* if (SS->verboselog)fprintf(SS->verboselog," ... inserted into idx=%d\n",idx); */
-      return;
+      return ci->cname;
     }
   } /* thru active list */
 
@@ -4960,5 +4972,5 @@ static void add_cname_cache(SS, host, cname, ttl)
 
   /*  if (SS->verboselog)fprintf(SS->verboselog," ... inserted into idx=%d\n",idx); */
 
-  return;
+  return ci->cname;
 }
