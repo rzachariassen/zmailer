@@ -376,6 +376,9 @@ int mx_client_verify(retmode, domain, alen)
 
 	if (rc == 1) return 0; /* Found! */
 
+	if (rc == -EX_TEMPFAIL) {
+	  return -104;
+	}
 	if (retmode == '+') {
 	  if (rc == -EX_NOHOST ||
 	      rc == -EX_UNAVAILABLE)
@@ -407,6 +410,9 @@ int sender_dns_verify(retmode, domain, alen)
 
 	if (rc == 1) return 0; /* Found! */
 
+	if (rc == -EX_TEMPFAIL) {
+	  return -104;
+	}
 	if (retmode == '+') {
 	  if (rc == -EX_NOHOST ||
 	      rc == -EX_UNAVAILABLE)

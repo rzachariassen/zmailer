@@ -542,7 +542,12 @@ int insecure;
 	type(SS,-453, m471, "Policy analysis reported:");
 	type(SS, 453, m471, "%s", s);
       } else if (SS->policyresult < -99) {
-	if (SS->policyresult < -100) {
+	if (SS->policyresult < -103) { /* -104 */
+	  type(SS, -453, m471, "Policy analysis reports temporary DNS error");
+	  type(SS, -453, m471, "with your source domain.  Retrying may help,");
+	  type(SS, -453, m471, "or if the condition persists, you may need");
+	  type(SS,  453, m471, "to get somebody to fix your DNS servers.");
+	} else if (SS->policyresult < -100) {
 	  type(SS, -453, m471, "Policy analysis reports DNS error with your");
 	  type(SS, -453, m471, "source domain.   Please correct your source");
 	  type(SS,  453, m471, "address and/or the info at the DNS.");
@@ -897,6 +902,13 @@ const char *buf, *cp;
 	  if (s != NULL) {
 	    type(SS,-453, m471, "Policy analysis reported:");
 	    type(SS, 453, m471, "%s", s);
+	  } else if (SS->policyresult < -103) { /* -104 */
+	    type(SS, -453, m471, "Policy analysis reports temporary DNS error");
+	    type(SS, -453, m471, "with this target domain. Retrying may help,");
+	    type(SS, -453, m471, "or if the condition persists, some further");
+	    type(SS, -453, m471, "work may be in need with the target domain");
+	    type(SS,  453, m471, "DNS servers.");
+
 	  } else if (SS->policyresult < -102) {
 	    /* Code: -103 */
 	    type(SS,-453, m471, "This target address is not our MX service");

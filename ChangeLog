@@ -1,5 +1,11 @@
 1998-05-05  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* smtpserver/mxverify.c, smtpserver/smtpcmds.c:
+	    Spotted a case of certain timeouts slipping into
+	    hard errors when they definitely should not.
+	    Added new report for "Detected temporary DNS error,
+	    retrying may help.."
+
 	* scheduler/readconfig.c, scheduler/scheduler.h,
 	  scheduler/transport.c, proto/scheduler.conf.in:
 	    Selector parameters:
@@ -9,6 +15,10 @@
 		sysnice=<n>
 	    Further into at the default scheduler.conf(.in)
 	    comments.  Idea thanks to <Nicholas_Briggs.PARC@xerox.com>
+
+	* smtpserver/smtpcmds.c:
+	    If ident lookup is not done, don't add ' ident : ..' stuff
+	    into the 'rcvdfrom ' envelope header.
 
 1998-05-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
