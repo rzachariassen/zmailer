@@ -47,7 +47,7 @@ install:	$(PROGRAM)
 clean:
 	-rm -f $(PROGRAM) in.rlockd *.o *.out make.log *~
 distclean: clean
-	-rm -f Makefile
+	-rm -f Makefile manual-expirer
 
 lint:	$(LINTLIB)
 	lint $(DEFS) $(MAILBOXDEFS) $(INCL) $(LINTLIB) $(PROGRAM).c lock.c
