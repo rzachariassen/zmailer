@@ -1,7 +1,10 @@
 1999-07-19  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* Makefile.in:
+	    Version 2.99.51
+
 	* configure.in, smtpserver/Makefile.in, smtpserver/zpwmatch.c,
-	  doc/guides/smtpauth-login-pam-support:
+	  doc/guides/smtpauth-login-pam-support, man/smtpserver.8:
 	    Autoconfigure PAM support for the system.
 	    See the  smtpauth-login-pam-support  for mandatory bit
 	    of support file(s)...
@@ -12,7 +15,7 @@
 	* compat/rmail/rmail.c, include/libz.h, lib/linebuffer.c,
 	  router/functions.c, router/rfc822.c, utils/makedb/makedb.c:
 	    GLIBC 2.1 with __USE_GNU active has also 'getline()' function,
-	    thus we renamed to   zgetline8) ...
+	    thus we renamed to   zgetline() ...
 
 1999-07-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
