@@ -1682,6 +1682,8 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->chunkbuf) free(SS->chunkbuf);
 	  SS->chunkbuf = NULL;
 
+	  report(SS, "%s", SS->remotemsg);
+
 	  return EX_TEMPFAIL;
 	}
 	/*
@@ -1709,14 +1711,17 @@ deliver(SS, dp, startrp, endrp)
 
 	} else { /* Ordinary DATA-dot mode */
 
+	  report(SS, "DATA-dot");
 	  r = smtpwrite(SS, 1, ".", lmtp_mode, NULL);
+	  report(SS, "DATA-dot; rc=%d", r);
 
 	  /* Special case processing: If we are in LMTP's dot-of-DATA
 	     phase, always use  smtp_sync()  to handle our diagnostics. */
 
-	  if (lmtp_mode && r == EX_OK)
+	  if (lmtp_mode && r == EX_OK) {
+	    report(SS, "DATA-dot; LMTP sync!");
 	    r = smtp_sync(SS, EX_OK, 0); /* BLOCKING! */
-
+	  }
 	}
 
 	timeout = tout;
@@ -1738,6 +1743,8 @@ deliver(SS, dp, startrp, endrp)
 	      if (r != EX_TEMPFAIL)
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	    }
+
+	  report(SS, "Body done; %s", SS->remotemsg);
 
 	  /* Diagnostics are done, protected (failure-)section ends! */
 	  dotmode = 0;
@@ -1767,6 +1774,8 @@ deliver(SS, dp, startrp, endrp)
 	}
 	time(&endtime);
 	notary_setxdelay((int)(endtime-starttime));
+
+	/* r == EX_OK */
 
 	for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	  if (rp->lockoffset) {
@@ -3199,12 +3208,17 @@ int bdat_flush(SS, lastflg)
 	else
 	  sprintf(lbuf, "BDAT %d", SS->chunksize);
 
+	report(SS, "%s", lbuf);
+
 	r = smtpwrite(SS, 1, lbuf, 1 /* ALWAYS "pipeline" */, NULL);
 
 	if (r != EX_OK)
 	  return r;
 
 	for ( pos = 0; pos < SS->chunksize && !sferror(SS->smtpfp); ) {
+
+	  report(SS, "%s - writing: %d/%d", lbuf, pos, SS->chunksize);
+
 	  wrlen = SS->chunksize - pos;
 	  i = sfwrite(SS->smtpfp, SS->chunkbuf + pos, wrlen);
 	  if (i >= 0)
@@ -3215,10 +3229,11 @@ int bdat_flush(SS, lastflg)
 	    notaryreport(NULL,NULL,
 			 "5.4.2 (BDAT message write failed)",
 			 "smtp; 566 (BDAT Message write failed)");
+	    report(SS, "%s - write failed; pos=%d/%d", lbuf, r, pos, SS->chunksize);
 	    return EX_TEMPFAIL;
 	  }
 	}
-	SS->chunksize = 0;
+
 	sfsync(SS->smtpfp);
 
 	if (SS->smtpfp && !sferror(SS->smtpfp)) {
@@ -3232,6 +3247,10 @@ int bdat_flush(SS, lastflg)
 		       "5.4.2 (BDAT message write failed)",
 		       "smtp; 566 (BDAT message write failed)");
 	}
+
+	report(SS, "%s; wrote %d/%d - rc=%d\n", lbuf, pos, SS->chunksize, r);
+
+	SS->chunksize = 0;
 
 	return r;
 }
