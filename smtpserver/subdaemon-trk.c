@@ -426,6 +426,15 @@ dump_v4_rcptline(p, spl)
 	fprintf(fp, " Mails: %3d %3d %3d",
 		rp->mails, rp->mails2, rp->mails3);
 
+	fprintf(fp, " Rcpts: %3d %3d %3d",
+		rp->recipients, rp->recipients2, rp->recipients3);
+
+	fprintf(fp, " Aborts: %3d %3d %3d",
+		rp->aborts, rp->aborts2, rp->aborts3);
+
+	fprintf(fp, " AFails: %3d %3d %3d",
+		rp->afails, rp->afails2, rp->afails3);
+
 	fprintf(fp, " Excesses: %d %d %d",
 		rp->excesses, rp->excesses2, rp->excesses3);
 
@@ -433,15 +442,6 @@ dump_v4_rcptline(p, spl)
 	  fprintf(fp, " EAge: %6.3fh", (double)(now-rp->last_excess)/3600.0);
 	else
 	  fprintf(fp, " EAge:       0 ");
-
-	fprintf(fp, " Rcpts: %3d %3d %3d",
-		rp->recipients, rp->recipients2, rp->recipients3);
-
-	fprintf(fp, " AFails: %3d %3d %3d",
-		rp->afails, rp->afails2, rp->afails3);
-
-	fprintf(fp, " Aborts: %3d %3d %3d",
-		rp->aborts, rp->aborts2, rp->aborts3);
 
 	fprintf(fp, "\n");
 

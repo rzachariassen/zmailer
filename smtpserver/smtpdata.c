@@ -116,6 +116,12 @@ const char *buf, *cp;
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	type(SS, 503, m552, "Hi %s, %s", SS->rhostaddr, cp);
 	typeflush(SS);
+	if (SS->mfp) {
+	  mail_abort(SS->mfp);
+	  policytest(&SS->policystate, POLICY_DATAABORT,
+		     NULL, SS->rcpt_count, NULL);
+	  SS->rcpt_count = 0;
+	}
 	return 0;
     }
 
@@ -548,7 +554,7 @@ const char *buf, *cp;
 	if (SS->mfp) {
 	    mail_abort(SS->mfp);
 	    policytest(&SS->policystate, POLICY_DATAABORT,
-		       NULL, SS->ok_rcpt_count, NULL);
+		       NULL, SS->rcpt_count, NULL);
 	}
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
@@ -569,7 +575,7 @@ const char *buf, *cp;
 	    if (SS->mfp) {
 	      mail_abort(SS->mfp);
 	      policytest(&SS->policystate, POLICY_DATAABORT,
-			 NULL, SS->ok_rcpt_count, NULL);
+			 NULL, SS->rcpt_count, NULL);
 	    }
 	    MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	    SS->mfp = NULL;
@@ -586,7 +592,7 @@ const char *buf, *cp;
 	  SS->state = MailOrHello;
 	  mail_abort(SS->mfp);
 	  policytest(&SS->policystate, POLICY_DATAABORT,
-		     NULL, SS->ok_rcpt_count, NULL);
+		     NULL, SS->rcpt_count, NULL);
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	  SS->mfp = NULL;
 	  return 0;
@@ -620,7 +626,7 @@ const char *buf, *cp;
     } else if (*msg != 0) {
 	mail_abort(SS->mfp);
 	policytest(&SS->policystate, POLICY_DATAABORT,
-		   NULL, SS->ok_rcpt_count, NULL);
+		   NULL, SS->rcpt_count, NULL);
 	SS->mfp = NULL;
 	type(SS, 452, "%s", msg);
 	if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
@@ -634,7 +640,7 @@ const char *buf, *cp;
 	} else {
 	  mail_abort(SS->mfp);
 	  policytest(&SS->policystate, POLICY_DATAABORT,
-		     NULL, SS->ok_rcpt_count, NULL);
+		     NULL, SS->rcpt_count, NULL);
 	}
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
@@ -651,13 +657,13 @@ const char *buf, *cp;
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
 	policytest(&SS->policystate, POLICY_DATAABORT,
-		   NULL, SS->ok_rcpt_count, NULL);
+		   NULL, SS->rcpt_count, NULL);
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
     } else if (maxsize > 0 && tell > maxsize) {
 	mail_abort(SS->mfp);
 	policytest(&SS->policystate, POLICY_DATAABORT,
-		   NULL, SS->ok_rcpt_count, NULL);
+		   NULL, SS->rcpt_count, NULL);
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
 	type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
@@ -735,7 +741,7 @@ const char *buf, *cp;
 
 	  mail_abort(SS->mfp);
 	  policytest(&SS->policystate, POLICY_DATAABORT,
-		     NULL, SS->ok_rcpt_count, NULL);
+		     NULL, SS->rcpt_count, NULL);
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	  SS->mfp = NULL;
 
