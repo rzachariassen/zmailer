@@ -499,7 +499,8 @@ readcffile(name)
 {
     FILE *fp;
     struct smtpconf scf, *head, *tail = NULL;
-    unsigned char c, *cp, buf[1024], *s, *s0;
+    unsigned char c;
+    char *cp, buf[1024], *s, *s0;
     int linenum = 0;
 
     if ((fp = fopen(name, "r")) == NULL)

@@ -46,7 +46,7 @@ static int parsestatcode(ssp, statcodep)
      const char **statcodep;
 {
     int code = -1;
-    const unsigned char *ss = *ssp;
+    const unsigned char *ss = (const unsigned char *) *ssp;
     static char statcodebuf[6];
 
     *statcodep = NULL;
@@ -65,7 +65,7 @@ static int parsestatcode(ssp, statcodep)
       ss += 5;
     }
     SKIPSPACE(ss);
-    *ssp = ss;
+    *ssp = (const char *) ss;
     if (code < 200 || code > 599) code = 0;
     return code;
 }

@@ -94,7 +94,7 @@ zmcast_join(zmc, sa, ifsa, ifindex)
 		mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
 	      return setsockopt( zmc->fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-				 & mreq, sizeof(mreq) );
+				 (const void*) & mreq, sizeof(mreq) );
 	    }
 
 #if defined(AF_INET6) && defined(INET6)
@@ -109,7 +109,7 @@ zmcast_join(zmc, sa, ifsa, ifindex)
 	      mreq6.ipv6mr_interface = ifindex;
 	      
 	      return setsockopt( zmc->fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP,
-				 & mreq6, sizeof(mreq6) );
+				 (const void*) & mreq6, sizeof(mreq6) );
 	    }
 #endif
 	  default:
@@ -169,7 +169,7 @@ zmcast_set_if(zmc, ifsa)
 	      if (ifsa->v4.sin_family != AF_INET) break; /* BAD ADDR! */
 	      
 	      return setsockopt( zmc->fd, IPPROTO_IP, IP_MULTICAST_IF,
-				 &ifaddr, sizeof(ifaddr) );
+				 (const void*) & ifaddr, sizeof(ifaddr) );
 	    }
 
 #if defined(AF_INET6) && defined(INET6)
@@ -179,7 +179,7 @@ zmcast_set_if(zmc, ifsa)
 	      if (ifsa->v6.sin6_family != AF_INET6) break; /* BAD ADDR! */
 	      
 	      return setsockopt( zmc->fd, IPPROTO_IPV6, IPV6_MULTICAST_IF,
-				 &if6addr, sizeof(if6addr) );
+				 (const void*) &if6addr, sizeof(if6addr) );
 	    }
 #endif
 
@@ -204,7 +204,7 @@ zmcast_set_ttl(zmc, ttl)
 	    u_int flag = ttl;
 
 	    return setsockopt( zmc->fd, IPPROTO_IP, IP_MULTICAST_TTL,
-			       &flag, sizeof(flag) );
+			       (const void*) &flag, sizeof(flag) );
 	  }
 
 #if defined(AF_INET6) && defined(INET6)
@@ -213,7 +213,7 @@ zmcast_set_ttl(zmc, ttl)
 	    u_int flag = ttl;
 
 	    return setsockopt( zmc->fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS,
-			       &flag, sizeof(flag) );
+			       (const void*) &flag, sizeof(flag) );
 	  }
 #endif
 
@@ -251,7 +251,8 @@ zmcast_new(pf, ifsa, port)
 
 	/* Must set this reuse-of-address here! */
 	flag = 1;
-	setsockopt( zmc->fd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
+	setsockopt( zmc->fd, SOL_SOCKET, SO_REUSEADDR,
+		    (const void*) &flag, sizeof(flag));
 
 	memset( &sa, 0, sizeof(sa) );
 

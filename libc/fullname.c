@@ -37,8 +37,9 @@ fullname(s, buf, buflen, up1)
 	for (cp = buf; cp < eob && *s != '\0' && *s != ','; ++s) {
 		switch (*s) {
 		case '&':
-			if (up == NULL && (up = getenv("USER")) == NULL)
-				up = getenv("LOGNAME");
+			if (up == NULL &&
+			    (up = (const unsigned char *)getenv("USER")) == NULL)
+				up = (const unsigned char *)getenv("LOGNAME");
 			if (up != NULL) {
 				if (isascii(*up) && islower(*up))
 					*cp = toupper(*up);

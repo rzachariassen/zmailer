@@ -427,7 +427,7 @@ int init;
 	       key[4] & 0xff, key[5] & 0xff);
 */
 
-    str_base = str = (char *) dbquery(rel, &key[0], key[0], &rlen);
+    str_base = str = (unsigned char *) dbquery(rel, &key[0], key[0], &rlen);
 
     /* str[0]    - attribute list lenght
        str[1]    - attribute numeric value
@@ -465,11 +465,11 @@ int init;
 	      if (debug)
 		type(NULL,0,NULL," Alias-recursion: %d", recursions);
 
-	      strncpy(pbuf+2,str+2, sizeof(pbuf)-3);
+	      strncpy(pbuf+2, (const char *) str+2, sizeof(pbuf)-3);
 	      pbuf[ sizeof(pbuf)-1 ] = 0;
 
 	      strlower(pbuf+2);
-	      pbuf[0] = strlen(str+2) + 3;
+	      pbuf[0] = strlen((const char*) str+2) + 3;
 	      pbuf[1] = P_K_TAG;
 	      result = resolveattributes(rel, recursions, state, pbuf, 0);
 	    }
@@ -480,7 +480,7 @@ int init;
 
 	if (str[1] == P_A_MESSAGE) {
 	  if (msgstr) free(msgstr);
-	  msgstr = strdup(str+2);
+	  msgstr = strdup((const char *)str+2);
 	  goto nextattr;
 	}
 
@@ -504,17 +504,17 @@ int init;
 
 	if (str[1] == P_A_InboundSizeLimit) {
 
-	  sscanf(str+2,"%li", &state->maxinsize);
+	  sscanf((char *)str+2,"%li", &state->maxinsize);
 	  goto nextattr;
 
 	} else if (str[1] == P_A_OutboundSizeLimit) {
 
-	  sscanf(str+2,"%li", &state->maxoutsize);
+	  sscanf((char *)str+2,"%li", &state->maxoutsize);
 	  goto nextattr;
 
 	} else if (str[1] == P_A_MaxSameIpSource) {
 
-	  sscanf(str+2,"%li", &state->maxsameiplimit);
+	  sscanf((char *)str+2,"%li", &state->maxsameiplimit);
 	  goto nextattr;
 
 	} else if ((str[2] != '+' && str[2] != '-') &&
@@ -524,7 +524,7 @@ int init;
 	         RBL.MAPS.VIX.COM,DUL.MAPS.VIX.COM
 	     whatever you want ... */
 
-	  state->values[str[1] & 0xFF] = strdup(str + 2);
+	  state->values[str[1] & 0xFF] = strdup((const char *)str + 2);
 
 	} else if (str[2] != '+' && str[2] != '-') {
 
@@ -537,7 +537,7 @@ int init;
 
 	if (P_A_FirstAttr <= str[1] && str[1] <= P_A_LastAttr) {
 	    if (!state->values[str[1] & 0xFF])
-		state->values[str[1] & 0xFF] = strdup(str + 2);
+		state->values[str[1] & 0xFF] = strdup((const char *)str + 2);
 	  if (debug)
 	    type(NULL,0,NULL,"     accepted!");
 	} else {

@@ -369,19 +369,19 @@ const char *buf, *cp;
     SS->state = MailOrHello;
 }
 
-int smtp_mail(SS, buf, cp0, insecure)
+int smtp_mail(SS, buf, cp, insecure)
 SmtpState *SS;
-const char *buf, *cp0;
+const char *buf, *cp;
 int insecure;
 {
-    const unsigned char *s, *p, *cp = cp0;
+    const char *s, *p;
     int rc;
-    const unsigned char *drpt_envid;
-    const unsigned char *drpt_ret;
-    const unsigned char *bodytype = NULL;
-    const unsigned char *newcp = NULL;
-    const unsigned char *srcrtestatus = "";
-    const unsigned char *auth_param;
+    const char *drpt_envid;
+    const char *drpt_ret;
+    const char *bodytype = NULL;
+    const char *newcp = NULL;
+    const char *srcrtestatus = "";
+    const char *auth_param;
     int addrlen, drptret_len, drptenvid_len, authparam_len;
     int strict = STYLE(SS->cfinfo, 'R');
     int sloppy = STYLE(SS->cfinfo, 'S');
