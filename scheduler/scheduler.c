@@ -1335,10 +1335,20 @@ void resync_file(proc, file)
 	  sp_delete(spl, spt_mesh[L_CTLFILE]);
 	spl = NULL;
 
-	sfprintf(sfstdout, "Resyncing file \"%s\" (ino=%d pid=%d of=%d ho='%s')\n",
+	oldcfp->resynccount += 1;
+
+	sfprintf(sfstdout, "Resyncing file \"%s\" (ino=%d pid=%d of=%d ho='%s') reqcnt=%d\n",
 		 file, (int) ino, proc->pid, proc->overfed,
-		 (proc->ho ? proc->ho->name : "<NULL>"));
+		 (proc->ho ? proc->ho->name : "<NULL>"), oldcfp->resynccount);
 	/* sfprintf(sfstdout, " .. in processing db\n"); */
+
+	if (oldcfp->resynccount > MAXRESYNCS) {
+	  /* Sigh.. Throw everything away :-( */
+	  oldcfp->id = ino;
+	  cfp_free(oldcfp, NULL);
+	  sfprintf(sfstdout, " ... too many Resync attempts this way, throwing  it away...\n");
+	  return;
+	}
 
 	/* cfp_free()->unvertex()->unctlfile() will do reinsertion */
 	/* dq_insert(NULL,ino,file,31); */

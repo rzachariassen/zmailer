@@ -69,6 +69,8 @@ struct ctlfile {
 	time_t	mtime;		/* original msg file's mtime (~ arrival)     */
 	time_t	envctime;	/* when the transport file was created	     */
 	int	haderror;	/* some errors/diagnostics need processing   */
+	int	resynccount;	/* How many resync requests ?		     */
+#define MAXRESYNCS 30
 	struct vertex	*head;		/* head of the list of groups	     */
 	int	nlines;		/* number of lines/entries in the file	     */
 	char	*erroraddr;	/* error address(es)			     */
