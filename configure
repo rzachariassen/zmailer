@@ -12514,7 +12514,7 @@ _ACEOF
   fi
 fi
 
-LIBDB1=""
+#LIBDB1=""  # CAN INHERIT FROM ENVIRONMENT!
 # Sometimes it is in libc, sometimes at separate lib...
 # Umm...
 if test "$ac_cv_header_db_185_h" = yes ; then
@@ -12888,7 +12888,7 @@ _ACEOF
 fi
 
 
-LIBDB2=""
+#LIBDB2=""  # CAN INHERIT FROM ENVIRONMENT!
 if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_db_open2" = yes ; then
@@ -13234,10 +13234,15 @@ echo "${ECHO_T}      libdb -library. If so, your NDBM databases are actually BSD
 fi
 
 
-LIBDB3=""
+#LIBDB3=""  # CAN INHERIT FROM ENVIRONMENT!
 if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db3_db_h" = yes ; then
   t_found_at="nowhere"
-  if test "$ac_cv_lib_c_db_create" = yes ; then
+  if test "x$LIBDB3" != x ; then
+    t_found_at="$LIBDB3 library"
+    DBTYPE="btree"
+    echo "$as_me:$LINENO: result:    external non-void  LIBDB3  value found: '$LIBDB3'; will use it." >&5
+echo "${ECHO_T}   external non-void  LIBDB3  value found: '$LIBDB3'; will use it." >&6
+  elif test "$ac_cv_lib_c_db_create" = yes ; then
     LIBDB3=""
     t_found_at="libc(7)"
     DBTYPE="btree"
@@ -13468,10 +13473,15 @@ echo "${ECHO_T}      libdb -library. If so, your NDBM databases are actually BSD
 fi
 
 
-LIBDB4=""
+#LIBDB4=""  # CAN INHERIT FROM ENVIRONMENT!
 if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db4_db_h" = yes ; then
   t_found_at="nowhere"
-  if test "$ac_cv_lib_c_db_create" = yes ; then
+  if test "x$LIBDB4" != x ; then
+    t_found_at="$LIBDB4 library"
+    DBTYPE="btree"
+    echo "$as_me:$LINENO: result:    external non-void  LIBDB4  value found: '$LIBDB4'; will use it." >&5
+echo "${ECHO_T}   external non-void  LIBDB4  value found: '$LIBDB4'; will use it." >&6
+  elif test "$ac_cv_lib_c_db_create" = yes ; then
     LIBDB4=""
     t_found_at="libc(9)"
     DBTYPE="btree"

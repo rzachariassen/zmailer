@@ -871,7 +871,7 @@ if test "$ac_cv_header_gdbm_h" = yes -a $without_gdbm = 0 ; then
   fi
 fi
 
-LIBDB1=""
+#LIBDB1=""  # CAN INHERIT FROM ENVIRONMENT!
 # Sometimes it is in libc, sometimes at separate lib...
 # Umm...
 if test "$ac_cv_header_db_185_h" = yes ; then
@@ -1011,7 +1011,7 @@ dnl
 dnl Ok, a third case; SleepyCat's BSD DB 2.*;  db_open() et.al.
 dnl
 
-LIBDB2=""
+#LIBDB2=""  # CAN INHERIT FROM ENVIRONMENT!
 if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_db_open2" = yes ; then
@@ -1116,10 +1116,14 @@ dnl
 dnl Ok, fourth case; SleepyCat's BSD DB 3.*;  db_create() et.al.
 dnl
 
-LIBDB3=""
+#LIBDB3=""  # CAN INHERIT FROM ENVIRONMENT!
 if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db3_db_h" = yes ; then
   t_found_at="nowhere"
-  if test "$ac_cv_lib_c_db_create" = yes ; then
+  if test "x$LIBDB3" != x ; then
+    t_found_at="$LIBDB3 library"
+    DBTYPE="btree"
+    AC_MSG_RESULT([   external non-void  LIBDB3  value found: '$LIBDB3'; will use it.])
+  elif test "$ac_cv_lib_c_db_create" = yes ; then
     LIBDB3=""
     t_found_at="libc(7)"
     DBTYPE="btree"
@@ -1198,10 +1202,14 @@ dnl
 dnl Ok, fifth case; SleepyCat's BSD DB 4.*;  db_create() et.al.
 dnl
 
-LIBDB4=""
+#LIBDB4=""  # CAN INHERIT FROM ENVIRONMENT!
 if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db4_db_h" = yes ; then
   t_found_at="nowhere"
-  if test "$ac_cv_lib_c_db_create" = yes ; then
+  if test "x$LIBDB4" != x ; then
+    t_found_at="$LIBDB4 library"
+    DBTYPE="btree"
+    AC_MSG_RESULT([   external non-void  LIBDB4  value found: '$LIBDB4'; will use it.])
+  elif test "$ac_cv_lib_c_db_create" = yes ; then
     LIBDB4=""
     t_found_at="libc(9)"
     DBTYPE="btree"
