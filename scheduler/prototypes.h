@@ -70,7 +70,6 @@ extern int store_error_on_error;
 extern void qprint __((int fd));
 
 /* readconfig.c */
-extern struct config_entry *rrcf_head;
 extern struct config_entry *default_entry;
 extern void   defaultconfigentry __((struct config_entry *ce, struct config_entry *defaults));
 extern void   vtxprint __((struct vertex *vp));
@@ -97,7 +96,7 @@ extern char *notifysock;
 extern int  do_syslog;
 extern struct ctlfile *slurp __((int fd, long ino));
 extern void free_cfp_memory __((struct ctlfile *cfp));
-extern int  vtxredo __((struct spblk *spl));
+extern int  vtxredo __((void *, struct spblk *spl));
 extern char *timestring __((void));
 extern time_t now;
 #ifdef _SFIO_H

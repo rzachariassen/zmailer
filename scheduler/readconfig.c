@@ -62,7 +62,6 @@ static int rc_sysnice		RCKEYARGS;
 extern int errno;
 
 struct config_entry *default_entry = NULL;
-struct config_entry *rrcf_head     = NULL;
 
 /* where the  MAILQv2  authentication dataset file is ? */
 const char * mq2authfile = NULL;
@@ -547,8 +546,7 @@ rereadconfig(head, file)
 	}
 
 	/* apply it to all the existing vertices */
-	rrcf_head = head2;
-	sp_scan(vtxredo, (struct spblk *)NULL, spt_mesh[L_CTLFILE]);
+	sp_scan(vtxredo, head2, (struct spblk *)NULL, spt_mesh[L_CTLFILE]);
 
 	endpwent(); /* Close the databases */
 	endgrent();

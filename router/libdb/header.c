@@ -307,9 +307,10 @@ search_header(sip)
  * Free any information stored in this database.
  */
 
-static int hdfreedata __((struct spblk *));
+static int hdfreedata __((void *, struct spblk *));
 static int
-hdfreedata(spl)
+hdfreedata(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	if (spl->data)
@@ -327,7 +328,7 @@ close_header(sip,comment)
 	hdb = open_header(sip);
 	if (hdb == NULL)
 	  return;
-	sp_scan(hdfreedata, (struct spblk *)NULL, hdb);
+	sp_scan(hdfreedata, NULL, (struct spblk *)NULL, hdb);
 	sp_null(hdb);
 }
 
@@ -495,7 +496,7 @@ add_header(sip, cvalue)
 	if (spl == NULL)
 	  sp_install(spk, (void *)rhp, 0, hdb);
 	else if (spl->mark == 0) {
-	  hdfreedata(spl);
+	  hdfreedata(NULL, spl);
 	  spl->data = (void *)rhp;
 	} else {
 	  free((void *)rhp);
@@ -542,7 +543,7 @@ remove_header(sip)
 	  fprintf(stderr, "remove_header: cannot remove permanent definition of '%s'\n", sip->key);
 	  return EOF;
 	}
-	hdfreedata(spl);
+	hdfreedata(NULL, spl);
 	sp_delete(spl, hdb);
 	return 0;
 }
@@ -551,15 +552,15 @@ remove_header(sip)
  * Print the database.
  */
 
-static FILE *pcfp;
-
-static int hdprintdata __((struct spblk *));
+static int hdprintdata __((void *, struct spblk *));
 static int
-hdprintdata(spl)
+hdprintdata(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	const struct headerinfo *rhp;
 	const char *user_type = "-";
+	FILE *pcfp = p;
 
 	rhp = (const struct headerinfo *)spl->data;
 	switch(rhp->user_type) {
@@ -595,21 +596,21 @@ print_header(sip, outfp)
 	hdb = open_header(sip);
 	if (hdb == NULL)
 	  return;
-	pcfp = outfp;
-	sp_scan(hdprintdata, (struct spblk *)NULL, hdb);
+	sp_scan(hdprintdata, outfp, (struct spblk *)NULL, hdb);
 	fflush(outfp);
 }
 
 /* Count the database */
 
-static int   pc_cnt;
-
-static int hdcountdata __((struct spblk *));
+static int hdcountdata __((void *, struct spblk *));
 static int
-hdcountdata(spl)
+hdcountdata(p, spl)
+	void *p;
 	struct spblk *spl;
 {
-	++pc_cnt;
+	int *ip = p;
+	*ip += 1;
+
 	return 0;
 }
 
@@ -619,11 +620,11 @@ count_header(sip, outfp)
 	FILE *outfp;
 {
 	struct sptree *hdb;
-	pc_cnt = 0;
+	int pc_cnt = 0;
 
 	hdb = open_header(sip);
 	if (hdb != NULL)
-	  sp_scan(hdcountdata, (struct spblk *)NULL, hdb);
+	  sp_scan(hdcountdata, & pc_cnt, (struct spblk *)NULL, hdb);
 	fprintf(outfp,"%d\n",pc_cnt);
 	fflush(outfp);
 }

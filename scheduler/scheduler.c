@@ -282,7 +282,7 @@ int global_maxkids = 1000;
 time_t now;
 
 Sfio_t * vfp_open(cfp)
-struct ctlfile *cfp;
+	struct ctlfile *cfp;
 {
 	Sfio_t *vfp;
 	int fd;
@@ -309,7 +309,7 @@ static void cfp_free __((struct ctlfile *cfp, struct spblk *spl));
 static void cfp_free0 __((struct ctlfile *cfp));
 
 static void cfp_free0(cfp)
-struct ctlfile *cfp;
+	struct ctlfile *cfp;
 {
 
 	struct vertex *vp, *nvp;
@@ -349,8 +349,8 @@ struct ctlfile *cfp;
 }
 
 static void cfp_free(cfp, spl)
-struct ctlfile *cfp;
-struct spblk   *spl;
+	struct ctlfile *cfp;
+	struct spblk   *spl;
 {
 	/* Delete from the  spt_mesh[]  */
 
@@ -365,9 +365,10 @@ struct spblk   *spl;
 }
 
 
-static int ctl_free __((struct spblk *spl));
-static int ctl_free(spl)
-struct spblk *spl;
+static int ctl_free __((void *, struct spblk *spl));
+static int ctl_free(p, spl)
+	void *p;
+	struct spblk *spl;
 {
 	cfp_free((struct ctlfile *)spl->data, NULL);
 	return 0;
@@ -380,7 +381,7 @@ struct spblk *spl;
  *  previously released..  (cfp->contents, for example)
  */
 void free_cfp_memory(cfp)
-struct ctlfile *cfp;
+	struct ctlfile *cfp;
 {
 	if (cfp->contents)	free(cfp->contents);
 	if (cfp->vfpfn)		free(cfp->vfpfn);
@@ -1079,7 +1080,7 @@ main(argc, argv)
 	/* Doing nicely we would kill the childs here, but we are not
 	   such a nice people -- we just discard incore data, and crash out.. */
 
-	sp_scan(ctl_free, NULL, spt_mesh[L_CTLFILE]);
+	sp_scan(ctl_free, NULL, NULL, spt_mesh[L_CTLFILE]);
 
 #ifdef	MALLOC_TRACE
 	mal_dumpleaktrace(stderr);
@@ -2840,7 +2841,8 @@ static void vtxdo(vp, cehdr, path)
 }
 
 
-int vtxredo(spl)
+int vtxredo(p, spl)
+	void *p;
         struct spblk *spl;
 {
         struct ctlfile *cfp = (struct ctlfile *)spl->data;
@@ -2848,7 +2850,7 @@ int vtxredo(spl)
 
         /* assert cfp != NULL */
 	for (vp = cfp->head ; vp != NULL ; vp = vp->next[L_CTLFILE]) {
-	  vtxdo(vp, rrcf_head, NULL);
+	  vtxdo(vp, p /* -> rrcf_head */, NULL);
 	}
         return 0;
 }

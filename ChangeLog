@@ -1,7 +1,28 @@
 2004-04-30  Matti Aarnio  <mea@zmailer.org>
 
-	* smtpserver/subdaemon-trk.c:
-	    - Tiny format fixes
+	* include/libsh.h, include/splay.h, lib/splay.c, lib/symbol.c,
+	  libsh/interpret.c, libsh/zmsh.c, router/db.c,
+	  router/libdb/hreader.c, router/libdb/incore.c,
+	  scheduler/mailq.c, scheduler/msgerror.c, scheduler/prototules.c,
+	  scheduler/qprint.c, scheduler/readconfig.c, scheduler/scheduler.c,
+	  scheduler/threads.c, transports/mailbox/mailbox.c:
+	    Changed the API of  sp_scan()  function, especially the API of
+	    the CALLED function f.  Now can supply  an opaque (to splay)
+	    parameter that is passed on to item processor.
+
+	* transports/mailbox/mailbox.c:
+	    Reworked the rwhois/rbiff related splay-code.
+	    Not so sure if it is _correct_, as I don't use it anymore
+	    anywhere...  It _should_ be ok, but I have done mistakes
+	    before...
+
+	* transports/smtp/smtp.c:
+	    Don't burn cycles to CNAME map MAIL FROM domain..
+	    That isn't absolutely necessary...  Still doing
+	    RCPT TO domain CNAME mapping.
+
+	* smtpserver/subdaemon-trk.c, smtpserver/policytest.c:
+	    - Format fixes
 	    - Don't log Z-REPORT replies into smtpserver log file.
 
 2004-04-28  Matti Aarnio  <mea@zmailer.org>

@@ -888,7 +888,7 @@ undefun(fname)
 	spl = sp_lookup(symbol(fname), spt_funclist);
 	if (spl == NULL)
 	  return;
-	xundefun(spl);
+	xundefun(NULL, spl);
 }
 
 /*
@@ -896,7 +896,8 @@ undefun(fname)
  */
 
 int
-xundefun(spl)
+xundefun(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	struct sslfuncdef *sfdp, **psfdp;

@@ -177,8 +177,9 @@ sp_fhead(q)
  */
 
 void
-sp_scan(f, n, q)
-	register int (*f) __((struct spblk *));
+sp_scan(f, p, n, q)
+	register int (*f) __((void *, struct spblk *));
+	register void *p;
 	register struct spblk *n;
 	register struct sptree *q;
 {
@@ -186,7 +187,7 @@ sp_scan(f, n, q)
 
 	for(x = n != NULL ? n : sp_fhead(q); x != NULL ; x = nextx) {
 		nextx = sp_fnext(x);
-		(*f)(x);
+		(*f)(p, x);
 	}
 }
 

@@ -1204,9 +1204,10 @@ delayreport(vp)
 /* FIXME: reporting subsystem needs tuning! */
 /*        ... implementing/tuning DELAYED reports! */
 
-static int ctl_report_1 __((struct spblk *spl));
-static int ctl_report_1(spl)
-struct spblk *spl;
+static int ctl_report_1 __((void *, struct spblk *spl));
+static int ctl_report_1(p, spl)
+	void *p;
+	struct spblk *spl;
 {
 	struct vertex *vp, *nvp;
 	struct ctlfile * cfp = (struct ctlfile *)spl->data;
@@ -1242,7 +1243,7 @@ struct spblk *spl;
 void
 interim_report_run __((void))
 {
-	sp_scan(ctl_report_1, NULL, spt_mesh[L_CTLFILE]);
+	sp_scan(ctl_report_1, NULL, NULL, spt_mesh[L_CTLFILE]);
 }
 
 

@@ -159,12 +159,13 @@ static conscell	*find_nodot_domain __((conscell *DBFUNC(lookupfn), search_info *
 static conscell *find_longest_match __((conscell *DBFUNC(lookupfn), search_info *sip));
 /* others.. */
 static void      cacheflush __((struct db_info *dbip));
-static int	 iclistdbs  __((struct spblk *spl));
+static int	 iclistdbs  __((void *, struct spblk *spl));
 
 
 static void (*cachemarkupfunc) __((conscell*));
 static int
-iccachemarkup(spl)
+iccachemarkup(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	struct db_info *dbip = (struct db_info *)spl->data;
@@ -188,7 +189,7 @@ cache_gc_markup_iterator(mrkupfunc)
      void (*mrkupfunc)__((conscell*));
 {
   cachemarkupfunc = mrkupfunc;
-  sp_scan(iccachemarkup, (struct spblk *)NULL, spt_databases);
+  sp_scan(iccachemarkup, NULL, (struct spblk *)NULL, spt_databases);
 }
 
 static void
@@ -476,7 +477,8 @@ icdbspltree(name)
  */
 
 static int
-iclistdbs(spl)
+iclistdbs(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	struct db_kind *dbkp;
@@ -569,7 +571,8 @@ iclistdbs(spl)
 static int  dbs_atexit_set;
 
 static int
-dbs_atexit_close(spl)
+dbs_atexit_close(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	struct db_info *dbip;
@@ -593,7 +596,7 @@ dbs_atexit_close(spl)
 
 static void dbs_atexit()
 {
-  sp_scan(dbs_atexit_close, (struct spblk *)NULL, spt_databases);
+  sp_scan(dbs_atexit_close, NULL, (struct spblk *)NULL, spt_databases);
 }
 
 
@@ -617,7 +620,7 @@ run_db(argc, argv)
 
 		printf("#DBname Type{lookup,sub} cache{inuse/max} ttl Flgs File/param\n");
 
-		sp_scan(iclistdbs, (struct spblk *)NULL, spt_databases);
+		sp_scan(iclistdbs, NULL, (struct spblk *)NULL, spt_databases);
 		return 0;
 	}
 
@@ -1222,9 +1225,10 @@ cacheflush(dbip)
  * Flush everything; back to original state
  */
 
-static void	_sptdbreset __((struct spblk *spl));
+static void	_sptdbreset __((void *, struct spblk *spl));
 static void
-_sptdbreset(spl)
+_sptdbreset(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	char *av[4];
@@ -1240,7 +1244,7 @@ _sptdbreset(spl)
 void
 dbfree()
 {
-	sp_scan(_sptdbreset, (struct spblk *)NULL, spt_databases);
+	sp_scan(_sptdbreset, NULL, (struct spblk *)NULL, spt_databases);
 }
 #endif	/* MALLOC_TRACE */
 

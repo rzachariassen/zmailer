@@ -27,7 +27,7 @@ struct spblk {
 	struct spblk	*rightlink;
 	struct spblk	*uplink;
 	spkey_t		key;
-	const char	*data;
+	const void	*data;
 	long		mark;
 };
 
@@ -52,7 +52,7 @@ extern struct spblk *sp_install __((spkey_t key, const void *data, long mark,
 				    struct sptree *q)); /* enter an item,
 							   allocating or
 							   replacing */
-extern void sp_scan __((int (*f)(struct spblk *), struct spblk *n,
+extern void sp_scan __((int (*f)(void *, struct spblk *), void *p, struct spblk *n,
 			struct sptree *q));	/* scan forward through tree */
 extern void sp_delete __((struct spblk *n, struct sptree *q)); /* delete node
 								  from tree */

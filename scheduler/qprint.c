@@ -25,9 +25,9 @@ extern int mailq_Q_mode; /* Argument 'Q' means: output only 'mailq -Q' -data.. *
 
 extern int errno;
 
-static int qpctlfile __((struct spblk *spl));
-static int qpchannel __((struct spblk *spl));
-static int qphost __((struct spblk *spl));
+static int qpctlfile __((void *, struct spblk *spl));
+static int qpchannel __((void *, struct spblk *spl));
+static int qphost __((void *, struct spblk *spl));
 
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
@@ -38,7 +38,6 @@ static int qphost __((struct spblk *spl));
 /* XXX: struct utimbuf defined ??? */
 #endif
 
-static Sfio_t *qpfp;
 static char qpch;
 static time_t qpnow;
 
@@ -53,6 +52,7 @@ qprint(fd)
 #else	/* !HAVE_UTIMES */
 	struct timeval tvp[2];
 #endif	/* !HAVE_UTIMES */
+	Sfio_t *qpfp;
 
 	/*
 	 * The O_NDELAY flag is needed so we don't block
@@ -80,18 +80,18 @@ qprint(fd)
 	mytime(&qpnow);
 #ifndef NO_VERBOSE_MAILQ
 	if (!mailq_Q_mode)
-	  sp_scan(qpctlfile, (struct spblk *)NULL, spt_mesh[L_CTLFILE]); 
+	  sp_scan(qpctlfile, qpfp, (struct spblk *)NULL, spt_mesh[L_CTLFILE]); 
 #endif
 	if (qpch != '\0') {
 	  sfprintf(qpfp, "Channels:\n");
 #ifndef NO_VERBOSE_MAILQ
 	  if (!mailq_Q_mode)
-	    sp_scan(qpchannel, (struct spblk *)NULL, spt_mesh[L_CHANNEL]);
+	    sp_scan(qpchannel, qpfp, (struct spblk *)NULL, spt_mesh[L_CHANNEL]);
 #endif
 	  sfprintf(qpfp, "Hosts:\n");
 #ifndef NO_VERBOSE_MAILQ
 	  if (!mailq_Q_mode)
-	    sp_scan(qphost, (struct spblk *)NULL, spt_mesh[L_HOST]);
+	    sp_scan(qphost, qpfp, (struct spblk *)NULL, spt_mesh[L_HOST]);
 #endif
 	}
 	sfprintf(qpfp, "End:\n");
@@ -114,13 +114,15 @@ qprint(fd)
 	}
 }
 
-static int qpctlfile(spl)
+static int qpctlfile(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	register struct ctlfile *cfp = (struct ctlfile *)spl->data;
 	register struct vertex *vp;
 	register int i;
 	char buf[100];
+	Sfio_t *qpfp = p;
 
 	/* assert cfp != NULL */
 	for (vp = cfp->head; vp != NULL; vp = vp->next[L_CTLFILE]) {
@@ -185,11 +187,13 @@ static int qpctlfile(spl)
 	  return 0;
 	}
 
-static int qpchannel(spl)
+static int qpchannel(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	register struct web *wc = (struct web *)spl->data;
 	register struct vertex *vp;
+	register Sfio_t *qpfp = p;
 
 	if (wc->link != NULL) {
 	  sfprintf(qpfp, "%s:\t", wc->name);
@@ -203,11 +207,13 @@ static int qpchannel(spl)
 	return 0;
 }
 
-static int qphost(spl)
+static int qphost(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	register struct web *wc = (struct web *)spl->data;
 	register struct vertex *vp;
+	register Sfio_t *qpfp = p;
 
 	if (wc->link != NULL) {
 	  sfprintf(qpfp, "%s:\t", wc->name);

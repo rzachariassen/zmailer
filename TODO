@@ -63,8 +63,6 @@ proto/newdbprocessor.in:
 - "Overview" -- revise at least the list subscription instructions;
 		verify also other document files
 
-- Solaris 2.6 native make --> no VPATH ?? (sfio fails)
-
 - BUG(security sensitivity):
   - "zmailer newdb" script will run "newdb" database compilations
     without becoming same uid+gid as the source file is (and with
@@ -106,7 +104,8 @@ router:
 	Error address pickup  ( router/rfc822.c: erraddress() )
 	picks *bad* choices sometimes; e.g. it might consider
 	'Sender:' or 'Errors-To:' headers as good picks for the
-	address where to send the report to...
+	address where to send the report to...   It _really_ should
+	prefer eFrom address.
 
 	RFC 822 special bug(?):  '%' is a special, and/or combination
 	of   "From: foo%bar <fii@faa.fuu>"  formats causes the scanner

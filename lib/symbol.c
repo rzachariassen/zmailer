@@ -32,7 +32,7 @@ struct syment {
 	const char name[1];
 };
 
-struct sptree *spt_symtab = NULL;
+struct sptree *spt_symtab  = NULL;
 
 spkey_t
 symbol(s)
@@ -42,6 +42,7 @@ symbol(s)
 		spt_symtab = sp_init();
 	return symbol_db(s, spt_symtab);
 }
+
 
 spkey_t
 symbol_lookup(s)
@@ -162,14 +163,15 @@ symbol_db_mem(s, slen, spt)
 	int slen;
 	struct sptree *spt;
 {
-  return symbol_db_mem_(s, slen, spt, CRCorNOT);
+	return symbol_db_mem_(s, slen, spt, CRCorNOT);
 }
 
 /*
  * Empty the entire symbol splay tree
  */
 static int
-symbol_null(spl)
+symbol_null(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	struct syment *se, *sn;
@@ -189,7 +191,10 @@ symbol_null_db(spt)
 	idname = "";
 	idkey  = 0;
 #endif
-	sp_scan(symbol_null, (struct spblk *)NULL, spt);
+	if (!spt)
+	    spt = spt_symtab;
+
+	sp_scan(symbol_null, NULL, (struct spblk *)NULL, spt);
 	sp_null(spt);
 }
 

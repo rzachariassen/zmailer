@@ -17,14 +17,14 @@
      - From "." to "250 OK": 10 minutes
        (We use 20 minutes here - sendmail uses 60 minutes..)
  */
-int timeout = 0;		/* how long do we wait for response? (sec.) */
+int timeout;			/* how long do we wait for response? (sec.) */
 int timeout_cmd  =  5*60;
 int timeout_data =  5*60;	/* in PIPELINING mode, 5 minutes is better! */
 int timeout_tcpw =  5*60;	/* All tcp writes ?? */
 int timeout_dot  = 20*60;
 int timeout_conn =  3*60;	/* connect() timeout */
 
-int sockwbufsize =  0;
+int sockwbufsize;
 
 const char *defcharset;
 char myhostname[512];
@@ -33,46 +33,49 @@ char errormsg[ZBUFSIZ]; /* Global for the use of  dnsgetrr.c */
 const char *progname;
 const char *cmdline, *eocmdline, *logfile, *msgfile;
 int pid;
-int debug = 0;
-int verbosity = 0;
-int conndebug = 0;
-int dotmode = 0;		/* At the SMTP '.' phase, DON'T LEAVE IMMEDIATELY!. */
-int getout  = 0;		/* signal handler turns this on when we are wanted to abort! */
-int gotalarm = 0;		/* indicate that alarm happened! */
+int debug;
+int verbosity;
+int conndebug;
+int dotmode;			/* At the SMTP '.' phase, DON'T LEAVE IMMEDIATELY!. */
+int getout;			/* signal handler turns this on when we are wanted to abort! */
+int gotalarm;			/* indicate that alarm happened! */
 jmp_buf procabortjmp;
-int procabortset = 0;
-int readalready = 0;		/* does buffer contain valid message data? */
-int wantreserved = 0;		/* open connection on secure (reserved) port */
-int statusreport = 0;		/* put status reports on the command line */
-int force_8bit = 0;		/* Claim to the remote to be 8-bit system, even
+int procabortset;
+int readalready;		/* does buffer contain valid message data? */
+int wantreserved;		/* open connection on secure (reserved) port */
+int statusreport;		/* put status reports on the command line */
+int force_8bit;			/* Claim to the remote to be 8-bit system, even
 				   when it doesn't report itself as such..*/
-int force_7bit = 0;		/* and reverse the previous.. */
-int keep_header8 = 0;		/* Don't do "MIME-2" to the headers */
-int checkwks = 0;
-FILE *logfp = NULL;
+int force_7bit;			/* and reverse the previous.. */
+int keep_header8;		/* Don't do "MIME-2" to the headers */
+int canon_mailfrom;		/* Set to do RFC-821/2821 MAIL FROM domain
+				   canonication processing.  Usually only the
+				   RCPT TO domains need to be canonicalized. */
+int checkwks;
+FILE *logfp;
 extern int nobody;
-char *localidentity = NULL;	/* If we are wanted to bind some altenate
+char *localidentity;		/* If we are wanted to bind some altenate
 				   interface than what the default is thru
 				   normal kernel mechanisms.. */
 int daemon_uid = -1;
-int first_uid = 0;		/* Make the opening connect with the UID of the
+int first_uid;			/* Make the opening connect with the UID of the
 				   sender (atoi(rp->addr->misc)), unless it is
 				   "nobody", in which case use "daemon"      */
 
-int D_alloc = 0;		/* Memory usage debug */
-int no_pipelining = 0;		/* In case the system just doesn't cope with it */
+int D_alloc;			/* Memory usage debug */
+int no_pipelining;		/* In case the system just doesn't cope with it */
 #if defined(AF_INET6) && defined(INET6)
 int use_ipv6 = 1;
 int prefer_ip6 = 1;
 #endif
-int close_after_data = 0;
+int close_after_data;
 
-int lmtp_mode = 0;		/* RFC 2033: LMTP mode */
+int lmtp_mode;			/* RFC 2033: LMTP mode */
 
 
 #ifdef HAVE_OPENSSL
-int demand_TLS_mode = 0;	/* Demand TLS */
-int tls_available = 0;		/* local client code running ok */
+int demand_TLS_mode;		/* Demand TLS */
+int tls_available;		/* local client code running ok */
 char *tls_conf_file = NULL;
 #endif /* - HAVE_OPENSSL */
 
@@ -288,11 +291,11 @@ outbuf_fillup:
 			  
 }
 
-void wantout(sig)
+void wantout_sig(sig)
 int sig;
 {
   getout = 1;
-  SIGNAL_HANDLE(sig,wantout);
+  SIGNAL_HANDLE(sig,wantout_sig);
   SIGNAL_RELEASE(sig);
   if (!dotmode && procabortset) /* Not within protected phase ? */
     longjmp(procabortjmp,1);
@@ -492,16 +495,16 @@ main(argc, argv)
 
 	SIGNAL_HANDLESAVE(SIGINT, SIG_IGN, oldsig);
 	if (oldsig != SIG_IGN)
-	  SIGNAL_HANDLE(SIGINT, wantout);
+	  SIGNAL_HANDLE(SIGINT, wantout_sig);
 	SIGNAL_HANDLESAVE(SIGTERM, SIG_IGN, oldsig);
 	if (oldsig != SIG_IGN)
-	  SIGNAL_HANDLE(SIGTERM, wantout);
+	  SIGNAL_HANDLE(SIGTERM, wantout_sig);
 	SIGNAL_HANDLESAVE(SIGQUIT, SIG_IGN, oldsig);
 	if (oldsig != SIG_IGN)
-	  SIGNAL_HANDLE(SIGQUIT, wantout);
+	  SIGNAL_HANDLE(SIGQUIT, wantout_sig);
 	SIGNAL_HANDLESAVE(SIGHUP, SIG_IGN, oldsig);
 	if (oldsig != SIG_IGN)
-	  SIGNAL_HANDLE(SIGHUP, wantout);
+	  SIGNAL_HANDLE(SIGHUP, wantout_sig);
 	SIGNAL_IGNORE(SIGPIPE);
 	timeout = timeout_cmd;
 
@@ -1455,9 +1458,11 @@ deliver(SS, dp, startrp, endrp, host, noMX)
 	  /* If there is a domain ? */
 	  if (*u != 0) {
 	    /* Now is the CNAME thingie to be rewritten ? */
-	    if ((cname_lookup(SS, u, & cname) > 0) && cname) {
-	      /* Rewrote the domain */
-	      u = cname;
+	    if (canon_mailfrom) {
+	      if ((cname_lookup(SS, u, & cname) > 0) && cname) {
+		/* Rewrote the domain */
+		u = cname;
+	      }
 	    }
 	    /* Copy the domain (original/cname). */
 	    while ((s < se) && *u) *s++ = *u++;

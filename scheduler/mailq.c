@@ -1157,11 +1157,10 @@ if (debug)
 	return 1;
 }
 
-static int r_i;
-
-extern int repscan_v1 __((struct spblk *));
+extern int repscan_v1 __((void *, struct spblk *));
 int
-repscan_v1(spl)
+repscan_v1(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	register struct vertex *v, *vv;
@@ -1169,6 +1168,8 @@ repscan_v1(spl)
 	int fd, flag = 0;
 	struct stat stbuf;
 	long filecnt, filesizesum;
+	int *ip = p;
+	int r_i;
 
 	w = (struct web *)spl->data;
 	/* assert w != NULL */
@@ -1223,6 +1224,8 @@ repscan_v1(spl)
 	      if (v->prev[r_i] != NULL)
 		v->prev[r_i]->next[r_i] = v->next[r_i];
 	    }
+	    *ip = r_i; /* Mark that something was found! */
+
 	    /* if we are verbose, space becomes important */
 	    if (v->next[L_CTLFILE] == NULL && v->prev[L_CTLFILE] == NULL) {
 	      /* we can free the control file */
@@ -1738,6 +1741,8 @@ report(fpi,fpo)
      FILE *fpi, *fpo;
 {
 	int rc = parse(fpi);
+	int r_i;
+
 	if (rc == 0)
 	  return;
 	if (rc == 2) {
@@ -1768,7 +1773,7 @@ report(fpi,fpo)
 	}
 
 	r_i = 0;
-	sp_scan(repscan_v1, (struct spblk *)NULL, spt_ids[L_CHANNEL]);
+	sp_scan(repscan_v1, & r_i, (struct spblk *)NULL, spt_ids[L_CHANNEL]);
 	if (!r_i) {
 	  if (onlyuser)
 	    fprintf(stdout,"No user messages found\n");

@@ -1879,20 +1879,20 @@ int thread_count_recipients()
 }
 
 
-static int thread_files_count;
-
-static int spl_thread_cnt_files __((struct spblk *spl));
-static int spl_thread_cnt_files(spl)
-struct spblk *spl;
+static int spl_thread_cnt_files __((void *, struct spblk *spl));
+static int spl_thread_cnt_files(p, spl)
+	void *p;
+	struct spblk *spl;
 {
-	++thread_files_count;
+	int *ip = p;
+	*ip += 1;
 	return 0;
 }
 
 
 int thread_count_files __((void))
 {
-	thread_files_count = 0;
-	sp_scan(spl_thread_cnt_files, NULL, spt_mesh[L_CTLFILE]);
+	int thread_files_count = 0;
+	sp_scan(spl_thread_cnt_files, & thread_files_count, NULL, spt_mesh[L_CTLFILE]);
 	return  thread_files_count;
 }

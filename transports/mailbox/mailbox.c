@@ -441,12 +441,21 @@ int sig;
 	/* Sigh, actually dummy routine.. */
 }
 
-static int free_spu __((void *));
+static int free_spu __((void *, struct spblk *));
 static int
-free_spu(p)
-     void *p;
+free_spu(p, spl)
+	void *p;
+	struct spblk *spl;
 {
-	free(p);
+	struct userhost *uhp = (struct userhost *) spl->data;
+	struct userhost *uhpn;
+
+	while (uhp) {
+	  uhpn = uhp->next;
+	  free(uhp);
+	  uhp = uhpn;
+	}
+
 	return 0;
 }
 
@@ -721,7 +730,7 @@ main(argc, argv)
 #endif /* RBIFF */
 	  }
 #ifdef	HAVE_PROTOCOLS_RWHOD_H /* RBIFF */
-	  if (spt_users != NULL) {
+	  if (spt_users && (spt_users->eltscnt > 0)) {
 	    if (readrwho())
 	      for (nbp = biffs ; nbp != NULL; nbp = nbp->next) {
 		if (nbp->offset >= 0 && nbp->wantrbiff)
@@ -734,9 +743,8 @@ main(argc, argv)
 	    free(nbp->user);
 	    free(nbp);
 	  }
-	  sp_scan( (int(*)__((struct spblk*))) free_spu, NULL, spt_users);
-	  free((void*)spt_users);
-	  spt_users = NULL;
+	  sp_scan(free_spu, NULL, NULL, spt_users);
+	  symbol_null_db(NULL);
 #endif	/* HAVE_SOCKET */
 	}
 	exit(EX_OK);
@@ -3359,8 +3367,9 @@ readrwho()
 	struct userhost *uhp;
 	struct spblk *spl;
 	
-	if (spt_users == NULL)
+	if (spt_users == NULL || spt_users->eltscnt == 0)
 	  return 0;
+
 	now = time(NULL);
 	if (chdir(RWHODIR) || (dirp = opendir(".")) == NULL ) {
 	  /* BE SILENT -- failing RBIFF is no fault! */
@@ -3421,7 +3430,8 @@ rbiff(nbp)
 	spkey_t symid;
 
 	symid = symbol((void*)(nbp->user));
-	if ((spl = sp_lookup(symid, spt_users)) == NULL)
+	spl = sp_lookup(symid, spt_users);
+	if (!spl)
 	  return;
 	for (uhp = (struct userhost *)spl->data; uhp != NULL; uhp = uhp->next)
 	  biff(uhp->hostname, nbp->user, nbp->offset);

@@ -312,7 +312,7 @@ zshinit(argc, argv)
 void
 zshfree()
 {
-	sp_scan(xundefun, (struct spblk *)NULL, spt_funclist);
+	sp_scan(xundefun, NULL, (struct spblk *)NULL, spt_funclist);
 	sp_null(spt_funclist);
 	/* s_free_tree(envarlist); */
 	envarlist = NULL;

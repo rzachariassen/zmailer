@@ -1245,9 +1245,9 @@ int policytestaddr(state, what, raddr)
     return rc;
 }
 
-static int call_rate_counter(state, incr, what, countp, limitval)
+static int call_rate_counter(state, incr, what, countp)
      struct policystate *state;
-     int incr, *countp, limitval;
+     int incr, *countp;
      PolicyTest what;
 {
     int rc;
@@ -1255,6 +1255,9 @@ static int call_rate_counter(state, incr, what, countp, limitval)
     const char *cmd = "RATE";
     const char *whatp = "CONNECT";
     int count = 0;
+    const char *limitp = state->ratelimitmsgsvalue;
+
+    if (!limitp) limitp = "-1";
 
     if (debug)
       type(NULL,0,NULL,"call_rate_counter(incr=%d what=%d)",incr,what);
@@ -1309,8 +1312,8 @@ static int call_rate_counter(state, incr, what, countp, limitval)
       break;
     }
 
-    sprintf(pbuf, "%s %s %d %s %d",
-	    cmd, state->ratelabelbuf, limitval, whatp, count);
+    sprintf(pbuf, "%s %s %s %s %d",
+	    cmd, state->ratelabelbuf, limitp, whatp, count);
 
     if (debug)
       type(NULL,0,NULL,"call_rate_counter: sending: '%s'",pbuf);
@@ -1787,8 +1790,7 @@ static int pt_mailfrom(state, str, len)
 	/* Valid numeric value had.. */
 
 	int rc = call_rate_counter(state, 0, POLICY_MAILFROM,
-				   &count,
-				   (limitval < 0 ? -limitval : limitval));
+				   &count);
 
 	/* Non-zero value means that counter was not reachable, or
 	   that there was no data. */
@@ -1806,7 +1808,7 @@ static int pt_mailfrom(state, str, len)
 	    state->message = strdup("You are sending too much mail per time interval.  Try again latter.");
 	  if (rc != 0) {
 	    /* register the excess! */
-	    call_rate_counter(state, 2, POLICY_MAILFROM, &count, -2);
+	    call_rate_counter(state, 2, POLICY_MAILFROM, &count);
 	  }
 	  return rc;
 	}
@@ -2199,7 +2201,7 @@ int policytest(state, what, str, len, authuser)
       return 0;
 
     if (state->authuser == NULL)
-      state->authuser = (char*)authuser;
+	state->authuser = (char*)authuser;
 
     if (debug) {
 	type(NULL,0,NULL," policytest what=%d", what);
@@ -2207,33 +2209,33 @@ int policytest(state, what, str, len, authuser)
     }
 
     if (state->message != NULL)
-      free(state->message);
+	free(state->message);
     state->message = NULL;
 
     switch(what) {
     case POLICY_SOURCEDOMAIN:
-      rc = pt_sourcedomain(state, str, len);
-      break;
+	rc = pt_sourcedomain(state, str, len);
+	break;
     case POLICY_HELONAME:
-      rc = pt_heloname(state, str, len);
-      break;
+	rc = pt_heloname(state, str, len);
+	break;
     case POLICY_MAILFROM:
-      rc = pt_mailfrom(state, str, len);
-      break;
+	rc = pt_mailfrom(state, str, len);
+	break;
     case POLICY_RCPTTO:
-      rc = pt_rcptto(state, str, len);
-      break;
+	rc = pt_rcptto(state, str, len);
+	break;
     case POLICY_RCPTPOSTMASTER:
-      rc = pt_rcptpostmaster(state, str, len);
-      break;
+	rc = pt_rcptpostmaster(state, str, len);
+	break;
     case POLICY_DATA:
     case POLICY_DATAOK:
-      /* rc = call_rate_counter(state, 1, what, NULL, -2); */
-      rc = call_rate_counter(state, len, POLICY_RCPTTO, NULL, -2);
-      break;
+	/* rc = call_rate_counter(state, 1, what, NULL); */
+	rc = call_rate_counter(state, len, POLICY_RCPTTO, NULL);
+	break;
     default:
-      abort();			/* Code error! Bad policy ! */
-      return 9999; /* To silence most compilers.. */
+	abort();		/* Code error! Bad policy !	*/
+	return 9999;		/* To silence most compilers..	*/
     }
     if (debug) fflush(stdout);
     return rc;

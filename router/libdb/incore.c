@@ -95,9 +95,10 @@ search_core(sip)
  * Free any information stored in this database.
  */
 
-static int icfreedata __((struct spblk *));
+static int icfreedata __((void *, struct spblk *));
 static int
-icfreedata(spl)
+icfreedata(p, spl)
+	void *p;
 	struct spblk *spl;
 {
 	if (spl->data)
@@ -119,7 +120,7 @@ close_core(sip,comment)
 		symbol_null_db(db->symbols);
 	}
 	if (db != spt_loginmap)
-		sp_scan(icfreedata, (struct spblk *)NULL, db);
+		sp_scan(icfreedata, NULL, (struct spblk *)NULL, db);
 	sp_null(db);
 }
 
@@ -155,7 +156,7 @@ addd_incoresp(name, value, db)
 	if (spl == NULL)
 		sp_install(spk, (const void*)value, 0, db);
 	else {
-		icfreedata(spl);
+		icfreedata(NULL, spl);
 		spl->data = (const void *) value;
 	}
 	return 0;
@@ -184,7 +185,7 @@ add_core(sip, value)
 	if (spl == NULL)
 		sp_install(spk, (const void*)value, 0, db);
 	else {
-		icfreedata(spl);
+		icfreedata(NULL, spl);
 		spl->data = (const void *) value;
 	}
 
@@ -215,7 +216,7 @@ remove_core(sip)
 				sip->key);
 		return EOF;
 	}
-	icfreedata(spl);
+	icfreedata(NULL, spl);
 	sp_delete(spl, db);
 	symbol_free_db(sip->key, db->symbols);
 	return 0;
@@ -225,13 +226,13 @@ remove_core(sip)
  * Print the database.
  */
 
-static FILE *pcfp;
-
-static int icprintNS __((struct spblk *));
+static int icprintNS __((void *, struct spblk *));
 static int
-icprintNS(spl)
+icprintNS(p, spl)
+	void *p;
 	struct spblk *spl;
 {
+	FILE *pcfp = p;
 	if (spl->data != NULL)
 		fprintf(pcfp, "%d\t%s\n",
 			(int)spl->key, (const char *)spl->data);
@@ -240,20 +241,24 @@ icprintNS(spl)
 	return 0;
 }
 
-static int icprintSN __((struct spblk *));
+static int icprintSN __((void *, struct spblk *));
 static int
-icprintSN(spl)
+icprintSN(p, spl)
+	void *p;
 	struct spblk *spl;
 {
+	FILE *pcfp = p;
 	fprintf(pcfp, "%s\t%ld\n", pname(spl->key), (long)spl->data);
 	return 0;
 }
 
-static int icprintSS __((struct spblk *));
+static int icprintSS __((void *, struct spblk *));
 static int
-icprintSS(spl)
+icprintSS(p, spl)
+	void *p;
 	struct spblk *spl;
 {
+	FILE *pcfp = p;
 	if (spl->data != NULL)
 		fprintf(pcfp, "%s\t%s\n",
 			pname(spl->key), (const char *)spl->data);
@@ -273,13 +278,12 @@ print_core(sip, outfp)
 	db = open_core(sip);
 	if (db == NULL)
 		return;
-	pcfp = outfp;
 	if (db == spt_loginmap)
-		sp_scan(icprintSN, (struct spblk *)NULL, db);
+		sp_scan(icprintSN, outfp, (struct spblk *)NULL, db);
 	else if (db == spt_uidmap)
-		sp_scan(icprintNS, (struct spblk *)NULL, db);
+		sp_scan(icprintNS, outfp, (struct spblk *)NULL, db);
 	else
-		sp_scan(icprintSS, (struct spblk *)NULL, db);
+		sp_scan(icprintSS, outfp, (struct spblk *)NULL, db);
 	fflush(outfp);
 }
 
@@ -287,13 +291,13 @@ print_core(sip, outfp)
  * Count the database.
  */
 
-static int pc_cnt;
-
-static int iccount __((struct spblk *));
-static int iccount(spl)
+static int iccount __((void *, struct spblk *));
+static int iccount(p, spl)
+	void *p;
 	struct spblk *spl;
 {
-	++pc_cnt;
+	int *ip = p;
+	*ip += 1;
 	return 0;
 }
 
@@ -303,11 +307,11 @@ count_core(sip, outfp)
 	FILE *outfp;
 {
 	struct sptree *db;
-	pc_cnt = 0;
+	int pc_cnt = 0;
 
 	db = open_core(sip);
 	if (db != NULL) {
-	  sp_scan(iccount, (struct spblk *)NULL, db);
+	  sp_scan(iccount, & pc_cnt, (struct spblk *)NULL, db);
 	}
 	fprintf(outfp,"%d\n",pc_cnt);
 	fflush(outfp);

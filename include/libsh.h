@@ -37,7 +37,7 @@ extern int setfreefd __((void));
 extern void assign   __((conscell *, conscell *, struct osCmd *));
 #endif
 #ifdef SPTREE_H
-extern int xundefun __((struct spblk *));
+extern int xundefun __((void *, struct spblk *));
 #endif
 #ifdef TOKEN_NARGS /* Must have include "libsh/sh.h" for this */
 extern void functype __((const char *, struct shCmd **, struct sslfuncdef **));

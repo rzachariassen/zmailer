@@ -70,9 +70,10 @@ struct spblk {
 struct ipv4_regs {
 	struct spblk *spl;	/* == NULL  -> free */
 	struct ipv4_regs *next;
-	int mails, slots;
+	int slots;
 	int lastlimit;
 	time_t alloc_time, last_excess, last_recipients;
+	int mails, mails2, mails3;
 	int excesses, excesses2, excesses3;
 	int recipients, recipients2, recipients3;
 	int countset[SLOTCOUNT];
@@ -224,13 +225,13 @@ static int count_ipv4( state, ipv4addr, lastlimit,
 	/* Don't allocate until an INCR is called for! */
 	if (!reg && incr) {
 	  reg = alloc_ipv4_reg( state, ipv4addr );
-	  if (reg) reg->mails = 1;
+	  if (reg) reg->mails = 0;
 	}
 	if (!reg) return 0;    /*  not INCR, or alloc failed!  */
 
-	if (incr == 0)  ++ reg->mails;
+	++ reg->mails;
 
-	if (lastlimit >= 0)
+	if (lastlimit > 0)
 	  reg->lastlimit = lastlimit;
 	reg->countset[ state->slotindex ] += incr;
 
@@ -276,6 +277,9 @@ static void new_ipv4_timeslot( state )
 	      r[i].recipients3 += r[i].recipients2;
 	      r[i].recipients2  = r[i].recipients;
 	      r[i].recipients   = 0;
+	      r[i].mails3 += r[i].mails2;
+	      r[i].mails2  = r[i].mails;
+	      r[i].mails   = 0;
 	      r[i].slots = 0;
 	    }
 
@@ -314,6 +318,7 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
 	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
 	if (!reg) return 0;    /*  not alloced!  */
 
+	reg->mails      += 1;
 	reg->recipients += incr;
 	reg->last_recipients = now;
 
@@ -322,6 +327,55 @@ static int count_rcpts_ipv4( state, ipv4addr, incr )
 
 
 /* ---------------------------------------------------------------------- */
+
+struct v4_dataprint {
+	FILE *fp;
+	int *tr;
+};
+
+static int
+dump_v4_rcptline(p, spl)
+	void *p;
+	struct spblk *spl;
+{
+	struct v4_dataprint *dp = p;
+	int  *tr = dp->tr;
+	FILE *fp = dp->fp;
+	struct ipv4_regs *rp = (struct ipv4_regs *) spl->data;
+	unsigned int ip4key  = spl->key;
+
+	char buf[60];
+	int j;
+
+	sprintf(buf, "%u.%u.%u.%u",
+		(ip4key >> 24) & 255,  (ip4key >> 16) & 255,
+		(ip4key >>  8) & 255,   ip4key & 255 );
+
+	fprintf(fp, "200- %-16s", buf);
+
+	for (j = 0; j < SLOTCOUNT; ++j) {
+	  fprintf(fp, "%3d ", rp->countset[tr[j]]);
+	}
+
+	fprintf(fp, "\t");
+	fprintf(fp, "Lmt: %4d", rp->lastlimit);
+
+	fprintf(fp, " AllocAge: %6.3fh", (double)(now-rp->alloc_time)/3600.0);
+
+	fprintf(fp, " Mails: %3d %3d %3d",
+		rp->mails, rp->mails2, rp->mails3);
+
+	fprintf(fp, " Excesses: %d %d %d",
+		rp->excesses, rp->excesses2, rp->excesses3);
+
+	fprintf(fp, " LastExcess: %ld", rp->last_excess);
+	fprintf(fp, " Rcpts: %d %d %d",
+		rp->recipients, rp->recipients2, rp->recipients3);
+
+	fprintf(fp, "\n");
+	return 0;
+}
+
 
 static int got_sigusr1;
 
@@ -339,10 +393,9 @@ static void subdaemon_trk_checksigusr1(state)
 	struct ipv4_regs *r;
 	struct ipv4_regs_head *rhead;
 	int i, j, tr[SLOTCOUNT];
-	unsigned int ip4key;
 	FILE *fp = NULL;
 	const char  *fn = "/var/tmp/smtpserver-ratetracker.dump";
-	char buf[60];
+	struct v4_dataprint dp4;
 
 	if (!got_sigusr1) return;  /* Nothing to do, bail out */
 	got_sigusr1 = 0;
@@ -365,33 +418,25 @@ static void subdaemon_trk_checksigusr1(state)
 	}
 
 
+	dp4.fp = fp;
+	dp4.tr = tr;
+
 	rhead = state->ipv4_regs_head;
 
 	for ( ; rhead ; rhead = rhead->next ) {
 
-	  r = rhead->ipv4;
+	    r = rhead->ipv4;
 
-	  for (i = 0; i < rhead->count; ++i) {
+	    for (i = 0; i < rhead->count; ++i) {
 
-	    if (r[i].spl != NULL) {
-	      ip4key = r[i].spl->key;
-	      sprintf(buf, "%u.%u.%u.%u",
-		      (ip4key >> 24) & 255,  (ip4key >> 16) & 255,
-		      (ip4key >>  8) & 255,   ip4key & 255 );
-	      fprintf(fp, "%-16s", buf);
-	      for (j = 0; j < SLOTCOUNT; ++j) {
-		fprintf(fp, "%3d  ", r[i].countset[tr[j]]);
-	      }
-	      fprintf(fp, "\t");
-	      fprintf(fp, "Lmt: %4d ", r[i].lastlimit);
-	      fprintf(fp, "AllocAge: %6.3fh ", (double)(now-r[i].alloc_time)/3600.0);
-	      fprintf(fp, "Mails: %6d ", r[i].mails);
-	      fprintf(fp, "Excesses: %d %d %d ",
-		      r[i].excesses, r[i].excesses2, r[i].excesses3);
-	      fprintf(fp, "LastExcess: %ld", r[i].last_excess);
-	      fprintf(fp, "\n");
-	    }
-	  } /* All entries in this block */
+		if (r[i].spl != NULL) {
+
+		    dump_v4_rcptline(&dp4, r[i].spl);
+
+		}
+
+	    } /* All entries in this block */
+
 	} /* All blocks.. */
 
 
@@ -409,8 +454,7 @@ dump_trk(state, peerdata)
 	struct ipv4_regs *r;
 	struct ipv4_regs_head *rhead;
 	int i, j, tr[SLOTCOUNT];
-	unsigned int ip4key;
-	char buf[60];
+	struct v4_dataprint dp4;
 
 	pid = fork();
 	if (pid > 0) {
@@ -448,36 +492,21 @@ dump_trk(state, peerdata)
 	fprintf(fp, "200-DUMP BEGINS\n");
 	fflush(fp);
 
+	dp4.fp = fp;
+	dp4.tr = tr;
+
+#if 1
+	sp_scan( dump_v4_rcptline, & dp4, NULL, state->spt4 );
+#else
 	for ( ; rhead ; rhead = rhead->next ) {
-
 	  r = rhead->ipv4;
-
 	  for (i = 0; i < rhead->count; ++i) {
-
 	    if (r[i].spl != NULL) {
-	      ip4key = r[i].spl->key;
-	      sprintf(buf, "%u.%u.%u.%u",
-		      (ip4key >> 24) & 255,  (ip4key >> 16) & 255,
-		      (ip4key >>  8) & 255,   ip4key & 255 );
-	      fprintf(fp, "200- %-16s", buf);
-	      for (j = 0; j < SLOTCOUNT; ++j) {
-		fprintf(fp, "%3d ", r[i].countset[tr[j]]);
-	      }
-	      fprintf(fp, "\t");
-	      fprintf(fp, "Lmt: %4d", r[i].lastlimit);
-	      fprintf(fp, " AllocAge: %6.3fh", (double)(now-r[i].alloc_time)/3600.0);
-	      fprintf(fp, " Mails: %6d", r[i].mails);
-	      fprintf(fp, " Excesses: %d %d %d",
-		      r[i].excesses, r[i].excesses2, r[i].excesses3);
-	      fprintf(fp, " LastExcess: %ld", r[i].last_excess);
-	      fprintf(fp, " Rcpts: %d %d %d",
-		      r[i].recipients, r[i].recipients2, r[i].recipients3);
-	      fprintf(fp, "\n");
-	      fflush(fp);
+		    dump_v4_rcptline(&dp4, r[i].spl);
 	    }
 	  } /* All entries in this block */
 	} /* All blocks.. */
-
+#endif
 	fprintf(fp, "200 DUMP ENDS\n");
 	fflush(fp);
 	fclose(fp);
@@ -540,7 +569,7 @@ slot_ipv4_data(state, outbuf, ipv4addr)
 	  --j; if (j < 0) j = SLOTCOUNT-1;
 	}
 
-	strcpy(s, "200 Slot-IPv4-data: ");
+	strcpy(s, "200 Slot-IPv4-data:");
 	s += strlen(s);
 	for (j = 0; j < SLOTCOUNT; ++j) {
 	  sprintf(s, " %d", reg->countset[tr[j]]);
@@ -1099,9 +1128,9 @@ smtp_report_dump(SS)
 	}
 
 	discard_subdaemon_trk( statep );
-	type(NULL,0,NULL, "Output %d lines", lines);
 
 	logfp = logfp_orig;
+	type(NULL,0,NULL, "Output %d lines", lines);
 
 	return 0;
 }
