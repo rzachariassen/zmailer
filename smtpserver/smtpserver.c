@@ -1279,7 +1279,7 @@ int insecure;
 #endif
 	}
 	if ((SS->whoson_result = wso_query(buf, SS->whoson_data,
-					 sizeof(SS->whoson_data)))) {
+					   sizeof(SS->whoson_data)))) {
 	    strcpy(SS->whoson_data,"UNAVAILABLE");
 	}
     }

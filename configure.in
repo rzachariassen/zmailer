@@ -1237,6 +1237,7 @@ dnl AC_MSG_RESULT([ ... link -L/opt/lib -lwhoson yields: $ac_cv_lib_whoson])
 	  ])
 	if test "$ac_cv_lib_whoson" = yes; then
 	    AC_MSG_RESULT([Whoson libs  available at $whosonloc: -lwhoson !]);
+	    AC_DEFINE(HAVE_WHOSON_H)
 	else
 	    AC_MSG_RESULT([No whoson libs available at system default locations ?])
 	    LIBWHOSON=""

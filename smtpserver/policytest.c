@@ -621,6 +621,9 @@ int whosonrc;
     }
 
     memset(state, 0, sizeof(*state));
+#ifdef HAVE_WHOSON_H
+    state->whoson_result = whosonrc;
+#endif
     return 0;
 }
 
@@ -644,7 +647,8 @@ const char *pbuf;
 		       1 << P_A_InboundSizeLimit  |
 		       1 << P_A_OutboundSizeLimit |
 		       1 << P_A_FullTrustNet	  |
-		       1 << P_A_TrustRecipients     );
+		       1 << P_A_TrustRecipients   |
+		       1 << P_A_TrustWhosOn        );
 
     state->maxinsize  = -1;
     state->maxoutsize = -1;
@@ -705,6 +709,15 @@ const char *pbuf;
 	printf("000- policytestaddr: 'fulltrustnet +' found\n");
       state->full_trust = 1;
     }
+#ifdef HAVE_WHOSON_H
+    if (state->values[P_A_TrustWhosOn] == '+') {
+      if (debug)
+	printf("000- policytestaddr: 'trust-whoson +' found, accept? = %d\n",
+	       (state->whoson_result == 0));
+      if (state->whoson_result == 0)
+	state->always_accept = 1;
+    }
+#endif
     if (state->values[P_A_RELAYCUSTNET] == '+') {
       if (debug)
 	printf("000- policytestaddr: 'relaycustnet +' found\n");

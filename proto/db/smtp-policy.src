@@ -228,10 +228,10 @@
 #|    to go thru...  Substitutes accurate data to user's whimsical DNS
 #|    maintenance activities.  Vulnerable to unauthorized inbound MX
 #|    service abuse.
-#
+
 .			relaycustomer - acceptifmx - senderokwithdns +
 [0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns +
-#
+
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
 #|    the source and destination domains are DNS resolvable, but does not
@@ -249,7 +249,14 @@
 #|
 #|-----------
 #|
-#| For outbound relaying control, see comments in file:  smtp-policy.relay
+#| If your system has ``whoson'' server (see contrib/whoson-*.tar.gz),
+#| you can activate it by adding  'trust-whoson +' attribute pair to
+#| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
+#|
+#|-----------
+#|
+#| For outbound relaying control for fixed IP address networks, see
+#| comments in file:  smtp-policy.relay
 #|
 #|-----------
 #|

@@ -32,12 +32,14 @@
 			grant outgoing relay capability.
 
 
-	- smtp-policy.relay	Who can use us as outbound relay,
+	- smtp-policy.relay
+			Who can use us as outbound relay.
+
 			Use here
 				[ip.number]/maskwidth
 			for listing those senders (networks) we
-			absolutely trust.  Additionally you may
-			enter some other attributes as parameters
+			absolutely trust.  Additionally you may give
+			(at the same line) some attributes as arameters
 			for this key entry:
 				fulltrustnet +
 				trustrecipient +
@@ -317,11 +319,12 @@
 #|    reason have given open permissions for people to use their server
 #|    as MX backup for their clients, but don't know all domains valid
 #|    to go thru...  Substitutes accurate data to user's whimsical DNS
-#|    maintenance activities.  Vulnerable to inbound resource abuse.
-#
+#|    maintenance activities.  Vulnerable to unauthorized inbound MX
+#|    service abuse.
+
 .			relaycustomer - acceptifmx - senderokwithdns +
 [0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns +
-#
+
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
 #|    the source and destination domains are DNS resolvable, but does not
@@ -336,6 +339,17 @@
 #|
 #| These rules mean that locally accepted hostnames MUST be listed in
 #| the database with  'relaytarget +' attribute.
+#|
+#|-----------
+#|
+#| If your system has ``whoson'' server (see contrib/whoson-*.tar.gz),
+#| you can activate it by adding  'trust-whoson +' attribute pair to
+#| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
+#|
+#|-----------
+#|
+#| For outbound relaying control for fixed IP address networks, see
+#| comments in file:  smtp-policy.relay
 #|
 #|-----------
 #|

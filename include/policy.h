@@ -134,6 +134,7 @@ static char *_KA[] = {
 	"maxoutsize",
 	"fulltrustnet",
 	"trustrecipients",
+	"trust-whoson"
 };
 #define KA(x) ((((x)>0)&&((x)<=P_A_LastAttr))?_KA[(x) & 0xFF]:"??")
 
