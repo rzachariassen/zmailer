@@ -366,7 +366,9 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 
 	/* Don't close files/handles, the system shuts down
 	   without it just fine */
-#if 0
+	/* .. except that it doesn't, if the main smtpserver process
+	   has detected some subsystem dying, and has been doing recovery.. */
+#if 1
 	/* Close all FDs, except our rendezvous socket..
 	   We use 'EOF' indication on it to detect when last
 	   potential client has gone, and therefore it is not
