@@ -523,10 +523,14 @@ extern int re_exec _RE_ARGS ((const char *));
 #   define __restrict
 #  endif
 # endif
-/* For now unconditionally define __restrict_arr to expand to nothing.
-   Ideally we would have a test for the compiler which allows defining
-   it to restrict.  */
-# define __restrict_arr
+/* gcc 3.1 and up support the [restrict] syntax.  */
+#ifndef __restrict_arr
+# if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
+#  define __restrict_arr __restrict
+# else
+#  define __restrict_arr
+# endif
+#endif
 #endif
 
 /* POSIX compatibility.  */
@@ -536,7 +540,7 @@ extern int regcomp _RE_ARGS ((regex_t *__restrict __preg,
 
 extern int regexec _RE_ARGS ((const regex_t *__restrict __preg,
 			      const char *__restrict __string, size_t __nmatch,
-			      regmatch_t __pmatch[],
+			      regmatch_t __pmatch[__restrict_arr],
 			      int __eflags));
 
 extern size_t regerror _RE_ARGS ((int __errcode, const regex_t *__preg,

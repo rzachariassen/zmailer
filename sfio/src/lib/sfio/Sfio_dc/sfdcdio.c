@@ -101,6 +101,7 @@ Sfdisc_t*	disc;
 	return diordwr(f, (Void_t*)buf, n, (Direct_t*)disc, SF_WRITE);
 }
 
+#ifdef FDIRECT
 #if __STD_C
 static int dioexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
 #else
@@ -128,6 +129,7 @@ Sfdisc_t*	disc;
 
 	return 0;
 }
+#endif /* FDIRECT */
 
 #if __STD_C
 int sfdcdio(Sfio_t* f, size_t bufsize)
