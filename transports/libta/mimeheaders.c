@@ -880,39 +880,59 @@ mime_received_convert(rp, convertstr)
 	char *convertstr;
 {
 	int convertlen = strlen(convertstr);
+	char *semic = NULL;
+	char **schdr = NULL;
 
 	char **inhdr = *(rp->newmsgheadercvt);
+	char **hdro = NULL;
 
-	/* We have one advantage: The "Received:" header we want to
-	   fiddle with is the first of them at all. */
+	/* We have one advantage: The "Received:" header we
+	   want to fiddle with is the first one of them. */
 
-	while (inhdr && cistrncmp(*inhdr,"Received:",9) == 0) {
-	  int receivedlen = strlen(*inhdr);
-	  char *newreceived = NULL;
-	  char *semicpos;
-	  int  semicindex = receivedlen;
+	if (!inhdr || cistrncmp(*inhdr,"Received:",9) != 0) {
+	  return 0; /* D'uh ??  Not 'Received:' ??? */
+	}
 
-	  newreceived = emalloc(receivedlen + convertlen + 1);
+	/* Look for the LAST semicolon in this Received: header.. */
+
+	do {
+	  char *sc = strrchr(*inhdr, ';');
+	  if (sc) { semic = sc; schdr = inhdr; }
+	  hdro = inhdr;
+	  ++inhdr;
+	} while (*inhdr && (**inhdr == ' ' || **inhdr == '\t'));
+
+	/* Now 'semic' is either set, or not; if set, 'schdr' points
+	   to the begin of the line where it is.
+	   If 'semic' is not set, 'hdro' will point to the last line
+	   of the 'Received:' header in question */
+
+	if (!semic) {
+	  schdr = hdro;
+	  semic = strlen(*schdr) + *schdr;
+	}
+
+	{
+	  int receivedlen = strlen(*schdr);
+	  char *newreceived = emalloc(receivedlen + convertlen + 1);
+	  int  semicindex;
+
 	  if (!newreceived) return 0; /* Failed malloc.. */
-	  strcpy(newreceived,*inhdr);
-	  semicpos = strchr(newreceived,';');
-	  if (semicpos != NULL) {
-	    semicindex = semicpos - newreceived;
-	    strcpy(newreceived+semicindex+convertlen,(*inhdr)+semicindex);
-	  } else
-	    semicpos = newreceived+semicindex;
-	  memcpy(semicpos,convertstr,convertlen);
 
-	  ctlfree(rp->desc,*inhdr);
-	  *inhdr = newreceived;
+	  semicindex = semic - *schdr;
+	  memcpy(newreceived, *schdr, semicindex);
+	  memcpy(newreceived+semicindex, convertstr, convertlen);
+	  strcpy(newreceived+semicindex+convertlen, (*schdr) + semicindex);
+	  newreceived[receivedlen + convertlen] = '\0';
+
+	  ctlfree(rp->desc,*schdr);
+	  *schdr = newreceived;
 
 	  /* if (verboselog) {
 	     fprintf(verboselog,"Rewriting 'Received:' headers.\n");
-	     fprintf(verboselog,"The new line is: '%s'\n",*inhdr);
+	     fprintf(verboselog,"The new line is: '%s'\n",*hdro);
 	     }
-	   */
-
-	  inhdr = NULL; /* quit this header munging.. */
+	  */
 	}
 	return 1;
 }

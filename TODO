@@ -1,3 +1,6 @@
+- makedb: duplicate key report to report IP address labels properly
+- some one-off error in rfc822-scanner
+
 Known/suspected bugs/Missing Features on current Zmailer sources
 
 - Configuration files, esp.   cf/aliases.cf   has controversy in it.

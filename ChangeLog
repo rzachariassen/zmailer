@@ -1,3 +1,15 @@
+1999-08-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/libta/mimeheaders.c:
+	    MIME-conversion labeling had problems after the new form
+	    of 'Received:' production at the router.
+
+	* smtpserver/smtpserver.c:
+	    Added couple of  setvbuf()  calls for stdout, and stderr
+	    at the beginning of the smtpserver main() program.  Story
+	    is long about what and where...  look at the ZMailer list
+	    archive about ccNotes gateway problem.
+
 1999-08-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* lib/selfaddrs.c:

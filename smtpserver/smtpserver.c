@@ -332,6 +332,9 @@ char **argv;
     }
     smtp_syslog = (*t != '\0');
 
+    setvbuf(stdout, NULL, _IOFBF, 8192);
+    setvbuf(stderr, NULL, _IOLBF, 8192);
+
     memset(&SS, 0, sizeof(SS));
     SS.mfp = NULL;
     SS.style = "ve";
