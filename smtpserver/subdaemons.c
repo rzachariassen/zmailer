@@ -700,6 +700,7 @@ subdaemon_send_to_peer(peer, buf, len)
 	  peer->outlen -= peer->outptr;
 	  peer->outptr = 0;
 	}
+	peer->outbuf[ peer->outlen ] = 0; /* Debugging time buffer cleanup */
 
 	return 0; /* Stored successfully for outgoing traffic.. */
 }
