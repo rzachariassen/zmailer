@@ -113,6 +113,7 @@ smtp_starttls(SS, buf, cp)
       MIBMtaEntry->ss.IncomingSMTP_STARTTLS_fail += 1;
       exit(2);
     }
+    SS->with_protocol_set |= WITH_TLS;
 }
 
 

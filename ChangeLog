@@ -1,3 +1,17 @@
+2004-08-20  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtphook.c, smtpserver/smtpserver.h,
+	  smtpserver/smtpserver.c:
+	    If the "my_perl" flag is not set, don't even let procedure
+	    stack init (macro embedded) codes to run in hooks.
+	    Call  ZSMTP_hook_set_ipaddress()  at the start of the
+	    smtpserver() function loop.
+
+	* smtpserver/smtpserver.h, smtpserver/smtpserver.c,
+	  smtpserver/smtptls.c, smtpserver/smtpcmds.c, smtpserver/smtpauth.c:
+	    Reworked the 'with' clause data presentation in style of
+	    the RFC 3848.
+
 2004-08-12  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/subdaemons-ctf.c:

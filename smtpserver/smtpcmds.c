@@ -354,8 +354,11 @@ const char *buf, *cp;
 	if (etrn_ok && !msa_mode)
 	  type(SS, -250, NULL, "ETRN");		/* RFC 1985 */
 	type(SS, 250, NULL, "HELP");		/* RFC 821 ? */
-	SS->with_protocol = WITH_ESMTP;
+	SS->with_protocol_set |= WITH_EHLO;
 	multilinereplies = multiline;
+    } else {
+      /* HELO greeting -- or LHLO...  but that is just for debug */
+      SS->with_protocol_set = WITH_HELO;
     }
     SS->state = MailOrHello;
 }
@@ -406,10 +409,11 @@ int insecure;
        We use at most half of the free space,
        and each recipient will use the claimed
        size, thus marking up its reception..        */
-
+#if 0
     if (SS->carp->cmd == Mail2 || SS->carp->cmd == Send2) {
-	SS->with_protocol = WITH_ESMTP;
+	SS->with_protocol_set = WITH_ESMTP;
     }
+#endif
     if (SS->state != Mail && SS->state != MailOrHello) {
 	switch (SS->state) {
 	case Hello:
@@ -993,7 +997,61 @@ int insecure;
 
     if (bodytype != NULL)
 	fprintf(SS->mfp, "bodytype %s\n", bodytype);
-    fprintf(SS->mfp, "with %s\n", SS->with_protocol);
+    fprintf(SS->mfp, "with ");
+
+    if (SS->with_protocol_set & WITH_BSMTP)
+      fprintf(SS->mfp, "BSMTP");
+    else if (SS->with_protocol_set & WITH_LMTP) {
+      switch (SS->with_protocol_set & (WITH_AUTH|WITH_TLS)) {
+      case 0:
+	fprintf(SS->mfp,"LMTP");
+	break;
+      case WITH_AUTH:
+	fprintf(SS->mfp,"LMTPA");
+	break;
+      case WITH_TLS:
+	fprintf(SS->mfp,"LMTPS");
+	break;
+      case WITH_TLS|WITH_AUTH:
+	fprintf(SS->mfp,"LMTPSA");
+	break;
+      }
+    } else if (SS->with_protocol_set & WITH_SUBMIT) {
+      switch (SS->with_protocol_set & (WITH_AUTH|WITH_TLS)) {
+      case 0:
+	fprintf(SS->mfp,"SUBMIT");
+	break;
+      case WITH_AUTH:
+	fprintf(SS->mfp,"SUBMITA");
+	break;
+      case WITH_TLS:
+	fprintf(SS->mfp,"SUBMITS");
+	break;
+      case WITH_TLS|WITH_AUTH:
+	fprintf(SS->mfp,"SUBMITSA");
+	break;
+      }
+    } else if (SS->with_protocol_set & WITH_EHLO) {
+      switch (SS->with_protocol_set & (WITH_AUTH|WITH_TLS)) {
+      case 0:
+	fprintf(SS->mfp,"ESMTP");
+	break;
+      case WITH_AUTH:
+	fprintf(SS->mfp,"ESMTPA");
+	break;
+      case WITH_TLS:
+	fprintf(SS->mfp,"ESMTPS");
+	break;
+      case WITH_TLS|WITH_AUTH:
+	fprintf(SS->mfp,"ESMTPSA");
+	break;
+      }
+    } else {
+      /* Not SUBMIT, LMTP, ESMTP -> just plain SMTP */
+      fprintf(SS->mfp,"SMTP");
+    }
+    fprintf(SS->mfp, "\n");
+
     if (ident_flag)
 	fprintf(SS->mfp, "identinfo %s\n", SS->ident_username);
 

@@ -301,7 +301,17 @@ typedef struct SmtpState {
     long sizeoptsum;
     char myhostname[MAXHOSTNAMELEN + 1];
     char rhostname[MAXHOSTNAMELEN + 1];
-    const char *with_protocol;	/* = WITH_SMTP */
+    int  with_protocol_set;	/* = WITH_SMTP */
+#define WITH_HELO		0x0001
+#define WITH_EHLO		0x0002
+#define WITH_SMTP		0x0004
+#define WITH_SUBMIT		0x0008
+#define WITH_SMTPS		0x0010
+#define WITH_TLS		0x0020
+#define WITH_AUTH		0x0040
+#define WITH_LMTP		0x0080
+#define WITH_BSMTP		0x0100
+
     const char *style;		/* = "ve" */
     Command state;		/* = Hello */
     int  VerboseCommand;
@@ -377,10 +387,6 @@ typedef struct SmtpState {
 
 
 #define STYLE(i,c)	(strchr(((i)==NULL ? style : (i)->flags), (c)) != NULL)
-
-#define	WITH_SMTP	"SMTP"
-#define	WITH_ESMTP	"ESMTP"
-#define	WITH_BSMTP	"BSMTP"
 
 #define HELPMAX 40
 extern char *helplines[];
@@ -742,7 +748,7 @@ extern int rbl_dns_test __((struct policystate *, const int, const u_char *, cha
 
 extern int ZSMTP_hook_init          __((const int, char **, const char **, const char *));
 extern void ZSMTP_hook_atexit       __((void));
-extern int ZSMTP_hook_set_ipaddress __((const char *, int *));
+extern int ZSMTP_hook_set_ipaddress __((const char *, int, int *));
 extern int ZSMTP_hook_set_user      __((const char *, const char *, int *));
 extern int ZSMTP_hook_mailfrom      __((struct policystate *, const char *, const int, int *));
 extern int ZSMTP_hook_rcptto        __((struct policystate *, const char *, const int, int *));

@@ -401,6 +401,7 @@ void smtp_auth(SS,buf,cp)
 	    if (zpw == NULL) {
 	      SS->authuser = uname;
 	      type(SS, 235, NULL, "Authentication successful.");
+	      SS->with_protocol_set |= WITH_AUTH;
 #if DO_PERL_EMBED
 	      {
 		int rc;
@@ -597,6 +598,7 @@ void smtp_auth(SS,buf,cp)
 	      result = sasl_getprop(SS->sasl.conn, SASL_USERNAME,
 				    (const void **)&SS->authuser); 
 	      /* XX: check result == SASL_OK ?? */
+	      SS->with_protocol_set |= WITH_AUTH;
 	      if (result == SASL_OK) {
 #if DO_PERL_EMBED
 		int rc;

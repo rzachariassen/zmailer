@@ -590,7 +590,7 @@ int main(argc, argv, envp)
 	bindaddrs = NULL;
 	SS.mfp = NULL;
 	SS.style = "ve";
-	SS.with_protocol = WITH_SMTP;
+	SS.with_protocol_set = 0;
 
 	SIGNAL_HANDLE(SIGPIPE, SIG_IGN);
 
@@ -659,7 +659,7 @@ int main(argc, argv, envp)
 	    ident_flag = 1;
 	    break;
 	  case 'B':
-	    SS.with_protocol = WITH_BSMTP;
+	    SS.with_protocol_set |= WITH_BSMTP;
 	    break;
 	  case 'C':
 	    cfgpath = optarg;
@@ -1447,13 +1447,17 @@ int main(argc, argv, envp)
 		  
 		  switch (socktag) {
 		  case LSOCKTYPE_SMTP:
+		    SS.with_protocol_set |= WITH_SMTP;
 		    break;
 		  case LSOCKTYPE_SSMTP:
 		    ssmtp_connected = 1;
+		    SS.with_protocol_set |= WITH_SMTPS;
+		    SS.with_protocol_set |= WITH_TLS;
 		    break;
 		  case LSOCKTYPE_SUBMIT:
 		    submit_connected = 1;
 		    msa_mode = 1;
+		    SS.with_protocol_set |= WITH_SUBMIT;
 		    break;
 		  default:
 		    break;
@@ -2353,6 +2357,10 @@ int insecure;
 
     smtpauth_init(SS);
 
+#if DO_PERL_EMBED
+    ZSMTP_hook_set_ipaddress(SS->rhostaddr, localport, &rc);
+#endif
+
     if (localport != 25 && detect_incorrect_tls_use) {
       int c;
       int aval = SS->read_alarm_ival;
@@ -2863,7 +2871,7 @@ int insecure;
 	    MIBMtaEntry->ss.IncomingSMTP_TICK ++;
 	    type(SS, 250, m200, "%s", buf);
 	    typeflush(SS);
-	    SS->with_protocol = WITH_BSMTP;
+	    SS->with_protocol_set |= WITH_BSMTP;
 	    break;
 	case Quit:
 	    MIBMtaEntry->ss.IncomingSMTP_QUIT ++;

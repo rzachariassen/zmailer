@@ -144,48 +144,53 @@ void ZSMTP_hook_atexit()
 /* Funcions used in actual processing of things */
 
 /* return value !0: formed an opinnion */
-int ZSMTP_hook_set_ipaddress(ipaddrstr, retp)
+int ZSMTP_hook_set_ipaddress(ipaddrstr, localportnum, retp)
      const char *ipaddrstr;
+     int localportnum;
      int *retp;
 {
-	dSP;
-	int count;
-	int rc = 0;
+	if (!my_perl)
+	  return 0;
+	else {
 
-	if (!my_perl) return 0;
+	  dSP;
+	  int count;
+	  int rc = 0;
 
-	ENTER;
-	SAVETMPS;
+	  ENTER;
+	  SAVETMPS;
 
-	PUSHMARK(SP) ;
-	XPUSHs(sv_2mortal(newSVpv(ipaddrstr,0)));
-	PUTBACK ;
+	  PUSHMARK(SP) ;
+	  XPUSHs(sv_2mortal(newSVpv(ipaddrstr,0)));
+	  XPUSHs(sv_2mortal(newSViv(localportnum)));
+	  PUTBACK ;
 
-	count = call_pv("ZSMTP::hook::set_ipaddress",G_ARRAY|G_EVAL);
+	  count = call_pv("ZSMTP::hook::set_ipaddress",G_ARRAY|G_EVAL);
 
-	SPAGAIN;
+	  SPAGAIN;
 
-	if (count != 2) {
-	  type(NULL,0,NULL,"ZSMTP::hook::set_ipaddress() perl call returned %d results, not 2!", count);
-	} else {
-	  /* Result vector is:
+	  if (count != 2) {
+	    type(NULL,0,NULL,"ZSMTP::hook::set_ipaddress() perl call returned %d results, not 2!", count);
+	  } else {
+	    /* Result vector is:
 	       (0,  ii)  -> no opinnion, no returned value
 	       (!0, ii)  -> opinnion, value 'ii' returns via *retp
-	  */
-	  int result = POPi;
-	  rc         = POPi;
+	    */
+	    int result = POPi;
+	    rc         = POPi;
 
-	  if (rc) {
-	    if (retp)
-	      *retp = result;
+	    if (rc) {
+	      if (retp)
+		*retp = result;
+	    }
 	  }
+
+	  PUTBACK;
+	  FREETMPS;
+	  LEAVE;
+
+	  return rc;
 	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-
-	return rc;
 }
 
 /* return value !0: formed an opinnion */
@@ -193,45 +198,48 @@ int ZSMTP_hook_set_user(user, kind, retp)
      const char *user, *kind;
      int *retp;
 {
-	dSP;
-	int count;
-	int rc = 0;
+	if (!my_perl)
+	  return 0;
+	else {
 
-	if (!my_perl) return 0;
+	  dSP;
+	  int count;
+	  int rc = 0;
 
-	ENTER;
-	SAVETMPS;
+	  ENTER;
+	  SAVETMPS;
 
-	PUSHMARK(SP) ;
-	XPUSHs(sv_2mortal(newSVpv(user,0)));
-	XPUSHs(sv_2mortal(newSVpv(kind,0)));
-	PUTBACK ;
+	  PUSHMARK(SP) ;
+	  XPUSHs(sv_2mortal(newSVpv(user,0)));
+	  XPUSHs(sv_2mortal(newSVpv(kind,0)));
+	  PUTBACK ;
 
-	count = call_pv("ZSMTP::hook::set_user",G_ARRAY|G_EVAL);
+	  count = call_pv("ZSMTP::hook::set_user",G_ARRAY|G_EVAL);
 
-	SPAGAIN;
+	  SPAGAIN;
 
-	if (count != 2) {
-	  type(NULL,0,NULL,"ZSMTP::hook::set_user() perl call returned %d results, not 2!", count);
-	} else {
-	  /* Result vector is:
+	  if (count != 2) {
+	    type(NULL,0,NULL,"ZSMTP::hook::set_user() perl call returned %d results, not 2!", count);
+	  } else {
+	    /* Result vector is:
 	       (0,  ii)  -> no opinnion, no returned value
 	       (!0, ii)  -> opinnion, value 'ii' returns via *retp
-	  */
-	  int result = POPi;
-	  rc         = POPi;
+	    */
+	    int result = POPi;
+	    rc         = POPi;
 
-	  if (rc) {
-	    if (retp)
-	      *retp = result;
+	    if (rc) {
+	      if (retp)
+		*retp = result;
+	    }
 	  }
+	  
+	  PUTBACK;
+	  FREETMPS;
+	  LEAVE;
+
+	  return rc;
 	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-
-	return rc;
 }
 
 /* return value !0: formed an opinnion */
@@ -241,44 +249,47 @@ int ZSMTP_hook_mailfrom(state, str, len, retp)
      const int len;
      int *retp;
 {
-	dSP;
-	int count;
-	int rc = 0;
+	if (!my_perl)
+	  return 0;
+	else {
 
-	if (!my_perl) return 0;
+	  dSP;
+	  int count;
+	  int rc = 0;
 
-	ENTER;
-	SAVETMPS;
+	  ENTER;
+	  SAVETMPS;
 
-	PUSHMARK(SP) ;
-	XPUSHs(sv_2mortal(newSVpvn(str,len)));
-	PUTBACK ;
+	  PUSHMARK(SP) ;
+	  XPUSHs(sv_2mortal(newSVpvn(str,len)));
+	  PUTBACK ;
 
-	count = call_pv("ZSMTP::hook::mailfrom",G_ARRAY|G_EVAL);
+	  count = call_pv("ZSMTP::hook::mailfrom",G_ARRAY|G_EVAL);
 
-	SPAGAIN;
+	  SPAGAIN;
 
-	if (count != 2) {
-	  type(NULL,0,NULL,"ZSMTP::hook::mailfrom() perl call returned %d results, not 2!", count);
-	} else {
-	  /* Result vector is:
+	  if (count != 2) {
+	    type(NULL,0,NULL,"ZSMTP::hook::mailfrom() perl call returned %d results, not 2!", count);
+	  } else {
+	    /* Result vector is:
 	       (0,  ii)  -> no opinnion, no returned value
 	       (!0, ii)  -> opinnion, value 'ii' returns via *retp
-	  */
-	  int result = POPi;
-	  rc         = POPi;
+	    */
+	    int result = POPi;
+	    rc         = POPi;
 
-	  if (rc) {
-	    if (retp)
-	      *retp = result;
+	    if (rc) {
+	      if (retp)
+		*retp = result;
+	    }
 	  }
+	  
+	  PUTBACK;
+	  FREETMPS;
+	  LEAVE;
+
+	  return rc;
 	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-
-	return rc;
 }
 
 /* return value !0: formed an opinnion */
@@ -288,43 +299,46 @@ int ZSMTP_hook_rcptto(state, str, len, retp)
      const int len;
      int *retp;
 {
-	dSP;
-	int count;
-	int rc = 0;
+	if (!my_perl)
+	  return 0;
+	else {
 
-	if (!my_perl) return 0;
+	  dSP;
+	  int count;
+	  int rc = 0;
 
-	ENTER;
-	SAVETMPS;
+	  ENTER;
+	  SAVETMPS;
 
-	PUSHMARK(SP) ;
-	XPUSHs(sv_2mortal(newSVpvn(str,len)));
-	PUTBACK ;
+	  PUSHMARK(SP) ;
+	  XPUSHs(sv_2mortal(newSVpvn(str,len)));
+	  PUTBACK ;
 
-	count = call_pv("ZSMTP::hook::rcptto",G_ARRAY|G_EVAL);
+	  count = call_pv("ZSMTP::hook::rcptto",G_ARRAY|G_EVAL);
 
-	SPAGAIN;
+	  SPAGAIN;
 
-	if (count != 2) {
-	  type(NULL,0,NULL,"ZSMTP::hook::rcptto() perl call returned %d results, not 2!", count);
-	} else {
-	  /* Result vector is:
+	  if (count != 2) {
+	    type(NULL,0,NULL,"ZSMTP::hook::rcptto() perl call returned %d results, not 2!", count);
+	  } else {
+	    /* Result vector is:
 	       (0,  ii)  -> no opinnion, no returned value
 	       (!0, ii)  -> opinnion, value 'ii' returns via *retp
-	  */
-	  int result = POPi;
-	  rc         = POPi;
-
-	  if (rc) {
-	    if (retp)
-	      *retp = result;
+	    */
+	    int result = POPi;
+	    rc         = POPi;
+	    
+	    if (rc) {
+	      if (retp)
+		*retp = result;
+	    }
 	  }
+
+	  PUTBACK;
+	  FREETMPS;
+	  LEAVE;
+
+	  return rc;
 	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-
-	return rc;
 }
 #endif
