@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1998
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1999
  */
 
 /*
@@ -877,6 +877,7 @@ dq_insert(DQ, ino, file, delay)
 	  dq->wrkcount2 += 1;
 	  dq->wrksum    += 1;
 	}
+	++MIBMtaEntry->mtaReceivedMessagesSc;
 	return 0;
 }
 
@@ -1298,6 +1299,8 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	if (cfp->head == NULL) {
 	  ++global_wrkcnt;
 	  ++MIBMtaEntry->mtaStoredMessages;
+	  MIBMtaEntry->mtaStoredRecipients     += cfp->rcpnts_work;
+	  MIBMtaEntry->mtaReceivedRecipientsSc += cfp->rcpnts_work;
 	  unctlfile(cfp, 0); /* Delete the file.
 				(decrements those counters too!) */
 	  return NULL;
@@ -1314,6 +1317,8 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	sp_install(cfp->id, (void *)cfp, 0, spt_mesh[L_CTLFILE]);
 	++MIBMtaEntry->mtaStoredMessages;
 	++global_wrkcnt;
+	MIBMtaEntry->mtaStoredRecipients     += cfp->rcpnts_work;
+	MIBMtaEntry->mtaReceivedRecipientsSc += cfp->rcpnts_work;
 	return cfp;
 }
 
@@ -1596,12 +1601,12 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	  }
 	  /* Calculate summary info */
 	  if (cp[-1] == _CF_RECIPIENT) {
-	    cfp->rcpnts_total += 1;
+	    ++cfp->rcpnts_total;
 	    if (*cp == _CFTAG_NOTOK) {
-	      cfp->rcpnts_failed += 1;
+	      ++cfp->rcpnts_failed;
 	      prevrcpt = -1;
-	    } else if (*cp == _CFTAG_OK) {
-	      cfp->rcpnts_work   += 1;
+	    } else if (*cp != _CFTAG_OK) {
+	      ++cfp->rcpnts_work;
 	    }
 	  }
 	  if (*cp == _CFTAG_NORMAL ||

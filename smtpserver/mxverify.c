@@ -107,10 +107,10 @@ dnsmxlookup(host, depth, mxmode, qtype)
 	msgdata *eom, *cp;
 	querybuf qbuf, answer;
 	msgdata buf[8192], realname[8192];
-	int qlen, n, i, j, ancount, qdcount, maxpref;
+	int qlen, n, i, ancount, qdcount, maxpref;
 	u_short type;
 	int saw_cname = 0, had_mx_record = 0;
-	int ttl;
+	/* int ttl; */
 	struct addrinfo req, *ai;
 
 	if (depth == 0)
@@ -442,13 +442,30 @@ int client_dns_verify(retmode, domain, alen)
 	return sender_dns_verify(retmode, domain, alen);
 }
 
-int rbl_dns_test(ipv4addr, rbldomain, msgp)
-     const u_char *ipv4addr;
+int rbl_dns_test(ipaf, ipaddr, rbldomain, msgp)
+     const int ipaf;
+     const u_char *ipaddr;
      char *rbldomain;
      char **msgp;
 {
-	char hbuf[2000], *s;
-	int rc;
+	char hbuf[2000], *s, *suf;
+	/* int hspc; */
+
+	if (ipaf == AF_INET) {
+	  sprintf(hbuf, "%d.%d.%d.%d.",
+		  ipaddr[3], ipaddr[2], ipaddr[1], ipaddr[0]);
+
+	} else { /* Ok, the other variant is IPv6 ... */
+
+	  int i;
+	  for (i = 15; i >= 0; --i) {
+	    sprintf(hbuf + ((15-i) << 2),
+		    "%x.%x.", ipaddr[i] & 0x0F, (ipaddr[i] >> 4) & 0x0F);
+	  }
+	}
+
+	suf = hbuf + strlen(hbuf);
+	/* hspc = sizeof(hbuf)-strlen(hbuf)-1; */
 
 	while (*rbldomain) {
 	  /* "rbldomain" is possibly a COLON-demarked set of
@@ -457,12 +474,10 @@ int rbl_dns_test(ipv4addr, rbldomain, msgp)
 	  s = strchr(rbldomain, ':');
 	  if (s) *s = 0;
 	  if (strcmp(rbldomain,"+") == 0)
-	    sprintf (hbuf, "%d.%d.%d.%d.rbl.maps.vix.com",
-		     ipv4addr[3], ipv4addr[2], ipv4addr[1], ipv4addr[0]);
+	    strcpy (suf, "rbl.maps.vix.com");
 	  else
-	    sprintf (hbuf, "%d.%d.%d.%d.%s",
-		     ipv4addr[3], ipv4addr[2], ipv4addr[1], ipv4addr[0],
-		     rbldomain);
+	    strcpy (suf, rbldomain);
+
 	  if (s) {
 	    *s = ':';
 	    rbldomain = s+1;

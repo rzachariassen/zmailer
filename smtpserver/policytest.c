@@ -651,10 +651,13 @@ struct policystate *state;
 const char *pbuf;
 int sourceaddr;
 {
-    u_char ipv4addr[4];
+    u_char ipaddr[16];
+    int ipaf = pbuf[1];
 
     if (pbuf[1] == P_K_IPv4)
-      memcpy(ipv4addr, pbuf+2, 4);
+      memcpy(ipaddr, pbuf+2, 4);
+    if (pbuf[1] == P_K_IPv6)
+      memcpy(ipaddr, pbuf+2, 16);
 
     /* state->request initialization !! */
 
@@ -751,25 +754,23 @@ int sourceaddr;
     just_rbl_checks:;
 
     if (state->values[P_A_TestDnsRBL] &&
-	!valueeq(state->values[P_A_TestDnsRBL], "-") &&
-	pbuf[1] == P_K_IPv4) {
+	!valueeq(state->values[P_A_TestDnsRBL], "-")) {
       int rc;
       if (debug)
-	printf("000- policytestaddr: 'test-dns-rbl %s' (IPv4) found;\n",
+	printf("000- policytestaddr: 'test-dns-rbl %s' found;\n",
 	       state->values[P_A_TestDnsRBL]);
-      rc = rbl_dns_test(ipv4addr, state->values[P_A_TestDnsRBL], &state->message);
+      rc = rbl_dns_test(ipaf, ipaddr, state->values[P_A_TestDnsRBL], &state->message);
       if (debug)
 	printf("000-  rc=%d\n", rc);
       return rc;
     }
     if (state->values[P_A_RcptDnsRBL] &&
-	!valueeq(state->values[P_A_RcptDnsRBL], "-") &&
-	pbuf[1] == P_K_IPv4) {
+	!valueeq(state->values[P_A_RcptDnsRBL], "-")) {
       int rc;
       if (debug)
-	printf("000- policytestaddr: 'rcpt-dns-rbl %s' (IPv4) found;\n",
+	printf("000- policytestaddr: 'rcpt-dns-rbl %s' found;\n",
 	       state->values[P_A_RcptDnsRBL]);
-      rc = rbl_dns_test(ipv4addr, state->values[P_A_RcptDnsRBL], &state->rblmsg);
+      rc = rbl_dns_test(ipaf, ipaddr, state->values[P_A_RcptDnsRBL], &state->rblmsg);
       if (debug)
 	printf("000-  rc=%d\n", rc);
       return rc;

@@ -12,15 +12,19 @@
 
 
 struct MIB_MtaEntry {
-  uint		mtaReceivedMessages;		/* counter */
+  uint		mtaReceivedMessagesRt;		/* counter */
+  uint		mtaReceivedMessagesSc;		/* counter */
   uint		mtaStoredMessages;		/* gauge   */
-  uint		mtaTransmittedMessages;		/* counter */
-  uint		mtaReceivedVolume;		/* counter */
-  uint		mtaStoredVolume;		/* gauge   */
-  uint		mtaTransmittedVolume;		/* counter */
-  uint		mtaReceivedRecipients;		/* counter */
+  uint		mtaTransmittedMessagesRt;	/* counter */
+  uint		mtaTransmittedMessagesSc;	/* counter */
+  uint		mtaReceivedVolume;		/* counter, in kB */
+  uint		mtaStoredVolume;		/* gauge,   in kB */
+  uint		mtaTransmittedVolume;		/* counter, in kB */
+  uint		mtaReceivedRecipientsRt;	/* counter */
+  uint		mtaReceivedRecipientsSc;	/* counter */
   uint		mtaStoredRecipients;		/* gauge   */
-  uint		mtaTransmittedRecipients;	/* counter */
+  uint		mtaTransmittedRecipientsRt;	/* counter */
+  uint		mtaTransmittedRecipientsSc;	/* counter */
   uint		mtaSuccessfulConvertedMessages;	/* counter */
   uint		mtaFailedConvertedMessages;	/* counter */
   uint		mtaLoopsDetected;		/* counter */

@@ -1115,8 +1115,32 @@ deliver(dp, rp, usernam, timestring)
 	    pw = getpwnam(usernam);
 	    if (pw == NULL) {
 	      if (plus) *plus = '+';
+
+	      /* Linux, very least, seems to sometimes yield
+		 NULL and errno=ENOENT, when Single Unix Spec
+		 tells it to yield NULL and errno==0 :-|
+
+		 The problem seems to be quite broad, as most
+		 systems don't do sensible things, when two
+		 conditions hold: All database lookups were
+		 without errors (although did yield notning),
+		 and nothing was found!  The sensible thing
+		 would be to yield NULL along with   errno==0 ! */
+
+	      /* Now give the above, how the hell are we going
+		 to detect when any of the databases used for
+		 the username resolution has a hickup, and the
+		 lack of found username is simply due to the db
+		 problem, which time will solve (as with system
+		 operator taking some action).  */
+
+	      /* Many systems seem to use this in otherwise
+		 fine lookup -- to mark lack of data */
+	      if (errno == ENOENT)
+		errno = 0;
 #ifdef __osf__
-	      /*  KLUDGE TIME!   Yuck!  */
+	      /* ... and OSF/1 *must* be different, of course ...
+		 (I just wonder what AIX does) */
 	      if (errno == EINVAL)
 		errno = 0;
 #endif

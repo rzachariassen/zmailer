@@ -119,4 +119,4 @@ extern int contentpolicy __((struct policytest *rel, struct policystate *ps, con
 extern int mx_client_verify  __((int, const char *, int));
 extern int sender_dns_verify __((int, const char *, int));
 extern int client_dns_verify __((int, const char *, int));
-extern int rbl_dns_test __((const u_char *, char *, char **));
+extern int rbl_dns_test __((const int, const u_char *, char *, char **));

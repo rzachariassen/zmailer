@@ -263,6 +263,7 @@ unctlfile(cfp, no_unlink)
 	    zsyslog((LOG_INFO, "%s: complete (total %d recepients, %d failed)",
 		     taspid, cfp->rcpnts_total, cfp->rcpnts_failed));
 	  }
+	  ++MIBMtaEntry->mtaTransmittedMessagesSc;
 
 	  eunlink(path);
 	  if (verbose)
@@ -303,7 +304,6 @@ unctlfile(cfp, no_unlink)
 
 	--global_wrkcnt;
 	--MIBMtaEntry->mtaStoredMessages;
-
 	free_cfp_memory(cfp);
 }
 
@@ -399,6 +399,8 @@ void unvertex(vp, justfree, ok)
 	if (vp->notary  != NULL) free(vp->notary);
 	/* if (vp->sender != NULL) free(vp->sender); */ /* XX: cache !! ?? */
 	free((char *)vp);
+
+	--MIBMtaEntry->mtaStoredRecipients;
 }
 
 static struct vertex *findvertex(inum, offset, idx)
@@ -673,6 +675,7 @@ static void expaux(vp, index, buf)
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 0);
+	++MIBMtaEntry->mtaTransmittedRecipientsSc;
 }
 
 void
@@ -747,7 +750,7 @@ static int u_ok(vp, index, inum, offset, notary, message)
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 1);
-	++MIBMtaEntry->mtaTransmittedRecipients;
+	++MIBMtaEntry->mtaTransmittedRecipientsSc;
 	return 1;
 }
 
@@ -777,7 +780,7 @@ static int u_ok2(vp, index, inum, offset, notary, message)
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 1);
-	++MIBMtaEntry->mtaTransmittedRecipients;
+	++MIBMtaEntry->mtaTransmittedRecipientsSc;
 	return 1;
 }
 
@@ -806,7 +809,7 @@ static int u_ok3(vp, index, inum, offset, notary, message)
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 1);
-	++MIBMtaEntry->mtaTransmittedRecipients;
+	++MIBMtaEntry->mtaTransmittedRecipientsSc;
 	return 1;
 }
 
@@ -871,6 +874,7 @@ static int u_error(vp, index, inum, offset, notary, message)
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 0);
+	++MIBMtaEntry->mtaTransmittedRecipientsSc;
 	return 1;
 }
 
@@ -903,6 +907,7 @@ static int u_error2(vp, index, inum, offset, notary, message)
 
 	/* Delete this vertex from scheduling datasets */
 	vtxupdate(vp, index, 0);
+	++MIBMtaEntry->mtaTransmittedRecipientsSc;
 	return 1;
 }
 

@@ -1610,6 +1610,14 @@ int fullmode;
 	saytime((long)(now - sched_starttime), timebuf, 1);
 	fprintf(fp,"Kids: %d  Idle: %2d  Msgs: %3d  Thrds: %3d  Rcpnts: %4d  Uptime: %s\n",
 		numkids, idleprocs, global_wrkcnt, threadsum, jobtotal, timebuf);
+	fprintf(fp, "Msgs in %lu out %lu stored %lu ",
+		(ulong)MIBMtaEntry->mtaReceivedMessagesSc,
+		(ulong)MIBMtaEntry->mtaTransmittedMessagesSc,
+		(ulong)MIBMtaEntry->mtaStoredMessages);
+	fprintf(fp, "Rcpnts in %lu out %lu stored %lu\n",
+		(ulong)MIBMtaEntry->mtaReceivedRecipientsSc,
+		(ulong)MIBMtaEntry->mtaTransmittedRecipientsSc,
+		(ulong)MIBMtaEntry->mtaStoredRecipients);
 }
 
 int thread_count_recipients()

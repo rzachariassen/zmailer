@@ -1,3 +1,35 @@
+1999-04-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/policytest.h, smtpserver/policytest.c,
+	  smtpserver/mxverify.c:
+	    A surprise was found in pure IPv6 operational environment
+	    regarding RBL policy testing.  Changed things to also do 
+	    IPv6 address RBL lookups in case the connection was not by
+	    IPv4-MAPPED addresses. (E.g. Lookup for A with zone in same
+	    manner as IP6.INT reversers construct it from the address,
+	    and then just add 'rbl.maps.vix.com' to the reverse address
+	    string in similar manner as IPv4 lookup works.)
+	    Of course I don't know what exact format the RBL will use
+	    for IPv6 addresses, my quesses are:
+b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.rbl.maps.vix.com.
+b.3.b.7.5.7.e.f.f.f.8.f.0.0.2.0.0.0.e.f.2.0.0.0.0.1.6.2.e.f.f.3.ip6.rbl.maps.vix.com.
+	    and the implemented thing is the first one of these.
+	    The address in question is following:
+	mea.ipv6.tmt.tele.fi IN AAAA 3ffe:2610:2:fe00:200:f8ff:fe75:7b3b
+
+	* transports/mailbox/mailbox.c:
+	    Another way how  getpwnam()  surprised -- errno value
+	    isn't all zero in Linux with glibc 2.1 in all conditions;
+	    username contained multiple dots ("a.b.c") yielded errno
+	    value ENOENT  :-O  (At OSF/1 EINVAL can be had for valid
+	    lookup without found entry...)  Sigh.
+
+	* include/shmmib.h, scheduler/scheduler.c, scheduler/scheduler.h,
+	  scheduler/threads.c, scheduler/update.c:
+	    Modified monitoring MIB set a bit for the uses of the
+	    scheduler.  Made a line in "mailq -Q" to show Counter32,
+	    and Gauge32 type variables.
+
 1999-04-06  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* libsh/builtins.c:
