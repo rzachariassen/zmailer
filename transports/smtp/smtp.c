@@ -1945,6 +1945,7 @@ appendlet(SS, dp, convertmode)
 	if (bufferfull > 1)	/* not all in memory, need to reread */
 	  readalready = 0;
 #endif
+#if 0
 	alarm(timeout);
 	if (fflush(SS->smtpfp) != 0) {
 	  alarm(0);
@@ -1952,6 +1953,7 @@ appendlet(SS, dp, convertmode)
 	  return EX_IOERR;
 	}
 	alarm(0);
+#endif
 	memcpy(alarmjmp, oldalarmjmp, sizeof(alarmjmp));
 
 	return EX_OK;
