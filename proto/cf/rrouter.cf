@@ -63,6 +63,11 @@ rrouter (address, origaddr, A, plustail, domain) {
 		# VERY MAGICAL:  @[channelname]:user@domain
 		returns ((("\1" "\3" "\2$plustail@\3" $A)))
 		;;
+	#<@\[([A-Za-z0-9]+)\]>:(.+)@(.+)
+	<@\[(.+)\]>:(.+)@(.+)
+		# QUITE MAGICAL:  @[CHANNEL:IPLITERAL]:user@domain
+		returns ((("smtpx" "[\1]" "\2$plustail@\3" $A)))
+		;;
 	tfiss
 
 	tsift "$address" in

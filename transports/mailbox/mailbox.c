@@ -470,7 +470,7 @@ main(argc, argv)
 	logfile = NULL;
 	channel = CHANNEL;
 	while (1) {
-	  c = getopt(argc, (char*const*)argv, "abc:Cd:Dgh:Hl:PrRSMVUX8");
+	  c = getopt(argc, (char*const*)argv, "abc:Cd:Dgh:Hl:MPrRSVUX8");
 	  if (c == EOF)
 	    break;
 	  switch (c) {

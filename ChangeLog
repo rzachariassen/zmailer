@@ -1,3 +1,14 @@
+2001-12-15  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* man/sm.8:
+	    Revising the man-page.
+
+2001-12-15  Nicolas Baumgarten <nico@pert.com.ar>
+
+	* transports/sm/sm.c:
+	    Added 'O' flag to configuration to output ORCPT data
+	    into  X-Orcpt: header.
+
 2001-12-07  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/mailbox/mailbox.c, transports/libta/swriteheaders.c:

@@ -837,25 +837,46 @@ main(argc, argv)
 
 	  canexit = 0;
 
+	  /* SAH Hmm... next_dirscan is NOT reset unless we find < 150
+	   * new files in dirqueuescan - meaning this will be true.
+	   * So a 'busy' system will potentially be running dirqueuescan()
+	   * EVERY pass thru the loop... This could be bad
+	   */
 	  if (now >= next_dirscan) {
 	    /* Directory scan time for new jobs ..    */
 	    /* Do it recursively every now and then,
 	       so that if we forget some jobs, they will
 	       become relearned soon enough.          */
-	    if (dirqueuescan(".", dirq, 
-#if 1 /* Do recursively every time */
-			     1
-#else
-			     (now >= next_idlecleanup)
-#endif
-			     ) < 150) {
-	      /* If we have more things to scan, don't quit yet! */
-	      next_dirscan = now + sweepinterval;  /* 10 seconds interval */
-	      if (dirq->wrksum > 100)
-		next_dirscan = now + 60; /* Lots of work, pick new jobs
-					    less frequently */
-	    }
+	    /* SAH dirqueuescan() is not deterministic and is _highly_
+	     * sensitive to the number of files to be scanned.  This
+	     * means that the degenerate cases (like us!) could be 
+	     * spending ages here.  We guard the call, so we only call
+	     * dirqueuescan when we actually need more work to do (with a 4
+	     * second fudge factor).  Also, next_dirscan is set to a default.
+	     * NOTE: we (optimistically?) budget for 32 msgs/sec
+	     */
+	     next_dirscan = now + sweepinterval;  /* 10 seconds interval     */
+	     i = sweepinterval << 5 ; i += 64 ;   /* 32/sec + 2 sec.         */
+	     if (dirq->wrksum < i ) { /* Do delayed count? Can use wrkcount? */
+	        /* NOTE: Ask Mike if he wants delayed to count, if not use
+		 *       dirq->wrkcount 
+		 */
+		/* SAH Change newents_limit to allow more then 400 !! 
+		 * Ideally, we want it to pickup ALL the new jobs.  However,
+		 * we should limit it to prevent it toasting the machine. 
+		 * *Sigh*
+		 */
+		i = dirqueuescan(".", dirq, 1);
+		/* SAH This potentially took a LONG time (5+ sec), so reset
+		 * now before setting timeouts. Do a quick estimated of time
+		 * needed to send the msgs, assuming 32 msgs/sec.
+		 */
+		mytime(&now);
+		i = dirq->wrksum; i >>= 5;  /* work divided by 32/sec        */
+		next_dirscan = now + i - 2; /* 2 second fudge factor         */
+	     }
 	  }
+	   
 
 	  if (now >= next_idlecleanup) {
 	    next_idlecleanup = now + 20; /* 20 second interval */
@@ -1239,6 +1260,7 @@ int syncweb(dq)
 	  dq->wrkcount2 = 0;
 	  dq->wrkspace  = dq->wrkspace2;
 	  dq->wrkspace2 = 0;
+	  wrkidx = dq->wrkcount - 1; /* SAH ReSync wrkidx                    */
 	  dq->sorted = 0;
 	}
 
@@ -1460,7 +1482,6 @@ static int sync_cfps(oldcfp, newcfp, proc)
 
 	  ovp = novp;
 	}
-	
 
 	if (verbose)
 	  sfprintf(sfstdout," -- Synced %d OLD vertices\n", ovp_count);
@@ -2123,7 +2144,7 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	    /* We have a desire to use subdirs, now the magic of hashing
 	       into subdirs...  inode number ? */
 
-	    int hash;
+	    int hash, rc;
 
 	    if (hashlevels > 1) {
 	      hash = atol(cfp->mid) % (26*26);
@@ -2135,20 +2156,27 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	    /* Ok, we have the hash values, now move the file
 	       to match with our hashes.. */
 	    sprintf(path, "%s%s", cfpdirname(hash), fpath);
-	    if (rename(fpath, path) != 0) {
+	    
+	    while ((rc = rename(fpath, path)) != 0) {
+	      if (errno != EINTR) break;
+	    }
+	    if (rc != 0) {
 	      /* Failed, why ? */
 	      if (errno != ENOENT) {
 		/* For any other than 'no such (target) directory' */
 		cfp->dirind = -1;
 	      } else {
 		cfp_mksubdirs("",cfpdirname(hash));
-		if (rename(fpath, path) != 0)
+		while ((rc = rename(fpath, path)) != 0) {
+		  if (errno != EINTR) break;
+		}
+		if (rc != 0)
 		  cfp->dirind = -1; /* Failed for any reason */
 		else
 		  strcpy(fpath, path);
 	      }
 	    } else
-		strcpy(fpath, path);
+	      strcpy(fpath, path);
 
 	    if (cfp->dirind >= 0) {
 	      /* Successfully renamed the transport file to a subdir,
@@ -2157,18 +2185,22 @@ static struct ctlfile *vtxprep(cfp, file, rereading)
 	      sprintf(path2, "../%s/%s%s",
 		      QUEUEDIR, cfpdirname(cfp->dirind), cfp->mid);
 
-	      if (rename(path,path2) != 0) {
+	      while ((rc = rename(path, path2)) != 0) {
+		if (errno != EINTR) break;
+	      }
+	      if (rc != 0) {
 		if (errno == ENOENT) {
 		  /* No dirs ?? */
 		  cfp_mksubdirs(QUEUEDIR,cfpdirname(hash));
-		  rename(path, path2);
+		  while ((rc = rename(path, path2)) != 0) {
+		    if (errno != EINTR) break;
+		  }
 		}
 	      }
 	      /* If failed, it will be reported below */
 	    }
 	  }
 	}
-
 
 	if (cfp->mid != NULL) {
 	  if (cfp->dirind >= 0)
@@ -2589,7 +2621,7 @@ static int globmatch(pattern, string)
 	      int i = 0, c;
 	      while ((c = *p++) != 0) {
 		/* Scan for special chars in pattern.. */
-		if (c == '*' || c == '[' || c == '{' || c == '\\' || c == '?') {
+		if (c == '*' || c == '[' || c == '{' || c == '\\' || c == '?'){
 		  i = 1; /* Found! */
 		  break;
 		}

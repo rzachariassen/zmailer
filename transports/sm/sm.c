@@ -89,6 +89,15 @@ int sig;
 	SIGNAL_HANDLE(SIGPIPE, sigpipe);
 }
 
+struct maildesc {
+	char	*name;
+	long	flags;
+	char	*command;
+#define MD_ARGVMAX 20
+	char	*argv[MD_ARGVMAX];
+};
+
+
 extern RETSIGTYPE wantout();
 #ifndef MALLOC_TRACE
 extern univptr_t emalloc();
@@ -119,14 +128,6 @@ static int zsfsetfd(fp, fd)
 
 extern int check_7bit_cleanness __((struct ctldesc *dp));
 
-struct maildesc {
-	char	*name;
-	short	flags;
-	char	*command;
-#define MD_ARGVMAX 20
-	char	*argv[MD_ARGVMAX];
-};
-
 extern int writemimeline __(( struct maildesc *mp, FILE *fp, const char *buf, int len, int convertmode));
 
 #define	MO_FFROMFLAG		0x00001
@@ -150,6 +151,7 @@ extern int writemimeline __(( struct maildesc *mp, FILE *fp, const char *buf, in
 #define MO_BSMTPHELO		0x20000 /* Add HELO/EHLO to the BSMTP */
 
 #define MO_XENVELOPES		0x40000 /* Write various X-Envelope-*: headers to mesage */
+#define MO_XORCPT		0x80000 /* Write X-Orcpt : header to message */
 
 struct exmapinfo {
 	int	origstatus;
@@ -766,6 +768,23 @@ deliver(dp, mp, startrp, endrp, verboselog)
 			  uu, rp->addr->misc);
 	  }
 	}
+/* PERT-NB X-Orcpt if O option */
+	if (mp->flags & MO_XORCPT) {
+	  const char *uu;
+	  char **hdrs;
+	  do {
+	    hdrs = has_header(startrp,"X-Orcpt:");
+	    if (hdrs) delete_header(startrp, hdrs);
+	  } while (hdrs);
+	  for (rp = startrp; rp != endrp; rp = rp->next) {
+	    if (rp->orcpt) {    
+	      uu = rp->orcpt;
+	      append_header(rp,"X-Orcpt: %s",rp->orcpt);
+	    }
+	  }
+	}
+/* PERT-NB END */
+
 
 	if (mp->flags & MO_CRLF) {
 	  fwriteheaders(startrp, tafp, "\r\n", convertmode, maxwidth, NULL);
@@ -1292,6 +1311,8 @@ readsmcf(file, mailer)
 	  case 'D':		/* this mailer wants a Date: line */
 	    	m.flags |= MO_WANTSDATE;	break;
 	  case 'e':	m.flags |= MO_XENVELOPES;	break;
+/* PERT-NB O option for X-Orcpt */
+	  case 'O':	m.flags |= MO_XORCPT;		break;
 	  case 'E':	m.flags |= MO_ESCAPEFROM;	break;
 	  case 'f':	m.flags |= MO_FFROMFLAG;	break;
 	  case 'F':		/* this mailer wants a From: line */

@@ -3,8 +3,14 @@ Known/suspected bugs/Missing Features on current ZMailer sources
 OVERALL: SleepyCat DB 3 header inclusion does not (necessarily)
          match code selections!  Brr..
 
+sm:	pass the address meta information also in environment
+	variables, and handle multirecipient cases as well!
+	(see what 'mailbox' does.)
+
 sfio:
-	implement stream-specific storage of 'errno' value yielded
+	feature-config to use simpler (s)ed facilities than GNU-stuff.
+
+	Implement stream-specific storage of 'errno' value yielded
 	last time around there was some error which was not handled
 	internally ??  That way picking up a simulated error, like
 	when socket write-out fails with a select() timeout, we would

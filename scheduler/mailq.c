@@ -145,7 +145,7 @@ main(argc, argv)
 	progname = argv[0];
 	verbose = debug = errflg = status = user = onlyuser = summary = 0;
 	while (1) {
-	  c = getopt(argc, argv, "46c:dh:ip:r:stu:U:vVSQE:K:");
+	  c = getopt(argc, argv, "46c:dE:h:iK:p:Qr:sStu:U:vV");
 	  if (c == EOF)
 	    break;
 	  switch (c) {

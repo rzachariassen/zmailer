@@ -410,6 +410,16 @@ smtpx/*
 	maxring=10
 	command="smtp -c $channel -x -s" # -l ${LOGDIR}/smtpx"
 
+# smtpxw is a channel where the delivery is done without checking at MXes;
+# rather only on A/AAAA (address) entries.  This will ALSO set  SO_SNDBUF
+# to rather lowish value -- 1200 bytes, which appears to be needed for some
+# stupid Win-NT systems to be able to copy large volumes of SMTP traffic:
+smtpxw/*
+	maxchannel=90
+	maxring=10
+	command="smtp -c $channel -x -w 1200 -s" # -l ${LOGDIR}/smtpxw"
+
+
 # Connections to places which sit behind broken firewalls, e.g. Cisco PIX
 # versions with allowing EHLO to go thru with feature reply, but then
 # rejecting all ESMTP protocol features listed at that reply...
