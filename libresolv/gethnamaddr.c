@@ -453,6 +453,7 @@ gethostbyname2wttl(name, af, ttlp)
 	char *bp;
 	int n, size, type, len;
 	extern struct hostent *_gethtbyname2();
+	struct hostent *ht;
 
 	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
 		h_errno = NETDB_INTERNAL;
@@ -522,10 +523,17 @@ gethostbyname2wttl(name, af, ttlp)
 				break;
 		}
 
+#if 1
+	ht = _gethtbyname2(name, af);
+	if (ht) return ht;
+#endif
+
 	if ((n = res_search(name, C_IN, type, buf.buf, sizeof(buf))) < 0) {
 		dprintf("res_search failed (%d)\n", n);
+#if 0
 		if (errno == ECONNREFUSED)
 			return (_gethtbyname2(name, af));
+#endif
 		return (NULL);
 	}
 	return (getanswer(&buf, n, name, type, ttlp));

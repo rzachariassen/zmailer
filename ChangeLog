@@ -1,3 +1,11 @@
+2001-01-24  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* libresolv/gethnamaddr.c, libresolv/netdb.h:
+	    When using   --with-bundled-libresolv  silense things a bit
+	    as one particular #define may be set before calling this.
+	    Also, do explicitely at first lookup /etc/hosts file for
+	    host, only then do resolver lookups.
+
 2001-01-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* include/libz.h, include/mailer.h, compat/sendmail/sendmail.c,
