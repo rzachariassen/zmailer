@@ -157,6 +157,7 @@ foreach $rel (keys %rels) {
 		} elsif ($DBTYPE eq 'btree') {
 			@dbfiles = ($fn.".db");
 		# } else {
+			# LDAP/BIND/ORDERED/UNORDERED ...
 		}
 	} elsif ($rtype eq 'ndbm') {
 		$rdbexttst = '.pag';
@@ -198,6 +199,26 @@ foreach $rel (keys %rels) {
 		system("newdb -s $rndbopt -t bhash $fn");
 		printf ":NEW";
 		@dbfiles = ($fn.".dbh");
+	} elsif ($rtype eq 'ldap') {
+		$rdbexttst = '';
+		$rdbext    = '';
+		$rdbtype   = $rtype;
+		@dbfiles = ($fn);
+	} elsif ($rtype eq 'unordered') {
+		$rdbexttst = '';
+		$rdbext    = '';
+		$rdbtype   = $rtype;
+		@dbfiles = ($fn);
+	} elsif ($rtype eq 'ordered') {
+		$rdbexttst = '';
+		$rdbext    = '';
+		$rdbtype   = $rtype;
+		@dbfiles = ($fn);
+	} elsif ($rtype =~ '^bind') {
+		$rdbexttst = '';
+		$rdbext    = '';
+		$rdbtype   = $rtype;
+		@dbfiles = ($fn);
 	} else {
 		$rdbexttst = '.dat';
 		$rdbext    = '.dat';

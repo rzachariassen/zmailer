@@ -31,18 +31,17 @@ FEATURE:
 INSTALL:
 	Badly out of date!
 
-zmailer.sh:
-    BUG ?
-	Verify that "ldap*" type databases are never recompiled,
-	but that relevant .zmsh scripts are created..
-
-
 router:
-    BUG?
-	The daemon task driver may (have to verify) drive same task
-	to multiple processes in quick successive order, especially
-	if router process whose task it is to pick up something is
-	a bit slow at it.. (e.g. a RACE happens!)
+
+    FEATURE:
+	router/rfc822.c:  sequencer()
+	Consider providing some data/function/whatever telling to
+	the configuration script how many "Received:" headers there
+	are so that the message can be trapped for a loop-prevention
+	in the script, and not hardwired in the sequencer() code.
+	(Now has a global variable that gets the count of "Received:"
+	 headers, but the loop-count exceeded trap is done in the
+	 same C-code without calling the scripts...)
 
     FEATURE:
 	List expansions should not relay DSN data thru as is, but rather
@@ -392,15 +391,6 @@ transports/smtp:
 
 - 'channel error' detection is partial at places;
 	transporters: hold, errormail
-
-- router/rfc822.c:  sequencer()
-	Consider providing some data/function/whatever telling to
-	the configuration script how many "Received:" headers there
-	are so that the message can be trapped for a loop-prevention
-	in the script, and not hardwired in the sequencer() code.
-	(Now has a global variable that gets the count of "Received:"
-	 headers, but the loop-count exceeded trap is done in the
-	 same C-code without calling the scripts...)
 
 - Sometimes incoming SMTP can be a hellish load, need to introduce
   a load-limited incoming SMTP acceptor (smtpserver/smtpserver.c)

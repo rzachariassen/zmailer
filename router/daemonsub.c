@@ -173,6 +173,7 @@ struct router_child {
 #endif
 
   struct dirqueue  *dq;
+  u_long task_ino;
 };
 
 struct router_child routerchilds[MAXROUTERCHILDS];
@@ -390,8 +391,9 @@ static int _parent_reader(i)
 	close(rc->tochild);
       rc->tochild   = -1;
       rc->fromchild = -1;
-      rc->hungry = 0;
-      rc->childpid = 0;
+      rc->hungry    = 0;
+      rc->task_ino  = 0;
+      rc->childpid  = 0;
       break;
 
     }
@@ -417,8 +419,9 @@ static int _parent_reader(i)
 	continue;
       }
       if (rc->linelen == 8 && strcmp(rc->linebuf,"#hungry\n")==0) {
-	rc->linelen = 0;
-	rc->hungry = 1;
+	rc->linelen  = 0;
+	rc->hungry   = 1;
+	rc->task_ino = 0;
 	continue;
       }
 
@@ -628,6 +631,7 @@ static int _parent_feed_child(rc, fname, dir)
   return 0;
 }
 
+#if 0 /* !!! NOT USED !!!! */
 /* -----------------------------------------------------------------
  *
  * Child-process job feeder - distributes jobs in even round-robin
@@ -710,6 +714,7 @@ static int parent_feed_child(fname,dir)
 
   return 1; /* Did feed successfully ?? */
 }
+#endif /* NOT USED!!! */
 
 
 /*
@@ -811,6 +816,7 @@ dq_insert(DQ, ino, file, dir)
 	struct stat stbuf;
 	struct dirstatname *dsn;
 	struct dirqueue *dq = DQ;
+	int i;
 
 	if (!ino) return 1; /* Well, actually it isn't, but we "makebelieve" */
 
@@ -833,6 +839,10 @@ dq_insert(DQ, ino, file, dir)
 #endif
 	  return 1; /* It is! */
 	}
+
+	for (i = 0; i < MAXROUTERCHILDS; ++i)
+	  if (ino == routerchilds[i].task_ino)
+	    return 1; /* In active processing! */
 
 	/* Now store the entry */
 	dsn = (struct dirstatname*)emalloc(sizeof(*dsn)+strlen(file)+1);
@@ -1021,6 +1031,7 @@ int syncweb(rc)
 	stbuf = &(dqstats->st);
 	ino   =   dqstats->ino;
 
+	rc->task_ino = ino; /* Mark this INO into processing */
 	_parent_feed_child(rc, file, ddir);
 
 	dq->wrkcount -= 1;
