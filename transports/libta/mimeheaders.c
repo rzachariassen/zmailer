@@ -665,8 +665,8 @@ static char * _skip_822atom(p, tspecial)
 	  default:
 	    break;
 	  }
-	  if (isdelim) break;
 	  ++s;
+	  if (isdelim) break;
 	}
 
 	return s;
@@ -771,6 +771,8 @@ parse_content_type(ct_linep)
 
 	  if (*s == '=') {	    /* What if no `=' ?? */
 	    ++s;
+	  } else {
+	    ++s; /* d'uh ??? */
 	  }
 	  p = skip_822linearcomments(s);
 
