@@ -1,0 +1,14 @@
+etc/zmailer
+usr/bin
+usr/lib/zmailer
+usr/sbin
+var/log/zmailer
+var/spool/postoffice
+var/spool/postoffice/deferred
+var/spool/postoffice/freezer
+var/spool/postoffice/postman
+var/spool/postoffice/public
+var/spool/postoffice/queue
+var/spool/postoffice/router
+var/spool/postoffice/transport
+

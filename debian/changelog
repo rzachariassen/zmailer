@@ -1,0 +1,154 @@
+zmailer (2.99.55-3.1) unstable; urgency=low
+
+  * Non-Maintainer Upload
+  * Changed Build-Depend on libgdbm1g-dev to libgdbm-dev; libgdbm1g-dev
+    is obsolete. (Closes: #199611)
+  * Added perl:Depends to Dependancies, activated dh_perl in
+    debian/rules. This should cause the perl dependancy to appear
+    properly now. (Closes: #200067)
+  * Updated Build-Dependancy on debhelper to be >= 3, since debian/rules
+    uses DH_COMPAT=3. (No bug; required for building NMU)
+
+ -- Joel Baker <fenton@debian.org>  Sat, 23 Aug 2003 11:27:58 -0600
+
+zmailer (2.99.55-3) unstable; urgency=low
+  
+  * Added ed to build-depends. (closes: #117620)
+ 
+ -- Hector Garcia <hector@debian.org>  Tue, 30 Oct 2001 23:35:42 +0100
+
+zmailer (2.99.55-2) unstable; urgency=low
+
+  * Making symlinks at postinst instead of being part of the package to avoid
+    overwrite user config files.
+  * Copying /etc/zmailer/cf/proto/* into /etc/zmailer/cf/ because without it
+    router process doesn't work at all.
+  * Fixed bug in build-depends that prevented from building on ia64 and hppa.
+    (closes: #115969)  
+
+ -- Hector Garcia <hector@debian.org>  Fri, 27 Oct 2001 22:35:42 +0100
+  
+zmailer (2.99.55-1) unstable; urgency=low
+
+  * New upstream release.
+  * Package now uses DH_COMPAT=3 so conffiles file is added by debhelper. 
+  
+ -- Hector Garcia <hector@debian.org>  Fri, 14 Sep 2001 22:35:42 +0100
+
+zmailer (2.99.51.52pre3-3) unstable; urgency=low
+
+  * Adopted zmailer. (closes: #86513)
+  * Build-depends added. (closes: #104554)
+  * Changed mail-user-agent for mail-reader. (closes: #63363)
+  * Created symbolic links for the man pages. (closes: #99564)
+  * Amayita didn't do nothing but was a real PITA.
+
+ -- Hector Garcia <hector@debian.org>  Sat, 19 Aug 2001 02:39:34 +0100
+
+zmailer (2.99.51.52pre3-2.1) unstable; urgency=low
+  * Non-maintainer upload.
+  * va_arg promotes shorts and chars to int.  As of gcc >= 2.96, this is
+    flagged as an error.  Closes: #103649.
+
+ -- LaMont Jones <lamont@debian.org>  Mon,  9 Jul 2001 21:39:34 -0600
+
+zmailer (2.99.51.52pre3-2) unstable; urgency=low
+
+  * Fixes in the /etc/init.d script (testing for files and directories)
+
+ -- Remco van de Meent <remco@debian.org>  Sun, 31 Oct 1999 17:35:42 +0100
+
+zmailer (2.99.51.52pre3-1) unstable; urgency=low
+
+  * New upstream Release.
+  * Upgraded to Standards-Version: 3.0.1.1
+  * Fixes slink->potato upgrade problems, closes: Bug#48598 (rc)
+  * Addresses conflicts with vacation from bsdmainutils, closes: Bug#44350
+
+ -- Remco van de Meent <remco@debian.org>  Sat, 30 Oct 1999 14:51:36 +0200
+
+zmailer (2.99.50.s19-2) unstable; urgency=low
+
+  * Split up the package into zmailer and zmailer-ssl
+  * Updated Standards-Version to 2.5.1.0
+
+ -- Remco van de Meent <remco@debian.org>  Mon, 19 Jul 1999 10:44:52 +0200
+
+zmailer (2.99.50.s19-1) unstable; urgency=low
+
+  * New upstream release
+  * Applied patch zmailer-2.99.50s19.patch1 from upstream
+  * From now on ZMailer is being distributed from non-US because of
+    cryptographic routines in the upstream source
+  * Added dependency on lynx, because of the policy-builder.sh script,
+    closes: Bug#41210
+  * Added numerous files to debian/conffiles to prevent unexpected
+    overriding of files a user may have edited, closes: Bug#41145
+  * Upgraded to Standards-Version 2.5.0.0
+
+ -- Remco van de Meent <remco@debian.org>  Sun, 18 Jul 1999 15:20:02 +0200
+
+zmailer (2.99.50.s17-1) unstable; urgency=high
+
+  * New upstream release
+  * SECURITY FIX !! Quote from upstream: 
+        There is a SECURITY FAULT in all ZMailer smtpservers that allow
+        running router in interactive mode to assist/do address analysis
+        with user inputs.  This fault exists in *ALL* versions of ZMailer
+        previous to this one! (even 2.2.1 !)
+
+ -- Remco van de Meent <remco@debian.org>  Tue, 11 May 1999 06:46:18 +0200
+
+zmailer (2.99.50.s15-3) unstable; urgency=low
+
+  * Tiny bugfix relating to statbuf.f_frsize in smtpserver/fdstatfs.c,
+    thanks to Daniel Podlejski <underley@underley.eu.org>
+
+ -- Remco van de Meent <remco@debian.org>  Thu,  6 May 1999 13:53:27 +0200
+
+zmailer (2.99.50.s15-2) unstable; urgency=low
+
+  * Applied zmailer-2.99.50s15.patch1
+
+ -- Remco van de Meent <remco@debian.org>  Sat,  1 May 1999 20:41:51 +0200
+
+zmailer (2.99.50.s15-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Remco van de Meent <remco@debian.org>  Mon, 19 Apr 1999 14:38:58 +0200
+
+zmailer (2.99.50.s14-1) unstable; urgency=low
+
+  * New upstream release
+  * Little changes in the configuration stuff
+
+ -- Remco van de Meent <remco@debian.org>  Tue,  6 Apr 1999 09:47:27 +0200
+
+zmailer (2.99.50.s11-3) unstable; urgency=low
+
+  * Recompile for libc6 2.1
+  * Minor cleanups
+
+ -- Remco van de Meent <remco@debian.org>  Sun, 21 Mar 1999 15:42:51 +0100
+
+zmailer (2.99.50.s11-2) unstable; urgency=low
+
+  * Patched lib/selfaddrs.c on request of Roman Hodek, closes Bug#33601
+  * Fixed init.d script, so it wont output when certain directories dont
+    exist, closes Bug#27194
+
+ -- Remco van de Meent <remco@debian.org>  Fri, 19 Feb 1999 15:45:58 +0100
+
+zmailer (2.99.50.s11-1) unstable; urgency=low
+
+  * Added a reworked zmailstats script
+  * Location of perl corrected to Debian standards.
+  * Added a note on using the MAPS RBL in ZMailer to README.Debian, closes #18425
+  * Added a note on local delivery by procmail to README.Debian, closes #16641
+  * New maintainer, package resurrected, restarting from a brand new source
+    tree. Old changelog included in /usr/doc/zmailer. The patches that came
+    in the .diff.gz with the old Debian zmailer package ain't relevant
+    anymore.
+
+ -- Remco van de Meent <remco@debian.org>  Tue,  2 Feb 1999 19:54:20 +0100

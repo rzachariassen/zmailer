@@ -1,0 +1,80 @@
+zmailer for Debian
+------------------
+
+[NOTE: There is a package of zmailer with
+       SSL-support is available from non-us.debian.org]
+
+"ZMailer provides a capable, robust, efficient subsystem to do the job, which
+will excel in demanding environments, but is simple enough to fit easily
+everywhere". In other words, it is a high-performance MTA. You can run it on
+your desktop as well, but in most cases sendmail, exim or another MTA
+supplied with Debian will suffice. It's capable of handling lots of
+thousands of mail every day on a simple PC.
+
+The documentation provided with the ZMailer (from upstream) isn't very good
+at the moment, but the author, Matti Aarnio <mea@nic.funet.fi>, is working
+on it. There are manual pages on the different binaries and configuration
+files, though they're not as uptodate as they should be. There is a webpage
+on the ZMailer too: http://www.zmailer.org . Also there is a mailinglist, at
+zmailer@nic.funet.fi (subscribes via zmailer-request@nic.funet.fi), though
+please don't ask Debian-specific things on that list. Ask them at
+debian-user@lists.debian.org or at zmailer@packages.debian.org instead.
+
+During install of the Debian package of ZMailer, some questions are asked
+about the configuration, but it is strongly recommended to have a look at
+(and understand!) the configuration yourself. The main things are these:
+ /etc/mailname		Configures the Mail Name (default FQDN).
+ /etc/aliases		Mail aliasing (The usual)
+ /etc/zmailer/		Zmailer Configuration
+ /etc/init.d/zmailer	Zmailer start/stop/reload script
+ /usr/doc/zmailer/	Zmailer Documentation
+ /usr/lib/zmailer/	Zmailer Binaries
+ /var/spool/postoffice/	Zmailer Messages Spool
+ /var/log/zmailer/	Zmailer Log files
+
+In the /etc/zmailer directory, there are several configuration files.
+Details about it are in their respective manual pages, but this is what they
+are about roughly:
+ zmailer.conf	Sets overall working parameters especially of the Scheduler
+		and the SMTP Server and the number of routers active at the
+		same time. Beware: Some of those parameters are compiled in
+		and cannot be changed!
+ router.cf	Main configuration file of the ZMailer Router. In most cases
+		you don't need to change this one.
+ scheduler.conf	Important setup for controlling deliveries. Checkout its
+		manual page for information on syntax and synopsis.
+ smtpserver.co*	The file that defines the SMTP Server configuration.
+ db/fqdnaliases Fully Qualified Domain Name Aliases: when an email addressed
+		to xxx@your.domain.com should be delivered to
+		yyy@anotger.domain.com, it should be listed in this file.
+		Remember to run newfqdnaliases after editing
+ db/localnames	All the names that ZMailer will deliver locally.
+ db/routes		SMTP Routing
+ lists/*	Native ZMailer Mailing lists; Yes, ZMailer can handle
+		mailinglists on its own, though the use of majordomo or
+		something like that is possible too of course.
+
+Edit these files to reflect your local configuration before starting the
+ZMailer, in order to avoid problems, please.
+
+You should know that when you want to use procmail as the local delivery
+agent, which is possible in ZMailer by specifying it in sm.conf and
+scheduler.conf, you should edit the router.cf file by commenting out the
+line that states "localdoesdomain = 1".
+
+It's also possible to use the MAPS RBL, http://www.maps.vix.com/ , by
+enabling that in the smtp-policy.src file in /etc/zmailer/db: the IP-Default
+rule should include an option "test-dns-rbl +".
+
+You can tweak _a_lot_ in the ZMailer configuration, depending on your local
+needs and possibilities. I strongly suggest you read the documentation in
+the manual pages and on the website mentioned above to get the best
+performance possible. The configuration supplied with this Debian package is
+the more or less 'default' configuration. After a good optimization process,
+you can tranfers loads of email through a simple machine; for instance,
+vger.rutgers.edu, handling quite a few lists, among them is linux-kernel, is
+just a simple SparcClassic running the ZMailer :) 
+
+
+Remco van de Meent <remco@debian.org>, Tue, 22 Dec 1998 13:50:48 +0100
+(with thanks to Christopher Lameter for some of the text)

@@ -602,7 +602,8 @@ of any queue.
 .SH CONFIGURATION FILE PARAM-ASSIGNMENTS
 The scheduler can assign several of its internal parameters
 by having variable assignments beginning at column 0, and
-beginning with "PARAM" text:
+beginning with "PARAM" text.
+NOTE: There is no space in following assignment names!
 .PP
 .TP 4em
 PARAMmailqpath\ \=\ "UNIX:/path/to/pf_unix/mailq/socket"
@@ -615,9 +616,9 @@ These define two different types of possible socket addresses for the
 protocol; a UNIX socket, and a TCP socket.
 Default is "TCP:174".
 .PP
-.IP PARAMautfile\ \=\ "/path/to/scheduler.auth"
+.IP PARAMauthfile\ \=\ "/path/to/scheduler.auth"
 Location of MAILQv2 autentication control file
-.IP PARAMglobal-report-interval\ \=\ 15m
+.IP PARAMglobal\-report\-interval\ \=\ 15m
 Interval by which all permanent reports accumulated into a message
 are reported by; sends out early reports of delivery failures, and
 does not force to wait for maximum queue timeout in case the message

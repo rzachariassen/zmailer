@@ -219,13 +219,14 @@ static void cfparam(str, size, cfgfilename, linenum)
 	bindport_set = 1;
     } else if (cistrcmp(name, "BindAddress") == 0 && param1) {
       called_getbindaddr=1;
-      if (!zgetbindaddr(param1,&bindaddr)) {
+      if (!zgetbindaddr(param1, use_ipv6, &bindaddr)) {
 	bindaddrs_count += 1;
-	bindaddrs = realloc( bindaddrs, sizeof(Usockaddr) * bindaddrs_count );
+	bindaddrs = realloc( bindaddrs,
+			     sizeof(bindaddr) * (bindaddrs_count +1) );
 	if (!bindaddrs)
 	  bindaddrs_count = 0;
 	else
-	  bindaddrs[ bindaddrs_count ] = bindaddr;
+	  bindaddrs[ bindaddrs_count-1 ] = bindaddr;
       }
     }
 
@@ -529,8 +530,18 @@ readcffile(name)
 	configuration_ok = 1; /* At least something! */
     }
     fclose(fp);
-    if (!called_getbindaddr)
-	bindaddr_set = !zgetbindaddr(NULL,&bindaddr);
+    if (!called_getbindaddr) {
+	bindaddr_set = !zgetbindaddr(NULL, use_ipv6, &bindaddr);
+	if (bindaddr_set) {
+	  bindaddrs_count += 1;
+	  bindaddrs = realloc( bindaddrs,
+			       sizeof(Usockaddr) * (bindaddrs_count +1) );
+	  if (!bindaddrs)
+	    bindaddrs_count = 0;
+	  else
+	    bindaddrs[ bindaddrs_count-1 ] = bindaddr;
+	}
+    }
     return head;
 }
 

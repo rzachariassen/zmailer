@@ -1,3 +1,29 @@
+2003-08-29  Matti Aarnio  <mea@zmailer.org>
+
+	* debian/*
+	    Debian packet builder scripts from 
+	    Xose Vazquez Perez <xose@wanadoo.es>
+
+	* include/libz.h, lib/zgetbindaddr.c, scheduler/transport.c,
+	  smtpserver/smtpserver.c, smtpserver/smtpserver.h,
+	  smtpserver/cfgread.c, transports/smtp/smtp.c:
+	    Added third parameter into  zgetbindaddr()  function,
+	    namely: what address family should be used ?
+	    Entry parameter is: AF_INET / AF_INET6 (0 == AF_INET)
+	    That is needed for  "iface:..." binding mode.
+
+	* utils/smtpserver-log-parser.pl.in:
+	    Found a bug in the 'pid-parser', changed the RE patterns,
+	    and system that formerly leaked a lot of memory does now
+	    only a little bit..
+
+	* man/scheduler.8.in:
+	    Fixed a typo in  PARAMauthfile= document.
+
+	* proto/smtpserver.conf.in:
+	    Documentary comment changes in the end of the file
+	    in the 'style-flags' section.
+
 2003-08-28  Matti Aarnio  <mea@zmailer.org>
 
 	* man/Makefile.in, SiteConfig.in, man/zmailer-conf-generate.pl,

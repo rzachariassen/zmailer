@@ -600,7 +600,10 @@ char **argv;
 	    break;
 #if defined(AF_INET6) && defined(INET6)
 	  case '6':
-	    use_ipv6 = 1;
+#if AF_INET6 == 0
+	    ::ERROR::ERROR: AF_INET6 has CPP value ZERO!
+#endif
+	    use_ipv6 = AF_INET6;
 	    break;
 #endif
 	  case 'a':
@@ -811,6 +814,36 @@ char **argv;
 	    sprintf(path, "%s/%s.conf", mailshare, progname);
 	}
 
+
+	/* The automatic "system can do ipv6" testing controls
+	   "use_ipv6" variable, which in turn controls what
+	   may happen in  readcffile()  */
+
+#if defined(AF_INET6) && defined(INET6)
+	/* Perhaps the system can grok the IPv6 - at least the headers
+	   seem to indicate so, but like we know of Linux, the protocol
+	   might not be loaded in, or some such...
+	   If we are not explicitely told to use IPv6 only, we will try
+	   here to use IPv6, and if successfull, register it!  */
+	if (!use_ipv6 && !force_ipv4) {
+	  int s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	  if (s >= 0) {
+	    use_ipv6 = AF_INET6;	/* We can do it! */
+	    close(s);
+	  }
+	}
+	  
+	if (use_ipv6) {
+	  int s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
+	  if (s < 0) {	/* Fallback to the IPv4 mode .. */
+	    s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
+	    use_ipv6 = 0;
+	  }
+	  close(s);
+	}
+#endif
+
+
 	if (cfgpath == NULL)
 	  cfhead = readcffile(path);
 	else
@@ -1003,32 +1036,6 @@ char **argv;
 	      /* return; NO giving up! */
 	    }
 	  }
-
-
-#if defined(AF_INET6) && defined(INET6)
-
-	  /* Perhaps the system can grok the IPv6 - at least the headers
-	     seem to indicate so, but like we know of Linux, the protocol
-	     might not be loaded in, or some such...
-	     If we are not explicitely told to use IPv6 only, we will try
-	     here to use IPv6, and if successfull, register it!  */
-	  if (!use_ipv6 && !force_ipv4) {
-	    int s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
-	    if (s >= 0) {
-	      use_ipv6 = 1;	/* We can do it! */
-	      close(s);
-	    }
-	  }
-	  
-	  if (use_ipv6) {
-	    int s = socket(PF_INET6, SOCK_STREAM, 0 /* IPPROTO_IPV6 */ );
-	    if (s < 0) {	/* Fallback to the IPv4 mode .. */
-	      s = socket(PF_INET, SOCK_STREAM, 0 /* IPPROTO_IP   */ );
-	      use_ipv6 = 0;
-	    }
-	    close(s);
-	  }
-#endif
 
 	  settrusteduser();	/* dig out the trusted user ID */
 	  zcloselog();		/* close the syslog too.. */

@@ -270,6 +270,11 @@ transports/smtp:
     FEATURE:
 	Reports about delivery DELAY.
 
+    FEATURE: ??
+	Place the scheduler's PARAMmailqpath= data into ZENV variable,
+	so that mailq tool can share it.  For use in systems with
+	multiple ZMailer instances.
+
     BUG?
 	Have two waiting threads (one message each):
 	- start both of them with ETRN

@@ -45,7 +45,7 @@ while (<STDIN>) {
 
     #print "line='".$line."'\n";
 
-    if ($line =~ m/^(.{9})(.*)$/o) {
+    if ($line =~ m/^(.{7}).{4}(.*)$/o) {
 	$pid  = $1;
 	$rest = $2;
     } else {

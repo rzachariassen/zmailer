@@ -1535,7 +1535,7 @@ queryipcinit()
 	    if (modedata2)  modedata2[-1] = '@';
 
 	    memset(&ua, 0, sizeof(ua));
-	    if (zgetbindaddr(NULL, &ua))
+	    if (zgetbindaddr(NULL, AF_INET, &ua))
 		ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
 	    ua.v4.sin_port        = htons(port);
 	    ua.v4.sin_family      = AF_INET;
@@ -1548,7 +1548,7 @@ queryipcinit()
 #ifdef INET6
 	    else {
 	      memset(&ua, 0, sizeof(ua));
-	      if (zgetbindaddr(NULL, &ua))
+	      if (zgetbindaddr(NULL, AF_INET6, &ua))
 		  ua.v4.sin_addr.s_addr = htonl(INADDR_ANY);
 	      ua.v6.sin6_port   = htons(port);
 	      ua.v6.sin6_family = AF_INET6;

@@ -371,6 +371,7 @@ extern time_t logtagepoch, now;
 extern long availspace;
 extern long minimum_availspace;
 extern long maxsize;
+extern int use_ipv6;
 extern int tarpit_initial;
 extern int tarpit_exponent;
 extern int tarpit_toplimit;

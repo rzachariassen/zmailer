@@ -3364,7 +3364,7 @@ abort();
 	  return EX_TEMPFAIL;
 	}
 
-	wantbindaddr = !zgetbindaddr(localidentity,&sad); 
+	wantbindaddr = !zgetbindaddr(localidentity, af, &sad); 
 
 	if (wantreserved && getuid() == 0) {
 	  /* try grabbing a port */

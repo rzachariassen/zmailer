@@ -160,7 +160,7 @@ extern int  matchmyaddresses  __((struct addrinfo *));
 extern int zgetifaddress __((int af, const char *ifname, Usockaddr *));
 
 /* zgetbindaddr.c */
-extern int zgetbindaddr __((char *ifname, Usockaddr *));
+extern int zgetbindaddr __((char *ifname, const int af, Usockaddr *));
 
 /* splay.c */
 /* .... much ... in  "splay.h" */

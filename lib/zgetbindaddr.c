@@ -52,8 +52,9 @@
 #include <net/if.h>
 
 int
-zgetbindaddr(bindspec, sap)
+zgetbindaddr(bindspec, af, sap)
 	char *bindspec;
+	const int af;
 	Usockaddr *sap;
 {
 	int result = 0;
@@ -79,34 +80,42 @@ zgetbindaddr(bindspec, sap)
 	} else
 #endif
 	if (*bindspec == '[') {
-		char *s = strchr(bindspec, ']');
-		if (s) *s = 0;
-		if (inet_pton(AF_INET, bindspec + 1, &sap->v4.sin_addr)
-		    < 1) {
-			/* False IP(v4) number literal */
-			/* ... then we don't set the IP address... */
-			result = 1;
-		}
-		sap->v4.sin_family = AF_INET;
+	  char *s = strchr(bindspec, ']');
+	  if (s) *s = 0;
+	  if (inet_pton(AF_INET, bindspec + 1, &sap->v4.sin_addr) < 1) {
+	    /* False IP(v4) number literal */
+	    /* ... then we don't set the IP address... */
+	    result = 1;
+	  }
+	  sap->v4.sin_family = AF_INET;
 	} else {
 		if (CISTREQN(bindspec, "iface:", 6)) {
 #if defined(AF_INET6) && defined(INET6)
-			sap->v6.sin6_family = AF_INET6;
-			if (zgetifaddress
-			    (AF_INET6, bindspec + 6, sap))
-				/* Didn't get IPv6 interface address of given name.. */
-#endif
-			{
-				if (zgetifaddress
-				    (AF_INET, bindspec + 6, sap)) {
-					/* No recognized interface! */
-					result = 1;
-				}
-			}
-		} else {
-			/* XXX: TODO: Try to see if this is an interface name, and pick
-			   IPv4 and/or IPv6 addresses for that interface. */
+		  if (af == AF_INET6) {
+		    sap->v6.sin6_family = AF_INET6;
+		    if (zgetifaddress( AF_INET6, bindspec + 6, sap )) {
+		      /* Didn't get IPv6 interface address of given name.. */
+		      if (zgetifaddress( AF_INET6, bindspec + 6, sap )) {
+			/* No recognized interface! */
 			result = 1;
+		      }
+		    }
+		    return result;
+		  }
+#endif
+		  if (af == 0 || af == AF_INET) {
+		    if (zgetifaddress( AF_INET, bindspec + 6, sap )) {
+		      /* No recognized interface! */
+		      result = 1;
+		    }
+		    return result;
+		  }
+
+		} else {
+		  /* XXX: TODO: Try to see if this is an interface name,
+		          and pick IPv4 and/or IPv6 addresses for that
+			  interface. */
+		  result = 1;
 		}
 	}
 	return result;

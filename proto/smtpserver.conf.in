@@ -174,8 +174,12 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 
 #
 #
-# HELO/EHLO-pattern     style-flags (Remember: 'ftve' set needs enable-router!)
+# HELO/EHLO-pattern     style-flags / !reject_message
 #               [max loadavg]
+#
+#  Note about the style-flags: 'ftve' set needs enable-router!
+#    The system will not complain about lack of it (since 2.99.56),
+#    but without that enable, those four flags have no effect.
 #
 #localhost           999 ftveR
 #some.host.domain    999 !NO EMAIL ACCEPTED FROM YOUR MACHINE
