@@ -1503,73 +1503,57 @@ void thread_report(fp,mqmode)
 	      }
 
 	      if (mqmode & MQ2MODE_FULL) {
-		if (thr->proc->pnext) {
-		  proc = thr->proc;
+		proc = thr->proc;
 
-		  sfprintf(fp, " Kids=%d", thr->thrkids);
+		if (thr->thrkids != thrprocs)
+		  sfprintf(fp, " Kids=%d/%d", thr->thrkids, thrprocs);
 
-		  if (thr->thrkids != thrprocs) sfprintf(fp, "/%d", thrprocs);
+		sfprintf(fp, " P={");
+		while (proc) {
+		  sfprintf(fp, "%d", (int)proc->pid);
+		  if (proc->pnext) sfprintf(fp, ",");
+		  proc = proc->pnext;
+		}
+		sfprintf(fp, "}");
 
-		  sfprintf(fp, " P={");
-		  while (proc) {
-		    sfprintf(fp, "%d", (int)proc->pid);
-		    if (proc->pnext) sfprintf(fp, ",");
-		    proc = proc->pnext;
-		  }
-		  sfprintf(fp, "}");
-		} else
-		  sfprintf(fp, " P=%-5d", (int)thr->proc->pid);
+		proc = thr->proc;
+		sfprintf(fp, " HA={");
+		while (proc) {
+		  sfprintf(fp, "%d", (int)(now - proc->hungertime));
+		  if (proc->pnext) sfprintf(fp, ",");
+		  proc = proc->pnext;
+		}
+		sfprintf(fp, "}s");
 
-		if (thr->proc->pnext) {
-		  proc = thr->proc;
-		  sfprintf(fp, " HA={");
-		  while (proc) {
-		    sfprintf(fp, "%d", (int)(now - proc->hungertime));
-		    if (proc->pnext) sfprintf(fp, ",");
-		    proc = proc->pnext;
-		  }
-		  sfprintf(fp, "}s");
-		} else
-		  sfprintf(fp, " HA=%ds", (int)(now - thr->proc->hungertime));
+		proc = thr->proc;
+		sfprintf(fp, " FA={");
+		while (proc) {
+		  if (proc->feedtime == 0)
+		    sfprintf(fp, "never");
+		  else
+		    sfprintf(fp, "%d", (int)(now - proc->feedtime));
+		  if (proc->pnext) sfprintf(fp, ",");
+		  proc = proc->pnext;
+		}
+		sfprintf(fp, "}s");
 
-		if (thr->proc->pnext) {
-		  proc = thr->proc;
-		  sfprintf(fp, " FA={");
-		  while (proc) {
-		    if (proc->feedtime == 0)
-		      sfprintf(fp, "never");
-		    else
-		      sfprintf(fp, "%d", (int)(now - proc->feedtime));
-		    if (proc->pnext) sfprintf(fp, ",");
-		    proc = proc->pnext;
-		  }
-		  sfprintf(fp, "}s");
-		} else
-		  sfprintf(fp," FA=%ds",(int)(now - thr->proc->feedtime));
+		proc = thr->proc;
+		sfprintf(fp, " OF={");
+		while (proc) {
+		  sfprintf(fp, "%d", proc->overfed);
+		  if (proc->pnext) sfprintf(fp, ",");
+		  proc = proc->pnext;
+		}
+		sfprintf(fp, "}");
 
-		if (thr->proc->pnext) {
-		  proc = thr->proc;
-		  sfprintf(fp, " OF={");
-		  while (proc) {
-		    sfprintf(fp, "%d", proc->overfed);
-		    if (proc->pnext) sfprintf(fp, ",");
-		    proc = proc->pnext;
-		  }
-		  sfprintf(fp, "}");
-		} else
-		  sfprintf(fp," OF=%d", thr->proc->overfed);
-
-		if (thr->proc->pnext) {
-		  proc = thr->proc;
-		  sfprintf(fp, " S={");
-		  while (proc) {
-		    sfprintf(fp, "%s", proc_state_names[proc->state]);
-		    if (proc->pnext) sfprintf(fp, ",");
-		    proc = proc->pnext;
-		  }
-		  sfprintf(fp, "}");
-		} else
-		  sfprintf(fp," S=%s", proc_state_names[thr->proc->state]);
+		proc = thr->proc;
+		sfprintf(fp, " S={");
+		while (proc) {
+		  sfprintf(fp, "%s", proc_state_names[proc->state]);
+		  if (proc->pnext) sfprintf(fp, ",");
+		  proc = proc->pnext;
+		}
+		sfprintf(fp, "}");
 	      }
 
 	    } else if (thr->wakeup > now) {
