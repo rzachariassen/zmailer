@@ -598,16 +598,15 @@ logit(file, id, from, to)
 	if (id == NULL)
 		id = file;
 	baselen = strlen(file) + strlen(id) + 4;
-	printf("%.200s: file: %.150s %.250s...\n", id, file, from);
+	printf("%.200s: file: %s %s...\n", id, file, from);
 	if (!nosyslog)
 	  zsyslog((LOG_INFO, "%.200s: file: %.150s %.250s...",
 		   id, file, from));
 	flen = strlen(from);
 	if (flen > 0)
-	  printf("%.200s: file: %.150s %.200s => %.200s\n",
-		 id, file, from, to);
+	  printf("%.200s: file: %s %s => %s\n", id, file, from, to);
 	else
-	  printf("%.200s: file: %.150s %.250s\n", id, file, to);
+	  printf("%.200s: file: %s %s\n",       id, file, to);
 	if (!nosyslog) {
 	  if (flen > 0)
 	    zsyslog((LOG_INFO, "%.200s: file: %.150s %.200s => %.200s",
