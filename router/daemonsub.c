@@ -1263,7 +1263,8 @@ run_daemon(argc, argv)
 	memset(routerchilds, 0, sizeof(routerchilds));
 
 	for (i = 0; i < MAXROUTERCHILDS; ++i)
-	  routerchilds[i].fromchild = -1;
+	  routerchilds[i].fromchild = 
+	    routerchilds[i].tochild = -1;
 
 	/* instantiate the signal handler.. */
 #ifdef SIGCLD
@@ -1360,6 +1361,11 @@ run_daemon(argc, argv)
 	    }
 
 	    for (i = 0; i < MAXROUTERCHILDS; ++i) {
+	      if ( routerchilds[i].tochild < 0 &&
+		   routerchilds[i].dq &&
+		   routerchilds[i].dq->wrkcount )
+		start_child(i);
+
 	      if ( routerchilds[i].tochild >= 0 &&
 		   routerchilds[i].childsize == 0 &&
 		   routerchilds[i].hungry &&
