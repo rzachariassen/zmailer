@@ -90,6 +90,8 @@ smtp_starttls(SS, buf, cp)
     if (SS->mfp != NULL) {
       clearerr(SS->mfp);
       mail_abort(SS->mfp);
+      policytest(&SS->policystate, POLICY_DATAABORT,
+		 NULL, SS->rcpt_count, NULL);
       SS->mfp = NULL;
     }
 
@@ -101,6 +103,8 @@ smtp_starttls(SS, buf, cp)
       if (SS->mfp != NULL) {
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
 	SS->mfp = NULL;
       }
       MIBMtaEntry->ss.IncomingSMTP_STARTTLS_fail += 1;

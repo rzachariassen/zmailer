@@ -407,6 +407,7 @@ extern int enhancedstatusok;
 extern int multilinereplies;
 extern int dsn_ok;
 extern int auth_ok;
+extern int auth_failrate;
 extern int ehlo_ok;
 extern int etrn_ok;
 extern int starttls_ok;

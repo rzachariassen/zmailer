@@ -125,6 +125,9 @@ const char *buf, *cp;
 	typeflush(SS);
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
+
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	reporterr(SS, tell, "message file error");
@@ -134,8 +137,11 @@ const char *buf, *cp;
 	type(SS, 550, "5.1.7", "No valid sender, rejecting all recipients");
 	typeflush(SS);
 	SS->state = MailOrHello;
-	if (SS->mfp)
+	if (SS->mfp) {
 	  mail_abort(SS->mfp);
+	  policytest(&SS->policystate, POLICY_DATAABORT,
+		     NULL, SS->rcpt_count, NULL);
+	}
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	return 0;
@@ -156,6 +162,8 @@ const char *buf, *cp;
 	typeflush(SS);
 	SS->state = MailOrHello;
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	return 0;
@@ -207,6 +215,8 @@ const char *buf, *cp;
 
     if (*msg != 0) {
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	type(SS, 452, m430, "%s", msg);
@@ -217,8 +227,11 @@ const char *buf, *cp;
 	if (STYLE(SS->cfinfo,'D')) {
 	  /* Says: DON'T DISCARD -- aka DEBUG ERRORS! */
 	  mail_close_alternate(SS->mfp,"public",".DATA-EOF");
-	} else
+	} else {
 	  mail_abort(SS->mfp);
+	  policytest(&SS->policystate, POLICY_DATAABORT,
+		     NULL, SS->rcpt_count, NULL);
+	}
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	reporterr(SS, tell, "premature EOF on DATA input");
@@ -232,10 +245,14 @@ const char *buf, *cp;
 	reporterr(SS, tell, ferror(SS->mfp) ? "write to spool file failed" : "system free storage under limit");
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
     } else if (maxsize > 0 && filsiz > maxsize) {
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
 	MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	SS->mfp = NULL;
 	type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
@@ -314,6 +331,8 @@ const char *buf, *cp;
 	  }
 
 	  mail_abort(SS->mfp);
+	  policytest(&SS->policystate, POLICY_DATAABORT,
+		     NULL, SS->rcpt_count, NULL);
 	  MIBMtaEntry->ss.IncomingSMTP_DATA_bad += 1;
 	  SS->mfp = NULL;
 	} else if (SS->policyresult > 0) {
@@ -410,7 +429,8 @@ const char *buf, *cp;
 		       "%s: (%ldc) accepted from %s/%d", taspid, tell,
 		       SS->rhostname, SS->rport));
 		
-	    policytest(&SS->policystate, POLICY_DATAOK, NULL, SS->ok_rcpt_count, NULL);
+	    policytest(&SS->policystate, POLICY_DATAOK,
+		       NULL, SS->rcpt_count, NULL);
 
 	    MIBMtaEntry->ss.IncomingSMTP_DATA_ok    += 1;
 
@@ -527,8 +547,11 @@ const char *buf, *cp;
 	  type(SS, 503, m552, cp);
 
 	typeflush(SS);
-	if (SS->mfp)
+	if (SS->mfp) {
 	    mail_abort(SS->mfp);
+	    policytest(&SS->policystate, POLICY_DATAABORT,
+		       NULL, SS->ok_rcpt_count, NULL);
+	}
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
 	return 0;
@@ -545,8 +568,11 @@ const char *buf, *cp;
 
 	    typeflush(SS);
 	    SS->state = MailOrHello;
-	    if (SS->mfp)
+	    if (SS->mfp) {
 	      mail_abort(SS->mfp);
+	      policytest(&SS->policystate, POLICY_DATAABORT,
+			 NULL, SS->ok_rcpt_count, NULL);
+	    }
 	    MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	    SS->mfp = NULL;
 	    return 0;
@@ -561,6 +587,8 @@ const char *buf, *cp;
 	  typeflush(SS);
 	  SS->state = MailOrHello;
 	  mail_abort(SS->mfp);
+	  policytest(&SS->policystate, POLICY_DATAABORT,
+		     NULL, SS->ok_rcpt_count, NULL);
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	  SS->mfp = NULL;
 	  return 0;
@@ -593,6 +621,8 @@ const char *buf, *cp;
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
     } else if (*msg != 0) {
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->ok_rcpt_count, NULL);
 	SS->mfp = NULL;
 	type(SS, 452, "%s", msg);
 	if (lmtp_mode && bdata_last) for(i = 1; i < SS->ok_rcpt_count; ++i)
@@ -603,8 +633,11 @@ const char *buf, *cp;
 	if (STYLE(SS->cfinfo,'D')) {
 	  /* Says: DON'T DISCARD -- aka DEBUG ERRORS! */
 	  mail_close_alternate(SS->mfp,"public",".BDAT-EOF");
-	} else
+	} else {
 	  mail_abort(SS->mfp);
+	  policytest(&SS->policystate, POLICY_DATAABORT,
+		     NULL, SS->ok_rcpt_count, NULL);
+	}
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
 	reporterr(SS, tell, "premature EOF on BDAT input");
@@ -619,10 +652,14 @@ const char *buf, *cp;
 				    "system free storage under limit");
 	clearerr(SS->mfp);
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->ok_rcpt_count, NULL);
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
     } else if (maxsize > 0 && tell > maxsize) {
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->ok_rcpt_count, NULL);
 	MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	SS->mfp = NULL;
 	type(SS, 552, "5.3.4", "Size of this message exceeds the fixed maximum size of  %ld  chars for received email ", maxsize);
@@ -699,6 +736,8 @@ const char *buf, *cp;
 	  }
 
 	  mail_abort(SS->mfp);
+	  policytest(&SS->policystate, POLICY_DATAABORT,
+		     NULL, SS->ok_rcpt_count, NULL);
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_bad += 1;
 	  SS->mfp = NULL;
 
@@ -791,7 +830,8 @@ const char *buf, *cp;
 	  }
 #endif
 
-	  policytest(&SS->policystate, POLICY_DATAOK, NULL, SS->ok_rcpt_count, NULL);
+	  policytest(&SS->policystate, POLICY_DATAOK,
+		     NULL, SS->rcpt_count, NULL);
 
 
 	  MIBMtaEntry->ss.IncomingSMTP_BDAT_ok    += 1;

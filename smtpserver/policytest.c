@@ -1267,49 +1267,57 @@ static int call_rate_counter(state, incr, what, countp)
        in the future ?  E.g. there is no point in spending time
        for externally incoming email... */
 
-    if (incr  &&  !state->did_query_rate)
-      return 0; /* INCRed counters at DATA/BDAT, but hadn't
-		   shown interest at MAIL for this... */
-
-
     state->did_query_rate = 1;
 
     switch (incr) {
     case 0:
-      cmd   = "MSGS";
-      count = 0;
-      break;
+	cmd   = "MSGS";
+	count = 0;
+	break;
     case 1:
-      cmd   = "MSGS";
-      count = 1;
-      break;
+	cmd   = "MSGS";
+	count = 1;
+	break;
     case 2:
-      cmd = "EXCESS";
-      count = 1;
-      break;
+	cmd = "EXCESS";
+	count = 1;
+	break;
     default:
-      break;
+	break;
     }
 
     switch (what) {
     case POLICY_SOURCEADDR:
-      break;
+	break;
     case POLICY_MAILFROM:
-      whatp = "MAIL";
-      break;
+	whatp = "MAIL";
+	break;
     case POLICY_DATA:
     case POLICY_DATAOK:
-      whatp = "DATA";
-      count = 1;
-      break;
+	whatp = "DATA";
+	count = 1;
+	if (incr  &&  !state->did_query_rate)
+	  return 0; /* INCRed counters at DATA/BDAT, but hadn't
+		       shown interest at MAIL for this... */
+	break;
+    case POLICY_DATAABORT:
+	whatp = "DABORT";
+	count = 1;
+	if (incr  &&  !state->did_query_rate)
+	  return 0; /* INCRed counters at DATA/BDAT, but hadn't
+		       shown interest at MAIL for this... */
+	break;
     case POLICY_RCPTTO:
-      whatp = "RCPT";
-      cmd   = "RCPT";
-      count = incr;
-      break;
+	whatp = "RCPT";
+	cmd   = "RCPT";
+	count = incr;
+	break;
+    case POLICY_AUTHFAIL:
+	cmd = "AUTHF";
+	break;
     default:
-      whatp = "xxxx";
-      break;
+	whatp = "xxxx";
+	break;
     }
 
     sprintf(pbuf, "%s %s %s %s %d",
@@ -1330,10 +1338,11 @@ static int call_rate_counter(state, incr, what, countp)
      * INCR all accepted DATA/BDATs.
      */
 
-    if (!countp) return 0; /* Don't actually care! */
+    if (sscanf(pbuf, "%*s %d", &count) == 1)
+	return 0;
 
-    if (sscanf(pbuf, "%*s %d", countp) == 1)
-      return 0;
+    if (!countp) return 0; /* Don't actually care! */
+    *countp = count;
 
     return -1;
 }
@@ -2232,6 +2241,12 @@ int policytest(state, what, str, len, authuser)
     case POLICY_DATAOK:
 	/* rc = call_rate_counter(state, 1, what, NULL); */
 	rc = call_rate_counter(state, len, POLICY_RCPTTO, NULL);
+	break;
+    case POLICY_DATAABORT:
+	rc = call_rate_counter(state, len, POLICY_DATAABORT, NULL);
+	break;
+    case POLICY_AUTHFAIL:
+	rc = call_rate_counter(state, len, POLICY_AUTHFAIL, NULL);
 	break;
     default:
 	abort();		/* Code error! Bad policy !	*/

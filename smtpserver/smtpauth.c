@@ -218,19 +218,33 @@ void smtp_auth(SS,buf,cp)
 	long uid;
 	char *zpw;
 
-	if (SS->authuser != NULL) {
-	  type(SS, 503, m551, "Already authenticated, second attempt rejected!");
+	rc = policytest(&SS->policystate, POLICY_AUTHFAIL,
+			uname, 0, SS->authuser);
+	if (rc < 0) {
+	  type(SS, 503, m551, "Hi %s, Too many authentication failures from your IP this hour..", SS->rhostaddr);
 	  return;
 	}
 
 	if (SS->state == Hello) {
-	  type(SS, 503, m551, "EHLO first, then - perhaps - AUTH!");
+	  type(SS, 503, m551, "Hi %s, EHLO first, then - perhaps - AUTH!", SS->rhostaddr);
+	  policytest(&SS->policystate, POLICY_AUTHFAIL,
+		     uname, 1, SS->authuser);
 	  return;
 	}
 	if (SS->state != MailOrHello && SS->state != Mail) {
-	  type(SS, 503, m551, "AUTH not allowed during MAIL transaction!");
+	  type(SS, 503, m551, "Hi %s, AUTH not allowed during MAIL transaction!", SS->rhostaddr);
+	  policytest(&SS->policystate, POLICY_AUTHFAIL,
+		     uname, 1, SS->authuser);
 	  return;
 	}
+	if (SS->authuser != NULL) {
+	  type(SS, 503, m551, "Hello %s, already authenticated, second attempt rejected!",SS->rhostaddr);
+	  policytest(&SS->policystate, POLICY_AUTHFAIL,
+		     uname, 1, SS->authuser);
+	  return;
+	}
+
+
 
 	if (*cp == ' ') ++cp;
 	if (strict_protocol < 1)
@@ -241,21 +255,28 @@ void smtp_auth(SS,buf,cp)
 #endif
 	  {
 	    if (!CISTREQN(cp, "LOGIN", 5)) {
-	      type(SS, 504, m571, "Only 'AUTH LOGIN' supported.");
+	      type(SS, 504, m571, "Hello %s, Only 'AUTH LOGIN' supported.", SS->rhostaddr);
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 	      return;
 	    }
 
 #ifdef HAVE_OPENSSL
 	    if (!auth_login_without_tls && !SS->sslmode) {
 	      type(SS, 503, m571,
-		   "Plaintext password authentication must be run under SSL/TLS");
+		   "Hello %s, Plaintext password authentication must be run under SSL/TLS", SS->rhostaddr);
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 	      return;
 	    }
 #endif /* - HAVE_OPENSSL */
 #ifndef HAVE_OPENSSL
 	    if (!auth_login_without_tls) {
 	      type(SS, 503, m571,
-		   "Plaintext password authentication is not enabled in this system");
+		   "Hello %s, Plaintext password authentication is not enabled in this system",
+		   SS->rhostaddr);
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 	      return;
 	    }
 #endif /* --HAVE_OPENSSL */
@@ -275,6 +296,8 @@ void smtp_auth(SS,buf,cp)
 	      uname = strdup(bbuf);
 	      if (*ccp != 0) {
 		type(SS, 501, m552, "unrecognized input/extra junk ??");
+		policytest(&SS->policystate, POLICY_AUTHFAIL,
+			   uname, 1, SS->authuser);
 		return;
 	      }
 
@@ -297,10 +320,14 @@ void smtp_auth(SS,buf,cp)
 		fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now - logtagepoch), abuf);
 		fflush(logfp);
 	      }
-	      if (i == 0)	/* EOF ??? */
+	      if (i == 0) {	/* EOF ??? */
+		type(SS, 501, NULL, "Err... Seen EOF during AUTH ??");
 		return;
+	      }
 	      if (strcmp(abuf, "*") == 0) {
 		type(SS, 501, NULL, "AUTH command cancelled");
+		policytest(&SS->policystate, POLICY_AUTHFAIL,
+			   uname, 1, SS->authuser);
 		return;
 	      }
 	      rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf), NULL);
@@ -343,11 +370,14 @@ void smtp_auth(SS,buf,cp)
 #endif
 	    if (i == 0)	{ /* EOF ??? */
 	      if (uname) free(uname);
+	      type(SS, 501, NULL, "Err... Seen EOF during AUTH ??");
 	      return;
 	    }
 	    if (strcmp(abuf, "*") == 0) {
 	      if (uname) free(uname);
 	      type(SS, 501, NULL, "AUTH command cancelled");
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 	      return;
 	    }
 
@@ -371,6 +401,8 @@ void smtp_auth(SS,buf,cp)
 	      type(SS, 235, NULL, "Authentication successful.");
 	    } else {
 	      type(SS, 535, NULL, "%s", zpw);
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 	      if (uname) free(uname);
 	    }
 	  }
@@ -409,6 +441,8 @@ void smtp_auth(SS,buf,cp)
 	  /* check whether mechanism is available */
 	  if (iteminlist(cp, SS->sasl.mechlist, " ") == NULL) {
 	    type(SS, 503, "5.3.3", "AUTH mechanism %.32s not available", cp);
+	    policytest(&SS->policystate, POLICY_AUTHFAIL,
+		       uname, 1, SS->authuser);
 	    return;
 	  }
 
@@ -421,6 +455,8 @@ void smtp_auth(SS,buf,cp)
 	      type(SS, 501, "5.5.4", "cannot BASE64 decode '%s'", q);
 	      authenticating = SASL_NOT_AUTH;
 	      free(in);
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 	      return;
 	    }
 	  } else {
@@ -438,6 +474,8 @@ void smtp_auth(SS,buf,cp)
 	  if (result != SASL_OK && result != SASL_CONTINUE) {
 
 	    type(SS, 500, "5.7.0", "authentication failed");
+	    policytest(&SS->policystate, POLICY_AUTHFAIL,
+		       uname, 1, SS->authuser);
 	    if (logfp){
 	      const char * e = sasl_errdetail(SS->sasl.conn);
 	      if (!e) e = "<-no-detail->";
@@ -462,6 +500,8 @@ void smtp_auth(SS,buf,cp)
 
 	  if (result != SASL_OK) {
 	    type(SS, 454, "4.5.4", "Temporary authentication failure");
+	    policytest(&SS->policystate, POLICY_AUTHFAIL,
+		       uname, 1, SS->authuser);
 	    if (logfp) {
 	      fprintf(logfp, "%s%d#\tAUTH encode64 error [%d for \"%s\"]\n",
 		      logtag, (int)(now - logtagepoch),
@@ -495,6 +535,8 @@ void smtp_auth(SS,buf,cp)
 	    if (abuf[0] == '\0' || i == 0) {
 	      authenticating = SASL_NOT_AUTH;
 	      type(SS,  501, "5.5.2", "missing input");
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 	      break;
 	    }
 
@@ -503,6 +545,8 @@ void smtp_auth(SS,buf,cp)
 	      
 	      /* rfc 2254 4. */
 	      type(SS, 501, "5.0.0", "AUTH aborted");
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 	      break;
 	    }
 
@@ -512,6 +556,8 @@ void smtp_auth(SS,buf,cp)
 	      authenticating = SASL_NOT_AUTH;
 	      /* rfc 2254 4. */
 	      type(SS, 501, "5.5.4", "cannot decode AUTH parameter %s", abuf);
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 	      continue;
 	    }
 
@@ -594,6 +640,8 @@ void smtp_auth(SS,buf,cp)
 		/* correct code? XXX */
 		/* 454 Temp. authentication failure */
 		type(SS, 454, "4.5.4", "Internal error: unable to encode64");
+		policytest(&SS->policystate, POLICY_AUTHFAIL,
+			   uname, 1, SS->authuser);
 #if 0
 		if (LogLevel > 5)
 		  sm_syslog(LOG_WARNING, e->e_id,
@@ -617,6 +665,8 @@ void smtp_auth(SS,buf,cp)
 
 	      /* not SASL_OK or SASL_CONT */
 	      type(SS, 500, "5.7.0", "authentication failed");
+	      policytest(&SS->policystate, POLICY_AUTHFAIL,
+			 uname, 1, SS->authuser);
 #if 0
 	      if (LogLevel > 9)
 		sm_syslog(LOG_WARNING, e->e_id,

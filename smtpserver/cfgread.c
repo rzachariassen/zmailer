@@ -365,6 +365,10 @@ static void cfparam(str, size, cfgfilename, linenum)
 	enable_router_maxpar  = 1;
     } else if (cistrcmp(name, "smtp-auth") == 0) {
       auth_ok = 1;
+    } else if (cistrcmp(name, "auth-failrate") == 0 && param1) {
+      auth_failrate = atoi(param1);
+      if (auth_failrate < 3)
+	auth_failrate = 3;
     } else if (cistrcmp(name, "auth-login-also-without-tls") == 0) {
       auth_login_without_tls = 1;
     } else if (cistrcmp(name, "smtp-auth-sasl") == 0) {

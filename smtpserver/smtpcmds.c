@@ -144,6 +144,7 @@ void smtp_helo(SS, buf, cp)
 SmtpState *SS;
 const char *buf, *cp;
 {
+
     switch (SS->carp->cmd) {
     case Hello2:
       MIBMtaEntry->ss.IncomingSMTP_EHLO += 1;
@@ -159,6 +160,8 @@ const char *buf, *cp;
     if (SS->mfp != NULL) {
       clearerr(SS->mfp);
       mail_abort(SS->mfp);
+      policytest(&SS->policystate, POLICY_DATAABORT,
+		 NULL, SS->rcpt_count, NULL);
       SS->mfp = NULL;
     }
 
@@ -762,8 +765,9 @@ int insecure;
 	rc = 1;
 	break;
     }
-    if (rc != 0)
+    if (rc != 0) {
 	return -1;		/* Error(s) in previous loop.. */
+    }
 
     /*printf("  <path>: len=%d \"%s\"\n",cp-s,cp); */
 
@@ -1021,16 +1025,22 @@ int insecure;
 	smtp_tarpit(SS);
 	type(SS, 452, m430, (char *) NULL);
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
 	SS->mfp = NULL;
     } else if (SS->sizeoptval > maxsize && maxsize > 0) {
 	smtp_tarpit(SS);
 	type(SS, 552, m534, "This message is larger, than our maximum acceptable incoming message size of  %d  chars.", maxsize);
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
 	SS->mfp = NULL;
     } else if (SS->sizeoptval > availspace) {
 	smtp_tarpit(SS);
 	type(SS, 452, m431, "Try again later, insufficient storage available at the moment");
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
 	SS->mfp = NULL;
     } else {
 	if (s) {
@@ -1038,6 +1048,8 @@ int insecure;
 	    if (rrc >= 400) {
 	      smtp_tarpit(SS);
 	      mail_abort(SS->mfp);
+	      policytest(&SS->policystate, POLICY_DATAABORT,
+			 NULL, SS->rcpt_count, NULL);
 	      SS->mfp = NULL;
 	    }
 	    type(SS, rrc, s + 4, "Ok");
@@ -1052,7 +1064,7 @@ int insecure;
       SS->state = Recipient;
 
     SS->rcpt_count = 0;
-    SS->ok_rcpt_count = 0;
+    SS->rcpt_count = 0;
     SS->from_box = (addrlen == 0);
 
     return 0; /* Is ok */
@@ -1082,6 +1094,9 @@ const char *buf, *cp;
 
     if (strict && sloppy) /* If misconfigured, SLOPPY takes precedence! */
       strict = 0;
+
+
+    SS->rcpt_count += 1;
 
     /* some smtp clients don't get the 503 right and try again, so
        tell the spammers exactly what's happening. */
@@ -1538,7 +1553,6 @@ const char *buf, *cp;
       SS->sizeoptsum = SS->sizeoptval;
 
     err = 1;
-    SS->rcpt_count += 1;
 
     if (ferror(SS->mfp)) {
 	smtp_tarpit(SS);
@@ -1558,6 +1572,8 @@ const char *buf, *cp;
 	    if (err >= 400) {
 	      smtp_tarpit(SS);
 	      mail_abort(SS->mfp);
+	      policytest(&SS->policystate, POLICY_DATAABORT,
+			 NULL, SS->rcpt_count, NULL);
 	      SS->mfp = NULL;
 	    }
 	    type(SS, err, s + 4, "Ok");

@@ -25,14 +25,16 @@
 #include "smtpserver.h"
 #include "splay.h"
 
-#define SLOTINTERVAL 512  /* There are 8 slots, slow sliding
-			     bucket accounter.. */
 #define SLOTCOUNT 8
+#define SLOTINTERVAL (3600/SLOTCOUNT)  /* There are 8 slots, slow sliding
+					  bucket accounter.. */
 #if 0
 /* Temporary testing stuff: */
 #undef  SLOTINTERVAL
 #define SLOTINTERVAL 10
 #endif
+
+int auth_failrate = 20;
 
 extern int ratetracker_rdz_fd;
 extern int ratetracker_server_pid;
@@ -73,6 +75,8 @@ struct ipv4_regs {
 	int slots;
 	int lastlimit;
 	time_t alloc_time, last_excess, last_recipients;
+	int aborts, aborts2, aborts3;
+	int afails, afails2, afails3;
 	int mails, mails2, mails3;
 	int excesses, excesses2, excesses3;
 	int recipients, recipients2, recipients3;
@@ -279,13 +283,21 @@ static void new_ipv4_timeslot( state )
 	      r[i].mails3 += r[i].mails2;
 	      r[i].mails2  = r[i].mails;
 	      r[i].mails   = 0;
+	      r[i].afails3 += r[i].afails2;
+	      r[i].afails2  = r[i].afails;
+	      r[i].afails   = 0;
+	      r[i].aborts3 += r[i].aborts2;
+	      r[i].aborts2  = r[i].aborts;
+	      r[i].aborts   = 0;
 	      r[i].slots = 0;
 	    }
 
 	    /* If there have been excesses, keep FOREVER,
 	       otherwise keep for about two hours... */
-	    if (r[i].excesses2 || r[i].excesses3 ||
-		r[i].mails2 || r[i].recipients2) continue;
+	    if (r[i].excesses2  || r[i].excesses3 ||
+		r[i].afails2    || r[i].mails2    ||
+		r[i].aborts2    ||
+		r[i].recipients2  ) continue;
 
 	    /* See if now ALL slots are ZERO value.. */
 	    if (memcmp(zerocountset, r[i].countset,
@@ -312,6 +324,33 @@ static int count_excess_ipv4( state, ipv4addr )
 	reg->last_excess = now;
 
 	return reg->excesses;
+}
+
+static int count_authfails_ipv4( state, ipv4addr, incr )
+     struct trk_state *state;
+     unsigned int ipv4addr;
+     int incr;
+{
+	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
+	if (!reg) return 0;    /*  not alloced!  */
+
+	reg->afails += incr;
+
+	return reg->afails;
+}
+
+static int count_daborts_ipv4( state, ipv4addr, incr )
+     struct trk_state *state;
+     unsigned int ipv4addr;
+     int incr;
+{
+	struct ipv4_regs *reg = lookup_ipv4_reg( state, ipv4addr );
+	if (!reg) return 0;    /*  not alloced!  */
+
+	reg->aborts += 1;
+	reg->recipients += incr;
+
+	return reg->aborts;
 }
 
 static int count_rcpts_ipv4( state, ipv4addr, incr )
@@ -365,7 +404,7 @@ dump_v4_rcptline(p, spl)
 	fprintf(fp, "\t");
 	fprintf(fp, "Lmt: %4d", rp->lastlimit);
 
-	fprintf(fp, " AllocAge: %6.3fh", (double)(now-rp->alloc_time)/3600.0);
+	fprintf(fp, " AAge: %6.3fh", (double)(now-rp->alloc_time)/3600.0);
 
 	fprintf(fp, " Mails: %3d %3d %3d",
 		rp->mails, rp->mails2, rp->mails3);
@@ -380,6 +419,12 @@ dump_v4_rcptline(p, spl)
 
 	fprintf(fp, " Rcpts: %3d %3d %3d",
 		rp->recipients, rp->recipients2, rp->recipients3);
+
+	fprintf(fp, " AFails: %3d %3d %3d",
+		rp->afails, rp->afails2, rp->afails3);
+
+	fprintf(fp, " Aborts: %3d %3d %3d",
+		rp->aborts, rp->aborts2, rp->aborts3);
 
 	fprintf(fp, "\n");
 
@@ -696,6 +741,10 @@ subdaemon_handler_trk_input (statep, peerdata)
 	  i = -5;
 	} else if (STREQ(actionlabel,"RCPT")) {
 	  i = -6;
+	} else if (STREQ(actionlabel,"AUTHF")) {
+	  i = -7;
+	} else if (STREQ(actionlabel,"DABORT")) {
+	  i = -8;
 	} else
 	  goto bad_input;
 
@@ -720,6 +769,13 @@ subdaemon_handler_trk_input (statep, peerdata)
 	  } else if (i == -6) {	/* "RCPT" data */
 	    i = count_ipv4( state, ipv4addr, lastlimitval, 1 );
 	    i = count_rcpts_ipv4( state, ipv4addr, countval );
+	    sprintf(peerdata->outbuf, "200 %d\n", i);
+	  } else if (i == -7) {
+	    i = count_authfails_ipv4( state, ipv4addr, countval );
+	    if (i > auth_failrate) i = -999;
+	    sprintf(peerdata->outbuf, "200 %d\n", i);
+	  } else if (i == -7) {
+	    i = count_daborts_ipv4( state, ipv4addr, countval );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  }
 	  peerdata->outlen = strlen(peerdata->outbuf);

@@ -128,7 +128,9 @@ typedef enum {
     POLICY_RCPTTO,
     POLICY_RCPTPOSTMASTER,
     POLICY_DATA,
-    POLICY_DATAOK
+    POLICY_DATAOK,
+    POLICY_DATAABORT,
+    POLICY_AUTHFAIL
 } PolicyTest;
 
 /* Test return values:

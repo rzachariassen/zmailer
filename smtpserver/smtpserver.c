@@ -2049,8 +2049,11 @@ int buflen, *rcp;
 
 	if (c == EOF && i == 0) {
 	    /* XX: ???  Uh, Hung up on us ? */
-	    if (SS->mfp != NULL)
+	    if (SS->mfp != NULL) {
 		mail_abort(SS->mfp);
+		policytest(&SS->policystate, POLICY_DATAABORT,
+			   NULL, SS->rcpt_count, NULL);
+	    }
 	    SS->mfp = NULL;
 	}
 
@@ -2158,8 +2161,11 @@ int insecure;
 	  if (STYLE(SS->cfinfo,'D')) {
 	    /* Says: DON'T DISCARD -- aka DEBUG ERRORS! */
 	    mail_close_alternate(SS->mfp,"public",".SMTP-TIMEOUT");
-	  } else
+	  } else {
 	    mail_abort(SS->mfp);
+	  }
+	  policytest(&SS->policystate, POLICY_DATAABORT,
+		     NULL, SS->rcpt_count, NULL);
 	}
 	SS->mfp = NULL;
 
@@ -2592,10 +2598,15 @@ int insecure;
 	case SendAndMail:
 	    /* This code is LONG.. */
 	    MIBMtaEntry->ss.IncomingSMTP_MAIL += 1;
-	    if (smtp_mail(SS, buf, cp, insecure) != 0 || SS->mfp == NULL)
+	    if (smtp_mail(SS, buf, cp, insecure) != 0 ||
+		SS->mfp == NULL) {
+	      if (! SS->mfp)
+		policytest(&SS->policystate, POLICY_DATAABORT,
+			   NULL, 1, NULL);
 	      MIBMtaEntry->ss.IncomingSMTP_MAIL_bad += 1;
-	    else
+	    } else {
 	      MIBMtaEntry->ss.IncomingSMTP_MAIL_ok += 1;
+	    }
 	    break;
 	case Recipient:
 	    /* This code is LONG.. */
@@ -2634,6 +2645,8 @@ int insecure;
 	    if (SS->mfp != NULL) {
 		clearerr(SS->mfp);
 		mail_abort(SS->mfp);
+		policytest(&SS->policystate, POLICY_DATAABORT,
+			   NULL, SS->rcpt_count, NULL);
 		SS->mfp = NULL;
 	    }
 	    if (SS->state != Hello)
@@ -2706,8 +2719,11 @@ int insecure;
 	    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
 	      type(SS, -221, m554, "Extra junk after 'QUIT' verb");
 	    }
-	    if (SS->mfp != NULL)
+	    if (SS->mfp != NULL) {
 		mail_abort(SS->mfp);
+		policytest(&SS->policystate, POLICY_DATAABORT,
+			   NULL, SS->rcpt_count, NULL);
+	    }
 	    SS->mfp = NULL;
 	    type(SS, 221, m200, NULL, "Out");
 	    typeflush(SS);
@@ -2728,6 +2744,8 @@ int insecure;
     }
     if (SS->mfp != NULL) {
 	mail_abort(SS->mfp);
+	policytest(&SS->policystate, POLICY_DATAABORT,
+		   NULL, SS->rcpt_count, NULL);
 	SS->mfp = NULL;
 	tell = lseek(0, 0, SEEK_CUR);
 	reporterr(SS, tell, "session terminated");

@@ -1,5 +1,19 @@
 2004-05-02  Matti Aarnio  <mea@zmailer.org>
 
+	* proto/smtpserver.conf.in, smtpserver/cfgread.c,
+	  smtpserver/policytest.c, smtpserver/policytest.h,
+	  smtpserver/smtpauth.c, smtpserver/smtpserver.h,
+	  smtpserver/subdaemon-trk.c:
+	    - Track the number of FAILED SMTP AUTHs, and
+	      refuse to do any if there are too many
+	      failures from given IP address.
+	      This is, of course, somewhat troublesome
+	      under some conditions -- one user can cause
+	      DoS for others...  But avoids password breakin
+	      service..
+	    - Count _all_ RCPTs, not just accepted ones..
+	    - Count data-aborts too.
+
 	* lib/symbol.c:
 	    When called upon NULLing the internal default
 	    symbol database that hasn't been initialized,

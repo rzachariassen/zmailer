@@ -75,6 +75,8 @@
 #                       # (or whatever source  getpwnam() uses for it..)
 #                       # This is intended to be used WITH the TLS network
 #                       # encryption!  This supports just plaintext logins.
+#PARAM  auth-failrate 20
+#                       # 
 #
 #PARAM  SMTP-auth-pipe /path/to/program
 #                       # External authentication program. The
@@ -88,12 +90,8 @@
 #                       # be used without running under SSL/TLS encryption
 #                       # envelope.  ENABLING THIS IS A SECURITY THREAT!
 #
-#PARAM  MSA-mode        # Message Submission Agent mode. Require
-#                       # successful user authentication during SMTP
-#                       # sessions initiated from outside of the trusted
-#                       # networks or the networks with relaying enabled
-#                       # (see "fulltrustnet" and "relaycustnet" in
-#                       # smtp-policy.src file).
+#PARAM  MSA-mode        # Message Submission Agent mode.
+#                       # Obsoleted with  BindSubmit ...
 #
 #PARAM  use-tcp-wrapper
 #           # If TCP-WRAPPER is configured in, uncommenting this
