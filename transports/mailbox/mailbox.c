@@ -1412,8 +1412,8 @@ const char *timestring;
 
 	if (verboselog)
 	  fprintf(verboselog,
-		  "To open a file with euid=%d egid=%d file='%s'\n",
-		  geteuid(), getegid(), file);
+		  "To open a file with euid=%d egid=%d ismbox=%d file='%s'\n",
+		  geteuid(), getegid(), ismbox, file);
 
 	fdmail = open(file, O_RDWR|O_APPEND);
 	if (fdmail < 0) {
