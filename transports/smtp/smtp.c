@@ -1889,9 +1889,9 @@ appendlet(SS, dp, convertmode)
 
 #ifdef DO_CHUNKING
 
-extern inline int ssputc __(( SmtpState *, int, FILE * ));
+extern int ssputc __(( SmtpState *, int, FILE * ));
 
-int inline
+int
 ssputc(SS, ch, fp)
      SmtpState *SS;
      int ch;
