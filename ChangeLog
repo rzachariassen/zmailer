@@ -1,3 +1,14 @@
+2001-05-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* lib/cfgets.c:
+	    Darryl Miles <darryl@netbauds.net>  found strange looking
+	    problem with certain kind of "malformed" input for scheduler
+	    configuration file.  Turns out that when this function
+	    encounters EOF, and it isn't at the beginning of the line,
+	    the line buffer never gets zero-terminated causing possibly
+	    strange side-effects when thus revealed previous content of
+	    the buffer may reappear.
+
 2001-05-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* proto/cf/fqdnaliases.cf, proto/cf/process.cf,

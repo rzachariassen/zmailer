@@ -39,6 +39,7 @@ int csfgets(s, n, stream)
 	  } else {
 	    if (cnt == 0)
 	      return EOF;
+	    if (n > 0) *s = 0; /* Zero terminate it! */
 	    break;
 	  }
 	}
