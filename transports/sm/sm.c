@@ -350,7 +350,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	struct rcpt *rp;
 	struct exmapinfo *exp;
 	const char *exs, *exd;
-	int i, j, pid, in[2], out[2];
+	int i, j, ii, pid, in[2], out[2];
 	unsigned int avsize;
 	FILE *tafp, *errfp;
 	char *cp, buf[BUFSIZ], buf2[BUFSIZ];
@@ -379,14 +379,16 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	  else
 	    av[i++] = startrp->addr->link->user;
 	}
-	for (j = 1; mp->argv[j] != NULL; ++j) {
+	for (j = 0; mp->argv[j] != NULL; ++j) {
+	  ii = i; if (j == 0) ii = 0;
 	  while (i+2 >= avsize) {
 	    avsize *= 2;
 	    av = (const char **)erealloc((char *)av,
 					 sizeof av[0] * avsize);
 	  }
 	  if (strchr(mp->argv[j], '$') == 0) {
-	    av[i++] = mp->argv[j];
+	    if (j > 0)
+	      av[i++] = mp->argv[j];
 	    continue;
 	  }
 	  rp = startrp;
@@ -415,6 +417,17 @@ deliver(dp, mp, startrp, endrp, verboselog)
 		  ds = buf2;
 		  rp = rp->next;
 		  break;
+		case '{':
+		  s = ++cp;
+		  while (*cp != 0 && *cp != '}') ++cp;
+		  if (*cp != 0) {
+		    *cp = 0;
+		    ds = getzenv(s);
+		    *cp = '}';
+		  } else {
+		    ds = getzenv(s);
+		  }
+		  break;
 		default:
 		  ds = NULL;
 		  break;
@@ -434,10 +447,11 @@ deliver(dp, mp, startrp, endrp, verboselog)
 		*ws++ = *cp;
 	    }
 	    *ws = '\0';
-	    av[i] = emalloc((u_int)(strlen(buf)+1));
+	    av[ii] = emalloc((u_int)(strlen(buf)+1));
 	    /* not worth freeing this stuff */
-	    strcpy((char*)av[i], buf);
-	    ++i;
+	    strcpy((char*)av[ii], buf);
+	    if (j > 0)
+	      ++i;
 	  } while (rp != startrp && rp != endrp);
 	}
 	av[i] = NULL;

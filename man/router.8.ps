@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0
 %%Creator: groff version 1.11
-%%CreationDate: Fri Aug 14 17:45:10 1998
+%%CreationDate: Wed Sep  2 12:17:05 1998
 %%DocumentNeededResources: font Times-Roman
 %%+ font Times-Bold
 %%+ font Times-Italic
@@ -207,17 +207,18 @@ BP
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
 (OUTER\(8\))-.4 E/F1 9/Times-Bold@0 SF -.18(NA)72 84 S(ME).18 E F0
 (router \255 zmailer message routing daemon)108 96 Q F1(SYNOPSIS)72
-112.8 Q/F2 10/Times-Bold@0 SF -.18(ro)108 124.8 S(uter).18 E F0([)2.863
-E F2(\255diksSVW)2.863 E F0 2.863(][)2.863 G F2<ad66>A/F3 10
-/Times-Italic@0 SF(con\214g\214le)2.863 E F0 2.863(][)2.863 G F2<ad6e>A
-F3(#r)2.863 E(outer)-.45 E(s)-.1 E F0 2.862(][)2.862 G F2<ad6f>A F3
-(zmshoptions)2.862 E F0 2.862(][)2.862 G F2<ad74>A F3(tr)2.862 E
-(ace\215a)-.15 E(g)-.1 E F0 2.862(][)2.862 G F2<ad4c>A F3(lo)2.862 E
-(g\214le)-.1 E F0 2.862(][)2.862 G F2<ad50>A F3(postof)108 136.8 Q
-(\214ce)-.18 E F0(])2.5 E F1(DESCRIPTION)72 153.6 Q F0(The)108 165.6 Q
-F3 -.45(ro)2.5 G(uter).45 E F0(daemon mak)2.5 E(es all decisions af)-.1
-E(fecting the processing of messages in ZMailer)-.25 E(.)-.55 E 3.114
-(Am)108 182.4 S .615
+112.8 Q/F2 10/Times-Bold@0 SF -.18(ro)108 124.8 S(uter).18 E F0([)2.711
+E F2(\255diksSVW)2.711 E F0 2.711(][)2.711 G F2<ad66>A/F3 10
+/Times-Italic@0 SF(con\214g\214le)2.711 E F0 2.711(][)2.711 G F2<ad6e>A
+F3(#r)2.711 E(outer)-.45 E(s)-.1 E F0 2.711(][)2.711 G F2<ad6f>A F3
+(zmshoptions)2.711 E F0 2.711(][)2.711 G F2<ad72>A F3 -.45(ro)2.711 G
+(uter).45 E(dirloops)-.37 E F0 2.711(][)2.711 G F2<ad74>-.001 E F3(tr)
+2.71 E(ace\215a)-.15 E(g)-.1 E F0 2.5(][)108 136.8 S F2<ad4c>A F3(lo)2.5
+E(g\214le)-.1 E F0 2.5(][)2.5 G F2<ad50>A F3(postof)2.5 E(\214ce)-.18 E
+F0(])2.5 E F1(DESCRIPTION)72 153.6 Q F0(The)108 165.6 Q F3 -.45(ro)2.5 G
+(uter).45 E F0(daemon mak)2.5 E(es all decisions af)-.1 E
+(fecting the processing of messages in ZMailer)-.25 E(.)-.55 E 3.114(Am)
+108 182.4 S .615
 (ail message is submitted by placing it in a \214le in the)-3.114 F F3
 (POST)3.115 E(OFFICE)-.18 E F2(/r)A(outer)-.18 E F0(directory)3.115 E
 5.615(.T)-.65 G(he)-5.615 E F3 -.45(ro)3.115 G(uter).45 E F0(fre-)3.115
@@ -272,793 +273,807 @@ on, not in general production setup.)-.2 E 20.64(\255N don')108 465.6 R
 F(leading '-' is mandatory)144 535.2 Q 5(.S)-.65 G(ee)-5 E F3(zmsh)2.5 E
 F0(\(1\) for the a).28 E -.25(va)-.2 G(ilable options.).25 E<ad50>108
 552 Q F3(postof)2.5 E(\214ce)-.18 E F0(speci\214es an alternate)144 564
-Q F3(POST)2.5 E(OFFICE)-.18 E F0(directory)2.5 E(.)-.65 E 22.3
-(\255S Can)108 580.8 R(be used to turn of)2.5 E 2.5(fn)-.25 G
-(on-serious syslogging.)-2.5 E 23.97(\255s T)108 597.6 R(urns)-.45 E F3
-(stability)2.817 E F0 .317(-\215ag of).32 F 2.817(fa)-.25 G .317(nd on.)
--2.817 F -.4(Wi)5.317 G .318(thout this \215ag, the search of ne).4 F
-2.818(wj)-.25 G .318(obs will be done with \(some-)-2.818 F
-(times\) timeconsuming care of or)144 609.6 Q -.05(ga)-.18 G
-(nizing the job \214les into time order).05 E(.)-.55 E<ad74>108 626.4 Q
+Q F3(POST)2.5 E(OFFICE)-.18 E F0(directory)2.5 E(.)-.65 E<ad72>108 580.8
+Q F3 -.45(ro)2.5 G(uter).45 E(dirloops)-.37 E F0(Process)144 592.8 Q F3
+-.45(ro)3.589 G(uter).45 E(dirloops)-.37 E F0 1.089(messages out of an)
+3.589 F 3.589(ya)-.15 G 1.089
+(lternate router directories, then check to see if an)-3.589 F(y)-.15 E
+(higher)144 604.8 Q .555(-priority jobs ha)-.2 F .855 -.15(ve b)-.2 H
+.555(een created. If unde\214ned and alternate router directories are i\
+n use, the).15 F .505
+(router will clear the entire directory before returning. See belo)144
+616.8 R 3.006(wa)-.25 G(nd)-3.006 E F3(zmailer)3.006 E F0 .506
+(\(3\) about Z-En).73 F(viron-)-.4 E(ment and)144 628.8 Q F3 -.4(RO)2.5
+G(UTERDIRS).4 E F0(.)A 22.3(\255S Can)108 645.6 R(be used to turn of)2.5
+E 2.5(fn)-.25 G(on-serious syslogging.)-2.5 E 23.97(\255s T)108 662.4 R
+(urns)-.45 E F3(stability)2.818 E F0 .318(-\215ag of).32 F 2.818(fa)-.25
+G .318(nd on.)-2.818 F -.4(Wi)5.318 G .318
+(thout this \215ag, the search of ne).4 F 2.817(wj)-.25 G .317
+(obs will be done with \(some-)-2.817 F
+(times\) timeconsuming care of or)144 674.4 Q -.05(ga)-.18 G
+(nizing the job \214les into time order).05 E(.)-.55 E<ad74>108 691.2 Q
 F3(tr)2.5 E(ace\215a)-.15 E(g)-.1 E F0 .23
-(sets trace options, one per -t switch, e)144 638.4 R -.15(ve)-.25 G
+(sets trace options, one per -t switch, e)144 703.2 R -.15(ve)-.25 G
 2.73(nb).15 G .23(efore the con\214guration \214le is loaded.)-2.73 F
-.23(This is otherwise)5.23 F(equi)144 650.4 Q -.25(va)-.25 G 1.199
+.23(This is otherwise)5.23 F(equi)144 715.2 Q -.25(va)-.25 G 1.2
 (lent to the b).25 F(uiltin)-.2 E F2(trace)3.699 E F0 3.699
 (command. The)3.699 F 1.199(currently kno)3.699 F 1.199(wn options are:)
--.25 F F2(assign)3.7 E F0(,)A F2(bind)3.7 E F0(,)A F2(com-)3.7 E(par)144
-662.4 Q(e)-.18 E F0(,)A F2(db)6.415 E F0(,)A F2(\214nal)6.415 E F0(,)A
-F2(functions)6.415 E F0(,)A F2(matched)6.415 E F0(,)A F2(memory)6.415 E
-F0(,)A F2(on)6.415 E F0(,)A F2 -.18(re)6.414 G(gexp).18 E F0(,)A F2 -.18
-(re)6.414 G(solv).18 E F0(,)A F2 -.18(re)6.414 G(write).18 E F0(,)A F2
--.18(ro)6.414 G(uter).18 E F0 6.414(,a)C(nd)-6.414 E F2(sequencer)144
-674.4 Q F0(.)A 20.64(\255V print)108 691.2 R -.15(ve)2.5 G
-(rsion message and run interacti).15 E -.15(ve)-.25 G(ly).15 E(.)-.65 E
-18.42(\255W W)108 708 R .365
-(arn about syntax errors in the RFC-822 headers when this option is on.)
--.8 F -.4(Wi)5.366 G .366(thout this, bad head-).4 F .634(ers are sho)
-144 720 R .633(wn in their original form, not by rendering them thru an)
--.25 F 3.133(yf)-.15 G .633(ormatting RFC-822 engine.)-3.133 F
+-.25 F F2(assign)3.699 E F0(,)A F2(bind)3.699 E F0(,)A F2(com-)3.699 E
+(par)144 727.2 Q(e)-.18 E F0(,)A F2(db)6.414 E F0(,)A F2(\214nal)6.414 E
+F0(,)A F2(functions)6.414 E F0(,)A F2(matched)6.414 E F0(,)A F2(memory)
+6.414 E F0(,)A F2(on)6.415 E F0(,)A F2 -.18(re)6.415 G(gexp).18 E F0(,)A
+F2 -.18(re)6.415 G(solv).18 E F0(,)A F2 -.18(re)6.415 G(write).18 E F0
+(,)A F2 -.18(ro)6.415 G(uter).18 E F0 6.415(,a)C(nd)-6.415 E
 (29 Aug 1997)279.89 768 Q(1)202.89 E EP
 %%Page: 2 2
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
-(OUTER\(8\))-.4 E/F1 10/Times-Italic@0 SF(This de)144 84 Q(viates fr)
--.15 E(om old behaviour of the ZMailer major way!)-.45 E F0 1.6 -.8
-(To r)108 100.8 T(estart a).8 E F1 -.45(ro)2.5 G(uter).45 E F0(daemon:)
-2.5 E(router -dk)180 124.8 Q 1.6 -.8(To t)108 148.8 T
+(OUTER\(8\))-.4 E/F1 10/Times-Bold@0 SF(sequencer)144 84 Q F0(.)A 20.64
+(\255V print)108 100.8 R -.15(ve)2.5 G(rsion message and run interacti)
+.15 E -.15(ve)-.25 G(ly).15 E(.)-.65 E 18.42(\255W W)108 117.6 R .366
+(arn about syntax errors in the RFC-822 headers when this option is on.)
+-.8 F -.4(Wi)5.365 G .365(thout this, bad head-).4 F .633(ers are sho)
+144 129.6 R .633
+(wn in their original form, not by rendering them thru an)-.25 F 3.134
+(yf)-.15 G .634(ormatting RFC-822 engine.)-3.134 F/F2 10/Times-Italic@0
+SF(This de)144 141.6 Q(viates fr)-.15 E
+(om old behaviour of the ZMailer major way!)-.45 E F0 1.6 -.8(To r)108
+158.4 T(estart a).8 E F2 -.45(ro)2.5 G(uter).45 E F0(daemon:)2.5 E
+(router -dk)180 182.4 Q 1.6 -.8(To t)108 206.4 T
 (est an address, start up an interacti).8 E .3 -.15(ve s)-.25 H(ession:)
-.15 E(router -i)180 172.8 Q(or if the ZMailer)108 196.8 Q F1(sendmail)
-2.5 E F0(\(8\) is installed:).51 E(sendmail -bt)180 220.8 Q
-(Then just use the pre-de\214ned functions.)108 244.8 Q/F2 9
-/Times-Bold@0 SF(CONFIGURA)72 261.6 Q(TION FILE)-.855 E F0(The)108 273.6
-Q F1 -.45(ro)2.5 G(uter).45 E F0(con\214guration \214le must pro)2.5 E
-(vide some services so the message processing can proceed:)-.15 E 1.15
-(There must be a w)144 290.4 R 1.151
-(ay to translate an arbitrary syntactically v)-.1 F 1.151
-(alid address into a speci\214cation for)-.25 F(ho)144 302.4 Q 3.3(wt)
--.25 G 3.3(od)-3.3 G(eli)-3.3 E -.15(ve)-.25 G 3.3(rf).15 G .8
-(or that address.)-3.3 F .799
-(This is routing and must be implemented by a con\214guration \214le)5.8
-F(function with the name:)144 314.4 Q/F3 10/Times-Bold@0 SF -.18(ro)2.5
-G(uter).18 E F0(.)A .505(There must be a w)144 331.2 R .506(ay to mak)
--.1 F 3.006(ep)-.1 G(olic)-3.006 E 3.006(yd)-.15 G .506
-(ecisions about what to do with an address in the conte)-3.006 F .506
-(xt of)-.15 F .905(the particular message it came from.)144 343.2 R .905
+.15 E(router -i)180 230.4 Q(or if the ZMailer)108 254.4 Q F2(sendmail)
+2.5 E F0(\(8\) is installed:).51 E(sendmail -bt)180 278.4 Q
+(Then just use the pre-de\214ned functions.)108 302.4 Q/F3 9
+/Times-Bold@0 SF(CONFIGURA)72 319.2 Q(TION FILE)-.855 E F0(The)108 331.2
+Q F2 -.45(ro)2.5 G(uter).45 E F0(con\214guration \214le must pro)2.5 E
+(vide some services so the message processing can proceed:)-.15 E 1.151
+(There must be a w)144 348 R 1.151
+(ay to translate an arbitrary syntactically v)-.1 F 1.15
+(alid address into a speci\214cation for)-.25 F(ho)144 360 Q 3.299(wt)
+-.25 G 3.299(od)-3.299 G(eli)-3.299 E -.15(ve)-.25 G 3.299(rf).15 G .799
+(or that address.)-3.299 F .8
+(This is routing and must be implemented by a con\214guration \214le)
+5.799 F(function with the name:)144 372 Q F1 -.18(ro)2.5 G(uter).18 E F0
+(.)A .506(There must be a w)144 388.8 R .506(ay to mak)-.1 F 3.006(ep)
+-.1 G(olic)-3.006 E 3.006(yd)-.15 G .506
+(ecisions about what to do with an address in the conte)-3.006 F .505
+(xt of)-.15 F .905(the particular message it came from.)144 400.8 R .905
 (The most typical kind of polic)5.905 F 3.405(yd)-.15 G .905
 (ecision is ho)-3.405 F 3.405(wt)-.25 G 3.405(or)-3.405 G -.25(ew)-3.405
 G(rite).25 E 1.344(addresses in the message header for the immediate de\
-stination of a message en)144 355.2 R -.15(ve)-.4 G 1.344
-(lope recipient).15 F 2.5(address. Polic)144 367.2 R 2.5(ya)-.15 G 2.5
+stination of a message en)144 412.8 R -.15(ve)-.4 G 1.343
+(lope recipient).15 F 2.5(address. Polic)144 424.8 R 2.5(ya)-.15 G 2.5
 (tt)-2.5 G(his le)-2.5 E -.15(ve)-.25 G 2.5(li).15 G 2.5(si)-2.5 G
-(mplemented by a con\214guration \214le function called)-2.5 E F3(cr)2.5
-E(ossbar)-.18 E F0(.)A 1.195(There must be a w)144 384 R 1.195(ay to sp\
-ecify what should happen when message processing cannot continue)-.1 F
-1.224(due to a temporary resource una)144 396 R -.25(va)-.2 G 1.224
+(mplemented by a con\214guration \214le function called)-2.5 E F1(cr)2.5
+E(ossbar)-.18 E F0(.)A 1.195(There must be a w)144 441.6 R 1.195(ay to \
+specify what should happen when message processing cannot continue)-.1 F
+1.224(due to a temporary resource una)144 453.6 R -.25(va)-.2 G 1.224
 (ilability \(e.g., when the nameserv).25 F 1.224(er is acting up\).)-.15
-F 1.224(There is a)6.224 F .273(shell v)144 408 R(ariable,)-.25 E F3
-(defer)2.773 E F0 2.773(,w)C .272
+F 1.224(There is a)6.224 F .272(shell v)144 465.6 R(ariable,)-.25 E F1
+(defer)2.772 E F0 2.772(,w)C .273
 (hich may be set internally in the database lookup routines in the)
--2.773 F F1 -.45(ro)2.772 G(uter).45 E F0 5.272(.I).73 G(n)-5.272 E
-1.725(case of a temporary resource f)144 420 R 1.725(ailure, the v)-.1 F
-1.726(ariable will be set to a well-de\214ned non-null string)-.25 F
-1.342(related to the f)144 432 R 3.842(ailure. T)-.1 F 1.342(emporary f)
--.7 F 1.342(ailures encountered during message header address re)-.1 F
-(writing)-.25 E(may be dealt with by the)144 444 Q F3(header_defer)2.5 E
-F0(function.)2.5 E .675(The interf)108 460.8 R .675
+-2.772 F F2 -.45(ro)2.773 G(uter).45 E F0 5.273(.I).73 G(n)-5.273 E
+1.726(case of a temporary resource f)144 477.6 R 1.725(ailure, the v)-.1
+F 1.725(ariable will be set to a well-de\214ned non-null string)-.25 F
+1.341(related to the f)144 489.6 R 3.842(ailure. T)-.1 F 1.342
+(emporary f)-.7 F 1.342
+(ailures encountered during message header address re)-.1 F(writing)-.25
+E(may be dealt with by the)144 501.6 Q F1(header_defer)2.5 E F0
+(function.)2.5 E .676(The interf)108 518.4 R .676
 (ace speci\214cations of these items e)-.1 F .675(xhaust the e)-.15 F
-.675(xpectations the)-.15 F F1 -.45(ro)3.175 G(uter).45 E F0 .676
-(has of its con\214guration \214le.)3.176 F(The)108 472.8 Q F1 -.45(ro)
-2.857 G(uter).45 E F0 .357(contains useful b)2.857 F .356(uiltin functi\
-ons that will aid in implementing the required functionality)-.2 F 5.356
-(.T)-.65 G(hese)-5.356 E(functions are described in the section on B)108
-484.8 Q(UIL)-.1 E(TIN FUNCTIONS belo)-.92 E -.65(w.)-.25 G 1.376
-(Optionally the)108 501.6 R F1 -.45(ro)3.877 G(uter).45 E F0 1.377
+.675(xpectations the)-.15 F F2 -.45(ro)3.175 G(uter).45 E F0 .675
+(has of its con\214guration \214le.)3.175 F(The)108 530.4 Q F2 -.45(ro)
+2.856 G(uter).45 E F0 .356(contains useful b)2.856 F .357(uiltin functi\
+ons that will aid in implementing the required functionality)-.2 F 5.357
+(.T)-.65 G(hese)-5.357 E(functions are described in the section on B)108
+542.4 Q(UIL)-.1 E(TIN FUNCTIONS belo)-.92 E -.65(w.)-.25 G 1.377
+(Optionally the)108 559.2 R F2 -.45(ro)3.877 G(uter).45 E F0 1.377
 (may pro)3.877 F 1.377(vide services to other programs.)-.15 F 1.377
-(In particular)6.377 F 3.877(,t)-.4 G(he)-3.877 E F1(smtpserver)3.877 E
-F0 1.377(\(8\) program).73 F .583(relies on the router to do address v)
-108 513.6 R .583(alidation and v)-.25 F .583
-(eri\214cation when it is ask)-.15 F .582(ed \(and enabled\) to pro)-.1
-F .582(vide this)-.15 F(service during an SMTP con)108 525.6 Q -.15(ve)
+(In particular)6.377 F 3.877(,t)-.4 G(he)-3.877 E F2(smtpserver)3.877 E
+F0 1.376(\(8\) program).73 F .582(relies on the router to do address v)
+108 571.2 R .583(alidation and v)-.25 F .583
+(eri\214cation when it is ask)-.15 F .583(ed \(and enabled\) to pro)-.1
+F .583(vide this)-.15 F(service during an SMTP con)108 583.2 Q -.15(ve)
 -.4 G 2.5(rsation. The).15 F -.15(ex)2.5 G
-(pected name for this function is).15 E F3(ser)2.5 E -.1(ve)-.1 G(r).1 E
-F0(.)A(The follo)108 542.4 Q(wing are the interf)-.25 E
+(pected name for this function is).15 E F1(ser)2.5 E -.1(ve)-.1 G(r).1 E
+F0(.)A(The follo)108 600 Q(wing are the interf)-.25 E
 (ace speci\214cations for the functions mentioned abo)-.1 E -.15(ve)-.15
-G(:).15 E F3 -.18(ro)108 559.2 S(uter).18 E F1(addr)2.5 E(ess attrib)
+G(:).15 E F1 -.18(ro)108 616.8 S(uter).18 E F2(addr)2.5 E(ess attrib)
 -.37 E(utes)-.2 E F0 .18(This function is applied to all message en)144
-571.2 R -.15(ve)-.4 G .18(lope addresses.).15 F .18(The \214rst ar)5.18
-F .18(gument to this function is a)-.18 F 1.034(syntactically v)144
-583.2 R 1.034(alid \(understood by the parser\) address.)-.25 F 1.034
+628.8 R -.15(ve)-.4 G .18(lope addresses.).15 F .18(The \214rst ar)5.18
+F .18(gument to this function is a)-.18 F 1.033(syntactically v)144
+640.8 R 1.034(alid \(understood by the parser\) address.)-.25 F 1.034
 (The second ar)6.034 F 1.034(gument is a symbol whose)-.18 F -.25(va)144
-595.2 S .859(lue is a property list for the address.).25 F .86
-(The property list consists of alternating k)5.859 F -.15(ey)-.1 G 3.36
-(sa).15 G .86(nd v)-3.36 F(alues,)-.25 E(and is modi\214ed using the)144
-607.2 Q F3(setf)2.5 E F0(function.)2.5 E(The)144 624 Q F3 -.18(ro)4.036
-G(uter).18 E F0 1.536(function returns a list of address groups.)4.036 F
-1.535(Each address group is a list of mutually)6.536 F -.15(ex)144 636 S
-(clusi).15 E 1.052 -.15(ve a)-.25 H .753(ddress tuples, i.e. deli).15 F
--.15(ve)-.25 G .753(ring to one is equi).15 F -.25(va)-.25 G .753
-(lent to deli).25 F -.15(ve)-.25 G .753(ring to an).15 F 3.253(yo)-.15 G
-.753(ther destination)-3.253 F .963(address in the group.)144 648 R .962
-(An address tuple is a list of 4 elements \(another name for this is a \
-quad\),)5.962 F(which in order are:)144 660 Q 2.5<ad74>144 676.8 S
-(he deli)-2.5 E -.15(ve)-.25 G
-(ry channel, designating a transport agent.).15 E 2.5<ad74>144 693.6 S
-(he ne)-2.5 E(xt host to be deli)-.15 E -.15(ve)-.25 G
-(red to \(an uninterpreted channel parameter\).).15 E 2.5<ad74>144 710.4
-S(he address to present the ne)-2.5 E(xt host.)-.15 E(29 Aug 1997)279.89
-768 Q(2)202.89 E EP
+652.8 S .86(lue is a property list for the address.).25 F .859
+(The property list consists of alternating k)5.859 F -.15(ey)-.1 G 3.359
+(sa).15 G .859(nd v)-3.359 F(alues,)-.25 E(and is modi\214ed using the)
+144 664.8 Q F1(setf)2.5 E F0(function.)2.5 E(The)144 681.6 Q F1 -.18(ro)
+4.035 G(uter).18 E F0 1.535(function returns a list of address groups.)
+4.035 F 1.536(Each address group is a list of mutually)6.536 F -.15(ex)
+144 693.6 S(clusi).15 E 1.053 -.15(ve a)-.25 H .753
+(ddress tuples, i.e. deli).15 F -.15(ve)-.25 G .753(ring to one is equi)
+.15 F -.25(va)-.25 G .753(lent to deli).25 F -.15(ve)-.25 G .753
+(ring to an).15 F 3.252(yo)-.15 G .752(ther destination)-3.252 F .962
+(address in the group.)144 705.6 R .962(An address tuple is a list of 4\
+ elements \(another name for this is a quad\),)5.962 F
+(which in order are:)144 717.6 Q(29 Aug 1997)279.89 768 Q(2)202.89 E EP
 %%Page: 3 3
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
-(OUTER\(8\))-.4 E 2.5<ad74>144 84 S(he symbol whose v)-2.5 E
-(alue is a property list for this address.)-.25 E(By con)144 100.8 Q
--.15(ve)-.4 G(ntion, if either the channel or host is irrele).15 E -.25
-(va)-.25 G(nt, it is gi).25 E -.15(ve)-.25 G 2.5(na).15 G 2.5(s")-2.5 G
-(-".)-2.5 E -.15(Fo)144 117.6 S 2.5(re).15 G
+(OUTER\(8\))-.4 E 2.5<ad74>144 84 S(he deli)-2.5 E -.15(ve)-.25 G
+(ry channel, designating a transport agent.).15 E 2.5<ad74>144 100.8 S
+(he ne)-2.5 E(xt host to be deli)-.15 E -.15(ve)-.25 G
+(red to \(an uninterpreted channel parameter\).).15 E 2.5<ad74>144 117.6
+S(he address to present the ne)-2.5 E(xt host.)-.15 E 2.5<ad74>144 134.4
+S(he symbol whose v)-2.5 E(alue is a property list for this address.)
+-.25 E(By con)144 151.2 Q -.15(ve)-.4 G
+(ntion, if either the channel or host is irrele).15 E -.25(va)-.25 G
+(nt, it is gi).25 E -.15(ve)-.25 G 2.5(na).15 G 2.5(s")-2.5 G(-".)-2.5 E
+-.15(Fo)144 168 S 2.5(re).15 G
 (xample, these are possible parameters and return v)-2.65 E(alue:)-.25 E
-(z# g0=\(pri)180 141.6 Q(vile)-.25 E(ge 0 type recipient\))-.15 E
-(z# router rayan g0)180 153.6 Q(\(\(\(local - rayan g0\)\)\))180 165.6 Q
-1.531(This function also handles an)144 194.4 R 4.031(ya)-.15 G 1.531
-(lias e)-4.031 F 1.532(xpansion that may be necessary)-.15 F 6.532(.T)
--.65 G 1.532(he follo)-6.532 F 1.532(wing e)-.25 F(xample)-.15 E(sho)144
-206.4 Q(ws the e)-.25 E
+(z# g0=\(pri)180 192 Q(vile)-.25 E(ge 0 type recipient\))-.15 E
+(z# router rayan g0)180 204 Q(\(\(\(local - rayan g0\)\)\))180 216 Q
+1.532(This function also handles an)144 244.8 R 4.032(ya)-.15 G 1.532
+(lias e)-4.032 F 1.531(xpansion that may be necessary)-.15 F 6.531(.T)
+-.65 G 1.531(he follo)-6.531 F 1.531(wing e)-.25 F(xample)-.15 E(sho)144
+256.8 Q(ws the e)-.25 E
 (xpansion of a single address to multiple independent recipients:)-.15 E
-(z# router root g0)180 230.4 Q(\(\(\(local - k)180 242.4 Q
-(en g0\)\) \(\(local - rayan g0\)\)\))-.1 E(The)144 271.2 Q/F1 10
-/Times-Bold@0 SF -.18(ro)2.869 G(uter).18 E F0 .368
-(function is free to change the pri)2.869 F(vile)-.25 E .368
-(ge of the address, or to add an)-.15 F 2.868(yo)-.15 G .368
-(ther information)-2.868 F(to the property list for use by the)144 283.2
-Q F1(cr)2.5 E(ossbar)-.18 E F0(function.)2.5 E .124
-(Note: in the current v)144 300 R .124(ersion of ZMailer)-.15 F 2.624
+(z# router root g0)180 280.8 Q(\(\(\(local - k)180 292.8 Q
+(en g0\)\) \(\(local - rayan g0\)\)\))-.1 E(The)144 321.6 Q/F1 10
+/Times-Bold@0 SF -.18(ro)2.868 G(uter).18 E F0 .368
+(function is free to change the pri)2.868 F(vile)-.25 E .368
+(ge of the address, or to add an)-.15 F 2.869(yo)-.15 G .369
+(ther information)-2.869 F(to the property list for use by the)144 333.6
+Q F1(cr)2.5 E(ossbar)-.18 E F0(function.)2.5 E .125
+(Note: in the current v)144 350.4 R .124(ersion of ZMailer)-.15 F 2.624
 (,o)-.4 G .124(nly the)-2.624 F/F2 10/Times-Italic@0 SF -.45(ro)2.624 G
-(uter).45 E F0(kno)2.624 E .125(ws about mutually e)-.25 F(xclusi)-.15 E
-.425 -.15(ve a)-.25 H(ddresses.).15 E
+(uter).45 E F0(kno)2.624 E .124(ws about mutually e)-.25 F(xclusi)-.15 E
+.424 -.15(ve a)-.25 H(ddresses.).15 E
 (Therefore all quads must be the lone element of their address group.)
-144 312 Q .308
+144 362.4 Q .308
 (If a resource deferral occurs during processing \(e.g., the nameserv)
-144 328.8 R .308(er is b)-.15 F .308(usy or brok)-.2 F .308
-(en\), the global)-.1 F -.25(va)144 340.8 S(riable).25 E F1(defer)3.539
-E F0 1.039(will be set to a non-null string indicating the problem.)
-3.539 F 1.04(This string is in a format)6.04 F(interpreted by the)144
-352.8 Q F2(hold)2.5 E F0
+144 379.2 R .308(er is b)-.15 F .308(usy or brok)-.2 F .308
+(en\), the global)-.1 F -.25(va)144 391.2 S(riable).25 E F1(defer)3.54 E
+F0 1.04(will be set to a non-null string indicating the problem.)3.54 F
+1.039(This string is in a format)6.039 F(interpreted by the)144 403.2 Q
+F2(hold)2.5 E F0
 (transport agent when it sees a host name in a destination address.)2.5
-E F1(cr)108 369.6 Q(ossbar)-.18 E F2(fr)2.5 E(om to)-.45 E F0 2.39
-(This function controls polic)144 381.6 R 4.889(yd)-.15 G 2.389
+E F1(cr)108 420 Q(ossbar)-.18 E F2(fr)2.5 E(om to)-.45 E F0 2.389
+(This function controls polic)144 432 R 4.889(yd)-.15 G 2.389
 (ecisions that require conte)-4.889 F 2.389(xt kno)-.15 F 4.889
-(wledge. It)-.25 F(re)4.889 E 2.389(writes the ne)-.25 F(xt-)-.15 E
-1.368(address portion of an address quad to the proper form, and determ\
-ines which style of message)144 393.6 R .077(header re)144 405.6 R .077
+(wledge. It)-.25 F(re)4.889 E 2.39(writes the ne)-.25 F(xt-)-.15 E 1.368
+(address portion of an address quad to the proper form, and determines \
+which style of message)144 444 R .076(header re)144 456 R .076
 (writing is appropriate.)-.25 F .076(The ar)5.076 F .076
 (guments are sender and recipient address quads, as returned)-.18 F
-(by the)144 417.6 Q F1 -.18(ro)2.5 G(uter).18 E F0 2.5(function. The)2.5
-F(return v)2.5 E(alue is a list of three elements:)-.25 E 2.5<ad74>144
-434.4 S(he name of a function that will be used to re)-2.5 E
-(write all message header addresses)-.25 E 2.5<ad74>144 451.2 S
+(by the)144 468 Q F1 -.18(ro)2.5 G(uter).18 E F0 2.5(function. The)2.5 F
+(return v)2.5 E(alue is a list of three elements:)-.25 E 2.5<ad74>144
+484.8 S(he name of a function that will be used to re)-2.5 E
+(write all message header addresses)-.25 E 2.5<ad74>144 501.6 S
 (he sender address quad, with components changed appropriately using)
--2.5 E F1(setf)2.5 E(.)-.15 E F0 2.5<ad74>144 468 S
+-2.5 E F1(setf)2.5 E(.)-.15 E F0 2.5<ad74>144 518.4 S
 (he recipient address quad, with components changed appropriately using)
--2.5 E F1(setf)2.5 E(.)-.15 E F0 .564(The message header address re)144
-484.8 R .564(writing function will be called with a single ar)-.25 F
-.565(gument, the address)-.18 F
-(in original form, and returns a string ar)144 496.8 Q
-(gument, the address re)-.18 E(written.)-.25 E F1(header_defer)108 513.6
-Q F2(addr)2.5 E(ess)-.37 E F0 .734(This function re)144 525.6 R .734
-(writes a message header address that might not ha)-.25 F 1.033 -.15
-(ve b)-.2 H .733(een re).15 F .733(written properly due)-.25 F .332
-(to a resource deferral.)144 537.6 R .333(In that case the)5.332 F F1
+-2.5 E F1(setf)2.5 E(.)-.15 E F0 .565(The message header address re)144
+535.2 R .564(writing function will be called with a single ar)-.25 F
+.564(gument, the address)-.18 F
+(in original form, and returns a string ar)144 547.2 Q
+(gument, the address re)-.18 E(written.)-.25 E F1(header_defer)108 564 Q
+F2(addr)2.5 E(ess)-.37 E F0 .733(This function re)144 576 R .733
+(writes a message header address that might not ha)-.25 F 1.034 -.15
+(ve b)-.2 H .734(een re).15 F .734(written properly due)-.25 F .333
+(to a resource deferral.)144 588 R .333(In that case the)5.333 F F1
 (defer)2.833 E F0 -.25(va)2.833 G .333(riable will be set by the).25 F
-F2 -.45(ro)2.833 G(uter).45 E F0 .333(during e)2.833 F -.15(xe)-.15 G
-.333(cution of).15 F 2.401(the message header address re)144 549.6 R
-2.401(writing function speci\214ed by the)-.25 F F1(cr)4.901 E(ossbar)
--.18 E F0 4.9(function. T)4.901 F 4.9(oa)-.8 G -.2(vo)-5.1 G(id).2 E
-.632(repeatedly ha)144 561.6 R .632
-(ving to check for this at the end of such re)-.2 F .633
-(writing functions, this mechanism is pro-)-.25 F 1.201(vided as a con)
-144 573.6 R -.15(ve)-.4 G 3.701(nience. An).15 F 3.701(yr)-.15 G 1.201
-(esource deferral during the e)-3.701 F -.15(xe)-.15 G 1.2
-(cution of this function is ignored.).15 F -.8(Ty)144 585.6 S(pically).8
-E F1(header_defer)2.5 E F0 -.1(wo)2.5 G
+F2 -.45(ro)2.832 G(uter).45 E F0 .332(during e)2.832 F -.15(xe)-.15 G
+.332(cution of).15 F 2.4(the message header address re)144 600 R 2.401
+(writing function speci\214ed by the)-.25 F F1(cr)4.901 E(ossbar)-.18 E
+F0 4.901(function. T)4.901 F 4.901(oa)-.8 G -.2(vo)-5.101 G(id).2 E .633
+(repeatedly ha)144 612 R .633
+(ving to check for this at the end of such re)-.2 F .632
+(writing functions, this mechanism is pro-)-.25 F 1.2(vided as a con)144
+624 R -.15(ve)-.4 G 3.7(nience. An).15 F 3.701(yr)-.15 G 1.201
+(esource deferral during the e)-3.701 F -.15(xe)-.15 G 1.201
+(cution of this function is ignored.).15 F -.8(Ty)144 636 S(pically).8 E
+F1(header_defer)2.5 E F0 -.1(wo)2.5 G
 (uld just quote the address and mak).1 E 2.5(ei)-.1 G 2.5(tr)-2.5 G
 (elati)-2.5 E .3 -.15(ve t)-.25 H 2.5(ot).15 G(he local host.)-2.5 E F1
-(ser)108 602.4 Q -.1(ve)-.1 G(r).1 E F2 -.1(ke)2.5 G(y)-.2 E F0(...)2.5
-E 1.273(This function is not used by the)144 614.4 R F2 -.45(ro)3.773 G
+(ser)108 652.8 Q -.1(ve)-.1 G(r).1 E F2 -.1(ke)2.5 G(y)-.2 E F0(...)2.5
+E 1.273(This function is not used by the)144 664.8 R F2 -.45(ro)3.773 G
 (uter).45 E F0 1.273(while processing mail.)3.773 F 1.273
-(It is called from the)6.273 F F2(smtpserver)3.774 E F0 .446
-(when synchronous address v)144 626.4 R .446(alidation is required.)-.25
+(It is called from the)6.273 F F2(smtpserver)3.773 E F0 .445
+(when synchronous address v)144 676.8 R .446(alidation is required.)-.25
 F .446(Since this function may need services pro)5.446 F(vided)-.15 E
 .038(by other parts of the normal con\214guration \214le, it is include\
-d by con)144 638.4 R -.15(ve)-.4 G 2.538(ntion. The).15 F .039
-(\214rst ar)2.539 F .039(gument is a)-.18 F -.1(ke)144 650.4 S(yw)-.05 E
+d by con)144 688.8 R -.15(ve)-.4 G 2.538(ntion. The).15 F .038
+(\214rst ar)2.538 F .038(gument is a)-.18 F -.1(ke)144 700.8 S(yw)-.05 E
 .577(ord which describes the desired service, follo)-.1 F .577
-(wed by parameters to that service.)-.25 F .576(The kno)5.577 F(wn)-.25
-E -.1(ke)144 662.4 S(yw)-.05 E(ords are:)-.1 E F1(init)144 679.2 Q F0
-(which should be in)21.55 E -.2(vo)-.4 G -.1(ke).2 G 2.5(db).1 G
-(efore an)-2.5 E 2.5(yo)-.15 G(ther service.)-2.5 E F1(to)144 696 Q F0
--.15(ve)27.67 G(ri\214es its single parameter as a v).15 E
-(alid SMTP RCPT T)-.25 E 2.5(Oa)-.18 G(ddress.)-2.5 E F1(fr)144 712.8 Q
-(om)-.18 E F0 -.15(ve)15.08 G(ri\214es its single parameter as a v).15 E
-(alid SMTP MAIL FR)-.25 E(OM address.)-.4 E(29 Aug 1997)279.89 768 Q(3)
-202.89 E EP
+(wed by parameters to that service.)-.25 F .577(The kno)5.577 F(wn)-.25
+E -.1(ke)144 712.8 S(yw)-.05 E(ords are:)-.1 E(29 Aug 1997)279.89 768 Q
+(3)202.89 E EP
 %%Page: 4 4
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
-(OUTER\(8\))-.4 E/F1 10/Times-Bold@0 SF -.1(ve)144 84 S(rify).1 E F0
--.15(ve)11.11 G(ri\214es its single parameter as a resolv).15 E
-(able address.)-.25 E F1(expand)144 100.8 Q F0(prints the alias e)180
-112.8 Q(xpansion, if an)-.15 E 1.3 -.65(y, o)-.15 H 2.5(ft).65 G
+(OUTER\(8\))-.4 E/F1 10/Times-Bold@0 SF(init)144 84 Q F0
+(which should be in)21.55 E -.2(vo)-.4 G -.1(ke).2 G 2.5(db).1 G
+(efore an)-2.5 E 2.5(yo)-.15 G(ther service.)-2.5 E F1(to)144 100.8 Q F0
+-.15(ve)27.67 G(ri\214es its single parameter as a v).15 E
+(alid SMTP RCPT T)-.25 E 2.5(Oa)-.18 G(ddress.)-2.5 E F1(fr)144 117.6 Q
+(om)-.18 E F0 -.15(ve)15.08 G(ri\214es its single parameter as a v).15 E
+(alid SMTP MAIL FR)-.25 E(OM address.)-.4 E F1 -.1(ve)144 134.4 S(rify)
+.1 E F0 -.15(ve)11.11 G(ri\214es its single parameter as a resolv).15 E
+(able address.)-.25 E F1(expand)144 151.2 Q F0(prints the alias e)180
+163.2 Q(xpansion, if an)-.15 E 1.3 -.65(y, o)-.15 H 2.5(ft).65 G
 (he single address parameter)-2.5 E(.)-.55 E .533
-(SMTP error codes and te)144 129.6 R .533(xt may be)-.15 F F1(echo)3.033
-E F0 .533('ed directly)B 3.033(,a)-.65 G .533
-(nd multiline output is handled by a \214lter in)-3.033 F(the)144 141.6
-Q/F2 10/Times-Italic@0 SF(smtpserver)2.5 E F0(.).73 E/F3 9/Times-Bold@0
-SF -.09(BU)72 170.4 S(IL).09 E(TIN FUNCTIONS)-.828 E F0(The follo)108
-182.4 Q(wing b)-.25 E(uiltin functions are pro)-.2 E(vided in the)-.15 E
+(SMTP error codes and te)144 180 R .533(xt may be)-.15 F F1(echo)3.033 E
+F0 .533('ed directly)B 3.033(,a)-.65 G .533
+(nd multiline output is handled by a \214lter in)-3.033 F(the)144 192 Q
+/F2 10/Times-Italic@0 SF(smtpserver)2.5 E F0(.).73 E/F3 9/Times-Bold@0
+SF -.09(BU)72 220.8 S(IL).09 E(TIN FUNCTIONS)-.828 E F0(The follo)108
+232.8 Q(wing b)-.25 E(uiltin functions are pro)-.2 E(vided in the)-.15 E
 F2 -.45(ro)2.5 G(uter).45 E F0(that do not e)2.5 E(xist in)-.15 E F2
-(zmsh)2.5 E F0(:).28 E(Functions that tak)108 211.2 Q 2.5(eal)-.1 G
-(ist ar)-2.5 E(gument:)-.18 E(channel)108 228 Q
-(returns the channel \(1st\) component of an address quad.)144 240 Q
-16.83(host returns)108 256.8 R
+(zmsh)2.5 E F0(:).28 E(Functions that tak)108 261.6 Q 2.5(eal)-.1 G
+(ist ar)-2.5 E(gument:)-.18 E(channel)108 278.4 Q
+(returns the channel \(1st\) component of an address quad.)144 290.4 Q
+16.83(host returns)108 307.2 R
 (the host \(2nd\) component of an address quad.)2.5 E 16.84
-(user returns)108 273.6 R(the ne)2.5 E
+(user returns)108 324 R(the ne)2.5 E
 (xt-address \(3rd\) component of an address quad.)-.15 E(attrib)108
-290.4 Q(utes)-.2 E
+340.8 Q(utes)-.2 E
 (returns the property list symbol \(4th\) component of an address quad.)
-144 302.4 Q(Normal functions that tak)108 331.2 Q 2.5(es)-.1 G
-(tring parameters and return strings:)-2.5 E(daemon)108 348 Q .28
-(starts the)144 360 R F2 -.45(ro)2.78 G(uter).45 E F0 .28
+144 352.8 Q(Normal functions that tak)108 381.6 Q 2.5(es)-.1 G
+(tring parameters and return strings:)-2.5 E(daemon)108 398.4 Q .28
+(starts the)144 410.4 R F2 -.45(ro)2.78 G(uter).45 E F0 .28
 (running in daemon mode, scanning the)2.78 F F2(POST)2.78 E(OFFICE)-.18
 E F1(/r)A(outer)-.18 E F0 .28(directory e)2.78 F -.15(ve)-.25 G .28
-(ry fe).15 F(w)-.25 E .579(seconds for message \214les to process.)144
-372 R .579(This function is in)5.579 F -.2(vo)-.4 G -.1(ke).2 G 3.079
-(da).1 G .58(utomatically by other code in the)-3.079 F F2 -.45(ro)144
-384 S(uter).45 E F0 .141(program and has no other purpose.)2.641 F F2
--.45(ro)5.141 G(uter).45 E F0 .141(has a bit more comple)2.641 F 2.64
-(xd)-.15 G .14(irectory semantics, than)-2.64 F(can be seen from abo)144
-396 Q -.15(ve)-.15 G 5(.S).15 G(ee)-5 E F2(zmailer)2.5 E F0
-(\(3\) for details.).73 E(basename)108 412.8 Q F2(pathname)2.5 E F0([)
+(ry fe).15 F(w)-.25 E .58(seconds for message \214les to process.)144
+422.4 R .579(This function is in)5.579 F -.2(vo)-.4 G -.1(ke).2 G 3.079
+(da).1 G .579(utomatically by other code in the)-3.079 F F2 -.45(ro)144
+434.4 S(uter).45 E F0 .14(program and has no other purpose.)2.64 F F2
+-.45(ro)5.141 G(uter).45 E F0 .141(has a bit more comple)2.641 F 2.641
+(xd)-.15 G .141(irectory semantics, than)-2.641 F(can be seen from abo)
+144 446.4 Q -.15(ve)-.15 G 5(.S).15 G(ee)-5 E F2(zmailer)2.5 E F0
+(\(3\) for details.).73 E(basename)108 463.2 Q F2(pathname)2.5 E F0([)
 2.5 E F2(suf)2.5 E<8c78>-.18 E F0(])2.5 E .507
-(prints the base \214lename of the pathname.)144 424.8 R .507(If a suf)
+(prints the base \214lename of the pathname.)144 475.2 R .507(If a suf)
 5.507 F .507(\214x is gi)-.25 F -.15(ve)-.25 G 3.007(na).15 G .507
 (nd matches the \214lename, the suf)-3.007 F<8c78>-.25 E
-(too is stripped from the \214lename.)144 436.8 Q(db { add|remo)108
-453.6 Q -.15(ve)-.15 G(|\215ush|o).15 E(wner|print|toc } [)-.25 E F2
-(database)2.5 E F0([)2.5 E F2 -.1(ke)2.5 G(y)-.2 E F0([)2.5 E F2(value)
-2.5 E F0 2.5(]]])2.5 G(is the access function to the database f)144
-465.6 Q(acilities in the)-.1 E F2 -.45(ro)2.5 G(uter).45 E F0 5(.T).73 G
-(he k)-5 E -.15(ey)-.1 G -.1(wo).15 G(rd ar).1 E(guments are:)-.18 E F1
-(add)144 482.4 Q F0(add a)19.88 E F2 -.1(ke)2.5 G -.55(y,)-.2 G(value)
-.55 E F0(entry to the database, if possible.)2.5 E F1 -.18(re)144 499.2
-S(mo).18 E -.1(ve)-.1 G F0(remo)180 511.2 Q .3 -.15(ve a)-.15 H F2 -.1
-(ke)2.65 G(y)-.2 E F0(entry from the database, if possible.)2.5 E F1
-(\215ush)144 528 Q F0(remo)15.43 E .3 -.15(ve a)-.15 H
-(ll entries from the database, if possible.).15 E F1 -.1(ow)144 544.8 S
+(too is stripped from the \214lename.)144 487.2 Q(db { add|remo)108 504
+Q -.15(ve)-.15 G(|\215ush|o).15 E(wner|print|toc } [)-.25 E F2(database)
+2.5 E F0([)2.5 E F2 -.1(ke)2.5 G(y)-.2 E F0([)2.5 E F2(value)2.5 E F0
+2.5(]]])2.5 G(is the access function to the database f)144 516 Q
+(acilities in the)-.1 E F2 -.45(ro)2.5 G(uter).45 E F0 5(.T).73 G(he k)
+-5 E -.15(ey)-.1 G -.1(wo).15 G(rd ar).1 E(guments are:)-.18 E F1(add)
+144 532.8 Q F0(add a)19.88 E F2 -.1(ke)2.5 G -.55(y,)-.2 G(value).55 E
+F0(entry to the database, if possible.)2.5 E F1 -.18(re)144 549.6 S(mo)
+.18 E -.1(ve)-.1 G F0(remo)180 561.6 Q .3 -.15(ve a)-.15 H F2 -.1(ke)
+2.65 G(y)-.2 E F0(entry from the database, if possible.)2.5 E F1
+(\215ush)144 578.4 Q F0(remo)15.43 E .3 -.15(ve a)-.15 H
+(ll entries from the database, if possible.).15 E F1 -.1(ow)144 595.2 S
 (ner).1 E F0 1.034(print the account name of the o)9.44 F 1.034
 (wner of the database, if possible.)-.25 F 1.034(This is usually deter)
 6.034 F(-)-.2 E(mined by the \214les associated with the database.)180
-556.8 Q F1(print)144 573.6 Q F0
+607.2 Q F1(print)144 624 Q F0
 (print all entries of the database, if possible.)14.33 E F1(toc)144
-590.4 Q F0 .491
+640.8 Q F0 .491
 (print a table of de\214ned relations and their associated information.)
-23.23 F .491(This table has \214v)5.491 F 2.991(e\()-.15 G(5\))-2.991 E
+23.23 F .49(This table has \214v)5.491 F 2.99(e\()-.15 G(5\))-2.99 E
 .337(columns, in order: the name of the relation, its type and subtype,\
- cache entries and maxi-)180 602.4 R
-(mum size, \215ags, and associated \214les.)180 614.4 Q(See the)5 E F1
+ cache entries and maxi-)180 652.8 R
+(mum size, \215ags, and associated \214les.)180 664.8 Q(See the)5 E F1
 -.18(re)2.5 G(lation).18 E F0(function for more information.)2.5 E
-(The k)144 631.2 Q -.15(ey)-.1 G -.1(wo).15 G(rds may be abbre).1 E(via\
+(The k)144 681.6 Q -.15(ey)-.1 G -.1(wo).15 G(rds may be abbre).1 E(via\
 ted to their smallest unique pre\214x \(usually a single character\).)
--.25 E(erraddron [)108 648 Q F2(\214le)2.5 E F0(])2.5 E .086(speci\214e\
-s a \214lename to append all address parsing error messages to.)144 660
-R .087(If there is no ar)5.086 F .087(gument gi)-.18 F -.15(ve)-.25 G
-(n,).15 E 1.384(the logging is stopped.)144 672 R 1.383(This is primari\
-ly for curious postmasters or other collectors of address)6.384 F(tri)
-144 684 Q(via.)-.25 E(\214lepri)108 700.8 Q(v)-.25 E F2(\214le)2.5 E F0
-([)2.5 E F2(uid)2.5 E F0(])2.5 E .199
-(prints the numeric user id of the least pri)144 712.8 R(vile)-.25 E .2
-(ged account that can modify the speci\214ed \214le.)-.15 F .2(This is)
-5.2 F .284
-(determined by an approximation that pessimistically assumes that an)144
-724.8 R 2.784<798c>-.15 G .284(le or directory writable by)-2.784 F
-(29 Aug 1997)279.89 768 Q(4)202.89 E EP
+-.25 E(erraddron [)108 698.4 Q F2(\214le)2.5 E F0(])2.5 E .086(speci\
+\214es a \214lename to append all address parsing error messages to.)144
+710.4 R .086(If there is no ar)5.086 F .086(gument gi)-.18 F -.15(ve)
+-.25 G(n,).15 E 1.383(the logging is stopped.)144 722.4 R 1.384(This is\
+ primarily for curious postmasters or other collectors of address)6.383
+F(29 Aug 1997)279.89 768 Q(4)202.89 E EP
 %%Page: 5 5
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
-(OUTER\(8\))-.4 E .269(group or others is insecure, and optimistically \
-assumes that it is enough to check a \214le and its par)144 84 R(-)-.2 E
-.164(ent directory instead of all the w)144 96 R .164
-(ay to the \214lesystem root.)-.1 F .163
-(The reason for the latter is that if grand-)5.164 F .089
-(parent directories are insecure, the system is lik)144 108 R .089
-(ely to ha)-.1 F .389 -.15(ve j)-.2 H .09
-(ust as bad potential problems as can be).15 F .257
-(created by using mail to run processes with for)144 120 R .256(ged po)
--.18 F .256(wers \(besides, doing the full check w)-.25 F .256(ould be)
--.1 F(quite e)144 132 Q(xpensi)-.15 E -.15(ve)-.25 G(\).).15 E .359
-(If a second ar)144 148.8 R .359(gument is gi)-.18 F -.15(ve)-.25 G
-2.859(ni).15 G 2.859(ti)-2.859 G 2.859(st)-2.859 G .359
+(OUTER\(8\))-.4 E(tri)144 84 Q(via.)-.25 E(\214lepri)108 100.8 Q(v)-.25
+E/F1 10/Times-Italic@0 SF(\214le)2.5 E F0([)2.5 E F1(uid)2.5 E F0(])2.5
+E .2(prints the numeric user id of the least pri)144 112.8 R(vile)-.25 E
+.199(ged account that can modify the speci\214ed \214le.)-.15 F .199
+(This is)5.199 F .284
+(determined by an approximation that pessimistically assumes that an)144
+124.8 R 2.784<798c>-.15 G .284(le or directory writable by)-2.784 F .269
+(group or others is insecure, and optimistically assumes that it is eno\
+ugh to check a \214le and its par)144 136.8 R(-)-.2 E .163
+(ent directory instead of all the w)144 148.8 R .164
+(ay to the \214lesystem root.)-.1 F .164
+(The reason for the latter is that if grand-)5.164 F .09
+(parent directories are insecure, the system is lik)144 160.8 R .089
+(ely to ha)-.1 F .389 -.15(ve j)-.2 H .089
+(ust as bad potential problems as can be).15 F .256
+(created by using mail to run processes with for)144 172.8 R .256
+(ged po)-.18 F .256(wers \(besides, doing the full check w)-.25 F .257
+(ould be)-.1 F(quite e)144 184.8 Q(xpensi)-.15 E -.15(ve)-.25 G(\).).15
+E .359(If a second ar)144 201.6 R .359(gument is gi)-.18 F -.15(ve)-.25
+G 2.859(ni).15 G 2.859(ti)-2.859 G 2.859(st)-2.859 G .359
 (he numeric user id to assume for the \214le.)-2.859 F .359
-(This means only the)5.359 F(parent directory will be check)144 160.8 Q
+(This means only the)5.359 F(parent directory will be check)144 213.6 Q
 (ed for non-writability and for ha)-.1 E(ving the same \(or a 0\) uid.)
--.2 E(gensym)108 177.6 Q 1.207(generates and prints a ne)144 189.6 R
-3.706(ws)-.25 G 1.206(ymbol name in the sequence)-3.706 F/F1 10
-/Times-Bold@0 SF(g0)3.706 E F0(to)3.706 E F1(g)3.706 E/F2 10
-/Times-Italic@0 SF(N)A F0 -2.15 -.25(ev e)3.706 H 1.206
-(ry time it is called.).25 F(The)6.206 E .339(sequence is reset and an)
-144 201.6 R 2.839(ys)-.15 G .339(ymbol v)-2.839 F .339(alues destro)-.25
-F .339(yed after the)-.1 F F2 -.45(ro)2.839 G(uter).45 E F0 .34
-(has processed a message.)2.84 F(This)5.34 E 1.64
-(function is used to generate ne)144 213.6 R 4.14(ws)-.25 G 1.64
+-.2 E(gensym)108 230.4 Q 1.206(generates and prints a ne)144 242.4 R
+3.706(ws)-.25 G 1.206(ymbol name in the sequence)-3.706 F/F2 10
+/Times-Bold@0 SF(g0)3.706 E F0(to)3.706 E F2(g)3.706 E F1(N)A F0 -2.15
+-.25(ev e)3.706 H 1.206(ry time it is called.).25 F(The)6.207 E .34
+(sequence is reset and an)144 254.4 R 2.84(ys)-.15 G .339(ymbol v)-2.84
+F .339(alues destro)-.25 F .339(yed after the)-.1 F F1 -.45(ro)2.839 G
+(uter).45 E F0 .339(has processed a message.)2.839 F(This)5.339 E 1.64
+(function is used to generate ne)144 266.4 R 4.14(ws)-.25 G 1.64
 (ymbols, to hold attached address property lists, during alias)-4.14 F
--.15(ex)144 225.6 S(pansion.).15 E(groupmembers)108 242.4 Q F2(gr)2.5 E
+-.15(ex)144 278.4 S(pansion.).15 E(groupmembers)108 295.2 Q F1(gr)2.5 E
 (oupname)-.45 E F0 .892(prints the accounts that are listed as members \
-of a group in the system groups \214le, one per line.)144 254.4 R .2
-(Note that accounts with the same login group id in b)144 266.4 R .199
+of a group in the system groups \214le, one per line.)144 307.2 R .199
+(Note that accounts with the same login group id in b)144 319.2 R .2
 (ut that are not listed in the groups \214le will not)-.2 F
-(appear in this list.)144 278.4 Q(homedirectory)108 295.2 Q F2(user)2.5
-E F0(prints the home directory of the speci\214ed account.)144 307.2 Q
-(hostname [)108 324 Q F2(name)2.5 E F0(])2.5 E 1.178(with an ar)144 336
-R 1.178(gument this sets the)-.18 F F2 -.45(ro)3.678 G(uter).45 E F0
-2.278 -.55('s i).73 H 1.178
+(appear in this list.)144 331.2 Q(homedirectory)108 348 Q F1(user)2.5 E
+F0(prints the home directory of the speci\214ed account.)144 360 Q
+(hostname [)108 376.8 Q F1(name)2.5 E F0(])2.5 E 1.179(with an ar)144
+388.8 R 1.178(gument this sets the)-.18 F F1 -.45(ro)3.678 G(uter).45 E
+F0 2.278 -.55('s i).73 H 1.178
 (dea of the system hostname, else the name as retrie).55 F -.15(ve)-.25
-G(d).15 E 1.143(from the system is printed.)144 348 R(The)6.143 E F2
--.45(ro)3.643 G(uter).45 E F0 1.143(has no preconcei)3.643 F -.15(ve)
--.25 G 3.642(dn).15 G 1.142(otion of what the hostname is, so)-3.642 F
-1.339(Message-Id and Recei)144 360 R -.15(ve)-.25 G 3.839(dh).15 G 1.339
+G(d).15 E 1.142(from the system is printed.)144 400.8 R(The)6.142 E F1
+-.45(ro)3.642 G(uter).45 E F0 1.142(has no preconcei)3.642 F -.15(ve)
+-.25 G 3.643(dn).15 G 1.143(otion of what the hostname is, so)-3.643 F
+1.34(Message-Id and Recei)144 412.8 R -.15(ve)-.25 G 3.84(dh).15 G 1.339
 (eaders will only be generated if a hostname has been set using this)
--3.839 F(function.)144 372 Q(listaddresses [ -e)108 388.8 Q F2(err)2.5 E
-(or)-.45 E(-addr)-.2 E(ess)-.37 E F0 2.5(][-)2.5 G(E)-2.5 E F2(err)2.5 E
-(or)-.45 E(s-to-addr)-.1 E(ess)-.37 E F0 2.5(][-)2.5 G(c)-2.5 E F2
+-3.84 F(function.)144 424.8 Q(listaddresses [ -e)108 441.6 Q F1(err)2.5
+E(or)-.45 E(-addr)-.2 E(ess)-.37 E F0 2.5(][-)2.5 G(E)-2.5 E F1(err)2.5
+E(or)-.45 E(s-to-addr)-.1 E(ess)-.37 E F0 2.5(][-)2.5 G(c)-2.5 E F1
 (comment)2.5 E F0(])2.5 E 1.741(\214lters an RFC822 address list on sta\
-ndard input to produce one normal form \(no non-address)144 400.8 R(tok)
-144 412.8 Q .363(ens\) address per line on its output.)-.1 F .364
+ndard input to produce one normal form \(no non-address)144 453.6 R(tok)
+144 465.6 Q .364(ens\) address per line on its output.)-.1 F .363
 (This function can be used to parse the alias \214le or .forw)5.363 F
-(ard)-.1 E .248(\214les or similar)144 424.8 R 5.247(.I)-.55 G 2.747(fa)
+(ard)-.1 E .247(\214les or similar)144 477.6 R 5.247(.I)-.55 G 2.747(fa)
 -5.247 G 2.747(ne)-2.747 G(rror)-2.747 E .247
 (-address is speci\214ed, an)-.2 F 2.747(ys)-.15 G .247
-(yntax errors at list parsing will cause a report)-2.747 F .325
-(to be mailed to the gi)144 436.8 R -.15(ve)-.25 G 2.825(na).15 G 2.825
+(yntax errors at list parsing will cause a report)-2.747 F .326
+(to be mailed to the gi)144 489.6 R -.15(ve)-.25 G 2.825(na).15 G 2.825
 (ddress. If)-2.825 F 2.825(ac)2.825 G .325
 (omment is speci\214ed, it will be inserted in the error report.)-2.825
-F .177(If an errors occurs while messages are being deli)144 448.8 R
--.15(ve)-.25 G .176(red, the `errors-to-address' can be used to force)
-.15 F(error message destination else)144 460.8 Q(were than to the def)
--.25 E(ault `sender' of the message.)-.1 E(login2uid)108 477.6 Q F2(lo)
+F .176(If an errors occurs while messages are being deli)144 501.6 R
+-.15(ve)-.25 G .177(red, the `errors-to-address' can be used to force)
+.15 F(error message destination else)144 513.6 Q(were than to the def)
+-.25 E(ault `sender' of the message.)-.1 E(login2uid)108 530.4 Q F1(lo)
 2.5 E(gin)-.1 E F0 1.92
 (Prints the uid associated with the speci\214ed account name, if an)144
-489.6 R 5.72 -.65(y. A)-.15 H(side-ef)5.07 E 1.92(fect is to add the)
--.25 F .552(GECOS name \214eld of the account to the)144 501.6 R F1
+542.4 R 5.72 -.65(y. A)-.15 H(side-ef)5.07 E 1.92(fect is to add the)
+-.25 F .551(GECOS name \214eld of the account to the)144 554.4 R F2
 (fullname)3.052 E F0 .552
-(in-core database, to add the login name to uid)3.052 F .484
-(mapping to the)144 513.6 R F1(pwnam)2.984 E F0 .485
-(in-core database, and to add the uid to login name mapping to the)2.984
-F F1(pwuid)2.985 E F0(in-core database.)144 525.6 Q(liste)108 542.4 Q
-(xpand [ -c)-.15 E F2(comment)2.5 E F0 2.5(][-)2.5 G(e)-2.5 E F2(err)2.5
-E(or)-.45 E(addr)-.15 E(ess)-.37 E F0 2.5(][-)2.5 G(E)-2.5 E F2(err)2.5
-E(or)-.45 E(s-to)-.1 E F0(])2.5 E F2($attrib)2.5 E
-(ute $localpart $origaddr)-.2 E F0 2.5(<l)2.5 G(ist\214le)-2.5 E .563
-(implements the most common pipeline where)144 554.4 R F2(listaddr)3.063
-E(esses)-.37 E F0 -.1(wa)3.062 G 3.062(su).1 G .562(sed with more ef)
--3.062 F .562(\214cient memory)-.25 F(consumption handling.)144 566.4 Q
-(\(That is, without v)5 E(ariable duplicating)-.25 E F2(setf)2.5 E F0
--.55('s)1.96 G(.\)).55 E(printaliases [ -v ] [ -o)108 583.2 Q F2(inde)
-2.5 E(xoutput\214le)-.2 E F0(])2.5 E F2(\214le)2.5 E F0 .491(reads RFC8\
-22 syntax header lines from the speci\214ed \214le, parses them assumin\
-g contents must be)144 595.2 R .687(an address list, and sorts and prin\
-ts the header lines with all addresses in normal form.)144 607.2 R .686
-(If the \255o)5.686 F .577
-(switch is speci\214ed, each header line will also generate a)144 619.2
-R F2(header)3.078 E F1 -.9(TA)3.078 G(B).9 E F2(byteof)3.078 E(fset)-.18
-E F0 .578(line in the inde)3.078 F(x-)-.15 E 2.867(\214le. Comments)144
-631.2 R .367(are allo)2.867 F .367(wed; the)-.25 F 2.867(ye)-.15 G .366
-(xtend from the character '#' at the be)-3.017 F .366
-(ginning of a line, or after)-.15 F .414
-(an address, to the end of line.)144 643.2 R .415
-(This function is used by the)5.415 F F2(ne)2.915 E(waliases)-.15 E F0
-.415(\(1\) program to generate the).27 F
-(aliases database from a source \214le.)144 655.2 Q(process)108 672 Q F2
-(messa)2.5 E -.1(ge)-.1 G(\214le).1 E F0 .209
-(is the protocol switch function.)144 684 R .208(It is called by the)
-5.208 F F1(daemon)2.708 E F0 .208
-(function to process a message found in)2.708 F(the)144 696 Q F2(POST)
-3.823 E(OFFICE)-.18 E F1(/r)A(outer)-.18 E F0(directory)3.823 E 6.323
-(.T)-.65 G 1.324
-(his function will in turn call an internal protocol-speci\214c)-6.323 F
-.995(function which kno)144 708 R .995
-(ws the syntax and semantics of the message \214le.)-.25 F .995
-(The current v)5.995 F .995(ersion kno)-.15 F(ws)-.25 E .149
-(about messages submitted using the)144 720 R F1(MSG_RFC822)2.649 E F0
-.149(parameter to)2.649 F F2(mail_open)2.649 E F0 2.649(\(3\). F).24 F
-.15(or that case, the)-.15 F(29 Aug 1997)279.89 768 Q(5)202.89 E EP
+(in-core database, to add the login name to uid)3.052 F .485
+(mapping to the)144 566.4 R F2(pwnam)2.985 E F0 .485
+(in-core database, and to add the uid to login name mapping to the)2.985
+F F2(pwuid)2.984 E F0(in-core database.)144 578.4 Q(liste)108 595.2 Q
+(xpand [ -c)-.15 E F1(comment)2.5 E F0 2.5(][-)2.5 G(e)-2.5 E F1(err)2.5
+E(or)-.45 E(addr)-.15 E(ess)-.37 E F0 2.5(][-)2.5 G(E)-2.5 E F1(err)2.5
+E(or)-.45 E(s-to)-.1 E F0(])2.5 E F1($attrib)2.5 E
+(ute $localpart $origaddr)-.2 E F0 2.5(<l)2.5 G(ist\214le)-2.5 E .562
+(implements the most common pipeline where)144 607.2 R F1(listaddr)3.062
+E(esses)-.37 E F0 -.1(wa)3.063 G 3.063(su).1 G .563(sed with more ef)
+-3.063 F .563(\214cient memory)-.25 F(consumption handling.)144 619.2 Q
+(\(That is, without v)5 E(ariable duplicating)-.25 E F1(setf)2.5 E F0
+-.55('s)1.96 G(.\)).55 E(printaliases [ -v ] [ -o)108 636 Q F1(inde)2.5
+E(xoutput\214le)-.2 E F0(])2.5 E F1(\214le)2.5 E F0 .491(reads RFC822 s\
+yntax header lines from the speci\214ed \214le, parses them assuming co\
+ntents must be)144 648 R .687(an address list, and sorts and prints the\
+ header lines with all addresses in normal form.)144 660 R .687
+(If the \255o)5.687 F .578
+(switch is speci\214ed, each header line will also generate a)144 672 R
+F1(header)3.077 E F2 -.9(TA)3.077 G(B).9 E F1(byteof)3.077 E(fset)-.18 E
+F0 .577(line in the inde)3.077 F(x-)-.15 E 2.866(\214le. Comments)144
+684 R .366(are allo)2.866 F .366(wed; the)-.25 F 2.866(ye)-.15 G .366
+(xtend from the character '#' at the be)-3.016 F .367
+(ginning of a line, or after)-.15 F .415
+(an address, to the end of line.)144 696 R .415
+(This function is used by the)5.415 F F1(ne)2.914 E(waliases)-.15 E F0
+.414(\(1\) program to generate the).27 F
+(aliases database from a source \214le.)144 708 Q(29 Aug 1997)279.89 768
+Q(5)202.89 E EP
 %%Page: 6 6
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
-(OUTER\(8\))-.4 E 1.567(protocol function is called)144 84 R/F1 10
-/Times-Bold@0 SF(rfc822)4.067 E F0(.)A/F2 10/Times-Italic@0 SF -.45(ro)
-6.567 G(uter).45 E F0 1.566(has a bit more comple)4.067 F 4.066(xd)-.15
-G 1.566(irectory semantics, than is)-4.066 F .797(stated abo)144 96 R
--.15(ve)-.15 G 3.297(.S).15 G(ee)-3.297 E F2(zmailer)3.297 E F0 .797
-(\(3\) for details.).73 F .797(Although the)5.797 F F1(pr)3.297 E(ocess)
--.18 E F0 .797(function is pro)3.297 F .798(vided b)-.15 F .798
-(uilt in, it is)-.2 F(usually o)144 108 Q -.15(ve)-.15 G
-(rridden by a de\214ned function in the).15 E F2 -.45(ro)2.5 G(uter).45
-E F0(con\214guration \214le.)2.5 E(recipient)108 124.8 Q .242
-(is a boolean function that returns the v)144 136.8 R .242
+(OUTER\(8\))-.4 E(process)108 84 Q/F1 10/Times-Italic@0 SF(messa)2.5 E
+-.1(ge)-.1 G(\214le).1 E F0 .208(is the protocol switch function.)144 96
+R .208(It is called by the)5.208 F/F2 10/Times-Bold@0 SF(daemon)2.708 E
+F0 .209(function to process a message found in)2.708 F(the)144 108 Q F1
+(POST)3.824 E(OFFICE)-.18 E F2(/r)A(outer)-.18 E F0(directory)3.824 E
+6.324(.T)-.65 G 1.324
+(his function will in turn call an internal protocol-speci\214c)-6.324 F
+.995(function which kno)144 120 R .995
+(ws the syntax and semantics of the message \214le.)-.25 F .995
+(The current v)5.995 F .995(ersion kno)-.15 F(ws)-.25 E .15
+(about messages submitted using the)144 132 R F2(MSG_RFC822)2.649 E F0
+.149(parameter to)2.649 F F1(mail_open)2.649 E F0 2.649(\(3\). F).24 F
+.149(or that case, the)-.15 F 1.566(protocol function is called)144 144
+R F2(rfc822)4.066 E F0(.)A F1 -.45(ro)6.566 G(uter).45 E F0 1.566
+(has a bit more comple)4.066 F 4.067(xd)-.15 G 1.567
+(irectory semantics, than is)-4.067 F .798(stated abo)144 156 R -.15(ve)
+-.15 G 3.298(.S).15 G(ee)-3.298 E F1(zmailer)3.298 E F0 .798
+(\(3\) for details.).73 F .797(Although the)5.797 F F2(pr)3.297 E(ocess)
+-.18 E F0 .797(function is pro)3.297 F .797(vided b)-.15 F .797
+(uilt in, it is)-.2 F(usually o)144 168 Q -.15(ve)-.15 G
+(rridden by a de\214ned function in the).15 E F1 -.45(ro)2.5 G(uter).45
+E F0(con\214guration \214le.)2.5 E(recipient)108 184.8 Q .242
+(is a boolean function that returns the v)144 196.8 R .242
 (alue of the statement "e)-.25 F -.15(xe)-.15 G .242(cuting a header re)
 .15 F .242(writing function)-.25 F
-(and the address is a recipient address in a message header".)144 148.8
-Q(recase [ -u | -l | -p ])108 165.6 Q F2(string)2.5 E F0 .039(is a case\
+(and the address is a recipient address in a message header".)144 208.8
+Q(recase [ -u | -l | -p ])108 225.6 Q F1(string)2.5 E F0 .039(is a case\
 -mapping function that prints the parameter string in either all-upperc\
-ase, all-lo)144 177.6 R .04(wercase, or)-.25 F(capitalized \(pretty\).)
-144 189.6 Q(relation -t)108 206.4 Q F2(dbtype[,subtype])2.5 E F0 2.5([-)
-2.5 G(f)-2.5 E F2(\214le)2.5 E F0(-e)2.5 E F2(#)A F0(-s)2.5 E F2(#)A F0
-(-bilmnu -d)2.5 E F2(driver)2.5 E F0(])2.5 E F2(name)2.5 E F0 1.122
-(informs the)144 218.4 R F2 -.45(ro)3.622 G(uter).45 E F0 1.121
+ase, all-lo)144 237.6 R .039(wercase, or)-.25 F(capitalized \(pretty\).)
+144 249.6 Q(relation -t)108 266.4 Q F1(dbtype[,subtype])2.5 E F0 2.5([-)
+2.5 G(f)-2.5 E F1(\214le)2.5 E F0(-e)2.5 E F1(#)A F0(-s)2.5 E F1(#)A F0
+(-bilmnu -d)2.5 E F1(driver)2.5 E F0(])2.5 E F1(name)2.5 E F0 1.121
+(informs the)144 278.4 R F1 -.45(ro)3.621 G(uter).45 E F0 1.121
 (of the e)3.621 F 1.121(xistence of a database, and ho)-.15 F 3.621(wt)
 -.25 G 3.621(oa)-3.621 G 1.121(ccess it.)-3.621 F 1.121
-(It also creates a b)6.121 F(uiltin)-.2 E .703
-(function with the speci\214ed name, which is used to retrie)144 230.4 R
-1.004 -.15(ve t)-.25 H .704(he v).15 F .704(alue associated with a k)
--.25 F 1.004 -.15(ey i)-.1 H 3.204(nt).15 G(he)-3.204 E 2.5
-(database. The)144 242.4 R(options are:)2.5 E<ad74>144 259.2 Q F2
-(dbtype)2.5 E F0(is one of the kno)180 271.2 Q
-(wn types of databases, currently:)-.25 E F1(incor)180 288 Q(e)-.18 E F0
+(It also creates a b)6.121 F(uiltin)-.2 E .704
+(function with the speci\214ed name, which is used to retrie)144 290.4 R
+1.003 -.15(ve t)-.25 H .703(he v).15 F .703(alue associated with a k)
+-.25 F 1.003 -.15(ey i)-.1 H 3.203(nt).15 G(he)-3.203 E 2.5
+(database. The)144 302.4 R(options are:)2.5 E<ad74>144 319.2 Q F1
+(dbtype)2.5 E F0(is one of the kno)180 331.2 Q
+(wn types of databases, currently:)-.25 E F2(incor)180 348 Q(e)-.18 E F0
 .151(is a database maintained in virtual memory \(using splay trees\).)
-9.52 F .15(This type should)5.151 F 1.86(not be used for an)216 300 R
+9.52 F .151(This type should)5.151 F 1.861(not be used for an)216 360 R
 4.361(yd)-.15 G 1.861
 (atabase that must periodically be \215ushed, since not all)-4.361 F
-(occupied memory can be freed.)216 312 Q F1(unorder)180 328.8 Q(ed)-.18
-E F0 .383(is a \214le with k)216 340.8 R -.15(ey)-.1 G(-v).15 E .382
+(occupied memory can be freed.)216 372 Q F2(unorder)180 388.8 Q(ed)-.18
+E F0 .382(is a \214le with k)216 400.8 R -.15(ey)-.1 G(-v).15 E .382
 (alue pairs on e)-.25 F -.15(ve)-.25 G .382
-(ry line, separated by whitespace.).15 F .382(\(See about)5.382 F(")216
-352.8 Q F2<ad6d>A F0("-option!\))A F1(order)180 369.6 Q(ed)-.18 E F0
-1.001(is a \214le with k)216 381.6 R -.15(ey)-.1 G(-v).15 E 1.001
-(alue pairs on e)-.25 F -.15(ve)-.25 G 1.002
-(ry line, separated by whitespace, sorted by).15 F -.1(ke)216 393.6 S
-3.8 -.65(y. \()-.05 H(See about ").65 E F2<ad6d>A F0("-option!\))A F1
-(hosts\214le)180 410.4 Q F0(is the)216 422.4 Q F2(hosts)2.5 E F0
-(\(5\) \214le.).27 E F1(bind)180 439.2 Q F0 .809
+(ry line, separated by whitespace.).15 F .383(\(See about)5.383 F(")216
+412.8 Q F1<ad6d>A F0("-option!\))A F2(order)180 429.6 Q(ed)-.18 E F0
+1.002(is a \214le with k)216 441.6 R -.15(ey)-.1 G(-v).15 E 1.002
+(alue pairs on e)-.25 F -.15(ve)-.25 G 1.001
+(ry line, separated by whitespace, sorted by).15 F -.1(ke)216 453.6 S
+3.8 -.65(y. \()-.05 H(See about ").65 E F1<ad6d>A F0("-option!\))A F2
+(hosts\214le)180 470.4 Q F0(is the)216 482.4 Q F1(hosts)2.5 E F0
+(\(5\) \214le.).27 E F2(bind)180 499.2 Q F0 .809
 (is the BIND implementation of a Domain Name System resolv)16.54 F(er)
--.15 E 5.809(.T)-.55 G .809(he subtype)-5.809 F
-(for this type is the name of a Resource Record type in the)216 451.2 Q
-F1(IN)2.5 E F0(class.)2.5 E F1(ndbm)180 468 Q F0 .886(is the ne)10.99 F
-3.386(wD)-.25 G .886(BM library)-3.386 F 5.886(.T)-.65 G(he)-5.886 E F2
-(BSD4.4)3.386 E F0 .887(has a thing called)3.386 F F1(db)3.387 E F0
-3.387(,w)C .887(hich is dif)-3.387 F(ferent)-.25 E 2.838(thing, b)216
-480 R 2.837(ut it can be used in place of ndbm via its interf)-.2 F
-2.837(ace library)-.1 F 7.837(.\()-.65 G(The)-7.837 E(BSD4.4-db does ha)
-216 492 Q .3 -.15(ve o)-.2 H(nly one database \214le, not tw).15 E
-(o, lik)-.1 E 2.5(en)-.1 G(dbm does.\))-2.5 E F1(gdbm)180 508.8 Q F0
-.503(is the GNU implementation of the ne)11.55 F 3.003(wD)-.25 G .503
-(BM library)-3.003 F(.)-.65 E F1 .504(Note: GDBM uses ONE)5.504 F 1.729
-(\214le, which is named exactly as y)216 520.8 R 1.728
-(ou parametrize it, this is unlik)-.25 F 4.228(eN)-.1 G(DBM,)-4.228 E
-(which appends .dir and .pag to the supplied name!)216 532.8 Q(dbm)180
-549.6 Q F0 .553(is the old DBM library)16.55 F 5.553(.T)-.65 G .553
+-.15 E 5.809(.T)-.55 G .81(he subtype)-5.809 F
+(for this type is the name of a Resource Record type in the)216 511.2 Q
+F2(IN)2.5 E F0(class.)2.5 E F2(ndbm)180 528 Q F0 .887(is the ne)10.99 F
+3.387(wD)-.25 G .887(BM library)-3.387 F 5.887(.T)-.65 G(he)-5.887 E F1
+(BSD4.4)3.387 E F0 .886(has a thing called)3.386 F F2(db)3.386 E F0
+3.386(,w)C .886(hich is dif)-3.386 F(ferent)-.25 E 2.837(thing, b)216
+540 R 2.837(ut it can be used in place of ndbm via its interf)-.2 F
+2.838(ace library)-.1 F 7.838(.\()-.65 G(The)-7.838 E(BSD4.4-db does ha)
+216 552 Q .3 -.15(ve o)-.2 H(nly one database \214le, not tw).15 E
+(o, lik)-.1 E 2.5(en)-.1 G(dbm does.\))-2.5 E F2(gdbm)180 568.8 Q F0
+.504(is the GNU implementation of the ne)11.55 F 3.003(wD)-.25 G .503
+(BM library)-3.003 F(.)-.65 E F2 .503(Note: GDBM uses ONE)5.503 F 1.728
+(\214le, which is named exactly as y)216 580.8 R 1.729
+(ou parametrize it, this is unlik)-.25 F 4.229(eN)-.1 G(DBM,)-4.229 E
+(which appends .dir and .pag to the supplied name!)216 592.8 Q(dbm)180
+609.6 Q F0 .554(is the old DBM library)16.55 F 5.553(.T)-.65 G .553
 (here can be only one DBM open at the time, and this)-5.553 F(system k)
-216 561.6 Q(eeps them all open all the time...)-.1 E -1.22 -.74(Av o)5 H
-(id if you can!).74 E F1(yp)180 578.4 Q F0 3.764(is the Netw)25.44 F
+216 621.6 Q(eeps them all open all the time...)-.1 E -1.22 -.74(Av o)5 H
+(id if you can!).74 E F2(yp)180 638.4 Q F0 3.763(is the Netw)25.44 F
 3.763(ork Information Service from Sun Microsystems Inc.)-.1 F(\(Latter)
-8.763 E(renamed to be NIS, the still ne)216 590.4 Q
-(wer NIS+ is not supported\))-.25 E F1(header)180 607.2 Q F0 1.308
+8.764 E(renamed to be NIS, the still ne)216 650.4 Q
+(wer NIS+ is not supported\))-.25 E F2(header)180 667.2 Q F0 1.308
 (is an database type used to store RFC822 header semantics information.)
-6.56 F 1.309(It is)6.309 F(unlik)216 619.2 Q(ely to be used for an)-.1 E
+6.56 F 1.308(It is)6.308 F(unlik)216 679.2 Q(ely to be used for an)-.1 E
 (ything else.)-.15 E(See the HEADERS section belo)5 E -.65(w.)-.25 G
-<ad66>144 636 Q F2(\214le)2.5 E F0 1.022(is a \214le associated with th\
+<ad66>144 696 Q F1(\214le)2.5 E F0 1.022(is a \214le associated with th\
 e database, typically the \214le containing the data, or the base-)12.31
-F(name of DBM \214les or something similarly rele)180 648 Q -.25(va)-.25
-G(nt to the database access routines.).25 E<ad65>144 664.8 Q F2(#)A F0
-.662(is the def)20.92 F .662(ault time-to-li)-.1 F .962 -.15(ve o)-.25 H
-3.162(nc).15 G .662(ached information.)-3.162 F .663
-(When the information has been in the)5.662 F(cache for this man)180
-676.8 Q 2.5(ys)-.15 G(econds, it is discarded.)-2.5 E(The def)5 E
-(ault is 0.)-.1 E<ad73>144 693.6 Q F2(#)A F0 .493
-(sets the cache size to the speci\214ed number of entries.)21.47 F .492
-(The def)5.493 F .492(ault is usually 10, depend-)-.1 F
-(ing on the database type.)180 705.6 Q(29 Aug 1997)279.89 768 Q(6)202.89
-E EP
+F(name of DBM \214les or something similarly rele)180 708 Q -.25(va)-.25
+G(nt to the database access routines.).25 E(29 Aug 1997)279.89 768 Q(6)
+202.89 E EP
 %%Page: 7 7
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
-(OUTER\(8\))-.4 E 22.86(\255b if)144 84 R(the k)2.5 E .3 -.15(ey ex)-.1
-H(ists in the database, return the k).15 E .3 -.15(ey a)-.1 H 2.5(st).15
-G(he v)-2.5 E(alue.)-.25 E 25.08(\255i if)144 100.8 R 2.042(the k)4.542
-F 2.342 -.15(ey ex)-.1 H 2.042(ists, its v).15 F 2.042
-(alue is a byte of)-.25 F 2.042
-(fset into a \214le named by the subtype for this)-.25 F 3.591
-(database. The)180 112.8 R -.25(va)3.591 G 1.091
+(OUTER\(8\))-.4 E<ad65>144 84 Q/F1 10/Times-Italic@0 SF(#)A F0 .663
+(is the def)20.92 F .663(ault time-to-li)-.1 F .963 -.15(ve o)-.25 H
+3.162(nc).15 G .662(ached information.)-3.162 F .662
+(When the information has been in the)5.662 F(cache for this man)180 96
+Q 2.5(ys)-.15 G(econds, it is discarded.)-2.5 E(The def)5 E(ault is 0.)
+-.1 E<ad73>144 112.8 Q F1(#)A F0 .492
+(sets the cache size to the speci\214ed number of entries.)21.47 F .493
+(The def)5.493 F .493(ault is usually 10, depend-)-.1 F
+(ing on the database type.)180 124.8 Q 22.86(\255b if)144 141.6 R(the k)
+2.5 E .3 -.15(ey ex)-.1 H(ists in the database, return the k).15 E .3
+-.15(ey a)-.1 H 2.5(st).15 G(he v)-2.5 E(alue.)-.25 E 25.08(\255i if)144
+158.4 R 2.043(the k)4.543 F 2.343 -.15(ey ex)-.1 H 2.043(ists, its v).15
+F 2.042(alue is a byte of)-.25 F 2.042
+(fset into a \214le named by the subtype for this)-.25 F 3.59
+(database. The)180 170.4 R -.25(va)3.59 G 1.091
 (lue then becomes the concatenation of the data on the lines follo).25 F
-(wing)-.25 E(that of)180 124.8 Q(fset which start with whitespace.)-.25
-E(This is used for the aliases \214le.)5 E 25.08(\255l map)144 141.6 R
+(wing)-.25 E(that of)180 182.4 Q(fset which start with whitespace.)-.25
+E(This is used for the aliases \214le.)5 E 25.08(\255l map)144 199.2 R
 (all k)2.5 E -.15(ey)-.1 G 2.5(st).15 G 2.5(ol)-2.5 G -.25(ow)-2.5 G
-(ercase before searching.).25 E 20.08(\255m check)144 158.4 R .193
-(for \214le content modi\214cation before e)2.693 F -.15(ve)-.25 G .194
-(ry access.).15 F .194(Reopen the \214le when a change is)5.194 F 4.344
-(detected. This)180 170.4 R 1.844
-(option is used when the router should disco)4.344 F -.15(ve)-.15 G
-4.344(rc).15 G 1.843(hanges to a database)-4.344 F .86
-(underfoot so it need not be restarted to use ne)180 182.4 R 3.361(wd)
--.25 G 3.361(ata. This)-3.361 F .861(is w)3.361 F .861
-(armly recommended on)-.1 F .91(relations which use unordered, or order\
-ed datasets \(aliases, routes, ...\), and especially if)180 194.4 R .761
-(the system is con\214gured to use mmap\(2\) f)180 206.4 R(acility)-.1 E
-5.761(.U)-.65 G .761(pdateing such databases should pre-)-5.761 F .439
-(ferrably use)180 218.4 R/F1 10/Times-Italic@0 SF(mv)2.939 E F0 .439
-(command to mo)2.939 F .738 -.15(ve a n)-.15 H .938 -.25(ew v).15 H .438
-(ersion of the database in place of the old one.).1 F(\()180 230.4 Q/F2
-10/Times-Bold@0 SF(do not use copy!)2.5 E F0(\))5 E 22.86(\255n if)144
-247.2 R 1.189(the k)3.688 F 1.489 -.15(ey ex)-.1 H 1.189
+(ercase before searching.).25 E 20.08(\255m check)144 216 R .194
+(for \214le content modi\214cation before e)2.694 F -.15(ve)-.25 G .194
+(ry access.).15 F .193(Reopen the \214le when a change is)5.194 F 4.343
+(detected. This)180 228 R 1.844
+(option is used when the router should disco)4.343 F -.15(ve)-.15 G
+4.344(rc).15 G 1.844(hanges to a database)-4.344 F .861
+(underfoot so it need not be restarted to use ne)180 240 R 3.361(wd)-.25
+G 3.36(ata. This)-3.361 F .86(is w)3.36 F .86(armly recommended on)-.1 F
+.91(relations which use unordered, or ordered datasets \(aliases, route\
+s, ...\), and especially if)180 252 R .761
+(the system is con\214gured to use mmap\(2\) f)180 264 R(acility)-.1 E
+5.761(.U)-.65 G .761(pdateing such databases should pre-)-5.761 F .438
+(ferrably use)180 276 R F1(mv)2.938 E F0 .438(command to mo)2.938 F .738
+-.15(ve a n)-.15 H .938 -.25(ew v).15 H .438
+(ersion of the database in place of the old one.).1 F(\()180 288 Q/F2 10
+/Times-Bold@0 SF(do not use copy!)2.5 E F0(\))5 E 22.86(\255n if)144
+304.8 R 1.189(the k)3.689 F 1.489 -.15(ey ex)-.1 H 1.189
 (ists in the database and the v).15 F 1.189
-(alue is null or a list, return the k)-.25 F 1.489 -.15(ey a)-.1 H 3.689
-(sv).15 G(alue.)-3.939 E(Otherwise return the v)180 259.2 Q(alue retrie)
+(alue is null or a list, return the k)-.25 F 1.489 -.15(ey a)-.1 H 3.688
+(sv).15 G(alue.)-3.938 E(Otherwise return the v)180 316.8 Q(alue retrie)
 -.25 E -.15(ve)-.25 G(d, if an).15 E -.65(y.)-.15 G 22.86(\255u map)144
-276 R(all k)2.5 E -.15(ey)-.1 G 2.5(st).15 G 2.5(ou)-2.5 G
-(ppercase before searching.)-2.5 E<ad64>144 292.8 Q F1(driver)2.5 E F0
-1.306(speci\214es a search dri)180 304.8 R -.15(ve)-.25 G 3.806(rt).15 G
+333.6 R(all k)2.5 E -.15(ey)-.1 G 2.5(st).15 G 2.5(ou)-2.5 G
+(ppercase before searching.)-2.5 E<ad64>144 350.4 Q F1(driver)2.5 E F0
+1.305(speci\214es a search dri)180 362.4 R -.15(ve)-.25 G 3.806(rt).15 G
 1.306(hat allo)-3.806 F 1.306(ws searching for structured k)-.25 F -.15
-(ey)-.1 G 3.806(su).15 G 1.305(sing special kno)-3.806 F(wl-)-.25 E 3.69
-(edge. The)180 316.8 R(ar)3.69 E 1.19
+(ey)-.1 G 3.806(su).15 G 1.306(sing special kno)-3.806 F(wl-)-.25 E 3.69
+(edge. The)180 374.4 R(ar)3.69 E 1.19
 (gument to this option must be a kno)-.18 F 1.19(wn dri)-.25 F -.15(ve)
 -.25 G 4.79 -.55(r. C).15 H 1.19(urrently the only kno).55 F(wn)-.25 E
-(dri)180 328.8 Q -.15(ve)-.25 G 2.93(ri).15 G(s)-2.93 E F2(pathalias)
+(dri)180 386.4 Q -.15(ve)-.25 G 2.93(ri).15 G(s)-2.93 E F2(pathalias)
 2.93 E F0 .43
 (which will search a pathalias format database for an entry matching a)
-2.93 F(domain name using the pathalias rules.)180 340.8 Q(rfc822)108
-357.6 Q F1(messa)2.5 E -.1(ge)-.1 G(\214le).1 E F0 .865(This function c\
+2.93 F(domain name using the pathalias rules.)180 398.4 Q(rfc822)108
+415.2 Q F1(messa)2.5 E -.1(ge)-.1 G(\214le).1 E F0 .865(This function c\
 ontrols the parsing and processing of a message \214le in RFC822/976 fo\
-rmat.)144 369.6 R .865(It is)5.865 F(called by the)144 381.6 Q F2(pr)2.5
-E(ocess)-.18 E F0(function.)2.5 E(rfc822date)108 398.4 Q
-(prints the current time in RFC822 format.)144 410.4 Q(runas)108 427.2 Q
+rmat.)144 427.2 R .864(It is)5.864 F(called by the)144 439.2 Q F2(pr)2.5
+E(ocess)-.18 E F0(function.)2.5 E(rfc822date)108 456 Q
+(prints the current time in RFC822 format.)144 468 Q(runas)108 484.8 Q
 F1(user function)2.5 E F0([)2.5 E F1(ar)2.5 E(guments...)-.37 E F0(])2.5
-E .398(changes the current ef)144 439.2 R(fecti)-.25 E .698 -.15(ve u)
--.25 H .398(ser id of the).15 F F1 -.45(ro)2.898 G(uter).45 E F0 .398
-(process to that gi)2.898 F -.15(ve)-.25 G 2.897(n\().15 G .397
-(which may be numeric or)-2.897 F .287(an account name\), then runs the\
- speci\214ed function with the speci\214ed ar)144 451.2 R .288
-(guments, then switches the)-.18 F(ef)144 463.2 Q(fecti)-.25 E .3 -.15
+E .397(changes the current ef)144 496.8 R(fecti)-.25 E .697 -.15(ve u)
+-.25 H .397(ser id of the).15 F F1 -.45(ro)2.898 G(uter).45 E F0 .398
+(process to that gi)2.898 F -.15(ve)-.25 G 2.898(n\().15 G .398
+(which may be numeric or)-2.898 F .287(an account name\), then runs the\
+ speci\214ed function with the speci\214ed ar)144 508.8 R .287
+(guments, then switches the)-.18 F(ef)144 520.8 Q(fecti)-.25 E .3 -.15
 (ve u)-.25 H(ser id of the process back \(to root\).).15 E 7.4
-(sender is)108 480 R 2.742(ab)2.742 G .242
+(sender is)108 537.6 R 2.742(ab)2.742 G .242
 (oolean function that returns the v)-2.742 F .242
 (alue of the statement "e)-.25 F -.15(xe)-.15 G .242(cuting a header re)
 .15 F .242(writing function)-.25 F
-(and the address is a sender address in a message header".)144 492 Q
-(rfc822syntax)108 508.8 Q F1(addr)2.5 E(ess)-.37 E F0 .882
-(This is a simple interf)144 520.8 R .882(ace to the address parser)-.1
-F 5.883(.I)-.55 G 3.383(ft)-5.883 G .883(he command line ar)-3.383 F
-.883(gument is a syntactically)-.18 F -.25(va)144 532.8 S .226
+(and the address is a sender address in a message header".)144 549.6 Q
+(rfc822syntax)108 566.4 Q F1(addr)2.5 E(ess)-.37 E F0 .883
+(This is a simple interf)144 578.4 R .883(ace to the address parser)-.1
+F 5.882(.I)-.55 G 3.382(ft)-5.882 G .882(he command line ar)-3.382 F
+.882(gument is a syntactically)-.18 F -.25(va)144 590.4 S .226
 (lid RFC822 address, this command is silent and returns 0 as e).25 F
 .226(xit status.)-.15 F .226(If there is a parse error)5.226 F(,)-.4 E
-2.5(av)144 544.8 S(erbose error message is printed to stdout and the fu\
+2.5(av)144 602.4 S(erbose error message is printed to stdout and the fu\
 nction returns a non-0 e)-2.65 E(xit status.)-.15 E(squirrel { [-])108
-561.6 Q F1 -.15(ev)C(ent).15 E F0(})2.5 E .682(sets the kinds of e)144
-573.6 R -.15(ve)-.25 G .682
+619.2 Q F1 -.15(ev)C(ent).15 E F0(})2.5 E .682(sets the kinds of e)144
+631.2 R -.15(ve)-.25 G .682
 (nts that cause a message to be copied into the POST).15 F .682
-(OFFICE/postman direc-)-.18 F(tory)144 585.6 Q 5.807(.T)-.65 G .807
-(he e)-5.807 F -.15(ve)-.25 G .807(nts are: breakin, badheader).15 F
-3.307(,i)-.4 G(llheader)-3.307 E 3.306(,n)-.4 G .806(ochannel, nosender)
--3.306 F 5.806(.W)-.55 G .806(hether or not a '-' is)-5.806 F 1.055
-(necessary for an e)144 597.6 R -.15(ve)-.25 G 1.056
+(OFFICE/postman direc-)-.18 F(tory)144 643.2 Q 5.806(.T)-.65 G .806
+(he e)-5.806 F -.15(ve)-.25 G .806(nts are: breakin, badheader).15 F
+3.306(,i)-.4 G(llheader)-3.306 E 3.306(,n)-.4 G .806(ochannel, nosender)
+-3.306 F 5.807(.W)-.55 G .807(hether or not a '-' is)-5.807 F 1.056
+(necessary for an e)144 655.2 R -.15(ve)-.25 G 1.056
 (nt depends on the current state of the e).15 F -.15(ve)-.25 G(nt').15 E
-3.556<738d>-.55 G 3.556(ag. The)-3.556 F 1.056(usage message will)3.556
-F(indicate what to do to toggle the e)144 609.6 Q -.15(ve)-.25 G
-(nt \215ag.).15 E(stability { on | of)108 626.4 Q 2.5(f})-.25 G 1.164
+3.555<738d>-.55 G 3.555(ag. The)-3.555 F 1.055(usage message will)3.555
+F(indicate what to do to toggle the e)144 667.2 Q -.15(ve)-.25 G
+(nt \215ag.).15 E(stability { on | of)108 684 Q 2.5(f})-.25 G 1.164
 (determines whether the router will process incoming messages in arri)
-144 638.4 R -.25(va)-.25 G 3.664(lo).25 G 1.164(rder \(when on\), or in)
--3.664 F .063(random order determined by position in the)144 650.4 R F1
+144 696 R -.25(va)-.25 G 3.664(lo).25 G 1.165(rder \(when on\), or in)
+-3.664 F .064(random order determined by position in the)144 708 R F1
 -.45(ro)2.564 G(uter).45 E F0(directory)2.564 E 5.064(.T)-.65 G(he)
--5.064 E F1 -.45(ro)2.564 G(uter).45 E F0 .064(will by def)2.564 F .064
+-5.064 E F1 -.45(ro)2.564 G(uter).45 E F0 .064(will by def)2.564 F .063
 (ault do the \214rst)-.1 F .222
 (queue scan in stable mode, and subsequent scans in unstable mode.)144
-662.4 R .222(The name of this command is)5.222 F
-(the name for a similar characteristic of sorting algorithms.)144 674.4
-Q(trace)108 691.2 Q F1 -.1(ke)2.5 G(y1 ... k)-.2 E -.3(ey)-.1 G(N).3 E
-F0(Enables tracing of the speci\214ed items.)144 703.2 Q(The v)5 E
-(alid k)-.25 E -.15(ey)-.1 G -.1(wo).15 G(rds are:).1 E(29 Aug 1997)
-279.89 768 Q(7)202.89 E EP
+720 R .222(The name of this command is)5.222 F(29 Aug 1997)279.89 768 Q
+(7)202.89 E EP
 %%Page: 8 8
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
-(OUTER\(8\))-.4 E/F1 10/Times-Bold@0 SF(all)144 84 Q F0
-(turns on all tracing options.)25.44 E -1.1(Yo)5 G 2.5(uo)1.1 G
-(nly do this to test the I/O capabilities of your system.)-2.5 E F1
-(assign)144 100.8 Q F0(print shell v)9.88 E(ariable assignments.)-.25 E
-F1(bind)144 117.6 Q F0(prints v)16.54 E
+(OUTER\(8\))-.4 E
+(the name for a similar characteristic of sorting algorithms.)144 84 Q
+(trace)108 100.8 Q/F1 10/Times-Italic@0 SF -.1(ke)2.5 G(y1 ... k)-.2 E
+-.3(ey)-.1 G(N).3 E F0(Enables tracing of the speci\214ed items.)144
+112.8 Q(The v)5 E(alid k)-.25 E -.15(ey)-.1 G -.1(wo).15 G(rds are:).1 E
+/F2 10/Times-Bold@0 SF(all)144 129.6 Q F0(turns on all tracing options.)
+25.44 E -1.1(Yo)5 G 2.5(uo)1.1 G
+(nly do this to test the I/O capabilities of your system.)-2.5 E F2
+(assign)144 146.4 Q F0(print shell v)9.88 E(ariable assignments.)-.25 E
+F2(bind)144 163.2 Q F0(prints v)16.54 E
 (arious information from the code that calls the DNS resolv)-.25 E(er)
--.15 E(.)-.55 E F1(compar)144 134.4 Q(e)-.18 E F0(print)180 146.4 Q F1
-(sift)2.5 E F0(statement pattern-selector comparisons.)2.5 E F1(db)144
-163.2 Q F0
+-.15 E(.)-.55 E F2(compar)144 180 Q(e)-.18 E F0(print)180 192 Q F2(sift)
+2.5 E F0(statement pattern-selector comparisons.)2.5 E F2(db)144 208.8 Q
+F0
 (print database lookups, including cache search and update information.)
-24.88 E F1(\214nal)144 180 Q F0(prints the message en)17.1 E -.15(ve)-.4
-G(lope information after processing each message.).15 E F1(functions)144
-196.8 Q F0(print shell function calls and return v)180 208.8 Q
-(alues, with nesting indicated by indentation.)-.25 E F1(matched)144
-225.6 Q F0(print)180 237.6 Q F1(sift)2.5 E F0
-(statement pattern-selector matches.)2.5 E F1(on)144 254.4 Q F0(same as)
-25.44 E F1(functions)2.5 E F0(.)A F1 -.18(re)144 271.2 S(gexp).18 E F0
+24.88 E F2(\214nal)144 225.6 Q F0(prints the message en)17.1 E -.15(ve)
+-.4 G(lope information after processing each message.).15 E F2
+(functions)144 242.4 Q F0(print shell function calls and return v)180
+254.4 Q(alues, with nesting indicated by indentation.)-.25 E F2(matched)
+144 271.2 Q F0(print)180 283.2 Q F2(sift)2.5 E F0
+(statement pattern-selector matches.)2.5 E F2(on)144 300 Q F0(same as)
+25.44 E F2(functions)2.5 E F0(.)A F2 -.18(re)144 316.8 S(gexp).18 E F0
 (prints re)7.3 E(gular e)-.15 E(xpression matching e)-.15 E -.15(xe)-.15
-G(cution.).15 E F1 -.18(re)144 288 S(solv).18 E F0 .261(turns on the)
-10.63 F F1(RES_DEB)2.761 E(UG)-.1 E F0 .261(\215ag in the)2.761 F F1
-(BIND)2.762 E F0(resolv)2.762 E .262(er library)-.15 F 2.762(,a)-.65 G
-.262(nd prints v)-2.762 F .262(arious informa-)-.25 F
-(tion from the code that calls the DNS resolv)180 300 Q(er)-.15 E(.)-.55
-E F1 -.18(re)144 316.8 S(write).18 E F0 1.176(prints the tok)5.09 F
+G(cution.).15 E F2 -.18(re)144 333.6 S(solv).18 E F0 .262(turns on the)
+10.63 F F2(RES_DEB)2.762 E(UG)-.1 E F0 .262(\215ag in the)2.762 F F2
+(BIND)2.762 E F0(resolv)2.761 E .261(er library)-.15 F 2.761(,a)-.65 G
+.261(nd prints v)-2.761 F .261(arious informa-)-.25 F
+(tion from the code that calls the DNS resolv)180 345.6 Q(er)-.15 E(.)
+-.55 E F2 -.18(re)144 362.4 S(write).18 E F0 1.175(prints the tok)5.09 F
 1.175(enized addresses sent through the message header address re)-.1 F
-1.175(writing func-)-.25 F(tions.)180 328.8 Q F1 -.18(ro)144 345.6 S
+1.176(writing func-)-.25 F(tions.)180 374.4 Q F2 -.18(ro)144 391.2 S
 (uter).18 E F0(prints the tok)8.97 E(enized addresses sent through the)
--.1 E F1 -.18(ro)2.5 G(uter).18 E F0(function.)2.5 E F1(sequencer)144
-362.4 Q F0(prints procedural steps tak)180 374.4 Q
-(en during message processing.)-.1 E F1(memory)144 391.2 Q F0
-(prints memory allocation information after each message.)180 403.2 Q
-(uid2login)108 420 Q/F2 10/Times-Italic@0 SF(uid)2.5 E F0 .843(Prints t\
-he \214rst account name associated with a speci\214ed user id, if an)144
-432 R 2.144 -.65(y, o)-.15 H(r).65 E F1(uid#)3.344 E F2(uid)A F0 .844
-(if no account)3.344 F -.15(ex)144 444 S(ists with that user id.).15 E
-(It has the same side-ef)5 E(fects as the)-.25 E F2(lo)2.5 E(gin2uid)-.1
-E F0(function.)2.5 E(untrace)108 460.8 Q F2 -.1(ke)2.5 G(y1 ... k)-.2 E
+-.1 E F2 -.18(ro)2.5 G(uter).18 E F0(function.)2.5 E F2(sequencer)144
+408 Q F0(prints procedural steps tak)180 420 Q
+(en during message processing.)-.1 E F2(memory)144 436.8 Q F0
+(prints memory allocation information after each message.)180 448.8 Q
+(uid2login)108 465.6 Q F1(uid)2.5 E F0 .844(Prints the \214rst account \
+name associated with a speci\214ed user id, if an)144 477.6 R 2.143 -.65
+(y, o)-.15 H(r).65 E F2(uid#)3.343 E F1(uid)A F0 .843(if no account)
+3.343 F -.15(ex)144 489.6 S(ists with that user id.).15 E
+(It has the same side-ef)5 E(fects as the)-.25 E F1(lo)2.5 E(gin2uid)-.1
+E F0(function.)2.5 E(untrace)108 506.4 Q F1 -.1(ke)2.5 G(y1 ... k)-.2 E
 -.3(ey)-.1 G(N).3 E F0(Disables tracing of the speci\214ed items.)144
-472.8 Q(In addition an)108 489.6 Q 2.5(yd)-.15 G
+518.4 Q(In addition an)108 535.2 Q 2.5(yd)-.15 G
 (e\214ned relations will create a b)-2.5 E
 (uiltin function with the same name as the relation.)-.2 E/F3 9
-/Times-Bold@0 SF(GLOB)72 506.4 Q(AL V)-.27 E(ARIABLES)-1.215 E F0
-(The follo)108 518.4 Q(wing shell v)-.25 E
-(ariables are de\214ned by the)-.25 E F2 -.45(ro)2.5 G(uter).45 E F0(:)
-.73 E 12.96(defer is)108 535.2 R 1.338
-(set by the database lookup routines to indicate a temporary f)3.839 F
-1.338(ailure of some kind.)-.1 F 1.338(The v)6.338 F(alue)-.25 E
-(assigned to this v)144 547.2 Q(ariable is a v)-.25 E
-(alid host parameter to the)-.25 E F2(hold)2.5 E F0(channel')2.5 E 2.5
-(st)-.55 G(ransport agent.)-2.5 E(en)108 564 Q -.15(ve)-.4 G(lopeinfo)
+/Times-Bold@0 SF(GLOB)72 552 Q(AL V)-.27 E(ARIABLES)-1.215 E F0
+(The follo)108 564 Q(wing shell v)-.25 E(ariables are de\214ned by the)
+-.25 E F1 -.45(ro)2.5 G(uter).45 E F0(:).73 E 12.96(defer is)108 580.8 R
+1.338(set by the database lookup routines to indicate a temporary f)
+3.838 F 1.338(ailure of some kind.)-.1 F 1.339(The v)6.339 F(alue)-.25 E
+(assigned to this v)144 592.8 Q(ariable is a v)-.25 E
+(alid host parameter to the)-.25 E F1(hold)2.5 E F0(channel')2.5 E 2.5
+(st)-.55 G(ransport agent.)-2.5 E(en)108 609.6 Q -.15(ve)-.4 G(lopeinfo)
 .15 E .601(is set by the rfc822 function as soon as possible after the \
-message has been v)144 576 R .602(alidated, and before)-.25 F
-(the \214rst call to the)144 588 Q F2 -.45(ro)2.5 G(uter).45 E F0
+message has been v)144 621.6 R .601(alidated, and before)-.25 F
+(the \214rst call to the)144 633.6 Q F1 -.45(ro)2.5 G(uter).45 E F0
 (shell function.)2.5 E(It is a property list of at least the follo)5 E
-(wing elements:)-.25 E 20.72(\214le The)144 604.8 R
-(message \214le name.)2.5 E(message-id)144 621.6 Q(The message-id.)180
-633.6 Q 20.72(uid The)144 650.4 R(user id of the o)2.5 E
-(wner of the message \214le.)-.25 E 20.72(gid The)144 667.2 R
-(group id of the o)2.5 E(wner of the message \214le.)-.25 E 17.95
-(size The)144 684 R(message size \(header + body\) in bytes.)2.5 E
-(headersize)144 700.8 Q(The message header size in bytes.)180 712.8 Q
-(29 Aug 1997)279.89 768 Q(8)202.89 E EP
+(wing elements:)-.25 E 20.72(\214le The)144 650.4 R
+(message \214le name.)2.5 E(message-id)144 667.2 Q(The message-id.)180
+679.2 Q 20.72(uid The)144 696 R(user id of the o)2.5 E
+(wner of the message \214le.)-.25 E 20.72(gid The)144 712.8 R
+(group id of the o)2.5 E(wner of the message \214le.)-.25 E(29 Aug 1997)
+279.89 768 Q(8)202.89 E EP
 %%Page: 9 9
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
-(OUTER\(8\))-.4 E(bodysize)144 84 Q(The message body size in bytes.)180
-96 Q(no)144 112.8 Q 19.03(wT)-.25 G(he time the router started processi\
-ng the message \(in seconds since epoch\).)-19.03 E 11.84(delay The)144
-129.6 R(number of seconds the message had been queued.)2.5 E 9.62
-(resent A)144 146.4 R
-("yes" or "no" indicating whether Resent- headers e)2.5 E(xist.)-.15 E
-6.28(trusted A)144 163.2 R("yes" or "no" indicating whether \214le o)2.5
-E(wner is trusted.)-.25 E(Furthermore e)108 180 Q -.15(ve)-.25 G(ry en)
-.15 E -.15(ve)-.4 G(lope header without address semantics will be added\
- to the list, typically:).15 E 15.72(with The)144 196.8 R(RFC822 Recei)
-2.5 E -.15(ve)-.25 G 2.5(dh).15 G(eader "with" v)-2.5 E(alue.)-.25 E
-21.28(via The)144 213.6 R(RFC822 Recei)2.5 E -.15(ve)-.25 G 2.5(dh).15 G
-(eader "via" v)-2.5 E(alue.)-.25 E(rcvdfrom)144 230.4 Q
-(The host of the last MT)180 242.4 Q 2.5(At)-.93 G 2.5(ot)-2.5 G
-(ouch the message.)-2.5 E(etc.)108 254.4 Q/F1 9/Times-Bold@0 SF(HEADERS)
-72 271.2 Q F0 .339(The prede\214ned database)108 283.2 R/F2 10
-/Times-Bold@0 SF(headers)2.839 E F0 .339(is used to specify to the RFC8\
-22 message header parser which headers it)2.839 F .11
-(should pay attention to and what their semantics are.)108 295.2 R .111
-(The database k)5.111 F -.15(ey)-.1 G 2.611(sa).15 G .111(re lo)-2.611 F
-.111(wercased header \214eld names.)-.25 F .534(The v)108 307.2 R .534(\
-alues are strings of three \214elds separated by a colon \(':'\) charac\
-ter)-.25 F 5.534(.T)-.55 G .534(he \214rst \214eld is the name of the)
--5.534 F .971
+(OUTER\(8\))-.4 E 17.95(size The)144 84 R
+(message size \(header + body\) in bytes.)2.5 E(headersize)144 100.8 Q
+(The message header size in bytes.)180 112.8 Q(bodysize)144 129.6 Q
+(The message body size in bytes.)180 141.6 Q(no)144 158.4 Q 19.03(wT)
+-.25 G(he time the router started processing the message \(in seconds s\
+ince epoch\).)-19.03 E 11.84(delay The)144 175.2 R
+(number of seconds the message had been queued.)2.5 E 9.62(resent A)144
+192 R("yes" or "no" indicating whether Resent- headers e)2.5 E(xist.)
+-.15 E 6.28(trusted A)144 208.8 R
+("yes" or "no" indicating whether \214le o)2.5 E(wner is trusted.)-.25 E
+(Furthermore e)108 225.6 Q -.15(ve)-.25 G(ry en).15 E -.15(ve)-.4 G(lop\
+e header without address semantics will be added to the list, typically\
+:).15 E 15.72(with The)144 242.4 R(RFC822 Recei)2.5 E -.15(ve)-.25 G 2.5
+(dh).15 G(eader "with" v)-2.5 E(alue.)-.25 E 21.28(via The)144 259.2 R
+(RFC822 Recei)2.5 E -.15(ve)-.25 G 2.5(dh).15 G(eader "via" v)-2.5 E
+(alue.)-.25 E(rcvdfrom)144 276 Q(The host of the last MT)180 288 Q 2.5
+(At)-.93 G 2.5(ot)-2.5 G(ouch the message.)-2.5 E(etc.)108 300 Q/F1 9
+/Times-Bold@0 SF(HEADERS)72 316.8 Q F0 .338(The prede\214ned database)
+108 328.8 R/F2 10/Times-Bold@0 SF(headers)2.838 E F0 .339(is used to sp\
+ecify to the RFC822 message header parser which headers it)2.838 F .111
+(should pay attention to and what their semantics are.)108 340.8 R .111
+(The database k)5.111 F -.15(ey)-.1 G 2.61(sa).15 G .11(re lo)-2.61 F
+.11(wercased header \214eld names.)-.25 F .534(The v)108 352.8 R .534(a\
+lues are strings of three \214elds separated by a colon \(':'\) charact\
+er)-.25 F 5.534(.T)-.55 G .534(he \214rst \214eld is the name of the)
+-5.534 F .972
 (semantic rule in the parser that should be used to parse the header)108
-319.2 R 5.972(.T)-.55 G .972(he second \214eld is either)-5.972 F F2
-(Sender)3.472 E F0(or)3.472 E F2(Recipient)108 331.2 Q F0 1.676
-(or null \(indicated by a)4.176 F F2(-)4.176 E F0 1.675
+364.8 R 5.971(.T)-.55 G .971(he second \214eld is either)-5.971 F F2
+(Sender)3.471 E F0(or)3.471 E F2(Recipient)108 376.8 Q F0 1.675
+(or null \(indicated by a)4.175 F F2(-)4.175 E F0 1.676
 (\), corresponding to whether the header contains addresses and if so)B
-1.221(which type.)108 343.2 R 1.221(The third \214eld is used for a)
+1.221(which type.)108 388.8 R 1.221(The third \214eld is used for a)
 6.221 F F2(Resent)3.721 E F0 1.221(\215ag, which should be gi)3.721 F
 -.15(ve)-.25 G 3.721(ni).15 G 3.721(ft)-3.721 G 1.221
 (he header has a proper)-3.721 F/F3 10/Times-Italic@0 SF(Resent-)108
-355.2 Q F0(pre\214x, otherwise null.)2.5 E .022(There are tw)108 372 R
-2.522(ok)-.1 G .021(inds of entries in the)-2.522 F F2(headers)2.521 E
+400.8 Q F0(pre\214x, otherwise null.)2.5 E .021(There are tw)108 417.6 R
+2.521(ok)-.1 G .021(inds of entries in the)-2.521 F F2(headers)2.521 E
 F0 .021(database: mandatory)2.521 F 2.521(,a)-.65 G .021(nd optional.)
--2.521 F .021(The mandatory entries are)5.021 F .737(for those headers \
-that are absolutely necessary for the proper relaying of mail.)108 384 R
--.8(Ty)5.738 G .738(pically these are purely).8 F 1.54(address headers.)
-108 396 R 1.54(The optional entries are for headers that are not essent\
-ial to the relaying of mail, b)6.54 F(ut)-.2 E .398
-(whose semantics are in f)108 408 R .398(act speci\214ed in RFC822.)-.1
-F -.15(Fo)5.398 G 2.898(re).15 G .398(xample, here is a representati)
--3.048 F .699 -.15(ve s)-.25 H .399(ample of the con-).15 F
-(tents of the database:)108 420 Q 42.5(sender Mailbox:Sender:-)118 444 R
-(\(permanent\))2.5 E 50(bcc Addresses:Recipient:-)118 456 R
-(\(permanent\))2.5 E 47.5(from AMailboxList:Sender:-)118 468 R
-(\(permanent\))2.5 E 32.5(message-id MessageID:-:-)118 480 R
-(\(permanent\))2.5 E 37.5(reply-to AddressList:Sender:-)118 492 R
-(\(permanent\))2.5 E 30(resent-from AMailboxList:Sender:Resent)118 504 R
-(\(permanent\))2.5 E 25(resent-sender Mailbox:Sender:Resent)118 516 R
-(\(permanent\))2.5 E 15(return-receipt-to AddressList:Sender:-)118 528 R
-(\(optional\))2.5 E 30(return-path Mailbox:Sender:-)118 540 R
-(\(optional\))2.5 E 47.5(date DateT)118 552 R(ime:-:- \(optional\))-.35
-E 35(encrypted Encrypted:-:-)118 564 R(\(optional\))2.5 E 35
-(errors-to AddressList:Sender:-)118 576 R(\(optional\))2.5 E -.1(ke)118
-588 S(yw)-.05 E 37.5(ords PhraseList:-:-)-.1 F(\(optional\))2.5 E -1.1
-(Yo)108 616.8 S 3.766(um)1.1 G 1.266(ay decide to add or remo)-3.766 F
-1.565 -.15(ve h)-.15 H 1.265(eader de\214nitions from this database.).15
-F 1.265(This is done using the normal)6.265 F .096(database interf)108
-628.8 R .096(ace function,)-.1 F F2(db)2.596 E F0 5.096(.F)C .096(or e)
--5.246 F .096(xample, if you w)-.15 F .096
+-2.521 F .022(The mandatory entries are)5.022 F .738(for those headers \
+that are absolutely necessary for the proper relaying of mail.)108 429.6
+R -.8(Ty)5.737 G .737(pically these are purely).8 F 1.54
+(address headers.)108 441.6 R 1.54(The optional entries are for headers\
+ that are not essential to the relaying of mail, b)6.54 F(ut)-.2 E .399
+(whose semantics are in f)108 453.6 R .398(act speci\214ed in RFC822.)
+-.1 F -.15(Fo)5.398 G 2.898(re).15 G .398
+(xample, here is a representati)-3.048 F .698 -.15(ve s)-.25 H .398
+(ample of the con-).15 F(tents of the database:)108 465.6 Q 42.5
+(sender Mailbox:Sender:-)118 489.6 R(\(permanent\))2.5 E 50
+(bcc Addresses:Recipient:-)118 501.6 R(\(permanent\))2.5 E 47.5
+(from AMailboxList:Sender:-)118 513.6 R(\(permanent\))2.5 E 32.5
+(message-id MessageID:-:-)118 525.6 R(\(permanent\))2.5 E 37.5
+(reply-to AddressList:Sender:-)118 537.6 R(\(permanent\))2.5 E 30
+(resent-from AMailboxList:Sender:Resent)118 549.6 R(\(permanent\))2.5 E
+25(resent-sender Mailbox:Sender:Resent)118 561.6 R(\(permanent\))2.5 E
+15(return-receipt-to AddressList:Sender:-)118 573.6 R(\(optional\))2.5 E
+30(return-path Mailbox:Sender:-)118 585.6 R(\(optional\))2.5 E 47.5
+(date DateT)118 597.6 R(ime:-:- \(optional\))-.35 E 35
+(encrypted Encrypted:-:-)118 609.6 R(\(optional\))2.5 E 35
+(errors-to AddressList:Sender:-)118 621.6 R(\(optional\))2.5 E -.1(ke)
+118 633.6 S(yw)-.05 E 37.5(ords PhraseList:-:-)-.1 F(\(optional\))2.5 E
+-1.1(Yo)108 662.4 S 3.765(um)1.1 G 1.265(ay decide to add or remo)-3.765
+F 1.565 -.15(ve h)-.15 H 1.265(eader de\214nitions from this database.)
+.15 F 1.266(This is done using the normal)6.265 F .096(database interf)
+108 674.4 R .096(ace function,)-.1 F F2(db)2.596 E F0 5.096(.F)C .096
+(or e)-5.246 F .096(xample, if you w)-.15 F .096
 (ant to disable the automatic checking \(and re)-.1 F(writing\))-.25 E
-(of)108 640.8 Q F3(Date)4.218 E F0 1.718(message headers, you w)4.218 F
-1.718(ould do "db delete headers date".)-.1 F 1.717
-(Such actions should ne)6.717 F -.15(ve)-.25 G 4.217(rb).15 G 4.217(ed)
--4.217 G(one)-4.217 E(lightly)108 652.8 Q 2.5(,s)-.65 G
+(of)108 686.4 Q F3(Date)4.217 E F0 1.717(message headers, you w)4.217 F
+1.717(ould do "db delete headers date".)-.1 F 1.718
+(Such actions should ne)6.718 F -.15(ve)-.25 G 4.218(rb).15 G 4.218(ed)
+-4.218 G(one)-4.218 E(lightly)108 698.4 Q 2.5(,s)-.65 G
 (ince it will lik)-2.5 E(ely cause violation of the RFC822 protocol whe\
-n transferring mail to other mailers.)-.1 E F1(SIGN)72 669.6 Q(ALS)-.18
-E F2(SIGHUP)108 681.6 Q F0(:)A -.15(exe)144 693.6 S .887
-(cution of the shell trap handler is deferred until a sequence point.)
-.15 F .887(This mak)5.887 F .887(es it easier to do)-.1 F(log rollo)144
-705.6 Q -.15(ve)-.15 G(rs entirely in the con\214guration \214le, witho\
-ut fear of data corruption.).15 E(29 Aug 1997)279.89 768 Q(9)202.89 E EP
+n transferring mail to other mailers.)-.1 E(29 Aug 1997)279.89 768 Q(9)
+202.89 E EP
 %%Page: 10 10
 %%BeginPageSetup
 BP
 %%EndPageSetup
 /F0 10/Times-Roman@0 SF -.4(RO)72 48 S 362.98(UTER\(8\) R).4 F
-(OUTER\(8\))-.4 E/F1 10/Times-Bold@0 SF(SIGTERM)108 84 Q F0(:)A -.15(ex)
-144 96 S(it cleanly \(immediately if idle, otherwise after \214nishing \
-with the message being processed\).).15 E
-(Other signals may be handled by shell traps.)108 112.8 Q/F2 9
-/Times-Bold@0 SF(Z-ENVIR)72 129.6 Q(ONMENT V)-.27 E(ARIABLES)-1.215 E F0
-(MAIL)108 141.6 Q -1.35(VA)-1 G(R)1.35 E(MAILSHARE)108 158.4 Q 1.374
-(these tw)144 170.4 R 3.874(ot)-.1 G 1.374(ell the directories where th\
-e con\214guration \214les and routing databases are located at.)-3.874 F
-(The)144 182.4 Q/F3 10/Times-Italic@0 SF(MAIL)2.586 E -.6(VA)-.55 G(R).6
-E F0 .086(\214les are host dependent, while)2.586 F F3(MAILSHARE)2.586 E
-F0 .086(\214les can be common to all of the cam-)2.586 F(pus.)144 194.4
-Q(NR)108 211.2 Q(OUTERS)-.4 E(tells ho)144 223.2 Q 2.5(wm)-.25 G(an)-2.5
-E 2.5(yp)-.15 G(arallel routers there may be running.)-2.5 E(NOBOD)108
-240 Q(Y)-.55 E 1.498
-(this tells the cornerstone of the system security -- who is)144 252 R
-F3(nobody)3.998 E F0 6.497(.I).32 G 3.997(tc)-6.497 G 1.497
-(an tell either a numeric)-3.997 F(userid, or account name.)144 264 Q
-(LOGDIR)108 280.8 Q(de\214nes location of log \214les. Example:)144
-292.8 Q F1(LOGDIR=/v)2.5 E(ar/log/mail)-.1 E F0(LOGLEVEL)108 309.6 Q F1
-(** document missing **)144 321.6 Q F0(POST)108 338.4 Q(OFFICE)-.18 E
-(de\214nes directory where all POST)144 350.4 Q
-(OFFICE functions are under)-.18 E(.)-.55 E(Example:)144 362.4 Q F1
+(OUTER\(8\))-.4 E/F1 9/Times-Bold@0 SF(SIGN)72 84 Q(ALS)-.18 E/F2 10
+/Times-Bold@0 SF(SIGHUP)108 96 Q F0(:)A -.15(exe)144 108 S .887
+(cution of the shell trap handler is deferred until a sequence point.)
+.15 F .887(This mak)5.887 F .887(es it easier to do)-.1 F(log rollo)144
+120 Q -.15(ve)-.15 G(rs entirely in the con\214guration \214le, without\
+ fear of data corruption.).15 E F2(SIGTERM)108 136.8 Q F0(:)A -.15(ex)
+144 148.8 S(it cleanly \(immediately if idle, otherwise after \214nishi\
+ng with the message being processed\).).15 E
+(Other signals may be handled by shell traps.)108 165.6 Q F1(Z-ENVIR)72
+182.4 Q(ONMENT V)-.27 E(ARIABLES)-1.215 E F0(MAIL)108 194.4 Q -1.35(VA)
+-1 G(R)1.35 E(MAILSHARE)108 211.2 Q 1.373(these tw)144 223.2 R 3.873(ot)
+-.1 G 1.374(ell the directories where the con\214guration \214les and r\
+outing databases are located at.)-3.873 F(The)144 235.2 Q/F3 10
+/Times-Italic@0 SF(MAIL)2.587 E -.6(VA)-.55 G(R).6 E F0 .087
+(\214les are host dependent, while)2.587 F F3(MAILSHARE)2.586 E F0 .086
+(\214les can be common to all of the cam-)2.586 F(pus.)144 247.2 Q(NR)
+108 264 Q(OUTERS)-.4 E(tells ho)144 276 Q 2.5(wm)-.25 G(an)-2.5 E 2.5
+(yp)-.15 G(arallel routers there may be running.)-2.5 E(NOBOD)108 292.8
+Q(Y)-.55 E 1.497
+(this tells the cornerstone of the system security -- who is)144 304.8 R
+F3(nobody)3.998 E F0 6.498(.I).32 G 3.998(tc)-6.498 G 1.498
+(an tell either a numeric)-3.998 F(userid, or account name.)144 316.8 Q
+(LOGDIR)108 333.6 Q(de\214nes location of log \214les. Example:)144
+345.6 Q F2(LOGDIR=/v)2.5 E(ar/log/mail)-.1 E F0(LOGLEVEL)108 362.4 Q F2
+(** document missing **)144 374.4 Q F0(POST)108 391.2 Q(OFFICE)-.18 E
+(de\214nes directory where all POST)144 403.2 Q
+(OFFICE functions are under)-.18 E(.)-.55 E(Example:)144 415.2 Q F2
 (POST)2.5 E(OFFICE=/v)-.18 E(ar/spool/postof\214ce)-.1 E F0 -.4(RO)108
-379.2 S(UTERDIRS).4 E 1.449
-(de\214nes a `:' separated list of alternate router directories.)144
-391.2 R 1.45(If these are de\214ned at all, the)6.449 F(y)-.15 E F1
-(must)3.95 E F0 -.15(ex)144 403.2 S
+432 S(UTERDIRS).4 E 1.45
+(de\214nes a `:' separated list of alternate router directories.)144 444
+R 1.449(If these are de\214ned at all, the)6.449 F(y)-.15 E F2(must)
+3.949 E F0 -.15(ex)144 456 S
 (ist, if alternate queueing priority mechanism is desired to be used.)
-.15 E(Example:)144 415.2 Q F1 -.3(RO)2.5 G(UTERDIRS=r).3 E(outer1:r)-.18
-E(outer2:r)-.18 E(outer3:r)-.18 E(outer4)-.18 E F2(FILES)72 436.8 Q F3
-(/etc/zmailer)108 448.8 Q(.conf)-1.11 E(/var/spool/postof)108 460.8 Q
+.15 E(Example:)144 468 Q F2 -.3(RO)2.5 G(UTERDIRS=r).3 E(outer1:r)-.18 E
+(outer2:r)-.18 E(outer3:r)-.18 E(outer4)-.18 E F1(FILES)72 489.6 Q F3
+(/etc/zmailer)108 501.6 Q(.conf)-1.11 E(/var/spool/postof)108 513.6 Q
 (\214ce/.pid.r)-.18 E(outer \(POST)-.45 E(OFFICE/.pid.r)-.18 E(outer\))
--.45 E(/var/spool/postof)108 472.8 Q(\214ce/r)-.18 E(outer \(POST)-.45 E
-(OFFICE/r)-.18 E(outer\))-.45 E(/var/spool/postof)108 484.8 Q(\214ce/{R)
--.18 E(OUTERDIRS} \(POST)-.4 E(OFFICE/{R)-.18 E(OUTERDIRS}\))-.4 E F2
-(SEE ALSO)72 501.6 Q F0
-(router\(8\), mailq\(1\), zmailer\(3\), zmsh\(1\))108 513.6 Q F2 -.45
-(AU)72 530.4 S(THOR).45 E F0(This program authored and cop)108 542.4 Q
-(yright by:)-.1 E(Rayan Zachariassen <rayan@cs.toronto.edu>)108 554.4 Q
-2.5(Ap)108 566.4 S(lenty of changes and further de)-2.5 E -.15(ve)-.25 G
-(lopement by:).15 E(Matti Aarnio <mea@utu.\214>)108 578.4 Q(29 Aug 1997)
+-.45 E(/var/spool/postof)108 525.6 Q(\214ce/r)-.18 E(outer \(POST)-.45 E
+(OFFICE/r)-.18 E(outer\))-.45 E(/var/spool/postof)108 537.6 Q(\214ce/{R)
+-.18 E(OUTERDIRS} \(POST)-.4 E(OFFICE/{R)-.18 E(OUTERDIRS}\))-.4 E F1
+(SEE ALSO)72 554.4 Q F0
+(router\(8\), mailq\(1\), zmailer\(3\), zmsh\(1\))108 566.4 Q F1 -.45
+(AU)72 583.2 S(THOR).45 E F0(This program authored and cop)108 595.2 Q
+(yright by:)-.1 E(Rayan Zachariassen <rayan@cs.toronto.edu>)108 607.2 Q
+2.5(Ap)108 619.2 S(lenty of changes and further de)-2.5 E -.15(ve)-.25 G
+(lopement by:).15 E(Matti Aarnio <mea@utu.\214>)108 631.2 Q(29 Aug 1997)
 279.89 768 Q(10)197.89 E EP
 %%Trailer
 end

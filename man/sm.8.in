@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH SM 8 "21 Nov 1996"
+.TH SM 8 "2 Sep 1998"
 .SH NAME
 sm \- zmailer Sendmail compatible transport agent
 .SH SYNOPSIS
@@ -88,6 +88,7 @@ uucp	U	/usr/bin/uux	uux - -r -a$g -gC $h!rmail ($u)
 usenet	m	sm/usenet	usenet $u
 ean	mn	/local/lib/ean/gwsmean	gwsmean -d $u
 test	n	sm/test	test $u
+smsgw	nS	${MAILBIN}/sms-gw sms-gw $g $u
 .fi
 .PP
 The
@@ -168,7 +169,7 @@ The
 field specifies the location of the delivery program.  Relative pathnames
 are allowed and are relative to the
 .I MAILBIN
-directory.
+directory, but also dollar-expressions of type: ${ZENVAR}
 .PP
 The
 .I arguments
@@ -182,6 +183,7 @@ which is replaced by the destination host.
 which is replaced by the recipient address.  If the \-m mailer flag
 is set and there are several recipients for this message, the argument
 containing the $u will be replicated as necessary for each recipient.
+(Also ${ZENVAR} expressions are allowed!)
 .SH INTERFACE
 This program reads in processable file names relative to the current
 working directory of the scheduler (namely: \fI$POSTIOFFICE/transport/\fR).
