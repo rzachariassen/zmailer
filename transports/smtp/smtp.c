@@ -61,6 +61,8 @@ int first_uid = 0;		/* Make the opening connect with the UID of the
 int D_alloc = 0;		/* Memory usage debug */
 int no_pipelining = 0;		/* In case the system just doesn't cope with it */
 int prefer_ip6 = 1;
+int close_after_data = 0;
+
 
 #ifdef HAVE_OPENSSL
 int demand_TLS_mode = 0;	/* Demand TLS */
@@ -70,6 +72,8 @@ char *tls_conf_file = NULL;
 
 const char *FAILED = "failed";
 time_t now;
+
+extern time_t retryat_time;	/* diagnostic() thing */
 
 
 time_t starttime, endtime;
@@ -101,24 +105,24 @@ char *logtag()
 }
 
 /*
- *  ssfgets(bufp, bufsize, infilep, SS)
+ *  ssfgets(bufpp, bufsizep, infilep, SS)
  *
- *  ALMOAST like  fgets(),  but will do the smtp connection close
+ *  ALMOST like  fgets(),  but will do the smtp connection close
  *  after 3 minutes delay of sitting here..
  *
  */
 
-static char * ssfgets __((char *, int, int, SmtpState *));
+static char * ssfgets __((char **, int*, int, SmtpState *));
 static char *
-ssfgets(buf, bufsiz, infd, SS)
-char *buf;
-int bufsiz;
+ssfgets(bufp, bufsizp, infd, SS)
+char **bufp;
+int *bufsizp;
 int infd;
 SmtpState *SS;
 {
 	struct timeval tv;
 	fd_set rdset;
-	int rc, i;
+	int rc, i, buflen, bufsiz;
 	time_t tmout;
 	char *s;
 
@@ -128,14 +132,16 @@ SmtpState *SS;
 	tmout = now + 3*60;
 
 
-	s = buf;
+	s = *bufp;
+	buflen = 0;
+	bufsiz = *bufsizp -1;
 
 outbuf_fillup:
-	while (bufsiz > 0 && SS->stdinsize > SS->stdincurs) {
+	while (SS->stdinsize > SS->stdincurs) {
 	  if (SS->stdinbuf[SS->stdincurs] == '\n') {
 	    *s++ = '\n';
-	    if (bufsiz > 1)
-	      *s = 0;
+	    ++buflen;
+	    *s = 0;
 	    SS->stdincurs += 1;
 	    /* Move down the buffer contents (if any) */
 	    if (SS->stdinsize > SS->stdincurs)
@@ -143,10 +149,20 @@ outbuf_fillup:
 		     (SS->stdinsize - SS->stdincurs));
 	    SS->stdinsize -= SS->stdincurs;
 	    SS->stdincurs  = 0;
-	    return buf;
+	    return *bufp;
 	  }
 	  *s = SS->stdinbuf[SS->stdincurs];
-	  ++s; SS->stdincurs += 1; --bufsiz;
+	  SS->stdincurs += 1;
+	  ++buflen, ++s;
+	  if (buflen >= bufsiz) {
+	    /* Grow space */
+	    *bufsizp <<= 1;
+	    bufsiz = *bufsizp;
+	    *bufp = realloc(*bufp, bufsiz);
+	    --bufsiz;
+	    if (!*bufp) return NULL; /* OUT OF MEMORY! */
+	    s = *bufp + buflen;
+	  }
 	}
 	/* Still here, and nothing to chew on ?  Buffer drained.. */
 	SS->stdincurs = 0;
@@ -175,7 +191,7 @@ outbuf_fillup:
 	    if (i != EX_OK && SS->smtpfp != NULL) {
 	      /* No success ?  QUIT + close! (if haven't closed yet..) */
 	      if (!getout)
-		smtpwrite(SS, 0, "QUIT", 0, NULL);
+		smtpwrite(SS, 0, "QUIT", -1, NULL);
 	      smtpclose(SS, 0);
 	    }
 	  }
@@ -204,11 +220,9 @@ outbuf_fillup:
 	  }
 	}
 
-	if (s == buf)
+	if (s == *bufp)
 	  return NULL; /* NOTHING received, gotten EOF! */
-	if (bufsiz > 0)
-	  *s = 0;
-	return buf; /* Not EOF, got SOMETHING */
+	return *bufp; /* Not EOF, got SOMETHING */
 			  
 }
 
@@ -327,7 +341,8 @@ my_free_hook (void *ptr, const void *CALLER)
 }
 #endif
 
-static char filename[MAXPATHLEN+8000];
+static char *filename;
+static int   filenamesize;
 
 int
 main(argc, argv)
@@ -603,6 +618,9 @@ main(argc, argv)
 	SS.stdinsize = 0;
 	SS.stdincurs = 0;
 
+	filenamesize = 80;
+	filename = malloc(filenamesize);
+
 	while (!getout && !zmalloc_failure) {
 	  /* Input:
 	       spool/file/name [ \t host.info ] \n
@@ -622,7 +640,7 @@ main(argc, argv)
 	  }
 
 	  /* if (fgets(filename, sizeof(filename), stdin) == NULL) break; */
-	  if (ssfgets(filename, sizeof(filename), FILENO(stdin), &SS) == NULL)
+	  if (ssfgets(&filename, &filenamesize, FILENO(stdin), &SS) == NULL)
 	    break;
 
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
@@ -638,7 +656,7 @@ main(argc, argv)
 	    idle = 1;
 	    continue; /* XX: We can't stay idle for very long, but.. */
 	  }
-	  if (emptyline(filename, sizeof(filename)))
+	  if (emptyline(filename, filenamesize))
 	    break;
 
 	  time(&now);
@@ -648,7 +666,8 @@ main(argc, argv)
 	    *s++ = 0;
 
 	    if (host && strcasecmp((char*)host,s)==0) {
-	      extern time_t retryat_time;
+
+	      /* XXX: Behaviour with 'close_after_data' ??? */
 
 	      if (now < retryat_time) {
 		/* Same host, we don't touch on it for a while.. */
@@ -665,7 +684,7 @@ main(argc, argv)
 	    if (host && strcmp(s,(char*)host) != 0) {
 	      if (SS.smtpfp) {
 		if (!getout && !zmalloc_failure)
-		  smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
+		  smtpstatus = smtpwrite(&SS, 0, "QUIT", -1, NULL);
 		else
 		  smtpstatus = EX_OK;
 		smtpclose(&SS, 0);
@@ -679,6 +698,7 @@ main(argc, argv)
 		if (statusreport)
 		  report(&SS, "NewDomain: %s", host);
 	      }
+	      close_after_data = 0;
 	    }
 	    if (host) free((void*)host);
 	    host = strdup(s);
@@ -761,7 +781,7 @@ main(argc, argv)
 	} /* while (!getout) ... */
 
 	if (SS.smtpfp && !getout)
-	  smtpstatus = smtpwrite(&SS, 0, "QUIT", 0, NULL);
+	  smtpstatus = smtpwrite(&SS, 0, "QUIT", -1, NULL);
 
 	/* Close the channel -- if it is open anymore .. */
 	if (SS.smtpfp) {
@@ -1361,12 +1381,26 @@ deliver(SS, dp, startrp, endrp)
 		notaryreport(rp->addr->user,FAILED,NULL,NULL);
 		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	      }
-	    if (SS->rcptstates & DATASTATE_OK) {
+	    if (SS->smtpfp &&
+		(SS->rcptstates & DATASTATE_OK)) {
 	      /* HUH!!!
 		 MAIL FROM/RCPT TO ones have failed, but DATA has succeeded !!
 		 This is SERIOUSLY weird, but some may work even that way.. */
 	      smtpclose(SS,1);
 	      fprintf(logfp, "%s#\t(closed SMTP channel - DATA ok, but MAIL FROM/RCPT TO failed!  rc=%d)\n", logtag(), rp ? rp->status : -999);
+	      r = EX_TEMPFAIL;
+	    }
+	    if (SS->smtpfp &&
+		(SS->rcptstates & RCPTSTATE_400) &&
+		(SS->rcptstates & FROMSTATE_OK)) {
+	      smtpwrite(SS, 0, "QUIT", -1, NULL);
+	      smtpclose(SS,1);
+	      fprintf(logfp, "%s#\t(closed SMTP channel - tempfails for RCPTs; 'too many recipients per session' ??  rc=%d)\n", logtag(), rp ? rp->status : -999);
+	      if (SS->rcptstates & RCPTSTATE_OK)
+		retryat_time = 0;
+
+	      close_after_data = 1;
+	      r = EX_TEMPFAIL;
 	    }
 	    if (SS->smtpfp) {
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
@@ -1593,6 +1627,24 @@ deliver(SS, dp, startrp, endrp)
 
 	/* Diagnostics are done, protected section ends! */
 	dotmode = 0;
+
+	if (SS->smtpfp &&
+	    (SS->rcptstates & RCPTSTATE_400) &&
+	    (SS->rcptstates & FROMSTATE_OK)) {
+	  smtpwrite(SS, 0, "QUIT", -1, NULL);
+	  smtpclose(SS,1);
+	  fprintf(logfp, "%s#\t(closed SMTP channel - tempfails for RCPTs; 'too many recipients per session' ??  rc=%d)\n", logtag(), rp ? rp->status : -999);
+	  if (SS->rcptstates & RCPTSTATE_OK)
+	    retryat_time = 0;
+	  close_after_data = 1;
+	}
+	if (SS->smtpfp && close_after_data) {
+	  smtpwrite(SS, 0, "QUIT", -1, NULL);
+	  smtpclose(SS,1);
+	  fprintf(logfp, "%s#\t(closed SMTP channel - ``close_after_data'' mode.", logtag());
+	  retryat_time = 0;
+	}
+
 
 	/* More recipients to send ? */
 	if (r == EX_OK && more_rp != NULL && !getout)
@@ -3630,7 +3682,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 
 	infd = SS->smtpfd;
 
-	if (pipelining) {
+	if (pipelining > 0) {
 	  if (SS->pipespace <= SS->pipeindex) {
 	    SS->pipespace += 8;
 	    if (SS->pipecmds == NULL) {
@@ -3659,7 +3711,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  int len = strlen(strbuf) + 2;
 	  volatile int err = 0;
 
-	  if (pipelining) {
+	  if (pipelining > 0) {
 	    /* We are asynchronous! */
 	    SS->smtp_outcount += len; /* Where will we grow to ? */
 
@@ -3772,7 +3824,9 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	  report(SS,"%s", strbuf);
 	}
 
-	if (pipelining) {
+	if (pipelining != 0) {
+	  /* With "QUIT" this is negative value, and we are not
+	     in reality interested of the return value... */
 
 	  /* Read possible reponses into response buffer.. */
 	  pipeblockread(SS);

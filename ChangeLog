@@ -1,5 +1,19 @@
 2000-06-19  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
+	* transports/smtp/smtp.c:
+	    Allow  ssfgets()  to enlarge the input string in runtime,
+	    which enables us latter to make weird things like multiple
+	    hosts feeding in same connection... (perhaps)
+
+	* transports/smtp/smtp.c:
+	    Continued the rewrite by handling weird looking errors
+	    from some sites which mistakenly limit the number of
+	    recipients per smtp connection (session)!  Will do
+	    close of the socket after each case where RCPT TO yields
+	    400 series code.  (That will also knock on some real
+	    temporary failures, like DNS timeouts when recipient
+	    does verify the through-going address for e.g. MX analysis.)
+
 	* transports/smtp/smtp.h, transports/smtp/smtp.c:
 	    Rewrote (in a sane way) the pipelined smtp_sync()
 	    status code formulation so that we won't reject
