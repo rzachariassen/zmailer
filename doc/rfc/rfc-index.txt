@@ -6081,7 +6081,8 @@ For example:
 
 1778 The String Representation of Standard Attribute Syntaxes. T.
      Howes, S. Kille, W. Yeong, C. Robbins. March 1995. (Format: TXT=19053
-     bytes) (Obsoletes RFC1488) (Status: DRAFT STANDARD)
+     bytes) (Obsoletes RFC1488) (Updated by RFC2559) (Status: DRAFT
+     STANDARD)
 
 1779 A String Representation of Distinguished Names. S. Kille. March
      1995. (Format: TXT=12429 bytes) (Obsoletes RFC1485) (Status: DRAFT
@@ -6535,12 +6536,14 @@ For example:
 1902 Structure of Management Information for Version 2 of the Simple
      Network Management Protocol (SNMPv2). SNMPv2 Working Group, J. Case,
      K. McCloghrie, M. Rose & S. Waldbusser. January 1996. (Format:
-     TXT=77453 bytes) (Obsoletes RFC1442) (Status: DRAFT STANDARD)
+     TXT=77453 bytes) (Obsoletes RFC1442) (Obsoleted by RFC2578) (Status:
+     DRAFT STANDARD)
 
 1903 Textual Conventions for Version 2 of the Simple Network
      Management Protocol (SNMPv2). SNMPv2 Working Group, J. Case, K.
      McCloghrie, M. Rose & S. Waldbusser. January 1996. (Format: TXT=52652
-     bytes) (Obsoletes RFC1443) (Status: DRAFT STANDARD)
+     bytes) (Obsoletes RFC1443) (Obsoleted by RFC2579) (Status: DRAFT
+     STANDARD)
 
 1904 Conformance Statements for Version 2 of the Simple Network
      Management Protocol (SNMPv2). SNMPv2 Working Group, J. Case, K.
@@ -6612,8 +6615,8 @@ For example:
 
 1920 Internet Official Protocol Standards. J. Postel. March 1996.
      (Format: TXT=91936 bytes) (Obsoletes RFC1780, RFC1720, RFC1800,
-     RFC1880) (Obsoleted by RFC2000, RFC2200, RFC2300, RFC2109, RFC2400)
-     (Also STD0001) (Status: HISTORIC)
+     RFC1880) (Obsoleted by RFC2000, RFC2200, RFC2300, RFC2400) (Also
+     STD0001) (Status: HISTORIC)
 
 1921 TNVIP Protocol. J. Dujonc. March 1996. (Format: TXT=57475 bytes)
      (Status: INFORMATIONAL)
@@ -6757,8 +6760,8 @@ For example:
      TXT=7243 bytes) (Status: PROPOSED STANDARD)
 
 1960 A String Representation of LDAP Search Filters. T. Howes. June
-     1996. (Format: TXT=5288 bytes) (Obsoletes RFC1558) (Status: PROPOSED
-     STANDARD)
+     1996. (Format: TXT=5288 bytes) (Obsoletes RFC1558) (Obsoleted by
+     RFC2254) (Status: PROPOSED STANDARD)
 
 1961 GSS-API Authentication Method for SOCKS Version 5. P. McMahon.
      June 1996. (Format: TXT=16036 bytes) (Status: PROPOSED STANDARD)
@@ -7312,8 +7315,7 @@ For example:
      (Status: PROPOSED STANDARD)
 
 2109 HTTP State Management Mechanism. D. Kristol, L. Montulli.
-     February 1997. (Format: TXT=43469 bytes) (Obsoletes RFC1920) (Status:
-     PROPOSED STANDARD)
+     February 1997. (Format: TXT=43469 bytes) (Status: PROPOSED STANDARD)
 
 2110 MIME E-mail Encapsulation of Aggregate Documents, such as HTML
      (MHTML). J. Palme, A. Hopmann. March 1997. (Format: TXT=41961 bytes)
@@ -7852,7 +7854,8 @@ For example:
      December 1997. (Format: TXT=18226 bytes) (Status: PROPOSED STANDARD)
 
 2254 The String Representation of LDAP Search Filters. T. Howes.
-     December 1997. (Format: TXT=13511 bytes) (Status: PROPOSED STANDARD)
+     December 1997. (Format: TXT=13511 bytes) (Obsoletes RFC1960) (Status:
+     PROPOSED STANDARD)
 
 2255 The LDAP URL Format. T. Howes, M. Smith. December 1997. (Format:
      TXT=20685 bytes) (Status: PROPOSED STANDARD)
@@ -8961,14 +8964,18 @@ For example:
      (Format: TXT=80763 bytes) (Status: INFORMATIONAL)
 
 2549 IP over Avian Carriers with Quality of Service. D. Waitzman.
-     Apri-01-1999. (Format: TXT=9519 bytes) (Updates 1149) (Status:
+     April-01-1999. (Format: TXT=9519 bytes) (Updates 1149) (Status:
      INFORMATIONAL)
 
-2550 Y10K and Beyond. S. Glassman, M. Manasse, J. Mogul. Apri-01-1999.
-     (Format: TXT=28011 bytes) (Status: INFORMATIONAL)
+2550 Y10K and Beyond. S. Glassman, M. Manasse, J. Mogul.
+     April-01-1999. (Format: TXT=28011 bytes) (Status: INFORMATIONAL)
 
 2551 The Roman Standards Process -- Revision III. S. Bradner.
-     Apri-01-1999. (Format: TXT=28054 bytes) (Status: INFORMATIONAL)
+     April-01-1999. (Format: TXT=28054 bytes) (Status: INFORMATIONAL)
+
+2552 Architecture for the Information Brokerage in the ACTS Project
+     GAIA. M. Blinov, M. Bessonov, C. Clissmann. April 1999. (Format:
+     TXT=65172 bytes) (Status: INFORMATIONAL)
 
 2553 Basic Socket Interface Extensions for IPv6. R. Gilligan, S.
      Thomson, J. Bound, W. Stevens. March 1999. (Format: TXT=89215 bytes)
@@ -8992,6 +8999,10 @@ For example:
      K. Tesink. March 1999. (Format: TXT=138550 bytes) (Obsoletes RFC1595)
      (Status: PROPOSED STANDARD)
 
+2559 Internet X.509 Public Key Infrastructure Operational Protocols -
+     LDAPv2. S. Boeyen, T. Howes, P. Richard. April 1999. (Format:
+     TXT=22889 bytes) (Updates RFC1778) (Status: PROPOSED STANDARD)
+
 2561 Base Definitions of Managed Objects for TN3270E Using SMIv2. K.
      White, R. Moore. April 1999. (Format: TXT=113705 bytes) (Status:
      PROPOSED STANDARD)
@@ -8999,6 +9010,38 @@ For example:
 2562 Definitions of Protocol and Managed Objects for TN3270E Response
      Time Collection Using SMIv2 (TN3270E-RT-MIB). K. White, R. Moore.
      April 1999. (Format: TXT=110633 bytes) (Status: PROPOSED STANDARD)
+
+2565 Internet Printing Protocol/1.0: Encoding and Transport. R.
+     Herriot, Ed., S. Butler, P. Moore, R. Turner. April 1999. (Format:
+     TXT=80439 bytes) (Status: EXPERIMENTAL)
+
+2566 Internet Printing Protocol/1.0: Model and Semantics. R. deBry, T.
+     Hastings, R. Herriot, S. Isaacson, P. Powell. April 1999. (Format:
+     TXT=438887 bytes) (Status: EXPERIMENTAL)
+
+2567 Design Goals for an Internet Printing Protocol. F. Wright. April
+     1999. (Format: TXT=90260 bytes) (Status: EXPERIMENTAL)
+
+2568 Rationale for the Structure of the Model and Protocol for the
+     Internet Printing Protocol. S. Zilles. April 1999. (Format: TXT=23547
+     bytes) (Status: EXPERIMENTAL)
+
+2569 Mapping between LPD and IPP Protocols. R. Herriot, Ed., T.
+     Hastings, N. Jacobs, J. Martin. April 1999. (Format: TXT=57886 bytes)
+     (Status: EXPERIMENTAL)
+
+2578 Structure of Management Information Version 2 (SMIv2). K.
+     McCloghrie, D. Perkins, J. Schoenwaelder. April 1999. (Format:
+     TXT=89712 bytes) (Obsoletes RFC1902) (Also STD0058) (Status:
+     STANDARD)
+
+2579 Textual Conventions for SMIv2. K. McCloghrie, D. Perkins, J.
+     Schoenwaelder. April 1999. (Format: TXT=59039 bytes) (Obsoletes
+     RFC1903) (Also STD0058) (Status: STANDARD)
+
+2580 Conformance Statements for SMIv2. K. McCloghrie, D. Perkins, J.
+     Schoenwaelder. April 1999. (Format: TXT=54253 bytes) (Obsoletes
+     RFC1904) (Also STD0058) (Status: STANDARD)
 
 2581 TCP Congestion Control. M. Allman, V. Paxson, W. Stevens. April
      1999. (Format: TXT=31351 bytes) (Obsoletes RFC2001) (Status: PROPOSED
