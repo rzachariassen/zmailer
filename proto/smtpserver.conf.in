@@ -72,8 +72,8 @@ PARAM help -------------------------------------------------------------
 #
 #PARAM	allowsourceroute
 #
-PARAM	accept-percent-kludge # "localpart" can contain '%' and '!'
-#PARAM	reject-percent-kludge # "localpart" can't contain  --"--
+#PARAM	accept-percent-kludge # "localpart" can contain '%' and '!'
+PARAM	reject-percent-kludge # "localpart" can't contain  --"--
 #
 # The policy database:  (NOTE: See  'makedb'  for its default suffixes!)
 #
