@@ -266,13 +266,13 @@ count_ndbm(sip, outfp)
 	FILE *outfp;
 {
 	ZNdbmPrivate *prv;
+	int cnt = 0;
 
 	prv = open_ndbm(sip, O_RDONLY, "count_ndbm");
 	if (prv != NULL && prv->db != NULL) {
 
 	  DBM *db = prv->db;
 	  datum key;
-	  int cnt = 0;
 
 	  for (key = dbm_firstkey(db);
 	       key.dptr != NULL;
