@@ -32,8 +32,8 @@
 #|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
 #|    If RBL parameters are set below, will use them.
 #
-# _default_dot		relaycustomer - relaytarget - senderokwithdns + = _rbl1
-# _default_ipaddr	relaycustomer - relaytarget - senderokwithdns + = _rbl0
+# _default_dot		relaycustomer - relaytarget - senderokwithdns - = _rbl1
+# _default_ipaddr	relaycustomer - relaytarget - senderokwithdns - = _rbl0
 #
 #| -- 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
@@ -44,8 +44,8 @@
 #|    service abuse.
 #|    If RBL parameters are set below, will use them.
 
-_default_dot		relaycustomer - acceptifmx - senderokwithdns + = _rbl1
-_default_ipaddr		relaycustomer - acceptifmx - senderokwithdns + = _rbl0
+_default_dot		relaycustomer - acceptifmx - senderokwithdns - = _rbl1
+_default_ipaddr		relaycustomer - acceptifmx - senderokwithdns - = _rbl0
 
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that

@@ -1,14 +1,14 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MBOXPATH 1zm "2003-Aug-28"
+.TH MBOXPATH 1zm "2005-Feb-18"
 .SH NAME
 mboxpath \- ZMailer utility to show user's mailbox path
 .SH SYNOPSIS
 .IP \fBmboxpath\fR 9em
-[\fB\-D\fR[\fBD\fR]]
-[\fB\-P\fR[\fBP\fR]]
-[\fB\-X\fR[\fBX\fR]]
+[\fB\-D\fR[\fBD..\fR]]
+[\fB\-P\fR[\fBP..\fR]]
+[\fB\-X\fR[\fBX..\fR]]
 [\fB\-d\fR\ \fIdirpath\fR]
 \fIusername\fR
 .SH DESCRIPTION
@@ -27,13 +27,13 @@ directory prefix, but usually that is sufficient.
 .IP \-d\ \fIdirpath\fR
 See
 .IR mailbox (8zm).
-.IP \-D[D]
+.IP \-D[D..]
 See
 .IR mailbox (8zm).
-.IP \-P[P]
+.IP \-P[P..]
 See
 .IR mailbox (8zm).
-.IP \-X[X]
+.IP \-X[X..]
 See
 .IR mailbox (8zm).
 .SH USAGE

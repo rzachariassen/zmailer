@@ -44,6 +44,8 @@
 #
 #PARAM BindPort                   25    # Binding port
 #PARAM BindAddress         [0.0.0.0]    # Binding address - for multihomers..
+#PARAM BindAddress               any    # Same as [0.0.0.0]
+#PARAM BindAddress              any6    # ditto for IPv6
 #PARAM BindAddress       [IPv6.0::0]    # and here is for IPv6 - NO SPACES!
 #PARAM BindAddress      iface:eth0:2    # Addresses of that interface
 #          ###### Number of address binders is not limited!

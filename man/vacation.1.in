@@ -1,6 +1,6 @@
 '\" t
 .\" @(#)vacation.1 1.4 87/02/12 SMI
-.TH VACATION 1zm "2004-May-11"
+.TH VACATION 1zm "2005-Feb-27"
 .SH NAME
 vacation \- reply to mail automatically 
 .SH SYNOPSIS
@@ -12,6 +12,7 @@ vacation \- reply to mail automatically
 [\fB\-t\ \fIinterval\fR]
 [\fB\-m\ \fIMsgfile\fR]
 [\fB\-d\fR]
+[\fB\-a\ \fIalias\fR]
 [\fIuser\fR]
 .SH DESCRIPTION
 .IX vacation "" "\fIvacation\fR \(em automatic mail replies"
@@ -96,6 +97,11 @@ It will move the \fI.forward\fR file to \fI.vacforward\fR,
 and the automatic replies will stop.
 .PP
 .SH OPTIONS
+.TP
+.BI \-a alias
+Handle messages for
+.I alias
+in the same manner as those received for the user's login name.
 .TP
 .BR \-I ", " \-i
 initialize the 

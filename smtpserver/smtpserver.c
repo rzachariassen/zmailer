@@ -395,12 +395,18 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
      int use_ipv6, portnum, lsocktype;
      Usockaddr *bindaddr;
 {
-	int s, i;
+	int s, i = use_ipv6;
 	char buf[80];
 
 	if (use_ipv6) {
-	  if (bindaddr && bindaddr->v4.sin_family == AF_INET)
+	  if (bindaddr && bindaddr->v4.sin_family == AF_INET) {
+#if 1
+	    return; /* We are supposed to create IPv6 socket, but
+		       have IPv4 address...  Lets not. */
+#else
 	    use_ipv6 = 0;
+#endif
+	  }
 	}
 
 	if (bindaddr) {
@@ -456,7 +462,7 @@ static void create_server_socket (lscnt_p, ls_p, lst_p, lsocktype, use_ipv6, por
 	*lscnt_p += 1;
 
 	type(NULL,0,NULL,"setting up: bind(s=%d, v%d, addr='%s' port=%d)",
-	     s, use_ipv6 ? 6 : 4, buf, portnum);
+	     s, i ? 6 : 4, buf, portnum);
 
 
 	i = 1;
@@ -668,7 +674,8 @@ int main(argc, argv, envp)
 	    SS.with_protocol_set |= WITH_BSMTP;
 	    break;
 	  case 'C':
-	    cfgpath = optarg;
+	    cfgpath = strdup(optarg); /* leaks memory, but lets be
+					 consistent and save all data .. */
 	    break;
 	  case 'd':
 	    debug = atoi(optarg);
@@ -683,7 +690,8 @@ int main(argc, argv, envp)
 	    daemon_flg = 0;
 	    break;
 	  case 'I':		/* PID file */
-	    pidfile = optarg;
+	    /* The '-I' option has dual meaning! */
+	    pidfile = strdup(optarg); /* Make a safe copy now */
 	    pidfile_set = 1;
 	    break;
 	  case 'l':		/* log file(prefix) */
@@ -693,7 +701,8 @@ int main(argc, argv, envp)
 	      break;
 	    }
 
-	    logfile = optarg;
+	    logfile = strdup(optarg); /* We MAY overwrite argv[] data
+					 latter!  Make safe copy now! */
 
 	    break;
 	  case 'L':		/* Max LoadAverage */
@@ -915,6 +924,7 @@ int main(argc, argv, envp)
 	resources_maximize_nofiles();
 
 
+	/* The '-I' option has dual meaning .. */
 	if (STREQ(pidfile,"sub-router"))
 	  subdaemon_router(0);
 	else if (STREQ(pidfile,"sub-ratetracker"))
@@ -1149,28 +1159,31 @@ int main(argc, argv, envp)
 
 	  if (!bindaddrs || bindaddrs_count <= 0) {
 
-	      if (use_ipv6)
+	      if (1 /* smtp_listen */ ) {
+		if (use_ipv6)
+		  create_server_socket( & listensocks_count,
+					& listensocks,
+					& listensocks_types,
+					LSOCKTYPE_SMTP,
+					1,
+					bindport,
+					NULL );
 		create_server_socket( & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
 				      LSOCKTYPE_SMTP,
-				      use_ipv6,
+				      0,
 				      bindport,
 				      NULL );
-	      create_server_socket( & listensocks_count,
-				    & listensocks,
-				    & listensocks_types,
-				    LSOCKTYPE_SMTP,
-				    0,
-				    bindport,
-				    NULL );
+	      }
+
 	      if (ssmtp_listen) {
 		if (use_ipv6)
 		  create_server_socket( & listensocks_count,
 					& listensocks,
 					& listensocks_types,
 					LSOCKTYPE_SSMTP,
-					use_ipv6,
+					1,
 					465, /* Deprecated SMTP/TLS WKS port */
 					NULL );
 		create_server_socket( & listensocks_count,
@@ -1181,13 +1194,14 @@ int main(argc, argv, envp)
 				      465, /* Deprecated SMTP/TLS WKS port */
 				      NULL );
 	      }
+
 	      if (submit_listen) {
 		if (use_ipv6)
 		  create_server_socket( & listensocks_count,
 					& listensocks,
 					& listensocks_types,
 					LSOCKTYPE_SUBMIT,
-					use_ipv6,
+					1,
 					587, /* SUBMIT port */
 					NULL );
 		create_server_socket( & listensocks_count,
@@ -1198,47 +1212,51 @@ int main(argc, argv, envp)
 				      587, /* SUBMIT port */
 				      NULL );
 	      }
+
 	  }
 
 	  /* With explicite bindings! */
 
 	  for (j = 0; j < bindaddrs_count; ++j) {
-
 	    switch (bindaddrs_types[j]) {
 	    case BINDADDR_ALL:
 	      /* Do it by the registered IP address' address family! */
 
-	      create_server_socket( & listensocks_count,
-				    & listensocks,
-				    & listensocks_types,
-				    LSOCKTYPE_SMTP,
-				    use_ipv6,
-				    bindport,
-				    NULL );
-	      if (ssmtp_listen)
+	      if (1 /* smtp_listen */ ) {
+		create_server_socket( & listensocks_count,
+				      & listensocks,
+				      & listensocks_types,
+				      LSOCKTYPE_SMTP,
+				      bindaddrs[j].v4.sin_family != AF_INET,
+				      bindport, /* default: 25 .. */
+				      &bindaddrs[j]);
+	      }
+	      if (ssmtp_listen) {
 		create_server_socket( & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
 				      LSOCKTYPE_SSMTP,
-				      use_ipv6,
-				      465, /* Deprecated SMTP/TLS WKS port */
-				      NULL );
-	      if (submit_listen)
+				      bindaddrs[j].v4.sin_family != AF_INET,
+				      465, /* SMTPS port */
+				      &bindaddrs[j]);
+	      }
+	      if (submit_listen) {
 		create_server_socket( & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
 				      LSOCKTYPE_SUBMIT,
-				      use_ipv6,
-				      587, /* SUBMIT port */
-				      NULL );
-		break;
+				      bindaddrs[j].v4.sin_family != AF_INET,
+				      587, /* SUBMISSION port */
+				      &bindaddrs[j]);
+	      }
+	      break;
 
 	      case BINDADDR_SMTP:
 		create_server_socket( & listensocks_count,
 				      & listensocks,
 				      & listensocks_types,
 				      LSOCKTYPE_SMTP,
-				      use_ipv6,
+				      bindaddrs[j].v4.sin_family != AF_INET,
 				      bindaddrs_ports[j],
 				      &bindaddrs[j]);
 		break;
@@ -1248,7 +1266,7 @@ int main(argc, argv, envp)
 				      & listensocks,
 				      & listensocks_types,
 				      LSOCKTYPE_SSMTP,
-				      use_ipv6,
+				      bindaddrs[j].v4.sin_family != AF_INET,
 				      bindaddrs_ports[j],
 				      &bindaddrs[j]);
 		break;
@@ -1258,7 +1276,7 @@ int main(argc, argv, envp)
 				      & listensocks,
 				      & listensocks_types,
 				      LSOCKTYPE_SUBMIT,
-				      use_ipv6,
+				      bindaddrs[j].v4.sin_family != AF_INET,
 				      bindaddrs_ports[j],
 				      &bindaddrs[j]);
 		break;
@@ -1772,12 +1790,19 @@ reaper(sig)
 {
     int status;
     pid_t lpid;
+    int nologfp;
 
     SIGNAL_HOLD(SIGCHLD);
 
     sawsigchld = 0;
 
-    openlogfp(NULL, 1);
+    /* The master loop does not have 'logfp' opened, but to log
+       anything here, we need it open... 
+       On the other hand, subprograms of master having their own
+       subprograms shall not touch on the  'logfp' if it is open!  */
+    nologfp = (logfp == NULL);
+    if (nologfp)
+      openlogfp(NULL, 1);
 
     for (;;) {
 #ifdef	HAVE_WAITPID
@@ -1835,9 +1860,10 @@ reaper(sig)
 	childreap(lpid);
     }
 
-    if (logfp)
+    if (nologfp && logfp) {
       fclose(logfp);
-    logfp = NULL;
+      logfp = NULL;
+    }
 
     SIGNAL_HANDLE(SIGCHLD, reaper);
     SIGNAL_RELEASE(SIGCHLD);

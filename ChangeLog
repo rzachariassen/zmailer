@@ -1,4 +1,54 @@
+2005-02-18  Matti Aarnio  <mea@zmailer.org>
+
+	* man/mailbox.8.in, man/mboxpath.1.in, man/vacation.1.in:
+	    Document better existing machinery.
+
+	* doc/guides/smtpserver-spf:
+	    Email from Darryl L. Miles about usage of SPF.
+
+2005-01-27  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpserver.c:
+	    Copy all  optarg  string data that remains in use
+	    for more than getopt() loop time.
+
+	* lib/zgetbindaddr.c:
+	    Parse bindaddr data so that if we are expeciting IPv4, don't
+	    accept IPv6 address text (and vice versa.)
+
+	* smtpserver/cfgread.c:
+	    Parse IPv6 and IPv4 versions of the bind-parameter addresses,
+	    complain (to log) if failing somehow.
+	    FIXME: Still possibly needs revising .. 
+
+	* smtpserver/smtpserver.c:
+	    Revised listening server socket creations.
+	    Still sometimes failing to create listening sockets,
+	    if previous smtp server instance is still around..
+
+	* smtpserver/smtpserver.c:
+	    The logfp  is possibly to be opened, and again closed
+	    within the  reaper()  routine.  (Hmm..  is it _truly_
+	    safe there ?   After all, the signals can arrive
+	    at any time...)
+
+	* smtpserver/mxverify.c:
+	    Track debug stuff of  'mxislocal'  kind.
+
+	* smtpserver/zpwmatch-pipe.c:
+	    Note about built-in presumptions.
+
+	* lib/selfaddrs.c:
+	    different things for library function API in test-mode
+
+	* proto/smtpserver.conf.in:
+	    Add couple new examples
+
 2005-01-03  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/db/smtp-policy.src:
+	    Set the "senderokwithdns" attribute to have value "-"
+	    (HARD error) instead of "+" (SOFT error).
 
 	* smtpserver/mxverify.c:
 	    Treat  dnsmxlookup() result value 2 always as a "hard error".
@@ -210,7 +260,7 @@
 2004-09-21  Matti Aarnio  <mea@zmailer.org>
 
 	* smtpserver/mxverify.c, man/smtpserver.8.in:
-	    Remove the old hard-coded '+' macro that is no longer valid..
+	    Remove the old hard-coded '+' RBL macro that is no longer valid..
 	    Also warn about RBLs being rather ephemeral in nature..
 
 	* smtpserver/policytest.c, smtpserver/subdaemon-trk.c:

@@ -1,0 +1,57 @@
+Date:   Thu, 27 Jan 2005 10:46:50 +0000
+From:   "Darryl L. Miles" <darryl at netbauds.net>
+To:     zmailer at nic.funet.fi
+Subject: Re: smtpserver bind() query and logfile problems
+
+Eugene Crosser wrote:
+
+> As to the duplicate block, I did not notice when it appeared.  Maybe
+> better remove redundant elements...
+>
+> As to the local whitelist, I *think* that it where localpolicy comes
+> into play, but I never got deep enough to understand how it works.
+> Igor added support for localpolicy, so presumably he can answer this one.
+>
+> Eugene
+
+Thanks for the pointer.
+
+After I worked out that for SPF to work it needs the "spf +" added to
+BOTH the _default_addr and _default_ipaddr policy rules it started
+working :).
+
+I then configured:
+
+PARAM spf-localpolicy           "-exists:%{o}.fail.spf.mail.mydomain.com ~exists:%{o}.softfail.spf.mail.mydomain.com"
+
+
+I then setup two dynamic DNS domains with Bind 9 for those domains.
+Then to force a specific domain to fail (if my local policy is called
+up) I created a record:
+
+faildomain.com.fail.spf.mail.mydomain.com. IN A 127.0.0.2
+
+This isn't exactly what I wanted, but its close enough for now.  Where
+I'm trying to head is that if an SPF result is softfail I could promote
+it to 'fail' for a specific set of domains.   This in effect speeds up
+their roll out period, by moving from the tranational state ~all to the
+operational state of -all.  I'm using this method to block most webmail
+services as the only reason I can see them staying in the transitional
+state is so that they can be seen to be participating in SPF and not
+upset their userbase if they are using their addresses in other ways
+directly on the net.  Their main aim as a business is to keep as many
+customers as possible, not to cut down SPAM.
+
+
+Apparently localpolicy allows you to override the trailing default
+action, -all, ~all, ?all, +all, etc... that is advertised in the TXT
+resource record you are checking.
+
+The most useful resources have been
+http://spf.pobox.com/mechanisms.html, http://spf.pobox.com/macros.html
+and API ref http://www.libspf2.org/docs/api.html#SPF_compile_local_policy .
+
+
+--
+Darryl L. Miles
+M: 07968 320 114

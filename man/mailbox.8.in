@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILBOX 8zm "2003-Aug-23"
+.TH MAILBOX 8zm "2005-Feb-18"
 .SH NAME
 mailbox \- zmailer local delivery transport agent
 .SH SYNOPSIS
@@ -139,16 +139,49 @@ following set is used:
 .RE
 Of those the one which yields first a directory is chosen.
 .PP
+The \fI"dirpath"\fR can also be a \fB%\fR-char containing format
+string:
+.RS 4em
+.TS
+l l.
+%%	the '%' alone
+%a	address as is
+%u	userid
+%U	long user name (userid if not supported)
+%D	full domain name
+%x	next character derived from PJW hash of userid
+%X	next character derived from crc32 hash of userid
+%h	userid's home directory
+%n	(unimplemented, but reserved)
+%N	(unimplemented, but reserved)
+.TE
+.RE
+.PP
+Some examples:
+.RS 4em
+.TS
+l l.
+"/var/mail/%u"	standard mail directory
+"/var/mail/%x/%x/%u"	hashed directory
+"%h/Mail/INBOX"	mailbox in user's home
+"%h/mbox"	mailbox in user's home for UW-IMAP..
+"/var/virt/%D/mail/%X/%X/%u"	hashed spool with virtual domain
+.TE
+.RE
+.PP
 If parametrization, or default pickup fails, this program yields
 a "\fITEMPFAIL\fR" status, and syslog's ALERT level messages.
 .RE
-.IP \-D[D]
-For a user with is
+.IP \-D[D..]
+For a user with name as:
 .IR abcdef ,
 one \fI\-D\fR will place the mailbox file into directory
 \fI$MAILBOX/a/abcdef\fR.
 With \fI\-DD\fR the mailbox file will be placed into directory:
 .IR $MAILBOX/a/b/abcdef .
+The limit on number of 'D's and resulting subdirs is 10.
+If there are less chars in user name than given hash level says,
+hashing stops at the end of the name.
 .\" ---- this option exists, but is not used anywhere
 .\" .IP \-g
 .\" disables file creation if they don't already exist.
@@ -181,28 +214,22 @@ line delivered to.
 .IP \-M
 enables the creation of MMDF-style mail-folder in the incoming mail folder.
 The default is "classic" UNIX-style folder.
-.IP \-P[P]
+.IP \-P[P..]
 .RS
 This uses much of similar method as
-.I \-D[D]
+.I \-D[D..]
 option, but directory names are derived from much more smoothly
 distributing hash function over user names, namely:
 .IR pjwhash32 ().
 .PP
-With one
-.IR \-P ,
-the calculated hash value is used by formula:
-.I 'A'+(hash % 26)
-to produce one mid-level directory.
-With
-.I \-PP
-the formula is more complex: upper directory uses formula:
-.I 'A' + (hash / 26) % 26
-and lower uses formula:
-.I 'A'+(hash % 26)
+The hash is split modulo 26 into a reversing buffer, and then
+output encoded as uppercase characters. 'A' for 0, 'Z' for 25.
+E.g. for
+.I \-PPP
+that would be analogous to base-10 numeric printout of: 654321 -> "3/2/1/"
 .PP
 The result of these
-.I \-P[P]
+.I \-P[P..]
 derived directory paths is something like:
 .I $MAILBOX/X/username
 or
@@ -216,9 +243,9 @@ and processing along with sending receipt to given address.
 .I (Newer sendmails don't anymore support this facility per default..)
 .IP \-V
 prints a version message and exits.
-.IP \-X[X]
+.IP \-X[X..]
 This is similar to
-.I \-P[P]
+.I \-P[P..]
 option, but used hash function is
 .IR crc32 ().
 Resulting distribution is slightly different, and in fact quite smooth.

@@ -4,7 +4,7 @@
  */
 /*
  *    Several extensive changes by Matti Aarnio <mea@nic.funet.fi>
- *      Copyright 1991-2004.
+ *      Copyright 1991-2005.
  */
 
 /*
@@ -174,14 +174,37 @@ static void dollarexpand(s0, space)
 }
 
 
-static void cfg_add_bindaddr(param1, use_ipv6, bindtype, bindport)
+static int cfg_add_bindaddr(param1, use_ipv6, bindtype, bindport)
      char *param1;
      int use_ipv6, bindtype, bindport;
 {
 	Usockaddr bindaddr;
+	int rc;
 
 	called_getbindaddr=1;
-	if (!zgetbindaddr(param1, use_ipv6, &bindaddr)) {
+	rc = zgetbindaddr(param1, use_ipv6, &bindaddr);
+#if 0  /* The  zgetbindaddr() does parse v6 addresses even when
+	  wanting to get only v4 address and reject all else.. */
+	if ( !rc ) {
+	  switch (use_ipv6) {
+	  case 0: /* This is presumed to be IPv4 */
+	    if (bindaddr.v4.sin_family != AF_INET) {
+	      /* But the address literal is not IPv4 ... */
+	      rc = 1;
+	    }
+	    break;
+
+	  default: /* This is presumed to be IPv6 */
+	    if (bindaddr.v4.sin_family == AF_INET) {
+	      /* But the address literal is not IPv6 ... */
+	      rc = 1;
+	    }
+	    break;
+
+	  }
+	}
+#endif
+	if ( !rc ) {
 	  bindaddrs = realloc( bindaddrs,
 			       sizeof(bindaddr) * (bindaddrs_count +2) );
 	  bindaddrs_types = realloc( bindaddrs_types,
@@ -197,6 +220,11 @@ static void cfg_add_bindaddr(param1, use_ipv6, bindtype, bindport)
 	    bindaddrs_count += 1;
 	  }
 	}
+#if 0
+	type(NULL,0,NULL, "cfg_add_bindaddr('%s', v%d, type=%d port=%d) rc=%d",
+	     param1, use_ipv6 ? 6 : 4, bindtype, bindport, rc);
+#endif
+	return rc;
 }       
 
 static void cfparam __((char *, int, const char *, int));
@@ -307,34 +335,46 @@ static void cfparam(str, size, cfgfilename, linenum)
       if (bindport != 0 && bindport != 0xFFFFU)
 	bindport_set = 1;
     } else if (cistrcmp(name, "BindAddress") == 0 && param1) {
+      int rc = 0;
       if (use_ipv6)
-	cfg_add_bindaddr( param1, use_ipv6, BINDADDR_ALL, 0 );
-      cfg_add_bindaddr( param1, 0, BINDADDR_ALL, 0 );
+	rc += cfg_add_bindaddr( param1, 1, BINDADDR_ALL, 0 );
+      rc += cfg_add_bindaddr( param1, 0, BINDADDR_ALL, 0 );
+      if (rc > 1)
+	goto bad_cfg_line;
     }
 
     else if (cistrcmp(name, "BindSmtp") == 0 && param1) {
       int port = 25;
+      int rc = 0;
       if (param2) port = atoi(param2);
 
       if (use_ipv6)
-	cfg_add_bindaddr( param1, use_ipv6, BINDADDR_SMTP, port );
-      cfg_add_bindaddr( param1, 0, BINDADDR_SMTP, port );
+	rc += cfg_add_bindaddr( param1, 1, BINDADDR_SMTP, port );
+      rc += cfg_add_bindaddr( param1, 0, BINDADDR_SMTP, port );
+      if (rc > 1)
+	goto bad_cfg_line;
     }
     else if (cistrcmp(name, "BindSmtpS") == 0 && param1) {
       int port = 465;
+      int rc = 0;
       if (param2) port = atoi(param2);
 
       if (use_ipv6)
-	cfg_add_bindaddr( param1, use_ipv6, BINDADDR_SMTPS, port );
-      cfg_add_bindaddr( param1, 0, BINDADDR_SMTPS, port );
+	rc += cfg_add_bindaddr( param1, 1, BINDADDR_SMTPS, port );
+      rc += cfg_add_bindaddr( param1, 0, BINDADDR_SMTPS, port );
+      if (rc > 1)
+	goto bad_cfg_line;
     }
     else if (cistrcmp(name, "BindSubmit") == 0 && param1) {
       int port = 587;
+      int rc = 0;
       if (param2) port = atoi(param2);
 
       if (use_ipv6)
-	cfg_add_bindaddr( param1, use_ipv6, BINDADDR_SUBMIT, port );
-      cfg_add_bindaddr( param1, 0, BINDADDR_SUBMIT, port );
+	rc += cfg_add_bindaddr( param1, 1, BINDADDR_SUBMIT, port );
+      rc += cfg_add_bindaddr( param1, 0, BINDADDR_SUBMIT, port );
+      if (rc > 1)
+	goto bad_cfg_line;
     }
 
     /* SMTP Protocol limit & policy tune options */
@@ -628,6 +668,7 @@ static void cfparam(str, size, cfgfilename, linenum)
     }
 
     else {
+    bad_cfg_line:;
       /* XX: report error for unrecognized PARAM keyword ?? */
       type(NULL,0,NULL, "Cfgfile '%s' line %d has bad PARAM keyword/missing parameters: '%s'", cfgfilename, linenum, name);
     }
@@ -705,7 +746,7 @@ readcffile(name)
     fclose(fp);
     if (!called_getbindaddr) {
       if (use_ipv6)
-	cfg_add_bindaddr( NULL, use_ipv6, BINDADDR_ALL, 0 );
+	cfg_add_bindaddr( NULL, 1, BINDADDR_ALL, 0 );
       cfg_add_bindaddr( NULL, 0, BINDADDR_ALL, 0 );
     }
     bindaddr_set = (bindaddrs != NULL);

@@ -65,6 +65,7 @@ static int run(rfp, wfp, path, argv, envp)
         break;
 
     case 0: /* Child */
+	/* Builtin presumption of: stdin==0, stdout==1, stderr==2 ... */
         if( pdo[0] != fileno(stdin)  ) (void) dup2( pdo[0], fileno(stdin)  );
         if( pdi[1] != fileno(stdout) ) (void) dup2( pdi[1], fileno(stdout) );
         if( pdi[1] != fileno(stderr) ) (void) dup2( pdi[1], fileno(stderr) );

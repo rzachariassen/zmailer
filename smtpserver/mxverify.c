@@ -46,7 +46,7 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	struct addrinfo req, *ai;
 #define MAXMX 128
 	struct mxset mxs[MAXMX];
-	int mxcount;
+	int mxcount, mxislocal = 0;
 	querybuf qbuf, answer;
 	msgdata buf[8192], realname[8192];
 
@@ -346,12 +346,14 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 		  if (debug)
 		    printf("000-   AR ADDRESS MATCH!\n");
 		  mxs[n].islocal = 1;
+		  mxislocal = 1;
 		  /* Found a match! */
 		  goto ponder_mx_result;
 		} else if (j == 2) {
 		  if (debug)
 		    printf("000-   AR ADDRESS LOOPBACK MATCH!\n");
 		  mxs[n].islocal = 2;
+		  mxislocal = 2;
 		  /* Found a match! */
 		  goto ponder_mx_result;
 		} else
@@ -452,6 +454,7 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 		printf("000-   ADDRESS MATCH!\n");
 	      freeaddrinfo(ai);
 	      mxs[n].islocal = 1;
+	      mxislocal = 1;
 	      /* Found a match! */
 	      goto ponder_mx_result;
 	    } else if (rc == 2) {
@@ -459,6 +462,7 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 		printf("000-   LOOPBACK ADDRESS MATCH!\n");
 	      freeaddrinfo(ai);
 	      mxs[n].islocal = 2;
+	      mxislocal = 2;
 	      /* Found a match! */
 	      goto ponder_mx_result;
 	    } else
@@ -482,7 +486,6 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	  }
 	} /* Thru all MXS[] ... */
 
-
 	/* No MX match found.. */
 	for (n = 0; n < mxcount; ++n) {
 	  if (mxs[n].mx)
@@ -491,8 +494,8 @@ dnsmxlookup(state, host, depth, mxmode, qtype)
 	}
 
 	if (debug)
-	  printf("000-   saw_cname=%d  had_mx_record=%d  mxmode=%d\n",
-		 saw_cname, had_mx_record, mxmode);
+	  printf("000-   saw_cname=%d  had_mx_record=%d  mxmode=%d  mxislocal=%d\n",
+		 saw_cname, had_mx_record, mxmode, mxislocal);
 
 	/* Didn't find any, but saw CNAME ? Recurse with the real name */
 	if (saw_cname)
