@@ -156,6 +156,7 @@ const char *progname;
 const char *zenv_vinterval;
 const char *orcpt;
 const char *inrcpt;
+const char *msgspoolid = "S00xx";
 
 
 static void vacation_exit_handler()
@@ -201,6 +202,8 @@ main(argc, argv)
 
 	orcpt  = getenv("ORCPT");
 	inrcpt = getenv("INRCPT");
+	if (getenv("MSGSPOOLID"))
+	  msgspoolid = getenv("MSGSPOOLID");
 
 	progname = argv[0];
 
@@ -266,17 +269,17 @@ main(argc, argv)
 	  pw = zgetpwuid(getuid());
 	  if (!pw) {
 	    fprintf(stderr, "vacation: no such user uid %ld.\n", (long)getuid());
-	    zsyslog((LOG_NOTICE, "vacation: no such user uid: %ld", (long)getuid()));
+	    zsyslog((LOG_NOTICE, "%s: vacation: no such user uid: %ld", msgspoolid, (long)getuid()));
 	    exit(EX_NOUSER);
 	  }
 	} else if (!(pw = zgetpwnam(*argv))) {
 	  fprintf(stderr, "vacation: no such user %s.\n", *argv);
-	  zsyslog((LOG_NOTICE, "vacation: no such user: '%s'", *argv));
+	  zsyslog((LOG_NOTICE, "%s: vacation: no such user: '%s'", msgspoolid, *argv));
 	  exit(EX_NOUSER);
 	}
 	if (chdir(pw->pw_dir)) {
 	  fprintf(stderr, "vacation: no such directory %s.\n", pw->pw_dir);
-	  zsyslog((LOG_NOTICE, "vacation: no such directory '%s'", pw->pw_dir));
+	  zsyslog((LOG_NOTICE, "%s: vacation: no such directory '%s'", msgspoolid, pw->pw_dir));
 	  exit(EX_NOUSER);
 	}
 
@@ -322,8 +325,8 @@ main(argc, argv)
 	  int e = errno;
 	  fprintf(stderr, "vacation: %s.* database file(s): %s\n", 
 		  VDB, strerror(e));
-	  zsyslog((LOG_NOTICE, "vacation: %s.* database file(s): %s",
-		   VDB, strerror(e)));
+	  zsyslog((LOG_NOTICE, "%s: vacation: %s.* database file(s): %s",
+		   msgspoolid, VDB, strerror(e)));
 	  exit(EX_CANTCREAT);
 	}
 
@@ -365,8 +368,8 @@ main(argc, argv)
 		setreply();
 		sendmessage(msgfile,myname);
 	      } else {
-		zsyslog((LOG_NOTICE, "vacation: from '%s' to '%s' is too recent.",
-		       from, myname));
+		zsyslog((LOG_NOTICE, "%s: vacation: from '%s' to '%s' is too recent.",
+			 msgspoolid, from, myname));
 	      }
 	    }
 	  }
@@ -438,8 +441,8 @@ sendmessage(msgf, myname)
 	fclose(f);
 	mail_close(mf);
 
-	zsyslog((LOG_NOTICE, "vacation: sent message from '%s' to '%s'",
-		 myname, from));
+	zsyslog((LOG_NOTICE, "%s: vacation: sent message from '%s' to '%s'",
+		 msgspoolid, myname, from));
 }
 /*
 **  USRERR -- print user error
@@ -459,8 +462,8 @@ void
 usrerr(msg)
 	const char *msg;
 {
-	fprintf(stderr, "vacation: usrerr: %s\n",msg);
-	zsyslog((LOG_NOTICE, "vacation: %s", msg));
+	fprintf(stderr, "vacation: %s\n",msg);
+	zsyslog((LOG_NOTICE, "%s: vacation: usererr: %s", msgspoolid, msg));
 }
 /*
 **  SYSERR -- print system error
@@ -482,7 +485,7 @@ syserr(msg)
 	const char *msg;
 {
 	fprintf(stderr, "vacation: %s\n", msg);
-	zsyslog((LOG_NOTICE, "vacation: syserr: %s", msg));
+	zsyslog((LOG_NOTICE, "%s: vacation: syserr: %s", msgspoolid, msg));
 	exit(EX_USAGE+103);
 }
 /*
@@ -543,7 +546,7 @@ readheaders(myname)
 		has_from = 1;
 		if (junkmail()) {
 			purge_input(myname);
-zsyslog((LOG_NOTICE, "vacation: considering this message to '%s' to be JUNK", myname));
+zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be JUNK", msgspoolid, myname));
 
 			exit(EX_OK);
 		}
@@ -564,7 +567,7 @@ zsyslog((LOG_NOTICE, "vacation: considering this message to '%s' to be JUNK", my
 					*p = '\0';
 				if (junkmail()) {
 					purge_input(myname);
-zsyslog((LOG_NOTICE, "vacation: considering this message to '%s' to be JUNK", myname));
+zsyslog((LOG_NOTICE, "%s: vacation: considering this message to '%s' to be JUNK", msgspoolid, myname));
 					exit(EX_OK);
 				}
 			}
@@ -616,7 +619,7 @@ findme:			for (cur = names; !tome && cur; cur = cur->next)
 		exit(EX_OK);
 	}
 	if (!*from) {
-	  zsyslog((LOG_NOTICE, "vacation: no initial \"From\" line.\n"));
+	  zsyslog((LOG_NOTICE, "%s: vacation: no initial \"From\" line.\n", msgspoolid));
 	  exit(EX_USAGE+105);
 	}
 }
