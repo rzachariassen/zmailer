@@ -1426,6 +1426,7 @@ int main(argc, argv, envp)
 
 		SIGNAL_HOLD(SIGCHLD);
 		if ((childpid = fork()) < 0) {	/* can't fork! */
+		  SIGNAL_RELEASE(SIGCHLD);
 		  close(msgfd);
 		  MIBMtaEntry->ss.ForkFailures ++;
 		  fprintf(stderr,

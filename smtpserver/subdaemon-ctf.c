@@ -329,8 +329,6 @@ subdaemon_handler_ctf_init (statep)
 	  setlinebuf(logfp);
 	}
 #endif
-	SIGNAL_HANDLE(SIGCHLD,SIG_IGN);
-
 	return 0;
 }
 

@@ -355,6 +355,7 @@ int subdaemon_loop(rendezvous_socket, subdaemon_handler)
 	struct timeval tv;
 
 	SIGNAL_HANDLE(SIGCHLD, sigchld);
+	SIGNAL_RELEASE(SIGCHLD);
 
 	memset( & job_head, 0, sizeof(job_head) );
 

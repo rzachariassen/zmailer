@@ -739,7 +739,6 @@ subdaemon_handler_trk_init (statep)
         /* runastrusteduser(); */
 
 	SIGNAL_HANDLE(SIGUSR1, subdaemon_trk_sigusr1);
-	SIGNAL_HANDLE(SIGCHLD,SIG_IGN);
 
 	if (!state) return -1;
 

@@ -266,8 +266,6 @@ subdaemon_handler_rtr_init (statep)
 	  setlinebuf(logfp);
 	}
 #endif
-	SIGNAL_HANDLE(SIGCHLD,SIG_IGN);
-
 	return 0;
 }
 
