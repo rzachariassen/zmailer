@@ -772,7 +772,7 @@ static int runcommand(argv, env, vhead, chwp, howp)
 	  for (i = 3; i < scheduler_nofiles; ++i)
 	    close(i);
 
-#ifdef HAVE_SETPRIORITY
+#if defined(HAVE_SETPRIORITY) && defined(HAVE_SYS_RESOURCE_H)
 	  if (prio >= 80) { /* MAGIC LIMIT VALUE FOR ABSOLUTE SET! */
 	    setpriority(PRIO_PROCESS, 0, i - 100);
 	  } else

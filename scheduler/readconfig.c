@@ -661,7 +661,7 @@ static int rc_syspriority(key, arg, ce)
 	  sfprintf(sfstderr, "%s: Bad UNIX priority value, acceptable in range: -20..19; input=\"%s\"\n", progname, arg);
 	  return 1;
 	}
-#ifdef HAVE_SETPRIORITY
+#if defined(HAVE_SETPRIORITY) && defined(HAVE_SYS_RESOURCE_H)
 	/* PRIO_PROCESS depends likely of  HAVE_SYS_RESOURCE_H */
 	setpriority(PRIO_PROCESS, 0, i);
 #endif

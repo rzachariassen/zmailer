@@ -217,6 +217,7 @@ routeuser (quad, plustail, domain) {
 	plustail2=""
 	attr="$(attributes $quad)"
 	chan="$(channel $quad)"
+	host="$(host $quad)"
 	
 	# For the expansions control tag we can use only
 	# the 'channel',  and the 'username' strings, we CAN'T
@@ -232,8 +233,9 @@ routeuser (quad, plustail, domain) {
 
 	case "$type" in
 	sender)
-		a=$(userdb "$user:mailname") || return (($quad))
-		return ((("$chan" "$a" "$user" $attr)))
+		a=$(userdb "$user:mailname") \
+		  || return ((("$chan" "$host" "$user$plustail$domain" $attr)))
+		return ((("$chan" "$a" "$user$plustail$domain" $attr)))
 		;;
 	esac
 

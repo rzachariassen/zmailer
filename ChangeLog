@@ -1,3 +1,10 @@
+2000-12-14  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* smtpserver/smtpdata.c:
+	    "BDAT 0 LAST" is valid per explicite example at RFC 3030.
+	    It is also valid per syntax, but not quite so by mere
+	    engineering thought...
+
 2000-11-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/libta/mimeheaders.c, transports/mailbox/mailbox.c,

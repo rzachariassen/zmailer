@@ -353,7 +353,7 @@ const char *buf, *cp;
     rc = sscanf(cp, "%ld %7s %7s", &bdata_chunksize, msg, msg + 20);
     SS->bdata_blocknum += 1;
     bdata_last = CISTREQ(msg, "LAST");
-    if (!(bdata_chunksize > 0L
+    if (!(bdata_chunksize >= 0L
 	  && (rc == 1 || (rc == 2 && bdata_last)))) {
 	type(SS, 501, m552, NULL);
 	typeflush(SS);

@@ -613,7 +613,9 @@ static const char * skip_822linearcomments(p)
 
 	while (*s) {
 
-	  while (*s == '\n' || *s == ' ' || *s == '\t') ++s;
+	  /* To be exact we should scan over only SPC, TAB, CR and LF
+	     chars, but lets skip all controls just in case.. */
+	  while (0 <= *s && *s <= ' ') ++s; /* ASCII assumption! */
 
 	  if (*s == '(') {
 	    s = skip_comment(s);
@@ -633,13 +635,23 @@ static const char * _skip_822atom(p, tspecial)
      int tspecial;
 {
 	/* This shall do skipping of RFC 822:
-	   3.1.4: Structured Field Bodies  defined ATOMs */
+	   3.1.4: Structured Field Bodies  defined ATOMs
+
+	   - Sequence of non-control/space characters which
+	     end up at control/space/ATOM-special
+	   - ATOM-special chars
+
+	*/
 
 	const char *s = p;
+	int isdelim = 0;
 
 	while (*s) {
-	  int isdelim = 0;
-	  char c = *s;
+	  char c;
+
+	  c = *s;
+
+	  /* We should *not* be called with DEL/Control/SPC! */
 	  if (c == 127 || (0 <= c && c <= ' '))
 	    break; /* Delimiters (controls, SPACE) */
 
@@ -668,19 +680,24 @@ static const char * _skip_822atom(p, tspecial)
 	    break;
 	  }
 
-	  /* We have gathered non-special string so far, and this is
-	     some delimitter, cut it here! */
-	  if (isdelim && s > p) break;
+	  /* If we have been scanning over non-atom special texts,
+	     and now found an atom-special, we break out! */
+	  if (s > p && isdelim) break;
 
+	  /* Now advance the character-in-question */
+	  ++s;
 
 	  /* We didn't have any gathered string so far, but if it
 	     happens to be special, we count them as single chars! */
-	  ++s;
 	  if (c == ':' && *s == ':')
 	    ++s; /* Consider '::' as single atom -- DECNET token */
 
 	  if (isdelim) break;
 	}
+
+	/* Just in case we got here with bad input, always
+	   return at least one char long sequence. */
+	if (s == p) ++s;
 
 	return s;
 }
@@ -1303,7 +1320,8 @@ headers_need_mime2(rp)
 	while (inhdr && *inhdr) {
 	  u_char *hdr = (u_char *)*inhdr;
 	  for ( ; *hdr != 0 ; ++hdr)
-	    if (*hdr != '\t' && (*hdr < ' ' || *hdr > 126))
+	    if (*hdr != '\t' && *hdr != '\n' && *hdr != '\r'
+		&& (*hdr < ' ' || *hdr > 126))
 	      return 1;
 	  ++inhdr;
 	}

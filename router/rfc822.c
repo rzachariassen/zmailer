@@ -1927,14 +1927,14 @@ sequencer(e, file)
 			GCVARS6;
 
 			/* secondlevel is XORs */
-#if 0
-			printf("crossbar sender: ");
-			s_grind(sender, stdout);
-			putchar('\n');
-			printf("crossbar to: ");
-			s_grind(to, stdout);
-			putchar('\n');
-#endif
+			if (D_sequencer) {
+			  printf("crossbar sender: ");
+			  s_grind(sender, stdout);
+			  putchar('\n');
+			  printf("crossbar to: ");
+			  s_grind(to, stdout);
+			  putchar('\n');
+			}
 
 			if ((x = crossbar(sender, to)) == NULL)
 			  continue;

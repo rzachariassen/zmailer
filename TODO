@@ -1,5 +1,24 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+mailq: man-page update to match all options
+
+"make install": (Eugene Crosser)
+  1. make install does not make $POSTOFFICE/public and $POSTOFFICE/router
+     world-writable as they should be (or is it my mistake?)
+
+
+getmxrr()  MX retrieve failure with its merriment:
+  [root@vger mea]# /opt/mail/bin/getmxrr-test cs.lakeheadu.ca
+  DNS lookup reply: len=33 rcode=0 qdcount=1 ancount=0 nscount=0 arcount=0 RD=1 TC=0 AA=0 QR=1 RA=1
+  getmxrr() rc=0 EX_OK; mxcount=0
+   gaih_inet('cs.lakeheadu.ca') gethostbyname() h=(nil)  h_errno=4
+   g->gaih[INET]('cs.lakeheadu.ca',...) rc=261
+  getaddrinfo('cs.lakeheadu.ca','smtp') -> r=-5 (no address associated with name), ai=(nil)
+
+  For a comparison a successfull access has:
+    DNS lookup reply: len=237 rcode=0 qdcount=1 ancount=4 nscount=3 arcount=4 RD=1 TC=0 AA=0 QR=1 RA=1
+
+
 Wanted done for 3.0:
   - router  aliases.cf  to have similar 'protocols' feature as
     domain routing has currently
