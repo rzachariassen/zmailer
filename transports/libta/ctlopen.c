@@ -4,7 +4,7 @@
  */
 
 /*
- *	Copyright 1994-2000 by Matti Aarnio
+ *	Copyright 1994-2001 by Matti Aarnio
  *
  * To really understand how headers (and their converted versions)
  * are processed you do need to draw a diagram.
@@ -168,6 +168,9 @@ ctlclose(dp)
 	if (dp->contents != NULL)
 	  free((void*)dp->contents);
 	dp->contents = NULL;
+	if (dp->taspoolid)
+	  free((void*)dp->taspoolid);
+	dp->taspoolid = NULL;
 }
 
 
@@ -240,17 +243,18 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 {
 	register char *s, *contents;
 	char *mfpath, *delayslot;
-	int i, n;
+	int  i, n;
 	struct taddress *ap;
 	struct rcpt *rp = NULL, *prevrp = NULL;
 	struct stat stbuf;
 	char ***msgheaders = NULL;
 	char ***msgheaderscvt = NULL;
-	int headers_cnt;
-	int headers_spc;
-	int largest_headersize = 80; /* Some magic minimum.. */
+	int  headers_cnt;
+	int  headers_spc;
+	int  largest_headersize = 80; /* Some magic minimum.. */
 	char dirprefix[8];
-	int mypid = getpid();
+	char spoolid[30];
+	int  mypid = getpid();
 	long format = 0;
 
 	static struct ctldesc d; /* ONLY ONE OPEN AT THE TIME! */
@@ -780,6 +784,14 @@ ctlopen(file, channel, host, exitflagp, selectaddr, saparam, matchrouter, mrpara
 	/* A nice fudge factor, usually this is enough..                 */
 	/* Add 3% for CRLFs.. -- assume average line length of 35 chars. */
 	d.msgsizeestimate += (3 * d.msgsizeestimate) / 100;
+
+	taspoolid(spoolid, d.msgmtime, d.msginonumber);
+	d.taspoolid = strdup(spoolid);
+	if (!d.taspoolid) {
+	  ctlclose(&d);
+	  close(d.msgfd);
+	  return NULL;
+	}
 
 	return &d;
 }

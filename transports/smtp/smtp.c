@@ -177,7 +177,7 @@ outbuf_fillup:
 	while (!getout) {
 
 	  time(&now);
-	  if (tmout >= now)
+	  if (now < tmout)
 	    tv.tv_sec = tmout - now;
 	  else
 	    tv.tv_sec = 0;
@@ -189,7 +189,7 @@ outbuf_fillup:
 	  rc = select(infd+1, &rdset, NULL, NULL, &tv);
 	  time(&now);
 
-	  if (now > tmout && SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
+	  if (now >= tmout && SS->smtpfp && sffileno(SS->smtpfp) >= 0) {
 	    /* Timed out, and have a writable SMTP connection active.. */
 	    /* Lets write a NOOP there. */
 	    smtp_flush(SS); /* Flush in every case */
@@ -201,7 +201,7 @@ outbuf_fillup:
 	      smtpclose(SS, 0);
 	    }
 	  }
-	  if (now > tmout)
+	  if (now >= tmout)
 	    tmout = now + 3*60; /* Another 'keepalive' in 3 minutes */
 
 	  if (rc == 1) { /* We have only ONE descriptor readable.. */
@@ -778,6 +778,9 @@ main(argc, argv)
 	    continue;
 	  }
 
+	  /* Copy the spoolid string pointer */
+	  SS.taspoolid = dp->taspoolid;
+
 	  time(&starttime);
 	  notary_setxdelay(0);
 	
@@ -1277,8 +1280,10 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->smtpfp) {
 	    if (pipelining)
 	      r = smtp_sync(SS, r, 0); /* Collect reports in blocking mode */
+#if 0
 	  } else {
 	    r = EX_TEMPFAIL; /* XXX: ??? */
+#endif
 	  }
 
 	  /* Sync system which rejects subsequent MAIL FROM if not
@@ -3067,6 +3072,7 @@ abort();
 	  int on = 1;
 	  /* setreuid(0,0); */
 	  *fdp = sk;
+
 #if 1
 	  setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, (void*)&on, sizeof on);
 #else
@@ -3076,6 +3082,7 @@ abort();
 	  setsockopt(sk, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
 #endif /* BSD >= 43 */
 #endif
+
 	  if (conndebug)
 	    fprintf(stderr, "connected!\n");
 

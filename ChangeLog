@@ -1,3 +1,19 @@
+2001-10-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* transports/smtp/smtp.c, transports/smtp/smtptls.c:
+	    - edge comparisons in time handling code cause
+	      short (1 sec) busy-loopings every now and then.
+	    - When MAIL FROM results a 5xx status with immediate
+	      closure of the socket following that report,
+
+	* transports/smtp/smtptls.c, transports/smtp/smtp.h,
+	  transports/smtp/smtp.c, transports/libta/ctlopen.c,
+	  transports/libta/tasyslog.c, include/ta.h:
+	    Move the "taspoolid()" invokation into ctlopen()
+	    processing from within  tasyslog()  call.
+	    At  smtp  copy also the "->taspoolid" pointer
+	    field into the SmtpState structure.
+	
 2001-10-23  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* scheduler/msgerror.c, scheduler/scheduler.c,

@@ -247,6 +247,10 @@ transports/smtp:
 
 
 - scheduler:
+    BUG:
+	When scheduler does resyncing, the  mtaMessageCount & global_wrkcnt
+	will decrement below the real count.  "leak negative" so to speak.
+
     FEATURE:
 	scheduler + mailq: Complete the V2 protocol authentication,
 	and turn it into mandated default mode.

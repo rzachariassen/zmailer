@@ -1,11 +1,11 @@
-/* This is heavily bastardized TLS code for SMTP client (POSTFIX) bt:
+/* This is heavily bastardized TLS code for SMTP client (POSTFIX) by:
  *	Lutz Jaenicke
  *	BTU Cottbus
  *	Allgemeine Elektrotechnik
  *	Universitaetsplatz 3-4
  *	D-03044 Cottbus, Germany
  *
- * Adaptation to ZMailer is by Matti Aarnio <mea@nic.funet.fi> (c) 1999-2000
+ * Adaptation to ZMailer is by Matti Aarnio <mea@nic.funet.fi> (c) 1999-2001
  */
 
 #include "smtp.h"
@@ -1228,6 +1228,7 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	      tv.tv_sec = timeout_tcpw;
 	      tv.tv_usec = 0;
 
+	      errno = 0;
 	      r = select(i+1, &rdset, &wrset, NULL, &tv);
 	      e = errno;
 
@@ -1271,9 +1272,10 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 
 		e = ETIMEDOUT;
 
+
 zsyslog((LOG_ERR,
-	 "ERROR: SMTP socket write timeout; leftover=%d; IP=[%s] mx=%d/%d\n",
-	 len, SS->ipaddress, SS->firstmx, SS->mxcount));
+	 "%s: ERROR: SMTP socket write timeout; leftover=%d; IP=[%s] mx=%d/%d\n",
+	 SS->taspoolid, len, SS->ipaddress, SS->firstmx, SS->mxcount));
 
 		break;
 	      }

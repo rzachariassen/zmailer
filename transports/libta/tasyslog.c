@@ -36,7 +36,6 @@ const char *statstr;
 const char *msg;
 {
   char linebuf[8000];		/* Should be aplenty..		*/
-  char spoolid[30];		/* Min. space: 6+8+1 chars	*/
   char delays[16], xdelays[16]; /* Min. space: 8+1 chars	*/
   time_t now;
   static const char *syslogflg = NULL;
@@ -67,8 +66,6 @@ const char *msg;
     return;  /* If no 'T' flag in SYSLOGFLG, no transport agent sysloging! */
   
 
-  taspoolid(spoolid, rp->desc->msgmtime, rp->desc->msginonumber);
-
   time(&now);
 
   tatimestr(delays,(int)(now - rp->desc->msgmtime));
@@ -94,16 +91,17 @@ const char *msg;
 #endif
   if (wtthost == NULL)
     sprintf(linebuf, ((*t == 't') ? fmt1t : fmt1c),
-	    spoolid, rp->addr->user, delays, xdelays, rp->addr->channel, statstr, msg);
+	    rp->desc->taspoolid, rp->addr->user, delays, xdelays,
+	    rp->addr->channel, statstr, msg);
   else {
     if (wttip != NULL)
       sprintf(linebuf, ((*t == 't') ? fmt2t : fmt2c),
-	    spoolid, rp->addr->user, delays, xdelays, rp->addr->channel,
-	      wtthost, wttip, statstr, msg);
+	    rp->desc->taspoolid, rp->addr->user, delays, xdelays,
+	      rp->addr->channel, wtthost, wttip, statstr, msg);
     else
       sprintf(linebuf, ((*t == 't') ? fmt3t : fmt3c),
-	      spoolid, rp->addr->user, delays, xdelays, rp->addr->channel,
-	      wtthost, statstr, msg);
+	      rp->desc->taspoolid, rp->addr->user, delays, xdelays,
+	      rp->addr->channel, wtthost, statstr, msg);
   }
 
   if (wtttaidpid > 0) {

@@ -423,6 +423,8 @@ typedef struct {
   char *tls_ccert_issuer;
   char *tls_ccert_fingerprint;
 
+  const char *taspoolid;
+
 } SmtpState;
 
 extern const char *FAILED;

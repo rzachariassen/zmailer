@@ -101,6 +101,7 @@ struct ctldesc {
 	const char	*verbose;	/* file for verbose logging */
 	const char	*envid;		/* DSN ENVID data */
 	const char	*dsnretmode;	/* DSN RET=-mode */
+	const char	*taspoolid;
 	time_t		msgmtime;	/* Message file arrival time */
 	long		msgbodyoffset;	/* offset of message body in msgfile */
 	long		msgsizeestimate; /* Estimate of the msg size */
