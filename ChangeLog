@@ -1,3 +1,12 @@
+2000-05-26  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
+
+	* transports/smtp/smtp.c, transports/smtp/smtp.h:
+	    Cosmetics-like things about diagnostics tracking.
+
+	* proto/newdb.in, proto/newdbprocessor.in, proto/post-install.sh.in:
+	    These are all PERL scripts now -- that last one should be
+	    renamed, thinking about it...
+
 2000-05-25  Matti Aarnio  <mea@aarnima1-pc1.tmt.tele.fi>
 
 	* transports/smtp/smtptls.c:

@@ -7,6 +7,7 @@ Known/suspected bugs/Missing Features on current ZMailer sources
     without becoming same uid+gid as the source file is (and with
     matching umask) -- perhaps the current SH script must be turned
     into e.g. C program ? 
+- FEATURE:
   - Also, how about enabling non-privileged users to execute "zmailer newdb"
     to recompile their own databases even though they won't be able to
     recreate all dbases and their hook .zmsh scripts ?
@@ -87,6 +88,13 @@ router:
 
 
 transports/smtp:
+   BUGLET:
+	Right now we make eminently sensible commentary diagnostics carrying
+	individual recipient addresses, but how shall we do diagnostics when
+	e.g. DATA/dot phase ends up on violation ?  Now we get the *last*
+	recipient address before DATA, not them all..
+
+
    BUG:	PIPELINING:  If all RCPTs are rejected with 400 series code,
 	and the final DATA is then rejected with 500 series code, DON'T
 	abort with permanent error -- plus retry..

@@ -15,8 +15,8 @@ $SOPT  = '';
 $TOPT  = '';
 $err   = 0;
 
-%opts = {};
-%ZENV = {};
+%opts = ();
+%ZENV = ();
 
 if (!getopts('alsut:', \%opts) || !defined($ARGV[0])) {
 

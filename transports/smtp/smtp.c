@@ -1152,6 +1152,9 @@ deliver(SS, dp, startrp, endrp)
 
 	  /* Sync system which rejects subsequent MAIL FROM if not
 	     getting an RSET ??   *dont* yield diagnostic()s here! */
+
+	  SS->cmdstate     = SMTPSTATE_RCPTTO; /* 1 + MAILFROM.. */
+
 	  if (SS->smtpfp)
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	      if ( ! mail_from_failed ) {
@@ -1238,6 +1241,9 @@ deliver(SS, dp, startrp, endrp)
 
 	if (nrcpt == 0) {
 	  /* all the RCPT To addresses were rejected, so reset server */
+
+	  SS->cmdstate     = SMTPSTATE_DATA; /* 1 + RCPTTO.. */
+
 	  if (SS->smtpfp)
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	      r = EX_TEMPFAIL;
@@ -1263,6 +1269,8 @@ deliver(SS, dp, startrp, endrp)
 #ifndef DO_CHUNKING
 	SS->chunking = 0;
 #endif
+
+	SS->cmdstate = SMTPSTATE_DATA;
 
 	if (SS->chunking) {
 
@@ -1316,8 +1324,6 @@ deliver(SS, dp, startrp, endrp)
 	} else if (pipelining) {
 
 	  /* No CHUNKING here... do normal DATA-dot exchange */
-
-	  SS->cmdstate = SMTPSTATE_DATA;
 
 	  /* In PIPELINING mode ... send "DATA" */
 	  r = smtpwrite(SS, 1, "DATA", pipelining, NULL);
@@ -1437,7 +1443,8 @@ deliver(SS, dp, startrp, endrp)
 	      /* NOTARY: address / action / status / diagnostic / wtt */
 	      notaryreport(rp->addr->user,FAILED,
 			   "5.4.2 (Message header write failure)",
-			   "smtp; 566 (Message header write failure)"); /* XX: FIX THE STATUS? */
+			   /* XX: FIX THE STATUS? */
+			   "smtp; 566 (Message header write failure)");
 	      diagnostic(rp, r, 0, "%s", "header write error");
 	    }
 	  if (SS->verboselog)
@@ -1503,6 +1510,8 @@ deliver(SS, dp, startrp, endrp)
 
 	gotalarm = 0;
 
+	SS->cmdstate = SMTPSTATE_DATADOT;
+
 	if (SS->chunking) {
 	  r = bdat_flush(SS, 1);
 	} else {
@@ -1556,13 +1565,7 @@ deliver(SS, dp, startrp, endrp)
 	}
 	time(&endtime);
 	notary_setxdelay((int)(endtime-starttime));
-	if (r == EX_OK) {
-	  /* There is initial string in SS->remotemsg[] as: "\r<<- .\r->> ",
-	     which we are to skip.. */
-	  int len = strlen(SS->remotemsg);
-	  if (strncmp(SS->remotemsg,"\r<<- .\r->> ",11)==0)
-	    strncpy(SS->remotemsg, SS->remotemsg +11, len+1-11);
-	}
+
 	for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	  if (rp->lockoffset) {
 	    char *reldel = "-";
@@ -1586,6 +1589,8 @@ deliver(SS, dp, startrp, endrp)
 	/* More recipients to send ? */
 	if (r == EX_OK && more_rp != NULL && !getout)
 	  goto more_recipients;
+
+	SS->cmdstate = SMTPSTATE_DATADOTRSET;
 
 	if (r != EX_OK && SS->smtpfp && !getout)
 	  if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)

@@ -367,12 +367,14 @@ typedef struct {
   int   chunksize, chunkspace;
 
   char remotemsg[2*ZBUFSIZ];
-  char *remotemsgs[3];
+  char *remotemsgs[5];
 
   int  cmdstate, prevcmdstate;
 #define SMTPSTATE_MAILFROM 0
 #define SMTPSTATE_RCPTTO   1
 #define SMTPSTATE_DATA     2
+#define SMTPSTATE_DATADOT  3
+#define SMTPSTATE_DATADOTRSET 4
 
   char remotehost[MAXHOSTNAMELEN+1];
   char *mailfrommsg;

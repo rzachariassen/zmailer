@@ -1,7 +1,4 @@
-#!/bin/sh
-
-exit 99 ## FIXME FIXME!!!  REWRITE IN PERL!
-
+#! @PERL@
 
 #
 #  Post-Installation script to complete the installation process.
@@ -25,221 +22,264 @@ exit 99 ## FIXME FIXME!!!  REWRITE IN PERL!
 # Common file comparison sub-program
 # Args: - base directory 
 #
-compare_files()
-{
-    DIR=$1
 
-    cd $DIR/proto || exit 1
+sub compare_files {
+    local ($DIR) = @_;
+    local ($x);
 
-    for x in *
-    do
-	case "$x" in
-	*.md5)
-	    ;;
-	*)    compare_file $x
-	    ;;
-	esac
-    done
+    chdir "${DIR}/proto" || die ("Can't chdir('${DIR}/proto/')");
+
+    opendir DH, "." || die ("Opendir('.') failed!");
+    local(@files) = readdir(DH);
+    closedir(DH);
+
+    foreach $x (@files) {
+	next if ($x =~ m/.*\.md5\$/o);
+
+	& compare_file($x);
+    }
 }
 
 
-compare_file()
-{
-    x="$1"
-    if [ ! -f "$x.md5" ] ; then
-	if [ ! -f "../$x" ] ; then
+sub compare_file {
+    local($x) = @_;
+    local($s1,$s2,$y);
+
+    if ( ! -f "${x}.md5" ) {
+	if ( ! -f "../${x}" ) {
 	    # A new file, easy to know that we can recalc the MD5SUM.
-	    mv "$x" ../
-	    $MD5SUM -b "../$x" > "$x.md5"
-	else
+	    rename("$x", "../$x");
+	    system("$MD5SUM -b ../$x > $x.md5");
+	} else {
 	    # Don't overwrite!
-	    if [ $STYLE = OLD ]; then
-		if cmp -s "$x" "../$x" ; then
+	    if ( $STYLE eq 'OLD') {
+		if (!system("cmp -s $x ../$x")) {
 		    # MATCH of the files
-		    $MD5SUM -b "../$x" > "$x.md5"
-		else
+		    system("$MD5SUM -b ../$x > $x.md5");
+		} else {
 		    # Non-match of the files, sum the NEW file!
-		    $MD5SUM -b "$x" > "$x.md5"
-		fi
-	    else
-		echo "File exists, but no MD5 sum?? $DIR/$x"
+		    system("$MD5SUM -b $x > $x.md5");
+		}
+	    } else {
+		printf "File exists, but no MD5 sum?? $DIR/$x\n";
 		# Sum the NEW file
-		$MD5SUM -b "$x" > "$x.md5"
-	    fi
-	fi
-    fi
-    if [ -f "$x" -a -f "$x.md5" ] ; then
+		system("$MD5SUM -b $x > $x.md5");
+	    }
+	}
+    }
+    if ( -f "$x" && -f "${x}.md5" ) {
 	# Still file exists, destination has this file ??
 	# Lets compare MD5 sums
 	# Destination file
-	read md1 junk <<EOF
-`$MD5SUM -b "../$x"`
-EOF
+	local($md1,$md2,$l,$junk);
+	$l=`$MD5SUM -b "../$x"`;
+	($md1,$junk) = split(' ',$l);
 	# And its associated MD5 signature file
-	read md2 junk <<EOF
-`cat "$x.md5"`
-EOF
+	$l=`cat $x.md5`;
+	($md2,$junk) = split(' ',$l);
 	# echo "File: $x MD1=$md1 MD2=$md2"
-	if [ "$md1" = "$md2" ]; then
+	if ( $md1 eq $md2 ) {
 	    # They do match! We overwrite old file with new
-	   mv "$x" ../
-	   $MD5SUM -b "../$x" > "$x.md5"
-	fi
-    fi
-    if [ -f "$x" ]; then
-	y="`echo "$x"|sed -e 's!/proto/!/!'`"
-	echo "File $DIR/$y has mismatching MD5 sum."
-	echo "    won't overwrite it with $DIR/$x."
-    fi
+	   rename("$x", "../$x");
+	   system("$MD5SUM -b ../$x > $x.md5");
+	}
+    }
+    if ( -f "$x" ) {
+	$y = $x;
+	$y =~ s!/proto/!/!;
+	printf "File $DIR/$y has mismatching MD5 sum.\n";
+	printf "    won't overwrite it with $DIR/$x.\n";
+    }
 }
 
 
 # ----------  POSTOFFICE DIRECTORY BUILDER ------------
 
-dirprealloc()
-{
-    DIR=$1
-    DSIZE=${2}000
+sub dirprealloc {
+    local($DIR,$DSIZE) = @_;
+    local(@st);
 
-    NAME=1
-    > $DIR/filename.0
-    SIZE=`ls -ld $DIR/.|awk '{print $5}'`
-    while [ $SIZE -lt $DSIZE ]; do
-	ln $DIR/filename.0 $DIR/filenamefilenamefilenamefilenamefilenamefilenamefilenamefilename.$NAME
-	SIZE=`ls -ld $DIR/.|awk '{print $5}'`
-	NAME=`expr $NAME + 1`
-    done
-    (cd $DIR; rm -f *)
+    $DSIZE *= 1000;
+
+    local($NAME) = "filenamefilenamefilenamefilenamefilenamefilenamefilenamefilenamefilename";
+
+    local($NUM) = 1;
+    open(OFP, "> $DIR/filename.0");
+    close(OFP);
+
+    @st = stat("."); # Can't fail ( -- eh ? )
+    local($SIZE) = $st[7];
+
+    while ($SIZE < $DSIZE) {
+	# Link as long as you can -- or size is desired..
+	link("$DIR/filename.0","$DIR/$NAME.$NUM") || last;
+
+	@st = stat("."); # Can't fail ( -- eh ? )
+	local($SIZE) = $st[7];
+
+	$NUM += 1;
+    }
+
+
+    # Now clean up after allocations..
+    
+    opendir DH, "$DIR/." || die ("Opendir('$DIR/.') failed!");
+    local(@files) = readdir(DH);
+    closedir(DH);
+    local($x);
+    foreach $x (@files) {
+	next if ($x eq '.');
+	next if ($x eq '..');
+	unlink("$DIR/$x");
+    }
 }
 
-mkpostofficedir()
-{
-    DIR=$1
-    MOD=$2
-    HASH=$3
-    DSIZE=$4
+sub mkpostofficedir {
+    local($DIR,$MOD,$HASH,$DSIZE) = @_;
 
-    cd $POSTOFFICE
-    if [ ! -d $DIR ]; then
-	mkdir -p $DIR
-	chmod $MOD $DIR
-	dirprealloc $DIR $DSIZE
-	if [ "$HASH" = "HASH" ]; then
-	    for xx in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
-	    do
-		mkdir -p $DIR/$xx
-		chmod $MOD $DIR/$xx
-		dirprealloc $DIR/$xx $DSIZE
-	    done
-	fi
-	if [ "$HASH" = "HASH2" ]; then
-	    for xx in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
-	    do
-		mkdir -p $DIR/$xx
-		chmod $MOD $DIR/$xx
-		dirprealloc $DIR/$xx $DSIZE
-	    done
-	    for xx in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
-	    do
-		for yy in A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
-		do
-		    mkdir -p $DIR/$xx/$yy
-		    chmod $MOD $DIR/$xx/$yy
-		    dirprealloc $DIR/$xx/$yy $DSIZE
-		done
-	    done
-	fi
-    fi
+    chdir($POSTOFFICE);
+    if ( ! -d $DIR ) {
+	system("$MKDIR -p $DIR");
+	system("chmod $MOD $DIR");
+	& dirprealloc($DIR, $DSIZE);
+	local($xx,$yy);
+	if ($HASH eq 'HASH') {
+	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
+		system("$MKDIR -p $DIR/$xx");
+		system("chmod $MOD $DIR/$xx");
+		system("chmod g+s $DIR/$xx");
+		& dirprealloc("$DIR/$xx", $DSIZE);
+	    }
+	}
+	if ($HASH eq 'HASH2') {
+	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
+		system("$MKDIR -p $DIR/$xx");
+		system("chmod $MOD $DIR/$xx");
+		system("chmod g+s $DIR/$xx");
+		& dirprealloc("$DIR/$xx", $DSIZE);
+	    }
+	    foreach $xx ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
+		foreach $yy ('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z') {
+		    system("$MKDIR -p $DIR/$xx/$yy");
+		    system("chmod $MOD $DIR/$xx/$yy");
+		    system("chmod g+s $DIR/$xx/$yy");
+		    & dirprealloc("$DIR/$xx/$yy", $DSIZE);
+		}
+	    }
+	}
+    }
 }
 
+# -----------------  pick_zenv() ----------------------
+
+sub pick_zenv {
+
+    my ($ZCONFIG) = '@ZMAILERCFGFILE@';
+
+    open(ZZ, "< ".$ZCONFIG) || die "No ZCONFIG file at '$ZCONFIG'";
+    while (<ZZ>) {
+	chomp;
+	local($n,$l) = split(/=/,$_,2);
+	$ZENV{$n} = $l  if ($n =~ m/^[A-Z0-9a-z]/);
+    }
+    close(ZZ);
+}
 
 # ------------------  MAIN PROGRAM --------------------
 
-ZCONFIG=@ZMAILERCFGFILE@
-MKDIR="@MKDIR@"
+$MKDIR = "@MKDIR@";
+%ZENV  = ();
 
-. $ZCONFIG
+& pick_zenv();
 
-if [ -z "$MAILSHARE" ]
+$POSTOFFICE = $ZENV{'POSTOFFICE'};
+$MAILSHARE  = $ZENV{'MAILSHARE'};
+$MAILVAR    = $ZENV{'MAILVAR'};
+$MAILBIN    = $ZENV{'MAILBIN'};
 
-MD5SUM="@MD5SUM@"
+die "Failed to pick POSTOFFICE from @ZMAILERCFGFILE@ !?"
+    if (!defined $POSTOFFICE || $POSTOFFICE eq '');
 
-STYLE=""
-if [ "$1" = "-MD5" ] ; then
-    STYLE=MD5
-    shift
-elif [ "$1" = "-OLDSTYLE" ] ; then
-    STYLE=OLD
-    shift
-else
-    echo "post-install.sh [-MD5|-OLDSTYLE]"
-    exit
-fi
+$MD5SUM = "@MD5SUM@";
 
-if [ "$STYLE" = "" ] ; then
-    echo "post-install.sh [-MD5|-OLDSTYLE]"
-    echo " On first time around, it is SUGGESTED that you use"
-    echo " the  -OLDSTYLE   option...."
-    exit
-fi
+$STYLE = '';
+if ($ARGV[0] eq '-MD5') {
+    $STYLE = 'MD5';
+    shift @ARGV;
+} elsif ($ARGV[0] eq '-OLDSTYLE') {
+    $STYLE = 'OLD';
+    shift @ARGV;
+} else {
+    printf "post-install.sh [-MD5|-OLDSTYLE]\n";
+    exit 1;
+}
 
-trap 'echo "Directory access failure; DIR=$DIR/proto"' 0
+if ($STYLE eq '') {
+    printf "post-install.sh [-MD5|-OLDSTYLE]\n";
+    printf " On first time around, it is SUGGESTED that you use\n";
+    printf " the  -OLDSTYLE   option....\n";
+    exit 1;
+}
+
+# trap 'echo "Directory access failure; DIR=$DIR/proto"' 0
 
 # exit 99 # Sorry, not yet!
 
-pwd=`pwd`
+if ( ! -d "$MAILSHARE/bak" ) {
+    system("$MKDIR $MAILSHARE/bak");
+}
 
-if [ ! -d $MAILSHARE/bak ]; then $MKDIR $MAILSHARE/bak ; fi
-
-for xx in $MAILSHARE $MAILSHARE/forms $MAILSHARE/cf $MAILVAR/db
-do
-    compare_files $xx
-done
+foreach $x ("$MAILSHARE", "$MAILSHARE/forms", "$MAILSHARE/cf", "$MAILVAR/db") {
+    & compare_files($xx);
+}
 
 # ----------------------------
 #    Database prototypes ???
 
-for x in $MAILSHARE/proto/router.cf	   $MAILSHARE/proto/scheduler.conf  \
-	 $MAILSHARE/proto/smtpserver.conf  $MAILSHARE/proto/sm.conf	    \
-	 $MAILSHARE/proto/smtp-tls.conf					    \
-	 $MAILVAR/db/proto/aliases         $MAILVAR/db/proto/localnames     \
-	 $MAILVAR/db/proto/fqdnaliases     $MAILVAR/db/proto/routes	    \
-	 $MAILVAR/db/proto/smtp-policy.src $MAILVAR/db/proto/smtp-policy.mx \
-	 $MAILVAR/db/proto/smtp-policy.relay
-do
-    y="`echo "$x" | sed -e 's!/proto/!/!'`"
-    if [ -f "$x" ] ; then
-	cmp -s "$x" "$y" && echo "*** Verify  $y  file!"
-    fi
-done
+foreach $x (qw("$MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf
+	 $MAILSHARE/proto/smtpserver.conf  $MAILSHARE/proto/sm.conf	  
+	 $MAILSHARE/proto/smtp-tls.conf					  
+	 $MAILVAR/db/proto/aliases         $MAILVAR/db/proto/localnames   
+	 $MAILVAR/db/proto/fqdnaliases     $MAILVAR/db/proto/routes	  
+	 $MAILVAR/db/proto/smtp-policy.src $MAILVAR/db/proto/smtp-policy.mx
+	 $MAILVAR/db/proto/smtp-policy.relay")) {
 
-$MAILBIN/zmailer newdb
+    $y = $x;
+    $y =~ s!/proto/!/!o;
+    if ( -f $x ) {
+	printf "**** Verify  $y  file!\n"
+	    unless (system("cmp -s $x $y"));
+    }
+}
 
-$MAILBIN/policy-builder.sh -n
+system("$MAILBIN/zmailer newdb");
 
-mkdir -p $POSTOFFICE
-chmod 2755 $POSTOFFICE
-chmod g+s $POSTOFFICE
+system("$MAILBIN/policy-builder.sh -n");
+
+system("$MKDIR -p $POSTOFFICE");
+system("chmod 2755 $POSTOFFICE");
+system("chmod g+s $POSTOFFICE");
 
 #  subdir protchmod "no"/"HASH"/"HASH2" dirpreallocsize
-mkpostofficedir deferred      750 no    60
-mkpostofficedir TLSsrvrcache  700 HASH  60
-mkpostofficedir TLSclntcache  700 HASH  60
-mkpostofficedir freezer       750 no    60
-mkpostofficedir postman       750 no    60
-mkpostofficedir public       1777 no    60
-mkpostofficedir queue         750 HASH2 60
-mkpostofficedir transport     750 HASH2 60
-mkpostofficedir router       1777 HASH  60
+& mkpostofficedir('deferred',     '750', 'no',    60);
+& mkpostofficedir('TLSsrvrcache', '700', 'HASH',  60);
+& mkpostofficedir('TLSclntcache', '700', 'HASH',  60);
+& mkpostofficedir('freezer',      '750', 'no',    60);
+& mkpostofficedir('postman',      '750', 'no',    60);
+& mkpostofficedir('public',      '1777', 'no',    60);
+& mkpostofficedir('queue',        '750', 'HASH2', 60);
+& mkpostofficedir('transport',    '750', 'HASH2', 60);
+& mkpostofficedir('router',      '1777', 'HASH',  60);
 
-cat <<EOF
+printf "
 ***
 *** Remember to verify input databases, and then execute commands:
 ***    $MAILBIN/zmailer newdb
 ***    $MAILBIN/policy-builder.sh (-n)
 ***
-EOF
+";
 
-trap "" 0
-exit 0
+#trap "" 0
+exit 0;
 
+1;

@@ -178,7 +178,7 @@ foreach $rel (keys %rels) {
 		$rdbexttst = '.dbh';
 		$rdbext    = '.dbh';
 		$rdbtype   = $rtype;
-		system("newdb -s $rndbopt -t btree $fn");
+		system("newdb -s $rndbopt -t bhash $fn");
 		printf ":NEW";
 	} else {
 		$rdbexttst = '.dat';
