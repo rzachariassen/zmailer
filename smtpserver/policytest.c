@@ -1850,23 +1850,21 @@ static int pt_mailfrom(state, str, len)
     }
 
 
+    if ((len > 0)  && (at[1] != '[') && state->values[P_A_SENDERokWithDNS]) {
+      /*
+       * Reject if not found in DNS (and not an address literal)
+       */
+      int test_c = state->values[P_A_SENDERokWithDNS][0];
+      int rc = sender_dns_verify(state, test_c, at+1, len - (1 + at - str));
+      if (debug)
+	type(NULL,0,NULL," ... returns: %d", rc);
+      PICK_PA_MSG(P_A_SENDERokWithDNS);
+      if (rc != 0) return rc;
+    }
+
     if (state->authuser) {
-      /* We do have an authenticated user, which overrides a lot
-	 of further tests, but lets still verify that the source
-	 domain exists in the DNS (if it is not an address literal):  */
-      if ((len > 0) && (at[1] != '[')) {
-	int test_c = '-';
-	int rc = sender_dns_verify(state, test_c, at+1, len - (1 + at - str));
-	if (debug)
-	  type(NULL,0,NULL," ... returns: %d", rc);
-	if (rc) {
-	  if (state->message) free(state->message);
-	  state->message = strdup("Sorry, bad DNS result for your source domain");
-	}
-	return rc;
-      }
-      /* Here is zero-size source address,
-	 or the domain is an address literal */
+      if (debug)
+	type(NULL,0,NULL," allow authenticated user");
       return 0;
     }
 
@@ -1877,36 +1875,16 @@ static int pt_mailfrom(state, str, len)
       if (debug)
 	type(NULL,0,NULL," policytestaddr: 'trust-whoson +' found, accept? = %d",
 	     (state->whoson_result == 0));
-      if (state->whoson_result == 0) {
-	/* Accept, but lets verify source address' domain existence */
-	if ((len > 0) && (at[1] != '[')) {
-	  int test_c = '-';
-	  int rc = sender_dns_verify(state, test_c, at+1, len - (1 + at - str));
-	  if (debug)
-	    type(NULL,0,NULL," ... returns: %d", rc);
-	  if (rc) {
-	    if (state->message) free(state->message);
-	    state->message = strdup("Sorry, bad DNS result for your source domain");
-	  }
-	  return rc;
-	}
-	/* Here is zero-size source address,
-	   or the domain is an address literal */
+      if (state->whoson_result == 0)
 	return 0; /* OK! */
-      }
     }
 #endif
 
 
-    if ((len > 0)  && (at[1] != '[') && state->always_accept ) {
-      /* We have IP-ACL based 'always accept' setting already on,
-	 now we still do verification that the source address
-	 that is given does exist in the DNS: */
-      int rc;
-      rc = sender_dns_verify(state, '-', at+1, len - (1 + at - str));
+    if ( state->always_accept ) {
       if (debug)
-	type(NULL,0,NULL," ... returns: %d", rc);
-      return rc;
+	type(NULL,0,NULL," allow because of \"always-accept\"");
+      return 0;
     }
 
 #ifdef Z_CHECK_SPF_DATA
@@ -1962,18 +1940,8 @@ static int pt_mailfrom(state, str, len)
       return rc;
 #endif
 
-    if ((len > 0)  && (at[1] != '[') && state->values[P_A_SENDERokWithDNS]) {
-      /* Accept if found in DNS, and not an address literal! */
-      int test_c = state->values[P_A_SENDERokWithDNS][0];
-      int rc = sender_dns_verify(state, test_c, at+1, len - (1 + at - str));
-      if (debug)
-	type(NULL,0,NULL," ... returns: %d", rc);
-      PICK_PA_MSG(P_A_SENDERokWithDNS);
-      return rc;
-    }
-
-    rc=0;
-    return rc;
+    /* If nobody requested reject so far, do allow... */
+    return 0;
 }
 
 static int pt_rcptto(state, str, len)
