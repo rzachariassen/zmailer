@@ -126,7 +126,7 @@ struct procinfo *proc;
 	  len = 1;
 	} else {
 	  memcpy(proc->cmdbuf,"#idle\n", 6);
-	  len = 5;
+	  len = 6;
 	  /* Count this feed as one of normal inputs.
 	     At least we WILL get a "#hungry" message for this */
 	  proc->overfed = 2;
