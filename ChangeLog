@@ -1,3 +1,11 @@
+2000-10-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* doc/guides/smtp-policy, utils/policy-builder.sh.in:
+	    Defined ".manual" versions for ".mx", and ".relay"
+	    of  smtp-policy driver files.  This enables more
+	    wide-spread automated data fill-in, plus local
+	    ".manual overrides".
+
 2000-10-17  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/libta/ctlopen.c:
@@ -137,7 +145,7 @@
 	    although an alternate (binary labels) is defined these days...
 
 	* transports/libta/ctlopen.c:
-	    See if the message to be opened is a ETRN request -- if yes,
+	    See if the message to be opened is an ETRN request -- if yes,
 	    just return with failure...  (manual-expirer triggers this.)
 
 	* transports/libta/mimeheaders.c:

@@ -4,11 +4,13 @@
 #
 # This merges following files from $MAILVAR/db/ directory:
 #	smtp-policy.src
-#	localnames	        ('= _localnames')
-#	smtp-policy.relay       ('= _full_rights')
-#	smtp-policy.mx	        ('= _relaytarget')
-#	smtp-policy.spam        ('= _bulk_mail')
-#	smtp-policy.spam.manual ('= _bulk_mail')
+#	localnames	         ('= _localnames')
+#	smtp-policy.relay.manual ('= _full_rights')
+#	smtp-policy.relay        ('= _full_rights')
+#	smtp-policy.mx.manual    ('= _relaytarget')
+#	smtp-policy.mx	         ('= _relaytarget')
+#	smtp-policy.spam         ('= _bulk_mail')
+#	smtp-policy.spam.manual  ('= _bulk_mail')
 #
 # These all together are used to produce files:  smtp-policy.$DBEXT
 # The produced database retains the first instance of any given key.
@@ -115,14 +117,29 @@ fi
   # (well, actually it could also list e.g.: ".our.domain" if it would
   #  be fine to allow relaying from anybody whose IP address reverses to
   #  domain suffix ".our.domain")
+  if [ -f smtp-policy.relay.manual ] ; then
+    echo "# -------------------------"
+    echo "# smtp-policy.relay.manual:"
+    cat smtp-policy.relay.manual | \
+    awk '/^#/{next;}
+	{printf "%s = _full_rights\n",$0;next;}'
+  fi
   if [ -f smtp-policy.relay ] ; then
     echo "# ------------------"
     echo "# smtp-policy.relay:"
     cat smtp-policy.relay | \
     awk '/^#/{next;}
-	{printf "%s  %s %s %s %s %s %s %s %s = _full_rights\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;next;}'
+	{printf "%s = _full_rights\n",$0;next;}'
   fi
 
+  # smtp-policy.mx.manual
+  # (Lists domains that are allowed to use us as inbound MX relay for them)
+  if [ -f smtp-policy.mx.manual ] ; then
+    echo "# ----------------------"
+    echo "# smtp-policy.mx.manual:"
+    cat smtp-policy.mx.manual | \
+    awk '/^#/{next;} NF >= 1 {printf "%s = _relaytarget\n",$1;}'
+  fi
   # smtp-policy.mx
   # (Lists domains that are allowed to use us as inbound MX relay for them)
   if [ -f smtp-policy.mx ] ; then
@@ -146,11 +163,11 @@ fi
 	cat smtp-policy.spam.manual
       fi ) | tr "[A-Z]" "[a-z]" | sed 's/^@//g' | sort | uniq | \
     awk '/^\[/{ # an address block to reject
-	    printf "%s  %s %s %s %s %s %s %s %s rejectnet +\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;
+	    printf "%s  rejectnet +\n",$0;
 	    next;
 	}
 	NF > 0 { # All other cases are usernames with their domains
-	    printf "%s  %s %s %s %s %s %s %s %s = _bulk_mail\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;
+	    printf "%s  = _bulk_mail\n",$0;
 	}'
   fi
 

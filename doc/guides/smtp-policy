@@ -7,11 +7,13 @@
 	things before policy filter is ready for use:
 
 		DB/smtp-policy.src		The boilerplate
-		DB/localnames		   ('= _local_names')
-		DB/smtp-policy.relay	   ('= _full_rights')
-		DB/smtp-policy.mx	   ('= _relaytarget')
-		DB/smtp-policy.spam	   ('= _bulk_mail')
-		DB/smtp-policy.spam.manual ('= _bulk_mail')
+		DB/localnames		    ('= _local_names')
+		DB/smtp-policy.relay.manual ('= _full_rights')
+		DB/smtp-policy.relay	    ('= _full_rights')
+		DB/smtp-policy.mx.manual    ('= _relaytarget')
+		DB/smtp-policy.mx	    ('= _relaytarget')
+		DB/smtp-policy.spam.manual  ('= _bulk_mail')
+		DB/smtp-policy.spam	    ('= _bulk_mail')
 
 	IF YOU WANT, YOU CAN MODIFY YOUR BOILER PLATE AS WELL AS YOUR
 	INSTALLED POLICY-BUILDER.SH SCRIPT.  (Doing 'make install' will
@@ -19,12 +21,18 @@
 
 
 	Basically these various source files (when existing) are used to
-	combine knowledge of valid users around us:
+	combine knowledge of valid users around us.  Some datasets have
+	TWO input source files,  smtp-policy.NN  and  smtp-policy.NN.manual,
+	the ".manual" is intended to be overrider of of possibly auto-
+	generated data at the "plain" version of files:
+
+
 
 	- localnames	Who we are -- ok for receiving; does not
 			grant outgoing relay capability.
 
 
+	- smtp-policy.relay.manual
 	- smtp-policy.relay
 			Who can use us as outbound relay.
 
@@ -53,7 +61,10 @@
 			We can set the "always_accept" flag at the
 			source IP test, and never after.
 
-	- smtp-policy.mx	Who really are our MX clients.
+	- smtp-policy.mx.manual
+	- smtp-policy.mx
+			Who really are our MX clients.
+
 			Use this when you really know them, and don't
 			want just to trust that if recipient has MX
 			to you, it would be ok...
@@ -72,9 +83,11 @@
 			these are magic addresses that email is accepted
 			to, even when everything else is blocked.
 
-	- smtp-policy.spam	Those users & domains that are
-			absolutely no-no for senders, or recipients
-			no matter what earlier analysis has shown.
+	- smtp-policy.spam.manual
+	- smtp-policy.spam
+			Those users & domains that are 	absolutely no-no
+			for the senders, or the recipients, no matter what
+			earlier analysis has shown.
 			(Except for those that we absolutely trust..)
 
 
@@ -141,7 +154,7 @@
 
 	Method is as follows: 
 
-	Pick your choice of databases to the second variant ``_RBL0'' label
+	Pick your choice of databases to the second variant ``_rbl0'' label
 	by joining your selection from various things exemplified here below
 	by using ``:'' character as glue in between: 
 
@@ -159,8 +172,8 @@
 	An example for the resulting attribute pair: (RBL+DUL+RSS) 
 
 	  #| Second RBL variant: Early block with RBL+DUL+RSS
-	  _RBL0   test-dns-rbl  +:dul.maps.vix.com:relays.mail-abuse.org
-	  _RBL1   # Nothing
+	  _rbl0   test-dns-rbl  +:dul.maps.vix.com:relays.mail-abuse.org
+	  _rbl1   # Nothing
 
 2.2 Delayed rejection by RBL
 
@@ -168,8 +181,8 @@
 	``Third RBL variant'': 
 
 	  #| Third RBL variant: Late block with RBL+DUL+RSS
-	  _RBL0   rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
-	  _RBL1   test-rcpt-dns-rbl +
+	  _rbl0   rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+	  _rbl1   test-rcpt-dns-rbl +
 
 	The sample boilerplace will use these as defaults unless you choose
 	to explicitely have ``test-rcpt-dns-rbl -'' at some of the recipient
@@ -412,8 +425,8 @@
 #|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
 #|    If RBL parameters are set below, will use them.
 #
-# .			relaycustomer - relaytarget - senderokwithdns + = _RBL1
-# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _RBL0
+# .			relaycustomer - relaytarget - senderokwithdns + = _rbl1
+# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _rbl0
 #
 #| -- 3rd alternate: MX relay trust, DNS existence verify
 #|    For the people who are in deep s*...  That is, those who for some
@@ -424,8 +437,8 @@
 #|    service abuse.
 #|    If RBL parameters are set below, will use them.
 
-.			relaycustomer - acceptifmx - senderokwithdns + = _RBL1
-[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _RBL0
+.			relaycustomer - acceptifmx - senderokwithdns + = _rbl1
+[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _rbl0
 
 #| -- 4th alternate: Sender & recipient DNS existence verify
 #|    This is more of an example for the symmetry's sake, verifies that
@@ -441,16 +454,16 @@
 #| RBL type test rules:
 
 #| First RBL variant: NONE OF THE RBL TESTS
-_RBL0           # Nothing at early phase
-_RBL1           # Nothing at late phase
+_rbl0           # Nothing at early phase
+_rbl1           # Nothing at late phase
 
 #| Second RBL variant: Early block with RBL+DUL+RSS
-#_RBL0          test-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
-#_RBL1          # Nothing at late phase
+#_rbl0          test-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_rbl1          # Nothing at late phase
 
 #| Third RBL variant: Late block with RBL+DUL+RSS
-#_RBL0          rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
-#_RBL1          test-rcpt-dns-rbl +
+#_rbl0          rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_rbl1          test-rcpt-dns-rbl +
 
 #|  (The "+" at the DNS zone defines is treated as shorthand to
 #|   "rbl.maps.vix.com")
@@ -501,9 +514,9 @@ _our_network	= _full_rights
 #|    Boilerplate macroes for various things.
 #|    If RBL parameters are set above, will use them.
 
-_full_rights	rejectnet - relaycustnet + relaytarget +               = _RBL1
-_localnames	rejectnet - relaycustnet - localdomain + relaytarget + = _RBL1
-_relaytarget	relaytarget +                                          = _RBL1
+_full_rights	rejectnet - relaycustnet + relaytarget +               = _rbl1
+_localnames	rejectnet - relaycustnet - localdomain + relaytarget + = _rbl1
+_relaytarget	relaytarget +                                          = _rbl1
 
 #
 #sztaki.hu		= _full_rights
