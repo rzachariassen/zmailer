@@ -44,6 +44,7 @@ loginit(sig)
 	fcntl(FILENO(stdout), F_SETFL, flags);
 #endif	/* F_SETFL */
 	setvbuf(stdout, (char *)NULL, _IOLBF, 0);
+	freopen(logfn, "a", stderr);
 	setvbuf(stderr, (char *)NULL, _IOLBF, 0);
 	SIGNAL_HANDLE(sig, (RETSIGTYPE(*)())loginit);
 	return 0;

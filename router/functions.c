@@ -529,25 +529,17 @@ static int  start_child(i)
 
   pid = fork();
   if (pid == 0) { /* child */
-#if 0
-    int idx;
 
-    /*fprintf(stderr,"start_child(); tofd=%d fromfd=%d\n",tofd[0],frmfd[1]);*/
+    int idx;
 
     pipes_to_child_fds(tofd,frmfd);
     for (idx = resources_query_nofiles(); idx >= 3; --idx)
-      if (idx != tofd[0] && idx != frmfd[1])
 	close(idx);
 
     resources_maximize_nofiles();
 
-    child_server(tofd[0], frmfd[1]);
+    child_server(0, 1);
 
-#else
-
-    resources_maximize_nofiles();
-    child_server(tofd[0], frmfd[1]);
-#endif
     exit(1);
 
   } else if (pid < 0) { /* fork failed - yell and forget it! */
@@ -601,8 +593,6 @@ static int reader_getc(rc)
   if (rc->readsize <= 0)
     rc->readsize = read(rc->fromchild, rc->readbuf, sizeof(rc->readbuf));
   /* Now either we have something, or we don't.. */
-
-  /*fprintf(stderr,"reader_getc() readsize=%d readout=%d\n",rc->readsize,rc->readout);*/
 
   if (rc->readsize < 0) {
     errno = EAGAIN;
@@ -677,10 +667,11 @@ static int parent_reader(i)
 
       /* LOG THIS LINE! */
 
-      if (logfn && (logfp = fopen(logfn,"a"))) {
-	fprintf(logfp, "[%d] ", rc->childpid);
-	fputs(rc->linebuf, logfp);
-	fclose(logfp);
+      if (logfn) {
+	loginit(SIGHUP); /* Reinit/rotate the log every line .. */
+	fprintf(stdout, "[%d] ", rc->childpid);
+	fputs(rc->linebuf, stdout);
+	fflush(stdout);
       }
 
       rc->linelen = 0;
