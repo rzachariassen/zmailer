@@ -1847,7 +1847,7 @@ if (SS->verboselog)
 			  "smtp; 500 (nameserver data inconsistency. No MX, no address: '%.200s' (%s))",
 			  host, gai_err == EAI_NONAME ? "NONAME" : "NODATA");
 		  zsyslog((LOG_ERR, "%s r=%d", SS->remotemsg, r));
-#if 0
+#if 1
 		  if (r != EX_TEMPFAIL)
 		    r = EX_NOHOST; /* Can do instant reject */
 #else
@@ -3681,22 +3681,11 @@ getmxrr(SS, host, mx, maxmx, depth)
 	    notary_setxdelay((int)(endtime-starttime));
 	    notaryreport(NULL,FAILED,"5.4.4 (DNS lookup report)",SS->remotemsg);
 	    return EX_TEMPFAIL;
-#ifdef OLDJEEVES
-	    /*
-	     * Jeeves (TOPS-20 server) still does not
-	     * support MX records.  For the time being,
-	     * we must accept FORMERRs as the same as
-	     * NOERROR.
-	     */
-	  case FORMERR:
-#endif
 	  case NOERROR:
 	    mx[0].host = NULL;
 	    SS->mxcount = 0;
 	    return EX_OK;
-#ifndef OLDJEEVES
 	  case FORMERR:
-#endif
 	  case NOTIMP:
 	  case REFUSED:
 	    sprintf(SS->remotemsg, "smtp; 500 (DNS: unsupported query: %.200s)", host);
