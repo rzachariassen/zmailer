@@ -1,6 +1,6 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH MAILQ 1 "15 Nov 1999"
+.TH MAILQ 1 "13 Jun 2000"
 .SH NAME
 mailq \- zmailer mail queue printer
 .SH SYNOPSIS
@@ -23,6 +23,10 @@ mailq \- zmailer mail queue printer
 .I user
 ]
 [
+.B \-U
+.IR username / password
+]
+[
 .BR \-v [\fBv\fR]
 ]
 [
@@ -32,7 +36,7 @@ mailq \- zmailer mail queue printer
 .B \-S
 ]
 [
-.B \-Q
+.B \-Q[Q[Q]]
 ]
 [
 .I host
@@ -112,6 +116,9 @@ messages only.
 .IP \-u\ \fIuser\fR
 selects messages sent by the specified user id.  This option is usually
 only useful to the Postmaster on the system.
+.IP \-U\ \fIusername\fR/\fIpassword\fR
+Defines username/password pair for MAILQ-V2 mode connection, in case
+the default "nobody"/"nobody" is not proper.
 .IP \-d
 prints the information received from the scheduler as is.  This will
 override the verbose option.
@@ -121,8 +128,10 @@ specifies an alternate TCP/IP port to connect to a
 at.
 .IP \-Q
 .IP \-QQ
+.IP \-QQQ
 Two Q:s produces an abbreviated summary, while one Q gives full
 report of all threads.
+Three Q:s produces only "SNMP variables" report.
 .SH mailq -Q output codes
 Examples of ``mailq -Q'' output:
 .PP

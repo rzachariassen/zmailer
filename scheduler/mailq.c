@@ -113,7 +113,7 @@ main(argc, argv)
 	progname = argv[0];
 	verbose = debug = errflg = status = user = onlyuser = summary = 0;
 	while (1) {
-	  c = getopt(argc, argv, "dip:r:stu:vVSQ");
+	  c = getopt(argc, argv, "dip:r:stu:U:vVSQ");
 	  if (c == EOF)
 	    break;
 	  switch (c) {
@@ -164,6 +164,22 @@ main(argc, argv)
 	    break;
 	  case 'Q':
 	    ++schedq;
+	    break;
+	  case 'U':
+	    v2username = optarg;
+	    v2password = strchr(v2username,'/');
+	    if (v2password) *v2password++ = 0;
+	    else {
+	      v2password = strchr(v2username,':');
+	      if (v2password) *v2password++ = 0;
+	      else {
+		v2password = strchr(v2username,',');
+		if (v2password) *v2password++ = 0;
+		else {
+		  v2password = "nobody";
+		}
+	      }
+	    }
 	    break;
 	  case 'V':
 	    prversion("mailq");
@@ -1255,7 +1271,7 @@ void query2(fpi, fpo)
 	    memcpy(lines[linecnt], b, bufsize+1);
 	    lines[++linecnt] = NULL;
 
-	    fprintf(stdout,"%s\n", b);
+	    /* fprintf(stdout,"%s\n", b); */
 	  }
 
 	  for (i = 0; lines[i] != NULL; ++i) {

@@ -35,7 +35,16 @@ else
 		# Yes, so update!
 		$MAILBIN/zmailer newfqdnaliases
 	fi
-	relation -lmt $DBTYPE -f $MAILVAR/db/fqdnaliases$DBEXT fqdnaliases
+	relation -lmt $DBTYPE -f $MAILVAR/db/fqdnaliases$DBEXT fqdnaliases_1
+	fqdnaliases (key) {
+	  local a
+	  if a="$(fqdnaliases_1 "$key")"; then
+	    priv="$(filepriv -M 644 $MAILVAR/db/fqdnaliases$DBEXTtest \
+			$(db owner fqdnaliases_1))" &&
+	    return "$a"
+	  fi
+	  return 1
+	}
     else
 	fqdnaliases () { return 1 }
     fi
@@ -116,8 +125,6 @@ fqdn_neighbour (domain, address, A) {
 	#
 	if $(didexpand fqdnaliases) &&  a="$(fqdnaliases "$lcaddress")" ; then
 		db add expansions "$key.fqdnaliases" 1
-		priv=$(filepriv -M 644 $MAILVAR/db/fqdnaliases$DBEXTtest \
-				$(db owner fqdnaliases)) &&
 		nattr=$(newattribute $A privilege $priv) &&
 		return $(echo "$a" |					\
 			 listaddresses	-c "$a fqdn alias expansion" 	\
@@ -149,8 +156,6 @@ fqdn_neighbour (domain, address, A) {
 	    key="$u2$athost"
 	    if $(didexpand fqdnaliases) && a="$(fqdnaliases "$key")" ; then
 		db add expansions "$key.fqdnaliases" 1
-		priv=$(filepriv -M 644 $MAILVAR/db/fqdnaliases$DBEXTtest \
-				$(db owner fqdnaliases)) &&
 		nattr=$(newattribute $A privilege $priv) &&
 		return $(echo "$a" |					\
 			 listaddresses	-c "$a fqdn+ alias expansion" 	\
@@ -185,8 +190,6 @@ fqdn_neighbour (domain, address, A) {
 	key="$athost"
 	if $(didexpand fqdnaliases) && a="$(fqdnaliases "$key")" ; then
 		db add expansions "$key.fqdnaliases" 1
-		priv=$(filepriv -M 644 $MAILVAR/db/fqdnaliases \
-				$(db owner fqdnaliases)) &&
 		nattr=$(newattribute $A privilege $priv) &&
 		return $(echo "$a" |				   \
 			 listaddresses	-c "$a fqdn alias expansion" 	\
