@@ -177,8 +177,9 @@ _hdr_compound(cp, np, cstart, cend, cpp, type, tp, tlist, tlistp)
 nextline:
 	for (; n > 0; ++cp, --n, ++len) {
 		if (*cp == cend) {
-			if (--nest <= 0)
+			if (--nest <= 0) {
 			    break;
+			}
 		} else if (*cp == cstart) {
 			if (type == Comment)
 				++nest;
@@ -218,7 +219,7 @@ nextline:
 		/* type=Error; */	/* hey, no reason to refuse a message*/
 		sprintf(msgbuf, "missing closing '%c' in token", cend);
 		MKERROR(msgbuf, tlist);
-		tp->t_pname = 0;	/* ugly way of signalling scanner */
+		tp->t_pname = NULL;	/* ugly way of signalling scanner */
 	} else if (*cp == cend) {	/* we found matching terminator */
 	  	++len;
 		--n;			/* move past terminator */
@@ -226,8 +227,9 @@ nextline:
 	  abort() ; /* ??? some sort of sanity check ? */
 	}
 	tp->t_type = type;
+	tp->t_len = len;
 	*np = n;
-	*cpp = (char*)cp;
+	*cpp = (char*)cp-1;
 	return len;
 }
 
@@ -366,18 +368,19 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 			  /* copy from ++cp for len chars */
 			  t.t_pname = _unfold(len, ++cp, cpp, ot);
 			  t.t_len   = strlen(t.t_pname);
-			  /* compensate for calculations below */
-			  (*cpp)  -= t.t_len;
-			  t.t_len += n;
-
 			} else {
-				if (t.t_pname != NULL)
-					/* magic sign, no ending char */
-					--t.t_len, ++(*cpp);
+			  if (t.t_pname != NULL)
+			    /* magic sign; NULL: no ending char */
+			    --t.t_len, ++(*cpp);
 				/* past first bracketing char */
-				--t.t_len, ++(*cpp);
-				t.t_pname = ++cp;
+			  --t.t_len, ++(*cpp);
+			  t.t_pname = ++cp;
 			}
+
+			/* compensate for calculations below */
+			(*cpp)  -= t.t_len;
+			t.t_len += n;
+
 		} else if (ct & _s) {		/* specials */
 			/* Double-colons as with DECNET */
 			if (n > 1 && *cp == ':' && cp[1] == ':')
