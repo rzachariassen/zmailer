@@ -2469,6 +2469,8 @@ appendlet(dp, rp, fp, file, ismime)
 	char iobuf[BUFSIZ]; /* For setvbuf(mfp) */
 	FILE *mfp;
 	int mfd = dp->msgfd;
+#else
+	char *s;
 #endif
 
 	WS.fp     = fp;
