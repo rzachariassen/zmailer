@@ -1,5 +1,4 @@
 #!@PERL@
-
 #
 #  Post-Installation script to complete the installation process.
 #
@@ -10,11 +9,15 @@
 #  - To fill in configuration information into MAILSHARE/db/
 #    files, if nothing in there to begin with...
 #
+# Long ago this was a SH script, hence its source file name...
+#
 
 # - MAILSHARE/forms/proto       --> MAILSHARE/forms (conditionally)
 # - MAILSHARE/proto/*.{conf,cf} --> MAILSHARE/      (conditionally)
 # - MAILSHARE/cf/proto/*.cf     --> MAILSHARE/cf/   (conditionally)
 # - MAILVAR/db/proto/*          --> MAILVAR/db/     (conditionally)
+
+my $DESTDIR = '';
 
 
 # ------------------------------------------
@@ -25,6 +28,11 @@
 sub compare_files {
     local ($DIR) = @_;
     local ($x);
+
+    if ($DRYRUN) {
+	printf "compare_files(%s)\n",$DIR;
+	return;
+    }
 
     chdir "${DIR}/proto" || die ("Can't chdir('${DIR}/proto/')");
 
@@ -46,7 +54,14 @@ sub compare_file {
     local($s1,$s2,$y);
     local($wrote) = 0;
 
+
+    if ($DRYRUN) {
+	# printf "cmpfile: %s\n",$x;
+	return;
+    }
+
     return if ( -d $x );
+    return if ($x =~ m/^\./); # Ignore fot-files.
 
     if ( ! -f $x.'.md5' ) {
 
@@ -55,19 +70,19 @@ sub compare_file {
 	if ( ! -f '../'.$x ) {
 
 	    # A new file, easy to know that we can recalc the MD5SUM.
-	    system('cp', '-p', $x, '../'.$x);
+	    mysystem('cp', '-p', $x, '../'.$x);
 	    $wrote = 1;
-	    system("$MD5SUM -b ../$x > ${x}.md5");
+	    mysystem("$MD5SUM -b ../$x > ${x}.md5");
 
 	} else {
 
 	#    # Don't overwrite!
-	#   if (!system("cmp -s $x ../$x")) {
+	#   if (!mysystem("cmp -s $x ../$x")) {
 	#	# MATCH of the files (sum either of them..)
-	#	system("$MD5SUM -b ../$x > ${x}.md5");
+	#	mysystem("$MD5SUM -b ../$x > ${x}.md5");
 	#   } else {
 	#	# Non-match of the files, sum the NEW file!
-		system("$MD5SUM -b $x > ${x}.md5");
+		mysystem("$MD5SUM -b $x > ${x}.md5");
 	#   }
 	}
     }
@@ -75,7 +90,7 @@ sub compare_file {
     if ( ! -f '../'.$x ) {
 	# Ok, we have MD5 sum, but don't have the file
 	# in its proper place!
-	system('cp', '-p', $x, '../'.$x);
+	mysystem('cp', '-p', $x, '../'.$x);
 	$wrote = 1;
     }
 
@@ -97,8 +112,8 @@ sub compare_file {
 	if ( $md1 eq $md2 ) {
 	    # They do match! We overwrite old file with new
 	   unlink('../'.$x);
-	   system('cp', '-p', $x, '../'.$x);
-	   system("$MD5SUM -b ../${x} > ${x}.md5");
+	   mysystem('cp', '-p', $x, '../'.$x);
+	   mysystem("$MD5SUM -b ../${x} > ${x}.md5");
 	   $wrote = 1;
 	}
     }
@@ -163,6 +178,8 @@ sub mkpostofficedir {
     if ( ! -d "${DIR}/." ) {
 
 	printf(STDERR "Constructing dir: %s hash=%s\n",$DIR,$HASH);
+	return if ($DRYRUN);
+
 
 	mkdir $DIR, $MOD || die "mkdir ${DIR} failed!";
 	chmod $MOD, $DIR || die "chmod ${DIR} failed!";
@@ -203,6 +220,17 @@ sub mkpostofficedir {
     }
 }
 
+
+sub  mysystem {
+    my (@cmd) = @_;
+    if ($DRYRUN) {
+	printf "cmd: %s\n",join(' ',@cmd);
+	return 0;
+    } else {
+	return system(@cmd);
+    }
+}
+
 # -----------------  pick_zenv() ----------------------
 
 sub pick_zenv {
@@ -224,12 +252,13 @@ sub pick_zenv {
 select STDOUT; $| = 1;
 select STDERR; $| = 1;
 
-$MKDIR = "@MKDIR@";
 %ZENV  = ();
 
 $ZCONFIG = '@ZMAILERCFGFILE@';
 
 $STYLE = 'MD5';
+
+$DRYRUN = 0;
 
 while (defined $ARGV[0]) {
 
@@ -238,6 +267,7 @@ while (defined $ARGV[0]) {
 	    shift @ARGV;
 	    next;
 	}
+
 	if ($ARGV[0] eq '-OLDSTYLE') {
 	    $STYLE = 'OLD';
 	    shift @ARGV;
@@ -250,42 +280,58 @@ while (defined $ARGV[0]) {
 	    shift @ARGV;
 	    next;
 	}
+	if ($ARGV[0] eq '--dryrun'  or $ARGV[0] eq '-n') {
+	    shift @ARGV;
+	    $DRYRUN = 1;
+	    next;
+	}
+
+	if ($ARGV[0] eq '--destdir') {
+	    shift @ARGV;
+	    $DESTDIR = $ARGV[0];
+	    shift @ARGV;
+	    next;
+	}
 
 	printf(STDERR "unknown parameter: %s\n", $ARGV[0]);
+	printf(STDERR "post-install [-n|--dryrun] [--destdir /virtual/root] [--zconfig @ZMAILERCFGFILE@] [-MD5[|-OLDSTYLE]]\n");
 	exit(64);
 }
 
+
+$MKDIR = "@MKDIR@";
+
+
 #if ($STYLE eq '') {
-#    printf(STDERR "post-install.sh [-MD5|-OLDSTYLE]\n");
+#    printf(STDERR "post-install [-MD5[|-OLDSTYLE]]\n");
 #    exit 1;
 #}
 
 if ($STYLE eq '') {
-    printf(STDERR "post-install.sh [--zconfig @ZMAILERCFGFILE@] [-MD5|-OLDSTYLE]\n");
-    printf(STDERR " On first time around, it is SUGGESTED that you use\n");
-    printf(STDERR " the  -OLDSTYLE   option....\n");
+    printf(STDERR "post-install [-n|--dryrun] [--destdir /virtual/root] [--zconfig @ZMAILERCFGFILE@] [-MD5[|-OLDSTYLE]]\n");
     exit 1;
 }
 
 
-& pick_zenv( $ZCONFIG );
+& pick_zenv( $DESTDIR.$ZCONFIG );
 
-$POSTOFFICE = $ZENV{'POSTOFFICE'};
-$MAILSHARE  = $ZENV{'MAILSHARE'};
-$MAILVAR    = $ZENV{'MAILVAR'};
-$MAILBIN    = $ZENV{'MAILBIN'};
+$POSTOFFICE = $DESTDIR.$ZENV{'POSTOFFICE'};
+$MAILSHARE  = $DESTDIR.$ZENV{'MAILSHARE'};
+$MAILVAR    = $DESTDIR.$ZENV{'MAILVAR'};
+$MAILBIN    = $DESTDIR.$ZENV{'MAILBIN'};
 
-die "Failed to pick POSTOFFICE from @ZMAILERCFGFILE@ !?"
+die "Failed to pick POSTOFFICE from ${DESTDIR}${ZCONFIG} !?"
     if (!defined $POSTOFFICE || $POSTOFFICE eq '');
 
-$MD5SUM = "@MD5SUM@";
+$MD5SUM = "@MD5SUM@"; # Either system md5sum,  or our own...
+$MD5SUM = $DESTDIR.$MD5SUM if ($DESTDIR.$MD5SUM eq $MAILBIN.'/md5sum');
 
 # trap 'echo "Directory access failure; DIR=$DIR/proto"' 0
 
 # exit 99 # Sorry, not yet!
 
 if ( ! -d "$MAILSHARE/bak" ) {
-    system("$MKDIR $MAILSHARE/bak");
+    mysystem("$MKDIR $MAILSHARE/bak");
 }
 
 foreach $x ("$MAILSHARE", "$MAILSHARE/forms", "$MAILSHARE/cf", "$MAILVAR/db") {
@@ -313,9 +359,10 @@ foreach $x (qw("$MAILSHARE/proto/router.cf $MAILSHARE/proto/scheduler.conf
     }
 }
 
-system("$MAILBIN/zmailer newdb");
-
-system("$MAILBIN/policy-builder.sh -n");
+if ($DESTDIR eq '') {
+    mysystem("$MAILBIN/zmailer newdb");
+    mysystem("$MAILBIN/policy-builder.sh -n");
+}
 
 printf(STDERR "
 ***
@@ -326,10 +373,11 @@ printf(STDERR "
 ", $POSTOFFICE);
 
 if (! -d "$POSTOFFICE/.") {
-    system("$MKDIR -p $POSTOFFICE");
+    mymysystem("$MKDIR -p $POSTOFFICE");
+    
 }
-system("chmod 2755 $POSTOFFICE/.");
-system("chmod g+s $POSTOFFICE/.");
+mysystem("chmod 2755 $POSTOFFICE/.");
+mysystem("chmod g+s $POSTOFFICE/.");
 
 #  subdir protchmod "no"/"HASH"/"HASH2" dirpreallocsize
 & mkpostofficedir('deferred',     '750', 'no',    6, 9999);

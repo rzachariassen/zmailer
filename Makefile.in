@@ -75,6 +75,7 @@ include/rfc822.entry:
 	cd router ; $(MAKE) $(MFLAGS) rfc822.entry
 
 install-cf:	# all
+	@if [ -n "${prefix}" -a -z "${DESTDIR}" ] ; then echo "INSTEAD OF  prefix=  PLEASE INSTALL WITH:  DESTDIR=.. parameter"; exit 1; fi
 	@. $(ZCONF) ; if [ -f $$ZCONFIG ] ; then	\
 	 cmp -s $(ZCONF) $(DESTDIR)$$ZCONFIG ||		\
 	   echo "**" && echo "** Please consider copying $(ZCONF) to $$ZCONFIG !" && echo "**";\
@@ -84,6 +85,7 @@ install-cf:	# all
 	cd proto ;	$(MAKE) $(MFLAGS) cf
 
 install-bin:	# all
+	@if [ -n "${prefix}" -a -z "${DESTDIR}" ] ; then echo "INSTEAD OF  prefix=  PLEASE INSTALL WITH:  DESTDIR=.. parameter"; exit 1; fi
 	. $(ZCONF) ; zdir=`echo $$ZCONFIG|sed -e 's!\(.*\)/\([^/]*\)!\1/!'`; $(MKDIR) $(DESTDIR)$$zdir
 	@. $(ZCONF) ; if [ -f $$ZCONFIG ] ; then	\
 	 cmp -s $(ZCONF) $(DESTDIR)$$ZCONFIG ||		\
@@ -107,9 +109,7 @@ install-bin:	# all
 	else						\
 		cp $(ZCONF) $(DESTDIR)$$ZCONFIG; chmod 644 $(DESTDIR)$$ZCONFIG; \
 	fi
-	@echo ">>>> "
-	@echo ">>>> Please do run $(MAILBIN)/post-install"
-	@echo ">>>> "
+	$(MAKE) $(MFLAGS) post-install-note
 
 dirs:
 	@cd proto ; $(MAKE) $(MFLAGS) dirs PZCONFIG="../$(ZCONF)"
@@ -129,8 +129,19 @@ install:
 	@cd transports ; $(MAKE) $(MFLAGS) install
 	@cd libc  ;      $(MAKE) $(MFLAGS) install
 	@cd utils ;      $(MAKE) $(MFLAGS) install
+	$(MAKE) $(MFLAGS) post-install-note
+
+post-install-note:
+	if test "$(DESTDIR)" = "" ; then $(MAKE) $(MFLAGS) post-install-text ; fi
+	if test "$(DESTDIR)" != "" ; then $(MAKE) $(MFLAGS) post-install-text-dd ; fi
+
+post-install-text:
 	@echo ">>>> "
 	@echo ">>>> Please do run $(MAILBIN)/post-install"
+	@echo ">>>> "
+post-install-text-dd:
+	@echo ">>>> "
+	@echo ">>>> Please do run $(MAILBIN)/post-install --destdir $(DESTDIR)"
 	@echo ">>>> "
 
 router/router:

@@ -1,3 +1,12 @@
+2003-05-13  Matti Aarnio  <mea@zmailer.org>
+
+	* proto/post-install.sh.in:
+	    Added '--destdir' option.
+
+	* Makefile.in:
+	    DESTDIR value dependent reminder notes referring to
+	    "postinstall" tool.
+
 2003-05-10  Matti Aarnio  <mea@zmailer.org>
 
 	* transports/smtp/smtp.c:

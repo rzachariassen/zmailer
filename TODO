@@ -43,8 +43,6 @@ configure.in:
 proto/newdbprocessor.in:
 	Support  '-i -t ordered,$MAILVAR/db/realdata.dat -f ... '
 
-post-install:  Needs a way to define $(DESTDIR) !
-
 mailq: man-page update to match all options
 
 - Everywhere:  Spell-check  (propably -> probably, among others)
