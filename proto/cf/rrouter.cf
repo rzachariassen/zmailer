@@ -83,7 +83,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 			tmp=(local user postmaster $A)
 		fi
 		tmp=$(routeuser $tmp "$plustail" "") && returns $tmp
-		return $tmp
+		return $tmp # error code return
 		;;
 
 ## -----------------------------------------------------------------
@@ -126,13 +126,13 @@ rrouter (address, origaddr, A, plustail, domain) {
 		if [ $(deliver "\1") ]; then # Source routed to our name ?
 			tmp=$(rrouter "\2$plustail@\3" "$origaddr" $A "" "") \
 				&& returns $tmp
-			return $tmp
+			return $tmp # error code return
 		fi
 		;;
 	<@($orgdomains)>[:,](.+)@(.+)
 		tmp=$(rrouter "\2$plustail@\3" "$origaddr" $A "" "") && \
 			returns $tmp
-		return $tmp
+		return $tmp # error code return
 		;;	# strip organization
 	(.+)<@(.+)>(.*)
 		# Ok, lets see if it is LOCAL hostname.
@@ -153,7 +153,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		# try after route strip
 		tmp=$(rrouter "\1$plustail" "$origaddr" $A "" "$domain") && \
 			returns $tmp
-		return $tmp
+		return $tmp # error code return
 		;;
 	(.+)<@>	
 		if [ -z "$domain" ]; then
@@ -161,7 +161,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		fi
 		tmp=$(rrouter "\1$plustail" "$origaddr" $A "" "$domain") && \
 			returns $tmp
-		return $mp
+		return $mp # error code return
 		;;	# strip trash & retry
 	tfist
 
@@ -222,11 +222,11 @@ rrouter (address, origaddr, A, plustail, domain) {
 	ssift "$(dequote "$address")" in
 	\\(.+)	# A back-quote prefixed userid (most likely)
 		##tmp=$(rrouter "\1" "$origaddr" $A "$plustail" "") &&
-		##   return $tmp
-		##return $mp
+		##   returns $tmp
+		##return $tmp  # error code return
 		tmp=(local "$origaddr" "$address" $A)
 		tmp=$(routeuser $tmp "$plustail" "") && returns $tmp
-		return $tmp
+		return $tmp # error code return
 		;;
 
 	/.+	# file
@@ -241,7 +241,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 		# this prefix may have a dot!
 		tmp=(local "$origaddr" "$address" $A)
 		tmp=$(routeuser $tmp "$plustail" "") && returns $tmp
-		return $tmp
+		return $tmp # error code return
 		;;
 	(.+)::(.+) # node1::(rest) -- DECNET Phase-IV
 		returns (decnet "\1" "\2" $A)
@@ -257,7 +257,7 @@ rrouter (address, origaddr, A, plustail, domain) {
 
 	tmp=(local "$origaddr" "$address" $A)
 	tmp=$(routeuser $tmp "$plustail" "$domain") && returns $tmp
-	return $tmp
+	return $tmp # error code return
 
 # ------- end new "localpart" processing
 }	# end of rrouter
@@ -333,10 +333,10 @@ routes_spec (domain, address, A) {
 		# BEWARE LOOPS
 		tmp=$(rrouter "\2!$(uucproute "$address")" "$address" $A "" "$domain") && \
 			returns $tmp
-		return $tmp
+		return $tmp # error code return
 		;;
 	tfiss
-	return 1
+	return 1 # error code return
 }
 
 uucproute (address) {

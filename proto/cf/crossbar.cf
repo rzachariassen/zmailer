@@ -224,7 +224,7 @@ crossbar (from, to) {
 	#log recipient: "$(channel $to)" "$(host $to)" "$(user $to)"
 
 	tmp=($rewrite $from $to) && returns $tmp
-	return $tmp
+	return $tmp # error code return
 
 }	# end of crossbar
 

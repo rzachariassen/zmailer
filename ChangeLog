@@ -1,5 +1,11 @@
 2001-10-02  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* proto/cf/crossbar.cf, proto/cf/fqdnalias.cf,
+	  proto/cf/p-uucp.cf, proto/cf/rrouter.cf,
+	  proto/cf/standard.cf:
+	    A bit more of revisions of 'returns' vs. 'return'
+	    primitives.  Mostly adding comment: "error code return"
+
 	* libsh/builtins.c:
 	    Damn!  The  'returns'  primitive WAS NOT returing
 	    _string_ in all cases.

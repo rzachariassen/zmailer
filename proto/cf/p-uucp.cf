@@ -26,5 +26,5 @@ uucp_neighbour (domain, address, A) {
 	tfist
 	tmp=$(rrouter "$tmp!$(uucproute "$address")" "$address@$domain" $A) \
 		&& returns $tmp
-	return $tmp
+	return $tmp # error code return
 }

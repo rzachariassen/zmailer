@@ -108,7 +108,7 @@ fqdn_neighbour (domain, address, A) {
 		      maprrouter $nattr "sender-fqdn-userdb-mailname"	\
 					"$address" "$plustail" "$athost") &&
 			  returns $a
-		  return $a
+		  return $a # error code return
 		fi
 		return 1
 		;;
@@ -142,7 +142,7 @@ fqdn_neighbour (domain, address, A) {
 					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost") && returns $a
-		return $a
+		return $a # error code return
 	  fi
 	else
 	  # DID EXPAND !
@@ -159,7 +159,7 @@ fqdn_neighbour (domain, address, A) {
 					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost") && returns $a
-		return $a
+		return $a # error code return
 	  fi
 	else
 	  # DID EXPAND !
@@ -186,7 +186,7 @@ fqdn_neighbour (domain, address, A) {
 					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"	\
 				"$pl2" "$athost") && returns $a
-		return $a
+		return $a # error code return
 	      fi
 	    else
 	      # DID EXPAND !
@@ -202,7 +202,7 @@ fqdn_neighbour (domain, address, A) {
 					-e root			 |	\
 			 maprrouter $nattr "fqdnalias" "$address"	\
 				"$plustail" "$athost") && returns $a
-		return $a
+		return $a # error code return
 	      fi
 	    else
 	      # DID EXPAND !
@@ -231,7 +231,7 @@ fqdn_neighbour (domain, address, A) {
 				-c "$a file expansion" $nattr "$a"	\
 				"$user$athost" "$plustail" "$athost") &&
 			returns $a
-		return $a
+		return $a # error code return
 	  fi
 	else
 	  # DID EXPAND !
@@ -254,7 +254,7 @@ fqdn_neighbour (domain, address, A) {
 		    a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
 				"$address" $nattr "" "" "$domain") &&
 			returns $a
-		    return $a
+		    return $a # error code return
 		  fi
 		else
 		  # DID EXPAND !
@@ -273,8 +273,8 @@ fqdn_neighbour (domain, address, A) {
 		    $(zapDSNnotify $nattr) ## FIXME!FIXME!
 		    a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
 				"$address" $nattr "" "" "$domain") &&
-			return $a
-		    return $a
+			returns $a
+		    return $a # error code return
 		  fi
 		else
 		  # DID EXPAND !
@@ -293,7 +293,7 @@ fqdn_neighbour (domain, address, A) {
 		    a=$(rrouter "$(uid2login $(filepriv -M 664 "$a"))" \
 				"$address" $nattr "" "" "$domain") &&
 			returns $a
-		    return $a
+		    return $a # error code return
 		  fi
 		else
 		  # DID EXPAND !
@@ -321,7 +321,7 @@ fqdn_neighbour (domain, address, A) {
 					-e root			 |	\
 		    maprrouter	$nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost") && returns $a
-		return $a
+		return $a # error code return
 	  fi
 	else
 	  # DID EXPAND !
@@ -337,7 +337,7 @@ fqdn_neighbour (domain, address, A) {
 					-e root			 |	\
 		    maprrouter $nattr "fqdnalias" "$address"		\
 				"$plustail" "$athost") && returns $a
-		return $a
+		return $a # error code return
 	  fi
 	else
 	  # DID EXPAND !
