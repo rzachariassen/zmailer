@@ -948,8 +948,11 @@ if test "x$LIBRESOLV" = "x"; then
   t_oldLibs="$LIBS"
   LIBS="$LIBS $LIBSOCKET"
   ac_cv_var__res_options=no
-  AC_TRY_LINK([#include <resolv.h>
-#include <netinet/in.h>],
+  AC_TRY_LINK([
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>
+],
 	      [_res.options = RES_INIT;],
 		ac_cv_var__res_options=yes);
   if test "$ac_cv_var__res_options" != "yes"; then
