@@ -1,6 +1,6 @@
 /*
- * tasyslog() -- support routine for ZMailer transport agents.
- * Copyright 1997, Matti Aarnio <mea@nic.funet.fi>
+ * rtsyslog() -- support routine for ZMailer transport agents.
+ * Copyright 1997-1999, Matti Aarnio <mea@nic.funet.fi>
  *
  * The purpose of this routine is to produce similar syslog entries
  * to those that sendmail(8) does for its message processing.
@@ -37,6 +37,11 @@ int size, nrcpts;
   static char *syslogflg = NULL;
   char *t;
 
+  /* Syslogflag 'R' for classical format, and 'r' for TAB-separated format */
+
+  static char *fmt1c = "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s";
+  static char *fmt1t = "%s:\tfrom=<%.200s>\trrelay=%.200s\tsize=%d\tnrcpts=%d\tmsgid=%.200s";
+
   if (syslogflg == NULL) {
     syslogflg = getzenv("SYSLOGFLG");
     if (syslogflg == NULL)
@@ -58,7 +63,7 @@ int size, nrcpts;
      ctladdr=`getpwuid(rp->addr->misc)`
      mailer='rp->addr->channel' */
 
-  sprintf(lbuf, "%s: from=<%.200s>, rrelay=%.200s, size=%d, nrcpts=%d, msgid=%.200s",
+  sprintf(lbuf, ((*t == 'r') ? fmt1t : fmt1c),
 	  spoolid, from, smtprelay, size, nrcpts, msgid);
 
   zsyslog((LOG_INFO, "%s", lbuf));

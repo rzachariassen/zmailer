@@ -345,7 +345,7 @@ char **argv;
       if (*t == 's' || *t == 'S')
 	break;
     }
-    smtp_syslog = (*t != '\0');
+    smtp_syslog = *t;
 
     memset(&SS, 0, sizeof(SS));
     memset(&bindaddr, 0, sizeof(bindaddr));

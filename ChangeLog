@@ -1,3 +1,12 @@
+1999-11-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/libta/tasyslog.c, router/rtsyslog.c:
+	    An experiment on alternate TRANSPORT syslog format:
+	    if ZENV variable SYSLOGFLG has 'T', the classical ", "
+	    separated fields are printed.  If the flag is 't',
+	    field separator is TAB-character.   Similarly for ROUTER
+	    there are 'R' and 'r' keycodes.
+
 1999-11-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* utils/makedb/makedb.c:
