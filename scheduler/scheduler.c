@@ -22,6 +22,7 @@
 #include "mail.h"
 #include <string.h>
 #include "ta.h"
+#include "sysexits.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -118,6 +119,7 @@ char * procselect = NULL;	/* Non-null defines  channel/host specifier
 				   job-specifier deletions. */
 char * procselhost = NULL;	/* Just spliced out 'host'-part of the above */
 extern int forkrate_limit;	/* How many forks per second ? */
+int	mailqmode = 1;		/* ZMailer v1.0 mode on mailq */
 
 static int vtxprep_skip      = 0;
 static int vtxprep_skip_any  = 0;
@@ -389,7 +391,7 @@ main(argc, argv)
 	verbose = errflg = version = 0;
 	for (;;) {
 		c = getopt(argc, (char*const*)argv,
-			   "divE:f:Fl:HL:nN:p:P:q:QR:SVW");
+			   "divE:f:Fl:HL:M:nN:p:P:q:QR:SVW");
 		if (c == EOF)
 		  break;
 		switch (c) {
@@ -423,6 +425,13 @@ main(argc, argv)
 			break;
 		case 'L':	/* override default log file */
 			logfn = optarg;
+			break;
+		case 'M':
+			mailqmode = atoi(optarg);
+			if (mailqmode < 1 || mailqmode > 2) {
+			  fprintf(stderr,"scheduler: -M parameter is either 1, or 2\n");
+			  exit(EX_USAGE);
+			}
 			break;
 		case 'n':
 			never_full_content = !never_full_content;
@@ -485,7 +494,7 @@ main(argc, argv)
 
 	if (errflg) {
 	  fprintf(stderr,
-		  "Usage: %s [-dHisvV -f configfile -L logfile -P postoffice -Q rendezvous]\n",
+		  "Usage: %s [-dHisvV -M (1|2) -f configfile -L logfile -P postoffice -Q rendezvous]\n",
 		  progname);
 	  exit(128+errflg);
 	}

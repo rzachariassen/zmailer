@@ -34,6 +34,7 @@ extern int slow_shutdown;
 extern time_t now;
 extern char *procselect, *procselhost;
 extern time_t sched_starttime; /* From main() */
+extern int mailqmode;	/* 1 or 2 */
 
 static long groupid  = 0;
 static long threadid = 0;

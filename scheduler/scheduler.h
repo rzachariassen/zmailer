@@ -14,6 +14,7 @@
 #include "malloc.h"
 #include "splay.h"
 #include "shmmib.h"
+#include "servauth.h"
 
 struct config_entry {
 	struct config_entry *next;
@@ -184,4 +185,23 @@ struct vertex {
 	char		*sender;	/* Message Sender/error recipient    */
 	int		ngroup;		/* number of addresses in group      */
 	int		index[1];	/* index of cfp->offset for group    */
+};
+
+
+/* mailq iterator state -- non-forking reporter mode */
+
+struct mailq {
+	struct mailq	*nextmailq;
+	int		auth;		/* what can do */
+	int		fd;		/* FD for I/O (nonblocking-IO) */
+
+	int		inbufspace;
+	int		inbufsize;
+	int		inbufcount;
+	char		*inbuf;
+
+	int		outbufspace;
+	int		outbufsize;
+	int		outbufcount;
+	char		*outbuf;
 };
