@@ -182,34 +182,42 @@ fprintToken(fp, t, onlylength)
 	token822 *t;
 	int onlylength;
 {
-	int len;
+	int len, ll = 0;
 
 	len = TOKENLEN(t);
 	if (t->t_type == DomainLiteral) {
 		if (onlylength) ++onlylength;
 		else putc('[', fp);
+		++ll;
 	} else if (t->t_type == String) {
 		if (onlylength) ++onlylength;
 		else putc('"', fp);
+		++ll;
 	} else if (t->t_type == Error) {
 		if (onlylength) ++onlylength;
 		else putc('?', fp);
+		++ll;
 	}
 	if (onlylength)
 		onlylength += len;
-	else
+	else {
 		fwrite((char *)t->t_pname, sizeof (char), len, fp);
+		ll += len;
+	}
 	if (t->t_type == DomainLiteral) {
 		if (onlylength) ++onlylength;
 		else putc(']', fp);
+		++ll;
 	} else if (t->t_type == String) {
 		if (onlylength) ++onlylength;
 		else putc('"', fp);
+		++ll;
 	} else if (t->t_type == Error) {
 		if (onlylength) ++onlylength;
 		else putc('?', fp);
+		++ll;
 	}
-	return onlylength;
+	return (onlylength ? onlylength : ll);
 }
 
 #define LINELEN	80

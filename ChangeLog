@@ -1,3 +1,11 @@
+1999-07-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* lib/rfc822scan.c, lib/token.c, router/rfc822hdrs.c:
+	    Multiline compound tokens (topic for recent activities)
+	    had still major problems.  Did also modify "Received:"
+	    header content generation, although not quite sufficiently
+	    in all situations..
+
 1999-07-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* man/smtpserver.8, smtpserver/smtpserver.c, smtpserver/smtpcmds.c,

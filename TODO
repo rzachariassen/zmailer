@@ -1,5 +1,12 @@
 Known/suspected bugs/Missing Features on current Zmailer sources
 
+- Configuration files, esp.   cf/aliases.cf   has controversy in it.
+  Many people think it is broken (I tend to agree) - 940614/mea
+
+- Canned error messages are abysmal -- they need more complete ways to
+  configure what is told and how, whole error facility needs an overhaul
+  in fact..  (See mention above about: IETF NOTARY)
+
 libc: "make install" is "crazy"
 proto:	"make install" -- nothing goes in ???
 		--> MAILSHARE/proto/ !!
@@ -35,6 +42,18 @@ transports/smtp:
 	propably in MIME header rewrites.  It appears only in
 	very long living and hard working smtp-ta program as
 	slow size growth.
+- transports/smtp/smtp.c: (and scheduler)
+	- VERIFY: BDAT (and DATA) status processing in case the remote
+	  yields disk-full temporary error.
+	- To rewrite the MX processing in streamlined flashion (see next)
+	- In case two domains have common (sub-)set of MX servers, and
+	  we have been feeding mail to domain A thru MX-server B, and
+	  now we change to deliver domain C which too has MX-server B.
+	  We are to reuse the already open channel to server B to feed
+	  the message out even though the domain C might have had server
+	  D with lower preferrence..
+	  (Noting that all MX-hosts with same or larger privilege,
+	   than ourselves are to be pre-removed from the list!)
 
 router + TA library + TA programs:
 	Router to scan message MIME structure, and to store that
@@ -199,19 +218,6 @@ router + TA library + TA programs:
 	- $MAILVAR/lists/ -dir, and files in it
 	- ~/.forward -files (and home directories)
 
-- transports/smtp/smtp.c: (and scheduler)
-	- VERIFY: BDAT (and DATA) status processing in case the remote
-	  yields disk-full temporary error.
-	- To rewrite the MX processing in streamlined flashion (see next)
-	- In case two domains have common (sub-)set of MX servers, and
-	  we have been feeding mail to domain A thru MX-server B, and
-	  now we change to deliver domain C which too has MX-server B.
-	  We are to reuse the already open channel to server B to feed
-	  the message out even though the domain C might have had server
-	  D with lower preferrence..
-	  (Noting that all MX-hosts with same or larger privilege,
-	   than ourselves are to be pre-removed from the list!)
-
 - IPv6 stuff:
 	- lib/selfaddrs.c: Don't properly do automatic IPv6 interface address
 			   picking (IPv4 is ok)
@@ -276,20 +282,6 @@ router + TA library + TA programs:
 - DSN (Delivery Status Notification) mechanism does not (yet) report
   on "DELAY".
 
-- BUG! mailbox has a file creation failure window:
-        - mailbox1 tests to see if the mailbox exists, and it does not
-        - mailbox2 tests to see if the mailbox exists, and it does not
-        - mailbox1 tries to do exclusive file creation (and succeeds)
-        - mailbox2 tries to do exclusive file creation (and fails)
-  Time in between test, and creation is milliseconds, but if system
-  process scheduling hits in between, both believe to be acting in void.
-  This can propably be triggered by NOT having the target file in existence,
-  and sending a message with two addresses, one straight to the recipient
-  mailbox, and another via some alias.  System starts TWO mailbox programs
-  to feed the messages.  Try it enough times, and it will occur.
-	(18 Aug 1996 -- Fixed ? By allowing 'EEXIST' return from file
-	 creation, and understanding it as a result from a race above.))
-
 - Want to have more interactivity at the scheduler status and control
   mechanisms.  Especially thinking a new two-way system where there
   can be multiple manager interfaces acting at the scheduler ``mailq''
@@ -314,13 +306,6 @@ router + TA library + TA programs:
 		".....=", which means there is no final NEWLINE.
 	Fixed on SMTP, must fix on MAILBOX, and SM!  (4-Jan-95)
 	(Prepared to do it, however only on SMTP it is fatal -- I think..)
-
-- Configuration files, esp.   cf/aliases.cf   has controversy in it.
-  Many people think it is broken (I tend to agree) - 940614/mea
-
-- Canned error messages are abysmal -- they need more complete ways to
-  configure what is told and how, whole error facility needs an overhaul
-  in fact..  (See mention above about: IETF NOTARY)
 
 - Sometimes incoming SMTP can be a hellish load, need to introduce
   a load-limited incoming SMTP acceptor (smtpserver/smtpserver.c)

@@ -137,26 +137,30 @@ hdr_status(cp, lbuf, n, octo)
  * the typical example. Comments may be recursive.
  */
 
-static u_long _hdr_compound __((const char *cp, long n, int cstart, int cend,
-				TokenType type, token822 *tp,
-				token822 **tlist, token822 **tlistp));
+static u_long _hdr_compound __((const char *cp, int *np,
+				      int cstart, int cend,
+				      TokenType type, token822 *tp,
+				      token822 **tlist, token822 **tlistp));
 
 static u_long
-_hdr_compound(cp, n, cstart, cend, type, tp, tlist, tlistp)
+_hdr_compound(cp, np, cstart, cend, type, tp, tlist, tlistp)
 	register const char *cp;
-	long	n;
+	int	*np;
 	int	cstart, cend;
 	TokenType	type;
 	token822	*tp, **tlist, **tlistp;
 {
 	token822 *tn = NULL;
 	int nest = 1;
+	int len = 1;
+	int n = *np;
 
 	if (*cp != cstart)
 		abort(); /* Sanity check!  Call fault! */
 	++cp, --n;
+
 nextline:
-	for (; n > 0; ++cp, --n) {
+	for (; n > 0; ++cp, --n, ++len) {
 		if (*cp == cend) {
 			if (--nest <= 0)
 			    break;
@@ -173,7 +177,9 @@ nextline:
 				n = 0;
 				break;
 			}
-			++cp, --n;
+			++cp;
+			--n;
+			++len;
 		} else if (*cp == '\r') {
 			/* type = Error; */
 			MKERROR("illegal CR in token",*tlist);
@@ -190,6 +196,7 @@ nextline:
 			*tlistp = (*tlistp)->t_next;
 			n = TOKENLEN(*tlistp);
 			cp = (*tlistp)->t_pname;
+			++len;
 			goto nextline;
 		}
 		/* type = Error; */	/* hey, no reason to refuse a message */
@@ -197,12 +204,14 @@ nextline:
 		MKERROR(msgbuf,*tlist);
 		tp->t_pname = 0;	/* ugly way of signalling scanner */
 	} else if (*cp == cend) {	/* we found matching terminator */
-		--n;			/* move past terminator */
+		++len;			/* move past terminator */
+		--n;
 	} else {	/* there was an error */
 	  abort() ; /* ??? some sort of sanity check ? */
 	}
 	tp->t_type = type;
-	return n;
+	*np = n;
+	return len;
 }
 
 /* Unfold (see RFC822) the contents of a compound token */
@@ -230,15 +239,20 @@ _unfold(len, start, cpp, t)
 		if (*start == 0) {
 		  t = t->t_next;
 		  start = t->t_pname;
+		  *s++ = '\n';
+		  --len;
 		}
 		--len;
+#if 1
 		if (*start == '\n') {
 			++start;
 			continue;
 		}
+#endif
 		*s++ = *start++;
 	}
 	*s = '\0';
+	*cpp = start;
 	return cp;
 }
 
@@ -324,7 +338,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 			  type = Comment;
 			}
 			ot = (tlistp == NULL ? NULL : *tlistp);
-			len = _hdr_compound(cp, n, *cp, cend,
+			len = _hdr_compound(cp, &n, *cp, cend,
 					    type, &t, &tlist, tlistp);
 			if (ot != NULL && tlistp != NULL && ot != *tlistp) {
 
@@ -344,7 +358,6 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 				--t.t_len, ++(*cpp);
 				t.t_pname = ++cp;
 			}
-			n = len;
 		} else if (ct & _s) {		/* specials */
 			/* Double-colons as with DECNET */
 			if (n > 1 && *cp == ':' && cp[1] == ':')

@@ -407,14 +407,14 @@ mkDate(isresent, unixtime)
  * Print an entire header entry onto fp, possibly multiple lines.
  */
 
-int	hdr_width = 160;
+int	hdr_width = 78;
 
 void
 hdr_print(h, fp)
 	struct header *h;
 	FILE *fp;
 {
-	int col, addrlen, newline;
+	int col, cl, addrlen, newline;
 	token822 *t;
 	struct address *ap;
 	struct addr *pp;
@@ -444,12 +444,36 @@ hdr_print(h, fp)
 	case RouteAddress:
 	case UserAtDomain:
 	case DateTime:
-		if (wanttabs) {
-			fprintf(fp, "%s:%c", h->h_pname, col >= 7 ? ' ' : '\t');
-			col += col >= 7 ? 1 : 8 - col%8;
+		/* Use this ONLY if no original lines are available! */
+		if (h->h_contents.d > 0L && h->h_lines == NULL) {
+		  if (wanttabs) {
+		    fprintf(fp, "%s:%c", h->h_pname, col >= 7 ? ' ' : '\t');
+		    col += col >= 7 ? 1 : 8 - col%8;
+		  } else {
+		    fprintf(fp, "%s: ", h->h_pname);  /* spoilsport! */
+		    ++col;
+		  }
+		  break;
 		} else {
-			fprintf(fp, "%s: ", h->h_pname);  /* spoilsport! */
+
+		  /* Pre-existing header; print the header name, and
+		     whitespace characters of the pre-existing header. */
+
+		  fprintf(fp, "%s:", h->h_pname);
+		  for (t = h->h_lines; t != NULL; t = t->t_next) {
+		    char *p = t->t_pname;
+		    while (*p == ' ' || *p == '\t' ||
+			   *p == '\n' || *p == '\r') {
+		      putc(*p, fp);
+		      if (*p == ' ' || *p == '\t')
 			++col;
+		      else
+			col = 0;
+		      ++p;
+		    }
+		    if (*p != 0)
+		      break;
+		  }
 		}
 		break;
 	default:
@@ -467,33 +491,76 @@ hdr_print(h, fp)
 			}
 			break;
 		}
+		putc(' ',fp);
+		++col;
 		if ((ap = h->h_contents.r->r_from) != NULL) {
-			fprintf(fp, " from ");
-			printAddress(fp, ap->a_tokens, 0);
+			fprintf(fp, "from ");
+			col += 5;
+			col += printAddress(fp, ap->a_tokens, 0);
 		}
 		if ((ap = h->h_contents.r->r_by) != NULL) {
-			fprintf(fp, " by ");
-			printAddress(fp, ap->a_tokens, 0);
+			cl = printAddress(fp, ap->a_tokens, col+6);
+			if (cl > 76) {
+			  fprintf(fp, "\n\t");
+			  col = 8;
+			} else
+			  putc(' ',fp), ++col;
+			fprintf(fp, "by ");
+			col += 3;
+			col += printAddress(fp, ap->a_tokens, 0);
 		}
 		if ((t = h->h_contents.r->r_via) != NULL) {
-			fprintf(fp, " via ");
-			fprintToken(fp, t, 0);
+			cl = fprintToken(fp, t, col+4);
+			if (cl > 76) {
+			  fprintf(fp, "\n\t");
+			  col = 8;
+			} else
+			  putc(' ',fp), ++col;
+			fprintf(fp, "via ");
+			col += 4;
+			col += fprintToken(fp, t, 0);
 		}
 		for (t = h->h_contents.r->r_with; t != NULL; t = t->t_next) {
-			fprintf(fp, " with ");
-			fprintToken(fp, t, 0);
+			cl = fprintToken(fp, t, col+4);
+			if (cl > 76) {
+			  fprintf(fp, "\n\t");
+			  col = 8;
+			} else
+			  putc(' ',fp), ++col;
+			fprintf(fp, "with ");
+			col += 5;
+			col += fprintToken(fp, t, 0);
 		}
 		if ((ap = h->h_contents.r->r_id) != NULL) {
-			fprintf(fp, " id <");
-			printAddress(fp, ap->a_tokens, 0);
+			cl = printAddress(fp, ap->a_tokens, col+6);
+			if (cl > 76) {
+			  fprintf(fp, "\n\t");
+			  col = 8;
+			} else
+			  putc(' ',fp), ++col;
+			fprintf(fp, "id <");
+			col += 5;
+			col += printAddress(fp, ap->a_tokens, 0);
 			putc('>', fp);
 		}
 		if ((ap = h->h_contents.r->r_for) != NULL) {
-			fprintf(fp, " for ");
-			printAddress(fp, ap->a_tokens, 0);
+			cl = printAddress(fp, ap->a_tokens, col+5);
+			if (cl > 76) {
+			  fprintf(fp, "\n\t");
+			  col = 8;
+			} else
+			  putc(' ',fp), ++col;
+			fprintf(fp, "for ");
+			col += 4;
+			col += printAddress(fp, ap->a_tokens, 0);
 		}
 		putc(';', fp);
-		putc(' ', fp);
+		++col;
+		if ((col + 32) > 78) {
+		  fprintf(fp, "\n\t");
+		  col = 8;
+		} else
+		  putc(' ', fp);
 		{
 		  char *cp, *s;
 		  cp = rfc822date(&(h->h_contents.r->r_time));
@@ -671,7 +738,7 @@ printAddress(fp, pp, onlylength)
 	register struct addr *pp;
 	int onlylength;
 {
-	int inAddress;
+	int inAddress, len = 0;
 	token822 *t;
 	struct addr *lastp, *tpp;
 
@@ -683,6 +750,7 @@ printAddress(fp, pp, onlylength)
 		if (pp->p_type == aComment || pp->p_type == anError) {
 			if (onlylength) ++onlylength;
 			else putc('(', fp);
+			++len;
 		} else if (pp->p_type == anAddress)
 			inAddress = 1;
 		for (t = pp->p_tokens; t != NULL; t = t->t_next) {
@@ -694,13 +762,17 @@ printAddress(fp, pp, onlylength)
 				if (t != pp->p_tokens) {
 					if (onlylength) ++onlylength;
 					else putc(' ', fp);
+					++len;
 				}
 				/* fall through */
 			case anAddress:
 			case aDomain:
 			case anError:
 			case reSync:
-				onlylength = fprintToken(fp, t, onlylength);
+				if (onlylength)
+				  onlylength = fprintToken(fp, t, onlylength);
+				else
+				  len += fprintToken(fp, t, 0);
 				if (pp->p_type == reSync && t->t_next != NULL
 				    && (t->t_next->t_type == t->t_type
 					|| *(t->t_next->t_pname) == '<')) {
@@ -708,6 +780,7 @@ printAddress(fp, pp, onlylength)
 				    ++onlylength;
 				  else
 				    putc(' ', fp);
+				  ++len;
 				}
 				break;
 			case aSpecial:
@@ -716,11 +789,13 @@ printAddress(fp, pp, onlylength)
 				    ++onlylength;
 				  else
 				    putc(' ', fp);
+				  ++len;
 				}
 				if (onlylength)
 				  ++onlylength;
 				else
 				  putc((*t->t_pname), fp);
+				++len;
 				break;
 			}
 		}
@@ -729,6 +804,7 @@ printAddress(fp, pp, onlylength)
 			  ++onlylength;
 			else
 			  putc(')', fp);
+			++len;
 		} else if (lastp == pp)
 			inAddress = 0;
 		if (!inAddress && pp->p_next != NULL
@@ -743,9 +819,10 @@ printAddress(fp, pp, onlylength)
 		    && pp->p_next->p_type != anError) {
 			if (onlylength) ++onlylength;
 			else putc(' ', fp);
+			++len;
 		}
 	}
-	return onlylength;
+	return (onlylength ? onlylength : len);
 }
 
 int
