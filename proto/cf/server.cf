@@ -68,7 +68,16 @@ server (key) {
 #| otherwise proper for the purpose.  The value specified for the privilege
 #| level should be appropriate.
 
-	case $key in
+	case "$key" in
+	from)
+		if [ "$1" = "" ]; then
+			echo "250 Ok (sourcechannel 'error' accepted)"
+			return
+		fi
+		;;
+	esac
+
+	case "$key" in
 	to|from|verify|expand)
 		a="$1"
 		tsift "$a" in
@@ -81,7 +90,7 @@ server (key) {
 		;;
 	esac
 
-	case $key in
+	case "$key" in
 	init)	# If you want to log incoming connections, it can be done here
 		#echo server $@ >> /tmp/server
 		# redefine the log function
