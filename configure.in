@@ -191,12 +191,21 @@ AC_ARG_WITH(mailbox,      [  --with-mailbox=DIR      define the path of the mail
 	use_mailbox=1)
 if test "$use_mailbox" = 0 ; then
     # No explicite value given, make some guesses as to where it might be..
-    for DEFMAILBOX in /var/mail /var/spool/mail /usr/mail /usr/spool/mail
+    for DEFMAILBOX in /var/mail /var/spool/mail /usr/mail /usr/spool/mail x
     do
 	if test -d $DEFMAILBOX ; then
 	    break
 	fi
     done
+    if test "DEFMAILBOX" = x ; then
+    DEFMAILBOX=/var/spool/mail
+    if test -r /usr/include/paths.h ; then
+      tt=`egrep _PATH_MAILDIR /usr/include/paths.h | cut -d'"' -f2`
+      if test "$tt" != "" -a -d $tt ; then
+	DEFMAILBOX=$tt
+      fi
+    fi
+  fi
     MAILBOX="${MAILBOX-$DEFMAILBOX}"
 else
     MAILBOX="$withval"
@@ -303,11 +312,20 @@ AC_ARG_WITH(sendmailpath,   [  --with-sendmailpath=PATH The location of the 'sen
 	use_sendmailpath=1)
 if test "$use_sendmailpath" = 0 ; then
   # Ok, no value given, make some guesses; /usr/sbin ??
-  for SENDMAILDEF in /usr/sbin/sendmail /usr/lib/sendmail ; do
+  for SENDMAILDEF in /usr/sbin/sendmail /usr/lib/sendmail x ; do
     if test -x $SENDMAILDEF ; then
 	break
     fi
   done
+  if test "$SENDMAILDEF" = x ; then
+    SENDMAILDEF=/usr/sbin/sendmail
+    if test -r /usr/include/paths.h ; then
+      tt=`egrep _PATH_SENDMAIL /usr/include/paths.h | cut -d'"' -f2`
+      if test "$tt" != "" -a -x $tt ; then
+	SENDMAILDEF=$tt
+      fi
+    fi
+  fi
   SENDMAILPATH="${SENDMAILPATH-$SENDMAILDEF}"
 else
     if test -d "$withval" ; then

@@ -1,3 +1,19 @@
+1999-10-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* configure.in:
+	    Smarter (?) default picking for  SENDMAILPATH and MAILBOX
+	    directory path for those systems which have  <paths.h> file
+	    with system specific directory paths...
+
+	* libc/Makefile.in:
+	    Fixed $(prefix) usages in 'make install' targets.
+
+	* smtserver/Makefile.in,
+	  smtpserver/smtpserver.c, smtpserver/wantconn.c:
+	    Essentially killed tcp-wrapper from being used for ZMailer's
+	    smtpserver.  SMTPSERVER's policy-database has superior
+	    technology for the same thing.
+
 1999-10-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* man/Makefile.in:
