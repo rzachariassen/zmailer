@@ -949,6 +949,7 @@ int insecure;
       } else {
 	fprintf(SS->mfp, "<none>");
       }
+#ifdef HAVE_OPENSSL
       if (SS->sslmode) {
 	fprintf(SS->mfp, " TLS-CIPHER: ");
 	if (SS->TLS.cipher_info)
@@ -965,6 +966,7 @@ int insecure;
 	fprintf(SS->mfp, " TLS-CIPHER: <none>");
 	fprintf(SS->mfp, " TLS-PEER: <none>");
       }
+#endif /* - HAVE_OPENSSL */
       fprintf(SS->mfp, ")\n");
 
     }
