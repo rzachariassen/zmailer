@@ -2036,6 +2036,10 @@ sequencer(e, file)
 
 			fprintf(ofp, "%c%c", _CF_SENDER, _CFTAG_NORMAL);
 			fromaddr = prctladdr(nsp->info, ofp, _CF_SENDER, "sender");
+			if (!fromaddr) {
+			  goto bad_addrdata;
+			}
+			
 			putc('\n', ofp);
 			if (vfp != NULL) {
 				fprintf(vfp, "%c%c",
@@ -2058,8 +2062,11 @@ sequencer(e, file)
 				fprintf(ofp,"%*s",_CFTAG_RCPTPIDSIZE,"");
 				if (rcp->urw.number > 0)
 					fprintf(ofp, "%d ", rcp->urw.number);
-				prctladdr(rcp->info, ofp,
-					  _CF_RECIPIENT, "recipient");
+				if (! prctladdr(rcp->info, ofp,
+						_CF_RECIPIENT, "recipient")) {
+				  goto bad_addrdata;
+				}
+				
 				putc('\n', ofp);
 				++nrcpts;
 				/* DSN data output ! */
@@ -2185,6 +2192,17 @@ sequencer(e, file)
 
 	/* we did it! */
 	return PERR_OK;
+
+ bad_addrdata:;
+
+	/* Bad data in routing results, can't do it now, must defer! */
+
+	fclose(ofp);
+	unlink(ofpname); /* created file is thrown away.. */
+#ifndef	USE_ALLOCA
+	free(ofpname);
+#endif
+	return PERR_CTRLFILE;
 }
 
 static const char *
@@ -2198,6 +2216,7 @@ prctladdr(info, fp, cfflag, comment)
 	register conscell *l, *x;
 	const char *user = "?user?";
 	const char *channel = NULL;
+	const char *privilege = NULL;
 
 	/* We print the quad of  channel/host/user/privilege  information
 	   with this routine, and we return pointer to the user info.
@@ -2241,6 +2260,8 @@ prctladdr(info, fp, cfflag, comment)
 		} else
 		  fprintf(fp, "%s", x->string);
 	      }
+	      if (i == 4 && x->string != NULL)
+		privilege = x->string;
 	      if (i == 3 && x->string != NULL)
 		user = x->string;
 	      if (i == 1 && x->string != NULL)
@@ -2253,6 +2274,10 @@ prctladdr(info, fp, cfflag, comment)
 	}
 	if ((cfflag == _CF_SENDER) && channel && strcmp(channel,"error") == 0)
 		user = ""; /* error channel source address -> no user! */
+	if (!privilege || !('0' <= *privilege && *privilege <= '9')) {
+	  printf(stderr, "Malformed %s privilege data!\n", comment);
+	  return NULL;
+	}
 	return user;
 }
 

@@ -175,7 +175,7 @@ run_relation(argc, argv)
 	struct db_info proto_config, *dbip;
 	struct db_kind *dbkp;
 	struct spblk *spl;
-	int c, errflg, set_cache_size;
+	int c, errflg, set_cache_size, dbtest;
 	spkey_t symid;
 	memtypes oval;
 	char *cp, *dbtyp;
@@ -184,10 +184,11 @@ run_relation(argc, argv)
 	dbtyp = NULL;
 	set_cache_size = 0;
 	optind = 1;
+	dbtest = 0;
 	proto_config
 		= db_kinds[sizeof db_kinds/(sizeof (struct db_kind))-1].config;
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "Cbilmnpud:f:s:t:e:");
+		c = getopt(argc, (char*const*)argv, "Cbilmnpud:f:s:t:Te:");
 		if (c == EOF)
 			break;
 		switch (c) {
@@ -241,6 +242,9 @@ run_relation(argc, argv)
 			}
 			proto_config.subtype = cp;
 			break;
+		case 'T':
+			dbtest = 1;
+			break;
 		case 'e':	/* expiry - cache data time to live */
 			proto_config.ttl = atol(optarg);
 			break;
@@ -258,6 +262,8 @@ run_relation(argc, argv)
 		fprintf(stderr,
 		"Usage: %s -t dbtype[,subtype] [-f file -e# -s# -bilmnpu -d driver] name\n",
 			argv[0]);
+		fprintf(stderr,
+		       "       %s -T -t dbtype dummyname\n", argv[0]);
 		fprintf(stderr,
 			"      dbtypes: ");
 		for (dbkp = &db_kinds[0];
@@ -286,11 +292,14 @@ run_relation(argc, argv)
 	}
 	/* the -1 in the following compensates for the terminating null entry */
 	if (dbkp >= &db_kinds[((sizeof db_kinds)/sizeof (struct db_kind))-1]) {
-		fprintf(stderr,
-			"relation: I don't know about the %s database type!\n",
-			dbtyp);
-		return 3;
+	  if (!dbtest)
+	    fprintf(stderr,
+		    "relation: I don't know about the %s database type!\n",
+		    dbtyp);
+	  return 3;
 	}
+	if (dbtest)
+	  return 0;
 
 	symid = symbol(argv[optind]); /* Database name symbol  */
 	if (sp_lookup(symid, spt_databases) != NULL) {
