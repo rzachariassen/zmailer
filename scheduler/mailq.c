@@ -1189,7 +1189,7 @@ static struct ctlfile *readmq2cfp(fname)
      const char *fname;
 {
 	struct ctlfile *cfp = NULL;
-	int i, fd;
+	int i, fd, once;
 	struct stat stbuf;
 	char *s, *s0;
 
@@ -1223,13 +1223,16 @@ static struct ctlfile *readmq2cfp(fname)
 
 	s0[i] = 0;
 
-
+	once = 1;
 	for (s = s0; i > 0; ++s, --i) {
-	  if (*s == '\n') {
+	  if (*s == '\n' || once) {
 	    char c;
 	    char *p;
-	    --i; ++s;
+	    if (!once) {
+	      --i; ++s;
+	    }
 	    c = *s;
+	    once = 0;
 	    --i; ++s;
 	    --i; ++s;
 	    if (i > 0)
@@ -1242,14 +1245,12 @@ static struct ctlfile *readmq2cfp(fname)
 	      *p = 0;
 	      cfp->format = 0;
 	      sscanf(s, "%i", &cfp->format);
-printf("scanner: format='%s'\n",s);
 	      i -= (p - s);
 	      s = p;
 	      break;
 	    case _CF_LOGIDENT:
 	      cfp->logident = s;
 	      *p = 0;
-printf("scanner: logident='%s'\n",s);
 	      i -= (p - s);
 	      s = p;
 	      break;
