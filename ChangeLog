@@ -1,3 +1,10 @@
+1999-05-17  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpdata.c:
+	    Be a bit sloppy with DATA statement which follows
+	    with white-space.. (or whatnot..)  On the other
+	    hand, if "-s strict" mode is on, complain!
+
 1999-05-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* transports/mailbox/mailbox.c:

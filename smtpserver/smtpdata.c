@@ -45,7 +45,8 @@ const char *buf, *cp;
     int ino;
     char msg[2048];
 
-    if (*cp != 0 && STYLE(SS->cfinfo,'R')) {
+    while (!strict_protocol && (*cp == ' ' || *cp == '\t')) ++cp;
+    if (strict_protocol && *cp != 0) {
       type(SS, 501, m554, "Extra junk after 'DATA' verb");
       return 0;
     }
