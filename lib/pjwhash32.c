@@ -2,6 +2,10 @@
  *  Modified PJW-hash
  */
 
+#ifndef __STDC__
+#define const 
+#endif
+
 unsigned long
 pjwhash32 (ptr)
     register const unsigned char    *ptr;

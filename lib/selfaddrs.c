@@ -332,17 +332,17 @@ stashmyaddress(host)
 	}
 	if (myaddrs == NULL) {
 	  nmyaddrs = 0;
-	  myaddrs = malloc((nmyaddrs + naddrs +1) * sizeof(struct sockaddr*));
+	  myaddrs = (void*)malloc((nmyaddrs + naddrs +1) * sizeof(struct sockaddr*));
 	} else
-	  myaddrs = realloc(myaddrs,
-			    (nmyaddrs + naddrs +1) * sizeof(struct sockaddr*));
+	  myaddrs = (void*)realloc((void*)myaddrs,
+				   (nmyaddrs + naddrs +1) * sizeof(struct sockaddr*));
 
 	if (!myaddrs) return; /* Uurgh.... */
 
 	for (hp_init(hp); *hp_getaddr() != NULL; hp_nextaddr()) {
 	  if (hp->h_addrtype == AF_INET) {
 	    struct sockaddr_in *si;
-	    si = malloc(sizeof(*si));
+	    si = (void*)malloc(sizeof(*si));
 	    if (!si) {
 	      return;
 	    }
@@ -354,7 +354,7 @@ stashmyaddress(host)
 #if defined(AF_INET6) && defined(INET6)
 	  if (hp->h_addrtype == AF_INET6) {
 	    struct sockaddr_in6 *si6;
-	    si6 = malloc(sizeof(*si6));
+	    si6 = (void*)malloc(sizeof(*si6));
 	    if (!si6) {
 	      return;
 	    }
