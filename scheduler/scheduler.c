@@ -3003,7 +3003,7 @@ static void init_timeserver()
 	if (ppid < 0) return; /* Error ?? brr.. */
 
 #ifdef HAVE_SETPROCTITLE
-	setproctitle("[TimeServer]")
+	setproctitle("[TimeServer]");
 #else
 	strncpy(ArgvSave,"[Scheduler TimeServer]", EOArgvSave - ArgvSave);
 #endif
