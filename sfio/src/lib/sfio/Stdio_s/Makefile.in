@@ -30,4 +30,4 @@ OBJS=	stdgets.o stdopen.o stdprintf.o stdscanf.o stdsprintf.o stdvbuf.o \
 must:	$(OBJS)
 
 clean:
-	-(rm $(OBJS); exit 0) >/dev/null 2>&1
+	-rm -f $(OBJS)

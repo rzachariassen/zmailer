@@ -34,4 +34,4 @@ OBJS=	sfdcdio.o sfdcdos.o sfdcfilter.o sfdclzw.o sfdcseekable.o sfdcslow.o \
 must:	$(OBJS)
 
 clean:
-	-(rm $(OBJS); exit 0) >/dev/null 2>&1
+	-rm -f $(OBJS)
