@@ -67,6 +67,7 @@ union sockaddr_uni {
 #endif
 };
 
+#include "zmalloc.h"
 #include "libz.h"
 
 extern char  *getzenv     __((const char *));
