@@ -1442,10 +1442,12 @@ void query2(fpi, fpo)
 
 	    lines[linecnt] = malloc(bufsize+2);
 	    memcpy(lines[linecnt], b, bufsize+1);
-	    lines[++linecnt] = NULL;
+	    ++linecnt;
 
 	    /* fprintf(stdout,"%s\n", b); */
 	  }
+
+	  lines[linecnt] = NULL;
 
 	  for (i = 0; lines[i] != NULL; ++i) {
 	    char *channel = lines[i];
@@ -1498,12 +1500,13 @@ void query2(fpi, fpo)
 	      threads[threadcnt].line    = malloc(bufsize + 2);
 	      memcpy(threads[threadcnt].line, b, bufsize+1);
 	      ++threadcnt;
-	      threads[threadcnt].channel = NULL;
-	      threads[threadcnt].host    = NULL;
-	      threads[threadcnt].line    = NULL;
 	    }
 	    
 	  }
+
+	  threads[threadcnt].channel = NULL;
+	  threads[threadcnt].host    = NULL;
+	  threads[threadcnt].line    = NULL;
 
 	  fclose(fpi); fclose(fpo);
 
