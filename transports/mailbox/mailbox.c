@@ -1966,6 +1966,13 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  env[i++] = cp;
 	  cp += strlen(cp) + 1;
 	}
+	s = getenv("TZ");
+	if (s != NULL) {
+	  sprintf(cp,"TZ=%s", s);
+	  env[i++] = cp;
+	  cp += strlen(cp) + 1;
+	}
+
 	pw = getpwuid(uid);
 	if (pw == NULL) {
 
