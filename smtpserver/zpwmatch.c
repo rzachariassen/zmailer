@@ -37,7 +37,7 @@
 #include <string.h>
 #include "libz.h"
 
-extern int zpwmatch __((const char *, const char *, long *));
+extern char * zpwmatch __((const char *, const char *, long *));
 
 #ifdef HAVE_SECURITY_PAM_APPL_H
 
@@ -125,7 +125,7 @@ static struct pam_conv pam_c = {
     NULL
 };
 
-int zpwmatch(uname,password,uidp)
+char * zpwmatch(uname,password,uidp)
      const char *uname, *password;
      long *uidp;
 {
@@ -167,13 +167,13 @@ int zpwmatch(uname,password,uidp)
 	pword = NULL;
     }
 
-    return (val == PAM_SUCCESS) ? 1 : 0;
+    return (val == PAM_SUCCESS) ? NULL : "Authentication Failed";
 }
 
 #else
 # ifdef HAVE_SHADOW_H
 
-int zpwmatch(uname, password, uidp)
+char * zpwmatch(uname, password, uidp)
      const char *uname, *password;
      long *uidp;
 {
@@ -197,12 +197,12 @@ int zpwmatch(uname, password, uidp)
     cr = crypt(password, spw->sp_pwdp);
     *uidp = pw->pw_uid;
 
-    return (strcmp(cr, spw->sp_pwdp) == 0);
+    return (strcmp(cr, spw->sp_pwdp) == 0) ? NULL : "Authentication Failed";
 }
 
 # else
 
-int zpwmatch(uname,password,uidp)
+char * zpwmatch(uname,password,uidp)
      const char *uname, *password;
      long *uidp;
 {
@@ -219,7 +219,7 @@ int zpwmatch(uname,password,uidp)
     cr = crypt(password, pw->pw_passwd);
     *uidp = pw->pw_uid;
 
-    return (strcmp(cr, pw->pw_passwd) == 0);
+    return (strcmp(cr, pw->pw_passwd) == 0) ? NULL : "Authentication Failed";
 }
 # endif /* HAVE_SHADOW_H */
 #endif

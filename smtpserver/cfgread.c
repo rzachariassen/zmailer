@@ -70,39 +70,77 @@ static void cfparam(str)
        running in parallel, and how many parallel sessions can
        be coming from same IP address */
 
-    if (cistrcmp(name, "same-ip-source-parallel-max") == 0) {
+    if (cistrcmp(name, "same-ip-source-parallel-max") == 0 && param1) {
 	sscanf(param1, "%d", &MaxSameIpSource);
-    } else if (cistrcmp(name, "MaxSameIpSource") == 0) {
+    } else if (cistrcmp(name, "MaxSameIpSource") == 0 && param1) {
 	sscanf(param1, "%d", &MaxSameIpSource);
-    } else if (cistrcmp(name, "MaxParallelConnections") == 0) {
+    } else if (cistrcmp(name, "MaxParallelConnections") == 0 && param1) {
 	sscanf(param1, "%d", &MaxParallelConnections);
-    } else if (cistrcmp(name, "max-parallel-connections") == 0) {
+    } else if (cistrcmp(name, "max-parallel-connections") == 0 && param1) {
 	sscanf(param1, "%d", &MaxParallelConnections);
+    }
 
     /* TCP related parameters */
 
-    } else if (cistrcmp(name, "ListenQueueSize") == 0) {
+    else if   (cistrcmp(name, "ListenQueueSize") == 0   && param1) {
 	sscanf(param1, "%d", &ListenQueueSize);
-    } else if (cistrcmp(name, "tcprcvbuffersize") == 0) {
+    } else if (cistrcmp(name, "tcprcvbuffersize") == 0  && param1) {
 	sscanf(param1, "%d", &TcpRcvBufferSize);
-    } else if (cistrcmp(name, "tcpxmitbuffersize") == 0) {
+    } else if (cistrcmp(name, "tcpxmitbuffersize") == 0 && param1) {
 	sscanf(param1, "%d", &TcpXmitBufferSize);
+    }
+
+    /* IP address and port binders */
+
+    else if (cistrcmp(name, "BindPort") == 0 && param1) {
+      bindport = htons(atoi(param1));
+      if (bindport != 0 && bindport != 0xFFFFU)
+	bindport_set = 1;
+    } else if (cistrcmp(name, "BindAddress") == 0 && param1) {
+      memset(&bindaddr, 0, sizeof(bindaddr));
+      bindaddr_set = 1;
+#if defined(AF_INET6) && defined(INET6)
+      if (cistrncmp(param1,"[ipv6 ",6) == 0 ||
+	  cistrncmp(param1,"[ipv6:",6) == 0 ||
+	  cistrncmp(param1,"[ipv6.",6) == 0) {
+	char *s = strchr(param1,']');
+	if (s) *s = 0;
+	if (inet_pton(AF_INET6, param1+6, &bindaddr.v6.sin6_addr) < 1) {
+	  /* False IPv6 number literal */
+	  /* ... then we don't set the IP address... */
+	  bindaddr_set = 0;
+	}
+	bindaddr.v6.sin6_family = AF_INET6;
+      } else
+#endif
+	if (*param1 == '[') {
+	  char *s = strchr(param1,']');
+	  if (s) *s = 0;
+	  if (inet_pton(AF_INET, param1+1, &bindaddr.v4.sin_addr) < 1) {
+	    /* False IP(v4) number literal */
+	    /* ... then we don't set the IP address... */
+	    bindaddr_set = 0;
+	  }
+	  bindaddr.v4.sin_family = AF_INET;
+	} else {
+	  bindaddr_set = 0;
+	}
     }
 
     /* SMTP Protocol limit & policy tune options */
 
-    else if (cistrcmp(name, "maxsize") == 0) {
+    else if (cistrcmp(name, "maxsize") == 0 && param1) {
 	sscanf(param1, "%ld", &maxsize);
-    } else if (cistrcmp(name, "min-availspace") == 0) {
+    } else if (cistrcmp(name, "min-availspace") == 0 && param1) {
 	if (sscanf(param1, "%ld", &minimum_availspace) == 1) {
 	  minimum_availspace *= 1024;
 	  if (minimum_availspace < 1000000)
 	    minimum_availspace = 1000000;
 	}
-    } else if (cistrcmp(name, "RcptLimitCnt") == 0) {
+    } else if (cistrcmp(name, "RcptLimitCnt") == 0 && param1) {
 	sscanf(param1, "%d", &rcptlimitcnt);
 	if (rcptlimitcnt < 100) rcptlimitcnt = 100;
-    } else if (cistrcmp(name, "Rcpt-Limit-Count") == 0) {
+    } else if (cistrcmp(name, "Rcpt-Limit-Count") == 0 && param1) {
 	sscanf(param1, "%d", &rcptlimitcnt);
 	if (rcptlimitcnt < 100) rcptlimitcnt = 100;
     } else if (cistrcmp(name, "accept-percent-kludge") == 0) {
@@ -111,13 +149,13 @@ static void cfparam(str)
 	percent_accept = -1;
     } else if (cistrcmp(name, "allowsourceroute") == 0) {
       allow_source_route = 1;
-    } else if (cistrcmp(name, "max-error-recipients") == 0) {
+    } else if (cistrcmp(name, "max-error-recipients") == 0 && param1) {
 	sscanf(param1, "%d", &MaxErrorRecipients);
     }
 
     /* Two parameter policydb option: DBTYPE and DBPATH */
 
-    else if (cistrcmp(name, "policydb") == 0) {
+    else if (cistrcmp(name, "policydb") == 0 && param1 && param2) {
 	policydefine(&policydb, param1, param2);
     }
 
@@ -135,6 +173,8 @@ static void cfparam(str)
       auth_ok = 1;
     } else if (cistrcmp(name, "auth-login-also-without-tls") == 0) {
       auth_login_without_tls = 1;
+    } else if (cistrcmp(name, "msa-mode") == 0) {
+      msa_mode = 1;
     }
 
     /* Store various things into 'rvcdfrom' header per selectors */
@@ -210,7 +250,7 @@ static void cfparam(str)
     } else if (cistrcmp(name, "tls-ask-cert")  == 0 && param1) {
       sscanf(param1,"%d", & tls_ask_cert);
 
-    } else if (cistrcmp(name, "tls-require-cert")  == 0 && param1) {
+    } else if (cistrcmp(name, "tls-require-cert") == 0 && param1) {
       sscanf(param1,"%d", & tls_req_cert);
     }
     /* XX: report error for unrecognized PARAM keyword ?? */

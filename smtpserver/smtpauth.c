@@ -51,7 +51,7 @@ and receiving server (S:) would reply with:
 
 */
 
-extern int zpwmatch __((char *, char *, long *uidp));
+extern char * zpwmatch __((char *, char *, long *uidp));
 
 #if 0 /* DUMMY BEAST... */
 
@@ -61,7 +61,9 @@ extern int zpwmatch __((char *, char *, long *uidp));
 #include <pwd.h>
 #include <unistd.h>
 
-int zpwmatch(uname,password,uidp)
+/* Return NULL for OK, and error text for failure */
+
+char * zpwmatch(uname,password,uidp)
      char *uname, *password;
      long *uidp;
 {
@@ -72,7 +74,7 @@ int zpwmatch(uname,password,uidp)
     cr = crypt(password, pw->pw_passwd);
     *uidp = pw->pw_uid;
 
-    return (strcmp(cr, pw->pw_passwd) == 0);
+    return (strcmp(cr, pw->pw_passwd) == 0) ? NULL : "Authentication Failure";
 }
 #endif
 
@@ -90,6 +92,7 @@ void smtp_auth(SS,buf,cp)
     int i, rc;
     char *uname;
     long uid;
+    char *zpw;
 
     if (SS->authuser != NULL) {
       type(SS, 503, m551, "Already authenticated, second attempt rejected!");
@@ -205,11 +208,11 @@ void smtp_auth(SS,buf,cp)
     else if (tls_loglevel > 0)
       type(NULL,0,NULL,"zpwmatch: user ´%s' (password: *not so easy*!)", uname);
 
-    if (zpwmatch(uname, bbuf, &uid) > 0) {
+    if ((zpw = zpwmatch(uname, bbuf, &uid)) == NULL) {
 	SS->authuser = uname;
 	type(SS, 235, NULL, "Authentication successful.");
     } else {
-	type(SS, 535, NULL, "Authentication failed.");
+	type(SS, 535, NULL, "%s", zpw);
 	if (uname) free(uname);
     }
 }

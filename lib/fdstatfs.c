@@ -1,5 +1,5 @@
 /*
- *    Copyright 1994-1996 Matti Aarnio
+ *    Copyright 1994-1999 Matti Aarnio
  *      This is part of the ZMailer (2.99+), and available with
  *      the rules of the main program itself
  */
@@ -24,6 +24,18 @@
 #include <sys/vfs.h>
 #endif
 
+/* Saturative calculation, will not matter as 2 GB is likely sufficient
+   space for *any* email at *any* system (and I have been proven wrong...)
+   Algorithm suggested by  Artur Urbanowicz <Artur.Urbanowicz@man.lublin.pl>,
+   who has 17 GB filesystem for $POSTOFFICE/ at some 32-bit system ...
+*/
+
+#ifndef LONG_MAX
+# define LONG_MAX 2147483647L
+#endif
+#define LONG_PRODUCT(op1,op2) \
+          ( LONG_MAX / op1 < op2 ? LONG_MAX : op1 * op2 )
+
 long fd_statfs(fd)
 int fd;
 {
@@ -40,27 +52,27 @@ int fd;
     if ((rc = fstatvfs(fd, &statbuf)) == 0) {
       /* Sidestep a problem at glibc 2.1.1 when running at Linux/i386 */
       if (statbuf.f_frsize != 0)
-	availspace = statbuf.f_bavail * statbuf.f_frsize;
+	availspace = LONG_PRODUCT(statbuf.f_bavail, statbuf.f_frsize);
       else
-	availspace = statbuf.f_bavail * statbuf.f_bsize;
+	availspace = LONG_PRODUCT(statbuf.f_bavail, statbuf.f_bsize);
     }
 #else
 #ifdef STAT_STATFS3_OSF1
     struct statfs statbuf;
     if ((rc = fstatfs(fd, &statbuf, sizeof(statbuf))) == 0) {
-	availspace = statbuf.f_bavail * statbuf.f_fsize;
+	availspace = LONG_PRODUCT(statbuf.f_bavail, statbuf.f_fsize);
     }
 #else
 #ifdef STAT_STATFS2_BSIZE
     struct statfs statbuf;
     if ((rc = fstatfs(fd, &statbuf)) == 0) {
-	availspace = statbuf.f_bavail * statbuf.f_bsize;
+	availspace = LONG_PRODUCT(statbuf.f_bavail, statbuf.f_bsize);
     }
 #else
 #ifdef STAT_STATFS2_FSIZE
     struct statfs statbuf;
     if ((rc = fstatfs(fd, &statbuf)) == 0) {
-	availspace = statbuf.f_bavail * statbuf.f_fsize;
+	availspace = LONG_PRODUCT(statbuf.f_bavail, statbuf.f_fsize);
     }
 #else
 #ifdef STAT_STATFS2_FS_DATA	/* Ultrix ? */
@@ -68,7 +80,7 @@ int fd;
 #else				/* none of the previous  -- SVR3 stuff... */
     struct statfs statbuf;
     if ((rc = fstatfs(fd, &statbuf, sizeof statbuf, 0)) == 0) {
-	availspace = statbuf.f_bfree * statbuf.f_bsize;
+	availspace = LONG_PRODUCT(statbuf.f_bfree, statbuf.f_bsize);
     }
 #endif
 #endif

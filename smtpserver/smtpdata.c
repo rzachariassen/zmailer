@@ -114,6 +114,11 @@ const char *buf, *cp;
     type(SS, 354, NULL, (char *) NULL);
     typeflush(SS);
     fputs("env-end\n", SS->mfp);
+
+    if (msa_mode && SS->authuser != NULL ) {
+      fprintf(SS->mfp, "X-Comment: RFC 2476 MSA function at %s logged sender identity as: %s\n", SS->myhostname, SS->authuser);
+    }
+
     /* We set alarm()s inside the mvdata() */
     *msg = 0;
     filsiz = mvdata(SS, msg);
@@ -267,6 +272,9 @@ const char *buf, *cp;
     }
     if (SS->bdata_blocknum == 1) {
 	fputs("env-end\n", SS->mfp);
+	if (msa_mode && SS->authuser != NULL ) {
+	  fprintf(SS->mfp, "X-Comment: RFC 2476 MSA function at %s logged sender identity as: %s\n", SS->myhostname, SS->authuser);
+	}
     }
     /* We set alarm()s inside the mvbdata() */
     *msg = 0;
@@ -957,6 +965,14 @@ char *msg;
 	    else if (((eol - s) >= 6) && CISTREQN("normal", s, 6))
 		mail_priority = _MAILPRIO_NORMAL;
 	}
+#if 0 /* Nice in theory - impractical in reality */
+	if (msa_mode && CISTREQN(linebuf, "Sender:", 7)) {
+	    if ( SS->authuser != NULL ) {
+	      fprintf(SS->mfp, "Sender: %s@%s\n", SS->authuser, SS->myhostname);
+	      fprintf(SS->mfp, "Old-");
+	    }
+        }
+#endif
 #ifdef USE_TRANSLATION
 	if (X_translation && (X_settrrc == 0)) {
 	    if (CISTREQN(linebuf, "Content-Transfer-Encoding:", 26)) {

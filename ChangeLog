@@ -1,3 +1,16 @@
+1999-08-27  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* contrib/pipeauth-0.55.tar.gz, contrib/rauth-0.56.tar.gz,
+	  proto/smtpserver.conf.in, proto/zmailer.sh.in, smtpserver/cfgread.c,
+	  smtpserver/fdstatfs.c, smtpserver/smtpcmds.c, smtpserver/smtpserver.h,
+	  smtpserver/zpwmath.c, utils/policybuilder.sh.in:
+	    Heaps of changes from an ISP guy
+	    Artur Urbanowicz <artur.urbanowicz@man.lublin.pl>
+	
+	* transports/libta/diagnostic.c:
+	    Report the 'host' part of the referred channel/host pair
+	    for which the diagnostic is being presented.
+
 1999-08-26  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpcmds.c:

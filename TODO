@@ -156,6 +156,8 @@ transports/smtp:
 	  living connection...
 
 - smtpserver
+  - Supply PARAM entries for *all* (well, very nearly) command-line
+    startup options.
   - SSL/TLS code needs to be updated to support non-blocking operations,
     which appeared at 0.9.4 release of the OpenSSL.
   - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills

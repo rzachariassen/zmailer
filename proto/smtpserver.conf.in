@@ -17,6 +17,10 @@
 #PARAM RcptLimitCount          10000	# Max number of recipients for one
 #					# MAIL FROM session. Minimum: 100
 #
+#PARAM BindPort	                  25
+#PARAM BindAddress         [0.0.0.0]
+#PARAM BindAddress       [IPv6.0::0]
+#
 # Enables of some commands:
 #PARAM	DEBUGcmd
 #PARAM	EXPNcmd
@@ -38,6 +42,12 @@
 #			# be used without running under SSL/TLS security
 #			# envelope.
 #
+#PARAM MSA-mode		# Message Submission Agent Mode. Require successfull
+#			# user authentication before message submission during
+#			# SMTP session from outside of "fulltrustnet" and
+#			# "relaycustnet" (see smtp-policy.src). Rewrites the
+#			# Sender field to the authenticated user name or removes
+#			# it, when user is unknown.
 # Disablers of some facility adverticements
 #PARAM  NoEHLO
 #PARAM	NoPIPELINING

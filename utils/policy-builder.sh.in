@@ -23,24 +23,44 @@
 #done
 #shift `expr $OPTIND - 1`
 
-if [ "x$1" = "x-n" ]; then
-    FLAG=n
-    shift
-fi
-if [ "x$1" = "x?" ]; then
-    exit 2
-fi
-
-
 ZCONFIG=@ZMAILERCFGFILE@
 . $ZCONFIG
 
+DBDIR="$MAILVAR/db/"
+USAGE="Usage: $0 [-n] [-d dbdir]"
+
+while [ "$1" != "" ]; do
+    case "$1" in
+	-n)
+	    FLAG=n
+	    ;;
+	-d)
+	    shift
+	    DBDIR=$1
+	    if [ ! -d $DBDIR ]; then
+		echo $USAGE
+		exit 1
+	    fi
+	    ;;
+	?)
+	    echo $USAGE
+	    exit 0
+	    ;;
+	*)
+	    echo $USAGE
+	    exit 2
+	    ;;
+    esac
+    shift
+done
+
+
 umask 022
 
-cd $MAILVAR/db
+cd $DBDIR
 
 if [ ! -f smtp-policy.src ] ; then
-	echo "No $MAILVAR/db/smtp-policy.src input file"
+	echo "No $DBDIR/smtp-policy.src input file"
 	exit 64 # EX_USAGE
 fi
 

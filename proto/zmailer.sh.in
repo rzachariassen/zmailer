@@ -88,7 +88,7 @@ do
 	    ;;
 	sched*|ched*)
 	    case $KILL in
-		-*)	kill $KILL -`cat $POSTOFFICE/.pid.scheduler` ;;
+		-*)	kill $KILL -`cat $POSTOFFICE/.pid.scheduler` 2>/dev/null ;;
 		*)
 			if [ -f $POSTOFFICE/.freeze ]; then
 			    echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
@@ -111,16 +111,42 @@ do
 	smtp*|mtp*)
 	    case $KILL in
 		-*)	if [ -f $POSTOFFICE/.pid.smtpserver ]; then
-			    kill $KILL `cat $POSTOFFICE/.pid.smtpserver`
+			    kill $KILL `cat $POSTOFFICE/.pid.smtpserver` 2>/dev/null
+			elif [ -d $POSTOFFICE/.pid.smtpserver ]; then
+			    kill $KILL `cat $POSTOFFICE/.pid.smtpserver/* 2>/dev/null` 2>/dev/null
 	#		else
 	#		    echo $eopt "(warning: no .pid.smtpserver file) $eeol"
-			fi ;;
+			fi
+			;;
 		*)
 			if [ -f $POSTOFFICE/.freeze ]; then
 			    echo "Sorry, Zmailer is frozen, won't start anything until thawed!"
 			    exit 0
 			fi
-			cd / ; smtpserver $SMTPOPTIONS
+			cd /
+			if [ -f $MAILSHARE/smtpserver.conf ]; then
+			    cd /; smtpserver $SMTPOPTIONS
+			elif [ -d $MAILSHARE/smtpserver.conf ]; then
+			    if [ -e $POSTOFFICE/.pid.smtpserver ]; then
+				if [ ! -d $POSTOFFICE/.pid.smtpserver ]; then
+				    echo "CONFIGURATION ERROR!"
+				    echo "Cannot start multiple instances of the smtpserver -"
+				    echo "$POSTOFFICE/.pid.smtpserver is not a directory!"
+				    exit 0
+				fi
+			    else
+				mkdir $POSTOFFICE/.pid.smtpserver
+			    fi
+			    cd $MAILSHARE/smtpserver.conf
+			    for serv in *; do
+				SMTPOPTIONS_SAVE=$SMTPOPTIONS
+				if [ -f .$serv ]; then
+				    SMTPOPTIONS=`eval echo \`cat .$serv\``
+				fi
+				smtpserver $SMTPOPTIONS -C $serv -I .pid.smtpserver/$serv
+				SMTPOPTIONS=$SMTPOPTIONS_SAVE
+			    done
+			fi
 			;;
 	    esac
 	    ;;

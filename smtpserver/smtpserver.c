@@ -133,6 +133,7 @@ const char *m454 = "4.5.4";
 const char *m471 = "4.7.1";
 const char *m513 = "5.1.3";
 const char *m517 = "5.1.7";
+const char *m530 = "5.3.0";
 const char *m534 = "5.3.4";
 const char *m540 = "5.4.0";
 const char *m543 = "5.4.3";
@@ -175,7 +176,7 @@ int MaxParallelConnections = 800; /* Total number of childs allowed */
 int MaxErrorRecipients = 10;	/* Max number of recipients for a message
 				   that has a "box" ( "<>" ) as its source
 				   address. */
-int percent_accept = 0;
+int percent_accept = -1;
 
 int maxloadavg = 999;		/* Maximum load-average that is tolerated
 				   with smtp-server actively receiving..
@@ -206,6 +207,7 @@ int auth_ok = 0;
 int ehlo_ok = 1;
 int etrn_ok = 1;
 int starttls_ok = 0;
+int msa_mode = 0;
 char *tls_cert_file = NULL;
 char *tls_key_file  = NULL;
 char *tls_CAfile    = NULL;
@@ -221,6 +223,10 @@ int log_rcvd_authuser = 0;
 int log_rcvd_tls_mode = 0;
 int log_rcvd_tls_ccert = 0;
 int auth_login_without_tls = 0;
+Usockaddr bindaddr;
+int bindaddr_set    = 0;
+u_short bindport = 0;
+int bindport_set = 0;
 
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5
@@ -313,11 +319,11 @@ char **argv;
     int inetd, errflg, raddrlen, s, msgfd, version, i;
     const char *mailshare;
     char path[1024];
-    u_short port = 0;
-    int port_set = 0;
     int force_ipv4 = 0;
     int localsocksize;
     char *cfgpath = NULL;
+    char *pidfile = PID_SMTPSERVER;
+    int pidfile_set = 0;
     SmtpState SS;
     int childpid, sameipcount, childcnt;
     time_t now;
@@ -338,6 +344,7 @@ char **argv;
     smtp_syslog = (*t != '\0');
 
     memset(&SS, 0, sizeof(SS));
+    memset(&bindaddr, 0, sizeof(bindaddr));
     SS.mfp = NULL;
     SS.style = "ve";
     SS.state = Hello;
@@ -368,15 +375,15 @@ char **argv;
 #ifndef __STDC__
 #if defined(AF_INET6) && defined(INET6)
 #ifdef USE_TRANSLATION
-		       "?46aBC:d:ighl:np:L:M:P:R:s:S:VvwX8"
+		       "?46aBC:d:ighl:np:I:L:M:P:R:s:S:VvwX8"
 #else /* xlate */
-		       "?46aBC:d:ighl:np:L:M:P:R:s:S:Vvw"
+		       "?46aBC:d:ighl:np:I:L:M:P:R:s:S:Vvw"
 #endif /* xlate */
 #else /* INET6 */
 #ifdef USE_TRANSLATION
-		       "?4aBC:d:ighl:np:L:M:P:R:s:S:VvwX8"
+		       "?4aBC:d:ighl:np:I:L:M:P:R:s:S:VvwX8"
 #else
-		       "?4aBC:d:ighl:np:L:M:P:R:s:S:Vvw"
+		       "?4aBC:d:ighl:np:I:L:M:P:R:s:S:Vvw"
 #endif /* xlate */
 #endif /* INET6 */
 #else /* __STDC__ */
@@ -387,7 +394,7 @@ char **argv;
 #endif
 		       "aBC:d:ighl:n"
 		       "p:"
-		       "L:M:P:R:s:S:Vvw"
+		       "I:L:M:P:R:s:S:Vvw"
 #ifdef USE_TRANSLATION
 		       "X8"
 #endif /* USE_TRANSLATION */
@@ -456,14 +463,18 @@ char **argv;
 	    else
 	      style = strdup(optarg);
 	    break;
+	case 'I':		/* PID file */
+	    pidfile = optarg;
+	    pidfile_set = 1;
+	    break;
 	case 'L':		/* Max LoadAverage */
 	    maxloadavg = atoi(optarg);
 	    if (maxloadavg < 1)
 		maxloadavg = 10;	/* Humph.. */
 	    break;
 	case 'p':
-	    port = htons(atoi(optarg));
-	    port_set = 1;
+	    bindport = htons(atoi(optarg));
+	    bindport_set = 1;
 	    break;
 	case 'R':		/* router binary used for verification */
 	    routerprog = strdup(optarg);
@@ -511,7 +522,8 @@ char **argv;
 		"Usage: %s [-46aBignVvw]\
  [-C cfgfile] [-s xx] [-L maxLoadAvg]\
  [-M SMTPmaxsize] [-R rtrprog] [-p port#]\
- [-P postoffice] [-l logfile] [-S 'local'|'remote']\n"
+ [-P postoffice] [-l logfile] [-S 'local'|'remote']\
+ [-I pidfile]\n"
 #else /* __STDC__ */
 		"Usage: %s [-4"
 #if defined(AF_INET6) && defined(INET6)
@@ -523,7 +535,8 @@ char **argv;
 #endif
 		"] [-C cfgfile] [-s xx] [-L maxLoadAvg]"
 		" [-M SMTPmaxsize] [-R rtrprog] [-p port#]"
-		" [-P postoffice] [-l logfile] [-S 'local'|'remote']\n"
+		" [-P postoffice] [-l logfile] [-S 'local'|'remote']"
+		" [-I pidfile]\n"
 #endif /* __STDC__ */
 		, progname);
 	exit(1);
@@ -655,9 +668,9 @@ char **argv;
 	if (postoffice == NULL
 	    && (postoffice = getzenv("POSTOFFICE")) == NULL)
 	  postoffice = POSTOFFICE;
-	if (!port_set) {
+	if (pidfile_set || (!bindport_set && !bindaddr_set)) {
 	  /* Kill possible previous smtpservers now! */
-	  if (killprevious(SIGTERM, PID_SMTPSERVER) != 0) {
+	  if (killprevious(SIGTERM, pidfile) != 0) {
 	    fprintf(stderr,
 		    "%s: Can't write my pidfile!  Disk full ?\n",
 		    progname);
@@ -735,17 +748,17 @@ char **argv;
 	    exit(1);
 	  }
 #endif
-	if (port <= 0) {
+	if (bindport <= 0) {
 	  struct servent *service;
 #ifdef	IPPORT_SMTP
-	  port = htons(IPPORT_SMTP);
+	  bindport = htons(IPPORT_SMTP);
 #endif				/* !IPPORT_SMTP */
 	  if ((service = getservbyname("smtp", "tcp")) == NULL) {
 	    fprintf(stderr,
 		    "%s: no SMTP service entry, using default\n",
 		    progname);
 	  } else
-	    port = service->s_port;
+	    bindport = service->s_port;
 	}
 #if defined(AF_INET6) && defined(INET6)
 	if (use_ipv6) {
@@ -754,8 +767,10 @@ char **argv;
 	  memset(&si6, 0, sizeof(si6));
 	  si6.sin6_family = AF_INET6;
 	  si6.sin6_flowinfo = 0;
-	  si6.sin6_port = port;
+	  si6.sin6_port = bindport;
 	  memcpy( &si6.sin6_addr, zin6addrany, 16 );
+	  if (bindaddr_set && bindaddr.v6.sin6_family == AF_INET6)
+	    memcpy(&si6.sin6_addr, &bindaddr.v6.sin6_addr, 16);
 
 	  i = bind(s, (struct sockaddr *) &si6, sizeof si6);
 	  if (i < 0) {
@@ -771,7 +786,9 @@ char **argv;
 	    memset(&si4, 0, sizeof(si4));
 	    si4.sin_family = AF_INET;
 	    si4.sin_addr.s_addr = INADDR_ANY;
-	    si4.sin_port = port;
+	    si4.sin_port = bindport;
+	    if (bindaddr_set && bindaddr.v4.sin_family == AF_INET)
+	      memcpy(&si4.sin_addr, &bindaddr.v4.sin_addr, 4);
 
 	    i = bind(s, (struct sockaddr *) &si4, sizeof si4);
 	    if (i < 0) {
@@ -813,10 +830,10 @@ char **argv;
 	dup(0);
 	dup(0);			/* fd's 0, 1, 2 are in use again.. */
 
-	if (!port_set || port != htons(25)) {
+	if (pidfile_set || (!bindport_set && !bindaddr_set)) {
 	  sleep(3); /* Give a moment to possible previous server
 		       to die away... */
-	  killprevious(0, PID_SMTPSERVER);	/* deposit pid */
+	  killprevious(0, pidfile);	/* deposit pid */
 	}
 #if 1
 	pid = getpid();
@@ -1054,7 +1071,7 @@ char **argv;
 	  }
 	}
 	/* Stand-alone server, kill the pidfile at the exit! */
-	killpidfile(PID_SMTPSERVER);
+	killpidfile(pidfile);
 	openlogfp(&SS, daemon_flg);
 	if (logfp != NULL) {
 	  char *cp;
@@ -1728,6 +1745,27 @@ int insecure;
 	    type(SS, 553, NULL, "With 'HELP' command you can get out contact information.");
 	    typeflush(SS);
 	    continue;
+	}
+
+
+	if ( msa_mode && SS->authuser == NULL &&
+	     !(SS->policystate.always_accept || SS->policystate.full_trust) ) {
+	  switch (SS->carp->cmd) {
+#ifdef HAVE_OPENSSL
+	  case StartTLS:
+#endif /* - HAVE_OPENSSL */
+	  case Auth:
+	  case Hello:
+	  case Hello2:
+	  case NoOp:
+	  case Reset:
+	  case Quit:
+	    break;
+	  default:
+	    type(SS, 530, m530, "Authentication required" );
+	    typeflush(SS);
+	    continue;
+	  }
 	}
 
 	switch (SS->carp->cmd) {

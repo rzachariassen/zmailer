@@ -377,6 +377,7 @@ int insecure;
 	type(SS, 503, m551, cp);
 	return;
     }
+
     if (*cp == ' ') ++cp;
     if (!strict_protocol || sloppy) while (*cp == ' ' || *cp == '\t') ++cp;
     if (!CISTREQN(cp, "From:", 5)) {

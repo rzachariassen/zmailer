@@ -242,6 +242,7 @@ extern int auth_ok;
 extern int ehlo_ok;
 extern int etrn_ok;
 extern int starttls_ok;
+extern int msa_mode;
 extern char *tls_cert_file, *tls_key_file, *tls_CAfile, *tls_CApath;
 extern int tls_loglevel, tls_enforce_tls, tls_ccert_vd;
 extern int tls_ask_cert, tls_req_cert;
@@ -251,6 +252,10 @@ extern int auth_login_without_tls;
 extern int strict_protocol;
 extern int rcptlimitcnt;
 extern int enable_router;
+
+extern int bindaddr_set, bindport_set;
+extern u_short   bindport;
+extern Usockaddr bindaddr;
 
 extern const char *progname;
 extern int debug, skeptical, checkhelo, ident_flag, verbose;
@@ -308,6 +313,7 @@ extern const char *m513;
 extern const char *m515;
 extern const char *m517;
 extern const char *m518;
+extern const char *m530;
 extern const char *m534;
 extern const char *m540;
 extern const char *m543;
