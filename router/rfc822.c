@@ -438,7 +438,7 @@ dumpHeader(h)
 	switch (h->h_descriptor->semantics) {
 	case DateTime:
 		printf("\tUNIX time %ld, local time %s",
-			h->h_contents.d, ctime(&(h->h_contents.d)));
+		       (long)h->h_contents.d, ctime(&(h->h_contents.d)));
 		break;
 	case nilHeaderSemantics:
 		for (t = h->h_lines; t != NULL; t = t->t_next)
@@ -472,8 +472,8 @@ dumpHeader(h)
 		if ((t = h->h_contents.r->r_convert) != NULL)
 			printf("\tConvert: %s\n", formatToken(t));
 		printf("\tUNIX time %ld, local time %s",
-			h->h_contents.r->r_time,
-			ctime(&(h->h_contents.r->r_time)));
+		       (long) h->h_contents.r->r_time,
+		       ctime(&(h->h_contents.r->r_time)));
 		break;
 	default:
 		for (a = h->h_contents.a; a != NULL; a = a->a_next) {
@@ -2148,7 +2148,7 @@ sequencer(e, file)
 		 * stuff.  The only safe way is to open it with the permissions
 		 * of the owner of the message file.
 		 */
-		setreuid(0, e->e_statbuf.st_uid);
+		SETEUID(e->e_statbuf.st_uid);
 
 		vfp = fopen(verbosefile, "a");
 		if (vfp) {
@@ -2158,7 +2158,7 @@ sequencer(e, file)
 			fprintf(ofp, "%c%c%s\n", _CF_VERBOSE, _CFTAG_NORMAL,
 				verbosefile);
 		}
-		setreuid(0, 0);
+		SETEUID(0);
 	} else
 		vfp = NULL;
 

@@ -381,8 +381,11 @@ static void cfparam(str,size)
     else if (cistrcmp(name, "use-tls") == 0)
       starttls_ok = 1;		/* Default: OFF */
 
-    else if (cistrcmp(name, "listen-ssmtp") == 0) {
+    else if (cistrcmp(name, "listen-ssmtp") == 0)
       ssmtp_listen = 1;		/* Default: OFF */
+
+    else if (cistrcmp(name, "outlook-tls-bug") == 0) {
+      detect_incorrect_tls_use = 1;	/* Default: OFF */
 
     } else if (cistrcmp(name, "tls-cert-file") == 0 && param1) {
       if (tls_cert_file) free(tls_cert_file);

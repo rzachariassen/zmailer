@@ -125,6 +125,9 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp-policy
 # http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
 #
 #PARAM  use-tls
+##PARAM listen-ssmtp    # A deprecated TCP/465 port listener for SSL/SMTP
+##PARAM outlook-tls-bug # Variant of ssmtp
+#
 #PARAM  tls-CAfile      $MAILVAR/db/smtpserver-CAcert.pem
 #PARAM  tls-cert-file   $MAILVAR/db/smtpserver-cert.pem
 #PARAM  tls-key-file    $MAILVAR/db/smtpserver-key.pem

@@ -171,7 +171,8 @@ main(argc, argv)
 	  exit(EX_NOPERM);
 	}
 
-	setreuid(0, 0);		/* make us root all over */
+	SETUID(0);		/* make us root all over */
+	SETEUID(0);		/* make us root all over */
 
 
 	logfp = NULL;
@@ -217,7 +218,8 @@ main(argc, argv)
 	    *s = 0;
 	  }
 
-	  setreuid(0,0); /* We begin as roots..  process() may change us */
+	  SETUID(0); /* We begin as roots..  process() may change us */
+	  SETEUID(0); /* We begin as roots..  process() may change us */
 
 	  notary_setxdelay(0); /* Our initial speed estimate is
 				  overtly optimistic.. */

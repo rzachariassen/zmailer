@@ -37,12 +37,12 @@
 #endif
 #endif
 
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 #define datum Ndatum
 #include <ndbm.h>
 #undef datum
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 #define datum Gdatum
 #include <gdbm.h>
 #undef datum
@@ -225,20 +225,20 @@ const int qlen;
 int *rlenp;			/* result length ptr ! */
 {
     char *buffer;
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
     Ndatum Nkey, Nresult;
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
     Gdatum Gkey, Gresult;
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2)
     DBT Bkey, Bresult;
     int rc;
 #endif
 
 
     switch (rel->dbt) {
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
     case _dbt_ndbm:
 
 	Nkey.dptr = (char *) qptr;
@@ -257,7 +257,7 @@ int *rlenp;			/* result length ptr ! */
 	break; /* some compilers complain, some produce bad code
 		  without this... */
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
     case _dbt_gdbm:
 
 	Gkey.dptr = (void *) qptr;
@@ -274,7 +274,7 @@ int *rlenp;			/* result length ptr ! */
 	break; /* some compilers complain, some produce bad code
 		  without this... */
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2)
     case _dbt_btree:
 
 
@@ -613,15 +613,15 @@ int whosonrc;
     if (rel == NULL)
       return -1;  /* Not defined! */
 
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
     if (cistrcmp(rel->dbtype, "ndbm") == 0)
 	rel->dbt = _dbt_ndbm;
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
     if (cistrcmp(rel->dbtype, "gdbm") == 0)
 	rel->dbt = _dbt_gdbm;
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2)
     if (cistrcmp(rel->dbtype, "btree") == 0)
 	rel->dbt = _dbt_btree;
     if (cistrcmp(rel->dbtype, "bhash") == 0)
@@ -639,7 +639,7 @@ int whosonrc;
     dbname = (char*)emalloc(strlen(rel->dbpath) + 8);
 #endif
     switch (rel->dbt) {
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
     case _dbt_ndbm:
 	/*
 	   rel->ndbm = dbm_open((char*)rel->dbpath, O_RDWR|O_CREAT|O_TRUNC, 0644);
@@ -649,7 +649,7 @@ int whosonrc;
 	openok = (rel->ndbm != NULL);
 	break;
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
     case _dbt_gdbm:
 	/* Append '.gdbm' to the name */
 	sprintf(dbname, "%s.gdbm", rel->dbpath);

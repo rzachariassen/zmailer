@@ -384,7 +384,7 @@ typedef char msgdata;
 struct mxdata {
 	const msgdata	*host;
 	int		 pref;
-	time_t		 expiry;
+	int		 ttl;
 };
 
 typedef union {
@@ -493,6 +493,7 @@ getmxrr(host, mx, maxmx, depth)
 	     class = _getshort(cp);
 	     */
 	  cp += 2;
+	  mx[nmx].ttl = _getlong(cp); /* ttl */
 	  cp += 4; /* "long" -- but keep in mind that some machines
 		      have "funny" ideas about "long" -- those 64-bit
 		      ones, I mean ... */
@@ -541,7 +542,7 @@ getmxrr(host, mx, maxmx, depth)
 
 	htmlprintf("<P><H1>DNS yields following MX entries\n</H1><PRE>\n");
 	for (i = 0; i < nmx; ++i)
-	  htmlprintf("  %s  IN MX %3d %s\n", host,mx[i].pref,mx[i].host);
+	  htmlprintf("  %s  (%ds) IN MX %3d %s\n", host,mx[i].ttl,mx[i].pref,mx[i].host);
 	htmlprintf("</PRE>\n<P>\n");
 
 	if (nmx == 1) {
@@ -900,6 +901,7 @@ int smtptest(thatuser, ai)
      struct addrinfo *ai;
 {
 	int sock, rc, wtout = 0;
+	int nullreject = 0;
 	char myhostname[200];
 	char smtpline[500];
 
@@ -924,7 +926,7 @@ int smtptest(thatuser, ai)
 
 
 	if (!plaintext)
-	  fprintf(stdout, "<PRE>\n");
+	  htmlprintf("<PRE>\n");
 
 	/* Initial greeting */
 
@@ -932,25 +934,80 @@ int smtptest(thatuser, ai)
 	if (rc < 0 || rc > 299) goto end_test_1;
 
 
-	sprintf(smtpline, "HELO %s\r\n", myhostname);
-	fprintf(stdout, " HELO %s\n", myhostname);
+	sprintf(smtpline, "EHLO %s\r\n", myhostname);
+	fprintf(stdout, " EHLO %s\n", myhostname);
 	rc = writesmtp(sock, smtpline);
 
 	if (rc == ETIMEDOUT) wtout = 1;
 	if (rc != EX_OK) goto end_test_1;
 	rc = readsmtp(sock); /* Read response.. */
-	if (rc < 0 || rc > 299) goto end_test_1;
+	if (rc < 0 || rc > 299) {
+
+	  htmlprintf("</PRE><P>\n<H2>Grrr...  Doesn't understand ESMTP EHLO greeting</H2><P>\n");
+
+	  /* Close, and reconnect... */
+	  close(sock);
+	  sock = -1;
+	  rc = vcsetup(ai->ai_addr, &sock, myhostname, sizeof(myhostname));
+	  if (rc != EX_OK || sock < 0) return rc; /* D'uh! */
+
+	  if (!plaintext)
+	    htmlprintf("<PRE>\n");
+
+	  /* Initial greeting */
+
+	  rc = readsmtp(sock); /* Read response.. */
+	  if (rc < 0 || rc > 299) goto end_test_1;
+
+	  sprintf(smtpline, "HELO %s\r\n", myhostname);
+	  fprintf(stdout, " HELO %s\n", myhostname);
+	  rc = writesmtp(sock, smtpline);
+
+	  if (rc == ETIMEDOUT) wtout = 1;
+	  if (rc != EX_OK) goto end_test_1;
+	  rc = readsmtp(sock); /* Read response.. */
+	  if (rc < 0 || rc > 299) goto end_test_1;
+
+	} else {
+	  if (!plaintext) htmlprintf("</PRE><P>\n");
+	  htmlprintf("<H3>Excellent! It speaks ESMTP!</H3>\n");
+	  if (!plaintext) htmlprintf("<P><PRE>\n");
+	}
+	
 
 	sprintf(smtpline, "MAIL FROM:<>\r\n");
-	if (plaintext)
-	  fprintf(stdout, " MAIL FROM:<>\n");
-	else
-	  fprintf(stdout, " MAIL FROM:&lt;&gt;\n");
+	htmlprintf(" MAIL FROM:%s%s\n","<",">");
 	rc = writesmtp(sock, smtpline);
 	if (rc == ETIMEDOUT) wtout = 1;
 	if (rc != EX_OK) goto end_test_1;
 	rc = readsmtp(sock); /* Read response.. */
-	if (rc < 0 || rc > 299) goto end_test_1;
+
+	if (!plaintext) htmlprintf("</PRE><P>");
+	if (rc < 0 || rc > 299) { 
+	  htmlprintf("<H2>Grr! Rejects NULL return path; see RFC 2821 section 6.1</H2>\n");
+	  nullreject = 1;
+	} else {
+	  htmlprintf("<H4>Fine, it accepts NULL return-path as is mandated by RFC 2821 section 6.1</H4>\n");
+	}
+	if (!plaintext) htmlprintf("<P><PRE>");
+	
+	sprintf(smtpline, "RSET\r\n");
+	htmlprintf(" RSET\n");
+	rc = writesmtp(sock, smtpline);
+	if (rc == ETIMEDOUT) wtout = 1;
+	if (rc != EX_OK) goto end_test_1;
+	rc = readsmtp(sock); /* Read response.. */
+	/* Ignore the result ? */
+
+	sprintf(smtpline, "MAIL FROM:<postmaster@%s>\r\n", myhostname);
+	htmlprintf(" MAIL FROM:%spostmaster@%s%s\n","<",myhostname,">");
+	rc = writesmtp(sock, smtpline);
+	if (rc == ETIMEDOUT) wtout = 1;
+	if (rc != EX_OK) goto end_test_1;
+	rc = readsmtp(sock); /* Read response.. */
+	if (rc < 0 || rc > 299) { 
+	  goto end_test_1;
+	}
 
 	if (thatdomain != thatuser) {
 	  sprintf(smtpline, "RCPT TO:<%s>\r\n", thatuser);
@@ -968,7 +1025,11 @@ int smtptest(thatuser, ai)
 	if (rc == ETIMEDOUT) wtout = 1;
 	if (rc != EX_OK) goto end_test_1;
 	rc = readsmtp(sock); /* Read response.. */
-	if (rc < 0 || rc > 299) goto end_test_1;
+	if (rc < 0 || rc > 299) {
+	  if (!plaintext) htmlprintf("\n</PRE>\n");
+	  htmlprintf("<H2>Eh ? What ?  No ``postmaster'' supported there ?  That violates RFC 2821 section 4.5.1.</H2>\n");
+	  if (!plaintext) htmlprintf("<PRE>\n");
+	}
 
 
 	rc = 0; /* All fine, no complaints! */
@@ -983,8 +1044,10 @@ int smtptest(thatuser, ai)
 	/* htmlprintf("RC = %d\n", rc); */
 	if (wtout)
 	  htmlprintf("<H2> WRITE TIMEOUT!</H2>\n");
-	else if (rc == 0)
+	else if (rc == 0 && !nullreject)
 	  htmlprintf("<H2>Apparently OK!</H2>\n");
+	else if (rc == 0 && nullreject)
+	  htmlprintf("<H2>Rejects RFC 2821 section 6.1 defined mandatorily supported source address format, otherwise appears to work!</H2>\n");
 	else
 	  htmlprintf("<H2>Something WRONG!! rc=%d</H2>\n", rc);
 
@@ -1116,19 +1179,12 @@ int mxverifyrun(thatuser)
 	if (rc) return rc;
 
 	for (i = 0; mx[i].host != NULL; ++i) {
-	  if (plaintext) {
-	    fprintf(stdout, "\n");
+	  htmlprintf("<P>\n");
+	  if (plaintext)
 	    fprintf(stdout, "-----------------------------------------------------------------------\n");
-	    fprintf(stdout, "\n");
-	    fprintf(stdout," Testing MX server: %s\n", mx[i].host);
-	    fprintf(stdout,"\n");
-	  } else {
-	    fprintf(stdout, "<P>\n");
+	  else
 	    fprintf(stdout, "<HR>\n");
-	    fprintf(stdout, "<P>\n");
-	    htmlprintf("<H1>Testing MX server: %s</H1>\n", mx[i].host);
-	    fprintf(stdout,"<P>\n");
-	  }
+	  htmlprintf("<H1>Testing MX server: %s</H1>\n<P>\n", mx[i].host);
 	  rc2 = testmxsrv(thatuser, mx[i].host);
 	  if (!rc)  rc = rc2; /* Yield 'error' if any errs. */
 	}

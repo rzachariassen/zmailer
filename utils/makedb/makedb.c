@@ -15,12 +15,12 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <fcntl.h>
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 #define datum Ndatum
 #include <ndbm.h>
 #undef datum
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 #define datum Gdatum
 #include <gdbm.h>
 #undef datum
@@ -76,10 +76,10 @@ int err;
 {
 	fprintf(stderr, "Usage: %s [-l|-u]] [-A][-a|-p][-s] dbtype database.name [infilename|-]\n", prog);
 	fprintf(stderr, "  where supported dbtypes are:");
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	fprintf(stderr, " ndbm");
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	fprintf(stderr, " gdbm");
 #endif
 #if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
@@ -93,10 +93,10 @@ int err;
 	  exit(1);
 	}
 	fprintf(stderr, "\n\n  If no infilename is defined, database.name is assumed.\n");
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	fprintf(stderr, "  (NDBM appends  .pag, and .dir  into actual db file names..)\n");
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	fprintf(stderr, "  (GDBM appends .gdbm, to the actual db file name..)\n");
 #endif
 #if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
@@ -158,10 +158,10 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
      const void *s, *t;
      const int slen, tlen;
 {
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	DBM *ndbmfile = dbf;
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	GDBM_FILE gdbmfile = dbf;
 #endif
 #if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
@@ -178,7 +178,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 		    (const char*)t, (const char *)s);
 	}
 
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	if (typ == 1) {
 		Ndatum Ndat, Nkey;
 		Nkey.dptr = (void*)t;
@@ -193,7 +193,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 		}
 	}
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	if (typ == 2) {
 		Gdatum Gdat, Gkey;
 		Gkey.dptr = (void*)t;
@@ -243,7 +243,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 	  char *newptr = NULL;
 	  int   newlen = 0;
 
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	  if (typ == 1) {
 	    Ndatum Ndat, Nkey;
 	    Nkey.dptr = (void*)t;
@@ -253,7 +253,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 	    datalen = Ndat.dsize;
 	  }
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	  if (typ == 2) {
 	    Gdatum Gdat, Gkey;
 	    Gkey.dptr = (void*)t;
@@ -782,10 +782,10 @@ char *argv[];
     FILE *infile = NULL;
     int c, rc;
     int typ = 0;
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
     DBM *ndbmfile = NULL;
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
     GDBM_FILE gdbmfile = NULL;
 #endif
 #if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
@@ -851,12 +851,12 @@ char *argv[];
 	usage(argv0, "bad infile", errno);
 
     typ = 0;
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
     if (cistrcmp(dbtype, "ndbm") == 0)
 	typ = 1;
     else
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
     if (cistrcmp(dbtype, "gdbm") == 0)
 	typ = 2;
     else
@@ -870,13 +870,13 @@ char *argv[];
     if (typ == 0)
 	usage(argv0, "unknown dbtype", 0);
 
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
     if (typ == 1) {
 	ndbmfile = dbm_open(dbasename, O_RDWR | O_CREAT | O_TRUNC, 0644);
 	dbf = ndbmfile;
     }
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
     if (typ == 2) {
 	/* Play loose .. don't do syncs while writing */
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
@@ -928,11 +928,11 @@ char *argv[];
     else
 	    rc = create_keyed_dbase(infile, dbf, typ);
 
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
     if (typ == 1)
 	dbm_close(ndbmfile);
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
     if (typ == 2)
 	gdbm_close(gdbmfile);
 #endif

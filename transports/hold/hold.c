@@ -295,7 +295,7 @@ process(dp)
 	if (lseek(dp->msgfd, (off_t)(dp->msgbodyoffset), SEEK_SET) < 0L)
 	  warning("Cannot seek to message body! (%m)", (char *)NULL);
 
-	setreuid(-1, atoi(dp->senders->misc));
+	SETEUID(atoi(dp->senders->misc));
 
 	mfp = mail_open(MSG_RFC822);
 	if (mfp == NULL) {
@@ -307,10 +307,10 @@ process(dp)
 	      diagnostic(rp, EX_TEMPFAIL, 0,
 			 "cannot resubmit anything!");
 	    }
-	  setreuid(-1, getuid());
+	  SETEUID(getuid());
 	  return;
 	}
-	setreuid(-1, getuid());
+	SETEUID(getuid());
 
 	fprintf(mfp, "via suspension\n");
 	if (dp->senders->user[0] == 0)
@@ -335,7 +335,7 @@ process(dp)
 		fprintf(mfp," NOTIFY=%s", rp->notify);
 
 	      if (rp->deliverby) {
-		fprintf(mfp," BY=%ld;", rp->deliverby);
+		fprintf(mfp," BY=%ld;", (long)rp->deliverby);
 		if (rp->deliverbyflgs & _DELIVERBY_R) fputc('R',mfp);
 		if (rp->deliverbyflgs & _DELIVERBY_N) fputc('N',mfp);
 		if (rp->deliverbyflgs & _DELIVERBY_T) fputc('T',mfp);

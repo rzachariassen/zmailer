@@ -1,7 +1,7 @@
 '\" t
 .\" $Header$
 .ds ]W "ZMailer 2.99"
-.TH SMTPSERVER 8 "2 Mar 2001"
+.TH SMTPSERVER 8 "23 Sep 2001"
 .SH NAME
 smtpserver \- zmailer SMTP server
 .SH SYNOPSIS
@@ -359,9 +359,13 @@ This is a path to the external authentication program. The authenticator
 should read a username from command line and a password from standard
 input. Exit status 0 means successful authentication.
 
-.B It is relatively easy to make a mistake in external authentication
-.B program that follows the specification. Use this option only if
-.B you know exactly what you do! BE CAREFULL!
+.B "It is relatively easy to make a mistake in external authentication"
+.B "program that follows the specification. Use this option only if"
+.B "you know exactly what you do! BE CAREFULL!"
+
+.IP PARAM\ use\-tcp\-wrapper
+If TCP-WRAPPER is configured in, uncommenting this
+will activate its use to look service name:  smtp-receiver
 
 .IP PARAM\ No8BITMIME
 .IP PARAM\ NoCHUNKING
@@ -387,6 +391,16 @@ can be turned off.
 .IP PARAM\ no\-multiline\-replies
 Turn off ZMailer's default multiline replies; many systems (especially
 from M$ breed) don't do RFC 821 Appendix E properly...
+
+.IP "PARAM hdr220 a string of stuff"
+This allows full customization of the initial greeting message.
+For details, see the sample configuration below.
+
+.IP "PARAM help ...."
+This allows adding locally relevant data into the SMTP protocol
+HELP command response texts.
+See example in the sample configuration below.
+
 
 .IP PARAM\ policydb
 This defines smtp input policy filtering/analysis database location.
@@ -415,6 +429,39 @@ Default values are (0, 0).  Delay tops at 250 (seconds).
 The ``n1'' is used as the initial tarpit delay, and ``n2'' is
 multiplier for formula:
 .I next = prev + (prev * n2)
+
+.IP "PARAM use\-tls"
+.IP "PARAM tls\-CAfile $MAILVAR/db/smtpserver\-CAcert.pem"
+.IP "PARAM tls\-cert\-file  $MAILVAR/db/smtpserver\-cert.pem"
+.IP "PARAM tls\-key\-file   $MAILVAR/db/smtpserver\-key.pem"
+These are TLSv1 parameters, and all parts of this parameter cluster
+must be set for the facility to work!
+
+See   doc/guides/openssl,  or:
+http://www.aet.tu-cottbus.de/personen/jaenicke/pfixtls/doc/setup.html
+(until something ZMailer specific gets written...)
+
+.IP "PARAM listen\-ssmtp"
+Listen on port TCP/465, which is deprecated SSL/SMTP listener port.
+
+.IP "PARAM outlook\-tls\-bug"
+Microsoft does it again...
+If TLS is set at Outlook, and server port is not 25, it bloody well
+seems to expect that the server starts in TLS handshake mode.
+
+This implements a 2 second startup detail in case the port is some
+other than 25, and if some byte is received from client during that
+time, and it happens to be 0x80, then this server will initiate TLS
+negotiation.  If nothing happens (well-behaving client), normal
+SMTP greeting is presented.
+
+.IP "PARAM tls\-loglevel   0"
+.IP "PARAM tls\-ccert\-vd   0"
+.IP "PARAM tls\-ask\-cert   0"
+.IP "PARAM tls\-require\-cert 0
+.IP "PARAM tls\-CApath ... (somewhen: verify client's certificates)"
+.IP "PARAM tls\-enforce\-tls 1"
+These are some futher thoughs that may materialize some time..
 
 .IP "PARAM rcvd\-ident"
 .IP "PARAM rcvd\-whoson"
@@ -565,6 +612,8 @@ PARAM  policydb   $DBTYPE  $MAILVAR/db/smtp\-policy
 #
 #PARAM  use-tls
 ##PARAM listen-ssmtp    # A deprecated TCP/465 port listener for SSL/SMTP
+##PARAM outlook-tls-bug # Variant of ssmtp
+#
 #PARAM  tls-CAfile      $MAILVAR/db/smtpserver-CAcert.pem
 #PARAM  tls-cert-file   $MAILVAR/db/smtpserver-cert.pem
 #PARAM  tls-key-file    $MAILVAR/db/smtpserver-key.pem
@@ -961,7 +1010,7 @@ l s
 l s
 l s
 l l.
-RFC 821	 The basic SMTP specification
+RFC 821/2821	 The basic SMTP specification
 RFC 1123	 Various 821 parameter clarifications
 
 Several extended SMTP facilities are implemented:

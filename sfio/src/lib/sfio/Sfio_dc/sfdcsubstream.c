@@ -133,9 +133,9 @@ Sfdisc_t*	disc;
 }
 
 #if __STD_C
-static streamexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
+static int streamexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
 #else
-static streamexcept(f, type, data, disc)
+static int streamexcept(f, type, data, disc)
 Sfio_t*		f;
 int		type;
 Void_t*		data;

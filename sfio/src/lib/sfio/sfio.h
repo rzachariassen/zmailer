@@ -179,10 +179,12 @@ struct _sffmt_s
 #define SF_WRITE	0000002	/* open for writing			*/
 #define SF_STRING	0000004	/* a string stream			*/
 #define SF_APPENDWR	0000010	/* associated file is in append mode	*/
+#if 0
 #define SF_APPEND	SF_APPENDWR	/* BSDI messed up the namespace	*/
 				/* by using the SF_ prefix in stat.h.	*/
 				/* If you run across this, either change*/
 				/* to SF_APPENDWR or complain to them.	*/
+#endif
 #define SF_MALLOC	0000020	/* buffer is malloc-ed			*/
 #define SF_LINE		0000040	/* line buffering			*/
 #define SF_SHARE	0000100	/* stream with shared file descriptor 	*/

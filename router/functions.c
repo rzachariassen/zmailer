@@ -2025,8 +2025,8 @@ run_runas(argc, argv)
 	if (!initeduid)
 		myuid = geteuid();
 	if (myuid == 0 && uid != 0) {
-		if (setreuid(0, uid) < 0) {
-			fprintf(stderr, "%s: setuid(%d): %s\n",
+		if (SETEUID(uid) < 0) {
+			fprintf(stderr, "%s: seteuid(%d): %s\n",
 				argv[0], uid, strerror(errno));
 			return 1;
 		}
@@ -2034,7 +2034,7 @@ run_runas(argc, argv)
 	/* must be builtin or defined function */
 	r = s_apply(argc - 2, argv + 2); /* within:  run_runas() */
 	if (myuid == 0 && uid != 0) {
-		if (setreuid(0, 0) < 0)
+		if (SETEUID(0) < 0)
 			abort(); /* user-identity change failed! */
 	}
 

@@ -649,7 +649,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    }
 	    if (mp->flags & MO_BEBSMTP) {
 	      if (rp->deliverby) {
-		fprintf(tafp," BY=%ld;", rp->deliverby - now);
+		fprintf(tafp," BY=%ld;", (long)(rp->deliverby - now));
 		if (rp->deliverbyflgs & _DELIVERBY_R) fputc('R',tafp);
 		if (rp->deliverbyflgs & _DELIVERBY_N) fputc('N',tafp);
 		if (rp->deliverbyflgs & _DELIVERBY_T) fputc('T',tafp);

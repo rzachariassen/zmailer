@@ -256,6 +256,8 @@ int lmtp_mode = 0;	/* A sort-of RFC 2033 LMTP mode ;
 			   this is MAINLY for debug purposes,
 			   NOT for real use! */
 
+int detect_incorrect_tls_use;
+
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5
 #endif				/* IDENT_TIMEOUT */
@@ -1615,10 +1617,17 @@ SmtpState *SS;
     return SS->s_status;
 }
 
-int s_getc(SS)
+int s_getc(SS, timeout_is_fatal)
      SmtpState *SS;
+     int timeout_is_fatal;
 {
     int rc = 0;
+
+    if (SS->s_ungetcbuf >= 0) {
+      rc = SS->s_ungetcbuf;
+      SS->s_ungetcbuf = -1;
+      return rc;
+    }
 
     if (SS->s_status)
 	return SS->s_status;
@@ -1661,8 +1670,10 @@ int s_getc(SS)
 
 	  if (rc == 0) {
 	    /* TIMEOUT! */
-	    gotalarm = 1;
-	    SS->s_status = EOF;
+	    if (timeout_is_fatal) {
+	      gotalarm = 1;
+	      SS->s_status = EOF;
+	    }
 	    return EOF;
 	  }
 	  /* rc < 0 ??? */
@@ -1711,6 +1722,13 @@ SmtpState *SS;
     return (SS->s_bufread - SS->s_readout);
 }
 
+void s_ungetc(SS, ch)
+     SmtpState *SS;
+     int ch;
+{
+	SS->s_ungetcbuf = ch;
+}
+
 
 int s_gets(SS, buf, buflen, rcp, cop, cp)
 SmtpState *SS;
@@ -1728,7 +1746,7 @@ int buflen, *rcp;
 
 	/* Our own  fgets() -- gets also NULs, flags illegals.. */
 	--buflen;
-	while ((c = s_getc(SS)) != EOF && i < buflen) {
+	while ((c = s_getc(SS, 1)) != EOF && i < buflen) {
 	    if (c == '\n') {
 		buf[++i] = c;
 		break;
@@ -1765,7 +1783,7 @@ int buflen, *rcp;
 
 	if (i >= buflen && c != EOF && c != '\n') {
 	  /* Huh, oversized input line ?? */
-	  while ((c = s_getc(SS)) != EOF && c != '\n')
+	  while ((c = s_getc(SS, 1)) != EOF && c != '\n')
 	    ;
 	  /* Input eaten until a NEWLINE, or EOF occurred at the input. */
 	}
@@ -1781,7 +1799,8 @@ int infd;
     SS->inputfd  = infd;
     SS->outputfd = outfd;
     SS->s_status = 0;
-    SS->s_bufread = -1;
+    SS->s_bufread   = -1;
+    SS->s_ungetcbuf = -1;
     SS->s_readout = 0;
 
     fd_nonblockingmode(infd);
@@ -1802,6 +1821,7 @@ int insecure;
     long tell;
     int policystatus;
     struct hostent *hostent;
+    int localport;
 
 #ifdef USE_TRANSLATION
     char lang[4];
@@ -1862,12 +1882,16 @@ int insecure;
     report(SS, "(connected)");
     now = time((time_t *) 0);
     cp = (char *) rfc822date(&now);
-    if (*(cp + strlen(cp) - 1) == '\n')
-	*(cp + strlen(cp) - 1) = '\0';
+
+    if (*(cp + strlen(cp) - 1) == '\n') {
+      *(cp + strlen(cp) - 1) = '\0';
+    }
 
 #if defined(AF_INET6) && defined(INET6)
     if (SS->localsock.v6.sin6_family == AF_INET6) {
 	struct in6_addr *ip6 = &SS->localsock.v6.sin6_addr;
+
+	localport = ntohs(SS->localsock.v6.sin6_port);
 
 	/* If it is IPv4 mapped address to IPv6, then resolve
 	   the IPv4 address... */
@@ -1878,7 +1902,11 @@ int insecure;
 	    hostent = gethostbyaddr((char *) ip6, 16, AF_INET6);
     } else
 #endif
+      {
+	localport = ntohs(SS->localsock.v4.sin_port);
+
 	hostent = gethostbyaddr((void *) &SS->localsock.v4.sin_addr, 4, AF_INET);
+      }
 
     if (hostent) {
 	strcpy(SS->myhostname, hostent->h_name);
@@ -1894,6 +1922,32 @@ int insecure;
 	sleep(2);
 	exit(0);
 #endif				/* USE_TRANSLATION */
+    }
+
+    if (localport != 25 && detect_incorrect_tls_use) {
+      int c;
+      int aval = SS->read_alarm_ival;
+
+      SS->read_alarm_ival = 2;
+      c = s_getc(SS, 0);
+
+      SS->read_alarm_ival = aval;
+
+      if (c >= 0) {
+	s_ungetc(SS, c);
+#ifdef HAVE_OPENSSL
+	/* THIS IS KLUDGE!!!
+	   Microsoft Outlook sExpress (not sure if it was that,
+	   and not one of those other Outlooks...) has a nasty
+	   misfunction of starting the TLS right away when the
+	   destination port at the server is not 25 ...
+	 */
+
+	if (c == 0x80) {
+	  ssmtp_connected = 1;
+	}
+#endif /* - HAVE_OPENSSL */
+      }
     }
 
 #ifdef HAVE_OPENSSL

@@ -110,7 +110,7 @@ elseek(fd, pos, action)
 	if (r < 0) {
 	  int serrno = errno;
 	  fprintf(stderr, "%s: lseek(%d, %ld, %d): %s\n", progname,
-		  fd, pos, action, strerror(errno));
+		  fd, (long)pos, action, strerror(errno));
 	  errno = serrno;
 	}
 	return r;

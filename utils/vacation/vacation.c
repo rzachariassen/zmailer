@@ -26,11 +26,11 @@
 /* #include <tzfile.h> */  /* Not needed ? */
 #include <errno.h>
 #include <sysexits.h>
-#ifdef	HAVE_NDBM_H
+#ifdef	HAVE_NDBM
 #include <ndbm.h>
 #include <fcntl.h>
 #else
-#ifdef  HAVE_GDBM_H
+#ifdef  HAVE_GDBM
 #include <gdbm.h>
 #include <fcntl.h>
 #else
@@ -122,11 +122,11 @@ typedef struct alias {
 } ALIAS;
 ALIAS *names = NULL;
 
-#ifdef	HAVE_NDBM_H
+#ifdef	HAVE_NDBM
 DBM *db;
 #define DBT datum
 #else
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 GDBM_FILE db;
 #define DBT datum
 #else /* HAVE_DB_H */
@@ -245,12 +245,12 @@ main(argc, argv)
 	  exit(EX_NOUSER);
 	}
 
-#ifdef	HAVE_NDBM_H
+#ifdef	HAVE_NDBM
 	if (dblog)
 	  db = dbm_open(VDB, O_RDWR | (iflag ? O_TRUNC|O_CREAT : 0),
 			S_IRUSR|S_IWUSR);
 #else	/* !NDBM */
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	if (dblog)
 	  db = gdbm_open(VDB ".pag" /* Catenates these strings */, 8192,
 			 iflag ? GDBM_NEWDB : GDBM_WRITER,
@@ -300,11 +300,11 @@ main(argc, argv)
 	  }
 	}
 
-#ifdef	HAVE_NDBM_H
+#ifdef	HAVE_NDBM
 	if (dblog)
 	  dbm_close(db);
 #else
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	if (dblog)
 	  gdbm_close(db);
 #else
@@ -665,10 +665,10 @@ recent()
 	/* get interval time */
 	key.dptr = VIT;
 	key.dsize = sizeof(VIT);
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	data = dbm_fetch(db, key);
 #else
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	data = gdbm_fetch(db, key);
 #else
 #ifdef DB_INIT_TXN
@@ -691,10 +691,10 @@ recent()
 	/* get record for this address */
 	key.dptr = from;
 	key.dsize = strlen(from);
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	data = dbm_fetch(db, key);
 #else
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	data = gdbm_fetch(db, key);
 #else
 #ifdef DB_INIT_TXN
@@ -735,10 +735,10 @@ setinterval(interval)
 	data.dptr = (void*)&interval;
 	data.dsize = sizeof(interval);
 
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	dbm_store(db, key, data, DBM_REPLACE);
 #else
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	gdbm_store(db, key, data, GDBM_REPLACE);
 #else
 #ifdef DB_INIT_TXN
@@ -772,10 +772,10 @@ setreply()
 	data.dptr = (void*)&now;
 	data.dsize = sizeof(now);
 
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	dbm_store(db, key, data, DBM_REPLACE);
 #else
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	gdbm_store(db, key, data, GDBM_REPLACE);
 #else
 #ifdef DB_INIT_TXN

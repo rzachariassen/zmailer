@@ -72,13 +72,13 @@ struct policytest {
     char *dbpath;
     dbtypes dbt;
     union {
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 	DBM *_ndbm;
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 	GDBM_FILE _gdbm;
 #endif
-#if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
+#if defined(HAVE_DB1) || defined(HAVE_DB2)
 	DB *_db;
 #endif
     } db_;

@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <sfio.h>
+
 #include <sys/param.h>
 #include "hostenv.h"
 #include <ctype.h>
@@ -247,11 +248,11 @@ struct ctlfile *cfp;
 	   and can be written to.  If the file does not
 	   exist, no logging shall happen! */
 
-	setreuid(0, cfp->uid);
+	SETEUID(cfp->uid);
 	fd = open(cfp->vfpfn, O_WRONLY|O_APPEND, 0);
-	setreuid(0, 0);
+	SETEUID(0);
 	if (fd < 0) return NULL; /* Can't open it! */
-	vfp = sfnew(NULL, NULL, 0, fd, SF_WRITE|SF_APPEND|SF_LINE);
+	vfp = sfnew(NULL, NULL, 0, fd, SF_WRITE|SF_APPENDWR|SF_LINE);
 	if (!vfp) return NULL; /* Failure to open */
 
 	sfseek(vfp, (Sfoff_t)0, SEEK_END);

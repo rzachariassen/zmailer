@@ -124,9 +124,9 @@ Sfdisc_t*      disc;
 
 /* on close, remove the discipline */
 #if __STD_C
-static unexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
+static int unexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
 #else
-static unexcept(f,type,data,disc)
+static int unexcept(f,type,data,disc)
 Sfio_t*		f;
 int		type;
 Void_t*		data;

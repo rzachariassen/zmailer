@@ -24,7 +24,7 @@ checkfreeze () {
 # -----------------------------------------------------------------------
 
 echoo () {
-    echo $eopt "$@$eeol"
+    if [ $quiet -eq 0 ] && echo $eopt "$@$eeol"
 }
 
 # -----------------------------------------------------------------------
@@ -83,11 +83,14 @@ umask 022
 
 KILL=
 
+quiet=0
 for op in $@
 do
     shift
 
     case "$op" in
+	-1)  quiet=1
+	    ;;
         stop|kill|nuke|kills|killr)     # print nothing
             ;;
         *)
@@ -263,6 +266,8 @@ do
         unfr*|thaw)
             rm -f $POSTOFFICE/.freeze
             ;;
+	-q)
+	    ;;
         *)
             echo "$0: unknown option: $op"
             errflg=1
@@ -270,7 +275,7 @@ do
     esac
 done
 
-echo
+[ $quiet - eq 0 ] && echo
 
 case $errflg in
     1)  echo Usage: $0 "[ router | scheduler | smtpserver | stop | kill | resubmit | bootclean | cleanup | newdb | logrotate | logsync | freeze | thaw ]"

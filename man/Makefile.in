@@ -12,6 +12,13 @@ TOPDIR=		..
 S=		$(srcdir)
 INSTALL=	@INSTALL@
 
+# SGML/JADE catalog
+OJCAT     = /usr/share/sgml/openjade-1.3/catalog
+DB2HTML   = jw -c ${OJCAT} -b html -f docbook -o .
+DB2MAN    = jw -c ${OJCAT} -b man -f docbook -o .
+HTMLFIXUP = ${srcdir}/../doc/manual/html-post-fixup.sh
+
+
 MAN1=	mailq.1 mailrm.1 newaliases.1 rmail.1 ssl.1 vacation.1 zmailer.1 zmsh.1 mboxpath.1
 MAN3=	zmailer.3 authuser.3
 MAN5=	aliases.5
@@ -71,6 +78,14 @@ install:
 	$(INSTALL) -m 644 vacation.1	${MANDIR}/man1
 
 
+mailbox.html: $(srcdir)/mailbox.sgml
+	${DB2HTML}   $(srcdir)/mailbox.sgml
+	${HTMLFIXUP} mailbox.html
+
+mailbox.8s: $(srcdir)/mailbox.sgml
+	${DB2MAN}  $(srcdir)/mailbox.sgml
+	#${HTMLFIXUP} mailbox.html
+
 aliases.5.ps: $(srcdir)/aliases.5
 	groff -t -man $< > $@
 authuser.3.ps: $(srcdir)/authuser.3
@@ -122,8 +137,8 @@ mboxpath.1.ps: $(srcdir)/mboxpath.1
 
 
 
-aliases.5.html: $(srcdir)/aliases.5
-	groff -t -man -Thtml $< > $@
+#aliases.5.html: $(srcdir)/aliases.5
+#	groff -t -man -Thtml $< > $@
 authuser.3.html: $(srcdir)/authuser.3
 	groff -t -man -Thtml $< > $@
 mailq.1.html: $(srcdir)/mailq.1
@@ -170,3 +185,5 @@ mailbox.8.html: $(srcdir)/mailbox.8
 	groff -t -man -Thtml $< > $@
 mboxpath.1.html: $(srcdir)/mboxpath.1
 	groff -t -man -Thtml $< > $@
+
+

@@ -149,7 +149,7 @@ Sfdisc_t* disc;
 	if(!dp->maptable)
 	{
 		dp->begin += cp - (char*)buff-1;
-		if(dp->maptable=(struct map*)malloc((MINMAP+1)*sizeof(struct map)))
+		if ((dp->maptable = (struct map*)malloc((MINMAP+1)*sizeof(struct map))))
 		{
 			dp->mapsize = MINMAP;
 			dp->maptable[0].logical=  dp->begin;

@@ -127,12 +127,12 @@ struct db_kind {
 #endif	/* HAVE_RESOLV */
 { "selfmatch",	{ NULL, NULL, 0, 0, 0, NULL, search_selfmatch, NULL, NULL,NULL,
 		  print_selfmatch, count_selfmatch, NULL, NULL, Nul, NULL } },
-#ifdef	HAVE_NDBM_H
+#ifdef	HAVE_NDBM
 { "ndbm",	{ NULL, NULL, 0, 0, 0, NULL, search_ndbm, close_ndbm,
 		  add_ndbm, remove_ndbm, print_ndbm, count_ndbm, owner_ndbm,
 		  modp_ndbm, Nul, NULL } },
 #endif	/* HAVE_NDBM */
-#ifdef	HAVE_GDBM_H
+#ifdef	HAVE_GDBM
 { "gdbm",	{ NULL, NULL, 0, 0, 0, NULL, search_gdbm, close_gdbm,
 		  add_gdbm, remove_gdbm, print_gdbm, count_gdbm, owner_gdbm,
 		  modp_gdbm, Nul, NULL } },

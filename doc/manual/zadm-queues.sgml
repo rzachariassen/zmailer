@@ -4,14 +4,14 @@
 <PARA>
 Normal processing within ZMailer goes via directories described at
 <XREF LINKEND=fig.zadm.zmdirs>.
-A message <EMPHASIS>may</> get sidelined or copied to other directories
-for several possible reasons.
+A message <EMPHASIS>may</> get sidelined or otherwise linked into other
+directories for several possible reasons.
 </PARA>
 
 <IMPORTANT>
 <PARA>
 <EMPHASIS>
-A filesystem without following two properties is not suitable for ZMailer's
+A filesystem without following three properties is not suitable for ZMailer's
 </EMPHASIS>
 <FILENAME CLASS=DIRECTORY>$<VARNAME>POSTOFFICE</>/</>:
 <ITEMIZEDLIST>
@@ -20,10 +20,39 @@ Files must succeed to be <FUNCTION>link</>(2):ed in between directories
 within the filesystem without copying them.
 </EMPHASIS></PARA></LISTITEM>
 <LISTITEM><PARA><EMPHASIS>
+The files must have i-node numbers available via <FUNCTION>fstat</>(2) calls,
+and those numbers must be uniquely representable with 31 bits wide integers.
+</EMPHASIS></PARA></LISTITEM>
+<LISTITEM><PARA><EMPHASIS>
 The file i-node numbers must not change with <FUNCTION>rename</>(2) or
 <FUNCTION>link</>(2) calls applied to them.
 </EMPHASIS></PARA></LISTITEM>
 </ITEMIZEDLIST>
+</PARA>
+
+<PARA>
+Adding system reliability in form of having directory data committed
+to disk at the time of the directory modifying operations returning with
+success is a nice bonus, although in normal UFS-like cases that taxes
+system performance heavily.
+</PARA>
+
+<PARA>
+E.g. running fast-and-loose with async metadata updates in Linux EXT2
+filesystem gives you performance, but in case the system crashes, your
+postoffice directory may be in shambles, and important email may have
+been lost.
+</PARA>
+
+<PARA>
+How exactly you can combat the problem is yours to choose.
+Most filesystems for UNIX have lots of different options at mount-time,
+and also by-directory attributes can be set to control these things.
+Check yours after your decide on what kind of data loss treat you can
+tolerate at expence of what speed reduction.
+(E.g. 300+ day straight uptime with power surges during a thunderstorm at
+ the end of it toasting your machine along with its disks and filesystems,
+ but trouble-free running until then ?)
 </PARA>
 
 <PARA>
@@ -95,6 +124,21 @@ Postmaster analysis area
 <SECT1 ID=zadm-queue-msgsubmission>
 <TITLE>Message Submission Areas</>
 
+<PARA>
+In few places inside of ZMailer
+(in parts of router, and more so in parts of scheduler)
+the system expects the filenames to be decimal encodings of integers
+of 31 bits (maybe 63 bits at systems with suitably large 'long'), and
+those integers (modulo something) are used as keys in several internal
+database lookups.
+</PARA>
+
+<PARA>
+<EMPHASIS>The numeric values used in filenames</>
+<EMPHASIS ROLE=STRONG>must be unique</>
+<EMPHASIS>for the entire lifetime of the spool files.</EMPHASIS>
+</PARA>
+
 
 <PARA>
 Message submission is done by writing a temporary file into the directory
@@ -104,10 +148,11 @@ the  actual format of the submitted message is described in
 </PARA>
 
 <PARA>
-When the temporary file is completely written, it is renamed into one 
-of the <COMMAND>router</> input directories, usually into 
+When the temporary file is completely written, flushed to disk, and closed,
+it is then renamed into one of the <COMMAND>router</> input directories,
+usually into 
   <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/router/</>
-ith a name that is a decimal representation of the spool-file i-node number.
+with a name that is a decimal representation of the spool-file i-node number.
 This is a way to ensure that the name of the file in the
   <FILENAME CLASS="DIRECTORY">$<VARNAME>POSTOFFICE</>/router/</>
 directory is unique.

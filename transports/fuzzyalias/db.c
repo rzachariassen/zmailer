@@ -1,6 +1,6 @@
 #include "mailer.h"
 
-#ifdef	HAVE_NDBM_H
+#ifdef	HAVE_NDBM
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif

@@ -1288,6 +1288,7 @@ deliver(SS, dp, startrp, endrp)
 
 	  if (SS->smtpfp) {
 	    SS->rcptstates = 0;
+	    ++ SS->cmdstate;
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	      if ( ! mail_from_failed ) {
 		mail_from_failed = 1;
@@ -1417,6 +1418,7 @@ deliver(SS, dp, startrp, endrp)
 
 	  if (SS->smtpfp) {
 	    SS->rcptstates = 0;
+	    ++ SS->cmdstate;
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	      /* r = EX_TEMPFAIL */ ;
 	  }
@@ -1487,6 +1489,7 @@ deliver(SS, dp, startrp, endrp)
 	      }
 	    if (SS->smtpfp) {
 	      SS->rcptstates = 0;
+	      ++ SS->cmdstate;
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 		r = EX_TEMPFAIL;
 	    }
@@ -1541,6 +1544,7 @@ deliver(SS, dp, startrp, endrp)
 
 	    if (SS->smtpfp) {
 	      SS->rcptstates = 0;
+	      ++ SS->cmdstate;
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 		/* r = EX_TEMPFAIL */ ;
 
@@ -1638,6 +1642,7 @@ deliver(SS, dp, startrp, endrp)
 	    fprintf(SS->verboselog,"Writing headers after DATA failed\n");
 	  if (SS->smtpfp) {
 	    SS->rcptstates = 0;
+	    ++ SS->cmdstate;
 	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	      r = EX_TEMPFAIL;
 	  }
@@ -1826,10 +1831,9 @@ deliver(SS, dp, startrp, endrp)
 	if (r == EX_OK && more_rp && !getout)
 	  goto more_recipients;
 
-	SS->cmdstate = SMTPSTATE_DATADOTRSET;
-
 	if (r != EX_OK && SS->smtpfp && !getout) {
 	  SS->rcptstates = 0;
+	  ++ SS->cmdstate;
 	  if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
 	    r = EX_TEMPFAIL;
 	}
@@ -3100,8 +3104,12 @@ abort();
 	case EBADF:
 	case EFAULT:
 	case ENOSYS:
+#ifdef ENOMSG
 	case ENOMSG:
+#endif
+#ifdef ENOSTR
 	case ENOSTR:
+#endif
 	case ENOTSOCK:
 	case EDESTADDRREQ:
 	case EMSGSIZE:
@@ -3114,7 +3122,9 @@ abort();
 	case EAFNOSUPPORT:
 		return EX_SOFTWARE;
 	case EACCES:
+#ifdef ENONET
 	case ENONET:
+#endif
 		return EX_UNAVAILABLE;
 	/* wonder how Sendmail missed this one... */
 	case EINTR:
@@ -3391,7 +3401,7 @@ char **statusp;
 		rc = EX_NOUSER;
 		break;
 	case 552: /* Requested mail action aborted: exceeded storage allocation */
-		status = "5.2.3 (message length exceeds administrative limit)";
+		status = "5.2.3 (Some content related rejection, size ? text ?)";
 		rc = EX_UNAVAILABLE;
 		break;
 	case 553: /* Requested action not taken: mailbox name not allowed */

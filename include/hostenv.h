@@ -76,6 +76,48 @@
 # endif
 #endif
 
+
+/* 
+ * On some platforms, setreuid has been deprecated, so don't use it if we
+ * don't have to.  (Otherwise, this may cause linker warnings.)
+ *
+ * gdr: I don't know if this is the right header file in which to place
+ *      this.  Feel free to move it elsewhere, Matti.  Also, the #error
+ *      part of the conditional may not be appropriate for platforms where
+ *      zmailer provides its own setreuid.
+ */
+#if defined(HAVE_SETEUID)
+#  define SETEUID(arg) seteuid(arg)
+#elif defined(HAVE_SETREUID)
+#  define SETEUID(arg) setreuid(-1,(arg))
+#else
+#  error we have neither seteuid nor setreuid
+#endif /* ! HAVE_SETEUID */
+
+#if defined(HAVE_SETUID)
+#  define SETUID(arg) setuid(arg)
+#elif defined(HAVE_SETREUID)
+#  define SETUID(arg) setreuid((arg),-1)
+#else
+#  error we have neither setuid nor setreuid
+#endif /* ! HAVE_SETUID */
+
+#if defined(HAVE_SETEGID)
+#  define SETEGID(arg) setegid(arg)
+#elif defined(HAVE_SETREGID)
+#  define SETEGID(arg) setregid(-1,(arg))
+#else
+#  error we have neither setegid nor setregid
+#endif /* ! HAVE_SETEGID */
+
+#if defined(HAVE_SETGID)
+#  define SETGID(arg) setgid(arg)
+#elif defined(HAVE_SETREGID)
+#  define SETGID(arg) setregid((arg),-1)
+#else
+#  error we have neither setgid nor setregid
+#endif /* ! HAVE_SETGID */
+
 #include "sysprotos.h"
 
 #endif	/* !__HOSTENV__ */

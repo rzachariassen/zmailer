@@ -261,6 +261,7 @@ typedef struct {
     int  s_status;
     int  s_readerrno;
     char s_buffer[SMTPLINESIZE];
+    int  s_ungetcbuf;
 
     int  from_box;		/* Set when:  MAIL FROM:<>  */
     int  rcpt_count;
@@ -347,6 +348,7 @@ extern int configuration_ok;
 extern int unknown_cmd_limit;
 extern int sum_sizeoption_value;
 extern int lmtp_mode;
+extern int detect_incorrect_tls_use;
 
 extern int bindaddr_set, bindport_set, testaddr_set;
 extern u_short   bindport;
@@ -458,9 +460,10 @@ extern int kill __((pid_t, int));
 extern const char *rfc822atom __((const char *str));
 extern const char *xtext_string __((const char *str));
 
-extern void s_setup __((SmtpState * SS, int infd, int outfd));
+extern void s_setup  __((SmtpState * SS, int infd, int outfd));
+extern void s_ungetc __((SmtpState *SS, int ch));
 extern int s_feof __((SmtpState * SS));
-extern int s_getc __((SmtpState * SS));
+extern int s_getc __((SmtpState * SS, int timeout_is_fatal));
 extern int s_hasinput __((SmtpState * SS));
 extern int s_gets __((SmtpState *SS, char *buf, int buflen, int *rcp, char *cop, char *cp));
 

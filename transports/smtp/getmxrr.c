@@ -236,7 +236,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 	  }
 	  if (SS->verboselog)
 	    fprintf(SS->verboselog, " -> (%lds) MX[%d] pref=%d host=%s\n",
-		    mx[nmx].expiry - now, nmx, mx[nmx].pref, buf);
+		    (long)(mx[nmx].expiry - now), nmx, mx[nmx].pref, buf);
 	  rmsgappend(SS, 1, "\r-> %lds MX[%d] p=%d '%s'",
 		     mx[nmx].expiry - now, nmx, mx[nmx].pref, mx[nmx].host);
 	  mxtype[nmx] = 0;

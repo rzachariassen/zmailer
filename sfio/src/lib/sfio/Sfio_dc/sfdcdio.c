@@ -102,16 +102,18 @@ Sfdisc_t*	disc;
 }
 
 #if __STD_C
-static dioexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
+static int dioexcept(Sfio_t* f, int type, Void_t* data, Sfdisc_t* disc)
 #else
-static dioexcept(f,type,data,disc)
+static int dioexcept(f,type,data,disc)
 Sfio_t*		f;
 int		type;
 Void_t*		data;
 Sfdisc_t*	disc;
 #endif
 {
+#ifdef FDIRECT
 	Direct_t*	di = (Direct_t*)disc;
+#endif
 
 	if(type == SF_FINAL || type == SF_DPOP)
 	{

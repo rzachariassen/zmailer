@@ -230,6 +230,10 @@ transports/smtp:
 	Fixed on SMTP, must fix on MAILBOX, and SM!  (4-Jan-95)
 	(Prepared to do it, however only on SMTP it is fatal -- I think..)
 
+- 'channel error' detection is partial at places;
+	transporters: hold, errormail
+
+
 - scheduler:
     FEATURE:
 	scheduler + mailq: Complete the V2 protocol authentication,
@@ -238,6 +242,15 @@ transports/smtp:
     FEATURE/BUG:
 	When a transport-agent dies due to e.g. SIGSEGV, simulate
 	a diagnostic message telling of this situation!
+
+    BUG? (2001/6/30)
+	An error message produced by  "errormail"  channel appears to
+	become lost sometimes ?  Error on error on error ?
+
+    FEATURE (2001/6/30)
+	Add syslogging also into the scheduler (msgerror.c)  - list
+	spoolids created (=messages) while processing earlier msg.
+
 
     BUG? (2000/3/29)
 	Scheduler running with  "maxthr>1"  seem to loose sync about
@@ -454,9 +467,6 @@ transports/smtp:
 	r+          smtp zimage.com method@zimage.com 60000
 	  123456ABCD  - 1-thru-6 are TA process PID space, A-thru-D are
 		        a 'delay has been reported' flag storage.)
-
-- 'channel error' detection is partial at places;
-	transporters: hold, errormail
 
 - Sometimes incoming SMTP can be a hellish load, need to introduce
   a load-limited incoming SMTP acceptor (smtpserver/smtpserver.c)

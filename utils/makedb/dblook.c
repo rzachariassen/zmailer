@@ -11,12 +11,12 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <fcntl.h>
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
 #define datum Ndatum
 #include <ndbm.h>
 #undef datum
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
 #define datum Gdatum
 #include <gdbm.h>
 #undef datum
@@ -50,20 +50,20 @@ int errn;
 {
   fprintf(stderr,"Usage: %s [-dump|-policydump] dbtype database.name [key]\n",av0);
   fprintf(stderr,"  Dbtypes are:");
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
   fprintf(stderr," ndbm");
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
   fprintf(stderr," gdbm");
 #endif
 #if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
   fprintf(stderr," btree bhash");
 #endif
   fprintf(stderr,"\n");
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
   fprintf(stderr,"  (NDBM appends  .pag, and .dir  into the actual db file names..)\n");
 #endif
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
   fprintf(stderr,"  (GDBM  DOES NOT append .gdbm  into the actual db file name..)\n");
 #endif
 #if defined(HAVE_DB_H)||defined(HAVE_DB1_DB_H)||defined(HAVE_DB2_DB_H)
@@ -196,7 +196,7 @@ char *argv[];
   }
 
   dbasename = argv[2];
-#ifdef HAVE_NDBM_H
+#ifdef HAVE_NDBM
   if (strcmp(argv[1],"ndbm")==0) {
     DBM *Ndbmfile;
     Ndatum key;
@@ -233,7 +233,7 @@ char *argv[];
     return 0;
   }
 #endif /* NDBM */
-#ifdef HAVE_GDBM_H
+#ifdef HAVE_GDBM
   if (strcmp(argv[1],"gdbm")==0) {
     GDBM_FILE gdbmfile;
     Gdatum key, nextkey;

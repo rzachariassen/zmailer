@@ -77,6 +77,17 @@
    that declares `struct vmount.'  [AIX]  */
 #undef MOUNTED_VMOUNT
 
+/* Defined if we have the appropriate databases and they are usable.  We
+   cannot merely depend on the existence of headers because sometimes they
+   exist without the corresponding libraries.  Also in some cases, critical
+   functionality does not exist.  One example of this is, for NDBM, the lack 
+   of a dbm_pagfno() on OpenBSD. */
+#undef HAVE_DB1
+#undef HAVE_DB2
+#undef HAVE_NDBM
+#undef HAVE_GDBM
+#undef HAVE_SDBM
+
 /* Defined if NDBM has  dbm_error()  function */
 #undef HAVE_DBM_ERROR
 
@@ -177,3 +188,18 @@
 
 /* Defined if resolver's  HEADER  structure has  cd  and  ad  fields */
 #undef HAVE_HEADER_CD_AD
+
+/* */
+#undef HAVE_GETADDRINFO
+
+/* */
+#undef HAVE_GETNAMEINFO
+
+/* */
+#undef HAVE_INET_NTOP
+
+/* */
+#undef HAVE_INET_PTON
+
+/* */
+#undef HAVE_TCPD_H

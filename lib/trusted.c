@@ -78,7 +78,7 @@ runastrusteduser()
 	if (trusteduid == 0)
 		return 0;		/* trusted uid not found */
 	setuid(0);			/* set real uid to root */
-	setreuid(-1, trusteduid);	/* set euid to trusted */
+	SETEUID(trusteduid);		/* set euid to trusted */
 
 	return trusteduid;
 }
@@ -92,6 +92,6 @@ runasrootuser()
 	if (trusteduid <= 0)
 		return;			/* nothing done before */
 
-	setreuid(-1, 0);		/* make us effectively root */
+	SETEUID(0);			/* make us effectively root */
 	setuid(origruid);		/* reset to old real uid */
 }

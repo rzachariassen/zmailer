@@ -540,12 +540,13 @@ DEFDBTYPE="$DBTYPE" # From possible entry in  zmailer.conf above...
 AC_SUBST(DBTYPE) # Default db-type, unless we figure out something.
 AC_SUBST(DBEXT)  # Default db-extension (pag/db) for FILE OPEN
 AC_SUBST(DBEXTtest) # Default db-extension (pag/db) for FILE AGE TESTS
-AC_CHECK_HEADERS(ndbm.h sdbm.h gdbm.h db.h db1/db.h db_185.h)
+AC_CHECK_HEADERS(ndbm.h sdbm.h gdbm.h db.h db1/db.h db_185.h db3.h)
 AC_CHECK_HEADERS(db2/db.h db2/db_185.h db3/db.h db3/db_185.h)
 
 dblocation=""
 
 LIBNDBM=""
+t_have_dbm_error=no
 if test "$ac_cv_header_ndbm_h" = yes ; then
   t_found_at="nowhere"
   if test "$ac_cv_lib_c_dbm_open" = yes ; then
@@ -608,7 +609,7 @@ if test "$ac_cv_header_ndbm_h" = yes ; then
     # If we have BSD DB's compability mode in use, it does not have
     # dbm_error() function.  Check at it!
     LIBS="$LIBS $LIBNDBM"
-    AC_TRY_LINK([#include <ndbm.h>], [DBM *db;int i = dbm_error(db);], AC_DEFINE(HAVE_DBM_ERROR))
+    AC_TRY_LINK([#include <ndbm.h>], [DBM *db;int i = dbm_error(db);], t_have_dbm_error=yes)
     LIBS="$t_oldLibs"
   fi
   AC_MSG_RESULT([Located NDBM's  dbm_open()  routine at $t_found_at])
@@ -618,7 +619,7 @@ if test "$ac_cv_header_ndbm_h" = yes ; then
 fi
 
 if test -n "$LIBNDBM" ; then
-  if test -z "ac_cv_ndbm_dbm_pagfno" ; then
+  if test -z "$ac_cv_ndbm_dbm_pagfno" ; then
     LIBS="$LIBS $LIBNDBM"
     AC_TRY_LINK([#include <sys/types.h>
 #include <ndbm.h>],
@@ -628,8 +629,12 @@ if test -n "$LIBNDBM" ; then
     LIBS="$t_oldLibs"
   fi
   if test "$ac_cv_ndbm_dbm_pagfno" = no ; then
-	AC_MSG_RESULT([WARNING: <ndbm.h> sighted, but linkage of dbm_pagfno() function fails!])
-	AC_MSG_RESULT([WARNING: YOU WILL PROPABLY BE IN A PICKLE DUE TO THIS!])
+     AC_MSG_RESULT([<ndbm.h> sighted, but linkage of dbm_pagfno() function fails.  ndbm will not be used])
+  else
+    AC_DEFINE(HAVE_NDBM)
+    if test "$t_have_dbm_error" = yes; then
+      AC_DEFINE(HAVE_DBM_ERROR)
+    fi
   fi
 fi
 
@@ -683,6 +688,7 @@ if test "$ac_cv_header_sdbm_h" = yes ; then
   AC_MSG_RESULT([Located SDBM's  dbm_open()  routine at $t_found_at])
   if test "$t_found_at" != nowhere; then
     dblocation="$dblocation;$t_found_at"
+    AC_DEFINE(HAVE_SDBM)
   fi
 fi
 
@@ -732,6 +738,7 @@ if test "$ac_cv_header_gdbm_h" = yes ; then
   AC_MSG_RESULT([Located GNU GDBM's  gdbm_open()  routine at $t_found_at])
   if test "$t_found_at" != nowhere; then
     dblocation="$dblocation;$t_found_at"
+    AC_DEFINE(HAVE_GDBM)
   fi
 fi
 
@@ -789,6 +796,7 @@ if test "$ac_cv_header_db_185_h" = yes ; then
     fi
     if test "$t_found_at" != nowhere; then
       dblocation="$dblocation;$t_found_at"
+      AC_DEFINE(HAVE_DB1)
     fi
   fi
 fi
@@ -865,6 +873,7 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db1_db_h" = yes ; then
     fi
     if test "$t_found_at" != nowhere; then
       dblocation="$dblocation;$t_found_at"
+      AC_DEFINE(HAVE_DB1)
     fi
   fi
 fi
@@ -923,7 +932,7 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
                   "$ac_cv_lib_c_dbopen"    != yes -a \
                   "$ac_cv_lib_db1_dbopen1" != yes -a \
                   "$ac_cv_lib_c_dbopen1"   != yes ; then
-            AC_MSG_RESULT([??? Has <db.h> or <db2/db.h>, but db_open() is not at libc, nor at -ldb or -ldb2 ???])
+            AC_MSG_RESULT([Has <db.h> or <db2/db.h>, but db_open() is not at libc, nor at -ldb or -ldb2])
           fi
         fi
       else
@@ -939,7 +948,7 @@ if test "$ac_cv_header_db_h" = yes -o "$ac_cv_header_db2_db_h" = yes ; then
     fi
   fi
   if test "$t_found_at" = nowhere ; then
-    AC_MSG_RESULT([Didn't locate SleepyCat DB 2.x  db_open()  anywhere, although <db.h> file exists.])
+    AC_MSG_RESULT([Didn't locate SleepyCat DB 2.x  db_open()  anywhere, although <db.h> file exists.  SleepyCat DB 2.x will not be used.])
   else
     AC_MSG_RESULT([Located SleepyCat DB 2.x  db_open()  routine at $t_found_at])
     # Does (db->cursor)(...) have 3 or 4 args ?
@@ -972,6 +981,7 @@ int err = (db->cursor)(db, NULL, &curs, 0);],
   fi
   if test "$t_found_at" != nowhere; then
     dblocation="$dblocation;$t_found_at"
+    AC_DEFINE(HAVE_DB2)
   fi
 fi
 
@@ -1233,7 +1243,7 @@ AC_CHECK_FUNCS(index rindex)
 # more tests..
 AC_CHECK_FUNCS(endgrent fchdir ftime getcwd getgroups setgroups \
 		getmntinfo gettimeofday isascii memcpy memchr mkfifo   \
-		getpgrp setsid seteuid setuid)
+		getpgrp setsid seteuid setuid setegid setgid)
 AC_CHECK_FUNCS(setrlimit fchown utimes utime sysconf fpathconf)
 # Networking stuff is in deep trouble, if sockets are not found..
 AC_CHECK_HEADERS(netdb.h syslog.h sys/resource.h \

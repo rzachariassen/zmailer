@@ -543,7 +543,7 @@ main(argc, argv)
 	  exit(EX_NOPERM);
 	}
 
-	setreuid(0, 0);		/* make us root all over */
+	SETEUID(0);		/* make us root all over */
 	currenteuid = 0;
 
 	logfp = NULL;
@@ -592,7 +592,8 @@ main(argc, argv)
 	    *s = 0;
 	  }
 
-	  setreuid(0,0); /* We begin as roots..  process() may change us */
+	  SETUID(0); /* We begin as roots..  process() may change us */
+	  SETEUID(0);
 	  currenteuid = 0;
 
 	  notary_setxdelay(0); /* Our initial speed estimate is
@@ -1849,7 +1850,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 
 	fstat(fdmail, &st);
 
-	fp = sfnew(NULL, NULL, 64*1024, fdmail, SF_READ|SF_WRITE|SF_APPEND);
+	fp = sfnew(NULL, NULL, 64*1024, fdmail, SF_READ|SF_WRITE|SF_APPENDWR);
 	if (fp == NULL) {
 	  notaryreport(NULL,NULL,NULL,NULL);
 	  DIAGNOSTIC3(rp, file, EX_TEMPFAIL, "cannot fdopen(%d,\"%s\")",
@@ -2355,8 +2356,11 @@ program(dp, rp, cmdbuf, user, timestring, uid)
 	  char * argv[100];
 	  int i;
 
-	  setregid(gid,gid);
-	  setreuid(uid,uid);
+	  SETGID(gid);
+	  SETEGID(gid);
+	  SETUID(uid);
+	  SETEUID(uid);
+
 	  close(in[0]);
 	  close(out[1]);
 	  /* its stdout and stderr is the pipe, its stdin is our fdmail */
@@ -2784,13 +2788,13 @@ setupuidgid(rp, uid, gid)
 	}
 	
 	if (gid >= 0)
-	  if (setgid(gid) < 0) {
+	  if (SETGID(gid) < 0) {
 	    DIAGNOSTIC(rp, "", EX_OSERR, "can't setgid to %d", (int)gid);
 	    return 0;
 	  }
 	if (*(rp->addr->user) == TO_FILE || *(rp->addr->user) == TO_PIPE)
 	  uid = atol(rp->addr->misc);
-	if (setreuid(-1, uid) < 0) {
+	if (SETEUID(uid) < 0) {
 	  if (uid < 0 && atol(rp->addr->misc) < 0) {
 	    /* use magic non-sense +ve uid < MAXSHORT */
 	    rp->addr->misc = NONUIDSTR;
@@ -2864,7 +2868,7 @@ setrootuid(rp)
 	struct rcpt *rp;
 {
 	if (currenteuid != 0) {
-	  if (setreuid(-1, 0) < 0)
+	  if (SETEUID(0) < 0)
 	    DIAGNOSTIC(rp, "", EX_OSERR, "can't reset uid to root", 0);
 	}
 	currenteuid = 0;

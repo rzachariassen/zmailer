@@ -1,7 +1,47 @@
+2001-09-22  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* acconfig.h, config.h.in, configure.in, include/hostenv.h,
+	  lib/nobody.c, lib/trusted.c, router/db.c, router/functions.c,
+	  router/rfc822.c, router/libdb/nbm.c, scheduler/scheduler.c,
+	  sfio/src/lib/sfio/sfio.h, sfio/src/lib/sfio/Sfio_dc/sfdcdio.c,
+	  sfio/src/lib/sfio/Sfio_dc/sfdcdos.c, smtpserver/policytest.c,
+	  sfio/src/lib/sfio/Sfio_dc/sfdcfilter.c,smtpserver/policytest.h,
+	  sfio/src/lib/sfio/Sfio_dc/sfdcseekable.c, smtpserver/smtpcmds.c,
+	  sfio/src/lib/sfio/Sfio_dc/sfdcsubstream.c, transports/hold/hold.c,
+	  sfio/src/lib/sfio/Sfio_dc/sfdctee.c, transports/expirer/expirer.c,
+	  sfio/src/lib/sfio/Sfio_dc/sfdcunion.c, transports/fuzzyalias/db.c,
+	  transports/mailbox/mailbox.c, transports/smtp/getmxrr.c,
+	  transports/sm/sm.c, transports/smtp/smtp.c, utils/makedb/dblook.c,
+	  utils/makedb/makedb.c, utils/vacation/vacation.c:
+	    A very large OpenBSD patch cluster; including:
+	    - Revision of database facility autoconfig
+	    - several printf warnings
+	    - sfio #define collision avoidance
+	    - SETEUID() and friends
+	  
+
+	* proto/zmailer.sh.in:
+	    A  -q  option for completely quiet operation
+	    (part of OpenBSD patch cluster)
+
+	* utils/mxverify/mxverify-cgi.c, utils/mxverify/getaddrinfo.c:
+	    Some radical cleanups in the TEXT/HTML presentation
+
+	* transports/smtp/smtp.c:
+	    Certain diagnostics control bits fixed so that RSETs won't
+	    overwrite last real command performed on connection and
+	    having done something which e.g. caused a reject
+
+	* smtpserver/cfgread.c, smtpserver/smtpdata.c, smtpserver/smtpserver.c,
+	  smtpserver/smtpserver.h:
+	    "PARAM outlook-tls-bug" -- Outlook Express seems to kick on
+	    TLS when it is told to use TLS, and the destination port is
+	    not 25, but _anything_else_ !
+
 2001-07-31  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* smtpserver/smtpdata.c:
-	    Have omitted couple  fflush()  calls in DATA and BDAT
+	    Had omitted couple  fflush()  calls in DATA and BDAT
 	    to commit accumulated buffered data into file so that
 	    external  contentfilter()  program can analyze it.
 

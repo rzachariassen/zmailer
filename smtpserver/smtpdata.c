@@ -831,7 +831,7 @@ char *msg;
     /*        ... that only "Subject:" has 8-bit chars ...       */
     mail_priority = _MAILPRIO_NORMAL;
     for (;;) {
-	c = s_getc(SS);
+	c = s_getc(SS, 1);
 	/* An EOF in here is an error! */
 #if EOF != -1
 	if (c == EOF)
@@ -1192,7 +1192,7 @@ char *msg;
 
     /* ================ Normal email BODY input.. ================ */
     for (;;) {
-	c = s_getc(SS);
+	c = s_getc(SS, 1);
 #if EOF != -1
 	if (c == EOF)		/* a little slower... */
 	    break;
@@ -1299,7 +1299,7 @@ register long incount;
 
     /* ================ Normal email BODY input.. ================ */
     for (; incount > 0; --incount) {
-	c = s_getc(SS);
+	c = s_getc(SS, 1);
 	if (c == EOF)
 	    break;
 	++cnt;

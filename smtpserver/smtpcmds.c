@@ -1464,7 +1464,7 @@ const char *buf, *cp;
 	  fwrite(",TRACE", 1, 6, SS->mfp);
     }
     if (SS->deliverby_time) {
-      fprintf(SS->mfp, " BY=%ld;", SS->deliverby_time);
+      fprintf(SS->mfp, " BY=%ld;", (long)SS->deliverby_time);
       if (SS->deliverby_flags & DELIVERBY_R)
 	fputc('R', SS->mfp);
       if (SS->deliverby_flags & DELIVERBY_N)

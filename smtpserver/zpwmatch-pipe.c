@@ -19,7 +19,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <syslog.h>
 
 #include "smtpserver.h"
