@@ -5,9 +5,6 @@
  */
 
 #include "smtpserver.h"
-#ifndef EAI_AGAIN
-# include "netdb6.h"
-#endif
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
 #define	BIND		/* Want BIND (named) nameserver support enabled */

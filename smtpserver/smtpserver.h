@@ -81,6 +81,9 @@ extern int wait();
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
+#ifndef EAI_AGAIN
+# include "netdb6.h"
+#endif
 
 #include <sys/socket.h>
 #include <netinet/in.h>
