@@ -21,7 +21,7 @@
 #include "prototypes.h"
 #include "libz.h"
 
-static struct vertex *findvertex __((long, long, int*));
+static struct vertex *findvertex __((struct procinfo *,long, long, int*));
 static int ctlowner __((struct ctlfile *));
 static void vtxupdate __((struct vertex *, int, int));
 static void expaux __((struct vertex *, int, const char *));
@@ -157,7 +157,7 @@ update(fd, diagnostic)
 	  sfprintf(sfstdout,"diagnostic: %ld/%ld\t%s\t%s\n",
 		   inum, offset, notary, type);
 
-	if ((vp = findvertex(inum, offset, &index)) == NULL)
+	if ((vp = findvertex(proc, inum, offset, &index)) == NULL)
 	  return;
 
 	++vp->attempts; /* Did attempt this vertex! */
@@ -245,8 +245,6 @@ unctlfile(cfp, no_unlink)
 	    sp_delete(spl, spt_mesh[L_CTLFILE]);
 	}
 
-	--global_wrkcnt;
-	--MIBMtaEntry->mtaStoredMessages;
 	free_cfp_memory(cfp);
 }
 
@@ -313,7 +311,8 @@ memset(vp, 0x55, sizeof(*vp));
 	return;
 }
 
-static struct vertex *findvertex(inum, offset, idx)
+static struct vertex *findvertex(proc, inum, offset, idx)
+	struct procinfo *proc;
 	long	inum;
 	long	offset;
 	int	*idx;
@@ -350,8 +349,9 @@ static struct vertex *findvertex(inum, offset, idx)
 	      return vp;
 
 	sfprintf(sfstderr,
-		 "%s: multiple processing of address at %ld in control file %s%s!\n",
-		 progname, offset, cfpdirname(cfp->dirind), cfp->mid);
+		 "%s: multiple processing of address at %ld in control file %s%s of thread %s/%s ?\n",
+		 progname, offset, cfpdirname(cfp->dirind), cfp->mid,
+		 proc->ch->name, proc->ho->name );
 
 	return NULL;
 }

@@ -380,6 +380,9 @@ struct ctlfile *cfp;
 	/* memset(cfp, 0x55, sizeof(*cfp)); */
 
 	free((char *)cfp);
+
+	--global_wrkcnt;
+	--MIBMtaEntry->mtaStoredMessages;
 }
 
 
@@ -1780,12 +1783,6 @@ static struct ctlfile *schedule(fd, file, ino, reread)
 	  cfp->contents = NULL;
 	}
 
-	/* if (!reread) { */
-	/* INC there in every case! */
-	++MIBMtaEntry->mtaStoredMessages;
-	++global_wrkcnt;
-	/* } */
-
 	return cfp;
 }
 
@@ -1901,6 +1898,11 @@ slurp(fd, ino)
 
 	  cfp->id = ino;
 	  /* cfp->mid = NULL; */
+
+	  /* INC there in every case! */
+	  ++global_wrkcnt;
+	  ++MIBMtaEntry->mtaStoredMessages;
+
 	} else {
 	  /* realloc() failed.. */
 	  free(contents);
