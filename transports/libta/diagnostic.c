@@ -90,6 +90,8 @@ const char *okstr;
 
 static char *wtthost = NULL; /* NOTARY wtthost: 'While-Talking-To -host' */
 static char *wttip   = NULL;
+static char *wtttaid = NULL;
+static int   wtttaidpid = -1;
 
 void notary_setwtt(host)
 const char *host;
@@ -99,6 +101,17 @@ const char *host;
 	  wtthost = strdup(host);
 	else
 	  wtthost = NULL;
+}
+
+void notary_settaid(progname,pid)
+const char *progname;
+{
+	if (wtttaid) free(wtttaid);
+	if (progname)
+	  wtttaid = strdup(progname);
+	else
+	  wtttaid = NULL;
+	wtttaidpid = pid;
 }
 
 void notary_setwttip(ip)
@@ -150,7 +163,8 @@ notaryreport(arg1,arg2,arg3,arg4)
 	if (A3) len += strlen(A3);
 	if (A4) len += strlen(A4);
 	if (wtthost) len += strlen(wtthost);
-	if (wttip) len += strlen(wttip)+5;
+	if (wttip)   len += strlen(wttip)+5;
+	if (wtttaid) len += strlen(wtttaid)+9;
 
 	if (!notarybuf)
 	  notarybuf = (char*) malloc(len);
@@ -167,6 +181,10 @@ notaryreport(arg1,arg2,arg3,arg4)
 		wtthost?wtthost:"");
 	if (wttip) {
 	  sprintf(notarybuf + strlen(notarybuf), " (%s)", wttip);
+	}
+	if (wtttaid) {
+	  sprintf(notarybuf + strlen(notarybuf), "\001%s[%d]",
+		  wtttaid, wtttaidpid);
 	}
 }
 

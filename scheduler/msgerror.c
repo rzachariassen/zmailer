@@ -79,6 +79,7 @@ scnotaryreport(errfp,notary,haserrsp,notifyrespectflg)
 	int notifyrespectflg;
 {
 	char *rcpt, *action, *status, *diagstr, *wtt;
+	char *taid;
 	char *cp;
 	const char *typetag;
 
@@ -115,9 +116,15 @@ scnotaryreport(errfp,notary,haserrsp,notifyrespectflg)
 	  *cp++  = 0;
 	  diagstr = cp;
 	  cp    = strchr(diagstr,'\001');
-	  if (cp) /* Uhh... Mal-formed input from the transporters ? */
-	    *cp++    = 0;
+	  if (cp) *cp++    = 0;
 	  wtt = cp;
+	  if (cp)  cp   = strchr(cp,'\001');
+	  if (cp) *cp++ = 0;
+	}
+	taid = cp;
+	if (taid) {
+	  cp = strchr(cp+1, '\001'); /* Chop it.. */
+	  if (cp) *cp++ = 0;
 	}
 
 	if (*rcpt == '\003' /* XX: MAGIC! */) {
@@ -162,13 +169,15 @@ scnotaryreport(errfp,notary,haserrsp,notifyrespectflg)
 	if (notary->tstamp != 0)
 	  sfprintf(errfp, "Last-Attempt-Date: %s",
 		   rfc822date(&notary->tstamp));
+	if (taid)
+	  sfprintf(errfp, "X-ZTAID: %s\n", taid);
 	sfprintf(errfp, "\n");
+
 	action[-1] = '\001';
-	if (status)
-	  status[-1] = '\001';
+	if (status) status[-1] = '\001';
 	diagstr[-1] = '\001';
-	if (wtt)
-	  wtt[-1]    = '\001';
+	if (wtt)  wtt[-1]  = '\001';
+	if (taid) taid[-1] = '\001';
 }
 
 
@@ -399,12 +408,15 @@ reporterrs(cfpi)
 	int mypid;
 	long format;
 	char boundarystr[400];
+	char spoolid[30];
 
 	if (cfpi->haderror == 0)
 		return;
 	if (cfpi->erroraddr == NULL)
 		return;
 	no_error_report = cfpi->iserrmesg;
+
+	taspoolid(spoolid, cfpi->mtime, cfpi->id);
 
 	eaddr        = cfpi->erroraddr;
 	deliveryform = cfpi->deliveryform;
@@ -663,6 +675,7 @@ sent you this report, please include this information in your question!\n\
 	} else {
 	  sfprintf(errfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
 	}
+	sfprintf(errfp, "X-Spool-ID: %s\n", spoolid);
 	if (envid != NULL) {
 	  sfprintf(errfp, "Original-Envelope-Id: ");
 	  decodeXtext(errfp,envid);
@@ -731,6 +744,7 @@ be in subsequent parts of this MESSAGE/DELIVERY-STATUS structure.\n\n");
 	} else {
 	  sfprintf(errfp, "Reporting-MTA: x-local-hostname; -unknown-\n");
 	}
+	sfprintf(errfp, "X-Spool-ID: %s\n", spoolid);
 	if (envid != NULL) {
 	  sfprintf(errfp, "Original-Envelope-Id: ");
 	  decodeXtext(errfp,envid);

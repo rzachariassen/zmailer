@@ -597,6 +597,7 @@ main(argc, argv)
 
 	/* We need this latter on .. */
 	zopenlog("smtp", LOG_PID, LOG_MAIL);
+	notary_settaid("smtp",getpid());
 
 	/* We defer opening a connection until we know there is work */
 

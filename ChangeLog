@@ -1,3 +1,23 @@
+2000-01-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* scheduler/msgerror.c, include/ta.h, transports/libta/diagnostic.c,
+	  transports/smtp/smtp.c:
+	    Extend the notary report with "X-ZTAID:" which is diagnostic
+	    about which TA process did generate the error report.
+	    Allows one to hunt things from the syslog..
+
+	* smtpserver/smtpserver.c:
+	    Doing  longjmp()  from whichin a signal handler isn't
+	    kosher -> sigsetjmp()/siglongjmp() and friends..
+
+	* scheduler/readconfig.c:
+	    Pulled back (disabled) code related to selector clause
+	    wild-card testing in clause's "channel" part.
+
+	* proto/cf/standard.cf:
+	    Fixed recent thoughts mentioned below - coded test end
+	    statement ("fi") was missing.
+
 2000-01-07  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* scheduler/threads.c:
