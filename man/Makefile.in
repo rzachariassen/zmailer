@@ -64,32 +64,32 @@ install:
 	if [ ! -d ${MANDIR}/man3 ] ; then mkdir -p ${MANDIR}/man3 ; fi
 	if [ ! -d ${MANDIR}/man5 ] ; then mkdir -p ${MANDIR}/man5 ; fi
 	if [ ! -d ${MANDIR}/man8 ] ; then mkdir -p ${MANDIR}/man8 ; fi
-	$(INSTALL) -m 644 $S/aliases.5	${MANDIR}/man5
-	$(INSTALL) -m 644 $S/zdbases.conf.5	${MANDIR}/man5
-	$(INSTALL) -m 644 $S/errormail.8 ${MANDIR}/man8
-	$(INSTALL) -m 644 $S/hold.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/mailbox.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/mailq.1	${MANDIR}/man1
-	$(INSTALL) -m 644 $S/mboxpath.1	${MANDIR}/man1
-	$(INSTALL) -m 644 $S/mailrm.1	${MANDIR}/man1
-	$(INSTALL) -m 644 $S/newaliases.1 ${MANDIR}/man1
-	$(INSTALL) -m 644 $S/rmail.1	${MANDIR}/man1
-	$(INSTALL) -m 644 $S/router.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/scheduler.8 ${MANDIR}/man8
-	$(INSTALL) -m 644 $S/sendmail.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/sm.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/smtp.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/smtpserver.8 ${MANDIR}/man8
-	$(INSTALL) -m 644 $S/mprobe.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/ssl.1	${MANDIR}/man1
-	$(INSTALL) -m 644 $S/zmailer.1	${MANDIR}/man1
-	$(INSTALL) -m 644 $S/zmailer.3	${MANDIR}/man3
-	$(INSTALL) -m 644 $S/manual-expirer.8 ${MANDIR}/man8
-	$(INSTALL) -m 644 $S/expirer.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/reroute.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/manual-rerouter.8	${MANDIR}/man8
-	$(INSTALL) -m 644 $S/zmsh.1	${MANDIR}/man1
-	$(INSTALL) -m 644 vacation.1	${MANDIR}/man1
+	$(INSTALL) -m 644 aliases.5		${MANDIR}/man5
+	$(INSTALL) -m 644 errormail.8		${MANDIR}/man8
+	$(INSTALL) -m 644 expirer.8		${MANDIR}/man8
+	$(INSTALL) -m 644 hold.8		${MANDIR}/man8
+	$(INSTALL) -m 644 mailbox.8		${MANDIR}/man8
+	$(INSTALL) -m 644 mailq.1		${MANDIR}/man1
+	$(INSTALL) -m 644 mailrm.1		${MANDIR}/man1
+	$(INSTALL) -m 644 manual-expirer.8	${MANDIR}/man8
+	$(INSTALL) -m 644 manual-rerouter.8	${MANDIR}/man8
+	$(INSTALL) -m 644 mboxpath.1		${MANDIR}/man1
+	$(INSTALL) -m 644 mprobe.8		${MANDIR}/man8
+	$(INSTALL) -m 644 newaliases.1		${MANDIR}/man1
+	$(INSTALL) -m 644 reroute.8		${MANDIR}/man8
+	$(INSTALL) -m 644 rmail.1		${MANDIR}/man1
+	$(INSTALL) -m 644 router.8		${MANDIR}/man8
+	$(INSTALL) -m 644 scheduler.8		${MANDIR}/man8
+	$(INSTALL) -m 644 sendmail.8		${MANDIR}/man8
+	$(INSTALL) -m 644 sm.8			${MANDIR}/man8
+	$(INSTALL) -m 644 smtp.8		${MANDIR}/man8
+	$(INSTALL) -m 644 smtpserver.8		${MANDIR}/man8
+	$(INSTALL) -m 644 vacation.1		${MANDIR}/man1
+	$(INSTALL) -m 644 zdbases.conf.5	${MANDIR}/man5
+	$(INSTALL) -m 644 zmailer.1		${MANDIR}/man1
+	$(INSTALL) -m 644 zmailer.3		${MANDIR}/man3
+	$(INSTALL) -m 644 zmsh.1		${MANDIR}/man1
+	# $(INSTALL) -m 644 ssl.1 ${MANDIR}/man1
 
 
 mailbox.html: $(srcdir)/mailbox.sgml
