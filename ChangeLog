@@ -1,5 +1,12 @@
 2004-10-23  Matti Aarnio  <mea@zmailer.org>
 
+	* router/router.c, router/daemonsub.c:
+	    Having hard time at profiling router .. must reset
+	    the profiling timer after forks.  Attempting to make
+	    the additional code profiling agnostic.  It will work,
+	    if environemnt initialized profiling, otherwise it won't
+	    do a thing...
+
 	* router/router.c:
 	    Unnecessarily open file found in router, too..
 

@@ -77,6 +77,9 @@
 
 static int gothup = 0;
 
+extern struct itimerval profiler_itimer_at_start;
+
+
 RETSIGTYPE
 sig_exit(sig)
 int sig;
@@ -236,6 +239,9 @@ static int  start_child (i)
 	if (pid == 0) { /* child */
 
 	  int idx;
+
+	  setitimer(ITIMER_PROF, &  profiler_itimer_at_start, NULL);
+
 
 	  pipes_to_child_fds(tofd,frmfd);
 	  for (idx = resources_query_nofiles(); idx >= 3; --idx)

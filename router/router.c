@@ -46,6 +46,9 @@ int	no_logmessage;
 
 int	I_mode = IMODE_NONE;
 
+
+struct itimerval profiler_itimer_at_start;
+
 int
 main(argc, argv)
 	int	    argc;
@@ -59,6 +62,8 @@ main(argc, argv)
 #ifdef	XMEM
 	FILE *fp;
 #endif	/* XMEM */
+
+	getitimer(ITIMER_PROF, & profiler_itimer_at_start);
 
 #ifdef HAVE_SETGROUPS
 	/* We null supplementary groups list entirely */
@@ -320,6 +325,7 @@ main(argc, argv)
 		if (tac == 0) {		/* leave worldy matters behind */
 		  detach();
 		  close(0); open("/dev/null", O_RDONLY, 0);
+		  setitimer(ITIMER_PROF, &  profiler_itimer_at_start, NULL);
 		}
 		printf("%s: router daemon (%s)\n\tstarted at %s\n",
 		       progname, Version, rfc822date(&now));
