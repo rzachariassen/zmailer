@@ -1399,7 +1399,7 @@ AC_SUBST(MANDIR)
 eval MANDIR=${mandir}
 
 if test "$ac_cv_c_const" = no ; then
-  CFLAGS="$CFLAGS -Dconst"
+  CFLAGS="$CFLAGS -Dconst=''"
 fi
 
 AC_OUTPUT(Makefile
