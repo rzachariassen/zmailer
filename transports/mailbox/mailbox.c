@@ -2732,20 +2732,24 @@ mbox_sfwrite(sfp, vp, len, discp)
     struct wsdisc *wd = (struct wsdisc *)discp;
     struct writestate *WS = wd->WS;
     const char * p = (const char *)vp;
-    int rc, outlen = 0;
+    int outlen = 0;
 
     if (WS->epipe_seen) return len; /* We ignore - fast - the EPIPE */
 
     while (len > 0) {
-      rc = write(sffileno(sfp), p, len);
+      int rc = write(sffileno(sfp), p, len);
+      int e  = errno;
+if (verboselog)
+  fprintf(verboselog, " mbox_sfwrite(ptr, len=%d) rc=%d errno=%d\n", len,rc,e);
       if (rc < 0) {
-	if (errno == EPIPE) {
+	if (e == EPIPE) {
 	  WS->epipe_seen = 1;
 	  return len + outlen; /* CLAIM success */
 	}
 	/* Retry on interrupts */
-	if (errno == EINTR)
+	if (e == EINTR)
 	  continue;
+	errno = e;
 	/* All other errors, return written amount, or if none, then error! */
 	if (outlen == 0)
 	  return rc;
