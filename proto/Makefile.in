@@ -156,13 +156,9 @@ forms:	FRC $(MD5SUM)
 	if [ ! -d "$$FORMSDIR/proto" ]; then	\
 		$(MKDIR) "$$FORMSDIR/proto" ;	\
 	fi ;					\
-	cd $(srcdir);				\
-	for file in forms/????* ;		\
+	for file in ${srcdir}/forms/????* ;	\
 	do					\
 		name="`basename $$file`" ;	\
-		if [ "$$name" = bak ] ; then	\
-			continue ;		\
-		fi ;				\
 		echo $(INSTALL) -m 644 $$file $$FORMSDIR/proto/$$name ;	\
 		$(INSTALL) -m 644 $$file $$FORMSDIR/proto/$$name ;	\
 	done )
