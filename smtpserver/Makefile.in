@@ -31,13 +31,13 @@ LIBDEB=		$(TOPDIR)/libs/libtag
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/libident/llib-llibident.ln
 OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o fdstatfs.o wantconn.o \
 		policytest.o cfgread.o smtpdata.o smtpcmds.o smtphelp.o \
-		smtprouter.o smtpchild.o mxverify.o contentpolicy.o \
-		 # loadaver.o
+		smtprouter.o smtpchild.o mxverify.o contentpolicy.o
+# loadaver.o
 
 SOURCE=		$(PROGRAM).c rfc821scn.c debugreport.c fdstatfs.c wantconn.c \
 		policytest.c  cfgread.c smtpdata.c smtpcmds.c smtphelp.c \
-		smtprouter.c smtpchild.c mxverify.c contentpolicy.c \
-		 # loadaver.c
+		smtprouter.c smtpchild.c mxverify.c contentpolicy.c
+# loadaver.c
 
 all: $(PROGRAM)-a
 
