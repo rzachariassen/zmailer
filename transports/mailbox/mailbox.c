@@ -227,6 +227,10 @@ const char *maildirs[] = {
 					      EX_UNAVAILABLE : (E), 0, \
 						(A1), (A2), (A3), (A4))
 
+#ifdef CHECK_MB_SIZE
+extern int checkmbsize(char *,size_t);
+#endif
+
 #if	defined(HAVE_SOCKET)
 /*
  * Biff strategy:
@@ -1178,6 +1182,27 @@ deliver(dp, rp, usernam, timestring)
 		     file);
 	  return;
 	}
+
+#ifdef CHECK_MB_SIZE
+	/* external procedure checkmbsize() accepts user name
+	   and current mailbox size.  It should return 0 if it is OK to
+	   write to the mailbox, or non-zero if `mailbox full'
+	   condition encountered.  The procedure itself is not included
+	   in ZMailer distribution; you need to write it yourself and
+	   modify the Makefile to pass -DCHECK_MB_SIZE to the compiler
+	   and to link with the object containing your custom
+	   checkmbsize() procedure. == <crosser@average.org> */
+
+	if (checkmbsize(usernam,st.st_size)) {
+	  notaryreport(usernam, "failed",
+		       "5.2.2 (Destination mailbox full)",
+		       "x-local; 500 (Attempting to deliver to full mailbox)");
+	  DIAGNOSTIC(rp, usernam, EX_UNAVAILABLE,
+		     "size of mailbox \"%s\" exceeds quota for the user",
+		     file);
+	  return;
+	}
+#endif
 	
 	if (st.st_nlink > 1) {
 	  notaryreport(rp->addr->user,"failed",
