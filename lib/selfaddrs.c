@@ -147,14 +147,12 @@ other_socktype:
 	  /* get the list of known IP address from the kernel */
 	  ifbufsize <<= 1;
 	  interfacebuf = (void*)realloc(interfacebuf,ifbufsize);
+	  memset(&ifc, 0, sizeof(ifc));
 	  ifc.ifc_buf = interfacebuf;
 	  ifc.ifc_len = ifbufsize;
-	  if (ioctl(s, SIOCGIFCONF, (char *)&ifc) < 0) {
-		close(s);
-		free(interfacebuf);
-		free(sap);
-		return -2;
-	  }
+	  if (ioctl(s, SIOCGIFCONF, (char *)&ifc) < 0)
+	    if (errno == EINVAL)
+	      continue;
 
 	  if (ifc.ifc_len < (ifbufsize - 2*sizeof(struct ifreq)))
 	    break;
