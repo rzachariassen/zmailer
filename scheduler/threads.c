@@ -921,14 +921,14 @@ pick_next_vertex(proc, vtx)
 {
 	struct thread * thr = proc->pthread;
 
-	if (proc->pvertex)
-	  proc->pvertex->proc = NULL; /* Done with the previous one */
-
 	if (verbose)
-	  sfprintf(sfstdout,"pick_next_vertex(proc->tofd=%d, thr=%p, vtx=%p, jobs=%d OF=%d S=%d)\n",
-		   proc->tofd, thr, proc->pvertex, thr ? thr->jobs : 0,
-		   proc->overfed, (int)proc->state);
+	  sfprintf(sfstdout,"pick_next_vertex(proc=%p vtx=&p) proc->tofd=%d, thr=%p, vtx=%p, jobs=%d OF=%d S=%d\n",
+		   proc, vtx, proc->tofd, thr, proc->pvertex,
+		   thr ? thr->jobs : 0, proc->overfed, (int)proc->state);
 
+	if (proc->pvertex)
+	  proc->pvertex->proc = NULL;	/* Done with the previous one */
+	vtx->proc = NULL;		/* Likewise */
 
 	if (proc->pid < 0 || proc->tofd < 0) {	/* "Jim, He is dead!"	*/
 	  if (proc->pthread) {
@@ -943,8 +943,8 @@ pick_next_vertex(proc, vtx)
 	  return 0;
 	}
 
-	if (proc->pvertex) /* Pick next item */
-	  proc->pvertex = proc->pvertex->nextitem;
+	if (vtx) /* Pick next item */
+	  proc->pvertex = vtx->nextitem;
 
 	if (proc->pvertex)
 	  proc->pvertex->proc = proc; /* Next in line for feeding */
