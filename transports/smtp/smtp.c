@@ -2741,6 +2741,7 @@ makeconn(SS, hostname, ai, ismx)
 	      SS->smtpdisc.D.exceptf = NULL;
 	      SS->smtpdisc.SS        = SS;
 	      sfdisc(SS->smtpfp, &SS->smtpdisc.D);
+	      SS->lasterrno          = 0;
 
 	      if (SS->smtpfp == NULL) {
 		int err;

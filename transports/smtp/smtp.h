@@ -327,7 +327,7 @@ typedef enum {
   SMTPSTATE99        = 99
 } SMTPSTATES;
 
-typedef struct {
+typedef struct { /* SmtpState */
   int  ehlo_capabilities;	/* Capabilities of the remote system */
   int  esmtp_on_banner;
   int  within_ehlo;
@@ -353,6 +353,7 @@ typedef struct {
   int   smtpfd;			/* FD from the remote host		*/
   Sfio_t *smtpfp;		/* Sfio_t* to the remote host           */
   struct smtpdisc smtpdisc;	/* SMTP outstream discipline data	*/
+  int   lasterrno;		/* Last errno value			*/
 
   char *myhostname;		/* strdup()ed name of my outbound interface */
 

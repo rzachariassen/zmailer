@@ -1856,11 +1856,12 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
      const char *fdopmode, *timestring, *file;
      uid_t uid;
 {
-	int len, rc, mw=0, err;
+	int len, rc, err;
 	Sfio_t *fp;
 	char buf[2];
 	struct stat st;
 	const char *fromuser;
+	const char *mw = "msg headers";
 	int lastch = 0xFFF;
 	int topipe = (*(file) == TO_PIPE);
 	int failed = 0;
@@ -2032,15 +2033,14 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 
 
 	/* From now on, write errors to PIPE will not cause errors */
+	mw = "msg body";
 
 	if (!failed)
 	  lastch = appendlet(dp, rp, &WS, file, is_mime);
-
+	
 	sfsync(fp);
-	if (!failed && sferror(fp)) failed = 1;
-	if (!failed && WS.lasterrno != 0) failed = 1;
+	if (!failed && (sferror(fp) || WS.lasterrno)) failed = 1;
 
-	mw = 1;
 	if (!topipe) { /* We skip this is we are writing to a pipe */
 
 	  if (lastch < -128 || failed) {
@@ -2052,7 +2052,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 
 	    notaryreport(NULL,NULL,NULL,NULL);
 	    DIAGNOSTIC4(rp, file, EX_IOERR,
-			"message write[%d] to \"%s\" failed: %s",
+			"message write[%s] to \"%s\" failed: %s",
 			mw, file, strerror(err));
 #ifdef HAVE_FTRUNCATE
 	    if (eofindex >= 0)
@@ -2125,13 +2125,13 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	      failed = 1;
 
 	    if (!failed) sfsync(fp);
-	    if (!failed && sferror(fp)) failed = 1;
+	    if (!failed && (sferror(fp) || WS.lasterrno)) failed = 1;
 
 	    if (verboselog)
 	      fprintf(verboselog," .. wrote %d newlines to the end%s\n",
 		      len, failed ? " FAILED!":"");
 
-	    mw=2;
+	    mw="tail newlines";
 
 	    if (failed)
 	      goto write_failure;
@@ -2141,7 +2141,7 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	  /* End of the file, and MMDF-style ? */
 	  if (mmdf_mode == 1 /* Values 2 and 3 exist on PIPEs only.. */ ) {
 	    if (sfprintf(fp,"\001\001\001\001\n") == EOF) {
-	      mw=3;
+	      mw="MMDF ending";
 	      goto write_failure;
 	    }
 	  }
@@ -2151,8 +2151,8 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	/* Flush everything out */
 	sfsync(fp);
 	/* Raise an error only if it is non-pipe target */
-	if (!topipe && sferror(fp)) {
-	  mw=4;
+	if (!topipe && (sferror(fp) || WS.lasterrno)) {
+	  mw="final flushout";
 	  goto write_failure;
 	}
 
@@ -3316,12 +3316,16 @@ writebuf(WS, buf, len)
 	  register int c = *cp;
 	  ++tlen;
 
+	  /* This is our error analysis, all SFIO calls below
+	     are without any... */
+	  if (sferror(WS->fp) || WS->lasterrno != 0) { tlen = -1; break; }
+
 	  if (c == '\n') {
 	    expect = mmdf_mode ? 0 : 'F';
 	    fromp = WS->frombuf;
 	    *fromp = 0;
-	    if (sfputc(WS->fp,c) == EOF)
-	      { tlen = -1; break; }
+	    sfputc(WS->fp,c);
+
 	  } else if (expect != '\0') {
 	    if (c == expect) {
 	      *fromp++ = c;
@@ -3333,25 +3337,21 @@ writebuf(WS, buf, len)
 		case 'm':	expect = ' '; break;
 		case ' ':
 		  /* Write the separator, and the word.. */
-		  if (sfwrite(WS->fp, ">From ", 6) == 0 || sferror(WS->fp))
-		    { tlen = -1; break; }
+		  sfwrite(WS->fp, ">From ", 6);
 		  /* anticipate future instances */
 		  expect = '\0';
 		  break;
 		}
 	    } else {
 	      expect = '\0';
-	      if (WS->frombuf[0] != 0 &&
-		  sfprintf(WS->fp, "%s", WS->frombuf) < 0)
-		{ tlen = -1; break; }
+	      if (WS->frombuf[0] != 0)
+		sfprintf(WS->fp, "%s", WS->frombuf);
 	      WS->frombuf[0] = 0;
 	      fromp = WS->frombuf;
-	      if (sfputc(WS->fp, c) < 0)
-		{ tlen = -1; break; }
+	      sfputc(WS->fp, c);
 	    }
 	  } else { /* expect == '\0'; */
-	    if (sfputc(WS->fp, c) == EOF)
-	      { tlen = -1; break; }
+	    sfputc(WS->fp, c);
 	  }
 	}
 	WS->expect = expect;

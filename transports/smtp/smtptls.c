@@ -1134,6 +1134,16 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	vlog = SS->verboselog;
 #endif /* - HAVE_OPENSSL */
 
+	/* If we have an errno status on a socket, it is extremely
+	   persistent!  Absolutely no writes are allowed from now
+	   on into this socket, and all write attempts will yield
+	   the same errno value. */
+
+	if (SS->lasterrno != 0) {
+	  errno = SS->lasterrno;
+	  return -1;
+	}
+
 	rr = -1; /* No successfull write */
 	e = errno; /* Whatever the previous one was.. */
 
@@ -1142,11 +1152,26 @@ ssize_t smtp_sfwrite(sfp, vp, len, discp)
 	  fprintf(SS->verboselog,
 		  " smtp_sfwrite() to write %d bytes\n", (int)len);
 #endif
+	
+	if (sferror(sfp)) {  /* Don't even consider writing,
+				if the stream has error status..
+				Oddly this means the upper layers
+				of sfio have failed somehow, and
+				it has not affected the  "lasterrno"
+				on SmtpState .. */
 
-	/* Don't even consider writing, if the stream has error status.. */
-	errno = EIO;
-	if (sferror(sfp)) return -1;
-	if (sffileno(sfp) < 0) return -1; /* Write-FD killed! */
+	  SS->lasterrno = errno = EIO;
+	  return -1;
+	}
+
+	if (sffileno(sfp) < 0) { 	/* Write-FD killed!
+					   (a sanity thing)
+					   (One of those things
+					   that should never happen..) */
+
+	  SS->lasterrno = errno = EBADF;
+	  return -1;
+	}
 
 	/* If 'len' is zero, return zero.. */
 	/* (I have a feeling such writes are sometimes asked for..) */
@@ -1297,6 +1322,7 @@ zsyslog((LOG_ERR,
 
 	} /* End of while(len > 0) loop */
 
+	if (rr < 0) SS->lasterrno = e;
 	errno = e;
 	return rr;
 }

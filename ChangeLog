@@ -1,5 +1,14 @@
 2002-04-18  Matti Aarnio  <mea@zmailer.org>
 
+	* transports/mailbox/mailbox.c:
+	    Finally a bit of understanding about how to manage
+	    persistent errno status on sfio streams.
+
+	* transports/smtp/smtp.c, transports/smtp/smtp.h,
+	  transports/smtp/smtptls.c:
+	    Persistent error storage things, but as of yet the
+	    detail analysis/reporting at calling layers is vague.
+
 	* libc/mail.c, libc/sfmail.c, router/rfc822.c:
 	    Add missing  #include "zmsignal.h"  lines...
 
