@@ -1,3 +1,9 @@
+1999-09-10  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/mailbox/mailbox.c, transports/mailbox/fmtmbox.c,
+	  transports/mailbox/mboxpath.c, transports/mailbox/Makefile.in:
+	    mboxpath-formatter routine from Eugene Crosser.
+
 1999-09-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* lib/symbol.c:

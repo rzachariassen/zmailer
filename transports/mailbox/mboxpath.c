@@ -41,7 +41,8 @@
 #include <unistd.h>
 #endif
 
-
+extern int fmtmbox __((char *, int, const char *, const char *, \
+			const struct passwd *));
 int dirhashes = 0;
 int pjwhashes = 0;
 int crchashes = 0;
@@ -139,6 +140,7 @@ int main(argc,argv)
 	char *s;
 	struct stat st;
 	const char **maild;
+	struct passwd *pw;
 	char pathbuf[2000]; /* more than enough, he said.. */
 
 	s = getzenv("MAILBOX");
@@ -175,19 +177,35 @@ int main(argc,argv)
 
 	st.st_mode = 0;
 	for (maild = maildirs; *maild != NULL; ++maild) {
-	  if (stat(*maild,&st) == 0 &&
-	      S_ISDIR(st.st_mode))
+	  if (strchr(*maild,'%') || (stat(*maild,&st) == 0 &&
+	      S_ISDIR(st.st_mode)))
 	    break;
 	}
-
-	if (!S_ISDIR(st.st_mode)) {
+	if (!*maild) {
 	  fprintf(stderr,"mboxpath: Did not find any mbox directory\n");
 	  exit(8);
 	}
 
-	sprintf(pathbuf, "%s/", *maild);
-	s = pathbuf + strlen(pathbuf);
-	mkhashpath(s, uname);
-	printf( "%s\n", pathbuf);
+	if (strchr(*maild,'%')) {
+	  if ((pw=getpwnam(uname)) == NULL) {
+	    if (errno) perror("getpwnam");
+	    else fprintf(stderr,"%s: no such user\n",uname);
+	    exit(8);
+	  }
+	  if (fmtmbox(pathbuf,sizeof(pathbuf),*maild,uname,pw)) {
+	    pathbuf[70]='\0';
+	    strcat(pathbuf,"...");
+	    fprintf(stderr,"mboxpath: path does not fit in buffer: \"%s\"\n",
+			pathbuf);
+	    exit(8);
+	  } else {
+	    printf( "%s\n", pathbuf);
+	  }
+	} else {
+	  sprintf(pathbuf, "%s/", *maild);
+	  s = pathbuf + strlen(pathbuf);
+	  mkhashpath(s, uname);
+	  printf( "%s\n", pathbuf);
+	}
 	return (0);
 }

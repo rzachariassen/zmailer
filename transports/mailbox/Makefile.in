@@ -46,18 +46,21 @@ all:	$(PROGRAM)-a mboxpath-a # in.rlockd
 $(PROGRAM)-a:	$(LIBDEB) $(PROGRAM)
 mboxpath-a:	$(LIBDEB) mboxpath
 
-$(PROGRAM):	$(PROGRAM).o version.o lock.o sieve.o $(LIBDEB)
-	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o lock.o sieve.o $(LIB) $(MAILBOX_LIB)
+$(PROGRAM):	$(PROGRAM).o version.o lock.o sieve.o fmtmbox.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o lock.o sieve.o fmtmbox.o $(LIB) $(MAILBOX_LIB)
 
 
-mboxpath:	mboxpath.o version.o $(LIBDEB)
-	$(CC) $(CFLAGS) -o $@ mboxpath.o version.o $(LIB) $(MAILBOX_LIB)
+mboxpath:	mboxpath.o version.o fmtmbox.o $(LIBDEB)
+	$(CC) $(CFLAGS) -o $@ mboxpath.o version.o fmtmbox.o $(LIB) $(MAILBOX_LIB)
 
 $(PROGRAM).o: $(srcdir)/$(PROGRAM).c $(HDRS)
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/$(PROGRAM).c
 
 sieve.o:	$(srcdir)/$(privatembox)sieve.c $(HDRS)
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/$(privatembox)sieve.c
+
+fmtmbox.o:	$(srcdir)/fmtmbox.c $(HDRS)
+	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/fmtmbox.c
 
 mboxpath.o:	$(srcdir)/mboxpath.c
 	$(CC) $(CFLAGS) $(MAILBOXDEFS) -c $(srcdir)/mboxpath.c

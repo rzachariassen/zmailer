@@ -309,6 +309,9 @@ int  do_xuidl = 0;		/* Store our own  X-UIDL: header to allow
 				   something different -- 32-bit unique
 				   counter..  See RFC 2060 for IMAP4. */
 
+extern int fmtmbox __((char *, int, const char *, const char *, \
+			const struct passwd *));
+
 extern RETSIGTYPE wantout __((int));
 extern int optind;
 extern char *optarg;
@@ -323,7 +326,7 @@ extern int setupuidgid __((struct rcpt *, int, int));
 extern int createfile __((struct rcpt *, const char *, int, int));
 extern int exstat __((struct rcpt *, const char *, struct stat *, int (*)(const char*, struct stat*) ));
 extern int creatembox __((struct rcpt *, const char *, char **, uid_t*, gid_t*, struct passwd *));
-extern char *exists __((const char *, const char *, struct rcpt *));
+extern char *exists __((const char *, const char *, struct passwd *, struct rcpt *));
 extern void setrootuid __((struct rcpt *));
 extern void process __((struct ctldesc *dp));
 extern void deliver __((struct ctldesc *dp, struct rcpt *rp, const char *userbuf, const char *timestring));
@@ -1206,12 +1209,13 @@ deliver(dp, rp, usernam, timestring)
 
 	  hasdir = 0;
 	  for (maild = maildirs; *maild != 0; maild++) {
-	    if (stat(*maild,&st) < 0 ||
-		!S_ISDIR(st.st_mode))
+	    if ((strchr(*maild,'%') == NULL) &&
+	        (stat(*maild,&st) < 0 ||
+		!S_ISDIR(st.st_mode)))
 	      /* Does not exist, or is not a directory */
 	      continue;
 	    hasdir = 1;
-	    file = exists(*maild, unam, rp);
+	    file = exists(*maild, unam, pw, rp);
 	    if (file != NULL)
 	      break;		/* found it */
 	    if (rp->status != EX_OK)
@@ -2404,11 +2408,29 @@ creatembox(rp, uname, filep, uid, gid, pw)
 	for (maild = &maildirs[0]; *maild != 0; maild++) {
 	  if (*filep != NULL)
 	    free(*filep);
-	  *filep = emalloc(8+2+strlen(*maild)+strlen(uname));
-	  sprintf(*filep, "%s/", *maild);
-	  s = *filep + strlen(*filep);
+	  if (strchr(*maild,'%')) {
+	    *filep = emalloc(2048);
+	    if (fmtmbox(*filep,2048,*maild,uname,pw)) {
+	      (*filep)[70]='\0';
+	      strcat(filep,"...");
+	      notaryreport(rp->addr->user, "failed",
+		       "5.3.1 (too long path for user spool mailbox file)",
+		       "x-local; 566 (too long path for user spool mailbox file)");
+	      DIAGNOSTIC(rp, *filep, EX_CANTCREAT, "Too long path \"%s\"", *filep);
+	      free(*filep);
+	      *filep=NULL;
+	      return 0;
+	    }
+/*
+  FIXME! Need to create intermediate directories here
+*/
+	  } else {
+	    *filep = emalloc(8+2+strlen(*maild)+strlen(uname));
+	    sprintf(*filep, "%s/", *maild);
+	    s = *filep + strlen(*filep);
 
-	  mkhashpath(s, uname);
+	    mkhashpath(s, uname);
+	  }
 
 	  fd = createfile(rp, *filep, *uid, 1);
 	  if (fd >= 0) {
@@ -2600,18 +2622,31 @@ setupuidgid(rp, uid, gid)
  */
 
 char *
-exists(maildir, uname, rp)
+exists(maildir, uname, pw, rp)
 	const char *maildir;
 	const char *uname;
+	struct passwd *pw;
 	struct rcpt *rp;
 {
 	char *file, *s;
 
-	file = emalloc(8+strlen(maildir)+strlen(uname));
-	sprintf(file, "%s/", maildir);
+	if (strchr(maildir, '%') != NULL) {
+	  file = emalloc(2048);
+	  if (fmtmbox(file, 2048, maildir, uname, pw)) {
+	    file[70]='\0';
+	    strcat(file,"...");
+	    DIAGNOSTIC(rp, file, EX_SOFTWARE,
+		     "mailbox path does not fit in buffer \"%s\"", file);
+	    free(file);
+	    return NULL;
+	  }
+	} else {
+	  file = emalloc(8+strlen(maildir)+strlen(uname));
+	  sprintf(file, "%s/", maildir);
 
-	s = file + strlen(file);
-	mkhashpath(s, uname);
+	  s = file + strlen(file);
+	  mkhashpath(s, uname);
+	}
 
 	if (access(file, F_OK) == 0) { /* file exists */
 	  rp->status = EX_OK;
