@@ -204,6 +204,8 @@ transports/smtp:
 	- Delivery messages plain-text part needs easier human
 	  understandable format on the messages.
 
+	Reports about delivery DELAY.
+
 	Have two waiting threads (one message each):
 	- start both of them with ETRN
 	- both issue report of "retryat +nn"
@@ -217,33 +219,39 @@ transports/smtp:
 
 - smtpserver
 
-  - Bind to named interface (pick its address with SIOCG(L)IFADDR)
-  - Control somehow if lack of configuration and/or PolicyDB is
-    a system security offence, or not..
+    FEATURE:
+	Bind to named interface (pick its address with SIOCG(L)IFADDR)
+    BUG:
+	Control somehow if lack of configuration and/or PolicyDB is
+	a system security offence, or not..
 
-  - Supply PARAM entries for *all* (well, very nearly) command-line
-    startup options where it makes sense... (NOW DOES!)
   - VERIFY: behaviour on BDAT (and DATA) phases when the disk fills
   -	Report that if the router subprocess crashes, interactive
 	processing goes into mixed state -- it reports 2XX, and
 	yet claims to be in wrong state (MAIL FROM or RCPT TO ?
 	I have forgotten..)
 
-  - accept email to postmaster(s), never mind what else policy testers
-    have determined...
-  - Do delayed-reject processing -- don't (almoast ever) reject at MAIL FROM.
-    (allowing email thru to postmaster will be then easier..)
-  - "-s" option processing is entirely wrong...
-  - The connection source IP reversal is not verified paranoidly, we
-    may accept people who claim dishonest reversals..  (But then we
-    can test against their IP address..)
-  - Have some flag passing mechanism from the initial policy db
-    back to the smtpserver proper so that it can:
+    FEATURE:
+	accept email to postmaster(s), never mind what else policy testers
+	have determined...
+
+    BUG:
+	"-s" option processing is entirely wrong...
+
+    FEATURE:
+	The connection source IP reversal is not verified paranoidly, we
+	may accept people who claim dishonest reversals..  (But then we
+	can test against their IP address..)
+
+    FEATURE:
+	Have some flag passing mechanism from the initial policy db
+	back to the smtpserver proper so that it can:
 	- give more meaningfull explanations of rejection reason
 	- run more verification subroutines on addresses per policy
 	  driver control; namely  "this domain can be valid source only
-				   when it is coming from this IP address"
+				   when it is coming from that IP address"
 	  type of checkup...
+
 
 - Integrate transports/fuzzyalias/ into the configuration system
 
