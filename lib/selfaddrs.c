@@ -123,6 +123,10 @@ other_socktype:
 #endif
 
 	s = socket(pf, SOCK_DGRAM, 0);
+
+	if (s < 0 && pf != AF_INET)
+	  goto done_this;
+
 	if (s < 0) {
 	  free(interfacebuf);
 	  free(sap);
@@ -252,6 +256,8 @@ other_socktype:
 	  goto other_socktype;
 	}
 #endif
+
+ done_this:
 
 	free(interfacebuf);
 	*sockaddrp = (struct sockaddr **)sap;

@@ -1,3 +1,9 @@
+2000-05-04  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* lib/selfaddrs.c:
+	    Yet Another small surprise at Linux systems about
+	    self-address extraction.  :-/
+
 2000-04-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c:
