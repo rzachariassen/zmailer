@@ -1665,7 +1665,8 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file)
 
 	fstat(fdmail, &st);
 
-	if ((fp = fdopen(fdmail, fdopmode)) == NULL) {
+	fp = fdopen(fdmail, fdopmode);
+	if (fp == NULL) {
 	  notaryreport(NULL,NULL,NULL,NULL);
 	  DIAGNOSTIC3(rp, file, EX_TEMPFAIL, "cannot fdopen(%d,\"%s\")",
 		      fdmail,fdopmode);
@@ -2526,6 +2527,7 @@ appendlet(dp, rp, fp, file, ismime)
 	    return WS.lastch;
 	  }
 
+	  lseek(mfd, (off_t)dp->msgbodyoffset, SEEK_SET);
 	  mfp = fdopen(mfd,"r");
 	  setvbuf(mfp, iobuf, _IOFBF, sizeof(iobuf));
 
