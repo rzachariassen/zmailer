@@ -848,6 +848,7 @@ deliver(SS, dp, startrp, endrp)
 	int r = EX_TEMPFAIL;
 	int nrcpt, rcpt_cnt, size, tout;
 	int content_kind = 0;
+	int mail_from_failed;
 	CONVERTMODE convertmode;
 	int ascii_clean = 0;
 	struct stat stbuf;
@@ -989,6 +990,7 @@ deliver(SS, dp, startrp, endrp)
 
 
 	SS->rcptstates = 0;
+	mail_from_failed = 0;
 
     more_recipients:
 	if (more_rp != NULL) {
@@ -1063,6 +1065,16 @@ deliver(SS, dp, startrp, endrp)
 	  } else {
 	    r = EX_TEMPFAIL; /* XXX: ??? */
 	  }
+
+	  /* Sync system which rejects subsequent MAIL FROM if not
+	     getting an RSET ??   *dont* yield diagnostic()s here! */
+	  if (SS->smtpfp)
+	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
+	      if ( ! mail_from_failed ) {
+		mail_from_failed = 1;
+		goto more_recipients;
+	      }
+
 	  for (rp = startrp; rp && rp != endrp; rp = rp->next) {
 	    /* NOTARY: address / action / status / diagnostic */
 	    if (rp->lockoffset) {
@@ -1071,11 +1083,9 @@ deliver(SS, dp, startrp, endrp)
 	      diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	    }
 	  }
-	  if (SS->smtpfp)
-	    if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-	      r = EX_IOERR;
 	  return r;
 	}
+	mail_from_failed = 0;
 	nrcpt = 0;
 	rcpt_cnt = 0;
 	SS->rcptstates = 0;
