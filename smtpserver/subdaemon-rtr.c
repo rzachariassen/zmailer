@@ -147,6 +147,11 @@ static int subdaemon_callr (RTR)
 	  rc = fdgets( & RTR->buf, & RTR->bufsize, RTR->fromfd, 10);
 	  if ( rc < 1 || ! RTR->buf ) {
 	    /* FIXME: ERROR PROCESSING ! */
+	    if (rc == 0) {
+	      /* EOF! */
+	      subdaemon_killr(RTR);
+	    }
+	    return -1;
 	  }
 	  if (strncmp( RTR->buf, BADEXEC, sizeof(BADEXEC) - 3) == 0) {
 	    subdaemon_killr(RTR);
@@ -191,6 +196,7 @@ subdaemon_handler_rtr_init (statep)
 	  setlinebuf(logfp);
 	}
 
+	SIGNAL_HANDLE(SIGCHLD,SIG_IGN);
 
 	return 0;
 }
@@ -212,6 +218,11 @@ subdaemon_handler_rtr_input (state, peerdata)
 	  rc = subdaemon_callr(RTR);
 	  if (rc < 2) {
 	    /* FIXME: error processing! */
+	    struct timeval tv;
+	    tv.tv_sec = 1;
+	    tv.tv_usec = 0;
+	    select(0, NULL, NULL, NULL, &tv); /* Sleep about 1 sec.. */
+	    return EAGAIN;
 	  }
 
 	  /* Now   RTR->fromfd   is in NON-BLOCKING MODE!
@@ -273,6 +284,9 @@ subdaemon_handler_rtr_postselect (state, rdset, wrset)
 	  rc = fdgets( & RTR->buf, & RTR->bufsize, RTR->fromfd, -1);
 
 	  if (rc < 0 && errno == EAGAIN) return -EAGAIN;  /* */
+	  if (rc == 0) { /* EOF */
+	    subdaemon_killr(RTR);
+	  }
 
 	  if (rc > 0) {
 	    if (RTR->buf[rc-1] == '\n') {

@@ -125,6 +125,9 @@ subdaemon_handler_ctf_init ( statep )
 	  close(pipewr[0]);
 	  close(piperd[1]);
 	}
+
+	SIGNAL_HANDLE(SIGCHLD,SIG_IGN);
+
 	return 0;
 }
 

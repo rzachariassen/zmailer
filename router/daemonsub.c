@@ -77,8 +77,7 @@
 
 static int gothup = 0;
 
-static RETSIGTYPE sig_exit __((int));
-static RETSIGTYPE
+RETSIGTYPE
 sig_exit(sig)
 int sig;
 {

@@ -716,6 +716,8 @@ Imode_smtpserver __((void))
 
 	setlinebuf(stdin);
 
+	SIGNAL_HANDLE(SIGTERM, sig_exit);	/* mustexit = 1 */
+
 	isInteractive = 1;
 
 	av[0] = "server";
@@ -723,7 +725,7 @@ Imode_smtpserver __((void))
 	av[2] = NULL;
 	s_apply(2, &av[0]);
 
-	for(;;) {
+	while ( !mustexit ) {
 
 	  ++cmdcount;
 	  if (cmdcount > 1000) {

@@ -91,6 +91,7 @@ extern int run_stability __((int argc, const char *argv[]));
 extern int run_process   __((int argc, const char *argv[]));
 extern RETSIGTYPE sig_hup __((int));
 extern int	run_daemon __((int argc, const char *argv[]));
+RETSIGTYPE sig_exit __((int));
 
 
 /* File: rfc822.c */

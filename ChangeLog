@@ -1,5 +1,10 @@
 2004-04-12  Matti Aarnio  <mea@zmailer.org>
 
+	* router/daemonsub.c, router/prototypes.h, router/router.c,
+	  smtpserver/subdaemon-ctf.c, smtpserver/subdaemon-rtr.c:
+	    Handle gracefully subdaemon router process death,
+	    (and have it die gracefully.)
+
 	* router/router.c, proto/cf/server.cf:
 	    Automated 'server purge' every about 1000 interactions.
 	    Also call 'server init' before start.
