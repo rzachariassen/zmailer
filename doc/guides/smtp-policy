@@ -39,7 +39,7 @@
 				[ip.number]/maskwidth
 			for listing those senders (networks) we
 			absolutely trust.  Additionally you may give
-			(at the same line) some attributes as arameters
+			(at the same line) some attributes as parameters
 			for this key entry:
 				fulltrustnet +
 				trustrecipient +
