@@ -804,7 +804,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 
 	/* Write headers: */
 
-	header_received_for_clause(rp, 0, verboselog);
+	header_received_for_clause(startrp, 0, verboselog);
 
 	fwriteheaders(startrp, tafp, lineendseq, convertmode, maxwidth, NULL);
 	if (verboselog)

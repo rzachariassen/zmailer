@@ -91,7 +91,7 @@ time_t starttime, endtime;
 
 
 static const char *add_cname_cache __((SmtpState *SS, const char *host, const char *realname, time_t realnamettl));
-static int  cname_lookup    __((SmtpState *SS, const char *host, char ** cnamep));
+static int  cname_lookup    __((SmtpState *SS, const char *host, const char ** cnamep));
 
 
 
@@ -1082,7 +1082,8 @@ deliver(SS, dp, startrp, endrp)
 	CONVERTMODE convertmode;
 	int ascii_clean = 0;
 	struct stat stbuf;
-	char *s, *se,  *rcpthost, *cname;
+	const char *cname;
+	char *s, *se,  *rcpthost;
 	char SMTPbuf[2000];
 	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
@@ -1288,38 +1289,49 @@ deliver(SS, dp, startrp, endrp)
 	s = SMTPbuf + 11;
 
 	if (!STREQ(startrp->addr->link->channel,"error")) {
-	  if (!startrp->ezmlm) {
-	    /* Normal mode */
-	    sprintf(s, "%.1000s", startrp->addr->link->user);
-	    s += strlen(s);
-	  } else {
-	    /* The EZMLM mode */
-	    int quote = 0;
-	    const char *u = startrp->addr->link->user;
-	    for ( ; *u && u < SMTPbuf+1000; ++u) {
-	      char c = *u;
-	      if (c == '\\') {
-		*s++ = c; ++u;
-		if (*u == 0) break;
-		*s++ = *u;
-		continue;
-	      }
-	      if (c == quote) /* 'c' is non-zero here */
-		quote = 0;
-	      else if (c == '"')
-		quote = '"';
-	      else if (!quote && (c == '@'))
-		break;
-	      *s++ = c;
+	  const char *u = startrp->addr->link->user;
+	  const char *se = s + 800;
+
+	  /* Copy the (possibly quoted) local part */
+	  int quote = 0;
+	  for ( ; *u && s < se; ++u) {
+	    char c = *u;
+	    if (c == '\\') {
+	      *s++ = c; ++u;
+	      if (*u == 0) break;
+	      *s++ = *u;
+	      continue;
 	    }
-	    if (*u == '@') {
-	      strcpy(s, startrp->ezmlm);
-	      s += strlen(s);
-	    }
-	    /* FIXME: make sure here won't happen any buffer overflows, ever.. */
-	    strcpy(s, u);
-	    s += strlen(s);
+	    if (c == quote) /* 'c' is non-zero here */
+	      quote = 0;
+	    else if (c == '"')
+	      quote = '"';
+	    else if (!quote && (c == '@'))
+	      break;
+	    *s++ = c;
 	  }
+
+	  if (startrp->ezmlm) {
+	    /* The EZMLM mode appendix... */
+	    const char *p = startrp->ezmlm;
+	    while (*p && s < se) *s++ = *p++;
+	  }
+
+	  /* Normal (tail) mode */
+
+	  if (*u == '@') *s++ = *u++;
+
+	  /* If there is a domain ? */
+	  if (*u != 0) {
+	    /* Now is the CNAME thingie to be rewritten ? */
+	    if ((cname_lookup(SS, u, & cname) > 0) && cname) {
+	      /* Rewrote the domain */
+	      u = cname;
+	    }
+	    /* Copy the domain (original/cname). */
+	    while ((s < se) && *u) *s++ = *u++;
+	  }
+
 	} /* non-error source address mode */
 
 	*s++ = '>';
@@ -1449,30 +1461,48 @@ deliver(SS, dp, startrp, endrp)
 	  rcpthost = strchr(rp->addr->user, '@');
 	  if (rcpthost) ++rcpthost;
 
-	  cname = NULL;
-	  if (rcpthost && (cname_lookup(SS, rcpthost, & cname) > 0) && cname) {
-	    /* re-using 'rcpthost' to have now CNAME version */
-
-	    const char *p = rp->addr->user;
+	  {
+	    const char *u = rp->addr->user;
+	    const char *se = SMTPbuf + 810;
+	    int quote = 0;
 	    s = SMTPbuf;
-	    const char *e = s + 810;
 
 	    strcpy(s, "RCPT TO:<"); s += strlen(s);
 
-	    while (*p && (*p != '@') && (s < e)) { *s = *p; ++s; ++p; }
-
-	    if ('@' == *p) { /* Has "@-full" address, will rewrite.. */
-	      *s++ = *p++;
-	      p = cname;
-	      while (*p && s < e) *s++ = *p++;
-	      *s++ = '>';
+	    /* Copy the (possibly quoted) local part */
+	    quote = 0;
+	    for ( ; *u && s < se; ++u) {
+	      char c = *u;
+	      if (c == '\\') {
+		*s++ = c; ++u;
+		if (*u == 0) break;
+		*s++ = *u;
+		continue;
+	      }
+	      if (c == quote) /* 'c' is non-zero here */
+		quote = 0;
+	      else if (c == '"')
+		quote = '"';
+	      else if (!quote && (c == '@'))
+		break;
+	      *s++ = c;
 	    }
-	    *s = 0;
 
-	  } else { /* No CNAME jumbogumbo.. */
-	    sprintf(SMTPbuf, "RCPT To:<%.800s>", rp->addr->user);
-	    s = SMTPbuf + strlen(SMTPbuf);
+	    if ('@' == *u) { /* Has "@-full" address, can, perhaps, rewrite. */
+	      *s++ = *u++;
+
+	      if (*u != 0) {
+		cname = NULL;
+		if ((cname_lookup(SS, u, & cname) > 0) && cname) {
+		  u = cname;
+		}
+		while (*u && s < se) *s++ = *u++;
+	      }
+	    }
+	    *s++ = '>';
+	    *s = 0;
 	  }
+
 
 	  if (SS->ehlo_capabilities & ESMTP_DSN) {
 
@@ -4835,7 +4865,7 @@ static int namehash(s)
 static int cname_lookup(SS, host, cnamep)
      SmtpState *SS;
      const char *host;
-     char ** cnamep;
+     const char ** cnamep;
 {
   int hhash = namehash(host);
   int idx, nextidx;
