@@ -1,3 +1,21 @@
+1998-07-13  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* utils/policy-builder.sh.in:
+	    Mark Visser <mark@cal026031.student.utwente.nl> reported
+	    about the clumsiness of the spam-list retrieve and merge
+	    code.  His patch went in almoast as is.
+
+	* aclocal.m4, transports/mailbox/mailbox.c:
+	    Debian hits again; I don't know which version this is about,
+	    but some recent ones have <maillock.h> header, and library
+	    libfilelock.{a,so} with similar code to that of the Solaris
+	    libmail.a's maillock() stuff.
+
+	* proto/cf/rrouter.cf:
+	    Move the "new localpart processing" a bit downwards so that
+	    "pipe.*" and "file.*" tricks used with the shceduler configs
+	    still work.
+
 1998-07-08  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* */*.h */*.c */*/*.c: (all over the place)

@@ -175,8 +175,8 @@ append_header(va_alist)
 {
 	va_list pvar;
 	char linebuf[2000]; /* XX: SHOULD be enough..  damn vsprintf()..*/
-	int linelen;
-	int linecnt;
+	u_int linelen;
+	u_int linecnt;
 	char ***hdrpp, **hdrp2;
 
 #ifdef HAVE_STDARG_H

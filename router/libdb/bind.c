@@ -557,7 +557,6 @@ getrrtypec(host, rrtype, ttlp, depth)
 	CUC *eom, *cp, *nextcp;
 	querybuf buf, answer;
 	int qlen, n, ancount, qdcount, ok, first;
-	struct in_addr inaddr;
 	time_t maxttl, ttl;
 	int type;
 	char nbuf[BUFSIZ];
@@ -685,7 +684,7 @@ getrrtypec(host, rrtype, ttlp, depth)
 
 			*ttlp = maxttl;
 			n = (*cp) & 0xFF;
-			if (0 < n && n < sizeof hb)
+			if (0 < n && n < (int)sizeof(hb))
 			  return newstring(strnsave((const char *)cp+1, n));
 			break;
 

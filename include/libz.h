@@ -88,7 +88,7 @@ extern int  linegetrest   __((void));
 extern long lineoffset    __((FILE *fp));
 
 /* loginit.c */
-extern int loginit __((int));
+extern /* RETSIGTYPE */ int loginit __((int));
 
 /* nobody.c */
 extern int getnobody __((void));

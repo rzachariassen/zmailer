@@ -62,7 +62,17 @@ if [ f$FLAG != fn ]; then
 		>> smtp-policy.spam.new
 	    lynx -source http://www.sprocket.com/Security/SpamDomains | \
 		awk '{print $1}' >> smtp-policy.spam.new
-	    mv smtp-policy.spam.new smtp-policy.spam
+	    cat smtp-policy.spam.new | sed 's/^@//g' | tr "[A-Z]" "[a-z]" | \
+		    sort | uniq > smtp-policy.spam.new2
+	    if [ `grep -c cyberpromo smtp-policy.spam.new` -gt "0" ]; then
+		mv smtp-policy.spam smtp-policy.spam.old
+		mv smtp-policy.spam.new2 smtp-policy.spam
+		rm -f smtp-policy.spam.new
+	    else
+	        echo "Hmm....something went wrong while updating the spam policy."
+		echo "Please try again."
+ 		exit 1
+	    fi
 	fi
     fi
 fi
@@ -81,8 +91,7 @@ fi
   if [ -f smtp-policy.relay ] ; then
     cat smtp-policy.relay | \
     awk '/^#/{next;}
-	NF == 1 {printf "%s = _full_rights\n",$1;next;}
-	NF >= 2 {printf "%s = _full_rights %s %s %s %s %s %s %s %s\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;next;}'
+	{printf "%s = _full_rights %s %s %s %s %s %s %s %s\n",$1,$2,$3,$4,$5,$6,$7,$8,$9;next;}'
   fi
 
   # smtp-policy.mx
@@ -102,12 +111,8 @@ fi
       fi
       if [ -f smtp-policy.spam.manual ] ; then
 	cat smtp-policy.spam.manual
-      fi ) | tr "[A-Z]" "[a-z]" | sort | uniq | \
-    awk '/^@/{ # Domain, but ZMailer processes them without '@'
-	    printf "%s = _bulk_mail\n", substr($1,2);
-	    next;
-	}
-	/^\[/{ # an address block to reject
+      fi ) | tr "[A-Z]" "[a-z]" | sed 's/^@//g' | sort | uniq | \
+    awk '/^\[/{ # an address block to reject
 	    printf "%s rejectnet +\n", $1;
 	    next;
 	}

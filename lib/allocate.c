@@ -153,7 +153,7 @@ static int mmmallocs[MEMTYPES];
 static void
 moremem(n, i)
 	const u_int n;
-	const register memtypes i;
+	register const memtypes i;
 {
 	register struct block *bp, *bprev;
 	register int stackflag;

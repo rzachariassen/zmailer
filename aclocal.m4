@@ -130,8 +130,16 @@ if test "x$ac_cv_func_maillock_lmail" = "x"; then
     AC_TRY_LINK([#include <maillock.h>],[mailunlock();],[
 	ac_cv_func_maillock_lmail=yes])
     LIBS="$t_oldLibs"
+    if test "x$ac_cv_func_maillock_lmail" = "x"; then
+      # On some Debian systems this exists as  -llockfile  :-/
+      LIBS="$LIBS -llockfile"
+      AC_TRY_LINK([#include <maillock.h>],[mailunlock();],[
+		ac_cv_func_maillock_llockfile=yes])
+      LIBS="$t_oldLibs"
+    fi
   else
     ac_cv_func_maillock_lmail=no
+    ac_cv_func_maillock_llockfile=no
   fi
 fi
 if test "$ac_cv_func_maillock_lmail" = "yes"; then
@@ -139,8 +147,14 @@ if test "$ac_cv_func_maillock_lmail" = "yes"; then
 	LIBMAIL="-lmail"
 	AC_MSG_RESULT([System has  maillock()  with -lmail])
 else
+  if test "$ac_cv_func_maillock_llockfile" = "yes"; then
+	AC_DEFINE(HAVE_MAILLOCK)
+	LIBMAIL="-llockfile"
+	AC_MSG_RESULT([System has  maillock()  with -llockfile])
+  else
 	AC_DEFINE(HAVE_DOTLOCK)
 	AC_MSG_RESULT([Using traditional UNIX 'dot-lock' mailbox locks])
+  fi
 fi])
 
 AC_DEFUN(AC_STRUCT_ST_BLKSIZE,

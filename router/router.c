@@ -212,9 +212,8 @@ main(argc, argv)
 
 	if (logfn != NULL) {
 		/* loginit is a signal handler, so can't pass log */
-		if (loginit(0) < 0)	/* do setlinebuf() there */
+		if (loginit(SIGHUP) < 0) /* do setlinebuf() there */
 			die(1, "log initialization failure");
-		signal(SIGHUP, sig_hup); /* close and reopen log files */
 	} else
 		signal(SIGHUP, SIG_IGN); /* no surprises please */
 

@@ -1477,7 +1477,7 @@ void
 LookupKeyword()
 {
 	char *nt;
-	int i;
+	u_int i;
 
 	if (nextToken != tIdent || nextTokenText[0] == '\0')
 		assertionFailure;

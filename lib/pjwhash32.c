@@ -28,7 +28,7 @@ pjwhash32 (ptr)
 	 *  on e.g. 64-bit systems.
 	 */
 
-	if (tmp = (hash & ~(0x0fffffffUL))) {
+	if ((tmp = (hash & ~(0x0fffffffUL)))) {
 	    hash ^= tmp >> 24;
 	    hash ^= tmp;	/* Clear the high bits - fast! */
 	}
@@ -64,7 +64,7 @@ pjwhash32n (ptr, n)
 	 *  on e.g. 64-bit systems.
 	 */
 
-	if (tmp = (hash & ~(0x0fffffffUL))) {
+	if ((tmp = (hash & ~(0x0fffffffUL)))) {
 	    hash ^= tmp >> 24;
 	    hash ^= tmp;	/* Clear the high bits - fast! */
 	}

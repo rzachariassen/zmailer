@@ -833,9 +833,13 @@ int iuid;
 	case L_ERROR:
 	  cp = "Something other than EEXIST happened";
 	  break;
+#ifdef L_MANLOCK /* Some Debian version has copied this mechanism,
+		    but has done imperfect job on it..  I hope they
+		    don't do ``enum'' on these error codes. [mea] */
 	case L_MANLOCK:
 	  cp = "cannot set mandatory lock on temp lockfile";
 	  break;
+#endif
 	default:
 	  sprintf(errbuf, "maillock() error %d", i);
 	  cp = errbuf;

@@ -41,12 +41,20 @@ search_bin(sip)
 	register char *s;
 	off_t	top, bot;
 	int	i, retry;
-	spkey_t symid;
 	conscell *tmp;
 	struct spblk *spl;
 	struct file_map *fm;
 #ifdef	HAVE_MMAP
+	/* This  fstat()  for possible seq_remap() trigger causes a bit
+	   more syscalls, than is really necessary.   Therefore it is
+	   likely best to have "-m" option on the relation definitions
+	   and live with that -- relation information does not pass to
+	   the low-level drivers, thus these drivers don't know about
+	   possible upper-level "-m"..					*/
+#define NO_SEQREMAP
+#ifndef NO_SEQREMAP
 	struct stat fst;
+#endif
 #endif
 	char fixbuf[BUFSIZ];
 
@@ -54,8 +62,6 @@ search_bin(sip)
 	  return NULL;
 
 	retry = 0;
-
-reopen:
 
 	spl = _open_seq(sip, "r");
 
@@ -76,7 +82,6 @@ reopen:
 	   and live with that -- relation information does not pass to
 	   the low-level drivers, thus these drivers don't know about
 	   possible upper-level "-m"..					*/
-#define NO_SEQREMAP
 #ifndef NO_SEQREMAP
 	if (fstat(FILENO(fp),&fst) < 0) abort(); /* Will succeed, or crash.. */
 	if (fst.st_mtime != fm->mtime ||

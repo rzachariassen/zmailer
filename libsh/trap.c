@@ -119,7 +119,7 @@ makefc(path, buf)
 	register char *cp;
 	struct stat stbuf;
 
-	int plen = strlen(path);
+	u_int plen = strlen(path);
 
 	if (plen <= sizeof CFSUFFIX)
 		return NULL;

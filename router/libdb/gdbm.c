@@ -68,7 +68,7 @@ open_gdbm(sip, flag, comment)
 	else			flag = GDBM_READER;
 	if (spl == NULL || (db = (GDBM_FILE)spl->data) == NULL) {
 		for (i = 0; i < 3; ++i) {
-		  db = gdbm_open((const char*)sip->file, 0, flag, 0, NULL);
+		  db = gdbm_open((void*)sip->file, 0, flag, 0, NULL);
 		  if (db != NULL)
 		    break;
 		  sleep(1);
@@ -111,7 +111,7 @@ reopen:
 	if (db == NULL)
 	  return NULL;
 
-	key.dptr  = (const char*)sip->key;
+	key.dptr  = (void*)sip->key;
 	key.dsize = strlen(sip->key) + 1;
 	val = gdbm_fetch(db, key);
 	if (val.dptr == NULL) {
@@ -172,9 +172,9 @@ add_gdbm(sip, value)
 	if (db == NULL)
 		return EOF;
 
-	key.dptr  = (const char*)sip->key;
+	key.dptr  = (void*)sip->key;
 	key.dsize = strlen(sip->key) + 1;
-	val.dptr  = (const char*)value;
+	val.dptr  = (void*)value;
 	val.dsize = strlen(value) + 1;
 	if (gdbm_store(db, key, val, GDBM_REPLACE) < 0) {
 		++deferit;
@@ -201,7 +201,7 @@ remove_gdbm(sip)
 	if (db == NULL)
 		return EOF;
 
-	key.dptr  = (char*)sip->key;
+	key.dptr  = (void*)sip->key;
 	key.dsize = strlen(sip->key) + 1;
 	if (gdbm_delete(db, key) < 0) {
 		++deferit;

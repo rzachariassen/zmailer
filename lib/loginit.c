@@ -20,7 +20,7 @@
 extern char *progname;
 extern char *logfn;
 
-int
+/* RETSIGTYPE */ int
 loginit(sig)
      int sig;
 {
@@ -45,6 +45,6 @@ loginit(sig)
 #endif	/* F_SETFL */
 	setvbuf(stdout, (char *)NULL, _IOLBF, 0);
 	setvbuf(stderr, (char *)NULL, _IOLBF, 0);
-	SIGNAL_HANDLE(SIGHUP, (RETSIGTYPE (*) __((int))) loginit);
+	SIGNAL_HANDLE(sig, (RETSIGTYPE(*)())loginit);
 	return 0;
 }

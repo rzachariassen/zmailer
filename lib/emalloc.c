@@ -39,7 +39,7 @@ erealloc(buf, len)
 	while ((r = realloc(buf, len)) == NULL) {
 		fprintf(stderr,
 			"%s[%d] realloc(%u): virtual memory exceeded, sleeping\n",
-			progname, getpid(), len);
+			progname, getpid(), (u_int)len);
 		sleep(emsleeptime);
 	}
 	return r;

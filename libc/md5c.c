@@ -31,9 +31,11 @@ documentation and/or software.
 ** Thanks to Ken Pizzini (ken@spry.com) for finally nailing this one!
 */
 
+#ifdef solaris
 #define MD5Init		MD5Init_perl
 #define MD5Update	MD5Update_perl
 #define MD5Final	MD5Final_perl
+#endif
 
 #include "md5-global.h"
 #include "md5.h"
@@ -86,6 +88,40 @@ static unsigned char PADDING[64] = {
 /* FF, GG, HH, and II transformations for rounds 1, 2, 3, and 4.
 Rotation is separate from addition to prevent recomputation.
  */
+#ifdef __GNUC__
+extern __inline__ UINT4 FF(register UINT4 a, register UINT4 b, register UINT4 c, register UINT4 d, register UINT4 x, register UINT4 s, register UINT4 ac)
+{
+  a += F (b,c,d) + x + ac;
+  a = ROTATE_LEFT(a,s);
+  a += b;
+  return a;
+}
+
+extern __inline__ UINT4 GG(register UINT4 a, register UINT4 b, register UINT4 c, register UINT4 d, register UINT4 x, register UINT4 s, register UINT4 ac)
+{
+  a += G (b,c,d) + x + ac;
+  a = ROTATE_LEFT(a,s);
+  a += b;
+  return a;
+}
+
+extern __inline__ UINT4 HH(register UINT4 a, register UINT4 b, register UINT4 c, register UINT4 d, register UINT4 x, register UINT4 s, register UINT4 ac)
+{
+  a += H (b, c, d) + x + ac;
+  a = ROTATE_LEFT (a, s);
+  a += b;
+  return a;
+}
+
+extern __inline__ UINT4 II(register UINT4 a, register UINT4 b, register UINT4 c, register UINT4 d, register UINT4 x, register UINT4 s, register UINT4 ac)
+{
+  a += I (b, c, d) + x + ac;
+  a = ROTATE_LEFT (a, s);
+  a += b;
+  return a;
+}
+
+#else
 #define FF(a, b, c, d, x, s, ac) { \
  (a) += F ((b), (c), (d)) + (x) + (UINT4)(ac); \
  (a) = ROTATE_LEFT ((a), (s)); \
@@ -110,6 +146,7 @@ Rotation is separate from addition to prevent recomputation.
  (a) += (b); \
  TO32((a)); \
   }
+#endif
 
 /* MD5 initialization. Begins an MD5 operation, writing a new context.
  */
@@ -208,76 +245,76 @@ unsigned char block[64];
   Decode (x, block, 64);
 
   /* Round 1 */
-  FF (a, b, c, d, x[ 0], S11, 0xd76aa478U); /* 1 */
-  FF (d, a, b, c, x[ 1], S12, 0xe8c7b756U); /* 2 */
-  FF (c, d, a, b, x[ 2], S13, 0x242070dbU); /* 3 */
-  FF (b, c, d, a, x[ 3], S14, 0xc1bdceeeU); /* 4 */
-  FF (a, b, c, d, x[ 4], S11, 0xf57c0fafU); /* 5 */
-  FF (d, a, b, c, x[ 5], S12, 0x4787c62aU); /* 6 */
-  FF (c, d, a, b, x[ 6], S13, 0xa8304613U); /* 7 */
-  FF (b, c, d, a, x[ 7], S14, 0xfd469501U); /* 8 */
-  FF (a, b, c, d, x[ 8], S11, 0x698098d8U); /* 9 */
-  FF (d, a, b, c, x[ 9], S12, 0x8b44f7afU); /* 10 */
-  FF (c, d, a, b, x[10], S13, 0xffff5bb1U); /* 11 */
-  FF (b, c, d, a, x[11], S14, 0x895cd7beU); /* 12 */
-  FF (a, b, c, d, x[12], S11, 0x6b901122U); /* 13 */
-  FF (d, a, b, c, x[13], S12, 0xfd987193U); /* 14 */
-  FF (c, d, a, b, x[14], S13, 0xa679438eU); /* 15 */
-  FF (b, c, d, a, x[15], S14, 0x49b40821U); /* 16 */
+  a = FF (a, b, c, d, x[ 0], S11, 0xd76aa478U); /* 1 */
+  d = FF (d, a, b, c, x[ 1], S12, 0xe8c7b756U); /* 2 */
+  c = FF (c, d, a, b, x[ 2], S13, 0x242070dbU); /* 3 */
+  b = FF (b, c, d, a, x[ 3], S14, 0xc1bdceeeU); /* 4 */
+  a = FF (a, b, c, d, x[ 4], S11, 0xf57c0fafU); /* 5 */
+  d = FF (d, a, b, c, x[ 5], S12, 0x4787c62aU); /* 6 */
+  c = FF (c, d, a, b, x[ 6], S13, 0xa8304613U); /* 7 */
+  b = FF (b, c, d, a, x[ 7], S14, 0xfd469501U); /* 8 */
+  a = FF (a, b, c, d, x[ 8], S11, 0x698098d8U); /* 9 */
+  d = FF (d, a, b, c, x[ 9], S12, 0x8b44f7afU); /* 10 */
+  c = FF (c, d, a, b, x[10], S13, 0xffff5bb1U); /* 11 */
+  b = FF (b, c, d, a, x[11], S14, 0x895cd7beU); /* 12 */
+  a = FF (a, b, c, d, x[12], S11, 0x6b901122U); /* 13 */
+  d = FF (d, a, b, c, x[13], S12, 0xfd987193U); /* 14 */
+  c = FF (c, d, a, b, x[14], S13, 0xa679438eU); /* 15 */
+  b = FF (b, c, d, a, x[15], S14, 0x49b40821U); /* 16 */
 
  /* Round 2 */
-  GG (a, b, c, d, x[ 1], S21, 0xf61e2562U); /* 17 */
-  GG (d, a, b, c, x[ 6], S22, 0xc040b340U); /* 18 */
-  GG (c, d, a, b, x[11], S23, 0x265e5a51U); /* 19 */
-  GG (b, c, d, a, x[ 0], S24, 0xe9b6c7aaU); /* 20 */
-  GG (a, b, c, d, x[ 5], S21, 0xd62f105dU); /* 21 */
-  GG (d, a, b, c, x[10], S22,  0x2441453U); /* 22 */
-  GG (c, d, a, b, x[15], S23, 0xd8a1e681U); /* 23 */
-  GG (b, c, d, a, x[ 4], S24, 0xe7d3fbc8U); /* 24 */
-  GG (a, b, c, d, x[ 9], S21, 0x21e1cde6U); /* 25 */
-  GG (d, a, b, c, x[14], S22, 0xc33707d6U); /* 26 */
-  GG (c, d, a, b, x[ 3], S23, 0xf4d50d87U); /* 27 */
-  GG (b, c, d, a, x[ 8], S24, 0x455a14edU); /* 28 */
-  GG (a, b, c, d, x[13], S21, 0xa9e3e905U); /* 29 */
-  GG (d, a, b, c, x[ 2], S22, 0xfcefa3f8U); /* 30 */
-  GG (c, d, a, b, x[ 7], S23, 0x676f02d9U); /* 31 */
-  GG (b, c, d, a, x[12], S24, 0x8d2a4c8aU); /* 32 */
+  a = GG (a, b, c, d, x[ 1], S21, 0xf61e2562U); /* 17 */
+  d = GG (d, a, b, c, x[ 6], S22, 0xc040b340U); /* 18 */
+  c = GG (c, d, a, b, x[11], S23, 0x265e5a51U); /* 19 */
+  b = GG (b, c, d, a, x[ 0], S24, 0xe9b6c7aaU); /* 20 */
+  a = GG (a, b, c, d, x[ 5], S21, 0xd62f105dU); /* 21 */
+  d = GG (d, a, b, c, x[10], S22,  0x2441453U); /* 22 */
+  c = GG (c, d, a, b, x[15], S23, 0xd8a1e681U); /* 23 */
+  b = GG (b, c, d, a, x[ 4], S24, 0xe7d3fbc8U); /* 24 */
+  a = GG (a, b, c, d, x[ 9], S21, 0x21e1cde6U); /* 25 */
+  d = GG (d, a, b, c, x[14], S22, 0xc33707d6U); /* 26 */
+  c = GG (c, d, a, b, x[ 3], S23, 0xf4d50d87U); /* 27 */
+  b = GG (b, c, d, a, x[ 8], S24, 0x455a14edU); /* 28 */
+  a = GG (a, b, c, d, x[13], S21, 0xa9e3e905U); /* 29 */
+  d = GG (d, a, b, c, x[ 2], S22, 0xfcefa3f8U); /* 30 */
+  c = GG (c, d, a, b, x[ 7], S23, 0x676f02d9U); /* 31 */
+  b = GG (b, c, d, a, x[12], S24, 0x8d2a4c8aU); /* 32 */
 
   /* Round 3 */
-  HH (a, b, c, d, x[ 5], S31, 0xfffa3942U); /* 33 */
-  HH (d, a, b, c, x[ 8], S32, 0x8771f681U); /* 34 */
-  HH (c, d, a, b, x[11], S33, 0x6d9d6122U); /* 35 */
-  HH (b, c, d, a, x[14], S34, 0xfde5380cU); /* 36 */
-  HH (a, b, c, d, x[ 1], S31, 0xa4beea44U); /* 37 */
-  HH (d, a, b, c, x[ 4], S32, 0x4bdecfa9U); /* 38 */
-  HH (c, d, a, b, x[ 7], S33, 0xf6bb4b60U); /* 39 */
-  HH (b, c, d, a, x[10], S34, 0xbebfbc70U); /* 40 */
-  HH (a, b, c, d, x[13], S31, 0x289b7ec6U); /* 41 */
-  HH (d, a, b, c, x[ 0], S32, 0xeaa127faU); /* 42 */
-  HH (c, d, a, b, x[ 3], S33, 0xd4ef3085U); /* 43 */
-  HH (b, c, d, a, x[ 6], S34,  0x4881d05U); /* 44 */
-  HH (a, b, c, d, x[ 9], S31, 0xd9d4d039U); /* 45 */
-  HH (d, a, b, c, x[12], S32, 0xe6db99e5U); /* 46 */
-  HH (c, d, a, b, x[15], S33, 0x1fa27cf8U); /* 47 */
-  HH (b, c, d, a, x[ 2], S34, 0xc4ac5665U); /* 48 */
+  a = HH (a, b, c, d, x[ 5], S31, 0xfffa3942U); /* 33 */
+  d = HH (d, a, b, c, x[ 8], S32, 0x8771f681U); /* 34 */
+  c = HH (c, d, a, b, x[11], S33, 0x6d9d6122U); /* 35 */
+  b = HH (b, c, d, a, x[14], S34, 0xfde5380cU); /* 36 */
+  a = HH (a, b, c, d, x[ 1], S31, 0xa4beea44U); /* 37 */
+  d = HH (d, a, b, c, x[ 4], S32, 0x4bdecfa9U); /* 38 */
+  c = HH (c, d, a, b, x[ 7], S33, 0xf6bb4b60U); /* 39 */
+  b = HH (b, c, d, a, x[10], S34, 0xbebfbc70U); /* 40 */
+  a = HH (a, b, c, d, x[13], S31, 0x289b7ec6U); /* 41 */
+  d = HH (d, a, b, c, x[ 0], S32, 0xeaa127faU); /* 42 */
+  c = HH (c, d, a, b, x[ 3], S33, 0xd4ef3085U); /* 43 */
+  b = HH (b, c, d, a, x[ 6], S34,  0x4881d05U); /* 44 */
+  a = HH (a, b, c, d, x[ 9], S31, 0xd9d4d039U); /* 45 */
+  d = HH (d, a, b, c, x[12], S32, 0xe6db99e5U); /* 46 */
+  c = HH (c, d, a, b, x[15], S33, 0x1fa27cf8U); /* 47 */
+  b = HH (b, c, d, a, x[ 2], S34, 0xc4ac5665U); /* 48 */
 
   /* Round 4 */
-  II (a, b, c, d, x[ 0], S41, 0xf4292244U); /* 49 */
-  II (d, a, b, c, x[ 7], S42, 0x432aff97U); /* 50 */
-  II (c, d, a, b, x[14], S43, 0xab9423a7U); /* 51 */
-  II (b, c, d, a, x[ 5], S44, 0xfc93a039U); /* 52 */
-  II (a, b, c, d, x[12], S41, 0x655b59c3U); /* 53 */
-  II (d, a, b, c, x[ 3], S42, 0x8f0ccc92U); /* 54 */
-  II (c, d, a, b, x[10], S43, 0xffeff47dU); /* 55 */
-  II (b, c, d, a, x[ 1], S44, 0x85845dd1U); /* 56 */
-  II (a, b, c, d, x[ 8], S41, 0x6fa87e4fU); /* 57 */
-  II (d, a, b, c, x[15], S42, 0xfe2ce6e0U); /* 58 */
-  II (c, d, a, b, x[ 6], S43, 0xa3014314U); /* 59 */
-  II (b, c, d, a, x[13], S44, 0x4e0811a1U); /* 60 */
-  II (a, b, c, d, x[ 4], S41, 0xf7537e82U); /* 61 */
-  II (d, a, b, c, x[11], S42, 0xbd3af235U); /* 62 */
-  II (c, d, a, b, x[ 2], S43, 0x2ad7d2bbU); /* 63 */
-  II (b, c, d, a, x[ 9], S44, 0xeb86d391U); /* 64 */
+  a = II (a, b, c, d, x[ 0], S41, 0xf4292244U); /* 49 */
+  d = II (d, a, b, c, x[ 7], S42, 0x432aff97U); /* 50 */
+  c = II (c, d, a, b, x[14], S43, 0xab9423a7U); /* 51 */
+  b = II (b, c, d, a, x[ 5], S44, 0xfc93a039U); /* 52 */
+  a = II (a, b, c, d, x[12], S41, 0x655b59c3U); /* 53 */
+  d = II (d, a, b, c, x[ 3], S42, 0x8f0ccc92U); /* 54 */
+  c = II (c, d, a, b, x[10], S43, 0xffeff47dU); /* 55 */
+  b = II (b, c, d, a, x[ 1], S44, 0x85845dd1U); /* 56 */
+  a = II (a, b, c, d, x[ 8], S41, 0x6fa87e4fU); /* 57 */
+  d = II (d, a, b, c, x[15], S42, 0xfe2ce6e0U); /* 58 */
+  c = II (c, d, a, b, x[ 6], S43, 0xa3014314U); /* 59 */
+  b = II (b, c, d, a, x[13], S44, 0x4e0811a1U); /* 60 */
+  a = II (a, b, c, d, x[ 4], S41, 0xf7537e82U); /* 61 */
+  d = II (d, a, b, c, x[11], S42, 0xbd3af235U); /* 62 */
+  c = II (c, d, a, b, x[ 2], S43, 0x2ad7d2bbU); /* 63 */
+  b = II (b, c, d, a, x[ 9], S44, 0xeb86d391U); /* 64 */
 
   state[0] += a; TO32(state[0]);
   state[1] += b; TO32(state[1]);

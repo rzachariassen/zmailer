@@ -81,7 +81,7 @@ search_core(sip)
 		return NULL;
 	if (spl->data == NULL)
 		return newstring(strnsave("", 1));
-	return newstring(strsave((char *)spl->data));
+	return newstring(strsave((const char *)spl->data));
 }
 
 /*

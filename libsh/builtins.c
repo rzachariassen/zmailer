@@ -322,7 +322,7 @@ static conscell *
 sh_lappend(avl, il)
 	conscell *avl, *il;
 {
-	conscell *plist, *key, *d, *tmp, *data;
+	conscell *key, *d, *tmp, *data;
 	memtypes omem = stickymem;
 
 	key = cdar(avl);

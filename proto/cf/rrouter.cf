@@ -209,14 +209,6 @@ rrouter (address, origaddr, A, plustail, domain) {
 		;;
 	tfist
 
-# ------- begin new "localpart" processing
-
-	tmp=(local "$origaddr" "$address" $A)
-	return $(routeuser $tmp "$plustail" "$domain")
-
-# ------- end new "localpart" processing
-# ------- rest of the function is never run...
-
 	ssift "$address" in
 	\\(.+)	# A back-quote prefixed userid (most likely)
 		#return $(rrouter "\1" "$origaddr" $A "$plustail" "")
@@ -243,6 +235,16 @@ rrouter (address, origaddr, A, plustail, domain) {
 		fi
 		;;
 	tfiss
+
+# ------- begin new "localpart" processing
+
+	tmp=(local "$origaddr" "$address" $A)
+	return $(routeuser $tmp "$plustail" "$domain")
+
+# ------- end new "localpart" processing
+# ------- rest of the function is never run...
+
+
 	tsift "$address" in
 	(.+\.[^+]+)(\+.+)  # Dotfull name with a plus!
 		plustail="\2"
@@ -304,6 +306,13 @@ routes_spec (domain, address, A) {
 		tsift "$address" in
 		(.*)@(.+)
 			return (((smtp "\2" "$address" $A)))
+			;;
+		tfist
+		;;
+	smtpx!
+		tsift "$address" in
+		(.*)@(.+)
+			return (((smtpx "\2" "$address" $A)))
 			;;
 		tfist
 		;;

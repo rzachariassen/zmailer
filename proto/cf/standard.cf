@@ -1,7 +1,7 @@
-#
-#  I kept typing in this trace command so frequently, that eventually
-#  I just had to make for it into a single command... /Matti Aarnio
-#
+#|
+#|  I kept typing in this trace command so frequently, that eventually
+#|  I just had to make for it into a single command... /Matti Aarnio
+#|
 
 rtrace () {
 	trace all except rfc822 regexp

@@ -166,7 +166,7 @@ ShInitIFS(uIFS)
 void
 ShInit()
 {
-	register int i;
+	register u_int i;
 	register const u_char *cp;
 
 	for (i = 0; i < (sizeof shsymbol/sizeof shsymbol[0]); ++i) {
@@ -262,7 +262,7 @@ STATIC void
 sslw_error(errCode)
 	ErrorCodes errCode;
 {
-	int i;
+	u_int i;
 	char *cp, *bos;
 	const char *msg = "unknown error";
 
