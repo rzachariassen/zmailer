@@ -389,7 +389,7 @@ void unvertex(vp, justfree, ok)
 	}
 
 	if (vp->cfp->head == vp)
-	  if ((vp->cfp->head = vp->next[L_CTLFILE]) == NULL) 
+	  if ((vp->cfp->head = vp->next[L_CTLFILE]) == NULL)
 	    if (justfree >= 0)
 	      unctlfile(vp->cfp, justfree);
 
@@ -399,6 +399,8 @@ void unvertex(vp, justfree, ok)
 	if (vp->notary  != NULL) free(vp->notary);
 	/* if (vp->sender != NULL) free(vp->sender); */ /* XX: cache !! ?? */
 	free((char *)vp);
+
+	return;
 }
 
 static struct vertex *findvertex(inum, offset, idx)

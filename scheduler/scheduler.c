@@ -1131,6 +1131,7 @@ static int sync_cfps(oldcfp, newcfp)
 {
 	struct vertex *ovp,  *nvp;
 	struct vertex *novp, *nnvp;
+	int oldkilled = 0;
 
 	/* Scan both files thru their   vp->next[L_CTLFILE]  vertex chains.
 	   If oldcfp has things that newcfp does not have, remove those from
@@ -1232,6 +1233,8 @@ static int sync_cfps(oldcfp, newcfp)
 	oldcfp->rcpnts_failed = newcfp->rcpnts_failed;
 	oldcfp->haderror |= newcfp->haderror;
 
+	/* Now  oldcfp->head  might be NULL -> bad news.. */
+
 	return 0;
 }
 
@@ -1312,7 +1315,11 @@ void resync_file(proc, file)
 	  /* Delete it from memory */
 	  cfp_free0(newcfp);
 
-	  sfprintf(sfstdout," .. resynced!\n");
+	  if (oldcfp->head == NULL) {
+	    cfp_free(oldcfp,NULL);
+	    sfprintf(sfstdout," .. LOST in resync ??!\n");
+	  } else
+	    sfprintf(sfstdout," .. resynced!\n");
 
 	} else {
 
