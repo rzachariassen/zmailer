@@ -153,15 +153,19 @@ hdr_status(cp, lbuf, n, octo)
 	if (*cp == ' ' || *cp == '\t') {
 	  while ((cp < lbuf + n) && (rfc_ctype[(*cp) & 0xFF] & (_w|_l)))
 	    ++cp;
+#if 0 /* [mea] Lets consider all-white-space line a header continuation...
+	 We process per RFC 822 rules, not BITNET 80char fixed width.. */
+
 	  if (cp == lbuf + n)
 	    /* a line containing only whitespace is EOH */
 	    return -1;
+#endif
 	  /* a continuation line (folded header) */
 	  return 0;
 	}
 
-	while ((cp < lbuf + n) && (rfc_ctype[(*cp) & 0xFF] & _h))
-	  ++cp;
+	while ((cp < lbuf + n) && (rfc_ctype[(*cp) & 0xFF] & _h))  ++cp;
+
 	if ((cp < lbuf + n) &&
 	    (*cp == ':') /*&& (cp > cpin)*/)	/* header line */
 	  return cp - lbuf;

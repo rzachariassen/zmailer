@@ -1382,12 +1382,14 @@ const char *buf, *cp;
 	  } else if (SS->policyresult < -102) {
 	    /* Code: -103 */
 	    if (!multilinereplies) {
-	      type(SS,450, m471, "This target address is not our MX service client: <%.*s>", addrlen, cp);
+	      type(SS,450, m471, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
+		   SS->ihostaddr, addrlen, cp);
 	    } else {
 	      type(SS,-450, m471, "This target address is not our MX service");
 	      type(SS,-450, m471, "client, nor you are connecting from address");
 	      type(SS,-450, m471, "that is allowed to openly use us to relay");
-	      type(SS,-450, m471, "to any arbitrary address thru us.");
+	      type(SS,-450, m471, "to any arbitrary address thru us: %s",
+		   SS->ihostaddr);
 	      type(SS, 450, m471, "We don't accept this recipient: <%.*s>",
 		   addrlen, cp);
 	    }
@@ -1412,12 +1414,14 @@ const char *buf, *cp;
 	  } else if (SS->policyresult < -2) {
 	    /* Code: -3 */
 	    if (!multilinereplies)
-	      type(SS,550,m571, "This target address is not our MX service client: <%.*s>", addrlen, cp);
+	      type(SS,550, m571, "Your IP address %s is not allowed to relay to email address <%.*s> via our server; MX rule",
+		   SS->ihostaddr, addrlen, cp);
 	    else {
 	      type(SS,-550, m571, "This target address is not our MX service");
 	      type(SS,-550, m571, "client, nor you are connecting from address");
 	      type(SS,-550, m571, "that is allowed to openly use us to relay");
-	      type(SS,-550, m571, "to any arbitrary address thru us.");
+	      type(SS,-550, m571, "to any arbitrary address thru us: %s",
+		   SS->ihostaddr);
 	      type(SS, 550, m571, "We don't accept this recipient: <%.*s>",
 		   addrlen, cp);
 	    }

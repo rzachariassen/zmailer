@@ -106,7 +106,7 @@ extern void	optsave __((int type, struct envelope *e));
 extern char	*errors_to;
 
 extern int	run_rfc822 __((int argc, const char *argv[]));
-extern int	makeLetter __((struct envelope *e, int octothrp));
+extern int	makeLetter __((struct envelope *e));
 extern void	dumpInfo __((struct envelope *e));
 extern void	dumpHeaders __((struct header *h));
 extern void	dumpHeader __((struct header *h));

@@ -330,6 +330,9 @@
 /* Define if you have the `rmdir' function. */
 #undef HAVE_RMDIR
 
+/* System has Sasl2 of some version, and want to use it. */
+#undef HAVE_SASL2
+
 /* The struct sockaddr has field sa_len */
 #undef HAVE_SA_LEN
 

@@ -113,136 +113,202 @@ void smtp_auth(SS,buf,cp)
 
     if (*cp == ' ') ++cp;
     if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
-    if (!CISTREQN(cp, "LOGIN", 5)) {
-      type(SS, 504, m571, "Only 'AUTH LOGIN' supported.");
-      return;
-    }
+
+#ifdef HAVE_SASL2
+    if (!do_sasl)
+#endif
+      {
+
+	if (!CISTREQN(cp, "LOGIN", 5)) {
+	  type(SS, 504, m571, "Only 'AUTH LOGIN' supported.");
+	  return;
+	}
 
 #ifdef HAVE_OPENSSL
-    if (!auth_login_without_tls && !SS->sslmode) {
-      type(SS, 503, m571, "Plaintext password authentication must be run under SSL/TLS");
-      return;
-    }
+	if (!auth_login_without_tls && !SS->sslmode) {
+	  type(SS, 503, m571, "Plaintext password authentication must be run under SSL/TLS");
+	  return;
+	}
 #endif /* - HAVE_OPENSSL */
 #ifndef HAVE_OPENSSL
-    if (!auth_login_without_tls) {
-      type(SS, 503, m571, "Plaintext password authentication is not enabled in this system");
-      return;
-    }
+	if (!auth_login_without_tls) {
+	  type(SS, 503, m571, "Plaintext password authentication is not enabled in this system");
+	  return;
+	}
 #endif /* --HAVE_OPENSSL */
 
-    cp += 5;
-    if (*cp == ' ') ++cp;
-    if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
+	cp += 5;
+	if (*cp == ' ') ++cp;
+	if (!strict_protocol) while (*cp == ' ' || *cp == '\t') ++cp;
+      
+	if (*cp != 0) {
+	  const char *ccp;
+	  rc = decodebase64string(cp, strlen(cp), bbuf, sizeof(bbuf), &ccp);
+	  bbuf[sizeof(bbuf)-1] = 0;
+	  if (debug)
+	    type(SS, 0, NULL, "-> %s", bbuf);
+	  uname = strdup(bbuf);
+	  if (*ccp != 0) {
+	    type(SS, 501, m552, "unrecognized input/extra junk ??");
+	    return;
+	  }
+	} else {
 
-    if (*cp != 0) {
-      const char *ccp;
-      rc = decodebase64string(cp, strlen(cp), bbuf, sizeof(bbuf), &ccp);
-      bbuf[sizeof(bbuf)-1] = 0;
-      if (debug)
-	type(SS, 0, NULL, "-> %s", bbuf);
-      uname = strdup(bbuf);
-      if (*ccp != 0) {
-	type(SS, 501, m552, "unrecognized input/extra junk ??");
-	return;
-      }
-    } else {
+	  i = encodebase64string("Username:", 9, abuf, sizeof(abuf));
+	  if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
+	  abuf[i] = 0;
+	  type(SS, 334, NULL, "%s", abuf);
+	
+	  i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
+	  abuf[sizeof(abuf)-1] = 0;
 
-      i = encodebase64string("Username:", 9, abuf, sizeof(abuf));
-      if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
-      abuf[i] = 0;
-      type(SS, 334, NULL, "%s", abuf);
+	  if (logfp_to_syslog || logfp) time( & now );
 
-      i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
-      abuf[sizeof(abuf)-1] = 0;
+	  if (logfp_to_syslog)
+	    zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, (int)(now - logtagepoch), abuf));
 
-      if (logfp_to_syslog || logfp) time( & now );
+	  if (logfp != NULL) {
+	    fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now - logtagepoch), abuf);
+	    fflush(logfp);
+	  }
+	  if (i == 0)	/* EOF ??? */
+	    return;
+	  if (strcmp(abuf, "*") == 0) {
+	    type(SS, 501, NULL, "AUTH command cancelled");
+	    return;
+	  }
+	  rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf), NULL);
+	  bbuf[sizeof(bbuf)-1] = 0;
+	  if (debug)
+	    type(SS, 0, NULL, "-> %s", bbuf);
+	  uname = strdup(bbuf);
+	}
 
-      if (logfp_to_syslog)
-	zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, (int)(now - logtagepoch), abuf));
+	i = encodebase64string("Password:", 9, abuf, sizeof(abuf));
+	if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
+	abuf[i] = 0;
+	type(SS, 334, NULL, "%s", abuf);
 
-      if (logfp != NULL) {
-	fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now - logtagepoch), abuf);
-	fflush(logfp);
-      }
-      if (i == 0)	/* EOF ??? */
-	return;
-      if (strcmp(abuf, "*") == 0) {
-	type(SS, 501, NULL, "AUTH command cancelled");
-	return;
-      }
-      rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf), NULL);
-      bbuf[sizeof(bbuf)-1] = 0;
-      if (debug)
-	type(SS, 0, NULL, "-> %s", bbuf);
-      uname = strdup(bbuf);
-    }
-
-    i = encodebase64string("Password:", 9, abuf, sizeof(abuf));
-    if (i >= sizeof(abuf)) i = sizeof(abuf)-1;
-    abuf[i] = 0;
-    type(SS, 334, NULL, "%s", abuf);
-
-    i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
-    abuf[sizeof(abuf)-1] = 0;
-
-    if (logfp_to_syslog || logfp) time( & now );
+	i = s_gets(SS, abuf, sizeof(abuf), &rc, &co, &c );
+	abuf[sizeof(abuf)-1] = 0;
+      
+	if (logfp_to_syslog || logfp) time( & now );
 
 #if 0
-    /* This logs encoded password, usually that is *not* desired */
+	/* This logs encoded password, usually that is *not* desired */
+      
+	if (logfp_to_syslog)
+	  zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, (int)(now - logtagepoch), abuf));
 
-    if (logfp_to_syslog)
-      zsyslog((LOG_DEBUG, "%s%04d r %s", logtag, (int)(now - logtagepoch), abuf));
-
-    if (logfp != NULL) {
-      fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now - logtagepoch), abuf);
-      fflush(logfp);
-    }
+	if (logfp != NULL) {
+	  fprintf(logfp, "%s%04dr\t%s\n", logtag, (int)(now - logtagepoch), abuf);
+	  fflush(logfp);
+	}
 #else
-    if (logfp_to_syslog)
-      zsyslog((LOG_DEBUG, "%s%04d r **base64-password**", logtag, (int)(now - logtagepoch) ));
+	if (logfp_to_syslog)
+	  zsyslog((LOG_DEBUG, "%s%04d r **base64-password**", logtag, (int)(now - logtagepoch) ));
 
-    if (logfp != NULL) {
-      fprintf(logfp, "%s%04dr\t**base64-password**\n", logtag, (int)(now - logtagepoch) );
-      fflush(logfp);
-    }
+	if (logfp != NULL) {
+	  fprintf(logfp, "%s%04dr\t**base64-password**\n", logtag, (int)(now - logtagepoch) );
+	  fflush(logfp);
+	}
 #endif
-    if (i == 0)	{ /* EOF ??? */
-      if (uname) free(uname);
-      return;
+	if (i == 0)	{ /* EOF ??? */
+	  if (uname) free(uname);
+	  return;
+	}
+	if (strcmp(abuf, "*") == 0) {
+	  if (uname) free(uname);
+	  type(SS, 501, NULL, "AUTH command cancelled");
+	  return;
+	}
+
+	rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf), NULL);
+	bbuf[sizeof(bbuf)-1] = 0;
+	if (debug)
+	  type(SS, 0, NULL, "-> %s", bbuf);
+
+	if (tls_loglevel > 3)
+	  type(NULL,0,NULL,"zpwmatch: user ´%s' password '%s'", uname, bbuf);
+	else if (tls_loglevel > 0)
+	  type(NULL,0,NULL,"zpwmatch: user ´%s' (password: *not so easy*!)", uname);
+
+	if (smtpauth_via_pipe)
+	  zpw = pipezpwmatch(smtpauth_via_pipe, uname, bbuf, &uid);
+	else
+	  zpw = zpwmatch(uname, bbuf, &uid);
+
+	if (zpw == NULL) {
+	  SS->authuser = uname;
+	  type(SS, 235, NULL, "Authentication successful.");
+	} else {
+	  type(SS, 535, NULL, "%s", zpw);
+	  if (uname) free(uname);
+	}
+      }
+
+#ifdef HAVE_SASL2
+
+    else {
+      /* Here we support CMU Cyrus-SASL-2 server side code.
+	 Unlike sendmail, we keep state here by spinning around
+	 where necessary.. */
+
+
+    
+    
     }
-    if (strcmp(abuf, "*") == 0) {
-      if (uname) free(uname);
-      type(SS, 501, NULL, "AUTH command cancelled");
-      return;
-    }
+#endif /* HAVE_SASL2 */
 
-    rc = decodebase64string(abuf, i, bbuf, sizeof(bbuf), NULL);
-    bbuf[sizeof(bbuf)-1] = 0;
-    if (debug)
-      type(SS, 0, NULL, "-> %s", bbuf);
-
-    if (tls_loglevel > 3)
-      type(NULL,0,NULL,"zpwmatch: user ´%s' password '%s'", uname, bbuf);
-    else if (tls_loglevel > 0)
-      type(NULL,0,NULL,"zpwmatch: user ´%s' (password: *not so easy*!)", uname);
-
-    if (smtpauth_via_pipe)
-      zpw = pipezpwmatch(smtpauth_via_pipe, uname, bbuf, &uid);
-    else
-      zpw = zpwmatch(uname, bbuf, &uid);
-
-    if (zpw == NULL) {
-	SS->authuser = uname;
-	type(SS, 235, NULL, "Authentication successful.");
-    } else {
-	type(SS, 535, NULL, "%s", zpw);
-	if (uname) free(uname);
-    }
 }
 
 
+
+smtpauth_init(SS)
+     SmtpState *SS;
+{
+#ifdef HAVE_SASL2 */
+
+#endif
+}
+
+smtpauth_ehloresponse(SS)
+     SmtpState *SS;
+{
+#ifdef HAVE_SASL2 */
+
+#endif
+}
+
+
+
 #if 0
+
+ ---------------------------------------------
+
+#if SASL
+static sasl_callback_t srvcallbacks[] =
+{
+	{	SASL_CB_VERIFYFILE,	&safesaslfile,	NULL	},
+	{	SASL_CB_PROXY_POLICY,	&proxy_policy,	NULL	},
+	{	SASL_CB_LIST_END,	NULL,		NULL	}
+};
+#endif /* SASL */
+
+ ---------------------------------------------
+
+
+# if SASL
+	if (OpMode == MD_SMTP || OpMode == MD_DAEMON)
+	{
+		/* check whether AUTH is turned off for the server */
+		if (!chkdaemonmodifiers(D_NOAUTH) &&
+		    (i = sasl_server_init(srvcallbacks, "Sendmail")) != SASL_OK)
+			syserr("!sasl_server_init failed! [%s]",
+				sasl_errstring(i, NULL, NULL));
+	}
+# endif /* SASL */
+
  ---------------------------------------------
 
 #if SASL

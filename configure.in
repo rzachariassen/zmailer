@@ -2112,6 +2112,95 @@ AC_ARG_WITH(openssl, [  --with-openssl           Search for, and use OpenSSL, if
   fi
 fi])
 
+AC_SUBST(SASL2PREFIX)
+AC_SUBST(SASL2INCL)
+AC_SUBST(SASL2LIB)
+
+AC_ARG_WITH(sasl2-prefix, [  --with-sasl2-prefix=/dir/path (defines both include and lib)],
+        SASL2PREFIX="$withval")
+AC_ARG_WITH(sasl2-include, [  --with-sasl2-include=/dir/incl/path],
+        SASL2INCL="-I$withval")
+AC_ARG_WITH(sasl2-lib, [  --with-sasl2-lib=/dir/lib/path],
+        [if test -f "$withval/libsasl2.so" ; then
+          SASL2LIB="$withval/libsasl2.so"
+        else
+          SASL2LIB="$withval/libsasl2.a"
+        fi
+#       if test "$withval" != "/usr" -a "$withval" != "/usr/lib"; then
+#         # Operating system dependent runtime path definition :-/
+#         SASL2LIB="-R$withval $SASL2LIB"
+#       fi
+])
+if test -n "$SASL2PREFIX" -a -z "$SASL2INCL" ; then
+  if test -f "$SASL2PREFIX/include/sasl/sasl.h" ; then
+    SASL2INCL="-I$SASL2PREFIX/include/"
+  else
+    AC_MSG_RESULT([!!! You defined  --with-sasl2-prefix=$SASL2PREFIX,  BUT])
+    AC_MSG_RESULT([!!! there does not exist file  $SASL2PREFIX/include/sasl/sasl.h !])
+  fi
+fi
+if test -n "$SASL2PREFIX" -a -z "$SASL2LIB" ; then
+  if test -n "$SASL2PREFIX" -a -f "$SASL2PREFIX/lib/libsasl2.so" ; then
+    SASL2LIB="$SASL2PREFIX/lib/libsasl2.so"
+#   if test "$withval" != "/usr" -a "$withval" != "/usr/lib"; then
+#       # Operating system dependent runtime path definition :-/
+#       SASL2LIB="-R$withval $SASL2LIB"
+#   fi
+  elif test -n "$SASL2PREFIX" -a -f "$SASL2PREFIX/lib/libsasl2.a" ; then
+    SASL2LIB="$SASL2PREFIX/lib/libsasl2.a"
+  else
+    AC_MSG_RESULT([!!! You defined  --with-sasl2-prefix=$SASL2PREFIX,  BUT])
+    AC_MSG_RESULT([!!! there does not exist file  $SASL2PREFIX/lib/libsasl2.a !])
+  fi
+fi
+if test -n "$SASL2INCL" -a -n "$SASL2LIB" ; then
+  AC_DEFINE(HAVE_SASL2,1,[System has Sasl2 of some version, and want to use it.])
+fi
+
+AC_ARG_WITH(sasl2, [  --with-sasl2             Search for, and use Sasl2, if it can be found],
+[if test -z "$SASL2INCL" ; then
+  # No Explicite setup, lets do some auto-tests
+  SaslH=/usr/local/include/sasl/sasl.h
+  if test -r $SaslH ; then
+    SaslMajor="`awk '/SASL_VERSION_MAJOR/{print $NF}' < $SaslH`"
+    if test "$SaslMajor" != "2"; then
+      # HUH! Not SASL2 !
+      AC_MSG_RESULT([There is  $SaslH  file, but its SASL_VERSION_MAJOR is not 2!])
+    else
+      # Gee, Sasl2 2.1.x at default prefix!
+      AC_DEFINE(HAVE_SASL2,1,[System has Sasl2 of some version, and want to use it.])
+      SASL2PREFIX="/usr/local"
+      SASL2INCL="-I$SASL2PREFIX/include"
+      if test -f "$SASL2PREFIX/lib/libsasl2.so" ; then
+        SASL2LIB="$SASL2PREFIX/lib/libsasl2.so"
+      else
+        SASL2LIB="$SASL2PREFIX/lib/libsasl2.a"
+      fi
+      AC_MSG_RESULT([You have Sasl2 version 2.x (or newer) at default location])
+    fi
+  fi
+  SaslH=/usr/include/sasl/sasl.h
+  if test -r $SaslH ; then
+    SaslMajor="`awk '/SASL_VERSION_MAJOR/{print $NF}' < $SaslH`"
+    if test "$SaslMajor" != "2"; then
+      # HUH! Not SASL2 !
+      AC_MSG_RESULT([There is  $SaslH  file, but its SASL_VERSION_MAJOR is not 2!])
+    else
+      # Gee, Sasl2 2.1.x at default prefix!
+      AC_DEFINE(HAVE_SASL2,1,[System has Sasl2 of some version, and want to use it.])
+      SASL2PREFIX="/usr"
+      SASL2INCL=""
+      if test -f "$SASL2PREFIX/lib/libsasl2.so" ; then
+        SASL2LIB="$SASL2PREFIX/lib/libsasl2.so"
+      else
+        SASL2LIB="$SASL2PREFIX/lib/libsasl2.a"
+      fi
+      AC_MSG_RESULT([You have Sasl2 version 2.x (or newer) at default location])
+    fi
+  fi
+fi])
+
+
 AC_ARG_ENABLE(translation,[  --enable-translation=CHS Enable translation of
 ncoming text messages.     
                            Assumes --generic-library=\"... -lmcs ...\" and

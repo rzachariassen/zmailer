@@ -177,7 +177,7 @@ run_rfc822(argc, argv)
 	  status = PERR_OK;
 	  setvbuf(e->e_fp, buf, _IOFBF, sizeof buf);
 	  e->e_file = file;
-	  status = makeLetter(e, 0);
+	  status = makeLetter(e);
 	}
 
 	if (status == PERR_OK)
@@ -253,9 +253,8 @@ run_rfc822(argc, argv)
 /* Live code, 'octothorp' eliminated (obsolete thing..) */
 
 int
-makeLetter(e, octothorp)
+makeLetter(e)
 	register struct envelope *e;
-	int octothorp;		/* does # at start of word start a comment? */
 {
 	register int	i;
 	register char	*cp;
@@ -281,7 +280,7 @@ makeLetter(e, octothorp)
 	initzline(4096);
 #endif	/* !HAVE_STRUCT_STAT_ST_BLKSIZE */
 
-	inheader = 0;
+	inheader = 0; /* 0: envelope, 1: RFC-822 */
 
 	/* Line of length 1 is LIKELY just "\n" */
 
@@ -302,6 +301,7 @@ makeLetter(e, octothorp)
 			zlinebuf[n-1] = '\n';
 			if (n <= 1) break; /* Void line */
 		}
+
 		/* Ok, now we can proceed with the original agenda.. */
 		i = hdr_status(zlinebuf, zlinebuf, n, 0);
 		if (i > 0) {		/* a real message header */
@@ -317,6 +317,7 @@ makeLetter(e, octothorp)
 			h->h_lines = makeToken(zlinebuf+i+1, n-i-2);
 			h->h_lines->t_type = Line;
 			++inheader;
+
 		} else if (i == 0) {	/* a continuation line */
 			if (inheader && zlinebuf[0] == ':') {
 				optsave(FYI_ILLHEADER, e);

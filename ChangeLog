@@ -1,3 +1,24 @@
+2002-09-03  Matti Aarnio  <mea@zmailer.org>
+
+	* smtpserver/smtpcmds.c:
+	    From user feedback (helpdesk manager report to developers,
+	    wow...): The "rejection due to MX rule" report needs
+	    improved text.  Altered wording, and added client IP address
+	    printout into the text.
+
+	* router/prototypes.h, router/rfc822.c, lib/rfc822scan.c:
+	    Modifications to header parsing.
+	    - An all-white-space line shall be CONTINUATION, not
+	      end-of-headers (ancient BITNET card-images are other
+	      story, but lets not worry them...)
+	    - Altered the makeLetter() function parameters removing
+	      a parameter that has not been used for several years.
+	    - WorkInProgress: internal changes into  makeLetter()...
+
+	* configure.in, smtpserver/smtpauth.c:
+	    Initial configuration hooks for enabling CMU Cyrus Sasl-2.x
+	    The code itself is NOT functional as of yet.
+
 2002-09-02  Matti Aarnio  <mea@zmailer.org>
 
 	* router/rfc822.c:
