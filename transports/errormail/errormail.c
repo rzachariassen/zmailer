@@ -455,6 +455,7 @@ process(dp)
 	  sfputc(mfp,'\n');
 	}
 
+	rp = dp->recipients;
 	fromuser = rp->addr->link->user;
 	if (*fromuser == 0 ||
 	    STREQ(rp->addr->link->channel, "error"))
