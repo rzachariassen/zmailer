@@ -8,7 +8,10 @@
 /* This is *NOT* universal password matcher!
    Consider Shadow passwords, PAM systems, etc.. */
 
-#define _XOPEN_SOURCE /* Linux glibc 2.1 needs this for crypt() et.al. */
+#define _GNU_SOURCE /* Very short hand define to please compilation
+		       at glibc 2.1.* -- _XOPEN_SOURCE_EXTENDED + BSD + ... */
+
+#include "mailer.h"
 
 #include <sys/types.h>
 #include <pwd.h>

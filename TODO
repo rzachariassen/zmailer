@@ -1,10 +1,5 @@
-router/functions:
-	To document  lreplace, and lappend [half-hearted work]
-	check:  sh_last() -- rather weird way to search for
-				the last elt...
-
-smtpserver/policy:
-	<foo@[nn.nn.nn.nn]> policy acceptance ???
+transports/mailbox:
+	Create "X-UIDL:" header, and delete any incoming one..
 
 Known/suspected bugs/Missing Features on current Zmailer sources
 
