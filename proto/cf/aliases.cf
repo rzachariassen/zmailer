@@ -209,17 +209,20 @@ routeuser (quad, plustail, domain) {
 	[ -n "$FORCEPUNT" ] &&
 		return $(rrouter "$user@$FORCEPUNT" "$host" $attr "" "")
 
+	user="$(dequote "$user")"
+
 	ssift "$user" in
 	\\(.*)	user="\1" # Back-quoted username -- most likely
 		didexpand=local
 		;;
-	:include:(.+)
+	':include:[\ \t]*(.+)[\ \t]*'
+		# Weird format to do explicite white-space stripping...
 		db add expansions "$key" file
 		priv=$(get $attr privilege)
 		[ -f "\1" ] &&
 		 priv=$(getpriv "644" $priv "\1" include) &&
 		  nattr=$(newattribute $attr privilege $priv) &&
-		   defer=''
+		   defer='' &&
 		return $(runas $priv cat "\1" | \
 			 listexpand -E "postmaster" -e root -p $priv	\
 				    -c ":include:\1 file expansion"	\

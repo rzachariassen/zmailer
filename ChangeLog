@@ -1,5 +1,10 @@
 1999-08-16  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/cf/aliases.cf:
+	    When the   ssift  (and tsift)  were changed *not* to
+	    strip away quotes, buggeroo... we need *one* place where
+	    quotes are stripped -- that is explicitely..
+
 	* lib/rfc822scan.c:
 	    _unfold() had problems at detecting the termination condition.
 
