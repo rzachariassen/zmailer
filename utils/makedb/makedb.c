@@ -907,6 +907,7 @@ char *argv[];
     case 3:
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
+
 	dbfile = NULL;
 	err = db_create(&dbfile, NULL, 0);
 	if (! err)
@@ -920,6 +921,7 @@ char *argv[];
 
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
+
 	dbfile = NULL;
 	err = db_create(&dbfile, NULL, 0);
 	if (! err)
@@ -932,8 +934,10 @@ char *argv[];
 #else
 #if defined(HAVE_DB_OPEN2)
     case 3:
+
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
+
 	dbfile = NULL;
 	db_open(dbasename, DB_BTREE,  DB_CREATE|DB_TRUNCATE,
 		0644, NULL, NULL, &dbfile);
@@ -941,6 +945,10 @@ char *argv[];
 	break;
 
     case 4:
+
+	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
+	strcat(dbasename, ".db");	/* ALWAYS append this */
+
 	dbfile = NULL;
 	db_open(dbasename, DB_HASH,  DB_CREATE|DB_TRUNCATE,
 		0644, NULL, NULL, &dbfile);
@@ -950,12 +958,16 @@ char *argv[];
     case 3:
 	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
 	strcat(dbasename, ".db");	/* ALWAYS append this */
+
 	dbfile = dbopen(dbasename, O_RDWR | O_CREAT | O_TRUNC, 0644,
 			DB_BTREE, NULL);
 	dbf = dbfile;
 	break;
 
     case 4:
+	dbasename = strcpy(malloc(strlen(dbasename) + 8), dbasename);
+	strcat(dbasename, ".db");	/* ALWAYS append this */
+
 	dbfile = dbopen(dbasename, O_RDWR | O_CREAT | O_TRUNC, 0644,
 			DB_HASH, NULL);
 	dbf = dbfile;
