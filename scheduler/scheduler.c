@@ -354,6 +354,110 @@ extern int main __((int, const char **));
 static struct config_entry *cehead = NULL;
 
 
+/* #define GLIBC_MALLOC_DEBUG__ */
+#ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
+
+#include <malloc.h> /* GLIBC malloc.h ! */
+
+/* Global variables used to hold underlaying hook values.  */
+static void *(*old_malloc_hook) (size_t, const void * );
+static void *(*old_realloc_hook) (void *, size_t, const void *);
+static void (*old_free_hook) (void*, const void *);
+static void *(*old_memalign_hook) (size_t, size_t, const void *);
+
+/* Prototypes for our hooks.  */
+static void *my_malloc_hook  (size_t, const void*);
+static void *my_realloc_hook (void *,size_t, const void*);
+static void  my_free_hook    (void*, const void*);
+static void *my_memalign_hook  (size_t, size_t, const void*);
+     
+static void *
+my_malloc_hook (size_t size, const void *CALLER)
+{
+  void *result;
+  /* Restore all old hooks */
+  __malloc_hook = old_malloc_hook;
+  __free_hook   = old_free_hook;
+  /* Call recursively */
+  result = malloc (size);
+  /* Save underlaying hooks */
+  old_malloc_hook = __malloc_hook;
+  old_free_hook   = __free_hook;
+  /* `printf' might call `malloc', so protect it too. */
+  sfprintf(sfstderr,"# malloc (%u) returns %p @%p\n",
+	   (unsigned int) size, result, CALLER);
+  /* Restore our own hooks */
+  __malloc_hook = my_malloc_hook;
+  __free_hook = my_free_hook;
+  return result;
+}
+
+static void *
+my_realloc_hook (void *ptr, size_t size, const void *CALLER)
+{
+  void *result;
+  /* Restore all old hooks */
+  __realloc_hook = old_realloc_hook;
+  __malloc_hook = old_malloc_hook;
+  __free_hook = old_free_hook;
+  /* Call recursively */
+  result = realloc (ptr, size);
+  /* Save underlaying hooks */
+  old_realloc_hook = __realloc_hook;
+  old_malloc_hook  = __malloc_hook;
+  old_free_hook    = __free_hook;
+  /* `printf' might call `malloc', so protect it too. */
+  sfprintf(sfstderr,"# realloc (%p,%u) returns %p @%p\n", ptr, (unsigned int) size, result, CALLER);
+  /* Restore our own hooks */
+  __realloc_hook = my_realloc_hook;
+  __malloc_hook  = my_malloc_hook;
+  __free_hook    = my_free_hook;
+  return result;
+}
+
+static void *
+my_memalign_hook (size_t align, size_t size, const void *CALLER)
+{
+  void *result;
+  /* Restore all old hooks */
+  __memalign_hook = old_memalign_hook;
+  __malloc_hook = old_malloc_hook;
+  __free_hook = old_free_hook;
+  /* Call recursively */
+  result = memalign (align, size);
+  /* Save underlaying hooks */
+  old_memalign_hook = __memalign_hook;
+  old_malloc_hook  = __malloc_hook;
+  old_free_hook    = __free_hook;
+  /* `printf' might call `malloc', so protect it too. */
+  sfprintf(sfstderr,"# memalign (%u,%u) returns %p @%p\n",
+	   (unsigned)align, (unsigned)size, result, CALLER);
+  /* Restore our own hooks */
+  __memalign_hook = my_memalign_hook;
+  __malloc_hook  = my_malloc_hook;
+  __free_hook    = my_free_hook;
+  return result;
+}
+     
+static void
+my_free_hook (void *ptr, const void *CALLER)
+{
+  /* Restore all old hooks */
+  __malloc_hook = old_malloc_hook;
+  __free_hook = old_free_hook;
+  /* Call recursively */
+  free (ptr);
+  /* Save underlaying hooks */
+  old_malloc_hook = __malloc_hook;
+  old_free_hook = __free_hook;
+  /* `printf' might call `free', so protect it too. */
+  sfprintf(sfstderr,"# freed pointer %p @%p\n", ptr, CALLER);
+  /* Restore our own hooks */
+  __malloc_hook = my_malloc_hook;
+  __free_hook = my_free_hook;
+}
+#endif
+
 int
 main(argc, argv)
 	int argc;
@@ -364,7 +468,20 @@ main(argc, argv)
 	int i, daemonflg, c, errflg, version, fd;
 	long offout, offerr;
 
-	char *t, *syslogflg = getzenv("SYSLOGFLG");
+	char *t, *syslogflg;
+
+#ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
+	old_malloc_hook = __malloc_hook;
+	__malloc_hook = my_malloc_hook;
+	old_memalign_hook = __memalign_hook;
+	__memalign_hook = my_memalign_hook;
+	old_realloc_hook = __realloc_hook;
+	__realloc_hook = my_realloc_hook;
+	old_free_hook = __free_hook;
+	__free_hook = my_free_hook;
+#endif
+
+	syslogflg = getzenv("SYSLOGFLG");
 	if (syslogflg == NULL)
 	  syslogflg = "";
 	t = syslogflg;

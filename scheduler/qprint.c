@@ -154,11 +154,11 @@ static int qpctlfile(spl)
 	    ++i;
 	  } else {
 	    if (vp->thread->proc) {
-	      sfprintf(qpfp,"(running now, pid=%d ",
+	      sfprintf(qpfp,"(running now, pid=%d",
 		       (int)vp->thread->proc->pid);
 	      /* MULTI-TA-PER-THREAD ?? */
 	      if (vp->thread->nextfeed == vp)
-		sfprintf(qpfp,"NextFeed");
+		sfprintf(qpfp," NextFeed");
 	    } else {
 	      sfprintf(qpfp, "(activation pending, thread");
 	      /* A vertex is always on some thread.. */

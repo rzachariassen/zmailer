@@ -316,7 +316,7 @@ feed_child(proc)
 
 
 char *proc_state_names[] = {
-  "ERR", "LRVA", "STFF", "FINI", "IDLE"
+  "ERROR", "LARVA", "STUFF", "FINISH", "IDLE"
 };
 
 void
@@ -571,6 +571,7 @@ start_child(vhead, chwp, howp)
 	  vhead->thread->pending = "ConfBUG:NoCmdDefined!";
 	  return 0;
 	}
+
 	/*
 	 * Replace the $host and $channel strings in the command line.
 	 * (also any ${ZENV} variable)
@@ -687,7 +688,8 @@ static int runcommand(argv, env, vhead, chwp, howp)
 	  sfprintf(sfstderr, "to %d/%d from %d/%d\n",
 		  to[0],to[1],from[0],from[1]);
 
-	if ((pid = fork()) == 0) {	/* child */
+	pid = fork();
+	if (pid == 0) {	/* child */
 
 	  pipes_to_child_fds(to,from);
 
