@@ -69,6 +69,7 @@ pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	(echo "i pkginfo=pkginfo2"; \
 	 cd $(prefix)/; ( \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf -name \*.cf -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/guides -type f -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/forms -type f -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/proto -type f -print ; \
 	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -type f -print ; \

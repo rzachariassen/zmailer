@@ -1,5 +1,12 @@
 2000-10-20  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
+	* proto/Makefile.in, packaging/Makefile.in:
+	    'make install' will install also 'doc/guides/*' files
+	    into $MAILSHARE/guides/  -- there seems to be call for
+	    those files from some users...  In other environs,
+	    like Linux distributions, there could be some sort
+	    of  /usr/share/doc/zmailer-NNN/guides/ for them.
+
 	* doc/guides/smtp-policy, utils/policy-builder.sh.in:
 	    Defined ".manual" versions for ".mx", and ".relay"
 	    of  smtp-policy driver files.  This enables more

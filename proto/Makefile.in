@@ -14,9 +14,9 @@ PMAILBIN=	mailrm.sh newaliases newfqdnaliases newdb zmailer.sh \
 		newdbprocessor post-install.sh
 
 all:
-	@echo Usage: '"make [ dirs | config | mailbin | mailshare | db | cf | forms | install | install-bin ]"'
+	@echo Usage: '"make [ dirs | config | mailbin | mailshare | db | cf | forms | guides | install | install-bin ]"'
 
-install: dirs mailbin mailshare db cf forms
+install: dirs mailbin mailshare db cf forms guides
 
 install-bin: dirs mailbin cf db
 
@@ -77,6 +77,10 @@ dirs:	$(PZCONFIG)
 	if [ ! -d $(prefix)$$MAILSHARE/bak ]; then		\
 		echo $(MKDIR) $(prefix)$$MAILSHARE/bak &&	\
 			$(MKDIR) $(prefix)$$MAILSHARE/bak ;	\
+	fi ;							\
+	if [ ! -d $(prefix)$$MAILSHARE/guides ]; then		\
+		echo $(MKDIR) $(prefix)$$MAILSHARE/guides &&	\
+			$(MKDIR) $(prefix)$$MAILSHARE/guides ;	\
 	fi ;							\
 	if [ ! -d $(prefix)$$MAILBIN ]; then			\
 		echo $(MKDIR) $(prefix)$$MAILBIN &&		\
@@ -204,6 +208,14 @@ cf:	FRC  $(MD5SUM)
 	/bin/rm -f `find $$MAILSHARE/. -name "*.fc" -print`	\
 		foo-file ;					\
 	)
+
+
+guides:	FRC
+	-. $(PZCONFIG) ;					\
+	MAILSHARE=$(prefix)$$MAILSHARE ;			\
+	src=$(srcdir)/$(TOPDIR)/doc/guides ;			\
+	cp -p $$src/* $$MAILSHARE/guides/
+
 
 clean:	FRC
 	rm -f ./+* *~

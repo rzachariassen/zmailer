@@ -22,7 +22,7 @@ Wanted done for 3.0:
 - BUG(security sensitivity):
   - "zmailer newdb" script will run "newdb" database compilations
     without becoming same uid+gid as the source file is (and with
-    matching umask) -- perhaps the current SH script must be turned
+    matching umask) -- perhaps the current PERL script must be turned
     into e.g. C program ? 
 - FEATURE:
   - Also, how about enabling non-privileged users to execute "zmailer newdb"
