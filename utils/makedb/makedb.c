@@ -924,5 +924,10 @@ char *argv[];
     }
 #endif
 
+    if (store_errors) {
+      fprintf(stderr,"STORE ERRORS DURING DATABASE WRITE!\n");
+      rc = 1;
+    }
+
     return (rc ? 1 : 0);
 }
