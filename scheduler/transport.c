@@ -174,13 +174,14 @@ flush_child(proc)
 		      proceed latter... */
 	  proc->cmdlen -= rc;
 	}
+	if (proc->cmdlen) return 1; /* Incomplete write */
 	return 0;
 }
 
 
 /*
  * The 'feed_child()' sends whatever is pointed by   proc->pthread->nextfeed;
- * return -1 for failures and incomplete writes, 0 for success!
+ * return -1 for failures or "EOT", 1 for incomplete writes, 0 for success!
  */
 
 static int  feed_child      __((struct procinfo *cpidp));
@@ -214,7 +215,7 @@ feed_child(proc)
 		     "%% feed_child(proc=%p pid=%d) proc->pthread->nextfeed == NULL\n",
 		     proc, proc->pid);
 
-	  return 0; /* Might be called without next thing to process.. */
+	  return -1; /* Might be called without next thing to process.. */
 	}
 	if (proc->pid <= 0 || proc->tofd < 0) {
 	  proc->state = CFSTATE_ERROR;
@@ -327,6 +328,7 @@ ta_hungry(proc)
 	   job to be fed to it. */
 
 	struct thread *thr0;
+	int i;
 
 	mytime(&proc->hungertime);
 
@@ -360,7 +362,7 @@ ta_hungry(proc)
 
 	  proc->overfed = 0; /* Should not need setting ... */
 
-	  if (feed_child(proc))
+	  if (feed_child(proc) < 0)
 	    /* We got some error :-/  D'uh! */
 	    goto feed_error_handler;
 
@@ -380,11 +382,12 @@ ta_hungry(proc)
 	       - state stays in STUFFING
 	    */
 
-	    if (feed_child(proc) < 0)
+	    i = feed_child(proc);
+	    if (i < 0)
 	      goto feed_error_handler; /* Outch! */
 
 	    if (proc->tofd >= 0 && proc->cmdlen != 0)
-	      return; /* Outbuf full -- stop feeding here */
+	      return; /* Incomplete feed -- stop feeding here */
 
 	    if (proc->overfed > proc->thg->ce.overfeed)
 	      return; /* Or over limit ...       */
