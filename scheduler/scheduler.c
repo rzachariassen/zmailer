@@ -1164,7 +1164,7 @@ static int sync_cfps(oldcfp, newcfp, proc)
 	  sfprintf(sfstdout,"\n");
 	  sfprintf(sfstdout,"sync_cfps() NEWVTXES =");
 	  for (nvp = newcfp->head; nvp; nvp = nvp->next[L_CTLFILE])
-	    sfprintf(sfstdout," %p", ovp);
+	    sfprintf(sfstdout," %p", nvp);
 	  sfprintf(sfstdout,"\n");
 	}
 
