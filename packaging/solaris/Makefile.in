@@ -19,13 +19,13 @@ SENDMAILPATH=	@SENDMAILPATH@
 
 SHELL = /bin/sh
 
-SUFF =
-
+SUFF   =
 prefix = /
 
 all:
 	@echo "make clean | distclean"
-	@echo "make pkgs prefix=/dir/prefix"
+	@echo "make pkgs prefix=/dir/prefix (SUFF='suff')"
+	@echo "  (Length of 'suff' must not exceed 4 chars.)"
 
 clean:
 	rm -f *~ proto proto01 proto02 pkginfo
@@ -37,7 +37,7 @@ pkgs:	pkgs-01 pkgs-02
 
 pkgs-01:	# DIRECTORIES, BINARIES
 	. $(ZCONF) ; \
-	(echo "i pkginfo=pkginfo01"; \
+	(echo "i pkginfo=pkginfo1"; \
 	 echo "s none usr/bin/mailq=$$MAILBIN/sendmail" ; \
 	 cd $(prefix)/; ( \
 	 echo .$$ZCONFIG ; \
@@ -45,42 +45,40 @@ pkgs-01:	# DIRECTORIES, BINARIES
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -name ChangeLog -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -name config.status -print ; \
 	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms -type d -print ; \
-	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/forms -print ; \
-	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/proto -print ; \
 	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -type d -print ; \
 	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb -type d -print ; \
-	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb ! -type d -print ; \
+	 mb=`echo $$MAILBIN|sed -e 's!^/!!'`;find $$mb '(' -type f -o -type l ')' -print ; \
 	 ld=`echo $$LOGDIR|sed -e 's!^/!!'`;find $$ld -type d -print ; \
-	 find usr/man ! -type d -print ; \
+	 find usr/man -type f -print ; \
+	 echo "bin/vacation" ; \
 	 echo $(RMAILPATH)|sed -e 's!^/!!' ; \
 	 echo $(SENDMAILPATH)|sed -e 's!^/!!' ; \
 	  ) \
 		| sort | uniq | pkgproto )  \
-		> proto01
+		> proto1
 	cat ${srcdir}/pkginfo-01.src | \
 		sed -e "s/%VERSION%/$(VERSION)/g" \
 		    -e "s/%SUFF%/${SUFF}/g" \
-		> pkginfo01
+		> pkginfo1
 	rm -rf ZMTA1${SUFF}
-	pkgmk -o -f proto01 -b $(prefix) -d `/bin/pwd`
+	pkgmk -o -f proto1 -b $(prefix) -d `/bin/pwd`
 	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMTA1${SUFF}.pkg ZMTA1${SUFF}
 
 pkgs-02:	# CONFIGURATION FILES, FORMS, ...
 	. $(ZCONF) ; \
-	(echo "i pkginfo=pkginfo02"; \
+	(echo "i pkginfo=pkginfo2"; \
 	 cd $(prefix)/; ( \
-	 echo .$$ZCONFIG ; \
-	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf ! -name \*.fc -print ; \
-	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/forms -print ; \
-	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/proto -print ; \
-	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/cf -name \*.cf -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/forms -type f -print ; \
+	 ms=`echo $$MAILSHARE|sed -e 's!^/!!'`;find $$ms/proto -type f -print ; \
+	 mv=`echo $$MAILVAR|sed -e 's!^/!!'`;find $$mv/db -type f -print ; \
 	  ) \
 		| sort | uniq | pkgproto )  \
 		> proto2
 	cat ${srcdir}/pkginfo-02.src | \
 		sed -e "s/%VERSION%/$(VERSION)/g" \
 		    -e "s/%SUFF%/${SUFF}/g" \
-		> pkginfo02
+		> pkginfo2
 	rm -rf ZMTA2${SUFF}
 	pkgmk -o -f proto2 -b $(prefix) -d `/bin/pwd`
 	pkgtrans -os `/bin/pwd` `/bin/pwd`/ZMTA2${SUFF}.pkg ZMTA2${SUFF}
