@@ -25,6 +25,7 @@ struct policystate {		/* Part of SmtpState structure */
     int relaycustnet;
     int rcpt_nocheck;
     int sender_norelay;
+    int content_filter;
     char *authuser;
 
     /* This variable contains bitmapped flags of attributes to be checked. */

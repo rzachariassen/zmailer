@@ -45,6 +45,7 @@
 				fulltrustnet +
 				trustrecipient +
 				maxinsize 30000000
+				filterint +/-
 
 			The first pair will accept any source address,
 			and any recipient addresses that are fed to
@@ -58,6 +59,12 @@
 			parameter to be limited to 30 million bytes.
 			(Or to global definition, if that is in range
 			 of 1 thru 'nn'.)
+
+			The fourth pair sets explicite content-filtering
+			activation/disabling ('+'/'-') for IP address
+			masks given in these files.  See the comments
+			in the   smtp-policy.src   about this!
+
 
 			You may also enter domains which are looked
 			up for the hostname of reversed IP address,

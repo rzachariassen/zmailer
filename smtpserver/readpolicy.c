@@ -179,6 +179,7 @@ struct _tokenpair {
 #ifdef HAVE_WHOSON_H
   { "trust-whoson",	P_A_TrustWhosOn		},
 #endif
+  { "filtering",	P_A_Filtering		},
   { NULL, 0 },
 };
 

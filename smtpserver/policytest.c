@@ -782,7 +782,8 @@ int sourceaddr;
 			 1 << P_A_OutboundSizeLimit |
 			 1 << P_A_FullTrustNet      |
 			 1 << P_A_TrustRecipients   |
-			 1 << P_A_TrustWhosOn        );
+			 1 << P_A_TrustWhosOn       |
+			 1 << P_A_Filtering          );
     if (!myaddress)
       state->request |= ( 1 << P_A_TestDnsRBL       |
 			  1 << P_A_RcptDnsRBL        );
@@ -803,6 +804,17 @@ int sourceaddr;
       state->values[P_A_TestDnsRBL] = NULL;
       if (state->values[P_A_RcptDnsRBL]) free(state->values[P_A_RcptDnsRBL]);
       state->values[P_A_RcptDnsRBL] = NULL;
+
+      if (state->values[P_A_Filtering]) {
+	if (debug)
+	  printf("000- policytestaddr: 'filter %s' found\n",
+		 state->values[P_A_Filtering]);
+	if (valueeq(state->values[P_A_Filtering], "+")) {
+	  state->content_filter = 1;
+	} else {
+	  state->content_filter = 0;
+	}
+      }
 
       if (debug)
 	printf("000-   %s\n", showresults(state->values));
@@ -890,12 +902,35 @@ int sourceaddr;
       if (debug)
 	printf("000- policytestaddr: 'relaycustnet +' found\n");
       state->always_accept = 1;
-      PICK_PA_MSG(P_A_TrustWhosOn);
+      PICK_PA_MSG(P_A_RELAYCUSTNET);
     }
+
+    if (state->values[P_A_Filtering]) {
+      if (debug)
+	printf("000- policytestaddr: 'filter %s' found\n",
+	       state->values[P_A_Filtering]);
+      if (valueeq(state->values[P_A_Filtering], "+")) {
+	state->content_filter = 1;
+      } else {
+	state->content_filter = 0;
+      }
+    }
+
     if (state->trust_recipients || state->full_trust || state->always_accept)
       return 0;
 
-    just_rbl_checks:;
+ just_rbl_checks:;
+
+    if (state->values[P_A_Filtering]) {
+      if (debug)
+	printf("000- policytestaddr: 'filter %s' found\n",
+	       state->values[P_A_Filtering]);
+      if (valueeq(state->values[P_A_Filtering], "+")) {
+	state->content_filter = 1;
+      } else {
+	state->content_filter = 0;
+      }
+    }
 
     if (state->values[P_A_TestDnsRBL] &&
 	!valueeq(state->values[P_A_TestDnsRBL], "-")) {
@@ -990,6 +1025,8 @@ Usockaddr *raddr;
     }
 
     state->request = 0;
+    state->content_filter = -1;
+
     rc = _addrtest_(rel, state, pbuf, 1);
     if (debug) fflush(stdout);
     return rc;

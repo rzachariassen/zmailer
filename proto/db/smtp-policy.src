@@ -1,9 +1,165 @@
 #| File:  $MAILVAR/db/smtp-policy.src
 #|
-#|   Policy based filter database boilerplate for smtpserver
-#|   This file is compiled into actual database by command:
+#|  Policy based filter database boilerplate for smtpserver
+#|  This file is compiled into actual database by command:
 #|         $MAILBIN/policy-builder.sh
 #|
+#|
+#|  Further documentation about related files, see file:
+#|       doc/guides/smtp-policy
+#|  See also comments in this file about various sub-options!
+
+#|-----------
+#|
+#| Default handling boilerplates:
+#|
+#|   "We are not relaying between off-site hosts, except when ..."
+#|
+#| You MUST uncomment one of these default-defining pairs, or the blocking
+#| of relay hijack will not work at all !
+#|
+#| -- 1st alternate: No MX target usage, no DNS existence verify
+#|    Will accept for reception only those domains explicitely listed
+#|    in  'smtp-policy.mx'  and  'localnames'  files.  Will not do
+#|    verifications on validity/invalidity of source domains:  <foo@bar>
+#
+# .			relaycustomer - relaytarget -
+# [0.0.0.0]/0		relaycustomer - relaytarget -
+#
+#| -- 2nd alternate: No MX target usage, DNS existence verify
+#|    Like the 1st alternate, except will verify the sender (mail from:<..>)
+#|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
+#|    If RBL parameters are set below, will use them.
+#
+# .			relaycustomer - relaytarget - senderokwithdns + = _rbl1
+# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _rbl0
+#
+#| -- 3rd alternate: MX relay trust, DNS existence verify
+#|    For the people who are in deep s*...  That is, those who for some
+#|    reason have given open permissions for people to use their server
+#|    as MX backup for their clients, but don't know all domains valid
+#|    to go thru...  Substitutes accurate data to user's whimsical DNS
+#|    maintenance activities.  Vulnerable to unauthorized inbound MX
+#|    service abuse.
+#|    If RBL parameters are set below, will use them.
+
+.			relaycustomer - acceptifmx - senderokwithdns + = _rbl1
+[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _rbl0
+
+#| -- 4th alternate: Sender & recipient DNS existence verify
+#|    This is more of an example for the symmetry's sake, verifies that
+#|    the source and destination domains are DNS resolvable, but does not
+#|    block relaying -- DANGER! DANGER! WILL ROBINSON! DANGER!
+#
+# .			senderokwithdns - acceptifdns -
+# [0.0.0.0]/0		senderokwithdns - acceptifdns -
+#
+#|
+#| -----------------------------------
+#|
+#| RBL type test rules:
+
+#| First RBL variant: NONE OF THE RBL TESTS
+_rbl0           # Nothing at early phase
+_rbl1           # Nothing at late phase
+
+#| Second RBL variant: Early block with RBL+DUL+RSS
+#_rbl0          test-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_rbl1          # Nothing at late phase
+
+#| Third RBL variant: Late block with RBL+DUL+RSS
+#_rbl0          rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
+#_rbl1          test-rcpt-dns-rbl +
+
+#|  (The "+" at the DNS zone defines is treated as shorthand to
+#|   "rbl.maps.vix.com")
+#|
+#|  The Third RBL variant means that all target domains can all by themselves
+#|  choose if they use RBL to do source filtering.  The ``= _RBL1'' test
+#|  *must* be added to all domain instances where the check is wanted.
+#|  (Including the last-resort domain default of ".")
+#|  (Or inverting: If some recipient domain is *not* wanting RBL-type tests,
+#|   that domain shall have  ``test-rcpt-dns-rbl -'' attribute pair given for
+#|   it at the input datasets -- consider  smtp-policy.mx  file!)
+#|
+#|-----------
+#|
+#| If your system has ``whoson'' server (see contrib/whoson-*.tgz),
+#| you can activate it by adding  'trust-whoson +' attribute pair to
+#| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
+#|
+#|-----------
+#|
+#| If you want explicitely to run content-filter even for locally
+#| accepted source IP addresses, you can activate it by adding
+#| 'filtering +' attribute pair to  a)  the wild-card IP address test:
+#|     [0.0.0.0]/0
+#| of your choice above, and  b)  into  _full_rights  further below.
+#|
+#| This attribute pair is looked up only in early connect tests, never
+#| afterwards.   If the attribute pair is not present, tests causing
+#| internal  'always_accept'  flag to be set will disable the lookup
+#| (effectively 'filtering -').
+#|
+#| With 'filtering +' added into  _full_rights,  entering explicite
+#| 'filtering -'  for an address literal in  smtp-policy.relay*  file
+#| will disable the content filtering for given address, while it
+#| is activated for all others.
+#|
+#|-----------
+#|
+#| For outbound relaying control for fixed IP address networks, see
+#| comments in file:  smtp-policy.relay
+#|
+#|-----------
+#|
+#| Generally we refuse SMTP connections from host in private address space
+#| and refuse mails to or from <user@[nn.nn.nn.nn]> if nn.nn.nn.nn is a
+#| private IP address...
+#|
+_private_address    message "We reject your network" rejectnet + message "We don't accept email from this source address" rejectsource + relaycustomer - relaytarget -
+#[172.16.0.0]/12         = _private_address
+#[192.168.0.0]/16        = _private_address
+#[10.0.0.0]/8            = _private_address
+#|
+#| ...but hosts in the address range 192.168.16.0-192.168.17.255 may be
+#| our SMTP clients.
+#|
+#[192.168.16.0]/23	rejectnet - = _private_address
+
+#| Hosts of our organization can do anything...
+#|
+_our_network	= _full_rights
+
+#|    Boilerplate macroes for various things.
+#|    If RBL parameters are set above, will use them.
+
+_full_rights	rejectnet - relaycustnet + relaytarget +               = _rbl1
+_localnames	rejectnet - relaycustnet - localdomain + relaytarget + = _rbl1
+_relaytarget	relaytarget +                                          = _rbl1
+
+#|
+#| Thanks, no bulk mails! Drop them when used as sources, also reject
+#| when asked to send for them.
+#|
+_bulk_mail	message "Your domain is not liked source for email" rejectsource + message "Your IP address is not liked source for email" rejectnet + message "This is not accepted relay target" relaytarget -
+#|
+#| The actual list of domains, and perhaps user addresses should
+#| be gotten from some active Anti-SPAM database
+#|
+#nobody.com		= _bulk_mail
+#.nobody.com		= _bulk_mail
+#nodomain.com		= _bulk_mail
+#.nodomain.com		= _bulk_mail
+#|
+#| Some source users we reject always: (frequent spammers..)
+#| (see comment above about Anti-SPAM databases)
+#| (Do note that these are SMTP ENVELOPE items, not RFC-822 items!)
+#|
+#friend@		= _bulk_mail
+#friends@		= _bulk_mail
+
+#----------------------------------
 #| Syntax:
 #|
 #| key	[attribute value]... [= _tag]
@@ -47,6 +203,7 @@
 #|	'fulltrustnet'	{ '+', '-' }
 #|	'trustrecipients' { '+', '-' }
 #|	'trust-whoson'	{ '+', '-' }
+#|	'filter'	{ '+', '-' }
 #|
 #| Semantics:
 #|
@@ -54,11 +211,11 @@
 #| the sender's and recipients' addresses.  policytest() looks for name, and
 #| address of client host as well as full and partial user address, and domain
 #| part of sender and recipient addresses in this database.  The retrieved
-#| attributes are used to make decissions on acepting or rejecting the incoming
-#| mail.
+#| attributes are used to make decissions on acepting or rejecting
+#| the incoming mail.
 #|
-#| If looking for 'foo.bar.edu' and exact match failed, the database looks keys
-#| in sequence:  '.foo.bar.edu', '.bar.edu', '.edu', and '.'.
+#| If looking for 'foo.bar.edu' and exact match failed, the database looks
+#| keys in sequence:  '.foo.bar.edu', '.bar.edu', '.edu', and '.'.
 #|
 #| The order of entries in this file is indifferent.
 #|
@@ -83,6 +240,11 @@
 #|  if (IP address of SMTP client has 'FREEZENET +' attribute) then
 #|   we present happy face, but always put the messages into a freezer..
 #|   [state->always_freeze = 1; return FREEZE;]
+#|  if (IP address of SMTP client has 'FILTERING' attribute) then
+#|   set  state->content_filter  1/0 depending on '+'/'-' value
+#|   If this attribute doesn't exist, set: state->content_filter = -1
+#|   This will latter interact with  state->always_accept  variable
+#|   in the content-filter interface...
 #|  if (IP address of SMTP client has 'RELAYCUSTNET +' attribute) then
 #|   sender accepted, recipients not checked
 #|   [state->always_accept = 1; return ACCEPT;]
@@ -207,162 +369,3 @@
 #| 
 #| ------
 #|
-
-#|-----------
-#|
-#| Default handling boilerplates:
-#|
-#|   "We are not relaying between off-site hosts, except when ..."
-#|
-#| You MUST uncomment one of these default-defining pairs, or the blocking
-#| of relay hijack will not work at all !
-#|
-#| -- 1st alternate: No MX target usage, no DNS existence verify
-#|    Will accept for reception only those domains explicitely listed
-#|    in  'smtp-policy.mx'  and  'localnames'  files.  Will not do
-#|    verifications on validity/invalidity of source domains:  <foo@bar>
-#
-# .			relaycustomer - relaytarget -
-# [0.0.0.0]/0		relaycustomer - relaytarget -
-#
-#| -- 2nd alternate: No MX target usage, DNS existence verify
-#|    Like the 1st alternate, except will verify the sender (mail from:<..>)
-#|    address for existence of the DNS MX and/or A/AAAA data -- e.g. validity.
-#|    If RBL parameters are set below, will use them.
-#
-# .			relaycustomer - relaytarget - senderokwithdns + = _rbl1
-# [0.0.0.0]/0		relaycustomer - relaytarget - senderokwithdns + = _rbl0
-#
-#| -- 3rd alternate: MX relay trust, DNS existence verify
-#|    For the people who are in deep s*...  That is, those who for some
-#|    reason have given open permissions for people to use their server
-#|    as MX backup for their clients, but don't know all domains valid
-#|    to go thru...  Substitutes accurate data to user's whimsical DNS
-#|    maintenance activities.  Vulnerable to unauthorized inbound MX
-#|    service abuse.
-#|    If RBL parameters are set below, will use them.
-
-.			relaycustomer - acceptifmx - senderokwithdns + = _rbl1
-[0.0.0.0]/0		relaycustomer - acceptifmx - senderokwithdns + = _rbl0
-
-#| -- 4th alternate: Sender & recipient DNS existence verify
-#|    This is more of an example for the symmetry's sake, verifies that
-#|    the source and destination domains are DNS resolvable, but does not
-#|    block relaying -- DANGER! DANGER! WILL ROBINSON! DANGER!
-#
-# .			senderokwithdns - acceptifdns -
-# [0.0.0.0]/0		senderokwithdns - acceptifdns -
-#
-#|
-#| -----------------------------------
-#|
-#| RBL type test rules:
-
-#| First RBL variant: NONE OF THE RBL TESTS
-_rbl0           # Nothing at early phase
-_rbl1           # Nothing at late phase
-
-#| Second RBL variant: Early block with RBL+DUL+RSS
-#_rbl0          test-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
-#_rbl1          # Nothing at late phase
-
-#| Third RBL variant: Late block with RBL+DUL+RSS
-#_rbl0          rcpt-dns-rbl      +:dul.maps.vix.com:relays.mail-abuse.org
-#_rbl1          test-rcpt-dns-rbl +
-
-#|  (The "+" at the DNS zone defines is treated as shorthand to
-#|   "rbl.maps.vix.com")
-#|
-#|  The Third RBL variant means that all target domains can all by themselves
-#|  choose if they use RBL to do source filtering.  The ``= _RBL1'' test
-#|  *must* be added to all domain instances where the check is wanted.
-#|  (Including the last-resort domain default of ".")
-#|  (Or inverting: If some recipient domain is *not* wanting RBL-type tests,
-#|   that domain shall have  ``test-rcpt-dns-rbl -'' attribute pair given for
-#|   it at the input datasets -- consider  smtp-policy.mx  file!)
-#|
-#| These rules mean that locally accepted hostnames MUST be listed in
-#| the database with  'relaytarget +' attribute.  ("acceptifmx *" allows
-#| reception if the local system is amonst the MXes.)
-#|
-#|-----------
-#|
-#| If your system has ``whoson'' server (see contrib/whoson-*.tgz),
-#| you can activate it by adding  'trust-whoson +' attribute pair to
-#| the wild-card IP address test:  [0.0.0.0]/0  of your choise.
-#|
-#|-----------
-#|
-#| For outbound relaying control for fixed IP address networks, see
-#| comments in file:  smtp-policy.relay
-#|
-#|-----------
-#|
-#| Generally we refuse SMTP connections from host in private address space
-#| and refuse mails to or from <user@[nn.nn.nn.nn]> if nn.nn.nn.nn is a
-#| private IP address...
-#|
-_private_address    message "We reject your network" rejectnet + message "We don't accept email from this source address" rejectsource + relaycustomer - relaytarget -
-#[172.16.0.0]/12         = _private_address
-#[192.168.0.0]/16        = _private_address
-#[10.0.0.0]/8            = _private_address
-#|
-#| ...but hosts in the address range 192.168.16.0-192.168.17.255 may be
-#| our SMTP clients.
-#|
-#[192.168.16.0]/23	rejectnet - = _private_address
-
-#| Hosts of our organization can do anything...
-#|
-_our_network	= _full_rights
-
-#|    Boilerplate macroes for various things.
-#|    If RBL parameters are set above, will use them.
-
-_full_rights	rejectnet - relaycustnet + relaytarget +               = _rbl1
-_localnames	rejectnet - relaycustnet - localdomain + relaytarget + = _rbl1
-_relaytarget	relaytarget +                                          = _rbl1
-
-#
-#sztaki.hu		= _full_rights
-#.sztaki.hu		= _full_rights
-#[192.84.225.0]/24	= _our_network
-#[192.84.226.0]/23	= _our_network
-#[192.84.228.0]/23	= _our_network
-#|
-#| ... except that no use to relaying for dial-up hosts
-#|
-#.dial.sztaki.hu		relaytarget - = _full_rights
-#|
-#| ... and we have a misconfigured SMTP client somewhere
-#|
-#[192.84.225.1]/32	message "Your network is not liked message source" rejectnet + = _our_network
-#|
-#|
-#| We are MX for some UUCP nodes;  The actual list of domains should
-#| be gotten from some listing, and inserted here, or generated from
-#| a file into compatible format, and appended into the database
-#|
-#.uucp.iif.hu		relaytarget +
-#|
-#| Thanks, no bulk mails! Drop them when used as sources, also reject
-#| when asked to send for them.
-#|
-_bulk_mail	message "Your domain is not liked source for email" rejectsource + message "Your IP address is not liked source for email" rejectnet + message "This is not accepted relay target" relaytarget -
-#|
-#| The actual list of domains, and perhaps user addresses should
-#| be gotten from some active Anti-SPAM database
-#|
-#nobody.com		= _bulk_mail
-#.nobody.com		= _bulk_mail
-#nodomain.com		= _bulk_mail
-#.nodomain.com		= _bulk_mail
-#|
-#| Some source users we reject always: (frequent spammers..)
-#| (see comment above about Anti-SPAM databases)
-#| (Do note that these are SMTP ENVELOPE items, not RFC-822 items!)
-#|
-#friend@		= _bulk_mail
-#friends@		= _bulk_mail
-
-#----------------------------------

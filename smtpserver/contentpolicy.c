@@ -150,7 +150,11 @@ const char *fname;
     return 1;
   if (state->sender_freeze)
     return 1;
-  if (state->always_accept)
+  /* If no 'filter *' defined, use old behaviour */
+  if (state->always_accept && (state->content_filter < 0))
+    return 0;
+  /* 'filter', but not 'filter +' ! */
+  if (state->content_filter == 0)
     return 0;
 
   if (state->message != NULL)
