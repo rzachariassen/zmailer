@@ -20,10 +20,6 @@
 #undef	symbol
 #endif	/* symbol */
 
-#undef _USE_CRC
-#define _USE_CRC 0
-
-#if _USE_CRC
 /* crc table and hash algorithm from pathalias */
 /*
  * fold a string into a long int.  31 bit crc (from andrew appel).
@@ -51,6 +47,7 @@
 #define POLY POLY31     /* use 31-bit to avoid sign problems */
 
 static long CrcTable[128];
+static int crcinit_done = 0;
 
 static void crcinit __((void));
 static void
@@ -66,12 +63,13 @@ crcinit()
 				sum ^= POLY >> j;
 		CrcTable[i] = sum;
 	}
+	crcinit_done = 1;
 }
-#endif
 
 struct syment {
-	const char    *name;
 	struct syment *next;
+	int        namelen;
+	const char name[1];
 };
 
 struct sptree *spt_symtab = NULL;
@@ -95,26 +93,30 @@ symbol_lookup(s)
 }
 
 spkey_t
-symbol_lookup_db(s, spt)
+symbol_lookup_db_mem_(s, slen, spt, usecrc)
 	const void *s;
+	const int slen;
 	struct sptree *spt;
+	const int usecrc;
 {
 	register const char *ucp;
 	register spkey_t key;
 	register struct syment *se, *pe;
 	struct spblk *spl;
+	int i = slen;
 
 	if (s == NULL)
 		return 0;
 
-#if _USE_CRC
-	/* Input string is to be CRCed to form a new key-id */
-	key = 0;
-	for (ucp = s; *ucp != '\0'; ++ucp)
-		key = (key >> 7) ^ CrcTable[(key ^ *ucp) & 0x7f];
-#else
-	key = pjwhash32(s);
-#endif
+	if (usecrc) {
+	  if (!crcinit_done)
+	    crcinit();
+	  /* Input string is to be CRCed to form a new key-id */
+	  key = 0;
+	  for (ucp = s; i > 0; ++ucp, --i)
+	    key = (key >> 7) ^ CrcTable[(key ^ *ucp) & 0x7f];
+	} else
+	  key = pjwhash32n(s, slen);
 
 	/* Ok, time for the hard work.  Lets see if we have this key
 	   in the symtab splay tree */
@@ -127,7 +129,8 @@ symbol_lookup_db(s, spt)
 
 		se = (struct syment *)spl->data;
 		do {
-			if (strcmp(se->name, s) == 0) {
+			if (se->namelen == slen &&
+			    memcmp(se->name, s, slen) == 0) {
 				/* Really found it! */
 				return (spkey_t)se;
 			}
@@ -138,10 +141,21 @@ symbol_lookup_db(s, spt)
 	return 0;
 }
 
+spkey_t
+symbol_lookup_db_mem(s, slen, spt)
+	const void *s;
+	const int slen;
+	struct sptree *spt;
+{
+  return symbol_lookup_db_mem_(s, slen, spt, 0);
+}
+
+
 
 spkey_t
-symbol_db(s, spt)
+symbol_db_mem_(s, slen, spt, usecrc)
 	const void *s;
+	int slen;
 	struct sptree *spt;
 {
 	register const char *ucp;
@@ -149,18 +163,20 @@ symbol_db(s, spt)
 	register struct syment *se, *pe;
 	char *newname;
 	struct spblk *spl;
+	int i = slen;
 
 	if (s == NULL)
 		return 0;
 
-#if _USE_CRC
-	/* Input string is to be CRCed to form a new key-id */
-	key = 0;
-	for (ucp = s; *ucp != '\0'; ++ucp)
-		key = (key >> 7) ^ CrcTable[(key ^ *ucp) & 0x7f];
-#else
-	key = pjwhash32(s);
-#endif
+	if (usecrc) {
+	  if (!crcinit_done)
+	    crcinit();
+	  /* Input string is to be CRCed to form a new key-id */
+	  key = 0;
+	  for (ucp = s; i > 0; ++ucp, --i)
+	    key = (key >> 7) ^ CrcTable[(key ^ *ucp) & 0x7f];
+	} else
+	  key = pjwhash32n(s,slen);
 
 	/* Ok, time for the hard work.  Lets see if we have this key
 	   in the symtab splay tree */
@@ -173,7 +189,8 @@ symbol_db(s, spt)
 
 		se = (struct syment *)spl->data;
 		do {
-			if (strcmp(se->name, s) == 0) {
+			if (se->namelen == slen &&
+			    memcmp(se->name, s, slen) == 0) {
 				/* Really found it! */
 				return (spkey_t)se;
 			}
@@ -181,17 +198,26 @@ symbol_db(s, spt)
 			se = se->next;
 		} while (se != NULL);
 	}
-	se = (struct syment *)emalloc(sizeof (struct syment));
-	newname = (char *) emalloc((u_int)(strlen(s)+1));
-	strcpy(newname, s);
-	se->name = newname;
-	se->next = NULL;
+	se = (struct syment *)emalloc(sizeof (struct syment) + slen);
+	memcpy((void*)se->name, s, slen);
+	((char*)se->name)[slen] = 0;
+	se->namelen = slen;
+	se->next    = NULL;
 	if (pe != NULL)
 		pe->next = se;
 	else {
 		(void) sp_install(key, (const void *)se, 0, spt);
 	}
 	return (spkey_t)se;
+}
+
+spkey_t
+symbol_db_mem(s, slen, spt)
+	const void *s;
+	int slen;
+	struct sptree *spt;
+{
+  return symbol_db_mem_(s, slen, spt, 0);
 }
 
 /*
@@ -205,7 +231,6 @@ symbol_null(spl)
 	se = (struct syment *)spl->data;
 	for (sn = se ? se->next : NULL; se != NULL; se = sn) {
 	  sn = se->next;
-	  free((char*)(se->name));
 	  free(se);
 	}
 	return 0;
@@ -229,24 +254,27 @@ symbol_null_db(spt)
  */
 
 void
-symbol_free_db(s, spt)
+symbol_free_db_mem(s, slen, spt)
 	const void *s;
+	int slen;
 	struct sptree *spt;
+
 {
 	register const char *ucp;
 	register spkey_t key;
 	register struct syment *se, *pe;
 	struct spblk *spl;
+	int i = slen;
 
 	if (s == NULL || spt == NULL)
 		return;
 #if _USE_CRC
 	/* Input string is to be CRCed to form a new key-id */
 	key = 0;
-	for (ucp = s; *ucp != '\0'; ++ucp)
+	for (ucp = s; i >= 0; ++ucp, --i)
 		key = (key >> 7) ^ CrcTable[(key ^ *ucp) & 0x7f];
 #else
-	key = pjwhash32(s);
+	key = pjwhash32n(s, slen);
 #endif
 
 	/* Ok, time for the hard work.  Lets see if we have this key
@@ -260,13 +288,13 @@ symbol_free_db(s, spt)
 
 		se = (struct syment *)spl->data;
 		do {
-		  if (strcmp(se->name, s) == 0) {
+		  if (se->namelen == slen &&
+		      memcmp(se->name, s, slen) == 0) {
 		    /* Really found it! */
 		    if (pe != NULL)
 		      pe->next = se->next;
 		    else
 		      spl->data = (void*) se->next;
-		    free((char*)(se->name));
 		    free(se);
 		    break;
 		  }
@@ -278,6 +306,17 @@ symbol_free_db(s, spt)
 	if (spl != NULL && spl->data == NULL)
 		sp_delete(spl, spt);
 }
+
+void
+symbol_free_db(s, spt)
+	const void *s;
+	struct sptree *spt;
+{
+	if (s == NULL || spt == NULL)
+		return;
+	symbol_free_db_mem(s, strlen(s), spt);
+}
+
 
 /*
  * Return a printable string representation of the symbol whose key is passed.
@@ -308,3 +347,27 @@ prsymtable()
 	sp_scan(icpname, (struct spblk *)NULL, spt_symtab);
 }
 #endif	/* MALLOC_TRACE */
+
+
+spkey_t
+symbol_lookup_db(s, spt)
+	const void *s;
+	struct sptree *spt;
+{
+	if (s == NULL)
+		return 0;
+
+	return symbol_lookup_db_mem(s, strlen(s), spt);
+}
+
+
+spkey_t
+symbol_db(s, spt)
+	const void *s;
+	struct sptree *spt;
+{
+	if (s == NULL)
+		return 0;
+	return symbol_db_mem(s, strlen(s), spt);
+}
+
