@@ -31,6 +31,9 @@
 
 #include "prototypes.h"
 
+extern long crc32  __((const void *));
+extern long crc32n __((const void *, int));
+
 extern struct sptree *spt_databases; /* At conf.c */
 
 /*
@@ -41,6 +44,8 @@ typedef enum { Nul, Boolean, Pathalias, Indirect, NonNull } postprocs;
 
 struct cache {
 	char		*key;
+	unsigned long	keyhash;
+	struct cache	*next;
 	conscell	*value;
 	time_t		expiry;
 };
@@ -67,6 +72,8 @@ struct db_info {
 	int		DBFUNC(modcheckp);	/* should we reopen database?*/
 	postprocs	postproc;		/* post-lookup applicator */
 	struct cache	*cache;			/* cache entry array */
+	struct cache	*cfirst;		/* LRU cache head entry */
+	struct cache	*cfree;			/* Chain of free entries */
 };
 
 /* bits in the flags field */
@@ -164,25 +171,23 @@ extern conscell	*readchunk  __((const char *file, long offset));
 static int	 iclistdbs  __((struct spblk *spl));
 
 
-#define	CACHE(x,f)	((dbip->cache+(x))->f)
-
 static void (*cachemarkupfunc) __((conscell*));
 static int
 iccachemarkup(spl)
 	struct spblk *spl;
 {
 	struct db_info *dbip = (struct db_info *)spl->data;
-	int i;
-	conscell *ll;
+	struct cache *cp;
 
 	if (dbip == NULL || dbip->cache_size == 0 || dbip->cache == NULL)
 		return 0;
 
-	/* flush cache */
-	for (i = 0; i < dbip->cache_size && CACHE(i,key) != NULL; ++i) {
-		ll = CACHE(i,value);
-		cachemarkupfunc(ll);
-	}
+	/* markup cache */
+	
+	for (cp = dbip->cfirst; cp != NULL; cp = cp->next)
+	  if (cp->value) /* Unnecessary ? */
+	    cachemarkupfunc(cp->value);
+
 	return 0;
 }
 
@@ -233,7 +238,7 @@ run_relation(argc, argv)
 	proto_config
 		= db_kinds[sizeof db_kinds/(sizeof (struct db_kind))-1].config;
 	while (1) {
-		c = getopt(argc, (char*const*)argv, "Cbilmnpud:f:s:t:Te:");
+		c = getopt(argc, (char*const*)argv, "Cbilmnpud:f:s:L:t:Te:");
 		if (c == EOF)
 			break;
 		switch (c) {
@@ -316,9 +321,9 @@ run_relation(argc, argv)
 		     ++dbkp) {
 		  if (dbkp->name != NULL) {
 		    if (dbkp == &db_kinds[0])
-		      fprintf(stderr,"%s",dbkp->name);
+		      fprintf(stderr,  "%s", dbkp->name);
 		    else
-		      fprintf(stderr,",%s",dbkp->name);
+		      fprintf(stderr, ",%s", dbkp->name);
 		  }
 		}
 		fprintf(stderr,"\n");
@@ -416,12 +421,16 @@ run_relation(argc, argv)
 	dbip = (struct db_info *)smalloc(MEM_PERM, sizeof (struct db_info));
 	*dbip = proto_config;
 	if (dbip->cache_size > 0) {
-		dbip->cache = (struct cache *)
-			smalloc(MEM_PERM, (u_int)(dbip->cache_size *
-						  (sizeof (struct cache))));
-		dbip->cache->key = NULL;	/* search terminator */
+		int i = dbip->cache_size * sizeof(struct cache);
+		dbip->cache = (struct cache *) smalloc(MEM_PERM, (u_int)(i));;
+		memset(dbip->cache, 0, i);
+		dbip->cfirst = NULL;	/* Head init */
+		for (i = dbip->cache_size -2; i >= 0; --i)
+		  dbip->cache[i].next = &dbip->cache[i+1];
+		dbip->cfree  = &dbip->cache[0];
 	} else
 		dbip->cache = NULL;	/* superfluous, but why not ... */
+
 	sp_install(symid, dbip, 0, spt_databases);
 	register_cache_gc_markup_iterator();
 	spl = sp_lookup(symbol(DBLOOKUPNAME), spt_builtins);
@@ -472,7 +481,7 @@ iclistdbs(spl)
 	const char *cp;
 	int i;
 
-	printf("%-13s", pname(spl->key));
+	printf("%-16s", pname(spl->key));
 
 	dbip = (struct db_info *)spl->data;
 	cp = NULL;
@@ -491,23 +500,15 @@ iclistdbs(spl)
 		printf(",%s", dbip->subtype);
 		i += 1 + strlen(dbip->subtype);
 	}
-	i = (i > 10) ? 1 : 11 - i;
+	i = (i > 14) ? 1 : 14 - i;
 
 	printf("%*s", i, " ");
 	
-	if (dbip->cache_size == 0 || dbip->cache == NULL)
-		printf("%*s", 11, " ");
-	else {
-		for (i = 0, cachep = dbip->cache;
-		     i < dbip->cache_size && cachep->key != NULL;
-		     ++cachep)
-			++i;
-		printf("%2d/%-2d ", i, dbip->cache_size);
-		if (dbip->ttl > 0)
-			printf("%4d ", (int)dbip->ttl);
-		else
-			printf("     ");
-	}
+	for (i = 0, cachep = dbip->cfirst;
+	     cachep; cachep = cachep->next) ++i;
+
+	printf("%4d/%-4d ", i, dbip->cache_size);
+	printf("%4d   ", (int)dbip->ttl);
 
 	i = 0;
 	if (dbip->flags & DB_MAPTOLOWER)
@@ -550,6 +551,9 @@ run_db(argc, argv)
 
 	if (argc == 2 && (argv[1][0] == 'i' || argv[1][0] == 't')) {
 		/* print an index/toc of the databases */
+
+		printf("#DBname   Type{lookup,sub} cache{inuse/max} ttl Flgs File/param\n");
+
 		sp_scan(iclistdbs, (struct spblk *)NULL, spt_databases);
 		return 0;
 	}
@@ -697,17 +701,19 @@ conscell *
 db(dbname, key)
 	const char *dbname, *key;
 {
-	register int i, j, k, keylen;
-	memtypes oval = stickymem;
+	register int keylen;
 	conscell *l, *ll, *tmp;
 	struct spblk *spl;
 	struct db_info *dbip;
 	char *realkey;
 	search_info si;
-	struct cache tce;
+	struct cache *cache;
+	unsigned long khash;
 	char kbuf[BUFSIZ];	/* XX: */
 	int slen;
 	GCVARS3;
+
+	now = time(NULL);
 
 	if (spt_files == NULL)          spt_files          = sp_init();
 	if (spt_files->symbols == NULL) spt_files->symbols = sp_init();
@@ -730,20 +736,24 @@ db(dbname, key)
 	realkey = NULL;
 
 	if (dbip->flags & DB_MAPTOLOWER) {
-	  keylen = strlen(key)+1;
-	  if (keylen > sizeof(kbuf)) keylen = sizeof(kbuf);
+	  keylen = strlen(key);
+	  if (keylen >= sizeof(kbuf)) keylen = sizeof(kbuf)-1;
 	  memcpy(kbuf, key, keylen); /* was: strncpy */
 	  kbuf[sizeof(kbuf)-1] = 0;
 	  strlower(kbuf);
 	  key = kbuf;
-	} else if (dbip->flags & DB_MAPTOUPPER) {
-	  keylen = strlen(key)+1;
-	  if (keylen > sizeof(kbuf)) keylen = sizeof(kbuf);
+	  khash = crc32n(key, keylen);
+	} else if (dbip->flags & DB_MAPTOUPPER) {	
+	  keylen = strlen(key);
+	  if (keylen >= sizeof(kbuf)) keylen = sizeof(kbuf)-1;
 	  memcpy(kbuf, key, keylen); /* was: strncpy */
 	  kbuf[sizeof(kbuf)-1] = 0;
 	  strupper(kbuf);
 	  key = kbuf;
-	}
+	  khash = crc32n(key, keylen);
+	} else
+	  khash = crc32(key);
+
 	si.file = dbip->file;
 	si.key  = key;
 	si.subtype = dbip->subtype;
@@ -761,76 +771,60 @@ db(dbname, key)
 		}
 	}
 	/* look for the desired result in the cache first */
-	j = 0;
-	k = 0;
 	if (dbip->cache_size > 0) {
-		for (i=j=0; i < dbip->cache_size && CACHE(i,key) != NULL; ++i){
-			if (CACHE(i,expiry) > 0 && CACHE(i,expiry) < now) {
+		struct cache **pcache = &dbip->cfirst;
+
+		cache   = *pcache;
+
+		for ( ; cache != NULL; cache = cache->next) {
+
+			if (cache->expiry > 0 && cache->expiry < now) {
 				if (D_db)
 					fprintf(stderr,
 						"... expiring %s from cache\n",
-						CACHE(i,key));
-				/* if ((ll = CACHE(i,value)) != NULL)
-				   s_free_tree(ll); */
-				CACHE(i,value) = NULL;
-				if (CACHE(i,key) != NULL) /* always true */
-					free((char *)CACHE(i,key));
-				CACHE(i,key) = NULL;
+						cache->key);
+				if (cache->key) free(cache->key);
+				cache->key   = NULL;
+				cache->value = NULL; /* conscell GC does it */
+
+				/* Unlink from active chain */
+				*pcache = cache->next;
+
+				/* Link into free chain */
+				cache->next = dbip->cfree;
+				dbip->cfree = cache;
+
 				continue;
 			}
-			if (i > j) { /* expiry */
-				*(dbip->cache+j) = *(dbip->cache+i);
-				if (D_db)
-					fprintf(stderr,
-						"... setting cache[%d]: %s\n",
-						j, CACHE(j,key));
-			}
 			if (D_db)
-				fprintf(stderr,
-					"... comparing %s and %s in cache\n",
-					CACHE(i,key), key);
+			  fprintf(stderr,
+				  "... comparing '%s' and '%s' in cache\n",
+				  cache->key, key);
 
-			/* Match mixed case IF the mapping is to lower or
-			   to upper, if not, match as is! */
-			if (((dbip->flags & (DB_MAPTOUPPER|DB_MAPTOLOWER)) &&
-			     CISTREQ(CACHE(i,key), key)) ||
-			    (!(dbip->flags & (DB_MAPTOUPPER|DB_MAPTOLOWER)) &&
-			     strcmp(CACHE(i,key), key) == 0)) {
+			/* Match hashed key values, and in case they collide,
+			   match also strings in case sensitive manner. */
 
-				/* cache maintenance */
-				tce = *(dbip->cache+i);
-				if (j > 0 && D_db)
-					fprintf(stderr,
-						"... ripple down from %d\n",j);
-				/* ripple down to beginning */
-				for (k = j; j > 0; --j)
-					*(dbip->cache+j) = *(dbip->cache+j-1);
-				*(dbip->cache) = tce;
-				if (i > k) {	/* ripple down to end */
-					for (j = ++k, ++i;
-					     i < dbip->cache_size
-					      && CACHE(i,key) != NULL;
-					     ++i, ++j)
-						*(dbip->cache+j) =
-							*(dbip->cache+i);
-					CACHE(j,key) = NULL;
-					if (D_db)
-						fprintf(stderr,
-						  "... ripple up to %d of %d\n",
-						  i, j);
-				}
+			if (cache->keyhash == khash &&
+			    strcmp(cache->key, key) == 0) { /* CACHE HIT! */
+
+				/* Move this entry to the head
+				   of the LRU list */
+
+				/* Unlink from current location */
+				*pcache = cache->next;
+
+				/* Link into head! */
+				cache->next = dbip->cfirst;
+				dbip->cfirst = cache;
+
 				if (D_db)
 					fprintf(stderr, "... found in cache\n");
 				/* return a scratch value */
-				tmp = s_copy_chain(dbip->cache->value);
+				tmp = s_copy_chain(cache->value);
 				return tmp;
 			}
-			++j;
+			pcache = &cache->next;
 		}
-		if (j < i)	/* stomp on expired entry */
-			CACHE(j,key) = NULL;	/* mark end of cache entries */
-		oval = stickymem;	/* cannot return before this is reset */
-		stickymem = MEM_MALLOC;	/* this is reset down below */
 		/* key gets clobbered somewhere, so save it here */
 		realkey = strdup(key);
 	}
@@ -850,15 +844,11 @@ db(dbname, key)
 
 		switch (dbip->postproc) {
 		case Boolean:
-			/* if (stickymem == MEM_MALLOC)
-			   s_free_tree(l); */
 			slen = strlen(key);
 			l = newstring(dupnstr(key, slen), slen);
 			break;
 		case NonNull:
 			if (STRING(l) && *(l->string) == '\0') {
-				/* if (stickymem == MEM_MALLOC)
-				   s_free_tree(l); */
 				slen = strlen(key);
 				l = newstring(dupnstr(key, slen), slen);
 			} else if (LIST(l) && car(l) == NULL) {
@@ -872,15 +862,11 @@ db(dbname, key)
 			 * the file named by the subtype.  Used for aliases.
 			 */
 			if (LIST(l) || !isdigit(*(l->string))) {
-				/* if (stickymem == MEM_MALLOC)
-				   s_free_tree(l); */
 				l = NULL;
 				break;
 			}
-			i = atol(l->string);	/* file offset */
-			/* if (stickymem == MEM_MALLOC)
-			   s_free_tree(l); */
-			l = readchunk(dbip->subtype, (long)i);
+			/* value is file offset (in ascii) */
+			l = readchunk(dbip->subtype, atol(l->string));
 			break;
 		case Pathalias:
 			/* X: fill this out */
@@ -901,52 +887,59 @@ db(dbname, key)
 		if (D_db)
 			fprintf(stderr, "NIL\n");
 		if (dbip->cache_size > 0) {
-			stickymem = oval;
 			free(realkey);
 		}
 		UNGCPRO3;
 		return NULL;
 	}
 	if (!deferit && dbip->cache_size > 0) {
-		i = j;
 		/* insert new cache entry at head of cache */
-		if (i >= dbip->cache_size) {
-			i = dbip->cache_size - 1;
-			if (D_db)
-				fprintf(stderr, "... freeing cache[%d]: %s\n",
-						i, CACHE(i,key));
-			/* if ((ll = CACHE(i,value)) != NULL)
-			   s_free_tree(ll); */
-			free((char *)CACHE(i,key));
-		} else if (i < dbip->cache_size - 1) {
-			if (D_db)
-				fprintf(stderr, "... terminating cache[%d]\n",
-						i);
-			CACHE(i,key) = NULL;		/* terminator */
-			++i;
+		if (dbip->cfree == NULL) {
+
+			/* No free slots */
+
+			struct cache **pcache = &dbip->cfirst;
+			cache   = *pcache;
+
+			/* Hunt for the last slot.. */
+
+			for (;cache && cache->next; cache = *pcache)
+			  pcache = &cache->next;
+
+			/* This *MUST* be the non-NULL thing! */
+
+			if (cache->key) free(cache->key);
+
+			*pcache = NULL;
+			cache->next  = dbip->cfirst;
+			dbip->cfirst = cache;
+
+		} else {
+			/* Pick entry from free slots chain */
+			cache        = dbip->cfree;
+			dbip->cfree  = cache->next;
+			cache->next  = dbip->cfirst;
+			dbip->cfirst = cache;
 		}
-		/* ripple old entries up */
-		while (--i >= 0)
-			*(dbip->cache+i+1) = *(dbip->cache+i);
-		dbip->cache->key = realkey;
-		dbip->cache->value = l;
+
+		cache->key     = realkey;
+		cache->keyhash = khash;
+		cache->value   = l;
 		if (D_db)
-			fprintf(stderr, "... added %s to cache", realkey);
+			fprintf(stderr, "... added '%s' to cache", realkey);
 		if (si.ttl > 0) {
-			dbip->cache->expiry = now + si.ttl;
+			cache->expiry = now + si.ttl;
 			if (D_db)
 				fprintf(stderr, " (ttl=%d)\n", (int)si.ttl);
 		} else {
-			dbip->cache->expiry = 0;
+			cache->expiry = 0;
 			if (D_db)
 				fprintf(stderr, "\n");
 		}
-		stickymem = oval;
 		ll = l;
 
 	} else if (dbip->cache_size > 0) {
 
-		stickymem = oval;
 		free(realkey);
 		ll = l;
 
@@ -981,20 +974,20 @@ static void
 cacheflush(dbip)
 	struct db_info *dbip;
 {
-	int i;
+	struct cache *cache, *cnext;
 
 	if (dbip == NULL || dbip->cache_size == 0 || dbip->cache == NULL)
 		return;
 
 	/* flush cache */
-	for (i = 0; i < dbip->cache_size && CACHE(i,key) != NULL; ++i) {
-		/* conscell *ll = CACHE(i,value);
-		   if (ll != NULL)
-		     s_free_tree(ll); */
-		if (CACHE(i,key) != NULL) /* always true */
-		  free((char *)CACHE(i,key));
+	
+	for (cache = dbip->cfirst; cache; cache = cnext) {
+		cnext = cache->next;
+		if (cache->key) free(cache->key);
+		cache->next = dbip->cfree;
+		dbip->cfree = cache;
 	}
-	CACHE(0,key) = NULL;	/* ensure terminator */
+	dbip->cfirst = NULL;
 }
 
 

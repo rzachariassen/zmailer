@@ -49,7 +49,8 @@ if [ -f $MAILVAR/db/fqdnaliasesldap.zmsh ]; then
 	. $MAILVAR/db/fqdnaliasesldap.zmsh
 else
     if [ -f $MAILVAR/db/fqdnalias.ldap ]; then
-	relation -lmt ldap -f $MAILVAR/db/fqdnalias.ldap fqdnaliasesldap
+	relation -lmt ldap -s 9999 -e 2000 \
+		 -f $MAILVAR/db/fqdnalias.ldap fqdnaliasesldap
     else
 	fqdnaliasesldap () { return 1 }
     fi
