@@ -34,7 +34,7 @@ $(PROGRAM)-a: $(LIBDEB) $(PROGRAM)
 $(PROGRAM):	$(PROGRAM).o version.o $(LIBDEB)
 	$(CC) $(CFLAGS) -o $@ $(PROGRAM).o version.o $(LIB) $(ERRORMAIL_LIB)
 
-$(PROGRAM).o: $(srcdir)/$(PROGRAM).c
+#$(PROGRAM).o: $(srcdir)/$(PROGRAM).c
 
 version.c:	$(PROGRAM).o $(TOPDIR)/Makefile
 	@$(MAKE) $(MFLAGS) -f $(TOPDIR)/Makefile $@

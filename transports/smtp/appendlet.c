@@ -42,7 +42,7 @@ appendlet(SS, dp, convertmode, CT)
 	Sfio_t *mfp = NULL;
 #endif
 
-	if (CT->boundary)
+	if (CT && CT->boundary)
 	  ct_boundary_len = strlen(CT->boundary);
 
 	SS->state  = 1;
@@ -170,7 +170,7 @@ appendlet(SS, dp, convertmode, CT)
 	    s = s2;
 #endif
 	    /* XX: Detect multiparts !! */
-	    if (CT->boundary /* defined at all! */ &&
+	    if (CT && CT->boundary /* defined at all! */ &&
 		let_buffer[0] == '-' &&
 		let_buffer[1] == '-' &&
 		i > ct_boundary_len &&
