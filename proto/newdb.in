@@ -20,9 +20,14 @@ if [ "x-a" = "x$1" ]; then
   AOPT="-a"
   shift
 fi
+SOPT=""
+if [ "x-s" = "x$1" ]; then
+  SOPT="-s"
+  shift
+fi
 
 if [ -z "$1" ]; then
-  echo "newdb [-l|-u] [-a] dbfilenamebase [inputfile]"
+  echo "newdb [-l|-u] [-a] [-s] dbfilenamebase [inputfile]"
   exit 64
 fi
 
@@ -37,7 +42,7 @@ PATH=/bin:/usr/bin:$PATH # ZMailer router paths are a bit restrictive..
 
 trap "rm -f $BASENAME.$$*" 0
 
-$MAILBIN/makedb $LUOPT $AOPT $DBTYPE $BASENAME.$$ < $BASENAME
+$MAILBIN/makedb $LUOPT $AOPT $SOPT $DBTYPE $BASENAME.$$ < $INPUTNAME
 
 case $? in
 0)	;;

@@ -10,4 +10,10 @@ ZCONFIG=@ZMAILERCFGFILE@
 
 . $ZCONFIG
 
-$MAILBIN/newaliases $MAILVAR/db/fqdnaliases
+SOPT=""
+if [ "x$1" = "x-s" ]; then
+  SOPT="-s"
+  shift
+fi
+
+$MAILBIN/newaliases $SOPT $MAILVAR/db/fqdnaliases

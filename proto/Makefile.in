@@ -20,7 +20,7 @@ install-bin: dirs mailbin cf db
 FRC:
 
 $(PZCONFIG):
-	(cd $(TOPDIR) ; $(MAKE) $(MFLAGS) config)
+	(cd $(TOPDIR) ; $(MAKE) $(MFLAGS) zmailer.Config)
 
 # Ensure all necessary directories exist
 

@@ -115,11 +115,36 @@ do
 			;;
 	    esac
 	    ;;
+	newdb)
+	    #
+	    #  Translate all common flatfile databases to binary db's
+	    #
+	    echo $eopt "( $eeol"
+	    if [   -f $MAILVAR/db/routes -a  \
+		 ! -f $MAILVAR/db/routes.zmsh ] ; then
+		echo $eopt "routes $eeol"
+		$MAILBIN/newdb -l $MAILVAR/db/routes
+	    fi
+	    if [   -f $MAILVAR/db/localnames -a \
+		 ! -f $MAILVAR/db/localnames.zmsh ] ; then
+		echo $eopt "localnames $eeol"
+		$MAILBIN/newdb -l $MAILVAR/db/localnames
+	    fi
+	    if [ -f $MAILVAR/db/aliases ] ; then
+		echo $eopt "aliases $eeol"
+		$MAILBIN/newaliases -s
+	    fi
+	    if [ -f $MAILVAR/db/fqdnaliases ] ; then
+		echo $eopt "fqdnaliases $eeol"
+		$MAILBIN/newfqdnaliases -s
+	    fi
+	    echo $eopt ") $eeol"
+	    ;;
 	newf*)
-	    $MAILBIN/router -f $MAILBIN/newfqdnaliases
+	    $MAILBIN/newfqdnaliases
 	    ;;
 	newal*)
-	    $MAILBIN/router -f $MAILBIN/newaliases
+	    $MAILBIN/newaliases
 	    ;;
 	new-route*)
 	    $MAILBIN/newdb -l $MAILVAR/db/routes
@@ -180,7 +205,7 @@ done
 echo
 
 case $errflg in
-    1)	echo Usage: $0 "[ router | scheduler | smtpserver | stop | kill | resubmit | bootclean | cleanup | logsync | freeze | thaw ]"
+    1)	echo Usage: $0 "[ router | scheduler | smtpserver | stop | kill | resubmit | bootclean | cleanup | newdb | logsync | freeze | thaw ]"
 	exit 1
 	;;
 esac
