@@ -1,0 +1,54 @@
+SHELL=		/bin/sh
+TOPDIR=		../..
+PZCONFIG=	$(TOPDIR)/zmailer.Config
+INSTALL=	@INSTALL@
+MAILBIN=	$(prefix)@MAILBIN@
+
+srcdir=         @srcdir@
+VPATH=          @srcdir@
+
+CC=		@CC@
+COPTS=		@CFLAGS@
+CPPFLAGS=	@CPPFLAGS@
+CPPDEP=		@CPPDEP@
+TOPDIR=		..
+MAILBIN=	$(prefix)@MAILBIN@
+DEFS=		@DEFS@
+MD5SUM=		@MD5SUM@
+INSTALL=	@INSTALL@
+#
+INCL=		-I$(srcdir)/$(TOPDIR)/include -I$(TOPDIR)/include -I$(TOPDIR) -I$(srcdir)/$(TOPDIR)/libsh -I$(TOPDIR)/libsh -I.
+CFLAGS=		$(COPTS) $(CPPFLAGS) $(DEFS) $(ROUTER_INCL) $(INCL)
+LIBMALLOC=	@LIBMALLOC@
+LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
+#
+LIB=		-L$(TOPDIR)/libs -lzmdb -lsh -lzm -lzc @LIBRESOLV@ @LIBSOCKET@ $(LIBMALLOC)
+LIBDEB=		$(TOPDIR)/libs/libtag
+
+PERL=		@PERL@
+
+all:	mailq/Makefile
+
+install: mailq/Makefile
+	cd mailq && $(MAKE) $(MFLAGS) install
+
+mailq/Makefile:
+	if [ ! -d mailq ] ; then mkdir mailq ; fi
+	if [ ! -f mailq/Makefile.PL ] ; then cp -pr $(srcdir)/mailq/* mailq/ ; fi
+	cd mailq && $(PERL) Makefile.PL && $(MAKE) $(MFLAGS)
+
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+FRC:
+
+clean:	FRC
+	if [ -d mailq ] ; then \
+		cd mailq && $(MAKE) $(MFLAGS) clean && rm -f Makefile.old ; \
+	fi
+
+distclean: clean
+	rm -f Makefile
+
+depend:
