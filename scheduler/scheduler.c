@@ -1186,36 +1186,6 @@ if (novp == (void*)0x55555555L) abort();
 
 #define VTXMATCH(ovp,nvp) (((ovp)->orig[L_CHANNEL] == (nvp)->orig[L_CHANNEL]) && ((ovp)->orig[L_HOST] == (nvp)->orig[L_HOST]))
 
-	  if (!VTXMATCH(ovp,nvp)) {
-
-	    struct vertex *vp;
-
-	    /* Uugh... Does not match :-( */
-
-	    vp = ovp;
-
-	    while (vp && !VTXMATCH(vp,nvp))
-	      vp = vp->next[L_CTLFILE];
-
-	    if (vp == NULL) {
-	      /* New not in old at all ??? */
-	      return -1;
-	    }
-
-	    /* All OVP instances before matching NVP
-	       are to be removed from OVP chains */
-	    while (ovp && ovp != vp) {
-	      novp = ovp->next[L_CTLFILE];
-
-	      MIBMtaEntry->mtaStoredRecipients -= vp->ngroup;
-	      ovp->ngroup = 0;
-	      unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
-
-	      ovp = novp;
-	    }
-	    /* Adjust NOVP variable too */
-	    novp = ovp;
-	  }
 	  if (VTXMATCH(ovp, nvp)) {
 	    /* Verify/adjust OVP so that OVP and NVP have same
 	       address indexes in them. */
@@ -1233,10 +1203,53 @@ if (novp == (void*)0x55555555L) abort();
 	      MIBMtaEntry->mtaStoredRecipients -= 1;
 	    next_i:;
 	    }
+	    if (ovp->ngroup <= 0)
+	      unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
+
+	    ovp = novp;
+	    nvp = nnvp;
+	    continue;
 	  }
 
-	  if (ovp->ngroup <= 0)
-	    unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
+	  if (!VTXMATCH(ovp,nvp)) {
+
+	    struct vertex *vp;
+	    int i;
+
+	    /* Uugh... Does not match :-( */
+
+	    vp = ovp;
+
+	    while (vp && !VTXMATCH(vp,nvp))
+	      vp = vp->next[L_CTLFILE];
+
+	    if (vp == NULL) {
+	      /* New not in old at all ??? */
+	      if (verbose)
+		sfprintf(sfstdout," -- NEW vertex %p NOT in OLD set!\n", nvp);
+	      return -1;
+	    }
+
+	    /* All OVP instances before matching NVP
+	       are to be removed from OVP chains */
+	    i = 0;
+	    while (ovp && ovp != vp) {
+	      novp = ovp->next[L_CTLFILE];
+
+	      MIBMtaEntry->mtaStoredRecipients -= vp->ngroup;
+	      ovp->ngroup = 0;
+	      unvertex(ovp,-1,1); /* Don't unlink()! free() *just* ovp! */
+
+	      ++i;
+	      ovp = novp;
+	    }
+	    if (verbose)
+	      sfprintf(sfstdout," -- Deleted %d OLD vertices\n", i);
+	    /* Adjust NOVP variable too */
+	    novp = NULL;
+	    if (ovp)
+	      novp = ovp->next[L_CTLFILE];
+	  }
 
 	  ovp = novp;
 	  nvp = nnvp;
