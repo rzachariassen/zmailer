@@ -135,6 +135,9 @@ typedef enum {
     SendAndMail, Reset, Verify, Expand, Help,
     NoOp, Quit, Turn, Tick, Verbose, DebugIdent,
     Turnme, BData, DebugMode, Auth,
+#ifdef HAVE_OPENSSL
+    StartTLS,
+#endif
     Hello2, Mail2, Send2, Verify2	/* 8-bit extensions */
 } Command;
 
@@ -230,6 +233,7 @@ extern int dsn_ok;
 extern int auth_ok;
 extern int ehlo_ok;
 extern int etrn_ok;
+extern int starttls_ok;
 extern int strict_protocol;
 extern int rcptlimitcnt;
 extern int enable_router;

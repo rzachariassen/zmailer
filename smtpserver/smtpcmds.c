@@ -308,8 +308,11 @@ const char *buf, *cp;
 	  type(SS, -250, NULL, "AUTH LOGIN"); /* RFC 2554, M$ Exchange ? */
 	/* NOTE: This seems to require TLS and STARTTLS facilities,
 	   better known as SSL..  TLS: RFC 2246, STARTTLS: RFC 2487 */
-	type (SS, -250, NULL, "STARTTLS"); /* RFC 2487 */
+	if (starttls_ok && !SS->sslmode)
+	  type (SS, -250, NULL, "STARTTLS"); /* RFC 2487 */
+#if 0
 	type (SS, -250, NULL, "TLS");      /* RFC 2246 ? Some M$ thing ? */
+#endif
 #endif
 	if (etrn_ok)
 	  type(SS, -250, NULL, "ETRN");

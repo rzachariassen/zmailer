@@ -198,6 +198,7 @@ int dsn_ok = 1;
 int auth_ok = 0;
 int ehlo_ok = 1;
 int etrn_ok = 1;
+int starttls_ok = 1;
 #ifndef	IDENT_TIMEOUT
 #define	IDENT_TIMEOUT	5
 #endif				/* IDENT_TIMEOUT */

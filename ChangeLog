@@ -1,7 +1,8 @@
 1999-05-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in, acconfig.h, smtpserver/Makefile.in,
-	  smtpserver/smtpserver.h, smtpserver/smtptls.c:
+	  smtpserver/smtpserver.h, smtpserver/smtpcmds.c,
+	  smtpserver/smtpserver.c, smtpserver/smtptls.c:
 	    Configuration options to take into use the OpenSSL
 	    TLS code -- although this is not yet complete thing..
 
