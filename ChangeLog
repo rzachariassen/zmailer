@@ -1,3 +1,10 @@
+2000-09-26  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* man/sm.8, transports/sm/sm.c:
+	    Updated (with a radical hand) the manual page to list
+	    what sendmail 8.11 does with flag characters, and what
+	    the ``sm'' does with same characters (and some more).
+
 2000-09-25  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* transports/hold/hold.c:

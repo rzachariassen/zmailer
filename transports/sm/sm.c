@@ -1,7 +1,7 @@
 /*
  *	Copyright 1988 by Rayan S. Zachariassen, all rights reserved.
  *	This will be free software, but only when it is finished.
- *	Copyright 1994-1997 by Matti Aarnio -- MIME processings
+ *	Copyright 1994-2000 by Matti Aarnio -- MIME processings
  */
 
 #define DefCharset "ISO-8859-1"
@@ -70,6 +70,7 @@ FILE	*verboselog = NULL;
 FILE	*logfp   = NULL;
 int	maxwidth = 0;
 int	can_8bit = 0;		/* Can do 8-bit stuff! */
+int	decode_qp = 0;
 int	keep_header8 = 0;	/* Don't do "MIME-2" to the headers */
 
 int	D_alloc = 0;		/* Memory debugging */
@@ -146,6 +147,8 @@ extern int writemimeline __(( struct maildesc *mp, FILE *fp, const char *buf, in
 #define MO_WANTSDATE		0x08000 /* Wants "Date:" -header */
 #define MO_WANTSFROM		0x10000 /* Wants "From:" -header */
 #define MO_BSMTPHELO		0x20000 /* Add HELO/EHLO to the BSMTP */
+
+#define MO_XENVELOPES		0x40000 /* Write various X-Envelope-*: headers to mesage */
 
 struct exmapinfo {
 	int	origstatus;
@@ -244,7 +247,7 @@ main(argc, argv)
 	    verboselog = stdout;
 	    break;
 	  case '8':
-	    can_8bit = 1;
+	    can_8bit = decode_qp = 1;
 	    break;
 	  case 'H':
 	    keep_header8 = 1;
@@ -380,7 +383,13 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	const char *ds, **av, *s;
 	int status;
 	int content_kind, conversion_prohibited, ascii_clean = 0;
+	time_t now;
+	char *timestring;
 	CONVERTMODE convertmode = _CONVERT_NONE;
+
+	now = time((time_t *)0);
+	timestring = ctime(&now);
+	*(timestring+strlen(timestring)-1) = '\0';
 
 	if (lseek(dp->msgfd, (off_t)(dp->msgbodyoffset), SEEK_SET) < 0L)
 		warning("Cannot seek to message body! (%m)", (char *)NULL);
@@ -639,7 +648,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    }
 	    if (mp->flags & MO_BEBSMTP) {
 	      if (rp->deliverby) {
-		fprintf(tafp," BY=%ld;", rp->deliverby);
+		fprintf(tafp," BY=%ld;", rp->deliverby - now);
 		if (rp->deliverbyflgs & _DELIVERBY_R) fputc('R',tafp);
 		if (rp->deliverbyflgs & _DELIVERBY_N) fputc('N',tafp);
 		if (rp->deliverbyflgs & _DELIVERBY_T) fputc('T',tafp);
@@ -657,13 +666,8 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	/* Now continue with inside stuff -- well, normal UUCP stuff */
 
 	if (mp->flags & (MO_UNIXFROM|MO_REMOTEFROM)) {
-	  char *timestring;
-	  time_t now;
 	  const char *uu = startrp->addr->link->user;
 
-	  now = time((time_t *)0);
-	  timestring = ctime(&now);
-	  *(timestring+strlen(timestring)-1) = '\0';
 	  if (strcmp(startrp->addr->link->channel,"error")==0)
 	    uu = "<>";
 	  fprintf(tafp, "%s%s %s", FROM_, uu, timestring);
@@ -713,7 +717,7 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    }
 	    break;
 	  case 9:		/* QUOTED-PRINTABLE */
-	    if (can_8bit) {
+	    if (decode_qp) {
 	      /* Force(d) to decode Q-P while transfer.. */
 	      convertmode = _CONVERT_8BIT;
 	      /*  UPGRADE TO 8BIT !  */
@@ -745,6 +749,23 @@ deliver(dp, mp, startrp, endrp, verboselog)
 	    uu = "";
 	  append_header(startrp,"Return-Path: <%.999s>", uu);
 	}
+
+	if (mp->flags & MO_XENVELOPES) {
+	  const char *uu;
+	  char **hdrs;
+	  do {
+	    hdrs = has_header(startrp,"X-Envelope-To:");
+	    if (hdrs) delete_header(startrp, hdrs);
+	  } while (hdrs);
+	  for (rp = startrp; rp != endrp; rp = rp->next) {
+	    uu = rp->addr->user;
+	    if (strcmp(rp->addr->link->channel,"error")==0)
+	      uu = "";
+	    append_header(rp,"X-Envelope-To: <%.999s> (uid %s)",
+			  uu, rp->addr->misc);
+	  }
+	}
+
 	if (mp->flags & MO_CRLF) {
 	  fwriteheaders(startrp, tafp, "\r\n", convertmode, maxwidth, NULL);
 	  fprintf(tafp, "\r\n");
@@ -1253,52 +1274,56 @@ readsmcf(file, mailer)
 	SKIPWHILE(isspace, cp);
 	/* process mailer option flags */
 	for (;isascii(*cp) && !isspace(*cp); ++cp) {
+	  int no = 0;
 	  switch (*cp) {
-	  case 'D':		/* this mailer wants a Date: line */
-	    	m.flags |= MO_WANTSDATE;	break;
-	  case 'F':		/* this mailer wants a From: line */
-	    	m.flags |= MO_WANTSFROM;	break;
 	  case '7':	m.flags |= MO_STRIPHIBIT;	break;
-	  case 'E':	m.flags |= MO_ESCAPEFROM;	break;
-	  case 'P':	m.flags |= MO_RETURNPATH;	break;
-	  case 'R':	m.flags |= MO_CRLF;		break;
-	  case 'S':	m.flags |= MO_NORESETUID;	break;
-	  case 'U':	m.flags |= MO_REMOTEFROM;	break;
-	  case 'X':	m.flags |= MO_HIDDENDOT;	break;
-	  case 'f':	m.flags |= MO_FFROMFLAG;	break;
-	  case 'm':	m.flags |= MO_MANYUSERS;	break;
-	  case 'n':	m.flags &= ~MO_UNIXFROM;	break;
-	  case 'r':	m.flags |= MO_RFROMFLAG;	break;
-	  case 's':	m.flags |= MO_STRIPQUOTES;	break;
-	  case 'H':     m.flags |= MO_BSMTPHELO;	break;
+	  case '8':	can_8bit = 1;			break;
+	  case '9':	decode_qp = 1;			break;
+	  case 'A': no=*cp; break;	/* arpanet-compatibility */
 	  case 'b':	m.flags |= (MO_BSMTP|MO_HIDDENDOT); break;
 	  case 'B':	if (m.flags & MO_BESMTP) /* -BB */
 			    m.flags |= MO_BEDSMTP;
 			else
 			    m.flags |= MO_BESMTP|MO_BSMTP|MO_HIDDENDOT;
 			break;
-	  case 'A':		/* arpanet-compatibility */
-	  case 'C':		/* canonicalize remote hostnames */
-	  case 'I':		/* talking to a clone of I */
-	  case 'L':		/* limit line length */
-	  case 'M':		/* this mailer wants a Message-Id: line */
-	  case 'e':		/* expensive mailer */
-	  case 'h':		/* preserve upper case in host names */
-	  case 'l':		/* this is a local mailer */
-	  case 'p':		/* use SMTP return path */
-	  case 'u':		/* preserve upper case in user names */
-	  case 'x':		/* this mailer wants a Full-Name: line */
-	    fprintf(stderr,
-		    "%s: the '%c' sendmail mailer option does not make sense in this environment\n",
-		    progname, *cp);
-	    break;
-	  case '-':		/* ignore */
-	    break;
+	  case 'C': no=*cp; break; /* canonicalize remote hostnames */
+	  case 'D':		/* this mailer wants a Date: line */
+	    	m.flags |= MO_WANTSDATE;	break;
+	  case 'e':	m.flags |= MO_XENVELOPES;	break;
+	  case 'E':	m.flags |= MO_ESCAPEFROM;	break;
+	  case 'f':	m.flags |= MO_FFROMFLAG;	break;
+	  case 'F':		/* this mailer wants a From: line */
+	    	m.flags |= MO_WANTSFROM;	break;
+	  case 'h': no=*cp; break; /* preserve upper case in host names */
+	  case 'H':     m.flags |= MO_BSMTPHELO;	break;
+	  case 'I': no=*cp; break; /* talking to a clone of I */
+	  case 'l': no=*cp; break; /* this is a local mailer */
+	  case 'L': no=*cp; break; /* limit line length */
+	  case 'm':	m.flags |= MO_MANYUSERS;	break;
+	  case 'M': no=*cp; break; /* this mailer wants a Message-Id: line */
+	  case 'n':	m.flags &= ~MO_UNIXFROM;	break;
+	  case 'p': no=*cp; break; /* use SMTP return path */
+	  case 'P':	m.flags |= MO_RETURNPATH;	break;
+	  case 'r':	m.flags |= MO_RFROMFLAG;	break;
+	  case 'R':	m.flags |= MO_CRLF;		break;
+	  case 's':	m.flags |= MO_STRIPQUOTES;	break;
+	  case 'S':	m.flags |= MO_NORESETUID;	break;
+	  case 'u': no=*cp; break; /* preserve upper case in user names */
+	  case 'U':	m.flags |= MO_REMOTEFROM;	break;
+	  case 'x': no=*cp; break; /* this mailer wants a Full-Name: line */
+	  case 'X':	m.flags |= MO_HIDDENDOT;	break;
+
+	  case '-':	break;	/* ignore */
 	  default:
 	    fprintf(stderr,
 		    "%s: unknown sendmail mailer option '%c'\n",
 		    progname, *cp);
 	    break;
+	  }
+	  if (no) {
+	    fprintf(stderr,
+		    "%s: the '%c' sendmail mailer option does not make sense in this environment\n",
+		    progname,no);
 	  }
 	}
 	SKIPWHILE(isspace, cp);

@@ -107,8 +107,14 @@ context of ZMailer will produce an error.
 The flags that change the behaviour of
 .I sm
 and their comparisons against
-.I sendmail-8.10
+.I sendmail-8.11
 are:
+
+.IP \-
+.I sendmail: Not defined/used
+
+.I sm:
+Special ``no flags defined'' dummy entry
 
 .IP ":, |, /, %, @"
 .I sendmail:
@@ -128,6 +134,9 @@ option.  (Don't use MX data, only addresses)
 
 .I sm: Not used
 
+.IP "1, 2"
+.I sendmail, sm: Not defined/used
+
 .IP 3
 .I sendmail:
 Extend the list of characters converted to =XX notation when converting to
@@ -135,6 +144,9 @@ Quoted-Printable to include those that don't map cleanly between ASCII
 and EBCDIC.  Usefull if you have IBM mainframes on site.
 
 .I sm: Not implemented/used
+
+.IP 4
+.I sendmail, sm: Not defined/used
 
 .IP 5
 .I sendmail:
@@ -160,24 +172,15 @@ not touch message headers.
 .I (Not stripping message header is sort of BUG.)
 
 .IP 8
-.I sendmail:
+.I sendmail, sm:
 Tells that the recipient system is 8-bit capable and that no
 8->7 downgrading is needed.
 
-.I sm:
-Behaves like
-.I sendmail's
-flag ``9''.
-
 .IP 9
-.I sendmail:
+.I sendmail, sm:
 If set, do
 .I limited
 7->8 bit MIME conversions.  These conversions are limited to text/plain data.
-
-.I sm:
-The ``8'' flag does this at ZMailer's
-.I sm.
 
 .IP a
 .I sendmail:
@@ -249,7 +252,7 @@ Do not include angle brackets around route-address syntax addresses.
 This mailer is expensive to connect, connections only from queuerun.
 (Meaningless in sm)
 
-.I sm: not used
+.I sm: Throw in a collection of ``X-Envelope-*:'' headers.
 
 .IP E
 .I sendmail, sm:
