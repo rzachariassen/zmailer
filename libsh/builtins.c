@@ -329,6 +329,10 @@ sh_lreplace(avl, il)
 	data = s_copy_chain(tmp);
 
 	dp = &car(cdr(d)); /* This is variable pointing object */
+
+	/* Must make copy of this chain here! */
+	*dp = s_copy_chain(*dp);
+
 	d = *dp;
 	if (fieldname) {
 	  while (d != NULL) {
