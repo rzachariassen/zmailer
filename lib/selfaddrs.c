@@ -93,20 +93,34 @@ struct mbuf;
 #endif
 
 int
-loadifaddresses(sockaddrp)
+loadifaddresses(sockaddrp
+#ifdef TESTMODE
+		, ifsp
+#endif
+		)
      Usockaddr ***sockaddrp;
+#ifdef TESTMODE
+     void ***ifsp;
+#endif
 {
 	int i;
 	int sapcount = -1;
 	int sapspace = 2;
 	Usockaddr **sap;
+#ifdef TESTMODE
+	void **ifs;
+#endif
 
 	sap = (void*)malloc(sizeof(Usockaddr*) * (sapspace + 2));
+#ifdef TESTMODE
+	ifs = (void*)malloc(sizeof(void*) * (sapspace + 2));
+#endif
 
 	if (! sap)
 	  return -3; /* UAARGH! */
 
 #ifdef HAVE_GETIFADDRS
+	/* #warning "loadifaddresses(): HAVE_GETIFADDRS" */
 	{
 	  struct ifaddrs *ifar = NULL, *ifa;
 
@@ -126,6 +140,9 @@ loadifaddresses(sockaddrp)
 		sapspace <<= 1;
 		sap = (void*)realloc(sap, (sizeof(Usockaddr*) *
 					   (sapspace + 2)));
+#ifdef TESTMODE
+		ifs = (void*)realloc(ifs, (sizeof(void*) * (sapspace +2)));
+#endif
 	      }
 
 	      if (! sap) {
@@ -140,6 +157,9 @@ loadifaddresses(sockaddrp)
 		/* pick the whole sockaddr package! */
 		memcpy(si4, sa, sizeof(*si4));
 		sap[++sapcount] = (Usockaddr *)si4;
+#ifdef TESTMODE
+		ifs[sapcount] = strdup(ifa->ifa_name);
+#endif
 	      }
 
 #if defined(AF_INET6) && defined(INET6)
@@ -151,6 +171,9 @@ loadifaddresses(sockaddrp)
 		/* pick the whole sockaddr package! */
 		memcpy(si6, sa, sizeof(*si6));
 		sap[++sapcount] = (Usockaddr *)si6;
+#ifdef TESTMODE
+		ifs[sapcount] = strdup(ifa->ifa_name);
+#endif
 	      }
 #endif
 	    }
@@ -166,6 +189,7 @@ loadifaddresses(sockaddrp)
 #else /* not HAVE_GETIFADDRS */
 
 #if defined(SIOCGLIFCONF) && defined(AF_INET6) && defined(INET6)
+	/* #warning "loadifaddresses(): SIOCGLIFCONF && INET6" */
 	/*#warning "experimental INET6 related SIOCGLIFCONF code activated!"*/
 	{
 	  struct lifconf lifc;
@@ -269,6 +293,9 @@ loadifaddresses(sockaddrp)
 	      sapspace <<= 1;
 	      sap = (void*)realloc(sap, (sizeof(Usockaddr*) *
 					 (sapspace + 2)));
+#ifdef TESTMODE
+	      ifs = (void*)realloc(ifs, (sizeof(void*) * (sapspace +2)));
+#endif
 	    }
 
 	    if (! sap) {
@@ -305,6 +332,7 @@ done_this_ipv6:
 #else /* SIOCGLIFCONF && IPv6 */
 
 #ifdef SIOCGIFCONF
+	/* #warning "loadifaddresses(): SIOCGIFCONF && INET(4)" */
 	{
 	  struct ifconf ifc;
 	  int ifbufsize = 4 * sizeof(struct ifreq) + 4;
@@ -407,6 +435,9 @@ done_this_ipv6:
 	      sapspace <<= 1;
 	      sap = (void*)realloc(sap, (sizeof(Usockaddr*) *
 					 (sapspace + 2)));
+#ifdef TESTMODE
+	      ifs = (void*)realloc(ifs, (sizeof(void*) * (sapspace +2)));
+#endif
 	    }
 	    if (! sap) {
 	      close(s);
@@ -438,6 +469,11 @@ done_this_ipv6:
 	  *sockaddrp = sap;
 
 	  sap[++sapcount] = NULL;
+
+#ifdef TESTMODE
+	  *ifsp = ifs;
+	  ifs[sapcount] = NULL;
+#endif
 
 	  return sapcount;
 	}
@@ -670,22 +706,26 @@ char *argv[];
 {
   int cnt, i;
   Usockaddr **sa;
+  void **ifs;
   char buf[80];
+  char *ifname;
 
-  cnt = loadifaddresses(&sa);
+  cnt = loadifaddresses(&sa, &ifs);
 
   printf("loadifaddresses rc=%d\n", cnt);
 
   for (i = 0; i < cnt; ++i) {
+    ifname = ifs ? ifs[i] : NULL;
+    if (!ifname) ifname = "?";
     switch(sa[i]->v4.sin_family) {
     case AF_INET:
       inet_ntop(AF_INET, &sa[i]->v4.sin_addr, buf, sizeof(buf));
-      printf("IPv4: [%s]\n", buf);
+      printf("IPv4: %8s [%s]\n", ifname, buf);
       break;
 #if defined(AF_INET6) && defined(INET6)
     case AF_INET6:
       inet_ntop(AF_INET6, &sa[i]->v6.sin6_addr, buf, sizeof(buf));
-      printf("IPv6: [IPv6:%s]\n",buf);
+      printf("IPv6: %8s [IPv6:%s]\n", ifname, buf);
       break;
 #endif
     default:

@@ -24,7 +24,7 @@
 	       Very least..
 
 
-    Original copyright by Matti Aarnio <mea@nic.funet.fi> 1997,2000,2004,
+    Original copyright by Matti Aarnio <mea@nic.funet.fi> 1997,2000,2004,2005,
     modifications by Eugene Crosser <crosser@average.org> 2002
 */
 
@@ -76,13 +76,14 @@ zgetbindaddr(bindspec, af, sap)
 	memset(sap, 0, sizeof(*sap));
 
 #if defined(AF_INET6) && defined(INET6)
-	if (cistrcmp(bindspec, "any6") == 0) {
+	if (cistrcmp(bindspec, "any6") == 0 && af) {
 	  sap->v6.sin6_family = AF_INET6;
 	  /* All other fields are zero.. */
 
-	} else 	if (cistrncmp(bindspec, "[ipv6 ", 6) == 0 ||
-	    cistrncmp(bindspec, "[ipv6:", 6) == 0 ||
-	    cistrncmp(bindspec, "[ipv6.", 6) == 0) {
+	} else 	if (af &&
+		    (cistrncmp(bindspec, "[ipv6 ", 6) == 0 ||
+		     cistrncmp(bindspec, "[ipv6:", 6) == 0 ||
+		     cistrncmp(bindspec, "[ipv6.", 6) == 0)) {
 		char *s = strchr(bindspec, ']');
 		if (s) *s = 0;
 		if (inet_pton
@@ -94,11 +95,11 @@ zgetbindaddr(bindspec, af, sap)
 		sap->v6.sin6_family = AF_INET6;
 	} else
 #endif
-	if (cistrcmp(bindspec, "any") == 0) {
+	if (cistrcmp(bindspec, "any") == 0 && !af) {
 	  sap->v4.sin_family = AF_INET;
 	  /* All other fields are zero.. */
 
-	} else if (*bindspec == '[') {
+	} else if (*bindspec == '[' && !af) {
 	  char *s = strchr(bindspec, ']');
 	  if (s) *s = 0;
 	  if (inet_pton(AF_INET, bindspec + 1, &sap->v4.sin_addr) < 1) {
@@ -108,43 +109,43 @@ zgetbindaddr(bindspec, af, sap)
 	  }
 	  sap->v4.sin_family = AF_INET;
 	} else {
-		if (CISTREQN(bindspec, "iface:", 6)) {
-		  bindspec += 6;
-		  if (strncmp(bindspec,"v4:",3) == 0) {
-		    af = AF_INET;
-		    bindspec += 3;
-		  }
+	  if (CISTREQN(bindspec, "iface:", 6)) {
+	    bindspec += 6;
+	    if (strncmp(bindspec,"v4:",3) == 0) {
+	      af = AF_INET;
+	      bindspec += 3;
+	    }
 #if defined(AF_INET6) && defined(INET6)
-		  if (strncmp(bindspec,"v6:",3) == 0) {
-		    af = AF_INET6;
-		    bindspec += 3;
-		  }
-		  if (af == AF_INET6) {
-		    sap->v6.sin6_family = AF_INET6;
-		    if (zgetifaddress( AF_INET6, bindspec, sap )) {
-		      /* Didn't get IPv6 interface address of given name.. */
-		      if (zgetifaddress( AF_INET6, bindspec, sap )) {
-			/* No recognized interface! */
-			result = 1;
-		      }
-		    }
-		    return result;
-		  }
-#endif
-		  if (af == 0 || af == AF_INET) {
-		    if (zgetifaddress( AF_INET, bindspec, sap )) {
-		      /* No recognized interface! */
-		      result = 1;
-		    }
-		    return result;
-		  }
-
-		} else {
-		  /* XXX: TODO: Try to see if this is an interface name,
-		          and pick IPv4 and/or IPv6 addresses for that
-			  interface. */
+	    if (strncmp(bindspec,"v6:",3) == 0) {
+	      af = AF_INET6;
+	      bindspec += 3;
+	    }
+	    if (af == AF_INET6) {
+	      sap->v6.sin6_family = AF_INET6;
+	      if (zgetifaddress( AF_INET6, bindspec, sap )) {
+		/* Didn't get IPv6 interface address of given name.. */
+		if (zgetifaddress( AF_INET6, bindspec, sap )) {
+		  /* No recognized interface! */
 		  result = 1;
 		}
+	      }
+	      return result;
+	    }
+#endif
+	    if (af == 0 || af == AF_INET) {
+	      if (zgetifaddress( AF_INET, bindspec, sap )) {
+		/* No recognized interface! */
+		result = 1;
+	      }
+	      return result;
+	    }
+	    
+	  } else {
+	    /* XXX: TODO: Try to see if this is an interface name,
+	       and pick IPv4 and/or IPv6 addresses for that
+	       interface. */
+	    result = 1;
+	  }
 	}
 	return result;
 }
