@@ -12,7 +12,7 @@ ZCONFIG=@ZMAILERCFGFILE@
 
 cd $LOGDIR
 
-FILES="router scheduler smtpserver smtp"
+FILES="router scheduler smtpserver smtp mailbox"
 
 for x in $FILES
 do
