@@ -1,5 +1,23 @@
 1998-06-03  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/zmailer.sh.in, proto/newaliases.in, proto/newdb.in,
+	  proto/newfqdnaliases.in, utils/makedb/makedb.c:
+	    - "makedb" got "-s" option so that in alias mode (-a) it
+	      will not utter final statistics report
+	    - Created command "zmailer newdb" which generates four
+	      well known flatfile databases into their respective
+	      binary views. (localnames, routes, aliases, fqdnaliases)
+	      If all goes ok, this command prints no statistics of
+	      databases.  (You could guess: somebody asked for this :) )
+	    - Others just recognize the "-s" option, and pass it around
+	      properly.
+	
+	* router/functions.c:
+	    Removed large chunk of dead code (#if 0 ..)
+	
+	* proto/Makefile.in:
+	    Fixed configuration file back-reference
+
 	* smtpserver/smtpcmds.c:
 	    When printing HELO-string into rcvdfrom comment, quote
 	    also "(", and ")" characters.
