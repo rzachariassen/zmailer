@@ -192,14 +192,14 @@ unctlfile(cfp, no_unlink)
 	struct ctlfile *cfp;
 	int no_unlink;
 {
-	char	path[MAXPATHLEN+1];
-
-	if (cfp->dirind > 0)
-	  sprintf(path, "%s/%s", cfpdirname(cfp->dirind), cfp->mid);
-	else
-	  strcpy(path, cfp->mid);
-
 	if (!no_unlink && !procselect) {
+	  char	path[MAXPATHLEN+1];
+
+	  if (cfp->dirind > 0)
+	    sprintf(path, "%s/%s", cfpdirname(cfp->dirind), cfp->mid);
+	  else
+	    strcpy(path, cfp->mid);
+
 	  reporterrs(cfp);
 
 	  if (do_syslog) {
@@ -234,7 +234,7 @@ unctlfile(cfp, no_unlink)
 	    }
 	  }
 	} else {
-#if 1
+#if 0
 	  /* We will LOOSE this from the schedules -- add info about
 	     it into the indirscanqueue -- at the tail... */
 	  if (cfp->id)
