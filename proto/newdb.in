@@ -7,9 +7,8 @@ LUOPT=""
 AOPT=""
 SOPT=""
 TOPT=""
-more=1
 err=0
-while [ $more ]; do
+while true; do
   case "x$1" in
   x-l)
     LUOPT="-l"
@@ -33,9 +32,10 @@ while [ $more ]; do
     ;;
   x-*)
     err=1
+    break
     ;;
   *)
-    more=0
+    break
     ;;
   esac
 done

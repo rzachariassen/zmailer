@@ -1,5 +1,9 @@
 1998-06-11  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
+	* proto/makedb.in:
+	    Altered the parameter pickup routines to be more generic
+	    in view of what *sh shells support: while true; do .. break .. done
+
 	* transports/mailbox/mailbox.c:
 	    Mistakes after code movements in  program()  function :-(
 
