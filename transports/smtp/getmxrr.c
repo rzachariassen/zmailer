@@ -393,7 +393,7 @@ getmxrr(SS, host, mx, maxmx, depth)
 		ai->ai_protocol = IPPROTO_TCP;
 		ai->ai_addr     = (struct sockaddr *)usa;
 		ai->ai_addrlen  = sizeof(*usa);
-		ai->ai_canonname = canon;
+		ai->ai_canonname = /* canon */ NULL;
 
 		ai->ai_next     = mx[i].ai;
 		mx[i].ai        = ai;
