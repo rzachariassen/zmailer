@@ -1482,7 +1482,10 @@ deliver(SS, dp, startrp, endrp)
 			   "smtp; 566 (Message write failed; possibly remote rejected the message)"
 #endif
 			   );
-	      diagnostic(rp, r, 0, "%s", SS->remotemsg);
+	      /* If remote closed socket, don't diagnose here, diagnose
+		 latter.. (might also retry via other server!) */
+	      if (r != EX_TEMPFAIL)
+		diagnostic(rp, r, 0, "%s", SS->remotemsg);
 	    }
 
 	  /* Diagnostics are done, protected (failure-)section ends! */

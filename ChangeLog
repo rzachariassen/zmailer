@@ -1,8 +1,20 @@
+2000-02-25  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* transports/smtp/smtp.c:
+	    If DATA-dot-phase ending dot yields EX_TEMPFAIL, don't
+	    do diagnostics right after smtpwrite(".").  It leads
+	    to bad retry results :-/
+
+	* smtpserver/smtpserver.c:
+	    Make '-l SYSLOG' option to work in parallel with possible
+	    '-l /path/to/file' logging option.
+
 2000-02-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* configure.in:
 	    Moved   --with-zconfig=  code around a bit, apparently it was
 	    quite ineffective, and has been that way for quite a while :-/
+	    (More so the documentation spoke of some other option..)
 
 2000-02-17  Eugene Crosser  <crosser@online.ru>
 
@@ -20,7 +32,7 @@
 	    - Streamlined MAILQv2 processing -- it should now be as low
 	      latency service as possible, even with long-lasting operations
 	      blocking at things like input queue scanner.
-	    - Implemented a 30 second self-apopteosis for MAILQv2 sockets.
+	    - Implemented a 30 second apopteosis for MAILQv2 sockets.
 	    - Implemented MAILQv2 action ETRN -- exactly alike the SMTP-
 	      server one.
 

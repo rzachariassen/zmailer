@@ -465,12 +465,13 @@ char **argv;
 	    checkhelo = 1;
 	    break;
 	case 'l':		/* log file(prefix) */
-	    logfile = optarg;
 
 	    if (strcmp(logfile,"SYSLOG")==0) {
 	      logfp_to_syslog = 1;
-	      logfile = NULL;
+	      break;
 	    }
+
+	    logfile = optarg;
 
 	    break;
 	case 'S':		/* Log-suffix style */

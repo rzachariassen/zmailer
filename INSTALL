@@ -62,7 +62,7 @@ Installation procedure:
 		--with-postoffice=/var/spool/postoffice		\
 		--with-mailbox=/var/mail			\
 		--with-logdir=/var/log/mail			\
-		--with-zmailer-conf=/etc/zmailer.conf
+		--with-zconfig=/etc/zmailer.conf
 
 	Or an example from my development machine:
 
