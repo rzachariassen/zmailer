@@ -38,7 +38,10 @@ int fd;
 #ifdef HAVE_STATVFS
     struct statvfs statbuf;	/* SysV and BSD definitions differ..    */
     if ((rc = fstatvfs(fd, &statbuf)) == 0) {
+      if (statbuf.f_frsize != 0)
 	availspace = statbuf.f_bavail * statbuf.f_frsize;
+      else
+	availspace = statbuf.f_bavail * statbuf.f_bsize;
     }
 #else
 #ifdef STAT_STATFS3_OSF1
