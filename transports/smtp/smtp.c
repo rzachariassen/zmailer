@@ -3516,7 +3516,7 @@ smtp_sync(SS, r, nonblocking)
 		  err = errno;
 	      }
 
-	    if (!nonblocking) {
+	    if (!nonblocking && len < 0) {
 
 	      err = select_sleep(infd, timeout);
 	      en = errno;
