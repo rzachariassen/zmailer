@@ -1,5 +1,11 @@
 Known/suspected bugs/Missing Features on current ZMailer sources
 
+- The rewritten  libc/getaddrinfo.c  is propably leaking memory,
+  and/or yielding stuff in AI chain when it should not.
+
+- "Overview" -- revise at least the list subscription instructions;
+		verify also other document files
+
 - Linux glibc 2.2 (or its pre-versions) and DB 2.x vs. DB 3.x vs ...
 	SleepyCat DB 3.x is an unknown entity so far..
 
@@ -261,6 +267,7 @@ transports/smtp:
 
 
 - transports/sm/sm.c:
+	- Support ESMTP + DELIVERBY (RFC 2852)
 	- what UID it runs programs like procmail with ?
 	  What uid it should run them ?
 	  I don't think the current (up to 2.99.49p*) way of running
