@@ -1,9 +1,14 @@
 2004-04-20  Matti Aarnio  <mea@zmailer.org>
 
-	* smtpserver/subdaemons.c, smtpserver/subdaemon-ctf.c:
+	* smtpserver/subdaemons.c, smtpserver/subdaemon-ctf.c,
+	  smtpserver/cfgread.c:
 	    Run parallel contentfilters in case one isn't
 	    enough..  Startup code side-effect is that when
 	    one is needed, _max_set_ will be started.
+	       "PARAM contentfilter-maxpar nn"
+	    limits the number of parallel started contentfilters.
+	    Hard-limit inside the code is 20, above which this
+	    parameter can not increase the number of CFs.
 
 2004-04-19  Matti Aarnio  <mea@zmailer.org>
 

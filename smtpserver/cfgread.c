@@ -340,6 +340,11 @@ static void cfparam(str, size, cfgfilename, linenum)
       if (access(param1, X_OK) == 0)
 	contentfilter = strdup(param1);
     }
+    else if (cistrcmp(name, "contentfilter-maxpar") == 0 && param1) {
+      contentfilter_maxctfs = atoi(param1);
+      if (contentfilter_maxctfs < 1)
+	contentfilter_maxctfs = 1;
+    }
     else if (cistrcmp(name, "debug-contentfilter") == 0) {
       debug_content_filter = 1;
     }

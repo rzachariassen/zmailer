@@ -691,6 +691,7 @@ extern int  smtp_report_ip __((SmtpState *SS, const char *ip));
 /* contentpolicy.c */
 extern int contentpolicy __((struct policytest *rel, struct policystate *ps, const char *fname));
 /* subdaemon-ctf.c */
+extern int contentfilter_maxctfs;
 extern char *contentfilter_proc __((void **, const char *fname));
 extern void  smtpcontentfilter_kill __((void *));
 

@@ -46,7 +46,8 @@
 
 
 /* FIXME: auto-detect when the thing pointed by  'contentpath' 
-          has become obsolete!  
+          has become obsolete!  ( = needs restart of the server..
+	  or reconnect, or ...)
 */
 
 #include "smtpserver.h"
@@ -69,7 +70,10 @@ struct subdaemon_handler subdaemon_handler_contentfilter = {
 	subdaemon_handler_ctf_shutdown
 };
 
-#define MAXCTFS 8
+#define MAXCTFS 20
+
+static int MaxCtfs = 2;
+int contentfilter_maxctfs;
 
 typedef struct state_ctf {
 	struct peerdata *replypeer[MAXCTFS];
@@ -262,9 +266,13 @@ subdaemon_handler_ctf_init (statep)
 	struct state_ctf *state = calloc(1, sizeof(struct state_ctf));
 	*statep = state;
 
+	MaxCtfs = contentfilter_maxctfs;
+	if (MaxCtfs > MAXCTFS) MaxCtfs = MAXCTFS;
+	if (MaxCtfs < 1) MaxCtfs = 1;
+
 	if (state) {
 	  int idx;
-	  for (idx = 0; idx < MAXCTFS; ++idx) {
+	  for (idx = 0; idx < MaxCtfs; ++idx) {
 	    /* state->contentfilterpid[idx] = 0; */
 	    state->fromfd[idx] = -1;
 	  }
@@ -304,7 +312,7 @@ subdaemon_handler_ctf_input (state, peerdata)
 
 	/* FIXME:FIXME: don't start more than necessary! */
 
-	for (idx = 0; idx < MAXCTFS; ++idx) {
+	for (idx = 0; idx < MaxCtfs; ++idx) {
 
 	  if (CTF->replypeer[idx])
 	    continue;
@@ -350,13 +358,14 @@ subdaemon_handler_ctf_preselect (state, rdset, wrset, topfdp)
 {
 	Ctfstate *CTF = state;
 	int idx;
+	struct stat stbuf;
 
 	if (! CTF) return 0; /* No state to monitor */
 
 	/* If we have contentfilter underneath us,
 	   check if it has something to say! */
  
-	for (idx = 0; idx < MAXCTFS; ++idx) {
+	for (idx = 0; idx < MaxCtfs; ++idx) {
 	  if (CTF->fromfd[idx] >= 0) {
 	    _Z_FD_SETp(CTF->fromfd[idx], rdset);
 	    if (*topfdp < CTF->fromfd[idx])
@@ -379,7 +388,7 @@ subdaemon_handler_ctf_postselect (state, rdset, wrset)
 
 	if (! CTF) return -1; /* No state to monitor */
 
-	for (idx = 0; idx < MAXCTFS; ++idx) {
+	for (idx = 0; idx < MaxCtfs; ++idx) {
 	  if (CTF->fromfd[idx] < 0)
 	    continue; /* No contentfilter there.. */
 
