@@ -4067,7 +4067,7 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	      if (SS->verboselog)
 		fwrite(buf, len, 1, SS->verboselog);
 
-	      r = fwrite(buf,1,len,SS->smtpfp);
+	      r = fwrite(buf, len, 1,SS->smtpfp);
 	      err = (r != len);
 
 	      if (SS->smtp_outcount > SS->smtp_bufsize) {
