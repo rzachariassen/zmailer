@@ -667,6 +667,10 @@ static const char * _skip_822atom(p, tspecial)
 	  default:
 	    break;
 	  }
+
+
+	  if (isdelim && s > p) break;
+
 	  ++s;
 	  if (c == ':' && *s == ':')
 	    ++s; /* Consider '::' as single atom -- DECNET token */
