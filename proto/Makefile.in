@@ -131,7 +131,7 @@ mailbin: $(PZCONFIG) $(PMAILBIN) $(MD5SUM)
 		name=`expr $$file : '\([^.]*\)'` ;		\
 		echo $(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
 		$(INSTALL) -m 755 $$file $(prefix)$$MAILBIN/$$name ; \
-	done ;							\
+	done)
 
 mailshare:	$(PZCONFIG) $(PMAILSHARE) $(MD5SUM)
 	-@(. $(PZCONFIG) ; pwd=`pwd` ;				\
