@@ -61,12 +61,12 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-yp-lib='-L... -lyp'  Linker arguments for the YP/NIS in the router"
 ac_help="$ac_help
-  --with-ldap-prefix       Prefix of UMich/NetScape LDAP includes, and library
+  --with-ldap-prefix=/usr  Prefix of UMich/NetScape LDAP includes, and library
                            the directories are  PREFIX/include/ and PREFIX/lib/"
 ac_help="$ac_help
-  --with-ldap-include-dir  Directory of UMich/NetScape LDAP includes"
+  --with-ldap-include-dir=/.. Directory of UMich/NetScape LDAP includes"
 ac_help="$ac_help
-  --with-ldap-library-dir  Directory of UMich/NetScape LDAP libraries"
+  --with-ldap-library-dir=/... Directory of UMich/NetScape LDAP libraries"
 ac_help="$ac_help
   --with-ipv6              Have IPv6 in system, and want to use it"
 ac_help="$ac_help
@@ -2384,9 +2384,9 @@ fi
 
 
 LIBNIS=""
-# Check whether --with-yp or --without-yp was given.
-if test "${with_yp+set}" = set; then
-  withval="$with_yp"
+# Check whether --with-yp-lib or --without-yp-lib was given.
+if test "${with_yp_lib+set}" = set; then
+  withval="$with_yp_lib"
   LIBNIS="$withval"
 fi
 

@@ -416,7 +416,7 @@ AC_ARG_WITH(yp, [  --with-yp                Have YP/NIS in system, and want to u
 
 AC_SUBST(LIBNIS)
 LIBNIS=""
-AC_ARG_WITH(yp, [  --with-yp-lib='-L... -lyp'  Linker arguments for the YP/NIS in the router],
+AC_ARG_WITH(yp-lib, [  --with-yp-lib='-L... -lyp'  Linker arguments for the YP/NIS in the router],
 	LIBNIS="$withval")
 
 #AC_CHECK_HEADERS(rpc/rpc.h rpcsvc/yp_prot.h rpcsvc/ypclnt.h)
@@ -831,7 +831,7 @@ fi
 AC_SUBST(INCLLDAP)
 LIBLDAP=""
 INCLLDAP=""
-AC_ARG_WITH(ldap-prefix,[  --with-ldap-prefix       Prefix of UMich/NetScape LDAP includes, and library
+AC_ARG_WITH(ldap-prefix,[  --with-ldap-prefix=/usr  Prefix of UMich/NetScape LDAP includes, and library
                            the directories are  PREFIX/include/ and PREFIX/lib/],
 	use_ldap=1)
 if test "$use_ldap" = 1 ; then
@@ -843,7 +843,7 @@ if test "$use_ldap" = 1 ; then
     fi
 fi
 use_ldap=0
-AC_ARG_WITH(ldap-include-dir,[  --with-ldap-include-dir  Directory of UMich/NetScape LDAP includes],
+AC_ARG_WITH(ldap-include-dir,[  --with-ldap-include-dir=/.. Directory of UMich/NetScape LDAP includes],
 	use_ldap=1)
 if test "$use_ldap" = 1 ; then
     AC_DEFINE(HAVE_LDAP)
@@ -853,7 +853,7 @@ if test "$use_ldap" = 1 ; then
     fi
 fi
 use_ldap=0
-AC_ARG_WITH(ldap-library-dir,[  --with-ldap-library-dir  Directory of UMich/NetScape LDAP libraries],
+AC_ARG_WITH(ldap-library-dir,[  --with-ldap-library-dir=/... Directory of UMich/NetScape LDAP libraries],
 	use_ldap=1)
 if test "$use_ldap" = 1 ; then
     AC_DEFINE(HAVE_LDAP)
