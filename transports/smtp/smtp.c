@@ -3796,13 +3796,15 @@ smtpwrite(SS, saverpt, strbuf, pipelining, syncrp)
 	struct rcpt *syncrp;
 {
 	register char *s;
-	volatile char *cp;
+	char *cp;
 	int response, infd, outfd, rc;
-	volatile int r = 0, i;
+	int r = 0, i;
 	char *se;
 	char *status = NULL;
 	char buf[2*8192]; /* XX: static buffer - used in several places */
 	char ch;
+
+	&cp; &r; &i;
 
 	gotalarm = 0;
 
