@@ -94,7 +94,7 @@ struct mbuf;
 #include <arpa/inet.h>
 #include <net/if.h>
 
-#include "l-if.h"
+/* #include "l-if.h" --- just some fake test stuff for SIOCGLIF*** */
 
 
 int
