@@ -53,6 +53,9 @@
 	    separated fields are printed.  If the flag is 't',
 	    field separator is TAB-character.   Similarly for ROUTER
 	    there are 'R' and 'r' keycodes.
+	    (Turns out that either syslogd, or syslog() routine
+	     at libc converts all control characters to ^I (in TAB case)
+	     pairs..  D'uh...)
 
 1999-11-09  Matti Aarnio  <mea@mea.tmt.tele.fi>
 

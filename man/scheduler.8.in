@@ -224,7 +224,8 @@ A clause consists of:
 \- 0 or more variable assignments or keywords (described below).
 .PP
 There are several possible
-.BR PARAM -assignments starting at column 0, more of them below.
+.BR PARAM -assignments
+starting at column 0, more of them below.
 .PP
 If the selection pattern does not contain a '/', it is assumed to
 be a channel pattern and the host pattern is assumed to be the wildcard '*'.
@@ -763,6 +764,28 @@ Unimplemented.
 Unimplemented.
 .IP KILL\ THREAD\ channel\ host
 Unimplemented.
+.PP
+Responses are written out to same socket in POP-like manner:
+.sp
+.ta 0.5i
+.nf
+	AUTH .... \\n
+	+OK  or  -LOGIN FAILED \\n
+
+	SHOW SNMP\\n
+	+OK until LF.LF\\n
+	text\\n
+	text\\n
+	.\\n
+.fi
+.sp
+.PP
+If the output text contains a dot at the beginning of the line,
+it is duplicated in SMTP (and POP) style.
+.PP
+Of various commands, the "SHOW" class implements multiple
+text-line outputs, others only "+OK" (or "-ERR...").
+.PP
 .SH MAILQv2 AUTHENTICATION FILE
 .PP
 For autenticating MAILQv2 protocol users, system can use
@@ -772,7 +795,7 @@ with the file to authenticate and parametrize what user can do
 thru the MAILQv2 port.
 .PP
 .sp
-.ta 0.5i
+.ta 0.5i 1.0i
 .nf
 #
 # APOP-like authentication control file for the ZMailer scheduler.
@@ -786,16 +809,16 @@ thru the MAILQv2 port.
 # Third field is at the moment a WORK IN PROGRESS!
 #
 # SECURITY NOTE:
-#   OWNER:      root
+#   OWNER:	root
 #   PROTECTION: 0600
 #
 # Attribute tokens:
-#       ALL     well, a wild-card enabling everything
-#       SNMP    "SHOW SNMP"
-#       QQ      "SHOW QUEUE SHORT"
-#       TT      "SHOW QUEUE THREADS", "SHOW THREAD channel host"
-#       ETRN    "START THREAD channel host"
-#       KILL    "KILL THREAD channel host", "KILL MSG spoolid"
+#	ALL	well, a wild-card enabling everything
+#	SNMP	"SHOW SNMP"
+#	QQ	"SHOW QUEUE SHORT"
+#	TT	"SHOW QUEUE THREADS", "SHOW THREAD channel host"
+#	ETRN	"START THREAD channel host"
+#	KILL	"KILL THREAD channel host", "KILL MSG spoolid"
 #
 nobody:nobody:SNMP ETRN
 #watcher:zzzzz:SNMP QQ TT ETRN
