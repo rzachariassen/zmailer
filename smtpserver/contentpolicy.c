@@ -77,7 +77,6 @@ const char *fname;
 {
   char responsebuf[8192];
   int c, i, rc;
-  char *s;
 
   if (state->always_reject)
     return -1;

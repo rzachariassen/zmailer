@@ -75,7 +75,6 @@ int	D_alloc = 0;
 
 #include "ta.h"
 
-extern char *qoutputfile;
 extern int errno, pokedaemon();
 
 #ifndef strchr
@@ -103,7 +102,7 @@ char	path[MAXPATHLEN];
 #define  ISSPACE(cc) (cc == ' ' || cc == '\t')
 
 
-char *host = NULL;
+const char *host = NULL;
 
 int
 main(argc, argv)
@@ -113,7 +112,7 @@ main(argc, argv)
 	int fd, c, errflg, eval;
 	struct passwd *pw;
 #ifndef	AF_INET
-	char *rendezvous = NULL;
+	const char *rendezvous = NULL;
 	FILE *fp;
 	struct stat stbuf;
 	int r, pid, dsflag;

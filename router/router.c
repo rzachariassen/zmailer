@@ -78,8 +78,8 @@ main(argc, argv)
 	int c, errflg, daemonflg, killflg, interactiveflg, tac;
 	int version;
 	long offout, offerr;
-	char *config, *cp;
-	const char *tav[20], *av[3];
+	char *config;
+	const char *tav[20], *av[3], *cp;
 #ifdef	XMEM
 	FILE *fp;
 #endif	/* XMEM */
@@ -232,7 +232,7 @@ main(argc, argv)
 	c = optind;	/* save optind since builtins can interfere with it */
 
 	if (daemonflg && logfn == NULL) {
-		if ((cp = getzenv("LOGDIR")) != NULL)
+		if ((cp = (char *) getzenv("LOGDIR")) != NULL)
 			logdir = cp;
 		logfn = smalloc(MEM_PERM, 2 + (u_int)(strlen(logdir)
 					  + strlen(progname)));

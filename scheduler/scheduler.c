@@ -122,7 +122,7 @@ char * procselect = NULL;	/* Non-null defines  channel/host specifier
 char *  procselhost = NULL;	/* Just spliced out 'host'-part of the above */
 extern int forkrate_limit;	/* How many forks per second ? */
 int	mailqmode = 1;		/* ZMailer v1.0 mode on mailq */
-char *  mailqsock = NULL;
+const char *  mailqsock = NULL;
 
 static int vtxprep_skip      = 0;
 static int vtxprep_skip_any  = 0;
@@ -468,11 +468,11 @@ main(argc, argv)
 	const char *argv[];
 {
 	struct ctlfile *cfp;
-	char *config, *cp;
+	const char *config, *cp;
 	int i, daemonflg, c, errflg, version, fd;
 	long offout, offerr;
 
-	char *t, *syslogflg;
+	const char *t, *syslogflg;
 
 #ifdef GLIBC_MALLOC_DEBUG__ /* memory allocation debugging with GLIBC */
 	old_malloc_hook = __malloc_hook;
@@ -717,12 +717,12 @@ main(argc, argv)
 	  config = emalloc(3 + (u_int)(strlen(mailshare)
 				       + strlen(progname)
 				       + strlen(qcf_suffix)));
-	  sprintf(config, "%s/%s.%s", mailshare, progname, qcf_suffix);
+	  sprintf((char*)config, "%s/%s.%s", mailshare, progname, qcf_suffix);
 	}
 	cehead = readconfig(config);
 	if (cehead == NULL) {
 	  cp = emalloc(strlen(config)+50);
-	  sprintf(cp, "null control file, probably errors in it: %s", config);
+	  sprintf((char*)cp, "null control file, probably errors in it: %s", config);
 	  die(1, cp);
 	  /* NOTREACHED */
 	}

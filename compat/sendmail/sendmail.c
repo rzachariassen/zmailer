@@ -423,7 +423,7 @@ otherprog:
 		av[0] = "smtp-in";
 		av[1] = "-i";
 		n = 2;
-		cp = getzenv("SMTPOPTIONS"); /* Normal smtp-server options */
+		cp = (char*) getzenv("SMTPOPTIONS"); /* Normal smtp-server options */
 		/* pass on suidness */
 		s = strtok(cp, " \t\"'");
 		do {

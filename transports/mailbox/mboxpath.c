@@ -138,14 +138,15 @@ int main(argc,argv)
 	char *uname;
 	int c;
 	char *s;
+	const char *cs;
 	struct stat st;
 	const char **maild;
 	struct passwd *pw;
 	char pathbuf[2000]; /* more than enough, he said.. */
 
-	s = getzenv("MAILBOX");
-	if (s != NULL) {
-	  maildirs[0] = s;
+	cs = getzenv("MAILBOX");
+	if (cs != NULL) {
+	  maildirs[0] = cs;
 	  maildirs[1] = NULL;
 	}
 

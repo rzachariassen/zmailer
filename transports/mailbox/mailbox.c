@@ -416,6 +416,7 @@ main(argc, argv)
 	const char *argv[];
 {
 	char *s;
+	const char *cs;
 	int c, errflg, fd;
 	char *host = NULL;	/* .. and what is my host ? */
 	int matchhost = 0;
@@ -449,9 +450,9 @@ main(argc, argv)
 	else
 	  ++progname;
 
-	s = getzenv("MAILBOX");
-	if (s != NULL) {
-	  maildirs[0] = s;
+	cs = getzenv("MAILBOX");
+	if (cs != NULL) {
+	  maildirs[0] = cs;
 	  maildirs[1] = NULL;
 	}
 
@@ -1287,7 +1288,7 @@ deliver(dp, rp, usernam, timestring)
 	  
 	  if (!hasdir) {	/* No directory ?? */
 
-	    char *mailbox = getzenv("MAILBOX");
+	    const char *mailbox = getzenv("MAILBOX");
 	    notaryreport(rp->addr->user,"failed",
 			 "5.3.5 (System mailbox configuration is wrong, we are in deep trouble..)",
 			 "x-local; 566 (System mailbox configuration is wrong!  No such directory!  Aargh!)");

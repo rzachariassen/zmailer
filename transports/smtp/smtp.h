@@ -214,7 +214,7 @@ typedef	struct fd_set { fd_mask	fds_bits[1]; } fd_set;
 #define GETMXRRDEBUG		1
 
 
-extern char *defcharset;
+extern const char *defcharset;
 extern char myhostname[MAXHOSTNAMELEN+1];
 extern int myhostnameopt;
 extern char errormsg[ZBUFSIZ]; /* Global for the use of  dnsgetrr.c */

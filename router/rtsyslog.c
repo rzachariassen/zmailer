@@ -34,8 +34,8 @@ int size, nrcpts;
 {
   char spoolid[30];		/* Min. space: 6+8+1 chars	*/
   time_t now;
-  static char *syslogflg = NULL;
-  char *t;
+  static const char *syslogflg = NULL;
+  const char *t;
 
   /* Syslogflag 'R' for classical format, and 'r' for TAB-separated format */
 

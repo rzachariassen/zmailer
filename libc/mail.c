@@ -413,7 +413,7 @@ _mail_close_(fp,inop, mtimep)
 	char subdirhash[6];
 
 	if (routersubdirhash < 0) {
-	  char *ss = getzenv("ROUTERDIRHASH");
+	  const char *ss = getzenv("ROUTERDIRHASH");
 	  if (ss && *ss == '1')
 	    routersubdirhash = 1;
 	  else
@@ -479,10 +479,10 @@ _mail_close_(fp,inop, mtimep)
 	s         = NULL;
 	if (mail_priority) {
 	  /* We are asked to place the mail somewhere else */
-	  char *routerdirs = getzenv("ROUTERDIRS");
+	  const char *routerdirs = getzenv("ROUTERDIRS");
 	  if (routerdirs) {
 	    int i = mail_priority;
-	    char *rd = routerdirs;
+	    const char *rd = routerdirs;
 	    const char *ord = routerdir;
 #ifdef HAVE_ALLOCA
 	    nmessage = alloca(strlen(postoffice)+strlen(routerdirs)+3+

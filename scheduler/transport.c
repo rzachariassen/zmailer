@@ -595,7 +595,9 @@ start_child(vhead, chwp, howp)
 	struct web *chwp, *howp;
 {
 #define MAXARGC 40
-	char *av[1+MAXARGC], *ev[1+MAXARGC], *s, *os, *cp, *ocp;
+	char * av[1+MAXARGC];
+	char * ev[1+MAXARGC];
+	char *os, *cp, *ocp, *s;
 	char buf[MAXPATHLEN*4];
 	char buf2[MAXPATHLEN];
 
@@ -659,7 +661,7 @@ start_child(vhead, chwp, howp)
 		  } else if (strcmp(ocp,"channel")==0) {
 		    strcpy(s,chwp->name);
 		  } else {
-		    char *t = getzenv(ocp);
+		    const char *t = getzenv(ocp);
 		    if (t)
 		      strcpy(s, t);
 		  }
@@ -688,7 +690,7 @@ start_child(vhead, chwp, howp)
 	  } else if (avi == 0 && av[0][0] != '/') {
 	    /* Must add ${MAILBIN}/ta/ to be the prefix.. */
 
-	    static char *mailbin = NULL;
+	    static const char *mailbin = NULL;
 
 	    if (!mailbin) mailbin = getzenv("MAILBIN");
 	    if (!mailbin) mailbin = MAILBIN;
@@ -707,9 +709,15 @@ start_child(vhead, chwp, howp)
 	  if (evi >= MAXARGC) evi = MAXARGC;
 	}
 	av[avi] = NULL;
-	if ((s = getenv("TZ")))       ev[evi++] = s-3; /* Pass the TZ      */
-	if ((s = getzenv("PATH")))    ev[evi++] = s-5; /* Pass the PATH    */
-	if ((s = getzenv("ZCONFIG"))) ev[evi++] = s-8; /* Pass the ZCONFIG */
+	{
+	  const char *t;
+	  if ((t = getenv("TZ")))
+	    ev[evi++] = (char*) t-3; /* Pass the TZ      */
+	  if ((t = getzenv("PATH")))
+	    ev[evi++] = (char*) t-5; /* Pass the PATH    */
+	  if ((t = getzenv("ZCONFIG")))
+	    ev[evi++] = (char*) t-8; /* Pass the ZCONFIG */
+	}
 	ev[evi] = NULL;
 
 	/* fork off the appropriate command with the appropriate stdin */
@@ -1287,7 +1295,7 @@ void
 queryipcinit()
 {
 	int modecode = 1; /* Modes: 1=TCP, 2=UNIX, default=TCP */
-	char *modedata = NULL;
+	const char *modedata = NULL;
 
 	if (querysocket >= 0)
 		return;

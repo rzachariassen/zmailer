@@ -66,7 +66,7 @@ struct config_entry *default_entry = NULL;
 struct config_entry *rrcf_head     = NULL;
 
 /* where the  MAILQv2  authentication dataset file is ? */
-char * mq2authfile = NULL;
+const char * mq2authfile = NULL;
 
 
 static struct rckeyword {
@@ -904,7 +904,7 @@ static int paramparse(line)
 
 	if (cistrcmp(line,"authfile")==0 && a) {
 	  if (mq2authfile)
-	    free(mq2authfile);
+	    free((void*)mq2authfile);
 	  mq2authfile = strsave(a);
 
 	  if (mq2authfile && access(mq2authfile,R_OK)==0)
@@ -915,7 +915,7 @@ static int paramparse(line)
 
 	if (cistrcmp(line,"mailqsock")==0 && a) {
 	  if (mailqsock)
-	    free(mailqsock);
+	    free((void*)mailqsock);
 	  mailqsock = strsave(a);
 	  return 0;
 	}

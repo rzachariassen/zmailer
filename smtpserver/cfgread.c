@@ -65,7 +65,7 @@ static void dollarexpand(s0, space)
       if (*namebuf == 0) /* If there are e.g.  "$/" or "${}" or "$()", or
 			    just "$" at the end of the line, then let it be. */
 	continue;
-      s = getzenv(namebuf); /* Pick whatever name there was.. */
+      s = (char*) getzenv(namebuf); /* Pick whatever name there was.. */
       if (!s) continue;     /* No ZENV variable with this name ? */
 
       len     = strlen(s);

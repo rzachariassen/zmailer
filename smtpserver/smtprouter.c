@@ -92,7 +92,8 @@ static int callr(SS)
 SmtpState *SS;
 {
     int sawend, rpid = 0, to[2], from[2];
-    char *bufp, *cp;
+    char *bufp;
+    char *cp;
 
     if (pipe(to) < 0 || pipe(from) < 0)
 	return -1;
@@ -107,7 +108,7 @@ SmtpState *SS;
 #endif
 
     if (routerprog == NULL) {
-	if ((cp = getzenv("MAILBIN")) == NULL) {
+	if ((cp = (char *)getzenv("MAILBIN")) == NULL) {
 	    zsyslog((LOG_ERR, "MAILBIN unspecified in zmailer.conf"));
 	    return -1;
 	}

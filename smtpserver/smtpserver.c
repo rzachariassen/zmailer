@@ -362,7 +362,7 @@ char **argv;
     SmtpState SS;
     int childpid, sameipcount, childcnt;
     time_t now;
-    char *t, *syslogflg;
+    const char *t, *syslogflg;
 
 
     setvbuf(stdout, NULL, _IOFBF, 8192);

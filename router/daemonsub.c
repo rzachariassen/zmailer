@@ -1258,7 +1258,8 @@ run_daemon(argc, argv)
 	DIR *dirp[ROUTERDIR_CNT];  /* Lets say we have max 30 router dirs.. */
 	char *dirs[ROUTERDIR_CNT];
 	int i, ii;
-	char *s, *rd, *routerdirs = getzenv("ROUTERDIRS");
+	const char *s, *rd;
+	const char *routerdirs = getzenv("ROUTERDIRS");
 	char pathbuf[256];
 	memtypes oval = stickymem;
 
@@ -1311,7 +1312,7 @@ run_daemon(argc, argv)
 	  for (i = 1; i < ROUTERDIR_CNT && *rd; ) {
 
 	    s = strchr(rd,':');
-	    if (s)  *s = 0;
+	    if (s)  *(char*)s = 0;
 	    sprintf(pathbuf,"../%s",rd);
 	    /* strcat(pathbuf,"/"); */
 
@@ -1322,8 +1323,7 @@ run_daemon(argc, argv)
 
 	    ++i;
 
-	    if (s)
-	      *s = ':';
+	    if (s) *(char*)s = ':';
 	    if (s)
 	      rd = s+1;
 	    else

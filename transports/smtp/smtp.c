@@ -23,7 +23,7 @@ int timeout_tcpw =  5*60;	/* All tcp writes ?? */
 int timeout_dot  = 20*60;
 int timeout_conn =  3*60;	/* connect() timeout */
 
-char *defcharset;
+const char *defcharset;
 char myhostname[MAXHOSTNAMELEN+1];
 int myhostnameopt;
 char errormsg[ZBUFSIZ]; /* Global for the use of  dnsgetrr.c */
@@ -1448,18 +1448,6 @@ deliver(SS, dp, startrp, endrp)
 	  if (SS->smtpfp)
 	    r = smtp_sync(SS, EX_OK, 0); /* Up & until "DATA".. */
 	  if (r != EX_OK) {
-	    /* XX:
-	       #error  Uncertain of what to do ...
-	       ... reports were given at each recipient, and if all failed,
-	       we failed too.. (there should not be any positive diagnostics
-	       to report...)
-	     */
-	    for (rp = startrp; rp && rp != endrp; rp = rp->next)
-	      if (rp->lockoffset) {
-		/* NOTARY: address / action / status / diagnostic / wtt */
-		notaryreport(rp->addr->user,FAILED,NULL,NULL);
-		diagnostic(rp, r, 0, "%s", SS->remotemsg);
-	      }
 	    if (SS->smtpfp &&
 		(SS->rcptstates & DATASTATE_OK)) {
 	      /* HUH!!!
@@ -1485,13 +1473,30 @@ deliver(SS, dp, startrp, endrp)
 	      close_after_data = 1;
 	      r = EX_TEMPFAIL;
 	    }
+
 	    if (SS->smtpfp) {
 	      SS->rcptstates = 0;
 	      if (smtpwrite(SS, 0, "RSET", 0, NULL) == EX_OK)
-		r = EX_TEMPFAIL;
+		/* r = EX_TEMPFAIL */ ;
+
 	    }
+
 	    if (SS->verboselog)
 	      fprintf(SS->verboselog," .. timeout ? smtp_sync() rc = %d\n",r);
+
+	    /* XX:
+	       #error  Uncertain of what to do ...
+	       ... reports were given at each recipient, and if all failed,
+	       we failed too.. (there should not be any positive diagnostics
+	       to report...)
+	     */
+	    for (rp = startrp; rp && rp != endrp; rp = rp->next)
+	      if (rp->lockoffset) {
+		/* NOTARY: address / action / status / diagnostic / wtt */
+		notaryreport(rp->addr->user,FAILED,NULL,NULL);
+		diagnostic(rp, r, 0, "%s", SS->remotemsg);
+	      }
+
 	    return r;
 	  }
 	  /* Successes are reported AFTER the DATA-transfer is ok */

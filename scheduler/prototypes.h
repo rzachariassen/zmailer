@@ -44,17 +44,17 @@ extern int doagenda __((void));
 extern int turnme __((const char *));
 
 /* conf.c */
-extern char *qlogdir;
-extern char *qcf_suffix;
-extern char *qdefaultdir;
-extern char *qoutputfile;
+extern const char *qlogdir;
+extern const char *qcf_suffix;
+extern const char *qdefaultdir;
+extern const char *qoutputfile;
 extern const char *replhost;
 extern const char *replchannel;
 extern int  nobody;
 extern int  sweepinterval;
-extern char *mq2authfile;
-extern char *mailqsock;
-extern void *BADPTR;
+extern const char *mq2authfile;
+extern const char *mailqsock;
+extern const void *BADPTR;
 extern int   global_report_interval;
 
 /* msgerror.c */

@@ -63,7 +63,7 @@ mail_queue_path(buf, subdir, filename)
      char *subdir;
      char *filename;
 {
-  char *po = getzenv("POSTOFFICE");
+  const char *po = getzenv("POSTOFFICE");
   if (!po) po = POSTOFFICE;
 
   sprintf(buf, "%s/%s/%s", po, subdir, filename);

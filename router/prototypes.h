@@ -45,13 +45,13 @@ extern int	tolower __((const int));
 
 /* File: conf.c */
 extern int	 files_gid;
-extern char	*cf_suffix;
+extern const char *cf_suffix;
 extern const char *default_trusted[];
 extern char	*err_prio_list[];
-extern char	*files_group;
-extern char	*logdir;
+extern const char *files_group;
+extern const char *logdir;
 extern char	*prio_list[];
-extern char	*trusted_group;
+extern const char *trusted_group;
 extern int	 filepriv_mask_reg;
 extern int	 filepriv_mask_dir;
 extern int	 maxReceived;

@@ -97,7 +97,8 @@ pipeauth(cmd, msg, msgsize, uname, password)
     int pid;
     char *argv[4]; int argc = 0;
     char *envp[9]; int envc = 0;
-    char buf[2048]; char *cp, *s;
+    char buf[2048]; char *cp;
+    const char *s;
     int status;
 
     cp = buf;

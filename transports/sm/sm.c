@@ -75,7 +75,7 @@ int	decode_qp = 0;
 int	keep_header8 = 0;	/* Don't do "MIME-2" to the headers */
 
 int	D_alloc = 0;		/* Memory debugging */
-char    *defcharset;
+const char *defcharset;
 
 
 extern RETSIGTYPE sigpipe();
@@ -1227,7 +1227,7 @@ readsmcf(file, mailer)
 	static struct maildesc m;
 
 	if (file == NULL) {
-	  char *mailshare = getzenv("MAILSHARE");
+	  const char *mailshare = getzenv("MAILSHARE");
 
 	  if (mailshare == NULL)
 	    mailshare = MAILSHARE;
@@ -1336,7 +1336,8 @@ readsmcf(file, mailer)
 	}
 	*cp++ = '\0';
 	if (*m.command != '/') {
-	  char *nmc, *mailbin = getzenv("MAILBIN");
+	  char *nmc;
+	  const char *mailbin = getzenv("MAILBIN");
 
 	  if (mailbin == NULL)
 	    mailbin = MAILBIN;
