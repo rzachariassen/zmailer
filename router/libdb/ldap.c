@@ -2,7 +2,8 @@
  *	Copyright 1997 by Lai Yiu Fai (ccyflai@ust.hk), all rights reserved.
  *
  *	Merge to standard ZMailer distribution with autoconfiguration by
- *	Matti Aarnio <mea@nic.funet.fi> 1997
+ *	Matti Aarnio <mea@nic.funet.fi> 1997; Code reorganization 1999
+ *	to do db bind at open_ldap(), *only* searches at  search_ldap()..
  */
 
 /* LINTLIBRARY */
