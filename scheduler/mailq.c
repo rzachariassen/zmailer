@@ -311,7 +311,7 @@ main(argc, argv)
 	    req.ai_socktype = SOCK_STREAM;
 	    req.ai_protocol = IPPROTO_TCP;
 	    req.ai_flags    = AI_CANONNAME;
-	    req.ai_family   = 0;
+	    req.ai_family   = AF_INET;
 	    ai = NULL;
 
 #ifdef HAVE_GETADDRINFO
@@ -319,6 +319,31 @@ main(argc, argv)
 #else
 	    rc = _getaddrinfo_(host, "0", &req, &ai,
 			       (debug ? stderr : NULL));
+#endif
+#if defined(INET) && defined(INET6)
+	    {
+	      struct addrinfo *ai6;
+	      req.ai_family   = AF_INET6;
+	      ai6 = NULL;
+	      
+#ifdef HAVE_GETADDRINFO
+	      rc = getaddrinfo(host, "0", &req, &ai6);
+#else
+	      rc = _getaddrinfo_(host, "0", &req, &ai6,
+				 (debug ? stderr : NULL));
+#endif
+	      if (!ai && rc == 0)
+		/* No IPv4, but have IPv6! */
+		ai = ai6;
+	      else if (ai && ai6) {
+		/* Catenate them, FIRST IPv6, then IPv4 things. */
+		struct addrinfo **aip;
+		aip = &ai6->ai_next;
+		while (*aip) aip = &(*aip)->ai_next;
+		*aip = ai;
+		ai = ai6;
+	      }
+	    }
 #endif
 	    if (! ai) {
 	      fprintf(stderr, "%s: cannot find address of %s\n", progname, host);
