@@ -60,6 +60,7 @@
 #include <netinet/in.h>
 #endif
 #include "libz.h"
+#include "libc.h"
 #include "dnsgetrr.h"
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
@@ -126,7 +127,6 @@ typedef char msgdata;
 
 
 #include "mail.h"
-#include "splay.h"
 
 #if HAVE_SYS_WAIT_H /* POSIX-thing ?  If not, declare it so.. */
 # include <sys/wait.h>
@@ -146,7 +146,7 @@ typedef char msgdata;
 #define	CHANNEL		"reroute"	/* the default channel name we look at */
 
 char errormsg[BUFSIZ];
-char *progname;
+const char *progname;
 char *cmdline, *eocmdline;
 int pid;
 

@@ -44,7 +44,7 @@
 
 #include "zmalloc.h"
 #include "libz.h"
-#include "splay.h"
+#include "libc.h"
 
 
 

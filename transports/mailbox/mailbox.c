@@ -51,6 +51,7 @@
 
 #include "zmalloc.h"
 #include "libz.h"
+#include "libc.h"
 #include "splay.h"
 #include "sieve.h"
 

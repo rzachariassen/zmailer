@@ -21,6 +21,7 @@
 #endif
 
 #include "libz.h"
+#include "libc.h"
 
 #define SKIPSPACE(Y) while (*Y == ' ' || *Y == '\t' || *Y == '\n') ++Y
 #define SKIPTEXT(Y)  while (*Y && *Y != ' ' && *Y != '\t' && *Y != '\n') ++Y

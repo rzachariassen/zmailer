@@ -28,6 +28,7 @@
 #include <netinet/in.h>
 #endif
 #include "libz.h"
+#include "libc.h"
 #include "dnsgetrr.h"
 
 #if	defined(TRY_AGAIN) && defined(HAVE_RESOLVER)
@@ -114,7 +115,7 @@ typedef char msgdata;
 #define	CHANNEL		"hold"	/* the default channel name we look at */
 
 char errormsg[BUFSIZ];
-char *progname;
+const char *progname;
 char *cmdline, *eocmdline;
 int pid;
 

@@ -22,6 +22,7 @@
 #include "zsyslog.h"
 #include "mail.h"
 #include "ta.h"
+#include "libc.h"
 #include "libz.h"
 
 extern        int   wtttaidpid;

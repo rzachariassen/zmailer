@@ -1,10 +1,9 @@
-extern void type();
-#include <string.h>
+#include "smtpserver.h"
 
 void debug_report(SS, verb, remotehost, buf)
-void *SS;
+SmtpState *SS;
 int verb;
-char *remotehost, *buf;
+const char *remotehost, *buf;
 {
 #if 0				/* From  UNIDO, though a bit vulgar.. */
     if (!verb) {

@@ -20,6 +20,7 @@
 #include "zsyslog.h"
 
 #include "libz.h"
+#include "libc.h"
 
 #define	PROGNAME	"errormail"
 #define	CHANNEL		"error"	/* the default channel name we deliver for */
@@ -36,7 +37,7 @@ const char *dfltform[] = {
 		NULL
 };
 
-char *progname;
+const char *progname;
 
 extern char *optarg;
 extern int  optind;

@@ -23,6 +23,7 @@
 #endif
 #include <errno.h>
 #include "libz.h"
+#include "libc.h"
 
 
 #ifdef  HAVE_WAITPID
@@ -62,7 +63,7 @@ extern int wait();
 
 char uucpname[MAXHOSTNAMELEN+1];
 
-char	*progname;
+const char	*progname;
 #if !(defined(HAVE_MMAP) && defined(TA_USE_MMAP))
 int	readalready = 0;	/* does buffer contain valid message data? */
 #endif

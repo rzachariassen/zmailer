@@ -20,6 +20,7 @@
 #include <sys/file.h>
 #include "mail.h"
 #include "ta.h"
+#include "libc.h"
 
 #undef HAVE_FCNTL  /* No, sorry, not really defined locking method! */
 
