@@ -853,8 +853,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-rpath         do not hardcode runtime library paths
   --disable-nls           do not use Native Language Support
-  --enable-translation=CHS Enable translation of
-ncoming text messages.
+  --enable-translation=CHS Enable charset translation of incoming text messages.
                            Assumes --generic-library=\"... -lmcs ...\" and
                            proper --generic-include.
                            (See smtpserver/README.translation)
