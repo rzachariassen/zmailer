@@ -851,7 +851,7 @@
 	    Modifications to header parsing.
 	    - An all-white-space line shall be CONTINUATION, not
 	      end-of-headers (ancient BITNET card-images are other
-	      story, but lets not worry them...)
+	      story, but lets not worry about them...)
 	    - Altered the makeLetter() function parameters removing
 	      a parameter that has not been used for several years.
 	    - WorkInProgress: internal changes into  makeLetter()...
