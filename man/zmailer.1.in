@@ -1,10 +1,13 @@
 .\" $Header$
 .ds ]W ZMailer 2.99
-.TH ZMAILER 1 "6 Oct 1994"
+.TH ZMAILER 1 "2001-Sep-30"
 .SH NAME
 zmailer \- zmailer control script
 .SH SYNOPSIS
 .B zmailer
+[
+.B \-q
+]
 [
 .B kill
 |
@@ -82,6 +85,8 @@ is equivalent to invoking it with the four arguments:
 .B scheduler
 .BR smtpserver .
 The arguments specify actions to take in sequence:
+.IP \fB\-q\fR
+shuts up this script wrapper from muttering anything.
 .IP \fBfreeze\fR
 sets a flag so that latter options/executions of the
 .I zmailer

@@ -24,11 +24,10 @@ checkfreeze () {
 # -----------------------------------------------------------------------
 
 echoo () {
-    [ $quiet -eq 0 ] && echo $eopt "$@$eeol"
+    [ "$quiet" = 0 ] && echo $eopt "$@$eeol"
 }
 
 # -----------------------------------------------------------------------
-
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 if [ -d /usr/ucb ]; then
@@ -73,6 +72,12 @@ case "$MAILBOX" in
     ;;
 esac
 
+quiet=0
+if [ "$1" = "-q" ]; then
+    shift
+    quiet=1
+fi
+
 # set up the default arguments
 if [ "$1" = "start" -o "$1" = "reload" -o $# = 0 ]; then
         set -$- router scheduler smtpserver
@@ -83,14 +88,12 @@ umask 022
 
 KILL=
 
-quiet=0
 for op in $@
 do
     shift
 
     case "$op" in
-	-q)  quiet=1
-	    ;;
+
         stop|kill|nuke|kills|killr)     # print nothing
             ;;
         *)
@@ -275,7 +278,7 @@ do
     esac
 done
 
-[ $quiet - eq 0 ] && echo
+[ "$quiet" = 0 ] && echo
 
 case $errflg in
     1)  echo Usage: $0 "[ router | scheduler | smtpserver | stop | kill | resubmit | bootclean | cleanup | newdb | logrotate | logsync | freeze | thaw ]"

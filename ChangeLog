@@ -1,3 +1,12 @@
+2001-10-01  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
+
+	* Makefile.in:
+	    Release version 2.99.56-pre1
+
+	* include/libc.h, proto/zmailer.sh.in, man/zmailer.1:
+	    Update the beast at Solaris 2.6, and learn some
+	    new things...
+
 2001-09-30  Matti Aarnio  <mea@aarnima1-pc1.icpd.sonera.fi>
 
 	* configure.in, acconfig.h:
