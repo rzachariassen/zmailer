@@ -232,7 +232,7 @@ diagnostics on the message, and finally it will remove the
 original spool-file from the <tt>&dollar;POSTOFFICE/queue/</tt>, and 
 the work-specification file from <tt>&dollar;POSTOFFICE/transport/</tt>.
 
-<sect2><label id="postmaster_analysis_area">Postmaster Analysis Area
+<sect2>Postmaster Analysis Area<label id="postmaster_analysis_area">
 <p>
 
 If the filename in the <tt>&dollar;POSTOFFICE/postman/</tt> directory has an 
@@ -240,8 +240,8 @@ underscore in it, the reason for the copy is <bf>soft</bf>, that is, the
 message has been sent through successfully in spite of being copied into
 the <tt>&dollar;POSTOFFICE/postman/</tt> directory.
 
-If the filename in the <tt>&dollar;POSTOFFICE/postman/</tt> <em>does not have an
-underscrore in it, that file has not been processed
+If the filename in the <tt>&dollar;POSTOFFICE/postman/</tt>
+<em>does not have an underscrore in it, that file has not been processed
 successfully, and the</em> <bf>only</bf> <em>copy of the message
 is now in <tt>&dollar;POSTOFFICE/postman/</tt></em>
 
@@ -752,33 +752,39 @@ interpreter:
 Non-critical but recommended functions:
 
 <descrip>
-<tag/<tt>getzenv</tt>/ retrieves global ZMailer configuration values     
-<tag/<tt>echo</tt>/ emulates <tt>/bin/echo</tt>     
-<tag/<tt>exit</tt>/ aborts the <em>router</em> with the specified status code    
-<tag/<tt>hostname</tt>/ internal function to get and set the system name    
-<tag/<tt>trace</tt>/ turns on selected debugging output    
-<tag/<tt>untrace</tt>/ turns off selected debugging output    
-<tag/<tt>[</tt>/ emulates a subset of <tt>/bin/test</tt> (a.k.a. <tt>/bin/&lsqb;</tt>) functionality    
+<tag/<tt>getzenv</tt>/ retrieves global ZMailer configuration values
+<tag/<tt>echo</tt>/ emulates <tt>/bin/echo</tt>
+<tag/<tt>exit</tt>/ aborts the <em>router</em> with the specified status code
+<tag/<tt>hostname</tt>/ internal function to get and set the system name
+<tag/<tt>trace</tt>/ turns on selected debugging output
+<tag/<tt>untrace</tt>/ turns off selected debugging output
+<tag/<tt>[</tt>/ emulates a subset of <tt>/bin/test</tt>
+	(a.k.a. <tt>/bin/&lsqb;</tt>) functionality    
 </descrip>
 
-The <tt>relation</tt> function is described in section <ref id="Databases">, 
-Databases, page <pageref id="Databases">, and the <tt>trace</tt> 
-and <tt>untrace</tt> functions are described in connection with debugging. 
-See section <ref id="Logging_and_Statistics">, Logging and Statistics, page 
-<pageref id="Logging_and_Statistics">. (This will probably change to Reference, 
-Router, Debugging)
+The <tt>relation</tt> function is described in section
+<ref id="Databases">,  Databases,
+page <pageref id="Databases">.
+Functions <tt>trace</tt> and <tt>untrace</tt> are described
+in connection with debugging. 
 
-The <tt>hostname</tt> function requires some further explanation.  It is intended
-to emulate the BSD UNIX <tt>/bin/hostname</tt> functionality, except that setting
-the hostname will only set the <em>router's</em> idea of the hostname, not the
-system's.  Doing so will enable generation of `Message-Id' and `Received'
-``trace'' headers on all messages processed by the <em>router</em>.  It is done this
-way since the <em>router</em> needs to know the official domain name of the local
-host in order to properly generate these headers, and this method is
-cleaner than reserving a magic variable for the purpose.  The <em>router</em> cannot
-assume the hostname reported by the system is a properly qualified domain
-name, so the configuration file may generate it using whichever method it
-chooses.  If the hostname indeed is a fully qualified domain name, then:
+See section <ref id="Logging_and_Statistics">, Logging and Statistics,
+page <pageref id="Logging_and_Statistics">.
+(This will probably change to Reference, Router, Debugging)
+
+The <tt>hostname</tt> function requires some further explanation.
+It is intended to emulate the BSD UNIX <tt>/bin/hostname</tt>
+functionality, except that setting the hostname will only set
+the <em>router's</em> idea of the hostname, not the system's.
+Doing so will enable generation of `Message-Id' and `Received'
+``trace'' headers on all messages processed by the <em>router</em>.
+It is done this way since the <em>router</em> needs to know the official
+domain name of the local host in order to properly generate these headers,
+and this method is cleaner than reserving a magic variable for the purpose.
+The <em>router</em> cannot assume the hostname reported by the system is
+a properly qualified domain name, so the configuration file may generate
+it using whichever method it chooses.
+If the hostname indeed is a fully qualified domain name, then:
 
 <tscreen>hostname "hostname"</tscreen>
 
@@ -809,11 +815,11 @@ numeric file name.  If the file name is <tt>123</tt>, you run
 
 <tscreen><verb>MAILBIN/router 123</verb></tscreen>
 
-this will create the file <tt>.123</tt> containing the control information produced
-by the <em>router</em>.
+this will create the file <tt>.123</tt> containing the control information
+produced by the <em>router</em>.
 
 
-<sect2><label id="Databases">Databases
+<sect2>Databases<label id="Databases">
 <p>
 
 Many of the decisions and actions taken by configuration file code depend

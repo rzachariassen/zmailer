@@ -2,7 +2,7 @@
 # GNU-Makefile for ZMailer manual
 #
 
-PARTS=	intro.sgml tutorial.sgml install.sgml admin.sgml	\
+PARTS=	tutorial.sgml install.sgml admin.sgml	\
 	ref_smtp.sgml ref_sendmail.sgml ref_zmailer.sgml	\
 	ref_router.sgml ref_scheduler.sgml ref_agents.sgml	\
 	ref_utils.sgml app_scripts.sgml app_listmgr.sgml	\
@@ -10,9 +10,10 @@ PARTS=	intro.sgml tutorial.sgml install.sgml admin.sgml	\
 	end.sgml
 
 FIGS   :=	msg_modl.fig msg_rout.fig
-FIGEPS :=	$(patsubst %.fig,%.eps,$(FIGS))
-FIG_PS :=	$(patsubst %.fig,%.ps,$(FIGS))
-FIGGIF :=	$(patsubst %.fig,%.gif,$(FIGS))
+
+FIGEPS :=	$(FIGS:%.fig=%.eps)
+FIG_PS :=	$(FIGS:%.fig=%.ps)
+FIGGIF :=	$(FIGS:%.fig=%.gif)
 
 LINUXDOCBIN=/usr/bin
 LINUXDOCLIB=/usr/lib/sgml-tools
@@ -35,8 +36,9 @@ gifs: $(FIGGIF)
 clean:
 	rm -f *~ *.html manual* *.ps *.eps *.gif *.bak
 
-manual.sgml: $(PARTS)
-	cat $(PARTS) > manual.sgml
+manual.sgml: $(PARTS) intro.sgml
+	# cat $(PARTS) > manual.sgml
+	(cat intro.sgml;for x in $(PARTS); do echo "<!-- $$x -->";cat $$x;done) > manual.sgml
 
 .SUFFIXES: .gif .fig .eps .ps
 
@@ -54,18 +56,8 @@ manual.sgml: $(PARTS)
 	fig2dev -Lps -c -p x -P -z A4 -m 1.0000 -p xxx -x 0 -y 0 -n $@ $< $@
 
 $(FIG_PS): $(FIGS)
-
 $(FIGEPS): $(FIGS)
-
 $(FIGGIF): $(FIG_PS)
-
-#msg_modl.ps:  msg_modl.fig
-#msg_modl.eps: msg_modl.fig
-#msg_rout.ps:  msg_rout.fig
-#msg_rout.eps: msg_rout.fig
-
-#msg_modl.gif: msg_modl.ps
-#msg_rout.gif: msg_rout.ps
 
 manual_parts.tar.gz: manual_parts.tar
 

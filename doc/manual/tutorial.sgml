@@ -330,7 +330,8 @@ subsystems is command
 zmailer
 </verb></tscreen>
 which the system installs into <tt>&dollar;MAILBIN/</tt> directory, and which command usually needs a symlink to itself from some more common location for
-administrative convenience  ( <tt>/usr/sbin/zmailer --> &dollar;MAILBIN/zmailer</tt> )
+administrative convenience
+( <tt>/usr/sbin/zmailer --> &dollar;MAILBIN/zmailer</tt> )
 so that the administrator does not need to add  <tt>&dollar;MAILBIN/</tt>  directory
 into his or her <tt>PATH</tt>.   On overall, it is intention that not even 
 admin
