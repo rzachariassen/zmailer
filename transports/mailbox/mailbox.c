@@ -555,6 +555,8 @@ main(argc, argv)
 	    ++dirhashes;	/* For user "abcdefg" the mailbox path is:
 				   MAILBOX/a/b/abcdefg -- supported by
 				   qpopper, for example... */
+	    if (dirhashes > 10)
+	      dirhashes = 10;
 	    break;
 	  case 'P':		/* pjwhash32() from the last component of the
 				   mailbox file path (filename) is used to
@@ -562,9 +564,13 @@ main(argc, argv)
 				   (one or two) of modulo 26 ('A'..'Z') alike
 				   the scheduler does its directory hashes. */
 	    ++pjwhashes;
+	    if (pjwhashes > 10)
+	      pjwhashes = 10;
 	    break;
 	  case 'X':		/* Like pjwhash32() above, but with crc32() */
 	    ++crchashes;
+	    if (crchashes > 10)
+	      crchashes = 10;
 	    break;
 	  case 'F':
 	    if (STREQ(optarg,"edquot"))
@@ -2182,8 +2188,8 @@ putmail(dp, rp, fdmail, fdopmode, timestring, file, uid)
 	      rc = EX_UNAVAILABLE; /* Quota-exceeded is instant permanent reject ? */
 
 	      notaryreport(file, notaryacct(rc, s_delivered),
-			   "5.2.2 Mailbox Quota Exceeded",
-			   "x-local; 550 (Mailbox Quota Exceeded)");
+			   "5.2.2 Mailbox Quota Exceeded / Mailbox Full",
+			   "x-local; 550 (Mailbox Quota Exceeded / Mailbox Full)");
 	    } else {
 	      notaryreport(file, notaryacct(rc, s_delivered),
 			   "4.2.0 mailbox write failure",
@@ -2762,48 +2768,38 @@ static void mkhashpath(s, uname)
      char *s;
      const char *uname;
 {
-	if (pjwhashes) {
-	  int h = pjwhash32(uname);
-	  switch (pjwhashes) {
-	  case 1:
-	    h %= 26;
-	    sprintf(s,"%c/", ('A' + h));
-	    break;
-	  default:
-	    h %= (26*26);
-	    sprintf(s,"%c/%c/", ('A' + (h / 26)), ('A' + (h % 26)));
-	    break;
+	if (pjwhashes || crchashes) {
+	  int i, h = 0, hlim = 0;
+	  int hashes[10]; /* Hard-coded max of 10 levels */
+
+	  if (pjwhashes) {
+	    h = pjwhash32(uname);
+	    hlim = pjwhashes;
 	  }
-	}
-	if (crchashes) {
-	  int h = crc32(uname);
-	  switch (crchashes) {
-	  case 1:
-	    h %= 26;
-	    sprintf(s,"%c/", ('A' + h));
-	    break;
-	  default:
-	    h %= (26*26);
-	    sprintf(s,"%c/%c/", ('A' + (h / 26)), ('A' + (h % 26)));
-	    break;
+	  if (crchashes) {
+	    h = crc32(uname);
+	    hlim = crchashes;
 	  }
-	}
-	if (dirhashes) {
-	  switch (dirhashes) {
-	  case 1:
-	    sprintf(s,"%c/",uname[0]);
+	  for (i = 0; i < hlim; ++i) {
+	    hashes[i] = h % 26;
+	    h = h / 26;
+	  }
+	
+	  for (i = hlim-1; i >= 0; --i) {
+	    sprintf(s, "%c/", 'A' + hashes[i]);
 	    s += 2;
-	    break;
-	  case 2:
-	    if (uname[1])
-	      sprintf(s,"%c/%c/",uname[0],uname[1]);
-	    else /* Err.... One char userid ?? TROUBLE TIME! */
-	      sprintf(s,"%c/%c/",uname[0],uname[0]);
-	    s += 4;
-	    break;
-	  default:
-	    break;
 	  }
+	}
+
+	if (dirhashes) {
+	  const char *p = uname;
+	  int i;
+	  for (i = 0; i < dirhashes; ++i) {
+	    if (!*p) break;
+	    *s++ = *p++;
+	    *s++ = '/';
+	  }
+	  *s = 0;
 	}
 	strcat(s, uname);
 }
