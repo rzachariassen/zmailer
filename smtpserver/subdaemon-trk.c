@@ -790,7 +790,7 @@ subdaemon_handler_trk_input (statep, peerdata)
 	    i = count_authfails_ipv4( state, ipv4addr, countval );
 	    if (i > auth_failrate) i = -999;
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
-	  } else if (i == -7) {
+	  } else if (i == -8) {
 	    i = count_daborts_ipv4( state, ipv4addr, countval );
 	    sprintf(peerdata->outbuf, "200 %d\n", i);
 	  }
