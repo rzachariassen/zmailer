@@ -168,7 +168,7 @@ reopen:
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
 
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	rc = (db->get)(db, NULL, &key, &val, 0);
 #else
 	rc = (db->get)(db, &key, &val, 0);
@@ -215,7 +215,7 @@ add_btree(sip, value)
 
 	val.data = (void*)value;
 	val.size = strlen(value)+1;
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	rc = (db->put)(db, NULL, &key, &val, 0);
 	/* Emulate BSD DB 1.85 behaviour */
 	if (rc != 0)
@@ -253,7 +253,7 @@ remove_btree(sip)
 
 	key.data = (void*)sip->key;
 	key.size = strlen(sip->key) + 1;
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	rc = (db->del)(db, NULL, &key, 0);
 #else
 	rc = (db->del)(db, &key, 0);

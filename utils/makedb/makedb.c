@@ -215,7 +215,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 		Bdat.data = (void*)s;
 		Bdat.size = slen;
 
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 		rc = (dbfile->put) (dbfile, NULL, &Bkey, &Bdat,
 				    overwritemode ? 0: DB_NOOVERWRITE);
 
@@ -270,7 +270,7 @@ static int store_db(dbf, typ, overwritemode, linenum, t, tlen, s, slen)
 
 	    Bkey.data = (void*)t;
 	    Bkey.size = tlen;
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	    rc = (dbfile->get) (dbfile, NULL, &Bkey, &Bdat, 0);
 #else
 	    rc = (dbfile->get) (dbfile, &Bkey, &Bdat, 0);

@@ -282,7 +282,7 @@ int *rlenp;			/* result length ptr ! */
 	Bkey.data = (void *) qptr;
 	Bkey.size = qlen;
 
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	rc = (rel->btree->get) (rel->btree, NULL, &Bkey, &Bresult, 0);
 #else
 	rc = (rel->btree->get) (rel->btree, &Bkey, &Bresult, 0);
@@ -307,7 +307,7 @@ int *rlenp;			/* result length ptr ! */
 	Bkey.data = (void *) qptr;
 	Bkey.size = qlen;
 
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	rc = (rel->bhash->get) (rel->bhash, NULL, &Bkey, &Bresult, 0);
 #else
 	rc = (rel->bhash->get) (rel->bhash, &Bkey, &Bresult, 0);

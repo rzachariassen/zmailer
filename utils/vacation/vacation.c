@@ -678,7 +678,7 @@ recent()
 #ifdef HAVE_GDBM_H
 	data = gdbm_fetch(db, key);
 #else
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	if (db->get(db, NULL, &key, &data, 0) != 0)
 	  data.dptr = NULL;
 #else
@@ -704,7 +704,7 @@ recent()
 #ifdef HAVE_GDBM_H
 	data = gdbm_fetch(db, key);
 #else
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	if (db->get(db, NULL, &key, &data, 0) != 0)
 	  data.dptr = NULL;
 #else
@@ -748,7 +748,7 @@ setinterval(interval)
 #ifdef HAVE_GDBM_H
 	gdbm_store(db, key, data, GDBM_REPLACE);
 #else
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	db->put(db, NULL, &key, &data, 0);
 #else
 	db->put(db, &key, &data, 0);
@@ -785,7 +785,7 @@ setreply()
 #ifdef HAVE_GDBM_H
 	gdbm_store(db, key, data, GDBM_REPLACE);
 #else
-#ifdef HAVE_DB_OPEN2
+#ifdef DB_INIT_TXN
 	db->put(db, NULL, &key, &data, 0);
 #else
 	db->put(db, &key, &data, 0);
