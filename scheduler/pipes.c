@@ -6,8 +6,7 @@
  */
 
 #include "hostenv.h"
-#include "scheduler.h"
-#include "prototypes.h"
+#include "libz.h"
 
 #ifdef HAVE_SOCKETPAIR
 

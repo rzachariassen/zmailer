@@ -31,11 +31,11 @@ LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
 		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/transports/libta/llib-llibta.ln
 #
-OBJS=	scheduler.o readconfig.o conf.o agenda.o transport.o pipes.o  \
-	update.o qprint.o msgerror.o resources.o threads.o wantconn.o \
+OBJS=	scheduler.o readconfig.o conf.o agenda.o transport.o  \
+	update.o qprint.o msgerror.o threads.o wantconn.o \
 	mq2.o mq2auth.o
-SOURCE=	scheduler.c readconfig.c conf.c agenda.c transport.c pipes.c  \
-	update.c qprint.c msgerror.c resources.c threads.c wantconn.c \
+SOURCE=	scheduler.c readconfig.c conf.c agenda.c transport.c  \
+	update.c qprint.c msgerror.c threads.c wantconn.c \
 	mq2.c mq2auth.c
 
 all:	$(LIBDEB) $(PROGRAM) mailq

@@ -17,7 +17,7 @@
 #include "prototypes.h"
 #include "mail.h"
 #ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
+#include <sys/resource.h> /* for syspriority .. */
 #endif
 
 #include "libz.h"

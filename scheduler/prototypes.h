@@ -66,12 +66,6 @@ extern void reporterrs __((struct ctlfile *cfpi, const int delayreport));
 extern void interim_report_run __((void));
 extern int store_error_on_error;
 
-/* pipes.c */
-extern int  pipes_create         __((int *tochild, int *fromchild));
-extern void pipes_close_parent   __((int *tochild, int *fromchild));
-extern void pipes_to_child_fds   __((int *tochild, int *fromchild));
-extern void pipes_shutdown_child __((int fd)); /* At parent, shutdown channel towards child */
-
 /* qprint.c */
 extern void qprint __((int fd));
 
@@ -83,12 +77,6 @@ extern void   vtxprint __((struct vertex *vp));
 extern struct config_entry *readconfig __((const char *file));
 extern struct config_entry *rereadconfig __((struct config_entry *head, const char *file));
 extern char  *zenvexpand __(( char *line));
-
-/* resources.c */
-extern int  resources_query_nofiles  __((void));
-extern void resources_maximize_nofiles __((void));
-extern void resources_limit_nofiles __((int nfiles));
-extern int  resources_query_pipesize __((int fildes));
 
 /* scheduler.c */
 extern int         transportmaxnofiles;

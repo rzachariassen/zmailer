@@ -194,18 +194,6 @@ struct router_child routerchilds[MAXROUTERCHILDS];
 extern int nrouters;
 extern const char *logfn;
 
-/* ../scheduler/pipes.c */
-extern int  pipes_create         __((int *tochild, int *fromchild));
-extern void pipes_close_parent   __((int *tochild, int *fromchild));
-extern void pipes_to_child_fds   __((int *tochild, int *fromchild));
-extern void pipes_shutdown_child __((int tochild)); /* At parent, shutdown channel towards child */
-
-/* ../scheduler/resources.c */
-extern int  resources_query_nofiles  __((void));
-extern void resources_maximize_nofiles __((void));
-extern void resources_limit_nofiles __((int nfiles));
-extern int  resources_query_pipesize __((int fildes));
-
 static void child_server __((int tofd, int frmfd));
 static int  rd_doit __((const char *filename, const char *dirs));
 static int  parent_reader __((int waittime));

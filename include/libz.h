@@ -229,3 +229,15 @@ extern int fd_statfs __((int fd, long *bavailp, long *busedp, long *iavailp, lon
 
 /* isterminal.c */
 extern int z_isterminal __((const int fd));
+
+/* pipes.c */
+extern int  pipes_create         __((int *tochild, int *fromchild));
+extern void pipes_close_parent   __((int *tochild, int *fromchild));
+extern void pipes_to_child_fds   __((int *tochild, int *fromchild));
+extern void pipes_shutdown_child __((int fd)); /* At parent, shutdown channel towards child */
+
+/* resources.c */
+extern int  resources_query_nofiles  __((void));
+extern void resources_maximize_nofiles __((void));
+extern void resources_limit_nofiles __((int nfiles));
+extern int  resources_query_pipesize __((int fildes));

@@ -6,6 +6,8 @@
 
 
 #include "hostenv.h"
+#include "libz.h"
+
 #include <sfio.h>
 #include <sys/types.h>
 

@@ -36,8 +36,7 @@ RUNSSL=	rm -f $(TOPDIR)/include/rfc822.entry rfc822.sst.? ; \
 
 OBJS=	router.o dateparse.o conf.o functions.o db.o \
 	shliaise.o rfc822.o rfc822hdrs.o rfc822walk.o \
-	daemonsub.o rtsyslog.o \
-	$(TOPDIR)/scheduler/pipes.o $(TOPDIR)/scheduler/resources.o
+	daemonsub.o rtsyslog.o
 
 SOURCE=	router.c dateparse.c conf.c functions.c db.c \
 	shliaise.c rfc822.c rfc822hdrs.c rfc822walk.c \
@@ -74,12 +73,6 @@ $(TOPDIR)/include/rfc822.entry rfc822.sst.c rfc822.sst.h:  rfc822.ssl ${SSL}
 	$(RUNSSL)
 
 rfc822walk.o: rfc822walk.c rfc822.sst.c rfc822.sst.h
-
-$(TOPDIR)/scheduler/pipes.o:
-	cd $(TOPDIR)/scheduler ; $(MAKE) $(MFLAGS) pipes.o
-
-$(TOPDIR)/scheduler/resources.o:
-	cd $(TOPDIR)/scheduler ; $(MAKE) $(MFLAGS) resources.o
 
 ${SSL}:	$(srcdir)/${SSL}.c
 	cd $(TOPDIR)/ssl ; $(MAKE) $(MFLAGS)
