@@ -243,20 +243,15 @@ struct ctlfile *cfp;
 
 
 static void cfp_free __((struct ctlfile *cfp, struct spblk *spl));
-static void cfp_free(cfp, spl)
+static void cfp_free0 __((struct ctlfile *cfp));
+
+static void cfp_free0(cfp)
 struct ctlfile *cfp;
-struct spblk   *spl;
 {
+
 	struct vertex *vp, *nvp;
 
-	/* Delete from the  spt_mesh[]  */
-
-	if (spl == NULL)
-	  spl = sp_lookup((u_long)(cfp->id), spt_mesh[L_CTLFILE]);
-	if (spl != NULL)
-	  sp_delete(spl, spt_mesh[L_CTLFILE]);
-
-	/* And from memory */
+	/* Delete from memory */
 
 	if (cfp->vfpfn) {
 	  FILE *vfp = vfp_open(cfp);
@@ -278,6 +273,23 @@ struct spblk   *spl;
 	  free_cfp_memory(cfp);
 	}
 }
+
+static void cfp_free(cfp, spl)
+struct ctlfile *cfp;
+struct spblk   *spl;
+{
+	/* Delete from the  spt_mesh[]  */
+
+	if (spl == NULL)
+	  spl = sp_lookup((u_long)(cfp->id), spt_mesh[L_CTLFILE]);
+	if (spl != NULL)
+	  sp_delete(spl, spt_mesh[L_CTLFILE]);
+
+	/* And from the memory */
+
+	cfp_free0(cfp);
+}
+
 
 static int ctl_free __((struct spblk *spl));
 static int ctl_free(spl)
@@ -1074,7 +1086,8 @@ static int syncweb(dq)
 	return wrkcnt;
 }
 
-void resync_file(file)
+void resync_file(proc, file)
+	struct procinfo *proc;
 	const char *file;
 {
 	struct stat stbuf;
@@ -1082,6 +1095,7 @@ void resync_file(file)
 	long ino;
 	const char *s;
 	int fd;
+	struct ctlfile *oldcfp, *newcfp;
 
 	queryipccheck();
 
@@ -1104,28 +1118,44 @@ void resync_file(file)
 	  /* Not (anymore) in processing! */
 	  return;
 	}
-	printf("Resyncing file \"%s\" (ino=%d)", file, (int) ino);
+
+	oldcfp = (struct ctlfile *)(spl->data);
+	oldcfp->id = 0; /* Don't scramble spt_mesh[] latter below */
+
+	if (spl != NULL)
+	  sp_delete(spl, spt_mesh[L_CTLFILE]);
+	spl = NULL;
+
+	printf("Resyncing file \"%s\" (ino=%d) (of=%d ho='%s')",
+	       file, (int) ino, proc->overfed,
+	       (proc->ho ? proc->ho->name : "<NULL>"));
 	/* printf(" .. in processing db\n"); */
 
 	/* cfp_free()->unvertex()->unctlfile() will do reinsertion */
 	/* dq_insert(NULL,ino,file,31); */
 
-	/* Delete it... */
-	cfp_free((struct ctlfile *)spl->data, spl);
-
 	/* Now read it back! */
 	fd = eopen(file, O_RDWR, 0);
 	if (fd < 0) {
-	  printf(" .. FILE OPEN FAILED!\n");
 	  /* ???? */
+	  printf(" .. FILE OPEN FAILED!\n");
+
+	  /* Delete it from memory */
+	  cfp_free(oldcfp, NULL);
 	  return;
 	}
-	if (schedule(fd, file, ino, 1) != NULL) {
+
+	newcfp = schedule(fd, file, ino, 1);
+
+	if (newcfp != NULL) {
 	  /* ????  What ever, it succeeds, or it fails, all will be well */
 	  printf(" .. resynced!\n");
 	} else {
 	  printf(" .. NOT resynced!\n");
 	}
+
+	/* Delete it from memory */
+	cfp_free0(oldcfp);
 }
 
 

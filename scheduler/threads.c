@@ -848,6 +848,14 @@ struct thread *thr;
 	  feed_child(proc);
 	  if (proc->fed)
 	    proc->overfed += 1;
+
+#if 1
+
+	  /* The initial thread-start will feed only
+	     one job-spec, latter OK will get burst of
+	     feeds... */
+
+#else
 	  proc->hungry = 1;	/* Simulate hunger.. */
 	  pick_next_vertex(proc, 1, 0);
 	  /* While we have a thread, and things to feed.. */
@@ -867,12 +875,12 @@ struct thread *thr;
 	      break;		/* if the limit is zero, don't overfeed ever.*/
 	    /* Ok, increment the counter, and loop back.. */
 	    proc->hungry = 1;	/* Simulate hunger.. */
-	    proc->fed = 1;	/* tell them, it has been fed.. */
 	    pick_next_vertex(proc, 1, 0);
 	    /* If it got next,  ``proc->fed'' is now zero.. */
 	  }
 	  proc->hungry = 0; /* ... satiated.. */
 	  flush_child(proc);
+#endif
 	  return 1;
 	}
 
@@ -920,11 +928,12 @@ struct thread *thr;
 	   ctime, if in AGEORDER..) */
 	thread_vertex_shuffle(thr);
 
-	thr->attempts += 1;
-
 	rc = start_child(thr->vertices,
 			 thr->vertices->orig[L_CHANNEL],
 			 thr->vertices->orig[L_HOST]);
+
+	if (!rc)
+	  thr->attempts += 1;
 
 	return rc;
 }
@@ -948,6 +957,8 @@ int ok, justfree;
 	struct thread      *thr, *thr0;
 	struct threadgroup *thg;
 	struct vertex *vtx;
+
+	proc->fed = 1; /* We clear this, when we have something to feed */
 
 	thr  = proc->thread;
 
@@ -1012,6 +1023,7 @@ int ok, justfree;
 	  return;
 	}
 
+#if 0 /* duplicate code */
 	if (proc->overfed > 0 && proc->fed) {
 	  /* we have an overfeed situation, we are to stop at
 	     the end of the thread, and wait thread purge to
@@ -1020,11 +1032,12 @@ int ok, justfree;
 	  if (verbose) printf(" ... OVERFEED - don't change thread yet.\n");
 	  return;
 	}
+#endif
 
 	mytime(&now);
 
 #if 1
-	/* Move this thread to the last of the threads eligible for start */
+	/* Move current thread to the last of the threads eligible for start */
 	_thread_timechain_unlink(thr);
 	_thread_timechain_append(thr);
 	/* Idle the process, and be happy.. */
@@ -1047,7 +1060,7 @@ int ok, justfree;
 
 	  /* Clean vertices 'proc'-pointers,  randomize the
 	     order of thread vertices  (or sort by spool file
-	     mtime, if in AGEORDER..) */
+	     ctime, if in AGEORDER..) */
 	  thread_vertex_shuffle(thr);
 
 	  thr->attempts += 1;

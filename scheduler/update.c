@@ -5,7 +5,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1996
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1998
  */
 
 #include "hostenv.h"
@@ -107,6 +107,8 @@ update(fd, diagnostic)
 	  pick_next_vertex(proc, 1, 0);
 	  if (proc->hungry)
 	    feed_child(proc);
+	  if (proc->fed)
+	    ++proc->overfed;
 	  flush_child(proc);
 	  return;
 	}
@@ -168,6 +170,7 @@ update(fd, diagnostic)
 	}
 
 	/* Now (*diagnostic == '#') */
+
 	if (strncmp(diagnostic,"#hungry",7)==0) {
 	  /* This is an "actor model" behaviour,
 	     where actor tells, when it needs a new
@@ -200,7 +203,6 @@ update(fd, diagnostic)
 		  break;	/* if the limit is zero, don't overfeed ever.*/
 		/* Ok, increment the counter, and loop back.. */
 		proc->hungry = 1; /* Simulate hunger.. */
-		proc->fed = 1; /* tell them, it has been fed.. */
 		pick_next_vertex(proc, 1, 0);
 		/* If it got next,  ``proc->fed'' is now zero.. */
 	      }
@@ -209,13 +211,14 @@ update(fd, diagnostic)
 	    } else {
 	      if (verbose)
 		printf("... child pid %d overfed=%d\n",
-		       proc->pid,proc->overfed);
+		       proc->pid, proc->overfed);
 	    }
 	  } else
 	    if (verbose)
 	      printf("'#hungry' from child without forward-channel\n");
 	  return;
 	} /* end of '#hungry' processing */
+
 	if (strncmp(diagnostic,"#resync",7)==0) {
 	  /* The transporter has noticed that the scheduler
 	     gave it a job spec, which does not have anything
@@ -226,9 +229,10 @@ update(fd, diagnostic)
 	  p = strchr(s,'\n');
 	  if (p) *p = 0; /* newline AFTER filename */
 	  if (*s != 0)
-	    resync_file(s);
+	    resync_file(proc, s);
 	  return;
 	}
+
 	fprintf(stderr, "%s DBGdiag: %s\n", timestring(), diagnostic);
 	return;
 }
@@ -242,7 +246,6 @@ unctlfile(cfp, no_unlink)
 	struct ctlfile *cfp;
 	int no_unlink;
 {
-	struct spblk *spl;
 	char	path[MAXPATHLEN+1];
 
 	if (cfp->dirind > 0)
@@ -290,11 +293,16 @@ unctlfile(cfp, no_unlink)
 	  dq_insert(NULL, atol(cfp->mid), path, 30);
 #endif
 	}
-	spl = sp_lookup(cfp->id, spt_mesh[L_CTLFILE]);
-	if (spl != NULL)
-	  sp_delete(spl, spt_mesh[L_CTLFILE]);
-	free_cfp_memory(cfp);
+
+	if (cfp->id != 0) {
+	  struct spblk *spl;
+	  spl = sp_lookup(cfp->id, spt_mesh[L_CTLFILE]);
+	  if (spl != NULL)
+	    sp_delete(spl, spt_mesh[L_CTLFILE]);
+	}
 	--global_wrkcnt;
+
+	free_cfp_memory(cfp);
 }
 
 /* unvertex() .. the ``vp'' CAN'T be invalid.. */
@@ -323,17 +331,32 @@ void unvertex(vp, justfree, ok)
 
 	if (vp->proc && vp->proc->vertex == vp) {
 	  vp->proc->fed     = 1; /* Mark it fed just in case.. */
+#if 0 /* No need ? Wrong place ? Propably wrong place/thing! */
 	  vp->proc->overfed = 0; /* .. and clear this .. */
+#endif
 	  /* Pick next, but don't feed it (yet)! */
 	  pick_next_vertex(vp->proc, ok, justfree);
 	  if (vp->proc && vp->proc->vertex == vp){
+	    /* Sigh... Lets see, if we can move the vertex
+	       pointer somewhere. */
+
+	    /* Pick the first one you can find */
+	    vp->proc->vertex = vp->proc->thread->vertices;
+	    if (vp->proc->vertex == vp) {
+	      /* Damn! */
+	      vp->proc->vertex = vp->proc->vertex->nextitem;
+	    }
+	    /* Ok, now the 'vertex' will either differ
+	       from 'vp', or it is NULL. */
+#if 0
 	    fprintf(stderr,
 		    "unvertex(vtx=0x%p,%d,%d) failed to pick_next_vertex() file=%s!\n",
-		    vp,justfree,ok, vp->cfp->mid);
+		    vp, justfree, ok, vp->cfp->mid);
 	    /* We may become called with child feeder yet unflushed;
 	       shall we kill the kid ? (pick_next_vertex won't change
 	       vertex then..) */
 	    /* abort(); */
+#endif
 	  }
 	}
 	if (vp->thread != NULL &&

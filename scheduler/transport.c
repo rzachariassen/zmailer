@@ -4,7 +4,7 @@
  */
 /*
  *	Lots of modifications (new guts, more or less..) by
- *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1995
+ *	Matti Aarnio <mea@nic.funet.fi>  (copyright) 1992-1998
  */
 
 
@@ -132,6 +132,9 @@ struct procinfo *proc;
 	  return 0;
 	}
 
+	/* Make sure it is zero terminated! */
+	proc->cmdbuf[proc->cmdlen] = 0;
+
 	if (proc->cmdlen != 0 && proc->tofd >= 0) {
 	  /* We have some leftovers from previous feed..
 	     .. feed them now.  */
@@ -228,12 +231,12 @@ struct procinfo *proc;
 	  }
 	}
 	/* Ok, it does fit in, copy it there.. */
-	strcpy(proc->cmdbuf+proc->cmdlen,cmdbuf);
+	memcpy(proc->cmdbuf+proc->cmdlen,cmdbuf, len+1);
 	proc->cmdlen += len;
 
 	if (verbose) {
 	  printf("feed: tofd=%d, fed=%d, chan=%s, proc=0x%p, vtx=0x%p, ",
-		 proc->tofd,proc->fed,proc->ch->name, proc, vtx);
+		 proc->tofd, proc->fed, proc->ch->name, proc, vtx);
 	  fflush(stdout);
 	}
 
@@ -294,7 +297,7 @@ start_child(vhead, chwp, howp)
 	}
 	/*
 	 * Replace the $host and $channel strings in the command line.
-	 * (also $LOGDIR)
+	 * (also any ${ZENV} variable)
 	 */
 	os = buf;
 	for (i = 0; vhead->thgrp->ce.argv[i] != NULL; ++i) {

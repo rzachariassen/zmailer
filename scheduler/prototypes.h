@@ -98,7 +98,7 @@ extern int  vtxredo __((struct spblk *spl));
 extern char *timestring __((void));
 extern time_t now;
 extern FILE *statuslog;
-extern void resync_file __((const char *filename));
+extern void resync_file __((struct procinfo *proc, const char *filename));
 extern int thread_count_recipients __((void));
 extern time_t mytime __((time_t *));
 extern int dq_insert __((void*, long, const char*, int));
