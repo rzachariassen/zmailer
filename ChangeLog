@@ -1,3 +1,8 @@
+2003-11-05  Andrey Blochintsev <bag@iptelecom.net.ua>
+
+	* smtpserver/readpolicy.c:
+	    Allow '_' prefixed user names to be used.
+
 2003-11-04  Matti Aarnio  <mea@zmailer.org>
 
 	* router/daemonsub.c:

@@ -142,10 +142,10 @@ char *str;
 	*s++ = 0;
 	return parse_ip_policy(pbuf, str, s);
     }
-    if (*str == '_')
-	return parse_gen_policy(pbuf, str, P_K_TAG);
     if (strchr(str,'@') != NULL)
 	return parse_gen_policy(pbuf, str, P_K_USER);
+    if (*str == '_')
+	return parse_gen_policy(pbuf, str, P_K_TAG);
 
     return parse_gen_policy(pbuf, str, P_K_DOMAIN);
 }
