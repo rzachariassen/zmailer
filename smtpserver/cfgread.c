@@ -147,6 +147,9 @@ static void cfparam(str)
     } else if (cistrcmp(name, "RcptLimitCnt") == 0 && param1) {
 	sscanf(param1, "%d", &rcptlimitcnt);
 	if (rcptlimitcnt < 100) rcptlimitcnt = 100;
+    } else if (cistrcmp(name, "RcptLimitCount") == 0 && param1) {
+	sscanf(param1, "%d", &rcptlimitcnt);
+	if (rcptlimitcnt < 100) rcptlimitcnt = 100;
     } else if (cistrcmp(name, "Rcpt-Limit-Count") == 0 && param1) {
 	sscanf(param1, "%d", &rcptlimitcnt);
 	if (rcptlimitcnt < 100) rcptlimitcnt = 100;

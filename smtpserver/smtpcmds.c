@@ -941,7 +941,7 @@ int insecure;
       SS->state = Recipient;
 
     SS->rcpt_count = 0;
-    SS->from_box = (*cp == 0);
+    SS->from_box = (addrlen == 0);
 }
 
 

@@ -185,7 +185,7 @@ int MaxSameIpSource = 100;	/* Max number of smtp connections in progress
 				   the remote SMTP server... */
 int MaxParallelConnections = 800; /* Total number of childs allowed */
 
-int MaxErrorRecipients = 10;	/* Max number of recipients for a message
+int MaxErrorRecipients = 3;	/* Max number of recipients for a message
 				   that has a "box" ( "<>" ) as its source
 				   address. */
 int percent_accept = -1;

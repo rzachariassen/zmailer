@@ -1,7 +1,21 @@
+2000-04-20  Matti Aarnio  <mea@mea.tmt.tele.fi>
+
+	* smtpserver/smtpcmds.c, smtpserver/smtpserver.c:
+	    Fix "from_box" setting to match current treatment
+	    of user input string (e.g. not stomping things
+	    with '\0' chars..)
+	    Synced  MaxErrorRecipients  default value with
+	    documentation.
+
+	* smtpserver/cfgread.c:
+	    Documentation (proto/smtpserver.conf.in) says that
+	    PARAM name is:  RcptLimitCount,  while it was recognized
+	    only as  RcptLimitCnt ...  Oops.
+
 2000-04-18  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
 	* router/db.c:
-	    A mistake in cache LRU chain hanling caused eternal
+	    A mistake in cache LRU chain handling caused eternal
 	    loop to form sometimes.  Oops.
 
 2000-04-14  Matti Aarnio  <mea@mea.tmt.tele.fi>
@@ -51,7 +65,7 @@
 
 	* smtpserver/smtptls.c, smtpserver/smtpserver.c:
 	    Under TLS do always flush replies - to simulate one other
-	    MTA running under TLS wrapper. (This was a bit latter removed.)
+	    MTA running under TLS wrapper. (This was removed a bit latter.)
 
 2000-04-12  Matti Aarnio  <mea@mea.tmt.tele.fi>
 
