@@ -48,6 +48,9 @@ clean:	FRC
 	if [ -d mailq -a -r mailq/Makefile ] ; then \
 		cd mailq && $(MAKE) $(MFLAGS) clean && rm -f Makefile.old ; \
 	fi
+	if [ "$(srcdir)" != "." ] ; then \
+		rm -rf mailq ; \
+	fi
 
 distclean: clean
 	rm -f Makefile

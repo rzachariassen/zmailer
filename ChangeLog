@@ -1,5 +1,10 @@
 2003-05-24  Matti Aarnio  <mea@zmailer.org>
 
+	* utils/perl/Makefile.in:
+	    As the "mailq" needs to be copied from its original location,
+	    when processing building in "adjacent directory", the "make clean"
+	    will need to remove it under same conditions.
+
 	* router/router.c, router/daemonsub.c, scheduler/scheduler.c,
 	  smtpserver/smtpserver.c:
 	    Moved  Z_SHM_MIB_Attach()  into a place where these programs
