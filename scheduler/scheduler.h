@@ -135,33 +135,35 @@ struct web {
 	struct vertex	*lastlink;	/* for efficiency at link_in()	    */
 };
 
-struct procinfo {
-	pid_t	pid;		/* Process-id				*/
-	int	reaped;
-	int	tofd;		/* tell transporter job data thru this	*/
-	int	state;		/* Child-Feed State Machine state	*/
-
-#define CFSTATE_LARVA		1  /* The first feed of the thread	*/
-#define CFSTATE_STUFFING	2  /* More feeds for the thread		*/
-#define CFSTATE_FINISHING	3  /* end of thread, waiting reports	*/
-#define CFSTATE_IDLE		0  /* Idle state			*/
-#define CFSTATE_ERROR		-1 /* Error encountered			*/
+typedef enum {
+  CFSTATE_LARVA = 1,		/* The first feed of the thread		*/
+  CFSTATE_STUFFING = 2,		/* More feeds for the thread		*/
+  CFSTATE_FINISHING = 3,	/* end of thread, waiting reports	*/
+  CFSTATE_IDLE = 4,		/* Idle state				*/
+  CFSTATE_ERROR = 0		/* Error encountered			*/
+} TASTATE;
 
   /* State changes:  fork() -> (1) --> (2) -+-> (3) -+-> (0) -+-> death
                                 ^       ^   |        |        |
                                 |       |-<-|        v        v
                                 |---<------------<---|--<-----|
   */
-                                 
+
+struct procinfo {
+	pid_t	pid;		/* Process-id				*/
+	int	reaped;
+	int	tofd;		/* tell transporter job data thru this	*/
+
+	TASTATE	state;		/* Child-Feed State Machine state	*/
 
 	time_t	hungertime;	/* .. when last state change		*/
 	int	overfed;	/* Now many jobs fed to it over the normal 1?*/
 	time_t	feedtime;	/* .. when fed				*/
 	struct web *ch;		/* Web of CHANNELs			*/
 	struct web *ho;		/* Web of HOSTs				*/
-	struct thread *thread;	/* The thread we are processing		*/
-	struct vertex *vertex;	/* vertex within that thread		*/
-	struct procinfo *next;	/* next one in IDLE queue		*/
+	struct thread *pthread;	/* The thread we are processing		*/
+	struct vertex *pvertex;	/* vertex within that thread		*/
+	struct procinfo *pnext;	/* next one in IDLE queue		*/
 	struct threadgroup *thg; /* The thread-ring we are in		*/
 	char	*carryover;	/* Long responces..			*/
 	int	cmdlen;		/* buffer content size			*/

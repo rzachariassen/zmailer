@@ -109,13 +109,13 @@ flush_child(proc)
      struct procinfo *proc;
 {
 	if (proc->tofd < 0) {
-	  if (proc->vertex) {
-	    proc->vertex->proc = NULL;
-	    proc->vertex       = NULL;
+	  if (proc->pvertex) {
+	    proc->pvertex->proc = NULL;
+	    proc->pvertex       = NULL;
 	  }
-	  if (proc->thread) {
-	    proc->thread->proc = NULL;
-	    proc->thread       = NULL;
+	  if (proc->pthread) {
+	    proc->pthread->proc = NULL;
+	    proc->pthread       = NULL;
 	  }
 	  proc->cmdlen = 0;
 	  proc->state = CFSTATE_ERROR;
@@ -143,13 +143,13 @@ flush_child(proc)
 	    /* Some real failure :-( */
 	    pipes_shutdown_child(proc->tofd);
 	    proc->tofd = -1;
-	    if (proc->vertex) {
-	      proc->vertex->proc = NULL;
-	      proc->thread       = NULL;
+	    if (proc->pvertex) {
+	      proc->pvertex->proc = NULL;
+	      proc->pthread       = NULL;
 	    }
-	    if (proc->thread) {
-	      proc->thread->proc = NULL;
-	      proc->thread       = NULL;
+	    if (proc->pthread) {
+	      proc->pthread->proc = NULL;
+	      proc->pthread       = NULL;
 	    }
 	    proc->cmdlen = 0;
 	    proc->state = CFSTATE_ERROR;
@@ -167,7 +167,7 @@ flush_child(proc)
 
 
 /*
- * The 'feed_child()' sends whatever is pointed by   proc->vertex;
+ * The 'feed_child()' sends whatever is pointed by   proc->pvertex;
  * return -1 for failures and incomplete writes, 0 for success!
  */
 
@@ -186,11 +186,11 @@ feed_child(proc)
 	  /* Nothing written -> break out -- might not be an error! */
 	  return -1;
 
-	if (proc->thread == NULL) {
+	if (proc->pthread == NULL) {
 	  proc->state = CFSTATE_ERROR;
 	  return -1; /* Might be called without next process.. */
 	}
-	if (proc->vertex == NULL) {
+	if (proc->pvertex == NULL) {
 	  proc->state = CFSTATE_ERROR;
 	  return -1; /* Might be called without next process.. */
 	}
@@ -199,7 +199,7 @@ feed_child(proc)
 	  return -1; /* No process../No write channel.. */
 	}
 
-	vtx = proc->vertex;
+	vtx = proc->pvertex;
 
 	if (slow_shutdown) {
 
@@ -300,7 +300,7 @@ ta_hungry(proc)
 	case CFSTATE_LARVA:
 
 	  /* Thread selected already along with its first vertex,
-	     which is pointer by  proc->vertex  */
+	     which is pointer by  proc->pvertex  */
 
 	cfstate_larva:
 
@@ -364,9 +364,9 @@ ta_hungry(proc)
 
 	  if (verbose) sfprintf(sfstdout," ... IDLE THE PROCESS %p (of=%d).\n",
 				proc, proc->overfed);
-	  proc->thread = NULL;
-	  proc->vertex = NULL;
-	  proc->next   = proc->thg->idleproc;
+	  proc->pthread = NULL;
+	  proc->pvertex = NULL;
+	  proc->pnext   = proc->thg->idleproc;
 	  proc->thg->idleproc = proc;
 	  proc->thg->idlecnt += 1;
 	  ++idleprocs;
@@ -618,7 +618,7 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 
 	memset(proc,0,sizeof(struct procinfo));
 #if 0 /* the memset() does this more efficiently.. */
-	proc->next   = NULL;
+	proc->pnext   = NULL;
 	proc->cmdlen = 0;
 	proc->reaped = 0;
 	proc->carryover = NULL;
@@ -630,9 +630,9 @@ static void stashprocess(pid, fromfd, tofd, chwp, howp, vhead, argv)
 	proc->pid    = pid;
 	proc->ch     = chwp;
 	proc->ho     = howp;
-	proc->vertex = vhead;
-	proc->thread = vhead->thread;
-	proc->thread->proc = proc;
+	proc->pvertex = vhead;
+	proc->pthread = vhead->thread;
+	proc->pthread->proc = proc;
 	proc->thg    = vhead->thread->thgrp;
 	proc->thg->transporters += 1;
 	++numkids;
@@ -740,18 +740,18 @@ if (verbose)
 	   (that were not reported on).		*/
 
 	/* ... but only if we were not in IDLE chain! */
-	if (proc->thread != NULL) {
+	if (proc->pthread != NULL) {
 	  /* Reschedule them all .. */
-	  thread_reschedule(proc->thread,0,-1);
+	  thread_reschedule(proc->pthread,0,-1);
 	  /* Bookkeeping about dead transporters */
 	  proc->thg->transporters -= 1;
 	  --numkids;
-	  if (proc->vertex != NULL)
-	    proc->vertex->proc = NULL;
-	  proc->vertex = NULL;
-	  if (proc->thread)
-	    proc->thread->proc = NULL;
-	  proc->thread = NULL;
+	  if (proc->pvertex != NULL)
+	    proc->pvertex->proc = NULL;
+	  proc->pvertex = NULL;
+	  if (proc->pthread)
+	    proc->pthread->proc = NULL;
+	  proc->pthread = NULL;
 	  proc->thg    = NULL;
 	} else {
 	  /* Maybe we were in idle chain! */
@@ -762,13 +762,13 @@ if (verbose)
 
 	    while (p && p != proc) {
 		/* Move to the next possible idle process */
-		pp = &p->next;
-		p = p->next;
+		pp = &p->pnext;
+		p = p->pnext;
 	    }
 	    if (p == proc) {
 	      /* Remove this entry from the chains */
-	      *pp = p->next;
-	      p = p->next;
+	      *pp = p->pnext;
+	      p = p->pnext;
 	      proc->thg->idlecnt      -= 1;
 	      --idleprocs;
 	      proc->thg->transporters -= 1;
@@ -778,18 +778,18 @@ if (verbose)
 		delete_threadgroup(proc->thg);
 	    } else {
 	      /* It is not in idle chain, it has died somehow else.. */
-	      if (proc->vertex != NULL)
-		proc->vertex->proc = NULL;
-	      proc->vertex = NULL;
-	      if (proc->thread != NULL)
-		proc->thread->proc = NULL;
-	      proc->thread = NULL;
+	      if (proc->pvertex != NULL)
+		proc->pvertex->proc = NULL;
+	      proc->pvertex = NULL;
+	      if (proc->pthread != NULL)
+		proc->pthread->proc = NULL;
+	      proc->pthread = NULL;
 	      proc->thg->transporters -= 1;
 	      --numkids;
 	    }
 	  } else {
 	    /* We are killed by the idle_cleanup() !   */
-	    /* proc->thg == NULL, proc->thread == NULL */
+	    /* proc->thg == NULL, proc->pthread == NULL */
 	    /* idle_cleanup() did all decrementing..   */
 	  }
 	}

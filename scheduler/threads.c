@@ -275,7 +275,7 @@ int pick_next_thread __((struct procinfo *));
 /*
  * Pick next thread from the group which this process serves.
  * 
- * Result is  proc->thread and proc->vertex being updated to
+ * Result is  proc->pthread and proc->pvertex being updated to
  * new thread, and function returns 1.
  * If no new thread can be picked (all are active, and whatnot),
  * return 0.
@@ -286,15 +286,15 @@ pick_next_thread(proc)
      struct procinfo *proc;
 {
 	struct thread	    *thr;
-	struct thread       *thr0 = proc->thread;
+	struct thread       *thr0 = proc->pthread;
 	struct threadgroup  *thg  = proc->thg;
 	int once = 1;
 
 	if (thr0 && (thr0->proc == proc))
 	  thr0->proc = NULL; /* Remove ourselves */
 
-	proc->thread = NULL;
-	proc->vertex = NULL;
+	proc->pthread = NULL;
+	proc->pvertex = NULL;
 
 	if (thg->cep->flags & CFG_QUEUEONLY)
 	  return 0; /* We are QUEUE ONLY group, no auto-switch! */
@@ -315,8 +315,8 @@ pick_next_thread(proc)
 	    /* XXXX: found thread, prepare it for start, shuffle vertices,
 	       if so configured, and set results.. */
 
-	    proc->thread = thr;
-	    proc->vertex = thr->vertices;
+	    proc->pthread = thr;
+	    proc->pvertex = thr->vertices;
 
 	    return 1;
 	  }
@@ -360,16 +360,16 @@ delete_thread(thr, ok)
 	if (thg->threads == 0) {
 	  thg->thread = NULL;	/* Oops.. we were last!		*/
 	  if (thr->proc &&
-	      thr->proc->thread == thr) { /* There is a process, detach it! */
+	      thr->proc->pthread == thr) { /* There is a process, detach it! */
 
-	    thr->proc->thread = NULL;
-	    thr->proc->vertex = NULL;
+	    thr->proc->pthread = NULL;
+	    thr->proc->pvertex = NULL;
 
 	  } else if (thr->proc &&
 		     thr->proc->pid <= 0) {
 
-	    thr->proc->thread = NULL;
-	    thr->proc->vertex = NULL;
+	    thr->proc->pthread = NULL;
+	    thr->proc->pvertex = NULL;
 
 	    if (verbose)
 	      sfprintf(sfstderr,"delete_thread(1) thr->proc=%p pid=%d\n",
@@ -387,25 +387,25 @@ delete_thread(thr, ok)
 	     the process' current thread is no longer in the ring!	*/
 
 	  if (thr->proc &&
-	      thr->proc->thread == thr) {
+	      thr->proc->pthread == thr) {
 
 	    /* detach it - ta_hungry() will handle idling.. */
 
-	    thr->proc->vertex = NULL;
-	    thr->proc->thread = NULL;
+	    thr->proc->pvertex = NULL;
+	    thr->proc->pthread = NULL;
 
 	    if (verbose)
 	      sfprintf(sfstderr, "delete_thread(2) thr->proc=%p pid=%d\n",
 		       thr->proc, (int)thr->proc->pid);
 
 	    if (verbose)
-	      sfprintf(sfstderr,"   proc->thr=%p\n", thr->proc->thread);
+	      sfprintf(sfstderr,"   proc->thr=%p\n", thr->proc->pthread);
 
 	  } else if (thr->proc != NULL &&
 		     thr->proc->pid <= 0) {
 
-	    thr->proc->thread = NULL;
-	    thr->proc->vertex = NULL;
+	    thr->proc->pthread = NULL;
+	    thr->proc->pvertex = NULL;
 
 	    if (verbose)
 	      sfprintf(sfstderr, "delete_thread(2b) thr->proc=%p pid=%d\n",
@@ -675,7 +675,7 @@ web_detangle(vp, ok)
 	   We do this only when we have reaped the channel program. */
 
 	if (vp->proc != NULL) {
-	  if (vp->proc->vertex == vp)
+	  if (vp->proc->pvertex == vp)
 	    pick_next_vertex(vp->proc);
 	  vp->proc = NULL;
 	}
@@ -809,7 +809,7 @@ struct thread *thr;
 		  thr, thr->jobs);
 
 	if (thr->proc != NULL &&
-	    thr->proc->thread == thr) {
+	    thr->proc->pthread == thr) {
 	  if (verbose) sfprintf(sfstderr," -- already running\n");
 	  return 0; /* Already running */
 	}
@@ -830,7 +830,7 @@ struct thread *thr;
 	    if (proc->ho == ho && proc->ch == ch)
 	      break;
 
-	    ipp  = &(proc->next);
+	    ipp  = &(proc->pnext);
 	    proc = *ipp;
 	  }
 	  if (proc == NULL) {
@@ -841,8 +841,8 @@ struct thread *thr;
 	  }
 	  /* Selected one of them.. */
 	  thr->proc     = proc;
-	  *ipp          = proc->next;
-	  proc->next    = NULL;
+	  *ipp          = proc->pnext;
+	  proc->pnext   = NULL;
 
 	  thg->idlecnt -= 1;
 	  --idleprocs;
@@ -851,8 +851,8 @@ struct thread *thr;
 	  if (proc->pid <= 0 || proc->tofd < 0)
 	    goto re_pick;
 
-	  proc->thread  = thr;
-	  proc->vertex  = thr->vertices;
+	  proc->pthread  = thr;
+	  proc->pvertex  = thr->vertices;
 	  /* Thread-groups are made such that here at thread_start() we
 	     can always switch over in between threads */
 	  proc->ch = ch;
@@ -875,7 +875,7 @@ struct thread *thr;
 	     order of thread vertices  (or sort by spool file
 	     mtime, if in AGEORDER..) */
 	  thread_vertex_shuffle(thr);
-	  proc->vertex = thr->vertices;
+	  proc->pvertex = thr->vertices;
 
 	  thr->attempts += 1;
 
@@ -946,12 +946,12 @@ struct thread *thr;
 /*
  * pick_next_vertex() -- pick next free to process vertex in this thread
  *
- * - if (proc->vertex != NULL) proc->vertex = proc->vertex->nextitem;
- * - return (proc->vertex != NULL);
+ * - if (proc->pvertex != NULL) proc->pvertex = proc->pvertex->nextitem;
+ * - return (proc->pvertex != NULL);
  *
  */
 
-/* Return 0 for errors, 1 for success; result is at  proc->vertex */
+/* Return 0 for errors, 1 for success; result is at  proc->pvertex */
 
 int
 pick_next_vertex(proc)
@@ -959,27 +959,27 @@ pick_next_vertex(proc)
 {
 	struct thread      *thr;
 
-	thr  = proc->thread;
+	thr  = proc->pthread;
 
 	if (verbose)
 	  sfprintf(sfstdout,"pick_next_vertex(proc->tofd=%d, thr=%p, vtx=%p, jobs=%d OF=%d)\n",
-		 proc->tofd, thr, proc->vertex, thr ? thr->jobs : 0, proc->overfed);
+		 proc->tofd, thr, proc->pvertex, thr ? thr->jobs : 0, proc->overfed);
 
 	if (proc->pid < 0 || proc->tofd < 0) {	/* "Jim, He is dead!"	*/
-	  if (proc->thread != NULL)
-	    proc->thread->proc = NULL;
-	  proc->thread = NULL;
-	  if (proc->vertex != NULL)
-	    proc->vertex->proc = NULL;
-	  proc->vertex = NULL;
+	  if (proc->pthread != NULL)
+	    proc->pthread->proc = NULL;
+	  proc->pthread = NULL;
+	  if (proc->pvertex != NULL)
+	    proc->pvertex->proc = NULL;
+	  proc->pvertex = NULL;
 	  if (verbose) sfprintf(sfstdout," ... NONE, 'Jim, He is dead!'\n");
 	  return 0;
 	}
 
-	if (proc->vertex)
-	  proc->vertex = proc->vertex->nextitem;
+	if (proc->pvertex)
+	  proc->pvertex = proc->pvertex->nextitem;
 
-	return (proc->vertex != NULL);
+	return (proc->pvertex != NULL);
 }
 
 /*
@@ -1132,7 +1132,7 @@ reschedule(vp, factor, index)
 #if 0 /* Hmm.. The reschedule() is called only when we have a reason
 	 to call it, doesn't it ?  */
 	if (thr->proc &&
-	    thr->proc->thread == thr) return; /* IN PROCESSING! */
+	    thr->proc->pthread == thr) return; /* IN PROCESSING! */
 #endif
 
 	/* find out when to retry */
@@ -1385,16 +1385,16 @@ idle_cleanup()
 #if 1
 		--numkids;
 		p->thg        = NULL;
-		p->thread     = NULL;
+		p->pthread    = NULL;
 #endif
 
 		/* Remove this entry from the chain, and move to a next one */
-		p = *pp = p->next;
+		p = *pp = p->pnext;
 	      } else {
 		++newidlecnt;
 		/* Move to the next possible idle process */
-		pp = &p->next;
-		p = p->next;
+		pp = &p->pnext;
+		p = p->pnext;
 	      }
 	    }
 	    if (thg->thread == NULL && thg->idleproc == NULL) {
@@ -1520,7 +1520,7 @@ void thread_report(fp,mqmode)
 
 	    ++cnt;
 	    if (thr->proc != NULL &&
-		thr->proc->thread == thr) {
+		thr->proc->pthread == thr) {
 	      ++procs;
 
 	      if (mqmode & MQ2MODE_FULL) {
@@ -1568,7 +1568,7 @@ void thread_report(fp,mqmode)
 	  }
 
 	  cnt = 0;
-	  for (p = thg->idleproc; p != 0; p = p->next) ++cnt;
+	  for (p = thg->idleproc; p != 0; p = p->pnext) ++cnt;
 
 	  if (mqmode & (MQ2MODE_FULL | MQ2MODE_QQ)) {
 	    sfprintf(fp," Idle: %3d",thg->idlecnt);
