@@ -885,7 +885,7 @@ has_header(rp,keystr)
 	char **hdrs = *(rp->newmsgheader);
 	int keylen = strlen(keystr);
 
-	if (*(rp->newmsgheadercvt) != NULL)
+	if (*(rp->newmsgheadercvt))
 	  hdrs = *(rp->newmsgheadercvt);
 
 	if (hdrs)
@@ -959,7 +959,6 @@ downgrade_headers(rp, convertmode, verboselog)
 	char **CT   = NULL;
 	char **CTE  = NULL;
 	char **MIME = NULL;
-	/* char **receivedp = NULL; */
 	struct ct_data *ct;
 	int lines = 0;
 	int i;
@@ -973,7 +972,7 @@ downgrade_headers(rp, convertmode, verboselog)
 
 	oldmsgheader = rp->newmsgheadercvt;
 
-	if (oldmsgheader)
+	if (oldmsgheader) /* Count them! */
 	  while ((*oldmsgheader)[lines]) ++lines;
 
 	MIME = has_header(rp,"MIME-Version:");
@@ -986,21 +985,21 @@ downgrade_headers(rp, convertmode, verboselog)
 	if (convertmode == _CONVERT_UNKNOWN) {
 	  /* We downgrade by changing it to Q-P as per RFC 1428/Appendix A */
 	  static const char *warning_lines[] = {
-"X-Warning: Original message contained 8-bit characters, however during",
-"\t   the SMTP transport session the receiving system did not announce",
-"\t   capability of receiving 8-bit SMTP (RFC 1651-1653), and as this",
-"\t   message does not have MIME headers (RFC 2045-2049) to enable",
-"\t   encoding change, we had very little choice.",
-"X-Warning: We ASSUME it is less harmful to add the MIME headers, and",
-"\t   convert the text to Quoted-Printable, than not to do so,",
-"\t   and to strip the message to 7-bits.. (RFC 1428 Appendix A)",
-"X-Warning: We don't know what character set the user used, thus we had to",
-"\t   write these MIME-headers with our local system default value.",
+"X-Warning: Original message contained 8-bit characters, however during\n\
+\t   the SMTP transport session the receiving system did not announce\n\
+\t   capability of receiving 8-bit SMTP (RFC 1651-1653), and as this\n\
+\t   message does not have MIME headers (RFC 2045-2049) to enable\n\
+\t   encoding change, we had very little choice.",
+"X-Warning: We ASSUME it is less harmful to add the MIME headers, and\n\
+\t   convert the text to Quoted-Printable, than not to do so,\n\
+\t   and to strip the message to 7-bits.. (RFC 1428 Appendix A)",
+"X-Warning: We don't know what character set the user used, thus we had to\n\
+\t   write these MIME-headers with our local system default value.",
 "MIME-Version: 1.0",
 "Content-Transfer-Encoding: QUOTED-PRINTABLE",
 NULL };
 
-	  char **newmsgheaders = (char**)malloc(sizeof(char**)*(lines+15));
+	  char **newmsgheaders = (char**)malloc(sizeof(char**)*(lines+6));
 	  char *defcharset = getzenv("DEFCHARSET");
 	  char *newct;
 
@@ -1008,33 +1007,31 @@ NULL };
 
 	  if (!defcharset)
 	    defcharset = "ISO-8859-1";
-#ifdef HAVE_ALLOCA
-	  newct = alloca(strlen(defcharset)+2+sizeof("Content-Type: TEXT/PLAIN; charset="));
-#else
 	  newct = malloc(strlen(defcharset)+2+sizeof("Content-Type: TEXT/PLAIN; charset="));
 	/* FIXME: malloc problem check ?? */
-#endif
 	  sprintf(newct,"Content-Type: TEXT/PLAIN; charset=%s",defcharset);
 
 	  if (!newmsgheaders) return 0; /* XX: Auch! */
 
-	  for (lines = 0; warning_lines[lines] != NULL; ++lines)
+	  for (lines = 0; warning_lines[lines]; ++lines)
 	    newmsgheaders[lines] = strdup(warning_lines[lines]);
-	  newmsgheaders[lines++] = strdup(newct);
-#ifndef HAVE_ALLOCA
-	  free(newct);
-#endif
+	  newmsgheaders[lines++] = newct;
+
 	  if (CT)	/* XX: This CAN be wrong action for
 			       some esoteric SysV mailers.. */
 	    delete_header(rp,CT);
 	  /* These most probably won't happen, but the delete_header()
 	     does scram the pointers anyway.. */
-	  if (MIME)
+	  if (MIME) {
+	    MIME = has_header(rp,"MIME-Version:");
 	    delete_header(rp,MIME);
-	  if (CTE)
+	  }
+	  if (CTE) {
+	    CTE  = has_header(rp,cCTE);
 	    delete_header(rp,CTE);
+	  }
 
-	  for (i = 0; (*oldmsgheader)[i] != NULL; ++i)
+	  for (i = 0; (*oldmsgheader)[i]; ++i)
 	    newmsgheaders[lines+i] = (*oldmsgheader)[i];
 	  newmsgheaders[lines+i] = NULL;
 
@@ -1044,8 +1041,6 @@ NULL };
 	}
 
 	/* Now look for the  Content-Transfer-Encoding:  header */
-
-	/*receivedp = has_header(rp,"Received:");*/
 
 	if (CTE == NULL) return 0; /* No C-T-E: ??? */
 
