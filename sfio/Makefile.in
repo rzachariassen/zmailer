@@ -13,7 +13,7 @@ CFLAGS = @CFLAGS@
 all:
 	-mkdir -p lib include
 	DIR=`/bin/pwd`;PATH=$$DIR/$$srcdir/bin:$$PATH;export PATH; \
-		cd src/lib/sfio; $(MAKE) -f makefile  all
+		cd src/lib/sfio; $(MAKE) -f makefile $(MFLAGS) all
 	rm -f ../libs/libsfio.a ../libs/libstdio.a
 	ln lib/libsfio.a  ../libs/
 	ln lib/libstdio.a ../libs/
@@ -22,7 +22,7 @@ all:
 	ln include/sfio.h        ../include/
 
 clean:
-	-cd src/lib/sfio; $(MAKE) -f makefile  clean
+	-cd src/lib/sfio; $(MAKE) -f makefile $(MFLAGS) clean
 	rm -f ../libs/libsfio.a ../libs/libstdio.a
 	rm -f ../include/ast_common.h ../include/sfio.h
 	rm -f lib/*.a include/*.h

@@ -40,20 +40,27 @@ OBJS=	doprnt.o doscan.o fclose.o fdopen.o fflush.o fgetc.o fgets.o filbuf.o \
 .c.o:
 	$(CC) -c $(CCFLAGS) $<
 
-libstdio.a: FEATURE/stdio must $(OBJS)
+libstdio.a: $(OBJS)
 	$(AR) cr libstdio.a $(OBJS)
 	-(ranlib libstdio.a; rm sfstdio.h; exit 0) >/dev/null 2>&1
 
+$(OBJS): must
+
+must: sfstdio.h sfstdhdr.h
+
+sfstdio.o: sfstdio.c sfstdhdr.h
+
+sfstdio.h: sfstdgen FEATURE/stdio sfstdhdr.h
+	./sfstdgen > sfstdio.h$$$$ && mv sfstdio.h$$$$ sfstdio.h
+
 FEATURE/stdio: $(srcdir)/features/stdio
 	-if [ ! -d FEATURE ]; then mkdir FEATURE ; else exit 0; fi
-	$(BINDIR)/iffe set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/stdio
+	$(BINDIR)/iffe - set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/stdio > FEATURE/stdio.$$$$ && mv FEATURE/stdio.$$$$ FEATURE/stdio
 
-must:	sfstdio.h sfstdgen
-	./sfstdgen > sfstdio.h; rm sfstdgen sfstdhdr.h
-sfstdio.h: $(srcdir)/sfstdhdr.sh
+sfstdhdr.h: $(srcdir)/sfstdhdr.sh FEATURE/stdio
 	$(srcdir)/sfstdhdr.sh $(CC)
 
-sfstdgen: sfstdio.o
+sfstdgen: sfstdio.o sfstdhdr.h
 	$(CC) $(CCFLAGS) sfstdio.o -o sfstdgen
 
 clean:

@@ -66,7 +66,7 @@ version.c: $(OBJS) $(TOPDIR)/Makefile
 rfc822test: $(RFC822OBJS) $(TOPDIR)/libs/libzm.a
 	$(CC) $(CFLAGS) $(RFC822OBJS) -o $@ $(TOPDIR)/libs/libzm.a $(LIB)
 
-rfc822.entry:  $(TOPDIR)/include/rfc822.entry
+rfc822.entry:  $(TOPDIR)/include/rfc822.entry $(SSL)
 $(TOPDIR)/include/rfc822.entry rfc822.sst.c rfc822.sst.h:  rfc822.ssl ${SSL}
 	$(RUNSSL)
 
@@ -104,7 +104,7 @@ llib-l$(PROGRAM).ln:	$(SOURCE)
 lint:	$(LINTLIB) rfc822.sst.h rfc822.sst.c
 	lint -hc $(DEFS) $(INCL) $(LINTLIB) $(SOURCE)
 
-$(TOPDIR)/libs/libtag:
+$(LIBDEB):
 	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
 
 $(TOPDIR)/libc/llib-llibc.ln:
@@ -116,30 +116,10 @@ $(TOPDIR)/lib/llib-llibz.ln:
 libdb/llib-llibdb.ln:
 	cd libdb ; $(MAKE) $(MFLAGS) lintlib
 
-$(TOPDIR)/libc/libzc.a-a:
-	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/libc/libzc.a:
-	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
-
-$(TOPDIR)/lib/libzm.a-a:
-	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/lib/libzm.a:
-	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-
 libdb/libzmdb.a-a:
 	cd libdb ; $(MAKE) $(MFLAGS)
 libdb/libzmdb.a:
 	cd libdb ; $(MAKE) $(MFLAGS)
-
-$(TOPDIR)/libsh/libsh.a-a:
-	cd $(TOPDIR)/libsh ; $(MAKE) $(MFLAGS) libsh.a
-$(TOPDIR)/libsh/libsh.a:
-	cd $(TOPDIR)/libsh ; $(MAKE) $(MFLAGS) libsh.a
-
-$(TOPDIR)/libs/libmalloc_d.a-a:
-	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS) $(TOPDIR)/libs/libmalloc_d.a
-$(TOPDIR)/libs/libmalloc_d.a:
-	cd $(TOPDIR)/libmalloc ; $(MAKE) $(MFLAGS) $(TOPDIR)/libs/libmalloc_d.a
 
 ../libsh/sh.sst.h:
 	cd ../libsh; $(MAKE) $(MFLAGS) sh.h

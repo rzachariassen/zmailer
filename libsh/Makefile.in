@@ -63,10 +63,13 @@ optimizer.o: $(srcdir)/optimizer.c $(srcdir)/sh.h
 
 .PRECIOUS: $(TOPDIR)/libs/$(LIBNAME).a
 
+$(TOPDIR)/include/sfio.h:
+	cd $(TOPDIR)/sfio; $(MAKE) $(MFLAGS)
+
 $(TOPDIR)/include/rfc822.entry:
 	cd $(TOPDIR)/router; $(MAKE) MFLAGS=$(MFLAGS) rfc822.entry
 
-interpret.o: $(TOPDIR)/include/rfc822.entry $(srcdir)/$(TOPDIR)/include/mailer.h
+interpret.o: $(TOPDIR)/include/rfc822.entry $(srcdir)/$(TOPDIR)/include/mailer.h $(TOPDIR)/include/sfio.h
 test.o: $(srcdir)/test.c
 
 version.c: main.o $(TOPDIR)/libs/$(LIBNAME).a $(TOPDIR)/Makefile
@@ -85,6 +88,9 @@ $(TOPDIR)/libs/$(LIBNAME).a: $(OBJS)
 	$(RANLIB) $@
 
 #$(OBJS): $(SOURCE) ../config.h
+
+$(OBJS): $(TOPDIR)/include/mailer.h $(TOPDIR)/include/sfio.h
+
 
 lint:
 	lint $(CFLAGS) $(SOURCE)

@@ -60,38 +60,42 @@ SFIO_DC=Sfio_dc/sfdcdio.o Sfio_dc/sfdcdos.o Sfio_dc/sfdcfilter.o \
 
 all:	install
 
-libsfio.a: ast_common.h FEATURE/sfio $(OBJS) mksfio_f mkstdio_s mksfio_dc
-	$(AR) cr libsfio.a $(OBJS) $(SFIO_F) $(STDIO_S) $(SFIO_DC)
-	-(ranlib libsfio.a; exit 0) >/dev/null 2>&1
-
-FEATURE/sfio: $(srcdir)/features/sfio
-	-if [ ! -d FEATURE ]; then mkdir FEATURE; else exit 0; fi
-	$(BINDIR)/iffe set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/sfio
-ast_common.h: $(srcdir)/features/common
-	$(BINDIR)/iffe - set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/common > ast_common.h
-mksfio_f:
-	cd Sfio_f; $(MAKE) -f Makefile SHELL=$(SHELL) CC="$(CC)" \
-		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)"
-mkstdio_s:
-	cd Stdio_s; $(MAKE) -f Makefile SHELL=$(SHELL) CC="$(CC)" \
-		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)"
-mksfio_dc:
-	cd Sfio_dc; $(MAKE) -f Makefile SHELL=$(SHELL) CC="$(CC)" \
-		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)"
-
-libstdio.a:
-	cd Stdio_b; $(MAKE) -f Makefile SHELL=$(SHELL) CC="$(CC)" \
-		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)"
-
 install: libsfio.a libstdio.a
 	cp $(srcdir)/sfio.h ast_common.h $(srcdir)/sfio_t.h $(srcdir)/Stdio_s/stdio.h $(INCDIR)
 	cp libsfio.a Stdio_b/libstdio.a $(LIBDIR)
 	-(ranlib $(LIBDIR)/libsfio.a; exit 0) >/dev/null 2>&1
 	-(ranlib $(LIBDIR)/libstdio.a; exit 0) >/dev/null 2>&1
 
+libsfio.a: ast_common.h FEATURE/sfio $(OBJS) mksfio_f mkstdio_s mksfio_dc
+	$(AR) cr libsfio.a $(OBJS) $(SFIO_F) $(STDIO_S) $(SFIO_DC)
+	-(ranlib libsfio.a; exit 0) >/dev/null 2>&1
+
+libstdio.a: ast_common.h FEATURE/sfio
+	cd Stdio_b; $(MAKE) -f Makefile SHELL=$(SHELL) CC="$(CC)" \
+		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)" $(MFLAGS)
+
+FEATURE/sfio: $(srcdir)/features/sfio
+	-if [ ! -d FEATURE ]; then mkdir FEATURE; else exit 0; fi
+	$(BINDIR)/iffe - set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/sfio > FEATURE/sfio.$$$$ && mv FEATURE/sfio.$$$$ FEATURE/sfio
+
+ast_common.h: $(srcdir)/features/common
+	$(BINDIR)/iffe - set cc $(CC) $(CCMODE) $(CXFLAGS) : run $(srcdir)/features/common > ast_common.h.$$$$ && mv ast_common.h.$$$$ ast_common.h
+
+$(OBJS):  ast_common.h FEATURE/sfio
+
+mksfio_f: ast_common.h  FEATURE/sfio
+	cd Sfio_f; $(MAKE) -f Makefile SHELL=$(SHELL) CC="$(CC)" \
+		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)" $(MFLAGS)
+mkstdio_s: ast_common.h  FEATURE/sfio
+	cd Stdio_s; $(MAKE) -f Makefile SHELL=$(SHELL) CC="$(CC)" \
+		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)" $(MFLAGS)
+mksfio_dc: ast_common.h FEATURE/sfio
+	cd Sfio_dc; $(MAKE) -f Makefile SHELL=$(SHELL) CC="$(CC)" \
+		CCMODE="$(CCMODE)" CXFLAGS="$(CXFLAGS)" $(MFLAGS)
+
 clean:
 	-rm -f FEATURE/* $(OBJS) ast_common.h libsfio.a
-	cd Sfio_f; $(MAKE) -f Makefile SHELL=$(SHELL) clean
-	cd Stdio_s; $(MAKE) -f Makefile SHELL=$(SHELL) clean
-	cd Stdio_b; $(MAKE) -f Makefile SHELL=$(SHELL) clean
-	cd Sfio_dc; $(MAKE) -f Makefile SHELL=$(SHELL) clean
+	cd Sfio_f; $(MAKE) -f Makefile SHELL=$(SHELL)  $(MFLAGS) clean
+	cd Stdio_s; $(MAKE) -f Makefile SHELL=$(SHELL) $(MFLAGS) clean
+	cd Stdio_b; $(MAKE) -f Makefile SHELL=$(SHELL) $(MFLAGS) clean
+	cd Sfio_dc; $(MAKE) -f Makefile SHELL=$(SHELL) $(MFLAGS) clean

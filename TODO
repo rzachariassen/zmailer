@@ -207,6 +207,10 @@ transports/smtp:
 	scheduler + mailq: Complete the V2 protocol authentication,
 	and turn it into mandated default mode.
 
+    FEATURE/BUG:
+	When a transport-agent dies due to e.g. SIGSEGV, simulate
+	a diagnostic message telling of this situation!
+
     BUG? (2000/3/29)
 	Scheduler running with  "maxthr>1"  seem to loose sync about
 	tasks already fed to the processing.

@@ -11,8 +11,10 @@
 #
 # Written by Kiem-Phong Vo, 12/11/93
 
+outfile="sfstdhdr.h.$$"
+
 # Clean up on error or exit
-trap "eval 'rm kpv.xxx.* >/dev/null 2>&1'" 0 1 2
+trap "eval 'rm kpv.xxx.* $outfile >/dev/null 2>&1'" 0 1 2
 
 # Take cross-compiler name as an argument
 if test "$1" = ""
@@ -24,7 +26,7 @@ fi
 { echo '#include "ast_common.h"'
   echo '#include "FEATURE/sfio"'
   echo '#include "FEATURE/stdio"'
-} >sfstdhdr.h
+} > $outfile
 
 # Get full path name for stdio.h
 # make sure that the right stdio.h file will be included
@@ -41,7 +43,7 @@ s/.*"//
 s/.*/#include "&"/
 w
 !
-echo "`cat kpv.xxx.h`" >>sfstdhdr.h
+echo "`cat kpv.xxx.h`" >> $outfile
 
 # determine the right names for the given objects
 for name in _iob _filbuf _flsbuf _uflow _overflow _sf _srget _swbuf _sgetc _sputc
@@ -95,7 +97,7 @@ w
 			echo "#define $name	$NAME"
 		fi
 	  fi
-	} >>sfstdhdr.h
+	} >> $outfile
 done
 
 { echo '#if _lib___srget && !defined(NAME_srget)'
@@ -126,6 +128,8 @@ done
   echo '#undef _flsbuf'
   echo '#define _flsbuf		 __overflow'
   echo '#endif'
-} >>sfstdhdr.h
+} >> $outfile
+
+mv $outfile sfstdhdr.h
 
 exit 0

@@ -27,19 +27,19 @@ distclean clean-recursive: clean
 libident.a:
 	cd ../libident; $(MAKE) $(MFLAGS) $@
 
-libzmdb.a:
+libzmdb.a: ../include/sfio.h
 	cd ../router/libdb;  $(MAKE) $(MFLAGS) $@
 
-libsh.a:
+libsh.a: ../include/sfio.h
 	cd ../libsh; $(MAKE) $(MFLAGS) $@
 
-libta.a:
+libta.a: ../include/sfio.h
 	cd ../transports/libta; $(MAKE) $(MFLAGS) $@
 
-libzm.a:
+libzm.a: ../include/sfio.h
 	cd ../lib; $(MAKE) $(MFLAGS) $@
 
-libzc.a:
+libzc.a: ../include/sfio.h
 	cd ../libc; $(MAKE) $(MFLAGS) $@
 
 libmalloc.a libmalloc_d.a:
@@ -50,7 +50,7 @@ libmalloc.a libmalloc_d.a:
 libsystem.a:
 	: # Dummy...
 
-libsfio.a:
+../include/sfio.h libsfio.a:
 	cd ../sfio; $(MAKE) $(MFLAGS) all
 
 #

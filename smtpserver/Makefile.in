@@ -29,7 +29,7 @@ LIBMALLOCDEB=	$(TOPDIR)/libmalloc/libmalloc_d.a-a
 LIB=		-L$(TOPDIR)/libs -lzm -lzc -lident -lta $(LIBMALLOC)
 LIBDEB=		$(TOPDIR)/libs/libtag $(TOPDIR)/libs/libta.a \
 		$(TOPDIR)/libs/libzm.a $(TOPDIR)/libs/libzc.a \
-		$(TOPDIR)/libs/libident.a
+		$(TOPDIR)/libs/libident.a $(TOPDIR)/include/sfio.h
 LINTLIB=	$(TOPDIR)/lib/llib-llibz.ln $(TOPDIR)/libc/llib-llibzc.ln $(TOPDIR)/libident/llib-llibident.ln
 OBJS=		$(PROGRAM).o rfc821scn.o debugreport.o fdstatfs.o \
 		policytest.o cfgread.o smtpdata.o smtpcmds.o smtphelp.o \
@@ -94,8 +94,11 @@ lint:	$(LINTLIB)
 depend:	$(SOURCE)
 	CPPDEP="${CPPDEP}" $(TOPDIR)/bin/mkdep -f Makefile $(CFLAGS) $(SOURCE)
 
-$(TOPDIR)/libs/libtag:
+$(LIBDEB):
 	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libtag
+
+$(TOPDIR)/libmalloc/libmalloc_d.a:
+	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libmalloc_d.a
 
 $(TOPDIR)/libc/llib-llibzc.ln:
 	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS) lintlib
@@ -105,28 +108,6 @@ $(TOPDIR)/lib/llib-llibz.ln:
 
 $(TOPDIR)/libident/llib-llibident.ln:
 	cd $(TOPDIR)/libident ; $(MAKE) $(MFLAGS) lintlib
-
-$(TOPDIR)/libc/libzc.a-a:
-	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/libc/libzc.a:
-	cd $(TOPDIR)/libc ; $(MAKE) $(MFLAGS)
-
-$(TOPDIR)/lib/libzm.a-a:
-	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/lib/libzm.a:
-	cd $(TOPDIR)/lib ; $(MAKE) $(MFLAGS)
-
-
-$(TOPDIR)/libident/libident.a-a:
-	cd $(TOPDIR)/libident ; $(MAKE) $(MFLAGS)
-$(TOPDIR)/libident/libident.a:
-	cd $(TOPDIR)/libidentes ; $(MAKE) $(MFLAGS)
-
-$(TOPDIR)/libmalloc/libmalloc_d.a-a:
-	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libmalloc_d.a
-$(TOPDIR)/libmalloc/libmalloc_d.a:
-	cd $(TOPDIR)/libs ; $(MAKE) $(MFLAGS) libmalloc_d.a
-
 
 # DO NOT DELETE THIS LINE -- mkdep uses it.
 # DO NOT PUT ANYTHING AFTER THIS LINE, IT WILL GO AWAY.

@@ -31,7 +31,7 @@ PROGS	= router/router scheduler/scheduler			\
 SUBDIRS =   smtpserver router scheduler transports compat utils
 # Subdirectories where to run 'make clean'
 MOREDIRS = libs lib libc libsh libident libmalloc libresolv ssl \
-	   proto doc man
+	   proto doc man sfio
 # Files to remove in cleanup
 CLEANFILES = include/rfc822.entry $(ZCONF) version.c
 
@@ -44,15 +44,17 @@ DISTCLEANFILES = include/mail.h SiteConfig bin/mklibdeb bin/mkdeb	\
 
 #.SUFFIXES:
 
-all: config.h Makefile rfc822.entry $(ZCONF) SiteConfig
+all: config.h Makefile rfc822.entry $(ZCONF) SiteConfig \
+     libs/libtag include/sfio.h
 	#rm -f libs/libtag
 	for subdir in $(SUBDIRS); do \
 		echo making $@ in $$subdir; \
-		(cd $$subdir && $(MAKE) $@) || exit 1; \
+		(cd $$subdir && $(MAKE) $(MFLAGS) $@) || exit 1; \
 	done
 
 #	If need be, "make libs" at the top-level will remake all libraries
-libs:	force
+
+include/sfio.h libs/libtag libs: force
 	cd libs && $(MAKE) $(MFLAGS) clean all
 
 
@@ -185,7 +187,7 @@ TAGS clean-recursive distclean-recursive \
 	for subdir in $(SUBDIRS) $(MOREDIRS); do \
 	  target=`echo $@|sed 's/-recursive//'`; \
 	  echo making $$target in $$subdir; \
-	  (cd $$subdir && $(MAKE) $$target) || exit 1; \
+	  (cd $$subdir && $(MAKE) $(MFLAGS) $$target) || exit 1; \
 	done
 	rm -f $(CLEANFILES)
 

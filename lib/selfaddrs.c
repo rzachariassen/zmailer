@@ -181,7 +181,7 @@ struct sockaddr ***sockaddrp;
 	  struct lifconf lifc;
 	  struct ifconf ifc;
 	  int ifbufsize = 4 * sizeof(struct lifreq) + 4;
-	  char *interfacebuf = (void*)malloc(ifbufsize);
+	  char *interfacebuf = NULL;
 	  int s;
 
 	  if (!interfacebuf) {
@@ -323,7 +323,7 @@ done_this_ipv6:
 	{
 	  struct ifconf ifc;
 	  int ifbufsize = 4 * sizeof(struct ifreq) + 4;
-	  char *interfacebuf = (void*)malloc(ifbufsize);
+	  char *interfacebuf = NULL;
 	  int s;
 
 	  if (!interfacebuf) {
@@ -536,12 +536,10 @@ stashmyaddress(host)
 	  else
 	    addrsiz = -1;
 	}
-	if (myaddrs == NULL) {
-	  nmyaddrs = 0;
-	  myaddrs = (void*)malloc((nmyaddrs + naddrs +1) * sizeof(union sockaddr_uni*));
-	} else
-	  myaddrs = (void*)realloc((void*)myaddrs,
-				   (nmyaddrs + naddrs +1) * sizeof(union sockaddr_uni*));
+	/* malloc(size) == realloc(NULL, size) */
+	myaddrs = (void*)realloc((void*)myaddrs,
+				 (nmyaddrs + naddrs +1) *
+				 sizeof(union sockaddr_uni*));
 
 	if (!myaddrs) return; /* Uurgh.... */
 

@@ -68,6 +68,9 @@ zgetline(fp)
 	register char	*cp;
 	register u_int	n;
 
+	if (!getline_block)
+	  initzline(512);
+
 	/* assert getline_block != NULL */
 	if (getline_blen == 0 ||
 	    getline_bend >= (getline_block + getline_bsize)) {

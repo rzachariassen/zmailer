@@ -857,13 +857,11 @@ dq_insert(DQ, ino, file, dir)
 	if (dq->wrkspace <= dq->wrkcount) {
 	  /* Increase the space */
 	  dq->wrkspace = dq->wrkspace ? dq->wrkspace << 1 : 8;
-	  if (dq->stats == NULL)
-	    dq->stats = (struct dirstatname **)emalloc(sizeof(void*) *
-						       dq->wrkspace);
-	  else
-	    dq->stats = (struct dirstatname**)erealloc(dq->stats,
-						       sizeof(void*) *
-						       dq->wrkspace);
+
+	  /* malloc(size) == realloc(NULL,size) */
+	  dq->stats = (struct dirstatname**)erealloc(dq->stats,
+						     sizeof(void*) *
+						     dq->wrkspace);
 	}
 
 	dq->stats[dq->wrkcount] = dsn;

@@ -1033,13 +1033,10 @@ dq_insert(DQ, ino, file, delay)
 	  if (dq->wrkspace <= dq->wrkcount) {
 	    /* Increase the space */
 	    dq->wrkspace = dq->wrkspace ? dq->wrkspace << 1 : 8;
-	    if (dq->stats == NULL)
-	      dq->stats = (struct dirstatname **)emalloc(sizeof(void*) *
-							 dq->wrkspace);
-	    else
-	      dq->stats = (struct dirstatname**)erealloc(dq->stats,
-							 sizeof(void*) *
-							 dq->wrkspace);
+	    /* malloc(size) = realloc(NULL,size) */
+	    dq->stats = (struct dirstatname**)erealloc(dq->stats,
+						       sizeof(void*) *
+						       dq->wrkspace);
 	  }
 	  dq->stats[dq->wrkcount] = dsn;
 	  dq->wrkcount += 1;
@@ -1050,13 +1047,10 @@ dq_insert(DQ, ino, file, delay)
 	  if (dq->wrkspace2 <= dq->wrkcount2) {
 	    /* Increase the space */
 	    dq->wrkspace2 = dq->wrkspace2 ? dq->wrkspace2 << 1 : 8;
-	    if (dq->stats2 == NULL)
-	      dq->stats2 = (struct dirstatname **)emalloc(sizeof(void*) *
-							  dq->wrkspace2);
-	    else
-	      dq->stats2 = (struct dirstatname**)erealloc(dq->stats2,
-							  sizeof(void*) *
-							  dq->wrkspace2);
+	    /* malloc(size) = realloc(NULL,size) */
+	    dq->stats2 = (struct dirstatname**)erealloc(dq->stats2,
+							sizeof(void*) *
+							dq->wrkspace2);
 	  }
 	  dq->stats2[dq->wrkcount2] = dsn;
 	  dq->wrkcount2 += 1;

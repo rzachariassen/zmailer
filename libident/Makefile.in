@@ -29,7 +29,6 @@ all $(LIBNAME).a: $(TOPDIR)/libs/$(LIBNAME).a
 $(TOPDIR)/libs/$(LIBNAME).a:	$(SOURCE)
 	$(CC) $(CFLAGS) -c $?
 	ar rv $@ *.o
-	-rm -f *.o
 	$(RANLIB) $@
 
 lintlib:	llib-l$(LIBNAME).ln
