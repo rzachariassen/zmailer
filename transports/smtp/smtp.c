@@ -1087,7 +1087,7 @@ deliver(SS, dp, startrp, endrp)
 	char const * const  se = SMTPbuf + 800;
 	char const * const se2 = SMTPbuf + sizeof(SMTPbuf)-40;
 	char *s;
-	const int conv_prohibit = check_conv_prohibit(startrp);
+	int conv_prohibit = check_conv_prohibit(startrp);
 	int hdr_mime2 = 0;
 	int pipelining = ( SS->ehlo_capabilities & ESMTP_PIPELINING );
 	time_t env_start, body_start, body_end;
@@ -1332,6 +1332,7 @@ deliver(SS, dp, startrp, endrp)
 	    /* Copy the domain (original/cname). */
 	    while ((s < se) && *u) *s++ = *u++;
 	  }
+	  *s = 0;
 
 	  u = NULL;
 
@@ -1535,14 +1536,16 @@ deliver(SS, dp, startrp, endrp)
 	      sprintf(s, " ORCPT=%.800s", rp->orcpt);
 	    } else {
 	      const char *p = rp->addr->user;
-	      strcpy(s, " ORCPT=rfc822;"); s += strlen(s);
+	      strcpy(s, " ORCPT=rfc822;");
+	      s += strlen(s);
 	      while (*p) {
-		u_char c = *p;
+		const u_char c = *p++;
 		if ('!' <= c && c <= '~' && c != '+' && c != '=')
-		  *s = c;
-		else
-		  sprintf(s,"+%02X",c), s += 2;
-		++s;
+		  *s++ = c;
+		else {
+		  sprintf(s,"+%02X",c);
+		  s += 3;
+		}
 	      }
 	      *s = 0;
 	    }
