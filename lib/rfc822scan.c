@@ -126,10 +126,23 @@ hdr_status(cp, lbuf, n, octo)
 	}
 }
 
-#define MKERROR(msg,prev)	tn = makeToken((msg), strlen(msg)); \
+#if 0
+#define MKERROR(msg,prevp)	tn = makeToken((msg), strlen(msg)); \
 				tn->t_type = Error; \
-				tn->t_next = (prev); \
-				(prev) = tn;
+				tn->t_next = *(prevp); \
+				*(prevp) = tn;
+#else
+static void
+MKERROR(msg, prevp)
+     const char *msg;
+     token822 **prevp;
+{
+  token822 *tn = makeToken((msg), strlen(msg));
+  tn->t_type = Error;
+  tn->t_next = *(prevp);
+  *(prevp) = tn;
+}
+#endif
 
 /*
  * Recognize a compound token, or rather, a token which is defined by
@@ -167,12 +180,13 @@ nextline:
 		} else if (*cp == cstart) {
 			if (type == Comment)
 				++nest;
-			else
-				MKERROR("illegal char in compound", *tlist);
+			else {
+				MKERROR("illegal char in compound", tlist);
+			}
 		} else if (*cp == '\\') {
 			if (n == 1) {
 				MKERROR("missing character after backslash",
-					*tlist);
+					tlist);
 				/* Continue with next line, if existing! */
 				n = 0;
 				break;
@@ -182,7 +196,7 @@ nextline:
 			++len;
 		} else if (*cp == '\r') {
 			/* type = Error; */
-			MKERROR("illegal CR in token",*tlist);
+			MKERROR("illegal CR in token", tlist);
 		}
 	}
 	/* we either found cend, or ran off the end, either may be within
@@ -201,7 +215,7 @@ nextline:
 		}
 		/* type = Error; */	/* hey, no reason to refuse a message */
 		sprintf(msgbuf, "missing closing '%c' in token", cend);
-		MKERROR(msgbuf,*tlist);
+		MKERROR(msgbuf, tlist);
 		tp->t_pname = 0;	/* ugly way of signalling scanner */
 	} else if (*cp == cend) {	/* we found matching terminator */
 		++len;			/* move past terminator */
@@ -308,19 +322,19 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 			  continue;
 			if (n == 0 || !(rfc_ctype[(*cp) & 0xFF] & _l)) {
 			  strcpy(msgbuf, "CR without LF (newline)");
-			  MKERROR(msgbuf,tlist);
+			  MKERROR(msgbuf, &tlist);
 			} else if (n > 1 && (rfc_ctype[(*cp) & 0xFF] & _l)) {
 			  while (--n > 0 && (rfc_ctype[(*++cp) & 0xFF] & _l))
 			    continue;
 			  strcpy(msgbuf,"too many newlines (LFs) in field[1]");
-			  MKERROR(msgbuf,tlist);
+			  MKERROR(msgbuf, &tlist);
 			}
 			t.t_type = Fold;
 		} else if (ct & _l) {	/* >= 1 LFs without CR is a fold too */
 			while (--n > 0 && (rfc_ctype[(*++cp) & 0xFF] & _l))
 			  continue;
 			strcpy(msgbuf,"too many newlines (LFs) in field[2]");
-			MKERROR(msgbuf,tlist);
+			MKERROR(msgbuf, &tlist);
 			t.t_type = Fold;
 		} else if ((ct & _s) && (*cp=='(' || *cp=='"' || *cp=='[')) {
 			TokenType	type;
@@ -387,7 +401,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 				strcpy(msgbuf, "illegal control character");
 			if (t.t_len > n+1)
 				strcat(msgbuf, "s");
-			MKERROR(msgbuf,tlist);
+			MKERROR(msgbuf, &tlist);
 			t.t_type = Atom;
 		}
 		t.t_len -= n;
@@ -407,6 +421,7 @@ token822 * scan822(cpp, nn, c1, c2, allowcomments, tlistp)
 		}
 	} while (n > 0);
 
+	/* Reverse the token822 chain */
 	tp = tn = NULL;
 	for (tp = NULL; tlist != NULL; tlist = tn) {
 		tn = tlist->t_next;
